@@ -1,0 +1,66 @@
+
+.menu.part {
+	--menu-items-parent-padding-x: 5px; --menu-items-parent-padding-y: 8px;
+	width: calc(var(--full) - (var(--main-padding-x) * 2 + var(--menu-items-parent-padding-x) + var(--border) * 2));
+	height: var(--full); /* padding: 1px 2px; */ background: var(--s-white)
+}
+main #anaMenu {
+	position: relative; width: calc(var(--full) - 25px); height: var(--full); top: 3%
+	/* padding: 0 20px; left: 2%; top: 13% */
+}
+.menu.part > *,
+.menu.part > .hizliBul .jqx-combobox-input { box-sizing: content-box; border-radius: 8px }
+.menu.part > .hizliBul { width: var(--full) !important }
+.menu.part .hizliBul input {
+	font-weight: bold; font-size: 160% !important; color: #555; background: #eeeeee33;
+	padding-left: 85px !important; padding-bottom: 3px !important; background-image: url(../../images/search.png); background-repeat: no-repeat;
+	background-size: 28px 28px; background-position: 30px center
+}
+.menu.modelKullan.list-item { font-size: 130%; height: 30px !important }
+.menu.part .menu-parent { --border: 1px; width: var(--full); height: var(--full) /* border: var(--border) outset #ccc */ }
+.menu.part .menu-parent > .nav { width: calc(var(--full) - 20px) }
+.menu.part .menu-parent .nav:not(.jqx-hidden):not(.basic-hidden) { font-size: 150%; padding: 13px 30px; border-bottom: 1px solid #ccc }
+.menu.part .menu-parent .nav .nav-item:not(.disabled):not(.nav-separator) { color: steelblue; cursor: pointer }
+.menu.part .menu-parent .nav .nav-item:not(.disabled):not(.nav-separator):nth-last-child(3) { font-weight: bold; color: royalblue }
+.menu.part .menu-parent .nav .nav-item:not(.disabled):not(.nav-separator):nth-last-child(3):hover { color: #2655e8 }
+.menu.part .menu-parent .nav .nav-item:not(.disabled):not(.nav-separator):hover,
+.menu.part .menu-parent .nav .nav-item:not(.disabled):not(.nav-separator):focus { text-decoration: underline }
+.menu.part .menu-parent .nav .nav-item:not(.disabled):not(.nav-separator):active { color: slateblue }
+.menu.part .menu-parent .nav .nav-separator { margin: 0 20px; color: #cecece }
+.menu.part .menu-parent .nav .nav-item.disabled { color: #888; font-weight: bold }
+.menu.part .menu-parent .items-parent {
+	width: calc(var(--full) - var(--menu-items-parent-padding-x));
+	/* height: var(--full); */
+	padding: var(--menu-items-parent-padding-y) var(--menu-items-parent-padding-x);
+	background: #ececec11;
+	overflow-y: auto !important;
+	z-index: 1000 !important
+}
+.menu.part .menu-parent .items-parent .menu-header { font-weight: bold; font-size: 130%; color: #777 }
+.menu.part .menu-parent .items-parent .items { width: var(--full); height: calc(var(--full) - 50px); border-radius: 8px; z-index: 1001 !important }
+@media (max-height: 600px) { .menu.part .menu-parent .items-parent .items { padding-bottom: 200px } }
+.menu.part .menu-parent .items-parent .items:after { }
+.menu.part .menu-parent .items-parent:not(:first-child) { /* margin-top: 10px */ }
+.menu.part .menu-parent .items-parent .items .item {
+	font-size: var(--full) !important; color: #555; /*background-color: #f9f9f9;*/ background-color: #edf1f8;
+	width: 215px; height: 110px; margin: 2px 2px !important; background-size: 48px 48px !important;
+	background-repeat: no-repeat !important; vertical-align: top; position: relative; z-index: 1002 !important
+}
+.menu.part .menu-parent .items-parent .items .item * { }
+.menu.part .menu-parent .items-parent .items .item  {border-radius: 15px }
+.menu.part .menu-parent .items-parent .items .item.menu-cascade {
+	background-color: #dfe3ea82; background-image: url(../../images/sag.png);
+	background-position: calc(100% - 13px) 50% !important; box-shadow: 3px 5px 13px cadetblue;
+}
+.menu.part .menu-parent .items-parent .items .item.menu-choice { }
+.menu.part .menu-parent .items-parent .items .item:hover { font-weight: bold; background-color: unset /*border: .5px inset #9baadb*/ }
+.menu.part .menu-parent .items-parent .items .item:hover,
+.menu.part .menu-parent .items-parent .items .item:active { color: black }
+.menu.part .menu-parent .items-parent .items .item:hover { background-color: #bdd0f3 }
+.menu.part .menu-parent .items-parent .items .item:active { color: whitesmoke; background-color: #7093d3 }
+/*.menu.part .menu-parent .items-parent .items .item.menu-cascade:hover { background-color: #acc1e7 }
+.menu.part .menu-parent .items-parent .items .item.menu-cascade:active { color: whitesmoke; background-color: #4271c7 }
+.menu.part .menu-parent .items-parent .items .item.menu-choice:hover { background-color: #d8dde7 }
+.menu.part .menu-parent .items-parent .items .item.menu-choice:active { color: whitesmoke; background-color: #4271c7 }*/
+.menu.part .menu-parent .items-parent:has(.items > .item:active) .items > .item { filter: blur(.5px); opacity: .7 }
+.menu.part .menu-parent .items-parent:has(.items > .item:active) .items > .item:active { filter: unset; opacity: unset }

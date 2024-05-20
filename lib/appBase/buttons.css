@@ -1,0 +1,62 @@
+:root { --islemTuslari-button-bg-normal: #535457 }
+.butonlar.part {
+	--button-width: 70px; --button-height: 50px; --button-margin-x: 3px; --button-form-margin-x: 3px; --button-right-katsayi: 4;
+	--button-right: calc(var(--button-width) + var(--button-margin-x) * var(--button-right-katsayi) + var(--button-form-margin-x));
+	--width-sag: calc((var(--button-right) + 10px) * 2);
+	width: var(--full) !important; height: var(--button-height); /* background: linear-gradient(90deg, #ffffff 30%, #f2f2f2 60%) !important; */
+	margin: 0; padding: 0; overflow-x: hidden !important; overflow-y: overlay !important; z-index: 1000;
+	box-shadow: 0px var(--islemTuslari-box-shadow-height) 30px 0px #edeef2
+}
+@media (max-width: 1200px) { .butonlar.part { --button-width: 50px; --button-right-katsayi: 2 } }
+.butonlar.part > div { /* width: var(--full) !important; */ height: calc(var(--full) - 5px) !important; margin: 0; padding: 0 calc(var(--button-form-margin-x) / 2) }
+.butonlar.part > .sol { width: calc(var(--full) - (var(--width-sag) + 30px)) }
+.butonlar.part > .sag { width: var(--width-sag); text-align: right }
+.butonlar.part > .sag > button:nth-last-child(2) { margin-left: 15px; margin-right: 25px !important }
+.butonlar.part button { vertical-align: top; width: var(--button-width); height: var(--button-height); border: 0; margin-inline-end: var(--button-margin-x) }
+button, .jqx-button {
+	font-weight: bold; border: none !important; /*border: 1px solid #f9f9f9 !important;*/ border-radius: 8px; /* box-shadow: 0 0 2px 0 #ececec;*/
+	outline: none !important; background-repeat: no-repeat !important; background-size: 22px 22px !important
+}
+button, button:active, .jqx-button.jqx-fill-state-normal, .jqx-button.jqx-fill-state-hover, .jqx-button.jqx-fill-state-pressed { background-position: center !important }
+button:not(hover):not(:focus):not(:active), .jqx-button.jqx-fill-state-normal { background-color: transparent; /*background: linear-gradient(90deg, #fcfcfc 5%, #3a3a3a 80%)*/ }
+:not(.islemTuslari) > button:hover, :not(.islemTuslari) > .jqx-button.jqx-fill-state-hover { background-color: #edf2f4 }
+button:active .jqx-button:focus, .jqx-button.jqx-fill-state-pressed { color: #eee; background-color: #6f9cec !important }
+body > button#logout { right: 13px }
+button#sil { margin-left: 10px; margin-right: 20px } button#secimler { margin-right: 5px } button#sec, button#tamam { margin-left: 8px }
+#logout { background-image: url(../../images/logout.png); background-size: cover !important }
+#logout.jqx-fill-state-normal { background-color: #a05d45 }
+#fullScreen { background-image: url(../../images/tamEkranAc.png) }
+#cacheReset { background-image: url(../../images/temizle.png) }
+#navToggle, .navToggle { background-image: url(../../images/nav-toggle.png) !important }
+.islemTuslari > div > button.jqx-fill-state-normal { color: #eee; background-color: var(--islemTuslari-button-bg-normal) }
+.islemTuslari > div > button.jqx-fill-state-hover { background-color: #7f9bdd }
+#sec, #tamam { background-image: url(../../images/tamam.png) !important; background-size: 32px !important }
+	#sec.jqx-fill-state-normal, #tamam.jqx-fill-state-normal, #tazele.jqx-fill-state-normal { background-color: #86a986 !important }
+	#sec.jqx-fill-state-hover, #tamam.jqx-fill-state-hover, #tazele.jqx-fill-state-hover { background-color: #529d52 !important }
+#tamam.jqx-fill-state-normal {  }
+#temizle { background-image: url(../../images/temizle.png) !important }
+#tazele {background-image: url(../../images/tazele.png) }
+#vazgec { background-image: url(../../images/close.png) !important }
+#yeni { background-image: url(../../images/ekle.png) !important }
+#degistir { background-image: url(../../images/degistir.png) !important }
+#kopya { background-image: url(../../images/kopyala.png) !important }
+#izle { background-image: url(../../images/izle.png) !important; background-size: auto !important }
+#sil { background-image: url(../../images/sil.png) !important }
+#sil.jqx-fill-state-normal, #vazgec.jqx-fill-state-normal { background-color: #9b7c7c !important }
+	#sil.jqx-fill-state-hover, #vazgec.jqx-fill-state-hover { background-color: #ba5357 !important }
+	#sil.jqx-fill-state-pressed, #vazgec.jqx-fill-state-pressed { background-color: #a70a0f !important }
+#basliklariDuzenle { background-image: url(../../images/gridKolonDuzenle.png) !important }
+#basliklariDuzenle.jqx-fill-state-normal { background-color: #727272 }
+#rapor { background-image: url(../../images/rapor_ekrana.png) !important }
+#kolonFiltre { background-image: url(../../images/hizli_bul.png) !important }
+button#secimler {background-image: url(../../images/filtre.png) !important;}
+#basliklariDuzenle, #rapor, #kolonFiltre, #secimler { }
+#yazdir { background-image: url(../../images/yazdir.png) !important }
+#excel { background-image: url(../../images/excel.png) !important }
+#html { background-image: url(../../images/html.png) !important }
+#sol-ok { background-image: url(../../images/sol.png) !important }
+#sag-ok { background-image: url(../../images/sag.png) !important }
+#raporEkrana { background-image: url(../../images/rapor_ekrana.png); background-size: 32px 32px !important }
+#raporDizayn { background-image: url(../../images/degistir.png); background-size: 32px 32px !important }
+#konumBelirle { background-color: transparent; background-image: url(../../images/power_on.png); background-size: 48px !important }
+#konumGoster { background-color: transparent; background-image: url(../../images/map.png); background-size: 48px !important }

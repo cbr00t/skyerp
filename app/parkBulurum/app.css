@@ -1,0 +1,18 @@
+:root {
+	--bg-REZ: lightgreen; --bg-KUL: orangered;
+	--bs-REZ: 3px 3px 20px 3px lightgreen; --bs-KUL: 3px 3px 20px 3px orangered;
+}
+.durum-REZ, [data-durum = 'REZ'] { color: #333; background: var(--bg-REZ); box-shadow: var(--bs-REZ) }
+.durum-KUL, [data-durum = 'KUL'] { color: #333; background: var(--bg-KUL); box-shadow: var(--bs-KUL) }
+.jqx-grid [role = row] > * { font-size: 83% !important; line-height: 20px; word-break: break-word }
+/*.jqx-grid [role = row] .grid-cell-group {
+	font-size: 130%; color: whitesmoke; background-color: #333; height: calc(var(--full) / 1.03); padding: 0px 13px; padding-bottom: 0;
+	line-height: 23px; word-break: break-word
+}*/
+.jqx-grid [role = row] .grid-cell-group > * { padding-top: 10px }
+.jqx-grid [role = row] > * button { font-size: 100% }
+@media (max-width: 1130px) { .jqx-grid [role = row] > * { font-size: 73% !important } .jqx-grid [role = row] > * button { font-size: 93% } }
+.jqx-grid [role = row] > * > div { margin-top: 3px !important; padding: 0 3px; text-wrap: pretty !important }
+.jqx-grid [role = row] > * .ek-bilgi { color: #999 }
+/*.masterListe.part .header > .islemTuslari #topluEMailGonder { margin-left: 30px }
+.masterListe.part .header > .islemTuslari #topluEMailGonder.jqx-fill-state-normal { color: whitesmoke !important; background-color: royalblue !important }*/

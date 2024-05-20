@@ -1,0 +1,45 @@
+::placeholder { color: #ccc }
+input[type=text]:invalid,
+input[type=textbox]:invalid,
+input[type=number]:invalid,
+input[type=date]:invalid {
+	color: orangered; border: 3px solid red
+}
+input[type=text]:not(:focus):valid,
+input[type=textbox]:not(:focus):valid,
+input[type=number]:not(:focus):valid,
+input[type=date]:not(:focus):valid {
+	color: forestgreen; border: 3px solid #ddd
+}
+body, main { background-color: #212328 !important }
+.sky-content { font-size: 24pt; margin: 0 }
+.sky-content, .sky-content > .part { width: var(--full); height: var(--full) }
+.sky-content > .payment.part > .payment-form {
+	--width-paymentForm: 800px;
+	position: absolute; width: var(--width-paymentForm); /* width: 60%; */
+	left: 33%; top: 30%; background-color: white;
+	padding: 20px 50px; border: 3px solid #aaa;
+	box-shadow: 1px 1px 20px .1px #cef; border-radius: 20px
+}
+@media (max-width: 1800px) { .sky-content > .payment.part > .payment-form { left: 15%; top: 20% } }
+@media (max-width: 1300px) { .sky-content > .payment.part > .payment-form { left: 10%; top: 15% } }
+.sky-content > .payment.part > .payment-form > .container {
+	width: auto;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	margin-bottom: 20px;
+	padding: 10px;
+}
+.sky-content > .payment.part > .payment-form > .container > .item {padding: 15px 8px;text-align: center}
+.sky-content > .payment.part > .payment-form > .container > .item > * { box-sizing: border-box }
+.sky-content > .payment.part > .payment-form > .container > .item > label { font-size: 85%; display: block; color: #aeaeae; padding-bottom: 13px }
+.sky-content > .payment.part > .payment-form > .container > .item > :not(label) { text-align: center; font-size: var(--full); padding: 13px; border-radius: 8px }
+.sky-content > .payment.part > .payment-form > footer  { text-align: center }
+.sky-content > .payment.part > .payment-form > footer > button { font-size: 110%; padding: 20px 80px; border-radius: 10px }
+
+.sky-content > .payment.part > .payment-form > .container #cardholder-name {width: calc(var(--width-paymentForm) - 70px);}
+.sky-content > .payment.part > .payment-form > .container #card-number { width: 400px }
+.sky-content > .payment.part > .payment-form > .container #expiry-date { width: 160px }
+.sky-content > .payment.part > .payment-form > .container #cvv { width: 130px }
+

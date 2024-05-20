@@ -1,0 +1,21 @@
+main {
+	--panel-dis-padding: 8px;
+	--panel-programlar-width: 40%;
+	--panel-margin-x: 13px;
+}
+main > .panel {
+	float: left;
+	padding: --panel-dis-padding-x;
+	margin-inline-end: var(--panel-margin-x);
+	height: var(--full);
+}
+main > .panel-programlar {
+	width: var(--panel-programlar-width);
+}
+main > .panel-vtListe {
+	width: calc(var(--full) - (var(--panel-programlar-width) + var(--panel-margin-x) * 2));
+}
+.jqx-grid .jqx-grid-cell > *,
+.jqx-grid .jqx-grid-group-cell > * {
+	font-size: 100%;
+}

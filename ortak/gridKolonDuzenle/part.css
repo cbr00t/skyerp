@@ -1,0 +1,13 @@
+
+.gridKolonDuzenle.part.content { height: calc(var(--full) - 40px) !important }
+.gridKolonDuzenle.part .header .islemTuslari #sablonYukle.jqx-fill-state-normal,
+.gridKolonDuzenle.part .header .islemTuslari #sablonSakla.jqx-fill-state-normal,
+.gridKolonDuzenle.part .header .islemTuslari #tumunuKaldir.jqx-fill-state-normal,
+.gridKolonDuzenle.part .header .islemTuslari #tumunuAktar.jqx-fill-state-normal { background-color: white }
+.gridKolonDuzenle.part #splitMain #kaldir.jqx-fill-state-pressed, .gridKolonDuzenle.part #splitMain #aktar.jqx-fill-state-pressed { color: royalblue !important; background: none !important; border: none !important }
+.gridKolonDuzenle.part .header .islemTuslari #tumunuKaldir { background-image: url(../../images/cift_sol.png) !important }
+.gridKolonDuzenle.part .header .islemTuslari #tumunuAktar { background-image: url(../../images/cift_sag.png) !important; margin-right: 13px }
+.gridKolonDuzenle.part #splitMain { height: calc(var(--full) - 50px) !important }
+.gridKolonDuzenle.part #splitMain > div .title { font-size: 160%; color: #888; margin-bottom: 5px }
+.gridKolonDuzenle.part .jqx-listbox { width: var(--full) !important; height: calc(var(--full) - 40px) !important }
+.gridKolonDuzenle.part .jqx-listbox .jqx-listbox-filter-input { font-size: 150%; color: #aaa }

@@ -1,0 +1,13 @@
+.raporTanim.part { --header-height: 63px; --subHeader-height: 86px; --splitHeader-height: 45px }
+.raporTanim.part > .header { height: var(--header-height) }
+.raporTanim.part > .content { height: calc(var(--full) - (var(--header-height) + 10px)) !important }
+.raporTanim.part > .content > .sub-header { height: var(--subHeader-height); margin-top: -15px }
+.raporTanim.part > .content .split-main > div { background: linear-gradient(210deg, #eee 30%, #ccc 100%) !important }
+.raporTanim.part > .content .split-main > div > .header { height: var(--splitHeader-height) !important }
+.raporTanim.part > .content .split-main > div > .header > * { height: var(--full) }
+.raporTanim.part > .content .split-main > div > .header input[type = checkbox],
+.raporTanim.part > .content .split-main > div > .header input[type = checkbox] + label { margin-top: 10px !important }
+.raporTanim.part > .content .split-main > div > .header > .button-parent {position: relative;min-width: unset !important;width: 80px;padding: 0 5px;}
+.raporTanim.part > .content .split-main > div > .grid-parent { max-height: calc(var(--full) - (var(--splitHeader-height) + var(--subHeader-height) + 0px)) }
+.raporTanim.part > .content .split-main > .sol > .header > .parent[data-builder-id = 'kolonKategoriKod'] { width: calc(var(--full) - 95px); float: left }
+.raporTanim.part > .content .split-main > .sol > .header > .button-parent { float: right }

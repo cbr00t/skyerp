@@ -1,0 +1,32 @@
+.modelTanim.part { --islemTuslari-height: 55px; --header-height: calc(var(--islemTuslari-height) + 5px); overflow: hidden }
+.modelTanim.part .header { height: var(--header-height) }
+.modelTanim.part .header .islemTuslari { position: relative; height: var(--islemTuslari-height); margin: 0; padding: 0 }
+.modelTanim.part .header .islemTuslari > .sol { background: unset !important }
+.modelTanim.part .bulForm { position: fixed; top: -5px; right: 500px; min-width: unset !important; width: 60px; height: 45px; padding: 10px; z-index: 1001 }
+@media (max-width: 1100px) { .modelTanim .part .bulForm { right: 300px } }
+.modelTanim.part, .modelTanim.part .form, .modelTanim.part .form > .form-layout { /* width: var(--full); height: var(--full) */ }
+.modelTanim.part > .form-layout { /* height: calc(var(--full) - (var(--header-height) + 15px)) !important */ }
+/*.modelTanim.part > .form > .form-layout { height: calc(var(--full) - 30px) !important }*/
+.modelTanim.part .jqx-window-content > div { }
+.modelTanim.part .form > div { /* line-height: 22px; margin-bottom: 5px !important; */ }
+.modelTanim.part .form .tabPanel { }
+.modelTanim.part .form .tabPanel > .content {
+	--padding-left: 5px; overflow-y: auto !important; /* overflow-x: hidden; */
+	width: calc(var(--full) - var(--padding-left)); height: calc(var(--full) - (var(--tabs-tabPage-height))); padding-left: var(--padding-left)
+}
+.modelTanim.part .form .formBuilder-element.parent { /* margin: 0; padding: 0 0 0 5px; */ }
+.modelTanim.part .form .tabPanel > .content > .formBuilder-element { width: calc(var(--full) - 5px); height: var(--full); margin: 0; padding: 0; padding-bottom: 300px }
+.modelTanim.part .form input:not([type=hidden]):not([type=button]):not([type=submit]):not([type=reset]):not([type=radio]),
+.modelTanim.part .form .modelKullan.part,
+.modelTanim.part .form .jqx-dropdownlist,
+.modelTanim.part .form .jqx-combobox { /* width: 99%; height: 42px !important; */ }
+/*.modelTanim.part .form input[type=number] { text-align: right }*/
+/*.modelTanim.part .form input[type=number][style=^"right"] { }*/
+.modelTanim.part .form textarea { width: 99.5%; }
+.modelTanim.part .form .etiket:not(.jqx-grid-cell) { /* height: 35px; */ /*min-width: 160px;*/ /* vertical-align: middle !important; */ /* margin: 0; */ /* margin-left: 20px; */ /* padding: 0; */ /* color: #aaa; */ }
+.modelTanim.part .form ._row > *:not(.etiket) { }
+.modelTanim.part .form .jqx-dropdownlist .jqx-dropdownlist-content { /*font-size: 190%; padding-top: 7px !important;*/ }
+.modelTanim.part .form .jqx-switchbutton { /* float: left; */ }
+.modelTanim.part .jqx-grid-cell { }
+.modelTanim.part .jqx-dropdownlist,
+.modelTanim.part .jqx-combobox { }

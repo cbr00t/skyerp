@@ -1,0 +1,100 @@
+.barkodluGercekleme.part {
+	--toggle-button-width: /* 50px */ 0px; --gridParent-top: var(--header-height);
+	--ek-bilgiler-toggle-margin-x: 8px; --ek-bilgiler-toggle-margin-right: calc(var(--toggle-button-width) + (var(--ek-bilgiler-toggle-margin-x) * 2));
+	--ek-bilgiler-height: 83px; --ek-bilgiler-height-current: 0px; --header-min-height: 50px; --header-height: calc(var(--header-min-height) + var(--ek-bilgiler-height-current));
+	--ekle-button-width: 80px; --ekle-button-margin-left: 8px; --ekle-button-margin-right: 10px; --ekle-button-left: calc(var(--ekle-button-width) + var(--ekle-button-margin-left) + var(--ekle-button-margin-right));
+	--listedenSec-width: 50px; --barkod-oncesi-width: calc(var(--listedenSec-width) + var(--toggle-button-width) + 3px); --header-parent-height: 43px; --parent-height: 38px
+}
+/*.barkodluGercekleme.part .jqx-grid [role=row] > div:first-child { width: 50px !important } */
+.barkodluGercekleme.part .parent > button, .barkodluGercekleme.part .parent { border-radius: 5px }
+.barkodluGercekleme.part .parent > button { height: var(--full) !important }
+.barkodluGercekleme.part .parent > .veri { width: var(--full) !important; height: var(--full) !important }
+.barkodluGercekleme.part .jqx-responsive-panel-button { width: var(--toggle-button-width) !important; margin: 0; padding: 0 }
+.barkodluGercekleme.part #listedenSec { width: var(--listedenSec-width) }
+.barkodluGercekleme.part #listedenSec + * { width: calc(var(--full) - (var(--listedenSec-width) + 5px)) !important }
+.barkodluGercekleme.part #barkod > #listedenSec + * { width: calc(var(--full) - calc(var(--barkod-oncesi-width) + 5px)) !important }
+.barkodluGercekleme.part #header, barkodluGercekleme.part #ekBilgiler { margin: 0 !important; padding: 0 !important }
+.barkodluGercekleme.part #header {
+	min-height: var(--header-min-height) !important; overflow-y: auto !important;
+	background: linear-gradient(90deg, #cfcfcf 3%, white 85%) !important; padding-bottom: 13px;
+}
+.barkodluGercekleme.part #ek-bilgiler { height: var(--ek-bilgiler-height); overflow-y: auto !important }
+.barkodluGercekleme.part .grid-parent { font-size: 90%; height: calc(var(--full) - var(--gridParent-top)) }
+.barkodluGercekleme.part .grid-parent .jqx-grid [role = row] > * { margin-top: -2px; line-height: 16px !important }
+	.barkodluGercekleme.part #header .parent { height: var(--header-parent-height); margin-bottom: 10px }
+.barkodluGercekleme.part #ek-bilgiler { height: var(--ek-bilgiler-height); margin-top: 10px; /* padding: 8px 0 0 0; */overflow-y: auto !important}
+.barkodluGercekleme.part #ek-bilgiler .title { font-weight: bold; color: #555; padding: 10px 15px 0 0 !important }
+.barkodluGercekleme.part #ek-bilgiler .parent { height: var(--parent-height); padding: 0; margin-block-end: 3px }
+.barkodluGercekleme.part #ek-bilgiler .ara-parent { height: unset }
+.barkodluGercekleme.part #ek-bilgiler .modelKullan-parent { min-width: 40%; width: unset !important }
+@media (max-width: 1100px) { .barkodluGercekleme.part #ek-bilgiler .modelKullan-parent { min-width: 85% } }
+@media (max-width: 700px) { .barkodluGercekleme.part #ek-bilgiler .modelKullan-parent { min-width: 83% } }
+@media (max-width: 600px) { .barkodluGercekleme.part #ek-bilgiler .modelKullan-parent { min-width: 100% } }
+.barkodluGercekleme.part #ek-bilgiler .parent > .veri:not(.jqx-widget) { padding: 0 10px }
+.barkodluGercekleme.part #ek-bilgiler .parent > .date,
+.barkodluGercekleme.part #ek-bilgiler .parent > input[type=time],
+.barkodluGercekleme.part #ek-bilgiler .parent > input[type=checkbox] { min-width: unset }
+.barkodluGercekleme.part #ek-bilgiler .parent > input[type=checkbox]:checked + label { font-weight: bold; color: royalblue }
+.barkodluGercekleme.part #ek-bilgiler .parent > .date { width: 130px !important; margin-right: 3px }
+/*.barkodluGercekleme.part #ek-bilgiler .parent > .date .jqx-dropdownlist-content { padding: 8px 10px }*/
+.barkodluGercekleme.part #ek-bilgiler .parent > input[type=time] { width: 87px !important }
+.barkodluGercekleme.part #ek-bilgiler .islem-tuslari { margin-right: 20px }
+.barkodluGercekleme.part #ek-bilgiler #suan-parent { margin-right: 20px }
+
+.barkodluGercekleme.part #header #hat,
+.barkodluGercekleme.part #header #barkod,
+.barkodluGercekleme.part #header #miktar { --margin-right: 3px; margin-right: var(--margin-right) !important }
+.barkodluGercekleme.part #header #gonder > button,
+.barkodluGercekleme.part #header #iskarta > button,
+.barkodluGercekleme.part #header #kalite > button,
+.barkodluGercekleme.part #header #topluDegistir > button { margin-top: 3px; padding: 0 8px }
+.barkodluGercekleme.part #header #topluSil > button { margin-top: 3px; margin-left: 15px; padding: 0 5px }
+.barkodluGercekleme.part #header #gerceklemeler > button,
+.barkodluGercekleme.part #header #kalite > button,
+.barkodluGercekleme.part #header #topluDegistir > button { margin-left: 3px }
+.barkodluGercekleme.part #header #gonder > button.jqx-fill-state-normal { background: #ebfdfd }
+.barkodluGercekleme.part #header #gonder > button.jqx-fill-state-hover { background: #f8fff8 }
+.barkodluGercekleme.part #header #gonder > button.jqx-fill-state-pressed { background: #c8decd; color: #555 }
+.barkodluGercekleme.part #header #hat { width: 85%; min-width: 300px !important }
+@media (max-width: 900px) { .barkodluGercekleme.part #header #hat { width: 80% } }
+@media (max-width: 700px) { .barkodluGercekleme.part #header #hat { width: 70% } }
+.barkodluGercekleme.part #header #hat > .veri { }
+.barkodluGercekleme.part #header #hat > .veri .jqx-combobox-input { font-size: 110%; font-weight: bold; color: #888; background-color: #eceef6; padding: 0 10px !important }
+.barkodluGercekleme.part #header #hat > .veri .jqx-combobox-input:focus { color: #64f047; background-color: #4a4d59e8; border-bottom: 5px solid royalblue !important }
+.barkodluGercekleme.part #ek-bilgiler-toggle { z-index: 1000 }
+.barkodluGercekleme.part #header #barkod { min-width: 400px }
+.barkodluGercekleme.part #header #miktar { width: 100px }
+.barkodluGercekleme.part #header #ekle { width: var(--ekle-button-width); margin-top: 6px; margin-left: var(--ekle-button-margin-left); margin-right: calc(var(--ekle-button-margin-right) / 2) }
+.barkodluGercekleme.part #header #barkod > .veri, .barkodluGercekleme.part #header #miktar > .veri { font-size: 130%; padding: 2px 0 !important; color: lightcyan; background-color: #333333ee }
+.barkodluGercekleme.part #header #barkod > .veri:focus,
+.barkodluGercekleme.part #header #miktar > .veri:focus { background-color: #303030ee; border-bottom: 5px solid royalblue }
+.barkodluGercekleme.part #header #barkod > .veri:focus::placeholder,
+.barkodluGercekleme.part #header #miktar > .veri:focus::placeholder { color: #92d4ff }
+.barkodluGercekleme.part #header #barkod.barkod-success > .veri,
+.barkodluGercekleme.part #header #barkod.barkod-success > .veri::placeholder { color: #333 !important; background-color: lightgreen !important }
+.barkodluGercekleme.part #header #barkod.barkod-error > .veri,
+.barkodluGercekleme.part #header #barkod.barkod-error > .veri::placeholder { background-color: firebrick !important }
+.barkodluGercekleme.part #header #barkod.barkod-error > .veri { color: whitesmoke !important }
+.barkodluGercekleme.part #header #barkod.barkod-error > .veri::placeholder { color: #eee !important }
+.barkodluGercekleme.part #header #iskarta > button { background: #fdebeb }
+.barkodluGercekleme.part #header #iskarta > button.jqx-fill-state-hover { background: #fff9f8 }
+.barkodluGercekleme.part #header #iskarta > button.jqx-fill-state-pressed { background: #dec8c8; color: #555 }
+.barkodluGercekleme.part #header #kalite > button { background: #add4f3  }
+.barkodluGercekleme.part #header #kalite > button.jqx-fill-state-hover { background: #f1f1f1 }
+.barkodluGercekleme.part #header #kalite > button.jqx-fill-state-pressed { background: #b0d7f6; color: #555 }
+.barkodluGercekleme.part #header #gonder { margin-right: 25px }
+.barkodluGercekleme.part #header #gerceklemeler { margin-left: 40px }
+.barkodluGercekleme.part #ek-bilgiler .bs-ayirac { font-weight: bold; color: #bbb; margin-top: 8px; margin-left: 5px }
+.barkodluGercekleme.part #ek-bilgiler #otoGonder { margin-top: 0 }
+.barkodluGercekleme.part #ek-bilgiler #otoGonder .etiket { font-weight: bold; color: blue }
+.barkodluGercekleme.part #ek-bilgiler #paletliGiris { width: 100px }
+@media (max-width: 950px) {
+	/*.barkodluGercekleme.part #ek-bilgiler-toggle { }
+	.barkodluGercekleme.part #header { min-height: calc(var(--header-min-height) * 1.5) }
+	.barkodluGercekleme.part #header #barkod { min-width: unset; max-width: unset; width: var(--full) }
+	.barkodluGercekleme.part #header #miktar { --margin-left: var(--barkod-oncesi-width); max-width: unset; width: calc(var(--full) - (var(--ekle-button-left) + var(--margin-left) + var(--margin-right))); margin-left: var(--margin-left) }
+	.barkodluGercekleme.part #header #ekle { margin-right: var(--ekle-button-margin-right) }*/
+	.barkodluGercekleme.part #header #miktar { min-width: unset !important; width: 90px !important }
+	.barkodluGercekleme.part #ek-bilgiler { margin-top: 0 }
+	.barkodluGercekleme.part #ek-bilgiler .parent { height: var(--parent-height); /* padding: 0 5px; */ margin-block-end: 3px !important }
+}

@@ -1,0 +1,8 @@
+.masterListe.part .jqx-grid [role = row] .devreDisi:not(.jqx-grid-cell-selected),
+	.masterListe.part .jqx-grid [role = row] .iptal:not(.jqx-grid-cell-selected) { background: #e5bdb0 !important }
+.masterListe.part .jqx-grid [role = row] .tamamlandi:not(.jqx-grid-cell-selected)
+	.masterListe.part .jqx-grid [role = row] .varsayilan:not(.jqx-grid-cell-selected) { background: #dfebdf !important }
+.formBuilder-element[data-builder-id = 'devreDisimi'] > input:checked + label,
+.formBuilder-element[data-builder-id = 'isiBittimi'] > input:checked + label { color: orangered !important }
+.formBuilder-element[data-builder-id = 'varsayilanmi'] > input:checked + label { color: forestgreen !important }
+#yakindakiOtoparklar { background-color: transparent; background-image: url(../../../images/iletisim.png); background-size: 48px !important }

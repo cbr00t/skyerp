@@ -1,0 +1,39 @@
+.jqx-grid div[role=row] > div { font-size: 76%; line-height: 15px; word-break: break-word }
+@media (max-height: 910px) { .jqx-grid div[role=row] > div { font-size: 70% } }
+.jqx-grid div[role=row] > div > div { margin-top: 3px !important; padding: 0 3px; text-wrap: pretty !important }
+.jqx-grid div[role=row] > div .parent .ek-bilgi { color: #888 }
+.jqx-grid div[role=row] > div .parent { }
+.jqx-grid div[role=row] > div .parent.left { }
+.jqx-grid div[role=row] > div .parent.right { position: absolute; right: 0 }
+.jqx-grid div[role=row] > div .parent > .item { margin-inline-end: 8px }
+.jqx-grid div[role=row] > div .parent.right > .item,
+.jqx-grid div[role=row] > div .parent .item.ek-bilgi { font-weight: bold !important; color: slateblue !important }
+.jqx-grid div[role=row] > div .parent .kod { font-weight: bold; color: #999 }
+.jqx-grid div[role=row] > div.onay:not(.jqx-grid-cell-selected) { background-color: lightgreen !important }
+.jqx-grid div[role=row] > div.onay-sevk:not(.jqx-grid-cell-selected) { background-color: #eaf4f4 !important }
+.jqx-grid div[role=row] > div.talep:not(.jqx-grid-cell-selected) { background-color: #ead5cc !important }
+.masterListe.part > .header > .islemTuslari #tazele.jqx-fill-state-normal { background-color: #aaa !important }
+.masterListe.part > .header > .islemTuslari #onaylaVeyaKaldir { margin-right: 25px !important }
+.masterListe.part > .header > .islemTuslari #onaylaVeyaKaldir.jqx-fill-state-normal { color: black !important; background: linear-gradient(90deg, #90ee90aa 30%, #ffc6c1aa 100%) !important }
+.masterListe.part > .header > .islemTuslari #onaylaVeyaKaldir.jqx-fill-state-hover { color: black !important; background: linear-gradient(90deg, #90ee90 30%, #ffc6c1 100%) !important }
+.mqOnay.onaylaVeyaKaldir.part .content { --mesaj-height: 30px; --mesaj-padding-y: 5px; --renkCizgi-bottom: 8px }
+.mqOnay.onaylaVeyaKaldir.part .content .mesaj { height: var(--mesaj-height); padding: var(--mesaj-padding-y) 20px }
+.mqOnay.onaylaVeyaKaldir.part .content .satirBilgiler {
+	--padding-x: 30px; background: whitesmoke; width: calc(var(--full) - (3px + var(--padding-x) * 2));
+	height: calc(var(--full) - (50px + var(--mesaj-height) + var(--mesaj-padding-y) * 2 + var(--renkCizgi-bottom)));
+	padding: 13px var(--padding-x) !important; border: 1px solid #ccc; overflow-y: auto
+}
+.mqOnay.onaylaVeyaKaldir.part .content .satirBilgiler > .satirBilgi { --etiket-width: 120px; --etiket-margin-inline-end: 15px; margin-block-end: 30px }
+.mqOnay.onaylaVeyaKaldir.part .content .satirBilgiler > .satirBilgi > .row { margin-block-end: 10px;line-height: 15px }
+.mqOnay.onaylaVeyaKaldir.part .content .satirBilgiler > .satirBilgi > .row .etiket { color: #999; width: var(--etiket-width); margin-inline-end: var(--etiket-margin-inline-end) }
+.mqOnay.onaylaVeyaKaldir.part .content .satirBilgiler > .satirBilgi > .row .veri { font-weight: bold; color: #213f99; display: flex; flex-direction: row; width: calc(var(--full) - (var(--etiket-width) + var(--etiket-margin-inline-end) + 5px)) }
+.mqOnay.onaylaVeyaKaldir.part .content .satirBilgiler > .satirBilgi > .iskBilgi > div { margin-inline-end: 25px }
+.mqOnay.onaylaVeyaKaldir.part .content .satirBilgiler > .satirBilgi > .iskBilgi > div .etiket { width: unset }
+.mqOnay.onaylaVeyaKaldir.part .content .satirBilgiler > .satirBilgi > .row > div > .parent.right { }
+.mqOnay.onaylaVeyaKaldir.part .content .satirBilgiler > .satirBilgi > .row > div > .parent.right > *,
+.mqOnay.onaylaVeyaKaldir.part .content .satirBilgiler > .satirBilgi > .row > div > .parent > .item.ek-bilgi { color: lightcoral !important; min-width: 250px }
+.mqOnay.onaylaVeyaKaldir.part .content .satirBilgiler > .satirBilgi > .row > div > .parent > .item.ek-bilgi { margin-left: 20px }
+.mqOnay.onaylaVeyaKaldir.part .content .satirBilgiler > .satirBilgi > .iskBilgi > .sonucIskOran > .veri { font-weight: bold; font-size: 110%; color: #3f6cf2 }
+.mqOnay.onaylaVeyaKaldir.part .content .satirBilgiler > .satirBilgi > .iskBilgi > .distSinir > .veri { font-weight: bold; font-size: 110%; color: forestgreen }
+.mqOnay.onaylaVeyaKaldir.part .content .satirBilgiler > .satirBilgi > .iskBilgi > .bolgeMDSinir > .veri { font-weight: bold; font-size: 110%; color: firebrick }
+.mqOnay.onaylaVeyaKaldir.part .content .renkCizgi { position: absolute; bottom: var(--renkCizgi-bottom); width: var(--full); height: 8px }

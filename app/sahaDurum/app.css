@@ -1,0 +1,11 @@
+body #ust-parent > #nav ul > li#_verileriSil { border-top: 3px solid #888 }
+body #ust-parent > #nav ul > li#_verileriSil > a .img {
+	width: 32px; height: 32px; margin-right: 10px;
+	background-size: 100%; background-repeat: no-repeat; background-position: 0
+}
+body #ust-parent > #nav ul > li#_verileriSil > a .img { background-image: url(../../images/sil.png); background-color: darkred }
+body #ust-parent > #nav ul > li#_verileriSil > a .text { font-weight: bold; color: #862d2d }
+body #ust-parent > #nav ul > li#_verileriSil > a:hover .text { color: firebrick }
+body #ust-parent > #nav ul > li#_verileriSil > a:hover .img { background-color: firebrick }
+.jqx-grid div[role=row] > div { font-size: 90%; line-height: 18px; word-break: break-word }
+.jqx-grid div[role=row] > div > div { margin-top: 0 !important; text-wrap: pretty !important }

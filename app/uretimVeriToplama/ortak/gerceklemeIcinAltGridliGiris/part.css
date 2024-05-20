@@ -1,0 +1,35 @@
+.gerceklemeIcinAltGridliGiris.part {
+	--header-height: 65px; --header-margin-x: 0px; --header-margin-y: 5px; --grid-top: 0px
+	/* --grid-top: calc(var(--header-height) + var(--header-margin-y)) */ 
+}
+.gerceklemeIcinAltGridliGiris.part .islemTuslari > * > button { width: 70px }
+.gerceklemeIcinAltGridliGiris.part .header {
+	position: relative;
+	width: calc(var(--full) - (var(--header-margin-x) * 2)) !important;
+	height: var(--header-height);
+	/* margin-bottom: var(--header-margin-y); */
+	background: linear-gradient(90deg, #f3f0ef 15%, white 90%) !important;
+	overflow-y: auto !important;
+	z-index: 1000
+}
+.gerceklemeIcinAltGridliGiris.part .grid-parent {
+	position: relative;
+	top: var(--grid-top);
+	height: calc(var(--full) - (var(--header-height) + var(--islemTuslari-height) + var(--grid-top)));
+}
+.gerceklemeIcinAltGridliGiris.part .jqx-grid div[role = gridcell] { font-size: 90% }
+.gerceklemeIcinAltGridliGiris.part .jqx-grid div[role = gridcell] { padding: 0 3px }
+
+.gerceklemeIcinAltGridliGiris.part .jqx-grid div[role = gridcell] .parent > * { margin-inline-end: 8px }
+.gerceklemeIcinAltGridliGiris.part .jqx-grid div[role = gridcell] .parent > .kod { font-weight: bold; color: #999 }
+
+
+@media (max-width: 810px) {
+	/*.gerceklemeIcinAltGridliGiris.part .header {
+		max-height: calc(var(--header-height) * 1.5);
+	}*/
+	.gerceklemeIcinAltGridliGiris.part #gridParent {
+		height: calc(var(--full) - 100px) !important;
+	}
+}
+

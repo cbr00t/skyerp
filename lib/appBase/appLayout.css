@@ -1,0 +1,219 @@
+/* transition: all .4s;  lazy loading */
+:root {
+	--nav-toggle-button-width: 28px;
+	--nav-toggle-button-height: 33px;
+	--appTitle-top: 0px;
+	--appTitle-height-mini: 13px;
+	--appTitle-height: 100px;
+	--appTitle-bottom: calc(var(--appTitle-top) + var(--appTitle-height));
+	--background-image-height: 53px;
+	/*--header-image-height: var(--full);*/
+	--header-image-height: calc(var(
+	--appTitle-height) + 53px);
+	--nav-padding-x: 0px;
+	--nav-padding-y: 13px;
+	--nav-top: 0px;
+	--nav-top-mini: 60px;
+	--nav-min-width: 250px;
+	--nav-width: 20%;
+	--nav-right: calc(var(
+	--nav-width) + calc(var(--nav-padding-x) * 2));
+	--yil-renk: rebeccapurple;
+	--db-renk: green;
+	--main-padding-x: 15px;
+	--main-padding-y: 0px;
+	--islemTuslari-height: 45px;
+}
+* { accent-color: royalblue }
+
+body > #root-parent,
+body #ust-parent > #nav,
+body #ust-parent > #parent,
+body #ust-parent > #parent > #windows-parent,
+body #ust-parent > #parent > #windows-parent > div,
+body #ust-parent > #parent > #windows-parent > div > #windows,
+body #ust-parent > #parent > main { z-index: 1 }
+body > #root-parent,
+body #ust-parent,
+body #ust-parent > #nav,
+body #ust-parent > #parent > #windows-parent { position: fixed !important }
+body > .app-titlebar *,
+body #ust-parent > #nav ul,
+body #ust-parent > #nav ul > li,
+body #ust-parent > #parent,
+body #ust-parent > #parent > #windows-parent > div,
+body #ust-parent > #parent > #windows-parent > div > #windows,
+.skyTabs.part > .tabs,
+.skyTabs.part > .tabs > .tabPage,
+body #ust-parent > #parent > #windows-parent > div > #windows > .content,
+body #ust-parent > #parent > main,
+.part > .header,
+.butonlar.part { position: relative }
+
+html, body,
+body > #root-parent,
+body #ust-parent,
+body #ust-parent > #nav,
+body #ust-parent > #nav > ul,
+body #ust-parent > #parent,
+body #ust-parent > #parent > #windows-parent,
+body #ust-parent > #parent > #windows-parent > div,
+body #ust-parent > #parent > #windows-parent > div > #windows,
+body #ust-parent > #parent > #windows-parent > div > #windows > .content,
+body #ust-parent > #parent > main,
+.gridParent, .grid-parent { width: var(--full); height: var(--full) }
+body #root-parent { top: 0; /* height: var(--full); */ z-index: 1010 }
+body #ust-parent { /*backdrop-filter: blur(1px);*/ }
+body #ust-parent > #parent > #windows-parent { }
+body #nav-toggle {
+	position: fixed; width: var(--nav-toggle-button-width) !important; height: var(--nav-toggle-button-height) !important;
+	top: .8%; right: 10px; z-index: 1011; opacity: .7
+}
+body #ust-parent > #parent > #windows-parent > div > #windows > .content > div { /* mix-blend-mode: difference */ }
+.jqx-button { }
+.jqx-responsive-panel-button { background-color: transparent; border: 2px solid transparent; outline: none !important }
+.jqx-responsive-panel-button.jqx-fill-state-normal { }
+.jqx-responsive-panel-button:hover { border-color: #00afff !important }
+.jqx-responsive-panel-button:focus,
+.jqx-responsive-panel-button:active { border-color: #00f6ff !important }
+.jqx-responsive-panel-button .jqx-menu-minimized-button { background-image: url(../../images/nav-toggle.png) !important; background-color: transparent !important; background-size: contain }
+body #ust-parent > #parent { /*width: calc(var(--full) - var(--nav-right));*/ width: var(--full) }
+body > .header-image {
+	position: fixed; top: 0; left: 0; width: var(--full); height: var(--header-image-height); opacity: 1; z-index: 0; pointer-events: none;
+	background-repeat: no-repeat; background-position: right center; background-size: cover !important;
+	background-color: #0208259c; background-image: url(../../images/header-background.jpg);
+	background-blend-mode: overlay !important /* animation: header-image 5s infinite */
+}
+/*@keyframes header-image {
+   25% { background-color: #061040ab; }
+   50% { background-color: #2b3c8cab; }
+   75% { background-color: #091d7eab; }
+  100% { background-color: #061040ab; }
+}*/
+body > .bg-image-wrapper { width: var(--full); height: var(--background-image-height); background-color: #0327742b; opacity: .7; z-index: 1010 !important }
+body > .app-titlebar {
+	font-size: 76%; font-weight: bold; color: lightskyblue; position: fixed; top: var(--appTitle-top); right: 70px;
+	padding: .25% 10px; line-height: 20px; opacity: .8; pointer-events: none; z-index: 1015 !important
+}
+body > .app-titlebar > div { text-align: right }
+body > .app-titlebar .db-name { color: var(--s-white) }
+body > .app-titlebar .app-title { margin-left: 10px }
+body > .app-titlebar .app-version-parent { margin-left: 5px }
+body >.app-titlebar .app-version-parent .app-version { color: var(--s-white) }
+body > .app-titlebar .app-version-parent > *:not(:last-child) { margin-right: -2px }
+body > .app-titlebar .user { r: var(--s-white) /* width: var(--full); */ /* font-size: 90%; */ /* margin-left: 5px; */ }
+body > .app-header-button { position: fixed; width: 28px; height: 28px; margin-top: 8px; border-radius: 5px; z-index: 1020 }
+body > .app-header-button { display: none }
+body.no-wnd > .app-header-button { /* display: block; */ }
+/*body #ust-parent > #nav[style = ""] + #parent { width: var(--full) }*/
+body #ust-parent > #nav {
+	--top: calc(var(--appTitle-bottom) - (4px + var(--nav-padding-y) * 2 - var(--nav-top)));
+	font-size: 130%;
+	min-width: var(--nav-min-width); width: var(--nav-width);
+	/* height: calc(var(--full) - var(--nav-padding-y) - 30px) !important; */
+	right: 0; top: var(--top); height: calc(var(--full) - (var(--top) + var(--nav-padding-y) * 2.3)) !important;
+	/*background: #f2f8ff;*/
+	background: linear-gradient(180deg, #f1f6ff 20%, #cfd2db 80%) !important;
+	border: 1px solid #cecece; border-radius: 5px;
+	margin: 0 !important; padding: var(--nav-padding-y) var(--nav-padding-x) !important;
+	overflow-y: hidden !important; z-index: 10000 !important
+}
+body #ust-parent > #nav[style = ""] { }
+body #ust-parent > #nav[style = ""] + #parent main#content,
+body #ust-parent > #nav[style = ""] + #parent #windows.part {
+	pointer-events: none; background: linear-gradient(90deg, #dfdfdf 50%, #becbff 90%) !important;
+	opacity: .5 !important; filter: blur(.8px) brightness(.5)
+	/*animation: nav-open*/
+}
+@keyframes nav-open {
+	100% { opacity: .5 !important; filter: blur(.8px) brightness(.5) }
+}
+body #ust-parent > #nav ul > li ul { animation: 200ms 1 nav-item-open }
+@keyframes nav-item-open {
+	  0% { opacity: 0 }
+	 50% { opacity: .5 }
+	100% { opacity: 1 }
+}
+body #ust-parent > #nav > ul { margin: 0 !important; padding: 0 !important; overflow-y: auto !important }
+body #ust-parent > #nav ul > li { margin: 0 5px !important }
+body #ust-parent > #nav ul > li > a { font-size: 80%; color: #555; text-decoration: none; margin-block-start: 8px; padding: 3px 10px }
+body #ust-parent > #nav ul > li { cursor: pointer }
+body #ust-parent > #nav ul > li:hover { background: linear-gradient(0deg, #cedeef4a 30%, transparent 90%) !important }
+body #ust-parent > #nav ul > li:hover > a { color: royalblue }
+body #ust-parent > #nav ul > li > a:focus { font-weight: bold; text-decoration: underline; color: #999 }
+body #ust-parent > #nav ul > li > a:not(:hover):focus { box-shadow: none }
+body #ust-parent > #nav ul > li:focus-within > a { border: none !important }
+body #ust-parent > #nav ul > li > a.dropdown-toggle { font-weight: bold }
+body #ust-parent > #nav ul > li.expanded > a { /* background-color: #d0d0e0; */ border-radius: 5px; padding: 5px 15px }
+body #ust-parent > #nav ul > li > .collapse { background-color: #f8f8f836; border-radius: 0 0 5px 5px }
+body #ust-parent > #nav ul > li > .collapse ul { margin: 0 0 0 10px; margin-block-end: 2px }
+body #ust-parent > #nav ul > li > .collapse ul > li { font-size: 85% }
+body #ust-parent > #nav ul > li#_ayarlar > a .img,
+body #ust-parent > #nav ul > li#_fullScreen > a .img,
+body #ust-parent > #nav ul > li#_scale > a .img,
+body #ust-parent > #nav ul > li#_logout > a .img {
+	width: 32px; height: 32px; margin-right: 10px;
+	background-size: 100%; background-repeat: no-repeat; background-position: 0
+}
+body #ust-parent > #nav ul > li#_ayarlar { border-top: 3px solid #888 }
+body #ust-parent > #nav ul > li#_ayarlar > a .img { background-image: url(../../images/ayarlar.png); background-color: royalblue }
+body #ust-parent > #nav ul > li#_ayarlar > a .text { font-weight: bold; color: royalblue }
+body #ust-parent > #nav ul > li#_fullScreen > a .img { background-image: url(../../images/tamEkranAc.png) }
+body #ust-parent > #nav ul > li#_fullScreen > a .text { font-weight: bold }
+body #ust-parent > #nav ul > li#_scale > a .img { background-image: url(../../images/izle.png) }
+body #ust-parent > #nav ul > li#_scale > a .text { font-weight: bold }
+body #ust-parent > #nav ul > li#_logout > a .img { background-image: url(../../images/logout.png); background-color: darkred }
+body #ust-parent > #nav ul > li#_logout > a .text { font-weight: bold; color: #862d2d }
+body #ust-parent > #nav ul > li#_logout > a:hover .text { color: firebrick }
+body #ust-parent > #nav ul > li#_logout > a:hover .img { background-color: firebrick }
+
+body #ust-parent > #parent > main { position: absolute; top: calc(var(--appTitle-bottom) + var(--background-image-height) - 20px) }
+.part > .header { width: calc(var(--full) - 13px); /* text-align: right; */ padding-right: 0 }
+#windows .tabs .tabPage.nav-item .header .wnd-title.sinifAdi { /* font-size: 110% */ }
+body #ust-parent > #parent .part.wnd-content { /* height: var(--full); */ box-sizing: border-box }
+body #ust-parent > #nav,
+body #ust-parent > #nav ul,
+body #ust-parent > #parent > main > div,
+body #ust-parent > #parent .part.wnd-content,
+.jqx-window > div { animation: 200ms cubic-bezier(0.4, 0, 1, 1) 0ms 1 normal none running animation--wnd-content }
+.animate-wnd-content { animation: 500ms cubic-bezier(0.4, 0, 1, 1) 0ms 1 normal none running animation--wnd-content }
+.animate-wnd-content-slow { animation: 2000ms cubic-bezier(0.4, 0, 1, 1) 0ms 1 normal none running animation--wnd-content }
+@keyframes animation--wnd-content {
+    0% { opacity: 0; filter: blur(8px) }
+   50% { opacity: .8 }
+  100% { opacity: 1; filter: blur(0px) }
+}
+body > #root-parent > #ust-parent { border-top: 4px solid #9fc79f; border-left: 4px solid #6455b7; border-radius: 10px }
+body > #root-parent > #ust-parent > #parent > #windows-parent { top: var(--appTitle-bottom); height: calc(var(--full) - var(--appTitle-bottom)) }
+body > #root-parent > #ust-parent > #parent > #windows-parent > div > #windows { }
+body > #root-parent > #ust-parent > #parent > #windows-parent > div > #windows > .content { background-color: var(--s-white) }
+.part.wnd-content,
+.part.wnd-content > div:not(.formBuilder-element),
+main#content { background: var(--s-whitesmoke) }
+.jqx-listitem-element { background: var(--s-whitesmoke); box-shadow: 3px 3px 10px #3333332a }
+.jqx-listitem-element,
+.jqx-listitem-element > *,
+.jqx-listitem-element > * > * { width: var(--full) }
+.jqx-listitem-element .part.wnd-content,
+.jqx-listitem-element .part.wnd-content > div { background: transparent }
+.part.wnd-content:not(.list-item) { padding: 2px 5px }
+.list-item.jqx-grid { background: transparent; border: none }
+main#content { padding: var(--main-padding-y) var(--main-padding-x) }
+body.bg-modal > #root-parent > #ust-parent,
+body.bg-modal > #loginForm { filter: blur(3px) brightness(.5); /* backdrop-filter: blur(10px); */ pointer-events: none }
+.scaler.part { margin: 0 !important; padding: 0 !important }
+.scaler.part > div > .content { }
+/*.scaler.part > div > .content > .buttons { display: none }*/
+.scaler.part > div > .content .subContent > .scale-parent > .scaler {
+	--margin-left: 10px; --margin-top: 10px; zoom: 2 !important;
+	width: calc(var(--full) - (var(--margin-left) * 2)); margin: var(--margin-top) 0 0 var(--margin-left)
+}
+.scaler.part > div > .content .subContent > .scale-parent > .ek-bilgi { font-size: 85%; color: #aaa }
+.scaler.part > div > .content .subContent > .scale-parent > .ek-bilgi > .warning { font-weight: bold; color: darkred }
+.find-include {border-bottom: 4px solid #c2631378;/* background: #9ecdde3d !important; */}
+.find-exclude { }
+.feedback {
+	font-size: 100%; font-weight: bold; color: #ccc !important; background-color: royalblue !important;
+	max-width: 400px; max-height: 50px; margin: 0; padding: 5px; cursor: pointer
+}
+.feedback .ek-bilgi { font-size: 110%; color: white !important }

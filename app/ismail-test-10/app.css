@@ -1,0 +1,39 @@
+
+:root {
+}
+
+
+
+.menu.part .menu-parent .items-parent {
+}
+.menu.part .menu-parent .items-parent .menu-header {
+}
+.menu.part .menu-parent .items-parent .items {
+	
+}
+.menu.part .menu-parent .items-parent:not(:first-child) {
+}
+.menu.part .menu-parent .items-parent .items .item {
+}
+.menu.part .menu-parent .items-parent .items .item * {
+}
+.menu.part .menu-parent .items-parent .items .item.menu-cascade {
+	box-shadow: 5px 10px 10px cadetblue;
+}
+.menu.part .menu-parent .items-parent .items .item.menu-choice {
+}
+.menu.part .menu-parent .items-parent .items .item:hover {
+}
+.menu.part .menu-parent .items-parent .items .item:hover,
+.menu.part .menu-parent .items-parent .items .item:active {
+	color:aliceblue
+}
+.menu.part .menu-parent .items-parent .items .item.menu-cascade:hover {
+}
+.menu.part .menu-parent .items-parent .items .item.menu-cascade:active {
+}
+.menu.part .menu-parent .items-parent .items .item.menu-choice:hover {
+}
+.menu.part .menu-parent .items-parent .items .item.menu-choice:active {
+}
+

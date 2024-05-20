@@ -1,0 +1,11 @@
+.grafik.part {
+	--deg: calc(var(--value) * 1.8deg); --width: var(--width); --left: 0px; --top: 0px;
+	position: relative;  width: var(--width); left: var(--left); top: var(--top); display: grid; place-items: center;
+	aspect-ratio: 1; border-radius: 50%; box-sizing: border-box !important;
+	/*border: 3px solid #ff000042;*/
+	background-image:
+		radial-gradient(closest-side, /*white*/ transparent 0%, white calc(100% - var(--thickness)), transparent calc(0% - var(--thickness))),
+		conic-gradient(from -90deg, var(--fillColor) 0deg var(--deg), transparent var(--deg) 180deg),
+		conic-gradient(from -90deg, var(--backColor) 0deg 180deg, transparent 180deg 360deg)
+}
+.grafik.part > label { font-size: 60%; font-weight: bold; position: relative; top: 0 }

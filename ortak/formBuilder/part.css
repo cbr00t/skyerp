@@ -1,0 +1,12 @@
+
+.formBuilder { }
+.formBuilder-element .formBuilder-element.parent { }
+.formBuilder-element .formBuilder-element.parent:not(:first-child) { }
+.formBuilder-element .formBuilder-element.jqx-combobox,
+.formBuilder-element .formBuilder-element.jqx-dropdownlist { }
+
+.skyTabs.part.formBuilder-element { }
+.skyTabs.part.formBuilder-element > .tabs { background: linear-gradient(180deg, #ecf7ff42 30%, #ecf7ff 90%) !important }
+.skyTabs.part.formBuilder-element > .tabs > .tabPage.selected > .header { background: unset; text-decoration: underline }
+.skyTabs.part.formBuilder-element > .tabs > .tabPage:not(.selected) > .header:not(:hover):not(:focus) { color: #777 }
+.skyTabs.part.formBuilder-element > .tabs > .tabPage > .header:hover { color: royalblue }

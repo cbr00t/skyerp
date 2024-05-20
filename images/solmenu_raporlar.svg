@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="18.41" height="18.41" viewBox="0 0 18.41 18.41">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="Rectangle_131" data-name="Rectangle 131" width="18.409" height="18.409" transform="translate(0 0)" fill="#fff"/>
+    </clipPath>
+  </defs>
+  <g id="raporlar_sol_menü" data-name="raporlar sol menü" transform="translate(0 0.001)">
+    <rect id="Rectangle_129" data-name="Rectangle 129" width="2.046" height="18.41" transform="translate(16.364 -0.001)" fill="#fff"/>
+    <rect id="Rectangle_130" data-name="Rectangle 130" width="2.046" height="18.41" transform="translate(0 -0.001)" fill="#fff"/>
+    <g id="Group_129" data-name="Group 129">
+      <g id="Group_128" data-name="Group 128" clip-path="url(#clip-path)">
+        <path id="Path_175" data-name="Path 175" d="M6.611,13.344l.5-1.072H11.3l.5,1.072a1.023,1.023,0,0,0,1.868-.835l-.014-.029L10.194,5.064a1.023,1.023,0,0,0-.99-.589,1.023,1.023,0,0,0-.989.589L4.757,12.48a1.023,1.023,0,0,0,1.854.864M9.2,7.782l-1.14,2.445h2.28Z" fill="#fff" fill-rule="evenodd"/>
+      </g>
+    </g>
+  </g>
+</svg>

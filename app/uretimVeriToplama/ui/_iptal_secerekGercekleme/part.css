@@ -1,0 +1,36 @@
+.secerekGercekleme.part {
+	/*--header-height: 30px;*/
+	--listedenSec-width: 50px;
+	--islemTuslari-width: 250px;
+}
+.secerekGercekleme.part #header { padding-bottom: 5px }
+.secerekGercekleme.part #header .sub-parent { height: 40px }
+.secerekGercekleme.part #header button { border-radius: 5px }
+.secerekGercekleme.part #listedenSec { width: var(--listedenSec-width) }
+.secerekGercekleme.part #header #hat {
+	width: calc(var(--full) - (var(--islemTuslari-width)));
+	min-width: 300px !important
+}
+.secerekGercekleme.part #header #hat > .veri {
+	width: calc(var(--full) - (var(--listedenSec-width) + 15px)) !important
+}
+.secerekGercekleme.part #header #hat > .veri .jqx-combobox-input {
+	font-size: 110%; font-weight: bold;
+	color: #888; background-color: #eceef6;
+	padding: 0 10px !important
+}
+.secerekGercekleme.part #header #hat > .veri .jqx-combobox-input:focus {
+	color: #64f047; background-color: #4a4d59e8;
+	border-bottom: 5px solid royalblue !important
+}
+.secerekGercekleme.part #header #islemTuslari {
+	width: var(--islemTuslari-width); text-align: right
+}
+.secerekGercekleme.part #header #islemTuslari button {
+	width: auto; height: var(--full);
+	margin: 0; padding: 0 15px;
+	background-image: none !important
+	/* margin-inline-start: 0 */
+}
+.secerekGercekleme.part #header #islemTuslari #sil { background-image: none !important }
+.secerekGercekleme.part #header #islemTuslari #sil.jqx-fill-state-normal { color: whitesmoke }

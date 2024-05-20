@@ -1,0 +1,118 @@
+:root { --full: 100%; --half: 50%; --base-fontSize: 13pt }
+/*@font-face {
+  font-family: SkyERP-Default; src: url("../../fonts/OpenSans-VariableFont.ttf") format("truetype");
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; display: inline-block
+}*/
+@font-face {
+  font-family: SkyERP-Default; src: url("../../fonts/AROneSans-VariableFont.ttf") format("truetype");
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; display: inline-block
+}
+*, *::before, *::after { box-sizing: content-box }
+html, body {
+	font-family: SkyERP-Default, Segoe UI, Verdana, sans-serif; margin: 0; padding: 0; overflow: hidden;
+	position: relative !important; width: var(--full) !important; height: var(--full) !important
+}
+html { /* background: #efefef */ }
+body { background: linear-gradient(300deg, #eae1d42b 15%, #d2d0e626 90%) !important }
+html, .jqx-widget, .jqx-widget div[role=row] > *,
+input, button, select, optgroup, textarea { font-family: SkyERP-Default, Segoe UI, Verdana, sans-serif !important; font-size: var(--base-fontSize) }
+label { margin-bottom: 0; padding: 2px 0 }
+body > .bg-image-wrapper,
+body > .bg-image { position: fixed; top: 0; left: 0; background-repeat: no-repeat; pointer-events: none; z-index: 1 }
+body > .bg-image-wrapper { width: var(--full); z-index: 1 !important }
+body > .bg-image {
+	width: var(--full); height: var(--full); opacity: .2; z-index: 2 !important;
+	background-repeat: no-repeat; background-size: 20%; background-position: center /*background-image: url(../../images/sky_logo.png);*/
+}
+ul > li { list-style-type: disc }
+.tabs > li,
+.list-unstyled > li { list-style: none }
+input::placeholder { color: #bebebe }
+input { border-radius: 13px; border: 1px solid #ddd }
+input[type=color] { /* border: none !important */ }
+input[type=checkbox] { width: 28px; height: 26px }
+input[type=checkbox]+div,
+input[type=checkbox]+span { color: #888; display: inline-block !important; /*margin-left: -10px;*/ margin-left: 5px }
+input[type=checkbox]:checked+div,
+input[type=checkbox]:checked+span { font-weight: bold; color: royalblue }
+input[type=date] { width: 150px }
+input[type=time] { width: 85px }
+input[type=time].no-secs::-webkit-datetime-edit-second-field { color: transparent; background: white; position: absolute; width: 1px; margin-left: -3px }
+.ui-state-disabled { color: #bdbdbd; pointer-events: none }
+.jqx-switchbutton .jqx-switchbutton-label { font-weight: bold; font-size: 85%; cursor: pointer }
+.jqx-switchbutton .jqx-switchbutton-label-on { color: #ccc; background: royalblue }
+.jqx-switchbutton .jqx-switchbutton-label-off { color: #555; background: #ccc }
+.jqx-listbox.jqx-popup { box-shadow: 3px 3px 20px #d6ddf3; background: linear-gradient(90deg, #fcfcfc 35%, #eff2f5 80%) !important; z-index: 20000 !important }
+.jqx-listitem-element { margin: 3px 0 }
+.jqx-listitem-element > * { font-size: 80%; height: var(--full) !important; padding: 3px 3px 0 8px }
+.jqx-listitem-element > .jqx-listitem-state-hover { background: linear-gradient(90deg, #d6deea 10%, #fcfcfc 90%) !important }
+.jqx-listitem-element > *:not(.jqx-listitem-state-hover):not(.jqx-listitem-state-selected) { }
+/*progress { }
+@keyframes animate-stripes { 100% { opacity: 0; background-position: -100px 0px; } }
+progress:not([value]) { -webkit-appearance: none; appearance: none }
+progress:not([value])::-webkit-progress-bar {
+	background-image:
+		-webkit-linear-gradient(-45deg, 
+	                           transparent 33%, rgba(0, 0, 0, .1) 33%,
+	                           rgba(0,0, 0, .1) 66%, transparent 66%),
+	   -webkit-linear-gradient(top, 
+	                           rgba(255, 255, 255, .25), 
+	                           rgba(0, 0, 0, .25)),
+	   -webkit-linear-gradient(left, #09c, #f44);
+	border-radius: 2px; background-size: 35px 20px, 100% 100%, 100% 100%; -webkit-animation: animate-stripes 5s linear infinite !important
+}
+progress::-webkit-progress-value { background-image: linear-gradient(0deg, #5182b2 5%, #65aeef 100%) !important } */
+.ui-datepicker { z-index: 5000 !important; background: linear-gradient(180deg, #e9edf2 5%, #f5faff 60%) !important }
+.ui-state-highlight { background: linear-gradient(0deg, #f7faff 15%, #cde8f6 100%) !important }
+.ui-state-active { /* color: whitesmoke !important; */ background: linear-gradient(0deg, #5182b2 5%, #65aeef 100%) !important }
+.jqx-tabs-header { height: 40px !important }
+.jqx-tabs-header .jqx-tabs-title-container > .jqx-tabs-header-title { height: var(--full) !important }
+.jqx-window > div > .content { width: calc(var(--full) - 13px) !important; --buttons-height: 50px }
+.jqx-window > div > .content > * { position: relative; width: var(--full) }
+.jqx-window > div > .content > .subContent { width: var(--full); height: calc(var(--full) - (var(--buttons-height) + 10px)) }
+.jqx-window > div > .content > .buttons { height: var(--buttons-height); bottom: 0; right: 20px; text-align: right }
+.jqx-window > div > .content > .buttons button,
+.jqx-window > div > .content > .buttons .jqx-button { --width: 100px; --height: 60px; margin-inline-start: 8px; padding: 13px 25px }
+.jqx-grid [role=row] .jqx-grid-card-cell { overflow: hidden !important }
+.jqx-grid .jqx-group-expand,
+jqx-grid .jqx-group-collapse { width: 35px }
+.jqx-grid div[role=row] .jqx-grid-cell-pinned[title = false],
+.jqx-grid div[role=row] .jqx-grid-cell-pinned[title = true] { width: 35px }
+.jqx-widget, .jqx-widget-header, .jqx-widget-content,
+.jqx-grid .jqx-grid-cell,
+.jqx-grid .jqx-grid-group-cell { font-size: unset }
+.jqx-grid .jqx-grid-cell,
+.jqx-grid .jqx-grid-group-cell { /* cursor: pointer; */ cursor: initial !important }
+.jqx-grid .jqx-grid-content .jqx-grid-cell-edit > *,
+.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit > * {/* width: var(--full) !important ; */}
+.jqx-grid .jqx-grid-content .jqx-grid-cell-edit > input[type=date],
+.jqx-grid .jqx-grid-content .jqx-grid-cell-edit > input[type=time],
+.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit > input[type=date],
+.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit > input[type=time] { height: var(--full) !important }
+.jqx-grid .jqx-grid-content .jqx-grid-cell-edit input[type=time],
+.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit input[type=time] { text-align: center; font-size: 85% }
+.jqx-grid .jqx-grid-cell-filter-row .jqx-datetimeinput .jqx-action-button { top: 0 }
+.jqx-grid .jqx-clear >.jqx-widget-header { color: #999; background: linear-gradient(90deg, #47608d29 5%, #fdfeff2b 50%) !important }
+.jqx-grid .jqx-clear > .jqx-grid-groups-header > div > div { font-weight: bold; font-size: 100% }
+.jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header { font-weight: bold; color: #616161; text-wrap: pretty }
+.jqx-grid.jqx-grid-metro .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header { font-size: 150% }
+.jqx-grid div[role=row] .jqx-grid-cell-selected { color: unset; background: #0d366333; border: none }
+.jqx-window.active .jqx-window-header { color: whitesmoke; background-color: royalblue; margin-top: 0; }
+.jqx-widget-header .jqx-window-close-button-background,
+.jqx-widget-header .jqx-window-collapse-button-background { width: 40px !important; height: 25px !important }
+.jqx-widget-header .jqx-window-close-button-background > div,
+.jqx-widget-header .jqx-window-collapse-button-background > div { background-size: 18px }
+.jqx-widget-header .jqx-window-collapse-button-background { margin-right: 10px !important; background-color: #ffffff22 }
+
+.jqx-grid .jqx-adaptive-table { width: var(--full) }
+.jqx-grid .jqx-adaptive-table tr td {
+	font-size: 110%; font-weight: bold; color: #888;
+	background: linear-gradient(45deg, #a1b2c412 50%, #ececec8c 20%); padding-block-end: 25px !important
+}
+.jqx-grid .jqx-adaptive-table tr:nth-child(1) > td:nth-child(1) { display: none }
+.jqx-dropdownlist, .jqx-combobox { border-radius: 8px; box-sizing: border-box }
+.skyResim.part > button {
+	position: relative !important; top: 60px !important; right: 50px !important;
+	width: 34px !important; height: 32px !important; margin-inline-start: 40px !important; 
+	float: right !important; z-index: 5000 !important
+}

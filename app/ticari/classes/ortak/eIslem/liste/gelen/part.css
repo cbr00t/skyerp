@@ -1,0 +1,12 @@
+.gelenEIslemListe.part .islemTuslari #bekleyenleriGetir { background-image: url(../../../../../../../images/iletisim.png) }
+.gelenEIslemListe.part .islemTuslari #bekleyenleriGetir.jqx-fill-state-normal { background-color: #979f97 }
+.gelenEIslemListe.part .islemTuslari #dosyadanYukle { background-image: url(../../../../../../../images/download.png) }
+.gelenEIslemListe.part .islemTuslari #dosyadanYukle.jqx-fill-state-normal { }
+.gelenEIslemListe.part .islemTuslari #ticariFiseDonustur { background-image: url(../../../../../../../images/kaydet.png) }
+.gelenEIslemListe.part .islemTuslari #ticariFiseDonustur.jqx-fill-state-normal { }
+.gelenEIslemListe.part .islemTuslari #eIslemIzle { background-image: url(../../../../../../../images/izle.png) }
+.gelenEIslemListe.part .islemTuslari #eIslemIzle.jqx-fill-state-normal { background-color: #979f97 }
+.gelenEIslemListe.part .islemTuslari #sil { background-image: url(../../../../../../../images/eIslemKaldir.png) }
+.gelenEIslemListe.part .islemTuslari #sil.jqx-fill-state-normal { background-color: #9f9797 }
+.gelenEIslemListe.part .jqx-grid div[role=row] > div.tamamDurum.tamamlandi:not(.jqx-grid-cell-selected) { background-color: #d0e5cf }
+.gelenEIslemListe.part .jqx-grid div[role=row] > div.yazdirmaDurum.yazdirildi:not(.jqx-grid-cell-selected) { background-color: #ee90b2 }

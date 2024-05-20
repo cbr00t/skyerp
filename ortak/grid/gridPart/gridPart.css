@@ -1,0 +1,45 @@
+.grid.part { --header-height: calc(var(--islemTuslari-height) + var(--header-ek-height)); --header-ek-height: 0px }
+.grid.part > .header { height: var(--header-height) }
+.grid.part > .grid-parent { width: var(--full); height: calc(var(--full) - var(--header-height)) }
+.jqx-grid { }
+.jqx-grid .detay-grid-parent { width: var(--full); height: calc(var(--full) - 13px) }
+.jqx-grid .detay-grid-parent .jqx-grid { font-size: 95%; width: var(--full); max-width: 98% !important; max-height: 98% !important; margin: 5px /*; animation: 1000ms 1 grid-open */ }
+/*@media (max-width: 610px) {
+	.jqx-grid [role = columnheader]:nth-child(1),
+	.jqx-grid [role = columnheader]:nth-child(2),
+	.jqx-grid [role = row] > :nth-child(1),
+	.jqx-grid [role = row] > :nth-child(2) { width: 50px !important }
+}*/
+.jqx-grid [role = row] > *,
+.jqx-grid [role = row] > * > .jqx-grid-cell-left-align, .jqx-grid [role = row] > * > .jqx-grid-cell-center-align, .jqx-grid [role = row] > * > .jqx-grid-cell-right-align { height: var(--full) }
+.gridKolonVeGrupOrtak.list-item { line-height: 150% }
+.gridKolonVeGrupOrtak.list-item .kod { font-weight: bold; width: 23% }
+.jqx-grid [role = row]  * { cursor: default }
+.jqx-grid [role = row] > *:not(.jqx-grid-cell-alt):not(.jqx-grid-cell-selected).grid-readOnly { /* background: #c3c3c3; */ background: linear-gradient(90deg, #dcdcdc 20%, #d8d8d8 100%) !important }
+.jqx-grid [role = row] > .jqx-grid-cell-alt:not(.jqx-grid-cell-selected).grid-readOnly { /* background: #cacaca; */ background: linear-gradient(90deg, #d4d4d4 20%, #cfcfcf 100%) !important }
+.jqx-grid-group-cell.jqx-grid-cell-pinned { /* background-color: #195cc045 !important; */ /* border: none !important; */ }
+.jqx-grid [role = row] :has(.grid-cell-group) { background: var(--s-whitesmoke) }
+.jqx-grid [role = row] :has(.grid-cell-group) { vertical-align: top !important }
+.jqx-grid [role = row] .grid-cell-group {
+	font-weight: bold; font-size: 130%; color: whitesmoke; background-color: #333; height: calc(var(--full) / 1.03);
+	vertical-align: top !important; padding: 0px 13px; padding-top: 10px; padding-bottom: 0;
+	line-height: 23px; word-break: break-word
+}
+.jqx-grid [role = row] .grid-cell-group, .jqx-grid [role = row] .grid-cell-group * {  }
+.jqx-grid [role = row] ._rowNumber:not(:has(.grid-cell-group)) { font-weight: bolder !important; font-size: 70% !important; color: #343434; background: linear-gradient(270deg, #aaaaaa4f 30%, #ffffff33 90%) !important }
+.jqx-grid [role = row] > .ayirac:not(.jqx-grid-cell-selected) { background-color: #5e1ecf }
+.jqx-grid [role = row] .jqx-checkbox { /*background: #00000003*/ }
+.jqx-grid [role = row] .jqx-checkbox > * { margin-top: 0 !important }
+.jqx-grid-cell-edit { /* padding: 0 6px 0 6px !important; */ padding: 0 !important }
+.jqx-grid-cell-edit > * { }
+.jqx-grid-cell-edit input[type=number].editor { width: calc(var(--full) - 11px) !important; height: calc(var(--full) - 3px) !important; text-align: right; margin-left: 3px }
+.jqx-grid-cell-edit input[type=checkbox].editor { width: calc(var(--full) - 10px) !important; height: var(--full) !important; text-align: center; margin: 5px 0 0 5px }
+.grid-contextmenu.jqx-window { } .grid-contextmenu.jqx-window > div { }
+.grid-contextmenu.jqx-window > div > .content { width: var(--full) !important; height: var(--full) !important; margin: 0 !important; padding: 3px 0px !important }
+.grid-contextmenu.jqx-window div { }
+.grid-contextmenu .grid-toolbar, .grid-contextmenu .grid-toolbar > #grid-islemTuslari { width: var(--full) !important }
+.grid-open-slow { animation: 2000ms 1 grid-open } .grid-open { animation: 1300ms 1 grid-open } .grid-open-fast { animation: 700ms 1 grid-open }
+@keyframes grid-open {
+	  0% { opacity: .7; filter: blur(2px) }
+	100% { opacity: 1; filter: blur(0px) }
+}

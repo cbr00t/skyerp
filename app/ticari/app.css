@@ -1,0 +1,67 @@
+
+:root {
+}
+
+.options[data-builder-id='tip'] button.jqx-fill-state-normal:not(.selected) {
+	color: #555;
+}
+.jqx-grid-cell:not(.jqx-grid-cell-selected).gelir,
+.options[data-builder-id='tip'] button[data-value = ''].jqx-fill-state-normal:not(.selected),
+.options[data-builder-id='tip'] button[data-value = ' '].jqx-fill-state-normal:not(.selected) {
+	background-color: #e3f6e3 !important;
+}
+.jqx-grid-cell:not(.jqx-grid-cell-selected).gider,
+.options[data-builder-id='tip'] button[data-value = 'G'].jqx-fill-state-normal:not(.selected) {
+	background-color: #fde7de !important;
+}
+.jqx-grid-cell:not(.jqx-grid-cell-selected).tahakkuk,
+.options[data-builder-id='tip'] button[data-value = 'T'].jqx-fill-state-normal:not(.selected) {
+	background-color: #f5f2e8 !important;
+}
+.jqx-grid-cell:not(.jqx-grid-cell-selected).rapor-frVar,
+.list-item .rapor-frVar{
+	background-color: #eef0f8;
+}
+
+.jqx-grid .jqx-grid-cell.eIslem-E,
+.jqx-grid .jqx-grid-cell.eFat,
+.jqx-grid .jqx-grid-group-cell.eFat,
+.jqx-grid .jqx-grid-group-cell .eFat,
+div[data-efAyrimTipi="E"] .formBuilder-element[data-builder-id="efatGosterim"] {
+	color: whitesmoke;
+	background-color: #8556a5;
+}
+.jqx-grid .jqx-grid-group-cell .grid-cell-group .eFat {
+	padding: 5px 8px;
+}
+div[data-efAyrimTipi="E"] .header .baslikFormlar .tsnForm {
+	border: 3px solid #8556a5;
+	border-radius: 8px;
+}
+.jqx-grid .jqx-grid-cell.eIslem-A,
+div[data-efAyrimTipi="A"] .formBuilder-element[data-builder-id="efatGosterim"] {
+	color: #333;
+	background-color: #b5eeb5;
+}
+div[data-efAyrimTipi="A"] .header .baslikFormlar .tsnForm {
+	border: 3px solid #b5eeb5;
+	border-radius: 8px;
+}
+.jqx-grid .jqx-grid-cell.eIslem-IR,
+div[data-efAyrimTipi="IR"] .formBuilder-element[data-builder-id="efatGosterim"] {
+	color: whitesmoke;
+	background-color: orangered;
+}
+div[data-efAyrimTipi="IR"] .header .baslikFormlar .tsnForm {
+	border: 3px solid orangered;
+	border-radius: 8px;
+}
+.jqx-grid .jqx-grid-cell.eIslem-MS,
+div[data-efAyrimTipi="MS"] .formBuilder-element[data-builder-id="efatGosterim"] {
+	color: whitesmoke;
+	background-color: darkorange;
+}
+div[data-efAyrimTipi="MS"] .header .baslikFormlar .tsnForm {
+	border: 3px solid darkorange;
+	border-radius: 8px;
+}

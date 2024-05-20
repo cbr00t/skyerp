@@ -1,0 +1,116 @@
+
+:root {
+}
+
+.paletliGiris.part {
+	--header-margin-x: 3px;
+	--header-margin-y: 10px;
+	--header-top: 3px;
+	--header-height: 65px;
+	--header-bottom: calc(
+		var(--header-top) +
+		var(--header-height) +
+		var(--header-margin-y)
+	);
+	--listedenSec-barkod-width: 60px;
+	--barkod-height: 60px;
+	--barkod-haric-ek-width: 0;
+}
+.paletliGiris.part #tamam {
+	position: absolute;
+	top: 0;
+	right: 10px;
+	width: 60px;
+	height: 50px;
+	background-image: url(../../tamam.png);
+}
+.paletliGiris.part #header {
+	width: calc(var(--full) - var(--margin-x) * 2) !important;
+	padding: var(--header-top) var(--header-margin-x) 0 var(--header-margin-x) !important;
+	margin-bottom: var(--header-margin-y);
+	height: var(--header-height);
+	background: linear-gradient(90deg, #e2e7e5 15%, white 90%) !important;
+	overflow-y: auto !important;
+}
+.paletliGiris.part #header #listedenSec-barkod {
+	width: var(--listedenSec-barkod-width);
+	height: var(--barkod-height);
+}
+.paletliGiris.part #header #barkodParent {
+	max-width: 600px;
+	min-width: 300px;
+	height: unset;
+}
+.paletliGiris.part #header #barkodParent > #barkod {
+	font-size: 170%;
+	height: var(--barkod-height) !important;
+	padding: 5px 0 !important;
+	color: lightcyan;
+	background-color: #333333ee;
+	border-radius: 5px;
+}
+.paletliGiris.part #header #barkodParent > #barkod:focus {
+	background-color: #303030ee;
+	border-bottom: 5px solid royalblue;
+}
+.paletliGiris.part #header #barkodParent > #barkod:focus::placeholder {
+	color: #28a1de;
+}
+
+.paletliGiris.part #header #barkodParent #barkod {
+}
+.paletliGiris.part #header #barkodParent #barkod.barkod-success {
+	color: #333 !important;
+	background-color: lightgreen !important;
+}
+.paletliGiris.part #header #barkodParent #barkod.barkod-error,
+.paletliGiris.part #header #barkodParent #barkod.barkod-error::placeholder {
+	background-color: firebrick !important;
+}
+.paletliGiris.part #header #barkodParent #barkod.barkod-error {
+	color: whitesmoke !important;
+}
+.paletliGiris.part #header #barkodParent #barkod.barkod-error::placeholder {
+	color: #eee !important;
+}
+
+.paletliGiris.part #gridParent {
+	/* height: calc(var(--full) - (var(--header-bottom) + 100px)) !important; */
+	height: calc(var(--full) - var(--header-bottom)) !important;
+}
+.paletliGiris.part #gridParent > #grid {
+}
+
+.paletliGiris.part .jqx-grid .jqx-grid-cell,
+.paletliGiris.part .jqx-grid .jqx-grid-group-cell {
+	font-size: 90%;
+}
+.paletliGiris.part .jqx-grid .jqx-grid-cell > *,
+.paletliGiris.part .jqx-grid .jqx-grid-group-cell > * {
+	padding: 0 3px;
+}
+
+
+@media (max-width: 810px) {
+	/*.paletliGiris.part #header {
+		max-height: calc(var(--header-height) * 1.5);
+	}*/
+	.paletliGiris.part #header > *:not(button) {
+		min-width: calc(var(--full) - var(--header-margin-x)) !important;
+		max-width: calc(var(--full) - var(--header-margin-x)) !important;
+		margin-right: var(--header-margin-x) !important;
+	}
+	.paletliGiris.part #header #barkodParent {
+		min-width: 300px !important;
+		max-width: unset !important;
+		width: calc(
+			var(--full) - (
+				var(--barkod-haric-ek-width) + var(--header-margin-x)
+			)
+		) !important;
+	}
+	.paletliGiris.part #gridParent {
+		height: calc(var(--full) - 100px) !important;
+	}
+}
+

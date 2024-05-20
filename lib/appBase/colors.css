@@ -1,0 +1,71 @@
+
+:root {
+	--s-white: white; --s-whitesmoke: #ececec;
+	--s-whitesmoke: linear-gradient(90deg, #ececec 15%, #fcfcfc 70%);
+}
+.black { color: black !important }
+.lightblack { color: #333 !important }
+.white { color: white !important }
+.ghostwhite { color: ghostwhite !important }
+.whitesmoke { color: whitesmoke !important }
+.darkred { color: darkred !important }
+.red { color: red !important }
+.firebrick { color: firebrick !important }
+.darkorange { color: darkorange !important }
+.orange { color: orange !important }
+.orangered { color: orangered !important }
+.yellow { color: yellow !important }
+.lightyellow { color: lightyellow !important }
+.darkgreen { color: darkgreen !important }
+.green { color: green !important }
+.forestgreen { color: forestgreen !important }
+.lightgreen { color: lightgreen !important }
+.blue { color: blue !important }
+.steelblue { color: steelblue !important }
+.royalblue { color: royalblue !important }
+.cadetblue { color: cadetblue !important }
+.purple { color: purple !important }
+.mediumpurple { color: mediumpurple !important }
+.rebeccapurple { color: rebeccapurple !important }
+.lightgray { color: #bbb !important }
+.gray { color: gray !important }
+.darkgray { color: #555 !important }
+.darkestgray { color: #333 !important }
+.cyan { color: cyan !important }
+.lightcyan { color: lightcyan !important }
+.lightpink { color: lightpink !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-black { background-color: black !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-lightblack { background-color: #333 !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-white { background-color: white !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-gray { background-color: gray !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-lightgray { background-color: #ccc !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-darkgray { background-color: #555 !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-green { background-color: green !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-forestgreen { background-color: forestgreen !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-lightgreen { background-color: lightgreen !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-darkorange { background-color: darkorange !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-orange { background-color: orange !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-orangered { background-color: orangered !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-lightorangered { background-color: #ff8254 !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-red { background-color: red !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-darkred { background-color: darkred !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-firebrick { background-color: firebrick !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-red { background-color: red !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-lightred { background-color: indianred !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-yellow { background-color: yellow !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-lightyellow { background-color: lightyellow !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-lightred-transparent { background-color: #cf8c8cba !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-very-lightred { background-color: #dfcdcdad !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-cyan { background-color: cyan !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-royalblue { background-color: royalblue !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-lightroyalblue { background-color: #b0c3fb !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-cadetblue { background-color: cadetblue !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-lightcadetblue { background-color: #adc4c5 !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-lightcyan { background-color: lightcyan !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-mediumpurple { background-color: mediumpurple !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-rebeccapurple { background-color: rebeccapurple !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-lightpink { background-color: lightpink !important }
+
+.editable { background: unset !important }
+.readOnly, input[readonly], textarea[readonly] { /* background: #ececec */ background: linear-gradient(90deg, #e0e0e0 20%, #f0f0f0 100%) !important }
+

@@ -1,0 +1,6 @@
+.jqx-grid [role = row] > div { font-size: 88%; line-height: 15px; word-break: break-word }
+@media (max-width: 900px) { .jqx-grid [role = row] > div { font-size: 83% } }
+.jqx-grid [role=row] > div > div { margin-top: 3px !important; padding: 0 3px; text-wrap: pretty !important }
+.masterListe.part .header > .islemTuslari #topluEMailGonder { margin-left: 30px }
+.masterListe.part .header > .islemTuslari #topluEMailGonder.jqx-fill-state-normal { color: whitesmoke !important; background-color: royalblue !important }
+/*.topluEMailGonder.part .jqx-window-content > .subContent #mesaj { margin: 8px; width: calc(var(--full) - 18px) !important; height: calc(var(--full) - 70px) !important }*/

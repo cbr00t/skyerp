@@ -1,0 +1,218 @@
+class MQHizmet extends MQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get shTip() { return 'H' }
+	static get hizmetmi() { return true }
+	static get sinifAdi() { return 'Hizmet' }
+	static get table() { return 'hizmst' }
+	static get tableAlias() { return 'hiz' }
+	static get tanimUISinif() { return ModelTanimPart }
+	// static get tanimUISinif() { return MQHizmetTanimPart }
+	static get kodListeTipi() { return 'HIZ' }
+	static get ayrimTipKod() { return 'HZAYR' }
+	static get ayrimTableAlias() { return 'hayr' }
+	static get ozelSahaTipKod() { return 'HIZ' }
+	static get zeminRenkDesteklermi() { return true }
+	
+	constructor(e) {
+		e = e || {};
+		super(e);
+	}
+
+	static pTanimDuzenle(e) {
+		super.pTanimDuzenle(e);
+		
+		const {pTanim} = e;
+		$.extend(pTanim, {
+			brm: new PInstStr('brm'),
+			tip: new PInstTekSecim('tip', HizmetTipi),
+			grupKod: new PInstStr('grupkod'),
+			birimFiyat: new PInstNum('birimfiyat'),
+			gelirKdvDegiskenmi: new PInstBool('gelkdvdegiskenmi'),
+			gelirKdvHesapKod: new PInstStr('gelkdvhesapkod'),
+			giderKdvDegiskenmi: new PInstBool('gidkdvdegiskenmi'),
+			giderKdvHesapKod: new PInstStr('gidkdvhesapkod')
+		});
+	}
+
+	static rootFormBuilderDuzenle(e) {
+		e = e || {};
+		super.rootFormBuilderDuzenle(e);
+
+		const {tanimFormBuilder} = e;
+		tanimFormBuilder.add(new FBuilder_TanimFormTabs({ id: 'tabPanel' }).add(
+			new FBuilder_TabPage({ id: 'genel', etiket: 'Genel' }).add(
+				new FBuilderWithInitLayout().yanYana(3).add(
+					new FBuilder_ModelKullan({ id: 'brm', etiket: 'Brm', mfSinif: null, source: app.params.stokBirim.brmColl })
+						.dropDown().noMF().kodsuz()
+						.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.layout)} { max-width: 90px; }`),
+					new FBuilder_ModelKullan({ id: 'brm2', etiket: 'Brm 2', mfSinif: null, source: app.params.stokBirim.brmColl })
+						.dropDown().noMF().kodsuz()
+						.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.layout)} { max-width: 90px; }`),
+					new FBuilder_NumberInput({ id: 'brmOrani', etiket: 'Brm Oranı', min: 0 })
+						.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.layout)} { max-width: 150px; }`),
+					new FBuilder_ModelKullan({ id: 'grupKod', etiket: 'Grup', mfSinif: MQHizmetGrup }).dropDown()
+				),
+				new FBuilder_RadioButton({ id: 'tip', etiket: 'Tip', source: HizmetTipi.instance.kaListe })
+					.addCSS('flex-row')
+					.addStyle(
+						e => `${e.builder.getCSSElementSelector(e.builder.elmLabel)} { margin-top: 10px; padding-left: 5px; width: 100px !important; }`,
+						e => `${e.builder.getCSSElementSelector(e.builder.layout)} { margin-top: 15px !important; margin-bottom: 5px !important; }`
+					)
+					.onChange(e => {
+						const {builder} = e;
+						const {part} = builder.rootPart.fbd_tabPanel_gelirGider;
+						const {id2TabPage} = part;
+						const value = (e.value || '').trim();
+						builder.input.attr('data-tip', value);
+						part.divTabs.children('li').removeClass('jqx-hidden basic-hidden');
+						switch (value) {
+							case '':
+								id2TabPage.gider.layout.addClass('jqx-hidden');
+								part.activePageId = 'gelir';
+								break;
+							case 'G':
+								id2TabPage.gelir.layout.addClass('jqx-hidden');
+								part.activePageId = 'gider';
+								break;
+						}
+						part.render();
+						part.divTabs.children('li:not(.jqx-hidden):not(.basic-hidden)').eq(0).click()
+					}),
+				new FBuilder_Tabs({ id: 'vergiTabs' })
+					.addStyle_wh({ height: 'max-content !important' })
+					.onAfterRun(e => {
+						const {builder} = e;
+						builder.rootPart.fbd_tabPanel_gelirGider = builder
+					})
+					.add(
+						new FBuilder_TabPage({ id: 'gelir', etiket: 'Gelir' }).add(
+							new FBuilderWithInitLayout().yanYana(1).add(
+								MQVergi.getFormBuilder_shdKDV($.extend({}, e, { ba: 'A', ioAttrPrefix: 'gelir', etiketPrefix: 'Gelir' })),
+								new FBuilder_ModelKullan({ id: `stopajHesapKod`, etiket: `Gelir Stopaj Hesabı` })
+									.dropDown()
+									.setMFSinif(MQVergi)
+									.ozelQueryDuzenleBlock(e => {
+										const {builder, stm, alias} = e;
+										stm.sentDo(sent => {
+											sent.where.degerAta('STO', `${alias}.vergitipi`);
+											sent.where.degerAta('B', `${alias}.ba`);
+										})
+									}),
+								/*
+								   ekVergi-1, ekVergi-2 (BA = A),
+								   tevkifat hesap (BA = B)
+								*/
+							)
+						),
+						new FBuilder_TabPage({ id: 'gider', etiket: 'Gider' }).add(
+							new FBuilderWithInitLayout().yanYana(1).add(
+								MQVergi.getFormBuilder_shdKDV($.extend({}, e, { ba: 'B', ioAttrPrefix: 'gider', etiketPrefix: 'Gider' })),
+								new FBuilder_ModelKullan({ id: `stopajHesapKod`, etiket: `Gider Stopaj Hesabı` })
+									.dropDown()
+									.setMFSinif(MQVergi)
+									.ozelQueryDuzenleBlock(e => {
+										const {builder, stm, alias} = e;
+										stm.sentDo(sent => {
+											sent.where.degerAta('STO', `${alias}.vergitipi`);
+											sent.where.degerAta('A', `${alias}.ba`);
+										})
+									}),
+								/*
+								   ekVergi-1, ekVergi-2 (BA = B),
+								   tevkifat hesap (BA = A)
+								*/
+							)
+						)
+				)
+			)
+		))
+	}
+
+	static secimlerDuzenle(e) {
+		super.secimlerDuzenle(e);
+		
+		const {secimler} = e;
+		secimler.grupTopluEkle([
+			{ kod: 'grup', aciklama: 'Grup', renk: '#555', zeminRenk: 'lightgreen' },
+		]);
+		secimler.secimTopluEkle({
+			calismaDurumu: new SecimTekSecim({ etiket: `Çalışma Durumu`, tekSecimSinif: CalismaDurumu }),
+			grupKod: new SecimString({ mfSinif: MQHizmetGrup, grupKod: 'grup' }),
+			grupAdi: new SecimOzellik({ etiket: 'Grup Adı', grupKod: 'grup' }),
+			tip: new SecimBirKismi({ etiket: 'Tip', tekSecimSinif: HizmetTipi })
+		});
+		secimler.whereBlockEkle(e => {
+			const {aliasVeNokta} = this;
+			const {where, secimler} = e;
+			let value = secimler.calismaDurumu.value;
+			if (value)
+				where.add(`${aliasVeNokta}calismadurumu ${value == '1' ? '<>' : '='} ''`);
+			where.basiSonu(secimler.grupKod, `${aliasVeNokta}grupkod`);
+			where.ozellik(secimler.grupAdi, `hgrp.aciklama`);
+			if (secimler.tip.value)
+				where.birKismi(secimler.tip.value, `${aliasVeNokta}tip`);
+		})
+	}
+
+	static orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e);
+
+		const {aliasVeNokta} = this;
+		const {liste} = e;
+		liste.push(
+			new GridKolon({
+				belirtec: 'tipText', text: 'Tip', genislikCh: 13, sql: HizmetTipi.getClause('hiz.tip'),
+				cellClassName: (sender, rowIndex, belirtec, value, rec) => {
+					switch (rec.tip) {
+						case '':
+						case ' ':
+							return 'gelir';
+						case 'G':
+							return 'gider';
+						case 'T':
+							return 'tahakkuk';
+					}
+				}
+			}),
+			new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 5 }),
+			new GridKolon({ belirtec: 'grupkod', text: 'Grup', genislikCh: 6 }),
+			new GridKolon({ belirtec: 'grupadi', text: 'Grup Adı', genislikCh: 25, sql: 'hgrp.aciklama' }),
+			new GridKolon({ belirtec: 'birimfiyat', text: 'Fiyat', genislikCh: 18 }).tipDecimal({ fra: 5 }),
+			new GridKolon({ belirtec: 'gelkdvdegiskenmi', text: 'Gel.KDV.Değ?', genislikCh: 8, sql: MQSQLOrtak.tersBoolClause(`${aliasVeNokta}gelkdvdegiskenmi`) }),
+			new GridKolon({ belirtec: 'gelkdvoran', text: 'Gel.KDV', genislikCh: 10, sql: 'gelver.kdvorani' }).tipNumerik(),
+			new GridKolon({ belirtec: 'gidkdvdegiskenmi', text: 'Gid.KDV.Değ?', genislikCh: 8, sql: MQSQLOrtak.tersBoolClause(`${aliasVeNokta}gidkdvdegiskenmi`) }),
+			new GridKolon({ belirtec: 'gidkdvoran', text: 'Gid.KDV', genislikCh: 10, sql: 'gidver.kdvorani' }).tipNumerik()
+		);
+	}
+
+	static loadServerData_queryDuzenle(e) {
+		super.loadServerData_queryDuzenle(e);
+
+		const {aliasVeNokta} = this;
+		const {sent} = e;
+		sent.fromIliski('hizgrup hgrp', 'hiz.grupkod = hgrp.kod');
+		sent.fromIliski('vergihesap gelver', 'hiz.gelkdvhesapkod = gelver.kod');
+		sent.fromIliski('vergihesap gidver', 'hiz.gidkdvhesapkod = gidver.kod');
+		sent.sahalar.addAll(
+			`${aliasVeNokta}oscolor`,
+			`${aliasVeNokta}tip`
+		)
+	}
+}
+
+
+class HizmetTipi extends TekSecim {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get defaultChar() { return ' ' }
+	get gelirmi() { return this.char == ' ' }
+	get gidermi() { return this.char == 'G' }
+	get tahakkukmu() { return this.char == 'T' }
+	
+	kaListeDuzenle(e) {
+		e.kaListe.push(...[
+			new CKodVeAdi([' ', 'Gelir']),
+			new CKodVeAdi(['G', 'Gider']),
+			new CKodVeAdi(['T', 'Tahakkuk'])
+		])
+	}
+}

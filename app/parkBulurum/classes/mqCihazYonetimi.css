@@ -1,0 +1,34 @@
+.MQCihazYonetimi.masterListe.part .islemTuslari #tazele { margin-right: 40px }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row], .MQCihazYonetimi.masterListe.part .jqx-grid [role = row] * { position: relative }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] { font-size: 125% }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * { --height-alt: 50px; --width-sag: 30px; height: var(--full); line-height: 18px; z-index: 5 }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * table tr { width: var(--full) }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * table td { padding: 0 !important }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * .grid-cell-group { font-size: 170%; line-height: 30px !important }
+/*.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > *:not(.jqx-grid-cell-pinned):not(.jqx-grid-cell-selected) { background: whitesmoke }*/
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > *:not(.jqx-grid-cell-pinned) { border: 1px solid #ccc }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * .ust-alt { width: var(--full) }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * .ust { height: calc(var(--full) - (var(--height-alt) + 10px)); overflow-x: hidden !important; overflow-y: auto !important }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * .alt { height: var(--height-alt); border-top: 1px dotted #dcdcdc }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * .sol-sag { height: var(--full) }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * .sol  { width: calc(var(--full) - (var(--width-sag) + 6px)) }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * .sag { width: var(--width-sag); text-align: right }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * button { font-weight: bold; z-index: 10; padding: 0 !important; background: unset }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * button:hover { background-color: #ccd9ff }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * button:active { color: whitesmoke; background-color: royalblue }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * .ust button { width: 100px; height: 40px; margin-block-end: 3px; border-radius: 33px }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * .ust .item button { width: 36px; height: 18px }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] .item { width: var(--full); margin-block-end: 5px }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row]  .item:not(.flex-row) { width: var(--full) }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * .sub-item { margin-inline-end: 13px }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * .etiket { color: #999; padding-right: 5px !important }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * .ust .veri { color: royalblue }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * .ust td.veri { width: var(--full) }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * .ust .parkZamani { color: green }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * .alt { font-size: 110%; font-weight: bold; color: #ddd; background-color: #555 }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > *.jqx-grid-cell-selected .alt { filter: contrast(.8) }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * .alt > .durumText { padding: 13px 13px }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] .devreDisi > * .ust { background: #a49cad !important }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] .devreDisi > * .alt { color: #ccc; background: darkred !important; box-shadow: 3px 3px 20px 3px darkred }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] .devreDisi > * .ust > * *:not(.neden) { color: #636363; pointer-events: none }
+.MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * .ust .neden .veri, .MQCihazYonetimi.masterListe.part .jqx-grid [role = row] > * .ust .neden .veri * { color: firebrick !important }

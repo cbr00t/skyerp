@@ -1,0 +1,24 @@
+
+.gridliKolonFiltre.jqx-window .jqx-window-content { }
+/*.gridliKolonFiltre.part { width: 100%; height: 100% }*/
+.gridliKolonFiltre.part > .header {
+	position: absolute; width: calc(var(--full) -  20px); right: 3px;
+	/* margin-top: -10px; */ z-index: 1000 !important
+}
+.gridliKolonFiltre.part .header > .islemTuslari { }
+.gridliKolonFiltre.part .header > .islemTuslari > button { width: 70px; height: 55px }
+.gridliKolonFiltre.part .header > .islemTuslari > button#temizle { margin-right: 30px }
+.gridliKolonFiltre.part .grid-parent { --top: 60px; font-size: 100%; position: relative; top: var(--top); height: calc(var(--full) - (var(--top) + 10px)) !important }
+.gridliKolonFiltre.part .grid-parent .grid { }
+.gridliKolonFiltre.part .grid div[role=row] > div > div { padding: 10px 0 0 5px } 
+.gridliKolonFiltre.part .grid input.editor { --padding-x: 8px; width: calc(var(--full) - var(--padding-x) * 2) !important; padding: 0 var(--padding-x) } 
+.gridliKolonFiltre.part .grid div[role=row] > div.attr { font-weight: bold; color: #555 }
+.gridliKolonFiltre.part .grid div[role=row] > div.operator { color: #aaa }
+.gridliKolonFiltre.part .grid div[role=row] > div.value { font-weight: bold; color: royalblue }
+.gridliKolonFiltre.filtre-item > *:not(:first-child) { margin-left: 8px }
+.gridliKolonFiltre.filtre-item:hover { background-color: #3292e21a }
+.gridliKolonFiltre.filtre-item > .attr,
+.gridliKolonFiltre.filtre-item > .value { font-weight: bold }
+.gridliKolonFiltre.filtre-item > .attr { color: #777 }
+.gridliKolonFiltre.filtre-item > .operator { color: #aaa }
+.gridliKolonFiltre.filtre-item > .value { color: royalblue }

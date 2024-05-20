@@ -1,0 +1,4 @@
+.paramTanim.part { --header-height: 65px; --bulForm-width: 300px }
+.paramTanim.part .header { height: var(--header-height) }
+.paramTanim.part .islemTuslari { width: calc(var(--full) - (var(--bulForm-width) + 15px)) !important; float: right }
+.paramTanim.part .bulForm { position: fixed; top: -5px; right: 500px; min-width: unset !important; width: 60px; height: 45px; padding: 10px; z-index: 1001 }

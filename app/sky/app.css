@@ -1,0 +1,23 @@
+
+:root {
+}
+
+.jqx-grid div[role=row] .jqx-grid-cell,
+.jqx-grid div[role=row] .jqx-grid-group-cell {
+	font-size: 85%;
+}
+.jqx-grid div[role=row] .jqx-grid-cell:not(._durum):not(._sil):not(._durum) > *:not(.jqx-checkbox-metro),
+.jqx-grid div[role=row] .jqx-grid-group-cell:not(._durum):not(._sil) > *:not(.jqx-checkbox-metro) {
+	margin-top: 6px !important;
+	padding: 0 5px;
+}
+.jqx-grid div[role=row] .jqx-grid-cell .ek-veri,
+.jqx-grid div[role=row] .jqx-grid-group-cell .ek-veri {
+	font-size: 90%;
+	color: #aaa;
+}
+.jqx-grid div[role=row] .jqx-grid-cell-selected .ek-veri,
+.jqx-grid div[role=row] .jqx-grid-group-cell-selected .ek-veri {
+	font-weight: bold;
+	color: #333;
+}

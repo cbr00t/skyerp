@@ -1,0 +1,169 @@
+
+:root {
+	--islemTuslari-height: 55px;
+	--islemTuslari-box-shadow-height: 10px;
+	--islemTuslari-bottom: calc(var(
+	--islemTuslari-height) + var(--islemTuslari-box-shadow-height));
+	--grid-islemTuslari-width: 100px;
+}
+
+.fisGiris.part {
+}
+
+.fisGiris.part,
+.fisGiris.part .split,
+.fisGiris.part .split > div,
+.fisGiris.part .header .sub-parent {
+	overflow: hidden
+}
+.fisGiris.part > .split {
+	top: var(--islemTuslari-box-shadow-height);
+	/* height: calc(var(--full) - (var(--islemTuslari-height) + var(--islemTuslari-box-shadow-height))) !important; */
+}
+.fisGiris.part .split > div > div {
+	/* padding: 0; */
+}
+.fisGiris.part .jqx-splitter .jqx-splitter-panel .header {
+	/* height: unset; */
+	overflow-y: auto;
+	border: none;
+}
+.fisGiris.part .headerDipOrtak > div {
+	float: left;
+	width: var(--full);
+	height: 99%;
+	background-color: #f8f9fa;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+.fisGiris.part .dipForm {
+	/*width: 450px !important;*/
+}
+.fisGiris.part .dipForm .dipGrid {
+	font-size: 115%;
+}
+.fisGiris.part .header {
+	/* width: calc(100% - 450px) !important; */
+	border: 1.3px outset #ccc;
+}
+.fisGiris.part .islemTuslari {
+	width: var(--full);
+	height: var(--islemTuslari-height);
+	background-color: var(--s-white);
+	text-align: right;
+	position: relative;
+	top: 0;
+	right: 0;
+	padding-right: 13px;
+	pointer-events: none;
+	box-shadow: 0px var(--islemTuslari-box-shadow-height) 14px 4px #0000002e
+}
+.fisGiris.part .islemTuslari button { pointer-events: auto }
+.fisGiris.part .islemTuslari button#tamam { background-size: 28px !important }
+.fisGiris.part .baslikFormlar { position: relative; top: 5px }
+.fisGiris.part .header .sub-parent {
+	margin: 0;
+	padding: 0;
+}
+.fisGiris.part .header .sub-parent .jqx-dropdownlist-content {
+}
+.fisGiris.part .header .input-parent .veri {
+	height: 43px !important;
+	margin-left: 0;
+	margin-bottom: 5px;
+}
+
+.fisGiris.part:not([data-ozelisaret]) .header,
+.fisGiris.part[data-ozelisaret=""] .header {
+	padding: inherit;
+}
+.fisGiris.part[data-ozelisaret="*"] .header {
+	border: 3px solid #ff000096;
+	background: linear-gradient(90deg, transparent 45%, #4a070740 90%) !important;
+	box-sizing: border-box;
+}
+.fisGiris.part[data-ozelisaret="*"] .header .sub-parent.stokIslem .veri {
+	color: #333;
+	background-color: #9f0f7e26;
+}
+.fisGiris.part[data-ozelisaret="X"] .header {
+	border: 3px solid #9f530f96;
+	padding-top: 1px;
+	padding-bottom: 1px;
+}
+.fisGiris.part[data-ozelisaret="X"] .header .sub-parent.stokIslem .veri {
+	color: #333;
+	background-color: #9f530f30;
+}
+
+.fisGiris.part .header .baslikFormlar {
+}
+.fisGiris.part .header .baslikForm {
+	/*width: calc(100% - 400px) !important;*/
+	width: 100% !important;
+}
+
+.fisGiris.part .header .tarih {
+}
+.fisGiris.part .header .tarih > input {
+}
+.fisGiris.part .header .sube {
+}
+.fisGiris.part .header .numarator {
+}
+.fisGiris.part .header .cari {
+}
+.fisGiris.part .header .cari .veri {
+}
+.fisGiris.part .header .kasa {
+}
+.fisGiris.part .header .tahsilatOdeme {
+}
+.fisGiris.part .header .tahsilatOdeme .veri:not(.jqx-fill-state-pressed)[data-value="B"]  {
+	background: #ff45000f;
+	border: 1px solid orangered;
+}
+.fisGiris.part .header .tahsilatOdeme .veri:not(.jqx-fill-state-pressed)[data-value="A"] {
+	background: #90ee9029;
+	border: 1px solid green;
+}
+.fisGiris.part .header .tahsilatOdeme .jqx-dropdownlist-content {
+	font-weight: bold;
+	text-align: center;
+}
+.fisGiris.part .header .stokIslem {
+}
+.fisGiris.part .header .stokYer {
+}
+.fisGiris.part .header .baslikAciklama {
+}
+
+.fisGiris.part .gridVeIslemTuslari.split > div {
+	/* height: calc(var(--full) - 20px) !important; */
+}
+.fisGiris.part .gridVeIslemTuslari.split {
+}
+.fisGiris.part .gridVeIslemTuslari.split .gridIslemTuslari {
+	margin: 0; padding: 0;
+	margin-block-end: 5px;
+	overflow-y: auto !important
+}
+.fisGiris.part .gridVeIslemTuslari.split .gridIslemTuslari button {
+	font-weight: bold;
+	font-size: 75%;
+	width: calc(var(--full) - 5px) !important;
+	min-height: 45px;
+	max-height: 70px
+}
+.fisGiris.part .gridVeIslemTuslari.split .gridIslemTuslari > button.jqx-fillstate-normal {
+	color: #aaa;
+}
+.fisGiris.part .gridVeIslemTuslari.split .gridIslemTuslari > button:not(:first-child) {
+	margin: 3px 0;
+}
+
+.fisGiris.part .gridVeIslemTuslari.split .grid-parent {
+}
+.fisGiris.part .gridVeIslemTuslari.split .grid-parent .grid {
+	font-size: 90%
+}

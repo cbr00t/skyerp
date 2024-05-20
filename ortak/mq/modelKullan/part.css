@@ -1,0 +1,4 @@
+.modelKullan.list-item { font-size: var(--full); /* line-height: 30px; */ width: var(--full); height: var(--full) }
+.modelKullan.list-item .kod { font-weight: bold; min-width: 95px; margin-right: 5px }
+@media (max-width: 1000px) { .modelKullan.list-item .kod { min-width: 85px } }
+@media (max-width: 900px) { .modelKullan.list-item .kod { min-width: 70px } }

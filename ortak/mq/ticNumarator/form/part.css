@@ -1,0 +1,8 @@
+.ticNumarator.sub-part .seriVeNo.sub-parent #noYil {
+	font-weight: bold;
+	text-align: center !important;
+	width: 80px !important;
+	padding-left: 15px;
+}
+.ticNumarator.sub-part .seriVeNo.sub-parent #noYil::placeholder {
+}

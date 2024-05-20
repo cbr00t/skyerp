@@ -1,0 +1,24 @@
+.part .jqx-grid div[role=row] > div.eIslTipText.eIslTip-E:not(.jqx-grid-cell-selected) { background-color: #dcbcc6 }
+.part .jqx-grid div[role=row] > div.eIslTipText.eIslTip-A:not(.jqx-grid-cell-selected) { background-color: lightgreen }
+.part .jqx-grid div[role=row] > div.eIslTipText.eIslTip-IR:not(.jqx-grid-cell-selected) { background-color: #ddb8a3 }
+.part .jqx-grid div[role=row] > div.akibetText > * { text-align: center }
+.part .jqx-grid div[role=row] > div.akibetText.akibet-O:not(.jqx-grid-cell-selected) { background-color: lightgreen }
+.part .jqx-grid div[role=row] > div.akibetText.akibet-R:not(.jqx-grid-cell-selected) { background-color: red }
+.part .jqx-grid div[role=row] > div.akibetText.akibet-C:not(.jqx-grid-cell-selected) { background-color: orangered }
+.part .jqx-grid div[role=row] > div.akibetText.akibet-\@:not(.jqx-grid-cell-selected) { background-color: lightcyan }
+.part .jqx-grid div[role=row] > div.akibetText.akibet-X:not(.jqx-grid-cell-selected) { font-weight: bold; background-color: #dcbcc6 }
+.part .jqx-grid div[role=row]:nth-child(odd) > div.efatuuid.hasUUID:not(.jqx-grid-cell-selected) { background-color: #e2ecf4 }
+.part .jqx-grid div[role=row]:nth-child(even) > div.efatuuid.hasUUID:not(.jqx-grid-cell-selected) { background-color: #d6e4f3 }
+
+.eIslemListe.part { }
+.eIslemListe.part .islemTuslari { }
+.eIslemListe.part .islemTuslari button { /* position: absolute; right: 8px; */ background-size: 28px 28px !important }
+.eIslemListe.part .jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > div { margin-top: 8px }
+.eIslemListe.part .jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > div > div { line-height: 20px !important }
+.eIslemListe.part .jqx-grid div[role=row] > * { font-size: 83%; line-height: 20px; text-wrap: wrap !important; word-break: break-word !important }
+.eIslemListe.part .jqx-grid div[role=row] > * > * { position: relative; width: calc(var(--full) - 10px); height: var(--full); margin-top: 3px !important }
+.eIslemListe.part .jqx-grid div[role=row] > .jqx-grid-cell-pinned > * { margin-top: 0 !important; padding: 0; padding-left: 3px }
+.eIslemListe.part .jqx-grid [role = row] .jqx-checkbox > * { margin-top: -10px !important }
+.eIslemListe.part .jqx-grid div[role=row] > ._rowNumber > * { top: 10px }
+.eIslemListe.part .jqx-grid div[role=row] > :not(.jqx-grid-cell-pinned) {  }
+.eIslemListe.part .jqx-grid div[role=row] > :not(.jqx-grid-cell-pinned) > * { }

@@ -1,0 +1,9 @@
+.uiTarih {
+	text-align: center;
+}
+.uiTarih.date {
+	width: 130px;
+}
+.uiTarih.time {
+	width: 100px;
+}

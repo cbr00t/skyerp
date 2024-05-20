@@ -1,0 +1,35 @@
+
+.fisEkVergi.part {
+	overflow: hidden;
+}
+
+.fisEkVergi.part .content .tip > button {
+	font-size: 70%;
+	font-weight: bold;
+	width: 160px;
+	height: 55px;
+}
+.fisEkVergi.part .content .tip > button:not(:first-child) {
+	margin-left: 3px;
+}
+
+.fisEkVergi.part .content .tipAltForm {
+	margin-top: 10px;
+	min-height: 60px !important;
+}
+.fisEkVergi.part .content .tipAltForm > ._row {
+	width: 100% !important;
+	height: 40px !important;
+}
+.fisEkVergi.part .content .tipAltForm .modelKullan.part {
+	font-size: 70%;
+	width: 98.5% !important;
+	min-width: 300px;
+}
+.fisEkVergi.part .content .tipAltForm .modelKullan.part .jqx-combobox-content input {
+	text-overflow: ellipsis !important;
+}
+.fisEkVergi.part .content .tipAltForm .ddBeyannameKodu {
+}
+.fisEkVergi.part .content .tipAltForm .tevHesapKod {
+}

@@ -1,0 +1,19 @@
+.raporGoster.part,
+.raporGoster.part .secimlerSplit { overflow: hidden }
+.raporGoster.part .parent { padding: 0 }
+.raporGoster.part .parent > label { min-width: 130px; margin-right: 10px }
+.raporGoster.part .header > #islemTuslari { }
+.raporGoster.part .header > #islemTuslari button { /*width: 60px*/ }
+.raporGoster.part .secimlerSplit { }
+.raporGoster.part .secimlerSplit .parent { width: var(--full) }
+.raporGoster.part .secimlerOncesi.parent .formBuilder-element[data-builder-id = 'raporTip'] .modelKullan .jqx-dropdownlist-content { font-size: 90%; padding-top: 2px }
+.raporGoster.part .secimlerOncesi.parent .formBuilder-element[data-builder-id = 'raporTip'] .modelKullan:not(.jqx-fill-state-pressed) .jqx-dropdownlist-content .ek-bilgi { color: #aaa }
+.raporGoster.part .secimlerOncesi.parent .formBuilder-element[data-builder-id = 'raporTip'] .modelKullan.jqx-fill-state-pressed .jqx-dropdownlist-content .ek-bilgi { color: #2a2a2a }
+.raporGoster.part .secimlerOncesi.parent .formBuilder-element[data-builder-id = 'raporTip'] .modelKullan .jqx-dropdownlist-content .ek-bilgi { /*visibility: hidden;*/ font-size: 65% !important; margin-top: 6px !important; margin-left: 13px }
+.raporGoster.part .secimler.parent { width: var(--full); height: var(--full) }
+.raporGoster.part .secimler.parent > div,
+.raporGoster.part .secimler.parent > div > .part { width: var(--full); height: var(--full) /* width: 100% !important; height: 100% !important */ }
+.raporGoster.part .secimler.part .secimler-form { height: calc(var(--full) - 160px); margin-top: 0 !important }
+.raporGoster.part .secimler.part .secimler-form > div > div { }
+.raporEkrani.part.wnd-content div[data-builder-id = 'grid'] { height: calc(var(--full) - 85px) }
+.raporEkrani.part.wnd-content div[data-builder-id = 'grid'] .jqx-grid { height: var(--full) !important }

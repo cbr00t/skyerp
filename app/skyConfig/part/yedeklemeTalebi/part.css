@@ -1,0 +1,87 @@
+
+:root {
+	--header-height: 50px;
+	--header-margin-bottom: 13px;
+	--header-bottom: calc(var(--header-height) + var(--header-margin-bottom));
+}
+
+.yedeklemeTalebi.part { }
+.yedeklemeTalebi.part #tamam {
+	position: absolute; top: 1px; right: 10px;
+	width: 60px; height: 55px;
+	background-image: url(../../tamam.png);
+	z-index: 1000 !important
+}
+
+.yedeklemeTalebi.part #header {
+	height: var(--header-height);
+	margin-bottom: var(--header-margin-bottom)
+}
+.yedeklemeTalebi.part .grid-parent { /* height: calc(var(--full) - (var(--header-bottom))) */ }
+.yedeklemeTalebi.part #header .tanitim-parent {
+	--margin-x: 30px;
+	width: calc(var(--full) - (var(--margin-x) * 2 + 60px));
+	min-width: 500px;
+	margin: 0 var(--margin-x);
+	color: #eee;
+	background-color: #555;
+}
+.yedeklemeTalebi.part #header .tanitim-parent #tanitim {
+	font-size: 150%; text-align: center
+}
+.yedeklemeTalebi.part #header .tanitim-parent #tanitim:not([readonly]):not([disabled]) {
+	color: lightgreen; background: #333
+}
+
+.yedeklemeTalebi.part .jqx-grid .jqx-grid-cell,
+.yedeklemeTalebi.part .jqx-grid .jqx-grid-group-cell {
+	font-size: 90%;
+	color: #888;
+}
+
+.yedeklemeTalebi.part .jqx-grid .jqx-grid-cell.yeni,
+.yedeklemeTalebi.part .jqx-grid .jqx-grid-group-cell.yeni {
+	font-weight: bold; color: royalblue
+}
+.yedeklemeTalebi.part .jqx-grid .jqx-grid-cell.server,
+.yedeklemeTalebi.part .jqx-grid .jqx-grid-group-cell.server {
+	font-weight: bold; color: forestgreen
+}
+.yedeklemeTalebi.part .jqx-grid .jqx-grid-cell.db,
+.yedeklemeTalebi.part .jqx-grid .jqx-grid-group-cell.db {
+	font-weight: bold
+}
+.yedeklemeTalebi.part .jqx-grid .jqx-grid-cell.silindi,
+.yedeklemeTalebi.part .jqx-grid .jqx-grid-group-cell.silindi {
+	color: whitesmoke;
+	background: linear-gradient(180deg, #b96a6a 30%, #ef8a8a 60%) !important;;
+}
+
+.yedeklemeTalebi.part .jqx-grid .jqx-grid-cell.button > *,
+.yedeklemeTalebi.part .jqx-grid .jqx-grid-group-cell.button > * {
+	top: -5px !important;
+	left: -1px !important;
+	width: calc(var(--full) + 0px) !important;
+	height: calc(var(--full) + 1px) !important;
+}
+.yedeklemeTalebi.part .jqx-grid .db.jqx-grid-cell .server-parent,
+.yedeklemeTalebi.part .jqx-grid .db.jqx-grid-group-cell .server-parent {
+	font-size: 85%;
+	font-weight: bold;
+	color: #aaa;
+	margin: 1px 0 0 13px;
+}
+.yedeklemeTalebi.part .jqx-grid .db.jqx-grid-cell .server-parent .server,
+.yedeklemeTalebi.part .jqx-grid .db.jqx-grid-group-cell .server-parent .server {
+	color: #56a59b;
+}
+.yedeklemeTalebi.part .jqx-grid .db.jqx-grid-cell-selected .server-parent .server,
+.yedeklemeTalebi.part .jqx-grid .db.jqx-grid-group-cell-selected .server-parent .server {
+	color: #ddd;
+}
+.yedeklemeTalebi.part .jqx-grid .jqx-grid-content .zaman.jqx-grid-cell-edit input,
+.yedeklemeTalebi.part .jqx-grid .jqx-grid-content .zaman.jqx-grid-cell-edit input {
+	font-size: 75%;
+	font-weight: bold;
+	text-align: center;
+}

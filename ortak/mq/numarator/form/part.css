@@ -1,0 +1,30 @@
+
+.numarator.sub-part .seriVeNo.sub-parent #listedenSec,
+.ticNumarator.sub-part .seriVeNo.sub-parent #listedenSec {
+	font-weight: bold;
+	width: 60px;
+	margin-bottom: 5px;
+}
+.numarator.sub-part .seriVeNo.sub-parent #seri,
+.ticNumarator.sub-part .seriVeNo.sub-parent #seri {
+	font-size: 85%;
+	font-weight: bold;
+	text-align: center;
+	width: 70px;
+	border: 1px solid #aaa;
+}
+.numarator.sub-part .seriVeNo.sub-parent #seri:not(::placeholder),
+.ticNumarator.sub-part .seriVeNo.sub-parent #seri:not(::placeholder) {
+	text-transform: uppercase;
+}
+.numarator.sub-part .seriVeNo.sub-parent #seri.jqx-fill-state-normal,
+.ticNumarator.sub-part .seriVeNo.sub-parent #seri.jqx-fill-state-normal {
+	background-color: #f0f0f0;
+	margin-bottom: 5px;
+}
+
+.numarator.sub-part .seriVeNo.sub-parent #fisNo,
+.ticNumarator.sub-part .seriVeNo.sub-parent #fisNo {
+	width: 180px !important;
+	text-align: right;
+}

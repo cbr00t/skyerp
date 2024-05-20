@@ -1,0 +1,78 @@
+.jqx-window.secimler.part.with-tabs .jqx-window-content { /* overflow-y: hidden !important */ }
+.secimler.part { --header-height: 50px }
+.secimler.part > .header { position: absolute !important; min-height: 0 !important; height: var(--header-height) }
+.secimler.part #filtreForm { --top: -10px; position: relative; top: var(--top); left: 220px; height: var(--full); z-index: 11 !important }
+.secimler.part #filtreForm > input { border-radius: 5px }
+.secimler.part .islemTuslari { position: absolute; top: 0; right: 8px !important; overflow-y: hidden !important; z-index: 10 !important }
+.secimler.part .islemTuslari button#kolonFiltre { margin-right: 10px /* background-size: 20px 20px !important */ }
+.secimler.part .islemTuslari button#seviyeleriAc { background-image: url(../../../../images/seviye_ac.png); background-color: #eef9f3 }
+.secimler.part .islemTuslari button#seviyeleriKapat { background-image: url(../../../../images/seviye_kapat.png); background-color: #f9f2ee; margin: 0 20px 0 3px }
+.secimler.part .islemTuslari button#seviyeleriAc:hover,
+.secimler.part .islemTuslari button#seviyeleriKapat:hover { background-color: aliceblue }
+.secimler.part .islemTuslari button#seviyeleriAc:focus:active,
+.secimler.part .islemTuslari button#seviyeleriKapat:focus:active { background-color: #acc1ff }
+.secimler.part .islemTuslari button#vazgec { }
+.secimler.part.with-tabs #tabPanel { --top: 10px;position: relative !important; top: var(--top); height: calc(var(--full) - (var(--top) + 5px)) !important }
+.secimler.part.with-tabs #tabPanel > .content { width: var(--full); height: calc(var(--full) - (var(--header-height) + var(--tabs-header-margin-bottom) * 2)) }
+.secimler.part .secimler-kolonFiltre-bilgi-parent { font-size: 76%; width: 100%; padding: 0 !important; margin-bottom: 3px; background-color: #f8f8f8; border: .5px solid #ddd }
+.secimler.part .secimler-kolonFiltre-bilgi-parent .kolonFiltre-temizle {
+	width: 55px !important; height: 100% !important; margin: 0 !important; margin-right: 15px !important; padding: 0 !important;
+	background-image: url(../../../../images/temizle.png); background-size: 20px 20px !important
+}
+.secimler.part .secimler-kolonFiltre-bilgi-parent .kolonFiltre-temizle.jqx-fill-state-normal { background-color: #834d388c }
+.secimler.part .secimler-kolonFiltre-bilgi-parent .kolonFiltre-temizle.jqx-fill-state-hover { background-color: #dbb3a3 }
+.secimler.part .secimler-kolonFiltre-bilgi-parent .kolonFiltre-temizle.jqx-fill-state-pressed { background-color: #c2572f }
+.secimler.part .secimler-kolonFiltre-bilgi-parent .kolonFiltre-bilgi .filtre-item { padding: 8px 20px !important; border: .5px solid #ddd }
+.secimler.part .secimler-kolonFiltre-bilgi-parent .kolonFiltre-bilgi .filtre-item:not(:first-child) { margin-left: 3px }
+.secimler.part .secimler-form { font-size: 90%; height: calc(var(--full) + 250px) !important; margin: 3px 3px 0 0; padding: 0; overflow-y: auto }
+.secimler.part .secimler-form .secim {padding: 1px 5px;}
+.secimler.part .secimler-form .secim > *:not(.jqx-switchbutton):not(:first-child) { /* margin-left: 5px */ }
+.secimler.part .secimler-form .secim > .jqx-switchbutton:not(:first-child) { margin-left: 0 }
+.secimler.part .secimler-form .secim.ozel.text { margin: 5px }
+.secimler.part .secimler-form .secim-grup { font-size: var(--full); margin: 0 0 5px 0 }
+.secimler.part .secimler-form .secim-grup > div { padding-right: 0 !important }
+.secimler.part .secimler-form .secim-grup > .header { font-size: 120%; min-height: initial !important; height: 25px !important; padding: 0 !important }
+.secimler.part .secimler-form .secim-grup > .header > div { padding-left: 35px; margin-top: 0 }
+.secimler.part .secimler-form .secim-grup > .header:not(.jqx-expander-header-expanded) { background-color: #dbdde4; opacity: .7 }
+.secimler.part .secimler-form .secim-grup > .header.jqx-expander-header-expanded { opacity: 1 }
+.secimler.part .secimler-form .secim-grup > .header .jqx-expander-arrow { background-size: 32px 32px; margin: 5px 15px !important }
+.secimler.part .secimler-form .secim-grup > .content { border: .5px solid #eaeaea; padding: 0px 0 0 3px /* margin-right: -5px */ }
+.secimler.part .secimler-form .secim .etiket { font-weight: bold; font-size: 93%; width: 150px; color: #888; padding-top: 6px }
+.secimler.part .secimler-form .secim.basSon .basi,
+.secimler.part .secimler-form .secim.ozel .input { margin-left: 5px !important }
+.secimler.part .secimler-form .secim.basSon .uiTarih.basi,
+.secimler.part .secimler-form .secim.basSon .basi:not(.modelKullan.part),
+.secimler.part .secimler-form .secim.ozel .veri.input,
+.secimler.part .secimler-form .secim.ozel .veri.bool,
+.secimler.part .secimler-form .secim.ozel .veri.ozellik,
+.secimler.part .secimler-form .secim.ozel .veri.string { margin-left: 62px !important }
+.secimler.part .secimler-form .secim:not(.date):not(.tekilDate) .veri:not(button):not(.jqx-switchbutton):not(.uiTarih) { width: 900px !important }
+.secimler.part .secimler-form .secim:not(.date):not(.tekilDate) .bs-parent .veri:not(button):not(.jqx-switchbutton):not(.uiTarih) { width: 600px !important }
+.secimler.part .secimler-form .secim .ddList { min-width: 130px !important; width: 90% !important }
+.secimler.part .secimler-form .secim.date > .input,
+.secimler.part .secimler-form .secim .veri,
+.secimler.part .secimler-form .secim button,
+.secimler.part .secimler-form .secim .jqx-switchbutton { vertical-align: top }
+.secimler.part .secimler-form .secim .veri,
+.secimler.part .secimler-form .secim button { height: 35px !important }
+.secimler.part .secimler-form .secim .jqx-switchbutton { height: 35px }
+.secimler.part .secimler-form .secim button { width: 50px }
+.secimler.part .secimler-form .secim .jqx-switchbutton { min-width: 20px !important }
+.secimler.part .secimler-form .secim .jqx-switchbutton .jqx-disableselect { cursor: pointer; color: #999 }
+.secimler.part .secimler-form .secim .jqx-switchbutton.jqx-switchbutton-metro .jqx-disableselect { color: whitesmoke }
+.secimler.part .secimler-form .secim .hepsimi { margin-right: 3px }
+.secimler.part .secimler-form .secim .birKismi-bos-parent { }
+.secimler.part .secimler-form .secim .birKismi-bos-parent .veri-etiket { font-size: 123%; font-weight: bold; color: #999; padding-top: 6px; margin-left: 13px }
+.secimler.part .secimler-form .secim button.listedenSec { margin-right: 3px }
+
+@media (max-width: 1400px) {
+	.secimler.part .secimler-form .secim .etiket { font-size: 90%; width: 140px }
+	.secimler.part .secimler-form .secim:not(.date):not(.tekilDate) .veri:not(button):not(.jqx-switchbutton):not(.uiTarih) { width: 530px !important }
+	.secimler.part .secimler-form .secim:not(.date):not(.tekilDate) .bs-parent .veri:not(button):not(.jqx-switchbutton):not(.uiTarih) { width: 300px !important }
+}
+@media (max-width: 1000px) {
+	.secimler.part .secimler-form .secim { padding: 1px 2px }
+	.secimler.part .secimler-form .secim .etiket { font-size: 85%; width: 130px }
+	.secimler.part .secimler-form .secim:not(.date):not(.tekilDate) .veri:not(button):not(.jqx-switchbutton):not(.uiTarih) { width: 430px !important }
+	.secimler.part .secimler-form .secim:not(.date):not(.tekilDate) .bs-parent .veri:not(button):not(.jqx-switchbutton):not(.uiTarih) { width: 200px !important }
+}

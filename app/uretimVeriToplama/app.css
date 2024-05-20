@@ -1,0 +1,62 @@
+.jqx-grid div[role=row] > div { font-size: 88%; line-height: 18px; text-wrap: pretty !important /* white-space: pre-wrap; word-wrap: break-word !important;*/ }
+.jqx-grid div[role=row] > div:not(._durum):not(._sil):not(._durum):not(.ek-bilgi) > *:not(.jqx-checkbox-metro) { margin-top: 1px !important; padding: 0 5px }
+.jqx-grid div[role=row] > div .parent > * { margin-inline-end: 6px }
+.jqx-grid div[role=row] > div .ek-veri { font-size: 90%; font-weight: bold; color: #777; line-height: 13px }
+.jqx-grid div[role=row] .jqx-grid-cell-selected .veri { font-weight: normal; color: #999 }
+.jqx-grid div[role=row] .jqx-grid-cell-selected .ek-veri { font-weight: bold; color: #111 }
+.part .jqx-grid div[role=row] .title { font-weight: bold; color: #777; border-bottom: 1px solid #888 }
+.part .jqx-grid div[role=row] .content { margin-left: 3px }
+.part .jqx-grid div[role=row] .content .veri { font-weight: bold; color: orangered }
+.part .jqx-grid div[role=row] .content .etiket { font-weight: normal; color: #888 }
+.part .jqx-grid div[role=row] .ek-bilgi { color: #aaa }
+.jqx-grid div[role=row] .ekBilgi,
+.jqx-grid div[role=row] .ekBilgi > ul,
+.jqx-grid div[role=row] .ekBilgi > ul { width: var(--full); height: var(--full); vertical-align: top }
+.jqx-grid div[role=row] .ekBilgi { color: #999 }
+.jqx-grid div[role=row] .ekBilgi ul { /* margin-inline-start: 13px */ }
+.jqx-grid div[role=row] .ekBilgi .ekOzellikler .veri { color: royalblue }
+.jqx-grid div[role=row] .ekBilgi .iskartalar .veri { color: #9f1010 }
+.jqx-grid div[role=row] .jqx-grid-cell-selected.ekBilgi .iskartalar .veri { color: #760000 }
+.jqx-grid div[role=row] .ekBilgi .content > div { padding-inline: 5px !important }
+.jqx-grid div[role=row] .ekBilgi .content > div:not(:last-child) { border-right: 1px solid #aaa }
+
+body #ust-parent > #nav ul > li#_verileriSil { border-top: 3px solid #888 }
+body #ust-parent > #nav ul > li#_verileriSil > a .img {
+	width: 32px; height: 32px; margin-right: 10px;
+	background-size: 100%; background-repeat: no-repeat; background-position: 0
+}
+body #ust-parent > #nav ul > li#_verileriSil > a .img { background-image: url(../../images/sil.png); background-color: darkred }
+body #ust-parent > #nav ul > li#_verileriSil > a .text { font-weight: bold; color: #862d2d }
+body #ust-parent > #nav ul > li#_verileriSil > a:hover .text { color: firebrick }
+body #ust-parent > #nav ul > li#_verileriSil > a:hover .img { background-color: firebrick }
+
+.parentRecBilgi { font-size: 90% /* padding-bottom: 20px */ }
+.parentRecBilgi > .item { line-height: 18px; padding: 0 8px; min-width: 130px }
+.parentRecBilgi > .item:not(:last-child) { border-right: 1px solid #cecece }
+.parentRecBilgi > .item .etiket { color: #aaa !important; margin: 0 8px 0 15px !important }
+.parentRecBilgi > .item .veri { font-weight: bold; color: orangered !important }
+.parentRecBilgi > .item .ek-bilgi { font-size: 85%; color: #888 !important }
+
+.jqx-grid div[role=row] .mq-seriNo { font-size: 120% !important; font-weight: bold }
+/* .jqx-grid div[role=row]:has(.mq-seriNo.jqx-grid-cell-selected) { border: 1px solid royalblue }
+.jqx-grid div[role=row] .mq-seriNo:not(.jqx-grid-cell-selected):nth-child(even) { background: #eee }  */
+.jqx-grid div[role=row] .mq-seriNo:not(._rowNumber):not(.jqx-grid-cell-selected) { /* border: none */ }
+.jqx-grid div[role=row] .mq-seriNo.jqx-grid-cell-selected:not(._rowNumber) { }
+/* .jqx-grid div[role=row]:has(.mq-seriNo.jqx-grid-cell-selected) + div[role=row] { border: 1px solid royalblue } */
+.jqx-grid div[role=row] .mq-seriNo.seriBilgi .items { overflow-y: auto !important }
+.jqx-grid div[role=row] .mq-seriNo.seriBilgi .items > .item { margin-inline-end: 10px }
+.jqx-grid div[role=row] .mq-seriNo.seriBilgi .items > .item > .yerKod { font-weight: bold; color: royalblue }
+.jqx-grid div[role=row] .mq-seriNo.seriBilgi .items > .item > .seriler { color: #999 }
+.jqx-grid div[role=row] .mq-seriNo.jqx-grid-cell-selected:not(._rowNumber):not(.seriBilgi) * { color: #4d78f4 } 
+.jqx-grid div[role=row] .mq-seriNo-detay.jqx-grid-cell-selected:not(._rowNumber) { border: 1px solid #aaa; background: #5274d7 !important }
+.jqx-grid div[role=row] .mq-seriNo-detay.jqx-grid-cell-selected:not(._rowNumber) * { font-weight: bold; color: white !important }
+.jqx-grid div[role=row] .mq-seriNo.jqx-grid-cell.seriBilgi { font-size: 85% !important; color: #777; overflow-y: auto !important } 
+.jqx-grid div[role=row] .mq-seriNo.jqx-grid-cell.seriBilgi .items { }
+.jqx-grid div[role=row] .mq-seriNo.jqx-grid-cell.seriBilgi .items > .item { margin-inline-end: 10px; margin-block-end: 10px }
+.jqx-grid div[role=row] .mq-seriNo.jqx-grid-cell.seriBilgi .items > .item > .seriNo { font-weight: bold; color: royalblue }
+.jqx-grid div[role=row] .mq-seriNo.jqx-grid-cell.seriBilgi .items > .item > .urunAdi { color: #888 }
+
+.masterListe.part #yeniGorev:not(:hover):not(:active) { color: #555; background-color: #d4f5ff !important }
+.masterListe.part #isDurdur:not(:hover):not(:active) { color: #555; background-color: #ffdcd6 !important }
+.masterListe.part #isBaslat:not(:hover):not(:active) { color: #555; background-color: #d6ffd6 !important }
+.masterListe.part #gerceklemeYap:not(:hover):not(:active) { color: #555; background-color: #ded7f8 !important }
