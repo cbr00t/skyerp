@@ -82,7 +82,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 	async eIslemIptalIstendi(e) {
 		e = e || {}; const {eConf} = this, islemAdi = 'e-İşlem İPTAL';
 		const _e = await this.getSecilenSatirlar_mesajli({ islemAdi }) || {}; if (!_e.recs) return
-		try { $.extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) }); this.showProgress(_e); await EYonetici.eIslemIptal(_e) } catch (ex) { displayMessage(getErrorText(ex), islemAdi); throw ex } finally { this.uiIslemiSonrasi(e) }
+		try { $.extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) }); this.showProgress(_e); await EYonetici.eIslemIptal(_e) } catch (ex) { _e.error = ex; displayMessage(getErrorText(ex), islemAdi); throw ex } finally { this.uiIslemiSonrasi(_e) }
 	}
 	async xmlKaldirIstendi(e) {
 		e = e || {}; const {eConf} = this, islemAdi = 'e-İşlem XML Kaldır';

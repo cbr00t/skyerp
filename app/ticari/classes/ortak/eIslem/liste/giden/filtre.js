@@ -99,7 +99,8 @@ class GidenEIslemFiltre extends EIslemFiltre {
 			faturaAyrimSecim: new SecimTekSecim({ etiket: 'Fatura Ayrım', tekSecim: new BuDigerVeHepsi(['Mağaza Fişi', 'Normal Fatura']) }),
 			sube: new SecimBirKismi({ etiket: 'Fiş Şubesi', mfSinif: MQSube }),
 			tarih: new SecimDate({ etiket: 'Tarih', basi: tarihBasi }),
-			belgeNox: new SecimOzellik({ etiket: 'Belge No' }),
+			seri: new SecimString({ etiket: 'Belge Seri' }),
+			fisNo: new SecimNumber({ etiket: 'Belge No' }),
 			must: new SecimString({ etiket: 'Müşteri', mfSinif: MQCari }),
 			mustUnvan1: new SecimOzellik({ etiket: 'Müşteri Ünvan 1' }),
 			gonderimDurumSecim: new SecimTekSecim({ etiket: 'Gönderim Durumu', tekSecim: new BuDigerVeHepsi(['Bekleyenler', 'GÖNDERİLENLER']).bu() }),
@@ -140,7 +141,8 @@ class GidenEIslemFiltre extends EIslemFiltre {
 		if (!this.uygunOlmayanlarGosterilirmiFlag.value) { wh.add(`LEN(${aliasVeNokta}seri) = 3`, `${aliasVeNokta}noyil > 0`) }
 		wh.birKismi(this.sube, `${aliasVeNokta}bizsubekod`);
 		wh.basiSonu(this.tarih, `${aliasVeNokta}tarih`);
-		wh.ozellik(this.belgeNox, `${aliasVeNokta}no`)
+		wh.basiSonu(this.seri, `${aliasVeNokta}seri`);
+		wh.basiSonu(this.fisNo, `${aliasVeNokta}no`)
 	}
 	tbWhereClauseDuzenle_sutMakbuz(e) {
 		e = e || {}; const {alias, aliasVeNokta} = e, ustAliasVeNokta = 'ust.', wh = e.where;

@@ -56,8 +56,8 @@ class EYonetici extends CObject {
 								uuid2Result[uuid] = result;
 								if (!isError) { duzgunUUIDListe.push(uuid); subDuzgunUUIDListe.push(uuid) }
 								if (!savedToken) { const {token} = result; if (token != null && savedToken != token) { savedToken = token; this.class.setTempToken(efAyrimTipi, token) } }
-								if (window.progressManager) window.progressManager.progressStep()
-								if (callback) getFuncValue.call(this, callback, e)
+								if (window.progressManager) { window.progressManager.progressStep() }
+								if (callback) { getFuncValue.call(this, callback, e) }
 							}
 						}
 						if (subDuzgunUUIDListe.length) {
@@ -68,7 +68,7 @@ class EYonetici extends CObject {
 				}
 			}
 		}
-		if (!e.internal) { if (sender && !sender.isDestroyed && sender.tazele) sender.tazele() }
+		if (!e.internal) { if (sender && !sender.isDestroyed && sender.tazele) { sender.tazele() } }
 	}
 	static async eIslemIzle(e) {
 		const eYoneticiler = await this.getEYoneticiListe(e); delete e.eYoneticiler; const uuid2Result = {};
@@ -110,7 +110,7 @@ class EYonetici extends CObject {
 						}
 						else { divContainer.append(eDoc) }
 						eDocCount++; $.extend(result, { xmlData, xml, xsltData, xslt, xsltProcessor, eDoc, divContainer });
-						if (window.progressManager) { window.progressManager.progressStep() } if (Object.keys(uuid2Result).length % 201 == 200) { if (callback) getFuncValue.call(this, callback, e) }
+						if (window.progressManager) { window.progressManager.progressStep() } if (Object.keys(uuid2Result).length % 201 == 200) { if (callback) { getFuncValue.call(this, callback, e) } }
 					}
 					catch (ex) {
 						if (!ex.responseJSON && ex.responseText) { try { ex = JSON.parse(ex.responseText) } catch (_ex) { } }
@@ -118,10 +118,10 @@ class EYonetici extends CObject {
 					}
 				}
 			}
-			if (callback) getFuncValue.call(this, callback, e)
+			if (callback) { getFuncValue.call(this, callback, e) }
 			if (!e.internal) {
 				if (eDocCount) { let newDocHTML = `<html><head>${divContainer.innerHTML}</head></html>`; const url = URL.createObjectURL(new Blob([newDocHTML], { type: 'text/html' })); openNewWindow(url) }
-				if (sender && !sender.isDestroyed && sender.tazele) sender.tazele()
+				if (sender && !sender.isDestroyed && sender.tazele) { sender.tazele() }
 			}
 		}
 	}
@@ -195,43 +195,47 @@ class EYonetici extends CObject {
 		const recs = await app.sqlExecSelect(stm), ps2Recs = this.class.getPS2Recs({ recs });
 		const {callback} = e, uuid2Result = e.uuid2Result = e.uuid2Result || {};
 		if (!$.isEmptyObject(ps2Recs)) {
-			const eConf = e.eConf ?? this.eConf; let promises = [];
+			const eConf = e.eConf ?? this.eConf;
 			for (const psTip in ps2Recs) {
-				const _recs = ps2Recs[psTip], eIslTip2Recs = {}, duzgunUUIDListe = [];
+				const _recs = ps2Recs[psTip], eIslTip2Recs = {}, duzgunUUIDListe = [], block_duzgunUUIDListe = [];
+				const updateIslemi = async () => {
+					if (!block_duzgunUUIDListe?.length) { return }
+					let upd = new MQIliskiliUpdate({ 
+						from: this.class.getPS2Table(psTip), set: [`efatuuid = ''`, `efgonderimts = NULL`],
+						where: [`(efgonderimts IS NOT NULL OR efatuuid <> '')`, { inDizi: block_duzgunUUIDListe, saha: 'efatuuid' }]
+					});
+					await app.sqlExecNone(upd)
+				};
 				for (const rec of _recs) { const efAyrimTipi = rec.efayrimtipi || 'A'; (eIslTip2Recs[efAyrimTipi] = eIslTip2Recs[efAyrimTipi] || []).push(rec) }
 				for (const efAyrimTipi in eIslTip2Recs) {
 					const _recs = eIslTip2Recs[efAyrimTipi] || []; if (!_recs.length) { continue }
-					promises.push(new $.Deferred(async p => {
-						try {
-							let savedToken = this.class.getTempToken(efAyrimTipi);
-							const results = await app.wsEIslemYap({
-								eIslemci: efAyrimTipi, oe: eConf.getValue('ozelEntegrator')?.char || '', eIslemAPI: 'belgeIptal',
-								eLogin: toJSONStr(eConf.eLogin), eToken: savedToken || '', args: _recs.map(rec => ({ uuid: rec.uuid }))
-							});
-							if (results) {
-								for (let i = 0; i < _recs.length; i++) {
-									const result = results[i]; if (!result) { continue } const _rec = _recs[i], {uuid} = _rec;
-									$.extend(result, { islemZamani: now(), isError: false, rec: _rec, efAyrimTipi }); uuid2Result[uuid] = result;
-									if (!savedToken) { const {token} = result; if (token != null && savedToken != token) { savedToken = token; this.class.setTempToken(efAyrimTipi, token) } }
-									if (!result.isError) { duzgunUUIDListe.push( uuid )}
-									if (window.progressManager) { window.progressManager.progressStep() }
-									if (Object.keys(uuid2Result).length % 201 == 200) { if (callback) getFuncValue.call(this, callback, e) }
-								}
+					let savedToken = this.class.getTempToken(efAyrimTipi);
+					try {
+						const results = await app.wsEIslemYap({
+							eIslemci: efAyrimTipi, oe: eConf.getValue('ozelEntegrator')?.char || '', eIslemAPI: 'belgeIptal',
+							eLogin: toJSONStr(eConf.eLogin), eToken: savedToken || '', args: _recs.map(rec => ({ uuid: rec.uuid }))
+						});
+						if (results) {
+							for (let i = 0; i < _recs.length; i++) {
+								const result = results[i]; if (!result) { continue } const _rec = _recs[i], {uuid} = _rec;
+								$.extend(result, { islemZamani: now(), isError: false, rec: _rec, efAyrimTipi }); uuid2Result[uuid] = result;
+								if (!savedToken) { const {token} = result; if (token != null && savedToken != token) { savedToken = token; this.class.setTempToken(efAyrimTipi, token) } }
+								if (!result.isError) { duzgunUUIDListe.push(uuid); block_duzgunUUIDListe.push(uuid) }
+								if (window.progressManager) { window.progressManager.progressStep() }
+								if (Object.keys(uuid2Result).length % 201 == 200) { await updateIslemi(); if (callback) { getFuncValue.call(this, callback, e) } }
 							}
-							p.resolve(true)
-						} catch (ex) { p.reject(ex) }
-					} ))
+						}
+					}
+					catch (ex) {
+						if (!ex.responseJSON && ex.responseText) { try { ex = JSON.parse(ex.responseText) } catch (_ex) { } }
+						const errorText = getErrorText(ex); for (const rec of _recs) {
+							const {uuid} = rec; if (!uuid) { continue }
+							uuid2Result[uuid] = { islemZamani: now(), uuid, rec, isError: true, rc: ex?.rc ?? ex.code ?? '??', errorText, error: ex };
+							console.error(ex)
+						}
+					}
+					await updateIslemi(); if (callback) { getFuncValue.call(this, callback, e) } }
 				}
-				if (promises.length) { await Promise.all(promises); promises = []; if (window.progressManager) window.progressManager.progressStep(); if (callback) getFuncValue.call(this, callback, e) }
-				if (duzgunUUIDListe.length) {
-					let upd = new MQIliskiliUpdate({ 
-						from: this.class.getPS2Table(psTip), set: [`efatuuid = ''`, `efgonderimts = NULL`],
-						where: [`(efgonderimts IS NOT NULL OR efatuuid <> '')`, { inDizi: duzgunUUIDListe, saha: 'efatuuid' }]
-					});
-					await app.sqlExecNone(upd)
-				}
-			}
-			if (promises.length) await Promise.all(promises)
 		}
 		if (!e.internal) { if (sender && !sender.isDestroyed && sender.tazele) { sender.tazele() } }
 	}
@@ -248,48 +252,54 @@ class EYonetici extends CObject {
 		$.extend(e, { ps2SayacListe: this.ps2SayacListe || (()=>this.class.getPS2SayacListe(e)), whereDuzenleyici: e => e.where.add(`fis.efatuuid <> ''`) });
 		const stm = eIslAnaSinif.getUUIDStm(e); for (const key of ['psTip2SayacListe', 'whereDuzenleyici']) { delete e[key] }
 		if (!stm) { throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' } }
-		const {sender, callback} = e, {eConf} = this, {eIslEkArgs} = eConf, recs = await app.sqlExecSelect(stm), ps2Recs = this.class.getPS2Recs({ recs }),  uuid2Result = e.uuid2Result = e.uuid2Result || {};
+		const {sender, callback} = e, {eConf} = this, {eIslEkArgs} = eConf, recs = await app.sqlExecSelect(stm), ps2Recs = this.class.getPS2Recs({ recs });
+		const uuid2Result = e.uuid2Result = e.uuid2Result || {};
 		if (!$.isEmptyObject(ps2Recs)) {
-			const eConf = e.eConf ?? this.eConf; let promises = [], duzgunUUIDListe = [];
+			const eConf = e.eConf ?? this.eConf; let duzgunUUIDListe = [], block_duzgunUUIDListe = [];
 			for (const psTip in ps2Recs) {
 				const _recs = ps2Recs[psTip], eIslTip2Recs = {};
 				for (const rec of _recs) { const efAyrimTipi = rec.efayrimtipi || 'A'; (eIslTip2Recs[efAyrimTipi] = eIslTip2Recs[efAyrimTipi] || []).push(rec) }
 				for (const efAyrimTipi in eIslTip2Recs) {
 					const _recs = eIslTip2Recs[efAyrimTipi] || []; if (!_recs.length) { continue }
-					promises.push(new $.Deferred(async p=>{
-						try {
-							// let savedToken = this.class.getTempToken(efAyrimTipi);
-							const results = await app.wsEIslemYap({
-								eIslemci: efAyrimTipi, oe: eConf.getValue('ozelEntegrator')?.char || '', eIslemAPI: 'xmlKaldir',
-								/*eLogin: toJSONStr(eConf.eLogin), eToken: savedToken || '',*/ eToken: true,
-								ekArgs: toJSONStr(eIslEkArgs), args: _recs.map(rec => ({ uuid: rec.uuid }))
-							});
-							if (results) {
-								for (let i = 0; i < results.length; i++) {
-									const result = results[i]; if (!result) { continue } const _rec = _recs[i], {uuid} = _rec;
-									$.extend(result, { islemZamani: now(), isError: false, rec: _rec, efAyrimTipi }); uuid2Result[uuid] = result;
-									if (!result.isError) { duzgunUUIDListe.push(uuid) }
-									if (window.progressManager) { window.progressManager.progressStep() }
-								}
+					const updateIslemi = async () => {
+						if (!block_duzgunUUIDListe?.length) { return }
+						let upd = new MQIliskiliUpdate({ 
+							from: this.class.getPS2Table(psTip), set: [`efatuuid = ''`, `efgonderimts = NULL`],
+							where: [`(efgonderimts IS NOT NULL OR efatuuid <> '')`, { inDizi: duzgunUUIDListe, saha: 'efatuuid' }]
+						});
+						await app.sqlExecNone(upd)
+					};
+					try {
+						// let savedToken = this.class.getTempToken(efAyrimTipi);
+						const results = await app.wsEIslemYap({
+							eIslemci: efAyrimTipi, oe: eConf.getValue('ozelEntegrator')?.char || '', eIslemAPI: 'xmlKaldir',
+							/*eLogin: toJSONStr(eConf.eLogin), eToken: savedToken || '',*/ eToken: true,
+							ekArgs: toJSONStr(eIslEkArgs), args: _recs.map(rec => ({ uuid: rec.uuid }))
+						});
+						if (results) {
+							for (let i = 0; i < results.length; i++) {
+								const result = results[i]; if (!result) { continue } const _rec = _recs[i], {uuid} = _rec;
+								$.extend(result, { islemZamani: now(), isError: false, rec: _rec, efAyrimTipi }); uuid2Result[uuid] = result;
+								if (!result.isError) { duzgunUUIDListe.push(uuid); block_duzgunUUIDListe.push(uuid) }
+								if (window.progressManager) { window.progressManager.progressStep() }
 							}
-							p.resolve(true);
-							if (window.progressManager) window.progressManager.progressStep();
-							if (Object.keys(uuid2Result).length % 201 == 200) { if (callback) getFuncValue.call(this, callback, e) }
-						} catch (ex) { p.reject(ex) }
-					} ))
-				}
-				if (promises.length) { await Promise.all(promises); promises = []; if (callback) getFuncValue.call(this, callback, e) }
-				if (duzgunUUIDListe.length) {
-					let upd = new MQIliskiliUpdate({ 
-						from: this.class.getPS2Table(psTip), set: [`efatuuid = ''`, `efgonderimts = NULL`],
-						where: [`(efgonderimts IS NOT NULL OR efatuuid <> '')`, { inDizi: duzgunUUIDListe, saha: 'efatuuid' }]
-					});
-					await app.sqlExecNone(upd)
+						}
+						if (window.progressManager) { window.progressManager.progressStep() };
+						if (Object.keys(uuid2Result).length % 201 == 200) { await updateIslemi(); if (callback) { getFuncValue.call(this, callback, e) } }
+					}
+					catch (ex) {
+						if (!ex.responseJSON && ex.responseText) { try { ex = JSON.parse(ex.responseText) } catch (_ex) { } }
+						const errorText = getErrorText(ex); for (const rec of _recs) {
+							const {uuid} = rec; if (!uuid) { continue }
+							uuid2Result[uuid] = { islemZamani: now(), uuid, rec, isError: true, rc: ex?.rc ?? ex.code ?? '??', errorText, error: ex };
+							console.error(ex)
+						}
+					}
+					await updateIslemi(); if (callback) { getFuncValue.call(this, callback, e) }
 				}
 			}
-			if (promises.length) await Promise.all(promises)
 		}
-		if (!e.internal) { if (sender && !sender.isDestroyed && sender.tazele) sender.tazele() }
+		if (!e.internal) { if (sender && !sender.isDestroyed && sender.tazele) { sender.tazele() } }
 	}
 	static async eIslemXMLOlustur(e) {
 		const eYoneticiler = await this.getEYoneticiListe(e); delete e.eYoneticiler; const uuid2Result = {};
@@ -376,11 +386,11 @@ class EYonetici extends CObject {
 							p.reject(ex)
 						}
 						finally {
-							if (Object.keys(uuid2Result).length % 201 == 200) { if (callback) getFuncValue.call(this, callback, e); await Promise.all(promises); promises = [] }
+							if (Object.keys(uuid2Result).length % 201 == 200) { if (callback) { getFuncValue.call(this, callback, e) }; await Promise.all(promises); promises = [] }
 							if (window.progressManager) { window.progressManager.progressStep() }
 						}
 					} ));
-					if (promises.length >= 50) { if (callback) getFuncValue.call(this, callback, e); await Promise.all(promises); promises = [] }
+					if (promises.length >= 50) { if (callback) { getFuncValue.call(this, callback, e) }; await Promise.all(promises); promises = [] }
 				}
 			}
 			if (promises.length) { await Promise.all(promises); if (callback) { getFuncValue.call(this, callback, e) } } promises = [];
@@ -401,9 +411,9 @@ class EYonetici extends CObject {
 		for (const rec of recs) {
 			const efAyrimTipi = rec.efayrimtipi || 'A', {uuid} = rec;
 			const result = { islemZamani: now(), isError, rec, efAyrimTipi };
-			uuid2Result[uuid] = result; if (window.progressManager) window.progressManager.progressStep()
+			uuid2Result[uuid] = result; if (window.progressManager) { window.progressManager.progressStep() }
 		}
-		if (callback) getFuncValue.call(this, callback, e)
+		if (callback) { getFuncValue.call(this, callback, e) }
 		if (!e.internal) { if (sender && !sender.isDestroyed && sender.tazele) { sender.tazele() } }
 	}
 	static async eIslemBekleyenleriGetir(e) {
@@ -512,8 +522,8 @@ class EYonetici extends CObject {
 		const uuid2Result = e.uuid2Result = e.uuid2Result || {}, uuid2Rec = e.uuid2Rec = {}; for (const rec of recs) { const {uuid} = rec; uuid2Rec[rec.uuid] = rec }
 		for (const rec of recs) {
 			$.extend(e, { rec }); uuid2Result[rec.uuid] = await this.eIslemAlimTicariFiseDonustur_tekil(e);
-			if (window.progressManager) window.progressManager.progressStep()
-			if (callback) getFuncValue.call(this, callback, e)
+			if (window.progressManager) { window.progressManager.progressStep() }
+			if (callback) { getFuncValue.call(this, callback, e) }
 		}
 		if (!e.internal) { const {sender} = e; if (sender && !sender.isDestroyed && sender.tazele); sender.tazele() }
 	}
