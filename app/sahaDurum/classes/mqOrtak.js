@@ -83,10 +83,10 @@ class MQMasterOrtak extends MQCogul {
 	}
 	static loadServerData(e) { }
 	static loadServerDataDogrudan(e) {
-		e = e || {}; const wsArgs = e.wsArgs = e.wsArgs ?? {}, {mustKod} = e, {session} = config;
-		const user = e.user = session ? (session.user || (session.session ? JSON.parse(Base64.decode(session.session))?.user : null)) : null;
+		e = e || {}; const wsArgs = e.wsArgs = e.wsArgs ?? {}, {mustKod} = e, session = config.session || {};
+		const loginTipi = e.loginTipi = session.session, user = e.user = session.user || (session.session ? JSON.parse(Base64.decode(session.session))?.user : null);
 		if (user) {
-			switch (session.loginTipi) {
+			switch (loginTipi) {
 				case 'plasiyerLogin': wsArgs.plasiyerKod = user; break
 				case 'musteriLogin': wsArgs.mustKod = user; break
 			}

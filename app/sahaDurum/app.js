@@ -13,10 +13,8 @@ class SahaDurumApp extends App {
 		this.updateAppTitle({ userSession: session?.hasSession ? session : new Session(yerelParam?.lastSession) });
 	}
 	loginTipleriDuzenle(e) {
-		const {loginTipleri} = e; $.merge(loginTipleri, [
-			{ kod: 'plasiyerLogin', aciklama: 'Plasiyer' },
-			{ kod: 'musteriLogin', aciklama: 'Müşteri' }
-		])
+		super.loginTipleriDuzenle(e);
+		/*const {loginTipleri} = e; $.merge(loginTipleri, [ { kod: 'plasiyerLogin', aciklama: 'Plasiyer' }, { kod: 'musteriLogin', aciklama: 'Müşteri' } ])*/
 	}
 	paramsDuzenle(e) {
 		super.paramsDuzenle(e);	 const {params} = e;
@@ -50,10 +48,9 @@ class SahaDurumApp extends App {
 			showProgress('İnternet bağlantısı kontrol ediliyor...', null, true); await new $.Deferred(p => setTimeout(() => p.resolve(), 100))
 			try { if (!navigator.onLine) { throw { isError: true, rc: 'noInternet', errorText: 'Bu işlem için İnternet Bağlantısı gereklidir' } } } finally { hideProgress() }
 			if ((await ehConfirm('Bilgi Yükle yapılsın mı?', appName)) != true) return
-			showProgress(' ', null, true, e => { e.abortFlag = true });
-			const result = await this.bilgiYukle(e);
+			showProgress(' ', null, true, e => { e.abortFlag = true }); const result = await this.bilgiYukle(e);
 			progressManager?.progressEnd(); await new $.Deferred(p => setTimeout(() => { hideProgress(); p.resolve() }, 200));
-			if (result !== false) eConfirm('Bilgi yükleme işlemi bitti', appName)
+			if (result !== false) { eConfirm('Bilgi yükleme işlemi bitti', appName) }
 		}
 		catch (ex) {
 			await new $.Deferred(p => setTimeout(() => { hideProgress(); p.resolve() }, 1000)); hConfirm(getErrorText(ex), `${appName}: <span class="bold ek-bilgi">Bilgi Yükle</span>`);
@@ -62,13 +59,13 @@ class SahaDurumApp extends App {
 	}
 	async bilgiYukle(e) { /* https://195.87.111.251:9200 */
 		e = e || {}; if (!navigator.onLine) { throw { isError: true, rc: 'noInternet', errorText: 'Bu işlem için İnternet Bağlantısı gereklidir' } }
-		const TotalCount = 4; if (progressManager) progressManager.progressMax = TotalCount; if (e.abortFlag) return false
+		const TotalCount = 4; if (progressManager) progressManager.progressMax = TotalCount; if (e.abortFlag) { return false }
 		if (progressManager) progressManager.text = `SkyWS Erişimi kontrol ediliyor...`; try { await this.wsGetSessionInfo() } catch (ex) { console.error(ex); return false } progressManager?.progressStep()
 		progressManager.text = `Yerel Veriler siliniyor...`; progressManager?.progressStep(); await new $.Deferred(p => setTimeout(() => { progressManager?.progressReset(); p.resolve() }, 50)); await this.verileriSil(e);
 		const {localData} = app.params; progressManager?.progressStep()
 		const mqYukle = async (mfSinif, normalmi, ozelmi) => {
 			const selector = normalmi ? 'loadServerData' : 'loadServerDataDogrudan';
-			if (progressManager) progressManager.text = `${mfSinif.sinifAdi} yükleniyor...`; const recs = await mfSinif[selector]();
+			if (progressManager) { progressManager.text = `${mfSinif.sinifAdi} yükleniyor...` } const recs = await mfSinif[selector]();
 			if (!ozelmi && recs != null) { localData.setData(mfSinif.dataKey, recs) }
 			progressManager?.progressStep(); if (e.abortFlag) { localData.kaydet(); throw { code: 'userAbort' } }
 		};

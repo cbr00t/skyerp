@@ -16,26 +16,27 @@ class MQYerelParamBase extends CIO {
 		for (const key of this.class.paramAttrListe) { const value = e[key]; if (value !== undefined) this[key] = value }
 	}
 	static paramAttrListeDuzenle(e) { }
-	yukle(e) {
-		e = $.extend({}, e || {}); this.yukleOncesi(e); const {fullTableName} = this.class;
-		let rec = localStorage.getItem(fullTableName); if (typeof rec == 'string') rec = rec ? JSON.parse(rec) : {}
+	async yukle(e) {
+		e = $.extend({}, e || {}); this.yukleOncesi(e);
+		let rec = await this.yukleIslemi(e); if (typeof rec == 'string') { rec = rec ? JSON.parse(rec) : {} }
 		if (!$.isEmptyObject(rec)) { e.rec = rec; this.setValues(e) } this.yukleSonrasi(e);
 		return this
 	}
 	yukleOncesi(e) { this.yukleVeKaydetOncesi(e) }
 	yukleSonrasi(e) { this.yukleVeKaydetSonrasi(e) }
 	kaydetDefer(e) { clearTimeout(this._timer_kaydetDefer); this._timer_kaydetDefer = setTimeout(e => { try { this.kaydet(e) } finally { delete this._timer_kaydetDefer } }, 500) }
-	kaydet(e) {
-		e = $.extend({}, e || {}); this.kaydetOncesi(e); const {fullTableName} = this.class;
+	async kaydet(e) {
+		e = $.extend({}, e || {}); this.kaydetOncesi(e);
 		let rec = this.hostVars(e); if (!rec) return this
 		if (typeof rec == 'object') {
 			let _rec = rec; const keys = Object.keys(rec), _keys = keys.filter(key => key[0] != '_');
 			if (keys.length != _keys.length) { _rec = {}; for (const key of _keys) _rec[key] = rec[key]; rec = _rec }
 			rec = toJSONStr(rec)
 		}
-		e.rec = rec; localStorage.setItem(fullTableName, rec);
-		this.kaydetSonrasi(e); return this
+		e.rec = rec; await this.kaydetIslemi(e); this.kaydetSonrasi(e); return this
 	}
+	yukleIslemi(e) { const {fullTableName} = this.class; const rec = localStorage.getItem(fullTableName); return rec }
+	kaydetIslemi(e) { const {fullTableName} = this.class, {rec} = e; localStorage.setItem(fullTableName, rec) }
 	kaydetOncesi(e) { this.yukleVeKaydetOncesi(e) }
 	kaydetSonrasi(e) { this.yukleVeKaydetSonrasi(e) }
 	yukleVeKaydetOncesi(e) { }

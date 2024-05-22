@@ -36,8 +36,8 @@ class LoginPart extends Part {
 		btnLogin.off('click').on('click', evt => this.loginIstendi({ event: evt }));
 
 		const {user} = qs;
+		if (loginTipi) { ddLoginTipi.val(loginTipi) }
 		if (user) {
-			if (loginTipi) ddLoginTipi.val(loginTipi);
 			txtUser.val(user);
 			const {pass} = qs; if (pass != null) txtPass.val(pass)
 		}

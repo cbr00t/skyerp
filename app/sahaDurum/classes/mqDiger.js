@@ -10,8 +10,14 @@ class MQCari extends MQKAOrtak {
 	static gridVeriYuklendi(e) { /* const {grid} = e; grid.jqxGrid('groups', ['plasiyerKod']) */ }
 	static loadServerData(e) { return this.loadServerDataFromMustBilgi(e) }
 	static async loadServerDataDogrudan(e) {
-		e = e || {}; await super.loadServerDataDogrudan(e); const {wsArgs, user} = e; let recs = await app.wsPlasiyerIcinCariler(wsArgs);
-		if (recs && user) recs = recs.filter(rec => rec.plasiyerKod == user); return recs
+		e = e || {}; await super.loadServerDataDogrudan(e); const {wsArgs, loginTipi, user} = e; let recs = await app.wsPlasiyerIcinCariler(wsArgs);
+		const selector = loginTipi == 'plasiyerLogin' ? 'plasiyerKod' : loginTipi == 'musteriLogin' ? 'kod' : null;
+		if (recs && selector && user) { recs = recs.filter(rec => rec[selector] == user) }
+		for (const rec of recs) {
+			const {plasiyerKod, plasiyerAdi} = rec; let plasiyerText = plasiyerKod;
+			if (plasiyerAdi) { plasiyerText += ` <b>${plasiyerAdi}</b>` } rec.plasiyerText = plasiyerText
+		}
+		return recs
 	}
 }
 class MQKapanmayanHesaplar extends MQMasterOrtak {
