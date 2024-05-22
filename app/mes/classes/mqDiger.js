@@ -39,7 +39,23 @@ class MQOperasyon extends MQKAOrtak {
 			input.on('change', evt => { const value = rootPart.urunAgacineEkleFlag = $(evt.currentTarget).is(':checked') })
 		})
 	}
-	static loadServerData(e) { const {oemSayac} = e.args; return app.wsBekleyenIs_yeniOperasyonlar({ oemSayac })}
+	static loadServerData(e) {
+		const {oemSayac} = e.args, toplu = new MQToplu([
+			`DECLARE @emirDetaySayac	BIGINT`,
+			new MQSent({
+				from: 'operemri', where: { degerAta: oemSayac, saha: 'kaysayac' },
+				sahalar: `@emirDetaySayac = emirdetaysayac`
+			}),
+			new MQStm({
+				sent: new MQSent({
+					from: 'operasyon', where: `opno NOT IN (select opno from operemri where emirdetaysayac = @emirDetaySayac)`,
+					sahalar: ['opno opNo', 'aciklama opAdi']
+				}),
+				orderBy: ['opNo']
+			})
+		]);
+		return app.sqlExecSelect(toplu) /*return app.wsBekleyenIs_yeniOperasyonlar({ oemSayac })*/
+	}
 }
 class MQDurNeden extends MQKAOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Duraksama Nedeni' }

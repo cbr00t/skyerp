@@ -6,6 +6,11 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		e = e || {}; super(e);
 		this.title = e.title == null ? ( 'Giden e-İşlem Listesi' ) : e.title || ''
 	}
+	runDevam(e) {
+		e = e || {}; super.runDevam(e);
+		const {dbName} = config.session, {kural} = app.params.eIslem, {sadeceAdi2mi} = kural.shAdi;
+		if (!sadeceAdi2mi && dbName?.toUpperCase().includes('BAKERMAN')) { setTimeout(() => hConfirm(`<b>BAKERMAN</b> veritabanı için e-İşlem Parametresi <b class="red">Stok Adı Gösterim</b> kuralı <u class="bold royalblue">Miktar 2</u> olarak işaretlenmelidir`, 'UYARI'), 1000) }
+	}
 	islemTuslariDuzenle(e) {
 		super.islemTuslariDuzenle(e); const {liste, part} = e;
 		liste.unshift(
@@ -13,6 +18,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 			{ id: 'eIslemIzle', handler: e => this.eIslemIzleIstendi(e) },
 			{ id: 'eIslemSorgu', handler: e => this.eIslemSorguIstendi(e) },
 			{ id: 'eIslemXMLOlustur', handler: e => this.eIslemXMLOlusturIstendi(e) },
+			{ id: 'eIslemIptal', handler: e => this.eIslemIptalIstendi(e) },
 			{ id: 'xmlKaldir', handler: e => this.xmlKaldirIstendi(e) }
 		);
 		$.extend(part.sagButonIdSet, asSet(['eIslemGonder', 'eIslemIzle', 'eIslemSorgu', 'eIslemXMLOlustur', 'eIslemIptal', 'xmlKaldir']))
