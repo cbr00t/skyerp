@@ -135,7 +135,7 @@ class EYonetici extends CObject {
 		const stm = eIslAnaSinif.getUUIDStm(e); for (const key of ['psTip2SayacListe', 'whereDuzenleyici']) { delete e[key] }
 		if (!stm) { throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' } }
 		const {sender, callback} = e, {eConf} = this, {eIslEkArgs} = eConf, recs = await app.sqlExecSelect(stm);
-		const BlockSize = 50, ps2Recs = this.class.getPS2Recs({ recs }), uuid2Result = e.uuid2Result = e.uuid2Result || {}; let subUUID2Result = e.subUUID2Result = [], seq = 0;
+		const BlockSize = 100, ps2Recs = this.class.getPS2Recs({ recs }), uuid2Result = e.uuid2Result = e.uuid2Result || {}; let subUUID2Result = e.subUUID2Result = [], seq = 0;
 		if (!$.isEmptyObject(ps2Recs)) {
 			const eConf = e.eConf ?? this.eConf;
 			for (const psTip in ps2Recs) {
@@ -667,3 +667,16 @@ class EYonetici extends CObject {
 		eIslTip2TokenResetTimer[eIslTip] = setTimeout(() => { try { delete eIslTip2Token[eIslTip] } finally { delete eIslTip2TokenResetTimer[eIslTip] } } , 10 * 60 * 1000); return this
 	}
 }
+
+
+/*
+	[ efat akıbet toplu update ]
+try {
+    const uuidList = app.activeWndPart.recs.map(rec => rec.efatuuid ?? rec.uuid);
+    if (uuidList?.length) {
+        const upd = new MQIliskiliUpdate({ from: 'piffis', where: [`efgonderimts IS NOT NULL`, `efatuuid <> ''`, { inDizi: uuidList, saha: 'efatuuid' }], set: { degerAta: '', saha: 'efatonaydurumu' } });
+        console.info({ upd, result: await app.sqlExecNone(upd) })
+    }
+}
+catch (ex) { console.error(ex) }
+*/
