@@ -36,6 +36,9 @@ class ParkBulurumApp extends TicariApp {
 
 
 /*
+	// custom runnable
+new CustomRunnable().sharedWorker().setRunIslemi(e => 's.a').threadedRun(100)
+
 	// worker unit tests
 const ws = { host: 'localhost' }, session = { loginTipi: 'mobilLogin', user: '905388569274', pass: '92eb5ffee6ae2fec3ad71c777531578f' };
 new ParkBulurum_Test01({ ws, session }).sharedWorker().threadedRun(1000)
