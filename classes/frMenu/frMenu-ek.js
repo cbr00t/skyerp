@@ -41,11 +41,7 @@ class FRMenuItem extends CObject {
 	navLayoutOlustur(e) {
 		const {parent} = e; if (!parent?.length) { return }
 		const indent = e.indent = e.indent || 0, {id, text} = this, {tip, cascademi} = this.class;
-		const li = e.item = $(
-			`<li id="${id}" class="mb-2 ml-${indent}" data-tip="${tip}">` +
-				`<a class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" href="#">${text}</a>` +
-			'</li>'
-		);
+		const li = e.item = $(`<li id="${id}" class="mb-2 ml-${indent}" data-tip="${tip}"><a class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" href="#">${text}</a></li>`);
 		if (this.isDisabled) { li.disabled = true; li.addClass('readOnly') }
 		li.appendTo(parent);
 		// li.children('a').on('click', evt =>

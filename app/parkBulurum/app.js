@@ -36,25 +36,41 @@ class ParkBulurumApp extends TicariApp {
 
 
 /*
+	// worker unit tests
+const session = { loginTipi: 'mobilLogin', user: '905388569274', pass: '92eb5ffee6ae2fec3ad71c777531578f' };
+new ParkBulurum_Test01({ session }).sharedWorker().threadedRun(100)
+
+	// temp login
+try {
+	await ajaxGet({
+		url: `https://localhost:9200/ws/parkBulurum/cihazlar`,
+		data: { loginTipi: 'mobilLogin', user: '905388569274', pass: '92eb5ffee6ae2fec3ad71c777531578f' }
+	})
+}
+catch (ex) { console.error(getErrorText(ex)) }
 
 	// api call stress test
 for (let t = 0; t < 5; t++) {
 	console.info('- başladı -'); const promises = [];
-	for (let i = 0; i < 100; i++) {
+	for (let i = 0; i < 50; i++) {
 		const promise = new $.Deferred(), results = [];
 		try {
-			results.push(await ajaxGet({
-				url: `https://localhost:9200/ws/parkBulurum/getSessionInfo`,
+			results.push(ajaxGet({
+				url: `https://cloud.vioyazilim.com.tr:9200/ws/parkBulurum/getSessionInfo`,
 				data: { loginTipi: 'mobilLogin', user: '905388569274', pass: '92eb5ffee6ae2fec3ad71c777531578f' }
 			}));
-			results.push(await ajaxGet({
-				url: `https://localhost:9200/ws/parkBulurum/bolumler`,
+			results.push(ajaxGet({
+				url: `https://cloud.vioyazilim.com.tr:9200/ws/parkBulurum/bolumler`,
 				data: { loginTipi: 'mobilLogin', user: '905388569274', pass: '92eb5ffee6ae2fec3ad71c777531578f' }
 			}));
-			results.push(await ajaxGet({
-				url: `https://localhost:9200/ws/parkBulurum/alanlar`,
+			results.push(ajaxGet({
+				url: `https://cloud.vioyazilim.com.tr:9200/ws/parkBulurum/alanlar`,
 				data: { loginTipi: 'mobilLogin', user: '905388569274', pass: '92eb5ffee6ae2fec3ad71c777531578f' }
-			}))
+			}));
+			results.push(ajaxGet({
+				url: `https://cloud.vioyazilim.com.tr:9200/ws/parkBulurum/cihazlar`,
+				data: { loginTipi: 'mobilLogin', user: '905388569274', pass: '92eb5ffee6ae2fec3ad71c777531578f' }
+			}));
 			promise.resolve({ results })
 		}
 		catch (ex) { console.error(getErrorText(ex)); promise.resolve({ isError: true, ex: ex, errorText: getErrorText(ex) }) }
@@ -63,15 +79,16 @@ for (let t = 0; t < 5; t++) {
 	console.info('- bitti -'); await new $.Deferred(p => setTimeout(() => p.resolve()), 2000)
 }
 
+
 	// register
-const StartIndex = 1; TestCount = 1, EndIndex = StartIndex + TestCount - 1, pass = '92eb5ffee6ae2fec3ad71c777531578f';
-const TelNo_Size = 12, TelNo_Prefix = '905382', TelNo_RemainingSize = TelNo_Size - TelNo_Prefix.length;
+const StartIndex = 1; TestCount = 1000, EndIndex = StartIndex + TestCount - 1, pass = '92eb5ffee6ae2fec3ad71c777531578f';
+const TelNo_Size = 12, TelNo_Prefix = '905384', TelNo_RemainingSize = TelNo_Size - TelNo_Prefix.length;
 for (let i = StartIndex; i <= EndIndex; i++) {
 	const cred = { user: `${TelNo_Prefix}${i.toString().padStart(TelNo_RemainingSize, '0')}`, pass }, telNo = cred.user;
 	try {
-		const result_ssoSMSSend = await ajaxGet({ url: `https://localhost:9200/ws/parkBulurum/ssoSMSSend`, data: { telNo } }); let ssoPass = result_ssoSMSSend.debugSSOPass;
+		const result_ssoSMSSend = await ajaxGet({ url: `https://cloud.vioyazilim.com.tr:9200/ws/parkBulurum/ssoSMSSend`, data: { telNo } }); let ssoPass = result_ssoSMSSend.debugSSOPass;
 		let result_register = await ajaxGet({
-			url: `https://localhost:9200/ws/parkBulurum/register`,
+			url: `https://cloud.vioyazilim.com.tr:9200/ws/parkBulurum/register`,
 			data: { ssoPass, telNo, isim: `TEST ${i.toString().padStart(TelNo_RemainingSize, '0')}`, sifre: cred.pass }
 		});
 		console.info({ result_ssoSMSSend, result_register })
@@ -96,4 +113,20 @@ for (let i = StartIndex; i <= EndIndex; i++) {
 	catch (ex) { console.error(getErrorText(ex)) }
 }
 
+	// test-worker
+		/// test-worker.js
+window = self; const webRoot = '../../..', urls = { libExt: `${webRoot}/lib_external` };
+importScripts(`${urls.libExt}/etc/md5.min.js`, `${urls.libExt}/etc/string.js`, `${urls.libExt}/etc/base64.js`, `${webRoot}/classes/ortak/CObject.js`);
+self.onconnect = evt => { const {ports} = evt; for (const socket of ports) { socket.onmessage = evt => handleMessage({ evt, socket, data: evt.data }) } }
+self.onmessage = evt => handleMessage({ evt, data: evt.data, socket: self });
+
+function handleMessage(e) { const {socket, data} = e; socket.postMessage(Object.assign({}, data)) }
+
+		/// console
+for (let i = 0; i < 1000; i++) {
+	const worker = new SharedWorker('test/test-worker.js'), socket = worker.port;
+	socket.onmessage = e => { const {data} = e; console.info(data) };
+	socket.postMessage({ cmd: 'apiCall', api: 'getSessionInfo' })
+}
+// IPTAL - const worker = new Worker('test/test-worker.js'); worker.onmessage = evt => { const {data} = evt; console.info(data) }; worker.postMessage({ cmd: 'apiCall', api: 'getSessionInfo' })
 */

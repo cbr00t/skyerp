@@ -135,7 +135,7 @@ body #ust-parent > #nav ul > li ul { animation: 200ms 1 nav-item-open }
 	100% { opacity: 1 }
 }
 body #ust-parent > #nav > ul { margin: 0 !important; padding: 0 !important; overflow-y: auto !important }
-body #ust-parent > #nav ul > li { margin: 0 5px !important }
+body #ust-parent > #nav ul > li { !important; margin: 0 5px !important }
 body #ust-parent > #nav ul > li > a { font-size: 80%; color: #555; text-decoration: none; margin-block-start: 8px; padding: 3px 10px }
 body #ust-parent > #nav ul > li { cursor: pointer }
 body #ust-parent > #nav ul > li:hover { background: linear-gradient(0deg, #cedeef4a 30%, transparent 90%) !important }
@@ -148,13 +148,8 @@ body #ust-parent > #nav ul > li.expanded > a { /* background-color: #d0d0e0; */ 
 body #ust-parent > #nav ul > li > .collapse { background-color: #f8f8f836; border-radius: 0 0 5px 5px }
 body #ust-parent > #nav ul > li > .collapse ul { margin: 0 0 0 10px; margin-block-end: 2px }
 body #ust-parent > #nav ul > li > .collapse ul > li { font-size: 85% }
-body #ust-parent > #nav ul > li#_ayarlar > a .img,
-body #ust-parent > #nav ul > li#_fullScreen > a .img,
-body #ust-parent > #nav ul > li#_scale > a .img,
-body #ust-parent > #nav ul > li#_logout > a .img {
-	width: 32px; height: 32px; margin-right: 10px;
-	background-size: 100%; background-repeat: no-repeat; background-position: 0
-}
+body #ust-parent > #nav ul > li#_ayarlar > a .img, body #ust-parent > #nav ul > li#_fullScreen > a .img, body #ust-parent > #nav ul > li#_scale > a .img,
+	body #ust-parent > #nav ul > li#_logout > a .img { width: 32px; height: 32px; margin-right: 10px; background-size: 100%; background-repeat: no-repeat; background-position: 0 }
 body #ust-parent > #nav ul > li#_ayarlar { border-top: 3px solid #888 }
 body #ust-parent > #nav ul > li#_ayarlar > a .img { background-image: url(../../images/ayarlar.png); background-color: royalblue }
 body #ust-parent > #nav ul > li#_ayarlar > a .text { font-weight: bold; color: royalblue }

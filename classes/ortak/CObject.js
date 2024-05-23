@@ -26,7 +26,7 @@ class CObject {
 	static get subClasses() { let result = this._subClasses; if (result === undefined) { result = this._subClasses = Object.values(this.key2SubClasses) } return result }
 	static get instance() { const {classKey, _class2SingletonInstance} = this; return _class2SingletonInstance[classKey] = _class2SingletonInstance[classKey] ?? new this() }
 	constructor(e) { if (window.boot) window.boot.step() }
-	static From(e) { const inst = new this(); if (!$.isEmptyObject(e)) { for (const key in e) { const value = e[key]; inst[key] = value } } return inst }
+	static From(e) { e = e || {}; const inst = new this(); { for (const key in e) { const value = e[key]; inst[key] = value } } return inst }
 	static Serialize(e) {
 		if (!e) return null; if (e.serialize) return e.serialize()
 		if (e.reduce && !$.isArray(e)) e = e.reduce()

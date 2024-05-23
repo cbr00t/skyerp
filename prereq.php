@@ -1,4 +1,3 @@
-
 <script src="<?=$webRoot?>/lib/appBase/app.js?<?=$appVersion?>"></script>
 <?php
 	require_once("$webRoot/classes/stmYapi/include.php");
@@ -19,5 +18,6 @@
 	require_once("$webRoot/ortak/menu/layout.php");
 	require_once("$webRoot/classes/mq/yerelParam/ui/yerelParam-config/include.php");
 	require_once("$webRoot/classes/mq/yerelParam/ui/yerelParam-config/layout.php");
-	require_once("$webRoot/ortak/grafik/include.php")
+	require_once("$webRoot/ortak/grafik/include.php");
+	require_once("$webRoot/ortak/test/include.php")
 ?>	

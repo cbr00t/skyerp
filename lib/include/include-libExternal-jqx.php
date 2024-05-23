@@ -6,8 +6,8 @@
 ?>
 <link rel="stylesheet" href="<?=$_partRoot?>/css/jquery-ui.min.css" />
 <link class="theme-base" rel="stylesheet" href="<?=$_partRoot?>/css/jqx.base.min.css" />
-<script src="<?=$_partRoot?>/jquery-3.3.1.min.js"></script>
-<!--<script src="<?=$_partRoot_jq?>/jquery.min.js"></script>-->
+<!--<script src="<?=$_partRoot?>/jquery-3.3.1.min.js"></script>-->
+<script src="<?=$_partRoot_jq?>/jquery.min.js"></script>
 <script src="<?=$_partRoot?>/jquery.ajax-cross-origin.min.js"></script>
 <script src="<?=$_partRoot_jqui?>/jquery-ui.min.js"></script>
 <script src="<?=$_partRoot_jqw?>/jqx-all.min.js"></script>
