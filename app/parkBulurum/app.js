@@ -37,8 +37,8 @@ class ParkBulurumApp extends TicariApp {
 
 /*
 	// worker unit tests
-const session = { loginTipi: 'mobilLogin', user: '905388569274', pass: '92eb5ffee6ae2fec3ad71c777531578f' };
-new ParkBulurum_Test01({ session }).sharedWorker().threadedRun(100)
+const ws = { host: 'localhost' }, session = { loginTipi: 'mobilLogin', user: '905388569274', pass: '92eb5ffee6ae2fec3ad71c777531578f' };
+new ParkBulurum_Test01({ ws, session }).sharedWorker().threadedRun(1000)
 
 	// temp login
 try {

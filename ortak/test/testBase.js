@@ -85,7 +85,7 @@ class TestBase extends CObject {
 				else {
 					const _tokens = []; for (const [key, value] of Object.entries(session)) { _tokens.push(value === undefined ? key : `${key}=${value}`) }
 					const _qs = `${_tokens.length ? _tokens.join('&') : ''}`;
-					if (_qs) { qs = `${_qs}&${qs}` }
+					if (_qs) { qs = qs ?`${_qs}&${qs}` : _qs }
 				}
 			}
 		}
