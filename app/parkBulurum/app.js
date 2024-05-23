@@ -36,6 +36,13 @@ class ParkBulurumApp extends TicariApp {
 
 
 /*
+	// Toplu Park X Oluştur & Sil
+const ws = { host: 'localhost' }, {session} = config, count = 100;
+try { await new ParkBulurum_TopluAlanOlustur({ ws, session }).run(count) } catch (ex) { console.error(getErrorText(ex)) }
+try { await new ParkBulurum_TopluCihazOlustur({ ws, session }).run(count) } catch (ex) { console.error(getErrorText(ex)) }
+try { await new ParkBulurum_TopluCihazSil({ ws, session }).run(count) } catch (ex) { console.error(getErrorText(ex)) }
+try { await new ParkBulurum_TopluAlanSil({ ws, session }).run(count) } catch (ex) { console.error(getErrorText(ex)) }
+
 	// custom runnable
 new CustomRunnable().sharedWorker().setRunIslemi(e => 's.a').threadedRun(100)
 

@@ -55,6 +55,36 @@ class Runnable extends CObject {
 		if (result === undefined) { result = await this.runInternal(e) }
 		return result
 	}
+	async runSync(e) {
+		e = e || {}; if (typeof e != 'object') { e = { iterCount: e } }; e.sender = this;
+		let iterCount = typeof e == 'object' ? e.iterCount ?? e.threadCount ?? e.count : e; this.iterCount = 1;
+		if (iterCount != null && typeof iterCount != 'number') { this.iterCount = null } if (!iterCount) { iterCount = 1 }
+		const results = [];
+		const {runIslemi} = this; for (let i = 0; i < iterCount; i++) {
+			let result; if (runIslemi) { result = await runIslemi.call(this, e) }
+			if (result === undefined) { result = await this.runInternal(e) }
+			results.push(result)
+		}
+		return results
+	}
+	async runAsync(e) {
+		e = e || {}; if (typeof e != 'object') { e = { iterCount: e } }; e.sender = this;
+		let iterCount = typeof e == 'object' ? e.iterCount ?? e.threadCount ?? e.count : e; this.iterCount = 1;
+		if (iterCount != null && typeof iterCount != 'number') { this.iterCount = null } if (!iterCount) { iterCount = 1 }
+		const promises = [];
+		const {runIslemi} = this; for (let i = 0; i < iterCount; i++) {
+			promises.push(new $.Deferred(async p => {
+				let result;
+				try {
+					if (runIslemi) { result = await runIslemi.call(this, e) }
+					if (result === undefined) { result = await this.runInternal(e) }
+				}
+				catch (ex) { result = { isError: true, result } }
+				p.resolve(result)
+			}))
+		}
+		return await Promise.all(promises)
+	}
 	runInternal(e) { }
 	async wsLogin(e) {
 		e = e || {}; let session = e.session ?? this.session, loginTipi = e.loginTipi ?? session?.loginTipi;
