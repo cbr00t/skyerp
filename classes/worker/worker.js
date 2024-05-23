@@ -17,7 +17,7 @@ async function handleMessage(e) {
 		switch (action) {
 			case 'run':
 				const inst = self.runnableClass.newFor(data); if (!inst) { break }
-				Object.assign(inst, { worker, socket, threadId }); socket.postMessage({ action: 'start' });
+				const iterCount = 1; Object.assign(inst, { worker, socket, threadId, iterCount }); socket.postMessage({ action: 'start' });
 				result = await inst.run();
 				if (result !== undefined) { for (const action of ['callback', 'result']) { const _data = { action, result }; socket.postMessage(_data) } }
 				socket.postMessage({ action: 'end' }); break

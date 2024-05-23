@@ -1,7 +1,9 @@
 class Runnable extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }; static get tip() { return null }
-	static { Object.assign(this, { Delim_WSPath: '/', Prefix_WSPath: 'ws/', WSContentType: 'application/json; charset=utf-8' }) }
+    static { window[this.name] = this; this._key2Class[this.name] = this };
 	static get workerPath() { return `${webRoot}/classes/worker/worker.js` }
+	static get rootTip() { return null } static get altTip() { return null }
+	static get tip() { const {rootTip, altTip} = this; return [rootTip, altTip].filter(x => !!x).join('-') }
+	static { Object.assign(this, { Delim_WSPath: '/', Prefix_WSPath: 'ws/', WSContentType: 'application/json; charset=utf-8' }) }
 	static get DefaultWSHost() { return 'localhost' } static get DefaultWSPath() { return 'skyERP' } static get DefaultLoginTipi() { return 'login' }
 	static get tip2Class() {
 		let result = this._tip2Class;
@@ -12,6 +14,7 @@ class Runnable extends CObject {
 		return result
 	}
 	get threadId() { return this._threadId } set threadId(value) { this._threadId = value || 'main' }
+	get currentThreadCount() { return this.worker?.currentThreadCount } get inWorker() { return !!this.currentThreadCount }
 	get ws() { let result = this._ws; if (result === undefined) { this.ws = null } return this._ws }
 	set ws(value) {
 		const {Prefix_WSPath, DefaultWSPath} = this.class, ws = value ?? {}, {url} = ws;
@@ -39,14 +42,16 @@ class Runnable extends CObject {
 		const cls = this.getClass(e); delete e.tip; return cls ? new cls(e) : null
 	}
 	threadedRun(e) {
-		let threadCount = typeof e == 'object' ? e.threadCount ?? e.count : e; if (threadCount == null) { threadCount = 1 }
+		let threadCount = typeof e == 'object' ? e.threadCount ?? e.iterCount ?? e.count : e; if (threadCount == null) { threadCount = 1 }
 		const data = Object.assign({ action: 'run' }, this.serialize());
 		for (let i = 0; i < threadCount; i++) { const {socket} = this.getWorker(); socket.postMessage(data) }
 		return this
 	}
 	async run(e) {
-		e = e || {}; e.sender = this; const {runIslemi} = this; let result;
-		if (runIslemi) { result = await runIslemi.call(this, e) }
+		e = e || {}; if (typeof e != 'object') { e = { iterCount: e } }; e.sender = this;
+		let iterCount = typeof e == 'object' ? e.iterCount ?? e.threadCount ?? e.count : e;
+		if (iterCount != null && typeof iterCount == 'number') { this.iterCount = iterCount } if (!this.iterCount) { iterCount = this.iterCount = 1 }
+		const {runIslemi} = this; let result; if (runIslemi) { result = await runIslemi.call(this, e) }
 		if (result === undefined) { result = await this.runInternal(e) }
 		return result
 	}
