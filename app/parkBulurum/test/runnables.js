@@ -4,7 +4,7 @@ class ParkBulurum_RunnableBase extends Runnable {
 	static get DefaultWSPath() { return 'parkBulurum' } static get DefaultLoginTipi() { return 'mobilLogin' }
 	runInternal(e) { super.runInternal(e) /*; const {tip} = this.class; this.callback({ message: 'in test', tip })*/ }
 }
-class ParkBulurum_TopluCihazOlustur extends Runnable {
+class ParkBulurum_TopluCihazOlustur extends ParkBulurum_RunnableBase {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'topluCihazOlustur' } 
 	runInternal(e) {
 		super.runInternal(e); const {iterCount} = this, hvListe = [];
