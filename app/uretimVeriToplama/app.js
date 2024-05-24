@@ -153,7 +153,7 @@ class UretimVeriToplamaApp extends App {
 	}
 	navLayoutOlustur_araIslem(e) {
 		super.navLayoutOlustur_araIslem(e);
-		const items = [new FRMenuChoice({ id: '_verileriSil', text: `<span class="img"/><span class="text">Verileri Sil</span>`, block: e => app.verileriSilIstendi(e) })];
+		const items = [new FRMenuChoice({ id: '_verileriSil', text: `<span class="img"></span><span class="text">Verileri Sil</span>`, block: e => app.verileriSilIstendi(e) })];
 		for (const item of items) item.navLayoutOlustur(e)
 	}
 	getAnaMenu(e) {

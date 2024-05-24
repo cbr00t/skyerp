@@ -28,18 +28,18 @@ class MQMustBilgi extends MQKAOrtak {
 			new GridKolon({ belirtec: 'bakiye', text: 'Bakiye', genislikCh: 16, cellClassName: 'bold', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel()
 		]);
 		for (let i = 1; i <= MustBilgi.kademeler.length; i++) { liste.push(new GridKolon({ belirtec: `kademe${i}Bedel`, text: MustBilgi.getKademeText(i - 1), genislikCh: 16, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel()) }
-		if (user && loginTipi != 'plasiyerLogin') { liste.push(new GridKolon({ belirtec: 'plasiyerText', text: 'Plasiyer', genislikCh: 10, cellClassName: 'darkgray' })) }
+		liste.push(new GridKolon({ belirtec: 'plasiyerText', text: 'Plasiyer', genislikCh: 10, cellClassName: 'darkgray' }))
 	}
 	static gridVeriYuklendi(e) {
 		const {grid} = e, session = config.session ?? app.params.yerel.lastSession ?? {}, {loginTipi, user} = session, groups = [];
-		if (user && loginTipi != 'plasiyerLogin') { groups.push('plasiyerText') } groups.push('iladi');
+		if (!(user && loginTipi == 'plasiyerLogin')) { groups.push('plasiyerText') } groups.push('iladi');
 		if (groups?.length) { grid.jqxGrid('groups', groups) }
 	}
 	static async loadServerData(e) {
 		e = e || {}; await super.loadServerData(e); const {localData} = app.params, dataKey = this.dataKey, {wsArgs} = e;
 		let result = localData.getData(dataKey); if (result == null) {
 			let recs = await MQCari.loadServerDataDogrudan(e); result = {}; const classes = [MQKapanmayanHesaplar, MQCariEkstre, MQCariEkstre_Detay];
-			for (const rec of recs) { const {kod} = rec; if (!kod) continue; result[kod] = new MustBilgi(rec) }
+			for (const rec of recs) { const {kod} = rec; if (!kod) { continue } result[kod] = new MustBilgi(rec) }
 			const cariEkstre_fisSayac2Rec = {}; for (const cls of classes) {
 				const subDataKey = cls.dataKey; if (!subDataKey) { continue }
 				const recs = await cls.loadServerDataDogrudan(e);

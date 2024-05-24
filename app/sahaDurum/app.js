@@ -3,7 +3,7 @@ class SahaDurumApp extends App {
 	get autoExecMenuId() { return 'DEF' } get defaultLoginTipi() { return 'plasiyerLogin' }
 	constructor(e) { e = e || {}; super(e) }
 	async runDevam(e) {
-		await super.runDevam(e); if (qs.user) await this.loginIstendi(e); else this.promise_login.resolve();
+		await super.runDevam(e); if (qs.user) { await this.loginIstendi(e) } else { this.promise_login.resolve() }
 		await this.promise_ready; await this.anaMenuOlustur(e); const {session} = config, yerelParam = this.params.yerel;
 		let lastSession = yerelParam?.lastSession ?? session;
 		if (lastSession) {
@@ -32,7 +32,7 @@ class SahaDurumApp extends App {
 		super.navLayoutOlustur_araIslem(e);
 		const items = [
 			new FRMenuChoice({
-				id: '_verileriSil', text: `<span class="img"/><span class="text">Verileri Sil</span>`,
+				id: '_verileriSil', text: `<span class="img"></span><span class="text">Verileri Sil</span>`,
 				block: e => app.verileriSilIstendi(e)
 			})
 		];
