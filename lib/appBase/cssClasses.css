@@ -21,12 +21,15 @@
 .static { position: static }
 
 .left,
+.left > input,
 .left > .jqx-grid-cell-center-align,
 .left > .jqx-grid-cell-right-align { text-align: left !important }
 .center,
+.center > input,
 .center > .jqx-grid-cell-left-align,
 .center > .jqx-grid-cell-right-align { text-align: center !important }
 .right,
+.right > input,
 .right > .jqx-grid-cell-left-align,
 .right > .jqx-grid-cell-center-align { text-align: right !important }
 

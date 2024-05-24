@@ -23,9 +23,9 @@ class CPoint extends CObject {
 }
 class CBasiSonu extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	constructor(e) { e = e || {}; super(e); $.extend(this, { basi: e.basi ?? e.Basi, sonu: e.sonu ?? e.Sonu }) }
 	static get empty() { return new this({ basi: '', sonu: '' }) } static get zero() { return new this({ basi: 0, sonu: 0 }) }
 	get bosmu() { return !(this.basi || !this.sonu) }
+	constructor(e) { e = e || {}; super(e); $.extend(this, { basi: e.basi ?? e.Basi, sonu: e.sonu ?? e.Sonu }) }
 	static fromText(e) {
 		e = e || {};
 		if (typeof e == 'object' && !$.isPlainObject(e)) return e		/* CBasiSonu gelmistir */
@@ -42,4 +42,23 @@ class CBasiSonu extends CObject {
 		})
 	}
 	toString(e) { return `${this.basi} -> ${this.sonu}` }
+}
+class YilVeAy extends CObject {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	get bosmu() { return !(this.basi || !this.sonu) }
+	get yilAy() { const {yil, ay} = this; return asYilAy(yil, ay) }
+	set yilAy(value) { const yilVeAy = ya2YilVeAy(value); if (yilVeAy) { const {yil, ay} = yilVeAy; $.extend(this, { yil, ay }) } }
+	constructor(e, _ay) {
+		e = e || {}; super(e); let yil, ay;
+		if (typeof e == 'object') {
+			let yilAy = e.yilAy ?? e.YilAy ?? e.yilay;
+			if (yilAy) { const yilVeAy = ya2YilVeAy(e); yil = yilVeAy?.yil; ay = yilVeAy?.ay } else { yil = e.yil ?? e.Yil; ay = e.ay ?? e.Ay }
+		}
+		else {
+			if (_ay === undefined) { const yilVeAy = ya2YilVeAy(e); yil = yilVeAy?.yil; ay = yilVeAy?.ay }
+			else { yil = e; ay = _ay }
+		}
+		if (yil && yil < 100) { yil = yil2To4(yil) }
+		$.extend(this, { yil, ay })
+	}
 }

@@ -287,7 +287,7 @@ class MQYerlesim extends MQKA {
 	}
 }
 class MQCihaz extends MQGuidVeAdi {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cihaz' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cihaz (Bariyer)' }
 	static get table() { return 'ocihaz' } static get tableAlias() { return 'cih' } static get kodSaha() { return 'id' } static get tumKolonlarGosterilirmi() { return true }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, {
@@ -301,9 +301,9 @@ class MQCihaz extends MQGuidVeAdi {
 	static rootFormBuilderDuzenle(e) {
 		e = e || {}; super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e, {dev} = config;
 		let form = tabPage_genel.addFormWithParent();
-			form.addTextInput('kartTelNox', 'GSM No').addStyle_wh(170); form.addDateInput('rezBasTS', 'Rezervasyon Başlangıç'); form.addDateInput('rezBitTS', 'Rezervasyon Bitiş');
 			form.addCheckBox('devreDisimi', 'Devre Dışı').degisince(e => { const {builder} = e, {id2Builder} = builder.parentBuilder; id2Builder.nedenKod.updateVisible(e) });
-			form.addModelKullan('nedenKod', 'Devre Dışı Nedeni').setMFSinif(MQArizaNedeni).dropDown().kodsuz().setVisibleKosulu(e => { const {builder} = e, {altInst} = builder, value = !!altInst.devreDisimi; return value ? true : 'jqx-hidden' });
+			form.addModelKullan('nedenKod', 'Devre Dışı Nedeni').setMFSinif(MQArizaNedeni).dropDown().kodsuz().addStyle_wh(300)
+					.setVisibleKosulu(e => { const {builder} = e, {altInst} = builder, value = !!altInst.devreDisimi; return value ? true : 'jqx-hidden' });
 		form = tabPage_genel.addFormWithParent();
 			form.addModelKullan('parkBolumId', 'Park Bölüm').setMFSinif(MQParkBolum).comboBox().kodsuz().degisince(e => {
 				const {builder, value} = e, {id2Builder} = builder.parentBuilder, part_alanId = id2Builder.alanId.part; part_alanId.disabled = !!value
@@ -450,25 +450,27 @@ class MQMobil extends MQGuidVeAdi {
 	}
 }
 class MQMobilKart extends MQGuidVeAdi {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Mobil Cihaz' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Mobil Kart' }
 	static get table() { return 'omobilkart' } static get tableAlias() { return 'mkar' } static get kodSaha() { return 'id' } static get tumKolonlarGosterilirmi() { return true }
 	static get adiSaha() { return 'krisim'} static get adiEtiket() { return 'İsim' }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
 		$.extend(pTanim, {
 			mobilId: new PInstGuid('mobilid'), kayitTarih: new PInstDateNow(), kayitZamani: new PInstStr({ init: e => timeToString(now()) }),
-			tip: new PInstStr('krtipi'), kartNo: new PInstStr('krkartno'), yilAy: new PInstNum('krbitisyilay'), cvv: new PInstStr('krcvv'),
+			tip: new PInstTekSecim('krtipi', KartTipi), kartNo: new PInstStr('krkartno'), yilAy: new PInstNum('krbitisyilay'), cvv: new PInstStr('krcvv'),
 			varsayilanmi: new PInstBitBool('bvarsayilan')
 		})
 	}
 	static rootFormBuilderDuzenle(e) {
 		e = e || {}; super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e;
 		let form = tabPage_genel.addFormWithParent(); form.addModelKullan('mobilId', 'Mobil Cihaz').comboBox().kodsuz().setMFSinif(MQMobil);
-			form.addDateInput('kayitTarih', 'Kayıt Tarih'); form.addTimeInput('kayitZamani', 'Saat');
-		form.addTextInput('tip', 'Kart Tipi').setMaxLength(5).addStyle_wh(100).addStyle(e => `$elementCSS > input { text-align: center }`);
+			/*form.addDateInput('kayitTarih', 'Kayıt Tarih'); form.addTimeInput('kayitZamani', 'Saat');*/
+		form.addModelKullan('tip', 'Kart Tipi').dropDown().kodsuz().noMF().setSource(e => KartTipi.kaListe).addStyle_wh(250);
 		form = tabPage_genel.addFormWithParent(); 
 			form.addTextInput('kartNo', 'Kart No').setMaxLength(16).addStyle_wh(250).addStyle(e => `$elementCSS > input { text-align: center }`);
-			form.addNumberInput('yilAy', 'YılAy').setMaxLength(5).addStyle_wh(90); form.addCheckBox('varsayilanmi', 'Varsayılan?')
+			form.addNumberInput('ay', `Ay<span style="margin-left: 30px !important">/</span>`).setMin(1).setMax(12).setMaxLength(2).addCSS('center').addStyle_wh(70);
+			form.addNumberInput('yil', 'Yıl').setMaxLength(2).setMin(asInteger(today().getFullYear() / 100)).setMax(asInteger(today().getFullYear() / 100) + 10).addCSS('center').addStyle_wh(60);
+			form.addCheckBox('varsayilanmi', 'Varsayılan?')
 	}
 	static secimlerDuzenle(e) {
 		super.secimlerDuzenle(e); const sec = e.secimler;
@@ -506,12 +508,13 @@ class MQMobilKart extends MQGuidVeAdi {
 		sent.sahalar.add(`${alias}.bvarsayilan varsayilanmi`)
 	}
 	hostVarsDuzenle(e) {
-		super.hostVarsDuzenle(e); const {hv} = e, {kayitTarih, kayitSaat} = this;
-		$.extend(hv, { krkartno: hv.krkartno?.replaceAll(' ', ''), eklentizamani: isInvalidDate(kayitTarih) ? null : setTime(kayitTarih, asTime(kayitSaat)) })
+		super.hostVarsDuzenle(e); const {hv} = e, {kayitTarih, kayitSaat, ay, yil} = this, {yilAy} = new YilVeAy(yil, ay);
+		$.extend(hv, { krkartno: hv.krkartno?.replaceAll(' ', ''), eklentizamani: isInvalidDate(kayitTarih) ? null : setTime(kayitTarih, asTime(kayitSaat)), krbitisyilay: yilAy ?? 0 })
 	}
 	setValues(e) {
-		super.setValues(e); const {rec} = e; let {eklentizamani} = rec;
-		if (eklentizamani) { eklentizamani = asDate(eklentizamani); $.extend(this, { kayitTarih: eklentizamani.clone().clearTime(), kayitZamani: timeToString(eklentizamani) }) }
+		super.setValues(e); const {rec} = e; let {eklentizamani, krbitisyilay} = rec, yilVeAy = new YilVeAy(krbitisyilay);
+		let {yil, ay} = yilVeAy; if (yil) { yil = yil4To2(yil) }
+		if (eklentizamani) { eklentizamani = asDate(eklentizamani); $.extend(this, { kayitTarih: eklentizamani.clone().clearTime(), kayitZamani: timeToString(eklentizamani), yil, ay }) }
 	}
 }
 class MQRezervasyon extends MQGuid {

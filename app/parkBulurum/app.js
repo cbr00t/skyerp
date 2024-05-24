@@ -13,7 +13,7 @@ class ParkBulurumApp extends TicariApp {
 				mnemonic: 'TAN', text: 'Tanımlar', items: [
 					new FRMenuChoice({ mnemonic: 'MOB', text: 'Mobil Cihazlar', block: e => MQMobil.listeEkraniAc(e) }),
 					new FRMenuChoice({ mnemonic: 'KRT', text: 'Mobil Kartlar', block: e => MQMobilKart.listeEkraniAc(e) }),
-					new FRMenuChoice({ mnemonic: 'CIH', text: 'Cihazlar', block: e => MQCihaz.listeEkraniAc(e) }),
+					new FRMenuChoice({ mnemonic: 'CIH', text: 'Cihazlar (Bariyerler)', block: e => MQCihaz.listeEkraniAc(e) }),
 					new FRMenuChoice({ mnemonic: 'PBL', text: 'Otopark Bölümleri', block: e => MQParkBolum.listeEkraniAc(e) }),
 					new FRMenuChoice({ mnemonic: 'ALN', text: 'Otopark Alanları', block: e => MQAlan.listeEkraniAc(e) }),
 					new FRMenuChoice({ mnemonic: 'SOZ', text: 'Sözleşmeler', block: e => MQSozlesme.listeEkraniAc(e) }),

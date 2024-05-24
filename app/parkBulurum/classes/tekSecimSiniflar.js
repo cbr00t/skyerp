@@ -60,3 +60,14 @@ class AlanTipi extends TekSecim {
 		)
 	}
 }
+class KartTipi extends TekSecim {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get defaultChar() { return 'visa' } get visami() { return 'visa' } get mastermi() { return this.char == 'mast4e4r' } get expressmi() { return this.char == 'express' }
+	kaListeDuzenle(e) {
+		super.kaListeDuzenle(e); const {kaListe} = e;
+		kaListe.push(
+			new CKodVeAdi(['visa', 'Visa']), new CKodVeAdi(['master', 'MasterCard']), new CKodVeAdi(['express', 'American Express']),
+			new CKodVeAdi(['diners', 'Diners']), new CKodVeAdi(['discover', 'Discover']), new CKodVeAdi(['jcb', 'JCB'])
+		)
+	}
+}
