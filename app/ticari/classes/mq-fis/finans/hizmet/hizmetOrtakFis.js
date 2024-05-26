@@ -1,17 +1,13 @@
 class HizmetOrtakFis extends FinansFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get table() { return 'finansfis' }
-	static get detaySinif() { return HizmetOrtakDetay }
-	static get gridKontrolcuSinif() { return HizmetOrtakGridci }
-	static get fisTipi() { return null }
+	static get table() { return 'finansfis' } static get detaySinif() { return HizmetOrtakDetay }
+	static get gridKontrolcuSinif() { return HizmetOrtakGridci } static get fisTipi() { return null }
 	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e);
-		const {pTanim} = e;
+		super.pTanimDuzenle(e); const {pTanim} = e;
 		$.extend(pTanim, { ba: new PInstTekSecim('ba', GelirGider) })
 	}
 	static rootFormBuilderDuzenle_ilk(e) {
-		super.rootFormBuilderDuzenle_ilk(e);
-		const baslikFormlar = e.builders.baslikForm.builders;
+		super.rootFormBuilderDuzenle_ilk(e); const baslikFormlar = e.builders.baslikForm.builders;
 		let form = baslikFormlar[0];
 		form.addModelKullan({ id: 'ba', etiket: 'Gelir/Gider', source: e => GelirGider.instance.kaListe })
 			.dropDown().kodsuz().bosKodAlinmaz().bosKodEklenmez().noMF()
@@ -28,15 +24,6 @@ class HizmetOrtakFis extends FinansFis {
 			.addStyle_wh({ width: '130px !important' })
 	}
 	static super_rootFormBuilderDuzenle_ilk(e) { super.rootFormBuilderDuzenle_ilk(e) }
-	/*static ekCSSDuzenle(e) {
-		super.ekCSSDuzenle(e);
-		const {rec, result} = e;
-		const {ba} = rec;
-		if (ba == 'B')
-			result.push('bg-orangered')
-		else if (ba == 'A')
-			result.push('bg-lightgreen')
-	}*/
 	static standartGorunumListesiDuzenle_son(e) {
 		e.liste.push('toplambedel');
 		super.standartGorunumListesiDuzenle_son(e)
@@ -504,61 +491,34 @@ class HizmetOrtakGridci extends FinansGridci {
 
 class KasaHizmetFis extends HizmetOrtakFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get detaySinif() { return KasaHizmetDetay }
-	static get gridKontrolcuSinif() { return KasaHizmetGridci }
-	static get sinifAdi() { return 'Kasa Hizmet Fişi' }
-	static get kodListeTipi() { return 'KSHIZ' }
-	static get numTipKod() { return 'KDTAH' }
-	static get fisTipi() { return 'KH' }
-	static extYapilarDuzenle(e) {
-		e.liste.push(ExtFis_Kasa);
-		super.extYapilarDuzenle(e)
-	}
-	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e);
-		$.extend(e.pTanim, { dvKod: new PInstStr(), dvKur: new PInstNum() })
-	}
+	static get detaySinif() { return KasaHizmetDetay } static get gridKontrolcuSinif() { return KasaHizmetGridci } static get sinifAdi() { return 'Kasa Hizmet Fişi' }
+	static get kodListeTipi() { return 'KSHIZ' } static get numTipKod() { return 'KDTAH' } static get fisTipi() { return 'KH' }
+	get bakiyeciler() { return [...super.bakiyeciler, new KasaBakiyeci({ borcmu: e => this.ba.gelirmi })] }
+	static extYapilarDuzenle(e) { e.liste.push(ExtFis_Kasa); super.extYapilarDuzenle(e) }
+	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { dvKod: new PInstStr(), dvKur: new PInstNum() }) }
 	static rootFormBuilderDuzenle_son(e) {
 		e = e || {};
 		super.rootFormBuilderDuzenle_son(e);
 		const baslikFormlar = e.builders.baslikForm.builders;
 		let form = baslikFormlar[0];
 		form.addNumberInput({ id: 'dvKur', etiket: 'Dv.Kur' })
-			.onBuildEk(e => {
-				const {builder} = e;
-				const {input} = builder;
-				input.attr('readonly', '');
-				input.addClass('readOnly');
-				e.builder.rootPart.fbd_dvKur = builder
-			})
+			.onBuildEk(e => { const {builder} = e, {input} = builder; input.attr('readonly', ''); input.addClass('readOnly'); e.builder.rootPart.fbd_dvKur = builder })
 			.addStyle_wh({ width: '150px !important' })
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e);
-		const {aliasVeNokta} = this, {sent} = e;
+		super.loadServerData_queryDuzenle(e); const {aliasVeNokta} = this, {sent} = e;
 		sent.sahalar.add('kas.dvtipi dvkod')
 	}
-	setValues(e) {
-		super.setValues(e);
-		const {rec} = e;
-		$.extend(this, { dvKod: rec.dvkod })
-	}
+	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { dvKod: rec.dvkod }) }
+	kasaBakiyeSqlEkDuzenle(e) { const {sent, borcmu} = e, {sahalar} = sent; sahalar.addWithAlias('fis', 'ozelisaret', 'kasakod', 'toplambedel bakiye', 'toplamdvbedel dvbakiye') }
 	async kasaDegisti(e) {
-		const {kasaKod} = this;
-		const rec = await MQKasa.kasaKod2DvKur(kasaKod);
-		const dvKur = this.dvKur = rec?.satis || 0;
-		const {builder} = e;
-		const {rootPart} = builder;
-		rootPart.fbd_dvKur.input.val(dvKur || 0);
-
-		const {gridWidget} = rootPart;
-		const gridRecs = gridWidget.getboundrows();
+		const {kasaKod} = this, rec = await MQKasa.kasaKod2DvKur(kasaKod), dvKur = this.dvKur = rec?.satis || 0, {builder} = e;
+		const {rootPart} = builder; rootPart.fbd_dvKur.input.val(dvKur || 0);
+		const {gridWidget} = rootPart, gridRecs = gridWidget.getboundrows();
 		gridWidget.beginupdate();
 		for (let i = 0; i < gridRecs.length; i++) {
-			const gridRec = gridRecs[i];
-			const {dvBedel} = gridRec;
-			if (dvBedel && dvKur)
-				gridWidget.setcellvalue(i, 'bedel', roundToBedelFra( dvBedel * dvKur ))
+			const gridRec = gridRecs[i], {dvBedel} = gridRec;
+			if (dvBedel && dvKur) { gridWidget.setcellvalue(i, 'bedel', roundToBedelFra( dvBedel * dvKur )) }
 		}
 		gridWidget.endupdate(false)
 	}
@@ -568,18 +528,18 @@ class KasaHizmetDetay extends HizmetOrtakDetay {
 }
 class KasaHizmetGridci extends HizmetOrtakGridci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	/*tabloKolonlariDuzenle_ilk(e) { super.tabloKolonlariDuzenle_ilk(e) }
-	tabloKolonlariDuzenle_ara(e) { super.tabloKolonlariDuzenle_ara(e) }*/
 }
 
 class CariHizmetFis extends HizmetOrtakFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get detaySinif() { return CariHizmetDetay }
-	static get gridKontrolcuSinif() { return CariHizmetGridci }
-	static get sinifAdi() { return 'Cari Hizmet Fişi' }
-	static get kodListeTipi() { return 'CRHIZ' }
-	static get numTipKod() { return 'CHIZ' }
-	static get fisTipi() { return 'CH' }
+	static get detaySinif() { return CariHizmetDetay } static get gridKontrolcuSinif() { return CariHizmetGridci } static get sinifAdi() { return 'Cari Hizmet Fişi' }
+	static get kodListeTipi() { return 'CRHIZ' } static get numTipKod() { return 'CHIZ' } static get fisTipi() { return 'CH' }
+	get bakiyeciler() { return [...super.bakiyeciler, new CariBakiyeci({ borcmu: e => this.ba.gelirmi })] }
+	cariBakiyeSqlEkDuzenle(e) {
+		const {sent, borcmu} = e, {sahalar} = sent; sent.fis2HarBagla('finanshar');
+		sahalar.addWithAlias('fis', 'ozelisaret'); sahalar.addWithAlias('har', 'ticmustkod must', 'cariitn althesapkod');
+		sahalar.add('SUM(har.bedel) bakiye', 'SUM(har.dvbedel) dvbakiye')
+	}
 }
 class CariHizmetDetay extends HizmetOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -592,20 +552,21 @@ class CariHizmetGridci extends HizmetOrtakGridci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle_ilk(e) {
 		const kolonGruplar = MQCari.getGridKolonlar({ belirtec: 'cari', gridKolonGrupcu: 'getGridKolonGrup_yoreli', sabitle: true });
-		const {tabloKolonlari} = e;
-		tabloKolonlari.push(...kolonGruplar);
+		const {tabloKolonlari} = e; tabloKolonlari.push(...kolonGruplar);
 		super.tabloKolonlariDuzenle_ilk(e)
 	}
 }
 
 class BankaHizmetFis extends HizmetOrtakFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get detaySinif() { return BankaHizmetDetay }
-	static get gridKontrolcuSinif() { return BankaHizmetGridci }
-	static get sinifAdi() { return 'Banka Hizmet Fişi' }
-	static get kodListeTipi() { return 'BNHIZ' }
-	static get numTipKod() { return 'HSHIZ' }
-	static get fisTipi() { return 'HH' }
+	static get detaySinif() { return BankaHizmetDetay } static get gridKontrolcuSinif() { return BankaHizmetGridci } static get sinifAdi() { return 'Banka Hizmet Fişi' }
+	static get kodListeTipi() { return 'BNHIZ' } static get numTipKod() { return 'HSHIZ' } static get fisTipi() { return 'HH' }
+	get bakiyeciler() { return [...super.bakiyeciler, new MevduatBakiyeci({ borcmu: e => this.ba.gelirmi })] }
+	mevduatBakiyeSqlEkDuzenle(e) {
+		const {sent, borcmu} = e, {sahalar} = sent; sent.fis2HarBagla('finanshar');
+		sahalar.addWithAlias('fis', 'ozelisaret'); sahalar.addWithAlias('har', 'banhesapkod');
+		sahalar.add('SUM(har.bedel) bakiye', 'SUM(har.dvbedel) dvbakiye')
+	}
 }
 class BankaHizmetDetay extends HizmetOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -616,23 +577,14 @@ class BankaHizmetDetay extends HizmetOrtakDetay {
 }
 class BankaHizmetGridci extends HizmetOrtakGridci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	tabloKolonlariDuzenle_ilk(e) {
-		const kolonGruplar = MQBankaHesap.getGridKolonlar({ belirtec: 'banHesap', sabitle: true });
-		e.tabloKolonlari.push(...kolonGruplar);
-		super.tabloKolonlariDuzenle_ilk(e)
-	}
+	tabloKolonlariDuzenle_ilk(e) { const kolonGruplar = MQBankaHesap.getGridKolonlar({ belirtec: 'banHesap', sabitle: true }); e.tabloKolonlari.push(...kolonGruplar); super.tabloKolonlariDuzenle_ilk(e) }
 }
 
 class KrediKartiIleMasrafOdemeFis extends HizmetOrtakFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() { return 'Kredi Kartı ile Masraf Ödeme' }
-	static get table() { return KrediKartiIleOdemeFis.table }
-	static get detaySinif() { return KrediKartiIleMasrafOdemeDetay }
-	static get gridKontrolcuSinif() { return KrediKartiIleMasrafOdemeGridci }
-	static get almSat() { return KrediKartiIleOdemeFis.almSat }
-	static get fisTipi() { return KrediKartiIleOdemeFis.fisTipi }
-	static get kodListeTipi() { return 'KKMOF' }
-	static get numTipKod() { return KrediKartiIleOdemeFis.numTipKod }
+	static get sinifAdi() { return 'Kredi Kartı ile Masraf Ödeme' } static get table() { return KrediKartiIleOdemeFis.table } static get detaySinif() { return KrediKartiIleMasrafOdemeDetay }
+	static get gridKontrolcuSinif() { return KrediKartiIleMasrafOdemeGridci } static get almSat() { return KrediKartiIleOdemeFis.almSat } static get fisTipi() { return KrediKartiIleOdemeFis.fisTipi }
+	static get kodListeTipi() { return 'KKMOF' } static get numTipKod() { return KrediKartiIleOdemeFis.numTipKod }
 	get ba() {
 		let result = this._ba;
 		if (result === undefined)

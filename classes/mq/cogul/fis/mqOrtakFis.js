@@ -1,7 +1,6 @@
 class MQOrtakFis extends MQDetayli {
     static { window[this.name] = this; this._key2Class[this.name] = this }	
-	static get gridKontrolcuSinif() { return null }
-	get gridKontrolcuSinif() { return this.class.gridKontrolcuSinif }
+	static get gridKontrolcuSinif() { return null } get gridKontrolcuSinif() { return this.class.gridKontrolcuSinif }
 	static get tableAlias() { return 'fis' } static get ayrimTable() { return 'tfisayrim' } static get noSaha() { return 'no' }
 	static get dipSinif() { return DipIslemci } static get dipKullanilirmi() { return false } static get dipNakliyeKullanilirmi() { return false }
 	static get dipIskOranSayi() { return 0 } static get dipIskBedelSayi() { return 0 }
@@ -24,6 +23,7 @@ class MQOrtakFis extends MQDetayli {
 		return roundToBedelFra(toplam)
 	}
 	get fisBaslikOlusturucular() { const _e = { liste: [] }; this.fisBaslikOlusturucularDuzenle(_e); return _e.liste }
+	get bakiyeciler() { return [] }
 	
 	constructor(e) {
 		e = e || {}; super(e); if (e.isCopy) return
@@ -90,6 +90,18 @@ class MQOrtakFis extends MQDetayli {
 		for (const det of this.detaylar) { det.donusumBilgileriniSil(e) }
 		this.donusumBilgileriniSil(e)
 	}
+	topluYazmaKomutlariniOlustur(e) {
+		super.topluYazmaKomutlariniOlustur(e); const {toplu, paramName_fisSayac} = e, {table, sayacSaha} = this.class, {bakiyeciler} = this;
+		if (bakiyeciler?.length) {
+			const fis = this, tip2BakiyeDict = {}, tip2Table = {};
+			for (const bakiyeci of bakiyeciler) {
+				const {tipKod, table} = bakiyeci; if (!tipKod) { continue }
+				const bakiyeDict = bakiyeci.getBakiyeDict({ fis, paramName_fisSayac }); if (!bakiyeDict) { continue }
+				tip2BakiyeDict[tip] = bakiyeDict; tip2Table[tip] = table
+			}
+			/*toplu.add(...)*/
+		}
+	}
 	alternateKeyHostVarsDuzenle(e) {
 		super.alternateKeyHostVarsDuzenle(e); const {hv} = e;
 		hv[this.class.noSaha] = coalesce(this.fisNo, null)
@@ -97,6 +109,10 @@ class MQOrtakFis extends MQDetayli {
 	setValues(e) {
 		super.setValues(e); const {rec} = e;
 		this.fisNo = rec[this.class.noSaha] || 0
+	}
+	bakiyeSqlOrtakDuzenle(e) {
+		const {sent} = e, {table, sayacSaha} = this.class, {paramName_fisSayac, sayac} = this;
+		sent.fromAdd(`${table} fis`); sent.where.add(`fis.${sayacSaha} = ${paramName_fisSayac}`)
 	}
 	uiDuzenle_fisGiris(e) {
 		const {fisBaslikOlusturucular} = this;

@@ -1,4 +1,5 @@
-class MQSent extends MQDbCommand {
+class MQSent extends MQSentVeIliskiliYapiOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get unionmu() { return false }
 	static get aggregateFunctions() { let result = this._aggregateFunctions; if (!result) { result = this._aggregateFunctions = ['SUM', 'COUNT', 'MIN', 'MAX', 'AVG'] } return result }
 	static get aggregateFunctionsSet() { let result = this._aggregateFunctionsSet; if (!result) { result = this._aggregateFunctionsSet = asSet(this.aggregateFunctions) } return result }
@@ -6,18 +7,12 @@ class MQSent extends MQDbCommand {
 		e = e || {}; super(e);
 		$.extend(this, {
 			distinct: asBool(e.distinct),
-			sahalar: (($.isArray(e.sahalar) || $.isPlainObject(e.sahalar) || typeof e.sahalar == 'string'
-								? new MQSahalar(e.sahalar) : e.sahalar)) || new MQSahalar(),
-			from: ($.isArray(e.from) || $.isPlainObject(e.from) || typeof e.from == 'string'
-							? new MQFromClause(e.from) : e.from) || new MQFromClause(),
-			where: ($.isArray(e.where) || $.isPlainObject(e.where) || typeof e.where == 'string'
-							? new MQWhereClause(e.where) : e.where) || new MQWhereClause(),
-			groupBy: ($.isArray(e.groupBy) || $.isPlainObject(e.groupBy) || typeof e.groupBy == 'string'
-							? new MQGroupByClause(e.groupBy) : e.groupBy) || new MQGroupByClause(),
-			having: ($.isArray(e.having) || $.isPlainObject(e.having) || typeof e.having == 'string'
-							? new MQHavingClause(e.having) : e.having) || new MQHavingClause(),
-			zincirler: ($.isArray(e.zincirler) || $.isPlainObject(e.zincirler)
-							? new MQZincirler(e.zincirler) : e.zincirler) || new MQZincirler(),
+			sahalar: (($.isArray(e.sahalar) || $.isPlainObject(e.sahalar) || typeof e.sahalar == 'string' ? new MQSahalar(e.sahalar) : e.sahalar)) || new MQSahalar(),
+			from: ($.isArray(e.from) || $.isPlainObject(e.from) || typeof e.from == 'string' ? new MQFromClause(e.from) : e.from) || new MQFromClause(),
+			where: ($.isArray(e.where) || $.isPlainObject(e.where) || typeof e.where == 'string' ? new MQWhereClause(e.where) : e.where) || new MQWhereClause(),
+			groupBy: ($.isArray(e.groupBy) || $.isPlainObject(e.groupBy) || typeof e.groupBy == 'string' ? new MQGroupByClause(e.groupBy) : e.groupBy) || new MQGroupByClause(),
+			having: ($.isArray(e.having) || $.isPlainObject(e.having) || typeof e.having == 'string' ? new MQHavingClause(e.having) : e.having) || new MQHavingClause(),
+			zincirler: ($.isArray(e.zincirler) || $.isPlainObject(e.zincirler) ? new MQZincirler(e.zincirler) : e.zincirler) || new MQZincirler(),
 			top: e.top, limit: e.limit, offset: e.offset
 		});
 		let {fromIliskiler, birlestir, groupByOlustur} = e;
@@ -27,8 +22,8 @@ class MQSent extends MQDbCommand {
 				else { this.fromIliski(fromIliskiOrLeftJoin) }
 			}
 		}
-		if (birlestir) this.birlestir(birlestir)
-		if (groupByOlustur) this.groupByOlustur()
+		if (birlestir) { this.birlestir(birlestir) }
+		if (groupByOlustur) { this.groupByOlustur() }
 	}
 	static hasAggregateFunctions(e) {
 		if (typeof e != 'object') e = { sql: e };
@@ -37,11 +32,6 @@ class MQSent extends MQDbCommand {
 		return false
 	}
 	fromGridWSArgs(e) { e = e || {}; this.where.fromGridWSArgs(e) }
-	*getSentListe(e) { yield this }
-	sentDo(e) {
-		e = e || {}; if (typeof e != 'object') e = { callback: e }
-		e.callback.call(this, this, { item: this, index: 1, liste: [this] })
-	}
 	birlestir(diger) {
 		this.sahalar.birlestir(diger.sahalar); this.from.birlestir(diger.from); this.where.birlestir(diger.where);
 		this.groupBy.birlestir(diger.groupBy); this.having.birlestir(diger.having); this.zincirler.birlestir(diger.zincirler);
@@ -55,114 +45,55 @@ class MQSent extends MQDbCommand {
 		const eklenecekler = []; let aggregateVarmi = false;
 		// for (const saha of sahaListe) {
 		for (let i = 0; i < sahaListe.length; i++) {
-			const saha = sahaListe[i];
-			let deger = (saha.deger || '').toString();
-			if (!deger || deger == '' || isDigit(deger[0])) continue
+			const saha = sahaListe[i]; let deger = (saha.deger || '').toString(); if (!deger || deger == '' || isDigit(deger[0])) { continue }
 			const degerUpper = deger.toUpperCase();
-			if (degerUpper.startsWith('CAST(0') ||
-					degerUpper.startsWith("CAST(''") ||
-					degerUpper.startsWith('CAST(NULL') ||
-					degerUpper.startsWith('NULL')
-			) { continue }
+			if (degerUpper.startsWith('CAST(0') || degerUpper.startsWith("CAST(''") || degerUpper.startsWith('CAST(NULL') || degerUpper.startsWith('NULL')) { continue }
 			const toplammi = this.class.hasAggregateFunctions(degerUpper); if (toplammi) { aggregateVarmi = true; continue }
 			eklenecekler.push(deger)
 		}
-		if (aggregateVarmi) groupBy.addAll(eklenecekler)
+		if (aggregateVarmi) { groupBy.addAll(eklenecekler) }
 		return this
 	}
-	sahalarVeGroupByReset() {
-		this.sahalarReset();
-		this.groupByReset();
-		return this
-	}
-
-	sahalarReset() {
-		this.sahalar = new MQSahalar();
-		return this
-	}
-
-	groupByReset() {
-		this.groupBy = new MQGroupByClause();
-		this.having = new MQHavingClause();
-		return this
-	}
-
+	sahalarVeGroupByReset() { this.sahalarReset(); this.groupByReset(); return this }
+	sahalarReset() { this.sahalar = new MQSahalar(); return this }
+	groupByReset() { this.groupBy = new MQGroupByClause(); this.having = new MQHavingClause(); return this }
 	fromAdd(e) {
-		e = e || {};
-		if (typeof e != 'object')
-			e = { from: e }
-		else
-			e.from = e.from || e.fromText || e.table
-
-		let fromText = e.from;
-		this.from.add(fromText);
-		return this
+		e = e || {}; if (typeof e != 'object') { e = { from: e } } else { e.from = e.from || e.fromText || e.table }
+		let fromText = e.from; this.from.add(fromText); return this
 	}
 	fromIliski(e, _iliskiDizi) {
-		e = e || {};
-		if (typeof e != 'object')
-			e = { from: e }
-		else
-			e.from = e.from || e.fromText || e.table
+		e = e || {}; if (typeof e != 'object') { e = { from: e } } else { e.from = e.from || e.fromText || e.table }
 		let fromText = e.from;
-		if (_iliskiDizi)
-			e.iliskiDizi = _iliskiDizi
-		let iliskiDizi = e.iliskiDizi || e.iliskiText || e.iliski;
-		if (iliskiDizi && !$.isArray(iliskiDizi))
-			iliskiDizi = [iliskiDizi]
-		
+		if (_iliskiDizi) { e.iliskiDizi = _iliskiDizi } let iliskiDizi = e.iliskiDizi || e.iliskiText || e.iliski;
+		if (iliskiDizi && !$.isArray(iliskiDizi)) { iliskiDizi = [iliskiDizi] }
 			// MQFromClause >> #add:
-		let isOuter = false;
-		const {from, zincirler} = this;
+		let isOuter = false; const {from, zincirler} = this;
 		let lastTable = from.liste[from.liste.length - 1];
-		if (lastTable && config?.alaSQLmi) {
-			isOuter = true;
-			lastTable.addLeftInner(MQOuterJoin.newForFromText({ text: fromText, on: iliskiDizi }))
-		}
-		else {	
-			from.add(fromText);
-			lastTable = from.liste[from.liste.length - 1]
-		}
+		if (lastTable && config?.alaSQLmi) { isOuter = true; lastTable.addLeftInner(MQOuterJoin.newForFromText({ text: fromText, on: iliskiDizi })) }
+		else {	 from.add(fromText); lastTable = from.liste[from.liste.length - 1] }
 		for (const iliskiText of iliskiDizi) {
 			//	tablo atılırsa iliskinin de kalkması için table yapısında bırakıldı
-			// this.where.add(iliskiText);
-			const iliski = MQIliskiYapisi.newForText(iliskiText);
-			if (!isOuter)
-				lastTable.addIliski(iliski)
-			const zincir = iliski.varsaZincir;
-			if (zincir)
-				zincirler.add(zincir)
+			const iliski = MQIliskiYapisi.newForText(iliskiText); if (!isOuter) { lastTable.addIliski(iliski) }
+			const zincir = iliski.varsaZincir; if (zincir) { zincirler.add(zincir) }
 		}
 		return this
 	}
 	innerJoin(e) {
-		e = e || {};
-		let {alias} = e;
-		const fromText = e.from || e.leftJoin || e.fromText || e.table;
-		let iliskiDizi = e.on || e.iliskiDizi || e.iliskiText || e.iliski;
-		if (iliskiDizi && !$.isArray(iliskiDizi))
-			iliskiDizi = [iliskiDizi]
+		e = e || {}; let {alias} = e; const fromText = e.from || e.leftJoin || e.fromText || e.table;
+		let iliskiDizi = e.on || e.iliskiDizi || e.iliskiText || e.iliski; if (iliskiDizi && !$.isArray(iliskiDizi)) { iliskiDizi = [iliskiDizi] }
 		const xJoin = MQInnerJoin.newForFromText({ text: fromText, on: iliskiDizi });
 		const tableYapi = this.from.aliasIcinTable(alias);
-		if (!tableYapi) {
-			debugger;
-			throw { isError: true, rc: 'innerJoinTable', errorText: `Inner Join (<i class="bold lightgray">${fromText}</i>) için eklenmek istenen alias (<b class="red">${alias}</b>) bulunamadı` }
-		}
+		if (!tableYapi) { debugger; throw { isError: true, rc: 'innerJoinTable', errorText: `Inner Join (<i class="bold lightgray">${fromText}</i>) için eklenmek istenen alias (<b class="red">${alias}</b>) bulunamadı` } }
 		tableYapi.addLeftInner(xJoin);
-
 		const {zincirler} = this;
 		for (const iliskiText of iliskiDizi) {
-			const iliski = MQIliskiYapisi.newForText(iliskiText);
-			const zincir = iliski.varsaZincir;
-			if (zincir)
-				zincirler.add(zincir)
+			const iliski = MQIliskiYapisi.newForText(iliskiText), zincir = iliski.varsaZincir;
+			if (zincir) { zincirler.add(zincir) }
 		}
 		return this
 	}
-
 	leftJoin(e) {
-		e = e || {};
-		let {alias} = e;
+		e = e || {}; let {alias} = e;
 		const fromText = e.from || e.leftJoin || e.fromText || e.table;
 		let iliskiDizi = e.on || e.iliskiDizi || e.iliskiText || e.iliski;
 		if (iliskiDizi && !$.isArray(iliskiDizi))
@@ -185,15 +116,8 @@ class MQSent extends MQDbCommand {
 		}
 		return this
 	}
-
-	add(...sahalar) {
-		this.sahalar.add(...sahalar);
-		return this
-	}
-	addAll(e) {
-		this.sahalar.addAll(e);
-		return this
-	}
+	add(...sahalar) { this.sahalar.add(...sahalar); return this }
+	addAll(e) { this.sahalar.addAll(e); return this }
 	addWithAlias(alias, ...sahalar) { this.sahalar.addWithAlias(alias, ...sahalar) }
 	addAllWithAlias(e) { this.sahalar.addAllWithAlias(e); return this }
 	gereksizTablolariSil(e) {
@@ -251,10 +175,7 @@ class MQSent extends MQDbCommand {
 		const table = typeof e == 'object' ? e.table : e;
 		const sent = typeof e == 'object' ? (_sent || e.sent) : _sent;
 		const ilkSent = sent.liste ? sent.liste[0] : sent;
-		const result = new MQTmpTable({
-			table: table, sent: ilkSent,
-			sahalar: ilkSent.sahalar.liste.map(saha => saha.alias)
-		});
+		const result = new MQTmpTable({ table, sent: ilkSent, sahalar: ilkSent.sahalar.liste.map(saha => saha.alias) });
 		return result
 	}
 	asTmpTable(e) { return this.class.asTmpTable(e, this) }
@@ -302,6 +223,11 @@ class MQSent extends MQDbCommand {
 		this.fromAdd(`${fisTable} fis`);
 		if (innerJoinFlag) this.innerJoin({ alias: 'fis', from: `${harTable} har`, on: 'har.fissayac = fis.kaysayac' })
 		else this.fromIliski({ from: `${harTable} har`, iliski: 'har.fissayac = fis.kaysayac' })
+		return this
+	}
+	fis2HarBagla(e) {
+		const harTable = typeof e == 'object' ? (e.harTable || e.harTablo) : e;
+		this.fromIliski({ from: `${harTable} har`, iliski: 'fis.kaysayac = har.fissayac' })
 		return this
 	}
 	fis2SubeBagla(e) {
@@ -402,126 +328,54 @@ class MQSent extends MQDbCommand {
 	}
 	/////////
 }
+class MQCTESent extends MQSentVeIliskiliYapiOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get baglac() { return '' }
 
-class MQCTESent extends MQDbCommand {
 	constructor(e) {
 		e = e || {}; super(e);
 		if ($.isArray(e)) e = { liste: e }
 		else if (typeof e != 'object') e = { liste: [e] }
 		this.liste = []; if (!$.isEmptyObject(e.liste)) this.addAll(e.liste);
 	}
-
-	static get baglac() { return '' }
-
-	*getSentListe(e) {
-		for (const item of this.liste)
-			yield item
-	}
-
+	*getSentListe(e) { for (const item of this.liste) { yield item } }
 	sentDo(e) {
-		e = e || {};
-		if (typeof e != 'object')
-			e = { callback: e };
-
+		e = e || {}; if (typeof e != 'object') { e = { callback: e } }
 		const {liste} = this;
 		for (let i = 0; i < liste.length; i++) {
 			const item = liste[i];
-			if (e.callback.call(this, item, { item: item, index: i, liste: liste }) === false)
-				return false;					// break loop
+			if (e.callback.call(this, item, { item, index: i, liste }) === false) { return false }
 		}
 	}
-
-	distinctYap() {
-		this.sentDo(sent =>
-			sent.distinctYap());
-	}
-
+	distinctYap() { for (const sent of this.getSentListe()) { sent.distinctYap() }; return this }
 	add(e) {
-		if (!e && typeof e != 'number')
-			return;
-		
-		this.liste.push(e);
-		return this
+		if (!e && typeof e != 'number') { return }
+		this.liste.push(e); return this
 	}
-
-	addAll(coll) {
-		this.liste.push(...coll);
-		return this
-	}
-
-	asTmpTable(e) {
-		return MQSent.asTmpTable(e, this)
-	}
-
-	buildString(e) {
-		super.buildString(e);
-
-		e.result += (this.liste.map(item => item.toString())
-						.join(`${CrLf}${this.class.baglac}${CrLf}`));
-	}
+	addAll(coll) { this.liste.push(...coll); return this }
+	asTmpTable(e) { return MQSent.asTmpTable(e, this) }
+	buildString(e) { super.buildString(e); e.result += (this.liste.map(item => item.toString()).join(`${CrLf}${this.class.baglac}${CrLf}`)) }
 }
-
-
 class MQUnionBase extends MQCTESent {
-	birlestir(diger) {
-		for (const sent of diger.getSentListe())
-			this.add(sent);
-		return this
-	}
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	birlestir(diger) { for (const sent of diger.getSentListe()) { this.add(sent) } return this }
 }
-
 class MQUnion extends MQUnionBase {
-	static get unionmu() { return true }
-	static get baglac() { return '  UNION' }
-
-	constructor(e) {
-		e = e || {};
-		super(e);
-	}
-
-	asUnion(e) {
-		return this;
-	}
-
-	asUnionAll(e) {
-		return new MQUnionAll(this);
-	}
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get unionmu() { return true } static get baglac() { return '  UNION' }
+	asUnion(e) { return this } asUnionAll(e) { return new MQUnionAll(this) }
 }
-
 class MQUnionAll extends MQUnionBase {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get baglac() { return '  UNION ALL' }
-	
-	constructor(e) {
-		e = e || {};
-		super(e);
-	}
-
-	asUnion(e) {
-		return new MQUnion(this);
-	}
-
-	asUnionAll(e) {
-		return this;
-	}
+	asUnion(e) { return new MQUnion(this) } asUnionAll(e) { return this }
 }
-
-
 class MQExceptBase extends MQCTESent { }
-
 class MQExcept extends MQExceptBase {
-	constructor(e) {
-		e = e || {};
-		super(e);
-	}
-
+	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get baglac() { return '  EXCEPT' }
 }
-
 class MQExceptAll extends MQExceptBase {
-	constructor(e) {
-		e = e || {};
-		super(e);
-	}
-
+	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get baglac() { return '  EXCEPT ALL' }
 }

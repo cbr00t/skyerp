@@ -109,32 +109,22 @@ class MQSQLOrtak extends CObject {
 }
 class MQSQLConst extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-
+	get sqlDegeri() { return this.value } get sqlServerDegeri() { return this.sqlDegeri }
 	constructor(e) {
-		e = e || {};
-		super(e);
-		
-		const value = typeof e == 'object' ? e.value : e;
-		this.value = value;
+		e = e || {}; super(e);
+		const value = typeof e == 'object' ? e.value : e; this.value = value;
 	}
-
-	get sqlDegeri() { return this.value }
-	get sqlServerDegeri() { return this.sqlDegeri }
 }
 class MQAliasliYapi extends MQSQLOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
 	get aliasVeyaDeger() { return this.alias || this.deger }
 	get degerAlias() { return this.class.getDegerAlias(this.deger) }
 	get degerAliasListe() { return this.class.getDegerAliasListe(this.deger) }
 	
 	constructor(e) {
-		e = e || {};
-		super(e);
-
-		this.deger = e.deger || '';
-		this.alias = e.alias || '';
-		this.aliaslimi = asBool(e.aliaslimi);
+		e = e || {}; super(e);
+		this.deger = e.deger || ''; this.alias = e.alias || ''; this.aliaslimi = asBool(e.aliaslimi);
 	}
-
 	static newForFromText(e) {
 		/* örnek:
 				- 'piffis'
@@ -142,32 +132,19 @@ class MQAliasliYapi extends MQSQLOrtak {
 				- 'piffis AS fis'
 				- '(SELECT ... ) AS tbl'
 		*/
-
-		e = e || {};
-		if (typeof e != 'object')
-			e = { text: e };
-
-		let text = (e.text || e.fromText || '').toString().trim();
-		delete e.text;
-
+		e = e || {}; if (typeof e != 'object') { e = { text: e } }
+		let text = (e.text || e.fromText || '').toString().trim(); delete e.text;
 		let sonBosInd = text.lastIndexOf(' ');
 		if (sonBosInd < 0) {				// bosluk yok
-			e.deger = e.alias = text;
-			e.aliaslimi = false;
+			e.deger = e.alias = text; e.aliaslimi = false;
 		}
 		else {								// bosluk var
 				// substring (from, end) => end index dahil değil
-			let tabloAdi = text.substring(0, sonBosInd).trim();
-			if (tabloAdi[0] != '(' && tabloAdi.slice(-3).toUpperCase() == ' AS')
-				tabloAdi = tabloAdi.slice(0, -3);
-			e.deger = tabloAdi;
-			e.alias = text.substring(sonBosInd + 1).trim();
-			e.aliaslimi = true;
+			let tabloAdi = text.substring(0, sonBosInd).trim(); if (tabloAdi[0] != '(' && tabloAdi.slice(-3).toUpperCase() == ' AS') { tabloAdi = tabloAdi.slice(0, -3) }
+			e.deger = tabloAdi; e.alias = text.substring(sonBosInd + 1).trim(); e.aliaslimi = true;
 		}
-
-		return new this(e);
+		return new this(e)
 	}
-
 	static newForSahaText(text) {
 		/* örnek:
 				- 'stk.kod'
@@ -175,166 +152,86 @@ class MQAliasliYapi extends MQSQLOrtak {
 				- 'kod'
 				- '(case when ... end) tipText'
 		*/
-
-		text = (text || '').toString().trim();
-		let sonBosInd = text.lastIndexOf(' ');
-		let sonNoktaInd = text.lastIndexOf('.');
-
+		text = (text || '').toString().trim(); let sonBosInd = text.lastIndexOf(' '), sonNoktaInd = text.lastIndexOf('.');
 		let e = {};
 		if (sonBosInd < 0) {				// bosluk yok
 			if (sonNoktaInd < 0) {			// nokta yok
 				e.deger = e.alias = text;
-				e.aliaslimi = false;
+				e.aliaslimi = false
 			}
 			else {							// nokta var
-				e.deger = text;
-				e.alias = text.substring(sonNoktaInd + 1).trim();
-				e.aliaslimi = false;
+				e.deger = text; e.alias = text.substring(sonNoktaInd + 1).trim();
+				e.aliaslimi = false
 			}
 		}
 		else {								// bosluk var
 				// substring (from, end) => end index dahil değil
-			e.deger = text.substring(0, sonBosInd).trim();
-			e.alias = text.substring(sonBosInd + 1).trim();
-			e.aliaslimi = true;
+			e.deger = text.substring(0, sonBosInd).trim(); e.alias = text.substring(sonBosInd + 1).trim();
+			e.aliaslimi = true
 		}
-
-		return new this(e);
+		return new this(e)
 	}
-
 	static newForIliskiText(text) {
 		/* örnek:
 				- 'har.fissayac'
 				- '(case when fis.silindi='' then ... else .. end)'
 		*/
-
-		text = (text || '').toString().trim();
-		if (!text)										// text bos
-			return new this();
-		
-		let noktaInd = text.lastIndexOf('.');
-		if (noktaInd < 0 || text[0] == '(')				// nokta yok veya parantezle başladı
-			return new this({ deger: text });
-		
-		// nokta var
-		return new this({
-			deger: text,
-			alias: text.substring(0, noktaInd),					// 'to' dahil degil substring() de
-			aliaslimi: true
-		});
+		text = (text || '').toString().trim(); if (!text) { return new this() }
+		let noktaInd = text.lastIndexOf('.'); if (noktaInd < 0 || text[0] == '(') { return new this({ deger: text }) }
+		return new this({ deger: text, alias: text.substring(0, noktaInd), aliaslimi: true })		/* to dahil degil substring'de */
 	}
-
 	static getDegerAlias(deger) {
 		// fis.rowid   		gibi ==> 'fis'
 		//		aksinde			 ==> null
-
-		deger = (deger || '').toString().trim();
-		if (!deger)
-			return null;
-		if (deger[0] >= '0' && deger[0] <= '9')
-			return null;
-		if (deger[0] == '(')
-			return null;
-		
-		let parts = deger.split('.');
-		if (parts.length != 2)
-			return null;
-		
-		return parts[0];
+		deger = (deger || '').toString().trim(); if (!deger) { return null }
+		if (deger[0] >= '0' && deger[0] <= '9') { return null }
+		if (deger[0] == '(') { return null }
+		let parts = deger.split('.'); if (parts.length != 2) { return null }
+		return parts[0]
 	}
-
 	static getDegerAliasListe(deger) {
-		let result = this.getDegerAlias(deger);
-		if (result != null)
-			return [result];
-
-		result = {};
-		deger = (deger || '').toString().trim();
-		const parts = deger.split('.');
+		let result = this.getDegerAlias(deger); if (result != null) { return [result] }
+		result = {}; deger = (deger || '').toString().trim(); const parts = deger.split('.');
 		// aslinda nokta oncesi full digit ise bu parca sonrasi ile birlesmeli
 		for (let i = 0; i < parts.length; i++) {
-			let part = parts[i];
-			if (part != null)
-				part = part.trim();
-			if (!part)
-				continue;
-
-			let temp = '';
+			let temp = ''; let part = parts[i]; if (part != null) { part = part.trim() } if (!part) { continue }
 			for (let j = part.length - 1; j >= 0; j--) {
-				const ch = part[j];
-				if (!sqlAliasmi(ch))
-					break;
+				const ch = part[j]; if (!sqlAliasmi(ch)) { break }
 				temp = ch + temp
 			}
-			if (hepsiUygunmu(temp, ch => isDigit(ch))) {
-				// i++;
-				continue;
-			}
-			
+			if (hepsiUygunmu(temp, ch => isDigit(ch))) { continue }
 			result[temp] = true
 		}
-
 		return Object.keys(result)
 	}
-
 	buildString(e) {
-		super.buildString(e);
-
-		e.result += this.deger || '';
-		if (this.aliaslimi)
-			e.result += ` ${this.alias}`;
+		super.buildString(e); e.result += this.deger || '';
+		if (this.aliaslimi) { e.result += ` ${this.alias}` }
 	}
-};
+}
 class MQIliskiYapisi extends MQSQLOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {
-		e = e || {};
-		super(e);
-		
-		if (typeof e == 'string')
-			return $.extend(this, this.class.newForText(e))
-			
-		this.sol = e.sol || new MQAliasliYapi();
-		this.sag = e.sag || new MQAliasliYapi();
+		e = e || {}; super(e); if (typeof e == 'string') { return $.extend(this, this.class.newForText(e)) }
+		this.sol = e.sol || new MQAliasliYapi(); this.sag = e.sag || new MQAliasliYapi()
 	}
-
 	static newForText(text) {
 		text = (text || '').toString().trim();
-		
-		let parantezSayilari, solText;
-		let ind = -1;
-		let esittirVarmi = false;
+		let parantezSayilari, solText, ind = -1, esittirVarmi = false;
 		do {
 			parantezSayilari = { ac: 0, kapat: 0 };
-			ind = text.indexOf('=', ind + 1);
-			if (ind != -1)
-				esittirVarmi = true;
-			
+			ind = text.indexOf('=', ind + 1); if (ind != -1) { esittirVarmi = true }
 			solText = text.substring(0, ind).trim();
 			for (const ch of solText) {
-				if (ch == '(')
-					parantezSayilari.ac++;
-				else if (ch == ')')
-					parantezSayilari.kapat++;
+				if (ch == '(') { parantezSayilari.ac++ } else if (ch == ')') { parantezSayilari.kapat++ }
 			}
 		} while (ind > -1 && parantezSayilari.ac != parantezSayilari.kapat);
-		if (esittirVarmi && ind < 0)
-			throw { isError: true, rc: 'queryBuilderError', errorText: 'Dengesiz eşitlik' }
-
-		return new this({
-			sol: MQAliasliYapi.newForIliskiText(solText),
-			sag: MQAliasliYapi.newForIliskiText(text.substring(ind + 1))
-		})
+		if (esittirVarmi && ind < 0) { throw { isError: true, rc: 'queryBuilderError', errorText: 'Dengesiz eşitlik' } }
+		return new this({ sol: MQAliasliYapi.newForIliskiText(solText), sag: MQAliasliYapi.newForIliskiText(text.substring(ind + 1)) })
 	}
-
 	get varsaZincir() {
-		if (this.sol.aliaslimi && this.sag.aliaslimi)
-			return [this.sol.alias, this.sag.alias];
+		if (this.sol.aliaslimi && this.sag.aliaslimi) { return [this.sol.alias, this.sag.alias] }
 		return null
 	}
-
-	buildString(e) {
-		super.buildString(e);
-
-		e.result += `${this.sol.deger.toString()} = ${this.sag.deger.toString()}`;
-	}
-};
+	buildString(e) { super.buildString(e); e.result += `${this.sol.deger.toString()} = ${this.sag.deger.toString()}` }
+}
