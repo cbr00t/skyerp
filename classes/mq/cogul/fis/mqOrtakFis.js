@@ -90,16 +90,21 @@ class MQOrtakFis extends MQDetayli {
 		for (const det of this.detaylar) { det.donusumBilgileriniSil(e) }
 		this.donusumBilgileriniSil(e)
 	}
-	topluYazmaKomutlariniOlustur(e) {
-		super.topluYazmaKomutlariniOlustur(e); const {toplu, paramName_fisSayac} = e, {table, sayacSaha} = this.class, {bakiyeciler} = this;
+	async yaz(e) {
+		const {trnId} = await app.sqlTrnBegin(); e.trnId = trnId;
+		let result = await super.yaz(e);		/* yaz() sonrası yeniSonrasiIslemler() çalışacak */
+		await app.sqlTrnCommit({ trnId }); return result
+	}
+	async yeniSonrasiIslemler(e) {
+		await super.yeniSonrasiIslemler(e); const {bakiyeciler} = this;
 		if (bakiyeciler?.length) {
 			const fis = this, tip2BakiyeDict = {}, tip2Table = {};
 			for (const bakiyeci of bakiyeciler) {
 				const {tipKod, table} = bakiyeci; if (!tipKod) { continue }
-				const bakiyeDict = bakiyeci.getBakiyeDict({ fis, paramName_fisSayac }); if (!bakiyeDict) { continue }
-				tip2BakiyeDict[tip] = bakiyeDict; tip2Table[tip] = table
+				const bakiyeDict = bakiyeci.getBakiyeDict({ fis }); if (!bakiyeDict) { continue }
+				tip2BakiyeDict[tip] = bakiyeDict; tip2Table[tip] = table;
+				debugger
 			}
-			/*toplu.add(...)*/
 		}
 	}
 	alternateKeyHostVarsDuzenle(e) {

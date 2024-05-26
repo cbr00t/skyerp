@@ -4,7 +4,7 @@ class MQDbCommand extends MQSQLOrtak {
 class MQSentVeIliskiliYapiOrtak extends MQDbCommand {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	asToplamStm(e) {
-		const sumListe = e.sumListe ?? [], orderFlag = e.order ?? e.orderFlag, tmpTabloVeAlias = e.tmpTabloVeAlias ?? e.tmpTableVeAlias, {liste} = this;
+		e = e || {}; const sumListe = e.sumListe ?? [], orderFlag = e.order ?? e.orderBy, tmpTabloVeAlias = e.tmpTabloVeAlias ?? e.tmpTableVeAlias, {liste} = this;
 		let ilkSent; for (const sent of this.getSentListe()) { ilkSent = sent; break } if (!ilkSent) { return new MQStm() }
 		const tmpTabloAdi = tmpTabloVeAlias?.deger ?? 'toplam', tmpAlias = tmpTabloVeAlias?.alias ?? 'xtop';		/* aMQAliasliYapi */
 		const stm = new MQStm(), sahalarSet = {};
@@ -12,7 +12,7 @@ class MQSentVeIliskiliYapiOrtak extends MQDbCommand {
 			const {aliasVeyaDeger} = saha; if (!aliasVeyaDeger) { continue }
 			sahalarSet[aliasVeyaDeger] = true
 		}
-		let sahalar = Object.keys(sahalarSet), toplanabilirSahalarSet = {};
+		let sahalar = Object.keys(sahalarSet), toplanabilirSahalarSet = asSet(sumListe ?? []);
 		for (const sent of this.getSentListe()) {
 			for (const saha of sent.sahalar.liste) {
 				const {deger} = saha; if (!deger) { continue }
@@ -20,13 +20,15 @@ class MQSentVeIliskiliYapiOrtak extends MQDbCommand {
 				if (uygunmu) { toplanabilirSahalarSet[saha.aliasVeyaDeger] = true }
 			}
 		}
-		const toplamSet = asSet(sumListe.filter(aliasVeyaDeger => toplanabilirSahalarSet[aliasVeyaDeger]));
-		for (const aliasVeyaDeger in toplanabilirSahalarSet) { if (!toplamSet[aliasVeyaDeger]) { toplamSet[aliasVeyaDeger] = true } }
-		sahalar = Object.keys(sahalarSet); stm.with.add(new MQTmpTable({ table: tmpTabloAdi, sahalar, sent: this }));
-		const asilSent = stm.sent; asilSent.sahalar.liste = sahalar.map(saha => { const {aliasVeyaDeger} = saha; return toplamSet[aliasVeyaDeger] ? `SUM(${tmpAlias}.${aliasVeyaDeger})` : `${tmpAlias}.${aliasVeyaDeger}` });
-		asilSent.groupByOlustur(); if (orderFlag) { stm.orderBy.liste = asilSent.sahalar.liste.map(saha => saha.aliasVeyaDeger).filter(aliasVeyaDeger => !toplamSet[aliasVeyaDeger]) };
+		sahalar = Object.keys(sahalarSet); const toplanabilirSahalar = Object.keys(toplanabilirSahalarSet), digerSahalar = sahalar.filter(saha => !toplanabilirSahalarSet[saha]);
+		stm.with.add(new MQTmpTable({ table: tmpTabloAdi, sahalar, sent: this }));
+		const asilSent = stm.sent; asilSent.fromAdd(`${tmpTabloAdi} ${tmpAlias}`); asilSent.sahalar.liste = [];
+		for (const saha of digerSahalar) { asilSent.sahalar.add(`${tmpAlias}.${saha}`) }
+		for (const saha of toplanabilirSahalar) { asilSent.sahalar.add(`SUM(${tmpAlias}.${saha}) ${saha}`) }
+		asilSent.groupByOlustur(); if (orderFlag) { stm.orderBy.liste = []; stm.orderBy.addAll(digerSahalar) }
 		return stm
 	}
+	asToplamStmWithOrderBy(e) { e = e || {}; e.order = true; delete e.orderBy; return this.asToplamStm(e) }
 	*getSentListe(e) { yield this }
 	sentDo(e) {
 		e = e || {}; if (typeof e != 'object') e = { callback: e }

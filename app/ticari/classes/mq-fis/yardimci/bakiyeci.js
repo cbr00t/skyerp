@@ -17,20 +17,21 @@ class Bakiyeci extends CObject {
 	}
 	async getBakiyeDict(e) {
 		const result = {}; const {anahtarSahalar, sumSahalar} = this.class;
-		let sent = this.getBakiyeSql(e), recs = await app.sqlExecSelect(sent);
+		let sent = await this.getBakiyeSql(e), recs = await app.sqlExecSelect(sent);
 		for (const rec of recs) {
 			const anahStr = anahtarSahalar.map(key => rec[key]?.trimEnd()).join(delimWS), degerler = sumSahalar.map(key => rec[key]);
-			let eskiDegerler = result[anahStr];
-			if (eskiDegerler) { for (let i = 0; i < degerler.length; i++) { eskiDegerler[i] += degerlerler[i] || 0 } } else { result[anahStr] = degerler }
+			let eskiDegerler = result[anahStr]; if (eskiDegerler) { for (let i = 0; i < degerler.length; i++) { eskiDegerler[i] += degerlerler[i] || 0 } } else { result[anahStr] = degerler }
 		}
 		return result
 	}
 	getBakiyeSql(e) {
 		const {bakiyeSqlci} = this; if (bakiyeSqlci) { return getFuncValue.call(this, bakiyeSqlci, e) }
 		const {fis} = e, {borcmu} = this; let {sqlDuzenleyici} = this.class;
-		if (fis && sqlDuzenleyici) {
+		if (fis || sqlDuzenleyici) {
+			if (e.fisSayac == null) { e.fisSayac = fis.sayac }
+			e.borcmu = getFuncValue.call(this, borcmu, e);
 			if (typeof sqlDuzenleyici == 'string') { sqlDuzenleyici = fis[sqlDuzenleyici] };
-			e.borcmu = getFuncValue.call(this, borcmu, e); const sent = e.sent = new MQSent(), stm = e.stm = new MQStm({ sent });
+			const sent = e.sent = new MQSent(), stm = e.stm = new MQStm({ sent });
 			fis.bakiyeSqlOrtakDuzenle(e); if (sqlDuzenleyici) {getFuncValue.call(this, sqlDuzenleyici, e) }
 			return stm
 		}

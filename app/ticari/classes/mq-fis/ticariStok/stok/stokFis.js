@@ -77,7 +77,7 @@ class StokTransferOrtakFis extends StokFis {
 	}
 	stokBakiyeSqlEkDuzenle(e) {
 			/* aynı satır hem giriş hem çıkış için kullanılır. union yapıp sonuç birleştirilir */
-		const {stm, borcmu} = e; let uni = new MQUnionAll();
+		const {borcmu} = e; let {stm} = e, uni = new MQUnionAll();
 		const sentEkle = _e => {
 			const sent = new MQSent(), {sahalar} = sent, {yerKodClause, carpan} = _e;
 			sent.fisHareket('stfis', 'ststok');
@@ -85,7 +85,9 @@ class StokTransferOrtakFis extends StokFis {
 			sahalar.add(`${yerKodClause} yerkod`, `SUM(har.miktar * ${carpan}) sonmiktar`, `SUM(har.miktar2 * ${carpan}) sonmiktar2`)
 			uni.add(sent); return sent
 		};
-		sentEkle({ yerKodClause: 'har.detyerkod', carpan: -1 }); sentEkle({ yerKodClause: 'har.detrefyerkod', carpan: 1 })
+		sentEkle({ yerKodClause: 'har.detyerkod', carpan: -1 });
+		sentEkle({ yerKodClause: 'har.detrefyerkod', carpan: 1 });
+		stm = e.stm = uni.asToplamStm(); e.sent = stm.sent
 	}
 }
 class StokTransferFis extends StokTransferOrtakFis {
