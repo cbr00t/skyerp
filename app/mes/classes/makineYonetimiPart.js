@@ -107,7 +107,7 @@ class MakineYonetimiPart extends Part {
 		const html_oemBilgileri = this.getLayout_tblOEMBilgileri(e);
 		return $(
 			`<div>
-				<div class="header full-width"><div class="islemTuslari"/></div>
+				<div class="header full-width"><div class="islemTuslari"/></div></div>
 				<div class="content">${html_oemBilgileri}</div>
 			</div>`
 		)
@@ -195,9 +195,11 @@ class MakineYonetimiPart extends Part {
 	}
 	initEvents_tblOEMBilgileri(e) {
 		const {layout} = e, buttons = layout.find(`td button`).jqxButton({ theme });
-		buttons.off('click').on('click', evt => {
-			const elm = evt.currentTarget, id = elm.id, parentId = $(elm).parents('td')[0].id;
-			this.tblOEMBilgileri_butonTiklandi($.extend({}, e, { event: evt, id, parentId }))
-		})
+		if (buttons?.length) {
+			buttons.off('click').on('click', evt => {
+				const elm = evt.currentTarget, id = elm.id, parentId = $(elm).parents('td')[0].id;
+				this.tblOEMBilgileri_butonTiklandi($.extend({}, e, { event: evt, id, parentId }))
+			})
+		}
 	}
 }
