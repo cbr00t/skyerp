@@ -6,7 +6,7 @@ class MQYerelParamConfig_MES extends MQYerelParamConfig {
 		await super.rootFormBuilderDuzenle(e); const rfb = e.rootBuilder;
 		if (config.dev) {
 			const contentForm = rfb.addForm('content', e => e.builder.parentBuilder.layout.find('.content'));
-			await app.promise_ready; contentForm.addModelKullan('hatKod', 'Hat').setMFSinif(MQHat).dropDown().listedenSecilemez()
+			await app.promise_ready; contentForm.addModelKullan('hatKod', 'Hat').setMFSinif(MQHat).comboBox().listedenSecilemez()
 		}
 	}
 }

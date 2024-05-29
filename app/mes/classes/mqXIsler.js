@@ -5,7 +5,7 @@ class MQXIsler extends MQMasterOrtak {
 		const {rec, result} = e; if (rec.devreDisimi) { result.push('devreDisi') }
 		if (rec.batandimi) { result.push('atandi') } if (rec.bzamanetudu) { result.push('zamanEtudu') }
 	}
-	static listeEkrani_activated(e) { super.listeEkrani_activated(e) /* const gridPart = e.gridPart ?? e.sender; gridPart.tazeleDefer() */ }
+	static listeEkrani_activated(e) { super.listeEkrani_activated(e); const gridPart = e.gridPart ?? e.sender; gridPart.tazeleDefer() }
 	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); const {args, sender} = e, rowsHeight = 60; $.extend(args, { rowsHeight }) }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(...[
@@ -207,12 +207,11 @@ class MQBekleyenIsler extends MQXIsler {
 					if (!hedefTezgahKodListe?.length) { return }
 					try {
 						for (const hedefTezgahKod of hedefTezgahKodListe) { await app.wsSirayaAl({ tezgahKod: hedefTezgahKod, oemSayacListe }) }
-						gridPart.tazeleDefer();
-						const kod2Rec = await app.getTezgahKod2Rec({ hedefTezgahKodListe });
+						gridPart.tazeleDefer(); const kod2Rec = await app.getTezgahKod2Rec({ hedefTezgahKodListe });
 						for (const hedefTezgahKod of hedefTezgahKodListe) {
 							const tezgahKod = hedefTezgahKod, rec = kod2Rec[tezgahKod] || {}, {tezgahAdi, hatKod, hatAdi} = rec;
 							await MQSiradakiIsler.listeEkraniAc({ args: { hatKod, hatAdi , tezgahKod, tezgahAdi } })
-							await new $.Deferred(p => setTimeout(p.resolve()), 1000)
+							/*await new $.Deferred(p => setTimeout(p.resolve()), 10)*/
 						}
 					}
 					catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Sıraya Al') }

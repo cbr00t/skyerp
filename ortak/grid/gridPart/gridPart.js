@@ -751,8 +751,8 @@ class GridPart extends Part {
 		setTimeout(() => {
 			const {gridWidget} = this; gridWidget.clearfilters(false);
 			for (const attr in attr2FilterGroup) { const filterGroup = attr2FilterGroup[attr]; gridWidget.addfilter(attr, filterGroup) }
-			try { gridWidget.applyfilters() } catch (ex) { console.error(ex) } gridWidget.refresh()
-		}, 50)
+			try { gridWidget.applyfilters() } catch (ex) { console.error(ex) }
+		}, 200)
 	}
 	onResize(e) {
 		super.onResize(e); clearTimeout(this._timer_gridResize); delete this._timer_gridResize;

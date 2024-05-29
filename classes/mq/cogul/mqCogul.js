@@ -9,7 +9,7 @@ class MQCogul extends MQYapi {
 	static get ayrimTable() { return `${this.tableAlias}ayrim`} static get ayrimTableAlias() { return null } 
 	static get tanimlanabilirmi() { return !!this.tanimUISinif } static get silinebilirmi() { return true } static get raporKullanilirmi() { return true } static get silindiDesteklenirmi() { return false }
 	static get yerelParamBelirtec() { return this.classKey } static get sayacSahaGosterilirmi() { return false } static get tumKolonlarGosterilirmi() { return false }
-	static get gridDetaylimi() { return this.detaylimi } static get ozelTanimIslemi() { return null } static get bulFormKullanilirmi() { return true }
+	static get gridDetaylimi() { return this.detaylimi } static get ozelTanimIslemi() { return null } static get bulFormKullanilirmi() { return true } static get kolonFiltreKullanilirmi() { return true }
 	static get islemTuslari_sagButonlar_ekMarginX() { return 8 } static get orjBaslik_gridRenderDelayMS() { return null } static get defaultOrjBaslik_gridRenderDelayMS() { return 100 }
 	static get orjBaslikListesi_hizliBulFiltreAttrListe() { const _e = { liste: [] }; this.orjBaslikListesi_hizliBulFiltreAttrListeDuzenle(_e); return _e.liste }
 	static get orjBaslikListesi_panelGrupAttrListe() { const _e = { liste: [] }; this.orjBaslikListesi_panelGrupAttrListeDuzenle(_e); return _e.liste }
@@ -400,7 +400,7 @@ class MQCogul extends MQYapi {
 	static raporQueryDuzenle(e) { this.forAltYapiClassesDo('raporQueryDuzenle', e) }
 	static raporQueryDuzenle_detaylar(e) { this.forAltYapiClassesDo('raporQueryDuzenle_detaylar', e) }
 	static loadServerData(e) { return this.loadServerDataDogrudan(e) }
-	static loadServerDataDogrudan(e) { e = e || {}; e.query = this.loadServerData_queryOlustur(e); return this.loadServerData_querySonucu(e) }
+	static async loadServerDataDogrudan(e) { e = e || {}; e.query = await this.loadServerData_queryOlustur(e); return await this.loadServerData_querySonucu(e) }
 	static loadServerData_queryOlustur(e) {
 		e = e || {}; const tabloKolonlari = e.tabloKolonlari = e.tabloKolonlari || this.listeBasliklari, sahalarAlinmasinFlag = e.sahalarAlinmasinFlag ?? e.sahalarAlinmasin;
 		const {table} = this, alias = e.alias || this.tableAlias, tableAndAlias = alias ? `${table} ${alias}` : table, aliasVeNokta = alias ? `${alias}.` : '';
@@ -411,8 +411,8 @@ class MQCogul extends MQYapi {
 				const {belirtec, sql} = colDef; if (belirtec || sql) sent.add(sql ? `${sql} ${belirtec}` : `${aliasVeNokta}${belirtec}`);
 			}
 		}
-		const keyHV = this.varsayilanKeyHostVars(e); if (keyHV) sent.where.birlestirDict({ alias, dict: keyHV })
-		const {secimler} = e; if (secimler) sent.where.birlestir(secimler.getTBWhereClause(e))
+		const keyHV = this.varsayilanKeyHostVars(e); if (keyHV) { sent.where.birlestirDict({ alias, dict: keyHV }) }
+		const {secimler} = e; if (secimler) { sent.where.birlestir(secimler.getTBWhereClause(e)) }
 		if ($.isEmptyObject(sent.sahalar.liste)) { sent.sahalar.add(`${aliasVeNokta}*`) }
 		/* sent.groupByOlustur(); */ sent.gereksizTablolariSil({ disinda: alias });
 		let stm = new MQStm({ sent });
@@ -423,7 +423,7 @@ class MQCogul extends MQYapi {
 		e = e || {}; const sender = e.sender ?? e;
 		const ozelQueryDuzenleBlock = e.ozelQueryDuzenleBlock ?? e.ozelQueryDuzenle ?? sender.ozelQueryDuzenleBlock ?? sender.ozelQueryDuzenle;
 		if (ozelQueryDuzenleBlock) getFuncValue.call(this, ozelQueryDuzenleBlock, e)
-		let {value} = e; const {stm, maxRow, wsArgs} = e; if (wsArgs) stm.fromGridWSArgs(wsArgs);
+		let {value} = e; const {stm, maxRow, wsArgs} = e; if (wsArgs) { stm.fromGridWSArgs(wsArgs) }
 		/* if (value) value = value.toUpperCase() */
 		const {kodSaha, adiSaha, tableAlias, aliasVeNokta} = this;
 		if ((value && kodSaha) || maxRow) {

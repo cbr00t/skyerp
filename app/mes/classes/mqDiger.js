@@ -23,6 +23,26 @@ class MQPersonel extends MQKAOrtak {
 class MQHat extends MQKAOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Hat' } static get table() { return 'ismerkezi' } static get tableAlias() { return 'hat' }
+	static rootFormBuilderDuzenle_listeEkrani(e) {
+		super.rootFormBuilderDuzenle_listeEkrani(e); const rfb = e.rootBuilder;
+		if (!app.params.config.hatKod) {
+			this.fbd_listeEkrani_addCheckBox(rfb, 'tumHatlariGoster', 'Tüm Hatları Göster').onAfterRun(e => {
+				const {builder} = e, {rootPart, layout} = builder, input = layout.children('input'), {grid, gridWidget} = rootPart, args = rootPart.args = rootPart.args || {};
+				input.prop('checked', args.tumHatlariGosterFlag)
+				input.on('change', evt => { args.tumHatlariGosterFlag = $(evt.currentTarget).is(':checked'); rootPart.tazeleDefer() })
+			})
+		}
+	}
+	static async loadServerData_queryOlustur(e) { await super.loadServerData_queryOlustur(e); await this.loadServerData_queryDuzenle_ek(e); return e.query || e.stm }
+	static async loadServerData_queryDuzenle_ek(e) {
+		await super.loadServerData_queryDuzenle(e); const {sent} = e, alias = e.alias ?? this.tableAlias, {kodSaha} = this, args = e.args || {}, {tumHatlariGosterFlag, exclude_hatKod} = args;
+		let {hatKodListe} = args; if (!(tumHatlariGosterFlag || hatKodListe)) {
+			try { hatKodListe = (await app.wsTezgahBilgileri()).map(rec => rec.hatKod ?? rec.hatID ?? rec.hatId) }
+			catch (ex) { console.error(ex) }
+		}
+		if (hatKodListe) { hatKodListe = asSet(hatKodListe); sent.where.inDizi(Object.keys(hatKodListe), `${alias}.${kodSaha}`) }
+		if (exclude_hatKod) { sent.where.notDegerAta(exclude_hatKod, `${alias}.${kodSaha}`) }
+	}
 }
 class MQTezgah extends MQKAOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -36,7 +56,7 @@ class MQOperasyon extends MQKAOrtak {
 		super.rootFormBuilderDuzenle_listeEkrani(e); const rfb = e.rootBuilder;
 		this.fbd_listeEkrani_addCheckBox(rfb, 'urunAgacineEkleFlag', 'Ürün Ağacına Ekle').onAfterRun(e => {
 			const {builder} = e, {rootPart, layout} = builder, input = layout.children('input'), {grid, gridWidget} = rootPart;
-			input.on('change', evt => { const value = rootPart.urunAgacineEkleFlag = $(evt.currentTarget).is(':checked') })
+			input.on('change', evt => { rootPart.urunAgacineEkleFlag = $(evt.currentTarget).is(':checked') })
 		})
 	}
 	static loadServerData(e) {

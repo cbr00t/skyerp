@@ -135,16 +135,17 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		}, 1000)
 	}
 	islemTuslariDuzenle(e) {
-		super.islemTuslariDuzenle(e); const mfSinif = this.getMFSinif(), {secimler} = this, {liste} = e, yListe = [];
+		super.islemTuslariDuzenle(e); const mfSinif = this.getMFSinif(), {secimler, panelDuzenleyici} = this, {liste} = e, yListe = [];
 		yListe.push({ id: 'basliklariDuzenle', handler: e => this.basliklariDuzenleIstendi(e) })
-		if (secimler && mfSinif?.raporKullanilirmi) yListe.push({ id: 'rapor', handler: e => this.sabitBilgiRaporuIstendi(e) })
-		yListe.push({ id: 'kolonFiltre', handler: e => this.kolonFiltreIstendi(e) });
-		if (secimler) yListe.push({ id: 'secimler', handler: e => this.secimlerIstendi(e) })
-		const _e = $.extend({}, e, { mfSinif, secimler }), tanimlanabilirmi = this.getTanimlanabilirmi(_e), silinebilirmi = this.getSilinebilirmi(_e);
+		if (secimler && mfSinif?.raporKullanilirmi) { yListe.push({ id: 'rapor', handler: e => this.sabitBilgiRaporuIstendi(e) }) }
+		if (!panelDuzenleyici && (!mfSinif || mfSinif?.kolonFiltreKullanilirmi)) { yListe.push({ id: 'kolonFiltre', handler: e => this.kolonFiltreIstendi(e) }) }
+		if (secimler) { yListe.push({ id: 'secimler', handler: e => this.secimlerIstendi(e) }) }
+		const _e = $.extend({}, e, { mfSinif, secimler, orjListe: yListe }), tanimlanabilirmi = this.getTanimlanabilirmi(_e), silinebilirmi = this.getSilinebilirmi(_e);
 		if (tanimlanabilirmi) { yListe.push( { id: 'yeni', handler: e => this.yeniIstendi(e) }, { id: 'degistir', handler: e => this.degistirIstendi(e) }, { id: 'kopya', handler: e => this.kopyaIstendi(e) } ) }
 		if (silinebilirmi) { yListe.push({ id: 'sil', args: { template: 'danger' }, handler: e => this.silIstendi(e) }) }
-		if (!$.isEmptyObject(liste)) { yListe.push(...liste) }
-		e.liste = yListe; if (mfSinif?.islemTuslariDuzenle_listeEkrani) { mfSinif.islemTuslariDuzenle_listeEkrani(e) }
+		if (!$.isEmptyObject(liste)) { yListe.push(...liste) } e.liste = yListe;
+		if (panelDuzenleyici?.islemTuslariDuzenle_listeEkrani) { panelDuzenleyici.islemTuslariDuzenle_listeEkrani(_e) }
+		if (mfSinif?.islemTuslariDuzenle_listeEkrani) { mfSinif.islemTuslariDuzenle_listeEkrani(e) }
 	}
 	gridInit(e) {
 		super.gridInit(e); const {grid, gridWidget} = this; this.expandedIndexes = {}; const {panelDuzenleyici} = this, mfSinif = this.getMFSinif();

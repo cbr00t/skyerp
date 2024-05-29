@@ -365,7 +365,7 @@ class MQSubWhereClause extends MQClause {
 		// const isNumericFilter = filterType == 'numericfilter';
 		const isStringFilter = !filterType || filterType == 'stringfilter';
 		const addValueClause = e => {
-			let {value} = e;
+			let {value} = e; const not = true;
 			switch (condition) {
 				case 'EMPTY': case 'NOTEMPTY': case 'NOT_EMPTY':
 					value = isStringFilter ? '' : 0; break
@@ -379,8 +379,18 @@ class MQSubWhereClause extends MQClause {
 					value = MQSQLOrtak.sqlServerDegeri(value); break
 			}
 			switch (condition) {
-				case 'CONTAIN': case 'CONTAINS': this.like(`%${value}%`, saha); break
-				case 'NOTCONTAIN': case 'NOT_CONTAIN': case 'NOT_CONTAINS': case 'DOES_NOT_CONTAIN': this.notLike(`%${value}%`, saha); break
+				case 'CONTAIN': case 'CONTAINS':
+					this.add(new MQOrClause([
+						{ like: `%${value}%`, saha },
+						(typeof value == 'string' ? { like: `%${value.toUpperCase()}%`, saha: `UPPER(${saha})` } : null)
+					].filter(x => !!x)))
+					break
+				case 'NOTCONTAIN': case 'NOT_CONTAIN': case 'NOT_CONTAINS': case 'DOES_NOT_CONTAIN':
+					this.add(new MQOrClause([
+						{ not, like: `%${value}%`, saha },
+						(typeof value == 'string' ? { not, like: `%${value.toUpperCase()}%`, saha: `UPPER(${saha})` } : null)
+					].filter(x => !!x)))
+					break
 				case 'EQUAL': case 'EQUALS': case 'EMPTY': this.add(`${saha} ${isBooleanFilter ? '<>' : '='} ${value}`); break
 				case 'NOT_EQUAL': case 'NOT_EQUALS': case 'NOTEMPTY': case 'NOT_EMPTY': this.add(`${saha} ${isBooleanFilter ? '=' : '<>'} ${value}`); break
 				case 'LESS_THAN_OR_EQUAL': if (!isBooleanFilter) { this.add(`${saha} <= ${value}`) } break;

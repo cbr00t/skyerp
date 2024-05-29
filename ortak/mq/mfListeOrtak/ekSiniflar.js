@@ -51,10 +51,6 @@ class GridPanelDuzenleyici extends CObject {
 		let {grupAttrListe, ustSeviyeAttrListe} = e;
 		$.extend(this, { gridPart, colCount, ekKolonPrefix, ekKolonOlusturucu, getCellLayoutIslemi, getSubRecIslemi, subRecsSelector, grupAttrListe, ustSeviyeAttrListe })
 	}
-	gridInit(e) {
-		/*const mfSinif = this?.mfSinif ?? {}, {yerelParam} = mfSinif, paramGlobals = mfSinif.paramGlobals || {};
-		let {colCount} = this, value = paramGlobals.colCount; if (value != null) { colCount = this.colCount = value }*/
-	}
 	gridArgsDuzenle(e) {
 		const {args} = e, gridPart = e.gridPart ?? e.sender, {rowsHeight} = this;
 		$.extend(args, { showFilterRow: false, selectionMode: 'singlecell', adaptive: false, groupsExpandedByDefault: true, enableTooltips: false, autoShowLoadElement: false });

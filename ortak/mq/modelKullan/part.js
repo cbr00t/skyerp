@@ -383,7 +383,7 @@ class ModelKullanPart extends Part {
 					for (let i = 0; i < 3; i++) {
 						try {
 							// const _e = $.extend({}, e, { wsArgs: wsArgs, source: source, callback: callback });
-							const {parentPart, mfSinif} = this;
+							const {parentPart, mfSinif} = this, {args} = parentPart || {};
 							const kodSaha = mfSinif ? ($.isArray(mfSinif.idSaha) ? mfSinif.idSaha[0] : mfSinif.idSaha) ?? mfSinif.kodSaha : MQKA.kodSaha;
 							const adiSaha = mfSinif ? mfSinif.adiSaha : MQKA.adiSaha; let temps = {};
 							const {wsArgsDuzenleBlock, ozelQueryDuzenleBlock} = this;
@@ -395,7 +395,7 @@ class ModelKullanPart extends Part {
 								if (mfSinif && !mfSinif.adiKullanilirmi) { tabloKolonlari = tabloKolonlari.filter(colDef => colDef.belirtec != adiSaha) }
 								wsArgs.tabloKolonlari = this._wsArgs_tabloKolonlari = tabloKolonlari
 							}
-							const _e = $.extend({ parentPart, sender: this, builder: this.builder, secimler: this.secimler, callback }, wsArgs);
+							const _e = $.extend({ parentPart, sender: this, builder: this.builder, secimler: this.secimler, callback, args }, wsArgs);
 							let result = loadServerDataBlock ? await getFuncValue.call(this, loadServerDataBlock, _e) : (mfSinif ? (await mfSinif.loadServerData(_e)) : null); if (!result) return
 							if ($.isArray(result)) result = { totalrecords: result.length, records: result };
 							if (typeof result != 'object') return

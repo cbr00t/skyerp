@@ -152,10 +152,10 @@ class MQHatYonetimi extends MQMasterOrtak {
 	static orjBaslikListesi_recsDuzenle(e) { super.orjBaslikListesi_recsDuzenle(e) }
 	static gridVeriYuklendi(e) { super.gridVeriYuklendi(e); app.sonSyncTS = now() }
 	static orjBaslikListesi_gridRendered(e) {
-		super.orjBaslikListesi_gridRendered(e); const {gridPart} = e, {gridWidget} = gridPart;
-		const ustAltFormlar = gridWidget.table.find(`[role = row] > * .ust-alt`);
+		super.orjBaslikListesi_gridRendered(e); const {gridPart} = e, {gridWidget} = gridPart, table = gridWidget?.table; if (!table) { return }
+		const ustAltFormlar = table.find(`[role = row] > * .ust-alt`);
 		if (ustAltFormlar?.length) { for (const key of ['mousedown', 'touchstart']) { ustAltFormlar.on(key, evt => { app.otoTazeleTempDisable() }) } }
-		const buttons = gridWidget.table.find(`[role = row] > * button`); if (buttons?.length) {
+		const buttons = table.find(`[role = row] > * button`); if (buttons?.length) {
 			buttons.jqxButton({ theme }).off('click').on('click', evt => {
 				$.extend(e, { event: evt, gridPart }); const target = evt.currentTarget, id = target.id; let {parentRec, rec} = this.gridCellHandler_ilkIslemler(e); if (!rec) { return }
 				const {tezgahAdi} = rec, {boundindex, visibleindex} = parentRec;
@@ -182,6 +182,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 			form.addButton('bekleyenIsler', undefined, 'Bekleyen İşler').onClick(() => { close(); this.bekleyenIslerIstendi(_e) });
 			form.addButton('makineDurum', undefined, 'Makine Durum').onClick(() => { close(); this.makineDurumIstendi(_e) });
 			form.addButton('personelSec', undefined, 'Personel Ata').onClick(() => { close(); this.personelSecIstendi(_e) });
+			form.addButton('tezgahTasi', undefined, 'Tezgah Taşı').onClick(() => { close(); this.tezgahTasiIstendi(_e) });
 			form.addButton('ekBilgi', undefined, 'Ek Bilgi').onClick(() => { close(); this.ekBilgiIstendi(_e) })
 		} }); this.openContextMenu(e)
 	}
@@ -204,25 +205,47 @@ class MQHatYonetimi extends MQMasterOrtak {
 		} }); this.openContextMenu(e)
 	}
 	static personelSecIstendi(e) {
-		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart;
-		const {gridWidget} = gridPart, belirtec = e.belirtec ?? gridPart.selectedBelirtec, parentRecs = e.recs ?? gridPart.getSubRecs({ gridPart, cells: gridWidget.getselectedcells() })
+		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, {gridWidget} = gridPart;
+		const _recs = e.recs ?? gridPart.getSubRecs({ gridPart, cells: gridWidget.getselectedcells().filter(cell => cell.datafield[0] == '_') });
 		return MQPersonel.listeEkraniAc({
-			tekil: true, args: { parentRecs }, secince: async e => {
-				const perKod = e.value, {sender} = e, tezgahKodListe = sender.parentRecs?.map(rec => rec.tezgahKod);
+			tekil: true, args: { _recs }, secince: async e => {
+				const perKod = e.value, {sender} = e, tezgahKodListe = sender._recs?.map(rec => rec.tezgahKod);
 				if (tezgahKodListe?.length) {
 					const promises = []; for (const tezgahKod of tezgahKodListe) { promises.push(app.wsPersonelAta({ tezgahKod, perKod })) }
-					try { await Promise.all(promises); gridPart.tazele() } catch (ex) { hConfirm(getErrorText(ex)) }
+					try { await Promise.all(promises); gridPart.tazele() } catch (ex) { console.error(ex); hConfirm(getErrorText(ex)) }
 				}
 			}
 		})
 	}
+	static tezgahTasiIstendi(e) {
+		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, {gridWidget} = gridPart;
+		const _recs = e.recs ?? gridPart.getSubRecs({ gridPart, cells: gridWidget.getselectedcells().filter(cell => cell.datafield[0] == '_') });
+		if (!_recs?.length) { return } let exclude_hatKod;
+		try {
+			for (const rec of _recs) {
+				const {hatKod} = rec;
+				if (exclude_hatKod && hatKod != exclude_hatKod) { throw new { isError: true, errorText: `Taşınacak Tezgah(lar) <u class="bold">Aynı Hat üzerinde</u> olmalıdır` } }
+				if (!exclude_hatKod) { exclude_hatKod = hatKod }
+			}
+			return MQHat.listeEkraniAc({
+				tekil: true, args: { exclude_hatKod, _recs }, title: `<b class="royalblue">${_recs.length} adet Tezgahı</b> <span class="darkgray">şu Hat'a taşı:</span>`, secince: async e => {
+					const hatKod = e.value, {sender} = e, tezgahKodListe = sender._recs?.map(rec => rec.tezgahKod); if (!tezgahKodListe?.length) { return }
+					const upd = new MQIliskiliUpdate({ from: 'tekilmakina', where: { inDizi: tezgahKodListe, saha: 'kod' }, set: { degerAta: hatKod, saha: 'ismrkkod' } });
+					try { await app.sqlExecNone(upd); gridPart.tazele() } catch (ex) { console.error(ex); hConfirm(getErrorText(ex)) }
+				}
+			})
+		}
+		catch (ex) { console.error(ex); hConfirm(getErrorText(ex)) }
+	}
 	static makineDurumIstendi(e) { const recs = e.recs ?? (e.rec ? [e.rec] : []); for (const rec of recs) { const {tezgahKod} = rec; new MakineYonetimiPart({ tezgahKod }).run() } }
 	static siradakiIslerIstendi(e) { e.mfSinif = MQSiradakiIsler; return this.xIslerIstendi(e) }
-	static bekleyenIslerIstendi(e) { e.mfSinif = MQBekleyenIsler; return this.xIslerIstendi(e) }
+	static bekleyenIslerIstendi(e) { e.tekil = true; e.mfSinif = MQBekleyenIsler; return this.xIslerIstendi(e) }
 	static bekleyenIslerIstendi_hatBazinda(e) { e.hatBazinda = true; return this.bekleyenIslerIstendi(e) }
 	static xIslerIstendi(e) {
-		const {mfSinif} = e, hatBazindami = e.hatBazinda ?? e.hatBazindami, gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, rec = e.rec ?? gridPart.selectedRec;
-		const {hatKod, hatAdi, tezgahKod, tezgahAdi} = rec; return mfSinif.listeEkraniAc({ args: { hatKod, hatAdi, tezgahKod, tezgahAdi, hatBazindami }})
+		const {mfSinif} = e, tekilmi = e.tekil ?? e.tekilmi, hatBazindami = e.hatBazinda ?? e.hatBazindami;
+		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, {gridWidget} = gridPart;
+		const recs = e.recs ?? gridPart.getSubRecs({ gridPart, cells: gridWidget.getselectedcells().filter(cell => cell.datafield[0] == '_') }); if (!recs) { return }
+		for (const rec of recs) { const {hatKod, hatAdi, tezgahKod, tezgahAdi} = rec; mfSinif.listeEkraniAc({ args: { hatKod, hatAdi, tezgahKod, tezgahAdi, hatBazindami }}) }
 	}
 	static topluXIstendi(e) {
 		const {id} = e, gridPart = e.gridPart ?? e.sender ?? e.builder?.rootBuilder?.part, recsCount = gridPart?._lastRecs?.length;
@@ -269,10 +292,12 @@ class MQHatYonetimi extends MQMasterOrtak {
 		let inst = new MQEkNotlar({ hatKod, tezgahKod }); return inst.tanimla({ islem: 'yeni' })
 	}
 	static openContextMenu(e) {
-		const noCheckFlag = e.noCheck ?? e.noCheckFlag, gridPart = e.gridPart = e.gridPart ?? e.sender ?? e.parentPart, gridWidget = e.gridWidget = gridPart.gridWidget, cells = e.cells = gridWidget.getselectedcells();
-		let {title} = e; const parentRec = e.parentRec = e.parentRec ?? gridPart.selectedRec, recs = e.recs = (e.recs ?? gridPart.getSubRecs(e)).filter(rec => !!rec), rec = e.rec = (recs || [])[0];
+		const noCheckFlag = e.noCheck ?? e.noCheckFlag, gridPart = e.gridPart = e.gridPart ?? e.sender ?? e.parentPart, gridWidget = e.gridWidget = gridPart.gridWidget;
+		const cells = e.cells = gridWidget.getselectedcells().filter(cell => cell.datafield[0] == '_');
+		let {title} = e; const recs = e.recs = (e.recs ?? gridPart.getSubRecs(e)).filter(rec => !!rec);
+		const parentRec = e.parentRec = e.parentRec ?? gridPart.selectedRec, rec = e.rec = (recs || [])[0];
 		if (!(noCheckFlag || rec)) { return }
-		title = e.title = title ?? `<b class="gray">(${rec?.tezgahKod || ''})</b> ${rec?.tezgahAdi || ''}${cells?.length > 1 ? ` <b class="cadetblue">(+ ${cells.length})</b>` : ''}`;
+		title = e.title = title ?? `<b class="gray">(${rec?.tezgahKod || ''})</b> ${rec?.tezgahAdi || ''}${cells?.length > 1 ? ` <b class="cadetblue">(+ ${cells.length - 1})</b>` : ''}`;
 		return gridPart.openContextMenu(e)
 	}
 	static gridCell_getLayout(e) {
