@@ -112,8 +112,12 @@ class GridPart extends Part {
 							const action = this._tazele_lastAction;
 							let result = await this.loadServerData({ wsArgs, source, callback, action });
 							if (result) {
-								if ($.isArray(result)) result = { totalrecords: result.length, records: result }
-								if (typeof result == 'object') { if (result.records && !result.totalrecords) result.totalrecords = result.records.length; try { callback(result) } catch (ex) { console.error(ex); debugger } }
+								if ($.isArray(result)) { result = { totalrecords: result.length, records: result } }
+								result = result ?? { totalrecords: 0, records: [] };
+								if (typeof result == 'object') {
+									if (result.records && !result.totalrecords) { result.totalrecords = result.records.length }
+									try { callback(result) } catch (ex) { console.error(ex); debugger }
+								}
 							}
 						}, 5)
 					}

@@ -1,7 +1,7 @@
 class MESApp extends App {
     static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'HAT-YONETIMI' }
 	get configParamSinif() { return MQYerelParamConfig_MES } get defaultWSPath() { return `ws/skyMES` }
-	get sqlExecWSPath() { return `${this.defaultWSPath}/hatIzleme` } get otoTazeleYapilirmi() { return this.otoTazeleFlag && this.tazele_timeout }
+	get sqlExecWSPath() { return `${this.defaultWSPath}/hatIzleme` } get otoTazeleYapilirmi() { return !!(this.otoTazeleFlag && !this.otoTazeleDisabledFlag && this.tazele_timeout) }
 	get durumKod2Aciklama() {
 		let result = this._durumKod2Aciklama; if (result === undefined) {
 			result = this._durumKod2Aciklama = {
@@ -12,7 +12,8 @@ class MESApp extends App {
 		return result
 	}
 	get durumKod2KisaAdi() {
-		let result = this._durumKod2KisaAdi; if (result === undefined) { result = this._durumKod2KisaAdi = { '': 'YOK', '?': 'YOK', 'DV': '|&gt;', 'DR': '||' } }
+		let result = this._durumKod2KisaAdi;
+		if (result === undefined) { result = this._durumKod2KisaAdi = { '': 'BOŞTA', '?': 'BOŞTA', 'BK': 'BEK', 'DV': '|&gt;', 'DR': '||' } }
 		return result
 	}
 	get sabitHatKod() { return this.params.config.hatKod }
@@ -21,7 +22,7 @@ class MESApp extends App {
 		e = e || {}; super(e);
 		$.extend(this, {
 			otoTazeleFlag: ((e.otoTazele ?? e.otoTazeleFlag ?? asBool(qs.otoTazele)) && !(e.disableRefresh ?? e.disableRefreshFlag ?? asBool(qs.disableRefresh))) ?? false,
-			tazele_timeout: asFloat(e.tazele_timeout ?? qs.tazele_timeout ?? qs.timeout ?? 3000)
+			tazele_timeout: asFloat(e.tazele_timeout ?? qs.tazele_timeout ?? qs.timeout ?? 5000)
 		})
 	}
 	async runDevam(e) {
@@ -29,11 +30,21 @@ class MESApp extends App {
 		await this.promise_ready; await this.anaMenuOlustur(e)
 	}
 	afterRun(e) { super.afterRun(e); this.tazele_startTimer(e) }
-	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { yerel: MQYerelParam.getInstance(), mes: MQParam_MES.getInstance() }) }
+	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { yerel: MQYerelParam.getInstance(), ortak: MQOrtakParam.getInstance(), mes: MQParam_MES.getInstance() }) }
 	getAnaMenu(e) {
 		/* const disabledMenuIdSet = this.disabledMenuIdSet || {}; */
 		const items = [ new FRMenuChoice({ mnemonic: 'HAT-YONETIMI', text: 'Hat Yönetimi', block: e => MQHatYonetimi.listeEkraniAc() }) ]
 		return new FRMenu({ items })
+	}
+	async getTezgahKod2Rec(e) {
+		e = e || {}; let tezgahKodListe = e.kodListe ?? e.tezgahKodListe ?? e.hedefTezgahKodListe; if ($.isEmptyObject(tezgahKodListe)) { tezgahKodListe = null }
+		let hatKodListe = e.hatKodListe ?? e.hedefHatKodListe; if ($.isEmptyObject(hatKodListe)) { hatKodListe = null }
+		let sent = new MQSent({
+			from: 'tekilmakina tez', fromIliskiler: [{ from: 'ismerkezi hat', iliski: 'tez.ismrkkod = hat.kod' }], where: [`tez.kod <> ''`],
+			sahalar: ['RTRIM(tez.kod) tezgahKod', 'RTRIM(tez.aciklama) tezgahAdi', 'RTRIM(tez.ismrkkod) hatKod', 'RTRIM(hat.aciklama) hatAdi' ]
+		});
+		if (tezgahKodListe) { sent.where.inDizi(tezgahKodListe, 'tez.kod') } if (hatKodListe) { sent.where.inDizi(hatKodListe, 'tez.ismrkkod') }
+		const result = {}; let recs = await app.sqlExecSelect(sent); for (const rec of recs) { result[rec.kod] = rec } return result
 	}
 	tazele_startTimer(e) {
 		const {tazele_timeout} = this; this.tazele_stopTimer(e);
@@ -41,9 +52,20 @@ class MESApp extends App {
 		return this
 	}
 	tazele_stopTimer(e) { const key = '_timer_tazele'; clearTimeout(this[key]); return this }
-	tazele_timerProc(e) {
-		if (!(this.otoTazeleYapilirmi && appActivatedFlag)) { return }
-		this.signalChange(e)
+	tazele_timerProc(e) { const _appActivatedFlag = appActivatedFlag; if (!(_appActivatedFlag && this.otoTazeleYapilirmi)) { return } this.signalChange(e) }
+	signalChange(e) {
+		e = e || {}; const {activeWndPart} = this; if (!activeWndPart) { return this }
+		const {mfSinif} = activeWndPart; e.gridPart = e.sender = activeWndPart;
+		if (mfSinif?.onSignalChange) { mfSinif.onSignalChange(e) } else if (activeWndPart.onSignalChange) { activeWndPart.onSignalChange(e) }
+		return this
+	}
+	otoTazeleTempDisable(e) {
+		e = e || {}; const waitMS = (typeof e == 'object' ? e.waitMS : e) || 7000;
+		this.otoTazeleDisabledFlag = true; setTimeout(() => this.otoTazeleDisabledFlag = false, waitMS); return this
+	}
+	buildAjaxArgs(e) {
+		e = e || {}; const {args} = e; if (!args) { return }
+		super.buildAjaxArgs(e); const {sonSyncTS} = this; if (sonSyncTS) { args.sonSyncTS = dateTimeToString(sonSyncTS) }
 	}
 	wsParams(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/params', args: e }) }) }
 	wsTezgahBilgileri(e) { e = e || {}; const sync = e.sync = asBool(e.sync), timeout = sync ? ajaxInfiniteMS : 15000; return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/tezgahBilgileri', args: e }) }) }
@@ -89,17 +111,4 @@ class MESApp extends App {
 	wsGetLEDDurumAll(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/getLEDDurumAll', args: e }) }) }
 	wsGetLEDDurum(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/getLEDDurum', args: e }) }) }
 	wsSetLEDDurum(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/setLEDDurum', args: e }) }) }
-	signalChange(e) {
-		e = e || {}; const {activeWndPart} = this; if (activeWndPart?.tazele) { activeWndPart.tazele(e) }
-		for (const pageInfo of Object.values(app.mainWindowsPart.id2TabPage)) {
-			const {asilPart} = pageInfo?.content?.data('part') || {}; if (asilPart && asilPart != this) {
-				let {gridWidget} = asilPart?.gridPart ?? asilPart; if (asilPart.tazele) { asilPart.tazele() }
-				/*if (gridWidget) { gridWidget.beginupdate(); gridWidget.endupdate() } else if (asilPart.tazele) { asilPart.tazele() }*/
-			}
-		}
-	}
-	buildAjaxArgs(e) {
-		e = e || {}; const {args} = e; if (!args) { return }
-		super.buildAjaxArgs(e); const {sonSyncTS} = this; if (sonSyncTS) { args.sonSyncTS = dateTimeToString(sonSyncTS) }
-	}
 }

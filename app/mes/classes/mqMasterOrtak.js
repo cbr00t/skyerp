@@ -4,7 +4,7 @@ class MQMasterOrtak extends MQCogul {
 	static standartGorunumListesiDuzenle(e) { const {liste} = e, {orjBaslikListesi} = this; liste.push(...orjBaslikListesi.map(colDef => colDef.belirtec)) }
 	static orjBaslikListesi_argsDuzenle(e) {
 		super.orjBaslikListesi_argsDuzenle(e); const {args, sender} = e;
-		$.extend(args, { showFilterRow: true, groupsExpandedByDefault: true, rowsHeight: 40, groupIndentWidth: 30 })
+		$.extend(args, { showFilterRow: false, groupsExpandedByDefault: true, rowsHeight: 40, groupIndentWidth: 30 })
 	}
 	static listeEkrani_init(e) { super.listeEkrani_init(e); const gridPart = e.sender, {args} = gridPart; if (args) { $.extend(gridPart, args) } }
 }

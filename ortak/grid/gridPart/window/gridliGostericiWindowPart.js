@@ -66,9 +66,9 @@ class GridliGostericiWindowPart extends GridliGostericiPart {
 		e = e || {}; super.gridVeriYuklendi(e);
 		const {gridWidget} = e, selectionMode = gridWidget.selectionmode, sel = gridWidget.getselection();
 		if (selectionMode && selectionMode != 'none' && $.isEmptyObject(sel.rows) && $.isEmptyObject(sel.cells)) {
-			gridWidget.clearselection();
-			if (selectionMode == 'checkbox' || selectionMode.toLowerCase().includes('row')) { gridWidget.selectrow(0); }
-			else { const colDef = this.duzKolonTanimlari.find(_colDef => _colDef.isEditable) || {}; if (colDef) gridWidget.selectcell(0, colDef.belirtec) }
+			try { gridWidget.clearselection() } catch (ex) { }
+			if (selectionMode == 'checkbox' || selectionMode.toLowerCase().includes('row')) { try { gridWidget.selectrow(0) } catch (ex) { } }
+			else { const colDef = this.duzKolonTanimlari.find(_colDef => _colDef.isEditable) || {}; if (colDef) { try { gridWidget.selectcell(0, colDef.belirtec) } catch (ex) { } } }
 		}
 		gridWidget.focus()
 	}

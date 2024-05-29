@@ -45,6 +45,7 @@ class MakineYonetimiPart extends Part {
 		return this
 	}
 	tazeleWithSignal() { app.signalChange(); return this }
+	onSignalChange(e) { this.tazele(e); return this }
 	updateTitle(e) {
 		const {sinifAdi} = this.class, {inst} = this; let tezgahText; if (inst) {
 			const {tezgahKod, tezgahAdi} = inst; if (tezgahKod) {

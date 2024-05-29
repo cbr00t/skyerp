@@ -116,7 +116,7 @@ class SecimBasSon extends Secim {
 					parentPart: this.parentPart, builder: this.builder,
 					layout: editor, mfSinif: mfSinif, placeHolder: etiket,
 					dropDown: false, noAutoWidth: true,  autoBind: false, kod: value,
-					maxRow: app.params.ortak.autoComplete_maxRow * 4,
+					maxRow: app.params?.ortak?.autoComplete_maxRow * 4,
 					/*dataAdapterBlock: () =>
 						savedDA,*/
 					argsDuzenle: e => {

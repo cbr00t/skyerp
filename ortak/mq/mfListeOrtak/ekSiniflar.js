@@ -36,7 +36,7 @@ class GridPanelDuzenleyici extends CObject {
 		if (!ekKolonOlusturucu) {
 			ekKolonOlusturucu = e => {
 				e = e || {}; const ekKolonPrefix = e.ekKolonPrefix || this.ekKolonPrefix || '_ekKolon', {seq} = e;
-				const _e = { args: { belirtec: `${ekKolonPrefix}${seq ?? ''}`, text: ' ', filterable: false, groupable: false } }
+				const _e = { args: { belirtec: `${ekKolonPrefix}${seq ?? ''}`, text: ' ', sortable: false, filterable: false, groupable: false } }
 				if (ekKolonDuzenleyici_args) { getFuncValue.call(this, ekKolonDuzenleyici_args, _e) }
 				_e.colDef = new GridKolon(_e.args); if (ekKolonDuzenleyici_son) { getFuncValue.call(this, ekKolonDuzenleyici_son, _e) }
 				return _e.colDef

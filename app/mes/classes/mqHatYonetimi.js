@@ -19,12 +19,19 @@ class MQHatYonetimi extends MQMasterOrtak {
 		this.fbd_listeEkrani_addCheckBox(rfb, 'otoTazeleFlag', 'Oto Tazele').onAfterRun(e => {
 			const {builder} = e, {rootPart, layout} = builder, input = layout.children('input'), {grid, gridWidget} = rootPart;
 			if (rootPart.otoTazeleFlag) { input.prop('checked', true) }
-			input.on('change', evt => { const value = rootPart.otoTazeleFlag = $(evt.currentTarget).is(':checked'); app.otoTazeleFlag = !!value })
+			input.on('change', evt => { const value = rootPart.otoTazeleFlag = $(evt.currentTarget).is(':checked'); app.otoTazeleFlag = !!value; rootPart.tazeleDefer() })
 		});
 		this.fbd_listeEkrani_addCheckBox(rfb, 'grupsuzmu', 'Grupsuz').onAfterRun(e => {
 			const {builder} = e, {rootPart, layout} = builder, input = layout.children('input'), {grid, gridWidget} = rootPart;
 			if (rootPart.grupsuzmu) { input.prop('checked', true) }
 			input.on('change', evt => { const value = rootPart.grupsuzmu = $(evt.currentTarget).is(':checked'); rootPart.tazeleDefer() })
+		});
+		rfb.onAfterRun(e => {
+			const gridPart = e.builder.part, hizliBulLayout = gridPart.bulPart?.layout?.children('input');
+			if (hizliBulLayout?.length) {
+				hizliBulLayout.on('focus', evt => app.otoTazeleDisabledFlag = true )
+				hizliBulLayout.on('blur', evt => app.otoTazeleTempDisable({ waitMS: 3000 }) )
+			}
 		})
 		/*this.fbd_listeEkrani_addButton(rfb, 'isEmirleri', 'EMR', 80, e => this.xIstendi(e));
 		this.fbd_listeEkrani_addButton(rfb, 'topluX', 'TPL', 80, e => this.xIstendi(e))*/
@@ -43,7 +50,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 	}
 	static orjBaslikListesi_argsDuzenle(e) {
 		super.orjBaslikListesi_argsDuzenle(e); const {args} = e, gridPart = e.gridPart ?? e.parentPart ?? e.sender; gridPart.rowNumberOlmasin();
-		$.extend(args, { showFilterRow: false, groupsRenderer: (...args) => this.orjBaslikListesi_renderGroupsHeader(...args) })
+		$.extend(args, { showFilterRow: false, showGroupsHeader: false, groupsRenderer: (...args) => this.orjBaslikListesi_renderGroupsHeader(...args) })
 	}
 	static orjBaslikListesi_getPanelDuzenleyici(e) { const getCellLayoutIslemi = e => this.gridCell_getLayout(e); return new GridPanelDuzenleyici({ getCellLayoutIslemi }) }
 	static orjBaslikListesi_renderGroupsHeader(text, group, expanded, groupInfo) {
@@ -60,10 +67,13 @@ class MQHatYonetimi extends MQMasterOrtak {
 		}; fillSubItems(groupInfo);
 		const rec = allSubItems[0], {hatKod} = rec; /*, ekNotlarRec = kod2EkNotlarRec[hatKod] || {}; */
 		return `<table border="0" class="full-wh"><tbody>
-			<tr>
+			<tr data-hatkod="${hatKod}">
 				<td class="groupText">${group}</td>
 				<td class="islemTuslari">
-					<div class="item"><button id="bekleyenIsEmirleri">EMR</button></div>
+					<div class="item">
+						<button id="bekleyenIsEmirleri">EMR</button>
+						<button id="hatBekleyenIsler">BEK</button>
+					</div>
 					<div class="item">
 						<button id="notlar">NOTLAR</button>
 						<button id="notEkle">NOT EKLE</button>
@@ -75,24 +85,26 @@ class MQHatYonetimi extends MQMasterOrtak {
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e;
 		liste.push(...[
-			new GridKolon({ belirtec: 'hatKod', text: 'Hat Kod' }).hidden(),
-			new GridKolon({ belirtec: 'hatAdi', text: 'Hat Adı' }).hidden(),
-			new GridKolon({ belirtec: 'tezgahKod', text: 'Tezgah Kod' }).hidden(),
-			new GridKolon({ belirtec: 'tezgahAdi', text: 'Tezgah Adı' }).hidden(),
-			new GridKolon({ belirtec: 'ip', text: 'IP' }).hidden(),
-			new GridKolon({ belirtec: 'grupText', text: 'Hat' }).hidden()
+			new GridKolon({ belirtec: 'hatKod' }).hidden(),
+			new GridKolon({ belirtec: 'hatAdi' }).hidden(),
+			new GridKolon({ belirtec: 'tezgahKod' }).hidden(),
+			new GridKolon({ belirtec: 'tezgahAdi' }).hidden(),
+			new GridKolon({ belirtec: 'ip' }).hidden(),
+			new GridKolon({ belirtec: 'grupText' }).hidden()
 		])
 	}
 	static orjBaslikListesi_panelGrupAttrListeDuzenle(e) { super.orjBaslikListesi_panelGrupAttrListeDuzenle(e); const {liste} = e; liste.push('grupText') }
 	static orjBaslikListesi_groupsDuzenle(e) {
 		super.orjBaslikListesi_groupsDuzenle(e); const gridPart = e.gridPart ?? e.sender, {liste} = e;
-		if (!gridPart.grupsuzmu) { const grupListe = this.orjBaslikListesi_panelGrupAttrListe || []; if (grupListe?.length) { liste.push(...grupListe) } }
+		if (!(gridPart.grupsuzmu || gridPart.otoTazeleFlag)) { const grupListe = this.orjBaslikListesi_panelGrupAttrListe || []; if (grupListe?.length) { liste.push(...grupListe) } }
 	}
 	static orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(e) { super.orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(e); const {liste} = e; liste.push('hatKod', 'hatAdi') }
 	static orjBaslikListesi_hizliBulFiltreAttrListeDuzenle(e) {
 		super.orjBaslikListesi_hizliBulFiltreAttrListeDuzenle(e); const {liste} = e;
 		liste.push('hatKod', 'hatAdi', 'tezgahKod', 'tezgahAdi', 'perKod', 'perIsim', 'ip')
 	}
+	static onSignalChange(e) { const gridPart = e.gridPart ?? e.sender; gridPart?.tazeleDefer(e); return this }
+	static orjBaslikListesi_hizliBulIslemi(e) { app.otoTazeleTempDisable(e); super.orjBaslikListesi_hizliBulIslemi(e) }
 	static async loadServerData(e) {
 		let recs, lastError;
 		for (let i = 0; i < 3; i++) {
@@ -141,15 +153,20 @@ class MQHatYonetimi extends MQMasterOrtak {
 	static gridVeriYuklendi(e) { super.gridVeriYuklendi(e); app.sonSyncTS = now() }
 	static orjBaslikListesi_gridRendered(e) {
 		super.orjBaslikListesi_gridRendered(e); const {gridPart} = e, {gridWidget} = gridPart;
+		const ustAltFormlar = gridWidget.table.find(`[role = row] > * .ust-alt`);
+		if (ustAltFormlar?.length) { for (const key of ['mousedown', 'touchstart']) { ustAltFormlar.on(key, evt => { app.otoTazeleTempDisable() }) } }
 		const buttons = gridWidget.table.find(`[role = row] > * button`); if (buttons?.length) {
 			buttons.jqxButton({ theme }).off('click').on('click', evt => {
-				$.extend(e, { event: evt, gridPart }); const id = evt.currentTarget.id, {parentRec, rec} = this.gridCellHandler_ilkIslemler(e); if (!rec) { return }
+				$.extend(e, { event: evt, gridPart }); const target = evt.currentTarget, id = target.id; let {parentRec, rec} = this.gridCellHandler_ilkIslemler(e); if (!rec) { return }
 				const {tezgahAdi} = rec, {boundindex, visibleindex} = parentRec;
+				const hatKod = $(target).parents('tr').data('hatkod'), hatRec = hatKod ? gridPart.recs.find(rec => rec.hatKod == hatKod) : null;
+				if (hatRec) { parentRec = e.parentRec = hatRec; rec = e.rec = parentRec._subItems[0] }
 				switch (id) {
 					case 'tezgahMenu': this.tezgahMenuIstendi(e); break
 					case 'personelSec': this.personelSecIstendi(e); break;
 					case 'makineDurum': this.makineDurumIstendi(e); break;
 					case 'bekleyenIsEmirleri': this.bekleyenIsEmirleriIstendi(e); break;
+					case 'hatBekleyenIsler': this.bekleyenIslerIstendi_hatBazinda(e); break;
 					case 'notlar': this.ekNotlarIstendi(e); break;
 					case 'notEkle': this.ekNotEkleIstendi(e); break;
 					default: eConfirm(`<b>${visibleindex + 1}. satırdaki</b> ve <b>${tezgahAdi}</b> tezgahına ait <b>${id}</b> id'li butona tıklandı`)
@@ -161,17 +178,18 @@ class MQHatYonetimi extends MQMasterOrtak {
 	static tezgahMenuIstendi(e) {
 		$.extend(e, { formDuzenleyici: _e => {
 			_e = $.extend({}, e, _e); const {form, close} = _e; form.yanYana(2);
-			form.addButton('siradakiIsler', undefined, 'Sıradaki İşler').onClick(e => { close(); this.siradakiIslerIstendi(_e) });
-			form.addButton('bekleyenIsler', undefined, 'Bekleyen İşler').onClick(e => { close(); this.bekleyenIslerIstendi(_e) });
-			form.addButton('makineDurum', undefined, 'Makine Durum').onClick(e => { close(); this.makineDurumIstendi(_e) });
-			form.addButton('personelSec', undefined, 'Personel Ata').onClick(e => { close(); this.personelSecIstendi(_e) });
-			form.addButton('ekBilgi', undefined, 'Ek Bilgi').onClick(e => { close(); this.ekBilgiIstendi(_e) })
+			form.addButton('siradakiIsler', undefined, 'Sıradaki İşler').onClick(() => { close(); this.siradakiIslerIstendi(_e) });
+			form.addButton('bekleyenIsler', undefined, 'Bekleyen İşler').onClick(() => { close(); this.bekleyenIslerIstendi(_e) });
+			form.addButton('makineDurum', undefined, 'Makine Durum').onClick(() => { close(); this.makineDurumIstendi(_e) });
+			form.addButton('personelSec', undefined, 'Personel Ata').onClick(() => { close(); this.personelSecIstendi(_e) });
+			form.addButton('ekBilgi', undefined, 'Ek Bilgi').onClick(() => { close(); this.ekBilgiIstendi(_e) })
 		} }); this.openContextMenu(e)
 	}
 	static bekleyenXMenuIstendi(e) {
 		$.extend(e, { formDuzenleyici: _e => {
 			_e = $.extend({}, e, _e); const {form, close} = _e; form.yanYana(2);
-			form.addButton('isEmirleri', undefined, 'İş Emirleri').onClick(e => { close(); this.bekleyenIsEmirleriIstendi(_e) })
+			form.addButton('isEmirleri', undefined, 'İş Emirleri').onClick(() => { close(); this.bekleyenIsEmirleriIstendi(_e) });
+			form.addButton('hatBekleyenIsler', undefined, 'Bekleyen İşler (HAT)').onClick(() => { close(); _e.hatBazinda = true; this.bekleyenIslerIstendi_hatBazinda(_e) })
 		} }); this.openContextMenu(e)
 	}
 	static topluXMenuIstendi(e) {
@@ -201,9 +219,10 @@ class MQHatYonetimi extends MQMasterOrtak {
 	static makineDurumIstendi(e) { const recs = e.recs ?? (e.rec ? [e.rec] : []); for (const rec of recs) { const {tezgahKod} = rec; new MakineYonetimiPart({ tezgahKod }).run() } }
 	static siradakiIslerIstendi(e) { e.mfSinif = MQSiradakiIsler; return this.xIslerIstendi(e) }
 	static bekleyenIslerIstendi(e) { e.mfSinif = MQBekleyenIsler; return this.xIslerIstendi(e) }
+	static bekleyenIslerIstendi_hatBazinda(e) { e.hatBazinda = true; return this.bekleyenIslerIstendi(e) }
 	static xIslerIstendi(e) {
-		const {mfSinif} = e, gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, rec = e.rec ?? gridPart.selectedRec;
-		const {hatKod, hatAdi, tezgahKod, tezgahAdi} = rec; return mfSinif.listeEkraniAc({ args: { hatKod, hatAdi, tezgahKod, tezgahAdi }})
+		const {mfSinif} = e, hatBazindami = e.hatBazinda ?? e.hatBazindami, gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, rec = e.rec ?? gridPart.selectedRec;
+		const {hatKod, hatAdi, tezgahKod, tezgahAdi} = rec; return mfSinif.listeEkraniAc({ args: { hatKod, hatAdi, tezgahKod, tezgahAdi, hatBazindami }})
 	}
 	static topluXIstendi(e) {
 		const {id} = e, gridPart = e.gridPart ?? e.sender ?? e.builder?.rootBuilder?.part, recsCount = gridPart?._lastRecs?.length;
@@ -239,7 +258,10 @@ class MQHatYonetimi extends MQMasterOrtak {
 	}
 	static ekNotlarIstendi(e) {
 		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, rec = e.rec ?? gridPart.selectedRec ?? {}; const {hatKod} = rec;
-		MQEkNotlar.listeEkraniAc({ secimlerDuzenle: e => { const sec = e.secimler; if (hatKod) { $.extend({}, sec.hatKod, { birKismimi: true, value: hatKod })} } })
+		MQEkNotlar.listeEkraniAc({ secimlerDuzenle: e => {
+			const sec = e.secimler, isHidden = !!app.params.config.hatKod;
+			if (hatKod) { $.extend(sec.hatKod, { birKismimi: true, value: hatKod, isHidden }); sec.hatAdi.isHidden = isHidden }
+		}})
 	}
 	static ekNotEkleIstendi(e) {
 		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, rec = e.rec ?? gridPart.selectedRec ?? {};
@@ -254,7 +276,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 		return gridPart.openContextMenu(e)
 	}
 	static gridCell_getLayout(e) {
-		const gridPart = e.gridPart ?? e.sender, rec = e.rec ?? {}, isListe = rec.isListe ?? [], {grupsuzmu} = gridPart;
+		const gridPart = e.gridPart ?? e.sender, rec = e.rec ?? {}, isListe = rec.isListe ?? [], grupsuzmu = gridPart.grupsuzmu || gridPart.otoTazeleFlag;
 		const {sinyalKritik, duraksamaKritik, durumKod, durumAdi, durNedenKod, durNedenAdi, ip, siradakiIsSayi} = rec, {kritikDurNedenKodSet} = app.params.mes;
 		const kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod ? kritikDurNedenKodSet[durNedenKod] : false;
 		const isBilgiHTML = this.gridCell_getLayout_isBilgileri(e);
@@ -324,7 +346,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 						<span class="nedenText sub-item">${durumKod == 'DR' ? durNedenAdi || '' : ''}</span>
 					</td>
 					<td class="sag item">
-						${gridPart?.grupsuzmu ? `<button id="hatKod" aria-disabled="true">${rec.hatKod}</button>` : ''}
+						${grupsuzmu ? `<button id="hatKod" aria-disabled="true">${rec.hatKod}</button>` : ''}
 						<button id="makineDurum">MAK</button>
 						<button id="tezgahMenu">...</button>
 					</td>

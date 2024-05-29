@@ -26,9 +26,10 @@ class MQXIsler extends MQMasterOrtak {
 		])
 	}
 	static listeEkrani_init(e) {
-		super.listeEkrani_init(e); const gridPart = e.gridPart ?? e.sender, args = gridPart.args || {}, {tezgahKod, tezgahAdi} = gridPart;
-		if (tezgahKod) {
-			let tezgahText = `<u class="gray">${tezgahKod || ''}</u>`; if (tezgahAdi) { tezgahText += ` <span class="royalblue">${tezgahAdi}</span>` }
+		super.listeEkrani_init(e); const gridPart = e.gridPart ?? e.sender, args = gridPart.args || {}, {hatBazindami, hatKod, hatAdi, tezgahKod, tezgahAdi} = gridPart;
+		const targetKod = hatBazindami ? hatKod : tezgahKod, targetAdi = hatBazindami ? hatAdi : tezgahAdi;
+		if (targetKod) {
+			let tezgahText = `<u class="gray">${targetKod || ''}</u>`; if (targetAdi) { tezgahText += ` <span class="${hatBazindami ? 'forestgreen' : 'royalblue'}">${targetAdi}</span>` }
 			let {title} = gridPart; title += ` [${tezgahText}]`; gridPart.updateWndTitle(gridPart.title = title)
 		}
 	}
@@ -113,22 +114,24 @@ class MQSiradakiIsler extends MQXIsler {
 	static async isAtaKaldirIstendi(e) {
 		const gridPart = e.gridPart ?? e.parentPart ?? e.sender, {tezgahKod} = gridPart, recs = gridPart.selectedRecs; if (!recs?.length) { return }
 		const errors = []; for (const rec of recs) { const isId = rec.issayac; try { await app.wsIsAta({ tezgahKod, isId }) } catch (ex) { errors.push(getErrorText(ex)); console.error(ex) } }
-		if (errors?.length) { hConfirm(`<ul class="errors">${errors.map(x => `<li>${x}</li>`).join('')}</ul>`, 'İş Kaldır') } app.signalChange()
+		if (errors?.length) { hConfirm(`<ul class="errors">${errors.map(x => `<li>${x}</li>`).join('')}</ul>`, 'İş Kaldır') } gridPart.tazeleDefer()
 	}
-	static siradanKaldirIstendi(e) {
+	static async siradanKaldirIstendi(e) {
 		const gridPart = e.gridPart ?? e.parentPart ?? e.sender, {tezgahKod} = gridPart, recs = gridPart.selectedRecs; if (!recs?.length) { return }
 		const isIdListe = recs.map(rec => rec.issayac).join(delimWS); if (!isIdListe?.length) { return }
-		app.wsSiradanKaldir({ tezgahKod, isIdListe }).then(result => app.signalChange({ result })).catch(ex => hConfirm(getErrorText(ex), 'Sıradan Kaldır'))
+		try { await app.wsSiradanKaldir({ tezgahKod, isIdListe }); gridPart.tazeleDefer() }
+		catch(ex) { console.error(ex); hConfirm(getErrorText(ex), 'Sıradan Kaldır') }
 	}
 	static sureSayiDuzenleIstendi(e) {
 		try {
 			const gridPart = e.gridPart ?? e.parentPart ?? e.sender, {tezgahKod} = gridPart, rec = gridPart.selectedRec; if (!rec) { return }
 			let inst = new MQSureSayi({ rec }); inst.tanimla({ islem: 'degistir', kaydetIslemi: async e => {
 				const {inst} = e, {rec, sinyalSayisi, sinyalTekilSure, sinyalToplamSure} = inst, isId = rec.issayac, oemSayac = rec.oemsayac;
-				await app.wsSureDuzenle({ tezgahKod, oemSayac, isId, sinyalSayisi, sinyalTekilSure, sinyalToplamSure }); return true
+				try { await app.wsSureDuzenle({ tezgahKod, oemSayac, isId, sinyalSayisi, sinyalTekilSure, sinyalToplamSure }); return true }
+				catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Süre/Sayı Düzenle') }
 			} })
 		}
-		catch (ex) { hConfirm(getErrorText(ex), 'Süre/Sayı Düzenle') }
+		catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Süre/Sayı Düzenle') }
 	}
 	static async zamanEtuduIstendi(e) {
 		try {
@@ -136,30 +139,47 @@ class MQSiradakiIsler extends MQXIsler {
 			const zamanEtuduRec = await app.wsGorevZamanEtuduVeriGetir({ isId: rec.issayac })
 			let inst = new MQZamanEtudu({ rec, zamanEtuduRec }); inst.tanimla({ islem: 'izle' })
 		}
-		catch (ex) { hConfirm(getErrorText(ex), 'Zaman Etüdü') }
+		catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Zaman Etüdü') }
 	}
 	static baskaTezgahaTasiIstendi(e) {
 		const islemAdi = 'Başka Tezgaha Taşı', gridPart = e.gridPart ?? e.parentPart ?? e.sender, {hatKod, tezgahKod} = gridPart, excludeTezgahKod = tezgahKod;
 		const isIdListe = gridPart.selectedRecs.filter(rec => !rec.devreDisimi).map(rec => rec.issayac);
 		if (!isIdListe?.length) { hConfirm('İşlem yapılacak Aktif kayıt(lar) seçilmelidir', islemAdi); return }
-		const args = { cokluSecimFlag: false, tezgahKod, hatKod, excludeTezgahKod, title: `<b class="gray">${tezgahKod}</b> - <span class="ek-bilgi">Şuraya Taşı:</span>` };
-		MQHatYonetimi.listeEkraniAc({ args, secince: e => {
+		const args = { cokluSecimFlag: true, tezgahKod, hatKod, excludeTezgahKod, title: `<b class="gray">${tezgahKod}</b> - <span class="ek-bilgi">Şuraya Taşı:</span>` };
+		MQHatYonetimi.listeEkraniAc({ args, secince: async e => {
 			const gridPart = e.gridPart ?? e.parentPart ?? e.sender, hedefTezgahKodListe = gridPart.getSubRecs({ cells: gridPart.gridWidget.getselectedcells() }).map(rec => rec.tezgahKod);
 			if (!hedefTezgahKodListe?.length) { return } let promises = [];
 			for (const hedefTezgahKod of hedefTezgahKodListe) { promises.push(app.wsBaskaTezgahaTasi({ isIdListe: isIdListe.join(delimWS), tezgahKod, hedefTezgahKod })) }
-			Promise.all(promises).then(result => app.signalChange(result)).catch(ex => hConfirm(getErrorText(ex), islemAdi))
+			try {
+				await Promise.all(promises); gridPart.tazeleDefer(); const kod2Rec = await app.getTezgahKod2Rec({ hedefTezgahKodListe });
+				for (const hedefTezgahKod of hedefTezgahKodListe) {
+					const tezgahKod = hedefTezgahKod, rec = kod2Rec[tezgahKod] || {}, {tezgahAdi, hatKod, hatAdi} = rec;
+					this.listeEkraniAc({ args: { hatKod, hatAdi , tezgahKod, tezgahAdi } });
+					await new $.Deferred(p => setTimeout(p.resolve()), 1000)
+				}
+				
+			}
+			catch (ex) { console.error(ex); hConfirm(getErrorText(ex), islemAdi) }
 		} })
 	}
 	static isParcalaIstendi(e) {
 		const islemAdi = 'İş Parçala', gridPart = e.gridPart ?? e.parentPart ?? e.sender, {hatKod, tezgahKod} = gridPart, excludeTezgahKod = tezgahKod;
 		const isIdListe = gridPart.selectedRecs.filter(rec => !rec.devreDisimi).map(rec => rec.issayac);
 		if (!isIdListe?.length) { hConfirm('İşlem yapılacak Aktif kayıt(lar) seçilmelidir', islemAdi); return }
-		const args = { cokluSecimFlag: false, tezgahKod, hatKod, excludeTezgahKod, title: `<b class="gray">${tezgahKod}</b> - <span class="ek-bilgi">Parçala:</span>` };
-		MQHatYonetimi.listeEkraniAc({ args, secince: e => {
+		const args = { cokluSecimFlag: true, tezgahKod, hatKod, excludeTezgahKod, title: `<b class="gray">${tezgahKod}</b> - <span class="ek-bilgi">Parçala:</span>` };
+		MQHatYonetimi.listeEkraniAc({ args, secince: async e => {
 			const gridPart = e.gridPart ?? e.parentPart ?? e.sender, hedefTezgahKodListe = gridPart.getSubRecs({ cells: gridPart.gridWidget.getselectedcells() }).map(rec => rec.tezgahKod);
 			if (!hedefTezgahKodListe?.length) { return }
-			app.wsCokluIsParcala({ isIdListe: isIdListe.join(delimWS), tezgahKod, hedefTezgahKod: hedefTezgahKodListe.join(delimWS) })
-				.then(result => app.signalChange(result)).catch(ex => hConfirm(getErrorText(ex), islemAdi))
+			try {
+				await app.wsCokluIsParcala({ isIdListe: isIdListe.join(delimWS), tezgahKod, hedefTezgahKod: hedefTezgahKodListe.join(delimWS) }); gridPart.tazeleDefer();
+				const kod2Rec = await app.getTezgahKod2Rec({ hedefTezgahKodListe });
+				for (const hedefTezgahKod of hedefTezgahKodListe) {
+					const tezgahKod = hedefTezgahKod, rec = kod2Rec[tezgahKod] || {}, {tezgahAdi, hatKod, hatAdi} = rec;
+					this.listeEkraniAc({ args: { hatKod, hatAdi , tezgahKod, tezgahAdi } });
+					await new $.Deferred(p => setTimeout(p.resolve()), 1000)
+				}
+			}
+			catch (ex) { console.error(ex); hConfirm(getErrorText(ex), islemAdi) }
 		} })
 	}
 }
@@ -175,27 +195,48 @@ class MQBekleyenIsler extends MQXIsler {
 			{ id: 'yeniOper', text: 'YENİ OPER', handler: e => this.yeniOperIstendi(e) }
 		)
 	}
-	static sirayaAlIstendi(e) {
-		const gridPart = e.gridPart ?? e.parentPart ?? e.sender, {tezgahKod} = gridPart, recs = gridPart.selectedRecs.filter(rec => !rec.devreDisimi);
-		if (!recs?.length) { hConfirm('İşlem yapılacak Aktif kayıt(lar) seçilmelidir', 'Sıraya Al'); return }
+	static async sirayaAlIstendi(e) {
+		const gridPart = e.gridPart ?? e.parentPart ?? e.sender, {tezgahKod, hatKod} = gridPart, hatBazindami = gridPart.hatBazinda ?? gridPart.hatBazindami;
+		const recs = gridPart.selectedRecs.filter(rec => !rec.devreDisimi); if (!recs?.length) { hConfirm('İşlem yapılacak Aktif kayıt(lar) seçilmelidir', 'Sıraya Al'); return }
 		const oemSayacListe = recs.map(rec => rec.oemsayac).join(delimWS); if (!oemSayacListe?.length) { return }
-		app.wsSirayaAl({ tezgahKod, oemSayacListe }).then(result => app.signalChange({ result })).catch(ex => hConfirm(getErrorText(ex), 'Sıraya Al'))
+		try {
+			if (hatBazindami) {
+				const excludeTezgahKod = tezgahKod, args = { cokluSecimFlag: true, tezgahKod, hatKod, excludeTezgahKod, title: `<b class="gray">${tezgahKod}</b> - <span class="ek-bilgi">Şu Tezgahlar için:</span>` };
+				MQHatYonetimi.listeEkraniAc({ args, secince: async e => {
+					const _gridPart = e.gridPart ?? e.parentPart ?? e.sender, hedefTezgahKodListe = _gridPart.getSubRecs({ cells: _gridPart.gridWidget.getselectedcells() }).map(rec => rec.tezgahKod);
+					if (!hedefTezgahKodListe?.length) { return }
+					try {
+						for (const hedefTezgahKod of hedefTezgahKodListe) { await app.wsSirayaAl({ tezgahKod: hedefTezgahKod, oemSayacListe }) }
+						gridPart.tazeleDefer();
+						const kod2Rec = await app.getTezgahKod2Rec({ hedefTezgahKodListe });
+						for (const hedefTezgahKod of hedefTezgahKodListe) {
+							const tezgahKod = hedefTezgahKod, rec = kod2Rec[tezgahKod] || {}, {tezgahAdi, hatKod, hatAdi} = rec;
+							await MQSiradakiIsler.listeEkraniAc({ args: { hatKod, hatAdi , tezgahKod, tezgahAdi } })
+							await new $.Deferred(p => setTimeout(p.resolve()), 1000)
+						}
+					}
+					catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Sıraya Al') }
+				} })
+			}
+			else { await app.wsSirayaAl({ tezgahKod, oemSayacListe }); gridPart.tazeleDefer() }
+		}
+		catch(ex) { console.error(ex); hConfirm(getErrorText(ex), 'Sıraya Al') }
 	}
-	static aktifPasifIstendi(e) {
+	static async aktifPasifIstendi(e) {
 		const gridPart = e.gridPart ?? e.parentPart ?? e.sender, {tezgahKod} = gridPart, recs = gridPart.selectedRecs; if (!recs?.length) { return }
 		const oemSayacListe = recs.map(rec => rec.oemsayac).join(delimWS); if (!oemSayacListe?.length) { return }
-		app.wsBekleyenIs_devredisiYapKaldir({ tezgahKod, oemSayacListe }).then(result => app.signalChange({ result })).catch(ex => hConfirm(getErrorText(ex), 'Aktif/Pasif'))
+		try { await app.wsBekleyenIs_devredisiYapKaldir({ tezgahKod, oemSayacListe }); gridPart.tazeleDefer() }
+		catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Aktif/Pasif') }
 	}
 	static yeniOperIstendi(e) {
 		const gridPart = e.gridPart ?? e.parentPart ?? e.sender, {tezgahKod} = gridPart, recs = gridPart.selectedRecs.filter(rec => !rec.devreDisimi);
 		if (!recs?.length) { hConfirm('İşlem yapılacak Aktif kayıt(lar) seçilmelidir', 'Yeni Operasyon'); return }
 		const oemSayac = recs[0].oemsayac; if (!oemSayac) { return } const args = { tekil: false, oemSayac };
-		MQOperasyon.listeEkraniAc({ args, secince: e => {
+		MQOperasyon.listeEkraniAc({ args, secince: async e => {
 			const opNoListe = e.values; if (!opNoListe?.length) { return }
 			const gridPart = e.gridPart ?? e.parentPart ?? e.sender, urunAgacinaEkleFlag = gridPart.urunAgacineEkleFlag;
-			app.wsYeniOperListeEkle({ tezgahKod, oemSayac, urunAgacinaEkleFlag, opNoListe: opNoListe.join(delimWS) })
-				.then(result => app.signalChange(result))
-				.catch(ex => hConfirm(getErrorText(ex), 'Yeni Operasyon'))
+			try { await app.wsYeniOperListeEkle({ tezgahKod, oemSayac, urunAgacinaEkleFlag, opNoListe: opNoListe.join(delimWS) }); gridPart.tazeleDefer() }
+			catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Yeni Operasyon') }
 		} })
 	}
 }
