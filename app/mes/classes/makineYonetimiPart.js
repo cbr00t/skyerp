@@ -121,7 +121,7 @@ class MakineYonetimiPart extends Part {
 	getLayout_tblOEMBilgileri(e) {
 		e = e ?? {}; const inst = e.rec = this.inst ?? {}, isListe = inst.isListe ?? [], isBilgiHTML = MQHatYonetimi.gridCell_getLayout_isBilgileri(e);
 		const {sinyalKritik, duraksamaKritik, durNedenKod, durumKod, durumAdi, ip, siradakiIsSayi} = inst, {kritikDurNedenKodSet} = app.params.mes;
-		const kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod ? kritikDurNedenKodSet[durNedenKod] : false;
+		const kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod ? kritikDurNedenKodSet[durNedenKod] : false, bostami = !durumKod || durumKod == '?' || durumKod == 'KP' || durumKod == 'BK';
 		let topSaymaInd = 0, topSaymaSayisi = 0; for (const is of isListe) { topSaymaInd += (is.isSaymaInd || 0); topSaymaSayisi += (is.isSaymaSayisi || 0) }
 		return (
 			`<table id="oemBilgileri" class="${sinyalKritik ? ' sinyal-kritik' : ''}${duraksamaKritik && kritikDurNedenmi ? ' duraksama-kritik' : ''}${kritikDurNedenmi ? ' kritik-durNeden' : ''}"><tbody>
@@ -132,7 +132,7 @@ class MakineYonetimiPart extends Part {
 				<tr class="tezgahVeIsSayi">
 					<td class="buttons item">
 						<button id="isAtaKaldir">İŞ ATA</button>
-						<button id="isBitti" class="bold darkred">İŞ BİTTİ</button>
+						<button id="isBitti" class="${bostami ? '' : `bold darkred`}"${bostami ? ` aria-disabled="true"` : ''}>İŞ BİTTİ</button>
 					</td>
 					<td class=" tezgah veri item">
 						<span class="kod">${inst.tezgahKod || ''}</span> <span class="adi">${inst.tezgahAdi || ''}</span>
@@ -141,13 +141,13 @@ class MakineYonetimiPart extends Part {
 					<td class="siradakiIsSayi item">${siradakiIsSayi ? `<span>+ </span><span class="veri">${siradakiIsSayi}</span>` : ''}</td>
 				</tr>
 				<tr class="personel">
-					<td class="buttons item"><button id="personelSec">PER</button></td>
+					<td class="buttons item"><button id="personelSec"${bostami ? ` aria-disabled="true"` : ''}>PER</button></td>
 					<td class="veri item" colspan="2"><span class="kod">${inst.perKod || ''}</span> <span class="adi">${inst.perIsim || ''}</span></td>
 				</tr>
 				<tr class="miktarVeGSC">
 					<td class="buttons item">
-						<button id="cevrimYap">[ +1 ]</button>
-						<button id="saymaYap">Sinyal</button>
+						<button id="cevrimYap"${bostami ? ` aria-disabled="true"` : ''}>[ +1 ]</button>
+						<button id="saymaYap"${bostami ? ` aria-disabled="true"` : ''}>Sinyal</button>
 						<button id="gerceklemeYap">GER</button>
 					</td>
 					<td class="veri item" colspan="2">

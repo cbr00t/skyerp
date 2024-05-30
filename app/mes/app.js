@@ -22,7 +22,7 @@ class MESApp extends App {
 		e = e || {}; super(e);
 		$.extend(this, {
 			otoTazeleFlag: ((e.otoTazele ?? e.otoTazeleFlag ?? asBool(qs.otoTazele)) && !(e.disableRefresh ?? e.disableRefreshFlag ?? asBool(qs.disableRefresh))) ?? false,
-			tazele_timeout: asFloat(e.tazele_timeout ?? qs.tazele_timeout ?? qs.timeout ?? 5000)
+			tazele_timeout: asFloat(e.tazele_timeout ?? qs.tazele_timeout ?? qs.timeout ?? 7000)
 		})
 	}
 	async runDevam(e) {
@@ -60,7 +60,7 @@ class MESApp extends App {
 		return this
 	}
 	otoTazeleTempDisable(e) {
-		e = e || {}; const waitMS = (typeof e == 'object' ? e.waitMS : e) || 7000;
+		e = e || {}; const waitMS = (typeof e == 'object' ? e.waitMS : e) || 10000;
 		this.otoTazeleDisabledFlag = true; setTimeout(() => this.otoTazeleDisabledFlag = false, waitMS); return this
 	}
 	buildAjaxArgs(e) {

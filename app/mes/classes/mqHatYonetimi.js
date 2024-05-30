@@ -103,7 +103,12 @@ class MQHatYonetimi extends MQMasterOrtak {
 		super.orjBaslikListesi_hizliBulFiltreAttrListeDuzenle(e); const {liste} = e;
 		liste.push('hatKod', 'hatAdi', 'tezgahKod', 'tezgahAdi', 'perKod', 'perIsim', 'ip')
 	}
-	static onSignalChange(e) { const gridPart = e.gridPart ?? e.sender; gridPart?.tazeleDefer(e); return this }
+	static onSignalChange(e) {
+		const gridPart = e.gridPart ?? e.sender;
+		if (gridPart?.tazeleDefer) { gridPart.tazeleDefer(e) }
+		else if (gridPart?.tazele) { gridPart.tazele(e) }
+		return this
+	}
 	static orjBaslikListesi_hizliBulIslemi(e) { app.otoTazeleTempDisable(e); super.orjBaslikListesi_hizliBulIslemi(e) }
 	static async loadServerData(e) {
 		let recs, lastError;
