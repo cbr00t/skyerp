@@ -121,7 +121,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 			/*let {_lastRecsHash, _lastRecs} = this, recsHash = this._lastRecsHash = toJSONStr(recs); if (_lastRecsHash && recsHash == _lastRecsHash && _lastRecs) { return _lastRecs }*/
 			const {durumKod2KisaAdi} = app, donusum = { hatID: 'hatKod', hatAciklama: 'hatAdi', id: 'tezgahKod', aciklama: 'tezgahAdi' };
 			for (const rec of recs) {
-				for (const [key, newKey] of Object.entries(donusum)) { if (rec[newKey] == null) { rec[newKey] = rec[key]; delete rec[key] } }
+				for (const [key, newKey] of Object.entries(donusum)) { if (rec[newKey] == null) { rec[newKey] = rec[key]?.trimEnd(); delete rec[key] } }
 				let {durumKod, durumAdi} = rec; if (durumKod != null) {
 					durumKod = rec.durumKod = durumKod.trimEnd();
 					if (rec.durumAdi == null) { rec.durumAdi = durumKod2KisaAdi[durumKod] ?? durumKod }

@@ -1,7 +1,7 @@
 class MakineYonetimiPart extends Part {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get isWindowPart() { return true } static get partName() { return 'makineYonetimi' } static get sinifAdi() { return 'Makine Yönetimi' }
-	constructor(e) { e = e || {}; super(e); $.extend(this, { tezgahKod: e.tezgahKod ?? e.tezgahId }); const {tezgahKod} = this }
+	constructor(e) { e = e || {}; super(e); $.extend(this, { tezgahKod: (e.tezgahKod ?? e.tezgahId)?.trimEnd() }); const {tezgahKod} = this }
 	run(e) {
 		e = e || {}; super.run(e); const {layout} = this; this.updateTitle(e);
 		const header = this.header = layout.children('.header'), islemTuslari = this.islemTuslari = header.children('.islemTuslari');
@@ -22,7 +22,7 @@ class MakineYonetimiPart extends Part {
 			this.ekNotlarYapi = await app.wsEkNotlar({ tip: 'TZ', kod: tezgahKod || '' });
 			let inst; if (recs?.length) {
 				const {durumKod2Aciklama} = app, donusum = { hatID: 'hatKod', hatAciklama: 'hatAdi', id: 'tezgahKod', aciklama: 'tezgahAdi' };
-				for (const rec of recs) { for (const [key, newKey] of Object.entries(donusum)) { if (rec[newKey] == null) { rec[newKey] = rec[key]; delete rec[key] } } }
+				for (const rec of recs) { for (const [key, newKey] of Object.entries(donusum)) { if (rec[newKey] == null) { rec[newKey] = rec[key]?.trimEnd(); delete rec[key] } } }
 				inst = this.inst = $.extend({}, recs[0]); const isListe = inst.isListe = [];
 				for (const rec of recs) {
 					const {isID} = rec; if (isID) {
@@ -75,6 +75,7 @@ class MakineYonetimiPart extends Part {
 			case 'saymaYap': this.saymaYapIstendi(e); break
 			case 'cevrimYap': this.cevrimYapIstendi(e); break
 			case 'iptal': this.iptalIstendi(e); break
+			case 'isBitti': this.isBittiIstendi(e); break
 		}
 	}
 	isAtaKaldirIstendi(e) { const {tezgahKod, tezgahAdi} = this.inst; return MQSiradakiIsler.listeEkraniAc({ args: { tezgahKod, tezgahAdi } }) }
@@ -104,6 +105,10 @@ class MakineYonetimiPart extends Part {
 	tersKesmeIstendi_begin(e) { this._tersKesme_startTS = now() }
 	tersKesmeIstendi_end(e) { return this.gcsYapIstendi($.extend({}, e, { api: 'wsTersKesmeYap', delayMS: (now - this._tersKesme_startTS).getTime() })); delete this._tersKesme_startTS }
 	gcsYapIstendi(e) { const {tezgahKod} = this.inst, {api} = e; (app[api])({ tezgahKod }).then(() => this.tazeleWithSignal()).catch(ex => { hConfirm(getErrorText(ex)); console.error(ex) }) }
+	async isBittiIstendi(e) {
+		let rdlg = await ehConfirm(`Makine için <b class="darkred">İş Bitti</b> yapılacak, devam edilsin mi?`, this.title); if (!rdlg) { return }
+		const {tezgahKod} = this.inst; try { await app.wsIsBittiYap({ tezgahKod }); this.tazeleWithSignal() } catch(ex) { hConfirm(getErrorText(ex)); console.error(ex) }
+	}
 	getLayoutInternal(e) {
 		const html_oemBilgileri = this.getLayout_tblOEMBilgileri(e);
 		return $(
@@ -125,7 +130,10 @@ class MakineYonetimiPart extends Part {
 					<td class="veri item" colspan="2"><span class="kod">${inst.hatKod || ''}</span> <span class="adi">${inst.hatAdi || ''}</span></td>
 				</tr>
 				<tr class="tezgahVeIsSayi">
-					<td class="buttons item"><button id="isAtaKaldir">İŞ</button></td>
+					<td class="buttons item">
+						<button id="isAtaKaldir">İŞ ATA</button>
+						<button id="isBitti" class="bold darkred">İŞ BİTTİ</button>
+					</td>
 					<td class=" tezgah veri item">
 						<span class="kod">${inst.tezgahKod || ''}</span> <span class="adi">${inst.tezgahAdi || ''}</span>
 						${ip ? `<span class="ip">(${ip ||''})</span>` : ''}
