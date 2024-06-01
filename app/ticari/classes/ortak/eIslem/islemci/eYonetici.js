@@ -97,10 +97,12 @@ class EYonetici extends CObject {
 					const result = uuid2Result[uuid] = uuid2Result[uuid] || {};
 					$.extend(result, { islemZamani: now(), isError: false, eIslSinif, efAyrimTipi, rec, anaBolum: eIslAltBolum, xmlDosya });
 					try {
-						const xmlData = (uuid2Result[uuid] || {}).xmlData || (await app.wsDownloadAsStream({ remoteFile: xmlDosya, localFile: xmlDosyaAdi }));
-						if (!xmlData) throw { isError: true, rc: 'noXML', errorText: 'XML (e-İşlem Belge İçeriği) bilgisi belirlenemedi' }; const xml = $.parseXML(xmlData);
-						let xsltData = xml.documentElement.querySelector('EmbeddedDocumentBinaryObject').textContent; if (!xsltData) throw { isError: true, rc: 'noXSLT', errorText: 'XSLT (e-İşlem Görüntü) bilgisi belirlenemedi' }
-						if (xsltData && xsltData.startsWith(Base64.encode('<?xml'))) xsltData = Base64.decode(xsltData)
+						const xmlData = uuid2Result[uuid]?.xmlData || (await app.wsDownloadAsStream({ remoteFile: xmlDosya, localFile: xmlDosyaAdi }));
+						if (!xmlData) { throw { isError: true, rc: 'noXML', errorText: 'XML (e-İşlem Belge İçeriği) bilgisi belirlenemedi' } } const xml = $.parseXML(xmlData);
+						let xsltData = Array.from(xml.documentElement.querySelectorAll(`AdditionalDocumentReference`))
+								?.find(elm => elm.querySelector('DocumentType')?.innerHTML == 'XSLT')?.querySelector('EmbeddedDocumentBinaryObject')?.textContent;
+						if (!xsltData) { throw { isError: true, rc: 'noXSLT', errorText: 'XSLT (e-İşlem Görüntü) bilgisi belirlenemedi' } }
+						if (xsltData?.startsWith(Base64.encode('<?xml'))) { xsltData = Base64.decode(xsltData) }
 						const xslt = $.parseXML(Base64.decode(xsltData)), xsltProcessor = new XSLTProcessor(); xsltProcessor.importStylesheet(xslt);
 						const eDoc = xsltProcessor.transformToFragment(xml, document);
 						if (!eDoc) { console.error({ isError: true, rc: 'xsltTransform', errorText: 'XSLT Görüntüsü oluşturulamadı', source: xsltProcessor }); continue }

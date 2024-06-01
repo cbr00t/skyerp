@@ -23,7 +23,7 @@ class EIslemOrtak extends CObject {
 		e = e || {}; super(e); let _icmal = e.icmal; if (_icmal && $.isPlainObject(_icmal)) { _icmal = e.icmal = new EIcmal(_icmal) }
 		$.extend(this, {
 			eConf: e.eConf ?? MQEConf.instance, baslik: e.baslik, detaylar: e.detaylar || [],
-			dipNotlar: e.dipNotlar || [], icmal: _icmal
+			dipNotlar: e.dipNotlar || [], icmal: _icmal, xsltDuzenleyiciler: e.xsltDuzenleyiciler || []
 		})
 	}
 	static getAnaClass(e) {
@@ -164,7 +164,7 @@ class EIslemOrtak extends CObject {
 		xw.writeElementString('cbc:DocumentCurrencyCode', dvKod, null, { 'listAgencyName': 'United Nations Economic Commission for Europe', 'listID': 'ISO 4217 Alpha', 'listName': 'Currency', 'listVersionID': '2001' })
 	}
 	async xmlDuzenle_detaylarOncesi(e) {
-		await this.xmlDuzenle_lineCountNumeric(e); await this.xmlDuzenle_docRefs(e); await this.xmlDuzenle_signatureParty(e);
+		await this.xmlDuzenle_lineCountNumeric(e); await this.xmlDuzenle_docRefs(e); await this.xmlDuzenle_docRefs_son(e); await this.xmlDuzenle_signatureParty(e);
 		await this.xmlDuzenle_supplierParty(e); await this.xmlDuzenle_customerParty(e); await this.xmlDuzenle_buyerCustomerParty(e);
 		await this.xmlDuzenle_paymentMeans(e); await this.xmlDuzenle_allowanceCharge(e); await this.xmlDuzenle_dvKur(e);
 		await this.xmlDuzenle_taxTotal(e); await this.xmlDuzenle_tevkifatli_taxTotal(e); await this.xmlDuzenle_legalMonetaryTotal(e)
@@ -173,8 +173,7 @@ class EIslemOrtak extends CObject {
 	async xmlDuzenle_docRefs(e) {
 		const {params} = app, {isyeri} = params, param_zorunlu = params.zorunlu, param_stok = params.stokGenel, param_eIslem = params.eIslem, param_eIslemKullanim = param_eIslem.kullanim;
 		const param_eIslemKural = param_eIslem.kural, {baslik, dvKod, dvKur} = this, {eYontem} = baslik, {xw} = e;
-		await this.xmlDuzenle_docRefs_sgk(e); await this.xmlDuzenle_docRefs_xslt(e);
-		await this.xmlDuzenle_docRefs_qrCode(e); await this.xmlDuzenle_docRefs_eIslemEkBilgi(e);
+		await this.xmlDuzenle_docRefs_sgk(e); await this.xmlDuzenle_docRefs_qrCode(e); await this.xmlDuzenle_docRefs_eIslemEkBilgi(e); await this.xmlDuzenle_docRefs_xslt(e);
 		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'DVKUR', value: `(${dvKod}) ${toStringWithFra(roundToBedelFra(Math.abs(dvKur)))}` });
 		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'BEDEL_FORMAT_STR', value: `##.##0,${'0'.repeat(param_zorunlu.bedelFra || 5)}` });
 		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'GENEL_PUNTO', value: param_eIslem.goruntuOzelPunto });
@@ -188,14 +187,14 @@ class EIslemOrtak extends CObject {
 		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'SATIRDA_DIGER_VERGILER', value: param_eIslemKullanim.satirDigerVergi ?? false });
 		/*await this.xmlDuzenleInternal_docRefParam({ xw, name: 'DIPTE_VERGILER_DAHIL_TOPLAM_TUTAR', value: true });*/
 		if (param_eIslemKullanim.baslikMusteriKod) { await this.xmlDuzenle_docRefs_mustKod(e) }
-		await this.xmlDuzenle_docRefs_vioFisBilgi(e);
-		this.xmlDuzenle_docRefs_yalnizYazisi(e);
+		await this.xmlDuzenle_docRefs_vioFisBilgi(e); await this.xmlDuzenle_docRefs_yalnizYazisi(e)
 	}
+	async xmlDuzenle_docRefs_son(e) { }
 	xmlDuzenle_docRefs_sgk(e) { }
 	async xmlDuzenle_docRefs_xslt(e) {
 		const _e = $.extend({}, e); const value = await this.getXsltBase64(_e); if (!value) throw { isError: true, rc: 'emptyXslt', errorText: 'e-İşlem XML oluşturma için <b>XSLT Bilgisi</b> belirlenemedi' }
 		const {baslik} = this, {xw} = e, id = baslik.uuid, type = 'XSLT', mimeCode = 'application/xml';
-		this.xmlDuzenleInternal_docRef({ xw, id, type, attachment: { mimeCode, fileName: `${baslik.fisnox}.xslt`, value } })
+		await this.xmlDuzenleInternal_docRef({ xw, id, type, attachment: { mimeCode, fileName: `${baslik.fisnox}.xslt`, value } })
 	}
 	async xmlDuzenle_docRefs_qrCode(e) {
 		/*try { temp1 = (await app.wsWebRequest({ args: { method: 'GET', url: `https://localhost:90/skyerp/images/bird_mini.png` } }))?.data?.binary }
@@ -218,15 +217,19 @@ class EIslemOrtak extends CObject {
 			qrData[`hesaplanankdv(${oran})`] = toFileStringWithFra(bedel || 0, 2)
 		}
 		const mimeType = 'image/png', encodedQRData = toJSONStr(qrData), type = 'KAREKOD_IMG';
-		let imgData; const qrURL = `https://api.qrserver.com/v1/create-qr-code/?charset-source=utf-8&ecc=L&size=200x200&qzone=1&format=png&data=${encodedQRData}`;
+		let imgData; const qrURL = `https://api.qrserver.com/v1/create-qr-code/?charset-source=utf-8&ecc=L&size=180x180&qzone=1&format=jpg&data=${encodedQRData}`;
 		try {
-			const qrCode = new QRCode($(`<div/>`)[0], { text: encodedQRData, width: 180, height: 180, correctLevel : QRCode.CorrectLevel.L }); qrCode.makeImage();
+			const qrCode = new QRCode($(`<div/>`)[0], { width: 180, height: 180, correctLevel : QRCode.CorrectLevel.L }); qrCode.makeCode(encodedQRData);
 			const img = qrCode._el.querySelector('img'); imgData = await new $.Deferred(p => setTimeout(() => p.resolve(img.src), 10));
-			if (imgData) { imgData = imgData.split(',', 2)[1] || imgData }
+			/*if (imgData) { imgData = imgData.split(',', 2)[1] || imgData }*/
 		}
 		catch (_ex) { try { imgData = (await app.wsWebRequest({ args: { method: 'GET', url: qrURL } }))?.data?.binary } catch (ex) { console.error(getErrorText(ex))} }
-		if (imgData) { this.xmlDuzenleInternal_docRef({ xw, id: '0', type, attachment: { mimeType, value: imgData, fileName: `${type}.png` } }) }
-		else { this.xmlDuzenleInternal_docRef({ xw, id: '0', typeCode: qrURL, type }) }
+		if (imgData) {
+			await this.xsltDuzenleyiciEkle({ args: { type, imgData }, handler: e => e.result.replaceAll(`[${e.args.type}]`, imgData /*`data:image/jpeg;base64,${imgData}`*/ ) });
+			await this.xmlDuzenleInternal_docRef({ xw, id: '0', type: 'KAREKOD_IMG', typeCode: 'dynamic' })
+			/*this.xmlDuzenleInternal_docRef({ xw, id: '0', type, attachment: { mimeType, value: imgData, fileName: `${type}.png` } })*/
+		}
+		else { await this.xmlDuzenleInternal_docRef({ xw, id: '0', typeCode: qrURL, type }) }
 	}
 	xmlDuzenle_docRefs_eIslemEkBilgi(e) {
 			/* type: 'UST_BILGI', desc: 'içerik' */
@@ -239,7 +242,7 @@ class EIslemOrtak extends CObject {
 	}
 	xmlDuzenle_docRefs_mustKod(e) { const {xw} = e, {must} = this.baslik; if (must) { this.xmlDuzenleInternal_docRefParam({ xw, name: 'MUSTERI_KOD', value: must }) } }
 	xmlDuzenle_docRefs_vioFisBilgi(e) {
-		const {baslik, detaylar} = this, {uuid} = baslik, rec = { baslik, detaylar }, value = Base64.encode(toJSONStr(rec)), mimeType = 'text/plain', id = 4, type = 'VIO_FISBILGI', fileName = `${type}.json`
+		const {baslik, detaylar} = this, {uuid} = baslik, rec = { baslik, detaylar }, value = Base64.encode(toJSONStr(rec)), mimeType = 'text/plain', id = 4, type = 'VIO_FISBILGI', fileName = `${type}.json`;
 		this.xmlDuzenleInternal_docRef({ xw: e.xw, id, type, attachment: { mimeType, value, fileName } })
 	}
 	xmlDuzenle_docRefs_yalnizYazisi(e) { }
@@ -363,7 +366,6 @@ class EIslemOrtak extends CObject {
 	xmlDuzenle_detayDevam_item_additionalItemIds_miktar2(e) { }
 	xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat(e) { }
 	xmlDuzenle_detayDevam_fiyat(e) { }
-
 	xmlDuzenleInternal_docRef(e) {
 		const {id} = e; if (id == null || (typeof id == 'string' && !id.trim())) { return this }
 		const {baslik} = this, {xw, type, ekIslem} = e, typeCode = e.typeCode || '1234', attachment = e.attachment ?? e.att;
@@ -393,19 +395,35 @@ class EIslemOrtak extends CObject {
 	xmlDuzenleInternal_detXIdent(e) { const {xw, tagName, id, schemeID} = e; xw.writeStartElement(tagName); const attrYapi = schemeID ? { schemeID: schemeID } : null; xw.writeElementString('cbc:ID', id, null, attrYapi); xw.writeEndElement(); return this }
 	xmlGetProfileID(e) { return null }
 	xmlGetBelgeTipKodu(e) { return null }
-	async getXsltBase64(e) { e = e || {}; let result = await this.getXslt(e); if (result) result = Base64.encode(result); return result }
+	async getXsltBase64(e) { e = e || {}; let result = await this.getXslt(e); if (result) { result = Base64.encode(result) } return result }
 	async getXslt(e) {
 		e = e || {}; const temps = e.temps ?? this._temps; let result = await temps.eIslemXSLT;
 		if (result) {
-			$.extend(e, { islem: 'xslt', result }); this.xsltDuzenle(e); this.xsltData = e.result;
+			$.extend(e, { islem: 'xslt', result }); await this.xsltDuzenle(e); this.xsltData = e.result;
 			try { await this.execEIslemScript(e); result = this.xsltData = e.result } catch (ex) { console.error(ex) }
 			for (const key of ['islem', 'result']) delete e[key]
 		}
 		return result
 	}
-	xsltDuzenle(e) { const {islem} = e; let {result} = e; e.result = result = result.replaceAll(`POLEN YAZILIM - VİO TİCARİ`, `SKYLOG YAZILIM - SkyERP`) }
+	async xsltDuzenle(e) {
+		const {islem} = e; let {result} = e, {xsltDuzenleyiciler} = this;
+		result = e.result = result.replaceAll(`POLEN YAZILIM - VİO TİCARİ`, `SKYLOG YAZILIM - SkyERP`);
+		if (xsltDuzenleyiciler) {
+			for (const _ in xsltDuzenleyiciler) {
+				const handlerVeArgs = xsltDuzenleyiciler[_]; if (!handlerVeArgs) { continue }
+				const handler = handlerVeArgs?.handler ?? handlerVeArgs, args = handlerVeArgs?.args ?? null;
+				if (args != null) { e.args = args } const _result = await getFuncValue.call(this, handler, e);
+				if (result != null) {
+					if (_result === true) { continue } if (_result === false) { break }
+					result = e.result = _result
+				}
+			}
+		}
+	}
 	async execEIslemScript(e) {
 		e = e || {}; const temps = e.temps ?? this._temps; let result = await temps.eIslemScript;
 		const func = result ? eval(result) : null; result = undefined; if (func && ($.isFunction(func) || func.run)) { e.sender = this; result = await getFuncValue.call(this, func, e); delete e.sender } return result
 	}
+	xsltDuzenleyiciEkle(handler) { this.xsltDuzenleyiciler.push(handler); return this }
+	xsltDuzenleyicilerReset() { this.xsltDuzenleyiciler = [] }
 }

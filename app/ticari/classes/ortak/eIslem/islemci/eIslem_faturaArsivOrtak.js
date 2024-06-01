@@ -371,9 +371,11 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		const {xw} = e, {params} = app, param_eIslem = params.eIslem, logocu = await param_eIslem.getLogoData();
 		const kod2Tip = { RLOGO: 'FIRMALOGO_IMG', EFIM: 'ISLAKIMZA_IMG', EFKI: 'KASE_IMG' };
 		for (const [kod, type] of Object.entries(kod2Tip)) {
-			const logo = logocu[kod] || {}, {ext} = logo, value = logo.data; if (!value) { continue }
+			const logo = logocu[kod] || {}, {ext} = logo, imgData = logo.data; if (!imgData) { continue }
 			let {mimeType} = logo; if (!mimeType) { mimeType = ext == 'png' ? 'image/png' : ext == 'gif' ? 'image/gif' : 'image/jpeg' }
-			this.xmlDuzenleInternal_docRef({ xw, id: '0', type, attachment: { mimeType, value } })
+			await this.xsltDuzenleyiciEkle({ args: { type, imgData }, handler: e => e.result.replaceAll(`[${e.args.type}]`, `data:${mimeType};base64,${imgData}`) });
+			await this.xmlDuzenleInternal_docRef({ xw, id: '0', type, typeCode: 'dynamic' })
+			/* this.xmlDuzenleInternal_docRef({ xw, id: '0', type, attachment: { mimeType, imgData } }) */
 		}
 	}
 	xmlDuzenle_notes(e) {
