@@ -28,27 +28,17 @@ class CSOrtakFis extends FinansFis {
 	static async yeniInstOlustur(e) {
 		const {islem, rec} = e; let fisSinif;
 		if (islem == 'yeni' || islem == 'kopya') {
-			const tSec = this.belgeTekSecimSinif?.instance;
-			if (!tSec)
-				return null
+			const tSec = this.belgeTekSecimSinif?.instance; if (!tSec) { return null }
 			let promise = new $.Deferred();
 			new MasterListePart({
-				title: 'Belge Tipi',
-				tabloKolonlari: MQKA.orjBaslikListesi.filter(colDef => colDef.belirtec == 'aciklama'),
-				source: _e => this.belgeTekSecimSinif.kaListe,
-				secince: _e => promise.resolve(_e.value || null),
-				kapaninca: _e => promise.resolve(null)
+				title: 'Belge Tipi', tabloKolonlari: MQKA.orjBaslikListesi.filter(colDef => colDef.belirtec == 'aciklama'),
+				source: _e => this.belgeTekSecimSinif.kaListe, secince: _e => promise.resolve(_e.value || null), kapaninca: _e => promise.resolve(null)
 			}).run();
 			fisSinif = await promise
 		}
 		else {
 			const {rec} = e, belgeTipi = rec.belgetipi, fisTipi = rec.fistipi, {iade} = rec;
-			for (const cls of this.subClasses) {
-				if (cls.belgeTipi == belgeTipi && cls.fisTipi == fisTipi && cls.iade == iade) {
-					fisSinif = cls;
-					break
-				}
-			}
+			for (const cls of this.subClasses) { if (cls.belgeTipi == belgeTipi && cls.fisTipi == fisTipi && cls.iade == iade) { fisSinif = cls; break } }
 		}
 		return fisSinif ? new fisSinif(e) : null
 	}

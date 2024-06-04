@@ -20,6 +20,8 @@ class MQMasterOrtak extends MQCogul {
 		return recs
 	}
 	static loadServerDataDogrudan(e) { return null }
+	static tekilOku(e) { return e?.rec ?? {} }
+	tekilOku(e) { return this.class.tekilOku(e) }
 }
 class MQKAOrtak extends MQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -38,6 +40,7 @@ class MQKAOrtak extends MQKA {
 	}
 	static loadServerDataDogrudan(e) { e = e || {}; e.dataKey = this.dataKey; MQMasterOrtak.loadServerDataDogrudan(e) }
 	static loadServerDataFromMustBilgi(e) { e = e || {}; e.dataKey = this.dataKey; MQMasterOrtak.loadServerDataFromMustBilgi(e) }
+	tekilOku(e) { return MQMasterOrtak.tekilOku(e) }
 }
 class MQDetayliOrtak extends MQCogul {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -57,6 +60,7 @@ class MQDetayliOrtak extends MQCogul {
 	}
 	static loadServerDataDogrudan(e) { e = e || {}; e.dataKey = this.dataKey; MQMasterOrtak.loadServerDataDogrudan(e) }
 	static loadServerDataFromMustBilgi(e) { e = e || {}; e.dataKey = this.dataKey; MQMasterOrtak.loadServerDataFromMustBilgi(e) }
+	tekilOku(e) { return MQMasterOrtak.tekilOku(e) }
 	setValues(e) { super.setValues(e); const {rec} = e, {detaylar} = rec; if (detaylar != null) { this.detaylar = detaylar } }
 	addDetay(...liste) {
 		const {detaylar} = this;

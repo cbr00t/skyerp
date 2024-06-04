@@ -756,7 +756,10 @@ class GridPart extends Part {
 	}
 	onResize(e) {
 		super.onResize(e); clearTimeout(this._timer_gridResize); delete this._timer_gridResize;
-		this._timer_gridResize = setTimeout(() => { try { this.grid?.trigger('resize') } finally { delete this._timer_gridResize } }, 1000)
+		this._timer_gridResize = setTimeout(() => {
+			try { const {grid} = this, {activeWndPart} = app; if (grid?.length && activeWndPart == this) { grid?.trigger('resize') } }
+			catch (ex) { } finally { delete this._timer_gridResize }
+		}, 1000)
 	}
 }
 
