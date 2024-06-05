@@ -3,7 +3,7 @@ class MQOEM extends MQSayacliOrtak {
 	static get sinifAdi() { return 'Operasyon Emri' } static get table() { return 'operemri' } static get tableAlias() { return 'oem' } static get detayTable() { return MQGercekleme.table } 
 	static get kodListeTipi() { return 'UOEM' } static get localDataBelirtec() { return 'oem' } static get sayacSahaGosterilirmi() { return true } static get gridDetaylimi() { return true }
 	static get idSaha() { return ['emirnox', 'opno', 'stokkod'] } static get idSahaDonusum() { return $.extend(super.idSahaDonusum || {}, { emirnox: 'emr.fisnox', stokkod: 'frm.formul' }) }
-	static get defaultGroups() { return [] } static get islemTuslari_sagButonlar_ekMarginX() { return 300 } static get noAutoFocus() { return true }
+	static get defaultGroups() { return [] } static get islemTuslari_sagButonlar_ekMarginX() { return 10 } static get noAutoFocus() { return true }
 	static secimlerDuzenle(e) {
 		super.secimlerDuzenle(e); const sabit_hatKod = app.params.config.hatKod, sec = e.secimler;
 		sec.grupEkle({ kod: 'teknik', aciklama: 'Teknik', renk: '#eee', zeminRenk: 'orangered', kapalimi: true });
@@ -296,7 +296,7 @@ class MQOEM extends MQSayacliOrtak {
 		let fbd = rfb.addForm({
 			id: 'barkod', parent: e => e.builder.rootPart.islemTuslariPart.sol,
 			layout: e => { const {builder} = e, {id} = builder; return $(`<div class="${id}-parent"><input id="${id}" name="${id}" class="full-wh" type="textbox" placeholder="Barkodu okutunuz"/></div>`) }
-		}).addStyle_fullWH(250)
+		}).addStyle_fullWH(180)
 			.addStyle(...[
 				e => `$builderCSS { display: inline-block; top: 0 !important; min-width: unset !important }`,
 				e => `$builderCSS > input { font-weight: bold; font-size: 85%; text-align: center; color: lightgreen; background: #555 }`

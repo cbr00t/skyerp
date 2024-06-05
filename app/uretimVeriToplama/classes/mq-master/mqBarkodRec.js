@@ -130,7 +130,7 @@ class MQBarkodRec extends MQMasterOrtak {
 				input.on('focus', evt => { const elm = evt.currentTarget; let value = asFloat(elm.value); if (!islenebilirMiktar) { elm.placeholder = value } elm.dataset.lastvalue = value; elm.value = null });
 				input.on('blur', evt => { const elm = evt.currentTarget; let value = asFloat(elm.value); if (!value) value = elm.value = elm.dataset.lastvalue ?? null })
 			});
-		form.addNumberInput('vardiyaNo', 'Vardiya No').setVisibleKosulu(e => !!config.dev).addStyle_wh(50);
+		form.addNumberInput('vardiyaNo', 'Vardiya No').addStyle_wh(50);
 		form.addCheckBox('isKapansinmi', 'Oper Kapansın')
 			/*.onInit(e => { const {builder} = e, {altInst} = builder; if (!altInst.serbestmi) { builder.etiket = 'Oper Kapansın' } })*/
 			.setVisibleKosulu(e => { const {altInst} = e.builder; return altInst.gorevmi || altInst.serbestmi ? 'jqx-hidden' : true });
@@ -333,7 +333,7 @@ class MQBarkodRec extends MQMasterOrtak {
 		}
 		else {
 			const basTS = suAnmi ? null : asDate(this.basTS) || now(), argStokYerVeSeriListe = [], stokVeOpNo2SeriListe = {};
-			const {_formulSeriDurumu} = this; let seriKurali = _formulSeriDurumu?.formul?.serikurali;
+			const {_formulSeriDurumu, vardiyaNo} = this; let seriKurali = _formulSeriDurumu?.formul?.serikurali;
 			const serbestSeriZorunlumu = ilkOpermi && seriKurali == 'EL';
 			if (serbestSeriZorunlumu && (serbestSeriNolar?.length || 0) < miktar)
 				throw { isError: true, rc: 'serbestSerilerBos', errorText: `Serbest Seri Bilgisi <b>Miktar(<span class="royalblue">${numberToString(miktar)}</span>)</b> kadar girilmelidir` }
@@ -394,7 +394,8 @@ class MQBarkodRec extends MQMasterOrtak {
 				{ name: '@argMiktar', type: 'decimal', value: miktar },
 				$.isEmptyObject(argStokYerVeSeriListe) ? null : { name: '@stokYerVeSeriListe', type: 'structured', typeName: 'type_kod1234', value: argStokYerVeSeriListe },
 				{ name: '@oemKapansin', type: 'bit', value: bool2Int(isKapansinmi) },
-				{ name: '@gerSayac', type: 'bigint', direction: 'output' }
+				{ name: '@gerSayac', type: 'bigint', direction: 'output' },
+				(vardiyaNo ? { name: '@argVardiyaNo', type: 'smallint', value: asInteger(vardiyaNo) } : null)
 			].filter(rec => !!rec);
 			return ({ query: 'ou_gerceklemeYap', params })
 		}

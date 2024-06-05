@@ -1,1 +1,2 @@
-.gridliGosterici.part .bulForm { position: fixed; top: -5px; right: 500px; min-width: unset !important; width: 60px; height: 38px; padding: 10px; z-index: 1001 }
+.gridliGosterici.part .bulForm { position: fixed; top: -5px; right: 500px; min-width: unset !important; width: 100px; height: 38px; padding: 10px; z-index: 1001 }
+@media (max-width: 1000px) { .gridliGosterici.part .bulForm { top: 0; right: 103px; width: 100px; height: 38px; padding: 5px 5px } }
