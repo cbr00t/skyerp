@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "sky.parkBulurum_mobil",
+        "sha256_cert_fingerprints": ["1B:1B:10:B0:51:9E:AC:32:99:2B:05:31:52:B5:5F:B7:E5:F1:8C:90:42:8A:59:39:94:A5:F0:2D:AE:A7:C3:A8"]
+      }
+    }]

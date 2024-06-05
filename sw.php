@@ -1,75 +1,30 @@
-<?php
-	header('Content-Type: text/javascript');
-	require_once('config.php');
-?>
-const APP_NAME = '<?=$globalAppName?>';
-const VERSION = '<?=$appVersion?>';
-const CACHE_NAME = `cache-${APP_NAME}-${VERSION}`;
-
-const staticAssets = [
-	'./',
-	'../',
-	'../../',
-	'../../lib'
-];
-
-self.addEventListener('install', async e => {
-	const cache = await caches.open(CACHE_NAME); 
-	for (const i in staticAssets) {
-		const url = staticAssets[i];
-		try { await cache.add(url) }
-		catch (ex) { }
-	}
-	self.skipWaiting();
-	/*setTimeout(() =>
-		self.skipWaiting(),
-		1000);*/
+<?php header('Content-Type: text/javascript'); require_once('config.php') ?>
+const APP_NAME = '<?=$globalAppName?>', VERSION = '<?=$appVersion?>', CACHE_NAME = `cache-${APP_NAME}-${VERSION}`;
+addEventListener('install', async e => {
+    skipWaiting(); const staticAssets = ['./', './lib', './ortak', './app', './images'];
+    const cache = await caches.open(CACHE_NAME); for (const url of staticAssets) { try { cache.add(url) } catch (ex) { } }
 });
-
-self.addEventListener('activate', async e => {
-	self.clients.claim();
-	/*e.waitUntil(self.clients.claim());*/
+addEventListener('activate', async e => { clients.claim() });
+addEventListener('fetch', evt => {
+    const req = evt.request;
+    /*if (!req.referrer || req.url.startsWith(new URL(evt.referrer).origin))*/
+    evt.respondWith(handleFetchFromNetwork(req))
 });
-
-self.addEventListener('fetch', e => {
-	const req = e.request;
-	//if (!req.referrer || req.url.startsWith(new URL(e.referrer).origin))
-	e.respondWith(networkFirst(req));
-	
-	/*if (/.*(json)$/.test(req.url) || !req.url.startsWith(location.origin) ||
-		/(layout)$/.test(req.url)) {
-		e.respondWith(networkFirst(req));
-	} else {
-		e.respondWith(cacheFirst(req));
-	}*/
+addEventListener('push', evt => {
+    const data = evt.data?.json() ?? {}, {title, icon} = data, body = data.text ?? data.body;
+    console.warn('sw push notification: ', data);
+    evt.waitUntil(registration.showNotification(title, { body, icon }))
 });
-
-self.addEventListener('push', e => {
-	console.warn('sw push notification: ' + e.data.text());
+addEventListener('notificationclick', evt => {
+    const {data, notification} = evt; notification.close();
+    const fullPath = location.origin + data.path; clients.openWindow(fullPath)
 });
-
-
-async function networkFirst(req) {
+async function handleFetchFromNetwork(req) {
 	const cache = await caches.open(CACHE_NAME);
 	try { 
-		const fresh = await fetch(req);
-		if (req.method == 'GET') {
-			try { await cache.put(req, await fresh.clone()) }
-			catch (ex) { }
-		}
-
-		return fresh;
-	} catch (ex) { 
-		const cachedResponse = await cache.match(req);
-		if (!cachedResponse)
-			throw ex;
-		return cachedResponse;
-	}
+		const resp = await fetch(req);
+		if (req.method == 'GET') { try { await cache.put(req, await resp.clone()) } catch (ex) { } }
+		return resp
+	} catch (ex) { const cachedResponse = await cache.match(req); if (!cachedResponse) { throw ex } return cachedResponse }
 }
-
-async function cacheFirst(req) {
-	const cache = await caches.open(CACHE_NAME);
-	const cachedResponse = await cache.match(req);
-	
-	return cachedResponse || await networkFirst(req);
-}
+async function handleFetchFromCache(req) { const cache = await caches.open(CACHE_NAME), cachedResponse = await cache.match(req); return cachedResponse || await handleFetchFromNetwork(req) }
