@@ -50,7 +50,7 @@ class MQGercekleme extends MQSayacli {
 	}
 	static orjBaslikListesi_argsDuzenle(e) {
 		super.orjBaslikListesi_argsDuzenle(e); const {args} = e;
-		$.extend(args, { showFilterRow: true, rowsHeight: 55 })
+		$.extend(args, { showFilterRow: true, rowsHeight: 65 })
 	}
 	static standartGorunumListesiDuzenle(e) {
 		super.standartGorunumListesiDuzenle(e); const {liste} = e;
@@ -60,6 +60,7 @@ class MQGercekleme extends MQSayacli {
 	static orjBaslikListesiDuzenle(e) {
 		e = e || {}; super.orjBaslikListesiDuzenle(e); const {iskartaMaxSayi} = this, {liste} = e, alias = e.alias || this.tableAlias;
 		const globalCellsClassName = (colDef, rowIndex, belirtec, value, rec) => `mq-gercekleme ${belirtec}`;
+		const belirtec2Bilgi = HMRBilgi.belirtec2Bilgi || {};
 		liste.push(...[
 			new GridKolon({ belirtec: this.sayacSaha, text: 'Ger. ID', genislikCh: 8, filterType: 'checkedlist', cellClassName: globalCellsClassName }).tipNumerik(),
 			new GridKolon({ belirtec: 'oemsayac', text: 'OEM ID', genislikCh: 8, filterType: 'checkedlist', cellClassName: globalCellsClassName }).noSql().tipNumerik(),
@@ -117,9 +118,10 @@ class MQGercekleme extends MQSayacli {
 						const subHTMLListe = []; for (const key in ekOzellikler) {
 							const value = ekOzellikler[key];
 							if (value) {
+								const etiket = belirtec2Bilgi[key]?.etiket || key;
 								subHTMLListe.push(
 									`<div class="ekOzellik">` +
-										`<span class="etiket">${key}</span><span class="ek-bilgi">=</span>` +
+										`<span class="etiket">${etiket}</span><span class="ek-bilgi">=</span>` +
 										`<span class="veri">${value.toLocaleString()}</span>` +
 									`</div>`
 								)
@@ -179,7 +181,8 @@ class MQGercekleme extends MQSayacli {
 				`oem.kaysayac oemsayac`, `emr.tarih emirtarih`, `op.aciklama opadi`, `stk.aciklama stokadi`, `stk.brm stokbrm`,
 				`tez.aciklama tezgahadi`, `per.aciklama peradi`
 			);
-			for (let i = 1; i <= iskartaMaxSayi; i++) sent.sahalar.add(`iskartaneden${i}kod`, `iskartamiktar${i}` )
+			for (let i = 1; i <= iskartaMaxSayi; i++) { sent.sahalar.add(`iskartaneden${i}kod`, `iskartamiktar${i}`) }
+			const kodEkle = true, adiEkle = true; sent.har2HMRBagla({ alias, kodEkle, adiEkle });
 		}
 		const {orderBy} = stm; orderBy.liste.unshift(`${alias}.${sayacSaha} DESC`)
 		orderBy.liste = orderBy.liste.filter(x => !x.includes('ekBilgi'))
@@ -187,13 +190,18 @@ class MQGercekleme extends MQSayacli {
 	static async loadServerData_querySonucu(e) {
 		const sec = e.secimler, tSecIskarta = sec?.iskartaSecim?.tekSecim;
 		let recs = await super.loadServerData_querySonucu(e); if (recs) {
-			const {iskartaMaxSayi} = this;
+			const {iskartaMaxSayi} = this, {belirtec2Bilgi} = HMRBilgi;
 			for (const rec of recs) {
 				for (const key of ['detbasts', 'detbitts', 'emirtarih']) { let value = rec[key]; if (value && typeof value == 'string') value = rec[key] = asDate(value) }
 				const iskartalar = rec._iskartalar = {};
 				for (let i = 1; i <= iskartaMaxSayi; i++) {
 					const kod = rec[`iskartaneden${i}kod`], miktar = rec[`iskartamiktar${i}`];
 					if (kod && miktar) { iskartalar[kod] = miktar } delete rec[`iskartaneden${i}kod`]; delete rec[`iskartamiktar$${i}`]
+				}
+				const ekOzellikler = rec._ekOzellikler = {};
+				for (const [belirtec, hmrBilgi] of Object.entries(belirtec2Bilgi || {})) {
+					const {ioAttr, adiAttr, rowAttr, rowAdiAttr, kami} = hmrBilgi; const kod = rec[rowAttr]?.trimEnd(); if (!kod) { continue }
+					const adi = kami && rowAdiAttr ? rec[rowAdiAttr] : null, text = adi || kod; ekOzellikler[belirtec] = text
 				}
 			}
 		}
@@ -202,8 +210,9 @@ class MQGercekleme extends MQSayacli {
 	}
 	static gridVeriYuklendi(e) {
 		super.gridVeriYuklendi(e); const part = e.sender, sec = part.secimler, {fbd_iskartaOlanlarmi} = part;
-		if (sec) {
-			if (fbd_iskartaOlanlarmi) { const input = fbd_iskartaOlanlarmi.layout.children('input'), secValue = sec.iskartaSecim.tekSecim.bumu; if (input.is(':checked') != secValue) { input.prop('checked', secValue) } }
+		if (sec && fbd_iskartaOlanlarmi) {
+			const input = fbd_iskartaOlanlarmi.layout.children('input'), secValue = sec.iskartaSecim.tekSecim.bumu;
+			if (input.is(':checked') != secValue) { input.prop('checked', secValue) }
 		}
 	}
 	static rootFormBuilderDuzenleSonrasi_listeEkrani(e) {

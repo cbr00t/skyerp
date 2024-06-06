@@ -11,10 +11,10 @@ class UretimVeriToplamaApp extends App {
 		await this.wsConfigKontrol(e); await this.setValuesFromParam(e); await this.gerceklemeler_ilkIslemler(e)
 	}
 	async afterRun(e) {
-		await super.afterRun(e); await this.promise_ready;  /* this.disabledMenuIdSet = asSet(['M', 'BG', 'GK']); */
+		await super.afterRun(e); await this.promise_ready;
 		let kullanim = app.params.operGenel?.kullanim || {}, eksikParamIsimleri = [];
-		if (!kullanim.operasyonIsYonetimi) eksikParamIsimleri.push('Operasyon İş Yönetimi')
-		if (!kullanim.mesVeriToplama) eksikParamIsimleri.push('MES Veri Toplama')
+		if (!kullanim.operasyonIsYonetimi) { eksikParamIsimleri.push('Operasyon İş Yönetimi') }
+		if (!kullanim.mesVeriToplama) { eksikParamIsimleri.push('Tablet Veri Toplama') }
 		if (eksikParamIsimleri.length) {
 			const _e = {
 				query: 'opyon_bekleyenler',
@@ -25,18 +25,15 @@ class UretimVeriToplamaApp extends App {
 					{ name: '@sadeceBaslamis', type: 'bit', value: bool2Int(true) }
 				].filter(x => !!x)
 			}
-			try { await app.sqlExecSP(_e) }
-			catch (ex) {
+			try { await app.sqlExecSP(_e) } catch (ex) {
 				this.disabledMenuIdSet = asSet(['M', 'BG', 'GK', 'T']);
 				const paramIsimleriGosterim = eksikParamIsimleri.map(x => `<span class="bold firebrick">${x}</span>`).join(' VE ');
 				const wnd = createJQXWindow({
 					content: (
-						`<div>${paramIsimleriGosterim} parametreleri</div>` +
-						`<div>Vio Ticari Program &gt; <span class="bold royalblue">Operasyon Genel Parametreleri</span> kısmından açılmalıdır.</div>` +
-						`<p/>` +
-						`<div class="darkgray">Bu parametreler kapalı iken <b class="gray">Gerçekleme ekranlarında</b> <u class="red">program hataya düşecektir</u>.</div>` +
-						`<p/><p/>` +
-						`<div class="gray">Eğer bu parametreler işaretli ise <b class="royalblue">Güncel Ticari Sürümün</b> yüklü olduğundan emin olunuz ve <u>ilgili parametre adımına girip</u> <b>Kaydet</b> butonuna tıklayınız</div>`
+						`<div>${paramIsimleriGosterim} parametreleri</div>
+						<div>Vio Ticari Program &gt; <span class="bold royalblue">Operasyon Genel Parametreleri</span> kısmından açılmalıdır.</div><p/>
+						<div class="darkgray">Bu parametreler kapalı iken <b class="gray">Gerçekleme ekranlarında</b> <u class="red">program hataya düşecektir</u>.</div><p/><p/>
+						<div class="gray">Eğer bu parametreler işaretli ise <b class="royalblue">Güncel Ticari Sürümün</b> yüklü olduğundan emin olunuz ve <u>ilgili parametre adımına girip</u> <b>Kaydet</b> butonuna tıklayınız</div>`
 					),
 					title: `<span class="bold">!! UYARI !!</span><span class="gray"> - ${appName}</span>`,
 					args: { isModal: true, width: Math.min(830, $(window).width() / 1.5), height: 330, showCloseButton: true, showCollapseButton: false, closeButtonAction: 'destroy' }
@@ -70,14 +67,7 @@ class UretimVeriToplamaApp extends App {
 			let result = await promise; if (result) await this.verileriSil(e)
 		}
 	}
-	setValuesFromParam(e) {
-		/*const yerelParam = this.params.yerel;
-		if (yerelParam) {
-			const {otoGonderFlag} = yerelParam;
-			if (otoGonderFlag != null)
-				this.otoGonderFlag = otoGonderFlag
-		}*/
-	}
+	setValuesFromParam(e) { const {params} = this; const hmr = asSet(params.operGenel.hmr) ?? {}; /*if (!$.isEmptyObject(hmr))*/ if (hmr) { HMRBilgi.belirtecListe = Object.keys(hmr) } }
 	gerceklemeler_ilkIslemler(e) {
 		const yerelParam = this.params.yerel, gerceklemeler = yerelParam.gerceklemeler || [];
 		let degistimi = false; const durumSet = asSet(['processing', 'changing', 'error']);

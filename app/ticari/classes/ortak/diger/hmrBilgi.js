@@ -3,10 +3,15 @@ class HMRBilgi extends CIO {
 	static get belirtecListe() {
 		let result = this._belirtecListe;
 		if (!result) {
-			result = this._belirtecListe = []; const _hmr = app.params.stokGenel.hmr;
-			for (const key in _hmr) { if (_hmr[key]) result.push(key) }
+			result = this._belirtecListe = []; const _hmr = app.params.stokGenel.hmr || {};
+			for (const key in _hmr) { if (_hmr[key]) { result.push(key) } }
 		}
 		return result
+	}
+	static set belirtecListe(value) {
+		if (value && !$.isArray(value)) { value = Object.keys(value) }
+		this._belirtecListe = value || [];
+		for (const key of ['_belirtecSet', '_belirtec2Bilgi', '_ioAttrListe', '_rowAttrListe', '_hmrEtiketDict']) { delete this[key] }
 	}
 	static get belirtecSet() { let result = this._belirtecSet; if (result == null) { result = this._belirtecSet = asSet(this.belirtecListe) } return result }
 	static get hmrEtiketDict() { let result = this._hmrEtiketDict; if (result == null) { result = this._hmrEtiketDict = app.params.stokGenel.hmrEtiket } return result }
@@ -16,23 +21,22 @@ class HMRBilgi extends CIO {
 		let result = this._belirtec2Bilgi;
 		if (!result) {
 			const _result = {
-				model: { ioAttr: 'modelKod', adiAttr: 'modelAdi', rowAttr: 'modelkod', etiket: 'Model', kami: true, mfSinif: MQModel },
-				renk: { ioAttr: 'renkKod', adiAttr: 'renkAdi', rowAttr: 'renkkod', etiket: 'Renk', kami: true, mfSinif: MQRenk },
-				desen: { ioAttr: 'desenkod', adiAttr: 'desenAdi', rowAttr: 'desenkod', etiket: 'Desen', kami: true, mfSinif: MQDesen },
+				model: { ioAttr: 'modelKod', adiAttr: 'modelAdi', rowAttr: 'modelkod', rowAdiAttr: 'modeladi', etiket: 'Model', kami: true, mfSinif: MQModel },
+				renk: { ioAttr: 'renkKod', adiAttr: 'renkAdi', rowAttr: 'renkkod', rowAdiAttr: 'renkadi', etiket: 'Renk', kami: true, mfSinif: MQRenk },
+				desen: { ioAttr: 'desenKod', adiAttr: 'desenAdi', rowAttr: 'desenkod', rowAdiAttr: 'desenadi', etiket: 'Desen', kami: true, mfSinif: MQDesen },
+				raf: { ioAttr: 'rafKod', adiAttr: 'rafAdi', rowAttr: 'rafkod', rowAdiAttr: 'rafadi', etiket: 'Raf', kami: true, mfSinif: MQYerRaf },
 				beden: { ioAttr: 'beden', rowAttr: 'beden', etiket: 'Beden' },
 				harDet: { ioAttr: 'harDet', rowAttr: 'hardet', etiket: 'Har.Det.' },
 				lotNo: { ioAttr: 'lotNo', rowAttr: 'lotno', etiket: 'Lot No' },
 				utsNo: { ioAttr: 'utsNo', rowAttr: 'utsno', etiket: 'UTS No' },
-				raf: { ioAttr: 'rafKod', rowAttr: 'rafkod', etiket: 'Raf', kami: true },
 				en: { ioAttr: 'en', rowAttr: 'en', etiket: 'En', numerikmi: true },
 				boy: { ioAttr: 'boy', rowAttr: 'boy', etiket: 'Boy', numerikmi: true },
 				yukseklik: { ioAttr: 'yukseklik', rowAttr: 'yukseklik', etiket: 'Yükseklik', numerikmi: true }
 			};
-			const {belirtecSet, hmrEtiketDict} = this;
-			result = {};
+			const {belirtecSet, hmrEtiketDict} = this; result = {};
 			for (const belirtec in _result) {
 				const item = _result[belirtec]; item.belirtec = belirtec; if (!belirtecSet[belirtec]) { continue }
-				const etiket = hmrEtiketDict[belirtec]; if (etiket) item.etiket = etiket
+				const etiket = hmrEtiketDict[belirtec]; if (etiket) { item.etiket = etiket }
 				result[belirtec] = item
 			}
 			this._belirtec2Bilgi = result

@@ -316,22 +316,20 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	har2StopajBagla(e) { this.fromIliski('vergihesap sver', 'har.stopajhesapkod = sver.kod'); return this }
 	har2PaketBagla(e) { this.leftJoin({ alias: 'har', table: 'paket pak', on: 'har.paketsayac = pak.kaysayac' }); return this }
 	har2HMRBagla(e) {
-		e = e || {}; const alias = e.alias ?? 'har', aliasVeNokta = alias + '.';
+		e = e || {}; const harAlias = e.harAlias ?? e.alias ?? 'har', harAliasVeNokta = harAlias + '.';
+		const kodSahaEkleFlag = e.kodEkle ?? e.kodSahaEkle ?? e.kodSahaEkleFlag, adiSahaEkleFlag = e.adiEkle ?? e.adiSahaEkle ?? e.adiSahaEkleFlag;
 		for (const item of HMRBilgi.hmrIter()) {
-			const {kami, mfSinif,  rowAttr} = item;
-			if (kami && mfSinif) {
-				const {table, tableAlias, kodSaha} = mfSinif;
-				this.fromIliski(`${table} ${tableAlias}`, `${aliasVeNokta}${rowAttr} = ${tableAlias}.${kodSaha}`)
-			}
+			const {kami, mfSinif, rowAttr, rowAdiAttr} = item;
+			if (kami && mfSinif) { const {table, tableAlias, kodSaha} = mfSinif; this.fromIliski(`${table} ${tableAlias}`, `${harAliasVeNokta}${rowAttr} = ${tableAlias}.${kodSaha}`) }
+			if (kodSahaEkleFlag) { this.sahalar.add(`${harAliasVeNokta}${rowAttr}`) }
+			if (adiSahaEkleFlag && kami && mfSinif && rowAdiAttr) { const {tableAlias, adiSaha} = mfSinif, {adiAttr} = item; this.sahalar.add(`${tableAlias}.${adiSaha} ${adiAttr}`) }
 		}
 		return this
 	}
 	/////////
 }
 class MQCTESent extends MQSentVeIliskiliYapiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get baglac() { return '' }
-
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return '' }
 	constructor(e) {
 		e = e || {}; super(e);
 		if ($.isArray(e)) e = { liste: e }

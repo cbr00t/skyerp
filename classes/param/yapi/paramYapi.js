@@ -598,13 +598,9 @@ class ParamBuilder_PassInput extends ParamBuilder_TextInput {
 }
 class ParamBuilder_TextArea extends ParamBuilder_TextInput {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	constructor(e) {
-		e = e ?? {}; super(e);
-		this.rowCount = e.rowCount
-	}
+	constructor(e) { e = e ?? {}; super(e); this.rowCount = e.rowCount }
 	formBuilderDuzenleInternal(e) {
-		super.super_formBuilderDuzenleInternal(e);
-		const {id, etiket, value, maxLength, rowCount} = this;
+		super.super_formBuilderDuzenleInternal(e); const {id, etiket, value, maxLength, rowCount} = this;
 		this.builder = e.builder.addTextArea({ id, etiket, value, maxLength, rowCount })
 	}
 	convertedValueInternal(value) { return asFloat(super.convertedValueInternal(value)) }

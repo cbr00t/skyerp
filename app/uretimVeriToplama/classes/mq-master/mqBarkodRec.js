@@ -45,7 +45,7 @@ class MQBarkodRec extends MQMasterOrtak {
 			basTS: inverseCoalesce(e.basTS ?? e.basts, value => asDate(value)) || this.basTS || now(),
 			bitTS: inverseCoalesce(e.bitTS ?? e.bitts, value => asDate(value)) || this.bitTS || now(),
 			paketKod: (e.paketKod ?? e.paketkod ?? this.paketIcAdet) || '', paketIcAdet: coalesce(coalesce(e.paketIcAdet, this.paketIcAdet), null),
-			vardiyaNo: e.vardiyaNo ?? 1, ekOzellikler: e.ekOzellikler ?? this.ekOzellikler, iskartalar: e.iskartalar ?? this.iskartalar, kaliteYapi: e.kaliteYapi ?? e.kalite ?? this.kaliteYapi
+			vardiyaNo: e.vardiyaNo ?? 1, ekOzellikler: e.ekOzellikler ?? this.ekOzellikler ?? {}, iskartalar: e.iskartalar ?? this.iskartalar, kaliteYapi: e.kaliteYapi ?? e.kalite ?? this.kaliteYapi
 		});
 		let value = e.suAnmi ?? e.suAn ?? e.suan; if (value !== undefined) { this.suAnmi = value }
 		if (this.suAnmi == null && !this.noCheckFlag) this.suAnmi = !!this.gorevmi
@@ -74,8 +74,7 @@ class MQBarkodRec extends MQMasterOrtak {
 			}
 			/*if (_formulSeriDurumu?.formul?.serikurali) {
 				const subeKod = inst.subeKod ?? '', hatKod = inst.hatKod ?? sabit_hatKod, sent = new MQSent({
-					from: 'subeismrk2depo',
-					where: [ { degerAta: subeKod, saha: 'bizsubekod' }, { degerAta: hatKod, saha: 'ismrkkod' } ],
+					from: 'subeismrk2depo', where: [ { degerAta: subeKod, saha: 'bizsubekod' }, { degerAta: hatKod, saha: 'ismrkkod' } ],
 					sahalar: ['depokod', 'hamdepokod', 'ambdepokod']
 				});
 				inst._depoRec = (await app.sqlExecTekil(sent)) || {}
@@ -131,8 +130,7 @@ class MQBarkodRec extends MQMasterOrtak {
 				input.on('blur', evt => { const elm = evt.currentTarget; let value = asFloat(elm.value); if (!value) value = elm.value = elm.dataset.lastvalue ?? null })
 			});
 		form.addNumberInput('vardiyaNo', 'Vardiya No').addStyle_wh(50);
-		form.addCheckBox('isKapansinmi', 'Oper Kapansın')
-			/*.onInit(e => { const {builder} = e, {altInst} = builder; if (!altInst.serbestmi) { builder.etiket = 'Oper Kapansın' } })*/
+		form.addCheckBox('isKapansinmi', 'Oper Kapansın')/*.onInit(e => { const {builder} = e, {altInst} = builder; if (!altInst.serbestmi) { builder.etiket = 'Oper Kapansın' } })*/
 			.setVisibleKosulu(e => { const {altInst} = e.builder; return altInst.gorevmi || altInst.serbestmi ? 'jqx-hidden' : true });
 		form = parentForm.addFormWithParent('diger').yanYana(2.3);
 		form.addButton('tezgaKkod_listedenSec', '', 'L').etiketGosterim_yok()
@@ -160,17 +158,23 @@ class MQBarkodRec extends MQMasterOrtak {
 			.setVisibleKosulu(e => { const {altInst} = e.builder; return altInst.gorevmi ? 'jqx-hidden' : true })
 			.degisince(e => { const {value, item, builder} = e, {altInst} = builder; altInst.perAdi = item?.aciklama })
 			.onAfterRun(e => { const {id, altInst, part} = e.builder; if (!altInst.serbestmi && altInst[id]) part.disable() });
+		const {belirtec2Bilgi} = HMRBilgi; if (!$.isEmptyObject(belirtec2Bilgi)) {
+			parentForm.addBaslik({ etiket: 'HMR' }).addStyle(e => `$elementCSS { margin-top: 10px }`);
+			form = parentForm.addFormWithParent('hmr').yanYana(1.5); /*.setVisibleKosulu(e => !e.builder.altInst.gorevmi);*/
+			for (const [belirtec, rec] of Object.entries(HMRBilgi.belirtec2Bilgi)) {
+				const {ioAttr, etiket, numerikmi, kami, mfSinif} = rec; let fbd;
+				if (kami && mfSinif) { fbd = form.addModelKullan(ioAttr, etiket).setMFSinif(mfSinif).addStyle_wh(300) }
+				else { fbd = form[numerikmi ? 'addNumberInput' : 'addTextInput'](ioAttr, etiket).addStyle_wh(130) }
+				if (fbd) { fbd.setAltInst(e => e.builder.inst.ekOzellikler) }
+			}
+		}
 		const form_seriNo = parentForm.addFormWithParent().yanYana(1.1)
 			.setVisibleKosulu(e => {
 				const formulSeriDurumu = e.builder.altInst._formulSeriDurumu;
-				if (formulSeriDurumu) {
-					if (!$.isEmptyObject(formulSeriDurumu.hammadde)) return true
-					if (formulSeriDurumu.formul?.serikurali) return true
-				}
+				if (formulSeriDurumu) { if (!$.isEmptyObject(formulSeriDurumu.hammadde)) { return true } else if (formulSeriDurumu.formul?.serikurali) { return true } }
 				return 'jqx-hidden'
 			})
-			.addStyle(e => `$elementCSS { margin: 15px 0 }`)
-			.addStyle(e => `$elementCSS > * { margin-inline-end: 10px }`);
+			.addStyle(e => `$elementCSS { margin: 15px 0 } $elementCSS > * { margin-inline-end: 10px }`);
 		form_seriNo.addButton('seriNo_listedenSec', '', 'L').etiketGosterim_normal()
 			.onClick(async e => {
 				const {builder} = e, {altInst, rootPart} = builder, {noCheckFlag} = altInst;
@@ -313,20 +317,20 @@ class MQBarkodRec extends MQMasterOrtak {
 	}
 	async getQueryYapi(e) {
 		const {gorevmi, suAnmi, isKapansinmi} = this, ekOzellikler = this.ekOzellikler || {}, stokGenelParam = app.params.stokGenel;
-		const {stokKod, opNo, onceOpNo, sonAsamami} = this, ilkOpermi = !onceOpNo, seriNoRecs = this._seriNoRecs, serbestSeriNolar = this._serbestSeriNolar;
-		const {hmr2Belirtec} = stokGenelParam, hmrListe = [], _hmrSet = stokGenelParam.hmr;
-		for (const key in _hmrSet) { if (_hmrSet[key]) hmrListe.push(key) }
-		const hmrBelirtecListe = hmrListe.map(key => hmr2Belirtec[key]).filter(value => !!value);
+		const {stokKod, opNo, onceOpNo, sonAsamami, oemSayac} = this, ilkOpermi = !onceOpNo, seriNoRecs = this._seriNoRecs, serbestSeriNolar = this._serbestSeriNolar;
 		const miktar = this.miktar ?? 0, bitTS = suAnmi ? null : asDate(this.bitTS);
+		const {hmr2Belirtec} = stokGenelParam, hmrListe = HMRBilgi.belirtecListe, hmrBelirtecListe = hmrListe.map(key => hmr2Belirtec[key]).filter(value => !!value);
+		const argHMRVeDegerListe = []; for (const [key, value] of Object.entries(ekOzellikler)) {
+			if (value == null) { continue } const belirtec = hmr2Belirtec[key]; if (!belirtec) { continue }
+			argHMRVeDegerListe.push({ kod1: belirtec, kod2: value })
+		}
 		if (gorevmi) {
 			const params = [
 				{ name: '@argIsId', type: 'bigint', value: this.isId },
-				( bitTS ? { name: '@argBitts', type: 'datetime', value: dateTimeToString(bitTS) } : null ),
+				(bitTS ? { name: '@argBitts', type: 'datetime', value: dateTimeToString(bitTS) } : null),
 				{ name: '@argMiktar', type: 'decimal', value: miktar },
-				$.isEmptyObject(hmrBelirtecListe)
-					? null
-					: { name: '@argHmrListe', type: 'structured', typeName: 'type_strIdList',
-						value: hmrBelirtecListe.map(value => { return { id: value } }) },
+				($.isEmptyObject(hmrBelirtecListe) ? null : { name: '@argHmrListe', type: 'structured', typeName: 'type_strIdList', value: hmrBelirtecListe.map(value => { return { id: value } }) }),
+				($.isEmptyObject(argHMRVeDegerListe) ? null : { name: '@argHmrVeriListe', type: 'structured', typeName: 'type_kod12', value: argHMRVeDegerListe }),
 				{ name: '@isKapansin', type: 'bit', value: bool2Int(isKapansinmi) }
 			].filter(rec => !!rec);
 			return ({ query: 'opyon_gerceklemeYap', params: params })
@@ -381,14 +385,15 @@ class MQBarkodRec extends MQMasterOrtak {
 				if (!$.isEmptyObject(seriKontrol_errorList)) { const isError = true, errorText = seriKontrol_errorList.join('<p/>'); throw { isError, errorText } }
 			}
 			const params = [
-				( this.oemSayac ? { name: '@argOemSayac', type: 'bigint', value: this.oemSayac } : null ),
+				(oemSayac ? { name: '@argOemSayac', type: 'bigint', value: oemSayac } : null),
 				{ name: '@argKaynakTipi', type: 'char', value: 'VT' },
 				{ name: '@argTezgahKod', type: 'char', value: this.tezgahKod || '' },
 				{ name: '@argPerKod', type: 'char', value: this.perKod || '' },
-				( basTS ? { name: '@argBasts', type: 'datetime', value: dateTimeToString(basTS) } : null ),
-				( bitTS ? { name: '@argBitts', type: 'datetime', value: dateTimeToString(bitTS) } : null ),
-				$.isEmptyObject(hmrBelirtecListe) ? null : { name: '@argHmrListe', type: 'structured', typeName: 'type_strIdList', value: hmrBelirtecListe.map(id => ({ id })) },
-				{ name: '@argLotNo', type: 'char', value: ekOzellikler.lotNo || '' },
+				(basTS ? { name: '@argBasts', type: 'datetime', value: dateTimeToString(basTS) } : null),
+				(bitTS ? { name: '@argBitts', type: 'datetime', value: dateTimeToString(bitTS) } : null),
+				($.isEmptyObject(hmrBelirtecListe) ? null : { name: '@argHmrListe', type: 'structured', typeName: 'type_strIdList', value: hmrBelirtecListe.map(id => ({ id })) }),
+				($.isEmptyObject(argHMRVeDegerListe) ? null : { name: '@argHmrVeriListe', type: 'structured', typeName: 'type_kod12', value: argHMRVeDegerListe }),
+				/*{ name: '@argLotNo', type: 'char', value: ekOzellikler.lotNo || '' },*/
 				{ name: '@argKoli', type: 'smallint', value: this.paketIcAdet || 0 },
 				{ name: '@argPaketKod', type: 'char', value: this.paketKod || '' },
 				{ name: '@argMiktar', type: 'decimal', value: miktar },

@@ -1,5 +1,5 @@
+<?php require_once("$webRoot_ticari/classes/ortak/diger/include-hmr-ilk.php") ?>
 <?php $_partRoot = "$webRoot_ticari/classes/mq-master"?>
-<script src="<?=$_partRoot?>/mqHMR.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqSube.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqIsyeri.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqDoviz.js?<?=$appVersion?>"></script>
@@ -45,7 +45,4 @@
 <script src="<?=$_partRoot?>/mqTakipNo.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqPortjoy.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqEConf.js?<?=$appVersion?>"></script>
-
-<?php $_partRoot = "$webRoot_ticari/classes/ortak"?>
-<script src="<?=$_partRoot?>/diger/hmrBilgi.js?<?=$appVersion?>"></script>
-<script src="<?=$_partRoot?>/mq-ozelSaha/mqOzelSaha.js?<?=$appVersion?>"></script>
+<?php require_once("$webRoot_ticari/classes/ortak/diger/include-hmr-son.php")?>
