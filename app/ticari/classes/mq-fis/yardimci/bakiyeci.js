@@ -16,8 +16,8 @@ class Bakiyeci extends CObject {
 		$.extend(this, { borcmu: e.borcmu ?? e.borc, bakiyeSqlci: e.bakiyeSqlci, sqlDuzenleyici: e.sqlDuzenleyici ?? e.sqlDuzenleSelector ?? this.class.defaultBakiyeSqlDuzenleSelector })
 	}
 	async getBakiyeDict(e) {
-		const result = {}; const {anahtarSahalar, sumSahalar} = this.class;
-		let sent = await this.getBakiyeSql(e), recs = await app.sqlExecSelect(sent);
+		const result = {}; const {anahtarSahalar, sumSahalar} = this.class, {trnId} = e;
+		let stm = await this.getBakiyeSql(e), recs = stm ? await app.sqlExecSelect({ trnId, query: stm }) : [];
 		for (const rec of recs) {
 			const anahStr = anahtarSahalar.map(key => rec[key]?.trimEnd()).join(delimWS), degerler = sumSahalar.map(key => rec[key]);
 			let eskiDegerler = result[anahStr]; if (eskiDegerler) { for (let i = 0; i < degerler.length; i++) { eskiDegerler[i] += degerlerler[i] || 0 } } else { result[anahStr] = degerler }
@@ -33,7 +33,8 @@ class Bakiyeci extends CObject {
 			if (typeof sqlDuzenleyici == 'string') { sqlDuzenleyici = fis[sqlDuzenleyici] };
 			const sent = e.sent = new MQSent(), stm = e.stm = new MQStm({ sent });
 			fis.bakiyeSqlOrtakDuzenle(e); if (sqlDuzenleyici) {getFuncValue.call(this, sqlDuzenleyici, e) }
-			return stm
+			let sahaVarmi = false; for (const _sent of stm.getSentListe()) { if (_sent?.sahalar?.liste?.length) { sahaVarmi = true; break } }
+			return sahaVarmi ? stm : null
 		}
 		return null
 	}

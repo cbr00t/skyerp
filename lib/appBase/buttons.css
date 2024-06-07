@@ -38,6 +38,9 @@ button#sil { margin-left: 10px; margin-right: 20px } button#secimler { margin-ri
 #tazele {background-image: url(../../images/tazele.png) }
 #vazgec { background-image: url(../../images/close.png) !important }
 #yeni { background-image: url(../../images/ekle.png) !important }
+	#yeni.jqx-fill-state-normal { background-color: #7e9a7e !important }
+	#yeni.jqx-fill-state-hover { background-color: #4a8a4a !important }
+	#yeni.jqx-fill-state-pressed { background-color: #31a431 !important }
 #degistir { background-image: url(../../images/degistir.png) !important }
 #kopya { background-image: url(../../images/kopyala.png) !important }
 #izle { background-image: url(../../images/izle.png) !important; background-size: auto !important }

@@ -207,17 +207,17 @@ class TicariFis extends TSOrtakFis {
 	tekilOku_detaylar_queryDuzenle(e) { super.tekilOku_detaylar_queryDuzenle(e); e.detaySinif.tekilOku_detaylar_queryDuzenle_ticari(e) }
 	async yeniVeyaDegistirOncesiIslemler(e) { await super.yeniVeyaDegistirOncesiIslemler(e); await this.fisBakiyeDurumuGerekirseAyarla(e) }
 	async topluYazmaKomutlariniOlusturSonrasi(e) {
-		super.topluYazmaKomutlariniOlusturSonrasi(e); const {table} = this.class, {toplu} = e;
+		super.topluYazmaKomutlariniOlusturSonrasi(e); const {table} = this.class, {trnId,toplu} = e;
 		const uniqueKeys = ['pifsayac', 'sipsayac', 'seq']; let hvListe = this.getDipEBilgi_hvListe(e);
 		const param_fisSayac = new MQSQLConst(e.paramName_fisSayac), sayacSaha = table == 'sipfis' ? 'sipsayac' : 'pifsayac';
 		for (const hv of hvListe) { hv[sayacSaha] = param_fisSayac }
-		const farkBilgi = await MQSQLOrtak.topluYazVeyaDegistirIcinYap({ toplu, uniqueKeys, table: 'dipebilgi', hvListe }); return farkBilgi
+		const farkBilgi = await MQSQLOrtak.topluYazVeyaDegistirIcinYap({ trnId, toplu, uniqueKeys, table: 'dipebilgi', hvListe }); return farkBilgi
 	}
 	async topluDegistirmeKomutlariniOlusturSonrasi(e) {
-		super.topluDegistirmeKomutlariniOlusturSonrasi(e); const {sayac} = this, {table} = this.class, {toplu} = e;
+		super.topluDegistirmeKomutlariniOlusturSonrasi(e); const {sayac} = this, {table} = this.class, {trnId, toplu} = e;
 		const sayacSaha = table == 'sipfis' ? 'sipsayac' : 'pifsayac', uniqueKeys = ['pifsayac', 'sipsayac', 'seq'];
 		let hvListe = this.getDipEBilgi_hvListe(e); const eskiWhere = new MQWhereClause({ degerAta: sayac, saha: sayacSaha });
-		const farkBilgi = await MQSQLOrtak.topluYazVeyaDegistirIcinYap({ toplu, uniqueKeys, table: 'dipebilgi', hvListe, eskiWhere }); return farkBilgi
+		const farkBilgi = await MQSQLOrtak.topluYazVeyaDegistirIcinYap({ trnId, toplu, uniqueKeys, table: 'dipebilgi', hvListe, eskiWhere }); return farkBilgi
 	}
 	// Stok/Hizmet/Demirbaş için Vergi bilgileri ek belirlemeler
 	async detaylariYukleSonrasi(e) { e = e || {}; await super.detaylariYukleSonrasi(e); await this.class.kdvKod2RecGlobalOlustur(e) }
@@ -359,35 +359,20 @@ class TicariFis extends TSOrtakFis {
 		}
 	}
 	async fisBakiyeDurumuGerekirseAyarla(e) {
-		if (!this.class.cikisGibimi)
-			return
-		// degVKN varsa islem yapilmaz
-		// cari borclandirma sekli yoksa islem yapilmaz
-		const {eskiFis} = e;
-		const {mustKod} = this;
-		let {musteriOncekiBakiyeDurumu} = this;
-		if (musteriOncekiBakiyeDurumu && eskiFis && mustKod != eskiFis.mustKod)
-			musteriOncekiBakiyeDurumu = null
+		if (!this.class.cikisGibimi) { return } const {trnId, eskiFis} = e, {mustKod} = this;
+		let {musteriOncekiBakiyeDurumu} = this; if (musteriOncekiBakiyeDurumu && eskiFis && mustKod != eskiFis.mustKod) { musteriOncekiBakiyeDurumu = null }
 		if (!musteriOncekiBakiyeDurumu) {
 			if (eskiFis && eskiFis.mustKod == mustKod) {
 				const _musteriOncekiBakiyeDurumu = eskiFis.musteriOncekiBakiyeDurumu;
-				if (_musteriOncekiBakiyeDurumu)
-					musteriOncekiBakiyeDurumu = (_musteriOncekiBakiyeDurumu.deepCopy ? _musteriOncekiBakiyeDurumu.deepCopy() : $.extend(true, {}, _musteriOncekiBakiyeDurumu))
+				if (_musteriOncekiBakiyeDurumu) { musteriOncekiBakiyeDurumu = (_musteriOncekiBakiyeDurumu.deepCopy ? _musteriOncekiBakiyeDurumu.deepCopy() : $.extend(true, {}, _musteriOncekiBakiyeDurumu)) }
 				else {
 					const sent = new MQSent({
 						from: 'carbakiye',
-						where: [
-							`ozelisaret <> 'X'`,
-							{ degerAta: mustKod, saha: 'must' },
-							{ degerAta: this.altHesapKod, saha: 'althesapkod' }
-						],
+						where: [ `ozelisaret <> 'X'`, { degerAta: mustKod, saha: 'must' }, { degerAta: this.altHesapKod, saha: 'althesapkod' } ],
 						sahalar: ['SUM(bakiye) bakiye', 'SUM(dvbakiye) dvbakiye']
-					})
-					let rec = await app.sqlExecTekil(sent);
-					musteriOncekiBakiyeDurumu = {
-						oncekiBakiye: new TLVeDVBedel({ tl: rec.bakiye, dv: rec.dvbakiye }),
-						bakiyeEkle: new TLVeDVBedel()
-					}
+					});
+					let rec = await app.sqlExecTekil({ trnId, query: sent });
+					musteriOncekiBakiyeDurumu = { oncekiBakiye: new TLVeDVBedel({ tl: rec.bakiye, dv: rec.dvbakiye }), bakiyeEkle: new TLVeDVBedel() }
 				}
 			}
 		}

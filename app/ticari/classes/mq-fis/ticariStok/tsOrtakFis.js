@@ -254,7 +254,7 @@ class TSOrtakFis extends MQTicariGenelFis {
 	async yeniVeyaDegistirOncesiIslemler(e) {
 		await super.yeniVeyaDegistirOncesiIslemler(e);
 
-		await MQStokIslem.getKod2OzelIsaret()
+		await MQStokIslem.getKod2OzelIsaret(e)
 	}
 
 	async yeniVeyaDegistirSonrasiIslemler(e) {

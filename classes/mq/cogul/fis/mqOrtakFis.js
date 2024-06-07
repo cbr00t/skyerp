@@ -90,18 +90,13 @@ class MQOrtakFis extends MQDetayli {
 		for (const det of this.detaylar) { det.donusumBilgileriniSil(e) }
 		this.donusumBilgileriniSil(e)
 	}
-	async yaz(e) {
-		const {trnId} = await app.sqlTrnBegin(); e.trnId = trnId;
-		let result = await super.yaz(e);		/* yaz() sonrası yeniSonrasiIslemler() çalışacak */
-		await app.sqlTrnCommit({ trnId }); return result
-	}
 	async yeniSonrasiIslemler(e) {
-		await super.yeniSonrasiIslemler(e); const {bakiyeciler} = this;
+		await super.yeniSonrasiIslemler(e); const {trnId} = e, {bakiyeciler} = this;
 		if (bakiyeciler?.length) {
-			const fis = this, tip2BakiyeDict = {}, tip2Table = {};
+			const {trnId} = e, fis = this, tip2BakiyeDict = {}, tip2Table = {};
 			for (const bakiyeci of bakiyeciler) {
-				const {tipKod, table} = bakiyeci; if (!tipKod) { continue }
-				const bakiyeDict = bakiyeci.getBakiyeDict({ fis }); if (!bakiyeDict) { continue }
+				const {tipKod, table} = bakiyeci.class; if (!tipKod) { continue }
+				const bakiyeDict = await bakiyeci.getBakiyeDict({ trnId, fis }); if (!bakiyeDict) { continue }
 				tip2BakiyeDict[tip] = bakiyeDict; tip2Table[tip] = table;
 				debugger
 			}

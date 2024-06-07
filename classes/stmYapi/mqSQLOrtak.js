@@ -5,13 +5,13 @@ class MQSQLOrtak extends CObject {
 		$.extend(this, { prefix: e.prefix, postfix: e.postfix, params: e.params || null });
 	}
 	static async topluYazVeyaDegistirIcinYap(e) {
-		const {toplu} = e, eskiWhere = e.eskiWhere ?? e.eskiHVWhere, uniqueKeys = e.uniqueKeys ?? e.attrListe, table = e.table ?? e.tablo;
+		const {trnId, toplu} = e, eskiWhere = e.eskiWhere ?? e.eskiHVWhere, uniqueKeys = e.uniqueKeys ?? e.attrListe, table = e.table ?? e.tablo;
 		const uniqueKeysSet = asSet(uniqueKeys) || {}, silinebilirmi = e.silinebilir ?? e.silinebilirmi ?? true;
 		let {hvListe, eskiHVListe} = e; if (!hvListe) { return } if (!$.isArray(hvListe)) { hvListe = [hvListe] }
 		const hv = hvListe[0], dateAttrSet = {}; if (hv) { for (const [key, value] of Object.entries(hv)) { if (isDate(value)) { dateAttrSet[key] = true } } }
 		if (!(eskiHVListe || $.isEmptyObject(uniqueKeys) || $.isEmptyObject(eskiWhere))) {
 			const keys = hv === undefined ? uniqueKeys : Object.keys(hv);
-			const sent = new MQSent({ from: table, where: eskiWhere, sahalar: keys }), recs = await app.sqlExecSelect(sent); eskiHVListe = recs;
+			const sent = new MQSent({ from: table, where: eskiWhere, sahalar: keys }), recs = await app.sqlExecSelect({ trnId, query: sent }); eskiHVListe = recs;
 			if (eskiHVListe) { for (const hv of eskiHVListe) { for (const key in hv) { if (dateAttrSet[key]) { let value = hv[key]; if (value && typeof value == 'string') { hv[key] = value = asDate(value) } } } } }
 		}
 		if ($.isEmptyObject(eskiHVListe)) {		/* sadece yazma */

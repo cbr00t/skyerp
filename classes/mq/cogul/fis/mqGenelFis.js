@@ -21,7 +21,7 @@ class MQGenelFis extends MQOrtakFis {
 		secimler.secimTopluEkle({
 			ozelIsaret: new SecimBirKismi({ etiket: 'İşaret', tekSecim: MQOzelIsaret }),
 			sube: new SecimString({ etiket: 'Şube', mfSinif: MQSube }),
-			tarih: new SecimDate({ etiket: 'Tarih', basi: today().addMonths(-5) }),
+			tarih: new SecimDate({ etiket: 'Tarih', basi: today().addDays(-7) }),
 			seri: new SecimString({ etiket: 'Seri' }),
 			noYil: new SecimInteger({ etiket: 'No Yıl'}),
 			fisNo: new SecimInteger({ etiket: 'Belge No' })

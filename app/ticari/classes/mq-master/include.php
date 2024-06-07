@@ -6,6 +6,7 @@
 <script src="<?=$_partRoot?>/mqStokIslem.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqUretimIslem.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqStokYer.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/mqYerRaf.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqStokDepartman.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqVergiGrup.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqVergi.js?<?=$appVersion?>"></script>

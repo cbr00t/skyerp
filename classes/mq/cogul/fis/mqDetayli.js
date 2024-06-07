@@ -217,26 +217,34 @@ class MQDetayli extends MQSayacli {
 	}
 	detaylariYukleSonrasi(e) { }
 	async yaz(e) {
-		/* üst'e bakma */ e = e || {}; this.detaylariNumaralandir(e); await this.yeniTanimOncesiIslemler(e);
-		const _e = $.extend({}, e, { toplu: new MQToplu().withDefTrn(), paramName_fisSayac: '@fisSayac' });
-		await this.topluYazmaKomutlariniOlustur(_e); await this.topluYazmaKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) return true
-		const result = (await app.sqlExecNoneWithResult({ query: _e.toplu }) || {})[0], sqlParam = result.params[_e.paramName_fisSayac] || {};
-		const fisSayac = asInteger(sqlParam.value) || null; if (!fisSayac) throw { isError: true, rc: 'fisSayac', errorText: 'Kaydedilen fiş için sayaç bilgisi belirlenemedi' }
-		this.sayac = fisSayac; await this.yeniSonrasiIslemler(e); return result
+		/* üst'e bakma */ e = e || {}; this.detaylariNumaralandir(e);
+		e.proc = async e => {
+			await this.yeniTanimOncesiIslemler(e); const _e = $.extend({}, e, { toplu: new MQToplu()/*.withDefTrn()*/, paramName_fisSayac: '@fisSayac' });
+			await this.topluYazmaKomutlariniOlustur(_e); await this.topluYazmaKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) { return true }
+			const {trnId} = e, result = (await app.sqlExecNoneWithResult({ trnId, query: _e.toplu }) || {})[0], sqlParam = result.params[_e.paramName_fisSayac] || {};
+			const fisSayac = asInteger(sqlParam.value) || null; if (!fisSayac) { throw { isError: true, rc: 'fisSayac', errorText: 'Kaydedilen fiş için sayaç bilgisi belirlenemedi' } }
+			this.sayac = fisSayac; await this.yeniSonrasiIslemler(e); return result
+		};
+		return (await app.sqlTrnDo(e)).result
 	}
 	async degistir(e) {
 		/* üst'e bakma */ e = e || {}; this.detaylariNumaralandir(e);
-		await this.degistirOncesiIslemler(e); const _e = $.extend({}, e, { toplu: new MQToplu().withDefTrn() });
-		await this.topluDegistirmeKomutlariniOlustur(_e); await this.topluDegistirmeKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) return true
-		const result = (await app.sqlExecNoneWithResult({ query: _e.toplu }) || {})[0]; await this.degistirSonrasiIslemler(e); return result
+		e.proc = async e => {
+			await this.degistirOncesiIslemler(e); const _e = $.extend({}, e, { toplu: new MQToplu()/*.withDefTrn()*/ });
+			await this.topluDegistirmeKomutlariniOlustur(_e); await this.topluDegistirmeKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) { return true }
+			const {trnId} = e, result = (await app.sqlExecNoneWithResult({ trnId, query: _e.toplu || {} }))[0];
+			await this.degistirSonrasiIslemler(e); return result
+		};
+		return (await app.sqlTrnDo(e)).result
 	}
 	async sil(e) {
-		/* üst'e bakma */ e = e || {};
-		const {sayac} = this; if (!sayac) throw { isError: true, rc: 'fisSayac', errorText: 'Silinecek kayıt belirlenemiyor' };
-		await this.silmeOncesiIslemler(e);
-		const _e = $.extend({}, e, { toplu: new MQToplu().withDefTrn(), sayac });
-		await this.topluSilmeKomutlariniOlustur(_e); await this.topluSilmeKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) return true
-		const result = await app.sqlExecNone({ query: _e.toplu }); await this.silmeSonrasiIslemler(e); return result
+		/* üst'e bakma */ e = e || {}; const {sayac} = this; if (!sayac) throw { isError: true, rc: 'fisSayac', errorText: 'Silinecek kayıt belirlenemiyor' };
+		e.proc = async e => {
+			await this.silmeOncesiIslemler(e); const _e = $.extend({}, e, { toplu: new MQToplu().withDefTrn(), sayac });
+			await this.topluSilmeKomutlariniOlustur(_e); await this.topluSilmeKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) { return true }
+			const {trnId} = e; const result = await app.sqlExecNone({ trnId, query: _e.toplu }); await this.silmeSonrasiIslemler(e); return result
+		};
+		return (await app.sqlTrnDo(e)).result
 	}
 	detaylariNumaralandir(e) {
 		const {detaylar} = this; if (!detaylar) return
@@ -265,7 +273,7 @@ class MQDetayli extends MQSayacli {
 		const params = toplu.params = toplu.params || []; params.push({ name: paramName_fisSayac, type: 'int', direction: 'inputOutput', value: 0 })
 	}
 	async topluDegistirmeKomutlariniOlustur(e) {
-		const {toplu} = e, {table, sayacSaha} = this.class; let harSayacSaha, fisSayacSaha, seqSaha;
+		const {toplu, trnId} = e, {table, sayacSaha} = this.class; let harSayacSaha, fisSayacSaha, seqSaha;
 		const detTable2HVListe = e.detTable2HVListe = {}, {detaylar} = this, detHVArg = { fis: this };
 		for (const det of detaylar) {
 			if (!harSayacSaha) { harSayacSaha = det.class.sayacSaha }
@@ -278,7 +286,7 @@ class MQDetayli extends MQSayacli {
 		}
 		const fisHV = this.hostVars(e), keyHV = this.keyHostVars($.extend({}, e, { varsayilanAlma: true }));
 		let sent = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: ['*'] });
-		const basRec = await app.sqlExecTekil({ query: sent }),  degisenHV = degisimHV(fisHV, basRec);
+		const basRec = await app.sqlExecTekil({ trnId, query: sent }), degisenHV = degisimHV(fisHV, basRec);
 		if (!$.isEmptyObject(degisenHV)) { toplu.add(new MQIliskiliUpdate({ from: table, where: { birlestirDict: keyHV }, set: { birlestirDict: degisenHV } })) }
 		const fisSayac = this.sayac;
 		for (const detTable in detTable2HVListe) {
@@ -288,7 +296,7 @@ class MQDetayli extends MQSayacli {
 			// debugger;
 			// !! tum detay tablolar icin union all ile okunmali
 			const sent = new MQSent({ from: detTable, where: { degerAta: fisSayac, saha: fisSayacSaha }, sahalar: ['*'] });
-			const recs = await app.sqlExecSelect(sent), sayac2YeniSeq = {}, degisenSayac2HV = {}, silSayaclar = [];
+			const recs = await app.sqlExecSelect({ trnId, query: sent }), sayac2YeniSeq = {}, degisenSayac2HV = {}, silSayaclar = [];
 			for (const rec of recs) {
 				const harSayac = asInteger(rec[harSayacSaha]), eskiSeq = rec.seq, yHV = harSayac2HV[harSayac];
 				if (yHV) {

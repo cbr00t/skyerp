@@ -30,7 +30,7 @@ class MQYapi extends CIO {
 			if (result) { throw { isError: true, rc: 'duplicateRecord', errorText: 'Kayıt tekrarlanıyor' } }
 		}
 		await this.yeniTanimOncesiIslemler(e); const hv = this.hostVars(e); if (!$.isEmptyObject(keyHV)) { $.extend(hv, keyHV) }
-		const result =  await app.sqlExecNone(new MQInsert({ table: this.class.table, hv }));
+		const {trnId} = e, result = await app.sqlExecNone({ trnId, query: new MQInsert({ table: this.class.table, hv }) });
 		await this.yeniSonrasiIslemler(e); return result
 	}
 	async degistir(e) {
@@ -38,13 +38,14 @@ class MQYapi extends CIO {
 		const {table} = this.class, hv = this.hostVars(e), keyHV = this.keyHostVars($.extend({}, e, { varsayilanAlma: true }));
 		let sent = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: '*' });
 		const basRec = await app.sqlExecTekil(sent), degisenHV = degisimHV(hv, basRec);
-		let result = true; if (!$.isEmptyObject(degisenHV)) { result = await app.sqlExecNone( new MQIliskiliUpdate({ from: table, where: { birlestirDict: keyHV }, set: { birlestirDict: degisenHV } }) ); }
+		let result = true; if (!$.isEmptyObject(degisenHV)) {
+			const {trnId} = e; result = await app.sqlExecNone({ trnId, query: new MQIliskiliUpdate({ from: table, where: { birlestirDict: keyHV }, set: { birlestirDict: degisenHV } }) }) }
 		await this.degistirSonrasiIslemler(e); return result
 	}
 	async sil(e) {
 		e = e || {}; const keyHV = this.alternateKeyHostVars(e); if ($.isEmptyObject(keyHV)) { return true }
 		await this.silmeOncesiIslemler(e);
-		const result = await app.sqlExecNone(new MQIliskiliDelete({ from: this.class.table, where: { birlestirDict: keyHV } }));
+		const {trnId} = e, result = await app.sqlExecNone({ trnId, query: new MQIliskiliDelete({ from: this.class.table, where: { birlestirDict: keyHV } }) });
 		await this.silmeSonrasiIslemler(e); return result
 	}
 	async yukle(e) {

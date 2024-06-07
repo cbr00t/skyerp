@@ -167,7 +167,7 @@ class GridKolonGrup_KA extends GridKolonGrup {
 						const selInfo = gridWidget.getselection() || {}; rowIndex = selInfo.rows[0];
 						if (rowIndex == null) rowIndex = (selInfo.cells[0] || {}).rowindex
 					}
-					if (gridWidget.editcell) gridWidget.endcelledit()
+					if (gridWidget.editcell) { gridWidget.endcelledit() }
 					const prevKod = args.value == null ? gridWidget.getcellvalue(rowIndex, dataField) : args.value;
 					const part = new MasterListePart({
 						mfSinif, tekilmi: false,
@@ -215,11 +215,21 @@ class GridKolonGrup_KA extends GridKolonGrup {
 				kaKolonu.cellClick = e => {
 					const {args} = e, isRightClick = args?.rightclick;
 					if (isRightClick) {
-						if (kaKolonu._event_cellClick) return
-						clearTimeout(() => kaKolonu._event_cellClick);
+						if (kaKolonu._event_cellClick) { return } clearTimeout(() => kaKolonu._event_cellClick);
 						kaKolonu._event_cellClick = setTimeout(() => { try { kaKolonu.listedenSec(e) } finally { delete kaKolonu._event_cellClick } }, 50)
 					}
-				};
+					else {
+						const {gridWidget, belirtec, rowIndex} = e;
+						if (gridWidget && !gridWidget.editcell) {
+							/*clearTimeout(this._timer_kaKolonu_cellClick);*/
+							if (this._timer_kaKolonu_cellClick) { return }
+							this._timer_kaKolonu_cellClick = setTimeout(() => {
+								try { const curCell = gridWidget.getselectedcell(); if (curCell.datafield == belirtec && curCell.rowindex == rowIndex) { gridWidget.begincelledit(rowIndex, belirtec) } }
+								finally { delete this._timer_kaKolonu_cellClick }
+							}, 1000)
+						}
+					}
+				}
 			}
 			/*if (!kaKolonu.cellsRenderer) {
 				kaKolonu.cellsRenderer = (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
