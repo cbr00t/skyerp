@@ -106,66 +106,38 @@ class TSOrtakFis extends MQTicariGenelFis {
 							}))
 						}
 					}
-					builder.oldValue = islKod;
+					builder.oldValue = islKod
 				})
 		)
 		baslikForm.builders[2].add(
 			new FBuilder_TextInput({ id: 'baslikAciklama', etiket: 'Fiş Açıklama', placeHolder: 'Fiş Açıklama' }).etiketGosterim_normal()
-				.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.layout)} { min-width: 150px !important; max-width: 400px !important; }`)
+				.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.layout)} { min-width: 150px !important; max-width: 400px !important }`)
 		)
 	}
-
-	static ekCSSDuzenle(e) {
-		super.ekCSSDuzenle(e);
-
-		/*const {rec, result} = e;
-		const efAyrimTipi = (rec.efayrimtipi || '').trim();
-		if (efAyrimTipi)
-			result.push(`eIslem-${efAyrimTipi}`)*/
-	}
-
+	static ekCSSDuzenle(e) { super.ekCSSDuzenle(e) }
+	static standartGorunumListesiDuzenle_son(e) { super.standartGorunumListesiDuzenle_son(e); const {liste} = e; liste.push('cariaciklama') }
 	static orjBaslikListesiDuzenle_ara(e) {
-		super.orjBaslikListesiDuzenle_ara(e);
-		
-		const {liste} = e;
+		super.orjBaslikListesiDuzenle_ara(e); const {liste} = e;
 		liste.push(
 			new GridKolon({ belirtec: 'islkod', text: 'İşlem', genislikCh: 8 }),
 			new GridKolon({
 				belirtec: 'efayrimtipi', text: 'e-İşl.', genislikCh: 6,
-				cellClassName: (sender, rowIndex, belirtec, value, rec) => {
-					value = value || 'A';
-					const result = [belirtec];
-					if (value)
-						result.push(`eIslem-${value}`)
-					return result
-				},
+				cellClassName: (sender, rowIndex, belirtec, value, rec) => { value = value || 'A'; const result = [belirtec]; if (value) { result.push(`eIslem-${value}`) } return result },
 				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-					const efAyrimTipi = (value || '').trim() || 'A';
-					const cls = EIslemOrtak.getClass({ tip: efAyrimTipi });
-					html = changeTagContent(html, (cls ? cls.kisaAdi : null) || '')
-					return html
+					const tip = (value || '').trim() || 'A', cls = EIslemOrtak.getClass({ tip });
+					html = changeTagContent(html, (cls ? cls.kisaAdi : null) || ''); return html
 				}
 			})
 		)
 	}
-
 	static orjBaslikListesiDuzenle_son(e) {
-		super.orjBaslikListesiDuzenle_son(e);
-		
-		const {liste} = e;
-		liste.push(
-			new GridKolon({ belirtec: 'cariaciklama', text: 'Fiş Açıklama', genislikCh: 40 })
-		)
+		super.orjBaslikListesiDuzenle_son(e); const {liste} = e;
+		liste.push( new GridKolon({ belirtec: 'cariaciklama', text: 'Fiş Açıklama', genislikCh: 40 }) )
 	}
-
 	static async raporKategorileriDuzenle_baslik(e) {
-		await super.raporKategorileriDuzenle_baslik(e);
-
-		const {kullanim} = app.params.ticariGenel;
-		const sections = [ ( kullanim.eFatura ? 'FTBaslikFisEFat-Ortak' : null ) ];
-		await e.kat.ekSahaYukle({ section: sections })
+		await super.raporKategorileriDuzenle_baslik(e); const {kullanim} = app.params.ticariGenel;
+		const section = [( kullanim.eFatura ? 'FTBaslikFisEFat-Ortak' : null )]; await e.kat.ekSahaYukle({ section })
 	}
-
 	static async raporKategorileriDuzenle_baslikDetayArasi(e) {
 		await super.raporKategorileriDuzenle_baslikDetayArasi(e);
 

@@ -1,7 +1,6 @@
 class ParkBulurum_TestBase extends TestBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get DefaultWSHost() { return ParkBulurum_RunnableBase.DefaultWSHost }
-	static get DefaultWSPath() { return ParkBulurum_RunnableBase.DefaultWSPath } static get DefaultLoginTipi() { return ParkBulurum_RunnableBase.DefaultLoginTipi }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get rootTip() { return ParkBulurum_RunnableBase.rootTip }
+	static get DefaultWSHost() { return ParkBulurum_RunnableBase.DefaultWSHost } static get DefaultWSPath() { return ParkBulurum_RunnableBase.DefaultWSPath } static get DefaultLoginTipi() { return ParkBulurum_RunnableBase.DefaultLoginTipi }
 	runInternal(e) { super.runInternal(e) /*; const {tip} = this.class; this.callback({ message: 'in test', tip })*/ }
 }
 class ParkBulurum_Test01 extends ParkBulurum_TestBase {

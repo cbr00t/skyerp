@@ -6,5 +6,6 @@
 	require_once("$webRoot_ticari/include/ortak-04.php");
 	require_once("$webRoot_ticari/include/ortak-05.php");
 	require_once("$webRoot_ticari/include/ortak-06.php");
-	require_once("$webRoot_ticari/include/ortak-07.php")
+	require_once("$webRoot_ticari/include/ortak-07.php");
+	require_once("$webRoot_ticari/test/include.php")
 ?>

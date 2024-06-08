@@ -1,7 +1,8 @@
 window = self; self.webRoot = '../..'; self.urls = { libExt: `${webRoot}/lib_external` }; self.selfRoot = `${webRoot}/classes/worker`;
 const ortakLibs = [
 	`${urls.libExt}/etc/md5.min.js`, `${urls.libExt}/etc/string.js`, `${urls.libExt}/etc/base64.js`,
-	`${webRoot}/lib/ortak/utils.js`, `${webRoot}/classes/ortak/CObject.js`, `${selfRoot}/runnable.js`
+	`${webRoot}/lib/ortak/utils.js`, `${webRoot}/classes/ortak/CObject.js`, `${selfRoot}/runnable.js`,
+	`${webRoot}/app/ticari/test/runnables.js`, `${webRoot}/app/parkBulurum/test/runnables.js`
 ];
 const runnableLibs = [];
 importScripts(...ortakLibs, ...runnableLibs);

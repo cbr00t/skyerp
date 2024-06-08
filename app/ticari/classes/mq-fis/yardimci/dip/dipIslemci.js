@@ -12,7 +12,7 @@ class DipIslemci extends CObject {
 	get belirtec2DipSatir() {
 		let result = this._belirtec2DipSatir;
 		if (result == null) {
-			const {dipSatirlari} = this; result = {};
+			let {dipSatirlari} = this; result = {};
 			for (const dipSatir of dipSatirlari) { const {belirtec} = dipSatir; result[belirtec] = dipSatir }
 			this._belirtec2DipSatir = result
 		}
@@ -26,6 +26,7 @@ class DipIslemci extends CObject {
 		this.offsetRefs = {}; this._promise_dipSatirlari = new $.Deferred();
 	}
 	ticariFisHostVarsDuzenle(e) {
+		let {dipSatirlari} = this; if (!dipSatirlari) { this.getDipGridSatirlari(); dipSatirlari = this.dipSatirlari }
 		const {fis, belirtec2DipSatir, icmalSonuclari} = this, {hv} = e;
 		let bv = belirtec2DipSatir.BRUT.bedelYapi; $.extend(hv, { brut: bv.tl || 0, dvbrut: bv.dv || 0 });
 		const tevBV = bv = icmalSonuclari.tevkifat; $.extend(hv, { dustevkifat: bv.tl || 0, dusdvtevkifat: bv.dv || 0 });
@@ -50,11 +51,11 @@ class DipIslemci extends CObject {
 		let {_promise_dipSatirlari} = this; if (_promise_dipSatirlari) _promise_dipSatirlari.resolve(dipSatirlari)
 		return this
 	}
-	topluHesapla(e) { this.hesapcilarOnDegerleriYukle(e); this.satirlariHesapla(e); }
+	topluHesapla(e) { this.hesapcilarOnDegerleriYukle(e); this.satirlariHesapla(e); return this }
 	satirDegisimIcinHesapla(e) {
 		const {belirtec2DipSatir} = this, {yeni, eski} = e.degerler, satirNetArtis = yeni.netBedel - eski.netBedel;
 		belirtec2DipSatir.BRUT.tlBedel = roundToBedelFra(belirtec2DipSatir.BRUT.tlBedel + satirNetArtis);				// Dip BRÜT = Satır Net Toplamı
-		this.satirlariHesapla(e)
+		this.satirlariHesapla(e); return this
 	}
 	hesapcilarOnDegerleriYukle(e) {
 		const {belirtec2DipSatir, detaylar} = this; let netToplam = 0;

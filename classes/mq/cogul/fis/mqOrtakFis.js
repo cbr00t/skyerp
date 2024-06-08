@@ -76,11 +76,7 @@ class MQOrtakFis extends MQDetayli {
 	fisBaslikOlusturucularDuzenle(e) { }
 	dipOlustur(e) {
 		let result = null;
-		if (this.class.dipKullanilirmi) {
-			const {dipSinif} = this.class;
-			if (dipSinif)
-				result = this.dipIslemci = new dipSinif({ fis: this })
-		}
+		if (this.class.dipKullanilirmi) { const {dipSinif} = this.class; if (dipSinif) { result = this.dipIslemci = new dipSinif({ fis: this }) } }
 		return result
 	}
 	getDipGridSatirlari(e) { e.liste = []; this.dipGridSatirlariDuzenle(e); return e.liste }
@@ -90,6 +86,23 @@ class MQOrtakFis extends MQDetayli {
 		for (const det of this.detaylar) { det.donusumBilgileriniSil(e) }
 		this.donusumBilgileriniSil(e)
 	}
+	async disKaydetIslemi(e) {
+		e = e || {}; let {num} = this.numarator, {fisNo} = this;
+		if (!num) { const {numYapi} = this; if (numYapi) { num = this.numarator = numYapi.deepCopy() } }
+		if (!fisNo && num) { await num.yukle(e); const {seri, noYil} = num; fisNo = num.sonNo; $.extend(this, { seri, noYil, fisNo }) }
+		let result = await this.disKaydetOncesiIslemler(e); if (result === false) { return false }
+		e.proc = async e => {
+			let result = await this.disKaydetOncesi_trn(e); if (result === false) { return false }
+			if (num && fisNo) { while (await this.varmi(e)) { fisNo = this.fisNo = (await num.kesinlestir(e)).sonNo } }
+			result = await this.disKaydetSonrasi_trn(e); if (result === false) { return false }
+			return await this.yaz(e)
+		};
+		const trnResult = await app.sqlTrnDo(e);
+		result = await this.disKaydetSonrasiIslemler(e); if (result === false) { return false }
+		return trnResult?.result ?? trnResult
+	}
+	disKaydetOncesi_trn(e) { } disKaydetSonrasi_trn(e) { }
+	disKaydetOncesiIslemler(e) { } disKaydetSonrasiIslemler(e) { }
 	async yeniSonrasiIslemler(e) {
 		await super.yeniSonrasiIslemler(e); const {trnId} = e, {bakiyeciler} = this;
 		if (bakiyeciler?.length) {
@@ -97,8 +110,8 @@ class MQOrtakFis extends MQDetayli {
 			for (const bakiyeci of bakiyeciler) {
 				const {tipKod, table} = bakiyeci.class; if (!tipKod) { continue }
 				const bakiyeDict = await bakiyeci.getBakiyeDict({ trnId, fis }); if (!bakiyeDict) { continue }
-				tip2BakiyeDict[tip] = bakiyeDict; tip2Table[tip] = table;
-				debugger
+				tip2BakiyeDict[tipKod] = bakiyeDict; tip2Table[tipKod] = table
+				/*debugger*/
 			}
 		}
 	}

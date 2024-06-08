@@ -1,5 +1,5 @@
 class TicariApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { window[this.name] = this; this._key2Class[this.name] = this } get testBaseClass() { return Ticari_TestBase }
 	constructor(e) { super(e) /*this.mqGlobals = {}*/ }
 	paramsDuzenle(e) {
 		super.paramsDuzenle(e); const {params} = e;
@@ -106,4 +106,13 @@ html2canvas(app.divMenu[0], { imageTimeout: 3000, removeContainer: true }).then(
 doc = new jspdf.jsPDF({ unit: 'px', orientation: 'landscape' });
 doc.html($(`<b>bla bla</b>`)[0], { callback: doc => doc.save() })
 
+
+== TEST (threaded) ==
+const {ws} = config, _session = config.session, session = { loginTipi: _session.loginTipi, user: _session.user, pass: _session.pass, sessionID: _session.sessionID };
+const test = new Ticari_TrnListTest({ ws, session }); await test.delay(50).multiWorker().threadedRun(1)
+
+== TEST (runSync) ==
+const {ws} = config, _session = config.session, session = { loginTipi: _session.loginTipi, user: _session.user, pass: _session.pass, sessionID: _session.sessionID };
+const test = new Ticari_TrnListTest({ ws, session }); await test.delay(50).runSync(-1);
+// test.stop()
 */

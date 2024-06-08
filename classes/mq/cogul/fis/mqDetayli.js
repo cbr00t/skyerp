@@ -240,7 +240,7 @@ class MQDetayli extends MQSayacli {
 	async sil(e) {
 		/* üst'e bakma */ e = e || {}; const {sayac} = this; if (!sayac) throw { isError: true, rc: 'fisSayac', errorText: 'Silinecek kayıt belirlenemiyor' };
 		e.proc = async e => {
-			await this.silmeOncesiIslemler(e); const _e = $.extend({}, e, { toplu: new MQToplu().withDefTrn(), sayac });
+			await this.silmeOncesiIslemler(e); const _e = $.extend({}, e, { toplu: new MQToplu()/*.withDefTrn()*/, sayac });
 			await this.topluSilmeKomutlariniOlustur(_e); await this.topluSilmeKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) { return true }
 			const {trnId} = e; const result = await app.sqlExecNone({ trnId, query: _e.toplu }); await this.silmeSonrasiIslemler(e); return result
 		};

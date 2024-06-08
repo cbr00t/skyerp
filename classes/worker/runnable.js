@@ -26,7 +26,7 @@ class Runnable extends CObject {
 	get wsURLBase() { return this.getWSUrlBase(this.ws) }
 
 	constructor(e) {
-		e = e || {}; super(e);
+		e = e ?? {}; super(e);
 		for (const [key, value] of Object.entries(e)) { if (value !== undefined) { this[key] = value } }
 		if (this.runIslemi == null) { this.runIslemi = e.runHandler; for (const key of ['runHandler']) { delete this[key]} }
 		if (this.callbackIslemi == null) { this.callbackIslemi = e.callback ?? e.callbackHandler; for (const key of ['callback', 'callbackHandler']) { delete this[key]} }
@@ -38,29 +38,29 @@ class Runnable extends CObject {
 		return null
 	}
 	static newFor(e) {
-		e = e || {}; if (typeof e != 'object') { e = { tip: e } }
+		e = e ?? {}; if (typeof e != 'object') { e = { tip: e } }
 		const cls = this.getClass(e); delete e.tip; return cls ? new cls(e) : null
 	}
 	threadedRun(e) {
 		let threadCount = typeof e == 'object' ? e.threadCount ?? e.iterCount ?? e.count : e; if (threadCount == null) { threadCount = 1 }
-		const data = Object.assign({ action: 'run' }, this.serialize());
+		const data = Object.assign({ action: 'run' }, this.serialize()); this.abortFlag = false;
 		for (let i = 0; i < threadCount; i++) { const {socket} = this.getWorker(); socket.postMessage(data) }
 		return this
 	}
 	async run(e) {
-		e = e || {}; if (typeof e != 'object') { e = { iterCount: e } }; e.sender = this;
+		e = e ?? {}; if (typeof e != 'object') { e = { iterCount: e } }; e.sender = this; this.abortFlag = false;
 		let iterCount = typeof e == 'object' ? e.iterCount ?? e.threadCount ?? e.count : e;
-		if (iterCount != null && typeof iterCount == 'number') { this.iterCount = iterCount } if (!this.iterCount) { iterCount = this.iterCount = 1 }
+		if (iterCount != null && typeof iterCount == 'number') { this.iterCount = iterCount } if (this.iterCount == null) { iterCount = this.iterCount = 1 }
 		const {runIslemi} = this; let result; if (runIslemi) { result = await runIslemi.call(this, e) }
 		if (result === undefined) { result = await this.runInternal(e) }
 		return result
 	}
 	async runSync(e) {
-		e = e || {}; if (typeof e != 'object') { e = { iterCount: e } }; e.sender = this;
+		e = e ?? {}; if (typeof e != 'object') { e = { iterCount: e } }; e.sender = this; this.abortFlag = false;
 		let iterCount = typeof e == 'object' ? e.iterCount ?? e.threadCount ?? e.count : e; this.iterCount = 1;
-		if (iterCount != null && typeof iterCount != 'number') { this.iterCount = null } if (!iterCount) { iterCount = 1 }
+		if (iterCount != null && typeof iterCount != 'number') { this.iterCount = null } if (iterCount == null) { iterCount = 1 }
 		const results = [];
-		const {runIslemi} = this; for (let i = 0; i < iterCount; i++) {
+		const {runIslemi} = this; for (let i = 0; !this.abortFlag && ((iterCount || 0) <= 0 || i < iterCount); i++) {
 			let result; if (runIslemi) { result = await runIslemi.call(this, e) }
 			if (result === undefined) { result = await this.runInternal(e) }
 			results.push(result)
@@ -68,11 +68,11 @@ class Runnable extends CObject {
 		return results
 	}
 	async runAsync(e) {
-		e = e || {}; if (typeof e != 'object') { e = { iterCount: e } }; e.sender = this;
+		e = e ?? {}; if (typeof e != 'object') { e = { iterCount: e } }; e.sender = this; this.abortFlag = false;
 		let iterCount = typeof e == 'object' ? e.iterCount ?? e.threadCount ?? e.count : e; this.iterCount = 1;
 		if (iterCount != null && typeof iterCount != 'number') { this.iterCount = null } if (!iterCount) { iterCount = 1 }
 		const promises = [];
-		const {runIslemi} = this; for (let i = 0; i < iterCount; i++) {
+		const {runIslemi} = this; for (let i = 0; !this.abortFlag && i < iterCount; i++) {
 			promises.push(new $.Deferred(async p => {
 				let result;
 				try {
@@ -85,10 +85,11 @@ class Runnable extends CObject {
 		}
 		return await Promise.all(promises)
 	}
+	stop(e) { this.abortFlag = true; return this }
 	runInternal(e) { }
 	async wsLogin(e) {
-		e = e || {}; let session = e.session ?? this.session, loginTipi = e.loginTipi ?? session?.loginTipi;
-		if (session == null) { session = { user: e.user ?? '', pass: e.pass ?? '' } }
+		e = Object.assign({}, e || {}); let session = e.session ?? this.session, loginTipi = e.loginTipi ?? session?.loginTipi;
+		if (session == null) { session = { user: e.user ?? '', pass: e.pass ?? '', sessionID: e.sessionID ?? '', session: e.session } } else { session = Object.assign({}, session) }
 		if (session != null) { delete session.loginTipi }
 		if (loginTipi == null && !(session.sessionID || session.session)) { loginTipi = this.class.DefaultLoginTipi };
 		if (session.buildAjaxArgs) { const _session = session; _session.buildAjaxArgs({ args: session = {} }) }
@@ -96,7 +97,7 @@ class Runnable extends CObject {
 		const {sessionID} = result; this.sessionID = sessionID; return sessionID
 	}
 	async wsLogout(e) {
-		e = e || {}; let sessionID = e.sessionID ?? this.sessionID ?? '';
+		e = e ?? {}; let sessionID = e.sessionID ?? this.sessionID ?? '';
 		let result = await this.ajaxCall({ api: 'logout', args: { sessionID } });
 		return (sessionID = this.sessionID = null)
 	}
