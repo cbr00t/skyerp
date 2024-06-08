@@ -39,7 +39,7 @@ class EIslemFiltre extends Secimler {
 	}
 	queryStmDuzenle(e) {
 		e = e || {}; e.alias = e.alias || 'fis';
-		const {eConf} = this, {stm, uni} = e,
+		const {eConf} = this, {stm, uni} = e;
 		const sentEkle = __e => {
 			const _e = $.extend({}, e, __e); /* e: { fisTablo psTipStr ifSql efAyrimTipiClause } */
 			const wh = this.getTBWhereClause(_e); if (!wh) { return null }
@@ -117,7 +117,7 @@ class EIslemFiltre extends Secimler {
 			case 'SR': this.tbWhereClauseDuzenle_srMustahsilMakbuzFis(e); break
 		}
 		wh = e.where; if (!wh) { return }
-		const _e = $.extend({}, e, { where: new MQWhereClause() }) this.tbWhereClauseDuzenle_cari(_e); const cariWh = _e.where;
+		const _e = $.extend({}, e, { where: new MQWhereClause() }); this.tbWhereClauseDuzenle_cari(_e); const cariWh = _e.where;
 		if (cariWh && !$.isEmptyObject(cariWh.liste)) { if (psTip == 'ST') { e.where = null; return } wh.birlestir(cariWh) }
 	}
 	tbWhereClauseDuzenle_basit(e) {
