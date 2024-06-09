@@ -1,3 +1,12 @@
 jqx\
 *.zip
 *.rar
+*.7z
+images/
+lib_external/jqx/
+lib_external/bulma/
+lib_external/bootstrap/
+lib_external/etc/
+alasql.js
+sql-asm.debug.js
+sql-wasm.debug.js
