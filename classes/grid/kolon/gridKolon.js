@@ -159,14 +159,15 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	get genislikCh() { const value = this.genislik; return value ? value * katSayi_px2Ch : value; }
 	set genislikCh(value) { this.genislik = value ? value * katSayi_ch2Px : value; return this }
 	get sqlIcinUygunmu() { return this.sql !== false }
+	get sabitmi() { return !!this.attributes.pinned }
 	get isEditable() { return !!this.attributes.editable }
 	set isEditable(value) {  this.attributes.editable = value }
+	get isHidden() { return !!this.attributes.hidden }
+	set isHidden(value) { this.attributes.hidden = value }
 	hidden() { this.attributes.hidden = true; return this }
 	visible() { this.attributes.hidden = false; return this }
-	get isHidden() { return !!this.attributes.hidden }
 	sabitle() { this.attributes.pinned = true; return this }
 	serbestBirak() { this.attributes.pinned = false; return this }
-	get sabitmi() { return !!this.attributes.pinned }
 	alignLeft() { this.align = 'left'; return this }
 	alignCenter() { this.align = 'center'; return this }
 	alignRight() { this.align = 'right'; return this }

@@ -323,9 +323,9 @@ class FormBuilderBase extends CObject {
 		const id = typeof e == 'object' ? e.id : e;
 		const etiket = typeof e == 'object' ? e.etiket : _etiket;
 		const value = typeof e == 'object' ? e.value : _value;
-		const placeHolder = typeof e == 'object' ? coalesce(e.placeHolder, e.placeholder) : _placeHolder;
+		const placeHolder = typeof e == 'object' ? e.placeHolder ?? e.placeholder : _placeHolder;
 		const maxLength = typeof e == 'object' ? e.maxLength : _maxLength;
-		const builder = new FBuilder_TextInput({ id: id, etiket: etiket, value: value, placeHolder: placeHolder, maxLength: maxLength });
+		const builder = new FBuilder_TextInput({ id, etiket, value: value, placeHolder,  maxLength });
 		this.add(builder);
 		return builder
 	}

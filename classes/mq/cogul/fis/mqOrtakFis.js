@@ -97,8 +97,7 @@ class MQOrtakFis extends MQDetayli {
 			result = await this.disKaydetSonrasi_trn(e); if (result === false) { return false }
 			return await this.yaz(e)
 		};
-		const trnResult = await app.sqlTrnDo(e);
-		result = await this.disKaydetSonrasiIslemler(e); if (result === false) { return false }
+		const trnResult = await app.sqlTrnDo(e); result = await this.disKaydetSonrasiIslemler(e); if (result === false) { return false }
 		return trnResult?.result ?? trnResult
 	}
 	disKaydetOncesi_trn(e) { } disKaydetSonrasi_trn(e) { }
@@ -109,23 +108,22 @@ class MQOrtakFis extends MQDetayli {
 			const {trnId} = e, fis = this, tip2BakiyeDict = {}, tip2Table = {};
 			for (const bakiyeci of bakiyeciler) {
 				const {tipKod, table} = bakiyeci.class; if (!tipKod) { continue }
-				const bakiyeDict = await bakiyeci.getBakiyeDict({ trnId, fis }); if (!bakiyeDict) { continue }
+				const bakiyeDict = await bakiyeci.getBakiyeDict({ fis }); if (!bakiyeDict) { continue }
 				tip2BakiyeDict[tipKod] = bakiyeDict; tip2Table[tipKod] = table
 				/*debugger*/
 			}
 		}
 	}
+	async degistirSonrasiIslemler(e) { await super.degistirSonrasiIslemler(e); const {trnId, eskiFis} = e, {bakiyeciler} = this }
+	async silmeSonrasiIslemler(e) { await super.silmeSonrasiIslemler(e); const {trnId} = e, {bakiyeciler} = this }
 	alternateKeyHostVarsDuzenle(e) {
 		super.alternateKeyHostVarsDuzenle(e); const {hv} = e;
 		hv[this.class.noSaha] = coalesce(this.fisNo, null)
 	}
-	setValues(e) {
-		super.setValues(e); const {rec} = e;
-		this.fisNo = rec[this.class.noSaha] || 0
-	}
+	setValues(e) { super.setValues(e); const {rec} = e; this.fisNo = rec[this.class.noSaha] || 0 }
 	bakiyeSqlOrtakDuzenle(e) {
-		const {sent} = e, {table, sayacSaha} = this.class, {paramName_fisSayac, sayac} = this;
-		sent.fromAdd(`${table} fis`); sent.where.add(`fis.${sayacSaha} = ${paramName_fisSayac}`)
+		const {sent} = e, {table, sayacSaha} = this.class, {paramName_fisSayac} = e, {sayac} = this;
+		sent.fromAdd(`${table} fis`); sent.where.add(`fis.${sayacSaha} = ${sayac ? MQSQLOrtak.sqlServerDegeri(sayac) : paramName_fisSayac}`)
 	}
 	uiDuzenle_fisGiris(e) {
 		const {fisBaslikOlusturucular} = this;

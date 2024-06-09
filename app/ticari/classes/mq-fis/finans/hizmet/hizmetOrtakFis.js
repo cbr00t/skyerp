@@ -651,11 +651,7 @@ class KrediKartiIleMasrafOdemeGridci extends HizmetOrtakGridci {
 		const evt = e.event, target = $(evt?.currentTarget), gridWidget = target?.jqxGrid('getInstance');
 		const cell = gridWidget.getselectedcell() || {}; const rowIndex = cell.rowindex, belirtec = cell.datafield;
 		const bedelSaha = e.bedelSaha || 'brutBedel';
-		if (belirtec == bedelSaha || belirtec == 'dvBedel') {
-			$.extend(e, { gridPart: e.gridPart ?? e.sender, gridWidget, rowIndex, belirtec });
-			this.taksitlendirIstendi(e);
-			return false
-		}
+		if (belirtec == bedelSaha || belirtec == 'dvBedel') { $.extend(e, { gridPart: e.gridPart ?? e.sender, gridWidget, rowIndex, belirtec }); this.taksitlendirIstendi(e); return false }
 	}
 	async taksitlendirIstendi(e) {
 		e = e || {};

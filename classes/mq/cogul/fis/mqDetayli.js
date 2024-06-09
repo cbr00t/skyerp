@@ -102,7 +102,7 @@ class MQDetayli extends MQSayacli {
 		e.fis = e.fis || this; e.fisSinif = e.fisSinif || this.class;
 		let {detaySinif} = e; if (!detaySinif && e.detaySiniflar) detaySinif = (e.detaySiniflar ?? this.detaySiniflar)[0]; if (!detaySinif) return null
 		const alias = detaySinif.tableAlias || MQDetay.tableAlias, aliasVeNokta = detaySinif.aliasVeNokta || `${alias}.`;
-		const {stm, uni} = e; const sent = e.sent = new MQSent({ from: detaySinif.tableAndAlias, sahalar: [`${aliasVeNokta}*`] }); uni.add(sent);
+		const {stm, uni} = e; const sent = e.sent = new MQSent({ from: `${detaySinif.getDetayTable({ fis: this })} ${alias}`, sahalar: [`${aliasVeNokta}*`] }); uni.add(sent);
 		const tabloKolonlari = detaySinif.listeBasliklari ?? e.tabloKolonlari;
 		for (const colDef of tabloKolonlari) {
 			if (!colDef.sqlIcinUygunmu) { continue }
@@ -124,10 +124,7 @@ class MQDetayli extends MQSayacli {
 				recs.push(..._recs)
 			}
 		}
-		if (!$.isEmptyObject(recs)) {
-			const ilkRec = recs[0];
-			if (ilkRec.seq != null) { recs.sort((a, b) => a.seq < b.seq ? -1 : 1) }
-		}
+		if (!$.isEmptyObject(recs)) { const ilkRec = recs[0]; if (ilkRec.seq != null) { recs.sort((a, b) => a.seq < b.seq ? -1 : 1) } }
 		return recs
 	}
 	static loadServerData_detaylar_queryOlustur(e) {
@@ -148,10 +145,10 @@ class MQDetayli extends MQSayacli {
 			const {stm} = e, fisTableAndAlias = this.tableAndAlias, fisAlias = this.tableAlias, {sayacSaha} = this;
 			const sahalarAlinmasinFlag = e.sahalarAlinmasinFlag ?? e.sahalarAlinmasin; let result;
 			for (const detaySinif of detaySiniflar) {
-				const alias = detaySinif.tableAlias || MQDetay.tableAlias, {fisSayacSaha} = detaySinif;
+				const table = detaySinif.getDetayTable({ fisSinif: this }), alias = detaySinif.tableAlias || MQDetay.tableAlias, {fisSayacSaha} = detaySinif;
 				const aliasVeNokta = detaySinif.aliasVeNokta || `${alias}.`, uni = stm.sent;
 				const sent = e.sent = new MQSent({
-					from: detaySinif.tableAndAlias, /* sahalar: [`${aliasVeNokta}*`] */
+					from: `${table} ${alias}`, /* sahalar: [`${aliasVeNokta}*`] */
 					fromIliskiler: [{ from: fisTableAndAlias, iliski: `${aliasVeNokta}${fisSayacSaha} = ${fisAlias}.${sayacSaha}` }]
 				}); uni.add(sent);
 				if (!sahalarAlinmasinFlag) {
@@ -217,20 +214,20 @@ class MQDetayli extends MQSayacli {
 	}
 	detaylariYukleSonrasi(e) { }
 	async yaz(e) {
-		/* üst'e bakma */ e = e || {}; this.detaylariNumaralandir(e);
+		/* üst'e bakma */ e = e || {}; this.detaylariNumaralandir(e); let _sayac = this.sayac;
 		e.proc = async e => {
-			await this.yeniTanimOncesiIslemler(e); const _e = $.extend({}, e, { toplu: new MQToplu()/*.withDefTrn()*/, paramName_fisSayac: '@fisSayac' });
+			await this.yeniTanimOncesiIslemler(e); const _e = $.extend({}, e, { toplu: new MQToplu().withTrn(), paramName_fisSayac: '@fisSayac' });
 			await this.topluYazmaKomutlariniOlustur(_e); await this.topluYazmaKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) { return true }
 			const {trnId} = e, result = (await app.sqlExecNoneWithResult({ trnId, query: _e.toplu }) || {})[0], sqlParam = result.params[_e.paramName_fisSayac] || {};
 			const fisSayac = asInteger(sqlParam.value) || null; if (!fisSayac) { throw { isError: true, rc: 'fisSayac', errorText: 'Kaydedilen fiş için sayaç bilgisi belirlenemedi' } }
 			this.sayac = fisSayac; await this.yeniSonrasiIslemler(e); return result
 		};
-		return (await app.sqlTrnDo(e)).result
+		try { return (await app.sqlTrnDo(e)).result } catch (ex) { this.sayac = _sayac; throw ex }
 	}
 	async degistir(e) {
 		/* üst'e bakma */ e = e || {}; this.detaylariNumaralandir(e);
 		e.proc = async e => {
-			await this.degistirOncesiIslemler(e); const _e = $.extend({}, e, { toplu: new MQToplu()/*.withDefTrn()*/ });
+			await this.degistirOncesiIslemler(e); const _e = $.extend({}, e, { toplu: new MQToplu().withTrn() });
 			await this.topluDegistirmeKomutlariniOlustur(_e); await this.topluDegistirmeKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) { return true }
 			const {trnId} = e, result = (await app.sqlExecNoneWithResult({ trnId, query: _e.toplu || {} }))[0];
 			await this.degistirSonrasiIslemler(e); return result
@@ -240,7 +237,7 @@ class MQDetayli extends MQSayacli {
 	async sil(e) {
 		/* üst'e bakma */ e = e || {}; const {sayac} = this; if (!sayac) throw { isError: true, rc: 'fisSayac', errorText: 'Silinecek kayıt belirlenemiyor' };
 		e.proc = async e => {
-			await this.silmeOncesiIslemler(e); const _e = $.extend({}, e, { toplu: new MQToplu()/*.withDefTrn()*/, sayac });
+			await this.silmeOncesiIslemler(e); const _e = $.extend({}, e, { toplu: new MQToplu().withTrn(), sayac });
 			await this.topluSilmeKomutlariniOlustur(_e); await this.topluSilmeKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) { return true }
 			const {trnId} = e; const result = await app.sqlExecNone({ trnId, query: _e.toplu }); await this.silmeSonrasiIslemler(e); return result
 		};
@@ -265,8 +262,8 @@ class MQDetayli extends MQSayacli {
 		const detHVArg = { fis: this.shallowCopy() }; detHVArg.fis.sayac = new MQSQLConst(paramName_fisSayac);
 		const {detaylar} = this, detTable2HVListe = e.detTable2HVListe = {};
 		for (const det of detaylar) {
-			const hv = det.hostVars(detHVArg); if (!hv) return false
-			const detTable = det.class.table, hvListe = detTable2HVListe[detTable] = detTable2HVListe[detTable] || [];
+			const hv = det.hostVars(detHVArg); if (!hv) { return false }
+			const detTable = det.class.getDetayTable(detHVArg), hvListe = detTable2HVListe[detTable] = detTable2HVListe[detTable] || [];
 			hvListe.push(hv)
 		}
 		for (const detTable in detTable2HVListe) { const hvListe = detTable2HVListe[detTable]; toplu.add(new MQInsert({ table: detTable, hvListe })) }
@@ -279,9 +276,8 @@ class MQDetayli extends MQSayacli {
 			if (!harSayacSaha) { harSayacSaha = det.class.sayacSaha }
 			if (!fisSayacSaha) { fisSayacSaha = det.class.fisSayacSaha }
 			if (!seqSaha) { seqSaha = det.class.seqSaha }
-			const hv = det.hostVars(detHVArg); if (!hv) { return false }
-			hv._harsayac = det.okunanHarSayac;		/* yeni kayıt için null aksinde okunan harsayac */
-			const detTable = det.class.table, hvListe = detTable2HVListe[detTable] = detTable2HVListe[detTable] || [];
+			const hv = det.hostVars(detHVArg); if (!hv) { return false } hv._harsayac = det.okunanHarSayac;		/* yeni kayıt için null aksinde okunan harsayac */
+			const detTable = det.class.getDetayTable(detHVArg), hvListe = detTable2HVListe[detTable] = detTable2HVListe[detTable] || [];
 			hvListe.push(hv)
 		}
 		const fisHV = this.hostVars(e), keyHV = this.keyHostVars($.extend({}, e, { varsayilanAlma: true }));

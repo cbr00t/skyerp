@@ -90,6 +90,7 @@ class MQToplu extends MQClause {
 		const {trnFlag} = this;
 		if (trnFlag) {
 			// e.result += 'DECLARE @tranCount INT = @@TRANCOUNT' + CrLf;
+			e.result += `DECLARE @trnUsed BIT = (case @@TRANCOUNT when 0 then 1 else 0 end)`
 			if (typeof trnFlag == 'string' && trnFlag.toLowerCase() == 'deftrn') {
 				e.result += 'IF @@TRANCOUNT > 0 BEGIN' + CrLf;
 				e.result += 'ROLLBACK' + CrLf;
@@ -102,8 +103,8 @@ class MQToplu extends MQClause {
 		}
 		super.buildString_baslangicsiz(e);
 		if (trnFlag) {
-			e.result += CrLf + CrLf + 'IF @@TRANCOUNT = 1 COMMIT' + CrLf + `END TRY` + CrLf + CrLf;
-			e.result += 'BEGIN CATCH' + CrLf + 'IF @@TRANCOUNT > 0 ROLLBACK;' + CrLf + 'THROW' + CrLf + `END CATCH`
+			e.result += CrLf + CrLf + 'IF (@trnUsed <> 0 AND @@TRANCOUNT = 1) COMMIT' + CrLf + `END TRY` + CrLf + CrLf;
+			e.result += 'BEGIN CATCH' + CrLf + 'IF (@trnUsed <> 0 AND @@TRANCOUNT > 0) ROLLBACK;' + CrLf + 'THROW' + CrLf + `END CATCH`
 		}
 		return this
 	}

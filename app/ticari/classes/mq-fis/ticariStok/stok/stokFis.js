@@ -4,11 +4,13 @@ class StokFis extends TSOrtakFis {
 	static get baslikOzelAciklamaTablo() { return 'stbasekaciklama' } static get dipSerbestAciklamaTablo() { return 'stdipaciklama' }
 	static get dipEkBilgiTablo() { return 'stdipekbilgi' } static get detaySinif() { return super.detaySinif }
 	static detaySiniflarDuzenle(e) { super.detaySiniflarDuzenle(e) }
-	static get aciklamaDetaySinif() { return StokAciklamaDetay } static get gridKontrolcuSinif() { return StokGridKontrolcu }
+	static get gridKontrolcuSinif() { return StokGridKontrolcu }
 	static get stokmu() { return true } static get gcTipi() { return null } static get ozelTip() { return '' } static get fisEkAyrim() { return '' }
+	static get tsStokDetayTable() { return 'ststok' } static get tsFasonDetayTable() { return 'stfsstok' }
+	static get tsDemirbasDetayTable() { return 'stdemirbas' } static get tsAciklamaDetayTable() { return 'staciklama' }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
-		$.extend(pTanim, { yerKod: new PInstStr('yerkod') })
+		$.extend(pTanim, { yerKod: new PInstStr({ rowAttr: 'yerkod', init: e => 'A' }), yerOrtakmi: new PInstTrue('byerortakdir') })
 	}
 	static secimlerDuzenle(e) {
 		super.secimlerDuzenle(e); const {secimler} = e;
@@ -90,7 +92,5 @@ class StokTransferOrtakFis extends StokFis {
 		stm = e.stm = uni.asToplamStm(); e.sent = stm.sent
 	}
 }
-class StokTransferFis extends StokTransferOrtakFis {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-}
+class StokTransferFis extends StokTransferOrtakFis { static { window[this.name] = this; this._key2Class[this.name] = this } }
 

@@ -7,10 +7,10 @@ class Ticari_TrnListTest extends Ticari_TestBase {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'trnList' }
 	constructor(e) { e = e || {}; super(e); Object.assign(this, { delayMS: e.delay ?? e.delayMS, showTableFlag: e.showTable ?? e.withTable }) }
 	async runInternal(e) {
-		await super.runInternal(e); await this.wsLogin(e); const {showTableFlag} = this, {tip} = this.class, delayMS = this.delayMS ?? 500;
+		await super.runInternal(e); const {showTableFlag} = this, {tip} = this.class, delayMS = this.delayMS ?? 500;
 		console.debug('test', tip, 'başladı'); let result;
 		try {
-			result = await this.ajaxGet({ api: 'sqlTrnList' }); if (!Object.keys(result).length) { result = undefined }
+			await this.wsLogin(e); result = await this.ajaxGet({ api: 'sqlTrnList' }); if (!Object.keys(result).length) { result = undefined }
 			if (result) { if (showTableFlag) { console.table(result) } else { console.info(result) } }
 		}
 		catch (ex) { console.error('test', tip, getErrorText(ex, this.wsURLBase)) }

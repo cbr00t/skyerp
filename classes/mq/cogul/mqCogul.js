@@ -655,7 +655,11 @@ class MQCogul extends MQYapi {
 		e = e || {}; const {belirtec} = e, _e = $.extend({}, e, { mfSinif: this, belirtec, liste: [], kodEtiket: e.kodEtiket, adiEtiket: e.adiEtiket });
 		const gridKolonGrupcu = e.gridKolonGrupcu || 'getGridKolonGrup';
 		let colDef = $.isFunction(gridKolonGrupcu) ? getFuncValue.call(this, gridKolonGrupcu, _e) : getFuncValue.call(this, this[gridKolonGrupcu], _e);
-		if (colDef) { const sabitleFlag = e.sabitle ?? e.sabitleFlag; if (sabitleFlag) colDef.sabitle(); _e.liste.push(colDef) }
+		if (colDef) {
+			const sabitleFlag = e.sabitle ?? e.sabitleFlag, hiddenFlag = e.hidden ?? e.hiddenFlag;
+			if (sabitleFlag) { colDef.sabitle() } if (hiddenFlag) { colDef.hidden() }
+			_e.liste.push(colDef)
+		}
 		this.gridKolonlarDuzenle(_e); return _e.liste
 	}
 	static gridKolonlarDuzenle(e) { this.forAltYapiClassesDo('gridKolonlarDuzenle', e) }

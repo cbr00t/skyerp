@@ -16,7 +16,7 @@ class Bakiyeci extends CObject {
 		$.extend(this, { borcmu: e.borcmu ?? e.borc, bakiyeSqlci: e.bakiyeSqlci, sqlDuzenleyici: e.sqlDuzenleyici ?? e.sqlDuzenleSelector ?? this.class.defaultBakiyeSqlDuzenleSelector })
 	}
 	async getBakiyeDict(e) {
-		const result = {}; const {anahtarSahalar, sumSahalar} = this.class, {trnId} = e;
+		const result = {}; const {anahtarSahalar, sumSahalar} = this.class, {trnId} = e, borcmu = e.borcmu = getFuncValue.call(this, this.borcmu, e);
 		let stm = await this.getBakiyeSql(e), recs = stm ? await app.sqlExecSelect({ trnId, query: stm }) : [];
 		for (const rec of recs) {
 			const anahStr = anahtarSahalar.map(key => rec[key]?.trimEnd()).join(delimWS), degerler = sumSahalar.map(key => rec[key]);
@@ -26,14 +26,12 @@ class Bakiyeci extends CObject {
 	}
 	getBakiyeSql(e) {
 		const {bakiyeSqlci} = this; if (bakiyeSqlci) { return getFuncValue.call(this, bakiyeSqlci, e) }
-		const {fis} = e, {borcmu} = this; let {sqlDuzenleyici} = this.class;
+		const {fis} = e, {borcmu} = this; let {sqlDuzenleyici} = this;
 		if (fis || sqlDuzenleyici) {
-			if (e.fisSayac == null) { e.fisSayac = fis.sayac }
-			e.borcmu = getFuncValue.call(this, borcmu, e);
-			if (typeof sqlDuzenleyici == 'string') { sqlDuzenleyici = fis[sqlDuzenleyici] };
-			const sent = e.sent = new MQSent(), stm = e.stm = new MQStm({ sent });
-			fis.bakiyeSqlOrtakDuzenle(e); if (sqlDuzenleyici) {getFuncValue.call(this, sqlDuzenleyici, e) }
-			let sahaVarmi = false; for (const _sent of stm.getSentListe()) { if (_sent?.sahalar?.liste?.length) { sahaVarmi = true; break } }
+			if (e.fisSayac == null) { e.fisSayac = fis.sayac } e.borcmu = getFuncValue.call(this, borcmu, e);
+			let receiver = this; if (typeof sqlDuzenleyici == 'string') { receiver = fis; sqlDuzenleyici = fis[sqlDuzenleyici] }; const sent = e.sent = new MQSent(), stm = e.stm = new MQStm({ sent });
+			fis.bakiyeSqlOrtakDuzenle(e); if (sqlDuzenleyici) { getFuncValue.call(receiver, sqlDuzenleyici, e) }
+			let sahaVarmi = false; for (const _sent of stm.getSentListe()) { if (_sent?.sahalar?.liste?.length) { sahaVarmi = true; sent.groupByOlustur(); break } }
 			return sahaVarmi ? stm : null
 		}
 		return null

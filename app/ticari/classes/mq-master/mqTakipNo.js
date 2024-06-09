@@ -14,9 +14,6 @@ class MQTakipNo extends MQKA {
 		return super.getGridKolonGrup(e)
 	}
 	static getGridKolonlar(e) {
-		const liste = [];
-		if (app.params.ticariGenel.kullanim.takipNo)
-			liste.push(...super.getGridKolonlar(e))
-		return liste
+		const liste = []; if (app.params.ticariGenel.kullanim.takipNo) { liste.push(...super.getGridKolonlar(e)) } return liste
 	}
 }

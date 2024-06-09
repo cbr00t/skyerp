@@ -224,8 +224,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 		this.kaydetCalistimi = true; this.destroyPart(); return true
 	}
 	kaydetDevam(e) {
-		const {kontrolcu} = this;
-		let result = kontrolcu.grid2Fis(e);
+		const {kontrolcu} = this; let result = kontrolcu.grid2Fis(e);
 		if (result != true) {
 			if (result.errorText) hConfirm(`<div class="red">${result.errorText}</div>`);
 			if (result.returnAction) {
@@ -241,17 +240,17 @@ class FisGirisPart extends GridliGirisWindowPart {
 	}
 	async kaydet(e) {
 		e = e || {}; const {fis} = this;
-		let result = await this.kaydetOncesi(e); if (result == false || result?.isError) return result
+		let result = await this.kaydetOncesi(e); if (result == false || result?.isError) { return result}
 		if (this.yeniVeyaKopyami) { result = await fis.yaz(e) }
 		else if (this.degistirmi) { result = await fis.degistir(e) }
 		else if (this.silmi) { result = await fis.sil(e) }
 		else { return false }
 		if (result == false || result?.isError) return result
-		result = await this.kaydetSonrasi(e); if (result == false || result?.isError) return result
+		result = await this.kaydetSonrasi(e); if (result == false || result?.isError) { return result }
 		return result
 	}
 	async kaydetOncesi(e) {
-		e = e || {}; const {yeniVeyaKopyami, degistirVeyaSilmi, builder, gridPart, islem, eskiFis} = this; let {fis} = this;
+		e = e || {}; const {yeniVeyaKopyami, degistirVeyaSilmi, builder, islem, eskiFis} = this, gridPart = this, {gridWidget} = gridPart; let {fis} = this;
 		const _e = $.extend({}, e, { sender: this, builder, gridPart, islem, fis, eskiFis, yeniVeyaKopyami });
 		if (degistirVeyaSilmi) { e.eskiFis = this.eskiFis }
 		if (yeniVeyaKopyami) {
@@ -263,6 +262,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 				}
 			}
 		}
+		if (gridWidget?.editcell) { gridWidget.endcelledit() }
 		await fis.uiKaydetOncesiIslemler(_e); for (const key of ['islem', 'fis', 'eskiFis']) { const value = _e[key]; if (value !== undefined) this[key] = e[key] = value }
 		fis = this.fis; return true
 	}

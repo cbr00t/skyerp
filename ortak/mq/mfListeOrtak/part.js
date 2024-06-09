@@ -440,7 +440,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			if (inst === undefined && mfSinif.yeniInstOlustur) inst = await mfSinif.yeniInstOlustur(_e)
 			if (inst === undefined) inst = new mfSinif(_e)
 			if (inst == null) return false; inst.keySetValues({ rec });
-			if (!await inst.yukle(_e)) { const mesaj = 'Seçilen satır için bilgi yüklenemedi'; throw { isError: true, rc: 'instBelirle', errorText: mesaj } }
+			/*if (!await inst.yukle(_e)) { const mesaj = 'Seçilen satır için bilgi yüklenemedi'; throw { isError: true, rc: 'instBelirle', errorText: mesaj } }*/
 			await inst.sil()
 		}
 	}

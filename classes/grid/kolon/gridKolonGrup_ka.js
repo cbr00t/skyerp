@@ -99,7 +99,7 @@ class GridKolonGrup_KA extends GridKolonGrup {
 					const {mfSinif, kodAttr, adiAttr} = this, {kodSaha, adiSaha} = mfSinif; if (!(kodSaha && kodAttr)) return
 					const {dataBlock, gridPart} = this, {grid, gridWidget} = gridPart, {args} = e, {colDef} = args;
 					const dataField = args.datafield, rowIndex = args.rowindex, oldValue = args.oldvalue; let newValue = args.newvalue;
-					const gridRec = gridWidget.getrowdata(rowIndex); if (!gridRec || gridRec.gridKADesteklenmezmi) return
+					const gridRec = gridWidget.getrowdata(rowIndex); if (!gridRec || gridRec.gridKADesteklenmezmi) { return }
 					let recPromise, rec, setValueYapildimi = false;
 					if (dataBlock) {
 						recPromise = new $.Deferred();
@@ -239,12 +239,11 @@ class GridKolonGrup_KA extends GridKolonGrup {
 				}
 			}*/
 		}
-		const {tabloKolonlari} = e, colDefs = [kaKolonu];
-		for (const colDef of colDefs) { if (colDef) tabloKolonlari.push(colDef) }
+		const {tabloKolonlari} = e, colDefs = [kaKolonu]; for (const colDef of colDefs) { if (colDef) tabloKolonlari.push(colDef) }
 	}
 	getDataAdapter(e) {
 		e = e || {}; const {dataBlock, mfSinif} = this; if (!dataBlock) return null
-		if (mfSinif) e.mfSinif = mfSinif
+		if (mfSinif) { e.mfSinif = mfSinif }
 		return new $.jqx.dataAdapter({ dataType: wsDataType, url: 'empty.json', data: e }, {
 			autoBind: true, 
 			loadServerData: async (wsArgs, source, callback) => {
@@ -253,24 +252,28 @@ class GridKolonGrup_KA extends GridKolonGrup {
 					const _e = $.extend({ sender: this, callback }, wsArgs); let result = await getFuncValue.call(this, dataBlock, _e);
 					if (result) {
 						if ($.isArray(result)) result = { totalrecords: result.length, records: result };
-						if (typeof result == 'object') {
-							if (result.records && !result.totalrecords) result.totalrecords = result.records.length
-							callback(result)
-						}
+						if (typeof result == 'object') { if (result.records && !result.totalrecords) { result.totalrecords = result.records.length } callback(result) }
 					}
 				}
-				catch (ex) {
-					console.error(ex); const errorText = getErrorText(ex);
-					hConfirm(`<div class="bold firebrick" style="padding: 13px 8px;">${errorText}</div>`, 'Grid AutoComplete Verisi Alınamadı')
-				}
+				catch (ex) { console.error(ex); const errorText = getErrorText(ex); hConfirm(`<div class="bold firebrick" style="padding: 13px 8px;">${errorText}</div>`, 'Grid AutoComplete Verisi Alınamadı') }
 			}
 		})
 	}
+	get attributes() { return this.kaKolonu.attributes }
+	get sabitmi() { return this.kaKolonu.sabitmi } get isEditable() { return this.kaKolonu.isEditable } set isEditable(value) { this.kaKolonu.isEditable = value }
+	get isHidden() { return this.kaKolonu.isHidden } set isHidden(value) { this.kaKolonu.isHidden = value }
+	hidden() { this.kaKolonu.hidden(); return this } visible() { this.kaKolonu.visible(); return this }
+	sabitle() { this.kaKolonu.sabitle(); return this } serbestBirak() { this.kaKolonu.serbestBirak(); return this }
+	alignLeft() { this.kaKolonu.alignLeft(); return this } alignCenter() { this.kaKolonu.alignCenter(); return this } alignRight() { this.kaKolonu.alignRight(); return this }
+	noSql() { this.kaKolonu.noSql(); return this } resetNoSql() { this.kaKolonu.resetNoSql(); return this }
+	sifirGosterme() { this.kaKolonu.sifirGosterme(); return this } sifirGoster() { this.kaKolonu.sifirGoster(); return this }
+	kodGosterilsin() { this.kaKolonu.kodGosterilsin(); return this }
+	kodGosterilmesin() { this.kaKolonu.kodGosterilmesin(); return this }
+	kodsuz() { return this.kodGosterilmesin() }
 	degisince(block) { this.ekDegisinceHandlers.push(block); return this }
 	gelince(block) { this.ekGelinceHandlers.push(block); return this }
 	ozelStmDuzenleyiciTrigger(e) { this.ozelStmDuzenleyiciTriggerFlag = true; return this }
 	ozelStmDuzenleyiciNoTrigger(e) { this.ozelStmDuzenleyiciTriggerFlag = false; return this }
-	sabitle() { this.kaKolonu.sabitle(); return this; } serbestBirak() { this.kaKolonu.serbestBirak(); return this }
 }
 
 

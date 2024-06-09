@@ -147,7 +147,7 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 	setValueIslemi(handler) { this._setValue = handler; return this }
 	setValue(value) { const {input} = this; if (input?.length) { this.value = value } else { this._value = value; this._initValueSetFlag = true } return this }
 	setPlaceHolder(value) { this.placeHolder = value; return this }
-	setPlaceholder(value) { return this.setPlaceholder(value) }
+	setPlaceholder(value) { return this.setPlaceHolder(value) }
 }
 class FBuilder_SimpleElement extends FormBuilder_SubPart {
     static { window[this.name] = this; this._key2Class[this.name] = this }

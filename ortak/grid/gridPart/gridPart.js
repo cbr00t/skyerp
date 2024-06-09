@@ -453,8 +453,7 @@ class GridPart extends Part {
 		return _e.result
 	}
 	tazeleDefer(e) {
-		e = e || {}; const deferMS = e.deferMS ?? 1300;
-		const timerKey = '_timer_tazeleDefer'; clearTimeout(this[timerKey]);
+		e = e || {}; const deferMS = e.deferMS ?? 1300; const timerKey = '_timer_tazeleDefer'; clearTimeout(this[timerKey]);
 		this[timerKey] = setTimeout(() => { try { this.tazele(e) } finally { delete this[timerKey] } } )
 		return this
 	}
@@ -483,6 +482,8 @@ class GridPart extends Part {
 		/* const gridContent = this.grid; gridContent.addClass('fade-inout'); setTimeout(() => gridContent.removeClass('fade-inout'), 1000); */
 		this.columns = jqxCols; return this
 	}
+	showColumn(belirtec) { const {gridWidget} = this; gridWidget.showcolumn(belirtec); return this }
+	hideColumn(belirtec) { const {gridWidget} = this; gridWidget.hidecolumn(belirtec); return this }
 	focus(e) { this.gridWidget.focus(); return this }
 	sabit() { this.sabitFlag = true; return this }
 	sabitDegil() { this.sabitFlag = false; return this }
