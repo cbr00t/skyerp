@@ -665,12 +665,11 @@ class FormBuilderBase extends CObject {
 	getItemsAndSelf() { return this.getBuildersWithSelf() }
 	getItems() { return this.getBuilders() }
 	*getBuilders(e) {
-		e = $.extend({}, e || {});
-		if (e.withSelf) { delete e.withSelf; yield this }
+		e = $.extend({}, e || {}); if (e.withSelf) { delete e.withSelf; yield this }
 		const {builders} = this;
 		for (const key in builders) {
 			const builder = builders[key]; yield builder;
-			for (const subBuilder of builder.getBuilders(e)) yield subBuilder
+			for (const subBuilder of builder.getBuilders(e)) { yield subBuilder }
 		}
 	}
 	getBuildersWithSelf(e) { e = $.extend({}, e || {}, { withSelf: true }); return this.getBuilders(e) }
