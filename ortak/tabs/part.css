@@ -5,7 +5,7 @@
 	--tabs-header-height: 36px; --tabs-tabPage-height: var( --tabs-header-height); --tabs-header-margin-bottom: 0px;
 	--tabs-header-bottom: calc(var(--tabs-header-height) + var(--tabs-header-margin-bottom))
 }
-.skyTabs.part { z-index: 1050 !important; position: fixed }
+.skyTabs.part { z-index: 3 !important; position: fixed }
 .skyTabs.part > #toggle {
 	position: absolute !important; left: var(--tabs-toggle-button-left) !important; top: var(--tabs-toggle-button-top) !important; width: var(--tabs-toggle-button-width) !important; height: var(--tabs-toggle-button-height) !important;
 	background-image: url(../../images/yukari.png); background-size: 48px !important; filter: contrast(0); border: none; z-index: 1051 !important
