@@ -164,12 +164,13 @@ class MQStokGenelParam extends MQTicariParamBase {
 		}
 	}
 	paramSetValues(e) {
-		e = e || {}; super.paramSetValues(e); const {rec} = e,  {hmrYapi} = this;
+		e = e || {}; super.paramSetValues(e); const {rec} = e, {hmrYapi} = this;
 		const hmr = this.hmr = this.hmr || {}, hmrEtiket = this.hmrEtiket = this.hmrEtiket || {};
 		for (const [key, yapi] of Object.entries(hmrYapi)) {
 			const {rowAttr, etiketEditable} = yapi; if (!rowAttr) { continue }
-			const kullanim = rec[rowAttr]; if (kullanim != null) { hmr[key] = kullanim }
-			if (etiketEditable) { const etiket = rec[rowAttr + 'Etiket']; if (etiket) { hmrEtiket[key] = etiket } }
+			const ekRowAttr = key == 'harDet' ? 'hardet' : null;
+			const kullanim = rec[rowAttr] ?? rec[ekRowAttr]; if (kullanim != null) { hmr[key] = kullanim }
+			if (etiketEditable) { const etiket = rec[rowAttr + 'Etiket'] ?? rec[ekRowAttr + 'Etiket']; if (etiket) { hmrEtiket[key] = etiket } }
 		}
 	}
 }
