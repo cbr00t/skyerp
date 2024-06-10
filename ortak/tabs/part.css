@@ -1,105 +1,29 @@
 :root {
-	--tabs-toggle-button-left: 8px;
-	--tabs-toggle-button-top: 0;
-	--tabs-toggle-button-width: 40px;
-	--tabs-toggle-button-height: var(
-	--tabs-tabPage-height);
-	--tabs-toggle-button-right: calc(var(
-	--tabs-toggle-button-left) + var(--tabs-toggle-button-width) + 3px);
-	--tabs-toggle-button-bottom: calc(var(
-	--tabs-toggle-button-top) + var(--tabs-toggle-button-height));
-	
-	--tabs-header-height: 36px;
-	--tabs-tabPage-height: var(
-	--tabs-header-height);
-	--tabs-header-margin-bottom: 0px;
-	--tabs-header-bottom: calc(var(
-	--tabs-header-height) + var(--tabs-header-margin-bottom));
+	--tabs-toggle-button-left: 8px; --tabs-toggle-button-top: 0; --tabs-toggle-button-width: 40px; --tabs-toggle-button-height: var(--tabs-tabPage-height);
+	--tabs-toggle-button-right: calc(var(--tabs-toggle-button-left) + var(--tabs-toggle-button-width) + 3px);
+	--tabs-toggle-button-bottom: calc(var(--tabs-toggle-button-top) + var(--tabs-toggle-button-height));
+	--tabs-header-height: 36px; --tabs-tabPage-height: var( --tabs-header-height); --tabs-header-margin-bottom: 0px;
+	--tabs-header-bottom: calc(var(--tabs-header-height) + var(--tabs-header-margin-bottom))
 }
-
-.skyTabs.part {
-}
+.skyTabs.part { z-index: 1050 !important; position: fixed }
 .skyTabs.part > #toggle {
-	position: absolute !important;
-	left: var(--tabs-toggle-button-left) !important;
-	top: var(--tabs-toggle-button-top) !important;
-	width: var(--tabs-toggle-button-width) !important;
-	height: var(--tabs-toggle-button-height) !important;
-	background-image: url(../../images/yukari.png);
-	background-size: cover !important;
-	background-color: transparent;
-	filter: contrast(0);
-	/* backdrop-filter: contrast(0); */
-	border: none;
-	z-index: 1
+	position: absolute !important; left: var(--tabs-toggle-button-left) !important; top: var(--tabs-toggle-button-top) !important; width: var(--tabs-toggle-button-width) !important; height: var(--tabs-toggle-button-height) !important;
+	background-image: url(../../images/yukari.png); background-size: 48px !important; filter: contrast(0); border: none; z-index: 1051 !important
 }
 .skyTabs.part.collapsed > #toggle { background-image: url(../../images/asagi.png) }
 .skyTabs.part > .tabs {
 	width: calc(var(--full) - var(--tabs-toggle-button-right)); height: var(--tabs-header-height); margin-block: 0; padding-inline: 0;
 	margin: 0; margin-bottom: var(--tabs-header-margin-bottom); padding-left: var(--tabs-toggle-button-right); overflow-y: auto !important
 }
-
-.skyTabs.part > .tabs > .tabPage {
-	position: relative;
-	width: max-content;
-	/* margin-top: calc(var(--tabs-header-height) - var(--tabs-tabPage-height)); */
-	margin-inline: 0;
-	padding-inline: 0;
-}
-
+.skyTabs.part > .tabs > .tabPage { position: relative; width: max-content; margin-inline: 0; padding-inline: 0; }
 .skyTabs.part > .tabs > .tabPage > .header {
-	font-size: 100%;
-	color: #555;
-	/* float: left; */
-	width: var(--full);
-	height: var(--tabs-tabPage-height);
-	padding: 5px 10px;
-	padding-right: 70px;
-	/* border-radius: 3px; */
-	/* border-bottom-right-radius: 7px; */
-	border-top-left-radius: 7px;
-	border-top-right-radius: 8px;
-	/* border: 1px solid #eeeeee55; */
-	border: 1px solid transparent;
-	box-sizing: border-box;
-	user-select: none;
+	font-size: 100%; color: #555;  width: var(--full); height: var(--tabs-tabPage-height); padding: 3px 10px; padding-right: 60px;
+	border-top-left-radius: 7px; border-top-right-radius: 8px; border: 1px solid transparent; box-sizing: border-box; user-select: none;
 }
-#windows.skyTabs.part > .tabs > .tabPage:not(:hover):not(.selected) > .header {
-	/* background-color: #e8e8e86b; */
-	color: var(--s-white);
-}
-.skyTabs.part > .tabs > .tabPage > .header:hover {
-	color: #89c5f9;
-	cursor: pointer;
-	border: 1px solid #eeeeee55;
-}
-.skyTabs.part > .tabs > .tabPage.selected > .header {
-	font-weight: bold;
-	/* color: #333; */
-	/* background-color: #d8e2f9; */
-	color: royalblue;
-	background: var(--s-whitesmoke);
-	/* border: 1px solid transparent; */
-}
-
-.skyTabs.part > .tabs > .tabPage > .tabPage-button {
-	position: absolute;
-	top: 4px;
-	right: 5px;
-	font-size: 70%;
-	background-color: var(--s-white);
-}
-.skyTabs.part > .tabs > .tabPage > .tabPage-button:hover,
-.skyTabs.part > .tabs > .tabPage > .tabPage-button:focus {
-	color: #eee;
-	background-color: #b5c5f7;
-}
-.skyTabs.part > .tabs > .tabPage:not(:hover):not(.selected) > .tabPage-button {
-	visibility: hidden;
-}
-
-.skyTabs.part > .content {
-	width: var(--full);
-	height: calc(var(--full) - (var(--tabs-tabPage-height) + 0px)) !important;
-	overflow: auto
-}
+#windows.skyTabs.part > .tabs > .tabPage:not(:hover):not(.selected) > .header { /* background-color: #e8e8e86b; */ color: var(--s-white); }
+.skyTabs.part > .tabs > .tabPage > .header:hover { color: #89c5f9; cursor: pointer; border: 1px solid #eeeeee55 }
+.skyTabs.part > .tabs > .tabPage.selected > .header { font-weight: bold; color: royalblue; background: var(--s-whitesmoke) }
+.skyTabs.part > .tabs > .tabPage > .tabPage-button { position: absolute; top: 4px; right: 5px; font-size: 70%; background-color: var(--s-white) }
+.skyTabs.part > .tabs > .tabPage > .tabPage-button:hover, .skyTabs.part > .tabs > .tabPage > .tabPage-button:focus { color: #eee; background-color: #b5c5f7 }
+.skyTabs.part > .tabs > .tabPage:not(:hover):not(.selected) > .tabPage-button { visibility: hidden }
+.skyTabs.part > .content { width: var(--full); height: calc(var(--full) - (var(--tabs-tabPage-height) + 0px)) !important; overflow: auto }

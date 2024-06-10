@@ -1,2 +1,5 @@
-.gridliGosterici.part .bulForm { position: fixed; top: -5px; right: 500px; min-width: unset !important; width: 100px; height: 38px; padding: 10px; z-index: 1001 }
-@media (max-width: 1000px) { .gridliGosterici.part .bulForm { top: 0; right: 103px; width: 100px; height: 38px; padding: 5px 5px } }
+.gridliGosterici.part .bulForm { position: fixed; top: -8px; right: 400px; min-width: unset !important; width: 100px; height: 33px; padding: 10px; z-index: 1001 !important }
+.gridliGosterici.part .bulForm { opacity: .4 }
+.gridliGosterici.part .bulForm:has(:hover) { opacity: .7 }
+.gridliGosterici.part .bulForm:has(:focus), .gridliGosterici.part .bulForm:has(:active) { opacity: 1 !important }
+@media (max-width: 850px) { .gridliGosterici.part .bulForm { top: -3px; right: 320px; width: 60px; padding: 5px 5px } }

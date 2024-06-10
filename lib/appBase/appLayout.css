@@ -3,8 +3,8 @@
 	--nav-toggle-button-width: 28px;
 	--nav-toggle-button-height: 33px;
 	--appTitle-top: 0px;
-	--appTitle-height-mini: 13px;
-	--appTitle-height: 100px;
+	--appTitle-height-mini: 10px;
+	--appTitle-height: 30px;
 	--appTitle-bottom: calc(var(--appTitle-top) + var(--appTitle-height));
 	--background-image-height: 53px;
 	/*--header-image-height: var(--full);*/
@@ -24,8 +24,7 @@
 	--main-padding-y: 0px;
 	--islemTuslari-height: 45px;
 }
-* { accent-color: royalblue }
-
+* { accent-color: #1a3588 }
 body > #root-parent,
 body #ust-parent > #nav,
 body #ust-parent > #parent,
@@ -67,7 +66,7 @@ body #ust-parent { /*backdrop-filter: blur(1px);*/ }
 body #ust-parent > #parent > #windows-parent { }
 body #nav-toggle {
 	position: fixed; width: var(--nav-toggle-button-width) !important; height: var(--nav-toggle-button-height) !important;
-	top: .8%; right: 10px; z-index: 1011; opacity: .7
+	top: .5%; right: 10px; z-index: 1011; opacity: .7
 }
 body #ust-parent > #parent > #windows-parent > div > #windows > .content > div { /* mix-blend-mode: difference */ }
 .jqx-button { }
@@ -92,8 +91,8 @@ body > .header-image {
 }*/
 body > .bg-image-wrapper { width: var(--full); height: var(--background-image-height); background-color: #0327742b; opacity: .7; z-index: 1010 !important }
 body > .app-titlebar {
-	font-size: 73%; font-weight: bold; color: lightskyblue; position: fixed; top: var(--appTitle-top); right: 70px;
-	padding: .25% 10px; line-height: 20px; opacity: .8; pointer-events: none; z-index: 100 !important
+	font-size: 70%; font-weight: bold; color: lightskyblue; position: fixed; top: var(--appTitle-top); right: 70px;
+	padding: .15% 10px; line-height: 18px; opacity: .8; pointer-events: none; z-index: 100 !important
 }
 body > .app-titlebar > div { text-align: right }
 body > .app-titlebar .db-name { color: var(--s-white); z-index: -2 !important }

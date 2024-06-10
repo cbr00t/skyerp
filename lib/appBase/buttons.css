@@ -19,7 +19,7 @@ button, .jqx-button {
 }
 button, button:active, .jqx-button.jqx-fill-state-normal, .jqx-button.jqx-fill-state-hover, .jqx-button.jqx-fill-state-pressed { background-position: center !important }
 button:not(hover):not(:focus):not(:active), .jqx-button.jqx-fill-state-normal { background-color: transparent; /*background: linear-gradient(90deg, #fcfcfc 5%, #3a3a3a 80%)*/ }
-:not(.islemTuslari) > button:hover, :not(.islemTuslari) > .jqx-button.jqx-fill-state-hover { background-color: #edf2f4 }
+:not(.islemTuslari) > button:hover, :not(.islemTuslari) > .jqx-button.jqx-fill-state-hover { /*background-color: #edf2f4*/ }
 button:active .jqx-button:focus, .jqx-button.jqx-fill-state-pressed { color: #eee; background-color: #6f9cec !important }
 body > button#logout { right: 13px }
 button#sil { margin-left: 10px; margin-right: 20px } button#secimler { margin-right: 5px } button#sec, button#tamam { margin-left: 8px }

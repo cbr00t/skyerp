@@ -159,10 +159,11 @@ class MQBarkodRec extends MQMasterOrtak {
 			.degisince(e => { const {value, item, builder} = e, {altInst} = builder; altInst.perAdi = item?.aciklama })
 			.onAfterRun(e => { const {id, altInst, part} = e.builder; if (!altInst.serbestmi && altInst[id]) part.disable() });
 		const {belirtec2Bilgi} = HMRBilgi; if (!$.isEmptyObject(belirtec2Bilgi)) {
-			parentForm.addBaslik({ etiket: 'HMR' }).addStyle(e => `$elementCSS { margin-top: 10px }`);
-			form = parentForm.addFormWithParent('hmr').yanYana(1.5); /*.setVisibleKosulu(e => !e.builder.altInst.gorevmi);*/
-			for (const [belirtec, rec] of Object.entries(HMRBilgi.belirtec2Bilgi)) {
-				const {ioAttr, etiket, numerikmi, kami, mfSinif} = rec; let fbd;
+			/*parentForm.addBaslik({ etiket: 'HMR' }).addStyle(e => `$elementCSS { margin-top: 10px }`);*/
+			form = parentForm.addFormWithParent('hmr').yanYana(1.3); /*.setVisibleKosulu(e => !e.builder.altInst.gorevmi);*/
+			const {belirtec2Bilgi} = HMRBilgi, hmrEtiketDict = app.params.stokGenel?.hmrEtiket || {};
+			for (const [belirtec, rec] of Object.entries(belirtec2Bilgi)) {
+				const {ioAttr, numerikmi, kami, mfSinif} = rec, etiket = hmrEtiketDict.etiket || rec.etiket; let fbd;
 				if (kami && mfSinif) { fbd = form.addModelKullan(ioAttr, etiket).setMFSinif(mfSinif).addStyle_wh(300) }
 				else { fbd = form[numerikmi ? 'addNumberInput' : 'addTextInput'](ioAttr, etiket).addStyle_wh(130) }
 				if (fbd) { fbd.setAltInst(e => e.builder.inst.ekOzellikler) }
@@ -320,8 +321,9 @@ class MQBarkodRec extends MQMasterOrtak {
 		const {stokKod, opNo, onceOpNo, sonAsamami, oemSayac} = this, ilkOpermi = !onceOpNo, seriNoRecs = this._seriNoRecs, serbestSeriNolar = this._serbestSeriNolar;
 		const miktar = this.miktar ?? 0, bitTS = suAnmi ? null : asDate(this.bitTS);
 		const {hmr2Belirtec} = stokGenelParam, hmrListe = HMRBilgi.belirtecListe, hmrBelirtecListe = hmrListe.map(key => hmr2Belirtec[key]).filter(value => !!value);
-		const argHMRVeDegerListe = []; for (const [key, value] of Object.entries(ekOzellikler)) {
+		const argHMRVeDegerListe = []; for (let [key, value] of Object.entries(ekOzellikler)) {
 			if (value == null) { continue } const belirtec = hmr2Belirtec[key]; if (!belirtec) { continue }
+			if (value && !isInvalidDate(asDate(value))) { value += ' ' }
 			argHMRVeDegerListe.push({ kod1: belirtec, kod2: value })
 		}
 		if (gorevmi) {
