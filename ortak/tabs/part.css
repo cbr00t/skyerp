@@ -1,5 +1,5 @@
 :root {
-	--tabs-toggle-button-left: 8px; --tabs-toggle-button-top: 0; --tabs-toggle-button-width: 40px; --tabs-toggle-button-height: var(--tabs-tabPage-height);
+	--tabs-toggle-button-left: 8px; --tabs-toggle-button-top: 0px; --tabs-toggle-button-width: 40px; --tabs-toggle-button-height: var(--tabs-tabPage-height);
 	--tabs-toggle-button-right: calc(var(--tabs-toggle-button-left) + var(--tabs-toggle-button-width) + 3px);
 	--tabs-toggle-button-bottom: calc(var(--tabs-toggle-button-top) + var(--tabs-toggle-button-height));
 	--tabs-header-height: 36px; --tabs-tabPage-height: var( --tabs-header-height); --tabs-header-margin-bottom: 0px;
@@ -7,8 +7,14 @@
 }
 .skyTabs.part { z-index: 3 !important; position: fixed }
 .skyTabs.part > #toggle {
-	position: absolute !important; left: var(--tabs-toggle-button-left) !important; top: var(--tabs-toggle-button-top) !important; width: var(--tabs-toggle-button-width) !important; height: var(--tabs-toggle-button-height) !important;
+	position: absolute !important; left: var(--tabs-toggle-button-left) !important; top: var(--tabs-toggle-button-top) !important;
+	width: var(--tabs-toggle-button-width) !important; height: var(--tabs-toggle-button-height) !important;
 	background-image: url(../../images/yukari.png); background-size: 48px !important; filter: contrast(0); border: none; z-index: 1051 !important
+}
+.skyTabs.part > #closeAll {
+	position: absolute !important; left: var(--tabs-toggle-button-left) !important; top: calc(var(--tabs-toggle-button-top) - 2px) !important;
+	width: var(--tabs-toggle-button-width) !important; height: var(--tabs-toggle-button-height) !important;
+	background-image: url(../../images/close.png); background-size: 20px !important; filter: contrast(0); border: none; z-index: 1052 !important
 }
 .skyTabs.part.collapsed > #toggle { background-image: url(../../images/asagi.png) }
 .skyTabs.part > .tabs {

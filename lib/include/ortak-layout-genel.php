@@ -6,7 +6,7 @@
 			<div id="windows-parent">
 				<div id="windows-parent-ic">
 					<nav id="windows">
-						<button id="toggle"></button>
+						<button id="toggle"></button> <button id="closeAll" class="jqx-hidden">X</button>
 						<ul class="tabs flex-row"></ul>
 					</nav>
 				</div>

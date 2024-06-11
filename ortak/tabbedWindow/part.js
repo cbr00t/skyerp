@@ -36,7 +36,7 @@ class TabbedWindowPart extends Part {
 		mainWindowsPart.refresh();
 		elmTabPage.children('button#kapat').jqxButton({ theme, width: 40, height: 30 }).on('click', evt => {
 			const part = $(evt.currentTarget).parents('.tabPage').data('part');
-			if (part) { const {canDestroy} = part.asilPart ?? part; part[canDestroy ? 'close' : 'hide'](); }
+			if (part) { const {canDestroy} = part.asilPart ?? part; part[canDestroy ? 'close' : 'hide']() }
 		});
 		app.content.addClass('jqx-hidden'); $('body').removeClass('no-wnd');
 		this.triggerAcilincaEvent(e); return this

@@ -11,8 +11,15 @@ class TabsPart extends Part {
 	}
 	runDevam(e) {
 		super.runDevam(e);
-		const {layout} = this, btnToggle = this.btnToggle = layout.children('#toggle');
-		if (btnToggle?.length) { btnToggle.jqxButton({ theme, width: false, height: false }); btnToggle.on('click', evt => this.toggle($.extend({}, e, { event: evt }))) }
+		const {layout} = this, useCloseAllFlag = app.useCloseAll, btnToggle = this.btnToggle = layout.children('#toggle'), btnCloseAll = this.btnCloseAll = layout.children('#closeAll');
+		if (btnToggle?.length) {
+			btnToggle.jqxButton({ theme, width: false, height: false }); btnToggle.on('click', evt => this.toggle($.extend({}, e, { event: evt })));
+			if (useCloseAllFlag) { btnToggle.addClass('jqx-hidden') }
+		}
+		if (btnCloseAll?.length) {
+			btnCloseAll.jqxButton({ theme, width: false, height: false }); btnCloseAll.on('click', evt => this.closeAllIstendi($.extend({}, e, { event: evt })));
+			if (useCloseAllFlag) { btnCloseAll.removeClass('jqx-hidden basic-hidden')}
+		}
 		const divTabs = this.divTabs = layout.children('.tabs'); divTabs.addClass('flex-row');
 		if (this.isSortable) { divTabs.jqxSortable({ theme, items: `> .tabPage`}) } else { makeScrollable(divTabs) }
 		this.refresh()
@@ -28,6 +35,22 @@ class TabsPart extends Part {
 			if (hasContent) { content[visibleFlag ? 'removeClass' : 'addClass']('jqx-hidden') }
 			_e.collapsed = !visibleFlag; this.triggerToggled(_e)
 		}
+	}
+	async closeAllIstendi(e) {
+		e = e || {}; const id2TabPage = this.id2TabPage || {}, tabPages = Object.values(id2TabPage);
+		if (tabPages?.length) {
+			let rdlg = await ehConfirm('Tüm pencereler kapatılacak, emin misiniz?', appName);
+			if (rdlg) { this.closeAll(e) }
+		}
+		return this
+	}
+	closeAll(e) {
+		e = e || {}; const id2TabPage = this.id2TabPage || {}, tabPages = Object.values(id2TabPage);
+		for (const tabPage of tabPages) {
+			const part = tabPage?.header?.data('part');
+			if (part) { const {canDestroy} = part; part[canDestroy ? 'close' : 'hide']() }
+		}
+		return this
 	}
 	refresh(e) { e = e || {}; this._buildId2TabPage(e); this.render(e) }
 	_buildId2TabPage(e) {

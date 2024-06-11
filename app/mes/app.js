@@ -1,6 +1,6 @@
 class MESApp extends App {
     static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'HAT-YONETIMI' }
-	get configParamSinif() { return MQYerelParamConfig_MES } get defaultWSPath() { return `ws/skyMES` }
+	get configParamSinif() { return MQYerelParamConfig_MES } get defaultWSPath() { return `ws/skyMES` } get useCloseAll() { return true }
 	get sqlExecWSPath() { return `${this.defaultWSPath}/hatIzleme` } get otoTazeleYapilirmi() { return !!(this.otoTazeleFlag && !this.otoTazeleDisabledFlag && this.tazele_timeout) }
 	get durumKod2Aciklama() {
 		let result = this._durumKod2Aciklama; if (result === undefined) {
