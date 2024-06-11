@@ -44,7 +44,14 @@
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .etiket { color: #999; width: var(--etiket-width) }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .veri { color: royalblue; width: var(--full) }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .flex-row > .veri { width: calc(var(--full) - var(--etiket-width) - 100px) !important }
-.MQHatYonetimi.masterListe.part [data-builder-id = ozetBilgi] { position: relative; left: 25px; top: 4px }
+.ozetBilgi.jqx-window .subContent .ozetBilgi-parent { width: var(--full); height: var(--full); font-size: 110%; color: lightgreen !important; background: linear-gradient(270deg, #333 5%, #333 80%) !important }
+.ozetBilgi.jqx-window .subContent .ozetBilgi-container { position: relative; display: flex; flex-wrap: wrap; left: -20px; top: 10px; line-height: 45px }
+.ozetBilgi.jqx-window .subContent .ozetBilgi-container li { font-size: 120%; color: #999; list-style: none; min-width: 350px }
+.ozetBilgi.jqx-window .subContent .ozetBilgi-container li:not(:last-child) { margin-right: 30px }
+.ozetBilgi.jqx-window .subContent .ozetBilgi-container li > *:not(.baslik):not(:last-child) { margin-right: 10px }
+.ozetBilgi.jqx-window .subContent .ozetBilgi-container li .baslik { font-weight: bold; color: #bbb; margin-right: 5px }
+.ozetBilgi.jqx-window .subContent .ozetBilgi-container li .durum { font-weight: bold }
+.ozetBilgi.jqx-window .subContent .ozetBilgi-container li .sayi { font-weight: bold; color: #84bfe1 }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .hat { color: whitesmoke; background-color: #333 }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .hat .veri { font-weight: bold; font-size: 130%; color: #eee }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .tezgah .ip { font-weight: bold; font-size: 95%; color: steelblue; min-width: 70px; left: 8px }

@@ -7,7 +7,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 	static listeEkrani_afterRun(e) { super.listeEkrani_afterRun(e) /*const gridPart = e.gridPart ?? e.sender*/ }
 	static listeEkrani_activated(e) { super.listeEkrani_activated(e) /*; const gridPart = e.gridPart ?? e.sender; gridPart.tazeleDefer()*/ }
 	static rootFormBuilderDuzenle_listeEkrani(e) {
-		super.rootFormBuilderDuzenle_listeEkrani(e); const rfb = e.rootBuilder;
+		super.rootFormBuilderDuzenle_listeEkrani(e); const rfb = e.rootBuilder, gridPart = e.gridPart ?? e.sender ?? rfb?.part;
 		/*const fbd_islemTuslari = rfb.addForm('islemTuslari', e => e.builder.part.islemTuslariPart.layout);
 		const fbd_sol = fbd_islemTuslari.addForm('sol', e => e.builder.parent.children('.sol')), fbd_sag = fbd_islemTuslari.addForm('sol', e => e.builder.parent.children('.sag'));*/
 		this.fbd_listeEkrani_addCheckBox(rfb, 'cokluSecimFlag', 'Çoklu').onAfterRun(e => {
@@ -38,19 +38,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 			}
 		});
 		let form = rfb.addForm().setLayout(e => e.builder.rootPart.islemTuslariPart.sol);
-		/*form.addForm('ozetBilgi').setLayout(e => {
-			const {builder} = e, gridPart = builder.rootPart, recs = gridPart._lastRecs || [];
-			const hat2Durum2Sayi = {}; for (const rec of recs) {
-				const {hatKod, durumKod} = rec, hatText = hatKod, durumText = durumKod;
-				const durum2Sayi = hat2Durum2Sayi[hatText] = hat2Durum2Sayi[hatText] || {}; durum2Sayi[durumKod] = (durum2Sayi[durumKod] || 0) + 1
-			}
-			const textList = []; for (const [hat, durum2Sayi] of Object.entries(hat2Durum2Sayi)) {
-				let text = `<li class="item"><b class="baslik sub-item">${hat}:</b> `;
-				for (const [durum, sayi] of Object.entries(durum2Sayi)) { text += `<span class="sub-item">[${durum} = ${sayi}]</span>` }
-				text += `</li>`; textList.push(text)
-			}
-			return $(`<ul class="text">${textList?.length ? textList.join(' ') : ''}</ul>`)
-		});*/
+		gridPart.fbd_ozetBilgi = form.addForm('ozetBilgi').setLayout(e => $(`<div/>`));
 		/*this.fbd_listeEkrani_addButton(rfb, 'isEmirleri', 'EMR', 80, e => this.xIstendi(e));
 		this.fbd_listeEkrani_addButton(rfb, 'topluX', 'TPL', 80, e => this.xIstendi(e))*/
 	}
@@ -61,7 +49,8 @@ class MQHatYonetimi extends MQMasterOrtak {
 			{ id: 'boyutlandir', text: 'BYT', handler: e => e.sender.boyutlandirIstendi(e) },
 			{ id: 'tezgahMenu', text: 'TEZ', handler: e => this.tezgahMenuIstendi(e) },
 			{ id: 'isEmirleri', text: 'EMR', handler: e => this.bekleyenIsEmirleriIstendi(e) },
-			{ id: 'topluX', text: 'TPL', handler: e => this.topluXMenuIstendi(e) }
+			{ id: 'topluX', text: 'TPL', handler: e => this.topluXMenuIstendi(e) },
+			{ id: 'ozet', text: 'ÖZET', handler: e => this.ozetBilgiGoster(e) }
 		];
 		liste.splice(liste.findIndex(item => item.id == 'vazgec'), 0, ...items);
 		const ekSagButonIdSet = butonlarPart.ekSagButonIdSet = butonlarPart.ekSagButonIdSet || {}; $.extend(ekSagButonIdSet, asSet(items.map(item => item.id)))
@@ -179,7 +168,10 @@ class MQHatYonetimi extends MQMasterOrtak {
 		return _lastRecs
 	}
 	static orjBaslikListesi_recsDuzenle(e) { super.orjBaslikListesi_recsDuzenle(e) }
-	static gridVeriYuklendi(e) { super.gridVeriYuklendi(e); app.sonSyncTS = now() }
+	static gridVeriYuklendi(e) {
+		super.gridVeriYuklendi(e); const gridPart = e.gridPart ?? e.sender, {fbd_ozetBilgi} = gridPart; app.sonSyncTS = now()
+		/*if (fbd_ozetBilgi) { const html = this.ozetBilgi_getLayout(e); fbd_ozetBilgi.layout.html(html) }*/
+	}
 	static orjBaslikListesi_gridRendered(e) {
 		super.orjBaslikListesi_gridRendered(e); const {gridPart} = e, {gridWidget} = gridPart, table = gridWidget?.table; if (!table) { return }
 		const ustAltFormlar = table.find(`[role = row] > * .ust-alt`);
@@ -232,7 +224,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 			form.addButton('zamanEtuduBaslat', undefined, 'Zaman Etüdü Başlat').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
 			form.addButton('zamanEtuduKapat', undefined, 'Zaman Etüdü Kapat').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
 			form.addButton('topluEkNotlar', undefined, 'Tüm Notlar').onClick(e => { close(); this.ekNotlarIstendi($.extend({}, _e, e, { id: e.builder.id, hepsi: true })) })
-			/*form.addButton('ozetBilgi', undefined, 'Özet Bilgi').onClick(e => { close(); this.ozetBilgiIstendi($.extend({}, _e, e, { id: e.builder.id })) })*/
+			form.addButton('ozetBilgi', undefined, 'Özet Bilgi').onClick(e => { close(); this.ozetBilgiGoster($.extend({}, _e, e, { id: e.builder.id })) })
 		} }); this.openContextMenu(e)
 	}
 	static personelSecIstendi(e) {
@@ -296,10 +288,33 @@ class MQHatYonetimi extends MQMasterOrtak {
 		})
 	}
 	static ozetBilgiGoster(e) {
-		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, {_lastRecs} = gridPart;
-		const ozetBilgi = {
-		};
-		debugger
+		let html = this.ozetBilgi_getLayout(e); const {classKey} = this, wnd = createJQXWindow({
+			content: `<div class="full-width ozetBilgi-parent ozetBilgi">${html}</code></div>`,
+			title: `Özet Bilgi`, args: { isModal: false, width: Math.min(900, $(window).width() - 50), height: Math.min(400, $(window).height() - 50) }
+		}); wnd.addClass(`ozetBilgi ${classKey} masterListe part`)
+	}
+	static ozetBilgi_getLayout(e) {
+		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, recs = gridPart?._lastRecs;
+		const hat2Durum2Sayi = {}; let topMakiyeSayi = 0, topAktifSayi = 0; for (const rec of recs) {
+			const {hatKod, durumKod} = rec, hatText = hatKod, aktifmi = durumKod == 'DV', durumText = aktifmi ? `<span class="lightgreen">ON</span>` : '<span class="indianred">OFF</span>';
+			const durum2Sayi = hat2Durum2Sayi[hatText] = hat2Durum2Sayi[hatText] || {}; durum2Sayi[durumText] = (durum2Sayi[durumText] || 0) + 1;
+			topMakiyeSayi++; if (aktifmi) { topAktifSayi++ }
+		}
+		const textList = []; for (const [hat, durum2Sayi] of Object.entries(hat2Durum2Sayi)) {
+			let text = `<li class="item"><b class="etiket sub-item">${hat}:</b> `;
+			for (const [durum, sayi] of Object.entries(durum2Sayi)) { text += `<span class="sub-item">[<span class="durum">${durum}</span> = <span class="sayi">${sayi}</span>]</span>` }
+			text += `</li>`; textList.push(text)
+		}
+		const verimlilik = roundToFra(topAktifSayi / topMakiyeSayi * 100, 1); if (verimlilik) {
+			textList.push(
+				`<li class="item"/>`, `<li class="item"/>`,
+				`<li class="item"><span class="sub-item"><span class="baslik">Top. Makine:</span> <span class="sayi">${numberToString(topMakiyeSayi)}</span></li>`,
+				`<li class="item"><span class="sub-item"><span class="baslik lightgreen">Aktif. Makine:</span> <span class="sayi">${numberToString(topAktifSayi)}</span></li>`,
+				`<li class="item"><span class="sub-item"><span class="baslik indianred">Off Makine:</span> <span class="sayi">${numberToString(topMakiyeSayi - topAktifSayi)}</span></li>`,
+				`<li class="item"><span class="sub-item"><span class="baslik">Mak. Verimlilik:</span> <span class="sayi">%${numberToString(verimlilik)}</span></li>`,
+			)
+		}
+		return `<ul class="text ozetBilgi-container ozetBilgi">${textList?.length ? textList.join(' ') : ''}</ul>`
 	}
 	static ekBilgiIstendi(e) {
 		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, rec = e.rec ?? gridPart.selectedRec, {tezgahKod, tezgahAdi} = rec;

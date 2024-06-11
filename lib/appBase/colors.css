@@ -9,11 +9,12 @@
 .ghostwhite { color: ghostwhite !important }
 .whitesmoke { color: whitesmoke !important }
 .darkred { color: darkred !important }
-.red { color: red !important }
+.red {color: indianred }
 .firebrick { color: firebrick !important }
 .darkorange { color: darkorange !important }
 .orange { color: orange !important }
 .orangered { color: orangered !important }
+.indianred { color: indianred !important }
 .yellow { color: yellow !important }
 .lightyellow { color: lightyellow !important }
 .darkgreen { color: darkgreen !important }
@@ -52,6 +53,7 @@
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-firebrick { background-color: firebrick !important }
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-red { background-color: red !important }
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-lightred { background-color: indianred !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-indianred { background-color: indianred !important }
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-yellow { background-color: yellow !important }
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-lightyellow { background-color: lightyellow !important }
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-lightred-transparent { background-color: #cf8c8cba !important }
