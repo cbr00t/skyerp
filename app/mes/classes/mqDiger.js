@@ -140,7 +140,7 @@ class MQZamanEtudu extends MQMasterOrtak {
 	constructor(e) {
 		e = e || {}; super(e); const rec = this.rec = e.rec, zamanEtuduRec = this.zamanEtuduRec = e.zamanEtuduRec;
 		if (zamanEtuduRec) {
-			this.degistirmi = asBool(zamanEtuduRec.bzamanetudu);
+			$.extend(this, { degistirmi: asBool(zamanEtuduRec.bzamanetudu) });
 			const donusum = { 
 				sinyalSayisi: zamanEtuduRec.urunagacsinyalsayisi, cevrimMinSn: zamanEtuduRec.sinirminsn, cevrimMaxSn: zamanEtuduRec.sinirmaxsn,
 				sinyalArasiMinSn: zamanEtuduRec.enkisasinyalsn, sinyalArasiMaxSn: zamanEtuduRec.enuzunsinyalsn,
@@ -173,40 +173,50 @@ class MQZamanEtudu extends MQMasterOrtak {
 		let width = 200;
 		let form = tanimForm.addBaslik({ etiket: 'Çevrim' }).addFormWithParent().yanYana();
 			form.addNumberInput('sinyalSayisi', 'Sinyal Sayısı').addStyle_wh(width);
-			form.addNumberInput('cevrimMinSn', 'En Kısa (sn)').addStyle_wh(width).onAfterRun(e => { const {builder} = e; builder.rootPart.fbd_cevrimMinSn = builder }); form.addNumberInput('cevrimMaxSn', 'En Uzun (sn)').addStyle_wh(width);
+			form.addNumberInput('cevrimMinSn', 'En Kısa (sn)').addStyle_wh(width).onAfterRun(e => { const {builder} = e; builder.rootPart.fbd_cevrimMinSn = builder });
+			form.addNumberInput('cevrimMaxSn', 'En Uzun (sn)').addStyle_wh(width);
 		form = tanimForm.addBaslik({ etiket: 'İki Sinyal Arası' }).addFormWithParent().yanYana();
-			form.addNumberInput('sinyalArasiMinSn', 'En Kısa (sn)').addStyle_wh(width).onAfterRun(e => { const {builder} = e; builder.rootPart.fbd_sinyalArasiMinSn = builder }); form.addNumberInput('sinyalArasiMaxSn', 'En Uzun (sn)').addStyle_wh(width);
+			form.addNumberInput('sinyalArasiMinSn', 'En Kısa (sn)').addStyle_wh(width).onAfterRun(e => { const {builder} = e; builder.rootPart.fbd_sinyalArasiMinSn = builder });
+			form.addNumberInput('sinyalArasiMaxSn', 'En Uzun (sn)').addStyle_wh(width);
+			form.addForm().setLayout(e => $(`<div class="royalblue bold uyari">** Ürün Ağacına eklenir **</div>`))
+				.addStyle(e => `$elementCSS { margin-top: 38px !important; margin-left: 15px }`)
+				.setVisibleKosulu(e => app.params.hatYonetimi.urunAgacinaEkle ? true : 'jqx-hidden');
 		form = tanimForm.addFormWithParent().yanYana().addStyle(e => `$elementCSS { margin-top: 20px }`).addStyle_wh(undefined, 50);
 			form.addButton('baslatVeyaDegistir', e => e.builder.altInst.degistirmi ? 'DEĞİŞTİR' : 'BAŞLAT').onClick(e => this.etudButonTiklandi($.extend(e, { islem: 'baslatVeyaDegistir' }))).addStyle_wh(width * 3);
 		let parentForm = tanimForm.addFormWithParent('ornekleme').altAlta()
 			.onAfterRun(e => { const {builder} = e; builder.rootPart.fbd_ornekleme = builder })
 			.setVisibleKosulu(e => { const {builder} = e, {altInst} = builder; return altInst.degistirmi || 'jqx-hidden' });
 		form = parentForm.addBaslik('Çevrim Ortalama').addFormWithParent();
-			form.addNumberInput('ornekCevrimEnKisa', 'En Kısa (sn)').readOnly().addStyle_wh(width); form.addNumberInput('ornekCevrimEnUzun', 'En Uzun (sn)').readOnly().addStyle_wh(width);
-			form.addNumberInput('ornekCevrimOrtalama', 'Ortalama (sn)').readOnly().addStyle_wh(width);
+			form.addNumberInput('ornekCevrimEnKisa', 'En Kısa (sn)').readOnly().addStyle_wh(width).addCSS('center');
+			form.addNumberInput('ornekCevrimEnUzun', 'En Uzun (sn)').readOnly().addStyle_wh(width).addCSS('center');
+			form.addNumberInput('ornekCevrimOrtalama', 'Ortalama (sn)').readOnly().addStyle_wh(width).addCSS('center');
+			form.addNumberInput('ornekSayisi', 'Örnek Sayısı').readOnly().addStyle_wh(width).addCSS('center');
 		form = parentForm.addFormWithParent().addStyle(e => `$elementCSS { margin-top: 10px }`);
 			form.addButton('etudReset', 'Edüt Reset').onClick(e => this.etudButonTiklandi($.extend(e, { islem: 'reset' }))).addStyle_wh(width);
 			form.addButton('etudKapat', 'Edüt Kapat').onClick(e => this.etudButonTiklandi($.extend(e, { islem: 'kapat' }))).addStyle_wh(width);
 			form.addButton('sureGuncelleVeKapat', 'Süre Güncelle & Kapat').onClick(e => this.etudButonTiklandi($.extend(e, { islem: 'sureGuncelleVeKapat' }))).addStyle_wh(width)
 	}
 	static async etudButonTiklandi(e) {
-		const {islem, builder} = e, rootBuilder = builder?.rootBuilder, part = rootBuilder?.part ?? e.parentPart, altInst = builder?.altInst ?? part?.inst;
+		const {islem, builder} = e, part = builder?.rootPart ?? e.parentPart, altInst = builder?.altInst ?? part?.inst;
 		const {rec, degistirmi} = altInst, isId = rec.issayac, oemSayac = rec.oemsayac, tezgahKod = rec.tezgahkod;
 		try { 
-			let durum; switch (islem) {
+			let durum, sureGuncelleVeKapatmi = false; switch (islem) {
 				case 'tazele': await this.uiReload(e); return
+				case 'sureGuncelleVeKapat': durum = null; sureGuncelleVeKapatmi = true; break
 				case 'baslatVeyaDegistir': { durum = degistirmi ? null : 'B' } break
 				case 'kapat': if (degistirmi) { durum = 'D' } break
 				case 'reset': if (degistirmi) { durum = 'R' } break
 			}
 			if (durum === undefined) { throw { isError: true, rc: 'hataliDurum', errorText: 'Geçersiz işlem' } }
 			const wsArgs = { isId, oemSayac, tezgahKod }; if (durum != null) { $.extend(wsArgs, { durum }) }
-			let keys = ['sinyalSayisi', 'cevrimMinSn', 'cevrimMaxSn', 'sinyalArasiMinSn', 'sinyalArasiMaxSn'];
-			for (const key of keys) { const value = altInst[key]; if (value != null) { wsArgs[key] = value } }
-			if (wsArgs.sinyalArasiMaxSn < wsArgs.sinyalArasiMinSn) throw { isError: true, rc: 'invalidValue', errorText: `Sinyal Max Süre, Sinyal Min Süre'den küçük olamaz` }
-			if (wsArgs.enUzunSinyalSn < wsArgs.enKisaSinyalSn) throw { isError: true, rc: 'invalidValue', errorText: `Sinyal En Uzun Süre, Sinyal En Kısa Süre'den küçük olamaz` }
-			if (wsArgs.cevrimMaxSn < wsArgs.cevrimMinSn) throw { isError: true, rc: 'invalidValue', errorText: `Çevrim En Uzun Süre, Çevrim En Kısa Süre'den küçük olamaz` }
-			await app[islem == 'sureGuncelleVeKapat' ? 'wsGorevZamanEtudSureGuncelleVeKapat' : 'wsGorevZamanEtuduDegistir'](wsArgs); await this.uiReload(e)
+			if (!sureGuncelleVeKapatmi) {
+				let keys = ['sinyalSayisi', 'cevrimMinSn', 'cevrimMaxSn', 'sinyalArasiMinSn', 'sinyalArasiMaxSn'];
+				for (const key of keys) { const value = altInst[key]; if (value != null) { wsArgs[key] = value } }
+				if (wsArgs.sinyalArasiMaxSn < wsArgs.sinyalArasiMinSn) throw { isError: true, rc: 'invalidValue', errorText: `Sinyal Max Süre, Sinyal Min Süre'den küçük olamaz` }
+				if (wsArgs.enUzunSinyalSn < wsArgs.enKisaSinyalSn) throw { isError: true, rc: 'invalidValue', errorText: `Sinyal En Uzun Süre, Sinyal En Kısa Süre'den küçük olamaz` }
+				if (wsArgs.cevrimMaxSn < wsArgs.cevrimMinSn) throw { isError: true, rc: 'invalidValue', errorText: `Çevrim En Uzun Süre, Çevrim En Kısa Süre'den küçük olamaz` }
+			}
+			await app[sureGuncelleVeKapatmi ? 'wsGorevZamanEtudSureGuncelleVeKapat' : 'wsGorevZamanEtuduDegistir'](wsArgs); await this.uiReload(e)
 		}
 		catch (ex) { hConfirm(getErrorText(ex), part.title) }
 	}

@@ -5,7 +5,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 	static get noAutoFocus() { return true }
 
 	static listeEkrani_afterRun(e) { super.listeEkrani_afterRun(e) /*const gridPart = e.gridPart ?? e.sender*/ }
-	static listeEkrani_activated(e) { super.listeEkrani_activated(e); const gridPart = e.gridPart ?? e.sender; gridPart.tazeleDefer() }
+	static listeEkrani_activated(e) { super.listeEkrani_activated(e) /*; const gridPart = e.gridPart ?? e.sender; gridPart.tazeleDefer()*/ }
 	static rootFormBuilderDuzenle_listeEkrani(e) {
 		super.rootFormBuilderDuzenle_listeEkrani(e); const rfb = e.rootBuilder;
 		/*const fbd_islemTuslari = rfb.addForm('islemTuslari', e => e.builder.part.islemTuslariPart.layout);
@@ -19,10 +19,14 @@ class MQHatYonetimi extends MQMasterOrtak {
 		this.fbd_listeEkrani_addCheckBox(rfb, 'otoTazeleFlag', 'Oto Tazele').onAfterRun(e => {
 			const {builder} = e, {rootPart, layout} = builder, input = layout.children('input'), {grid, gridWidget} = rootPart;
 			if (rootPart.otoTazeleFlag) { input.prop('checked', true) }
-			input.on('change', evt => { const value = rootPart.otoTazeleFlag = $(evt.currentTarget).is(':checked'); app.otoTazeleFlag = !!value; rootPart.tazeleDefer() })
+			input.on('change', evt => {
+				const value = rootPart.otoTazeleFlag = $(evt.currentTarget).is(':checked'); app.otoTazeleFlag = !!value; rootPart.tazeleDefer();
+				const fbd_grupsuz = builder.parentBuilder.id2Builder.grupsuzmu; if (fbd_grupsuz) { fbd_grupsuz.updateVisible() }
+			})
 		});
 		this.fbd_listeEkrani_addCheckBox(rfb, 'grupsuzmu', 'Grupsuz').onAfterRun(e => {
 			const {builder} = e, {rootPart, layout} = builder, input = layout.children('input'), {grid, gridWidget} = rootPart;
+			builder.setVisibleKosulu(e => e.builder.rootPart.otoTazeleFlag ? 'jqx-hidden' : true);
 			if (rootPart.grupsuzmu) { input.prop('checked', true) }
 			input.on('change', evt => { const value = rootPart.grupsuzmu = $(evt.currentTarget).is(':checked'); rootPart.tazeleDefer() })
 		});
@@ -32,7 +36,21 @@ class MQHatYonetimi extends MQMasterOrtak {
 				hizliBulLayout.on('focus', evt => app.otoTazeleDisabledFlag = true )
 				hizliBulLayout.on('blur', evt => app.otoTazeleTempDisable({ waitMS: 3000 }) )
 			}
-		})
+		});
+		let form = rfb.addForm().setLayout(e => e.builder.rootPart.islemTuslariPart.sol);
+		/*form.addForm('ozetBilgi').setLayout(e => {
+			const {builder} = e, gridPart = builder.rootPart, recs = gridPart._lastRecs || [];
+			const hat2Durum2Sayi = {}; for (const rec of recs) {
+				const {hatKod, durumKod} = rec, hatText = hatKod, durumText = durumKod;
+				const durum2Sayi = hat2Durum2Sayi[hatText] = hat2Durum2Sayi[hatText] || {}; durum2Sayi[durumKod] = (durum2Sayi[durumKod] || 0) + 1
+			}
+			const textList = []; for (const [hat, durum2Sayi] of Object.entries(hat2Durum2Sayi)) {
+				let text = `<li class="item"><b class="baslik sub-item">${hat}:</b> `;
+				for (const [durum, sayi] of Object.entries(durum2Sayi)) { text += `<span class="sub-item">[${durum} = ${sayi}]</span>` }
+				text += `</li>`; textList.push(text)
+			}
+			return $(`<ul class="text">${textList?.length ? textList.join(' ') : ''}</ul>`)
+		});*/
 		/*this.fbd_listeEkrani_addButton(rfb, 'isEmirleri', 'EMR', 80, e => this.xIstendi(e));
 		this.fbd_listeEkrani_addButton(rfb, 'topluX', 'TPL', 80, e => this.xIstendi(e))*/
 	}
@@ -132,6 +150,12 @@ class MQHatYonetimi extends MQMasterOrtak {
 					if (rec.durumAdi == null) { rec.durumAdi = durumKod2KisaAdi[durumKod] ?? durumKod }
 				}
 			}
+			const getIPNum = ip => asInteger(ip.replaceAll('.', ''));
+			recs.sort((a, b) =>
+				a.hatKod < b.hatKod ? -1 : a.hatKod > b.hatKod ? 1 :
+				getIPNum(a.ip) < getIPNum(b.ip) ? -1 : getIPNum(a.ip) > getIPNum(b.ip) ? 1 :
+				a.tezgahKod < b.tezgahKod ? -1 : a.tezgahKod > b.tezgahKod ? 1 :
+				0)
 		}
 		e.recs = recs; if (recs) {
 			let tezgahKod2Rec = {}, _recs = recs; recs = [];
@@ -206,7 +230,9 @@ class MQHatYonetimi extends MQMasterOrtak {
 			form.addButton('isBitti', undefined, 'İş Bitti').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
 			form.addButton('gerceklemeYap', undefined, 'Gerçekleme Yap').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
 			form.addButton('zamanEtuduBaslat', undefined, 'Zaman Etüdü Başlat').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
-			form.addButton('zamanEtuduKapat', undefined, 'Zaman Etüdü Kapat').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) })
+			form.addButton('zamanEtuduKapat', undefined, 'Zaman Etüdü Kapat').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
+			form.addButton('topluEkNotlar', undefined, 'Tüm Notlar').onClick(e => { close(); this.ekNotlarIstendi($.extend({}, _e, e, { id: e.builder.id, hepsi: true })) })
+			/*form.addButton('ozetBilgi', undefined, 'Özet Bilgi').onClick(e => { close(); this.ozetBilgiIstendi($.extend({}, _e, e, { id: e.builder.id })) })*/
 		} }); this.openContextMenu(e)
 	}
 	static personelSecIstendi(e) {
@@ -269,6 +295,12 @@ class MQHatYonetimi extends MQMasterOrtak {
 			catch (ex) { hConfirm(getErrorText(ex), `Toplu ${islemAdi}`); throw ex }
 		})
 	}
+	static ozetBilgiGoster(e) {
+		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, {_lastRecs} = gridPart;
+		const ozetBilgi = {
+		};
+		debugger
+	}
 	static ekBilgiIstendi(e) {
 		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, rec = e.rec ?? gridPart.selectedRec, {tezgahKod, tezgahAdi} = rec;
 		if (rec) {
@@ -285,10 +317,11 @@ class MQHatYonetimi extends MQMasterOrtak {
 		MQBekleyenIsEmirleri.listeEkraniAc({ args: { hatKod } })
 	}
 	static ekNotlarIstendi(e) {
-		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, rec = e.rec ?? gridPart.selectedRec ?? {}; const {hatKod} = rec;
+		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, hepsimi = e.hepsi ?? e.hepsimi;
+		const rec = e.rec ?? gridPart.selectedRec ?? {}; const {hatKod} = rec;
 		MQEkNotlar.listeEkraniAc({ secimlerDuzenle: e => {
 			const sec = e.secimler, isHidden = !!app.params.config.hatKod;
-			if (hatKod) { $.extend(sec.hatKod, { birKismimi: true, value: hatKod, isHidden }); sec.hatAdi.isHidden = isHidden }
+			if (!hepsimi && hatKod) { $.extend(sec.hatKod, { birKismimi: true, value: hatKod, isHidden }); sec.hatAdi.isHidden = isHidden }
 		}})
 	}
 	static ekNotEkleIstendi(e) {

@@ -186,7 +186,19 @@ class MQSiradakiIsler extends MQXIsler {
 class MQBekleyenIsler extends MQXIsler {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Bekleyen İşler' } static get switchPartClass() { return MQSiradakiIsler } static get switchButtonText() { return 'S' }
-	static loadServerDataDevam(e) { const {args} = e; return app.wsBekleyenIsler(args) }
+	static listeEkrani_init(e) { super.listeEkrani_init(e); const gridPart = e.gridPart ?? e.sender; $.extend(gridPart, { sadeceUygunAsamami: true }) }
+	static rootFormBuilderDuzenle_listeEkrani(e) {
+		super.rootFormBuilderDuzenle_listeEkrani(e); const rfb = e.rootBuilder;
+		this.fbd_listeEkrani_addCheckBox(rfb, 'sadeceUygunAsamami', 'Uygun Aşamalar').onAfterRun(e => {
+			const {builder} = e, {rootPart, layout} = builder, input = builder.input ?? layout.children('input');
+			input.prop('checked', rootPart.sadeceUygunAsamami);
+			input.on('change', evt => { const value = rootPart.sadeceUygunAsamami = $(evt.currentTarget).is(':checked'); rootPart.tazeleDefer() })
+		})
+	}
+	static loadServerDataDevam(e) {
+		const {args} = e, gridPart = e.gridPart ?? e.sender; let {sadeceUygunAsamami} = gridPart;
+		sadeceUygunAsamami = args.sadeceUygunAsamami = sadeceUygunAsamami ?? true; return app.wsBekleyenIsler(args)
+	}
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e); const {liste} = e, gridPart = e.gridPart ?? e.sender ?? e.parentPart;
 		liste.push(
