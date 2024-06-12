@@ -290,28 +290,36 @@ class MQHatYonetimi extends MQMasterOrtak {
 	static ozetBilgiGoster(e) {
 		let html = this.ozetBilgi_getLayout(e); const {classKey} = this, wnd = createJQXWindow({
 			content: `<div class="full-width ozetBilgi-parent ozetBilgi">${html}</code></div>`,
-			title: `Özet Bilgi`, args: { isModal: false, width: Math.min(900, $(window).width() - 50), height: Math.min(400, $(window).height() - 50) }
-		}); wnd.addClass(`ozetBilgi ${classKey} masterListe part`)
+			title: `Özet Bilgi`, args: { isModal: false, width: Math.min(850, $(window).width() - 50), height: Math.min(500, $(window).height() - 50) }
+		}); wnd.addClass(`ozetBilgi ${classKey} masterListe part`); makeScrollable(wnd.find('.jqx-window-content'))
 	}
 	static ozetBilgi_getLayout(e) {
 		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, recs = gridPart?._lastRecs;
 		const hat2Durum2Sayi = {}; let topMakiyeSayi = 0, topAktifSayi = 0; for (const rec of recs) {
-			const {hatKod, durumKod} = rec, hatText = hatKod, aktifmi = durumKod == 'DV', durumText = aktifmi ? `<span class="lightgreen">ON</span>` : '<span class="indianred">OFF</span>';
-			const durum2Sayi = hat2Durum2Sayi[hatText] = hat2Durum2Sayi[hatText] || {}; durum2Sayi[durumText] = (durum2Sayi[durumText] || 0) + 1;
+			const {hatKod, durumKod} = rec, hatText = hatKod, aktifmi = (durumKod == 'DV');
+			const durum2Sayi = hat2Durum2Sayi[hatText] = hat2Durum2Sayi[hatText] || {}; durum2Sayi[aktifmi] = (durum2Sayi[aktifmi] || 0) + 1;
 			topMakiyeSayi++; if (aktifmi) { topAktifSayi++ }
 		}
 		const textList = []; for (const [hat, durum2Sayi] of Object.entries(hat2Durum2Sayi)) {
-			let text = `<li class="item"><b class="etiket sub-item">${hat}:</b> `;
-			for (const [durum, sayi] of Object.entries(durum2Sayi)) { text += `<span class="sub-item">[<span class="durum">${durum}</span> = <span class="sayi">${sayi}</span>]</span>` }
+			let text = `<li class="item"><span class="etiket sub-item">${hat}:</span> `;
+			for (let _aktifmi of Object.keys(durum2Sayi).sort().reverse()) {
+				const sayi = durum2Sayi[_aktifmi]; const aktifmi = asBool(_aktifmi), durumText = aktifmi ? 'ON' : 'OFF';
+				text += `<span class="sub-item ${aktifmi ? 'on' : 'off'}">[<span class="durum">${durumText} = </span><span class="sayi">${sayi}</span>]</span>`
+			}
 			text += `</li>`; textList.push(text)
 		}
 		const verimlilik = roundToFra(topAktifSayi / topMakiyeSayi * 100, 1); if (verimlilik) {
 			textList.push(
-				`<li class="item"/>`, `<li class="item"/>`,
-				`<li class="item"><span class="sub-item"><span class="baslik">Top. Makine:</span> <span class="sayi">${numberToString(topMakiyeSayi)}</span></li>`,
-				`<li class="item"><span class="sub-item"><span class="baslik lightgreen">Aktif. Makine:</span> <span class="sayi">${numberToString(topAktifSayi)}</span></li>`,
-				`<li class="item"><span class="sub-item"><span class="baslik indianred">Off Makine:</span> <span class="sayi">${numberToString(topMakiyeSayi - topAktifSayi)}</span></li>`,
-				`<li class="item"><span class="sub-item"><span class="baslik">Mak. Verimlilik:</span> <span class="sayi">%${numberToString(verimlilik)}</span></li>`,
+				`<div class="ek-satirlar flex-row">
+					<li class="item">
+						<div><span class="etiket sub-item highlight">Top. Makine &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> <span class="sayi sub-item">${numberToString(topMakiyeSayi)}</span></div>
+						<div><span class="etiket sub-item highlight">Mak. Verimlilik </span> <span class="sayi sub-item">%${numberToString(verimlilik)}</span></div>
+					</li>
+					<li class="item">
+						<div class="on"><span class="etiket highlight sub-item">Aktif Makine</span> <span class="sayi sub-item">${numberToString(topAktifSayi)}</span></div>
+						<div class="off"><span class="etiket highlight sub-item">Off Makine </span> <span class="sayi sub-item">${numberToString(topMakiyeSayi - topAktifSayi)}</span></div>
+					</li>
+				</div>`
 			)
 		}
 		return `<ul class="text ozetBilgi-container ozetBilgi">${textList?.length ? textList.join(' ') : ''}</ul>`
