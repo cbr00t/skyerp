@@ -49,8 +49,7 @@ class TabsPart extends Part {
 		for (const tabPage of tabPages) {
 			const part = tabPage?.header?.data('part');
 			if (part) { const {canDestroy} = part; part[canDestroy ? 'close' : 'hide']() }
-		}
-		return this
+		} this.refresh(e); return this
 	}
 	refresh(e) { e = e || {}; this._buildId2TabPage(e); this.render(e) }
 	_buildId2TabPage(e) {
@@ -61,7 +60,7 @@ class TabsPart extends Part {
 			const header = elmTabPage.children('.header'); header.addClass('nav-link');
 			const id = elmTabPage.prop('id'), html = header.html(); idSet[id] = true;
 			let tabPage = id2TabPage[id] = id2TabPage[id] || ({ id, index: i }); $.extend(tabPage, { html, header, layout: elmTabPage })
-			const content = tabPage.content = layout.children('.content').eq(i); if (!content.prop('id')) { content.prop('id', id); }
+			const content = tabPage.content = layout.children('.content').eq(i); if (!content.prop('id')) { content.prop('id', id) }
 			if (tabPage.initFlag == null) { tabPage.initFlag = false }
 		}
 		for (const id in id2TabPage) { if (!idSet[id]) delete id2TabPage[id] }
@@ -82,8 +81,7 @@ class TabsPart extends Part {
 			for (const elm of [header, header.find('div')]) {
 				for (const selector of ['click', 'touchend']) {
 					elm.off(selector); elm.on(selector, evt => {
-						const targetCSSClass = 'tabPage';
-						let header = $(evt.currentTarget); if (!header.hasClass(targetCSSClass)) { header = header.parents(`.${targetCSSClass}`) }
+						const targetCSSClass = 'tabPage'; let header = $(evt.currentTarget); if (!header.hasClass(targetCSSClass)) { header = header.parents(`.${targetCSSClass}`) }
 						const id = header.prop('id'), tabPage = this.id2TabPage[id], _e = $.extend({}, e, { event: evt, id, tabPage }); this._renderContent(_e)
 					})
 				}

@@ -48,10 +48,7 @@ class MQGercekleme extends MQSayacli {
 			if (oemSayacListe) { wh.inDizi(oemSayacListe, `${aliasVeNokta}fissayac`) }
 		})
 	}
-	static orjBaslikListesi_argsDuzenle(e) {
-		super.orjBaslikListesi_argsDuzenle(e); const {args} = e;
-		$.extend(args, { showFilterRow: true, rowsHeight: 65 })
-	}
+	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); const {args} = e; $.extend(args, { showFilterRow: true, rowsHeight: 65 }) }
 	static standartGorunumListesiDuzenle(e) {
 		super.standartGorunumListesiDuzenle(e); const {liste} = e;
 		if (config.dev) liste.push(this.sayacSaha, 'oemsayac')

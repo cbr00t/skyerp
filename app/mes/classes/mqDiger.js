@@ -232,6 +232,7 @@ class MQEkNotlar extends MQSayacliOrtak {
 	static get table() { return 'meseknotlar' } static get tableAlias() { return 'eknot' } static get sayacSaha() { return 'kaysayac' }
 	static get tanimUISinif() { return ModelTanimPart } static get secimSinif() { return MQCogul.secimSinif }
 	static get tanimlanabilirmi() { return true } static get silinebilirmi() { return true } static get urlCount() { return 3 }
+	static get urlCount() { return 3 }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, {
 			kayitTarih: new PInstDateNow('kayittarih'), kayitZaman: new PInstStr({ rowAttr: 'kayitzaman', init: e => timeToString(now()) }),
@@ -239,6 +240,10 @@ class MQEkNotlar extends MQSayacliOrtak {
 			notlar: new PInstStr('notlar')
 		});
 		for (let i = 1; i <= this.urlCount; i++) { pTanim[`url${i}`] = new PInstStr(`url${i}`) }
+	}
+	static rootFormBuilderDuzenle_listeEkrani(e) {
+		super.rootFormBuilderDuzenle_listeEkrani(e); const rfb = e.rootBuilder;
+		this.fbd_listeEkrani_addButton(rfb, { id: 'dokumanGoster', text: 'Döküman Göster', handler: e => this.dokumanGosterIstendi(e) })
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); const rfb = e.rootBuilder, tanimForm = e.tanimFormBuilder;
@@ -251,7 +256,17 @@ class MQEkNotlar extends MQSayacliOrtak {
 			form.addModelKullan('hatKod', 'Hat').setMFSinif(MQHat).comboBox().setVisibleKosulu(e => { let value = e.builder.altInst.tip; value = value?.char ?? value; return value == 'HT' ? true : 'jqx-hidden' });
 			form.addModelKullan('tezgahKod', 'Tezgah').setMFSinif(MQTezgah).comboBox().setVisibleKosulu(e => { let value = e.builder.altInst.tip; value = value?.char ?? value; return value == 'TZ' ? true : 'jqx-hidden' });;
 		form = tanimForm.addFormWithParent().yanYana().addStyle(e => `$elementCSS { margin-top: 10px }`);
-			form.addTextInput('url1', 'Doküman URL 1'); form.addTextInput('url2', 'Doküman URL 2'); form.addTextInput('url3', 'Doküman URL 3');
+		for (let i = 1; i <= this.urlCount; i++) {
+			form.addTextInput(`url${i}`, `Doküman URL ${i}`).onAfterRun(e => {
+				const {builder} = e, {layout} = builder, label = layout.children('label');
+				const btn = $(`<button id="upload"/>`).jqxButton({ theme }); btn.prependTo(layout);
+				btn.on('click', evt => this.dokumanYukleIstendi({ ...e, builder }))
+			}).addStyle(e => `
+				$elementCSS { --button-width: 45px; --button-margin-right: 10px; --button-right: calc(var(--button-width) + calc(--button-margin-right)) }
+				$elementCSS > button#upload { width: var(--button-width); height: calc(var(--button-width) - 8px); margin-right: var(--button-margin-right) }
+				$elementCSS > label { width: calc(var(--full) - var(--button-right)) !important }`
+		   )
+		}
 		form = tanimForm.addFormWithParent().yanYana().addStyle(e => `$elementCSS { margin-top: 10px }`);
 			form.addTextArea('notlar', 'Notlar').setRows(20)
 	}
@@ -275,27 +290,76 @@ class MQEkNotlar extends MQSayacliOrtak {
 			wh.ozellik(sec.tezgahAdi, 'tez.aciklama')
 		})
 	}
+	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); const {args} = e; $.extend(args, { rowsHeight: 180 }) }
 	static ekCSSDuzenle(e) {
 		super.ekCSSDuzenle(e); const {rec, result} = e, belirtec = e.belirtec ?? e.dataField ?? e.datafield, {tip} = rec;
 		if (belirtec == 'tipText') { result.push('bold'); switch (tip) { case 'HT': result.push('bg-lightgreen'); break; case 'TZ': result.push('bg-lightred'); break } }
 	}
+	static standartGorunumListesiDuzenle(e) {
+		super.standartGorunumListesiDuzenle(e); let {liste} = e, _liste = liste.filter(colDef => !colDef?.startsWith('url'));
+		liste = e.liste = _liste
+	}
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e, alias = e.alias ?? this.tableAlias; liste.push(...[
+		super.orjBaslikListesiDuzenle(e); const {liste} = e, alias = e.alias ?? this.tableAlias, {urlCount} = this;
+		liste.push(...[
 			new GridKolon({ belirtec: 'tipText', text: 'Tip', genislikCh: 8, sql: HatTezgah.getClause(`${alias}.tip`) }),
 			new GridKolon({ belirtec: 'hatkod', text: 'Hat', genislikCh: 8 }),
 			new GridKolon({ belirtec: 'hatadi', text: 'Hat Adı', genislikCh: 15, sql: 'hat.aciklama' }),
 			new GridKolon({ belirtec: 'tezgahkod', text: 'Tezgah', genislikCh: 16 }),
-			new GridKolon({ belirtec: 'tezgahadi', text: 'Tezgah Adı', genislikCh: 30, sql: 'tez.aciklama' }),
-			new GridKolon({ belirtec: 'url1', text: 'Dokuman URL 1' }),
-			new GridKolon({ belirtec: 'url2', text: 'Dokuman URL 2' }),
-			new GridKolon({ belirtec: 'url3', text: 'Dokuman URL 3' }),
-			new GridKolon({ belirtec: 'notlar', text: 'Ek Notlar' })
-		])
+			new GridKolon({ belirtec: 'tezgahadi', text: 'Tezgah Adı', genislikCh: 30, sql: 'tez.aciklama' })
+		]);
+		for (let i = 1; i <= urlCount; i++) { liste.push(new GridKolon({ belirtec: `url${i}`, text: `Dokuman URL ${i}` })) }
+		for (let i = 1; i <= urlCount; i++) {
+			liste.push(new GridKolon({
+				belirtec: `resim${i}`, text: `Dokuman Resim ${i}`, genislikCh: 20, cellsRenderer: (colDef, rowIndex, belirtec, _value, html, jqxCol, rec) => {
+					let i = asInteger(belirtec.slice('resim'.length)), value = rec[`url${i}`];
+					if (value) { html = `<div class="full-wh" style="background-repeat: no-repeat; background-size: contain; background-image: url(${value})"*>` }
+					return html
+				}
+			}).noSql())
+		}
+		liste.push(new GridKolon({ belirtec: 'notlar', text: 'Ek Notlar', genislikCh: 150 }))
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {sent} = e, alias = e.alias ?? this.tableAlias;
 		sent.fromIliski('ismerkezi hat', `${alias}.hatkod = hat.kod`);
 		sent.fromIliski('tekilmakina tez', `${alias}.tezgahkod = tez.kod`);
-		sent.sahalar.add(`${alias}.tip`)
+		sent.sahalar.add(`${alias}.tip`); for (let i = 1; i <= this.urlCount; i++) { sent.sahalar.add(`${alias}.url${i}`) }
+	}
+	static orjBaslikListesi_satirTiklandi(e) {
+		e = e || {}; const gridPart = e.gridPart ?? e.sender, gridWidget = e?.event?.args?.owner ?? gridPart.gridWidget;
+		setTimeout(() => {
+			const belirtec = e.belirtec ?? gridWidget?._clickedcolumn, rec = e.rec ?? gridPart.selectedRec; let focusURL;
+			if (rec && belirtec?.startsWith('resim') && (focusURL = rec[belirtec.replace('resim', 'url')]?.trim())) { this.dokumanGosterIstendi({ ...e, focusURL }) }
+		}, 100)
+	}
+	static dokumanGosterIstendi(e) {
+		e = e || {}; const islemAdi = 'Döküman Göster'; try {
+			const {builder, focusURL} = e, gridPart = e.gridPart ?? builder?.rootPart ?? e.sender ?? app.activeWndPart, recs = gridPart.selectedRecs, {urlCount} = this;
+			let urlListe = []; for (const rec of recs) { for (let i = 1; i <= urlCount; i++) { let value = rec[`url${i}`]; if (value) { urlListe.push(value.trim()) } } }
+			if (!urlListe.length) { return } if (focusURL) { urlListe.sort((a, b) => a == focusURL ? -1 : 0) }
+			new MESDokumanWindowPart({ urlListe }).run()
+		}
+		catch (ex) { hConfirm(getErrorText(ex), islemAdi); throw ex }
+	}
+	static async dokumanYukleIstendi(e) {
+		e = e || {}; const PrefixURL = 'url', islemAdi = 'Döküman Yükle'; try {
+			const {builder} = e, id = e.id ?? builder?.id; let i = e.seq ?? e.index ?? id?.slice(PrefixURL.length);
+			if (typeof i == 'string') { i = asInteger(i) } const key = `${PrefixURL}${i}`;
+			const fileHandles = await showOpenFilePicker({
+				multiple: false, excludeAcceptAllOption: false, types: [
+					{ description: 'Resim', accept: { 'image/*': [] } },
+					{ description: 'PDF', accept: { 'application/pdf': [] } }
+				]
+			});
+			const fh = fileHandles[0], file = await fh?.getFile(); let fileName = file.name.replaceAll(' ', '_'); /*const ext = fileName.split('.').slice(-1)[0] ?? ''*/
+			const data = file ? new Uint8Array(await file.arrayBuffer()) : null; if (!data?.length) { return }
+			const result = await app.wsResimDataKaydet({ resimId: fileName, data }); if (!result.result) { throw { isError: true, errorText: 'Resim Kayıt Sorunu' } }
+			if (builder) {
+				const {altInst, input} = builder;
+				const value = builder.value = altInst[id] = `${app.getWSUrlBase()}/resimData/?resimId=${fileName}`; input?.focus()
+			}
+		}
+		catch (ex) { hConfirm(getErrorText(ex), islemAdi); throw ex }
 	}
 }

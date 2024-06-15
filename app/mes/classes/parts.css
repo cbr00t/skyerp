@@ -1,0 +1,6 @@
+.mesDokuman.part .dokumanForm,
+	.mesDokuman.part .skyResim.part #resim > .widget,
+	.mesDokuman.part .skyResim.part #resim > .widget .item > .content { background-color: #111 !important; margin: 0 !important; padding: 0 !important }
+.mesDokuman.part .skyResim.part { height: calc(var(--full) - 50px) !important }
+/*.mesDokuman.part { --islemTuslari-height: 0px }
+.mesDokuman.part .content { height: calc(var(--full) - var(--islemTuslari-height)) !important }*/

@@ -63,3 +63,4 @@ button#secimler {background-image: url(../../images/filtre.png) !important;}
 #raporDizayn { background-image: url(../../images/degistir.png); background-size: 32px 32px !important }
 #konumBelirle { background-color: transparent; background-image: url(../../images/power_on.png); background-size: 48px !important }
 #konumGoster { background-color: transparent; background-image: url(../../images/map.png); background-size: 48px !important }
+button#upload { background-color: transparent; background-image: url(../../images/yukari.png); background-size: 48px !important }

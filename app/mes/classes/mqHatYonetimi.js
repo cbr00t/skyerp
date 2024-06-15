@@ -50,6 +50,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 			{ id: 'tezgahMenu', text: 'TEZ', handler: e => this.tezgahMenuIstendi(e) },
 			{ id: 'isEmirleri', text: 'EMR', handler: e => this.bekleyenIsEmirleriIstendi(e) },
 			{ id: 'topluX', text: 'TPL', handler: e => this.topluXMenuIstendi(e) },
+			{ id: 'tumEkNotlar', text: 'NOT', handler: e => this.ekNotlarIstendi({ ...e, hepsi: true }) },
 			{ id: 'ozet', text: 'ÖZET', handler: e => this.ozetBilgiGoster(e) }
 		];
 		liste.splice(liste.findIndex(item => item.id == 'vazgec'), 0, ...items);
