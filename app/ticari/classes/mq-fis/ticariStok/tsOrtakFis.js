@@ -183,7 +183,7 @@ class TSOrtakFis extends MQTicariGenelFis {
 			const builder = e.builder || {}, {layout, builder_efatGosterim} = builder.rootPart || {};
 			// const input = layout.find(`.formBuilder-element.parent[data-builder-id="efatGosterim"] > div`);
 			if (layout?.length) layout.attr('data-efAyrimTipi', efAyrimTipi || '');
-			if (builder_efatGosterim) { const cls = EIslemOrtak.getClass(efAyrimTipi); builder_efatGosterim.input.html(cls ? cls.sinifAdi : '') }
+			if (builder_efatGosterim) { const cls = EIslemOrtak.getClass(efAyrimTipi); builder_efatGosterim.layout.html(cls ? cls.sinifAdi : '') }
 		}
 	}
 	efAyrimTipiDegisti(e) { }

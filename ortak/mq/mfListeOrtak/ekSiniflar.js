@@ -107,7 +107,7 @@ class GridPanelDuzenleyici extends CObject {
 		return recs
 	}
 	gridVeriYuklendi(e) {
-		const gridPart = e.sender ?? e.gridPart ?? e.part, {gridWidget, grid} = gridPart, {selectedRowIndex} = gridPart;
+		const gridPart = e.gridPart ?? e.sender ?? e.part, {gridWidget, grid} = gridPart, {selectedRowIndex} = gridPart;
 		if (selectedRowIndex) { gridWidget.ensurerowvisible(selectedRowIndex) }
 	}
 	getParentRecAtIndex(rowIndex, gridPart) { const {gridWidget} = gridPart || {}; return (rowIndex == null || rowIndex < 0 ? null : gridWidget.getrowdata(rowIndex)) ?? gridPart.selectedRec }

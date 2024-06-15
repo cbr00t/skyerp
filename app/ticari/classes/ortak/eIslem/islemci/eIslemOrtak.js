@@ -115,8 +115,7 @@ class EIslemOrtak extends CObject {
 		return result
 	}
 	async xmlDuzenle(e) {
-		const {xw} = e;
-		xw.writeStartElement(this.class.xmlRootTag);
+		const {xw} = e; xw.writeStartElement(this.class.xmlRootTag);
 			await this.xmlDuzenle_rootElement(e);
 			await this.xmlDuzenle_ublExtensions(e);
 			await this.xmlDuzenle_profileID_oncesi(e);
@@ -154,10 +153,7 @@ class EIslemOrtak extends CObject {
 		xw.writeElements({ 'cbc:ID': baslik.fisnox, 'cbc:CopyIndicator': false, 'cbc:UUID': baslik.uuid, 'cbc:IssueDate': baslik.tarihStr, 'cbc:IssueTime': baslik.sevkTarihStr })
 	}
 	xmlDuzenle_belgeTipKodu(e) { }
-	xmlDuzenle_notes(e) {
-		const {dipNotlar} = this, {xw} = e;
-		if (!$.isEmptyObject(dipNotlar)) { for (const value of dipNotlar) { xw.writeElementString('cbc:Note', escapeXML(value)) } }
-	}
+	xmlDuzenle_notes(e) { const {dipNotlar} = this, {xw} = e; if (!$.isEmptyObject(dipNotlar)) { for (const value of dipNotlar) { xw.writeElementString('cbc:Note', escapeXML(value)) } } }
 	xmlDuzenle_doviz(e) { }
 	xmlDuzenleInternal_doviz(e) {
 		const {xw} = e, {dvKod} = this;
@@ -328,7 +324,7 @@ class EIslemOrtak extends CObject {
 	}
 	xmlDuzenle_detayDevam_miktar(e) { }
 	xmlDuzenle_detayDevam_bedel(e) {
-		const det = e.detay, value = det.sonucBedel, {xattrYapi_bedel} = this, {xw} = e;
+		const det = e.detay, {dovizlimi, xattrYapi_bedel} = this, value = det.getSonucBedel({ dovizlimi }), {xw} = e;
 		xw.writeElementString('cbc:LineExtensionAmount', toFileStringWithFra(value, 2), null, xattrYapi_bedel)
 	}
 	xmlDuzenle_detayDevam_taxTotal(e) { }

@@ -5,6 +5,14 @@ class MQEIslemParam extends MQTicariParamBase {
 	get oeParam() { const {char} = this.ozelEntegrator || {}, selector = char; return (this.oe || {})[selector] }
 	get goruntuOzelPunto() { return this._goruntuOzelPunto || this.class.defaultGoruntuOzelPunto }
 	get faturaVadeEtiket() { return this._faturaVadeEtiket || 'Fatura Vadesi' }
+	static get kullanimKeys() {
+		return [
+			'redIcinDevredisiYapilsin', 'satirlarBirlessinmi', 'satirBarkod', 'satirIskontoDipteGosterilir', 'satirKdv', 'satirIskBedeli', 'satirDigerVergi', 'satirNetFiyat', 'satirEFAKoli', 'satirEIrsKoli',
+			'satirTakipNo', 'irsDetayBedel', 'ihrDetayKapNosuz', 'ihrDipNetBrutKilo', 'ihrDetayUreticiVeMensei', 'baslikMusteriKod', 'baslikVade', 'baslikPlasiyer', 'baslikNakliyeSekli',  'baslikTahsilatSekli',
+			'musBaslikBabaVeDogum', 'dipNetBrutKilo', 'miktarToplamiKilosuz',  'dipMiktarToplami', 'dipTekstilRBK', 'subeFislerdeGondericiSubeOlsun', 'ozelConf', 'dipOncekiBakiye', 'dipSonBakiye', 'dipInternetSatis',
+			'eFaturaYerineEArsivGoruntuleyici', 'logoKullanilir', 'eFatIcinIslakImza', 'eMusIcinKaseImza', 'ihracatEskiCizgiliGorunum', '_goruntuOzelPunto', 'kodYerineSiraNo', 'bakiyeDovizliIseAyricaTLBakiye'
+		]
+	}
 
 	constructor(e) { e = e || {}; super(e); this.kural = e.kural || {} }
 	static paramAttrListeDuzenle(e) {
@@ -26,14 +34,14 @@ class MQEIslemParam extends MQTicariParamBase {
 				}
 			})
 		let form = paramci.addFormWithParent('oeParam').setAltInst(e => e.paramci?.inst?.oeParam);
-		form.addString('wsUser', 'WS Kullanıcı').setRowAttr('kullaniciAdi'); form.addString('wsPass', 'WS Şifre').setRowAttr('sifre').addStyle(e => `$elementCSS > input { font-size: 80%; text-align: center }`);
+			form.addString('wsUser', 'WS Kullanıcı').setRowAttr('kullaniciAdi'); form.addString('wsPass', 'WS Şifre').setRowAttr('sifre').addStyle(e => `$elementCSS > input { font-size: 80%; text-align: center }`);
 		form.addBool('testmi', 'Test').setAltInst(e => e.paramci?.root?.inst);
 		form = paramci.addFormWithParent();
-		form.addString('gibAlias', 'GIB Alias').setRowAttr('efatGIBAlias'); form.addString('eArsGIBAlias', 'e-Arşiv GIB Alias').setRowAttr('earsGIBAlias'); form.addString('eIrsGIBAlias', 'e-İrs. GIB Alias').setRowAttr('eirsGIBAlias');
-		form.addString('_faturaVadeEtiket', 'Fatura Vade Etiket').setRowAttr('faturaVadeEtiket');
-		form = paramci.addKullanim().addGrup('Kullanım').addFormWithParent();
-		form.addBool('ozelConf', 'Özel Konfigurasyon');
-		form.addNumber('_goruntuOzelPunto', 'Görüntü Özel Punto').setRowAttr('goruntuOzelPunto').addStyle_wh(180)
+			form.addString('gibAlias', 'GIB Alias').setRowAttr('efatGIBAlias'); form.addString('eArsGIBAlias', 'e-Arşiv GIB Alias').setRowAttr('earsGIBAlias'); form.addString('eIrsGIBAlias', 'e-İrs. GIB Alias').setRowAttr('eirsGIBAlias');
+			form.addString('_faturaVadeEtiket', 'Fatura Vade Etiket').setRowAttr('faturaVadeEtiket');
+		form = paramci.addKullanim().addGrup('Kullanım').addFormWithParent(); form.addBool('ozelConf', 'Özel Konfigurasyon');
+			form.addNumber('_goruntuOzelPunto', 'Görüntü Özel Punto').setRowAttr('goruntuOzelPunto').addStyle_wh(180);
+			form.addBool('kodYerineSiraNo', 'Kod Yerine Sıra No'); form.addBool('bakiyeDovizliIseAyricaTLBakiye', 'Dövizli Bakiye için Ayrıca TL Bakiye')
 	}
 	static tekSecimDonusumDuzenle(e) {
 		super.tekSecimDonusumDuzenle(e);
@@ -47,15 +55,13 @@ class MQEIslemParam extends MQTicariParamBase {
 		let {ozelEntegrator} = this; if (typeof ozelEntegrator != 'object') { ozelEntegrator = this.ozelEntegrator = new EOzelEntegrator(ozelEntegrator) }
 		await super.kaydetSonrasiIslemler(e)
 	}
+	paramHostVarsDuzenle(e) {
+		super.paramHostVarsDuzenle(e); const {hv} = e, {kullanimKeys} = this.class;
+		const {kullanim} = this; for (const key of kullanimKeys) { const value = kullanim[key]; if (value != null) { hv[key] = value} }
+	}
 	paramSetValues(e) {
-		e = e || {}; this.kural = {}; super.paramSetValues(e); const {rec} = e; $.extend(this, { anaBolum: rec.efatAnaBolum });
-		let keys = [
-			'redIcinDevredisiYapilsin', 'satirlarBirlessinmi', 'satirBarkod', 'satirIskontoDipteGosterilir', 'satirKdv', 'satirIskBedeli', 'satirDigerVergi', 'satirNetFiyat', 'satirEFAKoli', 'satirEIrsKoli',
-			'satirTakipNo', 'irsDetayBedel', 'ihrDetayKapNosuz', 'ihrDipNetBrutKilo', 'ihrDetayUreticiVeMensei', 'baslikMusteriKod', 'baslikVade', 'baslikPlasiyer', 'baslikNakliyeSekli',  'baslikTahsilatSekli',
-			'musBaslikBabaVeDogum', 'dipNetBrutKilo', 'miktarToplamiKilosuz',  'dipMiktarToplami', 'dipTekstilRBK', 'subeFislerdeGondericiSubeOlsun', 'ozelConf', 'dipOncekiBakiye', 'dipSonBakiye', 'dipInternetSatis',
-			'eFaturaYerineEArsivGoruntuleyici', 'logoKullanilir', 'eFatIcinIslakImza', 'eMusIcinKaseImza', 'ihracatEskiCizgiliGorunum'
-		];
-		const {kullanim} = this; for (const key of keys) kullanim[key] = rec[key]
+		e = e || {}; const {rec} = e; this.kural = rec.kural || this.kural || {}; super.paramSetValues(e); $.extend(this, { anaBolum: rec.efatAnaBolum });
+		let {kullanimKeys} = this.class; const {kullanim} = this; for (const key of kullanimKeys) { kullanim[key] = rec[key] }
 		$.extend(this, { ozelEntegrator: new EOzelEntegrator({ char: rec.ozelEntegrator || ' ' }) });
 		const oe = this.oe = {
 			innova: rec.oeInnova || {}, edm: rec.oeEDM || {}, veriban: rec.oeVeriban || {}, eFinans: rec.oeEFinans || {}, nes: rec.oeNES || {}, nesV4: rec.oeNESv4 || {},
@@ -72,10 +78,9 @@ class MQEIslemParam extends MQTicariParamBase {
 				const ioAttr = oeKeyDonusum[rowAttr] ?? rowAttr; oeParam[ioAttr] = value
 			}
 		}
-		keys = ['hmrKodListe', 'hmrKodListeEIrs']; for (const key of keys) this[key] = rec[key] || []
+		let keys = ['hmrKodListe', 'hmrKodListeEIrs']; for (const key of keys) this[key] = rec[key] || []
 		keys = ['eIhrAlinmayacakKolonlar']; for (const key of keys) this[key] = asSet(rec[key] || {})
-		const {kural} = this;
-		for (const key in kural) {
+		const {kural} = this; for (const key in kural) {
 			const recKey = `kural${key[0].toUpperCase()}${key.slice(1)}`, value = rec[recKey];
 			if (value != null) { kural[key].char = value || ' ' }
 		}

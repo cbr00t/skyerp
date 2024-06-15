@@ -290,7 +290,7 @@ class MQEkNotlar extends MQSayacliOrtak {
 			wh.ozellik(sec.tezgahAdi, 'tez.aciklama')
 		})
 	}
-	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); const {args} = e; $.extend(args, { rowsHeight: 180 }) }
+	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); const {args} = e; $.extend(args, { rowsHeight: 180 /*selectionmode: 'multiplecellsextended'*/ }) }
 	static ekCSSDuzenle(e) {
 		super.ekCSSDuzenle(e); const {rec, result} = e, belirtec = e.belirtec ?? e.dataField ?? e.datafield, {tip} = rec;
 		if (belirtec == 'tipText') { result.push('bold'); switch (tip) { case 'HT': result.push('bg-lightgreen'); break; case 'TZ': result.push('bg-lightred'); break } }
@@ -311,6 +311,7 @@ class MQEkNotlar extends MQSayacliOrtak {
 		for (let i = 1; i <= urlCount; i++) { liste.push(new GridKolon({ belirtec: `url${i}`, text: `Dokuman URL ${i}` })) }
 		for (let i = 1; i <= urlCount; i++) {
 			liste.push(new GridKolon({
+				filterable: false, sortable: false, groupable: false,
 				belirtec: `resim${i}`, text: `Dokuman Resim ${i}`, genislikCh: 20, cellsRenderer: (colDef, rowIndex, belirtec, _value, html, jqxCol, rec) => {
 					let i = asInteger(belirtec.slice('resim'.length)), value = rec[`url${i}`];
 					if (value) { html = `<div class="full-wh" style="background-repeat: no-repeat; background-size: contain; background-image: url(${value})"*>` }

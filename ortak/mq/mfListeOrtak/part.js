@@ -384,7 +384,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		catch (ex) { hConfirm(getErrorText(ex), 'Yeni'); throw ex }
 	}
 	async degistirIstendi(e) {
-		e = e || {}; const {tanimOncesiEkIslemler, gridWidget} = this, rowIndex = e.rowIndex ?? gridWidget.getselectedrowindex(), rec = e.rec ?? gridWidget.getrowdata(rowIndex), mfSinif = this.getMFSinif(e);
+		e = e || {}; const {tanimOncesiEkIslemler, gridWidget} = this, rowIndex = e.rowIndex ?? this.selectedRowIndex, rec = e.rec ?? gridWidget.getrowdata(rowIndex), mfSinif = this.getMFSinif(e);
 		const tanimUISinif = this.getTanimUISinif($.extend({}, e, { mfSinif, rec })); if (!tanimUISinif) return false
 		if (!rec) { hConfirm('Değiştirilecek satır seçilmelidir', ' '); return false }
 		const {args} = e, {ozelTanimIslemi, table, tableAlias, aliasVeNokta} = mfSinif; let eskiInst, inst;
@@ -402,8 +402,8 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		catch (ex) { hConfirm(getErrorText(ex), 'Değiştir'); throw ex }
 	}
 	async kopyaIstendi(e) {
-		e = e || {}; const {tanimOncesiEkIslemler, table, tableAlias, aliasVeNokta, gridWidget} = this;
-		const rowIndex = coalesce(e.rowIndex, gridWidget.getselectedrowindex()), rec = coalesce(e.rec, gridWidget.getrowdata(rowIndex)), mfSinif = this.getMFSinif(e);
+		e = e || {}; const {tanimOncesiEkIslemler, table, tableAlias, aliasVeNokta, gridWidget} = this, rowIndex = e.rowIndex ?? this.selectedRowIndex;
+		const rec = e.rec ?? gridWidget.getrowdata(rowIndex), mfSinif = this.getMFSinif(e);
 		const tanimUISinif = this.getTanimUISinif($.extend({}, e, { mfSinif, rec })); if (!tanimUISinif) return false
 		if (!rec) { hConfirm('Kopyalanacak satır seçilmelidir', ' '); return false }
 		const {args} = e, {ozelTanimIslemi} = mfSinif; let eskiInst, inst;
@@ -422,7 +422,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	async silIstendi(e) {
 		const mfSinif = this.getMFSinif(e);
 		if (mfSinif && !mfSinif.silinebilirmi) { hConfirm(`Silme işlemi yapılamaz`, ' '); return false }
-		const {gridWidget} = this, rowIndexes = gridWidget.getselection()?.rows, recs = rowIndexes.map(ind => gridWidget.getrowdata(ind)).filter(rec => !!rec);
+		const {gridWidget} = this, rowIndexes = this.selectedRowIndexes, recs = rowIndexes.map(ind => gridWidget.getrowdata(ind)).filter(rec => !!rec);
 		if ($.isEmptyObject(recs)) { hConfirm('Silinecek satırlar seçilmelidir', ' '); return false }
 		let rdlg = await ehConfirm(`Seçilen ${recs.length} satır silinsin mi?`, ' '); if (!rdlg) return false
 		try { showProgress(); const result = await this.silDevam($.extend({}, e, { mfSinif, recs, rowIndexes })); return result }

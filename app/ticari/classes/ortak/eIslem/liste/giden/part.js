@@ -9,7 +9,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 	runDevam(e) {
 		e = e || {}; super.runDevam(e);
 		const {dbName} = config.session, {kural} = app.params.eIslem, {sadeceAdi2mi} = kural.shAdi;
-		if (!sadeceAdi2mi && dbName?.toUpperCase().includes('BAKERMAN')) { setTimeout(() => hConfirm(`<b>BAKERMAN</b> veritabanı için e-İşlem Parametresi <b class="red">Stok Adı Gösterim</b> kuralı <u class="bold royalblue">Miktar 2</u> olarak işaretlenmelidir`, 'UYARI'), 1000) }
+		if (!sadeceAdi2mi && dbName?.toUpperCase().includes('BAKERMAN')) { setTimeout(() => hConfirm(`<b>BAKERMAN</b> veritabanı için e-İşlem Parametresi <b class="red">Stok Adı Gösterim</b> kuralı <u class="bold royalblue">2. Adı</u> olarak işaretlenmelidir`, 'UYARI'), 1000) }
 	}
 	islemTuslariDuzenle(e) {
 		super.islemTuslariDuzenle(e); const {liste, part} = e;

@@ -31,7 +31,7 @@ class DipSatir extends CObject {
 	vergiDahileEklenirmi(e) { return false } odenecektenDusulurmu(e) { return false }
 	hesapla(e) { this.hesaplaDevam(e); this.hesaplaSonrasi(e) }
 	hesaplaDevam(e) { }
-	hesaplaSonrasi(e) { for (const key of ['tlBedel', 'dvBedel']) { let value = this[key]; if (value != null) { value = this[key] = roundToBedelFra(value) } } }
+	hesaplaSonrasi(e) { for (const key of ['tlBedel', 'dvBedel']) { let value = this[key] || 0; if (value != null) { value = this[key] = roundToBedelFra(value) } } }
 	icmalSonuclarinaEkle(icmalSonuclari) { return this }
 	eDipHostVars(e) {
 		const {bedelYapi} = this; if (bedelYapi.bosmu) { return null }
@@ -51,7 +51,6 @@ class DipSatir extends CObject {
 class DipSatir_Brut extends DipSatir {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	get satirBelirtec() { return 'BRUT' } get satirEtiket() { return 'BRÜT' }
-
 	hesaplaDevam(e) { super.hesaplaDevam(e); const {_temps} = this._dipIslemci; _temps.araDeger = roundToBedelFra(this.tlBedel || 0); }
 	icmalSonuclarinaEkle(icmalSonuclari) { super.icmalSonuclarinaEkle(icmalSonuclari); icmalSonuclari.ciro.ekle(this.bedelYapi); return this }
 	eDipHostVarsDuzenle(e) { super.eDipHostVarsDuzenle(e); const {hv} = e; $.extend(hv, { anatip: 'DP', alttip: 'BR' }) }

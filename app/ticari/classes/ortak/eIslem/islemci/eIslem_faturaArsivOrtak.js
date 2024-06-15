@@ -67,30 +67,20 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 	}
 	static getEFisBaslikVeDetayStm(e) {
 		e = e || {}; const ps2SayacListe = getFuncValue.call(this, e.ps2SayacListe || e.psTip2SayacListe, e) || {};
-		const genelWhereDuzenleyici = e.whereDuzenleyici, uni = new MQUnionAll();
-		let sent, psTip, sayacListe;
+		const genelWhereDuzenleyici = e.whereDuzenleyici, uni = new MQUnionAll(); let sent, psTip, sayacListe;
 		const fhBagla = _e => {
-			const {psTip, fisTable, harTable} = _e;
-			const mustIlClause = `(case when fis.degiskenvknox <> '' then dadr.ilkod else car.ilkod end)`;
-			sent = new MQSent(); uni.add(sent);
-			sent.fisHareket({ fisTable: fisTable, harTable: harTable, innerJoin: true });
-			sent.fis2TicCariBagla();
-			sent.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox');
-			sent.fromIliski('naksekli nak', 'fis.nakseklikod = nak.kod');
-			sent.fromIliski('carmst pls', 'fis.plasiyerkod = pls.must');
-			sent.fromIliski('caril cil', `${mustIlClause} = cil.kod`);
-			sent.fromIliski('ulke culk', 'car.ulkekod = culk.kod');
+			const {psTip, fisTable, harTable} = _e, mustIlClause = `(case when fis.degiskenvknox <> '' then dadr.ilkod else car.ilkod end)`;
+			sent = new MQSent(); uni.add(sent); sent.fisHareket({ fisTable: fisTable, harTable: harTable, innerJoin: true });
+			sent.fis2TicCariBagla(); sent.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox');
+			sent.fromIliski('naksekli nak', 'fis.nakseklikod = nak.kod'); sent.fromIliski('carmst pls', 'fis.plasiyerkod = pls.must');
+			sent.fromIliski('caril cil', `${mustIlClause} = cil.kod`); sent.fromIliski('ulke culk', 'car.ulkekod = culk.kod');
 			sent.leftJoin({ alias: 'fis', table: 'tahsilsekli tsek', iliski: [`fis.tahtipi = 'T'`, 'fis.martahsil = tsek.kodno'] });
 			sent.leftJoin({ alias: 'fis', table: 'pifbasekaciklama basack', iliski: 'fis.kaysayac = basack.fissayac' });
 			sent.leftJoin({ alias: 'fis', table: 'pifdipaciklama dipack', iliski: 'fis.kaysayac = dipack.fissayac' });
-			sent.fromIliski('vergihesap kver', 'har.kdvhesapkod = kver.kod');
-			sent.fromIliski('vergihesap tevver', 'har.dettevhesapkod = tevver.kod');
+			sent.fromIliski('vergihesap kver', 'har.kdvhesapkod = kver.kod'); sent.fromIliski('vergihesap tevver', 'har.dettevhesapkod = tevver.kod');
 			sent.fromIliski('vergihesap sver', 'har.stopajhesapkod = sver.kod');
 			sent.fisSilindiEkle();
-			sent.where.addAll([
-				`fis.ozelisaret <> '*'`, `fis.efayrimtipi in ('E', 'A', '')`,
-				new MQOrClause([`(fis.almsat = 'T' and fis.iade = '')`, `(fis.almsat = 'A' and fis.iade = 'I')`])
-			]);
+			sent.where.add(`fis.ozelisaret <> '*'`, `fis.efayrimtipi in ('E', 'A', '')`, new MQOrClause([`(fis.almsat = 'T' and fis.iade = '')`, `(fis.almsat = 'A' and fis.iade = 'I')`]));
 			sent.where.inDizi(sayacListe, 'fis.kaysayac');
 			sent.sahalar.addAll([
 				`${MQSQLOrtak.sqlServerDegeri(psTip)} pstip`, `${MQSQLOrtak.sqlServerDegeri(fisTable)} fisTable`, `${MQSQLOrtak.sqlServerDegeri(harTable)} harTable`,
@@ -108,20 +98,14 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 				`(case when fis.degiskenvknox <> '' then dadr.yore else car.yore end) yore`,
 				`(case when fis.degiskenvknox <> '' then dadr.posta else car.posta end) posta`,
 				`${mustIlClause} ilkod`, 'cil.aciklama iladi', 'car.ulkekod', 'culk.aciklama ulkeadi',
-				`(case
-						when fis.degiskenvknox <> '' then (case when dadr.sahismi = '' then fis.degiskenvknox else '' end)
+				`(case when fis.degiskenvknox <> '' then (case when dadr.sahismi = '' then fis.degiskenvknox else '' end)
 						when fis.must = '' and fis.ayrimtipi = 'PR' then ''
-						else car.vnumara end
-					 ) vkn`,
-				`(case
-						when fis.degiskenvknox <> '' then (case when dadr.sahismi <> '' then fis.degiskenvknox else '' end)
+						else car.vnumara end) vkn`,
+				`(case when fis.degiskenvknox <> '' then (case when dadr.sahismi <> '' then fis.degiskenvknox else '' end)
 						when fis.must = '' and fis.ayrimtipi = 'PR' then ${MQSQLOrtak.sqlServerDegeri(TCKimlik.perakendeVKN)}
-						else car.tckimlikno
-					  end) tckn`,
-				`(case
-						when fis.degiskenvknox <> '' then dadr.sahismi
-						when fis.must = '' and fis.ayrimtipi = 'PR' then '*'
-						else car.sahismi
+						else car.tckimlikno end) tckn`,
+				`(case when fis.degiskenvknox <> '' then dadr.sahismi
+						when fis.must = '' and fis.ayrimtipi = 'PR' then '*' else car.sahismi
 					end) sahismi`,
 				`(case when fis.degiskenvknox <> '' then dadr.vdaire else car.vdaire end) vergidairesi`,
 				`(case when fis.degiskenvknox <> '' then '' else car.ticaretsicilno end) ticsicilno`,
@@ -129,6 +113,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 				`(case when fis.degiskenvknox <> '' then dadr.efatgibalias else car.efatgibalias end) gibalias`,
 				`(case when fis.degiskenvknox <> '' then '' else car.webadresi end) webadresi`,
 				'pls.birunvan plasiyeradi', 'nak.aciklama naksekliadi', 'car.musrefkod', 'car.kondepomu',
+				`fis.tlacikhesap tlbakiye`, `fis.tloncekibakiye`, `fis.dvacikhesap dvbakiye`, `fis.dvoncekibakiye`,
 				'fis.refstrnox refnox', 'fis.borsatescilvarmi', 'fis.kunyenox', 'basack.basaciklama', 'dipack.aciklama dipaciklama',
 				'har.seq', 'har.miktar', 'har.fiyat', 'har.dvfiyat', 'har.brutbedel', 'har.dvbrutbedel', 'har.bedel', 'har.dvbedel',
 				'har.ekaciklama', 'har.detkdvekvergitipi', 'har.detistisnakod', 'har.perkdv', 'kver.kdvorani', 'har.perstopaj', 'sver.stopajorani',
@@ -221,7 +206,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 			yukleIslemi({
 				stm: e => this.getOncekiIrsTSNStm(e), seviyelendirici: e => seviyelendirAttrGruplari({ source: e.recs, attrGruplari: [['pstip', 'fissayac']] }),
 				yukleyici: e => e.eFis.oncekiIrsTSNYukle($.extend({}, e, { recs: e.detaylar }))
-			}),
+			})
 		)
 	}
 	static getDetayAciklamaStm(e) {
@@ -301,10 +286,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		stm.orderBy.addAll('pstip', 'fissayac', 'alttip', 'kayitno');
 		return stm
 	}
-	dipAciklamaYukle(e) {
-		const dipNotlar = this.dipNotlar = [], {recs} = e;
-		for (const rec of recs) dipNotlar.push((rec.aciklama || '').trimEnd())
-	}
+	dipAciklamaYukle(e) { const dipNotlar = this.dipNotlar = [], {recs} = e; for (const rec of recs) { dipNotlar.push((rec.aciklama || '').trimEnd()) } }
 	static getDipEIcmalStm(e) {
 		let stm, uni;
 		const fhBagla = _e => {
@@ -344,7 +326,6 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		return stm
 	}
 	oncekiIrsTSNYukle(e) { const {baslik} = this; baslik.oncekiIrsTSNListe = e._detaylar }
-
 	xmlDuzenle_rootElement_ilk(e) {
 		super.xmlDuzenle_rootElement_ilk(e); const {xw} = e;
 		xw.writeAttributeString('xmlns', 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2')
@@ -364,8 +345,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		if (param_eIslemKullanim.baslikVade) { await this.xmlDuzenleInternal_docRefBaslikEkSaha({ xw, name: param_eIslem.faturaVadeEtiket, value: dateToString(asDate(ortalamavade)) }) }
 		if (param_eIslemKullanim.baslikPlasiyer) { await this.xmlDuzenleInternal_docRefBaslikEkSaha({ xw, name: 'Plasiyer', value: plasiyerkod ? `(${plasiyerkod}) ${plasiyeradi}` : null }) }
 		if (param_eIslemKullanim.baslikTahsilatSekli) { await this.xmlDuzenleInternal_docRefBaslikEkSaha({ xw, name: 'Tahsil Şekli', value: tahsekliadi }) }
-		if (eYontem) { eYontem.xmlDuzenle_docRefs(e) }
-		await this.xmlDuzenleInternal_logoBilgileri(e)
+		if (eYontem) { eYontem.xmlDuzenle_docRefs(e) } await this.xmlDuzenleInternal_logoBilgileri(e)
 	}
 	async xmlDuzenleInternal_logoBilgileri(e) {
 		const {xw} = e, {params} = app, param_eIslem = params.eIslem, logocu = await param_eIslem.getLogoData();
@@ -378,17 +358,27 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 			/* this.xmlDuzenleInternal_docRef({ xw, id: '0', type, attachment: { mimeType, imgData } }) */
 		}
 	}
-	xmlDuzenle_notes(e) {
+	xmlDuzenle_notes(e) { this.xmlDuzenle_notes_eArsiv(e); this.xmlDuzenle_notes_bakiye(e); super.xmlDuzenle_notes(e) }
+	xmlDuzenle_notes_eArsiv(e) {
 		const {eArsivBelgeTipBelirtec} = this.baslik, {xw} = e;
 		if (eArsivBelgeTipBelirtec) { const value = `Gönderim Şekli: ${eArsivBelgeTipBelirtec}`; xw.writeElementString('cbc:Note', escapeXML(value)) }
-		super.xmlDuzenle_notes(e)
+	}
+	xmlDuzenle_notes_bakiye(e) {
+		const {xw} = e, {baslik} = this, {oncekiXBakiye, sonrakiXBakiye, dovizlimi, dvKodUyarlanmis} = baslik, {dipOncekiBakiye, dipSonBakiye, bakiyeDovizliIseAyricaTLBakiye} = app.params.eIslem.kullanim;
+		const bakiyeTextEkle = e => {
+			const {cssPrefix, etiket, bakiye, tlBakiye} = e; let araTextListe = [`${toStringWithFra(bakiye, 2)} ${dvKodUyarlanmis}`];
+			if (dovizlimi && bakiyeDovizliIseAyricaTLBakiye) { araTextListe.push(`${toStringWithFra(tlBakiye, 2)} TL`) }
+			const text = `<span class="${cssPrefix}Bakiye bakiye" style="font-weight: bold; font-size: 120%%;">Bu Fatura ${etiket} Bakiye: ${araTextListe.join(', ')}</span>`;
+			xw.writeElementString('cbc:Note', escapeXML(text))
+		};
+		if (dipOncekiBakiye && oncekiXBakiye) { bakiyeTextEkle({ cssPrefix: 'onceki', etiket: 'Öncesi', bakiye: oncekiXBakiye, tlBakiye: baslik.oncekiTLBakiye }) }
+		if (dipSonBakiye && sonrakiXBakiye) { bakiyeTextEkle({ cssPrefix: 'sonraki', etiket: 'Son', bakiye: sonrakiXBakiye, tlBakiye: baslik.sonrakiTLBakiye }) }
 	}
 	xmlDuzenle_belgeTipKodu(e) { let value = this.xmlGetBelgeTipKodu(e); this.baslik._belgeTipKod = value; e.xw.writeElementString('cbc:InvoiceTypeCode', value) }
 	xmlDuzenle_doviz(e) { super.xmlDuzenle_doviz(e); this.xmlDuzenleInternal_doviz(e) }
 	xmlDuzenle_dvKur(e) { super.xmlDuzenle_dvKur(e); if (this.dovizlimi) this.xmlDuzenleInternal_dvKur(e) }
 	xmlDuzenle_docRefs_yalnizYazisi(e) {
-		super.xmlDuzenle_docRefs_yalnizYazisi(e);
-		const {xw} = e, icmal = this.icmalYoksaOlustur(), sonucBedel = icmal.sonucBedelYapi[this.bedelSelector];
+		super.xmlDuzenle_docRefs_yalnizYazisi(e); const {xw} = e, icmal = this.icmalYoksaOlustur(), sonucBedel = icmal.sonucBedelYapi[this.bedelSelector];
 		const type = 'YALNIZYAZISI', desc = `#${yalnizYazisi(sonucBedel)}#`; this.xmlDuzenleInternal_docRef({ xw, id: '0', type, desc })
 	}
 	xmlDuzenle_signatureParty(e) {

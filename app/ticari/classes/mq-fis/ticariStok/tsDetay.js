@@ -57,9 +57,8 @@ class TSSHDDetay extends TSDetay {
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
 		$.extend(pTanim, {
-			shKod: new PInstStr(), shAdi: new PInst(), miktar: new PInstNum('miktar'), brm: new PInstStr(),
-			fiyat: new PInstNum('fiyat'), veriFiyat: new PInstNum('ekranverifiyat'), brutBedel: new PInstNum('brutbedel'), netBedel: new PInstNum('bedel'), ekAciklama: new PInstStr('ekaciklama'),
-			takipNo: new PInstStr('dettakipno'),
+			shKod: new PInstStr(), shAdi: new PInst(), miktar: new PInstNum('miktar'), brm: new PInstStr(), fiyat: new PInstNum('fiyat'),
+			brutBedel: new PInstNum('brutbedel'), netBedel: new PInstNum('bedel'), takipNo: new PInstStr('dettakipno'), ekAciklama: new PInstStr('ekaciklama'),
 			/* Ticari sahalar */
 			iskYapi: new PInstClass(TicIskYapi), kdvKod: new PInstStr(), ekVergiYapi: new PInstClass(EkVergiYapi), kkegYuzde: new PInstNum('kkegyuzde'),
 			adiDegisirmi: new PInstBool(), kdvDegiskenmi: new PInstBitBool(), altAciklama: new PInstStr()
@@ -140,11 +139,11 @@ class TSSHDDetay extends TSDetay {
 		}
 		else { sent.sahalar.add(`${aliasVeNokta}kdvhesapkod orjkdvkod`) }
 	}
-
+	hostVars(e) { for (const key of ['fiyat', 'brutBedel', 'netBedel']) { this[key] = (this[key] || 0) } return super.hostVars(e) }
 	hostVarsDuzenle(e) {
-		e = e || {}; super.hostVarsDuzenle(e); const {fis, hv} = e, {shKodSaha, shAdiSaha, hizmetmi} = this.class, {siparismi} = fis.class; 
-		hv[shKodSaha] = this.shKod;
-		if (!(siparismi || hizmetmi)) { hv.detyerkod = this.getYerKod({ fis }) }
+		e = e || {}; super.hostVarsDuzenle(e); const {fis, hv} = e, {shKodSaha, shAdiSaha, hizmetmi} = this.class, {siparismi} = fis.class;
+		hv[shKodSaha] = this.shKod; if (!(siparismi || hizmetmi)) { hv.detyerkod = this.getYerKod({ fis }) }
+		const {fiyat, netBedel} = this; hv.ekranverifiyat = hv.belgefiyat = fiyat; hv.belgebedel = netBedel
 	}
 	setValues(e) {
 		e = e || {}; super.setValues(e); const {rec, fis} = e, {shKodSaha, shAdiSaha, hizmetmi} = this.class, {siparismi} = fis.class;

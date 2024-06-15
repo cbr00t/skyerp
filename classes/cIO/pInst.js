@@ -44,6 +44,8 @@ class PInst extends CObject {
 	on(eventName, handler) { return this.addEventListener(eventName, handler) }
 	off(eventName, handler) { return this.removeEventListener(eventName, handler) }
 	trigger(eventName, ...args) { return this.raiseEvent(eventName, ...args) }
+	degisince(handler) { return this.change(handler) }
+	onChange(handler) { return this.onChange(handler) }
 	change(handler) { return this.on('change', handler) }
 	shallowCopy(e) {
 		const inst = super.shallowCopy(e); let {value} = this;

@@ -16,6 +16,14 @@ class EIslBaslik extends EIslBaslikVeDetayOrtak {
 		}
 		return result
 	}
+	get dvKodUyarlanmis() {
+		let result = this._dvKodUyarlanmis;
+		if (result === undefined) {
+			result = this.dvKod; if (!result || result == 'TRY' || result == 'TRL') { result = 'TL' }
+			this._dvKodUyarlanmis = result
+		}
+		return result
+	}
 	get dovizlimi() {
 		let result = this._dovizlimi;
 		if (result === undefined) { const {dvKod} = this; result = this._dovizlimi = dvKod && dvKod != EIslemOrtak.currCode_tl }
@@ -57,6 +65,10 @@ class EIslBaslik extends EIslBaslikVeDetayOrtak {
 		}
 		return result
 	}
+	get xbakiye() { return this.rec[`${this.dovizlimi ? 'dv' : 'tl'}bakiye`] } get oncekiXBakiye() { return this.rec[`${this.dovizlimi ? 'dv' : 'tl'}oncekibakiye`] }
+	get sonrakiXBakiye() { return (this.oncekiXBakiye || 0) + (this.xbakiye || 0) }
+	get tlBakiye() { return this.rec.tlbakiye } get oncekiTLBakiye() { return this.rec.tloncekibakiye }
+	get sonrakiTLBakiye() { return (this.oncekiTLBakiye || 0) + (this.tlBakiye || 0) }
 
 	async onKontrol(e) {
 		await super.onKontrol(e); let err = errorTextsAsObject({ errors: await this.onKontrolMesajlar(e) }); if (err) { throw err }
@@ -75,7 +87,10 @@ class EIslDetay extends EIslBaslikVeDetayOrtak {
 	get stokmu() { return this.kayitTipi == 'S' } get hizmetmi() { return this.kayitTipi == 'H' } get demirbasmi() { return this.kayitTipi == 'D' }
 	get kodGosterim() {
 		let result = this._kodGosterim;
-		if (result == null) { this._kodGosterim = result = (this.rec.shkod || '').trimEnd() }
+		if (result == null) {
+			const {rec} = this, {kodYerineSiraNo} = app.params.eIslem.kullanim; result = kodYerineSiraNo ? rec.seq.toString() : rec.shkod;
+			this._kodGosterim = result = result.trimEnd()
+		}
 		return result
 	}
 	get adiGosterim() {
@@ -94,7 +109,8 @@ class EIslDetay extends EIslBaslikVeDetayOrtak {
 		return result
 	}
 	get revizeRefKod() { return this.rec.stokrefkod || this.kodGosterim }
-	get sonucBedel() { const {rec} = this; return rec.bedel }
+	get sonucBedelYapi() { const {rec} = this; return new TLVeDVBedel({ tl: rec.bedel, dv: rec.dvbedel }) }
+	getSonucBedel(e) { const {dovizlimi} = e, {sonucBedelYapi} = this; return sonucBedelYapi[dovizlimi ? 'dv' : 'tl'] }
 	getEFiyatYapi(e) {
 		let result = this._eFiyatYapi;
 		if (result == null) {
@@ -134,7 +150,11 @@ class EIcmal extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get brutBedelYapi() {
 		let result = this._brutBedelYapi;
-		if (result === undefined) this._brutBedelYapi = result = ((((this.belirtec2AnaTip2AltTip2Satirlar[''] || {}).DP || {}).BR || [])[0] || {}).bedelYapi || {}
+		if (result === undefined) {
+			const satirdanDipe = this.belirtec2AnaTip2AltTip2Satirlar['']?.DP || {};
+			this._brutBedelYapi = result = ((satirdanDipe.BR ?? satirdanDipe.NT) || [])[0]?.bedelYapi || {}
+												/* ^-> Satır Brütten veya Netten kullanılabiliyor */
+		}
 		return this._brutBedelYapi
 	}
 	get topIskBedelYapi() {
