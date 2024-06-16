@@ -135,7 +135,7 @@ class MQBankaHesap extends MQKA {
 		super.secimlerDuzenle(e);
 		const {secimler} = e;
 		secimler.grupTopluEkle([//gruplama yaptığımız kısım.
-			{ kod: 'bankaBilgi', aciklama: 'Banka Bilgi', zeminRenk: '#33ccaa', kapali: false },
+			{ kod: 'bankaBilgi', aciklama: 'Banka Bilgi', zeminRenk: '#33ccaa', kapali: false }
 		]);
 		secimler.secimTopluEkle({
 			banKod: new SecimString({ etiket: 'Banka Kod', grupKod: 'bankaBilgi' }),

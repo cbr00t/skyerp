@@ -92,7 +92,6 @@ class SecimlerPart extends Part {
 			}
 		}
 	}
-
 	formGenelEventleriBagla(e) {
 		const {layout} = this;
 		let inputs = layout.find('input[type=textbox], input[type=text], input[type=number]');

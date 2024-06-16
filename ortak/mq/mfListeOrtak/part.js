@@ -105,7 +105,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	destroyPart(e) {
 		const {layout, builder} = this, mfSinif = this.getMFSinif(); $.extend(e, { layout, sender: this, gridPart: this, builder });
 		if (mfSinif?.listeEkrani_destroyPart) { mfSinif.listeEkrani_destroyPart(e) }
-		super.destroyPart(e); const {secimlerPart} = this; if (secimlerPart) { secimlerPart.destroyPart() }
+		const {secimlerPart} = this; if (secimlerPart) { secimlerPart.destroyPart() } super.destroyPart(e)
 	}
 	activated(e) {
 		e = e || {}; super.activated(e); if (!this._activatedFlag) { this._activatedFlag = true; return }

@@ -1,10 +1,12 @@
 class SecimBasSon extends Secim {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'basSon' } static get tip() { return this.anaTip }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get anaTip() { return 'basSon' } static get tip() { return this.anaTip } get defaultBirKismimi() { return !!this.mfSinif }
 	get value() { return this.birKismimi ? this.kodListe : { basi: this.basi, sonu: this.sonu } }
 	set value(value) { if (this.birKismimi) this.kodListe = this.getConvertedValue(value); else super.value = value }
 	set basiSonu(value) { this.basi = value; this.sonu = value }
 	readFrom(e) {
-		if (!super.readFrom(e)) { return false } const birKismimi = this.birKismimi = e.birKismi ?? e.birKismimi ?? false;
+		if (!super.readFrom(e)) { return false }
+		const birKismimi = this.birKismimi = e.birKismi ?? e.birKismimi ?? this.defaultBirKismimi;
 		if (birKismimi) {
 			let {kodListe} = e; if (typeof kodListe == 'string') { kodListe = getFunc.call(this, e) }
 			if (kodListe) { if (typeof kodListe == 'string') { kodListe = getFunc.call(this, e) } }
@@ -22,7 +24,7 @@ class SecimBasSon extends Secim {
 		else { const {basi, sonu} = this; if (basi != null) { e.basi = basi } if (sonu != null) { e.sonu = sonu } }
 		return true
 	}
-	temizle(e) { super.temizle(e); $.extend(this, { birKismimi: false, kodListe: [] }); this.basi = this.sonu = this.getConvertedValue(null); return this }
+	temizle(e) { super.temizle(e); $.extend(this, { birKismimi: this.defaultBirKismimi, kodListe: [] }); this.basi = this.sonu = this.getConvertedValue(null); return this }
 	uiSetValues(e) {
 		super.uiSetValues(e); const {parent} = e; if (!parent?.length) { return false }
 		const {birKismimi} = this, bsParent = parent.find('.bs-parent'), birKismiParent = parent.find('.birKismi-parent');
@@ -156,7 +158,7 @@ class SecimDateTime extends SecimDate {
 		super.initHTMLElements(e); const {parent} = e, btnKopya = parent.find('button.kopya');
 		if (btnKopya?.length) { btnKopya.on('click', evt => { const value = this.basi, txtSonu_time = parent.find('.sonu-time.bs'); txtSonu_time.val(asTimeAndToString(value, true)) }) }
 	}
-	tarihPartArgsDuzenle(e) { }
+	tarihPartArgsDuzenle(e) { super.tarihPartArgsDuzenle(e) }
 }
 
 (function() {

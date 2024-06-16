@@ -23,29 +23,18 @@ class Secim extends CIO {
 		return _e
 	}
 	readFrom(e) {
-		if (!e) return false
+		if (!e) { return false }
 		this.isHidden = asBool(e.hidden); this.isDisabled = asBool(e.disabled);
 		this.etiket = e.etiket; this.grupKod = e.grupKod ?? e.grup?.kod ?? null;
 		let {mfSinif} = e; if (typeof mfSinif == 'string') mfSinif = getFunc.call(this, mfSinif, e); this.mfSinif = mfSinif
 		return true
 	}
-	writeTo(e) {
-		e = e || {};
-		if (this.isHidden) e.isHidden = true;
-		if (this.isDisabled) e.isDisabled = true;
-		return true
-	}
+	writeTo(e) { e = e || {}; if (this.isHidden) { e.isHidden = true } if (this.isDisabled) { e.isDisabled = true } return true }
 	temizle(e) { return this }
 	uiSetValues(e) { }
-	get asHTMLElementString() {
-		const _e = { target: '' }; this.buildHTMLElementStringInto(_e);
-		return _e.target
-	}
-	buildHTMLElementStringInto(e) { }
-	initHTMLElements(e) { }
-	getConvertedValue(value) { return value }
-	getConvertedUIValue(value) { return value }
-
+	get asHTMLElementString() { const _e = { target: '' }; this.buildHTMLElementStringInto(_e); return _e.target }
+	buildHTMLElementStringInto(e) { } initHTMLElements(e) { }
+	getConvertedValue(value) { return value } getConvertedUIValue(value) { return value }
 	hidden() { this.isHidden = true; return this }
 	disabled() { this.isDisabled = true; return this }
 }

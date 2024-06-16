@@ -232,13 +232,11 @@ class MQBarkodRec extends MQMasterOrtak {
 				return !noCheckFlag && formulSeriDurumu?.formul?.serikurali == 'EL' && ilkOpermi ? true : 'jqx-hidden'
 			})
 			.onBuildEk(e => {
-				const {builder} = e; const {altInst} = builder;
-				let {input} = builder, jqxSelector = 'jqxComboBox';
+				const {builder} = e; const {altInst} = builder; let {input} = builder, jqxSelector = 'jqxComboBox';
 				input = builder.input = input[jqxSelector]({ theme: theme, width: '100%', height: 70, multiSelect: true });
 				// const internalInput = input[jqxSelector]('input');
 				input.on('keyup', evt => {
-					const key = evt.key?.toLowerCase();
-					if (!(key == 'enter' || key == 'linefeed')) return
+					const key = evt.key?.toLowerCase(); if (!(key == 'enter' || key == 'linefeed')) { return }
 					const gerMiktar = asFloat(altInst.miktar) || 0, input = $(evt.currentTarget), widget = input[jqxSelector]('getInstance');
 					if (widget.getSelectedItems().length >= gerMiktar) {
 						const internalInput = input[jqxSelector]('input')[0]; let blurHandler

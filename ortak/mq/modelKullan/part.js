@@ -46,7 +46,7 @@ class ModelKullanPart extends Part {
 		let args = {
 			theme: theme, autoOpen: false, width: this.width || (!noAutoWidthFlag && parent?.length ? parent.width() : null) || '99.7%',
 			height: this.height || '100%', searchMode: 'containsignorecase', autoDropDownHeight: false, dropDownHeight: 215, itemHeight: 35,
-			valueMember: kodSaha, displayMember: adiSaha, disabled: this.disabled, placeHolder: placeHolder || '', checkboxes: !!this.coklumu,
+			valueMember: kodSaha, displayMember: adiSaha, disabled: this.disabled, placeHolder: placeHolder || '',
 			renderer: (index, aciklama, kod) => {
 				const {layout, widget, kodGosterilsinmi} = this, layoutName = layout.prop('id'), parentPart = this.parentPart || this.sender;
 				let parentPartName = ((parentPart || {}).class || {}).partName;
@@ -64,7 +64,7 @@ class ModelKullanPart extends Part {
 		};
 		if (isDropDown) {
 			$.extend(args, {
-				filterable: true, filterHeight: 28, filterPlaceHolder: 'Seçiniz:',
+				filterable: true, filterHeight: 28, filterPlaceHolder: 'Seçiniz:', checkboxes: !!this.coklumu,
 				selectionRenderer: (html, index, label, value) => {
 					const {widget} = this; if (!widget) { return html }
 					const {builder, coklumu, kodGosterilsinmi, selectionRendererBlock} = this, _e = { parentPart, sender: this, builder, widget, coklumu, kodGosterilsinmi, html, index, label, value };
@@ -88,11 +88,11 @@ class ModelKullanPart extends Part {
 					}
 					return _e.result
 				}
-			});
+			})
 		}
 		else {
 			$.extend(args, {
-				autoComplete: true, remoteAutoComplete: true, remoteAutoCompleteDelay: 100, minLength: 0,
+				autoComplete: true, remoteAutoComplete: true, remoteAutoCompleteDelay: 100, minLength: 0, multiSelect: !!this.coklumu,
 				search: searchText => {
 					if (searchText) { searchText = searchText.replaceAll('*', '%').replaceAll('?', '_') }
 					da._source.data.value = searchText; da.dataBind(); this.focusSelectYapildiFlag = false
@@ -347,7 +347,7 @@ class ModelKullanPart extends Part {
 						for (const item of widget.getItems() || []) { const _value = item?.value ?? item; item.checked = !!valuesSet[_value] }
 						widget.refresh(); this.onChange({ force: true, type: 'trigger' })
 					}
-					else { value = coalesce(e.value, null); this.val(value); this.onChange({ force: true, type: 'trigger', args: { item: e.rec, value } }) }
+					else { value = e.value ?? null; this.val(value); this.onChange({ force: true, type: 'trigger', args: { item: e.rec, value } }) }
 				}
 				else {
 					const rec = (e.recs || [])[0] ?? e.rec; value = (e.values || [])[0] ?? e.value;
@@ -371,13 +371,12 @@ class ModelKullanPart extends Part {
 		setTimeout(() => part.run(), 10)
 	}
 	getDataAdapter(e) {
-		const {mfSinif} = this;
-		let {dataAdapterBlock, loadServerDataBlock, loadServerDataEkDuzenleBlock} = this; if (!(dataAdapterBlock || loadServerDataBlock || mfSinif)) return null
-		e = e || {}; if (mfSinif) e.mfSinif = mfSinif
-		let da; if (dataAdapterBlock) da = getFuncValue.call(this, dataAdapterBlock, $.extend({}, e));
+		const {mfSinif} = this; let {dataAdapterBlock, loadServerDataBlock, loadServerDataEkDuzenleBlock} = this; if (!(dataAdapterBlock || loadServerDataBlock || mfSinif)) { return null }
+		e = e || {}; if (mfSinif) { e.mfSinif = mfSinif }
+		let da; if (dataAdapterBlock) { da = getFuncValue.call(this, dataAdapterBlock, $.extend({}, e)) }
 		if (!da) {
 			da = new $.jqx.dataAdapter({ dataType: wsDataType, url: 'empty.json', data: e }, {
-				cache: false, autoBind: coalesce(e.autoBind, this.autoBind),
+				cache: false, autoBind: e.autoBind ?? this.autoBind,
 				loadServerData: async (wsArgs, source, callback) => {
 					let lastError;
 					for (let i = 0; i < 3; i++) {
@@ -397,11 +396,9 @@ class ModelKullanPart extends Part {
 							}
 							const _e = $.extend({ parentPart, sender: this, builder: this.builder, secimler: this.secimler, callback, args }, wsArgs);
 							let result = loadServerDataBlock ? await getFuncValue.call(this, loadServerDataBlock, _e) : (mfSinif ? (await mfSinif.loadServerData(_e)) : null); if (!result) return
-							if ($.isArray(result)) result = { totalrecords: result.length, records: result };
-							if (typeof result != 'object') return
-							let recs = result.records; if (!recs) return
-							const {bosKodAlinirmi, bosKodEklenirmi} = this;
-							if (!bosKodAlinirmi) { const index = recs.findIndex(rec => !rec[kodSaha]); if (index != false && index > -1) recs.splice(index, 1) }
+							if ($.isArray(result)) result = { totalrecords: result.length, records: result }; if (typeof result != 'object') { return }
+							let recs = result.records; if (!recs) { return }
+							const {bosKodAlinirmi, bosKodEklenirmi} = this; if (!bosKodAlinirmi) { const index = recs.findIndex(rec => !rec[kodSaha]); if (index != false && index > -1) { recs.splice(index, 1) } }
 							else if (bosKodEklenirmi) {
 								let rec = recs.find(rec => !rec[kodSaha]);
 								if (!rec) { rec = {}; rec[kodSaha] = ''; rec[adiSaha] = ''; recs.unshift(rec) }
@@ -410,10 +407,10 @@ class ModelKullanPart extends Part {
 								_e.recs = recs; let _result = await getFuncValue.call(this, loadServerDataEkDuzenleBlock, _e);
 								if ($.isArray(_result)) {
 									recs = _e.recs = _result; result.records = recs;
-									if (result.totalrecords != null) result.totalrecords = e.totalrecords ?? recs.length
+									if (result.totalrecords != null) { result.totalrecords = e.totalrecords ?? recs.length }
 								}
 							}
-							if (!result.totalrecords) result.totalrecords = recs.length
+							if (!result.totalrecords) { result.totalrecords = recs.length }
 							lastError = null; callback(result);
 							// await new $.Deferred(p => setTimeout(async () => { await this.veriYuklendi(e); p.resolve() }, i * 10))
 							await this.veriYuklendi(e); break

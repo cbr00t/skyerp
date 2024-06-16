@@ -302,10 +302,10 @@ class MQSubWhereClause extends MQClause {
 	birKismi(e, _saha) {
 		e = e?.saha? e : { liste: e, saha: _saha }; const isNot = typeof e == 'object' && asBool(e.not);
 		let liste = e.liste ?? e.deger ?? e.value; delete e.deger; if (liste?.value !== undefined) { liste = liste.value }
-		if (liste && typeof liste != 'object') liste = $.makeArray(liste)
-		if (liste && !$.isArray(liste)) liste = Object.values(liste)
+		if (liste && typeof liste != 'object') { liste = $.makeArray(liste) }
+		if (liste && !$.isArray(liste)) { liste = Object.values(liste) }
 		if (liste) { liste = liste.map(x => coalesce(x.char, x)).filter(x => !(x instanceof TekSecim)) }
-		if (liste) { return this.inDizi({ saha: e.saha, liste, not: isNot }) }
+		if (liste?.length) { return this.inDizi({ saha: e.saha, liste, not: isNot }) }
 		return this
 	}
 	notBirKismi(e, _saha) { e = e.saha ? $.extend({}, e) : { liste: e, saha: _saha }; e.not = true; return this.birKismi(e) }
