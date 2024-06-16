@@ -1,8 +1,7 @@
 class Secimler extends CIO {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get uiSinif() { return window.SecimlerWindowPart }
-	static get duzenlemeUISinif() { return this.uiSinif }
-	
+	static get uiSinif() { return window.SecimlerWindowPart } static get duzenlemeUISinif() { return this.uiSinif }
+
 	constructor(e) {
 		e = e || {}; super(e);
 		if ($.isArray(e)) { e = { liste: e } } else { this.uiSinif = e.uiSinif; this.duzenlemeUISinif = e.duzenlemeUISinif || this.uiSinif }
@@ -12,27 +11,14 @@ class Secimler extends CIO {
 	}
 	static getClass(e) { return this }	
 	static from(e) {
-		if (!e) { return null }
-		const cls = this.getClass(e); if (!cls) { return null }
+		if (!e) { return null } const cls = this.getClass(e); if (!cls) { return null }
 		const result = new cls(e); if (!result.readFrom(e)) { return null } return result
 	}
 	listeOlustur(e) { }
-	initProps(e) {
-		const {liste} = this;
-		for (const key in liste) {
-			Object.defineProperty(this, key, {
-				configurable: true,
-				get() { return this.liste[key] },
-				set(value) { this.liste[key] = value }
-			})
-		}
-	}
+	initProps(e) { const {liste} = this; for (const key in liste) { Object.defineProperty(this, key, { configurable: true, get() { return this.liste[key] }, set(value) { this.liste[key] = value } }) } }
 	get asObject() {
 		const _e = { _reduce: true }; this.writeTo(_e); delete _e._reduce;
-		for (const key of Object.keys(_e)) {
-			if (key[0] == '_') { delete _e[key]; continue }
-			const item = _e[key]; if ($.isEmptyObject(item)) { delete _e[key]; continue }
-		}
+		for (const key of Object.keys(_e)) { if (key[0] == '_') { delete _e[key]; continue } const item = _e[key]; if ($.isEmptyObject(item)) { delete _e[key]; continue } }
 		return _e
 	}
 	readFrom(e) {
@@ -45,8 +31,7 @@ class Secimler extends CIO {
 		else {
 			this.beginUpdate();
 			for (const key in _liste) {
-				let secim = liste[key]; const item = _liste[key]; if (!item) { continue }
-				const isDef = $.isPlainObject(item);
+				let secim = liste[key]; const item = _liste[key]; if (!item) { continue } const isDef = $.isPlainObject(item);
 				if (secim) { if (isDef) { secim.readFrom(item) } else { liste[key] = secim = item } }
 				else { secim = isDef ? Secim.from(item) : item; if (secim) { this.secimEkle({ key, secim, noInit: true }) } }
 			}
@@ -67,9 +52,7 @@ class Secimler extends CIO {
 	}
 	secimTopluEkle(e) {
 		const liste = e.liste || e, noInitFlag = (e.noInit || this._noInit);
-		if (!noInitFlag) { this.beginUpdate() }
-		if (liste) { for (const key in liste) { this.secimEkle({ key, secim: liste[key], noInit: true }) } }
-		if (!noInitFlag) { this.endUpdate() }
+		if (!noInitFlag) { this.beginUpdate() } if (liste) { for (const key in liste) { this.secimEkle({ key, secim: liste[key], noInit: true }) } } if (!noInitFlag) { this.endUpdate() }
 		return this
 	}
 	secimEkle(e, _secim) {
@@ -80,17 +63,11 @@ class Secimler extends CIO {
 			if (typeof secim == 'string') { secim = getFunc(secim) } if ($.isPlainObject(secim)) { secim = Secim.From(secim) }
 			if (secim) { this.liste[key] = secim; const {grupListe} = this, {grupKod} = secim; if (grupKod && !grupListe[grupKod]) { this.grupEkle(grupKod) } }
 		}
-		if (!noInitFlag) { this.endUpdate() }
-		return this
+		if (!noInitFlag) { this.endUpdate() } return this
 	}
 	grupTopluEkle(e) {
 		const liste = e.grupListe ?? e;
-		if (liste) {
-			for (const key in liste) {
-				const value = liste[key]; if (typeof value == 'object' && !value.kod) { value.kod = key }
-				this.grupEkle(value)
-			}
-		}
+		if (liste) { for (const key in liste) { const value = liste[key]; if (typeof value == 'object' && !value.kod) { value.kod = key } this.grupEkle(value) } }
 		return this
 	}
 	grupEkle(e, _aciklama, _kapalimi, _renk, _zeminRenk, _css, _ekBilgi) {
@@ -102,9 +79,9 @@ class Secimler extends CIO {
 		}
 		return this
 	}
-	secimleriTemizle(e) { this.liste = {}; this.gruplariTemizle(e) }
-	gruplariTemizle(e) { this.grupListe = {} }
-	temizle(e) { for (const sec of Object.values(this.liste)) { sec.temizle(e) } }
+	secimleriTemizle(e) { this.liste = {}; this.gruplariTemizle(e); return this }
+	gruplariTemizle(e) { this.grupListe = {};  return this }
+	temizle(e) { for (const sec of Object.values(this.liste)) { sec.temizle(e) } return this }
 	birlestir(e) {
 		e = e || {}; const diger = e.secimler || e.diger || e; let whereBlockListe;
 		this.grupTopluEkle(diger); this.secimTopluEkle(diger);
@@ -115,13 +92,11 @@ class Secimler extends CIO {
 	endUpdate() { if (this._noInit) { delete this._noInit; this.initProps() } return this }
 	whereBlockEkle(block) {
 		let {whereBlockListe} = this; if (!whereBlockListe) { whereBlockListe = this.whereBlockListe = [] }
-		block = getFunc(block); if (block) { whereBlockListe.push(block) }
-		return this
+		block = getFunc(block); if (block) { whereBlockListe.push(block) } return this
 	}
 	get tbWhereClause() { return this.getTBWhereClause() }
 	getTBWhereClause(e) {
-		e = e || {}; const {alias} = e, aliasVeNokta = alias ? alias + '.' : '';
-		const _e = $.extend({}, e, { alias, aliasVeNokta, secimler: this, where: new MQWhereClause() });
+		e = e || {}; const {alias} = e, aliasVeNokta = alias ? alias + '.' : '', _e = $.extend({}, e, { alias, aliasVeNokta, secimler: this, where: new MQWhereClause() });
 		const {whereBlockListe} = this; if (whereBlockListe) { for (const block of whereBlockListe) { getFuncValue.call(this, block, _e) } }
 		this.tbWhereClauseDuzenle(_e); return _e.where
 	}
@@ -129,22 +104,15 @@ class Secimler extends CIO {
 	get asHTMLElements() { const _e = { grup2Info: {} }; this.buildHTMLElementsInto(_e); return _e.grup2Info }
 	buildHTMLElementsInto(e) {
 		const {grup2Info} = e, {liste, grupListe} = this, grupKod2Liste = {};
-		for (const key in liste) {
-			const secim = liste[key], grupKod = secim.grupKod || '';
-			const _liste = (grupKod2Liste[grupKod] = grupKod2Liste[grupKod] || {}); _liste[key] = secim;
-		}
+		for (const key in liste) { const secim = liste[key], grupKod = secim.grupKod || '', _liste = (grupKod2Liste[grupKod] = grupKod2Liste[grupKod] || {}); _liste[key] = secim }
 		for (const grupKod in grupKod2Liste) {
 			const grup = grupListe[grupKod] || { aciklama: grupKod },  grupInfo = grup2Info[grupKod] = grup2Info[grupKod] || { grup, key2Info: {} }, _liste = grupKod2Liste[grupKod];
 			for (const key in _liste) {
 				const secim = _liste[key]; if (secim.isHidden) { continue }
 				const {anaTip, tip} = secim.class, elmStr = secim.asHTMLElementString, elm = elmStr ? $(elmStr) : null;
 				if (elm?.length) {
-					if (!elm.prop('id')) { elm.prop('id', key) } if (tip) { elm.addClass(tip) }
-					elm.addClass(`${anaTip} secim`); elm.data('secim', secim);
-					if (secim.isDisabled) {
-						elm.prop('disabled', true); elm.prop('readonly', true); elm.attr('disabled', true);
-						elm.attr('readonly', true); elm.addClass('disabled');
-					}
+					if (!elm.prop('id')) { elm.prop('id', key) } if (tip) { elm.addClass(tip) } elm.addClass(`${anaTip} secim`); elm.data('secim', secim);
+					if (secim.isDisabled) { elm.prop('disabled', true); elm.prop('readonly', true); elm.attr('disabled', true); elm.attr('readonly', true); elm.addClass('disabled') }
 					const {mfSinif} = secim, {key2Info} = grupInfo, etiket = secim.etiket || secim.mfSinif?.sinifAdi;
 					if (etiket) { const elmLabel = $(`<label class="etiket">${etiket}</label>`); elmLabel.prependTo(elm) }
 					key2Info[key] = { secim, element: elm }
@@ -152,10 +120,8 @@ class Secimler extends CIO {
 			}
 		}
 	}
-	temizle(e) { const {liste} = this; for (const secim of Object.values(liste)) { secim.temizle(e) } }
 	duzenlemeEkraniAc(e) {
-		e = e || {}; const uiSinif = e.uiSinif || this.duzenlemeUISinif; if (!uiSinif) { return null }
-		const part = new uiSinif($.extend({}, e, { parentPart: e.parentPart, secimler: this, mfSinif: e.mfSinif, tamamIslemi: e.tamamIslemi }));
-		part.run(); return part
+		e = e || {}; const uiSinif = e.uiSinif || this.duzenlemeUISinif; if (!uiSinif) { return null } const {parentPart, mfSinif, tamamIslemi} = e;
+		const secimler = this, part = new uiSinif($.extend({}, e, { parentPart, secimler, mfSinif, tamamIslemi })); part.run(); return part
 	}
 }
