@@ -3,7 +3,7 @@ class Ticari_TestBase extends TestBase {
 	static get DefaultWSHost() { return Ticari_RunnableBase.DefaultWSHost } static get DefaultWSPath() { return Ticari_RunnableBase.DefaultWSPath } static get DefaultLoginTipi() { return Ticari_RunnableBase.DefaultLoginTipi }
 	runInternal(e) { super.runInternal(e) /*; const {tip} = this.class; this.callback({ message: 'in test', tip })*/ }
 }
-class Ticari_TrnListTest extends Ticari_TestBase {
+class TicariTest_TrnListTest extends Ticari_TestBase {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'trnList' }
 	constructor(e) { e = e || {}; super(e); Object.assign(this, { delayMS: e.delay ?? e.delayMS, showTableFlag: e.showTable ?? e.withTable }) }
 	async runInternal(e) {
@@ -20,7 +20,7 @@ class Ticari_TrnListTest extends Ticari_TestBase {
 	delay(value) { this.delayMS = value; return this }
 	withTable() { this.showTableFlag = true; return this } noTable() { this.showTableFlag = false; return this }
 }
-class Ticari_SatFat_TopluKayitOlustur extends Ticari_TestBase {
+class TicariTest_SatFat_TopluKayitOlustur extends Ticari_TestBase {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'satFat-topluKayitAc' }
 	static get fisSinif() { return SatisFaturaFis } static get baslikAciklama() { return 'KAYIT TEST' }
 	constructor(e) { e = e || {}; super(e); Object.assign(this, { trnFlag: e.trn ?? e.trnFlag, unvanLike: e.unvanLike ?? 'MEMDUH' }) }
@@ -38,7 +38,7 @@ class Ticari_SatFat_TopluKayitOlustur extends Ticari_TestBase {
 	withTrn() { this.trnFlag = true; return this } noTrn() { this.trnFlag = false; return this }
 	setUnvanLike(value) { this.unvanLike = value; return this }
 }
-class Ticari_SatFat_TopluKayitSil extends Ticari_TestBase {
+class TicariTest_SatFat_TopluKayitSil extends Ticari_TestBase {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'satFat-topluKayitAc' } static get olusturClass() { return Ticari_SatFat_TopluKayitOlustur }
 	constructor(e) { e = e || {}; super(e); Object.assign(this, { trnFlag: e.trn ?? e.trnFlag }) }
 	async runInternal(e) {
@@ -54,4 +54,58 @@ class Ticari_SatFat_TopluKayitSil extends Ticari_TestBase {
 		const trnResult = await (trnFlag ? app.sqlTrnDo(e) : e.proc(e)); console.debug('test', tip, 'bitti'); return trnResult
 	}
 	withTrn() { this.trnFlag = true; return this } noTrn() { return this.trnFlag = false; return this }
+}
+class TicariTest_OzelComboBox extends Ticari_TestBase {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return this.partName } static get partName() { return 'ozelComboBox' }
+	constructor(e) {
+		e = e || {}; super(e); const kolonTanimlari = e.kolonTanimlari ?? MQKA.orjBaslikListesi, {source, parent, layout} = e;
+		const width = e.width || '98%', height = e.height ?? 40, kodAttr = e.kodAttr ?? e.kodSaha ?? MQKA.kodSaha, adiAttr = e.adiAttr ?? e.adiSaha ?? MQKA.adiSaha;
+		$.extend(this, { parent, layout, kolonTanimlari, source, width, height, kodAttr, adiAttr });
+		if (!this.source) {
+			/*this.source = e => ['item 1', 'S02', 'ÖZER DURMAZ', 'MEMDUH DURMAZ']*/
+			this.source = e => app.sqlExecSelect(`select top 500 kod, aciklama, grupkod from stkmst where kod <> '' and silindi = '' and satilamazfl = ''`)
+		}
+	}
+	async runInternal(e) {
+		await app.promise_ready; await super.runInternal(e); 
+		return await new $.Deferred(p => setTimeout(async e => p.resolve(await this.runInternalDevam(e)), 10, e))
+	}
+	runInternalDevam(e) {
+		const {tip, partName} = this.class, {width, height, source, kodAttr, adiAttr} = this, parent = e.parent ?? app.content;
+		console.debug('test', tip, 'başladı', this); app.content.children().remove();
+		let layout = e.layout ?? parent.children('#widget'); if (!layout?.length) { layout = $(`<div id="widget"/>`); layout.appendTo(parent) }
+		this.layout = layout; layout.jqxComboBox({
+			theme, width, height, multiSelect: true, remoteAutoComplete: true, remoteAutoCompleteDelay: 200, minLength: 2,
+			valueMember: kodAttr, displayMember: adiAttr, searchMode: 'containsignorecase',
+			search: text => { const {widget} = this; if (widget) { widget.source.dataBind(); if (!widget.isOpened()) { widget.open() } } },
+			source: new $.jqx.dataAdapter({ datatype: wsDataType, url: `${webRoot}/empty.json` }, {
+				autoBind: true, cache: true, async: false, loadServerData: async (_source, wsArgs, callback) => {
+					const {widget} = this, searchText = widget?.input?.val()?.trim(), _e = { ...e, wsArgs, searchText }; let records = (await getFuncValue.call(this, source, e)) || [];
+					if (records?.length) {
+						if (searchText) {
+							let matches; matches = value => {
+								if (typeof value == 'object') { const rec = value; for (const key in rec) { if (matches(rec[key])) { return true } } return false }
+								if (value != null) {
+									value = value.toString().trim(); if (!value) { return false } const valueUpper = value.toUpperCase();
+									const searchTextUpper = searchText.toUpperCase(), tokens = searchTextUpper.split(' ').filter(x => !!x?.trim());
+									let uygunmu = true; for (const token of tokens) { if (!valueUpper.includes(searchTextUpper)) { uygunmu = false; break } } return uygunmu
+								}
+								return false
+							}; records = records.filter(rec => !!matches(rec))
+						}
+					}
+					callback({ totalrecords: records.length, records })
+				}
+			})
+		});
+		let widget = this.widget = layout.jqxComboBox('getInstance');
+		widget.input.on('keyup', evt => {
+			const key = evt.key?.toLowerCase(), target = evt.currentTarget, {widget} = this;
+			if (key == 'enter' || key == 'linefeed') {
+				const value = target.value?.trim(); target.value = ''; if (value?.trim()) { widget.addItem(value); widget.selectItem(widget.getItems().slice(-1)[0]) }
+				else { widget.dataBind() } widget.input.focus()
+			}
+		});
+		return this
+	}
 }

@@ -64,3 +64,5 @@ button#secimler {background-image: url(../../images/filtre.png) !important;}
 #konumBelirle { background-color: transparent; background-image: url(../../images/power_on.png); background-size: 48px !important }
 #konumGoster { background-color: transparent; background-image: url(../../images/map.png); background-size: 48px !important }
 button#upload { background-color: transparent; background-image: url(../../images/yukari.png); background-size: 48px !important }
+button#dropDownMenu { background-image: url(../../images/nav-toggle.png) !important }
+button#dropDownMenu.jqx-fill-state-normal { background-color: #00000055 }
