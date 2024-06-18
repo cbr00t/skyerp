@@ -292,7 +292,7 @@ class MQStokDiger2 extends MQStokAlt {
 		form.addModelKullan({ id: 'menseiKod', etiket: 'Stok Menşei', mfSinif: MQStokMensei}).etiketGosterim_normal().dropDown().kodsuz().addStyle(e => `$elementCSS { max-width: 320px }`);
 		form.addTextInput({ id: 'mensei', etiket: 'Menşei-Eski', maxLength: 100}).addStyle(e => `$elementCSS { max-width: 320px }`);
 		form.addTextInput({ id: 'ithalatciFirma', etiket: 'İthalatçı Firma', maxLength: 100}).addStyle(e => `$elementCSS { max-width: 320px }`);
-		form.addModelKullan({ id: 'tedarikSekli', etiket: 'Tedarik Şekli', source: e => e.builder.altInst.tedarikSekli.kaListe}).etiketGosterim_normal().dropDown().kodsuz().addStyle(e => `$elementCSS { max-width: 320px }`);
+		form.addModelKullan({ id: 'tedarikSekli', etiket: 'Tedarik Şekli', source: e => e?.builder?.altInst?.tedarikSekli?.kaListe }).etiketGosterim_normal().dropDown().kodsuz().addStyle(e => `$elementCSS { max-width: 320px }`);
 		form = tabPage.addFormWithParent();
 		form.addTextArea({ id: 'ekBilgi', etiket: 'Ek Bilgi', rows: 5 })
 	}
@@ -455,7 +455,7 @@ class MQStokUretim extends MQStokAlt {
 		form.addNumberInput({ id: 'fireYuzde', etiket: 'Genel Fire ( % )'}).addStyle(e => `$elementCSS { max-width: 150px }`);
 		form.addNumberInput({ id: 'tahminiUretimSuresi',	etiket: 'Tah.Ürt.Süre(sn)'}).addStyle(e => `$elementCSS { max-width: 150px }`);
 		form.addModelKullan({ id: 'alterKod', etiket: 'Alternatif Kod',	mfSinif: MQStok}).dropDown().kodsuz().addStyle(e => `$elementCSS { max-width: 250px }`);
-		form.addModelKullan({ id: 'uretimSekli', etiket: 'Üretim Şekli', source: e => e.builder.altInst.uretimSekli.kaListe}).dropDown().kodsuz().addStyle(e => `$elementCSS { max-width: 250px }`);
+		form.addModelKullan({ id: 'uretimSekli', etiket: 'Üretim Şekli', source: e => e?.builder?.altInst?.uretimSekli?.kaListe}).dropDown().kodsuz().addStyle(e => `$elementCSS { max-width: 250px }`);
 		form.addCheckBox({ id: 'uretimdeAnaMaddedir', etiket: 'Üretimde Ana Maddedir' });
 		form.addCheckBox({ id: 'uretimBirimTipi', etiket: 'Üretim Harcaması 2.miktardan yapılır' });		
 		// ayrac(tabPage,'yanUretim','==Yan Üretim==','cadetblue')

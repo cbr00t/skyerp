@@ -346,8 +346,9 @@ class MQOEM extends MQSayacliOrtak {
 		super.gridVeriYuklendi(e); const part = e.sender, sec = part.secimler;
 		const {fbd_sadeceIslenebilirOlanlarmi, grid, gridWidget, _expandedIndexes} = part;
 		const sabit_hatKod = app.params.config.hatKod;
-		if (sec) {
-			if (fbd_sadeceIslenebilirOlanlarmi) { const input = fbd_sadeceIslenebilirOlanlarmi.layout.children('input'), secValue = sec.sadeceIslenebilirOlanlarmi.value; if (input.is(':checked') != secValue) { input.prop('checked', secValue) } }
+		if (sec && fbd_sadeceIslenebilirOlanlarmi) {
+			const input = fbd_sadeceIslenebilirOlanlarmi.layout.children('input'), secValue = sec.sadeceIslenebilirOlanlarmi.value;
+			if (input.is(':checked') != secValue) { input.prop('checked', secValue) }
 		}
 		const groups = gridWidget._groups || this.defaultGroups; let rowIndex = gridWidget.getselectedrowindexes()[0]; if (rowIndex != null && rowIndex < 0) { rowIndex = null }
 		if (!$.isEmptyObject(groups)) { grid.jqxGrid('groups', groups.filter(x => !!x)) }
@@ -487,8 +488,10 @@ class MQOEMVeGorev extends MQOEM {
 		sec.whereBlockEkle(e => {
 			const {aliasVeNokta, sayacSaha} = this, wh = e.where, sec = e.secimler;
 			/*if (sec.goreviOlanlarmi.value) wh.add('oisl.kaysayac IS NOT NULL')*/
-			wh.basiSonu(sec.hatKod, 'ismrk.kod');
-			wh.ozellik(sec.hatAdi, 'ismrk.aciklama');
+			if (sec.sadeceIslenebilirOlanlarmi.value) wh.add(`${aliasVeNokta}islenebilirmiktar > 0`)
+			if (!sabit_hatKod) { wh.basiSonu(sec.hatKod, 'hat.kod'); wh.ozellik(sec.hatAdi, 'hat.aciklama') }
+			wh.basiSonu(sec.hatKod, 'hat.kod');
+			wh.ozellik(sec.hatAdi, 'hat.aciklama');
 			wh.basiSonu(sec.emirTarih, 'emr.tarih');
 			wh.basiSonu(sec.emirNo, 'emr.fisnox');
 			wh.basiSonu(sec.opNo, `${aliasVeNokta}opno`);
@@ -635,7 +638,7 @@ class MQOEMVeGorev extends MQOEM {
 		const args = e.args ?? {}, sec = e.secimler ?? e.sender?.secimler, hatKod = args.hatKod ?? app.params.config.hatKod;
 		let ekClauseStr = sec ? sec.getTBWhereClause().toString_baslangicsiz() : null;
 		if (ekClauseStr) {
-			const donusumDict = { 'emr.': 'fis.', 'frm.formul': 'stk.kod' };
+			const donusumDict = { 'emr.': 'fis.', 'frm.formul': 'stk.kod', 'hat.': 'ismrk.' };
 			for (const [search, replace] of Object.entries(donusumDict)) { ekClauseStr = ekClauseStr.replaceAll(search, replace) }
 		}
 		const _e = {

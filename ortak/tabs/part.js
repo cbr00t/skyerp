@@ -21,7 +21,7 @@ class TabsPart extends Part {
 			if (useCloseAllFlag) { btnCloseAll.removeClass('jqx-hidden basic-hidden')}
 		}
 		const divTabs = this.divTabs = layout.children('.tabs'); divTabs.addClass('flex-row');
-		if (this.isSortable) { divTabs.jqxSortable({ theme, items: `> .tabPage`}) } else { makeScrollable(divTabs) }
+		if (this.isSortable) { divTabs.jqxSortable({ theme, items: `> .tabPage`}) } else { makeScrollable(divTabs, evt => !(document.activeElement && document.activeElement.classList.contains('jqx-widget-content'))) }
 		this.refresh()
 	}
 	destroyPart(e) { super.destroyPart(e); for (const key of ['activePageId', 'lastActivePageId', 'id2TabPage']) { delete this[key] } }
@@ -92,7 +92,7 @@ class TabsPart extends Part {
 		const id = e.id || this.activePageId; this.activePageId = id; const tabPage = e.tabPage || this.id2TabPage[id], _e = $.extend({}, e, { sender: this, tabPage, id });
 		if (!tabPage.initFlag) {
 			this.triggerInitContent($.extend({}, _e)); const {content} = tabPage;
-			if (!(this.noScrollFlag || content?.hasClass('no-scroll') || content?.children().hasClass('no-scroll'))) { makeScrollable(tabPage.content) }
+			if (!(this.noScrollFlag || content?.hasClass('no-scroll') || content?.children().hasClass('no-scroll'))) { makeScrollable(tabPage.content, evt => !(document.activeElement && document.activeElement.classList.contains('jqx-widget-content'))) }
 			tabPage.initFlag = true; _e.content = content; _e.collapsed = (content?.length) && content.hasClass('jqx-hidden')
 		}
 		this.triggerToggled(_e); this.triggerTabPageChanged(_e); setTimeout(() => { app.activeWndPart?.onResize(e) }, 10)

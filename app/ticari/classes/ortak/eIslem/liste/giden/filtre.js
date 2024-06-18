@@ -155,7 +155,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 	}
 	tbWhereClauseDuzenle_cari(e) {
 		e = e || {}; const {alias, aliasVeNokta} = e, wh = e.where;
-		wh.basiSonu(this.must, `${aliasVeNokta}must`);
+		wh.basiSonu(this.must, 'car.must');
 		wh.ozellik(this.mustUnvan1, 'car.birunvan')
 	}
 	tbWhereClauseDuzenle_eIslem(e) {

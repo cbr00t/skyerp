@@ -25,7 +25,8 @@
 .secimler.part .secimler-kolonFiltre-bilgi-parent .kolonFiltre-bilgi .filtre-item { padding: 8px 20px !important; border: .5px solid #ddd }
 .secimler.part .secimler-kolonFiltre-bilgi-parent .kolonFiltre-bilgi .filtre-item:not(:first-child) { margin-left: 3px }
 .secimler.part .secimler-form { font-size: 90%; height: calc(var(--full) + 250px) !important; margin: 3px 3px 0 0; padding: 0; overflow-y: auto }
-.secimler.part .secimler-form .secim {padding: 1px 5px;}
+.secimler.part .secimler-form:not(:focus) { overflow-y: hidden }
+.secimler.part .secimler-form .secim { padding: 1px 5px }
 .secimler.part .secimler-form .secim > *:not(.jqx-switchbutton):not(:first-child) { /* margin-left: 5px */ }
 .secimler.part .secimler-form .secim > .jqx-switchbutton:not(:first-child) { margin-left: 0 }
 .secimler.part .secimler-form .secim.ozel.text { margin: 5px }
@@ -38,33 +39,24 @@
 .secimler.part .secimler-form .secim-grup > .header .jqx-expander-arrow { background-size: 32px 32px; margin: 5px 15px !important }
 .secimler.part .secimler-form .secim-grup > .content { border: .5px solid #eaeaea; padding: 0px 0 0 3px /* margin-right: -5px */ }
 .secimler.part .secimler-form .secim .etiket { font-weight: bold; font-size: 93%; width: 150px; color: #888; padding-top: 6px }
-.secimler.part .secimler-form .secim.basSon .basi,
-.secimler.part .secimler-form .secim.ozel .input { margin-left: 5px !important }
-.secimler.part .secimler-form .secim.basSon .uiTarih.basi,
-.secimler.part .secimler-form .secim.basSon .basi:not(.modelKullan.part),
-.secimler.part .secimler-form .secim.ozel .veri.input,
-.secimler.part .secimler-form .secim.ozel .veri.bool,
-.secimler.part .secimler-form .secim.ozel .veri.ozellik,
-.secimler.part .secimler-form .secim.ozel .veri.string { margin-left: 62px !important }
+.secimler.part .secimler-form .secim.basSon .basi, .secimler.part .secimler-form .secim.ozel :not(.jqx-widget) .input { margin-left: 5px !important }
+.secimler.part .secimler-form .secim.basSon .uiTarih.basi, .secimler.part .secimler-form .secim.basSon .basi:not(.modelKullan.part),
+.secimler.part .secimler-form .secim.ozel .veri:not(.jqx-widget).input, .secimler.part .secimler-form .secim.ozel .veri :not(.jqx-widget).input,
+.secimler.part .secimler-form .secim.ozel .veri.bool, .secimler.part .secimler-form .secim.ozel .veri.ozellik, .secimler.part .secimler-form .secim.ozel .veri.string { margin-left: 62px !important }
 .secimler.part .secimler-form .secim:not(.date):not(.tekilDate) .veri:not(button):not(.jqx-switchbutton):not(.uiTarih) { width: 900px !important }
 .secimler.part .secimler-form .secim:not(.date):not(.tekilDate) .bs-parent .veri:not(button):not(.jqx-switchbutton):not(.uiTarih) { width: 600px !important }
-.secimler.part .secimler-form .secim .ddList { min-width: 130px !important; width: 90% !important }
-.secimler.part .secimler-form .secim.date > .input,
-.secimler.part .secimler-form .secim .veri,
-.secimler.part .secimler-form .secim button,
-.secimler.part .secimler-form .secim .jqx-switchbutton { vertical-align: top }
-.secimler.part .secimler-form .secim .veri,
-.secimler.part .secimler-form .secim button { height: 35px !important }
-.secimler.part .secimler-form .secim .jqx-switchbutton { height: 35px }
-.secimler.part .secimler-form .secim button { width: 50px }
-.secimler.part .secimler-form .secim .jqx-switchbutton { min-width: 20px !important }
-.secimler.part .secimler-form .secim .jqx-switchbutton .jqx-disableselect { cursor: pointer; color: #999 }
-.secimler.part .secimler-form .secim .jqx-switchbutton.jqx-switchbutton-metro .jqx-disableselect { color: whitesmoke }
+.secimler.part .secimler-form .secim:not(.jqx-widget) .ddList { min-width: 130px !important; width: 90% !important }
+.secimler.part .secimler-form .secim.date > .input, .secimler.part .secimler-form .secim .veri:not(.jqx-widget), .secimler.part .secimler-form,
+	.secim :not(.jqx-widget) button, .secimler.part .secimler-form .secim .jqx-switchbutton { vertical-align: top }
+.secimler.part .secimler-form .secim:not(.jqx-widget) .jqx-switchbutton { height: 35px }
+.secimler.part .secimler-form .secim:not(.jqx-widget) button { width: 50px }
+.secimler.part .secimler-form .secim:not(.jqx-widget) .jqx-switchbutton { min-width: 20px !important }
+.secimler.part .secimler-form .secim:not(.jqx-widget) .jqx-switchbutton .jqx-disableselect { cursor: pointer; color: #999 }
+.secimler.part .secimler-form .secim:not(.jqx-widget) .jqx-switchbutton.jqx-switchbutton-metro .jqx-disableselect { color: whitesmoke }
 .secimler.part .secimler-form .secim .hepsimi { margin-right: 3px }
 .secimler.part .secimler-form .secim .birKismi-bos-parent { }
 .secimler.part .secimler-form .secim .birKismi-bos-parent .veri-etiket { font-size: 123%; font-weight: bold; color: #999; padding-top: 6px; margin-left: 13px }
 .secimler.part .secimler-form .secim button.listedenSec { margin-right: 3px }
-
 @media (max-width: 1400px) {
 	.secimler.part .secimler-form .secim .etiket { font-size: 90%; width: 140px }
 	.secimler.part .secimler-form .secim:not(.date):not(.tekilDate) .veri:not(button):not(.jqx-switchbutton):not(.uiTarih) { width: 530px !important }

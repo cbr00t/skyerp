@@ -169,7 +169,7 @@ class SecimTekSecim extends SecimOzel {
 		e.target += `</div>`
 	}
 	initHTMLElements(e) {
-		super.initHTMLElements(e); const {mfSinif} = this, {tip, birKismimi, autoBind} = this.class, coklumu = birKismimi;
+		super.initHTMLElements(e); const {mfSinif} = this, {tip, birKismimi} = this.class, autoBind = false, coklumu = birKismimi;
 		$.extend(e, { tip, coklumu, autoBind, getValue: this.value, setValue: e => this.value = e.value, mfSinif, source: mfSinif ? null : (e => this.kaListe) });
 		const {parent} = e, btnListedenSec = parent.find('.listedenSec'); if (btnListedenSec?.length) {
 			btnListedenSec.jqxButton({ theme });
@@ -192,7 +192,7 @@ class SecimTekSecim extends SecimOzel {
 	static initHTMLElements_birKismi(e) {
 		const {parent, mfSinif, autoBind, coklumu, getValue, setValue} = e, source = e.source ?? e.loadServerDataBlock ?? e.loadServerData, editor = parent.find('.ddList');
 		let focusWidget;  const part = e.part = new ModelKullanPart({
-			layout: editor, dropDown: true, autoBind, coklumu, maxRow: e.maxRow, mfSinif, value: getFuncValue.call(this, getValue, e), /*placeHolder: this.etiket,*/
+			layout: editor, dropDown: !coklumu, autoBind, coklumu, maxRow: e.maxRow, mfSinif, value: getFuncValue.call(this, getValue, e), /*placeHolder: this.etiket,*/
 			source, kodGosterilsinmi: !source, argsDuzenle: e => { /*$.extend(e.args, { itemHeight: 40, dropDownHeight: 410 })*/ }
 		});
 		if (part.autoBind) { part.dataBindYapildiFlag = true }

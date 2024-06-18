@@ -31,8 +31,8 @@ class MQGercekleme extends MQSayacli {
 			const {aliasVeNokta, sayacSaha} = this, wh = e.where, sec = e.secimler, gridPart = e.gridPart ?? e.sender, {oemSayacListe} = gridPart || {};
 			wh.basiSonu({ basi: sec.tarih.basi }, `${aliasVeNokta}detbasts`);
 			wh.basiSonu({ sonu: sec.tarih.sonu }, `${aliasVeNokta}detbitts`);
-			wh.basiSonu(sec.perKod, 'oem.ismrkkod');
-			wh.basiSonu(sec.perAdi, `uhat.aciklama`);
+			wh.basiSonu(sec.hatKod, 'oem.ismrkkod');
+			wh.basiSonu(sec.hatAdi, `uhat.aciklama`);
 			wh.basiSonu(sec.emirTarih, 'emr.tarih');
 			wh.basiSonu(sec.emirNo, 'emr.fisnox');
 			wh.basiSonu(sec.opNo, `oem.opno`);

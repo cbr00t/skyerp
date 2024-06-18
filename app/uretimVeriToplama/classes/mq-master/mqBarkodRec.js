@@ -1,6 +1,6 @@
 class MQBarkodRec extends MQMasterOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() { return 'Gerçekleme' } static get kodListeTipi() { return 'UBAR' } get gorevmi() { return !!this.isId }
+	static get sinifAdi() { return 'Gerçekleme' } static get kodListeTipi() { return 'UBAR' } get gorevmi() { return this._gorevmi ?? !!this.isId } set gorevmi(value) { this._gorevmi = value }
 	static get tanimUISinif() { return ModelTanimPart } static get silinebilirmi() { return true } static get bulFormKullanilirmi() { return true }
 	static get ozelBelirtecSet() { let result = this._ozelBelirtecSet; if (!result) result = this._ozelBelirtecSet = asSet(['_rowNumber', '_durum', '_degistir', '_sil']); return result }
 	static get ozelDurumKodSet() { let result = this._ozelDurumKodSet; if (!result) result = this._ozelDurumKodSet = asSet(['processing', 'changing', 'removed']); return result }
@@ -31,7 +31,7 @@ class MQBarkodRec extends MQMasterOrtak {
 		if (e.rec) { e = e.rec } if (resetFlag) { this.reset(e) }
 		$.extend(this, {
 			_durum: e.durum ?? this.durum ?? 'new', id: e.id || this.id || newGUID(), serbestmi: e.serbestmi ?? this.serbestmi ?? false, noCheckFlag: e.noCheck ?? e.noCheckFlag ?? false,
-			barkod: e.barkod ?? this.barkod, carpan: e.carpan ?? this.carpan, isKapansinmi: e.isKapansinmi ?? false, sonAsamami: e.sonAsamami ?? asBoolQ(e.sonasama),
+			_gorevmi: e.gorevmi, barkod: e.barkod ?? this.barkod, carpan: e.carpan ?? this.carpan, isKapansinmi: e.isKapansinmi ?? false, sonAsamami: e.sonAsamami ?? asBoolQ(e.sonasama),
 			oemSayac: e.oemSayac ?? e.oemsayac ?? e.fissayac ?? e.kaysayac ?? this.oemSayac, isId: e.isId || e.isID || e.isid,
 			formulSayac: e.formulSayac ?? e.formulsayac, onceOpNo: e.onceOpNo ?? e.onceopno,
 			emirNox: e.emirNox ?? e.emirnox ?? this.emirNox, emirTarih: e.emirTarih || e.emirtarih || this.emirTarih,
@@ -48,7 +48,7 @@ class MQBarkodRec extends MQMasterOrtak {
 			vardiyaNo: e.vardiyaNo ?? 1, ekOzellikler: e.ekOzellikler ?? this.ekOzellikler ?? {}, iskartalar: e.iskartalar ?? this.iskartalar, kaliteYapi: e.kaliteYapi ?? e.kalite ?? this.kaliteYapi
 		});
 		let value = e.suAnmi ?? e.suAn ?? e.suan; if (value !== undefined) { this.suAnmi = value }
-		if (this.suAnmi == null && !this.noCheckFlag) this.suAnmi = !!this.gorevmi
+		if (this.suAnmi == null && !this.noCheckFlag) { this.suAnmi = !!this.gorevmi }
 	}
 	static async rootFormBuilderDuzenle(e) {
 		await super.rootFormBuilderDuzenle(e); const inst = e.inst ?? e.sender?.inst, sabit_hatKod = app.params.config.hatKod || null;
@@ -502,15 +502,10 @@ class MQBarkodRec extends MQMasterOrtak {
 		for (const key of ['formulSayac', 'tezgahKod', 'perKod']) { this[key] = null }
 		for (const key of ['tezgahAdi', 'perAdi']) { delete this[key] } return this
 	}
-	serbest() { this.serbestmi = true; return this }
-	noCheck() { this.noCheckFlag = true; return this }
-	suAn() { this.suAnmi = true; return this }
-	durum_none() { this._durum = ''; return this }
-	durum_new() { this._durum = 'new'; return this }
-	durum_changing() { this._durum = 'changing'; return this }
-	durum_removed() { this._durum = 'removed'; return this }
-	durum_offline() { this._durum = 'offline'; return this }
-	durum_processing() { this._durum = 'processing'; return this }
-	durum_done() { this._durum = 'done'; return this }
+	suAn() { this.suAnmi = true; return this } gorev() { this.gorevmi = true; return this } gercekleme() { this.gorevmi = false; return this }
+	serbest() { this.serbestmi = true; return this } noCheck() { this.noCheckFlag = true; return this }
+	durum_none() { this._durum = ''; return this } durum_new() { this._durum = 'new'; return this } durum_changing() { this._durum = 'changing'; return this }
+	durum_removed() { this._durum = 'removed'; return this } durum_offline() { this._durum = 'offline'; return this }
+	durum_processing() { this._durum = 'processing'; return this } durum_done() { this._durum = 'done'; return this }
 	durum_error() { this._durum = 'error'; return this }
 }

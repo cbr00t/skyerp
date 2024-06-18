@@ -34,15 +34,10 @@ class MQSayacliOrtak extends MQSayacli {
 	static get idSaha() { return this.sayacSaha }
 	static loadServerData(e) { e = e || {}; return MQMasterOrtak.loadServerData($.extend({}, e, { mfSinif: this })) }
 }
-
 class MQDetayliOrtak extends MQDetayli {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimUISinif() { return MQMasterOrtak.tanimUISinif } /* static get secimSinif() { return null } */
 	static get silinebilirmi() { return MQMasterOrtak.silinebilirmi } static get raporKullanilirmi() { return MQMasterOrtak.raporKullanilirmi }
 	static get idSaha() { return this.sayacSaha }
-
-	static loadServerData(e) {
-		e = e || {};
-		return MQMasterOrtak.loadServerData($.extend({}, e, { mfSinif: this }))
-	}
+	static loadServerData(e) { e = e || {}; return MQMasterOrtak.loadServerData($.extend({}, e, { mfSinif: this })) }
 }

@@ -34,8 +34,8 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		for (const colDef of _result) { const {belirtec} = colDef; if (!colAttrSet[belirtec]) { result.push(colDef) } }
 		return this._listeBasliklari = result || []
 	}
-	getMFSinif(e) { e = e || {}; let result = this.mfSinif; if (result && !result.prototype && $.isFunction(result)) result = getFuncValue.call(this, result, e); return this._mfSinif = result }
-	getSecimler(e) { e = e || {}; let result = this.secimler; if (result && !result.prototype && $.isFunction(result)) result = getFuncValue.call(this, result, e); return this._secimler = result }
+	getMFSinif(e) { e = e || {}; let result = this.mfSinif; if (result && isClass(result)) { result = getFuncValue.call(this, result, e) } return this._mfSinif = result }
+	getSecimler(e) { e = e || {}; let result = this.secimler; if (result && isInstance(result)) { result = getFuncValue.call(this, result, e) } return this._secimler = result }
 	getTanimUISinif(e) {
 		e = e || {}; let result = this.tanimUISinif; if (result && !result.prototype && $.isFunction(result)) result = getFuncValue.call(this, result, e)
 		if (result == null) result = this._tanimUISinif = e.mfSinif?.tanimUISinif
@@ -65,7 +65,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			const {secimlerDuzenleBlock} = this;
 			if (secimlerDuzenleBlock) {
 				const _e = $.extend({}, e, { sender: this, builder: this.builder, mfSinif, sinifAdi, secimler }); getFuncValue.call(this, secimlerDuzenleBlock, _e)
-				let result = _e.secimler; if (result !== undefined) secimler = _e.secimler
+				let result = _e.secimler; if (result !== undefined) { secimler = _e.secimler }
 			}
 		} this._secimler = secimler;
 		let {panelDuzenleyici} = this; if (!panelDuzenleyici && mfSinif?.orjBaslikListesi_getPanelDuzenleyici) { panelDuzenleyici = mfSinif.orjBaslikListesi_getPanelDuzenleyici(e) }

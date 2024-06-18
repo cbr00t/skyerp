@@ -260,7 +260,6 @@ class MQCogul extends MQYapi {
 		if (!tabPage_genel) tabPanel.builders.unshift(tabPage_genel = new FBuilder_TabPage({ id: id_genel, etiket: 'Genel' }))
 		tabPage_genel.addStyle_fullWH(); e.tabPage_genel = tabPage_genel
 	}
-
 	static get newSecimler() {
 		const {secimSinif} = this; if (!secimSinif) return null
 		const _e = { secimler: new secimSinif() };

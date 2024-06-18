@@ -24,7 +24,11 @@ class SecimBasSon extends Secim {
 		else { const {basi, sonu} = this; if (basi != null) { e.basi = basi } if (sonu != null) { e.sonu = sonu } }
 		return true
 	}
-	temizle(e) { super.temizle(e); $.extend(this, { birKismimi: this.defaultBirKismimi, kodListe: [] }); this.basi = this.sonu = this.getConvertedValue(null); return this }
+	temizle(e) {
+		super.temizle(e); $.extend(this, { birKismimi: this.defaultBirKismimi, kodListe: [] }); this.basi = this.sonu = this.getConvertedValue(null);
+		let part = this._ddListPart; if (part) { part.clear() }
+		return this
+	}
 	uiSetValues(e) {
 		super.uiSetValues(e); const {parent} = e; if (!parent?.length) { return false }
 		const {birKismimi} = this, bsParent = parent.find('.bs-parent'), birKismiParent = parent.find('.birKismi-parent');
@@ -61,7 +65,7 @@ class SecimBasSon extends Secim {
 				const {editor, selector, etiket} = e, value = this.getConvertedUIValue(this[selector]), {parentPart, builder} = this, layout = editor;
 				const placeHolder = etiket, kod = value
 				const part = new ModelKullanPart({
-					parentPart, builder, layout, mfSinif, placeHolder, dropDown, noAutoWidth,  autoBind, kod, maxRow,
+					parentPart, builder, layout, mfSinif, placeHolder, dropDown, noAutoWidth, autoBind, kod, maxRow,
 					argsDuzenle: e => { $.extend(e.args, { itemHeight: 30, dropDownHeight: 410, renderSelectedItem: (index, rec) => { rec = rec.originalItem || rec || {}; return rec[kodSaha] || '' } }) }
 				});
 				if (part.autoBind) { part.dataBindYapildiFlag = true }
@@ -99,7 +103,10 @@ class SecimBasSon extends Secim {
 		const birKismiParent = parent.find('.birKismi-parent'); if (!birKismiParent?.length) { return }
 		const {birKismimi} = this; bsParent[birKismimi ? 'addClass' : 'removeClass']('jqx-hidden'); birKismiParent[birKismimi ? 'removeClass' : 'addClass']('jqx-hidden')
 	}
-	getConvertedValue(value) { if (this.birKismimi) { return value == null ? [] : $.isArray(value) ? value : $.makeArray(value) } return super.getConvertedValue(value) }
+	getConvertedValue(value) {
+		if (this.birKismimi) { let arr = value == null ? [] : $.isArray(value) ? value : $.makeArray(value); if ($.isArray(arr) && !arr.length) { arr = null } return arr }
+		return super.getConvertedValue(value)
+	}
 	birKismi() { this.birKismimi = true; return this }
 	hepsi() { this.birKismimi = false; return this }
 }

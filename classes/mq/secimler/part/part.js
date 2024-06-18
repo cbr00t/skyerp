@@ -20,43 +20,31 @@ class SecimlerPart extends Part {
 	}
 	afterRun(e) {
 		e = e || {}; super.afterRun(e); const {partName} = this.class;
-		const elms = [this.wnd, this.layout];
-		for (const elm of elms) { if (elm?.length) { elm.addClass(`${partName} with-tabs`) } }
+		const elms = [this.wnd, this.layout]; for (const elm of elms) { if (elm?.length) { elm.addClass(`${partName} with-tabs`) } }
 		this.initTabPages(e); this.formGenelEventleriBagla(e)
 	}
-	initTabLayout(e) {
-		const tabID = e.tabPage.id;
-		switch (tabID) { case 'secimler': this.initTabLayout_secimler(e); break }
-	}
+	initTabLayout(e) { const tabID = e.tabPage.id; switch (tabID) { case 'secimler': this.initTabLayout_secimler(e); break } }
 	initTabLayout_secimler(e) {
-		e = e || {}; const layout = e.secimlerParent || (e.tabPage || {}).content || this.layout; makeScrollable(layout);
+		e = e || {}; const layout = e.secimlerParent || e.tabPage?.content || this.layout; makeScrollable(layout, evt => !(document.activeElement && document.activeElement.classList.contains('jqx-widget-content')));
 		const divKolonFiltreBilgiParent = this.divKolonFiltreBilgiParent = layout.find('.secimler-kolonFiltre-bilgi-parent');
 		const btnKolonFiltreTemizle = this.btnKolonFiltreTemizle = divKolonFiltreBilgiParent && divKolonFiltreBilgiParent.length ? divKolonFiltreBilgiParent.find('.kolonFiltre-temizle') : null;
 		if (btnKolonFiltreTemizle?.length) { btnKolonFiltreTemizle.jqxButton({ theme }); btnKolonFiltreTemizle.on('click', evt => this.kolonFiltreTemizleIstendi($.extend({}, e, { event: evt }))) }
 		const divKolonFiltreBilgi = this.divKolonFiltreBilgi = divKolonFiltreBilgiParent && divKolonFiltreBilgiParent.length ? divKolonFiltreBilgiParent.find('.kolonFiltre-bilgi') : null;
-		let {secimlerForm} = e; if (!(secimlerForm && secimlerForm.length)) secimlerForm = this.secimlerForm
-		if (!(secimlerForm && secimlerForm.length)) secimlerForm = layout.find('.secimler-form');
-		if (!(secimlerForm && secimlerForm.length)) secimlerForm = layout
-		this.secimlerForm = secimlerForm;
-		const {secimler} = this, grup2Info = secimler.asHTMLElements, secim2Info = this.secim2Info = {};
+		let {secimlerForm} = e; if (!(secimlerForm && secimlerForm.length)) { secimlerForm = this.secimlerForm }
+		if (!secimlerForm?.length) { secimlerForm = layout.find('.secimler-form') } if (!secimlerForm?.length) { secimlerForm = layout }
+		this.secimlerForm = secimlerForm; const {secimler} = this, grup2Info = secimler.asHTMLElements, secim2Info = this.secim2Info = {};
 		if (grup2Info) {
-			secimlerForm.children().remove();
-			const docFrg = $(document.createDocumentFragment());
+			secimlerForm.children().remove(); const docFrg = $(document.createDocumentFragment());
 			for (const grupKod in grup2Info) {
 				const grupBilgi = grup2Info[grupKod], grup = grupBilgi.grup || {}, grupAciklama = grup.aciklama || '', key2Info = grupBilgi.key2Info || {};
 				const divGrup = grupBilgi.element = $(
 					`<div class="secim-grup" data-id="${grupKod}">` +
 						`<div class="header" style="color:${grup.renk || ''};background-color:${grup.zeminRenk || ''};${grup.css}">${grupAciklama}</div>` +
 						`<div class="content"></div>` +
-						// `<div class="content" style="border: .5px solid ${grup.renk || '#aaa'};"></div>` +
 					`</div>`
 				);
 				const divGrupContent = divGrup.find('.content');
-				for (const key in key2Info) {
-					const secimBilgi = key2Info[key];
-					const {secim, element} = secimBilgi; if (element?.length) { element.appendTo(divGrupContent) }
-					secim2Info[key] = secimBilgi
-				}
+				for (const key in key2Info) { const secimBilgi = key2Info[key], {secim, element} = secimBilgi; if (element?.length) { element.appendTo(divGrupContent) } secim2Info[key] = secimBilgi }
 				divGrup.appendTo(docFrg)
 			}
 			docFrg.appendTo(secimlerForm);
@@ -75,8 +63,7 @@ class SecimlerPart extends Part {
 							const {target} = evt, tagName = target.tagName.toUpperCase();
 							if (!(tagName == 'INPUT' || tagName == 'TEXTAREA' || tagName == 'BUTTON' || target.classList.contains(`jqx-input-icon`))) { navBarArrowClickHandler(evt) }
 						});
-					navBar.on('expandedItem', evt => this.onResize(e));
-					navBar.on('collapsedItem', evt => this.onResize(e))
+					navBar.on('expandedItem', evt => this.onResize(e)); navBar.on('collapsedItem', evt => this.onResize(e))
 				}
 			}
 			const WaitMS_Ek = 0; let waitMS = 0, focusYapildimi = false;

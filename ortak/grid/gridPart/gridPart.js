@@ -25,9 +25,10 @@ class GridPart extends Part {
 	get selectedBelirtec() { const sel = this.gridWidget.getselection(); return (sel?.cells || [])[0]?.datafield }
 	get selectedBelirtecler() { const sel = this.gridWidget.getselection(); return asSet((sel?.cells || [])?.map(cell => cell.datafield) || []) }
 	get isEditable() { const {gridWidget} = this; return gridWidget ? gridWidget.editable : null }
-	get selectionMode() { const {gridWidget} = this; return gridWidget ? gridWidget.selectionmode : null }
-	get clickedColumn() { const {gridWidget} = this; return gridWidget ? gridWidget._clickedcolumn : null }
-	get isClickedColumn_checkBox() { const {clickedColumn} = this; return clickedColumn == '_checkboxcolumn' }
+	get selectionMode() { const {gridWidget} = this; return gridWidget?.selectionmode }
+	get clickedColumn() { const {gridWidget} = this; return gridWidget?._clickedcolumn }
+	get mousePosition() { const {gridWidget} = this; return gridWidget?.mousecaptureposition }
+	get isClickedColumn_checkBox() { const {clickedColumn, mousePosition} = this; return clickedColumn == '_checkboxcolumn' || (mousePosition?.clickedcell ?? 0) < 1 }
 	get isClickedColumn_rowNumber() { const {clickedColumn} = this; return clickedColumn == '_rowNumber' }
 	get isSelectionMode_checkBox() { const {selectionMode} = this; return (selectionMode && selectionMode.toLowerCase() == 'checkbox') }
 	get isSelectionMode_rows() { const {selectionMode} = this; return (selectionMode && selectionMode.toLowerCase().includes('row')) }
@@ -235,8 +236,9 @@ class GridPart extends Part {
 			if (qs.maxrow != null) wsArgs.pagesize = asInteger(qs.maxrow)
 		})();
 		try {
+			let secimler = parentPart?.secimler; if (parentPart?.partName == 'secimler') { secimler = null}
 			const _e = $.extend({}, e, {
-				action, sender: this, builder, parentPart, gridPart: this, gridWidget, inst: parentPart?.inst, fis: parentPart?.inst, secimler: parentPart?.secimler,
+				action, sender: this, builder, parentPart, gridPart: this, gridWidget, inst: parentPart?.inst, fis: parentPart?.inst, secimler,
 				editCell, editor: editCell?.editor, rowIndex: editCell?.row ?? gridWidget?.selectedrowindex, dataField: editCell?.datafield,
 				get gridRec() {
 					let result = this._gridRec; if (result === undefined) { const {gridWidget, rowIndex} = this; result = this._gridRec = gridWidget?.getrowdata(rowIndex) }
@@ -659,7 +661,7 @@ class GridPart extends Part {
 	gridSatirSilindi(e) { this.gridSatirSayisiDegisti(e); const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridSatirSilindi) kontrolcu.gridSatirSilindi(e) }
 	gridSatirSayisiDegisti(e) { const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridSatirSayisiDegisti) kontrolcu.gridSatirSayisiDegisti(e) }
 	gridSatirTiklandi(e) {
-		e = e || {}; const {gridWidget, isClickedColumn_rowNumber} = this, {type} = e, evt = e.event || {}, {args} = evt, belirtec = args.datafield ?? this.clickedColumn;
+		e = e || {}; const {gridWidget, isClickedColumn_checkBox, isClickedColumn_rowNumber} = this, {type} = e, evt = e.event || {}, {args} = evt, belirtec = args.datafield ?? this.clickedColumn;
 		let rowIndex = args.rowindex; if (rowIndex == null || rowIndex < 0) { rowIndex = gridWidget.selectedrowindex }
 		if (type == 'row') {
 			if (isClickedColumn_rowNumber && this.isSelectionMode_cells) {
@@ -674,7 +676,7 @@ class GridPart extends Part {
 				if (this.isSelectionMode_checkBox) {
 					if (!args.rightclick) { setTimeout(() => {
 						if (this.disableClickEventsFlag) { return }
-						if (rowIndex != null && rowIndex > -1) { if (!this.isClickedColumn_checkBox) { gridWidget.clearselection() } gridWidget.selectrow(rowIndex) }
+						if (rowIndex != null && rowIndex > -1) { if (!isClickedColumn_checkBox) { gridWidget.clearselection() } gridWidget.selectrow(rowIndex) }
 					}, 50) }
 				}
 			}
@@ -686,8 +688,13 @@ class GridPart extends Part {
 		const kontrolcu = this.getKontrolcu(e); return kontrolcu?.gridSatirTiklandi ? (kontrolcu.gridSatirTiklandi(e) ?? true) : true
 	}
 	gridSatirCiftTiklandi(e) {
-		const {gridWidget} = this; if (gridWidget?._clickedcolumn == '_checkboxcolumn') { const selRows = gridWidget.selectedrowindexes; setTimeout(() => { gridWidget.beginupdate(); gridWidget.selectedrowindexes = selRows; gridWidget.endupdate(true) }, 10); return false }
-		const {gridSatirCiftTiklandiBlock} = this; if (gridSatirCiftTiklandiBlock) { const result = getFuncValue.call(this, gridSatirCiftTiklandiBlock, e); if (result === false) return }
+		const {gridWidget, isClickedColumn_checkBox, gridSatirCiftTiklandiBlock} = this;
+		if (isClickedColumn_checkBox) {
+			const selRows = gridWidget?.selectedrowindexes; setTimeout(selRows => {
+				if (gridWidget && gridWidget.selectedrowindexes != selRows) { gridWidget.beginupdate(); gridWidget.selectedrowindexes = selRows; gridWidget.endupdate(true) }
+			}, 10, selRows); return false
+		}
+		if (gridSatirCiftTiklandiBlock) { const result = getFuncValue.call(this, gridSatirCiftTiklandiBlock, e); if (result === false) return }
 		const kontrolcu = this.getKontrolcu(e); return kontrolcu?.gridSatirCiftTiklandi ? (kontrolcu.gridSatirCiftTiklandi(e) ?? true) : true
 	}
 	gridHucreTiklandi(e) {
@@ -700,8 +707,13 @@ class GridPart extends Part {
 		const kontrolcu = this.getKontrolcu(e); return kontrolcu?.gridHucreTiklandi ? (kontrolcu.gridHucreTiklandi(e) ?? true) : true
 	}
 	gridHucreCiftTiklandi(e) {
-		const {gridWidget} = this; if (gridWidget?._clickedcolumn == '_checkboxcolumn') { const selRows = gridWidget.selectedrowindexes; setTimeout(() => { gridWidget.beginupdate(); gridWidget.selectedrowindexes = selRows; gridWidget.endupdate(true) }, 10); return false }
-		const {gridHucreCiftTiklandiBlock} = this; if (gridHucreCiftTiklandiBlock) { const result = getFuncValue.call(this, gridSatirCiftTiklandiBlock, e); if (result === false) return }
+		const {gridWidget, isClickedColumn_checkBox, gridHucreCiftTiklandiBlock} = this; if (!gridWidget) { return }
+		if (isClickedColumn_checkBox) {
+			const selRows = gridWidget?.selectedrowindexes; setTimeout(selRows => {
+				if (gridWidget && gridWidget.selectedrowindexes != selRows) { gridWidget.beginupdate(); gridWidget.selectedrowindexes = selRows; gridWidget.endupdate(true) }
+			}, 10, selRows); return false
+		}
+		if (gridHucreCiftTiklandiBlock) { const result = getFuncValue.call(this, gridSatirCiftTiklandiBlock, e); if (result === false) return }
 		const kontrolcu = this.getKontrolcu(e); return kontrolcu?.gridHucreCiftTiklandi ? (kontrolcu.gridHucreCiftTiklandi(e) ?? true) : true
 	}
 	async kolonFiltreIstendi(e) {
