@@ -93,10 +93,11 @@ class GidenEIslemFiltre extends EIslemFiltre {
 	listeOlustur(e) {
 		super.listeOlustur(e); const tarihBasi = null; /*today().addMonths(-5); tarihBasi.setDate(1);*/
 		this.grupTopluEkle([ { kod: 'PRG', aciklama: 'Yazılımsal', renk: '#111', zeminRenk: '#eee', kapali: true } ])
+		let sec_eIslem, sec_faturaAyrim; const eConf = this.eConf ?? MQEConf.instance, kisit = eConf.kisitUyarlanmis;
 		const {liste} = e; $.extend(liste, {
 			uygunOlmayanlarGosterilirmiFlag: new SecimBool({ etiket: 'Seri-No Yıl Uygun OLMAYANLAR da gösterilsin' }),
-			eIslemBirKismi: new SecimBirKismi({ etiket: 'e-İşlem', tekSecim: new EIslemTip({ hepsi: true }) }),
-			faturaAyrimSecim: new SecimTekSecim({ etiket: 'Fatura Ayrım', tekSecim: new BuDigerVeHepsi(['Mağaza Fişi', 'Normal Fatura']) }),
+			eIslemBirKismi: (sec_eIslem = new SecimBirKismi({ etiket: 'e-İşlem', tekSecim: new EIslemTip({ hepsi: true }) })),
+			faturaAyrimSecim: (sec_faturaAyrim = new SecimTekSecim({ etiket: 'Fatura Ayrım', tekSecim: new BuDigerVeHepsi(['Mağaza Fişi', 'Normal Fatura']) })),
 			sube: new SecimBirKismi({ etiket: 'Fiş Şubesi', mfSinif: MQSube }),
 			tarih: new SecimDate({ etiket: 'Tarih', basi: tarihBasi }),
 			seri: new SecimString({ etiket: 'Belge Seri' }),
@@ -109,7 +110,12 @@ class GidenEIslemFiltre extends EIslemFiltre {
 			uuid: new SecimOzellik({ etiket: 'UUID' }),
 			xmlDurumSecim: new SecimTekSecim({ etiket: 'XML Durumu', tekSecim: new BuDigerVeHepsi([`<span class="green">XML Oluşmuş Olanlar</span>`, `<span class="red">XML OLUŞMAMIŞ Olanlar</span>`]) }),
 			fisSayac: new SecimInteger({ etiket: 'VIO ID (fisSayac)', grupKod: 'PRG' })
-		})
+		});
+		if (kisit.kullanilirmi) {
+			const eIslKodlar = []; if (kisit.fatura) { eIslKodlar.push('E', 'A', 'IH') }; if (kisit.irsaliye) { eIslKodlar.push('IR') }; if (kisit.musMakbuz) { eIslKodlar.push('MS') };
+			const eIslKodSet = asSet(eIslKodlar); let tekSecim = sec_eIslem?.tekSecim; if (tekSecim) { tekSecim.char = tekSecim.kodListe.filter(kod => !eIslKodSet[kod]) }
+			tekSecim = sec_faturaAyrim?.tekSecim; if (tekSecim) { tekSecim[kisit.magaza ? 'diger' : 'bu']() }
+		}
 	}
 	tbWhereClauseDuzenle(e) {
 		e = e || {}; super.tbWhereClauseDuzenle(e);

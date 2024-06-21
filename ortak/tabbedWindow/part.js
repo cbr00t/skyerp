@@ -53,17 +53,21 @@ class TabbedWindowPart extends Part {
 				newPageId = Object.keys(id2TabPage).filter(id => {
 					if (id == wndId) { return false }
 					const tabPage = id2TabPage[id], layout = tabPage?.layout, header = tabPage?.header;
-					const asilPart = header?.data('part')?.asilPart; if (asilPart?.isSubPart) { return false }
+					let asilPart = header?.data('part'); asilPart = asilPart?.asilPart ?? asilPart; if (asilPart?.isSubPart) { return false }
 					if (layout?.hasClass('jqx-hidden')) { return false }
 					if (asilPart?.canDestroy === false) { const parentPart = asilPart?.parentPart; if (!parentPart || parentPart.isDestroyed) { return false } }
 					return true
 				}).slice(-1)[0]
 			}
 			if (newPageId && !id2TabPage[newPageId]) { return }
-			const closeableTabPages = Object.values(id2TabPage).filter(tabPage => {
-				const header = tabPage?.header, layout = tabPage?.layout, asilPart = header?.data('part');
-				return asilPart?.isDestroyed !== true && !(layout?.hasClass('jqx-hidden') || layout?.hasClass('basic-hidden'))
+			let closeableTabPages = Object.values(id2TabPage).filter(tabPage => {
+				const header = tabPage?.header, layout = tabPage?.layout; let asilPart = header?.data('part'); asilPart = asilPart?.asilPart ?? asilPart;
+				return !!header?.parent()?.length && asilPart?.isDestroyed !== true && asilPart != this.asilPart && !(layout?.hasClass('jqx-hidden') || layout?.hasClass('basic-hidden'))
 			});
+			if (closeableTabPages.length == 1) {
+				const _asilPart = this.asilPart, tabPage = closeableTabPages[0], header = tabPage?.header; let asilPart = header?.data('part'); asilPart = asilPart?.asilPart ?? asilPart;
+				if (asilPart == asilPart || asilPart?.parentPart == asilPart) { closeableTabPages = [] }
+			}
 			mainWindowsPart.activePageId = newPageId; mainWindowsPart.refresh();
 			const noWndFlag = !(mainWindowsPart.activePageId && closeableTabPages.length); app.content[noWndFlag ? 'removeClass' : 'addClass']('jqx-hidden');
 			$('body')[noWndFlag ? 'addClass' : 'removeClass']('no-wnd')

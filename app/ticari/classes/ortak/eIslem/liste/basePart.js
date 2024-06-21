@@ -7,8 +7,7 @@ class EIslemListeBasePart extends MasterListePart {
 	// get wndDefaultIsModal() { return false }
 	
 	constructor(e) {
-		e = e || {}; super(e);
-		$.extend(this, { eConf: e.eConf ?? MQEConf.instance });
+		e = e || {}; e.eConf = e.eConf ?? MQEConf.instance; super(e);
 		this.title = e.title == null ? ( 'e-İşlem Listesi' ) : e.title || ''
 	}
 	static async listele(e) {
@@ -17,7 +16,7 @@ class EIslemListeBasePart extends MasterListePart {
 			let promise = new $.Deferred(); MQEConf.listeEkraniAc({ secince: e => promise.resolve(e), vazgecince: e => promise.reject({ isError: true, rc: 'userAbort' }) })
 			const {mfSinif, rec} = await promise; if (rec) { eConf = e.eConf = new mfSinif(); eConf.setValues({ rec }) }
 		}
-		const part = new this(e); return part.run()
+		try { const part = new this(e); return part.run() } catch (ex) { hConfirm(getErrorText(ex)); throw ex }
 	}
 	runDevam(e) { e = e || {}; const {layout} = this; layout.addClass(this.class.rootPartName); super.runDevam(e); }
 	getSecimler(e) { return new this.class.filtreSinif({ eConf: this.eConf }) }

@@ -1,8 +1,10 @@
 class MQEConf extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() { return 'e-İşlem Konfigurasyon' } static get table() { return 'efatconf' } static get tableAlias() { return 'efc' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'e-İşlem Konfigurasyon' }
+	static get table() { return 'efatconf' } static get tableAlias() { return 'efc' }
 	static get kodListeTipi() { return 'EFCONF' } static get bosKodAlinirmi() { return true } static get tumKolonlarGosterilirmi() { return true }
 	/* static getInstance() { let result = this._instance; if (!result) { result = this._instance = new this() } return result } */
+	static altYapiDictDuzenle(e) { super.altYapiDictDuzenle(e); const {liste} = e; $.extend(liste, { kisit: MQEConfAlt_Kisit }) }
+	static get kisitKeys() { return MQEConfAlt_Kisit.kisitKeys } static get kisitKeysSet() { return MQEConfAlt_Kisit.kisitKeysSet }
 	get eIslEkArgs() {
 		const result = {}, addIfNotEmpty = (selector, key) => { const value = this.getValue(selector); if (value) { result[key || selector] = value } };
 		addIfNotEmpty('testmi'); addIfNotEmpty('anaBolum', 'eIslAnaBolum'); addIfNotEmpty('gibAlias', 'senderGIBAlias');
@@ -14,6 +16,10 @@ class MQEConf extends MQKA {
 		addIfNotEmpty('wsUser', 'user'); addIfNotEmpty('wsPass', 'pass'); addIfNotEmpty('firmaKodu'); addIfNotEmpty('subeKodu');
 		return result
 	}
+	get kisitUyarlanmis() {
+		const {kisit} = this, paramKisit = app.params.eIslem.kisit, result = {}, keys = ['kullanilirmi', ...this.class.kisitKeys];
+		return kisit.kullanilirmi ? kisit : paramKisit.kullanilirmi ? paramKisit : {}
+		}
 
 	constructor(e) { e = e || {}; super(e); }
 	static pTanimDuzenle(e) {
@@ -45,8 +51,13 @@ class MQEConf extends MQKA {
 			new GridKolon({ belirtec: 'wsbranch', text: 'WS Branch', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'gibalias', text: 'GIB Alias' }),
 			/*new GridKolon({ belirtec: 'earsgibalias', text: 'e-Arşiv GIB Alias' }),*/
-			new GridKolon({ belirtec: 'eirsgibalias', text: 'e-İrs. GIB Alias' })
-		);
+			new GridKolon({ belirtec: 'eirsgibalias', text: 'e-İrs. GIB Alias' }),
+			new GridKolon({ belirtec: 'gonderimdekisitlama', text: 'Gönderimde Kısıt', genislikCh: 10 }).tipBool(),
+			new GridKolon({ belirtec: 'gkisfatura', text: 'Kst: Fatura', genislikCh: 13 }).tipBool(),
+			new GridKolon({ belirtec: 'gkisirsaliye', text: 'Kst: İrsaliye', genislikCh: 13 }).tipBool(),
+			new GridKolon({ belirtec: 'gkismagaza', text: 'Kst: Mağaza', genislikCh: 13 }).tipBool(),
+			new GridKolon({ belirtec: 'gkismusmakbuz', text: 'Kst: Müs. Makbuz', genislikCh: 13 }).tipBool()
+		)
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {sent} = e, {aliasVeNokta} = this;
@@ -72,5 +83,26 @@ class MQEConf extends MQKA {
 		else { result = this[selector] || (param_eIslem[selector]) || oeParam[selector] }
 		/*if (result == null) { const param_oe = param_eIslem.oe[param_eIslem2.ozelEntegrator.char]; if (param_oe) { result = param_oe[selector] } }*/
 		return result
+	}
+}
+class MQEConfAlt extends MQAlt { static { window[this.name] = this; this._key2Class[this.name] = this } }
+class MQEConfAlt_Kisit extends MQEConfAlt {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kisitKeys() { return ['fatura', 'irsaliye', 'magaza', 'musMakbuz'] }
+	static get kisitKeysSet() { let result = this._kisitKeysSet; if (result === undefined) { result = this._kisitKeysSet = asSet(this.kisitKeys) } return result }
+	static pTanimDuzenle(e) {
+		super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, {
+			kullanilirmi: new PInstBitBool('gonderimdekisitlama'),
+			fatura: new PInstBitBool('gkisfatura'), irsaliye: new PInstBitBool('gkisirsaliye'),
+			magaza: new PInstBitBool('gkismagaza'), musMakbuz: new PInstBitBool('gkismusmakbuz')
+		})
+	}
+	static rootFormBuilderDuzenle(e) {
+		e = e || {}; const {mfSinif, kisitKeysSet} = this, {tabPanel} = e;
+		let tabPage = tabPanel.addTab({ id: 'kisit', etiket: 'Kısıt' }).setAltInst(e => e.builder.inst.kisit); let form = tabPage.addFormWithParent().yanYana();
+			form.addCheckBox('kullanilirmi', 'Kullanılır').degisince(e => { const {builders} = e.builder.parentBuilder; for (const fbd of builders) { const {id} = fbd; if (kisitKeysSet[id]) { fbd.updateVisible() } } })
+			form.addCheckBox('fatura', 'Fatura'); form.addCheckBox('irsaliye', 'İrsaliye');
+			form.addCheckBox('magaza', 'Mağaza'); form.addCheckBox('musMakbuz', 'Müstahsil Makbuz');
+		for (const fbd of form.builders) { const {id} = fbd; if (kisitKeysSet[id]) { fbd.setVisibleKosulu(e => e.builder.altInst.kullanilirmi ? true : 'jqx-hidden') } }
 	}
 }

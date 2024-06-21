@@ -273,10 +273,11 @@ class ModelKullanPart extends Part {
 	}
 	veriYuklendi(e) {
 		setTimeout(() => {
-			const {input, parentPart, widget, veriYukleninceBlock} = this; if (this.isDestroyed || !input?.length) { return }
+			const {input, parentPart, widget, veriYukleninceBlock, coklumu, isDropDown} = this; if (this.isDestroyed || !input?.length) { return }
 			if (!this.veriYuklendiFlag) {
 				this.veriYuklendiFlag = true; /*if (widget.isOpened()) widget.close();*/
 				const {value} = this; if (value != null && !this.kodAtandimi) { input.val(value); input.attr('data-value', value ?? null) }
+				if (!coklumu && isDropDown) { let ind = widget.getItems().findIndex(item => item.value == value); if (ind > -1) { widget.selectIndex(ind) } }
 				this.kodAtandimi = true
 			}
 			if (veriYukleninceBlock) {

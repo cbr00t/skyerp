@@ -42,7 +42,7 @@ class SubPartBuilder extends FormBuilderBase {
 		let result = this._altInst;
 		if (result === undefined) {
 			result = this._altInst = e => {
-				e.temp(); let _result = this.parentBuilder?.inst; if (_result !== undefined) { return _result }
+				e.temp(); let _result = this.parentBuilder?.altInst; if (_result !== undefined) { return _result }
 				return this.inst
 			}
 		}

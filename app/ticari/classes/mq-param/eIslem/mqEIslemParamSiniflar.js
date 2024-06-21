@@ -3,6 +3,7 @@ class MQEIslemParam extends MQTicariParamBase {
 	static get paramKod() { return 'PTEFATP' } static get sinifAdi() { return 'e-İşlem Parametreleri' }
 	get tekSecimDonusum_receiver() { return this.kural } static get defaultGoruntuOzelPunto() { return 9 }
 	get oeParam() { const {char} = this.ozelEntegrator || {}, selector = char; return (this.oe || {})[selector] }
+	get gonderimdeKisitKullanilirmi() { return this.kisit?.kullanilirmi }
 	get goruntuOzelPunto() { return this._goruntuOzelPunto || this.class.defaultGoruntuOzelPunto }
 	get faturaVadeEtiket() { return this._faturaVadeEtiket || 'Fatura Vadesi' }
 	static get kullanimKeys() {
@@ -14,7 +15,7 @@ class MQEIslemParam extends MQTicariParamBase {
 		]
 	}
 
-	constructor(e) { e = e || {}; super(e); this.kural = e.kural || {} }
+	constructor(e) { e = e || {}; super(e); for (const key of ['kural', 'kisit']) { this[key] = this[key] ?? {} }}
 	static paramAttrListeDuzenle(e) {
 		super.paramAttrListeDuzenle(e); const {liste} = e;
 		liste.push('efatUzakIP', 'efatWSUzakIP', 'efatGIBAlias', 'earsGIBAlias', 'eirsGIBAlias', 'kdvMuafiyetKod', 'irsMailLojistik')
@@ -41,7 +42,12 @@ class MQEIslemParam extends MQTicariParamBase {
 			form.addString('_faturaVadeEtiket', 'Fatura Vade Etiket').setRowAttr('faturaVadeEtiket');
 		form = paramci.addKullanim().addGrup('Kullanım').addFormWithParent(); form.addBool('ozelConf', 'Özel Konfigurasyon');
 			form.addNumber('_goruntuOzelPunto', 'Görüntü Özel Punto').setRowAttr('goruntuOzelPunto').addStyle_wh(180);
-			form.addBool('kodYerineSiraNo', 'Kod Yerine Sıra No'); form.addBool('bakiyeDovizliIseAyricaTLBakiye', 'Dövizli Bakiye için Ayrıca TL Bakiye')
+			form.addBool('kodYerineSiraNo', 'Kod Yerine Sıra No'); form.addBool('bakiyeDovizliIseAyricaTLBakiye', 'Dövizli Bakiye için Ayrıca TL Bakiye');
+		form = paramci.addAltObject('kisit').setAltInst(e => e.paramci?.inst.kisit).addGrup('Gönderimde Kısıtlama').addFormWithParent();
+			form.addBool('kullanilirmi', 'Kullanılır').setRowAttr('gonderimdeTipKisitlamasi');
+			form.addBool('fatura', 'Fatura').setRowAttr('gonKisitFatura'); form.addBool('irsaliye', 'İrsaliye').setRowAttr('gonKisitIrsaliye');
+			form.addBool('magaza', 'Mağaza').setRowAttr('gonKisitMagaza'); form.addBool('musMakbuz', 'Müstahsil Makbuz').setRowAttr('gonKisitMusMakbuz')
+			/*for (const item of form.getItems()) { item.setAltInst(altInstci) }*/
 	}
 	static tekSecimDonusumDuzenle(e) {
 		super.tekSecimDonusumDuzenle(e);

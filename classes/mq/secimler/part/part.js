@@ -4,8 +4,7 @@ class SecimlerPart extends Part {
 	static get canDestroy() { return false } static get partName() { return 'secimler' }
 
 	constructor(e) {
-		e = e || {}; super(e); const secimler = this.secimler = e.secimler;
-		$.extend(this, {
+		e = e || {}; super(e); const secimler = this.secimler = e.secimler; $.extend(this, {
 			parentPart: e.parentPart ?? app.activeWndPart, layout: e.secimlerParent ?? this.layout, wnd: e.wnd,
 			secimlerForm: e.secimlerForm || this.secimlerForm, islemTuslariPart: e.islemTuslariPart || this.islemTuslariPart, islemTuslari: e.islemTuslari || this.islemTuslari,
 			mfSinif: e.mfSinif || secimler?.mfSinif, tamamIslemi: e.tamamIslemi,

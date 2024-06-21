@@ -197,7 +197,7 @@ class SecimTekSecim extends SecimOzel {
 		});
 		if (part.autoBind) { part.dataBindYapildiFlag = true }
 		editor.data('part', part); part.run(); const {widget} = part;
-		part.change(_e => { const value = _e.value ?? _e.kod, {item} = _e; if (value != null) getFuncValue.call(this, setValue, $.extend({}, e, _e)) });
+		part.change(_e => { const value = _e.value ?? _e.kod, {item} = _e; if (value != null) { getFuncValue.call(this, setValue, $.extend({}, e, _e)) } });
 		widget.input.on('focus', evt => {
 			const {source} = widget; if (!part.dataBindYapildiFlag && source?.dataBind) { source.dataBind(); part.dataBindYapildiFlag = true }
 			if (focusWidget != widget) { setTimeout(() => evt.target.select(), 150); focusWidget = widget }

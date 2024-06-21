@@ -59,6 +59,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			_tanimUISinif: e.tanimUISinif, _tanimlanabilirmi: e.tanimlanabilirmi, _silinebilirmi: e.silinebilirmi, args: e.args, panelDuzenleyici: e.panelDuzenleyici
 		});
 		const mfSinif = this._mfSinif = this.getMFSinif(e); $.extend(e, { sender: this, gridPart: this, mfSinif });
+		const {eConf} = e; if (eConf != null) { this.eConf = eConf }
 		let secimler = e.secimler = this.getSecimler(e); let {sinifAdi} = e;
 		if (mfSinif) { if (!secimler) secimler = mfSinif.newSecimler; if (sinifAdi == null) { sinifAdi = mfSinif.listeSinifAdi ?? mfSinif.sinifAdi } }
 		if (secimler) {
@@ -105,7 +106,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	destroyPart(e) {
 		const {layout, builder} = this, mfSinif = this.getMFSinif(); $.extend(e, { layout, sender: this, gridPart: this, builder });
 		if (mfSinif?.listeEkrani_destroyPart) { mfSinif.listeEkrani_destroyPart(e) }
-		const {secimlerPart} = this; if (secimlerPart) { secimlerPart.destroyPart() } super.destroyPart(e)
+		const {secimlerPart} = this; if (secimlerPart) { secimlerPart.close(e); secimlerPart.destroyPart() } super.destroyPart(e)
 	}
 	activated(e) {
 		e = e || {}; super.activated(e); if (!this._activatedFlag) { this._activatedFlag = true; return }

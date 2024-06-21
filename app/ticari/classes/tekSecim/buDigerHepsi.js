@@ -1,8 +1,6 @@
 class BuVeDiger extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultChar() { return '1' }
-	get bumu() { return this.char == '1' }
-	get digermi() { return this.char == '2' }
+	static get defaultChar() { return '1' } get bumu() { return this.char == '1' } get digermi() { return this.char == '2' }
 	init(e) {
 		e = e || {}; super.init(e);
 		let buDigerYapi = e;

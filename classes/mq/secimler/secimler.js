@@ -3,7 +3,7 @@ class Secimler extends CIO {
 	static get uiSinif() { return window.SecimlerWindowPart } static get duzenlemeUISinif() { return this.uiSinif }
 
 	constructor(e) {
-		e = e || {}; super(e);
+		e = e || {}; super(e); const {eConf} = e; if (eConf != null) { this.eConf = eConf }
 		if ($.isArray(e)) { e = { liste: e } } else { this.uiSinif = e.uiSinif; this.duzenlemeUISinif = e.duzenlemeUISinif || this.uiSinif }
 		this.uiSinif = this.uiSinif || this.class.uiSinif; this.duzenlemeUISinif = this.duzenlemeUISinif || this.class.duzenlemeUISinif;
 		this.secimleriTemizle(); const {liste} = this; this.listeOlustur({ liste }); this.readFrom(e);

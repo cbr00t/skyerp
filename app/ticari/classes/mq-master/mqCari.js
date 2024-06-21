@@ -90,10 +90,7 @@ class MQCari_Genel extends MQCariAlt {
 			result.push('bg-lightgray', 'iptal')
 	}
 	static rootFormBuilderDuzenle(e) {
-		e = e || {};
-		const {mfSinif} = this;
-		mfSinif.formBuilder_addTabPanelWithGenelTab(e);
-		const tabPage_genel = e.tabPage_genel;
+		e = e || {}; const {mfSinif} = this; mfSinif.formBuilder_addTabPanelWithGenelTab(e); const tabPage_genel = e.tabPage_genel;
 		tabPage_genel.addStyle(e => `$elementCSS .baslik { color: cadetblue }`);
 		tabPage_genel.addBaslik({ etiket: 'Ünvan Ve Adres' });
 		

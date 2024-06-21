@@ -6,29 +6,23 @@ class ParamBuilder extends CObject {
 	] }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, '_initFlag', '_id', ...this.copyOzelKeys] }
 	static get formBuilderClass() { return FormBuilder }
-	get id2Item() {
-		let result = this._id2Item; if (result == null) { result = {}; for (const item of (this.items || [])) { result[item.id] = item } this._id2Item = result }
-		return result
-	}
+	get id2Item() { let result = this._id2Item; if (result == null) { result = {}; for (const item of (this.items || [])) { result[item.id] = item } this._id2Item = result } return result }
 	get defaultAltInst() { return null }
 	get id() {
-		let result = this._id;
-		if (result === undefined) { result = this._id = this.defaultId }
-		if (result === undefined) { result = this._id = newGUID() }
-		return result
+		let result = this._id; if (result === undefined) { result = this._id = this.defaultId }
+		if (result === undefined) { result = this._id = newGUID() } return result
 	}
 	set id(value) { this._id = value }
-	get rowAttr() { let result = this._rowAttr; if (result === undefined) { result = this._rowAttr = this.id } return result }
-	set rowAttr(value) { this._rowAttr = value }
+	get rowAttr() { let result = this._rowAttr; if (result === undefined) { result = this._rowAttr = this.id } return result } set rowAttr(value) { this._rowAttr = value }
 	get layout() { let result = this._layout; if (isFunction(result)) { result = this._layout = getFuncValue.call(this, result, this.getBuilderArgs()) } return result }
-	set layout(value) { this._layout = value }
-	get inst() { let result = this._inst; if (isFunction(result)) { result = this._inst = getFuncValue.call(this, result, this.getBuilderArgs()) } return result }
+	set layout(value) { this._layout = value } get inst() { let result = this._inst; if (isFunction(result)) { result = this._inst = getFuncValue.call(this, result, this.getBuilderArgs()) } return result }
 	set inst(value) { this._inst = value }
 	get altInst() {
 		let result = this._altInst;
-		if (isFunction(result)) result = this._altInst = getFuncValue.call(this, result, this.getBuilderArgs())
+		if (result === undefined) { result = this._altInst = e => { let _result = this.parent?.altInst; if (_result !== undefined) { return _result } return this.inst } }
+		if (isFunction(result)) { result = this._altInst = getFuncValue.call(this, result, this.getBuilderArgs()) }
 		if (typeof result == 'string') { const {inst} = this; result = this._altInst = inst ? inst[result] : null }
-		if (result == null) result = this._altInst = this.defaultAltInst ?? this.inst
+		if (result == null) { result = this._altInst = this.defaultAltInst ?? this.inst }
 		return result
 	}
 	set altInst(value) { this._altInst = value }
@@ -37,20 +31,14 @@ class ParamBuilder extends CObject {
 		let result = altInst[this.id]; return result === undefined ? this.convertedValue_hostVars(this.initValue) : result
 	}
 	set value(value) {
-		const {altInst} = this;
-		value = this.convertedValue_setValues(value);
-		if (altInst) { const {id} = this; if (id) { if (value === undefined) delete altInst[id]; else altInst[id] = value } }
-		else { this.initValue = value }
+		const {altInst} = this; value = this.convertedValue_setValues(value);
+		if (altInst) { const {id} = this; if (id) { if (value === undefined) delete altInst[id]; else altInst[id] = value } } else { this.initValue = value }
 	}
-	get root() { return this._root }
-	set root(value) { this._root = value }
-	get parent() { return this._parent }
-	set parent(value) { this._parent = value }
-	get temps() { return this._temps }
-	set temps(value) { this._temps = value }
+	get root() { return this._root } set root(value) { this._root = value }
+	get parent() { return this._parent } set parent(value) { this._parent = value }
+	get temps() { return this._temps } set temps(value) { this._temps = value }
 	constructor(e) {
-		e = e ?? {}; super(e);
-		$.extend(this, {
+		e = e ?? {}; super(e); $.extend(this, {
 			_initFlag: e.initFlag ?? false, temps: e.temps || {}, _id: e.id, _rowAttr: e.rowAttr, etiket: e.etiket, converter: e.converter, initValue: e.value, items: e.items || [],
 			part: e.part ?? e.parentPart ?? e.sender, _root: e.root, _parent: e.parent, _inst: e.inst, _altInst: e.altInst, _layout: e.layout,
 			_paramHostVarsDuzenle: e.paramHostVarsDuzenle, _paramSetValues: e.paramSetValues, _tanimUIArgsDuzenle: e.tanimUIArgsDuzenle,
@@ -341,10 +329,7 @@ class ParamBuilder extends CObject {
 			inst[key] = this[key]
 		return inst
 	}
-	getBuilderArgs(e) {
-		e = e ?? {};
-		return $.extend({}, e, { paramci: this })
-	}
+	getBuilderArgs(e) { e = e ?? {}; return $.extend({}, e, { paramci: this }) }
 	getItemsAndSelf() { return this.getItems({ withSelf: true }) }
 	*getItems(e) {
 		e = e ?? {};
@@ -384,55 +369,30 @@ class ParamBuilder_AltInst extends ParamBuilderAlt {
 	get altInstmi() { return true }
 	get defaultNewInst() { return undefined }
 	get newInst() {
-		const {instBuilder} = this;
-		let result;
-		if (instBuilder != null) {
-			if (isFunction(instBuilder)) {
-				const _e = { paramci: this, inst() { return this.paramci.inst } };
-				result = getFuncValue.call(this, instBuilder, _e)
-			}
-			else
-				result = instBuilder
-		}
-		if (result === undefined)
-			result = this.defaultNewInst
+		const {instBuilder} = this; let result;
+		if (instBuilder != null) { if (isFunction(instBuilder)) { const _e = { paramci: this, inst() { return this.paramci.inst } }; result = getFuncValue.call(this, instBuilder, _e) } else { result = instBuilder } }
+		if (result === undefined) { result = this.defaultNewInst }
 		return result
 	}
 	get defaultAltInst() {
-		let {inst} = this, result = inst;
-		if (inst) {
-			const {id} = this;
-			result = inst[id];
+		let {inst} = this, result = inst; if (inst) {
+			const {id} = this; result = inst[id];
 			if (result == null) {
-				const {newInst} = this;
-				if (newInst != null)
-					inst[id] = newInst
-				if (result != null)
-					inst = result
+				const {newInst} = this; if (newInst != null) { result = inst[id] = newInst }
+				if (result != null) { inst = result }
 			}
 		}
 		return result
 	}
-	constructor(e) {
-		e = e ?? {};
-		super(e);
-		this.instBuilder = e.instBuilder ?? e.newInst;
-	}
+	constructor(e) { e = e ?? {}; super(e); this.instBuilder = e.instBuilder ?? e.newInst }
 	setInstBuilder(handler) { this.instBuilder = handler; return this }
 	setNewInst(handler) { return this.setInstBuilder(handler) }
 }
-class ParamBuilder_AltObject extends ParamBuilder_AltInst {
-	get altObjectmi() { return true }
-	get defaultNewInst() { return {} }
-}
-class ParamBuilder_AltArray extends ParamBuilder_AltInst {
-	get altArraymi() { return true }
-	get defaultNewInst() { return [] }
-}
+class ParamBuilder_AltObject extends ParamBuilder_AltInst { get altObjectmi() { return true } get defaultNewInst() { return {} } }
+class ParamBuilder_AltArray extends ParamBuilder_AltInst { get altArraymi() { return true } get defaultNewInst() { return [] } }
 class ParamBuilder_Kullanim extends ParamBuilder_AltObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	get kullanimmi() { return true }
-	get defaultId() { return 'kullanim' }
+	get kullanimmi() { return true } get defaultId() { return 'kullanim' }
 }
 class ParamBuilder_UIElement extends ParamBuilderAlt {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -465,8 +425,7 @@ class ParamBuilder_TabPage extends ParamBuilder_UIElement {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get tabPagemi() { return true }
 	formBuilderDuzenleInternal(e) {
-		super.formBuilderDuzenleInternal(e);
-		const {builder} = e, {id} = this;
+		super.formBuilderDuzenleInternal(e); const {builder} = e, {id} = this;
 		if (id) {
 			const {tabPanel} = e; const {id2Builder} = tabPanel;
 			let target = id2Builder[id];
