@@ -1,10 +1,8 @@
 class EIslemTip extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' }
-	get eFaturami() { return this.char == EIslFatura.tip }
-	get eArsivmi() { return this.char == EIslArsiv.tip }
-	get eIrsaliyemi() { return this.char == EIslIrsaliye.tip }
-	get eMustahsilmi() { return this.char == EIslMustahsil.tip }
+	get eFaturami() { return this.char == EIslFatura.tip } get eArsivmi() { return this.char == EIslArsiv.tip }
+	get eIrsaliyemi() { return this.char == EIslIrsaliye.tip } get eMustahsilmi() { return this.char == EIslMustahsil.tip }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); const {kaListe} = e, hepsimi = asBool(e.hepsimi ?? e.hepsi), {tip2Sinif} = EIslemOrtak;
 		for (const tip in tip2Sinif) {
