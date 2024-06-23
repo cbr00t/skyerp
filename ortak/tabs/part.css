@@ -21,7 +21,7 @@
 	width: calc(var(--full) - var(--tabs-toggle-button-right)); height: var(--tabs-header-height); margin-block: 0; padding-inline: 0;
 	margin: 0; margin-bottom: var(--tabs-header-margin-bottom); padding-left: var(--tabs-toggle-button-right); overflow-y: auto !important
 }
-.skyTabs.part > .tabs > .tabPage { position: relative; width: max-content; margin-inline: 0; padding-inline: 0; }
+.skyTabs.part > .tabs > .tabPage { position: relative; width: max-content; margin-inline: 0; padding-inline: 0 }
 .skyTabs.part > .tabs > .tabPage > .header {
 	font-size: 100%; color: #555;  width: var(--full); height: var(--tabs-tabPage-height); padding: 3px 10px; padding-right: 60px;
 	border-top-left-radius: 7px; border-top-right-radius: 8px; border: 1px solid transparent; box-sizing: border-box; user-select: none;

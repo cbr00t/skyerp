@@ -114,6 +114,7 @@ class TicariTest_OzelComboBox1 extends Ticari_TestBase {
 }
 class TicariTest_OzelComboBox2 extends Ticari_TestBase {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return this.partName } static get partName() { return 'ozelComboBox2' }
+	static get isSubPart() { return true } get isSubPart() { return this.class.isSubPart }
 	constructor(e) {
 		e = e || {}; super(e); const {mfSinif, source, parent, layout} = e;
 		const width = e.width || '98%', height = e.height ?? 40, kodAttr = e.kodAttr ?? e.kodSaha ?? MQKA.kodSaha, adiAttr = e.adiAttr ?? e.adiSaha ?? MQKA.adiSaha;
@@ -130,8 +131,8 @@ class TicariTest_OzelComboBox2 extends Ticari_TestBase {
 	runInternalDevam(e) {
 		const {tip, partName} = this.class, {width, height, mfSinif, source, kodAttr, adiAttr} = this, parent = e.parent ?? app.content;
 		console.debug('test', tip, 'başladı', this); app.content.children().remove();
-		let layout = e.layout ?? parent.children('#widget'); if (!layout?.length) { layout = $(`<div id="widget"/>`); layout.appendTo(parent) }
+		let layout = e.layout ?? parent.children('#widget'); if (!layout?.length) { layout = $(`<div id="widget" style="margin-top: 10px"/>`); layout.appendTo(parent) }
 		let part = this.part = new ModelKullanPart({ layout, width, height, mfSinif, source, kodAttr, adiAttr }).comboBox().coklu(); part.run();
-		return app._activePartStack.push(this)
+		setTimeout(() => app._activePartStack.push(this), 300); return part
 	}
 }

@@ -1,9 +1,9 @@
-class ModelKullanPart extends Part {
+class ModelKullan2Part extends Part {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get isSubPart() { return true }
 	static get partName() { return 'modelKullan' } get jqxSelector() { return this.isDropDown ? 'jqxDropDownList' : 'jqxComboBox' }
 	get mfSinif() {
 		const value = this._mfSinif;
-		return (value && !value.prototype && ($.isFunction(value) || value.run)) ? getFuncValue.call(this, this._mfSinif, { sender: this.sender, builder: this.builder, colDef: this }) : value
+		return isFunction(value) ? getFuncValue.call(this, this._mfSinif, { sender: this.sender, builder: this.builder, colDef: this }) : value
 	}
 	set mfSinif(value) { this._mfSinif = value }
 	get coklumu() { const {widget, isDropDown, _coklumu} = this; return widget ? widget[isDropDown ? 'checkboxes' : 'multiSelect'] : _coklumu }
@@ -11,18 +11,27 @@ class ModelKullanPart extends Part {
 		this._coklumu = value; const {input, isDropDown} = this; if (input?.length) { return }
 		if (input?.length) { input[jqxSelector](isDropDown ? 'checkboxes' : 'multiSelect', value) }
 	}
-	get secilen() { return this.selectedItem } get kodGecerlimi() { return !$.isEmptyObject(this.secilen) }
+	get secilen() { const {coklumu, widget} = this; return widget ? widget[coklumu ? 'getSelectedItems' : 'getSelectedItem']() : null }
+	get kodGecerlimi() { return !$.isEmptyObject(this.secilen) }
 	get source() { return this.loadServerDataBlock } set source(value) { this.loadServerDataBlock = value }
-	get value() { return this.kod } set value(value) { const oldValue = this.value; if (value != oldValue) { this.kod = value; this.input.val(value); this.onChange({ type: 'value', args: { value } }) } }
+	get value() {
+		const {widget, coklumu} = this; if (!widget) { return this._value }
+		let result = widget[coklumu ? 'getSelectedItems' : 'getSelectedItem'](); return result == null ? widget.val() : result.value
+	}
+	set value(value) {
+		const {isDropDown, coklumu, veriYuklendiFlag, widget} = this, oldValue = this.value;
+		if (widget) {
+			widget.selectItem(value); if (!widget.getSelectedItem()) { widget.val(value) } this._inputFixFlag = true;
+			/*if (!(isDropDown || coklumu || veriYuklendiFlag)) { if (value) { setTimeout(() => widget.dataBind(), 300) } }*/
+			/* this.onChange({ type: 'value', args: { oldValue, value } }) */
+		}
+		else { this._value = value }
+		this._lastValue = value
+	}
 	get disabled() { return this.input ? this.input[this.jqxSelector]('disabled') : this._disabled }
 	set disabled(value) { if (this.input?.length) { this.input[this.jqxSelector]('disabled', value) } else { this._disabled = value } }
-	val(value, noTrigger) {
-		if (value === undefined) { return this.value }
-		if (noTrigger) { this.kod = value; this.input.val(value) } else { this.value = value }
-		return this
-	}
+	val(value) { if (value === undefined) { return this.value } else { this.value = value } }
 	constructor(e) {
-		if (config.beta) { return new ModelKullan2Part(e) }
 		e = e || {}; super(e); $.extend(this, {
 			builder: e.builder, sender: e.sender, _mfSinif: e.mfSinif, kodSaha: e.kodSaha, adiSaha: e.adiSaha, _coklumu: asBool(e.coklumu ?? e.coklu),
 			width: e.width, height: e.height, placeHolder: e.placeHolder, noAutoWidthFlag: e.noAutoWidthFlag ?? e.noAutoWidth ?? true,
@@ -39,7 +48,7 @@ class ModelKullanPart extends Part {
 		const degisinceBlock = e.degisince || e.degisinceBlock; if (degisinceBlock) { this.change(degisinceBlock) }
 	}
 	runDevam(e) {
-		super.runDevam(e); const {parentPart, mfSinif, layout, isDropDown, coklumu, noAutoWidthFlag} = this;
+		super.runDevam(e); const {parentPart, mfSinif, layout, isDropDown, coklumu, autoBind, noAutoWidthFlag} = this; layout.addClass('beta');
 		const kodSaha = (mfSinif ? (mfSinif.idSaha ?? mfSinif.kodSaha) : null) || this.kodSaha || CKodVeAdi.kodSaha, adiSaha = (mfSinif ? mfSinif.adiSaha : null) || this.adiSaha || CKodVeAdi.adiSaha;
 		let {placeHolder} = this; if (placeHolder == null && coklumu) { placeHolder = '-Hepsi-' } if (placeHolder == null && mfSinif) { placeHolder = mfSinif.sinifAdi }
 		const parent = layout.parent(), da = this.getDataAdapter({ maxRow: this.maxRow });
@@ -86,7 +95,7 @@ class ModelKullanPart extends Part {
 				autoComplete: true, remoteAutoComplete: true, remoteAutoCompleteDelay: 100, minLength: 0, multiSelect: !!coklumu,
 				search: searchText => {
 					if (searchText) { searchText = searchText.replaceAll('*', '%').replaceAll('?', '_') }
-					da._source.data.value = widget.input.val(); da.dataBind(); this.focusSelectYapildiFlag = false
+					da._source.data.value = widget.input.val(); da.dataBind() /*this.focusSelectYapildiFlag = false*/
 				},
 				/*renderer: (index, aciklama, kod) => { const {widget} = this; let rec = (widget.getItems() || [])[index]; rec = (rec || {}).originalItem; return aciklama }*/
 				renderSelectedItem: (index, rec) => {
@@ -99,11 +108,10 @@ class ModelKullanPart extends Part {
 		const _e = { parentPart, sender: this, builder: this.builder, isDropDown, da, args }, {argsDuzenleBlock, jqxSelector} = this;
 		if (argsDuzenleBlock) { getFuncValue.call(this, argsDuzenleBlock, _e) } args = _e.args;
 		const input = this.input = layout[jqxSelector](args), widget = this.widget = input[jqxSelector]('getInstance'), _input = widget.input;
-		const {value} = this; if (value != null) { input.val(value); input.attr('data-value', value ?? null) }
 		setTimeout(() => { if (!isDropDown && coklumu) {  const ddContent = widget.dropdownlistContent; if (ddContent?.length) { ddContent.css('max-height', '98px'); makeScrollable(ddContent) } } }, 200)
 		input.on('bindingComplete', evt => {
-			clearTimeout(this.timer_bindingComplete);
-			this.timer_bindingComplete = setTimeout(() => { try { this.veriYuklendi({ event: evt }) } finally { delete this.timer_bindingComplete } }, 200)
+			clearTimeout(this.timer_bindingComplete); if (!this.veriYuklendiFlag) { this.value = this.value }
+			this.timer_bindingComplete = setTimeout(() => { try { this.veriYuklendi({ event: evt }) } finally { delete this.timer_bindingComplete } }, 1)
 		});
 		input.on('contextmenu', evt => this.listedenSecIstendi({ event: evt }));
 		input.on('keyup', evt => {
@@ -112,58 +120,66 @@ class ModelKullanPart extends Part {
 				if (widget.isOpened()) { widget.close() }
 				const {parentPart} = this, {gridPart} = parentPart || {}, gridWidget = parentPart?.gridWidget ?? gridPart?.gridWidget;
 				if (gridWidget) {
-					let selectedCell = gridWidget.selectedcell;
-					if (!selectedCell) {
-						const rowindex = gridWidget.selectedrowindex;
-						if (rowindex != null && rowindex > -1) selectedCell = { rowindex, row: rowIndex };
-					}
+					let selectedCell = gridWidget.selectedcell; if (!selectedCell) { const rowindex = gridWidget.selectedrowindex; if (rowindex != null && rowindex > -1) selectedCell = { rowindex, row: rowIndex }; }
 					const datafield = selectedCell?.datafield, colDef = (parentPart?.belirtec2Kolon || gridPart?.belirtec2Kolon || {})[datafield];
 					if (colDef?.listedenSec) { const rowIndex = selectedCell.rowindex, value = gridWidget.getcellvalue(rowindex, datafield); return colDef.listedenSec({ args: { datafield, rowindex, value } }) }
 				}
 				this.listedenSecIstendi({ event: evt })
 			}
 			else if (key == 'enter' || key == 'linefeed') {
-				if (!isDropDown && coklumu) {
-					const {listBox} = widget; listBox.beginUpdate(); try {
-						listBox.clear(); widget.addItem(widget.input.val());
-						setTimeout(() => widget.selectItem(widget.getItems().slice(-1)[0]), 1)
-					} finally { listBox.endUpdate() }
+				if (!isDropDown) {
+					setTimeout(() => {
+						if (coklumu) {
+							const {listBox} = widget; listBox.beginUpdate(); try {
+								listBox.clear(); widget.addItem(widget.input.val());
+								setTimeout(() => widget.selectItem(widget.getItems().slice(-1)[0]), 1)
+							} finally { listBox.endUpdate() }
+						}
+						else { if (widget.isOpened()) { widget.close() } }
+						this.value = this._inputFixFlag ? widget.val() : this._lastValue; widget.input.select();
+					}, 100)
 				}
-				setTimeout(() => { const {input} = widget; input.trigger('change'); input.focus() }, 10)
+				/*if (!this.veriYuklendiFlag) { this.value = this._lastValue }*/
+				/*setTimeout(() => { const {input} = widget; input.trigger('change'); input.focus() }, 10)*/
 			}
+			else { const {value} = this; if (value != null) { this._lastValue = value } }
 		});
 		/* input.on('dblclick', evt => this.listedenSecIstendi({ event: evt })) */
-		input.on('change', evt => this.onChange({ event: evt }));
-		input.on('checkChange', evt => this.onChange({ type: 'mouse', event: evt }));
+		input.on('change', event => this.onChange({ event, type: 'change' }));
+		input.on('checkChange', event => this.onChange({ event, type: 'checkchange' }));
 		/* $(widget.input).on('focus', evt => { if (!widget.isOpened()) { clearTimeout(this.openTimer); this.openTimer = setTimeout(() => { try { widget.open() } finally { delete this.openTimer } }, 10) } }) */
 		input.on('open', evt => {
 			if (this.disableEventsFlag) { return } /*widget.listBoxContainer.one('mousedown', evt => { evt.stopPropagation() });*/
-			if (isDropDown) {
-				if ($.isEmptyObject(widget.getItems())) { this.dataBind() } }
+			if (isDropDown) { if ($.isEmptyObject(widget.getItems())) { this.dataBind() } }
 			else {
 				setTimeout(() => {
 					if (widget.isOpened()) { return } this.disableEventsFlag = true;
-					setTimeout(() => delete this.disableEventsFlag, 50);
-					if (!widget.isOpened()) { widget.open() }
+					setTimeout(() => delete this.disableEventsFlag, 50); if (!widget.isOpened()) { widget.open() }
 				}, 10);
 				setTimeout(() => {
 					if (widget.searchString == null) { widget.searchString = '' }
-					if (this.focusSelectYapildiFlag && _input?.length) { _input.select() }
-					setTimeout(() => { this.focusSelectYapildiFlag = true }, 20)
+					/*if (this.focusSelectYapildiFlag && _input?.length) { _input.select() }*/
+					/*const {activeElement} = document, target = evt.currentTarget, hasFocus = (activeElement == target || activeElement == target.parentElement);
+					if (!hasFocus) { setTimeout(() => widget.input.select(), 50) }
+					setTimeout(() => { this.focusSelectYapildiFlag = true }, 20)*/
 				}, 10)
 			}
-			makeScrollable($(widget.listBox.content))
+			makeScrollable($(widget?.listBox?.content))
 		});
-		input.on('close', evt => { /*setTimeout(() => this.focusSelectYapildiFlag = false, 20);*/
-			if (this._triggerChangeEventFlag) { delete this._triggerChangeEventFlag; this.onChange({ type: 'queuedEvent', event: evt }) }
-		});
+		input.on('close', evt => { if (this._triggerChangeEventFlag) { delete this._triggerChangeEventFlag; this.onChange({ type: 'queuedEvent', event: evt }) } });
+		input.on('focus', evt => { if (!this.veriYuklendiFlag) { this.dataBind() } });
 		widget.input.on('focus', evt => {
 			if (!isDropDown && widget.searchString == null) { widget.searchString = '' }
-			setTimeout(() => widget.input.select(), 50)
+			const {inputHasFocus} = this; if (!inputHasFocus) { setTimeout(() => widget.input.select(), 20) }
+			this.inputHasFocus = true
 		});
-		if (isDropDown || this.autoBind) { input[jqxSelector]({ source: da }) } else { widget.source = da }
+		widget.input.on('blur', evt => { this.inputHasFocus = false; this.value = this.value })
 		let btn = $(`<button id="listedenSec">...</button>`).jqxButton({ theme, width: 38, height: 32 });
-		btn.on('click', event => this.listedenSecIstendi({ ...e, event })); btn.appendTo(layout)
+		btn.on('click', event => this.listedenSecIstendi({ ...e, event })); btn.appendTo(layout);
+		
+		const {value} = this; 
+		if (isDropDown || autoBind) { input[jqxSelector]({ source: da }) } else { widget.source = da }
+		if (value != null) { input.val(value); input.attr('data-value', value ?? null) }
 	}
 	destroyPart(e) {
 		super.destroyPart(e); const {input, isDropDown} = this;
@@ -197,105 +213,36 @@ class ModelKullanPart extends Part {
 		this.value = null; return this
 	}
 	async onChange(e) {
-		e = e  || {}; const evt = e.event, {force} = e, {args} = e.args ?? (evt || {}), type = (args?.type ?? e.type ?? evt?.type ?? '').toLowerCase();
-		if (!(force || type == 'mouse') && (this.inEvent || this.disableEventsFlag)) { if (evt) evt.preventDefault(); return }
-		if (!type || (type == 'none' || type == 'keyboard')) { return }
-		if (!(force || this.kodAtandimi) && !!this.mfSinif) { return }
-		const timeStamp = evt?.timeStamp; if (timeStamp != null) { const {_lastChangeEventTime} = this; this._lastChangeEventTime = timeStamp; if (_lastChangeEventTime && (timeStamp - _lastChangeEventTime) < 50) { return } }
-		const {input, widget, coklumu, isDropDown} = this;
-		if (!force && (type == 'mouse' || type == 'keyboard')) { if (coklumu && widget.isOpened()) { this._triggerChangeEventFlag = true; return } }
-		console.debug(this, { type });
-		delete this._triggerChangeEventFlag; this.inEvent = true;
-		try {
-			const {parentPart, mfSinif, degisinceEvent} = this, source = widget.source || {};
-			const kodSaha = this.kodSaha || (mfSinif ? ($.isArray(mfSinif.idSaha) ? mfSinif.idSaha[0] : mfSinif.idSaha) ?? mfSinif.kodSaha : MQKA.kodSaha);
-			const adiSaha = this.adiSaha || (mfSinif ? mfSinif.adiSaha : MQKA.adiSaha);
-			const kodaEsasSaha = this.kodGosterilsinmi ? kodSaha : adiSaha, lastSelectedItem = this.selectedItem, lastValue = this.value;
-			let value = e.value ?? evt?.target?.value, _kod = this.kod, kod, item, wItem, records, rec;
-			if (isDropDown) {
-				if (!coklumu && args) { wItem = args.item }
-				if (wItem == null) { wItem = coklumu ? widget.getCheckedItems() : widget.getSelectedItem() } if (wItem == null) { _kod = value }
-				if (wItem == null && kod != null) {
-					if (coklumu) { wItem = []; const kodSet = $.isArray(_kod) ? asSet(_kod) : _kod; for (const _wItem of widget.getItems()) { if (kodSet[_wItem.value]) { wItem.push(_wItem) } } }
-					else { wItem = widget.getItem(_kod) }
-				}
-				if (wItem != null) {
-					if (coklumu) { item = wItem.map(x => x.originalItem ?? x); kod = wItem.map(x => x.value ?? x) }
-					else { item = wItem.originalItem ?? wItem; kod = wItem.value }
-				}
-				$.extend(this, { kod, lastValue: e.value ?? kod })
-			}
-			else {
-				const args = e.args || evt?.args || {}; wItem = coklumu ? widget.getSelectedItems() : args.item;
-				if (wItem == null) { _kod = value; wItem = _kod == null || this.noAutoGetSelectedItemFlag ? null : (coklumu ? widget.getSelectedItems() : widget.getSelectedItem()) }
-				if (wItem == null) {
-					if (!records) { records = (widget.getItems ? widget.getItems() : null) ?? (source.records || ($.isArray(source) ? source : null)) }
-					if (rec == null && records?.length) { rec = records.find(rec => (rec.originalItem || rec)[kodaEsasSaha] == _kod) }
-					if (rec) { rec = rec.originalItem ?? rec }
-					if (rec == null && _kod != null) {
-						const promise = new $.Deferred(); const da = this.getDataAdapter({ autoBind: false, maxRow: 10 });
-						if (da) {
-							da._source.data.value = _kod; da._options.loadComplete = _recs => promise.resolve({ da, recs: _recs }); da.dataBind();
-							records = (await promise)?.recs; records = records?.records ?? records;
-							if (records) { rec = records.find(rec => (rec.originalItem || rec)[kodaEsasSaha] == _kod) }
-						}
-					}
-					if (!rec && records?.length && !(_kod == null || (typeof _kod == 'string' && !_kod.trim()))) { rec = records[0]; rec = rec.originalItem ?? rec ?? {}; kod = value = rec[kodSaha] ?? rec.key }
-					item = rec?.originalItem ?? rec
-				}
-				if (item == null) { item = wItem }
-				if (kod == null && item != null) {
-					if (coklumu) { item = wItem.map(x => x.originalItem ?? x); kod = wItem.map(x => x.value ?? x[kodSaha] ?? x) }
-					else { item = wItem?.originalItem ?? wItem; if (wItem != null) { kod = wItem?.value ?? (wItem == null ? null : wItem[kodSaha]) ?? item ?? kod ?? null } }
-				}
-				if (kod == null) { kod = (item ? item[kodSaha] : wItem?.value) ?? (value == null ? null : e.value); if (kod == null) { kod = evt?.target?.value } }
-				if (kod == null && wItem) { kod = coklumu ? wItem.map(x => x.value) : wItem.value }
-				this.selectedItem = item;
-				if (item) {
-					this.kod = kod; const inputVal = widget.input.val();
-					 if (!inputVal || inputVal == kod) { if (widget.renderSelectedItem) { widget.input.val(widget.renderSelectedItem(-1, item)) } }
-				}
-				else {
-					if (!records) { records = widget.getItems ? widget.getItems() : (source.records || ($.isArray(source) ? source : null)) }
-					if (kod && records) {
-						if (!rec) { rec = records.find(rec => (rec?.originalItem ?? rec)[kodaEsasSaha] == kod) }
-						item = this.selectedItem = rec?.originalItem ?? rec;
-						this.disableEventsFlag = true; setTimeout(() => this.disableEventsFlag = false, 10);
-						if (item) {
-							kod = this.kod = item ? item[kodSaha] : (value == null ? widget.input.val() : e.value);
-							const text = widget.renderSelectedItem ? widget.renderSelectedItem(null, rec) : value; widget.input.val(text)
-						}
-						else { this.kod = kod }
-					}
-				}
-				this.lastValue = kod
-			}
-			input.attr('data-value', kod ?? null);
-			if (!$.isEmptyObject(degisinceEvent) && kod !== undefined) {
-				for (const handler of degisinceEvent) {
-					if (widget.isOpened() && type != 'checkchange') { widget.close() }
-					getFuncValue.call(this, handler, { parentPart, sender: this, builder: this.builder, event: evt, coklumu, item, lastItem: lastSelectedItem, kod, value: kod })
-				}
+		e = e || {}; const sender = this, {parentPart, input, widget, builder, isDropDown, coklumu, degisinceEvent} = this;
+		const evt = e.event, args = e.args ?? evt?.args; let type = (args?.type ?? e.type).toLowerCase(); if (type == 'none') { type = null }
+		if (!type || type == 'keyboard' || type == 'value') { return }
+		const value = widget.val(); input.attr('data-value', $.isArray(value) ? value.join(delimWS) : (value ?? null));
+		if (!$.isEmptyObject(degisinceEvent) && value !== undefined) {
+			for (const handler of degisinceEvent) {
+				if (widget.isOpened() && type != 'checkchange') { widget.close() }
+				getFuncValue.call(this, handler, { parentPart, sender, builder, event: evt, coklumu, value })
 			}
 		}
-		finally { setTimeout(() => this.inEvent = false, 30) }
+		/*if (!(isDropDown || coklumu) && !widget.getSelectedItem()) {
+			widget.selectItem(value);
+			if (!widget.getSelectedItem()) { widget.addItem(value); widget.selectItem(value) }
+		}*/
+		console.info('modelKullanPart', 'onChange', widget, value, args, type)
 	}
 	veriYuklendi(e) {
-		setTimeout(() => {
-			const {input, parentPart, widget, veriYukleninceBlock, coklumu, isDropDown} = this; if (this.isDestroyed || !input?.length) { return }
-			if (!this.veriYuklendiFlag) {
-				this.veriYuklendiFlag = true; /*if (widget.isOpened()) widget.close();*/
-				const {value} = this; if (value != null && !this.kodAtandimi) { input.val(value); input.attr('data-value', value ?? null) }
-				if (!coklumu && isDropDown) { let ind = widget.getItems().findIndex(item => item.value == value); if (ind > -1) { widget.selectIndex(ind) } }
-				this.kodAtandimi = true
-			}
-			if (veriYukleninceBlock) {
-				const _e = $.extend({}, e, {
-					parentPart, sender: this, builder: this.builder, get wItems() { return widget.getItems() },
-					get source() { return widget.source }, get recs() { return widget.source?.records }
-				}); getFuncValue.call(this, veriYukleninceBlock, _e)
-			}
-		}, 100)
+		const {parentPart, input, widget, value, veriYukleninceBlock, coklumu, isDropDown} = this, inputVal = widget.input.val();
+		if (this.isDestroyed || !input?.length) { return }
+		if (!this.veriYuklendiFlag) {
+			this.veriYuklendiFlag = true /*this.clearSelection(); if (value) { this.selectItem(value) }*/
+			/*const {value} = this; if (value != null && !this.kodAtandimi) { input.val(value); input.attr('data-value', value ?? null) }
+			if (isDropDown && !coklumu) { let ind = widget.getItems().findIndex(item => item.value == value); if (ind > -1) { widget.selectIndex(ind) } } 
+			this.kodAtandimi = true*/
+		}
+		if (veriYukleninceBlock) {
+			const _e = { ...e, parentPart, sender: this, builder: this.builder, get wItems() { return widget.getItems() }, get source() { return widget.source }, get recs() { return widget.source?.records } };
+			getFuncValue.call(this, veriYukleninceBlock, _e)
+		}
+		widget.input.val(inputVal)
 	}
 	listedenSecIstendi(e) {
 		e = e || {}; const _e = e; const evt = e.event; if (evt) { evt.preventDefault(); evt.stopPropagation() } if (this.listedenSecilemezFlag || this.widget.disabled) { return }
@@ -373,7 +320,10 @@ class ModelKullanPart extends Part {
 					else { setTimeout(() => widget.input.focus(), 10) }
 				}, 1)
 			},
-			kapaninca: e => { const {parentPart} = this, {gridWidget} = parentPart?.gridPart || {}; if (gridWidget) setTimeout(() => gridWidget.focus(), 10) }
+			kapaninca: e => {
+				const {parentPart} = this, {gridWidget} = parentPart?.gridPart || {};
+				if (gridWidget) { setTimeout(() => gridWidget.focus(), 10) }
+			}
 		});
 		setTimeout(() => part.run(), 10)
 	}
@@ -383,7 +333,7 @@ class ModelKullanPart extends Part {
 		let da; if (dataAdapterBlock) { da = getFuncValue.call(this, dataAdapterBlock, $.extend({}, e)) }
 		if (!da) {
 			da = new $.jqx.dataAdapter({ dataType: wsDataType, url: 'empty.json', data: e }, {
-				cache: false, autoBind: e.autoBind ?? this.autoBind,
+				async: true, cache: false, autoBind: e.autoBind ?? this.autoBind,
 				loadServerData: async (wsArgs, source, callback) => {
 					let lastError; const sender = this, {parentPart, builder, secimler, mfSinif} = this, args = parentPart?.args;		/* const _e = $.extend({}, e, { wsArgs: wsArgs, source: source, callback: callback }); */ 
 					const kodSaha = mfSinif ? ($.isArray(mfSinif.idSaha) ? mfSinif.idSaha[0] : mfSinif.idSaha) ?? mfSinif.kodSaha : MQKA.kodSaha;

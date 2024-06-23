@@ -1,5 +1,8 @@
 .modelKullan.part { position: relative !important }
+.modelKullan.part.beta { box-shadow: 0 0 5px 1px royalblue }
+.modelKullan.part input.jqx-widget-content { min-width: 300px !important; margin-top: 10px !important; padding: 2px 13px !important }
 .jqx-grid .modelKullan.part { position: absolute !important }
+.jqx-grid .modelKullan.part input.jqx-widget-content { margin-top: 0 !important }
 .modelKullan.part button#listedenSec { position: absolute; top: 8%; right: 30px; opacity: .2; z-index: 13 }
 .modelKullan.part:has(:focus) button#listedenSec { opacity: .5 }
 .modelKullan.part button#listedenSec:not(.jqx-fill-state-normal) { color: #99ade8 !important; background-color: unset !important; opacity: .8 }

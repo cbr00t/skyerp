@@ -99,7 +99,7 @@ class MQOzelSahaGrup extends MQSayacliKA {
 			afterRun: e => {
 				const {layout} = e.builder;
 				// const parentElmId = parentBuilder.getElementId(parent);
-				setTimeout(() => layout.jqxSortable({ theme: theme, items: `> .content .ozelSaha-item` }), 10)
+				if (layout?.length) { setTimeout(() => layout.jqxSortable({ theme: theme, items: `> .content .ozelSaha-item` }), 10) }
 			}
 		})
 
