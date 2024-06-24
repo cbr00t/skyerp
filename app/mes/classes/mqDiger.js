@@ -314,7 +314,7 @@ class MQEkNotlar extends MQSayacliOrtak {
 				filterable: false, sortable: false, groupable: false,
 				belirtec: `resim${i}`, text: `Dokuman Resim ${i}`, genislikCh: 20, cellsRenderer: (colDef, rowIndex, belirtec, _value, html, jqxCol, rec) => {
 					let i = asInteger(belirtec.slice('resim'.length)), value = rec[`url${i}`];
-					if (value) { html = `<div class="full-wh" style="background-repeat: no-repeat; background-size: contain; background-image: url(${value})"*>` }
+					if (value) { html = `<div class="full-wh" style="background-repeat: no-repeat; background-size: contain; background-image: url(${value})"/>` }
 					return html
 				}
 			}).noSql())
@@ -350,17 +350,22 @@ class MQEkNotlar extends MQSayacliOrtak {
 			const fileHandles = await showOpenFilePicker({
 				multiple: false, excludeAcceptAllOption: false, types: [
 					{ description: 'Resim', accept: { 'image/*': [] } },
-					{ description: 'PDF', accept: { 'application/pdf': [] } }
+					{ description: 'PDF', accept: { 'application/pdf': [] } },
+					{ description: 'Video', accept: { 'video/*': [] } }
 				]
 			});
-			const fh = fileHandles[0], file = await fh?.getFile(); let fileName = file.name.replaceAll(' ', '_'); /*const ext = fileName.split('.').slice(-1)[0] ?? ''*/
+			const fh = fileHandles[0], file = await fh?.getFile();
+			let fileName = file.name.replaceAll(' ', '_'), ext = fileName.split('.').slice(-1)[0] ?? '', resimId = ext ? fileName.slice(0, -(ext.length + 1)) : fileName;
 			const data = file ? new Uint8Array(await file.arrayBuffer()) : null; if (!data?.length) { return }
-			const result = await app.wsResimDataKaydet({ resimId: fileName, data }); if (!result.result) { throw { isError: true, errorText: 'Resim Kayıt Sorunu' } }
+			const result = await app.wsResimDataKaydet({ resimId, ext, data }); if (!result.result) { throw { isError: true, errorText: 'Resim Kayıt Sorunu' } }
 			if (builder) {
 				const {altInst, input} = builder;
-				const value = builder.value = altInst[id] = `${app.getWSUrlBase()}/resimData/?resimId=${fileName}`; input?.focus()
+				const value = builder.value = altInst[id] = `${app.getWSUrlBase()}/resimData/?id=${resimId}&ext=${ext}`; input?.focus()
 			}
 		}
-		catch (ex) { hConfirm(getErrorText(ex), islemAdi); throw ex }
+		catch (ex) {
+			if (ex instanceof DOMException) { return }
+			hConfirm(getErrorText(ex), islemAdi); throw ex
+		}
 	}
 }

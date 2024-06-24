@@ -86,6 +86,9 @@ class MQHatYonetimi extends MQMasterOrtak {
 						<button id="notlar">NOTLAR</button>
 						<button id="notEkle">NOT EKLE</button>
 					</div>
+					<div class="item">
+						<button id="dokumanYukle">RESİM</button>
+					</div>
 				</td>
 			</tr>
 		</tbody></table>`
@@ -162,7 +165,12 @@ class MQHatYonetimi extends MQMasterOrtak {
 				}
 			}
 		}
-		if (recs) { for (const rec of recs) { const {hatKod, hatAdi} = rec; rec.grupText = `<div class="grid-cell-group"><div><b>(${rec.hatKod})</b> ${rec.hatAdi}</div></div>` } }
+		if (recs) {
+			for (const rec of recs) {
+				const {hatKod, hatAdi} = rec, style_bgImg = `background-blend-mode: hard-light; background-repeat: no-repeat; background-size: contain; background-image: url(${app.getWSUrl({ api: 'resimData', args: { id: `hat-${hatKod}` } })})`;
+				rec.grupText = `<div class="grid-cell-group" style="${style_bgImg}"><div><b>(${rec.hatKod})</b> ${rec.hatAdi}</div></div>`
+			}
+		}
 		let {_lastRecs} = gridPart;
 		if (_lastRecs && recs && _lastRecs?.length == recs?.length) { for (let i = 0; i < recs.length; i++) { const rec = _lastRecs[i], _rec = recs[i]; $.extend(rec, _rec) } }
 			else { _lastRecs = gridPart._lastRecs = recs }
@@ -191,6 +199,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 					case 'hatBekleyenIsler': this.bekleyenIslerIstendi_hatBazinda(e); break;
 					case 'notlar': this.ekNotlarIstendi(e); break;
 					case 'notEkle': this.ekNotEkleIstendi(e); break;
+					case 'dokumanYukle': this.dokumanYukleIstendi(e); break;
 					default: eConfirm(`<b>${visibleindex + 1}. satırdaki</b> ve <b>${tezgahAdi}</b> tezgahına ait <b>${id}</b> id'li butona tıklandı`)
 				}
 			})
@@ -352,6 +361,28 @@ class MQHatYonetimi extends MQMasterOrtak {
 		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, rec = e.rec ?? gridPart.selectedRec ?? {};
 		const hatKod = rec.hatKod ?? '', tezgahKod = rec.tezgahKod ?? ''; if (!(hatKod || tezgahKod)) { return }
 		let inst = new MQEkNotlar({ hatKod, tezgahKod }); return inst.tanimla({ islem: 'yeni' })
+	}
+	static async dokumanYukleIstendi(e) {
+		e = e || {}; const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, rec = e.rec ?? gridPart.selectedRec ?? {};
+		const hatKod = rec.hatKod ?? ''; if (!hatKod) { return } const islemAdi = 'Resim Yükle';
+		try {
+			const fileHandles = await showOpenFilePicker({
+				multiple: false, excludeAcceptAllOption: false, types: [
+					{ description: 'Resim', accept: { 'image/*': [] } },
+					{ description: 'PDF', accept: { 'application/pdf': [] } },
+					{ description: 'Video', accept: { 'video/*': [] } }
+				]
+			});
+			const fh = fileHandles[0], file = await fh?.getFile();
+			let fileName = file.name.replaceAll(' ', '_'), ext = fileName.split('.').slice(-1)[0] ?? '', resimId = `hat-${hatKod}`;
+			const data = file ? new Uint8Array(await file.arrayBuffer()) : null; if (!data?.length) { return }
+			const result = await app.wsResimDataKaydet({ resimId, ext, data }); if (!result.result) { throw { isError: true, errorText: 'Resim Kayıt Sorunu' } }
+			gridPart.tazeleDefer(e)
+		}
+		catch (ex) {
+			if (ex instanceof DOMException) { return }
+			hConfirm(getErrorText(ex), islemAdi); throw ex
+		}
 	}
 	static openContextMenu(e) {
 		const noCheckFlag = e.noCheck ?? e.noCheckFlag, gridPart = e.gridPart = e.gridPart ?? e.sender ?? e.parentPart, gridWidget = e.gridWidget = gridPart.gridWidget;
