@@ -22,6 +22,7 @@ class ModelKullan2Part extends Part {
 		const {isDropDown, coklumu, veriYuklendiFlag, widget} = this, oldValue = this.value;
 		if (widget) {
 			widget.selectItem(value); if (!widget.getSelectedItem()) { widget.val(value) } this._inputFixFlag = true;
+			if (!(isDropDown || coklumu)) {  const {source} = widget, _source = source?._source; if (value && value != oldValue && _source?.data) { _source.data.kod = value; this?.dataBind() } }
 			/*if (!(isDropDown || coklumu || veriYuklendiFlag)) { if (value) { setTimeout(() => widget.dataBind(), 300) } }*/
 			/* this.onChange({ type: 'value', args: { oldValue, value } }) */
 		}
@@ -48,10 +49,12 @@ class ModelKullan2Part extends Part {
 		const degisinceBlock = e.degisince || e.degisinceBlock; if (degisinceBlock) { this.change(degisinceBlock) }
 	}
 	runDevam(e) {
-		super.runDevam(e); const {parentPart, mfSinif, layout, isDropDown, coklumu, autoBind, noAutoWidthFlag} = this; layout.addClass('beta');
+		super.runDevam(e); const sender = this, {parentPart, builder, mfSinif, layout, isDropDown, coklumu, autoBind, noAutoWidthFlag, maxRow} = this;
+		const {argsDuzenleBlock, jqxSelector, value} = this, parent = layout.parent(); let {placeHolder} = this;
+		layout.addClass('beta');
 		const kodSaha = (mfSinif ? (mfSinif.idSaha ?? mfSinif.kodSaha) : null) || this.kodSaha || CKodVeAdi.kodSaha, adiSaha = (mfSinif ? mfSinif.adiSaha : null) || this.adiSaha || CKodVeAdi.adiSaha;
-		let {placeHolder} = this; if (placeHolder == null && coklumu) { placeHolder = '-Hepsi-' } if (placeHolder == null && mfSinif) { placeHolder = mfSinif.sinifAdi }
-		const parent = layout.parent(), da = this.getDataAdapter({ maxRow: this.maxRow });
+		if (placeHolder == null && coklumu) { placeHolder = '-Hepsi-' } if (placeHolder == null && mfSinif) { placeHolder = mfSinif.sinifAdi }
+		const filter_kod = !(isDropDown || coklumu || autoBind), da = this.getDataAdapter({ kod: filter_kod, maxRow });
 		let args = {
 			theme, autoOpen: false, width: this.width || (!noAutoWidthFlag && parent?.length ? parent.width() : null) || '99.7%',
 			height: this.height || '100%', searchMode: 'containsignorecase', autoDropDownHeight: false, dropDownHeight: 215, itemHeight: 35,
@@ -76,7 +79,7 @@ class ModelKullan2Part extends Part {
 				filterable: true, filterHeight: 28, filterPlaceHolder: 'Seçiniz:', checkboxes: !!coklumu,
 				selectionRenderer: (html, index, label, value) => {
 					const {widget} = this; if (!widget) { return html }
-					const {builder, coklumu, kodGosterilsinmi, selectionRendererBlock} = this, _e = { parentPart, sender: this, builder, widget, coklumu, kodGosterilsinmi, html, index, label, value };
+					const {builder, coklumu, kodGosterilsinmi, selectionRendererBlock} = this, _e = { parentPart, sender, builder, widget, coklumu, kodGosterilsinmi, html, index, label, value };
 					if (coklumu) {
 						const wItems = _e.wItems = widget.getCheckedItems() || []; if (selectionRendererBlock) { _e.recs = wItems.map(wItem => wItem.originalItem) }
 						const isLong = _e.isLong = wItems.length > 3; _e.result = wItems.map(wItem => (isLong ? wItem.value : wItem.label) ?? '').join(', ')
@@ -105,12 +108,11 @@ class ModelKullan2Part extends Part {
 				}
 			})
 		}
-		const _e = { parentPart, sender: this, builder: this.builder, isDropDown, da, args }, {argsDuzenleBlock, jqxSelector} = this;
-		if (argsDuzenleBlock) { getFuncValue.call(this, argsDuzenleBlock, _e) } args = _e.args;
+		let _e = { parentPart, sender, builder, isDropDown, coklumu, da, args }; if (argsDuzenleBlock) { getFuncValue.call(this, argsDuzenleBlock, _e) } args = _e.args;
 		const input = this.input = layout[jqxSelector](args), widget = this.widget = input[jqxSelector]('getInstance'), _input = widget.input;
-		setTimeout(() => { if (!isDropDown && coklumu) {  const ddContent = widget.dropdownlistContent; if (ddContent?.length) { ddContent.css('max-height', '98px'); makeScrollable(ddContent) } } }, 200)
+		setTimeout(() => { if (!isDropDown && coklumu) { const ddContent = widget.dropdownlistContent; if (ddContent?.length) { ddContent.css('max-height', '98px'); makeScrollable(ddContent) } } }, 200)
 		input.on('bindingComplete', evt => {
-			clearTimeout(this.timer_bindingComplete); if (!this.veriYuklendiFlag) { this.value = this.value }
+			clearTimeout(this.timer_bindingComplete); /*if (!this.veriYuklendiFlag) { this.value = this.value }*/
 			this.timer_bindingComplete = setTimeout(() => { try { this.veriYuklendi({ event: evt }) } finally { delete this.timer_bindingComplete } }, 1)
 		});
 		input.on('contextmenu', evt => this.listedenSecIstendi({ event: evt }));
@@ -176,18 +178,18 @@ class ModelKullan2Part extends Part {
 		widget.input.on('blur', evt => { this.inputHasFocus = false; this.value = this.value })
 		let btn = $(`<button id="listedenSec">...</button>`).jqxButton({ theme, width: 38, height: 32 });
 		btn.on('click', event => this.listedenSecIstendi({ ...e, event })); btn.appendTo(layout);
-		
-		const {value} = this; 
-		if (isDropDown || autoBind) { input[jqxSelector]({ source: da }) } else { widget.source = da }
+		input[jqxSelector]({ source: da });
+		/*if (isDropDown || autoBind) { input[jqxSelector]({ source: da }) } else { widget.source = da }*/
 		if (value != null) { input.val(value); input.attr('data-value', value ?? null) }
 	}
 	destroyPart(e) {
-		super.destroyPart(e); const {input, isDropDown} = this;
-		if (input?.length) { input[this.jqxSelector]('destroy'); input.remove() }
+		super.destroyPart(e); const {input, isDropDown, jqxSelector} = this;
+		if (input?.length) { input[jqxSelector]('destroy'); input.remove() }
 		this.input = this.widget = null
 	}
 	dataBind() {
-		const {widget} = this, source = widget?.source || this.source; if (this.isDestroyed || source == null) { return }
+		const {input, widget, isDropDown, coklumu, veriYuklendiFlag, jqxSelector} = this, source = widget?.source || this.source; if (this.isDestroyed || source == null) { return }
+		/*if (source.dataBind) { if (isDropDown || coklumu || veriYuklendiFlag) { source.dataBind() } else { input[jqxSelector]('source', source) } }*/
 		if (source.dataBind) { source.dataBind() }
 		else {
 			(async () => {
@@ -201,7 +203,7 @@ class ModelKullan2Part extends Part {
 						return result
 					}
 				});
-				this.input[this.jqxSelector]({ source: newSource })
+				input[jqxSelector]({ source: newSource })
 			})()
 		}
 	}
@@ -230,19 +232,18 @@ class ModelKullan2Part extends Part {
 		console.info('modelKullanPart', 'onChange', widget, value, args, type)
 	}
 	veriYuklendi(e) {
-		const {parentPart, input, widget, value, veriYukleninceBlock, coklumu, isDropDown} = this, inputVal = widget.input.val();
+		const sender = this, {parentPart, builder, input, widget, value, veriYukleninceBlock, isDropDown, coklumu, autoBind, veriYuklendiFlag, valueAtandiYapildiFlag} = this, inputVal = widget.input.val();
 		if (this.isDestroyed || !input?.length) { return }
-		if (!this.veriYuklendiFlag) {
-			this.veriYuklendiFlag = true /*this.clearSelection(); if (value) { this.selectItem(value) }*/
-			/*const {value} = this; if (value != null && !this.kodAtandimi) { input.val(value); input.attr('data-value', value ?? null) }
-			if (isDropDown && !coklumu) { let ind = widget.getItems().findIndex(item => item.value == value); if (ind > -1) { widget.selectIndex(ind) } } 
-			this.kodAtandimi = true*/
+		if (!veriYuklendiFlag) { this.veriYuklendiFlag = true }
+		if (value && !(valueAtandiYapildiFlag || isDropDown || coklumu) && widget.getItems()?.length) {
+			widget.selectItem(value); if (!widget.getSelectedItem()) { widget.val(value) }
+			this.valueAtandiYapildiFlag = true
 		}
 		if (veriYukleninceBlock) {
-			const _e = { ...e, parentPart, sender: this, builder: this.builder, get wItems() { return widget.getItems() }, get source() { return widget.source }, get recs() { return widget.source?.records } };
+			const _e = { ...e, parentPart, sender, builder, get wItems() { return widget.getItems() }, get source() { return widget.source }, get recs() { return widget.source?.records } };
 			getFuncValue.call(this, veriYukleninceBlock, _e)
 		}
-		widget.input.val(inputVal)
+		/*widget.input.val(inputVal)*/
 	}
 	listedenSecIstendi(e) {
 		e = e || {}; const _e = e; const evt = e.event; if (evt) { evt.preventDefault(); evt.stopPropagation() } if (this.listedenSecilemezFlag || this.widget.disabled) { return }
@@ -328,33 +329,32 @@ class ModelKullan2Part extends Part {
 		setTimeout(() => part.run(), 10)
 	}
 	getDataAdapter(e) {
-		e = e || {}; const {mfSinif} = this; let {dataAdapterBlock, loadServerDataBlock, loadServerDataEkDuzenleBlock} = this;
+		e = e || {}; const {mfSinif} = this; let {isDropDown, coklumu, autoBind, dataAdapterBlock, loadServerDataBlock, loadServerDataEkDuzenleBlock} = this;
 		if (!(dataAdapterBlock || loadServerDataBlock || mfSinif)) { return null } if (mfSinif) { e.mfSinif = mfSinif }
 		let da; if (dataAdapterBlock) { da = getFuncValue.call(this, dataAdapterBlock, $.extend({}, e)) }
 		if (!da) {
 			da = new $.jqx.dataAdapter({ dataType: wsDataType, url: 'empty.json', data: e }, {
 				async: true, cache: false, autoBind: e.autoBind ?? this.autoBind,
 				loadServerData: async (wsArgs, source, callback) => {
+					const {veriYuklendiFlag} = this;
+					if (!(veriYuklendiFlag || isDropDown || coklumu || autoBind)) { callback({ totalrecords: 0, records: [] }); await this.veriYuklendi(e); return }
 					let lastError; const sender = this, {parentPart, builder, secimler, mfSinif} = this, args = parentPart?.args;		/* const _e = $.extend({}, e, { wsArgs: wsArgs, source: source, callback: callback }); */ 
 					const kodSaha = mfSinif ? ($.isArray(mfSinif.idSaha) ? mfSinif.idSaha[0] : mfSinif.idSaha) ?? mfSinif.kodSaha : MQKA.kodSaha;
-					const adiSaha = mfSinif ? mfSinif.adiSaha : MQKA.adiSaha; let temps = {};
-					const {wsArgsDuzenleBlock, ozelQueryDuzenleBlock} = this;
+					const adiSaha = mfSinif ? mfSinif.adiSaha : MQKA.adiSaha, {wsArgsDuzenleBlock, ozelQueryDuzenleBlock} = this; let temps = {};
 					for (let i = 0; i < 3; i++) {
 						try {
 							if (wsArgsDuzenleBlock) { const _e = { ...e, wsArgs, source, temps }; await wsArgsDuzenleBlock.call(this, wsArgsDuzenleBlock, _e); wsArgs = _e.wsArgs; temps = _e.temps }
 							if (ozelQueryDuzenleBlock) { wsArgs.ozelQueryDuzenleBlock = ozelQueryDuzenleBlock; wsArgs.temps = temps }
 							let {tabloKolonlari} = wsArgs; if (!tabloKolonlari) {
 								tabloKolonlari = this._wsArgs_tabloKolonlari;
-								if (!tabloKolonlari) { tabloKolonlari = [ new GridKolon({ belirtec: kodSaha }), new GridKolon({ belirtec: adiSaha }) ] }
+								if (!tabloKolonlari) { tabloKolonlari = [new GridKolon({ belirtec: kodSaha }), new GridKolon({ belirtec: adiSaha })] }
 								if (mfSinif && !mfSinif.adiKullanilirmi) { tabloKolonlari = tabloKolonlari.filter(colDef => colDef.belirtec != adiSaha) }
 								wsArgs.tabloKolonlari = this._wsArgs_tabloKolonlari = tabloKolonlari
-							}
-							const _e = $.extend({ parentPart, sender, builder, secimler, callback, args }, wsArgs);
+							} const _e = { parentPart, sender, builder, secimler, callback, args, ...wsArgs };
 							let result = loadServerDataBlock ? await getFuncValue.call(this, loadServerDataBlock, _e) : (mfSinif ? (await mfSinif.loadServerData(_e)) : null); if (!result) { return }
-							if ($.isArray(result)) result = { totalrecords: result.length, records: result }; if (typeof result != 'object') { return }
+							if ($.isArray(result)) { result = { totalrecords: result.length, records: result } } if (typeof result != 'object') { return }
 							let recs = result.records; if (!recs) { return }
-							const {bosKodAlinirmi, bosKodEklenirmi} = this;
-							if (!bosKodAlinirmi) { const index = recs.findIndex(rec => !rec[kodSaha]); if (index != false && index > -1) { recs.splice(index, 1) } }
+							const {bosKodAlinirmi, bosKodEklenirmi} = this; if (!bosKodAlinirmi) { const index = recs.findIndex(rec => !rec[kodSaha]); if (index != false && index > -1) { recs.splice(index, 1) } }
 							else if (bosKodEklenirmi) { let rec = recs.find(rec => !rec[kodSaha]); if (!rec) { rec = {}; rec[kodSaha] = ''; rec[adiSaha] = ''; recs.unshift(rec) } }
 							if (loadServerDataEkDuzenleBlock) {
 								_e.recs = recs; let _result = await getFuncValue.call(this, loadServerDataEkDuzenleBlock, _e);

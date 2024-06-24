@@ -34,7 +34,7 @@ class MQHizmet extends MQKA {
 			kkEgTipi: new PInstTekSecim('kkegtipi', KkegTipi),
 			bFormunaEsastir: new PInstBool('bformunaesastir'),
 			bIndirimmi: new PInstBitBool('bindirimmi'),
-			depKullanilir: new PInstBool('depkullanilir'),
+			/*depKullanilir: new PInstBool('depkullanilir'),*/
 			bKzTabloAlinmazmi: new PInstBitBool('bkztabloalinmazmi'),
 			gelirTabloTipi: new PInstTekSecim('gelirtablotipi', HizGelirTabloTipi),
 			muhHesap: new PInstStr('muhhesap'),
@@ -42,12 +42,8 @@ class MQHizmet extends MQKA {
 		})
 	}
 	static rootFormBuilderDuzenle(e) {
-		e = e || {};
-		super.rootFormBuilderDuzenle(e);
-		this.formBuilder_addTabPanelWithGenelTab(e);
-		const {tabPanel, tabPage_genel} = e;
-		let form = tabPage_genel.addFormWithParent().yanYana(4);
-		form.addTextInput({ id: 'aciklama2',	etiket: 'Açıklama-2'}).onAfterRun(e => e.builder.input.attr('maxlength', 100));
+		e = e || {}; super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPanel, tabPage_genel} = e;
+		let form = tabPage_genel.addFormWithParent().yanYana(4); form.addTextInput({ id: 'aciklama2', etiket: 'Açıklama-2'}).onAfterRun(e => e.builder.input.attr('maxlength', 100));
 		form.addModelKullan({ id: 'grupKod', etiket: 'Grup',	mfSinif: MQHizmetGrup }).dropDown().kodsuz();
 		form.addModelKullan({ id: 'hIstGrupKod', etiket: 'İstatistik Grup', mfSinif: MQHizmetIstatistikGrup }).dropDown().kodsuz();
 		form.addCheckBox({ id: 'calismaDurumu', etiket: 'Aktif Durumda' });
@@ -57,7 +53,7 @@ class MQHizmet extends MQKA {
 		form.addNumberInput({ id: 'rayicAlimFiyati', etiket: 'Rayiç Teklif Fiyat'});
 		form.addModelKullan({ id: 'birim', etiket: 'Birim',	source: app.params.stokBirim.brmColl })
 			.dropDown().kodsuz().addStyle(e => `$elementCSS { max-width: 100px; }`);
-		form = tabPage_genel.addFormWithParent().yanYana(1);
+		form = tabPage_genel.addFormWithParent().yanYana(1).addStyle(e => `$elementCSS { margin-bottom: 70px }`);
 		form.addRadioButton({ id: 'tip', etiket: 'Tip  :', source: HizmetTipi.instance.kaListe})
 			.onChange(e => {
 				const {builder} = e;
@@ -235,7 +231,7 @@ class MQHizmet extends MQKA {
 		form = tabPage_diger.addFormWithParent().yanYana(4);
 		form.addCheckBox({ id: 'bFormunaEsastir', etiket: 'B Formuna Esastır' });
 		form.addCheckBox({ id: 'bIndirimmi', etiket: 'İndirim İçindir' });
-		form.addCheckBox({ id: 'depKullanilir', etiket: 'Masraf Fişlerinde Departman Kullanılır' });
+		/*form.addCheckBox({ id: 'depKullanilir', etiket: 'Masraf Fişlerinde Departman Kullanılır' });*/
 		form.addCheckBox({ id: 'bKzTabloAlinmazmi', etiket: 'Kar/Zarar Tablosuna Alınmaz' });
 
 		form.addLabel({ id: 'uyari', etiket: `Hizmet Kar/Zarar tablosuna Gelir/Gider tipine göre alınır.(Tahakkun tipindekiler yapılan işleme göre alınır.)`, renk: 'cadetblue' });
@@ -320,7 +316,7 @@ class MQHizmet extends MQKA {
 			new GridKolon({ belirtec: 'gidstopajhesapkod', text: 'Gider Stopaj Hesap', genislikCh: 5}),
 			new GridKolon({ belirtec: 'gidkonaklamahesapkod', text: 'Gider Konaklama Hesap', genislikCh: 5}),
 			new GridKolon({ belirtec: 'bformunaesastir', text: 'B Formuna Esas', genislikCh: 5}),
-			new GridKolon({ belirtec: 'depkullanilir', text: 'Dep. Kullanım', genislikCh: 5}),
+			/*new GridKolon({ belirtec: 'depkullanilir', text: 'Dep. Kullanım', genislikCh: 5}),*/
 			new GridKolon({ belirtec: 'adidegisir', text: 'Adı Değişir', genislikCh: 5}),
 			new GridKolon({ belirtec: 'kkegtipi', text: 'KKEG Tipi', genislikCh: 5}),
 			new GridKolon({ belirtec: 'bkztabloalinmazmi', text: 'Kar/Zarar Tablo Alınmaz', genislikCh: 5}),

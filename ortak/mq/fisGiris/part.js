@@ -94,6 +94,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 			}, 40)
 		}, 10);
 		setTimeout(async () => {
+			if (config.dev) { header.removeClass('jqx-hidden basic-hidden') }
 			if (fis.uiDuzenle_fisGiris) { setTimeout(() => { fis.uiDuzenle_fisGiris({ sender: this, islem, fis, layout, /*init: uiInitIslemleri,*/ header, tsnForm, subeForm, islemTuslari, baslikFormlar }) }, 10) }
 			await this.initFormBuilder(e);
 			const selectors = ['input[type=textarea].jqx-input-content', 'input[type=textbox]', 'input[type=text]', 'input[type=number]'];

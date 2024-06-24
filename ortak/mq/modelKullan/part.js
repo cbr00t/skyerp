@@ -13,7 +13,8 @@ class ModelKullanPart extends Part {
 	}
 	get secilen() { return this.selectedItem } get kodGecerlimi() { return !$.isEmptyObject(this.secilen) }
 	get source() { return this.loadServerDataBlock } set source(value) { this.loadServerDataBlock = value }
-	get value() { return this.kod } set value(value) { const oldValue = this.value; if (value != oldValue) { this.kod = value; this.input.val(value); this.onChange({ type: 'value', args: { value } }) } }
+	get value() { return this.kod }
+	set value(value) { const oldValue = this.value; if (value != oldValue) { this.kod = value; this.input.val(value); this.onChange({ type: 'value', args: { value } }) } }
 	get disabled() { return this.input ? this.input[this.jqxSelector]('disabled') : this._disabled }
 	set disabled(value) { if (this.input?.length) { this.input[this.jqxSelector]('disabled', value) } else { this._disabled = value } }
 	val(value, noTrigger) {

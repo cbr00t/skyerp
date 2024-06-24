@@ -422,10 +422,10 @@ class MQCogul extends MQYapi {
 		e = e || {}; const sender = e.sender ?? e;
 		const ozelQueryDuzenleBlock = e.ozelQueryDuzenleBlock ?? e.ozelQueryDuzenle ?? sender.ozelQueryDuzenleBlock ?? sender.ozelQueryDuzenle;
 		if (ozelQueryDuzenleBlock) getFuncValue.call(this, ozelQueryDuzenleBlock, e)
-		let {value} = e; const {stm, maxRow, wsArgs} = e; if (wsArgs) { stm.fromGridWSArgs(wsArgs) }
+		let {kod, value} = e; const {stm, maxRow, wsArgs} = e; if (wsArgs) { stm.fromGridWSArgs(wsArgs) }
 		/* if (value) value = value.toUpperCase() */
 		const {kodSaha, adiSaha, tableAlias, aliasVeNokta} = this;
-		if ((value && kodSaha) || maxRow) {
+		if (kodSaha && (kod || value || maxRow)) {
 			const orClauses = [];
 			if (value) {
 				const parts = value.split(' ');
@@ -440,8 +440,9 @@ class MQCogul extends MQYapi {
 				}
 			}
 			for (const sent of stm.getSentListe()) {
-				if (orClauses) { for (const or of orClauses) sent.where.add(or) };
-				if (maxRow) sent.top = maxRow
+				if (kodSaha && kod) { sent.where.degerAta(kod, `${aliasVeNokta}${kodSaha}`) }
+				if (orClauses) { for (const or of orClauses) { sent.where.add(or) } }
+				if (maxRow) { sent.top = maxRow }
 			}
 		}
 		const {ayrimIsimleri, ayrimBelirtec, ayrimTable, ayrimTableAlias} = this;

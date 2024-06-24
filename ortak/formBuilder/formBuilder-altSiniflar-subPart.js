@@ -111,16 +111,15 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 	afterBuild(e) {
 		super.afterBuild(e); const {input} = this;
 		if (input?.length) {
-			const {elmLabel} = this;
-			if (elmLabel?.length) {
+			const {elmLabel} = this; if (elmLabel?.length) {
 				let id = this.getElementId(input); if (!input.attr('name')) { input.attr('name', id) }
 				const {labelCSSClass} = this; if (!$.isEmptyObject(labelCSSClass)) { elmLabel.addClass(lCSSClass) }
 			}
 			const {inputCSSClass} = this; if (!$.isEmptyObject(inputCSSClass)) { input.addClass(inputCSSClass) }
 		}
 		if (this.autoInitLayoutFlag !== false) {
-			const {temps} = e; if (temps.waitMS == null) { temps.waitMS = 0 }
-			setTimeout(e => this.initLayout(e), temps.waitMS, e); temps.waitMS += 10
+			const {temps} = e; if (temps.waitMS == null) { temps.waitMS = 0 } this.initLayout(e)
+			/*setTimeout(e => this.initLayout(e), temps.waitMS, e); temps.waitMS += 10*/
 		}
 	}
 	initLayout(e) { }
@@ -839,21 +838,20 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 	buildDevam(e) {
 		super.buildDevam(e); const {input} = this;
 		if (input?.length) {
-			const {widgetArgsDuzenle, etiketGosterim} = this;
+			const {widgetArgsDuzenle, etiketGosterim} = this; let {value} = this;
+			if (value === undefined) { const {ioAttr} = this; if (ioAttr) { const {altInst} = this; if (altInst) { this.value = altInst[ioAttr]; value = this.value } } }
 			const _e = $.extend({}, e, { args: {
-				sender: this.sender, builder: this, autoBind: this.autoBindFlag,
-				parentPart: this.rootPart, layout: input, listedenSecilemez: this.listedenSecilemezFlag,
+				sender: this.sender, builder: this, autoBind: this.autoBindFlag, parentPart: this.rootPart, layout: input, listedenSecilemez: this.listedenSecilemezFlag,
 				width: false, height: this.class.defaultHeight, mfSinif: this.mfSinif, source: this.source, ekDuzenleyici: this.ekDuzenleyici,
 				isDropDown: this.isDropDown, noAutoWidth: this.noAutoWidthFlag, listedenSecilemez: this.listedenSecilemezFlag,
 				kodGosterilsinmi: this.kodGosterilsinmi, bosKodAlinirmi: this.bosKodAlinirmi, bosKodEklenirmi: this.bosKodEklenirmi,
-				ozelQueryDuzenle: this.ozelQueryDuzenle, listeArgsDuzenle: this.listeArgsDuzenle, veriYukleninceBlock: this.veriYuklenince,
-				kodSaha: this.kodAttr, adiSaha: this.adiAttr, disabled: this.disabled, placeHolder: (coalesce(this.placeHolder, () => (etiketGosterim == 'placeholder') ? this.etiket : ''))
+				ozelQueryDuzenle: this.ozelQueryDuzenle, listeArgsDuzenle: this.listeArgsDuzenle, veriYukleninceBlock: this.veriYuklenince, kodSaha: this.kodAttr, adiSaha: this.adiAttr,
+				disabled: this.disabled, placeHolder: this.placeHolder ?? (() => (etiketGosterim == 'placeholder') ? this.etiket : ''), value: this.value
 			} });
 			if (widgetArgsDuzenle) { getFuncValue.call(this, widgetArgsDuzenle, _e) }
 			const part = this.part = new ModelKullanPart(_e.args); part.run();
 			if (part && !part.isDestroyed) {
-				const {comboBox} = part;
-				if (comboBox && comboBox.length) this.input = comboBox
+				const _input = part.input; if (_input?.length) { this.input = _input }
 				part.change(e => {
 					const value = this.getConverted_getValue({ value: e.value }), {ioAttr} = this;
 					if (ioAttr) { const {altInst} = this; if (altInst) { const {_p} = altInst, pInst = (_p || {})[ioAttr]; if (pInst) { pInst.setValues({ value }) } else { altInst[ioAttr] = value } } }
@@ -864,7 +862,7 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 		}
 	}
 	initLayout(e) {
-		super.initLayout(e); const {part} = this;
+		super.initLayout(e) /*const {part} = this;
 		if (part && !part.isDestroyed) {
 			const {value} = this;
 			const block = value => {
@@ -875,7 +873,7 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 				}
 			};
 			if (value != null) { if (value.then) { value.then(value => block(value)) } else { block(value) } }
-		}
+		}*/
 	}
 	dataBind() { this.part.dataBind(); return this }
 	defaultGetValue(e) {
