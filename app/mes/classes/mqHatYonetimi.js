@@ -44,15 +44,15 @@ class MQHatYonetimi extends MQMasterOrtak {
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e);
-		e = $.extend({}, e);  const {liste} = e, gridPart = e.parentPart, butonlarPart = e.part; e.recs = gridPart.selectedRecs;
+		e = $.extend({}, e);  const {liste} = e, {sabitHatKod} = app, gridPart = e.parentPart, butonlarPart = e.part; e.recs = gridPart.selectedRecs;
 		const items = [
 			{ id: 'boyutlandir', text: 'BYT', handler: e => e.sender.boyutlandirIstendi(e) },
 			{ id: 'tezgahMenu', text: 'TEZ', handler: e => this.tezgahMenuIstendi(e) },
 			{ id: 'isEmirleri', text: 'EMR', handler: e => this.bekleyenIsEmirleriIstendi(e) },
 			{ id: 'topluX', text: 'TPL', handler: e => this.topluXMenuIstendi(e) },
-			{ id: 'tumEkNotlar', text: 'NOT', handler: e => this.ekNotlarIstendi({ ...e, hepsi: true }) },
-			{ id: 'ozet', text: 'ÖZET', handler: e => this.ozetBilgiGoster(e) }
-		];
+			(sabitHatKod ? null : { id: 'tumEkNotlar', text: 'NOT', handler: e => this.ekNotlarIstendi({ ...e, hepsi: true }) }),
+			(sabitHatKod ? null : { id: 'ozet', text: 'ÖZET', handler: e => this.ozetBilgiGoster(e) })
+		].filter(x => !!x);
 		liste.splice(liste.findIndex(item => item.id == 'vazgec'), 0, ...items);
 		const ekSagButonIdSet = butonlarPart.ekSagButonIdSet = butonlarPart.ekSagButonIdSet || {}; $.extend(ekSagButonIdSet, asSet(items.map(item => item.id)))
 	}
@@ -223,9 +223,9 @@ class MQHatYonetimi extends MQMasterOrtak {
 			form.addButton('isBitti', undefined, 'İş Bitti').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
 			form.addButton('gerceklemeYap', undefined, 'Gerçekleme Yap').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
 			form.addButton('zamanEtuduBaslat', undefined, 'Zaman Etüdü Başlat').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
-			form.addButton('zamanEtuduKapat', undefined, 'Zaman Etüdü Kapat').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
-			form.addButton('topluEkNotlar', undefined, 'Tüm Notlar').onClick(e => { close(); this.ekNotlarIstendi($.extend({}, _e, e, { id: e.builder.id, hepsi: true })) })
-			form.addButton('ozetBilgi', undefined, 'Özet Bilgi').onClick(e => { close(); this.ozetBilgiGoster($.extend({}, _e, e, { id: e.builder.id })) })
+			form.addButton('zamanEtuduKapat', undefined, 'Zaman Etüdü Kapat').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) })
+			/*form.addButton('topluEkNotlar', undefined, 'Tüm Notlar').onClick(e => { close(); this.ekNotlarIstendi($.extend({}, _e, e, { id: e.builder.id, hepsi: true })) })
+			form.addButton('ozetBilgi', undefined, 'Özet Bilgi').onClick(e => { close(); this.ozetBilgiGoster($.extend({}, _e, e, { id: e.builder.id })) })*/
 		} }); this.openContextMenu(e)
 	}
 	static personelSecIstendi(e) {
