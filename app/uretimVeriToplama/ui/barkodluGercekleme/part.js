@@ -117,7 +117,7 @@ class BarkodluGerceklemePart extends Part {
 			const flag = $(evt.currentTarget).is(':checked'); app.otoGonderFlag = flag;
 			const yerelParam = app.params.yerel; if (yerelParam) { yerelParam.otoGonderFlag = flag; yerelParam.kaydet() } app.veriAktarici_startTimer()
 		});*/
-		const btnPaletliGiris = divEkBilgiler.find('#paletliGiris > button');
+		const btnPaletliGiris = header.find('#paletliGiris > button');
 		btnPaletliGiris.jqxButton({ theme: theme, width: false, height: false });
 		btnPaletliGiris.on('click', evt => this.paletliGirisIstendi($.extend({}, e, { event: evt })));
 		new FBuilder_ModelKullan({

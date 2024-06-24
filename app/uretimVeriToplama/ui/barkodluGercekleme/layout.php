@@ -17,13 +17,12 @@
 				<div id="topluDegistir" class="parent"><button class="full-wh">T.DEĞ</button></div>
 				<div id="topluSil" class="parent"><button class="full-wh">T.SİL</button></div>
 				<div id="gerceklemeler" class="parent"><button class="full-wh">GER.<br/>LİSTE</button></div>
+				<div id="paletliGiris" class="parent"><button class="full-wh">PALET</button></div>
 			</div>
-			
 			<div id="ek-bilgiler">
 				<div class="flex-row full-width">
 					<div class="parent flex-row">
 						<!--<label id="otoGonder" class="islem-tuslari full-height"><input type="checkbox" class="veri"></input><span class="etiket">Oto Akt.</span></label>-->
-						<div id="paletliGiris" class="parent"><button class="full-wh">PALET</button></div>
 					</div>
 					<div id="tezgah" class="parent modelKullan-parent flex-row"><button id="listedenSec">L</button><div class="veri"></div></div>
 					<div id="personel" class="parent modelKullan-parent flex-row"><button id="listedenSec">L</button><div class="veri"></div></div>

@@ -49,9 +49,8 @@
 .barkodluGercekleme.part #header #kalite > button,
 .barkodluGercekleme.part #header #topluDegistir > button { margin-top: 3px; padding: 0 8px }
 .barkodluGercekleme.part #header #topluSil > button { margin-top: 3px; margin-left: 15px; padding: 0 5px }
-.barkodluGercekleme.part #header #gerceklemeler > button,
-.barkodluGercekleme.part #header #kalite > button,
-.barkodluGercekleme.part #header #topluDegistir > button { margin-left: 3px }
+.barkodluGercekleme.part #header #gerceklemeler > button, .barkodluGercekleme.part #header #paletliGiris > button,
+	.barkodluGercekleme.part #header #kalite > button, .barkodluGercekleme.part #header #topluDegistir > button { margin-left: 3px }
 .barkodluGercekleme.part #header #gonder > button.jqx-fill-state-normal { background: #ebfdfd }
 .barkodluGercekleme.part #header #gonder > button.jqx-fill-state-hover { background: #f8fff8 }
 .barkodluGercekleme.part #header #gonder > button.jqx-fill-state-pressed { background: #c8decd; color: #555 }
@@ -84,10 +83,10 @@
 .barkodluGercekleme.part #header #kalite > button.jqx-fill-state-pressed { background: #b0d7f6; color: #555 }
 .barkodluGercekleme.part #header #gonder { margin-right: 25px }
 .barkodluGercekleme.part #header #gerceklemeler { margin-left: 40px }
+.barkodluGercekleme.part #header #paletliGiris { margin-left: 25px }
 .barkodluGercekleme.part #ek-bilgiler .bs-ayirac { font-weight: bold; color: #bbb; margin-top: 8px; margin-left: 5px }
 .barkodluGercekleme.part #ek-bilgiler #otoGonder { margin-top: 0 }
 .barkodluGercekleme.part #ek-bilgiler #otoGonder .etiket { font-weight: bold; color: blue }
-.barkodluGercekleme.part #ek-bilgiler #paletliGiris { width: 100px }
 @media (max-width: 950px) {
 	/*.barkodluGercekleme.part #ek-bilgiler-toggle { }
 	.barkodluGercekleme.part #header { min-height: calc(var(--header-min-height) * 1.5) }
