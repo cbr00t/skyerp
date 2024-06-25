@@ -1,71 +1,41 @@
 class YedeklemeTalebiPart extends Part {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get partName() { return 'yedeklemeTalebi' }
-	static get isWindowPart() { return true }
-	static get recClass() { return YedeklemeTalebiRec }
+	static get partName() { return 'yedeklemeTalebi' } static get isWindowPart() { return true } static get recClass() { return YedeklemeTalebiRec }
 
 	constructor(e) {
-		e = e || {};
-		super(e);
-		$.extend(this, {
-			islem: e.islem, tanitim: e.tanitim,
-			tamamIslemi: e.tamamIslemi,
-			title: e.title == null ? 'Yedekleme Talebi' : e.title || ''
-		});
+		e = e || {}; super(e);
+		$.extend(this, { islem: e.islem, tanitim: e.tanitim, tamamIslemi: e.tamamIslemi, title: e.title == null ? 'Yedekleme Talebi' : e.title || '' });
 		this.orjTanitim = this.tanitim;
-		const {islem} = this;
-		if (islem) {
-			const islemText = islem[0].toUpperCase() + islem.slice(1);
-			this.title += ` &nbsp;[<span class="window-title-ek">${islemText}</span>]`
-		}
+		const {islem} = this; if (islem) { const islemText = islem[0].toUpperCase() + islem.slice(1); this.title += ` &nbsp;[<span class="window-title-ek">${islemText}</span>]` }
 	}
 	runDevam(e) {
-		e = e || {};
-		super.runDevam(e);
-		const {layout, islem} = this;
+		e = e || {}; super.runDevam(e); const {layout, islem} = this;
 		const btnTamam = this.btnTamam = layout.children('#tamam');
 		btnTamam.jqxButton({ theme: theme, width: false, height: false });
-		btnTamam.on('click', evt =>
-			this.tamamIstendi($.extend({}, e, { event: evt })));
+		btnTamam.on('click', evt => this.tamamIstendi($.extend({}, e, { event: evt })));
 		const header = this.header = layout.children('#header');
 		const txtTanitim = this.txtTanitim = header.find('.tanitim-parent > #tanitim');
-		txtTanitim.on('focus', evt =>
-			setTimeout(() => evt.currentTarget.select(), 50));
+		txtTanitim.on('focus', evt => setTimeout(() => evt.currentTarget.select(), 50));
 		(async () => {
-			let tanitim = await this.tanitim;
-			if (!tanitim) {
-				let result = await app.promise_vioConfig;
-				tanitim = result?.tanitim
-			}
-			if (tanitim) {
-				this.orjTanitim = tanitim;
-				txtTanitim.val(tanitim)
-			}
+			let tanitim = await this.tanitim; if (!tanitim) { let result = await app.promise_vioConfig; tanitim = result?.tanitim }
+			if (tanitim) { this.orjTanitim = tanitim; txtTanitim.val(tanitim) }
 		})();
 		this.initGrid(e);
-
 		const {yetki} = config.session;
 		if (!(islem == 'degistir' || islem == 'sil') && (yetki == 'developer' || yetki == 'admin')) {
 			txtTanitim.removeAttr('readonly disabled');
 			txtTanitim.on('change', evt => {
-				const target = evt.currentTarget;
-				delete this.recs;
-				let tanitim = this.tanitim = (target.value || '').trim() || this.orjTanitim;
-				if (target.value != tanitim)
-					target.value = tanitim
+				const target = evt.currentTarget; delete this.recs;
+				let tanitim = this.tanitim = (target.value || '').trim() || this.orjTanitim; if (target.value != tanitim) { target.value = tanitim }
 				this.gridPart.tazele()
 			})
 		}
 	}
-	activated(e) {
-		super.activated(e);
-		setTimeout(() => this.gridPart.grid.focus(), 100)
-	}
+	activated(e) { super.activated(e); setTimeout(() => this.gridPart.grid.focus(), 100) }
 	initGrid(e) {
 		e = e || {}; const {layout} = this;
 		const gridPart = this.gridPart = new GridliGirisPart({
-			parentPart: this, gridIDBelirtec: 'id',
-			layout: layout.find('.grid-parent > .grid'),
+			parentPart: this, gridIDBelirtec: 'id', layout: layout.find('.grid-parent > .grid'),
 			argsDuzenle: e => {
 				$.extend(e.args, {
 					autoRowHeight: false, rowsHeight: 45, columnsHeight: 20, showGroupsHeader: false, /*selectionMode: 'multiplerowsextended',*/
