@@ -167,8 +167,14 @@ class MQHatYonetimi extends MQMasterOrtak {
 		}
 		if (recs) {
 			for (const rec of recs) {
-				const {hatKod, hatAdi} = rec, style_bgImg = `background-blend-mode: hard-light; background-repeat: no-repeat; background-size: contain; background-image: url(${app.getWSUrl({ api: 'resimData', args: { id: `hat-${hatKod}` } })})`;
-				rec.grupText = `<div class="grid-cell-group" style="${style_bgImg}"><div><b>(${rec.hatKod})</b> ${rec.hatAdi}</div></div>`
+				const {hatKod, hatAdi} = rec, styles_bgImg_url = [], imageInfos = [ { align: 'left' }, { align: 'center', postfix: '-01' }, { align: 'right', postfix: '-02' } ];
+				for (const {align, postfix} of imageInfos) {
+					let id = `hat-${hatKod}`; if (postfix) { id += postfix } const url = `${app.getWSUrlBase()}/resimData/?id=${id}`;
+					styles_bgImg_url.push(`url(${url}) ${align} center no-repeat`)
+				}
+				const styles_bgImg_size = styles_bgImg_url.map(x => 'contain'), styles_bgImg = [`background: ${styles_bgImg_url.join(', ')}`, `background-size: ${styles_bgImg_size.join(', ')}`];
+				/*styles_bgImg.push(`mix-blend-mode: difference`);*/
+				rec.grupText = `<div class="grid-cell-group" style="${styles_bgImg.join('; ')}"><div style="mix-blend-mode: plus-lighter"><b>(${rec.hatKod})</b> ${rec.hatAdi}</div></div>`
 			}
 		}
 		let {_lastRecs} = gridPart;

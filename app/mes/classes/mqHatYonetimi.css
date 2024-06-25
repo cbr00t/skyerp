@@ -56,7 +56,7 @@
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .durum { } .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .sayi { color: #84bfe1 }
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .durum { } .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .on > * { color: lightgreen }
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .durum { } .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .off > * { color: indianred }
-.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .hat { color: whitesmoke; background-color: #333 }
+.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .hat { color: #333 !important; background-color: #333 }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .hat .veri { font-weight: bold; font-size: 130%; color: #eee }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .tezgah .ip { font-weight: bold; font-size: 95%; color: steelblue; min-width: 70px; left: 8px }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .tezgah .siradakiIsSayi { font-size: 95%; color: #999; min-width: 33px; left: 15px }
