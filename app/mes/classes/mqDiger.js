@@ -230,7 +230,7 @@ class MQZamanEtudu extends MQMasterOrtak {
 class MQEkNotlar extends MQSayacliOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ek Notlar' }
 	static get table() { return 'meseknotlar' } static get tableAlias() { return 'eknot' } static get sayacSaha() { return 'kaysayac' }
-	static get tanimUISinif() { return ModelTanimPart } static get secimSinif() { return MQCogul.secimSinif }
+	static get tanimUISinif() { return ModelTanimPart } static get secimSinif() { return MQCogul.secimSinif } static get noAutoFocus() { return true }
 	static get tanimlanabilirmi() { return true } static get silinebilirmi() { return true } static get urlCount() { return 3 }
 	static get urlCount() { return 3 }
 	static pTanimDuzenle(e) {
@@ -293,7 +293,9 @@ class MQEkNotlar extends MQSayacliOrtak {
 	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); const {args} = e; $.extend(args, { rowsHeight: 180 /*selectionmode: 'multiplecellsextended'*/ }) }
 	static ekCSSDuzenle(e) {
 		super.ekCSSDuzenle(e); const {rec, result} = e, belirtec = e.belirtec ?? e.dataField ?? e.datafield, {tip} = rec;
-		if (belirtec == 'tipText') { result.push('bold'); switch (tip) { case 'HT': result.push('bg-lightgreen'); break; case 'TZ': result.push('bg-lightred'); break } }
+		switch (belirtec) { case 'tipText': case 'hatkod': case 'hatadi': case 'tezgahkod': case 'tezgahadi': result.push('bold'); break }
+		if (belirtec == 'hatkod' || belirtec == 'hatadi') { result.push('royalblue') }
+		else if (belirtec == 'tipText') { switch (tip) { case 'HT': result.push('bg-lightgreen'); break; case 'TZ': result.push('bg-lightred'); break } }
 	}
 	static standartGorunumListesiDuzenle(e) {
 		super.standartGorunumListesiDuzenle(e); let {liste} = e, _liste = liste.filter(colDef => !colDef?.startsWith('url'));
@@ -302,6 +304,8 @@ class MQEkNotlar extends MQSayacliOrtak {
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e, alias = e.alias ?? this.tableAlias, {urlCount} = this;
 		liste.push(...[
+			new GridKolon({ belirtec: 'kayittarih', text: 'Tarih', genislikCh: 7 }).tipDate(),
+			new GridKolon({ belirtec: 'kayitzaman', text: 'Saat', genislikCh: 7 }).tipTime_noSecs(),
 			new GridKolon({ belirtec: 'tipText', text: 'Tip', genislikCh: 8, sql: HatTezgah.getClause(`${alias}.tip`) }),
 			new GridKolon({ belirtec: 'hatkod', text: 'Hat', genislikCh: 8 }),
 			new GridKolon({ belirtec: 'hatadi', text: 'Hat Adı', genislikCh: 15, sql: 'hat.aciklama' }),
@@ -345,23 +349,20 @@ class MQEkNotlar extends MQSayacliOrtak {
 	}
 	static async dokumanYukleIstendi(e) {
 		e = e || {}; const PrefixURL = 'url', islemAdi = 'Döküman Yükle'; try {
-			const {builder} = e, id = e.id ?? builder?.id; let i = e.seq ?? e.index ?? id?.slice(PrefixURL.length);
-			if (typeof i == 'string') { i = asInteger(i) } const key = `${PrefixURL}${i}`;
-			const fileHandles = await showOpenFilePicker({
-				multiple: false, excludeAcceptAllOption: false, types: [
-					{ description: 'Resim', accept: { 'image/*': [] } },
-					{ description: 'PDF', accept: { 'application/pdf': [] } },
-					{ description: 'Video', accept: { 'video/*': [] } }
-				]
-			});
-			const fh = fileHandles[0], file = await fh?.getFile();
-			let fileName = file.name.replaceAll(' ', '_'), ext = fileName.split('.').slice(-1)[0] ?? '', resimId = ext ? fileName.slice(0, -(ext.length + 1)) : fileName;
-			const data = file ? new Uint8Array(await file.arrayBuffer()) : null; if (!data?.length) { return }
-			const result = await app.wsResimDataKaydet({ resimId, ext, data }); if (!result.result) { throw { isError: true, errorText: 'Resim Kayıt Sorunu' } }
-			if (builder) {
-				const {altInst, input} = builder;
-				const value = builder.value = altInst[id] = `${app.getWSUrlBase()}/resimData/?id=${resimId}&ext=${ext}`; input?.focus()
-			}
+			const {builder} = e, id = e.id ?? builder?.id; let i = asInteger(e.seq ?? e.index ?? id?.slice(PrefixURL.length)); const key = `${PrefixURL}${i}`;
+			let elm = $(`<input type="file" capture accept="image/*, application/pdf, video/*">`).appendTo('body'); elm.addClass('jqx-hidden');
+			elm.on('change', async evt => {
+				try {
+					const file = evt.target.files[0]; let fileName = file.name.replaceAll(' ', '_'), ext = fileName.split('.').slice(-1)[0] ?? '', resimId = ext ? fileName.slice(0, -(ext.length + 1)) : fileName;
+					const data = file ? new Uint8Array(await file.arrayBuffer()) : null; if (!data?.length) { return }
+					const result = await app.wsResimDataKaydet({ resimId, ext, data }); if (!result.result) { throw { isError: true, errorText: 'Resim Kayıt Sorunu' } }
+					if (builder) {
+						const {altInst, input} = builder;
+						const value = builder.value = altInst[id] = `${app.getWSUrlBase()}/resimData/?id=${resimId}&ext=${ext}`; input?.focus()
+					}
+					gridPart.tazeleDefer(e)
+				} finally { $(evt.target).remove() }
+			}); elm.click()
 		}
 		catch (ex) {
 			if (ex instanceof DOMException) { return }

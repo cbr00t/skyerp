@@ -10,7 +10,7 @@ class MakineYonetimiPart extends Part {
 		this.tazele(e)
 	}
 	destroyPart(e) { super.destroyPart(e) }
-	activated(e) { super.activated(e); this.tazeleWithSignal(e) }
+	activated(e) { super.activated(e); this.tazele(e) }
 	async tazele(e) {
 		try {
 			const {tezgahKod} = this; let recs, lastError;

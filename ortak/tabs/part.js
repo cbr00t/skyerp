@@ -40,15 +40,18 @@ class TabsPart extends Part {
 		e = e || {}; const id2TabPage = this.id2TabPage || {}, tabPages = Object.values(id2TabPage);
 		if (tabPages?.length) {
 			let rdlg = await ehConfirm('Tüm pencereler kapatılacak, emin misiniz?', appName);
-			if (rdlg) { this.closeAll(e) }
+			if (rdlg) { await this.closeAll(e) }
 		}
 		return this
 	}
-	closeAll(e) {
+	async closeAll(e) {
 		e = e || {}; const id2TabPage = this.id2TabPage || {}, tabPages = Object.values(id2TabPage);
 		for (const tabPage of tabPages) {
 			const part = tabPage?.header?.data('part');
-			if (part) { const {canDestroy} = part; part[canDestroy ? 'close' : 'hide']() }
+			if (part) {
+				const {canDestroy} = part; await part[canDestroy ? 'close' : 'hide']();
+				await new $.Deferred(p => setTimeout(() => p.resolve(), 1))
+			}
 		} this.refresh(e); return this
 	}
 	refresh(e) { e = e || {}; this._buildId2TabPage(e); this.render(e) }

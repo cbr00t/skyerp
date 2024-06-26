@@ -14,7 +14,7 @@ class MQCogul extends MQYapi {
 	static get orjBaslikListesi_hizliBulFiltreAttrListe() { const _e = { liste: [] }; this.orjBaslikListesi_hizliBulFiltreAttrListeDuzenle(_e); return _e.liste }
 	static get orjBaslikListesi_panelGrupAttrListe() { const _e = { liste: [] }; this.orjBaslikListesi_panelGrupAttrListeDuzenle(_e); return _e.liste }
 	static get orjBaslikListesi_panelUstSeviyeAttrListe() { const _e = { liste: [] }; this.orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(_e); return _e.liste }
-	static get orjBaslikListesi_defaultRowsHeight() { return null } static get orjBaslikListesi_maxColCount() { return 5 }  static get orjBaslikListesi_defaultColCount() { return null }
+	static get orjBaslikListesi_defaultRowsHeight() { return null } static get orjBaslikListesi_maxColCount() { return 5 }  static get orjBaslikListesi_defaultColCount() { return null } static get noAutoFocus() { return false }
 	static get yerelParam() { return app.params.yerel } static get mqGlobals() { return app.mqGlobals = app.mqGlobals || {} } static get mqTemps() { return app.mqTemps = app.mqTemps || {} }
 	static get globals() { const {classKey, mqGlobals} = this; return mqGlobals[classKey] = mqGlobals[classKey] || {} } static get temps() { const {classKey, mqTemps} = this; return mqTemps[classKey] = mqTemps[classKey] || {} }
 	static get paramGlobals() { const dataKey = this.dataKey || this.classKey, {yerelParam} = this, mfSinif2Globals = yerelParam?.mfSinif2Globals || {}, result = mfSinif2Globals[dataKey] = mfSinif2Globals[dataKey] || {}; return result }

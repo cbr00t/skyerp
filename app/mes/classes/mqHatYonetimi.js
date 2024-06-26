@@ -5,13 +5,13 @@ class MQHatYonetimi extends MQMasterOrtak {
 	static get noAutoFocus() { return true }
 
 	static listeEkrani_afterRun(e) { super.listeEkrani_afterRun(e) /*const gridPart = e.gridPart ?? e.sender*/ }
-	static listeEkrani_activated(e) { super.listeEkrani_activated(e) /*; const gridPart = e.gridPart ?? e.sender; gridPart.tazeleDefer()*/ }
+	static listeEkrani_activated(e) { super.listeEkrani_activated(e); const gridPart = e.gridPart ?? e.sender; gridPart.tazeleDefer() }
 	static rootFormBuilderDuzenle_listeEkrani(e) {
 		super.rootFormBuilderDuzenle_listeEkrani(e); const rfb = e.rootBuilder, gridPart = e.gridPart ?? e.sender ?? rfb?.part;
 		/*const fbd_islemTuslari = rfb.addForm('islemTuslari', e => e.builder.part.islemTuslariPart.layout);
 		const fbd_sol = fbd_islemTuslari.addForm('sol', e => e.builder.parent.children('.sol')), fbd_sag = fbd_islemTuslari.addForm('sol', e => e.builder.parent.children('.sag'));*/
 		this.fbd_listeEkrani_addCheckBox(rfb, 'cokluSecimFlag', 'Çoklu').onAfterRun(e => {
-			const {builder} = e, {rootPart, layout} = builder, input = layout.children('input'), {grid, gridWidget} = rootPart;
+			const {builder} = e, {rootPart, layout} = builder, input = layout.children('input'), {grid, gridWidget} = rootPart; rootPart.fbd_cokluSecim = builder;
 			const cokluSecimDegisti = value => { grid.jqxGrid('selectionmode', value ? 'multiplecells' : 'singlecell'); try { gridWidget.clearselection() } catch (ex) { } }
 			if (rootPart.cokluSecimFlag) { input.prop('checked', true); cokluSecimDegisti(true) }
 			input.on('change', evt => { const value = rootPart.cokluSecimFlag = $(evt.currentTarget).is(':checked'); cokluSecimDegisti(value) })
@@ -36,11 +36,9 @@ class MQHatYonetimi extends MQMasterOrtak {
 				hizliBulLayout.on('focus', evt => app.otoTazeleDisabledFlag = true )
 				hizliBulLayout.on('blur', evt => app.otoTazeleTempDisable({ waitMS: 3000 }) )
 			}
-		});
-		let form = rfb.addForm().setLayout(e => e.builder.rootPart.islemTuslariPart.sol);
-		gridPart.fbd_ozetBilgi = form.addForm('ozetBilgi').setLayout(e => $(`<div/>`));
-		/*this.fbd_listeEkrani_addButton(rfb, 'isEmirleri', 'EMR', 80, e => this.xIstendi(e));
-		this.fbd_listeEkrani_addButton(rfb, 'topluX', 'TPL', 80, e => this.xIstendi(e))*/
+		})
+		/*let form = rfb.addForm().setLayout(e => e.builder.rootPart.islemTuslariPart.sol);
+		gridPart.fbd_ozetBilgi = form.addForm('ozetBilgi').setLayout(e => $(`<div/>`))*/
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e);
@@ -51,7 +49,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 			{ id: 'isEmirleri', text: 'EMR', handler: e => this.bekleyenIsEmirleriIstendi(e) },
 			{ id: 'topluX', text: 'TPL', handler: e => this.topluXMenuIstendi(e) },
 			(sabitHatKod ? null : { id: 'tumEkNotlar', text: 'NOT', handler: e => this.ekNotlarIstendi({ ...e, hepsi: true }) }),
-			(sabitHatKod ? null : { id: 'ozet', text: 'ÖZET', handler: e => this.ozetBilgiGoster(e) })
+			{ id: 'ozet', text: 'ÖZET', handler: e => this.ozetBilgiGoster(e) }
 		].filter(x => !!x);
 		liste.splice(liste.findIndex(item => item.id == 'vazgec'), 0, ...items);
 		const ekSagButonIdSet = butonlarPart.ekSagButonIdSet = butonlarPart.ekSagButonIdSet || {}; $.extend(ekSagButonIdSet, asSet(items.map(item => item.id)))
@@ -79,6 +77,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 				<td class="groupText">${group}</td>
 				<td class="islemTuslari">
 					<div class="item">
+						<button id="topluX">TPL</button>
 						<button id="bekleyenIsEmirleri">EMR</button>
 						<button id="hatBekleyenIsler">BEK</button>
 					</div>
@@ -88,6 +87,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 					</div>
 					<div class="item">
 						<button id="dokumanYukle">RESİM</button>
+						<button id="dokumanSil" class="indianred">RESİM SİL</button>
 					</div>
 				</td>
 			</tr>
@@ -125,7 +125,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 		let recs, lastError;
 		for (let i = 0; i < 3; i++) {
 			try { recs = await this.loadServerData_internal(e); lastError = null; break }
-			catch (ex) { lastError = ex; if (i) { await new $.Deferred(p => setTimeout(p.resolve(), i * 500) ) } }
+			catch (ex) { lastError = ex; if (i) { await new $.Deferred(p => setTimeout(() => p.resolve(), i * 500) ) } }
 		}
 		if (lastError) { throw lastError } return recs
 	}
@@ -177,35 +177,50 @@ class MQHatYonetimi extends MQMasterOrtak {
 				rec.grupText = `<div class="grid-cell-group" style="${styles_bgImg.join('; ')}"><div style="mix-blend-mode: plus-lighter"><b>(${rec.hatKod})</b> ${rec.hatAdi}</div></div>`
 			}
 		}
-		let {_lastRecs} = gridPart;
-		if (_lastRecs && recs && _lastRecs?.length == recs?.length) { for (let i = 0; i < recs.length; i++) { const rec = _lastRecs[i], _rec = recs[i]; $.extend(rec, _rec) } }
-			else { _lastRecs = gridPart._lastRecs = recs }
-		return _lastRecs
+		gridPart._lastRecs = recs;
+		/*let {_lastRecs} = gridPart;
+		if (_lastRecs && recs && _lastRecs?.length == recs?.length) { for (let i = 0; i < recs.length; i++) { const rec = _lastRecs[i], _rec = recs[i]; $.extend(rec, _rec) } } else { _lastRecs = gridPart._lastRecs = recs }
+		return _lastRecs */
+		return recs
 	}
 	static orjBaslikListesi_recsDuzenle(e) { super.orjBaslikListesi_recsDuzenle(e) }
 	static gridVeriYuklendi(e) {
-		super.gridVeriYuklendi(e); const gridPart = e.gridPart ?? e.sender, {fbd_ozetBilgi} = gridPart; app.sonSyncTS = now()
+		super.gridVeriYuklendi(e); const gridPart = e.gridPart ?? e.sender; app.sonSyncTS = now(); this.updateOzetBilgi(e)
 		/*if (fbd_ozetBilgi) { const html = this.ozetBilgi_getLayout(e); fbd_ozetBilgi.layout.html(html) }*/
 	}
 	static orjBaslikListesi_gridRendered(e) {
-		super.orjBaslikListesi_gridRendered(e); const {gridPart} = e, {gridWidget} = gridPart, table = gridWidget?.table; if (!table) { return }
+		super.orjBaslikListesi_gridRendered(e); const {gridPart} = e, {grid, gridWidget} = gridPart, table = gridWidget?.table; if (!table) { return }
 		const ustAltFormlar = table.find(`[role = row] > * .ust-alt`);
 		if (ustAltFormlar?.length) { for (const key of ['mousedown', 'touchstart']) { ustAltFormlar.on(key, evt => { app.otoTazeleTempDisable() }) } }
 		const buttons = table.find(`[role = row] > * button`); if (buttons?.length) {
 			buttons.jqxButton({ theme }).off('click').on('click', evt => {
-				$.extend(e, { event: evt, gridPart }); const target = evt.currentTarget, id = target.id; let {parentRec, rec} = this.gridCellHandler_ilkIslemler(e); if (!rec) { return }
-				const {tezgahAdi} = rec, {boundindex, visibleindex} = parentRec;
-				const hatKod = $(target).parents('tr').data('hatkod'), hatRec = hatKod ? gridPart.recs.find(rec => rec.hatKod == hatKod) : null;
-				if (hatRec) { parentRec = e.parentRec = hatRec; rec = e.rec = parentRec._subItems[0] }
+				const target = evt.currentTarget;
+				if (gridPart.cokluSecimFlag) {
+					let td = $(target).parents('.jqx-grid-cell'), colIndex = asInteger(td.attr('columnindex')), tr = td.parents('[role = row]'), rowIndex = asInteger(tr.attr('row-id')), belirtec = gridWidget.getcolumnat(colIndex)?.datafield;
+					$.extend(e, { rowIndex, belirtec }); gridPart.cokluSecimFlag = false; grid.jqxGrid('selectionmode', 'singlecell');
+					try { gridWidget.clearselection() } catch (ex) { } try { gridWidget.selectcell(rowIndex, belirtec) } catch (ex) { }
+					const {fbd_cokluSecim} = gridPart; if (fbd_cokluSecim) { fbd_cokluSecim.layout.children('input').prop('checked', false) }
+				}
+				$.extend(e, { event: evt, gridPart }); const id = target.id, grup_hatKod = $(target).parents('tr').data('hatkod');
+				let {parentRec, rec} = this.gridCellHandler_ilkIslemler(e); /*if (!rec) { rec = e.rec }*/
+				if (grup_hatKod) {
+					let selRecs = gridPart.selectedRecs.filter(rec => rec.hatKod == grup_hatKod);
+					if (!selRecs.length) { parentRec = e.parentRec = gridPart.recs.find(rec => rec.hatKod == grup_hatKod); rec = e.rec = parentRec ? parentRec._subItems[0] : null }
+				}
+				if (!rec) { return } const {tezgahAdi} = rec, {boundindex, visibleindex} = parentRec, ctrlFlag = evt?.ctrlKey;
+				/*const hatKod = $(target).parents('tr').data('hatkod'), hatRec = hatKod ? gridPart.recs.find(rec => rec.hatKod == hatKod) : null;
+				if (hatRec) { parentRec = e.parentRec = hatRec; rec = e.rec = parentRec._subItems[0] }*/
 				switch (id) {
 					case 'tezgahMenu': this.tezgahMenuIstendi(e); break
 					case 'personelSec': this.personelSecIstendi(e); break;
 					case 'makineDurum': this.makineDurumIstendi(e); break;
+					case 'topluX': this.topluXMenuIstendi(e); break;
 					case 'bekleyenIsEmirleri': this.bekleyenIsEmirleriIstendi(e); break;
 					case 'hatBekleyenIsler': this.bekleyenIslerIstendi_hatBazinda(e); break;
 					case 'notlar': this.ekNotlarIstendi(e); break;
 					case 'notEkle': this.ekNotEkleIstendi(e); break;
 					case 'dokumanYukle': this.dokumanYukleIstendi(e); break;
+					case 'dokumanSil': e.sil = true; this.dokumanYukleIstendi(e); break;
 					default: eConfirm(`<b>${visibleindex + 1}. satırdaki</b> ve <b>${tezgahAdi}</b> tezgahına ait <b>${id}</b> id'li butona tıklandı`)
 				}
 			})
@@ -231,6 +246,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 		} }); this.openContextMenu(e)
 	}
 	static topluXMenuIstendi(e) {
+		e = e || {}; const {parentRec} = e, hatKod = e.hatKod = e.hatKod ?? parentRec?.hatKod;
 		$.extend(e, { noCheck: true, formDuzenleyici: _e => {
 			_e = $.extend({}, e, _e); const {form, close} = _e; form.yanYana(2);
 			form.addButton('mola', undefined, 'Mola').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
@@ -283,22 +299,26 @@ class MQHatYonetimi extends MQMasterOrtak {
 	static xIslerIstendi(e) {
 		const {mfSinif} = e, tekilmi = e.tekil ?? e.tekilmi, hatBazindami = e.hatBazinda ?? e.hatBazindami;
 		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, {gridWidget} = gridPart;
-		const recs = e.recs ?? gridPart.getSubRecs({ gridPart, cells: gridWidget.getselectedcells().filter(cell => cell.datafield[0] == '_') }); if (!recs) { return }
+		let recs = e.recs; if (!recs?.length && e.rec) { recs = e.recs = [e.rec] }
+		if (!recs.length) { recs = e.recs = gridPart.getSubRecs({ gridPart, cells: gridWidget.getselectedcells().filter(cell => cell.datafield[0] == '_') }) }
+		if (!recs) { return }
 		for (const rec of recs) { const {hatKod, hatAdi, tezgahKod, tezgahAdi} = rec; mfSinif.listeEkraniAc({ args: { hatKod, hatAdi, tezgahKod, tezgahAdi, hatBazindami }}) }
 	}
 	static topluXIstendi(e) {
-		const {id} = e, gridPart = e.gridPart ?? e.sender ?? e.builder?.rootBuilder?.part, recsCount = gridPart?._lastRecs?.length;
-		const islemKod2Adi = { mola: 'Mola', vardiyaDegisimi: 'Vardiya Değişimi', isBitti: `<span class="red">İş Bitti</span>`, gerceklemeYap: 'Gerçekleme Yap' }, islemAdi = islemKod2Adi[id] ?? id;
+		const {id} = e, gridPart = e.gridPart ?? e.sender ?? e.builder?.rootBuilder?.part; let recs = gridPart?._lastRecs;
+		const hatKodListe = e.hatKodListe ?? (e.hatKod ? [e.hatKod] : []), wsArgs = {};
+		if (hatKodListe?.length) { const hatKodSet = asSet(hatKodListe); wsArgs.hatIdListe = hatKodListe.join(delimWS); recs = e.recs = recs.filter(rec => hatKodSet[rec.hatKod]); e.rec = recs[0] }
+		const recsCount = recs?.length, islemKod2Adi = { mola: 'Mola', vardiyaDegisimi: 'Vardiya Değişimi', isBitti: `<span class="red">İş Bitti</span>`, gerceklemeYap: 'Gerçekleme Yap' }, islemAdi = islemKod2Adi[id] ?? id;
 		ehConfirm(`${recsCount ? `<b class="royalblue">${recsCount}</b> tezgah için ` : ''}<b>Toplu ${islemAdi}</b> istendi, devam edilsin mi?`, `Toplu ${islemAdi}`).then(async result => {
 			if (!result) { return } try {
-				const wsArgs = {}; switch (id) {
+				switch (id) {
 					case 'gerceklemeYap': await app.wsTopluGerceklemeYap(wsArgs); break
 					case 'isBitti': await app.wsTopluIsBittiYap(wsArgs); break
 					case 'zamanEtuduBaslat': await app.wsTopluZamanEtuduBaslat(wsArgs); break
 					case 'zamanEtuduKapat': await app.wsTopluZamanEtuduKapat(wsArgs); break
 					default: $.extend(wsArgs, { tip: id }); await app.wsTopluDuraksamaYap(wsArgs); break
 				}
-				app.signalChange(e)
+				gridPart.tazeleDefer()
 			}
 			catch (ex) { hConfirm(getErrorText(ex), `Toplu ${islemAdi}`); throw ex }
 		})
@@ -308,6 +328,11 @@ class MQHatYonetimi extends MQMasterOrtak {
 			content: `<div class="full-width ozetBilgi-parent ozetBilgi">${html}</code></div>`,
 			title: `Özet Bilgi`, args: { isModal: false, width: Math.min(850, $(window).width() - 50), height: Math.min(500, $(window).height() - 50) }
 		}); wnd.addClass(`ozetBilgi ${classKey} masterListe part`); makeScrollable(wnd.find('.jqx-window-content'))
+	}
+	static updateOzetBilgi(e) {
+		let html = this.ozetBilgi_getLayout(e); const {classKey} = this, wndSelector = `.jqx-window.ozetBilgi.${classKey}`, wnd = $(wndSelector); if (!wnd.length) { return }
+		const layout = wnd.find('.jqx-window-content > .subContent > .ozetBilgi-parent'); if (!layout?.length) { return }
+		layout.html(html)
 	}
 	static ozetBilgi_getLayout(e) {
 		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, recs = gridPart?._lastRecs;
@@ -351,8 +376,8 @@ class MQHatYonetimi extends MQMasterOrtak {
 		}
 	}
 	static bekleyenIsEmirleriIstendi(e) {
-		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, rec = e.rec ?? gridPart.selectedRec;
-		const {hatKod} = rec; if (!hatKod) { return }
+		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart;
+		const rec = e.rec ?? gridPart.selectedRec ?? {}; const {hatKod} = rec; if (!hatKod) { return }
 		MQBekleyenIsEmirleri.listeEkraniAc({ args: { hatKod } })
 	}
 	static ekNotlarIstendi(e) {
@@ -368,27 +393,29 @@ class MQHatYonetimi extends MQMasterOrtak {
 		const hatKod = rec.hatKod ?? '', tezgahKod = rec.tezgahKod ?? ''; if (!(hatKod || tezgahKod)) { return }
 		let inst = new MQEkNotlar({ hatKod, tezgahKod }); return inst.tanimla({ islem: 'yeni' })
 	}
-	static async dokumanYukleIstendi(e) {
-		e = e || {}; const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, rec = e.rec ?? gridPart.selectedRec ?? {};
-		const hatKod = rec.hatKod ?? ''; if (!hatKod) { return } const islemAdi = 'Resim Yükle';
-		try {
-			const fileHandles = await showOpenFilePicker({
-				multiple: false, excludeAcceptAllOption: false, types: [
-					{ description: 'Resim', accept: { 'image/*': [] } },
-					{ description: 'PDF', accept: { 'application/pdf': [] } },
-					{ description: 'Video', accept: { 'video/*': [] } }
-				]
-			});
-			const fh = fileHandles[0], file = await fh?.getFile();
-			let fileName = file.name.replaceAll(' ', '_'), ext = fileName.split('.').slice(-1)[0] ?? '', resimId = `hat-${hatKod}`;
-			const data = file ? new Uint8Array(await file.arrayBuffer()) : null; if (!data?.length) { return }
-			const result = await app.wsResimDataKaydet({ resimId, ext, data }); if (!result.result) { throw { isError: true, errorText: 'Resim Kayıt Sorunu' } }
-			gridPart.tazeleDefer(e)
+	static dokumanYukleIstendi(e) {
+		e = e || {}; const silFlag = e.sil ?? e.silFlag, gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, rec = e.rec ?? gridPart.selectedRec ?? {};
+		const hatKod = rec.hatKod ?? ''; if (!hatKod) { return } const resimId = `hat-${hatKod}-01`, islemAdi = silFlag ? `<b color="indianred">Resim SİL</b>` : 'Hat Resim Yükleme';
+		if (silFlag) {
+			return new $.Deferred(async p => {
+				let rdlg = await ehConfirm(`<b class="royalblue">${hatKod}</b><b class="indianred"> hattına ait Resim silinecek, emin misiniz?</b>`, islemAdi); if (!rdlg) { return }
+				const data = '', extListe = ['jpg', 'png']; for (const ext of extListe) {
+					const result = await app.wsResimDataKaydet({ resimId, ext, data });
+					if (!result.result) { throw { isError: true, errorText: `${islemAdi} sorunu` } }
+				}
+				gridPart.tazeleDefer(e); setTimeout(() => eConfirm(`Hat Resim Görüntüsünün güncellenmesi için uygulamadan çıkıp yeniden girilmesi gerekebilir`, islemAdi))
+			})
 		}
-		catch (ex) {
-			if (ex instanceof DOMException) { return }
-			hConfirm(getErrorText(ex), islemAdi); throw ex
-		}
+		let elm = $(`<input type="file" capture accept="image/*, application/pdf, video/*">`).appendTo('body'); elm.addClass('jqx-hidden');
+		elm.on('change', async evt => {
+			try {
+				const file = evt.target.files[0]; let fileName = file.name.replaceAll(' ', '_'), ext = fileName.split('.').slice(-1)[0] ?? '';
+				let data = file ? new Uint8Array(await file.arrayBuffer()) : null; if (!data?.length) { return }
+				let result = await app.wsResimDataKaydet({ resimId, ext, data }); if (!result.result) { throw { isError: true, errorText: `${islemAdi} sorunu` } }
+				gridPart.tazeleDefer(e); setTimeout(() => eConfirm(`Hat Resim Görüntüsünün güncellenmesi için uygulamadan çıkıp yeniden girilmesi gerekebilir`, islemAdi))
+			} finally { $(evt.target).remove() }
+		});
+		elm.click()
 	}
 	static openContextMenu(e) {
 		const noCheckFlag = e.noCheck ?? e.noCheckFlag, gridPart = e.gridPart = e.gridPart ?? e.sender ?? e.parentPart, gridWidget = e.gridWidget = gridPart.gridWidget;
@@ -396,7 +423,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 		let {title} = e; const recs = e.recs = (e.recs ?? gridPart.getSubRecs(e)).filter(rec => !!rec);
 		const parentRec = e.parentRec = e.parentRec ?? gridPart.selectedRec, rec = e.rec = (recs || [])[0];
 		if (!(noCheckFlag || rec)) { return }
-		title = e.title = title ?? `<b class="gray">(${rec?.tezgahKod || ''})</b> ${rec?.tezgahAdi || ''}${cells?.length > 1 ? ` <b class="cadetblue">(+ ${cells.length - 1})</b>` : ''}`;
+		title = e.title = title ?? `<b class="cyan">(${rec?.tezgahKod || ''})</b> ${rec?.tezgahAdi || ''}${cells?.length > 1 ? ` <b class="cadetblue">(+ ${cells.length - 1})</b>` : ''}`;
 		return gridPart.openContextMenu(e)
 	}
 	static gridCell_getLayout(e) {

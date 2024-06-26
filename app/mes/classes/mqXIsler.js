@@ -1,5 +1,5 @@
 class MQXIsler extends MQMasterOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get parentMFSinif() { return MQXIsler }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get parentMFSinif() { return MQXIsler } static get noAutoFocus() { return true }
 	static get sinifAdi() { return 'X İşler' } static get switchPartClass() { return this } static get switchButtonText() { return null }
 	static ekCSSDuzenle(e) {
 		const {rec, result} = e; if (rec.devreDisimi) { result.push('devreDisi') }
@@ -29,7 +29,7 @@ class MQXIsler extends MQMasterOrtak {
 		super.listeEkrani_init(e); const gridPart = e.gridPart ?? e.sender, args = gridPart.args || {}, {hatBazindami, hatKod, hatAdi, tezgahKod, tezgahAdi} = gridPart;
 		const targetKod = hatBazindami ? hatKod : tezgahKod, targetAdi = hatBazindami ? hatAdi : tezgahAdi;
 		if (targetKod) {
-			let tezgahText = `<u class="gray">${targetKod || ''}</u>`; if (targetAdi) { tezgahText += ` <span class="${hatBazindami ? 'forestgreen' : 'royalblue'}">${targetAdi}</span>` }
+			let tezgahText = `<u class="indianred">${targetKod || ''}</u>`; if (targetAdi) { tezgahText += ` <span class="${hatBazindami ? 'forestgreen' : 'royalblue'}">${targetAdi}</span>` }
 			let {title} = gridPart; title += ` [${tezgahText}]`; gridPart.updateWndTitle(gridPart.title = title)
 		}
 	}
@@ -213,7 +213,7 @@ class MQBekleyenIsler extends MQXIsler {
 		const oemSayacListe = recs.map(rec => rec.oemsayac).join(delimWS); if (!oemSayacListe?.length) { return }
 		try {
 			if (hatBazindami) {
-				const excludeTezgahKod = tezgahKod, args = { cokluSecimFlag: true, tezgahKod, hatKod, excludeTezgahKod, title: `<b class="gray">${tezgahKod}</b> - <span class="ek-bilgi">Şu Tezgahlar için:</span>` };
+				const excludeTezgahKod = null /*tezgahKod*/, args = { cokluSecimFlag: true, tezgahKod, hatKod, excludeTezgahKod, title: `<b class="gray">${tezgahKod}</b> - <span class="ek-bilgi">Şu Tezgahlar için:</span>` };
 				MQHatYonetimi.listeEkraniAc({ args, secince: async e => {
 					const _gridPart = e.gridPart ?? e.parentPart ?? e.sender, hedefTezgahKodListe = _gridPart.getSubRecs({ cells: _gridPart.gridWidget.getselectedcells() }).map(rec => rec.tezgahKod);
 					if (!hedefTezgahKodListe?.length) { return }
@@ -223,7 +223,7 @@ class MQBekleyenIsler extends MQXIsler {
 						for (const hedefTezgahKod of hedefTezgahKodListe) {
 							const tezgahKod = hedefTezgahKod, rec = kod2Rec[tezgahKod] || {}, {tezgahAdi, hatKod, hatAdi} = rec;
 							await MQSiradakiIsler.listeEkraniAc({ args: { hatKod, hatAdi , tezgahKod, tezgahAdi } })
-							/*await new $.Deferred(p => setTimeout(p.resolve()), 10)*/
+							await new $.Deferred(p => setTimeout(() => p.resolve(), 200))
 						}
 					}
 					catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Sıraya Al') }

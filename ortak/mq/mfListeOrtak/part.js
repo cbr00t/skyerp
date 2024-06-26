@@ -133,7 +133,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 				setTimeout(() => FiltreFormPart.hizliBulIslemi(e), 3000)
 			}
 			finally { delete gridPart._timer_hizliBulIslemi_ozel }
-		}, 1000)
+		}, 1300)
 	}
 	islemTuslariDuzenle(e) {
 		super.islemTuslariDuzenle(e); const mfSinif = this.getMFSinif(), {secimler, panelDuzenleyici} = this, {liste} = e, yListe = [];

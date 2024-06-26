@@ -1,7 +1,7 @@
-.makineYonetimi.part { --header-height: 60px !important; font-size: 130% !important }
+.makineYonetimi.part { --header-height: 0px !important; font-size: 125% !important; overflow-y: hidden !important }
 .makineYonetimi.part > .header { height: var(--header-height) !important; background: #eee !important }
 .makineYonetimi.part > .content {
-	 --padding-x: 0px; --padding-y: 0px; padding: var(--padding-x) var(--padding-y); --td-padding-x: 13px; --td-padding-y: 10px;
+	 --padding-x: 0px; --padding-y: 0px; padding: var(--padding-y) var(--padding-x); --td-padding-x: 13px; --td-padding-y: 10px;
 	overflow-y: auto !important; width: calc(var(--full) - var(--padding-x) * 2); height: calc(var(--full) - (var(--header-height) + var(--padding-y) * 2))
 }
 .makineYonetimi.part > .content table { line-height: 20px; border: 1px solid #aaa }
@@ -30,25 +30,26 @@
 .makineYonetimi.part > .content #oemBilgileri .siradakiIsSayi { font-size: 95%; color: #999; text-align: right; width: 100px !important; padding-right: 20px !important }
 .makineYonetimi.part > .content #oemBilgileri .siradakiIsSayi .veri { font-weight: bold; color: orangered !important }
 .makineYonetimi.part > .content #oemBilgileri td .isListe { position: relative; height: 180px !important }
-.makineYonetimi.part > .content #oemBilgileri td .isListe > * { width: var(--full); height: var(--full); border: 1px dotted #dcdcdc; padding: 0 15px !important; overflow-y: overlay !important }
+.makineYonetimi.part > .content #oemBilgileri td .isListe > * { width: var(--full); height: var(--full); border: 1px dotted #dcdcdc; padding: 0 !important; overflow-y: overlay !important }
 .makineYonetimi.part > .content #oemBilgileri td:hover .isListe > *, .makineYonetimi.part > .content #oemBilgileri td:focus .isListe > * { border: 1px solid #aaa }
-.makineYonetimi.part > .content #oemBilgileri td .isListe > * > li { font-size: 65% !important; color: #555; line-height: 18px; margin: 0 13px; padding: 8px 5px }
-.makineYonetimi.part > .content #oemBilgileri td .isListe > * > li:hover, .makineYonetimi.part > .content #oemBilgileri td .isListe > * > li:focus { cursor: default; background-color: #d9deeb }
-.makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .flex-row > .item { width: unset; min-width: 150px; max-width: 30% }
-.makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .flex-row > .item:not(:last-child) { padding-inline-end: 15px }
-.makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .flex-row > .item > * { white-space: pre-wrap !important }
+.makineYonetimi.part > .content #oemBilgileri td .isListe > * > li { font-size: 55% !important; color: #555; line-height: 18px; margin: 0 20px; padding: 0 }
 .makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .kod { font-weight: bold; color: #8689af } .makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .aciklama { }
-.makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .color.item { min-width: unset !important; width: 5px !important; margin: 0 10px }
-.makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .saymaSayilari,
-	.makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .sureler { top: -28px }
+.makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .color.item { min-width: unset !important; width: 15px !important; height: 20px; margin: 13px 5px; padding: 0 !important }
+.makineYonetimi.part > .content #oemBilgileri td .isListe > * > li:hover, .makineYonetimi.part > .content #oemBilgileri td .isListe > * > li:focus { cursor: default; background-color: #d9deeb }
+.makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .flex-row > .item { width: unset; min-width: 80px; max-width: 180px }
+.makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .flex-row > .item > * { white-space: pre-wrap !important }
+.makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .flex-row > .item:not(:last-child) { padding-inline-end: 10px }
+.makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .flex-row > .item.emir { max-width: 130px }
+.makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .flex-row > .item.oper, .makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .flex-row > .item.urun { min-width: 180px; max-width: 250px }
+.makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .saymaSayilari, .makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .sureler { top: 0 }
 .makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .saymaSayilari.item { text-align: right; min-width: unset; max-width: 115px !important }
 .makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .saymaSayilari.item > * { font-weight: bold; font-size: 83%; color: mediumvioletred }
 .makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .sureler.item { text-align: right; min-width: unset; max-width: 115px !important }
 .makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .sureler.item .ek-bilgi { font-weight: normal; color: #888 }
 .makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .sureler.item > * { font-weight: bold; font-size: 83%; color: #238b66 }
 .makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .sureler.item > .basZamanTS { font-weight: bold; font-size: 83%; color: rebeccapurple }
-.makineYonetimi.part > .content #oemBilgileri .miktarVeGSC > * > * > table:not(:last-child) { margin-inline-end: 30px }
-.makineYonetimi.part > .content #oemBilgileri .miktarVeGSC table tr { --padding-x: 30px }
+.makineYonetimi.part > .content #oemBilgileri .miktarVeGSC > * > * > table:not(:last-child) { margin-inline-end: 25px }
+.makineYonetimi.part > .content #oemBilgileri .miktarVeGSC table tr { --padding-x: 20px }
 .makineYonetimi.part > .content #oemBilgileri .miktarVeGSC table tr > * { text-align: center }
 .makineYonetimi.part > .content #oemBilgileri .miktarVeGSC table tr > th { font-weight: bold; background-color: #555; height: 40px !important; padding: 3px var(--padding-x) }
 .makineYonetimi.part > .content #oemBilgileri .miktarVeGSC table tr > th,

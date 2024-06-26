@@ -3,8 +3,7 @@ class FiltreFormPart extends Part {
 	static get partName() { return 'filtreForm' } static get isSubPart() { return true }
 
 	constructor(e) {
-		e = e || {}; super(e);
-		$.extend(this, { parentPart: e.parentPart, value: e.value, degisinceEvent: [] });
+		e = e || {}; super(e); $.extend(this, { parentPart: e.parentPart, value: e.value, degisinceEvent: [] });
 		const degisinceBlock = e.degisince || e.degisinceBlock; if (degisinceBlock) this.change(degisinceBlock)
 	}
 	runDevam(e) {
@@ -17,8 +16,8 @@ class FiltreFormPart extends Part {
 		}
 		input.on('change', evt => changeHandler(evt));
 		input.on('keyup', evt => {
-			const key = (evt.key || '').toLowerCase();
-			if (key == 'enter' || key == 'linefeed') changeHandler(evt)
+			const key = evt.key?.toLowerCase();
+			if (key == 'enter' || key == 'linefeed') { changeHandler(evt) }
 			else { this.timer_change = setTimeout(() => { try { changeHandler(evt) } finally { delete this.timer_change } }, 100) }
 		})
 	}
