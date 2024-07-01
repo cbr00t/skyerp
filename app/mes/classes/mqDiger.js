@@ -317,8 +317,13 @@ class MQEkNotlar extends MQSayacliOrtak {
 			liste.push(new GridKolon({
 				filterable: false, sortable: false, groupable: false,
 				belirtec: `resim${i}`, text: `Dokuman Resim ${i}`, genislikCh: 20, cellsRenderer: (colDef, rowIndex, belirtec, _value, html, jqxCol, rec) => {
-					let i = asInteger(belirtec.slice('resim'.length)), value = rec[`url${i}`];
-					if (value) { html = `<div class="full-wh" style="background-repeat: no-repeat; background-size: contain; background-image: url(${value})"/>` }
+					let i = asInteger(belirtec.slice('resim'.length)), value = rec[`url${i}`], parts = value ? value.split('=') : null, ext, resimmi = false;
+					if (parts?.length) { let ind = parts.findIndex(part => part.endsWith('ext')); if (ind != -1) { ext = parts[ind + 1]?.trim()?.toLowerCase(); resimmi = !!fileExtSet_image[ext] } }
+					if (value) {
+						html = resimmi
+									? `<div class="full-wh" style="background-repeat: no-repeat; background-size: contain; background-image: url(${value})"/>`
+									: `<iframe class="full-wh" style="border: none; margin: 0; padding: 0; background-size: contain" src="${value}"></iframe>`
+					}
 					return html
 				}
 			}).noSql())

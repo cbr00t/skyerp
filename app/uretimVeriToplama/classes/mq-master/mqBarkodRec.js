@@ -278,8 +278,7 @@ class MQBarkodRec extends MQMasterOrtak {
 		parentForm.addForm('resimForm', e => $(`<div id="resimForm" class="full-width dock-bottom" style="margin-top: 10px; padding: 5px"/>`))
 			.setVisibleKosulu(e => !!e.builder.altInst.stokKod)
 			.onAfterRun(e => {
-				const {builder} = e, content = builder.layout, {altInst} = builder, {stokKod} = altInst;
-				if (!stokKod) return
+				const {builder} = e, content = builder.layout, {altInst} = builder, {stokKod} = altInst; if (!stokKod) { return }
 				const url = app.getWSUrl({ wsPath: 'ws/genel', api: 'stokResim', args: { id: stokKod } });
 				ajaxGet({ dataType: 'text', url }).then(result => {
 					if (!result?.trim()) return
