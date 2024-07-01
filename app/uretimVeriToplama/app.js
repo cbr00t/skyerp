@@ -175,13 +175,8 @@ class UretimVeriToplamaApp extends App {
 	veriAktarici_startTimer(e) {
 		this.veriAktarici_stopTimer(e);
 		this.veriAktarici_timer = setTimeout(async e => {
-			let result;
-			try {
-				if (!this.otoGonderFlag) { result = false; return }
-				result = await this.veriAktarici_timerProc(e)
-			}
-			catch (ex) { console.error(ex) }
-			finally { if (result !== false) this.veriAktarici_startTimer(e) }
+			let result; try { if (!this.otoGonderFlag) { result = false; return } result = await this.veriAktarici_timerProc(e) }
+			catch (ex) { console.error(ex) } finally { if (result !== false) this.veriAktarici_startTimer(e) }
 		}, this.veriAktarici_waitSecs * 1000, e)
 	}
 	veriAktarici_stopTimer(e) {
@@ -193,17 +188,15 @@ class UretimVeriToplamaApp extends App {
 		e = e || {}; const ignoreSet = asSet([/*'done',*/ 'removed']), yerelParam = this.params.yerel;
 		const orjGerceklemeler = yerelParam.gerceklemeler || [], gerceklemeler = yerelParam.gerceklemeler = orjGerceklemeler.filter(rec => !ignoreSet[rec._durum]);
 		let degistimi = gerceklemeler.length != orjGerceklemeler.length, id2Rec; const {recs} = e;
-		if (recs) { id2Rec = {}; for (const rec of recs) { const {id} = rec; if (id != null) id2Rec[id] = rec } } /* console.warn('veriAktarici_timerProc çalıştı', recs); */
+		if (recs) { id2Rec = {}; for (const rec of recs) { const {id} = rec; if (id != null) { id2Rec[id] = rec } } }
 		const isOnline = navigator.onLine, index2Bilgi = {}, queries = [];
 		for (let i = 0; i < gerceklemeler.length; i++) {
-			const rec = gerceklemeler[i];
-			if (id2Rec) { const {id} = rec; if (id == null || !id2Rec[id]) continue }
-			const {_durum} = rec; if (_durum == 'changing' || _durum == 'done') continue
+			const rec = gerceklemeler[i]; if (id2Rec) { const {id} = rec; if (id == null || !id2Rec[id]) { continue } }
+			const {_durum} = rec; if (_durum == 'changing' || _durum == 'done') { continue }
 			if (!rec.oemSayac) { rec._durum = isOnline ? 'error' : 'offline'; continue }
-			const bilgi = index2Bilgi[i] = { index: i, rec: rec };
+			const bilgi = index2Bilgi[i] = { index: i, rec };
 			if (isOnline) {
-				const subQueries = [];
-				let query = await rec.getQueryYapi(e); if (query) { subQueries.push(query) }
+				const subQueries = []; let query = await rec.getQueryYapi(e); if (query) { subQueries.push(query) }
 				if (!$.isEmptyObject(rec.iskartalar)) { subQueries.push(_e => _e.rec.getQueryYapi_iskartalar(e)) }
 				if (!$.isEmptyObject(rec.kaliteYapi?.recs)) { subQueries.push(_e => _e.rec.getQueryYapi_kalite(e)) }
 				bilgi.queries = subQueries
@@ -215,25 +208,24 @@ class UretimVeriToplamaApp extends App {
 		} /*if (degistimi) { const {activeWndPart} = this; if (activeWndPart && activeWndPart.tazele) activeWndPart.tazele() }*/
 		let error; if (isOnline) {
 			try {
-				if (queries?.length) { await this.sqlExecSP(queries) } const _e = $.extend({}, e);
-				for (const bilgi of Object.values(index2Bilgi)) {
+				if (queries?.length) { await this.sqlExecSP(queries); degistimi = true }
+				const _e = $.extend({}, e); for (const bilgi of Object.values(index2Bilgi)) {
 					$.extend(_e, bilgi); const {queries, rec} = bilgi;
 					if (queries?.length) {
 						for (const _query of queries) {
 							let query = await _query; if (isFunction(query) || query.run) { query = await getFuncValue.call(this, query, _e) } if (!query) { continue }
 							let result = bilgi.result = (isFunction(query) || query.run) ? await getFuncValue.call(this, query, _e) : await this.sqlExecSP(query)
 							let gerSayac; const params = (result || {}).params || {}, param_gerSayac = params['@gerSayac'];
-							if (param_gerSayac) gerSayac = asInteger(param_gerSayac.value) || null
-							if (gerSayac) { rec.gerSayac = gerSayac; degistimi = true }
-							const value = 'done'; if (rec._durum != value) { rec._durum = value; degistimi = true }
+							if (param_gerSayac) { gerSayac = asInteger(param_gerSayac.value) || null }
+							if (gerSayac) { rec.gerSayac = gerSayac }
+							const value = 'done'; if (rec._durum != value) { rec._durum = value }
 						}
 					}
 				}
 			}
-			catch (ex) { error = ex; for (const bilgi of Object.values(index2Bilgi)) { const value = 'error'; if (bilgi.rec._durum != value) { bilgi.rec._durum = value; degistimi = true } } }
+			catch (ex) { error = ex; for (const bilgi of Object.values(index2Bilgi)) { const value = 'error'; if (bilgi.rec._durum != value) { bilgi.rec._durum = value } } }
 		}
-		if (degistimi) { yerelParam.kaydet(); degistimi = false; }
-		if (error) throw error
+		if (degistimi) { yerelParam.gerceklemeler = orjGerceklemeler; yerelParam.kaydet(); degistimi = false } if (error) { throw error }
 		return index2Bilgi
 	}
 	playSound_barkodOkundu() {

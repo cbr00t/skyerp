@@ -523,8 +523,7 @@ class BarkodluGerceklemePart extends Part {
 		await app.promise_ready;
 		const yerelParam = app.params.yerel, gerceklemeler = yerelParam.gerceklemeler = yerelParam.gerceklemeler || [];
 		gerceklemeler.push(...(Object.values(anahStr2Rec))); yerelParam.kaydet();
-		this.txtBarkod.val(null);
-		this.getBarkodRec().reset_asil(); this.reset();
+		this.txtBarkod.val(null); this.getBarkodRec().reset_asil(); this.reset();
 		setTimeout(() => this.txtBarkod.focus(), 100); setTimeout(() => this.tazele(), 200)
 	}
 	async barkodOkutuldu(e) {
@@ -693,7 +692,7 @@ class BarkodluGerceklemePart extends Part {
 		const recs = _recs || gridWidget.getboundrows(), yeniDurum = 'processing';
 		gridWidget.beginupdate();
 		for (const rec of recs) {
-			if (ignoreSet[rec._durum]) continue
+			if (ignoreSet[rec._durum]) { continue }
 			if (rec._durum != yeniDurum) { rec._durum = yeniDurum; gridWidget.updaterow(rec.uid, rec) }
 		}
 		gridWidget.endupdate(false);
@@ -702,7 +701,7 @@ class BarkodluGerceklemePart extends Part {
 			app.veriAktarici_stopTimer();
 			app.veriAktarici_timerProc({ recs: _recs }).finally(() => {
 				app.veriAktarici_startTimer();
-				setTimeout(() => { const {gridWidget} = this.gridPart; if (gridWidget.editcell) return; this.tazele() }, 10)
+				setTimeout(() => { const {gridWidget} = this.gridPart; if (gridWidget.editcell) { return } this.tazele() }, 10)
 			})
 		}
 		const {txtBarkod} = this; if (txtBarkod?.length) setTimeout(() => this.txtBarkod.focus(), 200)

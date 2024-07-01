@@ -30,7 +30,7 @@ class MQBarkodRec extends MQMasterOrtak {
 		e = e || {}; super(e); const sabit_hatKod = app.params.config.hatKod || null, resetFlag = e.reset;
 		if (e.rec) { e = e.rec } if (resetFlag) { this.reset(e) }
 		$.extend(this, {
-			_durum: e.durum ?? this.durum ?? 'new', id: e.id || this.id || newGUID(), serbestmi: e.serbestmi ?? this.serbestmi ?? false, noCheckFlag: e.noCheck ?? e.noCheckFlag ?? false,
+			_durum: e._durum ?? e.durum ?? this.durum ?? 'new', id: e.id || this.id || newGUID(), serbestmi: e.serbestmi ?? this.serbestmi ?? false, noCheckFlag: e.noCheck ?? e.noCheckFlag ?? false,
 			_gorevmi: e.gorevmi, barkod: e.barkod ?? this.barkod, carpan: e.carpan ?? this.carpan, isKapansinmi: e.isKapansinmi ?? false, sonAsamami: e.sonAsamami ?? asBoolQ(e.sonasama),
 			oemSayac: e.oemSayac ?? e.oemsayac ?? e.fissayac ?? e.kaysayac ?? this.oemSayac, isId: e.isId || e.isID || e.isid,
 			formulSayac: e.formulSayac ?? e.formulsayac, onceOpNo: e.onceOpNo ?? e.onceopno,
@@ -303,7 +303,7 @@ class MQBarkodRec extends MQMasterOrtak {
 	oemHTMLDuzenle(e) { e = e || {}; e.rec = this; return MQOEM.oemHTMLDuzenle(e) }
 	asJSON(e) {
 		e = e || {}; return {
-			_durum: coalesce(this._durum, ''), id: this.id || newGUID(), serbestmi: this.serbestmi, isId: this.isId || null,
+			_durum: this._durum ?? '', id: this.id || newGUID(), serbestmi: this.serbestmi, isId: this.isId || null,
 			barkod: this.barkod, carpan: this.carpan, gerSayac: this.gerSayac || null, oemSayac: this.oemSayac || null,
 			emirNox: this.emirNox, emirTarih: this.emirTarih, opNo: this.opNo || null, opAdi: this.opAdi, stokKod: this.stokKod, stokAdi: this.stokAdi,
 			miktar: this.miktar, subeKod: this.subeKod,
