@@ -363,7 +363,7 @@ class MQEkNotlar extends MQSayacliOrtak {
 					const result = await app.wsResimDataKaydet({ resimId, ext, data }); if (!result.result) { throw { isError: true, errorText: 'Resim Kayıt Sorunu' } }
 					if (builder) {
 						const {altInst, input} = builder;
-						const value = builder.value = altInst[id] = `${app.getWSUrlBase()}/resimData/?id=${resimId}&ext=${ext}`; input?.focus()
+						const value = builder.value = altInst[id] = `${app.getWSUrlBase()}/stokResim/?id=${resimId}&ext=${ext}`; input?.focus()
 					}
 					gridPart.tazeleDefer(e)
 				} finally { $(evt.target).remove() }

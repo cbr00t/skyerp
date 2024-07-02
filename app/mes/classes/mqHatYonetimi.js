@@ -169,7 +169,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 			for (const rec of recs) {
 				const {hatKod, hatAdi} = rec, styles_bgImg_url = [], imageInfos = [ { align: 'left' }, { align: 'center', postfix: '-01' }, { align: 'right', postfix: '-02' } ];
 				for (const {align, postfix} of imageInfos) {
-					let id = `hat-${hatKod}`; if (postfix) { id += postfix } const url = `${app.getWSUrlBase()}/resimData/?id=${id}`;
+					let id = `hat-${hatKod}`; if (postfix) { id += postfix } const url = `${app.getWSUrlBase()}/stokResim/?id=${id}`;
 					styles_bgImg_url.push(`url(${url}) ${align} center no-repeat`)
 				}
 				const styles_bgImg_size = styles_bgImg_url.map(x => 'contain'), styles_bgImg = [`background: ${styles_bgImg_url.join(', ')}`, `background-size: ${styles_bgImg_size.join(', ')}`];
@@ -246,15 +246,17 @@ class MQHatYonetimi extends MQMasterOrtak {
 		} }); this.openContextMenu(e)
 	}
 	static topluXMenuIstendi(e) {
-		e = e || {}; const {parentRec} = e, hatKod = e.hatKod = e.hatKod ?? parentRec?.hatKod;
+		e = e || {}; const {parentRec} = e, {sabitHatKod} = app, hatKod = e.hatKod = e.hatKod ?? parentRec?.hatKod;
 		$.extend(e, { noCheck: true, formDuzenleyici: _e => {
 			_e = $.extend({}, e, _e); const {form, close} = _e; form.yanYana(2);
 			form.addButton('mola', undefined, 'Mola').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
 			form.addButton('vardiyaDegisimi', undefined, 'Vardiya Değişimi').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
-			form.addButton('isBitti', undefined, 'İş Bitti').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
-			form.addButton('gerceklemeYap', undefined, 'Gerçekleme Yap').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
-			form.addButton('zamanEtuduBaslat', undefined, 'Zaman Etüdü Başlat').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
-			form.addButton('zamanEtuduKapat', undefined, 'Zaman Etüdü Kapat').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) })
+			if (!sabitHatKod || hatKod) {
+				form.addButton('isBitti', undefined, 'İş Bitti').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
+				form.addButton('gerceklemeYap', undefined, 'Gerçekleme Yap').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
+				form.addButton('zamanEtuduBaslat', undefined, 'Zaman Etüdü Başlat').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
+				form.addButton('zamanEtuduKapat', undefined, 'Zaman Etüdü Kapat').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) })
+			}
 			/*form.addButton('topluEkNotlar', undefined, 'Tüm Notlar').onClick(e => { close(); this.ekNotlarIstendi($.extend({}, _e, e, { id: e.builder.id, hepsi: true })) })
 			form.addButton('ozetBilgi', undefined, 'Özet Bilgi').onClick(e => { close(); this.ozetBilgiGoster($.extend({}, _e, e, { id: e.builder.id })) })*/
 		} }); this.openContextMenu(e)
@@ -308,7 +310,8 @@ class MQHatYonetimi extends MQMasterOrtak {
 		const {id} = e, gridPart = e.gridPart ?? e.sender ?? e.builder?.rootBuilder?.part; let recs = gridPart?._lastRecs;
 		const hatKodListe = e.hatKodListe ?? (e.hatKod ? [e.hatKod] : []), wsArgs = {};
 		if (hatKodListe?.length) { const hatKodSet = asSet(hatKodListe); wsArgs.hatIdListe = hatKodListe.join(delimWS); recs = e.recs = recs.filter(rec => hatKodSet[rec.hatKod]); e.rec = recs[0] }
-		const recsCount = recs?.length, islemKod2Adi = { mola: 'Mola', vardiyaDegisimi: 'Vardiya Değişimi', isBitti: `<span class="red">İş Bitti</span>`, gerceklemeYap: 'Gerçekleme Yap' }, islemAdi = islemKod2Adi[id] ?? id;
+		const islemKod2Adi = { mola: 'Mola', vardiyaDegisimi: 'Vardiya Değişimi', isBitti: `<span class="red">İş Bitti</span>`, gerceklemeYap: 'Gerçekleme Yap' };
+		const recsCount = recs?.length, islemAdi = islemKod2Adi[id] ?? id;
 		ehConfirm(`${recsCount ? `<b class="royalblue">${recsCount}</b> tezgah için ` : ''}<b>Toplu ${islemAdi}</b> istendi, devam edilsin mi?`, `Toplu ${islemAdi}`).then(async result => {
 			if (!result) { return } try {
 				switch (id) {
@@ -336,33 +339,34 @@ class MQHatYonetimi extends MQMasterOrtak {
 	}
 	static ozetBilgi_getLayout(e) {
 		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, recs = gridPart?._lastRecs;
-		const hat2Durum2Sayi = {}; let topMakiyeSayi = 0, topAktifSayi = 0; for (const rec of recs) {
-			const {hatKod, durumKod} = rec, hatText = hatKod, aktifmi = (durumKod == 'DV');
-			const durum2Sayi = hat2Durum2Sayi[hatText] = hat2Durum2Sayi[hatText] || {}; durum2Sayi[aktifmi] = (durum2Sayi[aktifmi] || 0) + 1;
-			topMakiyeSayi++; if (aktifmi) { topAktifSayi++ }
+		const hat2Durum2Sayi = {}; let topMakineSayi = 0, topAktifSayi = 0, topPasifSayi = 0, topOffSayi = 0; for (const rec of recs) {
+			const {hatKod, sinyalKritik} = rec, hatText = hatKod; let {durumKod} = rec;
+			if (durumKod == 'DV') { if (sinyalKritik) { durumKod = 'BPSF' } } else { durumKod = '' }
+			const durum2Sayi = hat2Durum2Sayi[hatText] = hat2Durum2Sayi[hatText] || {}; durum2Sayi[durumKod] = (durum2Sayi[durumKod] || 0) + 1;
+			topMakineSayi++; if (durumKod == 'DV') { topAktifSayi++ } else if (durumKod == 'BPSF') { topPasifSayi++ } else { topOffSayi++ }
 		}
 		const textList = []; for (const [hat, durum2Sayi] of Object.entries(hat2Durum2Sayi)) {
 			let text = `<li class="item"><span class="etiket sub-item">${hat}:</span> `;
-			for (let _aktifmi of Object.keys(durum2Sayi).sort().reverse()) {
-				const sayi = durum2Sayi[_aktifmi]; const aktifmi = asBool(_aktifmi), durumText = aktifmi ? 'ON' : 'OFF';
-				text += `<span class="sub-item ${aktifmi ? 'on' : 'off'}">[<span class="durum">${durumText} = </span><span class="sayi">${sayi}</span>]</span>`
+			for (let durumKod of Object.keys(durum2Sayi).sort().reverse()) {
+				const sayi = durum2Sayi[durumKod], durumText = durumKod == 'DV' ? 'ON' : durumKod == 'BPSF' ? 'PSF' : 'OFF';
+				text += `<span class="sub-item ${durumKod == 'DV' ? 'on' : durumKod == 'BPSF' ? 'pasif' : 'off'}">[<span class="durum">${durumText} = </span><span class="sayi">${sayi}</span>]</span>`
 			}
 			text += `</li>`; textList.push(text)
 		}
-		const verimlilik = roundToFra(topAktifSayi / topMakiyeSayi * 100, 1); if (verimlilik) {
-			textList.push(
-				`<div class="ek-satirlar flex-row">
-					<li class="item">
-						<div><span class="etiket sub-item highlight">Top. Makine &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> <span class="sayi sub-item">${numberToString(topMakiyeSayi)}</span></div>
-						<div><span class="etiket sub-item highlight">Mak. Verimlilik </span> <span class="sayi sub-item">%${numberToString(verimlilik)}</span></div>
-					</li>
-					<li class="item">
-						<div class="on"><span class="etiket highlight sub-item">Aktif Makine</span> <span class="sayi sub-item">${numberToString(topAktifSayi)}</span></div>
-						<div class="off"><span class="etiket highlight sub-item">Off Makine </span> <span class="sayi sub-item">${numberToString(topMakiyeSayi - topAktifSayi)}</span></div>
-					</li>
-				</div>`
-			)
-		}
+		const verimlilik = roundToFra(topAktifSayi / topMakineSayi * 100, 1);
+		textList.push(
+			`<div class="ek-satirlar flex-row">
+				<li class="item">
+					<div><span class="etiket sub-item highlight">Top. Makine &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> <span class="sayi sub-item">${numberToString(topMakineSayi)}</span></div>
+					<div><span class="etiket sub-item highlight">Mak. Verimlilik </span> <span class="sayi sub-item">%${numberToString(verimlilik)}</span></div>
+				</li>
+				<li class="item">
+					<div class="on"><span class="etiket highlight sub-item">Aktif Makine</span> <span class="sayi sub-item">${numberToString(topAktifSayi)}</span></div>
+					<div class="pasif"><span class="etiket highlight sub-item">Pasif Makine </span> <span class="sayi sub-item">${numberToString(topPasifSayi)}</span></div>
+					<div class="off"><span class="etiket highlight sub-item">Off Makine </span> <span class="sayi sub-item">${numberToString(topOffSayi)}</span></div>
+				</li>
+			</div>`
+		)
 		return `<ul class="text ozetBilgi-container ozetBilgi">${textList?.length ? textList.join(' ') : ''}</ul>`
 	}
 	static ekBilgiIstendi(e) {
@@ -506,7 +510,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 		)
 	}
 	static gridCell_getLayout_isBilgileri(e) {
-		e = e ?? {}; const _now = now(), rec = e.rec ?? e.inst ?? {}, isListe = rec.isListe ?? [], isBilgiItems = [];
+		e = e ?? {}; const _now = now(), rec = e.rec ?? e.inst ?? {}, isListe = rec.isListe ?? [], isBilgiItems = [], {sinyalKritik, maxAyrilmaDk} = rec;
 		const grafikPart = new GaugeGrafikPart(), colors = grafikPart.colors ?? [];
 		for (let i = 0; i < isListe.length; i++) {
 			const is = isListe[i], color = colors[i];
@@ -534,7 +538,8 @@ class MQHatYonetimi extends MQMasterOrtak {
 					${
 						`<div class="basZamanTS veri">${dateKisaString(basZamanTS) ?? ''}</div>` +
 						`<div class="isToplamBrutSureSn veri"><span class="ek-bilgi">Br:</span> ${timeToString(isToplamBrutSureTS) ?? ''}</div>` +
-						`<div class="isToplamNetSureTS veri"><span class="ek-bilgi">Nt:</span> ${timeToString(isToplamNetSureTS) ?? ''}</div>`
+						`<div class="isToplamNetSureTS veri"><span class="ek-bilgi">Nt:</span> ${timeToString(isToplamNetSureTS) ?? ''}</div>` +
+						(/*sinyalKritik &&*/ maxAyrilmaDk ? `<div class="ayrilmaSure veri"><span class="ek-bilgi">As:</span> ~${asSaniyeKisaString(maxAyrilmaDk * 60) ?? ''}</div>` : '')
 					}
 					</div>
 				<div>`

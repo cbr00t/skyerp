@@ -55,6 +55,7 @@
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .durum, .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .sayi { font-weight: bold; width: 80px; text-align: right }
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .durum { } .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .sayi { color: #84bfe1 }
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .durum { } .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .on > * { color: lightgreen }
+.ozetBilgi.jqx-window .subContent .ozetBilgi-container li .durum { } .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .pasif > * { color: orange }
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .durum { } .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .off > * { color: indianred }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .hat { color: #333 !important; background-color: #333 }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .hat .veri { font-weight: bold; font-size: 130%; color: #eee }
@@ -81,6 +82,7 @@
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .sureler.item > * { font-weight: bold; font-size: 100%; color: #238b66 }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .sureler.item .ek-bilgi { font-weight: normal; color: #888 }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .sureler.item > .basZamanTS { color: rebeccapurple }
+.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .sureler.item > .ayrilmaSure { color: orangered }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .miktarVeGSC > * > * { width: max-content !important }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .miktarVeGSC > *> *:not(:last-child) { margin-inline-end: 13px }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .miktarVeGSC th, .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .miktarVeGSC td { text-align: right; padding: 0 8px; border: 1px dotted #ddd }

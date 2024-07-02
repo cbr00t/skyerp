@@ -48,6 +48,7 @@
 .makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .sureler.item .ek-bilgi { font-weight: normal; color: #888 }
 .makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .sureler.item > * { font-weight: bold; font-size: 83%; color: #238b66 }
 .makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .sureler.item > .basZamanTS { font-weight: bold; font-size: 83%; color: rebeccapurple }
+.makineYonetimi.part > .content #oemBilgileri td .isListe > * > li .sureler.item > .ayrilmaSure { font-weight: bold; font-size: 85%; color: orangered }
 .makineYonetimi.part > .content #oemBilgileri .miktarVeGSC > * > * > table:not(:last-child) { margin-inline-end: 25px }
 .makineYonetimi.part > .content #oemBilgileri .miktarVeGSC table tr { --padding-x: 20px }
 .makineYonetimi.part > .content #oemBilgileri .miktarVeGSC table tr > * { text-align: center }
