@@ -45,11 +45,11 @@
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .veri { color: royalblue; width: var(--full) }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .flex-row > .veri { width: calc(var(--full) - var(--etiket-width) - 100px) !important }
 .ozetBilgi.jqx-window .jqx-window-content { background: linear-gradient(270deg, #333 5%, #333 80%) !important }
-.ozetBilgi.jqx-window .subContent .ozetBilgi-parent { width: var(--full); height: var(--full); font-size: 110% }
-.ozetBilgi.jqx-window .subContent .ozetBilgi-container { position: relative; display: flex; flex-wrap: wrap; left: -20px; top: 10px; line-height: 28px }
-.ozetBilgi.jqx-window .subContent .ozetBilgi-container li, .ozetBilgi.jqx-window .subContent .ozetBilgi-container .ek-satirlar li { font-size: 120%; color: #999; list-style: none; min-width: 350px; border-radius: 10px; padding: 8px 0 }
+.ozetBilgi.jqx-window .subContent .ozetBilgi-parent { width: var(--full); height: var(--full); font-size: 100% }
+.ozetBilgi.jqx-window .subContent .ozetBilgi-container { position: relative; display: flex; flex-wrap: wrap; left: -40px; top: 10px; line-height: 28px }
+.ozetBilgi.jqx-window .subContent .ozetBilgi-container li, .ozetBilgi.jqx-window .subContent .ozetBilgi-container .ek-satirlar li { font-size: 120%; color: #999; list-style: none; min-width: 300px; border-radius: 10px; margin-left: 20px; padding: 3px 0 }
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container .ek-satirlar li { line-height: 180% }
-.ozetBilgi.jqx-window .subContent .ozetBilgi-container li .sub-item:not(.baslik):not(:last-child) { margin-right: 20px }
+.ozetBilgi.jqx-window .subContent .ozetBilgi-container li .sub-item:not(.baslik):not(:last-child) { margin-right: 8px }
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .etiket { font-weight: bold; color: #cce; margin-right: 5px }
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .etiket.highlight { color: #eee }
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .durum, .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .sayi { font-weight: bold; width: 80px; text-align: right }
@@ -117,7 +117,6 @@
 }
 @keyframes sinyal-kritik-bg { 50% { background-color: #24400f } }
 @keyframes duraksama-kritik-bg { 50% { background-color: #853021 } }
-
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .grafik-parent { position: absolute; margin-top: -3px; right: 10px; opacity: .5; height: 50px !important; overflow-y: clip }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .grafik-parent > * { }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > *.jqx-grid-cell-selected .grafik-parent { opacity: 1 }

@@ -30,6 +30,42 @@ class MQHatYonetimi extends MQMasterOrtak {
 			if (rootPart.grupsuzmu) { input.prop('checked', true) }
 			input.on('change', evt => { const value = rootPart.grupsuzmu = $(evt.currentTarget).is(':checked'); rootPart.tazeleDefer() })
 		});
+		const fbd_islemTuslari_sol = rfb.addForm('kronometre').addCSS('flex-row')
+			.setParent(gridPart.islemTuslariPart.sol).setLayout(e => $(`<div id="${e.builder.id}"><div id="value"class="full-wh"></div><button id="reset" class="jqx-hidden">x</button></div>`))
+			.addStyle(e =>
+				`$elementCSS { 
+					position: absolute !important; left: 485px; top: 3px; width: 150px !important; height: 35px !important;
+					background-color: #333333ee !important; border: 2px solid #aaa; border-radius: 8px; cursor: pointer
+				}
+				$elementCSS #value { font-family: Corier New !important; font-size: 110%; font-weight: bold; text-align: left; color: whitesmoke; background: transparent !important; padding-left: 20px !important; border: none !important }
+				$elementCSS #value:not(.running) ::after { content: 'Kronometre' }
+				$elementCSS #reset { font-size: 150%; font-weight: bold; position: absolute; top: -10px; right: -5px; width: 48px; height: 48px; color: orangered }
+				$elementCSS:hover { border-color: royalblue }
+				$elementCSS.running { border-color: lightgreen; box-shadow: 0px 0px 3px 3px lightgreen }
+				$elementCSS.paused { border-color: orange; box-shadow: 0px 0px 2px 2px orange }`
+			 )
+			.onAfterRun(e => {
+				const {builder} = e, {rootPart, layout} = builder, elmValue = layout.find('#value'), btnReset = layout.find('#reset');
+				const timerKey = 'timer_kronometre', kronometre = this.kronometre = this.kronometre || {}; elmValue.attr('placeholder', 'Kronometre');
+				elmValue.on('click', evt => {
+					const {kronometre} = this; let running = !kronometre.running;
+					if (running) {
+						if (kronometre.startTS == null) { kronometre.startTS = now() }
+						kronometre[timerKey] = setInterval(kronometre => {
+							if (rootPart?.isDestroyed) { clearInterval(kronometre[timerKey]); kronometre[timerKey] = kronometre.startTS = null; layout.removeClass('running paused'); return }
+							const value = kronometre.value = timeToString(now() - kronometre.startTS, false, true); elmValue.html(value)
+						}, 90, kronometre);
+						layout.addClass('started running'); layout.removeClass('paused')
+					}
+					else { clearInterval(kronometre[timerKey]); kronometre[timerKey] = null; layout.removeClass('running'); layout.addClass('paused') }
+					kronometre.running = running; btnReset.removeClass('jqx-hidden basic-hidden')
+				});
+				btnReset.jqxButton({ theme }).on('click', evt => {
+					const {kronometre} = this; if (!kronometre) { return }
+					if (kronometre.running) { clearInterval(kronometre[timerKey]); kronometre[timerKey] = kronometre.startTS = null; layout.removeClass('running paused') }
+					const value = kronometre.value = null; kronometre.running = false; elmValue.html(value); btnReset.addClass('jqx-hidden')
+				})
+			});
 		rfb.onAfterRun(e => {
 			const gridPart = e.builder.part, hizliBulLayout = gridPart.bulPart?.layout?.children('input');
 			if (hizliBulLayout?.length) {
@@ -311,8 +347,8 @@ class MQHatYonetimi extends MQMasterOrtak {
 		const hatKodListe = e.hatKodListe ?? (e.hatKod ? [e.hatKod] : []), wsArgs = {};
 		if (hatKodListe?.length) { const hatKodSet = asSet(hatKodListe); wsArgs.hatIdListe = hatKodListe.join(delimWS); recs = e.recs = recs.filter(rec => hatKodSet[rec.hatKod]); e.rec = recs[0] }
 		const islemKod2Adi = { mola: 'Mola', vardiyaDegisimi: 'Vardiya Değişimi', isBitti: `<span class="red">İş Bitti</span>`, gerceklemeYap: 'Gerçekleme Yap' };
-		const recsCount = recs?.length, islemAdi = islemKod2Adi[id] ?? id;
-		ehConfirm(`${recsCount ? `<b class="royalblue">${recsCount}</b> tezgah için ` : ''}<b>Toplu ${islemAdi}</b> istendi, devam edilsin mi?`, `Toplu ${islemAdi}`).then(async result => {
+		const hatBazindami = !!e.hatKod, recsCount = !hatBazindami ? 0 : recs?.length, islemAdi = islemKod2Adi[id] ?? id;
+		ehConfirm(`${recsCount ? `<b class="royalblue">${recsCount}</b> tezgah için ` : `<u class="bold">Tüm tezgahlar</u> için`}<b>Toplu ${islemAdi}</b> istendi, devam edilsin mi?`, `Toplu ${islemAdi}`).then(async result => {
 			if (!result) { return } try {
 				switch (id) {
 					case 'gerceklemeYap': await app.wsTopluGerceklemeYap(wsArgs); break
@@ -341,15 +377,15 @@ class MQHatYonetimi extends MQMasterOrtak {
 		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, recs = gridPart?._lastRecs;
 		const hat2Durum2Sayi = {}; let topMakineSayi = 0, topAktifSayi = 0, topPasifSayi = 0, topOffSayi = 0; for (const rec of recs) {
 			const {hatKod, sinyalKritik} = rec, hatText = hatKod; let {durumKod} = rec;
-			if (durumKod == 'DV') { if (sinyalKritik) { durumKod = 'BPSF' } } else { durumKod = '' }
-			const durum2Sayi = hat2Durum2Sayi[hatText] = hat2Durum2Sayi[hatText] || {}; durum2Sayi[durumKod] = (durum2Sayi[durumKod] || 0) + 1;
-			topMakineSayi++; if (durumKod == 'DV') { topAktifSayi++ } else if (durumKod == 'BPSF') { topPasifSayi++ } else { topOffSayi++ }
+			if (durumKod == 'DV') { durumKod = sinyalKritik ? 'APSF' : 'ZON' } else { durumKod = 'XOFF' }
+			let durum2Sayi = hat2Durum2Sayi[hatText]; if (durum2Sayi == null) { durum2Sayi = hat2Durum2Sayi[hatText] = {}; for (const key of ['ZON', 'APSF', 'XOFF']) { durum2Sayi[key] = 0 } }
+			durum2Sayi[durumKod] = (durum2Sayi[durumKod] || 0) + 1; topMakineSayi++; if (durumKod == 'ZON') { topAktifSayi++ } else if (durumKod == 'APSF') { topPasifSayi++ } else { topOffSayi++ }
 		}
 		const textList = []; for (const [hat, durum2Sayi] of Object.entries(hat2Durum2Sayi)) {
 			let text = `<li class="item"><span class="etiket sub-item">${hat}:</span> `;
 			for (let durumKod of Object.keys(durum2Sayi).sort().reverse()) {
-				const sayi = durum2Sayi[durumKod], durumText = durumKod == 'DV' ? 'ON' : durumKod == 'BPSF' ? 'PSF' : 'OFF';
-				text += `<span class="sub-item ${durumKod == 'DV' ? 'on' : durumKod == 'BPSF' ? 'pasif' : 'off'}">[<span class="durum">${durumText} = </span><span class="sayi">${sayi}</span>]</span>`
+				const sayi = durum2Sayi[durumKod], durumText = durumKod == 'ZON' ? 'ON' : durumKod == 'APSF' ? 'PSF' : 'OFF';
+				text += `<span class="sub-item ${durumKod == 'ZON' ? 'on' : durumKod == 'APSF' ? 'pasif' : 'off'}">[<span class="durum">${durumText} = </span><span class="sayi">${sayi}</span>]</span>`
 			}
 			text += `</li>`; textList.push(text)
 		}
@@ -362,8 +398,8 @@ class MQHatYonetimi extends MQMasterOrtak {
 				</li>
 				<li class="item">
 					<div class="on"><span class="etiket highlight sub-item">Aktif Makine</span> <span class="sayi sub-item">${numberToString(topAktifSayi)}</span></div>
+					<div class="off"><span class="etiket highlight sub-item">Off &nbsp;Makine </span> <span class="sayi sub-item">${numberToString(topOffSayi)}</span></div>
 					<div class="pasif"><span class="etiket highlight sub-item">Pasif Makine </span> <span class="sayi sub-item">${numberToString(topPasifSayi)}</span></div>
-					<div class="off"><span class="etiket highlight sub-item">Off Makine </span> <span class="sayi sub-item">${numberToString(topOffSayi)}</span></div>
 				</li>
 			</div>`
 		)
@@ -513,7 +549,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 		e = e ?? {}; const _now = now(), rec = e.rec ?? e.inst ?? {}, isListe = rec.isListe ?? [], isBilgiItems = [], {sinyalKritik, maxAyrilmaDk} = rec;
 		const grafikPart = new GaugeGrafikPart(), colors = grafikPart.colors ?? [];
 		for (let i = 0; i < isListe.length; i++) {
-			const is = isListe[i], color = colors[i];
+			const is = isListe[i], color = colors[i]; if (!is) { continue }
 			const {emirTarih, emirNox, operNo, operAciklama, urunKod, urunAciklama, isSaymaSayisi, isSaymaTekilEnDusukSure, isSaymaToplamEnDusukSure} = is;
 			const basZamanTS = is.basZamanTS ? asDate(is.basZamanTS) : null, isToplamBrutSureSn = basZamanTS ? asInteger((_now.getTime() - basZamanTS.getTime()) / 1000) : null;
 			const isToplamDuraksamaSureSn = is.isToplamDuraksamaSureSn || 0, isToplamNetSureSn = (isToplamBrutSureSn || 0) - (isToplamDuraksamaSureSn || 0);
@@ -539,7 +575,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 						`<div class="basZamanTS veri">${dateKisaString(basZamanTS) ?? ''}</div>` +
 						`<div class="isToplamBrutSureSn veri"><span class="ek-bilgi">Br:</span> ${timeToString(isToplamBrutSureTS) ?? ''}</div>` +
 						`<div class="isToplamNetSureTS veri"><span class="ek-bilgi">Nt:</span> ${timeToString(isToplamNetSureTS) ?? ''}</div>` +
-						(maxAyrilmaDk ? `<div class="ayrilmaSure veri"><span class="ek-bilgi">As:</span> ${timeToString(new Date(0).addMinutes(maxAyrilmaDk).addHours(-3)) ?? ''}</div>` : '')
+						(maxAyrilmaDk ? `<div class="ayrilmaSure veri"><span class="ek-bilgi">As:</span> ${timeToString(new Date(0).clearTime().addMinutes(maxAyrilmaDk)) ?? ''}</div>` : '')
 						/*(maxAyrilmaDk ? `<div class="ayrilmaSure veri"><span class="ek-bilgi">As:</span> ~${asSaniyeKisaString(maxAyrilmaDk * 60) ?? ''}</div>` : '')*/
 					}
 					</div>

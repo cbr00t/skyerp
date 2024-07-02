@@ -117,7 +117,7 @@ class GridPart extends Part {
 								result = result ?? { totalrecords: 0, records: [] };
 								if (typeof result == 'object') {
 									if (result.records && !result.totalrecords) { result.totalrecords = result.records.length }
-									try { callback(result) } catch (ex) { console.error(ex); debugger }
+									try { callback(result) } catch (ex) { console.error(ex) }
 								}
 							}
 						}, 5)
