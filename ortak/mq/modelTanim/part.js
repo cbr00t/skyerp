@@ -47,10 +47,7 @@ class ModelTanimPart extends Part {
 		this.title = this.title || `${mfSinif?.sinifAdi || 'Model'} Tanım`;
 		const {islem} = this; if (islem) { const islemText = islem[0].toUpperCase() + islem.slice(1); this.title += ` &nbsp;[<span class="window-title-ek">${islemText}</span>]` }
 	}
-	async init(e) {
-		await super.init(e); this.initDevam(e); await this.initFormBuilder(e);
-		if (this.builder) this.initDevam(e)
-	}
+	async init(e) { await super.init(e); this.initDevam(e); await this.initFormBuilder(e); if (this.builder) { this.initDevam(e) } }
 	initDevam(e) {
 		const mfSinif = this.mfSinif ?? this?.inst?.class, {rootPartName, partName} = this.class, {layout, hasTabPages, formLayoutSelector} = this;
 		if (mfSinif) { layout.addClass(mfSinif.dataKey || mfSinif.classKey) }

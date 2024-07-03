@@ -94,6 +94,7 @@ class MQCogul extends MQYapi {
 	static islemTuslariDuzenle_listeEkrani(e) { }
 	static async getRootFormBuilder(e) {
 		e = e || {}; let tanimFormBuilder = new FBuilder_TanimForm(), rootBuilder = new RootFormBuilder().add(tanimFormBuilder);
+		if (rootBuilder) { rootBuilder.noAutoInitLayout() }
 		const _e = $.extend({}, e, { mfSinif: this, inst: e.inst, rootBuilder, tanimFormBuilder });
 		await this.rootFormBuilderDuzenle(_e); await this.rootFormBuilderDuzenleSonrasi(_e); rootBuilder = _e.rootBuilder; return rootBuilder
 	}

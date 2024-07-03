@@ -8,7 +8,7 @@ class MQMustBilgi extends MQKAOrtak {
 		let rec = liste.find(rec => rec.id == 'degistir'); if (rec) { rec.id = 'izle' }
 		(part.ekSagButonIdSet = part.ekSagButonIdSet || {}).izle = true
 	}
-	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e) /*; const {args} = e; $.extend(args, { sortable: false }) */ }
+	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); const {args} = e; $.extend(args, { groupsExpandedByDefault: true }) }
 	static orjBaslikListesi_gridInit(e) {
 		super.orjBaslikListesi_gridInit(e); const {grid} = e;
 		grid.on('filter', evt => { if (grid.jqxGrid('groups').length && evt.args.filters?.length) grid.jqxGrid('expandallgroups') })
@@ -62,55 +62,26 @@ class MQMustBilgi extends MQKAOrtak {
 		const recs = Object.values(result); return recs
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); const rfb = e.rootBuilder, tanimForm = e.tanimFormBuilder, {mfSinif, inst, kaForm} = e, width = 'var(--full)';
-		rfb.addCSS('no-scroll').addStyle(e => `$elementCSS .form-layout > [data-builder-id = "kaForm"] { margin-top: -25px }`)
+		super.rootFormBuilderDuzenle(e); const rfb = e.rootBuilder, tanimForm = e.tanimFormBuilder, rootPart = e.sender, {mfSinif, inst, kaForm} = e;
+		const {layout} = rootPart, width = 'var(--full)';
+		rfb.addCSS('no-scroll').addStyle(e => `$elementCSS .form-layout > [data-builder-id = "kaForm"] { margin-top: -40px }`)
 		rfb.setAltInst(e => {
 			const {localData} = app.params, dataKey = this.dataKey, mustBilgiDict = localData.getData(dataKey);
 			const {builder} = e, {part} = builder, {kod} = part.inst, mustBilgi = mustBilgiDict[kod]; return mustBilgi
 		});
 		const tanimPart = e.sender; tanimPart.islem = 'izle'; tanimPart.title = tanimPart.title = `<b>${inst.kod}</b><span class="gray"> - Müşteri Detayları</span>`;
-		let form = tanimForm.addFormWithParent().altAlta().addStyle_fullWH({ height: 'calc(var(--full) - 128px)' })
-			.addStyle([
-				e => `$elementCSS > .formBuilder-element > .baslik { padding-bottom: 15px }`,
-				e => `$elementCSS > .formBuilder-element { margin-top: 10px }`
-				/* e => `$elementCSS { padding-bottom: 300px }`,
-				   e => `$elementCSS .jqx-grid div[role=row] > div { font-size: 90%; line-height: 18px }` */
-			])
-		/*const setNavToggleHandler = builder => {
-			builder.addStyle([
-				e => `$elementCSS { cursor: pointer; height: ${height}px }`,
-				e => `$elementCSS:hover > .baslik { text-decoration: underline; color: royalblue !important }`,
-				e => `$elementCSS:focus > .baslik { font-weight: bold }`
-			]);
-			builder.onBuildEk(e => {
-				const {builder} = e, {layout} = builder;
-				layout.on('click', evt => {
-					const elm = $(evt.target); let parentUygunmu = false;
-					for (const _elm of [elm, elm.parent()]) { if (_elm.hasClass('baslik') && _elm.hasClass('parent')) { parentUygunmu = true; break } }
-					if (!parentUygunmu) return
-					const {layout} = builder; if (layout?.length) {
-						if (builder._savedHeight) { layout.css('height', builder._savedHeight); delete builder._savedHeight }
-						else { builder._savedHeight = layout.css('height'); layout.css('height', 'unset') }
-					}
-					for (const fbd of builder.builders) { const {layout} = fbd; if (layout?.length) layout.toggleClass('jqx-hidden') }
-				})
-			})
-		}*/
-		kaForm.addDiv({ id: 'bakiyeText', etiket: ' ' })
-			.onBuildEk(e => { const {builder} = e, {input, altInst} = builder; input.html(altInst.bakiyeText) })
-			.addStyle(e => `$elementCSS { font-size: 150%; color: gray; margin-top: 20px; margin-left: 50px }`);
-		const tabPanel = form.addTabPanel('tabPanel').addStyle_fullWH().addStyle(e => `$elementCSS > .content > div { padding-bottom: 0 !important }`);
+		let fbd_islemTuslari = rfb.addForm('islemTuslari_sol').setLayout(e => e.builder.rootPart.layout.find('.header > .islemTuslari'));
+		fbd_islemTuslari.addForm('bakiyeText').setLayout(e => $(`<span class="bakiyeForm">${e.builder.altInst.bakiyeText}</span>`))
+			.addStyle(e => `$elementCSS { font-size: 130%; color: gray; position: absolute; top: 10px; left: 50px }`)
+		const tabPanel = tanimForm.addTabPanel('tabPanel').addStyle_fullWH(null, 'calc(var(--full) - 155px)').addStyle(e => `$elementCSS > .content > div { padding-bottom: 0 !important }`);
 		const addGrid = (id, etiket, mfSinif, ekIslemler, parentBuilder) => {
-			ekIslemler = ekIslemler || {};
-			etiket = etiket ?? mfSinif?.sinifAdi ?? '';
-			if (!parentBuilder) parentBuilder = tabPanel.addTab(id, etiket).yanYana()
-			/*const altForm = parentBuilder.addBaslik(id).setEtiket(etiket).addCSS('baslik').addStyle_fullWH(); */
-			if (ekIslemler.ilk) getFuncValue.call(this, ekIslemler.ilk, { id, etiket, mfSinif, etiket, parentBuilder })
+			ekIslemler = ekIslemler || {}; etiket = etiket ?? mfSinif?.sinifAdi ?? '';
+			if (!parentBuilder) { parentBuilder = tabPanel.addTab(id, etiket).yanYana() } /*const altForm = parentBuilder.addBaslik(id).setEtiket(etiket).addCSS('baslik').addStyle_fullWH(); */
+			if (ekIslemler.ilk) { getFuncValue.call(this, ekIslemler.ilk, { id, etiket, mfSinif, etiket, parentBuilder }) }
 			const prevFbd = parentBuilder.builders[parentBuilder.builders.length - 1], prevWidth = prevFbd?._width || 0;
-			const fbd = parentBuilder.addGridliGosterici(id).addCSS('dock-bottom').setMFSinif(mfSinif)
+			const fbd = parentBuilder.addGridliGosterici(id).addStyle_fullWH()/*.addCSS('dock-bottom')*/.setMFSinif(mfSinif)
 				.widgetArgsDuzenleIslemi(e => { const {mfSinif} = e.builder; mfSinif.orjBaslikListesi_argsDuzenle(e) })
-				.setTabloKolonlari(e => { const {mfSinif} = e.builder; return mfSinif.listeBasliklari })
-				.setSource(e => { const {builder} = e, {rootPart, mfSinif} = builder; e.mustKod = rootPart.inst.kod; return mfSinif.loadServerData(e) });
+				.setTabloKolonlari(e => e.builder.mfSinif.listeBasliklari) .setSource(e => { const {builder} = e, {rootPart, mfSinif} = builder; e.mustKod = rootPart.inst.kod; return mfSinif.loadServerData(e) });
 			fbd.addCSS('full-height-important'); fbd.addStyle(e => `$elementCSS:not(.full-width):not(.full-width-important) { width: calc(var(--full) - ${ prevWidth ? prevWidth + 10 : 0 }px) !important }`)
 			/* fbd.addStyle_wh({ width: `calc(var(--full) - ${ prevWidth ? prevWidth + 10 : 0 }px)`, height: 'var(--full)' }) */
 			fbd.onAfterRun(e => {
@@ -119,7 +90,7 @@ class MQMustBilgi extends MQKAOrtak {
 					mfSinif.orjBaslikListesi_gridInit(_e)
 				}
 			})
-			if (ekIslemler.son) getFuncValue.call(this, ekIslemler.ilk, { id, etiket, mfSinif, etiket, parent, fbd })
+			if (ekIslemler.son) { getFuncValue.call(this, ekIslemler.ilk, { id, etiket, mfSinif, etiket, parent, fbd }) }
 			return fbd
 		};
 		addGrid('kapanmayanHesaplar', null, MQKapanmayanHesaplar, { ilk: e => {
