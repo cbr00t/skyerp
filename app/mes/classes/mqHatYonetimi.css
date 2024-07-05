@@ -65,24 +65,24 @@
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe { height: 55px; z-index: 4 }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * { width: var(--full); height: var(--full); border: 1px dotted #dcdcdc; padding: 3px 0 0 15px !important; overflow-y: hidden !important }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > *.jqx-grid-cell-selected .isListe > * { border: 1px solid #aaa; overflow-y: overlay !important }
-.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li { font-size: 75% !important; color: #555; line-height: 14px; margin: 0; padding: 0; margin-block-end: 5px }
+.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li { font-size: 75% !important; color: #555; line-height: 13px; margin: 0; padding: 0; margin-block-end: 5px; margin-bottom: -40px }
+.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li:not(:last-child) { box-sizing: border-box }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .item { vertical-align: top !important }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .flex-row > .item { width: unset; min-width: 30px; max-width: 110px; white-space: pre-wrap !important }
-.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .flex-row > .item:not(:last-child) { padding-right: 10px }
+.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .flex-row > .item:not(:last-child) { padding-right: 5px }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li:hover, .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li:focus { cursor: default; background-color: #eaedf6 !important }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .kod { font-weight: bold; color: slateblue }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .aciklama { }
-.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .color.item { min-width: unset !important; width: 3px !important; margin: 0 5px }
+.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .color.item { min-width: unset !important; width: 3px !important; height: 40px; margin: 0 3px }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .emir.item { min-width: unset !important; max-width: 80px !important }
-.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .saymaSayilari,
-	.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .sureler { top: -28px }
-.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .saymaSayilari.item { text-align: right; max-width: 75px !important }
+.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .saymaSayilari, .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .sureler { top: -28px }
+.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .saymaSayilari.item { text-align: right; max-width: 60px !important }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .saymaSayilari.item > * { font-weight: bold; font-size: 100%; color: mediumvioletred }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .sureler.item { text-align: right; max-width: 80px !important }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .sureler.item > * { font-weight: bold; font-size: 100%; color: #238b66 }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .sureler.item .ek-bilgi { font-weight: normal; color: #888 }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .sureler.item > .basZamanTS { color: rebeccapurple }
-.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .sureler.item > .ayrilmaSure { color: orange }
+.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * > li .sureler.item > .ayrilmaSure { color: orangered }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .miktarVeGSC > * > * { width: max-content !important }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .miktarVeGSC > *> *:not(:last-child) { margin-inline-end: 13px }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .miktarVeGSC th, .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .miktarVeGSC td { text-align: right; padding: 0 8px; border: 1px dotted #ddd }

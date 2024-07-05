@@ -10,7 +10,7 @@
 @media (max-width: 1200px) { .butonlar.part { --button-width: 50px; --button-right-katsayi: 2 } }
 .butonlar.part > div { /* width: var(--full) !important; */ height: calc(var(--full) - 5px) !important; margin: 0; padding: 0 calc(var(--button-form-margin-x) / 2) }
 .butonlar.part > .sol { width: calc(var(--full) - (var(--width-sag) + 30px)) }
-.butonlar.part > .sag { width: var(--width-sag); text-align: right }
+.butonlar.part > .sag { width: var(--width-sag); text-align: right; z-index: 1 }
 .butonlar.part > .sag > button:nth-last-child(2) { margin-left: 15px; margin-right: 25px !important }
 .butonlar.part button { vertical-align: top; width: var(--button-width); height: var(--button-height); border: 0; margin-inline-end: var(--button-margin-x) }
 button, .jqx-button {

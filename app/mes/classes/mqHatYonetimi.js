@@ -35,7 +35,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 			.addStyle(e =>
 				`$elementCSS { 
 					position: absolute !important; left: 485px; top: 3px; width: 150px !important; height: 35px !important;
-					background-color: #333333ee !important; border: 2px solid #aaa; border-radius: 8px; cursor: pointer
+					background-color: #333333ee !important; border: 2px solid #aaa; border-radius: 8px; cursor: pointer; z-index: 0
 				}
 				$elementCSS #value { font-family: Corier New !important; font-size: 110%; font-weight: bold; text-align: left; color: whitesmoke; background: transparent !important; padding-left: 20px !important; border: none !important }
 				$elementCSS #value:not(.running) ::after { content: 'Kronometre' }
@@ -573,9 +573,9 @@ class MQHatYonetimi extends MQMasterOrtak {
 					<div class="sureler item">
 					${
 						`<div class="basZamanTS veri">${dateKisaString(basZamanTS) ?? ''}</div>` +
-						`<div class="isToplamBrutSureSn veri"><span class="ek-bilgi">Br:</span> ${timeToString(isToplamBrutSureTS) ?? ''}</div>` +
-						`<div class="isToplamNetSureTS veri"><span class="ek-bilgi">Nt:</span> ${timeToString(isToplamNetSureTS) ?? ''}</div>` +
-						(maxAyrilmaDk ? `<div class="ayrilmaSure veri"><span class="ek-bilgi">As:</span> ${timeToString(new Date(0).clearTime().addMinutes(maxAyrilmaDk)) ?? ''}</div>` : '')
+						`<div class="isToplamBrutSureSn veri"><span class="ek-bilgi">Br:</span> ${timeToString(isToplamBrutSureTS, false, false, true) ?? ''}</div>` +
+						`<div class="isToplamNetSureTS veri"><span class="ek-bilgi">Nt:</span> ${timeToString(isToplamNetSureTS, false, false, true) ?? ''}</div>` +
+						(maxAyrilmaDk ? `<div class="ayrilmaSure veri"><span class="ek-bilgi">As:</span> ${timeToString(new Date(0).clearTime().addMinutes(maxAyrilmaDk), false, false, true) ?? ''}</div>` : '')
 						/*(maxAyrilmaDk ? `<div class="ayrilmaSure veri"><span class="ek-bilgi">As:</span> ~${asSaniyeKisaString(maxAyrilmaDk * 60) ?? ''}</div>` : '')*/
 					}
 					</div>
