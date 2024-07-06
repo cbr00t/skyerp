@@ -288,6 +288,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 			form.addButton('mola', undefined, 'Mola').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
 			form.addButton('vardiyaDegisimi', undefined, 'Vardiya Değişimi').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
 			if (!sabitHatKod || hatKod) {
+				form.addButton('devam', undefined, 'Toplu Devam').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
 				form.addButton('isBitti', undefined, 'İş Bitti').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
 				form.addButton('gerceklemeYap', undefined, 'Gerçekleme Yap').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
 				form.addButton('zamanEtuduBaslat', undefined, 'Zaman Etüdü Başlat').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
@@ -346,11 +347,12 @@ class MQHatYonetimi extends MQMasterOrtak {
 		const {id} = e, gridPart = e.gridPart ?? e.sender ?? e.builder?.rootBuilder?.part; let recs = gridPart?._lastRecs;
 		const hatKodListe = e.hatKodListe ?? (e.hatKod ? [e.hatKod] : []), wsArgs = {};
 		if (hatKodListe?.length) { const hatKodSet = asSet(hatKodListe); wsArgs.hatIdListe = hatKodListe.join(delimWS); recs = e.recs = recs.filter(rec => hatKodSet[rec.hatKod]); e.rec = recs[0] }
-		const islemKod2Adi = { mola: 'Mola', vardiyaDegisimi: 'Vardiya Değişimi', isBitti: `<span class="red">İş Bitti</span>`, gerceklemeYap: 'Gerçekleme Yap' };
+		const islemKod2Adi = { mola: 'Mola', vardiyaDegisimi: 'Vardiya Değişimi', devam: `<span class="forestgreen">Devam</span>`, isBitti: `<span class="red">İş Bitti</span>`, gerceklemeYap: 'Gerçekleme Yap' };
 		const hatBazindami = !!e.hatKod, recsCount = !hatBazindami ? 0 : recs?.length, islemAdi = islemKod2Adi[id] ?? id;
-		ehConfirm(`${recsCount ? `<b class="royalblue">${recsCount}</b> tezgah için ` : `<u class="bold">Tüm tezgahlar</u> için`}<b>Toplu ${islemAdi}</b> istendi, devam edilsin mi?`, `Toplu ${islemAdi}`).then(async result => {
+		ehConfirm(`${recsCount ? `<b class="royalblue">${recsCount}</b> tezgah için ` : `<u class="bold">Tüm tezgahlar</u> için `}<b>Toplu ${islemAdi}</b> istendi, devam edilsin mi?`, `Toplu ${islemAdi}`).then(async result => {
 			if (!result) { return } try {
 				switch (id) {
+					case 'devam': await app.wsTopluDevamYap(wsArgs); break
 					case 'gerceklemeYap': await app.wsTopluGerceklemeYap(wsArgs); break
 					case 'isBitti': await app.wsTopluIsBittiYap(wsArgs); break
 					case 'zamanEtuduBaslat': await app.wsTopluZamanEtuduBaslat(wsArgs); break
