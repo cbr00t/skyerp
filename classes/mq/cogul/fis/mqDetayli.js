@@ -29,12 +29,10 @@ class MQDetayli extends MQSayacli {
 		const templateBuilder = new FormBuilder({ id: 'templates' }).setInst(e => e.builder.rootPart.fis)
 			.add(...[
 				new FBuilderWithInitLayout({ id: 'gridIslemTuslari', parent: e => e.builder.rootPart.gridIslemTuslari }),
-				new FormBuilder({ id: 'tsnForm', layout: e => e.builder.rootPart.tsnForm }),
-				new FormBuilder({ id: 'baslikForm' })
+				new FormBuilder({ id: 'tsnForm', layout: e => e.builder.rootPart.tsnForm }), new FormBuilder({ id: 'baslikForm' })
 			]);
 		for (let i = 0; i < baslikFormlar.length; i++) {
-			let subBuilder = new FormBuilder({ id: `baslikForm${i + 1}` }).yanYana()
-				.setLayout(e => e.builder.rootPart.baslikFormlar[i])
+			let subBuilder = new FormBuilder({ id: `baslikForm${i + 1}` }).yanYana().setLayout(e => e.builder.rootPart.baslikFormlar[i])
 			templateBuilder.id2Builder.baslikForm.add(subBuilder)
 		}
 		const tsnFormBuilder = templateBuilder.id2Builder.tsnForm, baslikFormBuilder = templateBuilder.id2Builder.baslikForm;

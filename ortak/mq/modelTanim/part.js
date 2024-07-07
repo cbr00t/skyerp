@@ -35,11 +35,10 @@ class ModelTanimPart extends Part {
 	get kopyami() { return this.islem == 'kopya' } get yeniVeyaKopyami() { return this.yenimi || this.kopyami } 
 
 	constructor(e) {
-		e = e || {}; super(e);
-		$.extend(this, {
-			islem: e.islem, mfSinif: e.mfSinif, inst: e.inst, eskiInst: e.eskiInst,
+		e = e || {}; super(e); const args = e.args || {}; $.extend(this, {
+			_title: e._title, islem: e.islem, mfSinif: e.mfSinif, inst: e.inst, eskiInst: e.eskiInst,
 			_builder: e.builder, _hasTabPages: false, kaydetIslemi: e.kaydetIslemi, kaydedince: e.kaydedince,
-			genelAltFormParts: e.genelAltFormParts || {}, tabID2AltFormParts: e.tabID2AltFormParts || {}, initTabIDSet: {}
+			...args, genelAltFormParts: e.genelAltFormParts || {}, tabID2AltFormParts: e.tabID2AltFormParts || {}, initTabIDSet: {}
 		});
 		let {mfSinif, inst, eskiInst} = this;
 		if (!inst && mfSinif) inst = this.inst = new mfSinif(); if (inst && !mfSinif) mfSinif = this.mfSinif = inst.class
@@ -74,22 +73,18 @@ class ModelTanimPart extends Part {
 		if (this.yeniVeyaKopyami) this.yeniTanimOncesiIslemler(e) /* setTimeout(() => this.wnd?.trigger('resize'), 0) */
 	}
 	async initFormBuilder(e) {
-		let {builder} = this; const {inst} = this;
-		if (!builder && inst) { const _e = { sender: this }; builder = (await inst.getRootFormBuilder(_e)) ?? (await inst.getFormBuilders(_e)) }
-		if ($.isEmptyObject(builder)) { return }
-		const {layout} = this, subBuilders = builder.isFormBuilder ? [builder] : builder, id2Builder = this.id2Builder = {};
-		for (const key in subBuilders) {
-			const builder = subBuilders[key]; if (!builder) { continue }
-			let _parent = builder.parent; builder.part = this;
-			if (builder.isRootFormBuilder) {
-				this.builder = builder; let _layout = builder.layout;
-				if (!(_parent?.length || _layout?.length)) _layout = builder.layout = layout
+		try {
+			let {builder} = this; const {inst} = this; if (!builder && inst) { const _e = { sender: this }; builder = (await inst.getRootFormBuilder(_e)) ?? (await inst.getFormBuilders(_e)) } if ($.isEmptyObject(builder)) { return }
+			const {layout} = this, subBuilders = builder.isFormBuilder ? [builder] : builder, id2Builder = this.id2Builder = {};
+			for (const key in subBuilders) {
+				const builder = subBuilders[key]; if (!builder) { continue }
+				let _parent = builder.parent; builder.part = this;
+				if (builder.isRootFormBuilder) { this.builder = builder; let _layout = builder.layout; if (!(_parent?.length || _layout?.length)) { _layout = builder.layout = layout } } else if (!_parent?.length) { _parent = builder.parent = layout }
+				let _id = builder.id; if (!_id) { _id = builder.id = builder.newElementId(); } if (_id) { id2Builder[_id] = builder }
+				builder.noAutoInitLayout(); builder.run()
 			}
-			else if (!_parent?.length) { _parent = builder.parent = layout }
-			let _id = builder.id; if (!_id) _id = builder.id = builder.newElementId();
-			if (_id) id2Builder[_id] = builder
-			builder.noAutoInitLayout(); builder.run()
 		}
+		catch (ex) { console.error(ex); throw ex }
 	}
 	initBulForm(e) {
 		const {header, form, mfSinif} = this, bulForm = header.find('.bulForm');
