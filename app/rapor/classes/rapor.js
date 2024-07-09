@@ -1,7 +1,14 @@
 class Rapor extends MQDetayliOrtak {				/* MQCogul tabanlı rapor sınıfları için gerekli inherit desteği için MQDetayliOrtak'dan getirildi */
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return null } static get araSeviyemi() { return false }
 	static get kod() { return null } static get aciklama() { return null } static get detaylimi() { return false } static get sinifAdi() { return this.aciklama }
-	static get kod2Sinif() { let result = this._kod2Sinif; if (result == null) { result = this._kod2Sinif = this.subclasses.map(cls => !cls.araSeviyemi && !!cls.kod) } return result }
+	static get kod2Sinif() {
+		let result = this._kod2Sinif; if (result == null) {
+			result = {}; const {subClasses} = this;
+			for (const cls of subClasses) { const {araSeviyemi, kod} = cls; if (!araSeviyemi && kod) { result[kod] = cls } }
+			this._kod2Sinif = result
+		}
+		return result
+   }
 	static getClass(e) { const kod = typeof e == 'object' ? (e.kod ?? e.tip) : e; return this.kod2Sinif[kod] }
 	static goster(e) { let inst = new this(e); inst.goster(); return inst }
 	goster(e) { }
@@ -18,27 +25,27 @@ class OzelRapor extends Rapor {
 		let part = new tanimUISinif(_e); part.run(); return part
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); const part = e.sender, rfb = e.rootBuilder, {tanimFormBuilder} = e;
-		rfb.onAfterRun(e => { const {part} = rfb, {_title} = part; if (_title) { setTimeout(() => part.updateWndTitle(_title), 10); delete part._title } });
-		let form = tanimFormBuilder.addForm('dockable')
-			.setLayout(e => $(
-				`<div id="${e.builder.id}" class="full-wh">
-					<div id="widget">
-						<div class="item" style="width: 200px; height: 200px"><div class="xheader">a</div><div class="xcontent">a</div></div>
-						<div class="item" style="width: 200px; height: 200px"><div class="xheader">b</div><div class="xcontent">a</div></div>
-						<div class="item" style="width: 200px; height: 200px"><div class="xheader">c</div><div class="xcontent">a</div></div>
-						<div class="item" style="width: 200px; height: 200px"><div class="xheader">d</div><div class="xcontent">a</div></div>
-						<div class="item" style="width: 200px; height: 200px"><div class="xheader">e</div><div class="xcontent">a</div></div>
-					</div>
-				</div>`
-			))
-			/*.addStyle_fullWH().addStyle(e => `$elementCSS .item { width: 200px !important; height: 200px !important }`)*/
-			.onAfterRun(e => e.builder.layout.jqxDocking({ theme, width: '100%', height: '100%', orientation: 'horizontal', mode: 'default' }))
+		super.rootFormBuilderDuzenle(e); const rootPart = e.sender, rfb = e.rootBuilder
+		rootPart.acilinca(() => this.onAfterRun({ ...e, builder: rfb }))
+	}
+	static onAfterRun(e) { const {builder} = e, rootPart = builder.part, _title = rootPart?._title; if (_title) { setTimeout(() => rootPart.updateWndTitle(_title), 10); delete rootPart._title } }
+}
+class OzelRapor_Sortable extends OzelRapor {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static rootFormBuilderDuzenle(e) { super.rootFormBuilderDuzenle(e); const rootPart = e.sender; rootPart.sortableLayouts = rootPart.sortableLayouts || [] }
+	static onAfterRun(e) {
+		super.onAfterRun(e); const {builder} = e, {layout} = builder, rootPart = builder.part, {sortableLayouts} = rootPart;
+		if (sortableLayouts?.length) {
+			$(sortableLayouts).sortable({
+				theme, containment: 'parent', tolerance: 'pointer',items: '> .item',
+				classes: { 'ui-sortable-helper': 'bg-lightroyalblue' } /*helper: evt => $('<div>dragging...</div>')*/
+			})
+		}
 	}
 }
-class MQDonemselIslemler extends MQRapor {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kod() { return 'DONEMSEL_ISLEMLRE' } static get aciklama() { return 'Dönemsel İşlemler' }
+
+class Rapor_DonemselIslemler extends MQRapor {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get kod() { return 'DONEMSEL_ISLEMLER' } static get aciklama() { return 'Dönemsel İşlemler' }
 	static secimlerDuzenle(e) {
 		const sec = e.secimler; sec.secimTopluEkle({
 			secim1: new SecimOzellik({ etiket: 'Seçim 1' }),
@@ -68,5 +75,25 @@ class MQDonemselIslemler extends MQRapor {
 	static loadServerData_detaylar(e) {
 		const recs = []; for (let i = 0; i < 100; i++) { recs.push({ kod: 'TL', islemAdi: 'ABC' }) }
 		return recs
+	}
+}
+class Rapor_Satislar extends OzelRapor_Sortable {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get kod() { return 'SATISLAR' } static get aciklama() { return 'Satışlar' }
+	static rootFormBuilderDuzenle(e) {
+		super.rootFormBuilderDuzenle(e); const rootPart = e.sender, rfb = e.rootBuilder, {tanimFormBuilder} = e, {sortableLayouts} = rootPart;
+		let form = tanimFormBuilder.addForm('dockable')
+			.setLayout(e => $(
+				`<div id="${e.builder.id}" class="full-wh">
+					<div class="item">grid 1</div>
+					<div class="item">grid 2</div>
+					<div class="item">div 1</div>
+					<div class="item">div 2</div>
+					<div class="item">div 2</div>
+					<div class="item">chart 1</div>
+					<div class="item">chart 2</div>
+				</div>`
+			))
+			.addStyle_fullWH().addStyle(e => `$elementCSS .item { min-width: 400px; min-height: 250px; width: 30%; height: 30%; margin: 10px; padding: 10px; border: 1px solid #aaa; float: left }`);
+		sortableLayouts.push(form.layout)
 	}
 }

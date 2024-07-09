@@ -1,8 +1,10 @@
 class SkyRaporApp extends TicariApp {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'TEST' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'SATISLAR' }
 	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { yerel: MQYerelParam.getInstance() /*rapor: MQParam_Rapor })*/ }) }
 	getAnaMenu(e) {
-		const {dev} = config, items = [new FRMenuChoice({ mne: 'TEST', text: 'TEST', block: e => MQDonemselIslemler.listeEkraniAc(e) })].filter(x => !!x);
-		return new FRMenu({ items })
+		const {kod2Sinif} = Rapor, items_raporlar = [];
+		for (const [mne, sinif] of Object.entries(kod2Sinif)) { items_raporlar.push(new FRMenuChoice({ mne, text: sinif.aciklama, block: e => sinif.goster() })) }
+		const menu_test = (config.dev ? new FRMenuCascade({ mne: 'TEST', text: 'TEST', items: items_raporlar }) : null);
+		return new FRMenu({ items: [menu_test].filter(x => !!x) })
 	}
 }
