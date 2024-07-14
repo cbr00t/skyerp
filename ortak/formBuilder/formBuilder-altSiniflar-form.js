@@ -3,7 +3,7 @@ class FBuilder_TanimForm extends FormBuilder {
 	preInit(e) {
 		super.preInit(e); const {rootPart} = this, {formParent} = rootPart;
 		let {form} = rootPart; if (!form?.length || (form.parent() != formParent)) { form = rootPart.form = $(`<div class="form-layout dock-bottom"/>`); form.appendTo(formParent) }
-		let {layout} = this; if (!layout.length) { layout = this.layout = form }
+		let {layout} = this; if (!layout?.length) { layout = this.layout = form }
 		parent = this.parent = layout.parent();
 		/*if (parent != form) this.parent = form;*/
 	}
@@ -18,9 +18,9 @@ class FBuilder_TabsOrtak extends FormBuilder {
 		for (const key in builders) {
 			const builder = builders[key], {id} = builder; if (!builder.isTabPage || tabPages[id]) { continue }
 			tabPages[id] = builder; let subParent = builder.parent, subParentParent = subParent?.length ? subParent.parent() : null;
-			if (!subParentParent?.length && subParentParent == layout) {
+			if (!(subParentParent?.length && subParentParent == layout)) {
 				subParentParent = layout; if (subParent && subParent.length) { subParent.detach() } else { subParent = builder.parent = $(`<div id="${builder.tabID}" class="content"/>`) } subParent.appendTo(subParentParent);
-				let subLayout = builder.layout; if (!subLayout?.length && subLayout.parent() == subParent) {
+				let subLayout = builder.layout; if (!(subLayout?.length && subLayout.parent() == subParent)) {
 					if (subLayout && subLayout.length) { subLayout.detach() } else { subLayout = builder.layout = $(`<div/>`) }
 					subLayout.appendTo(subParent);
 				}
@@ -30,8 +30,8 @@ class FBuilder_TabsOrtak extends FormBuilder {
 		for (const id in tabPages) {
 			const tabPage = tabPages[id], {text} = tabPage; $(`<li id="${id}" class="tabPage"><div class="header">${text}</div></li>`).appendTo(ulTabs);
 			let tabPageParent = tabPage.parent;
-			if (!tabPageParent?.length) { tabPageParent = layout.children(`div#${id}`); tabPage.parent = tabPageParent && tabPageParent.length ? tabPageParent : null }
-			if (!(tabPageParent && tabPageParent.length)) { tabPageParent = tabPage.parent = $(`<div id="${builder.tabID}" class="content"/>`) }
+			if (!tabPageParent?.length) { tabPageParent = layout.children(`div#${id}`); tabPage.parent = tabPageParent?.length ? tabPageParent : null }
+			if (!tabPageParent?.length) { tabPageParent = tabPage.parent = $(`<div id="${builder.id}" class="content"/>`) }
 			if (tabPageParent.parent()[0] != layout[0]) { if (tabPageParent.parent().length) { tabPageParent.detach() } tabPageParent.appendTo(layout) }
 		}
 	}
@@ -66,7 +66,7 @@ class FBuilder_TabPage extends FormBuilder {
     static { window[this.name] = this; this._key2Class[this.name] = this } get isTabPage() { return true }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { tabID: e.tabID || e.tabId || e.id, text: e.text ?? e.etiket, tabActivatedFlag: false }); }
 	preInit(e) { super.preInit(e); this.parent = this.parent.children(`div#${this.tabID}`); }
-	buildDevam(e) { super.buildDevam(e); const {layout, parent} = this; if (layout === undefined) { debugger } if (layout.parent() != parent) { layout.appendTo(parent) } }
+	buildDevam(e) { super.buildDevam(e); const {layout, parent} = this; if (layout === undefined) { debugger } if (layout?.parent() != parent) { layout.appendTo(parent) } }
 	initTabLayout(e) { if (e.tabID != (this.tabID || this.id)) { return } e.builder = this; this.tabActivatedFlag = true; this.afterBuildDevam(e) }
 	afterBuildDevam(e) { if (!this.tabActivatedFlag) { return } super.afterBuildDevam(e) }
 }
