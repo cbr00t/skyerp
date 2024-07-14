@@ -82,7 +82,7 @@ class MQUcretlendirme extends MQGuidVeAdi {
 	}
 }
 class MQArizaNedeni extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Alan' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Arıza Nedeni' }
 	static get table() { return 'oneden' } static get tableAlias() { return 'ned' } static get tumKolonlarGosterilirmi() { return true }
 	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); MQMasterOrtakAyarlar.orjBaslikListesi_argsDuzenle(e) }
 }

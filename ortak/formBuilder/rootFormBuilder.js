@@ -35,33 +35,28 @@ class RootFormBuilder extends SubPartBuilder {
 				get wndClassNames() { return coalesce(this.class.builder.wndClassNames, super.wndClassNames) }
 				get formDeferMS() { return coalesce(this.class.builder.formDeferMS, super.formDeferMS) }
 				constructor(e) {
-					e = e || {}; super(e);
-					const {builder} = this.class; let {layout} = builder;
-					if (!layout?.length) layout = builder.parent
-					if (!layout?.length) layout = $('<div/>')
+					e = e || {}; super(e); const {builder} = this.class; let {layout} = builder;
+					if (!layout?.length) { layout = builder.parent }
+					if (!layout?.length) { layout = $('<div/>') } 
 					$.extend(this, {
-						builder, parentPart: builder.parentPart, content: builder.content, layout,
-						title: builder.title, wndArgs: builder.wndArgs,
+						builder, parentPart: builder.parentPart, content: builder.content, layout, title: builder.title, wndArgs: builder.wndArgs,
 						wndArgsDuzenleBlock: builder.wndArgsDuzenleBlock || builder.wndArgsDuzenle
 					});
 					let {partArgs} = builder; const {partInit} = builder;
-					if (partInit) {
-						partArgs = $.extend({}, partArgs || {});
-						getFuncValue.call(this, partInit, { sender: this, part: this, partArgs, builder, builderArgs: this.class.builderArgs });
-					}
-					if (!$.isEmptyObject(partArgs)) $.extend(this, partArgs)
+					if (partInit) { partArgs = $.extend({}, partArgs || {}); getFuncValue.call(this, partInit, { sender: this, part: this, partArgs, builder, builderArgs: this.class.builderArgs }) }
+					if (!$.isEmptyObject(partArgs)) { $.extend(this, partArgs) }
 				}
 				afterRun() {
 					super.afterRun(); const {isWindowPart} = this;
 					if (isWindowPart) {
-						const {builder} = this.class, {wnd} = this;
+						const {builder} = this.class, {wnd, partName} = this;
 						if (wnd?.length) {
 							const {CSSClass_BuilderId, CSSClass_FormBuilder, CSSClass_FormBuilderElement} = FormBuilderBase;
+							wnd.prop('id', partName);
 							wnd.attr(`data-${CSSClass_BuilderId}`, builder.id); builder.getElementId(wnd);
-							wnd.addClass(`${CSSClass_FormBuilder} ${CSSClass_FormBuilderElement}`); wnd.data('builder', builder)
+							wnd.addClass(`part ${CSSClass_FormBuilder} ${CSSClass_FormBuilderElement}`); wnd.data('builder', builder)
 						}
-						$.extend(builder, { wnd });
-						this.show()
+						$.extend(builder, { wnd }); this.show()
 					}
 				}
 				wndArgsDuzenle(e) { super.wndArgsDuzenle(e); /*const {wndArgs} = this.class.builder; if (wndArgs) $.extend(this.wndArgs, wndArgs);*/ }

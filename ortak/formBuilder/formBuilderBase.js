@@ -472,42 +472,33 @@ class FormBuilderBase extends CObject {
 		return builder
 	}
 	addModelKullan(e, _etiket, _value, _mfSinif, _source, _ozelQueryDuzenleBlock, _veriYukleninceBlock, _kodAttr, _adiAttr) {
-		e = e || {};
-		const id = typeof e == 'object' ? e.id : e;
+		e = e || {}; const id = typeof e == 'object' ? e.id : e;
 		const etiket = typeof e == 'object' ? e.etiket : _etiket;
 		const value = typeof e == 'object' ? e.value : _value;
 		const mfSinif = typeof e == 'object' ? e.mfSinif : _mfSinif;
 		const source = typeof e == 'object' ? e.source : _source;
-		const ozelQueryDuzenleBlock = typeof e == 'object' ? e.ozelQueryDuzenle ?? e.ozelQueryDuzenleBlock : _ozelQueryDuzenleBlock;
-		const veriYukleninceBlock = typeof e == 'object' ? e.veriYuklenince ?? e.onBindingComplete : _veriYukleninceBlock;
+		const ozelQueryDuzenle = typeof e == 'object' ? e.ozelQueryDuzenle ?? e.ozelQueryDuzenleBlock : _ozelQueryDuzenleBlock;
+		const veriYuklenince = typeof e == 'object' ? e.veriYuklenince ?? e.onBindingComplete : _veriYukleninceBlock;
 		const kodAttr = typeof e == 'object' ? e.kodAttr : _kodAttr;
 		const adiAttr = typeof e == 'object' ? e.adiAttr : _adiAttr;
-		const builder = new FBuilder_ModelKullan({
-			id: id, etiket: etiket, value: value, ozelQueryDuzenle: ozelQueryDuzenleBlock, veriYuklenince: veriYukleninceBlock,
-			mfSinif: mfSinif, source: source, kodAttr: kodAttr, adiAttr: adiAttr
-		});
+		const builder = new FBuilder_ModelKullan({ id, etiket, value, ozelQueryDuzenle, veriYuklenince, mfSinif, source, kodAttr, adiAttr });
 		this.add(builder);
 		return builder
 	}
 	addGrid(e, _mfSinif, _source, _tabloKolonlari, _sabitmi, _kontrolcu, _ozelQueryDuzenleBlock, _veriYukleninceBlock, _kodAttr, _adiAttr, _veriDegisinceBlock) {
-		e = e || {};
-		const id = typeof e == 'object' ? e.id : e;
+		e = e || {}; const id = typeof e == 'object' ? e.id : e;
 		const mfSinif = typeof e == 'object' ? e.mfSinif : _mfSinif;
 		const source = typeof e == 'object' ? e.source : _source;
 		const tabloKolonlari = typeof e == 'object' ? e.tabloKolonlari : _tabloKolonlari;
 		const sabitmi = typeof e == 'object' ? e.sabitmi : _sabitmi;
 		const kontrolcu = typeof e == 'object' ? e.kontrolcu : _kontrolcu;
-		const ozelQueryDuzenleBlock = typeof e == 'object' ? e.ozelQueryDuzenle ?? e.ozelQueryDuzenleBlock : _ozelQueryDuzenleBlock;
-		const veriYukleninceBlock = typeof e == 'object' ? e.veriYuklenince ?? e.onBindingComplete : _veriYukleninceBlock;
+		const ozelQueryDuzenle = typeof e == 'object' ? e.ozelQueryDuzenle ?? e.ozelQueryDuzenleBlock : _ozelQueryDuzenleBlock;
+		const veriYuklenince = typeof e == 'object' ? e.veriYuklenince ?? e.onBindingComplete : _veriYukleninceBlock;
 		const kodAttr = typeof e == 'object' ? e.kodAttr : _kodAttr;
 		const adiAttr = typeof e == 'object' ? e.adiAttr : _adiAttr;
-		const veriDegisinceBlock = typeof e == 'object' ? e.veriDegisince : _veriDegisinceBlock;
-		const builder = new FBuilder_Grid({
-			id, mfSinif, source, tabloKolonlari, sabitmi, kontrolcu, ozelQueryDuzenle: ozelQueryDuzenleBlock,
-			veriYuklenince: veriYukleninceBlock, veriDegisince: veriDegisinceBlock, kodAttr, adiAttr
-		});
-		this.add(builder);
-		return builder
+		const veriDegisince = typeof e == 'object' ? e.veriDegisince : _veriDegisinceBlock;
+		const builder = new FBuilder_Grid({ id, mfSinif, source, tabloKolonlari, sabitmi, kontrolcu, ozelQueryDuzenle, veriYuklenince, veriDegisince, kodAttr, adiAttr });
+		this.add(builder); return builder
 	}
 	addGridliGiris(e, _mfSinif, _source, _tabloKolonlari, _kontrolcu, _kodAttr, _adiAttr) {
 		return this.addGrid(e, _mfSinif, _source, _tabloKolonlari, false, _kontrolcu, undefined, undefined, _kodAttr, _adiAttr).gridliGiris()
@@ -525,20 +516,12 @@ class FormBuilderBase extends CObject {
 		return this.addGrid(e, _mfSinif, _source, _tabloKolonlari, _kontrolcu, _ozelQueryDuzenleBlock, _veriYukleninceBlock, _kodAttr, _adiAttr).fisListe()
 	}*/
 	addIslemTuslari(e, _tip, _id2Handler, _ekButonlarIlk, _ekButonlarSon, _butonlarDuzenleyici, _sagButonlar, _prependFlag) {
-		e = e || {};
-		const id = (typeof e == 'object' ? e.id : e) ?? 'islemTuslari';
-		const tip = typeof e == 'object' ? e.tip : _tip;
-		const id2Handler = typeof e == 'object' ? e.id2Handler : _id2Handler;
-		const ekButonlarIlk = typeof e == 'object' ? e.ekButonlarIlk : _ekButonlarIlk;
-		const ekButonlarSon = typeof e == 'object' ? e.ekButonlarSon : _ekButonlarSon;
-		const butonlarDuzenleyici = typeof e == 'object' ? e.butonlarDuzenleyici : _butonlarDuzenleyici;
-		const sagButonlar = typeof e == 'object' ? e.sagButonlar : _sagButonlar;
+		e = e || {}; const id = (typeof e == 'object' ? e.id : e) ?? 'islemTuslari';
+		const tip = typeof e == 'object' ? e.tip : _tip, id2Handler = typeof e == 'object' ? e.id2Handler : _id2Handler;
+		const ekButonlarIlk = typeof e == 'object' ? e.ekButonlarIlk : _ekButonlarIlk, ekButonlarSon = typeof e == 'object' ? e.ekButonlarSon : _ekButonlarSon;
+		const butonlarDuzenleyici = typeof e == 'object' ? e.butonlarDuzenleyici : _butonlarDuzenleyici, sagButonlar = typeof e == 'object' ? e.sagButonlar : _sagButonlar;
 		const prependFlag = typeof e == 'object' ? e.prependFlag : _prependFlag;
-		const builder = new FBuilder_IslemTuslari({
-			id: id, tip: tip, id2Handler: id2Handler, ekButonlarIlk: ekButonlarIlk, ekButonlarSon: ekButonlarSon,
-			butonlarDuzenleyici: butonlarDuzenleyici, sagButonlar: sagButonlar, prependFlag: prependFlag
-		});
-		this.add(builder); return builder
+		const builder = new FBuilder_IslemTuslari({ id, tip, id2Handler,  ekButonlarIlk, ekButonlarSon, butonlarDuzenleyici, sagButonlar, prependFlag }); this.add(builder); return builder
 	}
 	add(...aCollection) {
 		if (!aCollection) return this; const {builders} = this;

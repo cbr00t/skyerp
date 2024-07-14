@@ -49,8 +49,8 @@ class GridPart extends Part {
 			gridHucreTiklandiBlock: e.gridHucreTiklandiBlock || e.gridHucreTiklandi, gridHucreCiftTiklandiBlock: e.gridHucreCiftTiklandiBlock || e.gridHucreCiftTiklandi,
 			gridHucreTiklandiBlock: e.gridHucreTiklandiBlock || e.gridHucreTiklandi, gridHucreCiftTiklandiBlock: e.gridHucreCiftTiklandiBlock || e.gridHucreCiftTiklandi,
 			gridContextMenuIstendiBlock: e.gridContextMenuIstendiBlock || e.gridContextMenuIstendi, gridIDBelirtec: e.gridIDBelirtec || this.defaultGridIDBelirtec,
-			kolonFiltreDuzenleyici: e.kolonFiltreDuzenleyici || {}, sabitFlag: e.sabit ?? e.sabitFlag ?? this.defaultSabitFlag ?? false,
-			detaySinif: e.detaySinif, _kontrolcu: e.kontrolcu, rowNumberOlmasinFlag: e.rowNumberOlmasin ?? e.rowNumberOlmasinFlag, noAnimateFlag: e.noAnimate ?? e.noAnimateFlag
+			kolonFiltreDuzenleyici: e.kolonFiltreDuzenleyici || {}, sabitFlag: e.sabit ?? e.sabitFlag ?? this.defaultSabitFlag ?? false, detaySinif: e.detaySinif,
+			_kontrolcu: e.kontrolcu, rowNumberOlmasinFlag: e.rowNumberOlmasin ?? e.rowNumberOlmasinFlag, notAdaptiveFlag: e.notAdaptive ?? e.notAdaptiveFlag, noAnimateFlag: e.noAnimate ?? e.noAnimateFlag
 		})
 	}
 	runDevam(e) {
@@ -78,7 +78,7 @@ class GridPart extends Part {
 	gridInit(e) {
 		e = e || {}; let grid = this.grid || this.layout;
 		if (grid.hasClass('wnd-content')) grid = grid.find(this.gridFormSelector); this.grid = grid;
-		const {builder, tabloKolonlari, argsDuzenleBlock, gridRenderedBlock, cacheFlag, asyncFlag} = this;
+		const {builder, tabloKolonlari, argsDuzenleBlock, gridRenderedBlock, cacheFlag, asyncFlag, notAdaptiveFlag} = this;
 		const _theme = theme == 'metro' ? 'material' : theme;
 		let args = {
 			theme: _theme, localization: localizationObj, width: '99.7%', height: '99.5%', editMode: 'selectedcell', sortMode: 'many', autoHeight: false, autoRowHeight: false, rowsHeight: 38,
@@ -129,19 +129,16 @@ class GridPart extends Part {
 		if (args.autoRowHeight) args.autoRowHeight = args.pageable || args.autoHeight
 		if (args.virtualMode && args.groupable && !args.pageable) args.groupable = false
 		if (args.pageable && !args.pagesizeoptions) args.pageSizeOptions = [5, 7, 8, 9, 10, 11, 13, 14, 15, 18, 20, 25, 50, 80, 100, 200, 300, 500]
-		args.pageSize = 100; args.enableOptimization = true; if (args.adaptive == null) args.adaptive = !args.editable
+		args.pageSize = 100; args.enableOptimization = true; if (args.adaptive == null) { args.adaptive = !(notAdaptiveFlag || args.editable) }
 		const firstCol = (args.columns || [])[0], secondCol = (args.columns || [])[0];
 		if (firstCol && args.scrollMode == 'deferred' && $.isEmptyObject(args.deferredDataFields)) {
 			/* args.scrollMode = 'deferred'; */ const deferredDataFields = args.deferredDataFields = [firstCol.dataField || firstCol.datafield];
-			if (secondCol) deferredDataFields.push(secondCol.dataField || secondCol.datafield);
+			if (secondCol) { deferredDataFields.push(secondCol.dataField ?? secondCol.datafield) }
 		}
 		const initGridHeight = this.initGridHeight = args.height; if (!initGridHeight) args.height = 1
-		grid.data('part', this); grid.jqxGrid(args);
-		const gridWidget = this.gridWidget = grid.jqxGrid('getInstance'); gridWidget.gridPart = this;
+		grid.data('part', this); grid.jqxGrid(args); const gridWidget = this.gridWidget = grid.jqxGrid('getInstance'); gridWidget.gridPart = this;
 		this.orjSelectionMode = gridWidget.selectionmode; /* setTimeout(() => this.onResize(), 0); */
-		setTimeout(() => grid.find(`span:contains("www.jqwidgets.com")`).addClass('basic-hidden'), 50);
-		this.gridInitFlag = true;
-
+		setTimeout(() => grid.find(`span:contains("www.jqwidgets.com")`).addClass('basic-hidden'), 50); this.gridInitFlag = true;
 		grid.on('rowclick', evt => setTimeout(() => this.gridSatirTiklandi({ sender: this, builder, type: 'row', event: evt }), 10));
 		grid.on('rowdoubleclick', evt => setTimeout(() => this.gridSatirCiftTiklandi({ sender: this, type: 'row', builder, event: evt }), 10));
 		grid.on('cellclick', evt => setTimeout(() => this.gridHucreTiklandi({ sender: this, type: 'cell', builder, event: evt }), 10));
@@ -487,12 +484,10 @@ class GridPart extends Part {
 	showColumn(belirtec) { const {gridWidget} = this; gridWidget.showcolumn(belirtec); return this }
 	hideColumn(belirtec) { const {gridWidget} = this; gridWidget.hidecolumn(belirtec); return this }
 	focus(e) { this.gridWidget.focus(); return this }
-	sabit() { this.sabitFlag = true; return this }
-	sabitDegil() { this.sabitFlag = false; return this }
-	rowNumberOlsun() { this.rowNumberOlmasinFlag = false; return this }
-	rowNumberOlmasin() { this.rowNumberOlmasinFlag = true; return this }
-	animate() { this.noAnimateFlag = false; return this }
-	noAnimate() { this.noAnimateFlag = true; return this }
+	sabit() { this.sabitFlag = true; return this } sabitDegil() { this.sabitFlag = false; return this }
+	rowNumberOlsun() { this.rowNumberOlmasinFlag = false; return this } rowNumberOlmasin() { this.rowNumberOlmasinFlag = true; return this }
+	adaptive() { return this.notAdaptiveFlag = false; return this } notAdaptive() { return this.notAdaptiveFlag = true; return this }
+	animate() { this.noAnimateFlag = false; return this } noAnimate() { this.noAnimateFlag = true; return this }
 	newRec(e) {
 		e = e || {}; let {gridWidget, grid} = this;
 		if (!gridWidget && grid?.length) gridWidget = this.gridWidget = grid.jqxGrid('getInstance');

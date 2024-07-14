@@ -603,7 +603,7 @@ class MQCogul extends MQYapi {
 		this.forAltYapiKeysDo('setValues', e)
 	}
 	static listeEkraniAc(e) {
-		const {listeUISinif} = this; if (!listeUISinif) return null
+		const {listeUISinif} = this; if (!listeUISinif) { return null }
 		e = e || {}; e.mfSinif = e.mfSinif || this;
 		try { const part = new listeUISinif(e), result = part.run(); return { part, result } }
 		catch (ex) { displayMessage(getErrorText(ex)); throw ex }
@@ -693,7 +693,7 @@ class MQCogul extends MQYapi {
 		e = e || {}; const blockOrSelector = typeof e == 'object' ? (e.selector ?? e.block ?? e.action) : e, results = [];
 		const selector = typeof blockOrSelector == 'string' ? blockOrSelector : null; let block = typeof blockOrSelector == 'string' ? null : blockOrSelector;
 		if (blockOrSelector) {
-			const args = (typeof e == 'object' ? e.args : _args) || [], {altYapiDict} = this;
+			const args = (typeof e == 'object' ? e.args : _args) || [], {altYapiDict} = this; if (altYapiDict == null) { return }
 			for (const cls of Object.values(altYapiDict)) {
 				if (cls) {
 					cls.__proto__.mfSinif = this;
@@ -708,7 +708,7 @@ class MQCogul extends MQYapi {
 		e = e || {}; const blockOrSelector = typeof e == 'object' ? (e.selector ?? e.block ?? e.action) : e, results = [];
 		const selector = typeof blockOrSelector == 'string' ? blockOrSelector : null; let block = typeof blockOrSelector == 'string' ? null : blockOrSelector;
 		if (blockOrSelector) {
-			const args = (typeof e == 'object' ? e.args : _args) || [], {altYapiDict} = this.class;
+			const args = (typeof e == 'object' ? e.args : _args) || [], {altYapiDict} = this.class; if (altYapiDict == null) { return }
 			for (const key in altYapiDict) {
 				const altInst = this[key];
 				if (altInst) {
@@ -724,7 +724,7 @@ class MQCogul extends MQYapi {
 		const blockOrSelector = typeof e == 'object' ? (e.selector ?? e.block ?? e.action) : e, results = [];
 		const selector = typeof blockOrSelector == 'string' ? blockOrSelector : null; let block = typeof blockOrSelector == 'string' ? null : blockOrSelector;
 		if (blockOrSelector) {
-			const args = (typeof e == 'object' ? e.args : _args) || [], {altYapiDict} = this;
+			const args = (typeof e == 'object' ? e.args : _args) || [], {altYapiDict} = this; if (altYapiDict == null) { return }
 			for (const cls of Object.values(altYapiDict)) {
 				if (cls) {
 					cls.__proto__.mfSinif = this;
@@ -739,7 +739,7 @@ class MQCogul extends MQYapi {
 		e = e || {}; const blockOrSelector = typeof e == 'object' ? (e.selector ?? e.block ?? e.action) : e, results = [];
 		const selector = typeof blockOrSelector == 'string' ? blockOrSelector : null; let block = typeof blockOrSelector == 'string' ? null : blockOrSelector;
 		if (blockOrSelector) {
-			const args = (typeof e == 'object' ? e.args : _args) || [], {altYapiDict} = this.class;
+			const args = (typeof e == 'object' ? e.args : _args) || [], {altYapiDict} = this.class; if (altYapiDict == null) { return }
 			for (const key in altYapiDict) {
 				const altInst = this[key];
 				if (altInst) {

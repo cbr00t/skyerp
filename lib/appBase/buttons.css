@@ -50,7 +50,7 @@ button#sil { margin-left: 10px; margin-right: 20px } button#secimler { margin-ri
 	#sil.jqx-fill-state-pressed, #vazgec.jqx-fill-state-pressed { background-color: #a70a0f !important }
 #basliklariDuzenle { background-image: url(../../images/gridKolonDuzenle.png) !important }
 #basliklariDuzenle.jqx-fill-state-normal { background-color: #727272 }
-#rapor { background-image: url(../../images/rapor_ekrana.png) !important }
+button#rapor { background-image: url(../../images/rapor_ekrana.png) !important }
 #kolonFiltre { background-image: url(../../images/hizli_bul.png) !important }
 button#secimler {background-image: url(../../images/filtre.png) !important;}
 #basliklariDuzenle, #rapor, #kolonFiltre, #secimler { }

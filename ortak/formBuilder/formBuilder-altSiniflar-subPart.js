@@ -149,9 +149,7 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 	setPlaceholder(value) { return this.setPlaceHolder(value) }
 }
 class FBuilder_SimpleElement extends FormBuilder_SubPart {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get inputTagName() { return null }
-
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get inputTagName() { return null }
 	constructor(e) {
 		e = e || {}; super(e);
 		$.extend(this, { inputTagName: e.tagName || e.tag || e.inputTagName || this.class.inputTagName, onChangeEvent: e.onChange || e.degisince, onKeyUpEvent: e.onKeyUp || e.tusaBasilinca })
@@ -319,161 +317,87 @@ class FBuilder_GroupBox extends FBuilder_LabelBase {
 		const {styles} = this;
 		const paddingTop = 8;
 		styles.push(
-			`$elementCSS {
-				border: 2px solid #ccc;
-				min-height: 10px;
-				padding-top: 0;
-			}`,
-			`$elementCSS > *:not(${inputTagName}.${inputCSSClass}) {
-			   padding: 0 8px
-			}`,
+			`$elementCSS { border: 2px solid #ccc; min-height: 10px; padding-top: 0 }`,
+			`$elementCSS > *:not(${inputTagName}.${inputCSSClass}) { padding: 0 8px }`,
 			`$elementCSS > ${inputTagName}.${inputCSSClass} {
-				font-weight: bold;
-				font-size: 65% !important;
-				color: #999;
-				background-color: white;
-				min-width: 0 !important;
-				width: min-content !important;
-				height: min-content !important;
-				position: relative;
-				top: -${paddingTop}px; left: 25px;
-				margin-bottom: -${paddingTop}px;
-				padding: 0 10px;
-				z-index: 1
-			}`
+				font-weight: bold; font-size: 65% !important; color: #999; background-color: white; min-width: 0 !important; width: min-content !important; height: min-content !important;
+				position: relative; top: -${paddingTop}px; left: 25px; margin-bottom: -${paddingTop}px; padding: 0 10px; z-index: 1 }`
 		)
 	}
 }
 class FBuilder_TextInput extends FBuilder_InputOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get inputType() { return 'textbox' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get inputType() { return 'textbox' }
 }
 class FBuilder_PassInput extends FBuilder_InputOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get inputType() { return 'password' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get inputType() { return 'password' }
 }
 class FBuilder_TextArea extends FBuilder_InputOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get inputTagName() { return 'textarea' }
-	static get inputType() { return null }
-	constructor(e) {
-		e = e || {}; super(e);
-		$.extend(this, { rows: e.rows || 1, cols: coalesce(e.cols, e.columns), maxRows: e.maxRows })
-	}
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get inputTagName() { return 'textarea' } static get inputType() { return null }
+	constructor(e) { e = e || {}; super(e); $.extend(this, { rows: e.rows || 1, cols: e.cols ?? e.columns, maxRows: e.maxRows }) }
 	buildDevam(e) {
-		super.buildDevam(e); const {input} = this;
-		if (input?.length) {
-			const {rows, cols, maxRows} = this;
-			if (rows) input.attr('rows', rows)
-			if (cols) input.attr('cols', cols)
+		super.buildDevam(e); const {input} = this; if (input?.length) {
+			const {rows, cols, maxRows} = this; if (rows) { input.attr('rows', rows) } if (cols) { input.attr('cols', cols) }
 			if (maxRows) {
 				input.on('change', evt => {
 					let value = this.getConverted_getValue({ value: evt.target.value });
 					if (value && typeof value == 'string') {
 						const parts = value.split('\n');
 						if (parts.length > maxRows) {
-							const {_lastValue} = this;
-							value = this._lastValue;
-							if (value == null)
-								value = this.getConverted_setValue({ value: parts.slice(0, 1).join('\n') })
+							const {_lastValue} = this; value = this._lastValue; if (value == null) { value = this.getConverted_setValue({ value: parts.slice(0, 1).join('\n') }) }
 							evt.target.value = value
 						}
 					}
 				})
 			}
-			const {styles} = this;
-			styles.push( `$elementCSS { height: auto; vertical-align: top }`)
+			this.styles.push( `$elementCSS { height: auto; vertical-align: top }`)
 		}
 	}
-	setRows(value) { this.rows = value; return this }
-	setCols(value) { this.cols = value; return this }
-	setMaxRows(value) { this.maxRows = value; return this }
-	
+	setRows(value) { this.rows = value; return this } setCols(value) { this.cols = value; return this } setMaxRows(value) { this.maxRows = value; return this }
 }
 class FBuilder_NumberInput extends FBuilder_InputOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get inputType() { return 'number' }
-	constructor(e) {
-		e = e || {}; super(e);
-		$.extend(this, { min: e.min, max: e.max, step: e.step, fra: e.fra })
-	}
+	constructor(e) { e = e || {}; super(e); $.extend(this, { min: e.min, max: e.max, step: e.step, fra: e.fra }) }
 	buildDevam(e) {
 		super.buildDevam(e); const {input} = this;
 		if (input?.length) {
-			const {min, max, step, fra} = this;
-			if (min != null) input.attr('min', min)
-			if (max != null) input.attr('max', max)
-			if (step != null) input.attr('step', step)
+			const {min, max, step, fra} = this; if (min != null) { input.attr('min', min) } if (max != null) { input.attr('max', max) } if (step != null) { input.attr('step', step) }
 			input.on('change', evt => {
-				const _value = evt.target.value;
-				let value = typeof _value == 'number' ? this.getConverted_getValue({ value: _value }) : _value;
+				const _value = evt.target.value; let value = typeof _value == 'number' ? this.getConverted_getValue({ value: _value }) : _value;
 				if (value != null) {
-					if (min != null && value < min) value = min
-					if (max != null && value > max) value = max
-					if (fra != null && typeof value == 'number') value = roundToFra(value, fra)
+					if (min != null && value < min) { value = min }
+					if (max != null && value > max) { value = max }
+					if (fra != null && typeof value == 'number') { value = roundToFra(value, fra) }
 				}
 				evt.target.value = value
 			})
 			this.styles.push(e => `$elementCSS > input { text-align: right }`)
 		}
 	}
-	setMin(value) { this.min = value; return this }
-	setMax(value) { this.max = value; return this }
-	setStep(value) { this.step = value; return this }
-	setFra(value) { this.fra = value; return this }
+	setMin(value) { this.min = value; return this } setMax(value) { this.max = value; return this }
+	setStep(value) { this.step = value; return this } setFra(value) { this.fra = value; return this }
 	getConvertedValue(e) {
-		let value = super.getConvertedValue(e);
-		value = value == null ? value : asFloat(value);
-		const {fra} = this;
-		if (typeof value == 'number' && fra != null)
-			value = roundToFra(value, fra)
-		const {maxLength} = this;
-		if (value && maxLength)
-			value = asFloat(value.toString().slice(0, maxLength))
+		let value = super.getConvertedValue(e); value = value == null ? value : asFloat(value);
+		const {fra} = this; if (typeof value == 'number' && fra != null) { value = roundToFra(value, fra) }
+		const {maxLength} = this; if (value && maxLength) { value = asFloat(value.toString().slice(0, maxLength)) }
 		return value
 	}
 }
 class FBuilder_DateInput extends FBuilder_TextInput {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get maxLength() { return 12 }
-	static get noAutoChangeEvent() { return true }
-	
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get maxLength() { return 12 } static get noAutoChangeEvent() { return true }
 	buildDevam(e) {
-		super.buildDevam(e);
-		const {input, styles} = this;
-		input.addClass('tarih');
-		const part = this.part = new TarihUIPart({ layout: input });
-		part.change(e => {
-			const value = this.getConverted_getValue({ value: e.value });
-			const {ioAttr} = this;
-			if (ioAttr) {
-				const {altInst} = this;
-				if (altInst) {
-					const {_p} = altInst;
-					const pInst = (_p || {})[ioAttr];
-					if (pInst)
-						pInst.setValues({ value: value })
-					else
-						altInst[ioAttr] = value
-				}
-			}
-			this.signalChange({ sender: part, builder: this, event: e, value: value });
-			this._lastValue = value
+		super.buildDevam(e); const {input, styles} = this; input.addClass('tarih');
+		const part = this.part = new TarihUIPart({ layout: input }); part.change(e => {
+			const value = this.getConverted_getValue({ value: e.value }), {ioAttr} = this;
+			if (ioAttr) { const {altInst} = this; if (altInst) { const {_p} = altInst, pInst = (_p || {})[ioAttr]; if (pInst) { pInst.setValues({ value }) } else { altInst[ioAttr] = value } } }
+			this.signalChange({ sender: part, builder: this, event: e, value }); this._lastValue = value
 		});
-		part.run();
-		styles.push(e => `$elementCSS { width: 130px !important }`)
+		part.run(); styles.push(e => `$elementCSS { width: 130px !important }`)
 	}
-	defaultGetValue(e) {
-		const {part} = this; if (part && !part.isDestroyed) { return this.getConverted_getValue({ value: part.value }) }
-		return super.defaultGetValue(e)
-	}
-	defaultSetValue(e) {
-		const {part} = this; if (part && !part.isDestroyed) { part.value = e.value; return }
-		return super.defaultSetValue(e)
-	}
+	defaultGetValue(e) { const {part} = this; if (part && !part.isDestroyed) { return this.getConverted_getValue({ value: part.value }) } return super.defaultGetValue(e) }
+	defaultSetValue(e) { const {part} = this; if (part && !part.isDestroyed) { part.value = e.value; return } return super.defaultSetValue(e) }
 }
 class FBuilder_TimeInput extends FBuilder_TextInput {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get inputType() { return 'time' } static get maxLength() { return null }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get inputType() { return 'time' } static get maxLength() { return null }
 	constructor(e) {
 		e = e || {}; super(e);
 		$.extend(this, { saniyesizmi: e.saniyesiz ?? e.saniyesizmi ?? true })
@@ -486,10 +410,7 @@ class FBuilder_TimeInput extends FBuilder_TextInput {
 	}
 	saniyesiz() { this.saniyesizmi = true; return this }
 	saniyeli() { this.saniyesizmi = false; return this }
-	getConvertedValue(e) {
-		let {value} = e; if (value) { if (typeof value != 'string') { value = timeToString(value) } value = value.slice(0, this.maxLength) }
-		return value
-	}
+	getConvertedValue(e) { let {value} = e; if (value) { if (typeof value != 'string') { value = timeToString(value) } value = value.slice(0, this.maxLength) } return value }
 	getConverted_getValue(e) { return asDate(super.getConverted_getValue(e)) }
 }
 class FBuilder_ToggleButton extends FBuilder_DivOrtak {
@@ -885,92 +806,69 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 		const {input} = this; if (input?.length) { input.val(this.getConverted_setValue({ value: value })); return }
 		return super.defaultSetValue(e)
 	}
-	tekli() { this.coklumu = false; return this }
-	coklu() { this.coklumu = true; return this }
-	comboBox() { this.isDropDown = false; return this }
-	dropDown() { this.isDropDown = true; return this }
-	autoBind() { this.autoBindFlag = true; return this }
-	noAutoBind() { this.autoBindFlag = false; return this }
-	kodGosterilsin() { this.kodGosterilsinmi = true; return this }
-	kodGosterilmesin() { this.kodGosterilsinmi = false; return this }
-	kodlu() { this.kodGosterilsin(); return this }
-	kodsuz() { this.kodGosterilmesin(); return this }
-	enable() { this.disabled = false; return this }
-	disable() { this.disabled = true; return this }
-	listedenSecilemez() { this.listedenSecilemezFlag = true; return this }
-	listedenSecilir() { this.listedenSecilemezFlag = false; return this }
-	autoWidth() { this.noAutoWidthFlag = false; return this }
-	noAutoWidth() { this.noAutoWidthFlag = true; return this }
-	bosKodAlinir() { this.bosKodAlinirmi = true; return this }
-	bosKodAlinmaz() { this.bosKodAlinirmi = false; return this }
-	bosKodEklenir() { this.bosKodEklenirmi = true; return this }
-	bosKodEklenmez() { this.bosKodEklenirmi = false; return this }
-	tekil() { this.coklumu = false; return this }
-	coklu() { this.coklumu = true; return this }
-	ozelQueryDuzenleBlock(handler) { this.ozelQueryDuzenle = handler; return this }
-	listeArgsDuzenleBlock(handler) { this.listeArgsDuzenle = handler; return this }
-	setEkDuzenleyici(value) { this.ekDuzenleyici = value; return this }
-	veriYukleninceBlock(handler) { this.veriYuklenince = handler; return this }
+	tekli() { this.coklumu = false; return this } coklu() { this.coklumu = true; return this }
+	comboBox() { this.isDropDown = false; return this } dropDown() { this.isDropDown = true; return this }
+	autoBind() { this.autoBindFlag = true; return this } noAutoBind() { this.autoBindFlag = false; return this }
+	kodGosterilsin() { this.kodGosterilsinmi = true; return this } kodGosterilmesin() { this.kodGosterilsinmi = false; return this }
+	kodlu() { this.kodGosterilsin(); return this } kodsuz() { this.kodGosterilmesin(); return this }
+	enable() { this.disabled = false; return this } disable() { this.disabled = true; return this }
+	listedenSecilemez() { this.listedenSecilemezFlag = true; return this } listedenSecilir() { this.listedenSecilemezFlag = false; return this }
+	autoWidth() { this.noAutoWidthFlag = false; return this } noAutoWidth() { this.noAutoWidthFlag = true; return this }
+	bosKodAlinir() { this.bosKodAlinirmi = true; return this } bosKodAlinmaz() { this.bosKodAlinirmi = false; return this }
+	bosKodEklenir() { this.bosKodEklenirmi = true; return this } bosKodEklenmez() { this.bosKodEklenirmi = false; return this }
+	tekil() { this.coklumu = false; return this } coklu() { this.coklumu = true; return this }
+	ozelQueryDuzenleBlock(handler) { this.ozelQueryDuzenle = handler; return this } listeArgsDuzenleBlock(handler) { this.listeArgsDuzenle = handler; return this }
+	setEkDuzenleyici(value) { this.ekDuzenleyici = value; return this } veriYukleninceBlock(handler) { this.veriYuklenince = handler; return this }
 }
 class FBuilder_Grid extends FBuilder_DivOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get gridSinif() {
-		let result = this._gridSinif;
-		if (result === undefined)
-			result = this._gridSinif = e => { e.temp(); const {rootPart} = this; if (rootPart) return rootPart.gridSinif ?? rootPart.gridPart?.class }
+		let result = this._gridSinif; if (result === undefined) { result = this._gridSinif = e => { e.temp(); const {rootPart} = this; if (rootPart) return rootPart.gridSinif ?? rootPart.gridPart?.class } }
 		if (result != null && !result.prototype && isFunction(result)) {
 			const e = this.getBuilderBlockArgs({ result }); result = getFuncValue.call(this, result, e);
-			if (e.commitFlag) this._gridSinif = result
+			if (e.commitFlag) { this._gridSinif = result }
 		}
 		return result
 	}
 	set gridSinif(value) { this._gridSinif = value }
 	get detaySinif() {
-		let result = this._detaySinif;
-		if (result === undefined)
-			result = this._detaySinif = e => { e.temp(); const {rootPart} = this; if (rootPart) return rootPart.detaySinif ?? rootPart.fis?.detaySinif ?? rootPart.inst?.detaySinif }
+		let result = this._detaySinif; if (result === undefined) { result = this._detaySinif = e => { e.temp(); const {rootPart} = this; if (rootPart) return rootPart.detaySinif ?? rootPart.fis?.detaySinif ?? rootPart.inst?.detaySinif } }
 		if (result != null && !result.prototype && isFunction(result)) {
 			const e = this.getBuilderBlockArgs({ result }); result = getFuncValue.call(this, result, e);
-			if (e.commitFlag) this._detaySinif = result;
+			if (e.commitFlag) { this._detaySinif = result }
 		}
 		return result
 	}
 	set detaySinif(value) { this._detaySinif = value }
 	get kontrolcu() {
-		let result = this._kontrolcu;
-		if (result === undefined)
-			result = this._kontrolcu = e => { e.temp(); const {rootPart} = this; if (rootPart) return rootPart.kontrolcu }
+		let result = this._kontrolcu; if (result === undefined) { result = this._kontrolcu = e => { e.temp(); const {rootPart} = this; if (rootPart) return rootPart.kontrolcu } }
 		if (result != null && !result.prototype && isFunction(result)) {
 			const e = this.getBuilderBlockArgs({ result }); result = getFuncValue.call(this, result, e);
-			if (e.commitFlag) this._kontrolcu = result
+			if (e.commitFlag) { this._kontrolcu = result }
 		}
 		return result
 	}
 	set kontrolcu(value) { this._kontrolcu = value }
 	get kontrolcuSinif() {
-		let result = this._kontrolcuSinif;
-		if (result === undefined)
-			result = this._kontrolcuSinif = e => { e.temp(); const {rootPart} = this; return rootPart?.kontrolcuSinif || this.kontrolcu?.class }
+		let result = this._kontrolcuSinif; if (result === undefined) { result = this._kontrolcuSinif = e => { e.temp(); const {rootPart} = this; return rootPart?.kontrolcuSinif || this.kontrolcu?.class } }
 		if (result != null && !result.prototype && isFunction(result)) {
 			const e = this.getBuilderBlockArgs({ result }); result = getFuncValue.call(this, result, e);
-			if (e.commitFlag) this._kontrolcuSinif = result
+			if (e.commitFlag) { this._kontrolcuSinif = result }
 		}
 		return result
 	}
 	set kontrolcuSinif(value) { this._kontrolcuSinif = value }
 	get tabloKolonlari() {
 		let result = this._tabloKolonlari;
-		if (result === undefined)
-			result = this._tabloKolonlari = e => { e.temp(); const {rootPart} = this; if (rootPart) return rootPart.tabloKolonlari ?? rootPart.gridPart?.tabloKolonlari ?? rootPart.defaultTabloKolonlari }
+		if (result === undefined) { result = this._tabloKolonlari = e => { e.temp(); const {rootPart} = this; if (rootPart) return rootPart.tabloKolonlari ?? rootPart.gridPart?.tabloKolonlari ?? rootPart.defaultTabloKolonlari } }
 		if (result != null && !result.prototype && isFunction(result)) {
 			const e = this.getBuilderBlockArgs({ result }); result = getFuncValue.call(this, result, e);
-			if (e.commitFlag) this._tabloKolonlari = result
+			if (e.commitFlag) { this._tabloKolonlari = result }
 		}
 
 		return result
 	}
 	set tabloKolonlari(value) { this._tabloKolonlari = value }
-
 	constructor(e) {
 		e = e || {}; super(e); this.etiketGosterim_yok();
 		$.extend(this, {
@@ -980,7 +878,8 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 			ozelQueryDuzenle: e.ozelQueryDuzenle || e.ozelQueryDuzenleBlock, ozelQuerySonucu: e.ozelQuerySonucu || e.ozelQuerySonucuBlock,
 			yeniInstOlusturucu: e.yeniInstOlusturucu, sabitmi: e.sabitmi ?? e.sabit, noEmptyRowFlag: e.noEmptyRow ?? e.noEmptyRowFlag,
 			veriYuklenince: e.veriYuklenince || e.veriYukleninceBlock || e.bindingComplete || e.bindingCompleteBlock,
-			veriDegisince: e.veriDegisince || e.veriDegistiBlock || e.veriDegisti || e.cellValueChanged, rowNumberOlmasinFlag: e.rowNumberOlmasin ?? e.rowNumberOlmasinFlag
+			veriDegisince: e.veriDegisince || e.veriDegistiBlock || e.veriDegisti || e.cellValueChanged, rowNumberOlmasinFlag: e.rowNumberOlmasin ?? e.rowNumberOlmasinFlag,
+			notAdaptiveFlag: e.notAdaptive ?? e.notAdaptiveFlag, noAnimateFlag: e.noAnimate ?? e.noAnimateFlag
 		});
 		const {_kontrolcu} = this; if (_kontrolcu && this._kontrolcuSinif) this._kontrolcuSinif = _kontrolcu.class
 	}
@@ -997,14 +896,14 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 			let {kontrolcu, kontrolcuSinif} = this;
 			if (kontrolcu) if (!kontrolcuSinif) kontrolcuSinif = this.kontrolcuSinif = kontrolcu.class
 			else if (kontrolcuSinif) kontrolcu = this.kontrolcu = new kontrolcuSinif()
-			const {mfSinif, yeniInstOlusturucu, detaySinif, rowNumberOlmasinFlag, noEmptyRowFlag} = this;
+			const {mfSinif, yeniInstOlusturucu, detaySinif, noEmptyRowFlag, rowNumberOlmasinFlag, notAdaptiveFlag, noAnimateFlag} = this;
 			const _e = $.extend({}, e, { args: {
 				sender: this.sender, builder: this, parentPart: this.rootPart, layout: input, mfSinif, kontrolcu, tabloKolonlari,
 				ozelQueryDuzenleBlock: this.ozelQueryDuzenle, ozelQuerySonucuBlock: this.ozelQuerySonucu, yeniInstOlusturucu,
 				loadServerData: e => this.source, bindingCompleteBlock: e => this.veriYuklendi(e), gridVeriDegistiBlock: this.veriDegisince,
-				sabitFlag: this.sabitmi, noEmptyRowFlag, detaySinif, rowNumberOlmasinFlag
+				sabitFlag: this.sabitmi, noEmptyRowFlag, detaySinif, rowNumberOlmasinFlag, notAdaptiveFlag, noAnimateFlag
 			} });
-			if (widgetArgsDuzenle) _e.args.argsDuzenle = e => { const _e = $.extend({ sender: this.part, builder: this }, e); getFuncValue.call(this, widgetArgsDuzenle, _e) }
+			if (widgetArgsDuzenle) { _e.args.argsDuzenle = e => { const _e = $.extend({ sender: this.part, builder: this }, e); getFuncValue.call(this, widgetArgsDuzenle, _e) } }
 			this.part = new this.gridSinif(_e.args)
 		}
 	}
@@ -1023,71 +922,45 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 		if (gridWidget.editable && !part.sabitFlag && !this.noEmptyRowFlag) { if ($.isEmptyObject(gridWidget.getboundrows())) gridWidget.addrow(null, part.newRec()) }
 		const {veriYuklenince} = this; if (veriYuklenince) getFuncValue.call(this, veriYuklenince, e)
 	}
-	gridliGiris() { this.gridSinif = GridliGirisPart; return this }
-	gridliGosterici() { this.gridSinif = GridliGostericiPart; return this }
-	masterListe() { this.gridSinif = MasterListePart; return this }
-	fisListe() { this.gridSinif = FisListePart; return this }
-	rowNumberOlsun() { this.rowNumberOlmasinFlag = false; return this }
-	rowNumberOlmasin() { this.rowNumberOlmasinFlag = true; return this }
-	setSabitmi(value) { this.sabitmi = value; return this }
-	sabit() { return this.setSabitmi(true) }
-	autoGrow() { return this.setSabitmi(false) }
-	setNoEmptyRow(value) { this.noEmptyRowFlag = value; return this }
-	noEmptyRow() { return this.setNoEmptyRow(true) }
-	allowEmptyRow() { return this.setNoEmptyRow(false) }
-	setGridSinif(value) { this.gridSinif = value; return this }
-	setDetaySinif(value) { this.detaySinif = value; return this }
-	setTabloKolonlari(value) { this.tabloKolonlari = value; return this }
-	ozelQueryDuzenleBlock(handler) { this.ozelQueryDuzenle = handler; return this }
-	veriYukleninceIslemi(handler) { this.veriYuklenince = handler; return this }
-	veriYukleninceBlock(handler) { return this.veriYukleninceIslemi(handler) }
-	veriDegisinceIslemi(handler) { this.veriDegisince = handler; return this }
-	veriDegisinceBlock(handler) { return this.veriDegisinceIslemi(handler) }
+	gridliGiris() { this.gridSinif = GridliGirisPart; return this } gridliGosterici() { this.gridSinif = GridliGostericiPart; return this }
+	masterListe() { this.gridSinif = MasterListePart; return this } fisListe() { this.gridSinif = FisListePart; return this }
+	rowNumberOlsun() { this.rowNumberOlmasinFlag = false; return this } rowNumberOlmasin() { this.rowNumberOlmasinFlag = true; return this }
+	adaptive() { return this.notAdaptiveFlag = false; return this } notAdaptive() { this.notAdaptiveFlag = true; return this }
+	animate() { this.noAnimateFlag = false; return this } noAnimate() { this.noAnimateFlag = true; return this }
+	setSabitmi(value) { this.sabitmi = value; return this } sabit() { return this.setSabitmi(true) }
+	autoGrow() { return this.setSabitmi(false) } setNoEmptyRow(value) { this.noEmptyRowFlag = value; return this }
+	noEmptyRow() { return this.setNoEmptyRow(true) } allowEmptyRow() { return this.setNoEmptyRow(false) }
+	setGridSinif(value) { this.gridSinif = value; return this } setDetaySinif(value) { this.detaySinif = value; return this }
+	setTabloKolonlari(value) { this.tabloKolonlari = value; return this } ozelQueryDuzenleBlock(handler) { this.ozelQueryDuzenle = handler; return this }
+	veriYukleninceIslemi(handler) { this.veriYuklenince = handler; return this } veriYukleninceBlock(handler) { return this.veriYukleninceIslemi(handler) }
+	veriDegisinceIslemi(handler) { this.veriDegisince = handler; return this } veriDegisinceBlock(handler) { return this.veriDegisinceIslemi(handler) }
 	onBindingComplete(value) { return this.veriYukleninceIslemi(value) }
 }
 
 class FBuilder_IslemTuslari extends FBuilder_DivOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { window[this.name] = this; this._key2Class[this.name] = this } get islemTuslarimi() { return true }
 	constructor(e) {
-		e = e || {}
-		super(e);
-		$.extend(this, {
-			tip: e.tip,
-			id2Handler: e.id2Handler,
-			prependFlag: asBool(e.prepend ?? e.prependFlag),
-			ekButonlarIlk: e.ekButonlarIlk || [],
-			ekButonlarSon: e.ekButonlarSon || [],
-			butonlarDuzenleyici: e.butonlarDuzenleyici,
-			sagButonlar: e.sagButonlar ?? e.sagButonIdSet,
-			userData: e.userData
+		e = e || {}; super(e); $.extend(this, {
+			tip: e.tip, id2Handler: e.id2Handler, prependFlag: asBool(e.prepend ?? e.prependFlag), ekButonlarIlk: e.ekButonlarIlk || [], ekButonlarSon: e.ekButonlarSon || [],
+			butonlarDuzenleyici: e.butonlarDuzenleyici, sagButonlar: e.sagButonlar ?? e.sagButonIdSet, userData: e.userData
 		})
 		this.etiketGosterim_yok()
 	}
 	buildDevam(e) {
-		super.buildDevam(e);
-		const {input} = this;
-		if (input && input.length) {
-			input.css('width', 'var(--full)');
-			input.css('height', 'var(--full)');
-			const {widgetArgsDuzenle} = this;
-			const _e = $.extend({}, e, { args: {
+		super.buildDevam(e); const {input} = this;
+		if (input?.length) {
+			input.css('width', 'var(--full)'); input.css('height', 'var(--full)'); const {widgetArgsDuzenle} = this;
+			const _e = { ...e, args: {
 				sender: this.sender, parentPart: this.rootPart, builder: this, layout: input, userData: this.userData,
 				tip: this.tip, id2Handler: this.id2Handler, prepend: this.prependFlag, ekButonlarIlk: this.ekButonlarIlk, ekButonlarSon: this.ekButonlarSon,
 				butonlarDuzenleyici: this.butonlarDuzenleyici, sagButonIdSet: this.sagButonlar
-			} });
-			if (widgetArgsDuzenle)
-				getFuncValue.call(this, widgetArgsDuzenle, _e);
-			const part = this.part = new ButonlarPart(_e.args);
-			part.run()
+			} };
+			if (widgetArgsDuzenle) { getFuncValue.call(this, widgetArgsDuzenle, _e) }
+			const part = this.part = new ButonlarPart(_e.args); part.run()
 		}
 	}
-	append() { this.prependFlag = false; return this }
-	prepend() { this.prependFlag = true; return this }
-	setPrependFlag(value) { this.prependFlag = value; return this }
-	setButonlarIlk(value) { this.butonlarIlk = value; return this }
-	setButonlarSon(value) { this.butonlarSon = true; return this }
-	setId2Handler(handler) { this.id2Handler = handler; return this }
-	setButonlarDuzenleyici(handler) { this.butonlarDuzenleyici = handler; return this }
-	setSagButonlar(..._values) { const values = _values?.flat();  this.sagButonIdSet = values; return this }
-	setUserData(value) { this.userData = value; return this }
+	append() { this.prependFlag = false; return this } prepend() { this.prependFlag = true; return this } setPrependFlag(value) { this.prependFlag = value; return this }
+	setTip(value) { this.tip = value; return this } setButonlarIlk(value) { this.butonlarIlk = value; return this } setButonlarSon(value) { this.butonlarSon = true; return this }
+	setId2Handler(handler) { this.id2Handler = handler; return this } setButonlarDuzenleyici(handler) { this.butonlarDuzenleyici = handler; return this }
+	setSagButonlar(..._values) { const values = _values?.flat();  this.sagButonIdSet = values; return this } setUserData(value) { this.userData = value; return this }
 }
