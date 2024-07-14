@@ -23,13 +23,8 @@ class MQRotaliFis extends MQDetayliOrtak {
 	static secimlerDuzenle(e) {
 		super.secimlerDuzenle(e); const sec = e.secimler
 		sec.secimTopluEkle({
-			islemDurum: new SecimTekSecim({
-				etiket: 'İşlem Durumu',
-				tekSecim: new BuDigerVeHepsi([
-					`<div class="orangered full-wh">Bekleyen</div>`,
-					`<div class="green full-wh">İşlem Gören</div>`
-				])/*.bu()*/
-			})
+			islemDurum: new SecimTekSecim({ etiket: 'İşlem Durumu', tekSecim: new BuDigerVeHepsi([`<div class="orangered full-wh">Bekleyen</div>`, `<div class="green full-wh">İşlem Gören</div>` ])/*.bu()*/ }),
+			gonderimDurum: new SecimTekSecim({ etiket: 'Gönderim Durumu', tekSecim: new BuDigerVeHepsi([`<div class="orangered full-wh">Bekleyen</div>`, `<div class="green full-wh">Gönderilen</div>` ])/*.bu()*/ })
 		})
 	}
 	static ekCSSDuzenle(e) {
@@ -82,7 +77,7 @@ class MQRotaliFis extends MQDetayliOrtak {
 		let recs = await super.loadServerData(e), {PrefixSut} = this;
 		if (recs) {
 			for (const rec of recs) {
-				rec.gonderimDurum = !!rec.gonderimTS ? `<div class="darkgreen">Gönderildi</div>` : `<div class="darkred">Gönderilmedi</div>`; const {detaylar} = rec; let toplam;
+				const {detaylar} = rec; let toplam;
 				rec.toplam = rec.toplam ?? 0; if (!$.isEmptyObject(detaylar)) {
 					const {localData} = app.params, sutSiraRecs = localData.getData(MQSutSira.dataKey);
 					if (!$.isEmptyObject(sutSiraRecs)) {
@@ -95,10 +90,14 @@ class MQRotaliFis extends MQDetayliOrtak {
 						rec.toplam = genelToplam
 					}
 				};
-				rec.islemDurum = !!rec.toplam ? `<div class="black bg-lightgreen">İşlem Yapıldı</div>` : `<div class="black bg-lightred-transparent">Bekleyen</div>`;
+				$.extend(rec, {
+					gonderimDurum: !!rec.gonderimTS ? `<div class="black bg-lightgreen">Gönderildi</div>` : `<div class="black bg-lightred-transparent">Gönderilmedi</div>`,
+					islemDurum: !!rec.toplam ? `<div class="black bg-lightgreen">İşlem Yapıldı</div>` : `<div class="black bg-lightred-transparent">Bekleyen</div>`
+				})
 			}
-			const {secimler} = e, islemDurum = secimler.islemDurum.tekSecim, filters = [];
+			const {secimler} = e, islemDurum = secimler.islemDurum.tekSecim, gonderimDurum = secimler.gonderimDurum.tekSecim, filters = [];
 			if (islemDurum && !islemDurum.hepsimi) { filters.push(rec => { const {toplam} = rec; return islemDurum.bumu ? !toplam : islemDurum.digermi ? !!toplam : true })};
+			if (gonderimDurum && !gonderimDurum.hepsimi) { filters.push(rec => { const {gonderimTS} = rec; return gonderimDurum.bumu ? !gonderimTS : gonderimDurum.digermi ? !!gonderimTS : true })};
 			const applyFilters = rec => { for (const filter of filters) { if (!filter(rec)) return false } return true };
 			const _recs = recs; recs = [];
 			for (const rec of _recs) { if (!rec.gonderimTS && applyFilters(rec)) { recs.push(rec) } }
@@ -107,33 +106,37 @@ class MQRotaliFis extends MQDetayliOrtak {
 		return recs || []
 	}
 	static gridVeriYuklendi(e) {
-		super.gridVeriYuklendi(e); const {grid, sender} = e, {secimler} = sender, {fbd_islemDurum} = sender;
-		grid.jqxGrid('groups', ['gonderimDurum', 'islemDurum']);
-		if (fbd_islemDurum) { fbd_islemDurum.value = secimler.islemDurum.value }
+		super.gridVeriYuklendi(e); const {grid, sender} = e, {secimler} = sender, {fbd_islemDurum, fbd_gonderimDurum} = sender; grid.jqxGrid('groups', ['gonderimDurum', 'islemDurum']);
+		if (fbd_islemDurum) { fbd_islemDurum.value = secimler.islemDurum.value } if (fbd_gonderimDurum) { fbd_gonderimDurum.value = secimler.gonderimDurum.value }
 	}
 	static rootFormBuilderDuzenle_listeEkrani(e) {
 		const rfb = e.rootBuilder, part = e.sender, {secimler} = part;
 		let form = rfb.addForm('islemTuslari', part.islemTuslari).addStyle(...[
-			e => `$elementCSS #degistir { margin-right: 45px !important }`,
-			e => `$elementCSS #tazele { margin-right: 13px !important }`,
-			e => `$elementCSS #degistir.jqx-fill-state-normal { background-color: royalblue !important }`,
-			e => `$elementCSS #degistir.jqx-fill-state-pressed { background-color: cadgetblue !important }`,
+			e => `$elementCSS #degistir { margin-right: 25px !important }`, e => `$elementCSS #tazele { margin-right: 13px !important }`,
+			e => `$elementCSS #degistir.jqx-fill-state-normal { background-color: royalblue !important }`, e => `$elementCSS #degistir.jqx-fill-state-pressed { background-color: cadgetblue !important }`,
 			e => `$elementCSS #tazele.jqx-fill-state-normal { background-color: #658374 }`
 		]);
 		form.addForm('fisBaslikBilgi', e => { return $(`<div class="flex-row"><div class="item posta flex-row"><div class="etiket">Posta:</div> <div class="veri">${new Posta(app.params.config.postaKod).aciklama || '??'}</div></div></div>`) })
 			.addStyle(...[
-				e => `$elementCSS { font-size: 150%; color: #555; position: absolute; top: 3px; left: 250px; width: auto !important }`,
-				e => `$builderCSS > .item { min-content !important; margin-inline-end: 30px }`,
-				e => `$builderCSS > .item > * { margin-inline-end: 15px }`,
-				e => `$builderCSS > .item .veri { font-weight: bold; color: royalblue }`
+				e => `$elementCSS { font-size: 150%; color: #555; position: absolute; top: 3px; left: 250px; width: auto !important }`, e => `$builderCSS > .item { min-content !important; margin-inline-end: 30px }`,
+				e => `$builderCSS > .item > * { margin-inline-end: 15px }`, e => `$builderCSS > .item .veri { font-weight: bold; color: royalblue }`
 			]);
 		form.addRadioButton('islemDurum').etiketGosterim_yok().setSource(e => secimler.islemDurum.tekSecim.kaListe)
 			.onAfterRun(e => { const {builder} = e, {rootPart} = builder; rootPart.fbd_islemDurum = builder })
 			.degisince(e => { const {builder} = e, {rootPart, value} = builder, {secimler} = rootPart; secimler.islemDurum.value = value; rootPart.tazele() })
 			.addStyle(...[
-				e => `$elementCSS { position: absolute; top: 3px; left: 430px; width: auto !important; height: auto !important }`,
-				e => `$elementCSS .options > * { width: 130px; height: calc(var(--full) - 15px) !important; margin-inline-end: 3px; padding: 0 3px !important }`,
-				e => `$elementCSS .options > * > * { width: var(--full) !important; height: var(--full) !important; padding: 5px 0 !important }`
+				e => `$elementCSS { position: absolute; top: 3px; left: 420px; width: auto !important; height: auto !important }`,
+				e => `$elementCSS .options > * { width: 110px; height: calc(var(--full) - 15px) !important; margin-inline-end: 2px; padding: 0 3px !important }`,
+				e => `$elementCSS .options > * > * { width: var(--full) !important; height: var(--full) !important; padding: 3px 0 !important }`
+			]);
+		form.addRadioButton('gonderimDurum').etiketGosterim_yok().setSource(e => secimler.gonderimDurum.tekSecim.kaListe)
+			.onAfterRun(e => { const {builder} = e, {rootPart} = builder; rootPart.fbd_gonderimDurum = builder })
+			.degisince(e => { const {builder} = e, {rootPart, value} = builder, {secimler} = rootPart; secimler.gonderimDurum.value = value; rootPart.tazele() })
+			.addStyle(...[
+				e => `$elementCSS { position: absolute; top: 3px; left: 760px; width: auto !important; height: auto !important }`,
+				e => `@media (max-width: 900px) { $elementCSS .options { display: none !important } }`,
+				e => `$elementCSS .options > * { width: 110px; height: calc(var(--full) - 15px) !important; margin-inline-end: 2px; padding: 0 3px !important }`,
+				e => `$elementCSS .options > * > * { width: var(--full) !important; height: var(--full) !important; padding: 3px 0 !important }`
 			])
 		form = rfb.addForm('grid', part.grid).addStyle(e => `$elementCSS .jqx-grid-column-header > div > div { margin-top: 8px !important; line-height: 23px !important }`)
 	}
@@ -153,10 +156,8 @@ class MQRotaliFis extends MQDetayliOrtak {
 				`<div class="item posta flex-row"><div class="etiket">Posta:</div> <div class="veri">${new Posta(app.params.config.postaKod).aciklama || '??'}</div></div>` +
 			`</div>`
 		) }).addStyle_fullWH().addStyle(...[
-			e => `$builderCSS { font-size: 150%; color: #555 }`,
-			e => `$builderCSS > .item { min-content !important; margin-inline-end: 30px }`,
-			e => `$builderCSS > .item > * { margin-inline-end: 15px }`,
-			e => `$builderCSS > .item .veri { font-weight: bold; color: royalblue }`
+			e => `$builderCSS { font-size: 150%; color: #555 }`, e => `$builderCSS > .item { min-content !important; margin-inline-end: 30px }`,
+			e => `$builderCSS > .item > * { margin-inline-end: 15px }`, e => `$builderCSS > .item .veri { font-weight: bold; color: royalblue }`
 		]);
 		const cellClassName = (sender, rowIndex, belirtec, value, rec) => {
 			const result = [belirtec]; rec = rec.originalrecord ?? rec;
