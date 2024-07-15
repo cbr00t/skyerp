@@ -1,6 +1,23 @@
-class Rapor_DonemselIslemler extends MQRapor {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get kod() { return 'DONEMSEL_ISLEMLER' } static get aciklama() { return 'Dönemsel İşlemler' }
-	static get detaylimi() { return true }
+class Rapor_Satislar extends MQRapor {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kod() { return 'SATISLAR' } static get aciklama() { return 'Satışlar' }
+	static get gruplamaKAListe() {
+		let result = this._gruplamaKAListe; if (result == null) {
+			result = this._gruplamaKAListe = [
+				new CKodVeAdi({ kod: 'STOK', aciklama: 'Stok' }), new CKodVeAdi({ kod: 'STGRP', aciklama: 'Stok Grup' }),
+				new CKodVeAdi({ kod: 'CARI', aciklama: 'Cari' }), new CKodVeAdi({ kod: 'CRBOL', aciklama: 'Cari Bölge' }),
+				new CKodVeAdi({ kod: 'CRTIP', aciklama: 'Cari Tip' }), new CKodVeAdi({ kod: 'CRIL', aciklama: 'Cari İl' }),
+				new CKodVeAdi({ kod: 'YILAY', aciklama: 'Yıl/Ay' })
+			]
+		}
+		return result
+	}
+	static listeEkrani_init(e) { super.listeEkrani_init(e); const gridPart = e.sender; gridPart.gruplamalar = {} }
+	static rootFormBuilderDuzenle_listeEkrani(e) {
+		super.rootFormBuilderDuzenle_listeEkrani(e); const gridPart = e.sender, rfb = e.rootBuilder;
+		const fbd_islemTuslari_sol = rfb.addForm('islemTuslari_sol').setLayout(e => e.builder.rootPart.islemTuslariPart.sol).addCSS('flex-row').setAltInst(e => e.builder.rootPart);
+		fbd_islemTuslari_sol.addButton('gruplamalarSec', 'Gruplamalar').setInst(null).onClick(_e => this.gruplamalarIstendi({ ...e, ..._e })).addStyle_wh(150)
+	}
 	static secimlerDuzenle(e) {
 		const sec = e.secimler; sec.secimTopluEkle({
 			secim1: new SecimOzellik({ etiket: 'Seçim 1' }),
@@ -8,31 +25,54 @@ class Rapor_DonemselIslemler extends MQRapor {
 		});
 		sec.whereBlockEkle(e => { const sec = e.secimler, wh = e.where })
 	}
-	static orjBaslikListesi_groupsDuzenle(e) { const {liste} = e; liste.push('grupText') }
+	static orjBaslikListesi_groupsDuzenle(e) { super.orjBaslikListesi_groupsDuzenle(e) /*const {liste} = e; liste.push('grupText')*/ }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(...[
-			new GridKolon({ belirtec: 'kod', text: 'Kod', genislikCh: 5 }),
-			new GridKolon({ belirtec: 'islemAdi', text: 'İşlem', genislikCh: 20 }),
-			new GridKolon({ belirtec: 'grupText', text: 'Döviz + İşlem' }).hidden()
-		])
+			new GridKolon({ belirtec: 'stokkod', text: 'Stok', genislikCh: 16 }), new GridKolon({ belirtec: 'stokadi', text: 'Stok Adı', genislikCh: 40 }),
+			new GridKolon({ belirtec: 'grupkod', text: 'Stok Grup', genislikCh: 16 }), new GridKolon({ belirtec: 'grupadi', text: 'Grup Adı', genislikCh: 25 }),
+			new GridKolon({ belirtec: 'carikod', text: 'Cari', genislikCh: 16 }), new GridKolon({ belirtec: 'cariadi', text: 'Cari Ünvan', genislikCh: 50 }),
+			new GridKolon({ belirtec: 'tipkod', text: 'Tip', genislikCh: 5 }), new GridKolon({ belirtec: 'tipadi', text: 'Tip Adı', genislikCh: 23 }),
+			new GridKolon({ belirtec: 'bolgekod', text: 'Bölge', genislikCh: 5 }), new GridKolon({ belirtec: 'bolgeadi', text: 'Bölge Adı', genislikCh: 18 }),
+			new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 5 }), new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 16 }),
+			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 8 }).tipDecimal(), new GridKolon({ belirtec: 'ciro', text: 'Ciro', genislikCh: 16 }).tipDecimal_bedel()
+		].filter(x => !!x))
 	}
-	static loadServerData(e) {
-		const recs = []; for (let i = 0; i < 50; i++) { recs.push({ kod: 'TL', islemAdi: 'ABC' }) }
-		for (const rec of recs) { rec.grupText = `<b>${rec.kod || ''}</b> <span>${rec.islemAdi}</span>` }
-		return recs
+	static async loadServerData(e) {
+		const gridPart = e.gridPart ?? e.sender; let {gruplamalar} = gridPart; if ($.isEmptyObject(gruplamalar)) { gruplamalar = asSet(this.gruplamaKAListe.map(x => x.kod)) }
+		let query = await app.sqlExecTekilDeger({
+			query: 'SELECT dbo.tic_satisKomutu(@argDonemBasi, @argDonemSonu, @argGruplama)', params: [
+				{ name: '@argDonemBasi', type: 'datetime', value: dateToString(new Date(1, 1, today().getFullYear())) },
+				{ name: '@argDonemSonu', type: 'datetime', value: dateToString(today()) },
+				{ name: '@argGruplama', type: 'structured', typeName: 'type_strIdList', value: Object.keys(gruplamalar).map(id => ({ id })) }
+			]
+		});
+		let recs = query ? await app.sqlExecSelect({ query, maxRow: 10 }) : []; return recs
 	}
-	static orjBaslikListesiDuzenle_detaylar(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(...[
-			new GridKolon({ belirtec: 'kod', text: 'Kod', genislikCh: 5 }),
-			new GridKolon({ belirtec: 'islemAdi', text: 'İşlem', genislikCh: 20 })
-		])
+	static gridVeriYuklendi(e) {
+		super.gridVeriYuklendi(e); const gridPart = e.gridPart ?? e.sender, {grid, gridWidget} = gridPart, colDefs = this.orjBaslikListesi;
+		gridPart.updateColumns({ tabloKolonlari: colDefs.slice(0, 4) })
 	}
-	static loadServerData_detaylar(e) {
-		const recs = []; for (let i = 0; i < 100; i++) { recs.push({ kod: 'TL', islemAdi: 'ABC' }) }
-		return recs
+	static gruplamalarIstendi(e) {
+		const {builder} = e, gridPart = e.gridPart ?? builder.rootPart, {gruplamaKAListe} = this, {gruplamalar} = gridPart;
+		let wRFB = new RootFormBuilder('gruplamalar').addCSS('part');
+		wRFB.addIslemTuslari('islemTuslari').setTip('tamam').setId2Handler({ tamam: e => wnd.jqxWindow('close') })
+			.addStyle(e => `$elementCSS .butonlar.part > .sol { z-index: -1; background-color: unset !important; background: transparent !important }`);
+		let fbd_content = wRFB.addFormWithParent('content').yanYana()
+			.addStyle(e => `$elementCSS { position: relative; top: 10px; z-index: 100 } $elementCSS > button { margin: 0 0 10px 10px }
+			$elementCSS > button.jqx-fill-state-normal { background-color: whitesmoke !important } $elementCSS > button.jqx-fill-state-pressed { background-color: royalblue !important }`);
+		for (const {kod, aciklama} of gruplamaKAListe) {
+			let btn = fbd_content.addForm(kod).setLayout(e => {
+				const {builder} = e, {id} = builder; return builder.input = $(`<button id="${id}">${aciklama}</button>`).jqxToggleButton({ theme, width: '45%', height: 50, toggled: gruplamalar[id] })
+			});
+			btn.onAfterRun(e => e.builder.input.on('click', evt => this.gruplamalar_butonTiklandi({ ...e, evt, id: evt.currentTarget.id, gridPart, gruplamalar })) )
+		}
+		let wnd = createJQXWindow({ title: 'Gruplamalar', args: { isModal: true, width: 500, height: 500, closeButtonAction: 'close' } });
+		wnd.on('close', evt => { wnd.jqxWindow('destroy'); gridPart.tazele() });
+		wnd.prop('id', 'gruplamalar'); wnd.addClass('part');
+		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run()
 	}
-}
-class Rapor_PanelTest extends PanelRapor {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get kod() { return 'PANEL_TEST' } static get aciklama() { return 'Panel Test' }
-	altRaporlarDuzenle(e) { super.altRaporlarDuzenle(e); this.add(Rapor_A1, Rapor_A2, Rapor_A7, Rapor_A4, Rapor_A3, Rapor_A5, Rapor_A6) }
+	static gruplamalar_butonTiklandi(e) {
+		const {id, evt, gruplamalar} = e, target = $(evt.currentTarget), flag = target.jqxToggleButton('toggled');
+		if (flag) { gruplamalar[id] = true } else { delete gruplamalar[id] }
+	}
 }

@@ -214,7 +214,7 @@ body.bg-modal > #loginForm { filter: blur(3px) brightness(.5); /* backdrop-filte
 }
 .feedback .ek-bilgi { font-size: 110%; color: white !important }
 
-.jqx-combobox-multi-item { font-weight: bold; color: whitesmoke; background-color: royalblue !important; padding: 6px 13px; border: 1px solid whitesmoke; border-radius: 20px }
+.jqx-combobox-multi-item { font-weight: bold; color: whitesmoke; background-color: royalblue !important; padding: 6px 10px; border: 1px solid whitesmoke; border-radius: 13px }
 .jqx-combobox-multi-item a { font-size: 103% }
-.jqx-combobox-multi-item a + div { margin-left: 8px }
+.jqx-combobox-multi-item a + div { margin-left: 5px }
 

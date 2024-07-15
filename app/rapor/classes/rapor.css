@@ -1,3 +1,4 @@
+.rapor.masterListe.part .jqx-grid [role = row] > div { font-size: 93% }
 #rapor.part { --islemTuslari-height: 55px }
 #rapor.part > .wnd-content > * { background: white !important }
 #rapor.part #items { height: calc(var(--full) - var(--islemTuslari-height)) !important }

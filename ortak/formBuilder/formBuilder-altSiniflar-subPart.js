@@ -764,7 +764,7 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 			const _e = $.extend({}, e, { args: {
 				sender: this.sender, builder: this, autoBind: this.autoBindFlag, parentPart: this.rootPart, layout: input, listedenSecilemez: this.listedenSecilemezFlag,
 				width: false, height: this.class.defaultHeight, mfSinif: this.mfSinif, source: this.source, ekDuzenleyici: this.ekDuzenleyici,
-				isDropDown: this.isDropDown, noAutoWidth: this.noAutoWidthFlag, listedenSecilemez: this.listedenSecilemezFlag,
+				isDropDown: this.isDropDown, coklumu: this.coklumu, noAutoWidth: this.noAutoWidthFlag, listedenSecilemez: this.listedenSecilemezFlag,
 				kodGosterilsinmi: this.kodGosterilsinmi, bosKodAlinirmi: this.bosKodAlinirmi, bosKodEklenirmi: this.bosKodEklenirmi,
 				ozelQueryDuzenle: this.ozelQueryDuzenle, listeArgsDuzenle: this.listeArgsDuzenle, veriYukleninceBlock: this.veriYuklenince, kodSaha: this.kodAttr, adiSaha: this.adiAttr,
 				disabled: this.disabled, placeHolder: this.placeHolder ?? (() => (etiketGosterim == 'placeholder') ? this.etiket : ''), value: this.value
