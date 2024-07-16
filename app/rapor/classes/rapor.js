@@ -26,7 +26,7 @@ class Rapor_Satislar extends MQRapor {
 		const fbd_islemTuslari_sol = rfb.addForm('islemTuslari_sol').setLayout(e => e.builder.rootPart.islemTuslariPart.sol).addCSS('flex-row').setAltInst(e => e.builder.rootPart);
 		fbd_islemTuslari_sol.addButton('gruplamalarSec', 'Gruplamalar').setInst(null).onClick(_e => this.gruplamalarIstendi({ ...e, ..._e })).addStyle_wh(150)
 	}
-	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); const {args} = e }
+	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); const {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: false }) }
 	static orjBaslikListesi_groupsDuzenle(e) {
 		super.orjBaslikListesi_groupsDuzenle(e); const gridPart = e.gridPart ?? e.sender, {gridWidget} = gridPart, colDefs = this.orjBaslikListesi, {liste} = e;
 		let {gruplamalar} = gridPart; const {allowGrupSet} = this;
@@ -47,8 +47,8 @@ class Rapor_Satislar extends MQRapor {
 			new GridKolon({ belirtec: 'tip', text: 'Tip', genislikCh: 15, userData: { grup: 'CRTIP' } }),
 			new GridKolon({ belirtec: 'bolge', text: 'Bölge', genislikCh: 20, userData: { grup: 'CRBOL' } }),
 			new GridKolon({ belirtec: 'il', text: 'İl', genislikCh: 20, userData: { grup: 'CRIL' } }),
-			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 8 }).tipDecimal(),
-			new GridKolon({ belirtec: 'ciro', text: 'Ciro', genislikCh: 16 }).tipDecimal_bedel()
+			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 10, aggregates: ['sum'] }).tipDecimal(),
+			new GridKolon({ belirtec: 'ciro', text: 'Ciro', genislikCh: 18, aggregates: ['sum'] }).tipDecimal_bedel()
 		].filter(x => !!x))
 	}
 	static async loadServerData(e) {
