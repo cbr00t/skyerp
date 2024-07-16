@@ -35,9 +35,8 @@ class Rapor_Satislar extends MQRapor {
 			const {belirtec} = colDef, grup = colDef.userData?.grup;
 			if (grup != null && allowGrupSet[grup] && gruplamalar[grup]) { (tip2Belirtecler[grup] = tip2Belirtecler[grup] || []).push(belirtec); if (++count == 1) { break } }
 		}
-		for (const belirtecler of Object.values(tip2Belirtecler)) {
-			if (belirtecler?.length) { const belirtec = belirtecler[1] || belirtecler[0]; liste.push(belirtec); gridWidget.hidecolumn(belirtec) }
-		}
+		for (const belirtecler of Object.values(tip2Belirtecler)) { if (belirtecler?.length) { const belirtec = belirtecler[1] || belirtecler[0]; liste.push(belirtec) } }
+		gridPart._hideBelirtecler = liste
 	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(...[
@@ -72,13 +71,14 @@ class Rapor_Satislar extends MQRapor {
 		return recs
 	}
 	static gridVeriYuklendi(e) {
-		super.gridVeriYuklendi(e); const gridPart = e.gridPart ?? e.sender, {gridWidget} = gridPart, colDefs = this.orjBaslikListesi; let {gruplamalar, _lastGruplamalar} = gridPart;
+		super.gridVeriYuklendi(e); const gridPart = e.gridPart ?? e.sender, {gridWidget} = gridPart, colDefs = this.orjBaslikListesi; let {_hideBelirtecler, gruplamalar, _lastGruplamalar} = gridPart;
 		if ($.isEmptyObject(gruplamalar)) { gruplamalar = asSet(this.gruplamaKAListe.map(x => x.kod)) }
 		let anahGruplamalar = Object.keys(gruplamalar).join(delimWS), anahLastGruplamalar = _lastGruplamalar ? Object.keys(_lastGruplamalar).join(delimWS) : null;
 		if (anahLastGruplamalar == null || anahGruplamalar != anahLastGruplamalar) {
 			let tabloKolonlari = colDefs.filter(colDef => { const grup = colDef.userData?.grup; return grup == null || !!gruplamalar[grup] });
 			gridPart.updateColumns({ tabloKolonlari }); _lastGruplamalar = gridPart._lastGruplamalar = $.extend({}, gruplamalar)
 		}
+		if (_hideBelirtecler?.length) { for (const belirtec of _hideBelirtecler) { gridWidget.hidecolumn(belirtec) } delete gridPart._hideBelirtecler }
 	}
 	static gruplamalarIstendi(e) {
 		const {builder} = e, gridPart = e.gridPart ?? builder.rootPart, {gruplamaKAListe} = this, {gruplamalar} = gridPart;

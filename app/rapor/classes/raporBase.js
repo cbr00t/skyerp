@@ -26,7 +26,7 @@ class MQRapor extends Rapor {
 		const {part} = result, {anaTip} = this.class; part.layout.addClass(`${anaTip} rapor`);
 		const {builder} = part; $.extend(this, { part, builder }); return result
 	}
-	tazele(e) { super.tazele(e); }
+	tazele(e) { super.tazele(e) }
 	static listeEkrani_init(e) { return e.sender.inst.onInit(e) }
 	static listeEkrani_afterRun(e) { return e.sender.inst.onAfterRun(e) }
 }
