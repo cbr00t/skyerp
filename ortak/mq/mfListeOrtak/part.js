@@ -130,10 +130,10 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			try {
 				const {bulPart} = gridPart, {input} = bulPart; gridPart.tazele({ action: 'hizliBul' });
 				for (const delayMS of [400, 1000]) { setTimeout(() => { bulPart.focus(); setTimeout(() => { input[0].selectionStart = input[0].selectionEnd = input[0].value?.length }, 205) }, delayMS) }
-				setTimeout(() => FiltreFormPart.hizliBulIslemi(e), 3000)
+				setTimeout(() => FiltreFormPart.hizliBulIslemi(e), 500)
 			}
 			finally { delete gridPart._timer_hizliBulIslemi_ozel }
-		}, 1300)
+		}, 100)
 	}
 	islemTuslariDuzenle(e) {
 		super.islemTuslariDuzenle(e); const mfSinif = this.getMFSinif(), {secimler, panelDuzenleyici} = this, {liste} = e, yListe = [];
@@ -477,6 +477,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		const modelRapor = new sabitBilgiRaporcuSinif({ parentPart: this, mfSinif: mfSinif, secimler }); modelRapor.raporEkraniAc()
 	}
 	boyutlandirIstendi(e) { const {panelDuzenleyici} = this; if (panelDuzenleyici?.boyutlandirIstendi) { panelDuzenleyici?.boyutlandirIstendi(e) } }
+	tekil() { this.tekilmi = true; return this } coklu() { this.tekilmi = false; return this }
 }
 
 

@@ -1,5 +1,6 @@
 class Rapor extends MQDetayliOrtak {				/* MQCogul tabanlı rapor sınıfları için gerekli inherit desteği için MQDetayliOrtak'dan getirildi */
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return null } static get araSeviyemi() { return false }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return null }
+	static get araSeviyemi() { return false } static get tumKolonlarGosterilirmi() { return false }
 	static get rapormu() { return true } get rapormu() { return this.class.rapormu } static get altRapormu() { return false } get altRapormu() { return this.class.altRapormu }
 	static get kod() { return null } static get aciklama() { return null } static get detaylimi() { return false } static get sinifAdi() { return this.aciklama }
 	static get kod2Sinif() {

@@ -16,9 +16,9 @@ class FiltreFormPart extends Part {
 		}
 		input.on('change', evt => changeHandler(evt));
 		input.on('keyup', evt => {
-			const key = evt.key?.toLowerCase();
+			const key = evt.key?.toLowerCase(); clearTimeout(this.timer_change);
 			if (key == 'enter' || key == 'linefeed') { changeHandler(evt) }
-			else { this.timer_change = setTimeout(() => { try { changeHandler(evt) } finally { delete this.timer_change } }, 100) }
+			else { this.timer_change = setTimeout(() => { try { changeHandler(evt) } finally { delete this.timer_change } }, 5000) }
 		})
 	}
 	static hizliBulIslemi(e) {

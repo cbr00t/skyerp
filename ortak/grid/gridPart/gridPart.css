@@ -1,7 +1,7 @@
 .grid.part { --header-height: calc(var(--islemTuslari-height) + var(--header-ek-height)); --header-ek-height: 0px }
 .grid.part > .header { height: var(--header-height) }
 .grid.part > .grid-parent { width: var(--full); height: calc(var(--full) - var(--header-height)) }
-.jqx-grid { }
+.jqx-grid { cursor: default }
 .jqx-grid .detay-grid-parent { width: var(--full); height: calc(var(--full) - 13px) }
 .jqx-grid .detay-grid-parent .jqx-grid { font-size: 95%; width: var(--full); max-width: 98% !important; max-height: 98% !important; margin: 5px /*; animation: 1000ms 1 grid-open */ }
 /*@media (max-width: 610px) {
@@ -21,9 +21,8 @@
 .jqx-grid [role = row] :has(.grid-cell-group) { background: var(--s-whitesmoke) }
 .jqx-grid [role = row] :has(.grid-cell-group) { vertical-align: top !important }
 .jqx-grid [role = row] .grid-cell-group {
-	font-weight: bold; font-size: 130%; color: whitesmoke; background-color: #333; height: calc(var(--full) / 1.03);
-	vertical-align: top !important; padding: 0px 13px; padding-top: 10px; padding-bottom: 0;
-	line-height: 23px; word-break: break-word
+	font-weight: bold; font-size: 120%; color: whitesmoke; background-color: #2a3030; height: calc(var(--full) / 1.03);
+	vertical-align: top !important; padding: 0px 13px; padding-top: 10px; padding-bottom: 0; line-height: 23px; word-break: break-word
 }
 .jqx-grid [role = row] .grid-cell-group, .jqx-grid [role = row] .grid-cell-group * {  }
 .jqx-grid [role = row] ._rowNumber:not(:has(.grid-cell-group)) { font-weight: bolder !important; font-size: 70% !important; color: #343434; background: linear-gradient(270deg, #aaaaaa4f 30%, #ffffff33 90%) !important }

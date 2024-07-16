@@ -8,7 +8,7 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	static deferredEventNames = asSet(['cellValueChanged']);
 
 	readFrom_ara(e) {
-		if (!super.readFrom_ara(e)) return false
+		if (!super.readFrom_ara(e)) { return false }
 		const {maxLength} = e; const genislik = e.genislik || e.width || null, tipOrDef = e.tip || null;
 		// this.belirtec = e.belirtec || e.attr || e.dataField || e.datafield;
 		this.text = e.text || '';

@@ -81,7 +81,7 @@ class GridPart extends Part {
 		const {builder, tabloKolonlari, argsDuzenleBlock, gridRenderedBlock, cacheFlag, asyncFlag, notAdaptiveFlag} = this;
 		const _theme = theme == 'metro' ? 'material' : theme;
 		let args = {
-			theme: _theme, localization: localizationObj, width: '99.7%', height: '99.5%', editMode: 'selectedcell', sortMode: 'many', autoHeight: false, autoRowHeight: false, rowsHeight: 38,
+			theme: _theme, localization: localizationObj, width: '99.7%', height: '99.5%', editMode: 'selectedcell', sortMode: 'many', autoHeight: false, autoRowHeight: false, rowsHeight: 38, autoShowLoadElement: true,
 			altRows: true, enableTooltips: true, columnsHeight: 25, columnsMenuWidth: 50, columnsResize: true, columnsReorder: true, columnsMenu: true, autoShowColumnsMenuButton: true, sortable: true,
 			filterable: true, filterRowHeight: 40, filterMode: 'default', showFilterRow: false, groupable: true, showGroupsHeader: false, groupIndentWidth: 50, groupsHeaderHeight: 30, groupsExpandedByDefault: false,
 			enableBrowserSelection: false, selectionMode: 'multiplecellsextended', pageable: false, pagermode: 'advanced', adaptive: undefined, virtualMode: false, updatedelay: 0, scrollbarsize: 20,
@@ -465,7 +465,7 @@ class GridPart extends Part {
 				clearTimeout(this.timer_animate); this.timer_animate = setTimeout(() => { grid.removeClass(animation); delete this.timer_animate }, 2000)
 			}
 			try { gridWidget.refresh() } catch (ex) { }
-			try { return gridWidget.updatebounddata() } catch (ex) { setTimeout(() => gridWidget.updatebounddata(), 200); console.debug(ex); return this }
+			try { return gridWidget.updatebounddata() } catch (ex) { setTimeout(() => gridWidget.updatebounddata(), 500); console.debug(ex); return this }
 		}
 		return this
 	}
@@ -504,9 +504,8 @@ class GridPart extends Part {
 		const {args} = e, result = cls ? new cls(args) : (args || {}); return result
 	}
 	async gridVeriYuklendi(e) {
-		const {grid, bindingCompleteBlock} = this;
-		setTimeout(() => grid.find(`span:contains("www.jqwidgets.com")`).addClass('basic-hidden'), 50);
-		if (bindingCompleteBlock) await getFuncValue.call(this, bindingCompleteBlock, e)
+		const {grid, bindingCompleteBlock} = this; setTimeout(() => grid.find(`span:contains("www.jqwidgets.com")`).addClass('basic-hidden'), 50);
+		this.kolonFiltreDegisti(e); if (bindingCompleteBlock) { await getFuncValue.call(this, bindingCompleteBlock, e) }
 		const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridVeriYuklendi) await kontrolcu.gridVeriYuklendi(e)
 		setTimeout(() => this.onResize(), 1000)
 	}
@@ -712,8 +711,7 @@ class GridPart extends Part {
 		const kontrolcu = this.getKontrolcu(e); return kontrolcu?.gridHucreCiftTiklandi ? (kontrolcu.gridHucreCiftTiklandi(e) ?? true) : true
 	}
 	async kolonFiltreIstendi(e) {
-		e = e || {}; const promise = new $.Deferred(), {kolonFiltreDuzenleyici} = this;
-		if (!kolonFiltreDuzenleyici) { return false }
+		e = e || {}; const promise = new $.Deferred(), {kolonFiltreDuzenleyici} = this; if (!kolonFiltreDuzenleyici) { return false }
 		if (!(kolonFiltreDuzenleyici.hasOwnProperty('attrKAListe') || (kolonFiltreDuzenleyici.__proto__ || {}).hasOwnProperty('attrKAListe'))) {
 			const {gridWidget, duzKolonTanimlari} = this;
 			kolonFiltreDuzenleyici.attrKAListe = e => {
