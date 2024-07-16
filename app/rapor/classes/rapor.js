@@ -12,6 +12,7 @@ class Rapor_Satislar extends MQRapor {
 		}
 		return result
 	}
+	static get allowGrupSet() { let result = this._allowGrupSet; if (result == null) { result = this._allowGrupSet = asSet(['STGRP', 'CRIL', 'CRTIP', 'CRBOL']) } return result }
 	/*static secimlerDuzenle(e) {
 		const sec = e.secimler; sec.secimTopluEkle({
 			secim1: new SecimOzellik({ etiket: 'Seçim 1' }),
@@ -27,29 +28,26 @@ class Rapor_Satislar extends MQRapor {
 	}
 	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); const {args} = e }
 	static orjBaslikListesi_groupsDuzenle(e) {
-		super.orjBaslikListesi_groupsDuzenle(e); const gridPart = e.gridPart ?? e.sender, {gridWidget} = gridPart, colDefs = this.orjBaslikListesi, {liste} = e; let {gruplamalar} = gridPart;
-		if ($.isEmptyObject(gruplamalar)) { gruplamalar = asSet(this.gruplamaKAListe.map(x => x.kod)) } const allowGrupSet = asSet(['STGRP', 'CRIL', 'CRTIP', 'CRBOL']);
+		super.orjBaslikListesi_groupsDuzenle(e); const gridPart = e.gridPart ?? e.sender, {gridWidget} = gridPart, colDefs = this.orjBaslikListesi, {liste} = e;
+		let {gruplamalar} = gridPart; const {allowGrupSet} = this;
+		if ($.isEmptyObject(gruplamalar)) { gruplamalar = asSet(this.gruplamaKAListe.map(x => x.kod)) }
 		const tip2Belirtecler = {}; let count = 0; for (const colDef of colDefs) {
 			const {belirtec} = colDef, grup = colDef.userData?.grup;
-			if (grup != null && allowGrupSet[grup] && gruplamalar[grup]) { (tip2Belirtecler[grup] = tip2Belirtecler[grup] || []).push(belirtec); if (++count == 2) { break } }
+			if (grup != null && allowGrupSet[grup] && gruplamalar[grup]) { (tip2Belirtecler[grup] = tip2Belirtecler[grup] || []).push(belirtec); if (++count == 1) { break } }
 		}
-		for (const belirtecler of Object.values(tip2Belirtecler)) { if (belirtecler?.length) { liste.push(belirtecler[1] || belirtecler[0]) } }
+		for (const belirtecler of Object.values(tip2Belirtecler)) {
+			if (belirtecler?.length) { const belirtec = belirtecler[1] || belirtecler[0]; liste.push(belirtec); gridWidget.hidecolumn(belirtec) }
+		}
 	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(...[
 			new GridKolon({ belirtec: 'Column1', text: 'Dönem', genislikCh: 10, userData: { grup: 'YILAY' } }),
-			new GridKolon({ belirtec: 'stokkod', text: 'Stok', genislikCh: 16, userData: { grup: 'STOK' } }),
-			new GridKolon({ belirtec: 'stokadi', text: 'Stok Adı', genislikCh: 40, userData: { grup: 'STOK' } }),
-			new GridKolon({ belirtec: 'grupkod', text: 'Stok Grup', genislikCh: 16, userData: { grup: 'STGRP' } }),
-			new GridKolon({ belirtec: 'grupadi', text: 'Grup Adı', genislikCh: 25, userData: { grup: 'STGRP' } }),
-			new GridKolon({ belirtec: 'carikod', text: 'Cari', genislikCh: 16, userData: { grup: 'CARI' } }),
-			new GridKolon({ belirtec: 'cariadi', text: 'Cari Ünvan', genislikCh: 50, userData: { grup: 'CARI' } }),
-			new GridKolon({ belirtec: 'tipkod', text: 'Tip', genislikCh: 5, userData: { grup: 'CRTIP' } }),
-			new GridKolon({ belirtec: 'tipadi', text: 'Tip Adı', genislikCh: 23 , userData: { grup: 'CRTIP' } }),
-			new GridKolon({ belirtec: 'bolgekod', text: 'Bölge', genislikCh: 5, userData: { grup: 'CRBOL' } }),
-			new GridKolon({ belirtec: 'bolgeadi', text: 'Bölge Adı', genislikCh: 18, userData: { grup: 'CRBOL' } }),
-			new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 5, userData: { grup: 'CRIL' } }),
-			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 16, userData: { grup: 'CRIL' } }),
+			new GridKolon({ belirtec: 'stok', text: 'Stok', genislikCh: 50, userData: { grup: 'STOK' } }),
+			new GridKolon({ belirtec: 'grup', text: 'Stok Grup', genislikCh: 20, userData: { grup: 'STGRP' } }),
+			new GridKolon({ belirtec: 'cari', text: 'Cari', genislikCh: 60, userData: { grup: 'CARI' } }),
+			new GridKolon({ belirtec: 'tip', text: 'Tip', genislikCh: 15, userData: { grup: 'CRTIP' } }),
+			new GridKolon({ belirtec: 'bolge', text: 'Bölge', genislikCh: 20, userData: { grup: 'CRBOL' } }),
+			new GridKolon({ belirtec: 'il', text: 'İl', genislikCh: 20, userData: { grup: 'CRIL' } }),
 			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 8 }).tipDecimal(),
 			new GridKolon({ belirtec: 'ciro', text: 'Ciro', genislikCh: 16 }).tipDecimal_bedel()
 		].filter(x => !!x))
@@ -63,7 +61,15 @@ class Rapor_Satislar extends MQRapor {
 				{ name: '@argGruplama', type: 'structured', typeName: 'type_strIdList', value: Object.keys(gruplamalar).map(id => ({ id })) }
 			]
 		});
-		let recs = query ? await app.sqlExecSelect(query) : []; return recs
+		let recs = query ? await app.sqlExecSelect(query) : [];
+		const fixKA = (rec, prefix) => {
+			let value = rec[prefix + 'kod']; if (value !== undefined) {
+				rec[prefix] = value ? `<b>(${rec[prefix + 'kod'] || ''})</b> ${rec[prefix + 'adi'] || ''}` : '';
+				delete rec[prefix + 'kod']; delete rec[prefix + 'adi']
+			}
+		}, kaPrefixes = ['stok', 'grup', 'cari', 'tip', 'bolge', 'il'];
+		for (const rec of recs) { for (const prefix of kaPrefixes) { fixKA(rec, prefix) } }
+		return recs
 	}
 	static gridVeriYuklendi(e) {
 		super.gridVeriYuklendi(e); const gridPart = e.gridPart ?? e.sender, {gridWidget} = gridPart, colDefs = this.orjBaslikListesi; let {gruplamalar, _lastGruplamalar} = gridPart;
