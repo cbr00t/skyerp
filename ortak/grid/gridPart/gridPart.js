@@ -505,7 +505,8 @@ class GridPart extends Part {
 	}
 	async gridVeriYuklendi(e) {
 		const {grid, bindingCompleteBlock} = this; setTimeout(() => grid.find(`span:contains("www.jqwidgets.com")`).addClass('basic-hidden'), 50);
-		this.kolonFiltreDegisti(e); if (bindingCompleteBlock) { await getFuncValue.call(this, bindingCompleteBlock, e) }
+		if ($.isEmptyObject(this.expandedIndexes)) { this.kolonFiltreDegisti(e) }
+		if (bindingCompleteBlock) { await getFuncValue.call(this, bindingCompleteBlock, e) }
 		const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridVeriYuklendi) await kontrolcu.gridVeriYuklendi(e)
 		setTimeout(() => this.onResize(), 1000)
 	}
@@ -729,15 +730,15 @@ class GridPart extends Part {
 			tamamIslemi: e => { if (promise) promise.resolve(e) }, kapaninca: e => { if (promise) promise.reject(e) }
 		}); kolonFiltrePart.run();
 		const result = await promise, filtreBilgi = kolonFiltreDuzenleyici._filtreBilgi = kolonFiltreDuzenleyici._filtreBilgi || {};
-		filtreBilgi.recs = result.recs; this.kolonFiltreDegisti(e)
+		filtreBilgi.degistimi = true; filtreBilgi.recs = result.recs; this.kolonFiltreDegisti(e)
 	}
 	kolonFiltreTemizleIstendi(e) {
 		const {kolonFiltreDuzenleyici} = this, filtreBilgi = kolonFiltreDuzenleyici._filtreBilgi = kolonFiltreDuzenleyici._filtreBilgi || {};
-		filtreBilgi.recs = []; this.kolonFiltreDegisti(e)
+		filtreBilgi.degistimi = true; filtreBilgi.recs = []; this.kolonFiltreDegisti(e)
 	}
 	kolonFiltreDegisti(e) {
-		e = e || {}; const {divKolonFiltreBilgi, kolonFiltreDuzenleyici} = this;
-		const filtreBilgi_recs = kolonFiltreDuzenleyici._filtreBilgi?.recs || [];
+		e = e || {}; const {divKolonFiltreBilgi, kolonFiltreDuzenleyici} = this, filtreBilgi = kolonFiltreDuzenleyici._filtreBilgi;
+		const filtreBilgi_recs = filtreBilgi?.recs || [];
 		if (divKolonFiltreBilgi?.length) {
 			let {filtreText} = e; if (filtreText == null) filtreText = GridliKolonFiltrePart.getFiltreText(filtreBilgi_recs)
 			divKolonFiltreBilgi.html(filtreText); divKolonFiltreBilgi.parent()[filtreBilgi_recs.length ? 'removeClass' : 'addClass']('jqx-hidden')
@@ -758,7 +759,8 @@ class GridPart extends Part {
 			const {gridWidget} = this; gridWidget.clearfilters(false);
 			for (const attr in attr2FilterGroup) { const filterGroup = attr2FilterGroup[attr]; gridWidget.addfilter(attr, filterGroup) }
 			try { gridWidget.applyfilters() } catch (ex) { console.error(ex) }
-		}, 200)
+		}, 200);
+		filtreBilgi.degistimi = false
 	}
 	onResize(e) {
 		super.onResize(e); clearTimeout(this._timer_gridResize); delete this._timer_gridResize;
