@@ -756,7 +756,8 @@ class GridPart extends Part {
 			attr2FilterGroup[attr] = filterGroup
 		}
 		setTimeout(() => {
-			const {gridWidget} = this; gridWidget.clearfilters(false);
+			const {gridWidget} = this; if (!gridWidget.isbindingcompleted()) { return }
+			try { gridWidget.clearfilters(false) } catch (ex) { return }
 			for (const attr in attr2FilterGroup) { const filterGroup = attr2FilterGroup[attr]; gridWidget.addfilter(attr, filterGroup) }
 			try { gridWidget.applyfilters() } catch (ex) { console.error(ex) }
 		}, 200);
