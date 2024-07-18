@@ -760,7 +760,7 @@ class GridPart extends Part {
 			for (const attr in attr2FilterGroup) { const filterGroup = attr2FilterGroup[attr]; gridWidget.addfilter(attr, filterGroup) }
 			try { gridWidget.applyfilters() } catch (ex) { console.error(ex) }
 		}, 200);
-		filtreBilgi.degistimi = false
+		filtreBilgi_recs.degistimi = false
 	}
 	onResize(e) {
 		super.onResize(e); clearTimeout(this._timer_gridResize); delete this._timer_gridResize;
