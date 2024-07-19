@@ -13,13 +13,6 @@ class Rapor_Satislar extends MQRapor {
 		return result
 	}
 	static get allowGrupSet() { let result = this._allowGrupSet; if (result == null) { result = this._allowGrupSet = asSet(['STGRP', 'CRIL', 'CRTIP', 'CRBOL']) } return result }
-	/*static secimlerDuzenle(e) {
-		const sec = e.secimler; sec.secimTopluEkle({
-			secim1: new SecimOzellik({ etiket: 'Seçim 1' }),
-			secim2: new SecimOzellik({ etiket: 'Seçim 2' })
-		});
-		sec.whereBlockEkle(e => { const sec = e.secimler, wh = e.where })
-	}*/
 	static listeEkrani_init(e) { super.listeEkrani_init(e); const gridPart = e.sender; gridPart.tekil(); $.extend(gridPart, { gruplamalar: {} }) }
 	static rootFormBuilderDuzenle_listeEkrani(e) {
 		super.rootFormBuilderDuzenle_listeEkrani(e); const gridPart = e.sender, rfb = e.rootBuilder;
@@ -103,4 +96,10 @@ class Rapor_Satislar extends MQRapor {
 		const {id, evt, gruplamalar} = e, target = $(evt.currentTarget), flag = target.jqxToggleButton('toggled');
 		if (flag) { gruplamalar[id] = true } else { delete gruplamalar[id] }
 	}
+}
+
+class Rapor_TEST extends PanelRapor {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kod() { return 'TEST' } static get aciklama() { return 'Test' }
+	altRaporlarDuzenle(e) { super.altRaporlarDuzenle(e); this.add(AltRapor_TEST1, AltRapor_TEST2, AltRapor_TEST3) }
 }

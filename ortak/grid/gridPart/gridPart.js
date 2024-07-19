@@ -41,7 +41,7 @@ class GridPart extends Part {
 		super(e); e = e || {};
 		$.extend(this, {
 			parentPart: e.parentPart, parentBuilder: e.parentBuilder, builder: e.builder, async: e.async == null ? null : asBool(e.async), cache: e.cache == null ? null : asBool(e.cache),
-			ekTabloKolonlari: e.tabloKolonlari, ozelKolonDuzenleBlock: e.ozelKolonDuzenleBlock || e.ozelKolonDuzenle,
+			bulPart: e.bulPart, ekTabloKolonlari: e.tabloKolonlari, ozelKolonDuzenleBlock: e.ozelKolonDuzenleBlock || e.ozelKolonDuzenle,
 			argsDuzenleBlock: e.argsDuzenleBlock || e.argsDuzenle, loadServerDataBlock: e.source || e.loadServerDataBlock || e.loadServerData,
 			bindingCompleteBlock: e.veriYukleninceBlock || e.veriYuklenince || e.bindingCompleteBlock || e.bindingComplete,
 			gridVeriDegistiBlock: e.gridVeriDegisince || e.gridVeriDegistiBlock || e.gridVeriDegisti || e.cellValueChanged,
@@ -251,7 +251,8 @@ class GridPart extends Part {
 						if (this.isDestroyed) break
 					}
 				})();
-				let _recs = await this.loadServerData_recsDuzenle(e); recs = e.recs; if (_recs != null) { recs = _recs }
+				let _recs = await this.loadServerData_recsDuzenle_ilk(e); recs = e.recs; if (_recs != null) { recs = _recs }
+				_recs = await this.loadServerData_recsDuzenle(e); recs = e.recs; if (_recs != null) { recs = _recs }
 				_recs = await this.loadServerData_recsDuzenle_son(e); recs = e.recs; if (_recs != null) { recs = _recs }
 				result = e.recs = recs
 			}
@@ -262,10 +263,39 @@ class GridPart extends Part {
 		catch (ex) { const errorText = getErrorText(ex); displayMessage(`<div style="color: firebrick;">${errorText}</div>`, 'Grid Verisi Alınamadı'); /* console.error(ex); */ throw ex }
 	}
 	defaultLoadServerData(e) { return null }
+	loadServerData_recsDuzenle_ilk(e) {
+		const {filtreTokens} = this; let {recs} = e;
+		if (filtreTokens?.length) { const _recs = this.loadServerData_recsDuzenle_hizliBulIslemi(e); recs = e.recs; if (_recs) { recs = e.recs = _recs } }
+		return recs
+	}
 	loadServerData_recsDuzenle(e) { }
 	loadServerData_recsDuzenle_son(e) {
 		const {recs} = e; if (!recs?.length) { return }
 		for (let i = 0; i < recs.length; i++) { const rec = recs[i]; rec._rowNumber = i + 1 }
+	}
+	loadServerData_recsDuzenle_hizliBulIslemi(e) {
+		const {filtreTokens} = this; let {recs} = e; if (!recs?.length) { return } const mfSinif = e.mfSinif = this.getMFSinif ? this.getMFSinif(e) : null;
+		if (mfSinif?.orjBaslikListesi_recsDuzenle_hizliBulIslemi) { if (mfSinif.orjBaslikListesi_recsDuzenle_hizliBulIslemi(e) === false) { return } }
+		let attrListe = this._hizliBulFiltreAttrListe; if (!attrListe?.length) {
+			attrListe = mfSinif?.orjBaslikListesi_hizliBulFiltreAttrListe;
+			if (!attrListe?.length) {
+				const {duzKolonTanimlari} = this; attrListe = [];
+				for (const colDef of duzKolonTanimlari) { if (!(colDef.ekKolonmu || !colDef.text?.trim)) { attrListe.push(colDef.belirtec) } }
+			}
+			this._hizliBulFiltreAttrListe = attrListe
+		}
+		const orjRecs = recs; recs = [];
+		for (const rec of orjRecs) {
+			let uygunmu = true; const values = attrListe.map(key => rec[key]?.toString()).filter(value => !!value);
+			for (const token of filtreTokens) {
+				let _uygunmu = false; for (let value of values) {
+					if (value == null) { continue } value = value.toString();
+					if (value.toUpperCase().includes(token.toUpperCase()) || value.toLocaleUpperCase(culture).includes(token.toLocaleUpperCase(culture))) { _uygunmu = true; break }
+				} if (!_uygunmu) { uygunmu = false; break }
+			} if (!uygunmu) { continue }
+			recs.push(rec)
+		}
+		return recs
 	}
 	gridHandleKeyboardNavigation(e) {
 		const evt = e.event, {timeStamp} = evt; let {_lastEventTimeStamp_handleKeyboardNavigation} = this;
@@ -480,6 +510,17 @@ class GridPart extends Part {
 		$.extend(this, _e);
 		/* const gridContent = this.grid; gridContent.addClass('fade-inout'); setTimeout(() => gridContent.removeClass('fade-inout'), 1000); */
 		this.columns = jqxCols; return this
+	}
+	hizliBulIslemi(e) {
+		e = e || {}; const {tokens} = e, {gridWidget} = this; this.filtreTokens = tokens; e.gridPart = this
+		clearTimeout(this._timer_hizliBulIslemi_ozel); this._timer_hizliBulIslemi_ozel = setTimeout(() => {
+			try {
+				const {bulPart} = this, {input} = bulPart; this.tazele({ action: 'hizliBul' });
+				for (const delayMS of [400, 1000]) { setTimeout(() => { bulPart.focus(); setTimeout(() => { input[0].selectionStart = input[0].selectionEnd = input[0].value?.length }, 205) }, delayMS) }
+				setTimeout(() => FiltreFormPart.hizliBulIslemi(e), 500)
+			}
+			finally { delete this._timer_hizliBulIslemi_ozel }
+		}, 100)
 	}
 	showColumn(belirtec) { const {gridWidget} = this; gridWidget.showcolumn(belirtec); return this }
 	hideColumn(belirtec) { const {gridWidget} = this; gridWidget.hidecolumn(belirtec); return this }

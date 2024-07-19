@@ -1,8 +1,11 @@
 .rapor.masterListe.part .jqx-grid [role = row] > div { font-size: 93% }
 #rapor.part { --islemTuslari-height: 55px }
-#rapor.part > .wnd-content > * { background: white !important }
+#rapor.part > .wnd-content > *:not(.bulForm):not(.islemTuslari) { background: white !important }
 #rapor.part #items { height: calc(var(--full) - var(--islemTuslari-height)) !important }
-#rapor.part #items > .item { min-width: 300px; width: 32%; height: 450px; margin: 10px; padding: 10px; border: 1px solid #aaa; float: left }
-@media (max-height: 1000px) { #rapor.part #items > .item { height: 250px } }
-@media (max-height: 800px) { #rapor.part #items > .item { width: 25%; height: 200px } }
-#rapor.part #items > .item > label { font-weight: bold; font-size: 150%; color: #777; padding: 0 10px 5px 10px }
+#rapor.part #items > .item { min-width: 400px; width: 32%; height: 445px; margin: 10px; padding: 10px; border: 1px solid #eee; border-radius: 20px; box-sizing: border-box; float: left }
+@media (max-height: 1000px) { #rapor.part #items > .item { height: 350px } }
+@media (max-height: 800px) { #rapor.part #items > .item { width: 25%; height: 300px } }
+#rapor.part #items > .item > :not(label) > .jqx-grid { }
+#rapor.part #items > .item > label { font-weight: bold; font-size: 140%; color: #777; background-color: #eee; width: calc(var(--full) - 10px); margin: 0 0 8px 0; padding: 0 0 3px 10px; border-radius: 10px }
+#rapor.part #items > .item:hover > label, #rapor.part #items > .item:focus > label,
+	#rapor.part #items > .item:active > label { background-color: #c9cdd9 }

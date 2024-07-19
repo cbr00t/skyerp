@@ -43,6 +43,13 @@ class OzelRapor extends Rapor {
 		const {rfb} = e; rfb.addIslemTuslari('islemTuslari').addCSS('islemTuslari').setTip('tazeleVazgec')
 			.setButonlarDuzenleyici(e => e.builder.inst.islemTuslariArgsDuzenle(e))
 			.setId2Handler(this.islemTuslariGetId2Handler(e))
+		rfb.addForm('bulForm')
+			.setLayout(e => $(`<div class="${e.builder.id} part"><input class="input full-wh" type="textbox" maxlength="100"></input></div>`))
+			.onAfterRun(e => {
+				const {builder} = e, {layout} = builder;
+				let bulPart = builder.part = new FiltreFormPart({ layout, degisince: e => { const {tokens} = e; this.hizliBulIslemi({ ...e, builder, bulPart, sender: this, layout, tokens }) } });
+				bulPart.run()
+			})
 	}
 	onAfterRun(e) {
 		super.onAfterRun(e); const {rfb} = e, rootPart = rfb.part; rootPart.builder = rfb
@@ -50,6 +57,17 @@ class OzelRapor extends Rapor {
 	}
 	islemTuslariArgsDuzenle(e) { }
 	islemTuslariGetId2Handler(e) { return ({ tazele: e => e.builder.inst.tazele(e), vazgec: e => e.builder.rootPart.close(e) }) }
+	hizliBulIslemi(e) {
+		const {bulPart} = e; clearTimeout(this._timer_hizliBulIslemi_ozel); this._timer_hizliBulIslemi_ozel = setTimeout(() => {
+			try {
+				const {input} = bulPart; this.hizliBulIslemi_ara(e)
+				for (const delayMS of [400, 1000]) { setTimeout(() => { bulPart.focus(); setTimeout(() => { input[0].selectionStart = input[0].selectionEnd = input[0].value?.length }, 205) }, delayMS) }
+				setTimeout(() => FiltreFormPart.hizliBulIslemi(e), 500)
+			}
+			finally { delete this._timer_hizliBulIslemi_ozel }
+		}, 100)
+	}
+	hizliBulIslemi_ara(e) { }
 	tazele(e) {
 		super.tazele(e); const {builder} = e, rfb = builder.rootBuilder, parentBuilder = rfb.id2Builder.items ?? rfb;
 		for (const fbd of parentBuilder.getBuilders()) { const {part} = fbd; if (part?.tazele) { part.tazele(e) } if (part?.dataBind) { part.dataBind(e) } }
@@ -71,6 +89,10 @@ class PanelRapor extends OzelRapor {
 		}
 	}
 	altRaporlarDuzenle(e) { }
+	hizliBulIslemi_ara(e) {
+		super.hizliBulIslemi_ara(e); const {tokens} = e, {id2AltRapor} = this;
+		for (const altRapor of Object.values(id2AltRapor)) { if (altRapor.fbd_grid) { const gridPart = altRapor.fbd_grid.part; gridPart.filtreTokens = tokens; gridPart.tazele({ action: 'hizliBul' }) } }
+	}
 	add(...items) {
 		const {id2AltRapor} = this; for (const item of items) {
 			if (item == null) { continue } if ($.isArray(item)) { this.add(...item); continue } 

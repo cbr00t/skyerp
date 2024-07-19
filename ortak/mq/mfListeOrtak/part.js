@@ -119,21 +119,21 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		if (mfSinif?.listeEkrani_deactivated) { mfSinif.listeEkrani_deactivated(e) }
 	}
 	initBulForm(e) {
-		const {header} = this, form = this.layout, mfSinif = this.getMFSinif(e), bulForm = header.find('.bulForm');
-		if (!mfSinif || mfSinif.bulFormKullanilirmi) { const bulPart = this.bulPart = new FiltreFormPart({ layout: bulForm, degisince: e => this.hizliBulIslemi({ sender: this, layout: form, tokens: e.tokens }) }); bulPart.run() }
-		else { bulForm.addClass('jqx-hidden') }
+		const {layout} = this; let {bulForm} = this; if (!bulForm?.length) { bulForm = layout.find('#bulForm') } if (!bulForm?.length) { bulForm = layout.find('.bulForm') }
+		if (bulForm?.length) {
+			const mfSinif = this.getMFSinif(e);
+			if (!mfSinif || mfSinif.bulFormKullanilirmi) {
+				let {bulPart} = this; if (!bulPart) {
+					bulPart = this.bulPart = new FiltreFormPart({ layout: bulForm, degisince: e => { const {tokens} = e; this.hizliBulIslemi({ sender: this, layout, tokens }) } });
+					bulPart.run()
+				}
+			}
+			else { bulForm.addClass('jqx-hidden') }
+		}
 	}
 	hizliBulIslemi(e) {
 		const mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_hizliBulIslemi) { if (mfSinif.orjBaslikListesi_hizliBulIslemi(e) === false) { return } }
-		const {tokens} = e, gridPart = e.gridPart = this, {gridWidget} = gridPart; gridPart.filtreTokens = tokens;
-		clearTimeout(gridPart._timer_hizliBulIslemi_ozel); gridPart._timer_hizliBulIslemi_ozel = setTimeout(() => {
-			try {
-				const {bulPart} = gridPart, {input} = bulPart; gridPart.tazele({ action: 'hizliBul' });
-				for (const delayMS of [400, 1000]) { setTimeout(() => { bulPart.focus(); setTimeout(() => { input[0].selectionStart = input[0].selectionEnd = input[0].value?.length }, 205) }, delayMS) }
-				setTimeout(() => FiltreFormPart.hizliBulIslemi(e), 500)
-			}
-			finally { delete gridPart._timer_hizliBulIslemi_ozel }
-		}, 100)
+		return super.hizliBulIslemi(e)
 	}
 	islemTuslariDuzenle(e) {
 		super.islemTuslariDuzenle(e); const mfSinif = this.getMFSinif(), {secimler, panelDuzenleyici} = this, {liste} = e, yListe = [];
@@ -265,36 +265,15 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		const {builder, tabloKolonlari, secimler, ozelQueryDuzenleBlock, ozelQuerySonucuBlock} = this;
 		const _e = $.extend({ sender: this, builder, tabloKolonlari, secimler, ozelQueryDuzenleBlock, ozelQuerySonucuBlock }, e); return mfSinif.loadServerData(_e)
 	}
-	loadServerData_recsDuzenle(e) {
-		super.loadServerData_recsDuzenle(e); const mfSinif = e.mfSinif = this.getMFSinif(e), {filtreTokens} = this; let {recs} = e; e.args = this.args;
+	loadServerData_recsDuzenle_ilk(e) {
+		super.loadServerData_recsDuzenle(e); const mfSinif = e.mfSinif = this.getMFSinif(e); let {recs} = e; e.args = this.args;
 		if (mfSinif?.orjBaslikListesi_recsDuzenle) { const _recs = mfSinif.orjBaslikListesi_recsDuzenle(e); recs = e.recs; if (_recs) { recs = e.recs = _recs } }
-		if (filtreTokens?.length) { const _recs = this.loadServerData_recsDuzenle_hizliBulIslemi(e); recs = e.recs; if (_recs) { recs = e.recs = _recs }  }
+		return super.loadServerData_recsDuzenle_ilk(e)
+	}
+	loadServerData_recsDuzenle(e) {
+		let recs = super.loadServerData_recsDuzenle(e); if (recs == null) { recs = e.recs } const mfSinif = this.getMFSinif(e);
 		const {panelDuzenleyici} = this; if (panelDuzenleyici?.recsDuzenle) { const _recs = panelDuzenleyici.recsDuzenle(e); if (_recs) { recs = e.recs = _recs } }
 		if (mfSinif?.orjBaslikListesi_recsDuzenleSon) { const _recs = mfSinif.orjBaslikListesi_recsDuzenleSon(e); recs = e.recs; if (_recs) { recs = e.recs = _recs } }
-	}
-	loadServerData_recsDuzenle_hizliBulIslemi(e) {
-		const {filtreTokens} = this; let {recs} = e; if (!recs?.length) { return }
-		const mfSinif = e.mfSinif = this.getMFSinif(e); if (mfSinif?.orjBaslikListesi_recsDuzenle_hizliBulIslemi) { if (mfSinif.orjBaslikListesi_recsDuzenle_hizliBulIslemi(e) === false) { return } }
-		let attrListe = this._hizliBulFiltreAttrListe;
-		if (!attrListe?.length) {
-			attrListe = mfSinif?.orjBaslikListesi_hizliBulFiltreAttrListe;
-			if (!attrListe?.length) {
-				const {duzKolonTanimlari} = this; attrListe = [];
-				for (const colDef of duzKolonTanimlari) { if (!(colDef.ekKolonmu || !colDef.text?.trim)) { attrListe.push(colDef.belirtec) } }
-			}
-			this._hizliBulFiltreAttrListe = attrListe
-		}
-		const orjRecs = recs; recs = [];
-		for (const rec of orjRecs) {
-			let uygunmu = true; const values = attrListe.map(key => rec[key]?.toString()).filter(value => !!value);
-			for (const token of filtreTokens) {
-				let _uygunmu = false; for (let value of values) {
-					if (value == null) { continue } value = value.toString();
-					if (value.toUpperCase().includes(token.toUpperCase()) || value.toLocaleUpperCase(culture).includes(token.toLocaleUpperCase(culture))) { _uygunmu = true; break }
-				} if (!_uygunmu) { uygunmu = false; break }
-			} if (!uygunmu) { continue }
-			recs.push(rec)
-		}
 		return recs
 	}
 	get tabloKolonlari_detaylar() { const {mfSinif} = this; return mfSinif.listeBasliklari_detaylar }

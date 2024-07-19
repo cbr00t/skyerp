@@ -1,5 +1,5 @@
-.gridliGosterici.part .bulForm { position: fixed; top: -8px; right: 400px; min-width: unset !important; width: 100px; height: 33px; padding: 10px; z-index: 1001 !important }
-.gridliGosterici.part .bulForm { opacity: .4 }
-.gridliGosterici.part .bulForm:has(:hover) { opacity: .7 }
+.rapor.part .bulForm, .gridliGosterici.part .bulForm { position: fixed; top: -8px; right: 400px; min-width: unset !important; width: 100px; height: 33px; padding: 10px; opacity: .4; z-index: 1001 !important }
+.rapor.part .bulForm:has(:hover), .gridliGosterici.part .bulForm:has(:hover) { opacity: .7 }
+.rapor.part .bulForm:has(:focus), .rapor.part .bulForm:has(:active),
 .gridliGosterici.part .bulForm:has(:focus), .gridliGosterici.part .bulForm:has(:active) { opacity: 1 !important }
-@media (max-width: 850px) { .gridliGosterici.part .bulForm { top: -3px; right: 320px; width: 60px; padding: 5px 5px } }
+@media (max-width: 850px) { .rapor.part .bulForm, .gridliGosterici.part .bulForm { top: -3px; right: 320px; width: 60px; padding: 5px 5px } }
