@@ -33,8 +33,8 @@ class AltRapor_Satislar_Main extends AltRapor_Gridli {
 			new GridKolon({ belirtec: 'cari', text: 'Cari', minWidth: 500, userData: { grup: 'CARI' } }),
 			new GridKolon({ belirtec: 'bolge', text: 'Bölge', maxWidth: 200, userData: { grup: 'CRBOL' } }),
 			new GridKolon({ belirtec: 'il', text: 'İl', maxWidth: 150, userData: { grup: 'CRIL' } }),
-			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 9, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal(),
-			new GridKolon({ belirtec: 'ciro', text: 'Ciro', genislikCh: 16, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel()
+			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 13, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal(),
+			new GridKolon({ belirtec: 'ciro', text: 'Ciro', genislikCh: 17, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel()
 		)
 	}
 	async loadServerData(e) {
