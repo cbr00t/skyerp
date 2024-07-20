@@ -100,7 +100,8 @@ class AltRapor_Satislar_Main extends AltRapor_Gridli {
 			btn.onAfterRun(e => e.builder.input.on('click', evt => this.gruplamalar_butonTiklandi({ ...e, evt, id: evt.currentTarget.id, gridPart, gruplamalar })) )
 		}
 		let wnd = createJQXWindow({ title: 'Gruplamalar', args: { isModal: true, width: 500, height: 430, closeButtonAction: 'close' } });
-		wnd.on('close', evt => { wnd.jqxWindow('destroy'); this.tazele() }); wnd.prop('id', 'gruplamalar'); wnd.addClass('part');
+		wnd.on('close', evt => { wnd.jqxWindow('destroy'); this.tazele(); $('body').removeClass('bg-modal') });
+		wnd.prop('id', 'gruplamalar'); wnd.addClass('part'); $('body').addClass('bg-modal');
 		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run(); this._gruplamalarGosterildiFlag = true
 	}
 	gruplamalar_butonTiklandi(e) {
