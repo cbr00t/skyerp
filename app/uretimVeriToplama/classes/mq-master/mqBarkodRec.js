@@ -137,7 +137,7 @@ class MQBarkodRec extends MQMasterOrtak {
 			.setVisibleKosulu(e => { const {altInst} = e.builder; return altInst.gorevmi ? 'jqx-hidden' : true })
 			.onClick(e => { e.builder.parentBuilder.id2Builder.tezgahKod.part.listedenSecIstendi() })
 			.addStyle(e => `$elementCSS { min-width: unset !important; margin-top: 15px }`).addStyle_wh({ width: 70, height: 45 });
-		form.addModelKullan({ id: 'tezgahKod', mfSinif: MQTezgah }).comboBox().etiketGosterim_placeholder()
+		form.addModelKullan({ id: 'tezgahKod', mfSinif: MQTezgah }).comboBox().autoBind().etiketGosterim_placeholder()
 			.addStyle(style_minWidth).addStyle(e => `$elementCSS > label { display: none } $elementCSS > div { margin-top: 15px }`)
 			.setVisibleKosulu(e => { const {altInst} = e.builder; return altInst.gorevmi ? 'jqx-hidden' : true })
 			.ozelQueryDuzenleBlock(e => {
@@ -153,7 +153,7 @@ class MQBarkodRec extends MQMasterOrtak {
 			.setVisibleKosulu(e => { const {altInst} = e.builder; return altInst.gorevmi ? 'jqx-hidden' : true })
 			.onClick(e => { e.builder.parentBuilder.id2Builder.perKod.part.listedenSecIstendi() })
 			.addStyle(e => `$elementCSS { min-width: unset !important; margin-top: 15px }`).addStyle_wh({ width: 70, height: 45 });
-		form.addModelKullan({ id: 'perKod', mfSinif: MQPersonel }).comboBox().etiketGosterim_placeholder()
+		form.addModelKullan({ id: 'perKod', mfSinif: MQPersonel }).comboBox().autoBind().etiketGosterim_placeholder()
 			.addStyle(style_minWidth).addStyle(e => `$elementCSS > label { display: none } $elementCSS > div { margin-top: 15px }`)
 			.setVisibleKosulu(e => { const {altInst} = e.builder; return altInst.gorevmi ? 'jqx-hidden' : true })
 			.degisince(e => { const {value, item, builder} = e, {altInst} = builder; altInst.perAdi = item?.aciklama })

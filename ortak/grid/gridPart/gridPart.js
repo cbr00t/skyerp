@@ -555,7 +555,7 @@ class GridPart extends Part {
 		if ($.isEmptyObject(this.expandedIndexes)) { this.kolonFiltreDegisti(e) }
 		if (bindingCompleteBlock) { await getFuncValue.call(this, bindingCompleteBlock, e) }
 		const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridVeriYuklendi) { await kontrolcu.gridVeriYuklendi(e) }
-		this.gridGroupsChanged(e); for (const delayMS of [500, 1000]) { setTimeout(() => this.onResize(), delayMS) }
+		this.gridGroupsChanged(e); for (const delayMS of [500]) { setTimeout(() => this.onResize(), delayMS) }
 	}
 	gridVeriDegisti(e) {
 		const {gridVeriDegistiBlock} = this; if (gridVeriDegistiBlock) { getFuncValue.call(this, gridVeriDegistiBlock, e) }
@@ -567,9 +567,10 @@ class GridPart extends Part {
 		const {gridWidget} = this, showGroupsHeaderFlag = gridWidget.showgroupsheader; if (showGroupsHeaderFlag) {
 			const groups = gridWidget.groups ?? [], groupsSet = asSet(groups), belirtec2OrjKolonState = this.belirtec2OrjKolonState || {}, gridCols = gridWidget.columns?.records ?? gridWidget.columns;
 			for (const jqxCol of gridCols) {
-				const belirtec = jqxCol.datafield, state = belirtec2OrjKolonState[belirtec] || {}, hasGroup = groupsSet[belirtec];
+				const belirtec = jqxCol.datafield; if (!belirtec || belirtec == '_rowNumber' || belirtec == '_checkboxcolumn') { continue }
+				const state = belirtec2OrjKolonState[belirtec] || {}, hasGroup = groupsSet[belirtec];
 				/*if (hasGroup) { gridWidget.hidecolumn(belirtec) } else { gridWidget.showcolumn(belirtec) }*/
-				if (hasGroup) { gridWidget.hidecolumn(belirtec) } else { if (!state.hidden) { gridWidget.showcolumn(belirtec) } }
+				if (hasGroup) { if (!jqxCol.hidden) { gridWidget.hidecolumn(belirtec) } } else { if (!state.hidden && jqxCol.hidden) { gridWidget.showcolumn(belirtec) } }
 			}
 		}
 	}
