@@ -2,7 +2,7 @@
 	$_partRoot = "$webRoot/lib_external/jqx";
 	$_partRoot_jq = "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1";
 	$_partRoot_jqui = "https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2";
-	$_partRoot_jqw = "https://cdnjs.cloudflare.com/ajax/libs/jqwidgets/19.0.0/jqwidgets"
+	$_partRoot_jqw = "https://cdnjs.cloudflare.com/ajax/libs/jqwidgets/19.2.0/jqwidgets"
 ?>
 <link rel="stylesheet" href="<?=$_partRoot?>/css/jquery-ui.min.css" />
 <link class="theme-base" rel="stylesheet" href="<?=$_partRoot?>/css/jqx.base.min.css" />

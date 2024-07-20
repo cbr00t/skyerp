@@ -25,20 +25,20 @@ class GridKolonTip extends CObject {
 		const result = new cls(e); return result.readFrom(e) ? result : null
 	}
 	readFrom(e) {
-		if (!e) return false
+		if (!e) { return false }
 		const isEditable = e.editable ?? e.isEditable; this.isEditable = isEditable ?? this.class.isEditable; this.maxLength = e.maxLength;
 		const {colEventNames, globalEventNames} = this.class;
-		for (const key of colEventNames) { const func = getFunc(e[key]); if (func) this[key] = func }
-		for (const key of globalEventNames) { const func = getFunc(e[key]); if (func) this[key] = func }
+		for (const key of colEventNames) { const func = getFunc(e[key]); if (func) { this[key] = func } }
+		for (const key of globalEventNames) { const func = getFunc(e[key]); if (func) { this[key] = func } }
 		return true
 	}
 	static getHTML_groupsTotalRow(value) {
-		if (typeof value == 'number') value = numberToString(value)
-		const text = numberToString(asFloat(value.replace(':', '').replace('TOPLAM', '').replace('ORT', '')));
+		if (typeof value == 'number') { value = numberToString(value) }
+		const text = numberToString(asFloat(value.replace(':', '').replace('Sum', '').replace('Avg', '').replace('TOPLAM', '').replace('ORT', '')));
 		return `<div class="bold royalblue right" style="border-top: 3px solid royalblue">${text}</div>`
 	}
 	static getHTML_totalRow(value) {
-		if (typeof value == 'number') value = numberToString(value)
+		if (typeof value == 'number') { value = numberToString(value) }
 		return `<div class="bold forestgreen right" style="border-top: 3px solid forestgreen">${value}</div>`
 	}
 	jqxColumnDuzenle(e) {

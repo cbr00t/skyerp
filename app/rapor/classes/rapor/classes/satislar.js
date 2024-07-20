@@ -22,7 +22,7 @@ class AltRapor_Satislar_Main extends AltRapor_Gridli {
 		return result
 	}
 	static get allowGrupSet() { let result = this._allowGrupSet; if (result == null) { result = this._allowGrupSet = asSet(['STGRP', 'CRIL', 'CRTIP', 'CRBOL']) } return result }
-	/*gridArgsDuzenle(e) { super.gridArgsDuzenle(e); const {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: false }) }*/
+	gridArgsDuzenle(e) { super.gridArgsDuzenle(e); const {args} = e; $.extend(args, { /* showStatusBar: true, showGroupAggregates: true , compact: true */ }) }
 	onGridInit(e) { super.onGridInit(e); const {gridPart} = this; gridPart.gruplamalar = {} }
 	tabloKolonlariDuzenle(e) {
 		super.tabloKolonlariDuzenle(e); const {liste} = e; liste.push(
@@ -33,8 +33,8 @@ class AltRapor_Satislar_Main extends AltRapor_Gridli {
 			new GridKolon({ belirtec: 'cari', text: 'Cari', minWidth: 500, userData: { grup: 'CARI' } }),
 			new GridKolon({ belirtec: 'bolge', text: 'Bölge', maxWidth: 200, userData: { grup: 'CRBOL' } }),
 			new GridKolon({ belirtec: 'il', text: 'İl', maxWidth: 150, userData: { grup: 'CRIL' } }),
-			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 9, aggregates: ['sum'] }).tipDecimal(),
-			new GridKolon({ belirtec: 'ciro', text: 'Ciro', genislikCh: 16, aggregates: ['sum'] }).tipDecimal_bedel()
+			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 9, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal(),
+			new GridKolon({ belirtec: 'ciro', text: 'Ciro', genislikCh: 16, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel()
 		)
 	}
 	async loadServerData(e) {
@@ -78,7 +78,7 @@ class AltRapor_Satislar_Main extends AltRapor_Gridli {
 			_lastGruplamalar = gridPart._lastGruplamalar = $.extend({}, gruplamalar)
 		}
 		try { gridWidget[gruplamalar.STOK || gruplamalar.STGRP ? 'showcolumn' : 'hidecolumn']('miktar') } catch (ex) { console.error(ex) }
-		const groups = []; if (Object.keys(gruplamalar).length >= 3) {
+		const groups = []; if (Object.keys(gruplamalar).length >= 2) {
 			for (const belirtecler of Object.values(tip2Belirtecler)) { if (belirtecler?.length) { const belirtec = belirtecler[1] || belirtecler[0]; groups.push(belirtec) } }
 		}
 		if (groups.length) { grid.jqxGrid('groups', groups) }

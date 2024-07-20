@@ -23,7 +23,7 @@ class AltRapor_Gridli extends AltRapor {
 		let _e = { ...e, gridBuilder: fbd }; this.gridBuilderDuzenle(_e)
 	}
 	gridBuilderDuzenle(e) { }
-	gridArgsDuzenle(e) { const {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: false, showGroupsHeader: true }) }
+	gridArgsDuzenle(e) { const {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: true, showGroupsHeader: true, groupsExpandedByDefault: false }) }
 	onGridInit(e) { this.gridPart = e.builder.part } onGridRun(e) { const {gridPart} = this, {grid, gridWidget} = gridPart; $.extend(this, { grid, gridWidget }) }
 	tabloKolonlariDuzenle(e) { } loadServerData(e) { } gridVeriYuklendi(e) { }
 	tazele(e) { super.tazele(e); this.gridPart?.tazele(e) }
