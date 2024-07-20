@@ -9,14 +9,14 @@ class Rapor_Satislar extends PanelRapor {
 }
 class AltRapor_Satislar_Main extends AltRapor_Gridli {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return Rapor_Satislar }
-	static get kod() { return 'main' } static get aciklama() { return this.raporClass.aciklama } get width() { return '80%' } get height() { return 'var(--full)' }
+	static get kod() { return 'main' } static get aciklama() { return this.raporClass.aciklama } get width() { return '75%' } get height() { return 'var(--full)' }
 	static get gruplamaKAListe() {
 		let result = this._gruplamaKAListe; if (result == null) {
 			result = this._gruplamaKAListe = [
 				new CKodVeAdi({ kod: 'YILAY', aciklama: 'Dönem' }),
 				new CKodVeAdi({ kod: 'STOK', aciklama: 'Stok' }), new CKodVeAdi({ kod: 'STGRP', aciklama: 'Stok Grup' }),
-				new CKodVeAdi({ kod: 'CARI', aciklama: 'Cari' }), new CKodVeAdi({ kod: 'CRBOL', aciklama: 'Cari Bölge' }),
-				new CKodVeAdi({ kod: 'CRTIP', aciklama: 'Cari Tip' }), new CKodVeAdi({ kod: 'CRIL', aciklama: 'Cari İl' })
+				new CKodVeAdi({ kod: 'CARI', aciklama: 'Cari' }), new CKodVeAdi({ kod: 'CRBOL', aciklama: 'Bölge' }),
+				new CKodVeAdi({ kod: 'CRTIP', aciklama: 'Cari Tip' }), new CKodVeAdi({ kod: 'CRIL', aciklama: 'İl' })
 			]
 		}
 		return result
@@ -26,19 +26,21 @@ class AltRapor_Satislar_Main extends AltRapor_Gridli {
 	onGridInit(e) { super.onGridInit(e); const {gridPart} = this; gridPart.gruplamalar = {} }
 	tabloKolonlariDuzenle(e) {
 		super.tabloKolonlariDuzenle(e); const {liste} = e; liste.push(
-			new GridKolon({ belirtec: 'Column1', text: 'Dönem', genislikCh: 10, userData: { grup: 'YILAY' } }),
-			new GridKolon({ belirtec: 'stok', text: 'Stok', genislikCh: 50, userData: { grup: 'STOK' } }),
-			new GridKolon({ belirtec: 'grup', text: 'Stok Grup', genislikCh: 20, userData: { grup: 'STGRP' } }),
-			new GridKolon({ belirtec: 'cari', text: 'Cari', genislikCh: 60, userData: { grup: 'CARI' } }),
-			new GridKolon({ belirtec: 'tip', text: 'Tip', genislikCh: 15, userData: { grup: 'CRTIP' } }),
-			new GridKolon({ belirtec: 'bolge', text: 'Bölge', genislikCh: 20, userData: { grup: 'CRBOL' } }),
-			new GridKolon({ belirtec: 'il', text: 'İl', genislikCh: 20, userData: { grup: 'CRIL' } }),
-			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 10, aggregates: ['sum'] }).tipDecimal(),
-			new GridKolon({ belirtec: 'ciro', text: 'Ciro', genislikCh: 18, aggregates: ['sum'] }).tipDecimal_bedel()
+			new GridKolon({ belirtec: 'Column1', text: 'Dönem', genislikCh: 8, userData: { grup: 'YILAY' } }),
+			new GridKolon({ belirtec: 'grup', text: 'Stok Grup', maxWidth: 200, userData: { grup: 'STGRP' } }),
+			new GridKolon({ belirtec: 'stok', text: 'Stok', minWidth: 500, userData: { grup: 'STOK' } }),
+			new GridKolon({ belirtec: 'tip', text: 'Tip', maxWidth: 150, userData: { grup: 'CRTIP' } }),
+			new GridKolon({ belirtec: 'cari', text: 'Cari', minWidth: 500, userData: { grup: 'CARI' } }),
+			new GridKolon({ belirtec: 'bolge', text: 'Bölge', maxWidth: 200, userData: { grup: 'CRBOL' } }),
+			new GridKolon({ belirtec: 'il', text: 'İl', maxWidth: 150, userData: { grup: 'CRIL' } }),
+			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 9, aggregates: ['sum'] }).tipDecimal(),
+			new GridKolon({ belirtec: 'ciro', text: 'Ciro', genislikCh: 16, aggregates: ['sum'] }).tipDecimal_bedel()
 		)
 	}
 	async loadServerData(e) {
-		super.loadServerData(e); const {gridPart} = this; let {gruplamalar} = gridPart; if ($.isEmptyObject(gruplamalar)) { gruplamalar = asSet(this.class.gruplamaKAListe.map(x => x.kod)) }
+		super.loadServerData(e); const {gridPart} = this; let {gruplamalar} = gridPart;
+		/*if ($.isEmptyObject(gruplamalar)) { gruplamalar = asSet(this.class.gruplamaKAListe.map(x => x.kod)) } */
+		if ($.isEmptyObject(gruplamalar)) { return [] }
 		let query = await app.sqlExecTekilDeger({
 			query: 'SELECT dbo.tic_satisKomutu(@argDonemBasi, @argDonemSonu, @argGruplama)', params: [
 				{ name: '@argDonemBasi', type: 'datetime', value: dateToString(new Date(1, 1, today().getFullYear())) },
@@ -54,24 +56,33 @@ class AltRapor_Satislar_Main extends AltRapor_Gridli {
 			}
 		}, kaPrefixes = ['stok', 'grup', 'cari', 'tip', 'bolge', 'il'];
 		for (const rec of recs) { for (const prefix of kaPrefixes) { fixKA(rec, prefix) } }
-		return recs
+		return recs.sort((a, b) => { a = a.Column1 || 0; b = b.Column1 || 0; return a > b ? -1 : a < b ? 1 : 0 })
 	}
 	gridVeriYuklendi(e) {
 		super.gridVeriYuklendi(e); const {fbd_grid, gridPart} = this, {grid, gridWidget} = this; let {_lastGruplamalar} = gridPart;
-		let {gruplamalar} = gridPart, colDefs = fbd_grid.tabloKolonlari; const {allowGrupSet, gruplamaKAListe} = this.class;
-		if ($.isEmptyObject(gruplamalar)) { gruplamalar = asSet(gruplamaKAListe.map(x => x.kod)) }
+		let {gruplamalar} = gridPart, gruplamaVarmi = !$.isEmptyObject(gruplamalar), colDefs = fbd_grid.tabloKolonlari; const {allowGrupSet, gruplamaKAListe} = this.class;
+		/*if ($.isEmptyObject(gruplamalar)) { gruplamalar = asSet(gruplamaKAListe.map(x => x.kod)) }*/
+		fbd_grid.rootBuilder.layout.find('.islemTuslari > div button#gruplamalar')[gruplamaVarmi ? 'removeClass' : 'addClass']('anim-gruplamalar-highlight');
+		if (!gruplamaVarmi) {
+			if (!this._gruplamalarGosterildiFlag) { this.gruplamalarIstendi(e) }
+			return
+		}
 		const tip2Belirtecler = {}; let count = 0; for (const colDef of colDefs) {
 			const {belirtec} = colDef, grup = colDef.userData?.grup;
 			if (grup != null && allowGrupSet[grup] && gruplamalar[grup]) { (tip2Belirtecler[grup] = tip2Belirtecler[grup] || []).push(belirtec); if (++count == 1) { break } }
 		}
-		const groups = []; for (const belirtecler of Object.values(tip2Belirtecler)) { if (belirtecler?.length) { const belirtec = belirtecler[1] || belirtecler[0]; groups.push(belirtec) } }
-		grid.jqxGrid('groups', groups);
 		let anahGruplamalar = Object.keys(gruplamalar).join(delimWS), anahLastGruplamalar = _lastGruplamalar ? Object.keys(_lastGruplamalar).join(delimWS) : null;
 		if (anahLastGruplamalar == null || anahGruplamalar != anahLastGruplamalar) {
 			let tabloKolonlari = colDefs.filter(colDef => { const grup = colDef.userData?.grup; return grup == null || !!gruplamalar[grup] });
-			gridPart.updateColumns({ tabloKolonlari }); _lastGruplamalar = gridPart._lastGruplamalar = $.extend({}, gruplamalar)
+			try { gridPart.updateColumns({ tabloKolonlari }) } catch (ex) { console.error(ex) }
+			_lastGruplamalar = gridPart._lastGruplamalar = $.extend({}, gruplamalar)
 		}
-		if (groups.length) { for (const belirtec of groups) { gridWidget.hidecolumn(belirtec) } }
+		try { gridWidget[gruplamalar.STOK || gruplamalar.STGRP ? 'showcolumn' : 'hidecolumn']('miktar') } catch (ex) { console.error(ex) }
+		const groups = []; if (Object.keys(gruplamalar).length >= 3) {
+			for (const belirtecler of Object.values(tip2Belirtecler)) { if (belirtecler?.length) { const belirtec = belirtecler[1] || belirtecler[0]; groups.push(belirtec) } }
+		}
+		if (groups.length) { grid.jqxGrid('groups', groups) }
+		/*if (groups.length) { for (const belirtec of groups) { gridWidget.hidecolumn(belirtec) } }*/
 	}
 	gruplamalarIstendi(e) {
 		const {gridPart} = this, {gruplamalar} = gridPart, {gruplamaKAListe} = this.class;
@@ -88,9 +99,9 @@ class AltRapor_Satislar_Main extends AltRapor_Gridli {
 			});
 			btn.onAfterRun(e => e.builder.input.on('click', evt => this.gruplamalar_butonTiklandi({ ...e, evt, id: evt.currentTarget.id, gridPart, gruplamalar })) )
 		}
-		let wnd = createJQXWindow({ title: 'Gruplamalar', args: { isModal: true, width: 500, height: 500, closeButtonAction: 'close' } });
+		let wnd = createJQXWindow({ title: 'Gruplamalar', args: { isModal: true, width: 500, height: 430, closeButtonAction: 'close' } });
 		wnd.on('close', evt => { wnd.jqxWindow('destroy'); this.tazele() }); wnd.prop('id', 'gruplamalar'); wnd.addClass('part');
-		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run()
+		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run(); this._gruplamalarGosterildiFlag = true
 	}
 	gruplamalar_butonTiklandi(e) {
 		const {id, evt, gruplamalar} = e, target = $(evt.currentTarget), flag = target.jqxToggleButton('toggled');
@@ -99,13 +110,15 @@ class AltRapor_Satislar_Main extends AltRapor_Gridli {
 }
 class AltRapor_Satislar_X1 extends AltRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return Rapor_Satislar }
-	static get kod() { return 'x1' } static get aciklama() { return 'Chart' } get width() { return '19%' } get height() { return '300px' }
+	static get kod() { return 'x1' } static get aciklama() { return 'Chart' }
+	get width() { return `calc(var(--full) - ${AltRapor_Satislar_Main.width})` } get height() { return '300px' }
 	subFormBuilderDuzenle(e) { super.subFormBuilderDuzenle(e); const parentBuilder = e.builder; parentBuilder.addForm('chart').setLayout(e => this.getLayout(e)).addStyle_fullWH() }
 	getLayout(e) { return $('<h3>.. Chart buraya ...</h3>') }
 }
 class AltRapor_Satislar_X2 extends AltRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return Rapor_Satislar }
-	static get kod() { return 'x2' } static get aciklama() { return 'Diagram' } get width() { return '19%' } get height() { return '400px' }
+	static get kod() { return 'x2' } static get aciklama() { return 'Diagram' }
+	get width() { return `calc(var(--full) - ${AltRapor_Satislar_Main.width})` } get height() { return '300px' }
 	subFormBuilderDuzenle(e) { super.subFormBuilderDuzenle(e); const parentBuilder = e.builder; parentBuilder.addForm('diagram').setLayout(e => this.getLayout(e)).addStyle_fullWH() }
 	getLayout(e) {
 		const html = `<pre class="mermaid">graph LR

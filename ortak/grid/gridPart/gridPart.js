@@ -33,18 +33,25 @@ class GridPart extends Part {
 	get isSelectionMode_checkBox() { const {selectionMode} = this; return (selectionMode && selectionMode.toLowerCase() == 'checkbox') }
 	get isSelectionMode_rows() { const {selectionMode} = this; return (selectionMode && selectionMode.toLowerCase().includes('row')) }
 	get isSelectionMode_cells() { const {selectionMode} = this; return (selectionMode && selectionMode.toLowerCase().includes('cell')) }
-	get kontrolcu() { return this._kontrolcu }
-	set kontrolcu(value) { this._kontrolcu = value }
+	get belirtec2OrjKolonState() {
+		let result = this._belirtec2OrjKolonState; if (result == null) {
+			const {grid, gridWidget} = this, gridCols = gridWidget.columns?.records ?? gridWidget.columns;
+			result = {}; for (const jqxCol of gridCols) { const belirtec = jqxCol.datafield, {editable, hidden} = jqxCol, state = { belirtec, editable, hidden }; result[belirtec] = state }
+			this._belirtec2OrjKolonState = result
+		}
+		return result
+	}
+	get kontrolcu() { return this._kontrolcu } set kontrolcu(value) { this._kontrolcu = value }
 	getKontrolcu(e) { e = e || {}; let result = this.kontrolcu; if (isFunction(result)) result = this.kontrolcu = getFuncValue.call(this, result, e); return result }
 	
 	constructor(e) {
-		super(e); e = e || {};
-		$.extend(this, {
+		super(e); e = e || {}; $.extend(this, {
 			parentPart: e.parentPart, parentBuilder: e.parentBuilder, builder: e.builder, async: e.async == null ? null : asBool(e.async), cache: e.cache == null ? null : asBool(e.cache),
 			bulPart: e.bulPart, ekTabloKolonlari: e.tabloKolonlari, ozelKolonDuzenleBlock: e.ozelKolonDuzenleBlock || e.ozelKolonDuzenle,
 			argsDuzenleBlock: e.argsDuzenleBlock || e.argsDuzenle, loadServerDataBlock: e.source || e.loadServerDataBlock || e.loadServerData,
 			bindingCompleteBlock: e.veriYukleninceBlock || e.veriYuklenince || e.bindingCompleteBlock || e.bindingComplete,
 			gridVeriDegistiBlock: e.gridVeriDegisince || e.gridVeriDegistiBlock || e.gridVeriDegisti || e.cellValueChanged,
+			gridGroupsChangedBlock: e.groupsChanged ?? e.groupsChangedBlock ?? e.gridGroupsChanged ?? e.gridGroupsChangedBlock,
 			gridRenderedBlock: e.gridRenderedBlock || e.gridRendered, tusaBasilincaBlock: e.tusaBasilincaBlock || e.tusaBasilinca,
 			gridHucreTiklandiBlock: e.gridHucreTiklandiBlock || e.gridHucreTiklandi, gridHucreCiftTiklandiBlock: e.gridHucreCiftTiklandiBlock || e.gridHucreCiftTiklandi,
 			gridHucreTiklandiBlock: e.gridHucreTiklandiBlock || e.gridHucreTiklandi, gridHucreCiftTiklandiBlock: e.gridHucreCiftTiklandiBlock || e.gridHucreCiftTiklandi,
@@ -143,7 +150,8 @@ class GridPart extends Part {
 		grid.on('rowdoubleclick', evt => setTimeout(() => this.gridSatirCiftTiklandi({ sender: this, type: 'row', builder, event: evt }), 10));
 		grid.on('cellclick', evt => setTimeout(() => this.gridHucreTiklandi({ sender: this, type: 'cell', builder, event: evt }), 10));
 		grid.on('celldoubleclick', evt => setTimeout(() => this.gridHucreCiftTiklandi({ sender: this, type: 'cell', builder, event: evt }), 10));
-		grid.on('bindingcomplete', evt => this.gridVeriYuklendi($.extend({}, e, { sender: this, builder: builder, event: evt, grid, gridWidget, source: gridWidget.source })));
+		grid.on('bindingcomplete', event => this.gridVeriYuklendi({ ...e, sender: this, builder, event, grid, gridWidget, source: gridWidget.source }));
+		grid.on('groupschanged', event => this.gridGroupsChanged({ ...e, sender: this, builder, event, grid, gridWidget, source: gridWidget.source }));
 		grid.on('cellvaluechanged', evt => {
 			setTimeout(() =>
 				this.gridVeriDegisti($.extend({}, e, {
@@ -530,40 +538,50 @@ class GridPart extends Part {
 	adaptive() { return this.notAdaptiveFlag = false; return this } notAdaptive() { return this.notAdaptiveFlag = true; return this }
 	animate() { this.noAnimateFlag = false; return this } noAnimate() { this.noAnimateFlag = true; return this }
 	newRec(e) {
-		e = e || {}; let {gridWidget, grid} = this;
-		if (!gridWidget && grid?.length) gridWidget = this.gridWidget = grid.jqxGrid('getInstance');
-		let cls = e.sinif || this.detaySinif;
-		if (!cls) { const recCount = gridWidget.getrecordscount(); cls = recCount ? gridWidget.getrowdata(recCount - 1)?.class : null; }
+		e = e || {}; let {gridWidget, grid} = this; if (!gridWidget && grid?.length) { gridWidget = this.gridWidget = grid.jqxGrid('getInstance') }
+		let cls = e.sinif ?? this.detaySinif; if (!cls) { const recCount = gridWidget.getrecordscount(); cls = recCount ? gridWidget.getrowdata(recCount - 1)?.class : null }
 		if (!cls) {
 			const {rowIndex, uid} = e; let {rec} = e;
 			if (!rec) {
-				if (rowIndex != null && rowIndex > -1) rec = gridWidget.getrowdata(rowIndex)
-				else if (uid != null) rec = gridWidget.getrowdatabyid(uid)
+				if (rowIndex != null && rowIndex > -1) { rec = gridWidget.getrowdata(rowIndex) }
+				else if (uid != null) { rec = gridWidget.getrowdatabyid(uid) }
 			}
-			if (rec) cls = rec.class
+			if (rec) { cls = rec.class }
 		}
 		const {args} = e, result = cls ? new cls(args) : (args || {}); return result
 	}
 	async gridVeriYuklendi(e) {
-		const {grid, bindingCompleteBlock} = this; setTimeout(() => grid.find(`span:contains("www.jqwidgets.com")`).addClass('basic-hidden'), 50);
+		const {grid, gridWidget, bindingCompleteBlock} = this; setTimeout(() => grid.find(`span:contains("www.jqwidgets.com")`).addClass('basic-hidden'), 50);
 		if ($.isEmptyObject(this.expandedIndexes)) { this.kolonFiltreDegisti(e) }
 		if (bindingCompleteBlock) { await getFuncValue.call(this, bindingCompleteBlock, e) }
-		const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridVeriYuklendi) await kontrolcu.gridVeriYuklendi(e)
-		setTimeout(() => this.onResize(), 1000)
+		const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridVeriYuklendi) { await kontrolcu.gridVeriYuklendi(e) }
+		this.gridGroupsChanged(e); for (const delayMS of [500, 1000]) { setTimeout(() => this.onResize(), delayMS) }
 	}
 	gridVeriDegisti(e) {
-		const {gridVeriDegistiBlock} = this; if (gridVeriDegistiBlock) getFuncValue.call(this, gridVeriDegistiBlock, e)
-		const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridVeriDegisti) kontrolcu.gridVeriDegisti(e)
+		const {gridVeriDegistiBlock} = this; if (gridVeriDegistiBlock) { getFuncValue.call(this, gridVeriDegistiBlock, e) }
+		const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridVeriDegisti) { kontrolcu.gridVeriDegisti(e) }
+	}
+	gridGroupsChanged(e) {
+		const {gridGroupsChangedBlock} = this; if (gridGroupsChangedBlock) { const result = getFuncValue.call(this, gridGroupsChangedBlock, e); if (result === false) { return } }
+		const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridGroupsChanged) { const result = kontrolcu.gridGroupsChanged(e); if (result === false) { return } }
+		const {gridWidget} = this, showGroupsHeaderFlag = gridWidget.showgroupsheader; if (showGroupsHeaderFlag) {
+			const groups = gridWidget.groups ?? [], groupsSet = asSet(groups), belirtec2OrjKolonState = this.belirtec2OrjKolonState || {}, gridCols = gridWidget.columns?.records ?? gridWidget.columns;
+			for (const jqxCol of gridCols) {
+				const belirtec = jqxCol.datafield, state = belirtec2OrjKolonState[belirtec] || {}, hasGroup = groupsSet[belirtec];
+				/*if (hasGroup) { gridWidget.hidecolumn(belirtec) } else { gridWidget.showcolumn(belirtec) }*/
+				if (hasGroup) { gridWidget.hidecolumn(belirtec) } else { if (!state.hidden) { gridWidget.showcolumn(belirtec) } }
+			}
+		}
 	}
 	gridRendered(e) {
-		const {gridRenderedBlock} = this; if (gridRenderedBlock) getFuncValue.call(this, gridRenderedBlock, e)
-		const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridRendered) kontrolcu.gridRendered(e)
+		const {gridRenderedBlock} = this; if (gridRenderedBlock) { getFuncValue.call(this, gridRenderedBlock, e) }
+		const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridRendered) { kontrolcu.gridRendered(e) }
 		// this.gridWidget.table.jqxSortable({ theme: theme, items: `> div` })
 	}
 	gridContextMenuIstendi(e) {
 		e = e || {}; const evt = e.event, {gridContextMenuIstendiBlock} = this;
-		if (gridContextMenuIstendiBlock) { const result = getFuncValue.call(this, gridContextMenuIstendiBlock, e); if (result === false) return }
-		const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridContextMenuIstendi) { const result = kontrolcu.gridContextMenuIstendi(e); if (result === false) return }
+		if (gridContextMenuIstendiBlock) { const result = getFuncValue.call(this, gridContextMenuIstendiBlock, e); if (result === false) { return } }
+		const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridContextMenuIstendi) { const result = kontrolcu.gridContextMenuIstendi(e); if (result === false) { return } }
 		this.gridContextMenuIstendi_defaultAction(e)
 	}
 	gridContextMenuIstendi_defaultAction(e) {

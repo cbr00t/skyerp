@@ -4,7 +4,7 @@ class AltRapor extends Rapor {
 	get width() { return null } get height() { return null }
 	rootFormBuilderDuzenle(e) { }
 	subFormBuilderDuzenle(e) {
-		const parentBuilder = e.builder; parentBuilder
+		const parentBuilder = e.builder; parentBuilder.addStyle_fullWH()
 			.onInit(e => this.onInit({ ...e, parentBuilder: e.builder }))
 			.onBuildEk(e => this.onBuildEk({ ...e, parentBuilder: e.builder }))
 			.onAfterRun(e => this.onAfterRun({ ...e, parentBuilder: e.builder }));

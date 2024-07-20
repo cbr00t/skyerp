@@ -879,7 +879,7 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 			yeniInstOlusturucu: e.yeniInstOlusturucu, sabitmi: e.sabitmi ?? e.sabit, noEmptyRowFlag: e.noEmptyRow ?? e.noEmptyRowFlag,
 			veriYuklenince: e.veriYuklenince || e.veriYukleninceBlock || e.bindingComplete || e.bindingCompleteBlock,
 			veriDegisince: e.veriDegisince || e.veriDegistiBlock || e.veriDegisti || e.cellValueChanged, rowNumberOlmasinFlag: e.rowNumberOlmasin ?? e.rowNumberOlmasinFlag,
-			notAdaptiveFlag: e.notAdaptive ?? e.notAdaptiveFlag, noAnimateFlag: e.noAnimate ?? e.noAnimateFlag
+			groupsChanged: e.groupsChanged ?? e.gridGroupsChanged ?? e.gridGroupsChangedBlock, notAdaptiveFlag: e.notAdaptive ?? e.notAdaptiveFlag, noAnimateFlag: e.noAnimate ?? e.noAnimateFlag
 		});
 		const {_kontrolcu} = this; if (_kontrolcu && this._kontrolcuSinif) this._kontrolcuSinif = _kontrolcu.class
 	}
@@ -901,7 +901,7 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 				sender: this.sender, builder: this, parentPart: this.rootPart, layout: input, mfSinif, kontrolcu, tabloKolonlari,
 				ozelQueryDuzenleBlock: this.ozelQueryDuzenle, ozelQuerySonucuBlock: this.ozelQuerySonucu, yeniInstOlusturucu,
 				loadServerData: e => this.source, bindingCompleteBlock: e => this.veriYuklendi(e), gridVeriDegistiBlock: this.veriDegisince,
-				sabitFlag: this.sabitmi, noEmptyRowFlag, detaySinif, rowNumberOlmasinFlag, notAdaptiveFlag, noAnimateFlag
+				gridGroupsChangedBlock: this.groupsChanged, sabitFlag: this.sabitmi, noEmptyRowFlag, detaySinif, rowNumberOlmasinFlag, notAdaptiveFlag, noAnimateFlag
 			} });
 			if (widgetArgsDuzenle) { _e.args.argsDuzenle = e => { const _e = $.extend({ sender: this.part, builder: this }, e); getFuncValue.call(this, widgetArgsDuzenle, _e) } }
 			this.part = new this.gridSinif(_e.args)
@@ -910,13 +910,13 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 	afterBuildDevam(e) {
 		const {part} = this; if (part) { part.run() }
 		if (part && !part.isDestroyed) { const {grid, gridWidget} = part; if (grid?.length) { this.input = grid; this.widget = gridWidget } }
-		this.styles.push( `$elementCSS > input { min-width: 150px; max-width: 99.5%; }` )
+		this.styles.push(`$elementCSS > input { min-width: 150px; max-width: 99.5% }`)
 		super.afterBuildDevam(e)
 	}
 	veriYuklendi(e) {
 		const {part} = this, {gridWidget} = part;
-		if (gridWidget.editable && !part.sabitFlag && !this.noEmptyRowFlag) { if ($.isEmptyObject(gridWidget.getboundrows())) gridWidget.addrow(null, part.newRec()) }
-		const {veriYuklenince} = this; if (veriYuklenince) getFuncValue.call(this, veriYuklenince, e)
+		if (gridWidget.editable && !part.sabitFlag && !this.noEmptyRowFlag) { if ($.isEmptyObject(gridWidget.getboundrows())) { gridWidget.addrow(null, part.newRec()) } }
+		const {veriYuklenince} = this; if (veriYuklenince) { getFuncValue.call(this, veriYuklenince, e) }
 	}
 	gridliGiris() { this.gridSinif = GridliGirisPart; return this } gridliGosterici() { this.gridSinif = GridliGostericiPart; return this }
 	masterListe() { this.gridSinif = MasterListePart; return this } fisListe() { this.gridSinif = FisListePart; return this }
@@ -930,6 +930,7 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 	setTabloKolonlari(value) { this.tabloKolonlari = value; return this } ozelQueryDuzenleBlock(handler) { this.ozelQueryDuzenle = handler; return this }
 	veriYukleninceIslemi(handler) { this.veriYuklenince = handler; return this } veriYukleninceBlock(handler) { return this.veriYukleninceIslemi(handler) }
 	veriDegisinceIslemi(handler) { this.veriDegisince = handler; return this } veriDegisinceBlock(handler) { return this.veriDegisinceIslemi(handler) }
+	groupsChangedIslemi(handler) { this.groupsChanged = handler; return this }
 	onBindingComplete(value) { return this.veriYukleninceIslemi(value) }
 }
 

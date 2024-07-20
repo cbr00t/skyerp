@@ -4,40 +4,35 @@ class GridKolon extends GridKolonVeGrupOrtak {
 		'cellClassName', 'renderer', 'rendered', 'cellsRenderer', 'createEditor', 'initEditor', 'getEditorValue', 'destroyEditor',
 		'cellValueChanging', 'createFilterPanel', 'createFilterWidget', 'cellBeginEdit', 'cellEndEdit', 'validation', 'aggregatesRenderer'
 	];
-	static globalEventNames = [ 'cellValueChanged', 'cellSelect', 'cellUnselect', 'handleKeyboardNavigation', 'filter', 'sort', 'rowClick', 'rowDoubleClick', 'cellClick', 'bindingComplete'];
+	static globalEventNames = ['cellValueChanged', 'cellSelect', 'cellUnselect', 'handleKeyboardNavigation', 'filter', 'sort', 'rowClick', 'rowDoubleClick', 'cellClick', 'groupsChanged', 'bindingComplete'];
 	static deferredEventNames = asSet(['cellValueChanged']);
 
 	readFrom_ara(e) {
 		if (!super.readFrom_ara(e)) { return false }
-		const {maxLength} = e; const genislik = e.genislik || e.width || null, tipOrDef = e.tip || null;
-		// this.belirtec = e.belirtec || e.attr || e.dataField || e.datafield;
-		this.text = e.text || '';
-		if (genislik) this.genislik = genislik; else if (e.genislikCh != null) this.genislikCh = e.genislikCh
-		this.minWidth = e.minWidth ?? 0; this.maxWidth = e.maxWidth; this.sql = e.sql || (e.noSql ? false : null);
-		this.columnType = e.columnType || null; this.cellsFormat = e.cellsFormat || null; this.aggregates = e.aggregates || null;
-		this.filterType = e.filterType || null; this.filterCondition = e.filterCondition || null;
-		this.setAttributes(e);
-		const {colEventNames, globalEventNames} = this.class;
+		const {maxLength} = e; const genislik = e.genislik ?? e.width ?? null, tipOrDef = e.tip ?? null; /* this.belirtec = e.belirtec || e.attr || e.dataField || e.datafield; */
+		this.text = e.text ?? '';
+		if (genislik) { this.genislik = genislik } else if (e.genislikCh != null) { this.genislikCh = e.genislikCh }
+		this.minWidth = e.minWidth ?? 0; this.maxWidth = e.maxWidth; this.sql = e.sql ?? (e.noSql ? false : null);
+		this.columnType = e.columnType ?? null; this.cellsFormat = e.cellsFormat ?? null; this.aggregates = e.aggregates ?? null;
+		this.filterType = e.filterType ?? null; this.filterCondition = e.filterCondition ?? null;
+		this.setAttributes(e); const {colEventNames, globalEventNames} = this.class;
 		for (const key of colEventNames) {
-			if (key == 'cellClassName') this[key] = e[key]
-			else { const func = getFunc(e[key]); if (func) this[key] = func }
+			if (key == 'cellClassName') { this[key] = e[key] }
+			else { const func = getFunc(e[key]); if (func) { this[key] = func } }
 		}
-		for (const key of globalEventNames) { const func = getFunc(e[key]); if (func) this[key] = func }
-		let tip = null;
-		if (tipOrDef) {
-			if (typeof tipOrDef == 'object') tip = $.isPlainObject(tipOrDef) ? GridKolonTip.from(tipOrDef) : tipOrDef;
-			else if (typeof tipOrDef == 'string') tip = GridKolonTip.from($.extend({}, e, { tip: tipOrDef }))
+		for (const key of globalEventNames) { const func = getFunc(e[key]); if (func) { this[key] = func } }
+		let tip = null; if (tipOrDef) {
+			if (typeof tipOrDef == 'object') { tip = $.isPlainObject(tipOrDef) ? GridKolonTip.from(tipOrDef) : tipOrDef }
+			else if (typeof tipOrDef == 'string') { tip = GridKolonTip.from($.extend({}, e, { tip: tipOrDef })) }
 		}
 		if (!tip) { tip = new GridKolonTip_String(); this.tip = tip }
 		if (maxLength) { tip.maxLength = maxLength }
-		const savedCellValueChanging = this.cellValueChanging;
-		this.cellValueChanging = (colDef, rowIndex, dataField, columnType, oldValue, newValue) => {
+		const savedCellValueChanging = this.cellValueChanging; this.cellValueChanging = (colDef, rowIndex, dataField, columnType, oldValue, newValue) => {
 			if (colDef && !colDef.isEditable) { return oldValue }
 			let result; if (savedCellValueChanging) { result = getFuncValue.call(this, savedCellValueChanging, colDef, rowIndex, dataField, columnType, oldValue, newValue) }
 			if (result === false) { result = oldValue } return result
 		};
-		const savedCellsRenderer = this.cellsRenderer;
-		this.cellsRenderer = (colDef, rowIndex, belirtec, value, html, jqxCol, rec, result) => {
+		const savedCellsRenderer = this.cellsRenderer; this.cellsRenderer = (colDef, rowIndex, belirtec, value, html, jqxCol, rec, result) => {
 			if (result === undefined) { result = html }
 			const type = 'cellsRenderer', {gridPart} = colDef, {inst} = gridPart, mfSinif = gridPart.mfSinif ?? inst?.class; clearTimeout(this._timer_rendered);
 			const delayMS = gridPart.renderDelayMS ?? mfSinif?.orjBaslik_gridRenderDelayMS ?? MQCogul.defaultOrjBaslik_gridRenderDelayMS;
@@ -47,26 +42,25 @@ class GridKolon extends GridKolonVeGrupOrtak {
 			}
 			if (savedCellsRenderer) { result = getFuncValue.call(this, savedCellsRenderer, colDef, rowIndex, belirtec, value, html, jqxCol, rec) } return result
 		};
-		const savedRenderer = this.renderer;
-		if (savedRenderer) {
+		const savedRenderer = this.renderer; if (savedRenderer) {
 			this.renderer = (colDef, text, align, width) => {
 				const {gridPart, rendererEk} = this, {gridWidget} = gridPart;
 				const renderBlock = value => gridWidget._rendercolumnheader(value, align, width, gridWidget)
 				let result = savedRenderer ? getFuncValue.call(this, savedRenderer, text, align, width, result, gridPart, renderBlock) : null;
-				if (rendererEk) result = getFuncValue.call(this, rendererEk, this, text, align, width, result, gridPart, renderBlock)
-				if (result == null) result = gridWidget._rendercolumnheader(text, align, width, gridWidget)
+				if (rendererEk) { result = getFuncValue.call(this, rendererEk, this, text, align, width, result, gridPart, renderBlock) }
+				if (result == null) { result = gridWidget._rendercolumnheader(text, align, width, gridWidget) }
 				return result
 			}
 		}
 		if (!this.cellClassName) {
 			this.cellClassName = (colDef, rowIndex, belirtec, value, rec) => {
 				const {gridWidget} = this.gridPart, result = [belirtec];
-				if (gridWidget?.editable && !this.attributes.editable) result.push('grid-readOnly')
-				const {tip, alignn} = colDef; if (tip) { const _value = tip.class.cellClassName; if (_value) result.push(_value) }
+				if (gridWidget?.editable && !this.attributes.editable) { result.push('grid-readOnly') }
+				const {tip, alignn} = colDef; if (tip) { const _value = tip.class.cellClassName; if (_value) { result.push(_value) } }
 				if (align) { result.push(align) } return result.join(' ')
 			}
 		}
-		let align = this.align = e.align || e.align || null; if (tip && !align) { const {defaultAlign} = tip.class; if (defaultAlign) align = this.align = defaultAlign; }
+		let align = this.align = e.align || e.align || null; if (tip && !align) { const {defaultAlign} = tip.class; if (defaultAlign) { align = this.align = defaultAlign } }
 		return true
 	}
 	setAttributes(e) {
@@ -81,25 +75,22 @@ class GridKolon extends GridKolonVeGrupOrtak {
 			pinned: (e.pinned ?? false)
 		};
 		let _attributes = e.attributes;
-		if (_attributes && typeof _attributes == 'string') _attributes = _attributes ? _attributes.split(' ').filter(x => !!x) : null
-		if (_attributes && $.isArray(_attributes)) _attributes = asSet(_attributes)
+		if (_attributes && typeof _attributes == 'string') { _attributes = _attributes ? _attributes.split(' ').filter(x => !!x) : null }
+		if (_attributes && $.isArray(_attributes)) { _attributes = asSet(_attributes) }
 		if (_attributes && typeof _attributes == 'object') {
-			for (const key in _attributes) { const flag = !!_attributes[key]; if (attributes[key] !== undefined) attributes[key] = flag; }
+			for (const key in _attributes) { const flag = !!_attributes[key]; if (attributes[key] !== undefined) attributes[key] = flag }
 			for (const key in attributes) { let value = attributes[key]; if (value == null) value = attributes[key] = false }
 		}
 		else {
 			for (const key in attributes) {
 				let value = attributes[key];
-				if (value == null) {
-					switch (key) { case 'hidden': value = false; break; default: value = true; break }
-					attributes[key] = value
-				}
+				if (value == null) { switch (key) { case 'hidden': value = false; break; default: value = true; break } attributes[key] = value }
 			}
 		}
 	}
 	asRSahalar(e) { return [this.asRSaha(e)] }
 	asRSaha(e) {
-		if (!this.sqlIcinUygunmu) return null
+		if (!this.sqlIcinUygunmu) { return null }
 		e = e || {}; const {belirtec} = this; let {sql} = this;
 		if (!sql) { const {alias} = e, aliasVeNokta = alias ? alias + '.' : ''; sql = aliasVeNokta + belirtec }
 		const {text, genislikCh, tip} = this;
@@ -110,45 +101,37 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	get jqxColumn() { const e = { column: {} }; this.jqxColumnDuzenle(e); return e.column }
 	jqxColumnDuzenle(e) {
 		e.colDef = this; const {column} = e, {belirtec, text, genislik, aggregates, tip, minWidth, maxWidth} = this;
-		if (tip) tip.jqxColumnDuzenle(e)
+		if (tip) { tip.jqxColumnDuzenle(e) }
 		let {align, columnType, cellsFormat, filterType, filterCondition} = this;
 		if (tip) {
 			let value;
-			if (!align && (value = tip.defaultAlign)) align = this.align = value
-			if (!columnType && (value = tip.jqxColumnType)) columnType = this.columnType = value
-			if (!cellsFormat && (value = tip.jqxCellsFormat)) cellsFormat = this.cellsFormat = value
+			if (!align && (value = tip.defaultAlign)) { align = this.align = value }
+			if (!columnType && (value = tip.jqxColumnType)) { columnType = this.columnType = value }
+			if (!cellsFormat && (value = tip.jqxCellsFormat)) { cellsFormat = this.cellsFormat = value }
 		}
-		if (belirtec) column.dataField = belirtec
-		if (text) column.text = text
-		if (genislik) column.width = genislik
+		if (belirtec) { column.dataField = belirtec }
+		if (text) { column.text = text }
+		if (genislik) { column.width = genislik }
 		column.align = 'center';
-		if (align && align != 'left') column.cellsAlign = align
-		if (columnType) column.columnType = columnType
-		if (cellsFormat) column.cellsFormat = cellsFormat
-		if (aggregates) column.aggregates = aggregates
-		if (minWidth != null) column.minWidth = minWidth
-		if (maxWidth != null) column.maxWidth = maxWidth
-		if (filterType != null) column.filterType = filterType
-		if (filterCondition != null) column.filterCondition = filterCondition
-		const {attributes} = this;
-		if (attributes) { for (const key in attributes) { const value = attributes[key]; column[key] = value } }
+		if (align && align != 'left') { column.cellsAlign = align }
+		if (columnType) { column.columnType = columnType }
+		if (cellsFormat) { column.cellsFormat = cellsFormat }
+		if (aggregates) { column.aggregates = aggregates }
+		if (minWidth != null) { column.minWidth = minWidth }
+		if (maxWidth != null) { column.maxWidth = maxWidth }
+		if (filterType != null) { column.filterType = filterType }
+		if (filterCondition != null) { column.filterCondition = filterCondition }
+		const {attributes} = this; if (attributes) { for (const key in attributes) { const value = attributes[key]; column[key] = value } }
 		const {deferredEventNames, colEventNames} = this.class;
 		for (const key of colEventNames) {
-			const func = this[key] || (tip ? (tip[key] || tip.class[key]) : null);
-			if (!func) continue
+			const func = this[key] ?? (tip ? (tip[key] || tip.class[key]) : null); if (!func) { continue }
 			const handler = (key, tip, ...args) => {
-				if (args) {
-					for (let i = 0; i < args.length; i++) {
-						let value = args[i]; if (value != null && value?.constructor.name == 'Number')
-						args[i] = value = asFloat(value)
-					}
+				if (args) { for (let i = 0; i < args.length; i++) { let value = args[i]; if (value != null && value?.constructor.name == 'Number') { args[i] = value = asFloat(value) } } }
+				let func, result; if (tip) {
+					func = tip.class[key]; if (func) { result = getFuncValue.call(tip, func, this, ...args, result) }
+					func = tip[key]; if (func) { result = getFuncValue.call(tip, func, this, ...args, result) }
 				}
-				let func, result;
-				if (tip) {
-					func = tip.class[key]; if (func) result = getFuncValue.call(tip, func, this, ...args, result)
-					func = tip[key]; if (func) result = getFuncValue.call(tip, func, this, ...args, result)
-				}
-				func = this[key]; if (func) result = getFuncValue.call(this, func, this, ...args, result)
+				func = this[key]; if (func) { result = getFuncValue.call(this, func, this, ...args, result) }
 				return result
 			};
 			column[key] = deferredEventNames[key]
@@ -214,8 +197,7 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	*getIter() { yield this }
 }
 
-
 (function() {
 	const anaTip2Sinif = GridKolonVeGrupOrtak._anaTip2Sinif, subClasses = [GridKolon];
-	for (const cls of subClasses) { const {anaTip} = cls; if (anaTip) anaTip2Sinif[anaTip] = cls; }
+	for (const cls of subClasses) { const {anaTip} = cls; if (anaTip) anaTip2Sinif[anaTip] = cls }
 })()

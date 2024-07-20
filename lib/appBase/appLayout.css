@@ -126,10 +126,8 @@ body #ust-parent > #nav[style = ""] + #parent #windows.part {
 	opacity: .5 !important; filter: blur(.8px) brightness(.5)
 	/*animation: nav-open*/
 }
-@keyframes nav-open {
-	100% { opacity: .5 !important; filter: blur(.8px) brightness(.5) }
-}
 body #ust-parent > #nav ul > li ul { animation: 200ms 1 nav-item-open }
+@keyframes nav-open { 100% { opacity: .5 !important; filter: blur(.8px) brightness(.5) } }
 @keyframes nav-item-open {
 	  0% { opacity: 0 }
 	 50% { opacity: .5 }
