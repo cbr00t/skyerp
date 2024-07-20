@@ -908,12 +908,8 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 		}
 	}
 	afterBuildDevam(e) {
-		const {part} = this; if (part) part.run()
-		if (part && !part.isDestroyed) {
-			const {grid, gridWidget} = part;
-			if (grid?.length) { this.input = grid; this.widget = gridWidget }
-		}
-		const {input} = this;
+		const {part} = this; if (part) { part.run() }
+		if (part && !part.isDestroyed) { const {grid, gridWidget} = part; if (grid?.length) { this.input = grid; this.widget = gridWidget } }
 		this.styles.push( `$elementCSS > input { min-width: 150px; max-width: 99.5%; }` )
 		super.afterBuildDevam(e)
 	}

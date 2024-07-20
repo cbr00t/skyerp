@@ -1,5 +1,5 @@
 class SkyRaporApp extends TicariApp {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'TEST' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'SATISLAR' }
 	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { yerel: MQYerelParam.getInstance() /*rapor: MQParam_Rapor })*/ }) }
 	getAnaMenu(e) {
 		const {kod2Sinif} = Rapor, items_raporlar = [];

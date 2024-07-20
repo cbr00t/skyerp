@@ -16,7 +16,7 @@ class Rapor extends MQDetayliOrtak {				/* MQCogul tabanlı rapor sınıfları i
 		const {part} = result, {builder} = part; return { inst, part, builder }
 	}
 	goster(e) { return null } tazele(e) { }
-	onInit(e) { } onAfterRun(e) { }
+	onInit(e) { } onBuildEk(e) { } onAfterRun(e) { }
 }
 class MQRapor extends Rapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'mq' }
@@ -35,14 +35,15 @@ class OzelRapor extends Rapor {
 	goster(e) {
 		e = e || {}; const inst = this, title = e.title ?? `<b class="royalblue">${this.class.aciklama}</b> Raporu`
 		let rfb = new RootFormBuilder({ id: 'rapor' }).setInst(this).asWindow(title), _e = { ...e, rfb }; this.rootFormBuilderDuzenle(_e); rfb = _e.rfb;
-		rfb.onInit(e => this.onInit({ ...e, rfb: e.builder })); rfb.onAfterRun(e => this.onAfterRun({ ...e, rfb: e.builder }));
+		rfb.onInit(e => this.onInit({ ...e, rfb: e.builder })); rfb.onBuildEk(e => this.onBuildEk({ ...e, rfb: e.builder })); rfb.onAfterRun(e => this.onAfterRun({ ...e, rfb: e.builder }));
 		rfb.run(); const builder = rfb, {part} = builder, {anaTip} = this.class; part.layout.addClass(anaTip);
 		$.extend(this, { part, builder }); return ({ inst, part, builder })
 	}
 	rootFormBuilderDuzenle(e) {
 		const {rfb} = e; rfb.addIslemTuslari('islemTuslari').addCSS('islemTuslari').setTip('tazeleVazgec')
-			.setButonlarDuzenleyici(e => e.builder.inst.islemTuslariArgsDuzenle(e))
+			.setButonlarDuzenleyici(e => this.islemTuslariArgsDuzenle(e))
 			.setId2Handler(this.islemTuslariGetId2Handler(e))
+			.addCSS('islemTuslari')
 		rfb.addForm('bulForm')
 			.setLayout(e => $(`<div class="${e.builder.id} part"><input class="input full-wh" type="textbox" maxlength="100"></input></div>`))
 			.onAfterRun(e => {
@@ -52,7 +53,7 @@ class OzelRapor extends Rapor {
 			})
 	}
 	onAfterRun(e) {
-		super.onAfterRun(e); const {rfb} = e, rootPart = rfb.part; rootPart.builder = rfb
+		super.onAfterRun(e); const {rfb} = e, rootPart = rfb.part; rootPart.builder = rfb; rootPart.layout.prop('id', rfb.id)
 		/*const {builder} = e, rootPart = builder.part, _title = rootPart?._title; if (_title) { setTimeout(() => rootPart.updateWndTitle(_title), 10); delete rootPart._title }*/
 	}
 	islemTuslariArgsDuzenle(e) { }

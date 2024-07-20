@@ -1,8 +1,9 @@
 .rapor.masterListe.part .jqx-grid [role = row] > div { font-size: 93% }
 #rapor.part { --islemTuslari-height: 55px }
+#rapor.part > .islemTuslari { width: var(--full); height: var(--islemTuslari-height) }
 #rapor.part > .wnd-content > *:not(.bulForm):not(.islemTuslari) { background: white !important }
 #rapor.part #items { height: calc(var(--full) - var(--islemTuslari-height)) !important }
-#rapor.part #items > .item { min-width: 400px; width: 32%; height: 445px; margin: 10px; padding: 10px; border: 1px solid #eee; border-radius: 20px; box-sizing: border-box; float: left }
+#rapor.part #items > .item { min-width: 400px; width: 32%; height: 445px; margin-block-end: 10px; margin-bottom: 0; padding: 10px; padding-bottom: 0; border: 1px solid #eee; border-radius: 20px; box-sizing: border-box; float: left }
 @media (max-height: 1000px) { #rapor.part #items > .item { height: 350px } }
 @media (max-height: 800px) { #rapor.part #items > .item { width: 25%; height: 300px } }
 #rapor.part #items > .item > :not(label) > .jqx-grid { }

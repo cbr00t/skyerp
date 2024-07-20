@@ -12,42 +12,30 @@ class ButonlarPart extends Part {
 			ekSagButonIdSet: asSet(e.ekSagButonIdSet) || {}, userData: e.userData
 		})
 	}
-	runDevam(e) {
-		e = e || {}; super.runDevam(e); this.butonlariOlustur(e);
-		const {layout} = this; layout.addClass('flex-row'); makeScrollable(layout)
-	}
+	runDevam(e) { e = e || {}; super.runDevam(e); this.butonlariOlustur(e); const {layout} = this; layout.addClass('flex-row'); makeScrollable(layout) }
 	destroyPart(e) {
-		super.destroyPart(e);
-		const {layout} = this;
-		if (layout?.length) {
-			const buttons = layout.find('button');
-			if (buttons?.length) buttons.jqxButton('destroy'); layout.children().remove()
-		}
+		super.destroyPart(e); const {layout} = this;
+		if (layout?.length) { const buttons = layout.find('button'); if (buttons?.length) { buttons.jqxButton('destroy') }layout.children().remove() }
 		this.layout = null
 	}
 	butonlariOlustur(e) {
-		const {templates} = this.class, {tip} = this, builder = templates[tip]; let result = [];
-		if (builder) result = getFuncValue.call(this, builder, e); if (!result) return false
-		if (typeof result == 'object') this.butonlariEkle({ liste: result })
+		const {templates} = this.class, {tip} = this, builder = templates[tip]; let liste = [];
+		if (builder) { liste = getFuncValue.call(this, builder, e) } if (!liste) { return false }
+		if (typeof liste == 'object') { this.butonlariEkle({ liste }) }
 		return true
 	}
 	butonlariEkle(e) {
 		e = e || {}; const {parentPart, builder, userData, ekButonlarIlk, ekButonlarSon, butonlarDuzenleyici, layout, prepend, id2Handler} = this;
 		const sender = this.sender || this, _liste = e.liste ?? e; let liste = [];
-		if (!$.isEmptyObject(ekButonlarIlk)) liste.push(...ekButonlarIlk)
-		if (!$.isEmptyObject(_liste)) liste.push(..._liste)
-		if (!$.isEmptyObject(ekButonlarSon)) liste.push(...ekButonlarSon)
-		for (const i in liste) {
-			let item = liste[i];
-			if (typeof item != 'object') { item = { id: item, text: '' }; liste[i] = item }
-		}
+		if (!$.isEmptyObject(ekButonlarIlk)) { liste.push(...ekButonlarIlk) }
+		if (!$.isEmptyObject(_liste)) { liste.push(..._liste) }
+		if (!$.isEmptyObject(ekButonlarSon)) { liste.push(...ekButonlarSon) }
+		for (const key in liste) { let item = liste[key]; if (typeof item != 'object') { item = { id: item, text: '' }; liste[key] = item } }
 		if (butonlarDuzenleyici) {
-			const _e = { sender, parentPart, builder, part: this, userData, liste };
-			let result = getFuncValue.call(this, butonlarDuzenleyici, _e);
-			if (typeof result == 'object') result = result.liste || result; liste = result ?? _e.liste
+			const _e = { ...e, sender, parentPart, builder, part: this, userData, liste }; let result = getFuncValue.call(this, butonlarDuzenleyici, _e);
+			if (typeof result == 'object') { result = result.liste ?? result } liste = result ?? _e.liste
 		}
-		const subParent = this.sol = $(`<div class="sol"/>`), subParent_sag = this.sag = $(`<div class="sag"/>`);
-		const sagButonIdSet = this.sagButonIdSet || {}, {ekSagButonIdSet} = this;
+		const subParent = this.sol = $(`<div class="sol"/>`), subParent_sag = this.sag = $(`<div class="sag"/>`), sagButonIdSet = this.sagButonIdSet || {}, {ekSagButonIdSet} = this;
 		for (const item of liste) {
 			const {id, text, args} = item, btn = $(`<button id="${id}">${text || ''}</button>`);
 			const sagmi = (sagButonIdSet && sagButonIdSet[id]) || (ekSagButonIdSet && ekSagButonIdSet[id]);
@@ -64,8 +52,7 @@ class ButonlarPart extends Part {
 				if (handler) { btn.on('click', evt => { const _e = { parentPart, sender, builder, userData, event: evt, button: btn, id: evt.currentTarget.id }; getFuncValue.call(this, handler, _e) }) }
 			}
 		}
-		subParent.appendTo(layout); subParent_sag.appendTo(layout);
-		const sagButonlar = subParent_sag.children('button');
+		subParent.appendTo(layout); subParent_sag.appendTo(layout); const sagButonlar = subParent_sag.children('button');
 		layout.css('--width-sag', `calc((var(--button-right) * ${sagButonlar.length}) + 80px)`)
 	}
 	static templatesOlustur(e) {
