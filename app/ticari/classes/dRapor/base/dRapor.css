@@ -1,0 +1,12 @@
+.dRapor.masterListe.part .jqx-grid [role = row] > div, #dRapor.part #items > .item .jqx-grid [role = row] > div { font-size: 85% }
+#dRapor.part { --islemTuslari-height: 55px }
+#dRapor.part > .islemTuslari { width: var(--full); height: var(--islemTuslari-height) }
+#dRapor.part > .wnd-content > *:not(.bulForm):not(.islemTuslari) { background: white !important }
+#dRapor.part #items { height: calc(var(--full) - var(--islemTuslari-height)) !important }
+#dRapor.part #items > .item { min-width: 250px !important; width: 32%; height: 445px; margin-block-end: 10px; margin-bottom: 0; padding: 10px 0 0 10px; border: 1px solid #eee; border-radius: 13px; box-sizing: border-box; float: left }
+@media (max-height: 1000px) { #dRapor.part #items > .item { height: 350px } }
+@media (max-height: 800px) { #dRapor.part #items > .item { width: 25%; height: 300px } }
+#dRapor.part #items > .item > label { font-weight: bold; font-size: 140%; color: #777; background-color: #eee; width: calc(var(--full) - 10px); margin: 0 0 8px 0; padding: 0 0 3px 10px; border-radius: 10px }
+#dRapor.part #items > .item:hover > label, #dRapor.part #items > .item:focus > label, #dRapor.part #items > .item:active > label { background-color: #c9cdd9 }
+.dRapor .anim-gruplamalar-highlight, #dRapor .anim-gruplamalar-highlight { border: 3px solid forestgreen !important; animation: 850ms infinite cubic-bezier(0.46, 0.03, 0.52, 0.96) anim-gruplamalar-hightlight }
+@keyframes anim-gruplamalar-hightlight { 50% { background-color: #c9e0c9 } }

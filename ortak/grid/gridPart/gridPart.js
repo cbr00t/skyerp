@@ -515,8 +515,7 @@ class GridPart extends Part {
 			const {belirtec} = colDef; if (!belirtec) continue; colDef.gridPart = this;
 			jqxCols.push(...colDef.jqxColumns); colDef.belirtec2KolonDuzenle(_e)
 		}
-		$.extend(this, _e);
-		/* const gridContent = this.grid; gridContent.addClass('fade-inout'); setTimeout(() => gridContent.removeClass('fade-inout'), 1000); */
+		$.extend(this, _e); /* const gridContent = this.grid; gridContent.addClass('fade-inout'); setTimeout(() => gridContent.removeClass('fade-inout'), 1000); */
 		this.columns = jqxCols; return this
 	}
 	hizliBulIslemi(e) {

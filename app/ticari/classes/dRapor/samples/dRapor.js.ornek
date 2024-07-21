@@ -1,4 +1,4 @@
-class Rapor_Satislar extends MQRapor {
+class Rapor_Satislar extends DMQRapor {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get secimSinif() { return null }
 	static get kod() { return 'SATISLAR' } static get aciklama() { return 'Satışlar' }
 	static get gruplamaKAListe() {
@@ -98,8 +98,8 @@ class Rapor_Satislar extends MQRapor {
 	}
 }
 
-class Rapor_TEST extends PanelRapor {
+class DRapor_TEST extends DPanelRapor {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return 'TEST' } static get aciklama() { return 'Test' }
-	altRaporlarDuzenle(e) { super.altRaporlarDuzenle(e); this.add(AltRapor_TEST1, AltRapor_TEST2, AltRapor_TEST3) }
+	altRaporlarDuzenle(e) { super.altRaporlarDuzenle(e); this.add(DAltRapor_TEST1, DAltRapor_TEST2, DAltRapor_TEST3) }
 }

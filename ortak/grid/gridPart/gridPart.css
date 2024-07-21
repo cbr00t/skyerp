@@ -42,3 +42,8 @@
 	  0% { opacity: .7; filter: blur(2px) }
 	100% { opacity: 1; filter: blur(0px) }
 }
+.dRapor.part .bulForm, .gridliGosterici.part .bulForm { position: fixed; top: -8px; right: 400px; min-width: unset !important; width: 100px; height: 33px; padding: 10px; opacity: .4; z-index: 1001 !important }
+.dRapor.part .bulForm:has(:hover), .gridliGosterici.part .bulForm:has(:hover) { opacity: .7 }
+.dRapor.part .bulForm:has(:focus), .dRapor.part .bulForm:has(:active),
+.gridliGosterici.part .bulForm:has(:focus), .gridliGosterici.part .bulForm:has(:active) { opacity: 1 !important }
+@media (max-width: 850px) { .dRapor.part .bulForm, .gridliGosterici.part .bulForm { top: -3px; right: 320px; width: 60px; padding: 5px 5px } }
