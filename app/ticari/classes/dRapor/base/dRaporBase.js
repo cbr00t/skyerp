@@ -19,7 +19,7 @@ class DRapor extends DMQDetayliOrtak {				/* MQCogul tabanlı rapor sınıfları
 	onInit(e) { } onBuildEk(e) { } onAfterRun(e) { }
 }
 class DMQRapor extends DRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'mq' }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'mq' } static get dMQRapormu() { return true }
 	goster(e) {
 		e = e || {}; const args = e.args = e.args || {}; args.inst = this, result = this.class.listeEkraniAc(e); if (result == null) { return null }
 		const {part} = result, {anaTip} = this.class, {partName} = this; part.layout.addClass(`${anaTip} ${partName}`); const {builder} = part; $.extend(this, { part, builder }); return result
@@ -29,7 +29,7 @@ class DMQRapor extends DRapor {
 	static listeEkrani_afterRun(e) { return e.sender.inst.onAfterRun(e) }
 }
 class DOzelRapor extends DRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'ozel' }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'ozel' } static get dOzelrapormu() { return true }
 	goster(e) {
 		e = e || {}; const inst = this, {partName} = this, {aciklama} = this.class, title = e.title ?? `<b class="royalblue">${aciklama}</b> Raporu`
 		let rfb = new RootFormBuilder({ id: partName }).setInst(this).asWindow(title), _e = { ...e, rfb }; this.rootFormBuilderDuzenle(_e); rfb = _e.rfb;
@@ -71,7 +71,7 @@ class DOzelRapor extends DRapor {
 	}
 }
 class DPanelRapor extends DOzelRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'panel' }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'panel' } static get dPanelRapormu() { return true }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, { id2AltRapor: e.id2AltRapor });
 		if (this.id2AltRapor == null) { this.clear(); this.altRaporlarDuzenle(e) }
@@ -100,4 +100,16 @@ class DPanelRapor extends DOzelRapor {
 		} return this
 	}
 	clear() { this.id2AltRapor = {}; return this }
+}
+class DGrupluPanelRapor extends DPanelRapor {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get dGrupluPanelRapormu() { return true } static get altRaporClassPrefix() { return null }
+	altRaporlarDuzenle(e) {
+		super.altRaporlarDuzenle(e); const prefix = this.class.altRaporClassPrefix;
+		if (prefix) { const postfixes = ['_Main', '_Chart', '_Diagram'],  classes = postfixes.map(postfix => window[prefix + postfix]).filter(cls => !!cls); this.add(...classes) }
+	}
+	islemTuslariArgsDuzenle(e) {
+		super.islemTuslariArgsDuzenle(e); const {liste} = e;
+		liste.push({ id: 'gruplamalar', text: 'Gruplamalar', handler: _e => this.id2AltRapor.main.gruplamalarIstendi({ ...e, ..._e }), args: { width: 150 } })
+	}
 }

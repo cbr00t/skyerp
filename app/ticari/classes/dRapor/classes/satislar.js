@@ -1,10 +1,6 @@
-class DRapor_Satislar extends DPanelRapor {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get kod() { return 'SATISLAR' } static get aciklama() { return 'Satışlar' }
-	altRaporlarDuzenle(e) { super.altRaporlarDuzenle(e); this.add(DAltRapor_Satislar_Main, DAltRapor_Satislar_X1, DAltRapor_Satislar_X2) }
-	islemTuslariArgsDuzenle(e) {
-		super.islemTuslariArgsDuzenle(e); const {liste} = e;
-		liste.push({ id: 'gruplamalar', text: 'Gruplamalar', handler: _e => this.id2AltRapor.main.gruplamalarIstendi({ ...e, ..._e }), args: { width: 150 } })
-	}
+class DRapor_Satislar extends DGrupluPanelRapor {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kod() { return 'SATISLAR' } static get aciklama() { return 'Satışlar' } static get altRaporClassPrefix() { return 'DAltRapor_Satislar' }
 }
 class DAltRapor_Satislar_Main extends DAltRapor_GridGruplu {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Satislar } static get sortAttr() { return 'Column1' }
@@ -47,14 +43,14 @@ class DAltRapor_Satislar_Main extends DAltRapor_GridGruplu {
 		return query ? await app.sqlExecSelect(query) : null
 	}
 }
-class DAltRapor_Satislar_X1 extends DAltRapor {
+class DAltRapor_Satislar_Chart extends DAltRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Satislar }
 	static get kod() { return 'x1' } static get aciklama() { return 'Chart' }
 	get width() { return `calc(var(--full) - ${DAltRapor_Satislar_Main.width})` } get height() { return '300px' }
 	subFormBuilderDuzenle(e) { super.subFormBuilderDuzenle(e); const parentBuilder = e.builder; parentBuilder.addForm('chart').setLayout(e => this.getLayout(e)).addStyle_fullWH() }
 	getLayout(e) { return $('<h3>.. Chart buraya ...</h3>') }
 }
-class DAltRapor_Satislar_X2 extends DAltRapor {
+class __iptal__DAltRapor_Satislar_Diagram extends DAltRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Satislar }
 	static get kod() { return 'x2' } static get aciklama() { return 'Diagram' }
 	get width() { return `calc(var(--full) - ${DAltRapor_Satislar_Main.width})` } get height() { return '300px' }

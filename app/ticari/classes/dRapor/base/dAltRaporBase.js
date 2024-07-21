@@ -10,24 +10,37 @@ class DAltRapor extends DRapor {
 	}
 	onInit(e) { } onBuildEk(e) { } onAfterRun(e) { }
 }
-class DAltRapor_Gridli extends DAltRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridlimi() { return true }
+class DAltRapor_Grid extends DAltRapor {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridmi() { return true }
 	subFormBuilderDuzenle(e) {
 		super.subFormBuilderDuzenle(e); const parentBuilder = e.builder;
-		let fbd = this.fbd_grid = parentBuilder.addGridliGosterici().addStyle_fullWH({ height: '90%' }).rowNumberOlmasin().notAdaptive()
+		let fbd = this.fbd_grid = parentBuilder.addGridliGosterici('grid').rowNumberOlmasin().notAdaptive()
 			.addStyle_fullWH(null, 'calc(var(--full) - 55px)').widgetArgsDuzenleIslemi(e => this.gridArgsDuzenle(e) ).onBuildEk(e => this.onGridInit(e))
 			.veriYukleninceIslemi(e => this.gridVeriYuklendi(e)).setSource(e => this.loadServerData(e))
 			.setTabloKolonlari(e => { let _e = { ...e, liste: [] }; this.tabloKolonlariDuzenle(_e); return _e.liste })
 			.onAfterRun(e => this.onGridRun(e));
 		let _e = { ...e, gridBuilder: fbd }; this.gridBuilderDuzenle(_e)
 	}
+	super_subFormBuilderDuzenle(e) { super.subFormBuilderDuzenle(e) }
 	gridBuilderDuzenle(e) { }
 	gridArgsDuzenle(e) { const {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: true, showGroupsHeader: true, groupsExpandedByDefault: false }) }
 	onGridInit(e) { this.gridPart = e.builder.part } onGridRun(e) { const {gridPart} = this, {grid, gridWidget} = gridPart; $.extend(this, { grid, gridWidget }) }
 	tabloKolonlariDuzenle(e) { } loadServerData(e) { } gridVeriYuklendi(e) { }
 	tazele(e) { super.tazele(e); this.gridPart?.tazele(e) }
+	super_tazele(e) { super.tazele(e) }
 }
-class DAltRapor_GridGruplu extends DAltRapor_Gridli {
+class DAltRapor_Pivot extends DAltRapor_Grid {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get dPivotmu() { return true } static get dGridmi() { return false }
+	subFormBuilderDuzenle(e) {
+		super.super_subFormBuilderDuzenle(e); const parentBuilder = e.builder;
+		let fbd = this.fbd_grid = parentBuilder.addForm('pivot').setLayout(e => $(`<div id="${e.builder.id}"></div>`)).addStyle_fullWH(null, 'calc(var(--full) - 55px)')
+			.onInit(e => this.gridArgsDuzenle({ ...e, args: {} })).onBuildEk(e => this.onGridInit(e)).onAfterRun(e => this.onGridRun(e));
+		let _e = { ...e, gridBuilder: fbd }; this.gridBuilderDuzenle(_e)
+	}
+	onGridInit(e) { e.builder.part = {}; super.onGridInit(e) }
+	gridArgsDuzenle(e) { } tazele(e) { super.super_tazele(e) }
+}
+class DAltRapor_GridGruplu extends DAltRapor_Grid {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridliAltRapormu() { return true }
 	static get raporClass() { return null } static get kod() { return 'main' } static get aciklama() { return this.raporClass.aciklama }
 	get width() { return '75%' } get height() { return 'var(--full)' } static get gruplamaKAListe() { return [] }
