@@ -25,15 +25,15 @@ class DAltRapor_Satislar_Main extends DAltRapor_GridGruplu {
 	onGridInit(e) { super.onGridInit(e); const {gridPart} = this; gridPart.gruplamalar = {} }
 	tabloKolonlariDuzenle(e) {
 		super.tabloKolonlariDuzenle(e); const {liste} = e; liste.push(
-			new GridKolon({ belirtec: 'Column1', text: 'Dönem', genislikCh: 8, userData: { grup: 'YILAY' } }),
-			new GridKolon({ belirtec: 'grup', text: 'Stok Grup', maxWidth: 300, userData: { grup: 'STGRP' } }),
-			new GridKolon({ belirtec: 'stok', text: 'Stok', minWidth: 500, userData: { grup: 'STOK' } }),
-			new GridKolon({ belirtec: 'tip', text: 'Tip', maxWidth: 150, userData: { grup: 'CRTIP' } }),
-			new GridKolon({ belirtec: 'cari', text: 'Cari', minWidth: 500, userData: { grup: 'CARI' } }),
-			new GridKolon({ belirtec: 'bolge', text: 'Bölge', maxWidth: 300, userData: { grup: 'CRBOL' } }),
-			new GridKolon({ belirtec: 'il', text: 'İl', maxWidth: 180, userData: { grup: 'CRIL' } }),
-			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 13, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal(),
-			new GridKolon({ belirtec: 'ciro', text: 'Ciro', genislikCh: 17, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel()
+			new GridKolon({ belirtec: 'Column1', text: 'Dönem', genislikCh: 13, filterType: 'checkedlist', userData: { grup: 'YILAY' } }),
+			new GridKolon({ belirtec: 'grup', text: 'Stok Grup', maxWidth: 300, filterType: 'checkedlist', userData: { grup: 'STGRP' } }),
+			new GridKolon({ belirtec: 'stok', text: 'Stok', minWidth: 500, filterType: 'input', userData: { grup: 'STOK' } }),
+			new GridKolon({ belirtec: 'tip', text: 'Tip', maxWidth: 150, filterType: 'checkedlist', userData: { grup: 'CRTIP' } }),
+			new GridKolon({ belirtec: 'cari', text: 'Cari', minWidth: 500, filterType: 'input', userData: { grup: 'CARI' } }),
+			new GridKolon({ belirtec: 'bolge', text: 'Bölge', maxWidth: 300, filterType: 'input', userData: { grup: 'CRBOL' } }),
+			new GridKolon({ belirtec: 'il', text: 'İl', maxWidth: 180, filterType: 'checkedlist', userData: { grup: 'CRIL' } }),
+			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 13, filterType: 'numberinput', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal(),
+			new GridKolon({ belirtec: 'ciro', text: 'Ciro', genislikCh: 17, filterType: 'numberinput', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel()
 		)
 	}
 	async loadServerDataInternal(e) {

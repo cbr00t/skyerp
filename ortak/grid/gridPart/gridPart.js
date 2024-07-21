@@ -86,12 +86,12 @@ class GridPart extends Part {
 		e = e || {}; let grid = this.grid || this.layout;
 		if (grid.hasClass('wnd-content')) grid = grid.find(this.gridFormSelector); this.grid = grid;
 		const {builder, tabloKolonlari, argsDuzenleBlock, gridRenderedBlock, cacheFlag, asyncFlag, notAdaptiveFlag} = this;
-		const _theme = theme == 'metro' ? 'material' : theme;
+		const _theme = theme;	/*const _theme = theme == 'metro' ? 'material' : theme;*/
 		let args = {
-			theme: _theme, localization: localizationObj, width: '99.7%', height: '99.5%', editMode: 'selectedcell', sortMode: 'many', autoHeight: false, autoRowHeight: false, rowsHeight: 38, autoShowLoadElement: true,
+			theme: _theme, localization: localizationObj, width: '99.9%', height: '99.6%', editMode: 'selectedcell', sortMode: 'many', autoHeight: false, autoRowHeight: false, rowsHeight: 35, autoShowLoadElement: true,
 			altRows: true, enableTooltips: true, columnsHeight: 25, columnsMenuWidth: 50, columnsResize: true, columnsReorder: true, columnsMenu: true, autoShowColumnsMenuButton: true, sortable: true,
-			filterable: true, filterRowHeight: 40, filterMode: 'default', showFilterRow: false, groupable: true, showGroupsHeader: false, groupIndentWidth: 50, groupsHeaderHeight: 30, groupsExpandedByDefault: false,
-			enableBrowserSelection: false, selectionMode: 'multiplecellsextended', pageable: false, pagermode: 'advanced', adaptive: undefined, virtualMode: false, updatedelay: 0, scrollbarsize: 20,
+			filterable: true, filterRowHeight: 40, filterMode: 'default', showFilterRow: false, groupable: true, showGroupsHeader: false, groupIndentWidth: 40, groupsHeaderHeight: 33, groupsExpandedByDefault: false,
+			enableBrowserSelection: false, selectionMode: 'multiplecellsextended', pageable: false, pagermode: 'advanced', adaptive: undefined, virtualMode: false, updatedelay: 0, scrollbarsize: 20, scrollMode: 'logical',		/* default | logical | deferred */
 			renderGridRows: e => { const recs = e.data?.records || e.data; return recs  /* return recs.slice(e.startindex, e.startindex + e.endindex) */ },
 			groupColumnRenderer: text => `<div style="padding: 5px 10px; float: left;">${text}</div>`,
 			groupsRenderer: (text, group, expanded, groupInfo) => `<div class="grid-cell-group">${group}</div>`,
@@ -137,7 +137,7 @@ class GridPart extends Part {
 		if (args.virtualMode && args.groupable && !args.pageable) args.groupable = false
 		if (args.pageable && !args.pagesizeoptions) args.pageSizeOptions = [5, 7, 8, 9, 10, 11, 13, 14, 15, 18, 20, 25, 50, 80, 100, 200, 300, 500]
 		args.pageSize = 100; args.enableOptimization = true; if (args.adaptive == null) { args.adaptive = !(notAdaptiveFlag || args.editable) }
-		const firstCol = (args.columns || [])[0], secondCol = (args.columns || [])[0];
+		const firstCol = (args.columns || [])[0], secondCol = (args.columns || [])[1];
 		if (firstCol && args.scrollMode == 'deferred' && $.isEmptyObject(args.deferredDataFields)) {
 			/* args.scrollMode = 'deferred'; */ const deferredDataFields = args.deferredDataFields = [firstCol.dataField || firstCol.datafield];
 			if (secondCol) { deferredDataFields.push(secondCol.dataField ?? secondCol.datafield) }

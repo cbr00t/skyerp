@@ -78,7 +78,7 @@ class MQEConf extends MQKA {
 		return result
 	}
 	getValue(e) {
-		const {params} = app, selector = typeof e == 'object' ? e.selector : e, param_eIslem = params.eIslem, {oeParam} = param_eIslem; let result;
+		const {params} = app, selector = typeof e == 'object' ? e.selector : e, param_eIslem = params.eIslem, oeParam = param_eIslem?.oeParam || {}; let result;
 		if (selector == 'ozelEntegrator') { result = this[selector]; if (!result?.char?.trim()) { result = param_eIslem.ozelEntegrator} }
 		else { result = this[selector] || (param_eIslem[selector]) || oeParam[selector] }
 		/*if (result == null) { const param_oe = param_eIslem.oe[param_eIslem2.ozelEntegrator.char]; if (param_oe) { result = param_oe[selector] } }*/
