@@ -62,7 +62,7 @@ class GridPart extends Part {
 	}
 	runDevam(e) {
 		super.runDevam(e); let result = this.gridInit(e);
-		if (this.isWindowPart) { const hasModalClass = this.hasModalClass = $('body').hasClass('bg-modal'); if (hasModalClass) $('body').removeClass('bg-modal') }
+		if (this.isWindowPart) { const hasModalClass = this.hasModalClass = $('body').hasClass('bg-modal'); if (hasModalClass) { $('body').removeClass('bg-modal') } }
 		return result
 	}
 	superRunDevam(e) { return super.runDevam(e) }
@@ -73,10 +73,9 @@ class GridPart extends Part {
 			if (gridWidget) {
 				const {menuitemsarray, filtermenu, filterpanel} = gridWidget;
 				if (!$.isEmptyObject(menuitemsarray)) { const elm = $(menuitemsarray[0]).parents('.jqx-menu-wrapper'); if (elm?.length) elm.remove() }
-				if (filterpanel && filterpanel.length) { const elm = filterpanel.parents('.jqx-menu-wrapper'); if (elm?.length) elm.remove() }
-				if (filtermenu && filtermenu.length) { const elm = filtermenu.parents('.jqx-menu-wrapper'); if (elm?.length) elm.remove() }
-				const {filterbar, gridmenu, table, gridcontent, columnsheader} = gridWidget;
-				for (const elm of [filterbar, gridmenu, table, gridcontent, columnsheader]) { if (elm?.length) elm.remove() }
+				if (filterpanel?.length) { const elm = filterpanel.parents('.jqx-menu-wrapper'); if (elm?.length) { elm.remove() } }
+				if (filtermenu?.length) { const elm = filtermenu.parents('.jqx-menu-wrapper'); if (elm?.length) { elm.remove() } }
+				const {filterbar, gridmenu, table, gridcontent, columnsheader} = gridWidget; for (const elm of [filterbar, gridmenu, table, gridcontent, columnsheader]) { if (elm?.length) { elm.remove() } }
 			}
 			grid.remove()
 		}
@@ -84,7 +83,7 @@ class GridPart extends Part {
 	}
 	gridInit(e) {
 		e = e || {}; let grid = this.grid || this.layout;
-		if (grid.hasClass('wnd-content')) grid = grid.find(this.gridFormSelector); this.grid = grid;
+		if (grid.hasClass('wnd-content')) { grid = grid.find(this.gridFormSelector) } this.grid = grid;
 		const {builder, tabloKolonlari, argsDuzenleBlock, gridRenderedBlock, cacheFlag, asyncFlag, notAdaptiveFlag} = this;
 		const _theme = theme;	/*const _theme = theme == 'metro' ? 'material' : theme;*/
 		let args = {
@@ -111,23 +110,19 @@ class GridPart extends Part {
 			source: new $.jqx.dataAdapter(
 				{ cache: cacheFlag, async: asyncFlag, id: this.gridIDBelirtec, dataType: wsDataType, url: `${webRoot}/empty.php` }, {
 					cache: cacheFlag, async: asyncFlag,
-					addrow: (rowIndex, rec, position, commit) => { commit(true) },
-					updaterow: (rowIndex, rec, commit) => { rec._degisti = true; commit(true) },
-					deleterow: (rowIndexes, commit) => { commit(true) },
+					addrow: (rowIndex, rec, position, commit) => { commit(true) }, updaterow: (rowIndex, rec, commit) => { rec._degisti = true; commit(true) }, deleterow: (rowIndexes, commit) => { commit(true) },
 					loadServerData: (wsArgs, source, callback) => {
-						let {gridWidget, grid} = this; if (!gridWidget && grid?.length) gridWidget = this.gridWidget = grid.jqxGrid('getInstance');
+						let {gridWidget, grid} = this; if (!gridWidget && grid?.length) { gridWidget = this.gridWidget = grid.jqxGrid('getInstance') }
 						setTimeout(async () => {
-							const action = this._tazele_lastAction;
-							let result = await this.loadServerData({ wsArgs, source, callback, action });
+							const action = this._tazele_lastAction; let result = await this.loadServerData({ wsArgs, source, callback, action });
 							if (result) {
-								if ($.isArray(result)) { result = { totalrecords: result.length, records: result } }
-								result = result ?? { totalrecords: 0, records: [] };
+								if ($.isArray(result)) { result = { totalrecords: result.length, records: result } } result = result ?? { totalrecords: 0, records: [] };
 								if (typeof result == 'object') {
 									if (result.records && !result.totalrecords) { result.totalrecords = result.records.length }
 									try { callback(result) } catch (ex) { console.error(ex) }
 								}
 							}
-						}, 5)
+						}, 0)
 					}
 				})
 		};
@@ -627,22 +622,14 @@ class GridPart extends Part {
 					const wndContent = wnd.find('.content');
 					for (const elm of [wndContent, wndContent.children('.subContent')]) { elm.css('height', 'var(--full)', true); elm.css('width', 'var(--full)', true) }
 					setTimeout(() => {
-						const blurHandler = evt => { if (part._timer_close) clearTimeout(part._timer_close); part._timer_close = setTimeout(() => wnd.jqxWindow('close'), 10) };
-						wnd.on('blur', blurHandler);
-						wnd.on('close', evt => {
-							if (part && !part.isDestroyed) part.destroyPart()
-							if (wnd && wnd.length) { wnd.jqxWindow('destroy'); wnd.remove() }
-						});
-						const allElms = layout.find('*'); allElms.on('blur', blurHandler);
-						allElms.on('focus', evt => {
-							if (part._timer_close) { clearTimeout(part._timer_close); delete part._timer_close }
-						})
+						const blurHandler = evt => { if (part._timer_close) { clearTimeout(part._timer_close) } part._timer_close = setTimeout(() => wnd.jqxWindow('close'), 10) }; wnd.on('blur', blurHandler);
+						wnd.on('close', evt => { if (part && !part.isDestroyed) { part.destroyPart() } if (wnd?.length) { wnd.jqxWindow('destroy'); wnd.remove() } });
+						const allElms = layout.find('*'); allElms.on('blur', blurHandler); allElms.on('focus', evt => { if (part._timer_close) { clearTimeout(part._timer_close); delete part._timer_close } })
 					}, 1)
 					setTimeout(() => {
 						wnd.css('z-index', 10000); layout.removeClass('jqx-hidden basic-hidden'); wnd.removeClass('jqx-hidden basic-hidden');
 						const {builder} = e; builder.builders[0].id2Builder.islemTuslari.layout.removeClass('jqx-hidden basic-hidden');
-						wnd.focus();
-						const btn = part.islemTuslariPart.layout.find('button').eq(0); if (btn.length) btn.focus()
+						wnd.focus(); const btn = part.islemTuslariPart.layout.find('button').eq(0); if (btn.length) { btn.focus() }
 					}, 10)
 				}, 10)
 			}
@@ -653,13 +640,12 @@ class GridPart extends Part {
 		); rfb.run()
 	}
 	gridExport_excel(e) {
-		e = e || {}; const {gridWidget} = this;
-		const data = gridWidget.exportdata('xlsx', { fileName: 'grid.xlsx' }), _wnd = e.rootPart.wnd;
-		if (_wnd?.length) _wnd.jqxWindow('close')
+		e = e || {}; const {gridWidget} = this; const data = gridWidget.exportdata('xlsx', { fileName: 'grid.xlsx' }), _wnd = e.rootPart.wnd;
+		if (_wnd?.length) { _wnd.jqxWindow('close') }
 	}
 	gridExport_html(e) {
 		e = e || {}; const {gridWidget} = this, data = gridWidget.exportdata('html');
-		const _wnd = e.rootPart.wnd; if (_wnd?.length) _wnd.jqxWindow('close');
+		const _wnd = e.rootPart.wnd; if (_wnd?.length) { _wnd.jqxWindow('close') }
 		const wnd = openNewWindow(); if (!wnd) return; const doc = wnd.document;
 		doc.writeln(`<html><head><title>Grid Çıktısı</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes">`);
 		const preReqList = [
@@ -672,14 +658,12 @@ class GridPart extends Part {
 			`<link rel="stylesheet" href="./app.css?${appVersion}" />`
 		];
 		doc.writeln(`<style>@media only screen { body { overflow-y: auto !important } } button, input { visibility: hidden }</style>`);
-		for (const item of preReqList) { doc.writeln(item ) }
-		doc.writeln(`</head><body>${data}</body></html>`)
+		for (const item of preReqList) { doc.writeln(item ) } doc.writeln(`</head><body>${data}</body></html>`)
 	}
 	gridYazdir(e) {
 		e = e || {}; const {gridWidget} = this, data = gridWidget.exportdata('html');
-		const _wnd = e.rootPart.wnd; if (_wnd?.length) _wnd.jqxWindow('close')
-		const wnd = openNewWindow(); if (!wnd) return; const doc = wnd.document;
-		doc.writeln(`<html><head><title>Grid Çıktısı</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes">`);
+		const _wnd = e.rootPart.wnd; if (_wnd?.length) { _wnd.jqxWindow('close') } const wnd = openNewWindow(); if (!wnd) { return }
+		const doc = wnd.document; doc.writeln(`<html><head><title>Grid Çıktısı</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes">`);
 		const preReqList = [
 			`<link rel="stylesheet" href="${webRoot}/lib_external/jqx/css/jquery-ui.min.css" />`,
 			`<link class="theme-base" rel="stylesheet" href="${webRoot}/lib_external/jqx/css/jqx.base.min.css" />`,
@@ -690,7 +674,7 @@ class GridPart extends Part {
 			`<link rel="stylesheet" href="./app.css?${appVersion}" />`
 		];
 		doc.writeln(`<style>@media only screen { body { overflow-y: auto !important } } button, input { visibility: hidden }</style>`);
-		for (const item of preReqList) { doc.writeln(item ) }
+		for (const item of preReqList) { doc.writeln(item) }
 		doc.write(
 			`<script>
 			function loaded() {
@@ -705,7 +689,7 @@ class GridPart extends Part {
 	gridRowExpanded(e) { const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridRowExpanded) kontrolcu.gridRowExpanded(e) }
 	gridRowCollapsed(e) { const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridRowCollapsed) kontrolcu.gridRowCollapsed(e) }
 	gridGroupExpanded(e) {
-		const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridGroupExpanded) kontrolcu.gridGroupExpanded(e)
+		const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridGroupExpanded) { kontrolcu.gridGroupExpanded(e) }
 		const type = 'groupExpanded', {event} = e, gridPart = this, {inst, builder} = gridPart, mfSinif = gridPart.mfSinif ?? inst?.class; clearTimeout(this._timer_rendered);
 		this._timer_rendered = setTimeout(() => this.gridRendered({ type, builder, event, gridPart, mfSinif, inst, kontrolcu }), gridPart.renderDelayMS ?? mfSinif?.orjBaslik_gridRenderDelayMS ?? 300);
 	}

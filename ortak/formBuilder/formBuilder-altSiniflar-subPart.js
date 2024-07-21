@@ -886,16 +886,9 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 	buildDevam(e) {
 		super.buildDevam(e); const {input} = this;
 		if (input?.length) {
-			// input.addClass('dock-bottom');
-			let tabloKolonlari = this.tabloKolonlari || [];
-			const {tabloKolonlariDuzenle, widgetArgsDuzenle} = this;
-			if (tabloKolonlariDuzenle) {
-				const _e = { liste: tabloKolonlari }, result = getFuncValue.call(this, tabloKolonlariDuzenle, _e);
-				if ($.isArray(result)) tabloKolonlari = result
-			}
-			let {kontrolcu, kontrolcuSinif} = this;
-			if (kontrolcu) if (!kontrolcuSinif) kontrolcuSinif = this.kontrolcuSinif = kontrolcu.class
-			else if (kontrolcuSinif) kontrolcu = this.kontrolcu = new kontrolcuSinif()
+			/* input.addClass('dock-bottom') */ let tabloKolonlari = this.tabloKolonlari || []; const {tabloKolonlariDuzenle, widgetArgsDuzenle} = this;
+			if (tabloKolonlariDuzenle) { const _e = { liste: tabloKolonlari }, result = getFuncValue.call(this, tabloKolonlariDuzenle, _e); if ($.isArray(result)) { tabloKolonlari = result } }
+			let {kontrolcu, kontrolcuSinif} = this; if (kontrolcu) if (!kontrolcuSinif) { kontrolcuSinif = this.kontrolcuSinif = kontrolcu.class } else if (kontrolcuSinif) { kontrolcu = this.kontrolcu = new kontrolcuSinif() }
 			const {mfSinif, yeniInstOlusturucu, detaySinif, noEmptyRowFlag, rowNumberOlmasinFlag, notAdaptiveFlag, noAnimateFlag} = this;
 			const _e = $.extend({}, e, { args: {
 				sender: this.sender, builder: this, parentPart: this.rootPart, layout: input, mfSinif, kontrolcu, tabloKolonlari,
@@ -903,15 +896,14 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 				loadServerData: e => this.source, bindingCompleteBlock: e => this.veriYuklendi(e), gridVeriDegistiBlock: this.veriDegisince,
 				gridGroupsChangedBlock: this.groupsChanged, sabitFlag: this.sabitmi, noEmptyRowFlag, detaySinif, rowNumberOlmasinFlag, notAdaptiveFlag, noAnimateFlag
 			} });
-			if (widgetArgsDuzenle) { _e.args.argsDuzenle = e => { const _e = $.extend({ sender: this.part, builder: this }, e); getFuncValue.call(this, widgetArgsDuzenle, _e) } }
+			if (widgetArgsDuzenle) { _e.args.argsDuzenle = e => { const _e = { sender: this.part, builder: this, ...e }; getFuncValue.call(this, widgetArgsDuzenle, _e) } }
 			this.part = new this.gridSinif(_e.args)
 		}
 	}
 	afterBuildDevam(e) {
-		const {part} = this; if (part) { part.run() }
+		const {part, styles} = this; if (part) { part.run() }
 		if (part && !part.isDestroyed) { const {grid, gridWidget} = part; if (grid?.length) { this.input = grid; this.widget = gridWidget } }
-		this.styles.push(`$elementCSS > input { min-width: 150px; max-width: 99.5% }`)
-		super.afterBuildDevam(e)
+		styles.push(`$elementCSS > input { min-width: 150px; max-width: 99.5% }`); super.afterBuildDevam(e)
 	}
 	veriYuklendi(e) {
 		const {part} = this, {gridWidget} = part;
