@@ -545,11 +545,11 @@ class GridPart extends Part {
 		const {args} = e, result = cls ? new cls(args) : (args || {}); return result
 	}
 	async gridVeriYuklendi(e) {
-		const {grid, gridWidget, bindingCompleteBlock} = this; setTimeout(() => grid.find(`span:contains("www.jqwidgets.com")`).addClass('basic-hidden'), 50);
-		if ($.isEmptyObject(this.expandedIndexes)) { this.kolonFiltreDegisti(e) }
+		const {grid, gridWidget, bindingCompleteBlock, expandedIndexes} = this; setTimeout(() => grid.find(`span:contains("www.jqwidgets.com")`).addClass('basic-hidden'), 50);
+		if ($.isEmptyObject(expandedIndexes)) { this.kolonFiltreDegisti(e) }
 		if (bindingCompleteBlock) { await getFuncValue.call(this, bindingCompleteBlock, e) }
 		const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridVeriYuklendi) { await kontrolcu.gridVeriYuklendi(e) }
-		this.gridGroupsChanged(e); for (const delayMS of [500]) { setTimeout(() => this.onResize(), delayMS) }
+		this.gridGroupsChanged(e); if ($.isEmptyObject(expandedIndexes)) { for (const delayMS of [500]) { setTimeout(() => this.onResize(), delayMS) } }
 	}
 	gridVeriDegisti(e) {
 		const {gridVeriDegistiBlock} = this; if (gridVeriDegistiBlock) { getFuncValue.call(this, gridVeriDegistiBlock, e) }
@@ -798,12 +798,14 @@ class GridPart extends Part {
 			}
 			attr2FilterGroup[attr] = filterGroup
 		}
-		setTimeout(() => {
-			const {gridWidget} = this; if (!gridWidget.isbindingcompleted()) { return }
-			try { gridWidget.clearfilters(false) } catch (ex) { return }
-			for (const attr in attr2FilterGroup) { const filterGroup = attr2FilterGroup[attr]; gridWidget.addfilter(attr, filterGroup) }
-			try { gridWidget.applyfilters() } catch (ex) { console.error(ex) }
-		}, 200);
+		if (!($.isEmptyObject(attr2FilterGroup) && $.isEmptyObject(gridWidget.getfilterinformation()))) {
+			setTimeout(() => {
+				const {gridWidget} = this; if (!gridWidget.isbindingcompleted()) { return }
+				try { gridWidget.clearfilters(false) } catch (ex) { return }
+				for (const attr in attr2FilterGroup) { const filterGroup = attr2FilterGroup[attr]; gridWidget.addfilter(attr, filterGroup) }
+				try { gridWidget.applyfilters() } catch (ex) { console.error(ex) }
+			}, 200)
+		}
 		filtreBilgi_recs.degistimi = false
 	}
 	onResize(e) {
