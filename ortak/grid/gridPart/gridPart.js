@@ -780,7 +780,7 @@ class GridPart extends Part {
 		filtreBilgi.degistimi = true; filtreBilgi.recs = []; this.kolonFiltreDegisti(e)
 	}
 	kolonFiltreDegisti(e) {
-		e = e || {}; const {divKolonFiltreBilgi, kolonFiltreDuzenleyici} = this, filtreBilgi = kolonFiltreDuzenleyici._filtreBilgi;
+		e = e || {}; const {divKolonFiltreBilgi, kolonFiltreDuzenleyici, gridWidget} = this, filtreBilgi = kolonFiltreDuzenleyici._filtreBilgi;
 		const filtreBilgi_recs = filtreBilgi?.recs || [];
 		if (divKolonFiltreBilgi?.length) {
 			let {filtreText} = e; if (filtreText == null) filtreText = GridliKolonFiltrePart.getFiltreText(filtreBilgi_recs)
