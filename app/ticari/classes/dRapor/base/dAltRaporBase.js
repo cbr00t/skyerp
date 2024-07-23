@@ -1,21 +1,17 @@
 class DAltRapor extends DRapor {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'altRapor' } static get dAltRapormu() { return true }
-	constructor(e) { e = e || {}; super(e); $.extend(this, { rapor: e.rapor }) }
+	constructor(e) { e = e || {}; super(e); $.extend(this, { rapor: e.rapor, parentBuilder: e.parentBuilder }) }
 	get width() { return null } get height() { return null }
-	rootFormBuilderDuzenle(e) { } subFormBuilderDuzenle(e) {
-		const parentBuilder = e.builder; parentBuilder.addStyle_fullWH()
-			.onInit(e => this.onInit({ ...e, parentBuilder: e.builder }))
-			.onBuildEk(e => this.onBuildEk({ ...e, parentBuilder: e.builder }))
-			.onAfterRun(e => this.onAfterRun({ ...e, parentBuilder: e.builder }));
-	}
+	rootFormBuilderDuzenle(e) { }
+	subFormBuilderDuzenle(e) { const {parentBuilder} = this; parentBuilder.addStyle_fullWH().onInit(e => this.onInit(e)).onBuildEk(e => this.onBuildEk(e)).onAfterRun(e => this.onAfterRun(e)) }
 	onInit(e) { } onBuildEk(e) { } onAfterRun(e) { }
 }
 class DAltRapor_Grid extends DAltRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridmi() { return true }
 	subFormBuilderDuzenle(e) {
-		super.subFormBuilderDuzenle(e); const parentBuilder = e.builder;
+		super.subFormBuilderDuzenle(e); const {parentBuilder} = this;
 		let fbd = this.fbd_grid = parentBuilder.addGridliGosterici('grid').rowNumberOlmasin().notAdaptive()
-			.addStyle_fullWH(null, 'calc(var(--full) - 55px)').widgetArgsDuzenleIslemi(e => this.gridArgsDuzenle(e) ).onBuildEk(e => this.onGridInit(e))
+			.addStyle_fullWH(null, 'calc(var(--full) - 0px)').widgetArgsDuzenleIslemi(e => this.gridArgsDuzenle(e) ).onBuildEk(e => this.onGridInit(e))
 			.veriYukleninceIslemi(e => this.gridVeriYuklendi(e)).setSource(e => this.loadServerData(e))
 			.setTabloKolonlari(e => { let _e = { ...e, liste: [] }; this.tabloKolonlariDuzenle(_e); return _e.liste })
 			.onAfterRun(e => this.onGridRun(e));
@@ -33,12 +29,46 @@ class DAltRapor_Pivot extends DAltRapor_Grid {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dPivotmu() { return true } static get dGridmi() { return false }
 	subFormBuilderDuzenle(e) {
 		super.super_subFormBuilderDuzenle(e); const parentBuilder = e.builder;
-		let fbd = this.fbd_grid = parentBuilder.addForm('pivot').setLayout(e => $(`<div id="${e.builder.id}"></div>`)).addStyle_fullWH(null, 'calc(var(--full) - 55px)')
+		let fbd = this.fbd_grid = parentBuilder.addForm('pivot').setLayout(e => $(`<div id="${e.builder.id}" class="part"></div>`)).addStyle_fullWH(null, 'calc(var(--full) - 0px)')
 			.onInit(e => this.gridArgsDuzenle({ ...e, args: {} })).onBuildEk(e => this.onGridInit(e)).onAfterRun(e => this.onGridRun(e));
 		let _e = { ...e, gridBuilder: fbd }; this.gridBuilderDuzenle(_e)
 	}
-	onGridInit(e) { e.builder.part = {}; super.onGridInit(e) }
-	gridArgsDuzenle(e) { } tazele(e) { super.super_tazele(e) }
+	onGridInit(e) {
+		const {builder} = e, {layout} = builder, pivot = builder.input = layout;
+		builder.part = this.pivotPart = { pivot }; super.onGridInit(e)
+	}
+	onGridRun(e) {
+		super.onGridRun(e); const {parentBuilder, fbd_grid, pivotPart} = this; let {pivot, pivotWidget} = pivotPart;
+		const localization = localizationObj, autoResize = true, cache = false, async = true, autoBind = true, pivotValuesOnRows = false;
+		let _e = { ...e, liste: [] }; this.tabloKolonlariDuzenle(_e); const tabloKolonlari = this.tabloKolonlari = _e.liste;
+		const asFieldList = (arr, args) => (arr || []).map(colDefOrBelirtec => {
+			const dataField = colDefOrBelirtec?.belirtec ?? colDefOrBelirtec;
+			return { dataField, text: dataField, width: 200, ...(args || {}) }
+		});
+		const rows = asFieldList(tabloKolonlari.slice(0, 1)), columns = asFieldList(tabloKolonlari.slice(2, 3));
+		const filters = asFieldList([]), values = asFieldList(tabloKolonlari.slice(-2, -1), { text: 'Toplam', function: 'sum' });
+		const dataAdapter = new $.jqx.dataAdapter(
+			{ autoBind, cache, async, id: '', dataType: wsDataType, url: `${webRoot}/empty.php` },
+			{ autoBind, cache, async, loadServerData: (wsArgs, source, callback) => {
+				let {pivotWidget, pivot} = pivotPart; if (!pivotWidget && pivot?.length) { pivotWidget = pivotPart.pivotWidget = pivot.jqxPivotGrid('getInstance') }
+				setTimeout(async () => {
+					const action = this._tazele_lastAction; let result = await this.loadServerData({ wsArgs, source, callback, action });
+					if (result) {
+						if ($.isArray(result)) { result = { totalrecords: result.length, records: result } } result = result ?? { totalrecords: 0, records: [] };
+						if (typeof result == 'object') {
+							if (result.records && !result.totalrecords) { result.totalrecords = result.records.length }
+							try { callback(result) } catch (ex) { console.error(ex) }
+						}
+					}
+				}, 0)
+			}
+		});
+		const source = new $.jqx.pivot(dataAdapter, { pivotValuesOnRows, rows, columns, filters, values });
+		pivot.jqxPivotGrid({ theme, localization, autoResize, source });
+		pivotWidget = pivotPart.pivotWidget = pivot.jqxPivotGrid('getInstance')
+	}
+	gridArgsDuzenle(e) { }
+	tazele(e) { super.super_tazele(e); const {pivotWidget} = this.pivotPart || {}; if (pivotWidget) { pivotWidget.dataBind() } }
 }
 class DAltRapor_GridGruplu extends DAltRapor_Grid {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridliAltRapormu() { return true }

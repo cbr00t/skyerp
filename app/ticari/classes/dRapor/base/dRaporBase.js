@@ -81,7 +81,7 @@ class DPanelRapor extends DOzelRapor {
 		let form = rfb.addForm('items').setLayout(e => $(`<div id="${e.builder.id}" class="full-wh"/>`));
 		for (const [id, altRapor] of Object.entries(id2AltRapor)) {
 			const raporAdi = altRapor.class.aciklama ?? '';
-			let fbd = form.addDiv(id, raporAdi).altAlta().addCSS('item'); const _e = { ...e, id, builder: fbd }; altRapor.subFormBuilderDuzenle(_e);
+			let fbd = altRapor.parentBuilder = form.addDiv(id, raporAdi).altAlta().addCSS('item'); const _e = { ...e, id, builder: fbd }; altRapor.subFormBuilderDuzenle(_e);
 			const {width, height} = altRapor; if (width || height) { fbd.addStyle_wh(width, height) } altRapor.rootFormBuilderDuzenle(e)
 		}
 	}
@@ -100,6 +100,10 @@ class DPanelRapor extends DOzelRapor {
 		} return this
 	}
 	clear() { this.id2AltRapor = {}; return this }
+	tazele(e) {
+		super.tazele(e); const {id2AltRapor} = this;
+		for (const altRapor of Object.values(id2AltRapor)) { if (altRapor?.tazele) { altRapor.tazele(e) } }
+	}
 }
 class DGrupluPanelRapor extends DPanelRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

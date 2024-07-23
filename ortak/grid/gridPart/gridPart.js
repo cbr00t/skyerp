@@ -82,10 +82,10 @@ class GridPart extends Part {
 		this.grid = this.gridWidget = null
 	}
 	gridInit(e) {
-		e = e || {}; let grid = this.grid || this.layout;
+		e = e || {}; let grid = this.grid ?? this.layout;
 		if (grid.hasClass('wnd-content')) { grid = grid.find(this.gridFormSelector) } this.grid = grid;
 		const {builder, tabloKolonlari, argsDuzenleBlock, gridRenderedBlock, cacheFlag, asyncFlag, notAdaptiveFlag} = this;
-		const _theme = theme;	/*const _theme = theme == 'metro' ? 'material' : theme;*/
+		const cache = cacheFlag, async = asyncFlag, _theme = theme;	/*const _theme = theme == 'metro' ? 'material' : theme;*/
 		let args = {
 			theme: _theme, localization: localizationObj, width: '99.9%', height: '99.6%', editMode: 'selectedcell', sortMode: 'many', autoHeight: false, autoRowHeight: false, rowsHeight: 35, autoShowLoadElement: true,
 			altRows: true, enableTooltips: true, columnsHeight: 25, columnsMenuWidth: 50, columnsResize: true, columnsReorder: true, columnsMenu: true, autoShowColumnsMenuButton: true, sortable: true,
@@ -108,9 +108,8 @@ class GridPart extends Part {
 				}
 			},
 			source: new $.jqx.dataAdapter(
-				{ cache: cacheFlag, async: asyncFlag, id: this.gridIDBelirtec, dataType: wsDataType, url: `${webRoot}/empty.php` }, {
-					cache: cacheFlag, async: asyncFlag,
-					addrow: (rowIndex, rec, position, commit) => { commit(true) }, updaterow: (rowIndex, rec, commit) => { rec._degisti = true; commit(true) }, deleterow: (rowIndexes, commit) => { commit(true) },
+				{ cache, async, id: this.gridIDBelirtec, dataType: wsDataType, url: `${webRoot}/empty.php` }, {
+					cache, async, addrow: (rowIndex, rec, position, commit) => { commit(true) }, updaterow: (rowIndex, rec, commit) => { rec._degisti = true; commit(true) }, deleterow: (rowIndexes, commit) => { commit(true) },
 					loadServerData: (wsArgs, source, callback) => {
 						let {gridWidget, grid} = this; if (!gridWidget && grid?.length) { gridWidget = this.gridWidget = grid.jqxGrid('getInstance') }
 						setTimeout(async () => {
@@ -251,7 +250,7 @@ class GridPart extends Part {
 				(async () => {
 					for (let i = 0; i < recs.length; i++) {
 						const rec = recs[i]; if (rec == null) continue; rec._rowNumber = (i + 1);
-						if (this.isDestroyed) break
+						if (this.isDestroyed) { break }
 					}
 				})();
 				let _recs = await this.loadServerData_recsDuzenle_ilk(e); recs = e.recs; if (_recs != null) { recs = _recs }

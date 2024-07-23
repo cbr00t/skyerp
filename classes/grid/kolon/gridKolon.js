@@ -34,11 +34,14 @@ class GridKolon extends GridKolonVeGrupOrtak {
 		};
 		const savedCellsRenderer = this.cellsRenderer; this.cellsRenderer = (colDef, rowIndex, belirtec, value, html, jqxCol, rec, result) => {
 			if (result === undefined) { result = html }
-			const type = 'cellsRenderer', {gridPart} = colDef, {inst} = gridPart, mfSinif = gridPart.mfSinif ?? inst?.class; clearTimeout(this._timer_rendered);
-			const delayMS = gridPart.renderDelayMS ?? mfSinif?.orjBaslik_gridRenderDelayMS ?? MQCogul.defaultOrjBaslik_gridRenderDelayMS;
-			let {_timestamp_gridRendered} = gridPart; /*if (!_timestamp_gridRendered || (now() - _timestamp_gridRendered) >= 10)*/ if (true) {
-				_timestamp_gridRendered = gridPart._timestamp_gridRendered = now();
-				this._timer_rendered = setTimeout(() => gridPart.gridRendered({ type, gridPart, mfSinif, inst, colDef, rec, rowIndex, belirtec, value, html }), delayMS)
+			const type = 'cellsRenderer', {gridPart} = colDef, {inst} = gridPart, mfSinif = gridPart?.mfSinif ?? inst?.class; clearTimeout(this._timer_rendered);
+			if (gridPart) {
+				const delayMS = gridPart.renderDelayMS ?? mfSinif?.orjBaslik_gridRenderDelayMS ?? MQCogul.defaultOrjBaslik_gridRenderDelayMS;
+				let {_timestamp_gridRendered} = gridPart; /*if (!_timestamp_gridRendered || (now() - _timestamp_gridRendered) >= 10)*/
+				if (gridPart?.gridRendered) {
+					_timestamp_gridRendered = gridPart._timestamp_gridRendered = now();
+					this._timer_rendered = setTimeout(() => gridPart.gridRendered({ type, gridPart, mfSinif, inst, colDef, rec, rowIndex, belirtec, value, html }), delayMS)
+				}
 			}
 			if (savedCellsRenderer) { result = getFuncValue.call(this, savedCellsRenderer, colDef, rowIndex, belirtec, value, html, jqxCol, rec) } return result
 		};
@@ -54,7 +57,7 @@ class GridKolon extends GridKolonVeGrupOrtak {
 		}
 		if (!this.cellClassName) {
 			this.cellClassName = (colDef, rowIndex, belirtec, value, rec) => {
-				const {gridWidget} = this.gridPart, result = [belirtec];
+				const {gridWidget} = this.gridPart || {}, result = [belirtec];
 				if (gridWidget?.editable && !this.attributes.editable) { result.push('grid-readOnly') }
 				const {tip, alignn} = colDef; if (tip) { const _value = tip.class.cellClassName; if (_value) { result.push(_value) } }
 				if (align) { result.push(align) } return result.join(' ')
