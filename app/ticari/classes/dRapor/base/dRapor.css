@@ -10,5 +10,7 @@
 #dRapor.part #items > .item:hover > label, #dRapor.part #items > .item:focus > label, #dRapor.part #items > .item:active > label { background-color: #c9cdd9 }
 .dRapor .anim-gruplamalar-highlight, #dRapor .anim-gruplamalar-highlight { border: 3px solid forestgreen !important; animation: 850ms infinite cubic-bezier(0.46, 0.03, 0.52, 0.96) anim-gruplamalar-hightlight }
 @keyframes anim-gruplamalar-hightlight { 50% { background-color: #c9e0c9 } }
+#dRapor.part .jqx-grid :not([data-role = 'summaryrow']) .jqx-grid-cell.treeRow.grup.icerik { font-size: 110%; font-weight: bold; color: forestgreen; border-bottom: 1.5px solid forestgreen }
+#dRapor.part .jqx-grid :not([data-role = 'summaryrow']) .jqx-grid-cell.treeRow.grup.icerik.jqx-fill-state-pressed { color: #9eff9e; border-bottom: 2px solid #28ff28 }
 #dRapor.part .jqx-grid [data-role = 'summaryrow'] > .jqx-grid-cell { font-size: 110%; font-weight: bold; color: forestgreen }
 #dRapor.part .jqx-grid .jqx-grid-statusbar > div > .jqx-grid-cell { font-size: 100%; font-weight: bold; color: royalblue }
