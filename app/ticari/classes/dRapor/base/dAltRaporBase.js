@@ -107,7 +107,18 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	}
 	loadServerData_recsDuzenle(e) { } loadServerData_recsDuzenleSon(e) { } loadServerData_recsDuzenle_seviyelendir(e) { }
 	getColumns(colDefs) {
-		if (colDefs) { const {gridPart} = this; for (const colDef of colDefs) { colDef.gridPart = gridPart; for (const key of ['tip', 'cellsRenderer','cellValueChanging']) { delete colDef[key] } } }
+		if (colDefs) {
+			const {gridPart} = this; for (const colDef of colDefs) {
+				colDef.gridPart = gridPart; for (const key of ['tip', 'cellsRenderer','cellValueChanging']) { delete colDef[key] }
+				colDef.aggregatesRenderer = (colDef, aggregates, jqCol, elm) => {
+					let result = []; for (const [tip, value] of Object.entries(aggregates)) {
+						if (typeof value != 'number') { continue }
+						result.push(`<div class="toplam-item"><span class="lightgray">T</span> <span>${value.toLocaleString()}</span></div>`)
+					}
+					return result.join('')
+				}
+			}
+		}
 		return colDefs
 	}
 }
@@ -128,9 +139,7 @@ class DAltRapor_Pivot extends DAltRapor_Grid {
 		const localization = localizationObj, autoResize = true, cache = false, async = true, autoBind = true, pivotValuesOnRows = false;
 		let _e = { ...e, liste: [] }; this.tabloKolonlariDuzenle(_e); const tabloKolonlari = this.tabloKolonlari = _e.liste;
 		const asFieldList = (arr, args) => (arr || []).map(colDefOrBelirtec => {
-			const dataField = colDefOrBelirtec?.belirtec ?? colDefOrBelirtec;
-			return { dataField, text: dataField, width: 200, ...(args || {}) }
-		});
+			const dataField = colDefOrBelirtec?.belirtec ?? colDefOrBelirtec; return { dataField, text: dataField, minWidth: 200, ...(args || {}) } });
 		const rows = asFieldList(tabloKolonlari.slice(0, 1)), columns = asFieldList(tabloKolonlari.slice(2, 3));
 		const filters = asFieldList([]), values = asFieldList(tabloKolonlari.slice(-2, -1), { text: 'Toplam', function: 'sum' });
 		const dataAdapter = new $.jqx.dataAdapter(
