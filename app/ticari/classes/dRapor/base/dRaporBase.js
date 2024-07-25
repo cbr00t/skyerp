@@ -22,7 +22,8 @@ class DMQRapor extends DRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'mq' } static get dMQRapormu() { return true }
 	goster(e) {
 		e = e || {}; const args = e.args = e.args || {}; args.inst = this, result = this.class.listeEkraniAc(e); if (result == null) { return null }
-		const {part} = result, {anaTip} = this.class, {partName} = this; part.layout.addClass(`${anaTip} ${partName}`); const {builder} = part; $.extend(this, { part, builder }); return result
+		const {part} = result, {anaTip} = this.class, {partName} = this; part.layout.addClass(`${anaTip} ${partName}`);
+		const {builder} = part; $.extend(this, { part, builder }); return result
 	}
 	tazele(e) { super.tazele(e) }
 	static listeEkrani_init(e) { return e.sender.inst.onInit(e) }
@@ -48,10 +49,7 @@ class DOzelRapor extends DRapor {
 				bulPart.run()
 			})
 	}
-	onAfterRun(e) {
-		super.onAfterRun(e); const {rfb} = e, rootPart = rfb.part; rootPart.builder = rfb; rootPart.layout.prop('id', rfb.id)
-		/*const {builder} = e, rootPart = builder.part, _title = rootPart?._title; if (_title) { setTimeout(() => rootPart.updateWndTitle(_title), 10); delete rootPart._title }*/
-	}
+	onAfterRun(e) { super.onAfterRun(e); const {rfb} = e, rootPart = rfb.part; $.extend(rootPart, { builder: rfb, inst: this }); rootPart.builder = rfb; rootPart.layout.prop('id', rfb.id) }
 	islemTuslariArgsDuzenle(e) { }
 	islemTuslariGetId2Handler(e) { return ({ tazele: e => e.builder.inst.tazele(e), vazgec: e => e.builder.rootPart.close(e) }) }
 	hizliBulIslemi(e) {
@@ -69,6 +67,7 @@ class DOzelRapor extends DRapor {
 		super.tazele(e); const {builder} = e, rfb = builder.rootBuilder, parentBuilder = rfb.id2Builder.items ?? rfb;
 		for (const fbd of parentBuilder.getBuilders()) { const {part} = fbd; if (part?.tazele) { part.tazele(e) } if (part?.dataBind) { part.dataBind(e) } }
 	}
+	super_tazele(e) { super.tazele(e) }
 }
 class DPanelRapor extends DOzelRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'panel' } static get dPanelRapormu() { return true }
@@ -101,7 +100,7 @@ class DPanelRapor extends DOzelRapor {
 	}
 	clear() { this.id2AltRapor = {}; return this }
 	tazele(e) {
-		super.tazele(e); const {id2AltRapor} = this;
+		super.super_tazele(e); const {id2AltRapor} = this;
 		for (const altRapor of Object.values(id2AltRapor)) { if (altRapor?.tazele) { altRapor.tazele(e) } }
 	}
 }
@@ -114,6 +113,6 @@ class DGrupluPanelRapor extends DPanelRapor {
 	}
 	islemTuslariArgsDuzenle(e) {
 		super.islemTuslariArgsDuzenle(e); const {liste} = e;
-		liste.push({ id: 'gruplamalar', text: 'Gruplamalar', handler: _e => this.id2AltRapor.main.gruplamalarIstendi({ ...e, ..._e }), args: { width: 150 } })
+		liste.push({ id: 'tabloTanimlari', text: 'Tablo Tanım', handler: _e => this.id2AltRapor.main.tabloTanimlariGosterIstendi({ ...e, ..._e }) })
 	}
 }

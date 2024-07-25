@@ -226,13 +226,13 @@ class GridPart extends Part {
 			}
 			else {
 				const keys = ['recordstartindex', 'recordendindex', 'pagenum', 'pageindex', 'pagesize'];
-				for (const key of keys) delete wsArgs[key]
+				for (const key of keys) { delete wsArgs[key] }
 			}
 		}
 		(() => {
 			const keys = ['recordstartindex', 'recordendindex', 'pagenum', 'pageindex', 'pagesize'];
 			for (const key of keys) { const value = qs[key]; if (value != null) wsArgs[key] = asInteger(value) }
-			if (qs.maxrow != null) wsArgs.pagesize = asInteger(qs.maxrow)
+			let _value = qs.maxRow ?? qs.maxrow; if (_value != null) { wsArgs.pagesize = asInteger(_value) }
 		})();
 		try {
 			let secimler = parentPart?.secimler; if (parentPart?.partName == 'secimler') { secimler = null}

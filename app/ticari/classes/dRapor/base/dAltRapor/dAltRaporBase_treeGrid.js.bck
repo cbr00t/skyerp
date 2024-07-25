@@ -7,8 +7,9 @@ class DAltRapor_TreeGrid extends DAltRapor {
 			.onAfterRun(async e => {
 				const fbd_grid = e.builder, gridPart = this.gridPart = fbd_grid.part = {}, grid = gridPart.grid = fbd_grid.layout;
 				$.extend(gridPart, { tazele: e => this.tazele(e), hizliBulIslemi: e => this.hizliBulIslemi(e) });
-				this.onGridInit(e); let _e = { ...e, liste: [] }; this.tabloKolonlariDuzenle(_e); const colDefs = this.tabloKolonlari = this.getColumns(_e.liste || []);				
-				const columns = colDefs.flatMap(colDef => colDef.jqxColumns), source = await this.getDataAdapter(e);
+				let _e = { ...e, liste: [] }; this.tabloKolonlariDuzenle(_e); const colDefs = this.tabloKolonlari = this.getColumns(_e.liste || []);
+				gridPart.expandedRowsSet = {}; this.onGridInit(e); const {gruplamaKAListe} = this.class; const gruplamalar = this._gruplamalar = gruplamaKAListe.map(ka => ka.kod);
+				const columns = colDefs.filter(colDef => colDef.belirtec != 'grup').flatMap(colDef => colDef.jqxColumns), source = await this.getDataAdapter(e);
 				const localization = localizationObj, width = '99.7%', height = width, autoRowHeight = true, autoShowLoadElement = true, altRows = true;
 				const filterMode = 'advanced';	/* default | simple | advanced */
 				const showAggregates = true, showSubAggregates = true, aggregatesHeight = 55, columnsResize = true, columnsReorder = true, sortable = true, filterable = false;
@@ -21,9 +22,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 				this.onGridRun(e)
 			})
 	}
-	gridArgsDuzenle(e) { }
-	onGridInit(e) { const {gridPart} = this; gridPart.expandedRowsSet = {} }
-	onGridRun(e) { }
+	gridArgsDuzenle(e) { } onGridInit(e) { } onGridRun(e) { }
 	gridRowExpanded(e) { const {gridPart} = this; gridPart.expandedRowsSet[e.event.args.row?.uid] = true }
 	gridRowCollapsed(e) { const {gridPart} = this; gridPart.expandedRowsSet[e.event.args.row?.uid] = false }
 	gridSatirTiklandi(e) { }
@@ -50,6 +49,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		}, { autoBind: false, loadComplete: (boundRecs, recs) => setTimeout(() => this.gridVeriYuklendi({ ...e, boundRecs, recs }), 10) });
 	}
 	async loadServerData(e) {
+		let gruplamalar = this._gruplamalar; if (gruplamalar && !$.isArray(gruplamalar)) { gruplamalar = Object.values(gruplamalar) } e.gruplamalar = gruplamalar;
 		await this.loadServerData_wsArgsDuzenle(e);
 		let recs = []; showProgress('Rapor oluşturuluyor...', null, true); await new $.Deferred(p => setTimeout(() => p.resolve(), 10));
 		try {
@@ -103,37 +103,19 @@ class DAltRapor_TreeGrid extends DAltRapor {
 class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridliAltRapormu() { return true }
 	static get raporClass() { return null } static get kod() { return 'main' } static get aciklama() { return this.raporClass.aciklama }
-	get width() { return '85%' } get height() { return 'var(--full)' }
-	get tabloYapi() {
-		let result = this._tabloYapi;
-		if (result == null) {
-			let _e = { result: { grup: {}, toplam: {}, kaPrefixes: [], sortAttr: null } }; this.tabloYapiDuzenle(_e); result = _e.result;
-			const tipSet = result.tipSet = {}, kaListe = result.kaListe = [];
-			for (const selector of ['grup', 'toplam']) { const tip2Item = result[selector]; for (const [tip, item] of Object.entries(tip2Item)) { tipSet[tip] = true; kaListe.push(item.ka) } }
-			this._tabloYapi = result
-		}
-		return result
-	}
-	tabloYapiDuzenle(e) { }
-	onGridInit(e) {
-		super.onGridInit(e); this.secilenler = {
-			grup: {}, icerik: {},
-			get attrSet() { const result = {}; for (const selector of ['grup', 'icerik']) { $.extend(result, Object.keys(this[selector])) } return result },
-			get secilenVarmi() { return !!(Object.keys(this.grup).length || Object.keys(this.icerik).length) }
-		}
-	}
-	onGridRun(e) { super.onGridRun(e); this.tazeleOncesi(e) }
-	tabloKolonlariDuzenle(e) {
-		super.tabloKolonlariDuzenle(e); const {liste} = e, {tabloYapi} = this, {grup, toplam} = tabloYapi;
-		for (const item of [grup, toplam]) { for (const {colDefs} of Object.values(item)) { if (colDefs?.length) { liste.push(...colDefs) } } }
-	}
+	get width() { return '85%' } get height() { return 'var(--full)' } static get gruplamaKAListe() { return [] }
+	static get gridGrupAttrSet() { let result = this._gridGrupAttrSet; if (result == null) { result = this._gridGrupAttrSet = asSet(this.gridGrupAttrListe) } return result }
+	static get gridGrupAttrListe() { return [] } static get kaPrefixes() { return [] } static get sortAttr() { return null }
+	static get gruplama2IcerikCols() { return {} }
 	gridArgsDuzenle(e) { super.gridArgsDuzenle(e) ; const {args} = e; $.extend(args, { showSubAggregates: false /*showStatusBar: true, showGroupAggregates: true , compact: true*/ }) }
+	onGridInit(e) { this.gruplamalar = {}; super.onGridInit(e) }
+	onGridRun(e) { super.onGridRun(e); this.tazeleOncesi(e) }
 	loadServerData(e) {
 		const {gridPart, gruplamalar} = this; if ($.isEmptyObject(gruplamalar)) { return [] }
 		return super.loadServerData(e)
 	}
 	loadServerData_recsDuzenleIlk(e) {
-		let {recs} = e; const {kaPrefixes, sortAttr} = this.tabloYapi, fixKA = (rec, prefix) => {
+		let {recs} = e; const {kaPrefixes, sortAttr} = this.class, fixKA = (rec, prefix) => {
 			if (rec == null) { return } const kod = rec[prefix + 'kod'], adi = rec[prefix + 'adi'];
 			if (kod !== undefined) {
 				rec[prefix] = kod ? `<b>(${kod ?? ''})</b> ${adi ?? ''}` : '';
@@ -145,8 +127,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		e.recs = recs; return super.loadServerData_recsDuzenleIlk(e)
 	}
 	loadServerData_recsDuzenle_seviyelendir(e) {
-		super.loadServerData_recsDuzenle_seviyelendir(e); const {gridPart, tabloYapi} = this; debugger
-		const {gridGrupAttrListe} = this.class, {gridWidget} = gridPart;
+		super.loadServerData_recsDuzenle_seviyelendir(e); const {gridPart, gruplamalar} = this, {gridGrupAttrListe} = this.class, {gridWidget} = gridPart;
 		const colDefs = this.tabloKolonlari, jqxCols = gridWidget.base.columns.records, gridGrupAttrSet = asSet(gridGrupAttrListe || []);
 		let grupColAttr = colDefs.find(colDef => !!gridGrupAttrSet[colDef.userData?.grup] && !!gruplamalar[colDef.userData?.grup])?.belirtec, grupTextColAttr = jqxCols[0].datafield;
 		let {recs} = e; if (!grupColAttr) { return recs }
@@ -165,6 +146,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	async tazele(e) {
 		const {fbd_grid, gridPart} = this, {grid, gridWidget} = gridPart; let {_lastGruplamalar, gruplamalar} = this, gruplamaVarmi = !$.isEmptyObject(gruplamalar);
 		let colDefs = this.tabloKolonlari; const {gridGrupAttrSet, gruplamaKAListe} = this.class;
+		/*if ($.isEmptyObject(gruplamalar)) { gruplamalar = asSet(gruplamaKAListe.map(x => x.kod)) }*/
 		await this.tazeleOncesi(e); const belirtec2Kolon = {}; for (const colDef of colDefs) { belirtec2Kolon[colDef.belirtec] = colDef }
 		const icerikColsSet = {}, tip2Belirtecler = {}; let count = 0;
 		for (const colDef of colDefs) {
@@ -188,75 +170,60 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			try { grid.jqxTreeGrid('columns', tabloKolonlari.flatMap(colDef => colDef.jqxColumns)) } catch (ex) { console.error(ex) }
 			_lastGruplamalar = this._lastGruplamalar = $.extend({}, gruplamalar)
 		}
+		/*const groups = []; if (Object.keys(gruplamalar).length >= 2) {
+			for (const belirtecler of Object.values(tip2Belirtecler)) { if (belirtecler?.length) { const belirtec = belirtecler[1] || belirtecler[0]; groups.push(belirtec) } } }
+		if (groups.length) { grid.jqxGrid('groups', groups) }*/
 		return await super.tazele(e)
 	}
 	tazeleOncesi(e) {
-		const {fbd_grid, tabloYapi, secilenler} = this, {rootBuilder} = this.parentBuilder, {secilenVarmi} = secilenler;
-		rootBuilder.layout.find('.islemTuslari > div button#gruplamalar')[secilenVarmi ? 'removeClass' : 'addClass']('anim-gruplamalar-highlight');
-		if (!secilenVarmi) { if (!this._tabloTanimGosterildiFlag) { this.tabloTanimlariGosterIstendi(e) } return }
+		const {fbd_grid, gruplamalar} = this, {rootBuilder} = this.parentBuilder, gruplamaVarmi = !$.isEmptyObject(gruplamalar);
+		rootBuilder.layout.find('.islemTuslari > div button#gruplamalar')[gruplamaVarmi ? 'removeClass' : 'addClass']('anim-gruplamalar-highlight');
+		if (!gruplamaVarmi) { if (!this._gruplamalarGosterildiFlag) { this.gruplamalarIstendi(e) } return }
 	}
-	tabloTanimlariGosterIstendi(e) {
-		const {tabloYapi, secilenler} = this, {kaListe} = tabloYapi;
-		const kaDict = {}; for (const ka of kaListe) { kaDict[ka.kod] = ka }
-		const inst = { listStates: {}, ozetMax: 5, get ozetAttr() { return this.listStates.grup[0] } };
-		const tumAttrSet = asSet(Object.keys(kaDict)); for (const selector of ['grup', 'icerik']) {
-			let keys = secilenler[selector]; if (keys != null) { keys = Object.keys(keys) }
-			inst.listStates[selector] = keys ?? []; for (const key of keys) { delete tumAttrSet[key] }
+	/*gruplamalarIstendi(e) {
+		const {gridPart} = this, {gruplamalar} = this, {gruplamaKAListe} = this.class;
+		let wRFB = new RootFormBuilder('gruplamalar').addCSS('part');
+		wRFB.addIslemTuslari('islemTuslari').setTip('tamam').setId2Handler({ tamam: e => wnd.jqxWindow('close') })
+			.addStyle(e => `$elementCSS .butonlar.part > .sol { z-index: -1; background-color: unset !important; background: transparent !important }`);
+		let fbd_content = wRFB.addFormWithParent('content').yanYana()
+			.addStyle(e => `$elementCSS { position: relative; top: 10px; z-index: 100 } $elementCSS > button { margin: 0 0 10px 10px }
+			$elementCSS > button.jqx-fill-state-normal { background-color: whitesmoke !important } $elementCSS > button.jqx-fill-state-pressed { background-color: royalblue !important }`);
+		for (const {kod, aciklama} of gruplamaKAListe) {
+			let btn = fbd_content.addForm(kod).setLayout(e => {
+				const {builder} = e, {id} = builder;
+				return builder.input = $(`<button id="${id}">${aciklama}</button>`).jqxToggleButton({ theme, width: '45%', height: 50, toggled: gruplamalar[id] })
+			});
+			btn.onAfterRun(e => e.builder.input.on('click', evt => this.gruplamalar_butonTiklandi({ ...e, evt, id: evt.currentTarget.id, gridPart, gruplamalar })) )
 		}
-		const kalanKodlar = inst.listStates.kalanlar = Object.keys(tumAttrSet);
-		const title = 'Tablo Tanımları', className_listBox = 'listBox', ustHeight = '100px', islemTuslariHeight = '55px', contentTop = '-40px';
-		const solWidth = '200px', ortaWidth = '200px', sagWidth = '100px', ortaHeight = 'calc((var(--full) / 2) - 5px)';
-		let wnd, wRFB = new RootFormBuilder({ id: 'tabloTanimlari' }).setInst(inst).addCSS('part').addStyle(e => `$elementCSS { --islemTuslariHeight: ${islemTuslariHeight}; --ustHeight: ${ustHeight} }`);
-		let fbd_ust = wRFB.addFormWithParent('ust').yanYana().addStyle_fullWH(null, 'var(--ustHeight)');
-		let fbd_sablonParent = fbd_ust.addFormWithParent('sablon-parent').yanYana().addStyle_fullWH().addStyle([e =>
-			`$elementCSS { position: relative; top: 5px }
-			$elementCSS > .button { width: 50px !important; height: 45px !important; min-width: unset !important }`]);
-		fbd_sablonParent.addModelKullan('sablonKod', 'Şablon').etiketGosterim_yok().dropDown().noMF().kodsuz().listedenSecilemez().setSource([]).addStyle_fullWH('calc(var(--full) - 300px)');
-		fbd_sablonParent.addButton('sablonKaydet', '+').addCSS('button').onClick(_e => this.tabloTanimlariGoster_sablonKaydetIstendi({ ...e, ..._e, wnd, inst }));
-		fbd_sablonParent.addButton('sablonSil', 'x').addCSS('button').onClick(_e => this.tabloTanimlariGoster_sablonSilIstendi({ ...e, ..._e, wnd, inst }));
-		let fbd_islemTuslari = fbd_ust.addFormWithParent('islemTuslari').yanYana().addStyle_wh('auto', islemTuslariHeight).addStyle(`$elementCSS { position: absolute; top: 0; right: 0; z-index: 1000 }`);
-		fbd_islemTuslari.addButton('tamam').onClick(async _e => {
-			try {
-				const close = () => { if (wnd?.length) { wnd.jqxWindow('close') } };
-				let result = await this.tabloTanimlariGoster_tamamIstendi({ ...e, ..._e, wnd, close, tabloYapi, inst });
-				if (result !== false) { close() }
-			}
-			catch (ex) { console.error(ex); hConfirm(getErrorText(ex), title) }
-		});
-		fbd_islemTuslari.addButton('vazgec').onClick(e => wnd.jqxWindow('close'));
-		let fbd_content = wRFB.addFormWithParent('content').yanYana().addStyle_fullWH(null, 'calc(var(--full) - var(--ustHeight) - var(--top) + 8px)').addStyle([e =>
-			`$elementCSS { --top: ${contentTop}; position: relative; top: var(--top); z-index: 100 }
-			 $elementCSS > div .${className_listBox} { --label-height: 30px; --label-margin-bottom: 20px }
-			 $elementCSS > div .${className_listBox} > label { font-size: 180%; color: #999; height: var(--label-height); padding-bottom: var(--label-margin-bottom) }
-			 $elementCSS > div .${className_listBox} > :not(label) { vertical-align: top; height: calc(var(--full) - var(--label-height) - var(--label-margin-bottom)) !important }
-			 $elementCSS > div .${className_listBox} > .jqx-listbox .jqx-listitem-element { font-size: 130% }`]);
-		const initListBox = e => {
-			const {builder} = e, {id, altInst, input} = builder; let source = e.source ?? ((altInst[id] || []).map(kod => kaDict[kod]));
-			if (source?.length && typeof source[0] != 'object') { source = source.map(kod => new CKodVeAdi({ kod, aciklama: kod })) }
-			const width = '100%', height = width, valueMember = 'kod', displayMember = 'aciklama';
-			const allowDrop = true, allowDrag = allowDrop, autoHeight = false, itemHeight = 40, filterable = true, filterHeight = 35, filterPlaceHolder = 'Bul';
-			input.prop('id', id); input.jqxListBox({ theme, width, height, valueMember, displayMember, source, allowDrag, allowDrop, autoHeight, itemHeight, filterable, filterHeight, filterPlaceHolder });
-			const changeHandler = evt => { const target = evt.currentTarget, {id} = target, items = $(target).jqxListBox('getItems'); inst.listStates[id] = items.map(item => item.value) };
-			input.on('change', changeHandler); input.on('dragEnd', changeHandler);
-		};
-		let fbd_sol = fbd_content.addFormWithParent('sol').altAlta().addStyle_fullWH(solWidth);
-		fbd_sol.addDiv('kalanlar').setEtiket('Kalanlar').addCSS(className_listBox).addStyle_fullWH().setAltInst(inst.listStates).onAfterRun(e => initListBox(e));
-		let fbd_orta = fbd_content.addFormWithParent('orta').altAlta().addStyle_fullWH(ortaWidth);/*.addStyle(e => `$elementCSS { position: absolute; right: 0 }`);*/
-		fbd_orta.addDiv('grup').setEtiket('Grup').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight).setAltInst(inst.listStates).onAfterRun(e => initListBox(e));
-		fbd_orta.addDiv('icerik').setEtiket('İçerik').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight).setAltInst(inst.listStates).onAfterRun(e => initListBox(e));
-		let fbd_sag = fbd_content.addFormWithParent('sag').altAlta().addStyle_fullWH(sagWidth); fbd_sag.addNumberInput('ozetMax', '... max');
-		wnd = createJQXWindow({ title, args: { isModal: true, width: Math.min(530, Math.max(600, $(window).width() - 100)), height: 600, closeButtonAction: 'close' } });
-		wnd.on('close', evt => { wnd.jqxWindow('destroy'); $('body').removeClass('bg-modal') });
-		wnd.prop('id', wRFB.id); wnd.addClass('dRapor part'); $('body').addClass('bg-modal');
-		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run(); this._tabloTanimGosterildiFlag = true
+		let wnd = createJQXWindow({ title: 'Gruplamalar', args: { isModal: true, width: 500, height: 430, closeButtonAction: 'close' } });
+		wnd.on('close', evt => { wnd.jqxWindow('destroy'); this.tazele(); $('body').removeClass('bg-modal') });
+		wnd.prop('id', 'gruplamalar'); wnd.addClass('part'); $('body').addClass('bg-modal');
+		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run(); this._gruplamalarGosterildiFlag = true
+	}*/
+	gruplamalarIstendi(e) {
+		const {gridPart} = this, {gruplamalar} = this, {gruplamaKAListe} = this.class;
+		let wRFB = new RootFormBuilder('gruplamalar').addCSS('part');
+		wRFB.addIslemTuslari('islemTuslari').setTip('tamam').setId2Handler({ tamam: e => wnd.jqxWindow('close') })
+			.addStyle(e => `$elementCSS .butonlar.part > .sol { z-index: -1; background-color: unset !important; background: transparent !important }`);
+		let fbd_content = wRFB.addFormWithParent('content').yanYana()
+			.addStyle(e => `$elementCSS { position: relative; top: 10px; z-index: 100 } $elementCSS > button { margin: 0 0 10px 10px }
+			$elementCSS > button.jqx-fill-state-normal { background-color: whitesmoke !important } $elementCSS > button.jqx-fill-state-pressed { background-color: royalblue !important }`);
+		for (const {kod, aciklama} of gruplamaKAListe) {
+			let btn = fbd_content.addForm(kod).setLayout(e => {
+				const {builder} = e, {id} = builder;
+				return builder.input = $(`<button id="${id}">${aciklama}</button>`).jqxToggleButton({ theme, width: '45%', height: 50, toggled: gruplamalar[id] })
+			});
+			btn.onAfterRun(e => e.builder.input.on('click', evt => this.gruplamalar_butonTiklandi({ ...e, evt, id: evt.currentTarget.id, gridPart, gruplamalar })) )
+		}
+		let wnd = createJQXWindow({ title: 'Gruplamalar', args: { isModal: true, width: 500, height: 430, closeButtonAction: 'close' } });
+		wnd.on('close', evt => { wnd.jqxWindow('destroy'); this.tazele(); $('body').removeClass('bg-modal') });
+		wnd.prop('id', 'gruplamalar'); wnd.addClass('part'); $('body').addClass('bg-modal');
+		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run(); this._gruplamalarGosterildiFlag = true
 	}
-	tabloTanimlariGoster_tamamIstendi(e) {
-		const {builder, inst} = e, {listStates} = inst, {secilenler} = this;
-		for (const selector of ['grup', 'icerik']) { secilenler[selector] = asSet(listStates[selector] || []) }
-		this.tazele(e); return true
+	gruplamalar_butonTiklandi(e) {
+		const {id, evt, gruplamalar} = e, target = $(evt.currentTarget), flag = target.jqxToggleButton('toggled');
+		if (flag) { gruplamalar[id] = true } else { delete gruplamalar[id] }
 	}
-	tabloTanimlariGoster_sablonKaydetIstendi(e) { }
-	tabloTanimlariGoster_sablonSilIstendi(e) { }
 	getColumns(colDefs) {
 		colDefs = super.getColumns(colDefs); if (!colDefs) { return colDefs }
 		const {gridPart} = this; let icerikColsSet; for (const colDef of colDefs) {

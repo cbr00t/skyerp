@@ -742,13 +742,13 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 	constructor(e) {
 		e = e || {}; super(e);
 		$.extend(this, {
-			listedenSecilemezFlag: coalesce(coalesce(e.listedenSecilemezFlag, e.listedenSecilemez), false),
-			noAutoWidthFlag: coalesce(coalesce(e.noAutoWidthFlag, e.noAutoWidth), true),
-			isDropDown: coalesce(e.isDropDown, e.dropDown),
-			autoBindFlag: coalesce(coalesce(e.autoBindFlag, e.autoBind), false),
-			kodGosterilsinmi: coalesce(e.kodGosterilsinmi, e.kodGosterilsin),
-			bosKodAlinirmi: coalesce(coalesce(e.bosKodAlinirmi, e.bosKodAlinir), true),
-			bosKodEklenirmi: coalesce(coalesce(e.bosKodEklenirmi, e.bosKodEklenir), true),
+			listedenSecilemezFlag: e.listedenSecilemezFlag ?? e.listedenSecilemez ?? false,
+			noAutoWidthFlag: e.noAutoWidthFlag ?? e.noAutoWidth ?? true,
+			isDropDown: e.isDropDown ?? e.dropDown,
+			autoBindFlag: e.autoBindFlag ?? e.autoBind ?? false,
+			kodGosterilsinmi: e.kodGosterilsinmi ?? e.kodGosterilsin,
+			bosKodAlinirmi: e.bosKodAlinirmi ?? e.bosKodAlinir ?? true,
+			bosKodEklenirmi: e.bosKodEklenirmi ?? e.bosKodEklenir ?? true,
 			ozelQueryDuzenle: e.ozelQueryDuzenle || e.ozelQueryDuzenleBlock,
 			listeArgsDuzenle: e.listeArgsDuzenle || e.listeArgsDuzenleBlock,
 			ekDuzenleyici: e.loadServerDataEkDuzenleBlock || e.loadServerDataEkDuzenle || e.ekDuzenleyici,
