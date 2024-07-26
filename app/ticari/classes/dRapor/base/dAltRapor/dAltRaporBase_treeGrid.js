@@ -43,11 +43,14 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	}
 	tabloKolonlariDuzenle(e) { }
 	async getDataAdapter(e) {
-		const recs = await this.loadServerData(e), tRec = recs[0] || {}, key_items = 'detaylar';		/*key_id = 'id',*/
-		return new $.jqx.dataAdapter({
-			hierarchy: { root: key_items }, dataType: 'array', localData: recs, /* hierarchy: { keyDataField: { name: key_id }, parentDataField: { name: 'parentId' } }, */
-			dataFields: Object.keys(tRec).map(name => ({ name, type: typeof tRec[name] == 'object' ? 'array' : (typeof tRec[name] || 'string') })),
-		}, { autoBind: false, loadComplete: (boundRecs, recs) => setTimeout(() => this.gridVeriYuklendi({ ...e, boundRecs, recs }), 10) });
+		try {
+			const recs = await this.loadServerData(e), tRec = recs[0] || {}, key_items = 'detaylar';		/*key_id = 'id',*/
+			return new $.jqx.dataAdapter({
+				hierarchy: { root: key_items }, dataType: 'array', localData: recs, /* hierarchy: { keyDataField: { name: key_id }, parentDataField: { name: 'parentId' } }, */
+				dataFields: Object.keys(tRec).map(name => ({ name, type: typeof tRec[name] == 'object' ? 'array' : (typeof tRec[name] || 'string') })),
+			}, { autoBind: false, loadComplete: (boundRecs, recs) => setTimeout(() => this.gridVeriYuklendi({ ...e, boundRecs, recs }), 10) })
+		}
+		catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Grid Verisi Yüklenemedi'); return null }
 	}
 	async loadServerData(e) {
 		await this.loadServerData_wsArgsDuzenle(e);
@@ -109,7 +112,13 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		if (result == null) {
 			let _e = { result: { grup: {}, toplam: {}, kaPrefixes: [], sortAttr: null } }; this.tabloYapiDuzenle(_e); result = _e.result;
 			const tipSet = result.tipSet = {}, kaListe = result.kaListe = [];
-			for (const selector of ['grup', 'toplam']) { const tip2Item = result[selector]; for (const [tip, item] of Object.entries(tip2Item)) { tipSet[tip] = true; kaListe.push(item.ka) } }
+			for (const selector of ['grup', 'toplam']) {
+				const tip2Item = result[selector];
+				for (const [kod, item] of Object.entries(tip2Item)) {
+					tipSet[kod] = true; kaListe.push(item.ka); const {colDefs} = item;
+					if (colDefs) { for (const colDef of colDefs) { const userData = colDef.userData = colDef.userData || {}; userData.tip = selector; userData.kod = kod }  }
+				}
+			}
 			this._tabloYapi = result
 		}
 		return result
@@ -118,7 +127,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	onGridInit(e) {
 		super.onGridInit(e); this.secilenler = {
 			grup: {}, icerik: {},
-			get attrSet() { const result = {}; for (const selector of ['grup', 'icerik']) { $.extend(result, Object.keys(this[selector])) } return result },
+			get attrSet() { const result = {}; for (const selector of ['grup', 'icerik']) { $.extend(result, asSet(Object.keys(this[selector]))) } return result },
 			get secilenVarmi() { return !!(Object.keys(this.grup).length || Object.keys(this.icerik).length) }
 		}
 	}
@@ -128,10 +137,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		for (const item of [grup, toplam]) { for (const {colDefs} of Object.values(item)) { if (colDefs?.length) { liste.push(...colDefs) } } }
 	}
 	gridArgsDuzenle(e) { super.gridArgsDuzenle(e) ; const {args} = e; $.extend(args, { showSubAggregates: false /*showStatusBar: true, showGroupAggregates: true , compact: true*/ }) }
-	loadServerData(e) {
-		const {gridPart, gruplamalar} = this; if ($.isEmptyObject(gruplamalar)) { return [] }
-		return super.loadServerData(e)
-	}
+	loadServerData(e) { return this.secilenler.secilenVarmi ? super.loadServerData(e) : [] }
 	loadServerData_recsDuzenleIlk(e) {
 		let {recs} = e; const {kaPrefixes, sortAttr} = this.tabloYapi, fixKA = (rec, prefix) => {
 			if (rec == null) { return } const kod = rec[prefix + 'kod'], adi = rec[prefix + 'adi'];
@@ -145,48 +151,28 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		e.recs = recs; return super.loadServerData_recsDuzenleIlk(e)
 	}
 	loadServerData_recsDuzenle_seviyelendir(e) {
-		super.loadServerData_recsDuzenle_seviyelendir(e); const {gridPart, tabloYapi} = this; debugger
-		const {gridGrupAttrListe} = this.class, {gridWidget} = gridPart;
-		const colDefs = this.tabloKolonlari, jqxCols = gridWidget.base.columns.records, gridGrupAttrSet = asSet(gridGrupAttrListe || []);
-		let grupColAttr = colDefs.find(colDef => !!gridGrupAttrSet[colDef.userData?.grup] && !!gruplamalar[colDef.userData?.grup])?.belirtec, grupTextColAttr = jqxCols[0].datafield;
-		let {recs} = e; if (!grupColAttr) { return recs }
-		const {gruplama2IcerikCols} = this.class, icerikColsSet = asSet(Object.keys(gruplamalar).flatMap(key => gruplama2IcerikCols[key]));
-		let grup2Recs = {}; for (const rec of recs) { const grup = rec[grupColAttr], subRecs = grup2Recs[grup] = grup2Recs[grup] || []; subRecs.push(rec) }
-		let id = 1; const sevListe = seviyelendirAttrGruplari({ source: recs, attrGruplari: [['grup']], getter: e => { const _rec = { ...e.item }; _rec.id = id++; return _rec } }); console.info(sevListe);
-		recs = [];  for (const [grup, subRecs] of Object.entries(grup2Recs)) {
-			const rec_grup = { id: id++, detaylar: [] }; rec_grup[grupTextColAttr] = grup; recs.push(rec_grup);
-			for (const subRec of subRecs) {
-				for (const key in icerikColsSet) { let value = subRec[key]; if (value) { rec_grup[key] = roundToFra((rec_grup[key] || 0) + value, 2) } }
-				rec_grup.detaylar.push(subRec)
-			}
+		super.loadServerData_recsDuzenle_seviyelendir(e); const {gridPart, secilenler} = this, {gridWidget} = gridPart, {grup, icerik} = secilenler;
+		const belirtec2ColDef = [], grupColAttrListe = [];
+		for (const colDef of this.tabloKolonlari) {
+			const {belirtec} = colDef, userData = colDef.userData || {}; belirtec2ColDef[belirtec] = colDef;
+			if (userData.tip == 'grup' && grup[userData.kod]) { grupColAttrListe.push(belirtec) }
 		}
-		return recs
+		const jqxCols = gridWidget.base.columns.records, grupTextColAttr = jqxCols[0].datafield;
+		let {recs} = e; if (!grupColAttrListe) { return recs }
+		let id = 1; const sevListe = seviyelendir({
+			source: recs, attrListe: grupColAttrListe,
+			getter: e => { const _rec = { ...e.item }; _rec.id = id++; _rec[grupTextColAttr] = _rec[e.sevAttr]; return _rec }
+		});
+		console.info(sevListe); return sevListe
 	}
 	async tazele(e) {
-		const {fbd_grid, gridPart} = this, {grid, gridWidget} = gridPart; let {_lastGruplamalar, gruplamalar} = this, gruplamaVarmi = !$.isEmptyObject(gruplamalar);
-		let colDefs = this.tabloKolonlari; const {gridGrupAttrSet, gruplamaKAListe} = this.class;
-		await this.tazeleOncesi(e); const belirtec2Kolon = {}; for (const colDef of colDefs) { belirtec2Kolon[colDef.belirtec] = colDef }
-		const icerikColsSet = {}, tip2Belirtecler = {}; let count = 0;
-		for (const colDef of colDefs) {
-			const {belirtec} = colDef, grup = colDef.userData?.grup; if (!grup) { icerikColsSet[belirtec] = colDef }
-			if (grup != null && gridGrupAttrSet[grup] && gruplamalar[grup]) { (tip2Belirtecler[grup] = tip2Belirtecler[grup] || []).push(belirtec); count++ }
-		}
-		for (const belirtecler of Object.values(tip2Belirtecler)) { if (belirtecler?.length > 1) { belirtecler.splice(0, -1) } }
-		let anahGruplamalar = Object.keys(gruplamalar).join(delimWS), anahLastGruplamalar = _lastGruplamalar ? Object.keys(_lastGruplamalar).join(delimWS) : null;
-		await gridPart._promise_kaFix; if (anahLastGruplamalar == null || anahGruplamalar != anahLastGruplamalar) {
-			let tabloKolonlari = colDefs.filter(colDef => { const {belirtec} = colDef, grup = colDef.userData?.grup; return !icerikColsSet[belirtec] && (grup == null || !!gruplamalar[grup]) });
-			const attrSet = asSet(tabloKolonlari.map(colDef => colDef.belirtec));
-			const {gruplama2IcerikCols} = this.class; for (const [gruplama, belirtecler] of Object.entries(gruplama2IcerikCols)) {
-				const gruplamaVarmi = gruplamalar[gruplama]; if (!gruplamaVarmi) { continue }
-				for (const belirtec of belirtecler) {
-					if (attrSet[belirtec]) { continue } const colDef = belirtec2Kolon[belirtec]; if (colDef == null) { continue }
-					attrSet[belirtec] = true; tabloKolonlari.push(colDef)
-				}
-			} grid.jqxTreeGrid('clear'); tabloKolonlari = this.getColumns(tabloKolonlari);
-			let ind = tabloKolonlari.findIndex(colDef => !!gruplamalar[colDef.userData?.grup] && !!gridGrupAttrSet[colDef.userData?.grup]);
-			if (ind != -1) { tabloKolonlari.splice(ind, 1) }
-			try { grid.jqxTreeGrid('columns', tabloKolonlari.flatMap(colDef => colDef.jqxColumns)) } catch (ex) { console.error(ex) }
-			_lastGruplamalar = this._lastGruplamalar = $.extend({}, gruplamalar)
+		const {fbd_grid, gridPart, tabloKolonlari} = this, {grid, gridWidget} = gridPart; let {secilenler} = this, {secilenVarmi, grup, icerik} = secilenler, colDefs = [];
+		const jqxCols = gridWidget.base.columns.records; await this.tazeleOncesi(e);
+		for (const colDef of tabloKolonlari) { const {belirtec} = colDef, userData = colDef.userData || {}, {tip, kod} = userData; if (!kod || (/*grup[kod] ||*/ icerik[kod])) { colDefs.push(colDef) } }
+		const anahColDefs = colDefs.map(colDef => colDef.belirtec).join(delimWS), anahJQXCols = jqxCols.map(jqxCol => jqxCol.datafield).join(delimWS);
+		await gridPart._promise_kaFix; if (anahColDefs != anahJQXCols) {
+			grid.jqxTreeGrid('clear'); colDefs = this.getColumns(colDefs); try { grid.jqxTreeGrid('columns', colDefs.flatMap(colDef => colDef.jqxColumns)) }
+			catch (ex) { console.error(ex) }
 		}
 		return await super.tazele(e)
 	}
@@ -261,7 +247,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		colDefs = super.getColumns(colDefs); if (!colDefs) { return colDefs }
 		const {gridPart} = this; let icerikColsSet; for (const colDef of colDefs) {
 			colDef.cellClassName = (colDef, rowIndex, belirtec, value, rec) => {
-				if (icerikColsSet == null) { const {gruplamalar} = this, {gruplama2IcerikCols} = this.class; icerikColsSet = asSet(Object.keys(gruplamalar).flatMap(key => gruplama2IcerikCols[key])) }
+				if (icerikColsSet == null) { const {secilenler} = this; icerikColsSet = secilenler.icerik }
 				const result = ['treeRow']; if (rec && !rec.leaf) { result.push('grup') }
 				if (icerikColsSet && icerikColsSet[belirtec]) { result.push('icerik') }
 				let {level} = rec; if (level != null) { result.push('level-' + level.toString()) }
