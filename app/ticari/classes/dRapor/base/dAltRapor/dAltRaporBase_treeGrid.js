@@ -24,12 +24,12 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	gridArgsDuzenle(e) { }
 	onGridInit(e) { const {gridPart} = this; gridPart.expandedRowsSet = {} }
 	onGridRun(e) { }
-	gridRowExpanded(e) { const {gridPart} = this; gridPart.expandedRowsSet[e.event.args.row?.uid] = true }
-	gridRowCollapsed(e) { const {gridPart} = this; gridPart.expandedRowsSet[e.event.args.row?.uid] = false }
+	gridRowExpanded(e) { const {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = true }
+	gridRowCollapsed(e) { const {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = false }
 	gridSatirTiklandi(e) { }
 	gridSatirCiftTiklandi(e) { 
-		const {gridPart} = this, {gridWidget, expandedRowsSet} = gridPart, {args} = e.event, {uid} = args.row || {};
-		if (uid != null) { gridWidget[expandedRowsSet[uid] ? 'collapseRow' : 'expandRow'](uid) }
+		const {gridPart} = this, {gridWidget, expandedRowsSet} = gridPart, {args} = e.event, {level, uid} = args.row || {};
+		if (uid != null) { gridWidget[expandedRowsSet[`${level}-${uid}`] ? 'collapseRow' : 'expandRow'](uid) }
 	}
 	async tazele(e) {
 		e = e || {}; await super.tazele(e); const {grid} = this.gridPart || {}; if (!grid) { return }
@@ -152,17 +152,19 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	}
 	loadServerData_recsDuzenle_seviyelendir(e) {
 		super.loadServerData_recsDuzenle_seviyelendir(e); const {gridPart, secilenler} = this, {gridWidget} = gridPart, {grup, icerik} = secilenler;
-		const belirtec2ColDef = [], grupColAttrListe = [];
+		const belirtec2ColDef = [], grupColAttrListe = [], _sumAttrListe = [];
 		for (const colDef of this.tabloKolonlari) {
-			const {belirtec} = colDef, userData = colDef.userData || {}; belirtec2ColDef[belirtec] = colDef;
-			if (userData.tip == 'grup' && grup[userData.kod]) { grupColAttrListe.push(belirtec) }
+			const {belirtec} = colDef, userData = colDef.userData || {}, {tip, kod} = userData; belirtec2ColDef[belirtec] = colDef;
+			if (tip == 'grup' && grup[kod]) { grupColAttrListe.push(belirtec) }
+			else if (tip == 'toplam' && icerik[kod]) { _sumAttrListe.push(belirtec) }
 		}
 		const jqxCols = gridWidget.base.columns.records, grupTextColAttr = jqxCols[0].datafield;
 		let {recs} = e; if (!grupColAttrListe) { return recs }
 		let id = 1; const sevListe = seviyelendir({
 			source: recs, attrListe: grupColAttrListe,
-			getter: e => { const _rec = { ...e.item }; _rec.id = id++; _rec[grupTextColAttr] = _rec[e.sevAttr]; return _rec }
-		});
+			getter: e => { const {item} = e, _rec = new DAltRapor_PanelGruplama({ id, _sumAttrListe, ...item }); id++; _rec[grupTextColAttr] = _rec[e.sevAttr]; return _rec }
+		}); for (const sev of sevListe) { if (sev.toplamYapiOlustur) { sev.toplamYapiOlustur() } }
+		/*topla(sev => sev[attr], sev)*/
 		console.info(sevListe); return sevListe
 	}
 	async tazele(e) {
@@ -231,13 +233,15 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		fbd_orta.addDiv('grup').setEtiket('Grup').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight).setAltInst(inst.listStates).onAfterRun(e => initListBox(e));
 		fbd_orta.addDiv('icerik').setEtiket('İçerik').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight).setAltInst(inst.listStates).onAfterRun(e => initListBox(e));
 		let fbd_sag = fbd_content.addFormWithParent('sag').altAlta().addStyle_fullWH(sagWidth); fbd_sag.addNumberInput('ozetMax', '... max');
-		wnd = createJQXWindow({ title, args: { isModal: true, width: Math.min(530, Math.max(600, $(window).width() - 100)), height: 600, closeButtonAction: 'close' } });
+		wnd = createJQXWindow({ title, args: { isModal: true, closeButtonAction: 'close', width: Math.min(530, Math.max(600, $(window).width() - 100)), height: Math.min(800, $(window).height() - 50) } });
 		wnd.on('close', evt => { wnd.jqxWindow('destroy'); $('body').removeClass('bg-modal') });
 		wnd.prop('id', wRFB.id); wnd.addClass('dRapor part'); $('body').addClass('bg-modal');
 		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run(); this._tabloTanimGosterildiFlag = true
 	}
 	tabloTanimlariGoster_tamamIstendi(e) {
-		const {builder, inst} = e, {listStates} = inst, {secilenler} = this;
+		const {builder, inst} = e, {listStates} = inst, {tabloYapi, secilenler} = this, {toplam} = tabloYapi;
+		const secIcerik = listStates.icerik, toplanabilirVarmi = !!secIcerik.find(key => toplam[key]), normalIcerikVarmi = !!secIcerik.find(key => !toplam[key]);
+		if (!(toplanabilirVarmi && normalIcerikVarmi)) { throw { isError: true, errorText: 'En az birer Toplanabilir ve Normal saha olmalıdır' } }
 		for (const selector of ['grup', 'icerik']) { secilenler[selector] = asSet(listStates[selector] || []) }
 		this.tazele(e); return true
 	}
