@@ -46,8 +46,8 @@ class RootFormBuilder extends SubPartBuilder {
 					if (partInit) { partArgs = $.extend({}, partArgs || {}); getFuncValue.call(this, partInit, { sender: this, part: this, partArgs, builder, builderArgs: this.class.builderArgs }) }
 					if (!$.isEmptyObject(partArgs)) { $.extend(this, partArgs) }
 				}
-				afterRun() {
-					super.afterRun(); const {isWindowPart} = this;
+				afterRun(e) {
+					super.afterRun(e); const {isWindowPart} = this;
 					if (isWindowPart) {
 						const {builder} = this.class, {wnd, partName} = this;
 						if (wnd?.length) {
@@ -58,6 +58,10 @@ class RootFormBuilder extends SubPartBuilder {
 						}
 						$.extend(builder, { wnd }); this.show()
 					}
+				}
+				destroyPart(e) {
+					const {builder} = this.class; if (builder.destroyPart) { builder.destroyPart(e) }
+					return super.destroyPart(e)
 				}
 				wndArgsDuzenle(e) { super.wndArgsDuzenle(e); /*const {wndArgs} = this.class.builder; if (wndArgs) $.extend(this.wndArgs, wndArgs);*/ }
 			};

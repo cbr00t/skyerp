@@ -39,7 +39,7 @@ class DOzelRapor extends DRapor {
 		$.extend(this, { part, builder }); return ({ inst, part, builder })
 	}
 	rootFormBuilderDuzenle(e) {
-		const {rfb} = e; rfb.addIslemTuslari('islemTuslari').addCSS('islemTuslari').setTip('tazeleVazgec')
+		const {rfb} = e; this.rootBuilder = rfb; rfb.addIslemTuslari('islemTuslari').addCSS('islemTuslari').setTip('tazeleVazgec')
 			.setButonlarDuzenleyici(e => this.islemTuslariArgsDuzenle(e)).setId2Handler(this.islemTuslariGetId2Handler(e))
 		rfb.addForm('bulForm')
 			.setLayout(e => $(`<div class="${e.builder.id} part"><input class="input full-wh" type="textbox" maxlength="100"></input></div>`))
@@ -72,19 +72,30 @@ class DOzelRapor extends DRapor {
 class DPanelRapor extends DOzelRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'panel' } static get dPanelRapormu() { return true }
 	constructor(e) {
-		e = e || {}; super(e); $.extend(this, { id2AltRapor: e.id2AltRapor });
+		e = e || {}; super(e); $.extend(this, { id2AltRapor: e.id2AltRapor, altRapor_lastZIndex: 100 });
 		if (this.id2AltRapor == null) { this.clear(); this.altRaporlarDuzenle(e) }
 	}
 	rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); const {rfb} = e, {id2AltRapor} = this;
-		let form = rfb.addForm('items').setLayout(e => $(`<div id="${e.builder.id}" class="full-wh"/>`));
+		let form = rfb.addForm('items').setLayout(e => $(`<div id="${e.builder.id}" class="full-wh"></div>`));
 		for (const [id, altRapor] of Object.entries(id2AltRapor)) {
 			const raporAdi = altRapor.class.aciklama ?? '';
-			let fbd = altRapor.parentBuilder = form.addDiv(id, raporAdi).altAlta().addCSS('item'); const _e = { ...e, id, builder: fbd }; altRapor.subFormBuilderDuzenle(_e);
+			let fbd = altRapor.parentBuilder = form.addForm(id).setLayout(e => $(`<div><label>${raporAdi || ''}</label></div>`)).addCSS('item').addStyle_fullWH()
+				.addStyle(e => `$elementCSS { z-index: ${this.altRapor_lastZIndex++} }`);
+			const _e = { ...e, id, builder: fbd }; altRapor.subFormBuilderDuzenle(_e);
 			const {width, height} = altRapor; if (width || height) { fbd.addStyle_wh(width, height) } altRapor.rootFormBuilderDuzenle(e)
 		}
 	}
+	onAfterRun(e) {
+		super.onAfterRun(e); const {rfb} = e, itemsLayout = rfb.id2Builder.items.layout, itemSelector = '.item', focusSelector = 'hasFocus';
+		const elmSubItems = itemsLayout.children(itemSelector); elmSubItems.eq(0).addClass(focusSelector);
+		elmSubItems.on('click', evt => { const itemLayout = $(evt.currentTarget); itemLayout.parent().children(itemSelector).removeClass(focusSelector); itemLayout.addClass(focusSelector) })
+	}
 	altRaporlarDuzenle(e) { }
+	tazele(e) {
+		super.super_tazele(e); const {id2AltRapor} = this;
+		for (const altRapor of Object.values(id2AltRapor)) { if (altRapor && altRapor.tazeleYapilirmi && altRapor.tazele) { altRapor.tazele(e) } }
+	}
 	hizliBulIslemi_ara(e) {
 		super.hizliBulIslemi_ara(e); const {tokens} = e, {id2AltRapor} = this;
 		for (const altRapor of Object.values(id2AltRapor)) { if (altRapor.fbd_grid) { const gridPart = altRapor.fbd_grid.part; gridPart.filtreTokens = tokens; gridPart.tazele({ action: 'hizliBul' }) } }
@@ -99,17 +110,12 @@ class DPanelRapor extends DOzelRapor {
 		} return this
 	}
 	clear() { this.id2AltRapor = {}; return this }
-	tazele(e) {
-		super.super_tazele(e); const {id2AltRapor} = this;
-		for (const altRapor of Object.values(id2AltRapor)) { if (altRapor?.tazele) { altRapor.tazele(e) } }
-	}
 }
 class DGrupluPanelRapor extends DPanelRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get dGrupluPanelRapormu() { return true } static get altRaporClassPrefix() { return null }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGrupluPanelRapormu() { return true } static get altRaporClassPrefix() { return null }
 	altRaporlarDuzenle(e) {
 		super.altRaporlarDuzenle(e); const prefix = this.class.altRaporClassPrefix;
-		if (prefix) { const postfixes = ['_Main', '_Chart', '_Diagram'],  classes = postfixes.map(postfix => window[prefix + postfix]).filter(cls => !!cls); this.add(...classes) }
+		if (prefix) { const postfixes = ['_Main', '_Ozet', '_Chart', '_Diagram'],  classes = postfixes.map(postfix => window[prefix + postfix]).filter(cls => !!cls); this.add(...classes) }
 	}
 	islemTuslariArgsDuzenle(e) {
 		super.islemTuslariArgsDuzenle(e); const {liste} = e;

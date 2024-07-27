@@ -39,5 +39,5 @@ class DAltRapor_Pivot extends DAltRapor_Grid {
 		pivotWidget = pivotPart.pivotWidget = pivot.jqxPivotGrid('getInstance')
 	}
 	gridArgsDuzenle(e) { }
-	tazele(e) { super.super_tazele(e); const {pivotWidget} = this.pivotPart || {}; if (pivotWidget) { pivotWidget.dataBind() } }
+	async tazele(e) { await super.super_tazele(e); const {pivotWidget} = this.pivotPart || {}; if (pivotWidget) { pivotWidget.dataBind() } await this.tazeleDiger(e) }
 }

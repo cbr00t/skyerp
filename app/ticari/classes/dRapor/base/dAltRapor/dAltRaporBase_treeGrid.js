@@ -1,15 +1,15 @@
 class DAltRapor_TreeGrid extends DAltRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridmi() { return true }
-	tabloKolonlariDuzenle(e) { }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridmi() { return true } static get dTreeGridmi() { return true }
+	/*subFormBuilderDuzenle(e) { super.subFormBuilderDuzenle(e); const {rfb} = e; rfb.addCSS('no-overflow') }*/
 	onBuildEk(e) {
-		super.onBuildEk(e); const {parentBuilder} = this, {layout} = parentBuilder;
-		this.fbd_grid = parentBuilder.addForm(`<div class="grid part full-wh"/>`)
+		super.onBuildEk(e); const {parentBuilder, noAutoColumns} = this, {layout} = parentBuilder;
+		this.fbd_grid = parentBuilder.addForm('grid').setLayout(e => $(`<div class="grid part full-wh"/>`))
 			.onAfterRun(async e => {
 				const fbd_grid = e.builder, gridPart = this.gridPart = fbd_grid.part = {}, grid = gridPart.grid = fbd_grid.layout;
 				$.extend(gridPart, { tazele: e => this.tazele(e), hizliBulIslemi: e => this.hizliBulIslemi(e) });
 				this.onGridInit(e); let _e = { ...e, liste: [] }; this.tabloKolonlariDuzenle(_e); const colDefs = this.tabloKolonlari = this.getColumns(_e.liste || []);				
-				const columns = colDefs.flatMap(colDef => colDef.jqxColumns), source = await this.getDataAdapter(e);
-				const localization = localizationObj, width = '99.7%', height = width, autoRowHeight = true, autoShowLoadElement = true, altRows = true;
+				const columns = noAutoColumns ? [] : colDefs.flatMap(colDef => colDef.jqxColumns), source = await this.getDataAdapter(e);
+				const localization = localizationObj, width = '99.7%', height = 'calc(var(--full) - 40px)', autoRowHeight = true, autoShowLoadElement = true, altRows = true;
 				const filterMode = 'advanced';	/* default | simple | advanced */
 				const showAggregates = true, showSubAggregates = true, aggregatesHeight = 55, columnsResize = true, columnsReorder = true, sortable = true, filterable = false;
 				let args = { theme, localization, width, height, autoRowHeight, autoShowLoadElement, altRows, filterMode, showAggregates, showSubAggregates, aggregatesHeight, columnsResize, columnsReorder, sortable, filterable, columns, source };
@@ -21,8 +21,9 @@ class DAltRapor_TreeGrid extends DAltRapor {
 				this.onGridRun(e)
 			})
 	}
+	tabloKolonlariDuzenle(e) { }
 	gridArgsDuzenle(e) { }
-	onGridInit(e) { const {gridPart} = this; gridPart.expandedRowsSet = {} }
+	onGridInit(e) { /*const {gridPart} = this*/ }
 	onGridRun(e) { }
 	gridRowExpanded(e) { const {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = true }
 	gridRowCollapsed(e) { const {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = false }
@@ -38,7 +39,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	super_tazele(e) { super.tazele(e) }
 	hizliBulIslemi(e) { const {gridPart} = this; gridPart.filtreTokens = e.tokens; this.tazele(e) }
 	gridVeriYuklendi(e) {
-		const {grid, gridWidget} = this.gridPart, {boundRecs, recs} = e;
+		const {gridPart} = this, {grid, gridWidget} = gridPart, {boundRecs, recs} = e; gridPart.expandedRowsSet = {};
 		if (boundRecs?.length) { gridWidget.expandRow(0) }
 	}
 	tabloKolonlariDuzenle(e) { }
@@ -104,9 +105,9 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	}
 }
 class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridliAltRapormu() { return true }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridliAltRapormu() { return true } get noAutoColumns() { return true }
 	static get raporClass() { return null } static get kod() { return 'main' } static get aciklama() { return this.raporClass.aciklama }
-	get width() { return '85%' } get height() { return 'var(--full)' }
+	get width() { return '75%' } get height() { return 'var(--full)' }
 	get tabloYapi() {
 		let result = this._tabloYapi;
 		if (result == null) {
@@ -125,7 +126,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	}
 	tabloYapiDuzenle(e) { }
 	onGridInit(e) {
-		super.onGridInit(e); this.secilenler = {
+		super.onGridInit(e); this.ozetBilgi = { colDefs: null, recs: null };
+		this.secilenler = {
 			grup: {}, icerik: {},
 			get attrSet() { const result = {}; for (const selector of ['grup', 'icerik']) { $.extend(result, asSet(Object.keys(this[selector]))) } return result },
 			get secilenVarmi() { return !!(Object.keys(this.grup).length || Object.keys(this.icerik).length) }
@@ -133,11 +135,11 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	}
 	onGridRun(e) { super.onGridRun(e); this.tazeleOncesi(e) }
 	tabloKolonlariDuzenle(e) {
-		super.tabloKolonlariDuzenle(e); const {liste} = e, {tabloYapi} = this, {grup, toplam} = tabloYapi;
+		super.tabloKolonlariDuzenle(e) ; const {liste} = e, {tabloYapi} = this, {grup, toplam} = tabloYapi;
 		for (const item of [grup, toplam]) { for (const {colDefs} of Object.values(item)) { if (colDefs?.length) { liste.push(...colDefs) } } }
 	}
 	gridArgsDuzenle(e) { super.gridArgsDuzenle(e) ; const {args} = e; $.extend(args, { showSubAggregates: false /*showStatusBar: true, showGroupAggregates: true , compact: true*/ }) }
-	loadServerData(e) { return this.secilenler.secilenVarmi ? super.loadServerData(e) : [] }
+	async loadServerData(e) { let recs = this.secilenler.secilenVarmi ? await super.loadServerData(e) : []; e.recs = recs; await this.ozetBilgiRecsOlustur(e); return recs }
 	loadServerData_recsDuzenleIlk(e) {
 		let {recs} = e; const {kaPrefixes, sortAttr} = this.tabloYapi, fixKA = (rec, prefix) => {
 			if (rec == null) { return } const kod = rec[prefix + 'kod'], adi = rec[prefix + 'adi'];
@@ -165,28 +167,50 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			getter: e => { const {item} = e, _rec = new DAltRapor_PanelGruplama({ id, _sumAttrListe, ...item }); id++; _rec[grupTextColAttr] = _rec[e.sevAttr]; return _rec }
 		}); for (const sev of sevListe) { if (sev.toplamYapiOlustur) { sev.toplamYapiOlustur() } }
 		/*topla(sev => sev[attr], sev)*/
-		console.info(sevListe); return sevListe
+		if (config.dev) { console.info(sevListe) } return sevListe
 	}
-	async tazele(e) {
-		const {fbd_grid, gridPart, tabloKolonlari} = this, {grid, gridWidget} = gridPart; let {secilenler} = this, {secilenVarmi, grup, icerik} = secilenler, colDefs = [];
-		const jqxCols = gridWidget.base.columns.records; await this.tazeleOncesi(e);
-		for (const colDef of tabloKolonlari) { const {belirtec} = colDef, userData = colDef.userData || {}, {tip, kod} = userData; if (!kod || (/*grup[kod] ||*/ icerik[kod])) { colDefs.push(colDef) } }
-		const anahColDefs = colDefs.map(colDef => colDef.belirtec).join(delimWS), anahJQXCols = jqxCols.map(jqxCol => jqxCol.datafield).join(delimWS);
-		await gridPart._promise_kaFix; if (anahColDefs != anahJQXCols) {
-			grid.jqxTreeGrid('clear'); colDefs = this.getColumns(colDefs); try { grid.jqxTreeGrid('columns', colDefs.flatMap(colDef => colDef.jqxColumns)) }
-			catch (ex) { console.error(ex) }
+	ozetBilgiRecsOlustur(e) {
+		const {secilenler, ozetBilgi} = this, {grupAttr, icerikAttr} = ozetBilgi; if (!grupAttr) { return }
+		const {secilenVarmi, ozetMax} = secilenler; if (!(secilenVarmi && ozetMax)) { ozetBilgi.recs = []; return }
+		const sevRecs = e.recs, deger2Bilgiler = {}; for (const sev of sevRecs) { const value = sev[icerikAttr]; if (value) { (deger2Bilgiler[value] = deger2Bilgiler[value] || []).push(sev) } }
+		const tersSiraliDegerler = Object.keys(deger2Bilgiler).map(x => asFloat(x)).sort((a, b) => a < b ? 1 : -1);
+		const digerRec = {}; digerRec[grupAttr] = `<b class="royalblue">Diğer</b>`; digerRec[icerikAttr] = 0;
+		const result = []; for (const deger of tersSiraliDegerler) {
+			const subRecs = deger2Bilgiler[deger]; for (const subRec of subRecs) {
+				if (result.length < ozetMax) { const _rec = {}; _rec[grupAttr] = subRec[grupAttr]; _rec[icerikAttr] = deger; result.push(_rec); continue }
+				digerRec[icerikAttr] = (digerRec[icerikAttr] || 0) + deger
+			}
 		}
-		return await super.tazele(e)
+		if (digerRec[icerikAttr]) { result.push(digerRec) } ozetBilgi.recs = result
 	}
 	tazeleOncesi(e) {
 		const {fbd_grid, tabloYapi, secilenler} = this, {rootBuilder} = this.parentBuilder, {secilenVarmi} = secilenler;
 		rootBuilder.layout.find('.islemTuslari > div button#gruplamalar')[secilenVarmi ? 'removeClass' : 'addClass']('anim-gruplamalar-highlight');
 		if (!secilenVarmi) { if (!this._tabloTanimGosterildiFlag) { this.tabloTanimlariGosterIstendi(e) } return }
 	}
+	async tazele(e) {
+		await this.tazeleOncesi(e); const {gridPart, secilenler} = this, {degistimi} = secilenler, {grid, gridWidget} = gridPart, jqxCols = gridWidget.base.columns.records;
+		if (degistimi || !jqxCols?.length) {
+			const {tabloKolonlari, tabloYapi, ozetBilgi} = this, {secilenVarmi, grup, icerik} = secilenler;
+			const tip2ColDefs = {}; for (const colDef of tabloKolonlari) { const {belirtec, userData} = colDef, {kod} = userData || {}; if (kod) { (tip2ColDefs[kod] = tip2ColDefs[kod] || []).push(colDef) } }
+			let colDefs = Object.keys(icerik).flatMap(kod => tip2ColDefs[kod]); colDefs.sort((a, b) => tabloYapi.toplam[a.userData?.kod] ? 1 : -1);
+			grid.jqxTreeGrid('clear'); colDefs = this.getColumns(colDefs); try { grid.jqxTreeGrid('columns', colDefs.flatMap(colDef => colDef.jqxColumns)) } catch (ex) { console.error(ex) }
+			$.extend(ozetBilgi, { grupTipKod: Object.keys(grup)[0] || null, icerikTipKod: Object.keys(icerik).find(kod => !!tabloYapi.toplam[kod]) || null });
+			$.extend(ozetBilgi, { grupAttr: (tip2ColDefs[ozetBilgi.grupTipKod] || [])[0]?.belirtec, icerikAttr: (tip2ColDefs[ozetBilgi.icerikTipKod] || [])[0]?.belirtec });
+			const ozetBilgi_getColumns = (source, kod, colDefDuzenle) =>
+				(source[kod]?.colDefs || []).map(_colDef => { const colDef = _colDef.deepCopy(); if (colDefDuzenle) { getFuncValue.call(this, colDefDuzenle, colDef) } return colDef });
+			ozetBilgi.colDefs = ozetBilgi.grupTipKod ? [
+				...ozetBilgi_getColumns(tabloYapi.grup, ozetBilgi.grupTipKod, colDef => $.extend(colDef, { minWidth: 250, maxWidth: null, genislikCh: null })),
+				...ozetBilgi_getColumns(tabloYapi.toplam, ozetBilgi.icerikTipKod, colDef => $.extend(colDef, { minWidth: null, maxWidth: null, genislikCh: 16 }))
+			] : [];
+			secilenler.degistimi = false
+		}
+		await gridPart._promise_kaFix; await super.tazele(e); await this.tazeleDiger(e)
+	}
 	tabloTanimlariGosterIstendi(e) {
-		const {tabloYapi, secilenler} = this, {kaListe} = tabloYapi;
+		const {tabloYapi, secilenler} = this, {kaListe} = tabloYapi, ozetMax = secilenler.ozetMax ?? 5;
 		const kaDict = {}; for (const ka of kaListe) { kaDict[ka.kod] = ka }
-		const inst = { listStates: {}, ozetMax: 5, get ozetAttr() { return this.listStates.grup[0] } };
+		const inst = { listStates: {}, ozetMax, get ozetAttr() { return this.listStates.grup[0] } };
 		const tumAttrSet = asSet(Object.keys(kaDict)); for (const selector of ['grup', 'icerik']) {
 			let keys = secilenler[selector]; if (keys != null) { keys = Object.keys(keys) }
 			inst.listStates[selector] = keys ?? []; for (const key of keys) { delete tumAttrSet[key] }
@@ -243,7 +267,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		const secIcerik = listStates.icerik, toplanabilirVarmi = !!secIcerik.find(key => toplam[key]), normalIcerikVarmi = !!secIcerik.find(key => !toplam[key]);
 		if (!(toplanabilirVarmi && normalIcerikVarmi)) { throw { isError: true, errorText: 'En az birer Toplanabilir ve Normal saha olmalıdır' } }
 		for (const selector of ['grup', 'icerik']) { secilenler[selector] = asSet(listStates[selector] || []) }
-		this.tazele(e); return true
+		for (const key of ['ozetMax']) { secilenler[key] = inst[key] }
+		secilenler.degistimi = true; this.tazele(e); return true
 	}
 	tabloTanimlariGoster_sablonKaydetIstendi(e) { }
 	tabloTanimlariGoster_sablonSilIstendi(e) { }

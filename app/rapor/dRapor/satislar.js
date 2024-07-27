@@ -3,7 +3,8 @@ class DRapor_Satislar extends DGrupluPanelRapor {
 	static get kod() { return 'SATISLAR' } static get aciklama() { return 'Satışlar' } static get altRaporClassPrefix() { return 'DAltRapor_Satislar' }
 }
 class DAltRapor_Satislar_Main extends DAltRapor_TreeGridGruplu {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Satislar } get width() { return 'var(--full)' }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Satislar }
+	get tazeleYapilirmi() { return true } /*get width() { return 'var(--full)' }*/ 
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); const {result} = e, {grup, toplam, kaPrefixes} = result;
 		result.sortAttr = 'yilay'; kaPrefixes.push('stok', 'grup', 'cari', 'tip', 'bolge', 'il');
@@ -36,10 +37,9 @@ class DAltRapor_Satislar_Main extends DAltRapor_TreeGridGruplu {
 		const recs = query ? await app.sqlExecSelect({ query, maxRow }) : null; return recs
 	}
 }
-class __DAltRapor_Satislar_Chart extends DAltRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Satislar }
-	static get kod() { return 'x1' } static get aciklama() { return 'Chart' }
-	get width() { return `calc(var(--full) - ${DAltRapor_Satislar_Main.width})` } get height() { return '300px' }
-	subFormBuilderDuzenle(e) { super.subFormBuilderDuzenle(e); const parentBuilder = e.builder; parentBuilder.addForm('chart').setLayout(e => this.getLayout(e)).addStyle_fullWH() }
-	getLayout(e) { return $('<h3>.. Chart buraya ...</h3>') }
+class DAltRapor_Satislar_Ozet extends DAltRapor_Grid_Ozet {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Satislar } static get altRaporMainClass() { return DAltRapor_Satislar_Main }
+}
+class DAltRapor_Satislar_Chart extends DAltRapor_Chart {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Satislar } static get altRaporMainClass() { return DAltRapor_Satislar_Main }
 }

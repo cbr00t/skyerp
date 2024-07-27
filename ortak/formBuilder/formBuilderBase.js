@@ -213,9 +213,13 @@ class FormBuilderBase extends CObject {
 	hide() { const {layout} = this; if (layout?.length) { layout.addClass('jqx-hidden') } return this }
 	hideBasic() { const {layout} = this; if (layout?.length) { layout.addClass('basic-hidden') } return this }
 	destroyPart(e) {
-		const rootBuilder = this.rootBuilder ?? this; if (rootBuilder.isDestroyed) { return }
-		const {CSSClass_BuilderId} = FormBuilderBase, styles = $(`style[data-${CSSClass_BuilderId}="${this.id}"]`); if (styles?.length) { styles.remove() }
-		rootBuilder.isDestroyed = true
+		if (this.isDestroyed || this._destroying) { return } this._destroying = true;
+		const rootBuilder = this.rootBuilder ?? this, {builders, id} = this, {CSSClass_BuilderId} = FormBuilderBase;
+		try { const styles = $(`style[data-${CSSClass_BuilderId} = "${id}"]`); if (styles?.length) { styles.remove() } } catch (ex) { }
+		try { const {layout, input, part} = this; if (part) { if (part.destroyPart) { part.destroyPart(e) } } for (const elm of [input, layout]) { if (elm?.length) { elm.remove()} } } catch (ex) { console.error(ex) }
+		try { for (const builder of builders) { if (builder != this && builder.destroyPart) { builder.destroyPart(e) } } } catch (ex) { console.error(ex) }
+		delete this._destroying; this.isDestroyed = true
+		/*if (!rootBuilder.isDestroyed) { const {CSSClass_BuilderId} = FormBuilderBase, styles = $(`style[data-${CSSClass_BuilderId}="${this.id}"]`); if (styles?.length) { styles.remove() } rootBuilder.isDestroyed = true }*/
 	}
 	addForm(e, _layout, _parent, _renk, _zeminRenk, _styles) {
 		e = e || {}; const id = typeof e == 'object' ? e.id : e;

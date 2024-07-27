@@ -3,7 +3,7 @@ class DAltRapor_Grid extends DAltRapor {
 	subFormBuilderDuzenle(e) {
 		super.subFormBuilderDuzenle(e); const {parentBuilder} = this;
 		let fbd = this.fbd_grid = parentBuilder.addGridliGosterici('grid').rowNumberOlmasin().notAdaptive()
-			.addStyle_fullWH(null, 'calc(var(--full) - 0px)').widgetArgsDuzenleIslemi(e => this.gridArgsDuzenle(e) ).onBuildEk(e => this.onGridInit(e))
+			.addStyle_fullWH(null, 'calc(var(--full) - 30px)').widgetArgsDuzenleIslemi(e => this.gridArgsDuzenle(e) ).onBuildEk(e => this.onGridInit(e))
 			.veriYukleninceIslemi(e => this.gridVeriYuklendi(e)).setSource(e => this.loadServerData(e))
 			.setTabloKolonlari(e => { let _e = { ...e, liste: [] }; this.tabloKolonlariDuzenle(_e); return _e.liste })
 			.onAfterRun(e => this.onGridRun(e));
@@ -11,8 +11,8 @@ class DAltRapor_Grid extends DAltRapor {
 	}
 	super_subFormBuilderDuzenle(e) { super.subFormBuilderDuzenle(e) }
 	gridBuilderDuzenle(e) { }
-	gridArgsDuzenle(e) { const {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: true, showGroupsHeader: true, groupsExpandedByDefault: false }) }
 	onGridInit(e) { this.gridPart = e.builder.part } onGridRun(e) { const {gridPart} = this, {grid, gridWidget} = gridPart; $.extend(this, { grid, gridWidget }) }
+	gridArgsDuzenle(e) { const {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: true, showGroupsHeader: true, groupsExpandedByDefault: false }) }
 	tabloKolonlariDuzenle(e) { } loadServerData(e) { } gridVeriYuklendi(e) { }
 	tazele(e) { super.tazele(e); this.gridPart?.tazele(e) }
 	super_tazele(e) { super.tazele(e) }
@@ -24,8 +24,10 @@ class DAltRapor_GridGruplu extends DAltRapor_Grid {
 	static get gridGrupAttrSet() { let result = this._gridGrupAttrSet; if (result == null) { result = this._gridGrupAttrSet = asSet(this.gridGrupAttrListe) } return result }
 	static get gridGrupAttrListe() { return [] } static get kaPrefixes() { return [] } static get sortAttr() { return null }
 	static get gruplama2IcerikCols() { return {} }
-	gridArgsDuzenle(e) { super.gridArgsDuzenle(e); const {args} = e; $.extend(args, { /* showStatusBar: true, showGroupAggregates: true , compact: true */ }) }
+	/*subFormBuilderDuzenle(e) { super.subFormBuilderDuzenle(e); const {rfb} = e; rfb.addCSS('no-overflow') }*/
 	onGridInit(e) { super.onGridInit(e); const {gridPart} = this; gridPart.gruplamalar = {} }
+	gridArgsDuzenle(e) { super.gridArgsDuzenle(e); const {args} = e; $.extend(args, { /* showStatusBar: true, showGroupAggregates: true , compact: true */ }) }
+	async tazele(e) { await super.tazele(e); await this.tazeleDiger(e) }
 	async loadServerData(e) {
 		super.loadServerData(e); const {gridPart} = this; let {gruplamalar} = gridPart;
 		if ($.isEmptyObject(gruplamalar)) { return [] } /*if ($.isEmptyObject(gruplamalar)) { gruplamalar = asSet(this.class.gruplamaKAListe.map(x => x.kod)) } */
@@ -100,3 +102,16 @@ class DAltRapor_GridGruplu extends DAltRapor_Grid {
 		if (flag) { gruplamalar[id] = true } else { delete gruplamalar[id] }
 	}
 }
+class DAltRapor_Grid_Ozet extends DAltRapor_Grid {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return null } static get altRaporMainClass() { return null }
+	static get kod() { return 'ozet' } static get aciklama() { return 'Özet Bilgi' }
+	get width() { return `calc(var(--full) - ${this.rapor.id2AltRapor.main.width})` } get height() { return '400px' }
+	gridArgsDuzenle(e) { const {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: false, showGroupsHeader: false }) }
+	tazele(e) {
+		super.tazele(e); const{gridPart} = this, {gridWidget} = gridPart, {main} = this.rapor.id2AltRapor, colDefs = main.ozetBilgi?.colDefs || [];
+		setTimeout(() => { gridWidget.beginupdate(); gridPart.updateColumns(colDefs); gridWidget.endupdate(false) }, 100)
+	}
+	tabloKolonlariDuzenle(e) { super.tabloKolonlariDuzenle(e) }
+	loadServerData(e) { super.loadServerData(e); const {main} = this.rapor.id2AltRapor; return main.ozetBilgi?.recs || [] }
+}
+
