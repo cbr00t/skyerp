@@ -163,8 +163,10 @@ class ModelKullanPart extends Part {
 			setTimeout(() => widget.input.select(), 50)
 		});
 		if (isDropDown || this.autoBind) { input[jqxSelector]({ source: da }) } else { widget.source = da }
-		let btn = $(`<button id="listedenSec">...</button>`).jqxButton({ theme, width: 38, height: 32 });
-		btn.on('click', event => this.listedenSecIstendi({ ...e, event })); btn.appendTo(layout)
+		if (!this.listedenSecilemezFlag) {
+			let btn = $(`<button id="listedenSec">...</button>`).jqxButton({ theme, width: 38, height: 32 });
+			btn.on('click', event => this.listedenSecIstendi({ ...e, event })); btn.appendTo(layout)
+		}
 	}
 	destroyPart(e) {
 		super.destroyPart(e); const {input, isDropDown} = this;
@@ -374,8 +376,13 @@ class ModelKullanPart extends Part {
 					else { setTimeout(() => widget.input.focus(), 10) }
 				}, 1)
 			},
-			kapaninca: e => { const {parentPart} = this, {gridWidget} = parentPart?.gridPart || {}; if (gridWidget) setTimeout(() => gridWidget.focus(), 10) }
+			kapaninca: e => {
+				const {parentPart} = this, {gridWidget} = parentPart?.gridPart || {};
+				let otherWindows = $('.jqx-window'); if (otherWindows.length) { otherWindows.jqxWindow('expand') }
+				if (gridWidget) { setTimeout(() => gridWidget.focus(), 10) }
+			}
 		});
+		let otherWindows = $('.jqx-window'); if (otherWindows.length) { otherWindows.jqxWindow('collapse') }
 		setTimeout(() => part.run(), 10)
 	}
 	getDataAdapter(e) {

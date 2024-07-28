@@ -7,7 +7,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 			.onAfterRun(async e => {
 				const fbd_grid = e.builder, gridPart = this.gridPart = fbd_grid.part = {}, grid = gridPart.grid = fbd_grid.layout;
 				$.extend(gridPart, { tazele: e => this.tazele(e), hizliBulIslemi: e => this.hizliBulIslemi(e) });
-				this.onGridInit(e); let _e = { ...e, liste: [] }; this.tabloKolonlariDuzenle(_e); const colDefs = this.tabloKolonlari = this.getColumns(_e.liste || []);				
+				this.onGridInit(e); let _e = { ...e, liste: [] }; this.tabloKolonlariDuzenle(_e); const colDefs = this.tabloKolonlari = _e.liste || [];				
 				const columns = noAutoColumns ? [] : colDefs.flatMap(colDef => colDef.jqxColumns), source = await this.getDataAdapter(e);
 				const localization = localizationObj, width = '99.7%', height = 'calc(var(--full) - 40px)', autoRowHeight = true, autoShowLoadElement = true, altRows = true;
 				const filterMode = 'advanced';	/* default | simple | advanced */
@@ -88,17 +88,34 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		return recs
 	}
 	loadServerData_recsDuzenle(e) { } loadServerData_recsDuzenleSon(e) { } loadServerData_recsDuzenle_seviyelendir(e) { }
+	exportExcelIstendi(e) { return this.exportXIstendi({ ...e, type: 'xls', mimeType: 'application/vnd.ms-excel' }) }
+	exportPDFIstendi(e) { return this.exportXIstendi({ ...e, type: 'pdf', mimeType: 'application/pdf' }) }
+	exportHTMLIstendi(e) { return this.exportXIstendi({ ...e, type: 'html', mimeType: 'text/html' }) }
+	exportXIstendi(e) {
+		const {type, mimeType} = e, {gridPart} = this, {grid} = gridPart; showProgress();
+		try {
+			let data = grid.jqxTreeGrid('exportData', type); if (!data) { return }
+			let url = URL.createObjectURL(new Blob([data], { encoding: wsCharSet, type: `${mimeType}; charset=${wsCharSet}` }));
+			if (type == 'html') { openNewWindow(url) }
+			else { let a = document.createElement('a'); a.href = url; a.download = `SkyRapor.${type}`; a.click() }
+		}
+		finally { setTimeout(() => hideProgress(), 100) }
+	}
 	getColumns(colDefs) {
-		if (colDefs) {
-			const {gridPart} = this; for (const colDef of colDefs) {
-				colDef.gridPart = gridPart; for (const key of ['tip', 'cellsRenderer','cellValueChanging']) { delete colDef[key] }
-				colDef.aggregatesRenderer = (colDef, aggregates, jqCol, elm) => {
-					let result = []; for (const [tip, value] of Object.entries(aggregates)) {
-						if (typeof value != 'number') { continue }
-						result.push(`<div class="toplam-item"><span class="lightgray">T</span> <span>${value.toLocaleString()}</span></div>`)
-					}
-					return result.join('')
+		if (!colDefs) { return colDefs }
+		const {gridPart} = this; for (let i = 0; i < colDefs.length; i++) {
+			const colDef = colDefs[i] = colDefs[i].deepCopy(); colDef.gridPart = gridPart; const {tip} = colDef;
+			for (const key of ['tip', 'cellsRenderer', 'cellValueChanging']) { delete colDef[key] }
+			colDef.aggregatesRenderer = (colDef, aggregates, jqCol, elm) => {
+				let result = []; for (const [tip, value] of Object.entries(aggregates)) {
+					if (typeof value != 'number') { continue }
+					result.push(`<div class="toplam-item"><span class="lightgray">T</span> <span>${value.toLocaleString()}</span></div>`)
 				}
+				return result.join('')
+			};
+			if (tip instanceof GridKolonTip_Number) {
+				const {fra} = tip; colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) => toStringWithFra(value, fra)
+				if (!colDef.aggregates &&  tip instanceof GridKolonTip_Decimal) { colDef.aggregates = (total, value) => asFloat(total) + asFloat(value) }
 			}
 		}
 		return colDefs
@@ -138,14 +155,22 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		super.tabloKolonlariDuzenle(e) ; const {liste} = e, {tabloYapi} = this, {grup, toplam} = tabloYapi;
 		for (const item of [grup, toplam]) { for (const {colDefs} of Object.values(item)) { if (colDefs?.length) { liste.push(...colDefs) } } }
 	}
-	gridArgsDuzenle(e) { super.gridArgsDuzenle(e) ; const {args} = e; $.extend(args, { showSubAggregates: false /*showStatusBar: true, showGroupAggregates: true , compact: true*/ }) }
+	gridArgsDuzenle(e) {
+		super.gridArgsDuzenle(e) ; const {args} = e; $.extend(args, {
+			showSubAggregates: false, /*showStatusBar: true, showGroupAggregates: true , compact: true*/
+			exportSettings: {
+				columnsHeader: true, hiddenColumns: false, collapsedRecords: true, recordsInView: true, fileName: null,
+				characterSet: 'utf-8', serverURL: app.getWSUrl({ api: 'echo', args: { stream: true, type: 'application/octet-stream' } })
+			}
+		})
+	}
 	async loadServerData(e) { let recs = this.secilenler.secilenVarmi ? await super.loadServerData(e) : []; e.recs = recs; await this.ozetBilgiRecsOlustur(e); return recs }
 	loadServerData_recsDuzenleIlk(e) {
 		let {recs} = e; const {kaPrefixes, sortAttr} = this.tabloYapi, fixKA = (rec, prefix) => {
 			if (rec == null) { return } const kod = rec[prefix + 'kod'], adi = rec[prefix + 'adi'];
 			if (kod !== undefined) {
-				rec[prefix] = kod ? `<b>(${kod ?? ''})</b> ${adi ?? ''}` : '';
-				delete rec[prefix + 'kod']; delete rec[prefix + 'adi']
+				let value = kod || ''; if (kod) { value = `(${value}) ` } value += adi || '';
+				rec[prefix] = value; delete rec[prefix + 'kod']; delete rec[prefix + 'adi']
 			}
 		};
 		let id = 1; for (const rec of recs) { for (const prefix of kaPrefixes) { fixKA(rec, prefix) } rec.id = id++ }
@@ -223,7 +248,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		let fbd_sablonParent = fbd_ust.addFormWithParent('sablon-parent').yanYana().addStyle_fullWH().addStyle([e =>
 			`$elementCSS { position: relative; top: 5px }
 			$elementCSS > .button { width: 50px !important; height: 45px !important; min-width: unset !important }`]);
-		fbd_sablonParent.addModelKullan('sablonKod', 'Şablon').etiketGosterim_yok().dropDown().noMF().kodsuz().listedenSecilemez().setSource([]).addStyle_fullWH('calc(var(--full) - 300px)');
+		fbd_sablonParent.addModelKullan('sablonKod', 'Şablon').etiketGosterim_yok().dropDown().noMF().kodsuz()/*.listedenSecilemez()*/.setSource([]).addStyle_fullWH('calc(var(--full) - 300px)');
 		fbd_sablonParent.addButton('sablonKaydet', '+').addCSS('button').onClick(_e => this.tabloTanimlariGoster_sablonKaydetIstendi({ ...e, ..._e, wnd, inst }));
 		fbd_sablonParent.addButton('sablonSil', 'x').addCSS('button').onClick(_e => this.tabloTanimlariGoster_sablonSilIstendi({ ...e, ..._e, wnd, inst }));
 		let fbd_islemTuslari = fbd_ust.addFormWithParent('islemTuslari').yanYana().addStyle_wh('auto', islemTuslariHeight).addStyle(`$elementCSS { position: absolute; top: 0; right: 0; z-index: 1000 }`);
@@ -257,9 +282,9 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		fbd_orta.addDiv('grup').setEtiket('Grup').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight).setAltInst(inst.listStates).onAfterRun(e => initListBox(e));
 		fbd_orta.addDiv('icerik').setEtiket('İçerik').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight).setAltInst(inst.listStates).onAfterRun(e => initListBox(e));
 		let fbd_sag = fbd_content.addFormWithParent('sag').altAlta().addStyle_fullWH(sagWidth); fbd_sag.addNumberInput('ozetMax', '... max');
-		wnd = createJQXWindow({ title, args: { isModal: true, closeButtonAction: 'close', width: Math.min(530, Math.max(600, $(window).width() - 100)), height: Math.min(800, $(window).height() - 50) } });
+		wnd = createJQXWindow({ title, args: { isModal: false, closeButtonAction: 'close', width: Math.min(530, Math.max(600, $(window).width() - 100)), height: Math.min(800, $(window).height() - 50) } });
 		wnd.on('close', evt => { wnd.jqxWindow('destroy'); $('body').removeClass('bg-modal') });
-		wnd.prop('id', wRFB.id); wnd.addClass('dRapor part'); $('body').addClass('bg-modal');
+		wnd.prop('id', wRFB.id); wnd.addClass('dRapor part'); setTimeout(() => $('body').addClass('bg-modal'), 10);
 		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run(); this._tabloTanimGosterildiFlag = true
 	}
 	tabloTanimlariGoster_tamamIstendi(e) {
@@ -272,6 +297,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	}
 	tabloTanimlariGoster_sablonKaydetIstendi(e) { }
 	tabloTanimlariGoster_sablonSilIstendi(e) { }
+	seviyeAcIstendi(e) { const {gridPart} = this, {gridWidget} = gridPart; gridWidget.expandAll() }
+	seviyeKapatIstendi(e) { const {gridPart} = this, {gridWidget} = gridPart; gridWidget.collapseAll() }
 	getColumns(colDefs) {
 		colDefs = super.getColumns(colDefs); if (!colDefs) { return colDefs }
 		const {gridPart} = this; let icerikColsSet; for (const colDef of colDefs) {

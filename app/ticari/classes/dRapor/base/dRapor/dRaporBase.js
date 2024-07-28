@@ -118,7 +118,13 @@ class DGrupluPanelRapor extends DPanelRapor {
 		if (prefix) { const postfixes = ['_Main', '_Ozet', '_Chart', '_Diagram'],  classes = postfixes.map(postfix => window[prefix + postfix]).filter(cls => !!cls); this.add(...classes) }
 	}
 	islemTuslariArgsDuzenle(e) {
-		super.islemTuslariArgsDuzenle(e); const {liste} = e;
-		liste.push({ id: 'tabloTanimlari', text: 'Tablo Tanım', handler: _e => this.id2AltRapor.main.tabloTanimlariGosterIstendi({ ...e, ..._e }) })
+		super.islemTuslariArgsDuzenle(e); const {liste} = e; liste.push(
+			{ id: 'tabloTanimlari', text: 'Tablo Tanım', handler: _e => this.id2AltRapor.main.tabloTanimlariGosterIstendi({ ...e, ..._e }) },
+			{ id: 'seviyeAc', text: 'Seviye Aç', handler: _e => this.id2AltRapor.main.seviyeAcIstendi({ ...e, ..._e }) },
+			{ id: 'seviyeKapat', text: 'Seviye Kapat', handler: _e => this.id2AltRapor.main.seviyeKapatIstendi({ ...e, ..._e }) },
+			{ id: 'excel', text: '', handler: _e => this.id2AltRapor.main.exportExcelIstendi({ ...e, ..._e }) },
+			/*{ id: 'pdf', text: '', handler: _e => this.id2AltRapor.main.exportPDFIstendi({ ...e, ..._e }) },*/
+			{ id: 'html', text: '', handler: _e => this.id2AltRapor.main.exportHTMLIstendi({ ...e, ..._e }) }
+		)
 	}
 }

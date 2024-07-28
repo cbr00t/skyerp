@@ -34,7 +34,7 @@ class GridKolon extends GridKolonVeGrupOrtak {
 		};
 		const savedCellsRenderer = this.cellsRenderer; this.cellsRenderer = (colDef, rowIndex, belirtec, value, html, jqxCol, rec, result) => {
 			if (result === undefined) { result = html }
-			const type = 'cellsRenderer', {gridPart} = colDef, {inst} = gridPart, mfSinif = gridPart?.mfSinif ?? inst?.class; clearTimeout(this._timer_rendered);
+			const type = 'cellsRenderer', {gridPart} = colDef, {inst} = gridPart || {}, mfSinif = gridPart?.mfSinif ?? inst?.class; clearTimeout(this._timer_rendered);
 			if (gridPart) {
 				const delayMS = gridPart.renderDelayMS ?? mfSinif?.orjBaslik_gridRenderDelayMS ?? MQCogul.defaultOrjBaslik_gridRenderDelayMS;
 				let {_timestamp_gridRendered} = gridPart; /*if (!_timestamp_gridRendered || (now() - _timestamp_gridRendered) >= 10)*/

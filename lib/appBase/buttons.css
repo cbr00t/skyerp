@@ -56,6 +56,7 @@ button#secimler {background-image: url(../../images/filtre.png) !important;}
 #basliklariDuzenle, #rapor, #kolonFiltre, #secimler { }
 #yazdir { background-image: url(../../images/yazdir.png) !important }
 #excel { background-image: url(../../images/excel.png) !important }
+#pdf { background-image: url(../../images/pdf.png) !important }
 #html { background-image: url(../../images/html.png) !important }
 #sol-ok { background-image: url(../../images/sol.png) !important }
 #sag-ok { background-image: url(../../images/sag.png) !important }
