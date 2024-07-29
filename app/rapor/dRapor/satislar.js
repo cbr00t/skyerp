@@ -22,18 +22,21 @@ class DAltRapor_Satislar_Main extends DAltRapor_TreeGridGruplu {
 			CRIL: { ka: new CKodVeAdi({ kod: 'CRIL', aciklama: 'İl' }), colDefs: [new GridKolon({ belirtec: 'il', text: 'İl', maxWidth: 250, filterType: 'checkedlist' })] }
 		});
 		$.extend(toplam, {
-			miktar: { ka: new CKodVeAdi({ kod: 'miktar', aciklama: 'Miktar' }), colDefs: [new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 13, filterType: 'numberinput' }).tipDecimal()] },
-			ciro: { ka: new CKodVeAdi({ kod: 'ciro', aciklama: 'Ciro' }), colDefs: [new GridKolon({ belirtec: 'ciro', text: 'Ciro', genislikCh: 17, filterType: 'numberinput' }).tipDecimal_bedel() ] }
+			MIKTAR: { ka: new CKodVeAdi({ kod: 'MIKTAR', aciklama: 'Miktar' }), colDefs: [new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 13, filterType: 'numberinput' }).tipDecimal()] },
+			MIKTARKG: { ka: new CKodVeAdi({ kod: 'MIKTARKG', aciklama: 'Miktar (KG)' }), colDefs: [new GridKolon({ belirtec: 'miktarkg', text: 'Miktar', genislikCh: 13, filterType: 'numberinput' }).tipDecimal()] },
+			CIRO: { ka: new CKodVeAdi({ kod: 'CIRO', aciklama: 'Ciro' }), colDefs: [new GridKolon({ belirtec: 'ciro', text: 'Ciro', genislikCh: 17, filterType: 'numberinput' }).tipDecimal_bedel() ] }
 		})
 	}
 	async loadServerDataInternal(e) {
-		const {secilenler} = this, {grup, icerik} = secilenler, {maxRow} = e; let result = await app.sqlExecSP({
+		const {tabloYapi, secilenler} = this,{grup, icerik} = secilenler, {maxRow} = e;
+		const sabit = [...Object.keys(grup)], toplam = []; for (const key in icerik) { (tabloYapi.toplam[key] ? toplam : sabit).push(key) }
+		let result = await app.sqlExecSP({
 			query: 'tic_alimSatisKomutu', params: [
 				{ name: '@argDonemBasi', type: 'datetime', value: dateToString(new Date(1, 1, today().getFullYear())) },
 				{ name: '@argDonemSonu', type: 'datetime', value: dateToString(today()) },
 				{ name: '@argAlmSat', type: 'char', value: 'T' },
-				{ name: '@argSabitBelirtecler', type: 'structured', typeName: 'type_strIdList', value: Object.keys(grup).map(id => ({ id })) },
-				{ name: '@argToplamBelirtecler', type: 'structured', typeName: 'type_strIdList', value: Object.keys(icerik).map(id => ({ id })) }
+				{ name: '@argSabitBelirtecler', type: 'structured', typeName: 'type_strIdList', value: sabit.map(id => ({ id })) },
+				{ name: '@argToplamBelirtecler', type: 'structured', typeName: 'type_strIdList', value: toplam.map(id => ({ id })) }
 			]
 		}), query = Object.values((result || [])[0] || {})[0];
 		const recs = query ? await app.sqlExecSelect({ query, maxRow }) : null; return recs
