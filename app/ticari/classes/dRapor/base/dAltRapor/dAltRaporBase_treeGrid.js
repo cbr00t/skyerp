@@ -11,7 +11,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 				const columns = noAutoColumns ? [] : colDefs.flatMap(colDef => colDef.jqxColumns), source = await this.getDataAdapter(e);
 				const localization = localizationObj, width = '99.7%', height = 'calc(var(--full) - 40px)', autoRowHeight = true, autoShowLoadElement = true, altRows = true;
 				const filterMode = 'advanced';	/* default | simple | advanced */
-				const showAggregates = false, showSubAggregates = false, aggregatesHeight = 50, columnsResize = true, columnsReorder = true, sortable = true, filterable = false;
+				const showAggregates = true, showSubAggregates = false, aggregatesHeight = 50, columnsResize = true, columnsReorder = true, sortable = true, filterable = false;
 				let args = { theme, localization, width, height, autoRowHeight, autoShowLoadElement, altRows, filterMode, showAggregates, showSubAggregates, aggregatesHeight, columnsResize, columnsReorder, sortable, filterable, columns, source };
 				_e = { ...e, args }; this.gridArgsDuzenle(_e); args = _e.args; grid.jqxTreeGrid(args); gridPart.gridWidget = grid.jqxTreeGrid('getInstance');
 				grid.on('rowExpand', event => this.gridRowExpanded({ ...e, event }));
@@ -108,8 +108,8 @@ class DAltRapor_TreeGrid extends DAltRapor {
 			for (const key of ['cellsRenderer', 'cellValueChanging']) { delete colDef[key] }
 			colDef.aggregatesRenderer = (colDef, aggregates, jqCol, elm) => {
 				let result = []; for (const [tip, value] of Object.entries(aggregates)) {
-					if (typeof value != 'number') { continue }
-					result.push(`<div class="toplam-item"><span class="lightgray">T</span> <span>${value.toLocaleString()}</span></div>`)
+					if (typeof value != 'number') { continue } const dipBelirtec = tip == 'sum' ? 'T' : tip == 'avg' ? 'O' : tip;
+					result.push(`<div class="toplam-item"><span class="lightgray">${dipBelirtec}</span> <span>${roundToFra(value, 2).toLocaleString()}</span></div>`)
 				}
 				return result.join('')
 			};
@@ -222,14 +222,15 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			const {tabloKolonlari, tabloYapi, ozetBilgi} = this, {secilenVarmi, grup, icerik} = secilenler;
 			const tip2ColDefs = {}; for (const colDef of tabloKolonlari) { const {belirtec, userData} = colDef, {kod} = userData || {}; if (kod) { (tip2ColDefs[kod] = tip2ColDefs[kod] || []).push(colDef) } }
 			let colDefs = Object.keys(icerik).flatMap(kod => tip2ColDefs[kod]); colDefs.sort((a, b) => tabloYapi.toplam[a.userData?.kod] ? 1 : -1);
+			for (const colDef of colDefs) { if (!colDef.aggregates && tabloYapi.toplam[colDef.userData?.kod]) { colDef.aggregates = ['sum', 'avg'] } }
 			grid.jqxTreeGrid('clear'); colDefs = this.getColumns(colDefs); try { grid.jqxTreeGrid('columns', colDefs.flatMap(colDef => colDef.jqxColumns)) } catch (ex) { console.error(ex) }
 			$.extend(ozetBilgi, { grupTipKod: Object.keys(grup)[0] || null, icerikTipKod: Object.keys(icerik).find(kod => !!tabloYapi.toplam[kod]) || null });
 			$.extend(ozetBilgi, { grupAttr: (tip2ColDefs[ozetBilgi.grupTipKod] || [])[0]?.belirtec, icerikAttr: (tip2ColDefs[ozetBilgi.icerikTipKod] || [])[0]?.belirtec });
 			const ozetBilgi_getColumns = (source, kod, colDefDuzenle) =>
-				(source[kod]?.colDefs || []).map(_colDef => { const colDef = _colDef.deepCopy(); if (colDefDuzenle) { getFuncValue.call(this, colDefDuzenle, colDef) } return colDef });
+				this.getColumns((source[kod]?.colDefs || [])).map(_colDef => { const colDef = _colDef/*.deepCopy()*/; if (colDefDuzenle) { getFuncValue.call(this, colDefDuzenle, colDef) } return colDef });
 			ozetBilgi.colDefs = ozetBilgi.grupTipKod ? [
 				...ozetBilgi_getColumns(tabloYapi.grup, ozetBilgi.grupTipKod, colDef => $.extend(colDef, { minWidth: 250, maxWidth: null, genislikCh: null })),
-				...ozetBilgi_getColumns(tabloYapi.toplam, ozetBilgi.icerikTipKod, colDef => $.extend(colDef, { minWidth: null, maxWidth: null, genislikCh: 16, aggregates: ['sum'] }))
+				...ozetBilgi_getColumns(tabloYapi.toplam, ozetBilgi.icerikTipKod, colDef => $.extend(colDef, { minWidth: null, maxWidth: null, genislikCh: 16, aggregates: ['sum', 'avg'], align: 'right' }))
 			] : [];
 			secilenler.degistimi = false
 		}
@@ -307,11 +308,13 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	seviyeKapatIstendi(e) { const {gridPart} = this, {gridWidget} = gridPart; gridWidget.collapseAll() }
 	getColumns(colDefs) {
 		colDefs = super.getColumns(colDefs); if (!colDefs) { return colDefs }
-		const {gridPart} = this; let icerikColsSet; for (const colDef of colDefs) {
+		const {gridPart, tabloYapi} = this; let icerikColsSet; for (const colDef of colDefs) {
+			const kod = colDef.userData?.kod; if (tabloYapi.toplam[kod]) { if (!colDef.align) { colDef.alignRight() } /*if (!colDef.cellsFormat) { colDef.cellsFormat = 'd' }*/ }
 			colDef.cellClassName = (colDef, rowIndex, belirtec, value, rec) => {
 				if (icerikColsSet == null) { const {secilenler} = this; icerikColsSet = secilenler.icerik }
-				const result = ['treeRow']; if (rec) { result.push(rec.leaf ? 'leaf' : 'grup') }
+				const kod = colDef.userData?.kod, result = ['treeRow']; if (rec) { result.push(rec.leaf ? 'leaf' : 'grup') }
 				if (icerikColsSet && icerikColsSet[belirtec]) { result.push('icerik') }
+				if (tabloYapi.toplam[kod]) { result.push('toplam') }
 				let {level} = rec; if (level != null) { result.push('level-' + level.toString()) }
 				return result.filter(x => !!x).join(' ')
 			}

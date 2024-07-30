@@ -1,4 +1,3 @@
-.dRapor.masterListe.part .jqx-grid [role = row] > div, #dRapor.part #items > .item .jqx-grid tr > .jqx-grid-cell { font-size: 120% }
 #dRapor.part { --islemTuslari-height: 55px }
 #dRapor.part > .islemTuslari { width: var(--full); height: var(--islemTuslari-height) }
 #dRapor.part > .wnd-content > *:not(.bulForm):not(.islemTuslari) { background: white !important }
@@ -20,20 +19,24 @@
 #dRapor.part #items > .item.hasFocus > label { background-color: #c9cdd9; user-select: none }
 .dRapor .anim-gruplamalar-highlight, #dRapor .anim-gruplamalar-highlight { border: 3px solid forestgreen !important; animation: 850ms infinite cubic-bezier(0.46, 0.03, 0.52, 0.96) anim-gruplamalar-hightlight }
 @keyframes anim-gruplamalar-hightlight { 50% { background-color: #c9e0c9 } }
-#dRapor.part .jqx-grid tr .jqx-grid-cell:not(.jqx-grid-cell-selected):not(.leaf) { font-weight: bold; font-size: 125% !important }
-#dRapor.part .jqx-grid tr .jqx-grid-cell:not(.jqx-grid-cell-selected).level-0:not(.leaf) { font-size: 135% !important }
-#dRapor.part .jqx-grid tr:nth-child(even) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-0:not(.leaf) { background-color: #e2e7f1 !important }
-#dRapor.part .jqx-grid tr:nth-child(odd) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-0:not(.leaf) { background-color: #ecf2fe !important }
-#dRapor.part .jqx-grid tr .jqx-grid-cell:not(.jqx-grid-cell-selected).level-1:not(.leaf) { font-size: 130% !important }
-#dRapor.part .jqx-grid tr:nth-child(even) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-1:not(.leaf) { background-color: #f8e8d5 !important }
-#dRapor.part .jqx-grid tr:nth-child(odd) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-1:not(.leaf) { background-color: #e6d7c5 !important }
-#dRapor.part .jqx-grid tr .jqx-grid-cell:not(.jqx-grid-cell-selected).level-2:not(.leaf) { font-size: 125% !important }
-#dRapor.part .jqx-grid tr:nth-child(even) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-2:not(.leaf) { background-color: #d4e6c5 !important }
-#dRapor.part .jqx-grid tr:nth-child(odd) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-2:not(.leaf) { background-color: #c7d5bb !important }
-#dRapor.part .jqx-grid .jqx-grid-cell-selected { color: whitesmoke; background-color: #426aae }
-#dRapor.part .jqx-grid .jqx-grid-cell-selected.icerik { font-weight: bold }
-#dRapor.part .jqx-grid :not([data-role = 'summaryrow']) .jqx-grid-cell.treeRow.grup.icerik { font-size: 110%; font-weight: bold; color: forestgreen }
-#dRapor.part .jqx-grid :not([data-role = 'summaryrow']) .jqx-grid-cell.treeRow.grup.icerik.jqx-fill-state-pressed { color: whitesmoke; border-bottom: 2px solid #8ee48e }
-#dRapor.part .jqx-grid [data-role = 'summaryrow'] > .jqx-grid-cell { font-size: 110%; font-weight: bold; color: forestgreen }
-#dRapor.part .jqx-grid .jqx-grid-column-header { font-weight: bold; font-size: 130% }
-#dRapor.part .jqx-grid .jqx-grid-statusbar > div > .jqx-grid-cell { font-size: 100%; font-weight: bold; color: royalblue }
+.dRapor.masterListe.part .jqx-grid [role = row] > div, #dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid tr > .jqx-grid-cell { font-size: 120% }
+#dRapor.part #items > .item .jqx-grid .jqx-grid-cell.toplam { font-weight: bold }
+#dRapor.part #items > .item .jqx-grid .jqx-grid-cell:not(.jqx-grid-cell-selected).toplam { background-color: #f1fff1 }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell:not(.jqx-grid-cell-selected):not(.leaf) { font-weight: bold; font-size: 125% }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell:not(.jqx-grid-cell-selected).level-0:not(.leaf) { font-size: 135% }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid tr:nth-child(even) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-0:not(.leaf) { background-color: #e2e7f1 }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid tr:nth-child(odd) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-0:not(.leaf) { background-color: #ecf2fe }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell:not(.jqx-grid-cell-selected).level-1:not(.leaf) { font-size: 130% }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid tr:nth-child(even) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-1:not(.leaf) { background-color: #f8e8d5 }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid tr:nth-child(odd) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-1:not(.leaf) { background-color: #e6d7c5 }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell:not(.jqx-grid-cell-selected).level-2:not(.leaf) { font-size: 125% }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid tr:nth-child(even) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-2:not(.leaf) { background-color: #d4e6c5 }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid tr:nth-child(odd) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-2:not(.leaf) { background-color: #c7d5bb }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell-selected { color: whitesmoke; background-color: #426aae }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell-selected.icerik { font-weight: bold }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid :not([data-role = 'summaryrow']) .jqx-grid-cell.treeRow.grup.icerik { font-size: 110%; font-weight: bold; color: forestgreen }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid :not([data-role = 'summaryrow']) .jqx-grid-cell.treeRow.grup.icerik.jqx-fill-state-pressed { color: whitesmoke; border-bottom: 2px solid #8ee48e }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid [data-role = 'summaryrow'] > .jqx-grid-cell { font-size: 110%; font-weight: bold; color: forestgreen }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-column-header { font-weight: bold; font-size: 130% }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-statusbar > div > .jqx-grid-cell { font-size: 100%; font-weight: bold; color: royalblue }
+#dRapor.part #items > .item[data-builder-id = 'ozet'] .jqx-grid .jqx-grid-cell { font-size: 83% }
