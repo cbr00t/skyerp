@@ -20,7 +20,7 @@ class DAltRapor_Grid extends DAltRapor {
 class DAltRapor_GridGruplu extends DAltRapor_Grid {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridliAltRapormu() { return true }
 	static get raporClass() { return null } static get kod() { return 'main' } static get aciklama() { return this.raporClass.aciklama }
-	get width() { return '75%' } get height() { return 'var(--full)' } static get gruplamaKAListe() { return [] }
+	get width() { return '73%' } get height() { return 'var(--full)' } static get gruplamaKAListe() { return [] }
 	static get gridGrupAttrSet() { let result = this._gridGrupAttrSet; if (result == null) { result = this._gridGrupAttrSet = asSet(this.gridGrupAttrListe) } return result }
 	static get gridGrupAttrListe() { return [] } static get kaPrefixes() { return [] } static get sortAttr() { return null }
 	static get gruplama2IcerikCols() { return {} }

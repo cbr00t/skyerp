@@ -9,10 +9,10 @@ class DAltRapor_Satislar_Main extends DAltRapor_TreeGridGruplu {
 		super.tabloYapiDuzenle(e); const {result} = e, {grup, toplam, kaPrefixes} = result;
 		result.sortAttr = 'yilay'; kaPrefixes.push('stok', 'grup', 'cari', 'tip', 'bolge', 'il');
 		$.extend(grup, {
-			YILAY: { ka: new CKodVeAdi({ kod: 'YILAY', aciklama: 'Yıl-Ay' }), colDefs: [new GridKolon({ belirtec: 'yilay', text: 'Yıl-Ay', genislikCh: 13, filterType: 'checkedlist' })] },
-			YILHAFTA: { ka: new CKodVeAdi({ kod: 'YILHAFTA', aciklama: 'Yıl-Hafta' }), colDefs: [new GridKolon({ belirtec: 'yilhafta', text: 'Yıl-Hafta', genislikCh: 10, filterType: 'checkedlist' })] },
-			AYADI: { ka: new CKodVeAdi({ kod: 'AYADI', aciklama: 'Ay' }), colDefs: [new GridKolon({ belirtec: 'ayadi', text: 'Ay', genislikCh: 10, filterType: 'checkedlist' })] },
-			HAFTA: { ka: new CKodVeAdi({ kod: 'HAFTA', aciklama: 'Hafta' }), colDefs: [new GridKolon({ belirtec: 'haftano', text: 'Hafta', genislikCh: 13, filterType: 'checkedlist' })] },
+			YILAY: { ka: new CKodVeAdi({ kod: 'YILAY', aciklama: 'Yıl-Ay' }), colDefs: [new GridKolon({ belirtec: 'yilay', text: 'Yıl-Ay', genislikCh: 10, filterType: 'checkedlist' })] },
+			YILHAFTA: { ka: new CKodVeAdi({ kod: 'YILHAFTA', aciklama: 'Yıl-Hafta' }), colDefs: [new GridKolon({ belirtec: 'yilhafta', text: 'Yıl-Hafta', genislikCh: 8, filterType: 'checkedlist' })] },
+			AYADI: { ka: new CKodVeAdi({ kod: 'AYADI', aciklama: 'Ay' }), colDefs: [new GridKolon({ belirtec: 'ayadi', text: 'Ay', genislikCh: 8, filterType: 'checkedlist' })] },
+			HAFTA: { ka: new CKodVeAdi({ kod: 'HAFTA', aciklama: 'Hafta' }), colDefs: [new GridKolon({ belirtec: 'haftano', text: 'Hafta', genislikCh: 8, filterType: 'checkedlist' })] },
 			TARIH: { ka: new CKodVeAdi({ kod: 'TARIH', aciklama: 'Tarih' }), colDefs: [new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13, filterType: 'checkedlist' }).tipDate()] },
 			STGRP: { ka: new CKodVeAdi({ kod: 'STGRP', aciklama: 'Stok Grup' }), colDefs: [new GridKolon({ belirtec: 'grup', text: 'Stok Grup', maxWidth: 350, filterType: 'checkedlist' })] },
 			STOK: { ka: new CKodVeAdi({ kod: 'STOK', aciklama: 'Stok' }), colDefs: [new GridKolon({ belirtec: 'stok', text: 'Stok', maxWidth: 600, filterType: 'input' })] },

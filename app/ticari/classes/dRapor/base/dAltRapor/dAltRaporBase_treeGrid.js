@@ -180,12 +180,17 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		e.recs = recs; return super.loadServerData_recsDuzenleIlk(e)
 	}
 	loadServerData_recsDuzenle_seviyelendir(e) {
-		super.loadServerData_recsDuzenle_seviyelendir(e); const {gridPart, secilenler} = this, {gridWidget} = gridPart, {grup, icerik} = secilenler;
+		super.loadServerData_recsDuzenle_seviyelendir(e); const {gridPart, tabloYapi, secilenler} = this, {gridWidget} = gridPart, {grup, icerik} = secilenler;
 		const belirtec2ColDef = [], grupColAttrListe = [], _sumAttrListe = [];
-		for (const colDef of this.tabloKolonlari) {
-			const {belirtec} = colDef, userData = colDef.userData || {}, {tip, kod} = userData; belirtec2ColDef[belirtec] = colDef;
-			if (tip == 'grup' && grup[kod]) { grupColAttrListe.push(belirtec) }
-			else if (tip == 'toplam' && icerik[kod]) { _sumAttrListe.push(belirtec) }
+		for (const kod in grup) {
+			const item = tabloYapi.grup[kod]; if (!item) { continue } 
+			const {colDefs} = item; if (!colDefs) { continue }
+			for (const colDef of colDefs) { const {belirtec} = colDef; belirtec2ColDef[belirtec] = colDef; grupColAttrListe.push(belirtec) }
+		}
+		for (const kod in icerik) {
+			let toplammi = false, item = tabloYapi.grup[kod]; if (!item && (item = tabloYapi.toplam[kod])) { toplammi = true }
+			if (!item) { continue } const {colDefs} = item; if (!colDefs) { continue }
+			for (const colDef of colDefs) { const {belirtec} = colDef; belirtec2ColDef[belirtec] = colDef; if (toplammi) { _sumAttrListe.push(belirtec) } }
 		}
 		const jqxCols = gridWidget.base.columns.records, grupTextColAttr = jqxCols[0].datafield;
 		let {recs} = e; if (!grupColAttrListe) { return recs }
@@ -229,7 +234,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			const ozetBilgi_getColumns = (source, kod, colDefDuzenle) =>
 				this.getColumns((source[kod]?.colDefs || [])).map(_colDef => { const colDef = _colDef/*.deepCopy()*/; if (colDefDuzenle) { getFuncValue.call(this, colDefDuzenle, colDef) } return colDef });
 			ozetBilgi.colDefs = ozetBilgi.grupTipKod ? [
-				...ozetBilgi_getColumns(tabloYapi.grup, ozetBilgi.grupTipKod, colDef => $.extend(colDef, { minWidth: 250, maxWidth: null, genislikCh: null })),
+				...ozetBilgi_getColumns(tabloYapi.grup, ozetBilgi.grupTipKod, colDef => $.extend(colDef, { minWidth: 150, maxWidth: null, genislikCh: null })),
 				...ozetBilgi_getColumns(tabloYapi.toplam, ozetBilgi.icerikTipKod, colDef => $.extend(colDef, { minWidth: null, maxWidth: null, genislikCh: 16, aggregates: ['sum', 'avg'] }))
 			] : [];
 			secilenler.degistimi = false
