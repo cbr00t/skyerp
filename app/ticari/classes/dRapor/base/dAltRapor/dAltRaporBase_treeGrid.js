@@ -104,18 +104,18 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	getColumns(colDefs) {
 		if (!colDefs) { return colDefs }
 		const {gridPart} = this, result = []; for (let i = 0; i < colDefs.length; i++) {
-			const colDef = colDefs[i] = colDefs[i].deepCopy(); colDef.gridPart = gridPart; const {tip} = colDef;
+			const colDef = colDefs[i].deepCopy(); colDef.gridPart = gridPart; const {tip} = colDef;
 			for (const key of ['cellsRenderer', 'cellValueChanging']) { delete colDef[key] }
 			colDef.aggregatesRenderer = (colDef, aggregates, jqCol, elm) => {
-				let result = []; for (const [tip, value] of Object.entries(aggregates)) {
-					if (typeof value != 'number') { continue } const dipBelirtec = tip == 'sum' ? 'T' : tip == 'avg' ? 'O' : tip;
+				let result = []; for (let [tip, value] of Object.entries(aggregates)) {
+					if (value != null) { value = asFloat(value) } const dipBelirtec = tip == 'sum' ? 'T' : tip == 'avg' ? 'O' : tip;
 					result.push(`<div class="toplam-item"><span class="lightgray">${dipBelirtec}</span> <span>${roundToFra(value, 2).toLocaleString()}</span></div>`)
 				}
 				return result.join('')
 			};
 			if (tip instanceof GridKolonTip_Number) {
-				const {fra} = tip; colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) => toStringWithFra(value, fra);
-				if (!colDef.aggregates &&  tip instanceof GridKolonTip_Decimal) { colDef.aggregates = (total, value) => asFloat(total) + asFloat(value) }
+				const {fra} = tip; colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) => `<div class="right">${toStringWithFra(value, fra)}</div>`;
+				/*if (!colDef.aggregates &&  tip instanceof GridKolonTip_Decimal) { colDef.aggregates = [(total, value) => asFloat(total) + asFloat(value)] }*/
 			}
 			else if (tip instanceof GridKolonTip_Date) { colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) => dateToString(asDate(value)) }
 			delete colDef.tip; result.push(colDef)
@@ -230,7 +230,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				this.getColumns((source[kod]?.colDefs || [])).map(_colDef => { const colDef = _colDef/*.deepCopy()*/; if (colDefDuzenle) { getFuncValue.call(this, colDefDuzenle, colDef) } return colDef });
 			ozetBilgi.colDefs = ozetBilgi.grupTipKod ? [
 				...ozetBilgi_getColumns(tabloYapi.grup, ozetBilgi.grupTipKod, colDef => $.extend(colDef, { minWidth: 250, maxWidth: null, genislikCh: null })),
-				...ozetBilgi_getColumns(tabloYapi.toplam, ozetBilgi.icerikTipKod, colDef => $.extend(colDef, { minWidth: null, maxWidth: null, genislikCh: 16, aggregates: ['sum', 'avg'], align: 'right' }))
+				...ozetBilgi_getColumns(tabloYapi.toplam, ozetBilgi.icerikTipKod, colDef => $.extend(colDef, { minWidth: null, maxWidth: null, genislikCh: 16, aggregates: ['sum', 'avg'] }))
 			] : [];
 			secilenler.degistimi = false
 		}

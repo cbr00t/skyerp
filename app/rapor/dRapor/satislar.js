@@ -22,9 +22,9 @@ class DAltRapor_Satislar_Main extends DAltRapor_TreeGridGruplu {
 			CRIL: { ka: new CKodVeAdi({ kod: 'CRIL', aciklama: 'İl' }), colDefs: [new GridKolon({ belirtec: 'il', text: 'İl', maxWidth: 250, filterType: 'checkedlist' })] }
 		});
 		$.extend(toplam, {
-			MIKTAR: { ka: new CKodVeAdi({ kod: 'MIKTAR', aciklama: 'Miktar' }), colDefs: [new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 13, filterType: 'numberinput' }).tipDecimal()] },
-			MIKTARKG: { ka: new CKodVeAdi({ kod: 'MIKTARKG', aciklama: 'Miktar (KG)' }), colDefs: [new GridKolon({ belirtec: 'miktarkg', text: 'Miktar', genislikCh: 13, filterType: 'numberinput' }).tipDecimal()] },
-			CIRO: { ka: new CKodVeAdi({ kod: 'CIRO', aciklama: 'Ciro' }), colDefs: [new GridKolon({ belirtec: 'ciro', text: 'Ciro', genislikCh: 17, filterType: 'numberinput' }).tipDecimal_bedel() ] }
+			MIKTAR: { ka: new CKodVeAdi({ kod: 'MIKTAR', aciklama: 'Miktar' }), colDefs: [new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 15, filterType: 'numberinput' }).tipDecimal()] },
+			MIKTARKG: { ka: new CKodVeAdi({ kod: 'MIKTARKG', aciklama: 'Miktar (KG)' }), colDefs: [new GridKolon({ belirtec: 'miktarkg', text: 'Miktar (KG)', genislikCh: 15, filterType: 'numberinput' }).tipDecimal()] },
+			CIRO: { ka: new CKodVeAdi({ kod: 'CIRO', aciklama: 'Ciro' }), colDefs: [new GridKolon({ belirtec: 'ciro', text: 'Ciro', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel() ] }
 		})
 	}
 	async loadServerDataInternal(e) {
