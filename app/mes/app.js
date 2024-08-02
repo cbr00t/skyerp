@@ -92,7 +92,7 @@ class MESApp extends App {
 	wsPersonelAta(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/personelAta', args: e }) }) }
 	wsDuraksamaNedenleri(e) { return ajaxPost({ url: this.getWSUrl({ api: 'makineDurum/duraksamaNedenleri', args: e }) }) }
 	wsEkBilgiAta(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/ekBilgiAta', args: e }) }) }
-	wsEkBilgiTopluSifirla(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/wsEkBilgiTopluSifirla', args: e }) }) }
+	wsEkBilgiTopluSifirla(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/ekBilgiTopluSifirla', args: e }) }) }
 	wsIsAta(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/isAta', args: e }) }) }
 	wsBaslatDurdur(e) { return ajaxPost({ url: this.getWSUrl({ api: 'makineDurum/baslatDurdur', args: e }) }) }
 	wsIsBittiYap(e) { return ajaxPost({ url: this.getWSUrl({ api: 'makineDurum/isBitti', args: e }) }) }

@@ -64,9 +64,15 @@
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .durum { } .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .off > * { color: indianred }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .hat { color: #333 !important; background-color: #333 }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .hat .veri { font-weight: bold; font-size: 130%; color: #eee }
+.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .tezgah > * { position: relative }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .tezgah .ip { font-weight: bold; font-size: 95%; color: steelblue; min-width: 70px; left: 8px }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .tezgah .siradakiIsSayi { font-size: 95%; color: #999; min-width: 33px; left: 15px }
-.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .tezgah .siradakiIsSayi > .veri { font-weight: bold; color: orangered }
+.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .tezgah .siradakiIsSayi > ._veri { font-weight: bold; color: orangered }
+.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .tezgah .ekBilgi {
+	font-weight: bold; font-size: 90%; text-align: center; color: whitesmoke !important; background: #3c2020;
+	left: 15px; top: -5px; width: 130px !important; max-height: 30px !important; padding: 8px 3px; line-height: 13px;
+	overflow-y: auto; animation: 250ms cubic-bezier(0.1, 0, 1, 1) 0ms infinite normal ekBilgi-bg; cursor: pointer
+}
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe { height: 55px; z-index: 4 }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * { width: var(--full); height: var(--full); border: 1px dotted #dcdcdc; padding: 3px 0 0 15px !important; overflow-y: hidden !important }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > *.jqx-grid-cell-selected .isListe > * { border: 1px solid #aaa; overflow-y: overlay !important }
@@ -122,6 +128,7 @@
 }
 @keyframes sinyal-kritik-bg { 50% { background-color: #24400f } }
 @keyframes duraksama-kritik-bg { 50% { background-color: #853021 } }
+@keyframes ekBilgi-bg { 50% { background-color: #712e0e } }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .grafik-parent { position: absolute; margin-top: -3px; right: 10px; opacity: .5; height: 50px !important; overflow-y: clip }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .grafik-parent > * { }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > *.jqx-grid-cell-selected .grafik-parent { opacity: 1 }

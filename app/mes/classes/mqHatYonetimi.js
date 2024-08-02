@@ -258,6 +258,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 					case 'notEkle': this.ekNotEkleIstendi(e); break;
 					case 'dokumanYukle': this.dokumanYukleIstendi(e); break;
 					case 'dokumanSil': e.sil = true; this.dokumanYukleIstendi(e); break;
+					case 'ekBilgiSil': this.ekBilgiSilItendi(e); break;
 					default: eConfirm(`<b>${visibleindex + 1}. satırdaki</b> ve <b>${tezgahAdi}</b> tezgahına ait <b>${id}</b> id'li butona tıklandı`)
 				}
 			})
@@ -462,6 +463,12 @@ class MQHatYonetimi extends MQMasterOrtak {
 		});
 		elm.click()
 	}
+	static async ekBilgiSilItendi(e) {
+		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, recs = e.recs ?? gridPart.selectedRecs ?? []; if (!recs?.length) { return }
+		const tezgahIdListe = recs.map(rec => rec.tezgahKod);
+		try { await app.wsEkBilgiTopluSifirla({ tezgahIdListe }); gridPart.tazele(e) }
+		catch (ex) { console.error(ex); hConfirm(getErrorText(ex)) }
+	}
 	static openContextMenu(e) {
 		const noCheckFlag = e.noCheck ?? e.noCheckFlag, gridPart = e.gridPart = e.gridPart ?? e.sender ?? e.parentPart, gridWidget = e.gridWidget = gridPart.gridWidget;
 		const cells = e.cells = gridWidget.getselectedcells().filter(cell => cell.datafield[0] == '_');
@@ -473,7 +480,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 	}
 	static gridCell_getLayout(e) {
 		const gridPart = e.gridPart ?? e.sender, rec = e.rec ?? {}, isListe = rec.isListe ?? [], grupsuzmu = gridPart.grupsuzmu || gridPart.otoTazeleFlag;
-		const {sinyalKritik, duraksamaKritik, durumKod, durumAdi, durNedenKod, durNedenAdi, ip, siradakiIsSayi} = rec, {kritikDurNedenKodSet} = app.params.mes;
+		const {sinyalKritik, duraksamaKritik, durumKod, durumAdi, durNedenKod, durNedenAdi, ip, siradakiIsSayi, ekBilgi} = rec, {kritikDurNedenKodSet} = app.params.mes;
 		const kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod ? kritikDurNedenKodSet[durNedenKod] : false;
 		const isBilgiHTML = this.gridCell_getLayout_isBilgileri(e);
 		let topSaymaInd = 0, topSaymaSayisi = 0; for (const is of isListe) { topSaymaInd += (is.isSaymaInd || 0); topSaymaSayisi += (is.isSaymaSayisi || 0) }
@@ -489,10 +496,12 @@ class MQHatYonetimi extends MQMasterOrtak {
 					<tr class="tezgah item">
 						<!--<td class="islemTuslari"><button id="tezgahMenu">...</button></td>-->
 						<td colspan="2" class="veri">
-							<span class="asil flex-row"><b>${rec.tezgahKod}</b>-${rec.tezgahAdi}
-								${ip ? `<span class="ip">(${ip ||''})</span>` : ''}
-								${siradakiIsSayi ? `<span class="siradakiIsSayi"><span>+ </span><span class="veri">${siradakiIsSayi}</span></span>` : ''}
-							</span>
+							<div class="asil float-left"><b>${rec.tezgahKod}</b>-${rec.tezgahAdi}</div>
+							<div class="diger float-left flex-row">
+								${ip ? `<div class="ip">(${ip ||''})</div>` : ''}
+								${siradakiIsSayi ? `<div class="siradakiIsSayi"><span>+ </span><span class="_veri">${siradakiIsSayi}</span></div>` : ''}
+								${ekBilgi ? `<button id="ekBilgiSil" class="ekBilgi">${ekBilgi}</button>` : ''}
+							</div>
 						</td>
 					</tr>
 					<tr class="personel item">
