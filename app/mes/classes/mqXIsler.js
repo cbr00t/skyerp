@@ -3,7 +3,7 @@ class MQXIsler extends MQMasterOrtak {
 	static get sinifAdi() { return 'X İşler' } static get switchPartClass() { return this } static get switchButtonText() { return null }
 	static ekCSSDuzenle(e) {
 		const {rec, result} = e; if (rec.devreDisimi) { result.push('devreDisi') }
-		if (rec.batandimi) { result.push('atandi') } if (rec.bzamanetudu) { result.push('zamanEtudu') }
+		if (rec.batandimi) { result.push('atandi') } if (rec.bzamanetudu) { result.push('zamanEtudu') } if (rec.sonmu) { result.push('son') }
 	}
 	static listeEkrani_activated(e) { super.listeEkrani_activated(e); const gridPart = e.gridPart ?? e.sender /*gridPart.tazeleDefer()*/ }
 	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); const {args, sender} = e, rowsHeight = 60; $.extend(args, { rowsHeight }) }
@@ -107,10 +107,17 @@ class MQSiradakiIsler extends MQXIsler {
 	static orjBaslikListesiDuzenle(e) {
 		const {liste} = e; liste.push(...[
 			new GridKolon({ belirtec: 'atandimiText', text: 'Atandı?', genislikCh: 5.8, filterType: 'checkedlist' }),
-			new GridKolon({ belirtec: 'zamanEtudumuText', text: 'Zaman Etüdü?', genislikCh: 5.8, filterType: 'checkedlist' })
+			new GridKolon({ belirtec: 'zamanEtudumuText', text: 'Zaman Etüdü?', genislikCh: 5.8, filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'sonmu', text: 'Son?', genislikCh: 5, filterType: 'checkedlist' }).tipBool(),
 		]); super.orjBaslikListesiDuzenle(e)
 	}
-	static loadServerDataDevam(e) { const {args} = e; return app.wsSiradakiIsler(args) }
+	static async loadServerDataDevam(e) {
+		await super.loadServerDataDevam(e); const {args} = e; const recs = await app.wsSiradakiIsler(args); if (!recs) { return recs }
+		let sonRecInd, maxSeq; for (let i = 0; i < recs.length; i++) { const rec = recs[i], {seq} = rec; if (maxSeq == null || seq > maxSeq) { maxSeq = seq; sonRecInd = i } }
+		if (sonRecInd == -1) { sonRecInd = null }
+		if (sonRecInd != null) { let rec = recs[sonRecInd]; rec.sonmu = true }
+		return recs
+	}
 	static async isAtaKaldirIstendi(e) {
 		const gridPart = e.gridPart ?? e.parentPart ?? e.sender, {tezgahKod} = gridPart, recs = gridPart.selectedRecs; if (!recs?.length) { return }
 		const errors = []; for (const rec of recs) { const isId = rec.issayac; try { await app.wsIsAta({ tezgahKod, isId }) } catch (ex) { errors.push(getErrorText(ex)); console.error(ex) } }
@@ -198,7 +205,7 @@ class MQBekleyenIsler extends MQXIsler {
 		})
 	}
 	static loadServerDataDevam(e) {
-		const {args} = e, gridPart = e.gridPart ?? e.sender; let {sadeceUygunAsamami} = gridPart;
+		super.loadServerDataDevam(e); const {args} = e, gridPart = e.gridPart ?? e.sender; let {sadeceUygunAsamami} = gridPart;
 		sadeceUygunAsamami = args.sadeceUygunAsamami = sadeceUygunAsamami ?? true; return app.wsBekleyenIsler(args)
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {

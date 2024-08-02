@@ -84,15 +84,17 @@ class MQDurNeden extends MQKAOrtak {
 class MQBekleyenIsEmirleri extends MQMasterOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Bekleyen İş Emirleri' } static get detaySinif() { return MQOperasyon } static get gridDetaylimi() { return true }
+	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); const {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: true }) }
+	static orjBaslikListesi_argsDuzenle_detaylar(e) { super.orjBaslikListesi_argsDuzenle_detaylar(e); const {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: true }) }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(...[
 			new GridKolon({ belirtec: 'emirtarih', text: 'Tarih', genislikCh: 9 }).tipDate(),
 			new GridKolon({ belirtec: 'emirnox', text: 'Emir No', genislikCh: 9 }),
 			new GridKolon({ belirtec: 'urunkod', text: 'Ürün Kod', genislikCh: 20 }),
 			new GridKolon({ belirtec: 'urunadi', text: 'Ürün Adı' }), new GridKolon({ belirtec: 'urunbrm', text: 'Brm', genislikCh: 5 }),
-			new GridKolon({ belirtec: 'orjmiktar', text: 'Orj.Mik', genislikCh: 8, cellClassName: 'bold' }).tipDecimal(),
-			new GridKolon({ belirtec: 'uretmiktar', text: 'Üret.Mik', genislikCh: 8, cellClassName: 'bold green' }).tipDecimal(),
-			new GridKolon({ belirtec: 'kalanmiktar', text: 'Kal.Mik', genislikCh: 8, cellClassName: 'bold red' }).tipDecimal()
+			new GridKolon({ belirtec: 'orjmiktar', text: 'Orj.Mik', genislikCh: 8, cellClassName: 'bold', aggregates: [{'TOPLAM': gridDipIslem_sum}] }).tipDecimal(),
+			new GridKolon({ belirtec: 'uretmiktar', text: 'Üret.Mik', genislikCh: 8, cellClassName: 'bold green', aggregates: [{'TOPLAM': gridDipIslem_sum}] }).tipDecimal(),
+			new GridKolon({ belirtec: 'kalanmiktar', text: 'Kal.Mik', genislikCh: 8, cellClassName: 'bold red', aggregates: [{'TOPLAM': gridDipIslem_sum}] }).tipDecimal()
 		])
 	}
 	static loadServerData(e) { const {hatKod} = e.args; return app.wsBekleyenIsEmirleri({ hatKod }) }
@@ -101,12 +103,12 @@ class MQBekleyenIsEmirleri extends MQMasterOrtak {
 		liste.push(...[
 			new GridKolon({ belirtec: 'opno', text: 'Oper. No', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'opadi', text: 'Oper. Adı' }),
-			new GridKolon({ belirtec: 'emirmiktar', text: 'Emir Miktar', genislikCh: 10, cellClassName: 'bold' }).tipDecimal(),
-			new GridKolon({ belirtec: 'uretMiktar', text: 'Üretilen', genislikCh: 10, cellClassName: 'forestgreen bold' }).tipDecimal(),
-			new GridKolon({ belirtec: 'kalanmiktar', text: 'Kalan', genislikCh: 10 , cellClassName: 'red bold' }).tipDecimal(),
-			new GridKolon({ belirtec: 'tezgahsayi', text: 'Aktif Tezgah', genislikCh: 15 }).tipNumerik(),
+			new GridKolon({ belirtec: 'emirmiktar', text: 'Emir Miktar', genislikCh: 10, cellClassName: 'bold', aggregates: [{'TOPLAM': gridDipIslem_sum}] }).tipDecimal(),
+			new GridKolon({ belirtec: 'uretMiktar', text: 'Üretilen', genislikCh: 10, cellClassName: 'forestgreen bold', aggregates: [{'TOPLAM': gridDipIslem_sum}] }).tipDecimal(),
+			new GridKolon({ belirtec: 'kalanmiktar', text: 'Kalan', genislikCh: 10 , cellClassName: 'red bold', aggregates: [{'TOPLAM': gridDipIslem_sum}] }).tipDecimal(),
+			new GridKolon({ belirtec: 'tezgahsayi', text: 'Aktif Tezgah', genislikCh: 15, aggregates: [{'TOPLAM': gridDipIslem_sum}] }).tipNumerik(),
 			new GridKolon({
-				belirtec: 'kalansuredk', text: 'Kalan Süre (dk)', genislikCh: 15,
+				belirtec: 'kalansuredk', text: 'Kalan Süre (dk)', genislikCh: 15, aggregates: [{'TOPLAM': gridDipIslem_sum}],
 				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => changeTagContent(html, `<b>${value || 0}</b> <span class="ek-bilgi"> dk</span>`)
 			}).tipNumerik()
 		])
@@ -114,6 +116,11 @@ class MQBekleyenIsEmirleri extends MQMasterOrtak {
 	static loadServerData_detaylar(e) {
 		const {parentRec} = e, emirUrunSayac = parentRec.emirurunsayac;
 		return app.wsBekleyenOperasyonlar({ emirUrunSayac }).then(recs =>{ for (const rec of recs) { rec.uretMiktar = (rec.uretbrutmiktar || 0) + (rec.digeruretmiktar || 0) } return recs })
+	}
+	static orjBaslikListesi_satirCiftTiklandi(e) {
+		super.orjBaslikListesi_satirCiftTiklandi(e); const args = e.event?.args, rowIndex = args?.rowindex;
+		const gridPart = e.gridPart ?? e.sender, gridWidget = e?.event?.args?.owner ?? gridPart.gridWidget, {expandedIndexes} = gridPart;
+		if (expandedIndexes && rowIndex != null) { gridWidget[expandedIndexes[rowIndex] ? 'hiderowdetails' : 'showrowdetails'](rowIndex) }
 	}
 }
 class MQSureSayi extends MQMasterOrtak {

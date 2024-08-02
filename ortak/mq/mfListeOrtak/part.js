@@ -188,7 +188,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			parentPart: this, parentBuilder: this.builder,
 			layout: parent, argsDuzenle: e => {
 				const {args} = e; $.extend(args, { virtualMode: false, selectionMode: 'multiplerowsextended' });
-				const mfSinif = this.getMFSinif(e); if (mfSinif?.orjBaslikListesi_argsDuzenle_detaylar) mfSinif.orjBaslikListesi_argsDuzenle_detaylar(e)
+				const mfSinif = this.getMFSinif(e); if (mfSinif?.orjBaslikListesi_argsDuzenle_detaylar) { mfSinif.orjBaslikListesi_argsDuzenle_detaylar(e) }
 			},
 			tabloKolonlari: e => this.tabloKolonlari_detaylar,
 			loadServerData: async _e => {

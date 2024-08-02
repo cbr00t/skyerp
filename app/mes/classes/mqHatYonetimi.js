@@ -164,7 +164,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 			try { recs = await this.loadServerData_internal(e); lastError = null; break }
 			catch (ex) { lastError = ex; if (i) { await new $.Deferred(p => setTimeout(() => p.resolve(), i * 500) ) } }
 		}
-		if (lastError) { throw lastError } return recs
+		if (lastError) { throw lastError } return recs || []
 	}
 	static async loadServerData_internal(e) {
 		e = e || {}; const gridPart = e.gridPart ?? e.sender, {wsArgs} = e, isIDSet = {};
@@ -201,9 +201,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 				}
 			}
 		}
-		/*if (!$.isEmptyObject(isIDSet)) {
-			await app.wsSiradakiIsler({ isId })
-		}/
+		/*if (!$.isEmptyObject(isIDSet)) { await app.wsSiradakiIsler({ isId }) }*/
 		if (recs) {
 			for (const rec of recs) {
 				const {hatKod, hatAdi} = rec, styles_bgImg_url = [], imageInfos = [ { align: 'left' }, { align: 'center', postfix: '-01' }, { align: 'right', postfix: '-02' } ];
@@ -212,7 +210,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 					styles_bgImg_url.push(`url(${url}) ${align} center no-repeat`)
 				}
 				const styles_bgImg_size = styles_bgImg_url.map(x => 'contain'), styles_bgImg = [`background: ${styles_bgImg_url.join(', ')}`, `background-size: ${styles_bgImg_size.join(', ')}`];
-				//styles_bgImg.push(`mix-blend-mode: difference`);
+				/* styles_bgImg.push(`mix-blend-mode: difference`) */
 				rec.grupText = `<div class="grid-cell-group" style="${styles_bgImg.join('; ')}"><div style="mix-blend-mode: plus-lighter"><b>(${rec.hatKod})</b> ${rec.hatAdi}</div></div>`
 			}
 		}

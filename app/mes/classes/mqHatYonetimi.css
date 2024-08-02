@@ -8,9 +8,9 @@
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > .jqx-grid-group-cell > table td .notlar {
 	--height: 50%; font-size: 128%; position: relative; width: calc(var(--full) - 20px); height: var(--height); left: 5px; bottom: calc(var(--height) + 18px); z-index: 13
 }
-.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > .jqx-grid-group-cell table { --buttonPanel-width: 230px }
+.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > .jqx-grid-group-cell table { --buttonPanel-width: 330px }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > .jqx-grid-group-cell > table td.groupText { }
-.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > .jqx-grid-group-cell > table td.islemTuslari { width: var(--buttonPanel-width) !important }
+.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > .jqx-grid-group-cell > table td.islemTuslari { width: var(--buttonPanel-width) !important; padding-left: 30px }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > .jqx-grid-group-cell > table td.islemTuslari .item > button:not(:hover):not(:focus):not(:active) { }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > .jqx-grid-group-cell > table td.islemTuslari .item > button:not(:last-child) { }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > .jqx-grid-group-cell > table td.islemTuslari button { text-align: left; width: 80px; height: 40px; margin-right: 13px }
