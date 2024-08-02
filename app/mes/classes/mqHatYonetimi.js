@@ -212,7 +212,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 					styles_bgImg_url.push(`url(${url}) ${align} center no-repeat`)
 				}
 				const styles_bgImg_size = styles_bgImg_url.map(x => 'contain'), styles_bgImg = [`background: ${styles_bgImg_url.join(', ')}`, `background-size: ${styles_bgImg_size.join(', ')}`];
-				/*styles_bgImg.push(`mix-blend-mode: difference`);*/
+				//styles_bgImg.push(`mix-blend-mode: difference`);
 				rec.grupText = `<div class="grid-cell-group" style="${styles_bgImg.join('; ')}"><div style="mix-blend-mode: plus-lighter"><b>(${rec.hatKod})</b> ${rec.hatAdi}</div></div>`
 			}
 		}
