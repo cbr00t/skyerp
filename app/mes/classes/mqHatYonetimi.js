@@ -5,7 +5,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 	static get noAutoFocus() { return true }
 
 	static listeEkrani_afterRun(e) { super.listeEkrani_afterRun(e) /*const gridPart = e.gridPart ?? e.sender*/ }
-	static listeEkrani_activated(e) { super.listeEkrani_activated(e); const gridPart = e.gridPart ?? e.sender; gridPart.tazeleDefer() }
+	static listeEkrani_activated(e) { super.listeEkrani_activated(e); const gridPart = e.gridPart ?? e.sender /*; gridPart.tazeleDefer()*/ }
 	static rootFormBuilderDuzenle_listeEkrani(e) {
 		super.rootFormBuilderDuzenle_listeEkrani(e); const rfb = e.rootBuilder, gridPart = e.gridPart ?? e.sender ?? rfb?.part;
 		/*const fbd_islemTuslari = rfb.addForm('islemTuslari', e => e.builder.part.islemTuslariPart.layout);
@@ -20,8 +20,9 @@ class MQHatYonetimi extends MQMasterOrtak {
 			const {builder} = e, {rootPart, layout} = builder, input = layout.children('input'), {grid, gridWidget} = rootPart;
 			if (rootPart.otoTazeleFlag) { input.prop('checked', true) }
 			input.on('change', evt => {
-				const value = rootPart.otoTazeleFlag = $(evt.currentTarget).is(':checked'); app.otoTazeleFlag = !!value; rootPart.tazeleDefer();
+				const value = rootPart.otoTazeleFlag = $(evt.currentTarget).is(':checked'); app.otoTazeleFlag = !!value;
 				const fbd_grupsuz = builder.parentBuilder.id2Builder.grupsuzmu; if (fbd_grupsuz) { fbd_grupsuz.updateVisible() }
+				if (value) { rootPart.tazeleDefer() }
 			})
 		});
 		this.fbd_listeEkrani_addCheckBox(rfb, 'grupsuzmu', 'Grupsuz').onAfterRun(e => {
@@ -166,7 +167,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 		if (lastError) { throw lastError } return recs
 	}
 	static async loadServerData_internal(e) {
-		e = e || {}; const gridPart = e.gridPart ?? e.sender, {wsArgs} = e;
+		e = e || {}; const gridPart = e.gridPart ?? e.sender, {wsArgs} = e, isIDSet = {};
 		const hatKod = app.sabitHatKod || gridPart.hatKod, {excludeTezgahKod} = gridPart; if (hatKod) { $.extend(wsArgs, { hatIdListe: hatKod }) }
 		let recs = await app.wsTezgahBilgileri(wsArgs); /*this.ekNotlarYapi = await app.wsEkNotlar();*/
 		if (recs) {
@@ -194,13 +195,15 @@ class MQHatYonetimi extends MQMasterOrtak {
 				if (!tezgahKod2Rec[tezgahKod]) { tezgahKod2Rec[tezgahKod] = tezgahRec; recs.push(tezgahRec); isListe = tezgahRec.isListe = [] }
 				tezgahRec.isSaymaInd = (tezgahRec.isSaymaInd || 0) + (rec.isSaymaInd || 0); tezgahRec.isSaymaSayisi = (tezgahRec.isSaymaSayisi || 0) + (rec.isSaymaSayisi || (isID ? 1 : 0));
 				if (isID) {
-					/*const {isToplamOlasiSureSn, isToplamBrutSureSn, isToplamDuraksamaSureSn} = rec;
-					rec.oee = isToplamOlasiSureSn ? Math.min(Math.round((isToplamBrutSureSn - isToplamDuraksamaSureSn) * 100 / isToplamOlasiSureSn), 100) : 0*/
+					/*const {isToplamOlasiSureSn, isToplamBrutSureSn, isToplamDuraksamaSureSn} = rec; rec.oee = isToplamOlasiSureSn ? Math.min(Math.round((isToplamBrutSureSn - isToplamDuraksamaSureSn) * 100 / isToplamOlasiSureSn), 100) : 0*/
 					const {oemgerceklesen, oemistenen} = rec; rec.oee = oemistenen ? roundToFra(Math.max(oemgerceklesen * 100 / oemistenen, 0), 2) : 0;
-					delete rec.isListe; isListe.push(rec)
+					delete rec.isListe; isListe.push(rec); isIDSet[isID] = true;
 				}
 			}
 		}
+		/*if (!$.isEmptyObject(isIDSet)) {
+			await app.wsSiradakiIsler({ isId })
+		}/
 		if (recs) {
 			for (const rec of recs) {
 				const {hatKod, hatAdi} = rec, styles_bgImg_url = [], imageInfos = [ { align: 'left' }, { align: 'center', postfix: '-01' }, { align: 'right', postfix: '-02' } ];
