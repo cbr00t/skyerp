@@ -368,18 +368,20 @@ class MQHatYonetimi extends MQMasterOrtak {
 		})
 	}
 	static ozetBilgiGoster(e) {
-		let html = this.ozetBilgi_getLayout(e); const {classKey} = this, wnd = createJQXWindow({
+		let html = this.ozetBilgi_getLayout(e); if (!html) { return }
+		const {classKey} = this, wnd = createJQXWindow({
 			content: `<div class="full-width ozetBilgi-parent ozetBilgi">${html}</code></div>`,
 			title: `Özet Bilgi`, args: { isModal: false, width: Math.min(850, $(window).width() - 50), height: Math.min(500, $(window).height() - 50) }
 		}); wnd.addClass(`ozetBilgi ${classKey} masterListe part`); makeScrollable(wnd.find('.jqx-window-content'))
 	}
 	static updateOzetBilgi(e) {
-		let html = this.ozetBilgi_getLayout(e); const {classKey} = this, wndSelector = `.jqx-window.ozetBilgi.${classKey}`, wnd = $(wndSelector); if (!wnd.length) { return }
+		let html = this.ozetBilgi_getLayout(e); if (!html) { return }
+		const {classKey} = this, wndSelector = `.jqx-window.ozetBilgi.${classKey}`, wnd = $(wndSelector); if (!wnd.length) { return }
 		const layout = wnd.find('.jqx-window-content > .subContent > .ozetBilgi-parent'); if (!layout?.length) { return }
 		layout.html(html)
 	}
 	static ozetBilgi_getLayout(e) {
-		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, recs = gridPart?._lastRecs;
+		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, recs = gridPart?._lastRecs; if (!recs) { return null }
 		const hat2Durum2Sayi = {}; let topMakineSayi = 0, topAktifSayi = 0, topPasifSayi = 0, topOffSayi = 0; for (const rec of recs) {
 			const {hatKod, sinyalKritik} = rec, hatText = hatKod; let {durumKod} = rec;
 			if (durumKod == 'DV') { durumKod = sinyalKritik ? 'APSF' : 'ZON' } else { durumKod = 'XOFF' }

@@ -797,14 +797,17 @@ class GridPart extends Part {
 			}
 			attr2FilterGroup[attr] = filterGroup
 		}
-		if (!($.isEmptyObject(attr2FilterGroup) && $.isEmptyObject(gridWidget.getfilterinformation()))) {
-			setTimeout(() => {
-				const {gridWidget} = this; if (!gridWidget.isbindingcompleted()) { return }
-				try { gridWidget.clearfilters(false) } catch (ex) { return }
-				for (const attr in attr2FilterGroup) { const filterGroup = attr2FilterGroup[attr]; gridWidget.addfilter(attr, filterGroup) }
-				try { gridWidget.applyfilters() } catch (ex) { console.error(ex) }
-			}, 200)
+		try {
+			if (!($.isEmptyObject(attr2FilterGroup) && $.isEmptyObject(gridWidget.getfilterinformation()))) {
+				setTimeout(() => {
+					const {gridWidget} = this; if (!gridWidget.isbindingcompleted()) { return }
+					try { gridWidget.clearfilters(false) } catch (ex) { return }
+					for (const attr in attr2FilterGroup) { const filterGroup = attr2FilterGroup[attr]; gridWidget.addfilter(attr, filterGroup) }
+					try { gridWidget.applyfilters() } catch (ex) { console.error(ex) }
+				}, 200)
+			}
 		}
+		catch (ex) { }
 		filtreBilgi_recs.degistimi = false
 	}
 	onResize(e) {
