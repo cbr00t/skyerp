@@ -113,7 +113,7 @@ class MQSiradakiIsler extends MQXIsler {
 	}
 	static async loadServerDataDevam(e) {
 		await super.loadServerDataDevam(e); const {args} = e; const recs = await app.wsSiradakiIsler(args); if (!recs) { return recs }
-		let sonRecInd, maxSeq; for (let i = 0; i < recs.length; i++) { const rec = recs[i], {seq} = rec; if (maxSeq == null || seq > maxSeq) { maxSeq = seq; sonRecInd = i } }
+		let sonRecInd, maxIsID; for (let i = 0; i < recs.length; i++) { const rec = recs[i], isID = rec.issayac; if (maxIsID == null || isID > maxIsID) { maxIsID = isID; sonRecInd = i } }
 		if (sonRecInd == -1) { sonRecInd = null }
 		if (sonRecInd != null) { let rec = recs[sonRecInd]; rec.sonmu = true }
 		return recs
