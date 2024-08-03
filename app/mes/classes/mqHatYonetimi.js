@@ -22,14 +22,14 @@ class MQHatYonetimi extends MQMasterOrtak {
 			input.on('change', evt => {
 				const value = rootPart.otoTazeleFlag = $(evt.currentTarget).is(':checked'); app.otoTazeleFlag = !!value;
 				const fbd_grupsuz = builder.parentBuilder.id2Builder.grupsuzmu; if (fbd_grupsuz) { fbd_grupsuz.updateVisible() }
-				if (value) { rootPart.tazeleDefer() }
+				e.action = 'toggle'; rootPart.tazele(e)
 			})
 		});
 		this.fbd_listeEkrani_addCheckBox(rfb, 'grupsuzmu', 'Grupsuz').onAfterRun(e => {
 			const {builder} = e, {rootPart, layout} = builder, input = layout.children('input'), {grid, gridWidget} = rootPart;
 			builder.setVisibleKosulu(e => e.builder.rootPart.otoTazeleFlag ? 'jqx-hidden' : true);
 			if (rootPart.grupsuzmu) { input.prop('checked', true) }
-			input.on('change', evt => { const value = rootPart.grupsuzmu = $(evt.currentTarget).is(':checked'); rootPart.tazeleDefer() })
+			input.on('change', evt => { const value = rootPart.grupsuzmu = $(evt.currentTarget).is(':checked'); e.action = 'toggle'; rootPart.tazele(e) })
 		});
 		const fbd_islemTuslari_sol = rfb.addForm('kronometre').addCSS('flex-row')
 			.setParent(gridPart.islemTuslariPart.sol).setLayout(e => $(`<div id="${e.builder.id}"><div id="value"class="full-wh"></div><button id="reset" class="jqx-hidden">x</button></div>`))
@@ -152,9 +152,8 @@ class MQHatYonetimi extends MQMasterOrtak {
 		liste.push('hatKod', 'hatAdi', 'tezgahKod', 'tezgahAdi', 'perKod', 'perIsim', 'ip')
 	}
 	static onSignalChange(e) {
-		const gridPart = e.gridPart ?? e.sender;
-		if (gridPart?.tazeleDefer) { gridPart.tazeleDefer(e) }
-		else if (gridPart?.tazele) { gridPart.tazele(e) }
+		const gridPart = e.gridPart ?? e.sender; e.action = 'otoTazele';
+		if (gridPart?.tazele) { gridPart.tazele(e) } else if (gridPart?.tazeleDefer) { gridPart.tazeleDefer(e) }
 		return this
 	}
 	static orjBaslikListesi_hizliBulIslemi(e) { app.otoTazeleTempDisable(e); super.orjBaslikListesi_hizliBulIslemi(e) }
@@ -167,7 +166,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 		if (lastError) { throw lastError } return recs || []
 	}
 	static async loadServerData_internal(e) {
-		e = e || {}; const gridPart = e.gridPart ?? e.sender, {wsArgs} = e, isIDSet = {};
+		e = e || {}; const gridPart = e.gridPart ?? e.sender, {wsArgs} = e, tezgahKod2Rec = {}, isID2TezgahKodSet = {}, action_otoTazeleFlag = e.action == 'otoTazele';
 		const hatKod = app.sabitHatKod || gridPart.hatKod, {excludeTezgahKod} = gridPart; if (hatKod) { $.extend(wsArgs, { hatIdListe: hatKod }) }
 		let recs = await app.wsTezgahBilgileri(wsArgs); /*this.ekNotlarYapi = await app.wsEkNotlar();*/
 		if (recs) {
@@ -188,7 +187,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 				0)
 		}
 		e.recs = recs; if (recs) {
-			let tezgahKod2Rec = {}, _recs = recs; recs = [];
+			let _recs = recs; recs = [];
 			for (let rec of _recs) {
 				const {hatKod, tezgahKod, isID} = rec; if (excludeTezgahKod && tezgahKod == excludeTezgahKod) { continue }
 				let tezgahRec = tezgahKod2Rec[tezgahKod] ?? $.extend({}, rec), {isListe} = tezgahRec;
@@ -197,11 +196,17 @@ class MQHatYonetimi extends MQMasterOrtak {
 				if (isID) {
 					/*const {isToplamOlasiSureSn, isToplamBrutSureSn, isToplamDuraksamaSureSn} = rec; rec.oee = isToplamOlasiSureSn ? Math.min(Math.round((isToplamBrutSureSn - isToplamDuraksamaSureSn) * 100 / isToplamOlasiSureSn), 100) : 0*/
 					const {oemgerceklesen, oemistenen} = rec; rec.oee = oemistenen ? roundToFra(Math.max(oemgerceklesen * 100 / oemistenen, 0), 2) : 0;
-					delete rec.isListe; isListe.push(rec); isIDSet[isID] = true;
+					delete rec.isListe; isListe.push(rec); (isID2TezgahKodSet[isID] = isID2TezgahKodSet[isID] || {})[tezgahKod] = true;
 				}
 			}
 		}
-		/*if (!$.isEmptyObject(isIDSet)) { await app.wsSiradakiIsler({ isId }) }*/
+		if (!action_otoTazeleFlag && tezgahKod2Rec && !$.isEmptyObject(isID2TezgahKodSet)) {
+			for (let [isId, tezgahKodSet] of Object.entries(isID2TezgahKodSet)) {
+				isId = asInteger(isId);
+				let rec; try { rec = await app.wsGorevZamanEtuduVeriGetir({ isId }); if (!rec?.bzamanetudu) { rec = null } } catch (ex) { } if (!rec) { continue }
+				for (const tezgahKod in tezgahKodSet) { rec = tezgahKod2Rec[tezgahKod]; if (rec) { rec.zamanEtuduVarmi = true } }
+			}
+		}
 		if (recs) {
 			for (const rec of recs) {
 				const {hatKod, hatAdi} = rec, styles_bgImg_url = [], imageInfos = [ { align: 'left' }, { align: 'center', postfix: '-01' }, { align: 'right', postfix: '-02' } ];
@@ -480,7 +485,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 	}
 	static gridCell_getLayout(e) {
 		const gridPart = e.gridPart ?? e.sender, rec = e.rec ?? {}, isListe = rec.isListe ?? [], grupsuzmu = gridPart.grupsuzmu || gridPart.otoTazeleFlag;
-		const {sinyalKritik, duraksamaKritik, durumKod, durumAdi, durNedenKod, durNedenAdi, ip, siradakiIsSayi, ekBilgi} = rec, {kritikDurNedenKodSet} = app.params.mes;
+		const {sinyalKritik, duraksamaKritik, durumKod, durumAdi, durNedenKod, durNedenAdi, ip, siradakiIsSayi, ekBilgi, zamanEtuduVarmi} = rec, {kritikDurNedenKodSet} = app.params.mes;
 		const kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod ? kritikDurNedenKodSet[durNedenKod] : false;
 		const isBilgiHTML = this.gridCell_getLayout_isBilgileri(e);
 		let topSaymaInd = 0, topSaymaSayisi = 0; for (const is of isListe) { topSaymaInd += (is.isSaymaInd || 0); topSaymaSayisi += (is.isSaymaSayisi || 0) }
@@ -501,6 +506,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 								${ip ? `<div class="ip">(${ip ||''})</div>` : ''}
 								${siradakiIsSayi ? `<div class="siradakiIsSayi"><span>+ </span><span class="_veri">${siradakiIsSayi}</span></div>` : ''}
 								${ekBilgi ? `<button id="ekBilgiSil" class="ekBilgi">${ekBilgi}</button>` : ''}
+								${zamanEtuduVarmi ? `<div class="zamanEtuduText">Zmn</div>` : ''}
 							</div>
 						</td>
 					</tr>

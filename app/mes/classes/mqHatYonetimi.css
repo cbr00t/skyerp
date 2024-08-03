@@ -73,6 +73,7 @@
 	left: 15px; top: -5px; width: 130px !important; max-height: 30px !important; padding: 8px 3px; line-height: 13px;
 	overflow-y: auto; animation: 250ms cubic-bezier(0.1, 0, 1, 1) 0ms infinite normal ekBilgi-bg; cursor: pointer
 }
+.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .tezgah .zamanEtuduText { font-weight: bold; font-size: 120%; color: forestgreen; top: -3px; left: 13px; padding: 3px 3px; border: 3px solid limegreen }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe { height: 55px; z-index: 4 }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .isListe > * { width: var(--full); height: var(--full); border: 1px dotted #dcdcdc; padding: 3px 0 0 15px !important; overflow-y: hidden !important }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > *.jqx-grid-cell-selected .isListe > * { border: 1px solid #aaa; overflow-y: overlay !important }

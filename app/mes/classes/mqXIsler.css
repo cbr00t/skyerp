@@ -5,7 +5,7 @@
 .MQXIsler.masterListe.part .jqx-grid [role = row] > .atandimiText > *, .MQXIsler.masterListe.part .jqx-grid [role = row] > .zamanEtudumuText > * { font-weight: bold; font-size: 83%; text-align: center; padding: 8px 0 0 2px }
 .MQXIsler.masterListe.part .jqx-grid .atandimiText, .MQXIsler.masterListe.part .jqx-grid [role = row] > .atandimiText > * { color: #e67e0b }
 .MQXIsler.masterListe.part .jqx-grid [role = row] > .atandi:not(.jqx-grid-cell-selected) { background: #fff6ec }
-.MQXIsler.masterListe.part .jqx-grid .zamanEtudumuText { color: #d7d4dd } .MQXIsler.masterListe.part .jqx-grid [role = row] > .zamanEtudumuText > * { color: #0f833f }
+.MQXIsler.masterListe.part .jqx-grid .zamanEtudumuText, .MQXIsler.masterListe.part .jqx-grid [role = row] > .zamanEtudumuText > * { color: #0f833f }
 .MQXIsler.masterListe.part .jqx-grid [role = row] > .zamanEtudu:not(.jqx-grid-cell-selected) { background: #d0ded0 }
 .MQXIsler.masterListe.part .jqx-grid [role = row] > .son:not(.jqx-grid-cell-selected) { background: #dfdce9 }
 /*.MQXIsler.masterListe.part .jqx-grid [role = row] > .sonmu.son  { background: #ccc7d9 }*/
