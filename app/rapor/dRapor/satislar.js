@@ -17,5 +17,5 @@ class DRapor_SatisSiparisler extends DRapor_Ticari {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get kod() { return 'SATIS_SIPARISLER' } static get aciklama() { return 'Satış Siparişler' } }
 class DRapor_SatisSiparisler_Main extends DRapor_Ticari_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_SatisSiparisler }
-	fisVeHareketBagla(e) { super.fisVeHareketBagla(e); const {sent} = e; sent.fisHareket('sipfis', 'sipstok'); sent.where.add(`fis.almsat = 'T'`, `fis.ozeltip = ''`) }
+	fisVeHareketBagla(e) { super.fisVeHareketBagla(e); const {sent} = e; sent.fisHareket('sipfis', 'sipstok'); sent.where.add(`fis.almsat = 'T'`, `fis.ozeltip = ''`, `fis.onaytipi = ''`) }
 }

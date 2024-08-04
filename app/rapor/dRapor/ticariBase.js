@@ -26,15 +26,15 @@ class DRapor_Donemsel_Main extends DAltRapor_TreeGridGruplu {
 	}
 	loadServerData_queryDuzenle(e) {} loadServerData_queryDuzenle_son(e) { }
 	loadServerData_queryDuzenle_tarih(e) {
-		const {tabloYapi, secilenler} = this, {attrSet} = secilenler, {stm} = e, alias = e.alias ?? 'fis', tarihSaha = e.tarihSaha ?? 'tarih';
+		const {attrSet} = this.secilenler, {stm} = e, alias = e.alias ?? 'fis', tarihSaha = e.tarihSaha ?? 'tarih';
 		const tarihClause = alias ? `${alias}.${tarihSaha}` : tarihSaha, {orderBy} = stm;
 		for (const sent of stm.getSentListe()) {
 			for (const key in attrSet) {
 				switch (key) {
-					/*case 'YILAY': sent.sahalar.add(`dbo.ya(${tarihClause}) yilay`); orderBy.add('yilay'); break
-					case 'YILHAFTA': sent.sahalar.add(`dbo.ya(${tarihClause}) yilay`); orderBy.add('yilay'); break
-					case 'AYADI': sent.sahalar.add(`dbo.ya(${tarihClause}) yilay`); orderBy.add('yilay'); break
-					case 'HAFTA': sent.sahalar.add(`dbo.ya(${tarihClause}) yilay`); orderBy.add('yilay'); break*/
+					case 'YILAY': sent.sahalar.add(`(CAST(DATEPART(year, ${tarihClause}) AS CHAR(4)) + ' - ' + dbo.ayadi(${tarihClause})) yilay`); orderBy.add('yilay'); break
+					case 'YILHAFTA': sent.sahalar.add(`(CAST(DATEPART(year, ${tarihClause}) AS CHAR(4)) + ' - ' + CAST(DATEPART(week, ${tarihClause}) AS VARCHAR(2))) yilhafta`); orderBy.add('yilhafta'); break
+					case 'AYADI': sent.sahalar.add(`dbo.ayadi(${tarihClause}) ayadi`); orderBy.add('ayadi'); break
+					case 'HAFTA': sent.sahalar.add(`DATEPART(week, ${tarihClause}) haftano`); orderBy.add('haftano'); break
 					case 'TARIH': sent.sahalar.add(tarihClause); orderBy.add(tarihSaha); break
 				}
 			}
@@ -70,13 +70,13 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 			.addToplam(new TabloYapiItem().setKA('CIRO', `${toplamPrefix}Ciro`).addColDef(new GridKolon({ belirtec: 'ciro', text: `${toplamPrefix}Ciro`, genislikCh: 19, filterType: 'numberinput' }).tipDecimal()))
 	}
 	loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {tabloYapi, secilenler} = this, {grup, icerik, attrSet} = secilenler, {maxRow, secimler, stm} = e;
+		super.loadServerData_queryDuzenle(e); const {attrSet} = this.secilenler, {secimler, stm} = e;
 		let {sent, orderBy} = stm, wh = sent.where; e.sent = sent; this.fisVeHareketBagla(e); this.donemBagla({ ...e, sent, tarihSaha: 'fis.tarih' });
 		const {kgBirimler} = MQStokGenelParam, kgInClause = `(${kgBirimler.map(x => MQSQLOrtak.sqlServerDegeri(x)).join(', ')})`;
-		const kgClause = `(case when stk.brm IN ${kgInClause} then har.miktar when stk.brm2 IN ${kgInClause} then har.miktar2 else 0 end)`;
+		const kgClause = e.kgClause = `(case when stk.brm IN ${kgInClause} then har.miktar when stk.brm2 IN ${kgInClause} then har.miktar2 else 0 end)`;
 		wh.fisSilindiEkle(); wh.add(`fis.ozelisaret <> 'X'`);
 		if (attrSet.CRTIP || attrSet.CRBOL || attrSet.CARI || attrSet.CRIL || attrSet.CRULKE || attrSet.CRISTGRP) { sent.fis2CariBagla() }
-		if (attrSet.STANAGRP || attrSet.STGRP || attrSet.STISTGRP || attrSet.STOK || attrSet.MIKTARKG) { sent.har2StokBagla() }
+		if (attrSet.STANAGRP || attrSet.STGRP || attrSet.STISTGRP || attrSet.STOK || attrSet.MIKTARKG || attrSet.BRMIKTARKG || attrSet.IAMIKTARKG) { sent.har2StokBagla() }
 		if (attrSet.STANAGRP) { sent.stok2GrupBagla() } if (attrSet.CRANABOL) { sent.cari2BolgeBagla() }
 		this.loadServerData_queryDuzenle_tarih({ ...e, alias: 'fis', tarihSaha: 'tarih' });
 		for (const key in attrSet) {
@@ -99,13 +99,13 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 					sent.sahalar.add('tak.kod takipkod', 'tak.aciklama takipadi'); orderBy.add('takipkod'); break
 				case 'PLASIYER': sent.fromIliski('carmst pls', 'fis.plasiyerkod = pls.must'); sent.sahalar.add('fis.plasiyerkod', 'pls.birunvan plasiyeradi'); orderBy.add('plasiyerkod'); break
 				case 'MIKTAR': sent.sahalar.add('SUM(har.miktar) miktar'); break
-				case 'MIKTARKG': sent.sahalar.add('stk.brm', 'stk.brm2', `SUM(${kgClause}) miktarkg`); break
+				case 'MIKTARKG': sent.sahalar.add(`SUM(${kgClause}) miktarkg`); break
 				case 'CIRO': sent.sahalar.add('SUM(har.bedel) ciro'); break
 			}
 		}
-		sent.groupByOlustur()
+		this.loadServerData_queryDuzenle_ek(e); sent.groupByOlustur()
 	}
-	fisVeHareketBagla(e) { }
+	loadServerData_queryDuzenle_ek(e) { } fisVeHareketBagla(e) { }
 }
 class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get toplamPrefix() { return 'Net ' }
@@ -118,6 +118,22 @@ class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 			.addToplam(new TabloYapiItem().setKA('IAMIKTAR', 'İADE Miktar').addColDef(new GridKolon({ belirtec: 'iamiktar', text: 'İADE Miktar', genislikCh: 15, filterType: 'numberinput' }).tipDecimal()))
 			.addToplam(new TabloYapiItem().setKA('IAMIKTARKG', 'İADE Miktar (KG)').addColDef(new GridKolon({ belirtec: 'iamiktarkg', text: 'İADE KG', genislikCh: 15, filterType: 'numberinput' }).tipDecimal()))
 			.addToplam(new TabloYapiItem().setKA('IACIRO', 'İADE Ciro').addColDef(new GridKolon({ belirtec: 'iaciro', text: 'İADE Ciro', genislikCh: 19, filterType: 'numberinput' }).tipDecimal()))
+	}
+	loadServerData_queryDuzenle_ek(e) {
+		super.loadServerData_queryDuzenle_ek(e); const {attrSet} = this.secilenler, {secimler, stm, kgClause} = e; let {orderBy} = stm;
+		for (const sent of stm.getSentListe()) {
+			const wh = sent.where; wh.add(`fis.piftipi = 'F'`);
+			for (const key in attrSet) {
+				switch (key) {
+					case 'BRMIKTAR': sent.sahalar.add(`SUM(case when fis.iade = '' then har.miktar else 0 end) brutmiktar`); break
+					case 'BRMIKTARKG': sent.sahalar.add(`SUM(case when fis.iade = '' then ${kgClause} else 0 end) brutmiktarkg`); break
+					case 'BRCIRO': sent.sahalar.add(`SUM(case when fis.iade = '' then har.bedel else 0 end) brutciro`); break
+					case 'IAMIKTAR': sent.sahalar.add(`SUM(case when fis.iade = 'I' then 0 - har.miktar else 0 end) iademiktar`); break
+					case 'IAMIKTARKG': sent.sahalar.add(`SUM(case when fis.iade = 'I' then 0 - ${kgClause} else 0 end) iademiktarkg`); break
+					case 'IACIRO': sent.sahalar.add(`SUM(case when fis.iade = 'I' then 0 - har.bedel else 0 end) iadeciro`); break
+				}
+			}
+		}
 	}
 	fisVeHareketBagla(e) { super.fisVeHareketBagla(e); const {sent} = e; sent.fisHareket('piffis', 'pifstok') }
 }
