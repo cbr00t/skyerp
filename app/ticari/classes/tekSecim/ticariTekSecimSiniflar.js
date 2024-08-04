@@ -552,6 +552,11 @@ class DonemSecim extends TekSecim {
 }
 class DonemVeTarihAralikSecim extends DonemSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' } get tarihAralikmi() { return this.char == 'TR' }
-	kaListeDuzenle(e) { super.kaListeDuzenle(e); const {kaListe} = e; kaListe.push( new CKodVeAdi(['TR', 'Tarih Aralık']) ) }
+	kaListeDuzenle(e) { const {kaListe} = e; kaListe.push(new CKodVeAdi(['TR', `<span class="bold forestgreen">Tarih Aralık</span>`])); super.kaListeDuzenle(e) }
+	tarihAralik() { this.char = 'TR'; return this }
+}
+class DonemTarihAralikVeHepsiSecim extends DonemVeTarihAralikSecim {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' } get tarihAralikmi() { return this.char == 'TR' }
+	kaListeDuzenle(e) { const {kaListe} = e; kaListe.push(new CKodVeAdi(['', `<span class="bold royalblue">- Hepsi -</span>`])); super.kaListeDuzenle(e) }
 	tarihAralik() { this.char = 'TR'; return this }
 }

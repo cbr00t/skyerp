@@ -55,8 +55,8 @@ class Secimler extends CIO {
 		if (!noInitFlag) { this.beginUpdate() } if (liste) { for (const key in liste) { this.secimEkle({ key, secim: liste[key], noInit: true }) } } if (!noInitFlag) { this.endUpdate() }
 		return this
 	}
-	secimEkle(e, _secim) {
-		e = e || {}; const noInitFlag = (e.noInit ?? this._noInit), key = e.key ?? e.belirtec ?? e;
+	secimEkle(e, _secim, _noInit) {
+		e = e || {}; const key = e.key ?? e.belirtec ?? e, noInitFlag = (e.noInit ?? _noInit ?? this._noInit);
 		let secim = e.secim ?? e.value ?? e.item ?? _secim;
 		if (!noInitFlag) { this.beginUpdate() }
 		if (key && secim) {
@@ -71,10 +71,10 @@ class Secimler extends CIO {
 		return this
 	}
 	grupEkle(e, _aciklama, _kapalimi, _renk, _zeminRenk, _css, _ekBilgi) {
-		e = e || {}; const kod = e.kod || e.key || e.belirtec || e, {grupListe} = this;
+		e = e || {}; const kod = e.kod ?? e.key ?? e.belirtec ?? e, {grupListe} = this;
 		if (!grupListe[kod]) {
-			const aciklama = (e.aciklama || e.adi || _aciklama) ?? kod, kapalimi = e.kapali ?? e.kapalimi ?? _kapalimi;
-			const renk = e.renk || _renk, zeminRenk = e.zeminRenk || _zeminRenk, css = e.css || _css, ekBilgi = e.ekBilgi || _ekBilgi;
+			const aciklama = (e.aciklama ?? e.adi ?? _aciklama) ?? kod, kapalimi = e.kapali ?? e.kapalimi ?? _kapalimi;
+			const renk = e.renk ?? _renk, zeminRenk = e.zeminRenk ?? _zeminRenk, css = e.css ?? _css, ekBilgi = e.ekBilgi ?? _ekBilgi;
 			grupListe[kod] = { kod, aciklama, kapalimi, renk, zeminRenk, css, ekBilgi }
 		}
 		return this

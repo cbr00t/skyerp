@@ -13,6 +13,30 @@ class DRapor_Donemsel_Main extends DAltRapor_TreeGridGruplu {
 			.addGrup(new TabloYapiItem().setKA('HAFTA', 'Hafta').addColDef(new GridKolon({ belirtec: 'haftano', text: 'Hafta', genislikCh: 8, filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('TARIH', 'Tarih').addColDef(new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13, filterType: 'checkedlist' }).tipDate()))
 	}
+	secimlerDuzenle(e) {
+		super.secimlerDuzenle(e); const {secimler} = e, {tabloYapi} = this, {grupVeToplam} = tabloYapi;
+		secimler.secimTopluEkle({
+			donem: new SecimTekSecim({ etiket: 'Dönem', tekSecimSinif: DonemTarihAralikVeHepsiSecim }).autoBind(),
+			tarihAralik: new SecimDate({ etiket: 'Tarih' }).hidden()
+		});
+		/* secimler.whereBlockEkle(e => { const wh = e.where, secimler = e.secimler }) */
+		const islemYap = (keys, callSelector, args) => {
+			for (const key of keys) {
+				const item = key ? grupVeToplam[key] : null; if (item == null) { continue }
+				const proc = item[callSelector]; if (proc) { proc.call(item, args) }
+			}
+		}; islemYap(Object.keys(grupVeToplam), 'secimlerDuzenle', e);
+		secimler.whereBlockEkle(_e => islemYap(Object.keys(this.secilenler?.attrSet || {}), 'tbWhereClauseDuzenle', { ...e, ..._e }))
+	}
+	secimlerInitEvents(e) {
+		super.secimlerInitEvents(e); const {secimlerPart} = this, {secim2Info} = secimlerPart || {}; if (!secim2Info) { return }
+		let part = secim2Info.donem.element.find('.ddList').data('part'); if (part) {
+			part.degisince(e => {
+				const {tarihAralikmi} = secim2Info.donem.secim.tekSecim;
+				secim2Info.tarihAralik.element[tarihAralikmi ? 'removeClass' : 'addClass']('jqx-hidden')
+			})
+		}
+	}
 	async loadServerDataInternal(e) {
 		await super.loadServerDataInternal(e); const {secimler, maxRow} = e;
 		let donemBS = new CBasiSonu({ basi: today().yilBasi(), sonu: today().yilSonu() });
@@ -24,7 +48,11 @@ class DRapor_Donemsel_Main extends DAltRapor_TreeGridGruplu {
 		const _e = { ...e, stm: new MQStm(), donemBS }; this.loadServerData_queryDuzenle(_e); this.loadServerData_queryDuzenle_son(_e);
 		const query = _e.stm, recs = query ? await app.sqlExecSelect({ query, maxRow }) : null; return recs
 	}
-	loadServerData_queryDuzenle(e) {} loadServerData_queryDuzenle_son(e) { }
+	loadServerData_queryDuzenle(e) { e.alias = 'fis' }
+	loadServerData_queryDuzenle_son(e) {
+		const {stm} = e, {secimler} = this, wh = secimler?.getTBWhereClause(e);
+		if (wh?.liste?.length) { for (const sent of stm.getSentListe()) { sent.where.birlestir(wh) } }
+	}
 	loadServerData_queryDuzenle_tarih(e) {
 		const {attrSet} = this.secilenler, {stm} = e, alias = e.alias ?? 'fis', tarihSaha = e.tarihSaha ?? 'tarih';
 		const tarihClause = alias ? `${alias}.${tarihSaha}` : tarihSaha, {orderBy} = stm;
@@ -50,17 +78,28 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		super.tabloYapiDuzenle(e); const {result} = e, {toplamPrefix} = this.class, {zorunlu, ticariGenel} = app.params, {sube} = zorunlu, {takipNo, plasiyer} = ticariGenel.kullanim;
 		result.setSortAttr('yilay').addKAPrefix('anagrup', 'grup', 'sistgrup', 'stok', 'tip', 'bolge', 'cistgrup', 'cari', 'il', 'ulke', 'sube', 'takip', 'plasiyer');
 		result
-			.addGrup(new TabloYapiItem().setKA('STANAGRP', 'Stok Ana Grup').addColDef(new GridKolon({ belirtec: 'anagrup', text: 'Stok Ana Grup', maxWidth: 250, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('STGRP', 'Stok Grup').addColDef(new GridKolon({ belirtec: 'grup', text: 'Stok Grup', maxWidth: 350, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('STISTGRP', 'Stok İst. Grup').addColDef(new GridKolon({ belirtec: 'sistgrup', text: 'Stok İst. Grup', maxWidth: 250, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('STOK', 'Stok').addColDef(new GridKolon({ belirtec: 'stok', text: 'Stok', maxWidth: 600, filterType: 'input' })))
-			.addGrup(new TabloYapiItem().setKA('CRTIP', 'Cari Tip').addColDef(new GridKolon({ belirtec: 'tip', text: 'Cari Tip', maxWidth: 300, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('CRANABOL', 'Ana Bölge').addColDef(new GridKolon({ belirtec: 'anabolge', text: 'Ana Bölge', maxWidth: 200, filterType: 'input' })))
-			.addGrup(new TabloYapiItem().setKA('CRBOL', 'Bölge').addColDef(new GridKolon({ belirtec: 'bolge', text: 'Bölge', maxWidth: 300, filterType: 'input' })))
-			.addGrup(new TabloYapiItem().setKA('CRISTGRP', 'Cari İst. Grup').addColDef(new GridKolon({ belirtec: 'cistgrup', text: 'Cari İst. Grup', maxWidth: 300, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('CARI', 'Cari').addColDef(new GridKolon({ belirtec: 'cari', text: 'Cari', maxWidth: 600, filterType: 'input' })))
-			.addGrup(new TabloYapiItem().setKA('CRIL', 'İl').addColDef(new GridKolon({ belirtec: 'il', text: 'İl', maxWidth: 250, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('CRULKE', 'Ülke').addColDef(new GridKolon({ belirtec: 'ulke', text: 'Ülke', maxWidth: 250, filterType: 'checkedlist' })));
+			.addGrup(new TabloYapiItem().setKA('STANAGRP', 'Stok Ana Grup').secimKullanilir().setMFSinif(DMQStokAnaGrup)
+				.addColDef(new GridKolon({ belirtec: 'anagrup', text: 'Stok Ana Grup', maxWidth: 250, filterType: 'checkedlist' })))
+			.addGrup(new TabloYapiItem().setKA('STGRP', 'Stok Grup').secimKullanilir().setMFSinif(DMQStokGrup)
+				.addColDef(new GridKolon({ belirtec: 'grup', text: 'Stok Grup', maxWidth: 350, filterType: 'checkedlist' })))
+			.addGrup(new TabloYapiItem().setKA('STISTGRP', 'Stok İst. Grup').secimKullanilir().setMFSinif(DMQStokIstGrup)
+				.addColDef(new GridKolon({ belirtec: 'sistgrup', text: 'Stok İst. Grup', maxWidth: 250, filterType: 'checkedlist' })))
+			.addGrup(new TabloYapiItem().setKA('STOK', 'Stok').secimKullanilir().setMFSinif(DMQStok)
+				.addColDef(new GridKolon({ belirtec: 'stok', text: 'Stok', maxWidth: 600, filterType: 'input' })))
+			.addGrup(new TabloYapiItem().setKA('CRTIP', 'Cari Tip').secimKullanilir().setMFSinif(DMQCariTip)
+				.addColDef(new GridKolon({ belirtec: 'tip', text: 'Cari Tip', maxWidth: 300, filterType: 'checkedlist' })))
+			.addGrup(new TabloYapiItem().setKA('CRANABOL', 'Ana Bölge').secimKullanilir().setMFSinif(DMQCariAnaBolge)
+				.addColDef(new GridKolon({ belirtec: 'anabolge', text: 'Ana Bölge', maxWidth: 200, filterType: 'input' })))
+			.addGrup(new TabloYapiItem().setKA('CRBOL', 'Bölge').secimKullanilir().setMFSinif(DMQCariBolge)
+				.addColDef(new GridKolon({ belirtec: 'bolge', text: 'Bölge', maxWidth: 300, filterType: 'input' })))
+			.addGrup(new TabloYapiItem().setKA('CRISTGRP', 'Cari İst. Grup').secimKullanilir().setMFSinif(DMQCariIstGrup)
+				.addColDef(new GridKolon({ belirtec: 'cistgrup', text: 'Cari İst. Grup', maxWidth: 300, filterType: 'checkedlist' })))
+			.addGrup(new TabloYapiItem().setKA('CARI', 'Cari').secimKullanilir().setMFSinif(DMQCari)
+				.addColDef(new GridKolon({ belirtec: 'cari', text: 'Cari', maxWidth: 600, filterType: 'input' })))
+			.addGrup(new TabloYapiItem().setKA('CRIL', 'İl').secimKullanilir().setMFSinif(DMQIl)
+				.addColDef(new GridKolon({ belirtec: 'il', text: 'İl', maxWidth: 250, filterType: 'checkedlist' })))
+			.addGrup(new TabloYapiItem().setKA('CRULKE', 'Ülke').secimKullanilir().setMFSinif(DMQUlke)
+				.addColDef(new GridKolon({ belirtec: 'ulke', text: 'Ülke', maxWidth: 250, filterType: 'checkedlist' })));
 		if (sube) { result.addGrup(new TabloYapiItem().setKA('SUBE', 'Şube').addColDef(new GridKolon({ belirtec: 'sube', text: 'Şube', maxWidth: 300, filterType: 'checkedlist' }))) }
 		if (takipNo) { result.addGrup(new TabloYapiItem().setKA('TAKIPNO', 'Takip No').addColDef(new GridKolon({ belirtec: 'takip', text: 'Takip No', maxWidth: 250, filterType: 'checkedlist' }))) }
 		if (plasiyer) { result.addGrup(new TabloYapiItem().setKA('PLASIYER', 'Plasiyer').addColDef(new GridKolon({ belirtec: 'plasiyer', text: 'Plasiyer', maxWidth: 550, filterType: 'checkedlist' }))) }

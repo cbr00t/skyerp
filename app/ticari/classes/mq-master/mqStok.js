@@ -1,7 +1,7 @@
 class MQStok extends MQKA {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() {return 'Stok' } static get table() {return 'stkmst'} static get tableAlias() { return 'stk' } static get stokmu() { return true }
-	static get kodListeTipi() {return 'STK'} static get ayrimTipKod() { return 'STAYR' } static get ayrimTableAlias() { return 'sayr' } static get ozelSahaTipKod() { return 'STK' }
+	static get sinifAdi() { return 'Stok' } static get table() {return 'stkmst'} static get tableAlias() { return 'stk' } static get stokmu() { return true }
+	static get kodListeTipi() { return 'STK' } static get ayrimTipKod() { return 'STAYR' } static get ayrimTableAlias() { return 'sayr' } static get ozelSahaTipKod() { return 'STK' }
 	static get zeminRenkDesteklermi() { return true }
 
 	constructor(e) { e = e || {}; super(e) }
@@ -20,35 +20,21 @@ class MQStok extends MQKA {
 		liste.push('brm', 'grupAciklama', 'satfiyat1', 'almfiyat')
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e);
-		const {aliasVeNokta} = this, {sent} = e;
-		sent.fromIliski(`stkgrup stkg`, `${aliasVeNokta}grupkod = stkg.kod`);
-		sent.fromIliski(`stkanagrup agrp`, `agrp.kod = stkg.anagrupkod`);
-		sent.fromIliski(`stkistgrup igrp`, `${aliasVeNokta}sistgrupkod = igrp.kod`);
-		sent.fromIliski(`stkistanagrup aigrp`, `igrp.sanagrupkod=aigrp.kod`);
+		super.loadServerData_queryDuzenle(e); const {aliasVeNokta} = this, {sent} = e;
+		sent.fromIliski(`stkgrup grp`, `${aliasVeNokta}grupkod = grp.kod`);
+		sent.fromIliski(`stkanagrup agrp`, `grp.anagrupkod = agrp.anagrupkod`);
+		sent.fromIliski(`stkistgrup sigrp`, `${aliasVeNokta}sistgrupkod = sigrp.kod`);
+		sent.fromIliski(`stkistanagrup siagrp`, `sigrp.sanagrupkod = siagrp.kod`);
 		sent.fromIliski(`stkmensei men`, `${aliasVeNokta}menseikod = men.kod`);
 		sent.fromIliski(`stkgtip gtip`, `${aliasVeNokta}gtipkod = gtip.kod`);
 		sent.fromIliski(`yukgrup ygrp`, `${aliasVeNokta}yukgrupkod = ygrp.kod`);
 		sent.fromIliski(`stkmensei smen`, `${aliasVeNokta}menseikod = smen.kod`)
 	}
-
 	static getGridKolonGrup_brmli(e) {
-		const kolonGrup = this.getGridKolonGrup(e);
-		if (!kolonGrup)
-			return kolonGrup
-		const {tabloKolonlari} = kolonGrup;
-		tabloKolonlari.push(new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 4 }).readOnly());
-		kolonGrup.stmDuzenleyiciEkle(e => {
-			const {aliasVeNokta} = this;
-			e.stm.sentDo(sent => {
-				sent.sahalar
-					.add(`${aliasVeNokta}brm`);
-			})
-		});
-		kolonGrup.degisince(e => {
-			e.rec.then(rec =>
-				e.setCellValue({ belirtec: 'brm', value: rec.brm || '' }))
-		});
+		const kolonGrup = this.getGridKolonGrup(e); if (!kolonGrup) { return kolonGrup }
+		const {tabloKolonlari} = kolonGrup; tabloKolonlari.push(new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 4 }).readOnly());
+		kolonGrup.stmDuzenleyiciEkle(e => { const {aliasVeNokta} = this; for (const sent of e.stm.getSentListe()) { sent.sahalar.add(`${aliasVeNokta}brm`) } });
+		kolonGrup.degisince(e => { e.rec.then(rec => e.setCellValue({ belirtec: 'brm', value: rec.brm || '' })) });
 		return kolonGrup
 	}
 }
@@ -205,13 +191,13 @@ class MQStokGenel extends MQStokAlt {
 			new GridKolon({ belirtec: 'calismadurumu', text: 'Aktif?', genislikCh: 8 }).tipBool(),
 			new GridKolon({ belirtec: 'satilamazfl', text: 'Satılmaz?', genislikCh: 8 }).tipBool(),
 			new GridKolon({ belirtec: 'grupkod', text: 'Grup', genislikCh: 10 }),
-			new GridKolon({ belirtec: 'grupAciklama', text: 'Grup Açıklama', genislikCh: 15, sql:'stkg.aciklama' }),
-			new GridKolon({ belirtec: 'anagrupkod', text: 'Ana Grup', genislikCh: 5, sql: 'stkg.anagrupkod' }),
+			new GridKolon({ belirtec: 'grupadi', text: 'Grup Adı', genislikCh: 15, sql:'grp.aciklama' }),
+			new GridKolon({ belirtec: 'anagrupkod', text: 'Ana Grup', genislikCh: 5, sql: 'grp.anagrupkod' }),
 			new GridKolon({ belirtec: 'anagrupadi', text: 'Ana Grup Adı', genislikCh: 20, sql: 'agrp.aciklama' }),
 			new GridKolon({ belirtec: 'sistgrupkod', text: 'İstatistik Grup', genislikCh: 5 }),
-			new GridKolon({ belirtec: 'sistgrupadi', text: 'İstatistik Grup Adı', genislikCh: 20, sql: 'igrp.aciklama' }),
-			new GridKolon({ belirtec: 'sistanagrupkod', text: 'İst. Ana Grup', genislikCh: 5, sql: 'igrp.sanagrupkod' }),
-			new GridKolon({ belirtec: 'sistanagrupadi', text: 'İst. Ana Grup Adı', genislikCh: 20, sql: 'aigrp.aciklama' }),
+			new GridKolon({ belirtec: 'sistgrupadi', text: 'İstatistik Grup Adı', genislikCh: 20, sql: 'siigrp.aciklama' }),
+			new GridKolon({ belirtec: 'sistanagrupkod', text: 'İst. Ana Grup', genislikCh: 5, sql: 'siigrp.sanagrupkod' }),
+			new GridKolon({ belirtec: 'sistanagrupadi', text: 'İst. Ana Grup Adı', genislikCh: 20, sql: 'siagrp.aciklama' }),
 			new GridKolon({ belirtec: 'brm', text: 'Br', genislikCh: 6 }),
 			new GridKolon({ belirtec: 'brm2', text: 'Br2', genislikCh: 6 }),
 			new GridKolon({ belirtec: 'brmorani', text: 'Birim Oranı', genislikCh: 5}).tipDecimal_fiyat(),
@@ -265,7 +251,8 @@ class MQStokDiger extends MQStokAlt {
 	}
 	static loadServerData_queryDuzenle(e) {
 		const {aliasVeNokta} = this.mfSinif, {sent} = e;
-		sent.fromIliski('stkgrup sgrp', `${aliasVeNokta}grupkod = sgrp.kod`);
+		sent.fromIliski('stkgrup grp', `${aliasVeNokta}grupkod = grp.kod`);
+		sent.fromIliski('stkanagrup agrp', 'grp.anagrupkod = grp.kod');
 		sent.fromIliski('stkistgrup sigrp', `${aliasVeNokta}sistgrupkod = sigrp.kod`);
 		sent.fromIliski('stkyer yer', `${aliasVeNokta}tavsiyeyerkod = yer.kod`);
 		sent.fromIliski('vergihesap sver', `${aliasVeNokta}satkdvhesapkod = sver.kod`);

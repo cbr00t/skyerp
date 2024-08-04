@@ -144,30 +144,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		}
 		return result
 	}
-	secimlerDuzenle(e) {
-		super.secimlerDuzenle(e); const {secimler} = e, {tabloYapi} = this, {grupVeToplam} = tabloYapi;
-		secimler.secimTopluEkle({
-			donem: new SecimTekSecim({ etiket: 'Dönem', tekSecimSinif: DonemVeTarihAralikSecim }).autoBind(),
-			tarihAralik: new SecimDate({ etiket: 'Tarih' }).hidden()
-		});
-		/* secimler.whereBlockEkle(e => { const wh = e.where, secimler = e.secimler }) */
-		const islemYap = (keys, callSelector) => {
-			for (const key of keys) {
-				const item = key ? grupVeToplam[key] : null; if (item == null) { continue }
-				const proc = item[callSelector]; if (proc) { proc.call(item, e) }
-			}
-		}; islemYap(Object.keys(grupVeToplam), 'secimlerDuzenle');
-		secimler.whereBlockEkle(e => islemYap(Object.keys(this.secilenler?.attrSet || {}), 'tbWhereClauseDuzenle'))
-	}
-	secimlerInitEvents(e) {
-		super.secimlerInitEvents(e); const {secimlerPart} = this, {secim2Info} = secimlerPart || {}; if (!secim2Info) { return }
-		let part = secim2Info.donem.element.find('.ddList').data('part'); if (part) {
-			part.degisince(e => {
-				const {tarihAralikmi} = secim2Info.donem.secim.tekSecim;
-				secim2Info.tarihAralik.element[tarihAralikmi ? 'removeClass' : 'addClass']('jqx-hidden')
-			})
-		}
-	}
+	secimlerDuzenle(e) { super.secimlerDuzenle(e) } secimlerInitEvents(e) { super.secimlerInitEvents(e) }
 	tabloYapiDuzenle(e) { }
 	onGridInit(e) {
 		super.onGridInit(e); this.ozetBilgi = { colDefs: null, recs: null };
@@ -252,7 +229,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			const {tabloKolonlari, tabloYapi, ozetBilgi} = this, {secilenVarmi, grup, icerik} = secilenler;
 			const tip2ColDefs = {}; for (const colDef of tabloKolonlari) { const {belirtec, userData} = colDef, {kod} = userData || {}; if (kod) { (tip2ColDefs[kod] = tip2ColDefs[kod] || []).push(colDef) } }
 			let colDefs = Object.keys(icerik).flatMap(kod => tip2ColDefs[kod]); colDefs.sort((a, b) => tabloYapi.toplam[a.userData?.kod] ? 1 : -1);
-			for (const colDef of colDefs) { if (!colDef.aggregates && tabloYapi.toplam[colDef.userData?.kod]) { colDef.aggregates = ['sum', 'avg'] } }
+			for (const colDef of colDefs) { if (!colDef.aggregates && tabloYapi.toplam[colDef.userData?.kod]) { colDef.aggregates = ['sum'] } }
 			grid.jqxTreeGrid('clear'); colDefs = this.getColumns(colDefs); try { grid.jqxTreeGrid('columns', colDefs.flatMap(colDef => colDef.jqxColumns)) } catch (ex) { console.error(ex) }
 			$.extend(ozetBilgi, { grupTipKod: Object.keys(grup)[0] || null, icerikTipKod: Object.keys(icerik).find(kod => !!tabloYapi.toplam[kod]) || null });
 			$.extend(ozetBilgi, { grupAttr: (tip2ColDefs[ozetBilgi.grupTipKod] || [])[0]?.belirtec, icerikAttr: (tip2ColDefs[ozetBilgi.icerikTipKod] || [])[0]?.belirtec });
@@ -260,7 +237,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				this.getColumns((source[kod]?.colDefs || [])).map(_colDef => { const colDef = _colDef/*.deepCopy()*/; if (colDefDuzenle) { getFuncValue.call(this, colDefDuzenle, colDef) } return colDef });
 			ozetBilgi.colDefs = ozetBilgi.grupTipKod ? [
 				...ozetBilgi_getColumns(tabloYapi.grup, ozetBilgi.grupTipKod, colDef => $.extend(colDef, { minWidth: 150, maxWidth: null, genislikCh: null })),
-				...ozetBilgi_getColumns(tabloYapi.toplam, ozetBilgi.icerikTipKod, colDef => $.extend(colDef, { minWidth: null, maxWidth: null, genislikCh: 16, aggregates: ['sum', 'avg'] }))
+				...ozetBilgi_getColumns(tabloYapi.toplam, ozetBilgi.icerikTipKod, colDef => $.extend(colDef, { minWidth: null, maxWidth: null, genislikCh: 16, aggregates: ['sum'] }))
 			] : [];
 			secilenler.degistimi = false
 		}
@@ -342,7 +319,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	tabloTanimlariGoster_sablonKaydetIstendi(e) { }
 	tabloTanimlariGoster_sablonSilIstendi(e) { }
 	seviyeAcIstendi(e) { const {gridPart} = this, {gridWidget} = gridPart; gridWidget.expandAll() }
-	seviyeKapatIstendi(e) { const {gridPart} = this, {gridWidget} = gridPart; gridWidget.collapseAll() }
+	seviyeKapatIstendi(e) { const {gridPart} = this, {gridWidget} = gridPart; gridWidget.collapseAll(); gridPart.expandedRowsSet = {} }
 	getColumns(colDefs) {
 		colDefs = super.getColumns(colDefs); if (!colDefs) { return colDefs }
 		const {gridPart, tabloYapi} = this; let icerikColsSet; for (const colDef of colDefs) {

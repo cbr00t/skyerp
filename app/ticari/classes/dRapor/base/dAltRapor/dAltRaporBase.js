@@ -18,9 +18,8 @@ class DAltRapor extends DRapor {
 		return _e.secimler
 	}
 	secimlerDuzenle(e) { } secimlerDuzenleSon(e) { } secimlerInitEvents(e) { }
-	loadServerData_wsArgsDuzenle(e) { const {secimler} = this; $.extend(e, { secimler }); secimler?.getTBWhereClause(e) }
+	loadServerData_wsArgsDuzenle(e) { const {secimler} = this; $.extend(e, { secimler }) }
 	onInit(e) { } onBuildEk(e) { } onAfterRun(e) { }
-	
 	tazeleDiger(e) { const {id2AltRapor} = this.rapor; for (const rapor of Object.values(id2AltRapor)) { if (rapor != this) { rapor.tazele(e) } } }
 	toggleFullScreen(e) {
 		const {builder} = e, {rootBuilder, parentBuilder, layout, part} = builder, parentLayout = parentBuilder.layout, itemsLayout = rootBuilder.id2Builder.items.layout, CSSClass_Maximized = 'maximized';

@@ -24,14 +24,14 @@
 @keyframes anim-gruplamalar-hightlight { 50% { background-color: #c9e0c9 } }
 .dRapor.masterListe.part .jqx-grid [role = row] > div, #dRapor.part #items > .item .jqx-grid .jqx-grid-cell.toplam { font-weight: bold }
 #dRapor.part #items > .item .jqx-grid .jqx-grid-cell:not(.jqx-grid-cell-selected).toplam { background-color: #f1fff1 }
-#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell:not(.jqx-grid-cell-selected):not(.leaf) { font-weight: bold; font-size: 125% }
-#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell:not(.jqx-grid-cell-selected).level-0:not(.leaf) { font-size: 135% }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell:not(.leaf) { font-weight: bold; font-size: 125% }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell.level-0:not(.leaf) { font-size: 135% }
 #dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid tr:nth-child(even) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-0:not(.leaf) { background-color: #e2e7f1 }
 #dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid tr:nth-child(odd) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-0:not(.leaf) { background-color: #ecf2fe }
-#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell:not(.jqx-grid-cell-selected).level-1:not(.leaf) { font-size: 130% }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell.level-1:not(.leaf) { font-size: 130% }
 #dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid tr:nth-child(even) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-1:not(.leaf) { background-color: #f8e8d5 }
 #dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid tr:nth-child(odd) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-1:not(.leaf) { background-color: #e6d7c5 }
-#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell:not(.jqx-grid-cell-selected).level-2:not(.leaf) { font-size: 125% }
+#dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell.level-2:not(.leaf) { font-size: 125% }
 #dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid tr:nth-child(even) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-2:not(.leaf) { background-color: #d4e6c5 }
 #dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid tr:nth-child(odd) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-2:not(.leaf) { background-color: #c7d5bb }
 #dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell-selected { color: whitesmoke; background-color: #426aae }

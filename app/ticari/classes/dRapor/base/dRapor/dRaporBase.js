@@ -1,4 +1,4 @@
-class DRapor extends DMQDetayliOrtak {				/* MQCogul tabanlı rapor sınıfları için gerekli inherit desteği için MQDetayliOrtak'dan getirildi */
+class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları için gerekli inherit desteği için DMQDetayli'dan getirildi */
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'dRapor' } get partName() { return this.class.partName }
 	static get anaTip() { return null } static get araSeviyemi() { return false } static get tumKolonlarGosterilirmi() { return false }
 	static get dRapormu() { return true } get dRapormu() { return this.class.dRapormu } static get dAltRapormu() { return false } get dAltRapormu() { return this.class.dAltRapormu }
