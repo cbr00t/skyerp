@@ -282,7 +282,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	}
 	stokGrup2AnaGrupBagla(e) {
 		e = e || {}; const alias = e.alias ?? 'grp',  aliasVeNokta = alias + '.';
-		this.fromIliski('stkistgrup agrp', `${aliasVeNokta}anagrupkod = agrp.kod`); return this
+		this.fromIliski('stkanagrup agrp', `${aliasVeNokta}anagrupkod = agrp.kod`); return this
 	}
 	stok2IstGrupBagla(e) {
 		e = e || {}; const alias = e.alias ?? 'stk',  aliasVeNokta = alias + '.';

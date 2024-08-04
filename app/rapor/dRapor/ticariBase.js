@@ -87,7 +87,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 				case 'CIRO': sent.sahalar.add('SUM(har.bedel) ciro'); break
 			}
 		}
-		sent.groupByOlustur(); sent.gereksizTablolariSil();
+		sent.groupByOlustur()
 	}
 	fisVeHareketBagla(e) { }
 }
