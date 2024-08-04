@@ -307,13 +307,13 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		const initListBox = e => {
 			const {builder} = e, {id, altInst, input} = builder; let source = e.source ?? ((altInst[id] || []).map(kod => kaDict[kod]));
 			if (source?.length && typeof source[0] != 'object') { source = source.map(kod => new CKodVeAdi({ kod, aciklama: kod })) }
-			if (id == 'kalanlar') {
+			/*if (id == 'kalanlar') {
 				source = [...source, ...(new Array(10).fill(null).map(x => ({ group: ' ', disabled: true })))];
 				for (const item of source) {
 					const kod = item?.kod; if (kod == null) { continue }
 					item.group = `${tabloYapi.grup[kod] ? '- Grup -' : tabloYapi.toplam[kod] ? '- Toplam -' : ''}`
 				}
-			}
+			}*/
 			const width = '100%', height = width, valueMember = 'kod', displayMember = 'aciklama';
 			const allowDrop = true, allowDrag = allowDrop, autoHeight = false, itemHeight = 38, filterable = true, filterHeight = 40, filterPlaceHolder = 'Bul';
 			input.prop('id', id); input.jqxListBox({ theme, width, height, valueMember, displayMember, source, allowDrag, allowDrop, autoHeight, itemHeight, filterable, filterHeight, filterPlaceHolder });
