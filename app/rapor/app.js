@@ -1,6 +1,13 @@
 class SkyRaporApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'SATISLAR' }
-	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { yerel: MQYerelParam.getInstance() /*rapor: MQParam_Rapor })*/ }) }
+	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { yerel: MQYerelParam.getInstance()  }) }
+	paramsDuzenle(e) {
+		super.paramsDuzenle(e); const {params} = e;
+		$.extend(params, {
+			yerel: MQYerelParamTicari.getInstance(), ortak: MQOrtakParam.getInstance(), /* rapor: MQParam_Rapor, */
+			zorunlu: MQZorunluParam.getInstance(), isyeri: MQIsyeri.getInstance(), ticariGenel: MQTicariGenelParam.getInstance()
+		})
+	}
 	getAnaMenu(e) {
 		const {kod2Sinif} = DRapor, items_raporlar = [];
 		for (const [mne, sinif] of Object.entries(kod2Sinif)) {

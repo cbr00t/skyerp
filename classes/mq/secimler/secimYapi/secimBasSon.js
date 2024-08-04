@@ -37,8 +37,8 @@ class SecimBasSon extends Secim {
 		SecimBirKismi.uiSetValues_birKismi(e); parent.find('.birKismiToggle').val(birKismimi); this.birKismiToggleDegisti(e)
 	}
 	buildHTMLElementStringInto(e) {
-		super.buildHTMLElementStringInto(e); const {mfSinif, birKismimi} = this;
-		e.target += `<div class="flex-row">`;
+		super.buildHTMLElementStringInto(e); const {mfSinif, birKismimi, isHidden} = this;
+		e.target += `<div class="flex-row${isHidden ? ' jqx-hidden' : ''}">`;
 		if (mfSinif) { e.target += `<div class="birKismiToggle"></div>`; }
 		e.target += 	`<div class="bs-parent flex-row${birKismimi ? ' jqx-hidden' : ''}">`;
 		if (mfSinif) { e.target += 	`<div class="veri basi bs"></div>` }
@@ -57,7 +57,7 @@ class SecimBasSon extends Secim {
 			const basi = parent.find('.basi.bs').val(), txtSonu = parent.find('.sonu.bs'), sonu = basi;
 			this.sonu = this.getConvertedValue(basi); txtSonu.val(sonu); txtSonu.select();
 			for (const delayMS of [50, 150]) { setTimeout(() => txtSonu.val(sonu), delayMS) }
-			let input = txtSonu.find('input'); if (!input?.length) { input = txtSonu } input?.focus()
+			let input = txtSonu.find('input'); if (!input?.length) { input = txtSonu } /*input?.focus()*/
 		});
 		if (mfSinif) {
 			let focusWidget; const {kodSaha} = mfSinif, dropDown = false, autoBind = false, noAutoWidth = true, maxRow = app.params.ortak.autoComplete_maxRow * 4;

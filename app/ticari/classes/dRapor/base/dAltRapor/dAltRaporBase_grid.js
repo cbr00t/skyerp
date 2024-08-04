@@ -1,5 +1,6 @@
 class DAltRapor_Grid extends DAltRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridmi() { return true }
+	constructor(e) { e = e || {}; super(e); if (this.secimler == null) { this.secimler = this.newSecimler(e) } }
 	subFormBuilderDuzenle(e) {
 		super.subFormBuilderDuzenle(e); const {parentBuilder} = this;
 		let fbd = this.fbd_grid = parentBuilder.addGridliGosterici('grid').rowNumberOlmasin().notAdaptive()
@@ -13,7 +14,7 @@ class DAltRapor_Grid extends DAltRapor {
 	gridBuilderDuzenle(e) { }
 	onGridInit(e) { this.gridPart = e.builder.part } onGridRun(e) { const {gridPart} = this, {grid, gridWidget} = gridPart; $.extend(this, { grid, gridWidget }) }
 	gridArgsDuzenle(e) { const {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: true, showGroupsHeader: true, groupsExpandedByDefault: false }) }
-	tabloKolonlariDuzenle(e) { } loadServerData(e) { } gridVeriYuklendi(e) { }
+	tabloKolonlariDuzenle(e) { } gridVeriYuklendi(e) { } loadServerData(e) { this.loadServerData_wsArgsDuzenle(e) }
 	tazele(e) { super.tazele(e); this.gridPart?.tazele(e) }
 	super_tazele(e) { super.tazele(e) }
 }
@@ -103,7 +104,7 @@ class DAltRapor_GridGruplu extends DAltRapor_Grid {
 	}
 }
 class DAltRapor_Grid_Ozet extends DAltRapor_Grid {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return null } static get altRaporMainClass() { return null }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return null }
 	static get kod() { return 'ozet' } static get aciklama() { return 'Özet Bilgi' }
 	get width() { return `calc(var(--full) - ${this.rapor.id2AltRapor.main.width})` } get height() { return '400px' }
 	gridArgsDuzenle(e) { const {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: false, showGroupsHeader: false }) }

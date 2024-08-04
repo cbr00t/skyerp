@@ -47,6 +47,7 @@ input[type=time].no-secs::-webkit-datetime-edit-second-field { color: transparen
 .jqx-listitem-element > * { font-size: 80%; height: var(--full) !important; padding: 3px 3px 0 8px }
 .jqx-listitem-element > .jqx-listitem-state-hover { background: linear-gradient(90deg, #d6deea 10%, #fcfcfc 90%) !important }
 .jqx-listitem-element > *:not(.jqx-listitem-state-hover):not(.jqx-listitem-state-selected) { }
+.jqx-listitem-element > .jqx-listitem-state-group { color: royalblue !important; background-color: #eee !important }
 /*progress { }
 @keyframes animate-stripes { 100% { opacity: 0; background-position: -100px 0px; } }
 progress:not([value]) { -webkit-appearance: none; appearance: none }

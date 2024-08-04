@@ -145,7 +145,7 @@ class ModelKullanPart extends Part {
 				setTimeout(() => {
 					if (widget.isOpened()) { return } this.disableEventsFlag = true;
 					setTimeout(() => delete this.disableEventsFlag, 50);
-					if (!widget.isOpened()) { widget.open() }
+					if (this.focusSelectYapildiFlag && !widget.isOpened()) { widget.open() }
 				}, 10);
 				setTimeout(() => {
 					if (widget.searchString == null) { widget.searchString = '' }
@@ -352,7 +352,10 @@ class ModelKullanPart extends Part {
 						if (coklumu) {
 							listBox.clear(); for (const rec of _recs) { widget.addItem(rec); widget.selectItem(widget.getItems().slice(-1)[0]) }
 							input.val(''); this.onChange({ force: true, type: 'trigger' }).then(() => {
-								let handler = evt => { layout.off('bindingComplete', handler); setTimeout(() => { if (widget.isOpened()) { widget.close() } input.focus() }, 1) };
+								let handler = evt => {
+									layout.off('bindingComplete', handler);
+									setTimeout(() => { if (widget.isOpened()) { widget.close() } input.focus() }, 1)
+								};
 								layout.on('bindingComplete', handler); widget.dataBind() })
 						}
 						else {

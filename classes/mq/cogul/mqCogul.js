@@ -262,10 +262,9 @@ class MQCogul extends MQYapi {
 		tabPage_genel.addStyle_fullWH(); e.tabPage_genel = tabPage_genel
 	}
 	static get newSecimler() {
-		const {secimSinif} = this; if (!secimSinif) return null
-		const _e = { secimler: new secimSinif() };
-		_e.secimler.beginUpdate(); this.secimlerDuzenle(_e); this.secimlerDuzenleSon(_e);
-		if (_e.secimler) _e.secimler.endUpdate()
+		const {secimSinif} = this; if (!secimSinif) { return null }
+		const _e = { secimler: new secimSinif() }; _e.secimler.beginUpdate(); this.secimlerDuzenle(_e); this.secimlerDuzenleSon(_e);
+		if (_e.secimler) { _e.secimler.endUpdate() }
 		return _e.secimler
 	}
 	static secimlerDuzenle(e) {

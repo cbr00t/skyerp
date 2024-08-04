@@ -143,6 +143,11 @@ class SecimBoolTrue extends SecimBool {
 class SecimTekSecim extends SecimOzel {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'tekSecim' } static get birKismimi() { return false }
 	get value() { return this.getConvertedValue(this.tekSecim?.char) } set value(value) { const {tekSecim} = this; if (tekSecim) { tekSecim.char = this.getConvertedValue(value) } }
+	get secilen() {
+		const {coklumu, tekSecim} = this; let secilen = tekSecim.secilen;
+		if (secilen != null && coklumu && !$.isArray(secilen)) { secilen = [secilen] }
+		return secilen
+	}
 	get kaListe() { return (this.tekSecim || {}).kaListe }
 	readFrom(e) {
 		if (!super.readFrom(e)) { return false }
@@ -157,19 +162,20 @@ class SecimTekSecim extends SecimOzel {
 		this.tekSecim = tekSecim; const {value, defaultValue} = this;
 		if (value == null && defaultValue != null) { value = defaultValue }
 		if (value != null) { tekSecim.char = value }
+		this.autoBindFlag = e.autoBind ?? e.autoBindFlag ?? false;
 		return true
 	}
 	writeTo(e) { e = e || {}; if (!super.writeTo(e)) { return false } const {kaListe} = this; if (!e._reduce && kaListe != null) { e.kaListe = kaListe } return true }
 	uiSetValues(e) { super.uiSetValues(e); const {parent} = e; if (!parent?.length) { return false } parent.find('.ddList').val(this.getConvertedValue(this.value) ?? '') }
 	buildHTMLElementStringInto(e) {
-		super.buildHTMLElementStringInto(e); const {kaListe, char} = this, {tip, birKismimi} = this.class; e.tip = tip;
-		e.target += `<div class="flex-row">`;
+		super.buildHTMLElementStringInto(e); const {kaListe, char, isHidden} = this, {tip, birKismimi} = this.class; e.tip = tip;
+		e.target += `<div class="flex-row${isHidden ? ' jqx-hidden' : ''}">`;
 		if (birKismimi) { e.target += `<div class="hepsimi"></div>` }
 		this.class.buildHTMLElementStringInto_birKismi(e);
 		e.target += `</div>`
 	}
 	initHTMLElements(e) {
-		super.initHTMLElements(e); const {mfSinif} = this, {tip, birKismimi} = this.class, autoBind = false, coklumu = birKismimi;
+		super.initHTMLElements(e); const {mfSinif} = this, autoBind = this.autoBindFlag, {tip, birKismimi} = this.class, coklumu = birKismimi;
 		$.extend(e, { tip, coklumu, autoBind, getValue: this.value, setValue: e => this.value = e.value, mfSinif, source: mfSinif ? null : (e => this.kaListe) });
 		const {parent} = e, btnListedenSec = parent.find('.listedenSec'); if (btnListedenSec?.length) {
 			btnListedenSec.jqxButton({ theme });
@@ -191,7 +197,7 @@ class SecimTekSecim extends SecimOzel {
 	}
 	static initHTMLElements_birKismi(e) {
 		const {parent, mfSinif, autoBind, coklumu, getValue, setValue} = e, source = e.source ?? e.loadServerDataBlock ?? e.loadServerData, editor = parent.find('.ddList');
-		let focusWidget;  const part = e.part = new ModelKullanPart({
+		let focusWidget; const part = e.part = new ModelKullanPart({
 			layout: editor, dropDown: !coklumu, autoBind, coklumu, maxRow: e.maxRow, mfSinif, value: getFuncValue.call(this, getValue, e), /*placeHolder: this.etiket,*/
 			source, kodGosterilsinmi: !source, argsDuzenle: e => { /*$.extend(e.args, { itemHeight: 40, dropDownHeight: 410 })*/ }
 		});
@@ -204,6 +210,7 @@ class SecimTekSecim extends SecimOzel {
 		});
 		widget.input.on('keyup', evt => { const key = evt.key?.toLowerCase(); if (key == 'enter' || key == 'linefeed' || key == 'tab') { if (widget.isOpened()) widget.close() } })
 	}
+	autoBind() { this.autoBindFlag = true; return this } noAutoBind() { this.autoBindFlag = false; return this }
 }
 class SecimBirKismi extends SecimTekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'birKismi' } static get birKismimi() { return true } get value() { return this.hepsimi ? null : super.value } set value(value) { super.value = value }
@@ -236,6 +243,7 @@ class SecimBirKismi extends SecimTekSecim {
 		const birKismiBosParent = parent.find('.birKismi-bos-parent'); if (birKismiBosParent?.length) birKismiBosParent[hepsimi ? 'removeClass' : 'addClass']('jqx-hidden')
 	}
 	getConvertedValue(value) { return value === null ? [] : $.isArray(value) ? value : $.makeArray(value) }
+	hepsi() { this.hepsimi = true; return this } birKismi() { this.hepsimi = false; return this }
 }
 
 (function() {

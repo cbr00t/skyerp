@@ -43,9 +43,7 @@ class MQOzelIsaret extends TekSecim {
 }
 class NormalIade extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultChar() { return '' }
-	get normalmi() { return this.char == '' }
-	get iademi() { return this.char == 'I' }
+	static get defaultChar() { return '' } get normalmi() { return this.char == '' } get iademi() { return this.char == 'I' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); const {kaListe} = e;
 		kaListe.push(
@@ -521,4 +519,39 @@ class GelenGidenHavaleEFTTipi extends TekSecim {
 			new CKodVeAdi(['APOS', 'Gönderilen POS'])
 		)
 	}
+}
+class DonemSecim extends TekSecim {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' }
+	get basiSonu() { const {char} = this; return $.isArray(char) ? char.map(kod => this.getBasiSonu(kod)) : this.getBasiSonu(char) }
+	kaListeDuzenle(e) {
+		super.kaListeDuzenle(e); const {kaListe} = e; kaListe.push(
+			new CKodVeAdi(['B', 'Bugün']), new CKodVeAdi(['D', 'Dün']), new CKodVeAdi(['HF', 'Bu Hafta']), new CKodVeAdi(['AY', 'Bu Ay']),
+			new CKodVeAdi(['GA', 'Geçen Ay']), new CKodVeAdi(['BC', 'Bu Çeyrek Dönem']), new CKodVeAdi(['OC', 'Önceki Çeyrek Dönem']), new CKodVeAdi(['YL', 'Bu Yıl'])
+		)
+	}
+	bugun() { this.char = 'B'; return this } dun() { this.char = 'D'; return this } buHafta() { this.char = 'HF'; return this }
+	buAy() { this.char = 'AY'; return this } gecenAy() { this.char = 'GA'; return this }
+	buCeyrekDonem() { this.char = 'BC'; return this } oncekiCeyrekDonem() { this.char = 'OC'; return this } buYil() { this.char = 'YL'; return this }
+	getBasiSonu(kod) {
+		const _today = today(), {ay, yil} = _today; let basi; switch (kod) {
+			case 'B': return new CBasiSonu({ basi: _today.clone(), sonu: _today.clone() })
+			case 'D': return new CBasiSonu({ basi: _today.clone().dun(), sonu: _today.clone().dun() })
+			case 'HF': return new CBasiSonu({ basi: _today.clone().haftaBasi(), sonu: _today.clone().haftaSonu() })
+			case 'AY': return new CBasiSonu({ basi: _today.clone().ayBasi(), sonu: _today.clone().aySonu() })
+			case 'GA': return new CBasiSonu({ basi: _today.clone().ayBasi().addMonths(-1), sonu: _today.clone().ayBasi().addDays(-1) })
+			case 'BC':
+				const ceyrekNo = ((ay - 1) % 3) + 1; basi = new Date(yil, ((ceyrekNo - 1) * 3) + 1, 1);
+				return new CBasiSonu({ basi, sonu: basi.clone().addMonths(2).aySonu() })
+			case 'OC':
+				const oncekiCeyrekNo = (ay - 1) % 3; basi = oncekiCeyrekNo ? new Date(yil, ((oncekiCeyrekNo - 1) * 3) + 1, 1) : new Date(yil - 1, 9, 1);
+				return new CBasiSonu({ basi, sonu: basi.clone().addMonths(2).aySonu() })
+			case 'BY': return new CBasiSonu({ basi: _today.clone().yilBasi(), sonu: _today.clone().yilSonu() })
+		}
+		return null
+	}
+}
+class DonemVeTarihAralikSecim extends DonemSecim {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' } get tarihAralikmi() { return this.char == 'TR' }
+	kaListeDuzenle(e) { super.kaListeDuzenle(e); const {kaListe} = e; kaListe.push( new CKodVeAdi(['TR', 'Tarih Aralık']) ) }
+	tarihAralik() { this.char = 'TR'; return this }
 }

@@ -13,7 +13,8 @@ class MQZorunluParam extends MQTicariParamBase {
 	static get sinifAdi() { return 'Zorunlu Parametreler' } static get paramKod() { return 'FGZT' }
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); const {paramci} = e; paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`);
-		let form = paramci.addFormWithParent(); form.addBool('ozelIsaret', 'Özel İşaret'); form.addNumber('cariYil', 'Cari Yıl').setValue(today().getFullYear()).addStyle_wh('100px !important');
+		let form = paramci.addFormWithParent();
+			form.addBool('ozelIsaret', 'Özel İşaret'); form.addBool('sube', 'Şube Kullanılır'); form.addNumber('cariYil', 'Cari Yıl').setValue(today().getFullYear()).addStyle_wh('100px !important');
 		/*form = paramci.addForm().setLayout(e => $(`<div>özel content</div>`)); form.addButton('test', null, 'TEST', e => eConfirm( `${e.event.currentTarget.value} butonuna tıklandı` )).addStyle_wh('200px !important', '50px !important');*/
 		form = paramci.addGrup({ etiket: 'Ondalık' }).altAlta().addFormWithParent(); form.addNumber('fiyatFra', 'Fiyat').setValue(2); form.addNumber('dvFiyatFra', 'Dv.Fiyat').setValue(2);
 			form.addNumber('bedelFra', 'Bedel').setValue(2); form.addNumber('dvBedelFra', 'Dv.Bedel').setValue(2); form.addNumber('dvKurFra', 'Dv.Kur').setValue(6)
@@ -60,7 +61,8 @@ class MQTicariGenelParam extends MQTicariParamBase {
 		super.paramYapiDuzenle(e); const {paramci} = e; paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`);
 		let kullanim = paramci.addKullanim().addGrup({ etiket: 'Kullanım' }); let form = kullanim.addFormWithParent();
 			form.addBool('doviz', 'Döviz'); form.addBool('sms', 'SMS İşlemleri'); form.addBool('plasiyer', 'Plasiyer'); form.addBool('mustahsil', 'Müstahsil');
-			form.addBool('sicakSatis', 'Sıcak Satış'); form.addBool('muhasebe', 'Muhasebe'); form.addBool('takipNo', 'Takip No'); form.addBool('uretim', 'Üretim');
+			form.addBool('sicakSatis', 'Sıcak Satış'); form.addBool('muhasebe', 'Muhasebe'); form.addBool('takipNo', 'Takip No'); form.addBool('masraf', 'Masraf Yeri');
+			form.addBool('uretim', 'Üretim');
 		form = kullanim.addFormWithParent();
 			form.addBool('toplamKalite', 'Toplam Kalite'); form.addBool('demirbas', 'Demirbaş'); form.addBool('eFatura', 'e-Fatura'); form.addBool('eIrsaliye', 'e-İrsaliye');
 			form.addBool('eMustahsil', 'e-Müstahsil'); form.addBool('eArsivLimit', 'e-Belge'); form.addBool('gelenEArsiv', 'Gelen e-Arşiv');
@@ -81,7 +83,7 @@ class MQCariGenelParam extends MQTicariParamBase {
 }
 class MQStokGenelParam extends MQTicariParamBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() { return 'Stok Genel Parametreler' } static get paramKod() { return 'SGN' }
+	static get sinifAdi() { return 'Stok Genel Parametreler' } static get paramKod() { return 'SGN' } static get kgBirimler() { return ['KG', 'KILO', 'KİLO'] }
 	static get hmrYapi() {
 		let result = this._hmrYapi;
 		if (result === undefined) {

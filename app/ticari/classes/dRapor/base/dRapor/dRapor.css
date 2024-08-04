@@ -1,5 +1,8 @@
 #dRapor.part { --islemTuslari-height: 55px }
 #dRapor.part > .islemTuslari { width: var(--full); height: var(--islemTuslari-height) }
+#dRapor.part > .islemTuslari #secimler.jqx-fill-state-normal { background-color: #7f8cb0 }
+#dRapor.part > .islemTuslari #secimler.jqx-fill-state-hover { background-color: #c0cced }
+#dRapor.part > .islemTuslari #secimler.jqx-fill-state-pressed { background-color: #4860a2 }
 #dRapor.part > .wnd-content > *:not(.bulForm):not(.islemTuslari) { background: white !important }
 #dRapor.part #items { width: var(--full) !important; height: calc(var(--full) - var(--islemTuslari-height) - 10px) !important; box-sizing: border-box !important }
 #dRapor.part #items > .item {

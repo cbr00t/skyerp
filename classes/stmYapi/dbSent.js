@@ -122,12 +122,9 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	addAllWithAlias(e) { this.sahalar.addAllWithAlias(e); return this }
 	gereksizTablolariSil(e) {
 		e = typeof e == 'object' && !$.isArray(e) ? e : { disinda: e };
-		let {disinda} = e;
-		if (disinda && typeof disinda == 'string')
-			disinda = [disinda]
+		let {disinda} = e; if (disinda != null && typeof disinda == 'string') { disinda = [disinda] }
 		const disindaSet = e.disinda = (disinda && $.isArray(disinda) ? asSet(disinda) : disinda) || {};
-		for (const alias of ['har', 'fis'])
-			disindaSet[alias] = true
+		for (const alias of ['har', 'fis']) { disindaSet[alias] = true }
 		return this.gereksizTablolariSilDogrudan(e)
 	}
 	gereksizTablolariSilDogrudan(e) {
@@ -230,11 +227,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		this.fromIliski({ from: `${harTable} har`, iliski: 'fis.kaysayac = har.fissayac' })
 		return this
 	}
-	fis2SubeBagla(e) {
-		this.fromIliski('isyeri sub', 'fis.bizsubekod = sub.kod');
-		this.fromIliski('isygrup igrp', 'sub.isygrupkod = igrp.kod');
-		return this
-	}
+	fis2SubeBagla(e) { this.fromIliski('isyeri sub', 'fis.bizsubekod = sub.kod'); this.fromIliski('isygrup igrp', 'sub.isygrupkod = igrp.kod'); return this }
 	fis2CariBagla(e) { this.fromIliski('carmst car', 'fis.must = car.must'); return this }
 	fis2TicCariBagla(e) { this.fromIliski('carmst car', 'fis.ticmust = car.must'); return this }
 	fis2PlasiyerBagla(e) { this.fromIliski('carmst pls', 'fis.must = car.must'); return this }
@@ -244,25 +237,32 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		e = e || {}; const alias = e.alias ?? 'car', aliasVeNokta = alias + '.';
 		this.fromIliski('carbolge bol', `${aliasVeNokta}bolgekod = bol.kod`); return this
 	}
+	bolge2AnaBolgeBagla(e) { this.fromIliski('caranabolge abol', 'bol.anabolgekod = abol.kod'); return this }
 	cari2IlBagla(e) {
 		e = e || {}; const alias = e.alias ?? 'car', aliasVeNokta = alias + '.';
 		this.fromIliski('caril il', `${aliasVeNokta}ilkod = il.kod`); return this
 	}
+	cari2UlkeBagla(e) {
+		e = e || {}; const alias = e.alias ?? 'car', aliasVeNokta = alias + '.';
+		this.fromIliski('ulke ulk', `${aliasVeNokta}ulkekod = ulk.kod`); return this
+	}
+	cari2TipBagla(e) {
+		e = e || {}; const alias = e.alias ?? 'car', aliasVeNokta = alias + '.';
+		this.fromIliski('cartip ctip', `${aliasVeNokta}tipkod = ctip.kod`); return this
+	}
+	cari2IstGrupBagla(e) {
+		e = e || {}; const alias = e.alias ?? 'car', aliasVeNokta = alias + '.';
+		this.fromIliski('caristgrup cigrp', `${aliasVeNokta}cistgrupkod = cigrp.kod`); return this
+	}
 	cariYardimciBagla(e) {
 		e = e || {}; const alias = e.alias ?? 'car', aliasVeNokta = alias + '.';
-		this.fromIliski('carbolge bol', `${aliasVeNokta}bolgekod = bol.kod`);
-		this.fromIliski('caranabolge cabol', 'bol.anabolgekod = cabol.kod');
-		this.fromIliski('caristgrup cigrp', `${aliasVeNokta}cistgrupkod = cigrp.kod`);
-		this.cari2IlBagla(e);
-		this.fromIliski('cartip ctip', `${aliasVeNokta}tipkod = ctip.kod`);
-		this.fromIliski('ulke ulk', `${aliasVeNokta}ulkekod = ulk.kod`);
+		this.cari2BolgeBagla(e); this.bolge2AnaBolgeBagla(e); this.cari2IstGrupBagla(e);
+		this.cari2IlBagla(e); this.cari2TipBagla(e); this.cari2UlkeBagla(e);
 		this.leftJoin({ alias: alias, table: 'muhhesap cmuh', on: `${aliasVeNokta}muhhesap = cmuh.kod` });
 		this.fromIliski('carkosulgrup ckgrp', `${aliasVeNokta}kosulgrupkod = ckgrp.kod`);
 		this.leftJoin({ alias: alias, table: 'carmemo cmem', on: `${aliasVeNokta}must = cmem.must` });
-		this.fromIliski('carmst kon', `(case ${aliasVeNokta}konsolidemusterikod = '' then ${aliasVeNokta}must else ${aliasVeNokta}konsolidemusterikod end) = kon.must`);
-		this.zincirler.add(['car', 'kon']);
-		this.fromIliski('carmst bfrm', `(case ${aliasVeNokta}bformkonkod = '' then ${aliasVeNokta}must else ${aliasVeNokta}bformkonkod end) = bfrm.must`);
-		this.zincirler.add(['car', 'bfrm']);
+		this.fromIliski('carmst kon', `(case ${aliasVeNokta}konsolidemusterikod = '' then ${aliasVeNokta}must else ${aliasVeNokta}konsolidemusterikod end) = kon.must`); this.zincirler.add(['car', 'kon']);
+		this.fromIliski('carmst bfrm', `(case ${aliasVeNokta}bformkonkod = '' then ${aliasVeNokta}must else ${aliasVeNokta}bformkonkod end) = bfrm.must`); this.zincirler.add(['car', 'bfrm']);
 		this.leftJoin({ alias: alias, table: 'carisatis csat', on: [`${aliasVeNokta}must = csat.must`, `csat.satistipkod = ''`] });
 		this.leftJoin({ alias: 'csat', table: 'tahsilsekli ctsek', on: 'csat.tahseklino = ctsek.kodno' });
 		this.fromIliski('banmst cban', `${aliasVeNokta}bankakod = cban.kod`);

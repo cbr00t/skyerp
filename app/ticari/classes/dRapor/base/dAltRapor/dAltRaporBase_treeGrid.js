@@ -1,5 +1,6 @@
 class DAltRapor_TreeGrid extends DAltRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridmi() { return true } static get dTreeGridmi() { return true }
+	constructor(e) { e = e || {}; super(e); if (this.secimler == null) { this.secimler = this.newSecimler(e) } }
 	/*subFormBuilderDuzenle(e) { super.subFormBuilderDuzenle(e); const {rfb} = e; rfb.addCSS('no-overflow') }*/
 	onBuildEk(e) {
 		super.onBuildEk(e); const {parentBuilder, noAutoColumns} = this, {layout} = parentBuilder;
@@ -66,7 +67,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		return recs
 	}
 	loadServerDataInternal(e) { return null }
-	loadServerData_wsArgsDuzenle(e) { let _value = qs.maxRow ?? qs.maxrow; if (_value != null) { e.maxRow = asInteger(_value) } }
+	loadServerData_wsArgsDuzenle(e) { super.loadServerData_wsArgsDuzenle(e); let _value = qs.maxRow ?? qs.maxrow; if (_value != null) { e.maxRow = asInteger(_value) } }
 	loadServerData_recsDuzenleIlk(e) {
 		let {recs} = e; const {gridPart} = this, {filtreTokens} = gridPart;
 		if (filtreTokens?.length) { const _recs = this.loadServerData_recsDuzenle_hizliBulIslemi(e); recs = _recs == null ? e.recs : _recs }
@@ -130,7 +131,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	get tabloYapi() {
 		let result = this._tabloYapi;
 		if (result == null) {
-			let _e = { result: { grup: {}, toplam: {}, kaPrefixes: [], sortAttr: null } }; this.tabloYapiDuzenle(_e); result = _e.result;
+			let _e = { result: new TabloYapi() }; this.tabloYapiDuzenle(_e); result = _e.result;
 			const tipSet = result.tipSet = {}, kaListe = result.kaListe = [];
 			for (const selector of ['grup', 'toplam']) {
 				const tip2Item = result[selector];
@@ -142,6 +143,30 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			this._tabloYapi = result
 		}
 		return result
+	}
+	secimlerDuzenle(e) {
+		super.secimlerDuzenle(e); const {secimler} = e, {tabloYapi} = this, {grupVeToplam} = tabloYapi;
+		secimler.secimTopluEkle({
+			donem: new SecimTekSecim({ etiket: 'Dönem', tekSecimSinif: DonemVeTarihAralikSecim }).autoBind(),
+			tarihAralik: new SecimDate({ etiket: 'Tarih' }).hidden()
+		});
+		/* secimler.whereBlockEkle(e => { const wh = e.where, secimler = e.secimler }) */
+		const islemYap = (keys, callSelector) => {
+			for (const key of keys) {
+				const item = key ? grupVeToplam[key] : null; if (item == null) { continue }
+				const proc = item[callSelector]; if (proc) { proc.call(item, e) }
+			}
+		}; islemYap(Object.keys(grupVeToplam), 'secimlerDuzenle');
+		secimler.whereBlockEkle(e => islemYap(Object.keys(this.secilenler?.attrSet || {}), 'tbWhereClauseDuzenle'))
+	}
+	secimlerInitEvents(e) {
+		super.secimlerInitEvents(e); const {secimlerPart} = this, {secim2Info} = secimlerPart || {}; if (!secim2Info) { return }
+		let part = secim2Info.donem.element.find('.ddList').data('part'); if (part) {
+			part.degisince(e => {
+				const {tarihAralikmi} = secim2Info.donem.secim.tekSecim;
+				secim2Info.tarihAralik.element[tarihAralikmi ? 'removeClass' : 'addClass']('jqx-hidden')
+			})
+		}
 	}
 	tabloYapiDuzenle(e) { }
 	onGridInit(e) {
@@ -278,12 +303,19 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			 $elementCSS > div .${className_listBox} { --label-height: 30px; --label-margin-bottom: 20px }
 			 $elementCSS > div .${className_listBox} > label { font-size: 180%; color: #999; height: var(--label-height); padding-bottom: var(--label-margin-bottom) }
 			 $elementCSS > div .${className_listBox} > :not(label) { vertical-align: top; height: calc(var(--full) - var(--label-height) - var(--label-margin-bottom)) !important }
-			 $elementCSS > div .${className_listBox} > .jqx-listbox .jqx-listitem-element { font-size: 130% }`]);
+			 $elementCSS > div .${className_listBox} > .jqx-listbox .jqx-listitem-element { font-size: 110% }`]);
 		const initListBox = e => {
 			const {builder} = e, {id, altInst, input} = builder; let source = e.source ?? ((altInst[id] || []).map(kod => kaDict[kod]));
 			if (source?.length && typeof source[0] != 'object') { source = source.map(kod => new CKodVeAdi({ kod, aciklama: kod })) }
+			if (id == 'kalanlar') {
+				source = [...source, ...(new Array(10).fill(null).map(x => ({ group: ' ', disabled: true })))];
+				for (const item of source) {
+					const kod = item?.kod; if (kod == null) { continue }
+					item.group = `${tabloYapi.grup[kod] ? '- Grup -' : tabloYapi.toplam[kod] ? '- Toplam -' : ''}`
+				}
+			}
 			const width = '100%', height = width, valueMember = 'kod', displayMember = 'aciklama';
-			const allowDrop = true, allowDrag = allowDrop, autoHeight = false, itemHeight = 40, filterable = true, filterHeight = 35, filterPlaceHolder = 'Bul';
+			const allowDrop = true, allowDrag = allowDrop, autoHeight = false, itemHeight = 38, filterable = true, filterHeight = 40, filterPlaceHolder = 'Bul';
 			input.prop('id', id); input.jqxListBox({ theme, width, height, valueMember, displayMember, source, allowDrag, allowDrop, autoHeight, itemHeight, filterable, filterHeight, filterPlaceHolder });
 			const changeHandler = evt => { const target = evt.currentTarget, {id} = target, items = $(target).jqxListBox('getItems'); inst.listStates[id] = items.map(item => item.value) };
 			input.on('change', changeHandler); input.on('dragEnd', changeHandler);
@@ -293,8 +325,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		let fbd_orta = fbd_content.addFormWithParent('orta').altAlta().addStyle_fullWH(ortaWidth);/*.addStyle(e => `$elementCSS { position: absolute; right: 0 }`);*/
 		fbd_orta.addDiv('grup').setEtiket('Grup').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight).setAltInst(inst.listStates).onAfterRun(e => initListBox(e));
 		fbd_orta.addDiv('icerik').setEtiket('İçerik').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight).setAltInst(inst.listStates).onAfterRun(e => initListBox(e));
-		let fbd_sag = fbd_content.addFormWithParent('sag').altAlta().addStyle_fullWH(sagWidth); fbd_sag.addNumberInput('ozetMax', '... max');
-		wnd = createJQXWindow({ title, args: { isModal: false, closeButtonAction: 'close', width: Math.min(530, Math.max(600, $(window).width() - 100)), height: Math.min(800, $(window).height() - 50) } });
+		let fbd_sag = fbd_content.addFormWithParent('sag').altAlta().addStyle_fullWH(sagWidth); fbd_sag.addNumberInput('ozetMax', 'En Yüksek İlk ... kayıt');
+		wnd = createJQXWindow({ title, args: { isModal: false, closeButtonAction: 'close', width: Math.min(530, Math.max(600, $(window).width() - 100)), height: Math.min(1000, $(window).height() - 50) } });
 		wnd.on('close', evt => { wnd.jqxWindow('destroy'); $('body').removeClass('bg-modal') });
 		wnd.prop('id', wRFB.id); wnd.addClass('dRapor part'); setTimeout(() => $('body').addClass('bg-modal'), 10);
 		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run(); this._tabloTanimGosterildiFlag = true

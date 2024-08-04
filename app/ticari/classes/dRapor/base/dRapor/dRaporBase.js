@@ -70,7 +70,8 @@ class DOzelRapor extends DRapor {
 	super_tazele(e) { super.tazele(e) }
 }
 class DPanelRapor extends DOzelRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'panel' } static get dPanelRapormu() { return true }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get anaTip() { return 'panel' } static get dPanelRapormu() { return true } get main() { return this.id2AltRapor.main }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, { id2AltRapor: e.id2AltRapor, altRapor_lastZIndex: 100 });
 		if (this.id2AltRapor == null) { this.clear(); this.altRaporlarDuzenle(e) }
@@ -115,10 +116,14 @@ class DGrupluPanelRapor extends DPanelRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGrupluPanelRapormu() { return true } static get altRaporClassPrefix() { return null }
 	altRaporlarDuzenle(e) {
 		super.altRaporlarDuzenle(e); const prefix = this.class.altRaporClassPrefix;
-		if (prefix) { const postfixes = ['_Main', '_Ozet', '_Chart', '_Diagram'],  classes = postfixes.map(postfix => window[prefix + postfix]).filter(cls => !!cls); this.add(...classes) }
+		if (prefix) {
+			const postfixes = ['_Main', '_Ozet', '_Chart', '_Diagram'], classes = postfixes.map(postfix => window[prefix + postfix]).filter(cls => !!cls);
+			this.add(...classes)
+		}
 	}
 	islemTuslariArgsDuzenle(e) {
 		super.islemTuslariArgsDuzenle(e); const {liste} = e; liste.push(
+			{ id: 'secimler', text: '', handler: _e => this.id2AltRapor.main.secimlerIstendi({ ...e, ..._e }) },
 			{ id: 'tabloTanimlari', text: 'Tablo Tanım', handler: _e => this.id2AltRapor.main.tabloTanimlariGosterIstendi({ ...e, ..._e }) },
 			{ id: 'seviyeAc', text: 'Seviye Aç', handler: _e => this.id2AltRapor.main.seviyeAcIstendi({ ...e, ..._e }) },
 			{ id: 'seviyeKapat', text: 'Seviye Kapat', handler: _e => this.id2AltRapor.main.seviyeKapatIstendi({ ...e, ..._e }) },

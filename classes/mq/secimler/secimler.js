@@ -108,7 +108,7 @@ class Secimler extends CIO {
 		for (const grupKod in grupKod2Liste) {
 			const grup = grupListe[grupKod] || { aciklama: grupKod },  grupInfo = grup2Info[grupKod] = grup2Info[grupKod] || { grup, key2Info: {} }, _liste = grupKod2Liste[grupKod];
 			for (const key in _liste) {
-				const secim = _liste[key]; if (secim.isHidden) { continue }
+				const secim = _liste[key]; /*if (secim.isHidden) { continue }*/
 				const {anaTip, tip} = secim.class, elmStr = secim.asHTMLElementString, elm = elmStr ? $(elmStr) : null;
 				if (elm?.length) {
 					if (!elm.prop('id')) { elm.prop('id', key) } if (tip) { elm.addClass(tip) } elm.addClass(`${anaTip} secim`); elm.data('secim', secim);

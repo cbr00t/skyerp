@@ -69,13 +69,12 @@ class SecimlerPart extends Part {
 			for (const secimBilgi of Object.values(secim2Info)) {
 				const {secim, element} = secimBilgi;
 				if (secim) {
-					setTimeout(async () => {
-						await secim.initHTMLElements({ secimler: this, parent: element });
-						if (!focusYapildimi) { const input = element.find('input:eq(0)'); if (input.length) { setTimeout(() => input.focus(), 100); focusYapildimi = true } }
-					}, waitMS);
-					waitMS += WaitMS_Ek
+					secim.initHTMLElements({ secimler: this, parent: element });
+					/*setTimeout(async () => await secim.initHTMLElements({ secimler: this, parent: element }), waitMS);
+					waitMS += WaitMS_Ek*/
 				}
 			}
+			setTimeout(() => layout.blur(), 100)
 		}
 	}
 	formGenelEventleriBagla(e) {

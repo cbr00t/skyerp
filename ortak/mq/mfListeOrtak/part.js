@@ -61,7 +61,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		const mfSinif = this._mfSinif = this.getMFSinif(e); $.extend(e, { sender: this, gridPart: this, mfSinif });
 		const {eConf} = e; if (eConf != null) { this.eConf = eConf }
 		let secimler = e.secimler = this.getSecimler(e); let {sinifAdi} = e;
-		if (mfSinif) { if (!secimler) secimler = mfSinif.newSecimler; if (sinifAdi == null) { sinifAdi = mfSinif.listeSinifAdi ?? mfSinif.sinifAdi } }
+		if (mfSinif) { if (!secimler) { secimler = mfSinif.newSecimler } if (sinifAdi == null) { sinifAdi = mfSinif.listeSinifAdi ?? mfSinif.sinifAdi } }
 		if (secimler) {
 			const {secimlerDuzenleBlock} = this;
 			if (secimlerDuzenleBlock) {
@@ -344,8 +344,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		if ((!mfSinif || mfSinif.bulFormKullanilirmi) && bulPart?.layout?.length) { const {noAutoFocus} = mfSinif || {}; if (!noAutoFocus) { setTimeout(() => bulPart.focus(), 50) } }
 	}
 	secimlerIstendi(e) {
-		let {secimlerPart} = this;
-		if (secimlerPart) { secimlerPart.show() }
+		let {secimlerPart} = this; if (secimlerPart) { secimlerPart.show() }
 		else { const {secimler} = this; if (secimler) { secimlerPart = this.secimlerPart = secimler.duzenlemeEkraniAc({ parentPart: this, tamamIslemi: e => this.tazele() }) } }
 	}
 	async yeniIstendi(e) {
