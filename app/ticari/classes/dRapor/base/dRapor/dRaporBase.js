@@ -1,8 +1,8 @@
 class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları için gerekli inherit desteği için DMQDetayli'dan getirildi */
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'dRapor' } get partName() { return this.class.partName }
-	static get anaTip() { return null } static get araSeviyemi() { return false } static get tumKolonlarGosterilirmi() { return false }
-	static get dRapormu() { return true } get dRapormu() { return this.class.dRapormu } static get dAltRapormu() { return false } get dAltRapormu() { return this.class.dAltRapormu }
+	static get anaTip() { return null } static get araSeviyemi() { return false } static get noOverflowFlag() { return false }
 	static get kod() { return null } static get aciklama() { return null } static get detaylimi() { return false } static get sinifAdi() { return this.aciklama }
+	static get tumKolonlarGosterilirmi() { return false } static get dRapormu() { return true } get dRapormu() { return this.class.dRapormu } static get dAltRapormu() { return false } get dAltRapormu() { return this.class.dAltRapormu }
 	static get kod2Sinif() {
 		let result = this._kod2Sinif; if (result == null) {
 			result = {}; const {subClasses} = this; for (const cls of subClasses) { const {araSeviyemi, kod} = cls; if (!araSeviyemi && kod) { result[kod] = cls } }
@@ -77,8 +77,9 @@ class DPanelRapor extends DOzelRapor {
 		if (this.id2AltRapor == null) { this.clear(); this.altRaporlarDuzenle(e) }
 	}
 	rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); const {rfb} = e, {id2AltRapor} = this;
+		super.rootFormBuilderDuzenle(e); const {rfb} = e, {id2AltRapor} = this, {noOverflowFlag} = this.class;
 		let form = rfb.addForm('items').setLayout(e => $(`<div id="${e.builder.id}" class="full-wh"></div>`));
+		if (noOverflowFlag) { form.addCSS('no-overflow') }
 		for (const [id, altRapor] of Object.entries(id2AltRapor)) {
 			const raporAdi = altRapor.class.aciklama ?? '';
 			let fbd = altRapor.parentBuilder = form.addForm(id).setLayout(e => $(`<div><label>${raporAdi || ''}</label></div>`)).addCSS('item').addStyle_fullWH()
@@ -113,7 +114,8 @@ class DPanelRapor extends DOzelRapor {
 	clear() { this.id2AltRapor = {}; return this }
 }
 class DGrupluPanelRapor extends DPanelRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGrupluPanelRapormu() { return true } static get altRaporClassPrefix() { return null }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGrupluPanelRapormu() { return true }
+	static get noOverflowFlag() { return true } static get altRaporClassPrefix() { return null }
 	altRaporlarDuzenle(e) {
 		super.altRaporlarDuzenle(e); const prefix = this.class.altRaporClassPrefix;
 		if (prefix) {

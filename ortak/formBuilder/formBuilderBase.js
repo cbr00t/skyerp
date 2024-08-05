@@ -10,9 +10,7 @@ class FormBuilderBase extends CObject {
 		if (result == null) {
 			result = {}; const {builders} = this;
 			for (const key in builders) {
-				const builder = builders[key];
-				if (!builder.parentBuilder) builder.parentBuilder = this
-				if (!builder.rootBuilder) builder.rootBuilder = this.rootBuilder
+				const builder = builders[key]; if (!builder.parentBuilder) { builder.parentBuilder = this } if (!builder.rootBuilder) { builder.rootBuilder = this.rootBuilder }
 				result[builder.id] = builder
 			}
 			this._id2Builder = result
@@ -73,10 +71,11 @@ class FormBuilderBase extends CObject {
 	set visibleKosulu(value) { this._visibleKosulu = value }
 	
 	constructor(e) {
-		e = e || {}; super(e); $.extend(this, {
+		e = e || {}; super(e);
+		$.extend(this, {
 			_id: e.id, _parent: e.parent, _layout: e.layout, _part: e.part, _parentPart: e.parentPart, _visibleKosulu: e.visibleKosulu == null ? e.visibleBlock : e.visibleKosulu,
 			autoAppendFlag: e.autoAppend ?? e.autoAppendFlag ?? this.defaultAutoAppendFlag, autoAppendIslemi: e.autoAppendIslemi, autoInitLayoutFlag: e.autoInitLayout ?? e.autoInitLayoutFlag,
-			builders: e.builders || [], args: e.args, init: e.init, buildEk: e.buildEk, afterRun: e.afterRun, id2Builder: null, styles: e.styles || [], cssClasses: e.cssClasses || []
+			builders: e.builders || [], args: e.args, init: e.init, buildEk: e.buildEk, afterRun: e.afterRun, id2Builder: null, styles: e.styles || [], cssClasses: e.cssClasses || [], userData: e.userData
 		});
 		if (!this.autoAppendIslemi) { this.autoAppendMode_append() }
 		const {sabitDegerler} = e; if (sabitDegerler) { for (const key in sabitDegerler) { const value = sabitDegerler[key]; if (value !== undefined) { this[key] = value } } }
@@ -602,6 +601,7 @@ class FormBuilderBase extends CObject {
 	autoInitLayout() { this.autoInitLayoutFlag = true; return this }
 	noAutoInitLayout() { this.autoInitLayoutFlag = false; return this }
 	resetAutoInitLayoutFlag() { this.autoInitLayoutFlag = null; return this }
+	setUserData(value) { this.userData = value; return this }
 	setPart(value) { this.part = value; return this }
 	setParentPart(value) { this.parentPart = value; return this }
 	setParent(value) { this.parent = value; return this }

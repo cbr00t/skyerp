@@ -10,9 +10,9 @@ class DAltRapor_TreeGrid extends DAltRapor {
 				$.extend(gridPart, { tazele: e => this.tazele(e), hizliBulIslemi: e => this.hizliBulIslemi(e) });
 				this.onGridInit(e); let _e = { ...e, liste: [] }; this.tabloKolonlariDuzenle(_e); const colDefs = this.tabloKolonlari = _e.liste || [];				
 				const columns = noAutoColumns ? [] : colDefs.flatMap(colDef => colDef.jqxColumns), source = await this.getDataAdapter(e);
-				const localization = localizationObj, width = '99.7%', height = 'calc(var(--full) - 40px)', autoRowHeight = true, autoShowLoadElement = true, altRows = true;
+				const localization = localizationObj, width = '99.7%', height = 'calc(var(--full) - 10px)', autoRowHeight = true, autoShowLoadElement = true, altRows = true;
 				const filterMode = 'advanced';	/* default | simple | advanced */
-				const showAggregates = true, showSubAggregates = false, aggregatesHeight = 50, columnsResize = true, columnsReorder = true, sortable = true, filterable = false;
+				const showAggregates = true, showSubAggregates = false, aggregatesHeight = 30, columnsResize = true, columnsReorder = true, sortable = true, filterable = false;
 				let args = { theme, localization, width, height, autoRowHeight, autoShowLoadElement, altRows, filterMode, showAggregates, showSubAggregates, aggregatesHeight, columnsResize, columnsReorder, sortable, filterable, columns, source };
 				_e = { ...e, args }; this.gridArgsDuzenle(_e); args = _e.args; grid.jqxTreeGrid(args); gridPart.gridWidget = grid.jqxTreeGrid('getInstance');
 				grid.on('rowExpand', event => this.gridRowExpanded({ ...e, event }));
@@ -127,7 +127,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridliAltRapormu() { return true } get noAutoColumns() { return true }
 	static get raporClass() { return null } static get kod() { return 'main' } static get aciklama() { return this.raporClass.aciklama }
-	get width() { return '75%' } get height() { return 'var(--full)' }
+	get width() { return '74%' } get height() { return 'var(--full)' }
 	get tabloYapi() {
 		let result = this._tabloYapi;
 		if (result == null) {
@@ -220,7 +220,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	}
 	tazeleOncesi(e) {
 		const {fbd_grid, tabloYapi, secilenler} = this, {rootBuilder} = this.parentBuilder, {secilenVarmi} = secilenler;
-		rootBuilder.layout.find('.islemTuslari > div button#gruplamalar')[secilenVarmi ? 'removeClass' : 'addClass']('anim-gruplamalar-highlight');
+		rootBuilder.layout.find('.islemTuslari > div button#tabloTanimlari')[secilenVarmi ? 'removeClass' : 'addClass']('anim-tabloTanimlari-highlight');
 		if (!secilenVarmi) { if (!this._tabloTanimGosterildiFlag) { this.tabloTanimlariGosterIstendi(e) } return }
 	}
 	async tazele(e) {
@@ -249,16 +249,19 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		const inst = { listStates: {}, ozetMax, get ozetAttr() { return this.listStates.grup[0] } };
 		const tumAttrSet = asSet(Object.keys(kaDict)); for (const selector of ['grup', 'icerik']) {
 			let keys = secilenler[selector]; if (keys != null) { keys = Object.keys(keys) }
-			inst.listStates[selector] = keys ?? []; for (const key of keys) { delete tumAttrSet[key] }
+			inst.listStates[selector] = keys ?? [] /*for (const key of keys) { delete tumAttrSet[key] }*/
 		}
-		const kalanKodlar = inst.listStates.kalanlar = Object.keys(tumAttrSet);
+		const getKalanlarSource = selector => {
+			const {listStates} = inst, digerAttrSet = asSet([...(listStates.grup || []), ...(listStates.icerik || [])]);
+			const tabloYapiItems = selector ? tabloYapi[selector] : null;
+			return Object.keys(tumAttrSet).filter(attr => !digerAttrSet[attr] && (!tabloYapiItems || tabloYapiItems[attr]))
+		}
 		const title = 'Tablo Tanımları', className_listBox = 'listBox', ustHeight = '100px', islemTuslariHeight = '55px', contentTop = '-40px';
 		const solWidth = '200px', ortaWidth = '200px', sagWidth = '100px', ortaHeight = 'calc((var(--full) / 2) - 5px)';
 		let wnd, wRFB = new RootFormBuilder({ id: 'tabloTanimlari' }).setInst(inst).addCSS('part').addStyle(e => `$elementCSS { --islemTuslariHeight: ${islemTuslariHeight}; --ustHeight: ${ustHeight} }`);
 		let fbd_ust = wRFB.addFormWithParent('ust').yanYana().addStyle_fullWH(null, 'var(--ustHeight)');
 		let fbd_sablonParent = fbd_ust.addFormWithParent('sablon-parent').yanYana().addStyle_fullWH().addStyle([e =>
-			`$elementCSS { position: relative; top: 5px }
-			$elementCSS > .button { width: 50px !important; height: 45px !important; min-width: unset !important }`]);
+			`$elementCSS { position: relative; top: 5px } $elementCSS > .button { width: 50px !important; height: 45px !important; min-width: unset !important }`]);
 		fbd_sablonParent.addModelKullan('sablonKod', 'Şablon').etiketGosterim_yok().dropDown().noMF().kodsuz()/*.listedenSecilemez()*/.setSource([]).addStyle_fullWH('calc(var(--full) - 300px)');
 		fbd_sablonParent.addButton('sablonKaydet', '+').addCSS('button').onClick(_e => this.tabloTanimlariGoster_sablonKaydetIstendi({ ...e, ..._e, wnd, inst }));
 		fbd_sablonParent.addButton('sablonSil', 'x').addCSS('button').onClick(_e => this.tabloTanimlariGoster_sablonSilIstendi({ ...e, ..._e, wnd, inst }));
@@ -266,13 +269,9 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		fbd_islemTuslari.addButton('tamam').onClick(async _e => {
 			try {
 				const close = () => { if (wnd?.length) { wnd.jqxWindow('close') } };
-				let result = await this.tabloTanimlariGoster_tamamIstendi({ ...e, ..._e, wnd, close, tabloYapi, inst });
-				if (result !== false) { close() }
+				let result = await this.tabloTanimlariGoster_tamamIstendi({ ...e, ..._e, wnd, close, tabloYapi, inst }); if (result !== false) { close() }
 			}
-			catch (ex) {
-				console.error(ex); wnd.jqxWindow('collapse');
-				let _wnd = displayMessage(getErrorText(ex), title).wnd; _wnd.on('close', evt => wnd.jqxWindow('expand'))
-			}
+			catch (ex) { console.error(ex); wnd.jqxWindow('collapse'); let _wnd = displayMessage(getErrorText(ex), title).wnd; _wnd.on('close', evt => wnd.jqxWindow('expand')) }
 		});
 		fbd_islemTuslari.addButton('vazgec').onClick(e => wnd.jqxWindow('close'));
 		let fbd_content = wRFB.addFormWithParent('content').yanYana().addStyle_fullWH(null, 'calc(var(--full) - var(--ustHeight) - var(--top) + 8px)').addStyle([e =>
@@ -282,23 +281,42 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			 $elementCSS > div .${className_listBox} > :not(label) { vertical-align: top; height: calc(var(--full) - var(--label-height) - var(--label-margin-bottom)) !important }
 			 $elementCSS > div .${className_listBox} > .jqx-listbox .jqx-listitem-element { font-size: 110% }`]);
 		const initListBox = e => {
-			const {builder} = e, {id, altInst, input} = builder; let source = e.source ?? ((altInst[id] || []).map(kod => kaDict[kod]));
+			const {builder} = e, {id, altInst, input, userData} = builder, selector = userData?.selector; let source = e.source;
+			if (source == null) { source = (id.startsWith('kalanlar') ? getKalanlarSource(selector) : altInst[id] ?? []).map(kod => kaDict[kod]) }
 			if (source?.length && typeof source[0] != 'object') { source = source.map(kod => new CKodVeAdi({ kod, aciklama: kod })) }
-			/*if (id == 'kalanlar') {
-				source = [...source, ...(new Array(10).fill(null).map(x => ({ group: ' ', disabled: true })))];
-				for (const item of source) {
+			const kalanlarSourceDuzenlenmis = _source => {
+				_source = [..._source, ...(new Array(10).fill(null).map(x => ({ /*group: ' ',*/ disabled: true })))];
+				/*for (const item of _source) {
 					const kod = item?.kod; if (kod == null) { continue }
 					item.group = `${tabloYapi.grup[kod] ? '- Grup -' : tabloYapi.toplam[kod] ? '- Toplam -' : ''}`
-				}
-			}*/
+				}*/
+				return _source
+			}
+			if (id.startsWith('kalanlar')) { source = kalanlarSourceDuzenlenmis(source) }
 			const width = '100%', height = width, valueMember = 'kod', displayMember = 'aciklama';
 			const allowDrop = true, allowDrag = allowDrop, autoHeight = false, itemHeight = 38, filterable = true, filterHeight = 40, filterPlaceHolder = 'Bul';
-			input.prop('id', id); input.jqxListBox({ theme, width, height, valueMember, displayMember, source, allowDrag, allowDrop, autoHeight, itemHeight, filterable, filterHeight, filterPlaceHolder });
-			const changeHandler = evt => { const target = evt.currentTarget, {id} = target, items = $(target).jqxListBox('getItems'); inst.listStates[id] = items.map(item => item.value) };
-			input.on('change', changeHandler); input.on('dragEnd', changeHandler);
+			input.prop('id', id); if (selector != null) { input.data('selector', selector) }
+			input.jqxListBox({ theme, width, height, valueMember, displayMember, source, allowDrag, allowDrop, autoHeight, itemHeight, filterable, filterHeight, filterPlaceHolder });
+			const changeHandler = evt => {
+				const target = evt.currentTarget, type = evt.args?.type, {id} = target;
+				if (id.startsWith('kalanlar')) {
+					if (!type || type == 'none') {
+						clearTimeout(this._timer_kalanlarTazele);
+						this._timer_kalanlarTazele = setTimeout(() => {
+							try { $(target).jqxListBox('source', kalanlarSourceDuzenlenmis(getKalanlarSource(input.data('selector')).map(kod => kaDict[kod]))) }
+							finally { delete this._timer_kalanlarTazele }
+						}, 1)
+					}
+				}
+				else { let items = $(target).jqxListBox('getItems'); inst.listStates[id] = items.map(item => item.value) }
+			};
+			input.on('change', changeHandler); input.on('dragEnd', changeHandler)
 		};
 		let fbd_sol = fbd_content.addFormWithParent('sol').altAlta().addStyle_fullWH(solWidth);
-		fbd_sol.addDiv('kalanlar').setEtiket('Kalanlar').addCSS(className_listBox).addStyle_fullWH().setAltInst(inst.listStates).onAfterRun(e => initListBox(e));
+		let fbd_tabs = fbd_sol.addTabPanel('kalanlar').addStyle_fullWH().setAltInst(inst.listStates).initTabLayoutHandler(e => {
+			for (const fbd_tabPage of e.builder.builders) { fbd_tabPage.builders[0]?.input?.jqxListBox('render') } });
+		fbd_tabs.addTab('grup', 'Grup').addStyle_fullWH().addDiv('kalanlar_grup').setEtiket('Kalanlar').addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'grup' }).onAfterRun(e => initListBox(e));
+		fbd_tabs.addTab('toplam', 'Toplam').addStyle_fullWH().addDiv('kalanlar_toplam').setEtiket('Kalanlar').addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'toplam' }).onAfterRun(e => initListBox(e));
 		let fbd_orta = fbd_content.addFormWithParent('orta').altAlta().addStyle_fullWH(ortaWidth);/*.addStyle(e => `$elementCSS { position: absolute; right: 0 }`);*/
 		fbd_orta.addDiv('grup').setEtiket('Grup').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight).setAltInst(inst.listStates).onAfterRun(e => initListBox(e));
 		fbd_orta.addDiv('icerik').setEtiket('İçerik').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight).setAltInst(inst.listStates).onAfterRun(e => initListBox(e));
@@ -312,6 +330,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		const {builder, inst} = e, {listStates} = inst, {tabloYapi, secilenler} = this, {toplam} = tabloYapi;
 		const secIcerik = listStates.icerik, toplanabilirVarmi = !!secIcerik.find(key => toplam[key]), normalIcerikVarmi = !!secIcerik.find(key => !toplam[key]);
 		if (!(toplanabilirVarmi && normalIcerikVarmi)) { throw { isError: true, errorText: 'En az birer Toplanabilir ve Normal saha olmalıdır' } }
+		const secGrup = listStates.grup; if (secGrup.find(key => tabloYapi.toplam[key])) { throw { isError: true, errorText: 'Toplanabilir Sahalar, Gruplama kısmına eklenemez' } }
 		for (const selector of ['grup', 'icerik']) { secilenler[selector] = asSet(listStates[selector] || []) }
 		for (const key of ['ozetMax']) { secilenler[key] = inst[key] }
 		secilenler.degistimi = true; this.tazele(e); return true

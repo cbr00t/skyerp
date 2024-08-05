@@ -18,14 +18,13 @@ class DRapor_Donemsel_Main extends DAltRapor_TreeGridGruplu {
 		secimler.secimTopluEkle({
 			donem: new SecimTekSecim({ etiket: 'Dönem', tekSecimSinif: DonemTarihAralikVeHepsiSecim }).autoBind(),
 			tarihAralik: new SecimDate({ etiket: 'Tarih' }).hidden()
-		});
-		/* secimler.whereBlockEkle(e => { const wh = e.where, secimler = e.secimler }) */
+		}); /* secimler.whereBlockEkle(e => { const wh = e.where, secimler = e.secimler }) */
 		const islemYap = (keys, callSelector, args) => {
 			for (const key of keys) {
 				const item = key ? grupVeToplam[key] : null; if (item == null) { continue }
 				const proc = item[callSelector]; if (proc) { proc.call(item, args) }
 			}
-		}; islemYap(Object.keys(grupVeToplam), 'secimlerDuzenle', e);
+		};islemYap(Object.keys(grupVeToplam), 'secimlerDuzenle', e);
 		secimler.whereBlockEkle(_e => islemYap(Object.keys(this.secilenler?.attrSet || {}), 'tbWhereClauseDuzenle', { ...e, ..._e }))
 	}
 	secimlerInitEvents(e) {

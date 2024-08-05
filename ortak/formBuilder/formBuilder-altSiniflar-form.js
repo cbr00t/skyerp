@@ -49,18 +49,21 @@ class FBuilder_TanimFormTabs extends FBuilder_TabsOrtak {
 class FBuilder_Tabs extends FBuilder_TabsOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) { super(e); $.extend(this, { widgetArgsDuzenle: e.widgetArgsDuzenle, initTabLayoutBlock: e.initTabLayout || e.initTabLayoutBlock }) }
-	postBuild(e) {
-		super.postBuild(e); const {parent, layout, parentPart} = this; this._initTabIDSet = {};
+	afterBuildDevam(e) {
+		super.afterBuildDevam(e); const {parent, layout, parentPart} = this; this._initTabIDSet = {};
 		const _e = $.extend({}, e, { args: {
 			builder: this, parent, layout, parentPart, initTabContent: e => {
 				const {layout, initTabLayoutBlock} = this, {tabPage} = e, tabID = tabPage.id, tabIndex = tabPage.index, sender = this, builder = this;
-				const _e = { ...e,  sender, builder, tabPage, tabID, tabIndex }; if (this.initTabLayout) { this.initTabLayout(_e) }
-				if (initTabLayoutBlock) { getFuncValue.call(this, initTabLayoutBlock, _e) } this._initTabIDSet[tabID] = true
+				setTimeout(() => {
+					const _e = { ...e,  sender, builder, tabPage, tabID, tabIndex }; if (this.initTabLayout) { this.initTabLayout(_e) }
+					if (initTabLayoutBlock) { getFuncValue.call(this, initTabLayoutBlock, _e) } this._initTabIDSet[tabID] = true
+				}, 10)
 			}
 		} });
 		const {widgetArgsDuzenle} = this; if (widgetArgsDuzenle) { getFuncValue.call(this, widgetArgsDuzenle, _e) }
 		const part = this.part = this.widget = new TabsPart(_e.args); part.run()
 	}
+	initTabLayoutHandler(handler) { this.initTabLayoutBlock = handler; return this }
 }
 class FBuilder_TabPage extends FormBuilder {
     static { window[this.name] = this; this._key2Class[this.name] = this } get isTabPage() { return true }
