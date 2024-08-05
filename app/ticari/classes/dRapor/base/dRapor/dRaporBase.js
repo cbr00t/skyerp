@@ -30,7 +30,7 @@ class DMQRapor extends DRapor {
 	static listeEkrani_afterRun(e) { return e.sender.inst.onAfterRun(e) }
 }
 class DOzelRapor extends DRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'ozel' } static get dOzelrapormu() { return true }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'ozel' } static get dOzelRapormu() { return true }
 	goster(e) {
 		e = e || {}; const inst = this, {partName} = this, {aciklama} = this.class, title = e.title ?? `<b class="royalblue">${aciklama}</b> Raporu`
 		let rfb = new RootFormBuilder({ id: partName }).setInst(this).asWindow(title), _e = { ...e, rfb }; this.rootFormBuilderDuzenle(_e); rfb = _e.rfb;

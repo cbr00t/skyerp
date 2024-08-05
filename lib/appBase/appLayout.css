@@ -147,15 +147,18 @@ body #ust-parent > #nav ul > li.expanded > a { /* background-color: #d0d0e0; */ 
 body #ust-parent > #nav ul > li > .collapse { background-color: #f8f8f836; border-radius: 0 0 5px 5px }
 body #ust-parent > #nav ul > li > .collapse ul { margin: 0 0 0 10px; margin-block-end: 2px }
 body #ust-parent > #nav ul > li > .collapse ul > li { font-size: 85% }
-body #ust-parent > #nav ul > li#_ayarlar > a .img, body #ust-parent > #nav ul > li#_fullScreen > a .img, body #ust-parent > #nav ul > li#_scale > a .img,
+body #ust-parent > #nav ul > li#_ayarlar > a .img,body #ust-parent > #nav ul > li#_scale > a .img,
+	body #ust-parent > #nav ul > li#_fullScreen > a .img, body #ust-parent > #nav ul > li#_newWindow > a .img,
 	body #ust-parent > #nav ul > li#_logout > a .img { width: 32px; height: 32px; margin-right: 10px; background-size: 100%; background-repeat: no-repeat; background-position: 0 }
 body #ust-parent > #nav ul > li#_ayarlar { border-top: 3px solid #888 }
 body #ust-parent > #nav ul > li#_ayarlar > a .img { background-image: url(../../images/ayarlar.png); background-color: royalblue }
 body #ust-parent > #nav ul > li#_ayarlar > a .text { font-weight: bold; color: royalblue }
-body #ust-parent > #nav ul > li#_fullScreen > a .img { background-image: url(../../images/tamEkranAc.png) }
-body #ust-parent > #nav ul > li#_fullScreen > a .text { font-weight: bold }
 body #ust-parent > #nav ul > li#_scale > a .img { background-image: url(../../images/izle.png) }
 body #ust-parent > #nav ul > li#_scale > a .text { font-weight: bold }
+body #ust-parent > #nav ul > li#_fullScreen > a .img { background-image: url(../../images/tamEkranAc.png) }
+body #ust-parent > #nav ul > li#_fullScreen > a .text { font-weight: bold }
+body #ust-parent > #nav ul > li#_newWindow > a .img { background-image: url(../../images/kopyala.png); background-color: royalblue; background-size: 18px; background-position: center }
+body #ust-parent > #nav ul > li#_newWindow > a .text { font-weight: bold }
 body #ust-parent > #nav ul > li#_logout > a .img { background-image: url(../../images/logout.png); background-color: darkred }
 body #ust-parent > #nav ul > li#_logout > a .text { font-weight: bold; color: #862d2d }
 body #ust-parent > #nav ul > li#_logout > a:hover .text { color: firebrick }

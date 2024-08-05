@@ -22,7 +22,7 @@ class DAltRapor extends DRapor {
 	onInit(e) { } onBuildEk(e) { } onAfterRun(e) { }
 	tazeleDiger(e) { const {id2AltRapor} = this.rapor; for (const rapor of Object.values(id2AltRapor)) { if (rapor != this) { rapor.tazele(e) } } }
 	toggleFullScreen(e) {
-		const {builder} = e, {rootBuilder, parentBuilder, layout, part} = builder, parentLayout = parentBuilder.layout, itemsLayout = rootBuilder.id2Builder.items.layout, CSSClass_Maximized = 'maximized';
+		const {builder} = e, {rootBuilder, parentBuilder, layout, part} = builder, parentLayout = parentBuilder.layout, itemsLayout = rootBuilder.id2Builder.items.layout;
 		for (const _layout of [parentLayout, itemsLayout]) { _layout.toggleClass('maximized') }
 		layout.trigger('resize'); if (part?.onResize) { part.onResize(e) }
 	}

@@ -27,7 +27,10 @@ class FRMenuItem extends CObject {
 		if (obj.text != null) { this.text = obj.text }
 		return true
 	}
-	run(e) { }
+	run(e) {
+		let id = this.mnemonic || this.id;
+		if (id && id[0] != '_') { app.lastMenuId = this.id }
+	}
 	menuSourceDuzenle(e) {
 		const {frMenu} = e; frMenu.id2Item[this.id] = this;
 		let mneListe = [], item = this;
@@ -133,7 +136,7 @@ class FRMenuChoice extends FRMenuItem {
 		return true
 	}
 	run(e) {
-		const {block, isDisabled} = this; if (!block || isDisabled) { return null }
+		const {block, isDisabled} = this; if (!block || isDisabled) { return null } super.run(e);
 		const {mainNav} = app; if (mainNav?.length && mainNav.hasClass('jqx-responsive-panel')) { mainNav.jqxResponsivePanel('close') }
 		const result =  getFuncValue.call(this, block, e);
 		setTimeout(() => { const hizliBulPart = app?.frMenu?.part?.hizliBulPart; if (hizliBulPart?.focus) { hizliBulPart.focus() } }, 10)
