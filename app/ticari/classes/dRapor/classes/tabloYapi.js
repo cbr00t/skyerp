@@ -50,8 +50,8 @@ class TabloYapiItem extends CObject {
 			if (kod != null && secimSinif && mfSinif && kodSaha) {
 				const {adiSaha} = mfSinif, sec = e.secimler, etiket = ka.aciklama;
 				const grupKod = kod, zeminRenk = undefined, kapali = true; sec.grupEkle({ kod: grupKod, aciklama: etiket, zeminRenk, kapali });
-				const liste = {}; liste[kod] = new secimSinif({ etiket: 'Kod', mfSinif, grupKod });
-				if (adiSaha) { liste[kod + 'Adi'] = new SecimOzellik({ etiket: 'Adı', grupKod }) }
+				const userData = { kod }, liste = {}; liste[kod] = new secimSinif({ etiket: 'Kod', mfSinif, grupKod, userData });
+				if (adiSaha) { liste[kod + 'Adi'] = new SecimOzellik({ etiket: 'Adı', grupKod, userData }) }
 				sec.secimTopluEkle(liste)
 			}
 		}

@@ -85,7 +85,12 @@ class SecimlerPart extends Part {
 		const {layout} = this;
 		let inputs = layout.find('input[type=textbox], input[type=text], input[type=number]'); if (inputs.length) { inputs.on('focus', evt => evt.target.select()) }
 		inputs = layout.find('input'); if (inputs.length) {
-			/*inputs.on('keyup', evt => { const key = (evt.key || '').toLowerCase(); if (key == 'enter' || key == 'linefeed') { this.tamamIstendi(e) } })*/
+			inputs.on('keyup', evt => {
+				const key = (evt.key || '').toLowerCase(); if (key == 'enter' || key == 'linefeed') {
+					let elm = document.activeElement;
+					if (!(elm && $(elm).parents('.filtreForm.part')?.length)) { this.tamamIstendi(e) }
+				}
+			})
 		}
 	}
 	initIslemTuslari(e) {
@@ -162,6 +167,7 @@ class SecimlerPart extends Part {
 		if (divGrupListe.length) {
 			//secimlerForm.css('opacity', .05);
 			divGrupListe.jqxNavigationBar(flag ? 'expandAt' : 'collapseAt', 0);
+			if (!flag) { divGrupListe.eq(0).jqxNavigationBar('expandAt', 0) }
 			//setTimeout(() => secimlerForm.css('opacity', .1), 50);
 			//setTimeout(() => secimlerForm.css('opacity', 1), 100);
 		}
@@ -181,8 +187,8 @@ class SecimlerPart extends Part {
 		const value = coalesce(e.value, () => filtreFormPart?.value); if (value == null) { return }
 		const divGrupListe = secimlerForm.find('.secim-grup');
 		const parts = value ? value.split(' ').filter(x => !!x).map(x => x.trim()) : null, {secimler} = this, divSecimListe = secimlerForm.find('.secim');
-		if ($.isEmptyObject(parts)) { divSecimListe.removeClass('jqx-hidden basic-hidden') }
-		else {
+		const hasParts = !$.isEmptyObject(parts);
+		if (hasParts) {
 			for (let i = 0; i < divSecimListe.length; i++) {
 				const divSecim = divSecimListe.eq(i), secim = secimler[divSecim.prop('id')]; if (!secim) { continue }
 				const {mfSinif} = secim; let etiket = secim.etiket || mfSinif?.sinifAdi, uygunmu = !etiket;
@@ -197,6 +203,10 @@ class SecimlerPart extends Part {
 				if (uygunmu) { divSecim.removeClass('jqx-hidden basic-hidden') } else { divSecim.addClass('jqx-hidden') }
 			}
 		}
-		if (divGrupListe.length) { divGrupListe.jqxNavigationBar($.isEmptyObject(parts) ? 'collapseAt' : 'expandAt', 0) }
+		else { divSecimListe.removeClass('jqx-hidden basic-hidden') }
+		if (divGrupListe.length) {
+			divGrupListe.jqxNavigationBar(hasParts ? 'expandAt' : 'collapseAt', 0);
+			if (!hasParts) { setTimeout(() => divGrupListe.eq(0).jqxNavigationBar('expandAt', 0), 1) }
+		}
 	}
 }

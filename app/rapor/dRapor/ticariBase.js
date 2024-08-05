@@ -113,7 +113,10 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		super.loadServerData_queryDuzenle(e); const attrSet = { ...(this.secilenler.attrSet || {}) }, {secimler, stm} = e;
 		if (secimler) {
 			for (const [key, secim] of Object.entries(secimler.liste)) {
-				if (!(secim.isHidden || secim.isDisabled) && (typeof secim.value == 'object' ? !$.isEmptyObject(secim.value) : secim.value)) { attrSet[key] = true }
+				if (secim.isHidden || secim.isDisabled) { continue }
+				const kod = secim.userData?.kod; if (!kod) { continue }
+				const uygunmu = typeof secim.value == 'object' ? !$.isEmptyObject(secim.value) : !!secim.value; if (!uygunmu) { continue }
+				attrSet[kod] = true
 			}
 		}
 		let {sent, orderBy} = stm, wh = sent.where; e.sent = sent; this.fisVeHareketBagla(e); this.donemBagla({ ...e, sent, tarihSaha: 'fis.tarih' });
