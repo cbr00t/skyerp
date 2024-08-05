@@ -18,8 +18,12 @@ class SecimlerPart extends Part {
 		this.header = layout.find('.header'); this.initIslemTuslari(e); this.initFiltreForm(e)
 	}
 	afterRun(e) {
-		e = e || {}; super.afterRun(e); const {partName} = this.class;
-		const elms = [this.wnd, this.layout]; for (const elm of elms) { if (elm?.length) { elm.addClass(`${partName} with-tabs`) } }
+		e = e || {}; super.afterRun(e); const {partName} = this.class, parentPartName = this.parentPart?.partName;
+		const elms = [this.wnd, this.layout]; for (const elm of elms) {
+			if (!elm?.length) { continue }
+			elm.addClass(`${partName} with-tabs`);
+			if (parentPartName) { elm.addClass(parentPartName) }
+		}
 		this.initTabPages(e); this.formGenelEventleriBagla(e)
 	}
 	initTabLayout(e) { const tabID = e.tabPage.id; switch (tabID) { case 'secimler': this.initTabLayout_secimler(e); break } }
@@ -79,17 +83,16 @@ class SecimlerPart extends Part {
 	}
 	formGenelEventleriBagla(e) {
 		const {layout} = this;
-		let inputs = layout.find('input[type=textbox], input[type=text], input[type=number]');
-		if (inputs.length) { inputs.on('focus', evt => evt.target.select()); }
-		inputs = layout.find('input'); if (inputs.length) { inputs.on('keyup', evt => { const key = (evt.key || '').toLowerCase(); if (key == 'enter' || key == 'linefeed') { this.tamamIstendi(e) } }) }
+		let inputs = layout.find('input[type=textbox], input[type=text], input[type=number]'); if (inputs.length) { inputs.on('focus', evt => evt.target.select()) }
+		inputs = layout.find('input'); if (inputs.length) {
+			/*inputs.on('keyup', evt => { const key = (evt.key || '').toLowerCase(); if (key == 'enter' || key == 'linefeed') { this.tamamIstendi(e) } })*/
+		}
 	}
 	initIslemTuslari(e) {
-		e = e || {};
-		let {islemTuslariPart} = this;
+		e = e || {}; let {islemTuslariPart} = this;
 		if (!islemTuslariPart) {
-			let {header} = e; if (!(header && header.length)) header = this.header
-			let {islemTuslari} = e; if (!(islemTuslari && islemTuslari.length)) islemTuslari = this.islemTuslari
-			if (!islemTuslari?.length) islemTuslari = this.islemTuslari = header.find('.islemTuslari')
+			let {header} = e; if (!header?.length) { header = this.header } let {islemTuslari} = e; if (!islemTuslari?.length) { islemTuslari = this.islemTuslari }
+			if (!islemTuslari?.length) { islemTuslari = this.islemTuslari = header.find('.islemTuslari') }
 			if (islemTuslari?.length) {
 				let _e = { args: { sender: this, layout: islemTuslari } }; if (this.islemTuslariArgsDuzenle(_e) === false) { return null }
 				islemTuslariPart = this.islemTuslariPart = new ButonlarPart(_e.args); islemTuslariPart.run()
@@ -99,7 +102,7 @@ class SecimlerPart extends Part {
 	}
 	islemTuslariArgsDuzenle(e) {
 		const ekButonlar = [ { id: 'temizle', handler: e => this.temizleIstendi(e) } ];
-		if (this.kolonFiltreDuzenleyici) { ekButonlar.push({ id: 'kolonFiltre', handler: e => this.kolonFiltreIstendi(e) }) }
+		/*if (this.kolonFiltreDuzenleyici) { ekButonlar.push({ id: 'kolonFiltre', handler: e => this.kolonFiltreIstendi(e) }) }*/
 		ekButonlar.push(
 			{ id: 'seviyeleriAc', handler: e => this.seviyeleriAcKapatIstendi($.extend({}, e, { flag: true })) },
 			{ id: 'seviyeleriKapat', handler: e => this.seviyeleriAcKapatIstendi($.extend({}, e, { flag: false })) }
@@ -149,9 +152,8 @@ class SecimlerPart extends Part {
 	kolonFiltreDegisti(e) {
 		e = e || {}; const {kolonFiltreDuzenleyici, divKolonFiltreBilgi, divKolonFiltreBilgiParent} = this;
 		const filtreBilgi_recs = (kolonFiltreDuzenleyici._filtreBilgi || {}).recs || []; let {filtreText} = e;
-		if (filtreText == null) filtreText = GridliKolonFiltrePart.getFiltreText(filtreBilgi_recs);
-		divKolonFiltreBilgi.html(filtreText);
-		divKolonFiltreBilgiParent[filtreBilgi_recs.length ? 'removeClass' : 'addClass']('jqx-hidden')
+		if (filtreText == null) { filtreText = GridliKolonFiltrePart.getFiltreText(filtreBilgi_recs) }
+		divKolonFiltreBilgi.html(filtreText); divKolonFiltreBilgiParent[filtreBilgi_recs.length ? 'removeClass' : 'addClass']('jqx-hidden')
 	}
 	seviyeleriAcKapatIstendi(e) {
 		const {flag} = e, {secimlerForm} = this;
@@ -175,21 +177,26 @@ class SecimlerPart extends Part {
 	}
 	tamamOncesiIslemler(e) { }
 	filtreDegisti(e) {
-		e = e || {}; const {secimlerForm} = this; if (this.isDestroyed || !(secimlerForm && secimlerForm.length)) { return }
-		const value = coalesce(e.value, () => (this.filtreFormPart || {}).value); if (value == null) { return }
-		const divGrupListe = secimlerForm.find('.secim-grup'); if (divGrupListe.length) { divGrupListe.jqxNavigationBar('expandAt', 0) }
+		e = e || {}; const {secimlerForm, filtreFormPart} = this; if (this.isDestroyed || !secimlerForm?.length) { return }
+		const value = coalesce(e.value, () => filtreFormPart?.value); if (value == null) { return }
+		const divGrupListe = secimlerForm.find('.secim-grup');
 		const parts = value ? value.split(' ').filter(x => !!x).map(x => x.trim()) : null, {secimler} = this, divSecimListe = secimlerForm.find('.secim');
 		if ($.isEmptyObject(parts)) { divSecimListe.removeClass('jqx-hidden basic-hidden') }
 		else {
 			for (let i = 0; i < divSecimListe.length; i++) {
 				const divSecim = divSecimListe.eq(i), secim = secimler[divSecim.prop('id')]; if (!secim) { continue }
 				const {mfSinif} = secim; let etiket = secim.etiket || mfSinif?.sinifAdi, uygunmu = !etiket;
+				let divGrup = divSecim.parent('.content').prev('.header'), grupEtiket = divGrup?.children('.jqx-expander-header-content')?.text();
 				if (!uygunmu) {
-					uygunmu = true; etiket = etiket.toLocaleUpperCase(culture);
-					for (let part of parts) { part = part.toLocaleUpperCase(culture); if (!etiket.includes(part)) { uygunmu = false; break } }
+					uygunmu = true; for (let part of parts) {
+						if (!(etiket.toLocaleUpperCase(culture).includes(part.toLocaleUpperCase(culture)) || etiket.toUpperCase().includes(part.toUpperCase()))) { uygunmu = false }
+						if (!uygunmu && grupEtiket) { uygunmu = grupEtiket.toLocaleUpperCase(culture).includes(part.toLocaleUpperCase(culture)) || grupEtiket.toUpperCase().includes(part.toUpperCase()) }
+						if (!uygunmu) { break }
+					}
 				}
 				if (uygunmu) { divSecim.removeClass('jqx-hidden basic-hidden') } else { divSecim.addClass('jqx-hidden') }
 			}
 		}
+		if (divGrupListe.length) { divGrupListe.jqxNavigationBar($.isEmptyObject(parts) ? 'collapseAt' : 'expandAt', 0) }
 	}
 }

@@ -24,8 +24,11 @@ class DRapor_Donemsel_Main extends DAltRapor_TreeGridGruplu {
 				const item = key ? grupVeToplam[key] : null; if (item == null) { continue }
 				const proc = item[callSelector]; if (proc) { proc.call(item, args) }
 			}
-		};islemYap(Object.keys(grupVeToplam), 'secimlerDuzenle', e);
-		secimler.whereBlockEkle(_e => islemYap(Object.keys(this.secilenler?.attrSet || {}), 'tbWhereClauseDuzenle', { ...e, ..._e }))
+		}; islemYap(Object.keys(grupVeToplam), 'secimlerDuzenle', e);
+		secimler.whereBlockEkle(_e => {
+			islemYap(Object.keys(grupVeToplam) || {}, 'tbWhereClauseDuzenle', { ...e, ..._e })
+			/*islemYap(Object.keys(this.secilenler?.attrSet || {}), 'tbWhereClauseDuzenle', { ...e, ..._e })*/
+		})
 	}
 	secimlerInitEvents(e) {
 		super.secimlerInitEvents(e); const {secimlerPart} = this, {secim2Info} = secimlerPart || {}; if (!secim2Info) { return }
@@ -69,7 +72,6 @@ class DRapor_Donemsel_Main extends DAltRapor_TreeGridGruplu {
 	} 
 	donemBagla(e) { const {donemBS, tarihSaha, sent} = e; if (donemBS) { sent.where.basiSonu(donemBS, tarihSaha) } }
 }
-
 class DRapor_Ticari extends DRapor_Donemsel { static { window[this.name] = this; this._key2Class[this.name] = this } }
 class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get toplamPrefix() { return '' }
@@ -108,7 +110,12 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 			.addToplam(new TabloYapiItem().setKA('CIRO', `${toplamPrefix}Ciro`).addColDef(new GridKolon({ belirtec: 'ciro', text: `${toplamPrefix}Ciro`, genislikCh: 19, filterType: 'numberinput' }).tipDecimal()))
 	}
 	loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {attrSet} = this.secilenler, {secimler, stm} = e;
+		super.loadServerData_queryDuzenle(e); const attrSet = { ...(this.secilenler.attrSet || {}) }, {secimler, stm} = e;
+		if (secimler) {
+			for (const [key, secim] of Object.entries(secimler.liste)) {
+				if (!(secim.isHidden || secim.isDisabled) && (typeof secim.value == 'object' ? !$.isEmptyObject(secim.value) : secim.value)) { attrSet[key] = true }
+			}
+		}
 		let {sent, orderBy} = stm, wh = sent.where; e.sent = sent; this.fisVeHareketBagla(e); this.donemBagla({ ...e, sent, tarihSaha: 'fis.tarih' });
 		const {kgBirimler} = MQStokGenelParam, kgInClause = `(${kgBirimler.map(x => MQSQLOrtak.sqlServerDegeri(x)).join(', ')})`;
 		const kgClause = e.kgClause = `(case when stk.brm IN ${kgInClause} then har.miktar when stk.brm2 IN ${kgInClause} then har.miktar2 else 0 end)`;
