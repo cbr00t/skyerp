@@ -33,7 +33,7 @@ class DOzelRapor extends DRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'ozel' } static get dOzelRapormu() { return true }
 	goster(e) {
 		e = e || {}; const inst = this, {partName} = this, {aciklama} = this.class, title = e.title ?? `<b class="royalblue">${aciklama}</b> Raporu`
-		let rfb = new RootFormBuilder({ id: partName }).setInst(this).asWindow(title), _e = { ...e, rfb }; this.rootFormBuilderDuzenle(_e); rfb = _e.rfb;
+		let rfb = new RootFormBuilder({ id: partName }).noDestroy().setInst(this).asWindow(title), _e = { ...e, rfb }; this.rootFormBuilderDuzenle(_e); rfb = _e.rfb;
 		rfb.onInit(e => this.onInit({ ...e, rfb: e.builder })); rfb.onBuildEk(e => this.onBuildEk({ ...e, rfb: e.builder })); rfb.onAfterRun(e => this.onAfterRun({ ...e, rfb: e.builder }));
 		rfb.run(); const builder = rfb, {part} = builder, {anaTip} = this.class; part.layout.addClass(anaTip);
 		$.extend(this, { part, builder }); return ({ inst, part, builder })
