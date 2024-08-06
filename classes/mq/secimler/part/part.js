@@ -39,10 +39,11 @@ class SecimlerPart extends Part {
 		if (grup2Info) {
 			secimlerForm.children().remove(); const docFrg = $(document.createDocumentFragment());
 			for (const grupKod in grup2Info) {
-				const grupBilgi = grup2Info[grupKod], grup = grupBilgi.grup || {}, grupAciklama = grup.aciklama || '', key2Info = grupBilgi.key2Info || {};
-				const divGrup = grupBilgi.element = $(
+				const grupBilgi = grup2Info[grupKod], grup = grupBilgi.grup || {}, key2Info = grupBilgi.key2Info || {};
+				const _e = { ...e, liste: [], grupKod }; for (const {secim} of Object.values(key2Info)) { secim.ozetBilgiHTMLOlustur(_e) }
+				const grupHeaderHTML = secimler.getGrupHeaderHTML(_e), divGrup = grupBilgi.element = $(
 					`<div class="secim-grup" data-id="${grupKod}">` +
-						`<div class="header" style="color:${grup.renk || ''};background-color:${grup.zeminRenk || ''};${grup.css}">${grupAciklama}</div>` +
+						`<div class="header" style="color:${grup.renk || ''};background-color:${grup.zeminRenk || ''};${grup.css}">${grupHeaderHTML}</div>` +
 						`<div class="content"></div>` +
 					`</div>`
 				);
@@ -66,7 +67,7 @@ class SecimlerPart extends Part {
 							const {target} = evt, tagName = target.tagName.toUpperCase();
 							if (!(tagName == 'INPUT' || tagName == 'TEXTAREA' || tagName == 'BUTTON' || target.classList.contains(`jqx-input-icon`))) { navBarArrowClickHandler(evt) }
 						});
-					navBar.on('expandedItem', evt => this.onResize(e)); navBar.on('collapsedItem', evt => this.onResize(e))
+					navBar.on('expandedItem', event => this.onNavBarExpanded({ event, ...e })); navBar.on('collapsedItem', event => { this.onNavBarCollapsed({ event, ...e }) })
 				}
 			}
 			const WaitMS_Ek = 0; let waitMS = 0, focusYapildimi = false;
@@ -82,16 +83,15 @@ class SecimlerPart extends Part {
 		}
 	}
 	formGenelEventleriBagla(e) {
-		const {layout} = this;
-		let inputs = layout.find('input[type=textbox], input[type=text], input[type=number]'); if (inputs.length) { inputs.on('focus', evt => evt.target.select()) }
-		inputs = layout.find('input'); if (inputs.length) {
+		const {layout} = this; let inputs = layout.find('input[type=textbox], input[type=text], input[type=number]'); if (inputs.length) { inputs.on('focus', evt => evt.target.select()) }
+		/*inputs = layout.find('input'); if (inputs.length) {
 			inputs.on('keyup', evt => {
 				const key = (evt.key || '').toLowerCase(); if (key == 'enter' || key == 'linefeed') {
 					let elm = document.activeElement;
 					if (!(elm && $(elm).parents('.filtreForm.part')?.length)) { this.tamamIstendi(e) }
 				}
 			})
-		}
+		}*/
 	}
 	initIslemTuslari(e) {
 		e = e || {}; let {islemTuslariPart} = this;
@@ -209,4 +209,19 @@ class SecimlerPart extends Part {
 			if (!hasParts) { setTimeout(() => divGrupListe.eq(0).jqxNavigationBar('expandAt', 0), 1) }
 		}
 	}
+	onNavBarExpanded(e) {
+		const evt = e.event, elmGrup = $(evt.currentTarget), secimElms = elmGrup.find('.content > .secim'), {secimler} = this;
+		const _e = { ...e, liste: [], elmGrup }; secimler.grupOzetBilgiDuzenle(_e); this.onNavBarToggled(e)
+	}
+	onNavBarCollapsed(e) {
+		const evt = e.event, elmGrup = $(evt.currentTarget), secimElms = elmGrup.find('.content > .secim'), {secim2Info, secimler} = this;
+		const _e = { ...e, liste: [], elmGrup };
+		for (let i = 0; i < secimElms.length; i++) {
+			let id = secimElms.eq(i).prop('id'), item = secim2Info[id]; if (!item) { continue }
+			let elm = item.element, {secim} = item; if (secim.isHidden || secim.isDisabled) { continue }
+			secim.ozetBilgiHTMLOlustur(_e)
+		}
+		secimler.grupOzetBilgiDuzenle(_e); this.onNavBarToggled(e)
+	}
+	onNavBarToggled(e) { this.onResize(e) }
 }

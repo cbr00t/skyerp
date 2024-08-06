@@ -282,10 +282,12 @@ class FormBuilderBase extends CObject {
 		const builder = new FBuilder_DivOrtak({ id: id, etiket: etiket, tagName: tagName, inputType: inputType, layout: layout });
 		this.add(builder); return builder
 	}
-	addTabPanel(e, _etiket) {
+	addTabPanel(e, _etiket, _initTabContent, _tabPageChanged) {
 		e = e || {}; const id = typeof e == 'object' ? e.id : e;
 		const etiket = typeof e == 'object' ? e.etiket : _etiket;
-		const builder = new FBuilder_Tabs({ id: id, etiket: etiket });
+		const initTabContent = typeof e == 'object' ? e.initTabContent ?? e.initTabContentBlock : _initTabContent;
+		const tabPageChanged = typeof e == 'object' ? e.tabPageChanged ?? e.tabPageChangedBlock : _tabPageChanged;
+		const builder = new FBuilder_Tabs({ id, etiket, initTabContent, tabPageChanged });
 		this.add(builder); return builder
 	}
 	addTanimFormTabPanel(e, _value) {

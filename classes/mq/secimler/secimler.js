@@ -14,6 +14,10 @@ class Secimler extends CIO {
 		if (!e) { return null } const cls = this.getClass(e); if (!cls) { return null }
 		const result = new cls(e); if (!result.readFrom(e)) { return null } return result
 	}
+	duzenlemeEkraniAc(e) {
+		e = e || {}; const uiSinif = e.uiSinif || this.duzenlemeUISinif; if (!uiSinif) { return null } const {parentPart, mfSinif, tamamIslemi} = e;
+		const secimler = this, part = new uiSinif($.extend({}, e, { parentPart, secimler, mfSinif, tamamIslemi })); part.run(); return part
+	}
 	listeOlustur(e) { }
 	initProps(e) { const {liste} = this; for (const key in liste) { Object.defineProperty(this, key, { configurable: true, get() { return this.liste[key] }, set(value) { this.liste[key] = value } }) } }
 	get asObject() {
@@ -112,7 +116,7 @@ class Secimler extends CIO {
 				const {anaTip, tip} = secim.class, elmStr = secim.asHTMLElementString, elm = elmStr ? $(elmStr) : null;
 				if (elm?.length) {
 					if (!elm.prop('id')) { elm.prop('id', key) } if (tip) { elm.addClass(tip) } elm.addClass(`${anaTip} secim`); elm.data('secim', secim);
-					if (secim.isDisabled) { elm.prop('disabled', true); elm.prop('readonly', true); elm.attr('disabled', true); elm.attr('readonly', true); elm.addClass('disabled') }
+					if (secim.isDisabled) { elm.prop('disabled', true); elm.prop('readonly', true); elm.attr('disabled', true); elm.attr('readonly', true); elm.addClass('disabled'); elm.attr('aria-disabled', true) }
 					const {mfSinif} = secim, {key2Info} = grupInfo, etiket = secim.etiket || secim.mfSinif?.sinifAdi;
 					if (etiket) { const elmLabel = $(`<label class="etiket">${etiket}</label>`); elmLabel.prependTo(elm) }
 					key2Info[key] = { secim, element: elm }
@@ -120,8 +124,14 @@ class Secimler extends CIO {
 			}
 		}
 	}
-	duzenlemeEkraniAc(e) {
-		e = e || {}; const uiSinif = e.uiSinif || this.duzenlemeUISinif; if (!uiSinif) { return null } const {parentPart, mfSinif, tamamIslemi} = e;
-		const secimler = this, part = new uiSinif($.extend({}, e, { parentPart, secimler, mfSinif, tamamIslemi })); part.run(); return part
+	grupOzetBilgiDuzenle(e) {
+		const {elmGrup} = e, elmHeaderText = elmGrup?.find('.header > .jqx-expander-header-content');
+		if (elmHeaderText?.length) { elmHeaderText.html(this.getGrupHeaderHTML(e)) }
 	}
+	getGrupHeaderHTML(e) {
+		const innerHTML = this.getGrupOzetBilgiHTML(e), {elmGrup} = e, grupKod = e.grupKod ?? (elmGrup?.data('id') || elmGrup?.prop('id'));
+		const grup = this.grupListe[grupKod], grupText = grup?.aciklama ?? '';
+		return `<div class="item asil float-left">${grupText}</div><div class="item diger float-left">${innerHTML || ''}</div>`
+	}
+	getGrupOzetBilgiHTML(e) { let innerHTML = e.html ?? $.isArray(e.liste) ? e.liste.join('') : null; if (innerHTML?.html) { innerHTML = innerHTML.html() } return innerHTML || null }
 }

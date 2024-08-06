@@ -15,9 +15,15 @@ class DRapor_Donemsel_Main extends DAltRapor_TreeGridGruplu {
 	}
 	secimlerDuzenle(e) {
 		super.secimlerDuzenle(e); const {secimler} = e, {tabloYapi} = this, {grupVeToplam} = tabloYapi;
+		secimler.grupEkle('donemVeTarih', 'Dönem Ve Tarih');
 		secimler.secimTopluEkle({
-			donem: new SecimTekSecim({ etiket: 'Dönem', tekSecimSinif: DonemTarihAralikVeHepsiSecim }).autoBind(),
-			tarihAralik: new SecimDate({ etiket: 'Tarih' }).hidden()
+			donem: new SecimTekSecim({ etiket: 'Dönem', tekSecimSinif: DonemTarihAralikVeHepsiSecim, grupKod: 'donemVeTarih' }).autoBind()
+				.setOzetBilgiValueGetter(e => {
+					const kod = e.value?.kod ?? e.value, result = [e.value?.aciklama ?? kod];
+					if (kod == 'TR') { let value = secimler.tarihAralik.ozetBilgiValueDuzenlenmis; if (value) { result.push(value) } }
+					return result
+				}),
+			tarihAralik: new SecimDate({ etiket: 'Tarih', grupKod: 'donemVeTarih' }).hidden()
 		}); /* secimler.whereBlockEkle(e => { const wh = e.where, secimler = e.secimler }) */
 		const islemYap = (keys, callSelector, args) => {
 			for (const key of keys) {

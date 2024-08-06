@@ -1,6 +1,7 @@
 class SecimOzel extends Secim {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'ozel' } static get tip() { return this.anaTip } static get attr() { return 'value' }
 	get value() { return this._value } set value(value) { this._value = value }
+	get ozetBilgiValue() { let value = super.ozetBilgiValue; if (value == null) { return value } return value?.toString() }
 	get ozellik() { return this.value } set ozellik(value) { this.value = value }
 	readFrom(e) {
 		if (!super.readFrom(e)) { return false }
@@ -13,7 +14,6 @@ class SecimOzel extends Secim {
 	}
 	temizle(e) { super.temizle(e); this.value = this.getConvertedValue(null); return this }
 }
-
 class SecimText extends SecimOzel {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'text' }
 	readFrom(e) {
@@ -96,6 +96,7 @@ class SecimTekilNumber extends SecimTekilInteger {
 }
 class SecimTekilDate extends SecimOzel {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'tekilDate' } get hasTime() { return false }
+	get ozetBilgiValue() { let {value} = this; if (value == null) { return value } return dateToString(value) }
 	uiSetValues(e) { super.uiSetValues(e); const {parent} = e; if (!parent.length) { return false } parent.find('.input').val(null) }
 	buildHTMLElementStringInto(e) {
 		super.buildHTMLElementStringInto(e); e.target += `<div class="flex-row">`;
@@ -116,6 +117,7 @@ class SecimTekilDate extends SecimOzel {
 }
 class SecimTekilDateTime extends SecimTekilDate {
 	static { window[this.name] = this; this._key2Class[this.name] = this } get hasTime() { return true }
+	get ozetBilgiValue() { let {value} = this; if (value == null) { return value } return dateTimeToString(value) }
 	uiSetValues(e) {
 		super.uiSetValues(e); const {parent} = e; if (!parent?.length) { return false }
 		const bsParent = parent.find('.bs-parent'); bsParent.find('.input.time.ozel').val(asTimeAndToString(this.getConvertedValue(this.value)));
@@ -123,6 +125,7 @@ class SecimTekilDateTime extends SecimTekilDate {
 }
 class SecimBool extends SecimOzel {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'bool' }
+	get ozetBilgiValue() { let {value} = super.super_ozetBilgiValue; if (!value) { return value } return typeof value == 'boolean' ? (value ? 'Evet' : 'Hayır') : value?.toString() }
 	uiSetValues(e) { super.uiSetValues(e); const {parent} = e; if (!parent.length) { return false } parent.find('.bool').jqxSwitchButton({ checked: !!this.value }) }
 	buildHTMLElementStringInto(e) {
 		super.buildHTMLElementStringInto(e); e.target += `<div class="flex-row">`;
@@ -143,6 +146,12 @@ class SecimBoolTrue extends SecimBool {
 class SecimTekSecim extends SecimOzel {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'tekSecim' } static get birKismimi() { return false }
 	get value() { return this.getConvertedValue(this.tekSecim?.char) } set value(value) { const {tekSecim} = this; if (tekSecim) { tekSecim.char = this.getConvertedValue(value) } }
+	get ozetBilgiValue() {
+		let {value} = this; if (value == null) { return value }
+		if (!$.isArray(value)) { value = [value] }
+		const {kaDict} = this.tekSecim; value = value.map(kod => kaDict[kod] ?? kod);
+		return this.class.birKismi ? value.filter(x => !!x) : value[0]
+	}
 	get secilen() {
 		const {coklumu, tekSecim} = this; let secilen = tekSecim.secilen;
 		if (secilen != null && coklumu && !$.isArray(secilen)) { secilen = [secilen] }

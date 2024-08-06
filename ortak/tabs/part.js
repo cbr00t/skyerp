@@ -3,8 +3,7 @@ class TabsPart extends Part {
 	static get isSubPart() { return true } static get partName() { return 'skyTabs' }
 	
 	constructor(e) {
-		e = e || {}; super(e);
-		$.extend(this, { activePageId: e.activePageId, id2TabPage: e.id2TabPage, isSortable: e.isSortable ?? e.sortable });
+		e = e || {}; super(e); $.extend(this, { activePageId: e.activePageId, id2TabPage: e.id2TabPage, isSortable: e.isSortable ?? e.sortable });
 		let block = e.initContent || e.initTabContent || e.initContentBlock; { if (block) this.on('initContent', block) }
 		block = e.tabPageChanged || e.tabPageChangedBlock; if (block) { this.on('tabPageChanged', block) }
 		block = e.toggled || e.onToggled; if (block) { this.on('toggled', block) }
@@ -92,9 +91,10 @@ class TabsPart extends Part {
 		}
 	}
 	_renderContent(e) {
-		const id = e.id || this.activePageId; this.activePageId = id; const tabPage = e.tabPage || this.id2TabPage[id], _e = $.extend({}, e, { sender: this, tabPage, id });
+		const id = e.id || this.activePageId; this.activePageId = id; const sender = this, {builder} = this, tabPage = e.tabPage ?? this.id2TabPage[id];
+		const _e = { ...e, sender, builder, tabPage, id };
 		if (!tabPage.initFlag) {
-			this.triggerInitContent($.extend({}, _e)); const {content} = tabPage;
+			this.triggerInitContent({ ..._e }); const {content} = tabPage;
 			if (!(this.noScrollFlag || content?.hasClass('no-scroll') || content?.children().hasClass('no-scroll'))) { makeScrollable(tabPage.content, evt => !(document.activeElement && document.activeElement.classList.contains('jqx-widget-content'))) }
 			tabPage.initFlag = true; _e.content = content; _e.collapsed = (content?.length) && content.hasClass('jqx-hidden')
 		}

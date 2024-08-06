@@ -48,11 +48,12 @@ class FBuilder_TanimFormTabs extends FBuilder_TabsOrtak {
 }
 class FBuilder_Tabs extends FBuilder_TabsOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	constructor(e) { super(e); $.extend(this, { widgetArgsDuzenle: e.widgetArgsDuzenle, initTabLayoutBlock: e.initTabLayout || e.initTabLayoutBlock }) }
+	constructor(e) { super(e); $.extend(this, { widgetArgsDuzenle: e.widgetArgsDuzenle, initTabLayoutBlock: e.initTabLayout ?? e.initTabLayoutBlock, tabPageChangedBlock: e.tabPageChanged ?? e.tabPageChangedBlock }) }
 	afterBuildDevam(e) {
-		super.afterBuildDevam(e); const {parent, layout, parentPart} = this; this._initTabIDSet = {};
+		super.afterBuildDevam(e); const {parent, layout, parentPart, tabPageChangedBlock} = this; this._initTabIDSet = {};
 		const _e = $.extend({}, e, { args: {
-			builder: this, parent, layout, parentPart, initTabContent: e => {
+			builder: this, parent, layout, parentPart, tabPageChangedBlock,
+			initTabContent: e => {
 				const {layout, initTabLayoutBlock} = this, {tabPage} = e, tabID = tabPage.id, tabIndex = tabPage.index, sender = this, builder = this;
 				setTimeout(() => {
 					const _e = { ...e,  sender, builder, tabPage, tabID, tabIndex }; if (this.initTabLayout) { this.initTabLayout(_e) }
@@ -64,6 +65,7 @@ class FBuilder_Tabs extends FBuilder_TabsOrtak {
 		const part = this.part = this.widget = new TabsPart(_e.args); part.run()
 	}
 	initTabLayoutHandler(handler) { this.initTabLayoutBlock = handler; return this }
+	tabPageChangedHandler(handler) { this.tabPageChangedBlock = handler; return this }
 }
 class FBuilder_TabPage extends FormBuilder {
     static { window[this.name] = this; this._key2Class[this.name] = this } get isTabPage() { return true }

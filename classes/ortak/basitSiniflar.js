@@ -24,24 +24,23 @@ class CPoint extends CObject {
 class CBasiSonu extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get empty() { return new this({ basi: '', sonu: '' }) } static get zero() { return new this({ basi: 0, sonu: 0 }) }
-	get bosmu() { return !(this.basi || !this.sonu) }
+	get bosmu() { return !(this.basi || this.sonu) } get bosDegilmi() { return !this.bosmu }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { basi: e.basi ?? e.Basi, sonu: e.sonu ?? e.Sonu }) }
 	static fromText(e) {
-		e = e || {};
-		if (typeof e == 'object' && !$.isPlainObject(e)) return e		/* CBasiSonu gelmistir */
+		e = e || {}; if (typeof e == 'object' && !$.isPlainObject(e)) return e		/* CBasiSonu gelmistir */
 		let value = typeof e == 'object' && e.value !== undefined ? e.value : e; if (value == null) return null
 		if (typeof value == 'object') {
-			let inst = $.isPlainObject(value) ? new this(value) : value; const converter = e.converter;
+			let inst = $.isPlainObject(value) ? new this(value) : value; const {converter} = e;
 			if (converter) { for (const key of ['basi', 'sonu']) { let value = inst[key]; inst[key] = value = converter.call(inst, { value }) } }
 			return inst
 		}
 		let ind = value.indexOf('@'); ind = ind < 0 ? value.indexOf('x') : ind; ind = ind < 0 ? value.indexOf('|') : ind; if (ind < 0) return null
-		const converter = e.converter || (value => value); return new this({
+		const converter = e.converter ?? (value => value); return new this({
 			basi: converter.call(this, { value: value.substring(0, ind).trim() }),
 			sonu: converter.call(this, { value: value.substring(ind + 1).trim() })
 		})
 	}
-	toString(e) { return `${this.basi} -> ${this.sonu}` }
+	toString(e) { const basi = this.basi ?? '', sonu = this.sonu; return basi ? (sonu ? `${basi} -> ${sonu}` : basi) : '' }
 }
 class YilVeAy extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }

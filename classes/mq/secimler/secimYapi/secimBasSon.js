@@ -3,6 +3,10 @@ class SecimBasSon extends Secim {
 	static get anaTip() { return 'basSon' } static get tip() { return this.anaTip } get defaultBirKismimi() { return !!this.mfSinif }
 	get value() { return this.birKismimi ? this.kodListe : { basi: this.basi, sonu: this.sonu } }
 	set value(value) { if (this.birKismimi) this.kodListe = this.getConvertedValue(value); else super.value = value }
+	get ozetBilgiValue() {
+		let value = super.ozetBilgiValue; if (!value) { return value } if ($.isArray(value)) { return value.join(', ') }
+		if ($.isPlainObject(value)) { value = new CBasiSonu(value) } return value?.bosmu ? null : value.toString()
+	}
 	set basiSonu(value) { this.basi = value; this.sonu = value }
 	readFrom(e) {
 		if (!super.readFrom(e)) { return false }
@@ -139,6 +143,11 @@ class SecimNumber extends SecimInteger {
 }
 class SecimDate extends SecimBasSon {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'date' } get hasTime() { return false }
+	get ozetBilgiValue() {
+		let {value} = this; if (value == null) { return value }
+		if ($.isPlainObject(value)) { value = new CBasiSonu(value) }
+		return value?.bosmu ? null : new CBasiSonu({ basi: dateToString(value.basi), sonu: dateToString(value.sonu) }).toString()
+	}
 	initHTMLElements(e) {
 		super.initHTMLElements(e); const {parent} = e, inputs = parent.find('.bs-parent input.bs');
 		if (inputs?.length) {
@@ -157,6 +166,12 @@ class SecimDate extends SecimBasSon {
 }
 class SecimDateTime extends SecimDate {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'dateTime' } get hasTime() { return true }
+	get ozetBilgiValue() {
+		let {value} = this; if (value == null) { return value }
+		if ($.isPlainObject(value)) { value = new CBasiSonu(value) }
+		if (value?.bosDegilmi) { value = new CBasiSonu({ basi: dateTimeToString(value.basi), sonu: dateTimeToString(value.sonu) }) }
+		return value
+	}
 	uiSetValues(e) {
 		super.uiSetValues(e); const {parent} = e; if (!parent.length) { return false }
 		const bsParent = parent.find('.bs-parent'); for (const key of ['basi', 'sonu']) { bsParent.find(`.${key}-time.bs`).val(asTimeAndToString(this.getConvertedValue(this[key])), '') }

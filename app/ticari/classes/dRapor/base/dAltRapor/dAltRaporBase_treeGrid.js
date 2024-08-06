@@ -256,7 +256,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			const tabloYapiItems = selector ? tabloYapi[selector] : null;
 			return Object.keys(tumAttrSet).filter(attr => !digerAttrSet[attr] && (!tabloYapiItems || tabloYapiItems[attr]))
 		}
-		const title = 'Tablo Tanımları', className_listBox = 'listBox', ustHeight = '100px', islemTuslariHeight = '55px', contentTop = '-40px';
+		const title = 'Rapor Tanımı', className_listBox = 'listBox', ustHeight = '100px', islemTuslariHeight = '55px', contentTop = '-40px';
 		const solWidth = '200px', ortaWidth = '200px', sagWidth = '100px', ortaHeight = 'calc((var(--full) / 2) - 5px)';
 		let wnd, wRFB = new RootFormBuilder({ id: 'tabloTanimlari' }).setInst(inst).addCSS('part').addStyle(e => `$elementCSS { --islemTuslariHeight: ${islemTuslariHeight}; --ustHeight: ${ustHeight} }`);
 		let fbd_ust = wRFB.addFormWithParent('ust').yanYana().addStyle_fullWH(null, 'var(--ustHeight)');
@@ -294,9 +294,9 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			}
 			if (id.startsWith('kalanlar')) { source = kalanlarSourceDuzenlenmis(source) }
 			const width = '100%', height = width, valueMember = 'kod', displayMember = 'aciklama';
-			const allowDrop = true, allowDrag = allowDrop, autoHeight = false, itemHeight = 38, filterable = true, filterHeight = 40, filterPlaceHolder = 'Bul';
+			const allowDrop = true, allowDrag = allowDrop, autoHeight = false, itemHeight = 36, scrollBarSize = 20, filterable = true, filterHeight = 40, filterPlaceHolder = 'Bul';
 			input.prop('id', id); if (selector != null) { input.data('selector', selector) }
-			input.jqxListBox({ theme, width, height, valueMember, displayMember, source, allowDrag, allowDrop, autoHeight, itemHeight, filterable, filterHeight, filterPlaceHolder });
+			input.jqxListBox({ theme, width, height, valueMember, displayMember, source, allowDrag, allowDrop, autoHeight, itemHeight, scrollBarSize, filterable, filterHeight, filterPlaceHolder });
 			const changeHandler = evt => {
 				const target = evt.currentTarget, type = evt.args?.type, {id} = target;
 				if (id.startsWith('kalanlar')) {
@@ -313,8 +313,9 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			input.on('change', changeHandler); input.on('dragEnd', changeHandler)
 		};
 		let fbd_sol = fbd_content.addFormWithParent('sol').altAlta().addStyle_fullWH(solWidth);
-		let fbd_tabs = fbd_sol.addTabPanel('kalanlar').addStyle_fullWH().setAltInst(inst.listStates).initTabLayoutHandler(e => {
-			for (const fbd_tabPage of e.builder.builders) { fbd_tabPage.builders[0]?.input?.jqxListBox('render') } });
+		let fbd_tabs = fbd_sol.addTabPanel('kalanlar').addStyle_fullWH().setAltInst(inst.listStates).tabPageChangedHandler(e => {
+			for (const fbd_tabPage of e.builder.builders) { const {input} = fbd_tabPage.builders[0]; if (input?.length) { input.jqxListBox('render') } }
+		});
 		fbd_tabs.addTab('grup', 'Grup').addStyle_fullWH().addDiv('kalanlar_grup').setEtiket('Kalanlar').addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'grup' }).onAfterRun(e => initListBox(e));
 		fbd_tabs.addTab('toplam', 'Toplam').addStyle_fullWH().addDiv('kalanlar_toplam').setEtiket('Kalanlar').addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'toplam' }).onAfterRun(e => initListBox(e));
 		let fbd_orta = fbd_content.addFormWithParent('orta').altAlta().addStyle_fullWH(ortaWidth);/*.addStyle(e => `$elementCSS { position: absolute; right: 0 }`);*/
