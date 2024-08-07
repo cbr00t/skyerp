@@ -125,7 +125,7 @@ class SecimTekilDateTime extends SecimTekilDate {
 }
 class SecimBool extends SecimOzel {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'bool' }
-	get ozetBilgiValue() { let {value} = super.super_ozetBilgiValue; if (!value) { return value } return typeof value == 'boolean' ? (value ? 'Evet' : 'Hayır') : value?.toString() }
+	get ozetBilgiValue() { let {value} = this; if (value == null) { return value } return typeof value == 'boolean' ? (value ? 'Evet' : 'Hayır') : value?.toString() }
 	uiSetValues(e) { super.uiSetValues(e); const {parent} = e; if (!parent.length) { return false } parent.find('.bool').jqxSwitchButton({ checked: !!this.value }) }
 	buildHTMLElementStringInto(e) {
 		super.buildHTMLElementStringInto(e); e.target += `<div class="flex-row">`;
@@ -157,7 +157,7 @@ class SecimTekSecim extends SecimOzel {
 		if (secilen != null && coklumu && !$.isArray(secilen)) { secilen = [secilen] }
 		return secilen
 	}
-	get kaListe() { return (this.tekSecim || {}).kaListe }
+	get kaListe() { return this.tekSecim?.kaListe }
 	readFrom(e) {
 		if (!super.readFrom(e)) { return false }
 		let {tekSecim, tekSecimSinif, kaListe} = e; if (typeof tekSecimSinif == 'string') { tekSecimSinif = getFunc.call(this, tekSecimSinif, e) }
@@ -212,7 +212,7 @@ class SecimTekSecim extends SecimOzel {
 		});
 		if (part.autoBind) { part.dataBindYapildiFlag = true }
 		editor.data('part', part); part.run(); const {widget} = part;
-		part.change(_e => { const value = _e.value ?? _e.kod, {item} = _e; if (value != null) { getFuncValue.call(this, setValue, $.extend({}, e, _e)) } });
+		part.change(_e => { const value = _e.value ?? _e.kod, {item} = _e; if (value !== undefined) { getFuncValue.call(this, setValue, $.extend({}, e, _e)) } });
 		widget.input.on('focus', evt => {
 			const {source} = widget; if (!part.dataBindYapildiFlag && source?.dataBind) { source.dataBind(); part.dataBindYapildiFlag = true }
 			if (focusWidget != widget) { setTimeout(() => evt.target.select(), 150); focusWidget = widget }

@@ -114,7 +114,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 				`(case when fis.degiskenvknox <> '' then '' else car.webadresi end) webadresi`,
 				'pls.birunvan plasiyeradi', 'nak.aciklama naksekliadi', 'car.musrefkod', 'car.kondepomu',
 				`fis.tlacikhesap tlbakiye`, `fis.tloncekibakiye`, `fis.dvacikhesap dvbakiye`, `fis.dvoncekibakiye`,
-				'fis.refstrnox refnox', 'fis.borsatescilvarmi', 'fis.kunyenox', 'basack.basaciklama', 'dipack.aciklama dipaciklama',
+				'fis.refstrnox refnox', /*'fis.borsatescilvarmi', 'fis.kunyenox',*/ 'basack.basaciklama', 'dipack.aciklama dipaciklama',
 				'har.seq', 'har.miktar', 'har.fiyat', 'har.dvfiyat', 'har.brutbedel', 'har.dvbrutbedel', 'har.bedel', 'har.dvbedel',
 				'har.ekaciklama', 'har.detkdvekvergitipi', 'har.detistisnakod', 'har.perkdv', 'kver.kdvorani', 'har.perstopaj', 'sver.stopajorani',
 				'tevver.kdvtevoranx', 'tevver.kdvtevoranpay', 'tevver.tevislemturu', 'har.pertevkifat'
