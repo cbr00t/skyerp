@@ -281,7 +281,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			 $elementCSS > div .${className_listBox} > :not(label) { vertical-align: top; height: calc(var(--full) - var(--label-height) - var(--label-margin-bottom)) !important }
 			 $elementCSS > div .${className_listBox} > .jqx-listbox .jqx-listitem-element { font-size: 110% }`]);
 		const initListBox = e => {
-			const {builder} = e, {id, altInst, input, userData} = builder, selector = userData?.selector; let source = e.source;
+			const {builder} = e, {id, altInst, input, userData} = builder, selector = userData?.selector; let {source} = e;
 			if (source == null) { source = (id.startsWith('kalanlar') ? getKalanlarSource(selector) : altInst[id] ?? []).map(kod => kaDict[kod]) }
 			if (source?.length && typeof source[0] != 'object') { source = source.map(kod => new CKodVeAdi({ kod, aciklama: kod })) }
 			const kalanlarSourceDuzenlenmis = _source => {
@@ -314,8 +314,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		};
 		let fbd_sol = fbd_content.addFormWithParent('sol').altAlta().addStyle_fullWH(solWidth);
 		let fbd_tabs = fbd_sol.addTabPanel('kalanlar').addStyle_fullWH().setAltInst(inst.listStates).tabPageChangedHandler(e => {
-			for (const fbd_tabPage of e.builder.builders) { const {input} = fbd_tabPage.builders[0]; if (input?.length) { input.jqxListBox('render') } }
-		});
+			for (const fbd_tabPage of e.builder.builders) { const {input} = fbd_tabPage.builders[0]; if (input?.length) { input.jqxListBox('render') } } });
 		fbd_tabs.addTab('grup', 'Grup').addStyle_fullWH().addDiv('kalanlar_grup').setEtiket('Kalanlar').addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'grup' }).onAfterRun(e => initListBox(e));
 		fbd_tabs.addTab('toplam', 'Toplam').addStyle_fullWH().addDiv('kalanlar_toplam').setEtiket('Kalanlar').addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'toplam' }).onAfterRun(e => initListBox(e));
 		let fbd_orta = fbd_content.addFormWithParent('orta').altAlta().addStyle_fullWH(ortaWidth);/*.addStyle(e => `$elementCSS { position: absolute; right: 0 }`);*/

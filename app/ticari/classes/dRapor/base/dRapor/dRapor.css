@@ -20,7 +20,7 @@
 @media (max-height: 800px) { #dRapor.part #items > .item { width: 25%; height: 300px } }
 #dRapor.part #items.maximized > .item.maximized { width: var(--full) !important; height: var(--full) !important }
 #dRapor.part #items.maximized > .item:not(.maximized) { display: none }
-#dRapor.part #items > .item > [data-builder-id = 'fullScreen'] { position: absolute; width: 32px !important; height: 32px !important; top: 10px !important; right: -10px !important; z-index: 1100 !important; box-sizing: border-box !important }
+#dRapor.part #items > .item > [data-builder-id = 'fullScreen'] { position: absolute; width: 32px !important; height: 32px !important; top: 3px !important; right: -10px !important; z-index: 1100 !important; box-sizing: border-box !important }
 #dRapor.part #items > .item > [data-builder-id = 'fullScreen'] button { width: var(--full) !important; height: var(--full) !important; background-color: transparent !important; background-size: contain !important }
 #dRapor.part #items > .item > [data-builder-id = 'fullScreen'] button.jqx-fill-state-normal { opacity: .5 }
 #dRapor.part #items > .item > label { font-weight: bold; font-size: 140%; color: #777; background-color: #eee; width: calc(var(--full) - 10px); margin: 0 0 5px 0; padding: 0 0 3px 10px; border-radius: 10px }

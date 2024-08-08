@@ -1,6 +1,6 @@
 class SecimlerWindowPart extends SecimlerPart {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get isWindowPart() { return true } static get canDestroy() { return false } get formDeferMS() { return 200 }
+	static get isWindowPart() { return true } static get canDestroy() { return false } static get isCloseable() { return true } get formDeferMS() { return 200 }
 	afterRun(e) { e = e || {}; super.afterRun(e); setTimeout(() => {this.show(e) }, this.formDeferMS || 0) }
 	initWndArgsDuzenle(e) {
 		super.initWndArgsDuzenle(e); const {wndArgs} = this;

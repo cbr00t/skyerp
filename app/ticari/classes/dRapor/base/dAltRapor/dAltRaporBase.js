@@ -30,7 +30,7 @@ class DAltRapor extends DRapor {
 		let {secimlerPart} = this; if (secimlerPart) { secimlerPart.show() }
 		else {
 			const {secimler} = this; if (secimler) {
-				secimlerPart = this.secimlerPart = secimler.duzenlemeEkraniAc({ parentPart: this, tamamIslemi: e => this.rapor.tazele() });
+				secimlerPart = this.secimlerPart = secimler.duzenlemeEkraniAc({ parentPart: this.rapor.part, tamamIslemi: e => this.rapor.tazele() });
 				if (secimlerPart) { secimlerPart.acilinca(() => this.secimlerInitEvents(e)) }
 			}
 		}

@@ -18,7 +18,7 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 	goster(e) { return null } tazele(e) { }
 	onInit(e) { } onBuildEk(e) { } onAfterRun(e) { }
 }
-class DMQRapor extends DRapor {
+class DRaporMQ extends DRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'mq' } static get dMQRapormu() { return true }
 	goster(e) {
 		e = e || {}; const args = e.args = e.args || {}; args.inst = this, result = this.class.listeEkraniAc(e); if (result == null) { return null }
@@ -29,7 +29,7 @@ class DMQRapor extends DRapor {
 	static listeEkrani_init(e) { return e.sender.inst.onInit(e) }
 	static listeEkrani_afterRun(e) { return e.sender.inst.onAfterRun(e) }
 }
-class DOzelRapor extends DRapor {
+class DRaporOzel extends DRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'ozel' } static get dOzelRapormu() { return true }
 	goster(e) {
 		e = e || {}; const inst = this, {partName} = this, {aciklama} = this.class, title = e.title ?? `<b class="royalblue">${aciklama}</b> Raporu`
@@ -69,7 +69,7 @@ class DOzelRapor extends DRapor {
 	}
 	super_tazele(e) { super.tazele(e) }
 }
-class DPanelRapor extends DOzelRapor {
+class DPanelRapor extends DRaporOzel {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get anaTip() { return 'panel' } static get dPanelRapormu() { return true } get main() { return this.id2AltRapor.main }
 	constructor(e) {

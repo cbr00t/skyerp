@@ -49,6 +49,10 @@ class TabbedWindowPart extends Part {
 		if (wndContent?.length) { wndContent.detach(); setTimeout(() => { if (wndContent?.length) { wndContent.remove() } }, 100) }
 		if (!asilPart?.class?.isSubPart) {
 			const {id2TabPage} = mainWindowsPart;
+			for (const [id, tabPage] of Object.entries(id2TabPage)) {
+				let {layout, header} = tabPage, childPart = header?.data('part'); childPart = childPart?.asilPart ?? childPart;
+				if (childPart?.parentPart == asilPart) { childPart.destroyPart(e) }
+			}
 			let newPageId = ownerWndPart?.wndId; if (!newPageId) {
 				newPageId = Object.keys(id2TabPage).filter(id => {
 					if (id == wndId) { return false }
@@ -62,7 +66,8 @@ class TabbedWindowPart extends Part {
 			if (newPageId && !id2TabPage[newPageId]) { return }
 			let closeableTabPages = Object.values(id2TabPage).filter(tabPage => {
 				const header = tabPage?.header, layout = tabPage?.layout; let asilPart = header?.data('part'); asilPart = asilPart?.asilPart ?? asilPart;
-				return !!header?.parent()?.length && asilPart?.isDestroyed !== true && asilPart != this.asilPart && !(layout?.hasClass('jqx-hidden') || layout?.hasClass('basic-hidden'))
+				const isClosed = asilPart?.canDestroy ? asilPart?.isDestroyed : layout?.hasClass('jqx-hidden');
+				return !!header?.parent()?.length && isClosed && asilPart != this.asilPart && !(layout?.hasClass('jqx-hidden') || layout?.hasClass('basic-hidden'))
 			});
 			if (closeableTabPages.length == 1) {
 				const _asilPart = this.asilPart, tabPage = closeableTabPages[0], header = tabPage?.header; let asilPart = header?.data('part'); asilPart = asilPart?.asilPart ?? asilPart;
@@ -78,7 +83,7 @@ class TabbedWindowPart extends Part {
 		const {wndId} = this, {mainWindowsPart} = app, {id2TabPage} = mainWindowsPart;
 		const elmTabHeader = mainWindowsPart.divTabs.children(`.tabPage#${wndId}`); if (!elmTabHeader?.length || !(elmTabHeader.hasClass('jqx-hidden') || elmTabHeader.hasClass('basic-hidden'))) { return this.open(e) }
 		elmTabHeader.removeClass('jqx-hidden'); mainWindowsPart.activePageId = wndId; mainWindowsPart.refresh();
-		const closeableTabPages = Object.values(id2TabPage).filter(tabPage => tabPage?.header?.data('part')?.asilPart?.canDestroy !== false);
+		const closeableTabPages = Object.values(id2TabPage).filter(tabPage => tabPage?.header?.data('part')?.asilPart?.isCloseable);
 		const noWndFlag = !closeableTabPages.length; app.content[noWndFlag ? 'removeClass' : 'addClass']('jqx-hidden');
 		$('body')[noWndFlag ? 'addClass' : 'removeClass']('no-wnd'); return this
 	}
@@ -90,13 +95,17 @@ class TabbedWindowPart extends Part {
 		let {asilPart} = ownerWndPart || {}; if (asilPart?.isSubPart /*|| (asilPart.layout?.hasClass('jqx-hidden') || asilPart.layout?.hasClass('basic-hidden')))*/) { ownerWndPart = ownerWndPart.ownerWndPart; asilPart = ownerWndPart?.asilPart }
 		let newPageId = ownerWndPart?.wndId; if (!newPageId) { newPageId = Object.keys(id2TabPage).filter(id => id != wndId).slice(-1)[0] }
 		mainWindowsPart.activePageId = newPageId; mainWindowsPart.refresh();
-		const closeableTabPages = Object.values(id2TabPage).filter(tabPage => tabPage?.header?.data('part')?.asilPart?.canDestroy !== false);
+		const closeableTabPages = Object.values(id2TabPage).filter(tabPage => tabPage?.header?.data('part')?.asilPart?.isCloseable);
 		const noWndFlag = !closeableTabPages.length; app.content[noWndFlag ? 'removeClass' : 'addClass']('jqx-hidden');
 		$('body')[noWndFlag ? 'addClass' : 'removeClass']('no-wnd'); return this
 	}
 	bringToFront(e) {
 		const {wndId} = this, {mainWindowsPart} = app;
-		const elmTabHeader = mainWindowsPart.divTabs.children(`.tabPage#${wndId}`); if (!elmTabHeader?.length || !(elmTabHeader.hasClass('jqx-hidden') || elmTabHeader.hasClass('basic-hidden'))) { return this }
+		const elmTabHeader = mainWindowsPart.divTabs.children(`.tabPage#${wndId}`);
+		if (!elmTabHeader?.length || !(elmTabHeader.hasClass('jqx-hidden') || elmTabHeader.hasClass('basic-hidden'))) {
+			$('body').removeClass('no-wnd'); app.content.addClass('jqx-hidden');
+			return this
+		}
 		return this.show(e)
 	}
 	autoOpen() { this.autoOpenFlag = true; return this }

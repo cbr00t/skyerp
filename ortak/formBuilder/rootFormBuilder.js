@@ -25,19 +25,19 @@ class RootFormBuilder extends SubPartBuilder {
 		else {
 			const superPartClass = this.superPartClass || Part;
 			const partClass = class FormBuilderAutoPart extends superPartClass {
-				static get isSubPart() { return coalesce(this.builder.isSubPart, super.isSubPart) }
-				static get asyncRunFlag() { return coalesce(this.builder.asyncRunFlag, super.asyncRunFlag) }
-				static get isWindowPart() { return coalesce(this.builder.isWindow, super.isWindowPart) }
-				static get wndDefaultIsModal() { return coalesce(this.builder.isModal, super.wndDefaultIsModal) }
-				static get partName() { return coalesce(this.builder.id, super.partName) }
-				static get canDestroy() { return coalesce(this.builder.canDestroy, super.canDestroy) }
-				static get noFullHeightFlag() { return coalesce(this.builder.noFullHeightFlag, super.noFullHeightFlag) }
-				get wndClassNames() { return coalesce(this.class.builder.wndClassNames, super.wndClassNames) }
-				get formDeferMS() { return coalesce(this.class.builder.formDeferMS, super.formDeferMS) }
+				static get isSubPart() { return this.builder.isSubPart ?? super.isSubPart }
+				static get asyncRunFlag() { return this.builder.asyncRunFlag ?? super.asyncRunFlag }
+				static get isWindowPart() { return this.builder.isWindow ?? super.isWindowPart }
+				static get wndDefaultIsModal() { return this.builder.isModal ?? super.wndDefaultIsModal }
+				static get partName() { return this.builder.id ?? super.partName }
+				static get canDestroy() { return true /*this.builder.canDestroy ?? super.canDestroy*/ }
+				static get isCloseable() { return true /*this.builder.canDestroy ?? super.canDestroy*/ }
+				static get noFullHeightFlag() { return this.builder.noFullHeightFlag ?? super.noFullHeightFlag }
+				get wndClassNames() { return this.class.builder.wndClassNames ?? super.wndClassNames }
+				get formDeferMS() { return this.class.builder.formDeferMS ?? super.formDeferMS }
 				constructor(e) {
-					e = e || {}; super(e); const {builder} = this.class; let {layout} = builder;
-					if (!layout?.length) { layout = builder.parent }
-					if (!layout?.length) { layout = $('<div/>') } 
+					e = e || {}; super(e); const {builder} = this.class;
+					let {layout} = builder; if (!layout?.length) { layout = builder.parent } if (!layout?.length) { layout = $('<div/>') } 
 					$.extend(this, {
 						builder, parentPart: builder.parentPart, content: builder.content, layout, title: builder.title, wndArgs: builder.wndArgs,
 						wndArgsDuzenleBlock: builder.wndArgsDuzenleBlock || builder.wndArgsDuzenle

@@ -349,21 +349,23 @@ class ModelKullanPart extends Part {
 					const values = e.values ?? [], value = values[0] ?? e.value, _values = $.isArray(values) ? values : $.makeArray(values);
 					setTimeout(() => showProgress(), 20);
 					setTimeout(() => {
-						if (coklumu) {
-							listBox.clear(); for (const rec of _recs) { widget.addItem(rec); widget.selectItem(widget.getItems().slice(-1)[0]) }
-							input.val(''); this.onChange({ force: true, type: 'trigger' }).then(() => {
-								let handler = evt => {
-									layout.off('bindingComplete', handler);
-									setTimeout(() => { if (widget.isOpened()) { widget.close() } input.focus() }, 1)
-								};
-								layout.on('bindingComplete', handler); widget.dataBind() })
+						try {
+							if (coklumu) {
+								listBox.clear(); for (const rec of _recs) { widget.addItem(rec); widget.selectItem(widget.getItems().slice(-1)[0]) }
+								input.val(''); this.onChange({ force: true, type: 'trigger' }).then(() => {
+									let handler = evt => {
+										layout.off('bindingComplete', handler);
+										setTimeout(() => { if (widget.isOpened()) { widget.close() } input.focus() }, 1)
+									};
+									layout.on('bindingComplete', handler); widget.dataBind() })
+							}
+							else {
+								const text = widget.renderSelectedItem ? widget.renderSelectedItem(null, rec) : value;
+								this.val(value); this.onChange({ force: true, type: 'trigger', args: { item: e.rec, value } });
+								setTimeout(() => widget.input.val(text), 100)
+							}
 						}
-						else {
-							const text = widget.renderSelectedItem ? widget.renderSelectedItem(null, rec) : value;
-							this.val(value); this.onChange({ force: true, type: 'trigger', args: { item: e.rec, value } });
-							setTimeout(() => widget.input.val(text), 100)
-						}
-						hideProgress()
+						finally { hideProgress() }
 					}, 120)
 				}
 				setTimeout(() => {
