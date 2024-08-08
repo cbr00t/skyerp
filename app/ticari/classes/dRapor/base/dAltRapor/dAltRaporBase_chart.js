@@ -1,7 +1,7 @@
 class DAltRapor_Chart extends DAltRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return null }
 	static get kod() { return 'chart' } static get aciklama() { return 'Chart' }
-	get width() { return `calc(var(--full) - ${this.rapor.id2AltRapor.main.width})` } get height() { return '400px' }
+	get width() { return `calc(var(--full) - ${this.rapor.id2AltRapor.main.width})` } get height() { return '50%' }
 	onBuildEk(e) {
 		super.onBuildEk(e); const {parentBuilder, noAutoColumns} = this, {layout} = parentBuilder;
 		const width = '99.8%', height = 'calc(var(--full) - 5px)';
@@ -69,5 +69,5 @@ class DAltRapor_Chart extends DAltRapor {
 		}
 		return result
 	}
-	getChartOffsetY(e) { const {fbd_chart} = this, {layout} = fbd_chart; return (layout?.height() || 0) * 0.53 }
+	getChartOffsetY(e) { const {fbd_chart} = this, {layout} = fbd_chart; return (layout?.height() || 0) * 0.56 }
 }
