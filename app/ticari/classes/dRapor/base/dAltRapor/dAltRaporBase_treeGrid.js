@@ -4,7 +4,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	/*subFormBuilderDuzenle(e) { super.subFormBuilderDuzenle(e); const {rfb} = e; rfb.addCSS('no-overflow') }*/
 	onBuildEk(e) {
 		super.onBuildEk(e); const {parentBuilder, noAutoColumns} = this, {layout} = parentBuilder;
-		this.fbd_grid = parentBuilder.addForm('grid').setLayout(e => $(`<div class="grid part full-wh"/>`))
+		this.fbd_grid = parentBuilder.addForm('grid').setLayout(e => $(`<div class="${e.builder.id} part full-wh"/>`))
 			.onAfterRun(async e => {
 				const fbd_grid = e.builder, gridPart = this.gridPart = fbd_grid.part = {}, grid = gridPart.grid = fbd_grid.layout;
 				$.extend(gridPart, { tazele: e => this.tazele(e), hizliBulIslemi: e => this.hizliBulIslemi(e) });
@@ -127,7 +127,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridliAltRapormu() { return true } get noAutoColumns() { return true }
 	static get raporClass() { return null } static get kod() { return 'main' } static get aciklama() { return this.raporClass.aciklama }
-	get width() { return '74%' } get height() { return 'var(--full)' }
+	get width() { return '70%' } get height() { return 'var(--full)' }
 	get tabloYapi() {
 		let result = this._tabloYapi;
 		if (result == null) {
@@ -229,6 +229,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			grid.jqxTreeGrid('clear'); colDefs = this.getColumns(colDefs); try { grid.jqxTreeGrid('columns', colDefs.flatMap(colDef => colDef.jqxColumns)) } catch (ex) { console.error(ex) }
 			$.extend(ozetBilgi, { grupTipKod: Object.keys(grup)[0] || null, icerikTipKod: Object.keys(icerik).find(kod => !!tabloYapi.toplam[kod]) || null });
 			$.extend(ozetBilgi, { grupAttr: (tip2ColDefs[ozetBilgi.grupTipKod] || [])[0]?.belirtec, icerikAttr: (tip2ColDefs[ozetBilgi.icerikTipKod] || [])[0]?.belirtec });
+			$.extend(ozetBilgi, { grupText: (tip2ColDefs[ozetBilgi.grupTipKod] || [])[0]?.text, icerikText: (tip2ColDefs[ozetBilgi.icerikTipKod] || [])[0]?.text });
 			const ozetBilgi_getColumns = (source, kod, colDefDuzenle) =>
 				this.getColumns((source[kod]?.colDefs || [])).map(_colDef => { const colDef = _colDef/*.deepCopy()*/; if (colDefDuzenle) { getFuncValue.call(this, colDefDuzenle, colDef) } return colDef });
 			ozetBilgi.colDefs = ozetBilgi.grupTipKod ? [
@@ -241,11 +242,12 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	}
 	raporTanimIstendi(e) {
 		const {raporTanim} = this, inst = raporTanim, title = `${raporTanim.class.sinifAdi} Tanım`, ustHeight = '50px', ustEkHeight = '33px', islemTuslariHeight = '55px';
-		let wnd, wRFB = new RootFormBuilder({ id: 'raporTanim' }).addCSS('part').addStyle(e => `$elementCSS { --islemTuslariHeight: ${islemTuslariHeight}; --ustHeight: ${ustHeight}; --ustEkHeight : ${ustEkHeight} }`);
+		let wnd, wRFB = new RootFormBuilder({ id: 'raporTanim' }).setInst(inst).addCSS('part')
+			.addStyle(e => `$elementCSS { --islemTuslariHeight: ${islemTuslariHeight}; --ustHeight: ${ustHeight}; --ustEkHeight : ${ustEkHeight} }`);
 		let fbd_ust = wRFB.addFormWithParent('ust').yanYana().addStyle_fullWH(null, 'var(--ustHeight)');
 		let fbd_sablonParent = fbd_ust.addFormWithParent('sablon-parent').yanYana().addStyle_fullWH().addStyle([e =>
 			`$elementCSS { position: relative; top: 5px } $elementCSS > .button { width: 50px !important; height: 45px !important; min-width: unset !important }`]);
-		fbd_sablonParent.addModelKullan('sablonKod', 'Şablon').etiketGosterim_yok().dropDown().noMF().kodsuz()/*.listedenSecilemez()*/.setSource([]).addStyle_fullWH('calc(var(--full) - 300px)');
+		fbd_sablonParent.addModelKullan('sablonKod', 'Şablon').etiketGosterim_yok().dropDown().setMFSinif(DMQRapor).kodsuz()/*.listedenSecilemez()*/.setSource([]).addStyle_fullWH('calc(var(--full) - 300px)');
 		fbd_sablonParent.addButton('sablonKaydet', '+').addCSS('button').onClick(_e => this.raporTanim_sablonKaydetIstendi({ ...e, ..._e, wnd, inst }));
 		fbd_sablonParent.addButton('sablonSil', 'x').addCSS('button').onClick(_e => this.raporTanim_sablonSilIstendi({ ...e, ..._e, wnd, inst }));
 		let fbd_islemTuslari = fbd_ust.addFormWithParent('islemTuslari').yanYana().addStyle_wh('auto', islemTuslariHeight).addStyle(`$elementCSS { position: absolute; top: 0; right: 0; z-index: 1000 }`);

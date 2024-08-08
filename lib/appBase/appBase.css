@@ -112,6 +112,7 @@ jqx-grid .jqx-group-collapse { width: 35px }
 }
 .jqx-grid .jqx-adaptive-table tr:nth-child(1) > td:nth-child(1) { display: none }
 .jqx-dropdownlist, .jqx-combobox { border-radius: 8px; box-sizing: border-box }
+.chart-label { /*backdrop-filter: contrast(1) !important;*/ color: white !important }
 .skyResim.part > button {
 	position: relative !important; top: 60px !important; right: 50px !important;
 	width: 34px !important; height: 32px !important; margin-inline-start: 40px !important; 

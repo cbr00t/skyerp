@@ -7,7 +7,7 @@ class DMQRapor extends DMQSayacliKA {
 	get secilenVarmi() { return !!(Object.keys(this.grup).length || Object.keys(this.icerik).length) }
 	constructor(e) {
 		e = e || {}; super(e); const {isCopy} = e; this.rapor = e.rapor?.main ?? e.rapor;
-		$.extend(this, { grup: e.grupListe ?? e.grup, icerik: e.icerikListe ?? e.icerik, ozetMax: e.ozetMax });
+		$.extend(this, { grup: e.grupListe ?? e.grup, icerik: e.icerikListe ?? e.icerik, ozetMax: e.ozetMax ?? 5 });
 		if (!isCopy) {
 			for (const key of ['grup', 'icerik']) {
 				let value = this[key], orjValue = value; if ($.isArray(value)) { value = asSet(value) }
@@ -21,7 +21,7 @@ class DMQRapor extends DMQSayacliKA {
 		const kaDict = {}; for (const ka of kaListe) { kaDict[ka.kod] = ka }
 		const _inst = { listStates: {}, ozetMax, get ozetAttr() { return this.listStates.grup[0] } };
 		const tumAttrSet = asSet(Object.keys(kaDict)); for (const selector of ['grup', 'icerik']) {
-			let keys = this[selector]; if (keys != null) { keys = Object.keys(keys) }
+			let keys = inst[selector]; if (keys != null) { keys = Object.keys(keys) }
 			_inst.listStates[selector] = keys ?? [] /*for (const key of keys) { delete tumAttrSet[key] }*/
 		}
 		const getKalanlarSource = selector => {
