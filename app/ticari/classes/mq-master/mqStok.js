@@ -22,7 +22,7 @@ class MQStok extends MQKA {
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {aliasVeNokta} = this, {sent} = e;
 		sent.fromIliski(`stkgrup grp`, `${aliasVeNokta}grupkod = grp.kod`);
-		sent.fromIliski(`stkanagrup agrp`, `grp.anagrupkod = agrp.anagrupkod`);
+		sent.fromIliski(`stkanagrup agrp`, `grp.anagrupkod = agrp.kod`);
 		sent.fromIliski(`stkistgrup sigrp`, `${aliasVeNokta}sistgrupkod = sigrp.kod`);
 		sent.fromIliski(`stkistanagrup siagrp`, `sigrp.sanagrupkod = siagrp.kod`);
 		sent.fromIliski(`stkmensei men`, `${aliasVeNokta}menseikod = men.kod`);

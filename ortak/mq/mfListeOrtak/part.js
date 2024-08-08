@@ -137,7 +137,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	}
 	islemTuslariDuzenle(e) {
 		super.islemTuslariDuzenle(e); const mfSinif = this.getMFSinif(), {secimler, panelDuzenleyici} = this, {liste} = e, yListe = [];
-		yListe.push({ id: 'basliklariDuzenle', handler: e => this.basliklariDuzenleIstendi(e) })
+		if (!panelDuzenleyici && (!mfSinif || mfSinif?.kolonDuzenlemeYapilirmi)) { yListe.push({ id: 'basliklariDuzenle', handler: e => this.basliklariDuzenleIstendi(e) }) }
 		if (secimler && mfSinif?.raporKullanilirmi) { yListe.push({ id: 'rapor', handler: e => this.sabitBilgiRaporuIstendi(e) }) }
 		if (!panelDuzenleyici && (!mfSinif || mfSinif?.kolonFiltreKullanilirmi)) { yListe.push({ id: 'kolonFiltre', handler: e => this.kolonFiltreIstendi(e) }) }
 		if (secimler) { yListe.push({ id: 'secimler', handler: e => this.secimlerIstendi(e) }) }
