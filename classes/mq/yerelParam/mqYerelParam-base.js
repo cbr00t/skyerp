@@ -74,13 +74,12 @@ class MQYerelParamBase extends CIO {
 		const {tanimUISinif} = this; if (!tanimUISinif) return null
 		e = e || {}; const _e = $.extend({}, e, { islem: e.islem || 'yeni', mfSinif: e.mfSinif || this });
 		try {
-			const part = new tanimUISinif(_e), result = part.run();
-			const wnd = part.wnd = createJQXWindow({ content: part.layout, title: part.title, args: part.wndArgs });
-			wnd.on('close', evt => { $('body').removeClass('bg-modal'); part.destroyPart() });
-			$('body').addClass('bg-modal');
-			return { part, wnd, result }
+			const part = new tanimUISinif(_e), result = part.run(), content = part.layout, {title} = part, args = part.wndArgs;
+			const wnd = part.wnd = createJQXWindow({ content, title, args });
+			wnd.on('close', evt => { part.destroyPart(); $('body').removeClass('bg-modal') });
+			setTimeout(() => $('body').addClass('bg-modal'), 1); return { part, wnd, result }
 		}
-		catch (ex) { displayMessage(getErrorText(ex)); throw ex }
+		catch (ex) { hConfirm(getErrorText(ex)); throw ex }
 	}
 	tanimla(e) { e = e || {}; e.inst = e.inst || this; return this.class.tanimla(e) }
 }

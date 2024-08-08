@@ -33,7 +33,7 @@ class DRapor_Donemsel_Main extends DAltRapor_TreeGridGruplu {
 		}; islemYap(Object.keys(grupVeToplam), 'secimlerDuzenle', e);
 		secimler.whereBlockEkle(_e => {
 			islemYap(Object.keys(grupVeToplam) || {}, 'tbWhereClauseDuzenle', { ...e, ..._e })
-			/*islemYap(Object.keys(this.secilenler?.attrSet || {}), 'tbWhereClauseDuzenle', { ...e, ..._e })*/
+			/*islemYap(Object.keys(this.raporTanim?.attrSet || {}), 'tbWhereClauseDuzenle', { ...e, ..._e })*/
 		})
 	}
 	secimlerInitEvents(e) {
@@ -62,7 +62,7 @@ class DRapor_Donemsel_Main extends DAltRapor_TreeGridGruplu {
 		if (wh?.liste?.length) { for (const sent of stm.getSentListe()) { sent.where.birlestir(wh) } }
 	}
 	loadServerData_queryDuzenle_tarih(e) {
-		const {attrSet} = this.secilenler, {stm} = e, alias = e.alias ?? 'fis', tarihSaha = e.tarihSaha ?? 'tarih';
+		const {attrSet} = this.raporTanim, {stm} = e, alias = e.alias ?? 'fis', tarihSaha = e.tarihSaha ?? 'tarih';
 		const tarihClause = alias ? `${alias}.${tarihSaha}` : tarihSaha, {orderBy} = stm;
 		for (const sent of stm.getSentListe()) {
 			for (const key in attrSet) {
@@ -116,7 +116,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 			.addToplam(new TabloYapiItem().setKA('CIRO', `${toplamPrefix}Ciro`).addColDef(new GridKolon({ belirtec: 'ciro', text: `${toplamPrefix}Ciro`, genislikCh: 19, filterType: 'numberinput' }).tipDecimal()))
 	}
 	loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const attrSet = { ...(this.secilenler.attrSet || {}) }, {secimler, stm} = e;
+		super.loadServerData_queryDuzenle(e); const {raporTanim} = this, {attrSet} = raporTanim, {secimler, stm} = e;
 		if (secimler) {
 			for (const [key, secim] of Object.entries(secimler.liste)) {
 				if (secim.isHidden || secim.isDisabled) { continue }
@@ -174,7 +174,7 @@ class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 			.addToplam(new TabloYapiItem().setKA('IACIRO', 'İADE Ciro').addColDef(new GridKolon({ belirtec: 'iaciro', text: 'İADE Ciro', genislikCh: 19, filterType: 'numberinput' }).tipDecimal()))
 	}
 	loadServerData_queryDuzenle_ek(e) {
-		super.loadServerData_queryDuzenle_ek(e); const {attrSet} = this.secilenler, {secimler, stm, kgClause} = e; let {orderBy} = stm;
+		super.loadServerData_queryDuzenle_ek(e); const {attrSet} = this.raporTanim, {secimler, stm, kgClause} = e; let {orderBy} = stm;
 		for (const sent of stm.getSentListe()) {
 			const wh = sent.where; wh.add(`fis.piftipi = 'F'`);
 			for (const key in attrSet) {

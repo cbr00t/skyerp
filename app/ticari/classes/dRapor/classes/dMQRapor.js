@@ -1,12 +1,12 @@
 class DMQRapor extends DMQSayacliKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'rapor'] }
 	static get kodListeTipi() { return 'DMQRAPOR' } static get sinifAdi() { return 'Rapor' } static get table() { return '' } static get tableAlias() { return 'rap' }
-	static get tanimlanabilirmi() { return true } static get silinebilirmi() { return true }
+	static get tanimlanabilirmi() { return true } static get silinebilirmi() { return true } static get kodKullanilirmi() { return false }
 	static get tanimUISinif() { return ModelTanimPart } static get secimSinif() { return Secimler }
 	get attrSet() { const result = {}; for (const selector of ['grup', 'icerik']) { $.extend(result, asSet(Object.keys(this[selector]))) } return result }
 	get secilenVarmi() { return !!(Object.keys(this.grup).length || Object.keys(this.icerik).length) }
 	constructor(e) {
-		e = e || {}; super(e); const {isCopy} = e; this.rapor = e.rapor;
+		e = e || {}; super(e); const {isCopy} = e; this.rapor = e.rapor?.main ?? e.rapor;
 		$.extend(this, { grup: e.grupListe ?? e.grup, icerik: e.icerikListe ?? e.icerik, ozetMax: e.ozetMax });
 		if (!isCopy) {
 			for (const key of ['grup', 'icerik']) {
@@ -29,10 +29,10 @@ class DMQRapor extends DMQSayacliKA {
 			const tabloYapiItems = selector ? tabloYapi[selector] : null;
 			return Object.keys(tumAttrSet).filter(attr => !digerAttrSet[attr] && (!tabloYapiItems || tabloYapiItems[attr]))
 		}
-		const className_listBox = 'listBox', ustHeight = '100px', contentTop = '13px';
+		const className_listBox = 'listBox', ustHeight = '50px', contentTop = '13px';
 		const solWidth = '200px', ortaWidth = '200px', sagWidth = '100px', ortaHeight = 'calc((var(--full) / 2) - 5px)';
 		tanimForm.addStyle(e => `$elementCSS { --ustHeight: ${ustHeight} }`);
-		let fbd_content = tanimForm.addFormWithParent('content').yanYana().addStyle_fullWH(null, 'calc(var(--full) - var(--ustHeight) - var(--top) + 8px)').addStyle([e =>
+		let fbd_content = tanimForm.addFormWithParent('content').yanYana().setAltInst(_inst).addStyle_fullWH(null, 'calc(var(--full) - var(--ustHeight) - var(--top) + 8px)').addStyle([e =>
 			`$elementCSS { --top: ${contentTop}; position: relative; top: var(--top); z-index: 100 }
 			 $elementCSS > div .${className_listBox} { --label-height: 30px; --label-margin-bottom: 20px }
 			 $elementCSS > div .${className_listBox} > label { font-size: 180%; color: #999; height: var(--label-height); padding-bottom: var(--label-margin-bottom) }
@@ -86,6 +86,10 @@ class DMQRapor extends DMQSayacliKA {
 			new GridKolon({ belirtec: 'bolgekod', text: 'Bölge', genislikCh: 10, }), new GridKolon({ belirtec: 'bolgeadi', text: 'Bölge Adı', genislikCh: 25, sql: 'bol.aciklama' }),
 			new GridKolon({ belirtec: 'cistgrupkod', text: 'İst. Grup', genislikCh: 10 }), new GridKolon({ belirtec: 'cistgrupadi', text: 'İst. Grup Adı', genislikCh: 20, sql: 'cigrp.aciklama' })
 		)
+	}
+	static yeniInstOlustur(e) {
+		const inst = super.yeniInstOlustur(e), args = e.args || {}, {rapor} = args;
+		if (inst && rapor) { inst.rapor = rapor } return inst
 	}
 	hostVarsDuzenle(e) {
 		super.hostVarsDuzenle(e); const {hv} = e, liste2HV = value => {

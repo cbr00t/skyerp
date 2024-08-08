@@ -125,7 +125,7 @@ class DGrupluPanelRapor extends DPanelRapor {
 	}
 	islemTuslariArgsDuzenle(e) {
 		super.islemTuslariArgsDuzenle(e); const {liste} = e; liste.push(
-			{ id: 'tabloTanimlari', text: 'Rapor Tanım', handler: _e => this.id2AltRapor.main.tabloTanimlariGosterIstendi({ ...e, ..._e }) },
+			{ id: 'raporTanim', text: 'Rapor Tanım', handler: _e => this.id2AltRapor.main.raporTanimIstendi({ ...e, ..._e }) },
 			{ id: 'secimler', text: '', handler: _e => this.id2AltRapor.main.secimlerIstendi({ ...e, ..._e }) },
 			{ id: 'seviyeAc', text: 'Seviye Aç', handler: _e => this.id2AltRapor.main.seviyeAcIstendi({ ...e, ..._e }) },
 			{ id: 'seviyeKapat', text: 'Seviye Kapat', handler: _e => this.id2AltRapor.main.seviyeKapatIstendi({ ...e, ..._e }) },

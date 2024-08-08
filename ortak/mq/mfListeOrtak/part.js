@@ -348,16 +348,16 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		else { const {secimler} = this; if (secimler) { secimlerPart = this.secimlerPart = secimler.duzenlemeEkraniAc({ parentPart: this, tamamIslemi: e => this.tazele() }) } }
 	}
 	async yeniIstendi(e) {
-		const mfSinif = this.getMFSinif(e); const tanimUISinif = this.getTanimUISinif($.extend({}, e, { mfSinif })); if (!tanimUISinif) return false
-		const {tanimOncesiEkIslemler, gridWidget} = this, {args} = e, {ozelTanimIslemi} = mfSinif; let inst;
+		const mfSinif = this.getMFSinif(e); const tanimUISinif = this.getTanimUISinif($.extend({}, e, { mfSinif })); if (!tanimUISinif) { return false }
+		const {tanimOncesiEkIslemler, gridWidget} = this, {args} = this, {ozelTanimIslemi} = mfSinif; let inst;
 		const rowIndex = coalesce(e.rowIndex, gridWidget.getselectedrowindex()), rec = e.rec ?? gridWidget.getrowdata(rowIndex);
 		const _e = { sender: this, listePart: this, islem: 'yeni', mfSinif, tanimUISinif, rec, rowIndex, args };
 		if (ozelTanimIslemi) return await getFuncValue.call(this, ozelTanimIslemi, _e)
 		try {
 			const {yeniInstOlusturucu} = this;
 			if (yeniInstOlusturucu) { inst = await getFuncValue.call(this, yeniInstOlusturucu, _e) }
-			if (inst === undefined && mfSinif.yeniInstOlustur) inst = await mfSinif.yeniInstOlustur(_e)
-			if (inst === undefined) inst = new mfSinif(_e); if (inst == null) return false
+			if (inst === undefined && mfSinif.yeniInstOlustur) { inst = await mfSinif.yeniInstOlustur(_e) }
+			if (inst === undefined) inst = new mfSinif(_e); if (inst == null) { return false }
 			return inst.tanimla({ parentPart: this, islem: _e.islem, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince: e => { this.tazele() } })
 		}
 		catch (ex) { hConfirm(getErrorText(ex), 'Yeni'); throw ex }
@@ -366,7 +366,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		e = e || {}; const {tanimOncesiEkIslemler, gridWidget} = this, rowIndex = e.rowIndex ?? this.selectedRowIndex, rec = e.rec ?? gridWidget.getrowdata(rowIndex), mfSinif = this.getMFSinif(e);
 		const tanimUISinif = this.getTanimUISinif($.extend({}, e, { mfSinif, rec })); if (!tanimUISinif) return false
 		if (!rec) { hConfirm('Değiştirilecek satır seçilmelidir', ' '); return false }
-		const {args} = e, {ozelTanimIslemi, table, tableAlias, aliasVeNokta} = mfSinif; let eskiInst, inst;
+		const {args} = this, {ozelTanimIslemi, table, tableAlias, aliasVeNokta} = mfSinif; let eskiInst, inst;
 		const _e = { sender: this, listePart: this, islem: 'degistir', mfSinif, tanimUISinif, rec, rowIndex, args, table, alias: tableAlias, aliasVeNokta };
 		if (ozelTanimIslemi) return await getFuncValue.call(this, ozelTanimIslemi, _e)
 		try {
@@ -385,7 +385,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		const rec = e.rec ?? gridWidget.getrowdata(rowIndex), mfSinif = this.getMFSinif(e);
 		const tanimUISinif = this.getTanimUISinif($.extend({}, e, { mfSinif, rec })); if (!tanimUISinif) return false
 		if (!rec) { hConfirm('Kopyalanacak satır seçilmelidir', ' '); return false }
-		const {args} = e, {ozelTanimIslemi} = mfSinif; let eskiInst, inst;
+		const {args} = this, {ozelTanimIslemi} = mfSinif; let eskiInst, inst;
 		const _e = { sender: this, listePart: this, islem: 'kopya', mfSinif, tanimUISinif, rec, rowIndex, args, table, alias: tableAlias, aliasVeNokta };
 		if (ozelTanimIslemi) return await getFuncValue.call(this, ozelTanimIslemi, _e)
 		try {

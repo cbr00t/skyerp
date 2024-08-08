@@ -148,7 +148,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	tabloYapiDuzenle(e) { }
 	onGridInit(e) {
 		super.onGridInit(e); this.ozetBilgi = { colDefs: null, recs: null };
-		const rapor = this; this.raporTanim = new DMQRapor({ rapor })
+		const {rapor} = this; this.raporTanim = new DMQRapor({ rapor })
 	}
 	onGridRun(e) { super.onGridRun(e); this.tazeleOncesi(e) }
 	tabloKolonlariDuzenle(e) {
@@ -217,7 +217,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	tazeleOncesi(e) {
 		const {fbd_grid, tabloYapi, raporTanim} = this, {rootBuilder} = this.parentBuilder, {secilenVarmi} = raporTanim;
 		rootBuilder.layout.find('.islemTuslari > div button#tabloTanimlari')[secilenVarmi ? 'removeClass' : 'addClass']('anim-tabloTanimlari-highlight');
-		if (!secilenVarmi) { if (!this._tabloTanimGosterildiFlag) { this.raporTanimIstendi(e) } return }
+		if (!secilenVarmi) { if (!this._tabloTanimGosterildiFlag) { this.tabloTanimlariGosterIstendi(e) } return }
 	}
 	async tazele(e) {
 		await this.tazeleOncesi(e); const {gridPart, raporTanim} = this, {degistimi} = raporTanim, {grid, gridWidget} = gridPart, jqxCols = gridWidget.base.columns.records;
@@ -239,32 +239,86 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		}
 		await gridPart._promise_kaFix; await super.tazele(e); await this.tazeleDiger(e)
 	}
-	raporTanimIstendi(e) {
-		const {raporTanim} = this, inst = raporTanim, title = `${raporTanim.class.sinifAdi} Tanım`, ustHeight = '50px', ustEkHeight = '33px', islemTuslariHeight = '55px';
-		let wnd, wRFB = new RootFormBuilder({ id: 'raporTanim' }).addCSS('part').addStyle(e => `$elementCSS { --islemTuslariHeight: ${islemTuslariHeight}; --ustHeight: ${ustHeight}; --ustEkHeight : ${ustEkHeight} }`);
+	tabloTanimlariGosterIstendi(e) {
+		const {tabloYapi, raporTanim} = this, {kaListe} = tabloYapi, ozetMax = raporTanim.ozetMax ?? 5;
+		const kaDict = {}; for (const ka of kaListe) { kaDict[ka.kod] = ka }
+		const inst = { listStates: {}, ozetMax, get ozetAttr() { return this.listStates.grup[0] } };
+		const tumAttrSet = asSet(Object.keys(kaDict)); for (const selector of ['grup', 'icerik']) {
+			let keys = raporTanim[selector]; if (keys != null) { keys = Object.keys(keys) }
+			inst.listStates[selector] = keys ?? [] /*for (const key of keys) { delete tumAttrSet[key] }*/
+		}
+		const getKalanlarSource = selector => {
+			const {listStates} = inst, digerAttrSet = asSet([...(listStates.grup || []), ...(listStates.icerik || [])]);
+			const tabloYapiItems = selector ? tabloYapi[selector] : null;
+			return Object.keys(tumAttrSet).filter(attr => !digerAttrSet[attr] && (!tabloYapiItems || tabloYapiItems[attr]))
+		}
+		const title = 'Rapor Tanımı', className_listBox = 'listBox', ustHeight = '100px', islemTuslariHeight = '55px', contentTop = '-40px';
+		const solWidth = '200px', ortaWidth = '200px', sagWidth = '100px', ortaHeight = 'calc((var(--full) / 2) - 5px)';
+		let wnd, wRFB = new RootFormBuilder({ id: 'tabloTanimlari' }).setInst(inst).addCSS('part').addStyle(e => `$elementCSS { --islemTuslariHeight: ${islemTuslariHeight}; --ustHeight: ${ustHeight} }`);
 		let fbd_ust = wRFB.addFormWithParent('ust').yanYana().addStyle_fullWH(null, 'var(--ustHeight)');
 		let fbd_sablonParent = fbd_ust.addFormWithParent('sablon-parent').yanYana().addStyle_fullWH().addStyle([e =>
 			`$elementCSS { position: relative; top: 5px } $elementCSS > .button { width: 50px !important; height: 45px !important; min-width: unset !important }`]);
 		fbd_sablonParent.addModelKullan('sablonKod', 'Şablon').etiketGosterim_yok().dropDown().noMF().kodsuz()/*.listedenSecilemez()*/.setSource([]).addStyle_fullWH('calc(var(--full) - 300px)');
-		fbd_sablonParent.addButton('sablonKaydet', '+').addCSS('button').onClick(_e => this.raporTanim_sablonKaydetIstendi({ ...e, ..._e, wnd, inst }));
-		fbd_sablonParent.addButton('sablonSil', 'x').addCSS('button').onClick(_e => this.raporTanim_sablonSilIstendi({ ...e, ..._e, wnd, inst }));
+		fbd_sablonParent.addButton('sablonKaydet', '+').addCSS('button').onClick(_e => this.tabloTanimlariGoster_sablonKaydetIstendi({ ...e, ..._e, wnd, inst }));
+		fbd_sablonParent.addButton('sablonSil', 'x').addCSS('button').onClick(_e => this.tabloTanimlariGoster_sablonSilIstendi({ ...e, ..._e, wnd, inst }));
 		let fbd_islemTuslari = fbd_ust.addFormWithParent('islemTuslari').yanYana().addStyle_wh('auto', islemTuslariHeight).addStyle(`$elementCSS { position: absolute; top: 0; right: 0; z-index: 1000 }`);
 		fbd_islemTuslari.addButton('tamam').onClick(async _e => {
 			try {
-				const close = () => { if (wnd?.length) { wnd.jqxWindow('close') } }, {tabloYapi} = this, inst = _e.builder.rootBuilder.id2Builder.content.altInst;
-				let result = await this.raporTanim_tamamIstendi({ ...e, ..._e, wnd, close, tabloYapi, inst }); if (result !== false) { close() }
+				const close = () => { if (wnd?.length) { wnd.jqxWindow('close') } };
+				let result = await this.tabloTanimlariGoster_tamamIstendi({ ...e, ..._e, wnd, close, tabloYapi, inst }); if (result !== false) { close() }
 			}
 			catch (ex) { console.error(ex); wnd.jqxWindow('collapse'); let _wnd = displayMessage(getErrorText(ex), title).wnd; _wnd.on('close', evt => wnd.jqxWindow('expand')) }
 		});
 		fbd_islemTuslari.addButton('vazgec').onClick(e => wnd.jqxWindow('close'));
-		const _e = { ...e, rootBuilder: wRFB, tanimFormBuilder: wRFB, inst }; raporTanim.class.rootFormBuilderDuzenle(_e);
-		wRFB.id2Builder.content.addStyle_fullWH(null, `calc(var(--full) - (var(--islemTuslariHeight) + var(--ustHeight) + var(--ustEkHeight)))`);
+		let fbd_content = wRFB.addFormWithParent('content').yanYana().addStyle_fullWH(null, 'calc(var(--full) - var(--ustHeight) - var(--top) + 8px)').addStyle([e =>
+			`$elementCSS { --top: ${contentTop}; position: relative; top: var(--top); z-index: 100 }
+			 $elementCSS > div .${className_listBox} { --label-height: 30px; --label-margin-bottom: 20px }
+			 $elementCSS > div .${className_listBox} > label { font-size: 180%; color: #999; height: var(--label-height); padding-bottom: var(--label-margin-bottom) }
+			 $elementCSS > div .${className_listBox} > :not(label) { vertical-align: top; height: calc(var(--full) - var(--label-height) - var(--label-margin-bottom)) !important }
+			 $elementCSS > div .${className_listBox} > .jqx-listbox .jqx-listitem-element { font-size: 110% }`]);
+		const initListBox = e => {
+			const {builder} = e, {id, altInst, input, userData} = builder, selector = userData?.selector; let {source} = e;
+			if (source == null) { source = (id.startsWith('kalanlar') ? getKalanlarSource(selector) : altInst[id] ?? []).map(kod => kaDict[kod]) }
+			if (source?.length && typeof source[0] != 'object') { source = source.map(kod => new CKodVeAdi({ kod, aciklama: kod })) }
+			const kalanlarSourceDuzenlenmis = _source => {
+				_source = [..._source, ...(new Array(10).fill(null).map(x => ({ /*group: ' ',*/ disabled: true })))];
+				return _source
+			}
+			if (id.startsWith('kalanlar')) { source = kalanlarSourceDuzenlenmis(source) }
+			const width = '100%', height = width, valueMember = 'kod', displayMember = 'aciklama';
+			const allowDrop = true, allowDrag = allowDrop, autoHeight = false, itemHeight = 36, scrollBarSize = 20, filterable = true, filterHeight = 40, filterPlaceHolder = 'Bul';
+			input.prop('id', id); if (selector != null) { input.data('selector', selector) }
+			input.jqxListBox({ theme, width, height, valueMember, displayMember, source, allowDrag, allowDrop, autoHeight, itemHeight, scrollBarSize, filterable, filterHeight, filterPlaceHolder });
+			const changeHandler = evt => {
+				const target = evt.currentTarget, type = evt.args?.type, {id} = target;
+				if (id.startsWith('kalanlar')) {
+					if (!type || type == 'none') {
+						clearTimeout(this._timer_kalanlarTazele);
+						this._timer_kalanlarTazele = setTimeout(() => {
+							try { $(target).jqxListBox('source', kalanlarSourceDuzenlenmis(getKalanlarSource(input.data('selector')).map(kod => kaDict[kod]))) }
+							finally { delete this._timer_kalanlarTazele }
+						}, 1)
+					}
+				}
+				else { let items = $(target).jqxListBox('getItems'); inst.listStates[id] = items.map(item => item.value) }
+			};
+			input.on('change', changeHandler); input.on('dragEnd', changeHandler)
+		};
+		let fbd_sol = fbd_content.addFormWithParent('sol').altAlta().addStyle_fullWH(solWidth);
+		let fbd_tabs = fbd_sol.addTabPanel('kalanlar').addStyle_fullWH().setAltInst(inst.listStates).tabPageChangedHandler(e => {
+			for (const fbd_tabPage of e.builder.builders) { const {input} = fbd_tabPage.builders[0]; if (input?.length) { input.jqxListBox('render') } } });
+		fbd_tabs.addTab('grup', 'Grup').addStyle_fullWH().addDiv('kalanlar_grup').setEtiket('Kalanlar').addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'grup' }).onAfterRun(e => initListBox(e));
+		fbd_tabs.addTab('toplam', 'Toplam').addStyle_fullWH().addDiv('kalanlar_toplam').setEtiket('Kalanlar').addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'toplam' }).onAfterRun(e => initListBox(e));
+		let fbd_orta = fbd_content.addFormWithParent('orta').altAlta().addStyle_fullWH(ortaWidth);/*.addStyle(e => `$elementCSS { position: absolute; right: 0 }`);*/
+		fbd_orta.addDiv('grup').setEtiket('Grup').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight).setAltInst(inst.listStates).onAfterRun(e => initListBox(e));
+		fbd_orta.addDiv('icerik').setEtiket('İçerik').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight).setAltInst(inst.listStates).onAfterRun(e => initListBox(e));
+		let fbd_sag = fbd_content.addFormWithParent('sag').altAlta().addStyle_fullWH(sagWidth); fbd_sag.addNumberInput('ozetMax', 'En Yüksek İlk ... kayıt');
 		wnd = createJQXWindow({ title, args: { isModal: false, closeButtonAction: 'close', width: Math.min(530, Math.max(600, $(window).width() - 100)), height: Math.min(1000, $(window).height() - 50) } });
 		wnd.on('close', evt => { wnd.jqxWindow('destroy'); $('body').removeClass('bg-modal') });
 		wnd.prop('id', wRFB.id); wnd.addClass('dRapor part'); setTimeout(() => $('body').addClass('bg-modal'), 10);
 		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run(); this._tabloTanimGosterildiFlag = true
 	}
-	raporTanim_tamamIstendi(e) {
+	tabloTanimlariGoster_tamamIstendi(e) {
 		const {builder, inst} = e, {listStates} = inst, {tabloYapi, raporTanim} = this, {toplam} = tabloYapi;
 		const secIcerik = listStates.icerik, toplanabilirVarmi = !!secIcerik.find(key => toplam[key]), normalIcerikVarmi = !!secIcerik.find(key => !toplam[key]);
 		if (!(toplanabilirVarmi && normalIcerikVarmi)) { throw { isError: true, errorText: 'En az birer Toplanabilir ve Normal saha olmalıdır' } }
@@ -273,8 +327,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		for (const key of ['ozetMax']) { raporTanim[key] = inst[key] }
 		raporTanim.degistimi = true; this.tazele(e); return true
 	}
-	raporTanim_sablonKaydetIstendi(e) { }
-	raporTanim_sablonSilIstendi(e) { }
+	tabloTanimlariGoster_sablonKaydetIstendi(e) { }
+	tabloTanimlariGoster_sablonSilIstendi(e) { }
 	seviyeAcIstendi(e) { const {gridPart} = this, {gridWidget} = gridPart; gridWidget.expandAll() }
 	seviyeKapatIstendi(e) { const {gridPart} = this, {gridWidget} = gridPart; gridWidget.collapseAll(); gridPart.expandedRowsSet = {} }
 	getColumns(colDefs) {

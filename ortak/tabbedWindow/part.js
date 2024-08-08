@@ -66,13 +66,13 @@ class TabbedWindowPart extends Part {
 			if (newPageId && !id2TabPage[newPageId]) { return }
 			let closeableTabPages = Object.values(id2TabPage).filter(tabPage => {
 				const header = tabPage?.header, layout = tabPage?.layout; let asilPart = header?.data('part'); asilPart = asilPart?.asilPart ?? asilPart;
-				const isClosed = asilPart?.canDestroy ? asilPart?.isDestroyed : layout?.hasClass('jqx-hidden');
-				return !!header?.parent()?.length && isClosed && asilPart != this.asilPart && !(layout?.hasClass('jqx-hidden') || layout?.hasClass('basic-hidden'))
+				const uygunmu = asilPart?.canDestroy ? !asilPart?.isDestroyed : layout?.hasClass('jqx-hidden');
+				return !!header?.parent()?.length && uygunmu && asilPart != this.asilPart && !(layout?.hasClass('jqx-hidden') || layout?.hasClass('basic-hidden'))
 			});
-			if (closeableTabPages.length == 1) {
+			/*if (closeableTabPages.length == 1) {
 				const _asilPart = this.asilPart, tabPage = closeableTabPages[0], header = tabPage?.header; let asilPart = header?.data('part'); asilPart = asilPart?.asilPart ?? asilPart;
 				if (asilPart == asilPart || asilPart?.parentPart == asilPart) { closeableTabPages = [] }
-			}
+			}*/
 			mainWindowsPart.activePageId = newPageId; mainWindowsPart.refresh();
 			const noWndFlag = !(mainWindowsPart.activePageId && closeableTabPages.length); app.content[noWndFlag ? 'removeClass' : 'addClass']('jqx-hidden');
 			$('body')[noWndFlag ? 'addClass' : 'removeClass']('no-wnd')

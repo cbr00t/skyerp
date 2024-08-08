@@ -2,7 +2,7 @@
 #dRapor.part .butonlar.part { --button-width: 90px }
 #dRapor.part > .islemTuslari { width: var(--full); height: var(--islemTuslari-height) }
 #dRapor.part > .islemTuslari #secimler.jqx-fill-state-normal { background-color: #7f8cb0 } #dRapor.part > .islemTuslari #secimler.jqx-fill-state-hover { background-color: #c0cced } #dRapor.part > .islemTuslari #secimler.jqx-fill-state-pressed { background-color: #4860a2 }
-#dRapor.part > .islemTuslari #tabloTanimlari.jqx-fill-state-normal { color: #3d4c7c; background-color: #b2c7b2; border: 1px solid #95989f !important; box-shadow: 1px 1px 5px 3px #c7cde7 }
+#dRapor.part > .islemTuslari #raporTanim.jqx-fill-state-normal { color: #3d4c7c; background-color: #b2c7b2; border: 1px solid #95989f !important; box-shadow: 1px 1px 5px 3px #c7cde7 }
 #dRapor.part > .wnd-content > *:not(.bulForm):not(.islemTuslari) { background: white !important }
 #dRapor.part #items {
 	width: calc(var(--full) - 8px) !important; height: calc(var(--full) - var(--islemTuslari-height) - 5px) !important;
@@ -25,8 +25,8 @@
 #dRapor.part #items > .item > [data-builder-id = 'fullScreen'] button.jqx-fill-state-normal { opacity: .5 }
 #dRapor.part #items > .item > label { font-weight: bold; font-size: 140%; color: #777; background-color: #eee; width: calc(var(--full) - 10px); margin: 0 0 5px 0; padding: 0 0 3px 10px; border-radius: 10px }
 #dRapor.part #items > .item.hasFocus > label { background-color: #c9cdd9; user-select: none }
-.dRapor .anim-tabloTanimlari-highlight, #dRapor .anim-tabloTanimlari-highlight { border: 3px solid forestgreen !important; animation: 850ms infinite cubic-bezier(0.46, 0.03, 0.52, 0.96) anim-tabloTanimlari-hightlight }
-@keyframes anim-tabloTanimlari-hightlight { 50% { background-color: #c9e0c9 } }
+.dRapor .anim-raporTanim-highlight, #dRapor .anim-raporTanim-highlight { border: 3px solid forestgreen !important; animation: 850ms infinite cubic-bezier(0.46, 0.03, 0.52, 0.96) anim-raporTanim-hightlight }
+@keyframes anim-raporTanim-hightlight { 50% { background-color: #c9e0c9 } }
 .dRapor.masterListe.part .jqx-grid [role = row] > div, #dRapor.part #items > .item .jqx-grid .jqx-grid-cell.toplam { font-weight: bold }
 #dRapor.part #items > .item .jqx-grid .jqx-grid-cell:not(.jqx-grid-cell-selected).toplam { background-color: #f1fff1 }
 #dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell:not(.leaf) { font-weight: bold; font-size: 125% }
