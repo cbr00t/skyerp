@@ -68,11 +68,14 @@ class DMQRapor extends DMQSayacliKA {
 				}
 				else { let items = $(target).jqxListBox('getItems'); _inst.listStates[id] = items.map(item => item.value) }
 			};
-			input.on('change', changeHandler); input.on('dragEnd', changeHandler)
+			input.on('change', changeHandler); input.on('dragEnd', changeHandler);
+			setTimeout(input => input.jqxListBox('render'), 1, input)
 		};
 		let fbd_sol = fbd_content.addFormWithParent('sol').altAlta().addStyle_fullWH(solWidth);
 		let fbd_tabs = fbd_sol.addTabPanel('kalanlar').addStyle_fullWH().setAltInst(_inst.listStates).tabPageChangedHandler(e => {
-			for (const fbd_tabPage of e.builder.builders) { const {input} = fbd_tabPage.builders[0]; if (input?.length) { input.jqxListBox('render') } } });
+			for (const fbd_tabPage of e.builder.builders) {
+				const {input} = fbd_tabPage.builders[0]; if (input?.length) { setTimeout(input => input.jqxListBox('render'), 1, input) } }
+		});
 		fbd_tabs.addTab('grup', 'Grup').addStyle_fullWH().addDiv('kalanlar_grup').setEtiket('Kalanlar').addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'grup' }).onAfterRun(e => initListBox(e));
 		fbd_tabs.addTab('toplam', 'Toplam').addStyle_fullWH().addDiv('kalanlar_toplam').setEtiket('Kalanlar').addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'toplam' }).onAfterRun(e => initListBox(e));
 		let fbd_orta = fbd_content.addFormWithParent('orta').altAlta().addStyle_fullWH(ortaWidth);/*.addStyle(e => `$elementCSS { position: absolute; right: 0 }`);*/

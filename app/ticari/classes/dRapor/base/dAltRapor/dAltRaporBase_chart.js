@@ -42,7 +42,7 @@ class DAltRapor_Chart extends DAltRapor {
 		const {main} = this.rapor, ozetBilgi = main.ozetBilgi || {}, {grupAttr, icerikAttr, recs} = ozetBilgi; if (!(icerikAttr && recs)) { return [] }
 		let toplam = topla(rec => rec[icerikAttr], recs); const newRecs = [];
 		for (let rec of recs) {
-			rec = $.extend(true, {}, rec); let grupText = rec[grupAttr]; if (grupText && !grupText.includes('<')) { rec[grupAttr] = grupText = `<span class="bold">${grupText}</span>` }
+			rec = $.extend(true, {}, rec); let grupText = rec[grupAttr]; if (grupText && !grupText.toString().includes('<')) { rec[grupAttr] = grupText = `<span class="bold">${grupText}</span>` }
 			rec[icerikAttr] = roundToFra(rec[icerikAttr] * 100 / toplam, 1); newRecs.push(rec)
 		}
 		return newRecs

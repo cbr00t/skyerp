@@ -222,12 +222,12 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	async tazele(e) {
 		await this.tazeleOncesi(e); const {gridPart, raporTanim} = this, {degistimi} = raporTanim, {grid, gridWidget} = gridPart, jqxCols = gridWidget.base.columns.records;
 		if (degistimi || !jqxCols?.length) {
-			const {tabloKolonlari, tabloYapi, ozetBilgi} = this, {secilenVarmi, grup, icerik} = raporTanim;
+			const {tabloKolonlari, tabloYapi, ozetBilgi} = this, {secilenVarmi, attrSet, grup, icerik} = raporTanim;
 			const tip2ColDefs = {}; for (const colDef of tabloKolonlari) { const {belirtec, userData} = colDef, {kod} = userData || {}; if (kod) { (tip2ColDefs[kod] = tip2ColDefs[kod] || []).push(colDef) } }
 			let colDefs = Object.keys(icerik).flatMap(kod => tip2ColDefs[kod]); colDefs.sort((a, b) => tabloYapi.toplam[a.userData?.kod] ? 1 : -1);
 			for (const colDef of colDefs) { if (!colDef.aggregates && tabloYapi.toplam[colDef.userData?.kod]) { colDef.aggregates = ['sum'] } }
 			grid.jqxTreeGrid('clear'); colDefs = this.getColumns(colDefs); try { grid.jqxTreeGrid('columns', colDefs.flatMap(colDef => colDef.jqxColumns)) } catch (ex) { console.error(ex) }
-			$.extend(ozetBilgi, { grupTipKod: Object.keys(grup)[0] || null, icerikTipKod: Object.keys(icerik).find(kod => !!tabloYapi.toplam[kod]) || null });
+			$.extend(ozetBilgi, { grupTipKod: Object.keys(attrSet).find(kod => !tabloYapi.toplam[kod]) || null, icerikTipKod: Object.keys(icerik).find(kod => !!tabloYapi.toplam[kod]) || null });
 			$.extend(ozetBilgi, { grupAttr: (tip2ColDefs[ozetBilgi.grupTipKod] || [])[0]?.belirtec, icerikAttr: (tip2ColDefs[ozetBilgi.icerikTipKod] || [])[0]?.belirtec });
 			$.extend(ozetBilgi, { grupText: (tip2ColDefs[ozetBilgi.grupTipKod] || [])[0]?.text, icerikText: (tip2ColDefs[ozetBilgi.icerikTipKod] || [])[0]?.text });
 			const ozetBilgi_getColumns = (source, kod, colDefDuzenle) =>
