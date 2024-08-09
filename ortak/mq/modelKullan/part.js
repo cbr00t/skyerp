@@ -30,7 +30,7 @@ class ModelKullanPart extends Part {
 			listedenSecilemezFlag: e.listedenSecilemezFlag ?? e.listedenSecilemez ?? false, noAutoGetSelectedItemFlag: e.noAutoGetSelectedItemFlag ?? e.noAutoGetSelectedItem ?? false,
 			kod: e.kod ?? e.value, maxRow: e.maxRow || e.maxrow || (app.params.ortak || {}).autoComplete_maxRow || null,
 			dataAdapterBlock: e.dataAdapterBlock || e.dataAdapter, wsArgsDuzenleBlock: e.wsArgsDuzenleBlock || e.wsArgsDuzenle, listeArgsDuzenleBlock: e.listeArgsDuzenleBlock || e.listeArgsDuzenle,
-			loadServerDataBlock: e.loadServerDataBlock || e.loadServerData || e.source, loadServerDataEkDuzenleBlock: e.loadServerDataEkDuzenleBlock || e.loadServerDataEkDuzenle || e.ekDuzenleyici,
+			initArgsDuzenleBlock: e.initArgsDuzenleBlock ?? e.initArgsDuzenle, loadServerDataBlock: e.loadServerDataBlock || e.loadServerData || e.source, loadServerDataEkDuzenleBlock: e.loadServerDataEkDuzenleBlock || e.loadServerDataEkDuzenle || e.ekDuzenleyici,
 			ozelQueryDuzenleBlock: e.ozelQueryDuzenleBlock || e.ozelQueryDuzenle, isDropDown: e.dropDown ?? e.isDropDown ?? false,
 			bosKodAlinirmi: e.bosKodAlinirmi ?? e.bosKodAlinir ?? true, bosKodEklenirmi: e.bosKodEklenirmi ?? e.bosKodEklenir ?? false, kodGosterilsinmi: e.kodGosterilsinmi ?? e.kodGosterilsin ?? true,
 			argsDuzenleBlock: e.argsDuzenleBlock || e.argsDuzenle, autoBind: e.autoBind ?? false, disabled: e.disabled ?? false,
@@ -301,94 +301,97 @@ class ModelKullanPart extends Part {
 		}, 100)
 	}
 	listedenSecIstendi(e) {
-		e = e || {}; const _e = e; const evt = e.event; if (evt) { evt.preventDefault(); evt.stopPropagation() } if (this.listedenSecilemezFlag || this.widget.disabled) { return }
-		const sender = this, {parentPart, builder, mfSinif, input, widget, kodGosterilsinmi} = this;
+		e = e || {}; const evt = e.event; if (evt) { evt.preventDefault(); evt.stopPropagation() } if (this.listedenSecilemezFlag || this.widget.disabled) { return }
+		const {parentPart, builder, mfSinif, input, widget, kodGosterilsinmi} = this, sender = this, _e = { ...e, sender, builder, parentPart, mfSinif };
 		const kodSaha = mfSinif ? ($.isArray(mfSinif.idSaha) ? mfSinif.idSaha[0] : mfSinif.idSaha) ?? mfSinif.kodSaha : this.kodSaha || MQKA.kodSaha;
 		const adiSaha = mfSinif ? mfSinif.adiSaha : this.adiSaha || MQKA.adiSaha;
 		clearTimeout(this.openTimer); setTimeout(() => { if (widget.isOpened()) widget.close() }, 20);
-		const {coklumu} = this, part = new MasterListePart({
-			sender, parentPart, builder, mfSinif, tekilmi: !coklumu, wndArgsDuzenle: e => { const {wndArgs} = e /* wndArgs.isModal = true */ },
-			argsDuzenle: e => {
-				const {args} = e, {listeArgsDuzenleBlock} = this; if (!coklumu) { args.selectionMode = 'singlerow' }
-				if (listeArgsDuzenleBlock) { getFuncValue.call(this, listeArgsDuzenleBlock, e) }
-			},
-			tabloKolonlari: kodGosterilsinmi ? (mfSinif ? null : MQKA.orjBaslikListesi) : ((mfSinif ?? MQKA).orjBaslikListesi.filter(x => x.belirtec != (mfSinif || MQKA).kodSaha)),
-			ozelQueryDuzenle: this.ozelQueryDuzenleBlock, loadServerDataBlock: mfSinif ? null : this.loadServerDataBlock,
-			bindingComplete: e => {
-				const {sender, gridWidget} = e, {coklumu} = this;
-				let kodSet = this.kod || {}; if (kodSet != null && typeof kodSet != 'object') { kodSet = [kodSet] } if ($.isArray(kodSet)) { kodSet = asSet(kodSet) }
-				gridWidget.beginupdate(); gridWidget.clearselection();
-				if (kodSet) {
-					const recs = e.source?.records ?? []; let foundIndex, positionedFlag = false;
-					for (let i = 0; i < recs.length; i++) {
-						let rec = recs[i]; rec = rec.originalItem ?? rec.originalRecord ?? rec; const _kod = rec[kodSaha], _adi = rec[adiSaha];
-						if (kodSet[_kod] ?? kodSet[_adi]) { if (foundIndex == null) { foundIndex = i } gridWidget.selectrow(i); if (!coklumu) { break } }
-					}
-					if (!positionedFlag && foundIndex != null) { gridWidget.ensurerowvisible(foundIndex); positionedFlag = true }
-				}
-				gridWidget.endupdate(true)
-			},
-			converter: e => ((e.recs || [])[0] ?? e.rec ?? {})[kodSaha],
-			secince: e => {
-				this.inEvent = false; const {isDropDown, coklumu, layout, widget} = this, {listBox} = widget; let value; $('body').removeClass('bg-modal');
-				const wndContents = $('.wnd-content'); if (wndContents?.length) { for (const key of ['animate-wnd-content', 'animate-wnd-content-slow']) {wndContents.removeClass(key) } }
-				if (isDropDown) {
-					setTimeout(() => showProgress(), 20);
-					setTimeout(() => {
-						if (coklumu) {
-							const valuesSet = asSet(e.values ?? [e.value]);
-							for (const item of widget.getItems() || []) { const _value = item?.value ?? item; item.checked = !!valuesSet[_value] }
-							this.onChange({ force: true, type: 'trigger' })
+		const {coklumu, initArgsDuzenleBlock} = this; let initArgs = {
+			..._e, sender: this, args: {
+				sender, parentPart, builder, mfSinif, tekilmi: !coklumu, wndArgsDuzenle: e => { const {wndArgs} = e /* wndArgs.isModal = true */ },
+				argsDuzenle: _e => {
+					_e = { ...e, ..._e }; const {args} = _e, {listeArgsDuzenleBlock} = this; if (!coklumu) { args.selectionMode = 'singlerow' }
+					if (listeArgsDuzenleBlock) { getFuncValue.call(this, listeArgsDuzenleBlock, _e) }
+				},
+				tabloKolonlari: kodGosterilsinmi ? (mfSinif ? null : MQKA.orjBaslikListesi) : ((mfSinif ?? MQKA).orjBaslikListesi.filter(x => x.belirtec != (mfSinif || MQKA).kodSaha)),
+				ozelQueryDuzenle: this.ozelQueryDuzenleBlock, loadServerDataBlock: mfSinif ? null : this.loadServerDataBlock,
+				bindingComplete: _e => {
+					_e = { ...e, ..._e }; const {sender, gridWidget} = _e, {coklumu} = this;
+					let kodSet = this.kod || {}; if (kodSet != null && typeof kodSet != 'object') { kodSet = [kodSet] } if ($.isArray(kodSet)) { kodSet = asSet(kodSet) }
+					gridWidget.beginupdate(); gridWidget.clearselection();
+					if (kodSet) {
+						const recs = _e.source?.records ?? []; let foundIndex, positionedFlag = false;
+						for (let i = 0; i < recs.length; i++) {
+							let rec = recs[i]; rec = rec.originalItem ?? rec.originalRecord ?? rec; const _kod = rec[kodSaha], _adi = rec[adiSaha];
+							if (kodSet[_kod] ?? kodSet[_adi]) { if (foundIndex == null) { foundIndex = i } gridWidget.selectrow(i); if (!coklumu) { break } }
 						}
-						else { value = e.value ?? null; this.val(value); this.onChange({ force: true, type: 'trigger', args: { item: e.rec, value } }) }
-						hideProgress()
-					}, 120)
-				}
-				else {
-					const recs = e.recs || [], rec = recs[0] ?? e.rec, _recs = $.isArray(recs) ? recs : $.makeArray(rec);
-					const values = e.values ?? [], value = values[0] ?? e.value, _values = $.isArray(values) ? values : $.makeArray(values);
-					setTimeout(() => showProgress(), 20);
-					setTimeout(() => {
-						try {
+						if (!positionedFlag && foundIndex != null) { gridWidget.ensurerowvisible(foundIndex); positionedFlag = true }
+					}
+					gridWidget.endupdate(true)
+				},
+				converter: e => ((e.recs || [])[0] ?? e.rec ?? {})[kodSaha],
+				secince: e => {
+					this.inEvent = false; const {isDropDown, coklumu, layout, widget} = this, {listBox} = widget; let value; $('body').removeClass('bg-modal');
+					const wndContents = $('.wnd-content'); if (wndContents?.length) { for (const key of ['animate-wnd-content', 'animate-wnd-content-slow']) {wndContents.removeClass(key) } }
+					if (isDropDown) {
+						setTimeout(() => showProgress(), 20);
+						setTimeout(() => {
 							if (coklumu) {
-								listBox.clear(); for (const rec of _recs) { widget.addItem(rec); widget.selectItem(widget.getItems().slice(-1)[0]) }
-								input.val(''); this.onChange({ force: true, type: 'trigger' }).then(() => {
-									let handler = evt => {
-										layout.off('bindingComplete', handler);
-										setTimeout(() => { if (widget.isOpened()) { widget.close() } input.focus() }, 1)
-									};
-									layout.on('bindingComplete', handler); widget.dataBind() })
+								const valuesSet = asSet(e.values ?? [e.value]);
+								for (const item of widget.getItems() || []) { const _value = item?.value ?? item; item.checked = !!valuesSet[_value] }
+								this.onChange({ force: true, type: 'trigger' })
 							}
-							else {
-								const text = widget.renderSelectedItem ? widget.renderSelectedItem(null, rec) : value;
-								this.val(value); this.onChange({ force: true, type: 'trigger', args: { item: e.rec, value } });
-								setTimeout(() => widget.input.val(text), 100)
-							}
-						}
-						finally { hideProgress() }
-					}, 120)
-				}
-				setTimeout(() => {
-					const {parentPart} = this; const gridWidget = parentPart?.gridPart?.gridWidget;
-					if (gridWidget) {
-						if (!gridWidget.editcell) {
-							const sel = gridWidget.getselection(), rowIndex = (sel.cells || [])[0]?.rowindex ?? (sel.rows || [])[0];
-							const belirtec = (sel.cells || [])[0]?.datafield ?? this.sender?.belirtec;
-							if (value != null && belirtec && (rowIndex ?? -1) > -1) setTimeout(() => gridWidget.setcellvalue(rowIndex, belirtec, value), 10)
-						}
-						setTimeout(() => gridWidget.focus(), 10)
+							else { value = e.value ?? null; this.val(value); this.onChange({ force: true, type: 'trigger', args: { item: e.rec, value } }) }
+							hideProgress()
+						}, 120)
 					}
-					else { setTimeout(() => widget.input.focus(), 10) }
-				}, 1)
-			},
-			kapaninca: e => {
-				const {parentPart} = this, {gridWidget} = parentPart?.gridPart || {};
-				let otherWindows = $('.jqx-window'); if (otherWindows.length) { otherWindows.jqxWindow('expand') }
-				if (gridWidget) { setTimeout(() => gridWidget.focus(), 10) }
+					else {
+						const recs = e.recs || [], rec = recs[0] ?? e.rec, _recs = $.isArray(recs) ? recs : $.makeArray(rec);
+						const values = e.values ?? [], value = values[0] ?? e.value, _values = $.isArray(values) ? values : $.makeArray(values);
+						setTimeout(() => showProgress(), 20);
+						setTimeout(() => {
+							try {
+								if (coklumu) {
+									listBox.clear(); for (const rec of _recs) { widget.addItem(rec); widget.selectItem(widget.getItems().slice(-1)[0]) }
+									input.val(''); this.onChange({ force: true, type: 'trigger' }).then(() => {
+										let handler = evt => {
+											layout.off('bindingComplete', handler);
+											setTimeout(() => { if (widget.isOpened()) { widget.close() } input.focus() }, 1)
+										};
+										layout.on('bindingComplete', handler); widget.dataBind() })
+								}
+								else {
+									const text = widget.renderSelectedItem ? widget.renderSelectedItem(null, rec) : value;
+									this.val(value); this.onChange({ force: true, type: 'trigger', args: { item: e.rec, value } });
+									setTimeout(() => widget.input.val(text), 100)
+								}
+							}
+							finally { hideProgress() }
+						}, 120)
+					}
+					setTimeout(() => {
+						const {parentPart} = this; const gridWidget = parentPart?.gridPart?.gridWidget;
+						if (gridWidget) {
+							if (!gridWidget.editcell) {
+								const sel = gridWidget.getselection(), rowIndex = (sel.cells || [])[0]?.rowindex ?? (sel.rows || [])[0];
+								const belirtec = (sel.cells || [])[0]?.datafield ?? this.sender?.belirtec;
+								if (value != null && belirtec && (rowIndex ?? -1) > -1) setTimeout(() => gridWidget.setcellvalue(rowIndex, belirtec, value), 10)
+							}
+							setTimeout(() => gridWidget.focus(), 10)
+						}
+						else { setTimeout(() => widget.input.focus(), 10) }
+					}, 1)
+				},
+				kapaninca: e => {
+					const {parentPart} = this, {gridWidget} = parentPart?.gridPart || {};
+					let otherWindows = $('.jqx-window'); if (otherWindows.length) { otherWindows.jqxWindow('expand'); $('body').removeClass('bg-modal') }
+					if (gridWidget) { setTimeout(() => gridWidget.focus(), 10) }
+				}
 			}
-		});
+		};
+		if (initArgsDuzenleBlock) { getFuncValue.call(this, initArgsDuzenleBlock, initArgs) }
+		let part = new MasterListePart(initArgs.args); setTimeout(() => part.run(), 10)
 		let otherWindows = $('.jqx-window'); if (otherWindows.length) { otherWindows.jqxWindow('collapse') }
-		setTimeout(() => part.run(), 10)
 	}
 	getDataAdapter(e) {
 		e = e || {}; const {mfSinif} = this; let {dataAdapterBlock, loadServerDataBlock, loadServerDataEkDuzenleBlock} = this;
@@ -400,16 +403,17 @@ class ModelKullanPart extends Part {
 				loadServerData: async (wsArgs, source, callback) => {
 					let lastError; const sender = this, {parentPart, builder, secimler, mfSinif} = this, args = parentPart?.args;		/* const _e = $.extend({}, e, { wsArgs: wsArgs, source: source, callback: callback }); */ 
 					const kodSaha = mfSinif ? ($.isArray(mfSinif.idSaha) ? mfSinif.idSaha[0] : mfSinif.idSaha) ?? mfSinif.kodSaha : MQKA.kodSaha;
-					const adiSaha = mfSinif ? mfSinif.adiSaha : MQKA.adiSaha; let temps = {};
-					const {wsArgsDuzenleBlock, ozelQueryDuzenleBlock} = this;
+					const adiSaha = mfSinif ? mfSinif.adiSaha : MQKA.adiSaha, kodKullanilirmi = mfSinif?.kodKullanilirmi, adiKullanilirmi = mfSinif?.adiKullanilirmi;
+					let temps = {}; const {wsArgsDuzenleBlock, ozelQueryDuzenleBlock} = this;
 					for (let i = 0; i < 3; i++) {
 						try {
 							if (wsArgsDuzenleBlock) { const _e = { ...e, wsArgs, source, temps }; await wsArgsDuzenleBlock.call(this, wsArgsDuzenleBlock, _e); wsArgs = _e.wsArgs; temps = _e.temps }
 							if (ozelQueryDuzenleBlock) { wsArgs.ozelQueryDuzenleBlock = ozelQueryDuzenleBlock; wsArgs.temps = temps }
 							let {tabloKolonlari} = wsArgs; if (!tabloKolonlari) {
-								tabloKolonlari = this._wsArgs_tabloKolonlari;
-								if (!tabloKolonlari) { tabloKolonlari = [ new GridKolon({ belirtec: kodSaha }), new GridKolon({ belirtec: adiSaha }) ] }
-								if (mfSinif && !mfSinif.adiKullanilirmi) { tabloKolonlari = tabloKolonlari.filter(colDef => colDef.belirtec != adiSaha) }
+								tabloKolonlari = this._wsArgs_tabloKolonlari; if (!tabloKolonlari) {
+									tabloKolonlari = []; if (kodKullanilirmi) { tabloKolonlari.push(new GridKolon({ belirtec: kodSaha })) }
+									if (adiKullanilirmi) { tabloKolonlari.push(new GridKolon({ belirtec: adiSaha })) }
+								}
 								wsArgs.tabloKolonlari = this._wsArgs_tabloKolonlari = tabloKolonlari
 							}
 							const _e = $.extend({ parentPart, sender, builder, secimler, callback, args }, wsArgs);
@@ -458,6 +462,10 @@ class ModelKullanPart extends Part {
 	bosKodEklenir() { this.bosKodEklenirmi = true; return this } bosKodEklenmez() { this.bosKodEklenirmi = false; return this }
 	enable() { this.disabled = false; return this } disable() { this.disabled = true; return this }
 	change(handler) { const {degisinceEvent} = this; if (!degisinceEvent.find(x => x == handler)) { degisinceEvent.push(handler) } } degisince(handler) { return this.change(handler) }
+	ozelQueryDuzenleHandler(value) { this.ozelQueryDuzenleBlock = value; return this }
+	loadServerDataHandler(value) { this.loadServerDataBlock = value; return this }
+	initArgsDuzenleHandler(value) { this.initArgsDuzenleBlock = value; return this }
+	listeArgsDuzenleHandler(value) { this.initArgsDuzenleBlock = value; return this }
 	on(eventName, handler) { return eventName == 'change' ? this.change(handler) : this }
 	off(eventName, handler) {
 		if (eventName == 'change') {

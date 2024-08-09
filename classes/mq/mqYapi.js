@@ -109,33 +109,15 @@ class MQYapi extends CIO {
 	yeniVeyaDegistirSonrasiIslemler(e) { return this.kaydetSonrasiIslemler(e) }
 	degistirSonrasiIslemler(e) { return this.kaydetSonrasiIslemler(e) }
 	kaydetSonrasiIslemler(e) { }
-	static varsayilanKeyHostVars(e) {
-		const hv = {};
-		this.varsayilanKeyHostVarsDuzenle($.extend({}, e, { hv: hv }));
-		return hv
-	}
+	static varsayilanKeyHostVars(e) { const hv = {}; this.varsayilanKeyHostVarsDuzenle($.extend({}, e, { hv })); return hv }
 	static varsayilanKeyHostVarsDuzenle(e) { }
-	keyHostVars(e) {
-		const hv = {};
-		this.keyHostVarsDuzenle($.extend({}, e, { hv: hv }));
-		return hv
-	}
-	keyHostVarsDuzenle(e) {
-		e = e || {}
-		if (!e.varsayilanAlma)
-			this.class.varsayilanKeyHostVarsDuzenle(e)
-	}
+	keyHostVars(e) { const hv = {}; this.keyHostVarsDuzenle($.extend({}, e, { hv })); return hv }
+	keyHostVarsDuzenle(e) { e = e || {}; if (!e.varsayilanAlma) { this.class.varsayilanKeyHostVarsDuzenle(e) } }
 	alternateKeyHostVars(e) {
-		let hv = {};
-		const _e = $.extend({}, e, { hv: hv });
-		this.class.varsayilanKeyHostVarsDuzenle(_e);
-		let _hv = {};
-		this.alternateKeyHostVarsDuzenle(_e);
-		if ($.isEmptyObject(_hv))
-			_hv = this.keyHostVars(e)
-		$.extend(_hv, _e.hv);
-		if (!$.isEmptyObject(_hv))
-			$.extend(hv, _hv)
+		let hv = {}; const _e = $.extend({}, e, { hv }); this.class.varsayilanKeyHostVarsDuzenle(_e);
+		let _hv = {}; this.alternateKeyHostVarsDuzenle(_e);
+		if ($.isEmptyObject(_hv)) { _hv = this.keyHostVars(e) }
+		$.extend(_hv, _e.hv); if (!$.isEmptyObject(_hv)) { $.extend(hv, _hv) }
 		return hv
 	}
 	alternateKeyHostVarsDuzenle(e) { }

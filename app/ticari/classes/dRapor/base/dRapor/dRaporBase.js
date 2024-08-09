@@ -49,7 +49,10 @@ class DRaporOzel extends DRapor {
 				bulPart.run()
 			})
 	}
-	onAfterRun(e) { super.onAfterRun(e); const {rfb} = e, rootPart = rfb.part; $.extend(rootPart, { builder: rfb, inst: this }); rootPart.builder = rfb; rootPart.layout.prop('id', rfb.id) }
+	onAfterRun(e) {
+		super.onAfterRun(e); const {rfb} = e, rootPart = rfb.part; $.extend(rootPart, { builder: rfb, inst: this });
+		rootPart.builder = rfb; rootPart.layout.prop('id', rfb.id)
+	}
 	islemTuslariArgsDuzenle(e) { }
 	islemTuslariGetId2Handler(e) { return ({ tazele: e => e.builder.inst.tazele(e), vazgec: e => e.builder.rootPart.close(e) }) }
 	hizliBulIslemi(e) {

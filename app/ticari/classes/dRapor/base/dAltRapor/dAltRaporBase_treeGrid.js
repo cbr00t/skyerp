@@ -247,9 +247,29 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		let fbd_ust = wRFB.addFormWithParent('ust').yanYana().addStyle_fullWH(null, 'var(--ustHeight)');
 		let fbd_sablonParent = fbd_ust.addFormWithParent('sablon-parent').yanYana().addStyle_fullWH().addStyle([e =>
 			`$elementCSS { position: relative; top: 5px } $elementCSS > .button { width: 50px !important; height: 45px !important; min-width: unset !important }`]);
-		fbd_sablonParent.addModelKullan('sablonKod', 'Şablon').etiketGosterim_yok().dropDown().setMFSinif(DMQRapor).kodsuz()/*.listedenSecilemez()*/.setSource([]).addStyle_fullWH('calc(var(--full) - 300px)');
-		fbd_sablonParent.addButton('sablonKaydet', '+').addCSS('button').onClick(_e => this.raporTanim_sablonKaydetIstendi({ ...e, ..._e, wnd, inst }));
-		fbd_sablonParent.addButton('sablonSil', 'x').addCSS('button').onClick(_e => this.raporTanim_sablonSilIstendi({ ...e, ..._e, wnd, inst }));
+		fbd_sablonParent.addModelKullan('sablonKod', 'Şablon').etiketGosterim_yok().dropDown().kodsuz().bosKodAlinir()
+			.setMFSinif(DMQRapor).setValue(inst.sayac)
+			.addStyle_fullWH('calc(var(--full) - 300px)')
+			.initArgsDuzenleHandler(e => { const {args} = e; args.args = { rapor: this } })
+			.ozelQueryDuzenleHandler(e => {
+				const {stm, aliasVeNokta} = e, {raporKod} = raporTanim, {user} = config.session, {kodSaha} = raporTanim.class;
+				for (const sent of stm.getSentListe()) {
+					if (user) { sent.where.degerAta(user, `${aliasVeNokta}userkod`) }
+					sent.where.degerAta(raporKod, `${aliasVeNokta}raportip`)
+				}
+			}).degisince(e => {
+				const sayac = e.value, {raporTanim} = this;
+				if (sayac) { raporTanim.sayac = sayac; raporTanim.yukle().then(() => { this.restartWndRaporTanim(e) }) }
+			});
+			/* .loadServerDataHandler(e => { const {mfSinif} = e; e.args = { rapor: this }; return mfSinif.loadServerData(e) }) */
+		fbd_sablonParent.addButton('sablonKaydet').addCSS('button')
+			.addStyle(e => `$elementCSS > button { background-image: url('../../images/kaydet.png') !important; background-size: 32px !important }`)
+			.onClick(_e => this.raporTanim_sablonKaydetIstendi({ ...e, ..._e, wnd, inst }));
+		fbd_sablonParent.addButton('sablonSil').addCSS('button')
+			.addStyle(e =>
+				`$elementCSS > button { background-image: url('../../images/sil.png') !important; background-size: 16px !important }
+				$elementCSS > button.jqx-fill-state-normal, $elementCSS > button.jqx-fill-state-hover { background-color: #a05d45 !important } `)
+			.onClick(_e => this.raporTanim_sablonSilIstendi({ ...e, ..._e, wnd, inst }));
 		let fbd_islemTuslari = fbd_ust.addFormWithParent('islemTuslari').yanYana().addStyle_wh('auto', islemTuslariHeight).addStyle(`$elementCSS { position: absolute; top: 0; right: 0; z-index: 1000 }`);
 		fbd_islemTuslari.addButton('tamam').onClick(async _e => {
 			try {
@@ -261,24 +281,52 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		fbd_islemTuslari.addButton('vazgec').onClick(e => wnd.jqxWindow('close'));
 		const _e = { ...e, rootBuilder: wRFB, tanimFormBuilder: wRFB, inst }; raporTanim.class.rootFormBuilderDuzenle(_e);
 		wRFB.id2Builder.content.addStyle_fullWH(null, `calc(var(--full) - (var(--islemTuslariHeight) + var(--ustHeight) + var(--ustEkHeight)))`);
-		wnd = createJQXWindow({ title, args: { isModal: false, closeButtonAction: 'close', width: Math.min(530, Math.max(600, $(window).width() - 100)), height: Math.min(1000, $(window).height() - 50) } });
-		wnd.on('close', evt => { wnd.jqxWindow('destroy'); $('body').removeClass('bg-modal') });
+		this.wnd_raporTanim = wnd = createJQXWindow({ title, args: { isModal: false, closeButtonAction: 'close', width: Math.min(530, Math.max(600, $(window).width() - 100)), height: Math.min(1000, $(window).height() - 50) } });
+		wnd.on('close', evt => { wnd.jqxWindow('destroy'); $('body').removeClass('bg-modal'); delete this.wnd_raporTanim });
 		wnd.prop('id', wRFB.id); wnd.addClass('dRapor part'); setTimeout(() => $('body').addClass('bg-modal'), 10);
-		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run(); this._tabloTanimGosterildiFlag = true
+		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run();
+		this._tabloTanimGosterildiFlag = true; return wRFB
 	}
-	raporTanim_tamamIstendi(e) {
-		const {builder, inst} = e, {listStates} = inst, {tabloYapi, raporTanim} = this, {toplam} = tabloYapi;
-		const secIcerik = listStates.icerik, toplanabilirVarmi = !!secIcerik.find(key => toplam[key]), normalIcerikVarmi = !!secIcerik.find(key => !toplam[key]);
-		if (!(toplanabilirVarmi && normalIcerikVarmi)) { throw { isError: true, errorText: 'En az birer Toplanabilir ve Normal saha olmalıdır' } }
-		const secGrup = listStates.grup; if (secGrup.find(key => tabloYapi.toplam[key])) { throw { isError: true, errorText: 'Toplanabilir Sahalar, Gruplama kısmına eklenemez' } }
-		for (const selector of ['grup', 'icerik']) { raporTanim[selector] = asSet(listStates[selector] || []) }
-		for (const key of ['ozetMax']) { raporTanim[key] = inst[key] }
-		raporTanim.degistimi = true; this.tazele(e); return true
+	raporTanim_tamamIstendi(e) { const {inst} = e; inst.dataDuzgunmuDevam(e); raporTanim.degistimi = true; this.tazele(e); return true }
+	async raporTanim_sablonKaydetIstendi(e) {
+		const title = 'Rapor Tanım', {wnd_raporTanim} = this; let {raporTanim} = this, {aciklama} = raporTanim; let inEventFlag = false;
+		try {
+			if (!aciklama) { wnd_raporTanim.jqxWindow('collapse'); await hConfirm(`<b class="firebrick">Rapor Adı</b> belirtilmelidir`, title); wnd_raporTanim.jqxWindow('expand'); return }
+			raporTanim = raporTanim.deepCopy(); raporTanim.sayac = null; let degistirmi = await raporTanim.varmi(), islem = degistirmi ? 'degistir' : 'kopya';
+			const _e = { islem }; await raporTanim.dataDuzgunmu(_e);
+			if (degistirmi) {
+				wnd_raporTanim.jqxWindow('collapse'); let rdlg = await ehConfirm(`<b class="royalblue">${aciklama}</b> isimli rapor güncellensin mi?`, title); wnd_raporTanim.jqxWindow('expand');
+				if (!rdlg) { return } await raporTanim.degistir(_e); this.raporTanim = raporTanim
+			}
+			else { await raporTanim.yaz(_e); this.raporTanim = raporTanim }
+			this.restartWndRaporTanim(e)
+			
+		} catch (ex) { wnd_raporTanim.jqxWindow('collapse'); await hConfirm(getErrorText(ex), title); wnd_raporTanim.jqxWindow('expand'); throw ex }
+		/*if (wnd_raporTanim?.length) { wnd_raporTanim.jqxWindow('collapse') } try {
+			if (degistimi)
+			raporTanim.tanimla({
+				islem, kapaninca: _e => {
+					if (inEventFlag) { return } inEventFlag = true; if (wnd_raporTanim?.length) { wnd_raporTanim.jqxWindow('expand') }
+					this.restartWndRaporTanim(e); setTimeout(() => inEventFlag = false, 100)
+				}
+			})
+		}
+		finally { $('body').removeClass('bg-modal') }*/
 	}
-	raporTanim_sablonKaydetIstendi(e) { }
-	raporTanim_sablonSilIstendi(e) { }
+	raporTanim_sablonSilIstendi(e) {
+		const {raporTanim, wnd_raporTanim} = this, {sayac, aciklama} = raporTanim; if (!sayac) { return }
+		if (wnd_raporTanim?.length) { wnd_raporTanim.jqxWindow('collapse') }
+		ehConfirm(`<b class="firebrick">${aciklama || 'Seçilen'}</b> Rapor Tanımı silinsin mi?`, 'Rapor Tanım').then(rdlg => {
+			if (wnd_raporTanim?.length) { wnd_raporTanim.jqxWindow('expand') }
+			if (rdlg) { raporTanim.sil().then(() => this.restartWndRaporTanim(e)) }
+		})
+	}
 	seviyeAcIstendi(e) { const {gridPart} = this, {gridWidget} = gridPart; gridWidget.expandAll() }
 	seviyeKapatIstendi(e) { const {gridPart} = this, {gridWidget} = gridPart; gridWidget.collapseAll(); gridPart.expandedRowsSet = {} }
+	restartWndRaporTanim(e) {
+		const {wnd_raporTanim} = this; if (wnd_raporTanim?.length) { wnd_raporTanim.jqxWindow('close') }
+		return this.raporTanimIstendi(e); return this.wnd_raporTanim
+	}
 	getColumns(colDefs) {
 		colDefs = super.getColumns(colDefs); if (!colDefs) { return colDefs }
 		const {gridPart, tabloYapi} = this; let icerikColsSet; for (const colDef of colDefs) {

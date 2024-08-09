@@ -1,5 +1,6 @@
 class MQSayacliKA extends MQSayacli {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get kodSaha() { return MQKA.kodSaha } static get adiSaha() { return MQKA.adiSaha }
+	static get kodEtiket() { return MQKA.kodEtiket } static get adiEtiket() { return MQKA.adiEtiket }
 	static get kodKullanilirmi() { return MQKA.kodKullanilirmi } static get bosKodAlinirmi() { return false } static get zeminRenkDesteklermi() { return MQKA.zeminRenkDesteklermi }
 	
 	constructor(e) { e = e || {}; super(e) }
@@ -41,22 +42,25 @@ class MQSayacliKA extends MQSayacli {
 		};
 		const {kodSaha, adiSaha, kodKullanilirmi} = this, {liste} = e;
 		liste.push(
-			new GridKolon({ belirtec: kodSaha, text: 'Kod', genislikCh: 30, cellsRenderer, hidden: !kodKullanilirmi, sql: kodKullanilirmi ? undefined : false }),
-			new GridKolon({ belirtec: adiSaha, text: this.adiEtiket,  minWidth: Math.min(200, asInteger($(window).width() / 4)), width: Math.min(600, asInteger($(window).width() / 2)), cellsRenderer })
+			new GridKolon({ belirtec: kodSaha, text: this.kodEtiket, genislikCh: 30, cellsRenderer, hidden: !kodKullanilirmi, sql: kodKullanilirmi ? undefined : false }),
+			new GridKolon({ belirtec: adiSaha, text: this.adiEtiket, minWidth: Math.min(200, asInteger($(window).width() / 4)), width: Math.min(600, asInteger($(window).width() / 2)), cellsRenderer })
 		)
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {sent} = e, {aliasVeNokta, kodSaha, adiSaha} = this;
-		if (!this.bosKodAlinirmi) { sent.where.add(`${aliasVeNokta}${kodSaha} <> ''`) }
-		if (!sent.sahalar.liste.find(saha => saha.alias == kodSaha)) { sent.sahalar.add(`${aliasVeNokta}${kodSaha}`) }
+		super.loadServerData_queryDuzenle(e); const {sent} = e, {aliasVeNokta, sayacSaha, kodSaha, adiSaha, kodKullanilirmi, bosKodAlinirmi} = this;
+		if (!bosKodAlinirmi) { sent.where.add(`${aliasVeNokta}${kodKullanilirmi ? kodSaha : sayacSaha} <> ''`) }
+		if (kodKullanilirmi && !sent.sahalar.liste.find(saha => saha.alias == kodSaha)) { sent.sahalar.add(`${aliasVeNokta}${kodSaha}`) }
 		if (adiSaha && !sent.sahalar.liste.find(saha => saha.alias == adiSaha)) { sent.sahalar.add(`${aliasVeNokta}${adiSaha}`) }
 	}
 	tekilOku_queryDuzenle(e) {
-		super.tekilOku_queryDuzenle(e); const {aliasVeNokta, kodSaha} = this.class, {kod} = this, {sent} = e;
-		if (kod && kodSaha) { sent.where.degerAta(kod, `${aliasVeNokta}${kodSaha}`) }
+		super.tekilOku_queryDuzenle(e); const {aliasVeNokta, kodKullanilirmi, kodSaha} = this.class, {kod} = this, {sent} = e;
+		if (kodKullanilirmi && kodSaha && kod) { sent.where.degerAta(kod, `${aliasVeNokta}${kodSaha}`) }
 	}
 	keyHostVarsDuzenle(e) { super.keyHostVarsDuzenle(e) }
-	alternateKeyHostVarsDuzenle(e) { super.alternateKeyHostVarsDuzenle(e); const {hv} = e; hv[this.class.kodSaha] = this.kod }
+	alternateKeyHostVarsDuzenle(e) {
+		super.alternateKeyHostVarsDuzenle(e); const {hv} = e, {kodKullanilirmi, kodSaha} = this.class;
+		if (kodKullanilirmi) { hv[kodSaha] = this.kod } else { delete hv[kodSaha] }
+	}
 	keySetValues(e) { super.keySetValues(e) }
 	hostVarsDuzenle(e) {
 		super.hostVarsDuzenle(e); const {hv} = e;

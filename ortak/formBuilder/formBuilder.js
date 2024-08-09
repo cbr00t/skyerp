@@ -54,32 +54,18 @@ class SubPartBuilder extends FormBuilderBase {
 	}
 	set altInst(value) { this._altInst = value }
 	get ioAttr() {
-		let result = this._ioAttr;
-		if (result === undefined)
-			result = this._ioAttr = e => this.id
+		let result = this._ioAttr; if (result === undefined) { result = this._ioAttr = e => this.id }
 		if (result != null && $.isFunction(result)) {
-			const e = this.getBuilderBlockArgs({ result: result });
-			result = getFuncValue.call(this, result, e);
-			if (e.commitFlag)
-				this._ioAttr = result
+			const e = this.getBuilderBlockArgs({ result }); result = getFuncValue.call(this, result, e);
+			if (e.commitFlag) { this._ioAttr = result }
 		}
 		return result
 	}
 	set ioAttr(value) { this._ioAttr = value }
-	constructor(e) {
-		e = e || {};
-		super(e);
-		$.extend(this, {
-			_mfSinif: e.mfSinif, _inst: e.inst,
-			_altInst: e.altInst, _ioAttr: e.ioAttr
-		})
-	}
-	setMFSinif(value) { this.mfSinif = value; return this }
-	noMF() { this.mfSinif = null; return this }
-	resetMF() { this.mfSinif = undefined; return this }
-	setInst(value) { this.inst = value; return this }
-	setAltInst(value) { this.altInst = value; return this }
-	resetAltInst() { this.altInst = undefined; return this }
+	constructor(e) { e = e || {}; super(e); $.extend(this, { _mfSinif: e.mfSinif, _inst: e.inst, _altInst: e.altInst, _ioAttr: e.ioAttr }) }
+	setMFSinif(value) { this.mfSinif = value; return this } noMF() { this.mfSinif = null; return this } resetMF() { this.mfSinif = undefined; return this }
+	setInst(value) { this.inst = value; return this } resetInst() { this.inst = undefined; return this }
+	setAltInst(value) { this.altInst = value; return this } resetAltInst() { this.altInst = undefined; return this }
 }
 class FormBuilder extends SubPartBuilder {
     static { window[this.name] = this; this._key2Class[this.name] = this }

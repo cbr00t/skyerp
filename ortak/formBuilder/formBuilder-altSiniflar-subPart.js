@@ -74,9 +74,9 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 	set etiket(val) { this._etiket = val }
 	get value() {
 		let result = this._initValueSetFlag ? this._value : undefined; this._initValueSetFlag = false;
-		let func = this._getValue || (e => this.defaultGetValue(e));
-		if (func) { const _e = this.getBuilderBlockArgs({ get initValue() { return this._value } }); result = getFuncValue.call(this, func, _e) }
-		if (result && (isFunction(result) || result.run)) {
+		let func = this._getValue ?? (e => this.defaultGetValue(e));
+		if (func != null && typeof func == 'object') { const _e = this.getBuilderBlockArgs({ get initValue() { return this._value } }); result = getFuncValue.call(this, func, _e) }
+		if (result != null && typeof result == 'object' && (isFunction(result) || result.run)) {
 			const _e = this.getBuilderBlockArgs({ get initValue() { return result }, commitFlag: false }); result = getFuncValue.call(this, result, _e);
 			if (_e.commitFlag) this._value = result
 		}
@@ -86,7 +86,7 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 		let func = this._setValue || (e => this.defaultSetValue(e));
 		if (func) {
 			if (val != null && !val.prototype && isFunction(val)) {
-				const e = this.getBuilderBlockArgs({ result: val }); val = getFuncValue.call(this, val, e);
+				const e = this.getBuilderBlockArgs({ result: val }); val = val != null && typeof val == 'object' ? getFuncValue.call(this, val, e) : val;
 				if (e.commitFlag) this._value = val
 			}
 			const _e = this.getBuilderBlockArgs({ value: val, get initValue() { return this._value } }); getFuncValue.call(this, func, _e);
@@ -750,6 +750,8 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 			bosKodAlinirmi: e.bosKodAlinirmi ?? e.bosKodAlinir ?? true,
 			bosKodEklenirmi: e.bosKodEklenirmi ?? e.bosKodEklenir ?? true,
 			ozelQueryDuzenle: e.ozelQueryDuzenle || e.ozelQueryDuzenleBlock,
+			loadServerDataBlock: e.loadServerData ?? e.loadServerDataBlock,
+			initArgsDuzenle: e.initArgsDuzenle || e.initArgsDuzenleBlock,
 			listeArgsDuzenle: e.listeArgsDuzenle || e.listeArgsDuzenleBlock,
 			ekDuzenleyici: e.loadServerDataEkDuzenleBlock || e.loadServerDataEkDuzenle || e.ekDuzenleyici,
 			veriYuklenince: e.veriYukleninceBlock || e.veriYuklenince || e.bindingCompleteBlock || e.bindingComplete,
@@ -766,7 +768,8 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 				width: false, height: this.class.defaultHeight, mfSinif: this.mfSinif, source: this.source, ekDuzenleyici: this.ekDuzenleyici,
 				isDropDown: this.isDropDown, coklumu: this.coklumu, noAutoWidth: this.noAutoWidthFlag, listedenSecilemez: this.listedenSecilemezFlag,
 				kodGosterilsinmi: this.kodGosterilsinmi, bosKodAlinirmi: this.bosKodAlinirmi, bosKodEklenirmi: this.bosKodEklenirmi,
-				ozelQueryDuzenle: this.ozelQueryDuzenle, listeArgsDuzenle: this.listeArgsDuzenle, veriYukleninceBlock: this.veriYuklenince, kodSaha: this.kodAttr, adiSaha: this.adiAttr,
+				ozelQueryDuzenle: this.ozelQueryDuzenle, loadServerDataBlock: this.loadServerDataBlock, initArgsDuzenle: this.initArgsDuzenle,
+				listeArgsDuzenle: this.listeArgsDuzenle, veriYukleninceBlock: this.veriYuklenince, kodSaha: this.kodAttr, adiSaha: this.adiAttr,
 				disabled: this.disabled, placeHolder: this.placeHolder ?? (() => (etiketGosterim == 'placeholder') ? this.etiket : ''), value: this.value
 			} });
 			if (widgetArgsDuzenle) { getFuncValue.call(this, widgetArgsDuzenle, _e) }
@@ -817,7 +820,11 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 	bosKodAlinir() { this.bosKodAlinirmi = true; return this } bosKodAlinmaz() { this.bosKodAlinirmi = false; return this }
 	bosKodEklenir() { this.bosKodEklenirmi = true; return this } bosKodEklenmez() { this.bosKodEklenirmi = false; return this }
 	tekil() { this.coklumu = false; return this } coklu() { this.coklumu = true; return this }
-	ozelQueryDuzenleBlock(handler) { this.ozelQueryDuzenle = handler; return this } listeArgsDuzenleBlock(handler) { this.listeArgsDuzenle = handler; return this }
+	loadServerDataHandler(handler) { this.loadServerDataBlock = handler; return this }
+	ozelQueryDuzenleBlock(handler) { this.ozelQueryDuzenle = handler; return this }
+	ozelQueryDuzenleHandler(handler) { this.ozelQueryDuzenle = handler; return this } ozelQueryDuzenleBlock(handler) { return this.ozelQueryDuzenleHandler(handler) }
+	initArgsDuzenleHandler(handler) { this.initArgsDuzenle = handler; return this } initArgsDuzenleBlock(handler) { return this.initArgsDuzenleHandler(handler) }
+	listeArgsDuzenleHandler(handler) { this.listeArgsDuzenle = handler; return this } listeArgsDuzenleBlock(handler) { return this.listeArgsDuzenleHandler(handler) }
 	setEkDuzenleyici(value) { this.ekDuzenleyici = value; return this } veriYukleninceBlock(handler) { this.veriYuklenince = handler; return this }
 }
 class FBuilder_Grid extends FBuilder_DivOrtak {
