@@ -300,23 +300,24 @@ class ParamBuilder extends CObject {
 	tanimUIArgsDuzenleIslemi(handler) { this._tanimUIArgsDuzenle = handler; return this }
 	kaydedinceIslemi(handler) { this._kaydedince = handler; return this }
 	formBuilderDuzenleIslemi(handler) { this._formBuilderDuzenle = handler; return this }
-
-	altAlta(...args) { this.fbd_ekIslemler.push(e => e.builder.altAlta(...args)); return this }
-	yanYana(...args) { this.fbd_ekIslemler.push(e => e.builder.yanYana(...args)); return this }
-	addStyle(...args) { this.fbd_ekIslemler.push(e => e.builder.addStyle(...args)); return this }
-	addStyles(...args) { this.fbd_ekIslemler.push(e => e.builder.addStyles(...args)); return this }
-	addCSS(...args) { this.fbd_ekIslemler.push(e => e.builder.addCSS(...args)); return this }
-	addStyle_wh(...args) { this.fbd_ekIslemler.push(e => e.builder.addStyle_wh(...args)); return this }
-	addStyle_fullWH(...args) { this.fbd_ekIslemler.push(e => e.builder.addStyle_fullWH(...args)); return this }
-	onInit(handler) { this.fbd_ekIslemler.push(e => e.builder.onInit(handler)); return this }
-	onBuildEk(handler) { this.fbd_ekIslemler.push(e => e.builder.onBuildEk(handler)); return this }
-	onAfterRun(handler) { this.fbd_ekIslemler.push(e => e.builder.onAfterRun(handler)); return this }
-	setVisibleKosulu(handler) { this.fbd_ekIslemler.push(e => e.builder.setVisibleKosulu(handler)); return this }
-	updateVisible(_e) { this.fbd_ekIslemler.push(e => e.builder.updateVisible(_e)); return this }
-	show(_e) { this.fbd_ekIslemler.push(e => e.builder.show(_e)); return this }
-	hide(_e) { this.fbd_ekIslemler.push(e => e.builder.hide(_e)); return this }
-	hideBasic(_e) { this.fbd_ekIslemler.push(e => e.builder.hideBasic(_e)); return this }
-
+	fbdEkIslem(handler) { this.fbd_ekIslemler.push(handler); return this }
+	altAlta(...args) { this.fbdEkIslem(e => e.builder.altAlta(...args)); return this }
+	yanYana(...args) { this.fbdEkIslem(e => e.builder.yanYana(...args)); return this }
+	addStyle(...args) { this.fbdEkIslem(e => e.builder.addStyle(...args)); return this }
+	addStyles(...args) { this.fbdEkIslem(e => e.builder.addStyles(...args)); return this }
+	addCSS(...args) { this.fbdEkIslem(e => e.builder.addCSS(...args)); return this }
+	addStyle_wh(...args) { this.fbdEkIslem(e => e.builder.addStyle_wh(...args)); return this }
+	addStyle_fullWH(...args) { this.fbdEkIslem(e => e.builder.addStyle_fullWH(...args)); return this }
+	onInit(handler) { this.fbdEkIslem(e => e.builder.onInit(handler)); return this }
+	onBuildEk(handler) { this.fbdEkIslem(e => e.builder.onBuildEk(handler)); return this }
+	onAfterRun(handler) { this.fbdEkIslem(e => e.builder.onAfterRun(handler)); return this }
+	setVisibleKosulu(handler) { this.fbdEkIslem(e => e.builder.setVisibleKosulu(handler)); return this }
+	updateVisible(_e) { this.fbdEkIslem(e => e.builder.updateVisible(_e)); return this }
+	show(_e) { this.fbdEkIslem(e => e.builder.show(_e)); return this }
+	hide(_e) { this.fbdEkIslem(e => e.builder.hide(_e)); return this }
+	hideBasic(_e) { this.fbdEkIslem(e => e.builder.hideBasic(_e)); return this }
+	enable(_e) { this.fbdEkIslem(e => e.builder.enable(_e)); return this }
+	disable(_e) { this.fbdEkIslem(e => e.builder.disable(_e)); return this }
 	shallowCopy(e) {
 		const inst = super.shallowCopy(e);
 		for (const key of this.class.copyOzelKeys)
@@ -397,8 +398,8 @@ class ParamBuilder_Kullanim extends ParamBuilder_AltObject {
 class ParamBuilder_UIElement extends ParamBuilderAlt {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get uiElementmi() { return true }
-	degisince(handler) { this.fbd_ekIslemler.push(e => e.builder.degisince(handler)); return this }
-	onChange(handler) { this.fbd_ekIslemler.push(e => e.builder.onChange(handler)); return this }
+	degisince(handler) { this.fbdEkIslem(e => e.builder.degisince(handler)); return this }
+	onChange(handler) { this.fbdEkIslem(e => e.builder.onChange(handler)); return this }
 }
 class ParamBuilder_Form extends ParamBuilder_UIElement {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -609,13 +610,13 @@ class ParamBuilder_ModelKullan extends ParamBuilder_UIElement {
 			value = value.char
 		return value
 	}
-	dropDown() { this.fbd_ekIslemler.push(e => e.builder.dropDown()); return this }
-	comboBox() { this.fbd_ekIslemler.push(e => e.builder.comboBox()); return this }
-	kodlu() { this.fbd_ekIslemler.push(e => e.builder.kodlu()); return this }
-	kodsuz() { this.fbd_ekIslemler.push(e => e.builder.kodsuz()); return this }
-	autoBind() { this.fbd_ekIslemler.push(e => e.builder.autoBind()); return this }
-	noAutoBind() { this.fbd_ekIslemler.push(e => e.builder.noAutoBind()); return this }
-	noMF() { this.fbd_ekIslemler.push(e => e.builder.noMF()); return this }
+	dropDown() { this.fbdEkIslem(e => e.builder.dropDown()); return this }
+	comboBox() { this.fbdEkIslem(e => e.builder.comboBox()); return this }
+	kodlu() { this.fbdEkIslem(e => e.builder.kodlu()); return this }
+	kodsuz() { this.fbdEkIslem(e => e.builder.kodsuz()); return this }
+	autoBind() { this.fbdEkIslem(e => e.builder.autoBind()); return this }
+	noAutoBind() { this.fbdEkIslem(e => e.builder.noAutoBind()); return this }
+	noMF() { this.fbdEkIslem(e => e.builder.noMF()); return this }
 	setMFSinif(value) { this.mfSinif = value; return this }
 	setSource(value) { this.source = value; return this }
 	ozelQueryDuzenleIslemi(handler) { this.ozelQueryDuzenle = handler; return this }
@@ -683,12 +684,12 @@ class ParamBuilder_Grid extends ParamBuilder_UIElement {
 		const {id, etiket, value, gridSinif, mfSinif, source, tabloKolonlari, sabitmi, kontrolcu, ozelQueryDuzenle, veriYuklenince, veriDegisince, kodAttr, adiAttr, rowNumberOlmasinFlag} = this
 		this.builder = e.builder.addGrid({ id, etiket, value, gridSinif, mfSinif, source, tabloKolonlari, sabitmi, kontrolcu, ozelQueryDuzenle, veriYuklenince, veriDegisince, kodAttr, adiAttr, rowNumberOlmasinFlag })
 	}
-	gridliGiris() { this.fbd_ekIslemler.push(e => e.builder.gridliGiris()); return this }
-	gridliGosterici() { this.fbd_ekIslemler.push(e => e.builder.gridliGosterici()); return this }
-	masterListe() { this.fbd_ekIslemler.push(e => e.builder.masterListe()); return this }
-	fisListe() { this.fbd_ekIslemler.push(e => e.builder.fisListe()); return this }
-	rowNumberOlsun() { this.fbd_ekIslemler.push(e => e.builder.rowNumberOlsun()); return this }
-	rowNumberOlmasin() { this.fbd_ekIslemler.push(e => e.builder.rowNumberOlmasin()); return this }
+	gridliGiris() { this.fbdEkIslem(e => e.builder.gridliGiris()); return this }
+	gridliGosterici() { this.fbdEkIslem(e => e.builder.gridliGosterici()); return this }
+	masterListe() { this.fbdEkIslem(e => e.builder.masterListe()); return this }
+	fisListe() { this.fbdEkIslem(e => e.builder.fisListe()); return this }
+	rowNumberOlsun() { this.fbdEkIslem(e => e.builder.rowNumberOlsun()); return this }
+	rowNumberOlmasin() { this.fbdEkIslem(e => e.builder.rowNumberOlmasin()); return this }
 	setMFSinif(value) { this.mfSinif = value; return this }
 	setTabloKolonlari(value) { this.tabloKolonlari = value; return this }
 	setSource(value) { this.source = value; return this }

@@ -9,8 +9,8 @@ class DMQRapor extends DMQSayacliKA {
 	get icerikListe() { return Object.keys(this.icerik || {}) } set icerikListe(value) { return this.icerik = asSet(value || []) }
 	get secilenVarmi() { return !!(Object.keys(this.grup).length || Object.keys(this.icerik).length) }
 	constructor(e) {
-		e = e || {}; super(e); const {isCopy} = e, {user} = config.session; this.rapor = e.rapor?.main ?? e.rapor
-		$.extend(this, { user: e.userkod ?? user, grup: e.grupListe ?? e.grup, icerik: e.icerikListe ?? e.icerik, ozetMax: e.ozetMax ?? 5 });
+		e = e || {}; super(e); const {isCopy} = e, {user, encUser} = config.session; this.rapor = e.rapor?.main ?? e.rapor
+		$.extend(this, { user: e.userkod ?? user, encUser: e.encuser ?? e.encUser ?? encUser, grup: e.grupListe ?? e.grup, icerik: e.icerikListe ?? e.icerik, ozetMax: e.ozetMax ?? 5 });
 		if (!isCopy) {
 			for (const key of ['grup', 'icerik']) {
 				let value = this[key], orjValue = value; if ($.isArray(value)) { value = asSet(value) }
@@ -24,7 +24,7 @@ class DMQRapor extends DMQSayacliKA {
 		return kod || null
 	}
 	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e); const rfb = e.rootBuilder, tanimForm = e.tanimFormBuilder;
+		e = e || {}; super.rootFormBuilderDuzenle(e); const rfb = e.rootBuilder, tanimForm = e.tanimFormBuilder, kaForm = tanimForm.builders.find(fbd => fbd.id == 'kaForm');
 		const {inst} = e, {rapor, ozetMax} = inst, {tabloYapi} = rapor, {kaListe} = tabloYapi;
 		const kaDict = {}; for (const ka of kaListe) { kaDict[ka.kod] = ka }
 		const tumAttrSet = asSet(Object.keys(kaDict)), getKalanlarSource = selector => {
@@ -32,8 +32,10 @@ class DMQRapor extends DMQSayacliKA {
 			return Object.keys(tumAttrSet).filter(attr => !attrSet[attr] && (!tabloYapiItems || tabloYapiItems[attr]))
 		}
 		const className_listBox = 'listBox', ustHeight = '50px', contentTop = '13px';
-		const solWidth = '200px', ortaWidth = '200px', sagWidth = '100px', ortaHeight = 'calc((var(--full) / 2) - 5px)';
-		tanimForm.addStyle(e => `$elementCSS { --ustHeight: ${ustHeight} }`);
+		const solWidth = '200px', ortaWidth = `calc(var(--full) - (${solWidth} + 10px))`, ortaHeight = 'calc((var(--full) / 2) - 5px)';
+		tanimForm.addStyle(e => `$elementCSS { --ustHeight: ${ustHeight} }`); kaForm.yanYana().addStyle(e => `$elementCSS { --ozetMax-width: 80px; margin-top: 10px }`);
+		kaForm.id2Builder.aciklama.addStyle_wh(`calc(var(--full) - (var(--ozetMax-width) + 10px)) !important`).addStyle(e => `$elementCSS { max-width: unset !important }`);
+		kaForm.addNumberInput('ozetMax', 'İlk ... kayıt').addStyle_wh('var(--ozetMax-width)');
 		let fbd_content = tanimForm.addFormWithParent('content').yanYana().addStyle_fullWH(null, 'calc(var(--full) - var(--ustHeight) - var(--top) + 8px)').addStyle([e =>
 			`$elementCSS { --top: ${contentTop}; position: relative; top: var(--top); z-index: 100 }
 			 $elementCSS > div .${className_listBox} { --label-height: 30px; --label-margin-bottom: 20px }
@@ -78,26 +80,26 @@ class DMQRapor extends DMQSayacliKA {
 			for (const fbd_tabPage of e.builder.builders) {
 				const {input} = fbd_tabPage.builders[0]; if (input?.length) { setTimeout(input => input.jqxListBox('render'), 1, input) } }
 		});
-		fbd_tabs.addTab('grup', 'Sabitler').addStyle_fullWH().addDiv('kalanlar_grup').setEtiket('Kalanlar').addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'grup' }).onAfterRun(e => initListBox(e));
-		fbd_tabs.addTab('toplam', 'Toplamlar').addStyle_fullWH().addDiv('kalanlar_toplam').setEtiket('Kalanlar').addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'toplam' }).onAfterRun(e => initListBox(e));
-		let fbd_orta = fbd_content.addFormWithParent('orta').altAlta().addStyle_fullWH(ortaWidth);/*.addStyle(e => `$elementCSS { position: absolute; right: 0 }`);*/
+		fbd_tabs.addTab('grup', 'Sabitler').addStyle_fullWH().addDiv('kalanlar_grup').setEtiket('Kalanlar').etiketGosterim_yok().addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'grup' }).onAfterRun(e => initListBox(e));
+		fbd_tabs.addTab('toplam', 'Toplamlar').addStyle_fullWH().addDiv('kalanlar_toplam').setEtiket('Kalanlar').etiketGosterim_yok().addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'toplam' }).onAfterRun(e => initListBox(e));
+		let fbd_orta = fbd_content.addFormWithParent('orta').yanYana().addStyle_fullWH(ortaWidth)
+			.addStyle(e => `$elementCSS > .formBuilder-element { max-width: 200px !important; min-width: 100px !important; min-height: 250px !important }`);
 		fbd_orta.addDiv('grupListe').setEtiket('Grup').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight).onAfterRun(e => initListBox(e));
-		fbd_orta.addDiv('icerikListe').setEtiket('İçerik').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight).onAfterRun(e => initListBox(e));
-		let fbd_sag = fbd_content.addFormWithParent('sag').altAlta().addStyle_fullWH(sagWidth); fbd_sag.addNumberInput('ozetMax', 'En Yüksek İlk ... kayıt')
+		fbd_orta.addDiv('icerikListe').setEtiket('İçerik').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight).onAfterRun(e => initListBox(e))
 	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(
 			new GridKolon({ belirtec: 'grupbelirtecler', text: 'Gruplar', maxWidth: 500 }), new GridKolon({ belirtec: 'icerikbelirtecler', text: 'İçerikler', maxWidth: 500 }),
 			new GridKolon({ belirtec: 'ilkxsayi', text: 'Özet Sayı', genislikCh: 10 }).tipNumerik(),
-			new GridKolon({ belirtec: 'userkod', text: 'Kullanıcı', genislikCh: 10 })
+			new GridKolon({ belirtec: 'xuserkod', text: 'Kullanıcı', genislikCh: 10 })
 		)
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {aliasVeNokta} = this, {sent} = e, args = e.args || {};
-		const {user} = config.session, {rapor} = args, raporKod = this.getRaporKod(rapor)
+		const {encUser, isAdmin} = config.session, {rapor} = args, raporKod = this.getRaporKod(rapor);
 		if (raporKod) { sent.where.degerAta(raporKod, `${aliasVeNokta}raportip`) }
-		if (user) { sent.where.add(new MQOrClause([`${aliasVeNokta}userkod = ''`, { degerAta: user, saha: `${aliasVeNokta}userkod` }])) }
-		sent.sahalar.add(`${aliasVeNokta}raportip`, `${aliasVeNokta}userkod`)
+		if (!isAdmin && encUser) { sent.where.add(new MQOrClause([`${aliasVeNokta}xuserkod = ''`, { degerAta: encUser, saha: `${aliasVeNokta}xuserkod` }])) }
+		sent.sahalar.add(`${aliasVeNokta}raportip`, `${aliasVeNokta}xuserkod`)
 	}
 	static yeniInstOlustur(e) {
 		const inst = super.yeniInstOlustur(e), args = e.args || {}, {rapor} = args;
@@ -115,19 +117,20 @@ class DMQRapor extends DMQSayacliKA {
 		if (!grupUygunmu) { throw { isError: true, errorText: 'Toplanabilir Sahalar, Gruplama kısmına eklenemez' } }
 		if (!(toplanabilirVarmi && normalIcerikVarmi)) { throw { isError: true, errorText: 'En az birer Toplanabilir ve Normal saha olmalıdır' } }
 	}
+	async yukleSonrasiIslemler(e) { await super.yukleSonrasiIslemler(e); const {encUser} = this; this.user = encUser ? await app.xdec(encUser) : encUser }
 	alternateKeyHostVarsDuzenle(e) {
-		super.alternateKeyHostVarsDuzenle(e); const {hv} = e, {adiSaha} = this.class, {user, raporKod, aciklama} = this;
-		$.extend(hv, { raportip: raporKod, userkod: user }); hv[adiSaha] = aciklama
+		super.alternateKeyHostVarsDuzenle(e); const {hv} = e, {adiSaha} = this.class, {encUser, raporKod, aciklama} = this;
+		$.extend(hv, { raportip: raporKod, xuserkod: encUser }); hv[adiSaha] = aciklama
 	}
 	hostVarsDuzenle(e) {
 		super.hostVarsDuzenle(e); const {hv} = e, liste2HV = value => {
 			if (value && typeof value == 'object' && !$.isArray(value)) { value = Object.keys(value) };
 			return $.isArray(value) ? value.filter(x => !!x).map(x => x.trim()).join(delimWS) : (value?.trim() || '')
 		};
-		$.extend(hv, { raportip: this.raporKod, userkod: this.user || '', grupbelirtecler: liste2HV(this.grup), icerikbelirtecler: liste2HV(this.icerik), ilkxsayi: this.ozetMax })
+		$.extend(hv, { raportip: this.raporKod, xuserkod: this.encUser || '', grupbelirtecler: liste2HV(this.grup), icerikbelirtecler: liste2HV(this.icerik), ilkxsayi: this.ozetMax })
 	}
 	setValues(e) {
 		super.setValues(e); const {rec} = e, getListe = value => value ? asSet(value.split(delimWS).filter(x => !!x).map(x => x.trim())) : {};
-		$.extend(this, { user: rec.userkod || '', grup: getListe(rec.grupbelirtecler), icerik: getListe(rec.icerikbelirtecler), ozetMax: rec.ilkxsayi })
+		$.extend(this, { encUser: rec.xuserkod || '', grup: getListe(rec.grupbelirtecler), icerik: getListe(rec.icerikbelirtecler), ozetMax: rec.ilkxsayi })
 	}
 }

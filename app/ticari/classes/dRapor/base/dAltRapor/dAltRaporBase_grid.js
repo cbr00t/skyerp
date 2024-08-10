@@ -110,7 +110,7 @@ class DAltRapor_Grid_Ozet extends DAltRapor_Grid {
 	gridArgsDuzenle(e) { const {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: false, showGroupsHeader: false }) }
 	tazele(e) {
 		super.tazele(e); const {gridPart} = this, {gridWidget} = gridPart, {main} = this.rapor.id2AltRapor, colDefs = main.ozetBilgi?.colDefs || [];
-		setTimeout(() => { gridWidget.beginupdate(); gridPart.updateColumns(colDefs); gridWidget.endupdate(false) }, 100)
+		setTimeout(() => { gridWidget?.beginupdate(); gridPart?.updateColumns(colDefs); gridWidget?.endupdate(false) }, 100)
 	}
 	tabloKolonlariDuzenle(e) { super.tabloKolonlariDuzenle(e) }
 	loadServerData(e) { super.loadServerData(e); const {main} = this.rapor; return main.ozetBilgi?.recs || [] }

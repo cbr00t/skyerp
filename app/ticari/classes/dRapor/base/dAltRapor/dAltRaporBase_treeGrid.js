@@ -249,9 +249,9 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			.addStyle_fullWH('calc(var(--full) - 300px)')
 			.initArgsDuzenleHandler(e => { const {args} = e; args.args = { rapor: this } })
 			.ozelQueryDuzenleHandler(e => {
-				const {stm, aliasVeNokta} = e, {raporKod} = raporTanim, {user} = config.session, {kodSaha} = raporTanim.class;
+				const {stm, aliasVeNokta} = e, {raporKod} = raporTanim, {encUser} = config.session, {kodSaha} = raporTanim.class;
 				for (const sent of stm.getSentListe()) {
-					if (user) { sent.where.degerAta(user, `${aliasVeNokta}userkod`) }
+					if (encUser) { sent.where.degerAta(encUser, `${aliasVeNokta}xuserkod`) }
 					sent.where.degerAta(raporKod, `${aliasVeNokta}raportip`)
 				}
 			}).degisince(e => {
@@ -278,10 +278,19 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		fbd_islemTuslari.addButton('vazgec').onClick(e => wnd.jqxWindow('close'));
 		const _e = { ...e, rootBuilder: wRFB, tanimFormBuilder: wRFB, inst }; raporTanim.class.rootFormBuilderDuzenle(_e);
 		wRFB.id2Builder.content.addStyle_fullWH(null, `calc(var(--full) - (var(--islemTuslariHeight) + var(--ustHeight) + var(--ustEkHeight)))`);
-		this.wnd_raporTanim = wnd = createJQXWindow({ title, args: { isModal: false, closeButtonAction: 'close', width: Math.min(530, Math.max(600, $(window).width() - 100)), height: Math.min(1000, $(window).height() - 50) } });
+		this.wnd_raporTanim = wnd = createJQXWindow({ title, args: { isModal: false, closeButtonAction: 'close', width: Math.max(530, Math.min(630, $(window).width() - 100)), height: Math.min(1000, $(window).height() - 50) } });
 		wnd.on('close', evt => { wnd.jqxWindow('destroy'); $('body').removeClass('bg-modal'); delete this.wnd_raporTanim });
 		wnd.prop('id', wRFB.id); wnd.addClass('dRapor part'); setTimeout(() => $('body').addClass('bg-modal'), 10);
 		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run();
+		wnd.on('resize', evt => {
+			clearTimeout(this._timer_wndResize); this._timer_wndResize = setTimeout(() => {
+				try {
+					const wnd = this.wnd_raporTanim; if (!wnd?.length) { return }
+					let elms = wnd.find('div > .content .jqx-listbox'); if (elms?.length) { elms.jqxListBox('refresh') }
+				}
+				finally { delete this._timer_wndResize }
+			}, 50)
+		})
 		this._tabloTanimGosterildiFlag = true; return wRFB
 	}
 	raporTanim_tamamIstendi(e) { const {inst} = e; inst.dataDuzgunmuDevam(e); raporTanim.degistimi = true; this.tazele(e); return true }

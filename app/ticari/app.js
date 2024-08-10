@@ -1,13 +1,14 @@
 class TicariApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get testBaseClass() { return Ticari_TestBase }
+    static { window[this.name] = this; this._key2Class[this.name] = this } get testBaseClass() { return Ticari_TestBase } static get yerelParamSinif() { return MQYerelParamTicari }
 	constructor(e) { super(e) /*this.mqGlobals = {}*/ }
 	paramsDuzenle(e) {
-		super.paramsDuzenle(e); const {params} = e;
+		super.paramsDuzenle(e); const {params} = e, {yerelParamSinif} = this.class;
 		$.extend(params, {
-			yerel: MQYerelParamTicari.getInstance(), ortak: MQOrtakParam.getInstance(), logocu: MQLogocu.getInstance(), zorunlu: MQZorunluParam.getInstance(), isyeri: MQIsyeri.getInstance(),
-			ticariGenel: MQTicariGenelParam.getInstance(), fiyatVeIsk: MQFiyatVeIskontoParam.getInstance(), stokBirim: MQStokBirimParam.getInstance(), stokGenel: MQStokGenelParam.getInstance(),
+			yerel: yerelParamSinif.getInstance(), ortak: MQOrtakParam.getInstance(), logocu: MQLogocu.getInstance(), zorunlu: MQZorunluParam.getInstance(), isyeri: MQIsyeri.getInstance(),
+			ticariGenel: MQTicariGenelParam.getInstance(), aktarim: MQAktarimParam.getInstance(), fiyatVeIsk: MQFiyatVeIskontoParam.getInstance(), stokBirim: MQStokBirimParam.getInstance(), stokGenel: MQStokGenelParam.getInstance(),
 			cariGenel: MQCariGenelParam.getInstance(), hizmetGenel: MQHizmetGenelParam.getInstance(), demirbasGenel: MQDemirbasGenelParam.getInstance(), bankaGenel: MQBankaGenelParam.getInstance(),
-			alim: MQAlimParam.getInstance(), satis: MQSatisParam.getInstance(), eIslem: MQEIslemParam.getInstance(), uretim: MQUretimParam.getInstance(), operGenel: MQOperGenelParam.getInstance()
+			alim: MQAlimParam.getInstance(), satis: MQSatisParam.getInstance(), eIslem: MQEIslemParam.getInstance(), uretim: MQUretimParam.getInstance(), operGenel: MQOperGenelParam.getInstance(),
+			kalite: MQKaliteParam.getInstance()
 		})
 	}
 	sabitTanimlarDuzenle(e) { const {sabitTanimlar} = e; $.extend(sabitTanimlar, { vergi: this.wsSabitTanimlar_xml('EBYN-KDV-Kodlar') }) }

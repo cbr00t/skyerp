@@ -310,12 +310,21 @@ class MQOperGenelParam extends MQTicariParamBase {
 	paramSetValues(e) { e = e || {}; super.paramSetValues(e); const {rec} = e; this.hmr = asSet(rec.hmr) || {} }
 }
 class MQKaliteParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get paramKod() { return 'KALITE' } static get sinifAdi() { return 'Kalite Parametreleri' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get paramKod() { return 'KALITE' } static get sinifAdi() { return 'Kalite Parametreleri' }
 	constructor(e) { e = e || {}; super(e); this.uretimNumuneSayisi = e.uretimNumuneSayisi ?? 5 }
 	static paramYapiDuzenle(e) { super.paramYapiDuzenle(e); const {paramci} = e; paramci.addNumber('uretimNumuneSayisi', 'Üretim Numune Sayısı') }
 	paramSetValues(e) {
 		e = e || {}; super.paramSetValues(e); const {rec} = e;
 		this.uretimNumuneSayisi = asInteger(rec.uretimNumuneSayisi ?? this.uretimNumuneSayisi)
+	}
+}
+class MQAktarimParam extends MQTicariParamBase {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ticari Aktarım Parametreleri' } static get paramKod() { return 'CAKT' }
+	static paramYapiDuzenle(e) {
+		super.paramYapiDuzenle(e); const {paramci} = e;
+		let kullanim = paramci.addKullanim().addGrup({ etiket: 'Kullanım' }); let form = kullanim.addFormWithParent();
+			form.addBool('webOzetRapor', 'Web Özet Rapor').onBuildEk(e => e.builder.input.attr('disabled', ''));
+			form.addBool('tablet', 'Sky Tablet'); form.addBool('tablet', 'Sky Tablet'); form.addBool('yazarkasa', 'YazarKasa Aktarımı');
+			form.addBool('webSiparis', 'Web B2B Sipariş'); form.addBool('konsinyeLojistik', 'Konsinye Lojistik'); form.addBool('pdks', 'PDKS Veri Aktarımı')
 	}
 }
