@@ -25,7 +25,7 @@
 .secimler.part .secimler-kolonFiltre-bilgi-parent .kolonFiltre-bilgi .filtre-item { padding: 8px 20px !important; border: .5px solid #ddd }
 .secimler.part .secimler-kolonFiltre-bilgi-parent .kolonFiltre-bilgi .filtre-item:not(:first-child) { margin-left: 3px }
 .secimler.part .secimler-form { font-size: 90%; height: calc(var(--full) + 250px) !important; margin: 5px 5px 0 0; padding: 0; overflow-y: auto }
-.secimler.part .secimler-form:not(:focus) { overflow-y: hidden }
+/*.secimler.part .secimler-form:not(:focus) { overflow-y: hidden }*/
 .secimler.part .secimler-form .secim-grup { position: relative; font-size: var(--full); margin: 0 0 5px 0 }
 .secimler.part .secimler-form .secim-grup > div { position: relative; padding-right: 0 !important }
 .secimler.part .secimler-form .secim-grup > .header { font-size: 120%; position: relative; width: var(--full); height: var(--full); min-height: initial !important; height: 25px !important; padding: 0 !important }

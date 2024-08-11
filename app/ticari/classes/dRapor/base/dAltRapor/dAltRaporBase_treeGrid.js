@@ -8,8 +8,8 @@ class DAltRapor_TreeGrid extends DAltRapor {
 			.onAfterRun(async e => {
 				const fbd_grid = e.builder, gridPart = this.gridPart = fbd_grid.part = {}, grid = gridPart.grid = fbd_grid.layout;
 				$.extend(gridPart, { tazele: e => this.tazele(e), hizliBulIslemi: e => this.hizliBulIslemi(e) });
-				this.onGridInit(e); let _e = { ...e, liste: [] }; this.tabloKolonlariDuzenle(_e); const colDefs = this.tabloKolonlari = _e.liste || [];				
-				const columns = noAutoColumns ? [] : colDefs.flatMap(colDef => colDef.jqxColumns), source = await this.getDataAdapter(e);
+				await this.onGridInit(e); let _e = { ...e, liste: [] }; this.tabloKolonlariDuzenle(_e); const colDefs = this.tabloKolonlari = _e.liste || [];				
+				const columns = noAutoColumns ? [] : colDefs.flatMap(colDef => colDef.jqxColumns), source = [];
 				const localization = localizationObj, width = '99.7%', height = 'calc(var(--full) - 10px)', autoRowHeight = true, autoShowLoadElement = true, altRows = true;
 				const filterMode = 'advanced';	/* default | simple | advanced */
 				const showAggregates = true, showSubAggregates = false, aggregatesHeight = 30, columnsResize = true, columnsReorder = false, sortable = true, filterable = false;
@@ -25,7 +25,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	tabloKolonlariDuzenle(e) { }
 	gridArgsDuzenle(e) { }
 	onGridInit(e) { /*const {gridPart} = this*/ }
-	onGridRun(e) { }
+	onGridRun(e) { this.tazele(e) }
 	gridRowExpanded(e) { const {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = true }
 	gridRowCollapsed(e) { const {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = false }
 	gridSatirTiklandi(e) { }
@@ -148,7 +148,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	tabloYapiDuzenle(e) { }
 	onGridInit(e) {
 		super.onGridInit(e); this.ozetBilgi = { colDefs: null, recs: null };
-		const rapor = this; this.raporTanim = new DMQRapor({ rapor })
+		const rapor = this; this.raporTanim = DMQRapor.getDefault({ ...e, rapor })
 	}
 	onGridRun(e) { super.onGridRun(e); this.tazeleOncesi(e) }
 	tabloKolonlariDuzenle(e) {
@@ -293,7 +293,10 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		})
 		this._tabloTanimGosterildiFlag = true; return wRFB
 	}
-	raporTanim_tamamIstendi(e) { const {inst} = e; inst.dataDuzgunmuDevam(e); raporTanim.degistimi = true; this.tazele(e); return true }
+	raporTanim_tamamIstendi(e) {
+		const {inst} = e; inst.dataDuzgunmuDevam(e); inst.degistimi = true;
+		inst.setDefault(e); this.tazele(e); return true
+	}
 	async raporTanim_sablonKaydetIstendi(e) {
 		const title = 'Rapor Tanım', {wnd_raporTanim} = this; let {raporTanim} = this, {aciklama} = raporTanim; let inEventFlag = false;
 		try {

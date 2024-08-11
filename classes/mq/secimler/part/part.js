@@ -129,13 +129,14 @@ class SecimlerPart extends Part {
 		$.extend(args, { theme, position: 'top', /* width: 1, */ height: false, initContent: e => { this.initTabLayout(e) } })
 	}
 	temizleIstendi(e) {
-		e = e || {}; const {secimler, secim2Info} = this;
-		if (!secimler) { return } secimler.temizle(e);
-		if (secim2Info) {
+		e = e || {}; const {secimler, secim2Info} = this; if (!secimler) { return }
+		secimler.temizle(e); if (secim2Info) {
 			for (const key in secim2Info) {
 				const secimBilgi = secim2Info[key], {secim, element} = secimBilgi;
 				if (secim) { secim.uiSetValues({ parent: element }) }
 			}
+			const {secimlerForm} = this, divGrupListe = secimlerForm.find('.secim-grup');
+			divGrupListe.jqxNavigationBar('expandAt', 0); setTimeout(() => divGrupListe.jqxNavigationBar('collapseAt', 0), 10)
 		}
 	}
 	async kolonFiltreIstendi(e) {
@@ -161,10 +162,8 @@ class SecimlerPart extends Part {
 		divKolonFiltreBilgi.html(filtreText); divKolonFiltreBilgiParent[filtreBilgi_recs.length ? 'removeClass' : 'addClass']('jqx-hidden')
 	}
 	seviyeleriAcKapatIstendi(e) {
-		const {flag} = e, {secimlerForm} = this;
-		if (this.isDestroyed || !(secimlerForm && secimlerForm.length)) return
-		const divGrupListe = secimlerForm.find('.secim-grup');
-		if (divGrupListe.length) {
+		const {flag} = e, {secimlerForm} = this; if (this.isDestroyed || !secimlerForm?.length) { return }
+		const divGrupListe = secimlerForm.find('.secim-grup'); if (divGrupListe.length) {
 			//secimlerForm.css('opacity', .05);
 			divGrupListe.jqxNavigationBar(flag ? 'expandAt' : 'collapseAt', 0);
 			if (!flag) { divGrupListe.eq(0).jqxNavigationBar('expandAt', 0) }

@@ -23,6 +23,16 @@ class DMQRapor extends DMQSayacliKA {
 			? (e.raporKod ?? e.raporkod ?? e.raporTip ?? e.raportip ?? e.kod ?? e.tip ?? e.rapor?.kod ?? e.class?.raporClass?.kod ?? e.rapor?.class?.kod ?? e.class?.kod) : e;
 		return kod || null
 	}
+	static getDefault(e) {
+		const {yerel} = app.params, tip2SonDRaporRec = yerel.tip2SonDRaporRec || {}, {rapor} = e, raporKod = this.getRaporKod(rapor);
+		let rec = raporKod ? tip2SonDRaporRec[raporKod] : null; let inst = new DMQRapor({ rapor });
+		if (rec) { inst.setValues({ ...e, rec }) } return inst
+	}
+	setDefault(e) {
+		const {yerel} = app.params, tip2SonDRaporRec = yerel.tip2SonDRaporRec = yerel.tip2SonDRaporRec || {};
+		const {raporKod} = this; let hv = raporKod ? this.hostVars(e) : null; if (hv) { tip2SonDRaporRec[raporKod] = hv; yerel.kaydetDefer(e) }
+		return this
+	}
 	static rootFormBuilderDuzenle(e) {
 		e = e || {}; super.rootFormBuilderDuzenle(e); const rfb = e.rootBuilder, tanimForm = e.tanimFormBuilder, kaForm = tanimForm.builders.find(fbd => fbd.id == 'kaForm');
 		const {inst} = e, {rapor, ozetMax} = inst, {tabloYapi} = rapor, {kaListe} = tabloYapi;
@@ -42,18 +52,19 @@ class DMQRapor extends DMQSayacliKA {
 			 $elementCSS > div .${className_listBox} > label { font-size: 180%; color: #999; height: var(--label-height); padding-bottom: var(--label-margin-bottom) }
 			 $elementCSS > div .${className_listBox} > :not(label) { vertical-align: top; height: calc(var(--full) - var(--label-height) - var(--label-margin-bottom)) !important }
 			 $elementCSS > div .${className_listBox} > .jqx-listbox .jqx-listitem-element { font-size: 110% }`]);
+		const kalanlarSourceDuzenlenmis = _source => {
+			_source = [..._source, ...(new Array(10).fill(null).map(x => ({ /*group: ' ',*/ disabled: true })))];
+			/*for (const item of _source) {
+				const kod = item?.kod; if (kod == null) { continue }
+				item.group = `${tabloYapi.grup[kod] ? '- Grup -' : tabloYapi.toplam[kod] ? '- Toplam -' : ''}`
+			}*/
+			return _source
+		};
+		const updateKalanlarDS = listBox => listBox.jqxListBox('source', kalanlarSourceDuzenlenmis(getKalanlarSource(listBox.data('selector')).map(kod => kaDict[kod])));
 		const initListBox = e => {
 			const {builder} = e, {id, altInst, input, userData} = builder, selector = userData?.selector; let {source} = e;
 			if (source == null) { source = (id.startsWith('kalanlar') ? getKalanlarSource(selector) : altInst[id] ?? []).map(kod => kaDict[kod]) }
 			if (source?.length && typeof source[0] != 'object') { source = source.map(kod => new CKodVeAdi({ kod, aciklama: kod })) }
-			const kalanlarSourceDuzenlenmis = _source => {
-				_source = [..._source, ...(new Array(10).fill(null).map(x => ({ /*group: ' ',*/ disabled: true })))];
-				/*for (const item of _source) {
-					const kod = item?.kod; if (kod == null) { continue }
-					item.group = `${tabloYapi.grup[kod] ? '- Grup -' : tabloYapi.toplam[kod] ? '- Toplam -' : ''}`
-				}*/
-				return _source
-			}
 			if (id.startsWith('kalanlar')) { source = kalanlarSourceDuzenlenmis(source) }
 			const width = '100%', height = width, valueMember = 'kod', displayMember = 'aciklama';
 			const allowDrop = true, allowDrag = allowDrop, autoHeight = false, itemHeight = 36, scrollBarSize = 20, filterable = true, filterHeight = 40, filterPlaceHolder = 'Bul';
@@ -64,21 +75,20 @@ class DMQRapor extends DMQSayacliKA {
 				if (id.startsWith('kalanlar')) {
 					if (!type || type == 'none') {
 						clearTimeout(this._timer_kalanlarTazele);
-						this._timer_kalanlarTazele = setTimeout(() => {
-							try { $(target).jqxListBox('source', kalanlarSourceDuzenlenmis(getKalanlarSource(input.data('selector')).map(kod => kaDict[kod]))) }
-							finally { delete this._timer_kalanlarTazele }
-						}, 1)
+						this._timer_kalanlarTazele = setTimeout(() => { try { updateKalanlarDS($(target)) } finally { delete this._timer_kalanlarTazele } }, 5)
 					}
 				}
 				else { let items = $(target).jqxListBox('getItems'); altInst[id] = items.map(item => item.value) }
 			};
 			input.on('change', changeHandler); input.on('dragEnd', changeHandler);
-			setTimeout(input => input.jqxListBox('render'), 1, input)
+			setTimeout(input => input.jqxListBox('refresh'), 1, input)
 		};
 		let fbd_sol = fbd_content.addFormWithParent('sol').altAlta().addStyle_fullWH(solWidth);
 		let fbd_tabs = fbd_sol.addTabPanel('kalanlar').addStyle_fullWH().tabPageChangedHandler(e => {
 			for (const fbd_tabPage of e.builder.builders) {
-				const {input} = fbd_tabPage.builders[0]; if (input?.length) { setTimeout(input => input.jqxListBox('render'), 1, input) } }
+				const {input} = fbd_tabPage.builders[0];
+				if (input?.length) { setTimeout(input => { updateKalanlarDS(input) /*input.jqxListBox('refresh')*/ }, 5, input) }
+			}
 		});
 		fbd_tabs.addTab('grup', 'Sabitler').addStyle_fullWH().addDiv('kalanlar_grup').setEtiket('Kalanlar').etiketGosterim_yok().addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'grup' }).onAfterRun(e => initListBox(e));
 		fbd_tabs.addTab('toplam', 'Toplamlar').addStyle_fullWH().addDiv('kalanlar_toplam').setEtiket('Kalanlar').etiketGosterim_yok().addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'toplam' }).onAfterRun(e => initListBox(e));
