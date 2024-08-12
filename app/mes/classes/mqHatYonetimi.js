@@ -7,7 +7,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 	static listeEkrani_afterRun(e) { super.listeEkrani_afterRun(e) /*const gridPart = e.gridPart ?? e.sender*/ }
 	static listeEkrani_activated(e) { super.listeEkrani_activated(e); const gridPart = e.gridPart ?? e.sender /*; gridPart.tazeleDefer()*/ }
 	static rootFormBuilderDuzenle_listeEkrani(e) {
-		super.rootFormBuilderDuzenle_listeEkrani(e); const rfb = e.rootBuilder, gridPart = e.gridPart ?? e.sender ?? rfb?.part;
+		super.rootFormBuilderDuzenle_listeEkrani(e); const rfb = e.rootBuilder, gridPart = e.gridPart ?? e.sender ?? rfb?.part, {sabitHatKod} = app;
 		/*const fbd_islemTuslari = rfb.addForm('islemTuslari', e => e.builder.part.islemTuslariPart.layout);
 		const fbd_sol = fbd_islemTuslari.addForm('sol', e => e.builder.parent.children('.sol')), fbd_sag = fbd_islemTuslari.addForm('sol', e => e.builder.parent.children('.sag'));*/
 		this.fbd_listeEkrani_addCheckBox(rfb, 'cokluSecimFlag', 'Çoklu').onAfterRun(e => {
@@ -31,11 +31,11 @@ class MQHatYonetimi extends MQMasterOrtak {
 			if (rootPart.grupsuzmu) { input.prop('checked', true) }
 			input.on('change', evt => { const value = rootPart.grupsuzmu = $(evt.currentTarget).is(':checked'); e.action = 'toggle'; rootPart.tazele(e) })
 		});
-		const fbd_islemTuslari_sol = rfb.addForm('kronometre').addCSS('flex-row')
+		rfb.addForm('kronometre').addCSS('flex-row')
 			.setParent(gridPart.islemTuslariPart.sol).setLayout(e => $(`<div id="${e.builder.id}"><div id="value"class="full-wh"></div><button id="reset" class="jqx-hidden">x</button></div>`))
 			.addStyle(e =>
 				`$elementCSS { 
-					position: absolute !important; left: 485px; top: 3px; width: 150px !important; height: 35px !important;
+					position: absolute !important; left: 400px; top: 3px; width: 150px !important; height: 35px !important;
 					background-color: #333333ee !important; border: 2px solid #aaa; border-radius: 8px; cursor: pointer; z-index: 0
 				}
 				$elementCSS #value { font-family: Corier New !important; font-size: 110%; font-weight: bold; text-align: left; color: whitesmoke; background: transparent !important; padding-left: 20px !important; border: none !important }
@@ -83,7 +83,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 		const items = [
 			{ id: 'boyutlandir', text: 'BYT', handler: e => e.sender.boyutlandirIstendi(e) },
 			{ id: 'tezgahMenu', text: 'TEZ', handler: e => this.tezgahMenuIstendi(e) },
-			{ id: 'isEmirleri', text: 'EMR', handler: e => this.bekleyenIsEmirleriIstendi(e) },
+			/* { id: 'isEmirleri', text: 'EMR', handler: e => this.bekleyenIsEmirleriIstendi(e) }, */
 			{ id: 'topluX', text: 'TPL', handler: e => this.topluXMenuIstendi(e) },
 			(sabitHatKod ? null : { id: 'tumEkNotlar', text: 'NOT', handler: e => this.ekNotlarIstendi({ ...e, hepsi: true }) }),
 			{ id: 'ozet', text: 'ÖZET', handler: e => this.ozetBilgiGoster(e) }
@@ -102,7 +102,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 		return group
 	}
 	static orjBaslikListesi_renderGroupsHeader_grupText(text, group, expanded, groupInfo) {
-		const /*kod2EkNotlarRec = this.ekNotlarYapi?.HT || {}*/ allSubItems = [];
+		const /*kod2EkNotlarRec = this.ekNotlarYapi?.HT || {}*/ allSubItems = [], {sabitHatKod} = app;
 		const fillSubItems = info => {
 			if (!info) { return } let {subItems, subGroups} = info;
 			if (subItems?.length) { allSubItems.push(...subItems) }
@@ -116,13 +116,11 @@ class MQHatYonetimi extends MQMasterOrtak {
 					<div class="item">
 						<button id="topluX">TPL</button>
 						<button id="bekleyenIsEmirleri">EMR</button>
-						<button id="hatBekleyenIsler">BEK</button>
+						<!--<button id="hatBekleyenIsler">BEK</button>-->
+						${!sabitHatKod ? `<button id="notlar">NOTLAR</button>` : ''}
 					</div>
 					<div class="item">
-						<button id="notlar">NOTLAR</button>
 						<button id="notEkle">NOT EKLE</button>
-					</div>
-					<div class="item">
 						<button id="dokumanYukle">RESİM</button>
 						<button id="dokumanSil" class="indianred">RESİM SİL</button>
 					</div>
@@ -235,8 +233,9 @@ class MQHatYonetimi extends MQMasterOrtak {
 		const ustAltFormlar = table.find(`[role = row] > * .ust-alt`);
 		if (ustAltFormlar?.length) { for (const key of ['mousedown', 'touchstart']) { ustAltFormlar.on(key, evt => { app.otoTazeleTempDisable() }) } }
 		const buttons = table.find(`[role = row] > * button`); if (buttons?.length) {
-			buttons.jqxButton({ theme }).off('click').on('click', evt => {
-				const target = evt.currentTarget;
+			buttons.jqxButton({ theme }).off('click').on('click', async evt => {
+				let {_lastButonClickEventTime} = this; if (now() - _lastButonClickEventTime < 300) { return }
+				this._lastButonClickEventTime = now(); const target = evt.currentTarget; await new $.Deferred(p => setTimeout(() => p.resolve(), isTouchDevice() ? 200 : 100));
 				if (gridPart.cokluSecimFlag) {
 					let td = $(target).parents('.jqx-grid-cell'), colIndex = asInteger(td.attr('columnindex')), tr = td.parents('[role = row]'), rowIndex = asInteger(tr.attr('row-id')), belirtec = gridWidget.getcolumnat(colIndex)?.datafield;
 					$.extend(e, { rowIndex, belirtec }); gridPart.cokluSecimFlag = false; grid.jqxGrid('selectionmode', 'singlecell');
@@ -271,12 +270,15 @@ class MQHatYonetimi extends MQMasterOrtak {
 		console.debug('gridRendered', e)
 	}
 	static tezgahMenuIstendi(e) {
+		const topluMenumu = e.id == 'tezgahMenu'; if (topluMenumu) { e.title = `Seçilen tezgah(lar) için:` }
 		$.extend(e, { formDuzenleyici: _e => {
 			_e = $.extend({}, e, _e); const {form, close} = _e; form.yanYana(2);
 			form.addButton('siradakiIsler', undefined, 'Sıradaki İşler').onClick(() => { close(); this.siradakiIslerIstendi(_e) });
 			form.addButton('bekleyenIsler', undefined, 'Bekleyen İşler').onClick(() => { close(); this.bekleyenIslerIstendi(_e) });
-			form.addButton('makineDurum', undefined, 'Makine Durum').onClick(() => { close(); this.makineDurumIstendi(_e) });
-			form.addButton('personelSec', undefined, 'Personel Ata').onClick(() => { close(); this.personelSecIstendi(_e) });
+			if (topluMenumu) {
+				form.addButton('makineDurum', undefined, 'Makine Durum').onClick(() => { close(); this.makineDurumIstendi(_e) })
+				/*form.addButton('personelSec', undefined, 'Personel Ata').onClick(() => { close(); this.personelSecIstendi(_e) })*/
+			}
 			form.addButton('tezgahTasi', undefined, 'Tezgah Taşı').onClick(() => { close(); this.tezgahTasiIstendi(_e) });
 			form.addButton('ekBilgi', undefined, 'Ek Bilgi').onClick(() => { close(); this.ekBilgiIstendi(_e) })
 		} }); this.openContextMenu(e)

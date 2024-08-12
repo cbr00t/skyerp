@@ -115,9 +115,9 @@ class GridPanelDuzenleyici extends CObject {
 		const result = [], {cells} = e;
 		if ($.isEmptyObject(cells)) { const rec = this.getSubRec(e); if (rec) { result.push(rec) }}
 		else {
-			const _e = $.extend({}, e); for (const cell of cells) {
-				const belirtec = cell.belirtec ?? cell.datafield ?? cell.dataField, rowIndex = cell.rowIndex ?? cell.rowindex ?? cell.row;
-				$.extend(_e, { belirtec, rowIndex }); let rec = this.getSubRec(_e); if (rec) { result.push(rec)} 
+			for (const cell of cells) {
+				const _e = { ...e }, belirtec = cell.belirtec ?? cell.datafield ?? cell.dataField, rowIndex = cell.rowIndex ?? cell.rowindex ?? cell.row;
+				$.extend(_e, { belirtec, rowIndex }); let rec = this.getSubRec(_e); if (rec) { result.push(rec)}
 			}
 		}
 		return result 

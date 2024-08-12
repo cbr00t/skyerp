@@ -9,6 +9,8 @@
 .jqx-grid [role = row] > * > div { margin-top: 3px !important; padding: 0 3px; text-wrap: pretty !important }
 .jqx-grid [role = row] > * .ek-bilgi { color: #999 }
 .jqx-grid [role = row] > * > * .ek-bilgi { color: #555 }
+.jqx-grid [role = row] .jqx-grid-cell { font-weight: bold; color: #333 }
+.jqx-grid [role = row] .jqx-grid-cell-selected { font-weight: bolder !important; color: black !important; background-color: #82b5eb !important }
 
 
 /*.masterListe.part .header > .islemTuslari #topluEMailGonder { margin-left: 30px }

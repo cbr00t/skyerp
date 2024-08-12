@@ -75,7 +75,7 @@ class TabbedWindowPart extends Part {
 			}*/
 			mainWindowsPart.activePageId = newPageId; mainWindowsPart.refresh();
 			const noWndFlag = !(mainWindowsPart.activePageId && closeableTabPages.length); app.content[noWndFlag ? 'removeClass' : 'addClass']('jqx-hidden');
-			$('body')[noWndFlag ? 'addClass' : 'removeClass']('no-wnd')
+			$('body')[noWndFlag ? 'addClass' : 'removeClass']('no-wnd'); if (noWndFlag) { $('body').removeClass('bg-modal') }
 		}
 		this.triggerKapanincaEvent(e); return this
 	}
@@ -97,7 +97,7 @@ class TabbedWindowPart extends Part {
 		mainWindowsPart.activePageId = newPageId; mainWindowsPart.refresh();
 		const closeableTabPages = Object.values(id2TabPage).filter(tabPage => tabPage?.header?.data('part')?.asilPart?.isCloseable);
 		const noWndFlag = !closeableTabPages.length; app.content[noWndFlag ? 'removeClass' : 'addClass']('jqx-hidden');
-		$('body')[noWndFlag ? 'addClass' : 'removeClass']('no-wnd'); return this
+		$('body')[noWndFlag ? 'addClass' : 'removeClass']('no-wnd'); if (noWndFlag) { $('body').removeClass('bg-modal') }; return this
 	}
 	bringToFront(e) {
 		const {wndId} = this, {mainWindowsPart} = app;

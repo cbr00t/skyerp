@@ -189,7 +189,7 @@ class MQZamanEtudu extends MQMasterOrtak {
 				.addStyle(e => `$elementCSS { margin-top: 38px !important; margin-left: 15px }`)
 				.setVisibleKosulu(e => app.params.hatYonetimi.urunAgacinaEkle ? true : 'jqx-hidden');
 		form = tanimForm.addFormWithParent().yanYana().addStyle(e => `$elementCSS { margin-top: 20px }`).addStyle_wh(undefined, 50);
-			form.addButton('baslatVeyaDegistir', e => e.builder.altInst.degistirmi ? 'DEĞİŞTİR' : 'BAŞLAT').onClick(e => this.etudButonTiklandi($.extend(e, { islem: 'baslatVeyaDegistir' }))).addStyle_wh(width * 3);
+			form.addButton('baslatVeyaDegistir', e => e.builder?.altInst?.degistirmi ? 'DEĞİŞTİR' : 'BAŞLAT').onClick(e => this.etudButonTiklandi($.extend(e, { islem: 'baslatVeyaDegistir' }))).addStyle_wh(width * 3);
 		let parentForm = tanimForm.addFormWithParent('ornekleme').altAlta()
 			.onAfterRun(e => { const {builder} = e; builder.rootPart.fbd_ornekleme = builder })
 			.setVisibleKosulu(e => { const {builder} = e, {altInst} = builder; return altInst.degistirmi || 'jqx-hidden' });
