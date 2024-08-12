@@ -58,20 +58,21 @@ class DRapor_Donemsel_Main extends DAltRapor_TreeGridGruplu {
 	}
 	loadServerData_queryDuzenle(e) { e.alias = 'fis' }
 	loadServerData_queryDuzenle_son(e) {
-		const {stm} = e, {secimler} = this, wh = secimler?.getTBWhereClause(e);
-		if (wh?.liste?.length) { for (const sent of stm.getSentListe()) { sent.where.birlestir(wh) } }
+		const {stm} = e, {orderBy} = stm, {tabloYapi, raporTanim, secimler} = this, {grup} = tabloYapi, {attrSet} = raporTanim;
+		const wh = secimler?.getTBWhereClause(e); if (wh?.liste?.length) { for (const sent of stm.getSentListe()) { sent.where.birlestir(wh) } }
+		for (const kod in attrSet) { let item = grup[kod], {orderBySaha} = item || {}; if (orderBySaha) { orderBy.add(orderBySaha) } }
 	}
 	loadServerData_queryDuzenle_tarih(e) {
 		const {attrSet} = this.raporTanim, {stm} = e, alias = e.alias ?? 'fis', tarihSaha = e.tarihSaha ?? 'tarih';
-		const tarihClause = alias ? `${alias}.${tarihSaha}` : tarihSaha, {orderBy} = stm;
+		const tarihClause = alias ? `${alias}.${tarihSaha}` : tarihSaha;
 		for (const sent of stm.getSentListe()) {
 			for (const key in attrSet) {
 				switch (key) {
-					case 'YILAY': sent.sahalar.add(`(CAST(DATEPART(year, ${tarihClause}) AS CHAR(4)) + ' - ' + dbo.ayadi(${tarihClause})) yilay`); orderBy.add('yilay'); break
-					case 'YILHAFTA': sent.sahalar.add(`(CAST(DATEPART(year, ${tarihClause}) AS CHAR(4)) + ' - ' + CAST(DATEPART(week, ${tarihClause}) AS VARCHAR(2))) yilhafta`); orderBy.add('yilhafta'); break
-					case 'AYADI': sent.sahalar.add(`dbo.ayadi(${tarihClause}) ayadi`); orderBy.add('ayadi'); break
-					case 'HAFTA': sent.sahalar.add(`DATEPART(week, ${tarihClause}) haftano`); orderBy.add('haftano'); break
-					case 'TARIH': sent.sahalar.add(tarihClause); orderBy.add(tarihSaha); break
+					case 'YILAY': sent.sahalar.add(`(CAST(DATEPART(year, ${tarihClause}) AS CHAR(4)) + ' - ' + dbo.ayadi(${tarihClause})) yilay`); break
+					case 'YILHAFTA': sent.sahalar.add(`(CAST(DATEPART(year, ${tarihClause}) AS CHAR(4)) + ' - ' + CAST(DATEPART(week, ${tarihClause}) AS VARCHAR(2))) yilhafta`); break
+					case 'AYADI': sent.sahalar.add(`dbo.ayadi(${tarihClause}) ayadi`); break
+					case 'HAFTA': sent.sahalar.add(`DATEPART(week, ${tarihClause}) haftano`); break
+					case 'TARIH': sent.sahalar.add(tarihClause); break
 				}
 			}
 		}
@@ -83,7 +84,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get toplamPrefix() { return '' }
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); const {result} = e, {toplamPrefix} = this.class, {zorunlu, ticariGenel} = app.params, {sube} = zorunlu, {takipNo, plasiyer} = ticariGenel.kullanim;
-		result.setSortAttr('yilay').addKAPrefix('anagrup', 'grup', 'sistgrup', 'stok', 'tip', 'bolge', 'cistgrup', 'cari', 'il', 'ulke', 'sube', 'takip', 'plasiyer');
+		result.addKAPrefix('anagrup', 'grup', 'sistgrup', 'stok', 'tip', 'bolge', 'cistgrup', 'cari', 'il', 'ulke', 'sube', 'takip', 'plasiyer');
 		result
 			.addGrup(new TabloYapiItem().setKA('STANAGRP', 'Stok Ana Grup').secimKullanilir().setMFSinif(DMQStokAnaGrup)
 				.addColDef(new GridKolon({ belirtec: 'anagrup', text: 'Stok Ana Grup', maxWidth: 450, filterType: 'checkedlist' })))
@@ -125,7 +126,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 				attrSet[kod] = true
 			}
 		}
-		let {sent, orderBy} = stm, wh = sent.where; e.sent = sent; this.fisVeHareketBagla(e); this.donemBagla({ ...e, sent, tarihSaha: 'fis.tarih' });
+		let {sent} = stm, wh = sent.where; e.sent = sent; this.fisVeHareketBagla(e); this.donemBagla({ ...e, sent, tarihSaha: 'fis.tarih' });
 		const {kgBirimler} = MQStokGenelParam, kgInClause = `(${kgBirimler.map(x => MQSQLOrtak.sqlServerDegeri(x)).join(', ')})`;
 		const kgClause = e.kgClause = `(case when stk.brm IN ${kgInClause} then har.miktar when stk.brm2 IN ${kgInClause} then har.miktar2 else 0 end)`;
 		wh.fisSilindiEkle(); wh.add(`fis.ozelisaret <> 'X'`);
@@ -135,23 +136,23 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		this.loadServerData_queryDuzenle_tarih({ ...e, alias: 'fis', tarihSaha: 'tarih' });
 		for (const key in attrSet) {
 			switch (key) {
-				case 'STANAGRP': sent.stokGrup2AnaGrupBagla(); sent.sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi'); orderBy.add('anagrupkod'); break
-				case 'STGRP': sent.stok2GrupBagla(); sent.sahalar.add('stk.grupkod', 'grp.aciklama grupadi'); orderBy.add('grupkod'); break
-				case 'STISTGRP': sent.stok2IstGrupBagla(); sent.sahalar.add('stk.sistgrupkod', 'sigrp.aciklama sistgrupadi'); orderBy.add('sistgrupkod'); break
-				case 'STOK': sent.sahalar.add('har.stokkod', 'stk.aciklama stokadi'); orderBy.add('stokkod'); break
-				case 'CRTIP': sent.cari2TipBagla(); sent.sahalar.add('car.tipkod', 'ctip.aciklama tipadi'); orderBy.add('tipkod'); break
-				case 'CRANABOL': sent.bolge2AnaBolgeBagla(); sent.sahalar.add('bol.anabolgekod', 'abol.aciklama anabolgeadi'); orderBy.add('anabolgekod'); break
-				case 'CRBOL': sent.cari2BolgeBagla(); sent.sahalar.add('car.bolgekod', 'bol.aciklama bolgeadi'); orderBy.add('bolgekod'); break
-				case 'CRISTGRP': sent.cari2IstGrupBagla(); sent.sahalar.add('car.cistgrupkod', 'cigrp.aciklama cistgrupadi'); orderBy.add('cistgrupkod'); break
-				case 'CARI': sent.sahalar.add('fis.must carikod', 'car.birunvan cariadi'); orderBy.add('carikod'); break
-				case 'CRIL': sent.cari2IlBagla(); sent.sahalar.add('car.ilkod', 'il.aciklama iladi'); orderBy.add('ilkod'); break
-				/*case 'CRULKE': sent.cari2UlkeBagla(); sent.sahalar.add('car.ulkekod', `(case when ulk.aciklama = '' then '' else ulk.aciklama end) ulkeadi`); orderBy.add('ulkekod'); break*/
-				case 'CRULKE': sent.cari2UlkeBagla(); sent.sahalar.add('car.ulkekod', 'ulk.aciklama ulkeadi'); orderBy.add('ulkekod'); break
-				case 'SUBE': sent.fis2SubeBagla(); sent.sahalar.add('fis.bizsubekod subekod', 'sub.aciklama subeadi'); orderBy.add('subekod'); break
+				case 'STANAGRP': sent.stokGrup2AnaGrupBagla(); sent.sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi'); break
+				case 'STGRP': sent.stok2GrupBagla(); sent.sahalar.add('stk.grupkod', 'grp.aciklama grupadi'); break
+				case 'STISTGRP': sent.stok2IstGrupBagla(); sent.sahalar.add('stk.sistgrupkod', 'sigrp.aciklama sistgrupadi'); break
+				case 'STOK': sent.sahalar.add('har.stokkod', 'stk.aciklama stokadi'); break
+				case 'CRTIP': sent.cari2TipBagla(); sent.sahalar.add('car.tipkod', 'ctip.aciklama tipadi'); break
+				case 'CRANABOL': sent.bolge2AnaBolgeBagla(); sent.sahalar.add('bol.anabolgekod', 'abol.aciklama anabolgeadi'); break
+				case 'CRBOL': sent.cari2BolgeBagla(); sent.sahalar.add('car.bolgekod', 'bol.aciklama bolgeadi');  break
+				case 'CRISTGRP': sent.cari2IstGrupBagla(); sent.sahalar.add('car.cistgrupkod', 'cigrp.aciklama cistgrupadi'); break
+				case 'CARI': sent.sahalar.add('fis.must carikod', 'car.birunvan cariadi'); break
+				case 'CRIL': sent.cari2IlBagla(); sent.sahalar.add('car.ilkod', 'il.aciklama iladi'); break
+				/*case 'CRULKE': sent.cari2UlkeBagla(); sent.sahalar.add('car.ulkekod', `(case when ulk.aciklama = '' then '' else ulk.aciklama end) ulkeadi`); break*/
+				case 'CRULKE': sent.cari2UlkeBagla(); sent.sahalar.add('car.ulkekod', 'ulk.aciklama ulkeadi'); break
+				case 'SUBE': sent.fis2SubeBagla(); sent.sahalar.add('fis.bizsubekod subekod', 'sub.aciklama subeadi'); break
 				case 'TAKIPNO':
 					sent.fromIliski(`(case when fis.takiportakdir = '' then har.dettakipno else fis.orttakipno end) = tak.kod`);
-					sent.sahalar.add('tak.kod takipkod', 'tak.aciklama takipadi'); orderBy.add('takipkod'); break
-				case 'PLASIYER': sent.fromIliski('carmst pls', 'fis.plasiyerkod = pls.must'); sent.sahalar.add('fis.plasiyerkod', 'pls.birunvan plasiyeradi'); orderBy.add('plasiyerkod'); break
+					sent.sahalar.add('tak.kod takipkod', 'tak.aciklama takipadi'); break
+				case 'PLASIYER': sent.fromIliski('carmst pls', 'fis.plasiyerkod = pls.must'); sent.sahalar.add('fis.plasiyerkod', 'pls.birunvan plasiyeradi'); break
 				case 'MIKTAR': sent.sahalar.add('SUM(har.miktar) miktar'); break
 				case 'MIKTARKG': sent.sahalar.add(`SUM(${kgClause}) miktarkg`); break
 				case 'CIRO': sent.sahalar.add('SUM(har.bedel) ciro'); break

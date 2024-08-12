@@ -152,7 +152,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	}
 	onGridRun(e) { super.onGridRun(e); this.tazeleOncesi(e) }
 	tabloKolonlariDuzenle(e) {
-		super.tabloKolonlariDuzenle(e) ; const {liste} = e, {tabloYapi} = this, {grup, toplam} = tabloYapi;
+		super.tabloKolonlariDuzenle(e); const {liste} = e, {tabloYapi} = this, {grup, toplam} = tabloYapi;
 		for (const item of [grup, toplam]) { for (const {colDefs} of Object.values(item)) { if (colDefs?.length) { liste.push(...colDefs) } } }
 	}
 	gridArgsDuzenle(e) {
@@ -225,6 +225,10 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		const tip2ColDefs = {}; for (const colDef of tabloKolonlari) { const {belirtec, userData} = colDef, {kod} = userData || {}; if (kod) { (tip2ColDefs[kod] = tip2ColDefs[kod] || []).push(colDef) } }
 		let colDefs = Object.keys(icerik).flatMap(kod => tip2ColDefs[kod]); colDefs.sort((a, b) => tabloYapi.toplam[a.userData?.kod] ? 1 : -1);
 		for (const colDef of colDefs) { if (!colDef.aggregates && tabloYapi.toplam[colDef.userData?.kod]) { colDef.aggregates = ['sum'] } }
+		let ilkColDef = colDefs[0]; if (tabloYapi.grup[ilkColDef?.userData?.kod]) {
+			let colDef = ilkColDef.deepCopy(); colDefs[0] = colDef;
+			colDef.text = [...(Object.keys(grup).map(kod => `<span class="royalblue">${tabloYapi.grup[kod]?.colDefs[0]?.text || ''}</span>`) || []), colDef.text].join(' + ')
+		}
 		grid.jqxTreeGrid('clear'); colDefs = this.getColumns(colDefs); try { grid.jqxTreeGrid('columns', colDefs.flatMap(colDef => colDef.jqxColumns)) } catch (ex) { console.error(ex) }
 		$.extend(ozetBilgi, { grupTipKod: Object.keys(attrSet).find(kod => !tabloYapi.toplam[kod]) || null, icerikTipKod: Object.keys(icerik).find(kod => !!tabloYapi.toplam[kod]) || null });
 		$.extend(ozetBilgi, { grupAttr: (tip2ColDefs[ozetBilgi.grupTipKod] || [])[0]?.belirtec, icerikAttr: (tip2ColDefs[ozetBilgi.icerikTipKod] || [])[0]?.belirtec });

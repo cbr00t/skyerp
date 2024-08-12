@@ -1,6 +1,6 @@
 class DAltRapor_Chart extends DAltRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return null }
-	static get kod() { return 'chart' } static get aciklama() { return 'Chart' }
+	static get kod() { return 'chart' } static get aciklama() { return 'Grafik' }
 	get width() { return `calc(var(--full) - ${this.rapor.id2AltRapor.main.width})` } get height() { return '50%' }
 	onBuildEk(e) {
 		super.onBuildEk(e); const {parentBuilder, noAutoColumns} = this, {layout} = parentBuilder;
@@ -45,7 +45,7 @@ class DAltRapor_Chart extends DAltRapor {
 			rec = $.extend(true, {}, rec); let grupText = rec[grupAttr]; if (grupText && !grupText.toString().includes('<')) { rec[grupAttr] = grupText = `<span class="bold">${grupText}</span>` }
 			rec[icerikAttr] = roundToFra(rec[icerikAttr] * 100 / toplam, 1); newRecs.push(rec)
 		}
-		return newRecs
+		if (newRecs.length > 1) { newRecs.unshift(newRecs.pop()) } return newRecs
 	}
 	chartVeriYuklendi(e) { }
 	getChartXAxis(e) {
@@ -64,7 +64,7 @@ class DAltRapor_Chart extends DAltRapor {
 				dataField: icerikAttr, displayText: grupAttr, labelRadius: 105, initialAngle: 115, radius: '85%', innerRadius: 0, useGradient: true,
 				centerOffset: 0, offsetY: this.getChartOffsetY(e), labels: { /*backgroundColor: 'white', backgroundOpacity: 1,*/ class: 'chart-label' },
 				formatFunction: value => isNaN(value) ? getTagContent(value) || value : `%${numberToString(value)}`
-				/*formatFunction: value => isNaN(value) ? value : '%' + asFloat(value)*/
+				/*colorFunction: (value, index, serie, group) => { return '' }*/
 			})
 		}
 		return result

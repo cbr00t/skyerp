@@ -37,6 +37,7 @@ class TabloYapiItem extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get tipStringmi() { return !this.tip } get tipNumerikmi() { return this.tip == 'number' } get tipTarihmi() { return this.tip == 'date' } get tipBoolmu() { return this.tip == 'boolean' }
 	get secimSinif() { return this.tipNumerikmi ? SecimNumber : this.tipTarihmi ? SecimDate : SecimString }
+	get kaYapimi() { return !!this.mfSinif } get orderBySaha() { let {kaYapimi} = this, {belirtec} = this.colDefs[0]; if (kaYapimi) { belirtec += 'kod' } return belirtec }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, {
 			tip: e.tip == 'string' ? null : e.tip, mfSinif: e.mfSinif, secimKullanilirFlag: e.secimKullanilirFlag,
