@@ -106,6 +106,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		if (!colDefs) { return colDefs }
 		const {gridPart} = this, result = []; for (let i = 0; i < colDefs.length; i++) {
 			const colDef = colDefs[i].deepCopy(); colDef.gridPart = gridPart; const {tip} = colDef;
+			if (!colDef.minWidth) { colDef.minWidth = 180 }
 			for (const key of ['cellsRenderer', 'cellValueChanging']) { delete colDef[key] }
 			colDef.aggregatesRenderer = (colDef, aggregates, jqCol, elm) => {
 				let result = []; for (let [tip, value] of Object.entries(aggregates)) {
