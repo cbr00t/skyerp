@@ -1,6 +1,13 @@
 class SkyRaporApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get yerelParamSinif() { return MQYerelParam } get autoExecMenuId() { return 'SATISLAR' }
+	static get yerelParamSinif() { return MQYerelParam } get autoExecMenuId() { return 'TICARI-SATIS' }
+	static get kategoriKod2Adi() {
+		let result = this._kategoriKod2Adi; if (result == null) {
+			result = { TICARI: 'Ticari', FINANS: 'Finans', MES: 'MES' };
+			this._kategoriKod2Adi = result
+		}
+		return result
+	}
 	paramsDuzenle(e) { super.paramsDuzenle(e) /*; const {params} = e; $.extend(params, { rapor: MQParam_Rapor.getInstance() })*/ }
 	async anaMenuOlustur(e) {
 		await this.promise_ready; let kullanim = app.params.aktarim, eksikParamIsimleri = [];
@@ -23,10 +30,17 @@ class SkyRaporApp extends TicariApp {
 	}
 	getAnaMenu(e) {
 		const {noMenuFlag} = this; if (noMenuFlag) { return new FRMenu() }
-		const {kod2Sinif} = DRapor, items_raporlar = [];
+		const {kod2Sinif} = DRapor, kategoriKod2MenuItems = {};
 		for (const [mne, sinif] of Object.entries(kod2Sinif)) {
-			if (sinif.dAltRapormu) { continue }
-			items_raporlar.push(new FRMenuChoice({ mne, text: sinif.aciklama, block: e => sinif.goster() }))
+			if (sinif.dAltRapormu) { continue } const kategoriKod = sinif.kategoriKod ?? '';
+			(kategoriKod2MenuItems[kategoriKod] = kategoriKod2MenuItems[kategoriKod] || [])
+				.push(new FRMenuChoice({ mne, text: sinif.aciklama, block: e => sinif.goster() }))
+		}
+		const items_raporlar = [], {kategoriKod2Adi} = this.class;
+		for (const [kategoriKod, items] of Object.entries(kategoriKod2MenuItems)) {
+			const kategoriAdi = kategoriKod2Adi[kategoriKod] || kategoriKod; let target = items_raporlar;
+			if (kategoriKod) { const parentItem = new FRMenuCascade({ mne: kategoriKod, text: kategoriAdi }); items_raporlar.push(parentItem); target = parentItem.items }
+			target.push(...items)
 		}
 		/*const menu_test = (config.dev ? new FRMenuCascade({ mne: 'TEST', text: 'TEST', items: items_raporlar }) : null);*/
 		return new FRMenu({ items: items_raporlar.filter(x => !!x) })

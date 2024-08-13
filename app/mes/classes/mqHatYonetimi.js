@@ -261,7 +261,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 					case 'notlar': this.ekNotlarIstendi(e); break;
 					case 'notEkle': this.ekNotEkleIstendi(e); break;
 					case 'dokumanYukle': this.dokumanYukleIstendi(e); break;
-					case 'dokumanSil': e.sil = true; this.dokumanYukleIstendi(e); break;
+					case 'dokumanSil': this.dokumanSilIstendi(e); break;
 					case 'ekBilgiSil': this.ekBilgiSilItendi(e); break;
 					default: eConfirm(`<b>${visibleindex + 1}. satırdaki</b> ve <b>${tezgahAdi}</b> tezgahına ait <b>${id}</b> id'li butona tıklandı`)
 				}
@@ -447,18 +447,8 @@ class MQHatYonetimi extends MQMasterOrtak {
 		let inst = new MQEkNotlar({ hatKod, tezgahKod }); return inst.tanimla({ islem: 'yeni' })
 	}
 	static dokumanYukleIstendi(e) {
-		e = e || {}; const silFlag = e.sil ?? e.silFlag, gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, rec = e.rec ?? gridPart.selectedRec ?? {};
-		const hatKod = rec.hatKod ?? ''; if (!hatKod) { return } const resimId = `hat-${hatKod}-01`, islemAdi = silFlag ? `<b color="indianred">Resim SİL</b>` : 'Hat Resim Yükleme';
-		if (silFlag) {
-			return new $.Deferred(async p => {
-				let rdlg = await ehConfirm(`<b class="royalblue">${hatKod}</b><b class="indianred"> hattına ait Resim silinecek, emin misiniz?</b>`, islemAdi); if (!rdlg) { return }
-				const data = '', extListe = ['jpg', 'png']; for (const ext of extListe) {
-					const result = await app.wsResimDataKaydet({ resimId, ext, data });
-					if (!result.result) { throw { isError: true, errorText: `${islemAdi} sorunu` } }
-				}
-				gridPart.tazeleDefer(e); setTimeout(() => eConfirm(`Hat Resim Görüntüsünün güncellenmesi için uygulamadan çıkıp yeniden girilmesi gerekebilir`, islemAdi))
-			})
-		}
+		e = e || {}; const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, rec = e.rec ?? gridPart.selectedRec ?? {};
+		const hatKod = rec.hatKod ?? ''; if (!hatKod) { return } const resimId = `hat-${hatKod}-01`, islemAdi = 'Hat Resim Yükleme';
 		let elm = $(`<input type="file" capture accept="image/*, application/pdf, video/*">`).appendTo('body'); elm.addClass('jqx-hidden');
 		elm.on('change', async evt => {
 			try {
@@ -469,6 +459,13 @@ class MQHatYonetimi extends MQMasterOrtak {
 			} finally { $(evt.target).remove() }
 		});
 		elm.click()
+	}
+	static async dokumanSilIstendi(e) {
+		e = e || {}; const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, rec = e.rec ?? gridPart.selectedRec ?? {};
+		const hatKod = rec.hatKod ?? ''; if (!hatKod) { return } const resimId = `hat-${hatKod}`, islemAdi = `<b color="indianred">Resim SİL</b>`;
+		let rdlg = await ehConfirm(`<b class="royalblue">${hatKod}</b><b class="indianred"> hattına ait Resim silinecek, emin misiniz?</b>`, islemAdi); if (!rdlg) { return }
+		const result = await app.wsResimDataSil({ resimId }); if (!result.result) { throw { isError: true, errorText: `${islemAdi} sorunu` } }
+		gridPart.tazeleDefer(e); setTimeout(() => eConfirm(`Hat Resim Görüntüsünün güncellenmesi için uygulamadan çıkıp yeniden girilmesi gerekebilir`, islemAdi))
 	}
 	static async ekBilgiSilItendi(e) {
 		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, recs = e.recs ?? gridPart.selectedRecs ?? []; if (!recs?.length) { return }
