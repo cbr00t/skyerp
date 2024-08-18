@@ -15,7 +15,7 @@ class ButonlarPart extends Part {
 	runDevam(e) { e = e || {}; super.runDevam(e); this.butonlariOlustur(e); const {layout} = this; layout.addClass('flex-row'); makeScrollable(layout) }
 	destroyPart(e) {
 		super.destroyPart(e); const {layout} = this;
-		if (layout?.length) { const buttons = layout.find('button'); if (buttons?.length) { buttons.jqxButton('destroy') }layout.children().remove() }
+		if (layout?.length) { const buttons = layout.find('button'); if (buttons?.length) { buttons.jqxButton('destroy') } layout.children().remove() }
 		this.layout = null
 	}
 	butonlariOlustur(e) {

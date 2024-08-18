@@ -68,7 +68,7 @@ class GridPart extends Part {
 	superRunDevam(e) { return super.runDevam(e) }
 	destroyPart(e) {
 		super.destroyPart(e); const {isWindowPart, hasModalClass, grid, gridWidget} = this; if (isWindowPart && hasModalClass) { $('body').addClass('bg-modal') }
-		if (grid?.length) {
+		if (grid?.length && grid.parent()?.length) {
 			try { grid.jqxGrid('destroy') } catch (ex) { }
 			if (gridWidget) {
 				const {menuitemsarray, filtermenu, filterpanel} = gridWidget;

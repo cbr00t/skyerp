@@ -1,28 +1,10 @@
 /* transition: all .4s;  lazy loading */
 :root {
-	--nav-toggle-button-width: 28px;
-	--nav-toggle-button-height: 33px;
-	--appTitle-top: 0px;
-	--appTitle-height-mini: 10px;
-	--appTitle-height: 30px;
-	--appTitle-bottom: calc(var(--appTitle-top) + var(--appTitle-height));
-	--background-image-height: 53px;
-	/*--header-image-height: var(--full);*/
-	--header-image-height: calc(var(
-	--appTitle-height) + 53px);
-	--nav-padding-x: 0px;
-	--nav-padding-y: 13px;
-	--nav-top: 0px;
-	--nav-top-mini: 60px;
-	--nav-min-width: 250px;
-	--nav-width: 20%;
-	--nav-right: calc(var(
-	--nav-width) + calc(var(--nav-padding-x) * 2));
-	--yil-renk: rebeccapurple;
-	--db-renk: green;
-	--main-padding-x: 15px;
-	--main-padding-y: 0px;
-	--islemTuslari-height: 45px;
+	--nav-toggle-button-width: 28px; --nav-toggle-button-height: 30px; --appTitle-top: 0px; --appTitle-height: 33px; --appTitle-height-mini: 3px;
+	--appTitle-bottom: calc(var(--appTitle-top) + var(--appTitle-height)); --background-image-height: 53px;
+	/*--header-image-height: var(--full);*/ --header-image-height: calc(var(--appTitle-height) + 40px); --nav-padding-x: 0px; --nav-padding-y: 13px;
+	--nav-top: 0px; --nav-top-mini: 60px; --nav-min-width: 250px; --nav-width: 20%; --nav-right: calc(var(--nav-width) + calc(var(--nav-padding-x) * 2));
+	--yil-renk: rebeccapurple; --db-renk: green; --main-padding-x: 15px; --main-padding-y: 0px; --islemTuslari-height: 45px;
 }
 * { accent-color: #1a3588 }
 body > #root-parent,
@@ -73,8 +55,7 @@ body #ust-parent > #parent > #windows-parent > div > #windows > .content > div {
 .jqx-responsive-panel-button { background-color: transparent; border: 2px solid transparent; outline: none !important }
 .jqx-responsive-panel-button.jqx-fill-state-normal { }
 .jqx-responsive-panel-button:hover { border-color: #00afff !important }
-.jqx-responsive-panel-button:focus,
-.jqx-responsive-panel-button:active { border-color: #00f6ff !important }
+.jqx-responsive-panel-button:focus, .jqx-responsive-panel-button:active { border-color: #00f6ff !important }
 .jqx-responsive-panel-button .jqx-menu-minimized-button { background-image: url(../../images/nav-toggle.png) !important; background-color: transparent !important; background-size: contain }
 body #ust-parent > #parent { /*width: calc(var(--full) - var(--nav-right));*/ width: var(--full) }
 body > .header-image {
@@ -92,7 +73,7 @@ body > .header-image {
 body > .bg-image-wrapper { width: var(--full); height: var(--background-image-height); background-color: #0327742b; opacity: .7; z-index: 1010 !important }
 body > .app-titlebar {
 	font-size: 70%; font-weight: bold; color: lightskyblue; position: fixed; top: var(--appTitle-top); right: 70px;
-	padding: .15% 10px; line-height: 18px; opacity: .8; pointer-events: none; z-index: 100 !important
+	padding: .15% 10px; line-height: 16px; opacity: .8; pointer-events: none; z-index: 100 !important
 }
 body > .app-titlebar > div { text-align: right }
 body > .app-titlebar .db-name { color: var(--s-white); z-index: -2 !important }

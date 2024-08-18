@@ -27,7 +27,8 @@ class DAltRapor extends DRapor {
 		layout.trigger('resize'); if (part?.onResize) { part.onResize(e) }
 	}
 	secimlerIstendi(e) {
-		let {secimlerPart} = this; if (secimlerPart) { secimlerPart.show() }
+		let {secimlerPart} = this; if (secimlerPart?.isDestroyed) { secimlerPart = this.secimlerPart = undefined }
+		if (secimlerPart) { secimlerPart.show() }
 		else {
 			const {secimler} = this; if (secimler) {
 				secimlerPart = this.secimlerPart = secimler.duzenlemeEkraniAc({ parentPart: this.rapor.part, tamamIslemi: e => this.rapor.tazele() });
