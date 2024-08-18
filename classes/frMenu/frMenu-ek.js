@@ -24,7 +24,7 @@ class FRMenuItem extends CObject {
 		if (obj.text != null) { this.text = obj.text }
 		return true
 	}
-	run(e) { let id = this.mnemonic || this.id; if (id && id[0] != '_') { app.lastMenuId = this.id } }
+	run(e) { let id = this.mnemonic || this.id; if (id && id[0] != '_') { app.lastMenuId = this.mneText } }
 	menuSourceDuzenle(e) {
 		const {frMenu} = e; frMenu.id2Item[this.id] = this; let mneListe = [], item = this;
 		do { const mne = item.mnemonic; if (mne) { mneListe.unshift(mne.toLocaleUpperCase(culture)) } item = item.parentItem } while (item != null);
@@ -75,7 +75,6 @@ class FRMenuItem extends CObject {
 class FRMenuCascade extends FRMenuItem {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'cascade' } get cascademi() { return true }
-
 	constructor(e) { super(e); e = e || {}; this.items = e.items || []; this.id2Item = e.id2Item }
 	readFrom(obj) {
 		if (!super.readFrom(obj)) { return false }
