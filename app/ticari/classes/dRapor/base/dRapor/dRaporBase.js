@@ -120,11 +120,11 @@ class DGrupluPanelRapor extends DPanelRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGrupluPanelRapormu() { return true }
 	static get noOverflowFlag() { return true } static get altRaporClassPrefix() { return null }
 	altRaporlarDuzenle(e) {
-		super.altRaporlarDuzenle(e); const prefix = this.class.altRaporClassPrefix;
-		if (prefix) {
+		super.altRaporlarDuzenle(e); this.add(DAltRapor_Grid_Ozet, DAltRapor_Chart)
+		/*const prefix = this.class.altRaporClassPrefix; if (prefix) {
 			const postfixes = ['_Main', '_Ozet', '_Chart', '_Diagram'], classes = postfixes.map(postfix => window[prefix + postfix]).filter(cls => !!cls);
 			this.add(...classes)
-		}
+		}*/
 	}
 	islemTuslariArgsDuzenle(e) {
 		super.islemTuslariArgsDuzenle(e); const {liste} = e; liste.push(

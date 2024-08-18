@@ -37,7 +37,7 @@ class SkyRaporApp extends TicariApp {
 				.push(new FRMenuChoice({
 					mne, vioAdim, text: sinif.aciklama,
 					block: e => {
-						const item = e?.menuItemElement, menuId = item?.mneText;
+						const item = e?.menuItemElement, menuId = qs.sameWindow ? null : item?.mneText;
 						if (menuId) { this.openNewWindow({ menuId }) } else { sinif.goster(e) }
 					}
 				}))

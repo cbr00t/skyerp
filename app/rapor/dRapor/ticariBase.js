@@ -1,6 +1,5 @@
 class DRapor_Donemsel extends DGrupluPanelRapor {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get altRaporClassPrefix() { return this.name }
-	altRaporlarDuzenle(e) { super.altRaporlarDuzenle(e); this.add(DAltRapor_Grid_Ozet, DAltRapor_Chart) }
 }
 class DRapor_Donemsel_Main extends DAltRapor_TreeGridGruplu {
 	static { window[this.name] = this; this._key2Class[this.name] = this } get tazeleYapilirmi() { return true }
