@@ -32,9 +32,9 @@ class SkyRaporApp extends TicariApp {
 		const {noMenuFlag} = this; if (noMenuFlag) { return new FRMenu() }
 		const {kod2Sinif} = DRapor, kategoriKod2MenuItems = {};
 		for (const [mne, sinif] of Object.entries(kod2Sinif)) {
-			if (sinif.dAltRapormu) { continue } const kategoriKod = sinif.kategoriKod ?? '';
+			if (sinif.dAltRapormu) { continue } const {vioAdim} = sinif, kategoriKod = sinif.kategoriKod ?? '';
 			(kategoriKod2MenuItems[kategoriKod] = kategoriKod2MenuItems[kategoriKod] || [])
-				.push(new FRMenuChoice({ mne, text: sinif.aciklama, block: e => sinif.goster() }))
+				.push(new FRMenuChoice({ mne, vioAdim, text: sinif.aciklama, block: e => sinif.goster() }))
 		}
 		const items_raporlar = [], {kategoriKod2Adi} = this.class;
 		for (const [kategoriKod, items] of Object.entries(kategoriKod2MenuItems)) {

@@ -79,7 +79,7 @@ class DRapor_Donemsel_Main extends DAltRapor_TreeGridGruplu {
 	} 
 	donemBagla(e) { const {donemBS, tarihSaha, sent} = e; if (donemBS) { sent.where.basiSonu(donemBS, tarihSaha) } }
 }
-class DRapor_Ticari extends DRapor_Donemsel { static { window[this.name] = this; this._key2Class[this.name] = this } }
+class DRapor_Ticari extends DRapor_Donemsel { static { window[this.name] = this; this._key2Class[this.name] = this } static get kategoriKod() { return 'TICARI' } }
 class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get toplamPrefix() { return '' }
 	tabloYapiDuzenle(e) {

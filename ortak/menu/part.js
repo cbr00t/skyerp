@@ -89,165 +89,99 @@ class MenuPart extends Part {
 					return result
 				},
 				degisince: e => {
-					const {sender, item} = e; let {value} = e;
-					const {widget} = sender;
+					const {sender, item} = e; let {value} = e, {widget} = sender;
 					setTimeout(() => { if (widget && widget.isOpened()) widget.close() }, 1);
-					/*if (document.activeElement == widget.input[0])
-						widget.input.select();*/
+					/*if (document.activeElement == widget.input[0]) widget.input.select();*/
 					const islemBlock = item => {
-						const {mneText} = (item || {}); sender.val(mneText || '');
-						if (!item) return
-						if ($.isPlainObject(item)) item = this.source.mne2Item[item.mneText]
-						if (item.cascademi && this.parentItem != item) { this.parentItem = item; this.tazele(); return }
-						if (item.choicemi) item.run()
+						const {mneText} = (item || {}); sender.val(mneText || ''); if (!item) { return }
+						if ($.isPlainObject(item)) { item = this.source.mne2Item[item.mneText] }
+						if (item.cascademi && this.parentItem != item) { this.parentItem = item; this.tazele() }
+						else if (item.choicemi) { try { item.run({ ...e, menuItemElement: item }) } catch (ex) { hConfirm(getErrorText(ex), item.text); throw ex } }
 					};
 					if (item) { islemBlock(item); return }
 					if (value) {
-						if (value.endsWith('-')) value = value.slice(0, -1)
-						const {source} = this; let recs = source;
-						if (recs && $.isFunction(recs)) { e.sender = this; recs = getFuncValue.call(this, recs, e) }
+						if (value.endsWith('-')) { value = value.slice(0, -1) }
+						const {source} = this; let recs = source; if (recs && $.isFunction(recs)) { e.sender = this; recs = getFuncValue.call(this, recs, e) }
 						if (recs) { const item = recs.mne2Item[value.toLocaleUpperCase(culture)]; islemBlock(item); return }
 					}
 				}
 			}).comboBox().noAutoWidth().noAutoGetSelectedItem()
 		});
-		const {hizliBulPart, itemsParent} = this;
-		hizliBulPart.run();
-		hizliBulPart.widget.input.on('focus', evt =>
-			hizliBulPart.val('', true));
-		this.tazele(e)
+		const {hizliBulPart, itemsParent} = this; hizliBulPart.run();
+		hizliBulPart.widget.input.on('focus', evt => hizliBulPart.val('', true)); this.tazele(e)
 	}
 	destroyPart(e) {
-		super.destroyPart(e);
-		const {layout} = this;
-		if (layout && layout.length)
-			layout.children().remove();
+		super.destroyPart(e); const {layout} = this; if (layout?.length) { layout.children().remove() }
 		this.layout = this._source = this.parentItem = this.visibleItems = null;
 		return this
 	}
 	tazele(e) {
-		const {hizliBulPart} = this;
-		if (hizliBulPart && !hizliBulPart.isDestroyed && hizliBulPart.widget) {
-			const {parentItem} = this;
-			const mneText = parentItem ? parentItem.mneText : '';
+		const {hizliBulPart} = this; if (hizliBulPart?.widget && !hizliBulPart.isDestroyed) {
+			const {parentItem} = this, mneText = parentItem ? parentItem.mneText : '';
 			hizliBulPart.val(mneText)
 		}
 		return this.tazeleDevam(e)
 	}
 	async tazeleDevam(e) {
-		const docFrgKeys = ['nav', 'itemsParent'];
-		const docFrg = {};
-		for (const key of docFrgKeys)
-			docFrg[key] = $(document.createDocumentFragment())
-		const {visibleItems} = this;
-		const parentItems = [];
-		let _parentItem = this.parentItem;
-		if (_parentItem) {
-			do {
-				parentItems.push(_parentItem);
-				_parentItem = _parentItem.parentItem;
-			}
-			while (_parentItem);
+		const docFrgKeys = ['nav', 'itemsParent'], docFrg = {}; for (const key of docFrgKeys) { docFrg[key] = $(document.createDocumentFragment()) }
+		const {visibleItems} = this, parentItems = [];
+		let _parentItem = this.parentItem; if (_parentItem) {
+			do { parentItems.push(_parentItem); _parentItem = _parentItem.parentItem } while (_parentItem);
 			parentItems.reverse()
 		}
 		parentItems.unshift(visibleItems);
 		if (parentItems.length > 1) {
 			for (let i = 0; i < parentItems.length; i++) {
-				if (i) {
-					const elmSep = $(`<span class="nav-separator">&gt;</span>`);
-					elmSep.appendTo(docFrg.nav)
-				}
-				const parentItem = parentItems[i];
-				const anaMenumu = $.isArray(parentItem);
-				const text = anaMenumu ? '[ Ana Menü ]' : parentItem.text;
+				if (i) { const elmSep = $(`<span class="nav-separator">&gt;</span>`); elmSep.appendTo(docFrg.nav) }
+				const parentItem = parentItems[i], anaMenumu = $.isArray(parentItem), text = anaMenumu ? '[ Ana Menü ]' : parentItem.text;
 				const elmItem = $(`<a class="nav-item" onclick="void(0)">${text}</a>`);
-				const isCurrentItem = (i == parentItems.length - 1);
-				if (isCurrentItem)
-					elmItem.addClass('disabled')
-				elmItem.appendTo(docFrg.nav);
-				elmItem.data('item', parentItem);
+				const isCurrentItem = (i == parentItems.length - 1); if (isCurrentItem) { elmItem.addClass('disabled') }
+				elmItem.appendTo(docFrg.nav); elmItem.data('item', parentItem);
 				if (!isCurrentItem) {
 					elmItem.on('click', evt => {
-						const parentItem = $(evt.currentTarget).data('item');
-						const anaMenumu = !parentItem || $.isArray(parentItem);
-						if (anaMenumu || (parentItem && this.parentItem != parentItem)) {
-							this.parentItem = anaMenumu ? null : parentItem;
-							this.tazele()
-						}
+						const parentItem = $(evt.currentTarget).data('item'), anaMenumu = !parentItem || $.isArray(parentItem);
+						if (anaMenumu || (parentItem && this.parentItem != parentItem)) { this.parentItem = anaMenumu ? null : parentItem; this.tazele() }
 					})
 				}
 			}
 		}
-		const parentId2Items = {};
-		const parentId2ParentItem = {};
+		const parentId2Items = {}, parentId2ParentItem = {};
 		for (const item of visibleItems) {
-			const {parentItem} = item;
-			const parentId = parentItem ? parentItem.id : '';
+			const {parentItem} = item, parentId = parentItem ? parentItem.id : '';
 			(parentId2Items[parentId] = parentId2Items[parentId] || []).push(item);
-			if (parentId)
-				parentId2ParentItem[parentId] = parentItem
+			if (parentId) { parentId2ParentItem[parentId] = parentItem }
 		}
 		// const parentIDSize = Object.keys(parentId2Items).length;
 		for (const parentId in parentId2Items) {
-			const parentItem = parentId2ParentItem[parentId];
-			const parentItemText = parentItem ? parentItem.text : '';
+			const parentItem = parentId2ParentItem[parentId], parentItemText = parentItem ? parentItem.text : '';
 			$(`<div class="menu-header">${parentItemText}</div>`).appendTo(docFrg.itemsParent);
-			const elmItems = $(`<div class="items"></div>`);
-			elmItems.appendTo(docFrg.itemsParent);
-			makeScrollable(elmItems);
-			const items = parentId2Items[parentId];
-			for (const item of items) {
+			const elmItems = $(`<div class="items"></div>`); elmItems.appendTo(docFrg.itemsParent); makeScrollable(elmItems);
+			const items = parentId2Items[parentId]; for (const item of items) {
 				const {id, mnemonic, text, parentIDListe} = item;
 				const parentIdStr = parentIDListe ? parentIDListe.join(this.class.delimMenuId) : '';
 				const elmItem = $(`<button class="item" data-id="${id}" data-mnemonic="${mnemonic}" data-parentid="${parentIdStr}">${text}</button>`);
-				// if (item.isDisabled) { elmItem.prop('disabled', true); elmItem.addClass('readOnly') }
-				elmItem.jqxButton({ theme: theme, disabled: !!item.isDisabled });
-				elmItem.data('item', item);
-				if (item.choicemi)
-					elmItem.addClass('menu-choice');
-				else if (item.cascademi)
-					elmItem.addClass('menu-cascade');
-				elmItem.appendTo(elmItems);
-				elmItem.on('click', evt => {
-					this.itemsParent.find('.item').removeClass('selected');
-					const elm = $(evt.currentTarget);
-					const item = elm.data('item');
+				elmItem.jqxButton({ theme, disabled: !!item.isDisabled }); elmItem.data('item', item);
+				if (item.choicemi) { elmItem.addClass('menu-choice') } else if (item.cascademi) { elmItem.addClass('menu-cascade') }
+				elmItem.appendTo(elmItems); elmItem.on('click', evt => {
+					this.itemsParent.find('.item').removeClass('selected'); const elm = $(evt.currentTarget), item = elm.data('item');
 					if (item) {
 						setTimeout(() => elm.addClass('selected'));
 						if (item.cascademi) { if (this.parentItem != item) { this.parentItem = item; this.tazele() } }
-						else if (item.choicemi) item.run()
+						else if (item.choicemi) { try { item.run({ ...e, event: evt, menuItemElement: item }) } catch (ex) { hConfirm(getErrorText(ex), item.text); throw ex } }
 					}
 				})
 			}
 		}
-		for (const key in docFrg) {
-			const parent = this[key];
-			parent.children().remove();
-			docFrg[key].appendTo(parent)
-		}
+		for (const key in docFrg) { const parent = this[key]; parent.children().remove(); docFrg[key].appendTo(parent) }
 	}
 	getVisibleItems() {
-		let {parentItem} = this;
-		if (!parentItem)
-			parentItem = this.source;
-		if (!parentItem)
-			return null
-		const items = parentItem.items || parentItem;
-		const result = [];
-		if (items) {
-			const {filter} = this;
-			for (const item of items) {
-				if (item.uygunmu({ filter: filter }))
-					result.push(item)
-			}
-		}
+		let {parentItem} = this; if (!parentItem) { parentItem = this.source } if (!parentItem) { return null }
+		const items = parentItem.items ?? parentItem, result = [];
+		if (items) { const {filter} = this; for (const item of items) { if (item.uygunmu({ filter })) { result.push(item) } } }
 		return result
 	}
 	getFilter() {
-		const {hizliBulPart} = this;
-		if (!(hizliBulPart && !hizliBulPart.isDestroyed && hizliBulPart.widget))
-			return null
-		const text = hizliBulPart.input.value;
-		return text ? text.split(' ').filter(x => !!x) : null
+		const {hizliBulPart} = this; if (!hizliBulPart?.widget || hizliBulPart.isDestroyed) { return null }
+		const text = hizliBulPart.input.value; return text ? text.split(' ').filter(x => !!x) : null
 	}
 }
