@@ -169,8 +169,7 @@ class MQFromClause extends MQClause {
 	}
 }
 class MQSubWhereClause extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get baglac() { return `${CrLf}	  AND	 ` }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return `${CrLf}	  AND	 ` }
 	constructor(e) {
 		e = e || {}; const initBlock = e => {
 			if (!$.isPlainObject(e)) { this.add(e); return true }
@@ -188,45 +187,19 @@ class MQSubWhereClause extends MQClause {
 			value = e.notTekSecim; if (value !== undefined) { this.notTekSecim({ deger: value, saha: e.saha }); return true }
 			value = e.birKismi; if (value !== undefined) { this.birKismi({ deger: value, saha: e.saha, not: e.not }); return true }
 			value = e.notTekSecim; if (value !== undefined) { this.notBirKismi({ deger: value, saha: e.saha }); return true }
-			value = e.birlestirDict;
-			if (value !== undefined) {
-				this.birlestirDict({ alias: e.alias, dict: value, not: e.not });
-				return true
-			}
-			value = e.birlestir;
-			if (value !== undefined) {
-				this.birlestir(value);
-				return true
-			}
-			value = e.ticariGC;
-			if (value !== undefined) {
-				this.ticariGC({ alimmi: value, fisAlias: e.fisAlias ?? e.alias, not: e.not });
-				return true
-			}
-			value = e.notTicariGC;
-			if (value !== undefined) {
-				this.notTicariGC({ alimmi: value, fisAlias: e.fisAlias ?? e.alias });
-				return true
-			}
-			value = e.ticariTSN;
-			if (value !== undefined) {
-				this.ticariTSN({ deger: value, fisAlias: e.fisAlias ?? e.alias, noSahaAdi: e.noSahaAdi ?? e.noSaha, not: e.not });
-				return true
-			}
-			value = e.notTicariTSN;
-			if (value !== undefined) {
-				this.notTicariTSN({ deger: value, fisAlias: e.fisAlias ?? e.alias, noSahaAdi: e.noSahaAdi ?? e.noSaha });
-				return true
-			}
+			value = e.birlestirDict; if (value !== undefined) { this.birlestirDict({ alias: e.alias, dict: value, not: e.not }); return true }
+			value = e.birlestir; if (value !== undefined) { this.birlestir(value); return true }
+			value = e.ticariGC; if (value !== undefined) { this.ticariGC({ alimmi: value, fisAlias: e.fisAlias ?? e.alias, not: e.not }); return true }
+			value = e.notTicariGC; if (value !== undefined) { this.notTicariGC({ alimmi: value, fisAlias: e.fisAlias ?? e.alias }); return true }
+			value = e.ticariTSN; if (value !== undefined) { this.ticariTSN({ deger: value, fisAlias: e.fisAlias ?? e.alias, noSahaAdi: e.noSahaAdi ?? e.noSaha, not: e.not }); return true }
+			value = e.notTicariTSN; if (value !== undefined) { this.notTicariTSN({ deger: value, fisAlias: e.fisAlias ?? e.alias, noSahaAdi: e.noSahaAdi ?? e.noSaha }); return true }
 			return false
 		};
 		super({ liste: e.liste, params: e.params, parantezlimi: e.parantezlimi, parantezli: e.parantezli });
-		if ($.isArray(e)) { if (!$.isEmptyObject(e)) { for (const item of e) initBlock(item) } }
-		else { initBlock(e) }
+		if ($.isArray(e)) { if (!$.isEmptyObject(e)) { for (const item of e) { initBlock(item) } } } else { initBlock(e) }
 	}
 	addIcinUygunmu(item) {
-		if (item == {}.toString()) { debugger }
-		return super.addIcinUygunmu(item) && !this.liste.includes(item)
+		if (item == {}.toString()) { debugger } return super.addIcinUygunmu(item) && !this.liste.includes(item)
 	}
 	birlestirDict(e) {
 		e = e || {}; const dict = e.dict || e.birlestirDict || e.liste || e,  aliasVeNokta = e.alias ? `${e.alias}.` : ``, {isSetClause, not} = e;
@@ -417,6 +390,21 @@ class MQSubWhereClause extends MQClause {
 		const {subeGrupKod, subeKod} = subeYapi; this.add(subeGecerlilik == 'G' ? `${subeGrupSql} = '${subeGrupKod}'` : `${subeKodSql} = '${subeKod}'`);
 		return this
 	}
+	icerikKisitDuzenle_x(e) { config.session?.rol?.icerikselClauseDuzenle({ ...e, where: this }) }
+	icerikKisitDuzenle_sube(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'sube' }) }
+	icerikKisitDuzenle_cari(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'cari' }) }
+	icerikKisitDuzenle_cariTip(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'cariTip' }) }
+	icerikKisitDuzenle_cariIstGrup(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'cariIstGrup' }) }
+	icerikKisitDuzenle_cariBolge(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'bolge' }) }
+	icerikKisitDuzenle_cariAnaBolge(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'anaBolge' }) }
+	icerikKisitDuzenle_cariIl(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'il' }) }
+	icerikKisitDuzenle_cariUlke(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'ulke' }) }
+	icerikKisitDuzenle_stok(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'stok' }) }
+	icerikKisitDuzenle_stokGrup(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'grup' }) }
+	icerikKisitDuzenle_stokAnaGrup(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'anaGrup' }) }
+	icerikKisitDuzenle_stokIstGrup(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'stokIstGrup' }) }
+	icerikKisitDuzenle_plasiyer(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'plasiyer' }) }
+	icerikKisitDuzenle_plasiyerTip(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'plasiyerTip' }) }
 }
 class MQWhereClause extends MQSubWhereClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

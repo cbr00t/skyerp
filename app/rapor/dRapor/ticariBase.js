@@ -135,23 +135,25 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		this.loadServerData_queryDuzenle_tarih({ ...e, alias: 'fis', tarihSaha: 'tarih' });
 		for (const key in attrSet) {
 			switch (key) {
-				case 'STANAGRP': sent.stokGrup2AnaGrupBagla(); sent.sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi'); break
-				case 'STGRP': sent.stok2GrupBagla(); sent.sahalar.add('stk.grupkod', 'grp.aciklama grupadi'); break
-				case 'STISTGRP': sent.stok2IstGrupBagla(); sent.sahalar.add('stk.sistgrupkod', 'sigrp.aciklama sistgrupadi'); break
-				case 'STOK': sent.sahalar.add('har.stokkod', 'stk.aciklama stokadi'); break
-				case 'CRTIP': sent.cari2TipBagla(); sent.sahalar.add('car.tipkod', 'ctip.aciklama tipadi'); break
-				case 'CRANABOL': sent.bolge2AnaBolgeBagla(); sent.sahalar.add('bol.anabolgekod', 'abol.aciklama anabolgeadi'); break
-				case 'CRBOL': sent.cari2BolgeBagla(); sent.sahalar.add('car.bolgekod', 'bol.aciklama bolgeadi');  break
-				case 'CRISTGRP': sent.cari2IstGrupBagla(); sent.sahalar.add('car.cistgrupkod', 'cigrp.aciklama cistgrupadi'); break
-				case 'CARI': sent.sahalar.add('fis.must carikod', 'car.birunvan cariadi'); break
-				case 'CRIL': sent.cari2IlBagla(); sent.sahalar.add('car.ilkod', 'il.aciklama iladi'); break
+				case 'STANAGRP': sent.stokGrup2AnaGrupBagla(); sent.sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi'); wh.icerikKisitDuzenle_stokAnaGrup({ ...e, saha: 'grp.anagrupkod' }); break
+				case 'STGRP': sent.stok2GrupBagla(); sent.sahalar.add('stk.grupkod', 'grp.aciklama grupadi'); wh.icerikKisitDuzenle_stokGrup({ ...e, saha: 'stk.grupkod' }); break
+				case 'STISTGRP': sent.stok2IstGrupBagla(); sent.sahalar.add('stk.sistgrupkod', 'sigrp.aciklama sistgrupadi'); wh.icerikKisitDuzenle_stokIstGrup({ ...e, saha: 'grp.sistgrupkod' }); break
+				case 'STOK': sent.sahalar.add('har.stokkod', 'stk.aciklama stokadi'); wh.icerikKisitDuzenle_stok({ ...e, saha: 'har.stokkod' }); break
+				case 'CRTIP': sent.cari2TipBagla(); sent.sahalar.add('car.tipkod', 'ctip.aciklama tipadi'); wh.icerikKisitDuzenle_cariTip({ ...e, saha: 'car.tipkod' }); break
+				case 'CRANABOL': sent.bolge2AnaBolgeBagla(); sent.sahalar.add('bol.anabolgekod', 'abol.aciklama anabolgeadi'); wh.icerikKisitDuzenle_cariAnaBolge({ ...e, saha: 'bol.anabolgekod' }); break
+				case 'CRBOL': sent.cari2BolgeBagla(); sent.sahalar.add('car.bolgekod', 'bol.aciklama bolgeadi'); wh.icerikKisitDuzenle_cariBolge({ ...e, saha: 'car.bolgekod' }); break
+				case 'CRISTGRP': sent.cari2IstGrupBagla(); sent.sahalar.add('car.cistgrupkod', 'cigrp.aciklama cistgrupadi'); wh.icerikKisitDuzenle_cariIstGrup({ ...e, saha: 'car.cistgrupkod' }); break
+				case 'CARI': sent.sahalar.add('fis.must carikod', 'car.birunvan cariadi'); wh.icerikKisitDuzenle_cari({ ...e, saha: 'fis.must' }); break
+				case 'CRIL': sent.cari2IlBagla(); sent.sahalar.add('car.ilkod', 'il.aciklama iladi'); wh.icerikKisitDuzenle_cariIl({ ...e, saha: 'car.ilkod' }); break
 				/*case 'CRULKE': sent.cari2UlkeBagla(); sent.sahalar.add('car.ulkekod', `(case when ulk.aciklama = '' then '' else ulk.aciklama end) ulkeadi`); break*/
-				case 'CRULKE': sent.cari2UlkeBagla(); sent.sahalar.add('car.ulkekod', 'ulk.aciklama ulkeadi'); break
-				case 'SUBE': sent.fis2SubeBagla(); sent.sahalar.add('fis.bizsubekod subekod', 'sub.aciklama subeadi'); break
+				case 'CRULKE': sent.cari2UlkeBagla(); sent.sahalar.add('car.ulkekod', 'ulk.aciklama ulkeadi'); wh.icerikKisitDuzenle_cariUlke({ ...e, saha: 'car.ulkekod' }); break
+				case 'SUBE': sent.fis2SubeBagla(); sent.sahalar.add('fis.bizsubekod subekod', 'sub.aciklama subeadi'); wh.icerikKisitDuzenle_sube({ ...e, saha: 'fis.bizsubekod' }); break
 				case 'TAKIPNO':
 					sent.fromIliski(`(case when fis.takiportakdir = '' then har.dettakipno else fis.orttakipno end) = tak.kod`);
 					sent.sahalar.add('tak.kod takipkod', 'tak.aciklama takipadi'); break
-				case 'PLASIYER': sent.fromIliski('carmst pls', 'fis.plasiyerkod = pls.must'); sent.sahalar.add('fis.plasiyerkod', 'pls.birunvan plasiyeradi'); break
+				case 'PLASIYER':
+					sent.fromIliski('carmst pls', 'fis.plasiyerkod = pls.must'); sent.sahalar.add('fis.plasiyerkod', 'pls.birunvan plasiyeradi');
+					wh.icerikKisitDuzenle_plasiyer({ ...e, saha: 'fis.plasiyerkod' }); break
 				case 'MIKTAR': sent.sahalar.add('SUM(har.miktar) miktar'); break
 				case 'MIKTARKG': sent.sahalar.add(`SUM(${kgClause}) miktarkg`); break
 				case 'CIRO': sent.sahalar.add('SUM(har.bedel) ciro'); break

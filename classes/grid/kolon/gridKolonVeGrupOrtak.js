@@ -15,6 +15,7 @@ class GridKolonVeGrupOrtak extends CObject {
 	readFrom(e) { if (!e) return false; return this.readFrom_ilk(e) && this.readFrom_ara(e) && this.readFrom_son(e) }
 	readFrom_ilk(e) {
 		if (e.userData != null) { this.userData = e.userData }
+		if (e.kisitDuzenleyici != null) { this.kisitDuzenleyici = e.kisitDuzenleyici }
 		this.kodZorunlumu = e.kodZorunlumu ?? e.kodZorunlu ?? e.zorunlumu ?? e.zorunlu ?? this.class.defaultKodZorunlumu;
 		this._belirtec = e.belirtec ?? e.attr ?? e.dataField ?? e.datafield;
 		return true
@@ -26,6 +27,7 @@ class GridKolonVeGrupOrtak extends CObject {
 	kodZorunlu() { this.kodZorunlumu = true; return this } zorunlu() { this.kodZorunlu(); return this }
 	kodZorunluOlmasin() { this.kodZorunlumu = false; return this } zorunluDegil() { return this.kodZorunluOlmasin() }
 	setUserData(value) { this.userData = value; return this }
+	setKisitDuzenleyici(value) { this.kisitDuzenleyici = value; return this }
 	static getTemplate(e) { const {key} = e; delete e.key; return getFuncValue(this._templates[key], e) }
 	static test() {
 		const cls = this, rfb = new RootFormBuilder().asWindow('Grid Kolon/Grup Test');
