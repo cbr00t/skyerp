@@ -51,8 +51,10 @@ class DRaporOzel extends DRapor {
 	}
 	onAfterRun(e) {
 		super.onAfterRun(e); const {rfb} = e, rootPart = rfb.part; $.extend(rootPart, { builder: rfb, inst: this });
-		rootPart.builder = rfb; rootPart.layout.prop('id', rfb.id)
+		let resizeHandler = this._resizeHandler = event => this.onResize({ ...e, event });
+		rootPart.builder = rfb; rootPart.layout.prop('id', rfb.id); window.addEventListener('resize', resizeHandler)
 	}
+	onResize(e) { if (this.part?.isDestroyed) { window.removeEventListener('resize', this._resizeHandler); return false } }
 	islemTuslariArgsDuzenle(e) { }
 	islemTuslariGetId2Handler(e) { return ({ tazele: e => e.builder.inst.tazele(e), vazgec: e => e.builder.rootPart.close(e) }) }
 	hizliBulIslemi(e) {
@@ -95,6 +97,11 @@ class DPanelRapor extends DRaporOzel {
 		super.onAfterRun(e); const {rfb} = e, itemsLayout = rfb.id2Builder.items.layout, itemSelector = '.item', focusSelector = 'hasFocus';
 		const elmSubItems = itemsLayout.children(itemSelector); elmSubItems.eq(0).addClass(focusSelector);
 		elmSubItems.on('click', evt => { const itemLayout = $(evt.currentTarget); itemLayout.parent().children(itemSelector).removeClass(focusSelector); itemLayout.addClass(focusSelector) })
+	}
+	onResize(e) {
+		if (super.onResize(e) === false) { return false }
+		const {id2AltRapor} = this; if (!id2AltRapor) { return }
+		for (const altRapor of Object.values(id2AltRapor)) { if (altRapor.onResize) { altRapor.onResize(e) } }
 	}
 	altRaporlarDuzenle(e) { }
 	tazele(e) {

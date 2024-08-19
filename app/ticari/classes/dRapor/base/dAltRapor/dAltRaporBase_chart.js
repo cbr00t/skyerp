@@ -15,10 +15,10 @@ class DAltRapor_Chart extends DAltRapor {
 					legendLayout: { left: 10, top: 10, width: '90%', height: 100, flow: 'horizontal' },
 					padding: { left: padding, top: padding, right: padding, bottom: padding }
 				}; let _e = { ...e, args }; this.chartArgsDuzenle(_e); args = _e.args;
-				input.jqxChart(args); let widget = chartPart.widget = input.jqxChart('getInstance'); this.onChartRun(e);
-				layout.on('resize', evt => setTimeout(() => this.tazele(e), 10))
+				input.jqxChart(args); let widget = chartPart.widget = input.jqxChart('getInstance'); this.onChartRun(e)
 			})
 	}
+	onResize(e) { if (super.onResize(e) === false) { return false } setTimeout(() => this.tazele(e), 10) }
 	async tazele(e) {
 		e = e || {}; await super.tazele(e); const {input} = this.chartPart || {}; if (!input) { return }
 		const source = await this.getDataAdapter(e); if (!source) { return } const series = this.getChartSeries(e); if (!series?.length) { return }

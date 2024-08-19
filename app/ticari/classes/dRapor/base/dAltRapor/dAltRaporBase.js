@@ -19,12 +19,13 @@ class DAltRapor extends DRapor {
 	}
 	secimlerDuzenle(e) { } secimlerDuzenleSon(e) { } secimlerInitEvents(e) { }
 	loadServerData_wsArgsDuzenle(e) { const {secimler} = this; $.extend(e, { secimler }) }
-	onInit(e) { } onBuildEk(e) { } onAfterRun(e) { }
-	tazeleDiger(e) { const {id2AltRapor} = this.rapor; for (const rapor of Object.values(id2AltRapor)) { if (rapor != this) { rapor.tazele(e) } } }
+	onInit(e) { } onBuildEk(e) { } onAfterRun(e) { } onResize(e) { }
+	tazeleDiger(e) { const {id2AltRapor} = this.rapor; for (const altRapor of Object.values(id2AltRapor)) { if (altRapor != this) { altRapor.tazele(e) } } }
 	toggleFullScreen(e) {
 		const {builder} = e, {rootBuilder, parentBuilder, layout, part} = builder, parentLayout = parentBuilder.layout, itemsLayout = rootBuilder.id2Builder.items.layout;
 		for (const _layout of [parentLayout, itemsLayout]) { _layout.toggleClass('maximized') }
 		layout.trigger('resize'); if (part?.onResize) { part.onResize(e) }
+		const {id2AltRapor} = this.rapor; for (const altRapor of Object.values(id2AltRapor)) { altRapor.onResize(e) }
 	}
 	secimlerIstendi(e) {
 		let {secimlerPart} = this; if (secimlerPart?.isDestroyed) { secimlerPart = this.secimlerPart = undefined }

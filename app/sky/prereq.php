@@ -12,7 +12,7 @@
 <script src="<?=$webRoot?>/classes/mq/cogul/fis/mqSayacliKA.js"></script>
 <script src="<?=$webRoot?>/classes/mq/cogul/fis/mqDetayli.js"></script>
 <script src="<?=$webRoot?>/classes/mq/cogul/detay/mqDetay.js"></script>
-<script src="../ticari/classes/ortak/mq-ozelSaha/mqOzelSaha.js"></script>
+<script src="../ticari/classes/ortak/hmr/mqOzelSaha.js"></script>
 <?php
 	require_once("$webRoot/ortak/barkod/include.php");
 	require_once("$webRoot/ortak/login/include.php");
