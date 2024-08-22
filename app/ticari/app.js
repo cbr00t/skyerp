@@ -13,7 +13,7 @@ class TicariApp extends App {
 	}
 	sabitTanimlarDuzenle(e) { const {sabitTanimlar} = e; $.extend(sabitTanimlar, { vergi: this.wsSabitTanimlar_xml('EBYN-KDV-Kodlar') }) }
 	raporEkSahaDosyalariDuzenle(e) { e.liste.push('VioTicari.RaporEkSaha') }
-	async runDevam(e) { await super.runDevam(e); await this.loginIstendi(e); this.anaMenuOlustur(e); this.show() }
+	async runDevam(e) { await super.runDevam(e); await this.loginIstendi(e); await this.anaMenuOlustur(e); this.show() }
 	async getAnaMenu() { const response = await ajaxGet({ url: this.getWSUrl({ api: 'frMenu' }) }); return response ? FRMenu.from(response) : null }
 	wsSabitTanimlar_xml(e) { e = e || {}; if (e && typeof e != 'object') e = { belirtec: e }; return this.wsSabitTanimlar($.extend({}, e, { tip: 'xml' })) }
 	wsSabitTanimlar_secIni(e) { e = e || {}; if (e && typeof e != 'object') e = { belirtec: e }; return this.wsSabitTanimlar($.extend({}, e, { tip: 'sec-ini' })) }
