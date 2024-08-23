@@ -10,7 +10,7 @@ class MQMain extends MQCogul {
 			ipcKey: gridPart.ipcKey ?? qs.ipc ?? qs.ipcKey, subDirs: (e.dir ?? qs.dir ?? e.subDir ?? qs.subDir)?.trim('/')?.split('/')?.filter(x => !!x) || [],
 			hasPreviewFlag: gridPart.hasPreviewFlag ?? qs.hasPreview ?? true
 		});
-		let {secince} = gridPart; if (secince == null) { const {ipcKey} = app; if (ipcKey) { secince = gridPart.secince = e => this.tamamIslemi(e) } }
+		let {secince} = gridPart; if (secince == null) { const {ipcKey} = gridPart; if (ipcKey) { secince = gridPart.secince = e => this.tamamIslemi(e) } }
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e); const gridPart = e.gridPart ?? e.parentPart ?? e.sender, {liste} = e;
