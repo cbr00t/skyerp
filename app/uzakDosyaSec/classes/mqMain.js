@@ -86,12 +86,12 @@ class MQMain extends MQCogul {
 	static orjBaslikListesi_satirCiftTiklandi(e) {
 		/* ignore super */ const gridPart = e.gridPart ?? e.sender, {subDirs} = gridPart, {args, currentTarget} = e.event;
 		let rec = e.rec ?? args.row; rec = rec?.bounddata ?? rec; const rowIndex = e.rowIndex ?? args.rowindex, belirtec = e.belirtec ?? gridPart.clickedColumn ?? gridPart._lastClickedColumn;
-		if (belirtec == 'name') {
-			const {name} = rec; if (name) {
-				if (name == '..') { if (subDirs.length) { subDirs.pop(); gridPart.tazele() } }
-				else if (rec.isDir) { subDirs.push(name.trim()); gridPart.tazele() }
-			}
+		/*if (belirtec == 'name') {*/
+		const {name} = rec; if (name) {
+			if (name == '..') { if (subDirs.length) { subDirs.pop(); gridPart.tazele() } }
+			else if (rec.isDir) { subDirs.push(name.trim()); gridPart.tazele() }
 		}
+		/*}*/
 		return false
 	}
 	static tamamIslemi(e) {
