@@ -3,11 +3,11 @@
 	--button-width: 70px; --button-height: 50px; --button-margin-x: 3px; --button-form-margin-x: 0px; --button-right-katsayi: 4;
 	--button-right: calc(var(--button-width) + var(--button-margin-x) * var(--button-right-katsayi) + var(--button-form-margin-x));
 	--width-sag: calc((var(--button-right) + 10px) * 2); width: var(--full) !important; height: var(--button-height); /*background-color: whitesmoke;*/
-	background: linear-gradient(90deg, transparent 30%, #f2f2f2 100%) !important;
+	position: relative; background: linear-gradient(90deg, transparent 30%, #f2f2f2 100%) !important;
 	margin: 0; padding: 0; /*box-shadow: 0px var(--islemTuslari-box-shadow-height) 30px 0px #edeef2;*/ overflow-x: hidden !important; overflow-y: overlay !important; z-index: 1000
 }
 @media (max-width: 1200px) { .butonlar.part { --button-width: 50px; --button-right-katsayi: 2 } }
-.butonlar.part > div { /* width: var(--full) !important; */ height: calc(var(--full) - 5px) !important; margin: 0; padding: 0 calc(var(--button-form-margin-x) / 2) }
+.butonlar.part > div { position: relative; /* width: var(--full) !important; */ height: calc(var(--full) - 5px) !important; margin: 0; padding: 0 calc(var(--button-form-margin-x) / 2) }
 .butonlar.part > .sol { width: calc(var(--full) - (var(--width-sag) + 10px + var(--button-form-margin-x))) }
 .butonlar.part > .sag { width: var(--width-sag); text-align: right; z-index: 1 }
 .butonlar.part > .sag > button:nth-last-child(2) { margin-left: 15px; margin-right: 25px !important }

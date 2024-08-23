@@ -1,6 +1,7 @@
 .MQMain.masterListe.part .jqx-grid [role = row] > * { font-size: 90% }
-.MQMain.masterListe.part .jqx-grid [role = row] > .parent:not(.jqx-fill-state-selected) { font-weight: bold; color: firebrick }
-.MQMain.masterListe.part .jqx-grid [role = row] > .dir:not(.jqx-fill-state-selected) { font-weight: bold; color: royalblue }
+.MQMain.masterListe.part .jqx-grid [role = row] > .jqx-grid-cell-selected:not(.jqx-fill-state-pressed) { background: unset !important }
+.MQMain.masterListe.part .jqx-grid [role = row] > .parent:not(.jqx-grid-cell-selected) { font-weight: bold; color: firebrick }
+.MQMain.masterListe.part .jqx-grid [role = row] > .dir:not(.jqx-grid-cell-selected) { font-weight: bold; color: royalblue }
 .MQMain.masterListe.part .jqx-grid [role = row] > .name { font-weight: bold }
 .MQMain.masterListe.part .jqx-grid [role = row] > .resim > * {
 	--padding: 8px; width: calc(var(--full) - (var(--padding) * 2)) !important; height: calc(var(--full) - (var(--padding) * 2)) !important;
