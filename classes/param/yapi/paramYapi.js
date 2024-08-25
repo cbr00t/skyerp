@@ -610,64 +610,49 @@ class ParamBuilder_ModelKullan extends ParamBuilder_UIElement {
 			value = value.char
 		return value
 	}
-	dropDown() { this.fbdEkIslem(e => e.builder.dropDown()); return this }
-	comboBox() { this.fbdEkIslem(e => e.builder.comboBox()); return this }
-	kodlu() { this.fbdEkIslem(e => e.builder.kodlu()); return this }
-	kodsuz() { this.fbdEkIslem(e => e.builder.kodsuz()); return this }
-	autoBind() { this.fbdEkIslem(e => e.builder.autoBind()); return this }
-	noAutoBind() { this.fbdEkIslem(e => e.builder.noAutoBind()); return this }
+	dropDown() { this.fbdEkIslem(e => e.builder.dropDown()); return this } comboBox() { this.fbdEkIslem(e => e.builder.comboBox()); return this }
+	kodlu() { this.fbdEkIslem(e => e.builder.kodlu()); return this } kodsuz() { this.fbdEkIslem(e => e.builder.kodsuz()); return this }
+	autoBind() { this.fbdEkIslem(e => e.builder.autoBind()); return this } noAutoBind() { this.fbdEkIslem(e => e.builder.noAutoBind()); return this }
 	noMF() { this.fbdEkIslem(e => e.builder.noMF()); return this }
-	setMFSinif(value) { this.mfSinif = value; return this }
-	setSource(value) { this.source = value; return this }
-	ozelQueryDuzenleIslemi(handler) { this.ozelQueryDuzenle = handler; return this }
-	veriYukleninceIslemi(handler) { this.veriYuklenince = handler; return this }
+	setMFSinif(value) { this.mfSinif = value; return this } setSource(value) { this.source = value; return this }
+	ozelQueryDuzenleIslemi(handler) { this.ozelQueryDuzenle = handler; return this } veriYukleninceIslemi(handler) { this.veriYuklenince = handler; return this }
 	onBindingComplete(value) { return this.veriYukleninceIslemi(value) }
-	setKodAttr(value) { this.kodAttr = value; return this }
-	setAdiAttr(value) { this.adiAttr = value; return this }
+	setKodAttr(value) { this.kodAttr = value; return this } setAdiAttr(value) { this.adiAttr = value; return this }
 }
 class ParamBuilder_TekSecim extends ParamBuilder_ModelKullan {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	get value() {
-		let result = super.value;
-		/*if (result && result.char !== undefined)
-			result = result.char*/
-		return result
-	}
+	get value() { let result = super.value; /*if (result && result.char !== undefined) result = result.char*/ return result }
 	set value(value) {
-		const {altInst} = this;
-		if (altInst)
-			altInst[this.id].char = this.convertedValue_setValues(value)
+		const {altInst, id} = this; if (altInst == null) { return }
+		let tSec = altInst[id]; if (typeof tSec != 'object') {
+			let {source} = this; if (source != null) {
+				if ($.isArray(source)) { source = new TekSecim({ kaListe: source })} else if (source.kaListe == null) { source = null }
+				if (source != null) { tSec = altInst[id] = new source() }
+			}
+		}
+		if (tSec != null) { tSec.char = this.convertedValue_setValues(value) }
 	}
 	constructor(e) {
-		e = e ?? {}; super(e);
-		this.noMF();
+		e = e ?? {}; super(e); this.noMF();
 		this.tekSecim = e.tekSecim?.instance ?? e.tekSecim;
-		if (this.source == null)
-			this.setKAListe(e.kaListe)
+		if (this.source == null) { this.setKAListe(e.kaListe) }
 		this.dropDown()
 	}
 	preBuild(e) {
-		super.preBuild(e);
-		const {altInst} = this;
+		super.preBuild(e); const {altInst} = this;
 		if (altInst) {
-			const {id} =  this;
-			let value = altInst[id];
-			if (!value?.tekSecimmi) {
-				const {tekSecim} = this;
-				if (tekSecim)
-					value = altInst[id] = new tekSecim.class({ char: value })
-			}
+			const {id} =  this; let value = altInst[id];
+			if (!value?.tekSecimmi) { const {tekSecim} = this; if (tekSecim) { value = altInst[id] = new tekSecim.class({ char: value }) } }
 		}
 	}
 	paramSetValues(e) { const {rec} = e; super.paramSetValues(e) }
 	setTekSecim(value) {
 		value = value?.instance ?? value; this.tekSecim = value;
-		if (value != null && this.source == null) this.source = e => value.kaListe
-		return this
+		if (value != null && this.source == null) { this.source = e => value.kaListe } return this
 	}
 	setKAListe(value) {
-		value = value?.instance ?? value; value = value?.kaListe ?? value; value = value ?? this.tekSecim?.kaListe;
-		if (value != null) this.source = e => value; return this
+		value = value?.instance ?? value; value = value?.kaListe ?? value;
+		value = value ?? this.tekSecim?.kaListe; if (value != null) { this.source = e => value } return this
 	}
 }
 class ParamBuilder_Grid extends ParamBuilder_UIElement {

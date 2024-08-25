@@ -123,8 +123,8 @@ class MQStokGenelParam extends MQTicariParamBase {
 			form.addBool('mitkar2', 'Miktar 2'); form.addBool('stokKontrol', 'Stok Kontrol'); form.addBool('depoKismiStokKontrol', 'Depo Kısmi Stok Kontrol'); form.addBool('konumStatu', 'Konum Statü'); 
 			form.addBool('malFazlasi', 'Mal Fazlası'); form.addBool('marka', 'Stok Marka'); form.addBool('hacim', 'Hacim'); form.addBool('paket', 'Paket'); form.addBool('rbk', 'RBK Kısıtlaması');
 			form.addBool('seriNo', 'Seri No'); form.addBool('seriMiktarli', 'Seri İçin Miktar Kullanılır'); form.addBool('dayaniksizGaranti', 'Dayanıksız Mal Garanti Takibi');
-		let tabPage = paramci.addTabPage('hmr', 'HMR').addFormWithParent();
-		tabPage.addGridGiris_sabit('_hmr').setRowAttr(null).addStyle_wh(500, 600)
+		let tabPage_form = paramci.addTabPage('hmr', 'HMR').addFormWithParent();
+		tabPage_form.addGridGiris_sabit('_hmr').setRowAttr(null).addStyle_wh(500, 600)
 			.setTabloKolonlari(e => {
 				const handlers = {
 					grid_cellClassName(colDef, rowIndex, belirtec, value, rec) {
@@ -155,7 +155,14 @@ class MQStokGenelParam extends MQTicariParamBase {
 				for (const [key, yapi] of Object.entries(hmrYapi)) { const etiket = hmrEtiket[key] || yapi.etiket || key, kullanim = asBool(hmr[key]); recs.push({ key, etiket, kullanim }) }
 				return recs
 			})
-			.veriYukleninceIslemi(e => setTimeout(() => e.builder.part.gridWidget.render(), 0))
+			.veriYukleninceIslemi(e => setTimeout(() => e.builder.part.gridWidget.render(), 0));
+		tabPage_form = paramci.addTabPage('resim', 'Resim').addFormWithParent().altAlta();
+		tabPage_form.addGrup({ etiket: 'Stok Resim' }); let altForm = tabPage_form.addFormWithParent().yanYana(2);
+			altForm.addBool('stokResimKullanilir', 'Kullanılır'); altForm.addString('resimExt', 'Dosya Ext.');
+			altForm.addTekSecim('resimBelirlemeKurali', 'Resim Belirleme Kuralı').dropDown().noMF().kodsuz().setTekSecim(ResimBelirlemeKurali).addStyle_wh('40%');
+			altForm.addString('resimAnaBolum', 'Yerel Ana Bölüm'); altForm.addString('resimFTPAnaBolum', 'FTP Ana Bölüm');
+		altForm = tabPage_form.addGrup({ etiket: 'RBK Resim' }); altForm = tabPage_form.addFormWithParent().yanYana(2);
+			altForm.addBool('rbkResimKullanilir', 'Kullanılır'); altForm.addString('rbkResimAnaBolum', 'Yerel Ana Bölüm'); altForm.addString('rbkResimFTPAnaBolum', 'FTP Ana Bölüm')
 	}
 	paramHostVarsDuzenle(e) {
 		e = e || {}; super.paramHostVarsDuzenle(e); const {hv} = e, {hmrYapi} = this;

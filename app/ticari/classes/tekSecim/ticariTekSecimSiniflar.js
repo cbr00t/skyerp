@@ -495,28 +495,14 @@ class GelenHavaleEFTTipi extends TekSecim {
 	}
 }
 class GelenGidenHavaleEFTTipi extends TekSecim {
-	get ba() { return (this.char || '')[0] }
-	get gelenmi() { return this.ba == 'B' }
-	get gidenmi() { return this.ba == 'A' }
-	get gelenHavalemi() { return this.char == 'BHAV' }
-	get gelenEFTmi() { return this.char == 'BEFT' }
-	get gelenSwiftmi() { return this.char == 'BSWF' }
-	get gelenPOSmu() { return this.char == 'BPOS' }
-	get gidenHavalemi() { return this.char == 'AHAV' }
-	get gidenEFTmi() { return this.char == 'AEFT' }
-	get gidenSwiftmi() { return this.char == 'ASWF' }
-	get gidenPOSmu() { return this.char == 'APOS' }
+	get ba() { return (this.char || '')[0] } get gelenmi() { return this.ba == 'B' } get gidenmi() { return this.ba == 'A' }
+	get gelenHavalemi() { return this.char == 'BHAV' } get gelenEFTmi() { return this.char == 'BEFT' } get gelenSwiftmi() { return this.char == 'BSWF' } get gelenPOSmu() { return this.char == 'BPOS' }
+	get gidenHavalemi() { return this.char == 'AHAV' } get gidenEFTmi() { return this.char == 'AEFT' } get gidenSwiftmi() { return this.char == 'ASWF' } get gidenPOSmu() { return this.char == 'APOS' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); const {kaListe} = e;
 		kaListe.push(
-			new CKodVeAdi(['BHAV', 'Gelen Havale']),
-			new CKodVeAdi(['BEFT', 'Gelen EFT']),
-			new CKodVeAdi(['BSWF', 'Gelen Swift']),
-			new CKodVeAdi(['BPOS', 'Gelen POS']),
-			new CKodVeAdi(['AHAV', 'Gönderilen Havale']),
-			new CKodVeAdi(['AEFT', 'Gönderilen EFT']),
-			new CKodVeAdi(['ASWF', 'Gönderilen Swift']),
-			new CKodVeAdi(['APOS', 'Gönderilen POS'])
+			new CKodVeAdi(['BHAV', 'Gelen Havale']), new CKodVeAdi(['BEFT', 'Gelen EFT']), new CKodVeAdi(['BSWF', 'Gelen Swift']), new CKodVeAdi(['BPOS', 'Gelen POS']),
+			new CKodVeAdi(['AHAV', 'Gönderilen Havale']), new CKodVeAdi(['AEFT', 'Gönderilen EFT']), new CKodVeAdi(['ASWF', 'Gönderilen Swift']), new CKodVeAdi(['APOS', 'Gönderilen POS'])
 		)
 	}
 }
@@ -559,4 +545,15 @@ class DonemTarihAralikVeHepsiSecim extends DonemVeTarihAralikSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' } get tarihAralikmi() { return this.char == 'TR' }
 	kaListeDuzenle(e) { const {kaListe} = e; kaListe.push(new CKodVeAdi(['', `<span class="bold royalblue">- Hepsi -</span>`])); super.kaListeDuzenle(e) }
 	tarihAralik() { this.char = 'TR'; return this }
+}
+class ResimBelirlemeKurali extends TekSecim {
+	static get defaultChar() { return 'ST' } get stokTanimdami() { return this.char == '' } get stokKodu() { return this.char == 'ST' }
+	get grupVeStokmu() { return this.char == 'GS' } get pdmmi() { return this.char == 'PD' } get grupVePDMmi() { return this.char == 'GP' }
+	kaListeDuzenle(e) {
+		super.kaListeDuzenle(e); const {kaListe} = e;
+		kaListe.push(
+			new CKodVeAdi(['', 'Stok Tanımda Belirtilir']), new CKodVeAdi(['ST', 'Stok Kodu ile aynı (StokKodu)']), new CKodVeAdi(['GS', 'Grup altında Stok (GrupKod\Stok)']),
+			new CKodVeAdi(['PD', 'Pdm Kodu ile aynı (PdmKodu)']), new CKodVeAdi(['GP', 'Grup altında Pdm (GrupKod\PdmKodu)'])
+		)
+	}
 }
