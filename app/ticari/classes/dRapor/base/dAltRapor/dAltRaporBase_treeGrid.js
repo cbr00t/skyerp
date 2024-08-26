@@ -306,7 +306,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		const title = 'Rapor Tanım', {wnd_raporTanim} = this; let {raporTanim} = this, {aciklama} = raporTanim; let inEventFlag = false;
 		try {
 			if (!aciklama) { wnd_raporTanim.jqxWindow('collapse'); await hConfirm(`<b class="firebrick">Rapor Adı</b> belirtilmelidir`, title); wnd_raporTanim.jqxWindow('expand'); return }
-			raporTanim = raporTanim.deepCopy(); raporTanim.sayac = null; let degistirmi = await raporTanim.varmi(), islem = degistirmi ? 'degistir' : 'kopya';
+			const sayac = null, {encUser} = config.session; raporTanim = raporTanim.deepCopy(); $.extend(raporTanim, { sayac, encUser });
+			let degistirmi = await raporTanim.varmi(), islem = degistirmi ? 'degistir' : 'kopya';
 			const _e = { islem }; await raporTanim.dataDuzgunmu(_e);
 			if (degistirmi) {
 				wnd_raporTanim.jqxWindow('collapse'); let rdlg = await ehConfirm(`<b class="royalblue">${aciklama}</b> isimli rapor güncellensin mi?`, title); wnd_raporTanim.jqxWindow('expand');
