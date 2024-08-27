@@ -54,12 +54,9 @@ class NormalIade extends TekSecim {
 }
 class BorcAlacak extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultChar() { return 'B' }
-	get borcmu() { return this.char == 'B' }
-	get alacakmi() { return this.char == 'A' }
+	static get defaultChar() { return 'B' } get borcmu() { return this.char == 'B' } get alacakmi() { return this.char == 'A' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
-		kaListe.push(
+		super.kaListeDuzenle(e); const {kaListe} = e; kaListe.push(
 			new CKodVeAdi(['B', 'Borç']),
 			new CKodVeAdi(['A', 'Alacak'])
 		)

@@ -124,28 +124,19 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		e = typeof e == 'object' && !$.isArray(e) ? e : { disinda: e };
 		let {disinda} = e; if (disinda != null && typeof disinda == 'string') { disinda = [disinda] }
 		const disindaSet = e.disinda = (disinda && $.isArray(disinda) ? asSet(disinda) : disinda) || {};
-		for (const alias of ['har', 'fis']) { disindaSet[alias] = true }
-		return this.gereksizTablolariSilDogrudan(e)
+		for (const alias of ['har', 'fis']) { disindaSet[alias] = true } return this.gereksizTablolariSilDogrudan(e)
 	}
 	gereksizTablolariSilDogrudan(e) {
 		e = typeof e == 'object' && !$.isArray(e) ? e : { disinda: e };
-		let {disinda} = e;
-		if (disinda && typeof disinda == 'string')
-			disinda = [disinda]
-		const disindaSet = disinda && $.isArray(disinda) ? asSet(disinda) : disinda;
-		const iterBlock = item => {
-			const coll = item.liste || item;
-			for (const anMQAliasliYapi of coll) {
+		let {disinda} = e; if (disinda && typeof disinda == 'string') { disinda = [disinda] }
+		const disindaSet = disinda && $.isArray(disinda) ? asSet(disinda) : disinda, iterBlock = item => {
+			const coll = item.liste || item; for (const anMQAliasliYapi of coll) {
 				const degerAliasListe = anMQAliasliYapi.degerAliasListe || [];
-				for (const degerAlias of degerAliasListe)
-					disindaSet[degerAlias] = true
+				for (const degerAlias of degerAliasListe) { disindaSet[degerAlias] = true }
 			}
 		};
-		iterBlock(this.sahalar);
-		iterBlock(this.groupBy);
-		iterBlock(this.having);
-		const {where, from} = this;
-		for (const text of where.liste) {
+		iterBlock(this.sahalar); iterBlock(this.groupBy); iterBlock(this.having);
+		const {where, from} = this; for (const text of where.liste) {
 			try {
 				const iliskiYapisi = MQIliskiYapisi.newForText(text);
 				if (iliskiYapisi.isError)
@@ -231,6 +222,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	fis2CariBagla(e) { this.fromIliski('carmst car', 'fis.must = car.must'); return this }
 	fis2TicCariBagla(e) { this.fromIliski('carmst car', 'fis.ticmust = car.must'); return this }
 	fis2PlasiyerBagla(e) { this.fromIliski('carmst pls', 'fis.must = car.must'); return this }
+	fis2BankaHesapBagla(e) { this.fromIliski('banbizhesap bhes', 'fis.banhesapkod = bhes.kod'); return this }
 	fisAyrimBagla(e) { /* tamamlanacak */ return this }
 	cariHepsiBagla(e) { e = e || {}; this.cariYardimciBagla(e); this.cariAyrimBagla(e); return this }
 	cari2BolgeBagla(e) {
@@ -269,6 +261,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		return this
 	}
 	cariAyrimBagla(e) { /* tamamlanacak */ e = e || {}; const alias = e.alias ?? 'car', aliasVeNokta = alias + '.'; return this }
+	har2AltHesapBagla(e) { this.fromIliski('althesap alth', 'har.cariitn = alth.kod'); return this }
 	har2StokBagla(e) { this.fromIliski('stkmst stk', 'har.stokkod = stk.kod'); return this }
 	stokHepsiBagla(e) { e = e || {}; this.stokYardimciBagla(e); this.stokAyrimBagla(e); return this }
 	stokYardimciBagla(e) {

@@ -116,7 +116,7 @@ class MQToplu extends MQClause {
 class MQSahalar extends MQClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	donusmusDeger(item) {
-		item = super.donusmusDeger(item); if (item == null) return item
+		item = super.donusmusDeger(item); if (item == null) { return item }
 		return typeof item == 'object' ? item : MQAliasliYapi.newForSahaText(item)
 	}
 	addWithAlias(alias, ...sahalar) { return this.addAllWithAlias({ alias: alias, sahalar: sahalar }) }

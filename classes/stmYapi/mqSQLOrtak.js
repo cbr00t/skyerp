@@ -121,10 +121,7 @@ class MQAliasliYapi extends MQSQLOrtak {
 	get degerAlias() { return this.class.getDegerAlias(this.deger) }
 	get degerAliasListe() { return this.class.getDegerAliasListe(this.deger) }
 	
-	constructor(e) {
-		e = e || {}; super(e);
-		this.deger = e.deger || ''; this.alias = e.alias || ''; this.aliaslimi = asBool(e.aliaslimi);
-	}
+	constructor(e) { e = e || {}; super(e); this.deger = e.deger || ''; this.alias = e.alias || ''; this.aliaslimi = e.aliaslimi ?? !!this.alias }
 	static newForFromText(e) {
 		/* örnek:
 				- 'piffis'

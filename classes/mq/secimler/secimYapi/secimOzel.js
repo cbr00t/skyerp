@@ -144,7 +144,7 @@ class SecimBoolTrue extends SecimBool {
 	readFrom(e) { e = e || {}; super.readFrom(e); if (e.value == null) { this.value = true } }
 }
 class SecimTekSecim extends SecimOzel {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'tekSecim' } static get birKismimi() { return false }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'tekSecim' } static get birKismimi() { return false } get birKismimi() { return this.class }
 	get value() { return this.getConvertedValue(this.tekSecim?.char) } set value(value) { const {tekSecim} = this; if (tekSecim) { tekSecim.char = this.getConvertedValue(value) } }
 	get ozetBilgiValue() {
 		let {value} = this; if (value == null) { return value }
@@ -175,6 +175,11 @@ class SecimTekSecim extends SecimOzel {
 		return true
 	}
 	writeTo(e) { e = e || {}; if (!super.writeTo(e)) { return false } const {kaListe} = this; if (!e._reduce && kaListe != null) { e.kaListe = kaListe } return true }
+	uygunmu(e) {
+		const kod = typeof e == 'object' ? e.char ?? e.kod ?? e.value : e; if (kod === undefined) { return false }
+		return this.uygunmuDevam(kod)
+	}
+	uygunmuDevam(kod) { return this.value == kod }
 	uiSetValues(e) { super.uiSetValues(e); const {parent} = e; if (!parent?.length) { return false } parent.find('.ddList').val(this.getConvertedValue(this.value) ?? '') }
 	buildHTMLElementStringInto(e) {
 		super.buildHTMLElementStringInto(e); const {kaListe, char, isHidden} = this, {tip, birKismimi} = this.class; e.tip = tip;
@@ -222,13 +227,19 @@ class SecimTekSecim extends SecimOzel {
 	autoBind() { this.autoBindFlag = true; return this } noAutoBind() { this.autoBindFlag = false; return this }
 }
 class SecimBirKismi extends SecimTekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'birKismi' } static get birKismimi() { return true } get value() { return this.hepsimi ? null : super.value } set value(value) { super.value = value }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'birKismi' } static get birKismimi() { return true }
+	get value() { return this.hepsimi ? null : super.value } set value(value) { super.value = value }
 	readFrom(e) {
 		if (!super.readFrom(e)) { return false }
 		this.hepsimi = e.hepsimi ?? true; return true
 	}
 	writeTo(e) { if (!super.writeTo(e)) { return false } if (!this.hepsimi) { e.hepsimi = false } return true }
 	temizle(e) { super.temizle(e); this.hepsimi = true; return this }
+	uygunmuDevam(kod) {
+		if (this.hepsimi) { return true } let values = $.makeArray(this.value);
+		for (const value of values) { if (value == kod) { return true } }
+		return false
+	}
 	uiSetValues(e) {
 		super.uiSetValues(e); const {parent} = e; if (!parent?.length) { return false }
 		const {hepsimi} = this; parent.find('.hepsimi').val(hepsimi); this.hepsimiDegisti(e);
