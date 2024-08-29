@@ -254,7 +254,7 @@ class MQAlimSatisParamOrtak extends MQTicariParamBase {
 	    tabPage = paramci.addTabPage('ekmodul', 'Ek Modül'); form = temps.islem_kullanim = tabPage.addGrup({ id: 'islemKullanim', etiket: 'İşlem Kullanımı' }).addFormWithParent();
 		kullanim = form.addKullanim();
 			kullanim.addBool('ihracKaydiyla', 'İhraç Kaydıyla'); kullanim.addBool('konsinye', 'Konsinye'); kullanim.addBool('emanet', 'Emanet'); kullanim.addBool('fason', 'Fason');
-			kullanim.addBool('talepTeklif', 'Talep/Teklif'); kullanim.addBool('ticariKosul', 'Alım Koşulları');
+			kullanim.addBool('talepTeklif', 'Talep/Teklif'); kullanim.addBool('ticariKosul', 'Alım Koşulları'); kullanim.addBool('serbestMeslekMakbuzu', 'Serbest Meslek Makbuzu');
 		tabPage = paramci.addTabPage('if', 'İrs->Fat');
 		form = tabPage.addGrup({ etiket: 'İrs->Fat' }).addFormWithParent();
 			form.addBool('irs2FatKosulGuncelleme', 'irsaliye -> Fatura dönüşümünde fiyat ve iskontoların güncellenmesi'); form.addBool('irs2FatEkransalDuzenleme', 'İrs->Fat Ekransal Dönüşüm');
@@ -264,9 +264,15 @@ class MQAlimSatisParamOrtak extends MQTicariParamBase {
 			form.addBool('sip2XSipBaglantiZorunlu', 'Sip->İrs/Fat Dönüşümde Sipariş Harici Kayıt Girilemez')
 	}
 }
+class MQAlimParam extends MQAlimSatisParamOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get paramKod() { return 'SFAL' } static get sinifAdi() { return 'Alım Genel Parametreleri' }
+	static paramYapiDuzenle(e){
+		super.paramYapiDuzenle(e); const {paramci, temps} = e;
+		let form = temps.islem_kullanim, kullanim = form.addKullanim(); kullanim.addBool('hizmetGiderPusulasi', 'Hizmet Gider Pusulası')
+	}
+}
 class MQSatisParam extends MQAlimSatisParamOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get paramKod() { return 'SFST' } static get sinifAdi() { return 'Satış Genel Parametreleri' }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get paramKod() { return 'SFST' } static get sinifAdi() { return 'Satış Genel Parametreleri' }
 	static paramYapiDuzenle(e){
 		super.paramYapiDuzenle(e); const {paramci, temps} = e;
 		let form = temps.islem_kullanim, kullanim = form.addKullanim();
@@ -278,13 +284,8 @@ class MQSatisParam extends MQAlimSatisParamOrtak {
 		form = tabPage.addGrup({ etiket: 'Ticari Belgelerde Kontrol' }).addFormWithParent().yanYana(); form.addTekSecim('riskIslem', 'Risk İşlem').setTekSecim(LimitKontrol).kodsuz(); form.addTekSecim('takipBorc', 'Takip Borç').setTekSecim(LimitKontrol).kodsuz()
 	}
 }
-class MQAlimParam extends MQAlimSatisParamOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get paramKod() { return 'SFAL' } static get sinifAdi() { return 'Alım Genel Parametreleri' }
-}
 class MQBankaGenelParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get paramKod() { return 'BANGP' } static get sinifAdi() { return 'Banka Genel Parametreleri' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get paramKod() { return 'BANGP' } static get sinifAdi() { return 'Banka Genel Parametreleri' }
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); const {paramci} = e;
 		let form = paramci.addKullanim().addFormWithParent();
