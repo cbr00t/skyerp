@@ -117,11 +117,13 @@ class MQSQLConst extends CObject {
 }
 class MQAliasliYapi extends MQSQLOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	get aliasVeyaDeger() { return this.alias || this.deger }
-	get degerAlias() { return this.class.getDegerAlias(this.deger) }
+	get aliasVeyaDeger() { return this.alias || this.deger } get degerAlias() { return this.class.getDegerAlias(this.deger) }
 	get degerAliasListe() { return this.class.getDegerAliasListe(this.deger) }
 	
-	constructor(e) { e = e || {}; super(e); this.deger = e.deger || ''; this.alias = e.alias || ''; this.aliaslimi = e.aliaslimi ?? !!this.alias }
+	constructor(e) {
+		e = e || {}; super(e); this.deger = e.deger || ''; this.alias = e.alias || '';
+		this.aliaslimi = e.aliaslimi ?? (e.isCopy ? null : !!this.alias && this.alias != this.sql)
+	}
 	static newForFromText(e) {
 		/* örnek:
 				- 'piffis'
@@ -130,15 +132,12 @@ class MQAliasliYapi extends MQSQLOrtak {
 				- '(SELECT ... ) AS tbl'
 		*/
 		e = e || {}; if (typeof e != 'object') { e = { text: e } }
-		let text = (e.text || e.fromText || '').toString().trim(); delete e.text;
-		let sonBosInd = text.lastIndexOf(' ');
-		if (sonBosInd < 0) {				// bosluk yok
-			e.deger = e.alias = text; e.aliaslimi = false;
-		}
-		else {								// bosluk var
-				// substring (from, end) => end index dahil değil
-			let tabloAdi = text.substring(0, sonBosInd).trim(); if (tabloAdi[0] != '(' && tabloAdi.slice(-3).toUpperCase() == ' AS') { tabloAdi = tabloAdi.slice(0, -3) }
-			e.deger = tabloAdi; e.alias = text.substring(sonBosInd + 1).trim(); e.aliaslimi = true;
+		let text = (e.text || e.fromText || '').toString().trim(), sonBosInd = text.lastIndexOf(' '); delete e.text;
+		if (sonBosInd < 0) { e.deger = e.alias = text; e.aliaslimi = false }								/* bosluk yok */
+		else {																								/* bosluk var -- substring (from, end) => end index dahil değil */
+			let asLiteralSet = { ' AS': true, ' as': true, ' As': true, ' aS': true };
+			let tabloAdi = text.substring(0, sonBosInd).trim(); if (tabloAdi[0] != '(' && asLiteralSet[tabloAdi.slice(-3)]) { tabloAdi = tabloAdi.slice(0, -3) }
+			e.deger = tabloAdi; e.alias = text.substring(sonBosInd + 1).trim(); e.aliaslimi = true
 		}
 		return new this(e)
 	}
@@ -149,22 +148,14 @@ class MQAliasliYapi extends MQSQLOrtak {
 				- 'kod'
 				- '(case when ... end) tipText'
 		*/
-		text = (text || '').toString().trim(); let sonBosInd = text.lastIndexOf(' '), sonNoktaInd = text.lastIndexOf('.');
-		let e = {};
-		if (sonBosInd < 0) {				// bosluk yok
-			if (sonNoktaInd < 0) {			// nokta yok
-				e.deger = e.alias = text;
-				e.aliaslimi = false
-			}
-			else {							// nokta var
-				e.deger = text; e.alias = text.substring(sonNoktaInd + 1).trim();
-				e.aliaslimi = false
-			}
+		text = text?.toString()?.trim() ?? ''; let sonBosInd = text.lastIndexOf(' '), sonNoktaInd = text.lastIndexOf('.'); let e = {};
+		if (sonBosInd < 0) {																														/* bosluk yok */
+			if (sonNoktaInd < 0) { e.deger = e.alias = text; e.aliaslimi = false }																	/* nokta yok */
+			else { e.deger = text; e.alias = text.substring(sonNoktaInd + 1).trim(); e.aliaslimi = false }											/* nokta var */
 		}
-		else {								// bosluk var
-				// substring (from, end) => end index dahil değil
-			e.deger = text.substring(0, sonBosInd).trim(); e.alias = text.substring(sonBosInd + 1).trim();
-			e.aliaslimi = true
+		else {																																		/* bosluk var -- substring (from, end) => end index dahil değil */
+			let deger = e.deger = text.substring(0, sonBosInd).trim(), alias = e.alias = text.substring(sonBosInd + 1).trim();
+			if (deger && deger.split('.').slice(-1)[0] == alias) { alias = e.alias = null; e.aliaslimi = false } else { e.aliaslimi = true }
 		}
 		return new this(e)
 	}
@@ -213,15 +204,10 @@ class MQIliskiYapisi extends MQSQLOrtak {
 		this.sol = e.sol || new MQAliasliYapi(); this.sag = e.sag || new MQAliasliYapi()
 	}
 	static newForText(text) {
-		text = (text || '').toString().trim();
-		let parantezSayilari, solText, ind = -1, esittirVarmi = false;
+		text = text?.toString()?.trim() ?? ''; let parantezSayilari, solText, ind = -1, esittirVarmi = false;
 		do {
-			parantezSayilari = { ac: 0, kapat: 0 };
-			ind = text.indexOf('=', ind + 1); if (ind != -1) { esittirVarmi = true }
-			solText = text.substring(0, ind).trim();
-			for (const ch of solText) {
-				if (ch == '(') { parantezSayilari.ac++ } else if (ch == ')') { parantezSayilari.kapat++ }
-			}
+			parantezSayilari = { ac: 0, kapat: 0 }; ind = text.indexOf('=', ind + 1); if (ind != -1) { esittirVarmi = true }
+			solText = text.substring(0, ind).trim(); for (const ch of solText) { if (ch == '(') { parantezSayilari.ac++ } else if (ch == ')') { parantezSayilari.kapat++ } }
 		} while (ind > -1 && parantezSayilari.ac != parantezSayilari.kapat);
 		if (esittirVarmi && ind < 0) { throw { isError: true, rc: 'queryBuilderError', errorText: 'Dengesiz eşitlik' } }
 		return new this({ sol: MQAliasliYapi.newForIliskiText(solText), sag: MQAliasliYapi.newForIliskiText(text.substring(ind + 1)) })

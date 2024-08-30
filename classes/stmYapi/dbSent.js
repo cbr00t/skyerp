@@ -42,16 +42,16 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	distinctYap() { this.distinct = true; return this }
 	groupByOlustur(e) {
 		const groupBy = this.groupBy = new MQGroupByClause(), {aggregateFunctions} = this.class, sahaListe = this.sahalar.liste;
-		const eklenecekler = []; let aggregateVarmi = false;
+		const ekleneceklerSet = {}; let aggregateVarmi = false;
 		// for (const saha of sahaListe) {
 		for (let i = 0; i < sahaListe.length; i++) {
-			const saha = sahaListe[i]; let deger = (saha.deger || '').toString(); if (!deger || deger == '' || isDigit(deger[0])) { continue }
-			const degerUpper = deger.toUpperCase();
-			if (degerUpper.startsWith('CAST(0') || degerUpper.startsWith("CAST(''") || degerUpper.startsWith('CAST(NULL') || degerUpper.startsWith('NULL')) { continue }
+			const saha = sahaListe[i]; let deger = saha.deger?.toString();
+			if (!deger || deger == '' || deger == `''` || deger == '0' /*|| isDigit(deger[0])*/) { continue }
+			const degerUpper = deger.toUpperCase(); if (degerUpper.startsWith('CAST(0') || degerUpper.startsWith("CAST(''") || degerUpper.startsWith('CAST(NULL') || degerUpper.startsWith('NULL')) { continue }
 			const toplammi = this.class.hasAggregateFunctions(degerUpper); if (toplammi) { aggregateVarmi = true; continue }
-			eklenecekler.push(deger)
+			ekleneceklerSet[deger] = true
 		}
-		if (aggregateVarmi) { groupBy.addAll(eklenecekler) }
+		if (aggregateVarmi) { groupBy.addAll(Object.keys(ekleneceklerSet)) }
 		return this
 	}
 	sahalarVeGroupByReset() { this.sahalarReset(); this.groupByReset(); return this }
@@ -93,27 +93,14 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		return this
 	}
 	leftJoin(e) {
-		e = e || {}; let {alias} = e;
-		const fromText = e.from || e.leftJoin || e.fromText || e.table;
-		let iliskiDizi = e.on || e.iliskiDizi || e.iliskiText || e.iliski;
-		if (iliskiDizi && !$.isArray(iliskiDizi))
-			iliskiDizi = [iliskiDizi];
-		
-		const xJoin = MQLeftJoin.newForFromText({ text: fromText, on: iliskiDizi });
-		const tableYapi = this.from.aliasIcinTable(alias);
+		e = e || {}; let {alias} = e; const fromText = e.from || e.leftJoin || e.fromText || e.table;
+		let iliskiDizi = e.on || e.iliskiDizi || e.iliskiText || e.iliski; if (iliskiDizi && !$.isArray(iliskiDizi)) { iliskiDizi = [iliskiDizi] }
+		const xJoin = MQLeftJoin.newForFromText({ text: fromText, on: iliskiDizi }), tableYapi = this.from.aliasIcinTable(alias);
 		if (!tableYapi) {
-			debugger;
-			throw { isError: true, rc: 'leftJoinTable', errorText: `Left Join (<i class="bold lightgray">${fromText}</i>) için eklenmek istenen alias (<b class="red">${alias}</b>) bulunamadı` }
+			debugger; throw { isError: true, rc: 'leftJoinTable', errorText: `Left Join (<i class="bold lightgray">${fromText}</i>) için eklenmek istenen alias (<b class="red">${alias}</b>) bulunamadı` }
 		}
-		tableYapi.addLeftInner(xJoin);
-
-		const {zincirler} = this;
-		for (const iliskiText of iliskiDizi) {
-			const iliski = MQIliskiYapisi.newForText(iliskiText);
-			const zincir = iliski.varsaZincir;
-			if (zincir)
-				zincirler.add(zincir)
-		}
+		tableYapi.addLeftInner(xJoin); const {zincirler} = this;
+		for (const iliskiText of iliskiDizi) { const iliski = MQIliskiYapisi.newForText(iliskiText), zincir = iliski.varsaZincir; if (zincir) { zincirler.add(zincir) } }
 		return this
 	}
 	add(...sahalar) { this.sahalar.add(...sahalar); return this }
@@ -224,6 +211,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	fis2AltHesapBagla(e) { this.fromIliski('althesap alth', 'fis.althesapkod = alth.kod'); return this }
 	fis2AltHesapBagla_eski(e) { this.fromIliski('althesap alth', 'fis.cariitn = alth.kod'); return this }
 	fis2PlasiyerBagla(e) { this.fromIliski('carmst pls', 'fis.must = car.must'); return this }
+	fis2KasaBagla(e) { this.fromIliski('kasmst kas', 'fis.kasa = kas.kod'); return this }
 	fis2BankaHesapBagla(e) { this.fromIliski('banbizhesap bhes', 'fis.banhesapkod = bhes.kod'); return this }
 	fis2KrediBankaHesapBagla(e) { this.fromIliski('banbizhesap bhes', 'fis.kredibanhesapkod = bhes.kod'); return this }
 	fisAyrimBagla(e) { /* tamamlanacak */ return this }
@@ -266,6 +254,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	cariAyrimBagla(e) { /* tamamlanacak */ e = e || {}; const alias = e.alias ?? 'car', aliasVeNokta = alias + '.'; return this }
 	har2AltHesapBagla(e) { this.fromIliski('althesap alth', 'har.althesapkod = alth.kod'); return this }
 	har2AltHesapBagla_eski(e) { this.fromIliski('althesap alth', 'har.cariitn = alth.kod'); return this }
+	har2KasaBagla(e) { this.fromIliski('kasmst kas', 'har.kasa = kas.kod'); return this }
 	har2BankaHesapBagla(e) { this.fromIliski('banbizhesap bhes', 'har.banhesapkod = bhes.kod'); return this }
 	har2StokBagla(e) { this.fromIliski('stkmst stk', 'har.stokkod = stk.kod'); return this }
 	stokHepsiBagla(e) { e = e || {}; this.stokYardimciBagla(e); this.stokAyrimBagla(e); return this }

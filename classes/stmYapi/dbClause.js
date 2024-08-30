@@ -390,7 +390,7 @@ class MQSubWhereClause extends MQClause {
 		const {subeGrupKod, subeKod} = subeYapi; this.add(subeGecerlilik == 'G' ? `${subeGrupSql} = '${subeGrupKod}'` : `${subeKodSql} = '${subeKod}'`);
 		return this
 	}
-	icerikKisitDuzenle_x(e) { config.session?.rol?.icerikselClauseDuzenle({ ...e, where: this }) }
+	icerikKisitDuzenle_x(e) { config.session?.rol?.icerikselClauseDuzenle({ ...e, /* saha: ... */ where: this }) }
 	icerikKisitDuzenle_sube(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'sube' }) }
 	icerikKisitDuzenle_cari(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'cari' }) }
 	icerikKisitDuzenle_cariTip(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'carTip' }) }

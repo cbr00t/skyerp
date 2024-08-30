@@ -83,7 +83,8 @@ class Hareketci extends CObject {
 					sent = _e.sent = sent.deepCopy();
 					let {attrSet} = this; for (const alias in attrSet) {
 						let deger = hv[alias] || varsayilanHV[alias]; if (!deger) { continue }
-						let saha = alias ? new MQAliasliYapi({ alias, deger }) : MQAliasliYapi.newForSahaText(deger); sent.add(saha)
+						/*let saha = alias ? new MQAliasliYapi({ alias, deger }) : MQAliasliYapi.newForSahaText(deger);*/
+						let saha = deger; if (alias) { saha += ` ${alias}` } sent.add(saha)
 					}
 				}
 				if (!sent?.sahalar?.liste?.length) { continue }
@@ -117,3 +118,19 @@ class Hareketci extends CObject {
 	setWHD_master(value) { this.whereYapi.master = value; return this } setWHD_hareket(value) { this.whereYapi.hareket = value; return this } setUygunluk(value) { this.uygunluk = value; return this }
 	gereksizTablolariSil() { this.gereksizTablolariSilFlag = true; return this } gereksizTablolariSilme() { this.gereksizTablolariSilFlag = false; return this }
 }
+
+/*
+		== ORNEK CAGIRIM ==
+	let queryYapi = new CariHareketci().gereksizTablolariSil().withAttrs('kaysayac', 'fisno', 'fistipi', 'must', 'althesapadi', 'tarih', 'vade', 'seri', 'noyil', 'no', 'bedel')
+		.setWHD_master(e => { const {wh, attr2Deger} = e; wh.degerAta('C1', attr2Deger.asilmust) })
+		.setWHD_hareket(e => { const {wh, attr2Deger} = e; wh.basiSonu({ basi: today().yilBasi(), sonu: today() }, attr2Deger.tarih) })
+		.uniOlustur().getQueryYapi();
+	let recs; try { recs = queryYapi?.query ? await app.sqlExecSelect(queryYapi) : [] } catch (ex) { console.error(getErrorText(ex)) }
+	if (recs) {
+		console.table(recs); let rec = recs[0], source = e => recs;
+		let tabloKolonlari = rec ? Object.keys(rec).map(belirtec => {
+			let colDef = new GridKolon({ belirtec, text: belirtec }); if (typeof rec[belirtec] == 'number') { colDef.tipDecimal() } return colDef }) : null;
+		new MasterListePart({ tabloKolonlari, source }).run()
+	}
+	recs
+*/
