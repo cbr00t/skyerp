@@ -26,7 +26,8 @@ class DAltRapor_Chart extends DAltRapor {
 		input.jqxChart({ xAxis, seriesGroups, source })
 	}
 	super_tazele(e) { super.tazele(e) }
-	onChartInit(e) { } onChartRun(e) { }
+	onChartInit(e) { }
+	onChartRun(e) { /*let {input} = this.chartPart*/ }
 	chartArgsDuzenle(e) { }
 	async getDataAdapter(e) {
 		try {

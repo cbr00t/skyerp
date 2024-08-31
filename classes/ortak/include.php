@@ -5,4 +5,4 @@
 <script src="<?=$_partRoot?>/basitSiniflar.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/progressManager.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/CDetayli.js?<?=$appVersion?>"></script>
-<?php require_once("$webRoot/classes/ortak/diger/include.php") ?>
+<script src="<?=$_partRoot?>/seriVeNo.js?<?=$appVersion?>"></script>

@@ -1,6 +1,5 @@
 class SeriVeNo extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	get asText() { return this.toString() }
+    static { window[this.name] = this; this._key2Class[this.name] = this } get asText() { return this.toString() }
 	constructor(e, _no) {
 		e = e || {}; super(e);
 		this.seri = (typeof e == 'object' ? e.seri : e) || '';
@@ -12,8 +11,7 @@ class SeriVeNo extends CObject {
 		for (let i = value.length - 1; i >= 0; i--) { if (!isDigit(value[i])) { alphaInd = i; break } }
 		const result = new this();
 		if (alphaInd < 0) { result.no = asInteger(value) }
-		else {
-			/* substring() endIndex dahil etmiyor */
+		else {				/* substring() endIndex dahil etmiyor */
 			result.seri = value.substring(0, alphaInd + 1);
 			result.no = asInteger(value.substring(alphaInd + 1))
 		}

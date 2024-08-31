@@ -11,8 +11,16 @@ class TicariApp extends App {
 			kalite: MQKaliteParam.getInstance()
 		})
 	}
-	sabitTanimlarDuzenle(e) { const {sabitTanimlar} = e; $.extend(sabitTanimlar, { vergi: this.wsSabitTanimlar_xml('EBYN-KDV-Kodlar') }) }
-	raporEkSahaDosyalariDuzenle(e) { e.liste.push('VioTicari.RaporEkSaha') }
+	sabitTanimlarDuzenle(e) { super.sabitTanimlarDuzenle(e); const {sabitTanimlar} = e; $.extend(sabitTanimlar, { vergi: this.wsSabitTanimlar_xml('EBYN-KDV-Kodlar') }) }
+	static tumModulleriDuzenle(e) {
+		super.tumModulleriDuzenle(e); const {liste} = e; liste.push(
+			Modul_CokluSube, Modul_EDefter, Modul_Demirbas, Modul_ETicaret, Modul_WebRapor, Modul_WebOzetRapor, Modul_TicariKosul, Modul_Promosyon, Modul_MasrafYeri, Modul_SicakSatis,
+			Modul_DisTicaret, Modul_EIslem, Modul_EIrsaliye, Modul_EMustahsil, Modul_Emanet, Modul_Fason, Modul_MustahsilMakbuzu, Modul_TalepTeklif, Modul_TicariPDKS, Modul_Magaza, Modul_YazarKasa,
+			Modul_Kalite, Modul_Uretim, Modul_UretimMaliyetMuhasebesi, Modul_SuperAgac, Modul_RBK, Modul_Tekstil, Modul_SevkiyatPlani, Modul_TabletDepo, Modul_TabletSahaSatis,
+			Modul_TabletSutToplama, Modul_SutAlim, Modul_UygunsuzlukYonetimi, Modul_OfflineSube
+		)
+	}
+	raporEkSahaDosyalariDuzenle(e) { super.raporEkSahaDosyalariDuzenle(e); const {liste} = e; liste.push('VioTicari.RaporEkSaha') }
 	async runDevam(e) { await super.runDevam(e); await this.loginIstendi(e); await this.anaMenuOlustur(e); this.show() }
 	async getAnaMenu() { const response = await ajaxGet({ url: this.getWSUrl({ api: 'frMenu' }) }); return response ? FRMenu.from(response) : null }
 	wsSabitTanimlar_xml(e) { e = e || {}; if (e && typeof e != 'object') e = { belirtec: e }; return this.wsSabitTanimlar($.extend({}, e, { tip: 'xml' })) }

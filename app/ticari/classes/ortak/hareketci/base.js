@@ -61,7 +61,6 @@ class Hareketci extends CObject {
 			sonIslem: e.sonIslem ?? (e => this.defaultSonIslem(e)), gereksizTablolariSilFlag: e.gereksizTablolariSil ?? e.gereksizTablolariSilFlag ?? false
 		});
 		const {whereYapi} = this; for (const key of ['master', 'hareket']) { const value = e[key]; if (value !== undefined) { whereYapi[key] = value } }
-		const {sentDuzenleyiciler} = this; 
 	}
 	static getClass(e) { const kod = typeof e == 'object' ? (e.kod ?? e.tip) : e; return this.kod2Sinif[kod] }
 	static hareketTipSecim_kaListeDuzenle(e) { } static varsayilanHVDuzenle(e) { }
