@@ -80,7 +80,7 @@ class Modul_Magaza extends Modul {
 }
 class Modul_YazarKasa extends Modul {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kod() { return 'MPYKAS' } static get aciklama() { return 'Yazar Kasa' }
+	static get kod() { return 'MPYKAS' } static get aciklama() { return 'Yazar Kasa' } static get extSinif_hareketci_cari() { return ModulExt_Hareketci_Cari_YazarKasa }
 }
 class Modul_Kalite extends Modul {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -124,7 +124,7 @@ class Modul_TabletSutToplama extends Modul {
 }
 class Modul_SutAlim extends Modul {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kod() { return 'MPSUTA' } static get aciklama() { return 'Süt Alım' }
+	static get kod() { return 'MPSUTA' } static get aciklama() { return 'Süt Alım' } static get extSinif_hareketci_cari() { return ModulExt_Hareketci_Cari_SutAlim }
 }
 class Modul_UygunsuzlukYonetimi extends Modul {
     static { window[this.name] = this; this._key2Class[this.name] = this }

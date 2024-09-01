@@ -25,8 +25,7 @@ class Hareketci extends CObject {
 		let result = this._defaultAttrSet; if (result === undefined) {
 			let {varsayilanHV, uygunluk2UnionBilgiListe} = this; result = asSet(Object.keys(varsayilanHV));
 			for (const uniBilgi of Object.values(uygunluk2UnionBilgiListe)) {
-				const hv = uniBilgi?.hv; if (hv) {
-					for (const key in hv) { if (!result[key]) { result[key] = true } } }
+				const hv = uniBilgi?.hv; if (hv) { for (const key in hv) { if (!result[key]) { result[key] = true } } }
 			}
 			this._defaultAttrSet = result
 		}
@@ -35,23 +34,30 @@ class Hareketci extends CObject {
 	get attrSet() {
 		let result = this._attrSet; if (result == null) { result = this._attrSet = { ...this.class.defaultAttrSet } }
 		if ($.isArray(result)) { result = this.attrSet = asSet(result) }
+		if (!result.oncelik) { result.oncelik = true }
 		return result
 	}
-	set attrSet(value) { this._attrSet = value }
+	set attrSet(value) {
+		if ($.isArray(value)) { value = asSet(value) }
+		if (typeof value == 'object' && !value.oncelik) { value.oncelik = true }
+		this._attrSet = value
+	}
 	get uygunluk() {
 		let result = this._uygunluk; if (result == null) { result = this.class.hareketTipSecim }
 		if (!(result.class?.birKismimi ?? result.birKismimi)) { result = this._uygunluk = new SecimBirKismi({ tekSecim: result }) }
 		return result
 	}
 	set uygunluk(value) { this._uygunluk = value }
-	static get varsayilanHV() {
-		let result = this._varsayilanHV;
-		if (result == null) { let e = { hv: {} }; this.varsayilanHVDuzenle(e); result = this._varsayilanHV = e.hv }
-		return result
-	}
+	static get extListe() { let result = this._extListe; if (result == null) { let e = { liste: [] }; this.extListeDuzenle(e); result = this._extListe = e.liste } return result }
+	static set extListe(value) { this._extListe = value }
 	static get uygunluk2UnionBilgiListe() {
 		let result = this._uygunluk2UnionBilgiListe;
 		if (result == null) { let e = { liste: {} }; this.uygunluk2UnionBilgiListeDuzenle(e); result = this._uygunluk2UnionBilgiListe = e.liste }
+		return result
+	}
+	static get varsayilanHV() {
+		let result = this._varsayilanHV;
+		if (result == null) { let e = { hv: {} }; this.varsayilanHVDuzenle(e); result = this._varsayilanHV = e.hv }
 		return result
 	}
 
@@ -63,9 +69,24 @@ class Hareketci extends CObject {
 		const {whereYapi} = this; for (const key of ['master', 'hareket']) { const value = e[key]; if (value !== undefined) { whereYapi[key] = value } }
 	}
 	static getClass(e) { const kod = typeof e == 'object' ? (e.kod ?? e.tip) : e; return this.kod2Sinif[kod] }
-	static hareketTipSecim_kaListeDuzenle(e) { } static varsayilanHVDuzenle(e) { }
-	static uygunluk2UnionBilgiListeDuzenle(e) { this.uygunluk2UnionBilgiListeDuzenleDevam(e) } static uygunluk2UnionBilgiListeDuzenleDevam(e) { }
+	static hareketTipSecim_kaListeDuzenle(e) { e.hareketci = this; for (const ext of this.getExtIter()) { ext.hareketTipSecim_kaListeDuzenle(e) } }
+	static varsayilanHVDuzenle(e) {
+		super.varsayilanHVDuzenle(e); const {hv} = e, sqlEmptyDate = 'cast(null as datetime)', sqlEmpty = `''`, sqlZero = '0';
+		for (const key of ['oncelik']) { hv[key] = sqlZero }
+	}
+	static uygunluk2UnionBilgiListeDuzenle(e) { this.uygunluk2UnionBilgiListeDuzenleDevam(e) }
+	static uygunluk2UnionBilgiListeDuzenleDevam(e) { e.hareketci = this; for (const ext of this.getExtIter()) { ext.uygunluk2UnionBilgiListeDuzenle(e) } }
+	static extListeDuzenle(e) {
+		const {liste} = e, {kod} = this;
+		for (const modul of app.getModulIter()) { let extSinif = modul[`extSinif_hareketci_${kod}`]; if (extSinif) { liste.push(extSinif) } }
+	}
+	static *getExtIter() { const {extListe} = this; if (extListe) { for (const ext of extListe) { yield ext } } } *getExtIter() { return this.class.getExtIter() }
 	defaultSonIslem(e) { }
+	stmOlustur(e) {
+		e = e || {}; let stm = new MQStm({ orderBy: ['oncelik'] }), _e = { ...e, stm }; this.stmDuzenle(_e); stm = _e.stm;
+		let uni = stm.sent; if (uni.unionmu) { uni.liste = uni.liste.filter(sent => !!sent?.sahalar?.liste?.length) } return stm
+	}
+	stmDuzenle(e) { const {stm} = e; const uni = stm.sent = this.uniOlustur(e); return this.stmDuzenleDevam(e) } stmDuzenleDevam(e) { }
 	uniOlustur(e) { e = e || {}; const uni = new MQUnionAll(), _e = { ...e, uni }; this.uniDuzenle(_e); return uni }
 	uniDuzenle(e) {
 		e = e || {}; $.extend(e, {
@@ -73,14 +94,13 @@ class Hareketci extends CObject {
 		}); return this.uniDuzenleDevam(e)
 	}
 	uniDuzenleDevam(e) {
-		const {uygunluk2UnionBilgiListe, varsayilanHV} = this.class, {uygunluk} = this, {uni} = e, uygunlukVarmi = uygunluk.bosDegilmi;
+		const {uygunluk2UnionBilgiListe, varsayilanHV} = this.class, {uygunluk} = this, {uni} = e, uygunlukVarmi = uygunluk.bosDegilmi, {attrSet} = this;
 		for (const [selector, unionBilgiListe] of Object.entries(uygunluk2UnionBilgiListe)) {
 			if (uygunlukVarmi && !uygunluk[selector]) { continue }
 			for (const uniBilgi of unionBilgiListe) {
 				let sent = uniBilgi?.sent; if (!sent) { continue }
 				let {hv} = uniBilgi, _e = { ...e, sent, hv }; if (hv) {
-					sent = _e.sent = sent.deepCopy();
-					let {attrSet} = this; for (const alias in attrSet) {
+					sent = _e.sent = sent.deepCopy(); for (const alias in attrSet) {
 						let deger = hv[alias] || varsayilanHV[alias]; if (!deger) { continue }
 						/*let saha = alias ? new MQAliasliYapi({ alias, deger }) : MQAliasliYapi.newForSahaText(deger);*/
 						let saha = deger; if (alias) { saha += ` ${alias}` } sent.add(saha)

@@ -46,7 +46,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		// for (const saha of sahaListe) {
 		for (let i = 0; i < sahaListe.length; i++) {
 			const saha = sahaListe[i]; let deger = saha.deger?.toString();
-			if (!deger || deger == '' || deger == `''` || deger == '0' /*|| isDigit(deger[0])*/) { continue }
+			if (!deger || deger == '' || deger == `''` || deger == '0' || isDigit(deger[0]) || deger[0] == `'`) { continue }
 			const degerUpper = deger.toUpperCase(); if (degerUpper.startsWith('CAST(0') || degerUpper.startsWith("CAST(''") || degerUpper.startsWith('CAST(NULL') || degerUpper.startsWith('NULL')) { continue }
 			const toplammi = this.class.hasAggregateFunctions(degerUpper); if (toplammi) { aggregateVarmi = true; continue }
 			ekleneceklerSet[deger] = true
@@ -211,9 +211,9 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	fis2AltHesapBagla(e) { this.fromIliski('althesap alth', 'fis.althesapkod = alth.kod'); return this }
 	fis2AltHesapBagla_eski(e) { this.fromIliski('althesap alth', 'fis.cariitn = alth.kod'); return this }
 	fis2PlasiyerBagla(e) { this.fromIliski('carmst pls', 'fis.must = car.must'); return this }
-	fis2KasaBagla(e) { this.fromIliski('kasmst kas', 'fis.kasa = kas.kod'); return this }
+	fis2KasaBagla(e) { this.fromIliski('kasmst kas', 'fis.kasakod = kas.kod'); return this }
 	fis2BankaHesapBagla(e) { this.fromIliski('banbizhesap bhes', 'fis.banhesapkod = bhes.kod'); return this }
-	fis2KrediBankaHesapBagla(e) { this.fromIliski('banbizhesap bhes', 'fis.kredibanhesapkod = bhes.kod'); return this }
+	fis2KrediBankaHesapBagla(e) { this.fromIliski('banbizhesap bhes', 'fis.kredihesapkod = bhes.kod'); return this }
 	fisAyrimBagla(e) { /* tamamlanacak */ return this }
 	cariHepsiBagla(e) { e = e || {}; this.cariYardimciBagla(e); this.cariAyrimBagla(e); return this }
 	cari2BolgeBagla(e) {
@@ -342,7 +342,7 @@ class MQCTESent extends MQSentVeIliskiliYapiOrtak {
 	buildString(e) { super.buildString(e); e.result += (this.liste.map(item => item.toString()).join(`${CrLf}${this.class.baglac}${CrLf}`)) }
 }
 class MQUnionBase extends MQCTESent {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { window[this.name] = this; this._key2Class[this.name] = this } get unionmu() { return true }
 	birlestir(diger) { for (const sent of diger.getSentListe()) { this.add(sent) } return this }
 }
 class MQUnion extends MQUnionBase {
@@ -351,8 +351,7 @@ class MQUnion extends MQUnionBase {
 	asUnion(e) { return this } asUnionAll(e) { return new MQUnionAll(this) }
 }
 class MQUnionAll extends MQUnionBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get baglac() { return '  UNION ALL' }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return '  UNION ALL' }
 	asUnion(e) { return new MQUnion(this) } asUnionAll(e) { return this }
 }
 class MQExceptBase extends MQCTESent { }
