@@ -35,11 +35,11 @@ class ModulExt_Hareketci_Cari_YazarKasa extends ModulExt_Hareketci_Cari {
 					sent.fromAdd('yktotalcari ykcar').fromIliski('carmst car', 'ykcar.mustkod = car.must').fromIliski('yktotalfis yktot', 'ykcar.fissayac = yktot.kaysayac')
 					wh.fisSilindiEkle('yktot').add(`ykcar.mustkod <> ''`);
 				}).hvDuzenleIslemi(e => {
-					$.extend(e.hv, {
+					const sqlEmpty = `''`; $.extend(e.hv, {
 						kaysayac: 'ykcar.kaysayac', ozelisaret: 'yktot.ozelisaret', oncelik: '15', unionayrim: `'ZTot'`, kayittipi: `'ZTot'`, iceriktipi: 'ZTot',
-						anaislemadi: `'Z Total Bilgi'`, isladi: `'YK. Veresiye'`, ba: `'B'`, must: 'ykcar.mustkod', asilmust: 'ykcar.mustkod',
-						tarih: 'yktot.tarih', karsiodemetarihi: 'yktot.tarih', vade: 'yktot.tarih', refadi: 'yktot.zbilgi', bedel: 'har.sonuc',
-						fissayac: 'yktot.kaysayac', sonzamants: 'yktot.tarih'
+						anaislemadi: `'Z Total Bilgi'`, isladi: `'YK. Veresiye'`, ba: `'B'`, refadi: 'yktot.zbilgi', tarih: 'yktot.tarih',
+						karsiodemetarihi: 'yktot.tarih', vade: 'yktot.tarih', seri: sqlEmpty, noyil: sqlEmpty, fisno: 'yktot.zraporno', baslikno: sqlEmpty,
+						fisnox: sqlEmpty, disfisnox: sqlEmpty, must: 'ykcar.mustkod', asilmust: 'ykcar.mustkod', bedel: 'yktot.faturatoplam', fissayac: 'yktot.kaysayac', sonzamants: 'yktot.tarih'
 					})
 				})
 			]

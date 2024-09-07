@@ -31,17 +31,13 @@ class Hareketci extends CObject {
 		}
 		return result
 	}
+	static get zorunluAttrSet() { let result = this._zorunluAttrSet; if (result == null) { result = this._zorunluAttrSet = asSet(['oncelik', 'seq']) } return result }
 	get attrSet() {
 		let result = this._attrSet; if (result == null) { result = this._attrSet = { ...this.class.defaultAttrSet } }
 		if ($.isArray(result)) { result = this.attrSet = asSet(result) }
-		if (!result.oncelik) { result.oncelik = true }
 		return result
 	}
-	set attrSet(value) {
-		if ($.isArray(value)) { value = asSet(value) }
-		if (typeof value == 'object' && !value.oncelik) { value.oncelik = true }
-		this._attrSet = value
-	}
+	set attrSet(value) { if ($.isArray(value)) { value = asSet(value) } this._attrSet = value }
 	get uygunluk() {
 		let result = this._uygunluk; if (result == null) { result = this.class.hareketTipSecim }
 		if (!(result.class?.birKismimi ?? result.birKismimi)) { result = this._uygunluk = new SecimBirKismi({ tekSecim: result }) }
@@ -94,13 +90,13 @@ class Hareketci extends CObject {
 		}); return this.uniDuzenleDevam(e)
 	}
 	uniDuzenleDevam(e) {
-		const {uygunluk2UnionBilgiListe, varsayilanHV} = this.class, {uygunluk} = this, {uni} = e, uygunlukVarmi = uygunluk.bosDegilmi, {attrSet} = this;
+		const {uygunluk2UnionBilgiListe, varsayilanHV, zorunluAttrSet} = this.class, {uygunluk, attrSet} = this, {uni} = e, uygunlukVarmi = uygunluk.bosDegilmi;
 		for (const [selector, unionBilgiListe] of Object.entries(uygunluk2UnionBilgiListe)) {
 			if (uygunlukVarmi && !uygunluk[selector]) { continue }
 			for (const uniBilgi of unionBilgiListe) {
 				let sent = uniBilgi?.sent; if (!sent) { continue }
 				let {hv} = uniBilgi, _e = { ...e, sent, hv }; if (hv) {
-					sent = _e.sent = sent.deepCopy(); for (const alias in attrSet) {
+					sent = _e.sent = sent.deepCopy(); for (const alias in { ...zorunluAttrSet, ...attrSet }) {
 						let deger = hv[alias] || varsayilanHV[alias]; if (!deger) { continue }
 						/*let saha = alias ? new MQAliasliYapi({ alias, deger }) : MQAliasliYapi.newForSahaText(deger);*/
 						let saha = deger; if (alias) { saha += ` ${alias}` } sent.add(saha)

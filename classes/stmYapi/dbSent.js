@@ -209,7 +209,6 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	fis2CariBagla(e) { this.fromIliski('carmst car', 'fis.must = car.must'); return this }
 	fis2TicCariBagla(e) { this.fromIliski('carmst car', 'fis.ticmust = car.must'); return this }
 	fis2AltHesapBagla(e) { this.fromIliski('althesap alth', 'fis.althesapkod = alth.kod'); return this }
-	fis2AltHesapBagla_eski(e) { this.fromIliski('althesap alth', 'fis.cariitn = alth.kod'); return this }
 	fis2PlasiyerBagla(e) { this.fromIliski('carmst pls', 'fis.must = car.must'); return this }
 	fis2KasaBagla(e) { this.fromIliski('kasmst kas', 'fis.kasakod = kas.kod'); return this }
 	fis2BankaHesapBagla(e) { this.fromIliski('banbizhesap bhes', 'fis.banhesapkod = bhes.kod'); return this }
@@ -252,9 +251,8 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		return this
 	}
 	cariAyrimBagla(e) { /* tamamlanacak */ e = e || {}; const alias = e.alias ?? 'car', aliasVeNokta = alias + '.'; return this }
-	har2AltHesapBagla(e) { this.fromIliski('althesap alth', 'har.althesapkod = alth.kod'); return this }
-	har2AltHesapBagla_eski(e) { this.fromIliski('althesap alth', 'har.cariitn = alth.kod'); return this }
-	har2KasaBagla(e) { this.fromIliski('kasmst kas', 'har.kasa = kas.kod'); return this }
+	har2AltHesapBagla(e) { this.fromIliski('althesap alth', 'har.cariitn = alth.kod'); return this }
+	har2KasaBagla(e) { this.fromIliski('kasmst kas', 'har.kasakod = kas.kod'); return this }
 	har2BankaHesapBagla(e) { this.fromIliski('banbizhesap bhes', 'har.banhesapkod = bhes.kod'); return this }
 	har2StokBagla(e) { this.fromIliski('stkmst stk', 'har.stokkod = stk.kod'); return this }
 	stokHepsiBagla(e) { e = e || {}; this.stokYardimciBagla(e); this.stokAyrimBagla(e); return this }
