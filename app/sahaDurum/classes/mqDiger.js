@@ -13,6 +13,7 @@ class MQCari extends MQKAOrtak {
 		e = e || {}; await super.loadServerDataDogrudan(e); const {wsArgs} = e, {session} = config, {loginTipi, user} = session;
 		const selector = loginTipi == 'plasiyerLogin' ? 'plasiyerKod' : loginTipi == 'musteriLogin' ? 'kod' : null;
 		if (user) { switch (loginTipi) { case 'plasiyerLogin': wsArgs.plasiyerKod = user; break; case 'musteriLogin': wsArgs.mustKod = user; break } }
+		let {cariTipKod} = app.params.config; if (cariTipKod) { wsArgs.cariTipKod = cariTipKod }
 		let recs = await app.wsPlasiyerIcinCariler(wsArgs); if (recs && selector && user) { recs = recs.filter(rec => rec[selector] == user) }
 		for (const rec of recs) {
 			const {plasiyerKod, plasiyerAdi} = rec; let plasiyerText = plasiyerKod;
@@ -74,7 +75,11 @@ class MQCariEkstre extends MQMasterOrtak {
 		)
 	}
 	static loadServerData(e) { return this.loadServerDataFromMustBilgi(e) }
-	static async loadServerDataDogrudan(e) { e = e || {}; await super.loadServerDataDogrudan(e); const {wsArgs} = e; return await app.wsTicCariEkstre(wsArgs) }
+	static async loadServerDataDogrudan(e) {
+		e = e || {}; await super.loadServerDataDogrudan(e); const {wsArgs} = e;
+		let {cariTipKod} = app.params.config; if (cariTipKod) { wsArgs.cariTipKod = cariTipKod }
+		return await app.wsTicCariEkstre(wsArgs)
+	}
 	static get tabloKolonlari_detaylar() { return this.detaySinif.orjBaslikListesi }
 	static async loadServerData_detaylar(e) {
 		let recs = await this.detaySinif.loadServerData(e); if (!recs?.length) return recs
@@ -95,7 +100,11 @@ class MQCariEkstre_Detay extends MQMasterOrtak {
 		)
 	}
 	static loadServerData(e) { e = e || {}; const mustKod = e.mustKod = e.mustKod ?? e.parentRec?.must; return this.loadServerDataFromMustBilgi(e) }
-	static async loadServerDataDogrudan(e) { e = e || {}; await super.loadServerDataDogrudan(e); const {wsArgs} = e; return await app.wsTicCariEkstre_icerik(wsArgs) }
+	static async loadServerDataDogrudan(e) {
+		e = e || {}; await super.loadServerDataDogrudan(e); const {wsArgs} = e;
+		let {cariTipKod} = app.params.config; if (cariTipKod) { wsArgs.cariTipKod = cariTipKod }
+		return await app.wsTicCariEkstre_icerik(wsArgs)
+	}
 }
 
 class MQKapanmayanHesaplar_Yaslandirma extends MQMasterOrtak {

@@ -7,6 +7,7 @@ class MQOnay extends MQCogul {
 		super.secimlerDuzenle(e); const sec = e.secimler;
 		sec.secimTopluEkle({
 			onayliSiparisleriGosterFlag: new SecimBool({ etiket: 'Onaylı Diğer Siparişleri de göster' }),
+			cariTip: new SecimString({ etiket: 'Cari Tip', mfSinif: MQCariTip }),
 			mustUnvan: new SecimOzellik({ etiket: 'Müşteri' }),
 			stokAdi: new SecimOzellik({ etiket: 'Ürün' })
 		});
@@ -14,6 +15,7 @@ class MQOnay extends MQCogul {
 			const {aliasVeNokta, sayacSaha} = this, wh = e.where, sec = e.secimler;
 			let or = new MQOrClause([`(fis.onaytipi = 'ON' and har.bdistonayistendi > 0)`]);
 			if (sec.onayliSiparisleriGosterFlag.value) { or.add(`har.bdistonayistendi = 0 and har.iskozelsinir > 0`) }
+			wh.basiSonu(sec.cariTip, 'car.tipkod');
 			wh.add(or); wh.ozellik(sec.mustUnvan, 'car.birunvan'); wh.ozellik(sec.stokAdi, 'stk.aciklama')
 		})
 	}

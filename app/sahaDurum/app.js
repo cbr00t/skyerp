@@ -1,5 +1,5 @@
 class SahaDurumApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { window[this.name] = this; this._key2Class[this.name] = this } get configParamSinif() { return MQYerelParamConfig_SahaDurum }
 	get autoExecMenuId() { return 'DEF' } get defaultLoginTipi() { return 'plasiyerLogin' }
 	constructor(e) { e = e || {}; super(e) }
 	async runDevam(e) {
@@ -112,9 +112,10 @@ class SahaDurumApp extends App {
 		})
 	}
 	wsTicKapanmayanHesap(e) {
-		e = e || {}; const {plasiyerKod, mustKod} = e, params = [
-			( plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null ),
-			( mustKod ? { name: '@argMustKod', value: mustKod } : null ),
+		e = e || {}; const {plasiyerKod, mustKod, cariTipKod} = e, params = [
+			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
+			(mustKod ? { name: '@argMustKod', value: mustKod } : null),
+			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/
 			{ name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
 		].filter(x => !!x);
 		return this.sqlExecSP({ query: 'tic_kapanmayanHesap', params })
@@ -124,9 +125,10 @@ class SahaDurumApp extends App {
 		})*/
 	}
 	wsTicCariEkstre(e) {
-		e = e || {}; const {plasiyerKod, mustKod} = e, params = [
-			( plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null ),
-			( mustKod ? { name: '@argMustKod', value: mustKod } : null ),
+		e = e || {}; const {plasiyerKod, mustKod, cariTipKod} = e, params = [
+			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
+			(mustKod ? { name: '@argMustKod', value: mustKod } : null),
+			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/
 			{ name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
 		].filter(x => !!x);
 		return this.sqlExecSP({ query: 'tic_cariEkstre', params })
@@ -136,9 +138,10 @@ class SahaDurumApp extends App {
 		})*/
 	}
 	wsTicCariEkstre_icerik(e) {
-		e = e || {}; const {plasiyerKod, mustKod} = e, params = [
-			( plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null ),
-			( mustKod ? { name: '@argMustKod', value: mustKod } : null ),
+		e = e || {}; const {plasiyerKod, mustKod, cariTipKod} = e, params = [
+			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
+			(mustKod ? { name: '@argMustKod', value: mustKod } : null),
+			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/
 			{ name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
 		].filter(x => !!x);
 		return this.sqlExecSP({ query: 'tic_ticariIcerik', params })
