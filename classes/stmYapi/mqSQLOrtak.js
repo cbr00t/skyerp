@@ -26,23 +26,25 @@ class MQSQLOrtak extends CObject {
 		return farkBilgi
 	}
 	static sqlServerDegeri(e) {
-		if (e == null) return null
-		const value = $.isPlainObject(e) ? e.value : e, ozelDeger = value?.sqlServerDegeri
+		if (e == null) { return 'NULL' }
+		const value = $.isPlainObject(e) ? e.value : e, ozelDeger = value?.sqlServerDegeri;
 		if (ozelDeger !== undefined) { return ozelDeger }
+		if (value == null) { return 'NULL' }
 		if (isDate(value)) { return `CAST('${asReverseDateTimeString(value, 'T')}' AS DATETIME)` }
 		if (isGUID(value)) { return `N'${value}'` }
 		return this.sqlDegeri(e)
 	}
 	static sqlDegeri(e) {
-		if (e == null) return null
+		if (e == null) { return 'NULL' }
 		const value = $.isPlainObject(e) ? e.value : e, ozelDeger = value?.sqlDegeri;
-		if (ozelDeger !== undefined) return ozelDeger
-		if (typeof value == 'string') return `'${value.replaceAll(`'`, `''`)}'`
-		if (typeof value == 'number') return value
+		if (ozelDeger !== undefined) { return ozelDeger }
+		if (value == null) { return 'NULL' }
+		if (typeof value == 'string') { return `'${value.replaceAll(`'`, `''`)}'` }
+		if (typeof value == 'number') { return value }
 		return this.sqlParamValue(e)
 	}
 	static sqlParamValue(e) {
-		if (e == null) return null
+		if (e == null) { return null }
 		const value = $.isPlainObject(e) ? e.value : e,  ozelDeger = value?.sqlDegeri;
 		if (ozelDeger !== undefined) return ozelDeger
 		if (value == null) return value
