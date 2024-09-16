@@ -1,6 +1,6 @@
 <?php header('Content-Type: text/javascript'); require_once('config.php') ?>
 const APP_NAME = '<?=$globalAppName?>', VERSION = '<?=$appVersion?>';
-const CACHE_NAME = `cache-${APP_NAME}-${VERSION}`, StreamHeaders = { 'text/event-stream': true, 'application/x-ndjson' };
+const CACHE_NAME = `cache-${APP_NAME}-${VERSION}`, StreamHeaders = { 'text/event-stream': true, 'application/x-ndjson': true };
 addEventListener('install', async e => {
     skipWaiting(); const staticAssets = ['./', './lib', './ortak', './app', './images'];
     const cache = await caches.open(CACHE_NAME); for (const url of staticAssets) { try { cache.add(url) } catch (ex) { } }

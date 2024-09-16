@@ -287,6 +287,25 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		e = e || {}; const alias = e.alias ?? 'stk', aliasVeNokta = alias + '.';
 		this.fromIliski('stkgtip gtip', `${aliasVeNokta}gtipkod = gtip.kod`); return this
 	}
+	har2HizmetBagla(e) { this.fromIliski('hizmst hiz', 'har.hizmetkod = hiz.kod'); return this }
+	hizmetHepsiBagla(e) { e = e || {}; this.hizmetYardimciBagla(e); this.hizmetAyrimBagla(e); return this }
+	hizmetYardimciBagla(e) {
+		e = e || {}; const alias = e.alias ?? 'hiz', aliasVeNokta = alias + '.';
+		this.hizmet2GrupBagla(e); this.hizmetGrup2AnaGrupBagla(e); this.hizmet2IstGrupBagla(e); return this
+	}
+	hizmetAyrimBagla(e) { /* tamamlanacak */ e = e || {}; const alias = e.alias ?? 'hiz', aliasVeNokta = alias + '.'; return this }
+	hizmet2GrupBagla(e) {
+		e = e || {}; const alias = e.alias ?? 'hiz',  aliasVeNokta = alias + '.';
+		this.fromIliski('hizgrup grp', `${aliasVeNokta}grupkod = grp.kod`); return this
+	}
+	hizmetGrup2AnaGrupBagla(e) {
+		e = e || {}; const alias = e.alias ?? 'grp',  aliasVeNokta = alias + '.';
+		this.fromIliski('hizanagrup agrp', `${aliasVeNokta}anagrupkod = agrp.kod`); return this
+	}
+	hizmet2IstGrupBagla(e) {
+		e = e || {}; const alias = e.alias ?? 'hiz',  aliasVeNokta = alias + '.';
+		this.fromIliski('hizistgrup higrp', `${aliasVeNokta}histgrupkod = higrp.kod`); return this
+	}
 	har2VarsayilanUrunPaketBagla(e) {
 		this.leftJoin({ alias: 'har', table: 'urunpaket varp', on: ['har.stokkod = varp.urunkod', `varp.varsayilan <> ''`] });
 		return this

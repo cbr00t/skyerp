@@ -405,6 +405,10 @@ class MQSubWhereClause extends MQClause {
 	icerikKisitDuzenle_stokIstGrup(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'stokIstGrup' }) }
 	icerikKisitDuzenle_plasiyer(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'plasiyer' }) }
 	icerikKisitDuzenle_plasiyerTip(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'plasiyerTip' }) }
+	icerikKisitDuzenle_hizmet(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmet' }) }
+	icerikKisitDuzenle_hizmetGrup(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmetGrup' }) }
+	icerikKisitDuzenle_hizmetAnaGrup(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmetAnaGrup' }) }
+	icerikKisitDuzenle_hizmetIstGrup(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmetIstGrup' }) }
 }
 class MQWhereClause extends MQSubWhereClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

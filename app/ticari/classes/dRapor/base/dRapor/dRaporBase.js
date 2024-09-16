@@ -116,7 +116,7 @@ class DPanelRapor extends DRaporOzel {
 		const {id2AltRapor} = this; for (const item of items) {
 			if (item == null) { continue } if ($.isArray(item)) { this.add(...item); continue } 
 			let id, altRapor; if ($.isPlainObject(item)) { id = item.id; altRapor = item.altRapor ?? item.rapor } else { altRapor = item }
-			if (isClass(altRapor)) { altRapor = new altRapor() }
+			if (isClass(altRapor)) { altRapor = new altRapor({ rapor: this }) }
 			if (altRapor == null) { continue } if (!id) { id = altRapor.class.kod || newGUID() }
 			altRapor.rapor = this; id2AltRapor[id] = altRapor
 		} return this
