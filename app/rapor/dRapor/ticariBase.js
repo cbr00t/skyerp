@@ -90,6 +90,7 @@ class DRapor_Donemsel_Main extends DAltRapor_TreeGridGruplu {
 }
 class DRapor_Ticari extends DRapor_Donemsel {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get kategoriKod() { return 'TICARI' } static get shd() { return null }
+	get stokmu() { return this.shd == 'stok' } get hizmetmi() { return this.shd == 'hizmet' }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { shd: e.shd ?? e.shd ?? this.class.shd }) }
 	stok() { this.shd = 'stok'; return this } hizmet() { this.shd = 'hizmet'; return this }
 }
@@ -102,6 +103,7 @@ class DRapor_TicariHizmet extends DRapor_Ticari {
 
 class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get toplamPrefix() { return '' } get shd() { return this.rapor?.shd }
+	get stokmu() { return this.rapor?.stokmu } get hizmetmi() { return this.rapor?.hizmetmi }
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); const {result} = e, {toplamPrefix} = this.class, {zorunlu, ticariGenel} = app.params, {sube} = zorunlu, {takipNo, plasiyer} = ticariGenel.kullanim;
 		this.tabloYapiDuzenle_shd(e); result
@@ -216,9 +218,9 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		return this
 	}
 	tabloYapiDuzenle_miktar(e) {
-		const {result} = e, toplamPrefix = e.toplamPrefix ?? this.class.toplamPrefix; result
-			.addToplam(new TabloYapiItem().setKA('MIKTAR', `${toplamPrefix}Miktar`).addColDef(new GridKolon({ belirtec: 'miktar', text: `${toplamPrefix}Miktar`, genislikCh: 15, filterType: 'numberinput' }).tipDecimal()))
-			.addToplam(new TabloYapiItem().setKA('MIKTARKG', `${toplamPrefix}Miktar (KG)`).addColDef(new GridKolon({ belirtec: 'miktarkg', text: `${toplamPrefix}KG`, genislikCh: 15, filterType: 'numberinput' }).tipDecimal()));
+		const {result} = e, {stokmu} = this, toplamPrefix = e.toplamPrefix ?? this.class.toplamPrefix;
+		result.addToplam(new TabloYapiItem().setKA('MIKTAR', `${toplamPrefix}Miktar`).addColDef(new GridKolon({ belirtec: 'miktar', text: `${toplamPrefix}Miktar`, genislikCh: 15, filterType: 'numberinput' }).tipDecimal()));
+		if (stokmu) { result.addToplam(new TabloYapiItem().setKA('MIKTARKG', `${toplamPrefix}Miktar (KG)`).addColDef(new GridKolon({ belirtec: 'miktarkg', text: `${toplamPrefix}KG`, genislikCh: 15, filterType: 'numberinput' }).tipDecimal())) }
 		return this
 	}
 	loadServerData_queryDuzenle_miktar(e) {
@@ -243,13 +245,13 @@ class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get toplamPrefix() { return 'Net ' }
 	fisVeHareketBagla(e) { super.fisVeHareketBagla(e); const {sent} = e, {shd} = this; sent.fisHareket('piffis', `pif${shd}`) }
 	tabloYapiDuzenle_miktar(e) {
-		super.tabloYapiDuzenle_miktar(e); const {result} = e; result
-			.addToplam(new TabloYapiItem().setKA('BRMIKTAR', 'Brüt Miktar').addColDef(new GridKolon({ belirtec: 'brmiktar', text: 'Brüt Miktar', genislikCh: 15, filterType: 'numberinput' }).tipDecimal()))
-			.addToplam(new TabloYapiItem().setKA('BRMIKTARKG', 'Brüt Miktar (KG)').addColDef(new GridKolon({ belirtec: 'brmiktarkg', text: 'Brüt KG', genislikCh: 15, filterType: 'numberinput' }).tipDecimal()))
-			.addToplam(new TabloYapiItem().setKA('BRCIRO', 'Brüt Ciro').addColDef(new GridKolon({ belirtec: 'brciro', text: 'Brüt Ciro', genislikCh: 19, filterType: 'numberinput' }).tipDecimal()))
-			.addToplam(new TabloYapiItem().setKA('IAMIKTAR', 'İADE Miktar').addColDef(new GridKolon({ belirtec: 'iamiktar', text: 'İADE Miktar', genislikCh: 15, filterType: 'numberinput' }).tipDecimal()))
-			.addToplam(new TabloYapiItem().setKA('IAMIKTARKG', 'İADE Miktar (KG)').addColDef(new GridKolon({ belirtec: 'iamiktarkg', text: 'İADE KG', genislikCh: 15, filterType: 'numberinput' }).tipDecimal()))
-			.addToplam(new TabloYapiItem().setKA('IACIRO', 'İADE Ciro').addColDef(new GridKolon({ belirtec: 'iaciro', text: 'İADE Ciro', genislikCh: 19, filterType: 'numberinput' }).tipDecimal()));
+		super.tabloYapiDuzenle_miktar(e); const {result} = e, {stokmu} = this;
+		result.addToplam(new TabloYapiItem().setKA('BRMIKTAR', 'Brüt Miktar').addColDef(new GridKolon({ belirtec: 'brmiktar', text: 'Brüt Miktar', genislikCh: 15, filterType: 'numberinput' }).tipDecimal()));
+		if (stokmu) { result.addToplam(new TabloYapiItem().setKA('BRMIKTARKG', 'Brüt Miktar (KG)').addColDef(new GridKolon({ belirtec: 'brmiktarkg', text: 'Brüt KG', genislikCh: 15, filterType: 'numberinput' }).tipDecimal())) }
+		result.addToplam(new TabloYapiItem().setKA('BRCIRO', 'Brüt Ciro').addColDef(new GridKolon({ belirtec: 'brciro', text: 'Brüt Ciro', genislikCh: 19, filterType: 'numberinput' }).tipDecimal()))
+			  .addToplam(new TabloYapiItem().setKA('IAMIKTAR', 'İADE Miktar').addColDef(new GridKolon({ belirtec: 'iamiktar', text: 'İADE Miktar', genislikCh: 15, filterType: 'numberinput' }).tipDecimal()));
+		if (stokmu) { result.addToplam(new TabloYapiItem().setKA('IAMIKTARKG', 'İADE Miktar (KG)').addColDef(new GridKolon({ belirtec: 'iamiktarkg', text: 'İADE KG', genislikCh: 15, filterType: 'numberinput' }).tipDecimal())) }
+		result.addToplam(new TabloYapiItem().setKA('IACIRO', 'İADE Ciro').addColDef(new GridKolon({ belirtec: 'iaciro', text: 'İADE Ciro', genislikCh: 19, filterType: 'numberinput' }).tipDecimal()));
 		return this
 	}
 	loadServerData_queryDuzenle_miktar(e) {
