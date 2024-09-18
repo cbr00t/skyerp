@@ -5,12 +5,12 @@ class MQEmeklilikSorgu extends MQCogul {
 		super.islemTuslariDuzenle_listeEkrani_ilk(e); const {liste} = e, gridPart = e.gridPart ?? e.parentPart ?? e.sender
 		liste.push(
 			{ id: 'sorguYap', text: 'Sorgu Yap', handler: _e => this.sorguYapIstendi({ ...e, ..._e, gridPart }) },
-			{ id: 'kaydet', handler: _e => this.kaydetIstendi({ ...e, ..._e, gridPart }) },
+			/*{ id: 'kaydet', handler: _e => this.kaydetIstendi({ ...e, ..._e, gridPart }) },*/
 			{ id: 'temizle', handler: _e => this.temizleIstendi({ ...e, ..._e, gridPart }) }
 		)
 	}
 	static listeEkrani_init(e) { super.listeEkrani_init(e); const gridPart = e.gridPart ?? e.parentPart ?? e.sender; if (!$.isEmptyObject(gridPart.tcKimlikNoSet)) { gridPart.tazeleIstendi(e) } }
-	static orjBaslikListesi_gridInit(e) { super.orjBaslikListesi_gridInit(e) /*; const gridPart = e.gridPart ?? e.parentPart ?? e.sender, {grid} = gridPart; grid.jqxGrid('selectionmode', 'multiplecellsextended')*/ }
+	static orjBaslikListesi_gridInit(e) { super.orjBaslikListesi_gridInit(e); const gridPart = e.gridPart ?? e.parentPart ?? e.sender, {grid} = gridPart; grid.jqxGrid('selectionmode', 'multiplecellsextended') }
 	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e) /*; const {args} = e; $.extend(args, { editable: true, editMode: 'selectedcell' })*/ }
 	static async gridTazeleIstendi(e) { await super.gridTazeleIstendi(e); await this.sorguYap(e); return false }
 	static ekCSSDuzenle(e) {
@@ -25,7 +25,11 @@ class MQEmeklilikSorgu extends MQCogul {
 			new GridKolon({ belirtec: 'ekBilgi', text: 'Ek Bilgi' }).readOnly()
 		)
 	}
-	static loadServerDataDogrudan(e) { const {gridPart} = e, tcKimlikNo2Rec = gridPart.tcKimlikNo2Rec || {}; return Object.values(tcKimlikNo2Rec) }
+	static async loadServerDataDogrudan(e) {
+		const {gridPart} = e, {localData} = app.params; let tcKimlikNo2Rec = gridPart.tcKimlikNo2Rec || {};
+		if ($.isEmptyObject(tcKimlikNo2Rec)) { tcKimlikNo2Rec = await localData.getData(this.localDataSelector_tcKimlikNo2Rec) }
+		return Object.values(tcKimlikNo2Rec || {})
+	}
 	static gridVeriYuklendi(e) { const {gridPart} = e, {gridWidget} = gridPart; gridWidget.clearselection() }
 	static async sorguYap(e) {
 		e = e || {}; const gridPart = e.gridPart ?? e.parentPart ?? e.sender, {localData} = app.params;
@@ -57,6 +61,8 @@ class MQEmeklilikSorgu extends MQCogul {
 	}
 	static sorguYapIstendi(e) {
 		const {gridPart} = e, tcKimlikNoSet = gridPart.tcKimlikNoSet || {}, gridRecs = Object.keys(tcKimlikNoSet).map(tcKimlikNo => ({ tcKimlikNo }));
+		/*if (!gridRecs.length) { gridRecs.push({ tcKimlikNo: '' }) }*/
+		gridRecs.push(...new Array(50000).fill(undefined).map(x => ({ tcKimlikNo: '' })));
 		const wRFB = new RootFormBuilder('tcKimlikNoGiris').asWindow('TC Kimlik No Giriş Ekranı').addCSS('part').noDestroy()
 			.addStyle(e => `$elementCSS { --islemTuslari-height: 50px }`);
 		let fbd_islemTuslari = wRFB.addIslemTuslari('islemTuslari').setTip('tamamVazgec')
@@ -64,6 +70,7 @@ class MQEmeklilikSorgu extends MQCogul {
 			.addStyle(e => `$elementCSS .butonlar.part > .sol { z-index: -1; background-color: unset !important; background: transparent !important }`);
 		let fbd_content = wRFB.addFormWithParent('content').altAlta().addStyle_fullWH(``).addStyle(e => `$elementCSS { position: relative; top: 10px; z-index: 100 }`);
 		fbd_content.addGridliGiris('_grid').addStyle_fullWH(null, 'calc(var(--full) - var(--islemTuslari-height))')
+			.onBuildEk(e => e.builder.part.id = '')
 			.setTabloKolonlari(e => [new GridKolon({ belirtec: 'tcKimlikNo', text: 'TC Kimlik No', genislikCh: 25 }).tipString(11) ])
 			.setSource(e => gridRecs).onAfterRun(e => e.builder.rootPart.gridPart = e.builder.part);
 		wRFB.run()

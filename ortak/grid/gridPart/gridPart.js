@@ -56,7 +56,7 @@ class GridPart extends Part {
 			gridHucreTiklandiBlock: e.gridHucreTiklandiBlock || e.gridHucreTiklandi, gridHucreCiftTiklandiBlock: e.gridHucreCiftTiklandiBlock || e.gridHucreCiftTiklandi,
 			gridHucreTiklandiBlock: e.gridHucreTiklandiBlock || e.gridHucreTiklandi, gridHucreCiftTiklandiBlock: e.gridHucreCiftTiklandiBlock || e.gridHucreCiftTiklandi,
 			gridContextMenuIstendiBlock: e.gridContextMenuIstendiBlock || e.gridContextMenuIstendi, gridIDBelirtec: e.gridIDBelirtec || this.defaultGridIDBelirtec,
-			kolonFiltreDuzenleyici: e.kolonFiltreDuzenleyici || {}, sabitFlag: e.sabit ?? e.sabitFlag ?? this.defaultSabitFlag ?? false, detaySinif: e.detaySinif,
+			kolonFiltreDuzenleyici: e.kolonFiltreDuzenleyici || {}, sabitFlag: e.sabit ?? e.sabitmi ?? e.sabitFlag ?? this.defaultSabitFlag ?? false, detaySinif: e.detaySinif,
 			_kontrolcu: e.kontrolcu, rowNumberOlmasinFlag: e.rowNumberOlmasin ?? e.rowNumberOlmasinFlag, notAdaptiveFlag: e.notAdaptive ?? e.notAdaptiveFlag, noAnimateFlag: e.noAnimate ?? e.noAnimateFlag
 		})
 	}
@@ -329,7 +329,7 @@ class GridPart extends Part {
 		const {tusaBasilincaBlock} = this; if (tusaBasilincaBlock) { const _result = getFuncValue.call(this, tusaBasilincaBlock, _e); if (_result !== undefined) _e.result = _result }
 		if (_e.result == null) {
 			if (eventType == 'keydown' && (rowIndex != null && rowIndex > -1)) {
-				const keyLower = (key || '').toLowerCase();
+				const keyLower = key?.toLowerCase() || '';
 				if (gridEditable) {
 					if (editCell) {
 						if (keyLower == 'escape') gridWidget.endcelledit(rowIndex, belirtec, false)
@@ -389,24 +389,30 @@ class GridPart extends Part {
 	
 						else if (modifiers.ctrl && keyLower == 'v') {
 							if (!(gridEditable && colEditable)) { _e.result = true; return }
-							/* if (colDef && belirtec && (rowIndex != null && rowIndex > -1)) {
-								const dataList = gridWidget._clipboardselection || [];
-								if (!$.isEmptyObject(dataList)) {
-									const colIndex = gridWidget.columns.records.find(col => col.datafield == belirtec);
-									for (let colOffset = 0; colOffset < dataList[0].length; colOffset++) {
-										for (let rowOffset = 0; rowOffset < dataList.length; rowOffset++) {
-											const _rowIndex = rowIndex + rowOffset, _belirtec = colOffset ? gridWidget.columns[colIndex + colOffset].datafield : belirtec;
-											const newValue = dataList[rowOffset][colOffset];
-											if (colDef.cellValueChanged) {
-												const oldValue = gridWidget.getcellvalue(_rowIndex, _belirtec); gridWidget.setcellvalue(_rowIndex, _belirtec, newValue);
-												colDef.cellValueChanged({ args: { sender, builder, owner: gridWidget, datafield: _belirtec, rowindex: _rowIndex, oldvalue: oldValue, newvalue: newValue } })
+							if (colDef && belirtec && (rowIndex != null && rowIndex > -1)) {
+								(async () => {
+									let dataList = (await navigator.clipboard.readText())?.split('\n').map(x => x.trim()); if (!dataList?.length) { dataList = gridWidget._clipboardselection || [] }
+									if (!$.isEmptyObject(dataList)) {
+										const colIndex = gridWidget.columns.records.findIndex(col => col.datafield == belirtec);
+										const firstItem = dataList[0], colCount = $.isArray(firstItem) ? firstItem.length : typeof firstItem == 'object' ? Object.keys(firstItem).length : 1;
+										for (let colOffset = 0; colOffset < colCount; colOffset++) {
+											for (let rowOffset = 0; rowOffset < dataList.length; rowOffset++) {
+												let col = gridWidget.columns.records[colIndex]; if (!col) { debugger }
+												const _rowIndex = rowIndex + rowOffset, _belirtec = colOffset ? col?.datafield : belirtec;
+												let newValue = dataList[rowOffset]; if (typeof newValue == 'object') { newValue = [colOffset] }
+												if (_rowIndex + 1 > gridWidget.getdatainformation().rowscount) { gridWidget.addrow(null, this.newRec(), _rowIndex) }
+												gridWidget.setcellvalue(_rowIndex, _belirtec, newValue);
+												if (colDef.cellValueChanged) {
+													const oldValue = gridWidget.getcellvalue(_rowIndex, _belirtec); gridWidget.setcellvalue(_rowIndex, _belirtec, newValue);
+													colDef.cellValueChanged({ args: { sender, builder, owner: gridWidget, datafield: _belirtec, rowindex: _rowIndex, oldvalue: oldValue, newvalue: newValue } })
+												}
 											}
 										}
 									}
-								}
-								// setTimeout(() => gridWidget.endupdate(true), 100);
-								_e.result = true;
-							} */
+									// setTimeout(() => gridWidget.endupdate(true), 100)
+								})();
+								_e.result = true
+							} 
 						}
 						
 						else if (!hasModifiers && keyLower == 'insert' && !this.sabitFlag) {
@@ -478,6 +484,7 @@ class GridPart extends Part {
 				if (_e.result == null) {
 					if (modifiers.ctrl && keyLower == 'a') { gridWidget.selectallrows(); _e.result = true }
 					else if (modifiers.ctrl && keyLower == 'f') { this.kolonFiltreIstendi(e); _e.result = false }
+					else if (modifiers.ctrl && keyLower == 'v') { _e.result = true }
 				}
 			}
 		}

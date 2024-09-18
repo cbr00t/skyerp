@@ -1,4 +1,5 @@
-.MQEmeklilikSorgu.masterListe.part .header .islemTuslari #sorguYap { width: 120px !important }
+.MQEmeklilikSorgu.masterListe.part .header .islemTuslari button#sorguYap { width: 130px !important; margin-left: 20px }
+.MQEmeklilikSorgu.masterListe.part .header .islemTuslari button#sorguYap.jqx-fill-state-normal { background-color: #526fc4 }
 .MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .durumText.jqx-grid-cell,
 	.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .tcKimlikNo.jqx-grid-cell { font-weight: bold }
 .MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .durumText.jqx-grid-cell > div,
