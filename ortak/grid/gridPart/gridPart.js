@@ -583,15 +583,14 @@ class GridPart extends Part {
 		const fbd_islemTuslari = new FormBuilder({
 			id: 'islemTuslari',
 			buildEk: e => {
-				const {builder} = e, {rootPart, parentBuilder} = builder;
-				const {layout} = parentBuilder; layout.addClass('basic-hidden');
+				const {builder} = e, {rootPart, parentBuilder} = builder, {layout} = parentBuilder; layout.addClass('basic-hidden');
 				const header = $(`<div class="grid-toolbar"/>`).appendTo(layout); const islemTuslari = $(`<div id="grid-islemTuslari"/>`).appendTo(header);
 				const _e = {
 					sender: rootPart, layout: islemTuslari, builder,
 					ekButonlarIlk: [
-						{ id: 'html', handler: _e => this.gridExport_html($.extend({}, e, _e)) },
-						/* { id: 'excel', handler: _e => this.gridExport_excel($.extend({}, e, _e)) }, */
-						{ id: 'yazdir', handler: _e => this.gridYazdir($.extend({}, e, _e)) }
+						/*{ id: 'html', handler: _e => this.gridExport_html($.extend({}, e, _e)) },*/
+						{ id: 'yazdir', handler: _e => this.gridYazdir({ ...e, ..._e }) },
+						{ id: 'excel', handler: _e => this.gridExport_excel({ ...e, ..._e }) }
 					]
 				};
 				const islemTuslariPart = rootPart.islemTuslariPart = new ButonlarPart(_e); islemTuslariPart.run()
@@ -601,7 +600,11 @@ class GridPart extends Part {
 				e => `$elementCSS .grid-toolbar { width: var(--full) !important; margin: 0 !important; padding: 0 !important }`,
 				e => `$elementCSS .grid-toolbar #grid-islemTuslari { text-align: center; height: var(--full) important }`,
 				e => `$elementCSS .grid-toolbar #grid-islemTuslari > .sol { width: var(--full) important }`,
-				e => `$elementCSS .grid-toolbar #grid-islemTuslari button { width: 60px; margin: 0 1px }`
+				e => `$elementCSS .grid-toolbar #grid-islemTuslari button { width: 60px; margin: 0 1px }`,
+				e => `$elementCSS .grid-toolbar #grid-islemTuslari button#html.jqx-fill-state-normal,
+						$elementCSS .grid-toolbar #grid-islemTuslari button#yazdir.jqx-fill-state-normal { background-color: #c1c8dd !important }`,
+				e => `$elementCSS .grid-toolbar #grid-islemTuslari button.jqx-fill-state-hover { background-color: cadetblue !important }
+					  $elementCSS .grid-toolbar #grid-islemTuslari button.jqx-fill-state-pressed { background-color: royalblue !important }`
 			]
 		}).addStyle_fullWH();
 		const rfb = new RootFormBuilder({
@@ -639,13 +642,14 @@ class GridPart extends Part {
 		); rfb.run()
 	}
 	gridExport_excel(e) {
-		e = e || {}; const {gridWidget} = this; const data = gridWidget.exportdata('xlsx', { fileName: 'grid.xlsx' }), _wnd = e.rootPart.wnd;
-		if (_wnd?.length) { _wnd.jqxWindow('close') }
+		e = e || {}; const {gridWidget} = this; const data = app.activeWndPart.gridWidget.exportdata('tsv');
+		downloadData(new Blob([data]), 'Grid.xls', 'application/vnd.ms-excel')
+		const {rootPart} = e, _wnd = rootPart?.wnd; if (_wnd?.length) { _wnd.jqxWindow('close') }
 	}
 	gridExport_html(e) {
 		e = e || {}; const {gridWidget} = this, data = gridWidget.exportdata('html');
-		const _wnd = e.rootPart.wnd; if (_wnd?.length) { _wnd.jqxWindow('close') }
-		const wnd = openNewWindow(); if (!wnd) return; const doc = wnd.document;
+		const {rootPart} = e, _wnd = rootPart?.wnd; if (_wnd?.length) { _wnd.jqxWindow('close') }
+		const wnd = openNewWindow(); if (!wnd) { return } const doc = wnd.document;
 		doc.writeln(`<html><head><title>Grid Çıktısı</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes">`);
 		const preReqList = [
 			`<link rel="stylesheet" href="${webRoot}/lib_external/jqx/css/jquery-ui.min.css" />`,
@@ -657,11 +661,11 @@ class GridPart extends Part {
 			`<link rel="stylesheet" href="./app.css?${appVersion}" />`
 		];
 		doc.writeln(`<style>@media only screen { body { overflow-y: auto !important } } button, input { visibility: hidden }</style>`);
-		for (const item of preReqList) { doc.writeln(item ) } doc.writeln(`</head><body>${data}</body></html>`)
+		for (const item of preReqList) { doc.writeln(item) } doc.writeln(`</head><body>${data}</body></html>`)
 	}
 	gridYazdir(e) {
 		e = e || {}; const {gridWidget} = this, data = gridWidget.exportdata('html');
-		const _wnd = e.rootPart.wnd; if (_wnd?.length) { _wnd.jqxWindow('close') } const wnd = openNewWindow(); if (!wnd) { return }
+		const {rootPart} = e, _wnd = rootPart?.wnd; if (_wnd?.length) { _wnd.jqxWindow('close') } const wnd = openNewWindow(); if (!wnd) { return }
 		const doc = wnd.document; doc.writeln(`<html><head><title>Grid Çıktısı</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes">`);
 		const preReqList = [
 			`<link rel="stylesheet" href="${webRoot}/lib_external/jqx/css/jquery-ui.min.css" />`,

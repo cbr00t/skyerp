@@ -23,13 +23,9 @@ class MQLocalData extends MQYerelParamApp {
 	getData(e) {
 		const key = typeof e == 'object' ? e.key : e, {data} = this;
 		if (typeof e != 'object') e = {}; const {ifAbsent, ifAbsentPut, ifPresent} = e;
-		let value = data[key];
-		if (value === undefined && ifAbsentPut) {
-			value = getFuncValue.call(this, ifAbsentPut, $.extend({}, e, { value: value }));
-			if (value !== undefined) { data[key] = value }
-		}
-		if (value === undefined) { return ifAbsent ? getFuncValue.call(this, ifAbsent, $.extend({}, e, { value: value })) : undefined }
-		return ifPresent ? getFuncValue.call(this, ifPresent, $.extend({}, e, { value: value })) : value
+		let value = data[key]; if (value === undefined && ifAbsentPut) { value = getFuncValue.call(this, ifAbsentPut, { ...e, value }); if (value !== undefined) { data[key] = value } }
+		if (value === undefined) { return ifAbsent ? getFuncValue.call(this, ifAbsent, { ...e, value }) : undefined }
+		return ifPresent ? getFuncValue.call(this, ifPresent, { ...e, value }) : value
 	}
 	setData(e, _value) {
 		const key = typeof e == 'object' ? e.key : e, value = typeof e == 'object' ? e.value : _value, {data} = this;

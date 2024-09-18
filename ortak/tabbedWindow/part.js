@@ -43,10 +43,9 @@ class TabbedWindowPart extends Part {
 	}
 	close(e) {
 		const {wndId} = this, {mainWindowsPart} = app, {ownerWndPart, asilPart} = this;
-		const elmTabHeader = mainWindowsPart.divTabs.children(`.tabPage#${wndId}`);
-		if (elmTabHeader?.length) { elmTabHeader.remove() }
-		const wndContent = mainWindowsPart.layout.children(`.content#${wndId}`);
-		if (wndContent?.length) { wndContent.detach(); setTimeout(() => { if (wndContent?.length) { wndContent.remove() } }, 100) }
+		const elmTabHeader = mainWindowsPart.divTabs.children(`.tabPage#${wndId}`); if (elmTabHeader?.length) { elmTabHeader.remove() }
+		const wndContent = mainWindowsPart.layout.children(`.content#${wndId}`); if (wndContent?.length) { wndContent.remove() }
+		/*if (wndContent?.length) { wndContent.detach(); setTimeout(() => { if (wndContent?.length) { wndContent.remove() } }, 100) } */
 		if (!asilPart?.class?.isSubPart) {
 			const {id2TabPage} = mainWindowsPart;
 			for (const [id, tabPage] of Object.entries(id2TabPage)) {

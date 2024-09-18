@@ -33,7 +33,8 @@ button#sil { margin-left: 10px; margin-right: 20px } button#secimler { margin-ri
 	#sec.jqx-fill-state-normal, #tamam.jqx-fill-state-normal, #tazele.jqx-fill-state-normal { background-color: #86a986 !important }
 	#sec.jqx-fill-state-hover, #tamam.jqx-fill-state-hover, #tazele.jqx-fill-state-hover { background-color: #529d52 !important }
 #tamam.jqx-fill-state-normal {  }
-#temizle { background-image: url(../../images/temizle.png) !important }
+button#kaydet { background-image: url(../../images/kaydet.png) !important; background-size: 32px !important }
+button#temizle { background-image: url(../../images/temizle.png) !important }
 #tazele {background-image: url(../../images/tazele.png) }
 #vazgec { background-image: url(../../images/close.png) !important }
 #yeni { background-image: url(../../images/ekle.png) !important }

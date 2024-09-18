@@ -52,7 +52,7 @@ class RootFormBuilder extends SubPartBuilder {
 						const {builder} = this.class, {wnd, partName} = this;
 						if (wnd?.length) {
 							const {CSSClass_BuilderId, CSSClass_FormBuilder, CSSClass_FormBuilderElement} = FormBuilderBase;
-							wnd.prop('id', partName);
+							if (wnd.hasClass('tabbedWindow')) { wnd.children('.wnd-content').prop('id', partName) } else { wnd.prop('id', partName) }
 							wnd.attr(`data-${CSSClass_BuilderId}`, builder.id); builder.getElementId(wnd);
 							wnd.addClass(`part ${CSSClass_FormBuilder} ${CSSClass_FormBuilderElement}`); wnd.data('builder', builder)
 						}

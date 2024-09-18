@@ -41,7 +41,7 @@ class MQYerelParamConfig extends MQYerelParamApp {
 		if (!kritikDegisiklikVarmi) { this._eskiInst = this.deepCopy() }
 	}
 	yukleVeKaydetSonrasi(e) {
-		super.yukleVeKaydetSonrasi(e); const _config = new Config(); const {ws} = config, {sql} = this;
+		super.yukleVeKaydetSonrasi(e); const {ws} = config, {sql} = this, _config = new Config();
 		if (!(qs.hostName || qs.hostname || qs.wsURL)) { ws.url = this.wsURL || _config.ws?.url }
 		if (!(qs.proxyServerURL || qs.proxyServerUrl || qs.proxyServer || qs.proxy)) { ws.proxyServerURL = this.wsProxyServerURL || _config.ws?.proxyServerURL }
 		if (sql) {

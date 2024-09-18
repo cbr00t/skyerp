@@ -1,6 +1,5 @@
 class DistYonetimApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	get autoExecMenuId() { return 'ONAY' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'ONAY' }
 	constructor(e) { e = e || {}; super(e) }
 	async runDevam(e) {
 		await super.runDevam(e); await this.loginIstendi(e); await this.promise_ready;

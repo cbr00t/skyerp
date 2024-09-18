@@ -1,11 +1,7 @@
 class GridliGirisPart extends GridPart {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	get wndClassNames() { return $.merge(['gridliGiris'], super.wndClassNames || []) }
+    static { window[this.name] = this; this._key2Class[this.name] = this } get wndClassNames() { return $.merge(['gridliGiris'], super.wndClassNames || []) }
 	static get noFullHeightFlag() { return true } /* static get defaultAsyncFlag() { return false } */
-	constructor(e) {
-		super(e); e = e || {};
-		this.noEmptyRowFlag = asBool(e.noEmptyRow ?? e.noEmptyRowFlag)
-	}
+	constructor(e) { super(e); e = e || {}; this.noEmptyRowFlag = asBool(e.noEmptyRow ?? e.noEmptyRowFlag) }
 	gridArgsDuzenleDevam(e) {
 		super.gridArgsDuzenleDevam(e); const {args} = e;
 		$.extend(args, { editable: true, autoshowcolumnsmenubutton: true });
@@ -19,7 +15,7 @@ class GridliGirisPart extends GridPart {
 		return result
 	}
 	gridVeriDegisti(e) {
-		e = e || {}; super.gridVeriDegisti(e);
+		e = e || {}; super.gridVeriDegisti(e)
 		/* const gridWidget = e?.event?.args.owner ?? this.gridWidget; setTimeout(() => gridWidget.refresh(), 10) */
 	}
 	gridRendered(e) {
@@ -41,8 +37,8 @@ class GridliGirisPart extends GridPart {
 			if (rowIndex != null && rowIndex > -1) { let rec = gridWidget.getrowdata(rowIndex); if (rec) elm.jqxDragDrop('data', { value: rec }) }
 		});
 		gridRows.on('dragEnd', evt => {
-			if (!this.isEditable) return
-			if (gridWidget.editcell) gridWidget.endcelledit()
+			if (!this.isEditable) { return }
+			if (gridWidget.editcell) { gridWidget.endcelledit() }
 			const elm = $(evt.target), {args} = evt, orjRec = args.value;
 			let rec = orjRec; /*if (!rec) rec = this.newRec({ rec: rec });*/
 			const {originalEvent} = args, kopyami = (args.button == 2 || originalEvent.ctrlKey), position = $.jqx.position(args);

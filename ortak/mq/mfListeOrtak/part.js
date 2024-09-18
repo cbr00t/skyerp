@@ -137,17 +137,27 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		return super.hizliBulIslemi(e)
 	}
 	islemTuslariDuzenle(e) {
-		super.islemTuslariDuzenle(e); const mfSinif = this.getMFSinif(), {secimler, panelDuzenleyici} = this, {liste} = e, yListe = [];
+		const mfSinif = this.getMFSinif(), {secimler, panelDuzenleyici} = this;
+		if (panelDuzenleyici?.islemTuslariDuzenle_listeEkrani_ilk) { panelDuzenleyici.islemTuslariDuzenle_listeEkrani_ilk(_e) }
+		if (mfSinif?.islemTuslariDuzenle_listeEkrani_ilk) { mfSinif.islemTuslariDuzenle_listeEkrani_ilk(e) }
+		super.islemTuslariDuzenle(e); const {liste} = e; let yListe = [];
 		if (!panelDuzenleyici && (!mfSinif || mfSinif?.kolonDuzenlemeYapilirmi)) { yListe.push({ id: 'basliklariDuzenle', handler: e => this.basliklariDuzenleIstendi(e) }) }
 		if (secimler && mfSinif?.raporKullanilirmi) { yListe.push({ id: 'rapor', handler: e => this.sabitBilgiRaporuIstendi(e) }) }
 		if (!panelDuzenleyici && (!mfSinif || mfSinif?.kolonFiltreKullanilirmi)) { yListe.push({ id: 'kolonFiltre', handler: e => this.kolonFiltreIstendi(e) }) }
 		if (secimler) { yListe.push({ id: 'secimler', handler: e => this.secimlerIstendi(e) }) }
+		yListe.push(
+			{ id: 'yazdir', handler: _e => this.gridYazdir({ ...e, ..._e }) },
+			{ id: 'excel', handler: _e => this.gridExport_excel({ ...e, ..._e }) }
+		);
 		const _e = $.extend({}, e, { mfSinif, secimler, orjListe: yListe }), tanimlanabilirmi = this.getTanimlanabilirmi(_e), silinebilirmi = this.getSilinebilirmi(_e);
 		if (tanimlanabilirmi) { yListe.push( { id: 'yeni', handler: e => this.yeniIstendi(e) }, { id: 'degistir', handler: e => this.degistirIstendi(e) }, { id: 'kopya', handler: e => this.kopyaIstendi(e) } ) }
 		if (silinebilirmi) { yListe.push({ id: 'sil', args: { template: 'danger' }, handler: e => this.silIstendi(e) }) }
-		if (!$.isEmptyObject(liste)) { yListe.push(...liste) } e.liste = yListe;
+		if (!$.isEmptyObject(liste)) { yListe.push(...liste) }
 		if (panelDuzenleyici?.islemTuslariDuzenle_listeEkrani) { panelDuzenleyici.islemTuslariDuzenle_listeEkrani(_e) }
 		if (mfSinif?.islemTuslariDuzenle_listeEkrani) { mfSinif.islemTuslariDuzenle_listeEkrani(e) }
+		let ozelIdSet = asSet(['tazele', 'vazgec']), items = yListe.filter(item => ozelIdSet[item.id]);
+		if (items?.length) { yListe = [...yListe.filter(item => !ozelIdSet[item.id]), ...items] }
+		e.liste = yListe
 	}
 	gridInit(e) {
 		super.gridInit(e); const {grid, gridWidget} = this; this.expandedIndexes = {}; const {panelDuzenleyici} = this, mfSinif = this.getMFSinif();
@@ -319,6 +329,10 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	getRowsHeight(e) { const mfSinif = this.getMFSinif(e), {paramGlobals} = mfSinif; return paramGlobals.rowsHeight || mfSinif?.orjBaslikListesi_defaultRowsHeight }
 	getParentRecAtIndex(rowIndex, gridPart) { const {gridWidget} = this || {}; return (rowIndex == null || rowIndex < 0 ? null : gridWidget.getrowdata(rowIndex)) ?? this.selectedRec }
 	getSubRecs(e) { return this.panelDuzenleyici?.getSubRecs(e) } getSubRec(e) { return this.panelDuzenleyici?.getSubRec(e) }
+	async tazeleIstendi(e) {
+		const mfSinif = this.getMFSinif(e); if (mfSinif?.gridTazeleIstendi) { if (await mfSinif.gridTazeleIstendi(e) === false) { return false } }
+		return await super.tazeleIstendi(e)
+	}
 	gridSatirTiklandi(e) {
 		e = e || {}; const mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_satirTiklandi) { if (mfSinif.orjBaslikListesi_satirTiklandi(e) === false) { return false } }
 		return super.gridSatirTiklandi(e)

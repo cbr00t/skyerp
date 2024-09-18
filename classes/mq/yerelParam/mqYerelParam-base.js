@@ -7,9 +7,8 @@ class MQYerelParamBase extends CIO {
 	constructor(e) { e = e || {}; super(e); for (const key of this.class.paramAttrListe) { const value = e[key]; if (value !== undefined) this[key] = value } }
 	static paramAttrListeDuzenle(e) { }
 	async yukle(e) {
-		e = $.extend({}, e || {}); this.yukleOncesi(e);
-		let rec = await this.yukleIslemi(e); if (typeof rec == 'string') { rec = rec ? JSON.parse(rec) : {} }
-		if (!$.isEmptyObject(rec)) { e.rec = rec; this.setValues(e) } this.yukleSonrasi(e); return this
+		e = { ...e }; this.yukleOncesi(e); let rec = await this.yukleIslemi(e); if (typeof rec == 'string') { rec = rec ? JSON.parse(rec) : {} }
+		if (!$.isEmptyObject(rec)) { e.rec = rec; this.setValues(e) } await this.yukleSonrasi(e); return this
 	}
 	kaydetDefer(e) { clearTimeout(this._timer_kaydetDefer); this._timer_kaydetDefer = setTimeout(e => { try { this.kaydet(e) } finally { delete this._timer_kaydetDefer } }, 500) }
 	async kaydet(e) {

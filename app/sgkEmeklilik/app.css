@@ -1,0 +1,10 @@
+.MQEmeklilikSorgu.masterListe.part .header .islemTuslari #sorguYap { width: 120px !important }
+.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .durumText.jqx-grid-cell,
+	.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .tcKimlikNo.jqx-grid-cell { font-weight: bold }
+.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .durumText.jqx-grid-cell > div,
+	.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .tcKimlikNo.jqx-grid-cell > div,
+.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .emeklimi.jqx-grid-cell > div { text-align: center }
+.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .tcKimlikNo.jqx-grid-cell:not(.error):not(.jqx-grid-cell-selected) { color: royalblue }
+.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .durumText.jqx-grid-cell:not(.error):not(.jqx-grid-cell-selected),
+	.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .emekli.jqx-grid-cell:not(.error):not(.jqx-grid-cell-selected) { background-color: lightgreen }
+.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .error.jqx-grid-cell:not(.jqx-grid-cell-selected) { background-color: lightpink }

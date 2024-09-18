@@ -5,8 +5,7 @@ class MQCogul extends MQYapi {
 	static get listeSinifAdi() { return null } static get kodListeTipi() { return null }
 	static get listeUISinif() { return MasterListePart } static get tanimUISinif() { return null } static get secimSinif() { return Secimler }
 	static get sabitBilgiRaporcuSinif() { return MasterRapor } static get ozelSahaTipKod() { return null }
-	static get ayrimTipKod() { return null } static get ayrimBelirtec() { return this.tableAlias }
-	static get ayrimTable() { return `${this.tableAlias}ayrim`} static get ayrimTableAlias() { return null } 
+	static get ayrimTipKod() { return null } static get ayrimBelirtec() { return this.tableAlias } static get ayrimTable() { return `${this.tableAlias}ayrim`} static get ayrimTableAlias() { return null } 
 	static get tanimlanabilirmi() { return !!this.tanimUISinif } static get silinebilirmi() { return true } static get raporKullanilirmi() { return true } static get silindiDesteklenirmi() { return false }
 	static get yerelParamBelirtec() { return this.classKey } static get sayacSahaGosterilirmi() { return false } static get tumKolonlarGosterilirmi() { return false }
 	static get gridDetaylimi() { return this.detaylimi } static get ozelTanimIslemi() { return null } static get bulFormKullanilirmi() { return true }
@@ -92,7 +91,8 @@ class MQCogul extends MQYapi {
 	static listeEkrani_destroyPart(e) { this.forAltYapiClassesDo('listeEkrani_destroyPart', e) }
 	static listeEkrani_activated(e) { this.forAltYapiClassesDo('listeEkrani_activated', e) }
 	static listeEkrani_deactivated(e) { this.forAltYapiClassesDo('listeEkrani_deactivated', e) }
-	static islemTuslariDuzenle_listeEkrani(e) { }
+	static islemTuslariDuzenle_listeEkrani_ilk(e) { this.forAltYapiClassesDo('islemTuslariDuzenle_listeEkrani_ilk', e) }
+	static islemTuslariDuzenle_listeEkrani(e) { this.forAltYapiClassesDo('islemTuslariDuzenle_listeEkrani', e) }
 	static async getRootFormBuilder(e) {
 		e = e || {}; let tanimFormBuilder = new FBuilder_TanimForm(), rootBuilder = new RootFormBuilder().add(tanimFormBuilder);
 		if (rootBuilder) { rootBuilder.noAutoInitLayout() }
@@ -289,6 +289,7 @@ class MQCogul extends MQYapi {
 	static orjBaslikListesi_gridInit(e) { this.forAltYapiClassesDo('orjBaslikListesi_gridInit', e) }
 	static orjBaslikListesi_argsDuzenle(e) { this.forAltYapiClassesDo('orjBaslikListesi_argsDuzenle', e) }
 	static orjBaslikListesi_argsDuzenle_detaylar(e) { this.forAltYapiClassesDo('orjBaslikListesi_argsDuzenle_detaylar', e) }
+	static gridTazeleIstendi(e) { return this.forAltYapiClassesDo('gridTazeleIstendi', e) }
 	static orjBaslikListesi_recsDuzenle(e) { this.forAltYapiClassesDo('orjBaslikListesi_recsDuzenle', e) }
 	static orjBaslikListesi_recsDuzenleSon(e) { this.forAltYapiClassesDo('orjBaslikListesi_recsDuzenleSon', e) }
 	static orjBaslikListesi_recsDuzenle_hizliBulIslemi(e) { this.forAltYapiClassesDo('orjBaslikListesi_recsDuzenle_hizliBulIslemi', e) }

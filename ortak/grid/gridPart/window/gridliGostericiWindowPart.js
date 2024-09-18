@@ -20,7 +20,7 @@ class GridliGostericiWindowPart extends GridliGostericiPart {
 		e = e || {}; super.runDevam(e);
 		const {layout} = this; this.header = this.header || layout.find('.header');
 		const islemTuslari = this.islemTuslari = this.islemTuslari || layout.find('.islemTuslari'); let {islemTuslariPart} = this;
-		if (!islemTuslariPart && (islemTuslari?.length)) {
+		if (!islemTuslariPart && islemTuslari?.length) {
 			islemTuslariPart = this.islemTuslariPart = new ButonlarPart({ sender: this, layout: islemTuslari, tip: 'tazeleVazgecSec', butonlarDuzenleyici: e => this.islemTuslariDuzenle(e) });
 			islemTuslariPart.run()
 		}
@@ -44,7 +44,7 @@ class GridliGostericiWindowPart extends GridliGostericiPart {
 		for (const item of liste) {
 			const {id} = item;
 			switch (id) {
-				case 'tazele': item.handler = e => this.tazele($.extend({}, e, { action: 'button' })); break;
+				case 'tazele': item.handler = e => this.tazeleIstendi($.extend({}, e, { action: 'button' })); break;
 				case 'sec': item.handler = e => this.secIstendi(e); if (!this.secince) { continue } break;
 				case 'vazgec': item.handler = e => this.vazgecIstendi(e); break;
 			}
@@ -53,6 +53,7 @@ class GridliGostericiWindowPart extends GridliGostericiPart {
 		e.liste = yListe
 	}
 	gridArgsDuzenleDevam(e) { super.gridArgsDuzenleDevam(e); const {args} = e; $.extend(args, this.gridArgs) }
+	tazeleIstendi(e) { this.tazele(e) }
 	async secIstendi(e) {
 		e = e || {}; const secimBilgi = this.secimBilgi || {}; if (!secimBilgi) return false
 		const {secince} = this; if (!secince) return false

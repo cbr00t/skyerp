@@ -168,16 +168,19 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	comboBox() { const {tip} = this; if (tip?.comboBox) tip.comboBox(); return this }
 	onKeyDown(handler) { const {tip} = this; if (tip?.onKeyDown) tip.onKeyDown(handler); return this }
 	setMaxLength(value) { const {tip} = this; if (tip?.setMaxLength) tip.setMaxLength(value); return this }
-	tipString(e) { this.tip = new GridKolonTip_String(); return this }
+	tipString(e) {
+		e = e || {}; const maxLength = typeof e == 'object' ? e.maxLength : e;
+		this.tip = new GridKolonTip_String({ maxLength }); return this
+	}
 	tipNumerik(e) {
 		e = e || {}; const tip = this.tip = new GridKolonTip_Number();
-		if (e.sifirGosterme ?? e.sifirGostermeFlag) tip.sifirGosterme()
+		if (e.sifirGosterme ?? e.sifirGostermeFlag) { tip.sifirGosterme() }
 		this.alignRight(); return this
 	}
 	tipDecimal(e) {
 		e = e || {}; const fra = typeof e == 'object' ? e.fra : e;
 		const tip = this.tip = new GridKolonTip_Decimal({ fra });
-		if (e.sifirGosterme ?? e.sifirGostermeFlag) tip.sifirGosterme()
+		if (e.sifirGosterme ?? e.sifirGostermeFlag) { tip.sifirGosterme() }
 		this.alignRight(); return this
 	}
 	tipDecimal_fiyat(e) { return this.tipDecimal({ fra: 'fiyat' }) }
