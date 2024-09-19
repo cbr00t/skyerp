@@ -145,16 +145,18 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		if (secimler && mfSinif?.raporKullanilirmi) { yListe.push({ id: 'rapor', handler: e => this.sabitBilgiRaporuIstendi(e) }) }
 		if (!panelDuzenleyici && (!mfSinif || mfSinif?.kolonFiltreKullanilirmi)) { yListe.push({ id: 'kolonFiltre', handler: e => this.kolonFiltreIstendi(e) }) }
 		if (secimler) { yListe.push({ id: 'secimler', handler: e => this.secimlerIstendi(e) }) }
-		yListe.push(
-			{ id: 'yazdir', handler: _e => this.gridYazdir({ ...e, ..._e }) },
-			{ id: 'excel', handler: _e => this.gridExport_excel({ ...e, ..._e }) }
-		);
+		if (!panelDuzenleyici && (!mfSinif || mfSinif?.gridIslemTuslariKullanilirmi)) {
+			yListe.push(
+				{ id: 'yazdir', handler: _e => this.gridYazdir({ ...e, ..._e }) },
+				{ id: 'excel', handler: _e => this.gridExport_excel({ ...e, ..._e }) }
+			)
+		}
 		const _e = $.extend({}, e, { mfSinif, secimler, orjListe: yListe }), tanimlanabilirmi = this.getTanimlanabilirmi(_e), silinebilirmi = this.getSilinebilirmi(_e);
 		if (tanimlanabilirmi) { yListe.push( { id: 'yeni', handler: e => this.yeniIstendi(e) }, { id: 'degistir', handler: e => this.degistirIstendi(e) }, { id: 'kopya', handler: e => this.kopyaIstendi(e) } ) }
 		if (silinebilirmi) { yListe.push({ id: 'sil', args: { template: 'danger' }, handler: e => this.silIstendi(e) }) }
-		if (!$.isEmptyObject(liste)) { yListe.push(...liste) }
 		if (panelDuzenleyici?.islemTuslariDuzenle_listeEkrani) { panelDuzenleyici.islemTuslariDuzenle_listeEkrani(_e) }
 		if (mfSinif?.islemTuslariDuzenle_listeEkrani) { mfSinif.islemTuslariDuzenle_listeEkrani(e) }
+		if (!$.isEmptyObject(liste)) { yListe.push(...liste) }
 		let ozelIdSet = asSet(['tazele', 'vazgec']), items = yListe.filter(item => ozelIdSet[item.id]);
 		if (items?.length) { yListe = [...yListe.filter(item => !ozelIdSet[item.id]), ...items] }
 		e.liste = yListe

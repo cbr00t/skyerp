@@ -13,9 +13,7 @@ class GridKolonTip extends CObject {
 				elmFilter.jqxDateTimeInput({ formatString: DateFormat })
 		})*/
 	}
-	get createEditor() { return null }
-	get initEditor() { return null }
-	get getEditorValue() { return null }
+	get createEditor() { return null } get initEditor() { return null } get getEditorValue() { return null }
 	
 	constructor(e) { super(e); e = e || {}; this.readFrom(e) }
 	static getClass(e) { e = e || {}; const tip = typeof e == 'object' ? e.tip : e; return this._tip2Sinif[tip] || this; }

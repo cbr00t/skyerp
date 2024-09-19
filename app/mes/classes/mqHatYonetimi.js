@@ -2,7 +2,7 @@ class MQHatYonetimi extends MQMasterOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Hat Yönetimi' }
 	static get orjBaslikListesi_defaultColCount() { return 4 } static get orjBaslikListesi_maxColCount() { return 10 } static get orjBaslikListesi_defaultRowsHeight() { return 280 }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false } static get raporKullanilirmi() { return false } static get secimSinif() { return null }
-	static get noAutoFocus() { return true }
+	static get gridIslemTuslariKullanilirmi() { return false } static get noAutoFocus() { return true }
 
 	static listeEkrani_afterRun(e) { super.listeEkrani_afterRun(e) /*const gridPart = e.gridPart ?? e.sender*/ }
 	static listeEkrani_activated(e) { super.listeEkrani_activated(e); const gridPart = e.gridPart ?? e.sender /*; gridPart.tazeleDefer()*/ }

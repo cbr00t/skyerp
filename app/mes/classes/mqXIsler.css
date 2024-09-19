@@ -1,5 +1,5 @@
-.MQXIsler.masterListe.part .islemTuslari > .sol > button#kolonFiltre ~ button:not(#switch) { width: 130px }
-.MQXIsler.masterListe.part .islemTuslari > .sol > button#kolonFiltre ~ button:not(#switch).jqx-fill-state-normal { color: #333 !important; background: transparent }
+.MQXIsler.masterListe.part .islemTuslari > .sol > button#kolonFiltre ~ button:not(#switch):not(#yazdir):not(#excel) { width: 110px }
+.MQXIsler.masterListe.part .islemTuslari > .sol > button#kolonFiltre ~ button:not(#switch):not(#yazdir):not(#excel).jqx-fill-state-normal { color: #333 !important; background: transparent }
 .MQXIsler.masterListe.part .islemTuslari #switch { margin-right: 40px }
 .MQXIsler.masterListe.part .jqx-grid [role = row] > *:not(.fisnox) > * > * { margin-inline-end: 10px !important }
 .MQXIsler.masterListe.part .jqx-grid [role = row] > .atandimiText > *, .MQXIsler.masterListe.part .jqx-grid [role = row] > .zamanEtudumuText > * { font-weight: bold; font-size: 83%; text-align: center; padding: 8px 0 0 2px }

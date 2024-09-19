@@ -1,6 +1,6 @@
 class MQXIsler extends MQMasterOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get parentMFSinif() { return MQXIsler } static get noAutoFocus() { return true }
-	static get sinifAdi() { return 'X İşler' } static get switchPartClass() { return this } static get switchButtonText() { return null }
+	static get sinifAdi() { return 'X İşler' } static get gridIslemTuslariKullanilirmi() { return false } static get switchPartClass() { return this } static get switchButtonText() { return null }
 	static ekCSSDuzenle(e) {
 		const {rec, result} = e; if (rec.devreDisimi) { result.push('devreDisi') }
 		if (rec.batandimi) { result.push('atandi') } if (rec.bzamanetudu) { result.push('zamanEtudu') } if (rec.sonmu) { result.push('son') }
