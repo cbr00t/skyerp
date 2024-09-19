@@ -4,8 +4,12 @@
 	.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .tcKimlikNo.jqx-grid-cell { font-weight: bold }
 .MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .durumText.jqx-grid-cell > div,
 	.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .tcKimlikNo.jqx-grid-cell > div,
-.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .emeklimi.jqx-grid-cell > div { text-align: center }
+.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .emeklimiText.jqx-grid-cell > div { font-weight: bold; text-align: center }
 .MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .tcKimlikNo.jqx-grid-cell:not(.error):not(.jqx-grid-cell-selected) { color: royalblue }
-.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .durumText.jqx-grid-cell:not(.error):not(.jqx-grid-cell-selected),
-	.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .emekli.jqx-grid-cell:not(.error):not(.jqx-grid-cell-selected) { background-color: lightgreen }
+.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .durumText.jqx-grid-cell:not(.error):not(.jqx-grid-cell-selected) { background-color: lightgreen }
+.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .emeklimiText.emekli.jqx-grid-cell { color: orangered }
+.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .emeklimiText.emekli.jqx-grid-cell:not(.jqx-grid-cell-selected) { background-color: #d4ffd4 }
+.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .emeklimiText:not(.emekli).jqx-grid-cell { color: #aaa }
+.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .emekli.jqx-grid-cell:not(.error):not(.durumText):not(.jqx-grid-cell-selected) { background-color: #d4ffd4 }
+.MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .ekBilgi.jqx-grid-cell:not(.emekli):not(.error):not(.jqx-grid-cell-selected) { color: #999 }
 .MQEmeklilikSorgu.masterListe.part .jqx-grid [role = row] > .error.jqx-grid-cell:not(.jqx-grid-cell-selected) { background-color: lightpink }

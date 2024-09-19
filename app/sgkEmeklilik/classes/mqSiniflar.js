@@ -19,10 +19,13 @@ class MQEmeklilikSorgu extends MQCogul {
 	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(
-			new GridKolon({ belirtec: 'durumText', text: 'Durum', genislikCh: 10 }).readOnly(),
-			new GridKolon({ belirtec: 'tcKimlikNo', text: 'TC Kimlik No', genislikCh: 20 }).tipString(11),
-			new GridKolon({ belirtec: 'emeklimiText', text: 'Emekli?', genislikCh: 8 }).tipBool().readOnly(),
-			new GridKolon({ belirtec: 'ekBilgi', text: 'Ek Bilgi' }).readOnly()
+			new GridKolon({ belirtec: 'durumText', text: 'Durum', genislikCh: 10, filterType: 'checkedlist' }).readOnly(),
+			new GridKolon({
+				belirtec: 'tcKimlikNo', text: 'TC Kimlik No', genislikCh: 20, filterType: 'checkedlist', cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
+					if (value?.at(0) == "'") { html = changeTagContent(html, value.slice(1)) } return html }
+			}).tipString(11),
+			new GridKolon({ belirtec: 'emeklimiText', text: 'Emekli?', genislikCh: 18, filterType: 'checkedlist' }).readOnly(),
+			new GridKolon({ belirtec: 'ekBilgi', text: 'Ek Bilgi', filterType: 'checkedlist' }).readOnly()
 		)
 	}
 	static async loadServerDataDogrudan(e) {
@@ -50,7 +53,7 @@ class MQEmeklilikSorgu extends MQCogul {
 			window.progressManager?.progressStep(sorguTCKimlikNoListe.length * 3);
 			let recs = []; for (const [tcKimlikNo, _rec] of Object.entries(result?.subResults || [])) {
 				let rec = tcKimlikNo2Rec[tcKimlikNo]; if (rec) { $.extend(rec, _rec) } else { rec = tcKimlikNo2Rec[tcKimlikNo] = _rec }
-				const {error, uyari} = rec, emeklimiText = rec.emeklimi ? 'EMEKLİ' : '', ekBilgi = (error ?? uyari) || '', isError = !!error, durumText = isError ? 'HATA' : 'OK';
+				const {error, uyari} = rec, emeklimiText = rec.emeklimi ? 'EMEKLİ' : '-', ekBilgi = (error ?? uyari) || '', isError = !!error, durumText = isError ? 'HATA' : 'OK';
 				$.extend(rec, { tcKimlikNo: `'${tcKimlikNo}`, emeklimiText, isError, durumText, ekBilgi }); window.progressManager?.progressStep()
 			}
 			await localData.setData(this.localDataSelector_tcKimlikNo2Rec, tcKimlikNo2Rec); localData.kaydetDefer()
