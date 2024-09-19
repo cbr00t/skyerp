@@ -2,10 +2,9 @@ class GridKolonTip extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static colEventNames = GridKolon.colEventNames; static globalEventNames = GridKolon.globalEventNames;
 	static get anaTip() { return null } static get tip() { return this.anaTip } get anaTip() { return this.class.anaTip } get tip() { return this.class.tip }
-	get defaultAlign() { return null } static get isEditable() { return null } get jqxColumnType() { return 'textbox' } get jqxCellsFormat() { return null }
+	get defaultAlign() { return null } static get isEditable() { return null } get jqxColumnType() { return 'textbox' } get jqxCellsFormat() { return '' }
 	get jqxFilterType() { return 'input' } static get jqxFilterAnaTip() { return 'stringfilter' } get jqxFilterAnaTip() { return this.class.jqxFilterAnaTip }
-	get jqxFilterCondition() { return 'CONTAINS' } get cellClassName() { return null }
-	get cellsRenderer() { return null }
+	get jqxFilterCondition() { return 'CONTAINS' } get cellClassName() { return null } get cellsRenderer() { return null }
 	get createFilterWidget() {
 		return null
 		/*return ((colDef,  jqxColumn, filterParent, elmFilter) => {
@@ -42,15 +41,12 @@ class GridKolonTip extends CObject {
 	jqxColumnDuzenle(e) {
 		const {column} = e, colDef = e.colDef || {}, {genislikCh} = colDef;
 		const {jqxColumnType, jqxFilterType, jqxFilterAnaTip, jqxFilterCondition, jqxCellsFormat, isEditable} = this;
-		if (jqxColumnType) column.columnType = jqxColumnType
-		if (jqxFilterAnaTip) column.filterComparasion = jqxFilterAnaTip
-		if (jqxFilterType) column.filterType = jqxFilterType
-				/*this.class.stringmi && (jqxFilterType == 'textbox' || jqxFilterType == 'input') && (genislikCh && genislikCh <= 25)
-					? 'checkedlist'
-					: jqxFilterType*/
-		if (jqxFilterCondition) column.filterCondition = jqxFilterCondition
-		if (jqxCellsFormat && !(jqxColumnType == 'template' || jqxColumnType == 'custom')) column.cellsFormat = jqxCellsFormat
-		if (isEditable != null) column.editable = isEditable
+		if (jqxColumnType) { column.columnType = jqxColumnType }
+		if (jqxFilterAnaTip) { column.filterComparasion = jqxFilterAnaTip }
+		if (jqxFilterType) { column.filterType = jqxFilterType } /*this.class.stringmi && (jqxFilterType == 'textbox' || jqxFilterType == 'input') && (genislikCh && genislikCh <= 25) ? 'checkedlist' : jqxFilterType*/
+		if (jqxFilterCondition) { column.filterCondition = jqxFilterCondition }
+		if (jqxCellsFormat !== undefined && !(jqxColumnType == 'template' || jqxColumnType == 'custom')) { column.cellsFormat = jqxCellsFormat }
+		if (isEditable != null) { column.editable = isEditable }
 	}
 	get initEditor() {
 		return ((colDef, rowIndex, value, editor, cellText, pressedChar) => {
@@ -78,7 +74,7 @@ class GridKolonTip_Number extends GridKolonTip {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get anaTip() { return 'number' } static get mfbmi() { return true }
 	get jqxColumnType() { return 'custom' } /* get jqxColumnType() { return 'numberinput' } */
-	get defaultAlign() { return 'right' } get jqxCellsFormat() { return '' } get jqxFilterType() { return 'checkedlist' } static get jqxFilterAnaTip() { return 'numericfilter' }
+	get defaultAlign() { return 'right' } get jqxCellsFormat() { return super.jqxCellsFormat } get jqxFilterType() { return 'checkedlist' } static get jqxFilterAnaTip() { return 'numericfilter' }
 	/*get jqxFilterType() { return 'input' } static get jqxFilterAnaTip() { return 'stringfilter' } get jqxFilterCondition() { return 'CONTAINS' }*/
 
 	readFrom(e) {
@@ -190,7 +186,7 @@ class GridKolonTip_Number extends GridKolonTip {
 
 class GridKolonTip_Decimal extends GridKolonTip_Number {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get tip() { return 'decimal' } /*get jqxColumnType() { return 'numberinput' }*/ get jqxCellsFormat() { return '' }
+	static get tip() { return 'decimal' } /*get jqxColumnType() { return 'numberinput' }*/ get jqxCellsFormat() { return super.jqxCellsFormat }
 	// get jqxCellsFormat() { return 'n' }
 
 	readFrom(e) {
@@ -230,7 +226,7 @@ class GridKolonTip_Date extends GridKolonTip {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get anaTip() { return 'date' } /* get jqxColumnType() { return 'date' } */ get jqxColumnType() { return 'custom' } get jqxFilterType() { return 'checkedlist' }
 	static get jqxFilterAnaTip() { return 'datefilter' } get jqxFilterCondition() { return 'CONTAINS' }
-	/* get jqxCellsFormat() { return DateFormat } */ get jqxCellsFormat() { return '' }
+	/* get jqxCellsFormat() { return DateFormat } */ get jqxCellsFormat() { return super.jqxCellsFormat }
 
 	get cellsRenderer() {
 		const buYil = today().getFullYear();

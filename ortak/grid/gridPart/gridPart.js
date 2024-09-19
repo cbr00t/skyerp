@@ -649,9 +649,10 @@ class GridPart extends Part {
 		); rfb.run()
 	}
 	gridExport_excel(e) {
-		e = e || {}; const {gridWidget} = this; let _data = app.activeWndPart.gridWidget.exportdata('tsv'); if (!_data) { return _data }
+		e = e || {}; const {gridWidget} = this; let _data = gridWidget.exportdata('html');
 		let data = ''; for (const ch of _data) { data += tr2En[ch] || ch }
 		downloadData(new Blob([data]), 'Grid.xls', 'application/vnd.ms-excel')
+		/*e = e || {}; const {gridWidget} = this; let _data = gridWidget.exportdata('tsv'); if (!_data) { return _data }*/
 		const {rootPart} = e, _wnd = rootPart?.wnd; if (_wnd?.length) { _wnd.jqxWindow('close') }
 	}
 	gridExport_html(e) {
