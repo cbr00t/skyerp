@@ -1,23 +1,23 @@
 class RotaliSutIslemApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	get configParamSinif() { return MQYerelParamConfig_App } get autoExecMenuId() { return super.autoExecMenuId } /* get defaultLoginTipi() { return 'plasiyerLogin' } */
+    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return super.autoExecMenuId }
+	get configParamSinif() { return MQYerelParamConfig_App } get yerelParamSinif() { return MQYerelParam }
 	get gonderilmemisVeriler() {
 		const {localData} = this.params, {dataKey} = MQRotaliFis; let recs = localData.getData(dataKey) || [];
 		recs = recs.filter(rec => !(rec.devredisi || rec.gonderimTS || $.isEmptyObject(rec.detaylar?.filter(det => !!det.toplam)))); return recs
 	}
 	constructor(e) { e = e || {}; super(e) }
 	async runDevam(e) {
-		await super.runDevam(e); if (qs.user) await this.loginIstendi(e); else this.promise_login.resolve();
-		await this.promise_ready; await this.params.config.sonIslemler(e); const {session} = config, yerelParam = this.params.yerel;
+		await super.runDevam(e); await this.params.config.sonIslemler(e)
+	}
+	async afterRun(e) {
+		await super.afterRun(e); const {session} = config, yerelParam = this.params.yerel;
 		let lastSession = yerelParam?.lastSession ?? session;
 		if (lastSession) {
 			lastSession = yerelParam.lastSession = $.isPlainObject(lastSession) ? new Session(lastSession) : lastSession.deepCopy(); /*lastSession.user = `<span class="gray italic">${yerelParam?.lastSession.user}</span>`;*/
 			setTimeout(() => yerelParam.kaydet(), 100)
 		}
 		this.updateAppTitle({ userSession: session?.hasSession ? session : new Session(yerelParam?.lastSession) });
-	}
-	async afterRun(e) {
-		await super.afterRun(e); await this.promise_ready; const {params, appName} = this, sutParam = params.sut || {}; let {kullanim} = sutParam;
+		const {params, appName} = this, sutParam = params.sut || {}; let {kullanim} = sutParam;
 		if (kullanim.sutToplama == false) {
 			this.disabledMenuIdSet = asSet(['ROTALI-FIS']);
 			const wnd = createJQXWindow({
@@ -35,10 +35,7 @@ class RotaliSutIslemApp extends App {
 		}
 		await this.anaMenuOlustur(e)
 	}
-	paramsDuzenle(e) {
-		super.paramsDuzenle(e);	 const {params} = e;
-		$.extend(params, { yerel: MQYerelParam.getInstance(), ortak: MQOrtakParam.getInstance(), sut: MQSutParam.getInstance() })
-	}
+	paramsDuzenle(e) { super.paramsDuzenle(e);	 const {params} = e; $.extend(params, { sut: MQSutParam.getInstance() }) }
 	async paramsDuzenleSonrasi(e) { await super.paramsDuzenleSonrasi(e); this.params.localData = await MQLocalData.getInstance() }
 	getAnaMenu(e) {
 		const disabledMenuIdSet = this.disabledMenuIdSet || {};

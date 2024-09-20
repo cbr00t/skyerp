@@ -1,18 +1,13 @@
 class UretimVeriToplamaApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	get configParamSinif() { return MQYerelParamConfig_Uretim } get sqlDeferWaitMS() { return 200 } /*get autoExecMenuId() { return 'BG' }*/
+    static { window[this.name] = this; this._key2Class[this.name] = this } get sqlDeferWaitMS() { return 200 } get configParamSinif() { return MQYerelParamConfig_Uretim }
 	constructor(e) {
 		e = e || {}; super(e)
 		/* $.extend(this, { veriAktarici_waitSecs: coalesce(e.veriAktarici_waitSecs, 4), otoGonderFlag: coalesce(e.otoGonderFlag, false) }) */
 	}
 	init(e) { super.init(e); this.params.yerel = MQYerelParamUretim.getInstance() }
-	async runDevam(e) {
-		await super.runDevam(e); await this.loginIstendi(e); await this.promise_ready;
-		await this.wsConfigKontrol(e); await this.setValuesFromParam(e); await this.gerceklemeler_ilkIslemler(e)
-	}
+	async runDevam(e) { await super.runDevam(e); await this.wsConfigKontrol(e); await this.setValuesFromParam(e); await this.gerceklemeler_ilkIslemler(e) }
 	async afterRun(e) {
-		await super.afterRun(e); await this.promise_ready;
-		let kullanim = app.params.operGenel?.kullanim || {}, eksikParamIsimleri = [];
+		await super.afterRun(e); let kullanim = app.params.operGenel?.kullanim || {}, eksikParamIsimleri = [];
 		if (!kullanim.operasyonIsYonetimi) { eksikParamIsimleri.push('Operasyon İş Yönetimi') }
 		if (!kullanim.mesVeriToplama) { eksikParamIsimleri.push('Tablet Veri Toplama') }
 		if (eksikParamIsimleri.length) {
@@ -47,7 +42,7 @@ class UretimVeriToplamaApp extends App {
 	paramsDuzenle(e) {
 		super.paramsDuzenle(e); const {params} = e;
 		$.extend(params, {
-			ortak: MQOrtakParam.getInstance(), zorunlu: MQZorunluParam.getInstance(), stokBirim: MQStokBirimParam.getInstance(), stokGenel: MQStokGenelParam.getInstance(),
+			zorunlu: MQZorunluParam.getInstance(), stokBirim: MQStokBirimParam.getInstance(), stokGenel: MQStokGenelParam.getInstance(),
 			uretim: MQUretimParam.getInstance(), operGenel: MQOperGenelParam.getInstance(), kalite: MQKaliteParam.getInstance()
 		})
 	}

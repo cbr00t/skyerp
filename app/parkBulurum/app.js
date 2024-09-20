@@ -1,8 +1,7 @@
 class ParkBulurumApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'CYON' }
-	get defaultWSPath() { return `${super.superDefaultWSPath}/parkBulurum` } get testBaseClass() { return ParkBulurum_TestBase }
+	get yerelParamSinif() { return MQYerelParam } get defaultWSPath() { return `${super.superDefaultWSPath}/parkBulurum` } get testBaseClass() { return ParkBulurum_TestBase }
 	async run(e) { await super.run(e) }
-	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { yerel: MQYerelParam.getInstance() }) }
 	getAnaMenu(e) {
 		const {dev} = config, items = [
 			new FRMenuChoice({ mnemonic: 'CYON', text: 'Cihaz Yönetimi', block: e => MQCihazYonetimi.listeEkraniAc(e) }),

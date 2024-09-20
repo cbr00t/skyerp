@@ -1,6 +1,7 @@
 class MESApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'HAT-YONETIMI' }
-	get configParamSinif() { return MQYerelParamConfig_MES } get defaultWSPath() { return `ws/skyMES` } get useCloseAll() { return true }
+    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'HAT-YONETIMI' } get isLoginRequired() { return false }
+	get configParamSinif() { return MQYerelParamConfig_MES } get yerelParamSinif() { return MQYerelParam }
+	get defaultWSPath() { return `ws/skyMES` } get useCloseAll() { return true }
 	get sqlExecWSPath() { return `${this.defaultWSPath}/hatIzleme` } get otoTazeleYapilirmi() { return !!(this.otoTazeleFlag && !this.otoTazeleDisabledFlag && this.tazele_timeout) }
 	get durumKod2Aciklama() {
 		let result = this._durumKod2Aciklama; if (result === undefined) {
@@ -25,17 +26,9 @@ class MESApp extends App {
 			tazele_timeout: asFloat(e.tazele_timeout ?? qs.tazele_timeout ?? qs.timeout ?? 5000)
 		})
 	}
-	async runDevam(e) {
-		await super.runDevam(e); /* await this.loginIstendi(e); */ const {promise_login} = this; if (promise_login) { promise_login.resolve() }
-		await this.promise_ready; await this.anaMenuOlustur(e)
-	}
-	afterRun(e) { super.afterRun(e); this.tazele_startTimer(e) }
-	paramsDuzenle(e) {
-		super.paramsDuzenle(e); const {params} = e; $.extend(params, {
-			yerel: MQYerelParam.getInstance(), ortak: MQOrtakParam.getInstance(), 
-			mes: MQParam_MES.getInstance(), hatYonetimi: MQParam_HatYonetimi.getInstance()
-		})
-	}
+	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e) }
+	async afterRun(e) { await super.afterRun(e); this.tazele_startTimer(e) }
+	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { mes: MQParam_MES.getInstance(), hatYonetimi: MQParam_HatYonetimi.getInstance() }) }
 	getAnaMenu(e) {
 		/* const disabledMenuIdSet = this.disabledMenuIdSet || {}; */
 		const items = [ new FRMenuChoice({ mnemonic: 'HAT-YONETIMI', text: 'Hat Yönetimi', block: e => MQHatYonetimi.listeEkraniAc() }) ]

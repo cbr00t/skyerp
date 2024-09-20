@@ -1,6 +1,6 @@
 class SahaDurumApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get configParamSinif() { return MQYerelParamConfig_SahaDurum }
-	get autoExecMenuId() { return 'DEF' } get defaultLoginTipi() { return 'plasiyerLogin' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'DEF' } get defaultLoginTipi() { return 'plasiyerLogin' }
+	get configParamSinif() { return MQYerelParamConfig_SahaDurum } get yerelParamSinif() { return MQYerelParam }
 	constructor(e) { e = e || {}; super(e) }
 	async runDevam(e) {
 		await super.runDevam(e); if (qs.user) { await this.loginIstendi(e) } else { this.promise_login.resolve() }
@@ -15,10 +15,6 @@ class SahaDurumApp extends App {
 	loginTipleriDuzenle(e) {
 		super.loginTipleriDuzenle(e);
 		/*const {loginTipleri} = e; $.merge(loginTipleri, [ { kod: 'plasiyerLogin', aciklama: 'Plasiyer' }, { kod: 'musteriLogin', aciklama: 'Müşteri' } ])*/
-	}
-	paramsDuzenle(e) {
-		super.paramsDuzenle(e);	 const {params} = e;
-		$.extend(params, { yerel: MQYerelParam.getInstance(), ortak: MQOrtakParam.getInstance() })
 	}
 	async paramsDuzenleSonrasi(e) { await super.paramsDuzenleSonrasi(e); this.params.localData = await MQLocalData.getInstance() }
 	getAnaMenu(e) {

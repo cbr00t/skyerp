@@ -1,14 +1,11 @@
 body #ust-parent > #nav ul > li#_verileriSil { border-top: 3px solid #888 }
-body #ust-parent > #nav ul > li#_verileriSil > a .img {
-	width: 32px; height: 32px; margin-right: 10px;
-	background-size: 100%; background-repeat: no-repeat; background-position: 0
-}
+body #ust-parent > #nav ul > li#_verileriSil > a .img { width: 32px; height: 32px; margin-right: 10px; background-size: 100%; background-repeat: no-repeat; background-position: 0 }
 body #ust-parent > #nav ul > li#_verileriSil > a .img { background-image: url(../../images/sil.png); background-color: darkred }
 body #ust-parent > #nav ul > li#_verileriSil > a .text { font-weight: bold; color: #862d2d }
 body #ust-parent > #nav ul > li#_verileriSil > a:hover .text { color: firebrick }
 body #ust-parent > #nav ul > li#_verileriSil > a:hover .img { background-color: firebrick }
 .jqx-grid div[role=columnheader] > div,
-.jqx-grid div[role=row] > div {font-size: 100%;line-height: 20px;word-break: break-word;}
+	.jqx-grid div[role=row] > div { font-size: 100%; line-height: 20px; word-break: break-word }
 .jqx-grid div[role=row] > div > div { margin-top: 3px !important; text-wrap: pretty !important }
 .jqx-grid div[role=row] > div .parent > div { margin-inline-end: 15px }
 .jqx-grid div[role=row] > div .ek-bilgi { font-weight: bold; color: #999 }

@@ -154,9 +154,10 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		const _e = $.extend({}, e, { mfSinif, secimler, orjListe: yListe }), tanimlanabilirmi = this.getTanimlanabilirmi(_e), silinebilirmi = this.getSilinebilirmi(_e);
 		if (tanimlanabilirmi) { yListe.push( { id: 'yeni', handler: e => this.yeniIstendi(e) }, { id: 'degistir', handler: e => this.degistirIstendi(e) }, { id: 'kopya', handler: e => this.kopyaIstendi(e) } ) }
 		if (silinebilirmi) { yListe.push({ id: 'sil', args: { template: 'danger' }, handler: e => this.silIstendi(e) }) }
+		if (!$.isEmptyObject(liste)) { yListe.push(...liste) } e.liste = yListe;
 		if (panelDuzenleyici?.islemTuslariDuzenle_listeEkrani) { panelDuzenleyici.islemTuslariDuzenle_listeEkrani(_e) }
 		if (mfSinif?.islemTuslariDuzenle_listeEkrani) { mfSinif.islemTuslariDuzenle_listeEkrani(e) }
-		if (!$.isEmptyObject(liste)) { yListe.push(...liste) }
+		yListe = e.liste;
 		let ozelIdSet = asSet(['tazele', 'vazgec']), items = yListe.filter(item => ozelIdSet[item.id]);
 		if (items?.length) { yListe = [...yListe.filter(item => !ozelIdSet[item.id]), ...items] }
 		e.liste = yListe

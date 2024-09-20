@@ -48,7 +48,7 @@ class ProgressManager extends CObject {
 	}
 	get ekBilgiText() { const {layouts} = this, elm = layouts.ekBilgi; return elm?.length ? elm.html() : null }
 	set ekBilgiText(value) { const {layouts} = this, elm = layouts.ekBilgi; if (elm.length) { elm.html(value) } }
-	get isEkBilgiVisible() { const {layouts} = this, elm = layouts.ekBilgi; return em?.length ? !(elm.hasClass('jqx-hidden') || elm.hasClass('basic-hidden')) : false }
+	get isEkBilgiVisible() { const {layouts} = this, elm = layouts.ekBilgi; return elm?.length ? !(elm.hasClass('jqx-hidden') || elm.hasClass('basic-hidden')) : false }
 	set isEkBilgiVisible(value) { const {layouts} = this, elm = layouts.ekBilgi; if (elm?.length) { if (value) { elm.removeClass('jqx-hidden basic-hidden') } else { elm.addClass('jqx-hidden') } } }
 	get ekBilgiHandler() { return this._ekBilgiHandler } set ekBilgiHandler(value) { return this._ekBilgiHandler = value }
 	get abortText() { const {layouts} = this, elm = layouts.abortButton; return elm?.length ? elm.html() : null }

@@ -1,59 +1,14 @@
 class EmptyApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get isLoginRequired() { return true }
-	
-	constructor(e) {
-		e = e || {};
-		super(e)
-	}
-	
-	async runDevam(e) {
-		await super.runDevam(e);
-
-		await this.loginIstendi(e);
-		await this.promise_ready;
-		await this.anaMenuOlustur(e);
-		await this.initLayout(e)
-	}
-
-	paramsDuzenle(e) {
-		super.paramsDuzenle(e);
-		
-		const {params} = e;
-		$.extend(params, { yerel: MQYerelParamApp.getInstance() })
-	}
-
-	initLayout(e) {
-		// $('#ana-ekran-layout').detach().appendTo(app.content)
-	}
-
+    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'MAIN' } get isLoginRequired() { return super.isLoginRequired }
+	static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_App }
+	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e); this.show() }
+	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { localData: MQLocalData.getInstance() }) }
 	getAnaMenu(e) {
-		return new FRMenu({ items: [
-			new FRMenuChoice({
-				mnemonic: 'GUI1', text: 'Ekran 1',
-				block: e => new Ekran1Part().run(e)
-			}),
-			new FRMenuChoice({
-				mnemonic: 'GUI2', text: 'Ekran 2',
-				block: e => new Ekran2Part().run(e)
-			})
-		] })
+		const {noMenuFlag} = this; if (noMenuFlag) { return new FRMenu() }
+		return new FRMenu({ items: [ new FRMenuChoice({ mne: 'MAIN', text: 'MAIN', block: e => {} }) ]})
 	}
-	
-	wsSampleAjaxCall_get(e) {
-		e = e || {};
-		const url = this.getWSUrl({ api: 'sampleAjaxCall_get', args: e });
-		return ajaxGet({ timeout: 13000, url: url })
-	}
-	wsSampleAjaxCall_postWithData(e) {
-		e = e || {};
-		const data = e.data || {};
-		delete e.data;
-		
-		const url = this.getWSUrl({ api: 'sampleAjaxCall_postWithData', args: e });
-		return ajaxPost({
-			timeout: 13000, processData: false, ajaxContentType: wsContentType,
-			url: url, args: e, data: data ? toJSONStr(data) : null
-		})
+	wsX(e) {
+		e = e || {}; let args = e, {data} = args; if (typeof data == 'object') { data = toJSONStr(data) } delete args.data;
+		return ajaxPost({ url: this.getWSUrl({ api: 'x', args, data }) })
 	}
 }

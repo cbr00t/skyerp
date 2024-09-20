@@ -3,6 +3,7 @@ class MQLocalData extends MQYerelParamApp {
 	static get fsRootDir() { let value = this.fullTableName?.split('.')?.slice(0, -1)?.join('/'); return value ? '/' + value : value }
 	static get fsFileName() { let tokens = this.fullTableName?.split('.'); return tokens ? tokens[tokens.length - 1] : null }
 	get data() { return this._data = this._data || {} } set data(value) { this._data = value }
+	static getInstance() { return super.getInstance() }
 
 	constructor(e) { e = e || {}; super(e); this.fh = e.fh ?? e.fileHandle; for (const key of ['_data']) { this[key] = this[key] || {} } }
 	static paramAttrListeDuzenle(e) { super.paramAttrListeDuzenle(e); e.liste.push('data') }

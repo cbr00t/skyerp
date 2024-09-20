@@ -1,10 +1,9 @@
 class TicariApp extends App {
     static { window[this.name] = this; this._key2Class[this.name] = this } get testBaseClass() { return Ticari_TestBase } static get yerelParamSinif() { return MQYerelParamTicari }
-	constructor(e) { super(e) /*this.mqGlobals = {}*/ }
 	paramsDuzenle(e) {
 		super.paramsDuzenle(e); const {params} = e, {yerelParamSinif} = this.class;
 		$.extend(params, {
-			yerel: yerelParamSinif.getInstance(), ortak: MQOrtakParam.getInstance(), logocu: MQLogocu.getInstance(), zorunlu: MQZorunluParam.getInstance(), isyeri: MQIsyeri.getInstance(),
+			logocu: MQLogocu.getInstance(), zorunlu: MQZorunluParam.getInstance(), isyeri: MQIsyeri.getInstance(),
 			ticariGenel: MQTicariGenelParam.getInstance(), aktarim: MQAktarimParam.getInstance(), fiyatVeIsk: MQFiyatVeIskontoParam.getInstance(), stokBirim: MQStokBirimParam.getInstance(), stokGenel: MQStokGenelParam.getInstance(),
 			cariGenel: MQCariGenelParam.getInstance(), hizmetGenel: MQHizmetGenelParam.getInstance(), demirbasGenel: MQDemirbasGenelParam.getInstance(), bankaGenel: MQBankaGenelParam.getInstance(),
 			alim: MQAlimParam.getInstance(), satis: MQSatisParam.getInstance(), eIslem: MQEIslemParam.getInstance(), uretim: MQUretimParam.getInstance(), operGenel: MQOperGenelParam.getInstance(),
@@ -21,7 +20,7 @@ class TicariApp extends App {
 		)
 	}
 	raporEkSahaDosyalariDuzenle(e) { super.raporEkSahaDosyalariDuzenle(e); const {liste} = e; liste.push('VioTicari.RaporEkSaha') }
-	async runDevam(e) { await super.runDevam(e); await this.loginIstendi(e); await this.anaMenuOlustur(e); this.show() }
+	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e); this.show() }
 	async getAnaMenu() { const response = await ajaxGet({ url: this.getWSUrl({ api: 'frMenu' }) }); return response ? FRMenu.from(response) : null }
 	wsSabitTanimlar_xml(e) { e = e || {}; if (e && typeof e != 'object') e = { belirtec: e }; return this.wsSabitTanimlar($.extend({}, e, { tip: 'xml' })) }
 	wsSabitTanimlar_secIni(e) { e = e || {}; if (e && typeof e != 'object') e = { belirtec: e }; return this.wsSabitTanimlar($.extend({}, e, { tip: 'sec-ini' })) }

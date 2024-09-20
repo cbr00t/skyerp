@@ -1,7 +1,7 @@
 class TopluEMailApp extends App {
     static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'CARI' }
 	constructor(e) { e = e || {}; super(e) }
-	async runDevam(e) { await super.runDevam(e); await this.loginIstendi(e); await this.promise_ready; await this.anaMenuOlustur(e) }
+	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e) }
 	paramsDuzenle(e) {
 		super.paramsDuzenle(e);	 const {params} = e;
 		$.extend(params, { ortak: MQOrtakParam.getInstance(), mailVT: MQVTMailParam.getInstance(), mailOrtak: MQOrtakMailParam.getInstance() })

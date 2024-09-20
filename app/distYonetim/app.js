@@ -1,18 +1,13 @@
 class DistYonetimApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'ONAY' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'ONAY' } get yerelParamSinif() { return MQYerelParam }
 	constructor(e) { e = e || {}; super(e) }
 	async runDevam(e) {
-		await super.runDevam(e); await this.loginIstendi(e); await this.promise_ready;
-		try { await this.yetkiKontrol(e) }
+		await super.runDevam(e); try { await this.yetkiKontrol(e) }
 		catch (ex) {
 			const wnd = createJQXWindow({ content: getErrorText(ex), title: appName, args: { isModal: true, showCloseButton: false, showCollapseButton: false, width: 450, height: 180 } });
 			wnd.find('div > .jqx-window-header').css('background-color', 'firebrick'); return
 		}
 		await this.xuserTanimYukle(e); await this.anaMenuOlustur(e)
-	}
-	paramsDuzenle(e) {
-		super.paramsDuzenle(e);	 const {params} = e;
-		$.extend(params, { yerel: MQYerelParam_DistYonetim.getInstance(), ortak: MQOrtakParam.getInstance() })
 	}
 	getAnaMenu(e) {
 		/* const disabledMenuIdSet = this.disabledMenuIdSet || {}; */

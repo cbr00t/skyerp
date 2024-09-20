@@ -1,11 +1,8 @@
 class SGKEmeklilikApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'MAIN' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'MAIN' } get isLoginRequired() { return false }
 	get sgkWSPath() { return 'ws/sgk' } get sgkWSURL() { return qs.sgkWSURL || `https://${config.class.DefaultWSHostName_SkyServer}:9202` }
-	static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_SGKEmeklilikSorgu }
-	async runDevam(e) {
-		await super.runDevam(e); const {promise_login} = this; if (promise_login) { promise_login.resolve() }
-		await this.promise_ready; await this.anaMenuOlustur(e); this.show()
-	}
+	static get yerelParamSinif() { return MQYerelParam_App } get configParamSinif() { return MQYerelParamConfig_App }
+	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e); this.show() }
 	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { localData: MQLocalData.getInstance() }) }
 	getAnaMenu(e) {
 		const {noMenuFlag} = this; if (noMenuFlag) { return new FRMenu() }

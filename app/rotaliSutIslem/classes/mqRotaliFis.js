@@ -1,7 +1,7 @@
 class MQRotaliFis extends MQDetayliOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static PrefixSut = 'sut'; static get sinifAdi() { return 'Rotalı Fiş' } static get tableAlias() { return 'fis' } static get detaySinif() { return MQRotaliFisDetay }
-	static get tanimlanabilirmi() { return true }
+	static get gridIslemTuslariKullanilirmi() { return false } static get tanimlanabilirmi() { return true }
 	get detaylarUyarlanmis() {
 		let {detaylar} = this; if ($.isEmptyObject(detaylar)) {
 			const {localData} = app.params, recs = localData.getData(MQSutRota.dataKey) || [], {detaySinif, PrefixSut} = this.class, sutSiraRecs = localData.getData(MQSutSira.dataKey);

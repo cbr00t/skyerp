@@ -1,12 +1,2 @@
-
-:root {
-}
-
-.part button#tamam {
-	position: absolute;
-	top: 0;
-	right: 10px;
-	width: 60px;
-	height: 50px;
-	background-image: url(../../tamam.png);
-}
+/*.MQX.masterListe.part .header .islemTuslari button#x { width: 130px !important; margin-left: 20px }
+.MQX.masterListe.part .jqx-grid [role = row] > .xyz.jqx-grid-cell:not(.jqx-grid-cell-selected) { font-weight: bold }*/
