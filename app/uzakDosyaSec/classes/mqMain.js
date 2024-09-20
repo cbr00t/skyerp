@@ -1,7 +1,6 @@
 class MQMain extends MQCogul {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get kodListeTipi() { return 'MAIN' } static get sinifAdi() { return 'Uzak Dosya Seç' }
-	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false }
-	static get raporKullanilirmi() { return false } static get kolonDuzenlemeYapilirmi() { return false } 
+	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false } static get raporKullanilirmi() { return false } static get kolonDuzenlemeYapilirmi() { return false } 
 	static get secimSinif() { return null } static get tumKolonlarGosterilirmi() { return true }
 	static listeEkrani_init(e) {
 		super.listeEkrani_init(e); const gridPart = e.gridPart ?? e.rootPart ?? e.sender, {args} = gridPart; if (args) { $.extend(gridPart, args) }
@@ -32,7 +31,7 @@ class MQMain extends MQCogul {
 				const hasPreviewFlag = e.value, {grid, gridWidget} = gridPart, {initRowsHeight, previewRowsHeight} = gridPart;
 				grid.jqxGrid('rowsheight', hasPreviewFlag ? previewRowsHeight : initRowsHeight); gridWidget[hasPreviewFlag ? 'showcolumn' : 'hidecolumn']('resim');
 				gridPart.tazele(e)
-			}).addStyle_wh('auto').addStyle(e => `$elementCSS { left: 170px }`)
+			}).addStyle_wh('auto').addStyle(e => `$elementCSS { left: 330px }`)
 	}
 	static orjBaslikListesi_argsDuzenle(e) {
 		super.orjBaslikListesi_argsDuzenle(e); const {args} = e, gridPart = e.gridPart ?? e.rootPart ?? e.sender;

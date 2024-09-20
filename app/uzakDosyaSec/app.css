@@ -1,3 +1,4 @@
+.MQMain.masterListe.part .header > .islemTuslari button#goParent.jqx-fill-state-normal { background-color: #4658a1 }
 .MQMain.masterListe.part .jqx-grid [role = row] > * { font-size: 90% }
 .MQMain.masterListe.part .jqx-grid [role = row] > .jqx-grid-cell-selected:not(.jqx-fill-state-pressed) { background: unset !important }
 .MQMain.masterListe.part .jqx-grid [role = row] > .parent:not(.jqx-grid-cell-selected) { font-weight: bold; color: firebrick }
