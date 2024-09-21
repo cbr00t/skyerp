@@ -62,7 +62,8 @@ class MQSablonESEGridci extends GridKontrolcu {
 	tabloKolonlariDuzenle(e) {
 		super.tabloKolonlariDuzenle(e); e.tabloKolonlari.push(
 			new GridKolon({ belirtec: 'soru', text: 'Soru', genislikCh: 50 }).tipString(512),
-			new GridKolon({ belirtec: 'yanitId', text: 'Yanıt', genislikCh: 20 }).tipTekSecim({ kodsuz: true, source: e => MQSablonESEYanit.loadServerData(e) })
+			...MQSablonESEYanit.getGridKolonlar({ belirtec: 'yanit', kodAttr: 'yanitId', argsDuzenle: e => e.kolonGrup.kodsuz() })
+			/*new GridKolon({ belirtec: 'yanitId', text: 'Yanıt', genislikCh: 20 }).tipTekSecim({ kodsuz: true, source: e => MQSablonESEYanit.loadServerData(e) })*/
 		)
 	}
 }
@@ -81,6 +82,6 @@ class MQSablonESEYanit extends MQGuidVeAdiOrtak {
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPanel, tabPage_genel} = e, {maxSecenekSayisi} = this;
 		let form = tabPage_genel.addFormWithParent().altAlta();
-		for (let i = 1; i <= secenekSayisi; i++) { form.addTextInput(`secenek${i}`, 'Seçenek ${i}').setMaxLength(50) }
+		for (let i = 1; i <= maxSecenekSayisi; i++) { form.addTextInput(`secenek${i}`, `Seçenek ${i}`).setMaxLength(50) }
 	}
 }

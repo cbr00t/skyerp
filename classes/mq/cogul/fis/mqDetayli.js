@@ -377,8 +377,8 @@ class MQDetayliMaster extends MQDetayli {
 		this.formBuilder_addTabPanelWithGenelTab(e); this.rootFormBuilderDuzenle_gridOncesi(e); this.rootFormBuilderDuzenle_grid(e); this.rootFormBuilderDuzenle_gridSonrasi()
 	}
 	static rootFormBuilderDuzenle_grid(e) {
-		const {tabPage_genel} = e; let gridParent = tabPage_genel.addFormWithParent('grid-parent');
-		let grid = e.fbd_grid = gridParent.addGridliGiris('grid').addStyle_fullWH().addCSS('dock-bottom')
+		const {tabPage_genel} = e; let gridParent = tabPage_genel.addFormWithParent('grid-parent').addStyle_fullWH().addCSS('dock-bottom');
+		let grid = e.fbd_grid = gridParent.addGridliGiris('grid').addStyle_fullWH()
 			.setKontrolcuSinif(this.gridKontrolcuSinif)
 			.setSource(e => this.rootFormBuilderDuzenle_grid_loadServerData(e))
 			.onAfterRun(e => this.rootFormBuilderDuzenle_grid_onAfterRun(e))
@@ -386,7 +386,7 @@ class MQDetayliMaster extends MQDetayli {
 	static async rootFormBuilderDuzenle_grid_loadServerData(e) {
 		const {builder} = e, {rootPart, inst} = builder, {gridPart} = rootPart, {kontrolcu} = gridPart, {gridDetaySinif} = inst.class;
 		const _e = { ...e, fis: inst, inst, recs: [] }; for (let i = 0; i < inst.detaylar?.length + 1; i++) { _e.recs.push(this.newRec({ sinif: gridDetaySinif })) }
-		let result = await kontrolcu.fis2Grid(e); if (result != true) { if (result.errorText) { hConfirm(`<div class="red">${_result.errorText}</div>`) } return false }
+		let result = await kontrolcu.fis2Grid(_e); if (result != true) { if (result.errorText) { hConfirm(`<div class="red">${_result.errorText}</div>`) } return false }
 		return _e.recs
 	}
 	static rootFormBuilderDuzenle_grid_onAfterRun(e) {
