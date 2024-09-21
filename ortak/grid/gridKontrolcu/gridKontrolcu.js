@@ -13,7 +13,8 @@ class GridKontrolcu extends CObject {
 	tabloKolonlariDuzenle_ilk(e) { } tabloKolonlariDuzenle_ara(e) { } tabloKolonlariDuzenle_son(e) { }
 	grid2Fis(e) {
 		e = e || {}; const mesajsizFlag = e.mesajsiz || e.mesajsizFlag;
-		const {parentPart} = this, {tabloKolonlari, gridWidget} = parentPart, zorunluBelirtecler = e.zorunluBelirtecler = {}, editBelirtecler = e.editBelirtecler = {};
+		const {parentPart} = this, tabloKolonlari = parentPart.tabloKolonlari ?? parentPart.gridPart?.tabloKolonlari;
+		const {gridWidget} = parentPart, zorunluBelirtecler = e.zorunluBelirtecler = {}, editBelirtecler = e.editBelirtecler = {};
 		for (const colDefOrGrup of tabloKolonlari) {
 			if (colDefOrGrup.kodZorunlumu) { zorunluBelirtecler[colDefOrGrup.kodBelirtec] = true }
 			for (const colDef of colDefOrGrup.getIter()){ if (colDef.isEditable) { editBelirtecler[colDef.belirtec] = true } }

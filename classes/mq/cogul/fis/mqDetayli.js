@@ -377,9 +377,11 @@ class MQDetayliMaster extends MQDetayli {
 		this.formBuilder_addTabPanelWithGenelTab(e); this.rootFormBuilderDuzenle_gridOncesi(e); this.rootFormBuilderDuzenle_grid(e); this.rootFormBuilderDuzenle_gridSonrasi()
 	}
 	static rootFormBuilderDuzenle_grid(e) {
-		const {tabPage_genel} = e; let gridParent = tabPage_genel.addFormWithParent('grid-parent').addStyle_fullWH().addCSS('dock-bottom');
+		const {tabPage_genel} = e, parentPart = e.parentPart ?? e.sender;
+		let gridParent = tabPage_genel.addFormWithParent('grid-parent').addStyle_fullWH().addCSS('dock-bottom');
+		const {gridKontrolcuSinif} = this, kontrolcu = gridKontrolcuSinif ? new gridKontrolcuSinif({ parentPart }) : null;
 		let grid = e.fbd_grid = gridParent.addGridliGiris('grid').addStyle_fullWH()
-			.setKontrolcuSinif(this.gridKontrolcuSinif)
+			.setKontrolcu(kontrolcu)
 			.setSource(e => this.rootFormBuilderDuzenle_grid_loadServerData(e))
 			.onAfterRun(e => this.rootFormBuilderDuzenle_grid_onAfterRun(e))
 	}
