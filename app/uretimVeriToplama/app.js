@@ -5,9 +5,10 @@ class UretimVeriToplamaApp extends App {
 		/* $.extend(this, { veriAktarici_waitSecs: coalesce(e.veriAktarici_waitSecs, 4), otoGonderFlag: coalesce(e.otoGonderFlag, false) }) */
 	}
 	init(e) { super.init(e); this.params.yerel = MQYerelParamUretim.getInstance() }
-	async runDevam(e) { await super.runDevam(e); await this.wsConfigKontrol(e); await this.setValuesFromParam(e); await this.gerceklemeler_ilkIslemler(e) }
+	async runDevam(e) { await super.runDevam(e); await this.wsConfigKontrol(e) }
 	async afterRun(e) {
-		await super.afterRun(e); let kullanim = app.params.operGenel?.kullanim || {}, eksikParamIsimleri = [];
+		await super.afterRun(e); await this.setValuesFromParam(e); await this.gerceklemeler_ilkIslemler(e);
+		let kullanim = app.params.operGenel?.kullanim || {}, eksikParamIsimleri = [];
 		if (!kullanim.operasyonIsYonetimi) { eksikParamIsimleri.push('Operasyon İş Yönetimi') }
 		if (!kullanim.mesVeriToplama) { eksikParamIsimleri.push('Tablet Veri Toplama') }
 		if (eksikParamIsimleri.length) {
@@ -62,7 +63,7 @@ class UretimVeriToplamaApp extends App {
 			let result = await promise; if (result) await this.verileriSil(e)
 		}
 	}
-	setValuesFromParam(e) { const {params} = this; const hmr = asSet(params.operGenel.hmr) ?? {}; /*if (!$.isEmptyObject(hmr))*/ if (hmr) { HMRBilgi.belirtecListe = Object.keys(hmr) } }
+	setValuesFromParam(e) { const {params} = this; const hmr = asSet(params.operGenel?.hmr) ?? {}; /*if (!$.isEmptyObject(hmr))*/ if (hmr) { HMRBilgi.belirtecListe = Object.keys(hmr) } }
 	gerceklemeler_ilkIslemler(e) {
 		const yerelParam = this.params.yerel, gerceklemeler = yerelParam.gerceklemeler || [];
 		let degistimi = false; const durumSet = asSet(['processing', 'changing', 'error']);

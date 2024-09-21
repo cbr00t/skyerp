@@ -44,7 +44,7 @@ class MQCari extends MQKAOrtak {
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {sent} = e, alias = this.tableAlias;
-		sent.fromIliski('caril il', `${alias}.ilkod = il.kod`).fromIliski('ulke ulk', `${alias}.ulkekod = ulk.kod`).fromIliski('cartip ctip', `${alias}.tipkod = tip.kod`);
+		sent.fromIliski('caril il', `${alias}.ilkod = il.kod`).fromIliski('ulke ulk', `${alias}.ulkekod = ulk.kod`).fromIliski('cartip ctip', `${alias}.tipkod = ctip.kod`);
 		sent.where.add(`${alias}.silindi = ''`); sent.sahalar.add('calismadurumu')
 	}
 }
