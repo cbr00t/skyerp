@@ -1,38 +1,16 @@
-.loginPart.part {
-	--ssoButton-length: 50px;
-	position: absolute;
-	width: var(--full); height: var(--full);
-	background-color: #031d519c;
-	z-index: 1014
-}
+.loginPart.part { --ssoButton-length: 50px; position: absolute; width: var(--full); height: var(--full); background-color: #031d519c; z-index: 1014 }
 .loginPart #islemTuslari { margin-top: 20px }
 .loginPart #islemTuslari #login.jqx-fill-state-normal { color: whitesmoke; background-color: #93abf8 }
 .loginPart .alt-form {
-	position: relative; top: 90px; left: 35%; width: 30%;
-	background-color: #f9f9f9; padding: 15px 30px;
-	/* border: 1px solid #aaa; */ border-radius: 8px;
-	box-shadow: 2px 2px 20px #94a2cda6;
-	box-sizing: content-box
+	position: relative; top: 90px; left: 35%; width: 30%; background-color: #f9f9f9; padding: 15px 30px;
+	/* border: 1px solid #aaa; */ border-radius: 8px; box-shadow: 2px 2px 20px #94a2cda6; box-sizing: content-box
 }
-@media (max-width: 850px) {
-	.loginPart .alt-form {
-		--space: 15px;
-		left: var(--space);
-		width: calc(var(--full) - (var(--space) + 70px));
-	}
-}
-.loginPart .alt-form .row {margin: 5px 0;padding: 0px 5px;}
+@media (max-width: 850px) { .loginPart .alt-form { --space: 15px; left: var(--space); width: calc(var(--full) - (var(--space) + 70px)) } }
+.loginPart .alt-form .row { margin: 5px 0;padding: 0px 5px }
 .loginPart .alt-form .row .etiket,
-.loginPart .alt-form .row .veri {
-	width: var(--full)
-}
-.loginPart .alt-form .row .veri {margin-left: 10px;}
-.loginPart input[type=textbox],
-.loginPart input[type=text],
-.loginPart input[type=password],
-.loginPart input[type=number] {
-	height: 40px;
-}
+.loginPart .alt-form .row .veri { width: calc(var(--full) - 25px) }
+.loginPart .alt-form .row .veri { /* margin-left: 10px */ }
+.loginPart input[type=textbox], .loginPart input[type=text], .loginPart input[type=password], .loginPart input[type=number] { height: 40px }
 .loginPart #ayarlar {
 	position: absolute;
 	width: 40px; height: 40px;
@@ -43,19 +21,7 @@
 .loginPart #loginTipi { font-weight: bold; color: #555; background-color: #dcdffa }
 .loginPart #loginTipi .jqx-dropdownlist-content { font-size: var(--full) }
 .loginPart.loginTipi.list-item > * { font-size: 90%; padding: 3% 20px }
-.loginPart #userTextParent {
-	font-size: 90%; color: #999;
-	height: 30px; pointer-events: none
-}
-.loginPart #pass {width: calc(var(--full) - var(--ssoButton-length) - 40px);}
-.loginPart #ssoLogin {
-	width: var(--ssoButton-length) !important;
-	height: 40px !important;
-	background-image: url(../../images/email.png);
-	background-size: cover !important;
-	margin: 3px 0 0 20px
-}
-.loginPart #ssoLogin.jqx-fill-state-normal {
-	/* background-color: #a05d45; */
-	background-color: transparent
-}
+.loginPart #userTextParent { font-size: 90%; color: #999; height: 30px; pointer-events: none }
+.loginPart #pass { width: calc(var(--full) - var(--ssoButton-length) - 40px ;}
+.loginPart #ssoLogin { width: var(--ssoButton-length) !important; height: 40px !important; margin: 3px 0 0 20px; background-image: url(../../images/email.png); background-size: cover !important }
+.loginPart #ssoLogin.jqx-fill-state-normal { /* background-color: #a05d45; */ background-color: transparent }

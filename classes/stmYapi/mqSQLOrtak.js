@@ -27,8 +27,9 @@ class MQSQLOrtak extends CObject {
 	}
 	static sqlServerDegeri(e) {
 		if (e == null) { return 'NULL' }
-		const value = $.isPlainObject(e) ? e.value : e, ozelDeger = value?.sqlServerDegeri;
-		if (ozelDeger !== undefined) { return ozelDeger }
+		let value = $.isPlainObject(e) ? e.value : e, ozelDeger = value?.sqlServerDegeri;
+		if (typeof value == 'object' && value?.constructor?.name == 'String') { value = value.toString() }
+		if (!(ozelDeger === undefined || typeof ozelDeger == 'function')) { return ozelDeger }
 		if (value == null) { return 'NULL' }
 		if (isDate(value)) { return `CAST('${asReverseDateTimeString(value, 'T')}' AS DATETIME)` }
 		if (isGUID(value)) { return `N'${value}'` }
@@ -36,8 +37,9 @@ class MQSQLOrtak extends CObject {
 	}
 	static sqlDegeri(e) {
 		if (e == null) { return 'NULL' }
-		const value = $.isPlainObject(e) ? e.value : e, ozelDeger = value?.sqlDegeri;
-		if (ozelDeger !== undefined) { return ozelDeger }
+		let value = $.isPlainObject(e) ? e.value : e, ozelDeger = value?.sqlDegeri;
+		if (typeof value == 'object' && value?.constructor?.name == 'String') { value = value.toString() }
+		if (!(ozelDeger === undefined || typeof ozelDeger == 'function')) { return ozelDeger }
 		if (value == null) { return 'NULL' }
 		if (typeof value == 'string') { return `'${value.replaceAll(`'`, `''`)}'` }
 		if (typeof value == 'number') { return value }
@@ -45,8 +47,9 @@ class MQSQLOrtak extends CObject {
 	}
 	static sqlParamValue(e) {
 		if (e == null) { return null }
-		const value = $.isPlainObject(e) ? e.value : e,  ozelDeger = value?.sqlDegeri;
-		if (ozelDeger !== undefined) return ozelDeger
+		let value = $.isPlainObject(e) ? e.value : e,  ozelDeger = value?.sqlDegeri;
+		if (typeof value == 'object' && value?.constructor?.name == 'String') { value = value.toString() }
+		if (!(ozelDeger === undefined || typeof ozelDeger == 'function')) { return ozelDeger }
 		if (value == null) return value
 		if (typeof value == 'boolean') return value ? 1 : 0
 		if (isDate(value)) return this.sqlDegeri(asReverseDateString(value) || '')

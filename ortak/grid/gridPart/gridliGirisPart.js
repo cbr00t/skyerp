@@ -3,17 +3,13 @@ class GridliGirisPart extends GridPart {
 	static get noFullHeightFlag() { return true } /* static get defaultAsyncFlag() { return false } */
 	constructor(e) { super(e); e = e || {}; this.noEmptyRowFlag = asBool(e.noEmptyRow ?? e.noEmptyRowFlag) }
 	gridArgsDuzenleDevam(e) {
-		super.gridArgsDuzenleDevam(e); const {args} = e;
-		$.extend(args, { editable: true, autoshowcolumnsmenubutton: true });
+		super.gridArgsDuzenleDevam(e); const {args} = e; $.extend(args, { editable: true, autoshowcolumnsmenubutton: true });
 		if (!this.gridInitFlag) {
 			const kontrolcu = this.getKontrolcu(e), tabloKolonlari = e.tabloKolonlari = e.tabloKolonlari || [];
 			if (kontrolcu) { const _tabloKolonlari = getFuncValue(kontrolcu.tabloKolonlari) || []; tabloKolonlari.push(..._tabloKolonlari) }
 		}
 	}
-	async defaultLoadServerData(e) {
-		const result = []; if (!this.noEmptyRowFlag) for (let i = 0; i < 1; i++) result.push(this.newRec())
-		return result
-	}
+	async defaultLoadServerData(e) { const result = []; if (!this.noEmptyRowFlag) { for (let i = 0; i < 1; i++) { result.push(this.newRec()) } } return result }
 	gridVeriDegisti(e) {
 		e = e || {}; super.gridVeriDegisti(e)
 		/* const gridWidget = e?.event?.args.owner ?? this.gridWidget; setTimeout(() => gridWidget.refresh(), 10) */

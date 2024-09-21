@@ -105,7 +105,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 		setTimeout(() => makeScrollable(header), 100)
 	}
 	afterRun(e) {
-		super.afterRun(e); if (app.activePart != this) app._activePartStack.pop()
+		super.afterRun(e); if (app.activePart != this) { app._activePartStack.pop() }
 		setTimeout(() => this.onResize(e), 300)
 	}
 	async initFormBuilder(e) {
@@ -159,10 +159,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 			}
 		}
 	}
-	gridArgsDuzenleDevam(e) {
-		super.gridArgsDuzenleDevam(e);
-		$.extend(e.args, { width: '99.5%', /*editMode: 'selectedrow',*/ groupable: false, sortable: false, groupable: false })
-	}
+	gridArgsDuzenleDevam(e) { super.gridArgsDuzenleDevam(e); $.extend(e.args, { width: '99.5%', /*editMode: 'selectedrow',*/ groupable: false, sortable: false, groupable: false }) }
 	/*get defaultTabloKolonlari() { const tabloKolonlari = super.defaultTabloKolonlari || []; return tabloKolonlari }*/
 	async defaultLoadServerData(e) {
 		const {fis, kontrolcu} = this, {gridDetaySinif} = fis.class, _e = $.extend({}, e, { fis });
@@ -179,7 +176,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 	gridSatirSilindi(e) { super.gridSatirSilindi(e) }
 	gridSatirSayisiDegisti(e) {
 		const _e = $.extend({}, e || {}), {kontrolcu, fis} = this;
-		if (kontrolcu?.grid2FisMesajsiz) kontrolcu.grid2FisMesajsiz(_e)
+		if (kontrolcu?.grid2FisMesajsiz) { kontrolcu.grid2FisMesajsiz(_e) }
 		fis.detaylar = _e.recs; super.gridSatirSayisiDegisti(e); this.gridYapiDegisti(e)
 	}
 	gridYapiDegisti(e) {
@@ -218,22 +215,19 @@ class FisGirisPart extends GridliGirisWindowPart {
 		return this.kaydetIstendi(e)
 	}
 	async kaydetIstendi(e) {
-		let result; try { result = await this.kaydetDevam(e); if (!result) return false }
-		catch (ex) { const err = getErrorText(ex); hConfirm(err, 'Fiş Kayıt Sorunu'); throw ex }
+		let result; try { result = await this.kaydetIslemi(e); if (!result) { return false } } catch (ex) { const err = getErrorText(ex); hConfirm(err, 'Fiş Kayıt Sorunu'); throw ex }
 		const {kaydedince} = this; if (kaydedince) { const _e = $.extend({}, e, { sender: this }); result = await getFuncValue.call(this, kaydedince, _e) }
 		if (result === false) return false
 		this.kaydetCalistimi = true; this.destroyPart(); return true
 	}
-	kaydetDevam(e) {
+	kaydetIslemi(e) {
 		const {kontrolcu} = this; let result = kontrolcu.grid2Fis(e);
 		if (result != true) {
-			if (result.errorText) hConfirm(`<div class="red">${result.errorText}</div>`);
+			if (result.errorText) { hConfirm(`<div class="red">${result.errorText}</div>`, ' ') }
 			if (result.returnAction) {
 				const {grid, gridWidget} = this;
-				const _e = {
-					sender: this, grid, gridWidget,
-					focusTo(e) { gridWidget.clearselection(); gridWidget.selectcell(e.rowIndex, e.belirtec || e.dataField) }
-				}; getFuncValue.call(this, result.returnAction, _e)
+				const _e = { sender: this, grid, gridWidget, focusTo(e) { gridWidget.clearselection(); gridWidget.selectcell(e.rowIndex, e.belirtec || e.dataField) } };
+				getFuncValue.call(this, result.returnAction, _e)
 			}
 			return false
 		}

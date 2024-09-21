@@ -879,8 +879,8 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 	constructor(e) {
 		e = e || {}; super(e); this.etiketGosterim_yok();
 		$.extend(this, {
-			_gridSinif: e.gridSinif == null ? GridliGirisPart : e.gridSinif, _detaySinif: e.detaySinif,
-			_kontrolcu: coalesce(e.kontrolcu, e.gridKontrolcu), _kontrolcuSinif: e.kontrolcuSinif == null ? e.gridKontrolcuSinif : e.kontrolcuSinif,
+			_gridSinif: e.gridSinif ?? GridliGirisPart, _detaySinif: e.detaySinif,
+			_kontrolcu: e.kontrolcu ?? e.gridKontrolcu, _kontrolcuSinif: e.kontrolcuSinif ?? e.gridKontrolcuSinif,
 			_tabloKolonlari: e.tabloKolonlari, tabloKolonlariDuzenle: e.tabloKolonlariDuzenle || e.tabloKolonlariDuzenleBlock,
 			ozelQueryDuzenle: e.ozelQueryDuzenle || e.ozelQueryDuzenleBlock, ozelQuerySonucu: e.ozelQuerySonucu || e.ozelQuerySonucuBlock,
 			yeniInstOlusturucu: e.yeniInstOlusturucu, sabitmi: e.sabitmi ?? e.sabit, noEmptyRowFlag: e.noEmptyRow ?? e.noEmptyRowFlag,
@@ -888,14 +888,15 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 			veriDegisince: e.veriDegisince || e.veriDegistiBlock || e.veriDegisti || e.cellValueChanged, rowNumberOlmasinFlag: e.rowNumberOlmasin ?? e.rowNumberOlmasinFlag,
 			groupsChanged: e.groupsChanged ?? e.gridGroupsChanged ?? e.gridGroupsChangedBlock, notAdaptiveFlag: e.notAdaptive ?? e.notAdaptiveFlag, noAnimateFlag: e.noAnimate ?? e.noAnimateFlag
 		});
-		const {_kontrolcu} = this; if (_kontrolcu && this._kontrolcuSinif) this._kontrolcuSinif = _kontrolcu.class
+		const {_kontrolcu} = this; if (_kontrolcu) { this._kontrolcuSinif = _kontrolcu.class }
 	}
 	buildDevam(e) {
 		super.buildDevam(e); const {input} = this;
 		if (input?.length) {
 			/* input.addClass('dock-bottom') */ let tabloKolonlari = this.tabloKolonlari || []; const {tabloKolonlariDuzenle, widgetArgsDuzenle} = this;
 			if (tabloKolonlariDuzenle) { const _e = { liste: tabloKolonlari }, result = getFuncValue.call(this, tabloKolonlariDuzenle, _e); if ($.isArray(result)) { tabloKolonlari = result } }
-			let {kontrolcu, kontrolcuSinif} = this; if (kontrolcu) if (!kontrolcuSinif) { kontrolcuSinif = this.kontrolcuSinif = kontrolcu.class } else if (kontrolcuSinif) { kontrolcu = this.kontrolcu = new kontrolcuSinif() }
+			let {kontrolcu, kontrolcuSinif} = this; if (!kontrolcuSinif) { kontrolcuSinif = this.kontrolcuSinif = kontrolcu?.class }
+			if (!kontrolcu && kontrolcuSinif) { kontrolcu = this.kontrolcu = new kontrolcuSinif() }
 			const {mfSinif, yeniInstOlusturucu, detaySinif, noEmptyRowFlag, rowNumberOlmasinFlag, notAdaptiveFlag, noAnimateFlag} = this;
 			const _e = $.extend({}, e, { args: {
 				sender: this.sender, builder: this, parentPart: this.rootPart, layout: input, mfSinif, kontrolcu, tabloKolonlari,
@@ -929,8 +930,8 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 	setTabloKolonlari(value) { this.tabloKolonlari = value; return this } ozelQueryDuzenleBlock(handler) { this.ozelQueryDuzenle = handler; return this }
 	veriYukleninceIslemi(handler) { this.veriYuklenince = handler; return this } veriYukleninceBlock(handler) { return this.veriYukleninceIslemi(handler) }
 	veriDegisinceIslemi(handler) { this.veriDegisince = handler; return this } veriDegisinceBlock(handler) { return this.veriDegisinceIslemi(handler) }
-	groupsChangedIslemi(handler) { this.groupsChanged = handler; return this }
-	onBindingComplete(value) { return this.veriYukleninceIslemi(value) }
+	groupsChangedIslemi(handler) { this.groupsChanged = handler; return this } onBindingComplete(value) { return this.veriYukleninceIslemi(value) }
+	setKontrolcu(value) { this.kontrolcu = value; return this } setKontrolcuSinif(value) { this.kontrolcuSinif = value; return this }
 }
 
 class FBuilder_IslemTuslari extends FBuilder_DivOrtak {

@@ -2,7 +2,7 @@ class MQEmeklilikSorgu extends MQCogul {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'SGK Emeklilik Sorgu' } static get localDataSelector_tcKimlikNo2Rec() { return `${this.classKey}-tcKimlikNo2Rec` }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false } static get raporKullanilirmi() { return false } static get secimSinif() { return null }
 	static islemTuslariDuzenle_listeEkrani_ilk(e) {
-		super.islemTuslariDuzenle_listeEkrani_ilk(e); const {liste} = e, gridPart = e.gridPart ?? e.parentPart ?? e.sender
+		super.islemTuslariDuzenle_listeEkrani_ilk(e); const {liste} = e, gridPart = e.gridPart ?? e.parentPart ?? e.sender;
 		liste.push(
 			{ id: 'sorguYap', text: 'Sorgu Yap', handler: _e => this.sorguYapIstendi({ ...e, ..._e, gridPart }) },
 			/*{ id: 'kaydet', handler: _e => this.kaydetIstendi({ ...e, ..._e, gridPart }) },*/

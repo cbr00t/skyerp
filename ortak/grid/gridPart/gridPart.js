@@ -42,7 +42,7 @@ class GridPart extends Part {
 		return result
 	}
 	get kontrolcu() { return this._kontrolcu } set kontrolcu(value) { this._kontrolcu = value }
-	getKontrolcu(e) { e = e || {}; let result = this.kontrolcu; if (isFunction(result)) result = this.kontrolcu = getFuncValue.call(this, result, e); return result }
+	getKontrolcu(e) { e = e || {}; let result = this.kontrolcu; if (isFunction(result)) { result = this.kontrolcu = getFuncValue.call(this, result, e) } return result }
 	
 	constructor(e) {
 		super(e); e = e || {}; $.extend(this, {
@@ -193,16 +193,15 @@ class GridPart extends Part {
 			for (const colDef of ekTabloKolonlari) { if (!colAttrSet[colDef.belirtec]) { tabloKolonlari.push(colDef) } }
 		}
 		this.gridArgsDuzenleDevam(e);
-		if (ozelKolonDuzenleBlock) { let result = getFuncValue.call(this, ozelKolonDuzenleBlock, e); if (result != null) e.tabloKolonlari = result }
+		if (ozelKolonDuzenleBlock) { let result = getFuncValue.call(this, ozelKolonDuzenleBlock, e); if (result != null) { e.tabloKolonlari = result } }
 		tabloKolonlari = this.tabloKolonlari = e.tabloKolonlari;
 		const belirtec2Kolon = this.belirtec2Kolon = e.belirtec2Kolon = {}, duzKolonTanimlari = this.duzKolonTanimlari = e.duzKolonTanimlari = [], jqxCols = [];
 		for (const colDef of tabloKolonlari) { colDef.gridPart = this; jqxCols.push(...(colDef.jqxColumns || [])); colDef.belirtec2KolonDuzenle(e) }
 		args.columns = jqxCols; if (argsDuzenleBlock) { getFuncValue.call(this, argsDuzenleBlock, e) }
 	}
-	gridArgsDuzenleDevam(e) { const kontrolcu = this.getKontrolcu(e); if (kontrolcu) kontrolcu.gridArgsDuzenle(e) }
+	gridArgsDuzenleDevam(e) { const kontrolcu = this.getKontrolcu(e); if (kontrolcu) { kontrolcu.gridArgsDuzenle(e) } }
 	get defaultTabloKolonlari() {
-		const liste = [];
-		if (!this.rowNumberOlmasinFlag) {
+		const liste = []; if (!this.rowNumberOlmasinFlag) {
 			liste.push(new GridKolon({
 					belirtec: '_rowNumber', text: '#', width: 55, groupable: false, draggable: false, cellClassName: '_rowNumber grid-readOnly'
 					/*cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
@@ -705,11 +704,11 @@ class GridPart extends Part {
 		const type = 'groupExpanded', {event} = e, gridPart = this, {inst, builder} = gridPart, mfSinif = gridPart.mfSinif ?? inst?.class; clearTimeout(this._timer_rendered);
 		this._timer_rendered = setTimeout(() => this.gridRendered({ type, builder, event, gridPart, mfSinif, inst, kontrolcu }), gridPart.renderDelayMS ?? mfSinif?.orjBaslik_gridRenderDelayMS ?? 300);
 	}
-	gridGroupCollapsed(e) { const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridGroupCollapsed) kontrolcu.gridGroupCollapsed(e) }
+	gridGroupCollapsed(e) { const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridGroupCollapsed) { kontrolcu.gridGroupCollapsed(e) } }
 	gridSatirEklendi(e) { this.gridSatirSayisiDegisti(e); const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridSatirEklendi) kontrolcu.gridSatirEklendi(e) }
-	gridSatirGuncellendi(e) { const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridSatirEklendi) kontrolcu.gridSatirGuncellendi(e) }
-	gridSatirSilindi(e) { this.gridSatirSayisiDegisti(e); const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridSatirSilindi) kontrolcu.gridSatirSilindi(e) }
-	gridSatirSayisiDegisti(e) { const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridSatirSayisiDegisti) kontrolcu.gridSatirSayisiDegisti(e) }
+	gridSatirGuncellendi(e) { const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridSatirEklendi) { kontrolcu.gridSatirGuncellendi(e) } }
+	gridSatirSilindi(e) { this.gridSatirSayisiDegisti(e); const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridSatirSilindi) { kontrolcu.gridSatirSilindi(e) } }
+	gridSatirSayisiDegisti(e) { const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridSatirSayisiDegisti) { kontrolcu.gridSatirSayisiDegisti(e) } }
 	gridSatirTiklandi(e) {
 		e = e || {}; const {gridWidget, isClickedColumn_checkBox, isClickedColumn_rowNumber} = this, {type} = e, evt = e.event || {}, {args} = evt, belirtec = args.datafield ?? this.clickedColumn;
 		let rowIndex = args.rowindex; if (rowIndex == null || rowIndex < 0) { rowIndex = gridWidget.selectedrowindex }

@@ -1,6 +1,7 @@
 class MQDetayli extends MQSayacli {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get detaylimi() { return true }
+	static get detaylimi() { return true } static get detayliMastermi() { return false }
+	static get gridKontrolcuSinif() { return null } get gridKontrolcuSinif() { return this.class.gridKontrolcuSinif }
 	static get detaySiniflar() {
 		const _e = { liste: [] }; this.detaySiniflarDuzenle(_e); const {liste} = _e;
 		if ($.isEmptyObject(liste)) { const {detaySinif} = this; if (detaySinif) { liste.push(detaySinif) } }
@@ -8,18 +9,16 @@ class MQDetayli extends MQSayacli {
 	}
 	static detaySiniflarDuzenle(e) { }
 	static get detayTablolar() {
-		let result = this._detayTablolar;
-		if (!result) {
+		let result = this._detayTablolar; if (!result) {
 			const {detaySiniflar} = this, detayTabloSet = {};
 			for (const detaySinif of detaySiniflar) { const {table} = detaySinif; if (table) { detayTabloSet[table] = true } }
 			result = this._detayTablolar = Object.keys(detayTabloSet)
 		}
 		return result
 	}
-	static get detaySinif() { return null }
-	static get detayTable() { return (this.detaySinif || {}).table }
-	static get detayTableAlias() { return (this.detaySinif || MQDetay).tableAlias }
+	static get detaySinif() { return null } static get detayTable() { return this.detaySinif?.table }
 	static get gridDetaySinif() { return this.detaySinif || (this.detaySiniflar || [])[0] }
+	static get detayTableAlias() { return (this.detaySinif || MQDetay).tableAlias }
 	static detaySinifFor(e) { e = e || {}; return e.detaySinif || (this.detaySiniflar || [])[0] }
 	static get sabitBilgiRaporcuSinif() { return FisRapor }
 
@@ -67,8 +66,7 @@ class MQDetayli extends MQSayacli {
 		return result
 	}
 	static listeBasliklariDuzenle_detaylar(e) {
-		e.fisSinif = e.fisSinif || this;
-		const {detaySiniflar} = this; let result;
+		e.fisSinif = e.fisSinif || this; const {detaySiniflar} = this; let result;
 		if (!$.isEmptyObject(detaySiniflar)) { result = detaySiniflar[0].listeBasliklariDuzenle(e) }
 		if (!result) { result = super.listeBasliklariDuzenle_detaylar(e) }
 		return result
@@ -176,30 +174,26 @@ class MQDetayli extends MQSayacli {
 		if (detaySiniflar) { for (const detaySinif of detaySiniflar) detaySinif.gridVeriYuklendi(e) }
 	}
 	async yukle(e) {
-		e = e || {}; let result = await this.baslikYukle(e); if (result === false) return result
+		e = e || {}; let result = await this.baslikYukle(e); if (result === false) { return result }
 		await this.detaylariYukle(e); await this.detaylariYukleSonrasi(e); await this.yukleSonrasiIslemler(e); return true
 	}
 	baslikYukle(e) {
 		e = e || {}; const {sayacSaha} = this.class;
 		if (sayacSaha) {
-			const fisSayac = this.sayac;
-			if (!fisSayac) {
-				const keyHV = this.alternateKeyHostVars(); if (keyHV) delete keyHV[sayacSaha]
-				if ($.isEmptyObject(keyHV)) throw { isError: true, rc: 'fisSayacBelirlenemedi', errorText: 'Fiş için kaysayac bilgisi belirlenemedi' }
+			const fisSayac = this.sayac; if (!fisSayac) {
+				const keyHV = this.alternateKeyHostVars(); if (keyHV) { delete keyHV[sayacSaha] }
+				if ($.isEmptyObject(keyHV)) { throw { isError: true, rc: 'fisSayacBelirlenemedi', errorText: 'Fiş için kaysayac bilgisi belirlenemedi' } }
 			}
 		}
-		try { e.basit = true; return super.yukle(e) }
-		finally { delete e.basit }
+		try { e.basit = true; return super.yukle(e) } finally { delete e.basit }
 	}
 	async detaylariYukle(e) {
-		e = e || {}; let {detaySiniflar} = e;
-		if (!detaySiniflar && e.detaySinif) { detaySiniflar = [e.detaySinif] }
+		e = e || {}; let {detaySiniflar} = e; if (!detaySiniflar && e.detaySinif) { detaySiniflar = [e.detaySinif] }
 		if (!detaySiniflar) { detaySiniflar = this.class.detaySiniflar || [] }
 		const fisSayac = this.sayac; $.extend(e, { fisSayac, fis: this, detaySiniflar }); const seq2Detaylar = {};
 		for (const detaySinif of detaySiniflar) {
-			const _e = $.extend({}, e, { detaySinif }); for (const key of ['rec', 'parentRec', 'detaySiniflar']) delete _e[key]
-			const detRecs = _e.detRecs = await this.tekilOku_detaylar(_e);
-			for (const rec of detRecs) {
+			const _e = $.extend({}, e, { detaySinif }); for (const key of ['rec', 'parentRec', 'detaySiniflar']) { delete _e[key] }
+			const detRecs = _e.detRecs = await this.tekilOku_detaylar(_e); for (const rec of detRecs) {
 				const _detaySinif = this.class.detaySinifFor({ detaySinif, rec });
 				if (!_detaySinif) throw { isError: true, rc: 'detayBelirlenemedi', errorText: 'Detay sınıfı belirlenemedi' }
 				const det = new _detaySinif(); _e.rec = rec; det.setValues(_e);
@@ -216,11 +210,15 @@ class MQDetayli extends MQSayacli {
 		e.proc = async e => {
 			await this.yeniTanimOncesiIslemler(e); const _e = $.extend({}, e, { toplu: new MQToplu().withTrn(), paramName_fisSayac: '@fisSayac' });
 			await this.topluYazmaKomutlariniOlustur(_e); await this.topluYazmaKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) { return true }
-			const {trnId} = e, result = (await app.sqlExecNoneWithResult({ trnId, query: _e.toplu }) || {})[0], sqlParam = result.params[_e.paramName_fisSayac] || {};
-			const fisSayac = asInteger(sqlParam.value) || null; if (!fisSayac) { throw { isError: true, rc: 'fisSayac', errorText: 'Kaydedilen fiş için sayaç bilgisi belirlenemedi' } }
-			this.sayac = fisSayac; await this.yeniSonrasiIslemler(e); return result
+			const {trnId} = e, result = e.result = (await app.sqlExecNoneWithResult({ trnId, query: _e.toplu }) || {})[0], sqlParam = e.sqlParam = result.params[_e.paramName_fisSayac] || {};
+			await this.yazSonrasi_sayacGeriYukle(e); await this.yeniSonrasiIslemler(e); return result
 		};
 		try { return (await app.sqlTrnDo(e)).result } catch (ex) { this.sayac = _sayac; throw ex }
+	}
+	yazSonrasi_sayacGeriYukle(e) {
+		const {sqlParam} = e, fisSayac = asInteger(sqlParam.value) || null;
+		if (!fisSayac) { throw { isError: true, rc: 'fisSayac', errorText: 'Kaydedilen fiş için sayaç bilgisi belirlenemedi' } }
+		this.sayac = fisSayac
 	}
 	async degistir(e) {
 		/* üst'e bakma */ e = e || {}; this.detaylariNumaralandir(e);
@@ -242,8 +240,8 @@ class MQDetayli extends MQSayacli {
 		return (await app.sqlTrnDo(e)).result
 	}
 	detaylariNumaralandir(e) {
-		const {detaylar} = this; if (!detaylar) return
-		for (let i = 0; i < detaylar.length; i++) detaylar[i].seq = (i + 1)
+		const {detaylar} = this; if (!detaylar) { return }
+		for (let i = 0; i < detaylar.length; i++) { detaylar[i].seq = (i + 1) }
 	}
 	topluYazmaKomutlariniOlustur(e) {
 		/*
@@ -256,7 +254,7 @@ class MQDetayli extends MQSayacli {
 			e.toplu
 		*/
 		const {toplu, paramName_fisSayac} = e, {table, sayacSaha} = this.class, hv = this.hostVars(e); toplu.add(new MQInsert({ table, hv }));
-		const keyHV = this.alternateKeyHostVars(e); toplu.add( new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: `${paramName_fisSayac} = MAX(${sayacSaha})` }));
+		const keyHV = this.alternateKeyHostVars(e); e.keyHV = keyHV; this.topluYazmaKomutlariniOlustur_baslikSayacBelirle(e);
 		const detHVArg = { fis: this.shallowCopy() }; detHVArg.fis.sayac = new MQSQLConst(paramName_fisSayac);
 		const {detaylar} = this, detTable2HVListe = e.detTable2HVListe = {};
 		for (const det of detaylar) {
@@ -265,7 +263,14 @@ class MQDetayli extends MQSayacli {
 			hvListe.push(hv)
 		}
 		for (const detTable in detTable2HVListe) { const hvListe = detTable2HVListe[detTable]; toplu.add(new MQInsert({ table: detTable, hvListe })) }
-		const params = toplu.params = toplu.params || []; params.push({ name: paramName_fisSayac, type: 'int', direction: 'inputOutput', value: 0 })
+		e.params = toplu.params = toplu.params || []; this.topluYazmaKomutlariniOlustur_sqlParamsDuzenle(e)
+	}
+	topluYazmaKomutlariniOlustur_baslikSayacBelirle(e) {
+		const {keyHV, toplu, paramName_fisSayac} = e, {table, sayacSaha} = this.class;
+		toplu.add(new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: `${paramName_fisSayac} = MAX(${sayacSaha})`}))
+	}
+	topluYazmaKomutlariniOlustur_sqlParamsDuzenle(e) {
+		const {params, paramName_fisSayac} = e; params.push({ name: paramName_fisSayac, type: 'int', direction: 'inputOutput', value: 0 })
 	}
 	async topluDegistirmeKomutlariniOlustur(e) {
 		const {toplu, trnId} = e, {table, sayacSaha} = this.class; let harSayacSaha, fisSayacSaha, seqSaha;
@@ -297,7 +302,7 @@ class MQDetayli extends MQSayacli {
 					const {seq} = yHV; if (seq != eskiSeq) sayac2YeniSeq[harSayac] = seq
 					/* sira degisimi varsa oncelikli yapilir */
 					const degisenHV = degisimHV(yHV, rec, [harSayacSaha, seqSaha, '_harsayac'].filter(x => !!x));
-					if (!$.isEmptyObject(degisenHV)) degisenSayac2HV[harSayac] = degisenHV
+					if (!$.isEmptyObject(degisenHV)) { degisenSayac2HV[harSayac] = degisenHV }
 					delete harSayac2HV[harSayac]
 					/* bulunan kayıt için sayac değişimi veya içerik değişimi için bilgiler toplandı */
 				}
@@ -355,8 +360,7 @@ class MQDetayli extends MQSayacli {
 	topluSilmeKomutlariniOlusturSonrasi(e) { }
 	topluYazmaVeyaDegistirKomutlariniOlusturSonrasi(e) { }
 	eBilgiIcinYukle(e) { } eBilgiIcinDetaylariYukle(e) { }
-	detayHostVarsDuzenle(e) { }
-	detaySetValues(e) { }
+	detayHostVarsDuzenle(e) { } detaySetValues(e) { }
 	addDetay(...liste) {
 		const {detaylar} = this;
 		if (liste) { for (const item of liste) { if (item == null) continue; if ($.isArray(item)) detaylar.push(...item); else detaylar.push(item) } }
@@ -364,4 +368,71 @@ class MQDetayli extends MQSayacli {
 	}
 	addDetaylar(liste) { return this.addDetay(liste) }
 	detaylarReset() { this.detaylar = []; return this }
+}
+class MQDetayliMaster extends MQDetayli {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get detayliMastermi() { return true } static get sabitBilgiRaporcuSinif() { return MQCogul.sabitBilgiRaporcuSinif }
+	static rootFormBuilderDuzenle(e) {
+		super.rootFormBuilderDuzenle(e); const tanimForm = e.tanimFormBuilder; e.mfSinif = e.mfSinif ?? this; tanimForm.add(MQKA.getFormBuilders_ka(e))
+		this.formBuilder_addTabPanelWithGenelTab(e); this.rootFormBuilderDuzenle_gridOncesi(e); this.rootFormBuilderDuzenle_grid(e); this.rootFormBuilderDuzenle_gridSonrasi()
+	}
+	static rootFormBuilderDuzenle_grid(e) {
+		const {tabPage_genel} = e; let gridParent = tabPage_genel.addFormWithParent('grid-parent');
+		let grid = e.fbd_grid = gridParent.addGridliGiris('grid').addStyle_fullWH().addCSS('dock-bottom')
+			.setKontrolcuSinif(this.gridKontrolcuSinif)
+			.setSource(e => this.rootFormBuilderDuzenle_grid_loadServerData(e))
+			.onAfterRun(e => this.rootFormBuilderDuzenle_grid_onAfterRun(e))
+	}
+	static async rootFormBuilderDuzenle_grid_loadServerData(e) {
+		const {builder} = e, {rootPart, inst} = builder, {gridPart} = rootPart, {kontrolcu} = gridPart, {gridDetaySinif} = inst.class;
+		const _e = { ...e, fis: inst, inst, recs: [] }; for (let i = 0; i < inst.detaylar?.length + 1; i++) { _e.recs.push(this.newRec({ sinif: gridDetaySinif })) }
+		let result = await kontrolcu.fis2Grid(e); if (result != true) { if (result.errorText) { hConfirm(`<div class="red">${_result.errorText}</div>`) } return false }
+		return _e.recs
+	}
+	static rootFormBuilderDuzenle_grid_onAfterRun(e) {
+		const {builder} = e, {rootPart} = builder, gridPart = builder.part, {grid, gridWidget} = gridPart;
+		$.extend(rootPart, { fbd_grid: builder, gridPart, grid, gridWidget })
+	}
+	uiKaydetOncesiIslemler(e) {
+		const {gridPart, inst} = e, {kontrolcu} = gridPart; let result = kontrolcu?.grid2Fis(e);
+		if (result === false) {
+			if (result.errorText) { hConfirm(`<div class="red">${result.errorText}</div>`, ' ') }
+			if (result.returnAction) {
+				const {grid, gridWidget} = gridPart;
+				const _e = { sender: this, grid, gridWidget, focusTo(e) { gridWidget.clearselection(); gridWidget.selectcell(e.rowIndex, e.belirtec || e.dataField) } };
+				getFuncValue.call(this, result.returnAction, _e)
+			}
+			return false
+		}
+		inst.detaylar = e.recs
+	}
+	static rootFormBuilderDuzenle_gridOncesi(e) { } static rootFormBuilderDuzenle_gridSonrasi(e) { }
+	static newRec(e) {
+		const _e = { ...e }; const gridDetaySinif = e.sinif = e.sinif || this.gridDetaySinif, {gridPart} = _e;
+		return gridPart?.newRec(_e) ?? (gridDetaySinif == null ? null : new gridDetaySinif(e))
+	}
+}
+class MQDetayliGUID extends MQDetayliMaster {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sayacSaha() { return 'id' }
+	get id() { return this.sayac } set id(value) { this.sayac = value }
+	yaz(e) { this.id = this.id || newGUID(); return super.yaz(e) }
+	topluYazmaKomutlariniOlustur_baslikSayacBelirle(e) { }
+	topluYazmaKomutlariniOlustur_sqlParamsDuzenle(e) { const {params, paramName_fisSayac} = e; params.push({ name: paramName_fisSayac, type: 'uniqueidentifier', direction: 'input', value: this.id }) }
+	yazSonrasi_sayacGeriYukle(e) { }
+}
+class MQDetayliVeAdi extends MQDetayliMaster {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get adiSaha() { return 'aciklama' } static get adiEtiket() { return 'Açıklama' }
+	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { aciklama: new PInstStr('aciklama') }) }
+	static orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e); const {liste} = e, {adiSaha, adiEtiket} = this;
+		liste.push(new GridKolon({ belirtec: adiSaha, text: adiEtiket, genislikCh: 40 }))
+	}
+}
+class MQDetayliGUIDVeAdi extends MQDetayliGUID {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get adiSaha() { return 'aciklama' } static get adiEtiket() { return 'Açıklama' }
+	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { aciklama: new PInstStr('aciklama') }) }
+	static orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e); const {liste} = e, {adiSaha, adiEtiket} = this;
+		liste.push(new GridKolon({ belirtec: adiSaha, text: adiEtiket, genislikCh: 40 }))
+	}
 }

@@ -75,8 +75,7 @@ class MQCariAlt extends MQAlt {
 class MQCari_Genel extends MQCariAlt {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); const {pTanim} = e;
-		$.extend(pTanim, {
+		super.pTanimDuzenle(e); $.extend(e.pTanim, {
 			unvan1: new PInstStr('unvan1'), unvan2: new PInstStr('unvan2'),
 			adres1: new PInstStr('adres1'), adres2: new PInstStr('adres2'), adresKod: new PInstNum('adreskod'),
 			yore: new PInstStr('yore'), posta: new PInstNum('posta'), ulkeKod: new PInstStr('ulkekod'), ilKod: new PInstStr('ilkod'),
@@ -84,11 +83,7 @@ class MQCari_Genel extends MQCariAlt {
 			calismaDurumu: new PInstTrue('calismadurumu'), potansiyel: new PInstBool('potansiyel')
 		})
 	}
-	static ekCSSDuzenle(e) {
-		const {rec, result} = e;
-		if (!asBool(rec.calismadurumu))
-			result.push('bg-lightgray', 'iptal')
-	}
+	static ekCSSDuzenle(e) { const {rec, result} = e; if (!asBool(rec.calismadurumu)) { result.push('bg-lightgray', 'iptal') } }
 	static rootFormBuilderDuzenle(e) {
 		e = e || {}; const {mfSinif} = this; mfSinif.formBuilder_addTabPanelWithGenelTab(e); const tabPage_genel = e.tabPage_genel;
 		tabPage_genel.addStyle(e => `$elementCSS .baslik { color: cadetblue }`);

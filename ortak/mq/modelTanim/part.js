@@ -250,7 +250,7 @@ class ModelTanimPart extends Part {
 		for (const _e of this.getAltFormParts()) await _e.part.kaydetOncesiIslemler(e)
 		for (const builder of this.getBuilders(e)) {
 			e.builder = builder;
-			if (builder.kaydetOncesiIslemler) await builder.kaydetOncesiIslemler(e)
+			if (builder.kaydetOncesiIslemler) { await builder.kaydetOncesiIslemler(e) }
 		}
 		const _e = $.extend({}, e, { sender: this, builder, gridPart, islem, inst, eskiInst });
 		let result = await this.inst.uiKaydetOncesiIslemler(_e); if (typeof result == 'boolean') { return result }

@@ -1,6 +1,5 @@
 class MQOrtakFis extends MQDetayli {
     static { window[this.name] = this; this._key2Class[this.name] = this }	
-	static get gridKontrolcuSinif() { return null } get gridKontrolcuSinif() { return this.class.gridKontrolcuSinif }
 	static get tableAlias() { return 'fis' } static get ayrimTable() { return 'tfisayrim' } static get noSaha() { return 'no' }
 	static get dipSinif() { return DipIslemci } static get dipKullanilirmi() { return false } static get dipNakliyeKullanilirmi() { return false }
 	static get dipIskOranSayi() { return 0 } static get dipIskBedelSayi() { return 0 }
