@@ -41,7 +41,8 @@ class MQESEUser extends MQKAOrtak {
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e;
 		let form = tabPage_genel.addFormWithParent().yanYana(2); form.addPassInput('sifre', 'Şifre').setMaxLength(36);
-		form.addModelKullan('kurumId', 'Kurum').comboBox().kodsuz().setMFSinif(MQKurum); form.addModelKullan('yetkiId', 'Yetki').comboBox().kodsuz().setMFSinif(MQYetki)
+		form.addModelKullan('kurumId', 'Kurum').comboBox().kodsuz().autoBind().setMFSinif(MQKurum);
+		form.addModelKullan('yetkiId', 'Yetki').comboBox().kodsuz().autoBind().setMFSinif(MQYetki)
 	}
 }
 class MQYerlesim extends MQKAOrtak {
@@ -86,8 +87,8 @@ class MQKurum extends MQGuidVeAdiOrtak {
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e;
-		let form = tabPage_genel.addFormWithParent().yanYana(2);
-		form.addModelKullan('yerlesimKod', 'Yerleşim').comboBox().setMFSinif(MQYerlesim).addStyle_wh(300); form.addModelKullan('erpKod', 'ERP Kod').comboBox().setMFSinif(MQCari).addStyle_wh(400)
+		let form = tabPage_genel.addFormWithParent().yanYana(2); form.addModelKullan('yerlesimKod', 'Yerleşim').comboBox().kodsuz().autoBind().setMFSinif(MQYerlesim).addStyle_wh(300);
+		form.addModelKullan('erpKod', 'ERP Kod').comboBox().setMFSinif(MQCari).addStyle_wh(400)
 		form.addTextInput('anlasmaNox', 'Anlaşma No').addStyle_wh(350); form.addDateInput('anlasmaTarihi', 'Anlaşma Tarihi').addStyle_wh(180)
 	}
 }
@@ -133,7 +134,8 @@ class MQHasta extends MQGuidVeAdiOrtak {
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPanel, tabPage_genel} = e, {yakinSayi} = this;
 		let form = tabPage_genel.addFormWithParent().yanYana(2); form.addTextInput('tcKimlikNo', 'T.C Kimlik No').setMaxLength(11).addStyle_wh(200);
-		form.addModelKullan('okulTipId', 'Okul Tipi').comboBox().kodsuz().setMFSinif(MQOkulTipi).addStyle_wh(200); form.addModelKullan('yerlesimKod', 'Yerleşim').comboBox().setMFSinif(MQYerlesim).addStyle_wh(300);
+		form.addModelKullan('okulTipId', 'Okul Tipi').comboBox().kodsuz().autoBind().setMFSinif(MQOkulTipi).addStyle_wh(200);
+		form.addModelKullan('yerlesimKod', 'Yerleşim').comboBox().kodsuz().autoBind().setMFSinif(MQYerlesim).addStyle_wh(300);
 		let tabPage_yakinlar = tabPanel.addTab('yakinlar', 'Yakınlar').altAlta();
 		for (let i = 1; i <= yakinSayi; i++) {
 			let form2 = tabPage_yakinlar.addFormWithParent().yanYana(3); form2.addTextInput(`yakin${i}Adi`, `Yakın ${i} Adı`);
@@ -163,6 +165,6 @@ class MQDoktor extends MQGuidVeAdiOrtak {
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e;
 		let form = tabPage_genel.addFormWithParent().yanYana(2); form.addTextInput('tel', 'Telefon 1').setMaxLength(11).addStyle_wh(200); form.addTextInput('tel2', 'Telefon 2').setMaxLength(11).addStyle_wh(200);
-		form.addModelKullan('kurumId', 'Kurum').comboBox().kodsuz().setMFSinif(MQKurum).addStyle_wh(500)
+		form.addModelKullan('kurumId', 'Kurum').comboBox().kodsuz().autoBind().setMFSinif(MQKurum).addStyle_wh(500)
 	}
 }
