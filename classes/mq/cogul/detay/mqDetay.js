@@ -22,13 +22,16 @@ class MQDetay extends MQSayacli {
 	static loadServerData_queryDuzenle(e) {
 		e = $.extend({}, e || {}); for (const key of ['ozelQueryDuzenleBlock', 'ozelQueryDuzenle', 'ozelQueryDuzenleBlock', 'ozelQueryDuzenle']) delete e[key]
 		e.ozelQueryDuzenle = e => {}, super.loadServerData_queryDuzenle(e);
-		const {aliasVeNokta, fisSayacSaha, seqSaha} = this, {sent, stm} = e, parentRec = e.parentRec ?? e.rec ?? {};
+		const {aliasVeNokta, fisSayacSaha, sayacSaha, seqSaha} = this, {sent, stm} = e, parentRec = e.parentRec ?? e.rec ?? {};
 		const fisSayac = e.sayac || e.fisSayac || e.fissayac || e.kaySayac || e.kaysayac || parentRec[fisSayacSaha] || parentRec.fissayac || parentRec.kaysayac;
 		if (fisSayacSaha) {
 			if (fisSayac) { sent.where.degerAta(fisSayac, `${aliasVeNokta}${fisSayacSaha}`) }
 			sent.sahalar.add(`${aliasVeNokta}${fisSayacSaha}`); stm.orderBy.add(`${aliasVeNokta}${fisSayacSaha}`)
 		}
-		if (seqSaha) { sent.sahalar.add(`${aliasVeNokta}${seqSaha}`); stm.orderBy.add(`${aliasVeNokta}${seqSaha}`) }
+		if (seqSaha) {
+			sent.sahalar.add(`${aliasVeNokta}${seqSaha}`); stm.orderBy.add(`${aliasVeNokta}${seqSaha}`);
+			sent.sahalar.liste = sent.sahalar.liste.filter(saha => saha.alias != sayacSaha)
+		}
 	}
 	static tekilOku_queryDuzenle(e) { this.loadServerData_queryDuzenle(e) }
 	kopyaIcinDuzenle(e) { super.kopyaIcinDuzenle(e); if (this.okunanHarSayac) { this.okunanHarSayac = null } }
@@ -51,4 +54,5 @@ class MQDetay extends MQSayacli {
 }
 class MQDetayGUID extends MQDetay {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sayacSaha() { return 'id' } static get fisSayacSaha() { return 'fisid' }
+	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); this.id = this.id || newGUID(); const {sayacSaha} = this.class, {hv} = e; hv[sayacSaha] = this.id }
 }

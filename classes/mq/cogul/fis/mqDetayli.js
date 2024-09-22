@@ -309,7 +309,7 @@ class MQDetayli extends MQSayacli {
 				else {
 					if (harSayac) { /* bu kayıt artık yoktur ve silinmelidir */ silSayaclar.push(harSayac) }
 					else if (fisSayacSaha) {
-						const hv = {}; hv[fisSayacSaha] = fisSayac; if (seqSaha) { hv[seqSaha] = seq }
+						const hv = {}; hv[fisSayacSaha] = fisSayac; if (seqSaha) { hv[seqSaha] = eskiSeq }
 						silSayaclar.push(hv)
 					}
 				}
@@ -423,9 +423,12 @@ class MQDetayliMaster extends MQDetayli {
 class MQDetayliGUID extends MQDetayliMaster {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sayacSaha() { return 'id' }
 	get id() { return this.sayac } set id(value) { this.sayac = value }
-	yaz(e) { this.id = this.id || newGUID(); return super.yaz(e) }
+	/*yaz(e) { this.id = this.id || newGUID(); return super.yaz(e) }*/
+	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); this.id = this.id || newGUID(); const {sayacSaha} = this.class, {hv} = e; hv[sayacSaha] = this.id }
 	topluYazmaKomutlariniOlustur_baslikSayacBelirle(e) { }
-	topluYazmaKomutlariniOlustur_sqlParamsDuzenle(e) { const {params, paramName_fisSayac} = e; params.push({ name: paramName_fisSayac, type: 'uniqueidentifier', direction: 'input', value: this.id }) }
+	topluYazmaKomutlariniOlustur_sqlParamsDuzenle(e) {
+		const {params, paramName_fisSayac} = e; params.push({ name: paramName_fisSayac, type: 'uniqueidentifier', direction: 'input', value: this.id })
+	}
 	yazSonrasi_sayacGeriYukle(e) { }
 }
 class MQDetayliVeAdi extends MQDetayliMaster {

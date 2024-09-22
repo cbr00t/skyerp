@@ -27,6 +27,7 @@ class GridKolonTip extends CObject {
 		const {colEventNames, globalEventNames} = this.class;
 		for (const key of colEventNames) { const func = getFunc(e[key]); if (func) { this[key] = func } }
 		for (const key of globalEventNames) { const func = getFunc(e[key]); if (func) { this[key] = func } }
+		this.kodGosterilmesinmi = e.kodGosterilmesin ?? e.kodGosterilmesinmi ?? e.kodsuzmu ?? e.kodsuz;
 		return true
 	}
 	static getHTML_groupsTotalRow(value) {
@@ -64,7 +65,8 @@ class GridKolonTip extends CObject {
 			return true
 		})
 	}
-	setMaxLength(value) { this.maxLength = value; return this }
+	setMaxLength(value) { this.maxLength = value; return this } kodsuz() { return this.kodGosterilmesin() }
+	kodGosterilmesin() { this.kodGosterilmesinmi = true; return this } kodGosterilsin() { this.kodGosterilmesinmi = false; return this }
 }
 class GridKolonTip_String extends GridKolonTip {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -332,7 +334,6 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 		const {defaultValue} = e; if (defaultValue != null) { tekSecim.defaultChar = defaultValue }
 		let {value} = e; if (value != null) tekSecim.char = value;
 		this.tekSecim = tekSecim; this.source = e.source || (() => this.kaListe); this.comboBoxmi = e.comboBoxmi ?? e.comboBox;
-		this.kodGosterilmesinmi = e.kodGosterilmesin ?? e.kodGosterilmesinmi ?? e.kodsuzmu ?? e.kodsuz;
 		this.kodAttr = e.kodAttr || 'kod'; this.adiAttr = e.adiAttr || 'aciklama'; this.recKodAttr = e.recKodAttr; this.recAdiAttr = e.recAdiAttr;
 		this._cellValueChanging = e.cellValueChanging; this._cellValueChanged = e.cellValueChanged;
 		return true
@@ -520,10 +521,6 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 		}
 		return this
 	}
-
-	kodsuz() { return this.kodGosterilmesin() }
-	kodGosterilmesin() { this.kodGosterilmesinmi = true; return this }
-	kodGosterilsin() { this.kodGosterilmesinmi = false; return this }
 	dropDown() { this.comboBoxmi = false; return this }
 	comboBox() { this.comboBoxmi = true; return this }
 }

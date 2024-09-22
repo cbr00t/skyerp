@@ -44,9 +44,10 @@ class GridKolonGrup_KA extends GridKolonGrup {
 			}*/
 			if (!kaKolonu.createEditor) {
 				kaKolonu.createEditor = (colDef, rowIndex, value, editor, cellText, cellWidth, cellHeight) => {
-					const {gridWidget} = colDef.gridPart, {kaKolonu, kodAttr, adiAttr, mfSinif, ozelStmDuzenleyiciTriggerFlag, stmDuzenleyiciler} = this, prevValue = value;
+					const {gridWidget} = colDef.gridPart, {kaKolonu, kodAttr, adiAttr, mfSinif, ozelStmDuzenleyiciTriggerFlag, stmDuzenleyiciler} = this;
+					const kodsuzmu = colDef?.tip?.kodGosterilmesinmi, prevValue = value;
 					const part = new ModelKullanPart({
-						parentPart: this, layout: editor, mfSinif: e => this.mfSinif, dropDown: false, value: prevValue,
+						parentPart: this, layout: editor, mfSinif: e => this.mfSinif, dropDown: false, value: prevValue, kodGosterilsinmi: !kodsuzmu,
 						ozelQueryDuzenle: (
 							!ozelStmDuzenleyiciTriggerFlag || $.isEmptyObject(stmDuzenleyiciler) ? null : (e => { for (const handler of stmDuzenleyiciler) getFuncValue.call(this, handler, e) })
 						),
@@ -84,7 +85,7 @@ class GridKolonGrup_KA extends GridKolonGrup {
 			}
 			if (!kaKolonu.initEditor) {
 				kaKolonu.initEditor = (colDef, rowIndex, value, editor, cellText) => {
-					const part = editor.data('part'), {jqxSelector} = part;
+					const part = editor.data('part'), {jqxSelector} = part; value = part.selectedItem?.[part.mfSinif?.adiSaha] ?? value;
 					if (part.input != editor) { part.input = editor; part.widget = editor[jqxSelector]('getInstance') }
 					editor[jqxSelector]({ width: editor.width() }); part.val(value || '');
 					setTimeout(() => { editor[jqxSelector]('focus'); editor.select() }, 100)
@@ -113,7 +114,7 @@ class GridKolonGrup_KA extends GridKolonGrup {
 										setTimeout(() => {
 											const valDiv = grid.find(`.validation-popup[data-row=${rowIndex}][data-belirtec=${dataField}]`).parent();
 											if (valDiv.length) { valDiv.prev('.jqx-grid-validation-arrow-up').remove(); valDiv.remove(); }
-											if (!rec && newValue) gridWidget.showvalidationpopup(rowIndex, kodAttr, `<div class="validation-popup" data-row="${rowIndex}" data-belirtec="${dataField}"><u class="bold">${newValue}</u> değeri hatalıdır</div>`)
+											if (!rec && newValue) { gridWidget.showvalidationpopup(rowIndex, kodAttr, `<div class="validation-popup" data-row="${rowIndex}" data-belirtec="${dataField}"><u class="bold">${newValue}</u> değeri hatalıdır</div>`) }
 										}, 10);
 										const _kodDegerDurum = gridRec._kodDegerDurum = gridRec._kodDegerDurum || {}; _kodDegerDurum[dataField] = !!rec;
 										if (rec) { gridRec[adiAttr] = rec[adiAttr] || rec[adiSaha] || ''; recPromise.resolve(rec) }
@@ -150,11 +151,10 @@ class GridKolonGrup_KA extends GridKolonGrup {
 				}
 			}*/
 			kaKolonu.cellsRenderer = (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-				const {adiAttr} = this, kod = value;
-				if (kod) {
-					let result = `<b>${kod}</b>`; const adi = rec[adiAttr];
-					if (adi) { result += ` - ${adi}`; html = changeTagContent(html, result) }
-				}
+				const {adiAttr} = this, kod = value, adi = rec[adiAttr], kodsuzmu = colDef?.tip.kodGosterilmesinmi; let result = '';
+				if (kod && !(adi && kodsuzmu)) { result += `<b>${kod}</b>` }
+				if (adi) { result += `${result ? ` - ` : ''}${adi}` }
+				if (result) { html = changeTagContent(html, result) }
 				return html
 			}
 			if (!kaKolonu.listedenSec) {

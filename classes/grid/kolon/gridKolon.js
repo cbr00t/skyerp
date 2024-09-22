@@ -162,8 +162,8 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	sifirGosterme() { const {tip} = this; if (tip?.sifirGosterme) tip.sifirGosterme(); return this }
 	sifirGoster() { const {tip} = this; if (tip?.sifirGoster) tip.sifirGoster(); return this }
 	kodsuz() { return this.kodGosterilmesin() }
-	kodGosterilmesin() { const {tip} = this; if (tip?.kodGosterilmesin) tip.kodGosterilmesin(); return this }
-	kodGosterilsin() { const {tip} = this; if (tip?.kodGosterilsin) tip.kodGosterilsin(); return this }
+	kodGosterilmesin() { const {tip} = this; if (tip?.kodGosterilmesin) { tip.kodGosterilmesin() } return this }
+	kodGosterilsin() { const {tip} = this; if (tip?.kodGosterilsin) { tip.kodGosterilsin() } return this }
 	dropDown() { const {tip} = this; if (tip?.dropDown) tip.dropDown(); return this }
 	comboBox() { const {tip} = this; if (tip?.comboBox) tip.comboBox(); return this }
 	onKeyDown(handler) { const {tip} = this; if (tip?.onKeyDown) tip.onKeyDown(handler); return this }

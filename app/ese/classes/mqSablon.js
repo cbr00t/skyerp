@@ -32,6 +32,9 @@ class MQSablonCPT extends MQSablon {
 class MQSablonCPTDetay extends MQSablonDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'esecptsablondetay' }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { resimLink: new PInstStr('resimlink') }) }
+	static orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e); e.liste.push(new GridKolon({ belirtec: 'resimlink', text: 'Resim', genislikCh: 50 }))
+	}
 }
 class MQSablonCPTGridci extends GridKontrolcu {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -46,17 +49,29 @@ class MQSablonESE extends MQSablon {
 	static get detaySinif() { return MQSablonESEDetay } static get gridKontrolcuSinif() { return MQSablonESEGridci }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { secenekSayisi: new PInstNum('seceneksayisi') }) }
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e);
-		e.liste.push(new GridKolon({ belirtec: 'seceneksayisi', text: 'Seçenek Sayısı', genislikCh: 13, filterType: 'checkedlist' }).tipNumerik())
+		super.orjBaslikListesiDuzenle(e); e.liste.push(new GridKolon({ belirtec: 'seceneksayisi', text: 'Seçenek Sayısı', genislikCh: 13, filterType: 'checkedlist' }).tipNumerik())
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); const {tabPage_genel} = e; let form = tabPage_genel.addFormWithParent().yanYana(2);
-		form.addNumberInput('secenekSayisi', 'Seçenek Sayısı').setMin(0).setMax(MQSablonESEYanit.maxSecenekSayisi).addStyle_wh(130)
+		super.rootFormBuilderDuzenle(e); const {tabPage_genel} = e; let form = tabPage_genel.addFormWithParent().yanYana(2)
+		/*form.addNumberInput('secenekSayisi', 'Seçenek Sayısı').setMin(0).setMax(MQSablonESEYanit.maxSecenekSayisi).addStyle_wh(130)*/
 	}
 }
 class MQSablonESEDetay extends MQSablonDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'eseesesablondetay' }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { soru: new PInstStr('soru'), yanitId: new PInstGuid('yanitid') }) }
+	static orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e); e.liste.push(...[
+			new GridKolon({ belirtec: 'soru', text: 'Soru', genislikCh: 50 }),
+			(config.dev ? new GridKolon({ belirtec: 'yanitid', text: 'Yanit ID', genislikCh: 50 }) : null),
+			new GridKolon({ belirtec: 'yanitadi', text: 'Yanit Adı', genislikCh: 50, filterType: 'checkedlist', sql: 'ynt.aciklama' })
+		].filter(x => !!x))
+	}
+	static loadServerData_queryDuzenle(e) {
+		super.loadServerData_queryDuzenle(e); const {sent} = e, alias = this.tableAlias;
+		sent.leftJoin({ alias, from: 'eseeseyanit ynt', on: `${alias}.yanitid = ynt.id` })
+		sent.sahalar.add('ynt.aciklama yanitadi')
+	}
+	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { yanitAdi: rec.yanitadi }) }
 }
 class MQSablonESEGridci extends GridKontrolcu {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
