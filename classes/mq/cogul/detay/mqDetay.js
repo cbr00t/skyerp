@@ -13,6 +13,11 @@ class MQDetay extends MQSayacli {
 		$.extend(pTanim, { /* fisSayac: new PInst(this.fisSayacSaha), */ okunanHarSayac: new PInst(), eskiSeq: new PInst(), seq: new PInst(this.seqSaha) })
 	}
 	static getDetayTable(e) { return this.table } static orjBaslikListesi_argsDuzenle(e) { }
+	static standartGorunumListesiDuzenle(e) {
+		const {liste} = e, orjBaslikListesi = e.orjBaslikListesi ?? this.orjBaslikListesi;
+		const ignoreBelirtecSet = asSet([config.dev ? null : this.sayacSaha].filter(x => !!x));
+		liste.push(...orjBaslikListesi.map(colDef => colDef.belirtec).filter(belirtec => !ignoreBelirtecSet[belirtec]))
+	}
 	static orjBaslikListesiDuzenle(e) { super.orjBaslikListesiDuzenle(e); this.orjBaslikListesiDuzenle_ilk(e); this.orjBaslikListesiDuzenle_ara(e); this.orjBaslikListesiDuzenle_son(e) }
 	static orjBaslikListesiDuzenle_ilk(e) { this.forAltYapiClassesDo('orjBaslikListesiDuzenle_ilk', e) }
 	static orjBaslikListesiDuzenle_ara(e) { this.forAltYapiClassesDo('orjBaslikListesiDuzenle_ara', e) }

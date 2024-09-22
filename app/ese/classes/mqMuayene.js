@@ -30,9 +30,11 @@ class MQMuayene extends MQGuidOrtak {
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e;
 		let form = tabPage_genel.addFormWithParent().yanYana(2); form.addModelKullan('hastaId', 'Hasta').comboBox().kodsuz().autoBind().setMFSinif(MQHasta);
-			form.addDateInput('tarih', 'Tarih'); form.addTimeInput('saat', 'Saat'); form.addTextInput('seri', 'Seri'); form.addNumberInput('fisNo', 'No');
-		form = tabPage_genel.addFormWithParent().yanYana(2); form.addCheckBox('ese', 'ESE?'); form.addNumberInput('esePuani', 'ESE Puanı');
-		form = tabPage_genel.addFormWithParent().yanYana(2); form.addCheckBox('cpt', 'CPT?'); form.addNumberInput('cptPuani', 'CPT Puanı');
+			form.addDateInput('tarih', 'Tarih'); form.addTimeInput('saat', 'Saat');
+			form.addTextInput('seri', 'Seri').setMaxLength(3).addStyle_wh(70).addCSS('center'); form.addNumberInput('fisNo', 'No').setMaxLength(17).addStyle_wh(200);
+		form = tabPage_genel.addFormWithParent().yanYana().addStyle(e => `$elementCSS [data-builder-id = 'cpt'] { margin-left: 100px }`);
+			form.addCheckBox('ese', 'ESE?'); form.addNumberInput('esePuani', 'ESE Puanı').readOnly().etiketGosterim_placeholder().addStyle_wh(90);
+			form.addCheckBox('cpt', 'CPT?'); form.addNumberInput('cptPuani', 'CPT Puanı').readOnly().etiketGosterim_placeholder().addStyle_wh(90);
 		form = tabPage_genel.addFormWithParent().altAlta(); form.addTextArea('tani', 'Tanı').setMaxLength(3000).setRows(8)
 	}
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { resimsayisi: this.resimSayisi }) }

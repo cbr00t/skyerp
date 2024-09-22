@@ -178,6 +178,11 @@ class MQGuidVeAdi extends MQKA {
 	static get kodKullanilirmi() { return false } static get bosKodAlinirmi() { return true } static get kodSaha() { return 'id' }
 	get id() { return this.kod } set id(value) { this.kod = value } get kodUyarlanmis() { return super.kodUyarlanmis || null }
 	constructor(e) { e = e || {}; const {id} = e; if (id !== undefined) { e.kod = id; delete e.id } super(e) }
+	static standartGorunumListesiDuzenle(e) {
+		const {liste} = e, orjBaslikListesi = e.orjBaslikListesi ?? this.orjBaslikListesi;
+		const ignoreBelirtecSet = asSet([config.dev ? null : this.kodSaha].filter(x => !!x));
+		liste.push(...orjBaslikListesi.map(colDef => colDef.belirtec).filter(belirtec => !ignoreBelirtecSet[belirtec]))
+	}
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e) /*; const {sent} = e, {aliasVeNokta, kodSaha} = this; if (kodSaha) { sent.sahalar.add(`${aliasVeNokta}${kodSaha}`) } */ }
 	keyHostVarsDuzenle(e) { super.keyHostVarsDuzenle(e); const {hv} = e; hv[this.class.kodSaha] = this.kodUyarlanmis || newGUID() }
 	yeniTanimOncesiIslemler(e) { this.kod = this.kod || newGUID(); return super.yeniTanimOncesiIslemler(e) }

@@ -66,7 +66,7 @@ class MQYerlesim extends MQKAOrtak {
 	}
 }
 class MQKurum extends MQGuidVeAdiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kurum' }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kurum' } static get adiSaha() { return 'unvan' }
 	static get kodListeTipi() { return 'KURUM' } static get table() { return 'esekurum' } static get tableAlias() { return 'krm' }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); $.extend(e.pTanim, {
@@ -154,12 +154,12 @@ class MQDoktor extends MQGuidVeAdiOrtak {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(
 			new GridKolon({ belirtec: 'tel', text: 'Telefon 1', genislikCh: 10 }), new GridKolon({ belirtec: 'tel2', text: 'Telefon 2', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'kurumid', text: 'Kurum ID', genislikCh: 36 }),
-			new GridKolon({ belirtec: 'kurumadi', text: 'Kurum Adı', genislikCh: 25, filterType: 'checkedlist', sql: 'krm.aciklama' })
+			new GridKolon({ belirtec: 'kurumadi', text: 'Kurum Adı', genislikCh: 25, filterType: 'checkedlist', sql: 'krm.unvan' })
 		)
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {sent} = e, alias = this.tableAlias;
-		sent.fromIliski('esekurum krm', `${alias}.kurumid = krm.id`).fromIliski('eseyerlesim yer', `${alias}.yerlesimkod = yer.kod`);
+		sent.fromIliski('esekurum krm', `${alias}.kurumid = krm.id`);
 		sent.sahalar.add(`${alias}.kurumid`)
 	}
 	static rootFormBuilderDuzenle(e) {
