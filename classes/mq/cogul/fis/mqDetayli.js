@@ -370,15 +370,21 @@ class MQDetayli extends MQSayacli {
 	detaylarReset() { this.detaylar = []; return this }
 }
 class MQDetayliMaster extends MQDetayli {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get hasTabs() { return false }
 	static get detayliMastermi() { return true } static get sabitBilgiRaporcuSinif() { return MQCogul.sabitBilgiRaporcuSinif }
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); const tanimForm = e.tanimFormBuilder; e.mfSinif = e.mfSinif ?? this; tanimForm.add(MQKA.getFormBuilders_ka(e))
-		this.formBuilder_addTabPanelWithGenelTab(e); this.rootFormBuilderDuzenle_gridOncesi(e); this.rootFormBuilderDuzenle_grid(e); this.rootFormBuilderDuzenle_gridSonrasi()
+		super.rootFormBuilderDuzenle(e); const tanimForm = e.tanimFormBuilder; e.mfSinif = e.mfSinif ?? this;
+		tanimForm.add(MQKA.getFormBuilders_ka(e)); this.formBuilder_addTabPanelWithGenelTab(e);
+		if (!this.hasTabs) { const {tabPanel} = e; if (tabPanel) { tabPanel.addStyle(e => `$elementCSS > .tabs { display: none !important }`) } }
+	}
+	static rootFormBuilderDuzenleSonrasi(e) {
+		super.rootFormBuilderDuzenleSonrasi(e); const parentForm = e.tabPage_genel ?? e.tanimFormBuilder;
+		this.rootFormBuilderDuzenle_gridOncesi(e); this.rootFormBuilderDuzenle_grid(e); this.rootFormBuilderDuzenle_gridSonrasi(e)
 	}
 	static rootFormBuilderDuzenle_grid(e) {
 		const {tabPage_genel} = e, parentPart = e.parentPart ?? e.sender;
-		let gridParent = tabPage_genel.addFormWithParent('grid-parent').addStyle_fullWH().addCSS('dock-bottom');
+		let gridParent = tabPage_genel.addFormWithParent('grid-parent')
+			.addStyle(e => `$elementCSS > div { width: var(--full) !important; max-height: calc(var(--full) - 100px) !important`).addCSS('dock-bottom');
 		const {gridKontrolcuSinif} = this, kontrolcu = gridKontrolcuSinif ? new gridKontrolcuSinif({ parentPart }) : null;
 		let grid = e.fbd_grid = gridParent.addGridliGiris('grid').addStyle_fullWH()
 			.setKontrolcu(kontrolcu)
@@ -397,7 +403,7 @@ class MQDetayliMaster extends MQDetayli {
 	}
 	uiKaydetOncesiIslemler(e) {
 		const {gridPart, inst} = e, {kontrolcu} = gridPart; let result = kontrolcu?.grid2Fis(e);
-		if (result === false) {
+		if (result !== true) {
 			if (result.errorText) { hConfirm(`<div class="red">${result.errorText}</div>`, ' ') }
 			if (result.returnAction) {
 				const {grid, gridWidget} = gridPart;

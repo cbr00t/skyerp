@@ -3,6 +3,7 @@ class MQSablon extends MQDetayliGUIDVeAdiOrtak {
 	static get kodListeTipi() { return 'SABLON' } static get tableAlias() { return 'sab' } static get detaySinif() { return MQSablonDetay }
 }
 class MQSablonDetay extends MQDetayGUID { static { window[this.name] = this; this._key2Class[this.name] = this } }
+
 class MQSablonCPT extends MQSablon {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'CPT Şablon' }
 	static get kodListeTipi() { return 'SABCPT' } static get table() { return 'esecptsablon' }

@@ -11,6 +11,13 @@ class GridKontrolcu extends CObject {
 		this.tabloKolonlariDuzenle_ilk(e); this.tabloKolonlariDuzenle_ara(e); this.tabloKolonlariDuzenle_son(e)
 	}
 	tabloKolonlariDuzenle_ilk(e) { } tabloKolonlariDuzenle_ara(e) { } tabloKolonlariDuzenle_son(e) { }
+	fis2Grid(e) {
+		const {parentPart} = this, {fis} = e; if (!fis) { return false }
+		let recs = e.recs = e.recs || []; const {detaylar} = fis, {gridDetaySinif} = fis.class;
+		while (recs.length < detaylar.length) { recs.push(gridDetaySinif ? new gridDetaySinif() : {}) }
+		for (let i = 0; i < detaylar.length; i++) { const det = detaylar[i]; recs[i] = det }
+		return true
+	}
 	grid2Fis(e) {
 		e = e || {}; const mesajsizFlag = e.mesajsiz || e.mesajsizFlag;
 		const {parentPart} = this, tabloKolonlari = parentPart.tabloKolonlari ?? parentPart.gridPart?.tabloKolonlari;
@@ -29,7 +36,7 @@ class GridKontrolcu extends CObject {
 			}
 			recs.push(det)
 		}
-		if ($.isEmptyObject(recs)) { return { isError: true, errorText: `Detay Bilgi girilmelidir` } }
+		if ($.isEmptyObject(recs)) { return { isError: true, errorText: 'Detay Bilgi girilmelidir' } }
 		e.recs = recs; return true
 	}
 	geriYuklemeIcinUygunmu(e) {
@@ -45,28 +52,10 @@ class GridKontrolcu extends CObject {
 		return true
 	}
 	grid2FisMesajsiz(e) { e = e || {}; e.mesajsiz = true; delete e.mesajsizFlag; return this.grid2Fis(e) }
-	fis2Grid(e) {
-		const {parentPart} = this, {fis} = e; if (!fis) { return false }
-		let recs = e.recs = e.recs || []; const {detaylar} = fis, {gridDetaySinif} = fis.class;
-		while (recs.length < detaylar.length) { recs.push(gridDetaySinif ? new gridDetaySinif() : {}) }
-		for (let i = 0; i < detaylar.length; i++) { const det = detaylar[i]; recs[i] = det }
-		return true
-	}
 	geriYuklemeIcinUygunmu(e) { return true }
-	gridVeriYuklendi(e) { }
-	gridContextMenuIstendi(e) { }
-	gridRendered(e) { }
-	gridRowExpanded(e) { }
-	gridRowCollapsed(e) { }
-	gridGroupExpanded(e) { }
-	gridGroupCollapsed(e) { }
-	gridSatirEklendi(e) { }
-	gridSatirGuncellendi(e) { }
-	gridSatirSilindi(e) { }
-	gridSatirSayisiDegisti(e) { }
-	gridSatirTiklandi(e) { }
-	gridSatirCiftTiklandi(e) { }
-	gridHucreTiklandi(e) { }
-	gridHucreCiftTiklandi(e) { }
+	gridVeriYuklendi(e) { } gridContextMenuIstendi(e) { } gridRendered(e) { }
+	gridRowExpanded(e) { } gridRowCollapsed(e) { } gridGroupExpanded(e) { } gridGroupCollapsed(e) { }
+	gridSatirEklendi(e) { } gridSatirGuncellendi(e) { } gridSatirSilindi(e) { } gridSatirSayisiDegisti(e) { }
+	gridSatirTiklandi(e) { } gridSatirCiftTiklandi(e) { } gridHucreTiklandi(e) { } gridHucreCiftTiklandi(e) { }
 	fisGiris_gridVeriYuklendi(e) { e = e || {}; const fis = e.fis = e.fis || this.fis; if (fis.fisGiris_gridVeriYuklendi) { fis.fisGiris_gridVeriYuklendi(e) } }
 }

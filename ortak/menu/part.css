@@ -1,21 +1,20 @@
 
 .menu.part {
-	--menu-items-parent-padding-x: 5px; --menu-items-parent-padding-y: 8px;
+	--menu-items-parent-padding-x: 10px; --menu-items-parent-padding-y: 5px;
 	width: calc(var(--full) - (var(--main-padding-x) * 2 + var(--menu-items-parent-padding-x) + var(--border) * 2));
-	height: var(--full); /* padding: 1px 2px; */ background: var(--s-white)
+	height: var(--full); /* padding: 1px 2px; */
+	background: linear-gradient(0deg, white 80%, whitesmoke 80%) !important
 }
-main #anaMenu {
-	position: relative; width: calc(var(--full) - 25px); height: var(--full); top: 3%
-	/* padding: 0 20px; left: 2%; top: 13% */
+main #anaMenu { position: relative; width: calc(var(--full) - 25px); height: var(--full); top: 3% /* padding: 0 20px; left: 2%; top: 13% */ }
+.menu.part > *, .menu.part > .hizliBul { width: var(--full) !important}
+.menu.part > .hizliBul .jqx-combobox-input {
+	font-weight: bold; font-size: 160% !important; color: #555; padding-left: 85px !important; padding-bottom: 0 !important;
+	background-color: #fefefe33; background-image: url(../../images/search.png); background-repeat: no-repeat;
+	background-size: 28px 28px; background-position: 30px center; opacity: .8; box-sizing: content-box; border-radius: 8px 
 }
-.menu.part > *,
-.menu.part > .hizliBul .jqx-combobox-input { box-sizing: content-box; border-radius: 8px }
-.menu.part > .hizliBul { width: var(--full) !important }
-.menu.part .hizliBul input {
-	font-weight: bold; font-size: 160% !important; color: #555; background: #eeeeee33;
-	padding-left: 85px !important; padding-bottom: 3px !important; background-image: url(../../images/search.png); background-repeat: no-repeat;
-	background-size: 28px 28px; background-position: 30px center
-}
+.menu.part > .hizliBul .jqx-combobox-input:hover,.menu.part > .hizliBul .jqx-combobox-input:focus,
+	.menu.part > .hizliBul .jqx-combobox-input:active { opacity: 1 !important }
+.menu.part > .hizliBul > button#listedenSec { font-weight: bold !important; font-size: 120% !important; margin: 15px 20px 0 0 !important }
 .menu.modelKullan.list-item { font-size: 130%; height: 30px !important }
 .menu.part .menu-parent { --border: 1px; width: var(--full); height: var(--full) /* border: var(--border) outset #ccc */ }
 .menu.part .menu-parent > .nav { width: calc(var(--full) - 20px) }
@@ -42,12 +41,12 @@ main #anaMenu {
 .menu.part .menu-parent .items-parent .items:after { }
 .menu.part .menu-parent .items-parent:not(:first-child) { /* margin-top: 10px */ }
 .menu.part .menu-parent .items-parent .items .item {
-	font-size: var(--full) !important; color: #555; /*background-color: #f9f9f9;*/ background-color: #edf1f8;
+	font-size: var(--full) !important; color: #555; /*background-color: #f9f9f9;*/ background-color: #edf3fe57;
 	width: 215px; height: 110px; margin: 2px 2px !important; background-size: 48px 48px !important;
 	background-repeat: no-repeat !important; vertical-align: top; position: relative; z-index: 1002 !important
 }
 .menu.part .menu-parent .items-parent .items .item * { }
-.menu.part .menu-parent .items-parent .items .item  {border-radius: 15px }
+.menu.part .menu-parent .items-parent .items .item  { border-radius: 20px }
 .menu.part .menu-parent .items-parent .items .item.menu-cascade {
 	background-color: #dfe3ea82; background-image: url(../../images/sag.png);
 	background-position: calc(100% - 13px) 50% !important; box-shadow: 3px 5px 13px cadetblue;

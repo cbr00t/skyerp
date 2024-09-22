@@ -18,13 +18,31 @@ class MQYetki extends MQGuidVeAdiOrtak {
 		form.addCheckBox('cpt', 'CPT').addStyle_wh(100); form.addCheckBox('ese', 'ESE').addStyle_wh(100); form.addCheckBox('cpt', 'Toplu Raporlar').addStyle_wh(150)
 	}
 }
-class MQUlke extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ülke' }
-	static get kodListeTipi() { return 'ULKE' } static get table() { return 'eseulke' } static get tableAlias() { return 'ulk' }
-}
-class MQIl extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İl' }
-	static get kodListeTipi() { return 'IL' } static get table() { return 'eseil' } static get tableAlias() { return 'il' }
+class MQESEUser extends MQKAOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'ESE Kullanıcı' }
+	static get kodListeTipi() { return 'ESEUSER' } static get table() { return 'esekullanici' } static get tableAlias() { return 'usr' }
+	static get ignoreBelirtecSet() { return {...super.ignoreBelirtecSet, ...asSet(['kurumid', 'yetkiid']) } }
+	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { sifre: new PInstStr('sifre'), kurumId: new PInstGuid('kurumid'), yetkiId: new PInstGuid('yetkiid') }) }
+	static orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(
+			new GridKolon({ belirtec: 'kurumid', text: 'Kurum ID', genislikCh: 36 }),
+			new GridKolon({ belirtec: 'kurumadi', text: 'Kurum Adı', genislikCh: 30, sql: 'krm.aciklama' }),
+			new GridKolon({ belirtec: 'yetkiid', text: 'Kurum ID', genislikCh: 36 }),
+			new GridKolon({ belirtec: 'yetkiadi', text: 'Yetki Adı', genislikCh: 15, sql: 'yet.aciklama' }),
+			new GridKolon({ belirtec: 'bcptuygular', text: 'CPT', genislikCh: 8, sql: 'yet.bcptuygular' }).tipBool(),
+			new GridKolon({ belirtec: 'beseuygular', text: 'ESE', genislikCh: 8, sql: 'yet.beseuygular' }).tipBool(),
+			new GridKolon({ belirtec: 'btopluraporlar', text: 'Rapor', genislikCh: 8, sql: 'yet.btopluraporlar' }).tipBool()
+		)
+	}
+	static loadServerData_queryDuzenle(e) {
+		super.loadServerData_queryDuzenle(e); const {sent} = e, alias = this.tableAlias;
+		sent.sahalar.add(`${alias}.kurumid`, `${alias}.yetkiid`, 'yet.bcptuygular', 'yet.beseuygular', 'yet.btopluraporlar')
+	}
+	static rootFormBuilderDuzenle(e) {
+		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e;
+		let form = tabPage_genel.addFormWithParent().yanYana(2); form.addPassInput('sifre', 'Şifre').setMaxLength(36);
+		form.addModelKullan('kurumId', 'Kurum').comboBox().kodsuz().setMFSinif(MQKurum); form.addModelKullan('yetkiId', 'Yetki').comboBox().kodsuz().setMFSinif(MQYetki)
+	}
 }
 class MQYerlesim extends MQKAOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Yerleşim' }
@@ -38,17 +56,17 @@ class MQYerlesim extends MQKAOrtak {
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {sent} = e, alias = this.tableAlias;
-		sent.fromIliski('eseil il', `${alias}.ilkod = il.kod`).fromIliski('eseulke ulk', `${alias}.ulkekod = ulk.kod`)
+		sent.fromIliski('caril il', `${alias}.ilkod = il.kod`).fromIliski('ulke ulk', `${alias}.ulkekod = ulk.kod`)
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e;
 		let form = tabPage_genel.addFormWithParent().yanYana(2);
-		form.addModelKullan('ilKod', 'İl').comboBox().setMFSinif(MQIl).addStyle_wh(300); form.addModelKullan('ulkeKod', 'Ülke').comboBox().setMFSinif(MQUlke).addStyle_wh(300)
+		form.addModelKullan('ilKod', 'İl').comboBox().setMFSinif(MQCariIl).addStyle_wh(300); form.addModelKullan('ulkeKod', 'Ülke').comboBox().setMFSinif(MQCariUlke).addStyle_wh(300)
 	}
 }
 class MQKurum extends MQGuidVeAdiOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kurum' }
-	static get kodListeTipi() { return 'KURUM' } static get table() { return 'esekurum' } static get tableAlias() { return 'kur' }
+	static get kodListeTipi() { return 'KURUM' } static get table() { return 'esekurum' } static get tableAlias() { return 'krm' }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); $.extend(e.pTanim, {
 			yerlesimKod: new PInstStr('yerlesimkod'), acikAdres: new PInstStr('acikadres'),
@@ -75,15 +93,16 @@ class MQKurum extends MQGuidVeAdiOrtak {
 }
 class MQOkulTipi extends MQGuidVeAdiOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Okul Tipi' }
-	static get kodListeTipi() { return 'OKULTIPI' } static get table() { return 'eseil' } static get tableAlias() { return 'okt' }
+	static get kodListeTipi() { return 'OKULTIPI' } static get table() { return 'eseokultipi' } static get tableAlias() { return 'okt' }
 }
 class MQHasta extends MQGuidVeAdiOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Hasta' } static get yakinSayi() { return 2 }
 	static get kodListeTipi() { return 'HASTA' } static get table() { return 'esehasta' } static get tableAlias() { return 'has' }
+	static get ignoreBelirtecSet() { return {...super.ignoreBelirtecSet, ...asSet(['okultipid']) } }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e, {yakinSayi} = this; $.extend(pTanim, {
 			tcKimlikNo: new PInstStr('tcno'), okulTipId: new PInstGuid('okultipid'), tel: new PInstStr('tel'),
-			yerlesimKod: new PInstStr('yerlesimkod'), acikAdres: new PInstStr('acikadres'), adres: new PInstStr('adres')
+			yerlesimKod: new PInstStr('yerlesimkod'), acikAdres: new PInstStr('acikadres')
 		});
 		for (let i = 1; i <= yakinSayi; i++) {
 			const KeyPrefix = `yakin${i}`; pTanim[`${KeyPrefix}Adi`] = new PInstStr(`${KeyPrefix}adi`);
@@ -93,9 +112,10 @@ class MQHasta extends MQGuidVeAdiOrtak {
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e, {yakinSayi} = this; liste.push(
 			new GridKolon({ belirtec: 'tcno', text: 'TC Kimlik No', genislikCh: 13 }),
-			new GridKolon({ belirtec: 'okultipadi', text: 'Okul Tipi', genislikCh: 10, sql: 'okt.aciklama' }), new GridKolon({ belirtec: 'tel', text: 'Telefon', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'okultipid', text: 'Okul Tip ID', genislikCh: 36 }),
+			new GridKolon({ belirtec: 'okultipadi', text: 'Okul Tip Adı', genislikCh: 10, sql: 'okt.aciklama' }), new GridKolon({ belirtec: 'tel', text: 'Telefon', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'yerlesimkod', text: 'Yerleşim', genislikCh: 10, filterType: 'checkedlist' }), new GridKolon({ belirtec: 'yerlesimadi', text: 'Yerleşim Adı', genislikCh: 30, sql: 'yer.aciklama' }),
-			new GridKolon({ belirtec: 'acikadres', text: 'Açık Adres' }), new GridKolon({ belirtec: 'adres', text: 'Adres' })
+			new GridKolon({ belirtec: 'acikadres', text: 'Açık Adres' })
 		);
 		for (let i = 1; i <= yakinSayi; i++) {
 			liste.push(
@@ -126,22 +146,23 @@ class MQHasta extends MQGuidVeAdiOrtak {
 class MQDoktor extends MQGuidVeAdiOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Doktor' }
 	static get kodListeTipi() { return 'DOKTOR' } static get table() { return 'esedoktor' } static get tableAlias() { return 'dok' }
+	static get ignoreBelirtecSet() { return {...super.ignoreBelirtecSet, ...asSet(['kurumid']) } }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { tel: new PInstStr('tel'), tel2: new PInstStr('tel2'), kurumId: new PInstStr('kurumid') }) }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(
 			new GridKolon({ belirtec: 'tel', text: 'Telefon 1', genislikCh: 10 }), new GridKolon({ belirtec: 'tel2', text: 'Telefon 2', genislikCh: 10 }),
-			new GridKolon({ belirtec: 'kurumadi', text: 'Kurum Adı', genislikCh: 25, filterType: 'checkedlist', sql: 'kur.aciklama' })
+			new GridKolon({ belirtec: 'kurumid', text: 'Kurum ID', genislikCh: 36 }),
+			new GridKolon({ belirtec: 'kurumadi', text: 'Kurum Adı', genislikCh: 25, filterType: 'checkedlist', sql: 'krm.aciklama' })
 		)
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {sent} = e, alias = this.tableAlias;
-		sent.fromIliski('esekurum kur', `${alias}.kurumid = kur.id`).fromIliski('eseyerlesim yer', `${alias}.yerlesimkod = yer.kod`);
+		sent.fromIliski('esekurum krm', `${alias}.kurumid = krm.id`).fromIliski('eseyerlesim yer', `${alias}.yerlesimkod = yer.kod`);
 		sent.sahalar.add(`${alias}.kurumid`)
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e;
 		let form = tabPage_genel.addFormWithParent().yanYana(2); form.addTextInput('tel', 'Telefon 1').setMaxLength(11).addStyle_wh(200); form.addTextInput('tel2', 'Telefon 2').setMaxLength(11).addStyle_wh(200);
-		form.addModelKullan('kurumId', 'Kurum').comboBox().kodsuz().setMFSinif(MQKurum).addStyle_wh(300)
+		form.addModelKullan('kurumId', 'Kurum').comboBox().kodsuz().setMFSinif(MQKurum).addStyle_wh(500)
 	}
 }
-

@@ -1,9 +1,9 @@
 class MQCariUlke extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cari Ülke' }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ülke' }
 	static get kodListeTipi() { return 'CULKE' } static get table() { return 'ulke' } static get tableAlias() { return 'ulk' }
 }
 class MQCariIl extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cari İl' }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İl' }
 	static get kodListeTipi() { return 'CIL' } static get table() { return 'caril' } static get tableAlias() { return 'il' }
 }
 class MQCariTip extends MQKAOrtak {

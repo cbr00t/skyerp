@@ -20,11 +20,11 @@ class MQBarkodRec extends MQMasterOrtak {
 		const ekOzellikler = this.ekOzellikler || {}; for (const key of this.class.ekOzellikSahalar) result.push(ekOzellikler[key] ?? '')
 		return result
 	}
-	get anahtarStr() { return this.anahtarDegeri.join(delimWS) } get asOEMHtml() { const parent = $('<div/>'); this.oemHTMLDuzenle({ parent: parent }); return parent }
+	get anahtarStr() { return this.anahtarDegeri.join(delimWS) } get asOEMHtml() { const parent = $('<div/>'); this.oemHTMLDuzenle({ parent }); return parent }
 	get basTarih() { const {basTS} = this; return basTS?.clearTime ? new Date(basTS).clearTime() : basTS } set basTarih(value) { this.basTS = value?.clearTime ? new Date(value).clearTime() : value }
-	get basSaat() { return timeToString(this.basTS) } set basSaat(value) { const {basTS} = this; if (value) setTime(basTS, asDate(value).getTime()) }
+	get basSaat() { return timeToString(this.basTS) } set basSaat(value) { const {basTS} = this; if (value) { setTime(basTS, asDate(value).getTime()) } }
 	get bitTarih() { const {bitTS} = this; return bitTS?.clearTime ? new Date(bitTS).clearTime() : bitTS } set bitTarih(value) { this.bitTS = value?.clearTime ? new Date(value).clearTime() : value }
-	get bitSaat() { return timeToString(this.bitTS) } set bitSaat(value) { const {bitTS} = this; if (value) setTime(bitTS, asDate(value).getTime()) }
+	get bitSaat() { return timeToString(this.bitTS) } set bitSaat(value) { const {bitTS} = this; if (value) { setTime(bitTS, asDate(value).getTime()) } }
 
 	constructor(e) {
 		e = e || {}; super(e); const sabit_hatKod = app.params.config.hatKod || null, resetFlag = e.reset;
