@@ -42,8 +42,8 @@ class LoginPart extends Part {
 		return super.hide(e)
 	}
 	async loginUserDegisti(e) {
-		const {layout} = this; const user = (layout.find('#user').val() || '').trimEnd(); let result;
-		try { result = await app.wsLogin({ infoOnly: true, session: new Session({ user: user }) }) } catch (ex) { console.error(ex); if (window.boot) window.boot.end() }
+		const {layout} = this; const loginTipi = layout.find('#loginTipi').val()?.trimEnd(), user = layout.find('#user').val()?.trimEnd(); let result;
+		try { result = await app.wsLogin({ infoOnly: true, session: new Session({ loginTipi, user }) }) } catch (ex) { console.error(ex); if (window.boot) window.boot.end() }
 		const userTextParent = layout.find('#userTextParent'), btnSSOLogin = layout.find('#ssoLogin');
 		const {session} = (result || {});
 		if (session?.sessionID) {

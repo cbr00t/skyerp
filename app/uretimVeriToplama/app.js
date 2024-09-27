@@ -1,6 +1,5 @@
 class UretimVeriToplamaApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get sqlDeferWaitMS() { return 200 }
-	get configParamSinif() { return MQYerelParamConfig_Uretim } get defaultLoginTipi() { return config.dev ? Session.DefaultLoginTipi : 'eseLogin' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } get sqlDeferWaitMS() { return 200 } get configParamSinif() { return MQYerelParamConfig_Uretim }
 	constructor(e) {
 		e = e || {}; super(e)
 		/* $.extend(this, { veriAktarici_waitSecs: coalesce(e.veriAktarici_waitSecs, 4), otoGonderFlag: coalesce(e.otoGonderFlag, false) }) */

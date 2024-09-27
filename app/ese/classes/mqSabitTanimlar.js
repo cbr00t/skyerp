@@ -26,7 +26,7 @@ class MQESEUser extends MQKAOrtak {
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(
 			new GridKolon({ belirtec: 'kurumid', text: 'Kurum ID', genislikCh: 36 }),
-			new GridKolon({ belirtec: 'kurumadi', text: 'Kurum Adı', genislikCh: 30, sql: 'krm.aciklama' }),
+			new GridKolon({ belirtec: 'kurumadi', text: 'Kurum Adı', genislikCh: 30, sql: 'krm.unvan' }),
 			new GridKolon({ belirtec: 'yetkiid', text: 'Kurum ID', genislikCh: 36 }),
 			new GridKolon({ belirtec: 'yetkiadi', text: 'Yetki Adı', genislikCh: 15, sql: 'yet.aciklama' }),
 			new GridKolon({ belirtec: 'bcptuygular', text: 'CPT', genislikCh: 8, sql: 'yet.bcptuygular' }).tipBool(),
@@ -36,13 +36,14 @@ class MQESEUser extends MQKAOrtak {
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {sent} = e, alias = this.tableAlias;
+		sent.leftJoin({ alias, from: 'esekurum krm', on: 'usr.kurumid = krm.id' }).leftJoin({ alias, from: 'eseyetki yet', on: 'usr.yetkiid = yet.id' });
 		sent.sahalar.add(`${alias}.kurumid`, `${alias}.yetkiid`, 'yet.bcptuygular', 'yet.beseuygular', 'yet.btopluraporlar')
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e;
 		let form = tabPage_genel.addFormWithParent().yanYana(2); form.addPassInput('sifre', 'Şifre').setMaxLength(36);
 		form.addModelKullan('kurumId', 'Kurum').comboBox().kodsuz().autoBind().setMFSinif(MQKurum);
-		form.addModelKullan('yetkiId', 'Yetki').comboBox().kodsuz().autoBind().setMFSinif(MQYetki)
+		form.addModelKullan('yetkiId', 'Yetki').dropDown().kodsuz().autoBind().setMFSinif(MQYetki)
 	}
 }
 class MQYerlesim extends MQKAOrtak {
@@ -62,7 +63,7 @@ class MQYerlesim extends MQKAOrtak {
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e;
 		let form = tabPage_genel.addFormWithParent().yanYana(2);
-		form.addModelKullan('ilKod', 'İl').comboBox().setMFSinif(MQCariIl).addStyle_wh(300); form.addModelKullan('ulkeKod', 'Ülke').comboBox().setMFSinif(MQCariUlke).addStyle_wh(300)
+		form.addModelKullan('ilKod', 'İl').comboBox().autoBind().setMFSinif(MQCariIl).addStyle_wh(300); form.addModelKullan('ulkeKod', 'Ülke').comboBox().kodsuz().autoBind().setMFSinif(MQCariUlke).addStyle_wh(300)
 	}
 }
 class MQKurum extends MQGuidVeAdiOrtak {
