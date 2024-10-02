@@ -400,7 +400,7 @@ class MQBarkodRec extends MQMasterOrtak {
 				{ name: '@oemKapansin', type: 'bit', value: bool2Int(isKapansinmi) },
 				{ name: '@gerSayac', type: 'bigint', direction: 'output' },
 				(vardiyaNo ? { name: '@argVardiyaNo', type: 'smallint', value: asInteger(vardiyaNo) } : null)
-			].filter(rec => !!rec);
+			].filter(x => !!x);
 			return ({ query: 'ou_gerceklemeYap', params })
 		}
 	}

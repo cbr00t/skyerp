@@ -41,8 +41,7 @@ class UretimVeriToplamaApp extends App {
 		await this.anaMenuOlustur(e); await this.initLayout(e) /* this.veriAktarici_startTimer(e) */
 	}
 	paramsDuzenle(e) {
-		super.paramsDuzenle(e); const {params} = e;
-		$.extend(params, {
+		super.paramsDuzenle(e); const {params} = e; $.extend(params, {
 			zorunlu: MQZorunluParam.getInstance(), stokBirim: MQStokBirimParam.getInstance(), stokGenel: MQStokGenelParam.getInstance(),
 			uretim: MQUretimParam.getInstance(), operGenel: MQOperGenelParam.getInstance(), kalite: MQKaliteParam.getInstance()
 		})

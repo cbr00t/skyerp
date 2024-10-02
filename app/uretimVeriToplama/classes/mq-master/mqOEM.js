@@ -364,24 +364,17 @@ class MQOEM extends MQSayacliOrtak {
 	}
 	static super_standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e) }
 	static loadServerData_queryDuzenle(e) {
-		e = e || {}; super.loadServerData_queryDuzenle(e);
-		const sabit_hatKod = app.params.config.hatKod, alias = e.alias || this.tableAlias, {sent, stm} = e;
-		sent.fromIliski('emirdetay edet', `${alias}.emirdetaysayac = edet.kaysayac`);
-		sent.fromIliski('isemri emr', 'edet.fissayac = emr.kaysayac');
-		sent.fromIliski('operasyon op', `${alias}.opno = op.opno`);
-		sent.fromIliski('urtfrm frm', 'edet.formulsayac = frm.kaysayac');
-		sent.fromIliski('stkmst stk', 'frm.formul = stk.kod');
-		sent.fromIliski('ismerkezi hat', `${alias}.ismrkkod = hat.kod`);
-		sent.fromIliski('tekilmakina tez', `${alias}.tezgahkod = tez.kod`);
-		sent.fromIliski('personel per', `${alias}.perkod = per.kod`);
-		sent.where.add(`emr.silindi = ''`, `emr.durumu = 'D'`)
+		e = e || {}; super.loadServerData_queryDuzenle(e); const sabit_hatKod = app.params.config.hatKod, alias = e.alias || this.tableAlias;
+		const {tabletSadeceSonOperasyon} = app.params.operGenel || {}, {sent, stm} = e;
+		sent.fromIliski('emirdetay edet', `${alias}.emirdetaysayac = edet.kaysayac`).fromIliski('isemri emr', 'edet.fissayac = emr.kaysayac');
+		sent.fromIliski('operasyon op', `${alias}.opno = op.opno`).fromIliski('urtfrm frm', 'edet.formulsayac = frm.kaysayac');
+		sent.fromIliski('stkmst stk', 'frm.formul = stk.kod').fromIliski('ismerkezi hat', `${alias}.ismrkkod = hat.kod`);
+		sent.fromIliski('tekilmakina tez', `${alias}.tezgahkod = tez.kod`).fromIliski('personel per', `${alias}.perkod = per.kod`);
+		sent.where.add(`emr.silindi = ''`, `emr.durumu = 'D'`); if (tabletSadeceSonOperasyon) { sent.where.add(`oem.sonasama <> ''`) }
 		if (sabit_hatKod) { sent.where.degerAta(sabit_hatKod, `${alias}.ismrkkod`) }
-		sent.sahalar.add(`${alias}.ismrkkod hatkod`, 'hat.aciklama hatadi')
-		sent.sahalar.addWithAlias(alias, 'opno', 'tezgahkod', 'perkod');
-		sent.sahalar.add(
-			'emr.bizsubekod', 'emr.fisnox emirnox', 'emr.tarih emirtarih', `${alias}.opno`, 'op.aciklama opadi',
-			'frm.formul stokkod', 'stk.aciklama stokadi', 'stk.pdmkodu', 'tez.aciklama tezgahadi', 'per.aciklama peradi'
-		);
+		sent.sahalar.add(`${alias}.ismrkkod hatkod`, 'hat.aciklama hatadi').addWithAlias(alias, 'opno', 'tezgahkod', 'perkod')
+			.add('emr.bizsubekod', 'emr.fisnox emirnox', 'emr.tarih emirtarih', `${alias}.opno`, 'op.aciklama opadi',
+				 'frm.formul stokkod', 'stk.aciklama stokadi', 'stk.pdmkodu', 'tez.aciklama tezgahadi', 'per.aciklama peradi');
 		stm.orderBy.add('hatkod', 'emirnox DESC')
 	}
 	static orjBaslikListesi_recsDuzenle(e) {
@@ -635,7 +628,7 @@ class MQOEMVeGorev extends MQOEM {
 	}
 	static loadServerData_queryDuzenle(e) { super.super_loadServerData_queryDuzenle(e) }
 	static async loadServerData_querySonucu(e) {
-		const args = e.args ?? {}, sec = e.secimler ?? e.sender?.secimler, hatKod = args.hatKod ?? app.params.config.hatKod;
+		const args = e.args ?? {}, sec = e.secimler ?? e.sender?.secimler, hatKod = args.hatKod ?? app.params.config.hatKod, {tabletSadeceSonOperasyon} = app.params.operGenel || {};
 		let ekClauseStr = sec ? sec.getTBWhereClause().toString_baslangicsiz() : null;
 		if (ekClauseStr) {
 			const donusumDict = { 'emr.': 'fis.', 'frm.formul': 'stk.kod', 'hat.': 'ismrk.' };
@@ -644,22 +637,21 @@ class MQOEMVeGorev extends MQOEM {
 		const _e = {
 			query: 'opyon_bekleyenler',
 			params: [
-				( hatKod ? { name: '@hatKod', type: 'varchar', value: hatKod } : null ),
-				( ekClauseStr ? { name: '@ekClause', type: 'varchar', value: ekClauseStr } : null),
+				(hatKod ? { name: '@hatKod', type: 'varchar', value: hatKod } : null),
+				(ekClauseStr ? { name: '@ekClause', type: 'varchar', value: ekClauseStr } : null),
 				{ name: '@sadeceIslenebilir', type: 'bit', value: bool2Int(sec?.sadeceIslenebilirOlanlarmi?.value) },
 				{ name: '@goreviOlanlar', type: 'bit', value: bool2Int(sec?.goreviOlanlarmi?.value) },
-				{ name: '@sadeceBaslamis', type: 'bit', value: bool2Int(sec?.sadeceBaslamismi?.value) }
+				{ name: '@sadeceBaslamis', type: 'bit', value: bool2Int(sec?.sadeceBaslamismi?.value) },
+				(tabletSadeceSonOperasyon ? { name: '@sadeceSonAsama', type: 'bit', value: 1 } : null)
 			].filter(x => !!x)
 		}
-		let recs = await app.sqlExecSP(_e);
-		if (!$.isEmptyObject(recs)) {
+		let recs = await app.sqlExecSP(_e); if (!$.isEmptyObject(recs)) {
 			const donusumDict = { oemsayac: this.sayacSaha, oemislemsayac: 'isid', oislemdurum: 'oemislemdurum', fisnox: 'emirnox', ismrkkod: 'hatkod', ismrkadi: 'hatadi' };
 			const {sayacSaha} = this; let sonOEMSayac;
 			for (const rec of recs) {
 				for (const key in donusumDict) { const value = rec[key]; if (value !== undefined) { rec[donusumDict[key]] = value; delete rec[key] } }
-				const oemSayac = rec[sayacSaha];
-				if ((oemSayac && sonOEMSayac) && oemSayac == sonOEMSayac) { rec._gorevSatirimi = true } sonOEMSayac = oemSayac;
-				$.extend(rec, { emirno: asInteger(rec.emirnox), opno: asInteger(rec.opno), islenebilirmiktar: rec.islenebilirmiktar || 0, isuretilen: rec.isuretilen || 0 })
+				const oemSayac = rec[sayacSaha]; if ((oemSayac && sonOEMSayac) && oemSayac == sonOEMSayac) { rec._gorevSatirimi = true }
+				sonOEMSayac = oemSayac; $.extend(rec, { emirno: asInteger(rec.emirnox), opno: asInteger(rec.opno), islenebilirmiktar: rec.islenebilirmiktar || 0, isuretilen: rec.isuretilen || 0 })
 			}
 			recs.sort((a, b) => { return (a.hatkod < b.hatkod ? 1 : a.hatkod > b.hatkod ? -1 : a.emirno < b.emirno ? 1 : a.emirno > b.emirno ? -1 : 0) } )
 		}
