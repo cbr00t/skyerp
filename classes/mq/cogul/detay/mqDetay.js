@@ -28,7 +28,7 @@ class MQDetay extends MQSayacli {
 		e = $.extend({}, e || {}); for (const key of ['ozelQueryDuzenleBlock', 'ozelQueryDuzenle', 'ozelQueryDuzenleBlock', 'ozelQueryDuzenle']) delete e[key]
 		e.ozelQueryDuzenle = e => {}, super.loadServerData_queryDuzenle(e);
 		const {aliasVeNokta, fisSayacSaha, sayacSaha, seqSaha} = this, {sent, stm} = e, parentRec = e.parentRec ?? e.rec ?? {};
-		const fisSayac = e.sayac || e.fisSayac || e.fissayac || e.kaySayac || e.kaysayac || parentRec[fisSayacSaha] || parentRec.fissayac || parentRec.kaysayac;
+		const fisSayac = e.sayac || e.fisSayac || e.fissayac || e.kaySayac || e.kaysayac || parentRec[sayacSaha] || parentRec.fissayac || parentRec.kaysayac;
 		if (fisSayacSaha) {
 			if (fisSayac) { sent.where.degerAta(fisSayac, `${aliasVeNokta}${fisSayacSaha}`) }
 			sent.sahalar.add(`${aliasVeNokta}${fisSayacSaha}`); stm.orderBy.add(`${aliasVeNokta}${fisSayacSaha}`)

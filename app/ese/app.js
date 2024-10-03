@@ -8,19 +8,22 @@ class ESEApp extends App {
 			{ kod: 'eseLogin', aciklama: 'Normal Giriş' }
 		].filter(x => !!x))
 	}
-	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { localData: MQLocalData.getInstance() }) }
+	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { localData: MQLocalData.getInstance(), ese: MQParam_ESE.getInstance() }) }
 	getAnaMenu(e) {
 		const {noMenuFlag} = this; if (noMenuFlag) { return new FRMenu() }
 		const {session} = config, {isAdmin} = session;
 		const items = [new FRMenuChoice({ mne: 'MAIN', text: 'MAIN', block: e => {} })];
 		if (isAdmin) {
-			let classes = [MQCariUlke, MQCariIl, MQYerlesim, MQKurum, MQOkulTipi, MQHasta, MQDoktor, MQESEUser, MQYetki, MQCari];
-			let subItems = classes.map(cls => new FRMenuChoice({ mne: cls.kodListeTipi, text: cls.sinifAdi, block: e => cls.listeEkraniAc(e) }));
-			items.push(new FRMenuCascade({ mne: 'TANIM', text: 'Sabit Tanımlar', items: subItems }))
-			classes = [MQSablonCPT, MQSablonESE]; subItems = classes.map(cls => new FRMenuChoice({ mne: cls.kodListeTipi, text: cls.sinifAdi, block: e => cls.listeEkraniAc(e) }));
-			items.push(new FRMenuCascade({ mne: 'SABLON', text: 'Şablonlar', items: subItems }));
-			classes = [MQMuayene]; subItems = classes.map(cls => new FRMenuChoice({ mne: cls.kodListeTipi, text: cls.sinifAdi, block: e => cls.listeEkraniAc(e) }));
-			items.push(...subItems)
+			const addMenuSubItems = (mne, text, ...classes) => {
+				let subItems = classes.flat().map(cls => new FRMenuChoice({ mne: cls.kodListeTipi, text: cls.sinifAdi, block: e => cls.listeEkraniAc(e) }));
+				let menuItems = []; if (subItems?.length) { menuItems = mne ? [new FRMenuCascade({ mne, text, items: subItems })] : subItems; items.push(...menuItems) }
+				return menuItems
+			};
+			addMenuSubItems('TANIM', 'Sabit Tanımlar', [MQCariUlke, MQCariIl, MQYerlesim, MQKurum, MQOkulTipi, MQHasta, MQDoktor, MQESEUser, MQYetki, MQCari]);
+			addMenuSubItems('SABLON', 'Şablonlar', [MQSablonCPT, MQSablonESE]);
+			addMenuSubItems(null, null, [MQMuayene]);
+			addMenuSubItems('TEST', 'Testler', [MQTestCPT, MQTestESE])
+			items.push(new FRMenuChoice({ mne: MQParam_ESE.paramKod, text: MQParam_ESE.sinifAdi, block: e => app.params.ese.tanimla(e) }))
 		}
 		return new FRMenu({ items })
 	}

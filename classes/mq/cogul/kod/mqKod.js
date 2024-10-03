@@ -189,7 +189,4 @@ class MQGuidVeAdi extends MQKA {
 	kopyaIcinDuzenle(e) { this.kod = newGUID(); return super.kopyaIcinDuzenle(e) }
 	kaydetOncesiIslemler(e) { this.kod = this.kod || newGUID(); return super.kaydetOncesiIslemler(e) }
 }
-class MQGuid extends MQGuidVeAdi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get adiKullanilirmi() { return false }
-}
+class MQGuid extends MQGuidVeAdi { static { window[this.name] = this; this._key2Class[this.name] = this } static get adiKullanilirmi() { return false } }

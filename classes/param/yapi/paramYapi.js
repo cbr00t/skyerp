@@ -15,11 +15,12 @@ class ParamBuilder extends CObject {
 	set id(value) { this._id = value }
 	get rowAttr() { let result = this._rowAttr; if (result === undefined) { result = this._rowAttr = this.id } return result } set rowAttr(value) { this._rowAttr = value }
 	get layout() { let result = this._layout; if (isFunction(result)) { result = this._layout = getFuncValue.call(this, result, this.getBuilderArgs()) } return result }
-	set layout(value) { this._layout = value } get inst() { let result = this._inst; if (isFunction(result)) { result = this._inst = getFuncValue.call(this, result, this.getBuilderArgs()) } return result }
+	set layout(value) { this._layout = value }
+	get inst() { let result = this._inst; if (isFunction(result)) { result = this._inst = getFuncValue.call(this, result, this.getBuilderArgs()) } return result }
 	set inst(value) { this._inst = value }
 	get altInst() {
 		let result = this._altInst;
-		if (result === undefined) { result = this._altInst = e => { let _result = this.parent?.altInst; if (_result !== undefined) { return _result } return this.inst } }
+		if (result === undefined) { result = this._altInst = e => { let _result = this.defaultAltInst ?? this.parent?.altInst; if (_result !== undefined) { return _result } return this.inst } }
 		if (isFunction(result)) { result = this._altInst = getFuncValue.call(this, result, this.getBuilderArgs()) }
 		if (typeof result == 'string') { const {inst} = this; result = this._altInst = inst ? inst[result] : null }
 		if (result == null) { result = this._altInst = this.defaultAltInst ?? this.inst }
@@ -367,8 +368,7 @@ class ParamBuilderAlt extends ParamBuilder {
 }
 class ParamBuilder_AltInst extends ParamBuilderAlt {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	get altInstmi() { return true }
-	get defaultNewInst() { return undefined }
+	get altInstmi() { return true } get defaultNewInst() { return undefined }
 	get newInst() {
 		const {instBuilder} = this; let result;
 		if (instBuilder != null) { if (isFunction(instBuilder)) { const _e = { paramci: this, inst() { return this.paramci.inst } }; result = getFuncValue.call(this, instBuilder, _e) } else { result = instBuilder } }
@@ -386,8 +386,7 @@ class ParamBuilder_AltInst extends ParamBuilderAlt {
 		return result
 	}
 	constructor(e) { e = e ?? {}; super(e); this.instBuilder = e.instBuilder ?? e.newInst }
-	setInstBuilder(handler) { this.instBuilder = handler; return this }
-	setNewInst(handler) { return this.setInstBuilder(handler) }
+	setInstBuilder(handler) { this.instBuilder = handler; return this } setNewInst(handler) { return this.setInstBuilder(handler) }
 }
 class ParamBuilder_AltObject extends ParamBuilder_AltInst { get altObjectmi() { return true } get defaultNewInst() { return {} } }
 class ParamBuilder_AltArray extends ParamBuilder_AltInst { get altArraymi() { return true } get defaultNewInst() { return [] } }

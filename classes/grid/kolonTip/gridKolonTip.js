@@ -99,7 +99,7 @@ class GridKolonTip_Number extends GridKolonTip {
 	}
 	get cellsRenderer() {
 		return ((colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-			if (rec?.totalsrow) return GridKolonTip.getHTML_groupsTotalRow(value)
+			if (rec?.totalsrow) { return GridKolonTip.getHTML_groupsTotalRow(value) }
 			rec = colDef.gridPart.gridWidget.getboundrows()[rowIndex] ?? rec; rec = rec?.originalRecord || rec;
 			if (value?.constructor?.name == 'Number') value = asFloat(value)
 			if (value != null) {
@@ -533,112 +533,90 @@ class GridKolonTip_Ozel extends GridKolonTip {
 	static get anaTip() { return 'ozel' } static get ozelmi() { return true } static get isEditable() { return false }
 	get cellClassName() { return 'ozel' } get defaultAlign() { return 'center' }
 	readFrom(e) {
-		if (!super.readFrom(e)) return false; let {value} = e;
-		try { if (value && typeof value == 'string') { const _value = getFunc.call(this, value, e); if (_value != null) value = _value } } catch (ex) { }
+		if (!super.readFrom(e)) { return false } let {value} = e;
+		try { if (value && typeof value == 'string') { const _value = getFunc.call(this, value, e); if (_value != null) { value = _value } } } catch (ex) { }
 		this.value = value; return true
 	}
+	setValue(value) { this.value = value; return this }
 }
 class GridKolonTip_Button extends GridKolonTip_Ozel {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'button' } static get butonmu() { return true } static get buttonmu() { return this.butonmu } get jqxColumnType() { return 'button' }
 	readFrom(e) {
-		if (!super.readFrom(e)) return false
+		if (!super.readFrom(e)) { return false }
 		this.click(null); let handler = e.click || e.onClick || e.buttonClick || e.onButtonClick; this.click(handler);
 		return true
 	}
 	get cellsRenderer() {
 		return ((colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-			if (rec?.totalsrow) return GridKolonTip.getHTML_groupsTotalRow(value)
+			if (rec?.totalsrow) { return GridKolonTip.getHTML_groupsTotalRow(value) }
 			rec = colDef.gridPart.gridWidget.getboundrows()[rowIndex] ?? rec; rec = rec?.originalRecord || rec;
-			let _value = this.value; if (_value && ($.isFunction(_value) || _value.run)) { const _e = { colDef, rowIndex, columnField, value, html, jqxCol, rec }; _value = getFuncValue.call(this, _value, _e) }
+			let _value = this.value; if (_value && (isFunction(_value) || _value.run)) {
+				const _e = { colDef, rowIndex, columnField, value, html, jqxCol, rec }; _value = getFuncValue.call(this, _value, _e) }
 			return _value ?? value
 		})
 	}
 	get cellClick() {
 		return (e => {
-			const {clickEvent} = this;
-			if (!$.isEmptyObject(clickEvent)) {
+			const {clickEvent} = this; if (!$.isEmptyObject(clickEvent)) {
 				const {args} = e; let rec = args.row; rec = rec.bounddata || rec;
-				const _e = $.extend({}, e, { tip: this, gridWidget: args.owner, rec, uid: rec.uid });
-				for (const handler of clickEvent) getFuncValue.call(this, handler, _e)
+				const _e = { ...e, tip: this, gridWidget: args.owner, rec, uid: rec.uid }; for (const handler of clickEvent) { getFuncValue.call(this, handler, _e) }
 			}
 		})
 	}
-	click(handler) {
-		if (handler !== undefined) {
-			if (handler == null) this.clickEvent = []
-			else {
-				let {clickEvent} = this; if (clickEvent == null) this.clickEvent = clickEvent = []
-				if (typeof handler == 'string') { const _value = getFunc.call(this, value, e); if (_value != null) handler = _value; }
-				if (handler) clickEvent.push(handler)
-			}
+	onClick(handler) {
+		if (handler === undefined) { return this }
+		if (handler == null) { this.clickEvent = [] }
+		else {
+			let {clickEvent} = this; if (clickEvent == null) { this.clickEvent = clickEvent = [] }
+			if (typeof handler == 'string') { const _value = getFunc.call(this, value, e); if (_value != null) { handler = _value } }
+			if (handler) { clickEvent.push(handler) }
 		}
 		return this
 	}
+	click(handler) { return this.onClick(handler) }
 }
-class GridKolonTip_Image extends GridKolonTip_Ozel {
+class GridKolonTip_Image extends GridKolonTip_Button {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get tip() { return 'image' } static get resimmi() { return true } static get imagemi() { return this.resimmi } get jqxColumnType() { return 'image' }
+	static get tip() { return 'image' } static get resimmi() { return true } static get imagemi() { return this.resimmi }
+	static get butonmu() { return false } get jqxColumnType() { return 'image' }
 	get cellsRenderer() {
 		return ((colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-			if (rec?.totalsrow) return GridKolonTip.getHTML_groupsTotalRow(value)
+			if (rec?.totalsrow) { return GridKolonTip.getHTML_groupsTotalRow(value) }
 			rec = colDef.gridPart.gridWidget.getboundrows()[rowIndex] ?? rec; rec = rec?.originalRecord || rec;
-			if (_value && ($.isFunction(_value) || _value.run)) { const _e = { colDef, rowIndex, columnField, value, html, jqxCol, rec }; _value = getFuncValue.call(this, _value, _e); }
-			if (_value) {
-				html = (
-					`<div style="` +
-						`background-repeat: no-repeat; background-position: center; ` +
-						`background-size: auto; ` +
-						`background-image: ${_value}`
-					`"></div>`
-				)
-			}
+			let _value = this.value; if (_value && (isFunction(_value) || _value.run)) {
+				const _e = { colDef, rowIndex, columnField, value, html, jqxCol, rec }; _value = getFuncValue.call(this, _value, _e) }
+			if (_value) { html = `<div style="background-repeat: no-repeat; background-position: center; background-size: auto; background-image: ${_value}"></div>` }
 			return html
 		})
 	}
 }
-
 class GridKolonTip_Bool extends GridKolonTip_Ozel {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get tip() { return 'bool' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'bool' }
 	get jqxColumnType() { return 'checkbox' } get jqxFilterType() { return 'checkedlist' }
 	get createEditor_ozel() {
 		return ((colDef, rowIndex, value, editor, cellText, cellWidth, cellHeight) => {
 			const isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
 			if (isCustomEditor && !editor.hasClass('editor')) {
-				const parent = editor;
-				parent.addClass('full-wh');
-				editor = $(`<input type="checkbox" class="editor" style="width: ${cellWidth}px; height: ${cellHeight - 5}px"/>`);
-				editor.appendTo(parent)
+				const parent = editor; parent.addClass('full-wh');
+				editor = $(`<input type="checkbox" class="editor" style="width: ${cellWidth}px; height: ${cellHeight - 5}px"/>`); editor.appendTo(parent)
 			}
 		})
 	}
 	get initEditor_ozel() {
 		return ((colDef, rowIndex, value, editor, cellText, pressedChar) => {
-			if (!(typeof value == 'boolean' || typeof value == 'number'))
-				value = this.value
-			value = !asBool(value);
-			const isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
-			if (isCustomEditor) {
-				const _editor = editor.children('.editor');
-				if (_editor.length)
-					editor = _editor
-				editor.attr('type', 'checkbox');
-				editor.prop('checked', asBool(value));
-				/*editor.css('text-align', 'center');
-				editor.css('margin', '5px 0 0 5px');
-				editor.addClass('full-wh');*/
+			if (!(typeof value == 'boolean' || typeof value == 'number')) { value = this.value } value = !asBool(value);
+			const isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template'); if (isCustomEditor) {
+				const _editor = editor.children('.editor'); if (_editor.length) { editor = _editor }
+				editor.attr('type', 'checkbox'); editor.prop('checked', asBool(value)); /*editor.css('text-align', 'center'); editor.css('margin', '5px 0 0 5px'); editor.addClass('full-wh');*/
 				setTimeout(() => editor.focus(), 50)
 			}
 		})
 	}
 	get getEditorValue() {
 		return ((colDef, rowIndex, value, editor) => {
-			const isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
-			if (isCustomEditor) {
-				const _editor = editor.children('.editor');
-				if (_editor.length)
-					editor = _editor
+			const isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template'); if (isCustomEditor) {
+				const _editor = editor.children('.editor'); if (_editor.length) { editor = _editor }
 				return editor.is(':checked')
 			}
 			return value
@@ -646,7 +624,7 @@ class GridKolonTip_Bool extends GridKolonTip_Ozel {
 	}
 	get cellsRenderer() {
 		return ((colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-			if (rec?.totalsrow) return GridKolonTip.getHTML_groupsTotalRow(value)
+			if (rec?.totalsrow) { return GridKolonTip.getHTML_groupsTotalRow(value) }
 			rec = colDef?.gridPart?.gridWidget?.getboundrows()[rowIndex] ?? rec; rec = rec?.originalRecord ?? rec;
 			if (!(typeof value == 'boolean' || typeof value == 'number')) value = this.value ?? asBool(value)
 			if (!colDef.gridPart?.gridWidget?.editable || (!colDef.columnType || colDef.columnType == 'checkbox' || colDef.columnType == 'custom' || colDef.columnType == 'template')) {

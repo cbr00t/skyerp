@@ -13,11 +13,9 @@ class EIslemTip extends TekSecim {
 }
 class EIslFaturaAyrim extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultChar() { return ' ' }
-	get magazami() { return this.char == 'PR' } faturami() { return !this.char?.trim() }
+	static get defaultChar() { return ' ' } get magazami() { return this.char == 'PR' } faturami() { return !this.char?.trim() }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
-		kaListe.push(
+		super.kaListeDuzenle(e); const {kaListe} = e; kaListe.push(
 			new CKodVeAdi({ kod: 'PR', aciklama: 'Mağaza Fişleri' }),
 			new CKodVeAdi({ kod: '', aciklama: 'Faturalar' })
 		)

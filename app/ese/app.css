@@ -1,2 +1,9 @@
 /*.MQX.masterListe.part .header .islemTuslari button#x { width: 130px !important; margin-left: 20px }
 .MQX.masterListe.part .jqx-grid [role = row] > .xyz.jqx-grid-cell:not(.jqx-grid-cell-selected) { font-weight: bold }*/
+.eseResim.part .dokumanForm, .eseResim.part .skyResim.part #resim > .widget,
+	.eseResim.part .skyResim.part #resim > .widget .item > .content { background-color: #111 !important; margin: 0 !important; padding: 0 !important }
+.eseResim.part .skyResim.part { height: calc(var(--full) - 50px) !important }
+/*.MQTestCPT.masterListe.part .islemTuslari button#degistir,
+	.MQTestESE.masterListe.part .islemTuslari button#degistir { margin-left: 40px; margin-right: 20px; background-image: url(../../images/izle.png) !important }
+.MQTestCPT.masterListe.part .islemTuslari button#degistir.jqx-fill-state-normal,
+	.MQTestESE.masterListe.part .islemTuslari button#degistir.jqx-fill-state-normal { background-color: #546394 }*/

@@ -168,6 +168,8 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	comboBox() { const {tip} = this; if (tip?.comboBox) tip.comboBox(); return this }
 	onKeyDown(handler) { const {tip} = this; if (tip?.onKeyDown) tip.onKeyDown(handler); return this }
 	setMaxLength(value) { const {tip} = this; if (tip?.setMaxLength) tip.setMaxLength(value); return this }
+	setValue(value) { this.tip?.setValue?.(value); return this }
+	click(handler) { this.tip?.click?.(handler); return this } onClick(handler) { this.tip?.onClick?.(handler); return this }
 	tipString(e) {
 		e = e || {}; const maxLength = typeof e == 'object' ? e.maxLength : e;
 		this.tip = new GridKolonTip_String({ maxLength }); return this
@@ -177,6 +179,7 @@ class GridKolon extends GridKolonVeGrupOrtak {
 		if (e.sifirGosterme ?? e.sifirGostermeFlag) { tip.sifirGosterme() }
 		this.alignRight(); return this
 	}
+	tipNumber(e) { return this.tipNumerik(e) }
 	tipDecimal(e) {
 		e = e || {}; const fra = typeof e == 'object' ? e.fra : e;
 		const tip = this.tip = new GridKolonTip_Decimal({ fra });
@@ -187,8 +190,8 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	tipDecimal_dvFiyat(e) { return this.tipDecimal({ fra: 'dvFiyat' }) }
 	tipDecimal_bedel(e) { return this.tipDecimal({ fra: 'bedel' }) }
 	tipDecimal_dvBedel(e) { return this.tipDecimal({ fra: 'dvBedel' }) }
-	tipDate(e) { this.tip = new GridKolonTip_Date(e); return this }
-	tipTime(e) { this.tip = new GridKolonTip_Time(e); return this }
+	tipDate(e) { this.tip = new GridKolonTip_Date(e); return this } tipTarih(e) { return this.tipDate(e) }
+	tipTime(e) { this.tip = new GridKolonTip_Time(e); return this } tipSaat(e) { return this.tipTime(e) } tipZaman(e) { return this.tipTime(e) }
 	tipTime_noSecs(e) {
 		e = e || {}; const noSecs = typeof e == 'object' ? e.noSecsFlag ?? e.noSecs : e;
 		return this.tipTime($.extend({}, e, { noSecs }))
@@ -199,7 +202,8 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	tipBirKismi(e) { this.tip = new GridKolonTip_BirKismi(e); return this }
 	tipOzel(e) { if (typeof e == 'string') e = { value: e }; this.tip = new GridKolonTip_Ozel(e); return this }
 	tipButton(e) { if (typeof e == 'string') e = { value: e }; this.tip = new GridKolonTip_Button(e); return this }
-	tipImage(e) { if (typeof e == 'string') e = { value: e }; this.tip = new GridKolonTip_Image(e); return this }
+	tipResim(e) { if (typeof e == 'string') e = { value: e }; this.tip = new GridKolonTip_Image(e); return this }
+	tipImage(e) { return this.tipImage(e) }
 	*getIter() { yield this }
 }
 

@@ -325,7 +325,10 @@ class MQEkNotlar extends MQSayacliOrtak {
 				filterable: false, sortable: false, groupable: false,
 				belirtec: `resim${i}`, text: `Dokuman Resim ${i}`, genislikCh: 20, cellsRenderer: (colDef, rowIndex, belirtec, _value, html, jqxCol, rec) => {
 					let i = asInteger(belirtec.slice('resim'.length)), value = rec[`url${i}`], parts = value ? value.split('=') : null, ext, resimmi = false;
-					if (parts?.length) { let ind = parts.findIndex(part => part.endsWith('ext')); if (ind != -1) { ext = parts[ind + 1]?.trim()?.toLowerCase(); resimmi = !!fileExtSet_image[ext] } }
+					if (parts?.length) {
+						let ind = parts.findIndex(part => part?.toLowerCase()?.endsWith('ext'));
+						if (ind != -1) { ext = parts[ind + 1]?.trim()?.toLowerCase(); resimmi = !!fileExtSet_image[ext] }
+					}
 					if (value) {
 						html = resimmi
 									? `<div class="full-wh" style="background-repeat: no-repeat; background-size: contain; background-image: url(${value})"/>`
@@ -366,9 +369,9 @@ class MQEkNotlar extends MQSayacliOrtak {
 			let elm = $(`<input type="file" capture accept="image/*, application/pdf, video/*">`).appendTo('body'); elm.addClass('jqx-hidden');
 			elm.on('change', async evt => {
 				try {
-					const file = evt.target.files[0]; let fileName = file.name.replaceAll(' ', '_'), ext = fileName.split('.').slice(-1)[0] ?? '', resimId = ext ? fileName.slice(0, -(ext.length + 1)) : fileName;
-					const data = file ? new Uint8Array(await file.arrayBuffer()) : null; if (!data?.length) { return }
-					const result = await app.wsResimDataKaydet({ resimId, ext, data }); if (!result.result) { throw { isError: true, errorText: 'Resim Kayıt Sorunu' } }
+					const file = evt.target.files[0]; let fileName = file.name.replaceAll(' ', '_'), ext = fileName.split('.').slice(-1)[0] ?? '';
+					const resimId = ext ? fileName.slice(0, -(ext.length + 1)) : fileName, data = file ? new Uint8Array(await file.arrayBuffer()) : null; if (!data?.length) { return }
+					const result = await app.wsResimDataKaydet({ resimId, ext, data }); if (!result?.result) { throw { isError: true, errorText: 'Resim Kayıt Sorunu' } }
 					if (builder) {
 						const {altInst, input} = builder;
 						const value = builder.value = altInst[id] = `${app.getWSUrlBase()}/stokResim/?id=${resimId}&ext=${ext}`; input?.focus()
@@ -379,9 +382,6 @@ class MQEkNotlar extends MQSayacliOrtak {
 				finally { $(evt.target).remove() }
 			}); elm.click()
 		}
-		catch (ex) {
-			if (ex instanceof DOMException) { return }
-			hConfirm(getErrorText(ex), islemAdi); throw ex
-		}
+		catch (ex) { if (ex instanceof DOMException) { return } hConfirm(getErrorText(ex), islemAdi); throw ex }
 	}
 }

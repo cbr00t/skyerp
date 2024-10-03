@@ -7,7 +7,6 @@ class MQDetayli extends MQSayacli {
 		if ($.isEmptyObject(liste)) { const {detaySinif} = this; if (detaySinif) { liste.push(detaySinif) } }
 		return liste
 	}
-	static detaySiniflarDuzenle(e) { }
 	static get detayTablolar() {
 		let result = this._detayTablolar; if (!result) {
 			const {detaySiniflar} = this, detayTabloSet = {};
@@ -23,6 +22,7 @@ class MQDetayli extends MQSayacli {
 	static get sabitBilgiRaporcuSinif() { return FisRapor }
 
 	constructor(e) { e = e || {}; super(e); this.detaylar = e.detaylar || [] }
+	static detaySiniflarDuzenle(e) { }
 	static async getRootFormBuilder_fis(e) {
 		e = e || {}; const {sender} = e, {baslikFormlar} = sender;
 		const templateBuilder = new FormBuilder({ id: 'templates' }).setInst(e => e.builder.rootPart.fis)
@@ -48,9 +48,11 @@ class MQDetayli extends MQSayacli {
 		if (_e.root) { rootBuilder = _e.root }
 		return rootBuilder
 	}
+	static orjBaslikListesi_argsDuzenle_detaylar(e) {
+		const {detaySiniflar} = this; if (!$.isEmptyObject(detaySiniflar)) { for (const cls of detaySinif) { detaySinif?.orjBaslikListesi_argsDuzenle(e) } }
+	}
 	static get orjBaslikListesi_detaylar() {
-		const {detaySiniflar} = this; let result;
-		if (!$.isEmptyObject(detaySiniflar)) { result = detaySiniflar[0].orjBaslikListesi }
+		const {detaySiniflar} = this; let result; if (!$.isEmptyObject(detaySiniflar)) { result = detaySiniflar[0].orjBaslikListesi }
 		if (!result) { result = super.orjBaslikListesi_detaylar }
 		return result
 	}
@@ -275,10 +277,9 @@ class MQDetayli extends MQSayacli {
 	async topluDegistirmeKomutlariniOlustur(e) {
 		const {toplu, trnId} = e, {table, sayacSaha} = this.class; let harSayacSaha, fisSayacSaha, seqSaha;
 		const detTable2HVListe = e.detTable2HVListe = {}, {detaylar} = this, detHVArg = { fis: this };
-		for (const det of detaylar) {
-			if (!harSayacSaha) { harSayacSaha = det.class.sayacSaha }
-			if (!fisSayacSaha) { fisSayacSaha = det.class.fisSayacSaha }
-			if (!seqSaha) { seqSaha = det.class.seqSaha }
+		for (let det of detaylar) {
+			const detaySinif = det?.class ?? this.detaySinif; if (detaySinif && $.isPlainObject(det)) { det = new detaySinif(det) }
+			if (!harSayacSaha) { harSayacSaha = detaySinif.sayacSaha } if (!fisSayacSaha) { fisSayacSaha = detaySinif.fisSayacSaha } if (!seqSaha) { seqSaha = det.class.seqSaha }
 			const hv = det.hostVars(detHVArg); if (!hv) { return false } hv._harsayac = det.okunanHarSayac;		/* yeni kayıt için null aksinde okunan harsayac */
 			const detTable = det.class.getDetayTable(detHVArg), hvListe = detTable2HVListe[detTable] = detTable2HVListe[detTable] || [];
 			hvListe.push(hv)
@@ -394,7 +395,7 @@ class MQDetayliMaster extends MQDetayli {
 	static async rootFormBuilderDuzenle_grid_loadServerData(e) {
 		const {builder} = e, {rootPart, inst} = builder, {gridPart} = rootPart, {kontrolcu} = gridPart, {gridDetaySinif} = inst.class;
 		const _e = { ...e, fis: inst, inst, recs: [] }; for (let i = 0; i < inst.detaylar?.length + 1; i++) { _e.recs.push(this.newRec({ sinif: gridDetaySinif })) }
-		let result = await kontrolcu.fis2Grid(_e); if (result != true) { if (result.errorText) { hConfirm(`<div class="red">${_result.errorText}</div>`) } return false }
+		let result = await kontrolcu?.fis2Grid(_e); if (result != true) { if (result?.errorText) { hConfirm(`<div class="red">${_result.errorText}</div>`) } return false }
 		return _e.recs
 	}
 	static rootFormBuilderDuzenle_grid_onAfterRun(e) {

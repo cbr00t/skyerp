@@ -1,7 +1,6 @@
-class MESDokumanPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get isWindowPart() { return false } static get partName() { return 'mesDokuman' } static get sinifAdi() { return 'Dökümanlar' }
-	constructor(e) { e = e || {}; super(e); $.extend(this, { title: e.title ?? 'Dökümanlar', urlListe: e.urlListe ?? e.images ?? [] }) }
+class ESEResimPart extends Part {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get isWindowPart() { return false } static get partName() { return 'eseResim' } static get sinifAdi() { return 'Resim Görüntüleyici' }
+	constructor(e) { e = e || {}; super(e); $.extend(this, { title: e.title ?? this.class.sinifAdi, urlListe: e.urlListe ?? e.images ?? [] }) }
 	run(e) {
 		e = e || {}; super.run(e); const {layout} = this;
 		const header = this.header = layout.children('.header'), islemTuslari = this.islemTuslari = header.children('.islemTuslari');
@@ -27,4 +26,4 @@ class MESDokumanPart extends Part {
 		)
 	}
 }
-class MESDokumanWindowPart extends MESDokumanPart { static { window[this.name] = this; this._key2Class[this.name] = this } static get isWindowPart() { return true } }
+class ESEResimWindowPart extends ESEResimPart { static { window[this.name] = this; this._key2Class[this.name] = this } static get isWindowPart() { return true } }

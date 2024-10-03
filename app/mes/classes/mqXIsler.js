@@ -59,6 +59,7 @@ class MQXIsler extends MQMasterOrtak {
 			})
 		}
 	}
+	static gridVeriYuklendi(e) { super.gridVeriYuklendi(e); const {gridWidget} = e; gridWidget.clearselection() }
 	static islemTuslariDuzenle_listeEkrani(e) {
 		const {liste} = e, butonlarPart = e.part, gridPart = e.gridPart ?? e.sender ?? e.parentPart, {noSwitchFlag} = gridPart;
 		if (!noSwitchFlag && this.switchPartClass) { liste.push({ id: 'switch', text: this.switchButtonText, handler: e => this.switchIstendi(e) }) }
@@ -162,7 +163,9 @@ class MQSiradakiIsler extends MQXIsler {
 				const kod2Rec = await app.getTezgahKod2Rec({ hedefTezgahKodListe });
 				for (const hedefTezgahKod of hedefTezgahKodListe) {
 					const tezgahKod = hedefTezgahKod, rec = kod2Rec[tezgahKod] || {}, {tezgahAdi, hatKod, hatAdi} = rec;
-					this.listeEkraniAc({ args: { hatKod, hatAdi , tezgahKod, tezgahAdi } });
+					/*const bindingCompleteBlock = e => {
+						delete e.sender.bindingCompleteBlock; setTimeout(() => { e.gridWidget.clearselection(); gridPart.gridWidget.clearselection() }, 300) };*/
+					this.listeEkraniAc({ /*bindingCompleteBlock,*/ args: { hatKod, hatAdi, tezgahKod, tezgahAdi } });
 					try { await new $.Deferred(p => setTimeout(() => p.resolve(null), 200)) } catch (ex) { }
 				}
 				if (gridPart && !gridPart.isDestroyed) { setTimeout(() => gridPart.tazele(e), 100) }
@@ -183,7 +186,9 @@ class MQSiradakiIsler extends MQXIsler {
 				const kod2Rec = await app.getTezgahKod2Rec({ hedefTezgahKodListe });
 				for (const hedefTezgahKod of hedefTezgahKodListe) {
 					const tezgahKod = hedefTezgahKod, rec = kod2Rec[tezgahKod] || {}, {tezgahAdi, hatKod, hatAdi} = rec;
-					this.listeEkraniAc({ args: { hatKod, hatAdi , tezgahKod, tezgahAdi } });
+					/*const bindingCompleteBlock = e => {
+						delete e.sender.bindingCompleteBlock; setTimeout(() => { e.gridWidget.clearselection(); gridPart.gridWidget.clearselection() }, 300) };*/
+					this.listeEkraniAc({ /*bindingCompleteBlock,*/ args: { hatKod, hatAdi, tezgahKod, tezgahAdi } });
 					try { await new $.Deferred(p => setTimeout(() => p.resolve(null), 200)) } catch (ex) { }
 				}
 				if (gridPart && !gridPart.isDestroyed) { gridPart.tazele(e) }

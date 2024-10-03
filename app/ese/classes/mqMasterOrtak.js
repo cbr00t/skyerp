@@ -23,7 +23,7 @@ class MQKAOrtak extends MQKA {
 	static listeEkrani_init(e) { super.listeEkrani_init(e); MQMasterOrtak.listeEkrani_init(e) }
 }
 class MQGuidOrtak extends MQGuid {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get tanimUISinif() { return MQMasterOrtak.tanimUISinif } static get ignoreBelirtecSet() { return {} }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get tanimUISinif() { return MQMasterOrtak.tanimUISinif } static get ignoreBelirtecSet() { return asSet([this.kodSaha]) }
 	static get noAutoFocus() { return MQMasterOrtak.noAutoFocus } static get gridIslemTuslariKullanilirmi() { return MQMasterOrtak.gridIslemTuslariKullanilirmi }
 	static get tanimlanabilirmi() { return MQMasterOrtak.tanimlanabilirmi } static get silinebilirmi() { return MQMasterOrtak.silinebilirmi } static get raporKullanilirmi() { return MQMasterOrtak.raporKullanilirmi }
 	static super_standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e) }
