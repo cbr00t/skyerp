@@ -361,7 +361,8 @@ class MQEkNotlar extends MQSayacliOrtak {
 	}
 	static async dokumanYukleIstendi(e) {
 		e = e || {}; const PrefixURL = 'url', islemAdi = 'Döküman Yükle'; try {
-			const {builder} = e, id = e.id ?? builder?.id; let i = asInteger(e.seq ?? e.index ?? id?.slice(PrefixURL.length)); const key = `${PrefixURL}${i}`;
+			const {builder} = e, gridPart = e.gridPart ?? builder?.rootPart ?? e.sender ?? app.activeWndPart;
+			const id = e.id ?? builder?.id; let i = asInteger(e.seq ?? e.index ?? id?.slice(PrefixURL.length)); const key = `${PrefixURL}${i}`;
 			let elm = $(`<input type="file" capture accept="image/*, application/pdf, video/*">`).appendTo('body'); elm.addClass('jqx-hidden');
 			elm.on('change', async evt => {
 				try {
@@ -372,8 +373,10 @@ class MQEkNotlar extends MQSayacliOrtak {
 						const {altInst, input} = builder;
 						const value = builder.value = altInst[id] = `${app.getWSUrlBase()}/stokResim/?id=${resimId}&ext=${ext}`; input?.focus()
 					}
-					gridPart.tazeleDefer(e)
-				} finally { $(evt.target).remove() }
+					gridPart?.tazeleDefer?.(e)
+				}
+				catch (ex) { hConfirm(getErrorText(ex), islemAdi); throw ex }
+				finally { $(evt.target).remove() }
 			}); elm.click()
 		}
 		catch (ex) {
