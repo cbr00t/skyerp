@@ -15,7 +15,7 @@ class MQYetki extends MQGuidVeAdiOrtak {
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e;
 		let form = tabPage_genel.addBaslik('Yetkiler').addFormWithParent().yanYana(3).addStyle(e => `$elementCSS > div { margin-top: 8px !important }`);
-		form.addCheckBox('cpt', 'CPT').addStyle_wh(100); form.addCheckBox('ese', 'ESE').addStyle_wh(100); form.addCheckBox('cpt', 'Toplu Raporlar').addStyle_wh(150)
+		form.addCheckBox('cpt', 'CPT').addStyle_wh(100); form.addCheckBox('ese', 'ESE').addStyle_wh(100); form.addCheckBox('rapor', 'Toplu Raporlar').addStyle_wh(150)
 	}
 }
 class MQESEUser extends MQKAOrtak {
@@ -76,7 +76,7 @@ class MQKurum extends MQGuidVeAdiOrtak {
 		})
 	}
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e) /e.liste.push(
+		super.orjBaslikListesiDuzenle(e); e.liste.push(
 			new GridKolon({ belirtec: 'yerlesimkod', text: 'Yerleşim', genislikCh: 10, filterType: 'checkedlist' }), new GridKolon({ belirtec: 'yerlesimadi', text: 'Yerleşim Adı', genislikCh: 30, sql: 'yer.aciklama' }),
 			new GridKolon({ belirtec: 'erpkod', text: 'ERP Kod', genislikCh: 16, filterType: 'checkedlist' }), new GridKolon({ belirtec: 'acikadres', text: 'Açık Adres' }),
 			new GridKolon({ belirtec: 'anlasmanox', text: 'Anlaşma No', genislikCh: 13 }), new GridKolon({ belirtec: 'anlasmatarihi', text: 'Anlaşma Tarihi', genislikCh: 14 }).tipDate()
@@ -112,7 +112,7 @@ class MQHasta extends MQGuidVeAdiOrtak {
 		}
 	}
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e, {yakinSayi} = this; liste.push(
+		super.orjBaslikListesiDuzenle(e); const {yakinSayi} = this, {liste} = e; liste.push(
 			new GridKolon({ belirtec: 'tcno', text: 'TC Kimlik No', genislikCh: 13 }),
 			new GridKolon({ belirtec: 'okultipid', text: 'Okul Tip ID', genislikCh: 36 }),
 			new GridKolon({ belirtec: 'okultipadi', text: 'Okul Tip Adı', genislikCh: 10, sql: 'okt.aciklama' }), new GridKolon({ belirtec: 'tel', text: 'Telefon', genislikCh: 10 }),

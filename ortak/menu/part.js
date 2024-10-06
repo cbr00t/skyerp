@@ -2,62 +2,35 @@ class MenuPart extends Part {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'menu' } static get isSubPart() { return true } static get delimMenuId() { return ' ' }
 	get filter() {
-		let result = this._filter;
-		if (result && $.isFunction(result)) {
-			const _e = { sender: this };
-			result = getFuncValue.call(this, result, _e)
-		}
-		if (result === undefined)
-			result = this.getFilter()
+		let result = this._filter; if (result && $.isFunction(result)) { const _e = { sender: this }; result = getFuncValue.call(this, result, _e) }
+		if (result === undefined) { result = this.getFilter() }
 		return result
 	}
 	set filter(value) { this._filter = value }
 	get source() {
-		let result = this._source;
-		if (result && $.isFunction(result)) {
-			const _e = { sender: this };
-			result = getFuncValue.call(this, result, _e)
-		}
+		let result = this._source; if (result && $.isFunction(result)) { const _e = { sender: this }; result = getFuncValue.call(this, result, _e) }
 		return result
 	}
 	set source(value) { this._source = value }
 	get parentItem() {
-		let result = this._parentItem;
-		if (result && $.isFunction(result)) {
-			const _e = { sender: this };
-			result = getFuncValue.call(this, result, _e)
-		}
+		let result = this._parentItem; if (result && $.isFunction(result)) { const _e = { sender: this }; result = getFuncValue.call(this, result, _e) }
 		return result
 	}
 	set parentItem(value) { this._parentItem = value }
 	get visibleItems() {
 		let result = this._visibleItems;
-		if (result && $.isFunction(result)) {
-			const _e = { sender: this };
-			result = getFuncValue.call(this, result, _e)
-		}
-		if (result === undefined)
-			result = this.getVisibleItems()
+		if (result && $.isFunction(result)) { const _e = { sender: this }; result = getFuncValue.call(this, result, _e) }
+		if (result === undefined) { result = this.getVisibleItems() }
 		return result
 	}
 	set visibleItems(value) { this._visibleItems = value }
 	get userData() {
-		let result = this._userData;
-		if (result && $.isFunction(result)) {
-			const _e = { sender: this };
-			result = getFuncValue.call(this, result, _e)
-		}
+		let result = this._userData; if (result && $.isFunction(result)) { const _e = { sender: this }; result = getFuncValue.call(this, result, _e) }
 		return result
 	}
 	set userData(value) { this._userData = value }
 
-	constructor(e) {
-		e = e || {}; super(e);
-		$.extend(this, {
-			_filter: e.filter, _source: e.source, _parentItem: e.parentItem,
-			_visibleItems: e.visibleItems, _userData: e.userData
-		})
-	}
+	constructor(e) { e = e || {}; super(e); $.extend(this, { _filter: e.filter, _source: e.source, _parentItem: e.parentItem, _visibleItems: e.visibleItems, _userData: e.userData }) }
 	runDevam(e) {
 		e = e || {}; super.runDevam(e); const {layout} = this;
 		layout.addClass(`${this.class.partName} part`);
@@ -66,26 +39,19 @@ class MenuPart extends Part {
 			nav: menuParent.find('.nav'),
 			itemsParent: menuParent.find('.items-parent'),
 			hizliBulPart: new ModelKullanPart({
-				sender: this, width: '100%', height: 80,
-				layout: layout.find('.hizliBul'), kodSaha: 'mneText', adiSaha: 'text',
+				sender: this, autoBind: true, width: '100%', height: 80, layout: layout.find('.hizliBul'), kodSaha: 'mneText', adiSaha: 'text',
 				listeArgsDuzenle: e => { $.extend(e.args, { showGroupsHeader: false }) },
 				argsDuzenleBlock: e => { $.extend(e.args, { itemHeight: false, autoDropDownHeight: false, dropDownHeight: 350 }) },
 				source: e => {
 					e = e || {}; const {sender, value} = e, savedFilter = this.filter;
 					const filter = value ? value.split(' ').filter(x => !!x) : null; let result = this.source;
 					if (result && $.isFunction(result)) { e.sender = this; result = getFuncValue.call(this, result, e) }
-					if (result && result.id2Item)
-						result = Object.values(result.id2Item || {})
+					if (result && result.id2Item) { result = Object.values(result.id2Item || {}) }
 					if (result) {
-						for (const item of result) {
-							if (item.group == null)
-								item.group = item.parentItem ? item.parentItem.text : ' ';
-						}
-						const _e = { filter: filter, kosul: e => e.item.choicemi };
-						result = result.filter(item => item.uygunmu(_e))
+						for (const item of result) { if (item.group == null) { item.group = item.parentItem ? item.parentItem.text : ' ' } }
+						const _e = { filter, kosul: e => e.item.choicemi }; result = result.filter(item => item.uygunmu(_e))
 					}
-					if (sender && sender.isGridPart)
-						result = result.map(menuItem => { return { mneText: menuItem.mnemonic, aciklama: menuItem.text, disabled: menuItem.isDisabled } })
+					if (sender?.isGridPart) { result = result.map(menuItem => { return { mneText: menuItem.mnemonic, aciklama: menuItem.text, disabled: menuItem.isDisabled } }) }
 					return result
 				},
 				degisince: e => {
@@ -96,7 +62,7 @@ class MenuPart extends Part {
 						const {mneText} = (item || {}); sender.val(mneText || ''); if (!item) { return }
 						if ($.isPlainObject(item)) { item = this.source.mne2Item[item.mneText] }
 						if (item.cascademi && this.parentItem != item) { this.parentItem = item; this.tazele() }
-						else if (item.choicemi) { try { item.run({ ...e, menuItemElement: item }) } catch (ex) { hConfirm(getErrorText(ex), item.text); throw ex } }
+							else if (item.choicemi) { try { item.run({ ...e, menuItemElement: item }) } catch (ex) { hConfirm(getErrorText(ex), item.text); throw ex } }
 					};
 					if (item) { islemBlock(item); return }
 					if (value) {
@@ -116,10 +82,8 @@ class MenuPart extends Part {
 		return this
 	}
 	tazele(e) {
-		const {hizliBulPart} = this; if (hizliBulPart?.widget && !hizliBulPart.isDestroyed) {
-			const {parentItem} = this, mneText = parentItem ? parentItem.mneText : '';
-			hizliBulPart.val(mneText)
-		}
+		const {hizliBulPart} = this;
+		if (hizliBulPart?.widget && !hizliBulPart.isDestroyed) { const {parentItem} = this, mneText = parentItem ? parentItem.mneText : ''; hizliBulPart.val(mneText) }
 		return this.tazeleDevam(e)
 	}
 	async tazeleDevam(e) {
