@@ -104,7 +104,7 @@ class MQHasta extends MQGuidVeAdiOrtak {
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e, {yakinSayi} = this; $.extend(pTanim, {
 			tcKimlikNo: new PInstStr('tcno'), okulTipId: new PInstGuid('okultipid'), tel: new PInstStr('tel'),
-			yerlesimKod: new PInstStr('yerlesimkod'), acikAdres: new PInstStr('acikadres')
+			eMail: new PInstStr('email'), yerlesimKod: new PInstStr('yerlesimkod'), acikAdres: new PInstStr('acikadres')
 		});
 		for (let i = 1; i <= yakinSayi; i++) {
 			const KeyPrefix = `yakin${i}`; pTanim[`${KeyPrefix}Adi`] = new PInstStr(`${KeyPrefix}adi`);
@@ -116,8 +116,8 @@ class MQHasta extends MQGuidVeAdiOrtak {
 			new GridKolon({ belirtec: 'tcno', text: 'TC Kimlik No', genislikCh: 13 }),
 			new GridKolon({ belirtec: 'okultipid', text: 'Okul Tip ID', genislikCh: 36 }),
 			new GridKolon({ belirtec: 'okultipadi', text: 'Okul Tip Adı', genislikCh: 10, sql: 'okt.aciklama' }), new GridKolon({ belirtec: 'tel', text: 'Telefon', genislikCh: 10 }),
-			new GridKolon({ belirtec: 'yerlesimkod', text: 'Yerleşim', genislikCh: 10, filterType: 'checkedlist' }), new GridKolon({ belirtec: 'yerlesimadi', text: 'Yerleşim Adı', genislikCh: 30, sql: 'yer.aciklama' }),
-			new GridKolon({ belirtec: 'acikadres', text: 'Açık Adres' })
+			new GridKolon({ belirtec: 'email', text: 'e-mail', genislikCh: 50 }), new GridKolon({ belirtec: 'yerlesimkod', text: 'Yerleşim', genislikCh: 10, filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'yerlesimadi', text: 'Yerleşim Adı', genislikCh: 30, sql: 'yer.aciklama' }), new GridKolon({ belirtec: 'acikadres', text: 'Açık Adres' })
 		);
 		for (let i = 1; i <= yakinSayi; i++) {
 			liste.push(
@@ -135,6 +135,7 @@ class MQHasta extends MQGuidVeAdiOrtak {
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPanel, tabPage_genel} = e, {yakinSayi} = this;
 		let form = tabPage_genel.addFormWithParent().yanYana(2); form.addTextInput('tcKimlikNo', 'T.C Kimlik No').setMaxLength(11).addStyle_wh(200);
+		form.addTextInput('tel', 'Telefon').setMaxLength(13).addStyle_wh(150); form.addTextInput('eMail', 'e-Mail').setMaxLength(80)
 		form.addModelKullan('okulTipId', 'Okul Tipi').comboBox().kodsuz().autoBind().setMFSinif(MQOkulTipi).addStyle_wh(200);
 		form.addModelKullan('yerlesimKod', 'Yerleşim').comboBox().kodsuz().autoBind().setMFSinif(MQYerlesim).addStyle_wh(300);
 		let tabPage_yakinlar = tabPanel.addTab('yakinlar', 'Yakınlar').altAlta();

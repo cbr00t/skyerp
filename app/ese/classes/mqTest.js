@@ -22,8 +22,12 @@ class MQTest extends MQGuidOrtak {
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); $.extend(e.pTanim, {
 			muayeneId: new PInstGuid('muayeneid'), tarihSaat: new PInstDate('tarihsaat'), tamamlandimi: new PInstBitBool('btamamlandi'),
-			uygulanmaYeri: new PInstTekSecim('uygulanmayeri', MQTestUygulanmaYeri)
+			uygulanmaYeri: new PInstTekSecim('uygulanmayeri', MQTestUygulanmaYeri), onayKodu: new PInstNum('onaykodu')
 		})
+	}
+	static ekCSSDuzenle(e) {
+		super.ekCSSDuzenle(e); const {dataField: belirtec, rec, result} = e;
+		if (belirtec == 'onaykodu') { result.push('center bold royalblue') }
 	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {tableAlias: alias} = this, {liste} = e, {dev} = config;
@@ -36,7 +40,8 @@ class MQTest extends MQGuidOrtak {
 			new GridKolon({ belirtec: 'seri', text: 'Seri', genislikCh: 5, sql: 'mua.seri' }),
 			new GridKolon({ belirtec: 'fisno', text: 'No', genislikCh: 17, sql: 'mua.fisno' }).tipNumerik(),
 			new GridKolon({ belirtec: 'btamamlandi', text: 'Tamam?', genislikCh: 8 }).tipBool(),
-			new GridKolon({ belirtec: 'uygulanmayeritext', text: 'Uygulanma Yeri', genislikCh: 15, sql: MQTestUygulanmaYeri.getClause(`${alias}.uygulanmayeri`) })
+			new GridKolon({ belirtec: 'uygulanmayeritext', text: 'Uygulanma Yeri', genislikCh: 15, sql: MQTestUygulanmaYeri.getClause(`${alias}.uygulanmayeri`) }),
+			new GridKolon({ belirtec: 'onaykodu', text: 'Onay Kodu', genislikCh: 10 })
 		].filter(x => !!x))
 	}
 	static loadServerData_queryDuzenle(e) {
@@ -47,15 +52,17 @@ class MQTest extends MQGuidOrtak {
 		sent.sahalar.add(`${alias}.uygulanmayeri`)
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
-		super.islemTuslariDuzenle_listeEkrani(e) /*; let {liste} = e; const removeIdSet = asSet(['yeni', 'kopya']);
-		liste = e.liste = liste.filter(rec => !removeIdSet[rec.id])*/
+		super.islemTuslariDuzenle_listeEkrani(e); let {liste} = e; liste.push(
+			{ id: 'eMailGonder', text: 'EMail', handler: _e => this.eMailGonder({ ...e, ..._e, id: _e.event.currentTarget.id }) },
+			{ id: 'testBaslat', text: 'Başlat', handler: _e => this.testBaslatIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) }
+		)
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); const {tanimFormBuilder: tanimForm} = e; 
 		tanimForm.addDiv('ozetBilgi').etiketGosterim_yok().addCSS('bold gray').addStyle_fullWH(null, 'auto').addStyle(e => `$elementCSS { font-size: 120%; padding: 10px 20px }`)
 			.onAfterRun(async e => {
 				const {altInst: inst, input} = e.builder, {sablonId, tarihSaat, muayeneId, tamamlandimi} = inst, {sablonTip} = inst.class;
-				let {uygulanmaYeri} = inst, sablonAdi, muayeneRec;
+				let {uygulanmaYeri, onayKodu} = inst, sablonAdi, muayeneRec;
 				if (sablonTip && sablonId) { sablonAdi = (await MQSablon.getClass(sablonTip)?.getGloKod2Adi(sablonId)) || '' }
 				if (muayeneId) { muayeneRec = await new MQMuayene({ id: muayeneId }).tekilOku() }
 				uygulanmaYeri = uygulanmaYeri?.char ?? uygulanmaYeri;
@@ -64,11 +71,31 @@ class MQTest extends MQGuidOrtak {
 					if (!elm?.length) { return } let parent = $(`<div class="full-width"${style ? ` style="${style}"` : ''}/>`); if (css) { parent.addClass(css) }
 					elm.appendTo(parent); parent.appendTo(input)
 				};
-				if (sablonAdi) { addItem(sablonAdi, 'bold', `font-size: 150%; color: #999`) }
-				addItem(`${tarihSaat ? `Tarih/Saat: <b>${dateTimeAsKisaString(tarihSaat)}</b>` : ''} ${tamamlandimi ? `<div class="forestgreen" style="margin-left: "20px">Tamamlandı</b>` : ''}`, 'flex-row');
-				if (muayeneRec) { addItem(`Muayene: <b>${muayeneRec.fisnox}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }
-				if (uygulanmaYeri) { addItem(`Uygulanma Yeri: <b>${MQTestUygulanmaYeri.kaDict[uygulanmaYeri]?.aciklama || ''}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }
+				if (sablonAdi) { addItem(sablonAdi, 'veri bold', `font-size: 150%; color: #999`) }
+				addItem(`${tarihSaat ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri">${dateTimeAsKisaString(tarihSaat)}</b>` : ''} ${tamamlandimi ? `<div class="forestgreen" style="margin-left: "20px">Tamamlandı</b>` : ''}`, 'flex-row');
+				if (muayeneRec) { addItem(`<span class="gray etiket">Muayene:</span> <b class="veri">${muayeneRec.fisnox}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }
+				if (uygulanmaYeri) { addItem(`<span class="kgray etiket">Uygulanma Yeri:</span> <b>${MQTestUygulanmaYeri.kaDict[uygulanmaYeri]?.aciklama || ''}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }
+				if (onayKodu) { addItem(`<span class="gray etiket">Onay Kodu:</span> <b class="onayKodu veri royalblue">${onayKodu}</b>`) }
+
+				let elm = input.find('.onayKodu.veri');
+				if (elm?.length) { elm.on('click', evt => { navigator.clipboard.writeText(onayKodu).then(() => eConfirm('Onay Kodu panoya kopyalandı!', this.sinifAdi)) }) }
 			})
+	}
+	static async eMailIstendi(e) {
+		debugger;
+		const {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender;
+		const tip = e.id.replace('TestYap', ''), testSinif = MQTest.getClass(tip); if (!testSinif) { hConfirm('Uygun Test Sınıfı belirlenemedi', sinifAdi); return }
+		let {selectedRecs} = gridPart; if (!selectedRecs?.length) { hConfirm('Kayıtlar seçilmelidir', sinifAdi); return }
+		selectedRecs = selectedRecs.filter(rec => !!rec[`b${tip}yapilacak`]); let idListe = selectedRecs?.map(rec => rec.id);
+		if (!idListe?.length) { hConfirm(`Seçilenler içinde <b>${tip.toUpperCase()}</b> için uygun test yok`, sinifAdi); return }
+	}
+	static async baslatIstendi(e) {
+		debugger;
+		const {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender;
+		const tip = e.id.replace('TestYap', ''), testSinif = MQTest.getClass(tip); if (!testSinif) { hConfirm('Uygun Test Sınıfı belirlenemedi', sinifAdi); return }
+		let {selectedRecs} = gridPart; if (!selectedRecs?.length) { hConfirm('Kayıtlar seçilmelidir', sinifAdi); return }
+		selectedRecs = selectedRecs.filter(rec => !!rec[`b${tip}yapilacak`]); let idListe = selectedRecs?.map(rec => rec.id);
+		if (!idListe?.length) { hConfirm(`Seçilenler içinde <b>${tip.toUpperCase()}</b> için uygun test yok`, sinifAdi); return }
 	}
 }
 class MQTestCPT extends MQTest {
@@ -84,5 +111,5 @@ class MQTestESE extends MQTest {
 
 class MQTestUygulanmaYeri extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' }
-	kaListeDuzenle(e) { super.kaListeDuzenle(e); e.kaListe.push(new CKodVeAdi(['', 'Muayenehnae', 'muayenehanemi']), new CKodVeAdi(['IN', 'İnternet', 'internetmi'])) }
+	kaListeDuzenle(e) { super.kaListeDuzenle(e); e.kaListe.push(new CKodVeAdi(['', 'Muayenehane', 'muayenehanemi']), new CKodVeAdi(['IN', 'İnternet', 'internetmi'])) }
 }

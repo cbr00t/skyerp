@@ -3,6 +3,7 @@
 .eseResim.part .dokumanForm, .eseResim.part .skyResim.part #resim > .widget,
 	.eseResim.part .skyResim.part #resim > .widget .item > .content { background-color: #111 !important; margin: 0 !important; padding: 0 !important }
 .eseResim.part .skyResim.part { height: calc(var(--full) - 50px) !important }
+.MQMuayene.masterListe.part .islemTuslari #cptTestEkraniAc { margin-left: 10px }
 /*.MQTestCPT.masterListe.part .islemTuslari button#degistir,
 	.MQTestESE.masterListe.part .islemTuslari button#degistir { margin-left: 40px; margin-right: 20px; background-image: url(../../images/izle.png) !important }
 .MQTestCPT.masterListe.part .islemTuslari button#degistir.jqx-fill-state-normal,

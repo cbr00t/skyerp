@@ -1,0 +1,49 @@
+bilinenler: hasta id/adı , muayene id, test tip/id
+Login sonrası
+
+1) Bilgi Ekranı:
+	Hasta Adı, Muayene Tarihi, Doktor Adı, (Test Tipi ... uygulanacaktır)
+	... [ Hazırsanız DEVAM tuşuna basınız ] ...
+
+2) DEVAM sonrası => İnternet Test Ekranı aç:
+	HEADER:
+		Hasta Adı, Muayene Tarihi, Doktor Adı, Test Tipi
+	CONTENT:
+		Content Form:
+			- cpt:
+				- UST:
+					... {- gecerliresimseq} Resmini gördüğünüzde ENTER tuşuna basınız ...
+				- Sub Content:
+					Resim Gösterimi (esecptsablon)
+						- resimarasisn (random resim gösterim)
+							for (i = 1 -> gruptekrarsayisi):
+								orjDizi = dizi = [0, 1, 2, 9, ..max - 1]
+								while (dizi dolu):
+									((rand() * max) - 1)  resim gösterilir
+									array'den sil; max--
+
+				- Grup çevrimleri bitince => TEST BİTTİ
+			
+			- ese:
+				- Sorular ve Şıklar (layout):
+					-----------------------------------
+					Soru .............
+					............. .............
+					............. .............
+						
+						[ 1 ]    [ 2 ]
+					
+					-----------------------------------
+
+				- [ TEST'İ TAMAMLADIM ] => TEST BİTTİ
+
+3) TEST BİTTİ
+	HEADER:
+		Hasta Adı, Muayene Tarihi, Doktor Adı, Test Tipi
+	CONTENT:
+		--------------------------------------
+		<BIG> Test tamamlanmıştır </BIG>
+		
+		... Olası Sonuç Özet Gösterimi ..
+		
+		--------------------------------------

@@ -14,8 +14,10 @@ class MQMuayene extends MQGuidOrtak {
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e); let {liste} = e; liste.push(
-			{ id: 'cptTest', text: 'CPT Test', handler: _e => this.testYapIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) },
-			{ id: 'eseTest', text: 'ESE Test', handler: _e => this.testYapIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) }
+			{ id: 'cptTestOlustur', text: 'CPT Kayıt', handler: _e => this.testOlusturIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) },
+			{ id: 'eseTestOlustur', text: 'ESE Kayıt', handler: _e => this.testOlusturIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) },
+			{ id: 'cptTestEkraniAc', text: 'CPT Aç', handler: _e => this.testEkraniAcIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) },
+			{ id: 'eseTestEkraniAc', text: 'ESE Aç', handler: _e => this.testEkraniAcIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) }
 		)
 	}
 	static orjBaslikListesiDuzenle(e) {
@@ -57,9 +59,9 @@ class MQMuayene extends MQGuidOrtak {
 		form = tabPage_genel.addFormWithParent().altAlta(); form.addTextArea('tani', 'Tanı').setMaxLength(3000).setRows(8)
 	}
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { resimsayisi: this.resimSayisi }) }
-	static async testYapIstendi(e) {
+	static async testOlusturIstendi(e) {
 		const {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender;
-		const tip = e.id.replace('Test', ''), testSinif = MQTest.getClass(tip); if (!testSinif) { hConfirm('Uygun Test Sınıfı belirlenemedi', sinifAdi); return }
+		const tip = e.id.replace('TestOlustur', ''), testSinif = MQTest.getClass(tip); if (!testSinif) { hConfirm('Uygun Test Sınıfı belirlenemedi', sinifAdi); return }
 		let {selectedRecs} = gridPart; if (!selectedRecs?.length) { hConfirm('Kayıtlar seçilmelidir', sinifAdi); return }
 		selectedRecs = selectedRecs.filter(rec => !!rec[`b${tip}yapilacak`]); let idListe = selectedRecs?.map(rec => rec.id);
 		if (!idListe?.length) { hConfirm(`Seçilenler içinde <b>${tip.toUpperCase()}</b> için uygun test yok`, sinifAdi); return }
@@ -68,10 +70,35 @@ class MQMuayene extends MQGuidOrtak {
 		if (!bostaIdListe?.length) { hConfirm('Yapılmamış uygun test bulunamadı', sinifAdi); return }
 		let rdlg = await ehConfirm(`<b class="bold forestgreen">${bostaIdListe.length}</b> adet <b class="royalblue">${tip.toUpperCase()} Test</b> kaydı açılacak, devam edilsin mi?`, sinifAdi);
 		if (!rdlg) { return } let promises = []; for (const muayeneId of bostaIdListe) {
-			const tarihSaat = now(), tamamlandimi = false, testInst = new testSinif({ muayeneId, tarihSaat, tamamlandimi }); promises.push(testInst.yaz())
-		} await Promise.all(promises);
-		testSinif.listeEkraniAc(e); setTimeout(() => {
+			const tarihSaat = now(), tamamlandimi = false; let onayKodu = 0; while (onayKodu < 100000) { onayKodu = asInteger(Math.random() * 10000000) }
+			const testInst = new testSinif({ muayeneId, tarihSaat, tamamlandimi, onayKodu }); promises.push(testInst.yaz())
+		} await Promise.all(promises); gridPart.tazele();
+		/*testSinif.listeEkraniAc(e);*/ setTimeout(() => {
 			eConfirm(`<b class="bold forestgreen">${bostaIdListe.length}</b> adet <b class="royalblue">${tip.toUpperCase()} Test</b> kaydı açıldı`, sinifAdi) }, 200)
 		/* MQTest kaydı aç (muayeneid = id, btamamlandi = 0) */
 	}
+	static async testEkraniAcIstendi(e) {
+		const {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender;
+		const tip = e.id.replace('TestEkraniAc', ''), testSinif = MQTest.getClass(tip); if (!testSinif) { hConfirm('Uygun Test Sınıfı belirlenemedi', sinifAdi); return }
+		return testSinif.listeEkraniAc()
+	}
 }
+
+
+/*
+static topluXMenuIstendi(e) {
+		e = e || {}; const {parentRec} = e, {sabitHatKod} = app, hatKod = e.hatKod = e.hatKod ?? parentRec?.hatKod;
+		$.extend(e, { noCheck: true, formDuzenleyici: _e => {
+			_e = $.extend({}, e, _e); const {form, close} = _e; form.yanYana(2);
+			form.addButton('mola', undefined, 'Mola').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
+			form.addButton('vardiyaDegisimi', undefined, 'Vardiya Değişimi').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
+			if (!sabitHatKod || hatKod) {
+				if (config.dev) { form.addButton('devam', undefined, 'Toplu Devam').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) }) }
+				form.addButton('isBitti', undefined, 'İş Bitti').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
+				form.addButton('gerceklemeYap', undefined, 'Gerçekleme Yap').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
+				form.addButton('zamanEtuduBaslat', undefined, 'Zaman Etüdü Başlat').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
+				form.addButton('zamanEtuduKapat', undefined, 'Zaman Etüdü Kapat').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) })
+			}
+		} }); this.openContextMenu(e)
+	}
+*/
