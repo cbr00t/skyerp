@@ -20,12 +20,15 @@ class MQSablonCPT extends MQSablon {
 	static get detaySinif() { return MQSablonCPTDetay } static get gridKontrolcuSinif() { return MQSablonCPTGridci } get resimSayisi() { return this.detaylar?.length }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); $.extend(e.pTanim, {
-			resimArasiSn: new PInstNum('resimarasisn'), gecerliResimSeq: new PInstNum({ rowAttr: 'gecerliresimseq', init: e => 1 }) })
+			resimArasiSn: new PInstNum('resimarasisn'), gecerliResimSeq: new PInstNum({ rowAttr: 'gecerliresimseq', init: e => 1 }),
+			grupTekrarSayisi: new PInstNum({ rowAttr: 'gruptekrarsayisi', init: e => 1 })
+		})
 	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); e.liste.push(
 			/*new GridKolon({ belirtec: 'resimsayisi', text: 'Resim Sayısı', genislikCh: 13, filterType: 'checkedlist', sql: `(select count(*) from esecptsablondetay where id = id)` }),*/
 			new GridKolon({ belirtec: 'resimarasisn', text: 'Resim Arası (sn)', genislikCh: 13, filterType: 'checkedlist' }).tipNumerik(),
+			new GridKolon({ belirtec: 'gruptekrarsayisi', text: 'Grup Tekrar Sayısı', genislikCh: 13, filterType: 'checkedlist' }).tipNumerik(),
 			new GridKolon({ belirtec: 'gecerliresimseq', text: 'Geçerli Resim No', genislikCh: 13, filterType: 'checkedlist' }).tipNumerik()
 		)
 	}
@@ -36,9 +39,9 @@ class MQSablonCPT extends MQSablon {
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); const {tabPage_genel, kaForm} = e, {aciklama: fbd_aciklama} = kaForm?.id2Builder;
-		fbd_aciklama?.addStyle_wh('calc(var(--full) - 330px)'); let form = kaForm.yanYana();
-		/*let form = tabPage_genel.addFormWithParent().yanYana(2);*/ form.addNumberInput('resimArasiSn', 'Resim Arası (sn)').addStyle_wh(130);
-			form.addNumberInput('gecerliResimSeq', 'Geçerli Resim No').addStyle_wh(150)
+		fbd_aciklama?.addStyle_wh('calc(var(--full) - 450px)'); let form = kaForm.yanYana();
+		form.addNumberInput('resimArasiSn', 'Resim Arası (sn)').addStyle_wh(130); form.addNumberInput('grupTekrarSayisi', 'Grup Tekrar').addStyle_wh(130); 
+		form.addNumberInput('gecerliResimSeq', 'Geçerli Resim No').addStyle_wh(150)
 	}
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { resimsayisi: this.resimSayisi }) }
 }

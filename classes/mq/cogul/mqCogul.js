@@ -567,8 +567,7 @@ class MQCogul extends MQYapi {
 	pIO_hostVarsDuzenle(e) { super.pIO_hostVarsDuzenle(e); this.forAltYapiKeysDo('pIO_hostVarsDuzenle', e) }
 	hostVarsDuzenle(e) {
 		super.hostVarsDuzenle(e); const {hv, ozelSahaYapilari} = e, {ayrimlar, ozelSahalar} = this, {ayrimIsimleri} = this.class;
-		if (!$.isEmptyObject(ayrimIsimleri))
-			for (let i = 0; i < ayrimIsimleri.length; i++) { const seq = i + 1, value = ayrimlar[seq] || null; hv[`ayrim${seq}`] = value }
+		if (!$.isEmptyObject(ayrimIsimleri)) { for (let i = 0; i < ayrimIsimleri.length; i++) { const seq = i + 1, value = ayrimlar[seq] || null; hv[`ayrim${seq}`] = value } }
 		if (window.MQOzelSahaDetay && !$.isEmptyObject(ozelSahaYapilari)) {
 			const {prefix} = MQOzelSahaDetay;
 			for (const ozelSahaGrup of ozelSahaYapilari) {

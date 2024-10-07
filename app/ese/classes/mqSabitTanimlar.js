@@ -151,7 +151,7 @@ class MQDoktor extends MQGuidVeAdiOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Doktor' }
 	static get kodListeTipi() { return 'DOKTOR' } static get table() { return 'esedoktor' } static get tableAlias() { return 'dok' }
 	static get ignoreBelirtecSet() { return {...super.ignoreBelirtecSet, ...asSet(['kurumid']) } }
-	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { tel: new PInstStr('tel'), tel2: new PInstStr('tel2'), kurumId: new PInstStr('kurumid') }) }
+	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { tel: new PInstStr('tel'), tel2: new PInstStr('tel2'), kurumId: new PInstGuid('kurumid') }) }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(
 			new GridKolon({ belirtec: 'tel', text: 'Telefon 1', genislikCh: 10 }), new GridKolon({ belirtec: 'tel2', text: 'Telefon 2', genislikCh: 10 }),
@@ -160,8 +160,8 @@ class MQDoktor extends MQGuidVeAdiOrtak {
 		)
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {sent} = e, alias = this.tableAlias;
-		sent.fromIliski('esekurum krm', `${alias}.kurumid = krm.id`);
+		super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this;
+		sent.leftJoin({ alias, from: 'esekurum krm', on: `${alias}.kurumid = krm.id` });
 		sent.sahalar.add(`${alias}.kurumid`)
 	}
 	static rootFormBuilderDuzenle(e) {

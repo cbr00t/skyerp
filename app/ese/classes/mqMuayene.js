@@ -1,7 +1,7 @@
 class MQMuayene extends MQGuidOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muayene' } static get adiSaha() { return 'fisnox' }
 	static get kodListeTipi() { return 'MUAYENE' } static get table() { return 'esemuayene' } static get tableAlias() { return 'mua' }
-	static get ignoreBelirtecSet() { return {...super.ignoreBelirtecSet, ...asSet(['hastaid']) } }
+	static get ignoreBelirtecSet() { return {...super.ignoreBelirtecSet, ...asSet(['hastaid', 'doktorid']) } }
 	get tarih() { const {tarihSaat} = this; return tarihSaat?.clearTime ? new Date(tarihSaat).clearTime() : tarihSaat } set tarih(value) { this.tarihSaat = value?.clearTime ? new Date(value).clearTime() : value }
 	get saat() { return timeToString(this.tarihSaat) } set saat(value) { const {tarihSaat} = this; if (value) { setTime(tarihSaat, asDate(value).getTime()) } }
 	get fisNox() { return [this.seri || '', this.fisNo?.toString()].join('') }
@@ -14,15 +14,13 @@ class MQMuayene extends MQGuidOrtak {
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e); let {liste} = e; liste.push(
-			{ id: 'cptTestOlustur', text: 'CPT Kayıt', handler: _e => this.testOlusturIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) },
-			{ id: 'eseTestOlustur', text: 'ESE Kayıt', handler: _e => this.testOlusturIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) },
-			{ id: 'cptTestEkraniAc', text: 'CPT Aç', handler: _e => this.testEkraniAcIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) },
-			{ id: 'eseTestEkraniAc', text: 'ESE Aç', handler: _e => this.testEkraniAcIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) }
+			{ id: 'testIslemleri', text: 'TEST', handler: _e => this.testIslemleriIstendi({ ...e, ..._e }) }
 		)
 	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {tableAlias: alias} = this, {liste} = e; liste.push(
 			new GridKolon({ belirtec: 'hastaid', text: 'Hasta ID', genislikCh: 40 }), new GridKolon({ belirtec: 'hastaadi', text: 'Hasta Adı', genislikCh: 30, sql: 'has.aciklama' }),
+			new GridKolon({ belirtec: 'doktorid', text: 'Doktor ID', genislikCh: 40 }), new GridKolon({ belirtec: 'doktoradi', text: 'Doktor Adı', genislikCh: 30, sql: 'dok.aciklama' }),
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 10, sql: `${alias}.tarihsaat` }).tipDate(),
 			new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 9, sql: `${alias}.tarihsaat` }).tipTime(),
 			new GridKolon({ belirtec: 'seri', text: 'Seri', genislikCh: 5, filterType: 'checkedlist' }), new GridKolon({ belirtec: 'fisno', text: 'No', genislikCh: 15, filterType: 'checkedlist' }).tipNumerik(),
@@ -40,6 +38,7 @@ class MQMuayene extends MQGuidOrtak {
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias, adiSaha} = this;
 		sent.fromIliski('esehasta has', `${alias}.hastaid = has.id`)
+			.leftJoin({ alias, from: 'esedoktor dok', on: `${alias}.doktorid = dok.id` })
 			.leftJoin({ alias, from: 'esecpttest tcpt', on: `${alias}.id = tcpt.muayeneid` })
 			.leftJoin({ alias, from: 'eseesetest tese', on: `${alias}.id = tese.muayeneid` })
 		sent.sahalar.add(
@@ -55,10 +54,21 @@ class MQMuayene extends MQGuidOrtak {
 			form.addTextInput('seri', 'Seri').setMaxLength(3).addStyle_wh(70).addCSS('center'); form.addNumberInput('fisNo', 'No').setMaxLength(17).addStyle_wh(200);
 			form.addCheckBox('ese', 'ESE?'); form.addNumberInput('esePuani', 'ESE Puanı').readOnly().etiketGosterim_placeholder().addStyle_wh(90);
 			form.addCheckBox('cpt', 'CPT?'); form.addNumberInput('cptPuani', 'CPT Puanı').readOnly().etiketGosterim_placeholder().addStyle_wh(90);
-		form = tabPage_genel.addFormWithParent().yanYana(); form.addModelKullan('hastaId', 'Hasta').comboBox().kodsuz().autoBind().setMFSinif(MQHasta);
+		form = tabPage_genel.addFormWithParent().yanYana(); form.addModelKullan('hastaId', 'Hasta').comboBox().kodsuz().autoBind().setMFSinif(MQHasta); 
+			form.addModelKullan('doktorId', 'Doktor').comboBox().kodsuz().autoBind().setMFSinif(MQDoktor);
 		form = tabPage_genel.addFormWithParent().altAlta(); form.addTextArea('tani', 'Tanı').setMaxLength(3000).setRows(8)
 	}
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { resimsayisi: this.resimSayisi }) }
+	static testIslemleriIstendi(e) {
+		const gridPart = e.gridPart ?? e.parentPart ?? e.sender, title = 'Test İşlemleri';
+		app.activeWndPart.openContextMenu({ gridPart, title, formDuzenleyici: _e => {
+			const {form, close} = _e; form.yanYana(2);
+			let handler = __e => { close(); this.testOlusturIstendi({ ...e, ..._e, ...__e, id: __e.builder.id }) };
+				form.addButton('cptTestOlustur', 'CPT Kayıt').onClick(handler); form.addButton('eseTestOlustur', 'ESE Kayıt').onClick(handler);
+			handler = __e => { close(); this.testEkraniAcIstendi({ ...e, ..._e, ...__e, id: __e.builder.id }) };
+				form.addButton('cptTestEkraniAc', 'CPT Aç').onClick(handler); form.addButton('eseTestEkraniAc', 'ESE Aç').onClick(handler)
+		} })
+	}
 	static async testOlusturIstendi(e) {
 		const {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender;
 		const tip = e.id.replace('TestOlustur', ''), testSinif = MQTest.getClass(tip); if (!testSinif) { hConfirm('Uygun Test Sınıfı belirlenemedi', sinifAdi); return }
@@ -72,10 +82,8 @@ class MQMuayene extends MQGuidOrtak {
 		if (!rdlg) { return } let promises = []; for (const muayeneId of bostaIdListe) {
 			const tarihSaat = now(), tamamlandimi = false; let onayKodu = 0; while (onayKodu < 100000) { onayKodu = asInteger(Math.random() * 1000000) }
 			const testInst = new testSinif({ muayeneId, tarihSaat, tamamlandimi, onayKodu }); promises.push(testInst.yaz())
-		} await Promise.all(promises); gridPart.tazele();
-		/*testSinif.listeEkraniAc(e);*/ setTimeout(() => {
-			eConfirm(`<b class="bold forestgreen">${bostaIdListe.length}</b> adet <b class="royalblue">${tip.toUpperCase()} Test</b> kaydı açıldı`, sinifAdi) }, 200)
-		/* MQTest kaydı aç (muayeneid = id, btamamlandi = 0) */
+		} await Promise.all(promises); gridPart.tazele(); /*testSinif.listeEkraniAc(e);*/
+		setTimeout(() => { eConfirm(`<b class="bold forestgreen">${bostaIdListe.length}</b> adet <b class="royalblue">${tip.toUpperCase()} Test</b> kaydı açıldı`, sinifAdi) }, 200)
 	}
 	static async testEkraniAcIstendi(e) {
 		const {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender;

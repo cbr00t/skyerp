@@ -12,6 +12,7 @@ class MQTest extends MQGuidOrtak {
    }
 	get tarih() { const {tarihSaat} = this; return tarihSaat?.clearTime ? new Date(tarihSaat).clearTime() : tarihSaat } set tarih(value) { this.tarihSaat = value?.clearTime ? new Date(value).clearTime() : value }
 	get saat() { return timeToString(this.tarihSaat) } set saat(value) { const {tarihSaat} = this; if (value) { setTime(tarihSaat, asDate(value).getTime()) } }
+	get uiStates() { let result = this._uiStates; if (result == null) { let _e = { liste: [] }; this.uiStatesDuzenle(_e); result = this._uiStates = _e.liste } return result }
 
 	constructor(e) {
 		e = e || {}; super(e); const {sablonTip} = this.class;
@@ -53,7 +54,7 @@ class MQTest extends MQGuidOrtak {
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e); let {liste} = e; liste.push(
-			{ id: 'eMailGonder', text: 'EMail', handler: _e => this.eMailGonder({ ...e, ..._e, id: _e.event.currentTarget.id }) },
+			{ id: 'eMailGonder', text: 'EMail', handler: _e => this.eMailGonderIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) },
 			{ id: 'testBaslat', text: 'Başlat', handler: _e => this.testBaslatIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) }
 		)
 	}
@@ -81,27 +82,86 @@ class MQTest extends MQGuidOrtak {
 				if (elm?.length) { elm.on('click', evt => { navigator.clipboard.writeText(onayKodu).then(() => eConfirm('Onay Kodu panoya kopyalandı!', this.sinifAdi)) }) }
 			})
 	}
-	static async eMailIstendi(e) {
-		debugger;
+	static async eMailGonderIstendi(e) {
 		const {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender;
-		const tip = e.id.replace('TestYap', ''), testSinif = MQTest.getClass(tip); if (!testSinif) { hConfirm('Uygun Test Sınıfı belirlenemedi', sinifAdi); return }
 		let {selectedRecs} = gridPart; if (!selectedRecs?.length) { hConfirm('Kayıtlar seçilmelidir', sinifAdi); return }
-		selectedRecs = selectedRecs.filter(rec => !!rec[`b${tip}yapilacak`]); let idListe = selectedRecs?.map(rec => rec.id);
-		if (!idListe?.length) { hConfirm(`Seçilenler içinde <b>${tip.toUpperCase()}</b> için uygun test yok`, sinifAdi); return }
+		const idListe = selectedRecs.map(rec => rec.id); debugger
 	}
-	static async baslatIstendi(e) {
-		debugger;
+	static async testBaslatIstendi(e) {
 		const {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender;
-		const tip = e.id.replace('TestYap', ''), testSinif = MQTest.getClass(tip); if (!testSinif) { hConfirm('Uygun Test Sınıfı belirlenemedi', sinifAdi); return }
 		let {selectedRecs} = gridPart; if (!selectedRecs?.length) { hConfirm('Kayıtlar seçilmelidir', sinifAdi); return }
-		selectedRecs = selectedRecs.filter(rec => !!rec[`b${tip}yapilacak`]); let idListe = selectedRecs?.map(rec => rec.id);
-		if (!idListe?.length) { hConfirm(`Seçilenler içinde <b>${tip.toUpperCase()}</b> için uygun test yok`, sinifAdi); return }
+		let rec = selectedRecs[0]; if (!rec) { hConfirm(`Test seçilmelidir`, sinifAdi); return }
+		let {id} = rec, inst = new this({ id }); inst.baslat(e)
 	}
+	static baslat(e) { let inst = new this({ id: e.testId ?? e.id }); return inst.baslat(e) }
+	async baslat(e) {
+		const inst = this, {tip} = inst.class, {id} = inst;
+		clearTimeout(this._timerProgress); this._timerProgress = setTimeout(() => showProgress(), 500);
+		try {
+			let rec = (await app.wsTestBilgi({ tip, id })) || {}; await this.testUI_setValues({ rec });
+			let part = new TestPart({ inst }); await part.run(); return { inst, part }
+		}
+		catch (ex) { hConfirm(getErrorText(ex), this.sinifAdi); throw ex }
+		finally { clearTimeout(this._timerProgress); setTimeout(() => hideProgress(), 10) }
+	}
+	testUI_setValues(e) {
+		const {rec} = e; if (!rec) { return }
+		let keys = ['hastaID', 'doktorID', 'hastaAdi', 'doktorAdi']; for (const key of keys) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
+		$.extend(this, { tarihSaat: asDate(rec.ts), detaylar: rec.detaylar || [] })
+	}
+	uiStatesDuzenle(e) { e.liste.push('Hoşgeldiniz', 'Test Ekranı', 'Test Bitti') }
+	testUI_initLayout(e) {
+		const {parentPart} = e, {header, content, state} = parentPart; parentPart.adimText = state; content.children().remove();
+		for (const key of ['hastaAdi', 'doktorAdi']) { $(`<span class="veri">${this[key] || ''}</span>`).appendTo('header') }
+		switch (state) {
+			case 'Hoşgeldiniz': $(`<div>Hoşgeldiniz ekranı içeriği ..</div>`).appendTo(content); break
+			case 'Test Bitti': $(`<div>Test Bitti ekranı içeriği ..</div>`).appendTo(content); break
+		}
+	}
+	testUI_kaydetOncesi(e) { } testUI_kaydet(e) { } testUI_kaydetSonrasi(e) { }
 }
 class MQTestCPT extends MQTest {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'CPT Test' }
 	static get kodListeTipi() { return 'TSTCPT' } static get table() { return 'esecpttest' } static get sablonSinif() { return MQSablonCPT }
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { cptsablonid: this.sablonId }) }
+	testUI_setValues(e) {
+		super.testUI_setValues(e); const {rec} = e; if (!rec) { return }
+		for (const key of ['gecerliResimSeq', 'grupTekrarSayisi', 'resimArasiSn']) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
+	}
+	async testUI_initLayout(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
+		await super.testUI_initLayout(e); const {parentPart} = e, {state, content} = parentPart;
+		const {detaylar, gecerliResimSeq, grupTekrarSayisi, resimArasiSn} = this, urls = detaylar.map(det => det.resimLink), imageCount = urls.length;
+		switch (state) {
+			case 'Hoşgeldiniz': 
+				let promises = []; for (let i = 0; i < imageCount; i++) { promises.push(new $.Deferred()) }
+				let elmContainer = $(`<div class="prefetch-parent" hidden/>`); for (let i = 0; i < imageCount; i++) {
+					let img = $(`<img class="prefetch" data-index="${i}" src="${urls[i]}"/>`); img.appendTo(elmContainer);
+					img.on('load', evt => promises[asInteger(evt.currentTarget.dataset.index)].resolve({ result: true, evt }));
+					img.on('error', evt => promises[asInteger(evt.currentTarget.dataset.index)].resolve({ result: false, evt }))
+				}
+				elmContainer.appendTo(content); let imgStates = { load: 0, error: 0 }, results = await Promise.all(promises); elmContainer.remove();
+				for (let rec of results) { imgStates[rec.result ? 'load' : 'error']++ }
+				/*if (imgStates.error) { hConfirm(`<b>UYARI: </b><p/><div class="darkred"><b>${imgStates.error} adet</b> resim yüklenemedi!</div>`, parentPart.title); return }*/
+				let btn = $(`<button id="baslat">Devam</button>`); btn.jqxButton({ theme }).on('click', evt => parentPart.nextPage()); btn.appendTo(content);
+				break
+			case 'Test Ekranı':
+				let index = -1, repeatIndex = 0, hInternal, img = $(`<div class="resim"/>`); img.appendTo(content);
+				img.on('click', evt => {
+					this.testResult = { result: index + 1 == gecerliResimSeq, index };
+					clearInterval(this._hInterval); delete this._hInterval; parentPart.nextPage()
+				})
+				let loopProc = () => {
+					if (parentPart.isDestroyed || parentPart.state != 'Test Ekranı') { clearInterval(this._hInterval); delete this._hInterval; return false }
+					index++; if (index >= imageCount) { repeatIndex++; index = 0; if (grupTekrarSayisi && repeatIndex >= grupTekrarSayisi) { parentPart.nextPage(); return false } }
+					img.css('background-image', `url(${urls[index]})`); return true
+				}
+				if (loopProc()) { this._hInterval = setInterval(loopProc, resimArasiSn * 1000) } break
+			case 'Test Bitti':
+				let {result} = this.testResult || {};
+				if (result != null) { $(`<div class="resultText ${result ? 'green' : 'red'}">${result ? 'Başarılı' : 'Hatalı'}</div>`).appendTo(content) }
+				break
+		}
+	}
 }
 class MQTestESE extends MQTest {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'ESE Test' }

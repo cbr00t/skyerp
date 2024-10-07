@@ -8,3 +8,9 @@
 	.MQTestESE.masterListe.part .islemTuslari button#degistir { margin-left: 40px; margin-right: 20px; background-image: url(../../images/izle.png) !important }
 .MQTestCPT.masterListe.part .islemTuslari button#degistir.jqx-fill-state-normal,
 	.MQTestESE.masterListe.part .islemTuslari button#degistir.jqx-fill-state-normal { background-color: #546394 }*/
+body:not(.admin) #loginForm.loginPart.part button#ayarlar { display: none !important }
+body:not(.admin) #loginForm.loginPart.part > .alt-form > div.row:nth-child(2) { display: none !important }
+body:not(.admin) #loginForm.loginPart.part > .alt-form > div.row:nth-child(3) > h5 { display: none !important }
+body:not(.admin) #loginForm.loginPart.part > .alt-form > div.row:nth-child(3):before { content: 'e-Mail' }
+body:not(.admin) #loginForm.loginPart.part > .alt-form > div.row:nth-child(5) > h5 { display: none !important }
+body:not(.admin) #loginForm.loginPart.part > .alt-form > div.row:nth-child(5):before { content: 'Onay Kodu' }

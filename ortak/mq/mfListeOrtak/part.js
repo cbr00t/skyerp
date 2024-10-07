@@ -303,7 +303,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	 openContextMenu(e) {
 		const evt = e.event, gridPart = e.gridPart = e.gridPart ?? e.sender ?? e.parentPart, gridWidget = e.gridWidget = gridPart.gridWidget, cells = e.cells = gridWidget.getselectedcells();
 		const belirtec = e.belirtec = gridPart.selectedBelirtec, parentRec = e.parentRec = e.parentRec ?? gridPart.selectedRec;
-		const recs = e.recs = (e.recs ?? gridPart.getSubRecs(e)).filter(rec => !!rec), rec = e.rec = (recs || [])[0]; /*if (!rec) { return }*/
+		const recs = e.recs = (e.recs ?? gridPart.getSubRecs(e))?.filter(rec => !!rec), rec = e.rec = (recs || [])[0]; /*if (!rec) { return }*/
 		const title = e.title ?? 'Menü'; let wnd, wndContent = $(`<div class="full-wh"/>`);
 		const close = e.close = e => { if (wnd) { wnd.jqxWindow('close'); wnd = null } }, rfb = e.rfb = new RootFormBuilder({ parentPart: gridPart, layout: wndContent }).autoInitLayout();
 		let form = e.form = rfb.addFormWithParent('islemTuslari').altAlta().addStyle(...[
