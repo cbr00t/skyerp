@@ -200,12 +200,14 @@ class EIslemOrtak extends CObject {
 		for (const oran2VergiRecs of Object.values(icmal.vergiTip2Oran2EVergiRecs_tevkifatsiz))
 		for (const oran in oran2VergiRecs)
 		for (const eRec of oran2VergiRecs[oran]) {
-			if (eRec.kdvmi) { kdvOran2MatrahVeBedel[oran] = { matrah: eRec.getMatrahYapi({ dvKur: dvKur })[bedelSelector], bedel: eRec.bedelYapi[bedelSelector] } }
+			if (!eRec.kdvmi) { continue }
+			kdvOran2MatrahVeBedel[oran] = { matrah: eRec.getMatrahYapi({ dvKur: dvKur })[bedelSelector], bedel: eRec.bedelYapi[bedelSelector] }
 		}
 		const qrData = {
 			vkntckn: app.params.isyeri.vknTckn, avkntckn: baslik.aliciBilgi.vknTckn, senaryo: baslik._profileID, tip: baslik._belgeTipKod,
 			tarih: asReverseDateString(baslik.tarih), no: baslik.fisnox, ettn: baslik.uuid, parabirimi: this.currencyID,
-			malhizmettoplam: toFileStringWithFra(icmal.brutBedelYapi[bedelSelector], 2), vergidahil: toFileStringWithFra(icmal.vergiDahilToplamYapi[bedelSelector], 2), odenecek: toFileStringWithFra(icmal.sonucBedelYapi[bedelSelector], 2)
+			malhizmettoplam: toFileStringWithFra(icmal.brutBedelYapi[bedelSelector], 2), vergidahil: toFileStringWithFra(icmal.vergiDahilToplamYapi[bedelSelector], 2),
+			odenecek: toFileStringWithFra(icmal.sonucBedelYapi[bedelSelector], 2)
 		};
 		for (const oran in kdvOran2MatrahVeBedel) {
 			const {matrah, bedel} = kdvOran2MatrahVeBedel[oran];

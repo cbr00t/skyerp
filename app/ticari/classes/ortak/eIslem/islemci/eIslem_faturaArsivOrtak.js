@@ -571,14 +571,12 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 	}
 	xmlGetProfileID(e) { const {baslik} = this; return baslik.alimIademi ? 'TEMELFATURA' : EIslemSenaryo.getSenaryoText(baslik.carsenaryo) }
 	xmlGetBelgeTipKodu(e) {
-		const {baslik} = this; if (baslik.alimIademi) return 'IADE'
-		const fisTipi = baslik.fistipi;
-		if (fisTipi == 'TV') return 'TEVKIFAT'
-		if (fisTipi == 'KI' || fisTipi == 'IS') return 'ISTISNA'
-		const ekVergiTipleri = {};
-		for (const det of this.detaylar) { const _value = det.detkdvekvergitipi; if (_value) { ekVergiTipleri[_value] = true } }
-		if (ekVergiTipleri.IS || ekVergiTipleri.KI) return 'ISTISNA'
-		if (ekVergiTipleri.TV) return 'TEVKIFAT'
+		const {baslik} = this; if (baslik.alimIademi) { return 'IADE' }
+		const fisTipi = baslik.fistipi; if (fisTipi == 'TV') { return 'TEVKIFAT' }
+		if (fisTipi == 'KI' || fisTipi == 'IS') { return 'ISTISNA' }
+		const ekVergiTipleri = {}; for (const det of this.detaylar) { const _value = det.detkdvekvergitipi; if (_value) { ekVergiTipleri[_value] = true } }
+		if (ekVergiTipleri.IS || ekVergiTipleri.KI) { return 'ISTISNA' }
+		if (ekVergiTipleri.TV) { return 'TEVKIFAT' }
 		return 'SATIS'
 	}
 }
