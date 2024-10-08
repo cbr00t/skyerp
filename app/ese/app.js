@@ -41,6 +41,6 @@ class ESEApp extends App {
 	wsTestBilgi(e) { let args = e || {}; delete args.data; return ajaxPost({ url: this.getWSUrl({ api: 'testBilgi', args }) }) }
 	wsTestSonucKaydet(e) {
 		let args = e || {}, {data} = args; if (typeof data == 'object') { data = toJSONStr(data) } delete args.data;
-		return ajaxPost({ url: this.getWSUrl({ api: 'testSonucKaydet', args, data }) })
+		return ajaxPost({ url: this.getWSUrl({ timeout: 13 * 1000, processData: false, ajaxContentType: wsContentType, api: 'testSonucKaydet', args, data }) })
 	}
 }

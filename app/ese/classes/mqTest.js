@@ -50,7 +50,7 @@ class MQTest extends MQGuidOrtak {
 		sent.leftJoin({ alias, from: 'esemuayene mua', on: `${alias}.muayeneid = mua.id` })
 			.leftJoin({ alias: 'mua', from: 'esehasta has', on: 'mua.hastaid = has.id' })
 			.leftJoin({ alias: 'mua', from: 'esedoktor dok', on: 'mua.doktorid = dok.id' });
-		sent.sahalar.add(`${alias}.uygulanmayeri`)
+		sent.sahalar.add(`${alias}.uygulanmayeri`, `${alias}.onaykodu`, 'has.email')
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e); let {liste} = e; liste.push(
@@ -84,14 +84,56 @@ class MQTest extends MQGuidOrtak {
 	}
 	static async eMailGonderIstendi(e) {
 		const {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender;
-		let {selectedRecs} = gridPart; if (!selectedRecs?.length) { hConfirm('Kayıtlar seçilmelidir', sinifAdi); return }
-		const idListe = selectedRecs.map(rec => rec.id); debugger
+		let {selectedRecs} = gridPart; if (!selectedRecs?.length) { hConfirm('Kayıtlar seçilmelidir', sinifAdi); return null }
+		selectedRecs = selectedRecs.filter(rec => !!rec.email && rec.email.length >= 5 && rec.email.includes('@'));
+		if (!selectedRecs?.length) { hConfirm('Seçilenler arasında <u>Geçerli e-Mail Adresi Olan</u> kayıt bulunamadı', sinifAdi); return null }
+		if (!await ehConfirm(`Seçilen <b>${selectedRecs.length}</b> adet kişiye <b>Test Onay Kodu için e-Mail</b> gönderilsin mi?`, sinifAdi)) { return null }
+		e.pAborted = { result: false }; showProgress(`<b>${selectedRecs.length}</b> kişiye Toplu e-Mail Gönderimi yapılıyor...`, sinifAdi, true, () => e.pAborted.result = true);
+		try {
+			let result = await this.eMailGonder({ ...e, recs: selectedRecs });
+			eConfirm(`Toplu e-Mail Gönderimi Bitti<p/>` +
+				(result?.send ? `<div><span class="darkgray">Başarılı:</span> <b class="green">${result?.send ?? '??'}</b></div>` : '') +
+				(result?.error ? `<div><span class="darkgray">Hatalı:</span> <b class="red">${result?.error ?? '??'}</b></div>` : '') +
+				(result?.total ? `<div><span class="darkgray">Toplam:</span> <b class="royalblue">${result?.total ?? '??'}</b></div>` : '')
+			, sinifAdi);
+			return result
+		}
+		finally { window.progressManager?.progressEnd(); setTimeout(() => hideProgress(), 100) }
 	}
 	static async testBaslatIstendi(e) {
 		const {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender;
 		let {selectedRecs} = gridPart; if (!selectedRecs?.length) { hConfirm('Kayıtlar seçilmelidir', sinifAdi); return }
 		let rec = selectedRecs[0]; if (!rec) { hConfirm(`Test seçilmelidir`, sinifAdi); return }
 		let {id} = rec, inst = new this({ id }); inst.baslat(e)
+	}
+	static async eMailGonder(e) {
+		const {aciklama: sablonAdi} = this, recs = e.recs || [], {pAborted} = e, TopluSayi = 2; let promises = [], allResults = { total: 0, send: 0, error: 0 };
+		const waitBlock = async () => {
+			try {
+				if (pAborted?.result) { return }
+				let results = await Promise.all(promises);
+				for (let result of results) { if (!result || result.result === false) { throw {} } else { allResults.send++ } }
+			}
+			catch (ex) { allResults.error += promises.length; console.error(ex) }
+			finally { progressManager?.progressStep(promises.length); allResults.total += promises.length; promises = [] }
+		}
+		progressManager?.setProgressMax(recs.length); const eMailAuth = await app.getEMailAuth(), url = `https://cloud.vioyazilim.com.tr:90/link/ese/test`;
+		for (const rec of recs) {
+			if (pAborted?.result) { break } const {email: to, hastaadi: hastaAdi, onaykodu: onayKodu} = rec;
+			promises.push(app.wsEMailGonder({ data: {
+				...eMailAuth, to, subject: 'ESE Test', body: (
+					`<div style="font-size: 14pt;">
+						<p style="font-size: 130%; font-weight: bold; color: #555">Sayın ${hastaAdi || ''},</p>
+						<p><b>ESE Uygulaması <b>${sablonAdi || ''} TEST</b> için onay kodunuz:<br/>
+							<b style="font-size: 160%; color: forestgreen">${onayKodu}</b></p>
+						<p><b>Sisteme Giriş Adresi:<br/>
+							<a href="${url}" style="font-weight: bold; font-size: 120%">${url}</a></p>
+					</div>`
+				)
+			} })); if (promises.length >= TopluSayi) { await waitBlock() }
+		}
+		if (promises.length) { await waitBlock() }
+		return allResults
 	}
 	static baslat(e) { let inst = new this({ id: e.testId ?? e.id }); return inst.baslat(e) }
 	async baslat(e) {
@@ -110,14 +152,24 @@ class MQTest extends MQGuidOrtak {
 		$.extend(this, { tarihSaat: asDate(rec.ts), detaylar: rec.detaylar || [] })
 	}
 	uiStatesDuzenle(e) { e.liste.push('Hoşgeldiniz', 'Test Ekranı', 'Test Bitti') }
-	testUI_initLayout(e) {
-		const {parentPart} = e, {header, content, state} = parentPart; parentPart.adimText = state; content.children().remove();
+	async testUI_initLayout(e) {
+		const {parentPart} = e, {header, content} = parentPart; content.children().remove();
 		for (const key of ['hastaAdi', 'doktorAdi']) { $(`<span class="veri">${this[key] || ''}</span>`).appendTo('header') }
+		let {state} = parentPart; parentPart.adimText = state;
 		switch (state) {
-			case 'Hoşgeldiniz': $(`<div>Hoşgeldiniz ekranı içeriği ..</div>`).appendTo(content); break
-			case 'Test Bitti': $(`<div>Test Bitti ekranı içeriği ..</div>`).appendTo(content); break
+			case 'Test Bitti':
+				let {result} = this.testResult || {};
+				if (result != null) { $(`<div class="resultText ${result ? 'green' : 'red'}">${result ? 'Başarılı' : 'Hatalı'}</div>`).appendTo(content) }
+				break
+		}
+		await this.testUI_initLayout_ara(e); state = parentPart.state; parentPart.adimText = state;
+		switch (state) {
+			case 'Hoşgeldiniz':
+				let btn = $(`<button id="baslat">Başla</button>`); btn.jqxButton({ theme }).on('click', evt => parentPart.nextPage()); btn.appendTo(content);
+				break
 		}
 	}
+	testUI_initLayout_ara(e) { }
 	testUI_kaydetOncesi(e) { } testUI_kaydet(e) { } testUI_kaydetSonrasi(e) { }
 }
 class MQTestCPT extends MQTest {
@@ -128,8 +180,8 @@ class MQTestCPT extends MQTest {
 		super.testUI_setValues(e); const {rec} = e; if (!rec) { return }
 		for (const key of ['gecerliResimSeq', 'grupTekrarSayisi', 'resimArasiSn']) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
 	}
-	async testUI_initLayout(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
-		await super.testUI_initLayout(e); const {parentPart} = e, {state, content} = parentPart;
+	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
+		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, content} = parentPart;
 		const {detaylar, gecerliResimSeq, grupTekrarSayisi, resimArasiSn} = this, urls = detaylar.map(det => det.resimLink), imageCount = urls.length;
 		switch (state) {
 			case 'Hoşgeldiniz': 
@@ -142,7 +194,6 @@ class MQTestCPT extends MQTest {
 				elmContainer.appendTo(content); let imgStates = { load: 0, error: 0 }, results = await Promise.all(promises); elmContainer.remove();
 				for (let rec of results) { imgStates[rec.result ? 'load' : 'error']++ }
 				/*if (imgStates.error) { hConfirm(`<b>UYARI: </b><p/><div class="darkred"><b>${imgStates.error} adet</b> resim yüklenemedi!</div>`, parentPart.title); return }*/
-				let btn = $(`<button id="baslat">Devam</button>`); btn.jqxButton({ theme }).on('click', evt => parentPart.nextPage()); btn.appendTo(content);
 				break
 			case 'Test Ekranı':
 				let index = -1, repeatIndex = 0, hInternal, img = $(`<div class="resim"/>`); img.appendTo(content);
@@ -156,10 +207,6 @@ class MQTestCPT extends MQTest {
 					img.css('background-image', `url(${urls[index]})`); return true
 				}
 				if (loopProc()) { this._hInterval = setInterval(loopProc, resimArasiSn * 1000) } break
-			case 'Test Bitti':
-				let {result} = this.testResult || {};
-				if (result != null) { $(`<div class="resultText ${result ? 'green' : 'red'}">${result ? 'Başarılı' : 'Hatalı'}</div>`).appendTo(content) }
-				break
 		}
 	}
 }
