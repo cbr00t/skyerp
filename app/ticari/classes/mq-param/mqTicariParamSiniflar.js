@@ -335,4 +335,5 @@ class MQAktarimParam extends MQTicariParamBase {
 			form.addBool('tablet', 'Sky Tablet'); form.addBool('tablet', 'Sky Tablet'); form.addBool('yazarkasa', 'YazarKasa Aktarımı');
 			form.addBool('webSiparis', 'Web B2B Sipariş'); form.addBool('konsinyeLojistik', 'Konsinye Lojistik'); form.addBool('pdks', 'PDKS Veri Aktarımı')
 	}
+	paramSetValues(e) { e = e || {}; super.paramSetValues(e) /*; const {rec} = e*/ }
 }
