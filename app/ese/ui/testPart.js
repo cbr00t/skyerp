@@ -1,9 +1,8 @@
 class TestPart extends Part {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'test' } static get isWindowPart() { return true }
-	get state() { return this.states?.[this.pageIndex] }
-	get adimText() { return this.header?.divAdimText.html() } set adimText(value) { this.divAdimText?.html(value ?? '') }
+	get state() { return this.states?.[this.pageIndex] } get adimText() { return this.header?.divAdimText.html() } set adimText(value) { this.divAdimText?.html(value ?? '') }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { inst: e.inst, pageIndex: e.pageIndex ?? 0 }) }
-	init(e) { const {inst} = this, states = this.states = inst.uiStates || []; this.title = `${inst?.class?.aciklama || ''} Test Ekranı`; super.init(e) }
+	init(e) { const {inst} = this, states = this.states = inst?.class?.uiStates || []; this.title = `${inst?.class?.aciklama || ''} Test Ekranı`; super.init(e) }
 	runDevam(e) {
 		super.runDevam(e); const {layout, inst, state} = this;
 		$.extend(this, { header: layout.children('.header'), content: layout.children('.content'), islemTuslari: layout.find('.islemTuslari') }); this.divAdimText = this.header.find('.adimText');
@@ -14,7 +13,10 @@ class TestPart extends Part {
 	firstPage(e) { this.pageIndex = 0; this.tazele(e); return this } lastPage(e) { this.pageIndex = Math.max(this.states?.length - 1, 0); this.tazele(e); return this }
 	nextPage(e) { this.pageIndex = Math.min(this.pageIndex + 1, this.states?.length - 1); this.tazele(e); return this }
 	prevPage(e) { this.pageIndex = Math.max(this.pageIndex - 1, 0); this.tazele(e); return this }
-	tazele(e) { const {inst, layout} = this, _e = { ...e, parentPart: this, sender: this, layout }; inst?.testUI_initLayout(_e); return this }
+	tazele(e) {
+		const {inst, layout} = this, _e = { ...e, parentPart: this, sender: this, layout };
+		inst?.testUI_initLayout(_e); layout.attr('data-state', this.state); return this
+	}
 	async kaydetIstendi(e) { 
 		try { if (!await this.kaydet(e)) { return false } } catch (ex) { hConfirm(getErrorText(ex), this.title); throw ex }
 		this.close(e); return true

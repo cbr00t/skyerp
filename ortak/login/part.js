@@ -22,10 +22,11 @@ class LoginPart extends Part {
 		btnSSOLogin.off('click').on('click', evt => this.loginIstendi({ event: evt, isSSO: true }));
 		const btnLogin = layout.find('#islemTuslari #login'); btnLogin.jqxButton({ theme, width: '100%', height: 60 }); btnLogin.off('click').on('click', evt => this.loginIstendi({ event: evt }));
 		if (loginTipi) { ddLoginTipi.val(loginTipi) }
-		const {sessionID, session, user} = qs; if (user) { txtUser.val(user); const {pass} = qs; if (pass != null) { txtPass.val(pass) } }
+		const {sessionID, session, user, pass} = qs; if (user) { txtUser.val(user); const {pass} = qs; if (pass != null) { txtPass.val(pass) } }
 		if (!ddLoginTipi.val()) { ddLoginTipi.val(loginTipi) }
 		const promise_uiResult = this.promise_uiResult = new $.Deferred();
-		if (sessionID ||session || user) { this.loginIstendi({ sessionID, session }); txtPass.focus() } else { this.show(); txtUser.focus() }
+		if (sessionID || session || (user && pass)) { this.loginIstendi({ sessionID, session }); txtPass.focus() }
+		else { this.show(); (user ? txtPass : txtUser).focus() }
 		let elms = layout.find('input[type=textbox], input[type=password]');
 		elms.on('focus', evt => evt.target.select());
 		elms.on('keyup', evt => { const key = evt.key?.toLowerCase(); if (key == 'enter' || key == 'linefeed') { btnLogin.click() } });

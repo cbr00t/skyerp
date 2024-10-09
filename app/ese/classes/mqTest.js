@@ -12,7 +12,8 @@ class MQTest extends MQGuidOrtak {
    }
 	get tarih() { const {tarihSaat} = this; return tarihSaat?.clearTime ? new Date(tarihSaat).clearTime() : tarihSaat } set tarih(value) { this.tarihSaat = value?.clearTime ? new Date(value).clearTime() : value }
 	get saat() { return timeToString(this.tarihSaat) } set saat(value) { const {tarihSaat} = this; if (value) { setTime(tarihSaat, asDate(value).getTime()) } }
-	get uiStates() { let result = this._uiStates; if (result == null) { let _e = { liste: [] }; this.uiStatesDuzenle(_e); result = this._uiStates = _e.liste } return result }
+	static get uiState2Adi() { let {_uiState2Adi: result} = this; if (result == null) { let e = { liste: [] }; this.uiState2AdiDuzenle(e); result = this._uiState2Adi = e.liste } return result }
+	static get uiStates() { let {_uiStates: result} = this; if (result == null) { result = this._uiStates = Object.keys(this.uiState2Adi) } return result }
 
 	constructor(e) {
 		e = e || {}; super(e); const {sablonTip} = this.class;
@@ -117,9 +118,10 @@ class MQTest extends MQGuidOrtak {
 			catch (ex) { allResults.error += promises.length; console.error(ex) }
 			finally { progressManager?.progressStep(promises.length); allResults.total += promises.length; promises = [] }
 		}
-		progressManager?.setProgressMax(recs.length); const eMailAuth = await app.getEMailAuth(), url = `https://cloud.vioyazilim.com.tr:90/link/ese/test`;
+		progressManager?.setProgressMax(recs.length); const eMailAuth = await app.getEMailAuth();
 		for (const rec of recs) {
 			if (pAborted?.result) { break } const {email: to, hastaadi: hastaAdi, onaykodu: onayKodu} = rec;
+			const url = `https://cloud.vioyazilim.com.tr:90/skyerp/app/ese/?hostname=cloud.vioyazilim.com.tr&user=${to}&`;
 			promises.push(app.wsEMailGonder({ data: {
 				...eMailAuth, to, subject: 'ESE Test', body: (
 					`<div style="font-size: 14pt;">
@@ -151,21 +153,15 @@ class MQTest extends MQGuidOrtak {
 		let keys = ['hastaID', 'doktorID', 'hastaAdi', 'doktorAdi']; for (const key of keys) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
 		$.extend(this, { tarihSaat: asDate(rec.ts), detaylar: rec.detaylar || [] })
 	}
-	uiStatesDuzenle(e) { e.liste.push('Hoşgeldiniz', 'Test Ekranı', 'Test Bitti') }
+	static uiState2AdiDuzenle(e) { const {liste} = e; $.extend(liste, { home: 'Hoşgeldiniz', test: 'Test Ekranı', end: 'Test Bitti' }) }
 	async testUI_initLayout(e) {
 		const {parentPart} = e, {header, content} = parentPart; content.children().remove();
 		for (const key of ['hastaAdi', 'doktorAdi']) { $(`<span class="veri">${this[key] || ''}</span>`).appendTo('header') }
-		let {state} = parentPart; parentPart.adimText = state;
+		const {uiState2Adi} = this.class; let {state} = parentPart; parentPart.adimText = uiState2Adi[state] ?? state;
+		await this.testUI_initLayout_ara(e); state = parentPart.state; parentPart.adimText = uiState2Adi[state] ?? state;
 		switch (state) {
-			case 'Test Bitti':
-				let {result} = this.testResult || {};
-				if (result != null) { $(`<div class="resultText ${result ? 'green' : 'red'}">${result ? 'Başarılı' : 'Hatalı'}</div>`).appendTo(content) }
-				break
-		}
-		await this.testUI_initLayout_ara(e); state = parentPart.state; parentPart.adimText = state;
-		switch (state) {
-			case 'Hoşgeldiniz':
-				let btn = $(`<button id="baslat">Başla</button>`); btn.jqxButton({ theme }).on('click', evt => parentPart.nextPage()); btn.appendTo(content);
+			case 'home':
+				let btn = $(`<button id="baslat">BAŞLAT</button>`); btn.jqxButton({ theme }).on('click', evt => parentPart.nextPage()); btn.appendTo(content);
 				break
 		}
 	}
@@ -184,7 +180,7 @@ class MQTestCPT extends MQTest {
 		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, content} = parentPart;
 		const {detaylar, gecerliResimSeq, grupTekrarSayisi, resimArasiSn} = this, urls = detaylar.map(det => det.resimLink), imageCount = urls.length;
 		switch (state) {
-			case 'Hoşgeldiniz': 
+			case 'home':
 				let promises = []; for (let i = 0; i < imageCount; i++) { promises.push(new $.Deferred()) }
 				let elmContainer = $(`<div class="prefetch-parent" hidden/>`); for (let i = 0; i < imageCount; i++) {
 					let img = $(`<img class="prefetch" data-index="${i}" src="${urls[i]}"/>`); img.appendTo(elmContainer);
@@ -195,18 +191,23 @@ class MQTestCPT extends MQTest {
 				for (let rec of results) { imgStates[rec.result ? 'load' : 'error']++ }
 				/*if (imgStates.error) { hConfirm(`<b>UYARI: </b><p/><div class="darkred"><b>${imgStates.error} adet</b> resim yüklenemedi!</div>`, parentPart.title); return }*/
 				break
-			case 'Test Ekranı':
+			case 'test':
 				let index = -1, repeatIndex = 0, hInternal, img = $(`<div class="resim"/>`); img.appendTo(content);
 				img.on('click', evt => {
 					this.testResult = { result: index + 1 == gecerliResimSeq, index };
 					clearInterval(this._hInterval); delete this._hInterval; parentPart.nextPage()
 				})
 				let loopProc = () => {
-					if (parentPart.isDestroyed || parentPart.state != 'Test Ekranı') { clearInterval(this._hInterval); delete this._hInterval; return false }
+					if (parentPart.isDestroyed || parentPart.state != 'test') { clearInterval(this._hInterval); delete this._hInterval; return false }
 					index++; if (index >= imageCount) { repeatIndex++; index = 0; if (grupTekrarSayisi && repeatIndex >= grupTekrarSayisi) { parentPart.nextPage(); return false } }
 					img.css('background-image', `url(${urls[index]})`); return true
 				}
-				if (loopProc()) { this._hInterval = setInterval(loopProc, resimArasiSn * 1000) } break
+				if (loopProc()) { this._hInterval = setInterval(loopProc, resimArasiSn * 1000) }
+				break
+			case 'end':
+				let {result} = this.testResult || {}; if (result != null) {
+					$(`<div class="resultText ${result ? 'green' : 'red'}">${result ? 'Başarılı' : 'Hatalı'}</div>`).appendTo(content) }
+				break
 		}
 	}
 }
@@ -214,6 +215,44 @@ class MQTestESE extends MQTest {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'ESE Test' }
 	static get kodListeTipi() { return 'TSTESE' } static get table() { return 'eseesetest' } static get sablonSinif() { return MQSablonESE }
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { esesablonid: this.sablonId }) }
+	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
+		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, content, islemTuslari} = parentPart; let testResult;
+		const {detaylar, gecerliResimSeq, grupTekrarSayisi, resimArasiSn} = this, urls = detaylar.map(det => det.resimLink), imageCount = urls.length;
+		const PrefixSecenek = 'secenek', id2SoruVeSecenekler = {}; for (const det of detaylar) {
+			let {id, soru} = det; if (soru == null) { continue } soru = soru.trimEnd();
+			let secenekler = []; for (const key in det) {
+				if (!key.startsWith(PrefixSecenek)) { continue } let value = det[key].trimEnd();
+				if (value) { secenekler[asInteger(key.slice(PrefixSecenek.length)) - 1] = value }
+			}
+			id2SoruVeSecenekler[id] = { soru, secenekler }
+		}
+		let htmlList = []; switch (state) {
+			case 'test':
+				let btn = $(`<button id="tamam"></button>`); btn.jqxButton({ theme }).on('click', evt => parentPart.nextPage()); btn.appendTo(islemTuslari.children('.sag'));
+				testResult = this.testResult = {}; htmlList.push(`<div class="anket">`);
+				for (let [id, {soru, secenekler}] of Object.entries(id2SoruVeSecenekler)) {
+					if (soru == null) { continue }
+					htmlList.push(`<div class="item" data-id="${id}"><div class="soru">${soru || '&nbsp;'}</div><div name="${id}" class="secenekler">`);
+					for (let i = 0; i < secenekler.length; i++) { htmlList.push(`<button class="secenek">${secenekler[i]}</button>`) }
+					htmlList.push(`</div></div>`)
+				}
+				$(htmlList.join('')).appendTo(content);
+				content.find('.anket > .item > .secenekler').jqxButtonGroup({ theme, mode: 'radio' }).on('buttonclick', evt => {
+					let {index} = evt.args; if (index == null) { return }
+					let id = $(evt.currentTarget).parents('.item').data('id'); if (!id) { return }
+					testResult[id] = asInteger(index + 1)
+				}); makeScrollable(content.find('.anket')); break
+			case 'end':
+				islemTuslari.children('.sag').find('#tamam').remove();
+				testResult = this.testResult || {}; htmlList.push(`<div class="anket-sonuclar">`);
+				for (const [id, seq] of Object.entries(testResult)) {
+					let {soru, secenekler} = id2SoruVeSecenekler[id] || {}, cevap = seq ? secenekler[seq - 1] : null;
+					if (soru != null && cevap != null) { htmlList.push(`<div class="item"><div class="soru">${soru}</div><div class="cevap">${cevap}</div></div>`) }
+				}
+				htmlList.push(`</div>`); $(htmlList.join('')).appendTo(content);
+				makeScrollable(content.find('.anket-sonuclar')); break
+		}
+	}
 }
 
 class MQTestUygulanmaYeri extends TekSecim {

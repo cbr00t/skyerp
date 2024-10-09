@@ -5,7 +5,7 @@ addEventListener('install', async e => {
     skipWaiting(); const staticAssets = ['./', './lib', './ortak', './app', './images'];
     const cache = await caches.open(CACHE_NAME); for (const url of staticAssets) { try { cache.add(url) } catch (ex) { } }
 });
-addEventListener('activate', async e => { clients.claim() });
+addEventListener('activate', evt => { /*clients.claim()*/ });
 addEventListener('fetch', evt => {
     const req = evt.request;
     /*if (!req.referrer || req.url.startsWith(new URL(evt.referrer).origin))*/
