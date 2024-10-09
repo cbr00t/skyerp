@@ -129,7 +129,8 @@ class MQHasta extends MQGuidVeAdiOrtak {
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {sent} = e, alias = this.tableAlias;
-		sent.fromIliski('eseokultipi okt', `${alias}.okultipid = okt.id`).fromIliski('eseyerlesim yer', `${alias}.yerlesimkod = yer.kod`);
+		sent.leftJoin({ alias, from: 'eseokultipi okt', iliski: `${alias}.okultipid = okt.id` })
+			.leftJoin({ alias, from: 'eseyerlesim yer', iliski: `${alias}.yerlesimkod = yer.kod` });
 		sent.sahalar.add(`${alias}.okultipid`)
 	}
 	static rootFormBuilderDuzenle(e) {
