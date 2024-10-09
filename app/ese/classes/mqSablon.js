@@ -13,6 +13,10 @@ class MQSablon extends MQDetayliGUIDVeAdiOrtak {
 	static newFor(e) { if (typeof e != 'object') { e = { tip: e } } const cls = this.getClass(e); return cls ? new cls(e) : null }
 }
 class MQSablonDetay extends MQDetayGUID { static { window[this.name] = this; this._key2Class[this.name] = this } }
+class MQSablonGridci extends GridKontrolcu {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	/*gridArgsDuzenle(e) { super.gridArgsDuzenle(e); const {args} = e; $.extend(args, { selectionMode: 'none' }) }*/
+}
 
 class MQSablonCPT extends MQSablon {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'CPT Şablon' }
@@ -71,9 +75,9 @@ class MQSablonCPTDetay extends MQSablonDetay {
 		)
 	}
 }
-class MQSablonCPTGridci extends GridKontrolcu {
+class MQSablonCPTGridci extends MQSablonGridci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	gridArgsDuzenle(e) { super.gridArgsDuzenle(e); const {args} = e; $.extend(args, { rowsHeight: 100 }) }
+	gridArgsDuzenle(e) { super.gridArgsDuzenle(e); const {args} = e; $.extend(args, { rowsHeight: 80, selectionMode: 'none' }) }
 	tabloKolonlariDuzenle(e) {
 		super.tabloKolonlariDuzenle(e); e.tabloKolonlari.push(
 			new GridKolon({ belirtec: 'resimLink' }).hidden(),
@@ -105,7 +109,7 @@ class MQSablonCPTGridci extends GridKontrolcu {
 	fis2Grid(e) {
 		let result = super.fis2Grid(e); if (!result) { return result } const {fis} = e; if (!fis) { return false }
 		let recs = e.recs = e.recs || []; const {gridDetaySinif} = fis.class;
-		for (let i = 0; i < 5; i++) { recs.push(gridDetaySinif ? new gridDetaySinif() : {}) }
+		for (let i = 0; i < 50; i++) { recs.push(gridDetaySinif ? new gridDetaySinif() : {}) }
 		return true
 	}
 	resimSecIstendi(e) {
@@ -165,7 +169,7 @@ class MQSablonESEDetay extends MQSablonDetay {
 	}
 	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { yanitAdi: rec.yanitadi }) }
 }
-class MQSablonESEGridci extends GridKontrolcu {
+class MQSablonESEGridci extends MQSablonGridci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	gridArgsDuzenle(e) { super.gridArgsDuzenle(e); const {args} = e; $.extend(args, { rowsHeight: 50 }) }
 	tabloKolonlariDuzenle(e) {

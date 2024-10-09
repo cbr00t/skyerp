@@ -1,11 +1,14 @@
 class TestPart extends Part {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'test' } static get isWindowPart() { return true }
-	get state() { return this.states?.[this.pageIndex] } get adimText() { return this.header?.divAdimText.html() } set adimText(value) { this.divAdimText?.html(value ?? '') }
+	get state() { return this.states?.[this.pageIndex] } get adimText() { return this.divAdimText?.html() } set adimText(value) { this.divAdimText?.html(value ?? '') }
+	get headerText() { return this.divHeaderText?.html() } set headerText(value) { this.divHeaderText?.html(value ?? '') }
+	get hastaAdiText() { return this.divHastaAdiText?.html() } set hastaAdiText(value) { this.divHastaAdiText?.html(value ?? '') }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { inst: e.inst, pageIndex: e.pageIndex ?? 0 }) }
 	init(e) { const {inst} = this, states = this.states = inst?.class?.uiStates || []; this.title = `${inst?.class?.aciklama || ''} Test Ekranı`; super.init(e) }
 	runDevam(e) {
 		super.runDevam(e); const {layout, inst, state} = this;
-		$.extend(this, { header: layout.children('.header'), content: layout.children('.content'), islemTuslari: layout.find('.islemTuslari') }); this.divAdimText = this.header.find('.adimText');
+		$.extend(this, { header: layout.children('.header'), content: layout.children('.content'), islemTuslari: layout.find('.islemTuslari') });
+		const {header} = this; $.extend(this, { divAdimText: header.find('.adimText'), divHeaderText: header.find('.headerText'), divHastaAdiText: header.find('.hastaAdiText') });
 		let part = this.islemTuslariPart = new ButonlarPart({ sender: this, layout: this.islemTuslari, tip: 'vazgec', butonlarDuzenleyici: e => this.islemTuslariDuzenle(e) }); part.run();
 		this.tazele(e)
 	}
@@ -33,6 +36,15 @@ class TestPart extends Part {
 	}
 	getLayoutInternal(e) {
 		super.getLayoutInternal(e);
-		return $(`<div><div class="islemTuslari"></div><div class="header"><div class="adimText"></div></div><div class="content"></div></div>`)
+		return $(
+		`<div>
+			<div class="islemTuslari"></div>
+			<div class="header flex-row">
+				<div class="adimText"></div>
+				<div class="headerText"></div>
+				<div class="hastaAdiText"></div>
+			</div>
+			<div class="content"></div>
+		</div>`)
 	}
 }

@@ -158,9 +158,10 @@ class MQTest extends MQGuidOrtak {
 		const {parentPart} = e, {header, content} = parentPart; content.children().remove();
 		for (const key of ['hastaAdi', 'doktorAdi']) { $(`<span class="veri">${this[key] || ''}</span>`).appendTo('header') }
 		const {uiState2Adi} = this.class; let {state} = parentPart; parentPart.adimText = uiState2Adi[state] ?? state;
-		await this.testUI_initLayout_ara(e); state = parentPart.state; parentPart.adimText = uiState2Adi[state] ?? state;
+		parentPart.headerText = ''; await this.testUI_initLayout_ara(e); state = parentPart.state; parentPart.adimText = uiState2Adi[state] ?? state;
 		switch (state) {
 			case 'home':
+				parentPart.headerText = `<b>${this.hastaAdi}</b>`;
 				let btn = $(`<button id="baslat">BAŞLAT</button>`); btn.jqxButton({ theme }).on('click', evt => parentPart.nextPage()); btn.appendTo(content);
 				break
 		}
@@ -192,6 +193,7 @@ class MQTestCPT extends MQTest {
 				/*if (imgStates.error) { hConfirm(`<b>UYARI: </b><p/><div class="darkred"><b>${imgStates.error} adet</b> resim yüklenemedi!</div>`, parentPart.title); return }*/
 				break
 			case 'test':
+				parentPart.headerText = `<b>${gecerliResimSeq}.</b> resme tıklayınız`;
 				let index = -1, repeatIndex = 0, hInternal, img = $(`<div class="resim"/>`); img.appendTo(content);
 				img.on('click', evt => {
 					this.testResult = { result: index + 1 == gecerliResimSeq, index };
@@ -216,8 +218,8 @@ class MQTestESE extends MQTest {
 	static get kodListeTipi() { return 'TSTESE' } static get table() { return 'eseesetest' } static get sablonSinif() { return MQSablonESE }
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { esesablonid: this.sablonId }) }
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
-		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, content, islemTuslari} = parentPart; let testResult;
-		const {detaylar, gecerliResimSeq, grupTekrarSayisi, resimArasiSn} = this, urls = detaylar.map(det => det.resimLink), imageCount = urls.length;
+		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, content, islemTuslari} = parentPart;
+		const {detaylar} = this, urls = detaylar.map(det => det.resimLink), imageCount = urls.length;
 		const PrefixSecenek = 'secenek', id2SoruVeSecenekler = {}; for (const det of detaylar) {
 			let {id, soru} = det; if (soru == null) { continue } soru = soru.trimEnd();
 			let secenekler = []; for (const key in det) {
@@ -226,7 +228,7 @@ class MQTestESE extends MQTest {
 			}
 			id2SoruVeSecenekler[id] = { soru, secenekler }
 		}
-		let htmlList = []; switch (state) {
+		let testResult, htmlList = []; switch (state) {
 			case 'test':
 				let btn = $(`<button id="tamam"></button>`); btn.jqxButton({ theme }).on('click', evt => parentPart.nextPage()); btn.appendTo(islemTuslari.children('.sag'));
 				testResult = this.testResult = {}; htmlList.push(`<div class="anket">`);
