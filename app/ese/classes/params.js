@@ -1,5 +1,11 @@
 class MQYerelParam extends MQYerelParamTicari { static { window[this.name] = this; this._key2Class[this.name] = this } }
-class MQYerelParamConfig_App extends MQYerelParamConfig { static { window[this.name] = this; this._key2Class[this.name] = this } }
+class MQYerelParamConfig_App extends MQYerelParamConfig {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	yukleSonrasi(e) {
+		if (!app.isAdmin) { const {sql} = this; if (sql) { for (const key of ['server', 'db']) { delete sql[key] } } delete this.wsURL }
+		super.yukleSonrasi(e);
+	}
+}
 class MQParam_ESE extends MQParam {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'ESE Parametreleri' } static get paramKod() { return 'ESEPARAM' }
