@@ -25,9 +25,9 @@ class ESEApp extends App {
 				return menuItems
 			};
 			addMenuSubItems('TANIM', 'Sabit Tanımlar', [MQCariUlke, MQCariIl, MQYerlesim, MQKurum, MQOkulTipi, MQHasta, MQDoktor, MQESEUser, MQYetki, MQCari]);
-			addMenuSubItems('SABLON', 'Şablonlar', [MQSablonCPT, MQSablonESE]);
+			addMenuSubItems('SABLON', 'Şablonlar', [MQSablonCPT, MQSablonAnket]);
 			addMenuSubItems(null, null, [MQMuayene]);
-			addMenuSubItems('TEST', 'Testler', [MQTestCPT, MQTestESE])
+			addMenuSubItems('TEST', 'Testler', [MQTestCPT, MQTestAnket])
 			items.push(new FRMenuChoice({ mne: MQParam_ESE.paramKod, text: MQParam_ESE.sinifAdi, block: e => app.params.ese.tanimla(e) }))
 		}
 		else { items.push(new FRMenuChoice({ mne: 'MAIN', text: 'TEST İşlemi', block: e => this.testBaslat(e) })) }

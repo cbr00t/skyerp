@@ -1,18 +1,23 @@
 class TestPart extends Part {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'test' } static get isWindowPart() { return true }
-	get state() { return this.states?.[this.pageIndex] } get adimText() { return this.divAdimText?.html() } set adimText(value) { this.divAdimText?.html(value ?? '') }
-	get headerText() { return this.divHeaderText?.html() } set headerText(value) { this.divHeaderText?.html(value ?? '') }
-	get hastaAdiText() { return this.divHastaAdiText?.html() } set hastaAdiText(value) { this.divHastaAdiText?.html(value ?? '') }
-	constructor(e) { e = e || {}; super(e); $.extend(this, { inst: e.inst, pageIndex: e.pageIndex ?? 0 }) }
+	get state() { return this.states?.[this.pageIndex] }
+	get adimText() { return this.headerLayouts.adimText?.html() } set adimText(value) { this.headerLayouts.adimText?.html(value ?? '') }
+	get progressText() { return this.headerLayouts.progressText?.html() } set progressText(value) { this.headerLayouts.progressText?.html(value ?? '') }
+	get headerText() { return this.headerLayouts.headerText?.html() } set headerText(value) { this.headerLayouts.headerText?.html(value ?? '') }
+	get tarih() { return asDate(this.headerLayouts.tarih?.html()) } set tarih(value) { this.headerLayouts.tarih?.html(dateTimeAsKisaString(value)) }
+	get hastaAdi() { return this.headerLayouts.hastaAdi?.html() } set hastaAdi(value) { this.headerLayouts.hastaAdi?.html(value ?? '') }
+	constructor(e) { e = e || {}; super(e); $.extend(this, { inst: e.inst, pageIndex: e.pageIndex ?? 0, headerLayouts: {} }) }
 	init(e) { const {inst} = this, states = this.states = inst?.class?.uiStates || []; this.title = `${inst?.class?.aciklama || ''} Test Ekranı`; super.init(e) }
 	runDevam(e) {
 		super.runDevam(e); const {layout, inst, state} = this;
 		$.extend(this, { header: layout.children('.header'), content: layout.children('.content'), islemTuslari: layout.find('.islemTuslari') });
-		const {header} = this; $.extend(this, { divAdimText: header.find('.adimText'), divHeaderText: header.find('.headerText'), divHastaAdiText: header.find('.hastaAdiText') });
-		let part = this.islemTuslariPart = new ButonlarPart({ sender: this, layout: this.islemTuslari, tip: 'vazgec', butonlarDuzenleyici: e => this.islemTuslariDuzenle(e) }); part.run();
+		const {header, islemTuslari, headerLayouts} = this; for (const key of ['adimText', 'headerText', 'progressText', 'tarih', 'hastaAdi']) {
+			headerLayouts[key] = layout.find(`.${key}`) }
+		let part = this.islemTuslariPart = new ButonlarPart({ sender: this, layout: islemTuslari, tip: 'vazgec', butonlarDuzenleyici: e => this.islemTuslariDuzenle(e) }); part.run();
 		this.tazele(e)
 	}
-	islemTuslariDuzenle(e) { const {liste} = e; liste.find(item => item.id == 'vazgec').handler = e => this.close(e) }
+	destroyPart(e) { super.destroyPart(e); if (app.kioskmu) { setTimeout(() => window.close(), 100) } }
+	islemTuslariDuzenle(e) { const {liste} = e; liste.find(item => item.id == 'vazgec').handler = e => this.cikisIstendi(e) }
 	firstPage(e) { this.pageIndex = 0; this.tazele(e); return this } lastPage(e) { this.pageIndex = Math.max(this.states?.length - 1, 0); this.tazele(e); return this }
 	nextPage(e) { this.pageIndex = Math.min(this.pageIndex + 1, this.states?.length - 1); this.tazele(e); return this }
 	prevPage(e) { this.pageIndex = Math.max(this.pageIndex - 1, 0); this.tazele(e); return this }
@@ -24,6 +29,7 @@ class TestPart extends Part {
 		try { if (!await this.kaydet(e)) { return false } } catch (ex) { hConfirm(getErrorText(ex), this.title); throw ex }
 		this.close(e); return true
 	}
+	cikisIstendi(e) { this.close(e); return this }
 	async kaydet(e) {
 		const {inst} = e; if (!inst) { return false }
 		clearTimeout(this._timerProgress); this._timerProgress = setTimeout(() => showProgress(), 500);
@@ -35,14 +41,19 @@ class TestPart extends Part {
 		finally { clearTimeout(this._timerProgress); setTimeout(() => hideProgress(), 10) }
 	}
 	getLayoutInternal(e) {
-		super.getLayoutInternal(e);
-		return $(
+		super.getLayoutInternal(e); return $(
 		`<div>
 			<div class="islemTuslari"></div>
 			<div class="header flex-row">
 				<div class="adimText"></div>
-				<div class="headerText"></div>
-				<div class="hastaAdiText"></div>
+				<div class="_group">
+					<div class="headerText"></div>
+					<div class="progressText"></div>
+				</div>
+				<div class="_group">
+					<div class="hastaAdi"></div>
+					<div class="tarih"></div>
+				</div>
 			</div>
 			<div class="content"></div>
 		</div>`)

@@ -24,10 +24,10 @@ class MQMuayene extends MQGuidOrtak {
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 10, sql: `${alias}.tarihsaat` }).tipDate(),
 			new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 9, sql: `${alias}.tarihsaat` }).tipTime(),
 			new GridKolon({ belirtec: 'seri', text: 'Seri', genislikCh: 5, filterType: 'checkedlist' }), new GridKolon({ belirtec: 'fisno', text: 'No', genislikCh: 15, filterType: 'checkedlist' }).tipNumerik(),
-			new GridKolon({ belirtec: 'beseyapilacak', text: 'ESE?', genislikCh: 5, filterType: 'checkedlist' }).tipBool(),
-			new GridKolon({ belirtec: 'esevarmi', text: 'ESE Var?', genislikCh: 10, filterType: 'checkedlist' }).tipBool().noSql(),
-			new GridKolon({ belirtec: 'eseyapildimi', text: 'ESE Yap?', genislikCh: 10, filterType: 'checkedlist' }).tipBool().noSql(),
-			new GridKolon({ belirtec: 'esepuani', text: 'ESE Puanı', genislikCh: 13 }).tipDecimal(),
+			new GridKolon({ belirtec: 'beseyapilacak', text: 'Anket?', genislikCh: 5, filterType: 'checkedlist' }).tipBool(),
+			new GridKolon({ belirtec: 'esevarmi', text: 'Anket Var?', genislikCh: 10, filterType: 'checkedlist' }).tipBool().noSql(),
+			new GridKolon({ belirtec: 'eseyapildimi', text: 'Anket Yap?', genislikCh: 10, filterType: 'checkedlist' }).tipBool().noSql(),
+			new GridKolon({ belirtec: 'esepuani', text: 'Anket Puanı', genislikCh: 13 }).tipDecimal(),
 			new GridKolon({ belirtec: 'bcptyapilacak', text: 'CPT?', genislikCh: 5, filterType: 'checkedlist' }).tipBool(),
 			new GridKolon({ belirtec: 'cptvarmi', text: 'CPT Var?', genislikCh: 10, filterType: 'checkedlist' }).tipBool().noSql(),
 			new GridKolon({ belirtec: 'cptyapildimi', text: 'CPT Yap?', genislikCh: 10, filterType: 'checkedlist' }).tipBool().noSql(),
@@ -40,7 +40,7 @@ class MQMuayene extends MQGuidOrtak {
 		sent.fromIliski('esehasta has', `${alias}.hastaid = has.id`)
 			.leftJoin({ alias, from: 'esedoktor dok', on: `${alias}.doktorid = dok.id` })
 			.leftJoin({ alias, from: 'esecpttest tcpt', on: `${alias}.id = tcpt.muayeneid` })
-			.leftJoin({ alias, from: 'eseesetest tese', on: `${alias}.id = tese.muayeneid` })
+			.leftJoin({ alias, from: 'eseankettest tese', on: `${alias}.id = tese.muayeneid` })
 		sent.sahalar.add(
 			`${alias}.${adiSaha}`, `${alias}.hastaid`, 'has.aciklama hastaadi',
 			`(case when tcpt.id IS NULL then 0 else 1 end) cptvarmi`, `(case when tese.id IS NULL then 0 else 1 end) esevarmi`,
@@ -52,7 +52,7 @@ class MQMuayene extends MQGuidOrtak {
 		let form = tabPage_genel.addFormWithParent().yanYana(2).addStyle(e => `$elementCSS [data-builder-id = 'ese'], $elementCSS [data-builder-id = 'cpt'] { margin-left: 100px }`);
 			form.addDateInput('tarih', 'Tarih'); form.addTimeInput('saat', 'Saat');
 			form.addTextInput('seri', 'Seri').setMaxLength(3).addStyle_wh(70).addCSS('center'); form.addNumberInput('fisNo', 'No').setMaxLength(17).addStyle_wh(200);
-			form.addCheckBox('ese', 'ESE?'); form.addNumberInput('esePuani', 'ESE Puanı').readOnly().etiketGosterim_placeholder().addStyle_wh(90);
+			form.addCheckBox('ese', 'Anket?'); form.addNumberInput('esePuani', 'Anket Puanı').readOnly().etiketGosterim_placeholder().addStyle_wh(90);
 			form.addCheckBox('cpt', 'CPT?'); form.addNumberInput('cptPuani', 'CPT Puanı').readOnly().etiketGosterim_placeholder().addStyle_wh(90);
 		form = tabPage_genel.addFormWithParent().yanYana(); form.addModelKullan('hastaId', 'Hasta').comboBox().kodsuz().autoBind().setMFSinif(MQHasta); 
 			form.addModelKullan('doktorId', 'Doktor').comboBox().kodsuz().autoBind().setMFSinif(MQDoktor);
@@ -64,16 +64,16 @@ class MQMuayene extends MQGuidOrtak {
 		app.activeWndPart.openContextMenu({ gridPart, title, formDuzenleyici: _e => {
 			const {form, close} = _e; form.yanYana(2);
 			let handler = __e => { close(); this.testOlusturIstendi({ ...e, ..._e, ...__e, id: __e.builder.id }) };
-				form.addButton('cptTestOlustur', 'CPT Kayıt').onClick(handler); form.addButton('eseTestOlustur', 'ESE Kayıt').onClick(handler);
+				form.addButton('cptTestOlustur', 'CPT Kayıt').onClick(handler); form.addButton('anketTestOlustur', 'Anket Kayıt').onClick(handler);
 			handler = __e => { close(); this.testEkraniAcIstendi({ ...e, ..._e, ...__e, id: __e.builder.id }) };
-				form.addButton('cptTestEkraniAc', 'CPT Aç').onClick(handler); form.addButton('eseTestEkraniAc', 'ESE Aç').onClick(handler)
+				form.addButton('cptTestEkraniAc', 'CPT Aç').onClick(handler); form.addButton('anketTestEkraniAc', 'Anket Aç').onClick(handler)
 		} })
 	}
 	static async testOlusturIstendi(e) {
 		const {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender;
 		const tip = e.id.replace('TestOlustur', ''), testSinif = MQTest.getClass(tip); if (!testSinif) { hConfirm('Uygun Test Sınıfı belirlenemedi', sinifAdi); return }
 		let {selectedRecs} = gridPart; if (!selectedRecs?.length) { hConfirm('Kayıtlar seçilmelidir', sinifAdi); return }
-		selectedRecs = selectedRecs.filter(rec => !!rec[`b${tip}yapilacak`]); let idListe = selectedRecs?.map(rec => rec.id);
+		selectedRecs = selectedRecs.filter(rec => !!rec[`b${tip == 'anket' ? 'ese' : tip}yapilacak`]); let idListe = selectedRecs?.map(rec => rec.id);
 		if (!idListe?.length) { hConfirm(`Seçilenler içinde <b>${tip.toUpperCase()}</b> için uygun test yok`, sinifAdi); return }
 		const {table} = testSinif; let sent = new MQSent({ from: table, inDizi: idListe, sahalar: 'muayeneid' }), recs = await app.sqlExecSelect(sent);
 		let yapilanIdSet = asSet(recs.map(rec => rec.muayeneid)), bostaIdListe = idListe.filter(id => !yapilanIdSet[id]);
@@ -82,8 +82,12 @@ class MQMuayene extends MQGuidOrtak {
 		if (!rdlg) { return } let promises = []; for (const muayeneId of bostaIdListe) {
 			const tarihSaat = now(), tamamlandimi = false; let onayKodu = 0; while (onayKodu < 100000) { onayKodu = asInteger(Math.random() * 1000000) }
 			const testInst = new testSinif({ muayeneId, tarihSaat, tamamlandimi, onayKodu }); promises.push(testInst.yaz())
-		} await Promise.all(promises); gridPart.tazele(); /*testSinif.listeEkraniAc(e);*/
-		setTimeout(() => { eConfirm(`<b class="bold forestgreen">${bostaIdListe.length}</b> adet <b class="royalblue">${tip.toUpperCase()} Test</b> kaydı açıldı`, sinifAdi) }, 200)
+		}
+		try {
+			await Promise.all(promises); gridPart.tazele(); /*testSinif.listeEkraniAc(e);*/
+			setTimeout(() => { eConfirm(`<b class="bold forestgreen">${bostaIdListe.length}</b> adet <b class="royalblue">${tip.toUpperCase()} Test</b> kaydı açıldı`, sinifAdi) }, 200)
+		}
+		catch (ex) { hConfirm(getErrorText(ex)); throw ex }
 	}
 	static async testEkraniAcIstendi(e) {
 		const {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender;

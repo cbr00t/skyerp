@@ -2,7 +2,11 @@ class MQYerelParam extends MQYerelParamTicari { static { window[this.name] = thi
 class MQYerelParamConfig_App extends MQYerelParamConfig {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	yukleSonrasi(e) {
-		if (!app.isAdmin) { const {sql} = this; if (sql) { for (const key of ['server', 'db']) { delete sql[key] } } delete this.wsURL }
+		if (!app.isAdmin) {
+			for (const key of ['sql', 'wsProxyServerURL']) { delete this[key] }
+			const {DefaultWSHostName_SkyServer: host, DefaultSSLWSPort: port} = config.class;
+			this.wsURL = `https://{host}:${port}`
+		}
 		super.yukleSonrasi(e);
 	}
 }
@@ -14,7 +18,7 @@ class MQParam_ESE extends MQParam {
 		let form = paramci.addFormWithParent().altAlta();
 			form.addGrup({ etiket: 'Varsayılan Şablon' }); let altForm = form.addFormWithParent().yanYana(3).addAltObject('sablon');
 				altForm.addModelKullan(MQSablonCPT.tip, 'CPT').comboBox().kodsuz().autoBind().setMFSinif(MQSablonCPT);
-				altForm.addModelKullan(MQSablonESE.tip, 'ESE').comboBox().kodsuz().autoBind().setMFSinif(MQSablonESE)
+				altForm.addModelKullan(MQSablonAnket.tip, 'Anket').comboBox().kodsuz().autoBind().setMFSinif(MQSablonAnket)
 		/*form = paramci.addFormWithParent()*/
 	}
 }
