@@ -25,7 +25,7 @@ class MQTest extends MQGuidOrtak {
 		const {sablonTip} = this; super.pTanimDuzenle(e); $.extend(e.pTanim, {
 			muayeneId: new PInstGuid('muayeneid'), tarihSaat: new PInstDate('tarihsaat'), tamamlandimi: new PInstBitBool('btamamlandi'),
 			uygulanmaYeri: new PInstTekSecim('uygulanmayeri', MQTestUygulanmaYeri), onayKodu: new PInstNum('onaykodu'),
-			sablonId: new PInstGuid(`${sablonTip}sablonid`)
+			sablonId: new PInstGuid(`${sablonTip == 'anket' ? 'ese' : sablonTip}sablonid`)
 		})
 	}
 	static ekCSSDuzenle(e) {
