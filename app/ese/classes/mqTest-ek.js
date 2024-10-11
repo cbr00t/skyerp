@@ -33,10 +33,11 @@ class TestSonuc extends CObject {
 		if (!diger) { return this }
 		for (const parentKey of this.class.ParentKeys) {
 			let parent = this[parentKey], digerParent = diger[parentKey];
-			for (const [key, value] of Object.entries(digerParent)) { parent[key] += value }
+			for (const [key, value] of Object.entries(digerParent)) { parent[key] = roundToFra(parent[key] + value, 1) }
 		}
 		return this
 	}
+	toString() { return toJSONStr(this, ' ').replaceAll('\n', '').replaceAll('  ', ' ').replaceAll('"', '') }
 }
 class TestGenelSonuc extends TestSonuc {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

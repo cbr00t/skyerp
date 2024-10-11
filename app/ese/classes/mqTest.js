@@ -169,6 +169,7 @@ class MQTest extends MQGuidOrtak {
 					for (const testSonuc of Object.values(genelSonuc.grupNo2Bilgi)) { genelSonuc.totalEkle(testSonuc); testSonuc.ortalamaOlustur() }
 					genelSonuc.ortalamaOlustur()
 				}
+				console.table(genelSonuc);
 				$(`<div class="resultText">Test tamamlandı<p/>Teşekkür ederiz</div>`).appendTo(content);
 				$(`<span class="cikis-etiket">Çıkmak için basınız => </span>`).appendTo(content);
 				btn = $(`<button class="cikis">[ Çıkış ]</button>`).jqxButton({ theme }).on('click', evt => parentPart.cikisIstendi({ ...e, evt })); btn.appendTo(content);
@@ -188,7 +189,7 @@ class MQTestCPT extends MQTest {
 	}
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
 		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, content} = parentPart;
-		const {detaylar} = this; let urls = detaylar.map(det => det.resimLink), imageCount = urls.length;
+		const {detaylar} = this; let orjUrls = detaylar.map(det => det.resimLink), urls = [...orjUrls], imageCount = urls.length;
 		switch (state) {
 			case 'home':
 				let promises = []; for (let i = 0; i < imageCount; i++) { promises.push(new $.Deferred()) }
@@ -204,13 +205,16 @@ class MQTestCPT extends MQTest {
 			case 'test':
 				const {genelSonuc, gecerliResimSeq, grupTekrarSayisi, resimArasiSn} = this, {testSonucSinif} = this.class;
 				let gecerliResimURL, index = -1, repeatIndex = 0, resimGosterimTime, ilkTiklamaTime, hInternal;
-				$.extend(parentPart, { headerText: `<b>${gecerliResimSeq}.</b> resme tıklayınız`, progressText: `${repeatIndex + 1} / ${grupTekrarSayisi}` });
-				const img = $(`<div class="resim"/>`); img.on('click', evt => {
+				$.extend(parentPart, {
+					headerText: `Şu resme tıklayınız: <img class="target-img" src="${orjUrls[gecerliResimSeq - 1]}">`,
+					progressText: `${repeatIndex + 1} / ${grupTekrarSayisi}`
+				});
+				const img = $(`<div class="resim"/>`); let clickHandler = evt => {
 					if (ilkTiklamaTime) { return } ilkTiklamaTime = now();
 					let tiklamaSnFarki = (ilkTiklamaTime - resimGosterimTime) / 1000, grupNo = repeatIndex + 1;
 					let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif();
 					let dogrumu = urls[index] == gecerliResimURL; testSonuc.tiklamaEkle(dogrumu, tiklamaSnFarki)
-				}); img.appendTo(content);
+				}; img.on('mousedown', clickHandler); img.on('touchstart', clickHandler); img.appendTo(content);
 				let ilkmi = true, loopProc = () => {
 					if (parentPart.isDestroyed || parentPart.state != 'test') { clearInterval(this._hInterval); delete this._hInterval; return false }
 					index++; if (ilkmi) { ilkmi = false } else { genelSonuc.tumSayi++ }
