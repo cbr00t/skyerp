@@ -11,12 +11,14 @@ class TestSonuc extends CObject {
 		return result
 	}
 	constructor(e) {
-		e = e || {}; super(e); for (const parentKey of this.class.ParentKeys) {
+		e = e || {}; super(e); const {tip, id} = e; $.extend(this, { tip, id });
+		for (const parentKey of this.class.ParentKeys) {
 			let parent = this[parentKey] = e[parentKey] ?? {};
 			for (const key of ['sayi', 'adat', 'secimSure']) { parent[key] = parent[key] ?? 0 }
 		}
 		console.info('test', 'new', this)
 	}
+	kaydet(e) { const data = this.getWSData(e); return app.wsTestSonucKaydet({ data }) }
 	tiklamaEkle(dogrumu, sureSn) {
 		let parent = this[dogrumu ? 'dogru' : 'yanlis']; parent.sayi++; parent.adat = roundToFra(parent.adat + sureSn, 1);
 		/*console.info('test', this, dogrumu, sureSn, parent);*/ return this
@@ -37,11 +39,28 @@ class TestSonuc extends CObject {
 		}
 		return this
 	}
+	getWSData(e) { return this.reduce(e) }
+	reduce(e) {
+		const result = {}, keys = ['id', 'tip', ...this.class.ParentKeys];
+		for (const key of keys) {
+			let value = this[key]; if (value === undefined) { continue }
+			if (typeof value == 'object') { value = value.deepCopy ? value.deepCopy() : $.extend(true, $.isArray(value) ? [] : {}, value) }
+			result[key] = value
+		}
+		return result
+	}
 	toString() { return toJSONStr(this, ' ').replaceAll('\n', '').replaceAll('  ', ' ').replaceAll('"', '') }
 }
 class TestGenelSonuc extends TestSonuc {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { tumSayi: e.tumSayi ?? 0, grupNo2Bilgi: e.grupNo2Bilgi || {} }) }
+	reduce(e) {
+		const result = super.reduce(e), keys = ['tumSayi', 'grupNo2Bilgi'];
+		for (const key of keys) {
+			let value = this[key]; if (value === undefined) { continue }
+			if (typeof value == 'object') { value = value.deepCopy ? value.deepCopy() : $.extend(true, $.isArray(value) ? [] : {}, value) }
+			result[key] = value
+		}
+		return result
+	}
 }
-class TestSonuc_CPT extends TestSonuc { static { window[this.name] = this; this._key2Class[this.name] = this } }
-class TestSonuc_Anket extends TestSonuc { static { window[this.name] = this; this._key2Class[this.name] = this } }

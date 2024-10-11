@@ -1,7 +1,9 @@
 class MQTest extends MQGuidOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Test' } static get kodListeTipi() { return 'TEST' }
 	static get tip() { return this.sablonTip } static get kod() { return this.tip } static get aciklama() { return this.sablonSinif?.aciklama }
-	static get tableAlias() { return 'tst' } static get tanimUISinif() { return ModelTanimPart } static get sablonSinif() { return null } static get sablonTip() { return this.sablonSinif?.tip }
+	static get tableAlias() { return 'tst' } static get tanimUISinif() { return ModelTanimPart }
+	static get sablonSinif() { return null } static get sablonTip() { return this.sablonSinif?.tip }
+	static get testSonucSinif() { return TestSonuc } static get testGenelSonucSinif() { return TestGenelSonuc } 
 	static get ignoreBelirtecSet() { return {...super.ignoreBelirtecSet, ...asSet(['muayeneid']) } }
 	static get tip2Sinif() {
 		let result = this._tip2Sinif; if (result == null) {
@@ -138,7 +140,7 @@ class MQTest extends MQGuidOrtak {
 	}
 	static baslat(e) { let inst = new this({ id: e.testId ?? e.id }); return inst.baslat(e) }
 	async baslat(e) {
-		const inst = this, {tip} = inst.class, {id} = inst;
+		const inst = this, {tip} = this.class, {id} = this;
 		clearTimeout(this._timerProgress); this._timerProgress = setTimeout(() => showProgress(), 500);
 		try {
 			let rec = (await app.wsTestBilgi({ tip, id })) || {}; await this.testUI_setValues({ rec });
@@ -156,8 +158,8 @@ class MQTest extends MQGuidOrtak {
 	async testUI_initLayout(e) {
 		const {parentPart} = e, {header, content} = parentPart; content.children().remove();
 		const {tarihSaat: tarih, hastaAdi} = this; $.extend(parentPart, { tarih, hastaAdi });
-		const {uiState2Adi} = this.class; let {state} = parentPart; parentPart.adimText = uiState2Adi[state] ?? state;
-		if (state == 'test') { this.genelSonuc = new TestGenelSonuc() }
+		const {tip, uiState2Adi} = this.class, {id} = this; let {state} = parentPart; parentPart.adimText = uiState2Adi[state] ?? state;
+		if (state == 'test') { this.genelSonuc = new this.class.testGenelSonucSinif({ tip, id }) }
 		parentPart.headerText = ''; await this.testUI_initLayout_ara(e); state = parentPart.state; parentPart.adimText = uiState2Adi[state] ?? state;
 		let btn; switch (state) {
 			case 'home':
@@ -169,7 +171,7 @@ class MQTest extends MQGuidOrtak {
 					for (const testSonuc of Object.values(genelSonuc.grupNo2Bilgi)) { genelSonuc.totalEkle(testSonuc); testSonuc.ortalamaOlustur() }
 					genelSonuc.ortalamaOlustur()
 				}
-				console.table(genelSonuc);
+				console.table(genelSonuc); genelSonuc.kaydet(e);
 				$(`<div class="resultText">Test tamamlandı<p/>Teşekkür ederiz</div>`).appendTo(content);
 				$(`<div class="resultText darkgray" style="font-size: 90%">*<u>programcı</u>*: Sonuçlar için <span class="royalblue">F12 (DevTools) &gt; Console</span> kısmına bakınız</div>`).appendTo(content);
 				$(`<span class="cikis-etiket">Çıkmak için basınız => </span>`).appendTo(content);
@@ -181,7 +183,7 @@ class MQTest extends MQGuidOrtak {
 	testUI_kaydetOncesi(e) { } testUI_kaydet(e) { } testUI_kaydetSonrasi(e) { }
 }
 class MQTestCPT extends MQTest {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'CPT Test' } static get testSonucSinif() { return TestSonuc_CPT }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'CPT Test' }
 	static get kodListeTipi() { return 'TSTCPT' } static get table() { return 'esecpttest' } static get sablonSinif() { return MQSablonCPT }
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { cptsablonid: this.sablonId }) }
 	testUI_setValues(e) {
@@ -190,7 +192,7 @@ class MQTestCPT extends MQTest {
 	}
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
 		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, content} = parentPart;
-		const {detaylar} = this; let orjUrls = detaylar.map(det => det.resimLink), urls = [...orjUrls], imageCount = urls.length;
+		const {detaylar} = this, {tip} = this.class; let orjUrls = detaylar.map(det => det.resimLink), urls = [...orjUrls], imageCount = urls.length;
 		switch (state) {
 			case 'home':
 				let promises = []; for (let i = 0; i < imageCount; i++) { promises.push(new $.Deferred()) }
@@ -213,7 +215,7 @@ class MQTestCPT extends MQTest {
 				const img = $(`<div class="resim"/>`); let clickHandler = evt => {
 					if (ilkTiklamaTime) { return } ilkTiklamaTime = now();
 					let tiklamaSnFarki = (ilkTiklamaTime - resimGosterimTime) / 1000, grupNo = repeatIndex + 1;
-					let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif();
+					let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif({ tip });
 					let dogrumu = urls[index] == gecerliResimURL; testSonuc.tiklamaEkle(dogrumu, tiklamaSnFarki)
 				}; img.on('mousedown', clickHandler); img.on('touchstart', clickHandler); img.appendTo(content);
 				let ilkmi = true, loopProc = () => {
@@ -237,7 +239,7 @@ class MQTestCPT extends MQTest {
 	}
 }
 class MQTestAnket extends MQTest {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Anket Test' } static get testSonucSinif() { return TestSonuc_Anket }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Anket Test' }
 	static get kodListeTipi() { return 'TSTANKET' } static get table() { return 'eseankettest' } static get sablonSinif() { return MQSablonAnket }
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { esesablonid: this.sablonId }) }
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
