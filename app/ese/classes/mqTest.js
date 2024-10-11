@@ -122,7 +122,7 @@ class MQTest extends MQGuidOrtak {
 		progressManager?.setProgressMax(recs.length); const eMailAuth = await app.getEMailAuth();
 		for (const rec of recs) {
 			if (pAborted?.result) { break } const {email: to, hastaadi: hastaAdi, onaykodu: onayKodu} = rec;
-			const url = `https://cloud.vioyazilim.com.tr:90/skyerp/app/ese/?hostname=cloud.vioyazilim.com.tr&user=${to}&`;
+			const url = `https://cloud.vioyazilim.com.tr:90/skyerp/app/ese/?hostname=cloud.vioyazilim.com.tr&user=${to}&pass=${onayKodu}&`;
 			promises.push(app.wsEMailGonder({ data: {
 				...eMailAuth, to, subject: 'ESE Test', body: (
 					`<div style="font-size: 14pt;">
@@ -164,7 +164,7 @@ class MQTest extends MQGuidOrtak {
 		let btn; switch (state) {
 			case 'home':
 				btn = $(`<button id="baslat">İşleme başla</button>`);
-				btn.jqxButton({ theme }).on('click', evt => parentPart.nextPage({ ...e, evt })); btn.appendTo(content);
+				btn.jqxButton({ theme }).on('click', evt => { requestFullScreen(); parentPart.nextPage({ ...e, evt }) }); btn.appendTo(content);
 				break
 			case 'end':
 				const {genelSonuc} = this; if (genelSonuc) {
@@ -192,7 +192,7 @@ class MQTestCPT extends MQTest {
 	}
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
 		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, content} = parentPart;
-		const {detaylar} = this, {tip} = this.class; let orjUrls = detaylar.map(det => det.resimLink), urls = [...orjUrls], imageCount = urls.length;
+		const {id, detaylar} = this, {tip} = this.class; let orjUrls = detaylar.map(det => det.resimLink), urls = [...orjUrls], imageCount = urls.length;
 		switch (state) {
 			case 'home':
 				let promises = []; for (let i = 0; i < imageCount; i++) { promises.push(new $.Deferred()) }
@@ -215,7 +215,7 @@ class MQTestCPT extends MQTest {
 				const img = $(`<div class="resim"/>`); let clickHandler = evt => {
 					if (ilkTiklamaTime) { return } ilkTiklamaTime = now();
 					let tiklamaSnFarki = (ilkTiklamaTime - resimGosterimTime) / 1000, grupNo = repeatIndex + 1;
-					let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif({ tip });
+					let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif({ tip, id });
 					let dogrumu = urls[index] == gecerliResimURL; testSonuc.tiklamaEkle(dogrumu, tiklamaSnFarki)
 				}; img.on('mousedown', clickHandler); img.on('touchstart', clickHandler); img.appendTo(content);
 				let ilkmi = true, loopProc = () => {

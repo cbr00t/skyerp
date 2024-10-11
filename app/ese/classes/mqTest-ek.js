@@ -11,8 +11,7 @@ class TestSonuc extends CObject {
 		return result
 	}
 	constructor(e) {
-		e = e || {}; super(e); const {tip, id} = e; $.extend(this, { tip, id });
-		for (const parentKey of this.class.ParentKeys) {
+		e = e || {}; super(e); for (const parentKey of this.class.ParentKeys) {
 			let parent = this[parentKey] = e[parentKey] ?? {};
 			for (const key of ['sayi', 'adat', 'secimSure']) { parent[key] = parent[key] ?? 0 }
 		}
@@ -41,10 +40,10 @@ class TestSonuc extends CObject {
 	}
 	getWSData(e) { return this.reduce(e) }
 	reduce(e) {
-		const result = {}, keys = ['id', 'tip', ...this.class.ParentKeys];
+		const result = {}, keys = [...this.class.ParentKeys];
 		for (const key of keys) {
 			let value = this[key]; if (value === undefined) { continue }
-			if (typeof value == 'object') { value = value.deepCopy ? value.deepCopy() : $.extend(true, $.isArray(value) ? [] : {}, value) }
+			if (typeof value == 'object') { value = value.deepCopy ? (value.reduce || value.deepCopy)() : $.extend(true, $.isArray(value) ? [] : {}, value) }
 			result[key] = value
 		}
 		return result
@@ -53,12 +52,12 @@ class TestSonuc extends CObject {
 }
 class TestGenelSonuc extends TestSonuc {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	constructor(e) { e = e || {}; super(e); $.extend(this, { tumSayi: e.tumSayi ?? 0, grupNo2Bilgi: e.grupNo2Bilgi || {} }) }
+	constructor(e) { e = e || {}; super(e); const {tip, id} = e; $.extend(this, { tip, id, tumSayi: e.tumSayi ?? 0, grupNo2Bilgi: e.grupNo2Bilgi || {} }) }
 	reduce(e) {
-		const result = super.reduce(e), keys = ['tumSayi', 'grupNo2Bilgi'];
+		const result = super.reduce(e), keys = ['id', 'tip', 'tumSayi', 'grupNo2Bilgi'];
 		for (const key of keys) {
 			let value = this[key]; if (value === undefined) { continue }
-			if (typeof value == 'object') { value = value.deepCopy ? value.deepCopy() : $.extend(true, $.isArray(value) ? [] : {}, value) }
+			if (typeof value == 'object') { value = value.deepCopy ? (value.reduce || value.deepCopy)() : $.extend(true, $.isArray(value) ? [] : {}, value) }
 			result[key] = value
 		}
 		return result
