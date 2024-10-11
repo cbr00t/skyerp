@@ -122,9 +122,18 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 				.addColDef(new GridKolon({ belirtec: 'il', text: 'İl', maxWidth: 450, filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('CRULKE', 'Ülke').secimKullanilir().setMFSinif(DMQUlke)
 				.addColDef(new GridKolon({ belirtec: 'ulke', text: 'Ülke', maxWidth: 450, filterType: 'checkedlist' })));
-		if (sube) { result.addGrup(new TabloYapiItem().setKA('SUBE', 'Şube').addColDef(new GridKolon({ belirtec: 'sube', text: 'Şube', maxWidth: 450, filterType: 'checkedlist' }))) }
-		if (takipNo) { result.addGrup(new TabloYapiItem().setKA('TAKIPNO', 'Takip No').addColDef(new GridKolon({ belirtec: 'takip', text: 'Takip No', maxWidth: 450, filterType: 'checkedlist' }))) }
-		if (plasiyer) { result.addGrup(new TabloYapiItem().setKA('PLASIYER', 'Plasiyer').addColDef(new GridKolon({ belirtec: 'plasiyer', text: 'Plasiyer', maxWidth: 550, filterType: 'checkedlist' }))) }
+		if (sube) {
+			result.addGrup(new TabloYapiItem().setKA('SUBE', 'Şube').secimKullanilir().setMFSinif(DMQSube)
+				.addColDef(new GridKolon({ belirtec: 'sube', text: 'Şube', maxWidth: 450, filterType: 'checkedlist' })))
+		}
+		if (takipNo) {
+			result.addGrup(new TabloYapiItem().setKA('TAKIPNO', 'Takip No').secimKullanilir().setMFSinif(DMQTakipNo)
+			   .addColDef(new GridKolon({ belirtec: 'takip', text: 'Takip No', maxWidth: 450, filterType: 'checkedlist' })))
+		}
+		if (plasiyer) {
+			result.addGrup(new TabloYapiItem().setKA('PLASIYER', 'Plasiyer').secimKullanilir().setMFSinif(DMQPlasiyer)
+				.addColDef(new GridKolon({ belirtec: 'plasiyer', text: 'Plasiyer', maxWidth: 550, filterType: 'checkedlist' })))
+		}
 		this.tabloYapiDuzenle_miktar(e).tabloYapiDuzenle_ciro(e);
 	}
 	loadServerData_queryDuzenle(e) {
@@ -147,7 +156,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 				case 'CRULKE': sent.cari2UlkeBagla(); sent.sahalar.add('car.ulkekod', 'ulk.aciklama ulkeadi'); wh.icerikKisitDuzenle_cariUlke({ ...e, saha: 'car.ulkekod' }); break
 				case 'SUBE': sent.fis2SubeBagla(); sent.sahalar.add('fis.bizsubekod subekod', 'sub.aciklama subeadi'); wh.icerikKisitDuzenle_sube({ ...e, saha: 'fis.bizsubekod' }); break
 				case 'TAKIPNO':
-					sent.fromIliski(`(case when fis.takiportakdir = '' then har.dettakipno else fis.orttakipno end) = tak.kod`);
+					sent.fromIliski('takipmst tak', `(case when fis.takiportakdir = '' then har.dettakipno else fis.orttakipno end) = tak.kod`);
 					sent.sahalar.add('tak.kod takipkod', 'tak.aciklama takipadi'); break
 				case 'PLASIYER':
 					sent.fromIliski('carmst pls', 'fis.plasiyerkod = pls.must'); sent.sahalar.add('fis.plasiyerkod', 'pls.birunvan plasiyeradi');
@@ -246,12 +255,12 @@ class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 	fisVeHareketBagla(e) { super.fisVeHareketBagla(e); const {sent} = e, {shd} = this; sent.fisHareket('piffis', `pif${shd}`) }
 	tabloYapiDuzenle_miktar(e) {
 		super.tabloYapiDuzenle_miktar(e); const {result} = e, {stokmu} = this;
-		result.addToplam(new TabloYapiItem().setKA('BRMIKTAR', 'Brüt Miktar').addColDef(new GridKolon({ belirtec: 'brmiktar', text: 'Brüt Miktar', genislikCh: 15, filterType: 'numberinput' }).tipDecimal()));
-		if (stokmu) { result.addToplam(new TabloYapiItem().setKA('BRMIKTARKG', 'Brüt Miktar (KG)').addColDef(new GridKolon({ belirtec: 'brmiktarkg', text: 'Brüt KG', genislikCh: 15, filterType: 'numberinput' }).tipDecimal())) }
-		result.addToplam(new TabloYapiItem().setKA('BRCIRO', 'Brüt Ciro').addColDef(new GridKolon({ belirtec: 'brciro', text: 'Brüt Ciro', genislikCh: 19, filterType: 'numberinput' }).tipDecimal()))
-			  .addToplam(new TabloYapiItem().setKA('IAMIKTAR', 'İADE Miktar').addColDef(new GridKolon({ belirtec: 'iamiktar', text: 'İADE Miktar', genislikCh: 15, filterType: 'numberinput' }).tipDecimal()));
-		if (stokmu) { result.addToplam(new TabloYapiItem().setKA('IAMIKTARKG', 'İADE Miktar (KG)').addColDef(new GridKolon({ belirtec: 'iamiktarkg', text: 'İADE KG', genislikCh: 15, filterType: 'numberinput' }).tipDecimal())) }
-		result.addToplam(new TabloYapiItem().setKA('IACIRO', 'İADE Ciro').addColDef(new GridKolon({ belirtec: 'iaciro', text: 'İADE Ciro', genislikCh: 19, filterType: 'numberinput' }).tipDecimal()));
+		result.addToplam(new TabloYapiItem().setKA('BRMIKTAR', 'Brüt Miktar').addColDef(new GridKolon({ belirtec: 'brutmiktar', text: 'Brüt Miktar', genislikCh: 15, filterType: 'numberinput' }).tipDecimal()));
+		if (stokmu) { result.addToplam(new TabloYapiItem().setKA('BRMIKTARKG', 'Brüt Miktar (KG)').addColDef(new GridKolon({ belirtec: 'brutmiktarkg', text: 'Brüt KG', genislikCh: 15, filterType: 'numberinput' }).tipDecimal())) }
+		result.addToplam(new TabloYapiItem().setKA('BRCIRO', 'Brüt Ciro').addColDef(new GridKolon({ belirtec: 'brutciro', text: 'Brüt Ciro', genislikCh: 19, filterType: 'numberinput' }).tipDecimal()))
+			  .addToplam(new TabloYapiItem().setKA('IAMIKTAR', 'İADE Miktar').addColDef(new GridKolon({ belirtec: 'iademiktar', text: 'İADE Miktar', genislikCh: 15, filterType: 'numberinput' }).tipDecimal()));
+		if (stokmu) { result.addToplam(new TabloYapiItem().setKA('IAMIKTARKG', 'İADE Miktar (KG)').addColDef(new GridKolon({ belirtec: 'iademiktarkg', text: 'İADE KG', genislikCh: 15, filterType: 'numberinput' }).tipDecimal())) }
+		result.addToplam(new TabloYapiItem().setKA('IACIRO', 'İADE Ciro').addColDef(new GridKolon({ belirtec: 'iadeciro', text: 'İADE Ciro', genislikCh: 19, filterType: 'numberinput' }).tipDecimal()));
 		return this
 	}
 	loadServerData_queryDuzenle_miktar(e) {

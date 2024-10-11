@@ -87,6 +87,14 @@ class DMQUlke extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ülke' }
 	static get table() { return 'ulke' } static get tableAlias() { return 'ulk' }
 }
+class DMQSube extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Şube' }
+	static get table() { return 'isyeri' } static get tableAlias() { return 'sub' }
+}
+class DMQTakipNo extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Takip No' }
+	static get table() { return 'takipmst' } static get tableAlias() { return 'tak' }
+}
 class DMQCari extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cari' } static get zeminRenkDesteklermi() { return true }
 	static get table() { return 'carmst' } static get tableAlias() { return 'car' } static get kodSaha() { return 'must' } static get adiSaha() { return 'birunvan' }
@@ -98,4 +106,8 @@ class DMQCari extends DMQKA {
 		)
 	}
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.cari2TipBagla(); sent.cari2IstGrupBagla(); sent.cari2BolgeBagla(); sent.cari2IlBagla() }
+}
+class DMQPlasiyer extends DMQCari {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Plasiyer' }
+	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this.class; sent.where.add(`${alias}.kayittipi = 'X'`) }
 }

@@ -129,9 +129,10 @@ class DMQRapor extends DMQSayacliKA {
 	}
 	async yukleSonrasiIslemler(e) { await super.yukleSonrasiIslemler(e); const {encUser} = this; this.user = encUser ? await app.xdec(encUser) : encUser }
 	alternateKeyHostVarsDuzenle(e) {
-		super.alternateKeyHostVarsDuzenle(e); const {hv} = e, {adiSaha} = this.class, {encUser, raporKod, aciklama} = this;
-		$.extend(hv, { raportip: raporKod, xuserkod: encUser }); hv[adiSaha] = aciklama
+		super.alternateKeyHostVarsDuzenle(e); const {hv} = e, {adiSaha, sayacSaha} = this.class, {encUser, raporKod, aciklama} = this;
+		$.extend(hv, { raportip: raporKod, xuserkod: encUser }); hv[adiSaha] = aciklama; delete hv[sayacSaha]
 	}
+	keySetValues(e) { super.keySetValues(e); const {rec} = e; $.extend(this, { aciklama: rec.aciklama }) }
 	hostVarsDuzenle(e) {
 		super.hostVarsDuzenle(e); const {hv} = e, liste2HV = value => {
 			if (value && typeof value == 'object' && !$.isArray(value)) { value = Object.keys(value) };
