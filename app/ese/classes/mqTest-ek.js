@@ -7,7 +7,7 @@ class TestSonuc extends CObject {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static ParentKeys = ['dogru', 'yanlis'];
 	get toplam() {
 		let result = {}; for (const parentKey of this.class.ParentKeys) {
-			let parent = this[parentKey]; for (const [key, value] of Object.entries(parent[key])) { result[key] = (result[key] || 0) + (value || 0) } }
+			let parent = this[parentKey]; for (const [key, value] of Object.entries(parent)) { result[key] = (result[key] || 0) + (value || 0) } }
 		return result
 	}
 	constructor(e) {
@@ -18,14 +18,14 @@ class TestSonuc extends CObject {
 		console.info('test', 'new', this)
 	}
 	tiklamaEkle(dogrumu, sureSn) {
-		let parent = this[dogrumu ? 'dogru' : 'yanlis']; parent.adat = roundToFra(parent.adat + sureSn, 1);
-		console.info('test', this, dogrumu, sureSn, parent); return this
+		let parent = this[dogrumu ? 'dogru' : 'yanlis']; parent.sayi++; parent.adat = roundToFra(parent.adat + sureSn, 1);
+		/*console.info('test', this, dogrumu, sureSn, parent);*/ return this
 	}
 	ortalamaOlustur() {
 		for (const parentKey of this.class.ParentKeys) {
 			let parent = this[parentKey]; let {sayi, adat} = parent;
 			parent.secimSure = sayi ? roundToFra(adat / sayi, 1) : 0;
-			console.info('test', this, parentKey, parent)
+			/*console.info('test', this, parentKey, parent)*/
 		}
 		return this
 	}

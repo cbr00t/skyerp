@@ -25,7 +25,7 @@ body:not(.kiosk) .test.part .header { margin-top: calc(0px - (var(--header-heigh
 .test.part .content .cikis-etiket { margin: 0 10px 0 80px }
 .test.part .content button.cikis { font-weight: bold; font-size: 150%; padding: 10px 20px; border: 1px solid royalblue !important }
 .test.part .content button.cikis.jqx-fill-state-normal { color: royalblue }
-.test.part .content .resultText { font-weight: bold; font-size: 130%; margin: 20px 0 0 80px }
+.test.part .content .resultText { font-weight: bold; font-size: 130%; margin: 20px 0 10px 80px }
 .test.part .content .anket, .test.part .content .anket-sonuclar { font-size: 150%; width: calc(var(--full) - 10px); height: calc(var(--full) - 35px); overflow-y: auto !important }
 .test.part .content .anket .item,.test.part .content .anket-sonuclar .item { padding: 5px 20px; border: 1px solid #aaa }
 .test.part .content .anket .item:not(:first-child), .test.part .content .anket-sonuclar .item:not(:first-child) { margin-top: 20px }

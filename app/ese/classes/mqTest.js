@@ -171,6 +171,7 @@ class MQTest extends MQGuidOrtak {
 				}
 				console.table(genelSonuc);
 				$(`<div class="resultText">Test tamamlandı<p/>Teşekkür ederiz</div>`).appendTo(content);
+				$(`<div class="resultText darkgray" style="font-size: 90%">*<u>programcı</u>*: Sonuçlar için <span class="royalblue">F12 (DevTools) &gt; Console</span> kısmına bakınız</div>`).appendTo(content);
 				$(`<span class="cikis-etiket">Çıkmak için basınız => </span>`).appendTo(content);
 				btn = $(`<button class="cikis">[ Çıkış ]</button>`).jqxButton({ theme }).on('click', evt => parentPart.cikisIstendi({ ...e, evt })); btn.appendTo(content);
 				break
