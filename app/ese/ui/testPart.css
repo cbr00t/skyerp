@@ -30,17 +30,17 @@ body:not(.kiosk) .test.part .header { margin-top: calc(0px - (var(--header-heigh
 .test.part .content button.cikis { font-weight: bold; font-size: 150%; padding: 10px 20px; border: 1px solid royalblue !important }
 .test.part .content button.cikis.jqx-fill-state-normal { color: royalblue }
 .test.part .content .resultText { font-weight: bold; font-size: 130%; margin: 20px 0 10px 80px }
-.test.part .content .anket, .test.part .content .anket-sonuclar { font-size: 150%; width: calc(var(--full) - 10px); height: calc(var(--full) - 35px); overflow-y: auto !important }
+.test.part .content .anket, .test.part .content .anket-sonuclar { font-size: 120%; width: calc(var(--full) - 10px); height: calc(var(--full) - 35px); overflow-y: auto !important }
 .test.part .content .anket .item,.test.part .content .anket-sonuclar .item { padding: 5px 20px; border: 1px solid #aaa }
-.test.part .content .anket .item:not(:first-child), .test.part .content .anket-sonuclar .item:not(:first-child) { margin-top: 20px }
-.test.part .content .anket .item .soru, .test.part .content .anket-sonuclar .item .soru { font-size: 150%; width: calc(var(--full) - 20px); font-weight: bold; color: #777; padding: 0 30px 10px 0 }
+.test.part .content .anket .item:not(:first-child), .test.part .content .anket-sonuclar .item:not(:first-child) { margin-top: 10px }
+.test.part .content .anket .item .soru, .test.part .content .anket-sonuclar .item .soru { font-size: 120%; font-weight: normal; color: #555; width: calc(var(--full) - 20px); padding: 0 30px 10px 0 }
 .test.part .content .anket .item .secenekler { }
-.test.part .content .anket .item .secenekler > .jqx-button { font-size: 100% !important; min-width: 100px; padding: 10px 20px; border: 1px solid #aaa !important }
+.test.part .content .anket .item .secenekler > .jqx-button { font-size: 100% !important; min-width: 100px; padding: 10px 20px; border: 1px solid #aaa !important; cursor: pointer }
 .test.part .content .anket .item .secenekler > .jqx-button.jqx-fill-state-normal { color: slategray !important }
 .test.part .content .anket .item .secenekler > .jqx-button.jqx-fill-state-hover { color: royalblue !important }
 .test.part .content .anket .item .secenekler > .jqx-button.jqx-fill-state-pressed { color: whitesmoke !important; background-color: royalblue !important }
 .test.part .content .anket .item .secenekler > .jqx-button:not(:first-child) { margin-left: 20px !important }
-.test.part .content .anket-sonuclar { font-size: 130% }
+.test.part .content .anket-sonuclar { font-size: 120% }
 .test.part .content .anket-sonuclar .item { padding: 5px 10px }
 .test.part .content .anket-sonuclar .item .soru { font-weight: normal }
 .test.part .content .anket-sonuclar .item .cevap { font-weight: bold; color: royalblue }

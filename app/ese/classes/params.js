@@ -5,9 +5,9 @@ class MQYerelParamConfig_App extends MQYerelParamConfig {
 		if (!app.isAdmin) {
 			for (const key of ['sql', 'wsProxyServerURL']) { delete this[key] }
 			const {DefaultWSHostName_SkyServer: host, DefaultSSLWSPort: port} = config.class;
-			this.wsURL = `https://{$host}:${port}`
+			this.wsURL = `https://${host}:${port}`
 		}
-		super.yukleSonrasi(e);
+		super.yukleSonrasi(e)
 	}
 }
 class MQParam_ESE extends MQParam {

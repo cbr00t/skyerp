@@ -4,7 +4,20 @@ class MQTestUygulanmaYeri extends TekSecim {
 }
 
 class TestSonuc extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static ParentKeys = ['dogru', 'yanlis'];
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get reduceKeys() { return [] }
+	reduce(e) {
+		const {reduceKeys} = this.class, result = {};
+		for (const key of reduceKeys) {
+			let value = this[key]; if (value === undefined) { continue }
+			if (typeof value == 'object') { value = value.deepCopy ? (value.reduce || value.deepCopy)() : $.extend(true, $.isArray(value) ? [] : {}, value) }
+			result[key] = value
+		}
+		return result
+	}
+	toString() { return toJSONStr(this, ' ').replaceAll('\n', '').replaceAll('  ', ' ').replaceAll('"', '') }
+}
+class TestSonucCPT extends TestSonuc {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
 	get toplam() {
 		let result = {}; for (const parentKey of this.class.ParentKeys) {
 			let parent = this[parentKey]; for (const [key, value] of Object.entries(parent)) { result[key] = (result[key] || 0) + (value || 0) } }
@@ -17,7 +30,6 @@ class TestSonuc extends CObject {
 		}
 		console.info('test', 'new', this)
 	}
-	kaydet(e) { const data = this.getWSData(e); return app.wsTestSonucKaydet({ data }) }
 	tiklamaEkle(dogrumu, sureSn) {
 		let parent = this[dogrumu ? 'dogru' : 'yanlis']; parent.sayi++; parent.adat = roundToFra(parent.adat + sureSn, 1);
 		/*console.info('test', this, dogrumu, sureSn, parent);*/ return this
@@ -38,28 +50,22 @@ class TestSonuc extends CObject {
 		}
 		return this
 	}
-	getWSData(e) { return this.reduce(e) }
-	reduce(e) {
-		const result = {}, keys = [...this.class.ParentKeys];
-		for (const key of keys) {
-			let value = this[key]; if (value === undefined) { continue }
-			if (typeof value == 'object') { value = value.deepCopy ? (value.reduce || value.deepCopy)() : $.extend(true, $.isArray(value) ? [] : {}, value) }
-			result[key] = value
-		}
-		return result
-	}
-	toString() { return toJSONStr(this, ' ').replaceAll('\n', '').replaceAll('  ', ' ').replaceAll('"', '') }
 }
+class TestSonucAnket extends CObject { static { window[this.name] = this; this._key2Class[this.name] = this } }
+
 class TestGenelSonuc extends TestSonuc {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	constructor(e) { e = e || {}; super(e); const {tip, id} = e; $.extend(this, { tip, id, tumSayi: e.tumSayi ?? 0, grupNo2Bilgi: e.grupNo2Bilgi || {} }) }
-	reduce(e) {
-		const result = super.reduce(e), keys = ['id', 'tip', 'tumSayi', 'grupNo2Bilgi'];
-		for (const key of keys) {
-			let value = this[key]; if (value === undefined) { continue }
-			if (typeof value == 'object') { value = value.deepCopy ? (value.reduce || value.deepCopy)() : $.extend(true, $.isArray(value) ? [] : {}, value) }
-			result[key] = value
-		}
-		return result
-	}
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return null }
+	static get reduceKeys() { return [...super.reduceKeys, 'id', 'tip', 'tumSayi'] }
+	constructor(e) { e = e || {}; super(e); const {tip} = this.class, id = e.testId ?? e.id; $.extend(this, { tip, id, tumSayi: e.tumSayi ?? 0 }) }
+	kaydet(e) { const data = this.getWSData(e); return app.wsTestSonucKaydet({ data }) } getWSData(e) { return this.reduce(e) }
+}
+class TestGenelSonucCPT extends TestGenelSonuc {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return MQTestCPT.tip }
+	static get reduceKeys() { return [...super.reduceKeys, 'grupNo2Bilgi'] }
+	constructor(e) { e = e || {}; super(e); $.extend(this, { grupNo2Bilgi: e.grupNo2Bilgi || {} }) }
+}
+class TestGenelSonucAnket extends TestGenelSonuc {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return MQTestAnket.tip }
+	static get reduceKeys() { return [...super.reduceKeys, 'soruId2CevapIndex'] }
+	constructor(e) { e = e || {}; super(e); $.extend(this, { soruId2CevapIndex: e.soruId2CevapIndex || {} }) }
 }

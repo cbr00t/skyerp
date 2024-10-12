@@ -3,7 +3,7 @@ class MQTest extends MQGuidOrtak {
 	static get tip() { return this.sablonTip } static get kod() { return this.tip } static get aciklama() { return this.sablonSinif?.aciklama }
 	static get tableAlias() { return 'tst' } static get tanimUISinif() { return ModelTanimPart }
 	static get sablonSinif() { return null } static get sablonTip() { return this.sablonSinif?.tip }
-	static get testSonucSinif() { return TestSonuc } static get testGenelSonucSinif() { return TestGenelSonuc } 
+	static get testSonucSinif() { return null } static get testGenelSonucSinif() { return null } 
 	static get ignoreBelirtecSet() { return {...super.ignoreBelirtecSet, ...asSet(['muayeneid']) } }
 	static get tip2Sinif() {
 		let result = this._tip2Sinif; if (result == null) {
@@ -158,20 +158,16 @@ class MQTest extends MQGuidOrtak {
 	async testUI_initLayout(e) {
 		const {parentPart} = e, {header, content} = parentPart; content.children().remove();
 		const {tarihSaat: tarih, hastaAdi} = this; $.extend(parentPart, { tarih, hastaAdi });
-		const {tip, uiState2Adi} = this.class, {id} = this; let {state} = parentPart; parentPart.adimText = uiState2Adi[state] ?? state;
-		if (state == 'test') { this.genelSonuc = new this.class.testGenelSonucSinif({ tip, id }) }
+		const {tip, uiState2Adi} = this.class, {id: testId} = this; let {state} = parentPart; parentPart.adimText = uiState2Adi[state] ?? state;
+		if (state == 'test') { this.genelSonuc = new this.class.testGenelSonucSinif({ tip, testId }) }
 		parentPart.headerText = ''; await this.testUI_initLayout_ara(e); state = parentPart.state; parentPart.adimText = uiState2Adi[state] ?? state;
 		let btn; switch (state) {
 			case 'home':
-				btn = $(`<button id="baslat">İşleme başla</button>`);
-				btn.jqxButton({ theme }).on('click', evt => { requestFullScreen(); parentPart.nextPage({ ...e, evt }) }); btn.appendTo(content);
+				btn = $(`<button id="baslat">İşleme başla</button>`); btn.jqxButton({ theme })
+					.on('click', evt => { requestFullScreen(); parentPart.nextPage({ ...e, evt }) }); btn.appendTo(content);
 				break
 			case 'end':
-				const {genelSonuc} = this; if (genelSonuc) {
-					for (const testSonuc of Object.values(genelSonuc.grupNo2Bilgi)) { genelSonuc.totalEkle(testSonuc); testSonuc.ortalamaOlustur() }
-					genelSonuc.ortalamaOlustur()
-				}
-				console.table(genelSonuc); genelSonuc.kaydet(e);
+				const {genelSonuc} = this; if (genelSonuc) { console.table(genelSonuc); genelSonuc.kaydet(e) }
 				$(`<div class="resultText">Test tamamlandı<p/>Teşekkür ederiz</div>`).appendTo(content);
 				$(`<div class="resultText darkgray" style="font-size: 90%">*<u>programcı</u>*: Sonuçlar için <span class="royalblue">F12 (DevTools) &gt; Console</span> kısmına bakınız</div>`).appendTo(content);
 				$(`<span class="cikis-etiket">Çıkmak için basınız => </span>`).appendTo(content);
@@ -183,7 +179,8 @@ class MQTest extends MQGuidOrtak {
 	testUI_kaydetOncesi(e) { } testUI_kaydet(e) { } testUI_kaydetSonrasi(e) { }
 }
 class MQTestCPT extends MQTest {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'CPT Test' }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sinifAdi() { return 'CPT Test' }  static get testSonucSinif() { return TestSonucCPT } static get testGenelSonucSinif() { return TestGenelSonucCPT }
 	static get kodListeTipi() { return 'TSTCPT' } static get table() { return 'esecpttest' } static get sablonSinif() { return MQSablonCPT }
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { cptsablonid: this.sablonId }) }
 	testUI_setValues(e) {
@@ -192,7 +189,7 @@ class MQTestCPT extends MQTest {
 	}
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
 		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, content} = parentPart;
-		const {id, detaylar, gecerliResimSeq, grupTekrarSayisi, resimArasiSn} = this, {tip} = this.class;
+		const {id: testId, detaylar, gecerliResimSeq, grupTekrarSayisi, resimArasiSn} = this, {tip} = this.class;
 		let orjUrls = detaylar.map(det => det.resimLink), urls = [...orjUrls], imageCount = urls.length, keyDownHandler;
 		switch (state) {
 			case 'home':
@@ -224,7 +221,7 @@ class MQTestCPT extends MQTest {
 				const img = $(`<div class="resim"/>`); let clickHandler = evt => {
 					if (ilkTiklamaTime) { return } ilkTiklamaTime = now();
 					let tiklamaSnFarki = (ilkTiklamaTime - resimGosterimTime) / 1000, grupNo = repeatIndex + 1;
-					let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif({ tip, id });
+					let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif({ tip, testId });
 					let dogrumu = urls[index] == gecerliResimURL; testSonuc.tiklamaEkle(dogrumu, tiklamaSnFarki)
 				}; img.on('mousedown', clickHandler); img.on('touchstart', clickHandler);
 				keyDownHandler = evt => {
@@ -249,7 +246,11 @@ class MQTestCPT extends MQTest {
 				if (loopProc()) { this._hInterval = setInterval(loopProc, resimArasiSn * 1000) }
 				break
 			case 'end':
-				$('body').off('keydown', keyDownHandler); break
+				$('body').off('keydown', keyDownHandler);
+				if (genelSonuc) {
+					for (const testSonuc of Object.values(genelSonuc.grupNo2Bilgi)) { genelSonuc.totalEkle(testSonuc); testSonuc.ortalamaOlustur() }
+					genelSonuc.ortalamaOlustur()
+				} break
 			/*case 'end':
 				let {result} = this.testResult || {}; if (result != null) {
 					$(`<div class="resultText ${result ? 'green' : 'red'}">${result ? 'Başarılı' : 'Hatalı'}</div>`).appendTo(content) }
@@ -258,7 +259,8 @@ class MQTestCPT extends MQTest {
 	}
 }
 class MQTestAnket extends MQTest {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Anket Test' }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sinifAdi() { return 'Anket Test' } static get testSonucSinif() { return TestSonucAnket } static get testGenelSonucSinif() { return TestGenelSonucAnket }
 	static get kodListeTipi() { return 'TSTANKET' } static get table() { return 'eseankettest' } static get sablonSinif() { return MQSablonAnket }
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { esesablonid: this.sablonId }) }
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
@@ -272,22 +274,22 @@ class MQTestAnket extends MQTest {
 			}
 			id2SoruVeSecenekler[id] = { soru, secenekler }
 		}
-		let testResult, htmlList = []; switch (state) {
+		const {genelSonuc, testId} = this, {tip, testSonucSinif} = this.class;
+		let htmlList = []; switch (state) {
 			case 'test':
-				/*let btn = $(`<button id="tamam"></button>`); btn.jqxButton({ theme }).on('click', evt => parentPart.nextPage()); btn.appendTo(islemTuslari.children('.sag')) */
-				testResult = this.testResult = {}; htmlList.push(`<div class="anket">`);
-				for (let [id, {soru, secenekler}] of Object.entries(id2SoruVeSecenekler)) {
+				let btn = $(`<button id="tamam"></button>`); btn.jqxButton({ theme }).on('click', evt => parentPart.nextPage()); btn.appendTo(islemTuslari.children('.sag'));
+				htmlList.push(`<div class="anket">`); for (let [id, {soru, secenekler}] of Object.entries(id2SoruVeSecenekler)) {
 					if (soru == null) { continue }
 					htmlList.push(`<div class="item" data-id="${id}"><div class="soru">${soru || '&nbsp;'}</div><div name="${id}" class="secenekler">`);
 					for (let i = 0; i < secenekler.length; i++) { htmlList.push(`<button class="secenek">${secenekler[i]}</button>`) }
 					htmlList.push(`</div></div>`)
 				}
-				$(htmlList.join('')).appendTo(content);
+				$(htmlList.join('')).appendTo(content); makeScrollable(content.find('.anket'));
 				content.find('.anket > .item > .secenekler').jqxButtonGroup({ theme, mode: 'radio' }).on('buttonclick', evt => {
-					let {index} = evt.args; if (index == null) { return }
-					let id = $(evt.currentTarget).parents('.item').data('id'); if (!id) { return }
-					testResult[id] = asInteger(index + 1)
-				}); makeScrollable(content.find('.anket')); break
+					let {index} = evt.args; if (index == null) { return } index = asInteger(index);
+					let soruId = $(evt.currentTarget).parents('.item').data('id'); if (!soruId) { return }
+					genelSonuc.tumSayi++; genelSonuc.soruId2CevapIndex[soruId] = { soru: id2SoruVeSecenekler[soruId]?.soru, index }
+				}); break
 			/*case 'end':
 				islemTuslari.children('.sag').find('#tamam').remove();
 				testResult = this.testResult || {}; htmlList.push(`<div class="anket-sonuclar">`);
