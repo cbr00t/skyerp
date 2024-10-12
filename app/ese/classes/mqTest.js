@@ -192,7 +192,8 @@ class MQTestCPT extends MQTest {
 	}
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
 		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, content} = parentPart;
-		const {id, detaylar} = this, {tip} = this.class; let orjUrls = detaylar.map(det => det.resimLink), urls = [...orjUrls], imageCount = urls.length;
+		const {id, detaylar, gecerliResimSeq, grupTekrarSayisi, resimArasiSn} = this, {tip} = this.class;
+		let orjUrls = detaylar.map(det => det.resimLink), urls = [...orjUrls], imageCount = urls.length, keyDownHandler;
 		switch (state) {
 			case 'home':
 				let promises = []; for (let i = 0; i < imageCount; i++) { promises.push(new $.Deferred()) }
@@ -203,21 +204,34 @@ class MQTestCPT extends MQTest {
 				}
 				elmContainer.appendTo(content); let imgStates = { load: 0, error: 0 }, results = await Promise.all(promises); elmContainer.remove();
 				for (let rec of results) { imgStates[rec.result ? 'load' : 'error']++ }
+				let rightWidth = 250, infoHTML = (
+					`<p>Test sırasında <b>${imageCount}</b> tane resim karışık sırada gösterilecektir.<br>` +
+						`Yanda gözüken resim gözükürse SPACE veya ENTER tuşuna basınız ya da Resme tıklayınız.</p>` +
+					`<p>Bir grup gösterim tamamlanınca aynı resimler bir daha karışık şekilde gösterilir. Grup gösterimi <b>${grupTekrarSayisi}</b> defa yapılır.<br/>` +
+						`Sonuçta yandaki resim değişik zamanlarda <b>${grupTekrarSayisi}</b> defa karşımıza çıkacaktır.</p>` +
+					`<p>Bu test tahmini <b>${Math.ceil(resimArasiSn * imageCount * grupTekrarSayisi / 60)}</b> dakika sürecektir.</p>` +
+					`<p>Hazırsanız <b>'İşleme Başla'</b> tuşuna basarak testi başlatınız.</p>`
+				);
+				$(`<div class="info float-left wrap-pretty" style="width: calc(var(--full) - (${rightWidth}px + 5px))">${infoHTML}</div>`).appendTo(content);
+				$(`<div class="target-img-parent float-right full-height" style="width: ${rightWidth}px">` +
+					  `Şu resme tıklayınız: <div class="target-img full-wh" style="background-image: url(${orjUrls[gecerliResimSeq - 1]})"></div>`).appendTo(content)
 				/*if (imgStates.error) { hConfirm(`<b>UYARI: </b><p/><div class="darkred"><b>${imgStates.error} adet</b> resim yüklenemedi!</div>`, parentPart.title); return }*/
 				break
 			case 'test':
-				const {genelSonuc, gecerliResimSeq, grupTekrarSayisi, resimArasiSn} = this, {testSonucSinif} = this.class;
+				const {genelSonuc} = this, {testSonucSinif} = this.class;
 				let gecerliResimURL, index = -1, repeatIndex = 0, resimGosterimTime, ilkTiklamaTime, hInternal;
-				$.extend(parentPart, {
-					headerText: `Şu resme tıklayınız: <img class="target-img" src="${orjUrls[gecerliResimSeq - 1]}">`,
-					progressText: `${repeatIndex + 1} / ${grupTekrarSayisi}`
-				});
+				parentPart.headerText = `Şu resme tıklayınız: <img class="target-img" src="${orjUrls[gecerliResimSeq - 1]}">`;
 				const img = $(`<div class="resim"/>`); let clickHandler = evt => {
 					if (ilkTiklamaTime) { return } ilkTiklamaTime = now();
 					let tiklamaSnFarki = (ilkTiklamaTime - resimGosterimTime) / 1000, grupNo = repeatIndex + 1;
 					let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif({ tip, id });
 					let dogrumu = urls[index] == gecerliResimURL; testSonuc.tiklamaEkle(dogrumu, tiklamaSnFarki)
-				}; img.on('mousedown', clickHandler); img.on('touchstart', clickHandler); img.appendTo(content);
+				}; img.on('mousedown', clickHandler); img.on('touchstart', clickHandler);
+				keyDownHandler = evt => {
+					if (parentPart.isDestroyed || parentPart.state != 'test') { $('body').off('keydown', keyDownHandler); return }
+					let key = evt.key?.toLowerCase(); if (key == ' ' || key == 'enter' || key == 'linefeed') { clickHandler(evt) }
+				}; $('body').off('keydown', keyDownHandler).on('keydown', keyDownHandler)
+				img.appendTo(content);
 				let ilkmi = true, loopProc = () => {
 					if (parentPart.isDestroyed || parentPart.state != 'test') { clearInterval(this._hInterval); delete this._hInterval; return false }
 					index++; if (ilkmi) { ilkmi = false } else { genelSonuc.tumSayi++ }
@@ -225,12 +239,17 @@ class MQTestCPT extends MQTest {
 						repeatIndex++; index = 0; if (grupTekrarSayisi && repeatIndex >= grupTekrarSayisi) { parentPart.nextPage(); return false }
 						urls = shuffle(urls)
 					}
-					parentPart.progressText = `${repeatIndex + 1} / ${grupTekrarSayisi}`; img.css('background-image', `url(${urls[index]})`);
+					parentPart.progressText = (`<div class="flex-row">
+						<div class="item"><span class="ek-bilgi">Resim: </span><span class="veri">${index + 1} / ${imageCount}</span></div>
+						<div class="item"><span class="ek-bilgi">Grup: </span><span class="veri">${repeatIndex + 1} / ${grupTekrarSayisi}</span></div>
+					</div>`); img.css('background-image', `url(${urls[index]})`);
 					resimGosterimTime = now(); ilkTiklamaTime = null; return true
 				}
 				gecerliResimURL = urls[gecerliResimSeq - 1]; urls = shuffle(urls);
 				if (loopProc()) { this._hInterval = setInterval(loopProc, resimArasiSn * 1000) }
 				break
+			case 'end':
+				$('body').off('keydown', keyDownHandler); break
 			/*case 'end':
 				let {result} = this.testResult || {}; if (result != null) {
 					$(`<div class="resultText ${result ? 'green' : 'red'}">${result ? 'Başarılı' : 'Hatalı'}</div>`).appendTo(content) }
