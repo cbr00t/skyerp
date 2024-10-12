@@ -18,7 +18,7 @@ class MQTest extends MQGuidOrtak {
 	static get uiStates() { let {_uiStates: result} = this; if (result == null) { result = this._uiStates = Object.keys(this.uiState2Adi) } return result }
 
 	constructor(e) {
-		e = e || {}; super(e); const {sablonTip} = this.class;
+		e = e || {}; super(e); const {sablonTip} = this.class; $.extend(this, { sablonAdi: e.sablonAdi });
 		if (sablonTip) { const {sablon} = app.params.ese || {}; this.sablonId = this.sablonId || sablon[sablonTip] }
 	}
 	static getClass(e) { const tip = typeof e == 'object' ? e.tip : e; return this.tip2Sinif[tip] }
@@ -50,11 +50,12 @@ class MQTest extends MQGuidOrtak {
 		].filter(x => !!x))
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {sent} = e, alias = this.tableAlias;
+		super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias, sablonSinif, pTanim} = this, {rowAttr: sablonIdSaha} = pTanim.sablonId;
 		sent.leftJoin({ alias, from: 'esemuayene mua', on: `${alias}.muayeneid = mua.id` })
+			.leftJoin({ alias, from: `${sablonSinif.table} sab`, on: `${alias}.${sablonIdSaha} = sab.id` })
 			.leftJoin({ alias: 'mua', from: 'esehasta has', on: 'mua.hastaid = has.id' })
 			.leftJoin({ alias: 'mua', from: 'esedoktor dok', on: 'mua.doktorid = dok.id' });
-		sent.sahalar.add(`${alias}.uygulanmayeri`, `${alias}.onaykodu`, 'has.email')
+		sent.sahalar.add(`${alias}.uygulanmayeri`, `${alias}.onaykodu`, 'has.email', 'sab.aciklama sablonAdi')
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e); let {liste} = e; liste.push(
@@ -138,6 +139,7 @@ class MQTest extends MQGuidOrtak {
 		if (promises.length) { await waitBlock() }
 		return allResults
 	}
+	setValues(e) { super.setValues(e); $.extend(e.rec, { sablonAdi: rec.sablonadi })}
 	static baslat(e) { let inst = new this({ id: e.testId ?? e.id }); return inst.baslat(e) }
 	async baslat(e) {
 		const inst = this, {tip} = this.class, {id} = this;
@@ -151,16 +153,19 @@ class MQTest extends MQGuidOrtak {
 	}
 	testUI_setValues(e) {
 		const {rec} = e; if (!rec) { return }
-		let keys = ['hastaID', 'doktorID', 'hastaAdi', 'doktorAdi']; for (const key of keys) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
+		let keys = ['sablonID', 'sablonAdi', 'hastaID', 'doktorID', 'hastaAdi', 'doktorAdi'];
+		for (const key of keys) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
 		$.extend(this, { tarihSaat: asDate(rec.ts), detaylar: rec.detaylar || [] })
 	}
 	static uiState2AdiDuzenle(e) { const {liste} = e; $.extend(liste, { home: 'Hoşgeldiniz', test: 'Test Ekranı', end: 'Test Bitti' }) }
 	async testUI_initLayout(e) {
 		const {parentPart} = e, {header, content} = parentPart; content.children().remove();
 		const {tarihSaat: tarih, hastaAdi} = this; $.extend(parentPart, { tarih, hastaAdi });
-		const {tip, uiState2Adi} = this.class, {id: testId} = this; let {state} = parentPart; parentPart.adimText = uiState2Adi[state] ?? state;
-		if (state == 'test') { this.genelSonuc = new this.class.testGenelSonucSinif({ tip, testId }) }
-		parentPart.headerText = ''; await this.testUI_initLayout_ara(e); state = parentPart.state; parentPart.adimText = uiState2Adi[state] ?? state;
+		const {tip, uiState2Adi} = this.class, {id: testId, sablonAdi} = this;
+		const getAdimText = () => { let result = uiState2Adi[state] ?? 'state'; if (sablonAdi && state == 'home') { result = `ESE <b class="royalblue">${sablonAdi}</b> Testi` } return result }
+		let {state} = parentPart; if (state == 'test') { this.genelSonuc = new this.class.testGenelSonucSinif({ tip, testId }) }
+		$.extend(parentPart, { adimText: getAdimText(), headerText: '' });
+		await this.testUI_initLayout_ara(e); state = parentPart.state; parentPart.adimText = getAdimText();
 		let btn; switch (state) {
 			case 'home':
 				btn = $(`<button id="baslat">İşleme başla</button>`); btn.jqxButton({ theme })
@@ -182,14 +187,16 @@ class MQTestCPT extends MQTest {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'CPT Test' }  static get testSonucSinif() { return TestSonucCPT } static get testGenelSonucSinif() { return TestGenelSonucCPT }
 	static get kodListeTipi() { return 'TSTCPT' } static get table() { return 'esecpttest' } static get sablonSinif() { return MQSablonCPT }
+	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.sahalar.add('sab.gecerliresimseq', 'sab.gruptekrarsayisi', 'sab.resimarasisn') }
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { cptsablonid: this.sablonId }) }
+	setValues(e) { super.setValues(e); $.extend(e.rec, { gecerliResimSeq: rec.gecerliresimseq, grupTekrarSayisi: rec.gruptekrarsayisi, resimArasiSn: rec.resimarasisn })}
 	testUI_setValues(e) {
 		super.testUI_setValues(e); const {rec} = e; if (!rec) { return }
 		for (const key of ['gecerliResimSeq', 'grupTekrarSayisi', 'resimArasiSn']) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
 	}
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
 		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, content} = parentPart;
-		const {id: testId, detaylar, gecerliResimSeq, grupTekrarSayisi, resimArasiSn} = this, {tip} = this.class;
+		const {id: testId, detaylar, genelSonuc, gecerliResimSeq, grupTekrarSayisi, resimArasiSn} = this, {tip} = this.class;
 		let orjUrls = detaylar.map(det => det.resimLink), urls = [...orjUrls], imageCount = urls.length, keyDownHandler;
 		switch (state) {
 			case 'home':
@@ -215,7 +222,7 @@ class MQTestCPT extends MQTest {
 				/*if (imgStates.error) { hConfirm(`<b>UYARI: </b><p/><div class="darkred"><b>${imgStates.error} adet</b> resim yüklenemedi!</div>`, parentPart.title); return }*/
 				break
 			case 'test':
-				const {genelSonuc} = this, {testSonucSinif} = this.class;
+				const {testSonucSinif} = this.class;
 				let gecerliResimURL, index = -1, repeatIndex = 0, resimGosterimTime, ilkTiklamaTime, hInternal;
 				parentPart.headerText = `Şu resme tıklayınız: <img class="target-img" src="${orjUrls[gecerliResimSeq - 1]}">`;
 				const img = $(`<div class="resim"/>`); let clickHandler = evt => {
@@ -262,25 +269,42 @@ class MQTestAnket extends MQTest {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Anket Test' } static get testSonucSinif() { return TestSonucAnket } static get testGenelSonucSinif() { return TestGenelSonucAnket }
 	static get kodListeTipi() { return 'TSTANKET' } static get table() { return 'eseankettest' } static get sablonSinif() { return MQSablonAnket }
+	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.sahalar.add('sab.suredk') }
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { esesablonid: this.sablonId }) }
+	setValues(e) { super.setValues(e); $.extend(e.rec, { sureDk: rec.suredk })}
+	testUI_setValues(e) {
+		super.testUI_setValues(e); const {rec} = e; if (!rec) { return }
+		for (const key of ['secenekSayisi', 'sureDk']) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
+	}
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
 		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, content, islemTuslari} = parentPart;
 		const {detaylar} = this, urls = detaylar.map(det => det.resimLink), imageCount = urls.length;
-		const PrefixSecenek = 'secenek', id2SoruVeSecenekler = {}; for (const det of detaylar) {
+		const PrefixSecenek = 'secenek', id2SoruVeSecenekler = {}; let tumSecenekler;
+		for (const det of detaylar) {
 			let {id, soru} = det; if (soru == null) { continue } soru = soru.trimEnd();
 			let secenekler = []; for (const key in det) {
 				if (!key.startsWith(PrefixSecenek)) { continue } let value = det[key].trimEnd();
 				if (value) { secenekler[asInteger(key.slice(PrefixSecenek.length)) - 1] = value }
 			}
 			id2SoruVeSecenekler[id] = { soru, secenekler }
-		}
-		const {genelSonuc, testId} = this, {tip, testSonucSinif} = this.class;
+			if (secenekler?.length > tumSecenekler?.length) { tumSecenekler = secenekler }
+		} tumSecenekler = tumSecenekler || [];
+		const {genelSonuc, testId, sureDk} = this, {tip, testSonucSinif} = this.class, soruSayi = Object.keys(id2SoruVeSecenekler).length;
 		let htmlList = []; switch (state) {
+			case 'home':
+				let infoHTML = (
+					`<p>Test Anket şeklinde verilecektir..<br>` +
+						`<b class="royalblue">${tumSecenekler.join(', ')}</b> şeklinde yanıtlar verilmelidir.</p>` +
+					`<p>Anket <b class="royalblue">${soruSayi}</b> sorudan oluşmaktadır ve başladıktan sonra <b class="forestgreen">??</b> dak. içinde tamamlanmalıdır.</p>` +
+					`<p>Hazırsanız <b>'İşleme Başla'</b> tuşuna basarak testi başlatınız.</p>`
+				);
+				$(`<div class="info wrap-pretty full-width">${infoHTML}</div>`).appendTo(content);
+				break
 			case 'test':
 				let btn = $(`<button id="tamam"></button>`); btn.jqxButton({ theme }).on('click', evt => parentPart.nextPage()); btn.appendTo(islemTuslari.children('.sag'));
 				htmlList.push(`<div class="anket">`); for (let [id, {soru, secenekler}] of Object.entries(id2SoruVeSecenekler)) {
 					if (soru == null) { continue }
-					htmlList.push(`<div class="item" data-id="${id}"><div class="soru">${soru || '&nbsp;'}</div><div name="${id}" class="secenekler">`);
+					htmlList.push(`<div class="item flex-row" data-id="${id}"><div class="soru">${soru || '&nbsp;'}</div><div name="${id}" class="secenekler">`);
 					for (let i = 0; i < secenekler.length; i++) { htmlList.push(`<button class="secenek">${secenekler[i]}</button>`) }
 					htmlList.push(`</div></div>`)
 				}
