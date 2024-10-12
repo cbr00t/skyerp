@@ -144,46 +144,41 @@ class MQSablonAnket extends MQSablon {
 	static get detaySinif() { return MQSablonAnketDetay } static get gridKontrolcuSinif() { return MQSablonAnketGridci }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { sureDk: new PInstNum('suredk') }) }
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); e.liste.push(
-			new GridKolon({ belirtec: 'suredk', text: 'Süre (Dk)', genislikCh: 10, filterType: 'checkedlist' }).tipNumerik()
-		)
+		super.orjBaslikListesiDuzenle(e); e.liste.push(...[
+			new GridKolon({ belirtec: 'suredk', text: 'Süre (Dk)', genislikCh: 10, filterType: 'checkedlist' }).tipNumerik(),
+			(config.dev ? new GridKolon({ belirtec: 'yanitid', text: 'Yanit ID', genislikCh: 50 }) : null),
+			new GridKolon({ belirtec: 'yanitadi', text: 'Yanit Adı', genislikCh: 50, filterType: 'checkedlist', sql: 'ynt.aciklama' })
+		].filter(x => !!x))
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); const {tabPage_genel} = e; let form = tabPage_genel.addFormWithParent().yanYana(2);
 		form.addNumberInput('sureDk', 'Süre (dk)').setMin(0).setMax(180).addStyle_wh(130)
 		/*form.addNumberInput('secenekSayisi', 'Seçenek Sayısı').setMin(0).setMax(MQSablonAnketYanit.maxSecenekSayisi).addStyle_wh(130)*/
 	}
-}
-class MQSablonAnketDetay extends MQSablonDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'eseanketsablondetay' }
-	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { soru: new PInstStr('soru'), yanitId: new PInstGuid('yanitid') }) }
-	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); const {args} = e; $.extend(args, { rowsHeight: 50 }) }
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); e.liste.push(...[
-			new GridKolon({ belirtec: 'soru', text: 'Soru', genislikCh: 50 }),
-			/*(config.dev ? new GridKolon({ belirtec: 'yanitid', text: 'Yanit ID', genislikCh: 50 }) : null),*/
-			new GridKolon({ belirtec: 'yanitadi', text: 'Yanit Adı', genislikCh: 50, filterType: 'checkedlist', sql: 'ynt.aciklama' })
-		].filter(x => !!x))
-	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {sent} = e, alias = this.tableAlias;
+		super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this;
 		sent.leftJoin({ alias, from: 'eseanketyanit ynt', on: `${alias}.yanitid = ynt.id` })
 		sent.sahalar.add('ynt.aciklama yanitadi')
 	}
 	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { yanitAdi: rec.yanitadi }) }
 }
+class MQSablonAnketDetay extends MQSablonDetay {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'eseanketsablondetay' }
+	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { soru: new PInstStr('soru'), yanitId: new PInstGuid('yanitid') }) }
+	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); const {args} = e; $.extend(args, { rowsHeight: 50 }) }
+	static orjBaslikListesiDuzenle(e) { super.orjBaslikListesiDuzenle(e); e.liste.push(new GridKolon({ belirtec: 'soru', text: 'Soru', genislikCh: 50 })) }
+}
 class MQSablonAnketGridci extends MQSablonGridci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	gridArgsDuzenle(e) { super.gridArgsDuzenle(e); const {args} = e; $.extend(args, { rowsHeight: 50 }) }
-	tabloKolonlariDuzenle(e) {
-		super.tabloKolonlariDuzenle(e); e.tabloKolonlari.push(
-			new GridKolon({ belirtec: 'soru', text: 'Soru', genislikCh: 50 }).tipString(512),
-			...MQSablonAnketYanit.getGridKolonlar({ belirtec: 'yanit', kodAttr: 'yanitId', argsDuzenle: e => e.kolonGrup.kodsuz().dropDown().autoBind() })
-			/*new GridKolon({ belirtec: 'yanitId', text: 'Yanıt', genislikCh: 20 }).tipTekSecim({ kodsuz: true, source: e => MQSablonAnketYanit.loadServerData(e) })*/
-		)
+	gridArgsDuzenle(e) { super.gridArgsDuzenle(e); const {args} = e; $.extend(args, { rowsHeight: 60 }) }
+	tabloKolonlariDuzenle(e) { super.tabloKolonlariDuzenle(e); e.tabloKolonlari.push(new GridKolon({ belirtec: 'soru', text: 'Soru', genislikCh: 50 }).tipString(512)) }
+	fis2Grid(e) {
+		let result = super.fis2Grid(e); if (!result) { return result } const {fis} = e; if (!fis) { return false }
+		let recs = e.recs = e.recs || []; const {gridDetaySinif} = fis.class;
+		for (let i = 0; i < 50; i++) { recs.push(gridDetaySinif ? new gridDetaySinif() : {}) }
+		return true
 	}
 }
-
 class MQSablonAnketYanit extends MQGuidVeAdiOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Anket Yanıt' } static get maxSecenekSayisi() { return 5 }
 	static get kodListeTipi() { return 'ANKETYANIT' } static get table() { return 'eseanketyanit' } static get tableAlias() { return 'ynt' }

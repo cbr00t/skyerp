@@ -64,7 +64,8 @@ class MQTest extends MQGuidOrtak {
 		)
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); const {tanimFormBuilder: tanimForm} = e; 
+		super.rootFormBuilderDuzenle(e); const {tanimFormBuilder: tanimForm} = e;
+		/*tanimForm.addModelKullan('sablonId', 'Şablon').dropDown().kodsuz().setMFSinif(this.sablonSinif);*/
 		tanimForm.addDiv('ozetBilgi').etiketGosterim_yok().addCSS('bold gray').addStyle_fullWH(null, 'auto').addStyle(e => `$elementCSS { font-size: 120%; padding: 10px 20px }`)
 			.onAfterRun(async e => {
 				const {altInst: inst, input} = e.builder, {sablonId, tarihSaat, muayeneId, tamamlandimi} = inst, {sablonTip} = inst.class;
@@ -77,12 +78,13 @@ class MQTest extends MQGuidOrtak {
 					if (!elm?.length) { return } let parent = $(`<div class="full-width"${style ? ` style="${style}"` : ''}/>`); if (css) { parent.addClass(css) }
 					elm.appendTo(parent); parent.appendTo(input)
 				};
-				if (sablonAdi) { addItem(sablonAdi, 'veri bold', `font-size: 150%; color: #999`) }
+				if (sablonAdi) { addItem(`<span class="gray etiket">Şablon:</span> <b class="veri forestgreen">${sablonAdi}</b>`, 'flex-row'), `font-size: 130%` }
 				addItem(`${tarihSaat ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri">${dateTimeAsKisaString(tarihSaat)}</b>` : ''} ${tamamlandimi ? `<div class="forestgreen" style="margin-left: "20px">Tamamlandı</b>` : ''}`, 'flex-row');
 				if (muayeneRec) { addItem(`<span class="gray etiket">Muayene:</span> <b class="veri">${muayeneRec.fisnox}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }
 				if (uygulanmaYeri) { addItem(`<span class="kgray etiket">Uygulanma Yeri:</span> <b>${MQTestUygulanmaYeri.kaDict[uygulanmaYeri]?.aciklama || ''}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }
-				if (onayKodu) { addItem(`<span class="gray etiket">Onay Kodu:</span> <b class="onayKodu veri royalblue">${onayKodu}</b>`) }
-				let elm = input.find('.onayKodu.veri'); if (elm?.length) { elm.on('click', evt => { navigator.clipboard.writeText(onayKodu).then(() => eConfirm('Onay Kodu panoya kopyalandı!', this.sinifAdi)) }) }
+				if (onayKodu) { addItem(`<span class="gray etiket">Onay Kodu:</span> <u class="onayKodu veri bold royalblue">${onayKodu}</u>`, null, `margin-top: 30px; cursor: pointer`) }
+				let elm = input.find('.onayKodu.veri'); if (elm?.length) {
+					elm.on('click', evt => { navigator.clipboard.writeText(onayKodu).then(() => eConfirm('Onay Kodu panoya kopyalandı!', this.sinifAdi)) }) }
 			})
 	}
 	static async eMailGonderIstendi(e) {
@@ -139,7 +141,7 @@ class MQTest extends MQGuidOrtak {
 		if (promises.length) { await waitBlock() }
 		return allResults
 	}
-	setValues(e) { super.setValues(e); $.extend(e.rec, { sablonAdi: rec.sablonadi })}
+	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { sablonAdi: rec.sablonadi })}
 	static baslat(e) { let inst = new this({ id: e.testId ?? e.id }); return inst.baslat(e) }
 	async baslat(e) {
 		const inst = this, {tip} = this.class, {id} = this;
@@ -271,7 +273,7 @@ class MQTestAnket extends MQTest {
 	static get kodListeTipi() { return 'TSTANKET' } static get table() { return 'eseankettest' } static get sablonSinif() { return MQSablonAnket }
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.sahalar.add('sab.suredk') }
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { esesablonid: this.sablonId }) }
-	setValues(e) { super.setValues(e); $.extend(e.rec, { sureDk: rec.suredk })}
+	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { sureDk: rec.suredk })}
 	testUI_setValues(e) {
 		super.testUI_setValues(e); const {rec} = e; if (!rec) { return }
 		for (const key of ['secenekSayisi', 'sureDk']) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
@@ -312,17 +314,9 @@ class MQTestAnket extends MQTest {
 				content.find('.anket > .item > .secenekler').jqxButtonGroup({ theme, mode: 'radio' }).on('buttonclick', evt => {
 					let {index} = evt.args; if (index == null) { return } index = asInteger(index);
 					let soruId = $(evt.currentTarget).parents('.item').data('id'); if (!soruId) { return }
-					genelSonuc.tumSayi++; genelSonuc.soruId2CevapIndex[soruId] = { soru: id2SoruVeSecenekler[soruId]?.soru, index }
+					genelSonuc.tumSayi++; genelSonuc.soruId2Cevap[soruId] = { soru: id2SoruVeSecenekler[soruId]?.soru, index }
 				}); break
-			/*case 'end':
-				islemTuslari.children('.sag').find('#tamam').remove();
-				testResult = this.testResult || {}; htmlList.push(`<div class="anket-sonuclar">`);
-				for (const [id, seq] of Object.entries(testResult)) {
-					let {soru, secenekler} = id2SoruVeSecenekler[id] || {}, cevap = seq ? secenekler[seq - 1] : null;
-					if (soru != null && cevap != null) { htmlList.push(`<div class="item"><div class="soru">${soru}</div><div class="cevap">${cevap}</div></div>`) }
-				}
-				htmlList.push(`</div>`); $(htmlList.join('')).appendTo(content);
-				makeScrollable(content.find('.anket-sonuclar')); break*/
+			case 'end': islemTuslari.find('button#tamam').remove(); break
 		}
 	}
 }
