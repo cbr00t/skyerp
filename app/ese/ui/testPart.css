@@ -28,7 +28,7 @@ body:not(.kiosk) .test.part .header { margin-top: calc(0px - (var(--header-heigh
 .test.part .content button#baslat.jqx-fill-state-hover { border: 1px solid green !important; background-color: whitesmoke }
 .test.part .content button#baslat.jqx-fill-state-pressed { color: white }
 .test.part .content .resim {
-	--padding: 0px; width: calc(var(--full) - (var(--padding) * 2 + 0)); height: calc(var(--full) - var(--padding) * 2);
+	--padding: 0px; width: calc(var(--full) - (var(--padding) * 2 + 0)); height: calc(var(--full) - (var(--padding) * 2 + 10px));
 	padding: var(--padding); border: 1px solid transparent; background-color: #070707 !important;
 	background-size: auto; background-repeat: no-repeat; background-position: center; cursor: pointer
 }
