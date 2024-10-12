@@ -191,7 +191,7 @@ class MQTestCPT extends MQTest {
 	static get kodListeTipi() { return 'TSTCPT' } static get table() { return 'esecpttest' } static get sablonSinif() { return MQSablonCPT }
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.sahalar.add('sab.gecerliresimseq', 'sab.gruptekrarsayisi', 'sab.resimarasisn') }
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { cptsablonid: this.sablonId }) }
-	setValues(e) { super.setValues(e); $.extend(e.rec, { gecerliResimSeq: rec.gecerliresimseq, grupTekrarSayisi: rec.gruptekrarsayisi, resimArasiSn: rec.resimarasisn })}
+	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { gecerliResimSeq: rec.gecerliresimseq, grupTekrarSayisi: rec.gruptekrarsayisi, resimArasiSn: rec.resimarasisn })}
 	testUI_setValues(e) {
 		super.testUI_setValues(e); const {rec} = e; if (!rec) { return }
 		for (const key of ['gecerliResimSeq', 'grupTekrarSayisi', 'resimArasiSn']) { let value = rec[key]; if (value !== undefined) { this[key] = value } }

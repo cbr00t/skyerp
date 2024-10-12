@@ -16,8 +16,7 @@ class ESEApp extends App {
 	}
 	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { localData: MQLocalData.getInstance(), ese: MQParam_ESE.getInstance() }) }
 	getAnaMenu(e) {
-		const {noMenuFlag} = this; if (noMenuFlag) { return new FRMenu() }
-		const {session} = config, {isAdmin} = session, items = [];
+		const {noMenuFlag, isAdmin} = this; if (noMenuFlag) { return new FRMenu() } const items = [];
 		if (isAdmin) {
 			const addMenuSubItems = (mne, text, ...classes) => {
 				let subItems = classes.flat().map(cls => new FRMenuChoice({ mne: cls.kodListeTipi, text: cls.sinifAdi, block: e => cls.listeEkraniAc(e) }));
