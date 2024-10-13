@@ -283,23 +283,19 @@ class MQTestAnket extends MQTest {
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
 		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, header, content, islemTuslari} = parentPart;
 		const {detaylar} = this, urls = detaylar.map(det => det.resimLink), imageCount = urls.length;
-		const PrefixSecenek = 'secenek', id2SoruVeSecenekler = {}; let tumSecenekler;
-		for (const det of detaylar) {
-			let {id, soru} = det; if (soru == null) { continue } soru = soru.trimEnd();
-			let secenekler = []; for (const key in det) {
-				if (!key.startsWith(PrefixSecenek)) { continue } let value = det[key].trimEnd();
-				if (value) { secenekler[asInteger(key.slice(PrefixSecenek.length)) - 1] = value }
-			}
-			id2SoruVeSecenekler[id] = { soru, secenekler }
-			if ((secenekler?.length || 0) > (tumSecenekler?.length || 0)) { tumSecenekler = secenekler }
-		} tumSecenekler = tumSecenekler || [];
-		const {genelSonuc, testId, sureDk} = this, {tip, testSonucSinif} = this.class, soruSayi = Object.keys(id2SoruVeSecenekler).length;
+		const PrefixSecenek = 'secenek', id2Soru = {};
+		let rec = detaylar[0], secenekler = []; for (const key in rec) {
+			if (!key.startsWith(PrefixSecenek)) { continue } let value = rec[key].trimEnd();
+			if (value) { secenekler[asInteger(key.slice(PrefixSecenek.length)) - 1] = value }
+		} 
+		for (const det of detaylar) { let {id, soru} = det; if (soru == null) { continue } soru = soru.trimEnd(); id2Soru[id] = soru }
+		const {genelSonuc, testId, sureDk} = this, {tip, testSonucSinif} = this.class, soruSayi = Object.keys(id2Soru).length;
 		let htmlList = [], countdown;
 		switch (state) {
 			case 'home':
 				let infoHTML = (
 					`<p>Test Anket şeklinde verilecektir.<br>` +
-						`<b class="royalblue">${tumSecenekler.join(', ')}</b> şeklinde yanıtlar verilmelidir.</p>` +
+						`<b class="royalblue">${secenekler.join(', ')}</b> şeklinde yanıtlar verilmelidir.</p>` +
 					`<p>Anket <b class="royalblue">${soruSayi}</b> sorudan oluşmaktadır ve başladıktan sonra <b class="forestgreen">${sureDk} dakika</b> içinde tamamlanmalıdır.</p>` +
 					`<p>Hazırsanız <b>'İşleme Başla'</b> tuşuna basarak testi başlatınız.</p>`
 				);
@@ -308,7 +304,7 @@ class MQTestAnket extends MQTest {
 			case 'test':
 				let btn = $(`<button id="bitti">TEST BİTTİ</button>`); btn.jqxButton({ theme }).on('click', evt => {
 					countdown.destroyPart(); countdown = null; parentPart.nextPage() }); btn.appendTo(header);
-				htmlList.push(`<div class="anket">`); for (let [id, {soru, secenekler}] of Object.entries(id2SoruVeSecenekler)) {
+				htmlList.push(`<div class="anket">`); for (const [id, soru] of Object.entries(id2Soru)) {
 					if (soru == null) { continue }
 					htmlList.push(`<div class="item flex-row" data-id="${id}"><div class="soru">${soru || '&nbsp;'}</div><div name="${id}" class="secenekler">`);
 					for (let i = 0; i < secenekler.length; i++) { htmlList.push(`<button class="secenek">${secenekler[i]}</button>`) }
@@ -318,7 +314,7 @@ class MQTestAnket extends MQTest {
 				content.find('.anket > .item > .secenekler').jqxButtonGroup({ theme, mode: 'radio' }).on('buttonclick', evt => {
 					let {index} = evt.args; if (index == null) { return } index = asInteger(index);
 					let soruId = $(evt.currentTarget).parents('.item').data('id'); if (!soruId) { return }
-					genelSonuc.tumSayi++; genelSonuc.soruId2Cevap[soruId] = { soru: id2SoruVeSecenekler[soruId]?.soru, index }
+					genelSonuc.tumSayi++; genelSonuc.soruId2Cevap[soruId] = { soru: id2Soru[soruId], index }
 				});
 				if (countdown) { countdown.abort() }
 				countdown = new Countdown({ totalSecs: sureDk * 60, layout: parentPart.headerLayouts.countdown });
