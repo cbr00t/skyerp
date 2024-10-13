@@ -143,25 +143,35 @@ class MQSablonAnket extends MQSablon {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Anket Şablon' }
 	static get tip() { return 'anket' } static get aciklama() { return 'Anket' } static get kodListeTipi() { return 'SABANKET' } static get table() { return 'eseanketsablon' }
 	static get detaySinif() { return MQSablonAnketDetay } static get gridKontrolcuSinif() { return MQSablonAnketGridci }
-	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { sureDk: new PInstNum({ rowAttr: 'suredk', init: () => 10 }), yanitId: new PInstGuid('yanitid')  }) }
+	static pTanimDuzenle(e) {
+		super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, { sureDk: new PInstNum({ rowAttr: 'suredk', init: () => 10 }), yanitId: new PInstGuid('yanitid') });
+		const {maxSecenekSayisi} = MQSablonAnketYanit; for (let i = 1; i <= maxSecenekSayisi; i++) { const key = `yanit${i}Puan`; pTanim[key] = new PInstStr(key.toLowerCase()) }
+	}
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); e.liste.push(...[
+		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(...[
 			new GridKolon({ belirtec: 'suredk', text: 'Süre (Dk)', genislikCh: 10, filterType: 'checkedlist' }).tipNumerik(),
 			(config.dev ? new GridKolon({ belirtec: 'yanitid', text: 'Yanit ID', genislikCh: 50 }) : null),
 			new GridKolon({ belirtec: 'yanitadi', text: 'Yanit Adı', genislikCh: 50, filterType: 'checkedlist', sql: 'ynt.aciklama' })
-		].filter(x => !!x))
+		].filter(x => !!x));
+		const {maxSecenekSayisi} = MQSablonAnketYanit; for (let i = 1; i <= maxSecenekSayisi; i++) {
+			const belirtec = `yanit${i}puan`; liste.push(new GridKolon({ belirtec, text: `Puan ${i}`, genislikCh: 8 }).tipDecimal(1)) }
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); const {kaForm, tabPanel, tabPage_genel} = e;
+		super.rootFormBuilderDuzenle(e); const {kaForm, tabPanel, tabPage_genel} = e, {maxSecenekSayisi} = MQSablonAnketYanit;
 		tabPanel.addStyle(e => `$elementCSS { margin-top: -30px } $elementCSS [data-builder-id = grid] > div { margin-top: 10px !important }`)
-		kaForm.yanYana().addNumberInput('sureDk', 'Süre (dk)').setMin(0).setMax(180).addStyle_wh(130); kaForm.id2Builder.aciklama.addStyle_wh('calc(var(--full) - 140px)')
-		let form = tabPage_genel.addFormWithParent().yanYana(1); form.addModelKullan('yanitId', 'Yanıt').etiketGosterim_placeholder().comboBox().kodsuz().autoBind().setMFSinif(MQSablonAnketYanit)
+		kaForm.yanYana(); kaForm.id2Builder.aciklama.addStyle_wh('calc(var(--full) - 140px)');
+			kaForm.addNumberInput('sureDk', 'Süre (dk)').setMin(0).setMax(180).addStyle_wh(130);
+		let form = tabPage_genel.addFormWithParent().yanYana(1);
+			form.addModelKullan('yanitId', 'Yanıt').etiketGosterim_placeholder().comboBox().kodsuz().autoBind().setMFSinif(MQSablonAnketYanit);
+		form = tabPage_genel.addFormWithParent().yanYana();
+			for (let i = 1; i <= maxSecenekSayisi; i++) { const key = `yanit${i}Puan`; form.addNumberInput(key, `Puan (${i})`).setMin(0).setMax(100).setFra(1).addStyle_wh(120) }
 		/*form.addNumberInput('secenekSayisi', 'Seçenek Sayısı').setMin(0).setMax(MQSablonAnketYanit.maxSecenekSayisi).addStyle_wh(130)*/
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this;
+		super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this, {maxSecenekSayisi} = MQSablonAnketYanit;
 		sent.leftJoin({ alias, from: 'eseanketyanit ynt', on: `${alias}.yanitid = ynt.id` })
-		sent.sahalar.add('ynt.aciklama yanitadi')
+		sent.sahalar.add('ynt.aciklama yanitadi');
+		for (let i = 1; i <= maxSecenekSayisi; i++) { const key = `yanit${i}Puan`; sent.sahalar.add(`${key.toLowerCase()} ${key}`) }
 	}
 	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { yanitAdi: rec.yanitadi }) }
 }

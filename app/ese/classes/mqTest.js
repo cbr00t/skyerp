@@ -276,19 +276,20 @@ class MQTestAnket extends MQTest {
 	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { sureDk: rec.suredk, yanitID: rec.yanitid })}
 	testUI_setValues(e) {
 		super.testUI_setValues(e); const {rec} = e; if (!rec) { return }
-		const keys = ['sureDk', 'yanitID'], PrefixSecenek = 'secenek';
+		const keys = ['sureDk', 'yanitID'], PrefixSecenek = 'secenek', PrefixYanit = 'yanit';
 		for (const key of keys) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
-		for (const [key, value] of Object.entries(rec)) { if (key.startsWith(PrefixSecenek)) { let value = rec[key]; if (value !== undefined) { this[key] = value } } }
+		for (const [key, value] of Object.entries(rec)) {
+			if (key.startsWith(PrefixSecenek) || key.startsWith(PrefixYanit)) { let value = rec[key]; if (value !== undefined) { this[key] = value } } }
 	}
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
 		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, header, content, islemTuslari} = parentPart;
 		const {detaylar} = this, urls = detaylar.map(det => det.resimLink), imageCount = urls.length;
-		const PrefixSecenek = 'secenek', id2Soru = {};
-		let rec = detaylar[0], secenekler = []; for (const key in rec) {
-			if (!key.startsWith(PrefixSecenek)) { continue } let value = rec[key].trimEnd();
-			if (value) { secenekler[asInteger(key.slice(PrefixSecenek.length)) - 1] = value }
+		const PrefixSecenek = 'secenek', PrefixYanit = 'yanit';
+		let rec = detaylar[0], secenekler = []; for (const key of Object.keys({ ...this, ...rec })) {
+			if (key.startsWith(PrefixSecenek) || key.startsWith(PrefixYanit)) {
+				let value = (rec[key] ?? this[key])?.trimEnd?.(); if (value) { secenekler[asInteger(key.slice(PrefixSecenek.length)) - 1] = value } }
 		} 
-		for (const det of detaylar) { let {id, soru} = det; if (soru == null) { continue } soru = soru.trimEnd(); id2Soru[id] = soru }
+		const id2Soru = {}; for (const det of detaylar) { let {id, soru} = det; if (soru == null) { continue } soru = soru.trimEnd(); id2Soru[id] = soru }
 		const {genelSonuc, testId, sureDk} = this, {tip, testSonucSinif} = this.class, soruSayi = Object.keys(id2Soru).length;
 		let htmlList = [], countdown;
 		switch (state) {
@@ -312,9 +313,9 @@ class MQTestAnket extends MQTest {
 				}
 				$(htmlList.join('')).appendTo(content); makeScrollable(content.find('.anket'));
 				content.find('.anket > .item > .secenekler').jqxButtonGroup({ theme, mode: 'radio' }).on('buttonclick', evt => {
-					let {index} = evt.args; if (index == null) { return } index = asInteger(index);
+					let {index} = evt.args; if (index == null) { return } index = asInteger(index); const seq = index + 1;
 					let soruId = $(evt.currentTarget).parents('.item').data('id'); if (!soruId) { return }
-					genelSonuc.tumSayi++; genelSonuc.soruId2Cevap[soruId] = { soru: id2Soru[soruId], index }
+					genelSonuc.tumSayi++; genelSonuc.soruId2Cevap[soruId] = { soru: id2Soru[soruId], index, puan: this[`yanit${seq}Puan`] }
 				});
 				if (countdown) { countdown.abort() }
 				countdown = new Countdown({ totalSecs: sureDk * 60, layout: parentPart.headerLayouts.countdown });
