@@ -157,14 +157,14 @@ class MQTest extends MQGuidOrtak {
 		const {rec} = e; if (!rec) { return }
 		let keys = ['sablonID', 'sablonAdi', 'hastaID', 'doktorID', 'hastaAdi', 'doktorAdi'];
 		for (const key of keys) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
-		$.extend(this, { tarihSaat: asDate(rec.ts), detaylar: rec.detaylar || [] })
+		$.extend(this, { tarihSaat: now(), detaylar: rec.detaylar || [] })
 	}
 	static uiState2AdiDuzenle(e) { const {liste} = e; $.extend(liste, { home: 'Hoşgeldiniz', test: 'Test Ekranı', end: 'Test Bitti' }) }
 	async testUI_initLayout(e) {
 		const {parentPart} = e, {header, content} = parentPart; content.children().remove();
 		const {tarihSaat: tarih, hastaAdi} = this; $.extend(parentPart, { tarih, hastaAdi });
-		const {tip, uiState2Adi} = this.class, {id: testId, sablonAdi} = this;
-		const getAdimText = () => { let result = uiState2Adi[state] ?? 'state'; if (sablonAdi /*&& state == 'home'*/) { result = `ESE <b class="royalblue">${sablonAdi}</b> Testi` } return result }
+		const {tip, aciklama: tipAdi, uiState2Adi} = this.class, {id: testId, sablonAdi} = this;
+		const getAdimText = () => { let result = uiState2Adi[state] ?? 'state'; if (sablonAdi /*&& state == 'home'*/) { result = `${tipAdi} <b class="royalblue">${sablonAdi}</b> Testi` } return result }
 		let {state} = parentPart; if (state == 'test') { this.genelSonuc = new this.class.testGenelSonucSinif({ tip, testId }) }
 		$.extend(parentPart, { adimText: getAdimText(), headerText: '' });
 		await this.testUI_initLayout_ara(e); state = parentPart.state; parentPart.adimText = getAdimText();
@@ -175,7 +175,7 @@ class MQTest extends MQGuidOrtak {
 				break
 			case 'end':
 				const {genelSonuc} = this; if (genelSonuc) { console.table(genelSonuc); genelSonuc.kaydet(e) }
-				$(`<div class="resultText">Test tamamlandı<p/>Teşekkür ederiz</div>`).appendTo(content);
+				$(`<div class="resultText">Test tamamlandı.<p/>Teşekkür ederiz.</div>`).appendTo(content);
 				$(`<div class="resultText darkgray" style="font-size: 90%">*<u>programcı</u>*: Sonuçlar için <span class="royalblue">F12 (DevTools) &gt; Console</span> kısmına bakınız</div>`).appendTo(content);
 				$(`<span class="cikis-etiket">Çıkmak için basınız => </span>`).appendTo(content);
 				btn = $(`<button class="cikis">[ Çıkış ]</button>`).jqxButton({ theme }).on('click', evt => parentPart.cikisIstendi({ ...e, evt })); btn.appendTo(content);
@@ -199,7 +199,7 @@ class MQTestCPT extends MQTest {
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
 		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, content} = parentPart;
 		const {id: testId, detaylar, genelSonuc, gecerliResimSeq, grupTekrarSayisi, resimArasiSn} = this, {tip} = this.class;
-		let orjUrls = detaylar.map(det => det.resimLink), urls = [...orjUrls], imageCount = urls.length, keyDownHandler;
+		let startCounter = 3, orjUrls = detaylar.map(det => det.resimLink), urls = [...orjUrls], imageCount = urls.length, keyDownHandler;
 		switch (state) {
 			case 'home':
 				let promises = []; for (let i = 0; i < imageCount; i++) { promises.push(new $.Deferred()) }
@@ -211,7 +211,8 @@ class MQTestCPT extends MQTest {
 				elmContainer.appendTo(content); let imgStates = { load: 0, error: 0 }, results = await Promise.all(promises); elmContainer.remove();
 				for (let rec of results) { imgStates[rec.result ? 'load' : 'error']++ }
 				let rightWidth = 250, infoHTML = (
-					`<p>Test sırasında <b class="royalblue">${imageCount}</b> tane resim karışık sırada gösterilecektir.<br>` +
+					`<p>Test başlamadan önce <b class="royalblue">${startCounter} saniyelik</b> bir geri sayım olacak ve ` +
+							`Test sırasında <b class="royalblue">${imageCount}</b> tane resim karışık sırada ve <b class="royalblue">${resimArasiSn} saniye</b> aralıklarla gösterilecektir.<br>` +
 						`Yanda gözüken resim gözükürse SPACE veya ENTER tuşuna basınız ya da Resme tıklayınız.</p>` +
 					`<p>Bir grup gösterim tamamlanınca aynı resimler bir daha karışık şekilde gösterilir. Grup gösterimi <b class="royalblue">${grupTekrarSayisi}</b> defa yapılır.<br/>` +
 						`Sonuçta yandaki resim değişik zamanlarda <b class="royalblue">${grupTekrarSayisi}</b> defa karşımıza çıkacaktır.</p>` +
@@ -220,25 +221,24 @@ class MQTestCPT extends MQTest {
 				);
 				$(`<div class="info float-left wrap-pretty" style="width: calc(var(--full) - (${rightWidth}px + 5px))">${infoHTML}</div>`).appendTo(content);
 				$(`<div class="target-img-parent float-right full-height" style="width: ${rightWidth}px">` +
-					  `Şu resme tıklayınız: <div class="target-img full-wh" style="background-image: url(${orjUrls[gecerliResimSeq - 1]})"></div>`).appendTo(content)
+					  `Şu resme tıklayınız: <div class="target-img full-wh" style="margin-left: 100px; background-image: url(${orjUrls[gecerliResimSeq - 1]})"></div>`).appendTo(content)
 				/*if (imgStates.error) { hConfirm(`<b>UYARI: </b><p/><div class="darkred"><b>${imgStates.error} adet</b> resim yüklenemedi!</div>`, parentPart.title); return }*/
 				break
 			case 'test':
 				const {testSonucSinif} = this.class;
 				let gecerliResimURL, index = -1, repeatIndex = 0, resimGosterimTime, ilkTiklamaTime, hInternal;
-				/*parentPart.headerText = `Şu resme tıklayınız: <img class="target-img" src="${orjUrls[gecerliResimSeq - 1]}">`; */
+				parentPart.headerText = `Şu resme tıklayınız: <img class="target-img" src="${orjUrls[gecerliResimSeq - 1]}">`;
 				const img = $(`<div class="resim"/>`); img.appendTo(content);
-				let startCounter = 3, clearFlag = true; let promise_wait = new $.Deferred();
+				let clearFlag = true; let promise_wait = new $.Deferred();
 				let loopProc = () => {
 					if (startCounter <= 0 || parentPart.isDestroyed || parentPart.state != 'test') { clearInterval(this._hInterval); delete this._hInterval; promise_wait?.resolve(); return false }
 					img.html(clearFlag ? '' : `<div class="veri full-wh">${startCounter--}</div>`); clearFlag = !clearFlag
 				}; this._hInterval = setInterval(loopProc, 800); await promise_wait; img.html('');
 				let clickHandler = evt => {
-					if (ilkTiklamaTime) { return } ilkTiklamaTime = now();
-					img.removeClass('clicked'); setTimeout(() => img.addClass('clicked'), 1);
+					if (ilkTiklamaTime) { return } ilkTiklamaTime = now(); let dogrumu = urls[index] == gecerliResimURL;
+					let cssClicked = `clicked-${dogrumu ? 'dogru' : 'yanlis'}`; img.removeClass('clicked-dogru clicked-yanlis'); setTimeout(() => img.addClass(cssClicked), 1);
 					let tiklamaSnFarki = (ilkTiklamaTime - resimGosterimTime) / 1000, grupNo = repeatIndex + 1;
-					let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif({ tip, testId });
-					let dogrumu = urls[index] == gecerliResimURL; testSonuc.tiklamaEkle(dogrumu, tiklamaSnFarki)
+					let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif({ tip, testId }); testSonuc.tiklamaEkle(dogrumu, tiklamaSnFarki)
 				}; img.on('mousedown', clickHandler); img.on('touchstart', clickHandler);
 				keyDownHandler = evt => {
 					if (parentPart.isDestroyed || parentPart.state != 'test') { $('body').off('keydown', keyDownHandler); return }
@@ -253,9 +253,9 @@ class MQTestCPT extends MQTest {
 							repeatIndex++; index = 0; if (grupTekrarSayisi && repeatIndex >= grupTekrarSayisi) { parentPart.nextPage(); return false }
 							urls = shuffle(urls)
 						}
-						parentPart.progressText = (`<div>
-							<div class="item"><span class="ek-bilgi">Resim&nbsp;: &nbsp;</span><span class="veri white">${index + 1} / ${imageCount}</span></div>
-							<div class="item"><span class="ek-bilgi">Grup &nbsp;&nbsp;: &nbsp;</span><span class="veri">${repeatIndex + 1} / ${grupTekrarSayisi}</span></div>
+						parentPart.progressText = (`<div class="flex-row">
+							<div class="item"><span class="ek-bilgi">Resim: &nbsp;</span><span class="veri white">${index + 1} / ${imageCount}</span></div>
+							<div class="item"><span class="ek-bilgi">Grup: &nbsp;</span><span class="veri">${repeatIndex + 1} / ${grupTekrarSayisi}</span></div>
 						</div>`);
 						img.css('background-image', `url(${urls[index]})`);
 						resimGosterimTime = now(); ilkTiklamaTime = null

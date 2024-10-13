@@ -11,13 +11,13 @@ body .test.part .islemTuslari { position: fixed !important; top: 28px !important
 	--padding-x: 5px; --padding-y: 20px; width: calc(var(--full) - var(--padding-x) * 2); height: calc(var(--full) - (var(--header-height) + var(--padding-y) * 3 + 5px));
 	padding: var(--padding-y) 0 0 var(--padding-x); border: 1px solid #ccc
 }
-.test.part[data-state = test] .content { background: #111 !important }
+.test.part .content { color: #aaa; background: #111 !important }
 body:not(.kiosk) .test.part .header { margin-top: calc(0px - (var(--header-height) + 0px)); background: transparent }
 .test.part .header .adimText { font-size: 180%; font-weight: bold; color: whitesmoke; min-width: 300px; margin-right: 10px; padding-bottom: 5px; border-bottom: 2px solid royalblue; border-radius: 1px }
 .test.part .header .headerText { font-size: 130%; font-weight: bold; color: forestgreen; margin: 0 15px 0 0; padding: 0 10px /*; box-shadow: 0px 0px 3px 2px darkgray*/ }
-.test.part .header .progressText { font-size: 100%; font-weight: bold; color: royalblue; width: 150px; margin-left: 28px; text-align: left }
+.test.part .header .progressText { font-size: 100%; font-weight: bold; color: royalblue; width: 280px; margin-left: 10px; text-align: left }
 .test.part .header .progressText .ek-bilgi { font-size: 100%; font-weight: normal; color: #bbb }
-/*.test.part .header .progressText .item:not(:first-child) { margin-left: 30px }*/
+.test.part .header .progressText .item:not(:first-child) { margin-left: 25px }
 .test.part .header .hastaAdi, .test.part .header .tarih { font-size: 110%; color: #888 }
 .test.part .header .countdown {
 	font-size: 110%; font-weight: bold; color: skyblue; position: absolute; right: 150px; top: 15px;
@@ -39,16 +39,18 @@ body:not(.kiosk) .test.part .header { margin-top: calc(0px - (var(--header-heigh
 .test.part .content button#baslat.jqx-fill-state-hover { border: 1px solid green !important; background-color: whitesmoke }
 .test.part .content button#baslat.jqx-fill-state-pressed { color: white }
 .test.part .content .resim {
-	--padding: 0px; font-size: 45vh !important; color: #5f92af; text-align: center; position: relative;
-	width: calc(var(--full) - (var(--padding) * 2 + 0)); height: calc(var(--full) - (var(--padding) * 2 + 10px)) !important;
+	--padding: 0px; font-size: 45vh !important; color: #5f92af; text-align: center; position: relative; top: -10px;
+	width: calc(var(--full) - (var(--padding) * 2 + 0)); height: calc(var(--full) - (var(--padding) * 2 + 0px)) !important;
 	padding: var(--padding); border: 1px solid transparent; background-size: auto; background-repeat: no-repeat;
 	background-position: center; cursor: pointer
 }
 .test.part .content .resim > .veri { position: relative !important; top: 50px !important }
 .test.part .content .resim.anim { animation: 2000ms 1 test-content-resim }
-.test.part .content .resim.clicked { animation: 1000ms 1 test-content-resim-clicked }
+.test.part .content .resim.clicked-dogru { animation: 1800ms 1 test-content-resim-clicked-dogru }
+.test.part .content .resim.clicked-yanlis { animation: 1800ms 1 test-content-resim-clicked-yanlis }
 @keyframes test-content-resim { 0% { opacity: 0 } 100% { opacity: 1 } }
-@keyframes test-content-resim-clicked { 0% { border: 1px solid royalblue; filter: brightness(1.3) } 100% { border: unset; filter: brightness(1) } }
+@keyframes test-content-resim-clicked-dogru { 0% { box-shadow: 0px 0px 5px 3px lightgreen; filter: brightness(1.3) } 100% { border: unset; filter: brightness(1) } }
+@keyframes test-content-resim-clicked-yanlis { 0% { box-shadow: 0px 0px 5px 3px indianred; filter: brightness(1.3) } 100% { border: unset; filter: brightness(1) } }
 .test.part .content .resim:hover { } .test.part .content .resim:active { }
 .test.part .content .cikis-etiket { margin: 0 10px 0 80px }
 .test.part .content button.cikis { font-weight: bold; font-size: 150%; padding: 10px 20px; border: 1px solid royalblue !important }
