@@ -5,7 +5,7 @@ class MQTestUygulanmaYeri extends TekSecim {
 
 class TestSonuc extends CObject {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return null } static get genelSonucmu() { return false }
-	static get reduceKeys() { return this.genelSonucmu ? ['id', 'tip', 'tumSayi'] : [] }
+	static get reduceKeys() { return this.genelSonucmu ? ['id', 'tip', 'cevapSayi'] : [] }
 	constructor(e) {
 		e = e || {}; super(e);
 		if (this.class.genelSonucmu) { const {tip} = this.class, id = e.testId ?? e.id; $.extend(this, { tip, id, tumSayi: e.tumSayi ?? 0 }) }

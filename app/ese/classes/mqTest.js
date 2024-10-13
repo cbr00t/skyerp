@@ -164,14 +164,14 @@ class MQTest extends MQGuidOrtak {
 		const {parentPart} = e, {header, content} = parentPart; content.children().remove();
 		const {tarihSaat: tarih, hastaAdi} = this; $.extend(parentPart, { tarih, hastaAdi });
 		const {tip, uiState2Adi} = this.class, {id: testId, sablonAdi} = this;
-		const getAdimText = () => { let result = uiState2Adi[state] ?? 'state'; if (sablonAdi && state == 'home') { result = `ESE <b class="royalblue">${sablonAdi}</b> Testi` } return result }
+		const getAdimText = () => { let result = uiState2Adi[state] ?? 'state'; if (sablonAdi /*&& state == 'home'*/) { result = `ESE <b class="royalblue">${sablonAdi}</b> Testi` } return result }
 		let {state} = parentPart; if (state == 'test') { this.genelSonuc = new this.class.testGenelSonucSinif({ tip, testId }) }
 		$.extend(parentPart, { adimText: getAdimText(), headerText: '' });
 		await this.testUI_initLayout_ara(e); state = parentPart.state; parentPart.adimText = getAdimText();
 		let btn; switch (state) {
 			case 'home':
-				btn = $(`<button id="baslat">İşleme başla</button>`); btn.jqxButton({ theme })
-					.on('click', evt => { requestFullScreen(); parentPart.nextPage({ ...e, evt }) }); btn.appendTo(content);
+				requestFullScreen();btn = $(`<button id="baslat">İşleme başla</button>`); btn.jqxButton({ theme });
+				btn.on('click', evt => { requestFullScreen(); parentPart.nextPage({ ...e, evt }) }); btn.appendTo(content);
 				break
 			case 'end':
 				const {genelSonuc} = this; if (genelSonuc) { console.table(genelSonuc); genelSonuc.kaydet(e) }
@@ -226,9 +226,16 @@ class MQTestCPT extends MQTest {
 			case 'test':
 				const {testSonucSinif} = this.class;
 				let gecerliResimURL, index = -1, repeatIndex = 0, resimGosterimTime, ilkTiklamaTime, hInternal;
-				parentPart.headerText = `Şu resme tıklayınız: <img class="target-img" src="${orjUrls[gecerliResimSeq - 1]}">`;
-				const img = $(`<div class="resim"/>`); let clickHandler = evt => {
+				/*parentPart.headerText = `Şu resme tıklayınız: <img class="target-img" src="${orjUrls[gecerliResimSeq - 1]}">`; */
+				const img = $(`<div class="resim"/>`); img.appendTo(content);
+				let startCounter = 3, clearFlag = true; let promise_wait = new $.Deferred();
+				let loopProc = () => {
+					if (startCounter <= 0 || parentPart.isDestroyed || parentPart.state != 'test') { clearInterval(this._hInterval); delete this._hInterval; promise_wait?.resolve(); return false }
+					img.html(clearFlag ? '' : `<div class="veri full-wh">${startCounter--}</div>`); clearFlag = !clearFlag
+				}; this._hInterval = setInterval(loopProc, 800); await promise_wait; img.html('');
+				let clickHandler = evt => {
 					if (ilkTiklamaTime) { return } ilkTiklamaTime = now();
+					img.removeClass('clicked'); setTimeout(() => img.addClass('clicked'), 1);
 					let tiklamaSnFarki = (ilkTiklamaTime - resimGosterimTime) / 1000, grupNo = repeatIndex + 1;
 					let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif({ tip, testId });
 					let dogrumu = urls[index] == gecerliResimURL; testSonuc.tiklamaEkle(dogrumu, tiklamaSnFarki)
@@ -236,24 +243,25 @@ class MQTestCPT extends MQTest {
 				keyDownHandler = evt => {
 					if (parentPart.isDestroyed || parentPart.state != 'test') { $('body').off('keydown', keyDownHandler); return }
 					let key = evt.key?.toLowerCase(); if (key == ' ' || key == 'enter' || key == 'linefeed') { clickHandler(evt) }
-				}; $('body').off('keydown', keyDownHandler).on('keydown', keyDownHandler)
-				img.appendTo(content);
-				let ilkmi = true, loopProc = () => {
+				}; $('body').off('keydown', keyDownHandler).on('keydown', keyDownHandler);
+				let ilkmi = true; clearFlag = false; loopProc = () => {
 					if (parentPart.isDestroyed || parentPart.state != 'test') { clearInterval(this._hInterval); delete this._hInterval; return false }
-					index++; if (ilkmi) { ilkmi = false } else { genelSonuc.tumSayi++ }
-					let cevrimBittimi = index >= imageCount; if (cevrimBittimi) {
-						repeatIndex++; index = 0; if (grupTekrarSayisi && repeatIndex >= grupTekrarSayisi) { parentPart.nextPage(); return false }
-						urls = shuffle(urls)
+					if (clearFlag) { img.css('background-image', '') }
+					else {
+						index++; if (ilkmi) { ilkmi = false } else { genelSonuc.tumSayi++ }
+						let cevrimBittimi = index >= imageCount; if (cevrimBittimi) {
+							repeatIndex++; index = 0; if (grupTekrarSayisi && repeatIndex >= grupTekrarSayisi) { parentPart.nextPage(); return false }
+							urls = shuffle(urls)
+						}
+						parentPart.progressText = (`<div>
+							<div class="item"><span class="ek-bilgi">Resim&nbsp;: &nbsp;</span><span class="veri white">${index + 1} / ${imageCount}</span></div>
+							<div class="item"><span class="ek-bilgi">Grup &nbsp;&nbsp;: &nbsp;</span><span class="veri">${repeatIndex + 1} / ${grupTekrarSayisi}</span></div>
+						</div>`);
+						img.css('background-image', `url(${urls[index]})`);
+						resimGosterimTime = now(); ilkTiklamaTime = null
 					}
-					parentPart.progressText = (`<div class="flex-row">
-						<div class="item"><span class="ek-bilgi">Resim: </span><span class="veri darkgray">${index + 1} / ${imageCount}</span></div>
-						<div class="item"><span class="ek-bilgi">Grup: </span><span class="veri">${repeatIndex + 1} / ${grupTekrarSayisi}</span></div>
-					</div>`); img.css('background-image', `url(${urls[index]})`);
-					resimGosterimTime = now(); ilkTiklamaTime = null; return true
-				}
-				gecerliResimURL = urls[gecerliResimSeq - 1]; urls = shuffle(urls);
-				if (loopProc()) { this._hInterval = setInterval(loopProc, resimArasiSn * 1000) }
-				break
+					clearFlag = !clearFlag; return true
+				}; gecerliResimURL = urls[gecerliResimSeq - 1]; urls = shuffle(urls); this._hInterval = setInterval(loopProc, resimArasiSn * 1000); break
 			case 'end':
 				$('body').off('keydown', keyDownHandler);
 				if (genelSonuc) {
@@ -303,7 +311,8 @@ class MQTestAnket extends MQTest {
 				$(`<div class="info wrap-pretty full-width">${infoHTML}</div>`).appendTo(content);
 				break
 			case 'test':
-				let btn = $(`<button id="bitti">TEST BİTTİ</button>`); btn.jqxButton({ theme }).on('click', evt => {
+				genelSonuc.tumSayi = soruSayi;
+				let btn = $(`<button id="bitti">TEST BİTTİ ise Buraya tıklayınız</button>`); btn.jqxButton({ theme }).on('click', evt => {
 					countdown.destroyPart(); countdown = null; parentPart.nextPage() }); btn.appendTo(header);
 				htmlList.push(`<div class="anket">`); for (const [id, soru] of Object.entries(id2Soru)) {
 					if (soru == null) { continue }
@@ -315,7 +324,7 @@ class MQTestAnket extends MQTest {
 				content.find('.anket > .item > .secenekler').jqxButtonGroup({ theme, mode: 'radio' }).on('buttonclick', evt => {
 					let {index} = evt.args; if (index == null) { return } index = asInteger(index); const seq = index + 1;
 					let soruId = $(evt.currentTarget).parents('.item').data('id'); if (!soruId) { return }
-					genelSonuc.tumSayi++; genelSonuc.soruId2Cevap[soruId] = { soru: id2Soru[soruId], index, puan: this[`yanit${seq}Puan`] }
+					genelSonuc.soruId2Cevap[soruId] = { soru: id2Soru[soruId], index, puan: this[`yanit${seq}Puan`] }
 				});
 				if (countdown) { countdown.abort() }
 				countdown = new Countdown({ totalSecs: sureDk * 60, layout: parentPart.headerLayouts.countdown });
