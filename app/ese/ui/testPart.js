@@ -11,7 +11,7 @@ class TestPart extends Part {
 	runDevam(e) {
 		super.runDevam(e); const {layout, inst, state} = this;
 		$.extend(this, { header: layout.children('.header'), content: layout.children('.content'), islemTuslari: layout.find('.islemTuslari') });
-		const {header, islemTuslari, headerLayouts} = this; for (const key of ['adimText', 'headerText', 'progressText', 'tarih', 'hastaAdi']) {
+		const {header, islemTuslari, headerLayouts} = this; for (const key of ['adimText', 'headerText', 'progressText', 'tarih', 'hastaAdi', 'countdown']) {
 			headerLayouts[key] = layout.find(`.${key}`) }
 		let part = this.islemTuslariPart = new ButonlarPart({ sender: this, layout: islemTuslari, tip: 'vazgec', butonlarDuzenleyici: e => this.islemTuslariDuzenle(e) }); part.run();
 		this.tazele(e)
@@ -54,6 +54,7 @@ class TestPart extends Part {
 					<div class="hastaAdi"></div>
 					<div class="tarih"></div>
 				</div>
+				<div class="countdown jqx-hidden"></div>
 			</div>
 			<div class="content"></div>
 		</div>`)

@@ -211,11 +211,11 @@ class MQTestCPT extends MQTest {
 				elmContainer.appendTo(content); let imgStates = { load: 0, error: 0 }, results = await Promise.all(promises); elmContainer.remove();
 				for (let rec of results) { imgStates[rec.result ? 'load' : 'error']++ }
 				let rightWidth = 250, infoHTML = (
-					`<p>Test sırasında <b>${imageCount}</b> tane resim karışık sırada gösterilecektir.<br>` +
+					`<p>Test sırasında <b class="royalblue">${imageCount}</b> tane resim karışık sırada gösterilecektir.<br>` +
 						`Yanda gözüken resim gözükürse SPACE veya ENTER tuşuna basınız ya da Resme tıklayınız.</p>` +
-					`<p>Bir grup gösterim tamamlanınca aynı resimler bir daha karışık şekilde gösterilir. Grup gösterimi <b>${grupTekrarSayisi}</b> defa yapılır.<br/>` +
-						`Sonuçta yandaki resim değişik zamanlarda <b>${grupTekrarSayisi}</b> defa karşımıza çıkacaktır.</p>` +
-					`<p>Bu test tahmini <b>${Math.ceil(resimArasiSn * imageCount * grupTekrarSayisi / 60)}</b> dakika sürecektir.</p>` +
+					`<p>Bir grup gösterim tamamlanınca aynı resimler bir daha karışık şekilde gösterilir. Grup gösterimi <b class="royalblue">${grupTekrarSayisi}</b> defa yapılır.<br/>` +
+						`Sonuçta yandaki resim değişik zamanlarda <b class="royalblue">${grupTekrarSayisi}</b> defa karşımıza çıkacaktır.</p>` +
+					`<p>Bu test tahmini <b class="forestgreen">${Math.ceil(resimArasiSn * imageCount * grupTekrarSayisi / 60)} dakika</b> sürecektir.</p>` +
 					`<p>Hazırsanız <b>'İşleme Başla'</b> tuşuna basarak testi başlatınız.</p>`
 				);
 				$(`<div class="info float-left wrap-pretty" style="width: calc(var(--full) - (${rightWidth}px + 5px))">${infoHTML}</div>`).appendTo(content);
@@ -246,7 +246,7 @@ class MQTestCPT extends MQTest {
 						urls = shuffle(urls)
 					}
 					parentPart.progressText = (`<div class="flex-row">
-						<div class="item"><span class="ek-bilgi">Resim: </span><span class="veri">${index + 1} / ${imageCount}</span></div>
+						<div class="item"><span class="ek-bilgi">Resim: </span><span class="veri darkgray">${index + 1} / ${imageCount}</span></div>
 						<div class="item"><span class="ek-bilgi">Grup: </span><span class="veri">${repeatIndex + 1} / ${grupTekrarSayisi}</span></div>
 					</div>`); img.css('background-image', `url(${urls[index]})`);
 					resimGosterimTime = now(); ilkTiklamaTime = null; return true
@@ -271,15 +271,17 @@ class MQTestAnket extends MQTest {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Anket Test' } static get testSonucSinif() { return TestSonucAnket } static get testGenelSonucSinif() { return TestGenelSonucAnket }
 	static get kodListeTipi() { return 'TSTANKET' } static get table() { return 'eseankettest' } static get sablonSinif() { return MQSablonAnket }
-	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.sahalar.add('sab.suredk') }
+	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.sahalar.add('sab.suredk', 'sab.yanitid') }
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { esesablonid: this.sablonId }) }
-	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { sureDk: rec.suredk })}
+	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { sureDk: rec.suredk, yanitID: rec.yanitid })}
 	testUI_setValues(e) {
 		super.testUI_setValues(e); const {rec} = e; if (!rec) { return }
-		for (const key of ['secenekSayisi', 'sureDk']) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
+		const keys = ['sureDk', 'yanitID'], PrefixSecenek = 'secenek';
+		for (const key of keys) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
+		for (const [key, value] of Object.entries(rec)) { if (key.startsWith(PrefixSecenek)) { let value = rec[key]; if (value !== undefined) { this[key] = value } } }
 	}
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
-		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, content, islemTuslari} = parentPart;
+		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, header, content, islemTuslari} = parentPart;
 		const {detaylar} = this, urls = detaylar.map(det => det.resimLink), imageCount = urls.length;
 		const PrefixSecenek = 'secenek', id2SoruVeSecenekler = {}; let tumSecenekler;
 		for (const det of detaylar) {
@@ -289,21 +291,23 @@ class MQTestAnket extends MQTest {
 				if (value) { secenekler[asInteger(key.slice(PrefixSecenek.length)) - 1] = value }
 			}
 			id2SoruVeSecenekler[id] = { soru, secenekler }
-			if (secenekler?.length > tumSecenekler?.length) { tumSecenekler = secenekler }
+			if ((secenekler?.length || 0) > (tumSecenekler?.length || 0)) { tumSecenekler = secenekler }
 		} tumSecenekler = tumSecenekler || [];
 		const {genelSonuc, testId, sureDk} = this, {tip, testSonucSinif} = this.class, soruSayi = Object.keys(id2SoruVeSecenekler).length;
-		let htmlList = []; switch (state) {
+		let htmlList = [], countdown;
+		switch (state) {
 			case 'home':
 				let infoHTML = (
-					`<p>Test Anket şeklinde verilecektir..<br>` +
+					`<p>Test Anket şeklinde verilecektir.<br>` +
 						`<b class="royalblue">${tumSecenekler.join(', ')}</b> şeklinde yanıtlar verilmelidir.</p>` +
-					`<p>Anket <b class="royalblue">${soruSayi}</b> sorudan oluşmaktadır ve başladıktan sonra <b class="forestgreen">??</b> dak. içinde tamamlanmalıdır.</p>` +
+					`<p>Anket <b class="royalblue">${soruSayi}</b> sorudan oluşmaktadır ve başladıktan sonra <b class="forestgreen">${sureDk} dakika</b> içinde tamamlanmalıdır.</p>` +
 					`<p>Hazırsanız <b>'İşleme Başla'</b> tuşuna basarak testi başlatınız.</p>`
 				);
 				$(`<div class="info wrap-pretty full-width">${infoHTML}</div>`).appendTo(content);
 				break
 			case 'test':
-				let btn = $(`<button id="tamam"></button>`); btn.jqxButton({ theme }).on('click', evt => parentPart.nextPage()); btn.appendTo(islemTuslari.children('.sag'));
+				let btn = $(`<button id="bitti">TEST BİTTİ</button>`); btn.jqxButton({ theme }).on('click', evt => {
+					countdown.destroyPart(); countdown = null; parentPart.nextPage() }); btn.appendTo(header);
 				htmlList.push(`<div class="anket">`); for (let [id, {soru, secenekler}] of Object.entries(id2SoruVeSecenekler)) {
 					if (soru == null) { continue }
 					htmlList.push(`<div class="item flex-row" data-id="${id}"><div class="soru">${soru || '&nbsp;'}</div><div name="${id}" class="secenekler">`);
@@ -315,8 +319,19 @@ class MQTestAnket extends MQTest {
 					let {index} = evt.args; if (index == null) { return } index = asInteger(index);
 					let soruId = $(evt.currentTarget).parents('.item').data('id'); if (!soruId) { return }
 					genelSonuc.tumSayi++; genelSonuc.soruId2Cevap[soruId] = { soru: id2SoruVeSecenekler[soruId]?.soru, index }
-				}); break
-			case 'end': islemTuslari.find('button#tamam').remove(); break
+				});
+				if (countdown) { countdown.abort() }
+				countdown = new Countdown({ totalSecs: sureDk * 60, layout: parentPart.headerLayouts.countdown });
+				countdown.onCallback(({sender, state}) => {
+					if (parentPart?.isDestroyed || countdown == null) { sender.destroyPart(e); return false }
+					if (state == 'end') { countdown.destroyPart(); countdown = null; parentPart.nextPage() }
+				});
+				countdown.layout.removeClass('jqx-hidden basic-hidden'); countdown.run();
+				break
+			case 'end':
+				header.find('button#bitti').remove();
+				if (countdown) { countdown.layout?.addClass('jqx-hidden'); countdown.destroyPart(); countdown = null }
+				break
 		}
 	}
 }

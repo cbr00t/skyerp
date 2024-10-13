@@ -1,4 +1,5 @@
 .test.part { --header-height: 50px }
+.test.part > * { position: relative !important }
 @media (max-width: 850px) { .test.part { font-size: 93% } } @media (max-width: 750px) { .test.part { font-size: 90% } }
 .test.part > * { --button-width: 48px; --button-height: 36px }
 /*.test.part .islemTuslari { background: transparent !important }*/
@@ -17,6 +18,15 @@ body:not(.kiosk) .test.part .header { margin-top: calc(0px - (var(--header-heigh
 .test.part .header .progressText .ek-bilgi { font-size: 90%; font-weight: normal; color: #777 }
 .test.part .header .progressText .item:not(:first-child) { margin-left: 30px }
 .test.part .header .hastaAdi, .test.part .header .tarih { font-size: 110%; color: #555 }
+.test.part .header .countdown {
+	font-size: 110%; font-weight: bold; color: royalblue; position: absolute; right: 130px; top: 15px;
+	padding: 10px 20px; border-radius: 13px; border: 1px solid #ccc; z-index: 1001 !important; pointer-events: none
+}
+.test.part .header .countdown.critical { font-size: 110% !important; color: orangered !important; border-color: orangered }
+.test.part .header button#bitti { position: absolute; top: 15px; right: 260px; border: 1px solid #aaa !important; padding: 15px 20px; z-index: 1002 !important }
+.test.part .header button#bitti.jqx-fill-state-normal { color: white; background-color: #697c69 }
+.test.part .header button#bitti.jqx-fill-state-hover { background-color: #e2f0e2 }
+.test.part .header button#bitti.jqx-fill-state-pressed { color: #333 !important; background-color: #86c986 !important }
 .test.part .target-img { background-size: contain; background-repeat: no-repeat !important; background-position: center !important }
 .test.part .header .target-img { width: 48px; height: 48px; margin-left: 20px; margin-bottom: -30px }
 .test.part .content .target-img-parent { margin: 20px 0 0 0 }
