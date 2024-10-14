@@ -55,7 +55,7 @@ class MQTest extends MQGuidOrtak {
 			.leftJoin({ alias, from: `${sablonSinif.table} sab`, on: `${alias}.${sablonIdSaha} = sab.id` })
 			.leftJoin({ alias: 'mua', from: 'esehasta has', on: 'mua.hastaid = has.id' })
 			.leftJoin({ alias: 'mua', from: 'esedoktor dok', on: 'mua.doktorid = dok.id' });
-		sent.sahalar.add(`${alias}.uygulanmayeri`, `${alias}.onaykodu`, 'has.email', 'sab.aciklama sablonAdi')
+		sent.sahalar.add(`${alias}.btamamlandi`, `${alias}.uygulanmayeri`, `${alias}.onaykodu`, 'has.email', 'sab.aciklama sablonAdi')
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e); let {liste} = e; liste.push(
@@ -65,12 +65,13 @@ class MQTest extends MQGuidOrtak {
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); const {tanimFormBuilder: tanimForm} = e;
-		/*tanimForm.addModelKullan('sablonId', 'Şablon').dropDown().kodsuz().setMFSinif(this.sablonSinif);*/
+		let form = tanimForm.addFormWithParent().yanYana(2);
+			form.addModelKullan('sablonId', 'Şablon').dropDown().kodsuz().setMFSinif(this.sablonSinif); form.addCheckBox('tamamlandimi', 'Tamamlandı');
 		tanimForm.addDiv('ozetBilgi').etiketGosterim_yok().addCSS('bold gray').addStyle_fullWH(null, 'auto').addStyle(e => `$elementCSS { font-size: 120%; padding: 10px 20px }`)
 			.onAfterRun(async e => {
 				const {altInst: inst, input} = e.builder, {sablonId, tarihSaat, muayeneId, tamamlandimi} = inst, {sablonTip} = inst.class;
 				let {uygulanmaYeri, onayKodu} = inst, sablonAdi, muayeneRec;
-				if (sablonTip && sablonId) { sablonAdi = (await MQSablon.getClass(sablonTip)?.getGloKod2Adi(sablonId)) || '' }
+				/*if (sablonTip && sablonId) { sablonAdi = (await MQSablon.getClass(sablonTip)?.getGloKod2Adi(sablonId)) || '' }*/
 				if (muayeneId) { muayeneRec = await new MQMuayene({ id: muayeneId }).tekilOku() }
 				uygulanmaYeri = uygulanmaYeri?.char ?? uygulanmaYeri;
 				const addItem = (elm, css, style) => {
@@ -109,7 +110,8 @@ class MQTest extends MQGuidOrtak {
 		const {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender;
 		let {selectedRecs} = gridPart; if (!selectedRecs?.length) { hConfirm('Kayıtlar seçilmelidir', sinifAdi); return }
 		let rec = selectedRecs[0]; if (!rec) { hConfirm(`Test seçilmelidir`, sinifAdi); return }
-		let {id} = rec, inst = new this({ id }); inst.baslat(e)
+		let {id} = rec, inst = new this({ id }); const {part} = await inst.baslat(e) || {};
+		if (part?.kapaninca) { part.kapaninca(e => gridPart.tazele()) }
 	}
 	static async eMailGonder(e) {
 		const {aciklama: sablonAdi} = this, recs = e.recs || [], {pAborted} = e, TopluSayi = 2; let promises = [], allResults = { total: 0, send: 0, error: 0 };

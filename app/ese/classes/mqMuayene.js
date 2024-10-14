@@ -75,12 +75,12 @@ class MQMuayene extends MQGuidOrtak {
 		let {selectedRecs} = gridPart; if (!selectedRecs?.length) { hConfirm('Kayıtlar seçilmelidir', sinifAdi); return }
 		selectedRecs = selectedRecs.filter(rec => !!rec[`b${tip == 'anket' ? 'ese' : tip}yapilacak`]); let idListe = selectedRecs?.map(rec => rec.id);
 		if (!idListe?.length) { hConfirm(`Seçilenler içinde <b>${tip.toUpperCase()}</b> için uygun test yok`, sinifAdi); return }
-		const {table} = testSinif; let sent = new MQSent({ from: table, inDizi: idListe, sahalar: 'muayeneid' }), recs = await app.sqlExecSelect(sent);
-		let yapilanIdSet = asSet(recs.map(rec => rec.muayeneid)), bostaIdListe = idListe.filter(id => !yapilanIdSet[id]);
+		const {table} = testSinif; let sent = new MQSent({ from: table, inDizi: idListe, sahalar: ['muayeneid', 'btamamlandi'] }), recs = await app.sqlExecSelect(sent);
+		let yapilanIdSet = asSet(recs.map(rec => rec.muayeneid && asBool(rec.btamamlandi))), bostaIdListe = idListe.filter(id => !yapilanIdSet[id]);
 		if (!bostaIdListe?.length) { hConfirm('Yapılmamış uygun test bulunamadı', sinifAdi); return }
 		let rdlg = await ehConfirm(`<b class="bold forestgreen">${bostaIdListe.length}</b> adet <b class="royalblue">${tip.toUpperCase()} Test</b> kaydı açılacak, devam edilsin mi?`, sinifAdi);
 		if (!rdlg) { return } let promises = []; for (const muayeneId of bostaIdListe) {
-			const tarihSaat = now(), tamamlandimi = false; let onayKodu = 0; while (onayKodu < 100000) { onayKodu = asInteger(Math.random() * 1000000) }
+			const tarihSaat = null, tamamlandimi = false; let onayKodu = 0; while (onayKodu < 100000) { onayKodu = asInteger(Math.random() * 1000000) }
 			const testInst = new testSinif({ muayeneId, tarihSaat, tamamlandimi, onayKodu }); promises.push(testInst.yaz())
 		}
 		try {

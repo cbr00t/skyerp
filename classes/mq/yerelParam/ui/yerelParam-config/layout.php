@@ -17,6 +17,14 @@
 					<div><input type="textbox" class="veri" placeholder="SQL Veritabanı"></input></div>
 				</div>
 	        </div>
+			<div id="sql" class="parent flex-row full-width">
+				<div id="sql-user" class="sub-parent">
+					<div><input type="textbox" class="veri" placeholder="SQL User" autocomplete="off"></input></div>
+				</div>
+				<div id="sql-pass" class="sub-parent">
+					<div><input type="password" class="veri" placeholder="SQL Pass" autocomplete="new-password"></input></div>
+				</div>
+	        </div>
 			<div class="parent full-width">
 	            <div id="wsProxyServerURL" class="full-wh">
 	                <div><input type="textbox" class="veri" placeholder="Yönlendirme URL"></input></div>

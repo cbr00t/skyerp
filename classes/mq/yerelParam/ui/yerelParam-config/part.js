@@ -23,6 +23,16 @@ class MQYerelParamConfigTanimPart extends MQYerelParamBaseTanimPart {
 			const elm = evt.currentTarget; let value = (elm.value || '').trim(); elm.value = value;
 			const sql = inst.sql = inst.sql || {}; sql.db = value
 		});
+		const txtSQL_user = this.txtSQL_user = layout.find('#sql-user .veri'); txtSQL_user.val((inst.sql || {}).sqlUser || '');
+		txtSQL_user.on('change', evt => {
+			const elm = evt.currentTarget; let value = (elm.value || '').trim(); elm.value = value;
+			const sql = inst.sql = inst.sql || {}; sql.sqlUser = value
+		});
+		const txtSQL_pass = this.txtSQL_pass = layout.find('#sql-pass .veri'); txtSQL_pass.val((inst.sql || {}).sqlPass || '');
+		txtSQL_pass.on('change', evt => {
+			const elm = evt.currentTarget; let value = (elm.value || '').trim(); elm.value = value;
+			const sql = inst.sql = inst.sql || {}; sql.sqlPass = value
+		});
 		const txtUzakScriptURL = this.txtUzakScriptURL = layout.find('#uzakScriptURL .veri'); txtUzakScriptURL.val(inst.uzakScriptURL || '');
 		txtUzakScriptURL.on('change', evt => {
 			const elm = evt.currentTarget; let value = (elm.value || '').trim();
