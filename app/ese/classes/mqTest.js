@@ -27,19 +27,19 @@ class MQTest extends MQGuidOrtak {
 		const {sablonTip} = this; super.pTanimDuzenle(e); $.extend(e.pTanim, {
 			muayeneId: new PInstGuid('muayeneid'), tarihSaat: new PInstDate('tarihsaat'), tamamlandimi: new PInstBitBool('btamamlandi'),
 			uygulanmaYeri: new PInstTekSecim('uygulanmayeri', MQTestUygulanmaYeri), onayKodu: new PInstNum('onaykodu'),
-			sablonId: new PInstGuid(`${sablonTip == 'anket' ? 'ese' : sablonTip}sablonid`)
+			sablonId: new PInstGuid(`${sablonTip == 'anket' ? 'ese' : sablonTip}sablonid`), aktifYas: new PInstNum('aktifyas')
 		})
 	}
 	static secimlerDuzenle(e) {
 		const {secimler: sec} = e; sec.secimTopluEkle({
 			tamamlandiDurumu: new SecimTekSecim({ etiket: 'Tamamlanma Durumu', tekSecim: new BuDigerVeHepsi([`<span class="forestgreen">Tamamlananlar</span>`, `<span class="darkred">TamamlanMAyanlar</span>`]) }),
-			tarih: new SecimDate({ etiket: 'Tarih/Saat' }),
+			tarih: new SecimDate({ etiket: 'Tarih/Saat' }), aktifYas: new SecimInteger({ etiket: 'Aktif Yaş' }),
 			hastaAdi: new SecimOzellik({ etiket: 'Hasta İsim' }), doktorIsim: new SecimOzellik({ etiket: 'Doktor İsim' })
 		}).whereBlockEkle(({ secimler: sec, where: wh }) => {
 			const {tableAlias: alias} = this;
 			let tSec = sec.tamamlandiDurumu.tekSecim; if (!tSec.hepsimi) { wh.add(tSec.getBoolBitClause(`${alias}.btamamlandi`)) }
 			wh.basiSonu({ basi: sec.tarih.basi, sonu: sec.tarih.sonu?.yarin().clone().clearTime() }, `${alias}.tarihsaat`);
-			wh.ozellik(sec.hastaAdi, 'has.aciklama').ozellik(sec.doktorAdi, 'dok.aciklama')
+			wh.basiSonu(sec.aktifYas, `${alias}.aktifyas`).ozellik(sec.hastaAdi, 'has.aciklama').ozellik(sec.doktorAdi, 'dok.aciklama')
 		})
 	}
 	static ekCSSDuzenle(e) {
@@ -52,6 +52,7 @@ class MQTest extends MQGuidOrtak {
 			(dev ? new GridKolon({ belirtec: 'muayeneid', text: 'Muayene ID', genislikCh: 40 }) : null),
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 10, sql: `${alias}.tarihsaat` }).tipDate(),
 			new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 9, sql: `${alias}.tarihsaat` }).tipTime(),
+			new GridKolon({ belirtec: 'aktifyas', text: 'Aktif Yaş', genislikCh: 9 }).tipNumerik(),
 			new GridKolon({ belirtec: 'hastaadi', text: 'Hasta Adı', genislikCh: 40, sql: 'has.aciklama' }),
 			new GridKolon({ belirtec: 'doktoradi', text: 'Doktor Adı', genislikCh: 40, sql: 'dok.aciklama' }),
 			new GridKolon({ belirtec: 'seri', text: 'Seri', genislikCh: 5, sql: 'mua.seri' }),
@@ -83,7 +84,7 @@ class MQTest extends MQGuidOrtak {
 		tanimForm.addDiv('ozetBilgi').etiketGosterim_yok().addCSS('bold gray').addStyle_fullWH(null, 'auto').addStyle(e => `$elementCSS { font-size: 120%; padding: 10px 20px }`)
 			.onAfterRun(async e => {
 				const {altInst: inst, input} = e.builder, {sablonId, tarihSaat, muayeneId, tamamlandimi} = inst, {sablonTip} = inst.class;
-				let {uygulanmaYeri, onayKodu} = inst, sablonAdi, muayeneRec;
+				let {uygulanmaYeri, onayKod, aktifYas} = inst, sablonAdi, muayeneRec;
 				/*if (sablonTip && sablonId) { sablonAdi = (await MQSablon.getClass(sablonTip)?.getGloKod2Adi(sablonId)) || '' }*/
 				if (muayeneId) { muayeneRec = await new MQMuayene({ id: muayeneId }).tekilOku() }
 				uygulanmaYeri = uygulanmaYeri?.char ?? uygulanmaYeri;
@@ -95,7 +96,7 @@ class MQTest extends MQGuidOrtak {
 				if (sablonAdi) { addItem(`<span class="gray etiket">Şablon:</span> <b class="veri forestgreen">${sablonAdi}</b>`, 'flex-row'), `font-size: 130%` }
 				/*addItem(`${tarihSaat ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri">${dateTimeAsKisaString(tarihSaat)}</b>` : ''} ${tamamlandimi ? `<div class="forestgreen" style="margin-left: "20px">Tamamlandı</b>` : ''}`, 'flex-row');*/
 				addItem(`${tarihSaat ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri">${dateTimeAsKisaString(tarihSaat)}</b>` : ''}`, 'flex-row');
-				if (muayeneRec) { addItem(`<span class="gray etiket">Muayene:</span> <b class="veri">${muayeneRec.fisnox}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }
+				if (muayeneRec) { addItem(`<span class="gray etiket">Muayene:</span> <b class="veri">${muayeneRec.fisnox}</b> - <b class="gray">${muayeneRec.hastaadi}</b> - (Yaş: <b class="forestgreen">${aktifYas}</b>)`, 'flex-row') }
 				if (uygulanmaYeri) { addItem(`<span class="kgray etiket">Uygulanma Yeri:</span> <b>${MQTestUygulanmaYeri.kaDict[uygulanmaYeri]?.aciklama || ''}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }
 				if (onayKodu) { addItem(`<span class="gray etiket">Onay Kodu:</span> <u class="onayKodu veri bold royalblue">${onayKodu}</u>`, null, `margin-top: 30px; cursor: pointer`) }
 				let elm = input.find('.onayKodu.veri'); if (elm?.length) {
@@ -215,10 +216,11 @@ class MQTestCPT extends MQTest {
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {tableAlias: alias} = this, {liste} = e; liste.push(...[
 			new GridKolon({ belirtec: 'tumsayi', text: 'Tüm Sayı', genislikCh: 10 }).tipNumerik(),
+			new GridKolon({ belirtec: 'grupsayi', text: 'Grup Sayı', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'dogrusayi', text: 'Doğru Sayı', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'yanlissayi', text: 'Yanlış Sayı', genislikCh: 10 }).tipNumerik(),
-			new GridKolon({ belirtec: 'ortdogrusecimsuresn', text: 'Ort. Doğru Seçim(sn)', genislikCh: 15 }).tipDecimal(1),
-			new GridKolon({ belirtec: 'ortyanlissecimsuresn', text: 'Ort. Yanlış Seçim(sn)', genislikCh: 15 }).tipDecimal(1)
+			new GridKolon({ belirtec: 'ortdogrusecimsuresn', text: 'Ort. Doğru Seçim(sn)', genislikCh: 23 }).tipDecimal(1),
+			new GridKolon({ belirtec: 'ortyanlissecimsuresn', text: 'Ort. Yanlış Seçim(sn)', genislikCh: 23 }).tipDecimal(1)
 		].filter(x => !!x))
 	}
 	/*static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.sahalar.add('sab.gecerliresimseq', 'sab.gruptekrarsayisi', 'sab.resimarasisn') }*/
@@ -265,9 +267,9 @@ class MQTestCPT extends MQTest {
 				let loopProc = () => {
 					if (startCounter <= 0 || parentPart.isDestroyed || parentPart.state != 'test') { clearInterval(this._hInterval); delete this._hInterval; promise_wait?.resolve(); return false }
 					img.html(clearFlag ? '' : `<div class="veri full-wh">${startCounter--}</div>`); clearFlag = !clearFlag
-				}; this._hInterval = setInterval(loopProc, 800); await promise_wait; img.html('');
+				}; this._hInterval = setInterval(loopProc, config.dev ? 100 : 800); await promise_wait; img.html('');
 				let clickHandler = evt => {
-					if (ilkTiklamaTime) { return } ilkTiklamaTime = now(); let dogrumu = urls[index] == gecerliResimURL;
+					if (ilkTiklamaTime || !resimGosterimTime) { return } ilkTiklamaTime = now(); let dogrumu = urls[index] == gecerliResimURL;
 					let cssClicked = `clicked-${dogrumu ? 'dogru' : 'yanlis'}`; img.removeClass('clicked-dogru clicked-yanlis'); setTimeout(() => img.addClass(cssClicked), 1);
 					let tiklamaSnFarki = (ilkTiklamaTime - resimGosterimTime) / 1000, grupNo = repeatIndex + 1;
 					let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif({ tip, testId }); testSonuc.tiklamaEkle(dogrumu, tiklamaSnFarki)
@@ -293,7 +295,7 @@ class MQTestCPT extends MQTest {
 						resimGosterimTime = now(); ilkTiklamaTime = null
 					}
 					clearFlag = !clearFlag; return true
-				}; gecerliResimURL = urls[gecerliResimSeq - 1]; urls = shuffle(urls); this._hInterval = setInterval(loopProc, resimArasiSn * 1000); break
+				}; gecerliResimURL = urls[gecerliResimSeq - 1]; urls = shuffle(urls); this._hInterval = setInterval(loopProc, resimArasiSn * config.dev ? 200 : 1000); break
 			case 'end':
 				$('body').off('keydown', keyDownHandler);
 				if (genelSonuc) {
@@ -313,7 +315,7 @@ class MQTestAnket extends MQTest {
 	static get kodListeTipi() { return 'TSTANKET' } static get table() { return 'eseankettest' } static get sablonSinif() { return MQSablonAnket }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {tableAlias: alias} = this, {liste} = e; liste.push(...[
-			new GridKolon({ belirtec: 'toplampuan', text: 'Toplam Puan', genislikCh: 10 }).tipDecimal(1),
+			new GridKolon({ belirtec: 'toplampuan', text: 'Top.Puan', genislikCh: 10 }).tipDecimal(1),
 			new GridKolon({ belirtec: 'yanitsizsayi', text: 'Yanıtsız Sayı', genislikCh: 10 }).tipNumerik()
 		].filter(x => !!x))
 	}

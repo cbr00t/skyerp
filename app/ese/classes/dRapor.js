@@ -38,6 +38,7 @@ class DRapor_ESETest_CPT_Main extends DRapor_ESETest_Main {
 class DRapor_ESETest_Anket extends DRapor_ESETest {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get mainClass() { return DRapor_ESETest_Anket_Main }
 	static get kod() { return 'TESTANKET' } static get aciklama() { return 'Test Sonuçları (Anket)' }
+	/* {maxSecenekSayisi} = MQSablonAnketYanit */
 }
 class DRapor_ESETest_Anket_Main extends DRapor_ESETest_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_ESETest_Anket }

@@ -5,7 +5,7 @@ class MQTestUygulanmaYeri extends TekSecim {
 
 class TestSonuc extends CObject {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return null } static get genelSonucmu() { return false }
-	static get reduceKeys() { return this.genelSonucmu ? ['id', 'tip', 'cevapSayi', 'cevapsizSayi'] : [] }
+	static get reduceKeys() { return this.genelSonucmu ? ['id', 'tip', 'tumSayi', 'cevapSayi', 'cevapsizSayi'] : [] }
 	get cevapSayi() { return 0 } get cevapsizSayi() { return Math.max((this.tumSayi || 0) - (this.cevapSayi || 0), 0) } get toplamPuan() { return 0 }
 	constructor(e) {
 		e = e || {}; super(e);
@@ -40,13 +40,14 @@ class TestSonucCPT extends TestSonuc {
 		console.info('test', 'new', this)
 	}
 	tiklamaEkle(dogrumu, sureSn) {
-		let parent = this[dogrumu ? 'dogru' : 'yanlis']; parent.sayi++; parent.adat = roundToFra(parent.adat + sureSn, 1);
+		let parent = this[dogrumu ? 'dogru' : 'yanlis']; parent.sayi++;
+		parent.adat = roundToFra(parent.adat + sureSn * (config.dev ? .2 : 1), 1);
 		/*console.info('test', this, dogrumu, sureSn, parent);*/ return this
 	}
 	ortalamaOlustur() {
 		for (const parentKey of this.class.parentKeys) {
 			let parent = this[parentKey]; let {sayi, adat} = parent;
-			parent.secimSure = sayi ? roundToFra(adat / sayi, 1) : 0;
+			parent.secimSure = sayi ? roundToFra(adat / sayi, 1) : 0
 			/*console.info('test', this, parentKey, parent)*/
 		}
 		return this
@@ -54,7 +55,8 @@ class TestSonucCPT extends TestSonuc {
 }
 class TestGenelSonucCPT extends TestSonucCPT {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get genelSonucmu() { return true }
-	static get reduceKeys() { return [...super.reduceKeys, 'grupNo2Bilgi'] } get cevapSayi() { return Object.keys(this.grupNo2Bilgi).length }
+	static get reduceKeys() { return [...super.reduceKeys, 'grupSayi', 'grupNo2Bilgi'] }
+	get grupSayi() { return Object.keys(this.grupNo2Bilgi || {}).length } get cevapSayi() { return Object.keys(this.grupNo2Bilgi || {}).length }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { grupNo2Bilgi: e.grupNo2Bilgi || {} }) }
 	totalEkle(diger) {
 		if (!diger) { return this }

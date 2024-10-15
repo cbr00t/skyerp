@@ -76,8 +76,8 @@ class MQMuayene extends MQGuidOrtak {
 		selectedRecs = selectedRecs.filter(rec => !!rec[`b${tip == 'anket' ? 'ese' : tip}yapilacak`]); let idListe = selectedRecs?.map(rec => rec.id);
 		if (!idListe?.length) { hConfirm(`Seçilenler içinde <b>${tip.toUpperCase()}</b> için uygun test yok`, sinifAdi); return }
 		const {table} = testSinif; let sent = new MQSent({ from: table, inDizi: idListe, sahalar: ['muayeneid', 'btamamlandi'] }), recs = await app.sqlExecSelect(sent);
-		let yapilanIdSet = asSet(recs.map(rec => rec.muayeneid && asBool(rec.btamamlandi))), bostaIdListe = idListe.filter(id => !yapilanIdSet[id]);
-		if (!bostaIdListe?.length) { hConfirm('Yapılmamış uygun test bulunamadı', sinifAdi); return }
+		let yapilanIdSet = asSet(recs.map(rec => rec.muayeneid)), bostaIdListe = idListe.filter(id => !yapilanIdSet[id]);
+		if (!bostaIdListe?.length) { hConfirm(`Seçilen muayeneye(ler)in tümüne ait ${tip.toUpperCase()} Test'i zaten var`, sinifAdi); return }
 		let rdlg = await ehConfirm(`<b class="bold forestgreen">${bostaIdListe.length}</b> adet <b class="royalblue">${tip.toUpperCase()} Test</b> kaydı açılacak, devam edilsin mi?`, sinifAdi);
 		if (!rdlg) { return } let promises = []; for (const muayeneId of bostaIdListe) {
 			const tarihSaat = null, tamamlandimi = false; let onayKodu = 0; while (onayKodu < 100000) { onayKodu = asInteger(Math.random() * 1000000) }
