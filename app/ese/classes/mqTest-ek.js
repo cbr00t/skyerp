@@ -65,7 +65,9 @@ class TestGenelSonucCPT extends TestSonucCPT {
 		return this
 	}
 }
-class TestSonucAnket extends TestSonuc { static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return MQTestAnket.tip } }
+class TestSonucAnket extends TestSonuc {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return MQTestAnket.tip }
+}
 class TestGenelSonucAnket extends TestSonucAnket {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get genelSonucmu() { return true }
 	static get reduceKeys() { return [...super.reduceKeys, 'soruId2Cevap', 'toplamPuan'] } get cevapSayi() { return Object.keys(this.soruId2Cevap).length }

@@ -267,8 +267,7 @@ class MQCogul extends MQYapi {
 		return _e.secimler
 	}
 	static secimlerDuzenle(e) {
-		const {secimler} = e;
-		if (this.silindiDesteklenirmi) {
+		const {secimler} = e; if (this.silindiDesteklenirmi) {
 			secimler.secimEkle('silindiDurumu', new SecimTekSecim({ etiket: `Çalışma Durumu`, tekSecimSinif: AktifVeDevreDisi }));
 			secimler.whereBlockEkle(e => {
 				const {aliasVeNokta} = this, {where, secimler} = e;

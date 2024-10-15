@@ -30,6 +30,18 @@ class MQTest extends MQGuidOrtak {
 			sablonId: new PInstGuid(`${sablonTip == 'anket' ? 'ese' : sablonTip}sablonid`)
 		})
 	}
+	static secimlerDuzenle(e) {
+		const {secimler: sec} = e; sec.secimTopluEkle({
+			tamamlandiDurumu: new SecimTekSecim({ etiket: 'Tamamlanma Durumu', tekSecim: new BuDigerVeHepsi([`<span class="forestgreen">Tamamlananlar</span>`, `<span class="darkred">TamamlanMAyanlar</span>`]) }),
+			tarih: new SecimDate({ etiket: 'Tarih/Saat' }),
+			hastaAdi: new SecimOzellik({ etiket: 'Hasta İsim' }), doktorIsim: new SecimOzellik({ etiket: 'Doktor İsim' })
+		}).whereBlockEkle(({ secimler: sec, where: wh }) => {
+			const {tableAlias: alias} = this;
+			let tSec = sec.tamamlandiDurumu.tekSecim; if (!tSec.hepsimi) { wh.add(tSec.getBoolBitClause(`${alias}.btamamlandi`)) }
+			wh.basiSonu({ basi: sec.tarih.basi, sonu: sec.tarih.sonu?.yarin().clone().clearTime() }, `${alias}.tarihsaat`);
+			wh.ozellik(sec.hastaAdi, 'has.aciklama').ozellik(sec.doktorAdi, 'dok.aciklama')
+		})
+	}
 	static ekCSSDuzenle(e) {
 		super.ekCSSDuzenle(e); const {dataField: belirtec, rec, result} = e;
 		if (belirtec == 'onaykodu') { result.push('center bold royalblue') }
@@ -178,7 +190,14 @@ class MQTest extends MQGuidOrtak {
 				btn.on('click', evt => { requestFullScreen(); parentPart.nextPage({ ...e, evt }) }); btn.appendTo(content);
 				break
 			case 'end':
-				const {genelSonuc} = this; if (genelSonuc) { console.table(genelSonuc); genelSonuc.kaydet(e) }
+				const {genelSonuc} = this; if (genelSonuc) {
+					console.table(genelSonuc); try { await genelSonuc.kaydet(e) } catch (ex) {
+						$(`<div class="resultText error">Test sonuçları kaydedilirken bir hata oluştu.</div><p/>`).appendTo(content);
+						$(`<div class="resultText">Kayıt işlemini tekrar denemek için <button id="retry" class="bold royalblue">buraya tıklayınız</b></button>.</div>`).appendTo(content);
+						content.find('button#retry').jqxButton({ theme }).on('click', evt => { content.find('button#retry').remove(); parentPart.tazele() });
+						throw ex
+					}
+				}
 				$(`<div class="resultText">Test tamamlandı.<p/>Teşekkür ederiz.</div>`).appendTo(content);
 				$(`<div class="resultText darkgray" style="font-size: 90%">*<u>programcı</u>*: Sonuçlar için <span class="royalblue">F12 (DevTools) &gt; Console</span> kısmına bakınız</div>`).appendTo(content);
 				$(`<span class="cikis-etiket">Çıkmak için basınız => </span>`).appendTo(content);
@@ -360,36 +379,3 @@ class MQTestAnket extends MQTest {
 		}
 	}
 }
-
-
-/*
-let cls_rapor = class DRapor_ESETest extends DGrupluPanelRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get kategoriKod() { return 'ESE'}
-	static get kod() { return 'TEST' } static get aciklama() { return 'Test Sonuçları' }
-	altRaporlarDuzenle(e) { this.add(cls_altRapor_main, DAltRapor_Grid_Ozet, DAltRapor_Chart) }
-};
-let cls_altRapor_main = class DRapor_ESETest_Main extends DAltRapor_TreeGridGruplu {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return cls_rapor } get tazeleYapilirmi() { return true }
-	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e); const {result} = e; result.addKAPrefix('hasta')
-			.addGrup(new TabloYapiItem().setKA('YILAY', 'Yıl-Ay').addColDef(new GridKolon({ belirtec: 'yilay', text: 'Yıl-Ay', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('YILHAFTA', 'Yıl-Hafta').addColDef(new GridKolon({ belirtec: 'yilhafta', text: 'Yıl-Hafta', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('AYADI', 'Ay').addColDef(new GridKolon({ belirtec: 'ayadi', text: 'Ay', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('HAFTA', 'Hafta').addColDef(new GridKolon({ belirtec: 'haftano', text: 'Hafta', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('TARIH', 'Tarih').addColDef(new GridKolon({ belirtec: 'tarih', text: 'Tarih', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('HASTA', 'Hasta').addColDef(new GridKolon({ belirtec: 'hasta', text: 'Hasta', maxWidth: 600, filterType: 'checkedlist' })))
-			.addToplam(new TabloYapiItem().setKA('TUMSAYI', 'Tüm Sayı').addColDef(new GridKolon({ belirtec: 'tumsayi', text: 'Tüm Sayı', genislikCh: 15, filterType: 'numberinput' }).tipDecimal(1)))
-	}
-	async loadServerDataInternal(e) {
-		await super.loadServerDataInternal(e); const {raporTanim, secimler} = this, {attrSet} = raporTanim, {maxRow} = e;
-		return [
-			{ tarih: dateToString(now()), hastakod: '001', hastaadi: 'ÖZER', tumsayi: 10 },
-			{ tarih: dateToString(now().dun()), hastakod: '001', hastaadi: 'ÖZER', tumsayi: 20 },
-			{ tarih: dateToString(now()), hastakod: '002', hastaadi: 'ALİ', tumsayi: 3 },
-			{ tarih: dateToString(now().dun()), hastakod: '002', hastaadi: 'ALİ', tumsayi: 5 },
-			{ tarih: dateToString(now().addDays(-2)), hastakod: '002', hastaadi: 'ALİ', tumsayi: 2 }
-		]
-	}
-};
-r = new cls_rapor(); r.goster({})
-*/

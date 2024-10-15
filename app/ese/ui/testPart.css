@@ -30,8 +30,8 @@ body:not(.kiosk) .test.part .header { margin-top: calc(0px - (var(--header-heigh
 .test.part .header button#bitti.jqx-fill-state-pressed { color: #333 !important; background-color: #86c986 !important }
 .test.part .target-img { background-size: contain; background-repeat: no-repeat !important; background-position: center !important }
 .test.part .header .target-img { width: 48px; height: 48px; margin-left: 20px; margin-bottom: -30px }
-.test.part .content .target-img-parent { margin: 20px 0 0 0 }
-.test.part .content .target-img { width: 70%; height: 130px; margin: 20px 0 0 0 }
+.test.part .content .target-img-parent { font-weight: bold; font-size: 120%; color: royalblue; text-align: center; margin: 10px 0 0 0; padding: 10px 0 }
+.test.part .content .target-img { width: var(--full); height: 130px; margin: 30px 0 0 0 !important; background-position: 55% center !important }
 .test.part .content .info { padding: 0px }
 .test.part .content .info > * { font-size: 120%; padding: 0 20px }
 .test.part .content button#baslat { font-size: 200%; color: #333; position: relative; top: 50px; left: 20%; width: 60%; height: 100px }
@@ -74,3 +74,4 @@ body:not(.kiosk) .test.part .header { margin-top: calc(0px - (var(--header-heigh
 .test.part .content .anket-sonuclar .item { padding: 5px 10px }
 .test.part .content .anket-sonuclar .item .soru { font-weight: normal }
 .test.part .content .anket-sonuclar .item .cevap { font-weight: bold; color: royalblue }
+.test.part .content .error { color: red }
