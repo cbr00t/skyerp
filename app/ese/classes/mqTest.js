@@ -51,8 +51,8 @@ class MQTest extends MQGuidOrtak {
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias, sablonSinif, pTanim} = this, {rowAttr: sablonIdSaha} = pTanim.sablonId;
-		sent.leftJoin({ alias, from: 'esemuayene mua', on: `${alias}.muayeneid = mua.id` })
-			.leftJoin({ alias, from: `${sablonSinif.table} sab`, on: `${alias}.${sablonIdSaha} = sab.id` })
+		sent.leftJoin({ alias, from: `${sablonSinif.table} sab`, on: `${alias}.${sablonIdSaha} = sab.id` })
+			.leftJoin({ alias, from: 'esemuayene mua', on: `${alias}.muayeneid = mua.id` })
 			.leftJoin({ alias: 'mua', from: 'esehasta has', on: 'mua.hastaid = has.id' })
 			.leftJoin({ alias: 'mua', from: 'esedoktor dok', on: 'mua.doktorid = dok.id' });
 		sent.sahalar.add(`${alias}.btamamlandi`, `${alias}.uygulanmayeri`, `${alias}.onaykodu`, 'has.email', 'sab.aciklama sablonAdi')
@@ -65,8 +65,9 @@ class MQTest extends MQGuidOrtak {
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); const {tanimFormBuilder: tanimForm} = e;
-		let form = tanimForm.addFormWithParent().yanYana(2);
-			form.addModelKullan('sablonId', 'Şablon').dropDown().kodsuz().setMFSinif(this.sablonSinif); form.addCheckBox('tamamlandimi', 'Tamamlandı');
+		let form = tanimForm.addFormWithParent().altAlta();
+			form.addModelKullan('sablonId', 'Şablon').dropDown().kodsuz().setMFSinif(this.sablonSinif);
+			form.addCheckBox('tamamlandimi', 'Tamamlandı').addStyle(e => `$elementCSS { margin-top: 10px !important }`);
 		tanimForm.addDiv('ozetBilgi').etiketGosterim_yok().addCSS('bold gray').addStyle_fullWH(null, 'auto').addStyle(e => `$elementCSS { font-size: 120%; padding: 10px 20px }`)
 			.onAfterRun(async e => {
 				const {altInst: inst, input} = e.builder, {sablonId, tarihSaat, muayeneId, tamamlandimi} = inst, {sablonTip} = inst.class;
@@ -80,7 +81,8 @@ class MQTest extends MQGuidOrtak {
 					elm.appendTo(parent); parent.appendTo(input)
 				};
 				if (sablonAdi) { addItem(`<span class="gray etiket">Şablon:</span> <b class="veri forestgreen">${sablonAdi}</b>`, 'flex-row'), `font-size: 130%` }
-				addItem(`${tarihSaat ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri">${dateTimeAsKisaString(tarihSaat)}</b>` : ''} ${tamamlandimi ? `<div class="forestgreen" style="margin-left: "20px">Tamamlandı</b>` : ''}`, 'flex-row');
+				/*addItem(`${tarihSaat ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri">${dateTimeAsKisaString(tarihSaat)}</b>` : ''} ${tamamlandimi ? `<div class="forestgreen" style="margin-left: "20px">Tamamlandı</b>` : ''}`, 'flex-row');*/
+				addItem(`${tarihSaat ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri">${dateTimeAsKisaString(tarihSaat)}</b>` : ''}`, 'flex-row');
 				if (muayeneRec) { addItem(`<span class="gray etiket">Muayene:</span> <b class="veri">${muayeneRec.fisnox}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }
 				if (uygulanmaYeri) { addItem(`<span class="kgray etiket">Uygulanma Yeri:</span> <b>${MQTestUygulanmaYeri.kaDict[uygulanmaYeri]?.aciklama || ''}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }
 				if (onayKodu) { addItem(`<span class="gray etiket">Onay Kodu:</span> <u class="onayKodu veri bold royalblue">${onayKodu}</u>`, null, `margin-top: 30px; cursor: pointer`) }
@@ -191,7 +193,16 @@ class MQTestCPT extends MQTest {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'CPT Test' }  static get testSonucSinif() { return TestSonucCPT } static get testGenelSonucSinif() { return TestGenelSonucCPT }
 	static get kodListeTipi() { return 'TSTCPT' } static get table() { return 'esecpttest' } static get sablonSinif() { return MQSablonCPT }
-	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.sahalar.add('sab.gecerliresimseq', 'sab.gruptekrarsayisi', 'sab.resimarasisn') }
+	static orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e); const {tableAlias: alias} = this, {liste} = e; liste.push(...[
+			new GridKolon({ belirtec: 'tumsayi', text: 'Tüm Sayı', genislikCh: 10 }).tipNumerik(),
+			new GridKolon({ belirtec: 'dogrusayi', text: 'Doğru Sayı', genislikCh: 10 }).tipNumerik(),
+			new GridKolon({ belirtec: 'yanlissayi', text: 'Yanlış Sayı', genislikCh: 10 }).tipNumerik(),
+			new GridKolon({ belirtec: 'ortdogrusecimsuresn', text: 'Ort. Doğru Seçim(sn)', genislikCh: 15 }).tipDecimal(1),
+			new GridKolon({ belirtec: 'ortyanlissecimsuresn', text: 'Ort. Yanlış Seçim(sn)', genislikCh: 15 }).tipDecimal(1)
+		].filter(x => !!x))
+	}
+	/*static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.sahalar.add('sab.gecerliresimseq', 'sab.gruptekrarsayisi', 'sab.resimarasisn') }*/
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { cptsablonid: this.sablonId }) }
 	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { gecerliResimSeq: rec.gecerliresimseq, grupTekrarSayisi: rec.gruptekrarsayisi, resimArasiSn: rec.resimarasisn })}
 	testUI_setValues(e) {
@@ -281,7 +292,13 @@ class MQTestAnket extends MQTest {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Anket Test' } static get testSonucSinif() { return TestSonucAnket } static get testGenelSonucSinif() { return TestGenelSonucAnket }
 	static get kodListeTipi() { return 'TSTANKET' } static get table() { return 'eseankettest' } static get sablonSinif() { return MQSablonAnket }
-	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.sahalar.add('sab.suredk', 'sab.yanitid') }
+	static orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e); const {tableAlias: alias} = this, {liste} = e; liste.push(...[
+			new GridKolon({ belirtec: 'toplampuan', text: 'Toplam Puan', genislikCh: 10 }).tipDecimal(1),
+			new GridKolon({ belirtec: 'yanitsizsayi', text: 'Yanıtsız Sayı', genislikCh: 10 }).tipNumerik()
+		].filter(x => !!x))
+	}
+	/*static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.sahalar.add('sab.suredk', 'sab.yanitid') }*/
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { esesablonid: this.sablonId }) }
 	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { sureDk: rec.suredk, yanitID: rec.yanitid })}
 	testUI_setValues(e) {
