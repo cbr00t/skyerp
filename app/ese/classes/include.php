@@ -2,4 +2,4 @@
 <script src="<?=$_partRoot?>/mqMasterOrtak.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/mqERP.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqSabitTanimlar.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/mqSablon.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqMuayene.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/mqTest-ek.js?<?=$appVersion?>"></script>
-<script src="<?=$_partRoot?>/mqTest.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/mqTest.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/_ozetRaporOrnek.js?<?=$appVersion?>"></script>

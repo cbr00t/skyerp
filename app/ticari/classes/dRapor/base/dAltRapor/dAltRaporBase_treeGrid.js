@@ -196,7 +196,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		let {recs} = e; if (!grupColAttrListe) { return recs }
 		let id = 1; const sevListe = seviyelendir({
 			source: recs, attrListe: grupColAttrListe,
-			getter: e => { const {item} = e, _rec = new DAltRapor_PanelGruplama({ id, _sumAttrListe, ...item }); id++; _rec[grupTextColAttr] = _rec[e.sevAttr]; return _rec }
+			getter: e => { const {item, sevAttr} = e, _rec = new DAltRapor_PanelGruplama({ id, _sumAttrListe, ...item }); id++; _rec[grupTextColAttr] = _rec[sevAttr]; return _rec }
 		}); for (const sev of sevListe) { if (sev.toplamYapiOlustur) { sev.toplamYapiOlustur() } }
 		/*topla(sev => sev[attr], sev)*/
 		if (config.dev) { console.info(sevListe) } return sevListe

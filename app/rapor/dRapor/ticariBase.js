@@ -45,7 +45,7 @@ class DRapor_Donemsel_Main extends DAltRapor_TreeGridGruplu {
 		}
 	}
 	async loadServerDataInternal(e) {
-		await super.loadServerDataInternal(e); const {raporTanim, secimler} = this, attrSet = raporTanim.attrSet, {maxRow} = e;
+		await super.loadServerDataInternal(e); const {raporTanim, secimler} = this, {attrSet} = raporTanim, {maxRow} = e;
 		let donemBS = new CBasiSonu({ basi: today().yilBasi(), sonu: today().yilSonu() });
 		/*const sabit = [...Object.keys(grup)], toplam = []; for (const key in icerik) { (tabloYapi.toplam[key] ? toplam : sabit).push(key) }*/
 		if (secimler) {
