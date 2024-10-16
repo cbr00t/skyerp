@@ -16,7 +16,7 @@ class ESEApp extends App {
 	}
 	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { localData: MQLocalData.getInstance(), ese: MQParam_ESE.getInstance() }) }
 	getAnaMenu(e) {
-		const {noMenuFlag, isAdmin} = this; if (noMenuFlag) { return new FRMenu() } const items = [];
+		const {noMenuFlag, isAdmin} = this; if (noMenuFlag) { return new FRMenu() } let items = [];
 		if (isAdmin) {
 			const addMenuSubItems = (mne, text, ...classes) => {
 				let subItems = classes.flat().map(cls => new FRMenuChoice({ mne: cls.kodListeTipi, text: cls.sinifAdi, block: e => cls.listeEkraniAc(e) }));
@@ -26,7 +26,14 @@ class ESEApp extends App {
 			addMenuSubItems('TANIM', 'Sabit Tanımlar', [MQCariUlke, MQCariIl, MQYerlesim, MQKurum, MQOkulTipi, MQHasta, MQDoktor, MQESEUser, MQYetki, MQCari]);
 			addMenuSubItems('SABLON', 'Şablonlar', [MQSablonCPT, MQSablonAnket]);
 			addMenuSubItems(null, null, [MQMuayene]);
-			addMenuSubItems('TEST', 'Testler', [MQTestCPT, MQTestAnket])
+			let parentItems = addMenuSubItems('TEST', 'Testler', [MQTestCPT, MQTestAnket]), parentItem = parentItems?.[0];
+			if (parentItem) {
+				let raporItems = []; for (const cls of MQTest.subClasses) {
+					const {raporSinif} = cls; if (!raporSinif) { continue }
+					const {kodListeTipi: mne, sinifAdi: text} = cls; raporItems.push(new FRMenuChoice({ mne, text, block: e => raporSinif.goster() }));
+				}
+				if (raporItems?.length) { parentItem.items.push(new FRMenuCascade({ mne: 'RAPOR', text: 'Raporlar', items: raporItems })) }
+			}
 			items.push(new FRMenuChoice({ mne: MQParam_ESE.paramKod, text: MQParam_ESE.sinifAdi, block: e => app.params.ese.tanimla(e) }))
 		}
 		else { items.push(new FRMenuChoice({ mne: 'MAIN', text: 'TEST İşlemi', block: e => this.testBaslat(e) })) }

@@ -1,7 +1,7 @@
 class MQTest extends MQGuidOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Test' } static get kodListeTipi() { return 'TEST' }
 	static get tip() { return this.sablonTip } static get kod() { return this.tip } static get aciklama() { return this.sablonSinif?.aciklama }
-	static get tableAlias() { return 'tst' } static get tanimUISinif() { return ModelTanimPart }
+	static get tableAlias() { return 'tst' } static get tanimUISinif() { return ModelTanimPart } static get raporSinif() { return null }
 	static get sablonSinif() { return null } static get sablonTip() { return this.sablonSinif?.tip }
 	static get testSonucSinif() { return null } static get testGenelSonucSinif() { return null } 
 	static get ignoreBelirtecSet() { return {...super.ignoreBelirtecSet, ...asSet(['muayeneid']) } }
@@ -212,7 +212,7 @@ class MQTest extends MQGuidOrtak {
 class MQTestCPT extends MQTest {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'CPT Test' }  static get testSonucSinif() { return TestSonucCPT } static get testGenelSonucSinif() { return TestGenelSonucCPT }
-	static get kodListeTipi() { return 'TSTCPT' } static get table() { return 'esecpttest' } static get sablonSinif() { return MQSablonCPT }
+	static get kodListeTipi() { return 'TSTCPT' } static get table() { return 'esecpttest' } static get sablonSinif() { return MQSablonCPT } static get raporSinif() { return DRapor_ESETest_CPT }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {tableAlias: alias} = this, {liste} = e; liste.push(...[
 			new GridKolon({ belirtec: 'tumsayi', text: 'Tüm Sayı', genislikCh: 10 }).tipNumerik(),
@@ -312,7 +312,7 @@ class MQTestCPT extends MQTest {
 class MQTestAnket extends MQTest {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Anket Test' } static get testSonucSinif() { return TestSonucAnket } static get testGenelSonucSinif() { return TestGenelSonucAnket }
-	static get kodListeTipi() { return 'TSTANKET' } static get table() { return 'eseankettest' } static get sablonSinif() { return MQSablonAnket }
+	static get kodListeTipi() { return 'TSTANKET' } static get table() { return 'eseankettest' } static get sablonSinif() { return MQSablonAnket } static get raporSinif() { return DRapor_ESETest_Anket }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {tableAlias: alias} = this, {liste} = e; liste.push(...[
 			new GridKolon({ belirtec: 'toplampuan', text: 'Top.Puan', genislikCh: 10 }).tipDecimal(1),

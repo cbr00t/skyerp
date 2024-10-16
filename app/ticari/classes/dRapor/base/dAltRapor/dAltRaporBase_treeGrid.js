@@ -107,8 +107,8 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		if (!colDefs) { return colDefs }
 		const {gridPart} = this, result = []; for (let i = 0; i < colDefs.length; i++) {
 			const colDef = colDefs[i].deepCopy(); colDef.gridPart = gridPart; const {tip} = colDef;
-			if (!colDef.minWidth) { colDef.minWidth = 180 }
-			for (const key of ['cellsRenderer', 'cellValueChanging']) { delete colDef[key] }
+			if (!colDef.minWidth) { colDef.minWidth = 80 }
+			const savedHandlers = {}; for (const key of ['cellsRenderer', 'cellValueChanging']) { savedHandlers[key] = colDef[key]; delete colDef[key] }
 			colDef.aggregatesRenderer = (colDef, aggregates, jqCol, elm) => {
 				let result = []; for (let [tip, value] of Object.entries(aggregates)) {
 					if (value != null) { value = asFloat(value) } const dipBelirtec = tip == 'sum' ? 'T' : tip == 'avg' ? 'O' : tip;
@@ -166,11 +166,13 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			}
 		})
 	}
+	ekCSSDuzenle(e) { }
 	async loadServerData(e) { let recs = this.raporTanim.secilenVarmi ? await super.loadServerData(e) : []; e.recs = recs; await this.ozetBilgiRecsOlustur(e); return recs }
 	loadServerData_recsDuzenleIlk(e) {
-		let {recs} = e; const {kaPrefixes, sortAttr} = this.tabloYapi, fixKA = (rec, prefix) => {
-			if (rec == null) { return } const kod = rec[prefix + 'kod'], adi = rec[prefix + 'adi'];
-			if (kod !== undefined) {
+		let {recs} = e; const {tabloYapi} = this, {kaPrefixes, sortAttr, grupVeToplam} = tabloYapi, fixKA = (rec, prefix) => {
+			if (rec == null) { return } const item = grupVeToplam[prefix] ?? grupVeToplam[prefix.toUpperCase()], {kodsuzmu} = item || {};
+			const kod = kodsuzmu ? null : rec[prefix + 'kod'], adi = rec[prefix + 'adi'];
+			if (!(kod === undefined && adi === undefined)) {
 				let value = kod || ''; if (kod) { value = `(${value}) ` } value += adi || '';
 				rec[prefix] = value; delete rec[prefix + 'kod']; delete rec[prefix + 'adi']
 			}
@@ -349,10 +351,11 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			const kod = colDef.userData?.kod; if (tabloYapi.toplam[kod]) { if (!colDef.align) { colDef.alignRight() } /*if (!colDef.cellsFormat) { colDef.cellsFormat = 'd' }*/ }
 			colDef.cellClassName = (colDef, rowIndex, belirtec, value, rec) => {
 				if (icerikColsSet == null) { const {raporTanim} = this; icerikColsSet = raporTanim.icerik }
-				const kod = colDef.userData?.kod, result = ['treeRow']; if (rec) { result.push(rec.leaf ? 'leaf' : 'grup') }
+				const kod = colDef.userData?.kod; let result = ['treeRow', belirtec]; if (rec) { result.push(rec.leaf ? 'leaf' : 'grup') }
 				if (icerikColsSet && icerikColsSet[belirtec]) { result.push('icerik') }
 				if (tabloYapi.toplam[kod]) { result.push('toplam') }
 				let {level} = rec; if (level != null) { result.push('level-' + level.toString()) }
+				const _e = { kod, raporTanim, icerikColsSet, colDefs, colDef, rowIndex, belirtec, value, rec, result }; this.ekCSSDuzenle(_e); result = _e.result;
 				return result.filter(x => !!x).join(' ')
 			}
 		}
