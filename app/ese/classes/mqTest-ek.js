@@ -41,15 +41,12 @@ class TestSonucCPT extends TestSonuc {
 	}
 	tiklamaEkle(dogrumu, sureSn) {
 		let parent = this[dogrumu ? 'dogru' : 'yanlis']; parent.sayi++;
-		parent.adat = roundToFra(parent.adat + sureSn * (config.dev ? .2 : 1), 1);
+		parent.adat = roundToFra(parent.adat + sureSn * (config.dev ? MQTestCPT.intervalKatSayi : 1), 1);
 		/*console.info('test', this, dogrumu, sureSn, parent);*/ return this
 	}
 	ortalamaOlustur() {
 		for (const parentKey of this.class.parentKeys) {
-			let parent = this[parentKey]; let {sayi, adat} = parent;
-			parent.secimSure = sayi ? roundToFra(adat / sayi, 1) : 0
-			/*console.info('test', this, parentKey, parent)*/
-		}
+			let parent = this[parentKey], {sayi, adat} = parent; parent.secimSure = sayi ? roundToFra(adat, 1) : 0 }
 		return this
 	}
 }

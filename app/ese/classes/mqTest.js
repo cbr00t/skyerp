@@ -210,7 +210,7 @@ class MQTest extends MQGuidOrtak {
 	testUI_kaydetOncesi(e) { } testUI_kaydet(e) { } testUI_kaydetSonrasi(e) { }
 }
 class MQTestCPT extends MQTest {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get intervalKatSayi() { return config.dev ? .2 : 1 }
 	static get sinifAdi() { return 'CPT Test' }  static get testSonucSinif() { return TestSonucCPT } static get testGenelSonucSinif() { return TestGenelSonucCPT }
 	static get kodListeTipi() { return 'TSTCPT' } static get table() { return 'esecpttest' } static get sablonSinif() { return MQSablonCPT } static get raporSinif() { return DRapor_ESETest_CPT }
 	static orjBaslikListesiDuzenle(e) {
@@ -219,8 +219,8 @@ class MQTestCPT extends MQTest {
 			new GridKolon({ belirtec: 'grupsayi', text: 'Grup Sayı', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'dogrusayi', text: 'Doğru Sayı', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'yanlissayi', text: 'Yanlış Sayı', genislikCh: 10 }).tipNumerik(),
-			new GridKolon({ belirtec: 'ortdogrusecimsuresn', text: 'Ort. Doğru Seçim(sn)', genislikCh: 23 }).tipDecimal(1),
-			new GridKolon({ belirtec: 'ortyanlissecimsuresn', text: 'Ort. Yanlış Seçim(sn)', genislikCh: 23 }).tipDecimal(1)
+			new GridKolon({ belirtec: 'ortdogrusecimsuresn', text: 'Ort. Doğru Seçim(sn)', genislikCh: 23, sql: `(case when ${alias}.dogrusayi = 0 then 0 else ROUND(${alias}.dogrusecimsuresn / ${alias}.dogrusayi, 1) end)` }).tipDecimal(1),
+			new GridKolon({ belirtec: 'ortyanlissecimsuresn', text: 'Ort. Yanlış Seçim(sn)', genislikCh: 23, sql: `(case when ${alias}.yanlissayi = 0 then 0 else ROUND(${alias}.yanlissecimsuresn / ${alias}.yanlissayi, 1) end)` }).tipDecimal(1),
 		].filter(x => !!x))
 	}
 	/*static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.sahalar.add('sab.gecerliresimseq', 'sab.gruptekrarsayisi', 'sab.resimarasisn') }*/
@@ -232,7 +232,7 @@ class MQTestCPT extends MQTest {
 	}
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
 		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, content} = parentPart;
-		const {id: testId, detaylar, genelSonuc, gecerliResimSeq, grupTekrarSayisi, resimArasiSn} = this, {tip} = this.class;
+		const {id: testId, detaylar, genelSonuc, gecerliResimSeq, grupTekrarSayisi, resimArasiSn} = this, {tip, intervalKatSayi} = this.class;
 		let startCounter = 3, orjUrls = detaylar.map(det => det.resimLink), urls = [...orjUrls], imageCount = urls.length, keyDownHandler;
 		switch (state) {
 			case 'home':
@@ -267,7 +267,7 @@ class MQTestCPT extends MQTest {
 				let loopProc = () => {
 					if (startCounter <= 0 || parentPart.isDestroyed || parentPart.state != 'test') { clearInterval(this._hInterval); delete this._hInterval; promise_wait?.resolve(); return false }
 					img.html(clearFlag ? '' : `<div class="veri full-wh">${startCounter--}</div>`); clearFlag = !clearFlag
-				}; this._hInterval = setInterval(loopProc, config.dev ? 100 : 800); await promise_wait; img.html('');
+				}; this._hInterval = setInterval(loopProc, 800 * (intervalKatSayi / 2)); await promise_wait; img.html('');
 				let clickHandler = evt => {
 					if (ilkTiklamaTime || !resimGosterimTime) { return } ilkTiklamaTime = now(); let dogrumu = urls[index] == gecerliResimURL;
 					let cssClicked = `clicked-${dogrumu ? 'dogru' : 'yanlis'}`; img.removeClass('clicked-dogru clicked-yanlis'); setTimeout(() => img.addClass(cssClicked), 1);
@@ -295,7 +295,7 @@ class MQTestCPT extends MQTest {
 						resimGosterimTime = now(); ilkTiklamaTime = null
 					}
 					clearFlag = !clearFlag; return true
-				}; gecerliResimURL = urls[gecerliResimSeq - 1]; urls = shuffle(urls); this._hInterval = setInterval(loopProc, resimArasiSn * config.dev ? 200 : 1000); break
+				}; gecerliResimURL = urls[gecerliResimSeq - 1]; urls = shuffle(urls); this._hInterval = setInterval(loopProc, resimArasiSn * 1000 * intervalKatSayi); break
 			case 'end':
 				$('body').off('keydown', keyDownHandler);
 				if (genelSonuc) {

@@ -230,7 +230,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		let colDefs = Object.keys(icerik).flatMap(kod => tip2ColDefs[kod]); colDefs.sort((a, b) => tabloYapi.toplam[a.userData?.kod] ? 1 : -1);
 		for (const colDef of colDefs) { if (!colDef.aggregates && tabloYapi.toplam[colDef.userData?.kod]) { colDef.aggregates = ['sum'] } }
 		let ilkColDef = colDefs[0]; if (tabloYapi.grup[ilkColDef?.userData?.kod]) {
-			let colDef = ilkColDef.deepCopy(); colDefs[0] = colDef;
+			let colDef = ilkColDef.deepCopy(); colDefs[0] = colDef; colDef.minWidth = colDef.minWidth || 250;
 			colDef.text = [...(Object.keys(grup).map(kod => `<span class="royalblue">${tabloYapi.grup[kod]?.colDefs[0]?.text || ''}</span>`) || []), colDef.text].join(' + ')
 		}
 		grid.jqxTreeGrid('clear'); colDefs = this.getColumns(colDefs); try { grid.jqxTreeGrid('columns', colDefs.flatMap(colDef => colDef.jqxColumns)) } catch (ex) { console.error(ex) }
@@ -240,7 +240,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		const ozetBilgi_getColumns = (source, kod, colDefDuzenle) =>
 			this.getColumns((source[kod]?.colDefs || [])).map(_colDef => { const colDef = _colDef/*.deepCopy()*/; if (colDefDuzenle) { getFuncValue.call(this, colDefDuzenle, colDef) } return colDef });
 		ozetBilgi.colDefs = ozetBilgi.grupTipKod ? [
-			...ozetBilgi_getColumns(tabloYapi.grup, ozetBilgi.grupTipKod, colDef => $.extend(colDef, { minWidth: 150, maxWidth: null, genislikCh: null })),
+			...ozetBilgi_getColumns(tabloYapi.grup, ozetBilgi.grupTipKod, colDef => $.extend(colDef, { minWidth: 140, maxWidth: null, genislikCh: null })),
 			...ozetBilgi_getColumns(tabloYapi.toplam, ozetBilgi.icerikTipKod, colDef => $.extend(colDef, { minWidth: null, maxWidth: null, genislikCh: 16, aggregates: ['sum'] }))
 		] : [];
 		raporTanim.degistimi = false; await gridPart._promise_kaFix; await super.tazele(e); await this.tazeleDiger(e)

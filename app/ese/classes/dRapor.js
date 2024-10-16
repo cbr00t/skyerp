@@ -65,8 +65,8 @@ class DRapor_ESETest_CPT_Main extends DRapor_ESETest_Main {
 	}
 	ekCSSDuzenle(e) {
 		super.ekCSSDuzenle(e); const {belirtec, result} = e; switch (belirtec) {
-			case 'dogrusayi': case 'ortdogrusecimsuresn': result.push('green'); break
-			case 'yanlissayi': case 'ortyanlissecimsuresn': result.push('red'); break
+			case 'dogrusayi': case 'ortdogrusecimsuresn': result.push('limegreen'); break
+			case 'yanlissayi': case 'ortyanlissecimsuresn': result.push('firebrick'); break
 		}
 	}
 	loadServerData_queryDuzenle_ek(e) {
@@ -75,7 +75,8 @@ class DRapor_ESETest_CPT_Main extends DRapor_ESETest_Main {
 			switch (key) {
 				case 'TUMSAYI': sahalar.add('SUM(fis.tumsayi) tumsayi'); break; case 'GRUPSAYI': sahalar.add('SUM(fis.grupsayi) grupsayi'); break
 				case 'DOGRUSAYI': sahalar.add('SUM(fis.dogrusayi) dogrusayi'); break; case 'YANLISSAYI': sahalar.add('SUM(fis.yanlissayi) yanlissayi'); break
-				case 'ORTDOGRUSECIMSURESN': sahalar.add('SUM(fis.ortdogrusecimsuresn) ortdogrusecimsuresn'); break; case 'ORTYANLISSECIMSURESN': sahalar.add('SUM(fis.ortyanlissecimsuresn) ortyanlissecimsuresn'); break
+				case 'ORTDOGRUSECIMSURESN': sahalar.add('(case when fis.dogrusayi = 0 then 0 else ROUND(SUM(fis.dogrusecimsuresn) / SUM(fis.dogrusayi), 1) end) ortdogrusecimsuresn'); break
+				case 'ORTYANLISSECIMSURESN': sahalar.add('(case when fis.yanlissayi = 0 then 0 else ROUND(SUM(fis.yanlissecimsuresn) / SUM(fis.yanlissayi), 1) end) ortyanlissecimsuresn'); break
 			}
 		}
 	}
