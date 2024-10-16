@@ -68,7 +68,8 @@ class MQTest extends MQGuidOrtak {
 			.leftJoin({ alias, from: 'esemuayene mua', on: `${alias}.muayeneid = mua.id` })
 			.leftJoin({ alias: 'mua', from: 'esehasta has', on: 'mua.hastaid = has.id' })
 			.leftJoin({ alias: 'mua', from: 'esedoktor dok', on: 'mua.doktorid = dok.id' });
-		sent.sahalar.add(`${alias}.btamamlandi`, `${alias}.uygulanmayeri`, `${alias}.onaykodu`, 'has.email', 'sab.aciklama sablonAdi')
+		sent.sahalar.add(`${alias}.btamamlandi`, `${alias}.uygulanmayeri`, `${alias}.onaykodu`, 'has.email', 'sab.aciklama sablonAdi');
+		sent.groupByOlustur()
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e); let {liste} = e; liste.push(
@@ -219,8 +220,8 @@ class MQTestCPT extends MQTest {
 			new GridKolon({ belirtec: 'grupsayi', text: 'Grup Sayı', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'dogrusayi', text: 'Doğru Sayı', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'yanlissayi', text: 'Yanlış Sayı', genislikCh: 10 }).tipNumerik(),
-			new GridKolon({ belirtec: 'ortdogrusecimsuresn', text: 'Ort. Doğru Seçim(sn)', genislikCh: 23, sql: `(case when ${alias}.dogrusayi = 0 then 0 else ROUND(${alias}.dogrusecimsuresn / ${alias}.dogrusayi, 1) end)` }).tipDecimal(1),
-			new GridKolon({ belirtec: 'ortyanlissecimsuresn', text: 'Ort. Yanlış Seçim(sn)', genislikCh: 23, sql: `(case when ${alias}.yanlissayi = 0 then 0 else ROUND(${alias}.yanlissecimsuresn / ${alias}.yanlissayi, 1) end)` }).tipDecimal(1),
+			new GridKolon({ belirtec: 'ortdogrusecimsuresn', text: 'Ort. Doğru Seçim(sn)', genislikCh: 23, sql: `(case when ${alias}.dogrusayi = 0 then 0 else ROUND(SUM(${alias}.dogrusecimsuresn) / SUM(${alias}.dogrusayi), 1) end)` }).tipDecimal(1),
+			new GridKolon({ belirtec: 'ortyanlissecimsuresn', text: 'Ort. Yanlış Seçim(sn)', genislikCh: 23, sql: `(case when ${alias}.yanlissayi = 0 then 0 else ROUND(SUM(${alias}.yanlissecimsuresn) / SUM(${alias}.yanlissayi), 1) end)` }).tipDecimal(1),
 		].filter(x => !!x))
 	}
 	/*static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.sahalar.add('sab.gecerliresimseq', 'sab.gruptekrarsayisi', 'sab.resimarasisn') }*/

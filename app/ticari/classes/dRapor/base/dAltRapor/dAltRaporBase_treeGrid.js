@@ -107,7 +107,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		if (!colDefs) { return colDefs }
 		const {gridPart} = this, result = []; for (let i = 0; i < colDefs.length; i++) {
 			const colDef = colDefs[i].deepCopy(); colDef.gridPart = gridPart; const {tip} = colDef;
-			if (!colDef.minWidth) { colDef.minWidth = 80 }
+			for (const _colDef of colDefs) { if (!_colDef.minWidth) { _colDef.minWidth = 100 } }
 			const savedHandlers = {}; for (const key of ['cellsRenderer', 'cellValueChanging']) { savedHandlers[key] = colDef[key]; delete colDef[key] }
 			colDef.aggregatesRenderer = (colDef, aggregates, jqCol, elm) => {
 				let result = []; for (let [tip, value] of Object.entries(aggregates)) {
@@ -227,7 +227,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		await this.tazeleOncesi(e); const {gridPart, raporTanim} = this, {degistimi} = raporTanim, {grid, gridWidget} = gridPart;
 		const {tabloKolonlari, tabloYapi, ozetBilgi} = this, {secilenVarmi, attrSet, grup, icerik} = raporTanim;
 		const tip2ColDefs = {}; for (const colDef of tabloKolonlari) { const {belirtec, userData} = colDef, {kod} = userData || {}; if (kod) { (tip2ColDefs[kod] = tip2ColDefs[kod] || []).push(colDef) } }
-		let colDefs = Object.keys(icerik).flatMap(kod => tip2ColDefs[kod]); colDefs.sort((a, b) => tabloYapi.toplam[a.userData?.kod] ? 1 : -1);
+		let _colDefs = Object.keys(icerik).flatMap(kod => tip2ColDefs[kod]), colDefs = [..._colDefs.filter(colDef => !colDef.userData?.kod), ..._colDefs.filter(colDef => colDef.userData?.kod)];
 		for (const colDef of colDefs) { if (!colDef.aggregates && tabloYapi.toplam[colDef.userData?.kod]) { colDef.aggregates = ['sum'] } }
 		let ilkColDef = colDefs[0]; if (tabloYapi.grup[ilkColDef?.userData?.kod]) {
 			let colDef = ilkColDef.deepCopy(); colDefs[0] = colDef; colDef.minWidth = colDef.minWidth || 250;
@@ -253,8 +253,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		let fbd_sablonParent = fbd_ust.addFormWithParent('sablon-parent').yanYana().addStyle_fullWH().addStyle([e =>
 			`$elementCSS { position: relative; top: 5px } $elementCSS > .button { width: 50px !important; height: 45px !important; min-width: unset !important }`]);
 		fbd_sablonParent.addModelKullan('sablonKod', 'Şablon').etiketGosterim_yok().dropDown().kodsuz().bosKodAlinir()
-			.setMFSinif(DMQRapor).setValue(inst.sayac)
-			.addStyle_fullWH('calc(var(--full) - 300px)')
+			.setMFSinif(DMQRapor).setValue(inst.sayac).addStyle_fullWH('calc(var(--full) - 300px)')
 			.initArgsDuzenleHandler(e => { const {args} = e; args.args = { rapor: this } })
 			.ozelQueryDuzenleHandler(e => {
 				const {stm, aliasVeNokta} = e, {raporKod} = raporTanim, {encUser} = config.session, {kodSaha} = raporTanim.class;
@@ -281,7 +280,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				const close = () => { if (wnd?.length) { wnd.jqxWindow('close') } }, {tabloYapi} = this, inst = _e.builder.rootBuilder.id2Builder.content.altInst;
 				let result = await this.raporTanim_tamamIstendi({ ...e, ..._e, wnd, close, tabloYapi, inst }); if (result !== false) { close() }
 			}
-			catch (ex) { console.error(ex); wnd.jqxWindow('collapse'); let _wnd = displayMessage(getErrorText(ex), title).wnd; _wnd.on('close', evt => wnd.jqxWindow('expand')) }
+			catch (ex) { console.error(ex); wnd.addClass('jqx-hidden'); let {wnd: _wnd} = displayMessage(getErrorText(ex), title); _wnd.on('close', evt => wnd.removeClass('jqx-hidden')) }
 		});
 		fbd_islemTuslari.addButton('vazgec').onClick(e => wnd.jqxWindow('close'));
 		const _e = { ...e, rootBuilder: wRFB, tanimFormBuilder: wRFB, inst }; raporTanim.class.rootFormBuilderDuzenle(_e);
