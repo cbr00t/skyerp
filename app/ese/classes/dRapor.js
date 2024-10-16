@@ -40,7 +40,7 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 		]
 	}*/
 	fisVeHareketBagla(e) {
-		const {sent} = e.stm, {table, detayVeyaGrupTable} = this.class; sent.fromAdd(`${table} fis`);
+		const {sent} = e, {table, detayVeyaGrupTable} = this.class; sent.fromAdd(`${table} fis`);
 		if (detayVeyaGrupTable) { sent.fromIliski(`${detayVeyaGrupTable} har`, `har.fisid = fis.id`) }
 		return this
 	}

@@ -48,7 +48,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 	}
 	loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {stm, attrSet} = e; let {sent} = stm, {where: wh} = sent;
-		$.extend(e, sent); this.fisVeHareketBagla(e); this.donemBagla({ ...e, sent, tarihSaha: 'fis.tarih' });
+		$.extend(e, { sent }); this.fisVeHareketBagla(e); this.donemBagla({ ...e, tarihSaha: 'fis.tarih' });
 		const {kgBirimler} = MQStokGenelParam, kgInClause = `(${kgBirimler.map(x => MQSQLOrtak.sqlServerDegeri(x)).join(', ')})`;
 		const kgClause = e.kgClause = `(case when stk.brm IN ${kgInClause} then har.miktar when stk.brm2 IN ${kgInClause} then har.miktar2 else 0 end)`;
 		wh.fisSilindiEkle(); wh.add(`fis.ozelisaret <> 'X'`); 
