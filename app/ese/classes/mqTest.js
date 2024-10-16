@@ -84,7 +84,7 @@ class MQTest extends MQGuidOrtak {
 		tanimForm.addDiv('ozetBilgi').etiketGosterim_yok().addCSS('bold gray').addStyle_fullWH(null, 'auto').addStyle(e => `$elementCSS { font-size: 120%; padding: 10px 20px }`)
 			.onAfterRun(async e => {
 				const {altInst: inst, input} = e.builder, {sablonId, tarihSaat, muayeneId, tamamlandimi} = inst, {sablonTip} = inst.class;
-				let {uygulanmaYeri, onayKod, aktifYas} = inst, sablonAdi, muayeneRec;
+				let {uygulanmaYeri, onayKodu, aktifYas} = inst, sablonAdi, muayeneRec;
 				/*if (sablonTip && sablonId) { sablonAdi = (await MQSablon.getClass(sablonTip)?.getGloKod2Adi(sablonId)) || '' }*/
 				if (muayeneId) { muayeneRec = await new MQMuayene({ id: muayeneId }).tekilOku() }
 				uygulanmaYeri = uygulanmaYeri?.char ?? uygulanmaYeri;
