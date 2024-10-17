@@ -95,12 +95,12 @@ class DRapor_ESETest_Anket_Main extends DRapor_ESETest_Main {
 		for (let i = 1; i <= maxSecenekSayisi; i++) {
 			result.addGrup(new TabloYapiItem().setKA(`YANIT${i}`, `Yanit-${i}`).addColDef(new GridKolon({ belirtec: `secenek${i}`, text: `Yanıt-${i}`, filterType: 'checkedlist' }))) }
 		result
-			.addToplam(new TabloYapiItem().setKA('TOPLAMPUAN', 'Toplam Puan').addColDef(new GridKolon({ belirtec: 'toplampuan', text: 'Toplam Puan', genislikCh: 10, filterType: 'numberinput' }).tipDecimal(1)))
-			.addToplam(new TabloYapiItem().setKA('YANITSIZSAYI', 'Yanıtsız Sayı').addColDef(new GridKolon({ belirtec: 'yanitsizsayi', text: 'Yanıtsız Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik()));
+			.addToplam(new TabloYapiItem().setKA('YANITSIZSAYI', 'Yanıtsız Sayı').addColDef(new GridKolon({ belirtec: 'yanitsizsayi', text: 'Yanıtsız Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))
+			.addToplam(new TabloYapiItem().setKA('TOPLAMPUAN', 'Toplam Puan').addColDef(new GridKolon({ belirtec: 'toplampuan', text: 'Toplam Puan', genislikCh: 10, filterType: 'numberinput' }).tipDecimal(1)));
 		for (let i = 1; i <= maxSecenekSayisi; i++) {
 			result
 				.addToplam(new TabloYapiItem().setKA(`YANIT${i}SAYI`, `Yanit-${i} Sayı`).addColDef(new GridKolon({ belirtec: `yanit${i}sayi`, text: `Yanıt-${i} Sayı`, genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))
-				.addToplam(new TabloYapiItem().setKA(`YANIT${i}PUAN`, `Yanit-${i} Puan`).addColDef(new GridKolon({ belirtec: `yanit${i}puan`, text: `Yanıt-${i} Puan`, genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))
+				.addToplam(new TabloYapiItem().setKA(`YANIT${i}PUAN`, `Yanit-${i} Puan`).addColDef(new GridKolon({ belirtec: `yanit${i}puan`, text: `Yanıt-${i} Puan`, genislikCh: 10, filterType: 'numberinput' }).tipDecimal(1)))
 		}
 	}
 	ekCSSDuzenle(e) { super.ekCSSDuzenle(e); const {belirtec, result} = e; switch (belirtec) { case 'yanlissayi': case 'yanitsizsayi': result.push('red'); break } }
@@ -115,8 +115,8 @@ class DRapor_ESETest_Anket_Main extends DRapor_ESETest_Main {
 				default:
 					const PrefixYanit = 'YANIT', LiteralSayi = 'SAYI', LiteralPuan = 'PUAN'; if (key.startsWith(PrefixYanit)) {
 						let i = asInteger(key.replace(LiteralSayi, '').replace(LiteralPuan, '').slice(PrefixYanit.length));
-						if (i && key.endsWith(LiteralSayi)) { sahalar.add(`fis.yanit${i}sayi`) }
-						else if (i && key.endsWith(LiteralPuan)) { sahalar.add(`fis.yanit${i}puan`) }
+						if (i && key.endsWith(LiteralSayi)) { sahalar.add(`SUM(fis.yanit${i}sayi) fis.yanit${i}sayi`) }
+						else if (i && key.endsWith(LiteralPuan)) { sahalar.add(`SUM(fis.yanit${i}puan) fis.yanit${i}puan`) }
 						else { sahalar.add(`ynt.secenek${i}`) }
 					}
 					break
