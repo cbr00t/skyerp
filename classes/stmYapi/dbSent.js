@@ -193,11 +193,10 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	fisSilindiEkle(e) { this.where.fisSilindiEkle(e); return this }
 	fisHareket(e, _harTablo, _innerJoinFlag) {
 		const innerJoinFlag = typeof e == 'object' ? (e.innerJoin || e.inner || e.innerJoinFlag) : _innerJoinFlag;
-		const fisTable = typeof e == 'object' ? (e.fisTable || e.fisTablo) : e;
-		const harTable = typeof e == 'object' ? (e.harTable || e.harTablo) : _harTablo;
+		const fisTable = typeof e == 'object' ? (e.fisTable || e.fisTablo) : e, harTable = typeof e == 'object' ? (e.harTable || e.harTablo) : _harTablo;
 		this.fromAdd(`${fisTable} fis`);
-		if (innerJoinFlag) this.innerJoin({ alias: 'fis', from: `${harTable} har`, on: 'har.fissayac = fis.kaysayac' })
-		else this.fromIliski({ from: `${harTable} har`, iliski: 'har.fissayac = fis.kaysayac' })
+		if (innerJoinFlag) { this.innerJoin({ alias: 'fis', from: `${harTable} har`, on: 'har.fissayac = fis.kaysayac' }) }
+		else { this.fromIliski({ from: `${harTable} har`, iliski: 'har.fissayac = fis.kaysayac' }) }
 		return this
 	}
 	fis2HarBagla(e) {

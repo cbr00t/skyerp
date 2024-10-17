@@ -1,11 +1,7 @@
 class GidenEIslemListePart extends EIslemListeBasePart {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'gidenEIslemListe' } static get filtreSinif() { return GidenEIslemFiltre }
-	
-	constructor(e) {
-		e = e || {}; super(e);
-		this.title = e.title == null ? ( 'Giden e-İşlem Listesi' ) : e.title || ''
-	}
+	constructor(e) { e = e || {}; super(e); this.title = e.title == null ? ( 'Giden e-İşlem Listesi' ) : e.title || '' }
 	runDevam(e) {
 		e = e || {}; super.runDevam(e);
 		const {dbName} = config.session, {kural} = app.params.eIslem, {sadeceAdi2mi} = kural.shAdi;

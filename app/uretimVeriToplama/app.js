@@ -1,10 +1,11 @@
 class UretimVeriToplamaApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get sqlDeferWaitMS() { return 200 } get configParamSinif() { return MQYerelParamConfig_Uretim }
+    static { window[this.name] = this; this._key2Class[this.name] = this } get sqlDeferWaitMS() { return 200 }
+	get configParamSinif() { return MQYerelParamConfig_Uretim } get yerelParamSinif() { return MQYerelParamUretim }
 	constructor(e) {
 		e = e || {}; super(e)
 		/* $.extend(this, { veriAktarici_waitSecs: coalesce(e.veriAktarici_waitSecs, 4), otoGonderFlag: coalesce(e.otoGonderFlag, false) }) */
 	}
-	init(e) { super.init(e); this.params.yerel = MQYerelParamUretim.getInstance() }
+	init(e) { super.init(e) }
 	async runDevam(e) { await super.runDevam(e); await this.wsConfigKontrol(e) }
 	async afterRun(e) {
 		await super.afterRun(e); await this.setValuesFromParam(e); await this.gerceklemeler_ilkIslemler(e);

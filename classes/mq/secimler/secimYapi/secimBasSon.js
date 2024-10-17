@@ -2,7 +2,7 @@ class SecimBasSon extends Secim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get anaTip() { return 'basSon' } static get tip() { return this.anaTip } get defaultBirKismimi() { return !!this.mfSinif }
 	get value() { return this.birKismimi ? this.kodListe : { basi: this.basi, sonu: this.sonu } }
-	set value(value) { if (this.birKismimi) this.kodListe = this.getConvertedValue(value); else super.value = value }
+	set value(value) { if (this.birKismimi) { this.kodListe = this.getConvertedValue(value) } else super.value = value }
 	get ozetBilgiValue() {
 		let value = super.ozetBilgiValue; if (!value) { return value } if ($.isArray(value)) { return value.join(', ') }
 		if ($.isPlainObject(value)) { value = new CBasiSonu(value) } return value?.bosmu ? null : value.toString()

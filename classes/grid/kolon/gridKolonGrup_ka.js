@@ -20,9 +20,12 @@ class GridKolonGrup_KA extends GridKolonGrup {
 		this.ozelStmDuzenleyiciTriggerFlag = e.ozelStmDuzenleyiciTriggerFlag ?? e.ozelStmDuzenleyiciTrigger
 	}
 	readFrom_ara(e) {
-		$.extend(this, { _mfSinif: e.mfSinif, dataBlock: getFunc(e.dataBlock) }); if (!super.readFrom_ara(e)) return false
-		if (e.kodAttr && e.kaKolonu) e.kaKolonu.belirtec = e.kodAttr
-		$.extend(this, { /* kodAttr: e.kodAttr || `${this.belirtec}Kod`, */ adiAttr: e.adiAttr || `${this.belirtec}Adi` });
+		$.extend(this, { _mfSinif: e.mfSinif, dataBlock: getFunc(e.dataBlock) }); if (!super.readFrom_ara(e)) { return false }
+		if (e.kodAttr && e.kaKolonu) { e.kaKolonu.belirtec = e.kodAttr }
+		$.extend(this, {
+			/* kodAttr: e.kodAttr || `${this.belirtec}Kod`, */ adiAttr: e.adiAttr || `${this.belirtec}Adi`,
+			isDropDown: e.dropDown ?? e.isDropDown ?? e.dropDownFlag, autoBindFlag: e.autoBind ?? e.autoBindFlag
+		});
 		this.kaKolonu = this.parseColDef(e.kaKolonu); return true
 	}
 	readFrom_son(e) {
@@ -44,21 +47,16 @@ class GridKolonGrup_KA extends GridKolonGrup {
 			}*/
 			if (!kaKolonu.createEditor) {
 				kaKolonu.createEditor = (colDef, rowIndex, value, editor, cellText, cellWidth, cellHeight) => {
-					const {gridWidget} = colDef.gridPart, {kaKolonu, kodAttr, adiAttr, mfSinif, ozelStmDuzenleyiciTriggerFlag, stmDuzenleyiciler} = this;
+					const {gridWidget} = colDef.gridPart, {kaKolonu, kodAttr, adiAttr, mfSinif, ozelStmDuzenleyiciTriggerFlag, stmDuzenleyiciler, isDropDown, autoBindFlag: autoBind} = this;
 					const kodsuzmu = colDef?.tip?.kodGosterilmesinmi, prevValue = value;
+					const renderSelectedItem = isDropDown ? undefined : (index, rec) => { const {kodSaha} = part.mfSinif; rec = rec.originalItem ?? rec ?? {}; return (rec[kodAttr] ?? rec[kodSaha]) || '' };
 					const part = new ModelKullanPart({
-						parentPart: this, layout: editor, mfSinif: e => this.mfSinif, dropDown: false, value: prevValue, kodGosterilsinmi: !kodsuzmu,
-						ozelQueryDuzenle: (
-							!ozelStmDuzenleyiciTriggerFlag || $.isEmptyObject(stmDuzenleyiciler) ? null : (e => { for (const handler of stmDuzenleyiciler) getFuncValue.call(this, handler, e) })
-						),
+						parentPart: this, layout: editor, mfSinif: e => this.mfSinif, value: prevValue, kodGosterilsinmi: !kodsuzmu, isDropDown, autoBind,
+						ozelQueryDuzenle: !ozelStmDuzenleyiciTriggerFlag || $.isEmptyObject(stmDuzenleyiciler) ? null : (e => { for (const handler of stmDuzenleyiciler) getFuncValue.call(this, handler, e) }),
 						argsDuzenle: e => {
 							$.extend(e.args, {
 								width: cellWidth, height: cellHeight, dropDownWidth: cellWidth * 2, dropDownHeight: 200, autoDropDownHeight: false,
-								autoBind: true, autoOpen: false, itemHeight: 30, width: cellWidth, height: cellHeight,
-								renderSelectedItem: (index, rec) => {
-									const {kodSaha} = part.mfSinif; rec = rec.originalItem ?? rec ?? {};
-									return (rec[kodAttr] ?? rec[kodSaha]) || ''
-								}
+								autoOpen: false, itemHeight: 30, width: cellWidth, height: cellHeight, renderSelectedItem
 							})
 						}
 					}).bosKodEklenir();
@@ -221,10 +219,12 @@ class GridKolonGrup_KA extends GridKolonGrup {
 					else {
 						const {gridWidget, belirtec, rowIndex} = e;
 						if (gridWidget && !gridWidget.editcell) {
-							/*clearTimeout(this._timer_kaKolonu_cellClick);*/
-							if (this._timer_kaKolonu_cellClick) { return }
+							/*clearTimeout(this._timer_kaKolonu_cellClick);*/ if (this._timer_kaKolonu_cellClick) { return }
 							this._timer_kaKolonu_cellClick = setTimeout(() => {
-								try { const curCell = gridWidget.getselectedcell(); if (curCell.datafield == belirtec && curCell.rowindex == rowIndex) { gridWidget.begincelledit(rowIndex, belirtec) } }
+								try { 
+									const curCell = gridWidget.getselectedcell();
+									if (curCell && curCell.datafield == belirtec && curCell.rowindex == rowIndex) { gridWidget.begincelledit(rowIndex, belirtec) }
+								}
 								finally { delete this._timer_kaKolonu_cellClick }
 							}, 1000)
 						}
@@ -267,13 +267,11 @@ class GridKolonGrup_KA extends GridKolonGrup {
 	alignLeft() { this.kaKolonu.alignLeft(); return this } alignCenter() { this.kaKolonu.alignCenter(); return this } alignRight() { this.kaKolonu.alignRight(); return this }
 	noSql() { this.kaKolonu.noSql(); return this } resetNoSql() { this.kaKolonu.resetNoSql(); return this }
 	sifirGosterme() { this.kaKolonu.sifirGosterme(); return this } sifirGoster() { this.kaKolonu.sifirGoster(); return this }
-	kodGosterilsin() { this.kaKolonu.kodGosterilsin(); return this }
-	kodGosterilmesin() { this.kaKolonu.kodGosterilmesin(); return this }
-	kodsuz() { return this.kodGosterilmesin() }
-	degisince(block) { this.ekDegisinceHandlers.push(block); return this }
-	gelince(block) { this.ekGelinceHandlers.push(block); return this }
-	ozelStmDuzenleyiciTrigger(e) { this.ozelStmDuzenleyiciTriggerFlag = true; return this }
-	ozelStmDuzenleyiciNoTrigger(e) { this.ozelStmDuzenleyiciTriggerFlag = false; return this }
+	kodGosterilsin() { this.kaKolonu.kodGosterilsin(); return this } kodGosterilmesin() { this.kaKolonu.kodGosterilmesin(); return this } kodsuz() { return this.kodGosterilmesin() }
+	dropDown() { this.isDropDown = true; return this } comboBox() { this.isDropDown = false; return this }
+	autoBind() { this.autoBindFlag = true; return this } noAutoBind() { this.autoBindFlag = false; return this }
+	degisince(block) { this.ekDegisinceHandlers.push(block); return this } gelince(block) { this.ekGelinceHandlers.push(block); return this }
+	ozelStmDuzenleyiciTrigger(e) { this.ozelStmDuzenleyiciTriggerFlag = true; return this } ozelStmDuzenleyiciNoTrigger(e) { this.ozelStmDuzenleyiciTriggerFlag = false; return this }
 }
 
 

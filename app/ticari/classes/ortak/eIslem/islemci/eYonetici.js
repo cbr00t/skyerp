@@ -25,7 +25,7 @@ class EYonetici extends CObject {
 		const stm = eIslAnaSinif.getUUIDStm(e); for (const key of ['psTip2SayacListe', 'sentDuzenleyici', 'whereDuzenleyici']) delete e[key]
 		if (!stm) { throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' } }
 		const {sender, callback} = e, param_eIslem = app.params.eIslem, {eConf} = this, {eIslEkArgs} = eConf, senderGIBAlias = eConf.getValue('gibAlias') ?? '', senderEIrsGIBAlias = eConf.getValue('eIrsGIBAlias') ?? '';
-		const recs = await app.sqlExecSelect(stm), ps2Recs = this.class.getPS2Recs({ recs }), uuid2Result = e.uuid2Result = e.uuid2Result || {}, BlockSize = 50;
+		const recs = await app.sqlExecSelect(stm), ps2Recs = this.class.getPS2Recs({ recs }), uuid2Result = e.uuid2Result = e.uuid2Result || {}, BlockSize = 10;
 		if (!$.isEmptyObject(ps2Recs)) {
 			const eConf = e.eConf ?? this.eConf;
 			for (const psTip in ps2Recs) {
@@ -35,8 +35,7 @@ class EYonetici extends CObject {
 					const _recs = eIslTip2Recs[efAyrimTipi] || []; if (!_recs.length) continue
 					const eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi }), eIslAltBolum = eConf.getAnaBolumFor({ eIslSinif });
 					if (!eIslAltBolum) throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' };
-					let startIndex = 0;
-					while (true) {
+					let startIndex = 0; while (true) {
 						const subRecs = _recs.slice(startIndex, startIndex + BlockSize); startIndex += BlockSize; if (!subRecs.length) break
 						let savedToken = this.class.getTempToken(efAyrimTipi), subDuzgunUUIDListe = [];
 						const results = await app.wsEIslemYap({
@@ -137,7 +136,7 @@ class EYonetici extends CObject {
 		const stm = eIslAnaSinif.getUUIDStm(e); for (const key of ['psTip2SayacListe', 'whereDuzenleyici']) { delete e[key] }
 		if (!stm) { throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' } }
 		const {sender, callback} = e, {eConf} = this, {eIslEkArgs} = eConf, recs = await app.sqlExecSelect(stm);
-		const BlockSize = 100, ps2Recs = this.class.getPS2Recs({ recs }), uuid2Result = e.uuid2Result = e.uuid2Result || {}; let subUUID2Result = e.subUUID2Result = [], seq = 0;
+		const BlockSize = 50, ps2Recs = this.class.getPS2Recs({ recs }), uuid2Result = e.uuid2Result = e.uuid2Result || {}; let subUUID2Result = e.subUUID2Result = [], seq = 0;
 		if (!$.isEmptyObject(ps2Recs)) {
 			const eConf = e.eConf ?? this.eConf;
 			for (const psTip in ps2Recs) {
@@ -446,7 +445,7 @@ class EYonetici extends CObject {
 		if (count == null) { count = e.count = subResults?.length }
 		if (window.progressManager) progressManager.progressMax = (progressManager.progressMax || 0) + (count || 1)
 		const eIslAltBolum = eConf.getAnaBolumFor({ efAyrimTipi }); if (!eIslAltBolum) { throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' } }
-		const BlockSize = 20; let blockSubResults = [];
+		const BlockSize = 10; let blockSubResults = [];
 		const kismiVeriIsleVeBosalt = async _e => {
 			try { e.subResults = blockSubResults; await this.bekleyenleriGetir_veriIsle(e) } catch (ex) { console.error('Alım e-İşlem Veri İşle', { BlockSize, blockSubResults, subResults }) }
 			if (window.progressManager) { window.progressManager.progressStep(blockSubResults.length) } if (callback) { getFuncValue.call(this, callback, e) } 
@@ -493,7 +492,7 @@ class EYonetici extends CObject {
 		e.uuid2Result = uuid2Result
 	}
 	async eIslemAlimXMLYukle(e) {
-		const BlockSize = 20; e.eYonetici = this; const {eConf} = this, {eIslEkArgs} = eConf, {callback} = e;
+		const BlockSize = 10; e.eYonetici = this; const {eConf} = this, {eIslEkArgs} = eConf, {callback} = e;
 		const xmlListe = e.xmlListe || [], count = e.count = xmlListe.length;
 		if (window.progressManager) { progressManager.progressMax = (progressManager.progressMax || 0) + (count || 1) }
 		const uuid2Result = e.uuid2Result = e.uuid2Result || {}; e.subResults = [];

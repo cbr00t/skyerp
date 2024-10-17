@@ -1,8 +1,10 @@
 class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları için gerekli inherit desteği için DMQDetayli'dan getirildi */
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'dRapor' } get partName() { return this.class.partName }
 	static get anaTip() { return null } static get araSeviyemi() { return false } static get noOverflowFlag() { return false }
-	static get kategoriKod() { return null } static get kod() { return null } static get aciklama() { return null } static get detaylimi() { return false } static get sinifAdi() { return this.aciklama }
-	static get tumKolonlarGosterilirmi() { return false } static get dRapormu() { return true } get dRapormu() { return this.class.dRapormu } static get dAltRapormu() { return false } get dAltRapormu() { return this.class.dAltRapormu }
+	static get kategoriKod() { return null } static get kod() { return null } static get aciklama() { return null }
+	static get detaylimi() { return false } static get sinifAdi() { return this.aciklama }
+	static get tumKolonlarGosterilirmi() { return false } static get dRapormu() { return true } get dRapormu() { return this.class.dRapormu }
+	static get dAltRapormu() { return false } get dAltRapormu() { return this.class.dAltRapormu }
 	static get kod2Sinif() {
 		let result = this._kod2Sinif; if (result == null) {
 			result = {}; const {subClasses} = this; for (const cls of subClasses) { const {araSeviyemi, kod} = cls; if (!araSeviyemi && kod) { result[kod] = cls } }

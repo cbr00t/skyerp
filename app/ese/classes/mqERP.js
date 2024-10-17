@@ -5,6 +5,18 @@ class MQCariUlke extends MQKAOrtak {
 class MQCariIl extends MQKAOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İl' }
 	static get kodListeTipi() { return 'CIL' } static get table() { return 'caril' } static get tableAlias() { return 'il' }
+	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { ilBolgeKod: new PInstStr('ilbolgekod') }) }
+	static orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e); e.liste.push(
+			new GridKolon({ belirtec: 'ilbolgekod', text: 'İl Bölge', genislikCh: 8, filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'ilbolgeadi', text: 'İl Bölge Adı', genislikCh: 20, sql: 'ibol.aciklama' })
+		)
+	}
+	static rootFormBuilderDuzenle(e) {
+		this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e; let form = tabPage_genel.addFormWithParent().yanYana(2);
+		form.addModelKullan('ilBolgeKod', 'İl Bölgesi').comboBox().kodsuz().autoBind().setMFSinif(MQIlBolge).addStyle_wh(250)
+	}
+	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this; sent.fromIliski('eseilbolge ibol', `${alias}.ilbolgekod = ibol.kod`) }
 }
 class MQCariTip extends MQKAOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cari Tip' }
@@ -33,7 +45,7 @@ class MQCari extends MQKAOrtak {
 		)
 	}
 	static rootFormBuilderDuzenle(e) {
-		this.formBuilder_addTabPanelWithGenelTab(e); const tabPage_genel = e.tabPage_genel; tabPage_genel.addStyle(e => `$elementCSS .baslik { color: cadetblue }`);
+		this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e; tabPage_genel.addStyle(e => `$elementCSS .baslik { color: cadetblue }`);
 		let form = tabPage_genel.addFormWithParent().yanYana(2);
 		form.addTextInput('unvan1', 'Ünvan 1').setMaxLength(50); form.addTextInput('unvan2', 'Ünvan 2').setMaxLength(50);
 		form.addTextInput('adres1', 'Adres 1').setMaxLength(50); form.addTextInput('adres2', 'Adres 2').setMaxLength(50);

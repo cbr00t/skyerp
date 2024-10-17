@@ -42,7 +42,7 @@ class DMQRapor extends DMQSayacliKA {
 			return Object.keys(tumAttrSet).filter(attr => !attrSet[attr] && (!tabloYapiItems || tabloYapiItems[attr]))
 		}
 		const className_listBox = 'listBox', ustHeight = '50px', contentTop = '13px';
-		const solWidth = '200px', ortaWidth = `calc(var(--full) - (${solWidth} + 10px))`, ortaHeight = 'calc((var(--full) / 2) - 5px)';
+		const solWidth = '200px', ortaWidth = `calc(var(--full) - (${solWidth} + 10px))`, ortaHeight_grup = '35%', ortaHeight_icerik = `calc(var(--full) - (${ortaHeight_grup} + 5px))`; /*ortaHeight = 'calc((var(--full) / 2) - 5px)'*/;
 		tanimForm.addStyle(e => `$elementCSS { --ustHeight: ${ustHeight} }`); kaForm.yanYana().addStyle(e => `$elementCSS { --ozetMax-width: 80px; margin-top: 10px }`);
 		kaForm.id2Builder.aciklama.addStyle_wh(`calc(var(--full) - (var(--ozetMax-width) + 10px)) !important`).addStyle(e => `$elementCSS { max-width: unset !important }`);
 		kaForm.addNumberInput('ozetMax', 'İlk ... kayıt').addStyle_wh('var(--ozetMax-width)');
@@ -80,22 +80,19 @@ class DMQRapor extends DMQSayacliKA {
 				}
 				else { let items = $(target).jqxListBox('getItems'); altInst[id] = items.map(item => item.value) }
 			};
-			input.on('change', changeHandler); input.on('dragEnd', changeHandler);
-			setTimeout(input => input.jqxListBox('refresh'), 1, input)
+			input.on('change', changeHandler); input.on('dragEnd', changeHandler); setTimeout(input => input.jqxListBox('refresh'), 1, input)
 		};
 		let fbd_sol = fbd_content.addFormWithParent('sol').altAlta().addStyle_fullWH(solWidth);
 		let fbd_tabs = fbd_sol.addTabPanel('kalanlar').addStyle_fullWH().tabPageChangedHandler(e => {
 			for (const fbd_tabPage of e.builder.builders) {
-				const {input} = fbd_tabPage.builders[0];
-				if (input?.length) { setTimeout(input => { updateKalanlarDS(input) /*input.jqxListBox('refresh')*/ }, 5, input) }
-			}
+				const {input} = fbd_tabPage.builders[0]; if (input?.length) { setTimeout(input => { updateKalanlarDS(input) /*input.jqxListBox('refresh')*/ }, 5, input) } }
 		});
 		fbd_tabs.addTab('grup', 'Sabitler').addStyle_fullWH().addDiv('kalanlar_grup').setEtiket('Kalanlar').etiketGosterim_yok().addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'grup' }).onAfterRun(e => initListBox(e));
 		fbd_tabs.addTab('toplam', 'Toplamlar').addStyle_fullWH().addDiv('kalanlar_toplam').setEtiket('Kalanlar').etiketGosterim_yok().addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'toplam' }).onAfterRun(e => initListBox(e));
 		let fbd_orta = fbd_content.addFormWithParent('orta').yanYana().addStyle_fullWH(ortaWidth)
-			.addStyle(e => `$elementCSS > .formBuilder-element { max-width: 200px !important; min-width: 100px !important; min-height: 250px !important }`);
-		fbd_orta.addDiv('grupListe').setEtiket('Grup').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight).onAfterRun(e => initListBox(e));
-		fbd_orta.addDiv('icerikListe').setEtiket('İçerik').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight).onAfterRun(e => initListBox(e))
+			.addStyle(e => `$elementCSS > .formBuilder-element { max-width: 250px !important; min-width: 150px !important; min-height: 200px !important }`)
+		fbd_orta.addDiv('grupListe').setEtiket('Grup').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight_grup).onAfterRun(e => initListBox(e));
+		fbd_orta.addDiv('icerikListe').setEtiket('İçerik').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight_icerik).onAfterRun(e => initListBox(e))
 	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(
@@ -129,9 +126,10 @@ class DMQRapor extends DMQSayacliKA {
 	}
 	async yukleSonrasiIslemler(e) { await super.yukleSonrasiIslemler(e); const {encUser} = this; this.user = encUser ? await app.xdec(encUser) : encUser }
 	alternateKeyHostVarsDuzenle(e) {
-		super.alternateKeyHostVarsDuzenle(e); const {hv} = e, {adiSaha} = this.class, {encUser, raporKod, aciklama} = this;
-		$.extend(hv, { raportip: raporKod, xuserkod: encUser }); hv[adiSaha] = aciklama
+		super.alternateKeyHostVarsDuzenle(e); const {hv} = e, {adiSaha, sayacSaha} = this.class, {encUser, raporKod, aciklama} = this;
+		$.extend(hv, { raportip: raporKod, xuserkod: encUser }); hv[adiSaha] = aciklama; delete hv[sayacSaha]
 	}
+	keySetValues(e) { super.keySetValues(e); const {rec} = e; $.extend(this, { aciklama: rec.aciklama }) }
 	hostVarsDuzenle(e) {
 		super.hostVarsDuzenle(e); const {hv} = e, liste2HV = value => {
 			if (value && typeof value == 'object' && !$.isArray(value)) { value = Object.keys(value) };

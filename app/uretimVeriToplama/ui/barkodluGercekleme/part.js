@@ -585,10 +585,10 @@ class BarkodluGerceklemePart extends Part {
 			if (barkodRec.suAnmi) { for (const prefix of ['bas', 'bit']) { const key = `${prefix}TS`; barkodRec[key] = now() } }
 			if (!internalFlag) { barkodRec.reset_asil(e); this.reset() }
 			gridWidget.addrow(null, gridRec, 'first'); if (!internalFlag) { setTimeout(() => { gridWidget.clearselection(); gridWidget.selectrow(gridRec.visibleindex) }, 10) }
+			if (!internalFlag) { app.veriAktarici_startTimer() }
 		}
 		catch (ex) { app.playSound_barkodError(); wnd = hConfirm(getErrorText(ex), 'Barkod İşlemi').wnd; throw ex }
 		finally { if (!internalFlag) { setTimeout(() => this.txtBarkod.focus(), 200) } }
-		if (!internalFlag) { app.veriAktarici_startTimer() }
 	}
 	async degistirIstendi(e) {
 		e = e || {}; const yerelParam = app.params.yerel, gerceklemeler = yerelParam.gerceklemeler || [];

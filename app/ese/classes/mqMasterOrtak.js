@@ -1,6 +1,6 @@
 class MQMasterOrtak extends MQCogul {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get raporKullanilirmi() { return false } static get ignoreBelirtecSet() { return {} }
-	static super_standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e) } static get tanimUISinif() { return ModelTanimPart }
+	static super_standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e) } static get tanimUISinif() { return ModelTanimPart } static get kolonFiltreKullanilirmi() { return false }
 	static standartGorunumListesiDuzenle(e) {
 		const {liste} = e, orjBaslikListesi = e.orjBaslikListesi ?? this.orjBaslikListesi, kodKullanilirmi = e.kodKullanilirmi ?? this.kodKullanilirmi, kodSaha = e.kodSaha ?? this.kodSaha;
 		const ignoreBelirtecSet = { ...(e.ignoreBelirtecSet ?? this.ignoreBelirtecSet ?? {}) };
@@ -15,7 +15,7 @@ class MQMasterOrtak extends MQCogul {
 }
 class MQKAOrtak extends MQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get tanimUISinif() { return MQMasterOrtak.tanimUISinif } static get ignoreBelirtecSet() { return {} }
-	static get noAutoFocus() { return MQMasterOrtak.noAutoFocus } static get gridIslemTuslariKullanilirmi() { return MQMasterOrtak.gridIslemTuslariKullanilirmi }
+	static get noAutoFocus() { return MQMasterOrtak.noAutoFocus } static get gridIslemTuslariKullanilirmi() { return MQMasterOrtak.gridIslemTuslariKullanilirmi } static get kolonFiltreKullanilirmi() { return MQMasterOrtak.kolonFiltreKullanilirmi }
 	static get tanimlanabilirmi() { return MQMasterOrtak.tanimlanabilirmi } static get silinebilirmi() { return MQMasterOrtak.silinebilirmi } static get raporKullanilirmi() { return MQMasterOrtak.raporKullanilirmi }
 	static super_standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e) }
 	static standartGorunumListesiDuzenle(e) { const {orjBaslikListesi, ignoreBelirtecSet, kodKullanilirmi, kodSaha} = this; MQMasterOrtak.standartGorunumListesiDuzenle({ ...e, orjBaslikListesi, ignoreBelirtecSet, kodKullanilirmi, kodSaha }) }
@@ -24,7 +24,7 @@ class MQKAOrtak extends MQKA {
 }
 class MQGuidOrtak extends MQGuid {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get tanimUISinif() { return MQMasterOrtak.tanimUISinif } static get ignoreBelirtecSet() { return asSet([this.kodSaha]) }
-	static get noAutoFocus() { return MQMasterOrtak.noAutoFocus } static get gridIslemTuslariKullanilirmi() { return MQMasterOrtak.gridIslemTuslariKullanilirmi }
+	static get noAutoFocus() { return MQMasterOrtak.noAutoFocus } static get gridIslemTuslariKullanilirmi() { return MQMasterOrtak.gridIslemTuslariKullanilirmi } static get kolonFiltreKullanilirmi() { return MQMasterOrtak.kolonFiltreKullanilirmi }
 	static get tanimlanabilirmi() { return MQMasterOrtak.tanimlanabilirmi } static get silinebilirmi() { return MQMasterOrtak.silinebilirmi } static get raporKullanilirmi() { return MQMasterOrtak.raporKullanilirmi }
 	static super_standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e) }
 	static standartGorunumListesiDuzenle(e) { const {orjBaslikListesi, ignoreBelirtecSet, kodKullanilirmi, kodSaha} = this; MQMasterOrtak.standartGorunumListesiDuzenle({ ...e, orjBaslikListesi, ignoreBelirtecSet, kodKullanilirmi, kodSaha }) }
@@ -33,7 +33,7 @@ class MQGuidOrtak extends MQGuid {
 }
 class MQGuidVeAdiOrtak extends MQGuidVeAdi {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get tanimUISinif() { return MQMasterOrtak.tanimUISinif } static get ignoreBelirtecSet() { return {} }
-	static get noAutoFocus() { return MQMasterOrtak.noAutoFocus } static get gridIslemTuslariKullanilirmi() { return MQMasterOrtak.gridIslemTuslariKullanilirmi }
+	static get noAutoFocus() { return MQMasterOrtak.noAutoFocus } static get gridIslemTuslariKullanilirmi() { return MQMasterOrtak.gridIslemTuslariKullanilirmi } static get kolonFiltreKullanilirmi() { return MQMasterOrtak.kolonFiltreKullanilirmi }
 	static get tanimlanabilirmi() { return MQMasterOrtak.tanimlanabilirmi } static get silinebilirmi() { return MQMasterOrtak.silinebilirmi } static get raporKullanilirmi() { return MQMasterOrtak.raporKullanilirmi }
 	static super_standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e) }
 	static standartGorunumListesiDuzenle(e) { const {orjBaslikListesi, ignoreBelirtecSet, kodKullanilirmi, kodSaha} = this; MQMasterOrtak.standartGorunumListesiDuzenle({ ...e, orjBaslikListesi, ignoreBelirtecSet, kodKullanilirmi, kodSaha }) }
@@ -42,7 +42,7 @@ class MQGuidVeAdiOrtak extends MQGuidVeAdi {
 }
 class MQSayacliOrtak extends MQSayacli {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get tanimUISinif() { return MQMasterOrtak.tanimUISinif } static get ignoreBelirtecSet() { return {} }
-	static get noAutoFocus() { return MQMasterOrtak.noAutoFocus } static get gridIslemTuslariKullanilirmi() { return MQMasterOrtak.gridIslemTuslariKullanilirmi }
+	static get noAutoFocus() { return MQMasterOrtak.noAutoFocus } static get gridIslemTuslariKullanilirmi() { return MQMasterOrtak.gridIslemTuslariKullanilirmi } static get kolonFiltreKullanilirmi() { return MQMasterOrtak.kolonFiltreKullanilirmi }
 	static get tanimlanabilirmi() { return MQMasterOrtak.tanimlanabilirmi } static get silinebilirmi() { return MQMasterOrtak.silinebilirmi } static get raporKullanilirmi() { return MQMasterOrtak.raporKullanilirmi }
 	static super_standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e) }
 	static standartGorunumListesiDuzenle(e) { const {orjBaslikListesi, ignoreBelirtecSet, kodKullanilirmi, kodSaha} = this; MQMasterOrtak.standartGorunumListesiDuzenle({ ...e, orjBaslikListesi, ignoreBelirtecSet, kodKullanilirmi, kodSaha }) }
@@ -51,7 +51,7 @@ class MQSayacliOrtak extends MQSayacli {
 }
 class MQDetayliOrtak extends MQDetayli {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get tanimUISinif() { return MQMasterOrtak.tanimUISinif } static get ignoreBelirtecSet() { return {} }
-	static get noAutoFocus() { return MQMasterOrtak.noAutoFocus } static get gridIslemTuslariKullanilirmi() { return MQMasterOrtak.gridIslemTuslariKullanilirmi }
+	static get noAutoFocus() { return MQMasterOrtak.noAutoFocus } static get gridIslemTuslariKullanilirmi() { return MQMasterOrtak.gridIslemTuslariKullanilirmi } static get kolonFiltreKullanilirmi() { return MQMasterOrtak.kolonFiltreKullanilirmi }
 	static get tanimlanabilirmi() { return MQMasterOrtak.tanimlanabilirmi } static get silinebilirmi() { return MQMasterOrtak.silinebilirmi } static get raporKullanilirmi() { return MQMasterOrtak.raporKullanilirmi }
 	static super_standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e) }
 	static standartGorunumListesiDuzenle(e) { const {orjBaslikListesi, ignoreBelirtecSet, kodKullanilirmi, kodSaha} = this; MQMasterOrtak.standartGorunumListesiDuzenle({ ...e, orjBaslikListesi, ignoreBelirtecSet, kodKullanilirmi, kodSaha }) }
@@ -60,7 +60,7 @@ class MQDetayliOrtak extends MQDetayli {
 }
 class MQDetayliMasterOrtak extends MQDetayliMaster {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get tanimUISinif() { return MQMasterOrtak.tanimUISinif } static get ignoreBelirtecSet() { return {} }
-	static get noAutoFocus() { return MQMasterOrtak.noAutoFocus } static get gridIslemTuslariKullanilirmi() { return MQMasterOrtak.gridIslemTuslariKullanilirmi }
+	static get noAutoFocus() { return MQMasterOrtak.noAutoFocus } static get gridIslemTuslariKullanilirmi() { return MQMasterOrtak.gridIslemTuslariKullanilirmi } static get kolonFiltreKullanilirmi() { return MQMasterOrtak.kolonFiltreKullanilirmi }
 	static get tanimlanabilirmi() { return MQMasterOrtak.tanimlanabilirmi } static get silinebilirmi() { return MQMasterOrtak.silinebilirmi } static get raporKullanilirmi() { return MQMasterOrtak.raporKullanilirmi }
 	static super_standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e) }
 	static standartGorunumListesiDuzenle(e) { const {orjBaslikListesi, ignoreBelirtecSet, kodKullanilirmi, kodSaha} = this; MQMasterOrtak.standartGorunumListesiDuzenle({ ...e, orjBaslikListesi, ignoreBelirtecSet, kodKullanilirmi, kodSaha }) }
@@ -69,7 +69,7 @@ class MQDetayliMasterOrtak extends MQDetayliMaster {
 }
 class MQDetayliGUIDOrtak extends MQDetayliGUID {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get tanimUISinif() { return MQMasterOrtak.tanimUISinif }
-	static get noAutoFocus() { return MQMasterOrtak.noAutoFocus } static get gridIslemTuslariKullanilirmi() { return MQMasterOrtak.gridIslemTuslariKullanilirmi }
+	static get noAutoFocus() { return MQMasterOrtak.noAutoFocus } static get gridIslemTuslariKullanilirmi() { return MQMasterOrtak.gridIslemTuslariKullanilirmi } static get kolonFiltreKullanilirmi() { return MQMasterOrtak.kolonFiltreKullanilirmi }
 	static get tanimlanabilirmi() { return MQMasterOrtak.tanimlanabilirmi } static get silinebilirmi() { return MQMasterOrtak.silinebilirmi } static get raporKullanilirmi() { return MQMasterOrtak.raporKullanilirmi }
 	static super_standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e) }
 	static standartGorunumListesiDuzenle(e) { const {orjBaslikListesi, ignoreBelirtecSet, kodKullanilirmi, kodSaha} = this; MQMasterOrtak.standartGorunumListesiDuzenle({ ...e, orjBaslikListesi, ignoreBelirtecSet, kodKullanilirmi, kodSaha }) }
@@ -78,7 +78,7 @@ class MQDetayliGUIDOrtak extends MQDetayliGUID {
 }
 class MQDetayliVeAdiOrtak extends MQDetayliVeAdi {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get tanimUISinif() { return MQMasterOrtak.tanimUISinif } static get ignoreBelirtecSet() { return {} }
-	static get noAutoFocus() { return MQMasterOrtak.noAutoFocus } static get gridIslemTuslariKullanilirmi() { return MQMasterOrtak.gridIslemTuslariKullanilirmi }
+	static get noAutoFocus() { return MQMasterOrtak.noAutoFocus } static get gridIslemTuslariKullanilirmi() { return MQMasterOrtak.gridIslemTuslariKullanilirmi } static get kolonFiltreKullanilirmi() { return MQMasterOrtak.kolonFiltreKullanilirmi }
 	static get tanimlanabilirmi() { return MQMasterOrtak.tanimlanabilirmi } static get silinebilirmi() { return MQMasterOrtak.silinebilirmi } static get raporKullanilirmi() { return MQMasterOrtak.raporKullanilirmi }
 	static super_standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e) }
 	static standartGorunumListesiDuzenle(e) { const {orjBaslikListesi, ignoreBelirtecSet, kodKullanilirmi, kodSaha} = this; MQMasterOrtak.standartGorunumListesiDuzenle({ ...e, orjBaslikListesi, ignoreBelirtecSet, kodKullanilirmi, kodSaha }) }
@@ -87,7 +87,7 @@ class MQDetayliVeAdiOrtak extends MQDetayliVeAdi {
 }
 class MQDetayliGUIDVeAdiOrtak extends MQDetayliGUIDVeAdi {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get tanimUISinif() { return MQMasterOrtak.tanimUISinif } static get ignoreBelirtecSet() { return {} }
-	static get noAutoFocus() { return MQMasterOrtak.noAutoFocus } static get gridIslemTuslariKullanilirmi() { return MQMasterOrtak.gridIslemTuslariKullanilirmi }
+	static get noAutoFocus() { return MQMasterOrtak.noAutoFocus } static get gridIslemTuslariKullanilirmi() { return MQMasterOrtak.gridIslemTuslariKullanilirmi } static get kolonFiltreKullanilirmi() { return MQMasterOrtak.kolonFiltreKullanilirmi }
 	static get tanimlanabilirmi() { return MQMasterOrtak.tanimlanabilirmi } static get silinebilirmi() { return MQMasterOrtak.silinebilirmi } static get raporKullanilirmi() { return MQMasterOrtak.raporKullanilirmi }
 	static super_standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e) }
 	static standartGorunumListesiDuzenle(e) { const {orjBaslikListesi, ignoreBelirtecSet, kodKullanilirmi, kodSaha} = this; MQMasterOrtak.standartGorunumListesiDuzenle({ ...e, orjBaslikListesi, ignoreBelirtecSet, kodKullanilirmi, kodSaha }) }

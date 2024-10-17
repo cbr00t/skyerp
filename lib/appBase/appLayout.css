@@ -205,4 +205,5 @@ body.kiosk > .app-titlebar .db-name,
 	body.kiosk #root-parent > #nav-toggle,
 	body.kiosk #root-parent > #ust-parent > #parent > #windows-parent #windows > button,
 	body.kiosk #root-parent > #ust-parent > #parent > #windows-parent #windows > ul,
-	body.kiosk #root-parent > #ust-parent > #parent > main #anaMenu { visibility: hidden !important }
+	body.kiosk #root-parent > #ust-parent > #parent > main #anaMenu { display: none !important }
+body.kiosk { --tabs-tabPage-height: 0px }

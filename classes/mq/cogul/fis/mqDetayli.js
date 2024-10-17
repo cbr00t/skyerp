@@ -420,6 +420,7 @@ class MQDetayliMaster extends MQDetayli {
 		const _e = { ...e }; const gridDetaySinif = e.sinif = e.sinif || this.gridDetaySinif, {gridPart} = _e;
 		return gridPart?.newRec(_e) ?? (gridDetaySinif == null ? null : new gridDetaySinif(e))
 	}
+	static getGridKolonGrup(e) { return MQKA.getGridKolonGrup({ ...e, mfSinif: this }) }
 }
 class MQDetayliGUID extends MQDetayliMaster {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sayacSaha() { return 'id' }

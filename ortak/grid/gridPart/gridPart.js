@@ -149,7 +149,7 @@ class GridPart extends Part {
 		grid.on('cellvaluechanged', evt => {
 			setTimeout(() =>
 				this.gridVeriDegisti($.extend({}, e, {
-					sender: this, builder, event: evt, grid, gridWidget,
+					sender: this, builder, event: evt, grid, gridWidget, belirtec: evt.args.datafield,
 					action: 'cellValueChanged', rowIndex: evt.args.rowindex, newValue: evt.args.newvalue, oldValue: evt.args.oldvalue
 				})), 10)
 		});

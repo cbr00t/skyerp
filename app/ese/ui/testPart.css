@@ -1,36 +1,77 @@
 .test.part { --header-height: 50px }
+.test.part > * { position: relative !important }
+@media (max-width: 850px) { .test.part { font-size: 93% } } @media (max-width: 750px) { .test.part { font-size: 90% } }
 .test.part > * { --button-width: 48px; --button-height: 36px }
 /*.test.part .islemTuslari { background: transparent !important }*/
-body.kiosk .test.part .islemTuslari { position: fixed; top: 2px; z-index: -1 }
+body .test.part .islemTuslari { position: fixed !important; top: 28px !important; right: 5px !important; z-index: 1 !important; background: transparent !important }
+/*body.kiosk .test.part .islemTuslari { position: fixed !important; top: 20px !important; right: 5px; z-index: 1 !important }*/
 .test.part .islemTuslari > .sag { right: 10px }
-.test.part .header { width: var(--full); height: var(--header-height); padding: 20px }
-.test.part .content { width: var(--full); height: calc(var(--full) - var(--header-height)) }
+.test.part .header { background: #222 !important; color: white; width: var(--full); height: var(--header-height); padding: 20px }
+.test.part .content {
+	--padding-x: 5px; --padding-y: 20px; width: calc(var(--full) - var(--padding-x) * 2); height: calc(var(--full) - (var(--header-height) + var(--padding-y) * 3 + 5px));
+	padding: var(--padding-y) 0 0 var(--padding-x); border: 1px solid #ccc
+}
+.test.part .content { color: #aaa; background: #111 !important }
 body:not(.kiosk) .test.part .header { margin-top: calc(0px - (var(--header-height) + 0px)); background: transparent }
-.test.part .header .adimText { font-size: 180%; font-weight: bold; width: 400px; color: #555; border-bottom: 2px solid royalblue; border-radius: 1px; padding-bottom: 10px }
-.test.part .content button#baslat { font-size: 200%; color: #333; position: relative; top: 30%; left: 20%; width: 60%; height: 100px }
+.test.part .header .adimText { font-size: 180%; font-weight: bold; color: whitesmoke; min-width: 300px; margin-right: 10px; padding-bottom: 5px; border-bottom: 2px solid royalblue; border-radius: 1px }
+.test.part .header .headerText { font-size: 130%; font-weight: bold; color: forestgreen; margin: 0 15px 0 0; padding: 0 10px /*; box-shadow: 0px 0px 3px 2px darkgray*/ }
+.test.part .header .progressText { font-size: 100%; font-weight: bold; color: royalblue; width: 280px; margin-left: 10px; text-align: left }
+.test.part .header .progressText .ek-bilgi { font-size: 100%; font-weight: normal; color: #bbb }
+.test.part .header .progressText .item:not(:first-child) { margin-left: 25px }
+.test.part .header .hastaAdi, .test.part .header .tarih { font-size: 110%; color: #888 }
+.test.part .header .countdown {
+	font-size: 110%; font-weight: bold; color: skyblue; position: absolute; right: 150px; top: 15px;
+	padding: 10px 20px; border-radius: 13px; border: 1px solid #ccc; z-index: 1001 !important; pointer-events: none
+}
+.test.part .header .countdown.critical { font-size: 110% !important; color: orangered !important; border-color: orangered }
+.test.part .header button#bitti { position: absolute; top: 15px; right: 280px; border: 1px solid #aaa !important; padding: 15px 20px; z-index: 1002 !important }
+.test.part .header button#bitti.jqx-fill-state-normal { color: white; background-color: #697c69 }
+.test.part .header button#bitti.jqx-fill-state-hover { background-color: #e2f0e2 }
+.test.part .header button#bitti.jqx-fill-state-pressed { color: #333 !important; background-color: #86c986 !important }
+.test.part .target-img { background-size: contain; background-repeat: no-repeat !important; background-position: center !important }
+.test.part .header .target-img { width: 48px; height: 48px; margin-left: 20px; margin-bottom: -30px }
+.test.part .content .target-img-parent { font-weight: bold; font-size: 120%; color: royalblue; text-align: center; margin: 10px 0 0 0; padding: 10px 0 }
+.test.part .content .target-img { width: var(--full); height: 130px; margin: 30px 0 0 0 !important; background-position: 55% center !important }
+.test.part .content .info { padding: 0px }
+.test.part .content .info > * { font-size: 120%; padding: 0 20px }
+.test.part .content button#baslat { font-size: 200%; color: #333; position: relative; top: 50px; left: 20%; width: 60%; height: 100px }
 .test.part .content button#baslat.jqx-fill-state-normal { border: 1px solid #aaa !important; background-color: #c7c7c7 }
 .test.part .content button#baslat.jqx-fill-state-hover { border: 1px solid green !important; background-color: whitesmoke }
 .test.part .content button#baslat.jqx-fill-state-pressed { color: white }
 .test.part .content .resim {
-	--padding: 5px; width: calc(var(--full) - (var(--padding) * 2 + 5px)); height: calc(var(--full) - (var(--padding) * 2 + 60px));
-	padding: var(--padding); border: 1px solid transparent; background-color: black !important;
-	background-size: contain; background-repeat: no-repeat; background-position: center; cursor: pointer
+	--padding: 0px; font-size: 45vh !important; color: #5f92af; text-align: center; position: relative; top: -10px;
+	width: calc(var(--full) - (var(--padding) * 2 + 0)); height: calc(var(--full) - (var(--padding) * 2 + 0px)) !important;
+	padding: var(--padding); border: 1px solid transparent; background-size: auto; background-repeat: no-repeat;
+	background-position: center; cursor: pointer
 }
-.test.part .content .resim:hover { border: 1px solid #aaa }
-.test.part .content .resim:active { border: 2px solid royalblue; filter: brightness(.5) }
-.test.part .content .resultText { font-weight: bold; font-size: 200%; margin: 20px 0 0 80px }
-
-.test.part .content .anket, .test.part .content .anket-sonuclar { font-size: 150%; width: calc(var(--full) - 10px); height: calc(var(--full) - 35px); overflow-y: auto !important }
-.test.part .content .anket .item,.test.part .content .anket-sonuclar .item { padding: 5px 20px; border: 1px solid #aaa }
-.test.part .content .anket .item:not(:first-child), .test.part .content .anket-sonuclar .item:not(:first-child) { margin-top: 20px }
-.test.part .content .anket .item .soru, .test.part .content .anket-sonuclar .item .soru { font-size: 150%; width: calc(var(--full) - 20px); font-weight: bold; color: #777; padding: 0 30px 10px 0 }
-.test.part .content .anket .item .secenekler { }
-.test.part .content .anket .item .secenekler > .jqx-button { font-size: 100% !important; min-width: 100px; padding: 10px 20px; border: 1px solid #aaa !important }
-.test.part .content .anket .item .secenekler > .jqx-button.jqx-fill-state-normal { color: slategray !important }
-.test.part .content .anket .item .secenekler > .jqx-button.jqx-fill-state-hover { color: royalblue !important }
-.test.part .content .anket .item .secenekler > .jqx-button.jqx-fill-state-pressed { color: whitesmoke !important; background-color: royalblue !important }
-.test.part .content .anket .item .secenekler > .jqx-button:not(:first-child) { margin-left: 20px !important }
-.test.part .content .anket-sonuclar { font-size: 130% }
+.test.part .content .resim > .veri { position: relative !important; top: 50px !important }
+.test.part .content .resim.anim { animation: 2000ms 1 test-content-resim }
+.test.part .content .resim.clicked-dogru { animation: 1800ms 1 test-content-resim-clicked-dogru }
+.test.part .content .resim.clicked-yanlis { animation: 1800ms 1 test-content-resim-clicked-yanlis }
+@keyframes test-content-resim { 0% { opacity: 0 } 100% { opacity: 1 } }
+@keyframes test-content-resim-clicked-dogru { 0% { box-shadow: 0px 0px 5px 3px lightgreen; filter: brightness(1.3) } 100% { border: unset; filter: brightness(1) } }
+@keyframes test-content-resim-clicked-yanlis { 0% { box-shadow: 0px 0px 5px 3px indianred; filter: brightness(1.3) } 100% { border: unset; filter: brightness(1) } }
+.test.part .content .resim:hover { } .test.part .content .resim:active { }
+.test.part .content .cikis-etiket { margin: 0 10px 0 80px }
+.test.part .content button.cikis { font-weight: bold; font-size: 150%; padding: 10px 20px; border: 1px solid royalblue !important }
+.test.part .content button.cikis.jqx-fill-state-normal { color: royalblue }
+.test.part .content .resultText { font-weight: bold; font-size: 130%; margin: 20px 0 10px 80px }
+.test.part .content .anket, .test.part .content .anket-sonuclar { font-size: 120%; width: calc(var(--full) - 1px); height: calc(var(--full) - 1px); overflow-y: auto !important }
+.test.part .content .anket .item, .test.part .content .anket-sonuclar .item { --secenekler-width: 450px; padding: 5px 15px; border: 1px solid #aaa }
+.test.part .content .anket .item:not(:first-child), .test.part .content .anket-sonuclar .item:not(:first-child) { margin-top: 0 }
+.test.part .content .anket .item .soru, .test.part .content .anket-sonuclar .item .soru { font-size: 120%; font-weight: normal; color: #aaa; width: calc(var(--full) - var(--secenekler-width)) }
+.test.part .content .anket .item:hover .soru { color: white; background-color: #132438 }
+.test.part .content .anket .item .secenekler { position: relative; right: -10px; width: var(--secenekler-width) }
+.test.part .content .anket .item .secenekler .jqx-button { font-size: 100% !important; min-width: 80px; margin-left: 7px !important; padding: 10px 10px; border: 1px solid #ccc !important; cursor: pointer }
+.test.part .content .anket .item .secenekler .jqx-button.jqx-fill-state-normal { color: slategray !important }
+.test.part .content .anket .item .secenekler .jqx-button:hover { color: whitesmoke !important; background-color: #1f2e5c !important }
+.test.part .content .anket .item .secenekler .jqx-button.jqx-fill-state-pressed { color: whitesmoke !important; background-color: royalblue !important }
+@media (max-width: 850px) {
+	.test.part .content .anket .item, .test.part .content .anket-sonuclar .item { --secenekler-width: 240px; padding: 3px 13px }
+	.test.part .content .anket .item .secenekler .jqx-button { font-size: 100% !important; min-width: 80px; padding: 8px 5px }
+}
+.test.part .content .anket-sonuclar { font-size: 120% }
 .test.part .content .anket-sonuclar .item { padding: 5px 10px }
 .test.part .content .anket-sonuclar .item .soru { font-weight: normal }
 .test.part .content .anket-sonuclar .item .cevap { font-weight: bold; color: royalblue }
+.test.part .content .error { color: red }

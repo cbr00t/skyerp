@@ -423,7 +423,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		for (const eSatirlar of Object.values(oran2Recs))
 		for (const eRec of eSatirlar) { toplamBedel += eRec.bedelYapi[bedelSelector] }
 		xw.writeElementBlock('cac:TaxTotal', null, () => {
-			xw.writeElementString('cbc:TaxAmount', toplamBedel, null, xattrYapi_bedel);
+			xw.writeElementString('cbc:TaxAmount', toFileStringWithFra(toplamBedel, 2), null, xattrYapi_bedel);
 			for (const oran2VergiRecs of Object.values(vergiTip2Oran2EVergiRecs_tevkifatsiz)) {
 				for (const oran in oran2VergiRecs) {
 					for (const eRec of oran2VergiRecs[oran]) {
@@ -448,7 +448,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 			const {bedelSelector, xattrYapi_bedel, dovizlimi} = this; let toplamBedel = 0;
 			for (const eRec of vergiRecs_tevkifatlar) toplamBedel += eRec.bedelYapi[bedelSelector]
 			xw.writeElementBlock('cac:WithholdingTaxTotal', null, () => {
-				xw.writeElementString('cbc:TaxAmount', toplamBedel, null, xattrYapi_bedel);
+				xw.writeElementString('cbc:TaxAmount', toFileStringWithFra(toplamBedel, 2), null, xattrYapi_bedel);
 				for (const eRec of vergiRecs_tevkifatlar) {
 					xw.writeElementBlock('cac:TaxSubtotal', null, () => {
 						xw
@@ -492,7 +492,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 			get otv() { return det.perotv ? { bedel: det.perotv, oran: det.otvorani, taxTypeCode: MQVergiOtv.eIslTypeCode, taxName: 'ÖTV' } : null }
 		};
 		xw.writeElementBlock('cac:TaxTotal', null, () => {
-			xw.writeElementString('cbc:TaxAmount', toplamBedel, null, xattrYapi_bedel);
+			xw.writeElementString('cbc:TaxAmount', toFileStringWithFra(toplamBedel, 2), null, xattrYapi_bedel);
 			for (const tip in tip2VergiYapi) {
 				const rec = tip2VergiYapi[tip]; if (!rec) continue
 				xw.writeElementBlock('cac:TaxSubtotal', null, () => {
@@ -523,7 +523,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		if (bedel) {
 			let tevkifatDict;
 			xw.writeElementBlock('cac:WithholdingTaxTotal', null, () => {
-				xw.writeElementString('cbc:TaxAmount', toplamBedel, null, xattrYapi_bedel);
+				xw.writeElementString('cbc:TaxAmount', toFileStringWithFra(toplamBedel, 2), null, xattrYapi_bedel);
 				xw.writeElementBlock('cac:TaxSubtotal', null, () => {
 					xw
 						.writeElementString('cbc:TaxableAmount', toFileStringWithFra(matrah, 2), null, xattrYapi_bedel)

@@ -8,7 +8,7 @@ class MQEConf extends MQKA {
 	get eIslEkArgs() {
 		const result = {}, addIfNotEmpty = (selector, key) => { const value = this.getValue(selector); if (value) { result[key || selector] = value } };
 		addIfNotEmpty('testmi'); addIfNotEmpty('anaBolum', 'eIslAnaBolum'); addIfNotEmpty('gibAlias', 'senderGIBAlias');
-		/*addIfNotEmpty('eArsGIBAlias', 'senderEArsGIBAlias');*/ addIfNotEmpty('eIrsGIBAlias', 'senderEIrsGIBAlias');
+		addIfNotEmpty('eArsGIBAlias', 'senderEArsGIBAlias'); addIfNotEmpty('eIrsGIBAlias', 'senderEIrsGIBAlias'); addIfNotEmpty('eMusGIBAlias', 'senderEMusGIBAlias');
 		return result
 	}
 	get eLogin() {
@@ -27,19 +27,19 @@ class MQEConf extends MQKA {
 		$.extend(pTanim, {
 			anaBolum: new PInstStr('efatanabolum'), ozelEntegrator: new PInstTekSecim('oetip', EOzelEntegrator),
 			wsUser: new PInstStr('wsuser'), wsPass: new PInstStr('wspass'), firmaKodu: new PInstStr('wsfirma'),
-			subeKodu: new PInstStr('wsbranch'), gibAlias: new PInstStr('gibalias'), /*eArsGIBAlias: new PInstStr('earsgibalias'),*/ eIrsGIBAlias: new PInstStr('eirsgibalias')
+			subeKodu: new PInstStr('wsbranch'), gibAlias: new PInstStr('gibalias'), eArsGIBAlias: new PInstStr('earsgibalias'),
+			eIrsGIBAlias: new PInstStr('eirsgibalias'), eMusGIBAlias: new PInstStr('emusgibalias')
 		})
 	}
 	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); let tabPage = e.tabPage_genel;
-		tabPage.addTextInput('anaBolum', 'e-İşlem Ana Bölüm');
+		e = e || {}; super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e);
+		let tabPage = e.tabPage_genel; tabPage.addTextInput('anaBolum', 'e-İşlem Ana Bölüm');
 		let form = tabPage.addFormWithParent().yanYana();
-		form.addModelKullan('ozelEntegrator', 'Özel Entegratör').dropDown().noMF().kodsuz().setSource(e => e.builder.altInst.ozelEntegrator.kaListe);
-		form.addTextInput('wsUser', 'WS Kullanıcı'); form.addTextInput('wsPass', 'WS Şifre');
-		form = tabPage.addFormWithParent().yanYana();
-		form.addTextInput('firmaKodu', 'WS Firma'); form.addTextInput('subeKodu', 'WS Branch/Şube');
-		form = tabPage.addFormWithParent().yanYana();
-		form.addTextInput('gibAlias', 'GIB Alias'); /*form.addTextInput('eArsGIBAlias', 'e-Arşiv GIB Alias');*/ form.addTextInput('eIrsGIBAlias', 'e-İrs. GIB Alias')
+			form.addModelKullan('ozelEntegrator', 'Özel Entegratör').dropDown().noMF().kodsuz().setSource(e => e.builder.altInst.ozelEntegrator.kaListe);
+			form.addTextInput('wsUser', 'WS Kullanıcı'); form.addTextInput('wsPass', 'WS Şifre');
+		form = tabPage.addFormWithParent().yanYana(); form.addTextInput('firmaKodu', 'WS Firma'); form.addTextInput('subeKodu', 'WS Branch/Şube');
+		form = tabPage.addFormWithParent().yanYana(); form.addTextInput('gibAlias', 'GIB Alias'); form.addTextInput('eArsGIBAlias', 'e-Arşiv GIB Alias');
+			form.addTextInput('eIrsGIBAlias', 'e-İrs. GIB Alias'); form.addTextInput('eMusGIBAlias', 'e-Müs. GIB Alias')
 	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e, {aliasVeNokta} = this;
@@ -49,9 +49,8 @@ class MQEConf extends MQKA {
 			new GridKolon({ belirtec: 'wsuser', text: 'WS Kullanıcı', genislikCh: 16 }),
 			new GridKolon({ belirtec: 'wsfirma', text: 'WS Firma', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'wsbranch', text: 'WS Branch', genislikCh: 10 }),
-			new GridKolon({ belirtec: 'gibalias', text: 'GIB Alias' }),
-			/*new GridKolon({ belirtec: 'earsgibalias', text: 'e-Arşiv GIB Alias' }),*/
-			new GridKolon({ belirtec: 'eirsgibalias', text: 'e-İrs. GIB Alias' }),
+			new GridKolon({ belirtec: 'gibalias', text: 'GIB Alias' }), new GridKolon({ belirtec: 'earsgibalias', text: 'e-Arşiv GIB Alias' }),
+			new GridKolon({ belirtec: 'eirsgibalias', text: 'e-İrs. GIB Alias' }), new GridKolon({ belirtec: 'emusgibalias', text: 'e-Müstahsil GIB Alias' }),
 			new GridKolon({ belirtec: 'gonderimdekisitlama', text: 'Gönderimde Kısıt', genislikCh: 10 }).tipBool(),
 			new GridKolon({ belirtec: 'gkisfatura', text: 'Kst: Fatura', genislikCh: 13 }).tipBool(),
 			new GridKolon({ belirtec: 'gkisirsaliye', text: 'Kst: İrsaliye', genislikCh: 13 }).tipBool(),
@@ -70,11 +69,10 @@ class MQEConf extends MQKA {
 	}
 	eIslListeSentDuzenle(e) { }
 	getAnaBolumFor(e) {
-		e = e || {}; let {eIslTip} = e; if (eIslTip == '') eIslTip = 'A'
-		let {eIslSinif} = e; if (!eIslSinif && eIslTip != null) eIslSinif = EIslemOrtak.getClass({ tip: eIslTip })
-		let result = this.getValue('anaBolum'); if (!result) return result
-		let {altBolum} = eIslSinif || {}; if (altBolum) altBolum = altBolum.trim('\\').trim('/');
-		if (altBolum) result += `\\${altBolum}`
+		e = e || {}; let {eIslTip} = e; if (eIslTip == '') { eIslTip = 'A' }
+		let {eIslSinif} = e; if (!eIslSinif && eIslTip != null) { eIslSinif = EIslemOrtak.getClass({ tip: eIslTip }) }
+		let result = this.getValue('anaBolum'); if (!result) { return result }
+		let {altBolum} = eIslSinif || {}; if (altBolum) altBolum = altBolum.trim('\\').trim('/'); if (altBolum) { result += `\\${altBolum}` }
 		return result
 	}
 	getValue(e) {

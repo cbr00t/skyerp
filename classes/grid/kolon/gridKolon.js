@@ -150,22 +150,14 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	set isEditable(value) {  this.attributes.editable = value }
 	get isHidden() { return !!this.attributes.hidden }
 	set isHidden(value) { this.attributes.hidden = value }
-	hidden() { this.attributes.hidden = true; return this }
-	visible() { this.attributes.hidden = false; return this }
-	sabitle() { this.attributes.pinned = true; return this }
-	serbestBirak() { this.attributes.pinned = false; return this }
-	alignLeft() { this.align = 'left'; return this }
-	alignCenter() { this.align = 'center'; return this }
-	alignRight() { this.align = 'right'; return this }
-	noSql() { this.sql = false; return this }
-	resetNoSql() { this.sql = null; return this }
-	sifirGosterme() { const {tip} = this; if (tip?.sifirGosterme) tip.sifirGosterme(); return this }
-	sifirGoster() { const {tip} = this; if (tip?.sifirGoster) tip.sifirGoster(); return this }
-	kodsuz() { return this.kodGosterilmesin() }
-	kodGosterilmesin() { const {tip} = this; if (tip?.kodGosterilmesin) { tip.kodGosterilmesin() } return this }
-	kodGosterilsin() { const {tip} = this; if (tip?.kodGosterilsin) { tip.kodGosterilsin() } return this }
-	dropDown() { const {tip} = this; if (tip?.dropDown) tip.dropDown(); return this }
-	comboBox() { const {tip} = this; if (tip?.comboBox) tip.comboBox(); return this }
+	hidden() { this.attributes.hidden = true; return this } visible() { this.attributes.hidden = false; return this }
+	sabitle() { this.attributes.pinned = true; return this } serbestBirak() { this.attributes.pinned = false; return this }
+	alignLeft() { this.align = 'left'; return this } alignCenter() { this.align = 'center'; return this } alignRight() { this.align = 'right'; return this }
+	noSql() { this.sql = false; return this } resetNoSql() { this.sql = null; return this }
+	sifirGosterme() { const {tip} = this; if (tip?.sifirGosterme) tip.sifirGosterme(); return this } sifirGoster() { const {tip} = this; if (tip?.sifirGoster) tip.sifirGoster(); return this }
+	kodsuz() { return this.kodGosterilmesin() } kodGosterilmesin() { const {tip} = this; if (tip?.kodGosterilmesin) { tip.kodGosterilmesin() } return this } kodGosterilsin() { const {tip} = this; if (tip?.kodGosterilsin) { tip.kodGosterilsin() } return this }
+	dropDown() { const {tip} = this; if (tip?.dropDown) { tip.dropDown() } return this } comboBox() { const {tip} = this; if (tip?.comboBox) { tip.comboBox() } return this }
+	autoBind() { const {tip} = this; if (tip?.autoBind) { tip.autoBind() } return this } noAutoBind() { const {tip} = this; if (tip?.noAutoBind) { tip.noAutoBind() } return this }
 	onKeyDown(handler) { const {tip} = this; if (tip?.onKeyDown) tip.onKeyDown(handler); return this }
 	setMaxLength(value) { const {tip} = this; if (tip?.setMaxLength) tip.setMaxLength(value); return this }
 	setValue(value) { this.tip?.setValue?.(value); return this }

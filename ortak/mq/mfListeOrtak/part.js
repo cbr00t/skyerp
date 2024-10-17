@@ -300,22 +300,28 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		try { const _e = $.extend({ sender: e, tabloKolonlari: this.tabloKolonlari_detaylar, fisSinif: mfSinif }, e); return mfSinif.loadServerData_detaylar(_e) }
 		catch (ex) { console.error(ex); const errorText = getErrorText(ex); hConfirm(`<div style="color: firebrick;">${errorText}</div>`, 'Detay Grid Verisi Alınamadı') }
 	}
-	 openContextMenu(e) {
-		const evt = e.event, gridPart = e.gridPart = e.gridPart ?? e.sender ?? e.parentPart, gridWidget = e.gridWidget = gridPart.gridWidget, cells = e.cells = gridWidget.getselectedcells();
-		const belirtec = e.belirtec = gridPart.selectedBelirtec, parentRec = e.parentRec = e.parentRec ?? gridPart.selectedRec;
-		const recs = e.recs = (e.recs ?? gridPart.getSubRecs(e))?.filter(rec => !!rec), rec = e.rec = (recs || [])[0]; /*if (!rec) { return }*/
+	 async openContextMenu(e) {
+		const evt = e.event, gridPart = e.gridPart ?? e.sender ?? e.parentPart, gridWidget = gridPart.gridWidget, cells = gridWidget.getselectedcells();
+		const belirtec = gridPart.selectedBelirtec, parentRec = e.parentRec = e.parentRec ?? gridPart.selectedRec;
+		const recs = (e.recs ?? gridPart.getSubRecs(e))?.filter(rec => !!rec), rec = e.rec = (recs || [])[0]; /*if (!rec) { return null }*/
 		const title = e.title ?? 'Menü'; let wnd, wndContent = $(`<div class="full-wh"/>`);
-		const close = e.close = e => { if (wnd) { wnd.jqxWindow('close'); wnd = null } }, rfb = e.rfb = new RootFormBuilder({ parentPart: gridPart, layout: wndContent }).autoInitLayout();
-		let form = e.form = rfb.addFormWithParent('islemTuslari').altAlta().addStyle(...[
+		const close = e => { if (wnd) { wnd.jqxWindow('close'); wnd = null } }, rfb = new RootFormBuilder({ parentPart: gridPart, layout: wndContent }).autoInitLayout();
+		let form = rfb.addFormWithParent('islemTuslari').altAlta().addStyle(...[
 			e => `$elementCSS button { font-size: 120%; width: var(--full) !important; height: 50px !important; margin: 5px 0 0 5px; margin-block-end: 5px }`,
 			e => `$elementCSS button.jqx-fill-state-normal { background-color: whitesmoke !important }`,
 			e => `$elementCSS button.jqx-fill-state-hover { background-color: #d9e0f0 !important }`,
 			e => `$elementCSS button.jqx-fill-state-pressed { color: whitesmoke !important; background-color: royalblue !important }`
 		]);
-		const {formDuzenleyici} = e; if (formDuzenleyici) { const result = getFuncValue.call(this, formDuzenleyici, e); if (result === false) { return false } }
-		wnd = e.wnd = createJQXWindow({ content: wndContent, title, args: { isModal: false, closeButtonAction: 'close', width: Math.min(700, $(window).width() - 50), height: Math.min(350, $(window).height() - 100) } });
-		wndContent = e.wndContent = wnd.find('div > .content > .subContent'); rfb.onAfterRun(e => { setTimeout(() => e.builder.id2Builder.islemTuslari.layout.find(`:eq(0) > button`).focus(), 100) })
-		rfb.run(); wnd.on('close', evt => { $('body').removeClass('bg-modal'); wnd.jqxWindow('destroy'); wnd = null }); $('body').addClass('bg-modal'); return true
+		 $.extend(e, {
+			...e,  evt, sender: this, gridPart, gridWidget, cells, recs, belirtec, title, close, rfb, form,
+			wndArgs: { isModal: false, closeButtonAction: 'close', width: Math.min(700, $(window).width() - 50), height: Math.min(350, $(window).height() - 100) }
+		});
+		const {formDuzenleyici} = e; if (formDuzenleyici) { const result = await getFuncValue.call(this, formDuzenleyici, e); if (result === false) { return false } }
+		const wndArgsDuzenleyici = e.wndArgsDuzenle ?? e.wndArgsDuzenleyici ?? e.argsDuzenle; if (wndArgsDuzenleyici) { getFuncValue.call(this, wndArgsDuzenleyici, e) }
+		wnd = e.wnd = createJQXWindow({ content: wndContent, title, args: e.wndArgs }); wndContent = e.wndContent = wnd.find('div > .content > .subContent');
+		rfb.onAfterRun(e => { setTimeout(() => e.builder.id2Builder.islemTuslari.layout.find(`:eq(0) > button`).focus(), 100) })
+		rfb.run(); wnd.on('close', evt => { $('body').removeClass('bg-modal'); wnd.jqxWindow('destroy'); wnd = null }); $('body').addClass('bg-modal');
+		return e
 	}
 	getColCount(e) {
 		e = e || {}; const mfSinif = this.getMFSinif(e), {paramGlobals} = mfSinif; let result = paramGlobals?.colCount;

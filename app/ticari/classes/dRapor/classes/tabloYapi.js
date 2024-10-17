@@ -36,12 +36,17 @@ class TabloYapi extends CObject {
 class TabloYapiItem extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get tipStringmi() { return !this.tip } get tipNumerikmi() { return this.tip == 'number' } get tipTarihmi() { return this.tip == 'date' } get tipBoolmu() { return this.tip == 'boolean' }
-	get secimSinif() { return this.tipNumerikmi ? SecimNumber : this.tipTarihmi ? SecimDate : SecimString }
-	get kaYapimi() { return !!this.mfSinif } get orderBySaha() { let {kaYapimi} = this, {belirtec} = this.colDefs[0]; if (kaYapimi) { belirtec += 'kod' } return belirtec }
+	get secimSinif() { return this.tipNumerikmi ? SecimNumber : this.tipTarihmi ? SecimDate : SecimString } get kaYapimi() { return !!this.mfSinif }
+	get orderBySaha() {
+		let belirtec = this._orderBySaha; if (belirtec !== undefined) { return belirtec }
+		let {kaYapimi} = this; belirtec = this.colDefs[0]?.belirtec; if (belirtec && kaYapimi) {
+			const belirtecLower = belirtec.toLowerCase(); if (!(belirtecLower.endsWith('kod') || belirtecLower.endsWith('adi'))) { belirtec += 'kod' } }
+		return belirtec
+	} set orderBySaha(value) { this._orderBySaha = value }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, {
-			tip: e.tip == 'string' ? null : e.tip, mfSinif: e.mfSinif, secimKullanilirFlag: e.secimKullanilirFlag,
-			colDefs: e.colDefs ?? [], secimlerDuzenleyici: e.secimlerDuzenleyici, tbWhereClauseDuzenleyici: e.tbWhereClauseDuzenleyici
+			tip: e.tip == 'string' ? null : e.tip, mfSinif: e.mfSinif, secimKullanilirFlag: e.secimKullanilirFlag, orderBySaha: e.orderBySaha,
+			colDefs: e.colDefs ?? [], secimlerDuzenleyici: e.secimlerDuzenleyici, tbWhereClauseDuzenleyici: e.tbWhereClauseDuzenleyici, kodsuzmu: e.kodsuzmu
 		})
 		this.setKA(e.ka)
 	}
@@ -83,10 +88,10 @@ class TabloYapiItem extends CObject {
 		}
 		this.ka = e; return this
 	}
-	tipString() { this.tip = null; return this } tipNumerik() { this.tip = 'number'; return this }
-	tipDate() { this.tip = 'date'; return this } tipBool() { this.tip = 'boolean'; return this }
+	setOrderBySaha(value) { this.orderBySaha = value; return this } setOrderBy(value) { return this.setOrderBySaha(value) } noOrderBy() { return this.setOrderBySaha(null) }
+	kodsuz() { this.kodsuzmu = true; return this } kodlu() { this.kodsuzmu = false; return this }
+	tipString() { this.tip = null; return this } tipNumerik() { this.tip = 'number'; return this } tipDate() { this.tip = 'date'; return this } tipBool() { this.tip = 'boolean'; return this }
 	setColDefs(value) { this.colDefs = value; return this } setMFSinif(value) { this.mfSinif = value; return this }
 	secimKullanilir() { this.secimKullanilirFlag = true; return this } secimKullanilmaz() { this.secimKullanilirFlag = false; return this }
-	setSecimlerDuzenleyici(value) { this.secimlerDuzenleyici = value; return this }
-	setTBWhereClauseDuzenleyici(value) { this.tbWhereClauseDuzenleyici = value; return this }
+	setSecimlerDuzenleyici(value) { this.secimlerDuzenleyici = value; return this } setTBWhereClauseDuzenleyici(value) { this.tbWhereClauseDuzenleyici = value; return this }
 }

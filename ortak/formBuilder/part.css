@@ -6,6 +6,7 @@
 .formBuilder-element .formBuilder-element.jqx-dropdownlist { }
 
 .skyTabs.part.formBuilder-element { }
+.skyTabs.part.formBuilder-element > label { pointer-events: none }
 .skyTabs.part.formBuilder-element > .tabs { background: linear-gradient(180deg, #ecf7ffff 30%, #ecf7ffff 90%) !important }
 .skyTabs.part.formBuilder-element > .tabs > .tabPage.selected > .header { background: unset; text-decoration: underline }
 .skyTabs.part.formBuilder-element > .tabs > .tabPage:not(.selected) > .header:not(:hover):not(:focus) { color: #777 }

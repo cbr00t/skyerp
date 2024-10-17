@@ -1,8 +1,7 @@
 class ESEApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'MAIN' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'MAIN' } get kioskmuDogrudan() { return config.session?.loginTipi == 'eseLogin' }
 	get isLoginRequired() { return true } get defaultLoginTipi() { return this.isAdmin ? Session.DefaultLoginTipi : 'eseLogin' }
 	get defaultWSPath() { return `${super.superDefaultWSPath}/ese` } static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_App }
-	get kioskmuDogrudan() { return config.session?.loginTipi == 'eseLogin' }
 	constructor(e) { e = e || {}; super(e); this.isAdmin = qs.admin ?? false }
 	async runDevam(e) {
 		if (this.isAdmin) { $('body').addClass('admin') }
@@ -15,19 +14,31 @@ class ESEApp extends App {
 		].filter(x => !!x))
 	}
 	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { localData: MQLocalData.getInstance(), ese: MQParam_ESE.getInstance() }) }
-	getAnaMenu(e) {
-		const {noMenuFlag} = this; if (noMenuFlag) { return new FRMenu() }
-		const {session} = config, {isAdmin} = session, items = [];
+	async getAnaMenu(e) {
+		const {noMenuFlag, isAdmin, params} = this; if (noMenuFlag) { return new FRMenu() } let items = [];
 		if (isAdmin) {
 			const addMenuSubItems = (mne, text, ...classes) => {
 				let subItems = classes.flat().map(cls => new FRMenuChoice({ mne: cls.kodListeTipi, text: cls.sinifAdi, block: e => cls.listeEkraniAc(e) }));
 				let menuItems = []; if (subItems?.length) { menuItems = mne ? [new FRMenuCascade({ mne, text, items: subItems })] : subItems; items.push(...menuItems) }
 				return menuItems
 			};
-			addMenuSubItems('TANIM', 'Sabit Tanımlar', [MQCariUlke, MQCariIl, MQYerlesim, MQKurum, MQOkulTipi, MQHasta, MQDoktor, MQESEUser, MQYetki, MQCari]);
-			addMenuSubItems('SABLON', 'Şablonlar', [MQSablonCPT, MQSablonESE]);
+			addMenuSubItems('TANIM', 'Sabit Tanımlar', [MQCariUlke, MQCariIl, MQYerlesim, MQKurum, MQOkulTipi, MQYasGrup, MQESEUser, MQYetki, MQCari]);
+			addMenuSubItems(null, null, [MQHasta, MQDoktor]);
+			addMenuSubItems('SABLON', 'Şablonlar', [MQSablonCPT, MQSablonAnket]);
 			addMenuSubItems(null, null, [MQMuayene]);
-			addMenuSubItems('TEST', 'Testler', [MQTestCPT, MQTestESE])
+			let parentItem = new FRMenuCascade({ mne: 'TEST', text: 'Testler' }); for (const cls of MQTest.subClasses) {
+				const {sablonTip, sablonSinif, kodListeTipi: mne} = cls;
+				let {sinifAdi: text} = cls, sablonId = params.ese.sablon?.[sablonTip]?.[0]?.sablonId, sablonAdi = sablonId ? await sablonSinif.getGloKod2Adi(sablonId) : null;
+				if (sablonAdi) { text += `<div class="royalblue" style="font-weight: normal; font-size: 90%; padding-top: 10px">${sablonAdi}</div>` }
+				parentItem.items.push(new FRMenuChoice({ mne, text, block: e => cls.listeEkraniAc(e) }))
+			} items.push(parentItem);
+			/*if (parentItem)*/ {
+				let raporItems = []; for (const cls of MQTest.subClasses) {
+					const {raporSinif} = cls; if (!raporSinif) { continue } const {kodListeTipi: mne} = cls, {sinifAdi: text} = cls;
+					raporItems.push(new FRMenuChoice({ mne, text, block: e => raporSinif.goster(e) }));
+				}
+				if (raporItems?.length) { /*parentItem.*/ items.push(new FRMenuCascade({ mne: 'RAPOR', text: 'Raporlar', items: raporItems })) }
+			}
 			items.push(new FRMenuChoice({ mne: MQParam_ESE.paramKod, text: MQParam_ESE.sinifAdi, block: e => app.params.ese.tanimla(e) }))
 		}
 		else { items.push(new FRMenuChoice({ mne: 'MAIN', text: 'TEST İşlemi', block: e => this.testBaslat(e) })) }
@@ -41,6 +52,6 @@ class ESEApp extends App {
 	wsTestBilgi(e) { let args = e || {}; delete args.data; return ajaxPost({ url: this.getWSUrl({ api: 'testBilgi', args }) }) }
 	wsTestSonucKaydet(e) {
 		let args = e || {}, {data} = args; if (typeof data == 'object') { data = toJSONStr(data) } delete args.data;
-		return ajaxPost({ url: this.getWSUrl({ timeout: 13 * 1000, processData: false, ajaxContentType: wsContentType, api: 'testSonucKaydet', args, data }) })
+		return ajaxPost({ timeout: 13 * 1000, processData: false, ajaxContentType: wsContentType, url: this.getWSUrl({ api: 'testSonucKaydet', args }), data })
 	}
 }

@@ -267,8 +267,7 @@ class MQCogul extends MQYapi {
 		return _e.secimler
 	}
 	static secimlerDuzenle(e) {
-		const {secimler} = e;
-		if (this.silindiDesteklenirmi) {
+		const {secimler} = e; if (this.silindiDesteklenirmi) {
 			secimler.secimEkle('silindiDurumu', new SecimTekSecim({ etiket: `Çalışma Durumu`, tekSecimSinif: AktifVeDevreDisi }));
 			secimler.whereBlockEkle(e => {
 				const {aliasVeNokta} = this, {where, secimler} = e;
@@ -489,13 +488,12 @@ class MQCogul extends MQYapi {
 		const stm = new MQStm({ sent }); $.extend(e, { stm, sent }); this.tekilOku_queryDuzenle(e);
 		return stm
 	}
-	tekilOku_queryDuzenle(e) { this.class.loadServerData_queryDuzenle(e); this.forAltYapiKeysDo('tekilOku_queryDuzenle', e) }
+	tekilOku_queryDuzenle(e) { this.class.loadServerData_queryDuzenle({ ...e, tekilOku: true }); this.forAltYapiKeysDo('tekilOku_queryDuzenle', e) }
 	static async tekilOku_querySonucu(e) {
 		e = e || {}; const sender = e.sender ?? e, ozelQuerySonucuBlock = e.ozelQuerySonucuBlock ?? e.ozelQuerySonucu ?? sender.ozelQuerySonucuBlock ?? sender.ozelQuerySonucu;
-		if (ozelQuerySonucuBlock) return getFuncValue.call(this, ozelQuerySonucuBlock, e)
+		if (ozelQuerySonucuBlock) { return getFuncValue.call(this, ozelQuerySonucuBlock, e) }
 		const {wsArgs, query} = e; let result = await this.forAltYapiClassesDoAsync('tekilOku_querySonucu', e);
-		result = result ? result[result.length - 1] : undefined;
-		if (result !== undefined) return result
+		result = result ? result[result.length - 1] : undefined; if (result !== undefined) { return result }
 		return await app.sqlExecTekil({ wsArgs, query })
 	}
 	static get orjBaslikListesi_detaylar() { const e = { liste: [] }; this.orjBaslikListesiDuzenle_detaylar(e); return e.liste }

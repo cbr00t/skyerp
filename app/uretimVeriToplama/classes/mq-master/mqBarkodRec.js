@@ -82,7 +82,7 @@ class MQBarkodRec extends MQMasterOrtak {
 		}
 		const style_minWidth = e => `$elementCSS { --width: 400px; min-width: calc(var(--width) / 2) !important }`;
 		const rfb = e.rootBuilder, tanimForm = e.tanimFormBuilder;
-		rfb.onAfterRun(e => { setTimeout(builder => { const {part} = builder, {fbd_focusPart} = part; if (fbd_focusPart?.input) fbd_focusPart.input.focus() }, 100, e.builder) })
+		rfb.onAfterRun(e => { setTimeout(builder => { const {part} = builder, {fbd_focusPart} = part; if (fbd_focusPart?.input) { fbd_focusPart.input.focus() } }, 500, e.builder) })
 			.addStyle(e => `$elementCSS { --oemBilgi-height: 38px !important }`)
 		rfb.vazgecIstendi = async e => { let rdlg = await ehConfirm('Ekrandan kapatılacak, devam edilsin mi?', e.parentPart?.title); if (rdlg !== true) throw { isError: true, rc: 'userAbort' } };
 		tanimForm.addFormWithParent('oemBilgi').onAfterRun(e => { const {builder} = e, {layout, altInst} = builder; altInst.oemHTMLDuzenle({ parent: layout }) })

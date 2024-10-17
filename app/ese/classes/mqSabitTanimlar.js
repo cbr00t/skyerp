@@ -1,7 +1,22 @@
+class MQYasGrup extends MQGuidVeAdiOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Yaş Grubu' }
+	static get kodListeTipi() { return 'YASGRUP' } static get table() { return 'eseyasgrup' } static get tableAlias() { return 'ygrp' }
+	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { basi: new PInstNum('yasbasi'), sonu: new PInstNum('yassonu') }) }
+	static orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(
+			new GridKolon({ belirtec: 'yasbasi', text: 'Başı', genislikCh: 8 }).tipNumerik(), new GridKolon({ belirtec: 'yassonu', text: 'Sonu', genislikCh: 8 }).tipNumerik())
+	}
+	static rootFormBuilderDuzenle(e) {
+		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e;
+		let form = tabPage_genel.addFormWithParent();
+		form.addNumberInput('basi', 'Başı').addStyle_wh(100); form.addNumberInput('sonu', 'Sonu').addStyle_wh(100)
+	}
+}
 class MQYetki extends MQGuidVeAdiOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Yetki' }
 	static get kodListeTipi() { return 'YETKI' } static get table() { return 'eseyetki' } static get tableAlias() { return 'yet' }
-	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { cpt: new PInstBitBool('bcptuygular'), ese: new PInstBitBool('beseuygular'), rapor: new PInstBitBool('btopluraporlar') }) }
+	static pTanimDuzenle(e) {
+		super.pTanimDuzenle(e); $.extend(e.pTanim, { cpt: new PInstBitBool('bcptuygular'), ese: new PInstBitBool('beseuygular'), rapor: new PInstBitBool('btopluraporlar') }) }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(
 			new GridKolon({ belirtec: 'bcptuygular', text: 'CPT', genislikCh: 8 }).tipBool(), new GridKolon({ belirtec: 'beseuygular', text: 'ESE', genislikCh: 8 }).tipBool(),
@@ -45,6 +60,10 @@ class MQESEUser extends MQKAOrtak {
 		form.addModelKullan('kurumId', 'Kurum').comboBox().kodsuz().autoBind().setMFSinif(MQKurum);
 		form.addModelKullan('yetkiId', 'Yetki').dropDown().kodsuz().autoBind().setMFSinif(MQYetki)
 	}
+}
+class MQIlBolge extends MQKAOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İl Bölgesi' }
+	static get kodListeTipi() { return 'ILBOL' } static get table() { return 'eseilbolge' } static get tableAlias() { return 'ibol' }
 }
 class MQYerlesim extends MQKAOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Yerleşim' }
@@ -103,7 +122,8 @@ class MQHasta extends MQGuidVeAdiOrtak {
 	static get ignoreBelirtecSet() { return {...super.ignoreBelirtecSet, ...asSet(['okultipid']) } }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e, {yakinSayi} = this; $.extend(pTanim, {
-			tcKimlikNo: new PInstStr('tcno'), okulTipId: new PInstGuid('okultipid'), tel: new PInstStr('tel'),
+			tcKimlikNo: new PInstStr('tcno'), cinsiyet: new PInstClass('cinsiyet', Cinsiyet),
+			okulTipId: new PInstGuid('okultipid'), tel: new PInstStr('tel'), dogumTarihi: new PInstDate('dogumtarihi'),
 			eMail: new PInstStr('email'), yerlesimKod: new PInstStr('yerlesimkod'), acikAdres: new PInstStr('acikadres')
 		});
 		for (let i = 1; i <= yakinSayi; i++) {
@@ -112,12 +132,13 @@ class MQHasta extends MQGuidVeAdiOrtak {
 		}
 	}
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {yakinSayi} = this, {liste} = e; liste.push(
-			new GridKolon({ belirtec: 'tcno', text: 'TC Kimlik No', genislikCh: 13 }),
-			new GridKolon({ belirtec: 'okultipid', text: 'Okul Tip ID', genislikCh: 36 }),
-			new GridKolon({ belirtec: 'okultipadi', text: 'Okul Tip Adı', genislikCh: 10, sql: 'okt.aciklama' }), new GridKolon({ belirtec: 'tel', text: 'Telefon', genislikCh: 10 }),
-			new GridKolon({ belirtec: 'email', text: 'e-mail', genislikCh: 50 }), new GridKolon({ belirtec: 'yerlesimkod', text: 'Yerleşim', genislikCh: 10, filterType: 'checkedlist' }),
-			new GridKolon({ belirtec: 'yerlesimadi', text: 'Yerleşim Adı', genislikCh: 30, sql: 'yer.aciklama' }), new GridKolon({ belirtec: 'acikadres', text: 'Açık Adres' })
+		super.orjBaslikListesiDuzenle(e); const {tableAlias: alias, yakinSayi} = this, {liste} = e; liste.push(
+			new GridKolon({ belirtec: 'tcno', text: 'TC Kimlik No', genislikCh: 13 }), new GridKolon({ belirtec: 'dogumtarihi', text: 'Doğum Tarihi', genislikCh: 13 }).tipDate(),
+			new GridKolon({ belirtec: 'cinsiyettext', text: 'Cinsiyet', genislikCh: 8, sql: Cinsiyet.getClause(`${alias}.cinsiyet`) }),
+			new GridKolon({ belirtec: 'okultipid', text: 'Okul Tip ID', genislikCh: 36 }), new GridKolon({ belirtec: 'okultipadi', text: 'Okul Tip Adı', genislikCh: 10, sql: 'okt.aciklama' }),
+			new GridKolon({ belirtec: 'tel', text: 'Telefon', genislikCh: 10 }), new GridKolon({ belirtec: 'email', text: 'e-mail', genislikCh: 50 }),
+			new GridKolon({ belirtec: 'yerlesimkod', text: 'Yerleşim', genislikCh: 10, filterType: 'checkedlist' }), new GridKolon({ belirtec: 'yerlesimadi', text: 'Yerleşim Adı', genislikCh: 30, sql: 'yer.aciklama' }),
+			new GridKolon({ belirtec: 'acikadres', text: 'Açık Adres' })
 		);
 		for (let i = 1; i <= yakinSayi; i++) {
 			liste.push(
@@ -129,14 +150,16 @@ class MQHasta extends MQGuidVeAdiOrtak {
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {sent} = e, alias = this.tableAlias;
-		sent.fromIliski('eseokultipi okt', `${alias}.okultipid = okt.id`).fromIliski('eseyerlesim yer', `${alias}.yerlesimkod = yer.kod`);
-		sent.sahalar.add(`${alias}.okultipid`)
+		sent.leftJoin({ alias, from: 'eseokultipi okt', iliski: `${alias}.okultipid = okt.id` })
+			.leftJoin({ alias, from: 'eseyerlesim yer', iliski: `${alias}.yerlesimkod = yer.kod` });
+		sent.sahalar.add(`${alias}.cinsiyet`, `${alias}.okultipid`)
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPanel, tabPage_genel} = e, {yakinSayi} = this;
 		let form = tabPage_genel.addFormWithParent().yanYana(2); form.addTextInput('tcKimlikNo', 'T.C Kimlik No').setMaxLength(11).addStyle_wh(200);
-		form.addTextInput('tel', 'Telefon').setMaxLength(13).addStyle_wh(150); form.addTextInput('eMail', 'e-Mail').setMaxLength(80)
-		form.addModelKullan('okulTipId', 'Okul Tipi').comboBox().kodsuz().autoBind().setMFSinif(MQOkulTipi).addStyle_wh(200);
+		form.addModelKullan('cinsiyet', 'Cinsiyet').dropDown().kodsuz().noMF().setSource(e => Cinsiyet.kaListe).addStyle_wh(150);
+		form.addTextInput('tel', 'Telefon').setMaxLength(13).addStyle_wh(150); form.addDateInput('dogumTarihi', 'Doğum Tarihi');
+		form.addTextInput('eMail', 'e-Mail').setMaxLength(80); form.addModelKullan('okulTipId', 'Okul Tipi').comboBox().kodsuz().autoBind().setMFSinif(MQOkulTipi).addStyle_wh(200);
 		form.addModelKullan('yerlesimKod', 'Yerleşim').comboBox().kodsuz().autoBind().setMFSinif(MQYerlesim).addStyle_wh(300);
 		let tabPage_yakinlar = tabPanel.addTab('yakinlar', 'Yakınlar').altAlta();
 		for (let i = 1; i <= yakinSayi; i++) {

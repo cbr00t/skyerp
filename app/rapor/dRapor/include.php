@@ -1,3 +1,1 @@
-<?php $_partRoot = "./dRapor" ?>
-<script src="<?=$_partRoot?>/ticariBase.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/satislar.js?<?=$appVersion?>"></script>
-
+<?php require_once("$webRoot_rapor/dRapor/include-base.php"); require_once("$webRoot_rapor/dRapor/include-ticari.php") ?>

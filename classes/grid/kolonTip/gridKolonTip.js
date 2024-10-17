@@ -238,8 +238,8 @@ class GridKolonTip_Date extends GridKolonTip {
 				const {gridWidget} = colDef?.gridPart;
 				rec = (gridWidget?.getboundrows ? gridWidget.getboundrows()[rowIndex] : null) ?? rec; rec = rec?.originalRecord ?? rec;
 				const _value = value; value = typeof value == 'number' || value?.constructor?.name == 'Number' ? new Date(asFloat(value)) : asDate(value);
-				if (value && value.getFullYear) value = (value.getFullYear() == buYil ? dateKisaString(value) : dateToString(value))
-				if (value != _value) html = changeTagContent(html, value)
+				if (value?.getFullYear) { value = (value.getFullYear() == buYil && value.getMonth() == today().getMonth() ? dateKisaString(value) : dateToString(value)) }
+				if (value != _value) { html = changeTagContent(html, value) }
 			}
 			return html
 		})

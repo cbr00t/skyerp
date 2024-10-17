@@ -1,9 +1,7 @@
 class MQLocalData extends MQYerelParamApp {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get paramKod() { return `${super.paramKod}.localData` }
-	static get QueryCacheTimeoutSecs() { return .5 } static get DelimAnah() { return '$' }
-	get data() { return this._data = this._data || {} }
-	set data(value) { this._data = value }
+	static get QueryCacheTimeoutSecs() { return .5 } static get DelimAnah() { return '$' } static get paramKod() { return `${super.paramKod}.localData` }
+	get data() { return this._data = this._data || {} } set data(value) { this._data = value }
 	
 	constructor(e) {
 		e = e || {}; super(e);
@@ -46,7 +44,6 @@ class MQLocalData extends MQYerelParamApp {
 		}
 		catch (ex) { console.error(ex); if (promise) promise.reject(ex); throw ex }
 	}
-
 	getMQRecs(e) {
 		const {mfSinif, cacheOnly} = e, localDataBelirtec = e.localDataBelirtec || e.belirtec || mfSinif?.localDataBelirtec;
 		if (!localDataBelirtec) { return undefined }

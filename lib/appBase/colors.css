@@ -9,7 +9,7 @@
 .ghostwhite { color: ghostwhite !important }
 .whitesmoke { color: whitesmoke !important }
 .darkred { color: darkred !important }
-.red { color: red }
+.red { color: red !important }
 .firebrick { color: firebrick !important }
 .darkorange { color: darkorange !important }
 .orange { color: orange !important }
@@ -19,6 +19,7 @@
 .lightyellow { color: lightyellow !important }
 .darkgreen { color: darkgreen !important }
 .green { color: green !important }
+.limegreen { color: limegreen !important }
 .forestgreen { color: forestgreen !important }
 .lightgreen { color: lightgreen !important }
 .blue { color: blue !important }

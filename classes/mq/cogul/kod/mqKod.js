@@ -130,13 +130,10 @@ class MQKA extends MQKod {
 		return `${e.styled ? '<b>' : ''}${this.kod}${e.styled ? '</b>' : ''}-${this.aciklama}`
 	}
 	static getGridKolonGrup(e) {
-		e = e || {}; const mfSinif = e.mfSinif || this; let _mfSinif = mfSinif;
-		if (isFunction(_mfSinif)) _mfSinif = getFuncValue.call(this, _mfSinif, {})
-		const {belirtec} = e, sinifAdi = e.sinifAdi || _mfSinif.sinifAdi;
-		const kodAttr = e.kodAttr || `${belirtec}Kod`, adiAttr = e.adiAttr || `${belirtec}Adi`;
+		e = e || {}; const mfSinif = e.mfSinif || this; let _mfSinif = mfSinif; if (isFunction(_mfSinif)) { _mfSinif = getFuncValue.call(this, _mfSinif, {}) }
+		const {belirtec} = e, sinifAdi = e.sinifAdi || _mfSinif.sinifAdi, kodAttr = e.kodAttr || `${belirtec}Kod`, adiAttr = e.adiAttr || `${belirtec}Adi`;
 		const kodEtiket = e.kodEtiket || sinifAdi, adiEtiket = e.adiEtiket || /*_mfSinif.adiEtiket ||*/ sinifAdi;
-		const ekStmDuzenleyici = e.stmDuzenle ?? e.stmDuzenleyici;
-		const degisince = e.degisince ?? e.ekDegisince ?? e.degisinceBlock, gelince = e.gelince ?? e.ekGelince ?? e.gelinceBlock;
+		const ekStmDuzenleyici = e.stmDuzenle ?? e.stmDuzenleyici, degisince = e.degisince ?? e.ekDegisince ?? e.degisinceBlock, gelince = e.gelince ?? e.ekGelince ?? e.gelinceBlock;
 		const argsDuzenleBlock = e.argsDuzenle ?? e.argsDuzenleBlock;
 		let kolonGrup = new GridKolonGrup_KA({
 			mfSinif: mfSinif || this, belirtec, adiAttr, degisince, gelince,

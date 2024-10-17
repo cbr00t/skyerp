@@ -61,3 +61,49 @@ class YilVeAy extends CObject {
 		$.extend(this, { yil, ay })
 	}
 }
+class Countdown extends CObject {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	get state() { const {remainingSecs: r, totalSecs: t} = this; return r == null || r == t ? 'begin' : r <= 0 ? 'end' : 'progress' }
+	get needUpdate() {
+		const {remainingSecs: secs} = this, modulo = secs < 10 ? 1 : secs < 60 ? 10 : 60;
+		return secs % modulo == 0
+	}
+	get text() {
+		const {remainingSecs} = this; let result = this._lastText; if (remainingSecs == null) { return '' }
+		result = remainingSecs < 60 ? `${remainingSecs} sn` : `${asInteger(remainingSecs / 60)} dk`;
+		return this._lastText = result
+	}
+	constructor(e) { e = e || {}; super(e); $.extend(this, { layout: e.layout, totalSecs: e.totalSecs ?? 0, remainingSecs: e.remainingSecs, callback: e.callback }) }
+	run(e) { delete this.isDestroyed; this.reset(e).start(e) }
+	destroyPart(e) { this.isDestroyed = true; this.abort(e); const {layout} = this; if (layout?.length) { layout.remove() } }
+	abort(e) { this.stop(e).reset(e); return this }
+	start(e) { if (!this.hTimer) { this.hTimer = setInterval(e => this.intervalProc(e), 1000, e) } return this }
+	stop(e) { clearInterval(this.hTimer); delete this.hTimer; this._stoppedFlag = true; setTimeout(() => delete this._stoppedFlag, 100); this.updateUI(); return this }
+	reset(e) { this.remainingSecs = null; this.updateUI(e); return this }
+	intervalProc(e) {
+		e = e || {}; if (this.isDestroyed || this._stoppedFlag) { return this } const {state: savedState} = this;
+		const totalSecs = this.totalSecs ?? 0; let remainingSecs = this.remainingSecs = this.remainingSecs ?? totalSecs;
+		if (remainingSecs <= 0) { this.stop(e); return this }
+		this.remainingSecs = --remainingSecs; this.updateUI({ force: savedState == 'begin' });
+		const {callback} = this; if (callback) {
+			const {text, _lastText: lastText, needUpdate, state} = this, abort = e => this.abort(e);
+			const _e = { ...e, sender: this, totalSecs, remainingSecs, state, needUpdate, text, lastText, abort };
+			let result = getFuncValue.call(this, callback, _e); if (result === false) { this.stop(e) }
+		}
+		return this
+	}
+	updateUI(e) {
+		e = e || {}; const {layout} = this, force = e.force ?? e.forceFlag;
+		if ((force || this.needUpdate) && layout?.length) {
+			const {text} = this, remainingSecs = this.remainingSecs || this.totalSecs;
+			layout.html(text); layout[remainingSecs <= 10 ? 'addClass' : 'removeClass']('critical')
+		} return this
+	}
+	updateUIForce(e) { return this.updateUI({ ...e, force: true }) }
+	getState() { return this.state }
+	getNeedUpdate() { return this.needUpdate } getText() { return this.text } getLastText() { return this._lastText }
+	getTotalSecs() { return this.totalSecs } setTotalSecs(value) { this.totalSecs = value; return this }
+	getRemainingSecs() { return this.remainingSecs } setRemainingSecs(value) { this.remainingSecs = value; return this }
+	getLayout() { return this.layout } setLayout(value) { this.layout = value; return this }
+	callbackHandler(value) { this.callback = value; return this } onCallback(value) { return this.callbackHandler(value) }
+}
