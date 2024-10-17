@@ -194,7 +194,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			if (!item) { continue } const {colDefs} = item; if (!colDefs) { continue }
 			for (const colDef of colDefs) { const {belirtec} = colDef; belirtec2ColDef[belirtec] = colDef; if (toplammi) { _sumAttrListe.push(belirtec) } }
 		}
-		const jqxCols = gridWidget.base.columns.records, grupTextColAttr = jqxCols[0].datafield;
+		const jqxCols = gridWidget.base.columns.records, grupTextColAttr = jqxCols?.[0]?.datafield;
 		let {recs} = e; if (!grupColAttrListe) { return recs }
 		let id = 1; const sevListe = seviyelendir({
 			source: recs, attrListe: grupColAttrListe,

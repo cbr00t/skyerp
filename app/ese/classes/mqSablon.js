@@ -145,7 +145,7 @@ class MQSablonAnket extends MQSablon {
 	static get detaySinif() { return MQSablonAnketDetay } static get gridKontrolcuSinif() { return MQSablonAnketGridci }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, { sureDk: new PInstNum({ rowAttr: 'suredk', init: () => 10 }), yanitId: new PInstGuid('yanitid') });
-		const {maxSecenekSayisi} = MQSablonAnketYanit; for (let i = 1; i <= maxSecenekSayisi; i++) { const key = `yanit${i}Puan`; pTanim[key] = new PInstStr(key.toLowerCase()) }
+		const {maxSecenekSayisi} = MQSablonAnketYanit; for (let i = 1; i <= maxSecenekSayisi; i++) { const key = `yanit${i}Puan`; pTanim[key] = new PInstNum(key.toLowerCase()) }
 	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(...[

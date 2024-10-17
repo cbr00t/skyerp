@@ -314,11 +314,23 @@ class MQTestAnket extends MQTest {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Anket Test' } static get testSonucSinif() { return TestSonucAnket } static get testGenelSonucSinif() { return TestGenelSonucAnket }
 	static get kodListeTipi() { return 'TSTANKET' } static get table() { return 'eseankettest' } static get sablonSinif() { return MQSablonAnket } static get raporSinif() { return DRapor_ESETest_Anket }
+	static pTanimDuzenle(e) {
+		super.pTanimDuzenle(e); const {sablonTip} = this, {maxSecenekSayisi} = MQSablonAnketYanit, {pTanim} = e;
+		$.extend(pTanim, { toplamPuan: new PInstNum('toplampuan'), yanitsizSayi: new PInstNum('yanitsizsayi') });
+		for (let i = 1; i <= maxSecenekSayisi; i++) { for (const key of [`yanit${i}Sayi`, `yanit${i}Puan`]) { pTanim[key] = new PInstNum(key.toLowerCase()) } }
+		
+	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {tableAlias: alias} = this, {liste} = e; liste.push(...[
 			new GridKolon({ belirtec: 'toplampuan', text: 'Top.Puan', genislikCh: 10 }).tipDecimal(1),
 			new GridKolon({ belirtec: 'yanitsizsayi', text: 'Yanıtsız Sayı', genislikCh: 10 }).tipNumerik()
-		].filter(x => !!x))
+		].filter(x => !!x));
+		const {maxSecenekSayisi} = MQSablonAnketYanit; for (let i = 1; i <= maxSecenekSayisi; i++) {
+			liste.push(
+				new GridKolon({ belirtec: `yanit${i}sayi`, text: `Yanıt-${i} Sayı`, genislikCh: 15 }).tipNumerik(),
+				new GridKolon({ belirtec: `yanit${i}puan`, text: `Yanıt-${i} Puan`, genislikCh: 15 }).tipDecimal(1)
+			)
+		}
 	}
 	/*static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.sahalar.add('sab.suredk', 'sab.yanitid') }*/
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { esesablonid: this.sablonId }) }

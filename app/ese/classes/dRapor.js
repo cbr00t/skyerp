@@ -15,7 +15,7 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 	}
 	loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {stm, attrSet} = e; let {sent} = stm, {where: wh, sahalar} = sent;
-		$.extend(e, sent); this.fisVeHareketBagla(e); this.donemBagla({ ...e, sent, tarihSaha: 'fis.tarihsaat' }); wh.add('fis.btamamlandi <> 0');
+		$.extend(e, { sent }); this.fisVeHareketBagla(e); this.donemBagla({ ...e, sent, tarihSaha: 'fis.tarihsaat' }); wh.add('fis.btamamlandi <> 0');
 		if (attrSet.HASTA || attrSet.DOKTOR) { sent.fromIliski('esemuayene mua', 'fis.muayeneid = mua.id') }
 		if (attrSet.HASTA) { sent.fromIliski('esehasta has', 'mua.hastaid = has.id') } if (attrSet.DOKTOR) { sent.fromIliski('esedoktor dok', 'mua.doktorid = dok.id') }
 		for (const key in attrSet) {
@@ -94,11 +94,14 @@ class DRapor_ESETest_Anket_Main extends DRapor_ESETest_Main {
 		result.addGrup(new TabloYapiItem().setKA('SORU', 'Soru').addColDef(new GridKolon({ belirtec: 'soru', text: 'Soru', genislikCh: 50, filterType: 'checkedlist' })));
 		for (let i = 1; i <= maxSecenekSayisi; i++) {
 			result.addGrup(new TabloYapiItem().setKA(`YANIT${i}`, `Yanit-${i}`).addColDef(new GridKolon({ belirtec: `secenek${i}`, text: `Yanıt-${i}`, filterType: 'checkedlist' }))) }
-		for (let i = 1; i <= maxSecenekSayisi; i++) {
-			result.addToplam(new TabloYapiItem().setKA(`YANIT${i}SAYI`, `Yanit-${i}  Sayı`).addColDef(new GridKolon({ belirtec: `yanit${i}sayi`, text: `Yanıt-${i} Sayı`, genislikCh: 10, filterType: 'numberinput' }).tipNumerik())) }
 		result
 			.addToplam(new TabloYapiItem().setKA('TOPLAMPUAN', 'Toplam Puan').addColDef(new GridKolon({ belirtec: 'toplampuan', text: 'Toplam Puan', genislikCh: 10, filterType: 'numberinput' }).tipDecimal(1)))
-			.addToplam(new TabloYapiItem().setKA('YANITSIZSAYI', 'Yanıtsız Sayı').addColDef(new GridKolon({ belirtec: 'yanitsizsayi', text: 'Yanıtsız Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))
+			.addToplam(new TabloYapiItem().setKA('YANITSIZSAYI', 'Yanıtsız Sayı').addColDef(new GridKolon({ belirtec: 'yanitsizsayi', text: 'Yanıtsız Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik()));
+		for (let i = 1; i <= maxSecenekSayisi; i++) {
+			result
+				.addToplam(new TabloYapiItem().setKA(`YANIT${i}SAYI`, `Yanit-${i} Sayı`).addColDef(new GridKolon({ belirtec: `yanit${i}sayi`, text: `Yanıt-${i} Sayı`, genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))
+				.addToplam(new TabloYapiItem().setKA(`YANIT${i}PUAN`, `Yanit-${i} Puan`).addColDef(new GridKolon({ belirtec: `yanit${i}puan`, text: `Yanıt-${i} Puan`, genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))
+		}
 	}
 	ekCSSDuzenle(e) { super.ekCSSDuzenle(e); const {belirtec, result} = e; switch (belirtec) { case 'yanlissayi': case 'yanitsizsayi': result.push('red'); break } }
 	loadServerData_queryDuzenle_ek(e) {
@@ -110,9 +113,11 @@ class DRapor_ESETest_Anket_Main extends DRapor_ESETest_Main {
 				case 'TOPLAMPUAN': sahalar.add('SUM(fis.toplampuan) toplampuan'); break; case 'YANITSIZSAYI': sahalar.add('SUM(fis.yanitsizsayi) yanitsizsayi'); break
 				case 'SORU': sahalar.add('sdet.soru'); break
 				default:
-					const PrefixYanit = 'YANIT', LiteralSayi = 'SAYI'; if (key.startsWith(PrefixYanit)) {
-						let i = asInteger(key.replace(LiteralSayi, '').slice(PrefixYanit.length));
-						if (key.endsWith(LiteralSayi)) { sahalar.add(`SUM(case when har.secimindis = ${i} then 1 else 0 end) yanit${i}sayi`) } else { sahalar.add(`ynt.secenek${i}`) }
+					const PrefixYanit = 'YANIT', LiteralSayi = 'SAYI', LiteralPuan = 'PUAN'; if (key.startsWith(PrefixYanit)) {
+						let i = asInteger(key.replace(LiteralSayi, '').replace(LiteralPuan, '').slice(PrefixYanit.length));
+						if (i && key.endsWith(LiteralSayi)) { sahalar.add(`fis.yanit${i}sayi`) }
+						else if (i && key.endsWith(LiteralPuan)) { sahalar.add(`fis.yanit${i}puan`) }
+						else { sahalar.add(`ynt.secenek${i}`) }
 					}
 					break
 			}
