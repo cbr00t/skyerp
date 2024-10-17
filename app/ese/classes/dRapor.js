@@ -115,8 +115,8 @@ class DRapor_ESETest_Anket_Main extends DRapor_ESETest_Main {
 				default:
 					const PrefixYanit = 'YANIT', LiteralSayi = 'SAYI', LiteralPuan = 'PUAN'; if (key.startsWith(PrefixYanit)) {
 						let i = asInteger(key.replace(LiteralSayi, '').replace(LiteralPuan, '').slice(PrefixYanit.length));
-						if (i && key.endsWith(LiteralSayi)) { sahalar.add(`SUM(fis.yanit${i}sayi) fis.yanit${i}sayi`) }
-						else if (i && key.endsWith(LiteralPuan)) { sahalar.add(`SUM(fis.yanit${i}puan) fis.yanit${i}puan`) }
+						if (i && key.endsWith(LiteralSayi)) { sahalar.add(`SUM(fis.yanit${i}sayi) yanit${i}sayi`) }
+						else if (i && key.endsWith(LiteralPuan)) { sahalar.add(`SUM(fis.yanit${i}puan) yanit${i}puan`) }
 						else { sahalar.add(`ynt.secenek${i}`) }
 					}
 					break
