@@ -46,7 +46,7 @@ class CDBTable extends CDBLocalData_Base {
 	insertData(value) { return this.insertOrUpdateData(null, value) } updateData(key, value) { return this.insertOrUpdateData(key, value) } deleteData(key) { return this.insertOrUpdateData(key, undefined) }
 	insertOrUpdateData(key, value) {
 		const {shadow} = this, {data} = shadow, deleteFlag = value === undefined;
-		if (!(deleteFlag || key)) { key || this.newKey().toString() }  shadow._lastKey = key
+		if (!(deleteFlag || key)) { key = this.newKey().toString() } shadow._lastKey = key
 		if (!this.updateIndexes(deleteFlag, key, value)) { return this }
 		if (deleteFlag) { data.delete(shadow._lastKey = key) } else { data.set((key = shadow._lastKey = key || this.newKey()).toString(), value) }
 		this.onChange({ type: deleteFlag ? 'deleteData' : 'insertOrUpdateData', key, value }); return this
