@@ -6,7 +6,7 @@ class MQLocalData extends MQYerelParamApp {
 	get data() { return this._data = this._data || {} } set data(value) { this._data = value }
 	static getInstance() { return super.getInstance() }
 
-	constructor(e) { e = e || {}; super(e); this.fh = e.fh ?? e.fileHandle; for (const key of ['_data']) { this[key] = this[key] || {} } }
+	constructor(e) { e = e ?? {}; super(e); this.fh = e.fh ?? e.fileHandle; for (const key of ['_data']) { this[key] = this[key] || {} } }
 	static paramAttrListeDuzenle(e) { super.paramAttrListeDuzenle(e); e.liste.push('data') }
 	yukle(e) { return super.yukle(e) } kaydet(e) { return super.kaydet(e) }
 	async yukleIslemi(e) {
@@ -38,14 +38,14 @@ class MQLocalData extends MQYerelParamApp {
 	clearData(e) { this.data = {}; return this }
 	async getFS(e) { let {fs} = this; if (!fs) { fs = this.fs = (await getFS())?.fs } return fs }
 	async getFSDirHandle(e, createFlag) {
-		e = e || {}; const fs = await this.getFS(e); if (!fs) { return null }
+		e = e ?? {}; const fs = await this.getFS(e); if (!fs) { return null }
 		const {fsRootDir, fsFileName} = this; if (!fsFileName) { return null }
 		let dir = fsRootDir; const {relPath} = e; if (relPath) { dir = `${fsRootDir.trimEnd('/')}/${relPath.trim('/')}` }
 		if (createFlag == null) { createFlag = e.create ?? e.createFlag }
 		return await getFSDirHandle(dir, createFlag ?? true)
    }
 	async getFSFileHandle(e, createFlag) {
-		e = e || {}; const {relPath} = e; let {fh} = this; if (fh && !relPath) { return fh }
+		e = e ?? {}; const {relPath} = e; let {fh} = this; if (fh && !relPath) { return fh }
 		const fs = await this.getFS(e); if (!fs) { return null }
 		const {fsRootDir, fsFileName} = this; if (!fsFileName) { return null }
 		let dir = fsRootDir; if (relPath) { dir = `${fsRootDir.trimEnd('/')}/${relPath.trim('/')}` }
@@ -53,7 +53,7 @@ class MQLocalData extends MQYerelParamApp {
 		return fh = this.fh = await getFSFileHandle(fsFileName, dir, createFlag ?? true)
    }
 	async getFSFile(e, createFlag) {
-		e = e || {}; const fs = await this.getFS(e); if (!fs) { return null }
+		e = e ?? {}; const fs = await this.getFS(e); if (!fs) { return null }
 		const {fsRootDir, fsFileName} = this; if (!fsFileName) { return null }
 		let dir = fsRootDir; const {relPath} = e; if (relPath) { dir = `${fsRootDir.trimEnd('/')}/${relPath.trim('/')}` }
 		if (createFlag == null) { createFlag = e.create ?? e.createFlag }
@@ -64,7 +64,7 @@ class MQLocalTable extends MQLocalData {
 	static { window[this.name] = this; this._key2Class[this.name] = this } get tablemi() { return true }
 	get tableWithPrefix() { const {table} = this; return table ? `.db.tables.${table}` : '' } static get paramKod() { return super.super_paramKod }
 	get name() { return this.table } set name(value) { this.table = value }
-	constructor(e) { e = e || {}; super(e); if (e.name != null) { this.name = e.name } }
+	constructor(e) { e = e ?? {}; super(e); if (e.name != null) { this.name = e.name } }
 	setName(value) { return this.name = value }
 }
 class MQLocalDB extends CObject {
@@ -74,7 +74,7 @@ class MQLocalDB extends CObject {
 	get fullTableName() { return `${this.rootTable}.${this.paramKod || ''}${this.tableWithPrefix || ''}` }
 	get tableNames() { return Object.keys(this.tables) } get tableArray() { return Object.values(tables) }
 	get data() { const table2Data = {}; for (const [name, table] of this.iterEntries(e)) { table2Data[name] = table.data }; return table2Data }
-	constructor(e) { e = e || {}; super(e); $.extend(this, { name: e.name, tables: e.tables || {} }) }
+	constructor(e) { e = e ?? {}; super(e); $.extend(this, { name: e.name, tables: e.tables || {} }) }
 	async yukle(e) {
 		const {fullTableName, tables} = this; let dh; try { dh = await getFSDirHandle(`/${fullTableName.split('.').join('/')}/tables`) } catch (ex) { }
 		if (!dh) { return this } let enm = dh.values(); this.clearTables(e); while (true) {
@@ -91,27 +91,27 @@ class MQLocalDB extends CObject {
 		await dh.remove({ recursive: true }); return this
 	}
 	getData(e, _key) {
-		e = e || {}; const name = typeof e == 'object' ? e.name : e, key = typeof e == 'object' ? e.key : _key, {tables} = this;
+		e = e ?? {}; const name = typeof e == 'object' ? e.name : e, key = typeof e == 'object' ? e.key : _key, {tables} = this;
 		return tables[name]?.getData(key)
 	}
 	async setData(e, _key) {
-		e = e || {}; const name = typeof e == 'object' ? e.name : e, key = typeof e == 'object' ? e.key : _key, {tables} = this;
+		e = e ?? {}; const name = typeof e == 'object' ? e.name : e, key = typeof e == 'object' ? e.key : _key, {tables} = this;
 		await tables[name]?.setData(key); return this
 	}
 	async clearData(e, _key) {
-		e = e || {}; const name = typeof e == 'object' ? e.name : e, key = typeof e == 'object' ? e.key : _key, {tables} = this;
+		e = e ?? {}; const name = typeof e == 'object' ? e.name : e, key = typeof e == 'object' ? e.key : _key, {tables} = this;
 		await tables[name]?.clearData(key); return this
 	}
 	addTable(e, _table) {
-		e = e || {}; const name = typeof e == 'object' ? e.name : e, {tables} = this;
+		e = e ?? {}; const name = typeof e == 'object' ? e.name : e, {tables} = this;
 		let table = tables[name]; if (table == null) { tables[name] = table = (typeof e == 'object' ? e.table : _table) ?? new MQLocalTable({ table: name }) }
 		return table
 	}
 	addTables(...names) { for (const name of names) { this.addTable(name) } }
-	removeTable(e) { e = e || {}; const name = typeof e == 'object' ? e.name : e; delete this.tables[name]; return this }
-	getTable(e) { e = e || {}; const name = typeof e == 'object' ? e.name : e; return this.tables[name] }
+	removeTable(e) { e = e ?? {}; const name = typeof e == 'object' ? e.name : e; delete this.tables[name]; return this }
+	getTable(e) { e = e ?? {}; const name = typeof e == 'object' ? e.name : e; return this.tables[name] }
 	setTable(e) {
-		e = e || {}; const name = typeof e == 'object' ? e.name : e, table = typeof e == 'object' ? e.table : _table;
+		e = e ?? {}; const name = typeof e == 'object' ? e.name : e, table = typeof e == 'object' ? e.table : _table;
 		if (table) { this.tables[name] = table } else { delete this.tables[name] } return this
 	}
 	clearTables(..._names) {

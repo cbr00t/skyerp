@@ -1,8 +1,7 @@
 class MQYerelParamBase extends CIO {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get paramKod() { return null } get paramKod() { return this.class.paramKod} static get sinifAdi() { return 'Yerel Parametreler' } static get tanimUISinif() { return null }
-	get tableWithPrefix() { '' } get rootTable() { return app.rootName }
-	get fullTableName() { return `${this.rootTable}.${this.paramKod || ''}${this.tableWithPrefix || ''}` }
+	get tableWithPrefix() { '' } get rootTable() { return app.rootName } get fullTableName() { return `${this.rootTable}.${this.paramKod || ''}${this.tableWithPrefix || ''}` }
 	static get paramAttrListe() { let result = this._paramAttrListe; if (!result) { result = this._paramAttrListe = []; this.paramAttrListeDuzenle({ liste: result }) } return result }
 	static getInstance() { let result = this._instance; if (!result) { result = new this(); result.yukle(); this._instance = result } return result }
 	constructor(e) {
