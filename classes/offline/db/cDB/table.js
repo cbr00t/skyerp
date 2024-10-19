@@ -1,10 +1,10 @@
 class CDBTable extends CDBLocalData_Base {
 	static { window[this.name] = this; this._key2Class[this.name] = this } get tablemi() { return true } get dbName() { return this.db?.name }
 	get fsRootDirPaths() { return [...super.fsRootDirPaths, ...(this.dbName ? ['db', this.dbName] : ['tables']), this.fsFileName] }
-	get lastKey() { return this._lastKey }
+	get lastKey() { return this._lastKey } get size() { return this.data?.size ?? this.data?.length }
 	constructor(e) {
-		e = e ?? {}; super(e); $.extend(this, {
-			db: e.db ?? e.database, data: e.data || {}, indexes: e.indexes || {}, maxRowId: e.maxRowId ?? e.rowId ?? e.rowid ?? 0 })
+		e = e ?? {}; super(e); let data = asMap(e.data || {}), indexes = asMap(e.indexes || {});
+		$.extend(this, { db: e.db ?? e.database, data, indexes, maxRowId: e.maxRowId ?? e.rowId ?? e.rowid ?? 0 })
 	}
 	async yukle(e) {
 		let dh = await super.yukle(e); if (!dh || dh.type == 'file') { return false }
@@ -15,7 +15,7 @@ class CDBTable extends CDBLocalData_Base {
 		}
 		const {version, maxRowId} = type2Data.metadata || {}, {data, indexes} = type2Data;
 		if (version !== undefined) { this.version = maxRowId } if (maxRowId !== undefined) { this.maxRowId = maxRowId }
-		if (data !== undefined) { this.data = data } if (indexes !== undefined) { this.indexes = indexes }
+		if (data !== undefined) { this.data = asMap(data) } if (indexes !== undefined) { this.indexes = asMap(indexes) }
 		return true
 	}
 	async kaydet(e) {
@@ -30,8 +30,8 @@ class CDBTable extends CDBLocalData_Base {
 	}
 	/* getFSHandle(e) { const createFlag = typeof e == 'boolean' ? e : e?.create ?? e.createFlag; return getFSDirHandle(this.fsRootDir, createFlag) } */
 	getData(e) {
-		e = e != null && typeof e == 'object' ? e : { key: e }, {key, ifAbsent, ifAbsentPut, ifPresent} = e, {data} = this;
-		let value = data[key]; if (value === undefined && ifAbsentPut) {
+		e = e != null && typeof e == 'object' ? e : { key: e }; const {ifAbsent, ifAbsentPut, ifPresent} = e, key = e.key?.toString(), {data} = this;
+		let value = data.get(key); if (value === undefined && ifAbsentPut) {
 			value = getFuncValue.call(this, ifAbsentPut, { ...e, value }); if (value !== undefined) { this.setData(key, value) } }
 		if (value === undefined) { return ifAbsent ? getFuncValue.call(this, ifAbsent, { ...e, value }) : undefined }
 		return ifPresent ? getFuncValue.call(this, ifPresent, { ...e, value }) : value
@@ -41,10 +41,10 @@ class CDBTable extends CDBLocalData_Base {
 	updateData(key, value) { return this.insertOrUpdateData(e, value) }
 	deleteData(key) { return this.insertOrUpdateData(key, undefined) }
 	insertOrUpdateData(key, value) {
-		const {data} = this; if (value === undefined) { delete data[this._lastKey = key]; return this }
-		data[this._lastKey = key || this.newKey()] = value; return this
+		const {data} = this; if (value === undefined) { data.delete(this._lastKey = key); return this }
+		data.set((this._lastKey = key || this.newKey()).toString(), value); return this
 	}
-	clearData(e) { $.extend(this, { maxRowId: 0, data: {}, indexes: {} }); return this }
+	clearData(e) { $.extend(this, { maxRowId: 0, data: new Map(), indexes: new Map() }); return this }
 	newKey(e) { return this.maxRowId = (this.maxRowId || 0) + 1 }
 	setMaxRowId(value) { this.maxRowId = value; return this } resetMaxRowId(value) { return this.setMaxRowId(0) }
 }
