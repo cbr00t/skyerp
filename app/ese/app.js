@@ -14,22 +14,28 @@ class ESEApp extends App {
 		].filter(x => !!x))
 	}
 	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { localData: MQLocalData.getInstance(), ese: MQParam_ESE.getInstance() }) }
-	getAnaMenu(e) {
-		const {noMenuFlag, isAdmin} = this; if (noMenuFlag) { return new FRMenu() } let items = [];
+	async getAnaMenu(e) {
+		const {noMenuFlag, isAdmin, params} = this; if (noMenuFlag) { return new FRMenu() } let items = [];
 		if (isAdmin) {
 			const addMenuSubItems = (mne, text, ...classes) => {
 				let subItems = classes.flat().map(cls => new FRMenuChoice({ mne: cls.kodListeTipi, text: cls.sinifAdi, block: e => cls.listeEkraniAc(e) }));
 				let menuItems = []; if (subItems?.length) { menuItems = mne ? [new FRMenuCascade({ mne, text, items: subItems })] : subItems; items.push(...menuItems) }
 				return menuItems
 			};
-			addMenuSubItems('TANIM', 'Sabit Tanımlar', [MQCariUlke, MQCariIl, MQYerlesim, MQKurum, MQOkulTipi, MQHasta, MQDoktor, MQESEUser, MQYetki, MQCari]);
+			addMenuSubItems('TANIM', 'Sabit Tanımlar', [MQCariUlke, MQCariIl, MQYerlesim, MQKurum, MQOkulTipi, MQYasGrup, MQESEUser, MQYetki, MQCari]);
+			addMenuSubItems(null, null, [MQHasta, MQDoktor]);
 			addMenuSubItems('SABLON', 'Şablonlar', [MQSablonCPT, MQSablonAnket]);
 			addMenuSubItems(null, null, [MQMuayene]);
-			let parentItems = addMenuSubItems('TEST', 'Testler', [MQTestCPT, MQTestAnket]), parentItem = parentItems?.[0];
+			let parentItem = new FRMenuCascade({ mne: 'TEST', text: 'Testler' }); for (const cls of MQTest.subClasses) {
+				const {sablonTip, sablonSinif, kodListeTipi: mne} = cls;
+				let {sinifAdi: text} = cls, sablonId = params.ese.sablon[sablonTip], sablonAdi = await sablonSinif.getGloKod2Adi(sablonId);
+				if (sablonAdi) { text += `<div class="royalblue" style="font-weight: normal; font-size: 90%; padding-top: 10px">${sablonAdi}</div>` }
+				parentItem.items.push(new FRMenuChoice({ mne, text, block: e => cls.listeEkraniAc(e) }))
+			} items.push(parentItem);
 			if (parentItem) {
 				let raporItems = []; for (const cls of MQTest.subClasses) {
-					const {raporSinif} = cls; if (!raporSinif) { continue }
-					const {kodListeTipi: mne, sinifAdi: text} = cls; raporItems.push(new FRMenuChoice({ mne, text, block: e => raporSinif.goster() }));
+					const {raporSinif} = cls; if (!raporSinif) { continue } const {kodListeTipi: mne} = cls, {sinifAdi: text} = cls;
+					raporItems.push(new FRMenuChoice({ mne, text, block: e => raporSinif.goster(e) }));
 				}
 				if (raporItems?.length) { parentItem.items.push(new FRMenuCascade({ mne: 'RAPOR', text: 'Raporlar', items: raporItems })) }
 			}

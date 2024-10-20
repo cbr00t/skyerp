@@ -67,7 +67,7 @@ class CDBTable extends CDBLocalData_Base {
 				if (!recKeys?.length || idxMap == null) { return true } const idxKey = shadow.getIndexKey(rec, recKeys);
 				const idSet = idxMap.get(idxKey) || {}; if (idSet[key]) { return false }
 				idSet[key] = true; idxMap.set(idxKey, idSet); return true
-			};
+			}
 		}
 		return action(primaryKeys, indexes.primary) && action(indexKeys, indexes.secondary)
 	}

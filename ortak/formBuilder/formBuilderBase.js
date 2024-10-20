@@ -310,8 +310,7 @@ class FormBuilderBase extends CObject {
 		this.add(builder); return builder
 	}
 	addBaslik(e, _etiket, _renk, _zeminRenk, _styles) {
-		e = e || {};
-		const id = typeof e == 'object' ? e.id : e;
+		e = e || {}; const id = typeof e == 'object' ? e.id : e;
 		const etiket = typeof e == 'object' ? e.etiket : _etiket;
 		const renk = typeof e == 'object' ? e.renk : _renk;
 		const zeminRenk = typeof e == 'object' ? e.zeminRenk : _zeminRenk;

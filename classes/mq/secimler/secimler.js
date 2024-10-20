@@ -55,7 +55,7 @@ class Secimler extends CIO {
 		return true
 	}
 	secimTopluEkle(e) {
-		const liste = e.liste || e, noInitFlag = (e.noInit || this._noInit);
+		const liste = e.liste || e, noInitFlag = (e.noInit ?? this._noInit);
 		if (!noInitFlag) { this.beginUpdate() } if (liste) { for (const key in liste) { this.secimEkle({ key, secim: liste[key], noInit: true }) } } if (!noInitFlag) { this.endUpdate() }
 		return this
 	}

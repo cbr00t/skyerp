@@ -52,17 +52,20 @@ class MQMuayene extends MQGuidOrtak {
 		let form = tabPage_genel.addFormWithParent().yanYana(2).addStyle(e => `$elementCSS [data-builder-id = 'ese'], $elementCSS [data-builder-id = 'cpt'] { margin-left: 100px }`);
 			form.addDateInput('tarih', 'Tarih'); form.addTimeInput('saat', 'Saat');
 			form.addTextInput('seri', 'Seri').setMaxLength(3).addStyle_wh(70).addCSS('center'); form.addNumberInput('fisNo', 'No').setMaxLength(17).addStyle_wh(200);
-			form.addCheckBox('ese', 'Anket?'); form.addNumberInput('esePuani', 'Anket Puanı').readOnly().etiketGosterim_placeholder().addStyle_wh(90);
-			form.addCheckBox('cpt', 'CPT?'); form.addNumberInput('cptPuani', 'CPT Puanı').readOnly().etiketGosterim_placeholder().addStyle_wh(90);
+			form.addCheckBox('ese', 'Anket?'); form.addNumberInput('esePuani', 'Anket Puanı').readOnly().etiketGosterim_placeholder().addStyle_wh(100);
+			form.addCheckBox('cpt', 'CPT?'); form.addNumberInput('cptPuani', 'CPT Puanı').readOnly().etiketGosterim_placeholder().addStyle_wh(100);
 		form = tabPage_genel.addFormWithParent().yanYana(); form.addModelKullan('hastaId', 'Hasta').comboBox().kodsuz().autoBind().setMFSinif(MQHasta); 
 			form.addModelKullan('doktorId', 'Doktor').comboBox().kodsuz().autoBind().setMFSinif(MQDoktor);
 		form = tabPage_genel.addFormWithParent().altAlta(); form.addTextArea('tani', 'Tanı').setMaxLength(3000).setRows(8)
 	}
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { resimsayisi: this.resimSayisi }) }
-	static testIslemleriIstendi(e) {
-		const gridPart = e.gridPart ?? e.parentPart ?? e.sender, title = 'Test İşlemleri';
+	static async testIslemleriIstendi(e) {
+		const gridPart = e.gridPart ?? e.parentPart ?? e.sender, title = 'Test İşlemleri', {ese} = app.params;
+		const tip2Adi = { cpt: await MQSablonCPT.getGloKod2Adi(ese.sablon.cpt), anket: await MQSablonAnket.getGloKod2Adi(ese.sablon.anket) };
 		app.activeWndPart.openContextMenu({ gridPart, title, formDuzenleyici: _e => {
-			const {form, close} = _e; form.yanYana(2);
+			const {form, close} = _e; form.yanYana(2).addStyle(e => `$elementCSS { padding-top: 40px }`);
+			form.addForm().setLayout(e => $(`<h5 class="bold center royalblue" style="padding-bottom: 13px; margin-right: 20px; border-bottom: 1px solid royalblue">${tip2Adi.cpt || ''}</h5>`));
+			form.addForm().setLayout(e => $(`<h5 class="bold center royalblue" style="padding-bottom: 13px; width: calc(var(--full) / 2 - 45px); border-bottom: 1px solid royalblue">${tip2Adi.anket || ''}</h5>`));
 			let handler = __e => { close(); this.testOlusturIstendi({ ...e, ..._e, ...__e, id: __e.builder.id }) };
 				form.addButton('cptTestOlustur', 'CPT Kayıt').onClick(handler); form.addButton('anketTestOlustur', 'Anket Kayıt').onClick(handler);
 			handler = __e => { close(); this.testEkraniAcIstendi({ ...e, ..._e, ...__e, id: __e.builder.id }) };
@@ -90,9 +93,14 @@ class MQMuayene extends MQGuidOrtak {
 		catch (ex) { hConfirm(getErrorText(ex)); throw ex }
 	}
 	static async testEkraniAcIstendi(e) {
-		const {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender;
-		const tip = e.id.replace('TestEkraniAc', ''), testSinif = MQTest.getClass(tip); if (!testSinif) { hConfirm('Uygun Test Sınıfı belirlenemedi', sinifAdi); return }
-		return testSinif.listeEkraniAc()
+		const {sinifAdi} = this, tip = e.id.replace('TestEkraniAc', ''), testSinif = MQTest.getClass(tip); if (!testSinif) { hConfirm('Uygun Test Sınıfı belirlenemedi', sinifAdi); return }
+		const gridPart = e.gridPart ?? e.parentPart ?? e.sender; let {selectedRecs} = gridPart;
+		selectedRecs = selectedRecs.filter(rec => !!rec[`b${tip == 'anket' ? 'ese' : tip}yapilacak`]);
+		const idListe = selectedRecs?.map(rec => rec.id); return testSinif.listeEkraniAc({
+			secimlerDuzenle: idListe?.length
+				? ({ secimler: sec }) => { const birKismimi = true, kodListe = idListe; $.extend(sec.muayeneId, { birKismimi, kodListe }) }
+				: undefined
+		})
 	}
 }
 
