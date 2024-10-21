@@ -57,14 +57,14 @@ class MQTest extends MQGuidOrtak {
 			new GridKolon({ belirtec: 'sablonadi', text: 'Şablon Adı', genislikCh: 35, sql: 'sab.aciklama' }),
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 10, sql: `${alias}.tarihsaat` }).tipDate(),
 			new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 9, sql: `${alias}.tarihsaat` }).tipTime(),
+			new GridKolon({ belirtec: 'btamamlandi', text: 'Tamam?', genislikCh: 8 }).tipBool(),
+			new GridKolon({ belirtec: 'onaykodu', text: 'Onay Kodu', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'aktifyas', text: 'Aktif Yaş', genislikCh: 9 }).tipNumerik(),
 			new GridKolon({ belirtec: 'hastaadi', text: 'Hasta Adı', genislikCh: 40, sql: 'has.aciklama' }),
 			new GridKolon({ belirtec: 'doktoradi', text: 'Doktor Adı', genislikCh: 40, sql: 'dok.aciklama' }),
 			new GridKolon({ belirtec: 'seri', text: 'Seri', genislikCh: 5, sql: 'mua.seri' }),
 			new GridKolon({ belirtec: 'fisno', text: 'No', genislikCh: 17, sql: 'mua.fisno' }).tipNumerik(),
-			new GridKolon({ belirtec: 'btamamlandi', text: 'Tamam?', genislikCh: 8 }).tipBool(),
-			new GridKolon({ belirtec: 'uygulanmayeritext', text: 'Uygulanma Yeri', genislikCh: 15, sql: MQTestUygulanmaYeri.getClause(`${alias}.uygulanmayeri`) }),
-			new GridKolon({ belirtec: 'onaykodu', text: 'Onay Kodu', genislikCh: 10 })
+			new GridKolon({ belirtec: 'uygulanmayeritext', text: 'Uygulanma Yeri', genislikCh: 15, sql: MQTestUygulanmaYeri.getClause(`${alias}.uygulanmayeri`) })
 		].filter(x => !!x))
 	}
 	static loadServerData_queryDuzenle(e) {
@@ -79,9 +79,11 @@ class MQTest extends MQGuidOrtak {
 		else { sent.groupByOlustur() }
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
-		super.islemTuslariDuzenle_listeEkrani(e); let {liste} = e; liste.push(
-			{ id: 'eMailGonder', text: 'EMail', handler: _e => this.eMailGonderIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) },
-			{ id: 'testBaslat', text: 'Başlat', handler: _e => this.testBaslatIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) }
+		super.islemTuslariDuzenle_listeEkrani(e); const removeIdSet = asSet(['yeni', 'kopya']);
+		let {liste} = e; liste = e.liste = liste.filter(item => !removeIdSet[item.id]);
+		liste.push(
+			{ id: 'eMailGonder', text: 'e-Mail<br/>Gönder', handler: _e => this.eMailGonderIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) },
+			{ id: 'testBaslat', text: 'Test<br/>Başlat', handler: _e => this.testBaslatIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) }
 		)
 	}
 	static rootFormBuilderDuzenle(e) {
@@ -208,7 +210,7 @@ class MQTest extends MQGuidOrtak {
 					}
 				}
 				$(`<div class="resultText">Test tamamlandı.<p/>Teşekkür ederiz.</div>`).appendTo(content);
-				$(`<div class="resultText darkgray" style="font-size: 90%">*<u>programcı</u>*: Sonuçlar için <span class="royalblue">F12 (DevTools) &gt; Console</span> kısmına bakınız</div>`).appendTo(content);
+				if(config.dev) { $(`<div class="resultText darkgray" style="font-size: 90%">*<u>programcı</u>*: Sonuçlar için <span class="royalblue">F12 (DevTools) &gt; Console</span> kısmına bakınız</div>`).appendTo(content) }
 				$(`<span class="cikis-etiket">Çıkmak için basınız => </span>`).appendTo(content);
 				btn = $(`<button class="cikis">[ Çıkış ]</button>`).jqxButton({ theme }).on('click', evt => parentPart.cikisIstendi({ ...e, evt })); btn.appendTo(content);
 				break
@@ -303,7 +305,7 @@ class MQTestCPT extends MQTest {
 						resimGosterimTime = now(); ilkTiklamaTime = null
 					}
 					clearFlag = !clearFlag; return true
-				}; gecerliResimURL = urls[gecerliResimSeq - 1]; urls = shuffle(urls); this._hInterval = setInterval(loopProc, resimArasiSn * 1000 * intervalKatSayi); break
+				}; gecerliResimURL = urls[gecerliResimSeq - 1]; urls = shuffle(urls); this._hInterval = setInterval(loopProc, resimArasiSn * 500 * intervalKatSayi); break
 			case 'end':
 				$('body').off('keydown', keyDownHandler);
 				if (genelSonuc) {
