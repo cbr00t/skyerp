@@ -27,7 +27,9 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 				case 'HASTA': sahalar.add('mua.hastaid hastakod', 'has.aciklama hastaadi'); wh.icerikKisitDuzenle_x({ ...e, belirtec: 'esehasta', saha: 'mua.hastaid' }); break
 				case 'DOKTOR': sahalar.add('mua.doktorid doktorkod', 'dok.aciklama doktoradi'); wh.icerikKisitDuzenle_x({ ...e, belirtec: 'esedoktor', saha: 'mua.doktorid' }); break
 				case 'ILBOLGE': sent.fromIliski('eseilbolge ibol', 'il.ilbolgekod = ibol.kod'); sahalar.add('il.ilbolgekod', 'ibol.aciklama ilbolgeadi'); break;
-				case 'IL': sahalar.add('il.kod ilkod', 'il.aciklama iladi'); break; case 'CINSIYET': sahalar.add(`${Cinsiyet.getClause('has.cinsiyet')} cinsiyet`); break; case 'AKTIFYAS': sahalar.add('fis.aktifyas'); break
+				case 'IL': sahalar.add('il.kod ilkod', 'il.aciklama iladi'); break;
+				case 'CINSIYET': sahalar.add(`${Cinsiyet.getClause('has.cinsiyet')} cinsiyet`); break;
+				case 'AKTIFYAS': sahalar.add('fis.aktifyas'); break
 			}
 		}
 		this.loadServerData_queryDuzenle_tarih({ ...e, alias: 'fis', tarihSaha: 'tarihsaat' }); this.loadServerData_queryDuzenle_ek(e); sent.groupByOlustur()
@@ -78,8 +80,8 @@ class DRapor_ESETest_CPT_Main extends DRapor_ESETest_Main {
 		super.loadServerData_queryDuzenle_ek(e); const {stm, attrSet} = e; let {sent} = stm, {where: wh, sahalar} = sent;
 		for (const key in attrSet) {
 			switch (key) {
-				case 'TUMSAYI': sahalar.add('fis.tumsayi'); break /*case 'GRUPNO': sahalar.add('fis.grupno'); break; case 'GRUPSAYI': sahalar.add('SUM(fis.grupsayi) grupsayi'); break*/
-				case 'DOGRUSAYI': sahalar.add('fis.dogrusayi'); break; case 'YANLISSAYI': sahalar.add('fis.yanlissayi'); break
+				case 'TUMSAYI': sahalar.add('SUM(fis.tumsayi) tumsayi'); break /*case 'GRUPNO': sahalar.add('fis.grupno'); break; case 'GRUPSAYI': sahalar.add('SUM(fis.grupsayi) grupsayi'); break*/
+				case 'DOGRUSAYI': sahalar.add('SUM(fis.dogrusayi) dogrusayi'); break; case 'YANLISSAYI': sahalar.add('SUM(fis.yanlissayi) yanlissayi'); break
 				case 'ORTDOGRUSECIMSURESN': sahalar.add('(case when fis.dogrusayi = 0 then 0 else ROUND(SUM(fis.dogrusecimsuresn) / SUM(fis.dogrusayi), 1) end) ortdogrusecimsuresn'); break
 				case 'ORTYANLISSECIMSURESN': sahalar.add('(case when fis.yanlissayi = 0 then 0 else ROUND(SUM(fis.yanlissecimsuresn) / SUM(fis.yanlissayi), 1) end) ortyanlissecimsuresn'); break
 			}

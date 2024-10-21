@@ -62,7 +62,7 @@ class MQMuayene extends MQGuidOrtak {
 	static async testIslemleriIstendi(e) {
 		const gridPart = e.gridPart ?? e.parentPart ?? e.sender, title = 'Test İşlemleri', {ese} = app.params;
 		const tip2Adi = { cpt: await MQSablonCPT.getGloKod2Adi(ese.sablon.cpt), anket: await MQSablonAnket.getGloKod2Adi(ese.sablon.anket) };
-		app.activeWndPart.openContextMenu({ gridPart, title, formDuzenleyici: _e => {
+		app.activeWndPart.openContextMenu({ gridPart, title, argsDuzenle: _e => $.extend(_e.wndArgs, { height: 310 }), formDuzenleyici: _e => {
 			const {form, close} = _e; form.yanYana(2).addStyle(e => `$elementCSS { padding-top: 40px }`);
 			form.addForm().setLayout(e => $(`<h5 class="bold center royalblue" style="padding-bottom: 13px; margin-right: 20px; border-bottom: 1px solid royalblue">${tip2Adi.cpt || ''}</h5>`));
 			form.addForm().setLayout(e => $(`<h5 class="bold center royalblue" style="padding-bottom: 13px; width: calc(var(--full) / 2 - 45px); border-bottom: 1px solid royalblue">${tip2Adi.anket || ''}</h5>`));
@@ -88,12 +88,18 @@ class MQMuayene extends MQGuidOrtak {
 		}
 		try {
 			await Promise.all(promises); gridPart.tazele(); /*testSinif.listeEkraniAc(e);*/
-			setTimeout(() => { eConfirm(`<b class="bold forestgreen">${bostaIdListe.length}</b> adet <b class="royalblue">${tip.toUpperCase()} Test</b> kaydı açıldı`, sinifAdi) }, 200)
+			setTimeout(e => {
+				let {wnd} = displayMessage((
+					`<p><b class="bold forestgreen">${bostaIdListe.length}</b> adet <b class="royalblue">${tip.toUpperCase()} Test</b> kaydı açıldı</p>` +
+					`<div>Test ekranına gitmek için <a id="testEkraniAc" class="bold" href="#">buraya tıklayınız</a></div>`), sinifAdi);
+				wnd.find('#testEkraniAc').on('click', evt => { $(evt.currentTarget).parents('.jqx-window').jqxWindow('close'); this.testEkraniAcIstendi({ ...e, id: `${tip}TestEkraniAc` }) })
+			}, 200, e)
 		}
 		catch (ex) { hConfirm(getErrorText(ex)); throw ex }
 	}
 	static async testEkraniAcIstendi(e) {
-		const {sinifAdi} = this, tip = e.id.replace('TestEkraniAc', ''), testSinif = MQTest.getClass(tip); if (!testSinif) { hConfirm('Uygun Test Sınıfı belirlenemedi', sinifAdi); return }
+		const {sinifAdi} = this, tip = e.id.replace('TestEkraniAc', ''), testSinif = MQTest.getClass(tip);
+		if (!testSinif) { hConfirm('Uygun Test Sınıfı belirlenemedi', sinifAdi); return }
 		const gridPart = e.gridPart ?? e.parentPart ?? e.sender; let {selectedRecs} = gridPart;
 		selectedRecs = selectedRecs.filter(rec => !!rec[`b${tip == 'anket' ? 'ese' : tip}yapilacak`]);
 		const idListe = selectedRecs?.map(rec => rec.id); return testSinif.listeEkraniAc({

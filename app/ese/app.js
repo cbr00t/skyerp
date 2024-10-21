@@ -32,12 +32,12 @@ class ESEApp extends App {
 				if (sablonAdi) { text += `<div class="royalblue" style="font-weight: normal; font-size: 90%; padding-top: 10px">${sablonAdi}</div>` }
 				parentItem.items.push(new FRMenuChoice({ mne, text, block: e => cls.listeEkraniAc(e) }))
 			} items.push(parentItem);
-			if (parentItem) {
+			/*if (parentItem)*/ {
 				let raporItems = []; for (const cls of MQTest.subClasses) {
 					const {raporSinif} = cls; if (!raporSinif) { continue } const {kodListeTipi: mne} = cls, {sinifAdi: text} = cls;
 					raporItems.push(new FRMenuChoice({ mne, text, block: e => raporSinif.goster(e) }));
 				}
-				if (raporItems?.length) { parentItem.items.push(new FRMenuCascade({ mne: 'RAPOR', text: 'Raporlar', items: raporItems })) }
+				if (raporItems?.length) { /*parentItem.*/ items.push(new FRMenuCascade({ mne: 'RAPOR', text: 'Raporlar', items: raporItems })) }
 			}
 			items.push(new FRMenuChoice({ mne: MQParam_ESE.paramKod, text: MQParam_ESE.sinifAdi, block: e => app.params.ese.tanimla(e) }))
 		}
