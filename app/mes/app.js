@@ -28,7 +28,7 @@ class MESApp extends App {
 	}
 	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e) }
 	async afterRun(e) { await super.afterRun(e); this.tazele_startTimer(e) }
-	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { mes: MQParam_MES.getInstance(), hatYonetimi: MQParam_HatYonetimi.getInstance() }) }
+	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { localData: MQLocalData.getInstance(), mes: MQParam_MES.getInstance(), hatYonetimi: MQParam_HatYonetimi.getInstance() }) }
 	getAnaMenu(e) {
 		/* const disabledMenuIdSet = this.disabledMenuIdSet || {}; */
 		const items = [ new FRMenuChoice({ mnemonic: 'HAT-YONETIMI', text: 'Hat Yönetimi', block: e => MQHatYonetimi.listeEkraniAc() }) ]

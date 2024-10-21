@@ -17,7 +17,7 @@ class MQLocalData extends MQYerelParamApp {
 	async kaydetIslemi(e) {
 		let fh = await this.getFSFileHandle({ create: true }); if (!fh) { return null }
 		const {rec, hv} = e; if (rec == null || (hv && $.isEmptyObject(hv.data))) {
-			try { await fh.remove(); fh = this.fh = this.data = {} } catch (ex) { console.error(ex) }; return }
+			try { await fh.remove(); fh = this.fh = null; this.data = {} } catch (ex) { console.error(ex) }; return }
 		let data = rec; if (typeof data != 'string') { data = toJSONStr(data) }
 		const wr = await fh.createWritable(); try { await wr.write(data); await wr.write('\r\n') } finally { try { await wr.close() } catch (ex) { } } return true
 		/*sw = await wh?.getWriter(); try { await sw.write(data); await sw.write('\r\n') } finally { try { await sw.releaseLock(); await wh.close() } catch (ex) { } }*/
