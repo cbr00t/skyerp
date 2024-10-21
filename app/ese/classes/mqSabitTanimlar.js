@@ -157,7 +157,7 @@ class MQHasta extends MQGuidVeAdiOrtak {
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPanel, tabPage_genel} = e, {yakinSayi} = this;
 		let form = tabPage_genel.addFormWithParent().yanYana(2); form.addTextInput('tcKimlikNo', 'T.C Kimlik No').setMaxLength(11).addStyle_wh(200);
-		form.addModelKullan('cinsiyet', 'Cinsiyet').dropDown().kodsuz().noMF().addStyle_wh(150);
+		form.addModelKullan('cinsiyet', 'Cinsiyet').dropDown().kodsuz().noMF().setSource(e => Cinsiyet.kaListe).addStyle_wh(150);
 		form.addTextInput('tel', 'Telefon').setMaxLength(13).addStyle_wh(150); form.addDateInput('dogumTarihi', 'Doğum Tarihi');
 		form.addTextInput('eMail', 'e-Mail').setMaxLength(80); form.addModelKullan('okulTipId', 'Okul Tipi').comboBox().kodsuz().autoBind().setMFSinif(MQOkulTipi).addStyle_wh(200);
 		form.addModelKullan('yerlesimKod', 'Yerleşim').comboBox().kodsuz().autoBind().setMFSinif(MQYerlesim).addStyle_wh(300);

@@ -14,7 +14,7 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 			.addGrup(new TabloYapiItem().setKA('IL', 'İl').setMFSinif(MQCariIl).addColDef(new GridKolon({ belirtec: 'il', text: 'İl', filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('CINSIYET', 'Cinsiyet').addColDef(new GridKolon({ belirtec: 'cinsiyet', text: 'Cinsiyet', filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('AKTIFYAS', 'Aktif Yaş').addColDef(new GridKolon({ belirtec: 'aktifyas', text: 'Aktif Yaş', genislikCh: 25, filterType: 'checkedlist' }).tipNumerik()))
-			.addGrup(new TabloYapiItem().setKA('YASGRUP', 'Yaş Grubu').addColDef(new GridKolon({ belirtec: 'yasgrubu', text: 'Yaş Grubu', genislikCh: 25, filterType: 'checkedlist' }).tipNumerik()))
+			.addGrup(new TabloYapiItem().setKA('YASGRUP', 'Yaş Grubu').noOrderBy().addColDef(new GridKolon({ belirtec: 'yasgrupadi', text: 'Yaş Grubu', genislikCh: 25, filterType: 'checkedlist' }).tipNumerik()))
 	}
 	loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {stm, attrSet} = e; let {sent} = stm, {where: wh, sahalar} = sent;
@@ -29,13 +29,26 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 				case 'ILBOLGE': sent.fromIliski('eseilbolge ibol', 'il.ilbolgekod = ibol.kod'); sahalar.add('il.ilbolgekod', 'ibol.aciklama ilbolgeadi'); break;
 				case 'IL': sahalar.add('il.kod ilkod', 'il.aciklama iladi'); break;
 				case 'CINSIYET': sahalar.add(`${Cinsiyet.getClause('has.cinsiyet')} cinsiyet`); break;
-				case 'AKTIFYAS': sahalar.add('fis.aktifyas'); break
+				case 'AKTIFYAS': case 'YASGRUP': sahalar.add('fis.aktifyas'); break
 			}
 		}
 		this.loadServerData_queryDuzenle_tarih({ ...e, alias: 'fis', tarihSaha: 'tarihsaat' }); this.loadServerData_queryDuzenle_ek(e); sent.groupByOlustur()
 	}
 	loadServerData_queryDuzenle_ek(e) { }
 	loadServerData_queryDuzenle_son(e) { const {stm, attrSet} = e, {orderBy} = stm; super.loadServerData_queryDuzenle_son(e) }
+	async loadServerData_recsDuzenle(e) {
+		await super.loadServerData_recsDuzenle(e); const {attrSet} = this.raporTanim, {recs} = e;
+		if (attrSet.YASGRUP) {
+			let {_yasGrupRecs: yasGrupRecs} = this; if (!yasGrupRecs) {
+				let sent = new MQSent({ from: 'eseyasgrup', sahalar: ['id', 'aciklama', 'yasbasi basi', 'yassonu sonu'] });
+				yasGrupRecs = this._yasGrupRecs = await app.sqlExecSelect(sent)
+			}
+			for (const rec of recs) {
+				const {aktifyas: aktifYas} = rec, yasGrupRec = yasGrupRecs.find(_rec => (!_rec.basi || _rec.basi >= aktifYas) && (!_rec.sonu || _rec.sonu <= aktifYas));
+				if (yasGrupRec) { $.extend(rec, { yasgrupid: yasGrupRec.id, yasgrupadi: yasGrupRec.aciklama }) }
+			}
+		}
+	}
 	/*async loadServerDataInternal(e) {
 		await super.superSuper_loadServerDataInternal(e); const {raporTanim, secimler} = this, {attrSet} = raporTanim, {maxRow} = e;
 		return [
@@ -80,10 +93,10 @@ class DRapor_ESETest_CPT_Main extends DRapor_ESETest_Main {
 		super.loadServerData_queryDuzenle_ek(e); const {stm, attrSet} = e; let {sent} = stm, {where: wh, sahalar} = sent;
 		for (const key in attrSet) {
 			switch (key) {
-				case 'TUMSAYI': sahalar.add('SUM(fis.tumsayi) tumsayi'); break /*case 'GRUPNO': sahalar.add('fis.grupno'); break; case 'GRUPSAYI': sahalar.add('SUM(fis.grupsayi) grupsayi'); break*/
-				case 'DOGRUSAYI': sahalar.add('SUM(fis.dogrusayi) dogrusayi'); break; case 'YANLISSAYI': sahalar.add('SUM(fis.yanlissayi) yanlissayi'); break
-				case 'ORTDOGRUSECIMSURESN': sahalar.add('(case when fis.dogrusayi = 0 then 0 else ROUND(SUM(fis.dogrusecimsuresn) / SUM(fis.dogrusayi), 1) end) ortdogrusecimsuresn'); break
-				case 'ORTYANLISSECIMSURESN': sahalar.add('(case when fis.yanlissayi = 0 then 0 else ROUND(SUM(fis.yanlissecimsuresn) / SUM(fis.yanlissayi), 1) end) ortyanlissecimsuresn'); break
+				case 'TUMSAYI': sahalar.add('AVG(fis.tumsayi) tumsayi'); break /*case 'GRUPNO': sahalar.add('fis.grupno'); break; case 'GRUPSAYI': sahalar.add('SUM(fis.grupsayi) grupsayi'); break*/
+				case 'DOGRUSAYI': sahalar.add('AVG(fis.dogrusayi) dogrusayi'); break; case 'YANLISSAYI': sahalar.add('AVG(fis.yanlissayi) yanlissayi'); break
+				case 'ORTDOGRUSECIMSURESN': sahalar.add('AVG(fis.ortdogrusecimsuresn) ortdogrusecimsuresn'); break
+				case 'ORTYANLISSECIMSURESN': sahalar.add('AVG(fis.ortdogrusecimsuresn) ortyanlissecimsuresn'); break
 			}
 		}
 	}
