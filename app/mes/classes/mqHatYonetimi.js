@@ -166,7 +166,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 	static async loadServerData_internal(e) {
 		e = e || {}; const gridPart = e.gridPart ?? e.sender, {wsArgs} = e, tezgahKod2Rec = {}, isID2TezgahKodSet = {}, action_otoTazeleFlag = e.action == 'otoTazele';
 		const hatKod = app.sabitHatKod || gridPart.hatKod, {excludeTezgahKod} = gridPart; if (hatKod) { $.extend(wsArgs, { hatIdListe: hatKod }) }
-		let recs = await app.wsTezgahBilgileri(wsArgs); /*this.ekNotlarYapi = await app.wsEkNotlar();*/
+		let recs = await app.wsTezgahBilgileri(wsArgs); /* ekNotlarYapi = this.ekNotlarYapi = await app.wsEkNotlar(); */
 		if (recs) {
 			/*let {_lastRecsHash, _lastRecs} = this, recsHash = this._lastRecsHash = toJSONStr(recs); if (_lastRecsHash && recsHash == _lastRecsHash && _lastRecs) { return _lastRecs }*/
 			const {durumKod2KisaAdi} = app, donusum = { hatID: 'hatKod', hatAciklama: 'hatAdi', id: 'tezgahKod', aciklama: 'tezgahAdi' };
@@ -200,8 +200,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 		}
 		if (!action_otoTazeleFlag && tezgahKod2Rec && !$.isEmptyObject(isID2TezgahKodSet)) {
 			for (let [isId, tezgahKodSet] of Object.entries(isID2TezgahKodSet)) {
-				isId = asInteger(isId);
-				let rec; try { rec = await app.wsGorevZamanEtuduVeriGetir({ isId }); if (!rec?.bzamanetudu) { rec = null } } catch (ex) { } if (!rec) { continue }
+				isId = asInteger(isId); let rec; try { rec = await app.wsGorevZamanEtuduVeriGetir({ isId }); if (!rec?.bzamanetudu) { rec = null } } catch (ex) { } if (!rec) { continue }
 				for (const tezgahKod in tezgahKodSet) { rec = tezgahKod2Rec[tezgahKod]; if (rec) { rec.zamanEtuduVarmi = true } }
 			}
 		}
@@ -216,8 +215,14 @@ class MQHatYonetimi extends MQMasterOrtak {
 				/* styles_bgImg.push(`mix-blend-mode: difference`) */
 				rec.grupText = `<div class="grid-cell-group" style="${styles_bgImg.join('; ')}"><div style="mix-blend-mode: plus-lighter"><b>(${rec.hatKod})</b> ${rec.hatAdi}</div></div>`
 			}
-		}
-		gridPart._lastRecs = recs;
+		} gridPart._lastRecs = recs;
+
+		MQEkNotlar.loadServerData().then(recs => {
+			const gridPart = e.gridPart ?? e.sender, btnTumEkNotlar = gridPart.islemTuslari.find('button#tumEkNotlar'); if (btnTumEkNotlar?.length) { btnTumEkNotlar.removeClass('yeni-not') }
+			let maxId = 0; for (const rec of recs) { maxId = Math.max(maxId, rec.kaysayac) } if (!maxId) { return }
+			const {localData} = app.params; let ekNotLastReadId = asInteger(localData.getData('ekNotLastReadId')); if (ekNotLastReadId >= maxId) { return }
+			if (btnTumEkNotlar?.length) { btnTumEkNotlar.addClass('yeni-not') }
+		});
 		/*let {_lastRecs} = gridPart;
 		if (_lastRecs && recs && _lastRecs?.length == recs?.length) { for (let i = 0; i < recs.length; i++) { const rec = _lastRecs[i], _rec = recs[i]; $.extend(rec, _rec) } } else { _lastRecs = gridPart._lastRecs = recs }
 		return _lastRecs */
@@ -436,7 +441,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 	static ekNotlarIstendi(e) {
 		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, hepsimi = e.hepsi ?? e.hepsimi;
 		const rec = e.rec ?? gridPart.selectedRec ?? {}; const {hatKod} = rec;
-		MQEkNotlar.listeEkraniAc({ secimlerDuzenle: e => {
+		MQEkNotlar.listeEkraniAc({ kapaninca: e => gridPart.tazele({ action: 'otoTazele' }), secimlerDuzenle: e => {
 			const sec = e.secimler, isHidden = !!app.params.config.hatKod;
 			if (!hepsimi && hatKod) { $.extend(sec.hatKod, { birKismimi: true, value: hatKod, isHidden }); sec.hatAdi.isHidden = isHidden }
 		}})

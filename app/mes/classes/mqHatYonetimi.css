@@ -1,3 +1,6 @@
+.MQHatYonetimi.masterListe.part .header .islemTuslari button#tumEkNotlar.yeni-not.jqx-fill-state-normal {
+	color: #333; background-color: #608ad3; animation: 1000ms cubic-bezier(0.1, 0, 1, 1) 0ms infinite normal yeni-not }
+@keyframes yeni-not { 50% { background-color: #60c1d3 } }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * { --height-alt: 60px; --width-ust-sag: 30px; --width-alt-sag: 170px; --etiket-width: 25px; height: var(--full) }
 /*.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > *:not(.jqx-grid-cell-pinned):not(.jqx-grid-cell-selected) { background: whitesmoke }*/
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > *:not(.jqx-grid-cell-pinned) { border: 1px solid #aaa }
