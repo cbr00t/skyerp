@@ -1,6 +1,6 @@
 class MQSablon extends MQDetayliGUIDVeAdiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Şablon' } static get tip() { return null }
-	static get kod() { return this.tip } static get aciklama() { return null }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return null } static get sinifAdi() { return 'Şablon' }
+	static get kod() { return this.tip } static get aciklama() { return null } static get maxSayi() { return 1 }
 	static get kodListeTipi() { return 'SABLON' } static get tableAlias() { return 'sab' } static get detaySinif() { return MQSablonDetay }
 	static get tip2Sinif() {
 		let result = this._tip2Sinif; if (result == null) {
@@ -140,7 +140,7 @@ class MQSablonCPTGridci extends MQSablonGridci {
 }
 
 class MQSablonAnket extends MQSablon {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Anket Şablon' }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Anket Şablon' } static get maxSayi() { return 3 }
 	static get tip() { return 'anket' } static get aciklama() { return 'Anket' } static get kodListeTipi() { return 'SABANKET' } static get table() { return 'eseanketsablon' }
 	static get detaySinif() { return MQSablonAnketDetay } static get gridKontrolcuSinif() { return MQSablonAnketGridci }
 	static pTanimDuzenle(e) {
@@ -190,22 +190,5 @@ class MQSablonAnketGridci extends MQSablonGridci {
 		let recs = e.recs = e.recs || []; const {gridDetaySinif} = fis.class;
 		for (let i = 0; i < 50; i++) { recs.push(gridDetaySinif ? new gridDetaySinif() : {}) }
 		return true
-	}
-}
-class MQSablonAnketYanit extends MQGuidVeAdiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Anket Yanıt' } static get maxSecenekSayisi() { return 5 }
-	static get kodListeTipi() { return 'ANKETYANIT' } static get table() { return 'eseanketyanit' } static get tableAlias() { return 'ynt' }
-	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); const {pTanim} = e, {maxSecenekSayisi} = this;
-		for (let i = 1; i <= maxSecenekSayisi; i++) { const key = `secenek${i}`; pTanim[key] = new PInstStr(key) }
-	}
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e, {maxSecenekSayisi} = this;
-		for (let i = 1; i <= maxSecenekSayisi; i++) { liste.push(new GridKolon({ belirtec: `secenek${i}`, text: `Seçenek ${i}`, genislikCh: 200 })) }
-	}
-	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPanel, tabPage_genel} = e, {maxSecenekSayisi} = this;
-		let form = tabPage_genel.addFormWithParent().altAlta();
-		for (let i = 1; i <= maxSecenekSayisi; i++) { form.addTextInput(`secenek${i}`, `Seçenek ${i}`).setMaxLength(50) }
 	}
 }
