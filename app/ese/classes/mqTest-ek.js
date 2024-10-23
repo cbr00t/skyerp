@@ -31,18 +31,20 @@ class TestSonuc extends CObject {
 }
 class TestSonucCPT extends TestSonuc {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return MQTestCPT.tip }
-	static get reduceKeys() { return [...super.reduceKeys, ...this.parentKeys] } static get parentKeys() { return ['dogru', 'yanlis'] }
+	static get parentKeys() { return ['dogru', 'yanlis'] } static get reduceKeys() { return [...super.reduceKeys, ...this.parentKeys, 'secilmeyenDogruSayi'] }
 	constructor(e) {
 		e = e || {}; super(e); for (const parentKey of this.class.parentKeys) {
 			let parent = this[parentKey] = e[parentKey] ?? {};
 			for (const key of ['sayi', 'adat', 'secimSure']) { parent[key] = parent[key] ?? 0 }
 		}
+		for (const key of ['secilmeyenDogruSayi']) { this[key] = parent[key] ?? 1 }
 		console.info('test', 'new', this)
 	}
-	tiklamaEkle(dogrumu, sureSn) {
+	tiklamaEkle(dogrumu, sureMS) {
 		let parent = this[dogrumu ? 'dogru' : 'yanlis']; parent.sayi++;
-		parent.adat = roundToFra(parent.adat + sureSn * (config.dev ? MQTestCPT.intervalKatSayi : 1), 1);
-		/*console.info('test', this, dogrumu, sureSn, parent);*/ return this
+		parent.adat = roundToFra(parent.adat + sureMS * (config.dev ? MQTestCPT.intervalKatSayi : 1), 1);
+		if (dogrumu) { this.secilmeyenDogruSayi = Math.max(this.secilmeyenDogruSayi - 1, 0) }
+		/*console.info('test', this, dogrumu, sureMS, parent);*/ return this
 	}
 	ortalamaOlustur() {
 		for (const parentKey of this.class.parentKeys) {

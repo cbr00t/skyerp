@@ -30,3 +30,4 @@
 .modelTanim.part .jqx-grid-cell { }
 .modelTanim.part .jqx-dropdownlist,
 .modelTanim.part .jqx-combobox { }
+.modelTanim.part [data-builder-id = kaForm] { z-index: 1001 }

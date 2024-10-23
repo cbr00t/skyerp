@@ -19,13 +19,14 @@ class MQTest extends MQGuidOrtak {
 
 	constructor(e) {
 		e = e || {}; super(e); const {sablonTip} = this.class; $.extend(this, { sablonAdi: e.sablonAdi });
-		if (sablonTip) { const {sablon} = app.params.ese || {}; this.sablonId = this.sablonId || sablon[sablonTip] }
+		if (sablonTip) { const {sablon} = app.params.ese; this.sablonId = this.sablonId || sablon?.[sablonTip]?.[0]?.sablonId }
 	}
 	static getClass(e) { const tip = typeof e == 'object' ? e.tip : e; return this.tip2Sinif[tip] }
 	static newFor(e) { if (typeof e != 'object') { e = { tip: e } } const cls = this.getClass(e); return cls ? new cls(e) : null }
 	static pTanimDuzenle(e) {
 		const {sablonTip} = this; super.pTanimDuzenle(e); $.extend(e.pTanim, {
-			muayeneId: new PInstGuid('muayeneid'), tarihSaat: new PInstDate('tarihsaat'), tamamlandimi: new PInstBitBool('btamamlandi'),
+			tarihSaat: new PInstDate('tarihsaat'), tamamlandimi: new PInstBitBool('btamamlandi'),
+			muayeneId: new PInstGuid('muayeneid'), hastaId: new PInstGuid('hastaid'),
 			uygulanmaYeri: new PInstTekSecim('uygulanmayeri', MQTestUygulanmaYeri), onayKodu: new PInstNum('onaykodu'),
 			sablonId: new PInstGuid(`${sablonTip == 'anket' ? 'ese' : sablonTip}sablonid`), aktifYas: new PInstNum('aktifyas')
 		})
@@ -36,13 +37,14 @@ class MQTest extends MQGuidOrtak {
 			tamamlandiDurumu: new SecimTekSecim({ etiket: 'Tamamlanma Durumu', tekSecim: new BuDigerVeHepsi([`<span class="forestgreen">Tamamlananlar</span>`, `<span class="darkred">TamamlanMAyanlar</span>`]) }),
 			tarih: new SecimDate({ etiket: 'Tarih/Saat' }), aktifYas: new SecimInteger({ etiket: 'Aktif Yaş' }),
 			sablonAdi: new SecimOzellik({ etiket: 'Şablon Adı' }), hastaAdi: new SecimOzellik({ etiket: 'Hasta İsim' }), doktorIsim: new SecimOzellik({ etiket: 'Doktor İsim' }),
-			sablonId: new SecimBasSon({ etiket: 'Şablon', mfSinif: this.sablonSinif, grupKod: 'teknik' }),muayeneId: new SecimBasSon({ etiket: 'Muayene', mfSinif: MQMuayene, grupKod: 'teknik' })
+			sablonId: new SecimBasSon({ etiket: 'Şablon', mfSinif: this.sablonSinif, grupKod: 'teknik' }), muayeneId: new SecimBasSon({ etiket: 'Muayene', mfSinif: MQMuayene, grupKod: 'teknik' }),
+			hastaId: new SecimBasSon({ etiket: 'Hasta', mfSinif: MQHasta, grupKod: 'teknik' })
 		}).whereBlockEkle(({ secimler: sec, where: wh }) => {
 			const {tableAlias: alias} = this;
 			let tSec = sec.tamamlandiDurumu.tekSecim; if (!tSec.hepsimi) { wh.add(tSec.getBoolBitClause(`${alias}.btamamlandi`)) }
 			wh.basiSonu({ basi: sec.tarih.basi, sonu: sec.tarih.sonu?.yarin().clone().clearTime() }, `${alias}.tarihsaat`);
 			wh.ozellik(sec.sablonAdi, 'sab.aciklama').basiSonu(sec.aktifYas, `${alias}.aktifyas`).ozellik(sec.hastaAdi, 'has.aciklama').ozellik(sec.doktorAdi, 'dok.aciklama');
-			wh.basiSonu(sec.muayeneId, `${alias}.muayeneid`).basiSonu(sec.sablonId, `${alias}.sablonid`)
+			wh.basiSonu(sec.sablonId, `${alias}.sablonid`).basiSonu(sec.muayeneId, `${alias}.muayeneid`).basiSonu(sec.hastaId, `${alias}.hastaid`)
 			
 		})
 	}
@@ -53,28 +55,31 @@ class MQTest extends MQGuidOrtak {
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {tableAlias: alias} = this, {liste} = e, {dev} = config;
 		liste.push(...[
-			(dev ? new GridKolon({ belirtec: 'muayeneid', text: 'Muayene ID', genislikCh: 40 }) : null),
 			new GridKolon({ belirtec: 'sablonadi', text: 'Şablon Adı', genislikCh: 35, sql: 'sab.aciklama' }),
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 10, sql: `${alias}.tarihsaat` }).tipDate(),
 			new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 9, sql: `${alias}.tarihsaat` }).tipTime(),
-			new GridKolon({ belirtec: 'btamamlandi', text: 'Tamam?', genislikCh: 8 }).tipBool(),
-			new GridKolon({ belirtec: 'onaykodu', text: 'Onay Kodu', genislikCh: 10 }),
-			new GridKolon({ belirtec: 'aktifyas', text: 'Aktif Yaş', genislikCh: 9 }).tipNumerik(),
+			new GridKolon({ belirtec: 'btamamlandi', text: 'Tamam?', genislikCh: 8 }).tipBool().noSql(),
+			new GridKolon({ belirtec: 'onaykodu', text: 'Onay Kodu', genislikCh: 10 }).noSql(),
+			new GridKolon({ belirtec: 'aktifyas', text: 'Aktif Yaş', genislikCh: 9 }).tipNumerik().noSql(),
 			new GridKolon({ belirtec: 'hastaadi', text: 'Hasta Adı', genislikCh: 40, sql: 'has.aciklama' }),
 			new GridKolon({ belirtec: 'doktoradi', text: 'Doktor Adı', genislikCh: 40, sql: 'dok.aciklama' }),
+			new GridKolon({ belirtec: 'email', text: 'Hasta e-Mail', genislikCh: 40, sql: 'has.email' }).noSql(),
 			new GridKolon({ belirtec: 'seri', text: 'Seri', genislikCh: 5, sql: 'mua.seri' }),
 			new GridKolon({ belirtec: 'fisno', text: 'No', genislikCh: 17, sql: 'mua.fisno' }).tipNumerik(),
-			new GridKolon({ belirtec: 'uygulanmayeritext', text: 'Uygulanma Yeri', genislikCh: 15, sql: MQTestUygulanmaYeri.getClause(`${alias}.uygulanmayeri`) })
+			new GridKolon({ belirtec: 'uygulanmayeritext', text: 'Uygulanma Yeri', genislikCh: 15, sql: MQTestUygulanmaYeri.getClause(`${alias}.uygulanmayeri`) }),
+			(dev ? new GridKolon({ belirtec: 'muayeneid', text: 'Muayene ID', genislikCh: 40 }) : null),
+			(dev ? new GridKolon({ belirtec: 'hastaid', text: 'Hasta ID', genislikCh: 40 }) : null),
+			(dev ? new GridKolon({ belirtec: 'doktorid', text: 'Hasta ID', genislikCh: 40 }) : null)
 		].filter(x => !!x))
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {sent} = e, {tekilOku: tekilOkuFlag} = e;
 		const {tableAlias: alias, sablonSinif, pTanim} = this, {rowAttr: sablonIdSaha} = pTanim.sablonId;
 		sent.leftJoin({ alias, from: `${sablonSinif.table} sab`, on: `${alias}.${sablonIdSaha} = sab.id` })
+			.leftJoin({ alias, from: 'esehasta has', on: `${alias}.hastaid = has.id` })
 			.leftJoin({ alias, from: 'esemuayene mua', on: `${alias}.muayeneid = mua.id` })
-			.leftJoin({ alias: 'mua', from: 'esehasta has', on: 'mua.hastaid = has.id' })
 			.leftJoin({ alias: 'mua', from: 'esedoktor dok', on: 'mua.doktorid = dok.id' });
-		sent.sahalar.add(`${alias}.btamamlandi`, `${alias}.uygulanmayeri`, `${alias}.onaykodu`, 'has.email', 'sab.aciklama sablonAdi');
+		sent.sahalar.add(`${alias}.btamamlandi`, `${alias}.uygulanmayeri`, `${alias}.onaykodu`, `${alias}.aktifyas`, 'has.aciklama hastaAdi', 'has.email', 'sab.aciklama sablonAdi');
 		if (tekilOkuFlag) { sent.sahalar.liste = sent.sahalar.liste.filter(saha => !saha.deger.includes('SUM(')) }
 		else { sent.groupByOlustur() }
 	}
@@ -87,32 +92,35 @@ class MQTest extends MQGuidOrtak {
 		)
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); const {tanimFormBuilder: tanimForm} = e;
+		super.rootFormBuilderDuzenle(e); const {tanimFormBuilder: tanimForm} = e, {sinifAdi, sablonSinif} = this;
 		let form = tanimForm.addFormWithParent().altAlta();
-			form.addModelKullan('sablonId', 'Şablon').dropDown().kodsuz().setMFSinif(this.sablonSinif);
+			form.addModelKullan('sablonId', 'Şablon').dropDown().kodsuz().setMFSinif(sablonSinif);
 			form.addCheckBox('tamamlandimi', 'Tamamlandı').addStyle(e => `$elementCSS { margin-top: 10px !important }`);
 		tanimForm.addDiv('ozetBilgi').etiketGosterim_yok().addCSS('bold gray').addStyle_fullWH(null, 'auto').addStyle(e => `$elementCSS { font-size: 120%; padding: 10px 20px }`)
 			.onAfterRun(async e => {
 				const {altInst: inst, input} = e.builder, {sablonId, tarihSaat, muayeneId, tamamlandimi} = inst, {sablonTip} = inst.class;
-				let {uygulanmaYeri, onayKodu, aktifYas} = inst, sablonAdi, muayeneRec;
+				let {uygulanmaYeri, onayKodu, aktifYas, hastaAdi} = inst, sablonAdi, muayeneRec;
 				/*if (sablonTip && sablonId) { sablonAdi = (await MQSablon.getClass(sablonTip)?.getGloKod2Adi(sablonId)) || '' }*/
 				if (muayeneId) { muayeneRec = await new MQMuayene({ id: muayeneId }).tekilOku() }
 				uygulanmaYeri = uygulanmaYeri?.char ?? uygulanmaYeri;
 				const addItem = (elm, css, style) => {
 					if (elm && !elm.html) { elm = $(`<div class="full-width">${elm}</div>`) }
-					if (!elm?.length) { return } let parent = $(`<div class="full-width"${style ? ` style="${style}"` : ''}/>`); if (css) { parent.addClass(css) }
-					elm.appendTo(parent); parent.appendTo(input)
+					if (elm?.length) { let parent = $(`<div class="full-width"${style ? ` style="${style}"` : ''}/>`); if (css) { parent.addClass(css) } elm.appendTo(parent); parent.appendTo(input) }
 				};
-				if (sablonAdi) { addItem(`<span class="gray etiket">Şablon:</span> <b class="veri forestgreen">${sablonAdi}</b>`, 'flex-row'), `font-size: 130%` }
-				/*addItem(`${tarihSaat ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri">${dateTimeAsKisaString(tarihSaat)}</b>` : ''} ${tamamlandimi ? `<div class="forestgreen" style="margin-left: "20px">Tamamlandı</b>` : ''}`, 'flex-row');*/
+				/*if (sablonAdi) { addItem(`<span class="gray etiket">Şablon:</span> <b class="veri forestgreen">${sablonAdi}</b>`, 'flex-row'), `font-size: 130%` }
+				addItem(`${tarihSaat ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri">${dateTimeAsKisaString(tarihSaat)}</b>` : ''} ${tamamlandimi ? `<div class="forestgreen" style="margin-left: "20px">Tamamlandı</b>` : ''}`, 'flex-row');*/
 				addItem(`${tarihSaat ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri">${dateTimeAsKisaString(tarihSaat)}</b>` : ''}`, 'flex-row');
-				if (muayeneRec) { addItem(`<span class="gray etiket">Muayene:</span> <b class="veri">${muayeneRec.fisnox}</b> - <b class="gray">${muayeneRec.hastaadi}</b> - (Yaş: <b class="forestgreen">${aktifYas}</b>)`, 'flex-row') }
-				if (uygulanmaYeri) { addItem(`<span class="kgray etiket">Uygulanma Yeri:</span> <b>${MQTestUygulanmaYeri.kaDict[uygulanmaYeri]?.aciklama || ''}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }
+				addItem(
+						(muayeneRec ? `<span class="gray etiket">Muayene:</span> <b class="veri">${muayeneRec.fisnox}</b> - ` : '') +
+						`<b class="gray">${hastaAdi}</b> - (Yaş: <b class="forestgreen">${aktifYas}</b>)`,
+					'flex-row')
+				if (uygulanmaYeri) { addItem(`<span class="kgray etiket">Uygulanma Yeri:</span> <b>${MQTestUygulanmaYeri.kaDict[uygulanmaYeri]?.aciklama || ''}</b>`, 'flex-row') }
 				if (onayKodu) { addItem(`<span class="gray etiket">Onay Kodu:</span> <u class="onayKodu veri bold royalblue">${onayKodu}</u>`, null, `margin-top: 30px; cursor: pointer`) }
 				let elm = input.find('.onayKodu.veri'); if (elm?.length) {
-					elm.on('click', evt => { navigator.clipboard.writeText(onayKodu).then(() => eConfirm('Onay Kodu panoya kopyalandı!', this.sinifAdi)) }) }
+					elm.on('click', evt => { navigator.clipboard.writeText(onayKodu).then(() => eConfirm('Onay Kodu panoya kopyalandı!', sinifAdi)) }) }
 			})
 	}
+	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { hastaAdi: rec.hastaadi, doktorAdi: rec.doktoradi }) }
 	static async eMailGonderIstendi(e) {
 		const {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender;
 		let {selectedRecs} = gridPart; if (!selectedRecs?.length) { hConfirm('Kayıtlar seçilmelidir', sinifAdi); return null }
@@ -123,10 +131,10 @@ class MQTest extends MQGuidOrtak {
 		try {
 			let result = await this.eMailGonder({ ...e, recs: selectedRecs });
 			eConfirm(`Toplu e-Mail Gönderimi Bitti<p/>` +
-				(result?.send ? `<div><span class="darkgray">Başarılı:</span> <b class="green">${result?.send ?? '??'}</b></div>` : '') +
-				(result?.error ? `<div><span class="darkgray">Hatalı:</span> <b class="red">${result?.error ?? '??'}</b></div>` : '') +
-				(result?.total ? `<div><span class="darkgray">Toplam:</span> <b class="royalblue">${result?.total ?? '??'}</b></div>` : '')
-			, sinifAdi);
+					(result?.send ? `<div><span class="darkgray">Başarılı:</span> <b class="green">${result?.send ?? '??'}</b></div>` : '') +
+					(result?.error ? `<div><span class="darkgray">Hatalı:</span> <b class="red">${result?.error ?? '??'}</b></div>` : '') +
+					(result?.total && (result?.send && result?.error) ? `<div><span class="darkgray">Toplam:</span> <b class="royalblue">${result?.total ?? '??'}</b></div>` : '')
+				, sinifAdi);
 			return result
 		}
 		finally { window.progressManager?.progressEnd(); setTimeout(() => hideProgress(), 100) }
@@ -150,9 +158,9 @@ class MQTest extends MQGuidOrtak {
 			finally { progressManager?.progressStep(promises.length); allResults.total += promises.length; promises = [] }
 		}
 		progressManager?.setProgressMax(recs.length); const eMailAuth = await app.getEMailAuth();
-		for (const rec of recs) {
+		const {DefaultWSHostName_SkyServer} = sky.config.class; for (const rec of recs) {
 			if (pAborted?.result) { break } const {email: to, hastaadi: hastaAdi, onaykodu: onayKodu} = rec;
-			const url = `https://cloud.vioyazilim.com.tr:90/skyerp/app/ese/?hostname=cloud.vioyazilim.com.tr&user=${to}&pass=${onayKodu}&`;
+			const url = `${location.origin}/skyerp/app/ese/?ssl&hostname=${DefaultWSHostName_SkyServer}&user=${to}&pass=${onayKodu}&`;
 			promises.push(app.wsEMailGonder({ data: {
 				...eMailAuth, to, subject: 'ESE Test', body: (
 					`<div style="font-size: 14pt;">
@@ -182,7 +190,7 @@ class MQTest extends MQGuidOrtak {
 	}
 	testUI_setValues(e) {
 		const {rec} = e; if (!rec) { return }
-		let keys = ['sablonID', 'sablonAdi', 'hastaID', 'doktorID', 'hastaAdi', 'doktorAdi'];
+		let keys = ['id', 'muayeneID', 'sablonID', 'sablonAdi', 'hastaID', 'doktorID', 'hastaAdi', 'doktorAdi'];
 		for (const key of keys) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
 		$.extend(this, { tarihSaat: now(), detaylar: rec.detaylar || [] })
 	}
@@ -230,20 +238,21 @@ class MQTestCPT extends MQTest {
 			new GridKolon({ belirtec: 'grupsayi', text: 'Grup Sayı', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'dogrusayi', text: 'Doğru Sayı', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'yanlissayi', text: 'Yanlış Sayı', genislikCh: 10 }).tipNumerik(),
-			new GridKolon({ belirtec: 'ortdogrusecimsuresn', text: 'Ort. Doğru Seçim(sn)', genislikCh: 23, sql: `(case when ${alias}.dogrusayi = 0 then 0 else ROUND(SUM(${alias}.dogrusecimsuresn) / SUM(${alias}.dogrusayi), 1) end)` }).tipDecimal(1),
-			new GridKolon({ belirtec: 'ortyanlissecimsuresn', text: 'Ort. Yanlış Seçim(sn)', genislikCh: 23, sql: `(case when ${alias}.yanlissayi = 0 then 0 else ROUND(SUM(${alias}.yanlissecimsuresn) / SUM(${alias}.yanlissayi), 1) end)` }).tipDecimal(1),
+			new GridKolon({ belirtec: 'ortdogrusecimsurems', text: 'Ort. Doğru Seçim(ms)', genislikCh: 23, sql: `(case when ${alias}.dogrusayi = 0 then 0 else ROUND(SUM(${alias}.dogrusecimsurems) / SUM(${alias}.dogrusayi), 1) end)` }).tipDecimal(1),
+			new GridKolon({ belirtec: 'ortyanlissecimsurems', text: 'Ort. Yanlış Seçim(ms)', genislikCh: 23, sql: `(case when ${alias}.yanlissayi = 0 then 0 else ROUND(SUM(${alias}.yanlissecimsurems) / SUM(${alias}.yanlissayi), 1) end)` }).tipDecimal(1),
 		].filter(x => !!x))
 	}
-	/*static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.sahalar.add('sab.gecerliresimseq', 'sab.gruptekrarsayisi', 'sab.resimarasisn') }*/
+	/*static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.sahalar.add('sab.gecerliresimseq', 'sab.gruptekrarsayisi', 'sab.resimgosterimms') }*/
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { cptsablonid: this.sablonId }) }
-	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { gecerliResimSeq: rec.gecerliresimseq, grupTekrarSayisi: rec.gruptekrarsayisi, resimArasiSn: rec.resimarasisn })}
 	testUI_setValues(e) {
 		super.testUI_setValues(e); const {rec} = e; if (!rec) { return }
-		for (const key of ['gecerliResimSeq', 'grupTekrarSayisi', 'resimArasiSn']) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
+		for (const key of ['resimSayisi', 'grupTekrarSayisi', 'gecerliResimSeq', 'baslamaOncesiMS', 'resimGosterimMS', 'resimBostaMS']) {
+			let value = rec[key]; if (value !== undefined) { this[key] = value }
+		}
 	}
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
 		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, content} = parentPart;
-		const {id: testId, detaylar, genelSonuc, gecerliResimSeq, grupTekrarSayisi, resimArasiSn} = this, {tip, intervalKatSayi} = this.class;
+		const {id: testId, detaylar, genelSonuc, gecerliResimSeq, grupTekrarSayisi, baslamaOncesiMS, resimGosterimMS, resimBostaMS} = this, {tip, intervalKatSayi} = this.class;
 		let startCounter = 3, orjUrls = detaylar.map(det => det.resimLink), urls = [...orjUrls], imageCount = urls.length, keyDownHandler;
 		switch (state) {
 			case 'home':
@@ -257,11 +266,11 @@ class MQTestCPT extends MQTest {
 				for (let rec of results) { imgStates[rec.result ? 'load' : 'error']++ }
 				let rightWidth = 250, infoHTML = (
 					`<p>Test başlamadan önce <b class="royalblue">${startCounter} saniyelik</b> bir geri sayım olacak ve ` +
-							`Test sırasında <b class="royalblue">${imageCount}</b> tane resim karışık sırada ve <b class="royalblue">${resimArasiSn} saniye</b> aralıklarla gösterilecektir.<br>` +
+							`Test sırasında <b class="royalblue">${imageCount}</b> tane resim karışık sırada ve <b class="royalblue">${resimGosterimMS} ms</b> aralıklarla gösterilecektir.<br>` +
 						`Yanda gözüken resim gözükürse SPACE veya ENTER tuşuna basınız ya da Resme tıklayınız.</p>` +
 					`<p>Bir grup gösterim tamamlanınca aynı resimler bir daha karışık şekilde gösterilir. Grup gösterimi <b class="royalblue">${grupTekrarSayisi}</b> defa yapılır.<br/>` +
 						`Sonuçta yandaki resim değişik zamanlarda <b class="royalblue">${grupTekrarSayisi}</b> defa karşımıza çıkacaktır.</p>` +
-					`<p>Bu test tahmini <b class="forestgreen">${Math.ceil(resimArasiSn * imageCount * grupTekrarSayisi / 60)} dakika</b> sürecektir.</p>` +
+					`<p>Bu test tahmini <b class="forestgreen">${Math.ceil(resimGosterimMS * 1000 * imageCount * grupTekrarSayisi / 60)} dakika</b> sürecektir.</p>` +
 					`<p>Hazırsanız <b>'İşleme Başla'</b> tuşuna basarak testi başlatınız.</p>`
 				);
 				$(`<div class="info float-left wrap-pretty" style="width: calc(var(--full) - (${rightWidth}px + 5px))">${infoHTML}</div>`).appendTo(content);
@@ -279,21 +288,23 @@ class MQTestCPT extends MQTest {
 					if (startCounter <= 0 || parentPart.isDestroyed || parentPart.state != 'test') { clearInterval(this._hInterval); delete this._hInterval; promise_wait?.resolve(); return false }
 					img.html(clearFlag ? '' : `<div class="veri full-wh">${startCounter--}</div>`); clearFlag = !clearFlag
 				}; this._hInterval = setInterval(loopProc, 800 * (intervalKatSayi / 2)); await promise_wait; img.html('');
+				if (baslamaOncesiMS) { await new $.Deferred(p => setTimeout(() => p.resolve(), baslamaOncesiMS)) }
 				let clickHandler = evt => {
-					if (ilkTiklamaTime || !resimGosterimTime) { return } ilkTiklamaTime = now(); let dogrumu = urls[index] == gecerliResimURL;
+					if (clearFlag || ilkTiklamaTime || !resimGosterimTime) { return } ilkTiklamaTime = now(); let dogrumu = urls[index] == gecerliResimURL;
 					let cssClicked = `clicked-${dogrumu ? 'dogru' : 'yanlis'}`; img.removeClass('clicked-dogru clicked-yanlis'); setTimeout(() => img.addClass(cssClicked), 1);
-					let tiklamaSnFarki = (ilkTiklamaTime - resimGosterimTime) / 1000, grupNo = repeatIndex + 1;
-					let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif({ tip, testId }); testSonuc.tiklamaEkle(dogrumu, tiklamaSnFarki)
+					let tiklamaMSFarki = (ilkTiklamaTime - resimGosterimTime), grupNo = repeatIndex + 1;
+					let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif({ tip, testId }); testSonuc.tiklamaEkle(dogrumu, tiklamaMSFarki)
 				}; img.on('mousedown', clickHandler); img.on('touchstart', clickHandler);
 				keyDownHandler = evt => {
 					if (parentPart.isDestroyed || parentPart.state != 'test') { $('body').off('keydown', keyDownHandler); return }
 					let key = evt.key?.toLowerCase(); if (key == ' ' || key == 'enter' || key == 'linefeed') { clickHandler(evt) }
 				}; $('body').off('keydown', keyDownHandler).on('keydown', keyDownHandler);
-				let ilkmi = true; clearFlag = false; loopProc = () => {
+				let ilkmi = true, lastProcTime; clearFlag = false; loopProc = () => {
+					let prevLastProcTime = lastProcTime; lastProcTime = now(); let farkMS = lastProcTime - prevLastProcTime;
 					if (parentPart.isDestroyed || parentPart.state != 'test') { clearInterval(this._hInterval); delete this._hInterval; return false }
-					if (clearFlag) { img.css('background-image', '') }
+					if (clearFlag) { if (farkMS < resimBostaMS) { return true } img.css('background-image', '') }
 					else {
-						index++; if (ilkmi) { ilkmi = false } else { genelSonuc.tumSayi++ }
+						if (farkMS < resimGosterimMS) { return true } index++; if (ilkmi) { ilkmi = false } else { genelSonuc.tumSayi++ }
 						let cevrimBittimi = index >= imageCount; if (cevrimBittimi) {
 							repeatIndex++; index = 0; if (grupTekrarSayisi && repeatIndex >= grupTekrarSayisi) { parentPart.nextPage(); return false }
 							urls = shuffle(urls)
@@ -306,7 +317,8 @@ class MQTestCPT extends MQTest {
 						resimGosterimTime = now(); ilkTiklamaTime = null
 					}
 					clearFlag = !clearFlag; return true
-				}; gecerliResimURL = urls[gecerliResimSeq - 1]; urls = shuffle(urls); this._hInterval = setInterval(loopProc, resimArasiSn * 500 * intervalKatSayi); break
+				}; gecerliResimURL = urls[gecerliResimSeq - 1]; urls = shuffle(urls);
+				lastProcTime = now(); this._hInterval = setInterval(loopProc, 50); break
 			case 'end':
 				$('body').off('keydown', keyDownHandler);
 				if (genelSonuc) {

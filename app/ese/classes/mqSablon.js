@@ -158,7 +158,7 @@ class MQSablonAnket extends MQSablon {
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); const {kaForm, tabPanel, tabPage_genel} = e, {maxSecenekSayisi} = MQSablonAnketYanit;
-		tabPanel.addStyle(e => `$elementCSS { margin-top: -30px } $elementCSS [data-builder-id = grid] > div { margin-top: 10px !important }`)
+		tabPanel.addStyle(e => `$elementCSS { margin-top: -20px } $elementCSS [data-builder-id = grid] > div { margin-top: 10px !important }`)
 		kaForm.yanYana(); kaForm.id2Builder.aciklama.addStyle_wh('calc(var(--full) - 140px)');
 			kaForm.addNumberInput('sureDk', 'Süre (dk)').setMin(0).setMax(180).addStyle_wh(130);
 		let form = tabPage_genel.addFormWithParent().yanYana(1);

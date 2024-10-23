@@ -19,12 +19,12 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 	loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {stm, attrSet} = e; let {sent} = stm, {where: wh, sahalar} = sent;
 		$.extend(e, { sent }); this.fisVeHareketBagla(e); this.donemBagla({ ...e, sent, tarihSaha: 'fis.tarihsaat' }); wh.add('fis.btamamlandi <> 0');
-		sent.fromIliski('esemuayene mua', 'fis.muayeneid = mua.id');
-		if (attrSet.HASTA || attrSet.IL || attrSet.ILBOLGE || attrSet.CINSIYET) { sent.fromIliski('esehasta has', 'mua.hastaid = has.id') } if (attrSet.DOKTOR) { sent.fromIliski('esedoktor dok', 'mua.doktorid = dok.id') }
+		if (attrSet.DOKTOR) { sent.fromIliski('esemuayene mua', 'fis.muayeneid = mua.id').fromIliski('esedoktor dok', 'mua.doktorid = dok.id') }
+		if (attrSet.HASTA || attrSet.IL || attrSet.ILBOLGE || attrSet.CINSIYET) { sent.fromIliski('esehasta has', 'fis.hastaid = has.id') }
 		if (attrSet.IL || attrSet.ILBOLGE) { sent.fromIliski('eseyerlesim yer', 'has.yerlesimkod = yer.kod').fromIliski('caril il', 'yer.ilkod = il.kod') }
 		for (const key in attrSet) {
 			switch (key) {
-				case 'HASTA': sahalar.add('mua.hastaid hastakod', 'has.aciklama hastaadi'); wh.icerikKisitDuzenle_x({ ...e, belirtec: 'esehasta', saha: 'mua.hastaid' }); break
+				case 'HASTA': sahalar.add('fis.hastaid hastakod', 'has.aciklama hastaadi'); wh.icerikKisitDuzenle_x({ ...e, belirtec: 'esehasta', saha: 'fis.hastaid' }); break
 				case 'DOKTOR': sahalar.add('mua.doktorid doktorkod', 'dok.aciklama doktoradi'); wh.icerikKisitDuzenle_x({ ...e, belirtec: 'esedoktor', saha: 'mua.doktorid' }); break
 				case 'ILBOLGE': sent.fromIliski('eseilbolge ibol', 'il.ilbolgekod = ibol.kod'); sahalar.add('il.ilbolgekod', 'ibol.aciklama ilbolgeadi'); break;
 				case 'IL': sahalar.add('il.kod ilkod', 'il.aciklama iladi'); break;
@@ -79,14 +79,15 @@ class DRapor_ESETest_CPT_Main extends DRapor_ESETest_Main {
 			/*.addGrup(new TabloYapiItem().setKA('GRUPNO', 'Grup No').addColDef(new GridKolon({ belirtec: 'grupno', text: 'Grup No', genislikCh: 10, filterType: 'checkedlist' }).tipNumerik()))
 			  .addToplam(new TabloYapiItem().setKA('GRUPSAYI', 'Grup Sayı').addColDef(new GridKolon({ belirtec: 'grupsayi', text: 'Grup Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))*/
 			.addToplam(new TabloYapiItem().setKA('DOGRUSAYI', 'Doğru Sayı').addColDef(new GridKolon({ belirtec: 'dogrusayi', text: 'Doğru Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))
-			.addToplam(new TabloYapiItem().setKA('ORTDOGRUSECIMSURESN', 'Ort. Doğru Seçim Süre (sn)').addColDef(new GridKolon({ belirtec: 'ortdogrusecimsuresn', text: 'Doğru Sayı', genislikCh: 15, filterType: 'numberinput' }).tipDecimal(1)))
+			.addToplam(new TabloYapiItem().setKA('ORTDOGRUSECIMSUREMS', 'Ort. Doğru Seçim Süre (ms)').addColDef(new GridKolon({ belirtec: 'ortdogrusecimsurems', text: 'Doğru Sayı', genislikCh: 15, filterType: 'numberinput' }).tipDecimal(1)))
 			.addToplam(new TabloYapiItem().setKA('YANLISSAYI', 'Yanlış Sayı').addColDef(new GridKolon({ belirtec: 'yanlissayi', text: 'Yanlış Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))
-			.addToplam(new TabloYapiItem().setKA('ORTYANLISSECIMSURESN', 'Ort. Yanlış Seçim Süre (sn)').addColDef(new GridKolon({ belirtec: 'ortyanlissecimsuresn', text: 'Yanlış Sayı', genislikCh: 15, filterType: 'numberinput' }).tipDecimal(1)))
+			.addToplam(new TabloYapiItem().setKA('ORTYANLISSECIMSUREMS', 'Ort. Yanlış Seçim Süre (ms)').addColDef(new GridKolon({ belirtec: 'ortyanlissecimsurems', text: 'Yanlış Sayı', genislikCh: 15, filterType: 'numberinput' }).tipDecimal(1)))
+			.addToplam(new TabloYapiItem().setKA('SECILMEYENDOGRUSAYI', 'Seçilmeyen Doğru Sayı').addColDef(new GridKolon({ belirtec: 'secilmeyendogrusayi', text: 'Seçilmeyen Doğru', genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))
 	}
 	ekCSSDuzenle(e) {
 		super.ekCSSDuzenle(e); const {belirtec, result} = e; switch (belirtec) {
-			case 'dogrusayi': case 'ortdogrusecimsuresn': result.push('limegreen'); break
-			case 'yanlissayi': case 'ortyanlissecimsuresn': result.push('firebrick'); break
+			case 'dogrusayi': case 'ortdogrusecimsurems': result.push('limegreen'); break
+			case 'yanlissayi': case 'ortyanlissecimsurems': result.push('firebrick'); break
 		}
 	}
 	loadServerData_queryDuzenle_ek(e) {
@@ -95,8 +96,9 @@ class DRapor_ESETest_CPT_Main extends DRapor_ESETest_Main {
 			switch (key) {
 				case 'TUMSAYI': sahalar.add('AVG(fis.tumsayi) tumsayi'); break /*case 'GRUPNO': sahalar.add('fis.grupno'); break; case 'GRUPSAYI': sahalar.add('SUM(fis.grupsayi) grupsayi'); break*/
 				case 'DOGRUSAYI': sahalar.add('AVG(fis.dogrusayi) dogrusayi'); break; case 'YANLISSAYI': sahalar.add('AVG(fis.yanlissayi) yanlissayi'); break
-				case 'ORTDOGRUSECIMSURESN': sahalar.add('AVG(fis.ortdogrusecimsuresn) ortdogrusecimsuresn'); break
-				case 'ORTYANLISSECIMSURESN': sahalar.add('AVG(fis.ortdogrusecimsuresn) ortyanlissecimsuresn'); break
+				case 'SECILMEYENDOGRUSAYI': sahalar.add('AVG(fis.secilmeyendogrusayi) secilmeyendogrusayi'); break
+				case 'ORTDOGRUSECIMSUREMS': sahalar.add('AVG(fis.ortdogrusecimsurems) ortdogrusecimsurems'); break
+				case 'ORTYANLISSECIMSUREMS': sahalar.add('AVG(fis.ortdogrusecimsurems) ortyanlissecimsurems'); break
 			}
 		}
 	}

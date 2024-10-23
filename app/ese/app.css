@@ -13,7 +13,7 @@
 .MQTestCPT.masterListe.part .islemTuslari button#testBaslat.jqx-fill-state-normal, .MQTestAnket.masterListe.part .islemTuslari button#testBaslat.jqx-fill-state-normal { background-color: #337333 }
 
 .MQSablonAnket.part .jqx-grid [role = row] > .soru.jqx-grid-cell { text-wrap: pretty }
-	.MQSablonAnket.part .jqx-grid [role = row] > .soru.jqx-grid-cell > div { font-size: 93%; margin: 3px 8px !important }
+.MQSablonAnket.part .jqx-grid [role = row] > .soru.jqx-grid-cell > div { font-size: 93%; margin: 3px 8px !important }
 body:not(.admin) #loginForm.loginPart.part button#ayarlar { display: none !important }
 body:not(.admin) #loginForm.loginPart.part > .alt-form > div.row:nth-child(2) { display: none !important }
 body:not(.admin) #loginForm.loginPart.part > .alt-form > div.row:nth-child(3) > h5 { display: none !important }
