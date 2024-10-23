@@ -5,7 +5,7 @@ class MQYerelParamUretim extends MQYerelParamTicari {
 		e = e || {}; super(e);
 		$.extend(this, { sonWSBilgi: this.sonWSBilgi || {}, gerceklemeler: e.gerceklemeler || this.gerceklemeler || [] })
 	}
-	static paramAttrListeDuzenle(e) { super.paramAttrListeDuzenle(e); e.liste.push('sonWSBilgi', 'otoGonderFlag') }
+	static paramAttrListeDuzenle(e) { super.paramAttrListeDuzenle(e); e.liste.push('gerceklemeler', 'sonWSBilgi', 'otoGonderFlag') }
 	paramHostVarsDuzenle(e) {
 		super.paramHostVarsDuzenle(e); const {hv} = e, {gerceklemeler} = this;
 		if (gerceklemeler) { const _gerceklemeler = hv.gerceklemeler = []; for (const rec of gerceklemeler) { _gerceklemeler.push(rec.asJSON ? rec.asJSON() : rec) } }

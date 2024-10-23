@@ -221,7 +221,8 @@ class MQTest extends MQGuidOrtak {
 }
 class MQTestCPT extends MQTest {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get intervalKatSayi() { return config.dev ? .2 : 1 }
-	static get sinifAdi() { return 'CPT Test' }  static get testSonucSinif() { return TestSonucCPT } static get testGenelSonucSinif() { return TestGenelSonucCPT }
+	static get sinifAdi() { return `${app.params.ese.sablon?.cpt?.[0]?.etiket ?? 'CPT'} Test` } 
+	static get testSonucSinif() { return TestSonucCPT } static get testGenelSonucSinif() { return TestGenelSonucCPT }
 	static get kodListeTipi() { return 'TSTCPT' } static get table() { return 'esecpttest' } static get sablonSinif() { return MQSablonCPT } static get raporSinif() { return DRapor_ESETest_CPT }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {tableAlias: alias} = this, {liste} = e; liste.push(...[
@@ -321,7 +322,8 @@ class MQTestCPT extends MQTest {
 }
 class MQTestAnket extends MQTest {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() { return 'Anket Test' } static get testSonucSinif() { return TestSonucAnket } static get testGenelSonucSinif() { return TestGenelSonucAnket }
+	static get sinifAdi() { return `${app.params.ese.sablon?.anket?.[0]?.etiket ?? 'Anket'} Test` } 
+	static get testSonucSinif() { return TestSonucAnket } static get testGenelSonucSinif() { return TestGenelSonucAnket }
 	static get kodListeTipi() { return 'TSTANKET' } static get table() { return 'eseankettest' } static get sablonSinif() { return MQSablonAnket } static get raporSinif() { return DRapor_ESETest_Anket }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {sablonTip} = this, {maxSecenekSayisi} = MQSablonAnketYanit, {pTanim} = e;

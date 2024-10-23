@@ -61,11 +61,14 @@ class MQMuayene extends MQGuidOrtak {
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { resimsayisi: this.resimSayisi }) }
 	static async testIslemleriIstendi(e) {
 		const gridPart = e.gridPart ?? e.parentPart ?? e.sender, title = 'Test İşlemleri', {ese} = app.params;
-		const tip2Adi = { cpt: await MQSablonCPT.getGloKod2Adi(ese.sablon.cpt), anket: await MQSablonAnket.getGloKod2Adi(ese.sablon.anket) };
+		const tipId2Adi = {
+			cpt: await MQSablonCPT.getGloKod2Adi(ese.sablon?.cpt?.map(rec => rec.sablonId)?.filter(x => !!x)),
+			anket: await await MQSablonAnket.getGloKod2Adi(ese.sablon?.anket?.map(rec => rec.sablonId)?.filter(x => !!x))
+		};
 		app.activeWndPart.openContextMenu({ gridPart, title, argsDuzenle: _e => $.extend(_e.wndArgs, { height: 310 }), formDuzenleyici: _e => {
 			const {form, close} = _e; form.yanYana(2).addStyle(e => `$elementCSS { padding-top: 40px }`);
-			form.addForm().setLayout(e => $(`<h5 class="bold center royalblue" style="padding-bottom: 13px; margin-right: 20px; border-bottom: 1px solid royalblue">${tip2Adi.cpt || ''}</h5>`));
-			form.addForm().setLayout(e => $(`<h5 class="bold center royalblue" style="padding-bottom: 13px; width: calc(var(--full) / 2 - 45px); border-bottom: 1px solid royalblue">${tip2Adi.anket || ''}</h5>`));
+			form.addForm().setLayout(e => $(`<h5 class="bold center royalblue" style="padding-bottom: 13px; margin-right: 20px; border-bottom: 1px solid royalblue">${tipId2Adi.cpt || ''}</h5>`));
+			form.addForm().setLayout(e => $(`<h5 class="bold center royalblue" style="padding-bottom: 13px; width: calc(var(--full) / 2 - 45px); border-bottom: 1px solid royalblue">${tipId2Adi.anket || ''}</h5>`));
 			let handler = __e => { close(); this.testOlusturIstendi({ ...e, ..._e, ...__e, id: __e.builder.id }) };
 				form.addButton('cptTestOlustur', 'CPT Kayıt').onClick(handler); form.addButton('anketTestOlustur', 'Anket Kayıt').onClick(handler);
 			handler = __e => { close(); this.testEkraniAcIstendi({ ...e, ..._e, ...__e, id: __e.builder.id }) };

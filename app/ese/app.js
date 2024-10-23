@@ -28,7 +28,7 @@ class ESEApp extends App {
 			addMenuSubItems(null, null, [MQMuayene]);
 			let parentItem = new FRMenuCascade({ mne: 'TEST', text: 'Testler' }); for (const cls of MQTest.subClasses) {
 				const {sablonTip, sablonSinif, kodListeTipi: mne} = cls;
-				let {sinifAdi: text} = cls, sablonId = params.ese.sablon[sablonTip], sablonAdi = await sablonSinif.getGloKod2Adi(sablonId);
+				let {sinifAdi: text} = cls, sablonId = params.ese.sablon?.[sablonTip]?.[0]?.sablonId, sablonAdi = sablonId ? await sablonSinif.getGloKod2Adi(sablonId) : null;
 				if (sablonAdi) { text += `<div class="royalblue" style="font-weight: normal; font-size: 90%; padding-top: 10px">${sablonAdi}</div>` }
 				parentItem.items.push(new FRMenuChoice({ mne, text, block: e => cls.listeEkraniAc(e) }))
 			} items.push(parentItem);

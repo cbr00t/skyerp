@@ -219,10 +219,12 @@ class GridKolonGrup_KA extends GridKolonGrup {
 					else {
 						const {gridWidget, belirtec, rowIndex} = e;
 						if (gridWidget && !gridWidget.editcell) {
-							/*clearTimeout(this._timer_kaKolonu_cellClick);*/
-							if (this._timer_kaKolonu_cellClick) { return }
+							/*clearTimeout(this._timer_kaKolonu_cellClick);*/ if (this._timer_kaKolonu_cellClick) { return }
 							this._timer_kaKolonu_cellClick = setTimeout(() => {
-								try { const curCell = gridWidget.getselectedcell(); if (curCell.datafield == belirtec && curCell.rowindex == rowIndex) { gridWidget.begincelledit(rowIndex, belirtec) } }
+								try { 
+									const curCell = gridWidget.getselectedcell();
+									if (curCell && curCell.datafield == belirtec && curCell.rowindex == rowIndex) { gridWidget.begincelledit(rowIndex, belirtec) }
+								}
 								finally { delete this._timer_kaKolonu_cellClick }
 							}, 1000)
 						}
