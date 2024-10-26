@@ -52,6 +52,7 @@ class CDBTable extends CDBLocalData_Base {
 		this.onChange({ type: deleteFlag ? 'deleteData' : 'insertOrUpdateData', key, value }); return this
 	}
 	clearData(e) { $.extend(this.shadow, { maxRowId: 0, data: new Map(), indexes: { primary: new Map(), secondary: new Map() } }); this.onChange({ type: 'clearData', e }); return this }
+	from(e) { return new CDB_QueryProcessor_From({ table: this }) }
 	updateIndexes(deleteFlag, key, rec) {
 		if (rec == null) { return false }
 		const {shadow} = this, {indexes, primaryKeys, indexKeys} = shadow; let action;
