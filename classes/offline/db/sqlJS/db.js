@@ -5,7 +5,7 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 	constructor(e) { e = e ?? {}; super(e); $.extend(this, { autoSaveFlag: e.autoSave ?? e.autoSaveFlag ?? true, internalDB: e.internalDB }) }
 	async open(e) {
 		if (!this._sql) { await initSqlJsPromise; this._sql = await initSqlJs({ locateFile: fileName => `${webRoot}/lib_external/webSQL/${fileName}` }) }
-		if (!this.internalDB) { const {_sql: sql} = this; this.internalDB = new sql.Database() }
+		if (!this.internalDB) { const {_sql: sql} = this; this.internalDB = new sql.Database(); await this.dbInit(e) }
 		return this
 	}
 	async close(e) {
@@ -17,7 +17,7 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		await this.open(e); if (!await super.yukleDevam(e)) { return false }
 		const {fh} = this; let data; if (fh?.kind == 'file') { const file = await fh.getFile(); data = await file?.arrayBuffer() }
 		const {_sql: sql} = this; data = data ? new Uint8Array(data) : undefined; if (!data?.length) { data = undefined }
-		this.internalDB = new sql.Database(data); return true
+		this.internalDB = new sql.Database(data); await this.dbInit(e); return true
 	}
 	async kaydetDevam(e) {
 		const {internalDB} = this; if (!internalDB) { return false }
@@ -46,6 +46,13 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		}
 		const db = this; return {db, fsRootDir, fh, data}
 	}
+	async dbInit(e) {
+		await this.execute([
+			`PRAGMA page_size = ${32 * 1024}`, 'PRAGMA journal_mode = WAL',
+			`PRAGMA synchronous = NORMAL`, `PRAGMA cache_size=-${4 * 1024}`,
+			`PRAGMA temp_store=MEMORY`, 'VACUUM'
+		].join(`; ${CrLf}`)); return this
+	}
 	async execute(e, _params, isRetry) {
 		e = e || {}; await this.open(e);
 		if (!e.query) { e = { query: e } } if (_params !== undefined) { e.params = _params }
@@ -59,7 +66,7 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		if (typeof e.query == 'string') { if (e.query.toUpperCase().includes('NOT NULL AUTO')) { e.query = e.query.replaceAll('rowid\t', '--rowid\t').replaceAll('rowid ', '--rowid ') } }
 		/*let {dbOpCallback} = this; if (!$.isFunction(dbOpCallback)) { dbOpCallback = null } if (dbOpCallback) { await dbOpCallback.call(this, { operation: 'executeSql', state: true }, e) }*/
 		let _result; this.dbLastExec = e; try { console.debug('db exec', e) } catch (ex) { }
-		try { _result = await this.internalDB.exec(e.query, e.params) }
+		try { _result = await this.internalDB[isDBWrite ? 'run' : 'exec'](e.query, e.params) }
 		catch (ex) {
 			if (!isRetry) {
 				const message = ex.message || ''; if (message.includes('no such column')) {
