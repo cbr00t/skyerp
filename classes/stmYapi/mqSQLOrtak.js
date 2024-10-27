@@ -55,6 +55,16 @@ class MQSQLOrtak extends CObject {
 		if (isDate(value)) return this.sqlDegeri(asReverseDateString(value) || '')
 		return value
 	}
+	static sqlDegeri_unescaped(e) {
+		if (e == null) { return null }
+		if (typeof e == 'string') {
+			if (e?.toUpperCase() == 'NULL') { return null }
+			if (e[0] == "'" && e.slice(-1) == "'") { return e.slice(1, -1) }
+			if (e?.toUpperCase().includes('AS DATETIME')) { return asDate(e.split("'")[1]) }
+			return asFloat(e)
+		}
+		return e
+	}
 	static boolClause(e, _styled) {
 		e = e || {}; const saha = typeof e == 'object' ? e.saha : e, isStyled = typeof e == 'object' ? e.styled : _styled;
 		return (
@@ -108,20 +118,19 @@ class MQSQLOrtak extends CObject {
 		value = e.postfix || this.postfix; if (value) e.result += ` ${value}`;
 		this.params = e.params; return e.result;
 	}
-	buildString(e) {
-		// e.result += ``;
-	}
+	buildString(e) { /* e.result += `` */ }
+	asNot() { this.isNot = true; return this }
+	/* CDB ext */
+	cDB_execute({ ctx }) { }
 }
 class MQSQLConst extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get sqlDegeri() { return this.value } get sqlServerDegeri() { return this.sqlDegeri }
-	constructor(e) {
-		e = e || {}; super(e);
-		const value = typeof e == 'object' ? e.value : e; this.value = value;
-	}
+	constructor(e) { e = e || {}; super(e); this.value = e?.value ?? e }
+	toString(e) { return this.sqlServerDegeri }
 }
 class MQAliasliYapi extends MQSQLOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { window[this.name] = this; this._key2Class[this.name] = this } get aliasliYapimi() { return true }
 	get aliasVeyaDeger() { return this.alias || this.deger } get degerAlias() { return this.class.getDegerAlias(this.deger) }
 	get degerAliasListe() { return this.class.getDegerAliasListe(this.deger) }
 	
@@ -136,7 +145,7 @@ class MQAliasliYapi extends MQSQLOrtak {
 				- 'piffis AS fis'
 				- '(SELECT ... ) AS tbl'
 		*/
-		e = e || {}; if (typeof e != 'object') { e = { text: e } }
+		e = e || {}; if (!$.isPlainObject(e)) { e = { text: e } }
 		let text = (e.text || e.fromText || '').toString().trim(), sonBosInd = text.lastIndexOf(' '); delete e.text;
 		if (sonBosInd < 0) { e.deger = e.alias = text; e.aliaslimi = false }								/* bosluk yok */
 		else {																								/* bosluk var -- substring (from, end) => end index dahil değil */
@@ -169,14 +178,14 @@ class MQAliasliYapi extends MQSQLOrtak {
 				- 'har.fissayac'
 				- '(case when fis.silindi='' then ... else .. end)'
 		*/
-		text = (text || '').toString().trim(); if (!text) { return new this() }
+		text = text?.toString()?.trim(); if (!text) { return new this() }
 		let noktaInd = text.lastIndexOf('.'); if (noktaInd < 0 || text[0] == '(') { return new this({ deger: text }) }
 		return new this({ deger: text, alias: text.substring(0, noktaInd), aliaslimi: true })		/* to dahil degil substring'de */
 	}
 	static getDegerAlias(deger) {
 		// fis.rowid   		gibi ==> 'fis'
 		//		aksinde			 ==> null
-		deger = (deger || '').toString().trim(); if (!deger) { return null }
+		deger = deger?.toString().trim(); if (!deger) { return null }
 		if (deger[0] >= '0' && deger[0] <= '9') { return null }
 		if (deger[0] == '(') { return null }
 		let parts = deger.split('.'); if (parts.length != 2) { return null }
@@ -184,7 +193,7 @@ class MQAliasliYapi extends MQSQLOrtak {
 	}
 	static getDegerAliasListe(deger) {
 		let result = this.getDegerAlias(deger); if (result != null) { return [result] }
-		result = {}; deger = (deger || '').toString().trim(); const parts = deger.split('.');
+		result = {}; deger = deger?.toString().trim(); const parts = deger.split('.');
 		// aslinda nokta oncesi full digit ise bu parca sonrasi ile birlesmeli
 		for (let i = 0; i < parts.length; i++) {
 			let temp = ''; let part = parts[i]; if (part != null) { part = part.trim() } if (!part) { continue }
@@ -207,15 +216,17 @@ class MQIliskiYapisi extends MQSQLOrtak {
 	constructor(e) {
 		e = e || {}; super(e); if (typeof e == 'string') { return $.extend(this, this.class.newForText(e)) }
 		this.sol = e.sol || new MQAliasliYapi(); this.sag = e.sag || new MQAliasliYapi()
+		for (const key of ['sol', 'sag']) { let value = this[key]; if (!value?.aliasliYapimi) { this[key] = value = MQAliasliYapi.newForIliskiText(value) } }
 	}
 	static newForText(text) {
+		if (typeof text == 'object') { return $.isPlainObject(text) ? new this(text) : text }
 		text = text?.toString()?.trim() ?? ''; let parantezSayilari, solText, ind = -1, esittirVarmi = false;
 		do {
 			parantezSayilari = { ac: 0, kapat: 0 }; ind = text.indexOf('=', ind + 1); if (ind != -1) { esittirVarmi = true }
 			solText = text.substring(0, ind).trim(); for (const ch of solText) { if (ch == '(') { parantezSayilari.ac++ } else if (ch == ')') { parantezSayilari.kapat++ } }
 		} while (ind > -1 && parantezSayilari.ac != parantezSayilari.kapat);
 		if (esittirVarmi && ind < 0) { throw { isError: true, rc: 'queryBuilderError', errorText: 'Dengesiz eşitlik' } }
-		return new this({ sol: MQAliasliYapi.newForIliskiText(solText), sag: MQAliasliYapi.newForIliskiText(text.substring(ind + 1)) })
+		return new this({ sol: solText, sag: text.substring(ind + 1) })
 	}
 	get varsaZincir() {
 		if (this.sol.aliaslimi && this.sag.aliaslimi) { return [this.sol.alias, this.sag.alias] }

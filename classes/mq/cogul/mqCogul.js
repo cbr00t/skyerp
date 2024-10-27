@@ -483,10 +483,9 @@ class MQCogul extends MQYapi {
 		}
 		sent.sahalar.add(`${aliasVeNokta}*`);
 		let keyHV = this.keyHostVars(e); if ($.isEmptyObject(keyHV)) keyHV = this.alternateKeyHostVars(e)
-		if (keyHV) sent.where.birlestirDict({ alias: alias, dict: keyHV });
+		if (keyHV) { sent.where.birlestirDict({ alias, dict: keyHV }) }
 		/* if ($.isEmptyObject(sent.sahalar.liste)) { sent.sahalar.add(`${aliasVeNokta}*`) } */ sent.gereksizTablolariSil({ disinda: alias });
-		const stm = new MQStm({ sent }); $.extend(e, { stm, sent }); this.tekilOku_queryDuzenle(e);
-		return stm
+		const stm = new MQStm({ sent }); $.extend(e, { stm, sent }); this.tekilOku_queryDuzenle(e); return stm
 	}
 	tekilOku_queryDuzenle(e) { this.class.loadServerData_queryDuzenle({ ...e, tekilOku: true }); this.forAltYapiKeysDo('tekilOku_queryDuzenle', e) }
 	static async tekilOku_querySonucu(e) {

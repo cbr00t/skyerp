@@ -179,6 +179,8 @@ class MQSubWhereClause extends MQClause {
 			value = e.notDegerAta; if (value !== undefined) { this.notDegerAta({ deger: value, saha: e.saha }); return true }
 			value = e.like; if (value !== undefined) { this.like({ deger: value, saha: e.saha, not: e.not, aynenAlinsin: e.aynenAlinsin }); return true }
 			value = e.notLike; if (value !== undefined) { this.notLike({ deger: value, saha: e.saha, aynenAlinsin: e.aynenAlinsin }); return true }
+			value = e.operand; if (value !== undefined) { this.operand({ operand: value, saha: e.saha, deger: e.deger, not: e.not }) }
+			value = e.notOperand; if (value !== undefined) { this.notOperand({ deger: value, saha: e.saha, operand: e.operand }) }
 			value = e.basiSonu; if (value !== undefined) { this.basiSonu({ deger: value, saha: e.saha, not: e.not }); return true }
 			value = e.notBasiSonu; if (value !== undefined) { this.notBasiSonu({ deger: value, saha: e.saha }); return true }
 			value = e.ozellik; if (value !== undefined) { this.ozellik({ deger: value, saha: e.saha, not: e.not }); return true }
@@ -211,8 +213,9 @@ class MQSubWhereClause extends MQClause {
 		e.not = true; return this.birlestirDict(e)
 	}
 	degerAta(e, _saha) {
-		e = e?.saha ? e : { deger: e, saha: _saha }; const {saha, deger} = e, isSetClause = e.isSetClause ?? this.class.isSetClause;
-		let isNot = typeof e == 'object' && asBool(e.not);
+		e = e?.saha ? e : { deger: e, saha: _saha }; const isSetClause = e.isSetClause ?? this.class.isSetClause; 
+		const isNot = typeof e == 'object' && asBool(e.not), {saha, deger} = e;
+		/*if (deger != null) { const operand = '='; return this.operand({ saha, operand, deger, not: isNot }) }*/
 		const clause = deger == null && !isSetClause ? `${saha} IS${isNot ? ' NOT' : ''} NULL` : `${saha} ${isNot ? '<>' : '='} ${MQSQLOrtak.sqlServerDegeri(deger)}`
 		return this.addDogrudan(clause)
 	}
@@ -222,8 +225,7 @@ class MQSubWhereClause extends MQClause {
 		let inClause = liste.liste ? liste : new MQInClause({ liste: liste, saha: e.saha });
 		inClause.isNot = typeof e == 'object' && asBool(e.not); return this.addDogrudan(inClause)
 	}
-	notInDizi(e, _saha) { e = e.saha ? $.extend({}, e) : { liste: e, saha: _saha }; e.not = true; return this.inDizi(e)
-	}
+	notInDizi(e, _saha) { e = e.saha ? $.extend({}, e) : { liste: e, saha: _saha }; e.not = true; return this.inDizi(e) }
 	like(e, _saha, _aynenAlinsinmi, _yazildigiGibimi) {
 		e = e.saha ? e : { deger: e, saha: _saha }; let isNot = typeof e == 'object' && asBool(e.not);		
 		const aynenAlinsinmi = e.aynenAlinsinmi ?? e.aynenAlinsin ?? _aynenAlinsinmi,  yazildigiGibimi = e.yazildigiGibimi ?? e.yazildigiGibi ?? _yazildigiGibimi;
@@ -237,6 +239,16 @@ class MQSubWhereClause extends MQClause {
 		]))
 	}
 	notLike(e, _saha, _yazildigiGibimi) { e = e.saha ? $.extend({}, e) : { deger: e, saha: _saha }; e.not = true; return this.like(e) }
+	operand(e, _operand, _deger) {
+		e = e.saha ? e : { saha: e, operand: _operand, deger: _deger }; const {saha, operand, deger} = e;
+		let isNot = typeof e == 'object' && asBool(e.not); if (!operand) {
+			const result = MQOperandClause.newForText(e); if (isNot) { result.asNot() }
+			this.addDogrudan(result); return this
+		}
+		const {saha: sol} = e, sag = MQSQLOrtak.sqlServerDegeri(deger);
+		this.addDogrudan(new MQOperandClause({ sol, operand, sag, not: isNot })); return this
+	}
+	notOperand() { return this.operand(...arguments).asNot() }
 	basiSonu(e, _saha) {
 		e = e?.saha ? e : { deger: e, saha: _saha };
 		const isNot = typeof e == 'object' && asBool(e.not), {saha} = e, bs = e.deger,  birKismimi = bs?.birKismimi;
@@ -535,15 +547,31 @@ class MQOrClause extends MQAndOrClause {
 	static get baglac() { return ' OR ' }
 }
 class MQInClause extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get addDogrudanKullanilirmi() { return true }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get addDogrudanKullanilirmi() { return true }
 	constructor(e) { e = e || {}; super(e); this.isNot = asBool(e.not); this.saha = e.saha || ''; }
 	buildString(e) {
-		let {liste, isNot} = this;
-		if ($.isEmptyObject(liste)) { e.result += `1 ${isNot ? '<>' : '='} 2` }
+		let {liste, isNot} = this; if ($.isEmptyObject(liste)) { e.result += `1 ${isNot ? '<>' : '='} 2` }
 		else if (liste.length == 1) { e.result += `${this.saha} ${isNot ? '<>' : '='} ${MQSQLOrtak.sqlServerDegeri(this.liste[0])}` }
 		else { e.result += `${this.saha} ${isNot ? 'NOT ' : ''}IN (${this.liste.map(item => MQSQLOrtak.sqlServerDegeri(item)).join(this.class.baglac)})` }
 		return this
+	}
+}
+class MQOperandClause extends MQIliskiYapisi {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get addDogrudanKullanilirmi() { return true }
+	constructor(e) { e = e || {}; super(e); this.isNot = asBool(e.not); this.operand = e.operand || '' }
+	buildString(e) {
+		const {sol, sag, isNot} = this; let {operand} = this, notPrefix = isNot;
+		if (operand == '!=') { operand = '<>' } if ((sag?.deger ?? 'NULL').toUpperCase() == 'NULL') { operand = 'IS'}
+		if (isNot) {
+			switch (operand) {
+				case '=': notPrefix = false; operand = '<>'; break;
+				case '<>': notPrefix = false; operand = '='; break;
+				case 'IS': notPrefix = false; operand = 'IS NOT'; break;
+				case 'IS NOT': notPrefix = false; operand = 'IS'; break;
+			}
+		}
+		let clause = `${sol.deger} ${operand} ${sag.deger}`; if (notPrefix) { clasue = `NOT (${clause})` }
+		e.result += clause; return this
 	}
 }
 class MQSetClause extends MQSubWhereClause {

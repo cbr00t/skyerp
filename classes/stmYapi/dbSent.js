@@ -1,6 +1,6 @@
 class MQSent extends MQSentVeIliskiliYapiOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get unionmu() { return false }
+	static get unionmu() { return false } get isDBWriteClause() { return this.toString()?.toUpperCase()?.includes('INTO ') }
 	static get aggregateFunctions() { let result = this._aggregateFunctions; if (!result) { result = this._aggregateFunctions = ['SUM', 'COUNT', 'MIN', 'MAX', 'AVG'] } return result }
 	static get aggregateFunctionsSet() { let result = this._aggregateFunctionsSet; if (!result) { result = this._aggregateFunctionsSet = asSet(this.aggregateFunctions) } return result }
 	constructor(e) {
@@ -125,23 +125,14 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		iterBlock(this.sahalar); iterBlock(this.groupBy); iterBlock(this.having);
 		const {where, from} = this; for (const text of where.liste) {
 			try {
-				const iliskiYapisi = MQIliskiYapisi.newForText(text);
-				if (iliskiYapisi.isError)
-					throw iliskiYapisi
-				const aliasYapilar = [iliskiYapisi.sol, iliskiYapisi.sag];
-				for (const aliasYapi of aliasYapilar) {
-					let {degerAlias} = aliasYapi;
-					if (degerAlias)
-						disindaSet[degerAlias] = true
-				}
+				const iliskiYapisi = MQIliskiYapisi.newForText(text); if (iliskiYapisi.isError) { throw iliskiYapisi }
+				const aliasYapilar = [iliskiYapisi.sol, iliskiYapisi.sag].filter(x => !!x);
+				if (iliskiYapisi.saha) { aliasYapilar.push(MQAliasliYapi.newForSahaText(iliskiYapisi.saha)) }
+				for (const {degerAlias} of aliasYapilar) { if (degerAlias) { disindaSet[degerAlias] = true } }
 			}
-			catch (ex) {
-				if (!(ex && ex.rc == 'queryBuilderError'))
-					throw ex
-			}
+			catch (ex) { if (!(ex && ex.rc == 'queryBuilderError')) { throw ex } }
 		}
-		from.disindakiTablolariSil({ disindaSet: disindaSet });
-		return this
+		from.disindakiTablolariSil({ disindaSet: disindaSet }); return this
 	}
 	asUnion(e) { return new MQUnion(this) }
 	asUnionAll(e) { return new MQUnionAll(this) }
@@ -329,7 +320,43 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		}
 		return this
 	}
-	/////////
+	/* CDB ext */
+	cDB_execute(e) {
+		super.cDB_execute(e); const {db} = e.ctx, {from, where} = this, recs = [];
+		const alias2DBTable = {}; for (const {aliasVeyaDeger: alias, deger} of from.liste) { alias2DBTable[alias] = db.getTable(deger) }
+		let tableAliasSet = {}, alias2WhereListe = {}, whereListe = where.liste.map(iliski => MQIliskiYapisi.newForText(iliski));
+		let whereKalanlar = []; for (const {aliasVeyaDeger: alias} of from.liste) {
+			tableAliasSet[alias] = true; let removeIndexes = [];
+			for (let iliski of whereListe) {
+				const uygunmu = [iliski.sol, iliski.sag].map(x => x?.alias).every(x => !x || tableAliasSet[x]); if (!uygunmu) { whereKalanlar.push(iliski); continue }
+				(alias2WhereListe[alias] = alias2WhereListe[alias] ?? []).push(iliski)
+			}
+		}
+		for (const {aliasVeyaDeger: alias, iliskiler} of from.liste) {
+			let {primaryKeys, data, indexes} = alias2DBTable[alias] ?? {}, indexedData, whereListe = alias2WhereListe[alias];
+			if (primaryKeys?.length) {
+				const priAliasVeDeger2Iliski = {}; for (const key of primaryKeys) { priAliasVeDeger2Iliski[`${alias}.${key}`] = [] }
+				let whereKalanlar = []; for (const iliski of whereListe) {
+					const all = [iliski.sol, iliski.sag].map(iliski => iliski.deger).filter(deger => priAliasVeDeger2Iliski[deger]);
+					for (const deger of all) {
+						if (priAliasVeDeger2Iliski[deger] === undefined) { whereKalanlar.push(iliski) }
+						else { priAliasVeDeger2Iliski[deger].push(iliski) }
+					}
+				} whereListe = whereKalanlar;
+				for (const [priAliasVeDeger, iliskiler] of Object.entries(priAliasVeDeger2Iliski)) {
+					for (const {sol, sag} of iliskiler) {
+						if (sol.deger != priAliasVeDeger) { continue }
+						const indexKeys = sag.deger?.sqlDegeri_unescaped()?.toString() ?? CDBTable.NullKey;
+						let rowIdSet = indexes.primary.get(indexKeys); if (rowIdSet) {
+							/*indexedData = new Map(data.entries().filter(entry => rowIdSet[entry[0]])) */
+							indexedData = new Map(); for (const id in rowIdSet) { indexedData.set(id, data.get(id)) }
+						}
+					}
+				}
+				if (indexedData == null) { /* ... */ }
+			}
+		}
+	}
 }
 class MQCTESent extends MQSentVeIliskiliYapiOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return '' }

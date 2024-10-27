@@ -7,6 +7,7 @@ class CDBTable extends CDBLocalData_Base {
 		for (const key of ['primary', 'secondary']) { indexes[key] = asMap(indexes[key]) }
 		const db = e.db ?? e.database, primaryKeys = e.primaryKeys ?? [], indexKeys = e.indexKeys ?? [];
 		$.extend(this, { db, data, indexes, primaryKeys, indexKeys, maxRowId: e.maxRowId ?? e.rowId ?? e.rowid ?? 0 })
+		/* (secondary) indexKeys: { grupKod: new Map(), xyz: new Map() } .. gibi attrGrupKeys2Map şeklinde olmalı */
 	}
 	async yukleDevam(e) {
 		e = typeof e == 'object' ? e : { import: e }; const {import: importFlag} = e;
@@ -46,7 +47,7 @@ class CDBTable extends CDBLocalData_Base {
 	insertData(value) { return this.insertOrUpdateData(null, value) } updateData(key, value) { return this.insertOrUpdateData(key, value) } deleteData(key) { return this.insertOrUpdateData(key, undefined) }
 	insertOrUpdateData(key, value) {
 		const {shadow} = this, {data} = shadow, deleteFlag = value === undefined;
-		if (!(deleteFlag || key)) { key || this.newKey().toString() }  shadow._lastKey = key
+		if (!(deleteFlag || key)) { key = key || this.newKey().toString() } shadow._lastKey = key
 		if (!this.updateIndexes(deleteFlag, key, value)) { return this }
 		if (deleteFlag) { data.delete(shadow._lastKey = key) } else { data.set((key = shadow._lastKey = key || this.newKey()).toString(), value) }
 		this.onChange({ type: deleteFlag ? 'deleteData' : 'insertOrUpdateData', key, value }); return this

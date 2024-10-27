@@ -36,9 +36,8 @@ class MQSentVeIliskiliYapiOrtak extends MQDbCommand {
 	}
 }
 class MQInsertBase extends MQDbCommand {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get onEk() { return `INSERT INTO ` }
-	get isTableInsert() { return this.tableInsertFlag }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get onEk() { return `INSERT INTO ` }
+	get isTableInsert() { return this.tableInsertFlag } get isDBWriteClause() { return true }
 
 	constructor(e) {
 		e = e || {}; super(e);

@@ -16,10 +16,10 @@ class CDBLocalData_Base extends CObject {
 	kaydetDefer(e) { clearTimeout(this._timer_kaydetDefer); this._timer_kaydetDefer = setTimeout(e => { try { this.kaydet(e) } finally { delete this._timer_kaydetDefer } }, this.deferSaveMS) }
 	async sil(e) {
 		clearTimeout(this._timer_kaydetDefer); let {fh} = this; if (!fh) { try { fh = this.fh = await this.getFSHandle(false) } catch (ex) { } } if (!fh) { return false }
-		try { await (fh.type == 'file' ? fh.remove() : fh.remove({ recursive: true })); this.close(e); return true }
+		try { await (fh.kind == 'file' ? fh.remove() : fh.remove({ recursive: true })); this.close(e); return true }
 		catch (ex) { return false }
 	}
-	close(e) { clearTimeout(this._timer_kaydetDefer); fh = this.fh = null; return this }
+	close(e) { clearTimeout(this._timer_kaydetDefer); this.fh = null; return this }
 	tranBegin(e) {
 		let {transaction: trn} = this; if (!trn) {
 			this._autoSaveFlag = this.autoSaveFlag; this.autoSaveFlag = false;
