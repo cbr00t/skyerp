@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS test2 (
+	kod TEXT NOT NULL PRIMARY KEY,
+	aciklama TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idxtest2_asil ON test2 (aciklama)

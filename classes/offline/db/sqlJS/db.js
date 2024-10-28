@@ -57,7 +57,8 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 			`PRAGMA page_size = ${32 * 1024}`, 'PRAGMA journal_mode = WAL',
 			`PRAGMA synchronous = NORMAL`, `PRAGMA cache_size=-${4 * 1024}`,
 			`PRAGMA temp_store=MEMORY`, 'VACUUM'
-		].join(`; ${CrLf}`)); return this
+		].join(`; ${CrLf}`));
+		if (window?.app) { return app.dbMgr_tablolariOlustur?.(e) }
 	}
 	async executeAsync(e, params, isRetry) { await this.execute(e, params, isRetry) }
 	execute(e, params, isRetry) {
@@ -69,7 +70,7 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		if (typeof e == 'object' && !$.isPlainObject(e)) { const queryObj = e; e = { query: queryObj.toString() }; e.params = queryObj.params }
 		if (!e.query) { e = { query: e } } if (_params !== undefined) { e.params = _params }
 		let savedParams = e.params, _query = e.query, isDBWrite = this.isDBWrite(_query);
-		if (_query?.getQueryYapi) { $.extend(e, _query.getQueryYapi()) } else if (_query?.query) { $.extend(e, _query) } else { e.query = _query?.toString() ?? '' }
+		e = { ...e }; if (_query?.getQueryYapi) { $.extend(e, _query.getQueryYapi()) } else if (_query?.query) { $.extend(e, _query) } else { e.query = _query?.toString() ?? '' }
 		if (!e.query) { return null }
 		if (!$.isEmptyObject(savedParams)) {
 			let {params} = e; if ($.isEmptyObject(params)) { params = e.params = savedParams }
@@ -82,7 +83,7 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		catch (ex) {
 			if (!isRetry) {
 				const message = ex.message || ''; if (message.includes('no such column')) {
-					if (window?.app?.tabloEksikleriTamamla) { app.tabloEksikleriTamamla({ ...e, noCacheReset: true }); return this.execute(e, _params, true) } }
+					if (window?.app?.dbMgr_tabloEksikleriTamamla) { app.dbMgr_tabloEksikleriTamamla({ ...e, db: this, noCacheReset: true }); return this.execute(e, _params, true) } }
 			}
 			/*if (dbOpCallback) { await dbOpCallback.call(this, { operation: 'executeSql', state: null, error: ex }, e) }*/
 			throw ex

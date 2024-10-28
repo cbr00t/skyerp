@@ -467,11 +467,14 @@ class MQCogul extends MQYapi {
 	static async loadServerData_querySonucu(e) {
 		e = e || {}; const sender = e.sender ?? e;
 		const ozelQuerySonucuBlock = e.ozelQuerySonucuBlock ?? e.ozelQuerySonucu ?? sender.ozelQuerySonucuBlock ?? sender.ozelQuerySonucu;
-		if (ozelQuerySonucuBlock) return getFuncValue.call(this, ozelQuerySonucuBlock, e);
-		const {wsArgs, query} = e; const deferFlag = e.defer = e.defer ?? e.deferFlag ?? false; delete e.deferFlag;
+		if (ozelQuerySonucuBlock) { return getFuncValue.call(this, ozelQuerySonucuBlock, e); }
+		const {wsArgs, query} = e; const defer = e.defer = e.defer ?? e.deferFlag ?? false; delete e.defer; delete e.deferFlag;
 		let result = await this.forAltYapiClassesDoAsync('loadServerData_querySonucu', e); result = result ? result[result.length - 1] : undefined;
-		if (result !== undefined) return result
-		return await app.sqlExecSelect({ defer: deferFlag, wsArgs, query })
+		if (result !== undefined) { return result }
+		const dbMgr_db = app?.dbMgr?.default, _e = { defer, wsArgs, query };
+		let dbMgr_error; if (dbMgr_db) { try { return await dbMgr_db.execute(_e) } catch (ex) { dbMgr_error = ex } }
+		if (dbMgr_error && !navigator.onLine) { throw dbMgr_error }
+		return await app.sqlExecSelect(_e)
 	}
 	tekilOku_queryOlustur(e) {
 		e = e || {}; const tabloKolonlari = e.tabloKolonlari = e.tabloKolonlari ?? this.class.listeBasliklari;
@@ -493,7 +496,11 @@ class MQCogul extends MQYapi {
 		if (ozelQuerySonucuBlock) { return getFuncValue.call(this, ozelQuerySonucuBlock, e) }
 		const {wsArgs, query} = e; let result = await this.forAltYapiClassesDoAsync('tekilOku_querySonucu', e);
 		result = result ? result[result.length - 1] : undefined; if (result !== undefined) { return result }
-		return await app.sqlExecTekil({ wsArgs, query })
+		const dbMgr_db = app?.dbMgr?.default, _e = { wsArgs, query };
+		if (typeof e.query == 'object' && !$.isPlainObject(e.query) && !(e.query.top || e.query.limit)) { $.extend(e.query, { top: 2, limit: null }) }
+		let dbMgr_error; if (dbMgr_db) { try { return (await dbMgr_db.execute(_e))?.[0] } catch (ex) { dbMgr_error = ex } }
+		if (dbMgr_error && !navigator.onLine) { throw dbMgr_error }
+		return await app.sqlExecTekil(_e)
 	}
 	static get orjBaslikListesi_detaylar() { const e = { liste: [] }; this.orjBaslikListesiDuzenle_detaylar(e); return e.liste }
 	static orjBaslikListesiDuzenle_detaylar(e) { }

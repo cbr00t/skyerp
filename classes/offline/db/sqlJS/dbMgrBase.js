@@ -20,14 +20,16 @@ class SqlJS_DBMgrBase extends CObject {
 		const result = await this.kaydetDevam(e); this.notChanged(e); return result
 	}
 	kaydetDevam() { return true }
-	kaydetDefer(e) { clearTimeout(this._timer_kaydetDefer); this._timer_kaydetDefer = setTimeout(e => { try { this.kaydet(e) } finally { delete this._timer_kaydetDefer } }, this.deferSaveMS) }
+	kaydetDefer(e) {
+		clearTimeout(this._timer_kaydetDefer); this._timer_kaydetDefer = setTimeout(e => {
+			try { this.kaydet(e) } finally { delete this._timer_kaydetDefer } }, this.deferSaveMS); return this
+	}
 	async sil(e) {
 		clearTimeout(this._timer_kaydetDefer); let {fh} = this; if (!fh) { try { fh = this.fh = await this.getFSHandle(false) } catch (ex) { } } if (!fh) { return false }
-		try { this.close(e); await (fh.kind == 'file' ? fh.remove() : fh.remove({ recursive: true })); this.open(e); return true }
+		try { await this.close(e); await (fh.kind == 'file' ? fh.remove() : fh.remove({ recursive: true })); this.open(e); return true }
 		catch (ex) { return false }
 	}
-	open(e) { return this }
-	close(e) { clearTimeout(this._timer_kaydetDefer); this.fh = null; return this }
+	open(e) { return this } close(e) { clearTimeout(this._timer_kaydetDefer); this.fh = null; return this }
 	forEach() { return this.iterEntries() }
 	onChange(e) { this.changed(e); this.kaydetDefer(e) }
 	getFSHandle(e) { const createFlag = typeof e == 'boolean' ? e : e?.create ?? e.createFlag; return getFSDirHandle(this.fsRootDir, createFlag) }

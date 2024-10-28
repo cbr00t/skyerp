@@ -44,6 +44,11 @@ class ESEApp extends App {
 		else { items.push(new FRMenuChoice({ mne: 'MAIN', text: 'TEST İşlemi', block: e => this.testBaslat(e) })) }
 		return new FRMenu({ items })
 	}
+	dbMgr_tablolariOlustur_getQueryURLs(e) {
+		let db2Urls = super.dbMgr_tablolariOlustur_getQueryURLs(e) ?? {};
+		(db2Urls.main = db2Urls.main ?? []).push(`queries/main.sql`);
+		return db2Urls
+	}
 	testBaslat(e) {
 		e = e || {}; const {session} = config, testTip = e.testTip ?? e.tip ?? session.testTip, testId = e.testId ?? e.id ?? session.testId;
 		if (!testId) { return null } let testSinif = MQTest.getClass(testTip); if (!testSinif) { return null }
