@@ -471,9 +471,11 @@ class MQCogul extends MQYapi {
 		const {wsArgs, query} = e; const defer = e.defer = e.defer ?? e.deferFlag ?? false; delete e.defer; delete e.deferFlag;
 		let result = await this.forAltYapiClassesDoAsync('loadServerData_querySonucu', e); result = result ? result[result.length - 1] : undefined;
 		if (result !== undefined) { return result }
-		const dbMgr_db = app?.dbMgr?.default, _e = { defer, wsArgs, query };
-		let dbMgr_error; if (dbMgr_db) { try { return await dbMgr_db.execute(_e) } catch (ex) { dbMgr_error = ex } }
-		if (dbMgr_error && !navigator.onLine) { throw dbMgr_error }
+		const {isOfflineMode} = this, dbMgr_db = app?.dbMgr?.default, _e = { defer, wsArgs, query };
+		if (dbMgr_db && isOfflineMode !== false) {
+			try { return await dbMgr_db.execute(_e) }
+			catch (ex) { if (isOfflineMode === true || !navigator.onLine) { throw ex } }
+		}
 		return await app.sqlExecSelect(_e)
 	}
 	tekilOku_queryOlustur(e) {
@@ -496,10 +498,12 @@ class MQCogul extends MQYapi {
 		if (ozelQuerySonucuBlock) { return getFuncValue.call(this, ozelQuerySonucuBlock, e) }
 		const {wsArgs, query} = e; let result = await this.forAltYapiClassesDoAsync('tekilOku_querySonucu', e);
 		result = result ? result[result.length - 1] : undefined; if (result !== undefined) { return result }
-		const dbMgr_db = app?.dbMgr?.default, _e = { wsArgs, query };
+		const {isOfflineMode} = this, dbMgr_db = app?.dbMgr?.default, _e = { wsArgs, query };
 		if (typeof e.query == 'object' && !$.isPlainObject(e.query) && !(e.query.top || e.query.limit)) { $.extend(e.query, { top: 2, limit: null }) }
-		let dbMgr_error; if (dbMgr_db) { try { return (await dbMgr_db.execute(_e))?.[0] } catch (ex) { dbMgr_error = ex } }
-		if (dbMgr_error && !navigator.onLine) { throw dbMgr_error }
+		if (dbMgr_db && isOfflineMode !== false) {
+			try { return (await dbMgr_db.execute(_e))?.[0] }
+			catch (ex) { if (isOfflineMode === true || !navigator.onLine) { throw ex } }
+		}
 		return await app.sqlExecTekil(_e)
 	}
 	static get orjBaslikListesi_detaylar() { const e = { liste: [] }; this.orjBaslikListesiDuzenle_detaylar(e); return e.liste }

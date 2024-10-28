@@ -1,5 +1,5 @@
 class MQYapi extends CIO {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get mqYapimi() { return true } static get isOfflineMode() { return null }
 	static get sinifAdi() { return null } static get table() { return null } static get tableAlias() { return null }
 	static get tableAndAlias() { const {table, tableAlias} = this; if (tableAlias) { return `${table} ${tableAlias}` } return table }
 	static get aliasVeNokta() { const {tableAlias} = this; if (tableAlias) { return `${tableAlias}.` } return '' }
@@ -30,7 +30,13 @@ class MQYapi extends CIO {
 			if (result) { throw { isError: true, rc: 'duplicateRecord', errorText: 'Kayıt tekrarlanıyor' } }
 		}
 		await this.yeniTanimOncesiIslemler(e); const hv = this.hostVars(e); if (!$.isEmptyObject(keyHV)) { $.extend(hv, keyHV) }
-		const {trnId} = e, result = await app.sqlExecNone({ trnId, query: new MQInsert({ table: this.class.table, hv }) });
+		const {table} = this.class; let query = new MQInsert({ table, hv });
+		const {trnId} = e, {isOfflineMode} = this, dbMgr_db = app?.dbMgr?.default, _e = { trnId, query }; let result;
+		if (dbMgr_db && isOfflineMode !== false) {
+			try { result = await dbMgr_db.execute(_e) }
+			catch (ex) { if (isOfflineMode === true || !navigator.onLine) { throw ex } }
+		}
+		if (result === undefined && isOfflineMode !== true) { result = await app.sqlExecNone(_e) }
 		await this.yeniSonrasiIslemler(e); return result
 	}
 	async degistir(e) {
@@ -39,13 +45,25 @@ class MQYapi extends CIO {
 		let sent = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: '*' });
 		const basRec = await app.sqlExecTekil(sent), degisenHV = degisimHV(hv, basRec);
 		let result = true; if (!$.isEmptyObject(degisenHV)) {
-			const {trnId} = e; result = await app.sqlExecNone({ trnId, query: new MQIliskiliUpdate({ from: table, where: { birlestirDict: keyHV }, set: { birlestirDict: degisenHV } }) }) }
+			let query = new MQIliskiliUpdate({ from: table, where: { birlestirDict: keyHV }, set: { birlestirDict: degisenHV } });
+			const {trnId} = e, {isOfflineMode} = this, dbMgr_db = app?.dbMgr?.default, _e = { trnId, query }; result = undefined;
+			if (dbMgr_db && isOfflineMode !== false) {
+				try { result = await dbMgr_db.execute(_e) }
+				catch (ex) { if (isOfflineMode === true || !navigator.onLine) { throw ex } }
+			}
+			if (result === undefined && isOfflineMode !== true) { result = await app.sqlExecNone(_e) }
+		}
 		await this.degistirSonrasiIslemler(e); return result
 	}
 	async sil(e) {
 		e = e || {}; const keyHV = this.alternateKeyHostVars(e); if ($.isEmptyObject(keyHV)) { return true }
-		await this.silmeOncesiIslemler(e);
-		const {trnId} = e, result = await app.sqlExecNone({ trnId, query: new MQIliskiliDelete({ from: this.class.table, where: { birlestirDict: keyHV } }) });
+		await this.silmeOncesiIslemler(e); const {table} = this.class; let query = new MQIliskiliDelete({ from: table, where: { birlestirDict: keyHV } });
+		const {trnId} = e, {isOfflineMode} = this, dbMgr_db = app?.dbMgr?.default, _e = { trnId, query }; let result;
+		if (dbMgr_db && isOfflineMode !== false) {
+			try { result = await dbMgr_db.execute(_e) }
+			catch (ex) { if (isOfflineMode === true || !navigator.onLine) { throw ex } }
+		}
+		if (result === undefined && isOfflineMode !== true) { result = await app.sqlExecNone(_e) }
 		await this.silmeSonrasiIslemler(e); return result
 	}
 	async yukle(e) {
@@ -54,8 +72,7 @@ class MQYapi extends CIO {
 			rec = await this.tekilOku(e);
 			const {params} = rec || {}; if (params) { const param = params.result ?? params.baslik ?? params.fis; if (params) { rec = params.value } }
 			e.rec = rec
-		}
-		if (!rec) { return false }
+		} if (!rec) { return false }
 		const basitFlag = e.basit ?? e.basitmi ?? e.basitFlag; if (!basitFlag) { await this.yukleSonrasiIslemler(e) }
 		return true
 	}
@@ -67,26 +84,27 @@ class MQYapi extends CIO {
 		return result
 	}
 	async varmiDogrudan(e) {
-		const kayitSayisi = await this.kayitSayisi(e);
-		if (!kayitSayisi)
-			return false
-		if (kayitSayisi > 1)
-			return { isError: false, rc: 'multiRecord', errorText: 'Aynı özellikte birden çok kayıt geldi' }
+		const kayitSayisi = await this.kayitSayisi(e); if (!kayitSayisi) { return false }
+		if (kayitSayisi > 1) { return { isError: false, rc: 'multiRecord', errorText: 'Aynı özellikte birden çok kayıt geldi' } }
 		return true
 	}
 	async kayitSayisi(e) {
-		e = e || {}; let keyHV = e.keyHV || this.alternateKeyHostVars(e); if ($.isEmptyObject(keyHV)) return 0
-		const sent = new MQSent({ from: this.class.table, where: { birlestirDict: keyHV }, sahalar: 'COUNT(*) sayi' });
-		return asInteger(await app.sqlExecTekilDeger(sent))
+		e = e || {}; let keyHV = e.keyHV || this.alternateKeyHostVars(e); if ($.isEmptyObject(keyHV)) { return 0 }
+		const {table} = this.class; let query = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: 'COUNT(*) sayi' });
+		const {trnId} = e, {isOfflineMode} = this, dbMgr_db = app?.dbMgr?.default, _e = { trnId, query }; let result;
+		if (dbMgr_db && isOfflineMode !== false) {
+			try { result = await dbMgr_db.execute(_e) }
+			catch (ex) { if (isOfflineMode === true || !navigator.onLine) { throw ex } }
+		}
+		if (result === undefined && isOfflineMode !== true) { result = await app.sqlExecTekilDeger(_e) }
 	}
 	tekilOku(e) {
 		e = e || {}; if (this.class.tekilOkuYapilazmi) { return e.rec ?? e._rec }
 		e.query = this.tekilOku_queryOlustur(e); return this.class.tekilOku_querySonucu(e)
 	}
 	tekilOku_queryOlustur(e) {
-		e = e || {};
-		const alias = this.class.tableAlias, {aliasVeNokta} = this.class;
-		const sent = new MQSent({ from: this.class.tableAndAlias }); sent.sahalar.add(`${aliasVeNokta}*`);
+		e = e || {}; const {tableAlias: alias, aliasVeNokta, tableAndAlias} = this.class;
+		const sent = new MQSent({ from: tableAndAlias }); sent.sahalar.add(`${aliasVeNokta}*`);
 		const keyHV = this.class.varsayilanKeyHostVars(e); if (keyHV) { sent.where.birlestirDict({ alias, dict: keyHV }) }
 		sent.gereksizTablolariSil({ disinda: alias }); const stm = new MQStm({ sent }); $.extend(e, { stm, sent });
 		this.tekilOku_queryDuzenle(e); return stm
@@ -95,12 +113,11 @@ class MQYapi extends CIO {
 	static tekilOku_querySonucu(e) {
 		e = e || {}; const sender = e.sender || e;
 		const ozelQuerySonucuBlock = e.ozelQuerySonucuBlock || e.ozelQuerySonucu || sender.ozelQuerySonucuBlock || sender.ozelQuerySonucu;
-		if (ozelQuerySonucuBlock) { return getFuncValue.call(this, ozelQuerySonucuBlock, e) } const _e = { batch: this.tekilOku_sqlBatchFlag, wsArgs: e.wsArgs, query: e.query };
+		if (ozelQuerySonucuBlock) { return getFuncValue.call(this, ozelQuerySonucuBlock, e) }
+		const {tekilOku_sqlBatchFlag: batch, wsArgs, query} = e; const _e = { batch, wsArgs, query };
 		return this.tekilOku_querySonucu_returnValueGereklimi ? app.sqlExecNoneWithResult(_e) : app.sqlExecTekil(_e)
 	}
-	yeniTanimOncesiIslemler(e) { return this.yeniVeyaDegistirOncesiIslemler(e) }
-	degistirOncesiIslemler(e) { return this.yeniVeyaDegistirOncesiIslemler(e) }
-	silmeOncesiIslemler(e) { return this.kaydetOncesiIslemler(e) }
+	yeniTanimOncesiIslemler(e) { return this.yeniVeyaDegistirOncesiIslemler(e) } degistirOncesiIslemler(e) { return this.yeniVeyaDegistirOncesiIslemler(e) } silmeOncesiIslemler(e) { return this.kaydetOncesiIslemler(e) }
 	kaydetOncesiIslemler(e) { }
 	yeniSonrasiIslemler(e) { return this.yeniVeyaDegistirSonrasiIslemler(e) }
 	degistirSonrasiIslemler(e) { return this.yeniVeyaDegistirSonrasiIslemler(e) }

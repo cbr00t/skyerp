@@ -60,4 +60,11 @@ class SqlJS_DBMgr extends SqlJS_DBMgrBase {
 let dbMgr = new SqlJS_DBMgr(), db = dbMgr.addDatabase(); console.table(await db.execute(`CREATE TABLE test (kod TEXT NOT NULL); INSERT INTO test (kod) VALUES ('x'); SELECT * FROM test `)); await dbMgr.kaydet();
 
 dbMgr = new SqlJS_DBMgr(); await dbMgr.yukle(), db = dbMgr.main; console.table(await db.execute(`SELECT * FROM test`))
+
+
+await app.dbMgr.main.sil(); await app.dbMgr.main.close(); await app.dbMgr.main.open();
+app.dbMgr.main.execute(new MQInsert({ table: 'test3', hvListe: [{ kod: 'x1' }] }));
+app.dbMgr.main.execute(new MQSent({ from: 'test3', sahalar: 'kod' }));
+app.dbMgr.main.execute(`drop table if exists test3`);
+app.dbMgr.main.execute(`drop table if exists test3`)
 */

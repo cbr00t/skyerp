@@ -2,7 +2,7 @@ class SqlJS_DBMgrBase extends CObject {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static DBWriteClauses = ['INTO ', 'INSERT ', 'UPDATE', 'DELETE', 'CREATE ', 'DROP ', 'ALTER ', 'EXEC ', 'IMPORT '];
 	get sqlJSmi() { return this.class.sqlJSmi } static get sqlJSmi() { return true }
 	static get defaultDeferSaveMS() { return 2000 } static get defaultVersion() { return 1 } get fsRootDirPaths() { return [app.rootName, app.appName, 'db', SqlJS_DBMgr.kod] }
-	get fsRootDir() { return '/' + this.fsRootDirPaths.filter(x => !!x).join('/') } get fsFileName() { return this.name || SqlJS_DB.defaultName } get isOpen() { !!this.fh }
+	get fsRootDir() { return '/' + this.fsRootDirPaths.filter(x => !!x).join('/') } get fsFileName() { return this.name || SqlJS_DB.defaultName } get isOpen() { return !!this.fh }
 	constructor(e) {
 		e = e ?? {}; super(e); $.extend(this, {
 			changedFlag: e.changed ?? e.changedFlag, deferSaveMS: e.deferSaveMS ?? this.class.defaultDeferSaveMS,

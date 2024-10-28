@@ -26,6 +26,7 @@ class MQSQLOrtak extends CObject {
 		return farkBilgi
 	}
 	static sqlServerDegeri(e) {
+		if (window?.app?.sqlitemi) { return this.sqliteDegeri(e) }
 		if (e == null) { return 'NULL' }
 		let value = $.isPlainObject(e) ? e.value : e, ozelDeger = value?.sqlServerDegeri;
 		if (typeof value == 'object' && value?.constructor?.name == 'String') { value = value.toString() }

@@ -148,12 +148,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		let value = this.sahalar.toString(); e.result += value;
 		let where = new MQWhereClause(); this.from.iliskiler2Where({ where }); where.birlestir(this.where);
 		let ekle = clause => { clause = clause?.toString(); if (clause) { e.result += `${CrLf}${clause}` } }
-		ekle(this.from); ekle(where); ekle(this.groupBy); ekle(this.having);
-		let limit = top ?? this.limit, {offset} = this;
-		if (sqlitemi){
-			if (limit != null) { e.result += ` LIMIT ${limit}` }
-			if (offset != null) { e.result += ` OFFSET ${offset}` }
-		}
+		ekle(this.from); ekle(where); ekle(this.groupBy); ekle(this.having)
 	}
 	// ext //
 	fisSilindiEkle(e) { this.where.fisSilindiEkle(e); return this }
