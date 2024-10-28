@@ -24,7 +24,7 @@ class MQYetki extends MQGuidVeAdiOrtak {
 		)
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {sent} = e, alias = this.tableAlias;
+		super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this;
 		sent.sahalar.add(`${alias}.bcptuygular`, `${alias}.beseuygular`, `${alias}.btopluraporlar`)
 	}
 	static rootFormBuilderDuzenle(e) {
@@ -50,7 +50,7 @@ class MQESEUser extends MQKAOrtak {
 		)
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {sent} = e, alias = this.tableAlias;
+		super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this;
 		sent.leftJoin({ alias, from: 'esekurum krm', on: 'usr.kurumid = krm.id' }).leftJoin({ alias, from: 'eseyetki yet', on: 'usr.yetkiid = yet.id' });
 		sent.sahalar.add(`${alias}.kurumid`, `${alias}.yetkiid`, 'yet.bcptuygular', 'yet.beseuygular', 'yet.btopluraporlar')
 	}
@@ -76,7 +76,7 @@ class MQYerlesim extends MQKAOrtak {
 		)
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {sent} = e, alias = this.tableAlias;
+		super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this;
 		sent.fromIliski('caril il', `${alias}.ilkod = il.kod`).fromIliski('ulke ulk', `${alias}.ulkekod = ulk.kod`)
 	}
 	static rootFormBuilderDuzenle(e) {
@@ -102,7 +102,7 @@ class MQKurum extends MQGuidVeAdiOrtak {
 		)
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {sent} = e, alias = this.tableAlias;
+		super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this;
 		sent.fromIliski('eseyerlesim yer', `${alias}.yerlesimkod = yer.kod`).fromIliski('carmst erp', `${alias}.erpkod = erp.must`)
 	}
 	static rootFormBuilderDuzenle(e) {
@@ -149,7 +149,7 @@ class MQHasta extends MQGuidVeAdiOrtak {
 		}
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {sent} = e, alias = this.tableAlias;
+		super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this;
 		sent.leftJoin({ alias, from: 'eseokultipi okt', iliski: `${alias}.okultipid = okt.id` })
 			.leftJoin({ alias, from: 'eseyerlesim yer', iliski: `${alias}.yerlesimkod = yer.kod` });
 		sent.sahalar.add(`${alias}.cinsiyet`, `${alias}.okultipid`)
