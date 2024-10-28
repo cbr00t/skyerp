@@ -35,6 +35,15 @@ class MQSQLOrtak extends CObject {
 		if (isGUID(value)) { return `N'${value}'` }
 		return this.sqlDegeri(e)
 	}
+	static sqliteDegeri(e) {
+		if (e == null) { return 'NULL' }
+		let value = $.isPlainObject(e) ? e.value : e, ozelDeger = value?.sqlServerDegeri; if (value == null) { return 'NULL' }
+		if (typeof value == 'object' && value?.constructor?.name == 'String') { value = value.toString() }
+		if (!(ozelDeger === undefined || typeof ozelDeger == 'function')) { return ozelDeger }
+		if (isDate(value)) { return this.sqliteDegeri(asReverseDateString(value) || '') }
+		/*if (isGUID(value)) { return `N'${value}'` }*/
+		return this.sqlDegeri(e)
+	}
 	static sqlDegeri(e) {
 		if (e == null) { return 'NULL' }
 		let value = $.isPlainObject(e) ? e.value : e, ozelDeger = value?.sqlDegeri;
@@ -50,9 +59,9 @@ class MQSQLOrtak extends CObject {
 		let value = $.isPlainObject(e) ? e.value : e,  ozelDeger = value?.sqlDegeri;
 		if (typeof value == 'object' && value?.constructor?.name == 'String') { value = value.toString() }
 		if (!(ozelDeger === undefined || typeof ozelDeger == 'function')) { return ozelDeger }
-		if (value == null) return value
-		if (typeof value == 'boolean') return value ? 1 : 0
-		if (isDate(value)) return this.sqlDegeri(asReverseDateString(value) || '')
+		if (value == null) { return value }
+		if (typeof value == 'boolean') { return value ? 1 : 0 }
+		if (isDate(value)) { return this.sqlDegeri(asReverseDateTimeString(value) || '') }
 		return value
 	}
 	static sqlDegeri_unescaped(e) {

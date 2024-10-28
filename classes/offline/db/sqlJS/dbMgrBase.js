@@ -9,9 +9,16 @@ class SqlJS_DBMgrBase extends CObject {
 			fh: e.fh ?? e.fileHandle, name: e.name, version: e.version ?? this.class.defaultVersion
 		})
 	}
-	async yukle(e) { await this.open(e); let {fh} = this; if (!fh) { try { fh = this.fh = await this.getFSHandle(false); const result = await this.yukleDevam(e); this.notChanged(e); return result } catch (ex) { } } return fh }
+	async yukle(e) {
+		await this.open(e); let {fh} = this;
+		if (!fh) { try { fh = this.fh = await this.getFSHandle(false) } catch (ex) { return false } }
+		const result = await this.yukleDevam(e); this.notChanged(e); return result
+	}
 	yukleDevam() { return true }
-	async kaydet(e) { let {fh} = this; if (!fh) { try { fh = this.fh = await this.getFSHandle(true); const result = await this.kaydetDevam(e); this.notChanged(e); return result } catch (ex) { console.error(ex) } } return fh }
+	async kaydet(e) {
+		let {fh} = this; if (!fh) { fh = this.fh = await this.getFSHandle(true) }
+		const result = await this.kaydetDevam(e); this.notChanged(e); return result
+	}
 	kaydetDevam() { return true }
 	kaydetDefer(e) { clearTimeout(this._timer_kaydetDefer); this._timer_kaydetDefer = setTimeout(e => { try { this.kaydet(e) } finally { delete this._timer_kaydetDefer } }, this.deferSaveMS) }
 	async sil(e) {

@@ -4,8 +4,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	static get aggregateFunctions() { let result = this._aggregateFunctions; if (!result) { result = this._aggregateFunctions = ['SUM', 'COUNT', 'MIN', 'MAX', 'AVG'] } return result }
 	static get aggregateFunctionsSet() { let result = this._aggregateFunctionsSet; if (!result) { result = this._aggregateFunctionsSet = asSet(this.aggregateFunctions) } return result }
 	constructor(e) {
-		e = e || {}; super(e);
-		$.extend(this, {
+		e = e || {}; super(e); $.extend(this, {
 			distinct: asBool(e.distinct),
 			sahalar: (($.isArray(e.sahalar) || $.isPlainObject(e.sahalar) || typeof e.sahalar == 'string' ? new MQSahalar(e.sahalar) : e.sahalar)) || new MQSahalar(),
 			from: ($.isArray(e.from) || $.isPlainObject(e.from) || typeof e.from == 'string' ? new MQFromClause(e.from) : e.from) || new MQFromClause(),
@@ -69,7 +68,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		let isOuter = false; const {from, zincirler} = this;
 		let lastTable = from.liste[from.liste.length - 1];
 		if (lastTable && config?.alaSQLmi) { isOuter = true; lastTable.addLeftInner(MQOuterJoin.newForFromText({ text: fromText, on: iliskiDizi })) }
-		else {	 from.add(fromText); lastTable = from.liste[from.liste.length - 1] }
+		else { from.add(fromText); lastTable = from.liste[from.liste.length - 1] }
 		for (const iliskiText of iliskiDizi) {
 			//	tablo atılırsa iliskinin de kalkması için table yapısında bırakıldı
 			const iliski = MQIliskiYapisi.newForText(iliskiText); if (!isOuter) { lastTable.addIliski(iliski) }
@@ -136,49 +135,26 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	asUnion(e) { return new MQUnion(this) }
 	asUnionAll(e) { return new MQUnionAll(this) }
 	static asTmpTable(e, _sent) {
-		e = e || {};
-		const table = typeof e == 'object' ? e.table : e;
-		const sent = typeof e == 'object' ? (_sent || e.sent) : _sent;
-		const ilkSent = sent.liste ? sent.liste[0] : sent;
-		const result = new MQTmpTable({ table, sent: ilkSent, sahalar: ilkSent.sahalar.liste.map(saha => saha.alias) });
+		e = e || {}; const table = typeof e == 'object' ? e.table : e, sent = typeof e == 'object' ? (_sent || e.sent) : _sent;
+		const ilkSent = sent.liste ? sent.liste[0] : sent, result = new MQTmpTable({ table, sent: ilkSent, sahalar: ilkSent.sahalar.liste.map(saha => saha.alias) });
 		return result
 	}
 	asTmpTable(e) { return this.class.asTmpTable(e, this) }
 	buildString(e) {
-		super.buildString(e);
-
-		e.result += `SELECT		`;
-		let value = this.top;
-		if (value != null)
-			e.result += ` TOP ${value} `;
-		if (this.distinct)
-			e.result += `DISTINCT `;
-		
-		value = this.sahalar.toString();
-		e.result += value;
-
-		let birlesikWhere = new MQWhereClause();
-		this.from.iliskiler2Where({ where: birlesikWhere });
-		birlesikWhere.birlestir(this.where);
-
-		let ekle = clause => {
-			clause = clause.toString();
-			if (clause)
-				e.result += `${CrLf}${clause}`;
+		const {sqlitemi} = window?.app ?? {};
+		super.buildString(e); e.result += `SELECT `;
+		let {top} = this; if (!sqlitemi && top != null) { e.result += ` TOP ${value} ` }
+		if (this.distinct) { e.result += `DISTINCT ` }
+		let value = this.sahalar.toString(); e.result += value;
+		let where = new MQWhereClause(); this.from.iliskiler2Where({ where }); where.birlestir(this.where);
+		let ekle = clause => { clause = clause?.toString(); if (clause) { e.result += `${CrLf}${clause}` } }
+		ekle(this.from); ekle(where); ekle(this.groupBy); ekle(this.having);
+		let limit = top ?? this.limit, {offset} = this;
+		if (sqlitemi){
+			if (limit != null) { e.result += ` LIMIT ${value}` }
+			if (offset != null) { e.result += ` OFFSET ${value}` }
 		}
-		ekle(this.from);
-		ekle(birlesikWhere);
-		ekle(this.groupBy);
-		ekle(this.having);
-
-		/*value = this.limit;
-		if (value)
-			e.result += ` LIMIT ${value}`;
-		value = this.offset;
-		if (value)
-			e.result += ` OFFSET ${value}`;*/
 	}
-
 	// ext //
 	fisSilindiEkle(e) { this.where.fisSilindiEkle(e); return this }
 	fisHareket(e, _harTablo, _innerJoinFlag) {

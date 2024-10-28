@@ -339,7 +339,16 @@ class MQHatYonetimi extends MQMasterOrtak {
 				tekil: true, args: { exclude_hatKod, _recs }, title: `<b class="royalblue">${_recs.length} adet Tezgahı</b> <span class="darkgray">şu Hat'a taşı:</span>`, secince: async e => {
 					const hatKod = e.value, {sender} = e, tezgahKodListe = sender._recs?.map(rec => rec.tezgahKod); if (!tezgahKodListe?.length) { return }
 					const upd = new MQIliskiliUpdate({ from: 'tekilmakina', where: { inDizi: tezgahKodListe, saha: 'kod' }, set: { degerAta: hatKod, saha: 'ismrkkod' } });
-					try { await app.sqlExecNone(upd); gridPart.tazele() } catch (ex) { console.error(ex); hConfirm(getErrorText(ex)) }
+					try {
+						await app.sqlExecNone(upd); let promises = [];
+						for (const tezgahKod of tezgahKodListe) {
+							promises.push(app.wsSiradakiIsler({ tezgahKod }).then(isRecs => {
+								const isIdListe = isRecs.map(rec => rec.issayac).join(delimWS);
+								return app.wsSiradanKaldir({ tezgahKod, isIdListe })
+							}))
+						}
+						await Promise.all(promises); gridPart.tazele()
+					} catch (ex) { console.error(ex); hConfirm(getErrorText(ex)) }
 				}
 			})
 		}

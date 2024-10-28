@@ -77,8 +77,8 @@ class MQEkNotlar extends MQSayacliOrtak {
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e, alias = e.alias ?? this.tableAlias, {urlCount} = this;
 		liste.push(...[
-			new GridKolon({ belirtec: 'kayittarih', text: 'Tarih', genislikCh: 7 }).tipDate(),
-			new GridKolon({ belirtec: 'kayitzaman', text: 'Saat', genislikCh: 7 }).tipTime_noSecs(),
+			new GridKolon({ belirtec: 'kayittarih', text: 'Tarih', genislikCh: 10 }).tipDate(),
+			new GridKolon({ belirtec: 'kayitzaman', text: 'Saat', genislikCh: 8 }).tipTime_noSecs(),
 			new GridKolon({ belirtec: 'tipText', text: 'Tip', genislikCh: 8, sql: HatTezgah.getClause(`${alias}.tip`) }),
 			new GridKolon({ belirtec: 'hatkod', text: 'Hat', genislikCh: 8 }),
 			new GridKolon({ belirtec: 'hatadi', text: 'Hat Adı', genislikCh: 15, sql: 'hat.aciklama' }),
@@ -107,10 +107,11 @@ class MQEkNotlar extends MQSayacliOrtak {
 		liste.push(new GridKolon({ belirtec: 'notlar', text: 'Ek Notlar', genislikCh: 150 }))
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {sent} = e, alias = e.alias ?? this.tableAlias;
+		super.loadServerData_queryDuzenle(e); const {stm, sent} = e, alias = e.alias ?? this.tableAlias;
 		sent.fromIliski('ismerkezi hat', `${alias}.hatkod = hat.kod`);
 		sent.fromIliski('tekilmakina tez', `${alias}.tezgahkod = tez.kod`);
-		sent.sahalar.add(`${alias}.tip`); for (let i = 1; i <= this.urlCount; i++) { sent.sahalar.add(`${alias}.url${i}`) }
+		sent.sahalar.add(`${alias}.tip`); for (let i = 1; i <= this.urlCount; i++) { sent.sahalar.add(`${alias}.url${i}`) };
+		stm.orderBy.add('kayittarih DESC', 'kayitzaman DESC')
 	}
 	static orjBaslikListesi_gridRendered(e) {
 		super.orjBaslikListesi_gridRendered(e); const {type} = e;

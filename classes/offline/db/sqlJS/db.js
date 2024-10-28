@@ -3,27 +3,31 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 	get dbmi() { return true } get dbMgrClass() { return this.class } static get dbMgrClass() { return SqlJS_DBMgr } static get defaultName() { return 'main' }
 	get fsRootDirPaths() { return [...super.fsRootDirPaths, this.fsFileName] } get fsFileName() { return `${this.name || 'main'}.db` }
 	constructor(e) { e = e ?? {}; super(e); $.extend(this, { autoSaveFlag: e.autoSave ?? e.autoSaveFlag ?? true, internalDB: e.internalDB }) }
-	async open(e) {
+	async open(e) { await super.open(e); await this.openDB(e); return this }
+	async openDB(e) {
 		if (!this._sql) { await initSqlJsPromise; this._sql = await initSqlJs({ locateFile: fileName => `${webRoot}/lib_external/webSQL/${fileName}` }) }
-		if (!this.internalDB) { const {_sql: sql} = this; this.internalDB = new sql.Database(); await this.dbInit(e) }
+		if (!this.internalDB) { const {_sql: sql} = this; this.internalDB = new sql.Database(e?.data); await this.dbInit(e) }
 		return this
 	}
 	async close(e) {
-		clearTimeout(this._timer_kaydetDefer); const {internalDB} = this;
-		if (internalDB) { if (this.changedFlag) { await this.kaydet(e) } await internalDB.close(); delete this.internalDB }
+		let {internalDB: db} = this; if (db) { if (this.changedFlag) { await this.kaydet(e) } await this.closeDB(e); db = null }
 		await super.close(e); return this
+   }
+	async closeDB(e) {
+		clearTimeout(this._timer_kaydetDefer); let {internalDB: db} = this;
+		if (db) { await db.close(); delete this.internalDB; db = null }
+		return this
 	}
 	async yukleDevam(e) {
 		await this.open(e); if (!await super.yukleDevam(e)) { return false }
 		const {fh} = this; let data; if (fh?.kind == 'file') { const file = await fh.getFile(); data = await file?.arrayBuffer() }
 		const {_sql: sql} = this; data = data ? new Uint8Array(data) : undefined; if (!data?.length) { data = undefined }
-		this.internalDB = new sql.Database(data); await this.dbInit(e); return true
+		await this.closeDB(e); await this.openDB({ ...e, data }); return true
 	}
 	async kaydetDevam(e) {
 		const {internalDB} = this; if (!internalDB) { return false }
 		if (!await super.kaydetDevam(e)) { return false } const {fh} = this; if (fh?.kind != 'file') { return false }
-		const create = true, data = internalDB.export(), wr = await fh.createWritable();
-		try { await wr.write(data) } finally { try { wr.close() } catch (ex) { } }
+		const create = true, data = internalDB.export(), wr = await fh.createWritable(); try { await wr.write(data) } finally { try { wr.close() } catch (ex) { } }
 		return true
 	}
 	async dosyadanYukle(e) {
@@ -54,7 +58,7 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		].join(`; ${CrLf}`)); return this
 	}
 	async execute(e, _params, isRetry) {
-		e = e || {}; await this.open(e);
+		e = e || {}; if (window?.app) { app.sqlType = 'sqlite' } await this.open(e);
 		if (!e.query) { e = { query: e } } if (_params !== undefined) { e.params = _params }
 		let savedParams = e.params, _query = e.query, isDBWrite = this.isDBWrite(_query);
 		if (_query?.getQueryYapi) { $.extend(e, _query.getQueryYapi()) } else if (_query?.query) { $.extend(e, _query) } else { e.query = _query?.toString() ?? '' }
@@ -70,7 +74,7 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		catch (ex) {
 			if (!isRetry) {
 				const message = ex.message || ''; if (message.includes('no such column')) {
-					if (app?.tabloEksikleriTamamla) { await app.tabloEksikleriTamamla({ ...e, noCacheReset: true }); return await this.executeSql(e, _params, true) } }
+					if (window?.app?.tabloEksikleriTamamla) { await app.tabloEksikleriTamamla({ ...e, noCacheReset: true }); return await this.executeSql(e, _params, true) } }
 			}
 			/*if (dbOpCallback) { await dbOpCallback.call(this, { operation: 'executeSql', state: null, error: ex }, e) }*/
 			throw ex

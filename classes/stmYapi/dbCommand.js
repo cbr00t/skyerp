@@ -39,28 +39,40 @@ class MQInsertBase extends MQDbCommand {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get onEk() { return `INSERT INTO ` }
 	get isTableInsert() { return this.tableInsertFlag } get isDBWriteClause() { return true }
 	constructor(e) {
-		e = e || {}; super(e);
-		let hvListe = e.hvListe || e.hv; if (hvListe && !$.isArray(hvListe)) { hvListe = [hvListe] }
-		$.extend(this, { table: e.table, hvListe, tableInsertFlag: null });
+		e = e || {}; super(e); let hvListe = e.hvListe || e.hv; if (hvListe && !$.isArray(hvListe)) { hvListe = [hvListe] }
+		$.extend(this, { table: e.table, hvListe, tableInsertFlag: null })
 	}
 	buildString(e) {
-		super.buildString(e);
-		const {table, hvListe} = this; if (!table || $.isEmptyObject(hvListe)) { return }
-		const {onEk} = this.class, ilkHV = hvListe[0], hvSize = hvListe.length;
+		super.buildString(e); const {table, hvListe} = this; if (!table || $.isEmptyObject(hvListe)) { return }
+		const {sqlitemi} = window?.app ?? {}, {onEk} = this.class, ilkHV = hvListe[0], keys = Object.keys(ilkHV), hvSize = hvListe.length;
 			// SQL Bulk Insert (values ?? .. ??) için SQL tarafında en fazla 1000 kayıta kadar izin veriliyor
 		let isTableInsert = hvSize > 1000 ? true : this.isTableInsert; if (isTableInsert == null) { isTableInsert = hvSize > 500 }
-		e.result += `${onEk}${table} (`; e.result += Object.keys(ilkHV).join(','); e.result += ')';
-		if (isTableInsert) { e.result += ' SELECT * FROM @dt'; e.params = [ { name: '@dt', type: 'structured', value: hvListe } ]; }
-		else {
-			e.result += ' VALUES ';
-			for (let i = 0; i < hvSize; i++) {
-				if (i != 0) { e.result += ',' }
-				e.result += '('; const hv = hvListe[i]; let ilkDegermi = true;
-				for (const key in hv) {
-					if (ilkDegermi) { ilkDegermi = false } else { e.result += ',' }
-					const value = hv[key]; e.result += MQSQLOrtak.sqlServerDegeri(value);
+		e.result += `${onEk}${table} (`; e.result += keys.join(','); e.result += ')';
+		if (sqlitemi) {
+			let hvParamClauses = []; e.params = []; for (const hv of hvListe) {
+				let hvParam = []; e.params.push(hvParam)
+				for (const key of keys) {
+					let value = hv[key] ?? null; if (isDate(value)) { value = asReverseDateTimeString(value) } else if (typeof value == 'boolean') { value = bool2Int(value) }
+					hvParam.push(value)
 				}
-				e.result += ')'
+				hvParamClauses.push(`(${hvParam.map(x => '?').join(', ')})`)
+			}
+			e.result += `VALUES (${hvParamClauses.join(', ')}) `
+		}
+		else {
+			if (isTableInsert) {
+				e.result += ' SELECT * FROM @dt'; e.params = [ { name: '@dt', type: 'structured', value: hvListe } ] }
+			else {
+				e.result += ' VALUES ';
+				for (let i = 0; i < hvSize; i++) {
+					if (i != 0) { e.result += ',' }
+					e.result += '('; const hv = hvListe[i]; let ilkDegermi = true;
+					for (const key in hv) {
+						if (ilkDegermi) { ilkDegermi = false } else { e.result += ',' }
+						const value = hv[key]; e.result += MQSQLOrtak.sqlServerDegeri(value)
+					}
+					e.result += ')'
+				}
 			}
 		}
 	}
@@ -68,15 +80,11 @@ class MQInsertBase extends MQDbCommand {
 class MQInsert extends MQInsertBase {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) { e = e || {}; super(e); this.tableInsertFlag = asBoolQ(e.tableInsert); }
-	tableInsert() { this.tableInsertFlag = true; return this }
-	queryInsert() { this.tableInsertFlag = false; return this }
+	tableInsert() { this.tableInsertFlag = true; return this } queryInsert() { this.tableInsertFlag = false; return this }
 }
 class MQTableInsert extends MQInsertBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	get isTableInsert() { return true }
+	static { window[this.name] = this; this._key2Class[this.name] = this } get isTableInsert() { return true }
 }
 class MQQueryInsert extends MQInsertBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	get isTableInsert() { return false }
+	static { window[this.name] = this; this._key2Class[this.name] = this } get isTableInsert() { return false }
 }
-

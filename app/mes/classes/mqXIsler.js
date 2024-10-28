@@ -103,6 +103,8 @@ class MQSiradakiIsler extends MQXIsler {
 			{ id: 'zamanEtudu', text: 'ZAMAN ETÜDÜ', handler: e => this.zamanEtuduIstendi(e) },
 			{ id: 'baskaTezgahaTasi', text: 'TAŞI', handler: e => this.baskaTezgahaTasiIstendi(e) },
 			{ id: 'isParcala', text: 'PARÇALA', handler: e => this.isParcalaIstendi(e) }
+			/*{ id: 'yukari', text: '', handler: e => this.siralaIstendi({ ...e, yon: 'yukari' }) },
+			{ id: 'asagi', text: '', handler: e => this.siralaIstendi({ ...e, yon: 'asagi' }) }*/
 		)
 	}
 	static orjBaslikListesiDuzenle(e) {
@@ -195,6 +197,15 @@ class MQSiradakiIsler extends MQXIsler {
 			}
 			catch (ex) { console.error(ex); hConfirm(getErrorText(ex), islemAdi) }
 		} })
+	}
+	async siralaIstendi(e) {
+		const islemAdi = 'Sırala', gridPart = e.gridPart ?? e.parentPart ?? e.sender, {hatKod, tezgahKod} = gridPart, {yon} = e;
+		const isIdListe = gridPart.selectedRecs.filter(rec => !rec.devreDisimi).map(rec => rec.issayac);
+		if (!isIdListe?.length) { hConfirm('İşlem yapılacak Aktif kayıt(lar) seçilmelidir', islemAdi); return }
+		try {
+			/*tezgahId, isIdListe: isIdListe.join('|') */
+			await app.wsSiraDuzenle({ isIdListe: isIdListe.join(delimWS), tezgahKod });
+		} catch (ex) { console.error(ex); hConfirm(getErrorText(ex), islemAdi) }
 	}
 }
 class MQBekleyenIsler extends MQXIsler {
