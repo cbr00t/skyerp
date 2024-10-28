@@ -27,7 +27,7 @@ class MQYerelParamConfig extends MQYerelParamApp {
 				for (const [key, value] of Object.entries(sql)) { if (value != _sql[key]) { kritikDegisiklikVarmi = true;  break } }
 			}
 			if (kritikDegisiklikVarmi) {
-				config.session.afterLogin().finally(() => app.updateAppTitle());
+				config.session?.afterLogin?.().finally(() => app.updateAppTitle());
 				setTimeout(() => {
 					ehConfirm(`<p>Yapılan değişikliklerin geçerli olması için programa yeniden giriş yapılmalıdır</p><p class="bold firebrick">Devam edilsin mi?</p>`, appName)
 						.then(rdlg => { if (rdlg) { app.logoutIstendi() } });

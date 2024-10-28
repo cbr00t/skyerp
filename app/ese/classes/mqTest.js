@@ -73,8 +73,9 @@ class MQTest extends MQGuidOrtak {
 			.leftJoin({ alias, from: 'esemuayene mua', on: `${alias}.muayeneid = mua.id` })
 			.leftJoin({ alias: 'mua', from: 'esehasta has', on: 'mua.hastaid = has.id' })
 			.leftJoin({ alias: 'mua', from: 'esedoktor dok', on: 'mua.doktorid = dok.id' });
-		sent.sahalar.add(`${alias}.btamamlandi`, `${alias}.uygulanmayeri`, `${alias}.onaykodu`, 'has.email', 'sab.aciklama sablonAdi');
-		sent.groupByOlustur()
+		sent.sahalar.add(`${alias}.btamamlandi`, `${alias}.muayeneid`, `${alias}.uygulanmayeri`, `${alias}.onaykodu`, 'has.email', 'sab.aciklama sablonAdi');
+		if (e.tekilOku) { const {sahalar} = sent; sahalar.liste = sahalar.liste.filter(({ deger }) => !deger.includes('SUM(')) }
+		else { sent.groupByOlustur() }
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e); const removeIdSet = asSet(['yeni', 'kopya']);
@@ -233,14 +234,13 @@ class MQTestCPT extends MQTest {
 	}
 	/*static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.sahalar.add('sab.gecerliresimseq', 'sab.gruptekrarsayisi', 'sab.resimarasisn') }*/
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { cptsablonid: this.sablonId }) }
-	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { gecerliResimSeq: rec.gecerliresimseq, grupTekrarSayisi: rec.gruptekrarsayisi, resimArasiSn: rec.resimarasisn })}
 	testUI_setValues(e) {
 		super.testUI_setValues(e); const {rec} = e; if (!rec) { return }
-		for (const key of ['gecerliResimSeq', 'grupTekrarSayisi', 'resimArasiSn']) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
+		for (const key of ['gecerliResimSeq', 'grupTekrarSayisi', 'baslamaOncesiBostaMS', 'resimGosterimMS', 'resimBostaMS']) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
 	}
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
 		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, content} = parentPart;
-		const {id: testId, detaylar, genelSonuc, gecerliResimSeq, grupTekrarSayisi, resimArasiSn} = this, {tip, intervalKatSayi} = this.class;
+		const {id: testId, detaylar, genelSonuc, gecerliResimSeq, grupTekrarSayisi, baslamaOncesiBostaMS, resimGosterimMS, resimBostaMS} = this, {tip, intervalKatSayi} = this.class;
 		let startCounter = 3, orjUrls = detaylar.map(det => det.resimLink), urls = [...orjUrls], imageCount = urls.length, keyDownHandler;
 		switch (state) {
 			case 'home':
@@ -254,11 +254,11 @@ class MQTestCPT extends MQTest {
 				for (let rec of results) { imgStates[rec.result ? 'load' : 'error']++ }
 				let rightWidth = 250, infoHTML = (
 					`<p>Test başlamadan önce <b class="royalblue">${startCounter} saniyelik</b> bir geri sayım olacak ve ` +
-							`Test sırasında <b class="royalblue">${imageCount}</b> tane resim karışık sırada ve <b class="royalblue">${resimArasiSn} saniye</b> aralıklarla gösterilecektir.<br>` +
+							`Test sırasında <b class="royalblue">${imageCount}</b> tane resim karışık sırada ve <b class="royalblue">${(resimGosterimMS + resimBostaMS) * 1000} saniye</b> aralıklarla gösterilecektir.<br>` +
 						`Yanda gözüken resim gözükürse SPACE veya ENTER tuşuna basınız ya da Resme tıklayınız.</p>` +
 					`<p>Bir grup gösterim tamamlanınca aynı resimler bir daha karışık şekilde gösterilir. Grup gösterimi <b class="royalblue">${grupTekrarSayisi}</b> defa yapılır.<br/>` +
 						`Sonuçta yandaki resim değişik zamanlarda <b class="royalblue">${grupTekrarSayisi}</b> defa karşımıza çıkacaktır.</p>` +
-					`<p>Bu test tahmini <b class="forestgreen">${Math.ceil(resimArasiSn * imageCount * grupTekrarSayisi / 60)} dakika</b> sürecektir.</p>` +
+					`<p>Bu test tahmini <b class="forestgreen">${Math.ceil((resimGosterimMS + resimBostaMS) * 1000 * imageCount * grupTekrarSayisi / 60)} dakika</b> sürecektir.</p>` +
 					`<p>Hazırsanız <b>'İşleme Başla'</b> tuşuna basarak testi başlatınız.</p>`
 				);
 				$(`<div class="info float-left wrap-pretty" style="width: calc(var(--full) - (${rightWidth}px + 5px))">${infoHTML}</div>`).appendTo(content);
@@ -271,13 +271,13 @@ class MQTestCPT extends MQTest {
 				let gecerliResimURL, index = -1, repeatIndex = 0, resimGosterimTime, ilkTiklamaTime, hInternal;
 				parentPart.headerText = `Şu resme tıklayınız: <img class="target-img" src="${orjUrls[gecerliResimSeq - 1]}">`;
 				const img = $(`<div class="resim"/>`); img.appendTo(content);
-				let clearFlag = true; let promise_wait = new $.Deferred();
+				let clearFlag = false; let promise_wait = new $.Deferred();
 				let loopProc = () => {
 					if (startCounter <= 0 || parentPart.isDestroyed || parentPart.state != 'test') { clearInterval(this._hInterval); delete this._hInterval; promise_wait?.resolve(); return false }
 					img.html(clearFlag ? '' : `<div class="veri full-wh">${startCounter--}</div>`); clearFlag = !clearFlag
-				}; this._hInterval = setInterval(loopProc, 800 * (intervalKatSayi / 2)); await promise_wait; img.html('');
+				}; this._hInterval = setInterval(loopProc, 1000 * intervalKatSayi); await promise_wait; img.html('');
 				let clickHandler = evt => {
-					if (ilkTiklamaTime || !resimGosterimTime) { return } ilkTiklamaTime = now(); let dogrumu = urls[index] == gecerliResimURL;
+					if (!clearFlag || ilkTiklamaTime || !resimGosterimTime) { return } ilkTiklamaTime = now(); let dogrumu = urls[index] == gecerliResimURL;
 					let cssClicked = `clicked-${dogrumu ? 'dogru' : 'yanlis'}`; img.removeClass('clicked-dogru clicked-yanlis'); setTimeout(() => img.addClass(cssClicked), 1);
 					let tiklamaSnFarki = (ilkTiklamaTime - resimGosterimTime) / 1000, grupNo = repeatIndex + 1;
 					let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif({ tip, testId }); testSonuc.tiklamaEkle(dogrumu, tiklamaSnFarki)
@@ -286,10 +286,13 @@ class MQTestCPT extends MQTest {
 					if (parentPart.isDestroyed || parentPart.state != 'test') { $('body').off('keydown', keyDownHandler); return }
 					let key = evt.key?.toLowerCase(); if (key == ' ' || key == 'enter' || key == 'linefeed') { clickHandler(evt) }
 				}; $('body').off('keydown', keyDownHandler).on('keydown', keyDownHandler);
-				let ilkmi = true; clearFlag = false; loopProc = () => {
+				let ilkmi = true, intervalTime; clearFlag = true;
+				loopProc = async () => {
 					if (parentPart.isDestroyed || parentPart.state != 'test') { clearInterval(this._hInterval); delete this._hInterval; return false }
-					if (clearFlag) { img.css('background-image', '') }
+					let farkMS = now() - intervalTime;
+					if (clearFlag) { if (farkMS < resimBostaMS) { return true } img.css('background-image', '') }
 					else {
+						if (farkMS < resimGosterimMS) { return true }
 						index++; if (ilkmi) { ilkmi = false } else { genelSonuc.tumSayi++ }
 						let cevrimBittimi = index >= imageCount; if (cevrimBittimi) {
 							repeatIndex++; index = 0; if (grupTekrarSayisi && repeatIndex >= grupTekrarSayisi) { parentPart.nextPage(); return false }
@@ -302,8 +305,8 @@ class MQTestCPT extends MQTest {
 						img.css('background-image', `url(${urls[index]})`);
 						resimGosterimTime = now(); ilkTiklamaTime = null
 					}
-					clearFlag = !clearFlag; return true
-				}; gecerliResimURL = urls[gecerliResimSeq - 1]; urls = shuffle(urls); this._hInterval = setInterval(loopProc, resimArasiSn * 500 * intervalKatSayi); break
+					clearFlag = !clearFlag; intervalTime = now(); return true
+				}; gecerliResimURL = urls[gecerliResimSeq - 1]; urls = shuffle(urls); intervalTime = now(), this._hInterval = setInterval(loopProc, 50); break
 			case 'end':
 				$('body').off('keydown', keyDownHandler);
 				if (genelSonuc) {

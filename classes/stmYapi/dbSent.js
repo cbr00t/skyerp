@@ -43,10 +43,9 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	groupByOlustur(e) {
 		const groupBy = this.groupBy = new MQGroupByClause(), {aggregateFunctions} = this.class, sahaListe = this.sahalar.liste;
 		const ekleneceklerSet = {}; let aggregateVarmi = false;
-		// for (const saha of sahaListe) {
 		for (let i = 0; i < sahaListe.length; i++) {
 			const saha = sahaListe[i]; let deger = saha.deger?.toString();
-			if (!deger || deger == '' || deger == `''` || deger == '0' || isDigit(deger[0]) || deger[0] == `'`) { continue }
+			if (!deger || deger == '' || deger == `''` || deger == '0' || isDigit(deger[0]) || deger[0] == `'` || deger.endsWith('*')) { continue }
 			const degerUpper = deger.toUpperCase(); if (degerUpper.startsWith('CAST(0') || degerUpper.startsWith("CAST(''") || degerUpper.startsWith('CAST(NULL') || degerUpper.startsWith('NULL')) { continue }
 			const toplammi = this.class.hasAggregateFunctions(degerUpper); if (toplammi) { aggregateVarmi = true; continue }
 			ekleneceklerSet[deger] = true
