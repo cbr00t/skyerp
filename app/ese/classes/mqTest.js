@@ -25,7 +25,8 @@ class MQTest extends MQGuidOrtak {
 	static newFor(e) { if (typeof e != 'object') { e = { tip: e } } const cls = this.getClass(e); return cls ? new cls(e) : null }
 	static pTanimDuzenle(e) {
 		const {sablonTip} = this; super.pTanimDuzenle(e); $.extend(e.pTanim, {
-			muayeneId: new PInstGuid('muayeneid'), tarihSaat: new PInstDate('tarihsaat'), tamamlandimi: new PInstBitBool('btamamlandi'),
+			muayeneId: new PInstGuid('muayeneid'), hastaId: new PInstGuid('hastaid'),
+			tarihSaat: new PInstDate('tarihsaat'), tamamlandimi: new PInstBitBool('btamamlandi'),
 			uygulanmaYeri: new PInstTekSecim('uygulanmayeri', MQTestUygulanmaYeri), onayKodu: new PInstNum('onaykodu'),
 			sablonId: new PInstGuid(`${sablonTip == 'anket' ? 'ese' : sablonTip}sablonid`), aktifYas: new PInstNum('aktifyas')
 		})
@@ -36,13 +37,14 @@ class MQTest extends MQGuidOrtak {
 			tamamlandiDurumu: new SecimTekSecim({ etiket: 'Tamamlanma Durumu', tekSecim: new BuDigerVeHepsi([`<span class="forestgreen">Tamamlananlar</span>`, `<span class="darkred">TamamlanMAyanlar</span>`]) }),
 			tarih: new SecimDate({ etiket: 'Tarih/Saat' }), aktifYas: new SecimInteger({ etiket: 'Aktif Yaş' }),
 			sablonAdi: new SecimOzellik({ etiket: 'Şablon Adı' }), hastaAdi: new SecimOzellik({ etiket: 'Hasta İsim' }), doktorIsim: new SecimOzellik({ etiket: 'Doktor İsim' }),
-			sablonId: new SecimBasSon({ etiket: 'Şablon', mfSinif: this.sablonSinif, grupKod: 'teknik' }),muayeneId: new SecimBasSon({ etiket: 'Muayene', mfSinif: MQMuayene, grupKod: 'teknik' })
+			sablonId: new SecimBasSon({ etiket: 'Şablon', mfSinif: this.sablonSinif, grupKod: 'teknik' }), muayeneId: new SecimBasSon({ etiket: 'Muayene', mfSinif: MQMuayene, grupKod: 'teknik' }),
+			hastaId: new SecimBasSon({ etiket: 'Hasta', mfSinif: MQHasta, grupKod: 'teknik' })
 		}).whereBlockEkle(({ secimler: sec, where: wh }) => {
 			const {tableAlias: alias} = this;
 			let tSec = sec.tamamlandiDurumu.tekSecim; if (!tSec.hepsimi) { wh.add(tSec.getBoolBitClause(`${alias}.btamamlandi`)) }
 			wh.basiSonu({ basi: sec.tarih.basi, sonu: sec.tarih.sonu?.yarin().clone().clearTime() }, `${alias}.tarihsaat`);
 			wh.ozellik(sec.sablonAdi, 'sab.aciklama').basiSonu(sec.aktifYas, `${alias}.aktifyas`).ozellik(sec.hastaAdi, 'has.aciklama').ozellik(sec.doktorAdi, 'dok.aciklama');
-			wh.basiSonu(sec.muayeneId, `${alias}.muayeneid`).basiSonu(sec.sablonId, `${alias}.sablonid`)
+			wh.basiSonu(sec.muayeneId, `${alias}.muayeneid`).basiSonu(sec.hastaId, `${alias}.hastaid`).basiSonu(sec.sablonId, `${alias}.sablonid`)
 			
 		})
 	}
@@ -70,10 +72,10 @@ class MQTest extends MQGuidOrtak {
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias, sablonSinif, pTanim} = this, {rowAttr: sablonIdSaha} = pTanim.sablonId;
 		sent.leftJoin({ alias, from: `${sablonSinif.table} sab`, on: `${alias}.${sablonIdSaha} = sab.id` })
+			.leftJoin({ alias, from: 'esehasta has', on: 'tst.hastaid = has.id' })
 			.leftJoin({ alias, from: 'esemuayene mua', on: `${alias}.muayeneid = mua.id` })
-			.leftJoin({ alias: 'mua', from: 'esehasta has', on: 'mua.hastaid = has.id' })
 			.leftJoin({ alias: 'mua', from: 'esedoktor dok', on: 'mua.doktorid = dok.id' });
-		sent.sahalar.add(`${alias}.btamamlandi`, `${alias}.muayeneid`, `${alias}.uygulanmayeri`, `${alias}.onaykodu`, 'has.email', 'sab.aciklama sablonAdi');
+		sent.sahalar.add(`${alias}.btamamlandi`, `${alias}.muayeneid`, `${alias}.hastaid`, 'has.aciklama hastaadi', `${alias}.uygulanmayeri`, `${alias}.onaykodu`, 'has.email', 'sab.aciklama sablonAdi');
 		if (e.tekilOku) { const {sahalar} = sent; sahalar.liste = sahalar.liste.filter(({ deger }) => !deger.includes('SUM(')) }
 		else { sent.groupByOlustur() }
 	}
@@ -92,7 +94,7 @@ class MQTest extends MQGuidOrtak {
 			form.addCheckBox('tamamlandimi', 'Tamamlandı').addStyle(e => `$elementCSS { margin-top: 10px !important }`);
 		tanimForm.addDiv('ozetBilgi').etiketGosterim_yok().addCSS('bold gray').addStyle_fullWH(null, 'auto').addStyle(e => `$elementCSS { font-size: 120%; padding: 10px 20px }`)
 			.onAfterRun(async e => {
-				const {altInst: inst, input} = e.builder, {sablonId, tarihSaat, muayeneId, tamamlandimi} = inst, {sablonTip} = inst.class;
+				const {altInst: inst, input} = e.builder, {tarihSaat, muayeneId, hastaId, hastaAdi, sablonId, tamamlandimi} = inst, {sablonTip} = inst.class;
 				let {uygulanmaYeri, onayKodu, aktifYas} = inst, sablonAdi, muayeneRec;
 				/*if (sablonTip && sablonId) { sablonAdi = (await MQSablon.getClass(sablonTip)?.getGloKod2Adi(sablonId)) || '' }*/
 				if (muayeneId) { muayeneRec = await new MQMuayene({ id: muayeneId }).tekilOku() }
@@ -105,8 +107,9 @@ class MQTest extends MQGuidOrtak {
 				if (sablonAdi) { addItem(`<span class="gray etiket">Şablon:</span> <b class="veri forestgreen">${sablonAdi}</b>`, 'flex-row'), `font-size: 130%` }
 				/*addItem(`${tarihSaat ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri">${dateTimeAsKisaString(tarihSaat)}</b>` : ''} ${tamamlandimi ? `<div class="forestgreen" style="margin-left: "20px">Tamamlandı</b>` : ''}`, 'flex-row');*/
 				addItem(`${tarihSaat ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri">${dateTimeAsKisaString(tarihSaat)}</b>` : ''}`, 'flex-row');
-				if (muayeneRec) { addItem(`<span class="gray etiket">Muayene:</span> <b class="veri">${muayeneRec.fisnox}</b> - <b class="gray">${muayeneRec.hastaadi}</b> - (Yaş: <b class="forestgreen">${aktifYas}</b>)`, 'flex-row') }
-				if (uygulanmaYeri) { addItem(`<span class="kgray etiket">Uygulanma Yeri:</span> <b>${MQTestUygulanmaYeri.kaDict[uygulanmaYeri]?.aciklama || ''}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }
+				if ((muayeneRec?.fisnox || '0') != '0') { addItem(`<span class="gray etiket">Muayene:</span> <b class="veri">${muayeneRec.fisnox}</b>`, 'flex-row') }
+				addItem(`<span class="gray">Hasta: <b class="royalblue">${hastaAdi}</b></span> ${aktifYas ? `- (Yaş: <b class="forestgreen">${aktifYas}</b>)` : ''}`, 'flex-row');
+				if (uygulanmaYeri) { addItem(`<span class="darkgray etiket">Uygulanma Yeri:</span> <b>${MQTestUygulanmaYeri.kaDict[uygulanmaYeri]?.aciklama || ''}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }
 				if (onayKodu) { addItem(`<span class="gray etiket">Onay Kodu:</span> <u class="onayKodu veri bold royalblue">${onayKodu}</u>`, null, `margin-top: 30px; cursor: pointer`) }
 				let elm = input.find('.onayKodu.veri'); if (elm?.length) {
 					elm.on('click', evt => { navigator.clipboard.writeText(onayKodu).then(() => eConfirm('Onay Kodu panoya kopyalandı!', this.sinifAdi)) }) }
@@ -124,7 +127,7 @@ class MQTest extends MQGuidOrtak {
 			eConfirm(`Toplu e-Mail Gönderimi Bitti<p/>` +
 				(result?.send ? `<div><span class="darkgray">Başarılı:</span> <b class="green">${result?.send ?? '??'}</b></div>` : '') +
 				(result?.error ? `<div><span class="darkgray">Hatalı:</span> <b class="red">${result?.error ?? '??'}</b></div>` : '') +
-				(result?.total ? `<div><span class="darkgray">Toplam:</span> <b class="royalblue">${result?.total ?? '??'}</b></div>` : '')
+				((result?.total && !(result.send || result.error)) ? `<div><span class="darkgray">Toplam:</span> <b class="royalblue">${result?.total ?? '??'}</b></div>` : '')
 			, sinifAdi);
 			return result
 		}
@@ -167,7 +170,7 @@ class MQTest extends MQGuidOrtak {
 		if (promises.length) { await waitBlock() }
 		return allResults
 	}
-	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { sablonAdi: rec.sablonadi })}
+	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { sablonAdi: rec.sablonadi, hastaAdi: rec.hastaadi })}
 	static baslat(e) { let inst = new this({ id: e.testId ?? e.id }); return inst.baslat(e) }
 	async baslat(e) {
 		const inst = this, {tip} = this.class, {id} = this;
@@ -254,11 +257,11 @@ class MQTestCPT extends MQTest {
 				for (let rec of results) { imgStates[rec.result ? 'load' : 'error']++ }
 				let rightWidth = 250, infoHTML = (
 					`<p>Test başlamadan önce <b class="royalblue">${startCounter} saniyelik</b> bir geri sayım olacak ve ` +
-							`Test sırasında <b class="royalblue">${imageCount}</b> tane resim karışık sırada ve <b class="royalblue">${(resimGosterimMS + resimBostaMS) * 1000} saniye</b> aralıklarla gösterilecektir.<br>` +
+							`Test sırasında <b class="royalblue">${imageCount}</b> tane resim karışık sırada ve <b class="royalblue">${resimGosterimMS + resimBostaMS} ms</b> aralıklarla gösterilecektir.<br>` +
 						`Yanda gözüken resim gözükürse SPACE veya ENTER tuşuna basınız ya da Resme tıklayınız.</p>` +
 					`<p>Bir grup gösterim tamamlanınca aynı resimler bir daha karışık şekilde gösterilir. Grup gösterimi <b class="royalblue">${grupTekrarSayisi}</b> defa yapılır.<br/>` +
 						`Sonuçta yandaki resim değişik zamanlarda <b class="royalblue">${grupTekrarSayisi}</b> defa karşımıza çıkacaktır.</p>` +
-					`<p>Bu test tahmini <b class="forestgreen">${Math.ceil((resimGosterimMS + resimBostaMS) * 1000 * imageCount * grupTekrarSayisi / 60)} dakika</b> sürecektir.</p>` +
+					`<p>Bu test tahmini <b class="forestgreen">${Math.ceil((resimGosterimMS + resimBostaMS) / 1000 * imageCount * grupTekrarSayisi / 60)} dakika</b> sürecektir.</p>` +
 					`<p>Hazırsanız <b>'İşleme Başla'</b> tuşuna basarak testi başlatınız.</p>`
 				);
 				$(`<div class="info float-left wrap-pretty" style="width: calc(var(--full) - (${rightWidth}px + 5px))">${infoHTML}</div>`).appendTo(content);
