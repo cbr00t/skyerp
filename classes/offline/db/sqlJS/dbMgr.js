@@ -1,6 +1,7 @@
 class SqlJS_DBMgr extends SqlJS_DBMgrBase {
 	static { window[this.name] = this; this._key2Class[this.name] = this } get dbMgrmi() { return this.class.dbMgrmi }
 	static get kod() { return 'sqlJS' } static get aciklama() { return 'SqlJS' } static get dbMgrmi() { return true }
+	static get default() { const dbMgr = new this(); dbMgr.addDatabase(); return dbMgr }
 	get dbNames() { return Object.keys(this.databases) } get dbArray() { return Object.values(databases) }
 	get main() { return this.getDatabase(SqlJS_DB.defaultName) } constructor(e) { e = e ?? {}; super(e); $.extend(this, { databases: e.databases ?? e.dbList ?? {} }) }
 	async yukleDevam(e) {

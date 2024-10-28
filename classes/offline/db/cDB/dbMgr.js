@@ -1,7 +1,7 @@
 class CDBMgr extends CDBLocalData_Base {
 	static { window[this.name] = this; this._key2Class[this.name] = this } get dbMgrmi() { return this.class.dbMgrmi } get cDBmi() { return this.class.cDBmi }
 	static get kod() { return 'cDB' } static get aciklama() { return 'Cobra DB' } static get dbMgrmi() { return true } static get cDBmi() { return true }
-	get fsRootDirPaths() { return [...super.fsRootDirPaths, 'db', this.class.kod] }
+	static get default() { const dbMgr = new this(); dbMgr.addDatabase(); return dbMgr } get fsRootDirPaths() { return [...super.fsRootDirPaths, 'db', this.class.kod] }
 	get dbNames() { return Object.keys(this.databases) } get dbArray() { return Object.values(databases) }
 	get db2Table() { const db2Table = {}; for (const [name, db] of this.iterEntries(e)) { db2Table[name] = db.tables }; return db2Table }
 	constructor(e) { e = e ?? {}; super(e); $.extend(this, { databases: e.databases ?? e.dbList ?? {} }) }
@@ -39,7 +39,7 @@ class CDBMgr extends CDBLocalData_Base {
 		await databases[name]?.clearData(key); return this
 	}
 	addDatabase(name, _db) {
-		const {databases} = this.shadow; let db = databases[name];
+		const {databases} = this.shadow; name = name || CDB.defaultName; let db = databases[name];
 		if (db == null) { databases[name] = db = _db = _db ?? new CDB({ name }) } return db
 	}
 	addDatabases(...names) { for (const name of names) { this.addDatabase(name) } return this }

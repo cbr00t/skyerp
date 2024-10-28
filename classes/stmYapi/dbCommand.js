@@ -47,17 +47,16 @@ class MQInsertBase extends MQDbCommand {
 		const {sqlitemi} = window?.app ?? {}, {onEk} = this.class, ilkHV = hvListe[0], keys = Object.keys(ilkHV), hvSize = hvListe.length;
 			// SQL Bulk Insert (values ?? .. ??) için SQL tarafında en fazla 1000 kayıta kadar izin veriliyor
 		let isTableInsert = hvSize > 1000 ? true : this.isTableInsert; if (isTableInsert == null) { isTableInsert = hvSize > 500 }
-		e.result += `${onEk}${table} (`; e.result += keys.join(','); e.result += ')';
+		e.result += `${onEk}${table} (`; e.result += keys.join(','); e.result += ') ';
 		if (sqlitemi) {
 			let hvParamClauses = []; e.params = []; for (const hv of hvListe) {
-				let hvParam = []; e.params.push(hvParam)
-				for (const key of keys) {
+				let hvParam = []; for (const key of keys) {
 					let value = hv[key] ?? null; if (isDate(value)) { value = asReverseDateTimeString(value) } else if (typeof value == 'boolean') { value = bool2Int(value) }
 					hvParam.push(value)
 				}
-				hvParamClauses.push(`(${hvParam.map(x => '?').join(', ')})`)
+				hvParamClauses.push(`(${hvParam.map(x => '?').join(', ')})`); e.params.push(...hvParam)
 			}
-			e.result += `VALUES (${hvParamClauses.join(', ')}) `
+			e.result += `VALUES ${hvParamClauses.join(', ')}`
 		}
 		else {
 			if (isTableInsert) {

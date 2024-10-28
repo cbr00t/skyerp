@@ -7,6 +7,7 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 	async openDB(e) {
 		if (!this._sql) { await initSqlJsPromise; this._sql = await initSqlJs({ locateFile: fileName => `${webRoot}/lib_external/webSQL/${fileName}` }) }
 		if (!this.internalDB) { const {_sql: sql} = this; this.internalDB = new sql.Database(e?.data); await this.dbInit(e) }
+		if (!this._beforeUnloadHandler) { const handler = this._beforeUnloadHandler = evt => this.onBeforeUnload({ ...e, evt }); window.addEventListener('beforeunload', handler) }
 		return this
 	}
 	async close(e) {
@@ -16,6 +17,7 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 	async closeDB(e) {
 		clearTimeout(this._timer_kaydetDefer); let {internalDB: db} = this;
 		if (db) { await db.close(); delete this.internalDB; db = null }
+		if (this._beforeUnloadHandler) { window.removeEventListener('beforeunload', this._beforeUnloadHandler); delete this._beforeUnloadHandler }
 		return this
 	}
 	async yukleDevam(e) {
@@ -50,15 +52,21 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		}
 		const db = this; return {db, fsRootDir, fh, data}
 	}
-	async dbInit(e) {
-		await this.execute([
+	dbInit(e) {
+		this.execute([
 			`PRAGMA page_size = ${32 * 1024}`, 'PRAGMA journal_mode = WAL',
 			`PRAGMA synchronous = NORMAL`, `PRAGMA cache_size=-${4 * 1024}`,
 			`PRAGMA temp_store=MEMORY`, 'VACUUM'
 		].join(`; ${CrLf}`)); return this
 	}
-	async execute(e, _params, isRetry) {
-		e = e || {}; if (window?.app) { app.sqlType = 'sqlite' } await this.open(e);
+	async executeAsync(e, params, isRetry) { await this.execute(e, params, isRetry) }
+	execute(e, params, isRetry) {
+		if (this.internalDB) { return this._execute(e, params, isRetry) }
+		return this.open(e).then(() => this._execute(e, params, isRetry))
+	}
+	_execute(e, _params, isRetry) {
+		e = e || {}; if (window?.app) { app.sqlType = 'sqlite' }
+		if (typeof e == 'object' && !$.isPlainObject(e)) { const queryObj = e; e = { query: queryObj.toString() }; e.params = queryObj.params }
 		if (!e.query) { e = { query: e } } if (_params !== undefined) { e.params = _params }
 		let savedParams = e.params, _query = e.query, isDBWrite = this.isDBWrite(_query);
 		if (_query?.getQueryYapi) { $.extend(e, _query.getQueryYapi()) } else if (_query?.query) { $.extend(e, _query) } else { e.query = _query?.toString() ?? '' }
@@ -70,11 +78,11 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		if (typeof e.query == 'string') { if (e.query.toUpperCase().includes('NOT NULL AUTO')) { e.query = e.query.replaceAll('rowid\t', '--rowid\t').replaceAll('rowid ', '--rowid ') } }
 		/*let {dbOpCallback} = this; if (!$.isFunction(dbOpCallback)) { dbOpCallback = null } if (dbOpCallback) { await dbOpCallback.call(this, { operation: 'executeSql', state: true }, e) }*/
 		let _result; this.dbLastExec = e; try { console.debug('db exec', e) } catch (ex) { }
-		try { _result = await this.internalDB[isDBWrite ? 'run' : 'exec'](e.query, e.params) }
+		try { _result = this.internalDB[isDBWrite ? 'run' : 'exec'](e.query, e.params) }
 		catch (ex) {
 			if (!isRetry) {
 				const message = ex.message || ''; if (message.includes('no such column')) {
-					if (window?.app?.tabloEksikleriTamamla) { await app.tabloEksikleriTamamla({ ...e, noCacheReset: true }); return await this.executeSql(e, _params, true) } }
+					if (window?.app?.tabloEksikleriTamamla) { app.tabloEksikleriTamamla({ ...e, noCacheReset: true }); return this.execute(e, _params, true) } }
 			}
 			/*if (dbOpCallback) { await dbOpCallback.call(this, { operation: 'executeSql', state: null, error: ex }, e) }*/
 			throw ex
@@ -86,5 +94,13 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		result = result.rows ?? result; /*if (dbOpCallback) { setTimeout(() => dbOpCallback.call(this, { operation: 'executeSql', state: false }, e), 20) }*/
 		return result
 	}
+	getTables(...names) {
+		let sent = new MQSent({ from: 'sqlite_master', where: { degerAta: 'table', saha: 'type' }, sahalar: 'name' });
+		if (names?.length) { sent.where.inDizi(names, 'name') }
+		return asSet(this.execute(sent)?.map(rec => rec.name) ?? [])
+	}
+	hasTables(...names) { names = Object.keys(asSet(names ?? [])); let size = names?.length; return size ? Object.keys(this.getTables(...names)).length == size : false }
+	hasTable(...names) { return this.hasTables(...names) }
 	getFSHandle(e) { const createFlag = typeof e == 'boolean' ? e : e?.create ?? e.createFlag; return getFSFileHandle(this.fsRootDir, null, createFlag) }
+	onBeforeUnload(e) { if (this.changedFlag) { clearTimeout(this._timer_kaydetDefer); this.kaydet(e) } }
 }

@@ -11,8 +11,9 @@ class MQYerelParamBase extends CIO {
 	}
 	static paramAttrListeDuzenle(e) { }
 	async yukle(e) {
-		e = { ...e }; this.resetCache(e); this.yukleOncesi(e); let rec = await this.yukleIslemi(e); if (typeof rec == 'string') { rec = rec ? JSON.parse(rec) : {} }
-		if (!$.isEmptyObject(rec)) { e.rec = rec; this.setValues(e) } await this.yukleSonrasi(e); return this
+		e = { ...e }; this.resetCache(e); this.yukleOncesi(e);
+		let rec = await this.yukleIslemi(e); if (typeof rec == 'string') { rec = rec ? JSON.parse(rec) : {} } if (!$.isEmptyObject(rec)) { e.rec = rec; this.setValues(e) }
+		await this.yukleSonrasi(e); return this
 	}
 	kaydetDefer(e) { clearTimeout(this._timer_kaydetDefer); this._timer_kaydetDefer = setTimeout(e => { try { this.kaydet(e) } finally { delete this._timer_kaydetDefer } }, 500) }
 	async kaydet(e) {

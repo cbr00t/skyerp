@@ -1,6 +1,6 @@
 class CDB extends CDBLocalData_Base {
 	static { window[this.name] = this; this._key2Class[this.name] = this } get dbmi() { return true }
-	get dbMgrClass() { return this.class } static get dbMgrClass() { return CDBMgr }
+	get dbMgrClass() { return this.class } static get dbMgrClass() { return CDBMgr } static get defaultName() { return 'main' }
 	get fsRootDirPaths() { return [...super.fsRootDirPaths, 'db', this.dbMgrClass.kod, this.fsFileName] }
 	get tableNames() { return Object.keys(this.shadow.tables) } get tableArray() { return Object.values(this.shadow.tables) }
 	get data() { const table2Data = {}; for (const [name, table] of this.iterEntries(e)) { table2Data[name] = table.data }; return table2Data }
@@ -64,4 +64,5 @@ class CDB extends CDBLocalData_Base {
 	*iterEntries() { const {tables} = this.shadow; for (const entry of Object.entries(tables)) { yield entry } }
 	forEach() { return this.iterEntries() }
 	autoSave() { this.autoSaveFlag = true; return this } noAutoSave() { this.autoSaveFlag = false; return this }
+	onBeforeUnload(evt) { if (this.changedFlag) { clearTimeout(this._timer_kaydetDefer); this.kaydet(e) } }
 }

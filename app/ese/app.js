@@ -1,6 +1,6 @@
 class ESEApp extends App {
     static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'MAIN' } get kioskmuDogrudan() { return config.session?.loginTipi == 'eseLogin' }
-	get isLoginRequired() { return true } get defaultLoginTipi() { return this.isAdmin ? Session.DefaultLoginTipi : 'eseLogin' }
+	get isLoginRequired() { return true } get defaultLoginTipi() { return this.isAdmin ? Session.DefaultLoginTipi : 'eseLogin' } static get dbMgrClass() { return SqlJS_DBMgr }
 	get defaultWSPath() { return `${super.superDefaultWSPath}/ese` } static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_App }
 	constructor(e) { e = e || {}; super(e); this.isAdmin = qs.admin ?? false }
 	async runDevam(e) {

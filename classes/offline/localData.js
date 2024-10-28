@@ -10,7 +10,7 @@ class MQLocalData extends MQYerelParamApp {
 	static paramAttrListeDuzenle(e) { super.paramAttrListeDuzenle(e); e.liste.push('data') }
 	yukle(e) { return super.yukle(e) } kaydet(e) { return super.kaydet(e) }
 	async yukleIslemi(e) {
-		const fh = await this.getFSFileHandle({ create: false }); if (!fh) { return null }
+		let fh; try { fh = await this.getFSFileHandle({ create: false }) } catch (ex) { } if (!fh) { return null }
 		const file = await fh.getFile(); if (!file) { return null }
 		try { let data = await file.text(); if (data != null && typeof data == 'string') { data = JSON.parse(data) } return data } catch (ex) { console.error(ex); return null }
 	}
