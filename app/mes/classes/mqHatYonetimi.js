@@ -343,7 +343,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 						await app.sqlExecNone(upd); let promises = [];
 						for (const tezgahKod of tezgahKodListe) {
 							promises.push(app.wsSiradakiIsler({ tezgahKod }).then(isRecs => {
-								const isIdListe = isRecs.map(rec => rec.issayac).join(delimWS);
+								const isIdListe = isRecs.map(rec => rec.issayac).join(delimWS); if (!isIdListe?.length) { return }
 								return app.wsSiradanKaldir({ tezgahKod, isIdListe })
 							}))
 						}
