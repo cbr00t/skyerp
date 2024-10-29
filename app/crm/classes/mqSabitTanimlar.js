@@ -34,7 +34,7 @@ class MQZiyaretKonu extends MQKAOrtak {
 }
 class MQZiyaretSonuc extends MQKAOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ziyaret Sonucu' }
-	static get kodListeTipi() { return 'CRMZIYARETSONUC' } static get table() { return 'crmziyaretsonuc' } static get tableAlias() { return 'zsnc' }
+	static get kodListeTipi() { return 'CRMZIYARETSONUC' } static get table() { return 'crmziyaretsonuc' } static get tableAlias() { return 'zson' }
 }
 class MQIl extends MQKAOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İl' }
@@ -125,7 +125,7 @@ class MQZiyaretPlani extends MQSayacliOrtak {
 }
 class MQZiyaret extends MQSayacliOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ziyaret' }
-	static get kodListeTipi() { return 'CRMZIYARET' } static get table() { return 'crmziyaretplani' } static get tableAlias() { return 'zyr' }
+	static get kodListeTipi() { return 'CRMZIYARET' } static get table() { return 'crmziyaret' } static get tableAlias() { return 'zyr' }
 	get tarih() { const {ts} = this; return ts?.clearTime ? new Date(ts).clearTime() : ts } set tarih(value) { this.ts = value?.clearTime ? new Date(value).clearTime() : value }
 	get saat() { return timeToString(this.ts) } set saat(value) { const {ts} = this; if (value) { setTime(ts, asDate(value).getTime()) } }
 	static pTanimDuzenle(e) {
@@ -135,11 +135,11 @@ class MQZiyaret extends MQSayacliOrtak {
 	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {tableAlias: alias} = this, {liste} = e; liste.push(
-			new GridKolon({ belirtec: 'ziyaretzamani', text: 'Tarih', genislikCh: 10 }).tipDate(), new GridKolon({ belirtec: 'ziyaretsaat', text: 'Saat', genislikCh: 10 }).tipZaman(),
+			new GridKolon({ belirtec: 'ziyaretzamani', text: 'Tarih', genislikCh: 10 }).tipDate(), new GridKolon({ belirtec: 'ziyaretsaat', text: 'Saat', genislikCh: 10, sql: `${alias}.ziyaretzamani` }).tipZaman(),
 			new GridKolon({ belirtec: 'mustkod', text: 'Müşteri', genislikCh: 16 }), new GridKolon({ belirtec: 'mustunvan', text: 'Müşteri Ünvan', genislikCh: 60, sql: 'car.birunvan' }),
 			new GridKolon({ belirtec: 'ziyaretcikod', text: 'Ziyaretçi', genislikCh: 16 }), new GridKolon({ belirtec: 'ziyaretciadi', text: 'Ziyaretçi Adı', genislikCh: 35, sql: 'per.aciklama' }),
 			new GridKolon({ belirtec: 'konukod', text: 'Konu', genislikCh: 10 }), new GridKolon({ belirtec: 'konuadi', text: 'Konu Adı', genislikCh: 30, sql: 'zkon.aciklama' }),
-			new GridKolon({ belirtec: 'sonuckod', text: 'Sonuç', genislikCh: 10 }), new GridKolon({ belirtec: 'sonucadi', text: 'Sonuç Adı', genislikCh: 40, sql: 'zsnc.aciklama' }),
+			new GridKolon({ belirtec: 'sonuckod', text: 'Sonuç', genislikCh: 10 }), new GridKolon({ belirtec: 'sonucadi', text: 'Sonuç Adı', genislikCh: 40, sql: 'zson.aciklama' }),
 			new GridKolon({ belirtec: 'kisiler', text: 'Kişiler', genislikCh: 110 }), new GridKolon({ belirtec: 'gorusmenotu', text: 'Görüşme Notu', genislikCh: 110 })
 		)
 	}
@@ -150,7 +150,7 @@ class MQZiyaret extends MQSayacliOrtak {
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e;
-		let form = tabPage_genel.addFormWithParent().yanYana(3); form.addModelKullan('planSayac', 'Plan').comboBox().kodsuz().setMFSinif(MQZiyaretPlani);
+		let form = tabPage_genel.addFormWithParent().yanYana(3); form.addModelKullan('planSayac', 'Plan').comboBox().setMFSinif(MQZiyaretPlani).addStyle_wh(130);
 			form.addDateInput('tarih', 'Tarih'); form.addTimeInput('saat', 'Saat');
 			form.addModelKullan('mustKod', 'Müşteri').comboBox().setMFSinif(MQCari); form.addModelKullan('ziyaretciKod', 'Ziyaretçi').comboBox().setMFSinif(MQPersonel);
 			form.addModelKullan('konuKod', 'Konu').comboBox().setMFSinif(MQZiyaretKonu); form.addModelKullan('sonucKod', 'Sonuç').comboBox().setMFSinif(MQZiyaretSonuc);
