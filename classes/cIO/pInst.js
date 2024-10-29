@@ -113,7 +113,6 @@ class PInstDateNow extends PInstDate {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	getValueDevam(value) { return super.getValueDevam(value || now()) }
 }
-
 class PInstBool extends PInst {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	getValueDevam(value) { return asBool(value) }
@@ -133,7 +132,6 @@ class PInstBitTrue extends PInstBitBool {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	getValueDevam(value) { return super.getValueDevam(value == null ? true : value) }
 }
-
 class PInstClass extends PInst {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get pInstClassmi() { return true }

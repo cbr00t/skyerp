@@ -362,8 +362,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 		const {mfSinif} = e, tekilmi = e.tekil ?? e.tekilmi, hatBazindami = e.hatBazinda ?? e.hatBazindami;
 		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, {gridWidget} = gridPart;
 		let recs = e.recs; if (!recs?.length && e.rec) { recs = e.recs = [e.rec] }
-		if (!recs.length) { recs = e.recs = gridPart.getSubRecs({ gridPart, cells: gridWidget.getselectedcells().filter(cell => cell.datafield[0] == '_') }) }
-		if (!recs) { return }
+		if (!recs.length) { recs = e.recs = gridPart.getSubRecs({ gridPart, cells: gridWidget.getselectedcells().filter(cell => cell.datafield[0] == '_') }) } if (!recs) { return }
 		for (const rec of recs) { const {hatKod, hatAdi, tezgahKod, tezgahAdi} = rec; mfSinif.listeEkraniAc({ args: { hatKod, hatAdi, tezgahKod, tezgahAdi, hatBazindami }}) }
 	}
 	static topluXIstendi(e) {

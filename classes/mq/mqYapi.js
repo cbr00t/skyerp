@@ -1,5 +1,5 @@
 class MQYapi extends CIO {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get mqYapimi() { return true } static get isOfflineMode() { return null }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get mqYapimi() { return true } static get isOfflineMode() { return app.offlineMode }
 	static get sinifAdi() { return null } static get table() { return null } static get tableAlias() { return null }
 	static get tableAndAlias() { const {table, tableAlias} = this; if (tableAlias) { return `${table} ${tableAlias}` } return table }
 	static get aliasVeNokta() { const {tableAlias} = this; if (tableAlias) { return `${tableAlias}.` } return '' }

@@ -294,7 +294,8 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	loadServerData_detaylar(e) {
 		e = e || {}; const {grid, wsArgs} = e; e.args = this.args;
 		if (wsArgs && grid?.length) {
-			if (!grid.jqxGrid('pageable')) { const keys = ['recordstartindex', 'recordendindex', 'pagenum', 'pageindex', 'pagesize']; for (const key of keys) { delete wsArgs[key] } }
+			if (!grid.jqxGrid('pageable')) {
+				const keys = ['recordstartindex', 'recordendindex', 'pagenum', 'pageindex', 'pagesize']; for (const key of keys) { delete wsArgs[key] } }
 		}
 		const mfSinif = this.getMFSinif();
 		try { const _e = $.extend({ sender: e, tabloKolonlari: this.tabloKolonlari_detaylar, fisSinif: mfSinif }, e); return mfSinif.loadServerData_detaylar(_e) }
@@ -305,7 +306,11 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		const belirtec = gridPart.selectedBelirtec, parentRec = e.parentRec = e.parentRec ?? gridPart.selectedRec;
 		const recs = (e.recs ?? gridPart.getSubRecs(e))?.filter(rec => !!rec), rec = e.rec = (recs || [])[0]; /*if (!rec) { return null }*/
 		const title = e.title ?? 'Menü'; let wnd, wndContent = $(`<div class="full-wh"/>`);
-		const close = e => { if (wnd) { wnd.jqxWindow('close'); wnd = null } }, rfb = new RootFormBuilder({ parentPart: gridPart, layout: wndContent }).autoInitLayout();
+		const close = e => {
+			if (!wnd?.length) { return }
+			try { wnd.jqxWindow('close'); wnd = null } catch (ex) { console.error(ex); hConfirm(getErrorText(ex), title) }
+		};
+		const rfb = new RootFormBuilder({ parentPart: gridPart, layout: wndContent }).autoInitLayout();
 		let form = rfb.addFormWithParent('islemTuslari').altAlta().addStyle(...[
 			e => `$elementCSS button { font-size: 120%; width: var(--full) !important; height: 50px !important; margin: 5px 0 0 5px; margin-block-end: 5px }`,
 			e => `$elementCSS button.jqx-fill-state-normal { background-color: whitesmoke !important }`,
