@@ -18,7 +18,7 @@ class CRMApp extends App {
 	}
 	dbMgr_tablolariOlustur_getQueryURLs(e) {
 		let db2Urls = super.dbMgr_tablolariOlustur_getQueryURLs(e) ?? {};
-		(db2Urls.main = db2Urls.main ?? []).push(`queries/main.sql`);
+		(db2Urls.main = db2Urls.main ?? []).push(`${webRoot_crm}/queries/main.sql`);
 		return db2Urls
 	}
 	wsX(e) { let args = e || {}; delete args.data; return ajaxPost({ url: this.getWSUrl({ api: 'x', args }) }) }

@@ -5,4 +5,4 @@
 ?>
 <script src="<?=$webRoot?>/classes/offline/localData.js?<?=$appVersion?>"></script> <?php require_once("$webRoot/classes/offline/db/include.php") ?>
 <link rel="stylesheet" href="<?=$webRoot_ticari?>/app.css" /> <script src="<?=$webRoot_ticari?>/app.js?<?=$appVersion?>"></script>
-<?php require_once('./classes/include.php') ?>
+<?php require_once("$webRoot_crm/classes/include.php") ?> <script>var webRoot_crm = "<?=$webRoot_crm?>"</script>
