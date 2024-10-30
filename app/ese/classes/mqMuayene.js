@@ -2,12 +2,10 @@ class MQMuayene extends MQGuidOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muayene' } static get adiSaha() { return 'fisnox' }
 	static get kodListeTipi() { return 'MUAYENE' } static get table() { return 'esemuayene' } static get tableAlias() { return 'mua' }
 	static get ignoreBelirtecSet() { return {...super.ignoreBelirtecSet, ...asSet(['hastaid', 'doktorid']) } }
-	get tarih() { const {tarihSaat} = this; return tarihSaat?.clearTime ? new Date(tarihSaat).clearTime() : tarihSaat } set tarih(value) { this.tarihSaat = value?.clearTime ? new Date(value).clearTime() : value }
-	get saat() { return timeToString(this.tarihSaat) } set saat(value) { const {tarihSaat} = this; if (value) { setTime(tarihSaat, asDate(value).getTime()) } }
 	get fisNox() { return [this.seri || '', this.fisNo?.toString()].join('') }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e; $.extend(e.pTanim, {
-			hastaId: new PInstGuid('hastaid'), tarihSaat: new PInstDateNow('tarihsaat'), seri: new PInstStr('seri'), fisNo: new PInstNum('fisno'),
+			hastaId: new PInstGuid('hastaid'), ts: new PInstDateNow('tarihsaat'), seri: new PInstStr('seri'), fisNo: new PInstNum('fisno'),
 			doktorId: new PInstGuid('doktorid'), testSifre: new PInstStr('testsifre'), tani: new PInstStr('tani')
 		});
 		const sablon = app.params.ese.sablon ?? {}; for (const [tip, items] of Object.entries(sablon)) {
@@ -129,8 +127,8 @@ class MQMuayene extends MQGuidOrtak {
 			const mua2HastaId = {}; for (const rec of selectedRecs) { const {id, hastaid} = rec; mua2HastaId[id] = hastaid }
 			let rdlg = await ehConfirm(`<b class="bold forestgreen">${bostaIdListe.length}</b> adet <b class="royalblue">${tip.toUpperCase()} Test</b> kaydı açılacak, devam edilsin mi?`, sinifAdi);
 			if (!rdlg) { return } let promises = [], {table: muaTable} = this; for (const muayeneId of bostaIdListe) {
-				const tarihSaat = now(), tamamlandimi = false; let onayKodu = 0; while (onayKodu < 100000) { onayKodu = asInteger(Math.random() * 1000000) }
-				const hastaId = mua2HastaId[muayeneId], testInst = new testSinif({ muayeneId, hastaId, sablonId, tarihSaat, tamamlandimi, onayKodu });
+				const ts = now(), tamamlandimi = false; let onayKodu = 0; while (onayKodu < 100000) { onayKodu = asInteger(Math.random() * 1000000) }
+				const hastaId = mua2HastaId[muayeneId], testInst = new testSinif({ muayeneId, hastaId, sablonId, ts, tamamlandimi, onayKodu });
 				promises.push(testInst.yaz().then(() =>
 					app.sqlExecNone(new MQIliskiliUpdate({
 						from: muaTable, where: { degerAta: muayeneId, saha: 'id' }, set: { degerAta: testInst.id, saha: `${tip}${seq}testid` } }))))

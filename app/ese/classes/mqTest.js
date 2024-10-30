@@ -12,8 +12,6 @@ class MQTest extends MQGuidOrtak {
 		}
 		return result
    }
-	get tarih() { const {tarihSaat} = this; return tarihSaat?.clearTime ? new Date(tarihSaat).clearTime() : tarihSaat } set tarih(value) { this.tarihSaat = value?.clearTime ? new Date(value).clearTime() : value }
-	get saat() { return timeToString(this.tarihSaat) } set saat(value) { const {tarihSaat} = this; if (value) { setTime(tarihSaat, asDate(value).getTime()) } }
 	static get uiState2Adi() { let {_uiState2Adi: result} = this; if (result == null) { let e = { liste: [] }; this.uiState2AdiDuzenle(e); result = this._uiState2Adi = e.liste } return result }
 	static get uiStates() { let {_uiStates: result} = this; if (result == null) { result = this._uiStates = Object.keys(this.uiState2Adi) } return result }
 
@@ -26,7 +24,7 @@ class MQTest extends MQGuidOrtak {
 	static pTanimDuzenle(e) {
 		const {sablonTip} = this; super.pTanimDuzenle(e); $.extend(e.pTanim, {
 			muayeneId: new PInstGuid('muayeneid'), hastaId: new PInstGuid('hastaid'),
-			tarihSaat: new PInstDate('tarihsaat'), tamamlandimi: new PInstBitBool('btamamlandi'),
+			ts: new PInstDate('tarihsaat'), tamamlandimi: new PInstBitBool('btamamlandi'),
 			uygulanmaYeri: new PInstTekSecim('uygulanmayeri', MQTestUygulanmaYeri), onayKodu: new PInstNum('onaykodu'),
 			sablonId: new PInstGuid(`${sablonTip == 'anket' ? 'ese' : sablonTip}sablonid`), aktifYas: new PInstNum('aktifyas')
 		})
@@ -94,7 +92,7 @@ class MQTest extends MQGuidOrtak {
 			form.addCheckBox('tamamlandimi', 'Tamamlandı').addStyle(e => `$elementCSS { margin-top: 10px !important }`);
 		tanimForm.addDiv('ozetBilgi').etiketGosterim_yok().addCSS('bold gray').addStyle_fullWH(null, 'auto').addStyle(e => `$elementCSS { font-size: 120%; padding: 10px 20px }`)
 			.onAfterRun(async e => {
-				const {altInst: inst, input} = e.builder, {tarihSaat, muayeneId, hastaId, hastaAdi, sablonId, tamamlandimi} = inst, {sablonTip} = inst.class;
+				const {altInst: inst, input} = e.builder, {ts, muayeneId, hastaId, hastaAdi, sablonId, tamamlandimi} = inst, {sablonTip} = inst.class;
 				let {uygulanmaYeri, onayKodu, aktifYas} = inst, sablonAdi, muayeneRec;
 				/*if (sablonTip && sablonId) { sablonAdi = (await MQSablon.getClass(sablonTip)?.getGloKod2Adi(sablonId)) || '' }*/
 				if (muayeneId) { muayeneRec = await new MQMuayene({ id: muayeneId }).tekilOku() }
@@ -105,8 +103,8 @@ class MQTest extends MQGuidOrtak {
 					elm.appendTo(parent); parent.appendTo(input)
 				};
 				if (sablonAdi) { addItem(`<span class="gray etiket">Şablon:</span> <b class="veri forestgreen">${sablonAdi}</b>`, 'flex-row'), `font-size: 130%` }
-				/*addItem(`${tarihSaat ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri">${dateTimeAsKisaString(tarihSaat)}</b>` : ''} ${tamamlandimi ? `<div class="forestgreen" style="margin-left: "20px">Tamamlandı</b>` : ''}`, 'flex-row');*/
-				addItem(`${tarihSaat ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri">${dateTimeAsKisaString(tarihSaat)}</b>` : ''}`, 'flex-row');
+				/*addItem(`${ts ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri">${dateTimeAsKisaString(ts)}</b>` : ''} ${tamamlandimi ? `<div class="forestgreen" style="margin-left: "20px">Tamamlandı</b>` : ''}`, 'flex-row');*/
+				addItem(`${ts ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri">${dateTimeAsKisaString(ts)}</b>` : ''}`, 'flex-row');
 				if ((muayeneRec?.fisnox || '0') != '0') { addItem(`<span class="gray etiket">Muayene:</span> <b class="veri">${muayeneRec.fisnox}</b>`, 'flex-row') }
 				addItem(`<span class="gray">Hasta: <b class="royalblue">${hastaAdi}</b></span> ${aktifYas ? `- (Yaş: <b class="forestgreen">${aktifYas}</b>)` : ''}`, 'flex-row');
 				if (uygulanmaYeri) { addItem(`<span class="darkgray etiket">Uygulanma Yeri:</span> <b>${MQTestUygulanmaYeri.kaDict[uygulanmaYeri]?.aciklama || ''}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }
@@ -186,12 +184,12 @@ class MQTest extends MQGuidOrtak {
 		const {rec} = e; if (!rec) { return }
 		let keys = ['sablonID', 'sablonAdi', 'hastaID', 'doktorID', 'hastaAdi', 'doktorAdi'];
 		for (const key of keys) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
-		$.extend(this, { tarihSaat: now(), detaylar: rec.detaylar || [] })
+		$.extend(this, { ts: now(), detaylar: rec.detaylar || [] })
 	}
 	static uiState2AdiDuzenle(e) { const {liste} = e; $.extend(liste, { home: 'Hoşgeldiniz', test: 'Test Ekranı', end: 'Test Bitti' }) }
 	async testUI_initLayout(e) {
 		const {parentPart} = e, {header, content} = parentPart; content.children().remove();
-		const {tarihSaat: tarih, hastaAdi} = this; $.extend(parentPart, { tarih, hastaAdi });
+		const {ts: tarih, hastaAdi} = this; $.extend(parentPart, { tarih, hastaAdi });
 		const {tip, aciklama: tipAdi, uiState2Adi} = this.class, {id: testId, sablonAdi} = this;
 		const getAdimText = () => { let result = uiState2Adi[state] ?? 'state'; if (sablonAdi /*&& state == 'home'*/) { result = `${tipAdi} <b class="royalblue">${sablonAdi}</b> Testi` } return result }
 		let {state} = parentPart; if (state == 'test') { this.genelSonuc = new this.class.testGenelSonucSinif({ tip, testId }) }

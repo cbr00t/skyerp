@@ -1,0 +1,6 @@
+/*.MQX.masterListe.part .header .islemTuslari button#x { width: 130px !important; margin-left: 20px }
+.MQX.masterListe.part .jqx-grid [role = row] > .xyz.jqx-grid-cell:not(.jqx-grid-cell-selected) { font-weight: bold }*/
+.crmResim.part .dokumanForm, .eseResim.part .skyResim.part #resim > .widget,
+	.crmResim.part .skyResim.part #resim > .widget .item > .content { background-color: #111 !important; margin: 0 !important; padding: 0 !important }
+.crmResim.part .skyResim.part { height: calc(var(--full) - 50px) !important }
+.masterListe.part .jqx-grid [role = row] > .jqx-grid-cell { text-wrap: pretty }
