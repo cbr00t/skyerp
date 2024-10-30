@@ -2,15 +2,16 @@
 .butonlar.part {
 	--button-width: 65px; --button-height: 48px; --button-margin-x: 2px; --button-form-margin-x: 0px; --button-right-katsayi: 4;
 	--button-right: calc(var(--button-width) + var(--button-margin-x) * var(--button-right-katsayi) + var(--button-form-margin-x));
-	--width-sag: calc((var(--button-right) + 10px) * 2); width: var(--full) !important; height: var(--button-height); /*background-color: whitesmoke;*/
+	--width-sag: calc((var(--button-right) + 10px) * 2); --width-sag-ek: 40px; width: var(--full) !important; height: var(--button-height); /*background-color: whitesmoke;*/
 	position: relative;  margin: 0; padding: 0; /*box-shadow: 0px var(--islemTuslari-box-shadow-height) 30px 0px #edeef2;*/
 	background: linear-gradient(90deg, transparent 30%, #f2f2f2 100%) !important; overflow-x: hidden !important; overflow-y: overlay !important; z-index: 1000
 }
 body.kiosk .butonlar.part { background: linear-gradient(90deg, transparent 80%, #f2f2f2 100%) !important; z-index: 1001 }
 @media (max-width: 1200px) { .butonlar.part { --button-width: 55px; --button-right-katsayi: 2 } }
+@media (max-width: 850px) { .butonlar.part { --button-width: 50px; --button-right-katsayi: 1; --width-sag-ek: 25px } }
 .butonlar.part > div { position: relative; /* width: var(--full) !important; */ height: calc(var(--full) - 5px) !important; margin: 0; padding: 0 calc(var(--button-form-margin-x) / 2) }
 .butonlar.part > .sol { width: calc(var(--full) - (var(--width-sag) + 3px + var(--button-form-margin-x))) }
-.butonlar.part > .sag { width: var(--width-sag); text-align: right; z-index: 1 }
+.butonlar.part > .sag { position: absolute; right: 0; width: var(--width-sag); text-align: right; z-index: 1 }
 .butonlar.part > .sag > button:nth-last-child(2) { margin-left: 10px; margin-right: 15px !important }
 .butonlar.part button { vertical-align: top; width: var(--button-width); height: var(--button-height); border: 0; margin-inline-end: var(--button-margin-x); line-height: 100% }
 button, .jqx-button {
@@ -39,6 +40,7 @@ button#temizle { background-image: url(../../images/temizle.png) !important }
 #tazele {background-image: url(../../images/tazele.png) }
 #vazgec { background-image: url(../../images/close.png) !important }
 .islemTuslari > div > button#yeni { margin-left: 20px }
+@media (max-width: 850px) { .islemTuslari > div > button#yeni { margin-left: 5px } }
 #yeni { background-image: url(../../images/ekle.png) !important }
 	#yeni.jqx-fill-state-normal { background-color: #7e9a7e !important }
 	#yeni.jqx-fill-state-hover { background-color: #4a8a4a !important }

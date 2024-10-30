@@ -97,7 +97,7 @@ class MQBarkodRec extends MQMasterOrtak {
 			/*.setVisibleKosulu(e => { const {altInst} = e.builder; return altInst.hatKod ? 'jqx-hidden' : true })*/
 			.degisince(e => e.builder.parentBuilder.parentBuilder.id2Builder.diger.id2Builder.tezgahKod?.part?.dataBind() )
 		if (sabit_hatKod) { fbd_ddHat.disable() }
-		form = parentForm.addFormWithParent('ts').yanYana().addStyle(e => `$elementCSS > div { width: unset !important; margin-inline-end: 30px }`);
+		form = parentForm.addFormWithParent('ts').yanYana(5).addStyle(e => `$elementCSS > div { margin-inline-end: 0 }`);
 		form.addCheckBox('suAnmi', 'Şu an')
 			.onAfterRun(e => {
 				const {builder} = e, {altInst, input} = builder;
@@ -116,27 +116,27 @@ class MQBarkodRec extends MQMasterOrtak {
 		_form = form.addFormWithParent('bitTS').setVisibleKosulu(e => { const {altInst} = e.builder; return altInst.suAnmi === false ? true : 'basic-hidden' });
 		_form.addDateInput('bitTarih', 'Bit. Tarih')
 		_form.addTimeInput('bitSaat', '');
-		const fbd_miktar = form.addNumberInput({ id: 'miktar', etiket: 'Miktar', maxLength: 10 }).addStyle_wh(150)
+		const fbd_miktar = form.addNumberInput({ id: 'miktar', etiket: 'Miktar', maxLength: 10 }).addStyle_wh(100)
 			.degisince(e => { const input = e.builder.input[0]; input.setCustomValidity(''); input.reportValidity() })
 			.onAfterRun(e => {
 				const {builder} = e, {input, altInst, rootPart} = builder, {miktar, islenebilirMiktar} = altInst; rootPart.fbd_focusPart = builder;
 				if (!input.val()) input.val(null); input.attr('placeholder', miktar ? miktar : islenebilirMiktar);
 				input.on('input', evt => {
 					const elm = evt.currentTarget; let value = asFloat(elm.value);
-					if (islenebilirMiktar && value > islenebilirMiktar) value = islenebilirMiktar
+					if (islenebilirMiktar && value > islenebilirMiktar) { value = islenebilirMiktar }
 					value = Math.max(asFloat(value), 0); if (elm.value !== value) elm.value = value
 				});
 				input.on('focus', evt => { const elm = evt.currentTarget; let value = asFloat(elm.value); if (!islenebilirMiktar) { elm.placeholder = value } elm.dataset.lastvalue = value; elm.value = null });
 				input.on('blur', evt => { const elm = evt.currentTarget; let value = asFloat(elm.value); if (!value) value = elm.value = elm.dataset.lastvalue ?? null })
 			});
-		form.addNumberInput('vardiyaNo', 'Vardiya No').addStyle_wh(50);
+		form.addNumberInput('vardiyaNo', 'Vardiya No').addStyle_wh(100);
 		form.addCheckBox('isKapansinmi', 'Oper Kapansın')/*.onInit(e => { const {builder} = e, {altInst} = builder; if (!altInst.serbestmi) { builder.etiket = 'Oper Kapansın' } })*/
 			.setVisibleKosulu(e => { const {altInst} = e.builder; return altInst.gorevmi || altInst.serbestmi ? 'jqx-hidden' : true });
 		form = parentForm.addFormWithParent('diger').yanYana(2.3);
 		form.addButton('tezgaKkod_listedenSec', '', 'L').etiketGosterim_yok()
 			.setVisibleKosulu(e => { const {altInst} = e.builder; return altInst.gorevmi ? 'jqx-hidden' : true })
 			.onClick(e => { e.builder.parentBuilder.id2Builder.tezgahKod.part.listedenSecIstendi() })
-			.addStyle(e => `$elementCSS { min-width: unset !important; margin-top: 15px }`).addStyle_wh({ width: 70, height: 45 });
+			.addStyle(e => `$elementCSS { min-width: unset !important; margin-top: 15px }`).addStyle_wh({ width: 50, height: 45 });
 		form.addModelKullan({ id: 'tezgahKod', mfSinif: MQTezgah }).comboBox().autoBind().etiketGosterim_placeholder()
 			.addStyle(style_minWidth).addStyle(e => `$elementCSS > label { display: none } $elementCSS > div { margin-top: 15px }`)
 			.setVisibleKosulu(e => { const {altInst} = e.builder; return altInst.gorevmi ? 'jqx-hidden' : true })
@@ -152,7 +152,7 @@ class MQBarkodRec extends MQMasterOrtak {
 		form.addButton('perKod_listedenSec', '', 'L').etiketGosterim_yok()
 			.setVisibleKosulu(e => { const {altInst} = e.builder; return altInst.gorevmi ? 'jqx-hidden' : true })
 			.onClick(e => { e.builder.parentBuilder.id2Builder.perKod.part.listedenSecIstendi() })
-			.addStyle(e => `$elementCSS { min-width: unset !important; margin-top: 15px }`).addStyle_wh({ width: 70, height: 45 });
+			.addStyle(e => `$elementCSS { min-width: unset !important; margin-top: 15px }`).addStyle_wh({ width: 50, height: 45 });
 		form.addModelKullan({ id: 'perKod', mfSinif: MQPersonel }).comboBox().autoBind().etiketGosterim_placeholder()
 			.addStyle(style_minWidth).addStyle(e => `$elementCSS > label { display: none } $elementCSS > div { margin-top: 15px }`)
 			.setVisibleKosulu(e => { const {altInst} = e.builder; return altInst.gorevmi ? 'jqx-hidden' : true })
@@ -175,7 +175,7 @@ class MQBarkodRec extends MQMasterOrtak {
 				if (formulSeriDurumu) { if (!$.isEmptyObject(formulSeriDurumu.hammadde)) { return true } else if (formulSeriDurumu.formul?.serikurali) { return true } }
 				return 'jqx-hidden'
 			})
-			.addStyle(e => `$elementCSS { margin: 15px 0 } $elementCSS > * { margin-inline-end: 10px }`);
+			.addStyle(e => `$elementCSS { margin: 15px 0 } $elementCSS > * { margin-inline-end: 0 }`);
 		form_seriNo.addButton('seriNo_listedenSec', '', 'L').etiketGosterim_normal()
 			.onClick(async e => {
 				const {builder} = e, {altInst, rootPart} = builder, {noCheckFlag} = altInst;
@@ -224,7 +224,7 @@ class MQBarkodRec extends MQMasterOrtak {
 			})
 			.setVisibleKosulu(e => { const formulSeriDurumu = e.builder.altInst._formulSeriDurumu; return !$.isEmptyObject(formulSeriDurumu?.hammadde) ? true : 'jqx-hidden' })
 			.addStyle(e => `$elementCSS { min-width: unset !important }`)
-			.addStyle_wh({ width: 70, height: 45 })
+			.addStyle_wh({ width: 50, height: 45 })
 		const form_seriNoBilgi_parent = form_seriNo.addFormWithParent('seriNoBilgi_parent').altAlta()
 		form_seriNoBilgi_parent.addDiv('serbestSeriler', 'Elle Seri Girişi')
 			.setVisibleKosulu(e => {
@@ -233,7 +233,7 @@ class MQBarkodRec extends MQMasterOrtak {
 			})
 			.onBuildEk(e => {
 				const {builder} = e; const {altInst} = builder; let {input} = builder, jqxSelector = 'jqxComboBox';
-				input = builder.input = input[jqxSelector]({ theme: theme, width: '100%', height: 70, multiSelect: true });
+				input = builder.input = input[jqxSelector]({ theme, width: '100%', height: 70, multiSelect: true });
 				// const internalInput = input[jqxSelector]('input');
 				input.on('keyup', evt => {
 					const key = evt.key?.toLowerCase(); if (!(key == 'enter' || key == 'linefeed')) { return }
@@ -256,7 +256,7 @@ class MQBarkodRec extends MQMasterOrtak {
 				})
 			})
 			.addStyle(...[
-				e => `$elementCSS { margin-bottom: 10px }`,
+				e => `$elementCSS { margin-bottom: 5px }`,
 				e => `$elementCSS > .jqx-widget .jqx-widget-content { font-size: 100%; vertical-align: top !important; padding-top: 0 !important }`,
 				e => `$elementCSS > .jqx-widget .jqx-widget-content .jqx-combobox-multi-item { font-size: 100% !important; color: #eee !important; background: royalblue !important; margin: 3px 3px !important; padding: 5px 13px !important }`,
 				e => `$elementCSS > .jqx-widget .jqx-widget-content .jqx-combobox-multi-item > a { margin-right: 13px !important; padding-top: 0 !important }`,
@@ -270,8 +270,8 @@ class MQBarkodRec extends MQMasterOrtak {
 			})
 			.addStyle_wh({ height: 80 })
 			.addStyle(...[
-				e => `$elementCSS > div { border: 1px solid #aaa; padding: 5px 10px; overflow-y: auto !important }`,
-				e => `$elementCSS > div > .items > .item { margin-inline-end: 10px; margin-block-end: 10px }`,
+				e => `$elementCSS > div { border: 1px solid #aaa; padding: 5px 5px; overflow-y: auto !important }`,
+				e => `$elementCSS > div > .items > .item { margin-inline-end: 0; margin-block-end: 0 }`,
 				e => `$elementCSS > div > .items > .item .seriNo { font-weight: bold; color: royalblue }`,
 				e => `$elementCSS > div > .items > .item .urunAdi { color: #888 }`
 			]);

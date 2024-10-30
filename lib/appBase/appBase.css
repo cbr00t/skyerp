@@ -118,6 +118,6 @@ jqx-grid .jqx-group-collapse { width: 35px }
 	float: right !important; z-index: 5000 !important
 }
 @media (max-width: 850px) {
-	.jqx-grid .jqx-grid-column-header { font-size: 110% !important }
-	.jqx-grid [role = row] > * { font-size: 80% !important }
+	.jqx-grid .jqx-grid-column-header { font-size: 120% !important }
+	.jqx-grid [role = row] > * { font-size: 90% !important }
 }

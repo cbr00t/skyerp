@@ -3,7 +3,7 @@ class MQOEM extends MQSayacliOrtak {
 	static get sinifAdi() { return 'Operasyon Emri' } static get table() { return 'operemri' } static get tableAlias() { return 'oem' } static get detayTable() { return MQGercekleme.table } 
 	static get kodListeTipi() { return 'UOEM' } static get localDataBelirtec() { return 'oem' } static get sayacSahaGosterilirmi() { return true } static get gridDetaylimi() { return true }
 	static get idSaha() { return ['emirnox', 'opno', 'stokkod'] } static get idSahaDonusum() { return $.extend(super.idSahaDonusum || {}, { emirnox: 'emr.fisnox', stokkod: 'frm.formul' }) }
-	static get defaultGroups() { return [] } static get islemTuslari_sagButonlar_ekMarginX() { return 10 } static get noAutoFocus() { return true }
+	static get defaultGroups() { return [] } static get islemTuslari_sagButonlar_ekMarginX() { return -20 } static get noAutoFocus() { return true } static get gridIslemTuslariKullanilirmi() { return false }
 	static secimlerDuzenle(e) {
 		super.secimlerDuzenle(e); const sabit_hatKod = app.params.config.hatKod, sec = e.secimler;
 		sec.grupEkle({ kod: 'teknik', aciklama: 'Teknik', renk: '#eee', zeminRenk: 'orangered', kapalimi: true });
@@ -670,9 +670,9 @@ class MQOEMVeGorev extends MQOEM {
 		/*this.fbd_listeEkrani_addButton(rfb, 'yeniGorev', 'GRV', 70, e => this.yeniGorevIstendi(e));
 		this.fbd_listeEkrani_addButton(rfb, 'isBaslat', 'BAŞ', 70, e => this.isBaslatIstendi(e));
 		this.fbd_listeEkrani_addButton(rfb, 'isDurdur', 'DUR', 70, e => this.isDurdurIstendi(e));*/
-		this.fbd_listeEkrani_addButton(rfb, 'gerceklemeYap', 'GER', 70, e => this.gerceklemeYapIstendi(e));
+		this.fbd_listeEkrani_addButton(rfb, 'gerceklemeYap', 'GER', 50, e => this.gerceklemeYapIstendi(e));
 		/*this.fbd_listeEkrani_addButton(rfb, 'gerceklemeler', 'G.LST', 80, e => this.gerceklemelerIstendi(e));*/
-		this.fbd_listeEkrani_addButton(rfb, 'digerMenu', '...', 70, e => this.digerMenuIstendi(e));
+		this.fbd_listeEkrani_addButton(rfb, 'digerMenu', '...', 50, e => this.digerMenuIstendi(e));
 		/*rfb.addForm('islemTuslari').setLayout(e => e.builder.rootPart.islemTuslari)
 			.addStyle(e => `$elementCSS #vazgec { margin-left: 20px }`)*/
 	}

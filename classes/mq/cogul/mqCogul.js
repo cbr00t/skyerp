@@ -9,8 +9,8 @@ class MQCogul extends MQYapi {
 	static get tanimlanabilirmi() { return !!this.tanimUISinif } static get silinebilirmi() { return true } static get raporKullanilirmi() { return false } static get silindiDesteklenirmi() { return false }
 	static get yerelParamBelirtec() { return this.classKey } static get sayacSahaGosterilirmi() { return false } static get tumKolonlarGosterilirmi() { return false }
 	static get gridDetaylimi() { return this.detaylimi } static get ozelTanimIslemi() { return null } static get bulFormKullanilirmi() { return true }
-	static get kolonDuzenlemeYapilirmi() { return true } static get kolonFiltreKullanilirmi() { return true } static get gridIslemTuslariKullanilirmi() { return true }
-	static get islemTuslari_sagButonlar_ekMarginX() { return 15 } static get orjBaslik_gridRenderDelayMS() { return null } static get defaultOrjBaslik_gridRenderDelayMS() { return 200 }
+	static get kolonDuzenlemeYapilirmi() { return true } static get kolonFiltreKullanilirmi() { return true } static get gridIslemTuslariKullanilirmi() { return $(window).width() >= 700 }
+	static get islemTuslari_sagButonlar_ekMarginX() { return $(window).width() < 800 ? 0 : 15 } static get orjBaslik_gridRenderDelayMS() { return null } static get defaultOrjBaslik_gridRenderDelayMS() { return 200 }
 	static get orjBaslikListesi_hizliBulFiltreAttrListe() { const _e = { liste: [] }; this.orjBaslikListesi_hizliBulFiltreAttrListeDuzenle(_e); return _e.liste }
 	static get orjBaslikListesi_panelGrupAttrListe() { const _e = { liste: [] }; this.orjBaslikListesi_panelGrupAttrListeDuzenle(_e); return _e.liste }
 	static get orjBaslikListesi_panelUstSeviyeAttrListe() { const _e = { liste: [] }; this.orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(_e); return _e.liste }
@@ -224,7 +224,7 @@ class MQCogul extends MQYapi {
 			})
 			.onAfterRun(e => {
 				const {builder} = e, {parent, layout, input} = builder, parentParent = parent.parents('.islemTuslari');
-				parentParent.css('--width-sag', `calc((var(--button-right) * ${parent.children().length}) + (${widthPx} + ${this.islemTuslari_sagButonlar_ekMarginX}px))`);
+				parentParent.css('--width-sag', `calc((var(--button-right) * ${parent.children().length} + ${widthPx} + ${this.islemTuslari_sagButonlar_ekMarginX}px))`);
 				/* input.detach().prependTo(parent); layout.remove(); builder.layout = input;
 				input.css('position', 'relative'); input.css('width', widthPx); input.css('height', '47px'); input.css('top', '-10px');
 				input.css('background-color', 'unset');*/

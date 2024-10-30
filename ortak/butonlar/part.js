@@ -53,7 +53,7 @@ class ButonlarPart extends Part {
 			}
 		}
 		subParent.appendTo(layout); subParent_sag.appendTo(layout); const sagButonlar = subParent_sag.children('button');
-		layout.css('--width-sag', `calc((var(--button-right) * ${sagButonlar.length}) + 80px)`)
+		layout.css('--width-sag', `calc((var(--button-right) * ${sagButonlar.length}) + var(--width-sag-ek))`)
 	}
 	static templatesOlustur(e) {
 		const {result} = e; $.extend(result, {
