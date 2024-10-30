@@ -1,6 +1,5 @@
 
-:root {
-}
+:root {}
 
 .options[data-builder-id='tip'] button.jqx-fill-state-normal:not(.selected) {
 	color: #555;

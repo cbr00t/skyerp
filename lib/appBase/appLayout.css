@@ -64,6 +64,14 @@ body > .header-image {
 	background-color: #0208259c; background-image: url(../../images/header-background.jpg);
 	background-blend-mode: overlay !important /* animation: header-image 5s infinite */
 }
+body.dark-theme > .header-image,
+	body.dark-theme > .bg-image-wrapper,
+	body.dark-theme > .bg-image { filter: invert(1) hue-rotate(180deg) }
+body.dark-theme #nav-toggle,
+body.dark-theme .app-title,
+	body.dark-theme .app-version,
+	body.dark-theme .db-name,
+	body.dark-theme .user { filter: invert(1) hue-rotate(180deg) }
 /*@keyframes header-image {
    25% { background-color: #061040ab; }
    50% { background-color: #2b3c8cab; }
@@ -108,6 +116,11 @@ body #ust-parent > #nav[style = ""] + #parent #windows.part {
 	pointer-events: none; background: linear-gradient(90deg, #dfdfdf 50%, #becbff 90%) !important;
 	opacity: .5 !important; filter: blur(.8px) brightness(.5)
 	/*animation: nav-open*/
+}
+body.dark-theme #ust-parent > #nav[style = ""] { }
+body.dark-theme #ust-parent > #nav[style = ""] + #parent main#content,
+body.dark-theme #ust-parent > #nav[style = ""] + #parent #windows.part {
+	filter: blur(2px) brightness(.9); opacity: 1 !important
 }
 body #ust-parent > #nav ul > li ul { animation: 200ms 1 nav-item-open }
 @keyframes nav-open { 100% { opacity: .5 !important; filter: blur(.8px) brightness(.5) } }
@@ -180,7 +193,7 @@ main#content { background: var(--s-whitesmoke) }
 .list-item.jqx-grid { background: transparent; border: none }
 main#content { padding: var(--main-padding-y) var(--main-padding-x) }
 body.bg-modal > #root-parent > #ust-parent,
-body.bg-modal > #loginForm { filter: blur(3px) brightness(.5); /* backdrop-filter: blur(10px); */ pointer-events: none }
+	body.bg-modal > #loginForm { filter: blur(3px) brightness(.5); /* backdrop-filter: blur(10px); */ pointer-events: none }
 .scaler.part { margin: 0 !important; padding: 0 !important }
 .scaler.part > div > .content { }
 /*.scaler.part > div > .content > .buttons { display: none }*/
