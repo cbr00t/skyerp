@@ -12,6 +12,7 @@
 	width: var(--full); height: var(--tabs-header-height); margin-block: 0; padding-inline: 0;
 	margin: 0; margin-bottom: var(--tabs-header-margin-bottom); overflow-y: auto !important
 }
+body.offline #windows.skyTabs.part > .tabs { border: 3px solid orangered; box-sizing: content-box !important }
 #windows.skyTabs.part > .tabs { width: calc(var(--full) - var(--tabs-toggle-button-right)); padding-left: var(--tabs-toggle-button-right) }
 .skyTabs.part > .tabs > .tabPage { position: relative; width: max-content; margin-inline: 0; padding-inline: 0 }
 .skyTabs.part > .tabs > .tabPage > .header {
@@ -20,10 +21,10 @@
 	border: 1px solid transparent; box-sizing: border-box; user-select: none
 }
 #windows.skyTabs.part > .tabs > .tabPage > .header { padding: 0 10px; padding-right: 60px }
-#windows.skyTabs.part > .tabs > .tabPage:not(:hover):not(.selected) > .header { /* background-color: #e8e8e86b; */ color: var(--s-white); }
+#windows.skyTabs.part > .tabs > .tabPage:not(:hover):not(.selected) > .header { /* background-color: #e8e8e86b; */ color: var(--s-white) }
 .skyTabs.part > .tabs > .tabPage > .header:hover { color: #89c5f9; cursor: pointer; border: 1px solid #eeeeee55 }
 .skyTabs.part > .tabs > .tabPage.selected > .header { font-weight: bold; color: royalblue; background: var(--s-whitesmoke) }
-.skyTabs.part > .tabs > .tabPage > .tabPage-button { position: absolute; top: 2px; right: 5px; font-size: 70%; background-color: var(--s-white) }
+.skyTabs.part > .tabs > .tabPage > .tabPage-button { position: absolute; top: 2px; right: 5px; font-size: 70%; background-color: var(--s-white); z-index: 100 !important }
 .skyTabs.part > .tabs > .tabPage > .tabPage-button:hover, .skyTabs.part > .tabs > .tabPage > .tabPage-button:focus { color: #eee; background-color: #b5c5f7 }
 .skyTabs.part > .tabs > .tabPage:not(:hover):not(.selected) > .tabPage-button { visibility: hidden }
 .skyTabs.part > .content { width: var(--full); height: calc(var(--full) - (var(--tabs-tabPage-height) + 0px)) !important }
@@ -37,4 +38,11 @@
 	position: absolute !important; left: var(--tabs-toggle-button-left) !important; top: calc(var(--tabs-toggle-button-top) - 2px) !important;
 	width: var(--tabs-toggle-button-width) !important; height: var(--tabs-toggle-button-height) !important;
 	background-image: url(../../images/close.png); background-size: 20px !important; filter: contrast(0); border: none; z-index: 1052 !important
+}
+@media (max-width: 800px) {
+	:root { --tabs-toggle-button-width: 30px; --tabs-header-height: 38px }
+	.skyTabs.part > .tabs > .tabPage { line-height: 16px !important }
+	.skyTabs.part > .tabs > .tabPage > .header { font-size: 85%; width: 110px !important; min-width: unset !important; max-width: unset !important; margin: 0 0 0 0 !important; padding: 0 15px 0 8px !important }
+	.skyTabs.part > .tabs > .tabPage > .tabPage-button { right: -5px !important; color: gray !important; background: transparent !important }
+	skyTabs.part > .tabs > .tabPage > .tabPage-button:hover, skyTabs.part > .tabs > .tabPage > .tabPage-button:focus { color: red !important }
 }

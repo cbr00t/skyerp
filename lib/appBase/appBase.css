@@ -104,7 +104,6 @@ jqx-grid .jqx-group-collapse { width: 35px }
 .jqx-widget-header .jqx-window-close-button-background > div,
 .jqx-widget-header .jqx-window-collapse-button-background > div { background-size: 18px }
 .jqx-widget-header .jqx-window-collapse-button-background { margin-right: 10px !important; background-color: #ffffff22 }
-
 .jqx-grid .jqx-adaptive-table { width: var(--full) }
 .jqx-grid .jqx-adaptive-table tr td {
 	font-size: 110%; font-weight: bold; color: #888;
@@ -117,4 +116,8 @@ jqx-grid .jqx-group-collapse { width: 35px }
 	position: relative !important; top: 60px !important; right: 50px !important;
 	width: 34px !important; height: 32px !important; margin-inline-start: 40px !important; 
 	float: right !important; z-index: 5000 !important
+}
+@media (max-width: 850px) {
+	.jqx-grid .jqx-grid-column-header { font-size: 110% !important }
+	.jqx-grid [role = row] > * { font-size: 80% !important }
 }

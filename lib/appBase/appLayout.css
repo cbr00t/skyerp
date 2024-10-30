@@ -72,14 +72,16 @@ body > .header-image {
 }*/
 body > .bg-image-wrapper { width: var(--full); height: var(--background-image-height); background-color: #0327742b; opacity: .7; z-index: 1010 !important }
 body > .app-titlebar {
-	font-size: 70%; font-weight: bold; color: lightskyblue; position: fixed; top: var(--appTitle-top); right: 70px;
+	font-size: 70%; font-weight: bold; color: lightskyblue; position: fixed; top: var(--appTitle-top); right: 50px;
 	padding: .15% 10px; line-height: 16px; opacity: .8; pointer-events: none; z-index: 100 !important
 }
 body > .app-titlebar > div { text-align: right }
-body > .app-titlebar .db-name { color: var(--s-white); z-index: -2 !important }
-@media (max-width: 750px) { body > .app-titlebar .db-name { opacity: .3 } }
-@media (max-width: 600px) { body > .app-titlebar .db-name { display: none } }
-body > .app-titlebar .app-title { margin-left: 10px }
+body > .app-titlebar .db-name { color: var(--s-white); margin-right: 8px; z-index: -2 !important }
+@media (max-width: 850px) {
+	body > .app-titlebar { padding-top: 8px; line-height: 13px !important }
+	body > .app-titlebar .db-name { display: none }
+}
+body > .app-titlebar .app-title { margin-left: 0 }
 body > .app-titlebar .app-version-parent { margin-left: 5px }
 body >.app-titlebar .app-version-parent .app-version { color: var(--s-white) }
 body > .app-titlebar .app-version-parent > *:not(:last-child) { margin-right: -2px }

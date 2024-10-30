@@ -27,7 +27,7 @@ class MQZiyaretPlani extends MQSayacliOrtak {
 		let form = tabPage_genel.addFormWithParent().yanYana(3); form.addDateInput('planTarih', 'Plan Tarih'); form.addTimeInput('planSaat', 'Plan Saat');
 			form.addModelKullan('mustKod', 'Müşteri').comboBox().setMFSinif(MQCari); form.addModelKullan('ziyaretciKod', 'Ziyaretçi').comboBox().setMFSinif(MQPersonel);
 			form.addModelKullan('konuKod', 'Konu').comboBox().setMFSinif(MQZiyaretKonu); form.addTextInput('teyitKisi', 'Teyit Eden').setMaxLength(40).addStyle_wh(600);
-		form = tabPage_genel.addFormWithParent().altAlta(); form.addTextArea('kisaBilgi', 'Kısa Bilgi').setMaxLength(200).setRows(10)
+		form = tabPage_genel.addFormWithParent().altAlta(); form.addTextArea('kisaBilgi', 'Kısa Bilgi').setMaxLength(200).setRows(5)
 	}
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { plantarih: this.planTarih, plansaat: this.planSaat }) }
 	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { planTarih: rec.plantarih, planSaat: rec.plansaat }) }
@@ -62,6 +62,6 @@ class MQZiyaret extends MQSayacliOrtak {
 			form.addModelKullan('mustKod', 'Müşteri').comboBox().setMFSinif(MQCari); form.addModelKullan('ziyaretciKod', 'Ziyaretçi').comboBox().setMFSinif(MQPersonel);
 			form.addModelKullan('konuKod', 'Konu').comboBox().setMFSinif(MQZiyaretKonu); form.addModelKullan('sonucKod', 'Sonuç').comboBox().setMFSinif(MQZiyaretSonuc);
 		form = tabPage_genel.addFormWithParent().yanYana();
-			form.addTextArea('kisiler', 'Kişiler').setMaxLength(150).setRows(10); form.addTextArea('gorusmeNotu', 'Görüşme Notu').setMaxLength(200).setRows(10)
+			form.addTextArea('kisiler', 'Kişiler').setMaxLength(150).setRows(5); form.addTextArea('gorusmeNotu', 'Görüşme Notu').setMaxLength(200).setRows(5)
 	}
 }

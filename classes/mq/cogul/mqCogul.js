@@ -472,7 +472,7 @@ class MQCogul extends MQYapi {
 		let result = await this.forAltYapiClassesDoAsync('loadServerData_querySonucu', e); result = result ? result[result.length - 1] : undefined;
 		if (result !== undefined) { return result }
 		const {isOfflineMode} = this, dbMgr_db = app?.dbMgr?.default, _e = { defer, wsArgs, query };
-		if (dbMgr_db && isOfflineMode !== false) {
+		if (dbMgr_db && isOfflineMode) {
 			try { return await dbMgr_db.execute(_e) }
 			catch (ex) { if (isOfflineMode === true || !navigator.onLine) { throw ex } }
 		}
