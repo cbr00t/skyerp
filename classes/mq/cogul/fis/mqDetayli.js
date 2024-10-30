@@ -379,12 +379,12 @@ class MQDetayliMaster extends MQDetayli {
 		if (!this.hasTabs) { const {tabPanel} = e; if (tabPanel) { tabPanel.addStyle(e => `$elementCSS > .tabs { display: none !important }`) } }
 	}
 	static rootFormBuilderDuzenleSonrasi(e) {
-		super.rootFormBuilderDuzenleSonrasi(e); const parentForm = e.tabPage_genel ?? e.tanimFormBuilder;
-		this.rootFormBuilderDuzenle_gridOncesi(e); this.rootFormBuilderDuzenle_grid(e); this.rootFormBuilderDuzenle_gridSonrasi(e)
+		super.rootFormBuilderDuzenleSonrasi(e); this.rootFormBuilderDuzenle_gridOncesi(e);
+		this.rootFormBuilderDuzenle_grid(e); this.rootFormBuilderDuzenle_gridSonrasi(e)
 	}
 	static rootFormBuilderDuzenle_grid(e) {
-		const {tabPage_genel} = e, parentPart = e.parentPart ?? e.sender;
-		let gridParent = tabPage_genel.addFormWithParent('grid-parent')
+		const gridForm = e.gridForm ?? e.tabPage_genel ?? e.tanimFormBuilder, parentPart = e.parentPart ?? e.sender;
+		let gridParent = gridForm.addFormWithParent('grid-parent')
 			.addStyle(e => `$elementCSS > div { width: var(--full) !important; max-height: calc(var(--full) - 100px) !important`).addCSS('dock-bottom');
 		const {gridKontrolcuSinif} = this, kontrolcu = gridKontrolcuSinif ? new gridKontrolcuSinif({ parentPart }) : null;
 		let grid = e.fbd_grid = gridParent.addGridliGiris('grid').addStyle_fullWH()

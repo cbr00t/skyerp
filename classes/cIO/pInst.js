@@ -1,18 +1,10 @@
 class PInst extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get deepCopyAlinmayacaklar() { return $.merge(super.deepCopyAlinmayacaklar || [], ['events', 'value']) }	
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get deepCopyAlinmayacaklar() { return [...(super.deepCopyAlinmayacaklar || []), 'events', 'value'] }	
+	get initValue() { const {initBlock} = this; if (initBlock) { return getFuncValue.call(this, initBlock, { sender: this }) } return this.getValue(null) }
 	constructor(e) {
 		e = e || {}; super(e); this.events = {};
-		if (typeof e == 'object') {
-			this.ioAttr = e.ioAttr; this.rowAttr = e.rowAttr;
-			this.initBlock = e.initBlock || e.init; this.converter = e.converter
-		}
+		if (typeof e == 'object') { this.ioAttr = e.ioAttr; this.rowAttr = e.rowAttr; this.initBlock = e.initBlock || e.init; this.converter = e.converter }
 		else { this.rowAttr = e }
-	}
-	
-	get initValue() {
-		const {initBlock} = this; if (initBlock) { return getFuncValue.call(this, initBlock, { sender: this }) }
-		return this.getValue(null)
 	}
 	getValue(value) {
 		const {converter} = this; value = this.getValueDevam(value);
@@ -22,6 +14,7 @@ class PInst extends CObject {
 	getValueDevam(value) { return value }
 	get hostVarsDegeri() { return this.getValue(this.value) }
 	setValues(e) { const {value} = e; this.value = this.getValue(value) }
+	pTanim2Inst_ek(e) { }
 	addEventListener(eventName, handler) {
 		const {events} = this, handlers = events[eventName] = events[eventName] || [];
 		handlers.push(handler); return this
@@ -29,12 +22,8 @@ class PInst extends CObject {
 	removeEventListener(eventName, handler) {
 		const {events} = this, handlers = events[eventName]; if (!handlers) { return this }
 		if (!handler) { delete handlers[eventName]; return this }
-		for (let i = handlers.length - 1; i >= 0; i--) {
-			const _handler = handlers[i];
-			if (_handler == handler) { handlers.splice(i, 1) }
-		}
-		if (!handlers.length) { delete events[eventName] }
-		return this
+		for (let i = handlers.length - 1; i >= 0; i--) { const _handler = handlers[i]; if (_handler == handler) { handlers.splice(i, 1) } }
+		if (!handlers.length) { delete events[eventName] } return this
 	}
 	clearEvents(eventName, handler) { const {events} = this; delete events[eventName]; return this }
 	async raiseEvent(eventName, ...args) {
@@ -55,8 +44,7 @@ class PInst extends CObject {
 				const _arr = value = $.extend([], value), arr = [];
 				for (let _value of _arr) {
 					if (_value) {
-						if (_value.shallowCopy) { _value = _value.shallowCopy(e) }
-						else if ($.isArray(_value)) { _value = $.extend([], _value) }
+						if (_value.shallowCopy) { _value = _value.shallowCopy(e) } else if ($.isArray(_value)) { _value = $.extend([], _value) }
 						else if (typeof value == 'object') { _value = $.extend({}, _value) }
 					}
 					arr[i] = _value
@@ -74,8 +62,7 @@ class PInst extends CObject {
 				const _arr = value, arr = value = [];
 				for (let _value of _arr) {
 					if (_value) {
-						if (_value.deepCopy) { _value = _value.deepCopy() }
-						else if ($.isArray(_value)) { _value = $.extend(true, [], _value) }
+						if (_value.deepCopy) { _value = _value.deepCopy() } else if ($.isArray(_value)) { _value = $.extend(true, [], _value) }
 						else if ($.isPlainObject(value) && !isDate(value)) { _value = $.extend(true, {}, _value) }
 					}
 					arr[i] = _value
@@ -101,17 +88,50 @@ class PInstNum extends PInst {
 }
 class PInstDate extends PInst {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	getValueDevam(value) { return asDate(value) }
+	getValueDevam(value) { value = asDate(value); return isInvalidDate(value) ? null : value }
 	get hostVarsDegeri() { let value = super.hostVarsDegeri; return value ? asDate(value) : null }
 	setValues(e) { let value = this.getValue(e.value); this.value = value }
 }
 class PInstDateToday extends PInstDate {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	getValueDevam(value) { return super.getValueDevam(value || today()) }
+	getValueDevam(value) { return super.getValueDevam(value === undefined ? today() : value) }
 }
 class PInstDateNow extends PInstDate {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	getValueDevam(value) { return super.getValueDevam(value || now()) }
+	getValueDevam(value) { return super.getValueDevam(value === undefined ? now() : value) }
+}
+class PInstDateTime extends PInst {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	getValueDevam(value) { value = asDate(value); return isInvalidDate(value) ? null : value }
+	get hostVarsDegeri() { let value = super.hostVarsDegeri; return value ? asDate(value) : null }
+	setValues(e) { let value = this.getValue(e.value); this.value = value }
+	pTanim2Inst_ek(e) {
+		super.pTanim2Inst_ek(e); const {inst} = e, {ioAttr} = this;
+		let ioAttrPrefix = ioAttr.toUpperCase().endsWith('TS') ? ioAttr.slice(0, -2) : null;
+		if (ioAttrPrefix != null) {
+			let subIOAttr = ioAttrPrefix ? `${ioAttrPrefix}Tarih` : 'tarih';
+			if (!inst.hasOwnProperty(subIOAttr)) {
+				Object.defineProperty(inst, subIOAttr, {
+					get: () => { const ts = inst[ioAttr]; return ts?.clearTime ? new Date(ts).clearTime() : ts },
+					set: value => { inst[ioAttr] = value?.clearTime ? new Date(value).clearTime() : value }
+				})
+			}
+			subIOAttr = ioAttrPrefix ? `${ioAttrPrefix}Saat` : 'saat';
+			if (!inst.hasOwnProperty(subIOAttr)) {
+				Object.defineProperty(inst, subIOAttr, {
+					get: () => timeToString(inst[ioAttr]),
+					set: value => {
+						const ts = inst[ioAttr]; if (value && ts == null) { inst[ioAttr] = ts = new Date() }
+						if (ts) { let time = value ? asDate(value) : null; if (isInvalidDate(time)) { time = today() } setTime(ts, time?.getTime() ?? 0) }
+					}
+				})
+			}
+		}
+	}
+}
+class PInstDateTimeNow extends PInstDateTime {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	getValueDevam(value) { return super.getValueDevam(value === undefined ? now() : value) }
 }
 class PInstBool extends PInst {
     static { window[this.name] = this; this._key2Class[this.name] = this }

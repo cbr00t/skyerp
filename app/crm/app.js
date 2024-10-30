@@ -10,7 +10,7 @@ class CRMApp extends App {
 				...[MQGorev, MQIslemTuru, MQZiyaretKonu, MQIl, MQPersonel, MQCari].map(cls =>
 						new FRMenuChoice({ mne: cls.kodListeTipi, text: cls.sinifAdi, block: e => { cls.listeEkraniAc(e) } }))
 			] }),
-			...[MQZiyaretPlani, MQZiyaret].map(cls =>
+			...[MQZiyaretPlani, MQZiyaret, MQMusIslem].map(cls =>
 					new FRMenuChoice({ mne: cls.kodListeTipi, text: cls.sinifAdi, block: e => { cls.listeEkraniAc(e) } }))
 		];
 		/*items.push(new FRMenuChoice({ mne: 'MAIN', text: 'Main', block: e => { } }))*/

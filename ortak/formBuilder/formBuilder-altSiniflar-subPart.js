@@ -398,15 +398,12 @@ class FBuilder_DateInput extends FBuilder_TextInput {
 }
 class FBuilder_TimeInput extends FBuilder_TextInput {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get inputType() { return 'time' } static get maxLength() { return null }
-	constructor(e) {
-		e = e || {}; super(e);
-		$.extend(this, { saniyesizmi: e.saniyesiz ?? e.saniyesizmi ?? true })
-	}
+	constructor(e) { e = e || {}; super(e); $.extend(this, { saniyesizmi: e.saniyesiz ?? e.saniyesizmi ?? true }) }
 	preBuild(e) { super.preBuild(e); this.maxLength = this.maxLength || (this.saniyesizmi ? 5 : 7) }
 	buildDevam(e) {
 		super.buildDevam(e); const {input, styles, saniyesizmi} = this;
 		if (input?.length) { input.addClass('zaman'); input[saniyesizmi ? 'addClass' : 'removeClass']('saniyesiz') }
-		styles.push(e => `$elementCSS { --width: calc(83px + ${saniyesizmi ? 0 : 25}px); min-width: var(--width) !important; width: var(--width) !important }`)
+		styles.push(e => `$elementCSS { --width: calc(120px + ${saniyesizmi ? 0 : 25}px); min-width: var(--width) !important; width: var(--width) !important }`)
 	}
 	saniyesiz() { this.saniyesizmi = true; return this }
 	saniyeli() { this.saniyesizmi = false; return this }
