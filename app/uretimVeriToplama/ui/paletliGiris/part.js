@@ -77,6 +77,10 @@ class PaletliGirisPart extends Part {
 				cellBeginEdit: (...args) => this.onCellBeginEdit(...args), cellEndEdit: (...args) => this.onCellEndEdit(...args)
 			}).tipDecimal(),
 			new GridKolon({
+				belirtec: 'paketSayi', text: 'Palet Sayı', minWidth: 70, maxWidth: 130, width: 90, /* filterType: 'checkedlist' */ cellClassName: globalCellsClassName,
+				cellBeginEdit: (...args) => this.onCellBeginEdit(...args), cellEndEdit: (...args) => this.onCellEndEdit(...args)
+			}).tipDecimal().readOnly(),
+			new GridKolon({
 				belirtec: 'ekOzellikler', text: 'Ek Özellikler', minWidth: 100, maxWidth: 400, width: '20%', filterType: 'input', cellClassName: globalCellsClassName,
 				cellBeginEdit: (...args) => this.onCellBeginEdit(...args), cellEndEdit: (...args) => this.onCellEndEdit(...args),
 				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
@@ -121,20 +125,20 @@ class PaletliGirisPart extends Part {
 		this.close()
 	}
 	async barkodOkutuldu(e) {
-		const {txtBarkod} = this; let carpan = null, barkod = e.barkod?.trim();
+		const {txtBarkod, recs, gridPart} = this, {gridWidget} = gridPart; let carpan = null, barkod = e.barkod?.trim();
 		if (barkod) {
 			const barkodLower = barkod.toLowerCase(); for (const separator of ['x', '*']) {
 				const parts = barkod.split(separator, 2); if (parts.length > 1) { carpan = asFloat(parts[0]) || null;  barkod = parts[1].trim(); break } }
 		}
 		try {
-			const barkodParser = barkod ? (await app.barkodBilgiBelirleBasit({ barkod: barkod, carpan: carpan })) : null;
+			const barkodParser = barkod ? (await app.barkodBilgiBelirleBasit({ barkod, carpan })) : null;
 			if (!barkodParser) {
 				txtBarkod.addClass('barkod-error'); txtBarkod.val(null); setTimeout(() => txtBarkod.removeClass('barkod-error'), 400);
 				app.playSound_barkodError(); return false
 			}
 			txtBarkod.addClass('barkod-success'); setTimeout(() => txtBarkod.removeClass('barkod-success'), 200); app.playSound_barkodOkundu();
             const rec = this.getBarkodRec({ barkodParser }); if (!rec) { return }
-			rec.ekBilgileriBelirle().finally(() => { this.recs.push(rec); this.gridPart.tazeleDefer() })
+			rec.ekBilgileriBelirle().finally(() => { gridWidget.addrow(null, rec); this.recs = gridPart.boundRecs })
          }
          catch (ex) {
             app.playSound_barkodError(); txtBarkod.addClass('barkod-error');
@@ -153,21 +157,6 @@ class PaletliGirisPart extends Part {
 		/*const {args} = e, gridWidget = args.owner, gridRec = gridWidget.getrowdata(args.rowindex);
 		const rec = this.recs.find(_rec => _rec.id == gridRec.id); if (rec) { $.extend(rec, gridRec) }*/
 	}
-	getBarkodRec(e) {
-		e = e || {}; const barkodRec = new MQBarkodRec(), {barkodParser} = e;
-		const barkod = e.barkod || barkodParser?.okunanBarkod; if (barkod != null) { barkodRec.barkod = barkod }
-		if (barkodParser) {
-			let {miktar} = barkodParser; if (!miktar) { miktar = ((barkodParser.paketIcAdet || 0) * (barkodParser.carpan || 1)) }
-			if (!miktar) { miktar = e.miktar || 1 }
-			const {oemSayac, shKod} = barkodParser; if (oemSayac) { barkodRec.oemSayac = asInteger(oemSayac) || null }
-			if (shKod) { barkodRec.stokKod = shKod }
-			const {numerikSahalarSet, anahtarSahalarBasit, ekOzellikSahalar} = barkodRec.class;
-			for (const key of anahtarSahalarBasit) { const value = barkodParser[key]; if (value) { barkodRec[key] = numerikSahalarSet[key] ? (asInteger(value) || null) : value } }
-			const ekOzellikler = barkodRec.ekOzellikler = barkodRec.ekOzellikler || {};
-			for (const key of ekOzellikSahalar) { const value = barkodParser[key]; if (value) { ekOzellikler[key] = value } }
-			const {carpan} = barkodParser; $.extend(barkodRec, { miktar, carpan })
-		}	
-		return barkodRec
-	}
+	getBarkodRec(e) { return new MQBarkodRec({ rec: e?.barkodParser }) }
 	onResize(e) { super.onResize(e); this.gridPart.onResize(e) }
 }

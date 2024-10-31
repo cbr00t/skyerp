@@ -274,6 +274,10 @@ class BarkodluGerceklemePart extends Part {
 				belirtec: 'miktar', text: 'Miktar', genislikCh: 8, /* filterType: 'checkedlist' */ cellClassName: globalCellsClassName,
 				cellBeginEdit: (...args) => this.onCellBeginEdit(...args), cellEndEdit: (...args) => this.onCellEndEdit(...args)
 			}).tipDecimal(),
+			new GridKolon({
+				belirtec: 'paketSayi', text: 'Palet Sayı', minWidth: 70, maxWidth: 130, width: 90, /* filterType: 'checkedlist' */ cellClassName: globalCellsClassName,
+				cellBeginEdit: (...args) => this.onCellBeginEdit(...args), cellEndEdit: (...args) => this.onCellEndEdit(...args)
+			}).tipDecimal(),
 			...MQTezgah.getGridKolonlar({
 				belirtec: 'tezgah', argsDuzenle: e => {
 					const {kolonGrup} = e, {kaKolonu} = kolonGrup;

@@ -49,6 +49,7 @@ class MQBarkodRec extends MQMasterOrtak {
 		});
 		let value = e.suAnmi ?? e.suAn ?? e.suan; if (value !== undefined) { this.suAnmi = value }
 		if (this.suAnmi == null && !this.noCheckFlag) { this.suAnmi = !!this.gorevmi }
+		const {paketKod, miktar, paketIcAdet} = this; if (paketKod && paketIcAdet) { this.paketSayi = Math.ceil(miktar / paketIcAdet) }
 	}
 	static async rootFormBuilderDuzenle(e) {
 		await super.rootFormBuilderDuzenle(e); const inst = e.inst ?? e.sender?.inst, sabit_hatKod = app.params.config.hatKod || null;
@@ -306,8 +307,8 @@ class MQBarkodRec extends MQMasterOrtak {
 			_durum: this._durum ?? '', id: this.id || newGUID(), serbestmi: this.serbestmi, isId: this.isId || null,
 			barkod: this.barkod, carpan: this.carpan, gerSayac: this.gerSayac || null, oemSayac: this.oemSayac || null,
 			emirNox: this.emirNox, emirTarih: this.emirTarih, opNo: this.opNo || null, opAdi: this.opAdi, stokKod: this.stokKod, stokAdi: this.stokAdi,
-			miktar: this.miktar, subeKod: this.subeKod,
-			hatKod: this.hatKod, hatAdi: this.hatAdi, tezgahKod: this.tezgahKod, tezgahAdi: this.tezgahAdi, perKod: this.perKod, perAdi: this.perAdi,
+			miktar: this.miktar, subeKod: this.subeKod, hatKod: this.hatKod, hatAdi: this.hatAdi,
+			tezgahKod: this.tezgahKod, tezgahAdi: this.tezgahAdi, perKod: this.perKod, perAdi: this.perAdi,
 			basTS: inverseCoalesce(this.basTS, value => dateTimeToString(value)), bitTS: inverseCoalesce(this.bitTS, value => dateTimeToString(value)),
 			paketKod: this.paketKod, paketIcAdet: this.paketIcAdet, vardiyaNo: this.vardiyaNo, sonAsamami: this.sonAsamami ?? null,
 			ekOzellikler: this.ekOzellikler, iskartalar: this.iskartalar, kaliteYapi: this.kaliteYapi,
