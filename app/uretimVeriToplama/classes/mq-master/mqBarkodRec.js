@@ -394,7 +394,7 @@ class MQBarkodRec extends MQMasterOrtak {
 				($.isEmptyObject(hmrBelirtecListe) ? null : { name: '@argHmrListe', type: 'structured', typeName: 'type_strIdList', value: hmrBelirtecListe.map(id => ({ id })) }),
 				($.isEmptyObject(argHMRVeDegerListe) ? null : { name: '@argHmrVeriListe', type: 'structured', typeName: 'type_kod12', value: argHMRVeDegerListe }),
 				/*{ name: '@argLotNo', type: 'char', value: ekOzellikler.lotNo || '' },*/
-				{ name: '@argKoli', type: 'smallint', value: this.paketIcAdet || 0 },
+				{ name: '@argKoli', type: 'smallint', value: this.paketSayi || 0 },
 				{ name: '@argPaketKod', type: 'char', value: this.paketKod || '' },
 				{ name: '@argMiktar', type: 'decimal', value: miktar },
 				$.isEmptyObject(argStokYerVeSeriListe) ? null : { name: '@stokYerVeSeriListe', type: 'structured', typeName: 'type_kod1234', value: argStokYerVeSeriListe },
