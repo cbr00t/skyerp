@@ -5,8 +5,8 @@
 /*.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > *:not(.jqx-grid-cell-pinned):not(.jqx-grid-cell-selected) { background: whitesmoke }*/
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > *:not(.jqx-grid-cell-pinned) { border: 1px solid #aaa }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > .jqx-grid-group-cell { }
-.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > .jqx-grid-group-cell .grid-cell-group,
-	.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > .jqx-grid-group-cell .islemTuslari { filter: invert(1) hue-rotate(180deg) }
+body.dark-theme .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > .jqx-grid-group-cell .grid-cell-group,
+	body.dark-theme .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > .jqx-grid-group-cell .islemTuslari { filter: invert(1) hue-rotate(180deg) }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > .jqx-grid-group-cell .grid-cell-group { background-color: #222 !important }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > .jqx-grid-group-cell .islemTuslari { }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > .jqx-grid-group-cell > table td,
