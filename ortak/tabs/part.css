@@ -22,6 +22,7 @@ body.offline #windows.skyTabs.part > .tabs { border: 3px solid orangered; box-si
 }
 #windows.skyTabs.part > .tabs > .tabPage > .header { padding: 0 10px; padding-right: 60px }
 #windows.skyTabs.part > .tabs > .tabPage:not(:hover):not(.selected) > .header { /* background-color: #e8e8e86b; */ color: var(--s-white) }
+body.dark-theme #windows.skyTabs.part > .tabs > .tabPage:not(:hover):not(.selected) > .header { color: #888 }
 .skyTabs.part > .tabs > .tabPage > .header:hover { color: #89c5f9; cursor: pointer; border: 1px solid #eeeeee55 }
 .skyTabs.part > .tabs > .tabPage.selected > .header { font-weight: bold; color: royalblue; background: var(--s-whitesmoke) }
 .skyTabs.part > .tabs > .tabPage > .tabPage-button { position: absolute; top: 2px; right: 5px; font-size: 70%; background-color: var(--s-white); z-index: 100 !important }
@@ -44,5 +45,5 @@ body.offline #windows.skyTabs.part > .tabs { border: 3px solid orangered; box-si
 	.skyTabs.part > .tabs > .tabPage { line-height: 16px !important }
 	.skyTabs.part > .tabs > .tabPage > .header { font-size: 85%; width: 110px !important; min-width: unset !important; max-width: unset !important; margin: 0 0 0 0 !important; padding: 0 15px 0 8px !important }
 	.skyTabs.part > .tabs > .tabPage > .tabPage-button { right: -5px !important; color: gray !important; background: transparent !important }
-	skyTabs.part > .tabs > .tabPage > .tabPage-button:hover, skyTabs.part > .tabs > .tabPage > .tabPage-button:focus { color: red !important }
+	.skyTabs.part > .tabs > .tabPage > .tabPage-button:hover, skyTabs.part > .tabs > .tabPage > .tabPage-button:focus { color: red !important }
 }

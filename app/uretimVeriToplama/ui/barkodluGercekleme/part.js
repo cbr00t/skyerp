@@ -511,17 +511,12 @@ class BarkodluGerceklemePart extends Part {
 			}
 		})
 	}
-	paletliGirisIstendi(e) {
-		const part = new PaletliGirisPart({ parentPart: this, tamamIslemi: e => this.paletliGirisYapildi(e) });
-		part.run()
-	}
+	paletliGirisIstendi(e) { const part = new PaletliGirisPart({ parentPart: this, tamamIslemi: e => this.paletliGirisYapildi(e) }); part.run() }
 	async paletliGirisYapildi(e) {
-		const {recs} = e;
-		// debugger
-		const anahStr2Rec = {};
+		const {recs} = e, anahStr2Rec = {};
 		for (const rec of recs) {
 			const {anahtarStr} = rec; let _rec = anahStr2Rec[anahtarStr];
-			if (_rec) _rec.miktar = _rec.miktar + (rec.miktar || 0)
+			if (_rec) { _rec.miktar = _rec.miktar + (rec.miktar || 0); _rec.paketSayi = (_rec.paketSayi || 0) + (rec.paketSayi || 0) }
 			else { _rec = anahStr2Rec[anahtarStr] = rec.deepCopy ? rec.deepCopy() : $.extend(true, {}, rec); _rec.ekBilgileriBelirle() }
 		}
 		await app.promise_ready;
