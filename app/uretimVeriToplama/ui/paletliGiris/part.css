@@ -5,15 +5,10 @@
 .paletliGiris.part {
 	--header-margin-x: 3px;
 	--header-margin-y: 10px;
-	--header-top: 3px;
-	--header-height: 65px;
-	--header-bottom: calc(
-		var(--header-top) +
-		var(--header-height) +
-		var(--header-margin-y)
-	);
+	--header-top: 3px; --header-height: 50px;
+	--header-bottom: calc( var(--header-top) + var(--header-height) + var(--header-margin-y) );
 	--listedenSec-barkod-width: 60px;
-	--barkod-height: 60px;
+	--barkod-height: 45px;
 	--barkod-haric-ek-width: 0;
 }
 .paletliGiris.part #tamam {

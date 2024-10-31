@@ -4,7 +4,7 @@ class MQYerelParamConfig extends MQYerelParamApp {
 	constructor(e) { e = e || {}; super(e) }
 	static paramAttrListeDuzenle(e) {
 		super.paramAttrListeDuzenle(e); const {liste} = e;
-		liste.push('lastVersion', 'wsURL', 'wsProxyServerURL', 'sql', 'uzakScriptURL', 'uzakScriptIntervalSecs', 'viewportScale')
+		liste.push('lastVersion', 'wsURL', 'wsProxyServerURL', 'sql', 'colorScheme', 'uzakScriptURL', 'uzakScriptIntervalSecs', 'viewportScale')
 	}
 	static async getRootFormBuilder(e) {
 		e = e || {}; let rootBuilder = new RootFormBuilder(e);
@@ -13,9 +13,20 @@ class MQYerelParamConfig extends MQYerelParamApp {
 		rootBuilder = _e.rootBuilder; return rootBuilder
 	}
 	getRootFormBuilder(e) { return this.class.getRootFormBuilder(e) } static rootFormBuilderDuzenle(e) { } static rootFormBuilderDuzenleSonrasi(e) { }
+	paramHostVarsDuzenle(e) {
+		super.paramHostVarsDuzenle(e); let {colorScheme} = this; if (colorScheme?.char !== undefined) { colorScheme = colorScheme.char }
+		const {hv} = e; $.extend(hv, { colorScheme })
+	}
+	paramSetValues(e) {
+		super.paramSetValues(e); const {rec} = e; let {colorScheme} = rec;
+		if (colorScheme !== undefined && colorScheme?.char === undefined) { colorScheme = new ColorScheme(colorScheme) }
+		$.extend(this, { colorScheme })
+	}
 	yukleSonrasi(e) {
 		super.yukleSonrasi(e); if (appVersion != this.lastVersion) { app.onbellekSil(); this.lastVersion = appVersion; this.kaydet(e) }
-		let temp = qs.uzakScript || qs.uzakScriptURL || qs.inject; if (temp != null) { this.uzakScriptURL = temp }
+		let temp = qs.dark ? 'dark' : qs.light ? '' : this.colorScheme;
+		if (temp != null) { if (temp.char === undefined) { temp = new ColorScheme(temp) } this.colorScheme = temp }
+		temp = qs.uzakScript || qs.uzakScriptURL || qs.inject; if (temp != null) { this.uzakScriptURL = temp }
 		temp = qs.uzakScriptInterval ?? qs.uzakScriptIntervalSecs; if (temp) { this.uzakScriptIntervalSecs = asFloat(temp) }
 	}
 	kaydetSonrasi(e) {
@@ -48,6 +59,11 @@ class MQYerelParamConfig extends MQYerelParamApp {
 			const wsSQL = app.wsSQL = app.wsSQL || {};
 			for (const key in sql) { const value = sql[key]; if (value) { wsSQL[key] = value } }
 		}
+		this.applyColorScheme(e);
 		if (this.uzakScriptURL && app._initFlag) { setTimeout(() => app.uzakScript_startTimer(), 1000) }
+	}
+	applyColorScheme(e) {
+		let {colorScheme} = this; if (colorScheme != null) { config.colorScheme = colorScheme?.char ?? colorScheme }
+		config.applyColorScheme(e)
 	}
 }

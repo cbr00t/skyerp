@@ -43,7 +43,11 @@ class MQYerelParamConfigTanimPart extends MQYerelParamBaseTanimPart {
 		txtUzakScriptIntervalSecs.on('change', evt => {
 			const elm = evt.currentTarget; let value = (typeof elm.value == 'string' ? asFloat((elm.value || '').trim()) : asFloat(elm.value)) || null;
 			elm.value = value; inst.uzakScriptIntervalSecs = value
-		})
+		});
+		new RootFormBuilder().addModelKullan('colorScheme', 'Renk Şeması').dropDown().kodsuz().noMF().listedenSecilemez()
+			.setParent(layout).setInst(inst).setSource(ColorScheme.kaListe).degisince(e => inst.applyColorScheme())
+			.addStyle_wh(150).addStyle(e => `$elementCSS { position: absolute; right: 20px; top: 380px }`)
+			.run()
 	}
 	afterRun(e) { super.afterRun(e); setTimeout(() => { makeScrollable(this.layout); this.txtWSUrl.focus() }, 100) }
 	/*wndArgsDuzenle(e) { super.wndArgsDuzenle(e); const {wndArgs} = e; $.extend(wndArgs, { width: $(window).width() < 900 ? '100%' : '60%', height: 580 }) }*/

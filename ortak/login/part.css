@@ -1,4 +1,5 @@
 .loginPart.part { --ssoButton-length: 50px; position: absolute; width: var(--full); height: var(--full); background-color: #031d519c; z-index: 1014 }
+body.dark-theme .loginPart.part { background-color: #eee }
 .loginPart #islemTuslari { margin-top: 20px }
 .loginPart #islemTuslari #login.jqx-fill-state-normal { color: whitesmoke; background-color: #93abf8 }
 .loginPart .alt-form {
