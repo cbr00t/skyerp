@@ -10,6 +10,10 @@ class MQMusIslem extends MQDetayliMasterOrtak {
 			yapilacakIs: new PInstStr('yapilacakis'), bitisAciklama: new PInstStr('bitisaciklama')
 		})
 	}
+	static islemTuslariDuzenle_listeEkrani(e) {
+		super.islemTuslariDuzenle_listeEkrani(e); const {liste} = e; liste.push(
+			{ id: 'ekIslem', text: 'Ek İşlem', handler: _e => this.ekIslemIstendi({ ...e, ..._e }) })
+	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {tableAlias: alias} = this, {liste} = e; liste.push(
 			new GridKolon({ belirtec: 'seri', text: 'Seri', genislikCh: 8 }), new GridKolon({ belirtec: 'fisno', text: 'No', genislikCh: 18 }).tipNumerik(),
@@ -53,6 +57,30 @@ class MQMusIslem extends MQDetayliMasterOrtak {
 		form = tabPage_genel.addFormWithParent().yanYana(2);
 			form.addTextArea('yapilacakIs', 'Yapılacak İş').setMaxLength(600).setRows(5); form.addTextArea('bitisAciklama', 'Bitiş Açıklama').setMaxLength(200).setRows(5);
 		e.gridForm = tabPanel.addTab('detay', 'Detay Girişi').addStyle_fullWH()
+	}
+	static ekIslemIstendi(e) {
+		const gridPart = e.gridPart ?? e.parentPart ?? e.sender, {selectedRec: rec} = gridPart; if (!rec) { return }
+		const {classKey} = this, rfb = new RootFormBuilder('Müşteri Ek İşlem').asWindow('Ek İşlem Ekranı').addCSS(`${classKey} ekIslem part`);
+		let islemTuslari = rfb.addIslemTuslari('islemTuslari').setTip('vazgec').addStyle_fullWH(null, 50)
+			.setId2Handler({ vazgec: _e => _e.builder.rootPart.close() })
+			.addStyle(e => `$elementCSS .butonlar.part > .sol { z-index: -1; background-color: unset !important; background: transparent !important }`);
+		rfb.addForm('header').addStyle_fullWH('calc(var(--full) - 20px)', 50)
+			.addStyle(e =>
+				`$elementCSS { position: relative; top: -40px; padding: 10px; line-height: 20px; user-select: all; overflow-y: auto !important; z-index: 101; cursor: default }`)
+			.setLayout(e => $(`<div>
+				<div class="_row">bla bla</div>
+				<div class="_row">bla bla</div>
+				<div class="_row">bla bla</div>
+			</div>`)).onAfterRun(e => makeScrollable(e.builder.layout));
+		let content = rfb.addFormWithParent('content').altAlta().addStyle_fullWH(null, `calc(var(--full) - ${50 + 30}px)`)
+			.addStyle(e => `$elementCSS { position: relative; top: -10px; z-index: 102 }`);
+		content.addGridliGosterici('_grid').addStyle_fullWH(null, `calc(var(--full) - 200px)`)
+			.onBuildEk(e => e.builder.part.id = '')
+			.setTabloKolonlari(e => [new GridKolon({ belirtec: 'text', text: ' ' }) ])
+			.setSource(e => []).onAfterRun(e => e.builder.rootPart.gridPart = e.builder.part);
+		content.addTextArea('yapilacakIs', 'Ek Adımlar').setRows(5).addStyle_fullWH(null, 130)
+			.addStyle(e => `$elementCSS { vertical-align: top !important; margin: 0 !important } $elementCSS > textarea { width: var(--full) !important; height: var(--full) !important }`);
+		rfb.run()
 	}
 }
 class MQMusIslemDetay extends MQDetay {

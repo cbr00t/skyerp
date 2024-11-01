@@ -373,7 +373,7 @@ class MQOEM extends MQSayacliOrtak {
 		sent.where.add(`emr.silindi = ''`, `emr.durumu = 'D'`); if (tabletSadeceSonOperasyon) { sent.where.add(`oem.sonasama <> ''`) }
 		if (sabit_hatKod) { sent.where.degerAta(sabit_hatKod, `${alias}.ismrkkod`) }
 		sent.sahalar.add(`${alias}.ismrkkod hatkod`, 'hat.aciklama hatadi').addWithAlias(alias, 'opno', 'tezgahkod', 'perkod')
-			.add('emr.bizsubekod', 'emr.fisnox emirnox', 'emr.tarih emirtarih', `${alias}.opno`, 'op.aciklama opadi',
+			.add('emr.bizsubekod', 'emr.no emirno', 'emr.fisnox emirnox', 'emr.tarih emirtarih', `${alias}.opno`, 'op.aciklama opadi',
 				 'frm.formul stokkod', 'stk.aciklama stokadi', 'stk.pdmkodu', 'tez.aciklama tezgahadi', 'per.aciklama peradi');
 		stm.orderBy.add('hatkod', 'emirnox DESC')
 	}
