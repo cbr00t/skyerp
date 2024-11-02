@@ -19,41 +19,42 @@ class CRMApp extends App {
 		/*items.push(new FRMenuChoice({ mne: 'MAIN', text: 'Main', block: e => { } }))*/
 		return new FRMenu({ items })
 	}
-	dbMgr_tablolariOlustur_getQueryURLs(e) {
-		let db2Urls = super.dbMgr_tablolariOlustur_getQueryURLs(e) ?? {};
-		(db2Urls.main = db2Urls.main ?? []).push(`${webRoot_crm}/queries/main.sql`);
-		return db2Urls
+	async bilgiYukle(e) {
+		let classes = [MQMasterOrtak, MQKAOrtak, MQSayacliOrtak, MQDetayliOrtak, MQDetayliVeAdiOrtak].flatMap(cls => cls.subClasses).filter(cls => !!cls.table);
+		let promises = []; for (const cls of classes) { promises.push(cls.offlineDropTable()) } await Promise.all(promises);
+		await app.dbMgr_tablolariOlustur();
+		promises = []; for (const cls of classes) { promises.push(cls.offlineSaveToLocalTable()) } await Promise.all(promises);
+		return this
 	}
+	async bilgiGonder(e) {
+		let classes = [MQMasterOrtak, MQKAOrtak, MQSayacliOrtak, MQDetayliOrtak, MQDetayliVeAdiOrtak].flatMap(cls => cls.subClasses).filter(cls => !!cls.table);
+		let promises = []; for (const cls of classes) { promises.push(cls.offlineSaveToRemoteTable()) } await Promise.all(promises);
+		delete this.trnId; return this
+	}
+	dbMgr_tablolariOlustur_getQueryURLs(e) {
+		let db2Urls = super.dbMgr_tablolariOlustur_getQueryURLs(e) ?? {}; (db2Urls.main = db2Urls.main ?? []).push(`${webRoot_crm}/queries/main.sql`); return db2Urls }
 	wsPlasiyerIcinCariler(e) {
 		e = e || {}; return ajaxPost({
-			timeout: 10 * 60000, processData: false, ajaxContentType: wsContentTypeVeCharSet,
-			url: app.getWSUrl({ wsPath: 'ws/genel', api: 'plasiyerIcinCariler', args: e })
-		})
+			timeout: 10 * 60000, processData: false, ajaxContentType: wsContentTypeVeCharSet, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'plasiyerIcinCariler', args: e }) })
 	}
 	wsTicKapanmayanHesap(e) {
 		e = e || {}; const {plasiyerKod, mustKod, cariTipKod} = e, params = [
-			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
-			(mustKod ? { name: '@argMustKod', value: mustKod } : null),
-			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/
-			{ name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
+			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null), (mustKod ? { name: '@argMustKod', value: mustKod } : null),
+			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/ { name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
 		].filter(x => !!x);
 		return this.sqlExecSP({ query: 'tic_kapanmayanHesap', params })
 	}
 	wsTicCariEkstre(e) {
 		e = e || {}; const {plasiyerKod, mustKod, cariTipKod} = e, params = [
-			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
-			(mustKod ? { name: '@argMustKod', value: mustKod } : null),
-			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/
-			{ name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
+			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null), (mustKod ? { name: '@argMustKod', value: mustKod } : null),
+			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/ { name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
 		].filter(x => !!x);
 		return this.sqlExecSP({ query: 'tic_cariEkstre', params })
 	}
 	wsTicCariEkstre_icerik(e) {
 		e = e || {}; const {plasiyerKod, mustKod, cariTipKod} = e, params = [
-			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
-			(mustKod ? { name: '@argMustKod', value: mustKod } : null),
-			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/
-			{ name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
+			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null), (mustKod ? { name: '@argMustKod', value: mustKod } : null),
+			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/ { name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
 		].filter(x => !!x);
 		return this.sqlExecSP({ query: 'tic_ticariIcerik', params })
 	}

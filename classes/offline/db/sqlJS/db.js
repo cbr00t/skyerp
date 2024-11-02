@@ -76,7 +76,10 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 			let {params} = e; if ($.isEmptyObject(params)) { params = e.params = savedParams }
 			else if (params != savedParams) { if ($.isArray(params)) { params.push(...savedParams) } else { $.extend(params, savedParams) } }
 		}
-		if (typeof e.query == 'string') { if (e.query.toUpperCase().includes('NOT NULL AUTO')) { e.query = e.query.replaceAll('rowid\t', '--rowid\t').replaceAll('rowid ', '--rowid ') } }
+		if (typeof e.query == 'string') {
+			if (e.query.toUpperCase().includes('NOT NULL AUTO')) { e.query = e.query.replaceAll('rowid\t', '--rowid\t').replaceAll('rowid ', '--rowid ') }
+			e.query = e.query.replaceAll('ORTAK..', '')
+		}
 		/*let {dbOpCallback} = this; if (!$.isFunction(dbOpCallback)) { dbOpCallback = null } if (dbOpCallback) { await dbOpCallback.call(this, { operation: 'executeSql', state: true }, e) }*/
 		let _result; this.dbLastExec = e; try { console.debug('db exec', e) } catch (ex) { }
 		try { _result = this.internalDB[isDBWrite ? 'run' : 'exec'](e.query, e.params) }

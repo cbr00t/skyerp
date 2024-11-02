@@ -132,11 +132,69 @@ class MQYapi extends CIO {
 	sqlExecSelect(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecSelect' }) }
 	static sqlExecTekil(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekil' }) }
 	sqlExecTekilDeger(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekilDeger' }) }
+	static offlineDropTable(e) {
+		e = e ?? {}; if (!this.dbMgr_db) { return false } const offlineTable = e.table ?? e.offlineTable ?? this.table, offlineMode = true;
+		let query = `DROP TABLE IF EXISTS ${offlineTable}`; return this.sqlExecNone({ ...e, offlineMode, query })
+	}
+	static offlineClearTable(e) {
+		e = e ?? {}; if (!this.dbMgr_db) { return false } const offlineTable = e.table ?? e.offlineTable ?? this.table
+		const {trnId} = e, offlineMode = e.offline ?? e.offlineMode ?? true;
+		let query = new MQIliskiliDelete({ from: offlineTable }); return this.sqlExecNone({ ...e, offlineMode, trnId, query })
+	}
+	static offlineSaveToLocalTable(e) {
+		e = e ?? {}; if (!this.dbMgr_db) { return false } const offlineTable = e.table ?? e.offlineTable ?? this.table, clear = e.clear ?? e.clearFlag;
+		const offlineMode = true, {trnId} = e; return this.loadServerData({ ...e, trnId, offlineMode: false }).then(recs => {
+			this.sqlExecNone({ ...e, offlineMode, query: 'BEGIN TRANSACTION' }); try {
+				if (clear) { this.offlineClearTable({ ...e, offlineMode }) } if (recs?.length) {
+					const attrListe = Object.keys(new this().hostVars() ?? {}); if (attrListe?.length) {
+						const attrSet = asSet(attrListe), hvListe = [];
+						for (const rec of recs) {
+							const hv = {}; let empty = true; for (const key in rec) {
+								if (!attrSet[key]) { continue } let value = rec[key]; if (typeof value == 'string') { value = value.trimEnd() }
+								hv[key] = value; empty = false
+							} if (!empty) { hvListe.push(hv) }
+						}
+						let query = new MQInsert({ table: offlineTable, hvListe }); return this.sqlExecNone({ ...e, offlineMode,  query })
+					}
+				}
+			}
+			finally { this.sqlExecNone({ ...e, offlineMode, query: 'COMMIT' }) }
+		})
+	}
+	static async offlineSaveToRemoteTable(e) {
+		e = e ?? {}; if (!this.dbMgr_db) { return false } const offlineTable = e.table ?? e.offlineTable ?? this.table, clear = e.clear ?? e.clearFlag;
+		const offlineMode = false, recs = await this.loadServerData({ ...e, offlineMode: true });
+			let result, {trnId} = await app.sqlTrnBegin(); try {
+			if (clear) { await this.offlineClearTable({ ...e, trnId, offlineMode }) } if (recs?.length) {
+				const attrListe = Object.keys(new this().hostVars() ?? {}); if (attrListe?.length) {
+					const attrSet = asSet(attrListe), hvListe = [];
+					for (const rec of recs) {
+						const hv = {}; let empty = true; for (const key in rec) {
+							if (!attrSet[key]) { continue } let value = rec[key]; if (typeof value == 'string') { value = value.trimEnd() }
+							hv[key] = value; empty = false
+						} if (!empty) { hvListe.push(hv) }
+					}
+					let query = new MQInsert({ table: offlineTable, hvListe }); result = await this.sqlExecNone({ ...e, offlineMode, trnId, query })
+				}
+			}
+		}
+		finally { await app.sqlTrnEnd(trnId); trnId = null }
+		return result
+	}
+	static offlineSaveToLocalTableWithClear(e) { e = e ?? {}; return this.offlineSaveToLocalTable({ ...e, clear: true }) }
+	static offlineSaveToRemoteTableWithClear(e) { e = e ?? {}; return this.offlineSaveToRemoteTable({ ...e, clear: true }) }
 	static _sqlExec(e, params) {
 		e = $.isPlainObject(e) ? e : { query: e, params }; e = { ...e };
-		const {selector} = e, offlineMode = e.isOfflineMode ?? e.offlineMode ?? this.offlineMode, db = e.db ?? app.dbMgr?.default;
-		for (const key of ['selector', 'isOfflineMode', 'offlineMode', 'db']) { delete e[key] }
-		return offlineMode && db ? db.execute(e) : app[selector](e)
+		const {selector} = e, offlineMode = e.isOfflineMode ?? e.offlineMode ?? e.offline ?? this.isOfflineMode, db = e.db ?? app.dbMgr?.default;
+		for (const key of ['selector', 'db', 'isOfflineMode', 'offlineMode', 'offline']) { delete e[key] }
+		let result = offlineMode && db ? db.execute(e) : app[selector](e); if (offlineMode) {
+			switch (selector) {
+				case 'sqlExecNone': result = { lastRowsAffected: db.internalDB.getRowsModified() }; break
+				case 'sqlExecTekil': result = result?.[0]; break
+				case 'sqlExecTekilDeger': result = Object.values(result?.[0] ?? {})[0]; if (typeof result == 'string') { result = result.trimEnd() } break
+			}
+		}
+		return result
 	}
 	_sqlExec(e, params) {
 		e = $.isPlainObject(e) ? e : { query: e, params }; e = { ...e };
