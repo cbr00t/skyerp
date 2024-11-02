@@ -1,6 +1,7 @@
 class MQYapi extends CIO {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get mqYapimi() { return true }
 	static get isOfflineMode() { return app.offlineMode } get isOfflineMode() { return this.class.offlineMode }
+	static get dbMgr_db() { return app?.dbMgr?.default } get dbMgr_db() { return this.class.dbMgr_db }
 	static get sinifAdi() { return null } static get table() { return null } static get tableAlias() { return null }
 	static get tableAndAlias() { const {table, tableAlias} = this; if (tableAlias) { return `${table} ${tableAlias}` } return table }
 	static get aliasVeNokta() { const {tableAlias} = this; if (tableAlias) { return `${tableAlias}.` } return '' }
@@ -9,8 +10,7 @@ class MQYapi extends CIO {
 
 	constructor(e) { e = e || {}; super(e) }
 	static getInstance() {
-		let result = this._instance;
-		if (!result) {
+		let result = this._instance; if (!result) {
 			result = new this(); result._promise = new $.Deferred();
 			result.yukle()
 				.then(() => { result._yuklendimi = true; const {_promise} = result; if (_promise) { _promise.resolve(result) } })
@@ -20,52 +20,35 @@ class MQYapi extends CIO {
 		return result
 	}
 	static yeniInstOlustur(e) { e = e || {}; const {args} = e; return new this(args) }
-	async kaydet(e) {
-		if (await this.varmi(e)) return this.degistir(e)
-		return this.yaz(e)
-	}
+	async kaydet(e) { return await this.varmi(e) ? await this.degistir(e) : await this.yaz(e) }
 	async yaz(e) {
 		e = e || {}; const keyHV = this.alternateKeyHostVars(e);
+		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e, _e = { offlineMode, trnId };
 		if (!$.isEmptyObject(keyHV)) {
-			const _e = $.extend({}, e, { keyHV }); const result = await this.varmi(_e);
+			$.extend(_e, { keyHV }); const result = await this.varmi(_e); delete _e.keyHV;
 			if (result) { throw { isError: true, rc: 'duplicateRecord', errorText: 'Kayıt tekrarlanıyor' } }
 		}
 		await this.yeniTanimOncesiIslemler(e); const hv = this.hostVars(e); if (!$.isEmptyObject(keyHV)) { $.extend(hv, keyHV) }
-		const {table} = this.class; let query = new MQInsert({ table, hv });
-		const {trnId} = e, {isOfflineMode} = this, dbMgr_db = app?.dbMgr?.default, _e = { trnId, query }; let result;
-		if (dbMgr_db && isOfflineMode !== false) {
-			try { result = await dbMgr_db.execute(_e) }
-			catch (ex) { if (isOfflineMode === true || !navigator.onLine) { throw ex } }
-		}
-		if (result === undefined && isOfflineMode !== true) { result = await app.sqlExecNone(_e) }
-		await this.yeniSonrasiIslemler(e); return result
+		const {table} = this.class; let query = _e.query = new MQInsert({ table, hv });
+		let result = await this.sqlExecNone(_e); await this.yeniSonrasiIslemler({ ...e, ..._e }); return result
 	}
 	async degistir(e) {
 		e = e || {}; await this.degistirOncesiIslemler(e);
-		const {table} = this.class, hv = this.hostVars(e), keyHV = this.keyHostVars($.extend({}, e, { varsayilanAlma: true }));
+		const {table} = this.class, hv = this.hostVars(e), keyHV = this.keyHostVars({ ...e, varsayilanAlma: true });
 		let sent = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: '*' });
 		const basRec = await app.sqlExecTekil(sent), degisenHV = degisimHV(hv, basRec);
+		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e, _e = { offlineMode, trnId }; 
 		let result = true; if (!$.isEmptyObject(degisenHV)) {
-			let query = new MQIliskiliUpdate({ from: table, where: { birlestirDict: keyHV }, set: { birlestirDict: degisenHV } });
-			const {trnId} = e, {isOfflineMode} = this, dbMgr_db = app?.dbMgr?.default, _e = { trnId, query }; result = undefined;
-			if (dbMgr_db && isOfflineMode !== false) {
-				try { result = await dbMgr_db.execute(_e) }
-				catch (ex) { if (isOfflineMode === true || !navigator.onLine) { throw ex } }
-			}
-			if (result === undefined && isOfflineMode !== true) { result = await app.sqlExecNone(_e) }
+			let query = _e.query = new MQIliskiliUpdate({ from: table, where: { birlestirDict: keyHV }, set: { birlestirDict: degisenHV } });
+			result = await this.sqlExecNone(_e);
 		}
-		await this.degistirSonrasiIslemler(e); return result
+		await this.degistirSonrasiIslemler({ ...e, ..._e }); return result
 	}
 	async sil(e) {
 		e = e || {}; const keyHV = this.alternateKeyHostVars(e); if ($.isEmptyObject(keyHV)) { return true }
 		await this.silmeOncesiIslemler(e); const {table} = this.class; let query = new MQIliskiliDelete({ from: table, where: { birlestirDict: keyHV } });
-		const {trnId} = e, {isOfflineMode} = this, dbMgr_db = app?.dbMgr?.default, _e = { trnId, query }; let result;
-		if (dbMgr_db && isOfflineMode !== false) {
-			try { result = await dbMgr_db.execute(_e) }
-			catch (ex) { if (isOfflineMode === true || !navigator.onLine) { throw ex } }
-		}
-		if (result === undefined && isOfflineMode !== true) { result = await app.sqlExecNone(_e) }
-		await this.silmeSonrasiIslemler(e); return result
+		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e, _e = { offlineMode, trnId, query }; let result = await this.sqlExecNone(_e);
+		await this.silmeSonrasiIslemler({ ...e, ..._e }); return result
 	}
 	async yukle(e) {
 		e = e || {}; let {rec} = e;
@@ -80,8 +63,7 @@ class MQYapi extends CIO {
 	yukleSonrasiIslemler(e) { this.setValues(e) }
 	kopyaIcinDuzenle(e) { }
 	async varmi(e) {
-		let result = await this.varmiDogrudan(e); if (!result) return false
-		// kod değeri varsa içeriksel kontrol yapılacak
+		let result = await this.varmiDogrudan(e); if (!result) { return false } /* kod değeri varsa içeriksel kontrol yapılacak */
 		return result
 	}
 	async varmiDogrudan(e) {
@@ -92,12 +74,8 @@ class MQYapi extends CIO {
 	async kayitSayisi(e) {
 		e = e || {}; let keyHV = e.keyHV || this.alternateKeyHostVars(e); if ($.isEmptyObject(keyHV)) { return 0 }
 		const {table} = this.class; let query = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: 'COUNT(*) sayi' });
-		const {trnId} = e, {isOfflineMode} = this, dbMgr_db = app?.dbMgr?.default, _e = { trnId, query }; let result;
-		if (dbMgr_db && isOfflineMode !== false) {
-			try { result = await dbMgr_db.execute(_e) }
-			catch (ex) { if (isOfflineMode === true || !navigator.onLine) { throw ex } }
-		}
-		if (result === undefined && isOfflineMode !== true) { result = await app.sqlExecTekilDeger(_e) }
+		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e, _e = { offlineMode, trnId, query };
+		let result = await this.sqlExecTekilDeger(_e); return result
 	}
 	tekilOku(e) {
 		e = e || {}; if (this.class.tekilOkuYapilazmi) { return e.rec ?? e._rec }
@@ -114,9 +92,10 @@ class MQYapi extends CIO {
 	static tekilOku_querySonucu(e) {
 		e = e || {}; const sender = e.sender || e;
 		const ozelQuerySonucuBlock = e.ozelQuerySonucuBlock || e.ozelQuerySonucu || sender.ozelQuerySonucuBlock || sender.ozelQuerySonucu;
-		if (ozelQuerySonucuBlock) { return getFuncValue.call(this, ozelQuerySonucuBlock, e) }
-		const {tekilOku_sqlBatchFlag: batch, wsArgs, query} = e; const _e = { batch, wsArgs, query };
-		return this.tekilOku_querySonucu_returnValueGereklimi ? app.sqlExecNoneWithResult(_e) : app.sqlExecTekil(_e)
+		const {trnId, tekilOku_sqlBatchFlag: batch, wsArgs, query} = e, {tekilOku_querySonucu_returnValueGereklimi} = this;
+		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, _e = { offlineMode, batch, trnId, wsArgs, query };
+		if (ozelQuerySonucuBlock) { return getFuncValue.call(this, ozelQuerySonucuBlock, _e) }
+		return this[tekilOku_querySonucu_returnValueGereklimi ? 'sqlExecNoneWithResult' : 'sqlExecTekil'](_e)
 	}
 	yeniTanimOncesiIslemler(e) { return this.yeniVeyaDegistirOncesiIslemler(e) } degistirOncesiIslemler(e) { return this.yeniVeyaDegistirOncesiIslemler(e) } silmeOncesiIslemler(e) { return this.kaydetOncesiIslemler(e) }
 	kaydetOncesiIslemler(e) { }
@@ -143,4 +122,24 @@ class MQYapi extends CIO {
 	hostVarsDuzenle(e) { /* this.keyHostVarsDuzenle(e); */ this.alternateKeyHostVarsDuzenle(e) }
 	keySetValues(e) { }
 	setValues(e) { this.keySetValues(e); super.setValues(e) }
+	static sqlExecNone(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNone' }) }
+	static sqlExecNoneWithResult(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNoneWithResult' }) }
+	static sqlExecSelect(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecSelect' }) }
+	static sqlExecTekil(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekil' }) }
+	static sqlExecTekilDeger(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekilDeger' }) }
+	sqlExecNone(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNone' }) }
+	static sqlExecNoneWithResult(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNoneWithResult' }) }
+	sqlExecSelect(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecSelect' }) }
+	static sqlExecTekil(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekil' }) }
+	sqlExecTekilDeger(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekilDeger' }) }
+	static _sqlExec(e, params) {
+		e = $.isPlainObject(e) ? e : { query: e, params }; e = { ...e };
+		const {selector} = e, offlineMode = e.isOfflineMode ?? e.offlineMode ?? this.offlineMode, db = e.db ?? app.dbMgr?.default;
+		for (const key of ['selector', 'isOfflineMode', 'offlineMode', 'db']) { delete e[key] }
+		return offlineMode && db ? db.execute(e) : app[selector](e)
+	}
+	_sqlExec(e, params) {
+		e = $.isPlainObject(e) ? e : { query: e, params }; e = { ...e };
+		const {isOfflineMode} = this; return this.class._sqlExec({ ...e, isOfflineMode })
+	}
 }

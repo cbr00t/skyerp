@@ -61,14 +61,14 @@ class MQPersonel extends MQKAOrtak {
 	}
 }
 class MQCari extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Müşteri' }
-	static get kodListeTipi() { return 'CRMMUSTERI' } static get table() { return 'carmst' } static get tableAlias() { return 'car' }
-	static get kodSaha() { return 'must' } static get adiSaha() { return 'birunvan' }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Müşteri' } static get kodListeTipi() { return 'CRMMUSTERI' }
+	static get table() { return 'carmst' } static get tableAlias() { return 'car' } static get kodSaha() { return 'must' } static get adiSaha() { return 'birunvan' }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { yore: new PInstStr('yore'), ilKod: new PInstStr('ilkod'), eMail: new PInstStr('email') }) }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(
 			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 20 }),
 			new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 8 }), new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 15, sql: 'il.aciklama' }),
+			new GridKolon({ belirtec: 'email', text: 'e-Mail', genislikCh: 50 }),
 		)
 	}
 	static loadServerData_queryDuzenle(e) {

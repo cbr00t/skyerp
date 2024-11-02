@@ -467,27 +467,22 @@ class MQCogul extends MQYapi {
 	static async loadServerData_querySonucu(e) {
 		e = e || {}; const sender = e.sender ?? e;
 		const ozelQuerySonucuBlock = e.ozelQuerySonucuBlock ?? e.ozelQuerySonucu ?? sender.ozelQuerySonucuBlock ?? sender.ozelQuerySonucu;
-		if (ozelQuerySonucuBlock) { return getFuncValue.call(this, ozelQuerySonucuBlock, e); }
-		const {wsArgs, query} = e; const defer = e.defer = e.defer ?? e.deferFlag ?? false; delete e.defer; delete e.deferFlag;
-		let result = await this.forAltYapiClassesDoAsync('loadServerData_querySonucu', e); result = result ? result[result.length - 1] : undefined;
-		if (result !== undefined) { return result }
-		const {isOfflineMode} = this, dbMgr_db = app?.dbMgr?.default, _e = { defer, wsArgs, query };
-		if (dbMgr_db && isOfflineMode) {
-			try { return await dbMgr_db.execute(_e) }
-			catch (ex) { if (isOfflineMode === true || !navigator.onLine) { throw ex } }
-		}
-		return await app.sqlExecSelect(_e)
+		const {trnId, wsArgs, query} = e, defer = e.defer = e.defer ?? e.deferFlag ?? false; delete e.defer; delete e.deferFlag;
+		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, _e = { offlineMode, defer, trnId, wsArgs, query };
+		if (ozelQuerySonucuBlock) { return getFuncValue.call(this, ozelQuerySonucuBlock, _e); }
+		let result = await this.forAltYapiClassesDoAsync('loadServerData_querySonucu', e); result = result ? result[result.length - 1] : undefined; if (result !== undefined) { return result }
+		result = await this.sqlExecSelect(_e); return result
 	}
 	tekilOku_queryOlustur(e) {
 		e = e || {}; const tabloKolonlari = e.tabloKolonlari = e.tabloKolonlari ?? this.class.listeBasliklari;
 		const alias = this.class.tableAlias, {aliasVeNokta} = this.class;
 		const sent = new MQSent({ from: this.class.tableAndAlias });
 		for (const colDef of tabloKolonlari) {
-			if (!colDef.sqlIcinUygunmu) continue
-			const {belirtec, sql} = colDef; if (belirtec || sql) sent.add(sql ? `${sql} ${belirtec}` : `${aliasVeNokta}${belirtec}`)
+			if (!colDef.sqlIcinUygunmu) { continue }
+			const {belirtec, sql} = colDef; if (belirtec || sql) { sent.add(sql ? `${sql} ${belirtec}` : `${aliasVeNokta}${belirtec}`) }
 		}
 		sent.sahalar.add(`${aliasVeNokta}*`);
-		let keyHV = this.keyHostVars(e); if ($.isEmptyObject(keyHV)) keyHV = this.alternateKeyHostVars(e)
+		let keyHV = this.keyHostVars(e); if ($.isEmptyObject(keyHV)) { keyHV = this.alternateKeyHostVars(e) }
 		if (keyHV) { sent.where.birlestirDict({ alias, dict: keyHV }) }
 		/* if ($.isEmptyObject(sent.sahalar.liste)) { sent.sahalar.add(`${aliasVeNokta}*`) } */ sent.gereksizTablolariSil({ disinda: alias });
 		const stm = new MQStm({ sent }); $.extend(e, { stm, sent }); this.tekilOku_queryDuzenle(e); return stm
@@ -495,16 +490,12 @@ class MQCogul extends MQYapi {
 	tekilOku_queryDuzenle(e) { this.class.loadServerData_queryDuzenle({ ...e, tekilOku: true }); this.forAltYapiKeysDo('tekilOku_queryDuzenle', e) }
 	static async tekilOku_querySonucu(e) {
 		e = e || {}; const sender = e.sender ?? e, ozelQuerySonucuBlock = e.ozelQuerySonucuBlock ?? e.ozelQuerySonucu ?? sender.ozelQuerySonucuBlock ?? sender.ozelQuerySonucu;
-		if (ozelQuerySonucuBlock) { return getFuncValue.call(this, ozelQuerySonucuBlock, e) }
-		const {wsArgs, query} = e; let result = await this.forAltYapiClassesDoAsync('tekilOku_querySonucu', e);
+		const {trnId, wsArgs, query} = e, offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, _e = { offlineMode, trnId, wsArgs, query };
+		if (ozelQuerySonucuBlock) { return getFuncValue.call(this, ozelQuerySonucuBlock, _e) }
+		let result = await this.forAltYapiClassesDoAsync('tekilOku_querySonucu', _e);
 		result = result ? result[result.length - 1] : undefined; if (result !== undefined) { return result }
-		const {isOfflineMode} = this, dbMgr_db = app?.dbMgr?.default, _e = { wsArgs, query };
 		if (typeof e.query == 'object' && !$.isPlainObject(e.query) && !(e.query.top || e.query.limit)) { $.extend(e.query, { top: 2, limit: null }) }
-		if (dbMgr_db && isOfflineMode !== false) {
-			try { return (await dbMgr_db.execute(_e))?.[0] }
-			catch (ex) { if (isOfflineMode === true || !navigator.onLine) { throw ex } }
-		}
-		return await app.sqlExecTekil(_e)
+		return await this.sqlExecTekil(_e)
 	}
 	static get orjBaslikListesi_detaylar() { const e = { liste: [] }; this.orjBaslikListesiDuzenle_detaylar(e); return e.liste }
 	static orjBaslikListesiDuzenle_detaylar(e) { }
@@ -619,7 +610,7 @@ class MQCogul extends MQYapi {
 		e.islem = e.islem || 'yeni'; e.mfSinif = e.mfSinif || this;
 		try {
 			const part = e.tanimPart = new tanimUISinif(e);
-			if (tanimOncesiEkIslemler) { const _result = await getFuncValue.call(this, tanimOncesiEkIslemler, e); if (_result === false) return ({ part, result: false }) }
+			if (tanimOncesiEkIslemler) { const _result = await getFuncValue.call(this, tanimOncesiEkIslemler, e); if (_result === false) { return ({ part, result: false }) } }
 			const result = await part.run(); return { part, result }
 		}
 		catch (ex) { hConfirm(getErrorText(ex)); throw ex }

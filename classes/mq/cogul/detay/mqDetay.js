@@ -44,7 +44,7 @@ class MQDetay extends MQSayacli {
 		super.hostVarsDuzenle(e); const {hv, fis} = e, {fisSayacSaha, seqSaha, table} = this.class;
 		if (fis) { hv[fisSayacSaha] = fis.sayac } if (seqSaha) { hv[seqSaha] = this.seq }
 		if (table == 'finanshar' || table == 'hehar' || table == 'posilkhar') { /* finanshar için özel durum */ if (!hv.ticmustkod) { hv.ticmustkod = hv.must || '' } }
-		e.det = this; if (fis) { fis.detayHostVarsDuzenle(e) }
+		e.det = this; if (fis) { fis.detayHostVarsDuzenle?.(e) }
 	}
 	setValues(e) {
 		e = e || {}; super.setValues(e); const {rec, fis} = e, {sayacSaha, seqSaha} = this.class, parentRec = e.parentRec || e.rec || {};

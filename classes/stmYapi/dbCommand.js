@@ -39,7 +39,7 @@ class MQInsertBase extends MQDbCommand {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get onEk() { return `INSERT INTO ` }
 	get isTableInsert() { return this.tableInsertFlag } get isDBWriteClause() { return true }
 	constructor(e) {
-		e = e || {}; super(e); let hvListe = e.hvListe || e.hv; if (hvListe && !$.isArray(hvListe)) { hvListe = [hvListe] }
+		e = e || {}; super(e); let hvListe = e.hvListe ?? e.hv; if (hvListe && !$.isArray(hvListe)) { hvListe = [hvListe] }
 		$.extend(this, { table: e.table, hvListe, tableInsertFlag: null })
 	}
 	buildString(e) {

@@ -96,7 +96,7 @@ class ModelTanimPart extends Part {
 	}
 	initIslemTuslari(e) {
 		const {header} = this, islemTuslari = this.islemTuslari = header.find(`.islemTuslari`);
-		let _e = { args: { sender: this, layout: islemTuslari } }; if (this.islemTuslariArgsDuzenle(_e) === false) return null
+		let _e = { args: { sender: this, layout: islemTuslari } }; if (this.islemTuslariArgsDuzenle(_e) === false) { return null }
 		const islemTuslariPart = this.islemTuslariPart = new ButonlarPart(_e.args); islemTuslariPart.run(); return islemTuslariPart
 	}
 	initTabPages(e) {
@@ -178,7 +178,7 @@ class ModelTanimPart extends Part {
 	islemTuslariArgsDuzenle(e) {
 		const {args} = e; e.sender = this;
 		$.extend(args, { tip: this.izlemi ? 'vazgec' : 'tamamVazgec', id2Handler: { tamam: e => this.kaydetIstendi(e), vazgec: e => this.vazgecIstendi(e) } });
-		for (const builder of this.getBuilders(e)) { e.builder = builder; if (builder.islemTuslariArgsDuzenle) builder.islemTuslariArgsDuzenle(e) }
+		for (const builder of this.getBuilders(e)) { e.builder = builder; if (builder.islemTuslariArgsDuzenle) { builder.islemTuslariArgsDuzenle(e) } }
 	}
 	initTabPagesArgsDuzenle(e) {
 		const {args} = e, {wnd} = this;

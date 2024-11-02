@@ -1,6 +1,6 @@
 class PInst extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get deepCopyAlinmayacaklar() { return [...(super.deepCopyAlinmayacaklar || []), 'events', 'value'] }	
-	get initValue() { const {initBlock} = this; if (initBlock) { return getFuncValue.call(this, initBlock, { sender: this }) } return this.getValue(null) }
+	get initValue() { const {initBlock} = this; if (initBlock) { return getFuncValue.call(this, initBlock, { sender: this }) } return this.getValue(undefined) }
 	constructor(e) {
 		e = e || {}; super(e); this.events = {};
 		if (typeof e == 'object') { this.ioAttr = e.ioAttr; this.rowAttr = e.rowAttr; this.initBlock = e.initBlock || e.init; this.converter = e.converter }

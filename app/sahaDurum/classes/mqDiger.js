@@ -1,6 +1,6 @@
 class MQCari extends MQKAOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get dataKey() { return 'cari' } static get sinifAdi() { return 'Müşteriler' } static get tableAlias() { return 'car' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get dataKey() { return 'cari' }
+	static get sinifAdi() { return 'Müşteriler' } static get tableAlias() { return 'car' }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e;
 		let colDef = liste.find(colDef => colDef.belirtec == 'kod'); $.extend(colDef, { genislikCh: 20 }); 
@@ -13,7 +13,7 @@ class MQCari extends MQKAOrtak {
 		e = e || {}; await super.loadServerDataDogrudan(e); const {wsArgs} = e, {session} = config, {loginTipi, user} = session;
 		const selector = loginTipi == 'plasiyerLogin' ? 'plasiyerKod' : loginTipi == 'musteriLogin' ? 'kod' : null;
 		if (user) { switch (loginTipi) { case 'plasiyerLogin': wsArgs.plasiyerKod = user; break; case 'musteriLogin': wsArgs.mustKod = user; break } }
-		let {cariTipKod} = app.params.config; if (cariTipKod) { wsArgs.cariTipKod = cariTipKod }
+		let {cariTipKod} = app.params.config; if (cariTipKod) { $.extend(wsArgs, { cariTipKod }) }
 		let recs = await app.wsPlasiyerIcinCariler(wsArgs); if (recs && selector && user) { recs = recs.filter(rec => rec[selector] == user) }
 		for (const rec of recs) {
 			const {plasiyerKod, plasiyerAdi} = rec; let plasiyerText = plasiyerKod;
@@ -27,9 +27,9 @@ class MQKapanmayanHesaplar extends MQMasterOrtak {
 	static get dataKey() { return 'kapanmayanHesap' } static get sinifAdi() { return 'Kapanmayan Hesaplar' } get tableAlias() { return 'khes' }
 	static ekCSSDuzenle(e) {
 		super.ekCSSDuzenle(e); const belirtec = e.dataField, {rec, result} = e;
-		if (belirtec == 'acikkisim') result.push('red', 'bold')
-		if (belirtec == 'odenen') { const odenen = asFloat(rec.odenen); result.push('bold'); if (odenen < 0) result.push('red'); else if (odenen > 0) result.push('green') }
-		if (!!rec.gecikmegun) result.push('bg-lightpink'); /*else if (!!rec.gelecekgun) result.push('bg-lightgreen')*/
+		if (belirtec == 'acikkisim') { result.push('red', 'bold') }
+		if (belirtec == 'odenen') { const odenen = asFloat(rec.odenen); result.push('bold'); if (odenen < 0) { result.push('red') } else if (odenen > 0) { result.push('green') } }
+		if (!!rec.gecikmegun) { result.push('bg-lightpink') } /*else if (!!rec.gelecekgun) result.push('bg-lightgreen')*/
 	}
 	static orjBaslikListesiDuzenle(e) {
 		const tarihGosterim = (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => changeTagContent(html, dateToString(asDate(value)));
@@ -48,10 +48,7 @@ class MQKapanmayanHesaplar extends MQMasterOrtak {
 	static loadServerData(e) { return this.loadServerDataFromMustBilgi(e) }
 	static async loadServerDataDogrudan(e) {
 		e = e || {}; await super.loadServerDataDogrudan(e); const {wsArgs} = e;
-		const recs = await app.wsTicKapanmayanHesap(wsArgs); for (const rec of recs) {
-			const {bedel, acikkisim} = rec;
-			rec.odenen = (bedel || 0) - (acikkisim || 0)
-		}
+		const recs = await app.wsTicKapanmayanHesap(wsArgs); for (const rec of recs) { const {bedel, acikkisim} = rec; rec.odenen = (bedel || 0) - (acikkisim || 0) }
 		return recs
 	}
 }
@@ -110,14 +107,12 @@ class MQCariEkstre_Detay extends MQMasterOrtak {
 class MQKapanmayanHesaplar_Yaslandirma extends MQMasterOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get dataKey() { return MustBilgi.yaslandirmaKey } static get sinifAdi() { return 'Kapanmayan Hesaplar (Total Bilgi)' } get tableAlias() { return 'ktot' }
-	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); const {args} = e; $.extend(args, { sortable: false, groupable: false, showFilterRow: false, rowsHeight: 30 }) }
+	static orjBaslikListesi_argsDuzenle(e) {
+		super.orjBaslikListesi_argsDuzenle(e); const {args} = e; $.extend(args, { sortable: false, groupable: false, showFilterRow: false, rowsHeight: 30 }) }
 	static ekCSSDuzenle(e) {
 		super.ekCSSDuzenle(e); const belirtec = e.dataField, {rec, result} = e;
-		if (rec?.toplammi) {
-			result.push('bg-lightroyalblue', 'bold');
-			if (belirtec == 'gecmis') result.push('red'); else if (belirtec == 'gelecek') result.push('green')
-		}
-		else { if (belirtec == 'gecmis') result.push('bg-lightpink'); else if (belirtec == 'gelecek') result.push('bg-lightgreen') }
+		if (rec?.toplammi) { result.push('bg-lightroyalblue', 'bold'); if (belirtec == 'gecmis') { result.push('red') } else if (belirtec == 'gelecek') { result.push('green') } }
+		else { if (belirtec == 'gecmis') { result.push('bg-lightpink') } else if (belirtec == 'gelecek') { result.push('bg-lightgreen') }}
 	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(
@@ -134,5 +129,5 @@ class MQKapanmayanHesaplar_Yaslandirma extends MQMasterOrtak {
 			recs = [recToplam, ...recs]
 		} return recs
 	}
-	static loadServerDataFromMustBilgi(e) { let recs = super.loadServerDataFromMustBilgi(e); if (!$.isArray(recs)) recs = Object.values(recs || {}); return recs }
+	static loadServerDataFromMustBilgi(e) { let recs = super.loadServerDataFromMustBilgi(e); if (!$.isArray(recs)) { recs = Object.values(recs || {}) } return recs }
 }

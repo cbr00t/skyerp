@@ -30,7 +30,8 @@ class MQMusIslem extends MQDetayliMasterOrtak {
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this;
 		sent.fromIliski('carmst car', `${alias}.mustkod = car.must`).fromIliski('personel gper', `${alias}.gorevlikullanicikod = gper.kod`)
-			.fromIliski('crmislemturu itur', `${alias}.islemturkod = itur.kod`).fromIliski('personel tper', `${alias}.teslimkullanicikod = tper.kod`)
+			.fromIliski('crmislemturu itur', `${alias}.islemturkod = itur.kod`).fromIliski('personel tper', `${alias}.teslimkullanicikod = tper.kod`);
+		sent.sahalar.add(`${alias}.zamants`, `${alias}.seri`, `${alias}.fisno`, 'car.birunvan mustunvan', `${alias}.termints`, `${alias}.bitists`, `${alias}.yapilacakis`)
 	}
 	static orjBaslikListesiDuzenle_detaylar(e) {
 		super.orjBaslikListesiDuzenle_detaylar(e); const {tableAlias: alias} = this.detaySinif, {liste} = e; liste.push(
@@ -45,9 +46,9 @@ class MQMusIslem extends MQDetayliMasterOrtak {
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPanel, tabPage_genel} = e;
-		let form = tabPage_genel.addFormWithParent().yanYana();
-			form.addDateInput('tarih', 'İşlem Tarih'); form.addTimeInput('saat', 'İşlem Saat');
-			form.addTextInput('seri', 'Seri').setMaxLength(3).addStyle_wh(80); form.addNumberInput('fisNo', 'Fiş No').setMaxLength(17).addStyle_wh(250);
+		let form = tabPage_genel.addFormWithParent().yanYana(); form.addDateInput('zamanTarih', 'İşlem Tarih');
+			form.addTimeInput('zamanSaat', 'İşlem Saat'); form.addTextInput('zamanSaat', 'Seri').setMaxLength(3).addStyle_wh(80);
+		form.addNumberInput('fisNo', 'Fiş No').setMaxLength(17).addStyle_wh(250);
 			form.addDateInput('terminTarih', 'Termin Tarih'); form.addTimeInput('terminSaat', 'Termin Saat');
 			form.addDateInput('bitisTarih', 'Bitiş Tarih'); form.addTimeInput('bitisSaat', 'Bitiş Saat');
 		form = tabPage_genel.addFormWithParent().yanYana(2);
@@ -60,27 +61,68 @@ class MQMusIslem extends MQDetayliMasterOrtak {
 	}
 	static ekIslemIstendi(e) {
 		const gridPart = e.gridPart ?? e.parentPart ?? e.sender, {selectedRec: rec} = gridPart; if (!rec) { return }
-		const {classKey} = this, rfb = new RootFormBuilder('Müşteri Ek İşlem').asWindow('Ek İşlem Ekranı').addCSS(`${classKey} ekIslem part`);
-		let islemTuslari = rfb.addIslemTuslari('islemTuslari').setTip('vazgec').addStyle_fullWH(null, 50)
-			.setId2Handler({ vazgec: _e => _e.builder.rootPart.close() })
+		const {classKey, sayacSaha, detaySinif} = this, sayac = rec[sayacSaha], inst = new detaySinif({ detayTS: now() });
+		const rfb = new RootFormBuilder('Müşteri Ek İşlem').setInst(inst).asWindow('Ek İşlem Ekranı').addCSS(`${classKey} ekIslem part`);
+		let islemTuslari = rfb.addIslemTuslari('islemTuslari').setTip('tamamVazgec').addStyle_fullWH(null, 50)
+			.setId2Handler({ tamam: _e => this.ekIslem_tamamIstendi({ ...e, ..._e, gridPart, rec, inst: _e.builder.inst }), vazgec: _e => _e.builder.rootPart.close() })
 			.addStyle(e => `$elementCSS .butonlar.part > .sol { z-index: -1; background-color: unset !important; background: transparent !important }`);
 		rfb.addForm('header').addStyle_fullWH('calc(var(--full) - 20px)', 50)
 			.addStyle(e =>
-				`$elementCSS { position: relative; top: -40px; padding: 10px; line-height: 20px; user-select: all; overflow-y: auto !important; z-index: 101; cursor: default }`)
+				`$elementCSS { position: relative; top: -40px; padding: 10px; line-height: 20px; user-select: all; overflow-y: auto !important; z-index: 101; cursor: default }
+				 $elementCSS ._row { padding: 3px } $elementCSS .item { --etiket-width: 150px max-width: 49% }
+				 $elementCSS .item:not(:last-child) { margin-right: 20px } $elementCSS .item > .etiket { width: var(--etiket-width); margin-right: 10px }
+				 $elementCSS .item > .veri { font-weight: bold; color: royalblue; width: calc(var(--full) - var(--etiket-width)) }`)
 			.setLayout(e => $(`<div>
-				<div class="_row">bla bla</div>
-				<div class="_row">bla bla</div>
-				<div class="_row">bla bla</div>
+				<div class="_row flex-row">
+					<div class="item flex-row"><div class="etiket">Fiş No</div><div class="veri">${[rec.seri, rec.fisno].join(' ')}</div></div>
+					<div class="item flex-row"><div class="etiket">Müşteri</div><div class="veri">${rec.mustunvan}</div></div>
+					<div class="item flex-row"><div class="etiket">Başlangıç</div><div class="veri">${dateTimeAsKisaString(asDate(rec.zamants))}</div></div>
+					${rec.terimts ? `<div class="item flex-row"><div class="etiket">Termin</div><div class="veri">${dateTimeAsKisaString(asDate(rec.termints))}</div></div>` : '' }
+					${rec.bitists ? `<div class="item flex-row"><div class="etiket">Bitiş</div><div class="veri">${dateTimeAsKisaString(asDate(rec.bitists))}</div></div>` : '' }
+				</div>
 			</div>`)).onAfterRun(e => makeScrollable(e.builder.layout));
 		let content = rfb.addFormWithParent('content').altAlta().addStyle_fullWH(null, `calc(var(--full) - ${50 + 30}px)`)
-			.addStyle(e => `$elementCSS { position: relative; top: -10px; z-index: 102 }`);
-		content.addGridliGosterici('_grid').addStyle_fullWH(null, `calc(var(--full) - 200px)`)
-			.onBuildEk(e => e.builder.part.id = '')
-			.setTabloKolonlari(e => [new GridKolon({ belirtec: 'text', text: ' ' }) ])
-			.setSource(e => []).onAfterRun(e => e.builder.rootPart.gridPart = e.builder.part);
-		content.addTextArea('yapilacakIs', 'Ek Adımlar').setRows(5).addStyle_fullWH(null, 130)
-			.addStyle(e => `$elementCSS { vertical-align: top !important; margin: 0 !important } $elementCSS > textarea { width: var(--full) !important; height: var(--full) !important }`);
+			.addStyle(e => `$elementCSS { position: relative; top: -35px; z-index: 102 }`);
+		let cellClassName = (sender, rowIndex, belirtec, value, rec) => { let result = [belirtec]; if (rec.aktifmi) { result.push('aktif', 'bold', 'green') } return result.join(' ') };
+		content.addGridliGosterici('_grid').addStyle_fullWH(null, $(window).height() < 500 ? 100 : 200)
+			.onBuildEk(e => e.builder.part.id = '') .setTabloKolonlari(e => [
+				new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12, cellClassName }).tipDate(),
+				new GridKolon({ belirtec: 'saat', text: 'Sasat', genislikCh: 9, cellClassName }).tipTime(),
+				new GridKolon({ belirtec: 'aciklama', text: ' ', cellClassName })
+			])
+			.setSource(_e => this.ekIslem_getSource({ ...e, ..._e, gridPart, rec, inst }))
+			.onAfterRun(e => e.builder.rootPart.gridPart = e.builder.part);
+		let form = content.addFormWithParent().yanYana(); form.addDateInput('detayTarih', 'İşlem Tarih'); form.addTimeInput('detaySaat', 'Saat');
+			form.addModelKullan('detayKullaniciKod', 'Yapan').comboBox().autoBind().setMFSinif(MQPersonel).etiketGosterim_placeholder()
+		form = content.addFormWithParent().altAlta(); content.addTextArea('detayAciklama', 'Ara İşlemler').setRows($(window).height() < 500 ? 2 : 4).addStyle_fullWH(null, 'unset').addStyle(e =>
+			`$elementCSS { vertical-align: top !important; margin: 0 !important } $elementCSS > textarea { width: var(--full) !important; height: var(--full) !important }`);
 		rfb.run()
+	}
+	static async ekIslem_getSource(e) {
+		const {table, detayTable} = this, {rec} = e, {kaysayac: sayac, zamants: ts, gorevlikullanicikod: userKod, yapilacakis: aciklama} = rec;
+		const result = []; let sent = new MQSent({ from: detayTable, where: { degerAta: sayac, saha: 'fissayac' }, sahalar: ['detayts', 'detaykullanicikod', 'detayaciklama'] });
+		let stm = new MQStm({ sent, orderBy: ['detayts DESC'] });
+		for (const {sayac, detayts: ts, detaykullanicikod: userKod, detayaciklama: aciklama} of await this.sqlExecSelect(stm)) {
+			result.push({ aktifmi: false, sayac, ts, userKod, aciklama }) }
+		if (aciklama) { result.push({ aktifmi: true, sayac, ts, userKod, aciklama }) }
+		for (const _rec of result) { _rec.tarih = _rec.saat = _rec.ts; delete _rec.ts }
+		return result
+	}
+	static async ekIslem_tamamIstendi(e) {
+		const {gridPart, parentPart, rec, inst: det} = e, {table, sayacSaha, detayTable, sinifAdi} = this;
+		const {kaysayac: sayac} = rec; if (!sayac) { return } const {detayKullaniciKod, detayAciklama} = det;
+		if (!detayKullaniciKod) { hConfirm(`<b>Kullanıcı</b> seçilmelidir`, sinifAdi); return }
+		if (!detayAciklama) { hConfirm(`<b>Ara İşlemler</b> girilmelidir`, sinifAdi); return }
+		try {
+			if (!det.seq) {
+				let sent = new MQSent({ from: detayTable, where: { degerAta: sayac, saha: 'fissayac' }, sahalar: 'max(seq) maxseq' });
+				det.seq = ((await this.sqlExecTekilDeger(sent)) || 0) + 1
+			}
+			let hv = det.hostVars({ fis: { sayac } }); if (!hv) { return }
+			let ins = new MQInsert({ table: detayTable, hv }); await this.sqlExecNone(ins);
+			parentPart.close(); gridPart?.tazele()
+		}
+		catch (ex) { hConfirm(getErrorText(ex), sinifAdi); throw ex }
 	}
 }
 class MQMusIslemDetay extends MQDetay {
