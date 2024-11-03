@@ -130,7 +130,7 @@ class MQMusIslemDetay extends MQDetay {
 	get offlineSahaListe() { return [...super.offlineSahaListe, 'fissayac'] }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); $.extend(e.pTanim, {
-			detayTS: new PInstDateTime('detayts'), detayKullaniciKod: new PInstStr('detaykullanicikod'), detayAciklama: new PInstStr('detayaciklama') })
+			detayTS: new PInstDateTimeNow('detayts'), detayKullaniciKod: new PInstStr('detaykullanicikod'), detayAciklama: new PInstStr('detayaciklama') })
 	}
 }
 class MQMusIslemGridci extends GridKontrolcu {
@@ -138,6 +138,6 @@ class MQMusIslemGridci extends GridKontrolcu {
 	tabloKolonlariDuzenle(e) {
 		super.tabloKolonlariDuzenle(e); e.tabloKolonlari.push(
 			new GridKolon({ belirtec: 'detayTarih', text: 'Tarih', genislikCh: 10 }).tipDate(), new GridKolon({ belirtec: 'detaySaat', text: 'Saat', genislikCh: 10 }).tipTime(),
-			...MQPersonel.getGridKolonlar({ belirtec: 'detayKullanici' }), new GridKolon({ belirtec: 'detayAciklama', text: 'Detay Açıklama', genislikCh: 150 }).tipString(300))
+			...MQPersonel.getGridKolonlar({ belirtec: 'detayKullanici', autoBind: true }), new GridKolon({ belirtec: 'detayAciklama', text: 'Detay Açıklama', genislikCh: 150 }).tipString(300))
 	}
 }

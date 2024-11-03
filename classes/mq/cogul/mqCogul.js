@@ -662,8 +662,8 @@ class MQCogul extends MQYapi {
 		const gridKolonGrupcu = e.gridKolonGrupcu || 'getGridKolonGrup';
 		let colDef = $.isFunction(gridKolonGrupcu) ? getFuncValue.call(this, gridKolonGrupcu, _e) : getFuncValue.call(this, this[gridKolonGrupcu], _e);
 		if (colDef) {
-			const sabitleFlag = e.sabitle ?? e.sabitleFlag, hiddenFlag = e.hidden ?? e.hiddenFlag;
-			if (sabitleFlag) { colDef.sabitle() } if (hiddenFlag) { colDef.hidden() }
+			const sabitleFlag = e.sabitle ?? e.sabitleFlag, hiddenFlag = e.hidden ?? e.hiddenFlag, autoBind = e.autoBind ?? e.autoBindFlag;
+			if (sabitleFlag) { colDef.sabitle() } if (hiddenFlag) { colDef.hidden() } if (autoBind) { colDef.autoBind() }
 			_e.liste.push(colDef)
 		}
 		this.gridKolonlarDuzenle(_e); return _e.liste

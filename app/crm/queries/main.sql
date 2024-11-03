@@ -172,10 +172,3 @@ CREATE TABLE IF NOT EXISTS cari_ekstre_icerik (
 	bedel REAL NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_cari_ekstre_icerik_icerikfissayac ON cari_ekstre_icerik (icerikfissayac);
-
-new GridKolon({ belirtec: '', text: 'Stok Kod', maxWidth: 13 * katSayi_ch2Px }),
-new GridKolon({ belirtec: '', text: 'Stok Adı', maxWidth: 40 * katSayi_ch2Px }),
-new GridKolon({ belirtec: '', text: 'Miktar', genislikCh: 10, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal(),
-new GridKolon({ belirtec: '', text: 'Fiyat', genislikCh: 13, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_fiyat(),
-new GridKolon({ belirtec: '', text: 'İsk%', genislikCh: 6, aggregates: [{ ORT: gridDipIslem_avg }] }).tipDecimal(),
-new GridKolon({ belirtec: '', text: 'Bedel', genislikCh: 13, cellClassName: 'bold', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel()

@@ -6,7 +6,7 @@ class CRMApp extends App {
 	get offlineClasses() {
 		return [
 			...[MQMasterOrtak, MQKAOrtak, MQSayacliOrtak, MQDetayliOrtak, MQDetayliVeAdiOrtak, MQDetayliMasterOrtak].flatMap(cls => cls.subClasses).filter(cls => !!cls.table),
-			MQMusIslemDetay, MQKapanmayanHesaplar, MQCariEkstre, MQCariEkstre_Icerik
+			MQMusIslemDetay
 		]
 	}
 	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e); this.show() }

@@ -1,6 +1,7 @@
 class MQSayacli extends MQCogul {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get kodKullanilirmi() { return false }
 	static get sayacSaha() { return 'kaysayac' } static get kodSaha() { return this.sayacSaha }
+	static get offlineSahaListe() { return [...super.offlineSahaListe, this.sayacSaha] }
 	
 	constructor(e) { e = e || {}; super(e); /* this.sayac = this.sayac || 0 */ }
 	static pTanimDuzenle(e) {
