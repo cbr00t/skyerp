@@ -9,14 +9,14 @@ class TestPart extends Part {
 	constructor(e) { e = e || {}; super(e); $.extend(this, { inst: e.inst, pageIndex: e.pageIndex ?? 0, headerLayouts: {} }) }
 	init(e) { const {inst} = this, states = this.states = inst?.class?.uiStates || []; this.title = `${inst?.class?.aciklama || ''} Test Ekranı`; super.init(e) }
 	runDevam(e) {
-		super.runDevam(e); const {layout, inst, state} = this; app.enterKioskMode();
+		super.runDevam(e); const {layout, inst, state} = this; app.enterKioskMode(); $('body').addClass('no-dark-theme');
 		$.extend(this, { header: layout.children('.header'), content: layout.children('.content'), islemTuslari: layout.find('.islemTuslari') });
 		const {header, islemTuslari, headerLayouts} = this; for (const key of ['adimText', 'headerText', 'progressText', 'tarih', 'hastaAdi', 'countdown']) {
 			headerLayouts[key] = layout.find(`.${key}`) }
 		if (!app.kioskmu) { let part = this.islemTuslariPart = new ButonlarPart({ sender: this, layout: islemTuslari, tip: 'vazgec', butonlarDuzenleyici: e => this.islemTuslariDuzenle(e) }); part.run() }
 		this.tazele(e)
 	}
-	destroyPart(e) { super.destroyPart(e); if (app.kioskmu) { setTimeout(() => window.close(), 100) } else { app.exitKioskMode() } }
+	destroyPart(e) { $('body').removeClass('no-dark-theme'); super.destroyPart(e); if (app.kioskmu) { setTimeout(() => window.close(), 100) } else { app.exitKioskMode() } }
 	islemTuslariDuzenle(e) { const {liste} = e; liste.find(item => item.id == 'vazgec').handler = e => this.cikisIstendi(e) }
 	firstPage(e) { this.pageIndex = 0; this.tazele(e); return this } lastPage(e) { this.pageIndex = Math.max(this.states?.length - 1, 0); this.tazele(e); return this }
 	nextPage(e) { this.pageIndex = Math.min(this.pageIndex + 1, this.states?.length - 1); this.tazele(e); return this }

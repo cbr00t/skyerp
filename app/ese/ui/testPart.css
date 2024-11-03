@@ -1,5 +1,4 @@
-.test.part { --header-height: 50px }
-.test.part > * { position: relative !important }
+.test.part { --header-height: 50px } .test.part > * { position: relative !important }
 @media (max-width: 850px) { .test.part { font-size: 93% } } @media (max-width: 750px) { .test.part { font-size: 90% } }
 .test.part > * { --button-width: 48px; --button-height: 36px }
 /*.test.part .islemTuslari { background: transparent !important }*/
