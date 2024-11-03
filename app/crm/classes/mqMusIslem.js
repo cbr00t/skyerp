@@ -1,13 +1,12 @@
 class MQMusIslem extends MQDetayliMasterOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Müşteri İşlemi' }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Müşteri İşlemi' } static get gonderildiDesteklenirmi() { return true }
 	static get detaySinif() { return MQMusIslemDetay } static get gridKontrolcuSinif() { return MQMusIslemGridci }
 	static get kodListeTipi() { return 'CRMMUSISLEM' } static get table() { return 'crmmusislem' } static get tableAlias() { return 'fis' } static get hasTabs() { return true }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); $.extend(e.pTanim, {
 			seri: new PInstStr('seri'), fisNo: new PInstStr('fisno'), mustKod: new PInstStr('mustkod'), zamanTS: new PInstDateTimeNow('zamants'), terminTS: new PInstDateTime('termints'),
 			bitisTS: new PInstDateTime('bitists'), gorevliKullaniciKod: new PInstStr('gorevlikullanicikod'), islemTurKod: new PInstStr('islemturkod'),
-			refSatisSayac: new PInstNum('refsatissayac'), refSipSayac: new PInstNum('refsipsayac'), teslimKullaniciKod: new PInstStr('teslimkullanicikod'),
-			yapilacakIs: new PInstStr('yapilacakis'), bitisAciklama: new PInstStr('bitisaciklama')
+			teslimKullaniciKod: new PInstStr('teslimkullanicikod'), yapilacakIs: new PInstStr('yapilacakis'), bitisAciklama: new PInstStr('bitisaciklama')
 		})
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
@@ -52,9 +51,10 @@ class MQMusIslem extends MQDetayliMasterOrtak {
 			form.addDateInput('terminTarih', 'Termin Tarih'); form.addTimeInput('terminSaat', 'Termin Saat');
 			form.addDateInput('bitisTarih', 'Bitiş Tarih'); form.addTimeInput('bitisSaat', 'Bitiş Saat');
 		form = tabPage_genel.addFormWithParent().yanYana(2);
-			form.addModelKullan('mustKod', 'Müşteri').comboBox().setMFSinif(MQCari); form.addModelKullan('gorevliKullaniciKod', 'Görevli').comboBox().setMFSinif(MQPersonel);
+			form.addModelKullan('mustKod', 'Müşteri').comboBox().setMFSinif(MQCari); form.addModelKullan('gorevliKullaniciKod', 'Görevli').comboBox().autoBind().setMFSinif(MQPersonel);
 		form = tabPage_genel.addFormWithParent().yanYana(2);
-			form.addModelKullan('islemTurKod', 'İşlem Türü').dropDown().kodsuz().setMFSinif(MQIslemTuru).addStyle_wh(200); form.addModelKullan('teslimKullaniciKod', 'Teslim Eden').comboBox().setMFSinif(MQPersonel);
+			form.addModelKullan('islemTurKod', 'İşlem Türü').dropDown().kodsuz().autoBind().setMFSinif(MQIslemTuru).addStyle_wh(200);
+			form.addModelKullan('teslimKullaniciKod', 'Teslim Eden').comboBox().autoBind().setMFSinif(MQPersonel);
 		form = tabPage_genel.addFormWithParent().yanYana(2);
 			form.addTextArea('yapilacakIs', 'Yapılacak İş').setMaxLength(600).setRows(5); form.addTextArea('bitisAciklama', 'Bitiş Açıklama').setMaxLength(200).setRows(5);
 		e.gridForm = tabPanel.addTab('detay', 'Detay Girişi').addStyle_fullWH()
@@ -127,6 +127,7 @@ class MQMusIslem extends MQDetayliMasterOrtak {
 }
 class MQMusIslemDetay extends MQDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'crmmusislemdetay' }
+	get offlineSahaListe() { return [...super.offlineSahaListe, 'fissayac'] }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); $.extend(e.pTanim, {
 			detayTS: new PInstDateTime('detayts'), detayKullaniciKod: new PInstStr('detaykullanicikod'), detayAciklama: new PInstStr('detayaciklama') })

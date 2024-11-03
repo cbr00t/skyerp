@@ -63,25 +63,37 @@ class MQPersonel extends MQKAOrtak {
 class MQCari extends MQKAOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Müşteri' } static get kodListeTipi() { return 'CRMMUSTERI' }
 	static get table() { return 'carmst' } static get tableAlias() { return 'car' } static get kodSaha() { return 'must' } static get adiSaha() { return 'birunvan' }
-	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { yore: new PInstStr('yore'), ilKod: new PInstStr('ilkod'), eMail: new PInstStr('email') }) }
+	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { yore: new PInstStr('yore'), ilKod: new PInstStr('ilkod'), eMail: new PInstStr('email'), adres: new PInstStr('biradres') }) }
+	get offlineSahaListe() { return [...super.offlineSahaListe.filter(x => !(x.startsWith('unvan') || x.startsWith('adres'))), 'birunvan', 'biradres'] }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(
 			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 20 }),
 			new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 8 }), new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 15, sql: 'il.aciklama' }),
 			new GridKolon({ belirtec: 'email', text: 'e-Mail', genislikCh: 50 }),
+			new GridKolon({ belirtec: 'biradres', text: 'Adres', genislikCh: 50 })
 		)
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this;
 		sent.fromIliski('caril il', `${alias}.ilkod = il.kod`)
+		/*sent.sahalar.add(`${alias}.unvan1`, `${alias}.unvan2`)*/
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e;
 		let form = tabPage_genel.addFormWithParent().yanYana(2); form.addTextInput('yore', 'Yöre').setMaxLength(20).addStyle_wh(300);
-			form.addModelKullan('ilKod', 'İl').addStyle_wh(400).comboBox().kodsuz().setMFSinif(MQIl); form.addTextInput('eMail', 'e-Mail').setMaxLength(90).addStyle_wh(700)
+			form.addModelKullan('ilKod', 'İl').addStyle_wh(400).comboBox().kodsuz().autoBind().setMFSinif(MQIl);
+			form.addTextInput('eMail', 'e-Mail').setMaxLength(90).addStyle_wh(700);
+		form = tabPage_genel.addFormWithParent().altAlta();
+			form.addTextArea('adres', 'Adres').setRows(3)
 	}
 	hostVarsDuzenle(e) {
-		super.hostVarsDuzenle(e); const {hv} = e, {aciklama: birUnvan} = this, unvanTokens = uygunKelimeliParcalaBirlesik(birUnvan, 50);
-		delete hv.birunvan; $.extend(hv, { unvan1: unvanTokens[0] ?? '', unvan2: unvanTokens?.slice(1)?.join(' ') ?? '' })
+		super.hostVarsDuzenle(e); const {hv} = e, {aciklama: birUnvan, biradres: birAdres} = this;
+		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? e.offline ?? this.class.isOfflineMode; if (!offlineMode) {
+			const unvanTokens = uygunKelimeliParcalaBirlesik(birUnvan, 50), adresTokens = uygunKelimeliParcalaBirlesik(birAdres, 50);
+			for (const key of ['birunvan', 'biradres']) { delete hv[key] } $.extend(hv, {
+				unvan1: unvanTokens[0] ?? '', unvan2: unvanTokens?.slice(1)?.join(' ') ?? '',
+				adres1: adresTokens[0] ?? '', adres2: adresTokens?.slice(1)?.join(' ') ?? ''
+			})
+		}
 	}
 }

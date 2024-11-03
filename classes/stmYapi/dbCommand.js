@@ -40,7 +40,7 @@ class MQInsertBase extends MQDbCommand {
 	get isTableInsert() { return this.tableInsertFlag } get isDBWriteClause() { return true }
 	constructor(e) {
 		e = e || {}; super(e); let hvListe = e.hvListe ?? e.hv; if (hvListe && !$.isArray(hvListe)) { hvListe = [hvListe] }
-		$.extend(this, { table: e.table, hvListe, tableInsertFlag: null })
+		$.extend(this, { table: e.table ?? e.from, hvListe, tableInsertFlag: null })
 	}
 	buildString(e) {
 		super.buildString(e); const {table, hvListe} = this; if (!table || $.isEmptyObject(hvListe)) { return }

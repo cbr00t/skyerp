@@ -1,5 +1,5 @@
 class MQZiyaretPlani extends MQSayacliOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ziyaret Planı' }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ziyaret Planı' } static get gonderildiDesteklenirmi() { return true }
 	static get kodListeTipi() { return 'CRMZIYARETPLANI' } static get table() { return 'crmziyaretplani' } static get tableAlias() { return 'zpln' }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); $.extend(e.pTanim, {
@@ -33,11 +33,11 @@ class MQZiyaretPlani extends MQSayacliOrtak {
 	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { planTarih: rec.plantarih, planSaat: rec.plansaat }) }
 }
 class MQZiyaret extends MQSayacliOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ziyaret' }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ziyaret' } static get gonderildiDesteklenirmi() { return true }
 	static get kodListeTipi() { return 'CRMZIYARET' } static get table() { return 'crmziyaret' } static get tableAlias() { return 'zyr' }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); $.extend(e.pTanim, {
-			planSayac: new PInstNum('plansayac'), ts: new PInstDateTimeNow('ziyaretzamani'), mustKod: new PInstStr('mustkod'), gorevliUserKod: new PInstStr('gorevlikullanicikod'),
+			planSayac: new PInst('plansayac'), ts: new PInstDateTimeNow('ziyaretzamani'), mustKod: new PInstStr('mustkod'), gorevliUserKod: new PInstStr('gorevlikullanicikod'),
 			konuKod: new PInstStr('konukod'), sonucKod: new PInstStr('sonuckod'), kisiler: new PInstStr('kisiler'), gorusmeNotu: new PInstStr('gorusmenotu') })
 	}
 	static orjBaslikListesiDuzenle(e) {
@@ -64,4 +64,5 @@ class MQZiyaret extends MQSayacliOrtak {
 		form = tabPage_genel.addFormWithParent().yanYana();
 			form.addTextArea('kisiler', 'Kişiler').setMaxLength(150).setRows(5); form.addTextArea('gorusmeNotu', 'Görüşme Notu').setMaxLength(200).setRows(5)
 	}
+	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { plansayac: this.planSayac ?? null }) }
 }

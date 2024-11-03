@@ -56,7 +56,8 @@ CREATE TABLE IF NOT EXISTS carmst (
 	birunvan TEXT NOT NULL DEFAULT '',
 	yore TEXT NOT NULL DEFAULT '',
 	ilkod TEXT NOT NULL DEFAULT '',
-	email TEXT NOT NULL DEFAULT ''
+	email TEXT NOT NULL DEFAULT '',
+	biradres TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_cari2_birunvan ON carmst (birunvan);
 CREATE INDEX IF NOT EXISTS idx_cari2_yore ON carmst (yore);
@@ -71,10 +72,11 @@ CREATE TABLE IF NOT EXISTS crmziyaretplani (
 	konukod TEXT NOT NULL DEFAULT '',
 	teyitkisi TEXT NOT NULL DEFAULT '',
 	teyitzamani TEXT,
-	kisabilgi TEXT NOT NULL DEFAULT ''
+	kisabilgi TEXT NOT NULL DEFAULT '',
+	gonderimts TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_crmziyaretplani_plantarih ON crmziyaretplani (plantarih);
-CREATE INDEX IF NOT EXISTS idx_crmziyaretplani_gorevlikullanicikod ON crmziyaretplani (gorevlikullanicikod);
+CREATE INDEX IF NOT EXISTS idx_crmziyaretplani_gonderimts ON crmziyaretplani (gonderimts);
 
 CREATE TABLE IF NOT EXISTS crmziyaret (
 	kaysayac INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -85,11 +87,12 @@ CREATE TABLE IF NOT EXISTS crmziyaret (
 	konukod TEXT NOT NULL DEFAULT '',
 	sonuckod TEXT NOT NULL DEFAULT '',
 	kisiler TEXT NOT NULL DEFAULT '',
-	gorusmenotu TEXT NOT NULL DEFAULT ''
+	gorusmenotu TEXT NOT NULL DEFAULT '',
+	gonderimts TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_crmziyaret_ziyaretzamani ON crmziyaret (ziyaretzamani);
 CREATE INDEX IF NOT EXISTS idx_crmziyaret_mustkod ON crmziyaret (mustkod);
-CREATE INDEX IF NOT EXISTS idx_crmziyaret_gorevlikullanicikod ON crmziyaret (gorevlikullanicikod);
+CREATE INDEX IF NOT EXISTS idx_crmziyaret_gonderimts ON crmziyaret (gonderimts);
 
 CREATE TABLE IF NOT EXISTS crmmusislem (
 	kaysayac INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -105,11 +108,21 @@ CREATE TABLE IF NOT EXISTS crmmusislem (
 	refsipsayac INT,
 	teslimkullanicikod TEXT NOT NULL DEFAULT '',
 	yapilacakis TEXT NOT NULL DEFAULT '',
-	bitisaciklama TEXT NOT NULL DEFAULT ''
+	bitisaciklama TEXT NOT NULL DEFAULT '',
+	gonderimts TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_crmmusislem_zamants ON crmmusislem (zamants);
 CREATE INDEX IF NOT EXISTS idx_crmmusislem_bitists ON crmmusislem (bitists);
-CREATE INDEX IF NOT EXISTS idx_crmmusislem_fisnox ON crmmusislem (seri, fisno);
-CREATE INDEX IF NOT EXISTS idx_crmmusislem_islemturkod ON crmmusislem (islemturkod);
-CREATE INDEX IF NOT EXISTS idx_crmmusislem_gorevlikullanicikod ON crmmusislem (gorevlikullanicikod);
 CREATE INDEX IF NOT EXISTS idx_crmmusislem_mustkod ON crmmusislem (mustkod);
+CREATE INDEX IF NOT EXISTS idx_crmmusislem_gonderimts ON crmmusislem (gonderimts);
+
+CREATE TABLE IF NOT EXISTS crmmusislemdetay (
+	fissayac INTEGER NOT NULL,
+	seq INTEGER NOT NULL,
+	detayts TEXT NOT NULL DEFAULT '',
+	detaykullanicikod TEXT NOT NULL DEFAULT '',
+	detayaciklama TEXT NOT NULL DEFAULT '',
+	gonderimts TEXT NOT NULL DEFAULT ''
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_crmmusislemdetay_fissayac_seq ON crmmusislemdetay (fissayac, seq);
+CREATE INDEX IF NOT EXISTS idx_crmmusislemdetay_gonderimts ON crmmusislemdetay (gonderimts);

@@ -208,38 +208,41 @@ class MQDetayli extends MQSayacli {
 	}
 	detaylariYukleSonrasi(e) { }
 	async yaz(e) {
-		/* üst'e bakma */ e = e || {}; this.detaylariNumaralandir(e); let _sayac = this.sayac;
+		/* üst'e bakma */ e = e || {}; this.detaylariNumaralandir(e); let {sayac: _sayac} = this;
+		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e;
 		e.proc = async e => {
-			await this.yeniTanimOncesiIslemler(e); const _e = $.extend({}, e, { toplu: new MQToplu().withTrn(), paramName_fisSayac: '@fisSayac' });
+			e = e ?? {}; const paramName_fisSayac = '@fisSayac'; await this.yeniTanimOncesiIslemler(e); let _e = { ...e, toplu: new MQToplu(), paramName_fisSayac };
 			await this.topluYazmaKomutlariniOlustur(_e); await this.topluYazmaKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) { return true }
-			const {trnId} = e, result = e.result = (await app.sqlExecNoneWithResult({ trnId, query: _e.toplu }) || {})[0], sqlParam = e.sqlParam = result.params[_e.paramName_fisSayac] || {};
-			await this.yazSonrasi_sayacGeriYukle(e); await this.yeniSonrasiIslemler(e); return result
+			let {toplu: query, sayac} = _e; _e = { offlineMode, trnId, query, sayac }; let result = await this.sqlExecNoneWithResult(_e); if ($.isArray(result)) { result = result[0] ?? true }
+			_e.sqlParam = result = result?.params?.[paramName_fisSayac] ?? result;
+			await this.yazSonrasi_sayacGeriYukle(_e); await this.yeniSonrasiIslemler(e); return result
 		};
-		try { return (await app.sqlTrnDo(e)).result } catch (ex) { this.sayac = _sayac; throw ex }
+		try { return offlineMode ? await e.proc(e) : (await app.sqlTrnDo(e)).result } catch (ex) { this.sayac = _sayac; throw ex }
 	}
 	yazSonrasi_sayacGeriYukle(e) {
-		const {sqlParam} = e, fisSayac = asInteger(sqlParam.value) || null;
+		const {sqlParam} = e, fisSayac = (e.sayac ?? asInteger(sqlParam.value)) || null;
 		if (!fisSayac) { throw { isError: true, rc: 'fisSayac', errorText: 'Kaydedilen fiş için sayaç bilgisi belirlenemedi' } }
 		this.sayac = fisSayac
 	}
 	async degistir(e) {
-		/* üst'e bakma */ e = e || {}; this.detaylariNumaralandir(e);
+		/* üst'e bakma */ e = e || {}; this.detaylariNumaralandir(e); const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e;
 		e.proc = async e => {
-			await this.degistirOncesiIslemler(e); const _e = $.extend({}, e, { toplu: new MQToplu().withTrn() });
+			e = e ?? {}; await this.degistirOncesiIslemler(e); let _e = $.extend({ ...e, toplu: new MQToplu() });
 			await this.topluDegistirmeKomutlariniOlustur(_e); await this.topluDegistirmeKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) { return true }
-			const {trnId} = e, result = (await app.sqlExecNoneWithResult({ trnId, query: _e.toplu || {} }))[0];
+			_e = { offlineMode, trnId, query: _e.toplu }; let result = await this.sqlExecNoneWithResult(_e); result = result?.[0] ?? result;
 			await this.degistirSonrasiIslemler(e); return result
 		};
-		return (await app.sqlTrnDo(e)).result
+		return offlineMode ? await e.proc(e) : (await app.sqlTrnDo(e)).result
 	}
 	async sil(e) {
-		/* üst'e bakma */ e = e || {}; const {sayac} = this; if (!sayac) throw { isError: true, rc: 'fisSayac', errorText: 'Silinecek kayıt belirlenemiyor' };
+		/* üst'e bakma */ e = e || {}; const {sayac} = this; if (!sayac) { throw { isError: true, rc: 'fisSayac', errorText: 'Silinecek kayıt belirlenemiyor' } }
+		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e;
 		e.proc = async e => {
-			await this.silmeOncesiIslemler(e); const _e = $.extend({}, e, { toplu: new MQToplu().withTrn(), sayac });
+			e = e ?? {}; await this.silmeOncesiIslemler(e); let _e = { ...e, toplu: new MQToplu(), sayac };
 			await this.topluSilmeKomutlariniOlustur(_e); await this.topluSilmeKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) { return true }
-			const {trnId} = e; const result = await app.sqlExecNone({ trnId, query: _e.toplu }); await this.silmeSonrasiIslemler(e); return result
+			_e = { offlineMode, trnId, query: _e.toplu }; let result = await this.sqlExecNone(_e); await this.silmeSonrasiIslemler(e); return result
 		};
-		return (await app.sqlTrnDo(e)).result
+		return offlineMode ? await e.proc(e) : (await app.sqlTrnDo(e)).result
 	}
 	detaylariNumaralandir(e) {
 		const {detaylar} = this; if (!detaylar) { return }
@@ -256,8 +259,8 @@ class MQDetayli extends MQSayacli {
 			e.toplu
 		*/
 		const {toplu, paramName_fisSayac} = e, {table, sayacSaha} = this.class, hv = this.hostVars(e); toplu.add(new MQInsert({ table, hv }));
-		const keyHV = this.alternateKeyHostVars(e); e.keyHV = keyHV; this.topluYazmaKomutlariniOlustur_baslikSayacBelirle(e);
-		const detHVArg = { fis: this.shallowCopy() }; detHVArg.fis.sayac = new MQSQLConst(paramName_fisSayac);
+		const keyHV = this.alternateKeyHostVars(e); e.keyHV = keyHV; let sayac = e.sayac = this.topluYazmaKomutlariniOlustur_baslikSayacBelirle(e);
+		const detHVArg = { fis: this.shallowCopy() }; detHVArg.fis.sayac = sayac ?? new MQSQLConst(paramName_fisSayac);
 		const {detaylar} = this, detTable2HVListe = e.detTable2HVListe = {};
 		for (const det of detaylar) {
 			const hv = det.hostVars(detHVArg); if (!hv) { return false }
@@ -268,63 +271,58 @@ class MQDetayli extends MQSayacli {
 		e.params = toplu.params = toplu.params || []; this.topluYazmaKomutlariniOlustur_sqlParamsDuzenle(e)
 	}
 	topluYazmaKomutlariniOlustur_baslikSayacBelirle(e) {
-		const {keyHV, toplu, paramName_fisSayac} = e, {table, sayacSaha} = this.class;
-		toplu.add(new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: `${paramName_fisSayac} = MAX(${sayacSaha})`}))
+		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {toplu, trnId, keyHV, paramName_fisSayac} = e, {table, sayacSaha} = this.class;
+		let query = new MQSent({ from: table, where: { birlestirDict: keyHV } });
+		if (offlineMode) {
+			query.sahalar.add(`MAX(${sayacSaha}) sayac`); let sayac = this.sqlExecTekilDeger({ offlineMode, trnId, query });
+			return (sayac || 0) + 1
+		}
+		query.sahalar.add(`${paramName_fisSayac} = MAX(${sayacSaha})`); toplu.add(query)
 	}
 	topluYazmaKomutlariniOlustur_sqlParamsDuzenle(e) {
 		const {params, paramName_fisSayac} = e; params.push({ name: paramName_fisSayac, type: 'int', direction: 'inputOutput', value: 0 })
 	}
 	async topluDegistirmeKomutlariniOlustur(e) {
-		const {toplu, trnId} = e, {table, sayacSaha} = this.class; let harSayacSaha, fisSayacSaha, seqSaha;
-		const detTable2HVListe = e.detTable2HVListe = {}, {detaylar} = this, detHVArg = { fis: this };
+		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {toplu, trnId} = e;
+		const {table, sayacSaha} = this.class; let harSayacSaha, fisSayacSaha, seqSaha, detTable2HVListe = e.detTable2HVListe = {}, {detaylar} = this, detHVArg = { fis: this };
 		for (let det of detaylar) {
-			const detaySinif = det?.class ?? this.detaySinif; if (detaySinif && $.isPlainObject(det)) { det = new detaySinif(det) }
+			const detaySinif = det?.class ?? this.class.detaySinif; if (detaySinif && $.isPlainObject(det)) { det = new detaySinif(det) }
 			if (!harSayacSaha) { harSayacSaha = detaySinif.sayacSaha } if (!fisSayacSaha) { fisSayacSaha = detaySinif.fisSayacSaha } if (!seqSaha) { seqSaha = det.class.seqSaha }
 			const hv = det.hostVars(detHVArg); if (!hv) { return false } hv._harsayac = det.okunanHarSayac;		/* yeni kayıt için null aksinde okunan harsayac */
 			const detTable = det.class.getDetayTable(detHVArg), hvListe = detTable2HVListe[detTable] = detTable2HVListe[detTable] || [];
 			hvListe.push(hv)
 		}
-		const fisHV = this.hostVars(e), keyHV = this.keyHostVars($.extend({}, e, { varsayilanAlma: true }));
+		const fisHV = this.hostVars(e), keyHV = this.keyHostVars({ ...e, varsayilanAlma: true });
 		let sent = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: ['*'] });
-		const basRec = await app.sqlExecTekil({ trnId, query: sent }), degisenHV = degisimHV(fisHV, basRec);
+		const basRec = await this.sqlExecTekil({ offlineMode, trnId, query: sent }), degisenHV = degisimHV(fisHV, basRec);
 		if (!$.isEmptyObject(degisenHV)) { toplu.add(new MQIliskiliUpdate({ from: table, where: { birlestirDict: keyHV }, set: { birlestirDict: degisenHV } })) }
-		const fisSayac = this.sayac;
-		for (const detTable in detTable2HVListe) {
+		const {sayac: fisSayac} = this; for (const detTable in detTable2HVListe) {
 			const ekleHVListe = [], harSayac2HV = {}, detHVListe = detTable2HVListe[detTable];
 			for (const hv of detHVListe) { const harSayac = hv._harsayac; if (harSayac) harSayac2HV[harSayac] = hv; else ekleHVListe.push(hv) }
-			// detay tablo için hareketlerden sıra değişimleri, silinecekler, güncellenecekler ve eklenecekler düzenlenir
-			// debugger;
-			// !! tum detay tablolar icin union all ile okunmali
+			// detay tablo için hareketlerden sıra değişimleri, silinecekler, güncellenecekler ve eklenecekler düzenlenir !! tum detay tablolar icin union all ile okunmali
 			const sent = new MQSent({ from: detTable, where: { degerAta: fisSayac, saha: fisSayacSaha }, sahalar: ['*'] });
-			const recs = await app.sqlExecSelect({ trnId, query: sent }), sayac2YeniSeq = {}, degisenSayac2HV = {}, silSayaclar = [];
+			const recs = await this.sqlExecSelect({ offlineMode, trnId, query: sent }), sayac2YeniSeq = {}, degisenSayac2HV = {}, silSayaclar = [];
 			for (const rec of recs) {
 				const harSayac = asInteger(rec[harSayacSaha]), eskiSeq = rec.seq, yHV = harSayac2HV[harSayac];
 				if (yHV) {
-					const {seq} = yHV; if (seq != eskiSeq) sayac2YeniSeq[harSayac] = seq
+					const {seq} = yHV; if (seq != eskiSeq) { sayac2YeniSeq[harSayac] = seq }
 					/* sira degisimi varsa oncelikli yapilir */
 					const degisenHV = degisimHV(yHV, rec, [harSayacSaha, seqSaha, '_harsayac'].filter(x => !!x));
-					if (!$.isEmptyObject(degisenHV)) { degisenSayac2HV[harSayac] = degisenHV }
-					delete harSayac2HV[harSayac]
+					if (!$.isEmptyObject(degisenHV)) { degisenSayac2HV[harSayac] = degisenHV } delete harSayac2HV[harSayac]
 					/* bulunan kayıt için sayac değişimi veya içerik değişimi için bilgiler toplandı */
 				}
 				else {
 					if (harSayac) { /* bu kayıt artık yoktur ve silinmelidir */ silSayaclar.push(harSayac) }
-					else if (fisSayacSaha) {
-						const hv = {}; hv[fisSayacSaha] = fisSayac; if (seqSaha) { hv[seqSaha] = eskiSeq }
-						silSayaclar.push(hv)
-					}
+					else if (fisSayacSaha) { const hv = {}; hv[fisSayacSaha] = fisSayac; if (seqSaha) { hv[seqSaha] = eskiSeq } silSayaclar.push(hv) }
 				}
 			}
 			for (const harSayac in harSayac2HV) { const hv = harSayac2HV[harSayac]; ekleHVListe.push(hv) }
-			/* ekleneceklerde harSayac kaldirilir */
-			for (const hv of ekleHVListe) { delete hv._harsayac }
-			/* silinecekler komutu eklenir */
-			if (!$.isEmptyObject(silSayaclar)) {
+			/* ekleneceklerde harSayac kaldirilir */ for (const hv of ekleHVListe) { delete hv._harsayac }
+			/* silinecekler komutu eklenir */ if (!$.isEmptyObject(silSayaclar)) {
 				toplu.add(new MQIliskiliDelete({
-					from: detTable,
-					where: [
+					from: detTable, where: [
 						typeof silSayaclar[0] == 'object'
-							? new MQOrClause(silSayaclar.map(hv => new MQSubWhereClause({ birlestirDict: hv }).toString_baslangicsiz())
+							? new MQOrClause(silSayaclar.map(hv => new MQWhereClause({ birlestirDict: hv }).toString_baslangicsiz())
 							) : { inDizi: silSayaclar, saha: harSayacSaha }
 				   ]
 				}))

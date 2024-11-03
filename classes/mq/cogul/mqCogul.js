@@ -85,7 +85,10 @@ class MQCogul extends MQYapi {
 		e = e || {}; let {rec} = e; rec = e.rec = rec?.bounddata ?? rec?.boundrec ?? rec?.boundrow ?? rec;
 		if (rec) { const _e = $.extend({}, e, { sender: this, rec, result: [] }); this.ekCSSDuzenle(_e); return _e.result }
 	}
-	static ekCSSDuzenle(e) { this.forAltYapiClassesDo('ekCSSDuzenle', e) }
+	static ekCSSDuzenle(e) {
+		this.forAltYapiClassesDo('ekCSSDuzenle', e); const {rec, dataField: belirtec, result} = e, {gonderimTSSaha} = this;
+		if (gonderimTSSaha && !!rec[gonderimTSSaha]) { result.push('bg-lightgreen') }
+	}
 	static listeEkrani_init(e) { this.forAltYapiClassesDo('listeEkrani_init', e) }
 	static listeEkrani_afterRun(e) { this.forAltYapiClassesDo('listeEkrani_afterRun', e) }
 	static listeEkrani_destroyPart(e) { this.forAltYapiClassesDo('listeEkrani_destroyPart', e) }
@@ -316,12 +319,15 @@ class MQCogul extends MQYapi {
 	static orjBaslikListesiDuzenle(e) { }
 	static orjBaslikDuzenleSonrasi(e) {
 		this.forAltYapiClassesDo('orjBaslikListesiDuzenle', e); this.orjBaslikListesiDuzenle_ayrimVeOzelSahalar(e);
+		const {gonderildiDesteklenirmi, gonderimTSSaha} = this; if (gonderildiDesteklenirmi && gonderimTSSaha) {
+			const {liste} = e, {tableAlias: alias} = this; liste.push(
+				new GridKolon({ belirtec: gonderimTSSaha, text: 'Gnd.Tarih', genislikCh: 13 }).tipDate(),
+				new GridKolon({ belirtec: gonderimTSSaha.toLowerCase().replace('ts', 'saat'), text: 'Gnd.Saat', genislikCh: 13, sql: `${alias}.${gonderimTSSaha}` }).tipTime()
+			)
+		}
 		const getCellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
 			let result = belirtec;
-			if (prefix) {
-				if ($.isArray(prefix)) prefix = prefix.join(' ')
-				if (prefix != result) result += ` ${prefix}`
-			}
+			if (prefix) { if ($.isArray(prefix)) { prefix = prefix.join(' ') } if (prefix != result) { result += ` ${prefix}` } }
 			if (rec) {
 				let ekCSS = this.getEkCSS({ sender, rowIndex, dataField: belirtec, value, rec });
 				if (ekCSS) { if ($.isArray(ekCSS)) ekCSS = ekCSS.join(' ') }
@@ -402,11 +408,12 @@ class MQCogul extends MQYapi {
 	static loadServerData_queryOlustur(e) {
 		e = e || {}; const tabloKolonlari = e.tabloKolonlari = e.tabloKolonlari || this.listeBasliklari, sahalarAlinmasinFlag = e.sahalarAlinmasinFlag ?? e.sahalarAlinmasin;
 		const {table} = this, alias = e.alias || this.tableAlias, tableAndAlias = alias ? `${table} ${alias}` : table, aliasVeNokta = alias ? `${alias}.` : '';
-		const sent = new MQSent({ from: tableAndAlias });
-		if (!sahalarAlinmasinFlag) {
+		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? e.offline ?? this.isOfflineMode, {gonderildiDesteklenirmi, gonderimTSSaha} = this;
+		const sent = new MQSent({ from: tableAndAlias }); if (!sahalarAlinmasinFlag) {
 			for (const colDef of tabloKolonlari) {
-				if (!colDef.sqlIcinUygunmu) continue
-				const {belirtec, sql} = colDef; if (belirtec || sql) sent.add(sql ? `${sql} ${belirtec}` : `${aliasVeNokta}${belirtec}`);
+				if (!colDef.sqlIcinUygunmu) { continue } const {belirtec, sql} = colDef;
+				if (!offlineMode && gonderildiDesteklenirmi && gonderimTSSaha && (sql || belirtec)?.endsWith(gonderimTSSaha)) { continue }
+				if (sql || belirtec) { sent.add(sql ? `${sql} ${belirtec}` : `${aliasVeNokta}${belirtec}`) }
 			}
 		}
 		const keyHV = this.varsayilanKeyHostVars(e); if (keyHV) { sent.where.birlestirDict({ alias, dict: keyHV }) }
@@ -468,18 +475,19 @@ class MQCogul extends MQYapi {
 		e = e || {}; const sender = e.sender ?? e;
 		const ozelQuerySonucuBlock = e.ozelQuerySonucuBlock ?? e.ozelQuerySonucu ?? sender.ozelQuerySonucuBlock ?? sender.ozelQuerySonucu;
 		const {trnId, wsArgs, query} = e, defer = e.defer = e.defer ?? e.deferFlag ?? false; delete e.defer; delete e.deferFlag;
-		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, _e = { offlineMode, defer, trnId, wsArgs, query };
+		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? e.offline ?? this.isOfflineMode, _e = { offlineMode, defer, trnId, wsArgs, query };
 		if (ozelQuerySonucuBlock) { return getFuncValue.call(this, ozelQuerySonucuBlock, _e); }
 		let result = await this.forAltYapiClassesDoAsync('loadServerData_querySonucu', e); result = result ? result[result.length - 1] : undefined; if (result !== undefined) { return result }
 		result = await this.sqlExecSelect(_e); return result
 	}
 	tekilOku_queryOlustur(e) {
 		e = e || {}; const tabloKolonlari = e.tabloKolonlari = e.tabloKolonlari ?? this.class.listeBasliklari;
-		const alias = this.class.tableAlias, {aliasVeNokta} = this.class;
-		const sent = new MQSent({ from: this.class.tableAndAlias });
+		const alias = this.class.tableAlias, {aliasVeNokta} = this.class, sent = new MQSent({ from: this.class.tableAndAlias });
+		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? e.offline ?? this.class.isOfflineMode, {gonderildiDesteklenirmi, gonderimTSSaha} = this.class;
 		for (const colDef of tabloKolonlari) {
-			if (!colDef.sqlIcinUygunmu) { continue }
-			const {belirtec, sql} = colDef; if (belirtec || sql) { sent.add(sql ? `${sql} ${belirtec}` : `${aliasVeNokta}${belirtec}`) }
+			if (!colDef.sqlIcinUygunmu) { continue } const {belirtec, sql} = colDef;
+			if (!offlineMode && gonderildiDesteklenirmi && gonderimTSSaha && (sql || belirtec)?.endsWith(gonderimTSSaha)) { continue }
+			if (belirtec || sql) { sent.add(sql ? `${sql} ${belirtec}` : `${aliasVeNokta}${belirtec}`) }
 		}
 		sent.sahalar.add(`${aliasVeNokta}*`);
 		let keyHV = this.keyHostVars(e); if ($.isEmptyObject(keyHV)) { keyHV = this.alternateKeyHostVars(e) }
@@ -490,7 +498,7 @@ class MQCogul extends MQYapi {
 	tekilOku_queryDuzenle(e) { this.class.loadServerData_queryDuzenle({ ...e, tekilOku: true }); this.forAltYapiKeysDo('tekilOku_queryDuzenle', e) }
 	static async tekilOku_querySonucu(e) {
 		e = e || {}; const sender = e.sender ?? e, ozelQuerySonucuBlock = e.ozelQuerySonucuBlock ?? e.ozelQuerySonucu ?? sender.ozelQuerySonucuBlock ?? sender.ozelQuerySonucu;
-		const {trnId, wsArgs, query} = e, offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, _e = { offlineMode, trnId, wsArgs, query };
+		const {trnId, wsArgs, query} = e, offlineMode = e.offlineMode ?? e.isOfflineMode ?? e.offline ?? this.isOfflineMode, _e = { offlineMode, trnId, wsArgs, query };
 		if (ozelQuerySonucuBlock) { return getFuncValue.call(this, ozelQuerySonucuBlock, _e) }
 		let result = await this.forAltYapiClassesDoAsync('tekilOku_querySonucu', _e);
 		result = result ? result[result.length - 1] : undefined; if (result !== undefined) { return result }

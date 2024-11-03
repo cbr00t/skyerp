@@ -69,6 +69,13 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		e = e || {}; if (window?.app) { app.sqlType = 'sqlite' }
 		if (typeof e == 'object' && !$.isPlainObject(e)) { const queryObj = e; e = { query: queryObj.toString() }; e.params = queryObj.params }
 		if (!e.query) { e = { query: e } } if (_params !== undefined) { e.params = _params }
+		if (e.query?.toplumu) {
+			let {liste} = e.query, result; for (const subQuery of liste) {
+				let queryYapi = subQuery.getQueryYapi(); if ($.isEmptyObject(queryYapi)) { continue }
+				result = this._execute({ ...e, ...queryYapi })
+			}
+			return result
+		}
 		let savedParams = e.params, _query = e.query, isDBWrite = this.isDBWrite(_query);
 		e = { ...e }; if (_query?.getQueryYapi) { $.extend(e, _query.getQueryYapi()) } else if (_query?.query) { $.extend(e, _query) } else { e.query = _query?.toString() ?? '' }
 		if (!e.query) { return null }
@@ -85,11 +92,11 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		try { _result = this.internalDB[isDBWrite ? 'run' : 'exec'](e.query, e.params) }
 		catch (ex) {
 			if (!isRetry) {
-				const message = ex.message || ''; if (message.includes('no such column')) {
-					if (window?.app?.dbMgr_tabloEksikleriTamamla) { app.dbMgr_tabloEksikleriTamamla({ ...e, db: this, noCacheReset: true }); return this.execute(e, _params, true) } }
+				const message = ex.message || ''; if (message.includes('no such column') && window?.app?.dbMgr_tabloEksikleriTamamla) {
+					app.dbMgr_tabloEksikleriTamamla({ ...e, db: this, noCacheReset: true }); return this.execute(e, _params, true) }
 			}
 			/*if (dbOpCallback) { await dbOpCallback.call(this, { operation: 'executeSql', state: null, error: ex }, e) }*/
-			throw ex
+			console.error('sqlite exec', { ...e, db: this, isDBWrite, ex }); throw ex
 		}
 		if (!_result) { return _result } _result = $.isArray(_result) ? _result[0] : null;
 		if ($.isEmptyObject(_result) && (isDBWrite || (typeof _result == 'number' && result) )) { this.onChange(e) }

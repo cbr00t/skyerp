@@ -163,7 +163,9 @@ class MQKA extends MQKod {
 					const _e = $.extend({}, e, { sender, colDef, fis, mfSinif, alias: tableAlias, aliasVeNokta, stm, sent });
 					for (const handler of stmDuzenleyiciler) { _e.result = getFuncValue.call(mfSinif, handler, _e); if (_e.result === false) { return null } stm = _e.stm }
 				}
-				const result = await app.sqlExecSelect({ maxRow: ( maxRow == null ? app.params.ortak.autoComplete_maxRow : maxRow ), query: stm }); return result
+				const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e;
+				const result = await this.sqlExecSelect({ offlineMode, trnId, maxRow: (maxRow == null ? app.params.ortak.autoComplete_maxRow : maxRow), query: stm });
+				return result
 			}
 		});
 		if (argsDuzenleBlock) { const _e = $.extend({}, e, { kolonGrup }); let result = getFuncValue.call(this, argsDuzenleBlock, _e) }

@@ -1,12 +1,14 @@
 class MQYapi extends CIO {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get mqYapimi() { return true }
-	static get isOfflineMode() { return app.offlineMode } get isOfflineMode() { return this.class.offlineMode }
+	static get isOfflineMode() { return app.offlineMode } get isOfflineMode() { return this.class.isOfflineMode }
 	static get dbMgr_db() { return app?.dbMgr?.default } get dbMgr_db() { return this.class.dbMgr_db }
 	static get sinifAdi() { return null } static get table() { return null } static get tableAlias() { return null }
 	static get tableAndAlias() { const {table, tableAlias} = this; if (tableAlias) { return `${table} ${tableAlias}` } return table }
 	static get aliasVeNokta() { const {tableAlias} = this; if (tableAlias) { return `${tableAlias}.` } return '' }
 	static get silinebilirmi() { return false } static get tekilOku_querySonucu_returnValueGereklimi() { return false }
 	static get tekilOku_sqlBatchFlag() { return true } static get tekilOkuYapilazmi() { return false }
+	static get gonderildiDesteklenirmi() { return false } static get gonderimTSSaha() { return 'gonderimts' }
+	static get offlineSahaListe() { return new this().offlineSahaListe } get offlineSahaListe() { return Object.keys(this.hostVars() ?? {}) }
 
 	constructor(e) { e = e || {}; super(e) }
 	static getInstance() {
@@ -36,7 +38,7 @@ class MQYapi extends CIO {
 		e = e || {}; await this.degistirOncesiIslemler(e);
 		const {table} = this.class, hv = this.hostVars(e), keyHV = this.keyHostVars({ ...e, varsayilanAlma: true });
 		let sent = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: '*' });
-		const basRec = await app.sqlExecTekil(sent), degisenHV = degisimHV(hv, basRec);
+		const basRec = await this.sqlExecTekil(sent), degisenHV = degisimHV(hv, basRec);
 		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e, _e = { offlineMode, trnId }; 
 		let result = true; if (!$.isEmptyObject(degisenHV)) {
 			let query = _e.query = new MQIliskiliUpdate({ from: table, where: { birlestirDict: keyHV }, set: { birlestirDict: degisenHV } });
@@ -90,15 +92,24 @@ class MQYapi extends CIO {
 	}
 	tekilOku_queryDuzenle(e) { }
 	static tekilOku_querySonucu(e) {
-		e = e || {}; const sender = e.sender || e;
-		const ozelQuerySonucuBlock = e.ozelQuerySonucuBlock || e.ozelQuerySonucu || sender.ozelQuerySonucuBlock || sender.ozelQuerySonucu;
+		e = e || {}; const sender = e.sender || e, ozelQuerySonucuBlock = e.ozelQuerySonucuBlock || e.ozelQuerySonucu || sender.ozelQuerySonucuBlock || sender.ozelQuerySonucu;
 		const {trnId, tekilOku_sqlBatchFlag: batch, wsArgs, query} = e, {tekilOku_querySonucu_returnValueGereklimi} = this;
 		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, _e = { offlineMode, batch, trnId, wsArgs, query };
 		if (ozelQuerySonucuBlock) { return getFuncValue.call(this, ozelQuerySonucuBlock, _e) }
 		return this[tekilOku_querySonucu_returnValueGereklimi ? 'sqlExecNoneWithResult' : 'sqlExecTekil'](_e)
 	}
-	yeniTanimOncesiIslemler(e) { return this.yeniVeyaDegistirOncesiIslemler(e) } degistirOncesiIslemler(e) { return this.yeniVeyaDegistirOncesiIslemler(e) } silmeOncesiIslemler(e) { return this.kaydetOncesiIslemler(e) }
-	kaydetOncesiIslemler(e) { }
+	yeniTanimOncesiIslemler(e) { return this.yeniVeyaDegistirOncesiIslemler(e) } degistirOncesiIslemler(e) { return this.yeniVeyaDegistirOncesiIslemler(e) }
+	silmeOncesiIslemler(e) { return this.kaydetOncesiIslemler(e) }
+	async kaydetOncesiIslemler(e) {
+		e = e ?? {}; const {isOfflineMode, gonderildiDesteklenirmi, gonderimTSSaha} = this.class;
+		if (isOfflineMode && gonderildiDesteklenirmi && gonderimTSSaha) {
+			let keyHV = this.alternateKeyHostVars(e); if ($.isEmptyObject(keyHV)) { keyHV = this.keyHostVars(e) } if (!$.isEmptyObject(keyHV)) {
+				const {table} = this.class, {trnId} = e; let query = new MQSent({ from: table, where: [`${gonderimTSSaha} <> ''`, { birlestirDict: keyHV }], sahalar: 'count(*) sayi' });
+				let _e = { trnId, isOfflineMode, query }; let result = await this.sqlExecTekilDeger(_e); if (!!result) {
+					throw { isError: true, errorText: 'Bu kayıt merkeze gönderildiği için üzerinde değişiklik yapılamaz' } }
+			}
+		}
+	}
 	yeniSonrasiIslemler(e) { return this.yeniVeyaDegistirSonrasiIslemler(e) }
 	degistirSonrasiIslemler(e) { return this.yeniVeyaDegistirSonrasiIslemler(e) }
 	silmeSonrasiIslemler(e) { /* return this.kaydetSonrasiIslemler(e) */ }
@@ -128,33 +139,49 @@ class MQYapi extends CIO {
 	static sqlExecTekil(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekil' }) }
 	static sqlExecTekilDeger(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekilDeger' }) }
 	sqlExecNone(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNone' }) }
-	static sqlExecNoneWithResult(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNoneWithResult' }) }
+	sqlExecNoneWithResult(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNoneWithResult' }) }
 	sqlExecSelect(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecSelect' }) }
-	static sqlExecTekil(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekil' }) }
+	sqlExecTekil(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekil' }) }
 	sqlExecTekilDeger(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekilDeger' }) }
-	static offlineDropTable(e) {
+	static gonderildiIsaretiKoy(e) { e = e ?? {}; return this.gonderildiIsaretiKoyKaldir({ ...e, flag: true }) }
+	static gonderildiIsaretiKaldir(e) { e = e ?? {}; return this.gonderildiIsaretiKoyKaldir({ ...e, flag: false }) }
+	static async gonderildiIsaretiKoyKaldir(e) {
+		e = e ?? {}; const {gonderildiDesteklenirmi, gonderimTSSaha} = this, {keyHV, flag} = e;
+		if (!(flag != null && gonderildiDesteklenirmi && gonderimTSSaha && !$.isEmptyObject(keyHV))) { return false }
+		const {table} = this; let query = new MQIliskiliUpdate({
+			from: table, where: { birlestirDict: keyHV }, set: { degerAta: flag ? asReverseDateTimeString(now()) : '', saha: gonderimTSSaha } });
+		let _e = { ...e, isOfflineMode: true, query }; await this.sqlExecNone(_e); return true
+	}
+	gonderildiIsaretiKoy(e) { e = e ?? {}; return this.gonderildiIsaretiKoyKaldir({ ...e, flag: true }) }
+	gonderildiIsaretiKaldir(e) { e = e ?? {}; return this.gonderildiIsaretiKoyKaldir({ ...e, flag: false }) }
+	gonderildiIsaretiKoyKaldir(e) {
+		e = e ?? {}; let keyHV = e.keyHV ?? this.alternateKeyHostVars(e); if ($.isEmptyObject(keyHV)) { keyHV = this.keyHostVars(e) }
+		return this.class.gonderildiIsaretiKoyKaldir({ ...e, keyHV })
+	}
+	static async offlineDropTable(e) {
 		e = e ?? {}; if (!this.dbMgr_db) { return false } const offlineTable = e.table ?? e.offlineTable ?? this.table, offlineMode = true;
 		let query = `DROP TABLE IF EXISTS ${offlineTable}`; return this.sqlExecNone({ ...e, offlineMode, query })
 	}
-	static offlineClearTable(e) {
+	static async offlineClearTable(e) {
 		e = e ?? {}; if (!this.dbMgr_db) { return false } const offlineTable = e.table ?? e.offlineTable ?? this.table
 		const {trnId} = e, offlineMode = e.offline ?? e.offlineMode ?? true;
 		let query = new MQIliskiliDelete({ from: offlineTable }); return this.sqlExecNone({ ...e, offlineMode, trnId, query })
 	}
-	static offlineSaveToLocalTable(e) {
+	static async offlineSaveToLocalTable(e) {
 		e = e ?? {}; if (!this.dbMgr_db) { return false } const offlineTable = e.table ?? e.offlineTable ?? this.table, clear = e.clear ?? e.clearFlag;
 		const offlineMode = true, {trnId} = e; return this.loadServerData({ ...e, trnId, offlineMode: false }).then(recs => {
 			this.sqlExecNone({ ...e, offlineMode, query: 'BEGIN TRANSACTION' }); try {
-				if (clear) { this.offlineClearTable({ ...e, offlineMode }) } if (recs?.length) {
-					const attrListe = Object.keys(new this().hostVars() ?? {}); if (attrListe?.length) {
-						const attrSet = asSet(attrListe), hvListe = [];
-						for (const rec of recs) {
+				if (clear) { this.offlineClearTable({ ...e, offlineMode }) } const {offlineSahaListe: attrListe, kodKullanilirmi, kodSaha} = this;
+				if (attrListe?.length) {
+					if (kodKullanilirmi && kodSaha) { let hv = {}; hv[kodSaha] = ''; this.sqlExecNone({ ...e, offlineMode, query: new MQInsert({ table: offlineTable, hv }) }) }
+					if (recs?.length) {
+							const attrSet = asSet(attrListe), hvListe = []; for (const rec of recs) {
 							const hv = {}; let empty = true; for (const key in rec) {
 								if (!attrSet[key]) { continue } let value = rec[key]; if (typeof value == 'string') { value = value.trimEnd() }
 								hv[key] = value; empty = false
 							} if (!empty) { hvListe.push(hv) }
 						}
-						let query = new MQInsert({ table: offlineTable, hvListe }); return this.sqlExecNone({ ...e, offlineMode,  query })
+						let query = new MQInsert({ table: offlineTable, hvListe }); return this.sqlExecNone({ ...e, offlineMode, query })
 					}
 				}
 			}

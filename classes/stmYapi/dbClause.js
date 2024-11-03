@@ -56,22 +56,16 @@ class MQClause extends MQSQLOrtak {
 	buildString_baslangicsiz(e) {
 		const doluListe = this.liste.filter(item => typeof item != 'string' || item.trim()), Baglac = this.class.baglac, {parantezlimi} = this;
 		if (!$.isEmptyObject(doluListe)) {
-			//let _doluListe = [];
-			if (doluListe.length && parantezlimi)
-				e.result += '(';
+			if (doluListe.length && parantezlimi) { e.result += '(' }
 			for (let ind in doluListe) {
 				ind = asInteger(ind); const item = doluListe[ind];
-				let text = item.toString(); if (ind && item && !(item.class || {}).baglacsizmi) { e.result += Baglac; }
-				e.result += text;
-				let _params = item && item.params ? item.params : null; if (_params) { (e.params || []).push(..._params) }
+				let text = item.toString(); if (ind && item && !item.class?.baglacsizmi) { e.result += Baglac } e.result += text;
+				let _params = item && item.params ? item.params : null; if (_params) { e.params?.push(..._params) }
 			}
 			if (doluListe.length && parantezlimi) { e.result += ')' }
-			// e.result += _doluListe.join(this.class.baglac);
 		}
-		let _params = this.params;
-		if (_params) {
-			const resultParams = e.params || [];
-			const keySet = asSet(resultParams.map(_param => _param.name || _param.key));
+		let {params: _params} = this; if (_params) {
+			_params = _params.filter(x => !!x); const resultParams = e.params || [], keySet = asSet(resultParams.filter(x => !!x).map(_param => _param.name || _param.key));
 			for (const i in _params) {
 				const _param = _params[i], name = _param.name || _param.key;
 				if (!keySet[name]) { keySet[name] = true; resultParams.push(_param) }
@@ -79,16 +73,14 @@ class MQClause extends MQSQLOrtak {
 		}
 		return this
 	}
-	parantezli() { this.parantezlimi = true; return this }
-	parantezsiz() { this.parantezlimi = false; return this }
+	parantezli() { this.parantezlimi = true; return this } parantezsiz() { this.parantezlimi = false; return this }
 }
 class MQToplu extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get baglac() { return CrLf + CrLf }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get toplumu() { return true } get toplumu() { return this.class.toplumu }
+	static get baglac() { return `${MQCogul.isOfflineMode ? ';' : ''}${CrLf}${CrLf}` }
 	constructor(e) { e = e || {}; super(e); this.trnFlag = asBool(e.trnFlag) }
 	buildString_baslangicsiz(e) {
-		const {trnFlag} = this;
-		if (trnFlag) {
+		const {trnFlag} = this; if (trnFlag) {
 			// e.result += 'DECLARE @tranCount INT = @@TRANCOUNT' + CrLf;
 			e.result += `DECLARE @trnUsed BIT = (case @@TRANCOUNT when 0 then 1 else 0 end)`
 			if (typeof trnFlag == 'string' && trnFlag.toLowerCase() == 'deftrn') {
@@ -204,8 +196,13 @@ class MQSubWhereClause extends MQClause {
 		if (item == {}.toString()) { debugger } return super.addIcinUygunmu(item) && !this.liste.includes(item)
 	}
 	birlestirDict(e) {
-		e = e || {}; const dict = e.dict || e.birlestirDict || e.liste || e,  aliasVeNokta = e.alias ? `${e.alias}.` : ``, {isSetClause, not} = e;
-		if (!$.isEmptyObject(dict)) { for (const key in dict) { const value = dict[key]; this.degerAta({ isSetClause, not, deger: value, saha: `${aliasVeNokta}${key}` }) } }
+		e = e || {}; const dict = e.dict || e.birlestirDict || e.liste || e,  aliasVeNokta = e.alias ? `${e.alias}.` : ``, {not} = e;
+		const isSetClause = e.isSetClause ?? this.class.isSetClause, isValuesClause = e.isValuesClause ?? this.class.isValuesClause;
+		if (!$.isEmptyObject(dict)) {
+			let and = new MQAndClause(); for (const key in dict) {
+				const value = dict[key]; and.degerAta({ isSetClause, not, deger: value, saha: `${aliasVeNokta}${key}` }) }
+			const isSetOrValues = isSetClause || isValuesClause; this.add(isSetOrValues ? and.liste : and)
+		}
 		return this
 	}
 	notBirlestirDict(e) {
@@ -539,12 +536,10 @@ class MQAndOrClause extends MQSubWhereClause {
 	}
 }
 class MQAndClause extends MQAndOrClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get baglac() { return ' AND ' }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return ' AND ' }
 }
 class MQOrClause extends MQAndOrClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get baglac() { return ' OR ' }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return ' OR ' }
 }
 class MQInClause extends MQClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get addDogrudanKullanilirmi() { return true }
@@ -575,17 +570,15 @@ class MQOperandClause extends MQIliskiYapisi {
 	}
 }
 class MQSetClause extends MQSubWhereClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get isSetClause() { return true }
 	static get onEk() { return `	SET		` } static get baglac() { return ', ' }
-	static get isSetClause() { return true }
 }
 class MQValuesClause extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get onEk() { return `VALUES ` }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get isValuesClause() { return true }
+	static get onEk() { return `VALUES ` } static get baglac() { return ', ' }
 }
 class MQOrderByClause extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get onEk() { return ` ORDER BY	` }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get onEk() { return ` ORDER BY	` }
 	fromGridWSArgs(e) {
 		e = e || {}; const alias = e.alias;
 		const sahaConverter = alias ? (e => { let _alias = alias; if ($.isFunction(alias)) { _alias = alias.call(this, e) } return _alias ? `${_alias}.${e.saha}` : _alias }) : null;

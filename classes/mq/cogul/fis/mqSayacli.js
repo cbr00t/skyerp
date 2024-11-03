@@ -21,10 +21,12 @@ class MQSayacli extends MQCogul {
 		await this.sayacBelirle(e); return result
 	}
 	async sayacBelirle(e) {
-		const {sayacSaha, table} = this.class; if (!sayacSaha) return null
-		const hv = this.alternateKeyHostVars(e); if ($.isEmptyObject(hv)) return null
+		const {sayacSaha, table} = this.class; if (!sayacSaha) { return null }
+		const hv = this.alternateKeyHostVars(e); if ($.isEmptyObject(hv)) { return null }
+		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e;
 		const sent = new MQSent({ from: table, where: { birlestirDict: hv }, sahalar: [sayacSaha] });
-		const sayac = this.sayac = await app.sqlExecTekilDeger(sent); if (!sayac) throw { isError: true, rc: 'sayacBelirlenemedi', errorText: 'Kaydedilen fiş belirlenemedi' }
+		const sayac = this.sayac = await this.sqlExecTekilDeger({ offlineMode, trnId, query });
+		if (!sayac) throw { isError: true, rc: 'sayacBelirlenemedi', errorText: 'Kaydedilen fiş belirlenemedi' }
 		return sayac
 	}
 	kopyaIcinDuzenle(e) { super.kopyaIcinDuzenle(e); const {sayacSaha} = this.class; if (sayacSaha) { this.sayac = null } }
