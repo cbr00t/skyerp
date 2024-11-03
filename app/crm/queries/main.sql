@@ -126,3 +126,56 @@ CREATE TABLE IF NOT EXISTS crmmusislemdetay (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_crmmusislemdetay_fissayac_seq ON crmmusislemdetay (fissayac, seq);
 CREATE INDEX IF NOT EXISTS idx_crmmusislemdetay_gonderimts ON crmmusislemdetay (gonderimts);
+
+CREATE TABLE IF NOT EXISTS kapanmayan_hesaplar (
+	tarih TEXT NOT NULL DEFAULT '',
+	belgeNox TEXT NOT NULL DEFAULT '',
+	vade TEXT NOT NULL DEFAULT '',
+	must TEXT NOT NULL DEFAULT '',
+	isladi TEXT NOT NULL DEFAULT '',
+	bedel REAL NOT NULL DEFAULT 0,
+	acikkisim REAL NOT NULL DEFAULT 0,
+	gecikmegun REAL NOT NULL DEFAULT 0,
+	gelecekgun REAL NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_kapanmayan_hesaplar_tarih ON kapanmayan_hesaplar (tarih);
+
+CREATE TABLE IF NOT EXISTS cari_ekstre (
+	iceriktablotipi TEXT NOT NULL DEFAULT '',
+	icerikfissayac INTEGER,
+	tarih TEXT NOT NULL DEFAULT '',
+	must TEXT NOT NULL DEFAULT '',
+	fisnox TEXT NOT NULL DEFAULT '',
+	vade TEXT NOT NULL DEFAULT '',
+	isladi TEXT NOT NULL DEFAULT '',
+	refkod TEXT NOT NULL DEFAULT '',
+	refadi TEXT NOT NULL DEFAULT '',
+	miktar REAL NOT NULL DEFAULT 0,
+	brm TEXT NOT NULL DEFAULT '',
+	sonuciskoran REAL NOT NULL DEFAULT 0,
+	borcbedel REAL NOT NULL DEFAULT 0,
+	alacakbedel REAL NOT NULL DEFAULT 0,
+	devoncelik INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_cari_ekstre_icerikfissayac ON cari_ekstre (icerikfissayac);
+CREATE INDEX IF NOT EXISTS idx_cari_ekstre_tarih ON cari_ekstre (tarih);
+CREATE INDEX IF NOT EXISTS idx_cari_ekstre_must ON cari_ekstre (must);
+
+CREATE TABLE IF NOT EXISTS cari_ekstre_icerik (
+	iceriktipi TEXT NOT NULL DEFAULT '',
+	icerikfissayac INTEGER,
+	shkod TEXT NOT NULL DEFAULT '',
+	stokadi TEXT NOT NULL DEFAULT '',
+	miktar REAL NOT NULL DEFAULT 0,
+	fiyat REAL NOT NULL DEFAULT 0,
+	sonuciskoran REAL NOT NULL DEFAULT 0,
+	bedel REAL NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_cari_ekstre_icerik_icerikfissayac ON cari_ekstre_icerik (icerikfissayac);
+
+new GridKolon({ belirtec: '', text: 'Stok Kod', maxWidth: 13 * katSayi_ch2Px }),
+new GridKolon({ belirtec: '', text: 'Stok Adı', maxWidth: 40 * katSayi_ch2Px }),
+new GridKolon({ belirtec: '', text: 'Miktar', genislikCh: 10, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal(),
+new GridKolon({ belirtec: '', text: 'Fiyat', genislikCh: 13, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_fiyat(),
+new GridKolon({ belirtec: '', text: 'İsk%', genislikCh: 6, aggregates: [{ ORT: gridDipIslem_avg }] }).tipDecimal(),
+new GridKolon({ belirtec: '', text: 'Bedel', genislikCh: 13, cellClassName: 'bold', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel()

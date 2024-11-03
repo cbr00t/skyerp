@@ -28,7 +28,7 @@ class MQKapanmayanHesaplar extends MQMasterOrtak {
 	static ekCSSDuzenle(e) {
 		super.ekCSSDuzenle(e); const belirtec = e.dataField, {rec, result} = e;
 		if (belirtec == 'acikkisim') { result.push('red', 'bold') }
-		if (belirtec == 'odenen') { const odenen = asFloat(rec.odenen); result.push('bold'); if (odenen < 0) { result.push('red') } else if (odenen > 0) { result.push('green') } }
+		if (belirtec == 'bedel') { const odenen = asFloat(rec.bedel); result.push('bold'); if (odenen < 0) { result.push('red') } else if (odenen > 0) { result.push('green') } }
 		if (!!rec.gecikmegun) { result.push('bg-lightpink') } /*else if (!!rec.gelecekgun) result.push('bg-lightgreen')*/
 	}
 	static orjBaslikListesiDuzenle(e) {
@@ -38,11 +38,9 @@ class MQKapanmayanHesaplar extends MQMasterOrtak {
 			new GridKolon({ belirtec: 'belgeNox', text: 'Belge Seri/No', genislikCh: 20, filterType: 'input' }),
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12, cellsRenderer: (...args) => tarihGosterim(...args) }).tipDate(),
 			new GridKolon({ belirtec: 'vade', text: 'Vade', genislikCh: 12, cellsRenderer: (...args) => tarihGosterim(...args) }).tipDate(),
-			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 15 , aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'odenen', text: 'Ödenen', genislikCh: 15, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
+			new GridKolon({ belirtec: 'bedel', text: 'Orj. Bedel', genislikCh: 15 , aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
 			new GridKolon({ belirtec: 'acikkisim', text: 'Açık Kısım', genislikCh: 15, cellClassName: 'bold', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'gecikmegun', text: 'Gecikme', genislikCh: 8, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal(),
-			new GridKolon({ belirtec: 'gelecekgun', text: 'Gel.Gün', genislikCh: 8, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal()
+			new GridKolon({ belirtec: 'gecikmegun', text: 'Gecikme', genislikCh: 8 }).tipDecimal(), new GridKolon({ belirtec: 'gelecekgun', text: 'Gel.Gün', genislikCh: 8  }).tipDecimal()
 		)
 	}
 	static loadServerData(e) { return this.loadServerDataFromMustBilgi(e) }

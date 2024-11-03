@@ -89,12 +89,3 @@ class Taksitci extends CIO {
 			return 'İşlem Tarihi(İlk Vade) belirtilmelidir'
 	}
 }
-class Yaslandirma extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	get bedel() { return (this.gecmis || 0) + (this.gelecek || 0) } get kademe() { return MustBilgi.kademeler[this.index] }
-	get kademeText() {
-		let result = this._kademeText; if (result === undefined) { const {index} = this; result = this._kademeText = MustBilgi.getKademeText(index) }
-		return result
-	}
-	constructor(e) { e = e || {}; super(e); $.extend(this, e) }
-}

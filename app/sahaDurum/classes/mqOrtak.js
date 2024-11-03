@@ -3,10 +3,7 @@ class MQMasterOrtak extends MQCogul {
 	static get dataKey() { return this.classKey } static get raporKullanilirmi() { return false }
 	static orjBaslikListesi_argsDuzenle(e) {
 		super.orjBaslikListesi_argsDuzenle(e); const {args, sender} = e;
-		$.extend(args, {
-			rowsHeight: 36, showGroupsHeader: true, showFilterRow: true, autoShowColumnsMenuButton: true,
-			showStatusBar: true, showaggregates: true, showgroupaggregates: true
-		});
+		$.extend(args, { rowsHeight: 36, showGroupsHeader: true, showFilterRow: true, autoShowColumnsMenuButton: true, showStatusBar: true, showaggregates: true, showgroupaggregates: true });
 		if (this.gridDetaylimi) {
 			$.extend(args, {
 				selectionMode: 'checkbox', /* virtualMode: true, */ rowDetails: true,
@@ -58,22 +55,19 @@ class MQMasterOrtak extends MQCogul {
 			parentPart: this, parentBuilder: this.builder,
 			layout: parent, argsDuzenle: e => {
 				const {args} = e; $.extend(args, { virtualMode: false, selectionMode: 'multiplerowsextended' });
-				if (mfSinif?.orjBaslikListesi_argsDuzenle_detaylar) mfSinif.orjBaslikListesi_argsDuzenle_detaylar(e)
+				if (mfSinif?.orjBaslikListesi_argsDuzenle_detaylar) { mfSinif.orjBaslikListesi_argsDuzenle_detaylar(e) }
 			},
 			tabloKolonlari: e => mfSinif.tabloKolonlari_detaylar,
 			loadServerData: async _e => {
 				try { return await mfSinif.loadServerData_detaylar($.extend({ parent, parentRec, gridPart: detGridPart, grid: detGridPart.grid, gridWidget: detGridPart.gridWidget, args }, _e)) }
 				catch (ex) { console.error(ex); const errorText = getErrorText(ex); hConfirm(`<div style="color: firebrick;">${errorText}</div>`, 'Grid Verisi Alınamadı') }
 			},
-			veriYuklenince: e => { if (mfSinif?.gridVeriYuklendi_detaylar) return mfSinif.gridVeriYuklendi_detaylar(e) }
+			veriYuklenince: e => { if (mfSinif?.gridVeriYuklendi_detaylar) { return mfSinif.gridVeriYuklendi_detaylar(e) } }
 		});
 		detGridPart.run();
 		if (mfSinif?.orjBaslikListesi_initRowDetails_son) {
 			const _e = $.extend({}, e, { sender: this, mfSinif, grid, gridWidget });
-			try {
-				let result = mfSinif.orjBaslikListesi_initRowDetails_son(_e);
-				if (result === false) { gridWidget.hiderowdetails(rowIndex); return }
-			}
+			try { let result = mfSinif.orjBaslikListesi_initRowDetails_son(_e); if (result === false) { gridWidget.hiderowdetails(rowIndex); return } }
 			catch (ex) { hConfirm(getErrorText(ex), 'Detay Grid Gösterim'); throw ex }
 		}
 	}

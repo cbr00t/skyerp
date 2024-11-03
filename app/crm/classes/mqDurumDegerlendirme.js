@@ -19,18 +19,40 @@ class MQDurumDegerlendirme extends MQMasterOrtak {
 				])
 				.setSource(e => gridSources.crm ?? [])
 				.addStyle(e => `$elementCSS [role = row] > div > div { margin-top: 5px !important }`);
-		tabPage = tabPanel.addTab('durumAnaliz', 'Durum Analiz').addStyle_fullWH().altAlta(); let yaslandirma_width = 300;
+		tabPage = tabPanel.addTab('durumAnaliz', 'Durum Analiz').addStyle_fullWH().altAlta(); let yaslandirma_width = 380;
+		tabPage.addForm('bakiyeText')
+			.setLayout(e => $(`<div class="${e.builder.id} flex-row"><div class="etiket">Bakiye:</div><div class="veri">0.00</div><div class="ek-bilgi">TL</div></div>`))
+			.onAfterRun(({builder}) => builder.rootBuilder.part.fbd_bakiyeText = builder)
+			.addStyle(e => `$elementCSS { font-size: 120%; position: absolute; top: -2px; left: 380px } $elementCSS > .veri { font-weight: bold; color: green; margin: 0 8px 0 20px }`);
+		let widgetArgsDuzenleIslemi = e => {
+			$.extend(e.args, { rowsHeight: 36, showGroupsHeader: true, autoShowColumnsMenuButton: true, showStatusBar: true, showaggregates: true, showgroupaggregates: true }) };
 		form = tabPage.addFormWithParent().yanYana().addStyle_fullWH(null, '50%');
 			form.addGridliGosterici('yaslandirma').addStyle_fullWH(yaslandirma_width).rowNumberOlmasin().notAdaptive()
+				.setTabloKolonlari(e => Yaslandirma.orjBaslikListesi)
+				.setSource(e => gridSources[e.builder.id] ?? []).onAfterRun(e => grids[e.builder.id] = e.builder.part);
+			form.addGridliGosterici('kapanmayanHesaplar').addStyle_fullWH(`calc(var(--full) - ${yaslandirma_width + 10}px)`)
+				.setTabloKolonlari(e => {
+					const ignoreKeys = asSet(['must', 'mustunvan']); return MQKapanmayanHesaplar.orjBaslikListesi.filter(colDef => !ignoreKeys[colDef.belirtec]) })
+				.setSource(e => gridSources[e.builder.id] ?? []).widgetArgsDuzenleIslemi(widgetArgsDuzenleIslemi)
 				.onAfterRun(e => grids[e.builder.id] = e.builder.part)
-				.setSource(e => gridSources.yaslandirma ?? []); form.addGridliGosterici('grid2').addStyle_fullWH(`calc(var(--full) - ${yaslandirma_width + 10}px)`).setSource([]);
 		form = tabPage.addFormWithParent().altAlta().addStyle_fullWH(null, '50%');
-			form.addGridliGosterici('kapanmayanHesaplar').addStyle_fullWH('calc(var(--full) - 5px)')
+			form.addGridliGosterici('cariEkstre').addStyle_fullWH('calc(var(--full) - 5px)')
+				.setTabloKolonlari(e => {
+					const ignoreKeys = asSet(['must', 'mustunvan']); return MQCariEkstre.orjBaslikListesi.filter(colDef => !ignoreKeys[colDef.belirtec]) })
+				.setSource(e => gridSources[e.builder.id] ?? []).widgetArgsDuzenleIslemi(e => {
+					widgetArgsDuzenleIslemi(e); const {sender, args} = e; $.extend(args, {
+						selectionMode: 'checkbox', /* virtualMode: true, */ rowDetails: true,
+						rowDetailsTemplate: rowIndex => ({ rowdetails: `<div class="detay-grid-parent dock-bottom"><div class="detay-grid"/></div>`, rowdetailsheight: 350 }),
+						initRowDetails: (rowIndex, _parent, grid, parentRec) => {
+							if (grid && !grid?.html) grid = $(grid); const gridWidget = grid.jqxGrid('getInstance'), parent = $(_parent).find('.detay-grid');
+							this.initRowDetails({ grid, gridWidget, rowIndex, parent, parentRec, args: e.temps, mfSinif: MQCariEkstre_Icerik })
+						}
+					})
+				})
 				.onAfterRun(e => grids[e.builder.id] = e.builder.part)
-				.setSource(e => gridSources.kapanmayanHesaplar ?? [])
 	}
 	static async mustKodDegisti(e) {
-		const {builder, value: mustKod} = e, {rootBuilder: rfb} = builder, {part, inst} = rfb, {grids, gridSources} = part, {tabPanel} = rfb.builders[0].id2Builder;
+		const {builder, value: mustKod} = e, {rootBuilder: rfb} = builder, {part, inst} = rfb, {grids, gridSources, fbd_bakiyeText} = part, {tabPanel} = rfb.builders[0].id2Builder;
 		let sent = new MQSent({
 			from: `${MQMusIslem.table} fis`, fromIliskiler: [ { from: `${MQMusIslemDetay.table} har`, iliski: 'har.fissayac = fis.kaysayac' } ],
 			where: ['fis.bitists IS NULL', { degerAta: mustKod, saha: 'fis.mustkod' }],
@@ -109,10 +131,41 @@ class MQDurumDegerlendirme extends MQMasterOrtak {
 				konu: kisaBilgi?.trimEnd()
 			})
 		}
-		recs.sort((a, b) => a.tarih == b.tarih ? a.oncelik - b.oncelik : b.tarih - a.tarih); gridSources.crm = recs;
-		recs = gridSources.kapanmayanHesaplar = await MQKapanmayanHesaplar.loadServerData({ mustKod });
-		for (const key of ['crm', 'kapanmayanHesaplar']) { grids.crm.tazele() }
-		grids.yaslandirma.tazele()
-		/*debugger*/
+		recs.sort((a, b) => a.tarih == b.tarih ? a.oncelik - b.oncelik : b.tarih - a.tarih); gridSources.crm = recs; grids.crm.tazele();
+		gridSources.cariEkstre = await MQCariEkstre.loadServerData({ mustKod }); grids.cariEkstre.tazele()
+		recs = gridSources.kapanmayanHesaplar = await MQKapanmayanHesaplar.loadServerData({ mustKod }); grids.kapanmayanHesaplar.tazele();
+		const {yaslandirmaDizi} = Yaslandirma; for (const {gecikmegun: gecikmeGun, gelecekgun: gelecekGun, acikkisim: acikKisim} of recs) {
+			if (gecikmeGun > 0) { yaslandirmaDizi[Yaslandirma.dilimSonucu(gecikmeGun)].gecmisEkle(acikKisim) }
+			else { yaslandirmaDizi[Yaslandirma.dilimSonucu(gelecekGun) ?? 1].gelecekEkle(acikKisim) }
+		}
+		const toplamItem = yaslandirmaDizi[0]; toplamItem.toplamEkle(yaslandirmaDizi.slice(1));
+		let {gecmis, gelecek} = toplamItem; fbd_bakiyeText?.layout?.find('.veri').html(fra2Str(roundToBedelFra(gecmis + gelecek)));
+		gridSources.yaslandirma = yaslandirmaDizi; grids.yaslandirma.tazele()
+	}
+	static initRowDetails(e) {
+		const {grid, gridWidget, parent, parentRec, rowIndex, args, mfSinif} = e;
+		if (mfSinif?.orjBaslikListesi_initRowDetails) {
+			const _e = $.extend({}, e, { sender: this, mfSinif, grid, gridWidget });
+			try { let result = mfSinif.orjBaslikListesi_initRowDetails(_e); if (result === false) { gridWidget.hiderowdetails(rowIndex); return } }
+			catch (ex) { hConfirm(getErrorText(ex), 'Detay Grid Gösterim'); throw ex }
+		}
+		const detGridPart = e.detGridPart = new GridliGostericiPart({
+			parentPart: this, parentBuilder: this.builder, layout: parent, argsDuzenle: e => {
+				const {args} = e; $.extend(args, { virtualMode: false, selectionMode: 'multiplerowsextended' });
+				if (mfSinif?.orjBaslikListesi_argsDuzenle) { mfSinif.orjBaslikListesi_argsDuzenle(e) }
+			},
+			tabloKolonlari: e => mfSinif.orjBaslikListesi,
+			loadServerData: async _e => {
+				try { return await mfSinif.loadServerData($.extend({ parent, parentRec, gridPart: detGridPart, grid: detGridPart.grid, gridWidget: detGridPart.gridWidget, args }, _e)) }
+				catch (ex) { console.error(ex); const errorText = getErrorText(ex); hConfirm(`<div style="color: firebrick;">${errorText}</div>`, 'Grid Verisi Alınamadı') }
+			},
+			veriYuklenince: e => { if (mfSinif?.gridVeriYuklendi) { return mfSinif.gridVeriYuklendi(e) } }
+		});
+		detGridPart.run();
+		if (mfSinif?.orjBaslikListesi_initRowDetails_son) {
+			const _e = $.extend({}, e, { sender: this, mfSinif, grid, gridWidget });
+			try { let result = mfSinif.orjBaslikListesi_initRowDetails_son(_e); if (result === false) { gridWidget.hiderowdetails(rowIndex); return } }
+			catch (ex) { hConfirm(getErrorText(ex), 'Detay Grid Gösterim'); throw ex }
+		}
 	}
 }

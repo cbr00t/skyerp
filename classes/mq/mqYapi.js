@@ -169,9 +169,10 @@ class MQYapi extends CIO {
 	}
 	static async offlineSaveToLocalTable(e) {
 		e = e ?? {}; if (!this.dbMgr_db) { return false } const offlineTable = e.table ?? e.offlineTable ?? this.table, clear = e.clear ?? e.clearFlag;
-		const offlineMode = true, {trnId} = e; return this.loadServerData({ ...e, trnId, offlineMode: false }).then(recs => {
+		const offlineMode = true, {trnId} = e; return this.loadServerData({ ...e, trnId, offlineMode: false, offlineYukleRequest: true }).then(recs => {
 			this.sqlExecNone({ ...e, offlineMode, query: 'BEGIN TRANSACTION' }); try {
-				if (clear) { this.offlineClearTable({ ...e, offlineMode }) } const {offlineSahaListe: attrListe, kodKullanilirmi, kodSaha} = this;
+				if (clear) { this.offlineClearTable({ ...e, offlineMode }) }
+				const {offlineSahaListe: attrListe, kodKullanilirmi, kodSaha} = this;
 				if (attrListe?.length) {
 					if (kodKullanilirmi && kodSaha) { let hv = {}; hv[kodSaha] = ''; this.sqlExecNone({ ...e, offlineMode, query: new MQInsert({ table: offlineTable, hv }) }) }
 					if (recs?.length) {
@@ -190,7 +191,7 @@ class MQYapi extends CIO {
 	}
 	static async offlineSaveToRemoteTable(e) {
 		e = e ?? {}; if (!this.dbMgr_db) { return false } const offlineTable = e.table ?? e.offlineTable ?? this.table, clear = e.clear ?? e.clearFlag;
-		const offlineMode = false, recs = await this.loadServerData({ ...e, offlineMode: true });
+		const offlineMode = false, recs = await this.loadServerData({ ...e, offlineMode: true, offlineAktarRequest: true });
 			let result, {trnId} = await app.sqlTrnBegin(); try {
 			if (clear) { await this.offlineClearTable({ ...e, trnId, offlineMode }) } if (recs?.length) {
 				const attrListe = Object.keys(new this().hostVars() ?? {}); if (attrListe?.length) {

@@ -94,3 +94,11 @@ class MQDetayliGUIDVeAdiOrtak extends MQDetayliGUIDVeAdi {
 	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); MQMasterOrtak.orjBaslikListesi_argsDuzenle(e) }
 	static listeEkrani_init(e) { super.listeEkrani_init(e); MQMasterOrtak.listeEkrani_init(e) }
 }
+class MQApiOrtak extends MQMasterOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get silinebilirmi() { return false } 
+	static get offlineSahaListe() { return [...super.offlineSahaListe, ...this.orjBaslikListesi.filter(x => !x.sql).map(x => x.belirtec)] }
+	static loadServerData(e) {
+		e = e ?? {}; const offlineMode = e.offlineMode ?? e.isOfflineMode ?? e.offline ?? this.isOfflineMode;
+		return offlineMode ? super.loadServerDataDogrudan(e) : this.loadServerDataDogrudan(e)
+	}
+}
