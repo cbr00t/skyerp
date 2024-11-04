@@ -146,8 +146,8 @@ class MQHatYonetimi extends MQMasterOrtak {
 	}
 	static orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(e) { super.orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(e); const {liste} = e; liste.push('hatKod', 'hatAdi') }
 	static orjBaslikListesi_hizliBulFiltreAttrListeDuzenle(e) {
-		super.orjBaslikListesi_hizliBulFiltreAttrListeDuzenle(e); const {liste} = e;
-		liste.push('hatKod', 'hatAdi', 'tezgahKod', 'tezgahAdi', 'perKod', 'perIsim', 'ip')
+		super.orjBaslikListesi_hizliBulFiltreAttrListeDuzenle(e); const {gridPart, liste} = e;
+		liste.push('hatKod', 'hatAdi', 'tezgahKod', 'tezgahAdi', 'perKod', 'perIsim', 'ip', 'isListe')
 	}
 	static onSignalChange(e) {
 		const gridPart = e.gridPart ?? e.sender; e.action = 'otoTazele';
@@ -216,7 +216,6 @@ class MQHatYonetimi extends MQMasterOrtak {
 				rec.grupText = `<div class="grid-cell-group" style="${styles_bgImg.join('; ')}"><div style="mix-blend-mode: plus-lighter"><b>(${rec.hatKod})</b> ${rec.hatAdi}</div></div>`
 			}
 		} gridPart._lastRecs = recs;
-
 		MQEkNotlar.loadServerData().then(recs => {
 			const gridPart = e.gridPart ?? e.sender, btnTumEkNotlar = gridPart.islemTuslari.find('button#tumEkNotlar'); if (btnTumEkNotlar?.length) { btnTumEkNotlar.removeClass('yeni-not') }
 			let maxId = 0; for (const rec of recs) { maxId = Math.max(maxId, rec.kaysayac) } if (!maxId) { return }

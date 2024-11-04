@@ -11,7 +11,6 @@ class MQCogul extends MQYapi {
 	static get gridDetaylimi() { return this.detaylimi } static get ozelTanimIslemi() { return null } static get bulFormKullanilirmi() { return true }
 	static get kolonDuzenlemeYapilirmi() { return true } static get kolonFiltreKullanilirmi() { return true } static get gridIslemTuslariKullanilirmi() { return $(window).width() >= 700 }
 	static get islemTuslari_sagButonlar_ekMarginX() { return $(window).width() < 800 ? 0 : 15 } static get orjBaslik_gridRenderDelayMS() { return null } static get defaultOrjBaslik_gridRenderDelayMS() { return 200 }
-	static get orjBaslikListesi_hizliBulFiltreAttrListe() { const _e = { liste: [] }; this.orjBaslikListesi_hizliBulFiltreAttrListeDuzenle(_e); return _e.liste }
 	static get orjBaslikListesi_panelGrupAttrListe() { const _e = { liste: [] }; this.orjBaslikListesi_panelGrupAttrListeDuzenle(_e); return _e.liste }
 	static get orjBaslikListesi_panelUstSeviyeAttrListe() { const _e = { liste: [] }; this.orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(_e); return _e.liste }
 	static get orjBaslikListesi_defaultRowsHeight() { return null } static get orjBaslikListesi_maxColCount() { return 5 }  static get orjBaslikListesi_defaultColCount() { return null } static get noAutoFocus() { return false }
@@ -285,6 +284,7 @@ class MQCogul extends MQYapi {
 	static orjBaslikListesi_groupsDuzenle(e) { this.forAltYapiClassesDo('orjBaslikListesi_groupsDuzenle', e) }
 	static orjBaslikListesi_panelGrupAttrListeDuzenle(e) { this.forAltYapiClassesDo('orjBaslikListesi_panelGrupAttrListeDuzenle', e) }
 	static orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(e) { this.forAltYapiClassesDo('orjBaslikListesi_panelUstSeviyeAttrListeDuzenle', e) }
+	static orjBaslikListesi_getHizliBulFiltreAttrListe(e) { const _e = { ...e, liste: [] }; this.orjBaslikListesi_hizliBulFiltreAttrListeDuzenle(_e); return _e.liste }
 	static orjBaslikListesi_hizliBulFiltreAttrListeDuzenle(e) { this.forAltYapiClassesDo('orjBaslikListesi_hizliBulFiltreAttrListeDuzenle', e) }
 	static orjBaslikListesi_gridInit(e) { this.forAltYapiClassesDo('orjBaslikListesi_gridInit', e) }
 	static orjBaslikListesi_argsDuzenle(e) { this.forAltYapiClassesDo('orjBaslikListesi_argsDuzenle', e) }

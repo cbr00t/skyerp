@@ -279,7 +279,7 @@ class GridPart extends Part {
 		const {filtreTokens} = this; let {recs} = e; if (!recs?.length) { return } const mfSinif = e.mfSinif = this.getMFSinif ? this.getMFSinif(e) : null;
 		if (mfSinif?.orjBaslikListesi_recsDuzenle_hizliBulIslemi) { if (mfSinif.orjBaslikListesi_recsDuzenle_hizliBulIslemi(e) === false) { return } }
 		let attrListe = this._hizliBulFiltreAttrListe; if (!attrListe?.length) {
-			attrListe = mfSinif?.orjBaslikListesi_hizliBulFiltreAttrListe;
+			attrListe = mfSinif?.orjBaslikListesi_getHizliBulFiltreAttrListe({ ...e, gridPart: this, filtreTokens });
 			if (!attrListe?.length) {
 				const {duzKolonTanimlari} = this; attrListe = [];
 				for (const colDef of duzKolonTanimlari) { if (!(colDef.ekKolonmu || !colDef.text?.trim)) { attrListe.push(colDef.belirtec) } }
@@ -288,7 +288,7 @@ class GridPart extends Part {
 		}
 		const orjRecs = recs; recs = [];
 		for (const rec of orjRecs) {
-			let uygunmu = true; const values = attrListe.map(key => rec[key]?.toString()).filter(value => !!value);
+			let uygunmu = true; const values = attrListe.map(key => typeof rec[key] == 'object' ? toJSONStr(rec[key]) : rec[key]?.toString()).filter(value => !!value);
 			for (const token of filtreTokens) {
 				let _uygunmu = false; for (let value of values) {
 					if (value == null) { continue } value = value.toString();
