@@ -73,7 +73,7 @@ class MQEkNotlar extends MQSayacliOrtak {
 				}
 			}).noSql())
 		}
-		liste.push(new GridKolon({ belirtec: 'notlar', text: 'Ek Notlar', genislikCh: 150 }))
+		liste.push(new GridKolon({ belirtec: 'notlar', text: 'Ek Notlar', genislikCh: 80 }))
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {stm, sent} = e, alias = e.alias ?? this.tableAlias;
@@ -83,7 +83,8 @@ class MQEkNotlar extends MQSayacliOrtak {
 		stm.orderBy.add(`${alias}.kayittarih DESC`, `${alias}.kayitzaman DESC`)
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); const rfb = e.rootBuilder, tanimForm = e.tanimFormBuilder;
+		super.rootFormBuilderDuzenle(e); const {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e;
+		rfb.addStyle(e => `$elementCSS .modelTanim.form { margin-top: -50px !important; z-index: 1000 !important }`);
 		let form = tanimForm.addFormWithParent().yanYana(3);
 			form.addDateInput('kayitTarih', 'Kayıt Tarihi'); form.addTimeInput('kayitZaman');
 			form.addModelKullan('tip', 'Tip').kodsuz().bosKodAlinmaz().bosKodEklenmez().dropDown().noMF().setSource(e => HatTezgah.kaListe).degisince(e => {
@@ -104,8 +105,8 @@ class MQEkNotlar extends MQSayacliOrtak {
 				$elementCSS > label { width: calc(var(--full) - var(--button-right)) !important }`
 		   )
 		}
-		form = tanimForm.addFormWithParent().yanYana().addStyle(e => `$elementCSS { margin-top: 10px }`);
-			form.addDiv('notlar', 'Notlar').addStyle_fullWH(null, 'calc(var(--full) - 400px)')
+		form = tanimForm.addFormWithParent().altAlta().addStyle_fullWH(null, 'calc(var(--full) - 260px)').addStyle(e => `$elementCSS { margin-top: 10px }`);
+			form.addDiv('notlar', 'Notlar').addStyle_fullWH()
 				.onAfterRun(({ builder }) => {
 					const toolbar = [
 						 ['bold', 'italic', 'underline', 'strike'],        // toggled buttons

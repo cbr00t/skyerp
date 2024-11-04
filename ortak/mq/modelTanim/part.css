@@ -1,13 +1,14 @@
 .modelTanim.part { --islemTuslari-height: 55px; --header-height: calc(var(--islemTuslari-height) + 5px); overflow: hidden }
-.modelTanim.part .header { height: var(--header-height) }
-.modelTanim.part .header .islemTuslari { position: relative; height: var(--islemTuslari-height); margin: 0; padding: 0 }
+.modelTanim.part .header { position: relative; height: var(--header-height) }
+.modelTanim.part .header .islemTuslari { position: relative; height: var(--islemTuslari-height); margin: 0; padding: 0; background: transparent !important; z-index: 1001 !important }
 .modelTanim.part .header .islemTuslari > .sol { background: unset !important }
+.modelTanim.part .header .islemTuslari > .sag { z-index: 1002 !important }
 .modelTanim.part .bulForm { position: fixed; top: -5px; right: 90px; min-width: unset !important; width: 150px; height: 30px; padding: 10px; z-index: 1001 }
 .modelTanim.part .bulForm input:not(:focus):not(:hover):not(:active) { opacity: .3 }
 .modelTanim.part .bulForm input:hover { opacity: .5 }
 .modelTanim.part .bulForm input:focus { opacity: 1 !important }
 /*@media (max-width: 1100px) { .modelTanim .part .bulForm { right: 90px } }*/
-.modelTanim.part, .modelTanim.part .form, .modelTanim.part .form > .form-layout { /* width: var(--full); height: var(--full) */ }
+.modelTanim.part, .modelTanim.part .form, .modelTanim.part .form > .form-layout { position: relative; /* width: var(--full); height: var(--full) */ }
 .modelTanim.part > .form-layout { /* height: calc(var(--full) - (var(--header-height) + 15px)) !important */ }
 /*.modelTanim.part > .form > .form-layout { height: calc(var(--full) - 30px) !important }*/
 .modelTanim.part .jqx-window-content > div { }
