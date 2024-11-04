@@ -5,7 +5,7 @@ class CRMApp extends App {
 	static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_App }
 	get offlineClasses() {
 		return [
-			...[MQMasterOrtak, MQKAOrtak, MQSayacliOrtak, MQDetayliOrtak, MQDetayliVeAdiOrtak, MQDetayliMasterOrtak].flatMap(cls => cls.subClasses).filter(cls => !!cls.table),
+			...[MQMasterOrtak, MQKAOrtak, MQSayacliOrtak, MQDetayliOrtak, MQDetayliVeAdiOrtak, MQDetayliMasterOrtak].flatMap(cls => cls.subClasses).filter(cls => !!cls.table && cls.gonderildiDesteklenirmi),
 			MQMusIslemDetay
 		]
 	}
@@ -31,12 +31,13 @@ class CRMApp extends App {
 	async tablolariSil(e) {
 		e = e ?? {}; let classes = e.classes ?? this.offlineClasses;
 		let promises = []; for (const cls of classes) { promises.push(cls.offlineDropTable().then(() => window.progressManager?.progressStep()))
-		} await Promise.all(promises);
+		} await Promise.all(promises); return this
 	}
 	async bilgiYukleIstendi(e) {
 		e = e ?? {}; if (!await ehConfirm('Bilgi Yükle yapılsın mı?', appName)) { return } showProgress('Merkezden veri alınıyor...', appName, true);
-		try { await this.bilgiYukle(e) } catch (ex) { hConfirm(getErrorText(ex), appName); throw ex }
-		finally { setTimeout(() => { eConfirm('Veriler yüklendi', appName); setTimeout(() => hideProgress(), 100) }, 50) }
+		try { await this.bilgiYukle(e); setTimeout(() => eConfirm('Veriler yüklendi', appName), 10) }
+		catch (ex) { hConfirm(getErrorText(ex), appName); throw ex }
+		finally { setTimeout(() => hideProgress(), 100) }
 	}
 	async bilgiYukle(e) {
 		e = e ?? {}; let {offlineClasses: classes} = this, promises = []; window.progressManager?.setProgressMax(classes.length * 2 + 5);
@@ -46,19 +47,22 @@ class CRMApp extends App {
 	}
 	async bilgiGonderIstendi(e) {
 		e = e ?? {}; if (!await ehConfirm('Bilgi Gönder yapılsın mı?', appName)) { return } showProgress('Merkeze veri aktarılıyor...', appName, true);
-		try { await this.bilgiGonder(e) } catch (ex) { hConfirm(getErrorText(ex), appName); throw ex }
-		finally { setTimeout(() => { eConfirm('Veriler merkeze gönderildi', appName); setTimeout(() => hideProgress(), 100) }, 50) }
+		try { await this.bilgiGonder(e); eConfirm('Veriler merkeze gönderildi', appName) }
+		catch (ex) { hConfirm(getErrorText(ex), appName); throw ex }
+		finally { setTimeout(() => hideProgress(), 100) }
 	}
 	async bilgiGonder(e) {
-		let {offlineClasses: classes} = this, promises = []; window.progressManager?.setProgressMax(classes.length * 2);
+		let classes = this.offlineClasses.filter(cls => !cls.detaymi), promises = []; window.progressManager?.setProgressMax(classes.length * 2);
 		for (const cls of classes) { promises.push(cls.offlineSaveToRemoteTable().then(() => window.progressManager?.progressStep())) }
 		await Promise.all(promises); delete this.trnId; window.progressManager?.progressEnd(); return this
 	}
 	dbMgr_tablolariOlustur_getQueryURLs(e) {
-		let db2Urls = super.dbMgr_tablolariOlustur_getQueryURLs(e) ?? {}; (db2Urls.main = db2Urls.main ?? []).push(`${webRoot_crm}/queries/main.sql`); return db2Urls }
+		let db2Urls = super.dbMgr_tablolariOlustur_getQueryURLs(e) ?? {}; (db2Urls.main = db2Urls.main ?? []).push(`${webRoot_crm}/queries/main.sql`);
+		return db2Urls
+	}
 	wsPlasiyerIcinCariler(e) {
-		e = e || {}; return ajaxPost({
-			timeout: 10 * 60000, processData: false, ajaxContentType: wsContentTypeVeCharSet, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'plasiyerIcinCariler', args: e }) })
+		e = e || {}; const timeout = 10 * 60000, processData = false, ajaxContentType = wsContentTypeVeCharSet;
+		const url = app.getWSUrl({ wsPath: 'ws/genel', api: 'plasiyerIcinCariler', args: e }); return ajaxPost({ timeout, processData, ajaxContentType, url })
 	}
 	wsTicKapanmayanHesap(e) {
 		e = e || {}; const {plasiyerKod, mustKod, cariTipKod} = e, params = [

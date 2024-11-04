@@ -1,5 +1,5 @@
 class MQMusIslem extends MQDetayliMasterOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Müşteri İşlemi' } static get gonderildiDesteklenirmi() { return true }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Müşteri İşlemi' }
 	static get detaySinif() { return MQMusIslemDetay } static get gridKontrolcuSinif() { return MQMusIslemGridci }
 	static get kodListeTipi() { return 'CRMMUSISLEM' } static get table() { return 'crmmusislem' } static get tableAlias() { return 'fis' } static get hasTabs() { return true }
 	static pTanimDuzenle(e) {
@@ -127,7 +127,7 @@ class MQMusIslem extends MQDetayliMasterOrtak {
 }
 class MQMusIslemDetay extends MQDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'crmmusislemdetay' }
-	get offlineSahaListe() { return [...super.offlineSahaListe, 'fissayac'] }
+	get offlineSahaListe() { return [...super.offlineSahaListe, 'fissayac'] } static get gonderildiDesteklenirmi() { return true }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); $.extend(e.pTanim, {
 			detayTS: new PInstDateTimeNow('detayts'), detayKullaniciKod: new PInstStr('detaykullanicikod'), detayAciklama: new PInstStr('detayaciklama') })

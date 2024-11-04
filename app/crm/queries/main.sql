@@ -3,53 +3,68 @@ CREATE TABLE IF NOT EXISTS yflaglar (
 	sonviots TEXT NOT NULL DEFAULT '',
 	sonskyts TEXT NOT NULL DEFAULT '',
 	tanim TEXT NOT NULL DEFAULT '',
-	jsonstr TEXT NOT NULL DEFAULT ''
+	jsonstr TEXT NOT NULL DEFAULT '',
+	gonderimts TEXT NOT NULL DEFAULT ''
 );
 
 CREATE TABLE IF NOT EXISTS crmgorev (
 	kod TEXT NOT NULL PRIMARY KEY,
-	aciklama TEXT NOT NULL DEFAULT ''
+	aciklama TEXT NOT NULL DEFAULT '',
+	gonderimts TEXT NOT NULL DEFAULT ''
 );
+CREATE INDEX IF NOT EXISTS idx_crmgorev_gonderimts ON crmgorev (gonderimts);
 CREATE INDEX IF NOT EXISTS idx_crmgorev_aciklama ON crmgorev (aciklama);
 
 CREATE TABLE IF NOT EXISTS crmcagrikaynak (
 	kod TEXT NOT NULL PRIMARY KEY,
-	aciklama TEXT NOT NULL DEFAULT ''
+	aciklama TEXT NOT NULL DEFAULT '',
+	gonderimts TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_crmcagrikaynak_aciklama ON crmcagrikaynak (aciklama);
+CREATE INDEX IF NOT EXISTS idx_crmcagrikaynak_gonderimts ON crmcagrikaynak (gonderimts);
 
 CREATE TABLE IF NOT EXISTS crmislemturu (
 	kod TEXT NOT NULL PRIMARY KEY,
-	aciklama TEXT NOT NULL DEFAULT ''
+	aciklama TEXT NOT NULL DEFAULT '',
+	gonderimts TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_crmislemturu_aciklama ON crmislemturu (aciklama);
+CREATE INDEX IF NOT EXISTS idx_crmislemturu_gonderimts ON crmislemturu (gonderimts);
 
 CREATE TABLE IF NOT EXISTS crmziyaretkonu (
 	kod TEXT NOT NULL PRIMARY KEY,
-	aciklama TEXT NOT NULL DEFAULT ''
+	aciklama TEXT NOT NULL DEFAULT '',
+	gonderimts TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_crmziyaretkonu_aciklama ON crmziyaretkonu (aciklama);
+CREATE INDEX IF NOT EXISTS idx_crmziyaretkonu_gonderimts ON crmziyaretkonu (gonderimts);
 
 CREATE TABLE IF NOT EXISTS crmziyaretsonuc (
 	kod TEXT NOT NULL PRIMARY KEY,
-	aciklama TEXT NOT NULL DEFAULT ''
+	aciklama TEXT NOT NULL DEFAULT '',
+	gonderimts TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_crmziyaretsonuc_aciklama ON crmziyaretsonuc (aciklama);
+CREATE INDEX IF NOT EXISTS idx_crmziyaretsonuc_gonderimts ON crmziyaretsonuc (gonderimts);
 
 CREATE TABLE IF NOT EXISTS caril (
 	kod TEXT NOT NULL PRIMARY KEY,
-	aciklama TEXT NOT NULL DEFAULT ''
+	aciklama TEXT NOT NULL DEFAULT '',
+	gonderimts TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_caril_aciklama ON caril (aciklama);
+CREATE INDEX IF NOT EXISTS idx_caril_gonderimts ON caril (gonderimts);
 
 CREATE TABLE IF NOT EXISTS personel (
 	kod TEXT NOT NULL PRIMARY KEY,
 	aciklama TEXT NOT NULL DEFAULT '',
 	gorevkod TEXT NOT NULL DEFAULT '',
-	email TEXT NOT NULL DEFAULT ''
+	email TEXT NOT NULL DEFAULT '',
+	gonderimts TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_personel_aciklama ON personel (aciklama);
 CREATE INDEX IF NOT EXISTS idx_personel_gorev ON personel (gorevkod);
+CREATE INDEX IF NOT EXISTS idx_personel_gonderimts ON personel (gonderimts);
 
 CREATE TABLE IF NOT EXISTS carmst (
 	must TEXT NOT NULL PRIMARY KEY,
@@ -57,11 +72,13 @@ CREATE TABLE IF NOT EXISTS carmst (
 	yore TEXT NOT NULL DEFAULT '',
 	ilkod TEXT NOT NULL DEFAULT '',
 	email TEXT NOT NULL DEFAULT '',
-	biradres TEXT NOT NULL DEFAULT ''
+	biradres TEXT NOT NULL DEFAULT '',
+	gonderimts TEXT NOT NULL DEFAULT ''
 );
-CREATE INDEX IF NOT EXISTS idx_cari2_birunvan ON carmst (birunvan);
-CREATE INDEX IF NOT EXISTS idx_cari2_yore ON carmst (yore);
-CREATE INDEX IF NOT EXISTS idx_cari2_ilkod ON carmst (ilkod);
+CREATE INDEX IF NOT EXISTS idx_carmst_birunvan ON carmst (birunvan);
+CREATE INDEX IF NOT EXISTS idx_carmst_yore ON carmst (yore);
+CREATE INDEX IF NOT EXISTS idx_carmst_ilkod ON carmst (ilkod);
+CREATE INDEX IF NOT EXISTS idx_carmst_gonderimts ON carmst (gonderimts);
 
 CREATE TABLE IF NOT EXISTS crmziyaretplani (
 	kaysayac INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,

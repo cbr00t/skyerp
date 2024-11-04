@@ -86,7 +86,7 @@ class MQCogul extends MQYapi {
 	}
 	static ekCSSDuzenle(e) {
 		this.forAltYapiClassesDo('ekCSSDuzenle', e); const {rec, dataField: belirtec, result} = e, {gonderimTSSaha} = this;
-		if (gonderimTSSaha && !!rec[gonderimTSSaha]) { result.push('bg-lightgreen') }
+		if (gonderimTSSaha && !!rec[gonderimTSSaha]) { result.push('gonderildi') }
 	}
 	static listeEkrani_init(e) { this.forAltYapiClassesDo('listeEkrani_init', e) }
 	static listeEkrani_afterRun(e) { this.forAltYapiClassesDo('listeEkrani_afterRun', e) }
@@ -425,20 +425,22 @@ class MQCogul extends MQYapi {
 		stm = e.query || e.stm; return stm
 	}
 	static loadServerData_queryDuzenle(e) {
-		e = e || {}; const sender = e.sender ?? e;
+		e = e || {}; const sender = e.sender ?? e, {offlineGonderRequest} = e;
 		const ozelQueryDuzenleBlock = e.ozelQueryDuzenleBlock ?? e.ozelQueryDuzenle ?? sender.ozelQueryDuzenleBlock ?? sender.ozelQueryDuzenle;
-		if (ozelQueryDuzenleBlock) getFuncValue.call(this, ozelQueryDuzenleBlock, e)
+		if (ozelQueryDuzenleBlock) { getFuncValue.call(this, ozelQueryDuzenleBlock, e) }
 		let {kod, value} = e; const {stm, maxRow, wsArgs} = e; if (wsArgs) { stm.fromGridWSArgs(wsArgs) }
+		if (offlineGonderRequest) {
+			const {gonderildiDesteklenirmi, gonderimTSSaha, tableAlias: alias} = this;
+			if (gonderildiDesteklenirmi && gonderimTSSaha) { for (const sent of stm.getSentListe()) { sent.where.add(`${alias}.${gonderimTSSaha} = ''`) } }
+		}
 		/* if (value) value = value.toUpperCase() */
 		const {kodSaha, adiSaha, tableAlias, aliasVeNokta} = this;
 		if (kodSaha && (kod || value || maxRow)) {
 			const orClauses = [];
 			if (value) {
-				const parts = value.split(' ');
-				for (const _part of parts) {
-					const part = _part?.trim(); if (!part) continue
-					const or = new MQOrClause(); or.like(`%${part}%`, `${aliasVeNokta}${kodSaha}`);
-					if (adiSaha) {
+				const parts = value.split(' '); for (const _part of parts) {
+					const part = _part?.trim(); if (!part) { continue }
+					const or = new MQOrClause(); or.like(`%${part}%`, `${aliasVeNokta}${kodSaha}`); if (adiSaha) {
 						or.like(`%${part.toUpperCase()}%`, `UPPER(${aliasVeNokta}${adiSaha})`);
 						or.like(`%${part.toLocaleUpperCase()}%`, `UPPER(${aliasVeNokta}${adiSaha})`)
 					}

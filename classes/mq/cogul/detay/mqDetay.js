@@ -1,7 +1,7 @@
 class MQDetay extends MQSayacli {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get fisSayacSaha() { return 'fissayac' } static get seqSaha() { return 'seq' }
 	/* static get table() { return null } */ static get tableAlias() { return 'har' } /* static get sinifAdi() { return null } */
-	get dipHesabaEsasDegerler() { return {} }
+	static get detaymi() { return true } get detaymi() { return this.class.detaymi } get dipHesabaEsasDegerler() { return {} }
 
 	constructor(e) {
 		e = e || {}; super(e); if (e.isCopy) { return }
