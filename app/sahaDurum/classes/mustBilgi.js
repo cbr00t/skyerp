@@ -2,7 +2,7 @@ class MustBilgi extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static yaslandirmaKey = 'kapanmayanHesap_yaslandirma'; static kademeler = [0, 15, 30, 45, 60];
 	get yaslandirmalar() { return this[this.class.yaslandirmaKey] } set yaslandirmalar(value) { this[this.class.yaslandirmaKey] = value }
-	get bakiyeText() { return `Bakiye: <span class="bold royalblue">${toStringWithFra(this.bakiye, 2)}</b>` }
+	get bakiyeText() { return `Bakiye: <span class="bold green">${toStringWithFra(this.bakiye, 2)}</b>` }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, e); let {yaslandirmalar} = this;
 		if (yaslandirmalar) { for (let i = 0; i < yaslandirmalar.length; i++) {

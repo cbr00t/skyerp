@@ -43,10 +43,13 @@ class MQKapanmayanHesaplar extends MQMasterOrtak {
 			new GridKolon({ belirtec: 'gecikmegun', text: 'Gecikme', genislikCh: 8 }).tipDecimal(), new GridKolon({ belirtec: 'gelecekgun', text: 'Gel.Gün', genislikCh: 8  }).tipDecimal()
 		)
 	}
-	static loadServerData(e) { return this.loadServerDataFromMustBilgi(e) }
+	static loadServerData(e) {
+		let recs = this.loadServerDataFromMustBilgi(e); if (!recs) { return recs }
+		recs = [...recs].reverse(); return recs
+	}
 	static async loadServerDataDogrudan(e) {
-		e = e || {}; await super.loadServerDataDogrudan(e); const {wsArgs} = e;
-		const recs = await app.wsTicKapanmayanHesap(wsArgs); for (const rec of recs) { const {bedel, acikkisim} = rec; rec.odenen = (bedel || 0) - (acikkisim || 0) }
+		e = e || {}; await super.loadServerDataDogrudan(e); const {wsArgs} = e, recs = await app.wsTicKapanmayanHesap(wsArgs);
+		for (const rec of recs) { const {bedel, acikkisim} = rec; rec.odenen = (bedel || 0) - (acikkisim || 0) }
 		return recs
 	}
 }
@@ -65,11 +68,21 @@ class MQCariEkstre extends MQMasterOrtak {
 			new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 5 }),
 			new GridKolon({ belirtec: 'sonuciskoran', text: 'İsk%', genislikCh: 6, aggregates: [{ ORT: gridDipIslem_avg }] }).tipDecimal(),
 			new GridKolon({ belirtec: 'borcbedel', text: 'Borç Bedel.', genislikCh: 16, cellClassName: 'green', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
-				/*cellClassName: (colDef, rowIndex, belirtec, value, rec) => { let result = [belirtec]; result.push(asFloat(value) < 0 ? 'red' : 'royalblue bold'); return result.join(' ') },*/
-			new GridKolon({ belirtec: 'alacakbedel', text: 'Alacak Bedel.', genislikCh: 16, cellClassName: 'red', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel()
+			new GridKolon({ belirtec: 'alacakbedel', text: 'Alacak Bedel.', genislikCh: 16, cellClassName: 'red', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
+			new GridKolon({
+				belirtec: 'bakiye', text: 'Bakiye', genislikCh: 16, aggregates: [{ TOPLAM: gridDipIslem_sum }], cellClassName: (colDef, rowIndex, belirtec, value, rec) => {
+					let result = [belirtec, 'bold']; result.push(value ? (asFloat(value) < 0 ? 'red' : 'green') : ''); return result.filter(x => !!x).join(' ') },
+			}).tipDecimal_bedel()
 		)
 	}
-	static loadServerData(e) { return this.loadServerDataFromMustBilgi(e) }
+	static loadServerData(e) {
+		let recs = this.loadServerDataFromMustBilgi(e); if (!recs) { return recs }
+		let bakiye = 0; for (const rec of recs) {
+			const {borcbedel: borc, alacakbedel: alacak} = rec, bedel = borc - alacak;
+			bakiye += bedel; $.extend(rec, { bedel, bakiye })
+		}
+		recs = [...recs].reverse(); return recs
+	}
 	static async loadServerDataDogrudan(e) {
 		e = e || {}; await super.loadServerDataDogrudan(e); const {wsArgs} = e;
 		let {cariTipKod} = app.params.config; if (cariTipKod) { wsArgs.cariTipKod = cariTipKod }
@@ -101,10 +114,9 @@ class MQCariEkstre_Detay extends MQMasterOrtak {
 		return await app.wsTicCariEkstre_icerik(wsArgs)
 	}
 }
-
 class MQKapanmayanHesaplar_Yaslandirma extends MQMasterOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get dataKey() { return MustBilgi.yaslandirmaKey } static get sinifAdi() { return 'Kapanmayan Hesaplar (Total Bilgi)' } get tableAlias() { return 'ktot' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get dataKey() { return MustBilgi.yaslandirmaKey }
+	static get sinifAdi() { return 'Kapanmayan Hesaplar (Total Bilgi)' } get tableAlias() { return 'ktot' }
 	static orjBaslikListesi_argsDuzenle(e) {
 		super.orjBaslikListesi_argsDuzenle(e); const {args} = e; $.extend(args, { sortable: false, groupable: false, showFilterRow: false, rowsHeight: 30 }) }
 	static ekCSSDuzenle(e) {

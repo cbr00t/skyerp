@@ -64,19 +64,21 @@ class MQMustBilgi extends MQKAOrtak {
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); const rfb = e.rootBuilder, tanimForm = e.tanimFormBuilder, rootPart = e.sender, {mfSinif, inst, kaForm} = e;
 		const {layout} = rootPart, width = 'var(--full)';
-		rfb.addCSS('no-scroll').addStyle(e => `$elementCSS .form-layout > [data-builder-id = "kaForm"] { margin-top: -40px }`)
+		rfb.addCSS('no-scroll').addStyle(e => `$elementCSS .form-layout > [data-builder-id = "kaForm"] { margin-top: -80px }`)
 		rfb.setAltInst(e => {
 			const {localData} = app.params, dataKey = this.dataKey, mustBilgiDict = localData.getData(dataKey);
 			const {builder} = e, {part} = builder, {kod} = part.inst, mustBilgi = mustBilgiDict[kod]; return mustBilgi
 		});
 		const tanimPart = e.sender; tanimPart.islem = 'izle'; tanimPart.title = tanimPart.title = `<b>${inst.kod}</b><span class="gray"> - Müşteri Detayları</span>`;
 		let fbd_islemTuslari = rfb.addForm('islemTuslari_sol').setLayout(e => e.builder.rootPart.layout.find('.header > .islemTuslari'));
-		fbd_islemTuslari.addForm('bakiyeText').setLayout(e => $(`<span class="bakiyeForm">${e.builder.altInst.bakiyeText}</span>`))
-			.addStyle(e => `$elementCSS { font-size: 130%; color: gray; position: absolute; top: 10px; left: 50px }`)
-		const tabPanel = tanimForm.addTabPanel('tabPanel').addStyle_fullWH(null, 'calc(var(--full) - 155px)').addStyle(e => `$elementCSS > .content > div { padding-bottom: 0 !important }`);
+		tanimForm.addStyle_wh('var(--full)');
+		tanimForm.addForm('bakiyeText').addStyle_wh('auto').setLayout(e => $(`<span class="bakiyeForm">${e.builder.altInst.bakiyeText}</span>`))
+			.addStyle(e => `$elementCSS { font-size: 130%; color: gray; position: absolute; top: 30px; right: 130px }`)
+		const tabPanel = tanimForm.addTabPanel('tabPanel').addStyle_fullWH(null, 'calc(var(--full) - 100px)')
+			.addStyle(e => `$elementCSS > .content > div { padding-bottom: 0 !important }`);
 		const addGrid = (id, etiket, mfSinif, ekIslemler, parentBuilder) => {
 			ekIslemler = ekIslemler || {}; etiket = etiket ?? mfSinif?.sinifAdi ?? '';
-			if (!parentBuilder) { parentBuilder = tabPanel.addTab(id, etiket).yanYana() } /*const altForm = parentBuilder.addBaslik(id).setEtiket(etiket).addCSS('baslik').addStyle_fullWH(); */
+			if (!parentBuilder) { parentBuilder = tabPanel.addTab(id, etiket).addStyle_fullWH().yanYana() } /*const altForm = parentBuilder.addBaslik(id).setEtiket(etiket).addCSS('baslik').addStyle_fullWH(); */
 			if (ekIslemler.ilk) { getFuncValue.call(this, ekIslemler.ilk, { id, etiket, mfSinif, etiket, parentBuilder }) }
 			const prevFbd = parentBuilder.builders[parentBuilder.builders.length - 1], prevWidth = prevFbd?._width || 0;
 			const fbd = parentBuilder.addGridliGosterici(id).addStyle_fullWH()/*.addCSS('dock-bottom')*/.setMFSinif(mfSinif)
