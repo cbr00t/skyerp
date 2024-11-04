@@ -105,7 +105,28 @@ class MQEkNotlar extends MQSayacliOrtak {
 		   )
 		}
 		form = tanimForm.addFormWithParent().yanYana().addStyle(e => `$elementCSS { margin-top: 10px }`);
-			form.addTextArea('notlar', 'Notlar').setRows(20)
+			form.addDiv('notlar', 'Notlar').addStyle_fullWH(null, 'calc(var(--full) - 400px)')
+				.onAfterRun(({ builder }) => {
+					const toolbar = [
+						 ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+						 ['blockquote', 'code-block'],
+						 ['link', /*'image',*/ 'video', 'formula'],
+						 [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+						 [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
+						 [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+						 [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+						 [{ 'direction': 'rtl' }],                         // text direction
+						 [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+						 [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+						 [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+						 [{ 'font': [] }],
+						 [{ 'align': [] }],
+						 ['clean']                                         // remove formatting button
+					];
+					const {id, altInst, input, etiket: placeholder} = builder; input.html(altInst[id]);
+					const part = builder.part = new Quill(input[0], { theme: 'snow', placeholder, modules: { toolbar } }); input.addClass('full-wh bg-white')
+					part.on('text-change', evt => altInst[id] = part.root.innerHTML)
+				})
 	}
 	static orjBaslikListesi_gridRendered(e) {
 		super.orjBaslikListesi_gridRendered(e); const {type} = e;
