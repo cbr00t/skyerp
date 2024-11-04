@@ -44,11 +44,11 @@ class MQInsertBase extends MQDbCommand {
 	}
 	buildString(e) {
 		super.buildString(e); const {table, hvListe} = this; if (!table || $.isEmptyObject(hvListe)) { return }
-		const {sqlitemi} = window?.app ?? {}, {onEk} = this.class, ilkHV = hvListe[0], keys = Object.keys(ilkHV), hvSize = hvListe.length;
+		const {sqlitemi, offlineMode} = window?.app ?? {}, {onEk} = this.class, ilkHV = hvListe[0], keys = Object.keys(ilkHV), hvSize = hvListe.length;
 			// SQL Bulk Insert (values ?? .. ??) için SQL tarafında en fazla 1000 kayıta kadar izin veriliyor
 		let isTableInsert = hvSize > 1000 ? true : this.isTableInsert; if (isTableInsert == null) { isTableInsert = hvSize > 500 }
 		e.result += `${onEk}${table} (`; e.result += keys.join(','); e.result += ') ';
-		if (sqlitemi) {
+		if (sqlitemi && offlineMode !== false) {
 			let hvParamClauses = []; e.params = []; for (const hv of hvListe) {
 				let hvParam = []; for (const key of keys) {
 					let value = hv[key] ?? null; if (isDate(value)) { value = asReverseDateTimeString(value) } else if (typeof value == 'boolean') { value = bool2Int(value) }

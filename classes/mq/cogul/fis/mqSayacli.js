@@ -33,7 +33,7 @@ class MQSayacli extends MQCogul {
 	kopyaIcinDuzenle(e) { super.kopyaIcinDuzenle(e); const {sayacSaha} = this.class; if (sayacSaha) { this.sayac = null } }
 	keyHostVarsDuzenle(e) {
 		super.keyHostVarsDuzenle(e); const {hv} = e, {sayacSaha} = this.class, {sayac} = this;
-		if (sayacSaha && sayac) hv[sayacSaha] = sayac
+		if (sayacSaha && sayac) { hv[sayacSaha] = sayac }
 	}
 	keySetValues(e) {
 		super.keySetValues(e); const {rec} = e, {sayacSaha} = this.class;

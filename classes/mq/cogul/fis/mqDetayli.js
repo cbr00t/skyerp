@@ -180,9 +180,9 @@ class MQDetayli extends MQSayacli {
 		await this.detaylariYukle(e); await this.detaylariYukleSonrasi(e); await this.yukleSonrasiIslemler(e); return true
 	}
 	baslikYukle(e) {
-		e = e || {}; const {sayacSaha} = this.class;
+		e = e || {}; const {sayacSaha} = this.class, {rec} = e;
 		if (sayacSaha) {
-			const fisSayac = this.sayac; if (!fisSayac) {
+			const fisSayac = this.sayac || rec?.[sayacSaha]; if (!fisSayac) {
 				const keyHV = this.alternateKeyHostVars(); if (keyHV) { delete keyHV[sayacSaha] }
 				if ($.isEmptyObject(keyHV)) { throw { isError: true, rc: 'fisSayacBelirlenemedi', errorText: 'Fiş için kaysayac bilgisi belirlenemedi' } }
 			}

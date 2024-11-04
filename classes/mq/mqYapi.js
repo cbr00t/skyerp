@@ -213,9 +213,10 @@ class MQYapi extends CIO {
 	static async offlineSaveToRemoteTable(e) {
 		e = e ?? {}; if (!this.dbMgr_db) { return false } const offlineTable = e.table ?? e.offlineTable ?? this.table;
 		const {offlineSahaListe: attrListe, idSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this;
-		const offlineMode = false, {trnId} = e; const recs = await this.loadServerData({ ...e, offlineMode: !offlineMode, offlineGonderRequest: true });
+		const offlineMode = false, offlineGonderRequest = true, {trnId} = e; const recs = await this.loadServerData({ ...e, offlineMode: !offlineMode, offlineGonderRequest });
 		if (attrListe?.length) {
-			let directFlag = true, okIdList = []; try {
+			let directFlag = !idSaha, okIdList = []; app.online();
+			try {
 				if (directFlag) { if (recs?.length) {
 					const attrSet = asSet(attrListe), hvListe = []; for (const rec of recs) {
 						const hv = {}; let empty = true; for (const key in rec) {
@@ -228,8 +229,10 @@ class MQYapi extends CIO {
 				} }
 				else { if (recs?.length) {
 					for (const rec of recs) {
-						let inst = new this(); if (!await inst.yukle({ offlineMode: !offlineMode, rec })) { continue }
-						if (!await inst.yaz({ trnId, offlineMode })) { continue }
+						let inst = new this(); if (!await inst.yukle({ offlineMode: !offlineMode, rec, offlineGonderRequest })) { continue }
+						if (inst.sayac) { inst.sayac = null }
+						if (await inst.varmi({ trnId, offlineMode, offlineGonderRequest })) { continue }
+						if (!await inst.yaz({ trnId, offlineMode, offlineGonderRequest })) { continue }
 						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha) { okIdList.push(rec[idSaha]) }
 					}
 				} }
@@ -239,6 +242,7 @@ class MQYapi extends CIO {
 					let query = new MQIliskiliUpdate({ from: offlineTable, where: { inDizi: okIdList, saha: idSaha }, set: { degerAta: asReverseDateTimeString(now()), saha: gonderimTSSaha } });
 					await this.sqlExecNone({ trnId, offlineMode: !offlineMode, query })
 				}
+				app.resetOfflineStatus()
 			}
 		}
 		return this
@@ -246,9 +250,9 @@ class MQYapi extends CIO {
 	static offlineSaveToLocalTableWithClear(e) { e = e ?? {}; return this.offlineSaveToLocalTable({ ...e, clear: true }) }
 	static offlineSaveToRemoteTableWithClear(e) { e = e ?? {}; return this.offlineSaveToRemoteTable({ ...e, clear: true }) }
 	static _sqlExec(e, params) {
-		e = $.isPlainObject(e) ? e : { query: e, params }; e = { ...e };
-		const {selector} = e, offlineMode = e.isOfflineMode ?? e.offlineMode ?? e.offline ?? this.isOfflineMode, db = e.db ?? app.dbMgr?.default;
-		for (const key of ['selector', 'db', 'isOfflineMode', 'offlineMode', 'offline']) { delete e[key] }
+		e = $.isPlainObject(e) ? e ?? {} : { query: e, params }; e = { ...e };
+		const {selector} = e, offlineMode = e.isOfflineMode ?? e.offlineMode ?? e.isOffline ?? e.offline ?? this.isOfflineMode, db = e.db ?? app.dbMgr?.default;
+		for (const key of ['selector', 'db', 'isOfflineMode', 'offlineMode', 'isOffline', 'offline']) { delete e[key] }
 		let result = offlineMode && db ? db.execute(e) : app[selector](e); if (offlineMode) {
 			switch (selector) {
 				case 'sqlExecNone': result = { lastRowsAffected: db.internalDB.getRowsModified() }; break
@@ -258,8 +262,9 @@ class MQYapi extends CIO {
 		}
 		return result
 	}
-	_sqlExec(e, params) {
-		e = $.isPlainObject(e) ? e : { query: e, params }; e = { ...e };
-		const {isOfflineMode} = this; return this.class._sqlExec({ ...e, isOfflineMode })
+	_sqlExec(e, _params) {
+		e = $.isPlainObject(e) ? e : { query: e, params: _params }; const offlineMode = e.offlineMode ?? e.isOfflineMode ?? e.isOffline ?? e.offline ?? this.isOfflineMode;
+		const {selector, db, trnId, query, params, deferFlag, batch} = e;
+		return this.class._sqlExec({ selector, db, offlineMode, trnId, query, params, deferFlag, batch })
 	}
 }
