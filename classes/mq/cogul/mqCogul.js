@@ -319,15 +319,16 @@ class MQCogul extends MQYapi {
 	static orjBaslikListesiDuzenle(e) { }
 	static orjBaslikDuzenleSonrasi(e) {
 		this.forAltYapiClassesDo('orjBaslikListesiDuzenle', e); this.orjBaslikListesiDuzenle_ayrimVeOzelSahalar(e);
-		const {gonderildiDesteklenirmi, gonderimTSSaha} = this; if (gonderildiDesteklenirmi && gonderimTSSaha) {
-			const {liste} = e, {tableAlias: alias} = this; liste.push(
-				new GridKolon({ belirtec: gonderimTSSaha, text: 'Gnd.Tarih', genislikCh: 13 }).tipDate(),
-				new GridKolon({ belirtec: gonderimTSSaha.toLowerCase().replace('ts', 'saat'), text: 'Gnd.Saat', genislikCh: 13, sql: `${alias}.${gonderimTSSaha}` }).tipTime()
-			)
+		if (!this.detaymi) {
+			const {gonderildiDesteklenirmi, gonderimTSSaha} = this; if (gonderildiDesteklenirmi && gonderimTSSaha) {
+				const {liste} = e, {tableAlias: alias} = this; liste.push(
+					new GridKolon({ belirtec: gonderimTSSaha, text: 'Gnd.Tarih', genislikCh: 13 }).tipDate(),
+					new GridKolon({ belirtec: gonderimTSSaha.toLowerCase().replace('ts', 'saat'), text: 'Gnd.Saat', genislikCh: 13, sql: `${alias}.${gonderimTSSaha}` }).tipTime()
+				)
+			}
 		}
 		const getCellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
-			let result = belirtec;
-			if (prefix) { if ($.isArray(prefix)) { prefix = prefix.join(' ') } if (prefix != result) { result += ` ${prefix}` } }
+			let result = belirtec; if (prefix) { if ($.isArray(prefix)) { prefix = prefix.join(' ') } if (prefix != result) { result += ` ${prefix}` } }
 			if (rec) {
 				let ekCSS = this.getEkCSS({ sender, rowIndex, dataField: belirtec, value, rec });
 				if (ekCSS) { if ($.isArray(ekCSS)) ekCSS = ekCSS.join(' ') }
@@ -335,8 +336,7 @@ class MQCogul extends MQYapi {
 			}
 			return result
 		};
-		const {liste} = e;
-		for (const colDef of liste) {
+		const {liste} = e; for (const colDef of liste) {
 			const savedCellClassName = colDef.cellClassName /*, savedCellsRenderer = colDef.cellsRenderer*/;
 			colDef.cellClassName = (sender, rowIndex, belirtec, value, rec) => {
 				const prefix = savedCellClassName ? getFuncValue.call(this, savedCellClassName, sender, rowIndex, belirtec, value, rec) : null;

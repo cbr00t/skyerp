@@ -1,4 +1,12 @@
-class MQKapanmayanHesaplar extends MQApiOrtak {
+class MQDegerlendirmeEkOrtak extends MQApiOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static async loadServerData(e) {
+		e = e || {}; let {mustKod} = e, recs = await super.loadServerData(e);
+		if (recs && mustKod) { recs = recs.filter(rec => (rec.must ?? rec.mustkod ?? rec.mustKod) == mustKod) }
+		return recs
+	}
+}
+class MQKapanmayanHesaplar extends MQDegerlendirmeEkOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kapanmayan Hesaplar' }
 	static get kodListeTipi() { return 'KAPHES' } static get table() { return 'kapanmayan_hesaplar' } static get tableAlias() { return 'khes' }
 	static ekCSSDuzenle(e) {
@@ -30,7 +38,7 @@ class MQKapanmayanHesaplar extends MQApiOrtak {
 		sent.fromIliski('carmst car', `${alias}.must = car.must`)
 	}
 }
-class MQCariEkstre extends MQApiOrtak {
+class MQCariEkstre extends MQDegerlendirmeEkOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cari Ekstre' }
 	static get gridDetaylimi() { return true } static get detaySinif() { return MQCariEkstre_Icerik }
 	static get kodListeTipi() { return 'CARIEKSTRE' } static get table() { return 'cari_ekstre' } static get tableAlias() { return 'ceks' }
