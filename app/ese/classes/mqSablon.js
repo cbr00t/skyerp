@@ -118,7 +118,7 @@ class MQSablonCPTGridci extends MQSablonGridci {
 	resimSecIstendi(e) {
 		const islemAdi = 'Resim Yükle', {rec, rowIndex, gridWidget} = e;
 		try {
-			let elm = $(`<input type="file" capture accept="image/*, application/pdf, video/*">`).appendTo('body'); elm.addClass('jqx-hidden');
+			let elm = $(`<input type="file" capture="environment" accept="image/*, application/pdf, video/*">`).appendTo('body'); elm.addClass('jqx-hidden');
 			elm.on('change', async evt => {
 				try {
 					const file = evt.target.files[0]; let fileName = file.name.replaceAll(' ', '_'), ext = fileName.split('.').slice(-1)[0] ?? '';

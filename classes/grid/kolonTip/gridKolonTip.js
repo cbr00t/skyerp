@@ -28,6 +28,7 @@ class GridKolonTip extends CObject {
 		for (const key of colEventNames) { const func = getFunc(e[key]); if (func) { this[key] = func } }
 		for (const key of globalEventNames) { const func = getFunc(e[key]); if (func) { this[key] = func } }
 		this.kodGosterilmesinmi = e.kodGosterilmesin ?? e.kodGosterilmesinmi ?? e.kodsuzmu ?? e.kodsuz;
+		this.listedenSecilemezFlag = e.listedenSecilemez ?? e.listedenSecilemezmi ?? e.listedenSecilemezFlag;
 		return true
 	}
 	static getHTML_groupsTotalRow(value) {
@@ -67,6 +68,7 @@ class GridKolonTip extends CObject {
 	}
 	setMaxLength(value) { this.maxLength = value; return this } kodsuz() { return this.kodGosterilmesin() }
 	kodGosterilmesin() { this.kodGosterilmesinmi = true; return this } kodGosterilsin() { this.kodGosterilmesinmi = false; return this }
+	listedenSecilemez() { this.listedenSecilemezFlag = true; return this } listedenSecililir() { this.listedenSecilemezFlag = false; return this }
 }
 class GridKolonTip_String extends GridKolonTip {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -304,18 +306,10 @@ class GridKolonTip_Time extends GridKolonTip_String {
 	}
 }
 class GridKolonTip_TekSecim extends GridKolonTip {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get anaTip() { return 'tekSecim' }
-	static get tekSecimmi() { return true }
-	static get birKismimi() { return false }
-	get jqxColumnType() { return 'custom' }
-	get jqxFilterType() { return 'checkedlist' }
-	get source() { return this._source }
-	set source(value) { this._source = value }
-	get kaListe() { return this.tekSecim?.kaListe }
-	get defaultChar() { return this.tekSecim?.char }
-	// get kaDictUyarlanmis() { return this._kaDict || this.tekSecim?.kaDict }
-
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'tekSecim' } static get tekSecimmi() { return true } static get birKismimi() { return false }
+	get jqxColumnType() { return 'custom' } get jqxFilterType() { return 'checkedlist' }
+	get source() { return this._source } set source(value) { this._source = value }
+	get kaListe() { return this.tekSecim?.kaListe } get defaultChar() { return this.tekSecim?.char }
 	readFrom(e) {
 		if (!e) return false; let {tekSecim, tekSecimSinif, kaListe} = e;
 		if (typeof tekSecimSinif == 'string') { tekSecimSinif = getFunc.call(this, tekSecimSinif, e); }
@@ -357,20 +351,12 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 		return ((colDef, rowIndex, value, editor, cellText, cellWidth, cellHeight) => {
 			const {comboBoxmi, kodAttr, adiAttr} = this;
 			const part = new ModelKullanPart({
-				parentPart: app.activePart, layout: editor, sender: colDef,
-				coklumu: this.class.birKismimi, autoBind: true, value: value,
-				/*selectionRendererBlock: e => {
-					if (!e.coklumu)
-						return e.wItem.label || '';
-				},*/
-				argsDuzenle: e => {
+				parentPart: app.activePart, layout: editor, sender: colDef, coklumu: this.class.birKismimi, autoBind: true, value,
+				/*selectionRendererBlock: e => { if (!e.coklumu) { return e.wItem.label || '' } },*/ argsDuzenle: e => {
 					$.extend(e.args, {
-						autoOpen: false, itemHeight: 30, width: cellWidth, height: cellHeight,
-						dropDownWidth: cellWidth * 2, dropDownHeight: 200, autoDropDownHeight: false
-						/*renderSelectedItem: (index, rec) => {
-							rec = rec.originalItem || rec || {};
-							return rec.kod || ''
-						}*/
+						autoOpen: false, itemHeight: 28, width: cellWidth, height: cellHeight, dropDownWidth: cellWidth * 2,
+						dropDownHeight: 400, autoDropDownHeight: false
+						/*renderSelectedItem: (index, rec) => { rec = rec.originalItem || rec || {}; return rec.kod || '' }*/
 					})
 				},
 				veriYuklenince: e => {
@@ -379,6 +365,7 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 				}
 			})[comboBoxmi ? 'comboBox' : 'dropDown']().noMF()/*.kodGosterilmesin()*/;
 			if (this.kodGosterilmesinmi) { part.kodGosterilmesin() }
+			if (this.listedenSecilemezFlag) { part.listedenSecilemez() }
 			editor.data('part', part); part.run();
 			const {comboBox, widget} = part; setTimeout(() => {
 				const {input} = widget || {};
@@ -443,7 +430,6 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 		const {kod, belirtec, rec} = e;
 		return kod == null ? null : (this.getKADict({ belirtec: belirtec, rec: rec }) || {})[kod]?.aciklama
 	}
-
 	getSource(e) {
 		e = e || {}
 		const {rec, belirtec} = e;

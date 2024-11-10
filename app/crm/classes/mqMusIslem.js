@@ -85,13 +85,13 @@ class MQMusIslem extends MQDetayliMasterOrtak {
 			.addStyle(e => `$elementCSS { position: relative; top: -35px; z-index: 102 }`);
 		let cellClassName = (sender, rowIndex, belirtec, value, rec) => { let result = [belirtec]; if (rec.aktifmi) { result.push('aktif', 'bold', 'green') } return result.join(' ') };
 		content.addGridliGosterici('_grid').addStyle_fullWH(null, $(window).height() < 500 ? 100 : 200)
-			.onBuildEk(e => e.builder.part.id = '') .setTabloKolonlari(e => [
+			.onBuildEk(({ builder }) => builder.part.id = '').onAfterRun(({ builder }) => builder.rootPart.gridPart = builder.part)
+			.setTabloKolonlari(e => [
 				new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12, cellClassName }).tipDate(),
 				new GridKolon({ belirtec: 'saat', text: 'Sasat', genislikCh: 9, cellClassName }).tipTime(),
 				new GridKolon({ belirtec: 'aciklama', text: ' ', cellClassName })
 			])
-			.setSource(_e => this.ekIslem_getSource({ ...e, ..._e, gridPart, rec, inst }))
-			.onAfterRun(e => e.builder.rootPart.gridPart = e.builder.part);
+			.setSource(_e => this.ekIslem_getSource({ ...e, ..._e, gridPart, rec, inst }));
 		let form = content.addFormWithParent().yanYana(); form.addDateInput('detayTarih', 'İşlem Tarih'); form.addTimeInput('detaySaat', 'Saat');
 			form.addModelKullan('detayKullaniciKod', 'Yapan').comboBox().autoBind().setMFSinif(MQPersonel).etiketGosterim_placeholder()
 		form = content.addFormWithParent().altAlta(); content.addTextArea('detayAciklama', 'Ara İşlemler').setRows($(window).height() < 500 ? 2 : 4).addStyle_fullWH(null, 'unset').addStyle(e =>

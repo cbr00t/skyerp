@@ -56,10 +56,12 @@ class GridPart extends Part {
 			gridHucreTiklandiBlock: e.gridHucreTiklandiBlock || e.gridHucreTiklandi, gridHucreCiftTiklandiBlock: e.gridHucreCiftTiklandiBlock || e.gridHucreCiftTiklandi,
 			gridHucreTiklandiBlock: e.gridHucreTiklandiBlock || e.gridHucreTiklandi, gridHucreCiftTiklandiBlock: e.gridHucreCiftTiklandiBlock || e.gridHucreCiftTiklandi,
 			gridContextMenuIstendiBlock: e.gridContextMenuIstendiBlock || e.gridContextMenuIstendi, gridIDBelirtec: e.gridIDBelirtec || this.defaultGridIDBelirtec,
-			kolonFiltreDuzenleyici: e.kolonFiltreDuzenleyici || {}, sabitFlag: e.sabit ?? e.sabitmi ?? e.sabitFlag ?? this.defaultSabitFlag ?? false, detaySinif: e.detaySinif,
+			kolonFiltreDuzenleyici: e.kolonFiltreDuzenleyici ?? new GridKolonFiltreDuzenleyici(), sabitFlag: e.sabit ?? e.sabitmi ?? e.sabitFlag ?? this.defaultSabitFlag ?? false, detaySinif: e.detaySinif,
 			_kontrolcu: e.kontrolcu, rowNumberOlmasinFlag: e.rowNumberOlmasin ?? e.rowNumberOlmasinFlag ?? ($(window).width() < 800 ? true : undefined),
 			notAdaptiveFlag: e.notAdaptive ?? e.notAdaptiveFlag, noAnimateFlag: e.noAnimate ?? e.noAnimateFlag
-		})
+		});
+		let {kolonFiltreDuzenleyici} = this; if ($.isPlainObject(kolonFiltreDuzenleyici)) {
+			kolonFiltreDuzenleyici = this.kolonFiltreDuzenleyici = new GridKolonFiltreDuzenleyici(kolonFiltreDuzenleyici) }
 	}
 	runDevam(e) {
 		super.runDevam(e); let result = this.gridInit(e);
@@ -260,7 +262,7 @@ class GridPart extends Part {
 			}
 			if (result && !$.isArray(result)) { const _recs = result.records = (recs?.records ?? recs); if (result.totalrecords == null) { result.totalrecords = _recs.length } }
 			/*const t = recs[0]; recs[0] = recs[1]; recs[1] = t;*/
-			return result
+			this.kolonFiltreDuzenleyici?.degismedi(); return result
 		}
 		catch (ex) { const errorText = getErrorText(ex); displayMessage(`<div style="color: firebrick;">${errorText}</div>`, 'Grid Verisi Alınamadı'); /* console.error(ex); */ throw ex }
 	}
@@ -268,6 +270,7 @@ class GridPart extends Part {
 	loadServerData_recsDuzenle_ilk(e) {
 		const {filtreTokens} = this; let {recs} = e;
 		if (filtreTokens?.length) { const _recs = this.loadServerData_recsDuzenle_hizliBulIslemi(e); recs = e.recs; if (_recs) { recs = e.recs = _recs } }
+		{ const _recs = this.loadServerData_recsDuzenle_kolonFiltre(e); recs = e.recs; if (_recs) { recs = e.recs = _recs } }
 		return recs
 	}
 	loadServerData_recsDuzenle(e) { }
@@ -276,9 +279,9 @@ class GridPart extends Part {
 		for (let i = 0; i < recs.length; i++) { const rec = recs[i]; rec._rowNumber = i + 1 }
 	}
 	loadServerData_recsDuzenle_hizliBulIslemi(e) {
-		const {filtreTokens} = this; let {recs} = e; if (!recs?.length) { return } const mfSinif = e.mfSinif = this.getMFSinif ? this.getMFSinif(e) : null;
+		let {recs} = e; if (!recs?.length) { return } const mfSinif = e.mfSinif = this.getMFSinif ? this.getMFSinif(e) : null;
 		if (mfSinif?.orjBaslikListesi_recsDuzenle_hizliBulIslemi) { if (mfSinif.orjBaslikListesi_recsDuzenle_hizliBulIslemi(e) === false) { return } }
-		let attrListe = this._hizliBulFiltreAttrListe; if (!attrListe?.length) {
+		let {filtreTokens} = this, attrListe = this._hizliBulFiltreAttrListe; if (!attrListe?.length) {
 			attrListe = mfSinif?.orjBaslikListesi_getHizliBulFiltreAttrListe({ ...e, gridPart: this, filtreTokens });
 			if (!attrListe?.length) {
 				const {duzKolonTanimlari} = this; attrListe = [];
@@ -286,8 +289,7 @@ class GridPart extends Part {
 			}
 			this._hizliBulFiltreAttrListe = attrListe
 		}
-		const orjRecs = recs; recs = [];
-		for (const rec of orjRecs) {
+		let orjRecs = recs; recs = []; for (const rec of orjRecs) {
 			let uygunmu = true; const values = attrListe.map(key => typeof rec[key] == 'object' ? toJSONStr(rec[key]) : rec[key]?.toString()).filter(value => !!value);
 			for (const token of filtreTokens) {
 				let _uygunmu = false; for (let value of values) {
@@ -296,6 +298,27 @@ class GridPart extends Part {
 				} if (!_uygunmu) { uygunmu = false; break }
 			} if (!uygunmu) { continue }
 			recs.push(rec)
+		}
+		return recs
+	}
+	loadServerData_recsDuzenle_kolonFiltre(e) {
+		let {recs} = e; if (!recs?.length) { return } const mfSinif = e.mfSinif = this.getMFSinif ? this.getMFSinif(e) : null;
+		if (mfSinif?.loadServerData_recsDuzenle_kolonFiltre) { if (mfSinif.loadServerData_recsDuzenle_kolonFiltre(e) === false) { return } }
+		const {kolonFiltreDuzenleyici} = this, filtreRecs = kolonFiltreDuzenleyici?.recs ?? {}; if (!filtreRecs?.length) { return }
+		let orjRecs = recs; recs = []; for (const rec of orjRecs) {
+			let uygunmu = true; for (let {attr, operator, value: _value} of filtreRecs) {
+				let value = rec[attr]; if (value === undefined) { continue } if (typeof value == 'string') { value = value.toLocaleUpperCase() }
+				_value = _value?.toString()?.toLocaleUpperCase(); switch (operator) {
+					case 'CONTAINS': uygunmu = value?.includes?.(_value); break; case 'NOT_CONTAINS': uygunmu = !value?.includes?.(_value); break
+					case 'EQUAL': uygunmu = value == _value; break; case 'NOT_EQUAL': uygunmu = value != _value; break
+					case 'LESS_THAN_OR_EQUAL': uygunmu = value <= _value; break; case 'LESS_THAN': uygunmu = value < _value; break
+					case 'GREATER_THAN_OR_EQUAL': uygunmu = value >= _value; break; case 'GREATER_THAN': uygunmu = value > _value; break
+					case 'STARTS_WITH': uygunmu = value?.startsWith?.(_value); break; case 'ENDS_WITH': uygunmu = value?.endsWith?.(_value); break
+					case 'EMPTY': uygunmu = !value; break; case 'NOT_EMPTY': uygunmu = !!value; break
+				}
+				if (!uygunmu) { break }
+			}
+			if (uygunmu) { recs.push(rec) }
 		}
 		return recs
 	}
@@ -767,43 +790,30 @@ class GridPart extends Part {
 		const kontrolcu = this.getKontrolcu(e); return kontrolcu?.gridHucreCiftTiklandi ? (kontrolcu.gridHucreCiftTiklandi(e) ?? true) : true
 	}
 	async kolonFiltreIstendi(e) {
-		e = e || {}; const promise = new $.Deferred(), {kolonFiltreDuzenleyici} = this; if (!kolonFiltreDuzenleyici) { return false }
-		if (!(kolonFiltreDuzenleyici.hasOwnProperty('attrKAListe') || (kolonFiltreDuzenleyici.__proto__ || {}).hasOwnProperty('attrKAListe'))) {
-			const {gridWidget, duzKolonTanimlari} = this;
-			kolonFiltreDuzenleyici.attrKAListe = e => {
-				const result = [];
-				for (const colDef of duzKolonTanimlari) {
-					const {belirtec, text} = colDef; if (!text || text == ' ') { continue }
-					const tip = colDef.tip ?? new GridKolonTip_String(), {anaTip, kaListe, jqxFilterAnaTip} = tip;
-					result.push(new CKodAdiVeEkBilgi({ kod: belirtec, aciklama: text || belirtec, ekBilgi: { tip: anaTip, jqxFilterAnaTip: jqxFilterAnaTip, kaListe: kaListe } }))
-				}
-				return result
+		e = e || {}; const {kolonFiltreDuzenleyici} = this; if (!kolonFiltreDuzenleyici) { return false }
+		if (kolonFiltreDuzenleyici.attrKAListe === undefined) {
+			const {gridWidget, duzKolonTanimlari} = this, attrKAListe = kolonFiltreDuzenleyici.attrKAListe = [];
+			for (const colDef of duzKolonTanimlari) {
+				const {belirtec: kod, text} = colDef; if (!text || text == ' ') { continue }
+				const tip = colDef.tip ?? new GridKolonTip_String(), {anaTip, kaListe, jqxFilterAnaTip} = tip;
+				attrKAListe.push(new CKodAdiVeEkBilgi({ kod, aciklama: text || kod, ekBilgi: { tip: anaTip, jqxFilterAnaTip, kaListe } }))
 			}
 		}
-		const kolonFiltrePart = new GridliKolonFiltrePart({
-			sender: this, parentPart: this.parentPart, duzenleyici: kolonFiltreDuzenleyici,
-			tamamIslemi: e => { if (promise) promise.resolve(e) }, kapaninca: e => { if (promise) promise.reject(e) }
-		}); kolonFiltrePart.run();
-		const result = await promise, filtreBilgi = kolonFiltreDuzenleyici._filtreBilgi = kolonFiltreDuzenleyici._filtreBilgi || {};
-		filtreBilgi.degistimi = true; filtreBilgi.recs = result.recs; this.kolonFiltreDegisti(e)
+		const sender = this, {parentPart} = this, promise = new $.Deferred(), kolonFiltrePart = new GridliKolonFiltrePart({
+			sender, parentPart, duzenleyici: kolonFiltreDuzenleyici, tamamIslemi: e => { if (promise) promise.resolve(e) }, kapaninca: e => promise?.reject(e) });
+		kolonFiltrePart.run(); const result = await promise; kolonFiltreDuzenleyici.degisti().recs = result.recs; this.kolonFiltreDegisti(e)
 	}
-	kolonFiltreTemizleIstendi(e) {
-		const {kolonFiltreDuzenleyici} = this, filtreBilgi = kolonFiltreDuzenleyici._filtreBilgi = kolonFiltreDuzenleyici._filtreBilgi || {};
-		filtreBilgi.degistimi = true; filtreBilgi.recs = []; this.kolonFiltreDegisti(e)
-	}
+	kolonFiltreTemizleIstendi(e) { const {kolonFiltreDuzenleyici} = this; kolonFiltreDuzenleyici.degisti().recs = []; this.kolonFiltreDegisti(e) }
 	kolonFiltreDegisti(e) {
-		e = e || {}; const {divKolonFiltreBilgi, kolonFiltreDuzenleyici, gridWidget} = this, filtreBilgi = kolonFiltreDuzenleyici._filtreBilgi;
-		const filtreBilgi_recs = filtreBilgi?.recs || [];
-		if (divKolonFiltreBilgi?.length) {
-			let {filtreText} = e; if (filtreText == null) filtreText = GridliKolonFiltrePart.getFiltreText(filtreBilgi_recs)
-			divKolonFiltreBilgi.html(filtreText); divKolonFiltreBilgi.parent()[filtreBilgi_recs.length ? 'removeClass' : 'addClass']('jqx-hidden')
+		e = e || {}; const {divKolonFiltreBilgi, kolonFiltreDuzenleyici, gridWidget} = this;
+		const recs = kolonFiltreDuzenleyici?.recs ?? []; if (divKolonFiltreBilgi?.length) {
+			const filtreText = e.filtreText ?? GridliKolonFiltrePart.getFiltreText(recs);
+			divKolonFiltreBilgi.html(filtreText); divKolonFiltreBilgi.parent()[recs.length ? 'removeClass' : 'addClass']('jqx-hidden')
 		}
-		const filterGroups = [], attr2FiltreRecs = {}, attr2FilterGroup = {};
-		for (const rec of filtreBilgi_recs) { const {attr} = rec; (attr2FiltreRecs[attr] = attr2FiltreRecs[attr] || []).push(rec) }
-		const Filter_AND = 0, Filter_OR = 1;
-		for (const attr in attr2FiltreRecs) {
-			const filterGroup = new $.jqx.filter();
-			const _recs = attr2FiltreRecs[attr]; if ($.isEmptyObject(_recs)) continue
+		if (kolonFiltreDuzenleyici.degistimi) { this.tazele({ action: 'kolonFiltre' }) }
+		/*const attr2FiltreRecs = {}; for (const rec of filtreBilgi_recs) { const {attr} = rec; (attr2FiltreRecs[attr] = attr2FiltreRecs[attr] ?? []).push(rec) }
+		const Filter_AND = 0, Filter_OR = 1, attr2FilterGroup = {}; for (const attr in attr2FiltreRecs) {
+			const filterGroup = new $.jqx.filter(); const _recs = attr2FiltreRecs[attr]; if ($.isEmptyObject(_recs)) { continue }
 			for (const rec of _recs) {
 				const jqxFilterAnaTip = rec.jqxFilterAnaTip || 'stringfilter', {operator, value} = rec;
 				filterGroup.addfilter(Filter_OR, filterGroup.createfilter(jqxFilterAnaTip, value, operator))
@@ -821,7 +831,7 @@ class GridPart extends Part {
 			}
 		}
 		catch (ex) { }
-		filtreBilgi_recs.degistimi = false
+		filtreBilgi.degistimi = false*/
 	}
 	onResize(e) {
 		super.onResize(e); clearTimeout(this._timer_gridResize); delete this._timer_gridResize;

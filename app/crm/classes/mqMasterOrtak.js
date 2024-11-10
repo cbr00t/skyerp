@@ -1,7 +1,7 @@
 class MQMasterOrtak extends MQCogul {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get raporKullanilirmi() { return false }
 	static get ignoreBelirtecSet() { return {} } static get gonderildiDesteklenirmi() { return true }
-	static super_standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e) } static get tanimUISinif() { return ModelTanimPart } static get kolonFiltreKullanilirmi() { return false }
+	static super_standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e) } static get tanimUISinif() { return ModelTanimPart } static get kolonFiltreKullanilirmi() { return true }
 	static standartGorunumListesiDuzenle(e) {
 		const {liste} = e, orjBaslikListesi = e.orjBaslikListesi ?? this.orjBaslikListesi, kodKullanilirmi = e.kodKullanilirmi ?? this.kodKullanilirmi, kodSaha = e.kodSaha ?? this.kodSaha;
 		const ignoreBelirtecSet = { ...(e.ignoreBelirtecSet ?? this.ignoreBelirtecSet ?? {}) };

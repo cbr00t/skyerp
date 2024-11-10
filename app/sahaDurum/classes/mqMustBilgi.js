@@ -42,17 +42,15 @@ class MQMustBilgi extends MQKAOrtak {
 			for (const rec of recs) { const {kod} = rec; if (!kod) { continue } result[kod] = new MustBilgi(rec) }
 			const cariEkstre_fisSayac2Rec = {}; for (const cls of classes) {
 				const subDataKey = cls.dataKey; if (!subDataKey) { continue }
-				const recs = await cls.loadServerDataDogrudan(e);
-				for (const rec of recs) {
-					let parentRec; if (cls == MQCariEkstre) { const fisSayac = rec.icerikfissayac; if (fisSayac) { cariEkstre_fisSayac2Rec[fisSayac] = rec } }
+				const recs = await cls.loadServerDataDogrudan(e); for (const rec of recs) { let parentRec;
+					if (cls == MQCariEkstre) { const fisSayac = rec.icerikfissayac; if (fisSayac) { cariEkstre_fisSayac2Rec[fisSayac] = rec } }
 					else if (cls == MQCariEkstre_Detay) { const fisSayac = rec.icerikfissayac; parentRec = cariEkstre_fisSayac2Rec[fisSayac] }
 					const kod = (rec.mustkod ?? rec.mustKod ?? rec.must ?? rec.kod) ?? (parentRec?.mustkod ?? parentRec?.mustKod ?? parentRec?.must ?? parentRec?.kod); if (!kod) { continue }
 					const mustBilgi = result[kod]; if (!mustBilgi) { continue }
 					const subRecs = mustBilgi[subDataKey] = mustBilgi[subDataKey] || []; subRecs.push(rec)
 				}
 			}
-			const AsyncMax = 10; let promises = [];
-			for (const mustBilgi of Object.values(result)) {
+			const AsyncMax = 10; let promises = []; for (const mustBilgi of Object.values(result)) {
 				promises.push(new $.Deferred(p => p.resolve( mustBilgi.kapanmayanHesap_yaslandirmaOlustur(e) )));
 				if (promises.length >= AsyncMax) { await Promise.all(promises); promises = [] }
 			}

@@ -461,7 +461,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 	static dokumanYukleIstendi(e) {
 		e = e || {}; const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, rec = e.rec ?? gridPart.selectedRec ?? {};
 		const hatKod = rec.hatKod ?? ''; if (!hatKod) { return } const resimId = `hat-${hatKod}-01`, islemAdi = 'Hat Resim Yükleme';
-		let elm = $(`<input type="file" capture accept="image/*, application/pdf, video/*">`).appendTo('body'); elm.addClass('jqx-hidden');
+		let elm = $(`<input type="file" capture="environment" accept="image/*, application/pdf, video/*">`).appendTo('body'); elm.addClass('jqx-hidden');
 		elm.on('change', async evt => {
 			try {
 				const file = evt.target.files[0]; let fileName = file.name.replaceAll(' ', '_'), ext = fileName.split('.').slice(-1)[0] ?? '';

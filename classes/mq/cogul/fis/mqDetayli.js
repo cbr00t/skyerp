@@ -383,8 +383,7 @@ class MQDetayliMaster extends MQDetayli {
 	}
 	static rootFormBuilderDuzenle_grid(e) {
 		const gridForm = e.gridForm ?? e.tabPage_genel ?? e.tanimFormBuilder, parentPart = e.parentPart ?? e.sender;
-		let gridParent = gridForm.addFormWithParent('grid-parent')
-			.addStyle(e => `$elementCSS > div { width: var(--full) !important; max-height: calc(var(--full) - 100px) !important`).addCSS('dock-bottom');
+		let gridParent = gridForm.addFormWithParent('grid-parent').addStyle_fullWH(null, 'calc(var(--full) - 80px)')
 		const {gridKontrolcuSinif} = this, kontrolcu = gridKontrolcuSinif ? new gridKontrolcuSinif({ parentPart }) : null;
 		let grid = e.fbd_grid = gridParent.addGridliGiris('grid').addStyle_fullWH()
 			.setKontrolcu(kontrolcu)

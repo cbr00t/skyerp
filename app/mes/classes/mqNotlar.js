@@ -158,7 +158,7 @@ class MQEkNotlar extends MQSayacliOrtak {
 		e = e || {}; const PrefixURL = 'url', islemAdi = 'Döküman Yükle'; try {
 			const {builder} = e, gridPart = e.gridPart ?? builder?.rootPart ?? e.sender ?? app.activeWndPart;
 			const id = e.id ?? builder?.id; let i = asInteger(e.seq ?? e.index ?? id?.slice(PrefixURL.length)); const key = `${PrefixURL}${i}`;
-			let elm = $(`<input type="file" capture accept="image/*, application/pdf, video/*">`).appendTo('body'); elm.addClass('jqx-hidden');
+			let elm = $(`<input type="file" capture="environment" accept="image/*, application/pdf, video/*">`).appendTo('body'); elm.addClass('jqx-hidden');
 			elm.on('change', async evt => {
 				try {
 					const file = evt.target.files[0]; let fileName = file.name.replaceAll(' ', '_'), ext = fileName.split('.').slice(-1)[0] ?? '';
