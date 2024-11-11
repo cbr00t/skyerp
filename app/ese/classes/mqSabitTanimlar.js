@@ -122,7 +122,7 @@ class MQHasta extends MQGuidVeAdiOrtak {
 	static get ignoreBelirtecSet() { return {...super.ignoreBelirtecSet, ...asSet(['okultipid']) } }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e, {yakinSayi} = this; $.extend(pTanim, {
-			tcKimlikNo: new PInstStr('tcno'), cinsiyet: new PInstClass('cinsiyet', Cinsiyet),
+			tcKimlikNo: new PInstStr('tcno'), cinsiyet: new PInstTekSecim('cinsiyet', Cinsiyet),
 			okulTipId: new PInstGuid('okultipid'), tel: new PInstStr('tel'), dogumTarihi: new PInstDate('dogumtarihi'),
 			eMail: new PInstStr('email'), yerlesimKod: new PInstStr('yerlesimkod'), acikAdres: new PInstStr('acikadres')
 		});

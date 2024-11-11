@@ -17,7 +17,7 @@ class MQTest extends MQGuidOrtak {
 
 	constructor(e) {
 		e = e || {}; super(e); const {sablonTip} = this.class; $.extend(this, { sablonAdi: e.sablonAdi });
-		if (sablonTip) { const {sablon} = app.params.ese || {}; this.sablonId = this.sablonId || sablon[sablonTip] }
+		if (sablonTip) { const {sablon} = app.params.ese || {}; this.sablonId = this.sablonId || sablon[sablonTip]?.[0]?.sablonId }
 	}
 	static getClass(e) { const tip = typeof e == 'object' ? e.tip : e; return this.tip2Sinif[tip] }
 	static newFor(e) { if (typeof e != 'object') { e = { tip: e } } const cls = this.getClass(e); return cls ? new cls(e) : null }
@@ -26,24 +26,27 @@ class MQTest extends MQGuidOrtak {
 			muayeneId: new PInstGuid('muayeneid'), hastaId: new PInstGuid('hastaid'),
 			ts: new PInstDate('tarihsaat'), tamamlandimi: new PInstBitBool('btamamlandi'),
 			uygulanmaYeri: new PInstTekSecim('uygulanmayeri', MQTestUygulanmaYeri), onayKodu: new PInstNum('onaykodu'),
-			sablonId: new PInstGuid(`${sablonTip == 'anket' ? 'ese' : sablonTip}sablonid`), aktifYas: new PInstNum('aktifyas')
+			sablonId: new PInstGuid(`${sablonTip == 'anket' ? 'ese' : sablonTip}sablonid`),
+			aktifYas: new PInstNum('aktifyas'), cinsiyet: new PInstTekSecim('cinsiyet', Cinsiyet)
 		})
 	}
 	static secimlerDuzenle(e) {
-		const {secimler: sec} = e; sec.grupTopluEkle([ { kod: 'teknik', aciklama: 'Teknik Bilgiler', kapali: true, zeminRenk: 'darkgray' } ]);
+		const {secimler: sec} = e, {idSaha} = this;
+		sec.grupTopluEkle([ { kod: 'teknik', aciklama: 'Teknik Bilgiler', kapali: true, zeminRenk: 'darkgray' } ]);
 		sec.secimTopluEkle({
 			tamamlandiDurumu: new SecimTekSecim({ etiket: 'Tamamlanma Durumu', tekSecim: new BuDigerVeHepsi([`<span class="forestgreen">Tamamlananlar</span>`, `<span class="darkred">TamamlanMAyanlar</span>`]) }),
 			tarih: new SecimDate({ etiket: 'Tarih/Saat' }), aktifYas: new SecimInteger({ etiket: 'Aktif Yaş' }),
 			sablonAdi: new SecimOzellik({ etiket: 'Şablon Adı' }), hastaAdi: new SecimOzellik({ etiket: 'Hasta İsim' }), doktorIsim: new SecimOzellik({ etiket: 'Doktor İsim' }),
 			sablonId: new SecimBasSon({ etiket: 'Şablon', mfSinif: this.sablonSinif, grupKod: 'teknik' }), muayeneId: new SecimBasSon({ etiket: 'Muayene', mfSinif: MQMuayene, grupKod: 'teknik' }),
-			hastaId: new SecimBasSon({ etiket: 'Hasta', mfSinif: MQHasta, grupKod: 'teknik' })
+			hastaId: new SecimBasSon({ etiket: 'Hasta', mfSinif: MQHasta, grupKod: 'teknik' }),
+			id: new SecimBasSon({ etiket: 'Test ID', mfSinif: this, grupKod: 'teknik' })
 		}).whereBlockEkle(({ secimler: sec, where: wh }) => {
 			const {tableAlias: alias} = this;
 			let tSec = sec.tamamlandiDurumu.tekSecim; if (!tSec.hepsimi) { wh.add(tSec.getBoolBitClause(`${alias}.btamamlandi`)) }
 			wh.basiSonu({ basi: sec.tarih.basi, sonu: sec.tarih.sonu?.yarin().clone().clearTime() }, `${alias}.tarihsaat`);
 			wh.ozellik(sec.sablonAdi, 'sab.aciklama').basiSonu(sec.aktifYas, `${alias}.aktifyas`).ozellik(sec.hastaAdi, 'has.aciklama').ozellik(sec.doktorAdi, 'dok.aciklama');
-			wh.basiSonu(sec.muayeneId, `${alias}.muayeneid`).basiSonu(sec.hastaId, `${alias}.hastaid`).basiSonu(sec.sablonId, `${alias}.sablonid`)
-			
+			wh.basiSonu(sec.muayeneId, `${alias}.muayeneid`).basiSonu(sec.hastaId, `${alias}.hastaid`).basiSonu(sec.sablonId, `${alias}.sablonid`);
+			wh.basiSonu(sec.id, `${alias}.${idSaha}`)
 		})
 	}
 	static ekCSSDuzenle(e) {
@@ -60,6 +63,7 @@ class MQTest extends MQGuidOrtak {
 			new GridKolon({ belirtec: 'btamamlandi', text: 'Tamam?', genislikCh: 8 }).tipBool(),
 			new GridKolon({ belirtec: 'onaykodu', text: 'Onay Kodu', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'aktifyas', text: 'Aktif Yaş', genislikCh: 9 }).tipNumerik(),
+			new GridKolon({ belirtec: 'cinsiyettext', text: 'Cinsiyet', genislikCh: 8, sql: Cinsiyet.getClause(`${alias}.cinsiyet`) }),
 			new GridKolon({ belirtec: 'hastaadi', text: 'Hasta Adı', genislikCh: 40, sql: 'has.aciklama' }),
 			new GridKolon({ belirtec: 'doktoradi', text: 'Doktor Adı', genislikCh: 40, sql: 'dok.aciklama' }),
 			new GridKolon({ belirtec: 'seri', text: 'Seri', genislikCh: 5, sql: 'mua.seri' }),
@@ -93,20 +97,20 @@ class MQTest extends MQGuidOrtak {
 		tanimForm.addDiv('ozetBilgi').etiketGosterim_yok().addCSS('bold gray').addStyle_fullWH(null, 'auto').addStyle(e => `$elementCSS { font-size: 120%; padding: 10px 20px }`)
 			.onAfterRun(async e => {
 				const {altInst: inst, input} = e.builder, {ts, muayeneId, hastaId, hastaAdi, sablonId, tamamlandimi} = inst, {sablonTip} = inst.class;
-				let {uygulanmaYeri, onayKodu, aktifYas} = inst, sablonAdi, muayeneRec;
-				/*if (sablonTip && sablonId) { sablonAdi = (await MQSablon.getClass(sablonTip)?.getGloKod2Adi(sablonId)) || '' }*/
-				if (muayeneId) { muayeneRec = await new MQMuayene({ id: muayeneId }).tekilOku() }
+				let {uygulanmaYeri, onayKodu, aktifYas} = inst, cinsiyet = inst.cinsiyet?.char ?? inst.cinsiyet;
+				let cinsiyetText = (cinsiyet == 'E' ? 'Erkek' : cinsiyet == 'K' ? 'Kadın' : null);
+				/*let sablonAdi; if (sablonTip && sablonId) { sablonAdi = (await MQSablon.getClass(sablonTip)?.getGloKod2Adi(sablonId)) || '' }*/
+				let muayeneRec; if (muayeneId) { muayeneRec = await new MQMuayene({ id: muayeneId }).tekilOku() }
 				uygulanmaYeri = uygulanmaYeri?.char ?? uygulanmaYeri;
 				const addItem = (elm, css, style) => {
 					if (elm && !elm.html) { elm = $(`<div class="full-width">${elm}</div>`) }
 					if (!elm?.length) { return } let parent = $(`<div class="full-width"${style ? ` style="${style}"` : ''}/>`); if (css) { parent.addClass(css) }
 					elm.appendTo(parent); parent.appendTo(input)
 				};
-				if (sablonAdi) { addItem(`<span class="gray etiket">Şablon:</span> <b class="veri forestgreen">${sablonAdi}</b>`, 'flex-row'), `font-size: 130%` }
-				/*addItem(`${ts ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri">${dateTimeAsKisaString(ts)}</b>` : ''} ${tamamlandimi ? `<div class="forestgreen" style="margin-left: "20px">Tamamlandı</b>` : ''}`, 'flex-row');*/
+				/*if (sablonAdi) { addItem(`<span class="gray etiket">Şablon:</span> <b class="veri forestgreen">${sablonAdi}</b>`, 'flex-row'), `font-size: 130%` }*/
 				addItem(`${ts ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri">${dateTimeAsKisaString(ts)}</b>` : ''}`, 'flex-row');
 				if ((muayeneRec?.fisnox || '0') != '0') { addItem(`<span class="gray etiket">Muayene:</span> <b class="veri">${muayeneRec.fisnox}</b>`, 'flex-row') }
-				addItem(`<span class="gray">Hasta: <b class="royalblue">${hastaAdi}</b></span> ${aktifYas ? `- (Yaş: <b class="forestgreen">${aktifYas}</b>)` : ''}`, 'flex-row');
+				addItem(`<span class="gray">Hasta: <b class="royalblue">${hastaAdi || ''}</b></span> ${aktifYas ? `${hastaAdi ? '- ' : ''}(Yaş: <b class="forestgreen">${aktifYas}</b>)` : ''} ${cinsiyetText ? `- (<b class="orangered">${cinsiyetText}</b>)` : ''}`, 'flex-row');
 				if (uygulanmaYeri) { addItem(`<span class="darkgray etiket">Uygulanma Yeri:</span> <b>${MQTestUygulanmaYeri.kaDict[uygulanmaYeri]?.aciklama || ''}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }
 				if (onayKodu) { addItem(`<span class="gray etiket">Onay Kodu:</span> <u class="onayKodu veri bold royalblue">${onayKodu}</u>`, null, `margin-top: 30px; cursor: pointer`) }
 				let elm = input.find('.onayKodu.veri'); if (elm?.length) {
@@ -229,6 +233,7 @@ class MQTestCPT extends MQTest {
 			new GridKolon({ belirtec: 'grupsayi', text: 'Grup Sayı', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'dogrusayi', text: 'Doğru Sayı', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'yanlissayi', text: 'Yanlış Sayı', genislikCh: 10 }).tipNumerik(),
+			new GridKolon({ belirtec: 'secilmeyendogrusayi', text: 'Seçilmeyen Doğru', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'ortdogrusecimsuresn', text: 'Ort. Doğru Seçim(sn)', genislikCh: 23, sql: `(case when ${alias}.dogrusayi = 0 then 0 else ROUND(SUM(${alias}.dogrusecimsuresn) / SUM(${alias}.dogrusayi), 1) end)` }).tipDecimal(1),
 			new GridKolon({ belirtec: 'ortyanlissecimsuresn', text: 'Ort. Yanlış Seçim(sn)', genislikCh: 23, sql: `(case when ${alias}.yanlissayi = 0 then 0 else ROUND(SUM(${alias}.yanlissecimsuresn) / SUM(${alias}.yanlissayi), 1) end)` }).tipDecimal(1),
 		].filter(x => !!x))

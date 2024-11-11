@@ -8,14 +8,14 @@ class MQKod extends MQCogul {
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
 		$.extend(pTanim, { kod: new PInstStr(this.kodSaha) });
-		if (this.zeminRenkDesteklermi) pTanim.zeminRenk = new PInstStr()
+		if (this.zeminRenkDesteklermi) { pTanim.zeminRenk = new PInstStr() }
 	}
 	static ekCSSDuzenle(e) {
 		super.ekCSSDuzenle(e); const {rec, result} = e;
 		if (rec.silindi) { result.push('bg-lightgray', 'iptal') }
 	}
 	static secimlerDuzenle(e) {
-		super.secimlerDuzenle(e); const sec = e.secimler;
+		super.secimlerDuzenle(e); const {secimler: sec} = e;
 		sec.secimEkle('instKod', new SecimString({ mfSinif: this, hidden: !this.kodKullanilirmi }));
 		sec.whereBlockEkle(e => {
 			const {aliasVeNokta, kodSaha} = this, wh = e.where, sec = e.secimler;
@@ -183,7 +183,8 @@ class MQGuidVeAdi extends MQKA {
 		liste.push(...orjBaslikListesi.map(colDef => colDef.belirtec).filter(belirtec => !ignoreBelirtecSet[belirtec]))
 	}
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e) /*; const {sent} = e, {aliasVeNokta, kodSaha} = this; if (kodSaha) { sent.sahalar.add(`${aliasVeNokta}${kodSaha}`) } */ }
-	keyHostVarsDuzenle(e) { super.keyHostVarsDuzenle(e); const {hv} = e; hv[this.class.kodSaha] = this.kodUyarlanmis || newGUID() }
+	keyHostVarsDuzenle(e) { super.keyHostVarsDuzenle(e); const {hv} = e; hv[this.class.kodSaha] = this.kod = this.kodUyarlanmis || newGUID() }
+	alternateKeyHostVarsDuzenle(e) { this.kod = this.kod || newGUID(); return super.alternateKeyHostVarsDuzenle(e) }
 	yeniTanimOncesiIslemler(e) { this.kod = this.kod || newGUID(); return super.yeniTanimOncesiIslemler(e) }
 	kopyaIcinDuzenle(e) { this.kod = newGUID(); return super.kopyaIcinDuzenle(e) }
 	kaydetOncesiIslemler(e) { this.kod = this.kod || newGUID(); return super.kaydetOncesiIslemler(e) }

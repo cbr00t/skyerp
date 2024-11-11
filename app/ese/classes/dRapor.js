@@ -17,19 +17,20 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 			.addGrup(new TabloYapiItem().setKA('YASGRUP', 'Yaş Grubu').noOrderBy().addColDef(new GridKolon({ belirtec: 'yasgrupadi', text: 'Yaş Grubu', genislikCh: 25, filterType: 'checkedlist' }).tipNumerik()))
 	}
 	loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {stm, attrSet} = e; let {sent} = stm, {where: wh, sahalar} = sent;
-		$.extend(e, { sent }); this.fisVeHareketBagla(e); this.donemBagla({ ...e, sent, tarihSaha: 'fis.tarihsaat' }); wh.add('fis.btamamlandi <> 0');
-		if (attrSet.DOKTOR) { sent.fromIliski('esemuayene mua', 'fis.muayeneid = mua.id').fromIliski('esedoktor dok', 'mua.doktorid = dok.id') }
-		if (attrSet.HASTA || attrSet.IL || attrSet.ILBOLGE || attrSet.CINSIYET) { sent.fromIliski('esehasta has', 'fis.hastaid = has.id') }
-		if (attrSet.IL || attrSet.ILBOLGE) { sent.fromIliski('eseyerlesim yer', 'has.yerlesimkod = yer.kod').fromIliski('caril il', 'yer.ilkod = il.kod') }
+		super.loadServerData_queryDuzenle(e); const {stm, attrSet} = e, alias ='fis'; let {sent} = stm, {where: wh, sahalar} = sent;
+		$.extend(e, { sent }); this.fisVeHareketBagla(e); this.donemBagla({ ...e, sent, tarihSaha: `${alias}.tarihsaat` }); wh.add(`${alias}.btamamlandi <> 0`);
+		if (attrSet.DOKTOR) { sent.leftJoin({ alias, from: 'esemuayene mua', on: 'fis.muayeneid = mua.id' }).leftJoin({ alias, from: 'esedoktor dok', on: 'mua.doktorid = dok.id' }) }
+		if (attrSet.HASTA || attrSet.IL || attrSet.ILBOLGE || attrSet.CINSIYET) { sent.leftJoin({ alias, from: 'esehasta has', on: `${alias}.hastaid = has.id` }) }
+		if (attrSet.IL || attrSet.ILBOLGE) {
+			sent.leftJoin({ alias: 'has', from: 'eseyerlesim yer', on: 'has.yerlesimkod = yer.kod' }).leftJoin({ alias: 'yer', from: 'caril il', on: 'yer.ilkod = il.kod' }) }
 		for (const key in attrSet) {
 			switch (key) {
-				case 'HASTA': sahalar.add('fis.hastaid hastakod', 'has.aciklama hastaadi'); wh.icerikKisitDuzenle_x({ ...e, belirtec: 'esehasta', saha: 'fis.hastaid' }); break
-				case 'DOKTOR': sahalar.add('mua.doktorid doktorkod', 'dok.aciklama doktoradi'); wh.icerikKisitDuzenle_x({ ...e, belirtec: 'esedoktor', saha: 'mua.doktorid' }); break
-				case 'ILBOLGE': sent.fromIliski('eseilbolge ibol', 'il.ilbolgekod = ibol.kod'); sahalar.add('il.ilbolgekod', 'ibol.aciklama ilbolgeadi'); break;
+				case 'HASTA': sahalar.add('fis.hastaid hastakod', 'has.aciklama hastaadi'); wh.icerikKisitDuzenle_x({ ...e, belirtec: 'esehasta', saha: `${alias}.hastaid` }); break
+				case 'DOKTOR': sahalar.add('mua.doktorid doktorkod', 'dok.aciklama doktoradi'); wh.icerikKisitDuzenle_x({ ...e, belirtec: 'esedoktor', saha: `mua.doktorid` }); break
+				case 'ILBOLGE': sent.leftJoin({ alias: 'il', from: 'eseilbolge ibol', on: 'il.ilbolgekod = ibol.kod' }); sahalar.add('il.ilbolgekod', 'ibol.aciklama ilbolgeadi'); break;
 				case 'IL': sahalar.add('il.kod ilkod', 'il.aciklama iladi'); break;
-				case 'CINSIYET': sahalar.add(`${Cinsiyet.getClause('has.cinsiyet')} cinsiyet`); break;
-				case 'AKTIFYAS': case 'YASGRUP': sahalar.add('fis.aktifyas'); break
+				case 'CINSIYET': sahalar.add(`${Cinsiyet.getClause(`${alias}.cinsiyet`)} cinsiyet`); break;
+				case 'AKTIFYAS': case 'YASGRUP': sahalar.add(`${alias}.aktifyas`); break
 			}
 		}
 		this.loadServerData_queryDuzenle_tarih({ ...e, alias: 'fis', tarihSaha: 'tarihsaat' }); this.loadServerData_queryDuzenle_ek(e); sent.groupByOlustur()
@@ -60,8 +61,8 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 		]
 	}*/
 	fisVeHareketBagla(e) {
-		const {sent} = e, {table, detayVeyaGrupTable} = this.class; sent.fromAdd(`${table} fis`);
-		if (detayVeyaGrupTable) { sent.fromIliski(`${detayVeyaGrupTable} har`, `har.fisid = fis.id`) }
+		const {sent} = e, alias = 'fis', {table, detayVeyaGrupTable} = this.class; sent.fromAdd(`${table} fis`);
+		if (detayVeyaGrupTable) { sent.leftJoin({ alias, from: `${detayVeyaGrupTable} har`, iliski: `har.fisid = fis.id` }) }
 		return this
 	}
 }
@@ -127,9 +128,10 @@ class DRapor_ESETest_Anket_Main extends DRapor_ESETest_Main {
 	}
 	ekCSSDuzenle(e) { super.ekCSSDuzenle(e); const {belirtec, result} = e; switch (belirtec) { case 'yanlissayi': case 'yanitsizsayi': result.push('red'); break } }
 	loadServerData_queryDuzenle_ek(e) {
-		super.loadServerData_queryDuzenle_ek(e); const {stm, attrSet} = e; let {sent} = stm, {where: wh, sahalar} = sent;
-		if (attrSet.SORU) { sent.fromIliski('eseanketsablondetay sdet', 'har.esedetayid = sdet.id') }
-		if (Object.keys(attrSet).find(key => key.startsWith('YANIT'))) { sent.fromIliski('eseanketsablon sab', 'fis.esesablonid = sab.id').fromIliski('eseanketyanit ynt', 'sab.yanitid = ynt.id') }
+		super.loadServerData_queryDuzenle_ek(e); const {stm, attrSet} = e, alias = 'fis'; let {sent} = stm, {where: wh, sahalar} = sent;
+		if (attrSet.SORU) { sent.leftJoin({ alias, from: 'eseanketsablondetay sdet', on: 'har.esedetayid = sdet.id' }) }
+		if (Object.keys(attrSet).find(key => key.startsWith('YANIT'))) {
+			sent.leftJoin({ alias, from: 'eseanketsablon sab', on: 'fis.esesablonid = sab.id' }).leftJoin({ alias, from: 'eseanketyanit ynt', on: 'sab.yanitid = ynt.id' }) }
 		for (const key in attrSet) {
 			switch (key) {
 				case 'TOPLAMPUAN': sahalar.add('SUM(fis.toplampuan) toplampuan'); break; case 'YANITSIZSAYI': sahalar.add('SUM(fis.yanitsizsayi) yanitsizsayi'); break

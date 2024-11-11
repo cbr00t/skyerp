@@ -41,6 +41,8 @@ class MQMuayene extends MQGuidOrtak {
 			new GridKolon({ belirtec: 'hastaid', text: 'Hasta ID', genislikCh: 40 }), new GridKolon({ belirtec: 'hastaadi', text: 'Hasta Adı', genislikCh: 30, sql: 'has.aciklama' }),
 			new GridKolon({ belirtec: 'doktorid', text: 'Doktor ID', genislikCh: 40 }), new GridKolon({ belirtec: 'doktoradi', text: 'Doktor Adı', genislikCh: 30, sql: 'dok.aciklama' }),
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 10, sql: `${alias}.tarihsaat` }).tipDate(),
+			new GridKolon({ belirtec: 'dogumtarihi', text: 'Doğum Tarihi', genislikCh: 13, sql: 'has.dogumtarihi' }).tipDate(),
+			new GridKolon({ belirtec: 'cinsiyettext', text: 'Cinsiyet', genislikCh: 8, sql: Cinsiyet.getClause('has.cinsiyet') }),
 			new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 9, sql: `${alias}.tarihsaat` }).tipTime(),
 			new GridKolon({ belirtec: 'seri', text: 'Seri', genislikCh: 5, filterType: 'checkedlist' }), new GridKolon({ belirtec: 'fisno', text: 'No', genislikCh: 15, filterType: 'checkedlist' }).tipNumerik(),
 		);
@@ -59,8 +61,9 @@ class MQMuayene extends MQGuidOrtak {
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {stm, sent} = e, {tableAlias: alias, adiSaha} = this, sablon = app.params.ese.sablon ?? {};
-		sent.fromIliski('esehasta has', `${alias}.hastaid = has.id`).leftJoin({ alias, from: 'esedoktor dok', on: `${alias}.doktorid = dok.id` });
-		sent.sahalar.add(`${alias}.${adiSaha}`, `${alias}.hastaid`, 'has.aciklama hastaadi');
+		sent.leftJoin({ alias, from: 'esehasta has', on: `${alias}.hastaid = has.id` })
+			.leftJoin({ alias, from: 'esedoktor dok', on: `${alias}.doktorid = dok.id` });
+		sent.sahalar.add(`${alias}.${adiSaha}`, `${alias}.hastaid`, 'has.aciklama hastaadi', 'has.cinsiyet');
 		for (const [tip, items] of Object.entries(sablon)) {
 			const eskiTip = tip == 'anket' ? 'ese' : tip; for (let i = 1; i <= items?.length || 0; i++) {
 				const {etiket, sablonId} = items[i - 1] ?? {}; if (!sablonId) { continue }
@@ -124,11 +127,13 @@ class MQMuayene extends MQGuidOrtak {
 			let sent = new MQSent({ from: testTable, sahalar: 'muayeneid' }); sent.where.inDizi(idListe, 'muayeneid').degerAta(sablonId, `${eskiTip}sablonid`);
 			const mevcutIdSet = asSet((await app.sqlExecSelect(sent)).map(rec => rec.muayeneid)), bostaIdListe = idListe.filter(id => !mevcutIdSet[id]);
 			if (!bostaIdListe?.length) { hConfirm(`Seçilen muayeneye(ler)in tümüne ait ${etiket} Test'i zaten var`, sinifAdi); return }
-			const mua2HastaId = {}; for (const rec of selectedRecs) { const {id, hastaid} = rec; mua2HastaId[id] = hastaid }
+			const mua2HastaRec = {}; for (const rec of selectedRecs) {
+				const {id, hastaid: hastaId, cinsiyet} = rec; mua2HastaRec[id] = { id: hastaId, cinsiyet } }
 			let rdlg = await ehConfirm(`<b class="bold forestgreen">${bostaIdListe.length}</b> adet <b class="royalblue">${tip.toUpperCase()} Test</b> kaydı açılacak, devam edilsin mi?`, sinifAdi);
-			if (!rdlg) { return } let promises = [], {table: muaTable} = this; for (const muayeneId of bostaIdListe) {
-				const ts = now(), tamamlandimi = false; let onayKodu = 0; while (onayKodu < 100000) { onayKodu = asInteger(Math.random() * 1000000) }
-				const hastaId = mua2HastaId[muayeneId], testInst = new testSinif({ muayeneId, hastaId, sablonId, ts, tamamlandimi, onayKodu });
+			if (!rdlg) { return } let promises = [], {table: muaTable} = this;
+			for (const muayeneId of bostaIdListe) {
+				let ts = now(), tamamlandimi = false, onayKodu = 0; while (onayKodu < 100000) { onayKodu = asInteger(Math.random() * 1000000) }
+				const {id: hastaId, cinsiyet} = mua2HastaRec[muayeneId], testInst = new testSinif({ muayeneId, hastaId, sablonId, ts, tamamlandimi, cinsiyet, onayKodu });
 				promises.push(testInst.yaz().then(() =>
 					app.sqlExecNone(new MQIliskiliUpdate({
 						from: muaTable, where: { degerAta: muayeneId, saha: 'id' }, set: { degerAta: testInst.id, saha: `${tip}${seq}testid` } }))))
@@ -151,7 +156,7 @@ class MQMuayene extends MQGuidOrtak {
 		return testSinif.listeEkraniAc({
 			secimlerDuzenle: idListe?.length
 				? ({ secimler: sec }) => {
-					const birKismimi = true; $.extend(sec.instKod, { birKismimi, kodListe: idListe })
+					const birKismimi = true; $.extend(sec.id, { birKismimi, kodListe: idListe })
 					sec.tarih.temizle()
 				}
 				: undefined

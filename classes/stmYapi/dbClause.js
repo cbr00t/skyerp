@@ -286,7 +286,7 @@ class MQSubWhereClause extends MQClause {
 		let liste = e.liste ?? e.deger ?? e.value; delete e.deger; if (liste?.value !== undefined) { liste = liste.value }
 		if (liste && typeof liste != 'object') { liste = $.makeArray(liste) }
 		if (liste && !$.isArray(liste)) { liste = Object.values(liste) }
-		if (liste) { liste = liste.map(x => coalesce(x.char, x)).filter(x => !(x instanceof TekSecim)) }
+		if (liste) { liste = liste.map(x => x?.char === undefined ? x : x.char).filter(x => !(x && x instanceof TekSecim)) }
 		if (liste?.length) { return this.inDizi({ saha: e.saha, liste, not: isNot }) }
 		return this
 	}

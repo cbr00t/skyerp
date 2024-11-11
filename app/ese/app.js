@@ -39,7 +39,10 @@ class ESEApp extends App {
 				}
 				if (raporItems?.length) { /*parentItem.*/ items.push(new FRMenuCascade({ mne: 'RAPOR', text: 'Raporlar', items: raporItems })) }
 			}
-			items.push(new FRMenuChoice({ mne: MQParam_ESE.paramKod, text: MQParam_ESE.sinifAdi, block: e => app.params.ese.tanimla(e) }))
+			items.push(
+				new FRMenuChoice({ mne: MQParam_ESE.paramKod, text: MQParam_ESE.sinifAdi, block: e => app.params.ese.tanimla(e) }),
+				new FRMenuChoice({ mne: 'TEST_YUKLE', text: 'Dosyadan Test Yükle', block: e => this.dosyadanTestYukleIstendi(e) })
+			)
 		}
 		else { items.push(new FRMenuChoice({ mne: 'MAIN', text: 'TEST İşlemi', block: e => this.testBaslat(e) })) }
 		return new FRMenu({ items })
@@ -48,6 +51,44 @@ class ESEApp extends App {
 		e = e || {}; const {session} = config, testTip = e.testTip ?? e.tip ?? session.testTip, testId = e.testId ?? e.id ?? session.testId;
 		if (!testId) { return null } let testSinif = MQTest.getClass(testTip); if (!testSinif) { return null }
 		try { requestFullScreen() } catch (ex) { } return testSinif.baslat({ testId })
+	}
+	async dosyadanTestYukleIstendi(e) {
+		const title = 'Test Yükleme İşlemi', {data} = await openFile({ type: 'text', accept: ['text/plain'] }) ?? {}; if (!data) { return null }
+		let {index: rdlg} = await displayMessage('Seçilen dosyadaki TEST Kayıtları yüklensin mi?', title, [`<span class="red">SİLEREK</span>`, 'Silmeden', 'VAZGEÇ'])?.result ?? {}
+		if ((rdlg ?? 2) == 2) { return null } let clear = rdlg == 0;
+		try {
+			let {testIds} = await this.dosyadanTestYukle({ ...e, data, clear, title }) ?? {};
+			if (testIds?.length) { eConfirm(`<b>${testIds?.length} adet <span class="royalblue">CPT Test</span></b> kaydı oluşturuldu`, title) }
+			else { hConfirm(`Yüklenecek test bilgileri belirlenemedi`, title) }
+			return testIds
+		}
+		catch (ex) { hConfirm(getErrorText(ex), title); throw ex }
+	}
+	async dosyadanTestYukle(e) {
+		let {clear, data} = e; if (!data) { return null } let delim = '\t', lines = data.split('\n'), i = 0;
+		let line = lines[i++], cols = line.trimEnd().split(delim).map(x => x.trim().toLowerCase());
+		/*line = lines[i++]; let tokens = line.trimEnd().split(delim); for (let j = 0; j < tokens.length; j++) { let value = tokens[j].trim(); if (value) { cols[j] += ' ' + value } }*/
+		let testSinif = MQTestCPT, {tip} = testSinif, sablonId = new testSinif().sablonId;
+		let /*recs = [],*/ testIds = [], hvListe = []; showProgress(`${lines.length} adet test kaydı yükleniyor...`, appName, true);
+		window.progressManager?.setProgressMax(lines.length * 1.5);
+		let tarihsaat = now(), btamamlandi = 1;
+		for (i = 2; i < lines.length; i++) {
+			let rec = {}; line = lines[i].trimEnd(); if (!line) { continue }
+			let tokens = line.split(delim); for (let j = 0; j < tokens.length; j++) { let col = cols[j]; rec[col] = asFloat(tokens[j].trim().replace(',', '.')) }
+			/*recs.push(rec)*/ let id = newGUID(), aktifyas = asInteger(rec.yas), cinsiyet = rec.cinsiyet == 1 ? 'E' : rec.cinsiyet == 2 ? 'K' : '';
+			if (!cinsiyet) { window.progressManager?.progressStep(); continue }
+			let dogrusayi = asInteger(rec.cptcorrectresponses), yanlissayi = asInteger(rec.cptcommissionerrors), secilmeyendogrusayi = asInteger(rec.cptommissionerrors);
+			let tumsayi = dogrusayi + yanlissayi, dogrusecimsurems = asFloat(rec.cptchoicerxntimecorrect);
+			testIds.push(id); let hv = { id, tarihsaat, btamamlandi, aktifyas, cinsiyet, dogrusayi, yanlissayi, secilmeyendogrusayi, tumsayi, dogrusecimsurems };
+			hv[`${tip}sablonid`] = sablonId; hvListe.push(hv); window.progressManager?.progressStep()
+		}
+		/*console.table(recs)*/
+		if (!hvListe?.length) { return null } let {table} = testSinif;
+		let query = new MQToplu(); if (clear) { query.add(new MQIliskiliDelete({ from: table }), new MQIliskiliUpdate({ from: MQMuayene.table, set: [`cpt1testid = NULL`] })) }
+		query.add(new MQInsert({ from: table, hvListe }));
+		if (query?.bosDegilmi) { await app.sqlExecNone(query) }
+		window.progressManager?.progressEnd(); setTimeout(() => hideProgress(), 1000)
+		return { testIds, query }
 	}
 	wsTestBilgi(e) { let args = e || {}; delete args.data; return ajaxPost({ url: this.getWSUrl({ api: 'testBilgi', args }) }) }
 	wsTestSonucKaydet(e) {

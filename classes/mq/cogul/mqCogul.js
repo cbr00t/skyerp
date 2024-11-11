@@ -572,7 +572,7 @@ class MQCogul extends MQYapi {
 	keySetValues(e) { super.keySetValues(e); this.forAltYapiKeysDo('keySetValues', e) }
 	alternateKeyHostVars(e) { const hv = super.alternateKeyHostVars(e), _results = this.forAltYapiKeysDo('alternateKeyHostVars', e) || []; for (const _hv of _results) { if (_hv) $.extend(hv, _hv) } return hv }
 	alternateKeyHostVarsDuzenle(e) { super.alternateKeyHostVarsDuzenle(e); this.forAltYapiKeysDo('alternateKeyHostVarsDuzenle', e) }
-	hostVars(e) { const hv = super.hostVars(e), _results = []; for (const _hv of _results) { if (!$.isEmptyObject(_hv)) $.extend(hv, _hv) } return hv }
+	hostVars(e) { const hv = super.hostVars(e), _results = []; for (const _hv of _results) { if (!$.isEmptyObject(_hv)) { $.extend(hv, _hv) } } return hv }
 	pIO_hostVarsDuzenle(e) { super.pIO_hostVarsDuzenle(e); this.forAltYapiKeysDo('pIO_hostVarsDuzenle', e) }
 	hostVarsDuzenle(e) {
 		super.hostVarsDuzenle(e); const {hv, ozelSahaYapilari} = e, {ayrimlar, ozelSahalar} = this, {ayrimIsimleri} = this.class;
