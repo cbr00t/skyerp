@@ -337,7 +337,10 @@ class MQHatYonetimi extends MQMasterOrtak {
 			return MQHat.listeEkraniAc({
 				tekil: true, args: { exclude_hatKod, _recs }, title: `<b class="royalblue">${_recs.length} adet Tezgahı</b> <span class="darkgray">şu Hat'a taşı:</span>`, secince: async e => {
 					const hatKod = e.value, {sender} = e, tezgahKodListe = sender._recs?.map(rec => rec.tezgahKod); if (!tezgahKodListe?.length) { return }
-					const upd = new MQIliskiliUpdate({ from: 'tekilmakina', where: { inDizi: tezgahKodListe, saha: 'kod' }, set: { degerAta: hatKod, saha: 'ismrkkod' } });
+					const upd = new MQIliskiliUpdate({
+						from: 'tekilmakina', where: { inDizi: tezgahKodListe, saha: 'kod' },
+						set: [{ degerAta: hatKod, saha: 'ismrkkod' }, `perkod = ''`]
+					});
 					try {
 						await app.sqlExecNone(upd); let promises = [];
 						for (const tezgahKod of tezgahKodListe) {
