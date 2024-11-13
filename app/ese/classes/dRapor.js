@@ -38,16 +38,27 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 	loadServerData_queryDuzenle_ek(e) { }
 	loadServerData_queryDuzenle_son(e) { const {stm, attrSet} = e, {orderBy} = stm; super.loadServerData_queryDuzenle_son(e) }
 	async loadServerData_recsDuzenle(e) {
-		await super.loadServerData_recsDuzenle(e); const {attrSet} = this.raporTanim, {recs} = e;
+		await super.loadServerData_recsDuzenle(e); const {attrSet} = this.raporTanim, {toplam} = this.tabloYapi;
 		if (attrSet.YASGRUP) {
 			let {_yasGrupRecs: yasGrupRecs} = this; if (!yasGrupRecs) {
 				let sent = new MQSent({ from: 'eseyasgrup', sahalar: ['id', 'aciklama', 'yasbasi basi', 'yassonu sonu'] });
 				yasGrupRecs = this._yasGrupRecs = await app.sqlExecSelect(sent)
 			}
-			for (const rec of recs) {
+			let {recs} = e; for (const rec of recs) {
 				const {aktifyas: aktifYas} = rec, yasGrupRec = yasGrupRecs.find(_rec => (!_rec.basi || aktifYas >= _rec.basi) && (!_rec.sonu || aktifYas <= _rec.sonu));
 				if (yasGrupRec) { $.extend(rec, { yasgrupid: yasGrupRec.id, yasgrupadi: yasGrupRec.aciklama }) }
 			}
+			let yasGrupId2Recs = []; for (const rec of recs) {
+				const {yasgrupid, yasgrupadi} = rec;
+				(yasGrupId2Recs[yasgrupid ?? ''] = yasGrupId2Recs[yasgrupid ?? ''] ?? []).push(rec)
+			}
+			const toplamAttrSet = asSet(Object.keys(attrSet).filter(key => toplam[key]));
+			recs = []; for (const subRecs of Object.values(yasGrupId2Recs)) {
+				let rec = subRecs.splice(0, 1)[0]; if (!rec) { continue }
+				for (const _rec of subRecs) { for (const key in toplamAttrSet) { rec[key] = (rec[key] || 0) + (_rec[key] || 0) } }
+				recs.push(rec)
+			}
+			return recs
 		}
 	}
 	/*async loadServerDataInternal(e) {
