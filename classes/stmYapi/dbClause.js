@@ -10,20 +10,15 @@ class MQClause extends MQSQLOrtak {
 		let value = e.birlestir; if (value) { this.birlestir(value) }
 	}
 	add(...sahalar) {
-		const {liste} = this
-		for (const saha of sahalar) {
-			if (saha == null) { continue }
-			if ($.isArray(saha)) { this.add(...saha); continue }
-			const value = this.donusmusDeger(saha);
-			if (this.addIcinUygunmu(value)) { liste.push(value) }
+		const {liste} = this; for (const saha of sahalar) {
+			if (saha == null) { continue } if ($.isArray(saha)) { this.add(...saha); continue }
+			const value = this.donusmusDeger(saha); if (this.addIcinUygunmu(value)) { liste.push(value) }
 		}
 		return this
 	}
 	addDogrudan(...sahalar) {
-		const {liste} = this
-		for (const saha of sahalar) {
-			if (saha == null) { continue }
-			if ($.isArray(saha)) { this.add(...saha); continue }
+		const {liste} = this; for (const saha of sahalar) {
+			if (saha == null) { continue } if ($.isArray(saha)) { this.add(...saha); continue }
 			const value = this.donusmusDeger(saha); liste.push(value)
 		}
 		return this
@@ -110,6 +105,11 @@ class MQSahalar extends MQClause {
 	donusmusDeger(item) {
 		item = super.donusmusDeger(item); if (item == null) { return item }
 		return typeof item == 'object' ? item : MQAliasliYapi.newForSahaText(item)
+	}
+	addIcinUygunmu(item) {
+		if (!super.addIcinUygunmu(item)) { return false }
+		const {liste} = this; if (liste.find(x => ((x?.aliasVeyaDeger && item?.aliasVeyaDeger) && x.aliasVeyaDeger == item.aliasVeyaDeger))) { return false }
+		return true
 	}
 	addWithAlias(alias, ...sahalar) { return this.addAllWithAlias({ alias: alias, sahalar: sahalar }) }
 	addAllWithAlias(e) { const {alias, sahalar} = e;
