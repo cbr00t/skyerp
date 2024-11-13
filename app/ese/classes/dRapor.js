@@ -41,13 +41,18 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 	loadServerData_queryDuzenle_ek(e) { }
 	loadServerData_queryDuzenle_son(e) { const {stm, attrSet} = e, {orderBy} = stm; super.loadServerData_queryDuzenle_son(e) }
 	async loadServerData_recsDuzenle(e) {
-		await super.loadServerData_recsDuzenle(e); const {attrSet} = this.raporTanim, {toplam} = this.tabloYapi;
+		await super.loadServerData_recsDuzenle(e); const {attrSet} = this.raporTanim, {toplam} = this.tabloYapi; let {recs} = e;
+		/*case 'TUMSAYI': sahalar.add('SUM(fis.tumsayi) tumsayi'); break;
+		case 'DOGRUSAYI': sahalar.add('SUM(fis.dogrusayi) dogrusayi'); break; case 'YANLISSAYI': sahalar.add('SUM(fis.yanlissayi) yanlissayi'); break
+		case 'SECILMEYENDOGRUSAYI': sahalar.add('SUM(fis.secilmeyendogrusayi) secilmeyendogrusayi'); break
+		case 'ORTDOGRUSECIMSUREMS': sahalar.add('SUM(fis.dogrusecimsurems) dogrusecimsurems'); break
+		case 'ORTYANLISSECIMSUREMS': sahalar.add('SUM(fis.yanlissecimsurems) yanlissecimsurems'); break*/
 		if (attrSet.YASGRUP) {
 			let {_yasGrupRecs: yasGrupRecs} = this; if (!yasGrupRecs) {
 				let sent = new MQSent({ from: 'eseyasgrup', sahalar: ['id', 'aciklama', 'yasbasi basi', 'yassonu sonu'] });
 				yasGrupRecs = this._yasGrupRecs = await app.sqlExecSelect(sent)
 			}
-			let {recs} = e; for (const rec of recs) {
+			for (const rec of recs) {
 				const {aktifyas: aktifYas} = rec, yasGrupRec = yasGrupRecs.find(_rec => (!_rec.basi || aktifYas >= _rec.basi) && (!_rec.sonu || aktifYas <= _rec.sonu));
 				if (yasGrupRec) { $.extend(rec, { yasgrupid: yasGrupRec.id, yasgrupadi: yasGrupRec.aciklama }) }
 			}
@@ -90,14 +95,17 @@ class DRapor_ESETest_CPT_Main extends DRapor_ESETest_Main {
 	static get table() { return 'esecpttest' } static get detayVeyaGrupTable() { return 'esecpttestgrup' }
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); const {result} = e; result
-			.addToplam(new TabloYapiItem().setKA('TUMSAYI', 'Tüm Sayı').addColDef(new GridKolon({ belirtec: 'tumsayi', text: 'Tüm Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))
+			.addToplam(
+				new TabloYapiItem().setKA('TUMSAYI', 'Tüm Sayı').addColDef(new GridKolon({ belirtec: 'tumsayi', text: 'Tüm Sayı', genislikCh: 10, filterType: 'numberinput',
+					aggregates: ['avg'] /*aggregates: [{ 'xyz': ((total, value, belirtec, gridRec, _) => roundToFra(value * 100 / grandTotal, 0)) }]*/
+				}).tipDecimal(1)))
 			/*.addGrup(new TabloYapiItem().setKA('GRUPNO', 'Grup No').addColDef(new GridKolon({ belirtec: 'grupno', text: 'Grup No', genislikCh: 10, filterType: 'checkedlist' }).tipNumerik()))
 			  .addToplam(new TabloYapiItem().setKA('GRUPSAYI', 'Grup Sayı').addColDef(new GridKolon({ belirtec: 'grupsayi', text: 'Grup Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))*/
-			.addToplam(new TabloYapiItem().setKA('DOGRUSAYI', 'Doğru Sayı').addColDef(new GridKolon({ belirtec: 'dogrusayi', text: 'Doğru Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))
-			.addToplam(new TabloYapiItem().setKA('ORTDOGRUSECIMSUREMS', 'Ort. Doğru Seçim Süre (ms)').addColDef(new GridKolon({ belirtec: 'dogrusecimsurems', text: 'Doğru Seçim (ms)', genislikCh: 15, filterType: 'numberinput' }).tipDecimal(1)))
-			.addToplam(new TabloYapiItem().setKA('YANLISSAYI', 'Yanlış Sayı').addColDef(new GridKolon({ belirtec: 'yanlissayi', text: 'Yanlış Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))
-			.addToplam(new TabloYapiItem().setKA('ORTYANLISSECIMSUREMS', 'Ort. Yanlış Seçim Süre (ms)').addColDef(new GridKolon({ belirtec: 'yanlissecimsurems', text: 'Yanlış Seçim (ms)', genislikCh: 15, filterType: 'numberinput' }).tipDecimal(1)))
-			.addToplam(new TabloYapiItem().setKA('SECILMEYENDOGRUSAYI', 'Seçilmeyen Doğru Sayı').addColDef(new GridKolon({ belirtec: 'secilmeyendogrusayi', text: 'Seçilmeyen Doğru', genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))
+			.addToplam(new TabloYapiItem().setKA('DOGRUSAYI', 'Doğru Sayı').addColDef(new GridKolon({ belirtec: 'dogrusayi', text: 'Doğru Sayı', genislikCh: 10, filterType: 'numberinput', aggregates: ['avg'] }).tipDecimal(1)))
+			.addToplam(new TabloYapiItem().setKA('ORTDOGRUSECIMSUREMS', 'Ort. Doğru Seçim Süre (ms)').addColDef(new GridKolon({ belirtec: 'dogrusecimsurems', text: 'Doğru Seçim (ms)', genislikCh: 15, filterType: 'numberinput', aggregates: ['avg'] }).tipDecimal()))
+			.addToplam(new TabloYapiItem().setKA('YANLISSAYI', 'Yanlış Sayı').addColDef(new GridKolon({ belirtec: 'yanlissayi', text: 'Yanlış Sayı', genislikCh: 10, filterType: 'numberinput', aggregates: ['avg'] }).tipDecimal(1)))
+			.addToplam(new TabloYapiItem().setKA('ORTYANLISSECIMSUREMS', 'Ort. Yanlış Seçim Süre (ms)').addColDef(new GridKolon({ belirtec: 'yanlissecimsurems', text: 'Yanlış Seçim (ms)', genislikCh: 15, filterType: 'numberinput', aggregates: ['avg'] }).tipDecimal()))
+			.addToplam(new TabloYapiItem().setKA('SECILMEYENDOGRUSAYI', 'Seçilmeyen Doğru Sayı').addColDef(new GridKolon({ belirtec: 'secilmeyendogrusayi', text: 'Seçilmeyen Doğru', genislikCh: 10, filterType: 'numberinput', aggregates: ['avg'] }).tipDecimal(1)))
 	}
 	ekCSSDuzenle(e) {
 		super.ekCSSDuzenle(e); const {belirtec, result} = e; switch (belirtec) {
@@ -109,16 +117,15 @@ class DRapor_ESETest_CPT_Main extends DRapor_ESETest_Main {
 		super.loadServerData_queryDuzenle_ek(e); const {stm, attrSet} = e; let {sent} = stm, {where: wh, sahalar} = sent;
 		for (const key in attrSet) {
 			switch (key) {
-				case 'TUMSAYI': sahalar.add('AVG(fis.tumsayi) tumsayi'); break /*case 'GRUPNO': sahalar.add('fis.grupno'); break; case 'GRUPSAYI': sahalar.add('SUM(fis.grupsayi) grupsayi'); break*/
-				case 'DOGRUSAYI': sahalar.add('AVG(fis.dogrusayi) dogrusayi'); break; case 'YANLISSAYI': sahalar.add('AVG(fis.yanlissayi) yanlissayi'); break
-				case 'SECILMEYENDOGRUSAYI': sahalar.add('AVG(fis.secilmeyendogrusayi) secilmeyendogrusayi'); break
-				case 'ORTDOGRUSECIMSUREMS': sahalar.add('AVG(fis.dogrusecimsurems) dogrusecimsurems'); break
-				case 'ORTYANLISSECIMSUREMS': sahalar.add('AVG(fis.yanlissecimsurems) yanlissecimsurems'); break
+				case 'TUMSAYI': sahalar.add('SUM(fis.tumsayi) tumsayi'); break /*case 'GRUPNO': sahalar.add('fis.grupno'); break; case 'GRUPSAYI': sahalar.add('SUM(fis.grupsayi) grupsayi'); break*/
+				case 'DOGRUSAYI': sahalar.add('SUM(fis.dogrusayi) dogrusayi'); break; case 'YANLISSAYI': sahalar.add('SUM(fis.yanlissayi) yanlissayi'); break
+				case 'SECILMEYENDOGRUSAYI': sahalar.add('SUM(fis.secilmeyendogrusayi) secilmeyendogrusayi'); break
+				case 'ORTDOGRUSECIMSUREMS': sahalar.add('SUM(fis.dogrusecimsurems) dogrusecimsurems'); break
+				case 'ORTYANLISSECIMSUREMS': sahalar.add('SUM(fis.yanlissecimsurems) yanlissecimsurems'); break
 			}
 		}
 	}
 }
-
 class DRapor_ESETest_Anket extends DRapor_ESETest {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get mainClass() { return DRapor_ESETest_Anket_Main }
 	static get kod() { return 'TESTANKET' } static get aciklama() { return 'Test Sonuçları (Anket)' }
@@ -132,12 +139,12 @@ class DRapor_ESETest_Anket_Main extends DRapor_ESETest_Main {
 		for (let i = 1; i <= maxSecenekSayisi; i++) {
 			result.addGrup(new TabloYapiItem().setKA(`YANIT${i}`, `Yanit-${i}`).addColDef(new GridKolon({ belirtec: `secenek${i}`, text: `Yanıt-${i}`, filterType: 'checkedlist' }))) }
 		result
-			.addToplam(new TabloYapiItem().setKA('YANITSIZSAYI', 'Yanıtsız Sayı').addColDef(new GridKolon({ belirtec: 'yanitsizsayi', text: 'Yanıtsız Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))
-			.addToplam(new TabloYapiItem().setKA('TOPLAMPUAN', 'Toplam Puan').addColDef(new GridKolon({ belirtec: 'toplampuan', text: 'Toplam Puan', genislikCh: 10, filterType: 'numberinput' }).tipDecimal(1)));
+			.addToplam(new TabloYapiItem().setKA('YANITSIZSAYI', 'Yanıtsız Sayı').addColDef(new GridKolon({ belirtec: 'yanitsizsayi', text: 'Yanıtsız Sayı', genislikCh: 10, filterType: 'numberinput', aggregates: ['avg'] }).tipNumerik()))
+			.addToplam(new TabloYapiItem().setKA('TOPLAMPUAN', 'Toplam Puan').addColDef(new GridKolon({ belirtec: 'toplampuan', text: 'Toplam Puan', genislikCh: 10, filterType: 'numberinput', aggregates: ['avg'] }).tipDecimal(1)));
 		for (let i = 1; i <= maxSecenekSayisi; i++) {
 			result
-				.addToplam(new TabloYapiItem().setKA(`YANIT${i}SAYI`, `Yanit-${i} Sayı`).addColDef(new GridKolon({ belirtec: `yanit${i}sayi`, text: `Yanıt-${i} Sayı`, genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))
-				.addToplam(new TabloYapiItem().setKA(`YANIT${i}PUAN`, `Yanit-${i} Puan`).addColDef(new GridKolon({ belirtec: `yanit${i}puan`, text: `Yanıt-${i} Puan`, genislikCh: 10, filterType: 'numberinput' }).tipDecimal(1)))
+				.addToplam(new TabloYapiItem().setKA(`YANIT${i}SAYI`, `Yanit-${i} Sayı`).addColDef(new GridKolon({ belirtec: `yanit${i}sayi`, text: `Yanıt-${i} Sayı`, genislikCh: 10, filterType: 'numberinput', aggregates: ['avg'] }).tipNumerik()))
+				.addToplam(new TabloYapiItem().setKA(`YANIT${i}PUAN`, `Yanit-${i} Puan`).addColDef(new GridKolon({ belirtec: `yanit${i}puan`, text: `Yanıt-${i} Puan`, genislikCh: 10, filterType: 'numberinput', aggregates: ['avg'] }).tipDecimal(1)))
 		}
 	}
 	ekCSSDuzenle(e) { super.ekCSSDuzenle(e); const {belirtec, result} = e; switch (belirtec) { case 'yanlissayi': case 'yanitsizsayi': result.push('red'); break } }
@@ -162,5 +169,4 @@ class DRapor_ESETest_Anket_Main extends DRapor_ESETest_Main {
 		}
 	}
 }
-
 /* DRapor_ESETest_CPT.goster() */
