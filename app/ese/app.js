@@ -71,7 +71,7 @@ class ESEApp extends App {
 		let testSinif = MQTestCPT, {tip} = testSinif, sablonId = new testSinif().sablonId;
 		let /*recs = [],*/ testIds = [], hvListe = []; showProgress(`${lines.length} adet test kaydı yükleniyor...`, appName, true);
 		window.progressManager?.setProgressMax(lines.length * 1.5);
-		let tarihsaat = now(), btamamlandi = 1;
+		let tarihsaat = now(), btamamlandi = 0;
 		for (i = 2; i < lines.length; i++) {
 			let rec = {}; line = lines[i].trimEnd(); if (!line) { continue }
 			let tokens = line.split(delim); for (let j = 0; j < tokens.length; j++) { let col = cols[j]; rec[col] = asFloat(tokens[j].trim().replace(',', '.')) }

@@ -45,7 +45,7 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 				yasGrupRecs = this._yasGrupRecs = await app.sqlExecSelect(sent)
 			}
 			for (const rec of recs) {
-				const {aktifyas: aktifYas} = rec, yasGrupRec = yasGrupRecs.find(_rec => (!_rec.basi || _rec.basi >= aktifYas) && (!_rec.sonu || _rec.sonu <= aktifYas));
+				const {aktifyas: aktifYas} = rec, yasGrupRec = yasGrupRecs.find(_rec => (!_rec.basi || aktifYas >= _rec.basi) && (!_rec.sonu || aktifYas <= _rec.sonu));
 				if (yasGrupRec) { $.extend(rec, { yasgrupid: yasGrupRec.id, yasgrupadi: yasGrupRec.aciklama }) }
 			}
 		}

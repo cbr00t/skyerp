@@ -90,16 +90,16 @@ class MQTest extends MQGuidOrtak {
 		)
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); const {tanimFormBuilder: tanimForm} = e;
+		super.rootFormBuilderDuzenle(e); const {tanimFormBuilder: tanimForm} = e, {dev} = config;
 		let form = tanimForm.addFormWithParent().altAlta();
-			form.addModelKullan('sablonId', 'Şablon').dropDown().kodsuz().setMFSinif(this.sablonSinif);
+			if (dev) { form.addModelKullan('sablonId', 'Şablon').dropDown().kodsuz().setMFSinif(this.sablonSinif) }
 			form.addCheckBox('tamamlandimi', 'Tamamlandı').addStyle(e => `$elementCSS { margin-top: 10px !important }`);
 		tanimForm.addDiv('ozetBilgi').etiketGosterim_yok().addCSS('bold gray').addStyle_fullWH(null, 'auto').addStyle(e => `$elementCSS { font-size: 120%; padding: 10px 20px }`)
 			.onAfterRun(async e => {
 				const {altInst: inst, input} = e.builder, {ts, muayeneId, hastaId, hastaAdi, sablonId, tamamlandimi} = inst, {sablonTip} = inst.class;
 				let {uygulanmaYeri, onayKodu, aktifYas} = inst, cinsiyet = inst.cinsiyet?.char ?? inst.cinsiyet;
 				let cinsiyetText = (cinsiyet == 'E' ? 'Erkek' : cinsiyet == 'K' ? 'Kadın' : null);
-				/*let sablonAdi; if (sablonTip && sablonId) { sablonAdi = (await MQSablon.getClass(sablonTip)?.getGloKod2Adi(sablonId)) || '' }*/
+				let sablonAdi; if (!dev && sablonTip && sablonId) { sablonAdi = (await MQSablon.getClass(sablonTip)?.getGloKod2Adi(sablonId)) || '' }
 				let muayeneRec; if (muayeneId) { muayeneRec = await new MQMuayene({ id: muayeneId }).tekilOku() }
 				uygulanmaYeri = uygulanmaYeri?.char ?? uygulanmaYeri;
 				const addItem = (elm, css, style) => {
@@ -107,10 +107,10 @@ class MQTest extends MQGuidOrtak {
 					if (!elm?.length) { return } let parent = $(`<div class="full-width"${style ? ` style="${style}"` : ''}/>`); if (css) { parent.addClass(css) }
 					elm.appendTo(parent); parent.appendTo(input)
 				};
-				/*if (sablonAdi) { addItem(`<span class="gray etiket">Şablon:</span> <b class="veri forestgreen">${sablonAdi}</b>`, 'flex-row'), `font-size: 130%` }*/
-				addItem(`${ts ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri">${dateTimeAsKisaString(ts)}</b>` : ''}`, 'flex-row');
+				if (!dev && sablonAdi) { addItem(`<span class="gray etiket">Şablon:</span> <b class="veri forestgreen">${sablonAdi}</b>`, 'flex-row'), `font-size: 130%` }
+				addItem(`${ts ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri royalblue">${dateTimeAsKisaString(ts)}</b>` : ''}`, 'flex-row');
 				if ((muayeneRec?.fisnox || '0') != '0') { addItem(`<span class="gray etiket">Muayene:</span> <b class="veri">${muayeneRec.fisnox}</b>`, 'flex-row') }
-				addItem(`<span class="gray">Hasta: <b class="royalblue">${hastaAdi || ''}</b></span> ${aktifYas ? `${hastaAdi ? '- ' : ''}(Yaş: <b class="forestgreen">${aktifYas}</b>)` : ''} ${cinsiyetText ? `- (<b class="orangered">${cinsiyetText}</b>)` : ''}`, 'flex-row');
+				addItem(`<span class="gray">Hasta: <b class="royalblue">${hastaAdi || ''}</b></span> ${aktifYas ? `${hastaAdi ? '- ' : ''}(Yaş: <b class="royalblue">${aktifYas}</b>)` : ''} ${cinsiyetText ? `- <b class="orangered">${cinsiyetText}</b>` : ''}`, 'flex-row');
 				if (uygulanmaYeri) { addItem(`<span class="darkgray etiket">Uygulanma Yeri:</span> <b>${MQTestUygulanmaYeri.kaDict[uygulanmaYeri]?.aciklama || ''}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }
 				if (onayKodu) { addItem(`<span class="gray etiket">Onay Kodu:</span> <u class="onayKodu veri bold royalblue">${onayKodu}</u>`, null, `margin-top: 30px; cursor: pointer`) }
 				let elm = input.find('.onayKodu.veri'); if (elm?.length) {
