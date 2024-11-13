@@ -7,7 +7,9 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_ESETest }
 	static get table() { return null } static get detayVeyaGrupTable() { return null } get tazeleYapilirmi() { return true }
 	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e); const {result} = e; result.addKAPrefix('doktor', 'hasta', 'ilbolge', 'il')
+		super.tabloYapiDuzenle(e); const {result} = e; result.addKAPrefix('doktor', 'hasta', 'ilbolge', 'il');
+		if (config.dev) { result.addGrup(new TabloYapiItem().setKA('TESTID', 'Test ID').setMFSinif(MQTest).kodsuz().setOrderBy('testid').addColDef(new GridKolon({ belirtec: 'testid', text: 'Test ID', filterType: 'input' }))) }
+		result
 			.addGrup(new TabloYapiItem().setKA('DOKTOR', 'Doktor').setMFSinif(MQDoktor).kodsuz().setOrderBy('doktoradi').addColDef(new GridKolon({ belirtec: 'doktor', text: 'Doktor', filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('HASTA', 'Hasta').setMFSinif(MQHasta).kodsuz().setOrderBy('hastaadi').addColDef(new GridKolon({ belirtec: 'hasta', text: 'Hasta', filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('ILBOLGE', 'İl Bölgesi').setMFSinif(MQIlBolge).addColDef(new GridKolon({ belirtec: 'ilbolge', text: 'İl Bölgesi', filterType: 'checkedlist' })))
@@ -25,11 +27,12 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 			sent.leftJoin({ alias: 'has', from: 'eseyerlesim yer', on: 'has.yerlesimkod = yer.kod' }).leftJoin({ alias: 'yer', from: 'caril il', on: 'yer.ilkod = il.kod' }) }
 		for (const key in attrSet) {
 			switch (key) {
+				case 'TESTID': sahalar.add('fis.id testid'); break
 				case 'HASTA': sahalar.add('fis.hastaid hastakod', 'has.aciklama hastaadi'); wh.icerikKisitDuzenle_x({ ...e, belirtec: 'esehasta', saha: `${alias}.hastaid` }); break
 				case 'DOKTOR': sahalar.add('mua.doktorid doktorkod', 'dok.aciklama doktoradi'); wh.icerikKisitDuzenle_x({ ...e, belirtec: 'esedoktor', saha: `mua.doktorid` }); break
-				case 'ILBOLGE': sent.leftJoin({ alias: 'il', from: 'eseilbolge ibol', on: 'il.ilbolgekod = ibol.kod' }); sahalar.add('il.ilbolgekod', 'ibol.aciklama ilbolgeadi'); break;
-				case 'IL': sahalar.add('il.kod ilkod', 'il.aciklama iladi'); break;
-				case 'CINSIYET': sahalar.add(`${Cinsiyet.getClause(`${alias}.cinsiyet`)} cinsiyet`); break;
+				case 'ILBOLGE': sent.leftJoin({ alias: 'il', from: 'eseilbolge ibol', on: 'il.ilbolgekod = ibol.kod' }); sahalar.add('il.ilbolgekod', 'ibol.aciklama ilbolgeadi'); break
+				case 'IL': sahalar.add('il.kod ilkod', 'il.aciklama iladi'); break
+				case 'CINSIYET': sahalar.add(`${Cinsiyet.getClause(`${alias}.cinsiyet`)} cinsiyet`); break
 				case 'AKTIFYAS': case 'YASGRUP': sahalar.add(`${alias}.aktifyas`); break
 			}
 		}
@@ -91,9 +94,9 @@ class DRapor_ESETest_CPT_Main extends DRapor_ESETest_Main {
 			/*.addGrup(new TabloYapiItem().setKA('GRUPNO', 'Grup No').addColDef(new GridKolon({ belirtec: 'grupno', text: 'Grup No', genislikCh: 10, filterType: 'checkedlist' }).tipNumerik()))
 			  .addToplam(new TabloYapiItem().setKA('GRUPSAYI', 'Grup Sayı').addColDef(new GridKolon({ belirtec: 'grupsayi', text: 'Grup Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))*/
 			.addToplam(new TabloYapiItem().setKA('DOGRUSAYI', 'Doğru Sayı').addColDef(new GridKolon({ belirtec: 'dogrusayi', text: 'Doğru Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))
-			.addToplam(new TabloYapiItem().setKA('ORTDOGRUSECIMSUREMS', 'Ort. Doğru Seçim Süre (ms)').addColDef(new GridKolon({ belirtec: 'dogrusecimsurems', text: 'Doğru Sayı', genislikCh: 15, filterType: 'numberinput' }).tipDecimal(1)))
+			.addToplam(new TabloYapiItem().setKA('ORTDOGRUSECIMSUREMS', 'Ort. Doğru Seçim Süre (ms)').addColDef(new GridKolon({ belirtec: 'dogrusecimsurems', text: 'Doğru Seçim (ms)', genislikCh: 15, filterType: 'numberinput' }).tipDecimal(1)))
 			.addToplam(new TabloYapiItem().setKA('YANLISSAYI', 'Yanlış Sayı').addColDef(new GridKolon({ belirtec: 'yanlissayi', text: 'Yanlış Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))
-			.addToplam(new TabloYapiItem().setKA('ORTYANLISSECIMSUREMS', 'Ort. Yanlış Seçim Süre (ms)').addColDef(new GridKolon({ belirtec: 'yanlissecimsurems', text: 'Yanlış Sayı', genislikCh: 15, filterType: 'numberinput' }).tipDecimal(1)))
+			.addToplam(new TabloYapiItem().setKA('ORTYANLISSECIMSUREMS', 'Ort. Yanlış Seçim Süre (ms)').addColDef(new GridKolon({ belirtec: 'yanlissecimsurems', text: 'Yanlış Seçim (ms)', genislikCh: 15, filterType: 'numberinput' }).tipDecimal(1)))
 			.addToplam(new TabloYapiItem().setKA('SECILMEYENDOGRUSAYI', 'Seçilmeyen Doğru Sayı').addColDef(new GridKolon({ belirtec: 'secilmeyendogrusayi', text: 'Seçilmeyen Doğru', genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))
 	}
 	ekCSSDuzenle(e) {
