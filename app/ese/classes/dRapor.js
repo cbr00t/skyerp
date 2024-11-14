@@ -7,7 +7,7 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_ESETest }
 	static get table() { return null } static get detayVeyaGrupTable() { return null } get tazeleYapilirmi() { return true }
 	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e); const {result} = e; result.addKAPrefix('doktor', 'hasta', 'ilbolge', 'il');
+		super.tabloYapiDuzenle(e); const {result} = e; result.addKAPrefix('doktor', 'hasta', 'ilbolge', 'il', 'yasgrup');
 		if (config.dev) { result.addGrup(new TabloYapiItem().setKA('TESTID', 'Test ID').setMFSinif(MQTest).kodsuz().setOrderBy('testid').addColDef(new GridKolon({ belirtec: 'testid', text: 'Test ID', filterType: 'input' }))) }
 		result
 			.addGrup(new TabloYapiItem().setKA('DOKTOR', 'Doktor').setMFSinif(MQDoktor).kodsuz().setOrderBy('doktoradi').addColDef(new GridKolon({ belirtec: 'doktor', text: 'Doktor', filterType: 'checkedlist' })))
@@ -16,7 +16,7 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 			.addGrup(new TabloYapiItem().setKA('IL', 'İl').setMFSinif(MQCariIl).addColDef(new GridKolon({ belirtec: 'il', text: 'İl', filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('CINSIYET', 'Cinsiyet').addColDef(new GridKolon({ belirtec: 'cinsiyet', text: 'Cinsiyet', filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('AKTIFYAS', 'Aktif Yaş').addColDef(new GridKolon({ belirtec: 'aktifyas', text: 'Aktif Yaş', genislikCh: 25, filterType: 'checkedlist' }).tipNumerik()))
-			.addGrup(new TabloYapiItem().setKA('YASGRUP', 'Yaş Grubu').noOrderBy().addColDef(new GridKolon({ belirtec: 'yasgrupadi', text: 'Yaş Grubu', genislikCh: 25, filterType: 'checkedlist' }).tipNumerik()))
+			.addGrup(new TabloYapiItem().setKA('YASGRUP', 'Yaş Grubu').kodsuz().setMFSinif(MQYasGrup).addColDef(new GridKolon({ belirtec: 'yasgrup', text: 'Yaş Grubu', genislikCh: 25, filterType: 'checkedlist' })))
 	}
 	loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {stm, attrSet} = e, alias ='fis'; let {sent} = stm, {where: wh, sahalar} = sent;
@@ -25,6 +25,8 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 		if (attrSet.HASTA || attrSet.IL || attrSet.ILBOLGE || attrSet.CINSIYET) { sent.leftJoin({ alias, from: 'esehasta has', on: `${alias}.hastaid = has.id` }) }
 		if (attrSet.IL || attrSet.ILBOLGE) {
 			sent.leftJoin({ alias: 'has', from: 'eseyerlesim yer', on: 'has.yerlesimkod = yer.kod' }).leftJoin({ alias: 'yer', from: 'caril il', on: 'yer.ilkod = il.kod' }) }
+		if (attrSet.YASGRUP) {
+			sent.leftJoin({ alias, from: 'eseyasgrup ygrp', on: [`(ygrp.yasbasi = 0 or ${alias}.aktifyas >= ygrp.yasbasi)`, `(ygrp.yassonu = 0 or ${alias}.aktifyas <= ygrp.yassonu)`] }) }
 		for (const key in attrSet) {
 			switch (key) {
 				case 'TESTID': sahalar.add('fis.id testid'); break
@@ -33,52 +35,13 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 				case 'ILBOLGE': sent.leftJoin({ alias: 'il', from: 'eseilbolge ibol', on: 'il.ilbolgekod = ibol.kod' }); sahalar.add('il.ilbolgekod', 'ibol.aciklama ilbolgeadi'); break
 				case 'IL': sahalar.add('il.kod ilkod', 'il.aciklama iladi'); break
 				case 'CINSIYET': sahalar.add(`${Cinsiyet.getClause(`${alias}.cinsiyet`)} cinsiyet`); break
-				case 'AKTIFYAS': case 'YASGRUP': sahalar.add(`${alias}.aktifyas`); break
+				case 'AKTIFYAS': sahalar.add(`${alias}.aktifyas`); break
+				case 'YASGRUP': sahalar.add('ygrp.id yasgrupkod', 'ygrp.aciklama yasgrupadi'); break
 			}
 		}
 		this.loadServerData_queryDuzenle_tarih({ ...e, alias: 'fis', tarihSaha: 'tarihsaat' }); this.loadServerData_queryDuzenle_ek(e); sent.groupByOlustur()
 	}
 	loadServerData_queryDuzenle_ek(e) { }
-	loadServerData_queryDuzenle_son(e) { const {stm, attrSet} = e, {orderBy} = stm; super.loadServerData_queryDuzenle_son(e) }
-	async loadServerData_recsDuzenle(e) {
-		await super.loadServerData_recsDuzenle(e); const {attrSet} = this.raporTanim, {toplam} = this.tabloYapi; let {recs} = e;
-		/*case 'TUMSAYI': sahalar.add('SUM(fis.tumsayi) tumsayi'); break;
-		case 'DOGRUSAYI': sahalar.add('SUM(fis.dogrusayi) dogrusayi'); break; case 'YANLISSAYI': sahalar.add('SUM(fis.yanlissayi) yanlissayi'); break
-		case 'SECILMEYENDOGRUSAYI': sahalar.add('SUM(fis.secilmeyendogrusayi) secilmeyendogrusayi'); break
-		case 'ORTDOGRUSECIMSUREMS': sahalar.add('SUM(fis.dogrusecimsurems) dogrusecimsurems'); break
-		case 'ORTYANLISSECIMSUREMS': sahalar.add('SUM(fis.yanlissecimsurems) yanlissecimsurems'); break*/
-		if (attrSet.YASGRUP) {
-			let {_yasGrupRecs: yasGrupRecs} = this; if (!yasGrupRecs) {
-				let sent = new MQSent({ from: 'eseyasgrup', sahalar: ['id', 'aciklama', 'yasbasi basi', 'yassonu sonu'] });
-				yasGrupRecs = this._yasGrupRecs = await app.sqlExecSelect(sent)
-			}
-			for (const rec of recs) {
-				const {aktifyas: aktifYas} = rec, yasGrupRec = yasGrupRecs.find(_rec => (!_rec.basi || aktifYas >= _rec.basi) && (!_rec.sonu || aktifYas <= _rec.sonu));
-				if (yasGrupRec) { $.extend(rec, { yasgrupid: yasGrupRec.id, yasgrupadi: yasGrupRec.aciklama }) }
-			}
-			let yasGrupId2Recs = []; for (const rec of recs) {
-				const {yasgrupid, yasgrupadi} = rec;
-				(yasGrupId2Recs[yasgrupid ?? ''] = yasGrupId2Recs[yasgrupid ?? ''] ?? []).push(rec)
-			}
-			const toplamAttrSet = asSet(Object.keys(attrSet).filter(key => toplam[key]));
-			recs = []; for (const subRecs of Object.values(yasGrupId2Recs)) {
-				let rec = subRecs.splice(0, 1)[0]; if (!rec) { continue }
-				for (const _rec of subRecs) { for (const key in toplamAttrSet) { rec[key] = (rec[key] || 0) + (_rec[key] || 0) } }
-				recs.push(rec)
-			}
-			return recs
-		}
-	}
-	/*async loadServerDataInternal(e) {
-		await super.superSuper_loadServerDataInternal(e); const {raporTanim, secimler} = this, {attrSet} = raporTanim, {maxRow} = e;
-		return [
-			{ tarih: dateToString(now()), hastakod: '001', hastaadi: 'ÖZER', tumsayi: 10 },
-			{ tarih: dateToString(now().dun()), hastakod: '001', hastaadi: 'ÖZER', tumsayi: 20 },
-			{ tarih: dateToString(now()), hastakod: '002', hastaadi: 'ALİ', tumsayi: 3 },
-			{ tarih: dateToString(now().dun()), hastakod: '002', hastaadi: 'ALİ', tumsayi: 5 },
-			{ tarih: dateToString(now().addDays(-2)), hastakod: '002', hastaadi: 'ALİ', tumsayi: 2 }
-		]
-	}*/
 	fisVeHareketBagla(e) {
 		const {sent} = e, alias = 'fis', {table, detayVeyaGrupTable} = this.class; sent.fromAdd(`${table} fis`);
 		if (detayVeyaGrupTable) { sent.leftJoin({ alias, from: `${detayVeyaGrupTable} har`, iliski: `har.fisid = fis.id` }) }

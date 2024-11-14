@@ -1,7 +1,7 @@
 class TicariApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get testBaseClass() { return Ticari_TestBase } static get yerelParamSinif() { return MQYerelParamTicari }
+    static { window[this.name] = this; this._key2Class[this.name] = this } get testBaseClass() { return Ticari_TestBase } get yerelParamSinif() { return MQYerelParamTicari }
 	paramsDuzenle(e) {
-		super.paramsDuzenle(e); const {params} = e, {yerelParamSinif} = this.class;
+		super.paramsDuzenle(e); const {params} = e;
 		$.extend(params, {
 			logocu: MQLogocu.getInstance(), zorunlu: MQZorunluParam.getInstance(), isyeri: MQIsyeri.getInstance(),
 			ticariGenel: MQTicariGenelParam.getInstance(), aktarim: MQAktarimParam.getInstance(), fiyatVeIsk: MQFiyatVeIskontoParam.getInstance(), stokBirim: MQStokBirimParam.getInstance(), stokGenel: MQStokGenelParam.getInstance(),

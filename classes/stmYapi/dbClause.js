@@ -401,6 +401,7 @@ class MQSubWhereClause extends MQClause {
 	}
 	icerikKisitDuzenle_x(e) { config.session?.rol?.icerikselClauseDuzenle({ ...e, /* saha: ... */ where: this }) }
 	icerikKisitDuzenle_sube(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'sube' }) }
+	icerikKisitDuzenle_subeGrup(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'subeGrup' }) }
 	icerikKisitDuzenle_cari(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'cari' }) }
 	icerikKisitDuzenle_cariTip(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'carTip' }) }
 	icerikKisitDuzenle_cariIstGrup(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'cariIstGrup' }) }

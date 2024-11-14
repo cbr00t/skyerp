@@ -21,8 +21,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 				else { this.fromIliski(fromIliskiOrLeftJoin) }
 			}
 		}
-		if (birlestir) { this.birlestir(birlestir) }
-		if (groupByOlustur) { this.groupByOlustur() }
+		if (birlestir) { this.birlestir(birlestir) } if (groupByOlustur) { this.groupByOlustur() }
 	}
 	static hasAggregateFunctions(e) {
 		if (typeof e != 'object') e = { sql: e };
@@ -165,7 +164,8 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		this.fromIliski({ from: `${harTable} har`, iliski: 'fis.kaysayac = har.fissayac' })
 		return this
 	}
-	fis2SubeBagla(e) { this.fromIliski('isyeri sub', 'fis.bizsubekod = sub.kod'); this.fromIliski('isygrup igrp', 'sub.isygrupkod = igrp.kod'); return this }
+	fis2SubeBagla(e) { this.fromIliski('isyeri sub', 'fis.bizsubekod = sub.kod'); this.sube2GrupBagla(e); return this }
+	sube2GrupBagla(e) { this.fromIliski('isygrup igrp', 'sub.isygrupkod = igrp.kod'); return this }
 	fis2CariBagla(e) { this.fromIliski('carmst car', 'fis.must = car.must'); return this }
 	fis2TicCariBagla(e) { this.fromIliski('carmst car', 'fis.ticmust = car.must'); return this }
 	fis2AltHesapBagla(e) { this.fromIliski('althesap alth', 'fis.althesapkod = alth.kod'); return this }

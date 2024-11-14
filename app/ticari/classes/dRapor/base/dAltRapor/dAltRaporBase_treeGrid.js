@@ -20,13 +20,12 @@ class DAltRapor_TreeGrid extends DAltRapor {
 				grid.on('rowCollapse', event => this.gridRowCollapsed({ ...e, event }));
 				grid.on('rowClick', event => this.gridSatirTiklandi({ ...e, event }));
 				grid.on('rowDoubleClick', event => this.gridSatirCiftTiklandi({ ...e, event }));
+				grid.on('sort', event => this.gridSortIstendi({ ...e, event }));
 				this.onGridRun(e)
 			})
 	}
-	tabloKolonlariDuzenle(e) { }
-	gridArgsDuzenle(e) { }
-	onGridInit(e) { /*const {gridPart} = this*/ }
-	onGridRun(e) { this.tazele(e) }
+	tabloKolonlariDuzenle(e) { } gridArgsDuzenle(e) { }
+	onGridInit(e) { /*const {gridPart} = this*/ } onGridRun(e) { this.tazele(e) }
 	gridRowExpanded(e) { const {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = true }
 	gridRowCollapsed(e) { const {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = false }
 	gridSatirTiklandi(e) { }
@@ -36,13 +35,23 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	}
 	async tazele(e) {
 		e = e || {}; await super.tazele(e); const {grid} = this.gridPart || {}; if (!grid) { return }
-		const da = await this.getDataAdapter(e); if (!da) { return } grid.jqxTreeGrid('source', da)
+		const da = await this.getDataAdapter(e); if (da) { grid.jqxTreeGrid('source', da) }
 	}
 	super_tazele(e) { super.tazele(e) }
 	hizliBulIslemi(e) { const {gridPart} = this; gridPart.filtreTokens = e.tokens; this.tazele(e) }
 	gridVeriYuklendi(e) {
 		const {gridPart} = this, {grid, gridWidget} = gridPart, {boundRecs, recs} = e; gridPart.expandedRowsSet = {};
 		if (boundRecs?.length) { gridWidget.expandRow(0) }
+	}
+	gridSortIstendi(e) {
+		const {tabloYapi, gridPart} = this, {base} = gridPart.gridWidget, {sortcolumn: sortBelirtec} = base; let sortTipKod;
+		if (sortBelirtec) {
+			for (let {colDefs} of Object.values(tabloYapi.grupVeToplam)) {
+				let tip = colDefs.find(colDef => colDef.belirtec == sortBelirtec)?.userData?.kod;
+				if (tip) { sortTipKod = tip; break }
+			}
+		}
+		if (tabloYapi.toplam[sortTipKod]) { this.tazele({ ...e, defUpdateOnly: true }) }
 	}
 	tabloKolonlariDuzenle(e) { }
 	async getDataAdapter(e) {
@@ -168,7 +177,10 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		})
 	}
 	ekCSSDuzenle(e) { }
-	async loadServerData(e) { let recs = this.raporTanim.secilenVarmi ? await super.loadServerData(e) : []; e.recs = recs; await this.ozetBilgiRecsOlustur(e); return recs }
+	async loadServerData(e) {
+		let recs = e.recs = this.raporTanim.secilenVarmi ? await super.loadServerData(e) : [];
+		await this.ozetBilgiRecsOlustur(e); return recs
+	}
 	loadServerData_recsDuzenleIlk(e) {
 		let {recs} = e; const {tabloYapi} = this, {kaPrefixes, sortAttr, grupVeToplam} = tabloYapi, fixKA = (rec, prefix) => {
 			if (rec == null) { return } const item = grupVeToplam[prefix] ?? grupVeToplam[prefix.toUpperCase()], {kodsuzmu} = item || {};
@@ -229,8 +241,10 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	ozetBilgiRecsOlustur(e) {
 		const {raporTanim, ozetBilgi} = this, {grupAttr, icerikAttr, icerikColDef} = ozetBilgi; if (!grupAttr) { return }
 		const {secilenVarmi, ozetMax} = raporTanim; if (!(secilenVarmi && ozetMax)) { ozetBilgi.recs = []; return }
-		const sevRecs = e.recs, deger2Bilgiler = {}; for (const sev of sevRecs) { const value = sev[icerikAttr]; if (value) { (deger2Bilgiler[value] = deger2Bilgiler[value] || []).push(sev) } }
+		const {gridWidget} = this.gridPart, sevRecs = e.recs ?? gridWidget.getRows(), deger2Bilgiler = {}; for (const sev of sevRecs) {
+			const value = sev[icerikAttr]; if (value) { (deger2Bilgiler[value] = deger2Bilgiler[value] || []).push(sev) } }
 		const tersSiraliDegerler = Object.keys(deger2Bilgiler).map(x => asFloat(x)).sort((a, b) => a < b ? 1 : -1);
+		const sortDir = gridWidget.base.sortdirection; if (sortDir?.ascending) { tersSiraliDegerler.reverse() }
 		const digerRec = {}; digerRec[grupAttr] = `<b class="royalblue">Diğer</b>`; digerRec[icerikAttr] = 0
 		let result = [], digerSayi = 0; for (const deger of tersSiraliDegerler) {
 			const subRecs = deger2Bilgiler[deger]; for (const subRec of subRecs) {
@@ -251,24 +265,41 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		if (!secilenVarmi) { if (!this._tabloTanimGosterildiFlag) { this.raporTanimIstendi(e) } return }
 	}
 	async tazele(e) {
-		try {
-			await this.tazeleOncesi(e); const {gridPart, raporTanim} = this, {degistimi} = raporTanim, {grid, gridWidget} = gridPart;
+		e = e ?? {}; try {
+			await this.tazeleOncesi(e); const {gridPart, raporTanim} = this, {degistimi} = raporTanim, {grid, gridWidget} = gridPart, {base} = gridWidget, {defUpdateOnly} = e;
 			const {tabloKolonlari, tabloYapi, ozetBilgi} = this, {secilenVarmi, attrSet, grup, icerik} = raporTanim;
-			const tip2ColDefs = {}; for (const colDef of tabloKolonlari) { const {belirtec, userData} = colDef, {kod} = userData || {}; if (kod) { (tip2ColDefs[kod] = tip2ColDefs[kod] || []).push(colDef) } }
-			let _colDefs = Object.keys(icerik).flatMap(kod => tip2ColDefs[kod]), colDefs = [..._colDefs.filter(colDef => !colDef?.userData?.kod), ..._colDefs.filter(colDef => colDef?.userData?.kod)];
+			const tip2ColDefs = {}, belirtec2Tip = {}; for (const colDef of tabloKolonlari) {
+				const {belirtec, userData} = colDef, {kod: tip} = userData || {};
+				if (tip) { (tip2ColDefs[tip] = tip2ColDefs[tip] || []).push(colDef); belirtec2Tip[belirtec] = tip }
+			}
+			let _colDefs = Object.keys(icerik).flatMap(kod => tip2ColDefs[kod]), colDefs = [
+				..._colDefs.filter(colDef => !colDef?.userData?.kod), ..._colDefs.filter(colDef => colDef?.userData?.kod)];
 			for (const colDef of colDefs) { if (!colDef?.aggregates && tabloYapi.toplam[colDef?.userData?.kod]) { colDef.aggregates = ['sum'] } }
 			let ilkColDef = colDefs[0]; if (tabloYapi.grup[ilkColDef?.userData?.kod]) {
 				let colDef = ilkColDef.deepCopy(); colDefs[0] = colDef; colDef.minWidth = colDef.minWidth || 250;
 				colDef.text = [...(Object.keys(grup).map(kod => `<span class="royalblue">${tabloYapi.grup[kod]?.colDefs[0]?.text || ''}</span>`) || []), colDef.text].join(' + ')
 			}
-			grid.jqxTreeGrid('clear'); colDefs = this.getColumns(colDefs); try { grid.jqxTreeGrid('columns', colDefs.flatMap(colDef => colDef.jqxColumns)) } catch (ex) { console.error(ex) }
-			$.extend(ozetBilgi, {
-				grupTipKod: Object.keys(attrSet).find(kod => !tabloYapi.toplam[kod]) || null,
-				icerikTipKod: Object.keys(icerik).find(kod => tabloYapi.toplam[kod]) || null
-			});
-			$.extend(ozetBilgi, { grupColDef: (tip2ColDefs[ozetBilgi.grupTipKod] || [])[0], icerikColDef: (tip2ColDefs[ozetBilgi.icerikTipKod] || [])[0] });
-			$.extend(ozetBilgi, { grupAttr: ozetBilgi.grupColDef?.belirtec, icerikAttr: ozetBilgi.icerikColDef?.belirtec });
-			$.extend(ozetBilgi, { grupText: ozetBilgi.grupColDef?.text, icerikText: ozetBilgi.icerikColDef?.text });
+			if (!defUpdateOnly) { grid.jqxTreeGrid('clear') } colDefs = this.getColumns(colDefs);
+			let {sortcolumn: sortBelirtec, sortdirection: sortDir} = base, sortTipKod = belirtec2Tip[sortBelirtec]; ozetBilgi.grupTipKod = ozetBilgi.icerikTipKod = null;
+			if (sortTipKod) {
+				if (tabloYapi.toplam[sortTipKod]) { ozetBilgi.icerikTipKod = sortTipKod }
+				/*const selector = `${tabloYapi.toplam[sortTipKod] ? 'icerik' : 'grup'}TipKod`; ozetBilgi[selector] = sortTipKod*/
+				/*if (tabloYapi.grup[sortTipKod]) { sortTipKod = Object.keys(icerik)[0] }
+				let sortColDefs = tip2ColDefs[sortTipKod]; if (sortColDefs?.length) {
+					const sortBelirtecSet = asSet(sortColDefs.map(colDef => colDef.belirtec));
+					let savedColDefs = colDefs; colDefs = [savedColDefs[0], ...sortColDefs, ...savedColDefs.slice(1).filter(colDef => !sortBelirtecSet[colDef.belirtec])]
+				}*/
+			}
+			for (const tip in attrSet) {
+				if (ozetBilgi.grupTipKod && ozetBilgi.icerikTipKod) { break }
+				if (!ozetBilgi.grupTipKod && !tabloYapi.toplam[tip]) { ozetBilgi.grupTipKod = tip }
+				else if (!ozetBilgi.icerikTipKod && tabloYapi.toplam[tip]) { ozetBilgi.icerikTipKod = tip }
+			}
+			for (const prefix of ['grup', 'icerik']) {
+				let colDef = ozetBilgi[`${prefix}ColDef`] = tip2ColDefs[ozetBilgi[`${prefix}TipKod`]]?.[0]; $.extend(colDef, { sortDir })
+				ozetBilgi[`${prefix}Attr`] = colDef?.belirtec; ozetBilgi[`${prefix}Text`] = colDef?.text;
+			}
+			try { grid.jqxTreeGrid('columns', colDefs.flatMap(colDef => colDef.jqxColumns)) } catch (ex) { console.error(ex) }
 			/* gridWidget.base.sortcolumn */
 			const ozetBilgi_getColumns = (source, kod, colDefDuzenle) =>
 				this.getColumns((source[kod]?.colDefs || [])).map(_colDef => { const colDef = _colDef/*.deepCopy()*/; if (colDefDuzenle) { getFuncValue.call(this, colDefDuzenle, colDef) } return colDef });
@@ -276,7 +307,9 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				...ozetBilgi_getColumns(tabloYapi.grup, ozetBilgi.grupTipKod, colDef => $.extend(colDef, { minWidth: 140, maxWidth: null, genislikCh: null })),
 				...ozetBilgi_getColumns(tabloYapi.toplam, ozetBilgi.icerikTipKod, colDef => $.extend(colDef, { minWidth: null, maxWidth: null, genislikCh: 16, aggregates: ozetBilgi.icerikColDef?.aggregates || ['sum'] }))
 			] : [];
-			raporTanim.degistimi = false; await gridPart._promise_kaFix; await super.tazele(e); await this.tazeleDiger(e)
+			raporTanim.degistimi = false; await gridPart._promise_kaFix;
+			if (defUpdateOnly) { delete e.recs; await this.gridVeriYuklendi(e); await this.ozetBilgiRecsOlustur(e) } else { await super.tazele(e) }
+			await this.tazeleDiger(e)
 		}
 		catch (ex) { hConfirm(getErrorText(ex), this.class.aciklama); throw ex }
 	}

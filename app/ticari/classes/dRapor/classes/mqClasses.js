@@ -87,9 +87,18 @@ class DMQUlke extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ülke' }
 	static get table() { return 'ulke' } static get tableAlias() { return 'ulk' }
 }
+class DMQSubeGrup extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Şube Grup' }
+	static get table() { return 'isygrup' } static get tableAlias() { return 'igrp' }
+}
 class DMQSube extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Şube' }
 	static get table() { return 'isyeri' } static get tableAlias() { return 'sub' }
+	static orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e); const {liste} = e;
+		liste.push(new GridKolon({ belirtec: 'subegrupkod', text: 'Şube Grup', genislikCh: 10 }), new GridKolon({ belirtec: 'subegrupadi', text: 'Şube Grup Adı', genislikCh: 20, sql: 'igrp.aciklama' }))
+	}
+	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.sube2GrupBagla() }
 }
 class DMQTakipNo extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Takip No' }

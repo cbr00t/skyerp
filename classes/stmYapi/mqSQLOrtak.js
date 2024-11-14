@@ -235,7 +235,7 @@ class MQIliskiYapisi extends MQSQLOrtak {
 			parantezSayilari = { ac: 0, kapat: 0 }; ind = text.indexOf('=', ind + 1); if (ind != -1) { esittirVarmi = true }
 			solText = text.substring(0, ind).trim(); for (const ch of solText) { if (ch == '(') { parantezSayilari.ac++ } else if (ch == ')') { parantezSayilari.kapat++ } }
 		} while (ind > -1 && parantezSayilari.ac != parantezSayilari.kapat);
-		if (esittirVarmi && ind < 0) { throw { isError: true, rc: 'queryBuilderError', errorText: 'Dengesiz eşitlik' } }
+		/*if (esittirVarmi && ind < 0) { throw { isError: true, rc: 'queryBuilderError', errorText: 'Dengesiz eşitlik' } }*/
 		return new this({ sol: solText, sag: text.substring(ind + 1) })
 	}
 	get varsaZincir() {

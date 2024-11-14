@@ -1,8 +1,15 @@
 class SecimlerPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	/*static get isSubPart() { return true }*/ static get isWindowPart() { return false }
+    static { window[this.name] = this; this._key2Class[this.name] = this } /*static get isSubPart() { return true }*/ static get isWindowPart() { return false }
 	static get canDestroy() { return false } static get partName() { return 'secimler' }
-
+	get tipBelirtec() { const {secimler, mfSinif} = this; return [secimler.class.classKey, mfSinif?.classKey].filter(x => x).join('|') }
+	get rootConfig() { return app?.params?.yerel }
+	get config() {
+		let result = this._config; if (result === undefined) {
+			let rootConfig = this.rootConfig ?? {}, baseConfig = rootConfig.secimler = rootConfig.secimler ?? {};
+			const key = this.tipBelirtec ?? ''; result = this._config = baseConfig[key] = baseConfig[key] ?? {}
+		}
+		return result
+	}
 	constructor(e) {
 		e = e || {}; super(e); const secimler = this.secimler = e.secimler; $.extend(this, {
 			parentPart: e.parentPart ?? app.activeWndPart, layout: e.secimlerParent ?? this.layout, wnd: e.wnd,
@@ -110,7 +117,9 @@ class SecimlerPart extends Part {
 		/*if (this.kolonFiltreDuzenleyici) { ekButonlar.push({ id: 'kolonFiltre', handler: e => this.kolonFiltreIstendi(e) }) }*/
 		ekButonlar.push(
 			{ id: 'seviyeleriAc', handler: e => this.seviyeleriAcKapatIstendi($.extend({}, e, { flag: true })) },
-			{ id: 'seviyeleriKapat', handler: e => this.seviyeleriAcKapatIstendi($.extend({}, e, { flag: false })) }
+			{ id: 'seviyeleriKapat', handler: e => this.seviyeleriAcKapatIstendi($.extend({}, e, { flag: false })) },
+			{ id: 'secimSakla', text: 'Kaydet', handler: e => this.secimSaklaIstendi(e) },
+			{ id: 'secimYukle', text: 'Yükle', handler: e => this.secimYukleIstendi(e) }
 		);
 		const {args} = e; $.extend(args, { ekButonlarIlk: ekButonlar, ekSagButonIdSet: ['temizle'] })
 	}
@@ -170,6 +179,24 @@ class SecimlerPart extends Part {
 			//setTimeout(() => secimlerForm.css('opacity', .1), 50);
 			//setTimeout(() => secimlerForm.css('opacity', 1), 100);
 		}
+	}
+	secimSaklaIstendi(e) {
+		let aciklama = prompt('Seçim Adını giriniz'); if (!aciklama) { return }
+		const {config, rootConfig, secimler, mfSinif} = this; config[aciklama] = secimler.asObject; rootConfig?.kaydetDefer();
+		eConfirm(`Seçim içerikleri <b class="royalblue">${aciklama}</b> ismi ile web tarayıcınızda kaydedildi`, [mfSinif?.sinifAdi, 'Seçimler'].filter(x => x).join(' '))
+	}
+	secimYukleIstendi(e) {
+		const {tipBelirtec} = this; MQSecim.listeEkraniAc({
+			args: { tipBelirtec },
+			secince: e => {
+				const {aciklama, icerik} = e.rec ?? {}; if (!icerik) { return }
+				const {secimler, secim2Info} = this; for (const [key, _secim] of Object.entries(icerik)) {
+					const secim = secimler[key]; if (!secim) { continue } $.extend(secim, _secim); 
+					const {element: parent} = secim2Info[key]; if (parent) { secim.uiSetValues({ parent }) }
+				}
+				this.seviyeleriAcKapatIstendi({ flag: true }); eConfirm(`<b>${aciklama}</b> seçim içerikleri yüklendi`, [this.mfSinif?.sinifAdi, 'Seçimler'].filter(x => x).join(' '))
+			}
+		})
 	}
 	async tamamIstendi(e) {
 		const {mfSinif, secimler} = this; let result;
