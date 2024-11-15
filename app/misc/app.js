@@ -10,7 +10,7 @@ class MiscApp extends App {
 			let menuItems = []; if (subItems?.length) { menuItems = mne ? [new FRMenuCascade({ mne, text, items: subItems })] : subItems; items.push(...menuItems) }
 			return menuItems
 		};
-		addMenuSubItems('MISC', 'Ek İşlemler', [...MQHesnaStok.subClasses]);
+		addMenuSubItems('HESNA', 'Hesna', [...MQHesnaStok.subClasses]);
 		return new FRMenu({ items })
 	}
 	wsX(e) { let args = e || {}; delete args.data; return ajaxPost({ url: this.getWSUrl({ api: 'testBilgi', args }) }) }

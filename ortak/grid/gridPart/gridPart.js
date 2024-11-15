@@ -206,7 +206,8 @@ class GridPart extends Part {
 	get defaultTabloKolonlari() {
 		const liste = []; if (!this.rowNumberOlmasinFlag) {
 			liste.push(new GridKolon({
-					belirtec: '_rowNumber', text: '#', width: 55, groupable: false, draggable: false, cellClassName: '_rowNumber grid-readOnly'
+					belirtec: '_rowNumber', text: '#', width: 55, groupable: false, filterable: false, draggable: false, exportable: false,
+					filterType: 'input', cellClassName: '_rowNumber grid-readOnly'
 					/*cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
 						if (rec) { rec._rowNumber = rowIndex + 1 }
 						value = (rec?.boundIndex ?? rowIndex) + 1; html = changeTagContent(html, value.toString())
