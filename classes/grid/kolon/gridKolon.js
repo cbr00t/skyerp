@@ -75,10 +75,10 @@ class GridKolon extends GridKolonVeGrupOrtak {
 			groupable: (e.groupable ?? null),
 			resizable: (e.resizable ?? null),
 			draggable: (e.draggable ?? null),
-			pinned: (e.pinned ?? false)
+			pinned: (e.pinned ?? false),
+			exportable: (e.exportable ?? null)
 		};
-		let _attributes = e.attributes;
-		if (_attributes && typeof _attributes == 'string') { _attributes = _attributes ? _attributes.split(' ').filter(x => !!x) : null }
+		let _attributes = e.attributes; if (_attributes && typeof _attributes == 'string') { _attributes = _attributes ? _attributes.split(' ').filter(x => !!x) : null }
 		if (_attributes && $.isArray(_attributes)) { _attributes = asSet(_attributes) }
 		if (_attributes && typeof _attributes == 'object') {
 			for (const key in _attributes) { const flag = !!_attributes[key]; if (attributes[key] !== undefined) attributes[key] = flag }

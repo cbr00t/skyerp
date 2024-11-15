@@ -1,0 +1,9 @@
+/*.MQX.masterListe.part .header .islemTuslari button#x { width: 130px !important; margin-left: 20px }
+.MQX.masterListe.part .jqx-grid [role = row] > .xyz.jqx-grid-cell:not(.jqx-grid-cell-selected) { font-weight: bold }*/
+.part .dokumanForm, .part .skyResim.part #resim > .widget,
+	.part .skyResim.part #resim > .widget .item > .content { background-color: #111 !important; margin: 0 !important; padding: 0 !important }
+.part .skyResim.part { height: calc(var(--full) - 50px) !important }
+.masterListe.part .jqx-grid [role = row] > .resim, .masterListe.part .jqx-grid [role = row] > .resim > div { margin: 0 !important; padding: 0 !important }
+.masterListe.part .jqx-grid [role = row] > .resim > div > div { background-size: 100% 300% !important; background-repeat: no-repeat; background-position: left 20%; cursor: pointer !important }
+.masterListe.part .jqx-grid [role = row] > .resim:hover,
+	.masterListe.part .jqx-grid [role = row] > .resim:focus { box-shadow: 0 0 8px 2px royalblue !important }

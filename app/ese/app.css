@@ -6,9 +6,9 @@ body:not(.admin) #loginForm.loginPart.part > .alt-form > div.row:nth-child(3) > 
 body:not(.admin) #loginForm.loginPart.part > .alt-form > div.row:nth-child(3):before { content: 'e-Mail' }
 body:not(.admin) #loginForm.loginPart.part > .alt-form > div.row:nth-child(5) > h5 { display: none !important }
 body:not(.admin) #loginForm.loginPart.part > .alt-form > div.row:nth-child(5):before { content: 'Onay Kodu' }
-.eseResim.part .dokumanForm, .eseResim.part .skyResim.part #resim > .widget,
-	.eseResim.part .skyResim.part #resim > .widget .item > .content { background-color: #111 !important; margin: 0 !important; padding: 0 !important }
-.eseResim.part .skyResim.part { height: calc(var(--full) - 50px) !important }
+.part .dokumanForm, .part .skyResim.part #resim > .widget,
+	.part .skyResim.part #resim > .widget .item > .content { background-color: #111 !important; margin: 0 !important; padding: 0 !important }
+.part .skyResim.part { height: calc(var(--full) - 50px) !important }
 .MQSablonAnket.part .jqx-grid [role = row] > .soru.jqx-grid-cell { text-wrap: pretty }
 .MQSablonAnket.part .jqx-grid [role = row] > .soru.jqx-grid-cell > div { font-size: 93%; margin: 3px 8px !important }
 .MQMuayene.masterListe.part .islemTuslari #cptTestEkraniAc { margin-left: 10px }

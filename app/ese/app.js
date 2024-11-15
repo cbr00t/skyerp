@@ -13,7 +13,7 @@ class ESEApp extends App {
 			{ kod: 'eseLogin', aciklama: 'Normal Giriş' }
 		].filter(x => !!x))
 	}
-	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { localData: MQLocalData.getInstance(), ese: MQParam_ESE.getInstance() }) }
+	paramsDuzenle(e) { super.paramsDuzenle(e); $.extend(e.params, { localData: MQLocalData.getInstance(), ese: MQParam_ESE.getInstance() }) }
 	async getAnaMenu(e) {
 		const {noMenuFlag, isAdmin, params} = this; if (noMenuFlag) { return new FRMenu() } let items = [];
 		if (isAdmin) {

@@ -1,5 +1,5 @@
 <?php $_partRoot = "$webRoot_crm/classes" ?> <script src="<?=$_partRoot?>/params.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/parts.js?<?=$appVersion?>"></script>
-<script src="<?=$_partRoot?>/mqMasterOrtak.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/mqSabitTanimlar.js?<?=$appVersion?>"></script>
+<script src="<?=$webRoot?>/classes/ortak/mqMasterOrtak.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/mqSabitTanimlar.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqZiyaret.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/mqDurumDegerlendirme.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqDegerlendirme_ek.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/mqDegerlendirme_mq.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqMusIslem.js?<?=$appVersion?>"></script>
