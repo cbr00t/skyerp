@@ -82,8 +82,23 @@ class MQCariGenelParam extends MQTicariParamBase {
 	}
 }
 class MQStokGenelParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() { return 'Stok Genel Parametreler' } static get paramKod() { return 'SGN' } static get kgBirimler() { return ['KG', 'KILO', 'KİLO'] }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok Genel Parametreler' } static get paramKod() { return 'SGN' }
+	static get tip2BrmListe() {
+		let result = this._tip2BrmListe; if (result == null) {
+			result = this._tip2BrmListe = {
+				AD: ['AD', 'ADET', 'PK', 'PAKET', 'KL', 'KOLI', 'KOLİ'], KG: ['KG', 'KILO', 'KİLO'],
+				LT: ['LT', 'LITRE', 'LİTRE'], MT: ['MT', 'METRE']
+			}
+		}
+		return result
+	}
+	static get brm2Tip() {
+		let result = this._brm2Tip; if (result == null) {
+			const {tip2BrmListe} = this, result = {}; for (const [tip, brmListe] of Object.entries(tip2BrmListe)) { for (const brm of brmListe) { result[brm] = tip } }
+			this._brm2Tip = result
+		}
+		return result
+	}
 	static get hmrYapi() {
 		let result = this._hmrYapi;
 		if (result === undefined) {

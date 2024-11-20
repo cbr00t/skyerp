@@ -399,26 +399,28 @@ class MQSubWhereClause extends MQClause {
 		const {subeGrupKod, subeKod} = subeYapi; this.add(subeGecerlilik == 'G' ? `${subeGrupSql} = '${subeGrupKod}'` : `${subeKodSql} = '${subeKod}'`);
 		return this
 	}
-	icerikKisitDuzenle_x(e) { config.session?.rol?.icerikselClauseDuzenle({ ...e, /* saha: ... */ where: this }) }
-	icerikKisitDuzenle_sube(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'sube' }) }
-	icerikKisitDuzenle_subeGrup(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'subeGrup' }) }
-	icerikKisitDuzenle_cari(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'cari' }) }
-	icerikKisitDuzenle_cariTip(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'carTip' }) }
-	icerikKisitDuzenle_cariIstGrup(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'cariIstGrup' }) }
-	icerikKisitDuzenle_cariBolge(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'bolge' }) }
-	icerikKisitDuzenle_cariAnaBolge(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'anaBolge' }) }
-	icerikKisitDuzenle_cariIl(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'il' }) }
-	icerikKisitDuzenle_cariUlke(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'ulke' }) }
-	icerikKisitDuzenle_stok(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'stok' }) }
-	icerikKisitDuzenle_stokGrup(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'grup' }) }
-	icerikKisitDuzenle_stokAnaGrup(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'anaGrup' }) }
-	icerikKisitDuzenle_stokIstGrup(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'stokIstGrup' }) }
-	icerikKisitDuzenle_plasiyer(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'plasiyer' }) }
-	icerikKisitDuzenle_plasiyerTip(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'plasiyerTip' }) }
-	icerikKisitDuzenle_hizmet(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmet' }) }
-	icerikKisitDuzenle_hizmetGrup(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmetGrup' }) }
-	icerikKisitDuzenle_hizmetAnaGrup(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmetAnaGrup' }) }
-	icerikKisitDuzenle_hizmetIstGrup(e) { this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmetIstGrup' }) }
+	icerikKisitDuzenle_x(e) { config.session?.rol?.icerikselClauseDuzenle({ ...e, /* saha: ... */ where: this }); return this }
+	icerikKisitDuzenle_sube(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'sube' }) }
+	icerikKisitDuzenle_subeGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'subeGrup' }) }
+	icerikKisitDuzenle_cari(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'cari' }) }
+	icerikKisitDuzenle_cariTip(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'carTip' }) }
+	icerikKisitDuzenle_cariIstGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'cariIstGrup' }) }
+	icerikKisitDuzenle_cariBolge(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'bolge' }) }
+	icerikKisitDuzenle_cariAnaBolge(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'anaBolge' }) }
+	icerikKisitDuzenle_cariIl(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'il' }) }
+	icerikKisitDuzenle_cariUlke(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'ulke' }) }
+	icerikKisitDuzenle_stok(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'stok' }) }
+	icerikKisitDuzenle_stokGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'grup' }) }
+	icerikKisitDuzenle_stokAnaGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'anaGrup' }) }
+	icerikKisitDuzenle_stokIstGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'stokIstGrup' }) }
+	icerikKisitDuzenle_yer(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'yer' }).icerikKisitDuzenle_x({ ...e, belirtec: 'stokYer' }) }
+	icerikKisitDuzenle_yerGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'yerGrup' }).icerikKisitDuzenle_x({ ...e, belirtec: 'stokYerGrup' }) }
+	icerikKisitDuzenle_plasiyer(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'plasiyer' }) }
+	icerikKisitDuzenle_plasiyerTip(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'plasiyerTip' }) }
+	icerikKisitDuzenle_hizmet(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmet' }) }
+	icerikKisitDuzenle_hizmetGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmetGrup' }) }
+	icerikKisitDuzenle_hizmetAnaGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmetAnaGrup' }) }
+	icerikKisitDuzenle_hizmetIstGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmetIstGrup' }) }
 }
 class MQWhereClause extends MQSubWhereClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

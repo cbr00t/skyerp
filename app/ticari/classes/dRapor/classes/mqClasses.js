@@ -15,6 +15,19 @@ class DMQStokIstGrup extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok İst. Grup' }
 	static get table() { return 'stkistgrup' } static get tableAlias() { return 'sigrp' }
 }
+class DMQYerGrup extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok Depo Grup' }
+	static get table() { return 'stkyergrup' } static get tableAlias() { return 'ygrp' }
+}
+class DMQYer extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok Depo' }
+	static get table() { return 'stkyer' } static get tableAlias() { return 'yer' }
+	static orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e); const {liste} = e;
+		liste.push(new GridKolon({ belirtec: 'yergrupkod', text: 'Depo Grup', genislikCh: 10 }), new GridKolon({ belirtec: 'yergrupadi', text: 'Depo Grup Adı', genislikCh: 20, sql: 'ygrp.aciklama' }))
+	}
+	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.yer2GrupBagla() }
+}
 class DMQStok extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok' } static get zeminRenkDesteklermi() { return true }
 	static get table() { return 'stkmst' } static get tableAlias() { return 'stk' }

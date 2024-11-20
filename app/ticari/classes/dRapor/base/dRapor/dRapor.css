@@ -29,6 +29,8 @@
 @keyframes anim-raporTanim-hightlight { 50% { background-color: #c9e0c9 } }
 .dRapor.masterListe.part .jqx-grid [role = row] > div, #dRapor.part #items > .item .jqx-grid .jqx-grid-cell.toplam { font-weight: bold }
 #dRapor.part #items > .item .jqx-grid .jqx-grid-cell:not(.jqx-grid-cell-selected).toplam { background-color: #f1fff1 }
+#dRapor.part #items > .item .jqx-grid .jqx-grid-cell.zero > div { color: gray; opacity: .2 }
+#dRapor.part #items > .item .jqx-grid .jqx-grid-cell.negative > div { font-weight: bolder; color: orangered !important }
 #dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell:not(.leaf) { font-weight: bold; font-size: 115% }
 #dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell.level-0:not(.leaf) { font-size: 120% }
 #dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid tr:nth-child(even) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-0:not(.leaf) { background-color: #e2e7f1 }

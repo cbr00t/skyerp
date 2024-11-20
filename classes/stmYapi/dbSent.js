@@ -166,6 +166,9 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	}
 	fis2SubeBagla(e) { this.fromIliski('isyeri sub', 'fis.bizsubekod = sub.kod'); this.sube2GrupBagla(e); return this }
 	sube2GrupBagla(e) { this.fromIliski('isygrup igrp', 'sub.isygrupkod = igrp.kod'); return this }
+	fis2YerBagla(e) { return this.x2YerBagla({ ...e, alias: e.alias ?? 'fis' }) }
+	har2YerBagla(e) { return this.x2YerBagla({ ...e, alias: e.alias ?? 'har' }) }
+	x2YerBagla(e) { const {alias} = e, aliasVeNokta = alias ? `${alias}.` : ''; this.fromIliski('stkyer yer', `${aliasVeNokta}yerkod = yer.kod`) }
 	fis2CariBagla(e) { this.fromIliski('carmst car', 'fis.must = car.must'); return this }
 	fis2TicCariBagla(e) { this.fromIliski('carmst car', 'fis.ticmust = car.must'); return this }
 	fis2AltHesapBagla(e) { this.fromIliski('althesap alth', 'fis.althesapkod = alth.kod'); return this }
@@ -176,7 +179,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	fisAyrimBagla(e) { /* tamamlanacak */ return this }
 	cariHepsiBagla(e) { e = e || {}; this.cariYardimciBagla(e); this.cariAyrimBagla(e); return this }
 	cari2BolgeBagla(e) {
-		e = e || {}; const alias = e.alias ?? 'car', aliasVeNokta = alias + '.';
+		e = e || {}; const alias = e.alias ?? 'car', aliasVeNokta = alias ? `${alias}.` : '';
 		this.fromIliski('carbolge bol', `${aliasVeNokta}bolgekod = bol.kod`); return this
 	}
 	bolge2AnaBolgeBagla(e) { this.fromIliski('caranabolge abol', 'bol.anabolgekod = abol.kod'); return this }
@@ -215,6 +218,10 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	har2KasaBagla(e) { this.fromIliski('kasmst kas', 'har.kasakod = kas.kod'); return this }
 	har2BankaHesapBagla(e) { this.fromIliski('banbizhesap bhes', 'har.banhesapkod = bhes.kod'); return this }
 	har2StokBagla(e) { this.fromIliski('stkmst stk', 'har.stokkod = stk.kod'); return this }
+	son2StokBagla(e) { this.fromIliski('stkmst stk', 'son.stokkod = stk.kod'); return this }
+	son2YerBagla(e) { this.fromIliski('stkyer yer', 'son.yerkod = yer.kod'); return this }
+	yer2GrupBagla(e) { this.fromIliski('stkyergrup ygrp', 'yer.yergrupkod = ygrp.kod'); return this }
+	yer2SubeBagla(e) { this.fromIliski('isyeri sub', 'yer.bizsubekod = sub.kod'); return this }
 	stokHepsiBagla(e) { e = e || {}; this.stokYardimciBagla(e); this.stokAyrimBagla(e); return this }
 	stokYardimciBagla(e) {
 		e = e || {}; const alias = e.alias ?? 'stk', aliasVeNokta = alias + '.';

@@ -420,7 +420,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				if (icerikColsSet == null) { const {raporTanim} = this; icerikColsSet = raporTanim.icerik }
 				const kod = colDef.userData?.kod; let result = ['treeRow', belirtec]; if (rec) { result.push(rec.leaf ? 'leaf' : 'grup') }
 				if (icerikColsSet && icerikColsSet[belirtec]) { result.push('icerik') }
-				if (tabloYapi.toplam[kod]) { result.push('toplam') }
+				if (tabloYapi.toplam[kod]) { result.push('toplam'); if (typeof value == 'number') { result.push(!value ? 'zero' : value < 0 ? 'negative' : 'positive') } }
 				let {level} = rec; if (level != null) { result.push('level-' + level.toString()) }
 				const _e = { kod, raporTanim, icerikColsSet, colDefs, colDef, rowIndex, belirtec, value, rec, result }; this.ekCSSDuzenle(_e); result = _e.result;
 				return result.filter(x => !!x).join(' ')
