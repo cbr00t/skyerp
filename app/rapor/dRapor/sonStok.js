@@ -25,6 +25,7 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 				.addToplam(new TabloYapiItem().setKA('ALIMNETFIYAT', 'Alım Net Fiyat').addColDef(new GridKolon({ belirtec: 'alimnetfiyat', text: 'Alım Net Fiyat', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
 				.addToplam(new TabloYapiItem().setKA('SATISCIRO', 'Satış Ciro').addColDef(new GridKolon({ belirtec: 'satisciro', text: 'Satış Cirosu', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
 		}
+		this.tabloYapiDuzenle_hmr(e)
 	}
 	loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {stm, attrSet} = e, PrefixMiktar = 'MIKTAR'; let {sent} = stm, {where: wh, sahalar} = sent;
@@ -54,7 +55,7 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 					break
 			}
 		}
-		this.loadServerData_queryDuzenle_ek(e); sent.groupByOlustur()
+		this.loadServerData_queryDuzenle_hmr(e).loadServerData_queryDuzenle_ek(e); sent.groupByOlustur()
 	}
 	loadServerData_queryDuzenle_ek(e) { }
 }

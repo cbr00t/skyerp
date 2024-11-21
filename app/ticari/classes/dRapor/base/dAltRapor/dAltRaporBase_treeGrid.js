@@ -127,10 +127,14 @@ class DAltRapor_TreeGrid extends DAltRapor {
 				return result.join('')
 			};
 			if (tip instanceof GridKolonTip_Number) {
-				const {fra} = tip; colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) => `<div class="right">${toStringWithFra(value, fra)}</div>`;
+				const {fra} = tip; colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) =>
+					this.cellsRenderer({ colDef, rowIndex, belirtec, value, rec, html: `<div class="right">${toStringWithFra(value, fra)}</div>` })
 				/*if (!colDef.aggregates &&  tip instanceof GridKolonTip_Decimal) { colDef.aggregates = [(total, value) => asFloat(total) + asFloat(value)] }*/
 			}
-			else if (tip instanceof GridKolonTip_Date) { colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) => dateToString(asDate(value)) }
+			else if (tip instanceof GridKolonTip_Date) {
+				colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) => this.cellsRenderer({ colDef, rowIndex, belirtec, value, rec, html: dateToString(asDate(value)) }) }
+			else {
+				colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) => this.cellsRenderer({ colDef, rowIndex, belirtec, value, rec, html: value }) }
 			delete colDef.tip; result.push(colDef)
 		}
 		return result
@@ -177,6 +181,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		})
 	}
 	ekCSSDuzenle(e) { }
+	cellsRenderer(e) { return e.html }
 	async loadServerData(e) {
 		let recs = e.recs = this.raporTanim.secilenVarmi ? await super.loadServerData(e) : [];
 		await this.ozetBilgiRecsOlustur(e); return recs

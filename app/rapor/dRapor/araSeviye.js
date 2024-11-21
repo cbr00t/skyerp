@@ -16,12 +16,35 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			/*islemYap(Object.keys(this.raporTanim?.attrSet || {}), 'tbWhereClauseDuzenle', { ...e, ..._e })*/
 		})
 	}
+	cellsRenderer(e) {
+		e.html = super.cellsRenderer(e); const {belirtec, rec} = e;
+		switch (belirtec) {
+			case 'renk': {
+				const {oscolor1, oscolor2} = rec; if (oscolor1) {
+					let color = { start: os2HTMLColor(oscolor1), end: os2HTMLColor(oscolor2) };
+					e.html = `<div class="full-wh" style="font-weight: bold; color: ${getContrastedColor(color.start ?? '')}; background-repeat: no-repeat !important; background: linear-gradient(180deg, ${color.end} 20%, ${color.start} 80%) !important">${e.html}</div>`
+				}
+			} break
+			case 'desen': {
+				const {imagesayac} = rec; if (imagesayac) {
+					let url = `${app.getWSUrlBase({ wsPath: 'ws/genel' })}/dbResimData/?id=${imagesayac}`;
+					e.html = `<div class="grid-resim full-wh" style="font-weight: bold; background-repeat: no-repeat !important; background-size: cover; background-image: url(${url}) !important">${e.html}</div>`
+				}
+			} break
+		}
+		return e.html
+	}
 	async loadServerDataInternal(e) {
 		await super.loadServerDataInternal(e); const {raporTanim, secimler} = this, {attrSet} = raporTanim, {maxRow} = e, {donemBS} = e;
-		const _e = { ...e, stm: new MQStm(), attrSet, donemBS }; this.loadServerData_queryDuzenle(_e); this.loadServerData_queryDuzenle_son(_e);
-		const query = _e.stm, recs = query ? await app.sqlExecSelect({ query, maxRow }) : null; return recs
+		const _e = { ...e, stm: new MQStm(), attrSet, donemBS }; let recs = await this.loadServerData_ilk(e); if (recs !== undefined) { return recs }
+		this.loadServerData_queryDuzenle(_e); this.loadServerData_queryDuzenle_son(_e);
+		let query = _e.stm; recs = e.recs = query ? await app.sqlExecSelect({ query, maxRow }) : null;
+		let _recs = await this.loadServerData_son(e); if (_recs !== undefined) { recs = _recs }
+		return recs
 	}
 	super_loadServerDataInternal(e) { return super.loadServerDataInternal(e) }
+	loadServerData_ilk(e) { }
+	loadServerData_son(e) { }
 	tabloYapiDuzenle_son(e) {
 		super.tabloYapiDuzenle_son(e); const {result} = e;
 		result.addToplam(new TabloYapiItem().setKA('KAYITSAYISI', 'Kayıt Sayısı').addColDef(new GridKolon({ belirtec: 'kayitsayisi', text: 'Kayıt Sayısı', genislikCh: 10, filterType: 'numberinput', aggregates: ['sum'] }).tipNumerik()))
@@ -62,6 +85,36 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return recs*/
 	}
 	donemBagla(e) { const {donemBS, tarihSaha, sent} = e; if (donemBS) { sent.where.basiSonu(donemBS, tarihSaha) } return this }
+	tabloYapiDuzenle_hmr(e) {
+		const {result} = e; for (const {belirtec, etiket: text, numerikmi, kami: _kami, mfSinif} of HMRBilgi.hmrIter()) {
+			const tip = belirtec.toUpperCase(), kami = _kami && !!mfSinif, genislikCh = 15;
+			if (kami) { result.addKAPrefix(belirtec) }
+			result.addGrup(new TabloYapiItem().setKA(tip, text).secimKullanilir().setMFSinif(mfSinif).addColDef(
+				numerikmi
+					? new GridKolon({ belirtec, text, genislikCh, filterType: 'numberinput' }).tipNumerik()
+					: new GridKolon({ belirtec, text, genislikCh, filterType: 'input' }))
+			)
+		} return this
+	}
+	loadServerData_queryDuzenle_hmr(e) {
+		const {alias, stm, attrSet} = e, aliasVeNokta = alias ? `${alias}.` : ''; for (let sent of stm.getSentListe()) {
+			const {where: wh, sahalar} = sent; for (const {belirtec, rowAttr, kami, mfSinif} of HMRBilgi.hmrIter()) {
+				const tip = belirtec.toUpperCase(); if (!attrSet[tip]) { continue }
+				const hmrTable = kami && mfSinif ? mfSinif.table : null;
+				if (hmrTable) {
+					let {table: hmrTable, tableAlias: hmrTableAlias, idSaha, adiSaha} = mfSinif;
+					sent.fromIliski(`${hmrTable} ${hmrTableAlias}`, `${alias}.${rowAttr} = ${hmrTableAlias}.${idSaha}`);
+					sahalar.add(`${aliasVeNokta}${rowAttr} ${belirtec}kod`);
+					if (adiSaha) { sahalar.add(`${hmrTableAlias}.${adiSaha} ${belirtec}adi`) }
+					switch (tip) {
+						case 'RENK': sahalar.add(`${hmrTableAlias}.oscolor1`, `${hmrTableAlias}.uyarlanmisoscolor2 oscolor2`); break
+						case 'DESEN': sahalar.add(`${hmrTableAlias}.imagesayac`); break
+					}
+				}
+				else { sahalar.add(`${aliasVeNokta}${rowAttr} ${belirtec}`) }
+			}
+		} return this
+	}
 	getBrmliMiktarClause(e) {
 		e = e ?? {}; let brmTip = (e.brmTip ?? e.tip)?.toUpperCase(); const {tip2BrmListe} = MQStokGenelParam, brmListe = tip2BrmListe?.[brmTip]; if (!brmListe?.length) { return '0' }
 		let {mstAlias, harAlias, miktarPrefix, getMiktarClause} = e; mstAlias = mstAlias ?? 'stk'; harAlias = harAlias ?? 'har'; miktarPrefix = miktarPrefix ?? '';

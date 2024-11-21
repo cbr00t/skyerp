@@ -29,7 +29,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 			.addGrup(new TabloYapiItem().setKA('SUBEGRUP', 'Şube Grup').secimKullanilir().setMFSinif(DMQSubeGrup).addColDef(new GridKolon({ belirtec: 'subegrup', text: 'Şube Grup', maxWidth: 450, filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('TAKIPNO', 'Takip No').secimKullanilir().setMFSinif(DMQTakipNo).addColDef(new GridKolon({ belirtec: 'takip', text: 'Takip No', maxWidth: 450, filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('PLASIYER', 'Plasiyer').secimKullanilir().setMFSinif(DMQPlasiyer).addColDef(new GridKolon({ belirtec: 'plasiyer', text: 'Plasiyer', maxWidth: 550, filterType: 'checkedlist' })))
-		this.tabloYapiDuzenle_miktar(e).tabloYapiDuzenle_ciro(e);
+		this.tabloYapiDuzenle_hmr(e).tabloYapiDuzenle_miktar(e).tabloYapiDuzenle_ciro(e);
 	}
 	loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {stm, attrSet} = e; let {sent} = stm, {where: wh} = sent;
@@ -59,7 +59,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 			}
 		}
 		this.loadServerData_queryDuzenle_tarih({ ...e, alias: 'fis', tarihSaha: 'tarih' }).loadServerData_queryDuzenle_shd(e);
-		this.loadServerData_queryDuzenle_miktar(e).loadServerData_queryDuzenle_ciro(e);
+		this.loadServerData_queryDuzenle_hmr(e).loadServerData_queryDuzenle_miktar(e).loadServerData_queryDuzenle_ciro(e);
 		this.loadServerData_queryDuzenle_ek(e); sent.groupByOlustur()
 	}
 	loadServerData_queryDuzenle_ek(e) { } fisVeHareketBagla(e) { }

@@ -66,7 +66,8 @@ body > .header-image {
 }
 body.dark-theme > .header-image,
 	body.dark-theme > .bg-image-wrapper,
-	body.dark-theme > .bg-image { filter: invert(1) hue-rotate(180deg) }
+	body.dark-theme > .bg-image,
+	body.dark-theme .grid-resim { filter: invert(1) hue-rotate(180deg) }
 body.dark-theme #nav-toggle,
 body.dark-theme .app-title,
 	body.dark-theme .app-version,
