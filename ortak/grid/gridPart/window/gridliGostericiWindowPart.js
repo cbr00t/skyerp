@@ -14,7 +14,7 @@ class GridliGostericiWindowPart extends GridliGostericiPart {
 		});
 		let {secimBilgi} = this; if ($.isPlainObject(secimBilgi)) { secimBilgi = this.secimBilgi = new SecimBilgi(secimBilgi) }
 		let keys = ['secince', 'vazgecince', 'tekilmi', 'converter']; for (const key of keys) { const value = e[key]; if (value !== undefined) { secimBilgi[key] = value } }
-		const {gridArgs, secince, tekilmi} = this; gridArgs.selectionMode = tekilmi ? 'singlerow' : (secince ? 'checkbox' : 'singlerow')
+		const {gridArgs, secince, tekilmi} = this; gridArgs.selectionMode = tekilmi ? this.getSilinebilirmi?.(e) ? 'checkbox' : 'singlerow' : (secince ? 'checkbox' : 'singlerow')
 	}
 	runDevam(e) {
 		e = e || {}; super.runDevam(e);

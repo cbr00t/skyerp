@@ -5,7 +5,7 @@ class DRapor_SonStok extends DRapor_AraSeviye {
 class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_SonStok } get stokmu() { return this.rapor?.stokmu }
 	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e); const {result} = e, {toplamPrefix} = this.class, brmDict = app.params?.stokBirim?.brmDict ?? {};
+		super.tabloYapiDuzenle(e); const {result} = e, {toplamPrefix} = this.class, brmDict = app.params?.stokBirim?.brmDict ?? {}, {isAdmin, rol} = config.session ?? {};
 		result
 			.addKAPrefix('anagrup', 'grup', 'sistgrup', 'stok', 'depo', 'depogrup', 'sube', 'subegrup')
 			.addGrup(new TabloYapiItem().setKA('SUBE', 'Şube').secimKullanilir().setMFSinif(DMQSube).addColDef(new GridKolon({ belirtec: 'sube', text: 'Şube', maxWidth: 450, filterType: 'checkedlist' })))
@@ -20,9 +20,11 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 			const fra = brmDict[tip]; result.addToplam(new TabloYapiItem().setKA(`MIKTAR${tip}`, `Miktar (${tip})`)
 				 .addColDef(new GridKolon({ belirtec: `miktar${tip}`, text: `${tip}`, genislikCh: 15, filterType: 'numberinput' }).tipDecimal(fra)))
 		}
-		result
-			.addToplam(new TabloYapiItem().setKA('ALIMNETFIYAT', 'Alım Net Fiyat').addColDef(new GridKolon({ belirtec: 'alimnetfiyat', text: 'Alım Net Fiyat', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
-			.addToplam(new TabloYapiItem().setKA('SATISCIRO', 'Satış Ciro').addColDef(new GridKolon({ belirtec: 'satisciro', text: 'Satış Cirosu', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
+		if (isAdmin || !rol?.ozelRolVarmi('XMALYT')) {
+			result
+				.addToplam(new TabloYapiItem().setKA('ALIMNETFIYAT', 'Alım Net Fiyat').addColDef(new GridKolon({ belirtec: 'alimnetfiyat', text: 'Alım Net Fiyat', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
+				.addToplam(new TabloYapiItem().setKA('SATISCIRO', 'Satış Ciro').addColDef(new GridKolon({ belirtec: 'satisciro', text: 'Satış Cirosu', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
+		}
 	}
 	loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {stm, attrSet} = e, PrefixMiktar = 'MIKTAR'; let {sent} = stm, {where: wh, sahalar} = sent;

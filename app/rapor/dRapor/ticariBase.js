@@ -150,12 +150,14 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		return this
 	}
 	tabloYapiDuzenle_ciro(e) {
-		const {result} = e, toplamPrefix = e.toplamPrefix ?? this.class.toplamPrefix;
-		result.addToplam(
-			new TabloYapiItem().setKA('CIRO', `${toplamPrefix}Ciro`).addColDef(new GridKolon({ belirtec: 'ciro', text: `${toplamPrefix}Ciro`, genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel())
-			/*new TabloYapiItem().setKA('ALIMNETFIYAT', 'Alım Net Fiyat').addColDef(new GridKolon({ belirtec: 'alimnetfiyat', text: 'Alım Net Fiyat', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()),
-			new TabloYapiItem().setKA('SATISCIRO', 'Satış Ciro').addColDef(new GridKolon({ belirtec: 'satisciro', text: 'Satış Cirosu', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel())*/
-		);
+		const {result} = e, toplamPrefix = e.toplamPrefix ?? this.class.toplamPrefix, {isAdmin, rol} = config.session ?? {};
+		if (isAdmin || !rol?.ozelRolVarmi('XMALYT')) {
+			result.addToplam(
+				new TabloYapiItem().setKA('CIRO', `${toplamPrefix}Ciro`).addColDef(new GridKolon({ belirtec: 'ciro', text: `${toplamPrefix}Ciro`, genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel())
+				/*new TabloYapiItem().setKA('ALIMNETFIYAT', 'Alım Net Fiyat').addColDef(new GridKolon({ belirtec: 'alimnetfiyat', text: 'Alım Net Fiyat', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()),
+				new TabloYapiItem().setKA('SATISCIRO', 'Satış Ciro').addColDef(new GridKolon({ belirtec: 'satisciro', text: 'Satış Cirosu', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel())*/
+			)
+		}
 		return this
 	}
 	loadServerData_queryDuzenle_ciro(e) {

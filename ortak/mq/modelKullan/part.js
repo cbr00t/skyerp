@@ -310,7 +310,7 @@ class ModelKullanPart extends Part {
 			..._e, sender: this, args: {
 				sender, parentPart, builder, mfSinif, tekilmi: !coklumu, wndArgsDuzenle: e => { const {wndArgs} = e /* wndArgs.isModal = true */ },
 				argsDuzenle: _e => {
-					_e = { ...e, ..._e }; const {args} = _e, {listeArgsDuzenleBlock} = this; if (!coklumu) { args.selectionMode = 'singlerow' }
+					_e = { ...e, ..._e }; const {args} = _e, {listeArgsDuzenleBlock} = this; /*if (!coklumu) { args.selectionMode = 'singlerow' } */
 					if (listeArgsDuzenleBlock) { getFuncValue.call(this, listeArgsDuzenleBlock, _e) }
 				},
 				tabloKolonlari: kodGosterilsinmi ? (mfSinif ? null : MQKA.orjBaslikListesi) : ((mfSinif ?? MQKA).orjBaslikListesi.filter(x => x.belirtec != (mfSinif || MQKA).kodSaha)),
