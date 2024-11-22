@@ -201,7 +201,7 @@ class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 					case 'IACIRO': sent.sahalar.add(`SUM(case when fis.iade = 'I' then 0 - har.bedel else 0 end) iadeciro`); break
 					default:
 						if (key == `BR${PrefixMiktar}`) { sahalar.add(`SUM(case when fis.iade = '' then har.miktar else 0 end) brutmiktar`); break }
-						else if (key == `IA${PrefixMiktar}`) { sahalar.add(`SUM(case when fis.iade = '' then har.miktar else 0 end) iademiktar`); break }
+						else if (key == `IA${PrefixMiktar}`) { sahalar.add(`SUM(case when fis.iade = '' then 0 else har.miktar end) iademiktar`); break }
 						if (key.includes(PrefixMiktar)) {
 							const tipPrefix = key.slice(0, 2), brmTip = key.slice(2 + PrefixMiktar.length)?.toUpperCase();
 							const getMiktarClause = miktarClause =>

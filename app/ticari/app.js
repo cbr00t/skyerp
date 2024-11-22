@@ -36,16 +36,40 @@ class TicariApp extends App {
 		const result = await ajaxGet({ url: this.getWSUrl({ api: 'sabitTanimlar' }), data: e }); return result == null ? null : result
 	}
 	wsCariEkstre_normal(e) {
-		e = e || {}; delete e.args;
+		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
 		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'cariEkstre_normal', args: e }) })
 	}
 	wsCariEkstre_fiili(e) {
-		e = e || {}; delete e.args;
+		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
 		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'cariEkstre_fiili', args: e }) })
 	}
 	wsBekleyenSiparisler(e) {
-		e = e || {}; delete e.args;
+		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
 		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'bekleyenSiparisler', args: e }) })
+	}
+	wsBekleyenSiparisler_detaylar(e) {
+		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
+		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'bekleyenSiparisler_detaylar', args: e }) })
+	}
+	wsBekleyenIrsaliyeler(e) {
+		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
+		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'bekleyenIrsaliyeler', args: e }) })
+	}
+	wsBekleyenIrsaliyeler_detaylar(e) {
+		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
+		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'bekleyenIrsaliyeler_detaylar', args: e }) })
+	}
+	wsFaturalar(e) {
+		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
+		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'faturalar', args: e }) })
+	}
+	wsFaturalar_detaylar(e) {
+		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
+		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'faturalar_detaylar', args: e }) })
+	}
+	wsFaturalar_dip(e) {
+		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
+		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'faturalar_dip', args: e }) })
 	}
 	async getParamYapilar(e) {
 		e = e || {}; const kodListe = typeof e == 'string' ? [e] : $.isArray(e) ? e : (e.kodListe || e.kod);
@@ -56,7 +80,7 @@ class TicariApp extends App {
 		return kod2Rec
 	}
 	wsLogoBilgileri(e) {
-		e = e || {}; delete e.args; const streamFlag = e.stream ?? e.streamFlag ?? e.isStream, dataType = streamFlag ? 'text' : undefined;
+		e = e || {}; for (const key of ['data', 'args']) { delete e[key] } const streamFlag = e.stream ?? e.streamFlag ?? e.isStream, dataType = streamFlag ? 'text' : undefined;
 		return ajaxGet({ timeout: 30000, processData: false, dataType, ajaxContentType: wsContentType, url: app.getWSUrl({ api: 'logoBilgileri', args: e }) })
 	}
 	wsLogoBilgileriAsStream(e) {
