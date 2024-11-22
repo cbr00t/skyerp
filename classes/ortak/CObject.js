@@ -8,8 +8,7 @@ class CObject {
 	static get metaClass() { return this.prototype }
 	static get superClass() { return this.__proto__ }
 	get class() { return this.constructor || this.__proto__.constructor }
-	get bosmu() { return false }
-	get bosDegilmi() { return !this.bosmu }
+	get bosmu() { return false } get bosDegilmi() { return !this.bosmu }
 	static get key2Class() { return this._key2Class }
 	static get key2SubClasses() {
 		let result = this._key2SubClasses;

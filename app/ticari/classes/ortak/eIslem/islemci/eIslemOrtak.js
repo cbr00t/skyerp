@@ -22,8 +22,8 @@ class EIslemOrtak extends CObject {
 	constructor(e) {
 		e = e || {}; super(e); let _icmal = e.icmal; if (_icmal && $.isPlainObject(_icmal)) { _icmal = e.icmal = new EIcmal(_icmal) }
 		$.extend(this, {
-			eConf: e.eConf ?? MQEConf.instance, baslik: e.baslik, detaylar: e.detaylar || [],
-			dipNotlar: e.dipNotlar || [], icmal: _icmal, xsltDuzenleyiciler: e.xsltDuzenleyiciler || []
+			eConf: e.eConf ?? MQEConf.instance, baslik: e.baslik, detaylar: e.detaylar || [], dipNotlar: e.dipNotlar || [], icmal: _icmal,
+			xsltDuzenleyiciler: e.xsltDuzenleyiciler || [], _temps: e._temps ?? e.temps
 		})
 	}
 	static getAnaClass(e) {
@@ -93,18 +93,26 @@ class EIslemOrtak extends CObject {
 	async onKontrolMesajlarDuzenle(e) { } async onKontrolMesajlarDuzenle_son(e) { }
 	async xmlOlustur(e) {
 		e = e || {}; e.eFis = this; await this.onKontrol(e); const {xsltBelirtec, baslik} = this, temps = e.temps ?? this._temps; let {eIslemXSLT, eIslemScript} = temps;
-		if (eIslemXSLT == undefined) { eIslemXSLT = temps.eIslemXSLT = await app.wsEIslemXSLTData({ belirtec: xsltBelirtec }) }
-		if (eIslemScript == undefined) { try { eIslemScript = (await app.wsEIslemXSLTScript({ belirtec: xsltBelirtec })) ?? null } catch (ex) { } eIslemScript = temps.eIslemScript = eIslemScript ?? null }
+		if (eIslemXSLT === undefined) {
+			try { eIslemXSLT = (await app.wsEIslemXSLTData({ belirtec: xsltBelirtec })) ?? null } catch (ex) { }
+			eIslemXSLT = temps.eIslemXSLT = eIslemXSLT ?? null
+		}
+		if (eIslemScript === undefined) {
+			try { eIslemScript = (await app.wsEIslemXSLTScript({ belirtec: xsltBelirtec })) ?? null } catch (ex) { }
+			eIslemScript = temps.eIslemScript = eIslemScript ?? null
+		}
 		let uuidOlustumu = false; if (!baslik.uuid) { baslik.uuid = newGUID(); uuidOlustumu = true }
 		let xw = e.xw = new XMLWriter(); xw.writeStartDocument(); await this.xmlDuzenle(e); xw = e.xw; xw.writeEndDocument(); /* delete e.xw; */
 		let result = xw.flush(); $.extend(e, { islem: 'xml', result });
 		try { await this.execEIslemScript(e); result = e.result; if (result) { xw = e.xw = result } } catch (ex) { console.error(ex) }
-		for (const key of ['islem', 'result']) delete e[key]
+		for (const key of ['islem', 'result']) { delete e[key] }
 		if (uuidOlustumu) {
-			const upd = new MQIliskiliUpdate({
+			const {updCallback} = e; delete e.updCallback;
+			let query = e.query = new MQIliskiliUpdate({
 				from: baslik.fisTable, where: { degerAta: baslik.fissayac, saha: 'kaysayac'},
 				set: { degerAta: baslik.uuid, saha: 'efatuuid' }
-			}); await app.sqlExecNone(upd)
+			});
+			if (updCallback) { await getFuncValue.call(this, updCallback, e) } else{ await app.sqlExecNone({ query }) }
 		}
 		/*else {
 			const upd = new MQIliskiliUpdate({
@@ -399,7 +407,7 @@ class EIslemOrtak extends CObject {
 		if (result) {
 			$.extend(e, { islem: 'xslt', result }); await this.xsltDuzenle(e); this.xsltData = e.result;
 			try { await this.execEIslemScript(e); result = this.xsltData = e.result } catch (ex) { console.error(ex) }
-			for (const key of ['islem', 'result']) delete e[key]
+			for (const key of ['islem', 'result']) { delete e[key] }
 		}
 		return result
 	}
@@ -420,7 +428,9 @@ class EIslemOrtak extends CObject {
 	}
 	async execEIslemScript(e) {
 		e = e || {}; const temps = e.temps ?? this._temps; let result = await temps.eIslemScript;
-		const func = result ? eval(result) : null; result = undefined; if (func && ($.isFunction(func) || func.run)) { e.sender = this; result = await getFuncValue.call(this, func, e); delete e.sender } return result
+		const func = result ? eval(result) : null; result = undefined;
+		if (func && ($.isFunction(func) || func.run)) { e.sender = this; result = await getFuncValue.call(this, func, e); delete e.sender }
+		return result
 	}
 	xsltDuzenleyiciEkle(handler) { this.xsltDuzenleyiciler.push(handler); return this }
 	xsltDuzenleyicilerReset() { this.xsltDuzenleyiciler = [] }

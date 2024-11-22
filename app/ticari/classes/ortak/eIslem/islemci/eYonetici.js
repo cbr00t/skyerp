@@ -367,34 +367,34 @@ class EYonetici extends CObject {
 				const eFis = EIslemOrtak.newFor({ tip: efAyrimTipi, eConf }); await eFis.baslikVeDetaylariYukle($.extend({}, _e, { baslik: sev.orjBilgi, detaylar: sev.detaylar }));
 				const sayac2EFis = ps2Sayac2EFis[psTip] = ps2Sayac2EFis[psTip] || {}; sayac2EFis[fisSayac] = eFis
 			}
-			await eIslAnaSinif.tipIcinFislerEkDuzenlemeYap(_e); let promises = [];
-			for (const psTip in ps2Sayac2EFis) {
-				const sayac2EFis = ps2Sayac2EFis[psTip];
-				for (const fisSayac in sayac2EFis) {
-					const eFis = sayac2EFis[fisSayac], {baslik} = eFis, efAyrimTipi = baslik.efayrimtipi, eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi }), anaBolum = eConf.getAnaBolumFor({ eIslSinif });
-					if (!anaBolum) { throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' } }
-					promises.push(new $.Deferred(async p => {
-						let uuid;
-						try {
-							const args = $.extend({}, _e), xmlStr = await eFis.xmlOlustur(args); if (!xmlStr) { p.resolve(null); return }
-							uuid = baslik.uuid; uuid2Result[uuid] = uuid2Result[uuid] ?? { islemZamani: now(), isError: false, eFis, rec: baslik, efAyrimTipi, xmlData: xmlStr };
-							/* const uuid2XML = e.uuid2XML = e.uuid2XML || {}; uuid2XML[uuid] = xmlStr; */
-							const xmlDosya = `${anaBolum}\\IMZALI\\${uuid}.xml`; await app.wsUpload({ remoteFile: xmlDosya, args: xmlStr });
-							/*if (config.dev) { const url = URL.createObjectURL(new Blob([xmlStr], { type: 'application/xml' })); openNewWindow(url) }*/
-							p.resolve(true)
-						} catch (ex) {
-							const rec = uuid2Result[uuid]; if (rec) { $.extend(rec, { isError: true, message: getErrorText(ex) }) }
-							p.reject(ex)
-						}
-						finally {
-							if (Object.keys(uuid2Result).length % 201 == 200) { if (callback) { getFuncValue.call(this, callback, e) }; await Promise.all(promises); promises = [] }
-							if (window.progressManager) { window.progressManager.progressStep() }
-						}
-					} ));
-					if (promises.length >= 50) { if (callback) { getFuncValue.call(this, callback, e) }; await Promise.all(promises); promises = [] }
+			await eIslAnaSinif.tipIcinFislerEkDuzenlemeYap(_e); let temps = _e.temps = {};
+			const BlockSize = 100; for (const psTip in ps2Sayac2EFis) {
+				const sayac2EFis = ps2Sayac2EFis[psTip], fisSayacListe = Object.keys(sayac2EFis);
+				while (fisSayacListe.length) {
+					const subFisSayacListe = fisSayacListe.splice(0, BlockSize), uuid2SubResult = {};
+					let toplu = new MQToplu(), updCallback = _e.updCallback = ({ query }) => { if (query) { toplu.add(query) } };
+					let promises = []; for (const fisSayac of subFisSayacListe) {
+						promises.push(new $.Deferred(async p => {
+							const eFis = sayac2EFis[fisSayac], {baslik} = eFis, efAyrimTipi = baslik.efayrimtipi;
+							const eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi }), anaBolum = eConf.getAnaBolumFor({ eIslSinif });
+							if (!anaBolum) { throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' } }
+							let uuid; try {
+								const args = { ..._e }, xmlStr = await eFis.xmlOlustur(args); if (!xmlStr) { p.resolve() }
+								uuid = baslik.uuid; e.uuid2Result = uuid2Result[uuid] = uuid2Result[uuid] ?? { islemZamani: now(), isError: false, eFis, rec: baslik, efAyrimTipi };
+								/* const uuid2XML = e.uuid2XML = e.uuid2XML || {}; uuid2XML[uuid] = xmlStr; */
+								const xmlDosya = `${anaBolum}\\IMZALI\\${uuid}.xml`; await app.wsUpload({ remoteFile: xmlDosya, args: xmlStr });
+								/*if (config.dev) { const url = URL.createObjectURL(new Blob([xmlStr], { type: 'application/xml' })); openNewWindow(url) }*/
+							} catch (ex) { const rec = uuid2Result[uuid]; if (rec) { $.extend(rec, { isError: true, message: getErrorText(ex) }) } }
+							p.resolve()
+						}));
+						if (promises.length == 1) { await Promise.all(promises); promises = [] }
+					}
+					if (promises.length) { await Promise.all(promises); promises = [] }
+					if (toplu.liste.length) { await app.sqlExecNone(toplu); toplu.liste = [] }
+					try { if (window.progressManager) { window.progressManager.progressStep(subFisSayacListe.length) } } catch (ex) { }
+					try { if (callback) { getFuncValue.call(this, callback, e) } } catch (ex) { }
 				}
 			}
-			if (promises.length) { await Promise.all(promises); if (callback) { getFuncValue.call(this, callback, e) } } promises = [];
 			if (!e.internal) { if (sender && !sender.isDestroyed && sender.tazele) { sender.tazele() } }
 		}
 	}
