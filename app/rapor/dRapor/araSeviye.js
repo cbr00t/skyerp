@@ -3,6 +3,8 @@ class DRapor_AraSeviye extends DGrupluPanelRapor {
 }
 class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	static { window[this.name] = this; this._key2Class[this.name] = this } get tazeleYapilirmi() { return true }
+	static get dvKodListe() { let result = this._dvKodListe; if (result === undefined) { result = this._dvKodListe = ['USD', 'EUR'] } return result }
+	get dvKodListe() { return this.class.dvKodListe }
 	secimlerDuzenle(e) {
 		super.secimlerDuzenle(e); const {secimler} = e, {grupVeToplam} = this.tabloYapi;
 		const islemYap = (keys, callSelector, args) => {
@@ -50,8 +52,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		result.addToplam(new TabloYapiItem().setKA('KAYITSAYISI', 'Kayıt Sayısı').addColDef(new GridKolon({ belirtec: 'kayitsayisi', text: 'Kayıt Sayısı', genislikCh: 10, filterType: 'numberinput', aggregates: ['sum'] }).tipNumerik()))
 	}
 	loadServerData_queryDuzenle(e) {
-		let alias = e.alias = e.alias ?? 'fis'; const {secimler} = this, {stm, attrSet} = e;
-		for (const key in attrSet) for (const sent of stm.getSentListe()) { sent.sahalar.add(`COUNT(*) kayitsayisi`) }
+		let alias = e.alias = e.alias ?? 'fis'; const {secimler, raporTanim,} = this, {stm} = e;
+		let attrSet = e.attrSet = raporTanim._ozelAttrSet = $.extend({}, e.attrSet);
+		for (const sent of stm.getSentListe()) { sent.sahalar.add(`COUNT(*) kayitsayisi`) }
 		if (secimler) {
 			for (const [key, secim] of Object.entries(secimler.liste)) {
 				if (secim.isHidden || secim.isDisabled) { continue } const kod = secim.userData?.kod; if (!kod) { continue }
@@ -59,11 +62,21 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				if (uygunmu) { attrSet[kod] = true }
 			}
 		}
+		const {toplam} = this.tabloYapi; for (const key in attrSet) {
+			const formul = toplam[key]?.formul; if (!formul) { continue }
+			let {attrListe} = formul; if (attrListe?.length) { $.extend(attrSet, asSet(attrListe)) }
+		}
 	}
 	loadServerData_queryDuzenle_son(e) {
-		const {stm, attrSet} = e, {orderBy} = stm, {tabloYapi, secimler} = this, {grup} = tabloYapi;
-		const wh = secimler?.getTBWhereClause(e); if (wh?.liste?.length) { for (const sent of stm.getSentListe()) { sent.where.birlestir(wh) } }
-		for (const kod in attrSet) { let item = grup[kod], {orderBySaha} = item || {}; if (orderBySaha) { orderBy.add(orderBySaha) } }
+		const {alias, stm, attrSet} = e, {orderBy} = stm, {secimler, dvKodListe} = this, dvKodSet = asSet(dvKodListe); let gecerliDvKodSet = {}, dvKodVarmi = false;
+		for (const key in attrSet) { const dvKod = key.split('_').slice(-1)[0]; if (dvKodSet[dvKod]) { gecerliDvKodSet[dvKod] = dvKodVarmi = true } }
+		for (const sent of stm.getSentListe()) {
+			for (const dvKod in gecerliDvKodSet) {
+				const kurAlias = `kur${dvKod}`; sent.leftJoin({ alias, from: `ORTAK..ydvkur ${kurAlias}`, on: [`${alias}.tarih = ${kurAlias}.tarih`, `${kurAlias}.kod = '${dvKod}'`] }) }
+			sent.sahalar.add(`COUNT(*) kayitsayisi`)
+		}
+		const tbWhere = secimler?.getTBWhereClause(e); for (const {where: wh, sahalar} of stm.getSentListe()) { if (tbWhere?.liste?.length) { wh.birlestir(tbWhere) } }
+		let {grup} = this.tabloYapi; for (const kod in attrSet) { let item = grup[kod], {orderBySaha} = item || {}; if (orderBySaha) { orderBy.add(orderBySaha) } }
 	}
 	loadServerData_recsDuzenle(e) { return super.loadServerData_recsDuzenle(e) }
 	async loadServerData_recsDuzenleSon(e) {

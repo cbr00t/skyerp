@@ -30,8 +30,7 @@ class Secimler extends CIO {
 		let {mfSinif} = e; if (typeof mfSinif == 'string') { mfSinif = getFunc.call(this, mfSinif, e) } this.mfSinif = mfSinif;
 		let _whereBlockListe = getFunc(e.whereBlockListe); if (!$.isEmptyObject(_whereBlockListe)) { const whereBlockListe = this.whereBlockListe = []; whereBlockListe.push(..._whereBlockListe) }
 		const _grupListe = e.grupListe; if (!$.isEmptyObject(_grupListe)) { this.grupTopluEkle(_grupListe) }
-		const {liste} = this, _liste = e.liste;
-		if ($.isEmptyObject(_liste)) { this.initProps() }
+		const {liste} = this, _liste = e.liste; if ($.isEmptyObject(_liste)) { this.initProps() }
 		else {
 			this.beginUpdate();
 			for (const key in _liste) {
@@ -45,12 +44,10 @@ class Secimler extends CIO {
 	}
 	writeTo(e) {
 		if (!e) { return false } const {liste} = this;
-		for (const key in liste) {
-			const secim = liste[key];
-			if (secim) {
-				const item = e[key] || {}; item._reduce = e._reduce; secim.writeTo(item); delete item._reduce;
-				if ($.isEmptyObject(item)) { delete e[key] } else { e[key] = item }
-			}
+		for (const [key, secim] of Object.entries(liste)) {
+			if (!secim) { continue }
+			const item = e[key] || {}; item._reduce = e._reduce; secim.writeTo(item); delete item._reduce;
+			if ($.isEmptyObject(item)) { delete e[key] } else { e[key] = item }
 		}
 		return true
 	}

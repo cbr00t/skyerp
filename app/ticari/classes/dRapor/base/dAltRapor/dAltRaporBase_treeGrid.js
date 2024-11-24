@@ -200,15 +200,16 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		e.recs = recs; return super.loadServerData_recsDuzenleIlk(e)
 	}
 	loadServerData_recsDuzenle_seviyelendir(e) {
-		super.loadServerData_recsDuzenle_seviyelendir(e); const {gridPart, tabloYapi, raporTanim} = this, {gridWidget} = gridPart, {attrSet, grup, icerik} = raporTanim;
+		super.loadServerData_recsDuzenle_seviyelendir(e); const {gridPart, tabloYapi, raporTanim} = this, {gridWidget} = gridPart, {grup, icerik} = raporTanim;
+		const attrSet = raporTanim._ozelAttrSet ?? raporTanim.attrSet;
 		const belirtec2ColDef = [], grupColAttrListe = [], _sumAttrListe = [], _avgAttrListe = [];
 		for (const kod in grup) {
 			const item = tabloYapi.grup[kod]; if (!item) { continue } 
 			const {colDefs} = item; if (!colDefs) { continue }
 			for (const colDef of colDefs) { const {belirtec} = colDef; belirtec2ColDef[belirtec] = colDef; grupColAttrListe.push(belirtec) }
 		}
-		for (const kod in icerik) {
-			let toplammi = false, item = tabloYapi.grup[kod]; if (!item && (item = tabloYapi.toplam[kod])) { toplammi = true }
+		for (const kod in attrSet) {
+			if (grup[kod]) { continue } let toplammi = false, item = tabloYapi.grup[kod]; if (!item && (item = tabloYapi.toplam[kod])) { toplammi = true }
 			if (!item) { continue } const {colDefs} = item; if (!colDefs) { continue }
 			for (const colDef of colDefs) {
 				const {belirtec} = colDef; belirtec2ColDef[belirtec] = colDef;
@@ -216,13 +217,21 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			}
 		}
 		const jqxCols = gridWidget.base.columns.records, grupTextColAttr = jqxCols?.[0]?.datafield;
-		let {recs} = e, sevListe; if (grupColAttrListe?.length) {
+		const formuller = []; for (const key in attrSet) { const item = tabloYapi.toplam[key]; if (item?.formulmu) { formuller.push(item) } }
+		let {recs} = e; if (recs) {
+			let _recs = recs; recs = []; for (let _rec of _recs) {
+				if (!_rec) { continue} let rec = new DAltRapor_PanelRec({ ..._rec });
+				for (const item of formuller) { item.formulEval({ rec }); recs.push(rec) }
+			}
+			e.recs = recs;
+		}
+		let sevListe; if (grupColAttrListe?.length) {
 			let id = 1; sevListe = seviyelendir({
 				source: recs, attrListe: grupColAttrListe, getter: e => {
 					const {item, sevAttr} = e, _rec = new DAltRapor_PanelGruplama({ id, _sumAttrListe, _avgAttrListe, ...item });
 					id++; _rec[grupTextColAttr] = _rec[sevAttr]; return _rec
 				}
-			}); for (const sev of sevListe) { sev.toplamYapiOlustur?.() }
+			}); for (const sev of sevListe) { sev.toplamYapiOlustur?.(); for (const item of formuller) { item.formulEval({ rec: sev }) } }
 		}
 		const avgBelirtec2ColDef = {}; for (const key in attrSet) {
 			if (!tabloYapi.toplam[key]) { continue }

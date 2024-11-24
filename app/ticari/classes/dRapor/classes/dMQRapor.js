@@ -35,10 +35,10 @@ class DMQRapor extends DMQSayacliKA {
 	}
 	static rootFormBuilderDuzenle(e) {
 		e = e || {}; super.rootFormBuilderDuzenle(e); const rfb = e.rootBuilder, tanimForm = e.tanimFormBuilder, kaForm = tanimForm.builders.find(fbd => fbd.id == 'kaForm');
-		const {inst} = e, {rapor, ozetMax} = inst, {tabloYapi} = rapor, {kaListe} = tabloYapi;
+		const {inst} = e, {rapor, ozetMax} = inst, {tabloYapi} = rapor, {kaListe, grupVeToplam} = tabloYapi;
 		const kaDict = {}; for (const ka of kaListe) { kaDict[ka.kod] = ka }
 		const tumAttrSet = asSet(Object.keys(kaDict)), getKalanlarSource = selector => {
-			const {attrSet} = inst, tabloYapiItems = selector ? tabloYapi[selector] : null;
+			let {attrSet} = inst, tabloYapiItems = selector ? tabloYapi[selector] : null;
 			return Object.keys(tumAttrSet).filter(attr => !attrSet[attr] && (!tabloYapiItems || tabloYapiItems[attr]))
 		}
 		const className_listBox = 'listBox', ustHeight = '50px', contentTop = '13px';
@@ -53,6 +53,7 @@ class DMQRapor extends DMQSayacliKA {
 			 $elementCSS > div .${className_listBox} > :not(label) { vertical-align: top; height: calc(var(--full) - var(--label-height) - var(--label-margin-bottom)) !important }
 			 $elementCSS > div .${className_listBox} > .jqx-listbox .jqx-listitem-element { font-size: 110% }`]);
 		const kalanlarSourceDuzenlenmis = _source => {
+			if (_source?.length) { _source = _source.filter(({ kod }) => grupVeToplam[kod] && !grupVeToplam[kod].isHidden ) }
 			_source = [..._source, ...(new Array(10).fill(null).map(x => ({ /*group: ' ',*/ disabled: true })))];
 			/*for (const item of _source) {
 				const kod = item?.kod; if (kod == null) { continue }
@@ -66,10 +67,11 @@ class DMQRapor extends DMQSayacliKA {
 			if (source == null) { source = (id.startsWith('kalanlar') ? getKalanlarSource(selector) : altInst[id] ?? []).map(kod => kaDict[kod]) }
 			if (source?.length && typeof source[0] != 'object') { source = source.map(kod => new CKodVeAdi({ kod, aciklama: kod })) }
 			if (id.startsWith('kalanlar')) { source = kalanlarSourceDuzenlenmis(source) }
+			if (source?.length) { source = source.filter(({ kod }) => grupVeToplam[kod] && !grupVeToplam[kod].isHidden ) }
 			const width = '100%', height = width, valueMember = 'kod', displayMember = 'aciklama';
-			const allowDrop = true, allowDrag = allowDrop, autoHeight = false, itemHeight = 36, scrollBarSize = 20, filterable = true, filterHeight = 40, filterPlaceHolder = 'Bul';
+			const allowDrop = true, allowDrag = allowDrop, autoHeight = false, itemHeight = 36, scrollBarSize = 20, filterable = true, filterHeight = 40, filterPlaceHolder = 'Bul', searchMode = 'containsignorecase';
 			input.prop('id', id); if (selector != null) { input.data('selector', selector) }
-			input.jqxListBox({ theme, width, height, valueMember, displayMember, source, allowDrag, allowDrop, autoHeight, itemHeight, scrollBarSize, filterable, filterHeight, filterPlaceHolder });
+			input.jqxListBox({ theme, width, height, valueMember, displayMember, source, allowDrag, allowDrop, autoHeight, itemHeight, scrollBarSize, filterable, filterHeight, filterPlaceHolder, searchMode });
 			const changeHandler = evt => {
 				const target = evt.currentTarget, type = evt.args?.type, {id} = target;
 				if (id.startsWith('kalanlar')) {

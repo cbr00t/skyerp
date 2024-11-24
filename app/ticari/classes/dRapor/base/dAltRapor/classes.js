@@ -1,8 +1,13 @@
-class DAltRapor_PanelGruplama extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	constructor(e) { e = e || {}; super(e); $.extend(this, { ...e, _sumAttrListe: e._sumAttrListe ?? [], _avgAttrListe: e._avgAttrListe ?? [],  _orj: e._orj ?? {}, detaylar: e.detaylar ?? [] }) }
+class DAltRapor_PanelRec extends CObject {
+	static { window[this.name] = this; this._key2Class[this.name] = this } get panelRecmi() { return true }
+	constructor(e) { e = e || {}; super(e); $.extend(this, { ...e }) }
+	toplamYapiOlustur(e) { }
+}
+class DAltRapor_PanelGruplama extends DAltRapor_PanelRec {
+	static { window[this.name] = this; this._key2Class[this.name] = this } get grupmu() { return true }
+	constructor(e) { e = e || {}; super(e); $.extend(this, { sumAttrListe: e._sumAttrListe ?? [], _avgAttrListe: e._avgAttrListe ?? [], _orj: e._orj ?? {}, detaylar: e.detaylar ?? [] }) }
 	toplamYapiOlustur(e) {
-		const {_sumAttrListe, _avgAttrListe, detaylar, _orj: orj} = this; if (!detaylar?.length) { return this }
+		super.toplamYapiOlustur(e); const {_sumAttrListe, _avgAttrListe, detaylar, _orj: orj} = this; if (!detaylar?.length) { return this }
 		const aggrAttrListe = ['kayitsayisi', ...(_sumAttrListe ?? []), ...(_avgAttrListe ?? [])];
 		for (const key of aggrAttrListe) {
 			this[key] = 0; for (const det of detaylar) {

@@ -36,7 +36,7 @@ class SecimBasSon extends Secim {
 	uiSetValues(e) {
 		super.uiSetValues(e); const {parent} = e; if (!parent?.length) { return false }
 		const {birKismimi} = this, bsParent = parent.find('.bs-parent'), birKismiParent = parent.find('.birKismi-parent');
-		for (const key of ['basi', 'sonu']) { bsParent.find(`.${key}.bs`).val(this.getConvertedValue(this[key]) ?? '') }
+		for (const key of ['basi', 'sonu']) { bsParent.find(`.${key}.bs`).val(this.getConvertedUIValue(this[key]) ?? '') }
 		e.value = this.getConvertedValue(this.value);
 		SecimBirKismi.uiSetValues_birKismi(e); parent.find('.birKismiToggle').val(birKismimi); this.birKismiToggleDegisti(e)
 	}

@@ -173,11 +173,8 @@ class SecimlerPart extends Part {
 	seviyeleriAcKapatIstendi(e) {
 		const {flag} = e, {secimlerForm} = this; if (this.isDestroyed || !secimlerForm?.length) { return }
 		const divGrupListe = secimlerForm.find('.secim-grup'); if (divGrupListe.length) {
-			//secimlerForm.css('opacity', .05);
 			divGrupListe.jqxNavigationBar(flag ? 'expandAt' : 'collapseAt', 0);
 			if (!flag) { divGrupListe.eq(0).jqxNavigationBar('expandAt', 0) }
-			//setTimeout(() => secimlerForm.css('opacity', .1), 50);
-			//setTimeout(() => secimlerForm.css('opacity', 1), 100);
 		}
 	}
 	secimSaklaIstendi(e) {
@@ -194,7 +191,7 @@ class SecimlerPart extends Part {
 					const secim = secimler[key]; if (!secim) { continue } $.extend(secim, _secim); 
 					const {element: parent} = secim2Info[key]; if (parent) { secim.uiSetValues({ parent }) }
 				}
-				this.seviyeleriAcKapatIstendi({ flag: true }); eConfirm(`<b>${aciklama}</b> seçim içerikleri yüklendi`, [this.mfSinif?.sinifAdi, 'Seçimler'].filter(x => x).join(' '))
+				this.seviyeleriAcKapatIstendi({ flag: true }) /* eConfirm(`<b>${aciklama}</b> seçim içerikleri yüklendi`, [this.mfSinif?.sinifAdi, 'Seçimler'].filter(x => x).join(' ')) */
 			}
 		})
 	}

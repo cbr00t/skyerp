@@ -62,7 +62,15 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		this.loadServerData_queryDuzenle_hmr(e).loadServerData_queryDuzenle_miktar(e).loadServerData_queryDuzenle_ciro(e);
 		this.loadServerData_queryDuzenle_ek(e); sent.groupByOlustur()
 	}
-	loadServerData_queryDuzenle_ek(e) { } fisVeHareketBagla(e) { }
+	loadServerData_queryDuzenle_ek(e) { }
+	loadServerData_recsDuzenle(e) {
+		super.loadServerData_recsDuzenle(e); let {recs} = e;
+		for (let rec of recs) {
+			// debugger
+		}
+		return recs
+	}
+	fisVeHareketBagla(e) { }
 	tabloYapiDuzenle_shd(e) { const {shd} = this; if (shd) { this[`tabloYapiDuzenle_${shd}`](e) } return this }
 	loadServerData_queryDuzenle_shd(e) { const {shd} = this; if (shd) { this[`loadServerData_queryDuzenle_${shd}`](e) } return this }
 	tabloYapiDuzenle_stok(e) {
@@ -151,22 +159,39 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 	}
 	tabloYapiDuzenle_ciro(e) {
 		const {result} = e, toplamPrefix = e.toplamPrefix ?? this.class.toplamPrefix, {isAdmin, rol} = config.session ?? {};
-		if (isAdmin || !rol?.ozelRolVarmi('XMALYT')) {
-			result.addToplam(
-				new TabloYapiItem().setKA('CIRO', `${toplamPrefix}Ciro`).addColDef(new GridKolon({ belirtec: 'ciro', text: `${toplamPrefix}Ciro`, genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel())
-				/*new TabloYapiItem().setKA('ALIMNETFIYAT', 'Alım Net Fiyat').addColDef(new GridKolon({ belirtec: 'alimnetfiyat', text: 'Alım Net Fiyat', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()),
-				new TabloYapiItem().setKA('SATISCIRO', 'Satış Ciro').addColDef(new GridKolon({ belirtec: 'satisciro', text: 'Satış Cirosu', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel())*/
-			)
+		/*if (isAdmin || !rol?.ozelRolVarmi('XMALYT')) {*/
+		result
+			.addToplam(new TabloYapiItem().setKA('CIRO', `${toplamPrefix}Ciro`)
+				.addColDef(new GridKolon({ belirtec: 'ciro', text: `${toplamPrefix}Ciro`, genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
+			.addToplam(new TabloYapiItem().setKA('CIROFIYAT', `${toplamPrefix}Ciro Fiyat`)
+				.setFormul(['CIRO', 'MIKTAR'], ({ rec }) => roundToFiyatFra(rec.ciro / rec.miktar))
+				.addColDef(new GridKolon({ belirtec: 'cirofiyat', text: `${toplamPrefix}Ciro Fiyat`, genislikCh: 30, filterType: 'numberinput' }).tipDecimal_fiyat()));
+		for (const dvKod of this.dvKodListe) {
+			result.addToplam(new TabloYapiItem().setKA(`CIRO_${dvKod}`, `${toplamPrefix}Ciro (<b>${dvKod}</b>)`)
+				.addColDef(new GridKolon({ belirtec: `ciro_${dvKod}`, text: `${toplamPrefix}Ciro (<b>${dvKod}</b>)`, genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
+			result.addToplam(new TabloYapiItem().setKA(`CIROORTKUR_${dvKod}`, `${toplamPrefix}Ciro Ort. Kur (<b>${dvKod}</b>)`)
+				.setFormul(['CIRO', `CIRO_${dvKod}`], ({ rec }) => { let {ciro} = rec, dvCiro = rec[`ciro_${dvKod}`]; return dvCiro ? roundToKurFra(ciro / dvCiro) : 0 })
+				.addColDef(new GridKolon({ belirtec: `ciroortkur_${dvKod}`, text: `${toplamPrefix}Ciro Ort. Kur (<b>${dvKod}</b>)`, genislikCh: 30, filterType: 'numberinput' }).tipDecimal_bedel()))
 		}
 		return this
 	}
 	loadServerData_queryDuzenle_ciro(e) {
-		const {attrSet, stm} = e; for (const sent of stm.getSentListe()) {
+		const {attrSet, stm} = e, dvBedelFra = app.params?.zorunlu?.dvBedelFra || 2;
+		for (const {sahalar} of stm.getSentListe()) {
 			for (const key in attrSet) {
 				switch (key) {
-					case 'CIRO': sent.sahalar.add('SUM(har.bedel) ciro'); break
-					/*case 'ALIMNETFIYAT': sent.sahalar.add('SUM(har.miktar * har.almnetfiyat) satisciro'); break
-					case 'SATISCIRO': sent.sahalar.add('SUM(har.miktar * har.satfiyat1) satisciro'); break*/
+					case 'CIRO': sahalar.add('SUM(har.bedel) ciro'); break
+					default:
+						for (const dvKod of this.dvKodListe) {
+							if (key == `CIRO_${dvKod}`) {
+								sahalar.add(
+									`SUM(case` +
+										` when fis.dvkod = '${dvKod}' then har.dvbedel` +
+										` else (case when COALESCE(kur${dvKod}.dovizsatis, 0) = 0 then 0 else ROUND(har.bedel / kur${dvKod}.dovizsatis, ${dvBedelFra}) end)` +
+									` end) ciro_${dvKod}`)
+							}
+						}
+						break
 				}
 			}
 		}
@@ -176,6 +201,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get toplamPrefix() { return 'Net ' }
 	fisVeHareketBagla(e) { super.fisVeHareketBagla(e); const {sent} = e, {shd} = this; sent.fisHareket('piffis', `pif${shd}`) }
+	loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); for (const {where: wh} of e.stm.getSentListe()) { wh.add(`fis.piftipi = 'F'`) } }
 	tabloYapiDuzenle_miktar(e) {
 		super.tabloYapiDuzenle_miktar(e); const {result} = e, {stokmu} = this, brmDict = app.params?.stokBirim?.brmDict ?? {};
 		const tip2Bilgi = { BR: { miktarPrefix: 'brut', etiketPrefix: 'Brüt' }, IA: { miktarPrefix: 'iade', etiketPrefix: 'İADE' } };
@@ -187,18 +213,14 @@ class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 					 .addColDef(new GridKolon({ belirtec: `${miktarPrefix}miktar${brmTip}`, text: `${etiketPrefix} ${brmTip}`, genislikCh: 15, filterType: 'numberinput' }).tipDecimal(fra)))
 			}
 		}
-		result.addToplam(new TabloYapiItem().setKA('BRCIRO', 'Brüt Ciro').addColDef(new GridKolon({ belirtec: 'brutciro', text: 'Brüt Ciro', genislikCh: 19, filterType: 'numberinput' }).tipDecimal()));
-		result.addToplam(new TabloYapiItem().setKA('IACIRO', 'İADE Ciro').addColDef(new GridKolon({ belirtec: 'iadeciro', text: 'İADE Ciro', genislikCh: 19, filterType: 'numberinput' }).tipDecimal()));
 		return this
 	}
 	loadServerData_queryDuzenle_miktar(e) {
-		const {attrSet, stm} = e, PrefixMiktar = 'MIKTAR'; for (const sent of stm.getSentListe()) {
-			const {where: wh, sahalar} = sent; wh.add(`fis.piftipi = 'F'`);
+		super.loadServerData_queryDuzenle_miktar(e); const {attrSet, stm} = e, PrefixMiktar = 'MIKTAR';
+		for (const {where: wh, sahalar} of stm.getSentListe()) {
 			if (attrSet.STOK || Object.keys(attrSet).find(x => x.startsWith(PrefixMiktar))) { sahalar.add('brm') }
 			for (const key in attrSet) {
 				switch (key) {
-					case 'BRCIRO': sent.sahalar.add(`SUM(case when fis.iade = '' then har.bedel else 0 end) brutciro`); break
-					case 'IACIRO': sent.sahalar.add(`SUM(case when fis.iade = 'I' then 0 - har.bedel else 0 end) iadeciro`); break
 					default:
 						if (key == `BR${PrefixMiktar}`) { sahalar.add(`SUM(case when fis.iade = '' then har.miktar else 0 end) brutmiktar`); break }
 						else if (key == `IA${PrefixMiktar}`) { sahalar.add(`SUM(case when fis.iade = '' then 0 else har.miktar end) iademiktar`); break }
@@ -212,6 +234,47 @@ class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 						break
 				}
 			}
+		}
+		return this
+	}
+	tabloYapiDuzenle_ciro(e) {
+		super.tabloYapiDuzenle_ciro(e); const {result} = e, tip2Bilgi = { BR: { miktarPrefix: 'brut', etiketPrefix: 'Brüt' }, IA: { miktarPrefix: 'iade', etiketPrefix: 'İADE' } };
+		result
+			.addToplam(new TabloYapiItem().setKA('BRCIRO', 'Brüt Ciro').addColDef(new GridKolon({ belirtec: 'brutciro', text: 'Brüt Ciro', genislikCh: 19, filterType: 'numberinput' }).tipDecimal()))
+			.addToplam(new TabloYapiItem().setKA('IACIRO', 'İADE Ciro').addColDef(new GridKolon({ belirtec: 'iadeciro', text: 'İADE Ciro', genislikCh: 19, filterType: 'numberinput' }).tipDecimal()))
+			.addToplam(new TabloYapiItem().setKA('BRCIROFIYAT', 'Brüt Ciro Fiyat')
+				.setFormul(['BRCIRO', 'BRMIKTAR'], ({ rec }) => roundToFiyatFra(rec.brutciro / rec.brutmiktar))
+				.addColDef(new GridKolon({ belirtec: 'brutcirofiyat', text: 'Brüt Ciro Fiyat', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_fiyat()))
+			.addToplam(new TabloYapiItem().setKA('IACIROFIYAT', 'İADE Ciro Fiyat')
+				.setFormul(['IACIRO', 'IAMIKTAR'], ({ rec }) => roundToFiyatFra(rec.iadeciro / rec.iademiktar))
+				.addColDef(new GridKolon({ belirtec: 'iadecirofiyat', text: 'İADE Ciro Fiyat', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_fiyat()))
+		return this
+	}
+	loadServerData_queryDuzenle_ciro(e) {
+		super.loadServerData_queryDuzenle_ciro(e); const {attrSet, stm} = e, {dvKodListe} = this;
+		const getCiroClause = {
+			BR: dvmi => `case when fis.iade = '' then har.${dvmi ? 'dv' : ''}bedel else 0 end`,
+			IA: dvmi => `case when fis.iade = 'I' then 0 - har.${dvmi ? 'dv' : ''}bedel else 0 end`
+		}, sahaAliasPrefix = { BR: 'brut', IA: 'iade' }
+		for (const {where: wh, sahalar} of stm.getSentListe()) {
+			for (const key in attrSet) {
+				for (const dvKod of dvKodListe) {
+					for (const prefix of ['BR', 'IA']) {
+						if (key == `${prefix}CIRO_${dvKod}`) {
+							sahalar.add(`SUM(${getCiroClause[prefix](false)}) ${sahaAliasPrefix[prefix]}ciro`) }
+						else if (key == `${prefix}CIRO_${dvKod}`) {
+							sahalar.add(
+								`SUM(case` +
+									` when fis.dvkod = '${dvKod}' then ${getCiroClause[prefix](true)}` +
+									` else (case when COALESCE(kur${dvKod}.dovizsatis, 0) = 0 then 0 else ROUND(${getCiroClause[prefix](false)} / kur${dvKod}.dovizsatis, ${dvBedelFra}) end)` +
+								` end) ${sahaAliasPrefix[prefix]}_${dvKod}`)
+						}
+					}
+				}
+			}
+			/*for (const key in attrSet) {
+				switch (key) { default: break }
+			}*/
 		}
 		return this
 	}

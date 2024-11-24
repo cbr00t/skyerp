@@ -97,7 +97,7 @@ class SecimTekilNumber extends SecimTekilInteger {
 class SecimTekilDate extends SecimOzel {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'tekilDate' } get hasTime() { return false }
 	get ozetBilgiValue() { let {value} = this; if (value == null) { return value } return dateToString(value) }
-	uiSetValues(e) { super.uiSetValues(e); const {parent} = e; if (!parent.length) { return false } parent.find('.input').val(null) }
+	uiSetValues(e) { super.uiSetValues(e); const {parent} = e; if (!parent.length) { return false } parent.find('.input').val(this.getConvertedUIValue(this.value)) }
 	buildHTMLElementStringInto(e) {
 		super.buildHTMLElementStringInto(e); e.target += `<div class="flex-row">`;
 		e.target += 	`<input class="veri input ozel" type="textbox" maxlength="20" value="${this.getConvertedUIValue(this.value) || '0'}"></input>`;
