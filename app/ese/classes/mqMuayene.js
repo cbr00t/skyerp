@@ -5,7 +5,7 @@ class MQMuayene extends MQGuidOrtak {
 	get fisNox() { return [this.seri || '', this.fisNo?.toString()].join('') }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e; $.extend(e.pTanim, {
-			hastaId: new PInstGuid('hastaid'), ts: new PInstDateNow('tarihsaat'), seri: new PInstStr('seri'), fisNo: new PInstNum('fisno'),
+			hastaId: new PInstGuid('hastaid'), ts: new PInstDateTimeNow('tarihsaat'), seri: new PInstStr('seri'), fisNo: new PInstNum('fisno'),
 			doktorId: new PInstGuid('doktorid'), testSifre: new PInstStr('testsifre'), tani: new PInstStr('tani')
 		});
 		const sablon = app.params.ese.sablon ?? {}; for (const [tip, items] of Object.entries(sablon)) {

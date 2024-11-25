@@ -370,7 +370,7 @@ class EYonetici extends CObject {
 					let toplu = new MQToplu(), updCallback = _e.updCallback = ({ query }) => { if (query) { toplu.add(query) } };
 					let promises = [], uploadList = []; const commit = async () => {
 						await Promise.all(promises); promises = [];
-						if (uploadList.length) { await app.wsMultiUpload({ data }); uploadList = [] }
+						if (uploadList.length) { await app.wsMultiUpload({ data: uploadList }); uploadList = [] }
 						if (toplu.liste.length) { await app.sqlExecNone(toplu); toplu.liste = [] }
 					};
 					for (const fisSayac of subFisSayacListe) {

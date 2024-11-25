@@ -58,49 +58,24 @@ class DRapor_ESETest_CPT_Main extends DRapor_ESETest_Main {
 	static get table() { return 'esecpttest' } static get detayVeyaGrupTable() { return 'esecpttestgrup' }
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); const {result} = e; result
-			.addToplam(
-				new TabloYapiItem().setKA('TUMSAYI', 'Tüm Sayı').hidden()
-					.addColDef(new GridKolon({ belirtec: 'tumsayi', text: 'Tüm Sayı', genislikCh: 10, filterType: 'numberinput',
-						/*aggregates: ['avg'] aggregates: [{ 'xyz': ((total, value, belirtec, gridRec, _) => roundToFra(value * 100 / grandTotal, 0)) }]*/
-					}).tipDecimal(1)))
-			.addToplam(
-				new TabloYapiItem().setKA('ORTTUMSAYI', 'Ort. Tüm Sayı')
-					.setFormul(['TUMSAYI'], ({ rec }) => roundToFra1(rec.tumsayi / rec.kayitsayisi))
-					.addColDef(new GridKolon({ belirtec: 'orttumsayi', text: 'Ort. Tüm Sayı', genislikCh: 10, filterType: 'numberinput',
-						/*aggregates: ['avg'] aggregates: [{ 'xyz': ((total, value, belirtec, gridRec, _) => roundToFra(value * 100 / grandTotal, 0)) }]*/
-					}).tipDecimal(1)))
-			/*.addToplam(new TabloYapiItem().setKA('XSAYI', 'X Sayı')
-				.addColDef(new GridKolon({ belirtec: 'xsayi', text: 'X Sayı', genislikCh: 10, filterType: 'numberinput' }).tipDecimal(1)))
-			.addToplam(new TabloYapiItem().setKA('ORTSAYI', 'Ort. Sayı')
-				.setFormul(['XSAYI', 'KAYITSAYISI'], ({ rec }) => roundToFra1(rec.xsayi / rec.kayitsayisi))
-				.addColDef(new GridKolon({ belirtec: 'ortsayi', text: 'Ort. Sayı', genislikCh: 10, filterType: 'numberinput' }).tipDecimal(1)))*/
-			/*.addGrup(new TabloYapiItem().setKA('GRUPNO', 'Grup No').addColDef(new GridKolon({ belirtec: 'grupno', text: 'Grup No', genislikCh: 10, filterType: 'checkedlist' }).tipNumerik()))
-			  .addToplam(new TabloYapiItem().setKA('GRUPSAYI', 'Grup Sayı').addColDef(new GridKolon({ belirtec: 'grupsayi', text: 'Grup Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik()))*/
-			.addToplam(new TabloYapiItem().setKA('DOGRUSAYI', 'Doğru Sayı').hidden()
-				.addColDef(new GridKolon({ belirtec: 'dogrusayi', text: 'Doğru Sayı', genislikCh: 10, filterType: 'numberinput' /*, aggregates: ['avg']*/ }).tipDecimal(1)))
-			.addToplam(new TabloYapiItem().setKA('ORTDOGRUSAYI', 'Ort. Doğru Sayı')
-				.setFormul(['DOGRUSAYI'], ({ rec }) => roundToFra1(rec.dogrusayi / rec.kayitsayisi))
-				.addColDef(new GridKolon({ belirtec: 'ortdogrusayi', text: 'Ort. Doğru Sayı', genislikCh: 10, filterType: 'numberinput' /*, aggregates: ['avg']*/ }).tipDecimal(1)))
-			.addToplam(new TabloYapiItem().setKA('YANLISSAYI', 'Yanlış Sayı').hidden()
-			   .addColDef(new GridKolon({ belirtec: 'yanlissayi', text: 'Yanlış Sayı', genislikCh: 10, filterType: 'numberinput' /*, aggregates: ['avg'] */ }).tipDecimal(1)))
-			.addToplam(new TabloYapiItem().setKA('ORTYANLISSAYI', 'Ort. Yanlış Sayı')
-				.setFormul(['YANLISSAYI'], ({ rec }) => roundToFra1(rec.yanlissayi / rec.kayitsayisi))
-				.addColDef(new GridKolon({ belirtec: 'ortyanlissayi', text: 'Ort. Yanlış Sayı', genislikCh: 10, filterType: 'numberinput' /*, aggregates: ['avg']*/ }).tipDecimal(1)))
-			.addToplam(new TabloYapiItem().setKA('SECILMEYENDOGRUSAYI', 'Seçilmeyen Doğru').hidden()
-				.addColDef(new GridKolon({ belirtec: 'secilmeyendogrusayi', text: 'Seçilmeyen Doğru', genislikCh: 10, filterType: 'numberinput', /* aggregates: ['avg'] */ }).tipDecimal(1)))
-			.addToplam(new TabloYapiItem().setKA('ORTSECILMEYENDOGRUSAYI', 'Ort. Seçilmeyen Doğru')
-				.setFormul(['SECILMEYENDOGRUSAYI'], ({ rec }) => roundToFra1(rec.secilmeyendogrusayi / rec.kayitsayisi))
-				.addColDef(new GridKolon({ belirtec: 'ortsecilmeyendogrusayi', text: 'Ort. Seçilmeyen Doğru', genislikCh: 15, filterType: 'numberinput', /* aggregates: ['avg']] */ }).tipDecimal()))
-			.addToplam(new TabloYapiItem().setKA('DOGRUSECIMSUREMS', 'Doğru Seçim Süre (ms)').hidden()
-				.addColDef(new GridKolon({ belirtec: 'dogrusecimsurems', text: 'Doğru Seçim (ms)', genislikCh: 15, filterType: 'numberinput', /* aggregates: ['avg']] */ }).tipDecimal()))
-			.addToplam(new TabloYapiItem().setKA('ORTDOGRUSECIMSUREMS', 'Ort. Doğru Seçim Süre (ms)')
-				.setFormul(['DOGRUSECIMSUREMS'], ({ rec }) => roundToFra1(rec.dogrusecimsurems / rec.kayitsayisi))
-				.addColDef(new GridKolon({ belirtec: 'ortdogrusecimsurems', text: 'Ort. Doğru Seçim (ms)', genislikCh: 15, filterType: 'numberinput', /* aggregates: ['avg']] */ }).tipDecimal()))
-			.addToplam(new TabloYapiItem().setKA('YANLISSECIMSUREMS', 'Yanlış Seçim Süre (ms)').hidden()
-				.addColDef(new GridKolon({ belirtec: 'yanlissecimsurems', text: 'Yanlış Seçim (ms)', genislikCh: 15, filterType: 'numberinput', /* aggregates: ['avg']] */ }).tipDecimal()))
-			.addToplam(new TabloYapiItem().setKA('ORTYANLISSECIMSUREMS', 'Ort. Yanlış Seçim Süre (ms)')
-				.setFormul(['YANLISSECIMSUREMS'], ({ rec }) => roundToFra1(rec.yanlissecimsurems / rec.kayitsayisi))
-				.addColDef(new GridKolon({ belirtec: 'ortyanlissecimsurems', text: 'Ort. Doğru Seçim (ms)', genislikCh: 15, filterType: 'numberinput', /* aggregates: ['avg']] */ }).tipDecimal()))
+			.addToplam(new TabloYapiItem().setKA('TUMSAYI', 'Tüm Sayı').hidden().addColDef(new GridKolon({ belirtec: 'tumsayi' /*aggregates: ['avg'] aggregates: [{ 'xyz': ((total, value, belirtec, gridRec, _) => roundToFra(value * 100 / grandTotal, 0)) }]*/ }).tipDecimal(1)))
+			.addToplam(new TabloYapiItem().setKA('ORTTUMSAYI', 'Ort. Tüm Sayı').setFormul(['TUMSAYI'], ({ rec }) => roundToFra1(rec.tumsayi / rec.kayitsayisi))
+				.addColDef(new GridKolon({ belirtec: 'orttumsayi', text: 'Ort. Tüm Sayı', genislikCh: 10, filterType: 'numberinput' }).tipDecimal(1).dipAvg()))
+			.addToplam(new TabloYapiItem().setKA('DOGRUSAYI', 'Doğru Sayı').hidden().addColDef(new GridKolon({ belirtec: 'dogrusayi' }).tipDecimal(1)))
+			.addToplam(new TabloYapiItem().setKA('ORTDOGRUSAYI', 'Ort. Doğru Sayı').setFormul(['DOGRUSAYI'], ({ rec }) => roundToFra1(rec.dogrusayi / rec.kayitsayisi))
+				.addColDef(new GridKolon({ belirtec: 'ortdogrusayi', text: 'Ort. Doğru Sayı', genislikCh: 10, filterType: 'numberinput' }).tipDecimal(1).dipAvg()))
+			.addToplam(new TabloYapiItem().setKA('YANLISSAYI', 'Yanlış Sayı').hidden().addColDef(new GridKolon({ belirtec: 'yanlissayi' }).tipDecimal(1)))
+			.addToplam(new TabloYapiItem().setKA('ORTYANLISSAYI', 'Ort. Yanlış Sayı').setFormul(['YANLISSAYI'], ({ rec }) => roundToFra1(rec.yanlissayi / rec.kayitsayisi))
+				.addColDef(new GridKolon({ belirtec: 'ortyanlissayi', text: 'Ort. Yanlış Sayı', genislikCh: 10, filterType: 'numberinput' }).tipDecimal(1).dipAvg()))
+			.addToplam(new TabloYapiItem().setKA('SECILMEYENDOGRUSAYI', 'Seçilmeyen Doğru').hidden().addColDef(new GridKolon({ belirtec: 'secilmeyendogrusayi' }).tipDecimal(1)))
+			.addToplam(new TabloYapiItem().setKA('ORTSECILMEYENDOGRUSAYI', 'Ort. Seçilmeyen Doğru').setFormul(['SECILMEYENDOGRUSAYI'], ({ rec }) => roundToFra1(rec.secilmeyendogrusayi / rec.kayitsayisi))
+				.addColDef(new GridKolon({ belirtec: 'ortsecilmeyendogrusayi', text: 'Ort. Seçilmeyen Doğru', genislikCh: 15, filterType: 'numberinput'}).tipDecimal().dipAvg()))
+			.addToplam(new TabloYapiItem().setKA('DOGRUSECIMSUREMS', 'Doğru Seçim Süre (ms)').hidden().addColDef(new GridKolon({ belirtec: 'dogrusecimsurems' }).tipDecimal()))
+			.addToplam(new TabloYapiItem().setKA('ORTDOGRUSECIMSUREMS', 'Ort. Doğru Seçim Süre (ms)').setFormul(['DOGRUSECIMSUREMS'], ({ rec }) => roundToFra1(rec.dogrusecimsurems / rec.kayitsayisi))
+				.addColDef(new GridKolon({ belirtec: 'ortdogrusecimsurems', text: 'Ort. Doğru Seçim (ms)', genislikCh: 15, filterType: 'numberinput'}).tipDecimal().dipAvg()))
+			.addToplam(new TabloYapiItem().setKA('YANLISSECIMSUREMS', 'Yanlış Seçim Süre (ms)').hidden().addColDef(new GridKolon({ belirtec: 'yanlissecimsurems' }).tipDecimal()))
+			.addToplam(new TabloYapiItem().setKA('ORTYANLISSECIMSUREMS', 'Ort. Yanlış Seçim Süre (ms)').setFormul(['YANLISSECIMSUREMS'], ({ rec }) => roundToFra1(rec.yanlissecimsurems / rec.kayitsayisi))
+				.addColDef(new GridKolon({ belirtec: 'ortyanlissecimsurems', text: 'Ort. Yanlış Seçim (ms)', genislikCh: 15, filterType: 'numberinput'}).tipDecimal().dipAvg()))
 	}
 	ekCSSDuzenle(e) {
 		super.ekCSSDuzenle(e); const {belirtec, result} = e; switch (belirtec) {
@@ -135,12 +110,12 @@ class DRapor_ESETest_Anket_Main extends DRapor_ESETest_Main {
 		for (let i = 1; i <= maxSecenekSayisi; i++) {
 			result.addGrup(new TabloYapiItem().setKA(`YANIT${i}`, `Yanit-${i}`).addColDef(new GridKolon({ belirtec: `secenek${i}`, text: `Yanıt-${i}`, filterType: 'checkedlist' }))) }
 		result
-			.addToplam(new TabloYapiItem().setKA('YANITSIZSAYI', 'Yanıtsız Sayı').addColDef(new GridKolon({ belirtec: 'yanitsizsayi', text: 'Yanıtsız Sayı', genislikCh: 10, filterType: 'numberinput', aggregates: ['avg'] }).tipNumerik()))
-			.addToplam(new TabloYapiItem().setKA('TOPLAMPUAN', 'Toplam Puan').addColDef(new GridKolon({ belirtec: 'toplampuan', text: 'Toplam Puan', genislikCh: 10, filterType: 'numberinput', aggregates: ['avg'] }).tipDecimal(1)));
+			.addToplam(new TabloYapiItem().setKA('YANITSIZSAYI', 'Yanıtsız Sayı').addColDef(new GridKolon({ belirtec: 'yanitsizsayi', text: 'Yanıtsız Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik().dipAvg()))
+			.addToplam(new TabloYapiItem().setKA('TOPLAMPUAN', 'Toplam Puan').addColDef(new GridKolon({ belirtec: 'toplampuan', text: 'Toplam Puan', genislikCh: 10, filterType: 'numberinput' }).tipDecimal(1).dipAvg()));
 		for (let i = 1; i <= maxSecenekSayisi; i++) {
 			result
-				.addToplam(new TabloYapiItem().setKA(`YANIT${i}SAYI`, `Yanit-${i} Sayı`).addColDef(new GridKolon({ belirtec: `yanit${i}sayi`, text: `Yanıt-${i} Sayı`, genislikCh: 10, filterType: 'numberinput', aggregates: ['avg'] }).tipNumerik()))
-				.addToplam(new TabloYapiItem().setKA(`YANIT${i}PUAN`, `Yanit-${i} Puan`).addColDef(new GridKolon({ belirtec: `yanit${i}puan`, text: `Yanıt-${i} Puan`, genislikCh: 10, filterType: 'numberinput', aggregates: ['avg'] }).tipDecimal(1)))
+				.addToplam(new TabloYapiItem().setKA(`YANIT${i}SAYI`, `Yanit-${i} Sayı`).addColDef(new GridKolon({ belirtec: `yanit${i}sayi`, text: `Yanıt-${i} Sayı`, genislikCh: 10, filterType: 'numberinput' }).tipNumerik().dipAvg()))
+				.addToplam(new TabloYapiItem().setKA(`YANIT${i}PUAN`, `Yanit-${i} Puan`).addColDef(new GridKolon({ belirtec: `yanit${i}puan`, text: `Yanıt-${i} Puan`, genislikCh: 10, filterType: 'numberinput' }).tipDecimal(1).dipAvg()))
 		}
 	}
 	ekCSSDuzenle(e) { super.ekCSSDuzenle(e); const {belirtec, result} = e; switch (belirtec) { case 'yanlissayi': case 'yanitsizsayi': result.push('red'); break } }

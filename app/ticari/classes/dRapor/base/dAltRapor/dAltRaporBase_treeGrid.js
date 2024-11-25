@@ -212,18 +212,17 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			if (grup[kod]) { continue } let toplammi = false, item = tabloYapi.grup[kod]; if (!item && (item = tabloYapi.toplam[kod])) { toplammi = true }
 			if (!item) { continue } const {colDefs} = item; if (!colDefs) { continue }
 			for (const colDef of colDefs) {
-				const {belirtec} = colDef; belirtec2ColDef[belirtec] = colDef;
-				if (toplammi) { (colDef?.aggregates?.includes('avg') ? _avgAttrListe : _sumAttrListe).push(belirtec) }
+				const {belirtec} = colDef; belirtec2ColDef[belirtec] = colDef; if (toplammi) { _sumAttrListe.push(belirtec) }
+				/*if (toplammi) { (colDef?.aggregates?.includes('avg') ? _avgAttrListe : _sumAttrListe).push(belirtec) } */
 			}
 		}
 		const jqxCols = gridWidget.base.columns.records, grupTextColAttr = jqxCols?.[0]?.datafield;
 		const formuller = []; for (const key in attrSet) { const item = tabloYapi.toplam[key]; if (item?.formulmu) { formuller.push(item) } }
 		let {recs} = e; if (recs) {
 			let _recs = recs; recs = []; for (let _rec of _recs) {
-				if (!_rec) { continue} let rec = new DAltRapor_PanelRec({ ..._rec });
-				for (const item of formuller) { item.formulEval({ rec }); recs.push(rec) }
-			}
-			e.recs = recs;
+				if (!_rec) { continue} let rec = new DAltRapor_PanelRec({ ..._rec }); recs.push(rec)
+				for (const item of formuller) { item.formulEval({ rec }) }
+			} e.recs = recs
 		}
 		let sevListe; if (grupColAttrListe?.length) {
 			let id = 1; sevListe = seviyelendir({
@@ -233,7 +232,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				}
 			}); for (const sev of sevListe) { sev.toplamYapiOlustur?.(); for (const item of formuller) { item.formulEval({ rec: sev }) } }
 		}
-		const avgBelirtec2ColDef = {}; for (const key in attrSet) {
+		/*const avgBelirtec2ColDef = {}; for (const key in attrSet) {
 			if (!tabloYapi.toplam[key]) { continue }
 			let avgColDefs = tabloYapi.toplam[key]?.colDefs?.filter(colDef => colDef?.aggregates?.includes('avg')); if (!avgColDefs?.length) { continue }
 			for (const colDef of avgColDefs) { avgBelirtec2ColDef[colDef.belirtec] = colDef }
@@ -247,8 +246,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 					rec[key] = value = roundToFra(value / count, fra)
 				}
 			}
-		}
-		/*topla(sev => sev[attr], sev)*/
+		}*/
 		if (config.dev) { console.info({ sevListe, recs }) }
 		return sevListe ?? recs
 	}

@@ -38,6 +38,8 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 	async loadServerDataInternal(e) {
 		const {raporTanim, secimler} = this, {attrSet} = raporTanim, {maxRow} = e;
 		let donemBS = new CBasiSonu({ basi: today().yilBasi(), sonu: today().yilSonu() });
+		const yil = app.params?.zorunlu?.cariYil; if (yil && yil != today().getYil()) {
+			for (const key of ['basi', 'sonu']) { let value = donemBS[basi]; if (!isInvalidDate(value)) { value.setYil(yil) } } }
 		/*const sabit = [...Object.keys(grup)], toplam = []; for (const key in icerik) { (tabloYapi.toplam[key] ? toplam : sabit).push(key) }*/
 		if (secimler) {
 			const {donem, tarihAralik} = secimler; let {basiSonu, tarihAralikmi} = donem.tekSecim;

@@ -36,18 +36,21 @@ class MQYapi extends CIO {
 	}
 	async degistir(e) {
 		e = e || {}; e = e || {}; if (!$.isPlainObject(e)) { e = { islem: 'degistir', eskiInst: e } } await this.degistirOncesiIslemler(e);
-		const {table} = this.class, hv = this.hostVars(e), keyHV = this.keyHostVars({ ...e, varsayilanAlma: true });
+		const {table} = this.class; let keyHV = this.keyHostVars({ ...e, varsayilanAlma: true }) ?? {};
+		let altKeyHV = this.alternateKeyHostVars({ ...e, varsayilanAlma: true }); if (!$.isEmptyObject(altKeyHV)) { $.extend(keyHV, altKeyHV) }
 		let sent = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: '*' });
-		const basRec = await this.sqlExecTekil(sent), degisenHV = degisimHV(hv, basRec);
+		const basRec = await this.sqlExecTekil(sent), hv = this.hostVars(e), degisenHV = degisimHV(hv, basRec);
 		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e, _e = { offlineMode, trnId }; 
 		let result = true; if (!$.isEmptyObject(degisenHV)) {
 			let query = _e.query = new MQIliskiliUpdate({ from: table, where: { birlestirDict: keyHV }, set: { birlestirDict: degisenHV } });
-			result = await this.sqlExecNone(_e);
+			result = await this.sqlExecNone(_e)
 		}
 		await this.degistirSonrasiIslemler({ ...e, ..._e }); return result
 	}
 	async sil(e) {
-		e = e || {}; const keyHV = this.alternateKeyHostVars(e); if ($.isEmptyObject(keyHV)) { return true }
+		e = e || {}; let keyHV = this.keyHostVars({ ...e, varsayilanAlma: true }) ?? {};
+		let altKeyHV = this.alternateKeyHostVars({ ...e, varsayilanAlma: true }); if (!$.isEmptyObject(altKeyHV)) { $.extend(keyHV, altKeyHV) }
+		if ($.isEmptyObject(keyHV)) { return true }
 		await this.silmeOncesiIslemler(e); const {table} = this.class; let query = new MQIliskiliDelete({ from: table, where: { birlestirDict: keyHV } });
 		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e, _e = { offlineMode, trnId, query }; let result = await this.sqlExecNone(_e);
 		await this.silmeSonrasiIslemler({ ...e, ..._e }); return result
@@ -125,10 +128,10 @@ class MQYapi extends CIO {
 	keyHostVars(e) { const hv = {}; this.keyHostVarsDuzenle($.extend({}, e, { hv })); return hv }
 	keyHostVarsDuzenle(e) { e = e || {}; if (!e.varsayilanAlma) { this.class.varsayilanKeyHostVarsDuzenle(e) } }
 	alternateKeyHostVars(e) {
-		let hv = {}; const _e = $.extend({}, e, { hv }); this.class.varsayilanKeyHostVarsDuzenle(_e);
-		let _hv = {}; this.alternateKeyHostVarsDuzenle(_e);
-		if ($.isEmptyObject(_hv)) { _hv = this.keyHostVars(e) }
-		$.extend(_hv, _e.hv); if (!$.isEmptyObject(_hv)) { $.extend(hv, _hv) }
+		const _e = { ...e, hv: {} }; this.class.varsayilanKeyHostVarsDuzenle(_e); let hv = _e.hv;
+		_e.hv = {}; this.alternateKeyHostVarsDuzenle(_e); let _hv = _e.hv;
+		if ($.isEmptyObject(_hv)) { _hv = _e.hv = this.keyHostVars(e) }
+		if (!$.isEmptyObject(_hv)) { $.extend(hv, _hv) }
 		return hv
 	}
 	alternateKeyHostVarsDuzenle(e) { }

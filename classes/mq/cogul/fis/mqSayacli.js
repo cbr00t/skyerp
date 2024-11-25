@@ -22,7 +22,7 @@ class MQSayacli extends MQCogul {
 		await this.sayacBelirle(e); return result
 	}
 	async sayacBelirle(e) {
-		const {sayacSaha, table} = this.class; if (!sayacSaha) { return null }
+		e = e ?? {}; const {sayacSaha, table} = this.class; if (!sayacSaha) { return null }
 		const hv = this.alternateKeyHostVars(e); if ($.isEmptyObject(hv)) { return null }
 		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e;
 		const query = new MQSent({ from: table, where: { birlestirDict: hv }, sahalar: [sayacSaha] });

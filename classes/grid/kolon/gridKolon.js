@@ -198,6 +198,8 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	tipButton(e) { if (typeof e == 'string') e = { value: e }; this.tip = new GridKolonTip_Button(e); return this }
 	tipResim(e) { if (typeof e == 'string') e = { value: e }; this.tip = new GridKolonTip_Image(e); return this }
 	tipImage(e) { return this.tipImage(e) }
+	dipSum(e) { this.aggregates = ['sum']; return this } dipAvg(e) { this.aggregates = ['avg']; return this }
+	dipSumVeAvg(e) { this.aggregates = ['sum', 'avg']; return this } setDip(value) { this.aggregates = value; return this }
 	*getIter() { yield this }
 }
 
