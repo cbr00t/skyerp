@@ -347,56 +347,38 @@ class BarkodluGerceklemePart extends Part {
 				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
 					const htmlListe = [],  ekOzellikler = rec.ekOzellikler || {};
 					if (!$.isEmptyObject(ekOzellikler)) {
-						const subHTMLListe = [];
-						for (const key in ekOzellikler) {
-							const value = ekOzellikler[key];
-							if (value) {
-								subHTMLListe.push(
-									`<div class="ekOzellik">` +
-										`<span class="etiket">${key}</span>` +
-										`<span class="ek-bilgi">=</span>` +
-										`<span class="veri">${value.toLocaleString()}</span>` +
-									`</div>`
-								)
-							}
+						let subHTMLListe = []; for (let [key, value] of Object.entries(ekOzellikler)) {
+							if (!value) { continue } if (key?.toLowerCase().endsWith('kod')) { key = key.slice(0, -3) }
+							subHTMLListe.push(
+								`<div class="ekOzellik">
+									<span class="etiket">${key}</span><span class="ek-bilgi">: </span><span class="veri">${value.toLocaleString()}</span>
+								</div>`
+							)
 						}
 						if (subHTMLListe.length) {
 							htmlListe.push(
-								`<li class="ekOzellikler flex-row">` + '\r\n' +
-									`<div class="title">Ek Özellikler</div>` +
-									`<span class="ek-bilgi">: </span>` + '\r\n' +
-									`<div class="content flex-row">` + '\r\n' +
-										subHTMLListe.join('\r\n') + '\r\n' +
-									`</div>` + '\r\n' +
-								`</li>` + '\r\n'
+								`<li class="ekOzellikler flex-row">
+									<div class="title">Ek Özellikler</div><div class="ek-bilgi">: </div>
+									<div class="content flex-row">${subHTMLListe.join('')}</div>
+								</li>`
 							)
 						}
 					}
-
-					const {iskartalar} = rec;
-					if (!$.isEmptyObject(iskartalar)) {
-						const subHTMLListe = [];
-						for (const kod in iskartalar) {
+					const {iskartalar} = rec; if (!$.isEmptyObject(iskartalar)) {
+						const subHTMLListe = []; for (const kod in iskartalar) {
 							subHTMLListe.push(
-								`<div class="iskarta">` +
-									`<span class="etiket">${kod}</span>` +
-									`<span class="ek-bilgi">: </span>` +
-									`<span class="veri">${(iskartalar[kod] || 0).toLocaleString()}</span>` +
-								`</div>`
-							)
+								`<div class="iskarta">
+									<span class="etiket">${kod}</span><span class="ek-bilgi">: </span><span class="veri">${(iskartalar[kod] || 0).toLocaleString()}</span>
+								</div>`)
 						}
 						htmlListe.push(
-							`<li class="iskartalar flex-row">` + '\r\n' +
-								`<div class="title">Iskartalar</div>` +
-								`<span class="ek-bilgi">: </span>` + '\r\n' +
-								`<div class="content flex-row">` + '\r\n' +
-									subHTMLListe.join('\r\n') + '\r\n' +
-								`</div>` + '\r\n' +
-							`</li>` + '\r\n'
+							`<li class="iskartalar flex-row">
+								<div class="title">Iskartalar</div><span class="ek-bilgi">: </span>
+								<div class="content flex-row">${subHTMLListe.join('')}</div>
+							</li>`
 						)
 					}
-					
-					return changeTagContent(html, ( htmlListe.length ? '\r\n' + `<ul>${htmlListe.join('\r\n')}</ul>` : '' ))
+					return changeTagContent(html, ( htmlListe.length ? `<ul>${htmlListe.join('\r\n')}</ul>` : '' ))
 				}
 			}).readOnly(),
 			new GridKolon({
@@ -430,7 +412,7 @@ class BarkodluGerceklemePart extends Part {
 			parentPart: this, gridIDBelirtec: 'id', layout: layout.find('.grid-parent > .grid'),
 			argsDuzenle: e => {
 				$.extend(e.args, {
-					editable: false, autoRowHeight: true, rowsHeight: 46, columnsHeight: 20, showGroupsHeader: true, /*selectionMode: 'multiplerowsextended',*/
+					editable: false, autoRowHeight: true, rowsHeight: 53, columnsHeight: 20, showGroupsHeader: true, /*selectionMode: 'multiplerowsextended',*/
 					groupable: true, sortable: false, filterable: true, showFilterRow: true, /* filterMode: 'excel', */ autoShowLoadElement: false,
 					selectionMode: 'checkbox', editMode: 'selectedRow', groupIndentWidth: 60, groupsExpandedByDefault: true
 				})

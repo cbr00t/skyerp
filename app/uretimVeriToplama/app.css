@@ -13,12 +13,13 @@
 .jqx-grid div[role=row] .ekBilgi > ul,
 .jqx-grid div[role=row] .ekBilgi > ul { width: var(--full); height: var(--full); vertical-align: top }
 .jqx-grid div[role=row] .ekBilgi { color: #999 }
-.jqx-grid div[role=row] .ekBilgi ul { /* margin-inline-start: 13px */ }
+.jqx-grid div[role=row] .ekBilgi ul { margin-left: -33px }
 .jqx-grid div[role=row] .ekBilgi .ekOzellikler .veri { color: royalblue }
 .jqx-grid div[role=row] .ekBilgi .iskartalar .veri { color: #9f1010 }
 .jqx-grid div[role=row] .jqx-grid-cell-selected.ekBilgi .iskartalar .veri { color: #760000 }
 .jqx-grid div[role=row] .ekBilgi .content > div { padding-inline: 5px !important }
-.jqx-grid div[role=row] .ekBilgi .content > div:not(:last-child) { border-right: 1px solid #aaa }
+.jqx-grid div[role=row] .ekBilgi .content > div:not(:last-child) { border-right: 2px solid #aaa }
+body.dark-theme .jqx-grid div[role=row] .ekBilgi .content > div:not(:last-child) { border-right-color: #333 }
 
 body #ust-parent > #nav ul > li#_verileriSil { border-top: 3px solid #888 }
 body #ust-parent > #nav ul > li#_verileriSil > a .img {

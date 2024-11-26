@@ -108,55 +108,41 @@ class MQGercekleme extends MQSayacli {
 			new GridKolon({ belirtec: 'miktar', text: 'Miktar', minWidth: 70, maxWidth: 130, width: 130, /* filterType: 'checkedlist' */ cellClassName: globalCellsClassName }).tipDecimal(),
 			new GridKolon({
 				belirtec: 'ekBilgi', text: 'Ek Bilgi', minWidth: 40, maxWidth: 500, width: '20%', filterType: 'input', cellClassName: globalCellsClassName,
-				cellBeginEdit: (...args) => this.onCellBeginEdit(...args), cellEndEdit: (...args) => this.onCellEndEdit(...args),
 				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-					const htmlListe = [], ekOzellikler = rec._ekOzellikler || {};
+					const htmlListe = [],  ekOzellikler = rec.ekOzellikler || {};
 					if (!$.isEmptyObject(ekOzellikler)) {
-						const subHTMLListe = []; for (const key in ekOzellikler) {
-							const value = ekOzellikler[key];
-							if (value) {
-								const etiket = belirtec2Bilgi[key]?.etiket || key;
-								subHTMLListe.push(
-									`<div class="ekOzellik">` +
-										`<span class="etiket">${etiket}</span><span class="ek-bilgi">=</span>` +
-										`<span class="veri">${value.toLocaleString()}</span>` +
-									`</div>`
-								)
-							}
+						let subHTMLListe = []; for (let [key, value] of Object.entries(ekOzellikler)) {
+							if (!value) { continue } if (key?.toLowerCase().endsWith('kod')) { key = key.slice(0, -3) }
+							subHTMLListe.push(
+								`<div class="ekOzellik">
+									<span class="etiket">${key}</span><span class="ek-bilgi">: </span><span class="veri">${value.toLocaleString()}</span>
+								</div>`
+							)
 						}
 						if (subHTMLListe.length) {
 							htmlListe.push(
-								`<li class="ekOzellikler flex-row">` + '\r\n' +
-									`<div class="title">Ek Öz.</div>` +
-									`<span class="ek-bilgi">: </span>` + '\r\n' +
-									`<div class="content flex-row">` + '\r\n' +
-										subHTMLListe.join('\r\n') + '\r\n' +
-									`</div>` + '\r\n' +
-								`</li>` + '\r\n'
+								`<li class="ekOzellikler flex-row">
+									<div class="title">Ek Özellikler</div><div class="ek-bilgi">: </div>
+									<div class="content flex-row">${subHTMLListe.join('')}</div>
+								</li>`
 							)
 						}
 					}
-					const iskartalar = rec._iskartalar || {};
-					if (!$.isEmptyObject(iskartalar)) {
+					const {iskartalar} = rec; if (!$.isEmptyObject(iskartalar)) {
 						const subHTMLListe = []; for (const kod in iskartalar) {
 							subHTMLListe.push(
-								`<div class="iskarta">` +
-									`<span class="etiket">${kod}</span><span class="ek-bilgi">: </span>` +
-									`<span class="veri">${(iskartalar[kod] || 0).toLocaleString()}</span>` +
-								`</div>`
-							)
+								`<div class="iskarta">
+									<span class="etiket">${kod}</span><span class="ek-bilgi">: </span><span class="veri">${(iskartalar[kod] || 0).toLocaleString()}</span>
+								</div>`)
 						}
 						htmlListe.push(
-							`<li class="iskartalar flex-row">` + '\r\n' +
-								`<div class="title">Iskarta</div>` +
-								`<span class="ek-bilgi">: </span>` + '\r\n' +
-								`<div class="content flex-row">` + '\r\n' +
-									subHTMLListe.join('\r\n') + '\r\n' +
-								`</div>` + '\r\n' +
-							`</li>` + '\r\n'
+							`<li class="iskartalar flex-row">
+								<div class="title">Iskartalar</div><span class="ek-bilgi">: </span>
+								<div class="content flex-row">${subHTMLListe.join('')}</div>
+							</li>`
 						)
 					}
-					return changeTagContent( html, ( htmlListe.length ? '\r\n' + `<ul>${htmlListe.join('\r\n')}</ul>` : '' ) )
+					return changeTagContent(html, ( htmlListe.length ? `<ul>${htmlListe.join('\r\n')}</ul>` : '' ))
 				}
 			}).noSql()
 		])
@@ -176,7 +162,7 @@ class MQGercekleme extends MQSayacli {
 			sent.sahalar.add(
 				`oem.ismrkkod hatkod`, `uhat.aciklama hatadi`, `emr.tarih emirtarih`, `emr.fisnox emirnox`, `oem.opno`, `${alias}.tezgahkod`, `${alias}.perkod`, `frm.formul stokkod`,
 				`oem.kaysayac oemsayac`, `emr.tarih emirtarih`, `op.aciklama opadi`, `stk.aciklama stokadi`, `stk.brm stokbrm`,
-				`tez.aciklama tezgahadi`, `per.aciklama peradi`
+				`tez.aciklama tezgahadi`, `per.aciklama peradi`, `edet.*`
 			);
 			for (let i = 1; i <= iskartaMaxSayi; i++) { sent.sahalar.add(`iskartaneden${i}kod`, `iskartamiktar${i}`) }
 			const kodEkle = true, adiEkle = true; sent.har2HMRBagla({ alias, kodEkle, adiEkle });
@@ -187,7 +173,7 @@ class MQGercekleme extends MQSayacli {
 	static async loadServerData_querySonucu(e) {
 		const sec = e.secimler, tSecIskarta = sec?.iskartaSecim?.tekSecim;
 		let recs = await super.loadServerData_querySonucu(e); if (recs) {
-			const {iskartaMaxSayi} = this, {belirtec2Bilgi} = HMRBilgi;
+			const {iskartaMaxSayi} = this, {ekOzellikSahalar} = MQBarkodRec;
 			for (const rec of recs) {
 				for (const key of ['detbasts', 'detbitts', 'emirtarih']) { let value = rec[key]; if (value && typeof value == 'string') value = rec[key] = asDate(value) }
 				const iskartalar = rec._iskartalar = {};
@@ -195,10 +181,9 @@ class MQGercekleme extends MQSayacli {
 					const kod = rec[`iskartaneden${i}kod`], miktar = rec[`iskartamiktar${i}`];
 					if (kod && miktar) { iskartalar[kod] = miktar } delete rec[`iskartaneden${i}kod`]; delete rec[`iskartamiktar$${i}`]
 				}
-				const ekOzellikler = rec._ekOzellikler = {};
-				for (const [belirtec, hmrBilgi] of Object.entries(belirtec2Bilgi || {})) {
-					const {ioAttr, adiAttr, rowAttr, rowAdiAttr, kami} = hmrBilgi; const kod = rec[rowAttr]?.trimEnd(); if (!kod) { continue }
-					const adi = kami && rowAdiAttr ? rec[rowAdiAttr] : null, text = adi || kod; ekOzellikler[belirtec] = text
+				const ekOzellikler = rec.ekOzellikler = {}; for (let key of ekOzellikSahalar ?? []) {
+					const keyLower = key.toLowerCase(), kod = rec[`${keyLower}kod`] ?? rec[keyLower], adi = rec[`${keyLower}adi`];
+					const text = adi || kod; ekOzellikler[key] = text
 				}
 			}
 		}

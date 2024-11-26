@@ -84,19 +84,9 @@ class PaletliGirisPart extends Part {
 				belirtec: 'ekOzellikler', text: 'Ek Özellikler', minWidth: 100, maxWidth: 400, width: '20%', filterType: 'input', cellClassName: globalCellsClassName,
 				cellBeginEdit: (...args) => this.onCellBeginEdit(...args), cellEndEdit: (...args) => this.onCellEndEdit(...args),
 				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-					const ekOzellikler = rec.ekOzellikler || {};
-					const items = [];
-					for (const key in ekOzellikler) {
-						const value = ekOzellikler[key];
-						if (value)
-							items.push(value)
-					}
-					return changeTagContent(
-						html,
-						(
-							`<div class="kod">${items.join(delimWS)}</div>`
-						)
-					)
+					const ekOzellikler = rec.ekOzellikler || {}, items = [];
+					for (const key in ekOzellikler) { const value = ekOzellikler[key]; if (value) { items.push(value) } }
+					return changeTagContent(html, `<div class="kod">${items.join(delimWS)}</div>`)
 				}
 			}).readOnly()
 		)
@@ -104,7 +94,7 @@ class PaletliGirisPart extends Part {
 			parentPart: this, gridIDBelirtec: 'id', layout: layout.find('.grid-parent > .grid'),
 			argsDuzenle: e => {
 				$.extend(e.args, {
-					autoRowHeight: true, rowsHeight: 50, columnsHeight: 20, showGroupsHeader: false, /*selectionMode: 'multiplerowsextended',*/
+					autoRowHeight: true, rowsHeight: 53, columnsHeight: 20, showGroupsHeader: false, /*selectionMode: 'multiplerowsextended',*/
 					groupable: true, filterable: true, showFilterRow: true /*, filterMode: 'excel'*/
 				})
 			},

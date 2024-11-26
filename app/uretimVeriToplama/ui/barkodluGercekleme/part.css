@@ -65,6 +65,7 @@
 .barkodluGercekleme.part #header #miktar { width: 100px }
 .barkodluGercekleme.part #header #ekle { width: var(--ekle-button-width); margin-top: 6px; margin-left: var(--ekle-button-margin-left); margin-right: calc(var(--ekle-button-margin-right) / 2) }
 .barkodluGercekleme.part #header #barkod > .veri, .barkodluGercekleme.part #header #miktar > .veri { font-size: 130%; padding: 2px 0 !important; color: lightcyan; background-color: #333333ee }
+body.dark-theme .barkodluGercekleme.part #header #barkod > .veri, .barkodluGercekleme.part #header #miktar > .veri { background-color: #111; filter: invert(1) hue-rotate(180deg) !important }
 .barkodluGercekleme.part #header #barkod > .veri:focus,
 .barkodluGercekleme.part #header #miktar > .veri:focus { background-color: #303030ee; border-bottom: 5px solid royalblue }
 .barkodluGercekleme.part #header #barkod > .veri:focus::placeholder,

@@ -2,11 +2,11 @@ class MQBarkodRec extends MQMasterOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Gerçekleme' } static get kodListeTipi() { return 'UBAR' } get gorevmi() { return this._gorevmi ?? !!this.isId } set gorevmi(value) { this._gorevmi = value }
 	static get tanimUISinif() { return ModelTanimPart } static get silinebilirmi() { return true } static get bulFormKullanilirmi() { return true }
-	static get ozelBelirtecSet() { let result = this._ozelBelirtecSet; if (!result) result = this._ozelBelirtecSet = asSet(['_rowNumber', '_durum', '_degistir', '_sil']); return result }
-	static get ozelDurumKodSet() { let result = this._ozelDurumKodSet; if (!result) result = this._ozelDurumKodSet = asSet(['processing', 'changing', 'removed']); return result }
-	static get numerikSahalarSet() { let result = this._numerikSahalarSet; if (!result) result = this._numerikSahalarSet = asSet(['oemSayac', 'isId', 'opNo', 'onceOpNo', 'formulSayac']); return result }
-	static get anahtarSahalar() { let result = this._anahtarSahalar; if (!result) result = this._anahtarSahalar = $.merge(this.anahtarSahalarBasit, this.ekOzellikSahalar) ;return result }
-	static get anahtarSahalarBasit() { let result = this._anahtarSahalarBasit; if (!result) result = this._anahtarSahalarBasit = ['emirNox', 'opNo', 'stokKod', 'tezgahKod', 'perKod', 'paketKod', 'paketIcAdet']; return result }
+	static get ozelBelirtecSet() { let result = this._ozelBelirtecSet; if (!result) { result = this._ozelBelirtecSet = asSet(['_rowNumber', '_durum', '_degistir', '_sil']) } return result }
+	static get ozelDurumKodSet() { let result = this._ozelDurumKodSet; if (!result) { result = this._ozelDurumKodSet = asSet(['processing', 'changing', 'removed']) } return result }
+	static get numerikSahalarSet() { let result = this._numerikSahalarSet; if (!result) { result = this._numerikSahalarSet = asSet(['oemSayac', 'isId', 'opNo', 'onceOpNo', 'formulSayac']) } return result }
+	static get anahtarSahalar() { let result = this._anahtarSahalar; if (!result) { result = this._anahtarSahalar = $.merge(this.anahtarSahalarBasit, this.ekOzellikSahalar) } return result }
+	static get anahtarSahalarBasit() { let result = this._anahtarSahalarBasit; if (!result) { result = this._anahtarSahalarBasit = ['emirNox', 'opNo', 'stokKod', 'tezgahKod', 'perKod', 'paketKod', 'paketIcAdet'] } return result }
 	static get ekOzellikSahalar() {
 		let result = this._ekOzellikSahalar;
 		if (!result) {
@@ -50,6 +50,7 @@ class MQBarkodRec extends MQMasterOrtak {
 		let value = e.suAnmi ?? e.suAn ?? e.suan; if (value !== undefined) { this.suAnmi = value }
 		if (this.suAnmi == null && !this.noCheckFlag) { this.suAnmi = !!this.gorevmi }
 		const {paketKod, miktar, paketIcAdet} = this; if (paketKod && paketIcAdet) { this.paketSayi = Math.ceil(miktar / paketIcAdet) }
+		const {ekOzellikSahalar} = this.class, {ekOzellikler} = this; for (const key of ekOzellikSahalar ?? []) { let value = e[key]; if (value) { ekOzellikler[key] = value } }
 	}
 	static async rootFormBuilderDuzenle(e) {
 		await super.rootFormBuilderDuzenle(e); const inst = e.inst ?? e.sender?.inst, sabit_hatKod = app.params.config.hatKod || null;
