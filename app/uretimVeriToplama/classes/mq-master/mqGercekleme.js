@@ -74,7 +74,7 @@ class MQGercekleme extends MQSayacli {
 			new GridKolon({
 				belirtec: 'opadi', text: 'Operasyon', minWidth: 100, maxWidth: 250, width: '9%', filterType: 'checkedlist', cellClassName: globalCellsClassName,
 				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) =>
-					changeTagContent(html, (`<div class="veri">${value}</div><div class="ek-veri">${rec.opadi}</div>`))
+					changeTagContent(html, (`<div class="veri">${value}</div><div class="ek-veri">${rec.opno}</div>`))
 			}).noSql().tipNumerik(),
 			new GridKolon({
 				belirtec: 'stokadi', text: 'Ürün', minWidth: 150, maxWidth: 600, width: '25%', sql: 'frm.formul', filterType: 'checkedlist', cellClassName: globalCellsClassName,
