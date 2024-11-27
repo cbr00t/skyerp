@@ -10,8 +10,7 @@ class HMRBilgi extends CIO {
 	}
 	static set belirtecListe(value) {
 		if (value && !$.isArray(value)) { value = Object.keys(value) }
-		this._belirtecListe = value || [];
-		for (const key of ['_belirtecSet', '_belirtec2Bilgi', '_ioAttrListe', '_rowAttrListe', '_hmrEtiketDict']) { delete this[key] }
+		this.cacheReset(); this._belirtecListe = value || [];
 	}
 	static get belirtecSet() { let result = this._belirtecSet; if (result == null) { result = this._belirtecSet = asSet(this.belirtecListe) } return result }
 	static get hmrEtiketDict() { let result = this._hmrEtiketDict; if (result == null) { result = this._hmrEtiketDict = app.params.stokGenel.hmrEtiket } return result }
@@ -129,5 +128,9 @@ class HMRBilgi extends CIO {
 			if (adiAttr) { const value = rec[adiAttr]; if (value != null) { this[adiAttr] = value } }
 			if (kami && mfSinif) { mfSinif.hmrSetValuesEk($.extend({}, e, { inst: this, rec })) }
 		}
+	}
+	static cacheReset() {
+		for (const key of ['_belirtecListe', '_belirtecSet', '_belirtec2Bilgi', '_ioAttrListe', '_rowAttrListe', '_hmrEtiketDict']) { delete this[key] };
+		return this
 	}
 }

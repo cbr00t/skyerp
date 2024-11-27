@@ -162,7 +162,7 @@ class MQGercekleme extends MQSayacli {
 			sent.sahalar.add(
 				`oem.ismrkkod hatkod`, `uhat.aciklama hatadi`, `emr.tarih emirtarih`, `emr.fisnox emirnox`, `oem.opno`, `${alias}.tezgahkod`, `${alias}.perkod`, `frm.formul stokkod`,
 				`oem.kaysayac oemsayac`, `emr.tarih emirtarih`, `op.aciklama opadi`, `stk.aciklama stokadi`, `stk.brm stokbrm`,
-				`tez.aciklama tezgahadi`, `per.aciklama peradi`, `edet.*`
+				`tez.aciklama tezgahadi`, `per.aciklama peradi`, `gdet.*`
 			);
 			for (let i = 1; i <= iskartaMaxSayi; i++) { sent.sahalar.add(`iskartaneden${i}kod`, `iskartamiktar${i}`) }
 			const kodEkle = true, adiEkle = true; sent.har2HMRBagla({ alias, kodEkle, adiEkle });
