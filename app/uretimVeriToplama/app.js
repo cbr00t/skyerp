@@ -47,7 +47,7 @@ class UretimVeriToplamaApp extends App {
 			uretim: MQUretimParam.getInstance(), operGenel: MQOperGenelParam.getInstance(), kalite: MQKaliteParam.getInstance()
 		})
 	}
-	async paramsDuzenleSonrasi(e) { await super.paramsDuzenleSonrasi(e); this.params.localData = await MQLocalData.getInstance() }
+	async paramsDuzenleSonrasi(e) { try { await super.paramsDuzenleSonrasi(e) } finally { this.params.localData = await MQLocalData.getInstance() } }
 	initLayout(e) { }
 	async wsConfigKontrol(e) {
 		const {params} = this; let yerelParam = params.yerel;

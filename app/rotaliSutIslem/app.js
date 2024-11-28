@@ -36,7 +36,7 @@ class RotaliSutIslemApp extends App {
 		await this.anaMenuOlustur(e)
 	}
 	paramsDuzenle(e) { super.paramsDuzenle(e);	 const {params} = e; $.extend(params, { sut: MQSutParam.getInstance() }) }
-	async paramsDuzenleSonrasi(e) { await super.paramsDuzenleSonrasi(e); this.params.localData = await MQLocalData.getInstance() }
+	async paramsDuzenleSonrasi(e) { try { await super.paramsDuzenleSonrasi(e) } finally { this.params.localData = await MQLocalData.getInstance() } }
 	getAnaMenu(e) {
 		const disabledMenuIdSet = this.disabledMenuIdSet || {};
 		let items = [

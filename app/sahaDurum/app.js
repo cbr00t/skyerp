@@ -16,7 +16,7 @@ class SahaDurumApp extends App {
 		super.loginTipleriDuzenle(e);
 		/*const {loginTipleri} = e; $.merge(loginTipleri, [ { kod: 'plasiyerLogin', aciklama: 'Plasiyer' }, { kod: 'musteriLogin', aciklama: 'Müşteri' } ])*/
 	}
-	async paramsDuzenleSonrasi(e) { await super.paramsDuzenleSonrasi(e); this.params.localData = await MQLocalData.getInstance() }
+	async paramsDuzenleSonrasi(e) { try { await super.paramsDuzenleSonrasi(e) } finally { this.params.localData = await MQLocalData.getInstance() } }
 	getAnaMenu(e) {
 		/* const disabledMenuIdSet = this.disabledMenuIdSet || {}; */
 		return new FRMenu({ items: [
