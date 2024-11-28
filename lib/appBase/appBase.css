@@ -1,4 +1,4 @@
-:root { --full: 100%; --half: 50%; --base-fontSize: 13pt; color-scheme: dark light }
+:root { --full: 100%; --half: 50%; --base-fontSize: 13pt /*color-scheme: light dark*/ }
 /*@font-face {
   font-family: SkyERP-Default; src: url("../../fonts/OpenSans-VariableFont.ttf") format("truetype");
   -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; display: inline-block
@@ -97,6 +97,8 @@ jqx-grid .jqx-group-collapse { width: 35px }
 .jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header { font-weight: bold; color: #616161; text-wrap: pretty }
 .jqx-grid.jqx-grid-metro .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header { font-size: 150% }
 .jqx-grid div[role=row] .jqx-grid-cell-selected { color: unset; background: #0d366333; border: none }
+.jqx-window-modal { background-color: black !important; opacity: .5 !important; filter: blur(10px) !important }
+body.dark-theme .jqx-window-modal { filter: invert(1) hue-rotate(180deg) !important }
 .jqx-window.active .jqx-window-header { color: whitesmoke; background-color: royalblue; margin-top: 0; }
 .jqx-widget-header .jqx-window-close-button-background,
 .jqx-widget-header .jqx-window-collapse-button-background { width: 40px !important; height: 25px !important }
