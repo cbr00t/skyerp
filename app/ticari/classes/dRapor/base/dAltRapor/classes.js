@@ -5,7 +5,7 @@ class DAltRapor_PanelRec extends CObject {
 }
 class DAltRapor_PanelGruplama extends DAltRapor_PanelRec {
 	static { window[this.name] = this; this._key2Class[this.name] = this } get grupmu() { return true }
-	constructor(e) { e = e || {}; super(e); $.extend(this, { sumAttrListe: e._sumAttrListe ?? [], _avgAttrListe: e._avgAttrListe ?? [], _orj: e._orj ?? {}, detaylar: e.detaylar ?? [] }) }
+	constructor(e) { e = e || {}; super(e); $.extend(this, { _sumAttrListe: e._sumAttrListe ?? [], _avgAttrListe: e._avgAttrListe ?? [], _orj: e._orj ?? {}, detaylar: e.detaylar ?? [] }) }
 	toplamYapiOlustur(e) {
 		super.toplamYapiOlustur(e); const {_sumAttrListe, _avgAttrListe, detaylar, _orj: orj} = this; if (!detaylar?.length) { return this }
 		const aggrAttrListe = ['kayitsayisi', ...(_sumAttrListe ?? []), ...(_avgAttrListe ?? [])];

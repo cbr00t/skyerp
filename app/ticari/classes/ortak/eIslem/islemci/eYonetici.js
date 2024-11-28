@@ -50,13 +50,12 @@ class EYonetici extends CObject {
 						});
 						if (results) {
 							for (let i = 0; i < subRecs.length; i++) {
-								const result = results[i]; if (!result) continue
+								const result = results[i]; if (!result) { continue }
 								const _rec = subRecs[i], {uuid} = _rec, isError = result.isError ?? !result.code, message = result.message ?? result.errorText;
 								$.extend(result, { islemZamani: now(), isError, message, rec: _rec, efAyrimTipi, xmlDosya: `${eIslAltBolum}\\${uuid}.xml` });
 								uuid2Result[uuid] = result; if (!isError) { duzgunUUIDListe.push(uuid); subDuzgunUUIDListe.push(uuid) }
 								if (!savedToken) { const {token} = result; if (token != null && savedToken != token) { savedToken = token; this.class.setTempToken(efAyrimTipi, token) } }
-								if (window.progressManager) { window.progressManager.progressStep() }
-								if (callback) { getFuncValue.call(this, callback, e) }
+								if (window.progressManager) { window.progressManager.progressStep() } if (callback) { getFuncValue.call(this, callback, e) }
 							}
 						}
 						if (subDuzgunUUIDListe.length) {
@@ -380,7 +379,7 @@ class EYonetici extends CObject {
 							if (!anaBolum) { throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' } }
 							let uuid; try {
 								const args = { ..._e }, xmlStr = await eFis.xmlOlustur(args); if (!xmlStr) { p.resolve() }
-								uuid = baslik.uuid; e.uuid2Result = uuid2Result[uuid] = uuid2Result[uuid] ?? { islemZamani: now(), isError: false, eFis, rec: baslik, efAyrimTipi };
+								uuid = baslik.uuid; uuid2Result[uuid] = uuid2Result[uuid] ?? { islemZamani: now(), isError: false, eFis, rec: baslik, efAyrimTipi };
 								/* const uuid2XML = e.uuid2XML = e.uuid2XML || {}; uuid2XML[uuid] = xmlStr; */
 								const xmlDosya = `${anaBolum}\\IMZALI\\${uuid}.xml`; /*await app.wsUpload({ remoteFile: xmlDosya, args: xmlStr });*/
 								uploadList.push({ name: xmlDosya, data: Base64.encode(xmlStr) });

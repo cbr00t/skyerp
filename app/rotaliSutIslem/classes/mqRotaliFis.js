@@ -21,7 +21,7 @@ class MQRotaliFis extends MQDetayliOrtak {
 		$.extend(part.ekSagButonIdSet = part.ekSagButonIdSet || {}, asSet(['degistir']))
 	}
 	static secimlerDuzenle(e) {
-		super.secimlerDuzenle(e); const sec = e.secimler
+		super.secimlerDuzenle(e); const {secimler: sec} = e;
 		sec.secimTopluEkle({
 			islemDurum: new SecimTekSecim({ etiket: 'İşlem Durumu', tekSecim: new BuDigerVeHepsi([`<div class="orangered full-wh">Bekleyen</div>`, `<div class="green full-wh">İşlem Gören</div>` ])/*.bu()*/ }),
 			gonderimDurum: new SecimTekSecim({ etiket: 'Gönderim Durumu', tekSecim: new BuDigerVeHepsi([`<div class="orangered full-wh">Bekleyen</div>`, `<div class="green full-wh">Gönderilen</div>` ])/*.bu()*/ })
@@ -34,13 +34,13 @@ class MQRotaliFis extends MQDetayliOrtak {
 			switch (rotaTipi) { /* case 'MS': result.push('bg-lightgray'); break; */ case 'TN': result.push('bg-lightcadetblue'); break; case 'TP': result.push('bg-lightpink'); break }
 		}
 		else if (belirtec == 'gonderimDurum' || belirtec == 'gonderimTS' || belirtec == 'islemDurum') { result.push('bold center'); if (!!rec.gonderimTS) result.push('bg-lightgreen') }
-		else if (rec.devreDisimi) result.push('grid-readOnly')
-		else if (!!rec.gonderimTS) result.push('bg-lightred-transparent')
+		else if (rec.devreDisimi) { result.push('grid-readOnly') }
+		else if (!!rec.gonderimTS) { result.push('bg-lightred-transparent') }
 		else if (belirtec == 'toplam') { result.push('bg-lightgreen') }
 		else if (!!rec.toplam) { result.push('bg-lightcyan') }
 		if (belirtec == 'toplam' || belirtec.startsWith(PrefixSut)) { result.push('bold') }
 		else if (belirtec == 'rotaKod') { result.push('gray') }
-		/*if (belirtec == '_rotaText') result.push('bg-lightblack')*/
+		/*if (belirtec == '_rotaText') { result.push('bg-lightblack') }*/
 	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e, {PrefixSut} = this;

@@ -269,11 +269,11 @@ class MQCogul extends MQYapi {
 		return _e.secimler
 	}
 	static secimlerDuzenle(e) {
-		const {secimler} = e; if (this.silindiDesteklenirmi) {
-			secimler.secimEkle('silindiDurumu', new SecimTekSecim({ etiket: `Çalışma Durumu`, tekSecimSinif: AktifVeDevreDisi }));
-			secimler.whereBlockEkle(e => {
-				const {aliasVeNokta} = this, {where, secimler} = e;
-				let value = secimler.silindiDurumu.value; if (value) where.add(`${aliasVeNokta}silindi ${value == '1' ? '=' : '<>'} ''`);
+		const {secimler: sec} = e; if (this.silindiDesteklenirmi) {
+			sec.secimEkle('silindiDurumu', new SecimTekSecim({ etiket: `Çalışma Durumu`, tekSecimSinif: AktifVeDevreDisi }));
+			sec.whereBlockEkle(e => {
+				const {aliasVeNokta} = this, {where: wh, secimler: sec} = e;
+				let value = sec.silindiDurumu.value; if (value) { wh.add(`${aliasVeNokta}silindi ${value == '1' ? '=' : '<>'} ''`) }
 			})
 		}
 	}
@@ -417,7 +417,7 @@ class MQCogul extends MQYapi {
 			}
 		}
 		const keyHV = this.varsayilanKeyHostVars(e); if (keyHV) { sent.where.birlestirDict({ alias, dict: keyHV }) }
-		const {secimler} = e; if (secimler) { sent.where.birlestir(secimler.getTBWhereClause(e)) }
+		const {secimler: sec} = e; if (sec) { sent.where.birlestir(sec.getTBWhereClause(e)) }
 		if ($.isEmptyObject(sent.sahalar.liste)) { sent.sahalar.add(`${aliasVeNokta}*`) }
 		/* sent.groupByOlustur(); */ sent.gereksizTablolariSil({ disinda: alias });
 		let stm = new MQStm({ sent });

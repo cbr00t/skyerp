@@ -18,8 +18,8 @@ class MQKod extends MQCogul {
 		super.secimlerDuzenle(e); const {secimler: sec} = e;
 		sec.secimEkle('instKod', new SecimString({ mfSinif: this, hidden: !this.kodKullanilirmi }));
 		sec.whereBlockEkle(e => {
-			const {aliasVeNokta, kodSaha} = this, wh = e.where, sec = e.secimler;
-			wh.basiSonu(secimler.instKod, `${aliasVeNokta}${kodSaha}`)
+			const {aliasVeNokta, kodSaha} = this, {where: wh, secimler: sec} = e;
+			wh.basiSonu(sec.instKod, `${aliasVeNokta}${kodSaha}`)
 		})
 	}
 	static rootFormBuilderDuzenle(e) { e = e || {}; super.rootFormBuilderDuzenle(e); const tanimForm = e.tanimFormBuilder; tanimForm.add(this.getFormBuilders_ka(e)) }
@@ -85,11 +85,11 @@ class MQKA extends MQKod {
 		if (this.adiKullanilirmi) { $.extend(pTanim, { aciklama: new PInstStr(this.adiSaha) }) }
 	}
 	static secimlerDuzenle(e) {
-		super.secimlerDuzenle(e); const {secimler} = e;
+		super.secimlerDuzenle(e); const {secimler: sec} = e;
 		if (this.adiKullanilirmi) {
-			secimler.secimEkle('instAdi', new SecimOzellik({ etiket: `${this.sinifAdi} Adı` }));
-			secimler.whereBlockEkle(e => {
-				const {aliasVeNokta} = this, wh = e.where, sec = e.secimler;
+			sec.secimEkle('instAdi', new SecimOzellik({ etiket: `${this.sinifAdi} Adı` }));
+			sec.whereBlockEkle(e => {
+				const {aliasVeNokta} = this, {where: wh, secimler: sec} = e;
 				wh.ozellik(sec.instAdi, `${aliasVeNokta}${this.adiSaha}`)
 			})
 		}

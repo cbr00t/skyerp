@@ -1,4 +1,4 @@
-:root { --full: 100%; --half: 50%; --base-fontSize: 13pt }
+:root { --full: 100%; --half: 50%; --base-fontSize: 13pt; color-scheme: dark light }
 /*@font-face {
   font-family: SkyERP-Default; src: url("../../fonts/OpenSans-VariableFont.ttf") format("truetype");
   -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; display: inline-block
@@ -25,9 +25,7 @@ body > .bg-image {
 	width: var(--full); height: var(--full); opacity: .2; z-index: 2 !important;
 	background-repeat: no-repeat; background-size: 20%; background-position: center /*background-image: url(../../images/sky_logo.png);*/
 }
-ul > li { list-style-type: disc }
-.tabs > li,
-.list-unstyled > li { list-style: none }
+ul > li { list-style-type: disc } .tabs > li, .list-unstyled > li { list-style: none }
 input::placeholder { color: #bebebe }
 input { border-radius: 13px; border: 1px solid #ddd }
 input[type=color] { /* border: none !important */ }
@@ -45,7 +43,7 @@ input[type=time].no-secs::-webkit-datetime-edit-second-field { color: transparen
 .jqx-switchbutton .jqx-switchbutton-label-off { color: #555; background: #ccc }
 .jqx-listbox.jqx-popup { box-shadow: 3px 3px 20px #d6ddf3; background: linear-gradient(90deg, #fcfcfc 35%, #eff2f5 80%) !important; z-index: 20000 !important }
 .jqx-listitem-element { margin: 3px 0 }
-.jqx-listitem-element > * { font-size: 80%; height: var(--full) !important; padding: 3px 3px 0 8px }
+.jqx-listitem-element > * { font-size: 85%; height: var(--full) !important; padding: 2px 2px 0 8px }
 .jqx-listitem-element > .jqx-listitem-state-hover { background: linear-gradient(90deg, #d6deea 10%, #fcfcfc 90%) !important }
 .jqx-listitem-element > *:not(.jqx-listitem-state-hover):not(.jqx-listitem-state-selected) { }
 .jqx-listitem-element > .jqx-listitem-state-group { color: royalblue !important; background-color: #eee !important }

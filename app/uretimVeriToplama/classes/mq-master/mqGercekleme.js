@@ -6,7 +6,7 @@ class MQGercekleme extends MQSayacli {
 	static get sayacSahaGosterilirmi() { return true } static get iskartaMaxSayi() { return 8 }
 
 	static secimlerDuzenle(e) {
-		super.secimlerDuzenle(e); const sec = e.secimler;
+		super.secimlerDuzenle(e); const {secimler: sec} = e;
 		sec.grupTopluEkle([ { kod: 'teknik', aciklama: 'Teknik', renk: '#eee', zeminRenk: 'orangered', kapalimi: true } ]);
 		sec.secimTopluEkle({
 			iskartaSecim: new SecimTekSecim({ etiket: 'Iskarta', tekSecim: new BuDigerVeHepsi([`<span class="forestgreen">Olanlar</span>`, `<span class="darkred">OLMAYANLAR</span>`]) }),
@@ -28,7 +28,7 @@ class MQGercekleme extends MQSayacli {
 			oemSayac: new SecimNumber({ etiket: 'OEM ID', grupKod: 'teknik' })
 		});
 		sec.whereBlockEkle(e => {
-			const {aliasVeNokta, sayacSaha} = this, wh = e.where, sec = e.secimler, gridPart = e.gridPart ?? e.sender, {oemSayacListe} = gridPart || {};
+			const {aliasVeNokta, sayacSaha} = this, {where: wh, secimler: sec} = e, gridPart = e.gridPart ?? e.sender, {oemSayacListe} = gridPart || {};
 			wh.basiSonu({ basi: sec.tarih.basi }, `${aliasVeNokta}detbasts`);
 			wh.basiSonu({ sonu: sec.tarih.sonu }, `${aliasVeNokta}detbitts`);
 			wh.basiSonu(sec.hatKod, 'oem.ismrkkod');

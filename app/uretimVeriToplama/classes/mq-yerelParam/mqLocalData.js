@@ -70,9 +70,9 @@ class MQLocalData extends MQYerelParamApp {
 					else { sent.where.inDizi(idListe, `${alias}.${idSahaOrArray}`) }
 				}
 			}
-			if (ozelQueryDuzenleBlock) getFuncValue.call(this, ozelQueryDuzenleBlock, e)
+			if (ozelQueryDuzenleBlock) { getFuncValue.call(this, ozelQueryDuzenleBlock, e) }
 		};
-		const {onLine} = navigator, query = ($.isFunction(e.query) ? getFuncValue.call(this, e.query, e) : e.query) ?? mfSinif?.loadServerData_queryOlustur($.extend({}, e, { ozelQueryDuzenle })), queryStr = query.toString();
+		const query = ($.isFunction(e.query) ? getFuncValue.call(this, e.query, e) : e.query) ?? mfSinif?.loadServerData_queryOlustur({ ...e, ozelQueryDuzenle }), queryStr = query.toString();
 		/*let query2Result = this.getData({ key: localDataBelirtec }) || {}; let _result = query2Result[queryStr];
 		if (_result && !cacheOnly && onLine) {
 			const {QueryCacheTimeoutSecs} = this.class;
@@ -92,8 +92,8 @@ class MQLocalData extends MQYerelParamApp {
 			return result
 		}*/
 		const result = {}, promise = result.promise = new $.Deferred(); let _result;
-		if (onLine) {
-			const _promise = (mfSinif || MQMasterOrtak).loadServerData_querySonucu($.extend({}, e, { query, args }));
+		const {onLine} = navigator; if (onLine) {
+			const _promise = (mfSinif || MQMasterOrtak).loadServerData_querySonucu({ ...e, query, args });
 			_promise.then(recs => {
 				result.recs = recs; /*_result = query2Result[queryStr] =*/ $.extend(result, { timestamp: now(), recs });
 				promise.resolve(recs);

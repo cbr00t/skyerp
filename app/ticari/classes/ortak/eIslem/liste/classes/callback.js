@@ -27,9 +27,9 @@ class EIslemAkibet_Callback extends CObject {
 		}
 	}
 	getSource(e) {
-		let {source} = this; if (!source) source = e.uuid2Result; if (!source) return; const recs = [];
-		if (source) {
-			if (!$.isArray(source)) source = Object.values(source)
+		let {source} = this; if (!source) { source = e.uuid2Result } if (!source) { return }
+		const recs = []; if (source) {
+			if (!$.isArray(source)) { source = Object.values(source) }
 			for (const rec of source) {
 				const _rec = rec.rec || {}, efAyrimTipi = (rec.efAyrimTipi ?? _rec.efayrimtipi) || 'A';
 				const code = rec.code ?? rec.ResponseCode, message = rec.message ?? rec.errorText ?? rec.ResponseDescription;
