@@ -73,11 +73,17 @@ class DMQRapor extends DMQSayacliKA {
 			input.prop('id', id); if (selector != null) { input.data('selector', selector) }
 			input.jqxListBox({ theme, width, height, valueMember, displayMember, source, allowDrag, allowDrop, autoHeight, itemHeight, scrollBarSize, filterable, filterHeight, filterPlaceHolder, searchMode });
 			const changeHandler = evt => {
-				const target = evt.currentTarget, type = evt.args?.type, {id} = target;
+				const target = evt.currentTarget, {id} = target, args = evt.args ?? {}, {owner, type} = args, {vScrollInstance} = owner ?? {};
 				if (id.startsWith('kalanlar')) {
 					if (!type || type == 'none') {
-						clearTimeout(this._timer_kalanlarTazele);
-						this._timer_kalanlarTazele = setTimeout(() => { try { updateKalanlarDS($(target)) } finally { delete this._timer_kalanlarTazele } }, 5)
+						if (vScrollInstance?.value) { owner._lastScrollValue = vScrollInstance.value }
+						clearTimeout(this._timer_kalanlarTazele); this._timer_kalanlarTazele = setTimeout(() => {
+							try {
+								updateKalanlarDS($(target)); let {_lastScrollValue} = owner ?? {};
+								if (_lastScrollValue) { owner.scrollTo(0, _lastScrollValue) }
+							}
+							finally { delete this._timer_kalanlarTazele }
+						}, 5)
 					}
 				}
 				else { let items = $(target).jqxListBox('getItems'); altInst[id] = items.map(item => item.value) }

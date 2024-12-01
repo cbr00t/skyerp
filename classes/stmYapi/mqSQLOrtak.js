@@ -120,6 +120,12 @@ class MQSQLOrtak extends CObject {
 			`' else '' end)`
 	   )
 	}
+	static resimClause_ok(e) {
+		e = e ?? {}; const ekCSS = e.ekCSS ?? e.cssEk; return (
+			`<div style="height: 32px; margin-left: 30%; background-image: url(../../images/tamam_blue.png); background-repeat: no-repeat; background-size: contain` +
+			`${ekCSS ? `; ${ekCSS}` : ''}"/>`
+		)
+	}
 	getQueryYapi(e) { e = e || {}; let query = this.toString(e); return { query, params: this.params } }
 	toString(e) {
 		e = e || {}; e.result = e.result || ''; e.params = this.params || [];

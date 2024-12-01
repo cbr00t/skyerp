@@ -33,17 +33,15 @@ class ESEApp extends App {
 				if (sablonAdi) { text += `<div class="royalblue" style="font-weight: normal; font-size: 90%; padding-top: 10px">${sablonAdi}</div>` }
 				items.push(new FRMenuChoice({ mne, text, block: e => cls.listeEkraniAc(e) }))
 			}
-			/*if (parentItem)*/ {
-				let raporItems = []; for (const cls of [MQTest]) {
-					const {raporSinif} = cls; if (!raporSinif) { continue } const {kodListeTipi: mne} = cls, {sinifAdi: text} = cls;
-					raporItems.push(new FRMenuChoice({ mne, text, block: e => raporSinif.goster(e) }))
-				}
-				if (raporItems?.length) { /*parentItem.*/ items.push(new FRMenuCascade({ mne: 'RAPOR', text: 'Raporlar', items: raporItems })) }
-			}
+			/*let raporItems = [];*/ for (const cls of [MQTest]) {
+				const {raporSinif} = cls; if (!raporSinif) { continue } let {kodListeTipi: mne} = cls, {sinifAdi: text} = cls; if (!text) { continue }
+				text += ' Raporu'; items.push(new FRMenuChoice({ mne, text, block: e => raporSinif.goster(e) }))
+			} /*if (raporItems?.length) { items.push(new FRMenuCascade({ mne: 'RAPOR', text: 'Raporlar', items: raporItems })) }*/
 			items.push(
-				new FRMenuChoice({ mne: MQParam_ESE.paramKod, text: MQParam_ESE.sinifAdi, block: e => app.params.ese.tanimla(e) }),
+				new FRMenuChoice({ mne: MQParam_ESE.paramKod, text: MQParam_ESE.sinifAdi, block: e => this.params.ese.tanimla(e) }),
 				new FRMenuChoice({ mne: 'TEST_YUKLE', text: 'Dosyadan Test Yükle', block: e => this.dosyadanTestYukleIstendi(e) })
-			)
+			);
+			if (config.dev) { items.push(new FRMenuChoice({ mne: 'DEHB_ANALIZ', text: 'DEHB Durum Analizi Yap', block: e => this.testlerIcinOzelDEHBmiBelirleIstendi(e) })) }
 		}
 		else {
 			const {testId} = config.session, sablonId2Adi = ese.sablonId2Adi ?? {};
@@ -64,6 +62,63 @@ class ESEApp extends App {
 		if (!(testId && sablonId)) { return null } let testSinif = MQTest.getClass(testTip); if (!testSinif) { return null }
 		try { requestFullScreen() } catch (ex) { } return testSinif.baslat({ testId, belirtec, sablonId })
 	}
+	/*dehbmi(e) {
+	    const w = { dogru: 0.3, yanlis: -0.27, secilmeyenDogru: -0.3, dogruSecimMS: -0.21, yas: 0.1, cinsiyet: -0.14 };
+		const deSkor = e.deSkor ?? e.deskor ?? 0, deBelirti = e.deBelirti ?? e.deBelirtiSayi ?? e.debelirtisayi;
+		const hiSkor = e.hiSkor ?? e.hiskor ?? 0, hiBelirti = e.hiBelirti ?? e.hiBelirtiSayi ?? e.hibelirtisayi;
+		const dogru = e.dogruSayi ?? e.dogrusayi ?? 0, yanlis = e.yanlisSayi ?? e.yanlissayi ?? 0;
+		const secilmeyenDogru = e.secilmeyenDogruSayi ?? e.secilmeyendogrusayi ?? 0, dogruSecimMS = e.dogruSecimSureMS ?? e.dogrusecimsurems ?? e.ortdogrusecimsurems;
+		const yas = ;
+	    const dehbSkor = (
+			(w.dogru * dogru) + (w.yanlis * yanlis) + (w.secilmeyenDogru * secilmeyenDogru) +
+			(w.dogruSecimMS * dogruSecimMS) + (w.yas * yas) + (w.cinsiyet * cinsiyetNum)
+	    );
+		return dehbSkor <= 0
+	}*/
+	dehbmi(e) {
+	    const t = { deSkor: 9, hiSkor: 9, deBelirti: 5, hiBelirti: 5, belirtiToplami: 8, skorSinir: 27, skorAralikMax: 25, dogru: 35, yanlis: 5, secilmeyenDogru: 6, dogruSecimMS: 130 };
+		const d = {
+			de: e.de ?? { skor: e.deSkor ?? e.deskor ?? 0, belirti: e.deBelirti ?? e.deBelirtiSayi ?? e.debelirtisayi ?? 0 },
+			hi: e.hi ?? { skor: e.hiSkor ?? e.hiskor ?? 0, belirti: e.hiBelirti ?? e.hiBelirtiSayi ?? e.hibelirtisayi ?? 0 },
+			dogru: e.dogru ?? e.dogruSayi ?? e.dogrusayi ?? 0, yanlis: e.yanlis ?? e.yanlisSayi ?? e.yanlissayi ?? 0,
+			secilmeyenDogru: e.secilmeyenDogru ?? e.secilmeyenDogruSayi ?? e.secilmeyendogrusayi ?? 0,
+			dogruSecimMS: e.dogruSecimMS ?? e.dogruSecimSureMS ?? e.dogrusecimsurems ?? e.ortdogrusecimsurems ?? 0,
+			yas: e.yas ?? e.aktifYas ?? e.aktifyas, cinsiyet: e.cinsiyet?.toUpperCase()
+		}, kadinmi = d.cinsiyet == 'K', erkekmi = d.cinsiyet == 'E';
+		let dehbmi = (
+			d.de.skor * (erkekmi ? 4 : 1) >= t.deSkor || d.de.belirti >= t.deBelirti || d.hi.skor  >= t.hiSkor || d.hi.belirti >= t.hiBelirti ||
+			d.dogru < t.dogru || d.yanlis > t.yanlis || d.secilmeyenDogru > t.secilmeyenDogru || d.dogruSecimMS > t.dogruSecimMS ||
+			(d.de.belirti + d.hi.belirti) >= t.belirtiToplami
+	    );
+		/*if (dehbmi && Math.max(d.de.skor, d.hi.skor) >= t.skorSinir && Math.abs(d.de.skor - d.hi.skor) > t.skorAralikMax) { dehbmi = false }*/
+		return dehbmi
+	}
+	async testlerIcinOzelDEHBmiBelirleIstendi(e) {
+		e = e ?? {}; let recs = e.recs ?? await MQTest.loadServerData(); if (!recs?.length) { hConfirm('DEHB Durum belirlenecek Test bulunamadı', appName); return false }
+		let rdlg = await ehConfirm(`<b class="royalblue">${recs.length} adet</b> Test için <b class="royalblue">DEHB Durum Analizi</b> yapılacak ve Testler güncellenecek, devam edilsin mi?`, appName);
+		if (!rdlg) { return false } return await this.testlerIcinOzelDEHBmiBelirle(e)
+	}
+	async testlerIcinOzelDEHBmiBelirle(e) {
+		e = e ?? {}; let recs = e.recs ?? await MQTest.loadServerData(), dehb2IdListe = {}; if (!recs?.length) { return false }
+		for (const rec of recs) {
+			const {id} = rec, dehbmi = this.dehbmi(rec); if (dehbmi == null) { continue }
+			(dehb2IdListe[dehbmi] = dehb2IdListe[dehbmi] ?? []).push(id)
+		}
+		let query = new MQToplu(), totalCount = 0, from = 'esetest';
+		for (const [dehbmi, idListe] of Object.entries(dehb2IdListe)) {
+			totalCount += idListe.length; query.add(
+				new MQIliskiliUpdate({ from, where: { inDizi: idListe, saha: 'id' }, set: { degerAta: bool2Int(dehbmi), saha: 'bdehbmiozel' } }),
+				new MQSent({
+					from, sahalar: 'COUNT(*) sayi',
+					where: ['muayeneid IS NULL', 'hastaid IS NULL', 'bdehbvarmi <> bdehbmiozel', 'bcptyapildi <> 0', 'banketdeyapildi <> 0', 'bankethiyapildi <> 0']
+				})
+			)
+		}
+		recs = await app.sqlExecSelect(query); let gecerliSayi = 0; for (const {sayi} of recs) { gecerliSayi += sayi }
+		let dogrulukOrani = roundToFra2((1 - (gecerliSayi / totalCount)) * 100), dogrulukCSS = dogrulukOrani > 96 ? 'green' : 'orangered';
+		eConfirm(`<b>${totalCount} adet Test için <b class="royalblue">DEHB(<i>Özel</i>)</b> durumu güncellendi<p/>Doğruluk: <b class="${dogrulukCSS}">%${dogrulukOrani}</b>`, appName);
+		return true
+	}
 	async dosyadanTestYukleIstendi(e) {
 		const title = 'Test Yükleme İşlemi', {data} = await openFile({ type: 'text', accept: ['text/plain'] }) ?? {}; if (!data) { return null }
 		let {index: rdlg} = await displayMessage('Seçilen dosyadaki TEST Kayıtları yüklensin mi?', title, [`<span class="red">SİLEREK</span>`, 'Silmeden', 'VAZGEÇ'])?.result ?? {}
@@ -83,21 +138,25 @@ class ESEApp extends App {
 		let testSinif = MQTestCPT, {tip} = testSinif, sablonId = new testSinif().sablonId;
 		let /*recs = [],*/ testIds = [], hvListe = []; showProgress(`${lines.length} adet test kaydı yükleniyor...`, appName, true);
 		window.progressManager?.setProgressMax(lines.length * 1.5);
-		let tarihsaat = now(), bcptyapildi = 1, banketdeyapildi = 1, bankethiyapildi = 1;
+		const PTurgayPrefix = 'p.turgay.'; let tarihsaat = now(), bcptyapildi = 1, banketdeyapildi = 1, bankethiyapildi = 1;
 		for (i = 2; i < lines.length; i++) {
 			let rec = {}; line = lines[i].trimEnd(); if (!line) { continue }
 			let tokens = line.split(delim); for (let j = 0; j < tokens.length; j++) { let col = cols[j]; rec[col] = asFloat(tokens[j].trim().replace(',', '.')) }
 			/*recs.push(rec)*/ let id = newGUID(), aktifyas = asInteger(rec.yas), cinsiyet = rec.cinsiyet == 1 ? 'E' : rec.cinsiyet == 2 ? 'K' : '';
 			if (!cinsiyet) { window.progressManager?.progressStep(); continue }
-			let dogrusayi = asInteger(rec.cptcorrectresponses), yanlissayi = asInteger(rec.cptcommissionerrors), secilmeyendogrusayi = asInteger(rec.cptommissionerrors);
-			let dogrusecimsurems = asFloat(rec.cptchoicerxntimecorrect);
-			testIds.push(id); let hv = { id, tarihsaat, bcptyapildi, banketdeyapildi, bankethiyapildi, aktifyas, cinsiyet, dogrusayi, yanlissayi, secilmeyendogrusayi, dogrusecimsurems };
-			hv[`${tip}sablonid`] = sablonId; hvListe.push(hv); window.progressManager?.progressStep()
+			let dogrusayi = asInteger(rec.cptcorrectresponses), yanlissayi = asInteger(rec.cptcommissionerrors), bdehbvarmi = asInteger(rec.dehb) == 1;
+			let secilmeyendogrusayi = asInteger(rec.cptommissionerrors), dogrusecimsurems = asFloat(rec.cptchoicerxntimecorrect);
+			let debelirtisayi = asInteger(rec[`${PTurgayPrefix}hi.bs`]), deskor = asInteger(rec[`${PTurgayPrefix}de.skor`]);
+			let hibelirtisayi = asInteger(rec[`${PTurgayPrefix}hi.bs`]), hiskor = asInteger(rec[`${PTurgayPrefix}hi.skor`]);
+			testIds.push(id); let hv = {
+				id, tarihsaat, bcptyapildi, banketdeyapildi, bankethiyapildi, aktifyas, cinsiyet, bdehbvarmi,
+				dogrusayi, yanlissayi, secilmeyendogrusayi, dogrusecimsurems, debelirtisayi, deskor, hibelirtisayi, hiskor
+			};
+			hvListe.push(hv); window.progressManager?.progressStep()
 		}
 		/*console.table(recs)*/
 		if (!hvListe?.length) { return null } let {table} = testSinif;
-		let query = new MQToplu(); if (clear) { query.add(new MQIliskiliDelete({ from: table }), new MQIliskiliUpdate({ from: MQMuayene.table, set: [`cpt1testid = NULL`] })) }
-		query.add(new MQInsert({ from: table, hvListe }));
+		let query = new MQToplu(); if (clear) { query.add(new MQIliskiliDelete({ from: table })) } query.add(new MQInsert({ from: table, hvListe }));
 		if (query?.bosDegilmi) { await app.sqlExecNone(query) }
 		window.progressManager?.progressEnd(); setTimeout(() => hideProgress(), 1000)
 		return { testIds, query }

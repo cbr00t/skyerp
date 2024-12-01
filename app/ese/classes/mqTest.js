@@ -1,9 +1,9 @@
 class MQTest extends MQGuidOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Test' } static get kodListeTipi() { return 'TEST' }
 	static get tip() { return this.sablonTip } static get kod() { return this.tip } static get aciklama() { return this.sablonSinif?.aciklama }
-	static get table() { return 'esetest' } static get tableAlias() { return 'tst' } static get tanimUISinif() { return ModelTanimPart } static get raporSinif() { return null }
+	static get table() { return 'esetest' } static get tableAlias() { return 'tst' } static get tanimUISinif() { return ModelTanimPart } static get raporSinif() { return DRapor_ESETest }
 	static get sablonSinif() { return null } static get sablonTip() { return this.sablonSinif?.tip } static get testSonucSinif() { return null } static get testGenelSonucSinif() { return null } 
-	static get ignoreBelirtecSet() { return {...super.ignoreBelirtecSet, ...asSet(['muayeneid']) } }
+	static get ignoreBelirtecSet() { return {...super.ignoreBelirtecSet, ...asSet(['muayeneid', 'ortyanlissecimsurems', 'seri', 'fisno', 'doktorid', 'doktoradi', 'uygulanmayeritext']) } }
 	static get tip2Sinif() {
 		let result = this._tip2Sinif; if (result == null) {
 			result = {}; const {subClasses} = this; for (const cls of subClasses) { const {araSeviyemi, tip} = cls; if (!araSeviyemi && tip) { result[tip] = cls } }
@@ -24,8 +24,8 @@ class MQTest extends MQGuidOrtak {
 		const {tip} = this, {maxSecenekSayisi} = MQSablonAnketYanit; super.pTanimDuzenle(e); const {pTanim} = e;
 		$.extend(pTanim, {
 			muayeneId: new PInstGuid('muayeneid'), hastaId: new PInstGuid('hastaid'), ts: new PInstDate('tarihsaat'), dehbVarmi: new PInstBitBool('bdehbvarmi'),
-			uygulanmaYeri: new PInstTekSecim('uygulanmayeri', MQTestUygulanmaYeri), onayKodu: new PInstNum('onaykodu'), aktifYas: new PInstNum('aktifyas'), cinsiyet: new PInstTekSecim('cinsiyet', Cinsiyet),
-			deSkor: new PInstNum('deskor'), hiSkor: new PInstNum('hiskor'), deBelirtiSayi: new PInstNum('debelirtisayi'), hiBelirtiSayi: new PInstNum('hibelirtisayi')
+			uygulanmaYeri: new PInstTekSecim('uygulanmayeri', MQTestUygulanmaYeri), onayKodu: new PInstNum('onaykodu'), aktifYas: new PInstNum('aktifyas'), cinsiyet: new PInstTekSecim('cinsiyet', Cinsiyet)
+			/*deSkor: new PInstNum('deskor'), hiSkor: new PInstNum('hiskor'), deBelirtiSayi: new PInstNum('debelirtisayi'), hiBelirtiSayi: new PInstNum('hibelirtisayi')*/
 		});
 		for (const {tip, belirtec, prefix, etiket} of app.params.ese.getIter()) {
 			if (tip == 'anket') { for (const key of ['Skor', 'BelirtiSayi']) { const prefix = belirtec + key; pTanim[prefix] = new PInstNum(prefix.toLowerCase()) } }
@@ -38,12 +38,14 @@ class MQTest extends MQGuidOrtak {
 			/*tamamlandiDurumu: new SecimTekSecim({ etiket: 'Tamamlanma Durumu', tekSecim: new BuDigerVeHepsi([`<span class="forestgreen">Tamamlananlar</span>`, `<span class="darkred">TamamlanMAyanlar</span>`]) }),*/
 			tarih: new SecimDate({ etiket: 'Tarih/Saat' }), aktifYas: new SecimInteger({ etiket: 'Aktif Yaş' }),
 			sablonAdi: new SecimOzellik({ etiket: 'Şablon Adı' }), hastaAdi: new SecimOzellik({ etiket: 'Hasta İsim' }), doktorIsim: new SecimOzellik({ etiket: 'Doktor İsim' }),
+			dehbTutarsizFlag: new SecimBool({ etiket: 'Sadece DEHB Tutarsız olanlar?' }),
 			hastaId: new SecimBasSon({ etiket: 'Hasta', mfSinif: MQHasta, grupKod: 'teknik' }), muayeneId: new SecimBasSon({ etiket: 'Muayene', mfSinif: MQMuayene, grupKod: 'teknik' }),
 			id: new SecimBasSon({ etiket: 'Test ID', mfSinif: this, grupKod: 'teknik' })
 		}).whereBlockEkle(({ secimler: sec, where: wh }) => {
 			const {tableAlias: alias} = this;
 			/*let tSec = sec.tamamlandiDurumu.tekSecim; if (!tSec.hepsimi) { wh.add(tSec.getBoolBitClause(`${alias}.btamamlandi`)) }*/
 			wh.basiSonu({ basi: sec.tarih.basi, sonu: sec.tarih.sonu?.yarin().clone().clearTime() }, `${alias}.tarihsaat`);
+			if (sec.dehbTutarsizFlag.value) { wh.add(`${alias}.bdehbvarmi <> ${alias}.bdehbmiozel`) }
 			wh.ozellik(sec.sablonAdi, 'sab.aciklama').basiSonu(sec.aktifYas, `${alias}.aktifyas`).ozellik(sec.hastaAdi, 'has.aciklama').ozellik(sec.doktorAdi, 'dok.aciklama');
 			wh.basiSonu(sec.muayeneId, `${alias}.muayeneid`).basiSonu(sec.hastaId, `${alias}.hastaid`).basiSonu(sec.id, `${alias}.${idSaha}`)
 		})
@@ -51,7 +53,7 @@ class MQTest extends MQGuidOrtak {
 	static ekCSSDuzenle(e) {
 		super.ekCSSDuzenle(e); const {dataField: belirtec, rec, result} = e;
 		if (belirtec == 'onaykodu') { result.push('center bold royalblue') }
-		if (belirtec == 'bdehbvarmi' && asBool(rec.bdehbvarmi)) { result.push('dehb') }
+		if ((belirtec == 'bdehbvarmi' && asBool(rec.bdehbvarmi)) || belirtec == 'bdehbmiozel' && asBool(rec.bdehbmiozel)) { result.push('dehb') }
 		for (const key of ['dogrusayi', 'yanlissayi', 'secilmeyendogrusayi', 'ortdogrusecimsurems', 'ortyanlissecimsurems']) { if (belirtec == key) { result.push('cpt') } }
 		for (const key of ['deskor', 'debelirtisayi']) { if (belirtec == key) { result.push('anket', 'anket-de') } }
 		for (const key of ['hiskor', 'hibelirtisayi']) { if (belirtec == key) { result.push('anket', 'anket-hi') } }
@@ -66,12 +68,10 @@ class MQTest extends MQGuidOrtak {
 		for (const {prefix, kisaEtiket, sablonId} of app.params.ese.getIter()) {
 			liste.push(new GridKolon({ belirtec: `b${prefix}yapildi`, text: `${kisaEtiket}?`, genislikCh: 10, filterType: 'checkedlist' }).tipBool()) }
 		liste.push(...[
-			new GridKolon({ belirtec: 'bdehbvarmi', text: 'DEHB?', genislikCh: 8 }).tipBool(),
-			new GridKolon({ belirtec: 'onaykodu', text: 'Onay Kodu', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'bdehbvarmi', text: 'DEHB?', genislikCh: 8 }).tipBool(), new GridKolon({ belirtec: 'bdehbmiozel', text: 'Hes.DEHB?', genislikCh: 8 }).tipBool(),
+			new GridKolon({ belirtec: 'onaykodu', text: 'Onay Kodu', genislikCh: 10 }).tipNumerik().sifirGosterme(),
 			new GridKolon({ belirtec: 'aktifyas', text: 'Aktif Yaş', genislikCh: 9 }).tipNumerik(),
 			new GridKolon({ belirtec: 'cinsiyettext', text: 'Cinsiyet', genislikCh: 8, sql: Cinsiyet.getClause(`${alias}.cinsiyet`) }),
-			new GridKolon({ belirtec: 'hastaadi', text: 'Hasta Adı', genislikCh: 40, sql: 'has.aciklama' }),
-			new GridKolon({ belirtec: 'doktoradi', text: 'Doktor Adı', genislikCh: 40, sql: 'dok.aciklama' }),
 			new GridKolon({ belirtec: 'dogrusayi', text: 'Doğru Sayı', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'yanlissayi', text: 'Yanlış Sayı', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'secilmeyendogrusayi', text: 'Seçilmeyen Doğru', genislikCh: 10 }).tipNumerik(),
@@ -81,6 +81,8 @@ class MQTest extends MQGuidOrtak {
 			new GridKolon({ belirtec: 'debelirtisayi', text: 'DE Belirti', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'hiskor', text: 'HI Skor', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'hibelirtisayi', text: 'HI Belirti', genislikCh: 10 }).tipNumerik(),
+			new GridKolon({ belirtec: 'hastaadi', text: 'Hasta Adı', genislikCh: 40, sql: 'has.aciklama' }),
+			new GridKolon({ belirtec: 'doktoradi', text: 'Doktor Adı', genislikCh: 40, sql: 'dok.aciklama' }),
 			new GridKolon({ belirtec: 'seri', text: 'Seri', genislikCh: 5, sql: 'mua.seri' }),
 			new GridKolon({ belirtec: 'fisno', text: 'No', genislikCh: 17, sql: 'mua.fisno' }).tipNumerik(),
 			new GridKolon({ belirtec: 'uygulanmayeritext', text: 'Uygulanma Yeri', genislikCh: 15, sql: MQTestUygulanmaYeri.getClause(`${alias}.uygulanmayeri`) })
@@ -91,7 +93,7 @@ class MQTest extends MQGuidOrtak {
 		sent.leftJoin({ alias, from: 'esehasta has', on: `${alias}.hastaid = has.id` })
 			.leftJoin({ alias, from: 'esemuayene mua', on: `${alias}.muayeneid = mua.id` })
 			.leftJoin({ alias: 'mua', from: 'esedoktor dok', on: 'mua.doktorid = dok.id' });
-		sent.sahalar.add(`${alias}.muayeneid`, `${alias}.hastaid`, 'has.aciklama hastaadi', `${alias}.uygulanmayeri`, `${alias}.onaykodu`, 'has.email');
+		sent.sahalar.add(`${alias}.muayeneid`, `${alias}.hastaid`, 'has.aciklama hastaadi', `${alias}.uygulanmayeri`, `${alias}.onaykodu`, `${alias}.cinsiyet`, 'has.email');
 		for (const {prefix} of app.params.ese.getIter()) { sent.sahalar.add(`b${prefix}yapildi`) }
 		if (e.tekilOku) { const {sahalar} = sent; sahalar.liste = sahalar.liste.filter(({ deger }) => !deger.includes('SUM(')) }
 		else { sent.groupByOlustur() }
@@ -115,7 +117,7 @@ class MQTest extends MQGuidOrtak {
 				const {altInst: inst, input} = e.builder, {ts, muayeneId, hastaId, sablonId} = inst, {tip} = inst.class;
 				let {uygulanmaYeri, onayKodu, aktifYas, dehbVarmi} = inst, cinsiyet = inst.cinsiyet?.char ?? inst.cinsiyet;
 				let cinsiyetText = (cinsiyet == 'E' ? 'Erkek' : cinsiyet == 'K' ? 'Kadın' : null);
-				let hastaAdi = await MQHasta.getGloKod2Adi(hastaId);
+				let hastaAdi = hastaId ? await MQHasta.getGloKod2Adi(hastaId) : null;
 				/*let sablonAdi; if (tip && sablonId) { sablonAdi = (await MQSablon.getClass(tip)?.getGloKod2Adi(sablonId)) || '' }*/
 				let muayeneRec; if (muayeneId) { muayeneRec = await new MQMuayene({ id: muayeneId }).tekilOku() }
 				uygulanmaYeri = uygulanmaYeri?.char ?? uygulanmaYeri;
@@ -129,7 +131,7 @@ class MQTest extends MQGuidOrtak {
 				if ((muayeneRec?.fisnox || '0') != '0') { addItem(`<span class="gray etiket">Muayene:</span> <b class="veri">${muayeneRec.fisnox}</b>`, 'flex-row') }
 				addItem((
 					`<span class="gray">Hasta: <b class="royalblue">${hastaAdi || ''}</b></span>` + (aktifYas ? ` ${hastaAdi ? '- ' : ''}(Yaş: <b class="royalblue">${aktifYas}</b>)` : '') +
-					(cinsiyetText ? ` - <b class="royalblue">${cinsiyetText}</b>` : '') + (dehbVarmi ? ` <b class="orangered">DEHB</b>` : '')
+					(cinsiyetText ? ` - <b class="royalblue">${cinsiyetText}</b>` : '') + (dehbVarmi ? ` <b class="orangered" style="margin-left: 30px">DEHB</b>` : '')
 				), 'flex-row');
 				if (uygulanmaYeri) { addItem(`<span class="darkgray etiket">Uygulanma Yeri:</span> <b>${MQTestUygulanmaYeri.kaDict[uygulanmaYeri]?.aciklama || ''}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }
 				if (onayKodu) { addItem(`<span class="gray etiket">Onay Kodu:</span> <u class="onayKodu veri bold royalblue">${onayKodu}</u>`, null, `margin-top: 30px; cursor: pointer`) }
@@ -259,7 +261,7 @@ class MQTest extends MQGuidOrtak {
 class MQTestCPT extends MQTest {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get intervalKatSayi() { return config.dev ? .2 : 1 }
 	static get sinifAdi() { return 'CPT Test' }  static get testSonucSinif() { return TestSonucCPT } static get testGenelSonucSinif() { return TestGenelSonucCPT }
-	static get kodListeTipi() { return 'TSTCPT' } static get sablonSinif() { return MQSablonCPT } static get raporSinif() { return DRapor_ESETest_CPT }
+	static get kodListeTipi() { return 'TSTCPT' } static get sablonSinif() { return MQSablonCPT }
 	testUI_setValues(e) {
 		super.testUI_setValues(e); const {rec} = e; if (!rec) { return }
 		for (const key of ['gecerliResimSeq', 'grupTekrarSayisi', 'baslamaOncesiBostaMS', 'resimGosterimMS', 'resimBostaMS']) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
@@ -349,7 +351,7 @@ class MQTestCPT extends MQTest {
 class MQTestAnket extends MQTest {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Anket Test' } static get testSonucSinif() { return TestSonucAnket } static get testGenelSonucSinif() { return TestGenelSonucAnket }
-	static get kodListeTipi() { return 'TSTANKET' } static get sablonSinif() { return MQSablonAnket } static get raporSinif() { return DRapor_ESETest_Anket }
+	static get kodListeTipi() { return 'TSTANKET' } static get sablonSinif() { return MQSablonAnket }
 	testUI_setValues(e) {
 		super.testUI_setValues(e); const {rec} = e; if (!rec) { return }
 		const keys = ['sureDk', 'yanitID'], PrefixSecenek = 'secenek', PrefixYanit = 'yanit';
