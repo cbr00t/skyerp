@@ -67,6 +67,7 @@ class DMQRapor extends DMQSayacliKA {
 			if (source == null) { source = (id.startsWith('kalanlar') ? getKalanlarSource(selector) : altInst[id] ?? []).map(kod => kaDict[kod]) }
 			if (source?.length && typeof source[0] != 'object') { source = source.map(kod => new CKodVeAdi({ kod, aciklama: kod })) }
 			if (id.startsWith('kalanlar')) { source = kalanlarSourceDuzenlenmis(source) }
+			if (source) { source = source.filter(x => !!x) }
 			if (source?.length) { source = source.filter(({ kod }) => grupVeToplam[kod] && !grupVeToplam[kod].isHidden ) }
 			const width = '100%', height = width, valueMember = 'kod', displayMember = 'aciklama';
 			const allowDrop = true, allowDrag = allowDrop, autoHeight = false, itemHeight = 36, scrollBarSize = 20, filterable = true, filterHeight = 40, filterPlaceHolder = 'Bul', searchMode = 'containsignorecase';

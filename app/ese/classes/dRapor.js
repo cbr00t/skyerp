@@ -27,7 +27,7 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 			.addGrup(new TabloYapiItem().setKA('CINSIYET', 'Cinsiyet').addColDef(new GridKolon({ belirtec: 'cinsiyet', text: 'Cinsiyet', filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('AKTIFYAS', 'Aktif Yaş').addColDef(new GridKolon({ belirtec: 'aktifyas', text: 'Aktif Yaş', genislikCh: 25, filterType: 'checkedlist' }).tipNumerik()))
 			.addGrup(new TabloYapiItem().setKA('YASGRUP', 'Yaş Grubu').kodsuz().setMFSinif(MQYasGrup).addColDef(new GridKolon({ belirtec: 'yasgrup', text: 'Yaş Grubu', genislikCh: 25, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('DEHBVARMI', 'DEHB?').addColDef(new GridKolon({ belirtec: 'dehbvarmi', text: 'DEHB?', genislikCh: 5 }).tipBool()));
+			.addGrup(new TabloYapiItem().setKA('DEHBVARMI', 'DEHB?').addColDef(new GridKolon({ belirtec: 'dehbvarmi', text: 'DEHB?', genislikCh: 10 }).tipBool()));
 		result
 			.addToplam(new TabloYapiItem().setKA('DOGRUSAYI', 'Doğru Sayı').hidden().addColDef(new GridKolon({ belirtec: 'dogrusayi' }).tipDecimal(1)))
 			.addToplam(new TabloYapiItem().setKA('ORTDOGRUSAYI', 'Ort. Doğru Sayı').setFormul(['DOGRUSAYI'], ({ rec }) => roundToFra1(rec.dogrusayi / rec.kayitsayisi))
@@ -47,14 +47,16 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 			.addToplam(new TabloYapiItem().setKA('YANITSIZSAYI', 'Yanıtsız Sayı').addColDef(new GridKolon({ belirtec: 'yanitsizsayi', text: 'Yanıtsız Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik().dipAvg()));
 		for (const prefix of ['HI', 'DE']) {
 			const prefixLower = prefix.toLowerCase(); result
-				.addToplam(new TabloYapiItem().setKA(`${prefix}SKOR`, `${prefix} Skor`)
-					.addColDef(new GridKolon({ belirtec: `${prefixLower}skor`, text: `${prefix} Skor`, genislikCh: 10, filterType: 'numberinput' }).tipDecimal(1).dipAvg()))
-				.addToplam(new TabloYapiItem().setKA(`${prefix}BELIRTISAYI`, `${prefix} Belirti Sayı`)
-					.addColDef(new GridKolon({ belirtec: `${prefixLower}belirtisayi`, text: `${prefix} Belirti Sayı`, genislikCh: 10, filterType: 'numberinput' }).tipDecimal(1).dipAvg()))
+				.addToplam(new TabloYapiItem().setKA(`${prefix}SKOR`).hidden())
+				.addToplam(new TabloYapiItem().setKA(`${prefix}BELIRTISAYI`).hidden())
+				.addToplam(new TabloYapiItem().setKA(`ORT${prefix}SKOR`, `Ort. ${prefix} Skor`).setFormul([`${prefix}SKOR`], ({ rec }) => rec[`${prefixLower}skor`] / rec.kayitsayisi)
+					.addColDef(new GridKolon({ belirtec: `ort${prefixLower}skor`, text: `Ort. ${prefix} Skor`, genislikCh: 13, filterType: 'numberinput' }).tipDecimal(1).dipAvg()))
+				.addToplam(new TabloYapiItem().setKA(`${prefix}BELIRTISAYI`, `Ort. ${prefix} Belirti Sayı`).setFormul([`${prefix}BELIRTISAYI`], ({ rec }) => rec[`${prefixLower}belirtisayi`] / rec.kayitsayisi)
+					.addColDef(new GridKolon({ belirtec: `ort${prefixLower}belirtisayi`, text: `Ort. ${prefix} Belirti`, genislikCh: 13, filterType: 'numberinput' }).tipDecimal(1).dipAvg()))
 		}
 	}
 	loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {stm, attrSet} = e, alias ='fis'; let {sent} = stm, {where: wh, sahalar} = sent;
+		super.loadServerData_queryDuzenle(e); const {stm, attrSet} = e, alias = 'fis'; let {sent} = stm, {where: wh, sahalar} = sent;
 		$.extend(e, { sent }); this.fisVeHareketBagla(e); this.donemBagla({ ...e, sent, tarihSaha: `${alias}.tarihsaat` });
 		wh.add(`(${alias}.bcptyapildi <> 0 OR ${alias}.bankethiyapildi <> 0 OR ${alias}.banketdeyapildi <> 0)`);
 		if (attrSet.DOKTOR) { sent.leftJoin({ alias, from: 'esemuayene mua', on: 'fis.muayeneid = mua.id' }).leftJoin({ alias, from: 'esedoktor dok', on: 'mua.doktorid = dok.id' }) }
@@ -82,11 +84,11 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 				case 'ORTDOGRUSECIMSUREMS': sahalar.add('SUM(fis.dogrusecimsurems) dogrusecimsurems'); break
 				case 'ORTYANLISSECIMSUREMS': sahalar.add('SUM(fis.yanlissecimsurems) yanlissecimsurems'); break
 				case 'YANITSIZSAYI': sahalar.add('SUM(fis.yanitsizsayi) yanitsizsayi'); break
-				case 'HISKOR': sahalar.add('SUM(fis.hiskor) hiskor'); break; case 'HISKOR': sahalar.add('SUM(fis.deskor) deskor'); break
+				case 'HISKOR': sahalar.add('SUM(fis.hiskor) hiskor'); break; case 'DESKOR': sahalar.add('SUM(fis.deskor) deskor'); break
 				default: {
 					for (const prefix of ['HI', 'DE']) {
 						if (key.slice(0, 2) != prefix) { continue } const prefixLower = prefix.toLowerCase();
-						sahalar.add(`fis.${prefixLower}skor`, `fis.${prefixLower}belirtisayi`)
+						sahalar.add(`SUM(fis.${prefixLower}skor)`, `SUM(fis.${prefixLower}belirtisayi) ${prefixLower}belirtisayi`)
 					}
 					break
 				}

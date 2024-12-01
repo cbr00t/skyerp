@@ -34,7 +34,7 @@ class ESEApp extends App {
 				items.push(new FRMenuChoice({ mne, text, block: e => cls.listeEkraniAc(e) }))
 			}
 			/*let raporItems = [];*/ for (const cls of [MQTest]) {
-				const {raporSinif} = cls; if (!raporSinif) { continue } let {kodListeTipi: mne} = cls, {sinifAdi: text} = cls; if (!text) { continue }
+				const {raporSinif} = cls; if (!raporSinif) { continue } let mne = 'RAPOR', {sinifAdi: text} = cls; if (!text) { continue }
 				text += ' Raporu'; items.push(new FRMenuChoice({ mne, text, block: e => raporSinif.goster(e) }))
 			} /*if (raporItems?.length) { items.push(new FRMenuCascade({ mne: 'RAPOR', text: 'Raporlar', items: raporItems })) }*/
 			items.push(
