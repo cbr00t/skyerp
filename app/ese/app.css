@@ -18,10 +18,13 @@ body.dark-theme .part .dokumanForm, .part .skyResim.part #resim > .widget,
 .MQSablonAnket.part .jqx-grid [role = row] > .soru.jqx-grid-cell { text-wrap: pretty }
 .MQSablonAnket.part .jqx-grid [role = row] > .soru.jqx-grid-cell > div { font-size: 93%; margin: 3px 8px !important }
 .MQMuayene.masterListe.part .islemTuslari #cptTestEkraniAc { margin-left: 10px }
-.MQTestCPT.masterListe.part .islemTuslari button#degistir, .MQTestAnket.masterListe.part .islemTuslari button#degistir { margin-left: 20px; margin-right: 0 /*background-image: url(../../images/izle.png) !important*/ }
-.MQTestCPT.masterListe.part .islemTuslari button#degistir.jqx-fill-state-normal, .MQTestAnket.masterListe.part .islemTuslari button#degistir.jqx-fill-state-normal { background-color: #546394 }
-.MQTestCPT.masterListe.part .islemTuslari button#sil, .MQTestAnket.masterListe.part .islemTuslari button#sil { margin-right: 30px }
-.MQTestCPT.masterListe.part .islemTuslari button#eMailGonder, .MQTestAnket.masterListe.part .islemTuslari button#eMailGonder,
-	.MQTestCPT.masterListe.part .islemTuslari button#testBaslat, .MQTestAnket.masterListe.part .islemTuslari button#testBaslat { font-size: 95%; width: 110px; line-height: 19px }
-.MQTestCPT.masterListe.part .islemTuslari button#eMailGonder.jqx-fill-state-normal, .MQTestAnket.masterListe.part .islemTuslari button#eMailGonder.jqx-fill-state-normal { background-color: #795c90 }
-.MQTestCPT.masterListe.part .islemTuslari button#testBaslat.jqx-fill-state-normal, .MQTestAnket.masterListe.part .islemTuslari button#testBaslat.jqx-fill-state-normal { background-color: #337333 }
+.MQTest.masterListe.part .islemTuslari button#degistir { margin-left: 20px; margin-right: 0 /*background-image: url(../../images/izle.png) !important*/ }
+.MQTest.masterListe.part .islemTuslari button#degistir.jqx-fill-state-normal { background-color: #546394 }
+.MQTest.masterListe.part .islemTuslari button#sil { margin-right: 30px }
+.MQTest.masterListe.part .islemTuslari button#eMailGonder, .MQTest.masterListe.part .islemTuslari button#testIslemleri { font-size: 95%; width: 110px; line-height: 19px }
+.MQTest.masterListe.part .islemTuslari button#eMailGonder.jqx-fill-state-normal { background-color: #795c90 }
+.MQTest.masterListe.part .islemTuslari button#testIslemleri.jqx-fill-state-normal { background-color: #337333 }
+.MQTest.masterListe.part .jqx-grid [role = row] > .bdehbvarmi.dehb { background-color: #da9081 }
+.MQTest.masterListe.part .jqx-grid [role = row] > .cpt:not(.jqx-grid-cell-selected) { background-color: #c5d7db !important }
+.MQTest.masterListe.part .jqx-grid [role = row] > .anket-hi:not(.jqx-grid-cell-selected) { background-color: #f5eada !important }
+.MQTest.masterListe.part .jqx-grid [role = row] > .anket-de:not(.jqx-grid-cell-selected) { background-color: #c9c2be !important }

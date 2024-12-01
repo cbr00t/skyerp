@@ -13,6 +13,7 @@ class MQYerelParamConfig_App extends MQYerelParamConfig {
 class MQParam_ESE extends MQParam {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'ESE Parametreleri' } static get paramKod() { return 'ESEPARAM' }
+	get asArray() { const result = []; for (const rec of this.getIter()) { result.push(rec) } return result }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { sablon: e.sablon }); this.fix(e) }
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); const {paramci} = e; paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`);
@@ -20,6 +21,7 @@ class MQParam_ESE extends MQParam {
 		for (const [tip, cls] of Object.entries(MQSablon.tip2Sinif)) {
 			let {maxSayi} = cls; formSablon.addGridGiris_sabit(tip).addStyle_fullWH('49%')
 				.setTabloKolonlari(_e => [
+					new GridKolon({ belirtec: 'kisaEtiket', text: 'Kısa Etiket', genislikCh: 10 }),
 					new GridKolon({ belirtec: 'etiket', text: 'Etiket', genislikCh: 20 }),
 					...cls.getGridKolonlar({ belirtec: 'sablonId', kodAttr: 'sablonId', adiAttr: 'sablonAdi', genislikCh: 35 }).map(colDef => colDef.kodsuz())
 				]).setSource(_e => [..._e.builder.inst.sablon[tip]])
@@ -29,15 +31,34 @@ class MQParam_ESE extends MQParam {
 				})
 		}
 	}
+	async yukle(e) {
+		if (app.isAdmin) { return await super.yukle() }
+		let rec = await app.wsParams(); if (!rec) { return false }
+		this.paramSetValues({ ...e, rec }); return true
+	}
 	paramHostVarsDuzenle(e) { super.paramHostVarsDuzenle(e); const {hv} = e; $.extend(hv, { sablon: this.sablon }) }
 	paramSetValues(e) { super.paramSetValues(e); const {rec} = e; $.extend(this, { sablon: rec.sablon }); this.fix(e) }
 	fix(e) {
 		let {sablon} = this; if (sablon == null) { sablon = this.sablon = {} }
-		for (const [tip, cls] of Object.entries(MQSablon.tip2Sinif)) {
-			const {maxSayi} = cls; let arr = sablon[tip] = sablon[tip] ?? [];
-			if (arr.length > maxSayi) { arr.splice(maxSayi) } else { while (arr.length < maxSayi) { arr.push({ etiket: '', sablonId: null }) } }
-			if (!arr[0]?.etiket) { let etiket = tip == 'cpt' ? 'CPT' : tip == 'anket' ? 'DEHB' : null; if (etiket) { $.extend(arr[0], { etiket }) } }
-		}
+		let items = sablon[MQSablonCPT.tip] = sablon[MQSablonCPT.tip] ?? [];
+		if ((items?.length ?? 0) < 1) { items.push({ etiket: 'CPT' }) } items[0].belirtec = '';
+		items = sablon[MQSablonAnket.tip] = sablon[MQSablonAnket.tip] ?? [];
+		if ((items?.length ?? 0) < 2) {
+			items.push(
+				{ kisaEtiket: 'DE', etiket: 'Dikkat Eksikliği' },
+				{ kisaEtiket: 'HI', etiket: 'Hiperaktivite' }
+			)
+		} items[0].belirtec = 'de'; items[1].belirtec = 'hi';
 		return this
+	}
+	*getIter(e) {
+		const {sablon} = this; for (const [tip, items] of Object.entries(sablon ?? {})) {
+			for (let i = 0; i < items?.length || 0; i++) {
+				const item = items[i], sablonId = item?.sablonId; if (!sablonId) { continue }
+				const seq = i + 1, belirtec = item.belirtec || '', prefix = tip + belirtec;
+				const etiket = item.etiket || '', kisaEtiket = item.kisaEtiket || etiket;
+				yield { i, seq, item, tip, belirtec, prefix, kisaEtiket, etiket, sablonId }
+			}
+		}
 	}
 }

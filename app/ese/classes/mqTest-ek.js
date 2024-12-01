@@ -5,11 +5,11 @@ class MQTestUygulanmaYeri extends TekSecim {
 
 class TestSonuc extends CObject {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return null } static get genelSonucmu() { return false }
-	static get reduceKeys() { return this.genelSonucmu ? ['id', 'tip', 'tumSayi', 'cevapSayi', 'cevapsizSayi'] : [] }
+	static get reduceKeys() { return this.genelSonucmu ? ['id', 'belirtec', 'tip', 'tumSayi', 'cevapSayi', 'cevapsizSayi'] : [] }
 	get cevapSayi() { return 0 } get cevapsizSayi() { return Math.max((this.tumSayi || 0) - (this.cevapSayi || 0), 0) } get toplamPuan() { return 0 }
 	constructor(e) {
 		e = e || {}; super(e);
-		if (this.class.genelSonucmu) { const {tip} = this.class, id = e.testId ?? e.id; $.extend(this, { tip, id, tumSayi: e.tumSayi ?? 0 }) }
+		if (this.class.genelSonucmu) { const {tip} = this.class, {belirtec} = e, id = e.testId ?? e.id; $.extend(this, { tip, belirtec, id, tumSayi: e.tumSayi ?? 0 }) }
 	}
 	reduce(e) {
 		const {reduceKeys} = this.class, result = {}; for (const key of reduceKeys) {
@@ -54,8 +54,7 @@ class TestSonucCPT extends TestSonuc {
 }
 class TestGenelSonucCPT extends TestSonucCPT {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get genelSonucmu() { return true }
-	static get reduceKeys() { return [...super.reduceKeys, 'grupSayi', 'grupNo2Bilgi'] }
-	get grupSayi() { return Object.keys(this.grupNo2Bilgi || {}).length } get cevapSayi() { return Object.keys(this.grupNo2Bilgi || {}).length }
+	static get reduceKeys() { return [...super.reduceKeys, 'grupNo2Bilgi'] }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { grupNo2Bilgi: e.grupNo2Bilgi || {} }) }
 	totalEkle(diger) {
 		if (!diger) { return this }
@@ -71,7 +70,6 @@ class TestSonucAnket extends TestSonuc {
 }
 class TestGenelSonucAnket extends TestSonucAnket {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get genelSonucmu() { return true }
-	static get reduceKeys() { return [...super.reduceKeys, 'soruId2Cevap', 'toplamPuan'] } get cevapSayi() { return Object.keys(this.soruId2Cevap).length }
-	get toplamPuan() { return topla(cevap => (cevap.puan || 0), ...Object.values(this.soruId2Cevap)) }
+	static get reduceKeys() { return [...super.reduceKeys, 'soruId2Cevap'] } get cevapSayi() { return Object.keys(this.soruId2Cevap).length }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { soruId2Cevap: e.soruId2Cevap || {} }) }
 }

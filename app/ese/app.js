@@ -26,16 +26,16 @@ class ESEApp extends App {
 			addMenuSubItems(null, null, [MQHasta, MQDoktor]);
 			addMenuSubItems('SABLON', 'Şablonlar', [MQSablonCPT, MQSablonAnket]);
 			addMenuSubItems(null, null, [MQMuayene]);
-			let parentItem = new FRMenuCascade({ mne: 'TEST', text: 'Testler' }); for (const cls of MQTest.subClasses) {
-				const {sablonTip, sablonSinif, kodListeTipi: mne} = cls;
-				let {sinifAdi: text} = cls, sablonId = params.ese.sablon?.[sablonTip]?.[0]?.sablonId, sablonAdi = sablonId ? await sablonSinif.getGloKod2Adi(sablonId) : null;
+			for (const cls of [MQTest]) {
+				let {sablonTip, sablonSinif, kodListeTipi: mne, sinifAdi: text} = cls;
+				let sablonId = params.ese.sablon?.[sablonTip]?.[0]?.sablonId, sablonAdi = sablonId ? await sablonSinif.getGloKod2Adi(sablonId) : null;
 				if (sablonAdi) { text += `<div class="royalblue" style="font-weight: normal; font-size: 90%; padding-top: 10px">${sablonAdi}</div>` }
-				parentItem.items.push(new FRMenuChoice({ mne, text, block: e => cls.listeEkraniAc(e) }))
-			} items.push(parentItem);
+				items.push(new FRMenuChoice({ mne, text, block: e => cls.listeEkraniAc(e) }))
+			}
 			/*if (parentItem)*/ {
-				let raporItems = []; for (const cls of MQTest.subClasses) {
+				let raporItems = []; for (const cls of [MQTest]) {
 					const {raporSinif} = cls; if (!raporSinif) { continue } const {kodListeTipi: mne} = cls, {sinifAdi: text} = cls;
-					raporItems.push(new FRMenuChoice({ mne, text, block: e => raporSinif.goster(e) }));
+					raporItems.push(new FRMenuChoice({ mne, text, block: e => raporSinif.goster(e) }))
 				}
 				if (raporItems?.length) { /*parentItem.*/ items.push(new FRMenuCascade({ mne: 'RAPOR', text: 'Raporlar', items: raporItems })) }
 			}
@@ -44,13 +44,26 @@ class ESEApp extends App {
 				new FRMenuChoice({ mne: 'TEST_YUKLE', text: 'Dosyadan Test Yükle', block: e => this.dosyadanTestYukleIstendi(e) })
 			)
 		}
-		else { items.push(new FRMenuChoice({ mne: 'MAIN', text: 'TEST İşlemi', block: e => this.testBaslat(e) })) }
+		else {
+			const {testId} = config.session; for (const cls of MQTest.subClasses) {
+				const {sablonTip, sablonSinif} = cls; let items = params.ese.sablon?.[sablonTip] ?? [];
+				// ?.map(rec => rec.sablonId).filter(x => !!x) ?? [];
+				let promises_sablonAdi = sablonIdListe.map(id => sablonSinif.getGloKod2Adi(sablonId));
+				for (let i = 0; i < items.length; i++) {
+					let {belirtec, sablonId} = items[i]; if (!sablonId) { continue }
+					let sablonAdi = await promises_sablonAdi[i], {sinifAdi: text} = cls; if (sablonAdi) {
+						text += `<div class="royalblue" style="font-weight: normal; font-size: 90%; padding-top: 10px">${sablonAdi}</div>` }
+					let {mne} = `${cls.tip.toUpperCase()}-${i + 1}`;
+					items.push(new FRMenuChoice({ mne, text, block: e => this.testBaslat({ tip, belirtec, testId, sablonId }) }))
+				}
+			}
+		}
 		return new FRMenu({ items })
 	}
 	testBaslat(e) {
-		e = e || {}; const {session} = config, testTip = e.testTip ?? e.tip ?? session.testTip, testId = e.testId ?? e.id ?? session.testId;
-		if (!testId) { return null } let testSinif = MQTest.getClass(testTip); if (!testSinif) { return null }
-		try { requestFullScreen() } catch (ex) { } return testSinif.baslat({ testId })
+		e = e || {}; const {session} = config, testTip = e.testTip ?? e.tip, testId = e.testId ?? e.id ?? session.testId, {sablonId} = e;
+		if (!(testId && sablonId)) { return null } let testSinif = MQTest.getClass(testTip); if (!testSinif) { return null }
+		try { requestFullScreen() } catch (ex) { } return testSinif.baslat({ testId, sablonId })
 	}
 	async dosyadanTestYukleIstendi(e) {
 		const title = 'Test Yükleme İşlemi', {data} = await openFile({ type: 'text', accept: ['text/plain'] }) ?? {}; if (!data) { return null }
@@ -71,15 +84,15 @@ class ESEApp extends App {
 		let testSinif = MQTestCPT, {tip} = testSinif, sablonId = new testSinif().sablonId;
 		let /*recs = [],*/ testIds = [], hvListe = []; showProgress(`${lines.length} adet test kaydı yükleniyor...`, appName, true);
 		window.progressManager?.setProgressMax(lines.length * 1.5);
-		let tarihsaat = now(), btamamlandi = 1;
+		let tarihsaat = now(), bcptyapildi = 1, banketdeyapildi = 1, bankethiyapildi = 1;
 		for (i = 2; i < lines.length; i++) {
 			let rec = {}; line = lines[i].trimEnd(); if (!line) { continue }
 			let tokens = line.split(delim); for (let j = 0; j < tokens.length; j++) { let col = cols[j]; rec[col] = asFloat(tokens[j].trim().replace(',', '.')) }
 			/*recs.push(rec)*/ let id = newGUID(), aktifyas = asInteger(rec.yas), cinsiyet = rec.cinsiyet == 1 ? 'E' : rec.cinsiyet == 2 ? 'K' : '';
 			if (!cinsiyet) { window.progressManager?.progressStep(); continue }
 			let dogrusayi = asInteger(rec.cptcorrectresponses), yanlissayi = asInteger(rec.cptcommissionerrors), secilmeyendogrusayi = asInteger(rec.cptommissionerrors);
-			let tumsayi = dogrusayi + yanlissayi, dogrusecimsurems = asFloat(rec.cptchoicerxntimecorrect);
-			testIds.push(id); let hv = { id, tarihsaat, btamamlandi, aktifyas, cinsiyet, dogrusayi, yanlissayi, secilmeyendogrusayi, tumsayi, dogrusecimsurems };
+			let dogrusecimsurems = asFloat(rec.cptchoicerxntimecorrect);
+			testIds.push(id); let hv = { id, tarihsaat, bcptyapildi, banketdeyapildi, bankethiyapildi, aktifyas, cinsiyet, dogrusayi, yanlissayi, secilmeyendogrusayi, dogrusecimsurems };
 			hv[`${tip}sablonid`] = sablonId; hvListe.push(hv); window.progressManager?.progressStep()
 		}
 		/*console.table(recs)*/
@@ -90,6 +103,7 @@ class ESEApp extends App {
 		window.progressManager?.progressEnd(); setTimeout(() => hideProgress(), 1000)
 		return { testIds, query }
 	}
+	wsParams(e) { let args = e || {}; delete args.data; return ajaxPost({ url: this.getWSUrl({ api: 'params', args }) }) }
 	wsTestBilgi(e) { let args = e || {}; delete args.data; return ajaxPost({ url: this.getWSUrl({ api: 'testBilgi', args }) }) }
 	wsTestSonucKaydet(e) {
 		let args = e || {}, {data} = args; if (typeof data == 'object') { data = toJSONStr(data) } delete args.data;
