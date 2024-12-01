@@ -14,7 +14,7 @@ class MQParam_ESE extends MQParam {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'ESE Parametreleri' } static get paramKod() { return 'ESEPARAM' }
 	get asArray() { const result = []; for (const rec of this.getIter()) { result.push(rec) } return result }
-	constructor(e) { e = e || {}; super(e); $.extend(this, { sablon: e.sablon }); this.fix(e) }
+	constructor(e) { e = e || {}; super(e); const {sablon, sablonId2Adi} = e; $.extend(this, { sablon, sablonId2Adi }); this.fix(e) }
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); const {paramci} = e; paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`);
 		let form = paramci.addFormWithParent(); form.addGrup({ etiket: 'Varsayılan Şablon' }); let formSablon = form.addFormWithParent().yanYana().addStyle_fullWH();
@@ -32,12 +32,12 @@ class MQParam_ESE extends MQParam {
 		}
 	}
 	async yukle(e) {
-		if (app.isAdmin) { return await super.yukle() }
+		if (app.isAdmin) { return await super.yukle(e) }
 		let rec = await app.wsParams(); if (!rec) { return false }
 		this.paramSetValues({ ...e, rec }); return true
 	}
 	paramHostVarsDuzenle(e) { super.paramHostVarsDuzenle(e); const {hv} = e; $.extend(hv, { sablon: this.sablon }) }
-	paramSetValues(e) { super.paramSetValues(e); const {rec} = e; $.extend(this, { sablon: rec.sablon }); this.fix(e) }
+	paramSetValues(e) { super.paramSetValues(e); const {rec} = e, {sablon, sablonId2Adi} = rec; $.extend(this, { sablon, sablonId2Adi }); this.fix(e) }
 	fix(e) {
 		let {sablon} = this; if (sablon == null) { sablon = this.sablon = {} }
 		let items = sablon[MQSablonCPT.tip] = sablon[MQSablonCPT.tip] ?? [];

@@ -1,5 +1,6 @@
 /*.MQX.masterListe.part .header .islemTuslari button#x { width: 130px !important; margin-left: 20px }
 .MQX.masterListe.part .jqx-grid [role = row] > .xyz.jqx-grid-cell:not(.jqx-grid-cell-selected) { font-weight: bold }*/
+body.ESEApp.kiosk #root-parent > #ust-parent > #parent > main #anaMenu { display: block !important }
 body:not(.admin) #loginForm.loginPart.part button#ayarlar { display: none !important }
 body:not(.admin) #loginForm.loginPart.part > .alt-form > div.row:nth-child(2) { display: none !important }
 body:not(.admin) #loginForm.loginPart.part > .alt-form > div.row:nth-child(3) > h5 { display: none !important }

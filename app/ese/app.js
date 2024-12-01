@@ -15,8 +15,9 @@ class ESEApp extends App {
 	}
 	paramsDuzenle(e) { super.paramsDuzenle(e); $.extend(e.params, { localData: MQLocalData.getInstance(), ese: MQParam_ESE.getInstance() }) }
 	async getAnaMenu(e) {
-		const {noMenuFlag, isAdmin, params} = this; if (noMenuFlag) { return new FRMenu() } let items = [];
-		if (isAdmin) {
+		const {noMenuFlag} = this; if (noMenuFlag) { return new FRMenu() }
+		const {isAdmin, params} = this, {ese} = params, sablon = ese?.sablon ?? {};
+		let items = []; if (isAdmin) {
 			const addMenuSubItems = (mne, text, ...classes) => {
 				let subItems = classes.flat().map(cls => new FRMenuChoice({ mne: cls.kodListeTipi, text: cls.sinifAdi, block: e => cls.listeEkraniAc(e) }));
 				let menuItems = []; if (subItems?.length) { menuItems = mne ? [new FRMenuCascade({ mne, text, items: subItems })] : subItems; items.push(...menuItems) }
@@ -28,7 +29,7 @@ class ESEApp extends App {
 			addMenuSubItems(null, null, [MQMuayene]);
 			for (const cls of [MQTest]) {
 				let {sablonTip, sablonSinif, kodListeTipi: mne, sinifAdi: text} = cls;
-				let sablonId = params.ese.sablon?.[sablonTip]?.[0]?.sablonId, sablonAdi = sablonId ? await sablonSinif.getGloKod2Adi(sablonId) : null;
+				let sablonId = sablon[sablonTip]?.[0]?.sablonId, sablonAdi = sablonId ? await sablonSinif.getGloKod2Adi(sablonId) : null;
 				if (sablonAdi) { text += `<div class="royalblue" style="font-weight: normal; font-size: 90%; padding-top: 10px">${sablonAdi}</div>` }
 				items.push(new FRMenuChoice({ mne, text, block: e => cls.listeEkraniAc(e) }))
 			}
@@ -45,25 +46,23 @@ class ESEApp extends App {
 			)
 		}
 		else {
-			const {testId} = config.session; for (const cls of MQTest.subClasses) {
-				const {sablonTip, sablonSinif} = cls; let items = params.ese.sablon?.[sablonTip] ?? [];
-				// ?.map(rec => rec.sablonId).filter(x => !!x) ?? [];
-				let promises_sablonAdi = sablonIdListe.map(id => sablonSinif.getGloKod2Adi(sablonId));
-				for (let i = 0; i < items.length; i++) {
-					let {belirtec, sablonId} = items[i]; if (!sablonId) { continue }
-					let sablonAdi = await promises_sablonAdi[i], {sinifAdi: text} = cls; if (sablonAdi) {
-						text += `<div class="royalblue" style="font-weight: normal; font-size: 90%; padding-top: 10px">${sablonAdi}</div>` }
-					let {mne} = `${cls.tip.toUpperCase()}-${i + 1}`;
-					items.push(new FRMenuChoice({ mne, text, block: e => this.testBaslat({ tip, belirtec, testId, sablonId }) }))
+			const {testId} = config.session, sablonId2Adi = ese.sablonId2Adi ?? {};
+			for (const cls of MQTest.subClasses) {
+				const {sablonTip, sablonSinif} = cls; let _items = sablon[sablonTip] ?? [];
+				for (let i = 0; i < _items.length; i++) {
+					let {belirtec, sablonId, etiket: text} = _items[i]; if (!sablonId) { continue }
+					let {tip} = cls, sablonAdi = sablonId2Adi[sablonId];
+					if (sablonAdi) { text += `<div class="royalblue" style="font-weight: normal; font-size: 90%; padding-top: 10px">${sablonAdi}</div>` }
+					let mne = `${tip.toUpperCase()}-${i + 1}`; items.push(new FRMenuChoice({ mne, text, block: e => this.testBaslat({ tip, belirtec, testId, sablonId }) }))
 				}
 			}
 		}
 		return new FRMenu({ items })
 	}
 	testBaslat(e) {
-		e = e || {}; const {session} = config, testTip = e.testTip ?? e.tip, testId = e.testId ?? e.id ?? session.testId, {sablonId} = e;
+		e = e || {}; const {session} = config, testTip = e.testTip ?? e.tip, testId = e.testId ?? e.id ?? session.testId, {belirtec, sablonId} = e;
 		if (!(testId && sablonId)) { return null } let testSinif = MQTest.getClass(testTip); if (!testSinif) { return null }
-		try { requestFullScreen() } catch (ex) { } return testSinif.baslat({ testId, sablonId })
+		try { requestFullScreen() } catch (ex) { } return testSinif.baslat({ testId, belirtec, sablonId })
 	}
 	async dosyadanTestYukleIstendi(e) {
 		const title = 'Test Yükleme İşlemi', {data} = await openFile({ type: 'text', accept: ['text/plain'] }) ?? {}; if (!data) { return null }

@@ -139,7 +139,7 @@ class MQTest extends MQGuidOrtak {
 	}
 	static async eMailGonderIstendi(e) {
 		const {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender; let {selectedRecs} = gridPart; if (!selectedRecs?.length) { hConfirm('Kayıtlar seçilmelidir', sinifAdi); return null }
-		selectedRecs = selectedRecs.filter(({ eMail }) => !!eMail && eMail.length >= 5 && eMail.includes('@'));
+		selectedRecs = selectedRecs.filter(({ email: eMail }) => !!eMail && eMail.length >= 5 && eMail.includes('@'));
 		if (!selectedRecs?.length) { hConfirm('Seçilenler arasında <u>Geçerli e-Mail Adresi Olan</u> kayıt bulunamadı', sinifAdi); return null }
 		if (!await ehConfirm(`Seçilen <b>${selectedRecs.length}</b> adet kişiye <b>Test Onay Kodu için e-Mail</b> gönderilsin mi?`, sinifAdi)) { return null }
 		e.pAborted = { result: false }; showProgress(`<b>${selectedRecs.length}</b> kişiye Toplu e-Mail Gönderimi yapılıyor...`, sinifAdi, true, () => e.pAborted.result = true);
@@ -206,7 +206,7 @@ class MQTest extends MQGuidOrtak {
 		} if (promises.length) { await waitBlock() }
 		return allResults
 	}
-	static baslat(e) { let inst = new this({ id: e.testId ?? e.id, sablonId: e.sablonId }); return inst.baslat(e) }
+	static baslat(e) { let inst = new this({ id: e.testId ?? e.id, belirtec: e.belirtec, sablonId: e.sablonId }); return inst.baslat(e) }
 	async baslat(e) {
 		const inst = this, {tip} = this.class, {id: testId, sablonId, belirtec} = this;
 		clearTimeout(this._timerProgress); this._timerProgress = setTimeout(() => showProgress(), 500);
