@@ -3,7 +3,10 @@ class MQTest extends MQGuidOrtak {
 	static get tip() { return this.sablonTip } static get kod() { return this.tip } static get aciklama() { return this.sablonSinif?.aciklama }
 	static get table() { return 'esetest' } static get tableAlias() { return 'tst' } static get tanimUISinif() { return ModelTanimPart } static get raporSinif() { return DRapor_ESETest }
 	static get sablonSinif() { return null } static get sablonTip() { return this.sablonSinif?.tip } static get testSonucSinif() { return null } static get testGenelSonucSinif() { return null } 
-	static get ignoreBelirtecSet() { return {...super.ignoreBelirtecSet, ...asSet(['muayeneid', 'ortyanlissecimsurems', 'seri', 'fisno', 'doktorid', 'doktoradi', 'uygulanmayeritext']) } }
+	static get ignoreBelirtecSet() {
+		return { ...super.ignoreBelirtecSet,
+			...asSet(['muayeneid', 'ortyanlissecimsurems', 'seri', 'fisno', 'doktorid', 'doktoradi', 'uygulanmayeritext', 'ortdogrusecimsurems', 'ortyanlissecimsurems']) }
+	}
 	static get tip2Sinif() {
 		let result = this._tip2Sinif; if (result == null) {
 			result = {}; const {subClasses} = this; for (const cls of subClasses) { const {araSeviyemi, tip} = cls; if (!araSeviyemi && tip) { result[tip] = cls } }
@@ -54,7 +57,8 @@ class MQTest extends MQGuidOrtak {
 		super.ekCSSDuzenle(e); const {dataField: belirtec, rec, result} = e;
 		if (belirtec == 'onaykodu') { result.push('center bold royalblue') }
 		if ((belirtec == 'bdehbvarmi' && asBool(rec.bdehbvarmi)) || belirtec == 'bdehbmiozel' && asBool(rec.bdehbmiozel)) { result.push('dehb') }
-		for (const key of ['dogrusayi', 'yanlissayi', 'secilmeyendogrusayi', 'ortdogrusecimsurems', 'ortyanlissecimsurems']) { if (belirtec == key) { result.push('cpt') } }
+		for (const key of ['dogrusayi', 'yanlissayi', 'secilmeyendogrusayi', 'dogrusecimsurems', 'yanlissecimsurems', 'ortdogrusecimsurems', 'ortyanlissecimsurems']) {
+			if (belirtec == key) { result.push('cpt') } }
 		for (const key of ['deskor', 'debelirtisayi']) { if (belirtec == key) { result.push('anket', 'anket-de') } }
 		for (const key of ['hiskor', 'hibelirtisayi']) { if (belirtec == key) { result.push('anket', 'anket-hi') } }
 	}
@@ -75,8 +79,10 @@ class MQTest extends MQGuidOrtak {
 			new GridKolon({ belirtec: 'dogrusayi', text: 'Doğru Sayı', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'yanlissayi', text: 'Yanlış Sayı', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'secilmeyendogrusayi', text: 'Seçilmeyen Doğru', genislikCh: 10 }).tipNumerik(),
-			new GridKolon({ belirtec: 'ortdogrusecimsurems', text: 'Ort. Doğru Seçim(sn)', genislikCh: 23, sql: `(case when ${alias}.dogrusayi = 0 then 0 else ROUND(SUM(${alias}.dogrusecimsurems) / SUM(${alias}.dogrusayi), 1) end)` }).tipDecimal(1),
-			new GridKolon({ belirtec: 'ortyanlissecimsurems', text: 'Ort. Yanlış Seçim(sn)', genislikCh: 23, sql: `(case when ${alias}.yanlissayi = 0 then 0 else ROUND(SUM(${alias}.yanlissecimsurems) / SUM(${alias}.yanlissayi), 1) end)` }).tipDecimal(1),
+			new GridKolon({ belirtec: 'dogrusecimsurems', text: 'Doğru Seçim(ms)', genislikCh: 10 }).tipDecimal(1),
+			new GridKolon({ belirtec: 'yanlissecimsurems', text: 'Yanlış Seçim(ms)', genislikCh: 10 }).tipDecimal(1),
+			new GridKolon({ belirtec: 'ortdogrusecimsurems', text: 'Ort. Doğru Seçim(ms)', genislikCh: 10, sql: `(case when ${alias}.dogrusayi = 0 then 0 else ROUND(SUM(${alias}.dogrusecimsurems) / SUM(${alias}.dogrusayi), 1) end)` }).tipDecimal(1),
+			new GridKolon({ belirtec: 'ortyanlissecimsurems', text: 'Ort. Yanlış Seçim(ms)', genislikCh: 10, sql: `(case when ${alias}.yanlissayi = 0 then 0 else ROUND(SUM(${alias}.yanlissecimsurems) / SUM(${alias}.yanlissayi), 1) end)` }).tipDecimal(1),
 			new GridKolon({ belirtec: 'deskor', text: 'DE Skor', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'debelirtisayi', text: 'DE Belirti', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'hiskor', text: 'HI Skor', genislikCh: 10 }).tipNumerik(),

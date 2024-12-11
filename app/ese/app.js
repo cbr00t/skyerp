@@ -62,36 +62,171 @@ class ESEApp extends App {
 		if (!(testId && sablonId)) { return null } let testSinif = MQTest.getClass(testTip); if (!testSinif) { return null }
 		try { requestFullScreen() } catch (ex) { } return testSinif.baslat({ testId, belirtec, sablonId })
 	}
-	/*dehbmi(e) {
-	    const w = { dogru: 0.3, yanlis: -0.27, secilmeyenDogru: -0.3, dogruSecimMS: -0.21, yas: 0.1, cinsiyet: -0.14 };
-		const deSkor = e.deSkor ?? e.deskor ?? 0, deBelirti = e.deBelirti ?? e.deBelirtiSayi ?? e.debelirtisayi;
-		const hiSkor = e.hiSkor ?? e.hiskor ?? 0, hiBelirti = e.hiBelirti ?? e.hiBelirtiSayi ?? e.hibelirtisayi;
-		const dogru = e.dogruSayi ?? e.dogrusayi ?? 0, yanlis = e.yanlisSayi ?? e.yanlissayi ?? 0;
-		const secilmeyenDogru = e.secilmeyenDogruSayi ?? e.secilmeyendogrusayi ?? 0, dogruSecimMS = e.dogruSecimSureMS ?? e.dogrusecimsurems ?? e.ortdogrusecimsurems;
-		const yas = ;
-	    const dehbSkor = (
-			(w.dogru * dogru) + (w.yanlis * yanlis) + (w.secilmeyenDogru * secilmeyenDogru) +
-			(w.dogruSecimMS * dogruSecimMS) + (w.yas * yas) + (w.cinsiyet * cinsiyetNum)
-	    );
-		return dehbSkor <= 0
-	}*/
 	dehbmi(e) {
-	    const t = { deSkor: 9, hiSkor: 9, deBelirti: 5, hiBelirti: 5, belirtiToplami: 8, skorSinir: 27, skorAralikMax: 25, dogru: 35, yanlis: 5, secilmeyenDogru: 6, dogruSecimMS: 130 };
+	    const d = {
+	        de: { skor: e.deskor ?? 0, belirti: e.debelirtisayi ?? 0 },
+	        hi: { skor: e.hiskor ?? 0, belirti: e.hibelirtisayi ?? 0 },
+	        dogru: e.dogrusayi ?? 0, yanlis: e.yanlissayi ?? 0, dogruSecimMS: e.dogrusecimsurems ?? 0, yas: e.aktifyas ?? 0
+	    };
+	    // Threshold values for the decision
+	    const t = {
+	        deMin: 8,    // Minimum DE symptoms
+	        hiMin: 5,    // Minimum HI symptoms
+	    };
+	    // Calculate if DEHB criteria are met
+	    const dehbmi = (d.de.skor >= t.deMin || d.hi.skor >= t.hiMin);
+	    return dehbmi
+	}
+	dehbmi_x1(e) {
+	    const t = {
+			deSkor: 11.92,        // Ortalama üzerinden ayarlanan eşik
+	        hiSkor: 8.30,
+	        deBelirti: 4.45,
+	        hiBelirti: 2.83,
+	        dogru: 37.0,          // Düşük tolerans ayarı
+	        yanlis: 2.42,
+	        dogruSecimMS: 533.14  // Performans sınırı
+		};
 		const d = {
-			de: e.de ?? { skor: e.deSkor ?? e.deskor ?? 0, belirti: e.deBelirti ?? e.deBelirtiSayi ?? e.debelirtisayi ?? 0 },
-			hi: e.hi ?? { skor: e.hiSkor ?? e.hiskor ?? 0, belirti: e.hiBelirti ?? e.hiBelirtiSayi ?? e.hibelirtisayi ?? 0 },
-			dogru: e.dogru ?? e.dogruSayi ?? e.dogrusayi ?? 0, yanlis: e.yanlis ?? e.yanlisSayi ?? e.yanlissayi ?? 0,
-			secilmeyenDogru: e.secilmeyenDogru ?? e.secilmeyenDogruSayi ?? e.secilmeyendogrusayi ?? 0,
-			dogruSecimMS: e.dogruSecimMS ?? e.dogruSecimSureMS ?? e.dogrusecimsurems ?? e.ortdogrusecimsurems ?? 0,
-			yas: e.yas ?? e.aktifYas ?? e.aktifyas, cinsiyet: e.cinsiyet?.toUpperCase()
+			de: { skor: e.deSkor ?? e.deskor ?? 0, belirti: e.deBelirti ?? e.deBelirtiSayi ?? e.debelirtisayi ?? 0 },
+	        hi: { skor: e.hiSkor ?? e.hiskor ?? 0, belirti: e.hiBelirti ?? e.hiBelirtiSayi ?? e.hibelirtisayi ?? 0 },
+	        dogru: e.dogru ?? e.dogruSayi ?? e.dogrusayi ?? 0, yanlis: e.yanlis ?? e.yanlisSayi ?? e.yanlissayi ?? 0,
+	        dogruSecimMS: e.dogruSecimMS ?? e.dogruSecimSureMS ?? e.dogrusecimsurems ?? e.ortdogrusecimsurems ?? 0,
+	        yas: e.yas ?? e.aktifYas ?? e.aktifyas, cinsiyet: e.cinsiyet?.toUpperCase()
 		}, kadinmi = d.cinsiyet == 'K', erkekmi = d.cinsiyet == 'E';
 		let dehbmi = (
-			d.de.skor * (erkekmi ? 4 : 1) >= t.deSkor || d.de.belirti >= t.deBelirti || d.hi.skor  >= t.hiSkor || d.hi.belirti >= t.hiBelirti ||
-			d.dogru < t.dogru || d.yanlis > t.yanlis || d.secilmeyenDogru > t.secilmeyenDogru || d.dogruSecimMS > t.dogruSecimMS ||
-			(d.de.belirti + d.hi.belirti) >= t.belirtiToplami
+			d.de.skor >= t.deSkor || d.de.belirti >= t.deBelirti ||
+	        d.hi.skor >= t.hiSkor || d.hi.belirti >= t.hiBelirti ||
+	        d.dogru < t.dogru || d.yanlis > t.yanlis || d.dogruSecimMS > t.dogruSecimMS
 	    );
-		/*if (dehbmi && Math.max(d.de.skor, d.hi.skor) >= t.skorSinir && Math.abs(d.de.skor - d.hi.skor) > t.skorAralikMax) { dehbmi = false }*/
 		return dehbmi
+	}
+	dehbmi_x2(e) {
+	    const d = {
+	        de: { 
+	            skor: e.deskor ?? 0, 
+	            belirti: e.debelirtisayi ?? 0 
+	        },
+	        hi: { 
+	            skor: e.hiskor ?? 0, 
+	            belirti: e.hibelirtisayi ?? 0 
+	        },
+	        dogru: e.dogrusayi ?? 0, 
+	        yanlis: e.yanlissayi ?? 0,
+	        dogruSecimMS: e.dogrusecimsurems ?? 0,
+	        yas: e.aktifyas ?? 0,
+	    };
+	    // Threshold values refined to handle inconsistencies
+	    const t = {
+	        deMin: 6,     // Minimum DE symptoms
+	        hiMin: 6,     // Minimum HI symptoms
+	        scoreMin: 15, // Minimum combined score for DE and HI
+	        maxDogruSecimMS: 700, // Slightly relaxed timing threshold
+	        maxYanlisSayisi: 8 // Adjusted allowable incorrect answers
+	    };
+	    // Refined criteria to account for edge cases
+	    const meetsCoreCriteria = (
+	        (d.de.belirti >= t.deMin || d.hi.belirti >= t.hiMin) &&
+	        (d.de.skor + d.hi.skor >= t.scoreMin)
+	    );
+	    const meetsPerformanceCriteria = (
+	        (d.dogruSecimMS <= t.maxDogruSecimMS || d.dogruSecimMS === 0) &&
+	        (d.yanlis <= t.maxYanlisSayisi)
+	    );
+	    // Specific adjustment for borderline cases identified in inconsistencies
+	    const borderlineAdjustments = (
+	        (d.de.skor >= 5 && d.hi.skor >= 5 && d.yas <= 10) ||
+	        (d.dogruSecimMS > 500 && d.yanlis > 5 && d.de.skor + d.hi.skor >= 14)
+	    );
+	    const dehbmi = meetsCoreCriteria || meetsPerformanceCriteria || borderlineAdjustments;
+	    return dehbmi
+	}
+	dehbmi_x3(e) {
+		const d = {
+	        de: { skor: e.deskor ?? 0, belirti: e.debelirtisayi ?? 0 },
+	        hi: { skor: e.hiskor ?? 0, belirti: e.hibelirtisayi ?? 0 },
+	        yanlis: e.yanlissayi ?? 0,
+	        dogruSecimMS: e.dogrusecimsurems ?? 0,
+	        yas: e.aktifyas ?? 0,
+	        secilmeyenDogru: e.secilmeyendogrusayi ?? 0
+	    };
+	    // Weighted formula based on feature importance
+	    const score = 
+	        (d.de.skor * 0.3) +
+	        (d.hi.skor * 0.15) +
+	        (d.dogruSecimMS * 0.14) +
+	        (d.de.belirti * 0.13) +
+	        (d.yanlis * 0.09) -
+	        (d.yas * 0.05);
+
+	    // Threshold for DEHB prediction
+	    const threshold = 7.5;
+	    return score >= threshold
+	}
+	dehbmi_x4(e) {
+	    const d = {
+	        de: { 
+	            skor: e.deskor ?? 0, 
+	            belirti: e.debelirtisayi ?? 0 
+	        },
+	        hi: { 
+	            skor: e.hiskor ?? 0, 
+	            belirti: e.hibelirtisayi ?? 0 
+	        },
+	        dogru: e.dogrusayi ?? 0, 
+	        yanlis: e.yanlissayi ?? 0,
+	        dogruSecimMS: e.dogrusecimsurems ?? 0,
+	        yas: e.aktifyas ?? 0,
+	    };
+	    // Thresholds and conditions updated based on broader analysis
+	    const thresholds = {
+	        deMin: 6,   // Minimum DE symptoms for more general tolerance
+	        hiMin: 6,   // Minimum HI symptoms for more general tolerance
+	        scoreMin: 10, // Lowered combined score threshold for DE and HI
+	        maxDogruSecimMS: 700, // Slightly relaxed timing threshold
+	        maxYanlisSayisi: 10 // Increased allowance for incorrect answers
+	    };
+	    // Adjusted criteria with layered conditions
+	    const meetsCoreCriteria = (
+	        (d.de.belirti >= thresholds.deMin || d.hi.belirti >= thresholds.hiMin) &&
+	        (d.de.skor + d.hi.skor >= thresholds.scoreMin)
+	    );
+	    const meetsPerformanceCriteria = (
+	        (d.dogruSecimMS <= thresholds.maxDogruSecimMS || d.dogruSecimMS === 0) &&
+	        (d.yanlis <= thresholds.maxYanlisSayisi)
+	    );
+	    const edgeCaseAdjustments = (
+	        d.yas < 10 && (d.de.skor > 8 || d.hi.skor > 8)
+	    );
+	    const dehbmi = meetsCoreCriteria || meetsPerformanceCriteria || edgeCaseAdjustments;
+	    return dehbmi
+	}
+	dehbmi_x5(e) {
+	    // data: { deskor, hiskor, yanlissayi, debelirtisayi, hibelirtisayi, dogrusecimsurems, yanlissecimsurems, secilmeyendogrusayi }
+	    const b0 = -4.3;
+	    const b1 = 0.12; // deskor katsayısı
+	    const b2 = 0.09; // hiskor katsayısı
+	    const b3 = 0.05; // yanlissayi katsayısı
+	    const b4 = 0.07; // debelirtisayi katsayısı
+	    const b5 = 0.08; // hibelirtisayi katsayısı
+	    const b6 = -0.001; // dogrusecimsurems katsayısı
+	    const b7 = 0.002; // yanlissecimsurems katsayısı
+	    const b8 = -0.03; // secilmeyendogrusayi katsayısı
+	    // Lineer skor:
+	    const linearScore = b0
+	        + b1 * e.deskor
+	        + b2 * e.hiskor
+	        + b3 * e.yanlissayi
+	        + b4 * e.debelirtisayi
+	        + b5 * e.hibelirtisayi
+	        + b6 * e.dogrusecimsurems
+	        + b7 * e.yanlissecimsurems
+	        + b8 * e.secilmeyendogrusayi;
+	
+	    // Olasılık (lojistik fonksiyon):
+	    const probability = 1 / (1 + Math.exp(-linearScore));
+	    // Eşik değer:
+	    return probability > 0.5 // true (DEHB var), false (DEHB yok)
 	}
 	async testlerIcinOzelDEHBmiBelirleIstendi(e) {
 		e = e ?? {}; let recs = e.recs ?? await MQTest.loadServerData(); if (!recs?.length) { hConfirm('DEHB Durum belirlenecek Test bulunamadı', appName); return false }
@@ -99,28 +234,27 @@ class ESEApp extends App {
 		if (!rdlg) { return false } return await this.testlerIcinOzelDEHBmiBelirle(e)
 	}
 	async testlerIcinOzelDEHBmiBelirle(e) {
-		e = e ?? {}; let recs = e.recs ?? await MQTest.loadServerData(), dehb2IdListe = {}; if (!recs?.length) { return false }
-		for (const rec of recs) {
-			const {id} = rec, dehbmi = this.dehbmi(rec); if (dehbmi == null) { continue }
+		e = e ?? {}; let recs = e.recs ?? await MQTest.loadServerData(), dehb2IdListe = {}; if (!recs?.length) { return null }
+		const selector = e.selector ?? 'dehbmi'; for (const rec of recs) {
+			const {id} = rec, dehbmi = this[selector](rec); if (dehbmi == null) { continue }
 			(dehb2IdListe[dehbmi] = dehb2IdListe[dehbmi] ?? []).push(id)
 		}
-		let query = new MQToplu(), totalCount = 0, from = 'esetest';
+		let totalCount = 0, from = 'esetest', query = new MQToplu();
 		for (const [dehbmi, idListe] of Object.entries(dehb2IdListe)) {
-			totalCount += idListe.length; query.add(
-				new MQIliskiliUpdate({ from, where: { inDizi: idListe, saha: 'id' }, set: { degerAta: bool2Int(dehbmi), saha: 'bdehbmiozel' } }),
-				new MQSent({
-					from, sahalar: 'COUNT(*) sayi',
-					where: ['muayeneid IS NULL', 'hastaid IS NULL', 'bdehbvarmi <> bdehbmiozel', 'bcptyapildi <> 0', 'banketdeyapildi <> 0', 'bankethiyapildi <> 0']
-				})
-			)
+			totalCount += idListe.length;
+			query.add(new MQIliskiliUpdate({ from, where: { inDizi: idListe, saha: 'id' }, set: { degerAta: bool2Int(dehbmi), saha: 'bdehbmiozel' } }))
 		}
-		recs = await app.sqlExecSelect(query); let gecerliSayi = 0; for (const {sayi} of recs) { gecerliSayi += sayi }
-		let dogrulukOrani = roundToFra2((1 - (gecerliSayi / totalCount)) * 100), dogrulukCSS = dogrulukOrani > 96 ? 'green' : 'orangered';
-		eConfirm(`<b>${totalCount} adet Test için <b class="royalblue">DEHB(<i>Özel</i>)</b> durumu güncellendi<p/>Doğruluk: <b class="${dogrulukCSS}">%${dogrulukOrani}</b>`, appName);
-		return true
+		if (query?.liste.length) { await app.sqlExecNone(query) }
+		query = new MQSent({
+			from, sahalar: 'COUNT(*) sayi',
+			where: ['muayeneid IS NULL', 'hastaid IS NULL', 'bdehbvarmi <> bdehbmiozel', 'bcptyapildi <> 0', 'banketdeyapildi <> 0', 'bankethiyapildi <> 0']
+		}); recs = await app.sqlExecSelect(query); let tutarsizSayi = 0; for (const {sayi} of recs) { tutarsizSayi += sayi }
+		let dogrulukOrani = roundToFra2((1 - (tutarsizSayi / totalCount)) * 100), dogrulukCSS = dogrulukOrani > 96 ? 'green' : 'orangered';
+		if (!e.silent) { eConfirm(`<b>${totalCount} adet Test için <b class="royalblue">DEHB(<i>Özel</i>)</b> durumu güncellendi<p/>Doğruluk: <b class="${dogrulukCSS}">%${dogrulukOrani}</b>`, appName) }
+		return { totalCount, tutarsizSayi, dogrulukOrani }
 	}
 	async dosyadanTestYukleIstendi(e) {
-		const title = 'Test Yükleme İşlemi', {data} = await openFile({ type: 'text', accept: ['text/plain'] }) ?? {}; if (!data) { return null }
+		const title = 'Test Yükleme İşlemi', {data} = await openFile({ type: 'text', accept: ['text/plain', 'text/tab-separated-values'] }) ?? {}; if (!data) { return null }
 		let {index: rdlg} = await displayMessage('Seçilen dosyadaki TEST Kayıtları yüklensin mi?', title, [`<span class="red">SİLEREK</span>`, 'Silmeden', 'VAZGEÇ'])?.result ?? {}
 		if ((rdlg ?? 2) == 2) { return null } let clear = rdlg == 0;
 		try {

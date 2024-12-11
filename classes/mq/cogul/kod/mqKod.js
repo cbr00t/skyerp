@@ -157,7 +157,7 @@ class MQKA extends MQKod {
 				}
 				let stm = new MQStm({ sent: sent, orderBy: [kodAttr] }); const {stmDuzenleyiciler} = kolonGrup;
 				if (ekStmDuzenleyici || stmDuzenleyiciler) {
-					const fis = e.fis ?? gridPart.fis, {tableAlias, aliasVeNokta} = mfSinif, sent = stm.sent, handlers = [];
+					const fis = e.fis ?? gridPart.fis, {tableAlias, aliasVeNokta} = mfSinif, {sent} = stm, handlers = [];
 					if (ekStmDuzenleyici) { handlers.push(ekStmDuzenleyici) }
 					if (!$.isEmptyObject(stmDuzenleyiciler)) { handlers.push(...stmDuzenleyiciler) }
 					const _e = $.extend({}, e, { sender, colDef, fis, mfSinif, alias: tableAlias, aliasVeNokta, stm, sent });
