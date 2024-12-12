@@ -31,20 +31,19 @@ class TestSonuc extends CObject {
 }
 class TestSonucCPT extends TestSonuc {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return MQTestCPT.tip }
-	static get parentKeys() { return ['dogru', 'yanlis'] } static get reduceKeys() { return [...super.reduceKeys, ...this.parentKeys, 'secilmeyenDogruSayi'] }
+	static get parentKeys() { return ['dogru', 'yanlis'] } static get reduceKeys() { return [...super.reduceKeys, ...this.parentKeys, 'secildimi'] }
 	constructor(e) {
 		e = e || {}; super(e); for (const parentKey of this.class.parentKeys) {
 			let parent = this[parentKey] = e[parentKey] ?? {};
 			for (const key of ['sayi', 'adat', 'secimSure']) { parent[key] = parent[key] ?? 0 }
 		}
-		for (const key of ['secilmeyenDogruSayi']) { this[key] = parent[key] ?? 1 }
+		this.secildimi = e.secildimi ?? false;
 		console.info('test', 'new', this)
 	}
 	tiklamaEkle(dogrumu, sureMS) {
 		let parent = this[dogrumu ? 'dogru' : 'yanlis']; parent.sayi++;
-		parent.adat = roundToFra(parent.adat + sureMS * (config.dev ? MQTestCPT.intervalKatSayi : 1), 1);
-		if (dogrumu) { this.secilmeyenDogruSayi = Math.max(this.secilmeyenDogruSayi - 1, 0) }
-		/*console.info('test', this, dogrumu, sureMS, parent);*/ return this
+		parent.adat = roundToFra(parent.adat + sureMS /*/ (config.dev ? MQTestCPT.intervalKatSayi : 1)*/, 1);
+		this.secildimi = true; /*console.info('test', this, dogrumu, sureMS, parent);*/ return this
 	}
 	ortalamaOlustur() {
 		for (const parentKey of this.class.parentKeys) {
@@ -54,14 +53,15 @@ class TestSonucCPT extends TestSonuc {
 }
 class TestGenelSonucCPT extends TestSonucCPT {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get genelSonucmu() { return true }
-	static get reduceKeys() { return [...super.reduceKeys, 'grupNo2Bilgi'] }
-	constructor(e) { e = e || {}; super(e); $.extend(this, { grupNo2Bilgi: e.grupNo2Bilgi || {} }) }
+	static get reduceKeys() { return [...super.reduceKeys, 'grupNo2Bilgi', 'secilmeyenDogruSayi'] }
+	constructor(e) { e = e || {}; super(e); $.extend(this, { grupNo2Bilgi: e.grupNo2Bilgi || {}, secilmeyenDogruSayi: 0 }) }
 	totalEkle(diger) {
 		if (!diger) { return this }
 		for (const parentKey of this.class.parentKeys) {
 			let parent = this[parentKey], digerParent = diger[parentKey];
 			for (const [key, value] of Object.entries(digerParent)) { parent[key] = roundToFra(parent[key] + value, 1) }
 		}
+		if (diger.secildimi) { this.secilmeyenDogruSayi-- }
 		return this
 	}
 }

@@ -265,7 +265,7 @@ class MQTest extends MQGuidOrtak {
 	testUI_kaydetOncesi(e) { } testUI_kaydet(e) { } testUI_kaydetSonrasi(e) { }
 }
 class MQTestCPT extends MQTest {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get intervalKatSayi() { return config.dev ? .2 : 1 }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get intervalKatSayi() { return config.dev ? .5 : 1 }
 	static get sinifAdi() { return 'CPT Test' }  static get testSonucSinif() { return TestSonucCPT } static get testGenelSonucSinif() { return TestGenelSonucCPT }
 	static get kodListeTipi() { return 'TSTCPT' } static get sablonSinif() { return MQSablonCPT }
 	testUI_setValues(e) {
@@ -313,8 +313,8 @@ class MQTestCPT extends MQTest {
 				let clickHandler = evt => {
 					if (!clearFlag || ilkTiklamaTime || !resimGosterimTime) { return } ilkTiklamaTime = now(); let dogrumu = urls[index] == gecerliResimURL;
 					let cssClicked = `clicked-${dogrumu ? 'dogru' : 'yanlis'}`; img.removeClass('clicked-dogru clicked-yanlis'); setTimeout(() => img.addClass(cssClicked), 1);
-					let tiklamaSnFarki = (ilkTiklamaTime - resimGosterimTime) / 1000, grupNo = repeatIndex + 1;
-					let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif({ tip, testId }); testSonuc.tiklamaEkle(dogrumu, tiklamaSnFarki)
+					let tiklamaMSFarki = (ilkTiklamaTime - resimGosterimTime), grupNo = repeatIndex + 1;
+					let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif({ tip, testId }); testSonuc.tiklamaEkle(dogrumu, tiklamaMSFarki)
 				}; img.on('mousedown', clickHandler); img.on('touchstart', clickHandler);
 				keyDownHandler = evt => {
 					if (parentPart.isDestroyed || parentPart.state != 'test') { $('body').off('keydown', keyDownHandler); return }
@@ -324,23 +324,22 @@ class MQTestCPT extends MQTest {
 				loopProc = async () => {
 					if (parentPart.isDestroyed || parentPart.state != 'test') { clearInterval(this._hInterval); delete this._hInterval; return false }
 					let farkMS = now() - intervalTime;
-					if (clearFlag) { if (farkMS < resimBostaMS) { return true } img.css('background-image', '') }
+					if (clearFlag) { if (farkMS < resimGosterimMS * intervalKatSayi) { return true } img.css('background-image', '') }
 					else {
-						if (farkMS < resimGosterimMS) { return true }
-						index++; if (ilkmi) { ilkmi = false } else { genelSonuc.tumSayi++ }
+						if (farkMS < resimBostaMS * intervalKatSayi) { return true }
+						index++; if (ilkmi) { ilkmi = false; if (genelSonuc) { genelSonuc.secilmeyenDogruSayi++ } } else { genelSonuc.tumSayi++ }
 						let cevrimBittimi = index >= imageCount; if (cevrimBittimi) {
 							repeatIndex++; index = 0; if (grupTekrarSayisi && repeatIndex >= grupTekrarSayisi) { parentPart.nextPage(); return false }
-							urls = shuffle(urls)
+							urls = shuffle(urls); if (genelSonuc) { genelSonuc.secilmeyenDogruSayi++ }
 						}
 						parentPart.progressText = (`<div class="flex-row">
 							<div class="item"><span class="ek-bilgi">Resim: &nbsp;</span><span class="veri white">${index + 1} / ${imageCount}</span></div>
 							<div class="item"><span class="ek-bilgi">Grup: &nbsp;</span><span class="veri">${repeatIndex + 1} / ${grupTekrarSayisi}</span></div>
 						</div>`);
-						img.css('background-image', `url(${urls[index]})`);
-						resimGosterimTime = now(); ilkTiklamaTime = null
+						img.css('background-image', `url(${urls[index]})`); resimGosterimTime = now(); ilkTiklamaTime = null
 					}
 					clearFlag = !clearFlag; intervalTime = now(); return true
-				}; gecerliResimURL = urls[gecerliResimSeq - 1]; urls = shuffle(urls); intervalTime = now(), this._hInterval = setInterval(loopProc, 50); break
+				}; gecerliResimURL = urls[gecerliResimSeq - 1]; urls = shuffle(urls); intervalTime = now(), this._hInterval = setInterval(loopProc, 10); break
 			case 'end':
 				$('body').off('keydown', keyDownHandler);
 				if (genelSonuc) {
