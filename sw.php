@@ -4,11 +4,12 @@ const CACHE_NAME = `cache-${APP_NAME}-${VERSION}`, StreamHeaders = { 'text/event
 addEventListener('install', async e => {
     skipWaiting(); const staticAssets = ['./', './lib', './ortak', './app', './images'];
     const cache = await caches.open(CACHE_NAME); for (const url of staticAssets) { try { cache.add(url) } catch (ex) { } }
+	self.skipWaiting()
 });
-addEventListener('activate', evt => { /*clients.claim()*/ });
+addEventListener('activate', evt => { clients.claim() });
 addEventListener('fetch', evt => {
-    const req = evt.request;
-    /*if (!req.referrer || req.url.startsWith(new URL(evt.referrer).origin))*/
+    const req = evt.request; /*if (!req.referrer || req.url.startsWith(new URL(evt.referrer).origin))*/
+	if (req.method == 'GET' && !StreamHeaders[req.headers?.get('Content-Type')]) { return }
     evt.respondWith(handleFetchFromNetwork(req))
 });
 addEventListener('push', evt => {
@@ -22,10 +23,7 @@ addEventListener('notificationclick', evt => {
 });
 async function handleFetchFromNetwork(req) {
 	const cache = await caches.open(CACHE_NAME);
-	try { 
-		const resp = await fetch(req);
-		if (req.method == 'GET' && !StreamHeaders[req.headers?.get('Content-Type')]) { try { await cache.put(req, await resp.clone()) } catch (ex) { } }
-		return resp
-	} catch (ex) { const cachedResponse = await cache.match(req); if (!cachedResponse) { throw ex } return cachedResponse }
+	try {  const resp = await fetch(req); try { await cache.put(req, await resp.clone()) } catch (ex) { } return resp }
+	catch (ex) { const cachedResponse = await cache.match(req); if (!cachedResponse) { throw ex } return cachedResponse }
 }
 async function handleFetchFromCache(req) { const cache = await caches.open(CACHE_NAME), cachedResponse = await cache.match(req); return cachedResponse || await handleFetchFromNetwork(req) }
