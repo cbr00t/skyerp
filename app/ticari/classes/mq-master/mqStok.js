@@ -414,7 +414,7 @@ class MQStokBarkodMuh extends MQStokAlt {
 	static orjBaslikListesiDuzenle(e) { }
 	hostVarsDuzenle(e) {
 		super.hostVarsDuzenle(e); const {hv} = e;
-		for (const prefix of ['satMal', 'uretKullan', 'hamSatisMal', 'icSatisGelir', 'icSatisIade']) {
+		for (const prefix of ['stok', 'satMal', 'uretKullan', 'hamSatisMal', 'icSatisGelir', 'icSatisIade']) {
 			const ioAttr = `${prefix}Hes`, rowAttr = `${prefix.toLowerCase()}hes`;
 			hv[rowAttr] = this[ioAttr] || null
 		}
