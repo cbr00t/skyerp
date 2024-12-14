@@ -394,22 +394,15 @@ class MQVergi extends MQKA {
 		})
 	}
 	static rootFormBuilderDuzenle(e) {
-		e = e || {};
-		super.rootFormBuilderDuzenle(e);
-		this.formBuilder_addTabPanelWithGenelTab(e);
-		const tabPage_genel = e.tabPage_genel;
+		e = e || {}; super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e;
 		let form = tabPage_genel.addFormWithParent().yanYana();
-		form.addRadioButton({ id: 'ba', etiket: 'B/A', source: e => e.builder.inst.ba.kaListe })
-			.addStyle_wh({ width: '300px !important' });
-		form.addLabel({ etiket: 'Tip' })
-			.addStyle(e => `$elementCSS { --width: 50px; min-width: var(--width) !important; width: var(--width) !important }`);
+		form.addRadioButton({ id: 'ba', etiket: 'B/A', source: e => e.builder.inst.ba.kaListe }).addStyle_wh('300px !important');
+		form.addLabel({ etiket: 'Tip' }).addStyle(e => `$elementCSS { --width: 50px; min-width: var(--width) !important; width: var(--width) !important; margin-bottom: 50px !important }`);
 		form.addModelKullan({ id: 'tip', etiket: '', source: e => e.builder.inst.tip.kaListe }).etiketGosterim_yok()
 			.dropDown().noMF().kodsuz()
 			.degisince(e => {
-				const {builder} = e;
-				const {fbd_vergiAltForm} = builder.rootPart;
-				for (const builder of fbd_vergiAltForm.getBuilders())
-					builder.updateVisible()
+				const {builder} = e, {fbd_vergiAltForm} = builder.rootPart;
+				for (const builder of fbd_vergiAltForm.getBuilders()) { builder.updateVisible() }
 			})
 			.addStyle_wh({ width: '300px !important' });
 		form = tabPage_genel.addFormWithParent().altAlta();
