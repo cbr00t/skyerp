@@ -20,7 +20,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 			const {builder} = e, {rootPart, layout} = builder, input = layout.children('input'), {grid, gridWidget} = rootPart;
 			if (rootPart.otoTazeleFlag) { input.prop('checked', true) }
 			input.on('change', evt => {
-				const value = rootPart.otoTazeleFlag = $(evt.currentTarget).is(':checked'); app.otoTazeleFlag = !!value;
+				const value = rootPart.otoTazeleFlag = app.otoTazeleFlag = !!$(evt.currentTarget).is(':checked');
 				const fbd_grupsuz = builder.parentBuilder.id2Builder.grupsuzmu; if (fbd_grupsuz) { fbd_grupsuz.updateVisible() }
 				e.action = 'toggle'; rootPart.tazele(e)
 			})
@@ -161,7 +161,8 @@ class MQHatYonetimi extends MQMasterOrtak {
 			try { recs = await this.loadServerData_internal(e); lastError = null; break }
 			catch (ex) { lastError = ex; if (i) { await new $.Deferred(p => setTimeout(() => p.resolve(), i * 500) ) } }
 		}
-		if (lastError) { throw lastError } return recs || []
+		if (lastError) { throw lastError }
+		return recs || []
 	}
 	static async loadServerData_internal(e) {
 		e = e || {}; const gridPart = e.gridPart ?? e.sender, {wsArgs} = e, tezgahKod2Rec = {}, isID2TezgahKodSet = {}, action_otoTazeleFlag = e.action == 'otoTazele';
@@ -184,7 +185,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 				a.tezgahKod < b.tezgahKod ? -1 : a.tezgahKod > b.tezgahKod ? 1 :
 				0)
 		}
-		e.recs = recs; if (recs) {
+		if (recs) {
 			let _recs = recs; recs = [];
 			for (let rec of _recs) {
 				const {hatKod, tezgahKod, isID} = rec; if (excludeTezgahKod && tezgahKod == excludeTezgahKod) { continue }
@@ -215,10 +216,11 @@ class MQHatYonetimi extends MQMasterOrtak {
 				/* styles_bgImg.push(`mix-blend-mode: difference`) */
 				rec.grupText = `<div class="grid-cell-group" style="${styles_bgImg.join('; ')}"><div style="mix-blend-mode: plus-lighter"><b>(${rec.hatKod})</b> ${rec.hatAdi}</div></div>`
 			}
-		} gridPart._lastRecs = recs;
+		}
+		e.recs = gridPart._lastRecs = recs;
 		MQEkNotlar.loadServerData().then(recs => {
 			const gridPart = e.gridPart ?? e.sender, btnTumEkNotlar = gridPart.islemTuslari.find('button#tumEkNotlar'); if (btnTumEkNotlar?.length) { btnTumEkNotlar.removeClass('yeni-not') }
-			let maxId = 0; for (const rec of recs) { maxId = Math.max(maxId, rec.kaysayac) } if (!maxId) { return }
+			let maxId = 0; for (const {kaysayac: sayac} of recs) { maxId = Math.max(maxId, sayac) } if (!maxId) { return }
 			const {localData} = app.params; let ekNotLastReadId = asInteger(localData.getData('ekNotLastReadId')); if (ekNotLastReadId >= maxId) { return }
 			if (btnTumEkNotlar?.length) { btnTumEkNotlar.addClass('yeni-not') }
 		});
@@ -499,23 +501,23 @@ class MQHatYonetimi extends MQMasterOrtak {
 	}
 	static gridCell_getLayout(e) {
 		const gridPart = e.gridPart ?? e.sender, rec = e.rec ?? {}, isListe = rec.isListe ?? [], grupsuzmu = gridPart.grupsuzmu || gridPart.otoTazeleFlag;
-		const {sinyalKritik, duraksamaKritik, durumKod, durumAdi, durNedenKod, durNedenAdi, ip, siradakiIsSayi, ekBilgi, zamanEtuduVarmi} = rec, {kritikDurNedenKodSet} = app.params.mes;
-		const kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod ? kritikDurNedenKodSet[durNedenKod] : false;
+		const {hatKod, hatAdi, tezgahKod, tezgahAdi, perKod, perIsim, sinyalKritik, duraksamaKritik, durumKod, durumAdi,
+			   durNedenKod, durNedenAdi, ip, siradakiIsSayi, ekBilgi, zamanEtuduVarmi} = rec;
+		const {kritikDurNedenKodSet} = app.params.mes, kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod ? kritikDurNedenKodSet[durNedenKod] : false;
 		const isBilgiHTML = this.gridCell_getLayout_isBilgileri(e);
 		let topSaymaInd = 0, topSaymaSayisi = 0; for (const is of isListe) { topSaymaInd += (is.isSaymaInd || 0); topSaymaSayisi += (is.isSaymaSayisi || 0) }
 		return (
 			`<div class="ust ust-alt${sinyalKritik ? ' sinyal-kritik' : ''}${duraksamaKritik && kritikDurNedenmi ? ' duraksama-kritik' : ''}${kritikDurNedenmi ? ' kritik-durNeden' : ''}">
 				<table class="oemBilgileri parent">
 				<tbody>
-				${grupsuzmu ?
-					`<tr class="hat item">
+					${grupsuzmu ? `<tr class="hat item">
 						<td class="islemTuslari"><button id="hatSec" aria-disabled="true">HAT</button></td>
-						<td colspan="2" class="veri"><span class="kod">${rec.hatKod || ''}</span> <span class="adi">${rec.hatAdi || ''}</span></td>
+						<td colspan="2" class="veri"><span class="kod">${hatKod || ''}</span> <span class="adi">${hatAdi || ''}</span></td>
 					</tr>` : '' }
 					<tr class="tezgah item">
 						<!--<td class="islemTuslari"><button id="tezgahMenu">...</button></td>-->
 						<td colspan="2" class="veri">
-							<div class="asil float-left"><b>${rec.tezgahKod}</b>-${rec.tezgahAdi}</div>
+							<div class="asil float-left"><b>${tezgahKod}</b>-${tezgahAdi}</div>
 							<div class="diger float-left flex-row">
 								${ip ? `<div class="ip">(${ip ||''})</div>` : ''}
 								${siradakiIsSayi ? `<div class="siradakiIsSayi"><span>+ </span><span class="_veri">${siradakiIsSayi}</span></div>` : ''}
@@ -526,7 +528,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 					</tr>
 					<tr class="personel item">
 						<td class="islemTuslari"><button id="personelSec">PER</button></td>
-						<td class="veri"><b>${rec.perKod}</b>-${rec.perIsim}</td>
+						<td class="veri"><b>${perKod}</b>-${perIsim}</td>
 					</tr>
 				</tbody>
 				</table>

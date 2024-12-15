@@ -56,7 +56,8 @@ body.dark-theme .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > .jqx-gr
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .etiket { color: #555; width: var(--etiket-width) }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .veri { color: royalblue; width: var(--full) }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .flex-row > .veri { width: calc(var(--full) - var(--etiket-width) - 100px) !important }
-.ozetBilgi.jqx-window .jqx-window-content { background: linear-gradient(270deg, #333 5%, #333 80%) !important }
+.ozetBilgi.jqx-window .jqx-window-content { background: linear-gradient(90deg, #1a1a1a 5%, #222 80%) !important }
+body.dark-theme .ozetBilgi.jqx-window .jqx-window-content { filter: invert(1) hue-rotate(180deg) }
 .ozetBilgi.jqx-window .subContent .ozetBilgi-parent { width: var(--full); height: var(--full); font-size: 100% }
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container { position: relative; display: flex; flex-wrap: wrap; left: -40px; top: 10px; line-height: 28px }
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container li, .ozetBilgi.jqx-window .subContent .ozetBilgi-container .ek-satirlar li { font-size: 120%; color: #333; list-style: none; min-width: 300px; border-radius: 10px; margin-left: 20px; padding: 3px 0 }

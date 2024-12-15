@@ -3,7 +3,7 @@ class GrafikPart extends Part {
 	static get rootPartName() { return 'grafik' } static get partName() { return null } static get isSubPart() { return true }
 	constructor(e) {
 		e = e || {}; super(e);
-		$.extend(this, { value: e.value ?? 50, index: e.index ?? 0, width: e.width || 130, left: e.left || 0 , top: e.top || 0, colors: e.colors });
+		$.extend(this, { value: e.value ?? 0, index: e.index ?? 0, width: e.width || 130, left: e.left || 0 , top: e.top || 0, colors: e.colors });
 		if (!this.colors) { this.colors = ['royalblue', 'orangered', 'orange', 'steelblue', 'forestgreen', 'slategray', 'cadetblue', 'darkgreen', 'red'] }
 	}
 	asHTML(e) { e = e || {}; e.result = ''; this.buildLayout(e); return e.result }
