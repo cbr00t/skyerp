@@ -170,7 +170,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 		let recs = await app.wsTezgahBilgileri(wsArgs); /* ekNotlarYapi = this.ekNotlarYapi = await app.wsEkNotlar(); */
 		if (recs) {
 			/*let {_lastRecsHash, _lastRecs} = this, recsHash = this._lastRecsHash = toJSONStr(recs); if (_lastRecsHash && recsHash == _lastRecsHash && _lastRecs) { return _lastRecs }*/
-			const {durumKod2KisaAdi} = app, donusum = { hatID: 'hatKod', hatAciklama: 'hatAdi', id: 'tezgahKod', aciklama: 'tezgahAdi' };
+			const {durumKod2KisaAdi, hatBilgi_recDonusum: donusum} = app;
 			for (const rec of recs) {
 				for (const [key, newKey] of Object.entries(donusum)) { if (rec[newKey] == null) { rec[newKey] = rec[key]?.trimEnd(); delete rec[key] } }
 				let {durumKod, durumAdi} = rec; if (durumKod != null) {
@@ -221,8 +221,8 @@ class MQHatYonetimi extends MQMasterOrtak {
 		MQEkNotlar.loadServerData().then(recs => {
 			const gridPart = e.gridPart ?? e.sender, btnTumEkNotlar = gridPart.islemTuslari.find('button#tumEkNotlar'); if (btnTumEkNotlar?.length) { btnTumEkNotlar.removeClass('yeni-not') }
 			let maxId = 0; for (const {kaysayac: sayac} of recs) { maxId = Math.max(maxId, sayac) } if (!maxId) { return }
-			const {localData} = app.params; let ekNotLastReadId = asInteger(localData.getData('ekNotLastReadId')); if (ekNotLastReadId >= maxId) { return }
-			if (btnTumEkNotlar?.length) { btnTumEkNotlar.addClass('yeni-not') }
+			const {localData} = app.params; let ekNotLastReadId = asInteger(localData.getData('ekNotLastReadId'));
+			if (ekNotLastReadId < maxId && btnTumEkNotlar?.length) { btnTumEkNotlar.addClass('yeni-not') }
 		});
 		/*let {_lastRecs} = gridPart;
 		if (_lastRecs && recs && _lastRecs?.length == recs?.length) { for (let i = 0; i < recs.length; i++) { const rec = _lastRecs[i], _rec = recs[i]; $.extend(rec, _rec) } } else { _lastRecs = gridPart._lastRecs = recs }

@@ -133,18 +133,18 @@ class GridPanelDuzenleyici extends CObject {
 	tazele(e) { this.gridPart?.tazele(e); return this }
 	boyutlandirIstendi(e) {
 		const evt = e.event, gridPart = e.parentPart, {grid, gridWidget, ozelKolonDuzenleBlock} = gridPart, title = 'Boyut Ayarları'; let wnd;
-		const {mfSinif} = this, {yerelParam} = mfSinif, paramGlobals = mfSinif.paramGlobals || {};
+		const {mfSinif} = this, {yerelParam} = mfSinif, paramGlobals = mfSinif.paramGlobals || {}, keys = ['rowsHeight', 'colCount'];
 		let {rowsHeight, colCount} = this; const maxColCount = mfSinif?.orjBaslikListesi_maxColCount || colCount || 10;
-		let wndContent = $(
+		let content = $(
 			`<div class="full-wh">` +
 				`<div class="rowsHeight scaler item flex-row"><label class="etiket">Grid Satır Yükseklik:</label><input class="veri" type="range" min="50" max="400" step="5" value="${rowsHeight}"></input></div>` +
 				`<div class="colCount scaler item flex-row"><label class="etiket">Grid Kolon Sayısı:</label><input class="veri" type="range" min="1" max="${maxColCount}" step="1" value="${colCount}"></input></div>` +
 			`</div>`
 		);
-		const close = e => { if (wnd) { wnd.jqxWindow('close'); wnd = null } }, rfb = new RootFormBuilder({ parentPart: gridPart, layout: wndContent }).autoInitLayout();
+		const close = e => { if (wnd) { wnd.jqxWindow('close'); wnd = null } }, rfb = new RootFormBuilder({ parentPart: gridPart, layout: content }).autoInitLayout();
 		const updateLayout = e => {
 			const layout = e.builder?.layout ?? e.layout ?? e;
-			layout.find(`.item.rowsHeight > .veri`).val(this.rowsHeight); layout.find(`.item.colCount > .veri`).val(this.colCount)
+			for (const key of keys) { layout.find(`.item.${key} > .veri`).val(this[key]) }
 		}
 		const updateMQUI = e => {
 			e = e || {}; setTimeout(() => {
@@ -160,18 +160,18 @@ class GridPanelDuzenleyici extends CObject {
 				grid.jqxGrid('rowsheight', this.rowsHeight); gridPart.updateColumns({ tabloKolonlari }); setTimeout(() => gridPart.tazele(), 1)
 			}, 100)
 		}
-		rfb.onAfterRun(e => {
-			const {layout} = e.builder;
-			layout.find(`.item.rowsHeight > .veri`).on('change', evt => { const {value} = evt.currentTarget; paramGlobals.rowsHeight = asInteger(value); yerelParam?.kaydetDefer(); updateMQUI() });
-			layout.find(`.item.colCount > .veri`).on('change', evt => { const {value} = evt.currentTarget; paramGlobals.colCount = asInteger(value); yerelParam?.kaydetDefer(); updateMQUI() })
+		rfb.onAfterRun(({ builder: fbd }) => {
+			const {layout} = fbd; for (const key of keys) {
+				layout.find(`.item.${key} > .veri`).on('change', ({ currentTarget: target }) => {
+					const {value} = target; paramGlobals[key] = asInteger(value); yerelParam?.kaydetDefer(); updateMQUI() })
+			}
 		}).addStyle(...[
-				e => `$elementCSS .item { --etiket-width: 130px; margin-inline-end: 10px }`,
-				e => `$elementCSS .item > .etiket { color: #aaa; width: var(--etiket-width) }`,
+				e => `$elementCSS .item { --etiket-width: 130px; margin-inline-end: 10px } $elementCSS .item > .etiket { color: #aaa; width: var(--etiket-width) }`,
 				e => `$elementCSS .item > .veri { font-weight: bold; width: calc(var(--full) - (var(--etiket-width) + 10px)) }`
 			]);
-		const buttons = { 'SIFIRLA': (e) => { for (const key of ['rowsHeight', 'colCount']) { delete paramGlobals[key] }; yerelParam?.kaydet(); updateLayout(rfb.layout); updateMQUI() } };
-		wnd = createJQXWindow({ content: wndContent, title, buttons, args: { isModal: false, closeButtonAction: 'close', width: Math.min(600, $(window).width() - 50), height: Math.min(200, $(window).height() - 100) } });
-		wndContent = wnd.find('div > .content > .subContent'); rfb.run();
+		const buttons = { 'SIFIRLA': (e) => { for (const key of keys) { delete paramGlobals[key] }; yerelParam?.kaydet(); updateLayout(rfb.layout); updateMQUI() } };
+		wnd = createJQXWindow({ content, title, buttons, args: { isModal: false, closeButtonAction: 'close', width: Math.min(600, $(window).width() - 50), height: Math.min(200, $(window).height() - 100) } });
+		content = wnd.find('div > .content > .subContent'); rfb.run();
 		wnd.on('close', evt => { $('body').removeClass('bg-modal'); wnd.jqxWindow('destroy'); wnd = null /* updateMQUI()*/ }); $('body').addClass('bg-modal')
 	}
 }

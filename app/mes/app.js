@@ -17,6 +17,11 @@ class MESApp extends App {
 		if (result === undefined) { result = this._durumKod2KisaAdi = { '': 'BOŞTA', '?': 'BOŞTA', 'BK': 'BEK', 'DV': '|&gt;', 'DR': '||' } }
 		return result
 	}
+	get hatBilgi_recDonusum() {
+		let result = this._hatBilgi_recDonusum;
+		if (result === undefined) { result = this._hatBilgi_recDonusum = { hatID: 'hatKod', hatAciklama: 'hatAdi', id: 'tezgahKod', aciklama: 'tezgahAdi' } }
+		return result
+	}
 	get sabitHatKod() { return this.params.config.hatKod }
 
 	constructor(e) {
@@ -31,7 +36,10 @@ class MESApp extends App {
 	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { localData: MQLocalData.getInstance(), mes: MQParam_MES.getInstance(), hatYonetimi: MQParam_HatYonetimi.getInstance() }) }
 	getAnaMenu(e) {
 		/* const disabledMenuIdSet = this.disabledMenuIdSet || {}; */
-		const items = [ new FRMenuChoice({ mnemonic: 'HAT-YONETIMI', text: 'Hat Yönetimi', block: e => MQHatYonetimi.listeEkraniAc() }) ]
+		const items = [
+			new FRMenuChoice({ mnemonic: 'HAT-YONETIMI', text: 'Hat Yönetimi', block: e => MQHatYonetimi.listeEkraniAc() }),
+			new FRMenuChoice({ mnemonic: 'HAT-YONETIMI-2', text: `Hat Yönetimi (<i class="bold gray">dev</i>)`, block: e => new HatYonetimiPart().run() })
+		]
 		return new FRMenu({ items })
 	}
 	async getTezgahKod2Rec(e) {
