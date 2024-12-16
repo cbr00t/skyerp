@@ -120,7 +120,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 			}
 		};
 		iterBlock(this.sahalar); iterBlock(this.groupBy); iterBlock(this.having);
-		const {where, from} = this; for (const text of where.liste) {
+		const {where} = this; for (const text of where.liste) {
 			try {
 				const iliskiYapisi = MQIliskiYapisi.newForText(text); if (iliskiYapisi.isError) { throw iliskiYapisi }
 				const aliasYapilar = [iliskiYapisi.sol, iliskiYapisi.sag].filter(x => !!x);
@@ -129,7 +129,8 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 			}
 			catch (ex) { if (!(ex && ex.rc == 'queryBuilderError')) { throw ex } }
 		}
-		from.disindakiTablolariSil({ disindaSet: disindaSet }); return this
+		let zincirler = this.zincirler?.liste; if (zincirler?.length) { $.extend(disindaSet, asSet(zincirler)) }
+		this.from.disindakiTablolariSil({ disindaSet }); return this
 	}
 	asUnion(e) { return new MQUnion(this) }
 	asUnionAll(e) { return new MQUnionAll(this) }

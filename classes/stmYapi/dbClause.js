@@ -152,11 +152,10 @@ class MQFromClause extends MQClause {
 	}
 	/* kullanılmayan tablolar içerdiği ilişkiler ile silinecek. table içindeki (left, inner) için de aynı kural geçerli */
 	disindakiTablolariSil(e) {
-		let disindaSet = e.disindaSet || {}, {liste} = this;
+		const disindaSet = e.disindaSet ?? {}, {liste} = this;
 		for (let i = liste.length - 1; i >= 0; i--) {
-			let anMQTable = liste[i];
-			if (disindaSet[anMQTable.alias]) { anMQTable.disindakiXTablolariSil(e) } else { liste.splice(i, 1) }
-		}
+			const anMQTable = liste[i], {alias} = anMQTable;
+			if (disindaSet[alias]) { anMQTable.disindakiXTablolariSil(e) } else { liste.splice(i, 1) } }
 		return this
 	}
 }
@@ -476,8 +475,12 @@ class MQTable extends MQAliasliYapi {
 		const liste = this.leftVeInner || []; return liste.find(item => item.aliasVarmi(alias))
 	}
 	disindakiXTablolariSil(e) {
-		let disindaSet = e.disindaSet || {}; const liste = this.leftVeInner || [];
-		for (let i = liste.length - 1; i >= 0; i--) { const anMQXJoinTable = liste[i]; if (!disindaSet[anMQXJoinTable.alias]) { liste.splice(i, 1) } }
+		let liste = this.leftVeInner || [], disindaSet = e.disindaSet ?? {}, {aliasSet} = e;
+		if (!aliasSet && e.alias) { aliasSet = asSet([e.alias]) }
+		for (let i = liste.length - 1; i >= 0; i--) {
+			const anMQXJoinTable = liste[i], {alias} = anMQXJoinTable;
+			if (aliasSet ? aliasSet[alias] : !disindaSet[alias]) { liste.splice(i, 1) }
+		}
 		return this
 	}
 	buildString(e) {
