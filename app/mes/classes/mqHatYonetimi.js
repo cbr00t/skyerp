@@ -7,7 +7,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 	static listeEkrani_afterRun(e) { super.listeEkrani_afterRun(e) /*const gridPart = e.gridPart ?? e.sender*/ }
 	static listeEkrani_activated(e) { super.listeEkrani_activated(e); const gridPart = e.gridPart ?? e.sender /*; gridPart.tazeleDefer()*/ }
 	static rootFormBuilderDuzenle_listeEkrani(e) {
-		super.rootFormBuilderDuzenle_listeEkrani(e); const rfb = e.rootBuilder, gridPart = e.gridPart ?? e.sender ?? rfb?.part, {sabitHatKod} = app;
+		super.rootFormBuilderDuzenle_listeEkrani(e); const rfb = e.rootBuilder, gridPart = e.gridPart ?? e.sender ?? rfb?.part;
 		/*const fbd_islemTuslari = rfb.addForm('islemTuslari', e => e.builder.part.islemTuslariPart.layout);
 		const fbd_sol = fbd_islemTuslari.addForm('sol', e => e.builder.parent.children('.sol')), fbd_sag = fbd_islemTuslari.addForm('sol', e => e.builder.parent.children('.sag'));*/
 		this.fbd_listeEkrani_addCheckBox(rfb, 'cokluSecimFlag', 'Çoklu').onAfterRun(e => {
@@ -79,13 +79,13 @@ class MQHatYonetimi extends MQMasterOrtak {
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e);
-		e = $.extend({}, e);  const {liste} = e, {sabitHatKod} = app, gridPart = e.parentPart, butonlarPart = e.part; e.recs = gridPart.selectedRecs;
+		e = $.extend({}, e);  const {liste} = e, {sabitHatKodVarmi} = app, gridPart = e.parentPart, butonlarPart = e.part; e.recs = gridPart.selectedRecs;
 		const items = [
 			{ id: 'boyutlandir', text: 'BYT', handler: e => e.sender.boyutlandirIstendi(e) },
 			{ id: 'tezgahMenu', text: 'TEZ', handler: e => this.tezgahMenuIstendi(e) },
 			/* { id: 'isEmirleri', text: 'EMR', handler: e => this.bekleyenIsEmirleriIstendi(e) }, */
 			{ id: 'topluX', text: 'TPL', handler: e => this.topluXMenuIstendi(e) },
-			(sabitHatKod ? null : { id: 'tumEkNotlar', text: 'NOT', handler: e => this.ekNotlarIstendi({ ...e, hepsi: true }) }),
+			(sabitHatKodVarmi ? null : { id: 'tumEkNotlar', text: 'NOT', handler: e => this.ekNotlarIstendi({ ...e, hepsi: true }) }),
 			{ id: 'ozet', text: 'ÖZET', handler: e => this.ozetBilgiGoster(e) }
 		].filter(x => !!x);
 		liste.splice(liste.findIndex(item => item.id == 'vazgec'), 0, ...items);
@@ -102,7 +102,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 		return group
 	}
 	static orjBaslikListesi_renderGroupsHeader_grupText(text, group, expanded, groupInfo) {
-		const /*kod2EkNotlarRec = this.ekNotlarYapi?.HT || {}*/ allSubItems = [], {sabitHatKod} = app;
+		const /*kod2EkNotlarRec = this.ekNotlarYapi?.HT || {}*/ allSubItems = [], {sabitHatKodVarmi} = app;
 		const fillSubItems = info => {
 			if (!info) { return } let {subItems, subGroups} = info;
 			if (subItems?.length) { allSubItems.push(...subItems) }
@@ -117,7 +117,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 						<button id="topluX">TPL</button>
 						<button id="bekleyenIsEmirleri">EMR</button>
 						<!--<button id="hatBekleyenIsler">BEK</button>-->
-						${!sabitHatKod ? `<button id="notlar">NOTLAR</button>` : ''}
+						${!sabitHatKodVarmi ? `<button id="notlar">NOTLAR</button>` : ''}
 					</div>
 					<div class="item">
 						<button id="notEkle">NOT EKLE</button>
@@ -166,7 +166,8 @@ class MQHatYonetimi extends MQMasterOrtak {
 	}
 	static async loadServerData_internal(e) {
 		e = e || {}; const gridPart = e.gridPart ?? e.sender, {wsArgs} = e, tezgahKod2Rec = {}, isID2TezgahKodSet = {}, action_otoTazeleFlag = e.action == 'otoTazele';
-		const hatKod = app.sabitHatKod || gridPart.hatKod, {excludeTezgahKod} = gridPart; if (hatKod) { $.extend(wsArgs, { hatIdListe: hatKod }) }
+		const hatIdListe = app.sabitHatKodVarmi ? app.sabitHatKodListe : $.makeArray(gridPart.hatKod), {excludeTezgahKod} = gridPart;
+		if (hatIdListe?.length) { $.extend(wsArgs, { hatIdListe: hatIdListe.join(delimWS) }) }
 		let recs = await app.wsTezgahBilgileri(wsArgs); /* ekNotlarYapi = this.ekNotlarYapi = await app.wsEkNotlar(); */
 		if (recs) {
 			/*let {_lastRecsHash, _lastRecs} = this, recsHash = this._lastRecsHash = toJSONStr(recs); if (_lastRecsHash && recsHash == _lastRecsHash && _lastRecs) { return _lastRecs }*/
@@ -297,12 +298,12 @@ class MQHatYonetimi extends MQMasterOrtak {
 		} }); this.openContextMenu(e)
 	}
 	static topluXMenuIstendi(e) {
-		e = e || {}; const {parentRec} = e, {sabitHatKod} = app, hatKod = e.hatKod = e.hatKod ?? parentRec?.hatKod;
+		e = e || {}; const {parentRec} = e, {sabitHatKodVarmi} = app, hatKod = e.hatKod = e.hatKod ?? parentRec?.hatKod;
 		$.extend(e, { noCheck: true, formDuzenleyici: _e => {
 			_e = $.extend({}, e, _e); const {form, close} = _e; form.yanYana(2);
 			form.addButton('mola', undefined, 'Mola').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
 			form.addButton('vardiyaDegisimi', undefined, 'Vardiya Değişimi').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
-			if (!sabitHatKod || hatKod) {
+			if (!sabitHatKodVarmi || hatKod) {
 				if (config.dev) { form.addButton('devam', undefined, 'Toplu Devam').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) }) }
 				form.addButton('isBitti', undefined, 'İş Bitti').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
 				form.addButton('gerceklemeYap', undefined, 'Gerçekleme Yap').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });

@@ -22,7 +22,8 @@ class MESApp extends App {
 		if (result === undefined) { result = this._hatBilgi_recDonusum = { hatID: 'hatKod', hatAciklama: 'hatAdi', id: 'tezgahKod', aciklama: 'tezgahAdi' } }
 		return result
 	}
-	get sabitHatKod() { return this.params.config.hatKod }
+	get sabitHatKodListe() { return this.params.config.hatKodListe } get sabitHatKodSet() { return asSet(this.sabitHatKodListe) }
+	get sabitHatKodVarmi() { return !!this.sabitHatKodListe?.length }
 
 	constructor(e) {
 		e = e || {}; super(e);

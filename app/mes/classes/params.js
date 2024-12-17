@@ -1,12 +1,12 @@
 class MQYerelParam extends MQYerelParamTicari { static { window[this.name] = this; this._key2Class[this.name] = this } }
 class MQYerelParamConfig_MES extends MQYerelParamConfig {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static paramAttrListeDuzenle(e) { super.paramAttrListeDuzenle(e); const {liste} = e; liste.push('hatKod') }
+	static paramAttrListeDuzenle(e) { super.paramAttrListeDuzenle(e); const {liste} = e; liste.push('hatKodListe') }
 	static async rootFormBuilderDuzenle(e) {
 		await super.rootFormBuilderDuzenle(e); const rfb = e.rootBuilder;
 		if (config.dev) {
 			const contentForm = rfb.addForm('content', e => e.builder.parentBuilder.layout.find('.content'));
-			await app.promise_ready; contentForm.addModelKullan('hatKod', 'Hat').setMFSinif(MQHat).comboBox().listedenSecilemez()
+			await app.promise_ready; contentForm.addModelKullan('hatKodListe', 'Hat').setMFSinif(MQHat).comboBox().autoBind().coklu().listedenSecilemez()
 		}
 	}
 }

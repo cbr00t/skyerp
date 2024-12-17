@@ -23,7 +23,7 @@ class MQEIslemParam extends MQTicariParamBase {
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); const {paramci} = e;
 		paramci.addString('anaBolum', 'e-İşlem Ana Bölüm');
-		paramci.addModelKullan('ozelEntegrator', 'Özel Entegratör').dropDown().noMF().kodsuz()
+		paramci.addModelKullan('ozelEntegrator', 'Özel Entegratör').dropDown().autoBind().noMF().kodsuz()
 			.setSource(e => EOzelEntegrator.instance.kaListe)
 			.degisince(e => {
 				const {builder} = e, /*oeChar = builder.value?.char ?? builder.value,*/ {id2Builder} = builder.parentBuilder.id2Builder.oeParam;

@@ -54,9 +54,9 @@ class HatYonetimiPart extends Part {
 	}
 	async loadServerData_internal(e) {
 		e = e ?? {}; let basitmi = e.basit ?? e.basitmi, {islemTuslari} = this;
-		let tezgahKod2Rec = {}, isID2TezgahKodSet = {}, hatKod = app.sabitHatKod || this.hatKod, {excludeTezgahKod} = this;
-		let wsArgs = {}; if (hatKod) { wsArgs.hatIdListe = hatKod } let recs = await app.wsTezgahBilgileri(wsArgs);
-		if (recs) {
+		let tezgahKod2Rec = {}, isID2TezgahKodSet = {}, hatIdListe = app.sabitHatKodVarmi ? app.sabitHatKodListe : $.makeArray(this.hatKod), {excludeTezgahKod} = this;
+		let wsArgs = {}; if (hatIdListe?.length) { $.extend(wsArgs, { hatIdListe: hatIdListe.join(delimWS) }) }
+		let recs = await app.wsTezgahBilgileri(wsArgs); if (recs) {
 			const {durumKod2KisaAdi, hatBilgi_recDonusum: donusum} = app;
 			for (const rec of recs) {
 				for (const [key, newKey] of Object.entries(donusum)) { if (rec[newKey] == null) { rec[newKey] = rec[key]?.trimEnd(); delete rec[key] } }

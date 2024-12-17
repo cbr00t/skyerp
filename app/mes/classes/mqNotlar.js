@@ -10,7 +10,7 @@ class MQEkNotGrup extends MQKAOrtak {
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, { anaGrupKod: new PInstStr('anagrupkod') }) }
 	static rootFormBuilderDuzenle(e) {
 		e = e || {}; super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e;
-		let form = tabPage_genel.addFormWithParent(); form.addModelKullan({ id: 'anaGrupKod', etiket: 'Ana Grup', mfSinif: MQEkNotAnaGrup }).dropDown()
+		let form = tabPage_genel.addFormWithParent(); form.addModelKullan({ id: 'anaGrupKod', etiket: 'Ana Grup', mfSinif: MQEkNotAnaGrup }).dropDown().autoBind()
 	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(
@@ -123,14 +123,15 @@ class MQEkNotlar extends MQSayacliOrtak {
 		super.rootFormBuilderDuzenle(e); const {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e;
 		rfb.addStyle(e => `$elementCSS .modelTanim.form { margin-top: -50px !important; z-index: 1000 !important }`);
 		let form = tanimForm.addFormWithParent().yanYana(3);
-			form.addDateInput('kayitTarih', 'Kayıt Tarihi'); form.addTimeInput('kayitZaman');  form.addModelKullan('grupKod', 'Grup').setMFSinif(MQEkNotGrup).comboBox().addStyle_wh(500);
+			form.addDateInput('kayitTarih', 'Kayıt Tarihi'); form.addTimeInput('kayitZaman');
+			form.addModelKullan('grupKod', 'Grup').setMFSinif(MQEkNotGrup).comboBox().autoBind().addStyle_wh(500);
 		form = tanimForm.addFormWithParent().yanYana(3);
-			form.addModelKullan('tip', 'Tip').kodsuz().bosKodAlinmaz().bosKodEklenmez().dropDown().noMF().setSource(e => HatTezgah.kaListe).degisince(e => {
+			form.addModelKullan('tip', 'Tip').kodsuz().bosKodAlinmaz().bosKodEklenmez().dropDown().noMF().autoBind().setSource(e => HatTezgah.kaListe).degisince(e => {
 				const {builder} = e, {id2Builder} = builder.parentBuilder, value = builder.value?.char ?? builder.value;
 				for (const key of ['hatKod', 'tezgahKod']) { id2Builder[key]?.updateVisible() }
 			});
-			form.addModelKullan('hatKod', 'Hat').setMFSinif(MQHat).comboBox().setVisibleKosulu(e => { let value = e.builder.altInst.tip; value = value?.char ?? value; return value == 'HT' ? true : 'jqx-hidden' });
-			form.addModelKullan('tezgahKod', 'Tezgah').setMFSinif(MQTezgah).comboBox().setVisibleKosulu(e => { let value = e.builder.altInst.tip; value = value?.char ?? value; return value == 'TZ' ? true : 'jqx-hidden' });;
+			form.addModelKullan('hatKod', 'Hat').setMFSinif(MQHat).comboBox().autoBind().setVisibleKosulu(e => { let value = e.builder.altInst.tip; value = value?.char ?? value; return value == 'HT' ? true : 'jqx-hidden' });
+			form.addModelKullan('tezgahKod', 'Tezgah').setMFSinif(MQTezgah).comboBox().autoBind().setVisibleKosulu(e => { let value = e.builder.altInst.tip; value = value?.char ?? value; return value == 'TZ' ? true : 'jqx-hidden' });;
 		form = tanimForm.addFormWithParent().yanYana().addStyle(e => `$elementCSS { margin-top: 10px }`);
 		for (let i = 1; i <= this.urlCount; i++) {
 			form.addTextInput(`url${i}`, `Doküman URL ${i}`).onAfterRun(e => {
