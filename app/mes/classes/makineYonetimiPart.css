@@ -1,8 +1,9 @@
-.makineYonetimi.part { --header-height: 0px !important; font-size: 125% !important; overflow-y: hidden !important }
+.makineYonetimi.part { --header-height: var(--islemTuslari-height); font-size: 125% !important; overflow-y: hidden !important }
 .makineYonetimi.part > .header { height: var(--header-height) !important; background: #eee !important }
+.makineYonetimi.part > .header .islemTuslari button { font-size: 80% !important }
 .makineYonetimi.part > .content {
-	 --padding-x: 0px; --padding-y: 0px; padding: var(--padding-y) var(--padding-x); --td-padding-x: 13px; --td-padding-y: 10px;
-	overflow-y: auto !important; width: calc(var(--full) - var(--padding-x) * 2); height: calc(var(--full) - (var(--header-height) + var(--padding-y) * 2))
+	 --padding-x: 0px; --padding-y: 0px; width: calc(var(--full) - var(--padding-x) * 2); height: calc(var(--full) - (var(--header-height) + var(--padding-y) * 2 + 5px));
+	padding: var(--padding-y) var(--padding-x); --td-padding-x: 13px; --td-padding-y: 10px; overflow-y: auto !important
 }
 .makineYonetimi.part > .content table { line-height: 20px; border: 1px solid #aaa }
 .makineYonetimi.part > .content table tr > th > button:not(:hover):not(:focus):not(:active) { color: #8ba8ff !important }

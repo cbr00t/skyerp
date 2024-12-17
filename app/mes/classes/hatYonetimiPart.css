@@ -1,25 +1,32 @@
-.hatYonetimi.part { --header-height: 0px !important; font-size: 125% !important; overflow-y: hidden !important }
-.makineYonetimi.part > .header { height: var(--header-height) !important; background: #eee !important }
-.makineYonetimi.part > .content {
-	 --padding-x: 0px; --padding-y: 0px; padding: var(--padding-y) var(--padding-x); --td-padding-x: 13px; --td-padding-y: 10px;
-	overflow-y: auto !important; width: calc(var(--full) - var(--padding-x) * 2); height: calc(var(--full) - (var(--header-height) + var(--padding-y) * 2))
+.hatYonetimi.part { --header-height: var(--islemTuslari-height); font-size: 100%; overflow-y: hidden !important }
+.hatYonetimi.part > .header { height: var(--header-height) !important; background: #ccc !important }
+body.dark-theme .hatYonetimi.part > .header { background: #eee !important }
+.hatYonetimi.part > .header .islemTuslari button { font-size: 95% }
+.hatYonetimi.part > .content {
+	 --padding-x: 0px; --padding-y: 0px;
+	width: calc(var(--full) - var(--padding-x) * 2); height: calc(var(--full) - (var(--header-height) + var(--padding-y) * 2 + 5px));
+	padding: var(--padding-y) var(--padding-x); overflow-y: auto !important
 }
-.makineYonetimi.part > .content table { line-height: 20px; border: 1px solid #aaa }
-.makineYonetimi.part > .content table tr > th > button:not(:hover):not(:focus):not(:active) { color: #8ba8ff !important }
-.makineYonetimi.part > .content table tr > td { border: 1px solid #ccc }
-.makineYonetimi.part > .content #oemBilgileri { width: calc(var(--full) - (5px + var(--padding-x) * 2)) }
-.makineYonetimi.part > .content #oemBilgileri tr > td { height: 30px }
-.makineYonetimi.part > .content #oemBilgileri tr > td * { position: relative }
-.makineYonetimi.part > .content #oemBilgileri tr > td:not(.buttons) { padding: var(--td-padding-y) var(--td-padding-x) }
-.hatYonetimi.part > .content #oemBilgileri tr > .buttons { width: 0; text-align: center; padding: 0; background-color: #dedede }
-.hatYonetimi.part > .content #oemBilgileri tr > .buttons button { font-size: 70%; width: 113px; border-radius: 10px }
-.hatYonetimi.part > .content #oemBilgileri tr > .buttons button.jqx-fill-state-normal,
-	.hatYonetimi.part > .content #oemBilgileri .miktarVeGSC table tr > th button:not(:focus):not(:hover):not(:active) { background-color: transparent }
-.hatYonetimi.part > .content #oemBilgileri tr > .buttons button:hover,
-	.hatYonetimi.part > .content #oemBilgileri .miktarVeGSC table tr > th button:hover { font-weight: bold; color: #6c85d1; background-color: inherit; text-decoration: underline }
-.hatYonetimi.part > .content #oemBilgileri tr > .buttons button.jqx-fill-state-pressed,
-	.hatYonetimi.part > .content #oemBilgileri .miktarVeGSC table tr > th button.jqx-fill-state-pressed { font-weight: bold; color: whitesmoke; background-color: inherit }
-.hatYonetimi.part > .content #oemBilgileri tr > .buttons button:not(:last-child) { margin-block-end: 10px }
-.hatYonetimi.part > .content #oemBilgileri tr > td .kod { color: #333; margin-inline-end: 5px }
-.hatYonetimi.part > .content #oemBilgileri tr > td .asil, .hatYonetimi.part > .content #oemBilgileri tr > td .adi { color: royalblue }
-.hatYonetimi.part > .content #oemBilgileri td .sub-item { font-size: 80%; margin-inline-end: 15px }
+.hatYonetimi.part > .content .liste { --padding-x: 3px; --padding-y: 5px; font-size: 73%; background-color: #ddd; padding-bottom: 300px }
+body.dark-theme .hatYonetimi.part > .content .liste { background-color: #eee }
+.hatYonetimi.part > .content .liste .hat.item { margin-bottom: 15px }
+.hatYonetimi.part > .content .liste .hat.item > .grup { font-weight: bold; font-size: 160%; color: whitesmoke; background: #333 !important; height: 50px; padding: 5px 10px }
+body.dark-theme .hatYonetimi.part > .content .liste .hat.item > .grup { filter: invert(1) hue-rotate(180deg); color: #aaa; background: #222 }
+body.dark-theme .hatYonetimi.part > .content .liste .hat.item > .grup:hover,
+	body.dark-theme .hatYonetimi.part > .content .liste .hat.item > .grup:focus { opacity: .8 }
+.hatYonetimi.part > .content .liste .tezgahlar {}
+.hatYonetimi.part > .content .liste .tezgah.item {
+	width: calc(var(--full) / var(--box-cols) - /*(var(--padding-x) * 2.9)*/ 1px); height: calc(15px + 10px * var(--box-rows));
+	border: 1px solid #b3b3b3; padding: var(--padding-y) var(--padding-x); box-sizing: border-box
+}
+.hatYonetimi.part > .content .liste .tezgah.item > .sol { width: 30px }
+.hatYonetimi.part > .content .liste .tezgah.item > .sol button { margin-top: -3px !important }
+.hatYonetimi.part > .content .liste .tezgah.item .sub-item { column-gap: 10px }
+.hatYonetimi.part > .content .liste .tezgah.item .ip { color: royalblue }
+.hatYonetimi.part > .content .liste .tezgah.item:hover { background-color: #4169e115 }
+.hatYonetimi.part > .content .liste .tezgah.item.selected { background-color: #4169e133 }
+	.hatYonetimi.part > .content .liste .item .kod { font-weight: bold; color: #888 }
+.hatYonetimi.part > .content .liste .hat.item > .grup, .hatYonetimi.part > .content .liste .tezgah.item { cursor: pointer; overflow-y: auto !important }
+.hatYonetimi.part > .content .liste .hat.item.toggled > .grup { max-height: 40px !important }
+.hatYonetimi.part > .content .liste .hat.item.toggled > .grup > .title * { color: #555 !important }
+.hatYonetimi.part > .content .liste .hat.item.toggled > .tezgahlar { display: none !important }

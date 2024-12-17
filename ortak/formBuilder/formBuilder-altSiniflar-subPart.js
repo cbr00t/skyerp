@@ -936,7 +936,7 @@ class FBuilder_IslemTuslari extends FBuilder_DivOrtak {
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, {
 			tip: e.tip, id2Handler: e.id2Handler, prependFlag: asBool(e.prepend ?? e.prependFlag), ekButonlarIlk: e.ekButonlarIlk || [], ekButonlarSon: e.ekButonlarSon || [],
-			butonlarDuzenleyici: e.butonlarDuzenleyici, sagButonlar: e.sagButonlar ?? e.sagButonIdSet, userData: e.userData
+			butonlarDuzenleyici: e.butonlarDuzenleyici, sagButonlar: e.sagButonlar ?? e.sagButonIdSet, ekSagButonlar: e.ekSagButonIdSet ?? e.ekSagButonIdSet, userData: e.userData
 		})
 		this.etiketGosterim_yok()
 	}
@@ -947,14 +947,16 @@ class FBuilder_IslemTuslari extends FBuilder_DivOrtak {
 			const _e = { ...e, args: {
 				sender: this.sender, parentPart: this.rootPart, builder: this, layout: input, userData: this.userData,
 				tip: this.tip, id2Handler: this.id2Handler, prepend: this.prependFlag, ekButonlarIlk: this.ekButonlarIlk, ekButonlarSon: this.ekButonlarSon,
-				butonlarDuzenleyici: this.butonlarDuzenleyici, sagButonIdSet: this.sagButonlar
+				butonlarDuzenleyici: this.butonlarDuzenleyici, sagButonIdSet: this.sagButonlar, ekSagButonIdSet: this.ekSagButonlar
 			} };
 			if (widgetArgsDuzenle) { getFuncValue.call(this, widgetArgsDuzenle, _e) }
 			const part = this.part = new ButonlarPart(_e.args); part.run()
 		}
 	}
 	append() { this.prependFlag = false; return this } prepend() { this.prependFlag = true; return this } setPrependFlag(value) { this.prependFlag = value; return this }
-	setTip(value) { this.tip = value; return this } setButonlarIlk(value) { this.butonlarIlk = value; return this } setButonlarSon(value) { this.butonlarSon = true; return this }
+	setTip(value) { this.tip = value; return this } setButonlarIlk(value) { this.ekButonlarIlk = value; return this } setButonlarSon(value) { this.ekButonlarSon = true; return this }
 	setId2Handler(handler) { this.id2Handler = handler; return this } setButonlarDuzenleyici(handler) { this.butonlarDuzenleyici = handler; return this }
-	setSagButonlar(..._values) { const values = _values?.flat();  this.sagButonIdSet = values; return this } setUserData(value) { this.userData = value; return this }
+	setSagButonlar(..._values) { const values = _values?.flat(); this.sagButonlar = values; return this }
+	setEkSagButonlar(..._values) { const values = _values?.flat(); this.ekSagButonlar = values; return this }
+	setUserData(value) { this.userData = value; return this }
 }

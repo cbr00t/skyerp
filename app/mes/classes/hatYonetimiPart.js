@@ -4,30 +4,51 @@ class HatYonetimiPart extends Part {
 	get boxSize() {
 		let result = this._boxSize; if (!result) {
 			const {globals} = this;
-			result = this._boxSize = globals.boxSize = globals.boxSize ?? { rows: 10, cols: 5 }
+			result = this._boxSize = globals.boxSize = globals.boxSize ?? { rows: 15, cols: 5 }
 		}
 		return result
 	}
 	set boxSize(value) { this._boxSize = $.isEmptyObject(value) ? null : value }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, {
-			tezgahKod: (e.tezgahKod ?? e.tezgahId)?.trimEnd(), boxSize: e.boxSize, title: 'Hat Yönetimi 2' })
+			tezgahKod: (e.tezgahKod ?? e.tezgahId)?.trimEnd(), cokluSecimmi: e.cokluSecim ?? e.cokluSecimmi ?? false,
+			boxSize: e.boxSize, title: 'Hat Yönetimi 2' })
 	}
 	init(e) {
 		e = e || {}; super.init(e); const {layout} = this;
-		const header = this.header = layout.children('.header'), islemTuslari = this.islemTuslari = header.children('.islemTuslari');
-		const subContent = this.subContent = layout.children('.content'), divListe = this.divListe = subContent.children('.liste')
+		const header = this.header = layout.children('.header'), subContent = this.subContent = layout.children('.content');
+		const divListe = this.divListe = subContent.children('.liste')
 	}
 	run(e) {
-		e = e || {}; super.run(e); const {layout} = this;
-		const builder = this.builder = this.getRootFormBuilder(e); if (builder) { const {inst} = this; $.extend(builder, { part: this, inst }); builder.autoInitLayout().run(e) }
+		e = e || {}; super.run(e); const {layout} = this, builder = this.builder = this.getRootFormBuilder(e);
+		if (builder) { const {inst} = this; $.extend(builder, { part: this, inst }); builder.autoInitLayout().run(e) }
 		this.tazele(e)
 	}
 	destroyPart(e) { super.destroyPart(e) }
 	activated(e) { super.activated(e); this.tazeleBasit(e) }
+	getLayoutInternal(e) {
+		return $(
+			`<div>
+				<div class="header full-width"></div>
+				<div class="content"><div class="liste flex-row full-width"></div></div>
+			</div>`
+		)
+	}
+	getRootFormBuilder(e) {
+		const rfb = new RootFormBuilder(), {header, divListe} = this;
+		rfb.addIslemTuslari('islemTuslari').setParent(header).addStyle_fullWH().addCSS('islemTuslari')
+			.onAfterRun(({ builder: fbd }) => { const {id, rootPart, input} = fbd; rootPart.islemTuslari = input })
+			.setButonlarIlk([
+				{ id: 'boyut', text: 'BYT', handler: e => this.boyutlandirIstendi(e) },
+				{ id: 'tazele', handler: e => this.tazele(e) },
+				{ id: 'vazgec', handler: e => this.close(e) }
+			])
+			.setEkSagButonlar('boyut');
+		return rfb
+	}
 	tazeleBasit(e) { return this.tazele({ ...e, basit: true }) }
 	tazeleWithSignal() { app.signalChange(); return this }
-	onSignalChange(e) { this.tazele(e); return this }
+	onSignalChange(e) { this.tazeleBasit(e); return this }
 	async tazele(e) {
 		e = e ?? {}; let basitmi = e.basit ?? e.basitmi;
 		try {
@@ -124,121 +145,55 @@ class HatYonetimiPart extends Part {
 		let parent = $(document.createDocumentFragment());
 		for (const {hatKod, hatAdi, grupText, detaylar} of Object.values(hat2Sev)) {
 			let itemHat = $(
-				`<div class="hat item" data-id="${hatKod}"">
+				`<div class="hat item full-width" data-id="${hatKod}"">
 					<div class="grup">
-						<div class="title">(<span class="hatKod kod">${hatKod})</span> <span class="hatAdi aciklama">${hatAdi}</span></div>
+						<div class="title">(<span class="hatKod kod">${hatKod}</span>) <span class="hatAdi aciklama">${hatAdi}</span></div>
 					</div>
-				</div>`);
+					<div class="tezgahlar full-width flex-row"></div>
+				</div>`), itemTezgahlar = itemHat.children('.tezgahlar');
 			for (const rec of detaylar) {
-				let {tezgahKod, tezgahAdi} = rec; let itemTezgah = $(
-					`<div class="tezgah item" data-id="${tezgahKod}">
-						<div class="title">(<span class="tezgahKod kod">${tezgahKod}</span>) <span class="tezgahAdi aciklama">${tezgahAdi}</span></div>
+				let {tezgahKod, tezgahAdi, ip} = rec;
+				let itemTezgah = $(
+					`<div class="tezgah item flex-row" data-id="${tezgahKod}">
+						<div class="sol parent">
+							<div class="sub-item"><button id="tezgah" disabled>T</button></div>
+						</div>
+						<div class="orta parent">
+							<div class="tezgah sub-item flex-row">
+								<div>
+									(<span class="tezgahKod kod">${tezgahKod}</span>)
+									<span class="tezgahAdi aciklama">${tezgahAdi}</span>
+								</div>
+								<div>
+									<span class="ip">${ip}</span>
+								</div>
+							</div>
+						</div>
 					</div>`
-				); itemTezgah.appendTo(itemHat)
+				); itemTezgah.appendTo(itemTezgahlar)
 			} itemHat.appendTo(parent)
 		}
-		divListe.children().remove(); parent.appendTo(divListe)
-		return this
+		divListe.children().remove(); parent.appendTo(divListe);
+		divListe.find('.hat.item > .grup').on('click', ({ currentTarget: target }) => $(target).parent().toggleClass('toggled'));
+		divListe.find('.hat.item > .tezgahlar > .tezgah.item').on('click', ({ currentTarget: target }) => {
+			const {id} = target.dataset, $target = $(target), cssClass = 'selected'; $target.toggleClass(cssClass);
+			if (!this.cokluSecimmi) { divListe.find(`.hat.item > .tezgahlar > .tezgah.item.${cssClass}:not([data-id = "${id}"])`).removeClass(cssClass) }
+		});
+		makeScrollable(this.subContent); return this
 	}
 	updateLayout(e) {
-		e = e ?? {}; const {hat2Sev: hat2Sev, divListe} = this; if (!hat2Sev) { return this }
+		e = e ?? {}; const {layout, boxSize: box} = this; for (const [key, value] of Object.entries(box)) { layout.css(`--box-${key}`, `${value}`) }
+		const {hat2Sev: hat2Sev, divListe} = this; if (!hat2Sev) { return this }
 		for (const {hatKod, hatAdi, grupText, detaylar} of Object.values(hat2Sev)) {
 			let itemHat = divListe.children(`.hat.item[data-id = "${hatKod}"]`); if (!itemHat?.length) { continue }
-			let elm = itemHat.find('.grup > .title'); elm.children('.hatKod').html(hatKod); elm.children('.hatAdi').html(hatAdi);
+			let elm = itemHat.find('.grup > .title'); elm.find('.hatKod').html(hatKod); elm.find('.hatAdi').html(hatAdi);
 			for (const rec of detaylar) {
-				let {tezgahKod, tezgahAdi} = rec, itemTezgah = itemHat.children(`.tezgah.item[data-id = "${tezgahKod}"]`);
-				let elm = itemTezgah.find('.title'); elm.children('.tezgahKod').html(hatKod); elm.children('.tezgahAdi').html(tezgahAdi)
+				let {tezgahKod, tezgahAdi, ip} = rec, itemTezgah = itemHat.children(`.tezgah.item[data-id = "${tezgahKod}"]`);
+				let elm = itemTezgah.find('.title'); elm.find('.tezgahKod').html(hatKod); elm.find('.tezgahAdi').html(tezgahAdi);
+					elm.find('.ip').html(ip)
 			}
 		}
 		return this
-	}
-	getRootFormBuilder(e) {
-		const rfb = new RootFormBuilder(), {islemTuslari, divListe} = this;
-		rfb.addIslemTuslari('islemTuslari').setLayout(islemTuslari).widgetArgsDuzenleIslemi(({ args }) => $.extend(args, {
-			ekButonlarIlk: [
-				{ id: 'boyut', handler: e => this.boyutlandirIstendi(e) },
-				{ id: 'tazele', handler: e => this.tazele(e) },
-				{ id: 'vazgec', handler: e => this.close(e) }
-			]
-		}));
-		return rfb
-	}
-	boyutlandirIstendi(e) {
-		let {boxSize: box} = this, title = 'Boyut Ayarları', wnd, keys = ['rows', 'cols'];
-		let content = $(
-			`<div class="full-wh">
-				<div class="rows scaler item flex-row"><label class="etiket">Dikey:</label><input class="veri" type="range" min="1" max="30" step="1" value="${box.rows}"></input></div>
-				<div class="cols scaler item flex-row"><label class="etiket">Yatay:</label><input class="veri" type="range" min="1" max="13" step="1" value="${box.cols}"></input></div>
-			</div>`
-		);
-		const close = e => { if (wnd) { wnd.jqxWindow('close'); wnd = null } }, rfb = new RootFormBuilder({ parentPart: this, layout: content }).autoInitLayout();
-		const updateLayout = e => { const layout = e.builder?.layout ?? e.layout ?? e; for (const key of keys) { layout.find(`.item.${key} > .veri`).val(box[key]) } }
-		const updateUI = e => { e = e ?? {}; setTimeout(() => { this.createLayout(e).updateLayout(e) }, 100) };
-		rfb.onAfterRun(({ builder: fbd }) => {
-			const {layout} = fbd; for (const key of keys) {
-				layout.find(`.item.${rows} > .veri`).on('change', ({ currentTarget: target }) => {
-					const {value} = target; box[key] = asInteger(value); this.saveGlobalsDefer(); updateUI() })
-			}
-		}).addStyle(...[
-				e => `$elementCSS .item { --etiket-width: 130px; margin-inline-end: 10px }`,
-				e => `$elementCSS .item > .etiket { color: #aaa; width: var(--etiket-width) }`,
-				e => `$elementCSS .item > .veri { font-weight: bold; width: calc(var(--full) - (var(--etiket-width) + 10px)) }`
-			]);
-		const buttons = { 'SIFIRLA': e => { this.boxSize = box = null; this.saveGlobalsDefer(); updateLayout(rfb.layout); updateUI() } };
-		wnd = createJQXWindow({ content, title, buttons, args: { isModal: false, closeButtonAction: 'close', width: Math.min(600, $(window).width() - 50), height: Math.min(200, $(window).height() - 100) } });
-		content = wnd.find('div > .content > .subContent'); rfb.run();
-		wnd.on('close', evt => { $('body').removeClass('bg-modal'); wnd.jqxWindow('destroy'); wnd = null /* updateMQUI()*/ }); $('body').addClass('bg-modal')
-	}
-	tblOEMBilgileri_butonTiklandi(e) {
-		const {id} = e, evt = e.event, target = evt?.currentTarget; switch (id) {
-			case 'isAtaKaldir': case 'siradakiIsler': this.isAtaKaldirIstendi(e); break
-			case 'personelSec': this.personelSecIstendi(e); break
-			case 'baslatDurdur': this.baslatDurdurIstendi(e); break
-			case 'gerceklemeYap': this.gerceklemeYapIstendi(e); break
-			case 'saymaYap': this.saymaYapIstendi(e); break
-			case 'cevrimYap': this.cevrimYapIstendi(e); break
-			case 'iptal': this.iptalIstendi(e); break
-			case 'isBitti': this.isBittiIstendi(e); break
-		}
-	}
-	isAtaKaldirIstendi(e) { const {tezgahKod, tezgahAdi} = this.inst; return MQSiradakiIsler.listeEkraniAc({ args: { tezgahKod, tezgahAdi } }) }
-	baslatDurdurIstendi(e) {
-		const {inst} = this, {tezgahKod, durumKod} = inst;
-		if (durumKod == 'DV') {
-			return MQDurNeden.listeEkraniAc({
-				tekil: true, args: { tezgahKod }, secince: async e => {
-					const {sender} = e, {tezgahKod} = sender; if (!tezgahKod) { return false }
-					const durNedenKod = e.value; try { await app.wsBaslatDurdur({ tezgahKod, durNedenKod }); this.tazeleWithSignal() } catch (ex) { hConfirm(getErrorText(ex)) }
-				}
-			})
-		}
-		else { (async () => { try { await app.wsBaslatDurdur({ tezgahKod }); this.tazeleWithSignal() } catch (ex) { hConfirm(getErrorText(ex)) } })() }
-	}
-	personelSecIstendi(e) {
-		const {tezgahKod} = this.inst; return MQPersonel.listeEkraniAc({
-			tekil: true, args: { tezgahKod }, secince: async e => {
-				const {sender} = e, {tezgahKod} = sender; if (!tezgahKod) { return false }
-				const perKod = e.value; try { await app.wsPersonelAta({ tezgahKod, perKod }); this.tazeleWithSignal() } catch (ex) { hConfirm(getErrorText(ex)) }
-			}
-		})
-	}
-	gerceklemeYapIstendi(e) { return this.gcsYapIstendi($.extend({}, e, { api: 'wsGerceklemeYap' })) }
-	cevrimYapIstendi(e) { return this.gcsYapIstendi($.extend({}, e, { api: 'wsCevrimArttir' })) }
-	saymaYapIstendi(e) { return this.gcsYapIstendi($.extend({}, e, { api: 'wsKesmeYap' })) }
-	tersKesmeIstendi_begin(e) { this._tersKesme_startTS = now() }
-	tersKesmeIstendi_end(e) { return this.gcsYapIstendi($.extend({}, e, { api: 'wsTersKesmeYap', delayMS: (now - this._tersKesme_startTS).getTime() })); delete this._tersKesme_startTS }
-	gcsYapIstendi(e) { const {tezgahKod} = this.inst, {api} = e; (app[api])({ tezgahKod }).then(() => this.tazeleWithSignal()).catch(ex => { hConfirm(getErrorText(ex)); console.error(ex) }) }
-	async isBittiIstendi(e) {
-		let rdlg = await ehConfirm(`Makine için <b class="darkred">İş Bitti</b> yapılacak, devam edilsin mi?`, this.title); if (!rdlg) { return }
-		const {tezgahKod} = this.inst; try { await app.wsIsBittiYap({ tezgahKod }); this.tazeleWithSignal() } catch(ex) { hConfirm(getErrorText(ex)); console.error(ex) }
-	}
-	getLayoutInternal(e) {
-		return $(
-			`<div>
-				<div class="header full-width"><div class="islemTuslari"/></div></div>
-				<div class="content"><div class="liste"></div></div>
-			</div>`
-		)
 	}
 	getLayout_tblOEMBilgileri(e) {
 		e = e ?? {}; const inst = e.rec = this.inst ?? {}, isListe = inst.isListe ?? [], isBilgiHTML = MQHatYonetimi.gridCell_getLayout_isBilgileri(e);
@@ -333,4 +288,78 @@ class HatYonetimiPart extends Part {
 			})
 		}
 	}
+	boyutlandirIstendi(e) {
+		let {boxSize: box} = this, title = 'Boyut Ayarları', wnd, keys = ['rows', 'cols'];
+		let content = $(
+			`<div class="full-wh">
+				<div class="cols scaler item flex-row"><label class="etiket">Kolon Sayı:</label><input class="veri" type="range" min="1" max="13" step="1" value="${box.cols}"></input></div>
+				<div class="rows scaler item flex-row"><label class="etiket">Satır Yükseklik:</label><input class="veri" type="range" min="1" max="30" step="1" value="${box.rows}"></input></div>
+				
+			</div>`
+		);
+		const close = e => { if (wnd) { wnd.jqxWindow('close'); wnd = null } }, rfb = new RootFormBuilder({ parentPart: this, layout: content }).autoInitLayout();
+		const updateLayout = e => { const layout = e.builder?.layout ?? e.layout ?? e; for (const key of keys) { layout.find(`.item.${key} > .veri`).val(box[key]) } }
+		const updateUI = e => { e = e ?? {}; setTimeout(() => { this.createLayout(e).updateLayout(e) }, 100) };
+		rfb.onAfterRun(({ builder: fbd }) => {
+			const {layout} = fbd; for (const key of keys) {
+				layout.find(`.item.${key} > .veri`).on('change', ({ currentTarget: target }) => {
+					const {value} = target; box[key] = asInteger(value); this.saveGlobalsDefer(); updateUI() })
+			}
+		}).addStyle(...[
+				e => `$elementCSS .item { --etiket-width: 130px; margin-inline-end: 10px; padding: 5px 0 }`,
+				e => `$elementCSS .item > .etiket { color: #aaa; width: var(--etiket-width) }`,
+				e => `$elementCSS .item > .veri { font-weight: bold; width: calc(var(--full) - (var(--etiket-width) + 10px)) }`
+			]);
+		const buttons = { 'SIFIRLA': e => {
+			this.boxSize = this.globals.boxSize = null;
+			box = this.boxSize; this.saveGlobalsDefer(); updateLayout(rfb.layout); updateUI()
+		} };
+		wnd = createJQXWindow({ content, title, buttons, args: { isModal: false, closeButtonAction: 'close', width: Math.min(600, $(window).width() - 50), height: Math.min(200, $(window).height() - 100) } });
+		content = wnd.find('div > .content > .subContent'); rfb.run();
+		wnd.on('close', evt => { $('body').removeClass('bg-modal'); wnd.jqxWindow('destroy'); wnd = null /* updateMQUI()*/ }); $('body').addClass('bg-modal')
+	}
+	tblOEMBilgileri_butonTiklandi(e) {
+		const {id} = e, evt = e.event, target = evt?.currentTarget; switch (id) {
+			case 'isAtaKaldir': case 'siradakiIsler': this.isAtaKaldirIstendi(e); break
+			case 'personelSec': this.personelSecIstendi(e); break
+			case 'baslatDurdur': this.baslatDurdurIstendi(e); break
+			case 'gerceklemeYap': this.gerceklemeYapIstendi(e); break
+			case 'saymaYap': this.saymaYapIstendi(e); break
+			case 'cevrimYap': this.cevrimYapIstendi(e); break
+			case 'iptal': this.iptalIstendi(e); break
+			case 'isBitti': this.isBittiIstendi(e); break
+		}
+	}
+	isAtaKaldirIstendi(e) { const {tezgahKod, tezgahAdi} = this.inst; return MQSiradakiIsler.listeEkraniAc({ args: { tezgahKod, tezgahAdi } }) }
+	baslatDurdurIstendi(e) {
+		const {inst} = this, {tezgahKod, durumKod} = inst;
+		if (durumKod == 'DV') {
+			return MQDurNeden.listeEkraniAc({
+				tekil: true, args: { tezgahKod }, secince: async e => {
+					const {sender} = e, {tezgahKod} = sender; if (!tezgahKod) { return false }
+					const durNedenKod = e.value; try { await app.wsBaslatDurdur({ tezgahKod, durNedenKod }); this.tazeleWithSignal() } catch (ex) { hConfirm(getErrorText(ex)) }
+				}
+			})
+		}
+		else { (async () => { try { await app.wsBaslatDurdur({ tezgahKod }); this.tazeleWithSignal() } catch (ex) { hConfirm(getErrorText(ex)) } })() }
+	}
+	personelSecIstendi(e) {
+		const {tezgahKod} = this.inst; return MQPersonel.listeEkraniAc({
+			tekil: true, args: { tezgahKod }, secince: async e => {
+				const {sender} = e, {tezgahKod} = sender; if (!tezgahKod) { return false }
+				const perKod = e.value; try { await app.wsPersonelAta({ tezgahKod, perKod }); this.tazeleWithSignal() } catch (ex) { hConfirm(getErrorText(ex)) }
+			}
+		})
+	}
+	gerceklemeYapIstendi(e) { return this.gcsYapIstendi($.extend({}, e, { api: 'wsGerceklemeYap' })) }
+	cevrimYapIstendi(e) { return this.gcsYapIstendi($.extend({}, e, { api: 'wsCevrimArttir' })) }
+	saymaYapIstendi(e) { return this.gcsYapIstendi($.extend({}, e, { api: 'wsKesmeYap' })) }
+	tersKesmeIstendi_begin(e) { this._tersKesme_startTS = now() }
+	tersKesmeIstendi_end(e) { return this.gcsYapIstendi($.extend({}, e, { api: 'wsTersKesmeYap', delayMS: (now - this._tersKesme_startTS).getTime() })); delete this._tersKesme_startTS }
+	gcsYapIstendi(e) { const {tezgahKod} = this.inst, {api} = e; (app[api])({ tezgahKod }).then(() => this.tazeleWithSignal()).catch(ex => { hConfirm(getErrorText(ex)); console.error(ex) }) }
+	async isBittiIstendi(e) {
+		let rdlg = await ehConfirm(`Makine için <b class="darkred">İş Bitti</b> yapılacak, devam edilsin mi?`, this.title); if (!rdlg) { return }
+		const {tezgahKod} = this.inst; try { await app.wsIsBittiYap({ tezgahKod }); this.tazeleWithSignal() } catch(ex) { hConfirm(getErrorText(ex)); console.error(ex) }
+	}
+	tekil() { this.cokluSecimmi = false; return this } coklu() { this.cokluSecimmi = true; return this }
 }

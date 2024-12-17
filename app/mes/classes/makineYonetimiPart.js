@@ -2,11 +2,14 @@ class MakineYonetimiPart extends Part {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get isWindowPart() { return true } static get partName() { return 'makineYonetimi' } static get sinifAdi() { return 'Makine Yönetimi' }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { tezgahKod: (e.tezgahKod ?? e.tezgahId)?.trimEnd() }); const {tezgahKod} = this }
+	init(e) {
+		e = e || {}; super.init(e); const {layout} = this; this.updateTitle(e); 
+		const header = this.header = layout.children('.header'), subContent = this.subContent = layout.children('.content');
+		const tblOEMBilgileri = this.tblOEMBilgileri = subContent.find('#oemBilgileri')
+	}
 	run(e) {
-		e = e || {}; super.run(e); const {layout} = this; this.updateTitle(e);
-		const header = this.header = layout.children('.header'), islemTuslari = this.islemTuslari = header.children('.islemTuslari');
-		const subContent = this.subContent = layout.children('.content'), tblOEMBilgileri = this.tblOEMBilgileri = subContent.find('#oemBilgileri');
-		const builder = this.builder = this.getRootFormBuilder(e); if (builder) { const {inst} = this; $.extend(builder, { part: this, inst }); builder.autoInitLayout().run(e) }
+		e = e || {}; super.run(e); const {layout} = this, builder = this.builder = this.getRootFormBuilder(e);
+		if (builder) { const {inst} = this; $.extend(builder, { part: this, inst }); builder.autoInitLayout().run(e) }
 		this.tazele(e)
 	}
 	destroyPart(e) { super.destroyPart(e) }
@@ -56,13 +59,13 @@ class MakineYonetimiPart extends Part {
 		const title = this.title = `${sinifAdi} ${tezgahText ? `[ ${tezgahText} ]` : ''}`; this.updateWndTitle(title)
 	}
 	getRootFormBuilder(e) {
-		const rfb = new RootFormBuilder(), {islemTuslari, tblOEMBilgileri} = this;
-		rfb.addIslemTuslari('islemTuslari').setLayout(islemTuslari).widgetArgsDuzenleIslemi(e => $.extend(e.args, {
-			ekButonlarIlk: [
+		const rfb = new RootFormBuilder(), {header, tblOEMBilgileri} = this;
+		rfb.addIslemTuslari('islemTuslari').setParent(header).addStyle_fullWH().addCSS('islemTuslari')
+			.onAfterRun(({ builder: fbd }) => { const {id, rootPart, input} = fbd; rootPart.islemTuslari = input })
+			.setButonlarIlk([
 				{ id: 'tazele', handler: e => e.builder.rootBuilder.part.tazele(e) },
 				{ id: 'vazgec', handler: e => e.builder.rootBuilder.part.close(e) }
-			]
-		}));
+			]);
 		rfb.addForm('oemBilgileri').setLayout(tblOEMBilgileri).onAfterRun(e => this.initEvents_tblOEMBilgileri(e.builder));
 		return rfb
 	}
@@ -113,7 +116,7 @@ class MakineYonetimiPart extends Part {
 		const html_oemBilgileri = this.getLayout_tblOEMBilgileri(e);
 		return $(
 			`<div>
-				<div class="header full-width"><div class="islemTuslari"/></div></div>
+				<div class="header full-width"></div>
 				<div class="content">${html_oemBilgileri}</div>
 			</div>`
 		)
