@@ -9,6 +9,9 @@ class HatYonetimiPart extends Part {
 		return result
 	}
 	set boxSize(value) { this._boxSize = $.isEmptyObject(value) ? null : value }
+	get selectedTezgahElmListe() { return this.divListe.find('.tezgah.item.selected') }
+	get selectedTezgahKodListe() { return $.makeArray(this.selectedTezgahElmListe).map(elm => elm.dataset.id) }
+	get selectedTezgahRecs() { const {tezgah2Rec, selectedTezgahKodListe} = this; return selectedTezgahKodListe.map(kod => tezgah2Rec[kod]) }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, {
 			tezgahKod: (e.tezgahKod ?? e.tezgahId)?.trimEnd(), cokluSecimmi: e.cokluSecim ?? e.cokluSecimmi ?? false,
@@ -75,7 +78,7 @@ class HatYonetimiPart extends Part {
 	}
 	async loadServerData_internal(e) {
 		e = e ?? {}; let basitmi = e.basit ?? e.basitmi, {islemTuslari} = this;
-		let tezgahKod2Rec = {}, isID2TezgahKodSet = {}, hatIdListe = app.sabitHatKodVarmi ? app.sabitHatKodListe : $.makeArray(this.hatKod), {excludeTezgahKod} = this;
+		let tezgah2Rec = {}, isID2TezgahKodSet = {}, hatIdListe = app.sabitHatKodVarmi ? app.sabitHatKodListe : $.makeArray(this.hatKod), {excludeTezgahKod} = this;
 		let wsArgs = {}; if (hatIdListe?.length) { $.extend(wsArgs, { hatIdListe: hatIdListe.join(delimWS) }) }
 		let recs = await app.wsTezgahBilgileri(wsArgs); if (recs) {
 			const {durumKod2KisaAdi, hatBilgi_recDonusum: donusum} = app;
@@ -97,8 +100,8 @@ class HatYonetimiPart extends Part {
 			let _recs = recs; recs = [];
 			for (let rec of _recs) {
 				let {hatKod, tezgahKod, isID} = rec; if (excludeTezgahKod && tezgahKod == excludeTezgahKod) { continue }
-				let tezgahRec = tezgahKod2Rec[tezgahKod] ?? $.extend({}, rec), {isListe} = tezgahRec;
-				if (!tezgahKod2Rec[tezgahKod]) { tezgahKod2Rec[tezgahKod] = tezgahRec; recs.push(tezgahRec); isListe = tezgahRec.isListe = [] }
+				let tezgahRec = tezgah2Rec[tezgahKod] ?? $.extend({}, rec), {isListe} = tezgahRec;
+				if (!tezgah2Rec[tezgahKod]) { tezgah2Rec[tezgahKod] = tezgahRec; recs.push(tezgahRec); isListe = tezgahRec.isListe = [] }
 				let isSaymaInd = tezgahRec.isSaymaInd || 0, isSaymaSayisi = rec.isSaymaSayisi || 0, defSayi = isID ? 1 : 0;
 				$.extend(tezgahRec, { isSaymaInd: isSaymaInd + isSaymaInd, isSaymaSayisi: isSaymaSayisi + (isSaymaSayisi || defSayi) });
 				if (isID) {
@@ -107,12 +110,12 @@ class HatYonetimiPart extends Part {
 				}
 			}
 		}
-		if (!basitmi && tezgahKod2Rec && !$.isEmptyObject(isID2TezgahKodSet)) {
+		if (!basitmi && tezgah2Rec && !$.isEmptyObject(isID2TezgahKodSet)) {
 			let promises = []; for (let [isId, tezgahKodSet] of Object.entries(isID2TezgahKodSet)) {
 				isId = asInteger(isId); promises.push(new $.Deferred(async p => {
 					try {
 						let rec; try { rec = await app.wsGorevZamanEtuduVeriGetir({ isId }); if (!rec?.bzamanetudu) { rec = null } } catch (ex) { }
-						if (rec) { for (const tezgahKod in tezgahKodSet) { rec = tezgahKod2Rec[tezgahKod]; if (rec) { rec.zamanEtuduVarmi = true } } }
+						if (rec) { for (const tezgahKod in tezgahKodSet) { rec = tezgah2Rec[tezgahKod]; if (rec) { rec.zamanEtuduVarmi = true } } }
 					} catch (ex) { console.error(ex) }
 					p.resolve()
 				}))
@@ -152,20 +155,38 @@ class HatYonetimiPart extends Part {
 					<div class="tezgahlar full-width flex-row"></div>
 				</div>`), itemTezgahlar = itemHat.children('.tezgahlar');
 			for (const rec of detaylar) {
-				let {tezgahKod, tezgahAdi, ip} = rec;
-				let itemTezgah = $(
+				let {tezgahKod} = rec, itemTezgah = $(
 					`<div class="tezgah item flex-row" data-id="${tezgahKod}">
 						<div class="sol parent">
-							<div class="sub-item"><button id="tezgah" disabled>T</button></div>
+							<div class="sub-item"><button id="tezgah" aria-disabled="true">TEZ</button></div>
+							<div class="sub-item"><button id="personel">PER</button></div>
 						</div>
 						<div class="orta parent">
-							<div class="tezgah sub-item flex-row">
-								<div>
-									(<span class="tezgahKod kod">${tezgahKod}</span>)
-									<span class="tezgahAdi aciklama">${tezgahAdi}</span>
+							<div class="tezgah-parent sub-item parent flex-row">
+								<div class="ka">
+									(<span class="tezgahKod kod veri"></span>)
+									<span class="tezgahAdi aciklama veri"></span>
 								</div>
-								<div>
-									<span class="ip">${ip}</span>
+								<div class="ip-parent parent">
+									<span class="etiket">IP</span>
+									<span class="ip veri"></span>
+								</div>
+								<div class="siradakiIsSayi-parent parent">
+									<span class="etiket">+</span>
+									<span class="siradakiIsSayi veri"></span>
+								</div>
+								<div class="ekBilgi-parent parent">
+									<button class="sil etiket"></button>
+									<span class="ekBilgi veri"></span>
+								</div>
+								<div class="zamanEtuduVarmi-parent parent">
+									<span class="zamanEtuduText veri">Zmn.</span>
+								</div>
+							</div>
+							<div class="per-parent sub-item parent flex-row">
+								<div class="ka">
+									(<span class="perKod kod veri"></span>)
+									<span class="perIsim aciklama veri"></span>
 								</div>
 							</div>
 						</div>
@@ -179,24 +200,31 @@ class HatYonetimiPart extends Part {
 			const {id} = target.dataset, $target = $(target), cssClass = 'selected'; $target.toggleClass(cssClass);
 			if (!this.cokluSecimmi) { divListe.find(`.hat.item > .tezgahlar > .tezgah.item.${cssClass}:not([data-id = "${id}"])`).removeClass(cssClass) }
 		});
+		divListe.find('button').jqxButton({ theme }).on('click', evt => this.tezgahButonTiklandi({ ...e, id: evt.currentTarget.id, evt }));
 		makeScrollable(this.subContent); return this
 	}
 	updateLayout(e) {
 		e = e ?? {}; const {layout, boxSize: box} = this; for (const [key, value] of Object.entries(box)) { layout.css(`--box-${key}`, `${value}`) }
 		const {hat2Sev: hat2Sev, divListe} = this; if (!hat2Sev) { return this }
-		for (const {hatKod, hatAdi, grupText, detaylar} of Object.values(hat2Sev)) {
-			let itemHat = divListe.children(`.hat.item[data-id = "${hatKod}"]`); if (!itemHat?.length) { continue }
-			let elm = itemHat.find('.grup > .title'); elm.find('.hatKod').html(hatKod); elm.find('.hatAdi').html(hatAdi);
-			for (const rec of detaylar) {
-				let {tezgahKod, tezgahAdi, ip} = rec, itemTezgah = itemHat.children(`.tezgah.item[data-id = "${tezgahKod}"]`);
-				let elm = itemTezgah.find('.title'); elm.find('.tezgahKod').html(hatKod); elm.find('.tezgahAdi').html(tezgahAdi);
-					elm.find('.ip').html(ip)
+		const setHTMLValues = (parent, rec, ...keys) => {
+			if (!parent?.length) { return } keys = keys?.flat();
+			for (const key of keys) {
+				let value = rec[key] ?? ''; let elm = parent.find(`.${key}`); if (elm.length) { elm.html(value) }
+				elm = parent.find(`.${key}-parent`); if (elm.length) { elm[value ? 'removeClass' : 'addClass']('jqx-hidden') }
 			}
+		};
+		for (const sev of Object.values(hat2Sev)) {
+			let {hatKod, detaylar} = sev, itemHat = divListe.find(`.hat.item[data-id = "${hatKod}"]`); if (!itemHat?.length) { continue }
+			let elm = itemHat.find('.grup > .title'); setHTMLValues(itemHat, sev, 'hatKod', 'hatAdi');
+			for (const rec of detaylar) {
+				let {tezgahKod} = rec, itemTezgah = itemHat.find(`.tezgah.item[data-id = "${tezgahKod}"]`); if (!itemTezgah.length) { continue }
+				setHTMLValues(itemTezgah, rec, 'tezgahKod', 'tezgahAdi', 'ip', 'siradakiIsSayi', 'ekBilgi', 'zamanEtuduVarmi', 'perKod', 'perIsim')
+ 			}
 		}
 		return this
 	}
 	getLayout_tblOEMBilgileri(e) {
-		e = e ?? {}; const inst = e.rec = this.inst ?? {}, isListe = inst.isListe ?? [], isBilgiHTML = MQHatYonetimi.gridCell_getLayout_isBilgileri(e);
+		e = e ?? {}; const inst = e.rec = e.rec ?? e.inst ?? {}, isListe = inst.isListe ?? [], isBilgiHTML = MQHatYonetimi.gridCell_getLayout_isBilgileri(e);
 		const {sinyalKritik, duraksamaKritik, durNedenKod, durumKod, durumAdi, ip, siradakiIsSayi} = inst, {kritikDurNedenKodSet} = app.params.mes;
 		const kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod ? kritikDurNedenKodSet[durNedenKod] : false, bostami = !durumKod || durumKod == '?' || durumKod == 'KP' || durumKod == 'BK';
 		let topSaymaInd = 0, topSaymaSayisi = 0; for (const is of isListe) { topSaymaInd += (is.isSaymaInd || 0); topSaymaSayisi += (is.isSaymaSayisi || 0) }
@@ -318,8 +346,9 @@ class HatYonetimiPart extends Part {
 		content = wnd.find('div > .content > .subContent'); rfb.run();
 		wnd.on('close', evt => { $('body').removeClass('bg-modal'); wnd.jqxWindow('destroy'); wnd = null /* updateMQUI()*/ }); $('body').addClass('bg-modal')
 	}
+	tezgahButonTiklandi(e) { const {id, evt} = e }
 	tblOEMBilgileri_butonTiklandi(e) {
-		const {id} = e, evt = e.event, target = evt?.currentTarget; switch (id) {
+		const {id, event: evt} = e, target = evt?.currentTarget; switch (id) {
 			case 'isAtaKaldir': case 'siradakiIsler': this.isAtaKaldirIstendi(e); break
 			case 'personelSec': this.personelSecIstendi(e); break
 			case 'baslatDurdur': this.baslatDurdurIstendi(e); break

@@ -16,16 +16,17 @@ body.dark-theme .hatYonetimi.part > .content .liste .hat.item > .grup:hover,
 	body.dark-theme .hatYonetimi.part > .content .liste .hat.item > .grup:focus { opacity: .8 }
 .hatYonetimi.part > .content .liste .tezgahlar {}
 .hatYonetimi.part > .content .liste .tezgah.item {
-	width: calc(var(--full) / var(--box-cols) - /*(var(--padding-x) * 2.9)*/ 1px); height: calc(15px + 10px * var(--box-rows));
+	width: calc(var(--full) / var(--box-cols) - /*(var(--padding-x) * 2.9)*/ 1px); height: calc(15px + 10px * var(--box-rows)); line-height: 15px;
 	border: 1px solid #b3b3b3; padding: var(--padding-y) var(--padding-x); box-sizing: border-box
 }
-.hatYonetimi.part > .content .liste .tezgah.item > .sol { width: 30px }
-.hatYonetimi.part > .content .liste .tezgah.item > .sol button { margin-top: -3px !important }
-.hatYonetimi.part > .content .liste .tezgah.item .sub-item { column-gap: 10px }
+.hatYonetimi.part > .content .liste .tezgah.item > .sol { width: 40px }
+.hatYonetimi.part > .content .liste .tezgah.item > .sol button { vertical-align: top; margin-top: -6px !important }
+.hatYonetimi.part > .content .liste .tezgah.item .sub-item { position: relative; gap: 10px; min-height: 18px; margin-bottom: 3px }
 .hatYonetimi.part > .content .liste .tezgah.item .ip { color: royalblue }
 .hatYonetimi.part > .content .liste .tezgah.item:hover { background-color: #4169e115 }
 .hatYonetimi.part > .content .liste .tezgah.item.selected { background-color: #4169e133 }
-	.hatYonetimi.part > .content .liste .item .kod { font-weight: bold; color: #888 }
+.hatYonetimi.part > .content .liste .item .kod { font-weight: bold; color: #888 }
+.hatYonetimi.part > .content .liste .item .etiket { color: #aaa }
 .hatYonetimi.part > .content .liste .hat.item > .grup, .hatYonetimi.part > .content .liste .tezgah.item { cursor: pointer; overflow-y: auto !important }
 .hatYonetimi.part > .content .liste .hat.item.toggled > .grup { max-height: 40px !important }
 .hatYonetimi.part > .content .liste .hat.item.toggled > .grup > .title * { color: #555 !important }
