@@ -85,8 +85,8 @@ class HatYonetimiPart extends Part {
 			for (const rec of recs) {
 				for (const [key, newKey] of Object.entries(donusum)) { if (rec[newKey] == null) { rec[newKey] = rec[key]?.trimEnd(); delete rec[key] } }
 				let {durumKod, durumAdi} = rec; if (durumKod != null) {
-					durumKod = rec.durumKod = durumKod.trimEnd();
-					if (rec.durumAdi == null) { rec.durumAdi = durumKod2KisaAdi[durumKod] ?? durumKod }
+					durumKod = rec.durumKod = durumKod.trimEnd(); if (rec.durumAdi == null) { rec.durumAdi = durumKod2KisaAdi[durumKod] ?? durumKod }
+					if (durumKod != 'DR' && rec.durNedenAdi) { rec.durNedenAdi = '' }
 				}
 			}
 			const getIPNum = ip => asInteger(ip.replaceAll('.', ''));
@@ -174,7 +174,7 @@ class HatYonetimiPart extends Part {
 			let {hatKod, detaylar} = sev, itemHat = divListe.find(`.hat.item[data-id = "${hatKod}"]`); if (!itemHat?.length) { continue }
 			setHTMLValues(itemHat, sev, 'hatKod', 'hatAdi');
 			for (const rec of detaylar) {
-				let {tezgahKod, isListe} = rec, topSaymaInd = 0, topSaymaSayisi = 0;
+				let {tezgahKod, isListe, durumKod} = rec, topSaymaInd = 0, topSaymaSayisi = 0;
 				for (const is of isListe) { topSaymaInd += (is.isSaymaInd || 0); topSaymaSayisi += (is.isSaymaSayisi || 0) }
 				let itemTezgah = itemHat.find(`.tezgah.item[data-id = "${tezgahKod}"]`); if (!itemTezgah.length) { continue }
 				setHTMLValues(itemTezgah, rec,

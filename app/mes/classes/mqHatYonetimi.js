@@ -27,7 +27,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 		});
 		this.fbd_listeEkrani_addCheckBox(rfb, 'grupsuzmu', 'Grupsuz').onAfterRun(e => {
 			const {builder} = e, {rootPart, layout} = builder, input = layout.children('input'), {grid, gridWidget} = rootPart;
-			builder.setVisibleKosulu(e => e.app.otoTazeleFlag ? 'jqx-hidden' : true);
+			builder.setVisibleKosulu(e => app.otoTazeleFlag ? 'jqx-hidden' : true);
 			if (rootPart.grupsuzmu) { input.prop('checked', true) }
 			input.on('change', evt => { const value = rootPart.grupsuzmu = $(evt.currentTarget).is(':checked'); e.action = 'toggle'; rootPart.tazele(e) })
 		});
@@ -142,7 +142,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 	static orjBaslikListesi_panelGrupAttrListeDuzenle(e) { super.orjBaslikListesi_panelGrupAttrListeDuzenle(e); const {liste} = e; liste.push('grupText') }
 	static orjBaslikListesi_groupsDuzenle(e) {
 		super.orjBaslikListesi_groupsDuzenle(e); const gridPart = e.gridPart ?? e.sender, {liste} = e;
-		if (!(gridPart.grupsuzmu || gridPart.otoTazeleFlag)) { const grupListe = this.orjBaslikListesi_panelGrupAttrListe || []; if (grupListe?.length) { liste.push(...grupListe) } }
+		if (!(gridPart.grupsuzmu || app.otoTazeleFlag)) { const grupListe = this.orjBaslikListesi_panelGrupAttrListe || []; if (grupListe?.length) { liste.push(...grupListe) } }
 	}
 	static orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(e) { super.orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(e); const {liste} = e; liste.push('hatKod', 'hatAdi') }
 	static orjBaslikListesi_hizliBulFiltreAttrListeDuzenle(e) {
@@ -501,7 +501,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 		return gridPart.openContextMenu(e)
 	}
 	static gridCell_getLayout(e) {
-		const gridPart = e.gridPart ?? e.sender, rec = e.rec ?? {}, isListe = rec.isListe ?? [], grupsuzmu = gridPart.grupsuzmu || gridPart.otoTazeleFlag;
+		const gridPart = e.gridPart ?? e.sender, rec = e.rec ?? {}, isListe = rec.isListe ?? [], grupsuzmu = gridPart.grupsuzmu || app.otoTazeleFlag;
 		const {hatKod, hatAdi, tezgahKod, tezgahAdi, perKod, perIsim, sinyalKritik, duraksamaKritik, durumKod, durumAdi,
 			   durNedenKod, durNedenAdi, ip, siradakiIsSayi, ekBilgi, zamanEtuduVarmi} = rec;
 		const {kritikDurNedenKodSet} = app.params.mes, kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod ? kritikDurNedenKodSet[durNedenKod] : false;
