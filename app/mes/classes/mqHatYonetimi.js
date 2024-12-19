@@ -18,16 +18,16 @@ class MQHatYonetimi extends MQMasterOrtak {
 		});
 		this.fbd_listeEkrani_addCheckBox(rfb, 'otoTazeleFlag', 'Oto Tazele').onAfterRun(e => {
 			const {builder} = e, {rootPart, layout} = builder, input = layout.children('input'), {grid, gridWidget} = rootPart;
-			if (rootPart.otoTazeleFlag) { input.prop('checked', true) }
+			if (app.otoTazeleFlag) { input.prop('checked', true) }
 			input.on('change', evt => {
-				const value = rootPart.otoTazeleFlag = app.otoTazeleFlag = !!$(evt.currentTarget).is(':checked');
+				const value = app.otoTazeleFlag = app.otoTazeleFlag = !!$(evt.currentTarget).is(':checked');
 				const fbd_grupsuz = builder.parentBuilder.id2Builder.grupsuzmu; if (fbd_grupsuz) { fbd_grupsuz.updateVisible() }
 				e.action = 'toggle'; rootPart.tazele(e)
 			})
 		});
 		this.fbd_listeEkrani_addCheckBox(rfb, 'grupsuzmu', 'Grupsuz').onAfterRun(e => {
 			const {builder} = e, {rootPart, layout} = builder, input = layout.children('input'), {grid, gridWidget} = rootPart;
-			builder.setVisibleKosulu(e => e.builder.rootPart.otoTazeleFlag ? 'jqx-hidden' : true);
+			builder.setVisibleKosulu(e => e.app.otoTazeleFlag ? 'jqx-hidden' : true);
 			if (rootPart.grupsuzmu) { input.prop('checked', true) }
 			input.on('change', evt => { const value = rootPart.grupsuzmu = $(evt.currentTarget).is(':checked'); e.action = 'toggle'; rootPart.tazele(e) })
 		});
@@ -334,7 +334,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 		try {
 			for (const rec of _recs) {
 				const {hatKod} = rec;
-				if (exclude_hatKod && hatKod != exclude_hatKod) { throw new { isError: true, errorText: `Taşınacak Tezgah(lar) <u class="bold">Aynı Hat üzerinde</u> olmalıdır` } }
+				if (exclude_hatKod && hatKod != exclude_hatKod) { throw { isError: true, errorText: `Taşınacak Tezgah(lar) <u class="bold">Aynı Hat üzerinde</u> olmalıdır` } }
 				if (!exclude_hatKod) { exclude_hatKod = hatKod }
 			}
 			return MQHat.listeEkraniAc({

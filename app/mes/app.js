@@ -28,8 +28,8 @@ class MESApp extends App {
 	constructor(e) {
 		e = e || {}; super(e);
 		$.extend(this, {
-			otoTazeleFlag: ((e.otoTazele ?? e.otoTazeleFlag ?? asBool(qs.otoTazele)) && !(e.disableRefresh ?? e.disableRefreshFlag ?? asBool(qs.disableRefresh))) ?? false,
-			tazele_timeout: asFloat(e.tazele_timeout ?? qs.tazele_timeout ?? qs.timeout ?? 5000)
+			otoTazeleFlag: ((e.otoTazele ?? e.otoTazeleFlag ?? qs.otoTazele) && !(e.disableRefresh ?? e.disableRefreshFlag ?? asBool(qs.disableRefresh))) ?? null,
+			tazele_timeout: asFloat(e.tazele_timeout ?? qs.tazele_timeout ?? qs.timeout ?? 1000)
 		})
 	}
 	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e) }
@@ -51,15 +51,18 @@ class MESApp extends App {
 			sahalar: ['RTRIM(tez.kod) tezgahKod', 'RTRIM(tez.aciklama) tezgahAdi', 'RTRIM(tez.ismrkkod) hatKod', 'RTRIM(hat.aciklama) hatAdi' ]
 		});
 		if (tezgahKodListe) { sent.where.inDizi(tezgahKodListe, 'tez.kod') } if (hatKodListe) { sent.where.inDizi(hatKodListe, 'tez.ismrkkod') }
-		const result = {}; let recs = await app.sqlExecSelect(sent); for (const rec of recs) { result[rec.kod] = rec } return result
+		const result = {}; let recs = await app.sqlExecSelect(sent); for (const rec of recs) { result[rec.kod] = rec }
+		return result
 	}
 	tazele_startTimer(e) {
-		const {tazele_timeout} = this; this.tazele_stopTimer(e);
-		this._timer_tazele = setTimeout(async () => { try { await this.tazele_timerProc(e) } catch (ex) { console.error('timerError', ex, getErrorText(ex)) } finally { this.tazele_startTimer(e)} }, tazele_timeout);
-		return this
+		let {evtSource} = this; if (evtSource) { return this }
+		const wsPath = `${this.defaultWSPath}/makineDurum`, url = this.getEventStreamURL('tezgahBilgileri', wsPath); if (!url) { return this }
+		evtSource = this.evtSource = new EventSource(url); evtSource.onmessage = ({data}) => {
+			const _appActivatedFlag = appActivatedFlag;
+			if (this.otoTazeleYapilirmi) { this.signalChange({ ...e, data }) }
+		}; return this
 	}
-	tazele_stopTimer(e) { const key = '_timer_tazele'; clearTimeout(this[key]); return this }
-	tazele_timerProc(e) { const _appActivatedFlag = appActivatedFlag; if (!(_appActivatedFlag && this.otoTazeleYapilirmi)) { return } this.signalChange(e) }
+	tazele_stopTimer(e) { let {evtSource} = this; if (evtSource) { evtSource.close(); evtSource = this.evtSource = null } return this }
 	signalChange(e) {
 		e = e || {}; const {activeWndPart} = this; if (!activeWndPart) { return this }
 		const {mfSinif} = activeWndPart; e.gridPart = e.sender = activeWndPart;

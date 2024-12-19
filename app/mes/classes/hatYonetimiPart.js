@@ -25,7 +25,7 @@ class HatYonetimiPart extends Part {
 	run(e) {
 		e = e || {}; super.run(e); const {layout} = this, builder = this.builder = this.getRootFormBuilder(e);
 		if (builder) { const {inst} = this; $.extend(builder, { part: this, inst }); builder.autoInitLayout().run(e) }
-		this.tazele(e)
+		this.tazele(e); if (app.otoTazeleFlag == null) { app.otoTazeleFlag = true }
 	}
 	destroyPart(e) { super.destroyPart(e) }
 	activated(e) { super.activated(e); this.tazeleBasit(e) }
@@ -65,7 +65,7 @@ class HatYonetimiPart extends Part {
 			if (!basitmi) { this.createLayout(e) } this.updateLayout(e)
 			this._lastTezgahRecs = lastRecs = recs
 		}
-		catch (ex) { hConfirm(getErrorText(ex)); throw ex }
+		catch (ex) { if (!basitmi) { hConfirm(getErrorText(ex)) } throw ex }
 		return this
 	}
 	async loadServerData(e) {
@@ -100,10 +100,10 @@ class HatYonetimiPart extends Part {
 			let _recs = recs; recs = [];
 			for (let rec of _recs) {
 				let {hatKod, tezgahKod, isID} = rec; if (excludeTezgahKod && tezgahKod == excludeTezgahKod) { continue }
-				let tezgahRec = tezgah2Rec[tezgahKod] ?? $.extend({}, rec), {isListe} = tezgahRec;
+				let tezgahRec = tezgah2Rec[tezgahKod] ?? { ...rec }, {isListe} = tezgahRec;
 				if (!tezgah2Rec[tezgahKod]) { tezgah2Rec[tezgahKod] = tezgahRec; recs.push(tezgahRec); isListe = tezgahRec.isListe = [] }
-				let isSaymaInd = tezgahRec.isSaymaInd || 0, isSaymaSayisi = rec.isSaymaSayisi || 0, defSayi = isID ? 1 : 0;
-				$.extend(tezgahRec, { isSaymaInd: isSaymaInd + isSaymaInd, isSaymaSayisi: isSaymaSayisi + (isSaymaSayisi || defSayi) });
+				let isSaymaInd = tezgahRec.isSaymaInd || 0, isSaymaSayisi = rec.isSaymaSayisi = rec.isSaymaSayisi || (isID ? 1 : 0);
+				$.extend(tezgahRec, { isSaymaInd: isSaymaInd + isSaymaInd, isSaymaSayisi: isSaymaSayisi + isSaymaSayisi });
 				if (isID) {
 					const {oemgerceklesen, oemistenen} = rec; rec.oee = oemistenen ? roundToFra(Math.max(oemgerceklesen * 100 / oemistenen, 0), 2) : 0;
 					delete rec.isListe; isListe.push(rec); let set = isID2TezgahKodSet; (set[isID] = set[isID] || {})[tezgahKod] = true
@@ -167,7 +167,7 @@ class HatYonetimiPart extends Part {
 			if (!parent?.length) { return } keys = keys?.flat();
 			for (const key of keys) {
 				let value = rec[key] ?? ''; let elm = parent.find(`.${key}`); if (elm.length) { elm.html(value) }
-				elm = parent.find(`.${key}-parent`); if (elm.length) { elm[value ? 'removeClass' : 'addClass']('jqx-hidden') }
+				elm = parent.find(`.${key}-parent`); if (elm.length) { elm[value || typeof value == 'number' ? 'removeClass' : 'addClass']('jqx-hidden') }
 			}
 		};
 		for (const sev of Object.values(hat2Sev)) {
@@ -180,9 +180,9 @@ class HatYonetimiPart extends Part {
 				setHTMLValues(itemTezgah, rec,
 					'tezgahKod', 'tezgahAdi', 'ip', 'siradakiIsSayi', 'ekBilgi', 'zamanEtuduVarmi', 'perKod', 'perIsim',
 					'emirMiktar', 'onceUretMiktar', 'aktifUretMiktar', 'isIskMiktar', 'isNetMiktar',
-					'onceCevrimSayisi', 'aktifCevrimSayisi', 'topSaymaInd', 'topSaymaSayisi', 'aktifIsSayi',
-					'durumAdi', 'durNedenAdi'
+					'onceCevrimSayisi', 'aktifCevrimSayisi', 'aktifIsSayi', 'durumAdi', 'durNedenAdi'
 				);
+				let _rec = { topSaymaInd, topSaymaSayisi }; setHTMLValues(itemTezgah, _rec, Object.keys(_rec));
 				itemTezgah.find('.isBilgi-parent').html(this.class.getLayout_isBilgileri(rec))
  			}
 		}
@@ -260,7 +260,7 @@ class HatYonetimiPart extends Part {
 									<th class="sayma">Sayma</th>
 								</tr></thead>
 								<tbody><tr>
-									<td class="cevrim"><span class="onceCevrimSayisi"> <span class="aktifCevrimSayisi-parent ek-bilgi">+<span class="aktifCevrimSayisi"></span></td>
+									<td class="cevrim"><span class="onceCevrimSayisi"></span> <span class="aktifCevrimSayisi-parent ek-bilgi">+<span class="aktifCevrimSayisi"></span></td>
 									<td class="topSaymaInd-parent sayma"><span class="topSaymaInd ind"></span> <span class="ek-bilgi">/</span> <span class="topSaymaSayisi topSayi"></span></td>
 								</tr></tbody>
 							</table>
@@ -427,22 +427,104 @@ class HatYonetimiPart extends Part {
 		const {selectedTezgahKodListe: kodListe} = this;
 		for (const tezgahKod of kodListe) { new MakineYonetimiPart({ tezgahKod }).run() }
 	}
-	makineDurumIstendi(e) {
-		const {selectedTezgahKodListe: kodListe} = this;
-		for (const tezgahKod of kodListe) { new MakineYonetimiPart({ tezgahKod }).run() }
+	tezgahTasiIstendi(e) {
+		const _recs = e.recs ?? this.selectedTezgahRecs; if (!_recs?.length) { return }
+		let exclude_hatKod; try {
+			for (const {hatKod} of _recs) {
+				if (exclude_hatKod && hatKod != exclude_hatKod) { throw { isError: true, errorText: `Taşınacak Tezgah(lar) <u class="bold">Aynı Hat üzerinde</u> olmalıdır` } }
+				if (!exclude_hatKod) { exclude_hatKod = hatKod }
+			}
+			let tekil = true, args = { exclude_hatKod, _recs }, title = `<b class="royalblue">${_recs.length} adet Tezgahı</b> <span class="darkgray">şu Hat'a taşı:</span>`;
+			return MQHat.listeEkraniAc({
+				tekil, args, title, secince: async e => {
+					const {sender} = e, {value: hatKod} = e, tezgahKodListe = sender._recs?.map(rec => rec.tezgahKod); if (!tezgahKodListe?.length) { return }
+					const upd = new MQIliskiliUpdate({
+						from: 'tekilmakina', where: { inDizi: tezgahKodListe, saha: 'kod' },
+						set: [{ degerAta: hatKod, saha: 'ismrkkod' }, `perkod = ''`]
+					});
+					try {
+						await app.sqlExecNone(upd); let promises = [];
+						for (const tezgahKod of tezgahKodListe) {
+							promises.push(app.wsSiradakiIsler({ tezgahKod }).then(isRecs => {
+								const isIdListe = isRecs.map(rec => rec.issayac).join(delimWS);
+								return isIdListe?.length ? app.wsSiradanKaldir({ tezgahKod, isIdListe }) : null
+							}))
+						}
+						await Promise.all(promises); this.tazele()
+					} catch (ex) { console.error(ex); hConfirm(getErrorText(ex)) }
+				}
+			})
+		}
+		catch (ex) { console.error(ex); hConfirm(getErrorText(ex)) }
 	}
 	siradakiIslerIstendi(e) { e.mfSinif = MQSiradakiIsler; return this.xIslerIstendi(e) }
 	bekleyenIslerIstendi(e) { e.tekil = true; e.mfSinif = MQBekleyenIsler; return this.xIslerIstendi(e) }
 	bekleyenIslerIstendi_hatBazinda(e) { e.hatBazinda = true; return this.bekleyenIslerIstendi(e) }
 	xIslerIstendi(e) {
 		const {mfSinif} = e, tekilmi = e.tekil ?? e.tekilmi, hatBazindami = e.hatBazinda ?? e.hatBazindami;
-		const {selectedTezgahKodListe: kodListe, tezgah2Rec} = this; for (const tezgahKod of kodListe) {
-			const {hatKod, hatAdi, tezgahAdi} = tezgah2Rec[tezgahKod] ?? {};
-			mfSinif.listeEkraniAc({ args: { hatKod, hatAdi, tezgahKod, tezgahAdi, hatBazindami }})
+		const recs = e.recs ?? this.selectedTezgahRecs;
+		for (const {hatKod, hatAdi, tezgahKod, tezgahAdi} of recs) { const args = { hatKod, hatAdi, tezgahKod, tezgahAdi }; mfSinif.listeEkraniAc({ args }) }
+	}
+	ekBilgiIstendi(e) {
+		const rec = this.selectedTezgahRecs[0]; if (rec) {
+			let {tezgahKod, tezgahAdi} = rec, wnd = createJQXWindow({
+				content: `<code><pre class="full-width bold" style="font-size: 110%; color: lightgreen !important; background: linear-gradient(270deg, #333 5%, #444 80%) !important; line-height: 22px !important">${toJSONStr(rec, ' ')}</pre></code>`,
+				title: `Tezgah Ham Verisi &nbsp;[<u class="bold ghostwhite">${tezgahKod}</u> - <span class="bold white">${tezgahAdi}</span>]`,
+				args: { isModal: false, width: Math.min(700, $(window).width() - 50), height: '97%' }
+			}); wnd.addClass('ekBilgi')
 		}
 	}
+	ozetBilgiGoster(e) {
+		let html = this.ozetBilgi_getLayout(e); if (!html) { return }
+		const {classKey} = this, wnd = createJQXWindow({
+			content: `<div class="full-width ozetBilgi-parent ozetBilgi">${html}</code></div>`,
+			title: `Özet Bilgi`, args: { isModal: false, width: Math.min(850, $(window).width() - 50), height: Math.min(500, $(window).height() - 50) }
+		}); wnd.addClass(`ozetBilgi ${classKey} masterListe part`); makeScrollable(wnd.find('.jqx-window-content'))
+	}
+	updateOzetBilgi(e) {
+		let html = this.ozetBilgi_getLayout(e); if (!html) { return }
+		let {classKey} = this, wndSelector = `.jqx-window.ozetBilgi.${classKey}`, wnd = $(wndSelector); if (!wnd.length) { return }
+		let layout = wnd.find('.jqx-window-content > .subContent > .ozetBilgi-parent'); if (!layout?.length) { return }
+		layout.html(html)
+	}
+	ozetBilgi_getLayout(e) {
+		const recs = e.recs ?? this.tezgahRecs; if (!recs) { return null }
+		const hat2Durum2Sayi = {}; let topMakineSayi = 0, topAktifSayi = 0, topPasifSayi = 0, topOffSayi = 0;
+		for (const {hatKod, sinyalKritik, durumKod} of recs) {
+			let hatText = hatKod; if (durumKod == 'DV') { durumKod = sinyalKritik ? 'APSF' : 'ZON' } else { durumKod = 'XOFF' }
+			let durum2Sayi = hat2Durum2Sayi[hatText]; if (durum2Sayi == null) { durum2Sayi = hat2Durum2Sayi[hatText] = {}; for (const key of ['ZON', 'APSF', 'XOFF']) { durum2Sayi[key] = 0 } }
+			durum2Sayi[durumKod] = (durum2Sayi[durumKod] || 0) + 1; topMakineSayi++;
+			if (durumKod == 'ZON') { topAktifSayi++ } else if (durumKod == 'APSF') { topPasifSayi++ } else { topOffSayi++ }
+		}
+		let textList = []; for (const [hat, durum2Sayi] of Object.entries(hat2Durum2Sayi)) {
+			let text = `<li class="item"><span class="etiket sub-item">${hat}:</span> `;
+			for (let durumKod of Object.keys(durum2Sayi).sort().reverse()) {
+				const sayi = durum2Sayi[durumKod], durumText = durumKod == 'ZON' ? 'ON' : durumKod == 'APSF' ? 'PSF' : 'OFF';
+				text += `<span class="sub-item ${durumKod == 'ZON' ? 'on' : durumKod == 'APSF' ? 'pasif' : 'off'}">[<span class="durum">${durumText} = </span><span class="sayi">${sayi}</span>]</span>`
+			}
+			text += `</li>`; textList.push(text)
+		}
+		let verimlilik = roundToFra(topAktifSayi / topMakineSayi * 100, 1); textList.push(
+			`<div class="ek-satirlar flex-row">
+				<li class="item">
+					<div><span class="etiket sub-item highlight">Top. Makine &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> <span class="sayi sub-item">${numberToString(topMakineSayi)}</span></div>
+					<div><span class="etiket sub-item highlight">Mak. Verimlilik </span> <span class="sayi sub-item">%${numberToString(verimlilik)}</span></div>
+				</li>
+				<li class="item">
+					<div class="on"><span class="etiket highlight sub-item">Aktif Makine</span> <span class="sayi sub-item">${numberToString(topAktifSayi)}</span></div>
+					<div class="off"><span class="etiket highlight sub-item">Off &nbsp;Makine </span> <span class="sayi sub-item">${numberToString(topOffSayi)}</span></div>
+					<div class="pasif"><span class="etiket highlight sub-item">Pasif Makine </span> <span class="sayi sub-item">${numberToString(topPasifSayi)}</span></div>
+				</li>
+			</div>`
+		)
+		return `<ul class="text ozetBilgi-container ozetBilgi">${textList?.length ? textList.join(' ') : ''}</ul>`
+	}
+	bekleyenIsEmirleriIstendi(e) {
+		const {hatKod} = (e.rec ?? this.selectedTezgahRecs[0]) ?? {}; if (!hatKod) { return }
+		let args = { hatKod }; MQBekleyenIsEmirleri.listeEkraniAc({ args })
+	}
 	tezgahMenuIstendi(e) {
-		const topluMenumu = e.id == 'tezgahMenu'; if (topluMenumu) { e.title = `Seçilen tezgah(lar) için:` }
+		const topluMenumu = e.id == 'tezgahMenu'; if (topluMenumu) { e.title = 'Seçilen tezgah(lar) için:' }
 		$.extend(e, { formDuzenleyici: _e => {
 			_e = { ...e, ..._e }; const {form, close} = _e; form.yanYana(2);
 			form.addButton('siradakiIsler', undefined, 'Sıradaki İşler').onClick(() => { close(); this.siradakiIslerIstendi(_e) });
