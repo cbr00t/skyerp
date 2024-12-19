@@ -301,10 +301,10 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		try { const _e = $.extend({ sender: e, tabloKolonlari: this.tabloKolonlari_detaylar, fisSinif: mfSinif }, e); return mfSinif.loadServerData_detaylar(_e) }
 		catch (ex) { console.error(ex); const errorText = getErrorText(ex); hConfirm(`<div style="color: firebrick;">${errorText}</div>`, 'Detay Grid Verisi Alınamadı') }
 	}
-	 async openContextMenu(e) {
-		const evt = e.event, gridPart = e.gridPart ?? e.sender ?? e.parentPart, gridWidget = gridPart.gridWidget, cells = gridWidget.getselectedcells();
-		const belirtec = gridPart.selectedBelirtec, parentRec = e.parentRec = e.parentRec ?? gridPart.selectedRec;
-		const recs = (e.recs ?? gridPart.getSubRecs(e))?.filter(rec => !!rec), rec = e.rec = (recs || [])[0]; /*if (!rec) { return null }*/
+	 static async openContextMenu(e) {
+		const evt = e.event, gridPart = e.gridPart ?? e.sender ?? e.parentPart, gridWidget = gridPart?.gridWidget, cells = gridWidget?.getselectedcells();
+		const belirtec = gridPart?.selectedBelirtec, parentRec = e.parentRec = e.parentRec ?? gridPart?.selectedRec;
+		const recs = (e.recs ?? gridPart?.getSubRecs(e))?.filter(rec => !!rec), rec = e.rec = (recs || [])[0]; /*if (!rec) { return null }*/
 		const title = e.title ?? 'Menü'; let wnd, wndContent = $(`<div class="full-wh"/>`);
 		const close = e => {
 			if (!wnd?.length) { return }
@@ -328,6 +328,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		rfb.run(); wnd.on('close', evt => { $('body').removeClass('bg-modal'); wnd.jqxWindow('destroy'); wnd = null }); $('body').addClass('bg-modal');
 		return e
 	}
+	async openContextMenu(e) { return this.class.openContextMenu(e) }
 	getColCount(e) {
 		e = e || {}; const mfSinif = this.getMFSinif(e), {paramGlobals} = mfSinif; let result = paramGlobals?.colCount;
 		if (!result) {

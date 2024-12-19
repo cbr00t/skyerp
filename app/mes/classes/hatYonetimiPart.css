@@ -4,20 +4,22 @@ body.dark-theme .hatYonetimi.part > .header { background: #eee !important }
 .hatYonetimi.part > .header .islemTuslari button { font-size: 95% }
 .hatYonetimi.part .content {
 	 --padding-x: 0px; --padding-y: 0px;
-	width: calc(var(--full) - var(--padding-x) * 2); height: calc(var(--full) - (var(--header-height) + var(--padding-y) * 2 + 5px));
+	width: calc(var(--full) - var(--padding-x) * 2); height: calc(var(--full) - (var(--header-height) + var(--padding-y) * 2 + 5px)) !important;
 	padding: var(--padding-y) var(--padding-x); overflow-y: auto !important
 }
 .hatYonetimi.part .content .liste { --padding-x: 3px; --padding-y: 5px; font-size: 73%; background-color: #ddd; padding-bottom: 300px }
 body.dark-theme .hatYonetimi.part .content .liste { background-color: #eee }
-.hatYonetimi.part .content .liste .hat.item { margin-bottom: 15px }
+.hatYonetimi.part .content .liste .hat.item, .hatYonetimi.part .content .liste .tezgah.item { position: relative }
+.hatYonetimi.part .content .liste .hat.item { width: var(--full); margin-bottom: 15px }
 .hatYonetimi.part .content .liste .hat.item > .grup { font-weight: bold; font-size: 160%; color: whitesmoke; background: #333 !important; height: 50px; padding: 5px 10px }
 body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup { filter: invert(1) hue-rotate(180deg); color: #aaa; background: #222 }
 body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:hover,
 	body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:focus { opacity: .8 }
 .hatYonetimi.part .content .liste .tezgahlar {}
 .hatYonetimi.part .content .liste .tezgah.item {
-	--sol-width: 40px; width: calc(var(--full) / var(--box-cols) - /*(var(--padding-x) * 2.9)*/ 1px); height: calc(15px + 10px * var(--box-rows)); line-height: 15px;
-	border: 1px solid #b3b3b3; padding: var(--padding-y) var(--padding-x); box-sizing: border-box
+	--sol-width: 40px; --alt-height: 33px;
+	width: calc(var(--full) / var(--box-cols) - /*(var(--padding-x) * 2.9)*/ 1px); height: calc(15px + 10px * var(--box-rows)); line-height: 15px;
+	border: 1px solid #b3b3b3; padding: var(--padding-y) var(--padding-x); padding-bottom: 0 !important; box-sizing: border-box; overflow: hidden
 }
 .hatYonetimi.part .content .liste .tezgah.item .sol { width: var(--sol-width) }
 .hatYonetimi.part .content .liste .tezgah.item .sag { width: calc(var(--full) - var(--sol-width)) }
@@ -28,7 +30,7 @@ body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:hover,
 .hatYonetimi.part .content .liste .tezgah.item.selected { background-color: #4169e133 }
 .hatYonetimi.part .content .liste .item .kod { font-weight: bold; color: #888 }
 .hatYonetimi.part .content .liste .item .etiket { color: #aaa }
-.hatYonetimi.part .content .liste .hat.item > .grup, .hatYonetimi.part .content .liste .tezgah.item { cursor: pointer; overflow-y: auto !important }
+.hatYonetimi.part .content .liste .hat.item > .grup, .hatYonetimi.part .content .liste .tezgah.item { cursor: pointer }
 .hatYonetimi.part .content .liste .hat.item.toggled > .grup { max-height: 40px !important }
 .hatYonetimi.part .content .liste .hat.item.toggled > .grup > .title * { color: #555 !important }
 .hatYonetimi.part .content .liste .hat.item.toggled > .tezgahlar { display: none !important }
@@ -41,20 +43,20 @@ body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:hover,
 	overflow-y: auto; animation: 250ms cubic-bezier(0.1, 0, 1, 1) 0ms infinite normal ekBilgi-bg; cursor: pointer
 }
 .hatYonetimi.part .content .liste .tezgah.item .zamanEtuduText { font-weight: bold; font-size: 120%; color: forestgreen; top: -3px; left: 13px; padding: 3px 3px; border: 3px solid limegreen }
-.hatYonetimi.part .content .liste .tezgah.item .isListe { height: 55px; z-index: 4 }
+.hatYonetimi.part .content .liste .tezgah.item .isListe { height: 55px; z-index: 4; font-size: 95% }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * { width: var(--full); height: var(--full); border: 1px dotted #dcdcdc; padding: 3px 0 0 15px !important; overflow-y: hidden !important }
 .hatYonetimi.part .content .liste .tezgah.item.selected .isListe > * { border: 1px solid #999; overflow-y: overlay !important }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li { font-size: 75% !important; color: #333; line-height: 13px; margin: 0; padding: 0; margin-block-end: 5px; margin-bottom: -40px }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li:not(:last-child) { box-sizing: border-box }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .item { vertical-align: top !important }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .flex-row > .item { width: unset; min-width: 30px; max-width: 110px; white-space: pre-wrap !important }
-.hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .flex-row > .item:not(:last-child) { padding-right: 5px }
+.hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .flex-row > .item:not(:last-child) { padding-right: 3px }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li:hover, .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li:focus { cursor: default; background-color: #eaedf6 !important }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .kod { font-weight: bold; color: slateblue }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .aciklama { }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .color.item { min-width: unset !important; width: 3px !important; height: 40px; margin: 0 3px }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .emir.item { min-width: unset !important; max-width: 80px !important }
-.hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .saymaSayilari, .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .sureler { top: -28px }
+.hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .saymaSayilari, .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .sureler { position: relative; top: -28px }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .saymaSayilari.item { text-align: right; max-width: 60px !important }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .saymaSayilari.item > * { font-weight: bold; font-size: 100%; color: mediumvioletred }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .sureler.item { text-align: right; max-width: 80px !important }
@@ -62,20 +64,32 @@ body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:hover,
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .sureler.item .ek-bilgi { font-weight: normal; color: #333 }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .sureler.item > .basZamanTS { color: rebeccapurple }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .sureler.item > .ayrilmaSure { color: orangered }
+.hatYonetimi.part .content .liste .tezgah.item .miktarVeGSC > div { width: var(--full) !important }
 .hatYonetimi.part .content .liste .tezgah.item .miktarVeGSC > * > * { width: max-content !important }
-.hatYonetimi.part .content .liste .tezgah.item .miktarVeGSC > *> *:not(:last-child) { margin-inline-end: 13px }
-.hatYonetimi.part .content .liste .tezgah.item .miktarVeGSC th, .hatYonetimi.part .content .liste .tezgah.item .miktarVeGSC td { text-align: right; padding: 0 8px; border: 1px dotted #ddd }
+.hatYonetimi.part .content .liste .tezgah.item .miktarVeGSC > *> *:not(:last-child) { }
+.hatYonetimi.part .content .liste .tezgah.item .miktarVeGSC th, .hatYonetimi.part .content .liste .tezgah.item .miktarVeGSC { margin-top: 8px }
+.hatYonetimi.part .content .liste .tezgah.item .miktarVeGSC th, .hatYonetimi.part .content .liste .tezgah.item .miktarVeGSC td { text-align: right; padding: 0 5px; border: 1px dotted #ddd }
 .hatYonetimi.part .content .liste .tezgah.item .miktarVeGSC tr > * { font-weight: bold }
 .hatYonetimi.part .content .liste .tezgah.item .miktarVeGSC th { color: #333 }
 .hatYonetimi.part .content .liste .tezgah.item .miktarVeGSC td { color: royalblue }
 .hatYonetimi.part .content .liste .tezgah.item .miktarVeGSC td.net { font-size: 120%; font-weight: bold; color: forestgreen }
-.hatYonetimi.part .content .liste .tezgah.item .aktifIsSayi { font-size: 120%; font-weight: bold; text-align: right; position: absolute; top: 20px; right: 13px; margin-left: 5px }
-.hatYonetimi.part .content .liste .tezgah.item .aktifIsSayi > .veri { color: lightseagreen !important; margin-right: 3px }
-.hatYonetimi.part .content .liste .tezgah.item .alt { font-size: 230%; font-weight: bold; color: #ddd; background-color: #333 }
+.hatYonetimi.part .content .liste .tezgah.item .aktifIsSayi-parent { font-size: 120%; color: #333; position: absolute; right: 20px /* text-align: right; position: absolute; top: 20px; right: 13px; margin-left: 5px*/ }
+.hatYonetimi.part .content .liste .tezgah.item .aktifIsSayi { font-weight: bold; color: orangered !important }
+.hatYonetimi.part .content .liste .tezgah.item .grafik-parent { position: absolute; margin-top: -3px; right: 10px; opacity: .5; height: 50px !important; overflow-y: clip }
+.hatYonetimi.part .content .liste .tezgah.item .grafik-parent > * { }
+.hatYonetimi.part .content .liste .tezgah.item .butonlar.part > .sag > button:nth-last-child(2) { margin-left: unset }
+.hatYonetimi.part .content .liste .tezgah.item .ust { position: relative; height: calc(var(--full) - (var(--alt-height) + var(--padding-y))); overflow-y: auto }
+.hatYonetimi.part .content .liste .tezgah.item .alt {
+	--sag-width: 90px; font-size: 230%; font-weight: bold; color: #ddd; background-color: #222;
+	position: relative; width: var(--full); height: var(--alt-height); bottom: -5px !important
+}
+body.dark-theme .hatYonetimi.part .content .liste .tezgah.item .alt { filter: invert(1) hue-rotate(180deg) }
+.hatYonetimi.part .content .liste .tezgah.item .alt .sol { width: calc(var(--full) - var(--sag-width)) !important }
+.hatYonetimi.part .content .liste .tezgah.item .alt .sag { width: var(--sag-width) !important }
 .hatYonetimi.part .content .liste .tezgah.item .alt button { font-size: 50% !important }
 .hatYonetimi.part .content .liste .tezgah.item.jqx-grid-cell-selected .alt { filter: contrast(.8) }
-.hatYonetimi.part .content .liste .tezgah.item .alt .durumText { padding: 15px 13px; color: unset }
-.hatYonetimi.part .content .liste .tezgah.item .alt .nedenText { font-size: 50%; top: -3px; left: -8px; color: #eca !important }
+.hatYonetimi.part .content .liste .tezgah.item .alt .sol { position: relative; top: 6px; left: 3px; color: unset }
+.hatYonetimi.part .content .liste .tezgah.item .alt .nedenText { font-size: 50%; top: -3px; left: 0px; color: #eca !important }
 [data-durum = 'DV'] { color: lightgreen !important; box-shadow: 3px 3px 8px 5px lightgreen }
 [data-durum = 'DR'] { color: #dec8bf !important; box-shadow: 5px 5px 8px 5px #ed8562 }
 [data-durum = 'AT'] { color: #978ae6 !important; box-shadow: 8px 8px 13px 8px #978ae6 }
@@ -91,10 +105,6 @@ body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:hover,
 @keyframes sinyal-kritik-bg { 50% { background-color: #24400f } }
 @keyframes duraksama-kritik-bg { 50% { background-color: #853021 } }
 @keyframes ekBilgi-bg { 50% { background-color: #712e0e } }
-.hatYonetimi.part .content .liste .tezgah.item .grafik-parent { position: absolute; margin-top: -3px; right: 10px; opacity: .5; height: 50px !important; overflow-y: clip }
-.hatYonetimi.part .content .liste .tezgah.item .grafik-parent > * { }
-.hatYonetimi.part .content .liste .tezgah.item.jqx-grid-cell-selected .grafik-parent { opacity: 1 }
-.hatYonetimi.part .butonlar.part > .sag > button:nth-last-child(2) { margin-left: unset }
 
 .ozetBilgi.jqx-window .jqx-window-content { background: linear-gradient(90deg, #1a1a1a 5%, #222 80%) !important }
 body.dark-theme .ozetBilgi.jqx-window .jqx-window-content { filter: invert(1) hue-rotate(180deg) }

@@ -4,7 +4,7 @@ class HatYonetimiPart extends Part {
 	get boxSize() {
 		let result = this._boxSize; if (!result) {
 			const {globals} = this;
-			result = this._boxSize = globals.boxSize = globals.boxSize ?? { rows: 15, cols: 5 }
+			result = this._boxSize = globals.boxSize = globals.boxSize ?? { rows: 23, cols: 4 }
 		}
 		return result
 	}
@@ -131,6 +131,7 @@ class HatYonetimiPart extends Part {
 				const styles_bgImg_size = styles_bgImg_url.map(x => 'contain'), styles_bgImg = [`background: ${styles_bgImg_url.join(', ')}`, `background-size: ${styles_bgImg_size.join(', ')}`];
 				/* styles_bgImg.push(`mix-blend-mode: difference`) */
 				rec.grupText = `<div class="grid-cell-group" style="${styles_bgImg.join('; ')}"><div style="mix-blend-mode: plus-lighter"><b>(${rec.hatKod})</b> ${rec.hatAdi}</div></div>`
+				rec.aktifIsSayi = rec.isListe?.length
 			}
 		}
 		if (!basitmi) {
@@ -146,69 +147,12 @@ class HatYonetimiPart extends Part {
 	createLayout(e) {
 		e = e ?? {}; const {hat2Sev: hat2Sev, divListe} = this; if (!hat2Sev) { return this }
 		let lastSelection = this._lastSelection = this.selectedTezgahKodListe;
-		let parent = $(document.createDocumentFragment()); for (const {hatKod, hatAdi, grupText, detaylar} of Object.values(hat2Sev)) {
-			let itemHat = $(
-				`<div class="hat item full-width" data-id="${hatKod}"">
-					<div class="grup">
-						<div class="title">(<span class="hatKod kod">${hatKod}</span>) <span class="hatAdi aciklama">${hatAdi}</span></div>
-					</div>
-					<div class="tezgahlar full-width flex-row"></div>
-				</div>`), itemTezgahlar = itemHat.children('.tezgahlar');
-			for (const rec of detaylar) {
-				let {tezgahKod} = rec, itemTezgah = $(
-					`<div class="tezgah item" data-id="${tezgahKod}">
-						<div class="flex-row">
-							<div class="sol parent">
-								<div class="sub-item"><button id="tezgah" aria-disabled="true">TEZ</button></div>
-								<div class="sub-item"><button id="personel">PER</button></div>
-							</div>
-							<div class="sag parent">
-								<div class="tezgah-parent sub-item parent flex-row">
-									<div class="ka">
-										(<span class="tezgahKod kod veri"></span>)
-										<span class="tezgahAdi aciklama veri"></span>
-									</div>
-									<div class="ip-parent parent">
-										<span class="etiket">IP</span>
-										<span class="ip veri"></span>
-									</div>
-									<div class="siradakiIsSayi-parent parent">
-										<span class="etiket">+</span>
-										<span class="siradakiIsSayi veri"></span>
-									</div>
-									<div class="ekBilgi-parent parent">
-										<button class="sil etiket"></button>
-										<span class="ekBilgi veri"></span>
-									</div>
-									<div class="zamanEtuduVarmi-parent parent">
-										<span class="zamanEtuduText veri">Zmn.</span>
-									</div>
-								</div>
-								<div class="per-parent sub-item parent flex-row">
-									<div class="ka">
-										(<span class="perKod kod veri"></span>)
-										<span class="perIsim aciklama veri"></span>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="isBilgi-parent"></div>
-					</div>`
-				); itemTezgah.appendTo(itemTezgahlar)
-			} itemHat.appendTo(parent)
+		let parent = $(document.createDocumentFragment()); for (const sev of Object.values(hat2Sev)) {
+			let itemHat = this.class.getLayout_hat(sev), itemTezgahlar = itemHat?.children('.tezgahlar'); if (!itemTezgahlar?.length) { continue }
+			for (const rec of sev.detaylar) { let itemTezgah = this.class.getLayout_tezgah(rec); itemTezgah.appendTo(itemTezgahlar) }
+			itemHat.appendTo(parent)
 		}
-		divListe.children().remove(); parent.appendTo(divListe);
-		divListe.find('.hat.item > .grup').on('click', ({ currentTarget: target }) => $(target).parent().toggleClass('toggled'));
-		divListe.find('.hat.item > .tezgahlar > .tezgah.item').on('click', evt => {
-			const { target: innerTarget, currentTarget: target } = evt, {id} = target.dataset, $target = $(target), cssClass = 'selected';
-			if ($target.hasClass(cssClass)) { const tagName = innerTarget.tagName.toLowerCase(); if (!(tagName == 'input' || tagName == 'button')) { $target.removeClass(cssClass) } }
-			else { $target.toggleClass(cssClass) }
-			if (!this.cokluSecimmi) { divListe.find(`.hat.item > .tezgahlar > .tezgah.item.${cssClass}:not([data-id = "${id}"])`).removeClass(cssClass) }
-		});
-		divListe.find('button').jqxButton({ theme }).on('click', evt => { 
-			let cssClass = 'selected'; divListe.find(`.hat.item > .tezgahlar > .tezgah.item.${cssClass}`).removeClass(cssClass);
-			$(evt.currentTarget).parents('.tezgah.item').addClass(cssClass); this.tezgahButonTiklandi({ ...e, id: evt.currentTarget.id, evt })
-		});
+		divListe.children().remove(); parent.appendTo(divListe); this.initLayoutEvents({ divListe });
 		makeScrollable(this.subContent);
 		if (lastSelection?.length) {
 			const cssClass = 'selected'; divListe.find(`.hat.item > .tezgahlar > .tezgah.item.selected`).removeClass(cssClass);
@@ -233,11 +177,112 @@ class HatYonetimiPart extends Part {
 				let {tezgahKod, isListe} = rec, topSaymaInd = 0, topSaymaSayisi = 0;
 				for (const is of isListe) { topSaymaInd += (is.isSaymaInd || 0); topSaymaSayisi += (is.isSaymaSayisi || 0) }
 				let itemTezgah = itemHat.find(`.tezgah.item[data-id = "${tezgahKod}"]`); if (!itemTezgah.length) { continue }
-				setHTMLValues(itemTezgah, rec, 'tezgahKod', 'tezgahAdi', 'ip', 'siradakiIsSayi', 'ekBilgi', 'zamanEtuduVarmi', 'perKod', 'perIsim')
+				setHTMLValues(itemTezgah, rec,
+					'tezgahKod', 'tezgahAdi', 'ip', 'siradakiIsSayi', 'ekBilgi', 'zamanEtuduVarmi', 'perKod', 'perIsim',
+					'emirMiktar', 'onceUretMiktar', 'aktifUretMiktar', 'isIskMiktar', 'isNetMiktar',
+					'onceCevrimSayisi', 'aktifCevrimSayisi', 'topSaymaInd', 'topSaymaSayisi', 'aktifIsSayi',
+					'durumAdi', 'durNedenAdi'
+				);
 				itemTezgah.find('.isBilgi-parent').html(this.class.getLayout_isBilgileri(rec))
  			}
 		}
 		return this
+	}
+	static getLayout_hat(e) {
+		let rec = e?.sev ?? e?.rec ?? e ?? {}, {hatKod, hatAdi, detaylar} = rec; return $(
+			`<div class="hat item full-width" data-id="${hatKod}"">
+				<div class="grup">
+					<div class="title">(<span class="hatKod kod">${hatKod}</span>) <span class="hatAdi aciklama">${hatAdi}</span></div>
+				</div>
+				<div class="tezgahlar full-width flex-row"></div>
+			</div>`
+		)
+	}
+	static getLayout_tezgah(e) {
+		let rec = e?.rec ?? e ?? {}, {tezgahKod} = rec; return $(
+			`<div class="tezgah item" data-id="${tezgahKod}">
+				<div class="ust ust-alt full-width">
+					<div class="flex-row full-width">
+						<div class="sol parent">
+							<div class="sub-item"><button id="tezgah" aria-disabled="true">TEZ</button></div>
+							<div class="sub-item"><button id="personel">PER</button></div>
+						</div>
+						<div class="sag parent">
+							<div class="tezgah-parent sub-item parent flex-row">
+								<div class="ka">
+									(<span class="tezgahKod kod veri"></span>)
+									<span class="tezgahAdi aciklama veri"></span>
+								</div>
+								<div class="ip-parent parent">
+									<span class="etiket">IP</span>
+									<span class="ip veri"></span>
+								</div>
+								<div class="siradakiIsSayi-parent parent">
+									<span class="etiket">+</span>
+									<span class="siradakiIsSayi veri"></span>
+								</div>
+								<div class="ekBilgi-parent parent">
+									<button class="sil etiket"></button>
+									<span class="ekBilgi veri"></span>
+								</div>
+								<div class="zamanEtuduVarmi-parent parent">
+									<span class="zamanEtuduText veri">Zmn.</span>
+								</div>
+							</div>
+							<div class="per-parent sub-item parent flex-row">
+								<div class="ka">
+									(<span class="perKod kod veri"></span>)
+									<span class="perIsim aciklama veri"></span>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="isBilgi-parent"></div>
+					<div class="miktarVeGSC parent">
+						<div class="flex-row">
+							<table class="miktar item">
+								<thead><tr>
+									<th class="emir">Emir</th>
+									<th class="uret">Üret</th>
+									<th class="isk">Isk</th>
+									<th class="net">Net</th>
+								</tr></thead>
+								<tbody><tr>
+									<td class="emir"><span class="emirMiktar"></span></td>
+									<td class="uret"><span class="onceUretMiktar"></span> <span class="aktifUretMiktar-parent ek-bilgi">+<span class="aktifUretMiktar"></span></span></td>
+									<td class="isk"><span class="isIskMiktar"></span></td>
+									<td class="net"><span class="isNetMiktar"></span></td>
+								</tr></tbody>
+							</table>
+							<table class="gsc item">
+								<thead><tr>
+									<th class="cevrim">Çevrim</th>
+									<th class="sayma">Sayma</th>
+								</tr></thead>
+								<tbody><tr>
+									<td class="cevrim"><span class="onceCevrimSayisi"> <span class="aktifCevrimSayisi-parent ek-bilgi">+<span class="aktifCevrimSayisi"></span></td>
+									<td class="topSaymaInd-parent sayma"><span class="topSaymaInd ind"></span> <span class="ek-bilgi">/</span> <span class="topSaymaSayisi topSayi"></span></td>
+								</tr></tbody>
+							</table>
+							<div class="aktifIsSayi-parent item"><span class="aktifIsSayi"></span><span class="ek-bilgi"> iş</span></div>
+						</div>
+					</div>
+					<div class="grafik-parent parent"></div>
+				</div>
+				<div class="alt ust-alt flex-row full-width">
+					<div class="flex-row parent full-width">
+						<div class="sol item">
+							<span class="durumAdi durumText veri full-wh"></span>
+							<span class="durNedenAdi nedenText sub-item"></span>
+						</div>
+						<div class="sag item">
+							<button id="makineDurum">MAK</button>
+							<button id="tezgahMenu">...</button>
+						</div>
+					</div>
+				</div>
+			</div>`
+		)
 	}
 	static getLayout_isBilgileri(e) {
 		e = e ?? {}; const _now = now(), rec = e.rec ?? e.inst ?? e, isListe = rec.isListe ?? [], isBilgiItems = [], {sinyalKritik, maxAyrilmaDk} = rec;
@@ -282,6 +327,20 @@ class HatYonetimiPart extends Part {
 		const isListe = $.isArray(e) ? e : e?.isListe; let part = new GaugeGrafikPart(e);
 		return isListe.map(is => part.setValue(is.oee || 0).asHTMLWithIcrement()).join('')
 	}
+	initLayoutEvents(e) {
+		const {divListe} = e; divListe.find('.hat.item > .grup').on('click', ({ currentTarget: target }) => $(target).parent().toggleClass('toggled'));
+		divListe.find('.hat.item > .tezgahlar > .tezgah.item').on('click', evt => {
+			const { target: innerTarget, currentTarget: target } = evt, {id} = target.dataset, $target = $(target), cssClass = 'selected';
+			if ($target.hasClass(cssClass)) { const tagName = innerTarget.tagName.toLowerCase(); if (!(tagName == 'input' || tagName == 'button')) { $target.removeClass(cssClass) } }
+			else { $target.toggleClass(cssClass) }
+			if (!this.cokluSecimmi) { divListe.find(`.hat.item > .tezgahlar > .tezgah.item.${cssClass}:not([data-id = "${id}"])`).removeClass(cssClass) }
+		});
+		divListe.find('button').jqxButton({ theme }).on('click', evt => { 
+			let cssClass = 'selected'; divListe.find(`.hat.item > .tezgahlar > .tezgah.item.${cssClass}`).removeClass(cssClass);
+			$(evt.currentTarget).parents('.tezgah.item').addClass(cssClass); this.tezgahButonTiklandi({ ...e, id: evt.currentTarget.id, evt })
+		});
+		return this
+	}
 	boyutlandirIstendi(e) {
 		let {boxSize: box} = this, title = 'Boyut Ayarları', wnd, keys = ['rows', 'cols'];
 		let content = $(
@@ -312,17 +371,20 @@ class HatYonetimiPart extends Part {
 		content = wnd.find('div > .content > .subContent'); rfb.run();
 		wnd.on('close', evt => { $('body').removeClass('bg-modal'); wnd.jqxWindow('destroy'); wnd = null /* updateMQUI()*/ }); $('body').addClass('bg-modal')
 	}
-	tezgahButonTiklandi(e) { const {id, evt} = e; switch (id) { case 'personel': this.personelSecIstendi(e); break } }
-	tblOEMBilgileri_butonTiklandi(e) {
-		const {id, event: evt} = e, target = evt?.currentTarget; switch (id) {
-			case 'isAtaKaldir': case 'siradakiIsler': this.isAtaKaldirIstendi(e); break
-			case 'personelSec': this.personelSecIstendi(e); break
-			case 'baslatDurdur': this.baslatDurdurIstendi(e); break
-			case 'gerceklemeYap': this.gerceklemeYapIstendi(e); break
-			case 'saymaYap': this.saymaYapIstendi(e); break
-			case 'cevrimYap': this.cevrimYapIstendi(e); break
-			case 'iptal': this.iptalIstendi(e); break
-			case 'isBitti': this.isBittiIstendi(e); break
+	tezgahButonTiklandi(e) {
+		const {id, evt} = e; switch (id) {
+			case 'tezgahMenu': this.tezgahMenuIstendi(e); break
+			case 'personelSec': this.personelSecIstendi(e); break;
+			case 'makineDurum': this.makineDurumIstendi(e); break;
+			case 'topluX': this.topluXMenuIstendi(e); break;
+			case 'bekleyenIsEmirleri': this.bekleyenIsEmirleriIstendi(e); break;
+			case 'hatBekleyenIsler': this.bekleyenIslerIstendi_hatBazinda(e); break;
+			case 'notlar': this.ekNotlarIstendi(e); break;
+			case 'notEkle': this.ekNotEkleIstendi(e); break;
+			case 'dokumanYukle': this.dokumanYukleIstendi(e); break;
+			case 'dokumanSil': this.dokumanSilIstendi(e); break;
+			case 'ekBilgiSil': this.ekBilgiSilItendi(e); break;
+			default: eConfirm(`<b>${visibleindex + 1}. satırdaki</b> ve <b>${tezgahAdi}</b> tezgahına ait <b>${id}</b> id'li butona tıklandı`)
 		}
 	}
 	siradakiIslerIstendi(e) {
@@ -360,6 +422,67 @@ class HatYonetimiPart extends Part {
 				try { await app.wsPersonelAta({ tezgahKod: kodListe.join(delimWS), perKod }); this.tazeleBasit() } catch (ex) { hConfirm(getErrorText(ex)) }
 			}
 		})
+	}
+	makineDurumIstendi(e) {
+		const {selectedTezgahKodListe: kodListe} = this;
+		for (const tezgahKod of kodListe) { new MakineYonetimiPart({ tezgahKod }).run() }
+	}
+	makineDurumIstendi(e) {
+		const {selectedTezgahKodListe: kodListe} = this;
+		for (const tezgahKod of kodListe) { new MakineYonetimiPart({ tezgahKod }).run() }
+	}
+	siradakiIslerIstendi(e) { e.mfSinif = MQSiradakiIsler; return this.xIslerIstendi(e) }
+	bekleyenIslerIstendi(e) { e.tekil = true; e.mfSinif = MQBekleyenIsler; return this.xIslerIstendi(e) }
+	bekleyenIslerIstendi_hatBazinda(e) { e.hatBazinda = true; return this.bekleyenIslerIstendi(e) }
+	xIslerIstendi(e) {
+		const {mfSinif} = e, tekilmi = e.tekil ?? e.tekilmi, hatBazindami = e.hatBazinda ?? e.hatBazindami;
+		const {selectedTezgahKodListe: kodListe, tezgah2Rec} = this; for (const tezgahKod of kodListe) {
+			const {hatKod, hatAdi, tezgahAdi} = tezgah2Rec[tezgahKod] ?? {};
+			mfSinif.listeEkraniAc({ args: { hatKod, hatAdi, tezgahKod, tezgahAdi, hatBazindami }})
+		}
+	}
+	tezgahMenuIstendi(e) {
+		const topluMenumu = e.id == 'tezgahMenu'; if (topluMenumu) { e.title = `Seçilen tezgah(lar) için:` }
+		$.extend(e, { formDuzenleyici: _e => {
+			_e = { ...e, ..._e }; const {form, close} = _e; form.yanYana(2);
+			form.addButton('siradakiIsler', undefined, 'Sıradaki İşler').onClick(() => { close(); this.siradakiIslerIstendi(_e) });
+			form.addButton('bekleyenIsler', undefined, 'Bekleyen İşler').onClick(() => { close(); this.bekleyenIslerIstendi(_e) });
+			if (topluMenumu) {
+				form.addButton('makineDurum', undefined, 'Makine Durum').onClick(() => { close(); this.makineDurumIstendi(_e) })
+				/*form.addButton('personelSec', undefined, 'Personel Ata').onClick(() => { close(); this.personelSecIstendi(_e) })*/
+			}
+			form.addButton('tezgahTasi', undefined, 'Tezgah Taşı').onClick(() => { close(); this.tezgahTasiIstendi(_e) });
+			form.addButton('ekBilgi', undefined, 'Ek Bilgi').onClick(() => { close(); this.ekBilgiIstendi(_e) })
+		} }); this.openContextMenu(e)
+	}
+	bekleyenXMenuIstendi(e) {
+		$.extend(e, { formDuzenleyici: _e => {
+			_e = { ...e, ..._e }; const {form, close} = _e; form.yanYana(2);
+			form.addButton('isEmirleri', undefined, 'İş Emirleri').onClick(() => { close(); this.bekleyenIsEmirleriIstendi(_e) });
+			form.addButton('hatBekleyenIsler', undefined, 'Bekleyen İşler (HAT)').onClick(() => { close(); _e.hatBazinda = true; this.bekleyenIslerIstendi_hatBazinda(_e) })
+		} }); this.openContextMenu(e)
+	}
+	topluXMenuIstendi(e) {
+		e = e || {}; const {selectedTezgahRecs: recs} = e, rec = recs?.[0], {sabitHatKodVarmi} = app, hatKod = e.hatKod = e.hatKod ?? rec?.hatKod;
+		$.extend(e, { noCheck: true, formDuzenleyici: _e => {
+			_e = { ...e, ..._e }; const {form, close} = _e; form.yanYana(2);
+			form.addButton('mola', undefined, 'Mola').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
+			form.addButton('vardiyaDegisimi', undefined, 'Vardiya Değişimi').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
+			if (!sabitHatKodVarmi || hatKod) {
+				if (config.dev) { form.addButton('devam', undefined, 'Toplu Devam').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) }) }
+				form.addButton('isBitti', undefined, 'İş Bitti').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
+				form.addButton('gerceklemeYap', undefined, 'Gerçekleme Yap').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
+				form.addButton('zamanEtuduBaslat', undefined, 'Zaman Etüdü Başlat').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
+				form.addButton('zamanEtuduKapat', undefined, 'Zaman Etüdü Kapat').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) })
+			}
+			/*form.addButton('topluEkNotlar', undefined, 'Tüm Notlar').onClick(e => { close(); this.ekNotlarIstendi($.extend({}, _e, e, { id: e.builder.id, hepsi: true })) })
+			form.addButton('ozetBilgi', undefined, 'Özet Bilgi').onClick(e => { close(); this.ozetBilgiGoster($.extend({}, _e, e, { id: e.builder.id })) })*/
+		} }); this.openContextMenu(e)
+	}
+	openContextMenu(e) {
+		let noCheckFlag = e.noCheck ?? e.noCheckFlag, {title} = e, recs = e.recs ?? this.selectedTezgahRecs, rec = recs?.[0]; if (!(noCheckFlag || rec)) { return }
+		title = e.title = title ?? `<b class="cyan">(${rec?.tezgahKod || ''})</b> ${rec?.tezgahAdi || ''}${recs?.length > 1 ? ` <b class="cadetblue">(+ ${recs.length - 1})</b>` : ''}`;
+		return MFListeOrtakPart.openContextMenu(e)
 	}
 	tekil() { this.cokluSecimmi = false; return this } coklu() { this.cokluSecimmi = true; return this }
 }

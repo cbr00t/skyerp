@@ -565,7 +565,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 						</div>
 					</div>
 				</div>
-				<div class="grafikler"><div class="grafik-parent parent">${this.getLayout_grafikler({ width: 100, isListe })}</div></div>
+				<div class="grafik-parent parent">${this.getLayout_grafikler({ width: 100, isListe })}</div>
 			</div>
 			<div class="alt ust-alt flex-row${sinyalKritik ? ' sinyal-kritik' : ''}${duraksamaKritik && kritikDurNedenmi ? ' duraksama-kritik' : ''}${kritikDurNedenmi ? ' kritik-durNeden' : ''}" data-durum="${durumKod}">
 				<table class="parent"><tbody><tr>
