@@ -25,9 +25,14 @@ class MQStok extends MQKA {
 		sent.fromIliski(`stkanagrup agrp`, `grp.anagrupkod = agrp.kod`);
 		sent.fromIliski(`stkistgrup sigrp`, `${aliasVeNokta}sistgrupkod = sigrp.kod`);
 		sent.fromIliski(`stkistanagrup siagrp`, `sigrp.sanagrupkod = siagrp.kod`);
-		sent.leftJoin({ alias, from: `stkmensei men`, on: `${aliasVeNokta}menseikod = men.kod` });
+		sent.fromIliski(`stkmensei men`, `${aliasVeNokta}menseikod = men.kod`);
 		sent.fromIliski(`stkgtip gtip`, `${aliasVeNokta}gtipkod = gtip.kod`);
-		sent.fromIliski(`yukgrup ygrp`, `${aliasVeNokta}yukgrupkod = ygrp.kod`)
+		sent.fromIliski('stkyer yer', `${aliasVeNokta}tavsiyeyerkod = yer.kod`);
+		sent.fromIliski('vergihesap sver', `${aliasVeNokta}satkdvhesapkod = sver.kod`);
+		sent.fromIliski('vergihesap aver', `${aliasVeNokta}almkdvhesapkod = aver.kod`);
+		sent.fromIliski('vergihesap asver', `${aliasVeNokta}almstopajhesapkod = asver.kod`);
+		sent.leftJoin({ alias, from: `yukgrup ygrp`, on: `${aliasVeNokta}yukgrupkod = ygrp.kod` });
+		sent.sahalar.add(`${aliasVeNokta}calismadurumu`, `${aliasVeNokta}satilamazfl`)
 	}
 	static getGridKolonGrup_brmli(e) {
 		const kolonGrup = this.getGridKolonGrup(e); if (!kolonGrup) { return kolonGrup }
@@ -247,17 +252,6 @@ class MQStokDiger extends MQStokAlt {
 			new GridKolon({ belirtec: 'tevkifatdanmuaftir', text: 'Tevfikatdan Muafdır', genislikCh: 5 }).tipBool(),
 			new GridKolon({ belirtec: 'uretdepkod', text: 'Mal Departman', genislikCh: 8 })
 		)
-	}
-	static loadServerData_queryDuzenle(e) {
-		const {aliasVeNokta} = this.mfSinif, {sent} = e;
-		sent.fromIliski('stkgrup grp', `${aliasVeNokta}grupkod = grp.kod`);
-		sent.fromIliski('stkanagrup agrp', 'grp.anagrupkod = grp.kod');
-		sent.fromIliski('stkistgrup sigrp', `${aliasVeNokta}sistgrupkod = sigrp.kod`);
-		sent.fromIliski('stkyer yer', `${aliasVeNokta}tavsiyeyerkod = yer.kod`);
-		sent.fromIliski('vergihesap sver', `${aliasVeNokta}satkdvhesapkod = sver.kod`);
-		sent.fromIliski('vergihesap aver', `${aliasVeNokta}almkdvhesapkod = aver.kod`);
-		sent.fromIliski('vergihesap asver', `${aliasVeNokta}almstopajhesapkod = asver.kod`);
-		sent.sahalar.add(`${aliasVeNokta}calismadurumu`, `${aliasVeNokta}satilamazfl`)
 	}
 }
 class MQStokDiger2 extends MQStokAlt {

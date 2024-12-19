@@ -8,7 +8,7 @@ class MQCogul extends MQYapi {
 	static get ayrimTipKod() { return null } static get ayrimBelirtec() { return this.tableAlias } static get ayrimTable() { return `${this.tableAlias}ayrim`} static get ayrimTableAlias() { return null } 
 	static get tanimlanabilirmi() { return !!this.tanimUISinif } static get silinebilirmi() { return true } static get raporKullanilirmi() { return false } static get silindiDesteklenirmi() { return false }
 	static get yerelParamBelirtec() { return this.classKey } static get sayacSahaGosterilirmi() { return false } static get tumKolonlarGosterilirmi() { return false }
-	static get gridDetaylimi() { return this.detaylimi } static get ozelTanimIslemi() { return null } static get bulFormKullanilirmi() { return true }
+	static get gridDetaylimi() { return this.detaylimi } static get ozelTanimIslemi() { return null } static get bulFormKullanilirmi() { return true } static get gereksizTablolariSilYapilirmi() { return false }
 	static get kolonDuzenlemeYapilirmi() { return true } static get kolonFiltreKullanilirmi() { return true } static get gridIslemTuslariKullanilirmi() { return $(window).width() >= 700 }
 	static get islemTuslari_sagButonlar_ekMarginX() { return $(window).width() < 800 ? 0 : 15 } static get orjBaslik_gridRenderDelayMS() { return null } static get defaultOrjBaslik_gridRenderDelayMS() { return 200 }
 	static get orjBaslikListesi_panelGrupAttrListe() { const _e = { liste: [] }; this.orjBaslikListesi_panelGrupAttrListeDuzenle(_e); return _e.liste }
@@ -420,8 +420,8 @@ class MQCogul extends MQYapi {
 		const {secimler: sec} = e; if (sec) { sent.where.birlestir(sec.getTBWhereClause(e)) }
 		if ($.isEmptyObject(sent.sahalar.liste)) { sent.sahalar.add(`${aliasVeNokta}*`) }
 		/* sent.groupByOlustur(); */ let stm = new MQStm({ sent });
-		$.extend(e, { table: this.table, alias, aliasVeNokta, stm, sent }); { this.loadServerData_queryDuzenle(e) }
-		stm = e.query || e.stm; if (stm?.getSentListe) { for (const _sent of stm.getSentListe()) { sent.gereksizTablolariSil({ disinda: alias }) } }
+		$.extend(e, { table: this.table, alias, aliasVeNokta, stm, sent }); { this.loadServerData_queryDuzenle(e) } stm = e.query || e.stm;
+		if (this.gereksizTablolariSilYapilirmi) { if (stm?.getSentListe) { for (const _sent of stm.getSentListe()) { sent.gereksizTablolariSil({ disinda: alias }) } } }
 		return stm
 	}
 	static loadServerData_queryDuzenle(e) {
@@ -495,8 +495,9 @@ class MQCogul extends MQYapi {
 		let keyHV = this.keyHostVars(e); if ($.isEmptyObject(keyHV)) { keyHV = this.alternateKeyHostVars(e) }
 		if (keyHV) { sent.where.birlestirDict({ alias, dict: keyHV }) }
 		/* if ($.isEmptyObject(sent.sahalar.liste)) { sent.sahalar.add(`${aliasVeNokta}*`) } */
-		const stm = new MQStm({ sent }); $.extend(e, { stm, sent }); this.tekilOku_queryDuzenle(e);
-		sent.gereksizTablolariSil({ disinda: alias }); return stm
+		let stm = new MQStm({ sent }); $.extend(e, { stm, sent }); this.tekilOku_queryDuzenle(e); stm = e.query || e.stm;
+		if (this.class.gereksizTablolariSilYapilirmi) { sent.gereksizTablolariSil({ disinda: alias }) }
+		return stm
 	}
 	tekilOku_queryDuzenle(e) { this.class.loadServerData_queryDuzenle({ ...e, tekilOku: true }); this.forAltYapiKeysDo('tekilOku_queryDuzenle', e) }
 	static async tekilOku_querySonucu(e) {

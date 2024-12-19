@@ -2,7 +2,7 @@ class MQGercekleme extends MQSayacli {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Gerçekleme' } static get table() { return 'opergerdetay' } static get tableAlias() { return 'gdet' }
 	static get kodListeTipi() { return 'UGER' } static get localDataBelirtec() { return 'gercekleme' }
-	static get silinebilirmi() { return !!config.dev } static get raporKullanilirmi() { return false }
+	static get silinebilirmi() { return !!config.dev } static get raporKullanilirmi() { return false } static get gereksizTablolariSilYapilirmi() { return false }
 	static get sayacSahaGosterilirmi() { return true } static get iskartaMaxSayi() { return 8 }
 
 	static secimlerDuzenle(e) {
