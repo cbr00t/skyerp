@@ -25,8 +25,8 @@ class HatYonetimiPart extends Part {
 	}
 	run(e) {
 		e = e || {}; super.run(e); const {layout} = this, builder = this.builder = this.getRootFormBuilder(e);
-		if (builder) { const {inst} = this; $.extend(builder, { part: this, inst }); builder.autoInitLayout().run(e) }
 		this.tazele(e); if (app.otoTazeleFlag == null) { app.otoTazeleFlag = true }
+		if (builder) { const {inst} = this; $.extend(builder, { part: this, inst }); builder.autoInitLayout().run(e) }
 	}
 	destroyPart(e) { super.destroyPart(e) }
 	activated(e) { super.activated(e); this.tazeleBasit(e) }
@@ -40,6 +40,8 @@ class HatYonetimiPart extends Part {
 	}
 	getRootFormBuilder(e) {
 		const rfb = new RootFormBuilder(), {header, divListe} = this, {sabitHatKodVarmi} = app;
+		rfb.addForm('bulForm').setParent(header).onAfterRun(({ builder: fbd }) => { this.bulForm = fbd.layout; this.initBulForm(e) })
+			.setLayout(({ builder: fbd }) => $(`<div class="${fbd.id} part"><input class="input full-wh" type="textbox" maxlength="100"></input></div>`));
 		rfb.addIslemTuslari('islemTuslari').setParent(header).addStyle_fullWH().addCSS('islemTuslari')
 			.onAfterRun(({ builder: fbd }) => { const {id, rootPart, input} = fbd; rootPart.islemTuslari = input })
 			.setButonlarIlk([
@@ -51,8 +53,8 @@ class HatYonetimiPart extends Part {
 				{ id: 'boyut', text: 'BYT', handler: e => this.boyutlandirIstendi(e) },
 				{ id: 'tazele', handler: e => this.tazele(e) }, { id: 'vazgec', handler: e => this.close(e) }
 			]).setEkSagButonlar('tezgahMenu', 'isEmirleri', 'topluX', 'tumEkNotlar', 'ozet', 'boyut', 'tazele');
-		rfb.addForm('bulForm').setParent(header).onAfterRun(({ builder }) => { this.bulForm = builder.layout; this.initBulForm(e) })
-			.setLayout(({ builder }) => $(`<div class="${builder.id} part"><input class="input full-wh" type="textbox" maxlength="100"></input></div>`))
+		let parent = rfb.addFormWithParent('checkboxes').setParent(header).addCSS('checkboxes').addStyle(e => `$elementCSS > * { margin-top: calc(3px - var(--islemTuslari-height)) !important }`)
+			parent.addCheckBox('otoTazeleFlag', 'Tzl').setAltInst(app).setValue(app.otoTazeleFlag ?? false).degisince(({ builder: fbd }) => this.tazeleBasit(e));
 		return rfb
 	}
 	initBulForm(e) {
@@ -73,7 +75,7 @@ class HatYonetimiPart extends Part {
 			let recs = this.tezgahRecs = await this.loadServerData(e); if (!recs) { return this }
 			let hat2Sev = this.hat2Sev = {}, tezgah2Rec = this.tezgah2Rec = {}; for (const rec of recs) {
 				const {hatKod, tezgahKod} = rec; let sev = hat2Sev[hatKod];
-				if (!sev) { const {hatAdi, grupText} = rec, detaylar = []; hat2Sev[hatKod] = sev = { hatKod, hatAdi, grupText, detaylar } }
+				if (!sev) { const {hatAdi, grupStyle} = rec, detaylar = []; hat2Sev[hatKod] = sev = { hatKod, hatAdi, grupStyle, detaylar } }
 				sev.detaylar.push(rec); tezgah2Rec[tezgahKod] = rec
 			}
 			let {_lastTezgahRecs: lastRecs} = this; if (basitmi && !(lastRecs && lastRecs.length == recs.length)) { basitmi = false }
@@ -151,15 +153,14 @@ class HatYonetimiPart extends Part {
 		}
 		if (recs) {
 			for (const rec of recs) {
-				const {hatKod, hatAdi} = rec, styles_bgImg_url = [], imageInfos = [ { align: 'left' }, { align: 'center', postfix: '-01' }, { align: 'right', postfix: '-02' } ];
+				const {hatKod} = rec, styles_bgImg_url = [], imageInfos = [ { align: 'left' }, { align: 'center', postfix: '-01' }, { align: 'right', postfix: '-02' } ];
 				for (const {align, postfix} of imageInfos) {
 					let id = `hat-${hatKod}`; if (postfix) { id += postfix } const url = `${app.getWSUrlBase()}/stokResim/?id=${id}`;
 					styles_bgImg_url.push(`url(${url}) ${align} center no-repeat`)
 				}
 				const styles_bgImg_size = styles_bgImg_url.map(x => 'contain'), styles_bgImg = [`background: ${styles_bgImg_url.join(', ')}`, `background-size: ${styles_bgImg_size.join(', ')}`];
 				/* styles_bgImg.push(`mix-blend-mode: difference`) */
-				rec.grupText = `<div class="grid-cell-group" style="${styles_bgImg.join('; ')}"><div style="mix-blend-mode: plus-lighter"><b>(${rec.hatKod})</b> ${rec.hatAdi}</div></div>`
-				rec.aktifIsSayi = rec.isListe?.length
+				$.extend(rec, { grupStyle: `${styles_bgImg.join('; ')}`, aktifIsSayi: rec.isListe?.length })
 			}
 		}
 		if (!basitmi) {
@@ -199,8 +200,12 @@ class HatYonetimiPart extends Part {
 			}
 		};
 		for (const sev of Object.values(hat2Sev)) {
-			let {hatKod, detaylar} = sev, itemHat = divListe.find(`.hat.item[data-id = "${hatKod}"]`); if (!itemHat?.length) { continue }
+			let {hatKod, grupStyle, detaylar} = sev, itemHat = divListe.find(`.hat.item[data-id = "${hatKod}"]`); if (!itemHat?.length) { continue }
 			setHTMLValues(itemHat, sev, 'hatKod', 'hatAdi');
+			let elm = itemHat.find('.grup'); if (elm.length) {
+				if (grupStyle) { elm.attr('style', grupStyle); itemHat.addClass('hasGrupStyle') }
+				else { elm.attr('style', ''); itemHat.removeClass('hasGrupStyle') }
+			}
 			for (const rec of detaylar) {
 				let {tezgahKod, isListe, durumKod} = rec, topSaymaInd = 0, topSaymaSayisi = 0;
 				for (const is of isListe) { topSaymaInd += (is.isSaymaInd || 0); topSaymaSayisi += (is.isSaymaSayisi || 0) }
@@ -222,7 +227,7 @@ class HatYonetimiPart extends Part {
 		let rec = e?.sev ?? e?.rec ?? e ?? {}, {hatKod, hatAdi, detaylar} = rec; return $(
 			`<div class="hat item full-width" data-id="${hatKod}"">
 				<div class="grup">
-					<div class="title">(<span class="hatKod kod">${hatKod}</span>) <span class="hatAdi aciklama">${hatAdi}</span></div>
+					<div class="title">(<span class="hatKod kod"></span>) <span class="hatAdi aciklama"></span></div>
 				</div>
 				<div class="tezgahlar full-width flex-row"></div>
 			</div>`

@@ -1,6 +1,6 @@
 .hatYonetimi.part { --header-height: var(--islemTuslari-height); font-size: 100%; overflow-y: hidden !important }
-.hatYonetimi.part > .header { height: var(--header-height) !important; background: #ccc !important }
-body.dark-theme .hatYonetimi.part > .header { background: #eee !important }
+.hatYonetimi.part > .header { height: var(--header-height) !important; background-color: #ccc !important }
+body.dark-theme .hatYonetimi.part > .header { background-color: #eee !important }
 .hatYonetimi.part > .header .islemTuslari button { font-size: 95% }
 .hatYonetimi.part .content {
 	 --padding-x: 0px; --padding-y: 0px;
@@ -11,10 +11,13 @@ body.dark-theme .hatYonetimi.part > .header { background: #eee !important }
 body.dark-theme .hatYonetimi.part .content .liste { background-color: #eee }
 .hatYonetimi.part .content .liste .hat.item, .hatYonetimi.part .content .liste .tezgah.item { position: relative }
 .hatYonetimi.part .content .liste .hat.item { width: var(--full); margin-bottom: 15px }
-.hatYonetimi.part .content .liste .hat.item > .grup { font-weight: bold; font-size: 160%; color: whitesmoke; background: #333 !important; height: 50px; padding: 5px 10px }
-body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup { filter: invert(1) hue-rotate(180deg); color: #aaa; background: #222 }
-body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:hover,
-	body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:focus { opacity: .8 }
+.hatYonetimi.part .content .liste .hat.item > .grup { background-color: #333 !important; height: 50px; padding: 5px 10px }
+.hatYonetimi.part .content .liste .hat.item > .grup .title { font-weight: bold; font-size: 220%; color: #ccc; padding-left: 330px }
+body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup, body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup .titlex { filter: invert(1) hue-rotate(180deg) !important }
+body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup { filter: invert(1) hue-rotate(180deg); color: #aaa; background-color: #1a1a1f !important }
+body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:hover, body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:focus { opacity: .8 }
+.hatYonetimi.part .content .liste .hat.item.hasGrupStyle > .grup { height: 150px }
+.hatYonetimi.part .content .liste .hat.item.hasGrupStyle > .grup:focus, .hatYonetimi.part .content .liste .hat.item.hasGrupStyle:active > .grup{ height: 250px }
 .hatYonetimi.part .content .liste .tezgahlar {}
 .hatYonetimi.part .content .liste .tezgah.item {
 	--sol-width: 40px; --alt-height: 33px;
@@ -38,7 +41,7 @@ body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:hover,
 .hatYonetimi.part .content .liste .tezgah.item .siradakiIsSayi { font-size: 95%; color: #333; min-width: 33px; left: 15px }
 .hatYonetimi.part .content .liste .tezgah.item .siradakiIsSayi > ._veri { font-weight: bold; color: orangered }
 .hatYonetimi.part .content .liste .tezgah.item .ekBilgi {
-	font-weight: bold; font-size: 90%; text-align: center; color: whitesmoke !important; background: #3c2020;
+	font-weight: bold; font-size: 90%; text-align: center; color: whitesmoke !important; background-color: #3c2020;
 	left: 15px; top: -5px; width: 130px !important; max-height: 30px !important; padding: 8px 3px; line-height: 13px;
 	overflow-y: auto; animation: 250ms cubic-bezier(0.1, 0, 1, 1) 0ms infinite normal ekBilgi-bg; cursor: pointer
 }

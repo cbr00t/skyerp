@@ -1,6 +1,6 @@
 .MQHatYonetimi.masterListe.part .header .islemTuslari button#tumEkNotlar.yeni-not.jqx-fill-state-normal {
 	color: #333; background-color: #608ad3; animation: 1000ms cubic-bezier(0.1, 0, 1, 1) 0ms infinite normal yeni-not }
-@keyframes yeni-not { 50% { background-color: #60c1d3 } }
+/*@keyframes yeni-not { 50% { background-color: #60c1d3 } }*/
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * { --height-alt: 60px; --width-ust-sag: 30px; --width-alt-sag: 170px; --etiket-width: 25px; height: var(--full) }
 /*.MQHatYonetimi.masterListe.part .jqx-grid [role = row] > *:not(.jqx-grid-cell-pinned):not(.jqx-grid-cell-selected) { background: whitesmoke }*/
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > *:not(.jqx-grid-cell-pinned) { border: 1px solid #aaa }
@@ -115,15 +115,15 @@ body.dark-theme .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > .jqx-gr
 [role = row] *:has([data-durum = 'DR'].duraksama-kritik) { box-shadow: 1px 1px 5px 1px #ad3d3d }
 [data-durum = 'DR'].duraksama-kritik, .duraksama-kritik [data-durum = 'DR'] {
 	color: #f16767 !important; box-shadow: 8px 8px 13px 8px #d9b39b; animation: 2000ms cubic-bezier(0.1, 0, 1, 1) 0ms infinite normal duraksama-kritik-bg }
-@keyframes sinyal-kritik-bg { 50% { background-color: #24400f } }
+/*@keyframes sinyal-kritik-bg { 50% { background-color: #24400f } }
 @keyframes duraksama-kritik-bg { 50% { background-color: #853021 } }
-@keyframes ekBilgi-bg { 50% { background-color: #712e0e } }
+@keyframes ekBilgi-bg { 50% { background-color: #712e0e } }*/
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .grafik-parent { position: absolute; margin-top: -3px; right: 10px; opacity: .5; height: 50px !important; overflow-y: clip }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > * .grafik-parent > * { }
 .MQHatYonetimi.masterListe.part .jqx-grid [role = row] > *.jqx-grid-cell-selected .grafik-parent { opacity: 1 }
 .MQHatYonetimi.masterListe.part .butonlar.part > .sag > button:nth-last-child(2) { margin-left: unset }
 
-.ozetBilgi.jqx-window .jqx-window-content { background: linear-gradient(90deg, #1a1a1a 5%, #222 80%) !important }
+/*.ozetBilgi.jqx-window .jqx-window-content { background: linear-gradient(90deg, #1a1a1a 5%, #222 80%) !important }
 body.dark-theme .ozetBilgi.jqx-window .jqx-window-content { filter: invert(1) hue-rotate(180deg) }
 .ozetBilgi.jqx-window .subContent .ozetBilgi-parent { width: var(--full); height: var(--full); font-size: 100% }
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container { position: relative; display: flex; flex-wrap: wrap; left: -40px; top: 10px; line-height: 28px }
@@ -136,4 +136,4 @@ body.dark-theme .ozetBilgi.jqx-window .jqx-window-content { filter: invert(1) hu
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .durum { } .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .sayi { color: #84bfe1 }
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .durum { } .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .on > * { color: lightgreen }
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .durum { } .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .pasif > * { color: orange }
-.ozetBilgi.jqx-window .subContent .ozetBilgi-container li .durum { } .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .off > * { color: indianred }
+.ozetBilgi.jqx-window .subContent .ozetBilgi-container li .durum { } .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .off > * { color: indianred }*/

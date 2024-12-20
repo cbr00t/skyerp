@@ -125,7 +125,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 						<button id="dokumanSil" class="indianred">RESİM SİL</button>
 					</div>
 				</td>
-			</tr>
+			</tr> 
 		</tbody></table>`
 	}
 	static orjBaslikListesiDuzenle(e) {
