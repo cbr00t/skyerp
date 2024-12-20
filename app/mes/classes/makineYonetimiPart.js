@@ -40,6 +40,8 @@ class MakineYonetimiPart extends Part {
 						if (inst.durumAdi == null) { inst.durumAdi = durumKod2Aciklama[durumKod] ?? durumKod }
 					}
 				}
+				try { let {isID: isId} = inst, rec = isId ? await app.wsGorevZamanEtuduVeriGetir({ isId }) : null; if (rec?.bzamanetudu) { inst.zamanEtuduVarmi = true } }
+				catch (ex) { console.error(getErrorText(ex)) }
 			}
 			this.updateTitle(e); const {subContent} = this, html_oemBilgileri = this.getLayout_tblOEMBilgileri(e), layout = html_oemBilgileri ? $(html_oemBilgileri) : null;
 			subContent.children().remove(); if (layout?.length) { layout.appendTo(subContent); this.initEvents_tblOEMBilgileri({ layout }); makeScrollable(subContent.find('.isListe > .parent')) }
@@ -113,8 +115,7 @@ class MakineYonetimiPart extends Part {
 		const {tezgahKod} = this.inst; try { await app.wsIsBittiYap({ tezgahKod }); this.tazeleWithSignal() } catch(ex) { hConfirm(getErrorText(ex)); console.error(ex) }
 	}
 	getLayoutInternal(e) {
-		const html_oemBilgileri = this.getLayout_tblOEMBilgileri(e);
-		return $(
+		const html_oemBilgileri = this.getLayout_tblOEMBilgileri(e); return $(
 			`<div>
 				<div class="header full-width"></div>
 				<div class="content">${html_oemBilgileri}</div>
@@ -123,7 +124,7 @@ class MakineYonetimiPart extends Part {
 	}
 	getLayout_tblOEMBilgileri(e) {
 		e = e ?? {}; const inst = e.rec = this.inst ?? {}, isListe = inst.isListe ?? [], isBilgiHTML = MQHatYonetimi.gridCell_getLayout_isBilgileri(e);
-		const {sinyalKritik, duraksamaKritik, durNedenKod, durumKod, durumAdi, ip, siradakiIsSayi} = inst, {kritikDurNedenKodSet} = app.params.mes;
+		const {sinyalKritik, duraksamaKritik, durNedenKod, durumKod, durumAdi, ip, zamanEtuduVarmi, siradakiIsSayi} = inst, {kritikDurNedenKodSet} = app.params.mes;
 		const kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod ? kritikDurNedenKodSet[durNedenKod] : false, bostami = !durumKod || durumKod == '?' || durumKod == 'KP' || durumKod == 'BK';
 		let topSaymaInd = 0, topSaymaSayisi = 0; for (const is of isListe) { topSaymaInd += (is.isSaymaInd || 0); topSaymaSayisi += (is.isSaymaSayisi || 0) }
 		return (
@@ -137,7 +138,8 @@ class MakineYonetimiPart extends Part {
 						<button id="isAtaKaldir">İŞ ATA</button>
 						<button id="isBitti" class="${bostami ? '' : `bold darkred`}"${bostami ? ` aria-disabled="true"` : ''}>İŞ BİTTİ</button>
 					</td>
-					<td class=" tezgah veri item">
+					<td class="tezgah veri item">
+						${zamanEtuduVarmi ? `<div class="zamanEtuduVarmi-parent parent"><span class="zamanEtuduText veri">Zmn.</span></div>` : ''}
 						<span class="kod">${inst.tezgahKod || ''}</span> <span class="adi">${inst.tezgahAdi || ''}</span>
 						${ip ? `<span class="ip">(${ip ||''})</span>` : ''}
 					</td>

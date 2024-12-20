@@ -4,3 +4,8 @@
 	background-image: url(../../images/search.png); background-color: #f9f9f9; background-repeat: no-repeat;
 	background-size: 22px 22px; background-position: 13px 50%
 }
+.bulForm.filtreForm.part { position: fixed; top: -8px; right: 100px; min-width: unset !important; width: 180px; height: 33px; padding: 10px; opacity: .2; z-index: 1001 !important }
+.bulForm.filtreForm.part:has(:hover) { opacity: .7 }
+.bulForm.filtreForm.part:not(:has(:hover)):not(:has(:focus)):not(:has(:active)) input { background-color: #ffffffaa !important }
+.bulForm.filtreForm.part:has(:focus), .part .bulForm:has(:active) { opacity: 1 !important }
+@media (max-width: 650px) { .bulForm.filtreForm.part { top: -3px; right: 105px; width: 110px; padding: 5px 3px } }

@@ -14,8 +14,9 @@ class HatYonetimiPart extends Part {
 	get selectedTezgahRecs() { const {tezgah2Rec, selectedTezgahKodListe} = this; return selectedTezgahKodListe.map(kod => tezgah2Rec[kod]) }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, {
-			tezgahKod: (e.tezgahKod ?? e.tezgahId)?.trimEnd(), cokluSecimmi: e.cokluSecim ?? e.cokluSecimmi ?? false,
-			boxSize: e.boxSize, title: 'Hat Yönetimi 2' })
+			title: 'Hat Yönetimi 2', tezgahKod: (e.tezgahKod ?? e.tezgahId)?.trimEnd(), cokluSecimmi: e.cokluSecim ?? e.cokluSecimmi ?? false, boxSize: e.boxSize,
+			hizliBulAttrListe: e.hizliBulAttrListe ?? ['hatKod', 'hatAdi', 'tezgahKod', 'tezgahAdi', 'perKod', 'perIsim', 'ip', 'isListe']
+		})
 	}
 	init(e) {
 		e = e || {}; super.init(e); const {layout} = this;
@@ -49,10 +50,20 @@ class HatYonetimiPart extends Part {
 				{ id: 'ozet', text: 'ÖZET', handler: e => this.ozetBilgiGoster(e) },
 				{ id: 'boyut', text: 'BYT', handler: e => this.boyutlandirIstendi(e) },
 				{ id: 'tazele', handler: e => this.tazele(e) }, { id: 'vazgec', handler: e => this.close(e) }
-			])
-			.setEkSagButonlar('tezgahMenu', 'isEmirleri', 'topluX', 'tumEkNotlar', 'ozet', 'boyut', 'tazele');
+			]).setEkSagButonlar('tezgahMenu', 'isEmirleri', 'topluX', 'tumEkNotlar', 'ozet', 'boyut', 'tazele');
+		rfb.addForm('bulForm').setParent(header).onAfterRun(({ builder }) => { this.bulForm = builder.layout; this.initBulForm(e) })
+			.setLayout(({ builder }) => $(`<div class="${builder.id} part"><input class="input full-wh" type="textbox" maxlength="100"></input></div>`))
 		return rfb
 	}
+	initBulForm(e) {
+		let {bulPart} = this; if (bulPart && !bulPart.isDestroyed) { return this }
+		let sender = this, {bulForm: layout} = this; if (layout?.length) {
+			bulPart = this.bulPart = new FiltreFormPart({ layout, degisince: e => { const {tokens} = e; this.hizliBulIslemi({ sender, layout, tokens }) } });
+			bulPart.run(); layout.removeClass('jqx-hidden')
+		}
+		return this
+	}
+	hizliBulIslemi(e) { const {tokens} = e; this.filtreTokens = tokens; this.tazeleBasit(e); return this }
 	tazeleBasit(e) { return this.tazele({ ...e, basit: true }) }
 	tazeleWithSignal() { app.signalChange(); return this }
 	onSignalChange(e) { this.tazeleBasit(e); return this }
@@ -81,8 +92,8 @@ class HatYonetimiPart extends Part {
 		return recs || []
 	}
 	async loadServerData_internal(e) {
-		e = e ?? {}; let basitmi = e.basit ?? e.basitmi, {islemTuslari} = this;
-		let tezgah2Rec = {}, isID2TezgahKodSet = {}, hatIdListe = app.sabitHatKodVarmi ? app.sabitHatKodListe : $.makeArray(this.hatKod), {excludeTezgahKod} = this;
+		e = e ?? {}; let basitmi = e.basit ?? e.basitmi, {islemTuslari, excludeTezgahKod, filtreTokens} = this;
+		let tezgah2Rec = {}, isID2TezgahKodSet = {}, hatIdListe = app.sabitHatKodVarmi ? app.sabitHatKodListe : $.makeArray(this.hatKod);
 		let wsArgs = {}; if (hatIdListe?.length) { $.extend(wsArgs, { hatIdListe: hatIdListe.join(delimWS) }) }
 		let recs = await app.wsTezgahBilgileri(wsArgs); if (recs) {
 			const {durumKod2KisaAdi, hatBilgi_recDonusum: donusum} = app;
@@ -99,6 +110,19 @@ class HatYonetimiPart extends Part {
 				getIPNum(a.ip) < getIPNum(b.ip) ? -1 : getIPNum(a.ip) > getIPNum(b.ip) ? 1 :
 				a.tezgahKod < b.tezgahKod ? -1 : a.tezgahKod > b.tezgahKod ? 1 :
 				0)
+		}
+		if (recs && filtreTokens?.length) {
+			let {hizliBulAttrListe} = this, _recs = recs; recs = [];
+			for (const rec of _recs) {
+				let uygunmu = true; const values = hizliBulAttrListe.map(key => typeof rec[key] == 'object' ? toJSONStr(rec[key]) : rec[key]?.toString()).filter(value => !!value);
+				for (const token of filtreTokens) {
+					let _uygunmu = false; for (let value of values) {
+						if (value == null) { continue } value = value.toString();
+						if (value.toUpperCase().includes(token.toUpperCase()) || value.toLocaleUpperCase(culture).includes(token.toLocaleUpperCase(culture))) { _uygunmu = true; break }
+					} if (!_uygunmu) { uygunmu = false; break }
+				} if (!uygunmu) { continue }
+				recs.push(rec)
+			}
 		}
 		if (recs) {
 			let _recs = recs; recs = [];
@@ -167,7 +191,7 @@ class HatYonetimiPart extends Part {
 	updateLayout(e) {
 		e = e ?? {}; const {layout, boxSize: box} = this; for (const [key, value] of Object.entries(box)) { layout.css(`--box-${key}`, `${value}`) }
 		const {hat2Sev: hat2Sev, divListe} = this; if (!hat2Sev) { return this }
-		const setHTMLValues = (parent, rec, ...keys) => {
+		const basitmi = e.basit ?? e.basitmi, setHTMLValues = (parent, rec, ...keys) => {
 			if (!parent?.length) { return } keys = keys?.flat();
 			for (const key of keys) {
 				let value = rec[key] ?? ''; let elm = parent.find(`.${key}`); if (elm.length) { elm.html(value) }
@@ -182,10 +206,11 @@ class HatYonetimiPart extends Part {
 				for (const is of isListe) { topSaymaInd += (is.isSaymaInd || 0); topSaymaSayisi += (is.isSaymaSayisi || 0) }
 				let itemTezgah = itemHat.find(`.tezgah.item[data-id = "${tezgahKod}"]`); if (!itemTezgah.length) { continue }
 				setHTMLValues(itemTezgah, rec,
-					'tezgahKod', 'tezgahAdi', 'ip', 'siradakiIsSayi', 'ekBilgi', 'zamanEtuduVarmi', 'perKod', 'perIsim',
+					'tezgahKod', 'tezgahAdi', 'ip', 'siradakiIsSayi', 'ekBilgi', 'perKod', 'perIsim',
 					'emirMiktar', 'onceUretMiktar', 'aktifUretMiktar', 'isIskMiktar', 'isNetMiktar',
 					'onceCevrimSayisi', 'aktifCevrimSayisi', 'aktifIsSayi', 'durumAdi', 'durNedenAdi'
 				);
+				if (!basitmi) { setHTMLValues(itemTezgah, rec, 'zamanEtuduVarmi') }
 				let _rec = { topSaymaInd, topSaymaSayisi }; setHTMLValues(itemTezgah, _rec, Object.keys(_rec));
 				itemTezgah.find('.isBilgi-parent').html(this.class.getLayout_isBilgileri(rec));
 				let elm = itemTezgah.find('.grafik-parent'); if (elm?.length) { elm.html(this.class.getLayout_grafikler(isListe)) }
@@ -340,10 +365,12 @@ class HatYonetimiPart extends Part {
 			else { $target.toggleClass(cssClass) }
 			if (!this.cokluSecimmi) { divListe.find(`.hat.item > .tezgahlar > .tezgah.item.${cssClass}:not([data-id = "${id}"])`).removeClass(cssClass) }
 		});
-		divListe.find('button').jqxButton({ theme }).on('click', evt => { 
-			let cssClass = 'selected'; divListe.find(`.hat.item > .tezgahlar > .tezgah.item.${cssClass}`).removeClass(cssClass);
-			$(evt.currentTarget).parents('.tezgah.item').addClass(cssClass); this.tezgahButonTiklandi({ ...e, id: evt.currentTarget.id, evt })
-		});
+		let elms = divListe.find('button'); if (elms.length) {
+			elms.jqxButton({ theme }).on('click', evt => { 
+				let cssClass = 'selected'; divListe.find(`.hat.item > .tezgahlar > .tezgah.item.${cssClass}`).removeClass(cssClass);
+				$(evt.currentTarget).parents('.tezgah.item').addClass(cssClass); this.tezgahButonTiklandi({ ...e, id: evt.currentTarget.id, evt })
+			})
+		}
 		return this
 	}
 	boyutlandirIstendi(e) {

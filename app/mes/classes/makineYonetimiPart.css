@@ -8,7 +8,7 @@
 .makineYonetimi.part > .content table { line-height: 20px; border: 1px solid #aaa }
 .makineYonetimi.part > .content table tr > th > button:not(:hover):not(:focus):not(:active) { color: #8ba8ff !important }
 .makineYonetimi.part > .content table tr > td { border: 1px solid #ccc }
-.makineYonetimi.part > .content #oemBilgileri { width: calc(var(--full) - (5px + var(--padding-x) * 2)) }
+.makineYonetimi.part > .content #oemBilgileri { position: relative; width: calc(var(--full) - (5px + var(--padding-x) * 2)) }
 .makineYonetimi.part > .content #oemBilgileri tr > td { height: 30px }
 .makineYonetimi.part > .content #oemBilgileri tr > td * { position: relative }
 .makineYonetimi.part > .content #oemBilgileri tr > td:not(.buttons) { padding: var(--td-padding-y) var(--td-padding-x) }
@@ -29,6 +29,7 @@
 .makineYonetimi.part > .content #oemBilgileri .hat .kod { color: whitesmoke !important }
 .makineYonetimi.part > .content #oemBilgileri .hat .adi { color: black !important }
 .makineYonetimi.part > .content #oemBilgileri .tezgah .ip { font-weight: bold; font-size: 90%; color: mediumpurple; min-width: 70px; margin-left: 20px }
+.makineYonetimi.part > .content .zamanEtuduText { float: right; font-weight: bold; font-size: 100%; color: forestgreen; top: 0; right: 1px; padding: 5px; border: 3px solid limegreen }
 .makineYonetimi.part > .content #oemBilgileri .siradakiIsSayi { font-size: 95%; color: #333; text-align: right; width: 100px !important; padding-right: 20px !important }
 .makineYonetimi.part > .content #oemBilgileri .siradakiIsSayi .veri { font-weight: bold; color: orangered !important }
 .makineYonetimi.part > .content #oemBilgileri td .isListe { position: relative; height: 180px !important }

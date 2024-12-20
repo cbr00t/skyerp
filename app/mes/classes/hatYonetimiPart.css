@@ -42,19 +42,19 @@ body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:hover,
 	left: 15px; top: -5px; width: 130px !important; max-height: 30px !important; padding: 8px 3px; line-height: 13px;
 	overflow-y: auto; animation: 250ms cubic-bezier(0.1, 0, 1, 1) 0ms infinite normal ekBilgi-bg; cursor: pointer
 }
-.hatYonetimi.part .content .liste .tezgah.item .zamanEtuduText { font-weight: bold; font-size: 120%; color: forestgreen; top: -3px; left: 13px; padding: 3px 3px; border: 3px solid limegreen }
+.hatYonetimi.part .content .liste .tezgah.item .zamanEtuduText { position: absolute; font-weight: bold; font-size: 110%; color: forestgreen; top: 0; right: 1px; padding: 2px; border: 3px solid limegreen }
 .hatYonetimi.part .content .liste .tezgah.item .isListe { height: 55px; z-index: 4; font-size: 95% }
-.hatYonetimi.part .content .liste .tezgah.item .isListe > * { width: var(--full); height: var(--full); border: 1px dotted #dcdcdc; padding: 3px 0 0 15px !important; overflow-y: hidden !important }
+.hatYonetimi.part .content .liste .tezgah.item .isListe > * { width: var(--full); height: var(--full); border: 1px dotted #dcdcdc; padding: 1px 0 0 13px !important; overflow-y: hidden !important }
 .hatYonetimi.part .content .liste .tezgah.item.selected .isListe > * { border: 1px solid #999; overflow-y: overlay !important }
-.hatYonetimi.part .content .liste .tezgah.item .isListe > * > li { font-size: 75% !important; color: #333; line-height: 13px; margin: 0; padding: 0; margin-block-end: 5px; margin-bottom: -40px }
+.hatYonetimi.part .content .liste .tezgah.item .isListe > * > li { font-size: 75% !important; color: #333; line-height: 13px; margin: 0 0 0 -3px; padding: 0; margin-block-end: 5px; margin-bottom: -40px }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li:not(:last-child) { box-sizing: border-box }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .item { vertical-align: top !important }
-.hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .flex-row > .item { width: unset; min-width: 30px; max-width: 110px; white-space: pre-wrap !important }
-.hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .flex-row > .item:not(:last-child) { padding-right: 3px }
+.hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .flex-row > .item { width: unset; min-width: 30px; max-width: 100px; white-space: pre-wrap !important }
+.hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .flex-row > .item:not(:last-child) { padding-right: 0 }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li:hover, .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li:focus { cursor: default; background-color: #eaedf6 !important }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .kod { font-weight: bold; color: slateblue }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .aciklama { }
-.hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .color.item { min-width: unset !important; width: 3px !important; height: 40px; margin: 0 3px }
+.hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .color.item { min-width: unset !important; width: 3px !important; height: 40px; margin: 0 2px }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .emir.item { min-width: unset !important; max-width: 80px !important }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .saymaSayilari, .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .sureler { position: relative; top: -28px }
 .hatYonetimi.part .content .liste .tezgah.item .isListe > * > li .saymaSayilari.item { text-align: right; max-width: 60px !important }
