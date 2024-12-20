@@ -113,9 +113,18 @@ class DMQSube extends DMQKA {
 	}
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.sube2GrupBagla() }
 }
+class DMQTakipGrup extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Takip Grup' }
+	static get table() { return 'takipgrup' } static get tableAlias() { return 'tgrp' }
+}
 class DMQTakipNo extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Takip No' }
 	static get table() { return 'takipmst' } static get tableAlias() { return 'tak' }
+	static orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e); const {liste} = e;
+		liste.push(new GridKolon({ belirtec: 'takipgrupkod', text: 'Takip Grup', genislikCh: 10 }), new GridKolon({ belirtec: 'takipgrupadi', text: 'Takip Grup Adı', genislikCh: 20, sql: 'tgrp.aciklama' }))
+	}
+	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.takip2GrupBagla() }
 }
 class DMQCari extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cari' } static get zeminRenkDesteklermi() { return true }
@@ -132,4 +141,12 @@ class DMQCari extends DMQKA {
 class DMQPlasiyer extends DMQCari {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Plasiyer' }
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this.class; sent.where.add(`${alias}.kayittipi = 'X'`) }
+}
+class DMQMuhHesap extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Hesap' }
+	static get table() { return 'muhhesap' } static get tableAlias() { return 'mhes' }
+}
+class DMQMuhGrup extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Grup' }
+	static get table() { return 'muhgrup' } static get tableAlias() { return 'mhgrp' }
 }

@@ -38,15 +38,19 @@ class HatYonetimiPart extends Part {
 		)
 	}
 	getRootFormBuilder(e) {
-		const rfb = new RootFormBuilder(), {header, divListe} = this;
+		const rfb = new RootFormBuilder(), {header, divListe} = this, {sabitHatKodVarmi} = app;
 		rfb.addIslemTuslari('islemTuslari').setParent(header).addStyle_fullWH().addCSS('islemTuslari')
 			.onAfterRun(({ builder: fbd }) => { const {id, rootPart, input} = fbd; rootPart.islemTuslari = input })
 			.setButonlarIlk([
+				{ id: 'tezgahMenu', text: 'TEZ', handler: e => this.tezgahMenuIstendi(e) },
+				{ id: 'isEmirleri', text: 'EMR', handler: e => this.bekleyenIsEmirleriIstendi(e) },
+				{ id: 'topluX', text: 'TPL', handler: e => this.topluXMenuIstendi(e) },
+				(sabitHatKodVarmi ? null : { id: 'tumEkNotlar', text: 'NOT', handler: e => this.ekNotlarIstendi({ ...e, hepsi: true }) }),
+				{ id: 'ozet', text: 'ÖZET', handler: e => this.ozetBilgiGoster(e) },
 				{ id: 'boyut', text: 'BYT', handler: e => this.boyutlandirIstendi(e) },
-				{ id: 'tazele', handler: e => this.tazele(e) },
-				{ id: 'vazgec', handler: e => this.close(e) }
+				{ id: 'tazele', handler: e => this.tazele(e) }, { id: 'vazgec', handler: e => this.close(e) }
 			])
-			.setEkSagButonlar('boyut');
+			.setEkSagButonlar('tezgahMenu', 'isEmirleri', 'topluX', 'tumEkNotlar', 'ozet', 'boyut', 'tazele');
 		return rfb
 	}
 	tazeleBasit(e) { return this.tazele({ ...e, basit: true }) }
@@ -183,7 +187,8 @@ class HatYonetimiPart extends Part {
 					'onceCevrimSayisi', 'aktifCevrimSayisi', 'aktifIsSayi', 'durumAdi', 'durNedenAdi'
 				);
 				let _rec = { topSaymaInd, topSaymaSayisi }; setHTMLValues(itemTezgah, _rec, Object.keys(_rec));
-				itemTezgah.find('.isBilgi-parent').html(this.class.getLayout_isBilgileri(rec))
+				itemTezgah.find('.isBilgi-parent').html(this.class.getLayout_isBilgileri(rec));
+				let elm = itemTezgah.find('.grafik-parent'); if (elm?.length) { elm.html(this.class.getLayout_grafikler(isListe)) }
  			}
 		}
 		return this
@@ -465,6 +470,26 @@ class HatYonetimiPart extends Part {
 		const recs = e.recs ?? this.selectedTezgahRecs;
 		for (const {hatKod, hatAdi, tezgahKod, tezgahAdi} of recs) { const args = { hatKod, hatAdi, tezgahKod, tezgahAdi }; mfSinif.listeEkraniAc({ args }) }
 	}
+	topluXIstendi(e) {
+		let {id} = e, recs = e.recs ?? this.selectedTezgahRecs, hatKodListe = e.hatKodListe ?? $.makeArray(e.hatKod), wsArgs = {};
+		if (hatKodListe?.length) { const hatKodSet = asSet(hatKodListe); wsArgs.hatIdListe = hatKodListe.join(delimWS); recs = e.recs = recs.filter(rec => hatKodSet[rec.hatKod]); e.rec = recs[0] }
+		const islemKod2Adi = { mola: 'Mola', vardiyaDegisimi: 'Vardiya Değişimi', devam: `<span class="forestgreen">Devam</span>`, isBitti: `<span class="red">İş Bitti</span>`, gerceklemeYap: 'Gerçekleme Yap' };
+		const hatBazindami = !!e.hatKod, recsCount = !hatBazindami ? 0 : recs?.length, islemAdi = islemKod2Adi[id] ?? id;
+		ehConfirm(`${recsCount ? `<b class="royalblue">${recsCount}</b> tezgah için ` : `<u class="bold">Tüm tezgahlar</u> için `}<b>Toplu ${islemAdi}</b> istendi, devam edilsin mi?`, `Toplu ${islemAdi}`).then(async result => {
+			if (!result) { return } try {
+				switch (id) {
+					case 'devam': await app.wsTopluDevamYap(wsArgs); break
+					case 'gerceklemeYap': await app.wsTopluGerceklemeYap(wsArgs); break
+					case 'isBitti': await app.wsTopluIsBittiYap(wsArgs); break
+					case 'zamanEtuduBaslat': await app.wsTopluZamanEtuduBaslat(wsArgs); break
+					case 'zamanEtuduKapat': await app.wsTopluZamanEtuduKapat(wsArgs); break
+					default: $.extend(wsArgs, { tip: id }); await app.wsTopluDuraksamaYap(wsArgs); break
+				}
+				this.tazeleBasit()
+			}
+			catch (ex) { hConfirm(getErrorText(ex), `Toplu ${islemAdi}`); throw ex }
+		})
+	}
 	ekBilgiIstendi(e) {
 		const rec = this.selectedTezgahRecs[0]; if (rec) {
 			let {tezgahKod, tezgahAdi} = rec, wnd = createJQXWindow({
@@ -490,7 +515,7 @@ class HatYonetimiPart extends Part {
 	ozetBilgi_getLayout(e) {
 		const recs = e.recs ?? this.tezgahRecs; if (!recs) { return null }
 		const hat2Durum2Sayi = {}; let topMakineSayi = 0, topAktifSayi = 0, topPasifSayi = 0, topOffSayi = 0;
-		for (const {hatKod, sinyalKritik, durumKod} of recs) {
+		for (let {hatKod, sinyalKritik, durumKod} of recs) {
 			let hatText = hatKod; if (durumKod == 'DV') { durumKod = sinyalKritik ? 'APSF' : 'ZON' } else { durumKod = 'XOFF' }
 			let durum2Sayi = hat2Durum2Sayi[hatText]; if (durum2Sayi == null) { durum2Sayi = hat2Durum2Sayi[hatText] = {}; for (const key of ['ZON', 'APSF', 'XOFF']) { durum2Sayi[key] = 0 } }
 			durum2Sayi[durumKod] = (durum2Sayi[durumKod] || 0) + 1; topMakineSayi++;
@@ -522,6 +547,43 @@ class HatYonetimiPart extends Part {
 	bekleyenIsEmirleriIstendi(e) {
 		const {hatKod} = (e.rec ?? this.selectedTezgahRecs[0]) ?? {}; if (!hatKod) { return }
 		let args = { hatKod }; MQBekleyenIsEmirleri.listeEkraniAc({ args })
+	}
+	ekNotlarIstendi(e) {
+		const hepsimi = e.hepsi ?? e.hepsimi, rec = e.rec ?? this.selectedTezgahRecs[0] ?? {}; const {hatKod} = rec;
+		MQEkNotlar.listeEkraniAc({ kapaninca: e => this.tazeleBasit(), secimlerDuzenle: e => {
+			const sec = e.secimler, isHidden = !!app.params.config.hatKod;
+			if (!hepsimi && hatKod) { $.extend(sec.hatKod, { birKismimi: true, value: hatKod, isHidden }); sec.hatAdi.isHidden = isHidden }
+		}})
+	}
+	ekNotEkleIstendi(e) {
+		const rec = e.rec ?? this.selectedTezgahRecs[0], hatKod = rec.hatKod ?? '', tezgahKod = rec.tezgahKod ?? ''; if (!(hatKod || tezgahKod)) { return }
+		let inst = new MQEkNotlar({ hatKod, tezgahKod }); return inst.tanimla({ islem: 'yeni' })
+	}
+	dokumanYukleIstendi(e) {
+		e = e || {}; const rec = e.rec ?? this.selectedTezgahRecs[0] ?? {}, hatKod = rec.hatKod ?? ''; if (!hatKod) { return }
+		const resimId = `hat-${hatKod}-01`, islemAdi = 'Hat Resim Yükleme';
+		let elm = $(`<input type="file" capture="environment" accept="image/*, application/pdf, video/*">`).appendTo('body'); elm.addClass('jqx-hidden');
+		elm.on('change', async evt => {
+			try {
+				const file = evt.target.files[0]; let fileName = file.name.replaceAll(' ', '_'), ext = fileName.split('.').slice(-1)[0] ?? '';
+				let data = file ? new Uint8Array(await file.arrayBuffer()) : null; if (!data?.length) { return }
+				let result = await app.wsResimDataKaydet({ resimId, ext, data }); if (!result.result) { throw { isError: true, errorText: `${islemAdi} sorunu` } }
+				gridPart.tazeleDefer(e); setTimeout(() => eConfirm(`Hat Resim Görüntüsünün güncellenmesi için uygulamadan çıkıp yeniden girilmesi gerekebilir`, islemAdi))
+			} finally { $(evt.target).remove() }
+		});
+		elm.click()
+	}
+	async dokumanSilIstendi(e) {
+		e = e || {}; const rec = e.rec ?? this.selectedTezgahRecs[0] ?? {}, hatKod = rec.hatKod ?? ''; if (!hatKod) { return }
+		const resimId = `hat-${hatKod}`, islemAdi = `<b color="indianred">Resim SİL</b>`;
+		let rdlg = await ehConfirm(`<b class="royalblue">${hatKod}</b><b class="indianred"> hattına ait Resim silinecek, emin misiniz?</b>`, islemAdi); if (!rdlg) { return }
+		const result = await app.wsResimDataSil({ resimId }); if (!result.result) { throw { isError: true, errorText: `${islemAdi} sorunu` } }
+		this.tazele(e); setTimeout(() => eConfirm(`Hat Resim Görüntüsünün güncellenmesi için uygulamadan çıkıp yeniden girilmesi gerekebilir`, islemAdi))
+	}
+	async ekBilgiSilItendi(e) {
+		const recs = e.recs ?? this.selectedTezgahRecs; if (!recs?.length) { return } const tezgahIdListe = recs.map(rec => rec.tezgahKod);
+		try { await app.wsEkBilgiTopluSifirla({ tezgahIdListe }); this.tazeleBasit() }
+		catch (ex) { console.error(ex); hConfirm(getErrorText(ex)) }
 	}
 	tezgahMenuIstendi(e) {
 		const topluMenumu = e.id == 'tezgahMenu'; if (topluMenumu) { e.title = 'Seçilen tezgah(lar) için:' }
@@ -562,7 +624,7 @@ class HatYonetimiPart extends Part {
 		} }); this.openContextMenu(e)
 	}
 	openContextMenu(e) {
-		let noCheckFlag = e.noCheck ?? e.noCheckFlag, {title} = e, recs = e.recs ?? this.selectedTezgahRecs, rec = recs?.[0]; if (!(noCheckFlag || rec)) { return }
+		let noCheckFlag = e.noCheck ?? e.noCheckFlag, {title} = e, recs = e.recs = e.recs ?? this.selectedTezgahRecs, rec = recs?.[0]; if (!(noCheckFlag || rec)) { return }
 		title = e.title = title ?? `<b class="cyan">(${rec?.tezgahKod || ''})</b> ${rec?.tezgahAdi || ''}${recs?.length > 1 ? ` <b class="cadetblue">(+ ${recs.length - 1})</b>` : ''}`;
 		return MFListeOrtakPart.openContextMenu(e)
 	}

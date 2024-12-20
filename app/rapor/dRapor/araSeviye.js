@@ -110,7 +110,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		} return this
 	}
 	loadServerData_queryDuzenle_hmr(e) {
-		const {alias, stm, attrSet} = e, aliasVeNokta = alias ? `${alias}.` : ''; for (let sent of stm.getSentListe()) {
+		const {stm, attrSet} = e, alias = e.alias == 'fis' ? 'har' : e.alias, aliasVeNokta = alias ? `${alias}.` : ''; for (let sent of stm.getSentListe()) {
 			const {where: wh, sahalar} = sent; for (const {belirtec, rowAttr, kami, mfSinif} of HMRBilgi.hmrIter()) {
 				const tip = belirtec.toUpperCase(); if (!attrSet[tip]) { continue }
 				const hmrTable = kami && mfSinif ? mfSinif.table : null;

@@ -7,7 +7,7 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); const {result} = e, {toplamPrefix} = this.class, brmDict = app.params?.stokBirim?.brmDict ?? {}, {isAdmin, rol} = config.session ?? {};
 		result
-			.addKAPrefix('anagrup', 'grup', 'sistgrup', 'stok', 'depo', 'depogrup', 'sube', 'subegrup')
+			.addKAPrefix('anagrup', 'grup', 'sistgrup', 'stok', 'yer', 'yergrup', 'sube', 'subegrup')
 			.addGrup(new TabloYapiItem().setKA('SUBE', 'Şube').secimKullanilir().setMFSinif(DMQSube).addColDef(new GridKolon({ belirtec: 'sube', text: 'Şube', maxWidth: 450, filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('SUBEGRUP', 'Şube Grup').secimKullanilir().setMFSinif(DMQSubeGrup).addColDef(new GridKolon({ belirtec: 'subegrup', text: 'Şube Grup', maxWidth: 450, filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('STANAGRP', 'Stok Ana Grup').secimKullanilir().setMFSinif(DMQStokAnaGrup).addColDef(new GridKolon({ belirtec: 'anagrup', text: 'Stok Ana Grup', maxWidth: 450, filterType: 'checkedlist' })))

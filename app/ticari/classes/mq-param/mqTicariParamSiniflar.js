@@ -352,3 +352,16 @@ class MQAktarimParam extends MQTicariParamBase {
 	}
 	paramSetValues(e) { e = e || {}; super.paramSetValues(e) /*; const {rec} = e*/ }
 }
+class MQMuhasebeParam extends MQTicariParamBase {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Parametreleri' } static get paramKod() { return 'MHGN' }
+	constructor(e) { e = e || {}; super(e); $.extend(this, { maliYil: e.maliYil ?? new Date().yil }) }
+	static paramYapiDuzenle(e) {
+		super.paramYapiDuzenle(e); const {paramci} = e;
+		let form = paramci.addFormWithParent(); form.addNumber('maliYil', 'Mali Yıl')
+		/*let kullanim = paramci.addKullanim().addGrup({ etiket: 'Kullanım' }); let form = kullanim.addFormWithParent();
+			form.addBool('webOzetRapor', 'Web Özet Rapor').onBuildEk(e => e.builder.input.attr('disabled', ''));
+			form.addBool('tablet', 'Sky Tablet'); form.addBool('tablet', 'Sky Tablet'); form.addBool('yazarkasa', 'YazarKasa Aktarımı');
+			form.addBool('webSiparis', 'Web B2B Sipariş'); form.addBool('konsinyeLojistik', 'Konsinye Lojistik'); form.addBool('pdks', 'PDKS Veri Aktarımı')*/
+	}
+	paramSetValues(e) { e = e || {}; super.paramSetValues(e) /*; const {rec} = e*/ }
+}

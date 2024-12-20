@@ -4,7 +4,7 @@ class SkyRaporApp extends TicariApp {
 	static get kategoriKod2Adi() {
 		let result = this._kategoriKod2Adi; if (result == null) {
 			result = {
-				TICARI: 'Ticari', 'TICARI-STOK': 'Ticari (<b class="royalblue">Stok</b>)', 'TICARI-HIZMET': 'Ticari (<b class="orangered">Hizmet</b>)',
+				TICARI: '', 'TICARI-STOK': 'Ticari (<b class="royalblue">Stok</b>)', 'TICARI-HIZMET': 'Ticari (<b class="orangered">Hizmet</b>)',
 				FINANS: 'Finans', MES: 'MES'
 		};
 			this._kategoriKod2Adi = result
@@ -49,8 +49,8 @@ class SkyRaporApp extends TicariApp {
 		}
 		const items_raporlar = [], {kategoriKod2Adi} = this.class;
 		for (const [kategoriKod, items] of Object.entries(kategoriKod2MenuItems)) {
-			const kategoriAdi = kategoriKod2Adi[kategoriKod] || kategoriKod; let target = items_raporlar;
-			if (kategoriKod) { const parentItem = new FRMenuCascade({ mne: kategoriKod, text: kategoriAdi }); items_raporlar.push(parentItem); target = parentItem.items }
+			const kategoriAdi = kategoriKod2Adi[kategoriKod] ?? kategoriKod; let target = items_raporlar;
+			if (kategoriAdi) { const parentItem = new FRMenuCascade({ mne: kategoriKod, text: kategoriAdi }); items_raporlar.push(parentItem); target = parentItem.items }
 			target.push(...items)
 		}
 		/*const menu_test = (config.dev ? new FRMenuCascade({ mne: 'TEST', text: 'TEST', items: items_raporlar }) : null);*/

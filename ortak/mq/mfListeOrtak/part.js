@@ -304,7 +304,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	 static async openContextMenu(e) {
 		const evt = e.event, gridPart = e.gridPart ?? e.sender ?? e.parentPart, gridWidget = gridPart?.gridWidget, cells = gridWidget?.getselectedcells();
 		const belirtec = gridPart?.selectedBelirtec, parentRec = e.parentRec = e.parentRec ?? gridPart?.selectedRec;
-		const recs = (e.recs ?? gridPart?.getSubRecs(e))?.filter(rec => !!rec), rec = e.rec = (recs || [])[0]; /*if (!rec) { return null }*/
+		const recs = (e.recs ?? gridPart?.getSubRecs(e) ?? [])?.filter(rec => !!rec), rec = e.rec = (recs || [])[0]; /*if (!rec) { return null }*/
 		const title = e.title ?? 'Menü'; let wnd, wndContent = $(`<div class="full-wh"/>`);
 		const close = e => {
 			if (!wnd?.length) { return }

@@ -23,7 +23,7 @@ class HMRBilgi extends CIO {
 				model: { ioAttr: 'modelKod', adiAttr: 'modelAdi', rowAttr: 'modelkod', rowAdiAttr: 'modeladi', etiket: 'Model', kami: true, mfSinif: MQModel },
 				renk: { ioAttr: 'renkKod', adiAttr: 'renkAdi', rowAttr: 'renkkod', rowAdiAttr: 'renkadi', etiket: 'Renk', kami: true, mfSinif: MQRenk },
 				desen: { ioAttr: 'desenKod', adiAttr: 'desenAdi', rowAttr: 'desenkod', rowAdiAttr: 'desenadi', etiket: 'Desen', kami: true, mfSinif: MQDesen },
-				raf: { ioAttr: 'rafKod', adiAttr: 'rafAdi', rowAttr: 'rafkod', rowAdiAttr: 'rafadi', etiket: 'Raf', kami: true, mfSinif: MQYerRaf },
+				raf: { ioAttr: 'rafKod', adiAttr: 'rafKod', rowAttr: 'rafkod', rowAdiAttr: 'rafkod', etiket: 'Raf', kami: false, mfSinif: MQYerRaf },
 				beden: { ioAttr: 'beden', rowAttr: 'beden', etiket: 'Beden' },
 				harDet: { ioAttr: 'harDet', rowAttr: 'hardet', etiket: 'Har.Det.' },
 				lotNo: { ioAttr: 'lotNo', rowAttr: 'lotno', etiket: 'Lot No' },
@@ -54,8 +54,7 @@ class HMRBilgi extends CIO {
 	static *hmrIter(e) {
 		const DefaultGenislikCh = 20, {belirtec2Bilgi, belirtecSet} = this;
 		for (const belirtec in belirtec2Bilgi) {
-			if (!belirtecSet[belirtec]) { continue }
-			const item = $.extend({}, belirtec2Bilgi[belirtec], /*{ belirtec: belirtec }*/);
+			if (!belirtecSet[belirtec]) { continue } const item = $.extend({}, belirtec2Bilgi[belirtec], /*{ belirtec: belirtec }*/);
 			yield $.extend(item, {
 				get defaultValue() { return item.numerikmi ? 0 : '' },
 				asGridKolon(e) {

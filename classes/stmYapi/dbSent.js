@@ -167,6 +167,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	}
 	fis2SubeBagla(e) { this.fromIliski('isyeri sub', 'fis.bizsubekod = sub.kod'); this.sube2GrupBagla(e); return this }
 	sube2GrupBagla(e) { this.fromIliski('isygrup igrp', 'sub.isygrupkod = igrp.kod'); return this }
+	takip2GrupBagla(e) { this.fromIliski('takipgrup tak', 'tak.grupkod = tgrp.kod'); return this }
 	fis2YerBagla(e) { return this.x2YerBagla({ ...e, alias: e.alias ?? 'fis' }) }
 	har2YerBagla(e) { return this.x2YerBagla({ ...e, alias: e.alias ?? 'har' }) }
 	x2YerBagla(e) { const {alias} = e, aliasVeNokta = alias ? `${alias}.` : ''; this.fromIliski('stkyer yer', `${aliasVeNokta}yerkod = yer.kod`) }
