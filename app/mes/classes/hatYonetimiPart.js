@@ -54,8 +54,14 @@ class HatYonetimiPart extends Part {
 				{ id: 'tazele', handler: e => this.tazele(e) }, { id: 'vazgec', handler: e => this.close(e) }
 			]).setEkSagButonlar('tezgahMenu', 'isEmirleri', 'topluX', 'tumEkNotlar', 'ozet', 'boyut', 'tazele');
 		let parent = rfb.addFormWithParent('checkboxes').setParent(header).addCSS('checkboxes').addStyle_wh('max-content')
-				.addStyle(e =>`$elementCSS { position: relative; left: 20px; top: calc(-35px - var(--islemTuslari-height)); z-index: 1011 !important }`)
+				.addStyle(e =>
+					`$elementCSS { position: relative; left: 20px; top: calc(-35px - var(--islemTuslari-height)); gap: 10px; z-index: 1011 !important }
+					 $elementCSS > div > * { cursor: pointer }`)
 			parent.addCheckBox('otoTazeleFlag', 'Tzl').setAltInst(app).setValue(app.otoTazeleFlag ?? false).degisince(({ builder: fbd }) => this.tazeleBasit(e));
+			parent.addCheckBox('cokluSecimmi', 'Çkl').setAltInst(this).setValue(this.cokluSecimmi ?? false).degisince(({ builder: fbd }) => {
+				this.lastSelection = null; this.divListe.find(`.hat.item > .tezgahlar > .tezgah.item.selected`).removeClass('selected');
+				this.tazeleBasit(e)
+			});
 		return rfb
 	}
 	initBulForm(e) {
@@ -166,7 +172,7 @@ class HatYonetimiPart extends Part {
 		}
 		if (!basitmi) {
 			MQEkNotlar.loadServerData().then(recs => {
-				const btnTumEkNotlar = islemTuslari.find('button#tumEkNotlar'); if (btnTumEkNotlar?.length) { btnTumEkNotlar.removeClass('yeni-not') }
+				const btnTumEkNotlar = islemTuslari?.find('button#tumEkNotlar'); if (btnTumEkNotlar?.length) { btnTumEkNotlar.removeClass('yeni-not') }
 				let maxId = 0; for (const {kaysayac: sayac} of recs) { maxId = Math.max(maxId, sayac) } if (!maxId) { return }
 				const {localData} = app.params; let ekNotLastReadId = asInteger(localData.getData('ekNotLastReadId'));
 				if (ekNotLastReadId < maxId && btnTumEkNotlar?.length) { btnTumEkNotlar.addClass('yeni-not') }
