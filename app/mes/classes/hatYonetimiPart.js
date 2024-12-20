@@ -65,7 +65,7 @@ class HatYonetimiPart extends Part {
 		}
 		return this
 	}
-	hizliBulIslemi(e) { const {tokens} = e; this.filtreTokens = tokens; this.tazeleBasit(e); return this }
+	hizliBulIslemi(e) { const {tokens} = e; this.filtreTokens = tokens; this.tazele(e); return this }
 	tazeleBasit(e) { return this.tazele({ ...e, basit: true }) }
 	tazeleWithSignal() { app.signalChange(); return this }
 	onSignalChange(e) { this.tazeleBasit(e); return this }
