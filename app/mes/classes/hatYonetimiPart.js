@@ -15,7 +15,7 @@ class HatYonetimiPart extends Part {
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, {
 			title: 'Hat Yönetimi 2', tezgahKod: (e.tezgahKod ?? e.tezgahId)?.trimEnd(), cokluSecimmi: e.cokluSecim ?? e.cokluSecimmi ?? false, boxSize: e.boxSize,
-			hizliBulAttrListe: e.hizliBulAttrListe ?? ['hatKod', 'hatAdi', 'tezgahKod', 'tezgahAdi', 'perKod', 'perIsim', 'ip', 'isListe']
+			hizliBulAttrListe: e.hizliBulAttrListe ?? ['hatKod', 'hatAdi', 'tezgahKod', 'tezgahAdi', 'perKod', 'perIsim', 'ip', 'isListe', 'zamanEtuduText', 'ekAramaText']
 		})
 	}
 	init(e) {
@@ -120,19 +120,6 @@ class HatYonetimiPart extends Part {
 				a.tezgahKod < b.tezgahKod ? -1 : a.tezgahKod > b.tezgahKod ? 1 :
 				0)
 		}
-		if (recs && filtreTokens?.length) {
-			let {hizliBulAttrListe} = this, _recs = recs; recs = [];
-			for (const rec of _recs) {
-				let uygunmu = true; const values = hizliBulAttrListe.map(key => typeof rec[key] == 'object' ? toJSONStr(rec[key]) : rec[key]?.toString()).filter(value => !!value);
-				for (const token of filtreTokens) {
-					let _uygunmu = false; for (let value of values) {
-						if (value == null) { continue } value = value.toString();
-						if (value.toUpperCase().includes(token.toUpperCase()) || value.toLocaleUpperCase(culture).includes(token.toLocaleUpperCase(culture))) { _uygunmu = true; break }
-					} if (!_uygunmu) { uygunmu = false; break }
-				} if (!uygunmu) { continue }
-				recs.push(rec)
-			}
-		}
 		if (recs) {
 			let _recs = recs; recs = [];
 			for (let rec of _recs) {
@@ -145,6 +132,7 @@ class HatYonetimiPart extends Part {
 					const {oemgerceklesen, oemistenen} = rec; rec.oee = oemistenen ? roundToFra(Math.max(oemgerceklesen * 100 / oemistenen, 0), 2) : 0;
 					delete rec.isListe; isListe.push(rec); let set = isID2TezgahKodSet; (set[isID] = set[isID] || {})[tezgahKod] = true
 				}
+				rec.ekAramaText = `durum:${rec.durumKod}`
 			}
 		}
 		if (!basitmi && tezgah2Rec && !$.isEmptyObject(isID2TezgahKodSet)) {
@@ -152,11 +140,26 @@ class HatYonetimiPart extends Part {
 				isId = asInteger(isId); promises.push(new $.Deferred(async p => {
 					try {
 						let rec; try { rec = await app.wsGorevZamanEtuduVeriGetir({ isId }); if (!rec?.bzamanetudu) { rec = null } } catch (ex) { }
-						if (rec) { for (const tezgahKod in tezgahKodSet) { rec = tezgah2Rec[tezgahKod]; if (rec) { rec.zamanEtuduVarmi = true } } }
+						for (const tezgahKod in tezgahKodSet) {
+							let tezgahRec = tezgah2Rec[tezgahKod];
+							if (tezgahRec) { $.extend(tezgahRec, { zamanEtuduVarmi: !!rec, zamanEtuduText: rec ? 'zmn:var zaman:var etüd:var' : 'zmn:yok zaman:yok etüd:yok' }) }
+						}
 					} catch (ex) { console.error(ex) }
 					p.resolve()
 				}))
 			} if (promises?.length) { await Promise.all(promises) }
+		}
+		if (recs && filtreTokens?.length) {
+			let {hizliBulAttrListe} = this, _recs = recs; recs = []; for (const rec of _recs) {
+				let uygunmu = true; const values = hizliBulAttrListe.map(key => typeof rec[key] == 'object' ? toJSONStr(rec[key]) : rec[key]?.toString()).filter(value => !!value);
+				for (const token of filtreTokens) {
+					let _uygunmu = false; for (let value of values) {
+						if (value == null) { continue } value = value.toString();
+						if (value.toUpperCase().includes(token.toUpperCase()) || value.toLocaleUpperCase(culture).includes(token.toLocaleUpperCase(culture))) { _uygunmu = true; break }
+					} if (!_uygunmu) { uygunmu = false; break }
+				} if (!uygunmu) { continue }
+				recs.push(rec)
+			}
 		}
 		if (recs) {
 			for (const rec of recs) {
