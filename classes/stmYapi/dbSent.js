@@ -179,6 +179,8 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	fis2BankaHesapBagla(e) { this.fromIliski('banbizhesap bhes', 'fis.banhesapkod = bhes.kod'); return this }
 	fis2KrediBankaHesapBagla(e) { this.fromIliski('banbizhesap bhes', 'fis.kredihesapkod = bhes.kod'); return this }
 	fisAyrimBagla(e) { /* tamamlanacak */ return this }
+	har2MuhHesapBagla(e) { this.fromIliski('muhhesap mhes', 'har.hesapkod = mhes.kod'); return this }
+	muhHesap2GrupBagla(e) { this.fromIliski('muhgrup mhgrp', 'mhes.grupkod = mhgrp.kod'); return this }
 	cariHepsiBagla(e) { e = e || {}; this.cariYardimciBagla(e); this.cariAyrimBagla(e); return this }
 	cari2BolgeBagla(e) {
 		e = e || {}; const alias = e.alias ?? 'car', aliasVeNokta = alias ? `${alias}.` : '';

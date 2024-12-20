@@ -4,8 +4,7 @@ class DRapor_Donemsel extends DRapor_AraSeviye {
 class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e); const {result} = e;
-		result
+		super.tabloYapiDuzenle(e); const {result} = e; result
 			.addGrup(new TabloYapiItem().setKA('YILAY', 'Yıl-Ay').addColDef(new GridKolon({ belirtec: 'yilay', text: 'Yıl-Ay', genislikCh: 20, filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('YILHAFTA', 'Yıl-Hafta').addColDef(new GridKolon({ belirtec: 'yilhafta', text: 'Yıl-Hafta', genislikCh: 20, filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('AYADI', 'Ay').addColDef(new GridKolon({ belirtec: 'ayadi', text: 'Ay', genislikCh: 20, filterType: 'checkedlist' })))

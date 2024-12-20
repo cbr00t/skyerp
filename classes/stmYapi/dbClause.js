@@ -420,6 +420,7 @@ class MQSubWhereClause extends MQClause {
 	icerikKisitDuzenle_hizmetGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmetGrup' }) }
 	icerikKisitDuzenle_hizmetAnaGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmetAnaGrup' }) }
 	icerikKisitDuzenle_hizmetIstGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmetIstGrup' }) }
+	icerikKisitDuzenle_muhHesap(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'muhHesap' }) }
 }
 class MQWhereClause extends MQSubWhereClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

@@ -514,12 +514,13 @@ class HatYonetimiPart extends Part {
 	}
 	ozetBilgi_getLayout(e) {
 		const recs = e.recs ?? this.tezgahRecs; if (!recs) { return null }
-		const hat2Durum2Sayi = {}; let topMakineSayi = 0, topAktifSayi = 0, topPasifSayi = 0, topOffSayi = 0;
-		for (let {hatKod, sinyalKritik, durumKod} of recs) {
-			let hatText = hatKod; if (durumKod == 'DV') { durumKod = sinyalKritik ? 'APSF' : 'ZON' } else { durumKod = 'XOFF' }
+		const hat2Durum2Sayi = {}, durNeden2TezgahKod = {}; let topMakineSayi = 0, topAktifSayi = 0, topPasifSayi = 0, topOffSayi = 0;
+		for (let {hatKod: hatText, tezgahKod, sinyalKritik, durumKod, durNedenAdi} of recs) {
+			let orjDurumKod = durumKod; if (durumKod == 'DV') { durumKod = sinyalKritik ? 'APSF' : 'ZON' } else { durumKod = 'XOFF' }
 			let durum2Sayi = hat2Durum2Sayi[hatText]; if (durum2Sayi == null) { durum2Sayi = hat2Durum2Sayi[hatText] = {}; for (const key of ['ZON', 'APSF', 'XOFF']) { durum2Sayi[key] = 0 } }
 			durum2Sayi[durumKod] = (durum2Sayi[durumKod] || 0) + 1; topMakineSayi++;
 			if (durumKod == 'ZON') { topAktifSayi++ } else if (durumKod == 'APSF') { topPasifSayi++ } else { topOffSayi++ }
+			if (orjDurumKod == 'DR') { (durNeden2TezgahKod[durNedenAdi] = durNeden2TezgahKod[durNedenAdi] ?? []).push(tezgahKod) }
 		}
 		let textList = []; for (const [hat, durum2Sayi] of Object.entries(hat2Durum2Sayi)) {
 			let text = `<li class="item"><span class="etiket sub-item">${hat}:</span> `;
@@ -529,7 +530,8 @@ class HatYonetimiPart extends Part {
 			}
 			text += `</li>`; textList.push(text)
 		}
-		let verimlilik = roundToFra(topAktifSayi / topMakineSayi * 100, 1); textList.push(
+		const verimlilik = roundToFra(topAktifSayi / topMakineSayi * 100, 1);
+		textList.push(
 			`<div class="ek-satirlar flex-row">
 				<li class="item">
 					<div><span class="etiket sub-item highlight">Top. Makine &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> <span class="sayi sub-item">${numberToString(topMakineSayi)}</span></div>
@@ -541,8 +543,13 @@ class HatYonetimiPart extends Part {
 					<div class="pasif"><span class="etiket highlight sub-item">Pasif Makine </span> <span class="sayi sub-item">${numberToString(topPasifSayi)}</span></div>
 				</li>
 			</div>`
-		)
-		return `<ul class="text ozetBilgi-container ozetBilgi">${textList?.length ? textList.join(' ') : ''}</ul>`
+		);
+		let ekTextList = []; if (!$.isEmptyObject(durNeden2TezgahKod)) {
+			ekTextList.push(`<table class="durNedenleri" cellpadding="3"><tr class="header"><th width="150">Dur. Neden</th><th>Sayı</th></tr>`);
+			for (const [neden, kodListe] of Object.entries(durNeden2TezgahKod)) { ekTextList.push(`<tr class="data"><td>${neden}</td><td>${kodListe.length}</td></tr>`) }
+			ekTextList.push(`</table>`)
+		}
+		return `<ul class="text ozetBilgi-container ozetBilgi">${textList?.length ? textList.join(' ') : ''}</ul>${ekTextList.length ? ekTextList.join(CrLf) : ''}`
 	}
 	bekleyenIsEmirleriIstendi(e) {
 		const {hatKod} = (e.rec ?? this.selectedTezgahRecs[0]) ?? {}; if (!hatKod) { return }

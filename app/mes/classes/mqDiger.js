@@ -50,8 +50,8 @@ class MQTezgah extends MQKAOrtak {
 }
 class MQOperasyon extends MQKAOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Operasyon' }
-	static get kodSaha() { return 'opNo' } static get adiSaha() { return 'opAdi' } 
-	static get kodEtiket() { return 'Op. No' } static get adiEtiket() { return 'Op. Adı' }
+	static get table() { return 'operasyon' } static get tableAlias() { return 'op' }
+	static get kodSaha() { return 'opno' } static get adiSaha() { return 'aciklama' }  static get kodEtiket() { return 'Op. No' } static get adiEtiket() { return 'Op. Adı' }
 	static rootFormBuilderDuzenle_listeEkrani(e) {
 		super.rootFormBuilderDuzenle_listeEkrani(e); const rfb = e.rootBuilder;
 		this.fbd_listeEkrani_addCheckBox(rfb, 'urunAgacineEkleFlag', 'Ürün Ağacına Ekle').onAfterRun(e => {
@@ -59,7 +59,7 @@ class MQOperasyon extends MQKAOrtak {
 			input.on('change', evt => { rootPart.urunAgacineEkleFlag = $(evt.currentTarget).is(':checked') })
 		})
 	}
-	static loadServerData(e) {
+	/*static loadServerData(e) {
 		const {oemSayac} = e.args, toplu = new MQToplu([
 			`DECLARE @emirDetaySayac	BIGINT`,
 			new MQSent({
@@ -74,8 +74,8 @@ class MQOperasyon extends MQKAOrtak {
 				orderBy: ['opNo']
 			})
 		]);
-		return app.sqlExecSelect(toplu) /*return app.wsBekleyenIs_yeniOperasyonlar({ oemSayac })*/
-	}
+		return app.sqlExecSelect(toplu)
+	}*/
 }
 class MQDurNeden extends MQKAOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Duraksama Nedeni' }

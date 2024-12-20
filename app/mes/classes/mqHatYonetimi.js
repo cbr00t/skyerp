@@ -156,12 +156,11 @@ class MQHatYonetimi extends MQMasterOrtak {
 	}
 	static orjBaslikListesi_hizliBulIslemi(e) { app.otoTazeleTempDisable(e); super.orjBaslikListesi_hizliBulIslemi(e) }
 	static async loadServerData(e) {
-		let recs, lastError;
-		for (let i = 0; i < 3; i++) {
+		let recs, lastError; for (let i = 0; i < 3; i++) {
 			try { recs = await this.loadServerData_internal(e); lastError = null; break }
 			catch (ex) { lastError = ex; if (i) { await new $.Deferred(p => setTimeout(() => p.resolve(), i * 500) ) } }
 		}
-		if (lastError) { throw lastError }
+		if (lastError) { if (e.action == 'otoTazele') { console.error(ex) } else { throw lastError } }
 		return recs || []
 	}
 	static async loadServerData_internal(e) {
@@ -406,13 +405,15 @@ class MQHatYonetimi extends MQMasterOrtak {
 	}
 	static ozetBilgi_getLayout(e) {
 		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, recs = gridPart?._lastRecs; if (!recs) { return null }
-		const hat2Durum2Sayi = {}; let topMakineSayi = 0, topAktifSayi = 0, topPasifSayi = 0, topOffSayi = 0; for (const rec of recs) {
-			const {hatKod, sinyalKritik} = rec, hatText = hatKod; let {durumKod} = rec;
-			if (durumKod == 'DV') { durumKod = sinyalKritik ? 'APSF' : 'ZON' } else { durumKod = 'XOFF' }
+		const hat2Durum2Sayi = {}, durNeden2TezgahKod = {}; let topMakineSayi = 0, topAktifSayi = 0, topPasifSayi = 0, topOffSayi = 0;
+		for (let {hatKod: hatText, tezgahKod, sinyalKritik, durumKod, durNedenAdi} of recs) {
+			let orjDurumKod = durumKod; if (durumKod == 'DV') { durumKod = sinyalKritik ? 'APSF' : 'ZON' } else { durumKod = 'XOFF' }
 			let durum2Sayi = hat2Durum2Sayi[hatText]; if (durum2Sayi == null) { durum2Sayi = hat2Durum2Sayi[hatText] = {}; for (const key of ['ZON', 'APSF', 'XOFF']) { durum2Sayi[key] = 0 } }
-			durum2Sayi[durumKod] = (durum2Sayi[durumKod] || 0) + 1; topMakineSayi++; if (durumKod == 'ZON') { topAktifSayi++ } else if (durumKod == 'APSF') { topPasifSayi++ } else { topOffSayi++ }
+			durum2Sayi[durumKod] = (durum2Sayi[durumKod] || 0) + 1; topMakineSayi++;
+			if (durumKod == 'ZON') { topAktifSayi++ } else if (durumKod == 'APSF') { topPasifSayi++ } else { topOffSayi++ }
+			if (orjDurumKod == 'DR') { (durNeden2TezgahKod[durNedenAdi] = durNeden2TezgahKod[durNedenAdi] ?? []).push(tezgahKod) }
 		}
-		const textList = []; for (const [hat, durum2Sayi] of Object.entries(hat2Durum2Sayi)) {
+		let textList = []; for (const [hat, durum2Sayi] of Object.entries(hat2Durum2Sayi)) {
 			let text = `<li class="item"><span class="etiket sub-item">${hat}:</span> `;
 			for (let durumKod of Object.keys(durum2Sayi).sort().reverse()) {
 				const sayi = durum2Sayi[durumKod], durumText = durumKod == 'ZON' ? 'ON' : durumKod == 'APSF' ? 'PSF' : 'OFF';
@@ -433,8 +434,13 @@ class MQHatYonetimi extends MQMasterOrtak {
 					<div class="pasif"><span class="etiket highlight sub-item">Pasif Makine </span> <span class="sayi sub-item">${numberToString(topPasifSayi)}</span></div>
 				</li>
 			</div>`
-		)
-		return `<ul class="text ozetBilgi-container ozetBilgi">${textList?.length ? textList.join(' ') : ''}</ul>`
+		);
+		let ekTextList = []; if (!$.isEmptyObject(durNeden2TezgahKod)) {
+			ekTextList.push(`<table class="durNedenleri" cellpadding="3"><tr class="header"><th width="150">Dur. Neden</th><th>Sayı</th></tr>`);
+			for (const [neden, kodListe] of Object.entries(durNeden2TezgahKod)) { ekTextList.push(`<tr class="data"><td>${neden}</td><td>${kodListe.length}</td></tr>`) }
+			ekTextList.push(`</table>`)
+		}
+		return `<ul class="text ozetBilgi-container ozetBilgi">${textList?.length ? textList.join(' ') : ''}</ul>${ekTextList.length ? ekTextList.join(CrLf) : ''}`
 	}
 	static ekBilgiIstendi(e) {
 		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, rec = e.rec ?? gridPart.selectedRec, {tezgahKod, tezgahAdi} = rec;

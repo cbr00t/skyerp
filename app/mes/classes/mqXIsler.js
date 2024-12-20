@@ -99,6 +99,7 @@ class MQSiradakiIsler extends MQXIsler {
 		liste.push(
 			{ id: 'isAtaKaldir', text: 'İŞ ATA/KALDIR', handler: e => this.isAtaKaldirIstendi(e) },
 			{ id: 'sirayadanKaldir', text: 'SIRADAN KALDIR', handler: e => this.siradanKaldirIstendi(e) },
+			{ id: 'isBitti', text: 'İŞ BİTTİ', handler: e => this.isBittiIstendi(e) },
 			{ id: 'sureSayiDuzenle', text: 'SÜRE DÜZENLE', handler: e => this.sureSayiDuzenleIstendi(e) },
 			{ id: 'zamanEtudu', text: 'ZAMAN ETÜDÜ', handler: e => this.zamanEtuduIstendi(e) },
 			{ id: 'baskaTezgahaTasi', text: 'TAŞI', handler: e => this.baskaTezgahaTasiIstendi(e) },
@@ -131,6 +132,11 @@ class MQSiradakiIsler extends MQXIsler {
 		const isIdListe = recs.map(rec => rec.issayac).join(delimWS); if (!isIdListe?.length) { return }
 		try { await app.wsSiradanKaldir({ tezgahKod, isIdListe }); gridPart.tazele() }
 		catch(ex) { console.error(ex); hConfirm(getErrorText(ex), 'Sıradan Kaldır') }
+	}
+	static async isBittiIstendi(e) {
+		const gridPart = e.gridPart ?? e.parentPart ?? e.sender, {tezgahKod} = gridPart;
+		let rdlg = await ehConfirm(`<b class="royalblue">${tezgahKod}</b> kodlu Makineye ait <u>TÜM İŞLER İÇİN</u> <b class="darkred">İş Bitti</b> yapılacak, devam edilsin mi?`, 'İş Bitti Yap');
+		if (!rdlg) { return } try { await app.wsIsBittiYap({ tezgahKod }); gridPart.tazele() } catch(ex) { console.error(ex); hConfirm(getErrorText(ex), 'İş Bitti Yap') }
 	}
 	static sureSayiDuzenleIstendi(e) {
 		try {
