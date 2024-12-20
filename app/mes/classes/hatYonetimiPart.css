@@ -17,8 +17,8 @@ body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup, body.dark-t
 body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup { filter: invert(1) hue-rotate(180deg); color: #aaa; background-color: #1a1a1f !important }
 body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:hover, body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:focus { opacity: .8 }
 .hatYonetimi.part .content .liste .hat.item.hasGrupStyle > .grup { height: 150px }
-.hatYonetimi.part .content .liste .hat.item.hasGrupStyle > .grup:focus, .hatYonetimi.part .content .liste .hat.item.hasGrupStyle:active > .grup{ height: 250px }
-.hatYonetimi.part .content .liste .tezgahlar {}
+.hatYonetimi.part .content .liste .hat.item.hasGrupStyle > .grup:focus, .hatYonetimi.part .content .liste .hat.item.hasGrupStyle > .grup:active { height: 250px }
+.hatYonetimi.part .content .liste .tezgahlar { }
 .hatYonetimi.part .content .liste .tezgah.item {
 	--sol-width: 40px; --alt-height: 33px;
 	width: calc(var(--full) / var(--box-cols) - /*(var(--padding-x) * 2.9)*/ 1px); height: calc(15px + 10px * var(--box-rows)); line-height: 15px;

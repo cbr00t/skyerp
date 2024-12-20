@@ -57,10 +57,9 @@ class MESApp extends App {
 	tazele_startTimer(e) {
 		let {evtSource} = this; if (evtSource) { return this }
 		const wsPath = `${this.defaultWSPath}/makineDurum`, url = this.getEventStreamURL('tezgahBilgileri', wsPath); if (!url) { return this }
-		evtSource = this.evtSource = new EventSource(url); evtSource.onmessage = ({data}) => {
-			const _appActivatedFlag = appActivatedFlag;
-			if (this.otoTazeleYapilirmi) { this.signalChange({ ...e, data }) }
-		}; return this
+		evtSource = this.evtSource = new EventSource(url);
+		evtSource.onmessage = ({ data }) => { try { if (this.otoTazeleYapilirmi) { this.signalChange({ ...e, data }) } } catch (ex) { console.error(ex) } };
+		return this
 	}
 	tazele_stopTimer(e) { let {evtSource} = this; if (evtSource) { evtSource.close(); evtSource = this.evtSource = null } return this }
 	signalChange(e) {

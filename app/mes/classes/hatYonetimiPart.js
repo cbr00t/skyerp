@@ -24,9 +24,9 @@ class HatYonetimiPart extends Part {
 		const divListe = this.divListe = subContent.children('.liste')
 	}
 	run(e) {
-		e = e || {}; super.run(e); const {layout} = this, builder = this.builder = this.getRootFormBuilder(e);
+		e = e || {}; super.run(e); const {layout} = this;
 		this.tazele(e); if (app.otoTazeleFlag == null) { app.otoTazeleFlag = true }
-		if (builder) { const {inst} = this; $.extend(builder, { part: this, inst }); builder.autoInitLayout().run(e) }
+		let builder = this.builder = this.getRootFormBuilder(e); if (builder) { const {inst} = this; $.extend(builder, { part: this, inst }); builder.autoInitLayout().run(e) }
 	}
 	destroyPart(e) { super.destroyPart(e) }
 	activated(e) { super.activated(e); this.tazeleBasit(e) }
@@ -53,7 +53,8 @@ class HatYonetimiPart extends Part {
 				{ id: 'boyut', text: 'BYT', handler: e => this.boyutlandirIstendi(e) },
 				{ id: 'tazele', handler: e => this.tazele(e) }, { id: 'vazgec', handler: e => this.close(e) }
 			]).setEkSagButonlar('tezgahMenu', 'isEmirleri', 'topluX', 'tumEkNotlar', 'ozet', 'boyut', 'tazele');
-		let parent = rfb.addFormWithParent('checkboxes').setParent(header).addCSS('checkboxes').addStyle(e => `$elementCSS > * { margin-top: calc(3px - var(--islemTuslari-height)) !important }`)
+		let parent = rfb.addFormWithParent('checkboxes').setParent(header).addCSS('checkboxes').addStyle_wh('max-content')
+				.addStyle(e =>`$elementCSS { position: relative; left: 20px; top: calc(-35px - var(--islemTuslari-height)); z-index: 1011 !important }`)
 			parent.addCheckBox('otoTazeleFlag', 'Tzl').setAltInst(app).setValue(app.otoTazeleFlag ?? false).degisince(({ builder: fbd }) => this.tazeleBasit(e));
 		return rfb
 	}
