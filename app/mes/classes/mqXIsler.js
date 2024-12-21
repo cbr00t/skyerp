@@ -1,6 +1,7 @@
 class MQXIsler extends MQMasterOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get parentMFSinif() { return MQXIsler } static get noAutoFocus() { return true }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get parentMFSinif() { return MQXIsler } static get noAutoFocus() { return true } static get menuyeAlinmazmi() { return true }
 	static get sinifAdi() { return 'X İşler' } static get gridIslemTuslariKullanilirmi() { return false } static get switchPartClass() { return this } static get switchButtonText() { return null }
+
 	static ekCSSDuzenle(e) {
 		const {rec, result} = e; if (rec.devreDisimi) { result.push('devreDisi') }
 		if (rec.batandimi) { result.push('atandi') } if (rec.bzamanetudu) { result.push('zamanEtudu') } if (rec.sonmu) { result.push('son') }
@@ -93,7 +94,8 @@ class MQXIsler extends MQMasterOrtak {
 }
 class MQSiradakiIsler extends MQXIsler {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() { return 'Sıradaki İşler' } static get switchPartClass() { return MQBekleyenIsler } static get switchButtonText() { return 'B' }
+	static get kodListeTipi() { return 'SIRADAKI_ISLER' } static get sinifAdi() { return 'Sıradaki İşler' }
+	static get switchPartClass() { return MQBekleyenIsler } static get switchButtonText() { return 'B' }
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e); const {liste} = e, gridPart = e.gridPart ?? e.sender ?? e.parentPart;
 		liste.push(
@@ -216,7 +218,8 @@ class MQSiradakiIsler extends MQXIsler {
 }
 class MQBekleyenIsler extends MQXIsler {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() { return 'Bekleyen İşler' } static get switchPartClass() { return MQSiradakiIsler } static get switchButtonText() { return 'S' }
+	static get kodListeTipi() { return 'BEKLEYEN_ISLER' } static get sinifAdi() { return 'Bekleyen İşler' }
+	static get switchPartClass() { return MQSiradakiIsler } static get switchButtonText() { return 'S' }
 	static listeEkrani_init(e) { super.listeEkrani_init(e); const gridPart = e.gridPart ?? e.sender; $.extend(gridPart, { sadeceUygunAsamami: true }) }
 	static rootFormBuilderDuzenle_listeEkrani(e) {
 		super.rootFormBuilderDuzenle_listeEkrani(e); const rfb = e.rootBuilder;

@@ -133,7 +133,7 @@ class MQSureSayi extends MQMasterOrtak {
 		}
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); const rfb = e.rootBuilder, tanimForm = e.tanimFormBuilder;
+		const {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e;
 		rfb.onAfterRun(e => { const {part} = e.builder; part.title = this.sinifAdi });
 		tanimForm.addForm({ id: 'oemBilgi' })
 			.setLayout(e => { const {builder} = e, {id, rootPart} = builder, inst = builder.altInst, {rec} = inst, layout = $(`<div id="${id}"/>`); MQOEM.oemHTMLDuzenle({ parent: layout, rec }); return layout })
@@ -163,7 +163,7 @@ class MQZamanEtudu extends MQMasterOrtak {
 		}
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); const rfb = e.rootBuilder, tanimForm = e.tanimFormBuilder;
+		const {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e;
 		rfb.onAfterRun(e => {
 			const {builder} = e, {part, altInst} = builder, {urunAgacCevrimEnKisaSn, urunAgacSinyalEnKisaSn, degistirmi} = altInst;
 			if (urunAgacCevrimEnKisaSn != null) { part.fbd_cevrimMinSn?.input?.attr('placeholder', urunAgacCevrimEnKisaSn) }
@@ -233,4 +233,46 @@ class MQZamanEtudu extends MQMasterOrtak {
 		let zamanEtuduRec = altInst.zamanEtuduRec = await app.wsGorevZamanEtuduVeriGetir({ isId, oemSayac, tezgahKod });
 		new this({ rec, zamanEtuduRec, parentPart, events: $.extend({}, events) }).tanimla({ islem }); part.close()
 	}
+}
+class MQSinyal extends MQMasterOrtak {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get kodListeTipi() { return 'SINYAL' } static get tanimUISinif() { return ModelTanimPart }
+	static get sinifAdi() { return 'MES Sinyal' } static get table() { return 'messinyal' } static get tableAlias() { return 'sny' } static get menuyeAlinmazmi() { return false }
+	static get tanimlanabilirmi() { return true } static get silinebilirmi() { return true }
+	static pTanimDuzenle(e) {
+		super.pTanimDuzenle(e); const {pTanim} = e;
+		$.extend(pTanim, { tezgahKod: new PInstStr('tezgahkod'), ts: new PInstDateTimeNow('ts') })
+	}
+	static secimlerDuzenle(e) {
+		super.secimlerDuzenle(e); const {secimler: sec} = e;
+		sec.secimTopluEkle({
+			tezgahKod: new SecimString({ etiket: 'Tezgah', mfSinif: MQTezgah }), tezgahAdi: new SecimOzellik({ etiket: 'Tezgah Adı' }), ts: new SecimDateTime({ etiket: 'Tarih/Saat' }) });
+		sec.whereBlockEkle(e => {
+			const {secimler: sec, where: wh} = e, {tableAlias: alias} = this;
+			wh.basiSonu(sec.tezgahKod, `${alias}.tezgahkod`); wh.ozellik(sec.tezgahAdi, 'tez.aciklama'); wh.basiSonu(sec.ts, `${alias}.ts`)
+		})
+	}
+	static orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(...[
+			new GridKolon({ belirtec: 'tezgahkod', text: 'Tezgah', genislikCh: 13 }),
+			new GridKolon({ belirtec: 'tezgahadi', text: 'Tezgah Adı', genislikCh: 25, sql: 'tez.aciklama' }),
+			new GridKolon({ belirtec: 'ts', text: 'Tarih/Saat', genislikCh: 18 }),
+			new GridKolon({ belirtec: 'kayitsayisi', text: 'Sayı', genislikCh: 8, sql: 'COUNT(*)', aggregates: [{'TOPLAM': gridDipIslem_sum}] }).tipNumerik()
+		])
+	}
+	static async loadServerData_queryOlustur(e) {
+		await super.loadServerData_queryOlustur(e); const {stm} = e;
+		for (const sent of stm.getSentListe()) { sent.groupByOlustur() }
+		return stm
+	}
+	static async loadServerData_queryDuzenle(e) {
+		await super.loadServerData_queryDuzenle(e); const {sent} = e, alias = e.alias ?? this.tableAlias;
+		sent.fromIliski('tekilmakina tez', 'sny.tezgahkod = tez.kod');
+	}
+	static rootFormBuilderDuzenle(e) {
+		super.rootFormBuilderDuzenle(e); const {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e;
+		let form = tanimForm.addFormWithParent().yanYana();
+			form.addModelKullan('tezgahKod', 'Tezgah').comboBox().autoBind().setMFSinif(MQTezgah); form.addDateInput('tarih', 'Tarih'); form.addTimeInput('saat', 'Saat')
+	}
+	keyHostVarsDuzenle(e) { super.keyHostVarsDuzenle(e); const {hv} = e, {tezgahKod: tezgahkod, ts} = this; $.extend(hv, { tezgahkod, ts }) }
+	keySetValues(e) { super.keySetValues(e); const {rec} = e, {tezgahkod: tezgahKod, ts} = rec; $.extend(this, { tezgahKod, ts }) }
 }

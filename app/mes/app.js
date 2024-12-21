@@ -38,8 +38,13 @@ class MESApp extends App {
 	getAnaMenu(e) {
 		/* const disabledMenuIdSet = this.disabledMenuIdSet || {}; */
 		const items = [
-			new FRMenuChoice({ mnemonic: 'HAT-YONETIMI', text: 'Hat Yönetimi', block: e => MQHatYonetimi.listeEkraniAc() }),
-			new FRMenuChoice({ mnemonic: 'HAT-YONETIMI-2', text: `Hat Yönetimi (<i class="bold gray">dev</i>)`, block: e => new HatYonetimiPart().run() })
+			new FRMenuChoice({ mne: 'HAT-YONETIMI', text: 'Hat Yönetimi', block: e => MQHatYonetimi.listeEkraniAc() }),
+			new FRMenuChoice({ mne: 'HAT-YONETIMI-2', text: `Hat Yönetimi (<i class="bold gray">dev</i>)`, block: e => new HatYonetimiPart().run() }),
+			new FRMenuCascade({
+				mne: 'TANIM', text: 'Tanımlar',
+				items: MQMasterOrtak.subClasses.filter(cls => !cls.menuyeAlinmazmi)
+					.map(cls => new FRMenuChoice({ mne: cls.kodListeTipi || cls.classKey, text: cls.sinifAdi, block: e => cls.listeEkraniAc(e) }))
+			})
 		]
 		return new FRMenu({ items })
 	}
