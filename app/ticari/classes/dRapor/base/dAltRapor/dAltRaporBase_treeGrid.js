@@ -333,7 +333,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		let fbd_sablonParent = fbd_ust.addFormWithParent('sablon-parent').yanYana().addStyle_fullWH().addStyle([e =>
 			`$elementCSS { position: relative; top: 5px } $elementCSS > .button { width: 50px !important; height: 45px !important; min-width: unset !important }`]);
 		fbd_sablonParent.addModelKullan('sablonKod', 'Şablon').etiketGosterim_yok().dropDown().kodsuz().bosKodAlinir()
-			.setMFSinif(DMQRapor).setValue(inst.sayac).addStyle_fullWH('calc(var(--full) - 300px)')
+			.setMFSinif(DMQRapor).setValue(inst.sayac).addStyle_fullWH('calc(var(--full) - 350px)')
 			.initArgsDuzenleHandler(e => { const {args} = e; args.args = { rapor: this } })
 			.ozelQueryDuzenleHandler(e => {
 				const {stm, aliasVeNokta} = e, {raporKod} = raporTanim, {encUser} = config.session, {kodSaha} = raporTanim.class;
@@ -354,6 +354,11 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				`$elementCSS > button { background-image: url('../../images/sil.png') !important; background-size: 16px !important }
 				$elementCSS > button.jqx-fill-state-normal, $elementCSS > button.jqx-fill-state-hover { background-color: #a05d45 !important } `)
 			.onClick(_e => this.raporTanim_sablonSilIstendi({ ...e, ..._e, wnd, inst }));
+		fbd_sablonParent.addButton('temizle').addCSS('button')
+			.addStyle(e =>
+				`$elementCSS > button { background-image: url('../../images/temizle.png') !important; background-size: 16px !important }
+				$elementCSS > button.jqx-fill-state-normal, $elementCSS > button.jqx-fill-state-hover { background-color: #8a7159 !important } `)
+			.onClick(_e => this.raporTanim_temizleIstendi({ ...e, ..._e, wnd, inst }));
 		let fbd_islemTuslari = fbd_ust.addFormWithParent('islemTuslari').yanYana().addStyle_wh('auto', islemTuslariHeight).addStyle(`$elementCSS { position: absolute; top: 0; right: 0; z-index: 1000 }`);
 		fbd_islemTuslari.addButton('tamam').onClick(async _e => {
 			try {
@@ -365,7 +370,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		fbd_islemTuslari.addButton('vazgec').onClick(e => wnd.jqxWindow('close'));
 		const _e = { ...e, rootBuilder: wRFB, tanimFormBuilder: wRFB, inst }; raporTanim.class.rootFormBuilderDuzenle(_e);
 		wRFB.id2Builder.content.addStyle_fullWH(null, `calc(var(--full) - (var(--islemTuslariHeight) + var(--ustHeight) + var(--ustEkHeight)))`);
-		this.wnd_raporTanim = wnd = createJQXWindow({ title, args: { isModal: false, closeButtonAction: 'close', width: Math.max(530, Math.min(630, $(window).width() - 100)), height: Math.min(1000, $(window).height() - 50) } });
+		this.wnd_raporTanim = wnd = createJQXWindow({ title, args: { isModal: false, closeButtonAction: 'close', width: Math.max(800, Math.min(630, $(window).width() - 100)), height: Math.min(1000, $(window).height() - 50) } });
 		wnd.on('close', evt => { wnd.jqxWindow('destroy'); $('body').removeClass('bg-modal'); delete this.wnd_raporTanim });
 		wnd.prop('id', wRFB.id); wnd.addClass('dRapor part'); setTimeout(() => $('body').addClass('bg-modal'), 10);
 		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run();
@@ -416,6 +421,13 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		ehConfirm(`<b class="firebrick">${aciklama || 'Seçilen'}</b> Rapor Tanımı silinsin mi?`, 'Rapor Tanım').then(rdlg => {
 			if (wnd_raporTanim?.length) { wnd_raporTanim.jqxWindow('expand') }
 			if (rdlg) { raporTanim.sil().then(() => this.restartWndRaporTanim(e)) }
+		})
+	}
+	raporTanim_temizleIstendi(e) {
+		const {raporTanim, wnd_raporTanim} = this; if (wnd_raporTanim?.length) { wnd_raporTanim.jqxWindow('collapse') }
+		ehConfirm(`<p class="bold firebrick">Mevcut Rapor içeriği temizlenecek</p><p>Devam edilsin mi silinsin mi?</p>`, 'Rapor Tanım').then(rdlg => {
+			if (wnd_raporTanim?.length) { wnd_raporTanim.jqxWindow('expand') }
+			if (rdlg) { raporTanim.reset(); this.restartWndRaporTanim(e) }
 		})
 	}
 	seviyeAcIstendi(e) { const {gridPart} = this, {gridWidget} = gridPart; gridWidget.expandAll() }

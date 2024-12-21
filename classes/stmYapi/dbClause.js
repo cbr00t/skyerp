@@ -476,6 +476,8 @@ class MQTable extends MQAliasliYapi {
 		const liste = this.leftVeInner || []; return liste.find(item => item.aliasVarmi(alias))
 	}
 	disindakiXTablolariSil(e) {
+		/*let disindaSet = e.disindaSet || {}; const liste = this.leftVeInner || [];
+		for (let i = liste.length - 1; i >= 0; i--) { const anMQXJoinTable = liste[i]; if (!disindaSet[anMQXJoinTable.alias]) { liste.splice(i, 1) } }*/
 		let liste = this.leftVeInner || [], disindaSet = e.disindaSet ?? {}, {aliasSet} = e;
 		if (!aliasSet && e.alias) { aliasSet = asSet([e.alias]) }
 		for (let i = liste.length - 1; i >= 0; i--) {

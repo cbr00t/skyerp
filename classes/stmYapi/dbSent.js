@@ -60,18 +60,16 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	}
 	fromIliski(e, _iliskiDizi) {
 		e = e || {}; if (typeof e != 'object') { e = { from: e } } else { e.from = e.from || e.fromText || e.table }
-		let fromText = e.from;
-		if (_iliskiDizi) { e.iliskiDizi = _iliskiDizi } let iliskiDizi = e.iliskiDizi || e.iliskiText || e.iliski;
+		let {from: fromText} = e; if (_iliskiDizi) { e.iliskiDizi = _iliskiDizi } let iliskiDizi = e.iliskiDizi || e.iliskiText || e.iliski;
 		if (iliskiDizi && !$.isArray(iliskiDizi)) { iliskiDizi = [iliskiDizi] }
 			// MQFromClause >> #add:
-		let isOuter = false; const {from, zincirler} = this;
-		let lastTable = from.liste[from.liste.length - 1];
+		let isOuter = false, {from} = this, lastTable = from.liste[from.liste.length - 1];
 		if (lastTable && config?.alaSQLmi) { isOuter = true; lastTable.addLeftInner(MQOuterJoin.newForFromText({ text: fromText, on: iliskiDizi })) }
 		else { from.add(fromText); lastTable = from.liste[from.liste.length - 1] }
 		for (const iliskiText of iliskiDizi) {
 			//	tablo atılırsa iliskinin de kalkması için table yapısında bırakıldı
 			const iliski = MQIliskiYapisi.newForText(iliskiText); if (!isOuter) { lastTable.addIliski(iliski) }
-			const zincir = iliski.varsaZincir; if (zincir) { zincirler.add(zincir) }
+			const {varsaZincir: zincir} = iliski; if (zincir) { this.zincirEkle(zincir) }
 		}
 		return this
 	}
@@ -82,10 +80,9 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		const tableYapi = this.from.aliasIcinTable(alias);
 		if (!tableYapi) { debugger; throw { isError: true, rc: 'innerJoinTable', errorText: `Inner Join (<i class="bold lightgray">${fromText}</i>) için eklenmek istenen alias (<b class="red">${alias}</b>) bulunamadı` } }
 		tableYapi.addLeftInner(xJoin);
-		const {zincirler} = this;
 		for (const iliskiText of iliskiDizi) {
-			const iliski = MQIliskiYapisi.newForText(iliskiText), zincir = iliski.varsaZincir;
-			if (zincir) { zincirler.add(zincir) }
+			const iliski = MQIliskiYapisi.newForText(iliskiText);
+			const {varsaZincir: zincir} = iliski; if (zincir) { this.zincirEkle(zincir) }
 		}
 		return this
 	}
@@ -96,14 +93,32 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		if (!tableYapi) {
 			debugger; throw { isError: true, rc: 'leftJoinTable', errorText: `Left Join (<i class="bold lightgray">${fromText}</i>) için eklenmek istenen alias (<b class="red">${alias}</b>) bulunamadı` }
 		}
-		tableYapi.addLeftInner(xJoin); const {zincirler} = this;
-		for (const iliskiText of iliskiDizi) { const iliski = MQIliskiYapisi.newForText(iliskiText), zincir = iliski.varsaZincir; if (zincir) { zincirler.add(zincir) } }
+		tableYapi.addLeftInner(xJoin);
+		for (const iliskiText of iliskiDizi) {
+			const iliski = MQIliskiYapisi.newForText(iliskiText);
+			const {varsaZincir: zincir} = iliski; if (zincir) { this.zincirEkle(zincir) }
+		}
 		return this
 	}
 	add(...sahalar) { this.sahalar.add(...sahalar); return this }
 	addAll(e) { this.sahalar.addAll(e); return this }
 	addWithAlias(alias, ...sahalar) { this.sahalar.addWithAlias(alias, ...sahalar) }
 	addAllWithAlias(e) { this.sahalar.addAllWithAlias(e); return this }
+	zincirEkle(item) { this.zincirler.liste.push(item); return this }
+	zincirleriDuzenle(e) {
+		let {zincirler} = this, alias2Oncelik = {}, result = [];
+		for (let zincir of zincirler.liste) { if (zincir?.length) { alias2Oncelik[zincir.at(-1)] = zincir.slice(0, -1)} }
+		let recursiveOncelikDoldur = (alias, oncelikDizi) => {
+			if (!oncelikDizi.includes(alias)) { oncelikDizi.push(alias) }
+			let buOncelikler = alias2Oncelik[alias] ?? [], altOncelikler = arrayFark(buOncelikler, oncelikDizi);
+			for (const altAlias of altOncelikler) { recursiveOncelikDoldur(altAlias, oncelikDizi) }
+		};
+		let sortedAliases = Object.keys(alias2Oncelik).sort(); for (let alias of sortedAliases) {
+			let oncelikDizi = []; recursiveOncelikDoldur(alias, oncelikDizi);
+			if (oncelikDizi.length > 1) { result.push(oncelikDizi.reverse()) }
+		}
+		zincirler.liste = result; return this
+	}
 	gereksizTablolariSil(e) {
 		e = typeof e == 'object' && !$.isArray(e) ? e : { disinda: e };
 		let {disinda} = e; if (disinda != null && typeof disinda == 'string') { disinda = [disinda] }
@@ -113,14 +128,16 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	gereksizTablolariSilDogrudan(e) {
 		e = typeof e == 'object' && !$.isArray(e) ? e : { disinda: e };
 		let {disinda} = e; if (disinda && typeof disinda == 'string') { disinda = [disinda] }
-		const disindaSet = disinda && $.isArray(disinda) ? asSet(disinda) : disinda, iterBlock = item => {
+		let disindaSet = disinda && $.isArray(disinda) ? asSet(disinda) : disinda;
+		this.zincirleriDuzenle({ ...e, disindaSet });
+		const iterBlock = item => {
 			const coll = item.liste || item; for (const anMQAliasliYapi of coll) {
 				const degerAliasListe = anMQAliasliYapi.degerAliasListe || [];
 				for (const degerAlias of degerAliasListe) { disindaSet[degerAlias] = true }
 			}
 		};
 		iterBlock(this.sahalar); iterBlock(this.groupBy); iterBlock(this.having);
-		const {where} = this; for (const text of where.liste) {
+		const {where, zincirler, from} = this; for (const text of where.liste) {
 			try {
 				const iliskiYapisi = MQIliskiYapisi.newForText(text); if (iliskiYapisi.isError) { throw iliskiYapisi }
 				const aliasYapilar = [iliskiYapisi.sol, iliskiYapisi.sag].filter(x => !!x);
@@ -129,8 +146,9 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 			}
 			catch (ex) { if (!(ex && ex.rc == 'queryBuilderError')) { throw ex } }
 		}
-		let zincirler = this.zincirler?.liste; if (zincirler?.length) { $.extend(disindaSet, asSet(zincirler)) }
-		this.from.disindakiTablolariSil({ disindaSet }); return this
+		for (let zincir of zincirler.liste) { let zincirAlias = zincir.at(-1); if (disindaSet[zincirAlias]) { $.extend(disindaSet, asSet(zincir.slice(0, -1))) } }
+		/*let zincirler = this.zincirler?.liste; if (zincirler?.length) { $.extend(disindaSet, asSet(zincirler)) }*/
+		from.disindakiTablolariSil({ disindaSet }); return this
 	}
 	asUnion(e) { return new MQUnion(this) }
 	asUnionAll(e) { return new MQUnionAll(this) }
@@ -210,8 +228,8 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		this.leftJoin({ alias: alias, table: 'muhhesap cmuh', on: `${aliasVeNokta}muhhesap = cmuh.kod` });
 		this.fromIliski('carkosulgrup ckgrp', `${aliasVeNokta}kosulgrupkod = ckgrp.kod`);
 		this.leftJoin({ alias: alias, table: 'carmemo cmem', on: `${aliasVeNokta}must = cmem.must` });
-		this.fromIliski('carmst kon', `(case ${aliasVeNokta}konsolidemusterikod = '' then ${aliasVeNokta}must else ${aliasVeNokta}konsolidemusterikod end) = kon.must`); this.zincirler.add(['car', 'kon']);
-		this.fromIliski('carmst bfrm', `(case ${aliasVeNokta}bformkonkod = '' then ${aliasVeNokta}must else ${aliasVeNokta}bformkonkod end) = bfrm.must`); this.zincirler.add(['car', 'bfrm']);
+		this.fromIliski('carmst kon', `(case ${aliasVeNokta}konsolidemusterikod = '' then ${aliasVeNokta}must else ${aliasVeNokta}konsolidemusterikod end) = kon.must`); this.zincirEkle(['car', 'kon']);
+		this.fromIliski('carmst bfrm', `(case ${aliasVeNokta}bformkonkod = '' then ${aliasVeNokta}must else ${aliasVeNokta}bformkonkod end) = bfrm.must`); this.zincirEkle(['car', 'bfrm']);
 		this.leftJoin({ alias: alias, table: 'carisatis csat', on: [`${aliasVeNokta}must = csat.must`, `csat.satistipkod = ''`] });
 		this.leftJoin({ alias: 'csat', table: 'tahsilsekli ctsek', on: 'csat.tahseklino = ctsek.kodno' });
 		this.fromIliski('banmst cban', `${aliasVeNokta}bankakod = cban.kod`);
@@ -243,6 +261,10 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	stok2IstGrupBagla(e) {
 		e = e || {}; const alias = e.alias ?? 'stk',  aliasVeNokta = alias + '.';
 		this.fromIliski('stkistgrup sigrp', `${aliasVeNokta}sistgrupkod = sigrp.kod`); return this
+	}
+	stok2MarkaBagla(e) {
+		e = e || {}; const alias = e.alias ?? 'stk',  aliasVeNokta = alias + '.';
+		this.fromIliski('stokmarka smar', `${aliasVeNokta}smarkakod = smar.kod`); return this
 	}
 	stok2BarkodBagla(e) {
 		e = e || {}; const alias = e.alias ?? 'stk',  aliasVeNokta = alias + '.';

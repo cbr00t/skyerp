@@ -41,6 +41,10 @@ class DMQStok extends DMQKA {
 	}
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.stok2GrupBagla(); sent.stokGrup2AnaGrupBagla(); sent.stok2IstGrupBagla() }
 }
+class DMQStokMarka extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok Marka' }
+	static get table() { return 'stokmarka' } static get tableAlias() { return 'smar' }
+}
 class DMQHizmetAnaGrup extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Hizmet Ana Grup' }
 	static get table() { return 'hizanagrup' } static get tableAlias() { return 'agrp' }

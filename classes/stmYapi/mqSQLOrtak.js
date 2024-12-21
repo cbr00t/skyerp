@@ -229,6 +229,7 @@ class MQAliasliYapi extends MQSQLOrtak {
 }
 class MQIliskiYapisi extends MQSQLOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	get varsaZincir() { const {sol, sag} = this; return sol.aliaslimi && sag.aliaslimi ? [sol.alias, sag.alias] : null }
 	constructor(e) {
 		e = e || {}; super(e); if (typeof e == 'string') { return $.extend(this, this.class.newForText(e)) }
 		this.sol = e.sol || new MQAliasliYapi(); this.sag = e.sag || new MQAliasliYapi()
@@ -243,10 +244,6 @@ class MQIliskiYapisi extends MQSQLOrtak {
 		} while (ind > -1 && parantezSayilari.ac != parantezSayilari.kapat);
 		/*if (esittirVarmi && ind < 0) { throw { isError: true, rc: 'queryBuilderError', errorText: 'Dengesiz eşitlik' } }*/
 		return new this({ sol: solText, sag: text.substring(ind + 1) })
-	}
-	get varsaZincir() {
-		if (this.sol.aliaslimi && this.sag.aliaslimi) { return [this.sol.alias, this.sag.alias] }
-		return null
 	}
 	buildString(e) { super.buildString(e); e.result += `${this.sol.deger.toString()} = ${this.sag.deger.toString()}` }
 }

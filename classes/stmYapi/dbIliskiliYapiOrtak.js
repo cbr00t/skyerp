@@ -21,9 +21,9 @@ class MQIliskiliYapiOrtak extends MQSentVeIliskiliYapiOrtak {
 			throw { isError: true, rc: 'innerJoinTable', errorText: `Inner Join (<i class="bold lightgray">${fromText}</i>) için eklenmek istenen alias (<b class="red">${alias}</b>) bulunamadı` }
 		}
 		tableYapi.addLeftInner(xJoin);
-		const {zincirler} = this; for (const iliskiText of iliskiDizi) {
+		for (const iliskiText of iliskiDizi) {
 			const iliski = MQIliskiYapisi.newForText(iliskiText);
-			const {varsaZincir: zincir} = iliski; if (zincir) { zincirler.add(zincir) }
+			const {varsaZincir: zincir} = iliski; if (zincir) { this.zincirEkle(zincir) }
 		}	
 		return this
 	}
@@ -35,9 +35,9 @@ class MQIliskiliYapiOrtak extends MQSentVeIliskiliYapiOrtak {
 			throw { isError: true, rc: 'leftJoinTable', errorText: `Left Join (<i class="bold lightgray">${fromText}</i>) için eklenmek istenen alias (<b class="red">${alias}</b>) bulunamadı` }
 		}
 		tableYapi.addLeftInner(xJoin);
-		const {zincirler} = this; for (const iliskiText of iliskiDizi) {
+		for (const iliskiText of iliskiDizi) {
 			const iliski = MQIliskiYapisi.newForText(iliskiText);
-			const {varsaZincir: zincir} = iliski; if (zincir) { zincirler.add(zincir) }
+			const {varsaZincir: zincir} = iliski; if (zincir) { this.zincirEkle(zincir) }
 		}	
 		return this
 	}
@@ -45,11 +45,11 @@ class MQIliskiliYapiOrtak extends MQSentVeIliskiliYapiOrtak {
 		e = e || {}; if (typeof e != 'object') { e = { from: e } } else { e.from = e.from || e.fromText || e.table }
 		let {from: fromText} = e; if (_iliskiDizi) { e.iliskiDizi = _iliskiDizi }
 		let iliskiDizi = e.iliskiDizi || e.iliskiText || e.iliski; if (iliskiDizi && !$.isArray(iliskiDizi)) { iliskiDizi = [iliskiDizi] }
-		const {from, zincirler} = this; let lastTable = from.add(fromText);
+		const {from} = this; let lastTable = from.add(fromText);
 		for (const iliskiText of iliskiDizi) {
 			//	tablo atılırsa iliskinin de kalkması için table yapısında bırakıldı
 			const iliski = MQIliskiYapisi.newForText(iliskiText); lastTable.addIliski(iliski);
-			const {varsaZincir: zincir} = iliski; if (zincir) { zincirler.add(zincir) }
+			const {varsaZincir: zincir} = iliski; if (zincir) { this.zincirEkle(zincir) }
 		}	
 		return this
 	}

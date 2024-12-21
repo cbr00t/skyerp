@@ -3,7 +3,8 @@ class MQOEM extends MQSayacliOrtak {
 	static get sinifAdi() { return 'Operasyon Emri' } static get table() { return 'operemri' } static get tableAlias() { return 'oem' } static get detayTable() { return MQGercekleme.table } 
 	static get kodListeTipi() { return 'UOEM' } static get localDataBelirtec() { return 'oem' } static get sayacSahaGosterilirmi() { return true } static get gridDetaylimi() { return true }
 	static get idSaha() { return ['emirnox', 'opno', 'stokkod'] } static get idSahaDonusum() { return $.extend(super.idSahaDonusum || {}, { emirnox: 'emr.fisnox', stokkod: 'frm.formul' }) }
-	static get defaultGroups() { return [] } static get islemTuslari_sagButonlar_ekMarginX() { return -20 } static get noAutoFocus() { return true } static get gridIslemTuslariKullanilirmi() { return false }
+	static get defaultGroups() { return [] } static get islemTuslari_sagButonlar_ekMarginX() { return -20 } static get noAutoFocus() { return true }
+	static get gridIslemTuslariKullanilirmi() { return false }
 	static secimlerDuzenle(e) {
 		super.secimlerDuzenle(e); const sabit_hatKod = app.params.config.hatKod, sec = e.secimler;
 		sec.grupEkle({ kod: 'teknik', aciklama: 'Teknik', renk: '#eee', zeminRenk: 'orangered', kapalimi: true });

@@ -452,7 +452,7 @@ class FBuilder_CheckBox extends FBuilder_ToggleButton {
 			if (this.bottomFlag) { styles.push(`$elementCSS { margin-top: ${this.class.defaultHeight}px }`) }
 			styles.push(...[
 				`$elementCSS { min-width: unset !important; width: initial !important }`,
-				`$elementCSS > label { color: #888 !important }`,
+				`$elementCSS > label { color: #888 !important; width: calc(var(--full) - 45px) !important }`,
 				`$elementCSS > input { width: unset !important; min-width: 24px; min-height: 24px; margin-right: 11px }`,
 				`$elementCSS > input:checked + label { font-weight: bold; color: cadetblue !important }`
 			] );
@@ -812,7 +812,7 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 	kodGosterilsin() { this.kodGosterilsinmi = true; return this } kodGosterilmesin() { this.kodGosterilsinmi = false; return this }
 	kodlu() { this.kodGosterilsin(); return this } kodsuz() { this.kodGosterilmesin(); return this }
 	enable() { this.disabled = false; return this } disable() { this.disabled = true; return this }
-	listedenSecilemez() { this.listedenSecilemezFlag = true; return this } listedenSecilir() { this.listedenSecilemezFlag = false; return this }
+	listedenSecilemez() { this.listedenSecilemezFlag = true; return this } listedenSecilmez() { return this.listedenSecilemez() } listedenSecilir() { this.listedenSecilemezFlag = false; return this }
 	autoWidth() { this.noAutoWidthFlag = false; return this } noAutoWidth() { this.noAutoWidthFlag = true; return this }
 	bosKodAlinir() { this.bosKodAlinirmi = true; return this } bosKodAlinmaz() { this.bosKodAlinirmi = false; return this }
 	bosKodEklenir() { this.bosKodEklenirmi = true; return this } bosKodEklenmez() { this.bosKodEklenirmi = false; return this }
