@@ -36,16 +36,14 @@ class MESApp extends App {
 	async afterRun(e) { await super.afterRun(e); this.tazele_startTimer(e) }
 	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { localData: MQLocalData.getInstance(), mes: MQParam_MES.getInstance(), hatYonetimi: MQParam_HatYonetimi.getInstance() }) }
 	getAnaMenu(e) {
-		/* const disabledMenuIdSet = this.disabledMenuIdSet || {}; */
-		const items = [
+		/* const disabledMenuIdSet = this.disabledMenuIdSet || {}; */ const items = [
 			new FRMenuChoice({ mne: 'HAT-YONETIMI', text: 'Hat Yönetimi', block: e => MQHatYonetimi.listeEkraniAc() }),
-			new FRMenuChoice({ mne: 'HAT-YONETIMI-2', text: `Hat Yönetimi (<i class="bold gray">dev</i>)`, block: e => new HatYonetimiPart().run() }),
-			new FRMenuCascade({
-				mne: 'TANIM', text: 'Tanımlar',
-				items: MQMasterOrtak.subClasses.filter(cls => !cls.menuyeAlinmazmi)
-					.map(cls => new FRMenuChoice({ mne: cls.kodListeTipi || cls.classKey, text: cls.sinifAdi, block: e => cls.listeEkraniAc(e) }))
-			})
-		]
+			new FRMenuChoice({ mne: 'HAT-YONETIMI-2', text: `Hat Yönetimi (<i class="bold gray">dev</i>)`, block: e => new HatYonetimiPart().run() })			
+		];
+		/*if (config.dev) {*/
+		items.push(...[MQSinyal].map(cls =>
+			new FRMenuChoice({ mne: cls.kodListeTipi || cls.classKey, text: cls.sinifAdi, block: e => cls.listeEkraniAc(e) })))
+		/*}*/
 		return new FRMenu({ items })
 	}
 	async getTezgahKod2Rec(e) {

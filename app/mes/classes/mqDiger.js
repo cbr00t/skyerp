@@ -235,9 +235,10 @@ class MQZamanEtudu extends MQMasterOrtak {
 	}
 }
 class MQSinyal extends MQMasterOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get kodListeTipi() { return 'SINYAL' } static get tanimUISinif() { return ModelTanimPart }
-	static get sinifAdi() { return 'MES Sinyal' } static get table() { return 'messinyal' } static get tableAlias() { return 'sny' } static get menuyeAlinmazmi() { return false }
-	static get tanimlanabilirmi() { return true } static get silinebilirmi() { return true }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get kodListeTipi() { return 'SINYAL' } static get menuyeAlinmazmi() { return false }
+	static get tanimUISinif() { return ModelTanimPart } static get secimSinif() { return MQCogul.secimSinif }
+	static get sinifAdi() { return 'MES Sinyal' } static get table() { return 'messinyal' } static get tableAlias() { return 'sny' }
+	static get tanimlanabilirmi() { return !!config.dev } static get silinebilirmi() { return !!config.dev }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
 		$.extend(pTanim, { tezgahKod: new PInstStr('tezgahkod'), ts: new PInstDateTimeNow('ts') })
@@ -245,19 +246,31 @@ class MQSinyal extends MQMasterOrtak {
 	static secimlerDuzenle(e) {
 		super.secimlerDuzenle(e); const {secimler: sec} = e;
 		sec.secimTopluEkle({
-			tezgahKod: new SecimString({ etiket: 'Tezgah', mfSinif: MQTezgah }), tezgahAdi: new SecimOzellik({ etiket: 'Tezgah Adı' }), ts: new SecimDateTime({ etiket: 'Tarih/Saat' }) });
+			tezgahKod: new SecimString({ etiket: 'Tezgah', mfSinif: MQTezgah }), tezgahAdi: new SecimOzellik({ etiket: 'Tezgah Adı' }),
+			ts: new SecimDateTime({ etiket: 'Tarih/Saat' }), ip: new SecimOzellik({ etiket: 'IP Adresi' }),
+			sanalSecim: new SecimTekSecim({ etiket: 'Cihaz Tipi', tekSecim: new BuDigerVeHepsi(['Gerçek', 'Sanal']) })
+		});
 		sec.whereBlockEkle(e => {
 			const {secimler: sec, where: wh} = e, {tableAlias: alias} = this;
-			wh.basiSonu(sec.tezgahKod, `${alias}.tezgahkod`); wh.ozellik(sec.tezgahAdi, 'tez.aciklama'); wh.basiSonu(sec.ts, `${alias}.ts`)
+			wh.basiSonu(sec.tezgahKod, `${alias}.tezgahkod`).ozellik(sec.tezgahAdi, 'tez.aciklama');
+			wh.basiSonu(sec.ts, `${alias}.ts`).ozellik(sec.ip, `${alias}.ip`);
+			let tSec = sec.sanalSecim.tekSecim; if (!tSec.hepsimi) { tSec.getTersBoolBitClause(`${alias}.bsanal`) }
 		})
 	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(...[
-			new GridKolon({ belirtec: 'tezgahkod', text: 'Tezgah', genislikCh: 13 }),
-			new GridKolon({ belirtec: 'tezgahadi', text: 'Tezgah Adı', genislikCh: 25, sql: 'tez.aciklama' }),
-			new GridKolon({ belirtec: 'ts', text: 'Tarih/Saat', genislikCh: 18 }),
-			new GridKolon({ belirtec: 'kayitsayisi', text: 'Sayı', genislikCh: 8, sql: 'COUNT(*)', aggregates: [{'TOPLAM': gridDipIslem_sum}] }).tipNumerik()
+			new GridKolon({ belirtec: 'tezgahkod', text: 'Tezgah', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'tezgahadi', text: 'Tezgah Adı', genislikCh: 30, sql: 'tez.aciklama' }),
+			new GridKolon({ belirtec: 'ts', text: 'Tarih/Saat', genislikCh: 25 }),
+			new GridKolon({ belirtec: 'kayitsayisi', text: 'Sayı', genislikCh: 13, sql: 'COUNT(*)', aggregates: [{'TOPLAM': gridDipIslem_sum}] }).tipNumerik(),
+			new GridKolon({ belirtec: 'bsanal', text: 'Sanal?', genislikCh: 10 }).tipBool(),
+			new GridKolon({ belirtec: 'ip', text: 'Cihaz IP', genislikCh: 16 })
 		])
+	}
+	static orjBaslikListesi_groupsDuzenle(e) {
+		super.orjBaslikListesi_groupsDuzenle(e); const {listeBasliklari} = this, {liste} = e;
+		const detaylimi = !!listeBasliklari.find(({ belirtec }) => belirtec == 'ts');
+		if (detaylimi) { liste.push('tezgahadi') }
 	}
 	static async loadServerData_queryOlustur(e) {
 		await super.loadServerData_queryOlustur(e); const {stm} = e;
