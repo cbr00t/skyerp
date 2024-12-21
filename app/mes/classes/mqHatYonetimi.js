@@ -165,7 +165,8 @@ class MQHatYonetimi extends MQMasterOrtak {
 		return recs || []
 	}
 	static async loadServerData_internal(e) {
-		e = e || {}; const gridPart = e.gridPart ?? e.sender, {wsArgs} = e, tezgahKod2Rec = {}, isID2TezgahKodSet = {}, action_otoTazeleFlag = e.action == 'otoTazele';
+		e = e || {}; const gridPart = e.gridPart ?? e.sender, {wsArgs} = e, action_otoTazeleFlag = e.action == 'otoTazele';
+		let tezgahKodSet = {}, tezgahKod2Rec = {}, isID2TezgahKodSet = {}, promise_tezgah2SinyalSayiRecs;
 		const hatIdListe = app.sabitHatKodVarmi ? app.sabitHatKodListe : $.makeArray(gridPart.hatKod), {excludeTezgahKod} = gridPart;
 		if (hatIdListe?.length) { $.extend(wsArgs, { hatIdListe: hatIdListe.join(delimWS) }) }
 		let recs = await app.wsTezgahBilgileri(wsArgs); /* ekNotlarYapi = this.ekNotlarYapi = await app.wsEkNotlar(); */
@@ -174,10 +175,11 @@ class MQHatYonetimi extends MQMasterOrtak {
 			const {durumKod2KisaAdi, hatBilgi_recDonusum: donusum} = app;
 			for (const rec of recs) {
 				for (const [key, newKey] of Object.entries(donusum)) { if (rec[newKey] == null) { rec[newKey] = rec[key]?.trimEnd(); delete rec[key] } }
-				let {durumKod, durumAdi} = rec; if (durumKod != null) {
+				let {durumKod, durumAdi, tezgahKod} = rec; if (durumKod != null) {
 					durumKod = rec.durumKod = durumKod.trimEnd();
 					if (rec.durumAdi == null) { rec.durumAdi = durumKod2KisaAdi[durumKod] ?? durumKod }
 				}
+				tezgahKodSet[tezgahKod] = true
 			}
 			const getIPNum = ip => asInteger(ip.replaceAll('.', ''));
 			recs.sort((a, b) =>
@@ -187,8 +189,11 @@ class MQHatYonetimi extends MQMasterOrtak {
 				0)
 		}
 		if (recs) {
-			let _recs = recs; recs = [];
-			for (let rec of _recs) {
+			if (!$.isEmptyObject(tezgahKodSet)) {
+				let sent = new MQSent({ from: 'messinyal', where: { inDizi: Object.keys(tezgahKodSet), saha: 'tezgahkod' }, sahalar: ['tezgahkod', 'bsanal', 'SUM(1) sayi'] });
+				sent.groupByOlustur(); promise_tezgah2SinyalSayiRecs = app.sqlExecSelect(sent)
+			}
+			let _recs = recs; recs = []; for (let rec of _recs) {
 				const {hatKod, tezgahKod, isID} = rec; if (excludeTezgahKod && tezgahKod == excludeTezgahKod) { continue }
 				let tezgahRec = tezgahKod2Rec[tezgahKod] ?? $.extend({}, rec), {isListe} = tezgahRec;
 				if (!tezgahKod2Rec[tezgahKod]) { tezgahKod2Rec[tezgahKod] = tezgahRec; recs.push(tezgahRec); isListe = tezgahRec.isListe = [] }
@@ -204,6 +209,13 @@ class MQHatYonetimi extends MQMasterOrtak {
 			for (let [isId, tezgahKodSet] of Object.entries(isID2TezgahKodSet)) {
 				isId = asInteger(isId); let rec; try { rec = await app.wsGorevZamanEtuduVeriGetir({ isId }); if (!rec?.bzamanetudu) { rec = null } } catch (ex) { } if (!rec) { continue }
 				for (const tezgahKod in tezgahKodSet) { rec = tezgahKod2Rec[tezgahKod]; if (rec) { rec.zamanEtuduVarmi = true } }
+			}
+		}
+		if (promise_tezgah2SinyalSayiRecs && tezgahKod2Rec) {
+			let _recs = await promise_tezgah2SinyalSayiRecs; for (const {tezgahkod: tezgahKod, bsanal: sanalmi, sayi} of _recs) {
+				let rec = tezgahKod2Rec[tezgahKod]; if (!rec) { continue }
+				let key = sanalmi ? 'sanal' : 'cihaz', sinyalSayilar = rec.sinyalSayilar = {};
+				sinyalSayilar[key] = (sinyalSayilar[key] || 0) + (sayi || 0)
 			}
 		}
 		if (recs) {
@@ -510,9 +522,15 @@ class MQHatYonetimi extends MQMasterOrtak {
 	static gridCell_getLayout(e) {
 		const gridPart = e.gridPart ?? e.sender, rec = e.rec ?? {}, isListe = rec.isListe ?? [], grupsuzmu = gridPart.grupsuzmu || app.otoTazeleFlag;
 		const {hatKod, hatAdi, tezgahKod, tezgahAdi, perKod, perIsim, sinyalKritik, duraksamaKritik, durumKod, durumAdi,
-			   durNedenKod, durNedenAdi, ip, siradakiIsSayi, ekBilgi, zamanEtuduVarmi} = rec;
-		const {kritikDurNedenKodSet} = app.params.mes, kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod ? kritikDurNedenKodSet[durNedenKod] : false;
+			   durNedenKod, durNedenAdi, ip, siradakiIsSayi, ekBilgi, zamanEtuduVarmi, sinyalSayilar} = rec;
+		const {kritikDurNedenKodSet} = app.params.mes, kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod && durumKod == 'DR' ? kritikDurNedenKodSet[durNedenKod] : false;
 		const isBilgiHTML = this.gridCell_getLayout_isBilgileri(e);
+		let sinyalHTMLListe = [], toplam = 0; for (const key of ['cihaz', 'sanal']) {
+			let sayi = sinyalSayilar?.[key] ?? 0; toplam += sayi;
+			let text = key == 'cihaz' ? 'C' : key == 'sanal' ? 'S' : key;
+			if (sayi) { sinyalHTMLListe.push(`<span class="etiket">${text}:</span><span class="veri">${sayi}</span>`) }
+		}
+		if (toplam && sinyalSayilar?.cihaz && sinyalSayilar?.sanal) { sinyalHTMLListe.push(`<span class="etiket">T:</span><span class="veri">${toplam}</span>`) }
 		let topSaymaInd = 0, topSaymaSayisi = 0; for (const is of isListe) { topSaymaInd += (is.isSaymaInd || 0); topSaymaSayisi += (is.isSaymaSayisi || 0) }
 		return (
 			`<div class="ust ust-alt${sinyalKritik ? ' sinyal-kritik' : ''}${duraksamaKritik && kritikDurNedenmi ? ' duraksama-kritik' : ''}${kritikDurNedenmi ? ' kritik-durNeden' : ''}">
@@ -561,10 +579,12 @@ class MQHatYonetimi extends MQMasterOrtak {
 							<thead><tr>
 								<th class="cevrim">Çevrim</th>
 								<th class="sayma">Sayma</th>
+								<th class="sinyal">Sinyal</th>
 							</tr></thead>
 							<tbody><tr>
 								<td class="cevrim">${toStringWithFra(rec.onceCevrimSayisi || 0)} <span class="ek-bilgi">+${toStringWithFra(rec.aktifCevrimSayisi || 0)}</td>
 								<td class="sayma"><span class="ind">${toStringWithFra(topSaymaInd || 0)}</span> <span class="ek-bilgi">/</span> <span class="topSayi">${toStringWithFra(topSaymaSayisi || 0)}</span></td>
+								<td class="sinyal">${sinyalHTMLListe.join(' ')}</td>
 							</tr></tbody>
 						</table>
 						<div class="aktifIsSayi item">

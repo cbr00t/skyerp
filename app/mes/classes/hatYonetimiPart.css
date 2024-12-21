@@ -84,7 +84,7 @@ body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:hover, body.
 .hatYonetimi.part .content .liste .tezgah.item .ust { position: relative; height: calc(var(--full) - (var(--alt-height) + var(--padding-y))); overflow-y: auto }
 .hatYonetimi.part .content .liste .tezgah.item .alt {
 	--sag-width: 90px; font-size: 230%; font-weight: bold; color: #ddd; background-color: #222;
-	position: relative; width: var(--full); height: var(--alt-height); bottom: -5px !important
+	position: relative; width: var(--full); height: var(--alt-height); bottom: -2px !important
 }
 body.dark-theme .hatYonetimi.part .content .liste .tezgah.item .alt { filter: invert(1) hue-rotate(180deg) }
 .hatYonetimi.part .content .liste .tezgah.item .alt .sol { width: calc(var(--full) - var(--sag-width)) !important }
