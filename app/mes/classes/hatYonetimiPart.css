@@ -12,27 +12,32 @@ body.dark-theme .hatYonetimi.part .content .liste { background-color: #eee }
 .hatYonetimi.part .content .liste .hat.item, .hatYonetimi.part .content .liste .tezgah.item { position: relative }
 .hatYonetimi.part .content .liste .hat.item { width: var(--full); margin-bottom: 15px }
 .hatYonetimi.part .content .liste .hat.item > .grup {
-	--grup-padding-x: 10px; --title-padding-left: 330px; --grup-islemTuslari-width: 300px; --grup-islemTuslari-padding-right: 10px;
-	background-color: #333 !important; width: calc(var(--full) - (var(--grup-padding-x) * 2)); height: 50px; padding: 5px var(--grup-padding-x)
+	--grup-padding-x: 10px; --title-padding-left: 450px; --grup-islemTuslari-width: 300px; --grup-islemTuslari-padding-right: 10px;
+	background-color: #333 !important; width: calc(var(--full) - (var(--grup-padding-x) * 2)); height: 200px; padding: 5px var(--grup-padding-x)
 }
+.hatYonetimi.part .content .liste .hat.item > .grup, .hatYonetimi.part .content .liste .tezgah.item { cursor: pointer }
+.hatYonetimi.part .content .liste .hat.item.toggled > .grup { max-height: 50px !important }
+.hatYonetimi.part .content .liste .hat.item > .grup:focus, .hatYonetimi.part .content .liste .hat.item > .grup:active { height: 250px }
+.hatYonetimi.part .content .liste .hat.item.toggled > .grup > .grup-islemTuslari { display: none }
+.hatYonetimi.part .content .liste .hat.item.toggled > .grup > .title * { color: #555 !important }
+.hatYonetimi.part .content .liste .hat.item.toggled > .tezgahlar { display: none !important }
 .hatYonetimi.part .content .liste .hat.item > .grup .title {
-	font-weight: bold; font-size: 220%; color: #ccc; position: relative;
-	width: calc(var(--full) - (var(--title-padding-left) + var(--grup-islemTuslari-width) + var(--grup-islemTuslari-padding-right))); padding-left: var(--title-padding-left)
+	font-weight: bold; font-size: 220%; color: #ccc; position: relative; height: var(--full);
+	width: calc(var(--full) - (var(--title-padding-left) + var(--grup-islemTuslari-width) + var(--grup-islemTuslari-padding-right)));
+	padding-left: var(--title-padding-left)
 }
 .hatYonetimi.part .content .liste .hat.item > .grup .grup-islemTuslari {
-	font-size: 130%; text-align: right; position: relative; width: var(--grup-islemTuslari-width); padding: 10px var(--grup-islemTuslari-padding-right) 0 0;
-	background-color: #33333315; box-sizing: border-box
+	font-size: 130%; text-align: right; position: relative; width: var(--grup-islemTuslari-width); height: var(--full);
+	padding: 10px var(--grup-islemTuslari-padding-right) 0 0; background-color: #33333315; box-sizing: border-box
 }
 .hatYonetimi.part .content .liste .hat.item > .grup .grup-islemTuslari > *:not(:last-child) { margin-right: 5px }
 .hatYonetimi.part .content .liste .hat.item > .grup .grup-islemTuslari > button { text-align: center; width: 90px; background-color: unset !important }
 .hatYonetimi.part .content .liste .hat.item > .grup .grup-islemTuslari > button:hover { color: white!important }
 .hatYonetimi.part .content .liste .hat.item > .grup .grup-islemTuslari > button:active { color: cyan !important }
 body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup { filter: invert(1) hue-rotate(180deg) !important }
-	/*body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup .title { filter: invert(1) hue-rotate(180deg) !important }*/
+/*body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup .title { filter: invert(1) hue-rotate(180deg) !important }*/
 body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup { filter: invert(1) hue-rotate(180deg); color: #aaa; background-color: #1a1a1f !important }
 body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:hover, body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:focus { opacity: .8 }
-.hatYonetimi.part .content .liste .hat.item.hasGrupStyle > .grup { height: 150px }
-.hatYonetimi.part .content .liste .hat.item.hasGrupStyle > .grup:focus, .hatYonetimi.part .content .liste .hat.item.hasGrupStyle > .grup:active { height: 250px }
 .hatYonetimi.part .content .liste .tezgahlar { }
 .hatYonetimi.part .content .liste .tezgah.item {
 	--sol-width: 40px; --alt-height: 33px;
@@ -48,10 +53,6 @@ body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:hover, body.
 .hatYonetimi.part .content .liste .tezgah.item.selected { background-color: #4169e133 }
 .hatYonetimi.part .content .liste .item .kod { font-weight: bold; color: #888 }
 .hatYonetimi.part .content .liste .item .etiket { color: #aaa }
-.hatYonetimi.part .content .liste .hat.item > .grup, .hatYonetimi.part .content .liste .tezgah.item { cursor: pointer }
-.hatYonetimi.part .content .liste .hat.item.toggled > .grup { max-height: 40px !important }
-.hatYonetimi.part .content .liste .hat.item.toggled > .grup > .title * { color: #555 !important }
-.hatYonetimi.part .content .liste .hat.item.toggled > .tezgahlar { display: none !important }
 .hatYonetimi.part .content .liste .tezgah.item .ip { font-weight: bold; font-size: 95%; color: steelblue; min-width: 70px; left: 8px }
 .hatYonetimi.part .content .liste .tezgah.item .siradakiIsSayi { font-size: 95%; color: #333; min-width: 33px; left: 15px }
 .hatYonetimi.part .content .liste .tezgah.item .siradakiIsSayi > ._veri { font-weight: bold; color: orangered }

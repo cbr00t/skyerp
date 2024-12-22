@@ -59,7 +59,8 @@ class HatYonetimiPart extends Part {
 			].filter(x => !!x)).setEkSagButonlar('tezgahMenu', 'isEmirleri', 'topluX', 'tumEkNotlar', 'ozet', 'boyut', 'tazele');
 		let parent = rfb.addFormWithParent('checkboxes').setParent(header).addCSS('checkboxes').addStyle_wh('max-content')
 				.addStyle(e =>
-					`$elementCSS { position: relative; left: 20px; top: calc(-35px - var(--islemTuslari-height)); gap: 10px; z-index: 1011 !important }
+					`$elementCSS { position: relative; left: 20px; top: calc(10px - var(--islemTuslari-height)); vertical-align: top; column-gap: 20px; z-index: 1011 !important }
+					 $elementCSS > div { margin-top: 0 !important }  $elementCSS > div:first-child { margin-top: -6px !important }
 					 $elementCSS > div > * { cursor: pointer }`)
 			parent.addCheckBox('otoTazeleFlag', 'Tzl').setAltInst(app).setValue(app.otoTazeleFlag ?? false).degisince(({ builder: fbd }) => this.tazeleBasit(e));
 			parent.addCheckBox('cokluSecimmi', 'Çkl').setAltInst(this).setValue(this.cokluSecimmi ?? false).degisince(({ builder: fbd }) => {
@@ -664,7 +665,7 @@ class HatYonetimiPart extends Part {
 		if (!hatKod && rec) { hatKod = rec.hatkod } let inst = new MQEkNotlar({ hatKod, tezgahKod }); return inst.tanimla({ islem: 'yeni' })
 	}
 	dokumanYukleIstendi(e) {
-		e = e || {}; const rec = e.rec ?? this.selectedTezgahRecs[0] ?? {}, hatKod = rec.hatKod ?? ''; if (!hatKod) { return }
+		e = e || {}; const rec = e.rec ?? this.selectedTezgahRecs[0] ?? {}, {hatKod} = e; if (!hatKod) { return }
 		const resimId = `hat-${hatKod}-01`, islemAdi = 'Hat Resim Yükleme';
 		let elm = $(`<input type="file" capture="environment" accept="image/*, application/pdf, video/*">`).appendTo('body'); elm.addClass('jqx-hidden');
 		elm.on('change', async evt => {
@@ -672,13 +673,13 @@ class HatYonetimiPart extends Part {
 				const file = evt.target.files[0]; let fileName = file.name.replaceAll(' ', '_'), ext = fileName.split('.').slice(-1)[0] ?? '';
 				let data = file ? new Uint8Array(await file.arrayBuffer()) : null; if (!data?.length) { return }
 				let result = await app.wsResimDataKaydet({ resimId, ext, data }); if (!result.result) { throw { isError: true, errorText: `${islemAdi} sorunu` } }
-				gridPart.tazeleDefer(e); setTimeout(() => eConfirm(`Hat Resim Görüntüsünün güncellenmesi için uygulamadan çıkıp yeniden girilmesi gerekebilir`, islemAdi))
+				this.tazele(e); setTimeout(() => eConfirm(`Hat Resim Görüntüsünün güncellenmesi için uygulamadan çıkıp yeniden girilmesi gerekebilir`, islemAdi))
 			} finally { $(evt.target).remove() }
 		});
 		elm.click()
 	}
 	async dokumanSilIstendi(e) {
-		e = e || {}; const rec = e.rec ?? this.selectedTezgahRecs[0] ?? {}, hatKod = rec.hatKod ?? ''; if (!hatKod) { return }
+		e = e || {}; const rec = e.rec ?? this.selectedTezgahRecs[0] ?? {}, {hatKod} = e; if (!hatKod) { return }
 		const resimId = `hat-${hatKod}`, islemAdi = `<b color="indianred">Resim SİL</b>`;
 		let rdlg = await ehConfirm(`<b class="royalblue">${hatKod}</b><b class="indianred"> hattına ait Resim silinecek, emin misiniz?</b>`, islemAdi); if (!rdlg) { return }
 		const result = await app.wsResimDataSil({ resimId }); if (!result.result) { throw { isError: true, errorText: `${islemAdi} sorunu` } }

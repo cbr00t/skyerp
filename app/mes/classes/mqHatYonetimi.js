@@ -111,9 +111,10 @@ class MQHatYonetimi extends MQMasterOrtak {
 			if (subGroups?.length) { for (const subGroup of subGroups) { if (subGroup) { fillSubItems(subGroup) } } }
 		}; fillSubItems(groupInfo);
 		const rec = allSubItems[0], {hatKod} = rec; /*, ekNotlarRec = kod2EkNotlarRec[hatKod] || {}; */
+		group = rec?.grupText || rec?.subItems?.[0]?.grupText || group
 		return `<table border="0" class="full-wh"><tbody>
 			<tr data-hatkod="${hatKod}">
-				<td class="groupText">${group}</td>
+				<td class="grupText">${group}</td>
 				<td class="islemTuslari">
 					<div class="item">
 						<button id="topluX">TPL</button>
@@ -144,7 +145,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 	static orjBaslikListesi_panelGrupAttrListeDuzenle(e) { super.orjBaslikListesi_panelGrupAttrListeDuzenle(e); const {liste} = e; liste.push('grupText') }
 	static orjBaslikListesi_groupsDuzenle(e) {
 		super.orjBaslikListesi_groupsDuzenle(e); const gridPart = e.gridPart ?? e.sender, {liste} = e;
-		if (!(gridPart.grupsuzmu || app.otoTazeleFlag)) { const grupListe = this.orjBaslikListesi_panelGrupAttrListe || []; if (grupListe?.length) { liste.push(...grupListe) } }
+		if (!gridPart.recs?.length || !(gridPart.grupsuzmu || app.otoTazeleFlag)) { const grupListe = this.orjBaslikListesi_panelGrupAttrListe || []; if (grupListe?.length) { liste.push(...grupListe) } }
 	}
 	static orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(e) { super.orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(e); const {liste} = e; liste.push('hatKod', 'hatAdi') }
 	static orjBaslikListesi_hizliBulFiltreAttrListeDuzenle(e) {
