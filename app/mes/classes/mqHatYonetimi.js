@@ -1,5 +1,6 @@
 class MQHatYonetimi extends MQMasterOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get kodListeTipi() { return 'HATYONETIMI' } static get sinifAdi() { return 'Hat Yönetimi' }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'HATYONETIMI-ESKI' } static get sinifAdi() { return 'Hat Yönetimi (<span class="gray">Eski</span>)' }
 	static get menuyeAlinmazmi() { return true } static get orjBaslikListesi_defaultColCount() { return 4 }
 	static get orjBaslikListesi_maxColCount() { return 10 } static get orjBaslikListesi_defaultRowsHeight() { return 280 }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false } static get raporKullanilirmi() { return false } static get secimSinif() { return null }

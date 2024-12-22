@@ -11,9 +11,24 @@ body.dark-theme .hatYonetimi.part > .header { background-color: #eee !important 
 body.dark-theme .hatYonetimi.part .content .liste { background-color: #eee }
 .hatYonetimi.part .content .liste .hat.item, .hatYonetimi.part .content .liste .tezgah.item { position: relative }
 .hatYonetimi.part .content .liste .hat.item { width: var(--full); margin-bottom: 15px }
-.hatYonetimi.part .content .liste .hat.item > .grup { background-color: #333 !important; height: 50px; padding: 5px 10px }
-.hatYonetimi.part .content .liste .hat.item > .grup .title { font-weight: bold; font-size: 220%; color: #ccc; padding-left: 330px }
-body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup, body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup .titlex { filter: invert(1) hue-rotate(180deg) !important }
+.hatYonetimi.part .content .liste .hat.item > .grup {
+	--grup-padding-x: 10px; --title-padding-left: 330px; --grup-islemTuslari-width: 300px; --grup-islemTuslari-padding-right: 10px;
+	background-color: #333 !important; width: calc(var(--full) - (var(--grup-padding-x) * 2)); height: 50px; padding: 5px var(--grup-padding-x)
+}
+.hatYonetimi.part .content .liste .hat.item > .grup .title {
+	font-weight: bold; font-size: 220%; color: #ccc; position: relative;
+	width: calc(var(--full) - (var(--title-padding-left) + var(--grup-islemTuslari-width) + var(--grup-islemTuslari-padding-right))); padding-left: var(--title-padding-left)
+}
+.hatYonetimi.part .content .liste .hat.item > .grup .grup-islemTuslari {
+	font-size: 130%; text-align: right; position: relative; width: var(--grup-islemTuslari-width); padding: 10px var(--grup-islemTuslari-padding-right) 0 0;
+	background-color: #33333315; box-sizing: border-box
+}
+.hatYonetimi.part .content .liste .hat.item > .grup .grup-islemTuslari > *:not(:last-child) { margin-right: 5px }
+.hatYonetimi.part .content .liste .hat.item > .grup .grup-islemTuslari > button { text-align: center; width: 90px; background-color: unset !important }
+.hatYonetimi.part .content .liste .hat.item > .grup .grup-islemTuslari > button:hover { color: white!important }
+.hatYonetimi.part .content .liste .hat.item > .grup .grup-islemTuslari > button:active { color: cyan !important }
+body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup { filter: invert(1) hue-rotate(180deg) !important }
+	/*body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup .title { filter: invert(1) hue-rotate(180deg) !important }*/
 body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup { filter: invert(1) hue-rotate(180deg); color: #aaa; background-color: #1a1a1f !important }
 body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:hover, body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:focus { opacity: .8 }
 .hatYonetimi.part .content .liste .hat.item.hasGrupStyle > .grup { height: 150px }

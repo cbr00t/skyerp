@@ -1,6 +1,7 @@
 class HatYonetimiPart extends Part {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get isWindowPart() { return true } static get partName() { return 'hatYonetimi' } static get sinifAdi() { return 'Hat Yönetimi' }
+	static get kodListeTipi() { return 'HATYONETIMI-YENI' } static get sinifAdi() { return 'Hat Yönetimi (<span class="cyan">Yeni</span>)' }
+	static get isWindowPart() { return true } static get partName() { return 'hatYonetimi' }
 	get boxSize() {
 		let result = this._boxSize; if (!result) {
 			const {globals} = this;
@@ -13,11 +14,13 @@ class HatYonetimiPart extends Part {
 	get selectedTezgahKodListe() { return $.makeArray(this.selectedTezgahElmListe).map(elm => elm.dataset.id) }
 	get selectedTezgahRecs() { const {tezgah2Rec, selectedTezgahKodListe} = this; return selectedTezgahKodListe.map(kod => tezgah2Rec[kod]) }
 	constructor(e) {
-		e = e || {}; super(e); $.extend(this, {
-			title: 'Hat Yönetimi 2', tezgahKod: (e.tezgahKod ?? e.tezgahId)?.trimEnd(), cokluSecimmi: e.cokluSecim ?? e.cokluSecimmi ?? false, boxSize: e.boxSize,
-			hizliBulAttrListe: e.hizliBulAttrListe ?? ['hatKod', 'hatAdi', 'tezgahKod', 'tezgahAdi', 'perKod', 'perIsim', 'ip', 'isListe', 'zamanEtuduText', 'ekAramaText']
+		e = e || {}; super(e); const {sinifAdi: title} = this.class, {args, secince} = e; $.extend(this, {
+			title, tezgahKod: (e.tezgahKod ?? e.tezgahId)?.trimEnd(), cokluSecimmi: e.cokluSecim ?? e.cokluSecimmi ?? false, boxSize: e.boxSize,
+			hizliBulAttrListe: e.hizliBulAttrListe ?? ['hatKod', 'hatAdi', 'tezgahKod', 'tezgahAdi', 'perKod', 'perIsim', 'ip', 'isListe', 'zamanEtuduText', 'ekAramaText'],
+			secince, ...args
 		})
 	}
+	static listeEkraniAc(e) { e = e ?? {}; let part = new this(e); part.run(); return part }
 	init(e) {
 		e = e || {}; super.init(e); const {layout} = this;
 		const header = this.header = layout.children('.header'), subContent = this.subContent = layout.children('.content');
@@ -39,7 +42,7 @@ class HatYonetimiPart extends Part {
 		)
 	}
 	getRootFormBuilder(e) {
-		const rfb = new RootFormBuilder(), {header, divListe} = this, {sabitHatKodVarmi} = app;
+		const rfb = new RootFormBuilder(), {header, divListe, secince} = this, {sabitHatKodVarmi} = app;
 		rfb.addForm('bulForm').setParent(header).onAfterRun(({ builder: fbd }) => { this.bulForm = fbd.layout; this.initBulForm(e) })
 			.setLayout(({ builder: fbd }) => $(`<div class="${fbd.id} part"><input class="input full-wh" type="textbox" maxlength="100"></input></div>`));
 		rfb.addIslemTuslari('islemTuslari').setParent(header).addStyle_fullWH().addCSS('islemTuslari')
@@ -51,8 +54,9 @@ class HatYonetimiPart extends Part {
 				(sabitHatKodVarmi ? null : { id: 'tumEkNotlar', text: 'NOT', handler: e => this.ekNotlarIstendi({ ...e, hepsi: true }) }),
 				{ id: 'ozet', text: 'ÖZET', handler: e => this.ozetBilgiGoster(e) },
 				{ id: 'boyut', text: 'BYT', handler: e => this.boyutlandirIstendi(e) },
+				(secince ? { id: 'tamam', handler: e => this.tamamIstendi(e) } : null),
 				{ id: 'tazele', handler: e => this.tazele(e) }, { id: 'vazgec', handler: e => this.close(e) }
-			]).setEkSagButonlar('tezgahMenu', 'isEmirleri', 'topluX', 'tumEkNotlar', 'ozet', 'boyut', 'tazele');
+			].filter(x => !!x)).setEkSagButonlar('tezgahMenu', 'isEmirleri', 'topluX', 'tumEkNotlar', 'ozet', 'boyut', 'tazele');
 		let parent = rfb.addFormWithParent('checkboxes').setParent(header).addCSS('checkboxes').addStyle_wh('max-content')
 				.addStyle(e =>
 					`$elementCSS { position: relative; left: 20px; top: calc(-35px - var(--islemTuslari-height)); gap: 10px; z-index: 1011 !important }
@@ -259,8 +263,13 @@ class HatYonetimiPart extends Part {
 	static getLayout_hat(e) {
 		let rec = e?.sev ?? e?.rec ?? e ?? {}, {hatKod, hatAdi, detaylar} = rec; return $(
 			`<div class="hat item full-width" data-id="${hatKod}"">
-				<div class="grup">
+				<div class="grup flex-row">
 					<div class="title">(<span class="hatKod kod"></span>) <span class="hatAdi aciklama"></span></div>
+					<div class="grup-islemTuslari">
+						<button id="notlar">NOT</button> <button id="notEkle">+</button>
+						<button id="topluX">TPL</button> <button id="bekleyenIsEmirleri">EMR</button>
+						<button id="dokumanYukle">RESİM</button> <button id="dokumanSil">R.SİL</button>
+					</div>
 				</div>
 				<div class="tezgahlar full-width flex-row"></div>
 			</div>`
@@ -402,7 +411,10 @@ class HatYonetimiPart extends Part {
 		return isListe.map(is => part.setValue(is.oee || 0).asHTMLWithIcrement()).join('')
 	}
 	initLayoutEvents(e) {
-		const {divListe} = e; divListe.find('.hat.item > .grup').on('click', ({ currentTarget: target }) => $(target).parent().toggleClass('toggled'));
+		const {divListe} = e; divListe.find('.hat.item > .grup').on('click', ({ target, currentTarget }) => {
+			let {id} = target, tagName = target.tagName.toLowerCase(); if (tagName == 'button' || $(target).hasClass('grup-islemTuslari')) { return }
+			$(currentTarget).parent().toggleClass('toggled')
+		});
 		divListe.find('.hat.item > .tezgahlar > .tezgah.item').on('click', evt => {
 			const { target: innerTarget, currentTarget: target } = evt, {id} = target.dataset, $target = $(target), cssClass = 'selected';
 			if ($target.hasClass(cssClass)) { const tagName = innerTarget.tagName.toLowerCase(); if (!(tagName == 'input' || tagName == 'button')) { $target.removeClass(cssClass) } }
@@ -416,6 +428,14 @@ class HatYonetimiPart extends Part {
 			})
 		}
 		return this
+	}
+	async tamamIstendi(e) {
+		let {selectedTezgahRecs: recs, cokluSecimmi: coklumu, secince} = this; if (!recs?.length) { return false }
+		if (secince) {
+			let sender = this, gridPart = this, rec = recs[0], _e = { ...e, sender, gridPart, coklumu, recs, rec };
+			if (await getFuncValue.call(this, secince, _e) === false) { return false }
+		}
+		this.close(e); return true
 	}
 	boyutlandirIstendi(e) {
 		let {boxSize: box} = this, title = 'Boyut Ayarları', wnd, keys = ['rows', 'cols'];
@@ -448,7 +468,9 @@ class HatYonetimiPart extends Part {
 		wnd.on('close', evt => { $('body').removeClass('bg-modal'); wnd.jqxWindow('destroy'); wnd = null /* updateMQUI()*/ }); $('body').addClass('bg-modal')
 	}
 	tezgahButonTiklandi(e) {
-		const {id, evt} = e; switch (id) {
+		let {id, evt, hatKod} = e, {currentTarget: target} = evt ?? {};
+		if (!hatKod && target) { let parent = $(target).parents('.grup-islemTuslari'); if (parent.length) { hatKod = e.hatKod = parent.parents('.hat.item').data('id').toString() || null } }
+		switch (id) {
 			case 'tezgahMenu': this.tezgahMenuIstendi(e); break
 			case 'personel': case 'personelSec': this.personelSecIstendi(e); break;
 			case 'makineDurum': this.makineDurumIstendi(e); break;
@@ -545,8 +567,12 @@ class HatYonetimiPart extends Part {
 		let {id} = e, recs = e.recs ?? this.selectedTezgahRecs, hatKodListe = e.hatKodListe ?? $.makeArray(e.hatKod), wsArgs = {};
 		if (hatKodListe?.length) { const hatKodSet = asSet(hatKodListe); wsArgs.hatIdListe = hatKodListe.join(delimWS); recs = e.recs = recs.filter(rec => hatKodSet[rec.hatKod]); e.rec = recs[0] }
 		const islemKod2Adi = { mola: 'Mola', vardiyaDegisimi: 'Vardiya Değişimi', devam: `<span class="forestgreen">Devam</span>`, isBitti: `<span class="red">İş Bitti</span>`, gerceklemeYap: 'Gerçekleme Yap' };
-		const hatBazindami = !!e.hatKod, recsCount = !hatBazindami ? 0 : recs?.length, islemAdi = islemKod2Adi[id] ?? id;
-		ehConfirm(`${recsCount ? `<b class="royalblue">${recsCount}</b> tezgah için ` : `<u class="bold">Tüm tezgahlar</u> için `}<b>Toplu ${islemAdi}</b> istendi, devam edilsin mi?`, `Toplu ${islemAdi}`).then(async result => {
+		const hatBazindami = !!hatKodListe?.length, recsCount = hatBazindami ? 0 : recs?.length, islemAdi = islemKod2Adi[id] ?? id;
+		ehConfirm(
+				`${recsCount ? `<b class="royalblue">${recsCount}</b> Tezgah için ` :
+					hatBazindami ? `<b class="royalblue">${hatKodListe.join(' | ')}</b> kodlu Hat için ` :
+					`<u class="bold">Tüm tezgahlar</u> için `}<b>Toplu ${islemAdi}</b> istendi, devam edilsin mi?`,
+				`Toplu ${islemAdi}`).then(async result => {
 			if (!result) { return } try {
 				switch (id) {
 					case 'devam': await app.wsTopluDevamYap(wsArgs); break
@@ -556,7 +582,7 @@ class HatYonetimiPart extends Part {
 					case 'zamanEtuduKapat': await app.wsTopluZamanEtuduKapat(wsArgs); break
 					default: $.extend(wsArgs, { tip: id }); await app.wsTopluDuraksamaYap(wsArgs); break
 				}
-				this.tazeleBasit()
+				this.tazele()
 			}
 			catch (ex) { hConfirm(getErrorText(ex), `Toplu ${islemAdi}`); throw ex }
 		})
@@ -623,19 +649,19 @@ class HatYonetimiPart extends Part {
 		return `<ul class="text ozetBilgi-container ozetBilgi">${textList?.length ? textList.join(' ') : ''}</ul>${ekTextList.length ? ekTextList.join(CrLf) : ''}`
 	}
 	bekleyenIsEmirleriIstendi(e) {
-		const {hatKod} = (e.rec ?? this.selectedTezgahRecs[0]) ?? {}; if (!hatKod) { return }
+		const {hatKod} = e; if (!hatKod) { return }
 		let args = { hatKod }; MQBekleyenIsEmirleri.listeEkraniAc({ args })
 	}
 	ekNotlarIstendi(e) {
-		const hepsimi = e.hepsi ?? e.hepsimi, rec = e.rec ?? this.selectedTezgahRecs[0] ?? {}; const {hatKod} = rec;
+		const hepsimi = e.hepsi ?? e.hepsimi, rec = e.rec ?? this.selectedTezgahRecs[0] ?? {}, {hatKod} = e;
 		MQEkNotlar.listeEkraniAc({ kapaninca: e => this.tazeleBasit(), secimlerDuzenle: e => {
 			const sec = e.secimler, isHidden = !!app.params.config.hatKod;
 			if (!hepsimi && hatKod) { $.extend(sec.hatKod, { birKismimi: true, value: hatKod, isHidden }); sec.hatAdi.isHidden = isHidden }
 		}})
 	}
 	ekNotEkleIstendi(e) {
-		const rec = e.rec ?? this.selectedTezgahRecs[0], hatKod = rec.hatKod ?? '', tezgahKod = rec.tezgahKod ?? ''; if (!(hatKod || tezgahKod)) { return }
-		let inst = new MQEkNotlar({ hatKod, tezgahKod }); return inst.tanimla({ islem: 'yeni' })
+		let rec = e.rec ?? this.selectedTezgahRecs[0], tezgahKod = rec?.tezgahKod ?? '', {hatKod} = e;
+		if (!hatKod && rec) { hatKod = rec.hatkod } let inst = new MQEkNotlar({ hatKod, tezgahKod }); return inst.tanimla({ islem: 'yeni' })
 	}
 	dokumanYukleIstendi(e) {
 		e = e || {}; const rec = e.rec ?? this.selectedTezgahRecs[0] ?? {}, hatKod = rec.hatKod ?? ''; if (!hatKod) { return }
@@ -703,7 +729,10 @@ class HatYonetimiPart extends Part {
 	}
 	openContextMenu(e) {
 		let noCheckFlag = e.noCheck ?? e.noCheckFlag, {title} = e, recs = e.recs = e.recs ?? this.selectedTezgahRecs, rec = recs?.[0]; if (!(noCheckFlag || rec)) { return }
-		title = e.title = title ?? `<b class="cyan">(${rec?.tezgahKod || ''})</b> ${rec?.tezgahAdi || ''}${recs?.length > 1 ? ` <b class="cadetblue">(+ ${recs.length - 1})</b>` : ''}`;
+		if (e.hatKod && !e.hatAdi) { e.hatAdi = this.hat2Sev[e.hatKod]?.hatAdi }
+		title = e.title = title ??
+			(`<b class="cyan">(${rec?.tezgahKod || e.hatKod || ''})</b> ${rec?.tezgahAdi || e.hatAdi || ''}` +
+			`${recs?.length > 1 ? ` <b class="cadetblue">(+ ${recs.length - 1})</b>` : ''}`);
 		return MFListeOrtakPart.openContextMenu(e)
 	}
 	tekil() { this.cokluSecimmi = false; return this } coklu() { this.cokluSecimmi = true; return this }

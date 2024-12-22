@@ -1,6 +1,6 @@
 class MESApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'HAT-YONETIMI' } get isLoginRequired() { return false }
-	get configParamSinif() { return MQYerelParamConfig_MES } get yerelParamSinif() { return MQYerelParam }
+    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'HATYONETIMI-ESKI' }
+	get configParamSinif() { return MQYerelParamConfig_MES } get yerelParamSinif() { return MQYerelParam } get isLoginRequired() { return false }
 	get defaultWSPath() { return `ws/skyMES` } get useCloseAll() { return true }
 	get sqlExecWSPath() { return `${this.defaultWSPath}/hatIzleme` } get otoTazeleYapilirmi() { return !!(this.otoTazeleFlag && !this.otoTazeleDisabledFlag && this.tazele_timeout) }
 	get durumKod2Aciklama() {
@@ -34,11 +34,14 @@ class MESApp extends App {
 	}
 	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e) }
 	async afterRun(e) { await super.afterRun(e); this.tazele_startTimer(e) }
-	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { localData: MQLocalData.getInstance(), mes: MQParam_MES.getInstance(), hatYonetimi: MQParam_HatYonetimi.getInstance() }) }
+	paramsDuzenle(e) {
+		super.paramsDuzenle(e); const {params} = e; $.extend(params, {
+			localData: MQLocalData.getInstance(), mes: MQParam_MES.getInstance(), hatYonetimi: MQParam_HatYonetimi.getInstance() })
+	}
 	getAnaMenu(e) {
 		/* const disabledMenuIdSet = this.disabledMenuIdSet || {}; */ const items = [
-			new FRMenuChoice({ mne: 'HAT-YONETIMI', text: 'Hat Yönetimi', block: e => MQHatYonetimi.listeEkraniAc() }),
-			new FRMenuChoice({ mne: 'HAT-YONETIMI-2', text: `Hat Yönetimi (<i class="bold gray">dev</i>)`, block: e => new HatYonetimiPart().run() })			
+			new FRMenuChoice({ mne: MQHatYonetimi.kodListeTipi, text: MQHatYonetimi.sinifAdi, block: e => MQHatYonetimi.listeEkraniAc() }),
+			new FRMenuChoice({ mne: HatYonetimiPart.kodListeTipi, text: HatYonetimiPart.sinifAdi, block: e => new HatYonetimiPart().run() })
 		];
 		/*if (config.dev) {*/
 		items.push(...[MQSinyal].map(cls =>
