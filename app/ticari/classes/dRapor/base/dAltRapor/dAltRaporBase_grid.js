@@ -107,7 +107,7 @@ class DAltRapor_Grid_Ozet extends DAltRapor_Grid {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return null }
 	static get kod() { return 'ozet' } static get aciklama() { return 'Özet Bilgi' }
 	get width() { return `calc(var(--full) - ${this.rapor.id2AltRapor.main.width})` } get height() { return '50%' }
-	gridArgsDuzenle(e) { const {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: false, showGroupsHeader: false }) }
+	gridArgsDuzenle(e) { const {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: false, showGroupsHeader: false, columnsHeight: 30 }) }
 	tazele(e) {
 		super.tazele(e); const {gridPart} = this, {gridWidget} = gridPart, {main} = this.rapor.id2AltRapor, colDefs = main.ozetBilgi?.colDefs || [];
 		setTimeout(() => { gridWidget?.beginupdate(); gridPart?.updateColumns(colDefs); gridWidget?.endupdate(false) }, 100)

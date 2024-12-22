@@ -10,10 +10,10 @@ class DAltRapor_PanelRec_Donemsel extends DAltRapor_PanelRec {
 			let {_yilAyBelirtec: yilAyBelirtec, _toplamAttrListe: toplamAttrListe, detaylar} = this, toplamRec;
 			result = {}; for (let rec of detaylar) {
 				if (!toplamRec) {
-					result.toplam = toplamRec = { ...rec };
+					result.TOPLAM = toplamRec = { ...rec };
 					for (let key of toplamAttrListe) { toplamRec[key] = 0 }
 				}
-				result[rec[yilAyBelirtec]] = rec; for (let key of toplamAttrListe) { toplamRec[key] += (rec[key] || 0) }
+				result[rec[yilAyBelirtec]] = rec; for (let key of toplamAttrListe) { if (key != 'TOPLAM') { toplamRec[key] += (rec[key] || 0) } }
 			}
 			this._yilAy2Detay = result; delete this.detaylar
 		}
@@ -30,7 +30,7 @@ class DAltRapor_PanelRec_Donemsel extends DAltRapor_PanelRec {
 				let attr = `${toplamAttr}_${yilAyAttr}`; this[attr] = rec[toplamAttr];
 				tumYilAyAttrSet[attr] = true
 			}
-			delete this[toplamAttr]
+			this[toplamAttr] = yilAy2Detay.TOPLAM[toplamAttr] || 0
 		}
 		return this
 	}

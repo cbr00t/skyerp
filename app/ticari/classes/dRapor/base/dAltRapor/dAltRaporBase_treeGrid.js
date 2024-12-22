@@ -205,7 +205,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	loadServerData_recsDuzenle_seviyelendir(e) {
 		super.loadServerData_recsDuzenle_seviyelendir(e); const {gridPart, tabloYapi, raporTanim} = this, {gridWidget} = gridPart;
 		let {grup, icerik} = raporTanim, {kullanim} = raporTanim, {donemselAnaliz} = kullanim;
-		const attrSet = raporTanim._ozelAttrSet ?? raporTanim.attrSet, belirtec2ColDef = [], grupColAttrListe = [], _sumAttrListe = [], _avgAttrListe = [];
+		let attrSet = raporTanim._ozelAttrSet ?? raporTanim.attrSet, belirtec2ColDef = [], grupColAttrListe = [], _sumAttrListe = [], _avgAttrListe = [];
 		for (const kod in grup) {
 			const item = tabloYapi.grup[kod]; if (!item) { continue } const {colDefs} = item; if (!colDefs) { continue }
 			for (const colDef of colDefs) { const {belirtec} = colDef; belirtec2ColDef[belirtec] = colDef; grupColAttrListe.push(belirtec) }
@@ -241,7 +241,11 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 					getter: ({ item }) => new DAltRapor_PanelRec_Donemsel({ yilAyBelirtec, toplamAttrListe, ...item })
 				});
 				let _e = { ...e, tumYilAyAttrSet: {} }; for (let sev of sevRecs) { sev.donemselDuzenle(_e) }
-				for (let sev of sevRecs) { sev.donemselAttrFix(_e) }
+				for (let sev of sevRecs) { sev.donemselAttrFix(_e) } let {tumYilAyAttrSet} = _e;
+				if (!$.isEmptyObject(tumYilAyAttrSet)) {
+					_sumAttrListe.push(...Object.keys(tumYilAyAttrSet)/*.filter(x => !x.endsWith('_TOPLAM'))*/);
+					_sumAttrListe = Object.keys(asSet(_sumAttrListe))
+				}
 				recs = sevRecs
 			}
 		}
