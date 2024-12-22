@@ -7,8 +7,14 @@ class DAltRapor_PanelRec_Donemsel extends DAltRapor_PanelRec {
 	static { window[this.name] = this; this._key2Class[this.name] = this } get donemRecmi() { return true }
 	get yilAy2Detay() {
 		let result = this._yilAy2Detay; if (result === undefined) {
-			let {_yilAyBelirtec: yilAyBelirtec, detaylar} = this;
-			result = {}; for (let rec of detaylar) { result[rec[yilAyBelirtec]] = rec }
+			let {_yilAyBelirtec: yilAyBelirtec, _toplamAttrListe: toplamAttrListe, detaylar} = this, toplamRec;
+			result = {}; for (let rec of detaylar) {
+				if (!toplamRec) {
+					result.toplam = toplamRec = { ...rec };
+					for (let key of toplamAttrListe) { toplamRec[key] = 0 }
+				}
+				result[rec[yilAyBelirtec]] = rec; for (let key of toplamAttrListe) { toplamRec[key] += (rec[key] || 0) }
+			}
 			this._yilAy2Detay = result; delete this.detaylar
 		}
 		return result

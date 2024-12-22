@@ -13,8 +13,11 @@ class DAltRapor_TreeGrid extends DAltRapor {
 				const columns = noAutoColumns ? [] : colDefs.flatMap(colDef => colDef.jqxColumns), source = [];
 				const localization = localizationObj, width = '99.7%', height = 'calc(var(--full) - 10px)', autoRowHeight = true, autoShowLoadElement = true, altRows = true;
 				const filterMode = 'advanced';	/* default | simple | advanced */
-				const showAggregates = true, showSubAggregates = false, aggregatesHeight = 30, columnsResize = true, columnsReorder = false, sortable = true, filterable = false;
-				let args = { theme, localization, width, height, autoRowHeight, autoShowLoadElement, altRows, filterMode, showAggregates, showSubAggregates, aggregatesHeight, columnsResize, columnsReorder, sortable, filterable, columns, source };
+				const showAggregates = true, showSubAggregates = false, columnsHeight = 60, aggregatesHeight = 30, columnsResize = true, columnsReorder = false, sortable = true, filterable = false;
+				let args = {
+					theme, localization, width, height, autoRowHeight, autoShowLoadElement, altRows, filterMode, showAggregates, showSubAggregates,
+					columnsHeight, aggregatesHeight, columnsResize, columnsReorder, sortable, filterable, columns, source
+				};
 				_e = { ...e, args }; this.gridArgsDuzenle(_e); args = _e.args; grid.jqxTreeGrid(args); gridPart.gridWidget = grid.jqxTreeGrid('getInstance');
 				grid.on('rowExpand', event => this.gridRowExpanded({ ...e, event }));
 				grid.on('rowCollapse', event => this.gridRowCollapsed({ ...e, event }));
@@ -310,13 +313,12 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				gtTip2ColDefs[selector].push(colDef); if (toplammi && !colDef?.aggregates) { colDef.aggregates = ['sum'] }
 			}
 			if (donemselAnaliz) {
-				let key = 'yilay', liste = [], recs = await this.loadServerDataInternal({ attrSet: asSet([donemselAnaliz == 'AY' ? 'YILAY' : null]) });
-				for (let rec of recs) { let value = rec[key]; if (value) { liste.push(value) } }
-				liste.sort(); colDefs = [...gtTip2ColDefs.sabit];
-				for (let _colDef of gtTip2ColDefs.toplam) {
+				let key = 'yilay', recs = await this.loadServerDataInternal({ attrSet: asSet([donemselAnaliz == 'AY' ? 'YILAY' : null]) });
+				let liste = []; for (let rec of recs) { let value = rec[key]; if (value) { liste.push(value) } } liste.sort(); liste.unshift('TOPLAM');
+				colDefs = [...gtTip2ColDefs.sabit]; for (let _colDef of gtTip2ColDefs.toplam) {
 					for (let ayText of liste) {
 						let colDef = _colDef.deepCopy(); colDefs.push(colDef);
-						colDef.belirtec += `_${ayText}`; colDef.text += ` (<span class="forestgreen">${ayText}</span>)`
+						colDef.belirtec += `_${ayText}`; colDef.text += `<br/>(<span class="forestgreen">${ayText}</span>)`
 					}
 				}
 			}
