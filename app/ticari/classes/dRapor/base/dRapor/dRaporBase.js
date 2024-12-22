@@ -112,7 +112,8 @@ class DPanelRapor extends DRaporOzel {
 	}
 	hizliBulIslemi_ara(e) {
 		super.hizliBulIslemi_ara(e); const {tokens} = e, {id2AltRapor} = this;
-		for (const altRapor of Object.values(id2AltRapor)) { if (altRapor.fbd_grid) { const gridPart = altRapor.fbd_grid.part; gridPart.filtreTokens = tokens; gridPart.tazele({ action: 'hizliBul' }) } }
+		for (const altRapor of [id2AltRapor.main].filter(x => !!x)) {
+			if (altRapor.fbd_grid) { const gridPart = altRapor.fbd_grid.part; gridPart.filtreTokens = tokens; gridPart.tazele({ action: 'hizliBul' }) } }
 	}
 	add(...items) {
 		const {id2AltRapor} = this; for (const item of items) {
