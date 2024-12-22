@@ -450,7 +450,7 @@ class HatYonetimiPart extends Part {
 	tezgahButonTiklandi(e) {
 		const {id, evt} = e; switch (id) {
 			case 'tezgahMenu': this.tezgahMenuIstendi(e); break
-			case 'personelSec': this.personelSecIstendi(e); break;
+			case 'personel': case 'personelSec': this.personelSecIstendi(e); break;
 			case 'makineDurum': this.makineDurumIstendi(e); break;
 			case 'topluX': this.topluXMenuIstendi(e); break;
 			case 'bekleyenIsEmirleri': this.bekleyenIsEmirleriIstendi(e); break;
@@ -460,7 +460,7 @@ class HatYonetimiPart extends Part {
 			case 'dokumanYukle': this.dokumanYukleIstendi(e); break;
 			case 'dokumanSil': this.dokumanSilIstendi(e); break;
 			case 'ekBilgiSil': this.ekBilgiSilItendi(e); break;
-			default: eConfirm(`<b>${visibleindex + 1}. satırdaki</b> ve <b>${tezgahAdi}</b> tezgahına ait <b>${id}</b> id'li butona tıklandı`)
+			default: eConfirm(` <b>${$(evt.currentTarget).parents('.tezgah.item').find('.tezgahAdi').text()}</b> tezgahına ait <b>${id}</b> id'li butona tıklandı`)
 		}
 	}
 	siradakiIslerIstendi(e) {
