@@ -133,7 +133,7 @@ class DMQRapor extends DMQSayacliKA {
 	}
 	async dataDuzgunmu(e) { await super.dataDuzgunmu(e); return await this.dataDuzgunmuDevam(e) }
 	dataDuzgunmuDevam(e) {
-		const {rapor} = this, {tabloYapi} = rapor, {toplam} = tabloYapi, {grup, icerik} = this;
+		const {rapor} = this, {tabloYapi} = rapor, {toplam} = tabloYapi, {grup, icerik, kullanim} = this;
 		let normalIcerikVarmi = false, toplanabilirVarmi = false, grupUygunmu = true;
 		for (const key in grup) { if (toplam[key]) { grupUygunmu = false; break } }
 		for (const key in icerik) {
@@ -142,6 +142,10 @@ class DMQRapor extends DMQSayacliKA {
 		}
 		if (!grupUygunmu) { throw { isError: true, errorText: 'Toplanabilir Sahalar, Gruplama kısmına eklenemez' } }
 		if (!(toplanabilirVarmi && normalIcerikVarmi)) { throw { isError: true, errorText: 'En az birer Toplanabilir ve Normal saha olmalıdır' } }
+		if (kullanim.donemselAnaliz == 'AY') {
+			const {grup} = this; if (grup.AYADI || grup.YILAY) {
+				throw { isError: true, errorText: `<b>Aylık Dönemsel Analiz</b> işaretli iken <b class="royalblue">Ay</b> ve <b class="royalblue">Yıl-Ay</b> kolonları eklenemez` } }
+		}
 	}
 	async yukleSonrasiIslemler(e) { await super.yukleSonrasiIslemler(e); const {encUser} = this; this.user = encUser ? await app.xdec(encUser) : encUser }
 	alternateKeyHostVarsDuzenle(e) {

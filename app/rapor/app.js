@@ -11,7 +11,7 @@ class SkyRaporApp extends TicariApp {
 		}
 		return result
 	}
-	paramsDuzenle(e) { super.paramsDuzenle(e) /*; const {params} = e; $.extend(params, { rapor: MQParam_Rapor.getInstance() })*/ }
+	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { dRapor: MQParam_DRapor.getInstance() }) }
 	async anaMenuOlustur(e) {
 		await this.promise_ready; let {kullanim} = app.params.aktarim, eksikParamIsimleri = [];
 		if (!kullanim.webOzetRapor) { eksikParamIsimleri.push('Web Özet Rapor') }
@@ -33,7 +33,7 @@ class SkyRaporApp extends TicariApp {
 	}
 	getAnaMenu(e) {
 		const {noMenuFlag} = this; if (noMenuFlag) { return new FRMenu() }
-		const {kod2Sinif} = DRapor, kategoriKod2MenuItems = {};
+		const {isAdmin} = config.session ?? {}, {kod2Sinif} = DRapor, kategoriKod2MenuItems = {};
 		for (const [mne, sinif] of Object.entries(kod2Sinif)) {
 			if (sinif.dAltRapormu) { continue } const {vioAdim} = sinif, kategoriKod = sinif.kategoriKod ?? '';
 			(kategoriKod2MenuItems[kategoriKod] = kategoriKod2MenuItems[kategoriKod] || [])
@@ -47,13 +47,14 @@ class SkyRaporApp extends TicariApp {
 					}
 				}))
 		}
-		const items_raporlar = [], {kategoriKod2Adi} = this.class;
-		for (const [kategoriKod, items] of Object.entries(kategoriKod2MenuItems)) {
-			const kategoriAdi = kategoriKod2Adi[kategoriKod] ?? kategoriKod; let target = items_raporlar;
-			if (kategoriAdi) { const parentItem = new FRMenuCascade({ mne: kategoriKod, text: kategoriAdi }); items_raporlar.push(parentItem); target = parentItem.items }
-			target.push(...items)
-		}
-		/*const menu_test = (config.dev ? new FRMenuCascade({ mne: 'TEST', text: 'TEST', items: items_raporlar }) : null);*/
-		return new FRMenu({ items: items_raporlar.filter(x => !!x) })
+		let items = [], items_raporlar = [], {kategoriKod2Adi} = this.class;
+		for (const [kategoriKod, _items] of Object.entries(kategoriKod2MenuItems)) {
+			let kategoriAdi = kategoriKod2Adi[kategoriKod] ?? kategoriKod, target = items_raporlar;
+			if (kategoriAdi) { const parentItem = new FRMenuCascade({ mne: kategoriKod, text: kategoriAdi }); target.push(parentItem); target = parentItem.items }
+			target.push(..._items)
+		} items.push(...items_raporlar.filter(x => !!x))
+		if (isAdmin) { items.push(new FRMenuChoice({ mne: 'DRAPOR_PARAM', text: 'Rapor Parametreleri', block: e => this.params.dRapor.tanimla(e) })) }
+		/*const menu_test = (dev ? new FRMenuCascade({ mne: 'TEST', text: 'TEST', items: items_raporlar }) : null);*/
+		return new FRMenu({ items })
 	}
 }

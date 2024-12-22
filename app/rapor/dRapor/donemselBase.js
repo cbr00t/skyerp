@@ -35,7 +35,7 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 		}
 	}
 	async loadServerDataInternal(e) {
-		const {raporTanim, secimler} = this, {attrSet} = raporTanim, {maxRow} = e;
+		const {raporTanim, secimler} = this, attrSet = e.attrSet ?? raporTanim.attrSet, {maxRow} = e;
 		let donemBS = new CBasiSonu({ basi: today().yilBasi(), sonu: today().yilSonu() });
 		const yil = app.params?.zorunlu?.cariYil; if (yil && yil != today().getYil()) {
 			for (const key of ['basi', 'sonu']) { let value = donemBS[key]; if (!isInvalidDate(value)) { value.setYil(yil) } } }
@@ -47,6 +47,10 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 		return await super.loadServerDataInternal({ ...e, donemBS })
 	}
 	super_loadServerDataInternal(e) { super.loadServerDataInternal(e) } superSuper_loadServerDataInternal(e) { super.super_loadServerDataInternal(e) }
+	loadServerData_queryDuzenle(e) {
+		super.loadServerData_queryDuzenle(e); let {kullanim} = this.raporTanim, {stm, attrSet} = e, {sent} = stm, {where: wh} = sent;
+		if (kullanim.donemselAnaliz == 'AY') { attrSet.YILAY = true }
+	}
 	loadServerData_queryDuzenle_tarih(e) {
 		const {attrSet, stm} = e, alias = e.alias ?? 'fis', tarihSaha = e.tarihSaha ?? 'tarih', tarihClause = alias ? `${alias}.${tarihSaha}` : tarihSaha;
 		for (const sent of stm.getSentListe()) {

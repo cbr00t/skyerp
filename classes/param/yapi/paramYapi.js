@@ -611,11 +611,11 @@ class ParamBuilder_ModelKullan extends ParamBuilder_UIElement {
 	}
 	dropDown() { this.fbdEkIslem(e => e.builder.dropDown()); return this } comboBox() { this.fbdEkIslem(e => e.builder.comboBox()); return this }
 	kodlu() { this.fbdEkIslem(e => e.builder.kodlu()); return this } kodsuz() { this.fbdEkIslem(e => e.builder.kodsuz()); return this }
+	tekli() { this.fbdEkIslem(e => e.builder.tekil()); return this } tekil() { this.fbdEkIslem(e => e.builder.tekil()); return this } coklu() { this.fbdEkIslem(e => e.builder.coklu()); return this }
 	autoBind() { this.fbdEkIslem(e => e.builder.autoBind()); return this } noAutoBind() { this.fbdEkIslem(e => e.builder.noAutoBind()); return this }
-	noMF() { this.fbdEkIslem(e => e.builder.noMF()); return this }
-	setMFSinif(value) { this.mfSinif = value; return this } setSource(value) { this.source = value; return this }
-	ozelQueryDuzenleIslemi(handler) { this.ozelQueryDuzenle = handler; return this } veriYukleninceIslemi(handler) { this.veriYuklenince = handler; return this }
-	onBindingComplete(value) { return this.veriYukleninceIslemi(value) }
+	listedenSecilmez() { this.fbdEkIslem(e => e.builder.listedenSecilmez()); return this } listedenSecilir() { this.fbdEkIslem(e => e.builder.listedenSecilir()); return this }
+	noMF() { this.fbdEkIslem(e => e.builder.noMF()); return this }  setMFSinif(value) { this.mfSinif = value; return this } setSource(value) { this.source = value; return this }
+	ozelQueryDuzenleIslemi(handler) { this.ozelQueryDuzenle = handler; return this } veriYukleninceIslemi(handler) { this.veriYuklenince = handler; return this } onBindingComplete(value) { return this.veriYukleninceIslemi(value) }
 	setKodAttr(value) { this.kodAttr = value; return this } setAdiAttr(value) { this.adiAttr = value; return this }
 }
 class ParamBuilder_TekSecim extends ParamBuilder_ModelKullan {

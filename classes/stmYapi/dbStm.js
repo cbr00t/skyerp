@@ -8,6 +8,7 @@ class MQStm extends MQDbCommand {
 			limit: e.limit, offset: e.offset
 		})
 	}
+	asToplamStm(e) { return this.sent.asToplamStm(e) } asToplamStmWithOrderBy(e) { return this.sent.asToplamStmWithOrderBy(e) }
 	fromGridWSArgs(e) {
 		e = e || {}; for (const sent of this.getSentListe()) { sent.fromGridWSArgs(e) }
 		this.orderBy.fromGridWSArgs(e);

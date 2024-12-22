@@ -150,8 +150,8 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		/*let zincirler = this.zincirler?.liste; if (zincirler?.length) { $.extend(disindaSet, asSet(zincirler)) }*/
 		from.disindakiTablolariSil({ disindaSet }); return this
 	}
-	asUnion(e) { return new MQUnion(this) }
-	asUnionAll(e) { return new MQUnionAll(this) }
+	asUnion(e) { let inst = new MQUnion(e); inst.add(this); return inst }
+	asUnionAll(e) { let inst = new MQUnionAll(e); inst.add(this); return inst }
 	static asTmpTable(e, _sent) {
 		e = e || {}; const table = typeof e == 'object' ? e.table : e, sent = typeof e == 'object' ? (_sent || e.sent) : _sent;
 		const ilkSent = sent.liste ? sent.liste[0] : sent, result = new MQTmpTable({ table, sent: ilkSent, sahalar: ilkSent.sahalar.liste.map(saha => saha.alias) });

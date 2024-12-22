@@ -14,7 +14,7 @@ class ModelKullanPart extends Part {
 	get secilen() { return this.selectedItem } get kodGecerlimi() { return !$.isEmptyObject(this.secilen) }
 	get source() { return this.loadServerDataBlock } set source(value) { this.loadServerDataBlock = value }
 	get value() { return this.kod }
-	set value(value) { const oldValue = this.value; if (value != oldValue) { this.kod = value; this.input.val(value); this.onChange({ type: 'value', args: { value } }) } }
+	set value(value) { const oldValue = this.value; if (value != null && value != oldValue) { this.kod = value; this.input.val(value); this.onChange({ type: 'value', args: { value } }) } }
 	get disabled() { return this.input ? this.input[this.jqxSelector]('disabled') : this._disabled }
 	set disabled(value) { if (this.input?.length) { this.input[this.jqxSelector]('disabled', value) } else { this._disabled = value } }
 	val(value, noTrigger) {
@@ -214,7 +214,7 @@ class ModelKullanPart extends Part {
 			const kodSaha = this.kodSaha || (mfSinif ? ($.isArray(mfSinif.idSaha) ? mfSinif.idSaha[0] : mfSinif.idSaha) ?? mfSinif.kodSaha : MQKA.kodSaha);
 			const adiSaha = this.adiSaha || (mfSinif ? mfSinif.adiSaha : MQKA.adiSaha);
 			const kodaEsasSaha = this.kodGosterilsinmi ? kodSaha : adiSaha, lastSelectedItem = this.selectedItem, lastValue = this.value;
-			let value = e.value ?? evt?.target?.value, _kod = this.kod, kod, item, wItem, records, rec;
+			let value = e.value ?? args?.value ?? evt?.target?.value, _kod = this.kod, kod, item, wItem, records, rec;
 			if (isDropDown) {
 				if (!coklumu && args) { wItem = args.item }
 				if (wItem == null) { wItem = coklumu ? widget.getCheckedItems() : widget.getSelectedItem() } if (wItem == null) { _kod = value }
@@ -255,8 +255,8 @@ class ModelKullanPart extends Part {
 				if (kod == null && wItem) { kod = coklumu ? wItem.map(x => x.value) : wItem.value }
 				this.selectedItem = item;
 				if (item) {
-					this.kod = kod; const inputVal = widget.input.val();
-					 if (!inputVal || inputVal == kod) { if (widget.renderSelectedItem) { widget.input.val(widget.renderSelectedItem(-1, item)) } }
+					/* if (!$.isArray(item) || item.length) { this.kod = kod } */
+					const inputVal = widget.input.val(); if (!inputVal || inputVal == kod) { if (widget.renderSelectedItem) { widget.input.val(widget.renderSelectedItem(-1, item)) } }
 				}
 				else {
 					if (!records) { records = widget.getItems ? widget.getItems() : (source.records || ($.isArray(source) ? source : null)) }
@@ -288,8 +288,13 @@ class ModelKullanPart extends Part {
 			const {input, parentPart, widget, veriYukleninceBlock, coklumu, isDropDown} = this; if (this.isDestroyed || !input?.length) { return }
 			if (!this.veriYuklendiFlag) {
 				this.veriYuklendiFlag = true; /*if (widget.isOpened()) widget.close();*/
-				const {value} = this; if (value != null && !this.kodAtandimi) { input.val(value); input.attr('data-value', value ?? null) }
-				if (!coklumu && isDropDown) { let ind = widget.getItems().findIndex(item => item.value == value); if (ind > -1) { widget.selectIndex(ind) } }
+				let {value} = this; if (value != null && !this.kodAtandimi) { input.val(value); input.attr('data-value', value ?? null) }
+				if (value) {
+					value = $.makeArray(value); if (value?.length) {
+						let valueSet = asSet(value), wItems = widget.getItems(); widget[isDropDown ? 'uncheckAll' : 'clearSelection']();
+						this.disableEventsFlag = true; for (let i = 0; i < wItems.length; i++) { if (valueSet[wItems[i].value]) { widget.selectIndex(i) } } this.disableEventsFlag = false
+					}
+				}
 				this.kodAtandimi = true
 			}
 			if (veriYukleninceBlock) {
@@ -462,6 +467,7 @@ class ModelKullanPart extends Part {
 	bosKodEklenir() { this.bosKodEklenirmi = true; return this } bosKodEklenmez() { this.bosKodEklenirmi = false; return this }
 	enable() { this.disabled = false; return this } disable() { this.disabled = true; return this }
 	change(handler) { const {degisinceEvent} = this; if (!degisinceEvent.find(x => x == handler)) { degisinceEvent.push(handler) } } degisince(handler) { return this.change(handler) }
+	veriYuklenince(handler) { this.veriYukleninceBlock = handler; return this } veriYukleninceIslemi(handler) { return this.veriYuklenince(e) }
 	ozelQueryDuzenleHandler(value) { this.ozelQueryDuzenleBlock = value; return this }
 	loadServerDataHandler(value) { this.loadServerDataBlock = value; return this }
 	initArgsDuzenleHandler(value) { this.initArgsDuzenleBlock = value; return this }

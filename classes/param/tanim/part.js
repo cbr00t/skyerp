@@ -7,10 +7,9 @@ class ParamTanimPart extends Part {
 
 	constructor(e) {
 		e = e || {}; super(e);
-		$.extend(this, { islem: e.islem, mfSinif: e.mfSinif, inst: e.inst, eskiInst: e.eskiInst, kaydedince: e.kaydedince });
-		let {mfSinif, inst, eskiInst} = this;
-		if (!inst && mfSinif) inst = this.inst = new mfSinif();
-		if (inst && !mfSinif) mfSinif = this.mfSinif = inst.class
+		$.extend(this, { islem: e.islem, mfSinif: e.mfSinif, inst: e.inst, eskiInst: e.eskiInst, kaydedince: e.kaydedince }); let {mfSinif, inst, eskiInst} = this;
+		if (!inst && mfSinif) { inst = this.inst = new mfSinif() }
+		if (inst && !mfSinif) { mfSinif = this.mfSinif = inst.class }
 		if (inst && !eskiInst && this.degistirmi) { eskiInst = this.eskiInst = inst; inst = this.inst = inst.deepCopy() }
 		this.title = this.title || `${(mfSinif || {}).sinifAdi || 'Parametre'} Tanım`;
 		const {islem} = this; if (islem) { const islemText = islem[0].toUpperCase() + islem.slice(1); this.title += ` &nbsp;[<span class="window-title-ek">${islemText}</span>]` }

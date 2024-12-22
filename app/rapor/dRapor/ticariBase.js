@@ -33,7 +33,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		this.tabloYapiDuzenle_hmr(e).tabloYapiDuzenle_miktar(e).tabloYapiDuzenle_ciro(e);
 	}
 	loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {stm, attrSet} = e; let {sent} = stm, {where: wh} = sent;
+		super.loadServerData_queryDuzenle(e); let {stm, attrSet} = e; let {sent} = stm, {where: wh} = sent;
 		$.extend(e, { sent }); this.fisVeHareketBagla(e); this.donemBagla({ ...e, tarihSaha: 'fis.tarih' });
 		wh.fisSilindiEkle(); wh.add(`fis.ozelisaret <> 'X'`); 
 		if (attrSet.CRTIP || attrSet.CRBOL || attrSet.CRANABOL || attrSet.CARI || attrSet.CRIL || attrSet.CRULKE || attrSet.CRISTGRP) { sent.fis2CariBagla() }
@@ -172,7 +172,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 			.addToplam(new TabloYapiItem().setKA('CIRO', `${toplamPrefix}Ciro`)
 				.addColDef(new GridKolon({ belirtec: 'ciro', text: `${toplamPrefix}Ciro`, genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
 			.addToplam(new TabloYapiItem().setKA('CIROFIYAT', `${toplamPrefix}Ciro Fiyat`)
-				.setFormul(['CIRO', 'MIKTAR'], ({ rec }) => roundToFiyatFra(rec.ciro / rec.miktar))
+				.setFormul(['CIRO', 'MIKTAR'], ({ rec }) => roundToFiyatFra(rec.miktar ? rec.ciro / rec.miktar : 0))
 				.addColDef(new GridKolon({ belirtec: 'cirofiyat', text: `${toplamPrefix}Ciro Fiyat`, genislikCh: 30, filterType: 'numberinput' }).tipDecimal_fiyat()));
 		for (const dvKod of this.dvKodListe) {
 			result.addToplam(new TabloYapiItem().setKA(`CIRO_${dvKod}`, `${toplamPrefix}Ciro (<b>${dvKod}</b>)`)
@@ -230,7 +230,7 @@ class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 			for (const key in attrSet) {
 				if (key == `BR${PrefixMiktar}`) { sahalar.add(`SUM(case when fis.iade = '' then har.miktar else 0 end) brmiktar`) }
 				else if (key == `IA${PrefixMiktar}`) { sahalar.add(`SUM(case when fis.iade = '' then 0 else har.miktar end) iamiktar`) }
-				else if (key.includes(PrefixMiktar)) {
+				else if (key != PrefixMiktar && key.endsWith(PrefixMiktar)) {
 					const tipPrefix = key.slice(0, 2), brmTip = key.slice(2 + PrefixMiktar.length)?.toUpperCase();
 					const getMiktarClause = miktarClause =>
 						tipPrefix == 'BR' ? `(case when fis.iade = '' then ${miktarClause} else 0 end)` :

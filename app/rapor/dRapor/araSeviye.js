@@ -37,23 +37,29 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return e.html
 	}
 	async loadServerDataInternal(e) {
-		await super.loadServerDataInternal(e); const {raporTanim, secimler} = this, {attrSet} = raporTanim, {maxRow} = e, {donemBS} = e;
-		const _e = { ...e, stm: new MQStm(), attrSet, donemBS }; let recs = await this.loadServerData_ilk(e); if (recs !== undefined) { return recs }
-		this.loadServerData_queryDuzenle(_e); this.loadServerData_queryDuzenle_son(_e);
+		await super.loadServerDataInternal(e); const {raporTanim, secimler} = this, attrSet = e.attrSet ?? raporTanim.attrSet, {maxRow, donemBS} = e;
+		let _e = { ...e, stm: new MQStm(), attrSet, donemBS }, recs = await this.loadServerData_ilk(e); if (recs !== undefined) { return recs }
+		this.loadServerData_queryDuzenle_tekil(_e); this.loadServerData_queryDuzenle_tekilSonrasi(_e); this.loadServerData_queryDuzenle_genelSon(_e);
 		let query = _e.stm; recs = e.recs = query ? await app.sqlExecSelect({ query, maxRow }) : null;
 		let _recs = await this.loadServerData_son(e); if (_recs !== undefined) { recs = _recs }
 		return recs
 	}
 	super_loadServerDataInternal(e) { return super.loadServerDataInternal(e) }
-	loadServerData_ilk(e) { }
-	loadServerData_son(e) { }
+	loadServerData_ilk(e) { } loadServerData_son(e) { }
+	tabloYapiDuzenle(e) {
+		super.tabloYapiDuzenle(e); const {result} = e;
+		if (app.params.dRapor.ekDBListe?.length) {
+			result.addGrup(new TabloYapiItem().setKA('DB', 'Veritabanı').addColDef(new GridKolon({ belirtec: 'db', text: 'Veritabanı', genislikCh: 18 }))) }
+		this.tabloYapiDuzenle_ozel?.(e)
+	}
 	tabloYapiDuzenle_son(e) {
-		super.tabloYapiDuzenle_son(e); const {result} = e;
+		super.tabloYapiDuzenle_son(e); const {result} = e; this.tabloYapiDuzenle_son_ozel?.(e);
 		result.addToplam(new TabloYapiItem().setKA('KAYITSAYISI', 'Kayıt Sayısı').addColDef(new GridKolon({ belirtec: 'kayitsayisi', text: 'Kayıt Sayısı', genislikCh: 10, filterType: 'numberinput', aggregates: ['sum'] }).tipNumerik()))
 	}
+	loadServerData_queryDuzenle_tekil(e) { e = e ?? {}; this.loadServerData_queryDuzenle(e); this.loadServerData_queryDuzenle_son(e) }
 	loadServerData_queryDuzenle(e) {
-		let alias = e.alias = e.alias ?? 'fis'; const {secimler, raporTanim,} = this, {stm} = e;
-		let attrSet = e.attrSet = raporTanim._ozelAttrSet = $.extend({}, e.attrSet);
+		let alias = e.alias = e.alias ?? 'fis'; const {secimler, raporTanim, tabloYapi} = this, {stm} = e;
+		let {attrSet: _attrSet} = e, attrSet = e.attrSet = raporTanim._ozelAttrSet = { ..._attrSet };
 		for (const sent of stm.getSentListe()) { sent.sahalar.add(`COUNT(*) kayitsayisi`) }
 		if (secimler) {
 			for (const [key, secim] of Object.entries(secimler.liste)) {
@@ -62,21 +68,48 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				if (uygunmu) { attrSet[kod] = true }
 			}
 		}
-		const {toplam} = this.tabloYapi; for (const key in attrSet) {
+		const {toplam} = tabloYapi; for (const key in attrSet) {
 			const formul = toplam[key]?.formul; if (!formul) { continue }
 			let {attrListe} = formul; if (attrListe?.length) { $.extend(attrSet, asSet(attrListe)) }
 		}
+		this.loadServerData_queryDuzenle_ozel?.(e)
 	}
 	loadServerData_queryDuzenle_son(e) {
-		const {alias, stm, attrSet} = e, {orderBy} = stm, {secimler, dvKodListe} = this, dvKodSet = asSet(dvKodListe); let gecerliDvKodSet = {}, dvKodVarmi = false;
+		this.loadServerData_queryDuzenle_son_ozel?.(e);
+		let {alias, stm, attrSet} = e, {secimler, tabloYapi} = this;
+		let dvKodSet = asSet(this.dvKodListe), gecerliDvKodSet = {}, dvKodVarmi = false;
 		for (const key in attrSet) { const dvKod = key.split('_').slice(-1)[0]; if (dvKodSet[dvKod]) { gecerliDvKodSet[dvKod] = dvKodVarmi = true } }
 		for (const sent of stm.getSentListe()) {
 			for (const dvKod in gecerliDvKodSet) {
-				const kurAlias = `kur${dvKod}`; sent.leftJoin({ alias, from: `ORTAK..ydvkur ${kurAlias}`, on: [`${alias}.tarih = ${kurAlias}.tarih`, `${kurAlias}.kod = '${dvKod}'`] }) }
+				const kurAlias = `kur${dvKod}`;
+				sent.leftJoin({ alias, from: `ORTAK..ydvkur ${kurAlias}`, on: [`${alias}.tarih = ${kurAlias}.tarih`, `${kurAlias}.kod = '${dvKod}'`] })
+			}
 			sent.sahalar.add(`COUNT(*) kayitsayisi`)
 		}
-		const tbWhere = secimler?.getTBWhereClause(e); for (const {where: wh, sahalar} of stm.getSentListe()) { if (tbWhere?.liste?.length) { wh.birlestir(tbWhere) } }
-		let {grup} = this.tabloYapi; for (const kod in attrSet) { let item = grup[kod], {orderBySaha} = item || {}; if (orderBySaha) { orderBy.add(orderBySaha) } }
+		let tbWhere = secimler?.getTBWhereClause(e); for (const {where: wh, sahalar} of stm.getSentListe()) { if (tbWhere?.liste?.length) { wh.birlestir(tbWhere) } }
+	}
+	loadServerData_queryDuzenle_tekilSonrasi(e) {
+		let {ekDBListe} = app.params.dRapor, {stm, attrSet} = e, alias_db = 'db';
+		if (ekDBListe?.length) {
+			let asilUni = stm.sent = stm.sent.asUnionAll();
+			for (let {sahalar} of asilUni.getSentListe()) {
+				if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db)) { sahalar.add(`${`[ <span class="royalblue">${config.session.dbName}</span> ]`.sqlServerDegeri() ?? '- Aktif VT -'} ${alias_db}`) } }
+			for (let db of ekDBListe ?? []) {
+				let uni = asilUni.deepCopy(); if (!uni.liste.length) { continue }
+				for (let sent of uni.getSentListe()) {
+					let {from, sahalar} = sent; for (let item of from.liste) {
+						let {deger} = item, hasDB = deger.includes('.');
+						if (!hasDB) { item.deger = deger = `${db}..${deger}` }
+					}
+					{ let saha = sahalar.liste.find(x => x.alias == alias_db); if (saha) { saha.deger = db.sqlServerDegeri() } }
+				} asilUni.addAll(uni.liste)
+			};
+			stm = e.stm = stm.asToplamStm()
+		}
+	}
+	loadServerData_queryDuzenle_genelSon(e) {
+		let {stm, attrSet} = e, {orderBy} = stm, {grup} = this.tabloYapi;
+		for (const kod in attrSet) { let {orderBySaha} = grup[kod] ?? {}; if (orderBySaha) { orderBy.add(orderBySaha) } }
 	}
 	loadServerData_recsDuzenle(e) { return super.loadServerData_recsDuzenle(e) }
 	async loadServerData_recsDuzenleSon(e) {

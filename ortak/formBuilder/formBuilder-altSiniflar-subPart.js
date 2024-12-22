@@ -762,12 +762,12 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 			if (value === undefined) { const {ioAttr} = this; if (ioAttr) { const {altInst} = this; if (altInst) { this.value = altInst[ioAttr]; value = this.value } } }
 			const _e = $.extend({}, e, { args: {
 				sender: this.sender, builder: this, autoBind: this.autoBindFlag, parentPart: this.rootPart, layout: input, listedenSecilemez: this.listedenSecilemezFlag,
-				width: false, height: this.class.defaultHeight, mfSinif: this.mfSinif, source: this.source, ekDuzenleyici: this.ekDuzenleyici,
+				width: false, height: this.class.defaultHeight, mfSinif: this.mfSinif, source: this.source, ekDuzenleyici: this.ekDuzenleyici, value,
 				isDropDown: this.isDropDown, coklumu: this.coklumu, noAutoWidth: this.noAutoWidthFlag, listedenSecilemez: this.listedenSecilemezFlag,
 				kodGosterilsinmi: this.kodGosterilsinmi, bosKodAlinirmi: this.bosKodAlinirmi, bosKodEklenirmi: this.bosKodEklenirmi,
 				ozelQueryDuzenle: this.ozelQueryDuzenle, loadServerDataBlock: this.loadServerDataBlock, initArgsDuzenle: this.initArgsDuzenle,
 				listeArgsDuzenle: this.listeArgsDuzenle, veriYukleninceBlock: this.veriYuklenince, kodSaha: this.kodAttr, adiSaha: this.adiAttr,
-				disabled: this.disabled, placeHolder: this.placeHolder ?? (() => (etiketGosterim == 'placeholder') ? this.etiket : ''), value: this.value
+				disabled: this.disabled, placeHolder: this.placeHolder ?? (() => (etiketGosterim == 'placeholder') ? this.etiket : '')
 			} });
 			if (widgetArgsDuzenle) { getFuncValue.call(this, widgetArgsDuzenle, _e) }
 			const part = this.part = new ModelKullanPart(_e.args); part.run();
@@ -806,7 +806,7 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 		const {input} = this; if (input?.length) { input.val(this.getConverted_setValue({ value: value })); return }
 		return super.defaultSetValue(e)
 	}
-	tekli() { this.coklumu = false; return this } coklu() { this.coklumu = true; return this }
+	tekli() { this.coklumu = false; return this } tekil() { return this.tekli() } coklu() { this.coklumu = true; return this }
 	comboBox() { this.isDropDown = false; return this } dropDown() { this.isDropDown = true; return this }
 	autoBind() { this.autoBindFlag = true; return this } noAutoBind() { this.autoBindFlag = false; return this }
 	kodGosterilsin() { this.kodGosterilsinmi = true; return this } kodGosterilmesin() { this.kodGosterilsinmi = false; return this }
