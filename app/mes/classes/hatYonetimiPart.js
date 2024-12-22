@@ -49,7 +49,7 @@ class HatYonetimiPart extends Part {
 			.onAfterRun(({ builder: fbd }) => { const {id, rootPart, input} = fbd; rootPart.islemTuslari = input })
 			.setButonlarIlk([
 				{ id: 'tezgahMenu', text: 'TEZ', handler: e => this.tezgahMenuIstendi(e) },
-				{ id: 'isEmirleri', text: 'EMR', handler: e => this.bekleyenIsEmirleriIstendi(e) },
+				/*{ id: 'isEmirleri', text: 'EMR', handler: e => this.bekleyenIsEmirleriIstendi(e) },*/
 				{ id: 'topluX', text: 'TPL', handler: e => this.topluXMenuIstendi(e) },
 				(sabitHatKodVarmi ? null : { id: 'tumEkNotlar', text: 'NOT', handler: e => this.ekNotlarIstendi({ ...e, hepsi: true }) }),
 				{ id: 'ozet', text: 'ÖZET', handler: e => this.ozetBilgiGoster(e) },
