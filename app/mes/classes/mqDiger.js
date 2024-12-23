@@ -275,6 +275,8 @@ class MQSinyal extends MQMasterOrtak {
 	static async loadServerData_queryOlustur(e) {
 		await super.loadServerData_queryOlustur(e); const {stm} = e;
 		for (const sent of stm.getSentListe()) { sent.groupByOlustur() }
+		if (!!this.listeBasliklari.find(({ belirtec }) => belirtec == 'tezgahkod')) { stm.orderBy.liste.unshift('tezgahkod DESC') }
+		if (!!this.listeBasliklari.find(({ belirtec }) => belirtec == 'ts')) { stm.orderBy.liste.unshift('ts DESC') }
 		return stm
 	}
 	static async loadServerData_queryDuzenle(e) {
