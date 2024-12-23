@@ -48,8 +48,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	loadServerData_ilk(e) { } loadServerData_son(e) { }
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); const {result} = e;
-		if (app.params.dRapor.ekDBListe?.length) {
-			result.addGrup(new TabloYapiItem().setKA('DB', 'Veritabanı').addColDef(new GridKolon({ belirtec: 'db', text: 'Veritabanı', genislikCh: 18 }))) }
+		if (app.params.dRapor.konsolideCikti) { result.addGrup(new TabloYapiItem().setKA('DB', 'Veritabanı').addColDef(new GridKolon({ belirtec: 'db', text: 'Veritabanı', genislikCh: 18 }))) }
 		this.tabloYapiDuzenle_ozel?.(e)
 	}
 	tabloYapiDuzenle_son(e) {
@@ -93,7 +92,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		if (ekDBListe?.length) {
 			let asilUni = stm.sent = stm.sent.asUnionAll();
 			for (let {sahalar} of asilUni.getSentListe()) {
-				if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db)) { sahalar.add(`${`[ <span class="royalblue">${config.session.dbName}</span> ]`.sqlServerDegeri() ?? '- Aktif VT -'} ${alias_db}`) } }
+				if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db)) { sahalar.add(`${`[ <span class=royalblue>${config.session.dbName}</span> ]`.sqlServerDegeri() ?? '- Aktif VT -'} ${alias_db}`) } }
 			for (let db of ekDBListe ?? []) {
 				let uni = asilUni.deepCopy(); if (!uni.liste.length) { continue }
 				for (let sent of uni.getSentListe()) {

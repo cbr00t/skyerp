@@ -33,7 +33,19 @@ class DRapor_StokAlimlar_Main extends DRapor_Sevkiyat_Main {
 }
 class DRapor_StokSatisSiparisler_Main extends DRapor_Ticari_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_StokSatisSiparisler }
-	fisVeHareketBagla(e) { super.fisVeHareketBagla(e); const {sent} = e, {shd} = this; sent.fisHareket('sipfis', `sip${shd}`); sent.where.add(`fis.almsat = 'T'`, `fis.ozeltip = ''`, `fis.onaytipi = ''`) }
+	loadServerData_queryDuzenle_tekilSonrasi(e) {
+		let {stokGenel} = app.params; if (stokGenel.kullanim.transferSiparisi) {
+			let {stm, attrSet} = e, uni = stm.sent = stm.sent.asUnionAll();
+			let _e = { ...e, stm : new MQStm(), trfSipmi: true }; this.loadServerData_queryDuzenle_tekil(_e); uni.add(_e.stm.sent)
+		}
+		super.loadServerData_queryDuzenle_tekilSonrasi(e)		/* üstte konsolide için db union all yapılıyor */
+	}
+	fisVeHareketBagla(e) {
+		super.fisVeHareketBagla(e); let {sent, trfSipmi} = e, {shd} = this, sipStPrefix = trfSipmi ? 'st' : 'sip';
+		sent.fisHareket(`${sipStPrefix}fis`, `${sipStPrefix}${shd}`);
+		if (trfSipmi) { sent.where.add(`fis.gctipi = 'S'`, `fis.ozeltip = 'IR'`, `fis.fisekayrim = ''`) }
+		else { sent.where.add(`fis.almsat = 'T'`, `fis.ozeltip = ''`, `fis.onaytipi = ''`) }
+	}
 }
 class DRapor_HizmetSatislar_Main extends DRapor_StokSatislar_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_HizmetSatislar }

@@ -224,10 +224,10 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			} e.recs = recs
 		}
 		if (recs && donemselAnaliz) {
-			let yilAyBelirtec = tabloYapi.grup[donemselAnaliz == 'AY' ? 'YILAY' : null]?.colDefs?.[0]?.belirtec;
-			if (yilAyBelirtec) {
+			let yatayBelirtec = tabloYapi.grup[DRapor_Donemsel_Main.donemselTip2Bilgi[donemselAnaliz].kod]?.colDefs?.[0]?.belirtec;
+			if (yatayBelirtec) {
 				let gtTip2AttrListe = { sabit: [], toplam: [] };
-				for (let colDef of Object.values(belirtec2ColDef).filter(colDef => colDef.belirtec != yilAyBelirtec)) {
+				for (let colDef of Object.values(belirtec2ColDef).filter(colDef => colDef.belirtec != yatayBelirtec)) {
 					let toplammi = colDef?.userData?.tip == 'toplam', selector = toplammi ? 'toplam' : 'sabit';
 					gtTip2AttrListe[selector].push(colDef.belirtec)
 				}
@@ -235,12 +235,12 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				let toplamAttrListe = jqxCols.map(({ datafield }) => datafield).filter(belirtec => orj_toplamAttrSet[belirtec.split('_')[0]]);*/
 				let toplamAttrListe = gtTip2AttrListe.toplam, sevRecs = seviyelendirAttrGruplari({
 					source: recs, attrGruplari: [gtTip2AttrListe.sabit],
-					getter: ({ item }) => new DAltRapor_PanelRec_Donemsel({ yilAyBelirtec, toplamAttrListe, ...item })
+					getter: ({ item }) => new DAltRapor_PanelRec_Donemsel({ yatayBelirtec, toplamAttrListe, ...item })
 				});
-				let _e = { ...e, tumYilAyAttrSet: {} }; for (let sev of sevRecs) { sev.donemselDuzenle(_e) }
-				for (let sev of sevRecs) { sev.donemselAttrFix(_e) } let {tumYilAyAttrSet} = _e;
-				if (!$.isEmptyObject(tumYilAyAttrSet)) {
-					_sumAttrListe.push(...Object.keys(tumYilAyAttrSet)/*.filter(x => !x.endsWith('_TOPLAM'))*/);
+				let _e = { ...e, tumYatayAttrSet: {} }; for (let sev of sevRecs) { sev.donemselDuzenle(_e) }
+				for (let sev of sevRecs) { sev.donemselAttrFix(_e) } let {tumYatayAttrSet} = _e;
+				if (!$.isEmptyObject(tumYatayAttrSet)) {
+					_sumAttrListe.push(...Object.keys(tumYatayAttrSet)/*.filter(x => !x.endsWith('_TOPLAM'))*/);
 					_sumAttrListe = Object.keys(asSet(_sumAttrListe))
 				}
 				recs = sevRecs
@@ -318,12 +318,15 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			}
 			if (donemselAnaliz) {
 				window.progressManager?.setProgressMax((window.progressManager?.progressMax || 0) + 5);
-				let key = 'yilay', recs = await this.loadServerDataInternal({ attrSet: asSet([donemselAnaliz == 'AY' ? 'YILAY' : null]) }); window.progressManager?.progressStep(4);
-				let liste = []; for (let rec of recs) { let value = rec[key]; if (value) { liste.push(value) } } liste.sort(); liste.unshift('TOPLAM');
-				colDefs = [...gtTip2ColDefs.sabit]; for (let _colDef of gtTip2ColDefs.toplam) {
-					for (let ayText of liste) {
+				let {belirtec} = DRapor_Donemsel_Main.donemselTip2Bilgi[donemselAnaliz];
+				let recs = await this.loadServerDataInternal({ attrSet: asSet([DRapor_Donemsel_Main.donemselTip2Bilgi[donemselAnaliz].kod]) });
+				window.progressManager?.progressStep(4); let liste = [];
+				for (let rec of recs) { let value = rec[belirtec] ?? rec[`${belirtec}adi`] ?? rec[`${belirtec}kod`]; if (value) { liste.push(value) } } 
+				liste.sort(); liste.unshift('TOPLAM'); colDefs = [...gtTip2ColDefs.sabit];
+				for (let _colDef of gtTip2ColDefs.toplam) {
+					for (let yatayText of liste) {
 						let colDef = _colDef.deepCopy(); colDefs.push(colDef);
-						colDef.belirtec += `_${ayText}`; colDef.text += `<br/>(<span class="forestgreen">${ayText}</span>)`
+						colDef.belirtec += `_${yatayText}`; colDef.text += `<br/>(<span class="forestgreen">${yatayText}</span>)`
 					}
 				}
 			}
@@ -332,7 +335,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				belirtecSet[belirtec] = true; colDefs.push(colDef)
 			}
 			let ilkColDef = colDefs[0]; if (tabloYapi.grup[ilkColDef?.userData?.kod]) {
-				let colDef = ilkColDef.deepCopy(); colDefs[0] = colDef; colDef.minWidth = colDef.minWidth || 250;
+				let colDef = ilkColDef.deepCopy(); colDefs[0] = colDef; colDef.minWidth = Math.max(colDef.minWidth ?? 0, 450);
 				colDef.text = [...(Object.keys(grup).map(kod => `<span class="royalblue">${tabloYapi.grup[kod]?.colDefs[0]?.text || ''}</span>`) || []), colDef.text].join(' + ')
 			}
 			if (!defUpdateOnly) { grid.jqxTreeGrid('clear') } colDefs = this.getColumns(colDefs);

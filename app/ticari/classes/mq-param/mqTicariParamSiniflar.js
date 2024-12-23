@@ -135,9 +135,10 @@ class MQStokGenelParam extends MQTicariParamBase {
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); const {paramci} = e, {hmrYapi} = this;
 		let form = paramci.addKullanim().addGrup({ etiket: 'İşlem Kullanımı' }).addFormWithParent();
-			form.addBool('mitkar2', 'Miktar 2'); form.addBool('stokKontrol', 'Stok Kontrol'); form.addBool('depoKismiStokKontrol', 'Depo Kısmi Stok Kontrol'); form.addBool('konumStatu', 'Konum Statü'); 
+			form.addBool('MİKTAR2', 'Miktar 2'); form.addBool('stokKontrol', 'Stok Kontrol'); form.addBool('depoKismiStokKontrol', 'Depo Kısmi Stok Kontrol'); form.addBool('konumStatu', 'Konum Statü'); 
 			form.addBool('malFazlasi', 'Mal Fazlası'); form.addBool('marka', 'Stok Marka'); form.addBool('hacim', 'Hacim'); form.addBool('paket', 'Paket'); form.addBool('rbk', 'RBK Kısıtlaması');
 			form.addBool('seriNo', 'Seri No'); form.addBool('seriMiktarli', 'Seri İçin Miktar Kullanılır'); form.addBool('dayaniksizGaranti', 'Dayanıksız Mal Garanti Takibi');
+			form.addBool('transferSiparisi', 'Transfer Siparişi')
 		let tabPage_form = paramci.addTabPage('hmr', 'HMR').addFormWithParent();
 		tabPage_form.addGridGiris_sabit('_hmr').setRowAttr(null).addStyle_wh(500, 600)
 			.setTabloKolonlari(e => {
@@ -195,6 +196,11 @@ class MQStokGenelParam extends MQTicariParamBase {
 			const ekRowAttr = key == 'harDet' ? 'hardet' : null;
 			const kullanim = rec[rowAttr] ?? rec[ekRowAttr]; if (kullanim != null) { hmr[key] = kullanim }
 			if (etiketEditable) { const etiket = rec[rowAttr + 'Etiket'] ?? rec[ekRowAttr + 'Etiket']; if (etiket) { hmrEtiket[key] = etiket } }
+		}
+		{	let {kullanim} = this; for (let key in kullanim) {
+				if (kullanim[key] != null) { continue }
+				let value = rec[key] ?? this[key]; if (value != null) { kullanim[key] = value; delete this[key] }
+			}
 		}
 	}
 }

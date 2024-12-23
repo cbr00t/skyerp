@@ -53,8 +53,12 @@ class DMQRapor extends DMQSayacliKA {
 		kaForm.id2Builder.aciklama.addStyle_wh(`calc(var(--full) - var(--sag-width)) !important`).addStyle(e => `$elementCSS { max-width: unset !important }`);
 		kaForm.addNumberInput('ozetMax', 'İlk ... kayıt').addStyle_wh('var(--ozetMax-width)');
 		let form = kaForm.addFormWithParent('kullanim');
-			form.addModelKullan('donemselAnaliz', 'Dönemsel').setInst(null).dropDown().noMF().kodsuz().listedenSecilemez()
-				.setSource(e => [ new CKodVeAdi(['', '']), new CKodVeAdi(['AY', 'Aylık']) ])
+			form.addModelKullan('donemselAnaliz', 'Çapraz').setInst(null).dropDown().noMF().kodsuz().listedenSecilemez()
+				.setSource(e => {
+					let result = [new CKodVeAdi(['', ''])];
+					for (let [kod, {text: aciklama}] of Object.entries(DRapor_Donemsel_Main.donemselTip2Bilgi)) { result.push(new CKodVeAdi({ kod, aciklama })) }
+					return result
+				})
 				.setValue(kullanim.donemselAnaliz).degisince(({ value }) => kullanim.donemselAnaliz = value);
 		let fbd_content = tanimForm.addFormWithParent('content').yanYana().addStyle_fullWH(null, 'calc(var(--full) - var(--ustHeight) - var(--top) + 8px)').addStyle([e =>
 			`$elementCSS { --top: ${contentTop}; position: relative; top: var(--top); z-index: 100 }
@@ -133,7 +137,7 @@ class DMQRapor extends DMQSayacliKA {
 	}
 	async dataDuzgunmu(e) { await super.dataDuzgunmu(e); return await this.dataDuzgunmuDevam(e) }
 	dataDuzgunmuDevam(e) {
-		const {rapor} = this, {tabloYapi} = rapor, {toplam} = tabloYapi, {grup, icerik, kullanim} = this;
+		const {rapor} = this, {tabloYapi} = rapor, {toplam} = tabloYapi, {grup, icerik, kullanim} = this, {donemselAnaliz} = kullanim;
 		let normalIcerikVarmi = false, toplanabilirVarmi = false, grupUygunmu = true;
 		for (const key in grup) { if (toplam[key]) { grupUygunmu = false; break } }
 		for (const key in icerik) {
@@ -142,9 +146,9 @@ class DMQRapor extends DMQSayacliKA {
 		}
 		if (!grupUygunmu) { throw { isError: true, errorText: 'Toplanabilir Sahalar, Gruplama kısmına eklenemez' } }
 		if (!(toplanabilirVarmi && normalIcerikVarmi)) { throw { isError: true, errorText: 'En az birer Toplanabilir ve Normal saha olmalıdır' } }
-		if (kullanim.donemselAnaliz == 'AY') {
-			const {grup} = this; if (grup.AYADI || grup.YILAY) {
-				throw { isError: true, errorText: `<b>Aylık Dönemsel Analiz</b> işaretli iken <b class="royalblue">Ay</b> ve <b class="royalblue">Yıl-Ay</b> kolonları eklenemez` } }
+		if (donemselAnaliz) {
+			let {grup} = this, {kod, text} = DRapor_Donemsel_Main.donemselTip2Bilgi[donemselAnaliz] ?? {};
+			if (kod && grup[kod]) { throw { isError: true, errorText: `<b>${text} Çapraz Analiz</b> işaretli iken <b class="royalblue">${kod}</b> <span class="firebrick">kolonu eklenemez</span>` } }
 		}
 	}
 	async yukleSonrasiIslemler(e) { await super.yukleSonrasiIslemler(e); const {encUser} = this; this.user = encUser ? await app.xdec(encUser) : encUser }
