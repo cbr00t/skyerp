@@ -19,7 +19,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				SI: { kod: 'STISTGRP', belirtec: 'sistgrup', text: 'Stok İst. Grup' },
 				CT: { kod: 'CRTIP', belirtec: 'tip', text: 'Cari Tip' },
 				UL: { kod: 'CRULKE', belirtec: 'ulke', text: 'Ülke' },
-				IL: { kod: 'IL', belirtec: 'il', text: 'İl' },
+				IL: { kod: 'CRIL', belirtec: 'il', text: 'İl' },
 				AB: { kod: 'CRANABOL', belirtec: 'anabolge', text: 'Ana Bölge' },
 				BL: { kod: 'CRBOL', belirtec: 'bolge', text: 'Bölge' },
 				PL: { kod: 'PLASIYER', belirtec: 'plasiyer', text: 'Plasiyer' },
