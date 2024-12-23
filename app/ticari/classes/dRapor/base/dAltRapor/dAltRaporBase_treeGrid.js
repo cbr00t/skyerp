@@ -190,10 +190,9 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		let {recs} = e; const {tabloYapi} = this, {kaPrefixes, sortAttr, grupVeToplam} = tabloYapi, fixKA = (rec, prefix) => {
 			if (rec == null) { return } const item = grupVeToplam[prefix] ?? grupVeToplam[prefix.toUpperCase()], {kodsuzmu} = item || {};
 			const kod = kodsuzmu ? null : rec[prefix + 'kod'], adi = rec[prefix + 'adi'];
-			if (!(kod === undefined && adi === undefined)) {
-				let value = kod || ''; if (kod) { value = `(${value}) ` } value += adi || '';
-				rec[prefix] = value; delete rec[prefix + 'kod']; delete rec[prefix + 'adi']
-			}
+			if (!(kod === undefined && adi === undefined)) { this.fixKA(rec, prefix) }
+			/*let value = kod || ''; if (kod) { value = `(${value}) ` } value += adi || '';
+			rec[prefix] = value; delete rec[prefix + 'kod']; delete rec[prefix + 'adi']*/
 		};
 		let id = 1; for (const rec of recs) { for (const prefix of kaPrefixes) { fixKA(rec, prefix) } rec.id = id++ }
 		if (sortAttr) { recs.sort((a, b) => { a = a[sortAttr] || 0; b = b[sortAttr] || 0; return a > b ? -1 : a < b ? 1 : 0 }) }
@@ -224,7 +223,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			} e.recs = recs
 		}
 		if (recs && donemselAnaliz) {
-			let yatayBelirtec = tabloYapi.grup[DRapor_Donemsel_Main.donemselTip2Bilgi[donemselAnaliz].kod]?.colDefs?.[0]?.belirtec;
+			let yatayBelirtec = tabloYapi.grup[DRapor_AraSeviye_Main.yatayTip2Bilgi[donemselAnaliz]?.kod]?.colDefs?.[0]?.belirtec;
 			if (yatayBelirtec) {
 				let gtTip2AttrListe = { sabit: [], toplam: [] };
 				for (let colDef of Object.values(belirtec2ColDef).filter(colDef => colDef.belirtec != yatayBelirtec)) {
@@ -233,12 +232,13 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				}
 				/*let orj_toplamAttrSet = asSet(gtTip2AttrListe.toplam);
 				let toplamAttrListe = jqxCols.map(({ datafield }) => datafield).filter(belirtec => orj_toplamAttrSet[belirtec.split('_')[0]]);*/
+				for (let rec of recs) { this.fixKA(rec, yatayBelirtec) }
 				let toplamAttrListe = gtTip2AttrListe.toplam, sevRecs = seviyelendirAttrGruplari({
 					source: recs, attrGruplari: [gtTip2AttrListe.sabit],
 					getter: ({ item }) => new DAltRapor_PanelRec_Donemsel({ yatayBelirtec, toplamAttrListe, ...item })
 				});
-				let _e = { ...e, tumYatayAttrSet: {} }; for (let sev of sevRecs) { sev.donemselDuzenle(_e) }
-				for (let sev of sevRecs) { sev.donemselAttrFix(_e) } let {tumYatayAttrSet} = _e;
+				let tumYatayAttrSet = e.tumYatayAttrSet ?? {}, _e = { ...e, tumYatayAttrSet }; for (let sev of sevRecs) { sev.donemselDuzenle(_e) }
+				for (let sev of sevRecs) { sev.donemselAttrFix(_e) }
 				if (!$.isEmptyObject(tumYatayAttrSet)) {
 					_sumAttrListe.push(...Object.keys(tumYatayAttrSet)/*.filter(x => !x.endsWith('_TOPLAM'))*/);
 					_sumAttrListe = Object.keys(asSet(_sumAttrListe))
@@ -311,22 +311,30 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				if (tip) { (tip2ColDefs[tip] = tip2ColDefs[tip] || []).push(colDef); belirtec2Tip[belirtec] = tip }
 			}
 			let _colDefs = Object.keys(icerik).flatMap(kod => tip2ColDefs[kod]), colDefs = [
-				..._colDefs.filter(colDef => !colDef?.userData?.kod), ..._colDefs.filter(colDef => colDef?.userData?.kod)];
+				..._colDefs.filter(colDef => !colDef?.userData?.kod), ..._colDefs.filter(colDef => colDef?.userData?.kod)
+			].filter(x => !!x);
 			let gtTip2ColDefs = { sabit: [], toplam: [] }; for (const colDef of colDefs) {
 				let {kod} = colDef.userData ?? {}, toplammi = tabloYapi.toplam[kod], selector = toplammi ? 'toplam' : 'sabit';
 				gtTip2ColDefs[selector].push(colDef); if (toplammi && !colDef?.aggregates) { colDef.aggregates = ['sum'] }
 			}
 			if (donemselAnaliz) {
 				window.progressManager?.setProgressMax((window.progressManager?.progressMax || 0) + 5);
-				let {belirtec} = DRapor_Donemsel_Main.donemselTip2Bilgi[donemselAnaliz];
-				let recs = await this.loadServerDataInternal({ attrSet: asSet([DRapor_Donemsel_Main.donemselTip2Bilgi[donemselAnaliz].kod]) });
+				let {belirtec} = DRapor_AraSeviye_Main.yatayTip2Bilgi[donemselAnaliz] ?? {}, tumYatayAttrSet = e.tumYatayAttrSet = {};
+				let recs = await this.loadServerDataInternal({ attrSet: asSet([DRapor_AraSeviye_Main.yatayTip2Bilgi[donemselAnaliz]?.kod]) });
 				window.progressManager?.progressStep(4); let liste = [];
-				for (let rec of recs) { let value = rec[belirtec] ?? rec[`${belirtec}adi`] ?? rec[`${belirtec}kod`]; if (value) { liste.push(value) } } 
+				for (let rec of recs) {
+					let value = rec[belirtec]?.trimEnd?.(); if (value === undefined) {
+						let kod = rec[`${belirtec}kod`]?.trimEnd?.(), aciklama = rec[`${belirtec}adi`]?.trimEnd?.();
+						if (!(kod == null && aciklama == null)) { this.fixKA(rec, belirtec); value = rec[belirtec] }
+					}
+					if (value) { liste.push(value) }
+				} 
 				liste.sort(); liste.unshift('TOPLAM'); colDefs = [...gtTip2ColDefs.sabit];
 				for (let _colDef of gtTip2ColDefs.toplam) {
 					for (let yatayText of liste) {
-						let colDef = _colDef.deepCopy(); colDefs.push(colDef);
-						colDef.belirtec += `_${yatayText}`; colDef.text += `<br/>(<span class="forestgreen">${yatayText}</span>)`
+						let colDef = _colDef.deepCopy(); colDefs.push(colDef); colDef.belirtec += `_${yatayText}`;
+						let colText = yatayText, tokens = colText.split(') '); if (tokens.length > 1) { colText = tokens[1] || colText }
+						colDef.text += `<br/>[ <span class=forestgreen>${colText}</span> ]`; tumYatayAttrSet[colDef.belirtec] = true
 					}
 				}
 			}

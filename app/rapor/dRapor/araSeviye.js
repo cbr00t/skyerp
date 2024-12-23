@@ -3,8 +3,33 @@ class DRapor_AraSeviye extends DGrupluPanelRapor {
 }
 class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	static { window[this.name] = this; this._key2Class[this.name] = this } get tazeleYapilirmi() { return true }
-	static get dvKodListe() { let result = this._dvKodListe; if (result === undefined) { result = this._dvKodListe = ['USD', 'EUR'] } return result }
-	get dvKodListe() { return this.class.dvKodListe }
+	static get dvKodListe() { let result = this._dvKodListe; if (result === undefined) { result = this._dvKodListe = ['USD', 'EUR'] } return result } get dvKodListe() { return this.class.dvKodListe }
+	static get yatayTip2Bilgi() {
+		let result = this._yatayTip2Bilgi; if (result == null) {
+			result = this._yatayTip2Bilgi = {
+				YA: { kod: 'YILAY', belirtec: 'yilay', text: 'Yıl/Ay' },
+				AY: { kod: 'AYADI', belirtec: 'ayadi', text: 'Aylık' },
+				HF: { kod: 'HAFTA', belirtec: 'haftano', text: 'Haftalık' },
+				SG: { kod: 'SUBEGRUP', belirtec: 'subegrup', text: 'Şube Grup' },
+				SB: { kod: 'SUBE', belirtec: 'sube', text: 'Şube' },
+				DB: { kod: 'DB', belirtec: 'db', text: 'Veritabanı' },
+				SM: { kod: 'STOKMARKA', belirtec: 'stokmarka', text: 'Stok Marka' },
+				AG: { kod: 'STANAGRP', belirtec: 'anagrup', text: 'Stok Ana Grup' },
+				TG: { kod: 'STGRP', belirtec: 'grup', text: 'Stok Grup' },
+				SI: { kod: 'STISTGRP', belirtec: 'sistgrup', text: 'Stok İst. Grup' },
+				CT: { kod: 'CRTIP', belirtec: 'tip', text: 'Cari Tip' },
+				UL: { kod: 'CRULKE', belirtec: 'ulke', text: 'Ülke' },
+				IL: { kod: 'IL', belirtec: 'il', text: 'İl' },
+				AB: { kod: 'CRANABOL', belirtec: 'anabolge', text: 'Ana Bölge' },
+				BL: { kod: 'CRBOL', belirtec: 'bolge', text: 'Bölge' },
+				PL: { kod: 'PLASIYER', belirtec: 'plasiyer', text: 'Plasiyer' },
+				DG: { kod: 'DEPOGRUP', belirtec: 'yergrup', text: 'Yer Grup' },
+				DP: { kod: 'DEPO', belirtec: 'yer', text: 'Yer' }
+			}
+		}
+		if (!app.params.dRapor.konsolideCikti) { result = { ...result }; delete result.DB }
+		return result
+	}
 	secimlerDuzenle(e) {
 		super.secimlerDuzenle(e); const {secimler} = e, {grupVeToplam} = this.tabloYapi;
 		const islemYap = (keys, callSelector, args) => {
@@ -57,7 +82,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	loadServerData_queryDuzenle_tekil(e) { e = e ?? {}; this.loadServerData_queryDuzenle(e); this.loadServerData_queryDuzenle_son(e) }
 	loadServerData_queryDuzenle(e) {
-		let alias = e.alias = e.alias ?? 'fis'; const {secimler, raporTanim, tabloYapi} = this, {stm} = e;
+		let alias = e.alias = e.alias ?? 'fis'; const {secimler, raporTanim, tabloYapi} = this, {donemselAnaliz} = raporTanim.kullanim, {stm} = e;
 		let {attrSet: _attrSet} = e, attrSet = e.attrSet = raporTanim._ozelAttrSet = { ..._attrSet };
 		for (const sent of stm.getSentListe()) { sent.sahalar.add(`COUNT(*) kayitsayisi`) }
 		if (secimler) {
@@ -71,6 +96,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			const formul = toplam[key]?.formul; if (!formul) { continue }
 			let {attrListe} = formul; if (attrListe?.length) { $.extend(attrSet, asSet(attrListe)) }
 		}
+		if (donemselAnaliz) { attrSet[DRapor_AraSeviye_Main.yatayTip2Bilgi[donemselAnaliz]?.kod] = true }
 		this.loadServerData_queryDuzenle_ozel?.(e)
 	}
 	loadServerData_queryDuzenle_son(e) {

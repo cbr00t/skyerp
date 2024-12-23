@@ -33,14 +33,7 @@ class DAltRapor_GridGruplu extends DAltRapor_Grid {
 		super.loadServerData(e); const {gridPart} = this; let {gruplamalar} = gridPart;
 		if ($.isEmptyObject(gruplamalar)) { return [] } /*if ($.isEmptyObject(gruplamalar)) { gruplamalar = asSet(this.class.gruplamaKAListe.map(x => x.kod)) } */
 		e.gruplamalar = gruplamalar; let recs = (await this.loadServerDataInternal(e)) || [];
-		const {kaPrefixes} = this.class, fixKA = (rec, prefix) => {
-			if (rec == null) { return } const kod = rec[prefix + 'kod'], adi = rec[prefix + 'adi'];
-			if (kod !== undefined) {
-				rec[prefix] = kod ? `<b>(${kod ?? ''})</b> ${adi ?? ''}` : '';
-				delete rec[prefix + 'kod']; delete rec[prefix + 'adi']
-			}
-		};
-		gridPart._promise_kaFix = (async () => { for (const rec of recs) { for (const prefix of kaPrefixes) { fixKA(rec, prefix) } } })();
+		gridPart._promise_kaFix = (async () => { for (const rec of recs) { for (const prefix of kaPrefixes) { this.fixKA(rec, prefix) } } })();
 		const {sortAttr} = this.class; if (sortAttr) { recs.sort((a, b) => { a = a[sortAttr] || 0; b = b[sortAttr] || 0; return a > b ? -1 : a < b ? 1 : 0 }) }
 		return recs
 	}

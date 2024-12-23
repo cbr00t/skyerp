@@ -3,21 +3,6 @@ class DRapor_Donemsel extends DRapor_AraSeviye {
 }
 class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get donemselTip2Bilgi() {
-		let result = this._donemselTip2Bilgi; if (result == null) {
-			result = this._donemselTip2Bilgi = {
-				YA: { kod: 'YILAY', belirtec: 'yilay', text: 'Yıl/Ay' },
-				AY: { kod: 'AYADI', belirtec: 'ayadi', text: 'Aylık' },
-				HF: { kod: 'HAFTA', belirtec: 'haftano', text: 'Haftalık' },
-				SG: { kod: 'SUBEGRUP', belirtec: 'subegrup', text: 'Şube Grup' },
-				SB: { kod: 'SUBE', belirtec: 'sube', text: 'Şube' },
-				SM: { kod: 'STOKMARKA', belirtec: 'stokmarka', text: 'Stok Marka' },
-				DB: { kod: 'DB', belirtec: 'db', text: 'Veritabanı' }
-			}
-		}
-		if (!app.params.dRapor.konsolideCikti) { result = { ...result }; delete result.DB }
-		return result
-	}
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); const {result} = e; result
 			.addGrup(new TabloYapiItem().setKA('YILAY', 'Yıl-Ay').addColDef(new GridKolon({ belirtec: 'yilay', text: 'Yıl-Ay', genislikCh: 20, filterType: 'checkedlist' })))
@@ -62,10 +47,6 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 		return await super.loadServerDataInternal({ ...e, donemBS })
 	}
 	super_loadServerDataInternal(e) { super.loadServerDataInternal(e) } superSuper_loadServerDataInternal(e) { super.super_loadServerDataInternal(e) }
-	loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); let {kullanim} = this.raporTanim, {stm, attrSet} = e, {sent} = stm, {where: wh} = sent, {donemselAnaliz} = kullanim;
-		if (donemselAnaliz) { attrSet[DRapor_Donemsel_Main.donemselTip2Bilgi[donemselAnaliz].kod] = true }
-	}
 	loadServerData_queryDuzenle_tarih(e) {
 		const {attrSet, stm} = e, alias = e.alias ?? 'fis', tarihSaha = e.tarihSaha ?? 'tarih', tarihClause = alias ? `${alias}.${tarihSaha}` : tarihSaha;
 		for (const sent of stm.getSentListe()) {

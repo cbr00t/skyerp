@@ -10,7 +10,7 @@ class DAltRapor_PanelRec_Donemsel extends DAltRapor_PanelRec {
 			let {_yatayBelirtec: yatayBelirtec, _toplamAttrListe: toplamAttrListe, detaylar} = this, toplamRec;
 			result = {}; for (let rec of detaylar) {
 				if (!toplamRec) {
-					result.TOPLAM = toplamRec = { ...rec };
+					result['TOPLAM'] = toplamRec = { ...rec };
 					for (let key of toplamAttrListe) { toplamRec[key] = 0 }
 				}
 				result[rec[yatayBelirtec]] = rec; for (let key of toplamAttrListe) { if (key != 'TOPLAM') { toplamRec[key] += (rec[key] || 0) } }
@@ -30,7 +30,7 @@ class DAltRapor_PanelRec_Donemsel extends DAltRapor_PanelRec {
 				let attr = `${toplamAttr}_${yatayAttr}`; this[attr] = rec[toplamAttr];
 				tumYatayAttrSet[attr] = true
 			}
-			this[toplamAttr] = yatay2Detay.TOPLAM[toplamAttr] || 0
+			this[toplamAttr] = yatay2Detay['TOPLAM'][toplamAttr] || 0
 		}
 		return this
 	}

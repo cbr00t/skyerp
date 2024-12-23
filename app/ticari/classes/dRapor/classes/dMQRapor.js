@@ -56,7 +56,7 @@ class DMQRapor extends DMQSayacliKA {
 			form.addModelKullan('donemselAnaliz', 'Çapraz').setInst(null).dropDown().noMF().kodsuz().listedenSecilemez()
 				.setSource(e => {
 					let result = [new CKodVeAdi(['', ''])];
-					for (let [kod, {text: aciklama}] of Object.entries(DRapor_Donemsel_Main.donemselTip2Bilgi)) { result.push(new CKodVeAdi({ kod, aciklama })) }
+					for (let [kod, {text: aciklama}] of Object.entries(DRapor_AraSeviye_Main.yatayTip2Bilgi)) { result.push(new CKodVeAdi({ kod, aciklama })) }
 					return result
 				})
 				.setValue(kullanim.donemselAnaliz).degisince(({ value }) => kullanim.donemselAnaliz = value);
@@ -147,7 +147,7 @@ class DMQRapor extends DMQSayacliKA {
 		if (!grupUygunmu) { throw { isError: true, errorText: 'Toplanabilir Sahalar, Gruplama kısmına eklenemez' } }
 		if (!(toplanabilirVarmi && normalIcerikVarmi)) { throw { isError: true, errorText: 'En az birer Toplanabilir ve Normal saha olmalıdır' } }
 		if (donemselAnaliz) {
-			let {grup} = this, {kod, text} = DRapor_Donemsel_Main.donemselTip2Bilgi[donemselAnaliz] ?? {};
+			let {grup} = this, {kod, text} = DRapor_AraSeviye_Main.yatayTip2Bilgi[donemselAnaliz] ?? {};
 			if (kod && grup[kod]) { throw { isError: true, errorText: `<b>${text} Çapraz Analiz</b> işaretli iken <b class="royalblue">${kod}</b> <span class="firebrick">kolonu eklenemez</span>` } }
 		}
 	}
