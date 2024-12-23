@@ -61,6 +61,7 @@
 .makineYonetimi.part > .content #oemBilgileri .miktarVeGSC table tr > th button:hover { color: #a1b9df }
 .makineYonetimi.part > .content #oemBilgileri .miktarVeGSC table tr > td { font-weight: bold; color: royalblue; padding: 8px var(--padding-x) }
 .makineYonetimi.part > .content #oemBilgileri .miktarVeGSC table tr > td > .ek-bilgi { padding-left: 5px }
+.makineYonetimi.part > .content #oemBilgileri .miktarVeGSC table tr .etiket { color: #999 }
 .makineYonetimi.part > .content #oemBilgileri .miktarVeGSC table tr > td.net { font-size: 120%; font-weight: bold; color: forestgreen }
 .makineYonetimi.part > .content #oemBilgileri .gsc .adi { margin-inline-end: 30px }
 .makineYonetimi.part > .content #oemBilgileri .isSayilari tr > td .ek-bilgi { color: #333; margin-left: 5px }

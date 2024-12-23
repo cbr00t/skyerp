@@ -60,8 +60,7 @@ class HatYonetimiPart extends Part {
 		let parent = rfb.addFormWithParent('checkboxes').setParent(header).addCSS('checkboxes').addStyle_wh('max-content')
 				.addStyle(e =>
 					`$elementCSS { position: relative; left: 20px; top: calc(10px - var(--islemTuslari-height)); vertical-align: top; column-gap: 20px; z-index: 1011 !important }
-					 $elementCSS > div { margin-top: 0 !important }  $elementCSS > div:first-child { margin-top: -6px !important }
-					 $elementCSS > div > * { cursor: pointer }`)
+					 $elementCSS > div { margin-top: 0 !important } $elementCSS > div > * { cursor: pointer }`)
 			parent.addCheckBox('otoTazeleFlag', 'Tzl').setAltInst(app).setValue(app.otoTazeleFlag ?? false).degisince(({ builder: fbd }) => this.tazeleBasit(e));
 			parent.addCheckBox('cokluSecimmi', 'Çkl').setAltInst(this).setValue(this.cokluSecimmi ?? false).degisince(({ builder: fbd }) => {
 				this.lastSelection = null; this.divListe.find(`.hat.item > .tezgahlar > .tezgah.item.selected`).removeClass('selected');
@@ -185,12 +184,14 @@ class HatYonetimiPart extends Part {
 			}
 		}
 		if (!basitmi) {
-			MQEkNotlar.loadServerData().then(recs => {
-				const btnTumEkNotlar = islemTuslari?.find('button#tumEkNotlar'); if (btnTumEkNotlar?.length) { btnTumEkNotlar.removeClass('yeni-not') }
-				let maxId = 0; for (const {kaysayac: sayac} of recs) { maxId = Math.max(maxId, sayac) } if (!maxId) { return }
-				const {localData} = app.params; let ekNotLastReadId = asInteger(localData.getData('ekNotLastReadId'));
-				if (ekNotLastReadId < maxId && btnTumEkNotlar?.length) { btnTumEkNotlar.addClass('yeni-not') }
-			})
+			setTimeout(() => {
+				MQEkNotlar.loadServerData().then(recs => {
+					let {islemTuslari} = this, btnTumEkNotlar = islemTuslari?.find('button#tumEkNotlar'); if (btnTumEkNotlar?.length) { btnTumEkNotlar.removeClass('yeni-not') }
+					let maxId = 0; for (const {kaysayac: sayac} of recs) { maxId = Math.max(maxId, sayac) } if (!maxId) { return }
+					const {localData} = app.params; let ekNotLastReadId = asInteger(localData.getData('ekNotLastReadId'));
+					if (ekNotLastReadId < maxId && btnTumEkNotlar?.length) { btnTumEkNotlar.addClass('yeni-not') }
+				})
+			}, 500)
 		}
 		if (promise_tezgah2SinyalSayiRecs && tezgah2Rec) {
 			let _recs = await promise_tezgah2SinyalSayiRecs; for (const {tezgahkod: tezgahKod, bsanal: sanalmi, sayi} of _recs) {
@@ -282,7 +283,7 @@ class HatYonetimiPart extends Part {
 				<div class="ust ust-alt full-width">
 					<div class="flex-row full-width">
 						<div class="sol parent">
-							<div class="sub-item"><button id="tezgah" aria-disabled="true">TEZ</button></div>
+							<div class="sub-item"><button id="tezgah">TEZ</button></div>
 							<div class="sub-item"><button id="personel">PER</button></div>
 						</div>
 						<div class="sag parent">
@@ -336,12 +337,12 @@ class HatYonetimiPart extends Part {
 								<thead><tr>
 									<th class="cevrim">Çevrim</th>
 									<th class="sayma">Sayma</th>
-									<th class="sayma">Sinyal</th>
+									<th class="sinyal">Sinyal</th>
 								</tr></thead>
 								<tbody><tr>
 									<td class="cevrim-parent cevrim"><span class="onceCevrimSayisi"></span> <span class="aktifCevrimSayisi-parent ek-bilgi">+<span class="aktifCevrimSayisi"></span></td>
 									<td class="topSaymaInd-parent sayma"><span class="topSaymaInd ind"></span> <span class="ek-bilgi">/</span> <span class="topSaymaSayisi topSayi"></span></td>
-									<td class="sinyalSayi-parent">
+									<td class="sinyalSayi-parent sinyal">
 										<span class="sinyalSayi-cihaz-parent"><span class="etiket">C:</span><span class="sinyalSayi-cihaz sinyalSayi veri"></span></span>
 										<span class="sinyalSayi-sanal-parent"><span class="etiket">S:</span><span class="sinyalSayi-sanal sinyalSayi veri"></span></span>
 										<span class="sinyalSayi-toplam-parent"><span class="etiket">T:</span><span class="sinyalSayi-toplam sinyalSayi veri"></span></span>
@@ -472,7 +473,7 @@ class HatYonetimiPart extends Part {
 		let {id, evt, hatKod} = e, {currentTarget: target} = evt ?? {};
 		if (!hatKod && target) { let parent = $(target).parents('.grup-islemTuslari'); if (parent.length) { hatKod = e.hatKod = parent.parents('.hat.item').data('id').toString() || null } }
 		switch (id) {
-			case 'tezgahMenu': this.tezgahMenuIstendi(e); break
+			case 'tezgah': case 'tezgahMenu': this.tezgahMenuIstendi(e); break
 			case 'personel': case 'personelSec': this.personelSecIstendi(e); break;
 			case 'makineDurum': this.makineDurumIstendi(e); break;
 			case 'topluX': this.topluXMenuIstendi(e); break;

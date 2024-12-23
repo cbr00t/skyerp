@@ -16,8 +16,7 @@ class MakineYonetimiPart extends Part {
 	activated(e) { super.activated(e); this.tazele(e) }
 	async tazele(e) {
 		try {
-			const {tezgahKod} = this; let recs, lastError;
-			for (let i = 0; i < 3; i++) {
+			let {tezgahKod} = this, recs, lastError; for (let i = 0; i < 3; i++) {
 				try { recs = tezgahKod ? await app.wsTekilTezgahBilgi({ tezgahKod }) : {}; lastError = null; break }
 				catch (ex) { lastError = ex; if (i) { await new $.Deferred(p => setTimeout(p.resolve(), i * 500) ) } }
 			}
@@ -32,7 +31,7 @@ class MakineYonetimiPart extends Part {
 						/*const {isToplamOlasiSureSn, isToplamBrutSureSn, isToplamDuraksamaSureSn} = rec;
 						rec.oee = isToplamOlasiSureSn ? Math.min(Math.round((isToplamBrutSureSn - isToplamDuraksamaSureSn) * 100 / isToplamOlasiSureSn), 100) : 0*/
 						const {oemgerceklesen, oemistenen} = rec; rec.oee = oemistenen ? roundToFra(Math.max(oemgerceklesen * 100 / oemistenen, 0), 2) : 0;
-						isListe.push(rec);
+						isListe.push(rec)
 					}
 					inst.isSaymaInd = (inst.isSaymaInd || 0) + (rec.isSaymaInd || 0); inst.isSaymaSayisi = (inst.isSaymaSayisi || 0) + (rec.isSaymaSayisi || (isID ? 1 : 0));
 					let {durumKod, durumAdi} = rec; if (durumKod != null) {
@@ -40,6 +39,15 @@ class MakineYonetimiPart extends Part {
 						if (inst.durumAdi == null) { inst.durumAdi = durumKod2Aciklama[durumKod] ?? durumKod }
 					}
 				}
+				try {
+					let sent = new MQSent({ from: 'messinyal', where: { degerAta: tezgahKod, saha: 'tezgahkod' }, sahalar: ['bsanal', 'SUM(1) sayi'] });
+					sent.groupByOlustur(); let sinyalRecs = await app.sqlExecSelect(sent), sinyalSayilar = inst.sinyalSayilar = {};
+					if (sinyalRecs?.length) {
+						for (let {tezgahkod: tezgahKod, bsanal: sanalmi, sayi} of sinyalRecs) {
+							let key = sanalmi ? 'sanal' : 'cihaz'; sinyalSayilar[key] = (sinyalSayilar[key] || 0) + (sayi || 0) }
+					}
+				}
+				catch (ex) { console.error(ex) }
 				try { let {isID: isId} = inst, rec = isId ? await app.wsGorevZamanEtuduVeriGetir({ isId }) : null; if (rec?.bzamanetudu) { inst.zamanEtuduVarmi = true } }
 				catch (ex) { console.error(getErrorText(ex)) }
 			}
@@ -79,6 +87,7 @@ class MakineYonetimiPart extends Part {
 			case 'gerceklemeYap': this.gerceklemeYapIstendi(e); break
 			case 'saymaYap': this.saymaYapIstendi(e); break
 			case 'cevrimYap': this.cevrimYapIstendi(e); break
+			case 'sinyalListe': this.sinyalListeIstendi(e); break
 			case 'iptal': this.iptalIstendi(e); break
 			case 'isBitti': this.isBittiIstendi(e); break
 		}
@@ -104,15 +113,19 @@ class MakineYonetimiPart extends Part {
 			}
 		})
 	}
-	gerceklemeYapIstendi(e) { return this.gcsYapIstendi($.extend({}, e, { api: 'wsGerceklemeYap' })) }
-	cevrimYapIstendi(e) { return this.gcsYapIstendi($.extend({}, e, { api: 'wsCevrimArttir' })) }
-	saymaYapIstendi(e) { return this.gcsYapIstendi($.extend({}, e, { api: 'wsKesmeYap' })) }
+	gerceklemeYapIstendi(e) { return this.gcsYapIstendi({ ...e, api: 'wsGerceklemeYap' }) }
+	cevrimYapIstendi(e) { return this.gcsYapIstendi({ ...e, api: 'wsCevrimArttir' }) }
+	saymaYapIstendi(e) { return this.gcsYapIstendi({ ...e, api: 'wsKesmeYap' }) }
+	sinyalListeIstendi(e) {
+		let {tezgahKod} = this.inst; MQSinyal.listeEkraniAc({
+			secimlerDuzenle: ({secimler: sec}) => $.extend(sec.tezgahKod, { birKismimi: true, value: [tezgahKod] }) })
+	}
 	tersKesmeIstendi_begin(e) { this._tersKesme_startTS = now() }
 	tersKesmeIstendi_end(e) { return this.gcsYapIstendi($.extend({}, e, { api: 'wsTersKesmeYap', delayMS: (now - this._tersKesme_startTS).getTime() })); delete this._tersKesme_startTS }
-	gcsYapIstendi(e) { const {tezgahKod} = this.inst, {api} = e; (app[api])({ tezgahKod }).then(() => this.tazeleWithSignal()).catch(ex => { hConfirm(getErrorText(ex)); console.error(ex) }) }
+	gcsYapIstendi(e) { const {tezgahKod} = this.inst, {api} = e; (app[api])({ tezgahKod }).then(() => this.tazeleWithSignal()).catch(ex => { this.tazele(e); hConfirm(getErrorText(ex)); console.error(ex) }) }
 	async isBittiIstendi(e) {
 		let rdlg = await ehConfirm(`Makine için <b class="darkred">İş Bitti</b> yapılacak, devam edilsin mi?`, this.title); if (!rdlg) { return }
-		const {tezgahKod} = this.inst; try { await app.wsIsBittiYap({ tezgahKod }); this.tazeleWithSignal() } catch(ex) { hConfirm(getErrorText(ex)); console.error(ex) }
+		const {tezgahKod} = this.inst; try { await app.wsIsBittiYap({ tezgahKod }); this.tazeleWithSignal() } catch(ex) { this.tazele(e); hConfirm(getErrorText(ex)); console.error(ex) }
 	}
 	getLayoutInternal(e) {
 		const html_oemBilgileri = this.getLayout_tblOEMBilgileri(e); return $(
@@ -124,7 +137,7 @@ class MakineYonetimiPart extends Part {
 	}
 	getLayout_tblOEMBilgileri(e) {
 		e = e ?? {}; const inst = e.rec = this.inst ?? {}, isListe = inst.isListe ?? [], isBilgiHTML = MQHatYonetimi.gridCell_getLayout_isBilgileri(e);
-		const {sinyalKritik, duraksamaKritik, durNedenKod, durumKod, durumAdi, ip, zamanEtuduVarmi, siradakiIsSayi} = inst, {kritikDurNedenKodSet} = app.params.mes;
+		const {sinyalKritik, duraksamaKritik, durNedenKod, durumKod, durumAdi, ip, zamanEtuduVarmi, siradakiIsSayi, sinyalSayilar} = inst, {kritikDurNedenKodSet} = app.params.mes;
 		const kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod ? kritikDurNedenKodSet[durNedenKod] : false, bostami = !durumKod || durumKod == '?' || durumKod == 'KP' || durumKod == 'BK';
 		let topSaymaInd = 0, topSaymaSayisi = 0; for (const is of isListe) { topSaymaInd += (is.isSaymaInd || 0); topSaymaSayisi += (is.isSaymaSayisi || 0) }
 		return (
@@ -175,10 +188,16 @@ class MakineYonetimiPart extends Part {
 								<thead><tr>
 									<th class="cevrim"><button id="cevrimYap">Çevrim</button></th>
 									<th class="sayma"><button id="saymaYap">Sayma</button></th>
+									<th class="sinyal"><button id="sinyalListe">Sinyal</button></th>
 								</tr></thead>
 								<tbody><tr>
 									<td class="cevrim">${toStringWithFra(inst.onceCevrimSayisi || 0)} <span class="ek-bilgi">+${toStringWithFra(inst.aktifCevrimSayisi || 0)}</td>
 									<td class="sayma"><span class="ind">${toStringWithFra(topSaymaInd || 0)}</span> <span class="ek-bilgi">/</span> <span class="topSayi">${toStringWithFra(topSaymaSayisi || 0)}</span></td>
+									<td class="sinyal">
+										${sinyalSayilar?.cihaz ? `<span class="sinyalSayi-cihaz-parent"><span class="etiket">C:</span><span class="sinyalSayi-cihaz sinyalSayi veri">${sinyalSayilar.cihaz}</span></span>` : ''}
+										${sinyalSayilar?.sanal ? `<span class="sinyalSayi-sanal-parent"><span class="etiket">S:</span><span class="sinyalSayi-sanal sinyalSayi veri">${sinyalSayilar.sanal}</span></span>` : ''}
+										${sinyalSayilar?.cihaz && sinyalSayilar?.sanal ? `<span class="sinyalSayi-toplam-parent"><span class="etiket">T:</span><span class="sinyalSayi-toplam sinyalSayi veri">${sinyalSayilar.cihaz + sinyalSayilar.sanal}</span></span>` : ''}
+									</td>
 								</tr></tbody>
 							</table>
 							<table class="isSayilari sub-item">
