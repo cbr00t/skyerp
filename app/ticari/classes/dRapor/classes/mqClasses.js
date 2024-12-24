@@ -175,3 +175,7 @@ class DMQDurNeden extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Duraksama Nedeni' }
 	static get table() { return 'makdurneden' } static get tableAlias() { return 'dned' }
 }
+class DMQIskNeden extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Iskarta Nedeni' }
+	static get table() { return 'opiskartanedeni' } static get tableAlias() { return 'ined' }
+}

@@ -333,6 +333,7 @@ class MQOperGenelParam extends MQTicariParamBase {
 			form.addBool('operasyonIsYonetimi', 'Operasyon İş Yönetimi'); form.addBool('mesVeriToplama', 'MES Veri Toplama'); form.addBool('pdmKodu', 'PDM Kodu');
 			form.addBool('nihaiUrunTeslimAgacVeyaHattaGoredir', 'Nihai Ürün Teslim Ağaç veya Hatta Göredir'); form.addBool('islenebilirMiktarAsilabilir', 'İşlenebilir Miktar Aşılabilir');
 			form.addBool('uretildigiYerdeKalir', 'Üretildiği Yerde Kalır'); form.addBool('tabletSadeceSonOperasyon', 'Sadece Son Operasyon');
+		form = paramci.addFormWithParent(); form.addNumber('iskartaMaxSayi', 'Iskarta Sayısı').addStyle_wh(200);
 		form = paramci.addGrup('HMR').addFormWithParent(); form.addML('_hmr').noRowAttr().setRowCount(8).addStyle_wh(300)
 	}
 	paramHostVarsDuzenle(e) { e = e || {}; super.paramHostVarsDuzenle(e); const {hv} = e, hmr = asSet(this.hmr) || {}; $.extend(hv, { hmr }) }
