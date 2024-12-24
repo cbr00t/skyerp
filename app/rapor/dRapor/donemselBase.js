@@ -47,6 +47,7 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 		return await super.loadServerDataInternal({ ...e, donemBS })
 	}
 	super_loadServerDataInternal(e) { super.loadServerDataInternal(e) } superSuper_loadServerDataInternal(e) { super.super_loadServerDataInternal(e) }
+	donemBagla({ donemBS, tarihSaha, sent }) { if (donemBS) { sent.where.basiSonu(donemBS, tarihSaha) } return this }
 	loadServerData_queryDuzenle_tarih(e) {
 		const {attrSet, stm} = e, alias = e.alias ?? 'fis', tarihSaha = e.tarihSaha ?? 'tarih', tarihClause = alias ? `${alias}.${tarihSaha}` : tarihSaha;
 		for (const sent of stm.getSentListe()) {
@@ -62,5 +63,4 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 		}
 		return this
 	} 
-	donemBagla(e) { const {donemBS, tarihSaha, sent} = e; if (donemBS) { sent.where.basiSonu(donemBS, tarihSaha) } return this }
 }

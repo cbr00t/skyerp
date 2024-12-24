@@ -33,7 +33,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		this.tabloYapiDuzenle_hmr(e).tabloYapiDuzenle_miktar(e).tabloYapiDuzenle_ciro(e);
 	}
 	loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); let {stm, attrSet, trfSipmi} = e; let {sent} = stm, {where: wh} = sent, fisMustSaha = trfSipmi ? 'irsmust' : 'must';
+		super.loadServerData_queryDuzenle(e); let {stm, attrSet, trfSipmi} = e, {sent} = stm, {where: wh} = sent, fisMustSaha = trfSipmi ? 'irsmust' : 'must';
 		$.extend(e, { sent }); this.fisVeHareketBagla(e); this.donemBagla({ ...e, tarihSaha: 'fis.tarih' });
 		wh.fisSilindiEkle(); wh.add(`fis.ozelisaret <> 'X'`);
 		if (attrSet.CRTIP || attrSet.CRBOL || attrSet.CRANABOL || attrSet.CARI ||
@@ -68,13 +68,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		this.loadServerData_queryDuzenle_ek(e); sent.groupByOlustur()
 	}
 	loadServerData_queryDuzenle_ek(e) { }
-	loadServerData_recsDuzenle(e) {
-		super.loadServerData_recsDuzenle(e); let {recs} = e;
-		for (let rec of recs) {
-			// debugger
-		}
-		return recs
-	}
+	loadServerData_recsDuzenle(e) { return super.loadServerData_recsDuzenle(e) /*; let {recs} = e; for (let rec of recs) { } return recs */ }
 	fisVeHareketBagla(e) { }
 	tabloYapiDuzenle_shd(e) { const {shd} = this; if (shd) { this[`tabloYapiDuzenle_${shd}`](e) } return this }
 	loadServerData_queryDuzenle_shd(e) { const {shd} = this; if (shd) { this[`loadServerData_queryDuzenle_${shd}`](e) } return this }

@@ -82,7 +82,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	loadServerData_queryDuzenle_tekil(e) { e = e ?? {}; this.loadServerData_queryDuzenle(e); this.loadServerData_queryDuzenle_son(e) }
 	loadServerData_queryDuzenle(e) {
-		let alias = e.alias = e.alias ?? 'fis'; const {secimler, raporTanim, tabloYapi} = this, {donemselAnaliz} = raporTanim.kullanim, {stm} = e;
+		let alias = e.alias = e.alias ?? 'fis'; const {secimler, raporTanim, tabloYapi} = this, {yatayAnaliz} = raporTanim.kullanim, {stm} = e;
 		let {attrSet: _attrSet} = e, attrSet = e.attrSet = raporTanim._ozelAttrSet = { ..._attrSet };
 		for (const sent of stm.getSentListe()) { sent.sahalar.add(`COUNT(*) kayitsayisi`) }
 		if (secimler) {
@@ -96,7 +96,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			const formul = toplam[key]?.formul; if (!formul) { continue }
 			let {attrListe} = formul; if (attrListe?.length) { $.extend(attrSet, asSet(attrListe)) }
 		}
-		if (donemselAnaliz) { attrSet[DRapor_AraSeviye_Main.yatayTip2Bilgi[donemselAnaliz]?.kod] = true }
+		if (yatayAnaliz) { attrSet[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod] = true }
 		this.loadServerData_queryDuzenle_ozel?.(e)
 	}
 	loadServerData_queryDuzenle_son(e) {

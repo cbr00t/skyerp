@@ -128,13 +128,15 @@ class DAltRapor_TreeGrid extends DAltRapor {
 			};
 			if (tip instanceof GridKolonTip_Number) {
 				const {fra} = tip; colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) =>
-					this.cellsRenderer({ colDef, rowIndex, belirtec, value, rec, html: `<div class="right">${toStringWithFra(value, fra)}</div>` })
+					this.cellsRenderer({ colDef, rowIndex, belirtec, value, rec, html: `<span class="right">${toStringWithFra(value, fra)}</span>` })
 				/*if (!colDef.aggregates &&  tip instanceof GridKolonTip_Decimal) { colDef.aggregates = [(total, value) => asFloat(total) + asFloat(value)] }*/
 			}
 			else if (tip instanceof GridKolonTip_Date) {
-				colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) => this.cellsRenderer({ colDef, rowIndex, belirtec, value, rec, html: dateToString(asDate(value)) }) }
+				colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) =>
+					this.cellsRenderer({ colDef, rowIndex, belirtec, value, rec, html: `<span>${dateToString(asDate(value))}</span>` }) }
 			else {
-				colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) => this.cellsRenderer({ colDef, rowIndex, belirtec, value, rec, html: value }) }
+				colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) =>
+					this.cellsRenderer({ colDef, rowIndex, belirtec, value, rec, html: `<span>${value}</span>` }) }
 			delete colDef.tip; result.push(colDef)
 		}
 		return result
@@ -200,7 +202,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	}
 	loadServerData_recsDuzenle_seviyelendir(e) {
 		super.loadServerData_recsDuzenle_seviyelendir(e); const {gridPart, tabloYapi, raporTanim} = this, {gridWidget} = gridPart;
-		let {grup, icerik} = raporTanim, {kullanim} = raporTanim, {donemselAnaliz} = kullanim;
+		let {grup, icerik} = raporTanim, {kullanim} = raporTanim, {yatayAnaliz} = kullanim;
 		let attrSet = raporTanim._ozelAttrSet ?? raporTanim.attrSet, belirtec2ColDef = [], grupColAttrListe = [], _sumAttrListe = [], _avgAttrListe = [];
 		for (const kod in grup) {
 			const item = tabloYapi.grup[kod]; if (!item) { continue } const {colDefs} = item; if (!colDefs) { continue }
@@ -215,15 +217,15 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			}
 		}
 		const {records: jqxCols} = gridWidget.base.columns, grupTextColAttr = jqxCols?.[0]?.datafield;
-		const formuller = []; for (const key in attrSet) { const item = tabloYapi.toplam[key]; if (item?.formulmu) { formuller.push(item) } }
+		const formuller = []; for (const key in attrSet) { const item = tabloYapi.grupVeToplam[key]; if (item?.formulmu) { formuller.push(item) } }
 		let {recs} = e; if (recs) {
 			let _recs = recs; recs = []; for (let _rec of _recs) {
 				if (!_rec) { continue } let rec = new DAltRapor_PanelRec({ ..._rec }); recs.push(rec);
 				for (const item of formuller) { item.formulEval({ rec }) }
 			} e.recs = recs
 		}
-		if (recs && donemselAnaliz) {
-			let yatayBelirtec = tabloYapi.grup[DRapor_AraSeviye_Main.yatayTip2Bilgi[donemselAnaliz]?.kod]?.colDefs?.[0]?.belirtec;
+		if (recs && yatayAnaliz) {
+			let yatayBelirtec = tabloYapi.grup[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod]?.colDefs?.[0]?.belirtec;
 			if (yatayBelirtec) {
 				let gtTip2AttrListe = { sabit: [], toplam: [] };
 				for (let colDef of Object.values(belirtec2ColDef).filter(colDef => colDef.belirtec != yatayBelirtec)) {
@@ -303,7 +305,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		e = e ?? {}; try {
 			showProgress('Rapor oluşturuluyor...', null, true); await new $.Deferred(p => setTimeout(() => p.resolve(), 50)); window.progressManager?.setProgressMax(20);
 			await this.tazeleOncesi(e); window.progressManager?.progressStep(1);
-			let {gridPart, raporTanim} = this, {degistimi, kullanim} = raporTanim, {donemselAnaliz} = kullanim;
+			let {gridPart, raporTanim} = this, {degistimi, kullanim} = raporTanim, {yatayAnaliz} = kullanim;
 			let {grid, gridWidget} = gridPart, {base} = gridWidget, {defUpdateOnly} = e;
 			const {tabloKolonlari, tabloYapi, ozetBilgi} = this, {secilenVarmi, attrSet, grup, icerik} = raporTanim;
 			const tip2ColDefs = {}, belirtec2Tip = {}; for (const colDef of tabloKolonlari) {
@@ -317,10 +319,10 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				let {kod} = colDef.userData ?? {}, toplammi = tabloYapi.toplam[kod], selector = toplammi ? 'toplam' : 'sabit';
 				gtTip2ColDefs[selector].push(colDef); if (toplammi && !colDef?.aggregates) { colDef.aggregates = ['sum'] }
 			}
-			if (donemselAnaliz) {
+			if (yatayAnaliz) {
 				window.progressManager?.setProgressMax((window.progressManager?.progressMax || 0) + 5);
-				let {belirtec} = DRapor_AraSeviye_Main.yatayTip2Bilgi[donemselAnaliz] ?? {}, tumYatayAttrSet = e.tumYatayAttrSet = {};
-				let recs = await this.loadServerDataInternal({ attrSet: asSet([DRapor_AraSeviye_Main.yatayTip2Bilgi[donemselAnaliz]?.kod]) });
+				let {belirtec} = DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz] ?? {}, tumYatayAttrSet = e.tumYatayAttrSet = {};
+				let recs = await this.loadServerDataInternal({ attrSet: asSet([DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod]) });
 				window.progressManager?.progressStep(4); let liste = [];
 				for (let rec of recs) {
 					let value = rec[belirtec]?.trimEnd?.(); if (value === undefined) {
@@ -343,7 +345,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				belirtecSet[belirtec] = true; colDefs.push(colDef)
 			}
 			let ilkColDef = colDefs[0]; if (tabloYapi.grup[ilkColDef?.userData?.kod]) {
-				let colDef = ilkColDef.deepCopy(); colDefs[0] = colDef; colDef.minWidth = Math.max(colDef.minWidth ?? 0, 450);
+				let colDef = ilkColDef.deepCopy(); colDefs[0] = colDef; colDef.minWidth = Math.max(colDef.minWidth ?? 0, 300);
 				colDef.text = [...(Object.keys(grup).map(kod => `<span class="royalblue">${tabloYapi.grup[kod]?.colDefs[0]?.text || ''}</span>`) || []), colDef.text].join(' + ')
 			}
 			if (!defUpdateOnly) { grid.jqxTreeGrid('clear') } colDefs = this.getColumns(colDefs);

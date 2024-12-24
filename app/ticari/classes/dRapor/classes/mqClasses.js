@@ -154,3 +154,16 @@ class DMQMuhGrup extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Grup' }
 	static get table() { return 'muhgrup' } static get tableAlias() { return 'mhgrp' }
 }
+
+class DMQTezgah extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Tezgah' }
+	static get table() { return 'tekilmakina' } static get tableAlias() { return 'tez' }
+}
+class DMQPersonel extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Personel' }
+	static get table() { return 'personel' } static get tableAlias() { return 'per' }
+}
+class DMQDurNeden extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Duraksama Nedeni' }
+	static get table() { return 'makdurneden' } static get tableAlias() { return 'dned' }
+}

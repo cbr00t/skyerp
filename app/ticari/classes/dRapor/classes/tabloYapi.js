@@ -90,7 +90,7 @@ class TabloYapiItem extends CObject {
 		const {tbWhereClauseDuzenleyici} = this; if (tbWhereClauseDuzenleyici != null) { getFuncValue.call(this, tbWhereClauseDuzenleyici, e) }
 	}
 	formulEval(e) {
-		const colDefs = this.colDefs?.filter(colDef => colDef.userData?.tip == 'toplam'); if (!colDefs?.length) { return this }
+		const {colDefs} = this; if (!colDefs?.length) { return this }
 		const item = this, {rec} = e, {kod} = this.ka; let value = this.formul?.run({ item, kod, ...e }); if (value == null) { return this }
 		for (const {belirtec} of colDefs) { rec[belirtec] = value } return this
 	}

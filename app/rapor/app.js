@@ -5,7 +5,7 @@ class SkyRaporApp extends TicariApp {
 		let result = this._kategoriKod2Adi; if (result == null) {
 			result = {
 				TICARI: '', 'TICARI-STOK': 'Ticari (<b class="royalblue">Stok</b>)', 'TICARI-HIZMET': 'Ticari (<b class="orangered">Hizmet</b>)',
-				FINANS: 'Finans', MES: 'MES'
+				FINANS: 'Finans', URETIM: 'Üretim/MES'
 		};
 			this._kategoriKod2Adi = result
 		}
@@ -35,17 +35,16 @@ class SkyRaporApp extends TicariApp {
 		const {noMenuFlag} = this; if (noMenuFlag) { return new FRMenu() }
 		const {isAdmin} = config.session ?? {}, {kod2Sinif} = DRapor, kategoriKod2MenuItems = {};
 		for (const [mne, sinif] of Object.entries(kod2Sinif)) {
-			if (sinif.dAltRapormu) { continue } const {vioAdim} = sinif, kategoriKod = sinif.kategoriKod ?? '';
-			(kategoriKod2MenuItems[kategoriKod] = kategoriKod2MenuItems[kategoriKod] || [])
-				.push(new FRMenuChoice({
-					mne, vioAdim, text: sinif.aciklama,
-					block: async e => {
-						const item = e?.menuItemElement, menuId = (qs.sameWindow == null ? !!$('body').hasClass('no-wnd') : asBool(qs.sameWindow)) ? null : item?.mneText;
-						if (menuId) { this.openNewWindow({ menuId, qs: { sameWindow: true } }); return }
-						let result = (await sinif.goster(e)) || {}, part = result.part ?? result;
-						if (qs.inNewWindow && part?.kapaninca) { part.kapaninca(e => window.close()) }
-					}
-				}))
+			if (sinif.dAltRapormu || !sinif.uygunmu) { continue }
+			const {vioAdim} = sinif, kategoriKod = sinif.kategoriKod ?? '';
+			(kategoriKod2MenuItems[kategoriKod] = kategoriKod2MenuItems[kategoriKod] || []).push(new FRMenuChoice({
+				mne, vioAdim, text: sinif.aciklama, block: async e => {
+					const item = e?.menuItemElement, menuId = (qs.sameWindow == null ? !!$('body').hasClass('no-wnd') : asBool(qs.sameWindow)) ? null : item?.mneText;
+					if (menuId) { this.openNewWindow({ menuId, qs: { sameWindow: true } }); return }
+					let result = (await sinif.goster(e)) || {}, part = result.part ?? result;
+					if (qs.inNewWindow && part?.kapaninca) { part.kapaninca(e => window.close()) }
+				}
+			}))
 		}
 		let items = [], items_raporlar = [], {kategoriKod2Adi} = this.class;
 		for (const [kategoriKod, _items] of Object.entries(kategoriKod2MenuItems)) {
