@@ -13,13 +13,14 @@ class DAltRapor extends DRapor {
 	}
 	newSecimler(e) {
 		const {secimSinif} = this.class; if (secimSinif == null) { return null }
-		const _e = { ...e, secimler: new secimSinif() }; _e.secimler.beginUpdate(); this.secimlerDuzenle(_e); this.secimlerDuzenleSon(_e);
+		const _e = { ...e, secimler: new secimSinif() }; _e.secimler.beginUpdate();
+		this.secimlerDuzenle(_e); this.secimlerDuzenleSon(_e); this.secimlerDuzenle_ozel?.(e);
 		if (_e.secimler) { _e.secimler.endUpdate() }
 		return _e.secimler
 	}
 	secimlerDuzenle(e) { } secimlerDuzenleSon(e) { } secimlerInitEvents(e) { }
 	loadServerData_wsArgsDuzenle(e) { const {secimler} = this; $.extend(e, { secimler }) }
-	onInit(e) { } onBuildEk(e) { } onAfterRun(e) { } onResize(e) { }
+	onInit(e) { this.onInit_ozel?.(e) } onBuildEk(e) { this.onBuildEk_ozel?.(e) } onAfterRun(e) { this.onAfterRun_ozel?.(e) } onResize(e) { }
 	tazeleDiger(e) { const {id2AltRapor} = this.rapor; for (const altRapor of Object.values(id2AltRapor)) { if (altRapor != this) { altRapor.tazele(e) } } }
 	toggleFullScreen(e) {
 		const {builder} = e, {rootBuilder, parentBuilder, layout, part} = builder, parentLayout = parentBuilder.layout, itemsLayout = rootBuilder.id2Builder.items.layout;

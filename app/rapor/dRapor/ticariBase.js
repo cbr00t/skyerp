@@ -67,7 +67,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		this.loadServerData_queryDuzenle_hmr(e).loadServerData_queryDuzenle_miktar(e).loadServerData_queryDuzenle_ciro(e);
 		this.loadServerData_queryDuzenle_ek(e); sent.groupByOlustur()
 	}
-	loadServerData_queryDuzenle_ek(e) { }
+	loadServerData_queryDuzenle_ek(e) { super.loadServerData_queryDuzenle_ek(e) }
 	loadServerData_recsDuzenle(e) { return super.loadServerData_recsDuzenle(e) /*; let {recs} = e; for (let rec of recs) { } return recs */ }
 	fisVeHareketBagla(e) { }
 	tabloYapiDuzenle_shd(e) { const {shd} = this; if (shd) { this[`tabloYapiDuzenle_${shd}`](e) } return this }
@@ -164,8 +164,12 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		const {result} = e, toplamPrefix = e.toplamPrefix ?? this.class.toplamPrefix, {isAdmin, rol} = config.session ?? {};
 		/*if (isAdmin || !rol?.ozelRolVarmi('XMALYT')) {*/
 		result
-			.addToplam(new TabloYapiItem().setKA('CIRO', `${toplamPrefix}Ciro`)
-				.addColDef(new GridKolon({ belirtec: 'ciro', text: `${toplamPrefix}Ciro`, genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
+			.addToplam(new TabloYapiItem().setKA('BRCIRO', `${toplamPrefix}Brüt Ciro`)
+				.addColDef(new GridKolon({ belirtec: 'brciro', text: `${toplamPrefix}Brüt Ciro`, genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
+			.addToplam(new TabloYapiItem().setKA('ISKBEDEL', `${toplamPrefix}İskonto Bedel`)
+				.addColDef(new GridKolon({ belirtec: 'iskbedel', text: `${toplamPrefix}İskonto Bedel`, genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
+			.addToplam(new TabloYapiItem().setKA('CIRO', `${toplamPrefix}Net Ciro`)
+				.addColDef(new GridKolon({ belirtec: 'ciro', text: `${toplamPrefix}Net Ciro`, genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
 			.addToplam(new TabloYapiItem().setKA('CIROFIYAT', `${toplamPrefix}Ciro Fiyat`)
 				.setFormul(['CIRO', 'MIKTAR'], ({ rec }) => roundToFiyatFra(rec.miktar ? rec.ciro / rec.miktar : 0))
 				.addColDef(new GridKolon({ belirtec: 'cirofiyat', text: `${toplamPrefix}Ciro Fiyat`, genislikCh: 30, filterType: 'numberinput' }).tipDecimal_fiyat()));
@@ -183,10 +187,19 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		for (const {sahalar} of stm.getSentListe()) {
 			for (const key in attrSet) {
 				switch (key) {
+					case 'BRCIRO': sahalar.add('SUM(har.brutbedel) brciro'); break
 					case 'CIRO': sahalar.add('SUM(har.bedel) ciro'); break
+					case 'ISKBEDEL': sahalar.add('SUM(har.brutbedel - har.bedel) iskbedel'); break
 					default:
 						for (const dvKod of this.dvKodListe) {
-							if (key == `CIRO_${dvKod}`) {
+							if (key == `BRCIRO_${dvKod}`) {
+								sahalar.add(
+									`SUM(case` +
+										` when fis.dvkod = '${dvKod}' then har.dvbrutbedel` +
+										` else (case when COALESCE(kur${dvKod}.dovizsatis, 0) = 0 then 0 else ROUND(har.brutbedel / kur${dvKod}.dovizsatis, ${dvBedelFra}) end)` +
+									` end) ciro_${dvKod}`)
+							}
+							else if (key == `CIRO_${dvKod}`) {
 								sahalar.add(
 									`SUM(case` +
 										` when fis.dvkod = '${dvKod}' then har.dvbedel` +

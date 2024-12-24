@@ -23,7 +23,7 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 		if (isAdmin || !rol?.ozelRolVarmi('XMALYT')) {
 			result
 				.addToplam(new TabloYapiItem().setKA('ALIMNETFIYAT', 'Alım Net Fiyat').addColDef(new GridKolon({ belirtec: 'alimnetfiyat', text: 'Alım Net Fiyat', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
-				.addToplam(new TabloYapiItem().setKA('SATISCIRO', 'Satış Ciro').addColDef(new GridKolon({ belirtec: 'satisciro', text: 'Satış Cirosu', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
+				/*.addToplam(new TabloYapiItem().setKA('SATISCIRO', 'Satış Ciro').addColDef(new GridKolon({ belirtec: 'satisciro', text: 'Satış Cirosu', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))*/
 		}
 		this.tabloYapiDuzenle_hmr(e)
 	}
@@ -44,8 +44,8 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 				case 'STOK': sahalar.add('son.stokkod', 'stk.aciklama stokadi'); wh.icerikKisitDuzenle_stok({ ...e, saha: 'son.stokkod' }); break
 				case 'DEPO': sahalar.add('son.yerkod', 'yer.aciklama yeradi'); wh.icerikKisitDuzenle_yer({ ...e, saha: 'son.yerkod' }); break
 				case 'DEPOGRUP': sahalar.add('yer.yergrupkod yergrupkod', 'ygrp.aciklama yergrupadi'); wh.icerikKisitDuzenle_yerGrup({ ...e, saha: 'yer.yergrupkod' }); break
-				case 'ALIMNETFIYAT': sent.sahalar.add('SUM(son.sonmiktar * stk.almnetfiyat) satisciro'); break
-				case 'SATISCIRO': sent.sahalar.add('SUM(son.sonmiktar * stk.satfiyat1) satisciro'); break
+				case 'ALIMNETFIYAT': sent.sahalar.add('SUM(son.sonmiktar * stk.almnetfiyat) alimnetfiyat'); break
+				/*case 'SATISCIRO': sent.sahalar.add('SUM(son.sonmiktar * stk.satfiyat1) satisciro'); break*/
 				case PrefixMiktar: sahalar.add('SUM(son.sonmiktar) miktar'); break
 				default:
 					if (key.startsWith(PrefixMiktar)) {
@@ -57,5 +57,5 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 		}
 		this.loadServerData_queryDuzenle_hmr(e).loadServerData_queryDuzenle_ek(e); sent.groupByOlustur()
 	}
-	loadServerData_queryDuzenle_ek(e) { }
+	loadServerData_queryDuzenle_ek(e) { super.loadServerData_queryDuzenle_ek(e) }
 }

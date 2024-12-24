@@ -99,9 +99,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		if (yatayAnaliz) { attrSet[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod] = true }
 		this.loadServerData_queryDuzenle_ozel?.(e)
 	}
+	loadServerData_queryDuzenle_ek(e) { this.loadServerData_queryDuzenle_ek_ozel?.(e) }
 	loadServerData_queryDuzenle_son(e) {
-		this.loadServerData_queryDuzenle_son_ozel?.(e);
-		let {alias, stm, attrSet} = e, {secimler, tabloYapi} = this;
+		this.loadServerData_queryDuzenle_son_ilk_ozel?.(e); let {alias, stm, attrSet} = e, {secimler, tabloYapi} = this;
 		let dvKodSet = asSet(this.dvKodListe), gecerliDvKodSet = {}, dvKodVarmi = false;
 		for (const key in attrSet) { const dvKod = key.split('_').slice(-1)[0]; if (dvKodSet[dvKod]) { gecerliDvKodSet[dvKod] = dvKodVarmi = true } }
 		for (const sent of stm.getSentListe()) {
@@ -113,8 +113,10 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		let tbWhere = secimler?.getTBWhereClause(e); for (const {where: wh, sahalar} of stm.getSentListe()) { if (tbWhere?.liste?.length) { wh.birlestir(tbWhere) } }
 		/*for (const sent of stm.getSentListe()) { sent.gereksizTablolariSil({ disinda: [alias] }) }*/
+		this.loadServerData_queryDuzenle_son_son_ozel?.(e)
 	}
 	loadServerData_queryDuzenle_tekilSonrasi(e) {
+		this.loadServerData_queryDuzenle_tekilSonrasi_ilk_ozel?.(e);
 		let {ekDBListe} = app.params.dRapor, {stm, attrSet} = e, alias_db = 'db';
 		if (ekDBListe?.length) {
 			let asilUni = stm.sent = stm.sent.asUnionAll();
@@ -129,17 +131,18 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 					}
 					{ let saha = sahalar.liste.find(x => x.alias == alias_db); if (saha) { saha.deger = db.sqlServerDegeri() } }
 				} asilUni.addAll(uni.liste)
-			};
-			stm = e.stm = stm.asToplamStm()
+			}
+			stm = e.stm = stm.asToplamStm(); this.loadServerData_queryDuzenle_tekilSonrasi_son_ozel?.(e);
 		}
 	}
 	loadServerData_queryDuzenle_genelSon(e) {
-		let {stm, attrSet} = e, {orderBy} = stm, {grup} = this.tabloYapi;
+		this.loadServerData_queryDuzenle_genelSon_ilk_ozel?.(e); let {stm, attrSet} = e, {orderBy} = stm, {grup} = this.tabloYapi;
 		for (const kod in attrSet) { let {orderBySaha} = grup[kod] ?? {}; if (orderBySaha) { orderBy.add(orderBySaha) } }
+		this.loadServerData_queryDuzenle_genelSon_son_ozel?.(e)
 	}
 	loadServerData_recsDuzenle(e) { return super.loadServerData_recsDuzenle(e) }
-	async loadServerData_recsDuzenleSon(e) {
-		return await super.loadServerData_recsDuzenleSon(e) /* const {attrSet} = this.raporTanim, {toplam} = this.tabloYapi, avgBelirtec2ColDef = {};
+	loadServerData_recsDuzenleSon(e) {
+		return super.loadServerData_recsDuzenleSon(e) /* const {attrSet} = this.raporTanim, {toplam} = this.tabloYapi, avgBelirtec2ColDef = {};
 		for (const key in attrSet) {
 			if (!toplam[key]) { continue } let avgColDefs = toplam[key]?.colDefs?.filter(colDef => colDef?.aggregates?.includes('avg')); if (!avgColDefs?.length) { continue }
 			for (const colDef of avgColDefs) { avgBelirtec2ColDef[colDef.belirtec] = colDef }

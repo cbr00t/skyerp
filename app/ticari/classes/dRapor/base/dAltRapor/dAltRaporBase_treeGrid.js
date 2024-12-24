@@ -9,8 +9,8 @@ class DAltRapor_TreeGrid extends DAltRapor {
 			.onAfterRun(async e => {
 				const fbd_grid = e.builder, gridPart = this.gridPart = fbd_grid.part = {}, grid = gridPart.grid = fbd_grid.layout;
 				$.extend(gridPart, { tazele: e => this.tazele(e), hizliBulIslemi: e => this.hizliBulIslemi(e) });
-				await this.onGridInit(e); let _e = { ...e, liste: [] }; this.tabloKolonlariDuzenle(_e); const colDefs = this.tabloKolonlari = _e.liste || [];				
-				const columns = noAutoColumns ? [] : colDefs.flatMap(colDef => colDef.jqxColumns), source = [];
+				await this.onGridInit(e); let _e = { ...e, liste: [] }; this.tabloKolonlariDuzenle(_e); this.tabloKolonlariDuzenle_ozel?.(_e);
+				const colDefs = this.tabloKolonlari = _e.liste || [], columns = noAutoColumns ? [] : colDefs.flatMap(colDef => colDef.jqxColumns), source = [];
 				const localization = localizationObj, width = '99.7%', height = 'calc(var(--full) - 10px)', autoRowHeight = true, autoShowLoadElement = true, altRows = true;
 				const filterMode = 'advanced';	/* default | simple | advanced */
 				const showAggregates = true, showSubAggregates = false, columnsHeight = 60, aggregatesHeight = 30, columnsResize = true, columnsReorder = false, sortable = true, filterable = false;
@@ -18,7 +18,8 @@ class DAltRapor_TreeGrid extends DAltRapor {
 					theme, localization, width, height, autoRowHeight, autoShowLoadElement, altRows, filterMode, showAggregates, showSubAggregates,
 					columnsHeight, aggregatesHeight, columnsResize, columnsReorder, sortable, filterable, columns, source
 				};
-				_e = { ...e, args }; this.gridArgsDuzenle(_e); args = _e.args; grid.jqxTreeGrid(args); gridPart.gridWidget = grid.jqxTreeGrid('getInstance');
+				_e = { ...e, args }; this.gridArgsDuzenle(_e); this.gridArgsDuzenle_ozel?.(_e);
+				args = _e.args; grid.jqxTreeGrid(args); gridPart.gridWidget = grid.jqxTreeGrid('getInstance');
 				grid.on('rowExpand', event => this.gridRowExpanded({ ...e, event }));
 				grid.on('rowCollapse', event => this.gridRowCollapsed({ ...e, event }));
 				grid.on('rowClick', event => this.gridSatirTiklandi({ ...e, event }));
@@ -28,7 +29,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 			})
 	}
 	tabloKolonlariDuzenle(e) { } gridArgsDuzenle(e) { }
-	onGridInit(e) { /*const {gridPart} = this*/ } onGridRun(e) { this.tazele(e) }
+	onGridInit(e) { /*const {gridPart} = this*/ } onGridRun(e) { this.onGridRun_ozel?.(e); this.tazele(e) }
 	gridRowExpanded(e) { const {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = true }
 	gridRowCollapsed(e) { const {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = false }
 	gridSatirTiklandi(e) { }
@@ -38,7 +39,8 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	}
 	async tazele(e) {
 		e = e || {}; await super.tazele(e); const {grid} = this.gridPart || {}; if (!grid) { return }
-		const da = await this.getDataAdapter(e); if (da) { grid.jqxTreeGrid('source', da) }
+		let da = this.tazele_ozel?.(e); if (!da) { da = await this.getDataAdapter(e) }
+		if (da) { grid.jqxTreeGrid('source', da) }
 	}
 	super_tazele(e) { super.tazele(e) }
 	hizliBulIslemi(e) { const {gridPart} = this; gridPart.filtreTokens = e.tokens; this.tazele(e) }
@@ -59,7 +61,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	tabloKolonlariDuzenle(e) { }
 	async getDataAdapter(e) {
 		try {
-			const recs = await this.loadServerData(e), tRec = recs[0] || {}, key_items = 'detaylar';		/*key_id = 'id',*/
+			let recs = await (this.loadServerData_ozel?.(e) ?? this.loadServerData(e)), tRec = recs[0] || {}, key_items = 'detaylar';		/*key_id = 'id',*/
 			return new $.jqx.dataAdapter({
 				hierarchy: { root: key_items }, dataType: 'array', localData: recs, /* hierarchy: { keyDataField: { name: key_id }, parentDataField: { name: 'parentId' } }, */
 				dataFields: Object.keys(tRec).map(name => ({ name, type: typeof tRec[name] == 'object' ? 'array' : (typeof tRec[name] || 'string') })),
@@ -99,19 +101,23 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		}
 		return recs
 	}
-	loadServerData_recsDuzenle(e) { } loadServerData_recsDuzenleEk(e) { } loadServerData_recsDuzenleSon(e) { } loadServerData_recsDuzenle_seviyelendir(e) { }
+	loadServerData_recsDuzenle(e) { this.loadServerData_recsDuzenle_ozel?.(e) }
+	loadServerData_recsDuzenleEk(e) { this.loadServerData_recsDuzenleEk_ozel?.(e) }
+	loadServerData_recsDuzenleSon(e) { this.loadServerData_recsDuzenleSon_ozel?.(e) }
+	loadServerData_recsDuzenle_seviyelendir(e) {this.loadServerData_recsDuzenle_seviyelendir_ozel?.(e) }
 	exportExcelIstendi(e) { return this.exportXIstendi({ ...e, type: 'xls', mimeType: 'application/vnd.ms-excel' }) }
 	exportPDFIstendi(e) { return this.exportXIstendi({ ...e, type: 'pdf', mimeType: 'application/pdf' }) }
 	exportHTMLIstendi(e) { return this.exportXIstendi({ ...e, type: 'html', mimeType: 'text/html' }) }
 	exportXIstendi(e) {
 		const {type, mimeType} = e, {gridPart} = this, {grid} = gridPart; showProgress();
 		try {
-			let data = grid.jqxTreeGrid('exportData', type); if (!data) { return }
+			let data = grid.jqxTreeGrid('exportData', type); if (!data) { return this }
 			let url = URL.createObjectURL(new Blob([data], { encoding: wsCharSet, type: `${mimeType}; charset=${wsCharSet}` }));
-			if (type == 'html') { openNewWindow(url) }
-			else { let a = document.createElement('a'); a.href = url; a.download = `SkyRapor.${type}`; a.click() }
+			if (this.exportXIstendi_ozel?.({ ...e, url, data }) == true) { return this }
+			if (type == 'html') { openNewWindow(url) } else { let a = document.createElement('a'); a.href = url; a.download = `SkyRapor.${type}`; a.click() }
 		}
 		finally { setTimeout(() => hideProgress(), 100) }
+		return this
 	}
 	getColumns(colDefs) {
 		if (!colDefs) { return colDefs } colDefs = colDefs.filter(colDef => !!colDef);
@@ -149,7 +155,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	get tabloYapi() {
 		let result = this._tabloYapi;
 		if (result == null) {
-			let _e = { result: new TabloYapi() }; this.tabloYapiDuzenle(_e); this.tabloYapiDuzenle_son(_e); result = _e.result;
+			let _e = { result: new TabloYapi() }; this.tabloYapiDuzenle(_e); this.tabloYapiDuzenle_son(_e);
+			this.tabloYapiDuzenle_ozel?.(_e); result = _e.result;
 			const tipSet = result.tipSet = {}, kaListe = result.kaListe = [];
 			for (const selector of ['grup', 'toplam']) {
 				const tip2Item = result[selector];
@@ -182,8 +189,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			}
 		})
 	}
-	ekCSSDuzenle(e) { }
-	cellsRenderer(e) { return e.html }
+	ekCSSDuzenle(e) { this.ekCSSDuzenle_ozel?.(e) }
+	cellsRenderer(e) { return this.cellsRenderer_ozel?.(e) ?? e.html }
 	async loadServerData(e) {
 		let recs = e.recs = this.raporTanim.secilenVarmi ? await super.loadServerData(e) : [];
 		await this.ozetBilgiRecsOlustur(e); return recs

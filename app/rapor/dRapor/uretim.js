@@ -1,5 +1,5 @@
 class DRapor_Uretim_Gercekleme extends DRapor_Uretim {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return super.uygunmu } static get araSeviyemi() { return false }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false }
 	static get kod() { return 'GERCEKLEME' } static get aciklama() { return 'Gerçekleme Analizi' } static get vioAdim() { return null }
 }
 class DRapor_Uretim_Gercekleme_Main extends DRapor_Uretim_Main {
@@ -26,7 +26,7 @@ class DRapor_Uretim_Gercekleme_Main extends DRapor_Uretim_Main {
 }
 
 class DRapor_Uretim_Duraksama extends DRapor_Uretim {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return super.uygunmu } static get araSeviyemi() { return false }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false }
 	static get kod() { return 'DURAKSAMA' } static get aciklama() { return 'Duraksama Analizi' } static get vioAdim() { return null }
 }
 class DRapor_Uretim_Duraksama_Main extends DRapor_Uretim_Main {
