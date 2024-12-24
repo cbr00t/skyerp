@@ -6,8 +6,8 @@ class DRapor_Uretim_Gercekleme_Main extends DRapor_Uretim_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Uretim_Gercekleme }
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); const {result} = e; result
-			.addToplam(new TabloYapiItem().setKA('MIKTAR', 'Miktar').addColDef(new GridKolon({ belirtec: 'miktar', text: 'Miktar', maxWidth: 130, filterType: 'input' })))
-			.addToplam(new TabloYapiItem().setKA('MIKTAR2', 'Miktar 2').addColDef(new GridKolon({ belirtec: 'miktar2', text: 'Miktar 2', maxWidth: 130, filterType: 'input' })))
+			.addToplam(new TabloYapiItem().setKA('MIKTAR', 'Miktar').addColDef(new GridKolon({ belirtec: 'miktar', text: 'Miktar', maxWidth: 130, filterType: 'input' }).tipDecimal()))
+			.addToplam(new TabloYapiItem().setKA('MIKTAR2', 'Miktar 2').addColDef(new GridKolon({ belirtec: 'miktar2', text: 'Miktar 2', maxWidth: 130, filterType: 'input' }).tipDecimal()))
 	}
 	loadServerData_queryDuzenle_ek(e) {
 		super.loadServerData_queryDuzenle_ek(e); let {stm, attrSet} = e, alias = 'ger';
