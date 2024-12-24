@@ -112,6 +112,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			sent.sahalar.add(`COUNT(*) kayitsayisi`)
 		}
 		let tbWhere = secimler?.getTBWhereClause(e); for (const {where: wh, sahalar} of stm.getSentListe()) { if (tbWhere?.liste?.length) { wh.birlestir(tbWhere) } }
+		for (const sent of stm.getSentListe()) { sent.gereksizTablolariSilDisinda({ disinda: [alias] }) }
 	}
 	loadServerData_queryDuzenle_tekilSonrasi(e) {
 		let {ekDBListe} = app.params.dRapor, {stm, attrSet} = e, alias_db = 'db';

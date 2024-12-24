@@ -155,9 +155,17 @@ class DMQMuhGrup extends DMQKA {
 	static get table() { return 'muhgrup' } static get tableAlias() { return 'mhgrp' }
 }
 
+class DMQHat extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Hat' }
+	static get table() { return 'ismerkezi' } static get tableAlias() { return 'hat' }
+}
 class DMQTezgah extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Tezgah' }
 	static get table() { return 'tekilmakina' } static get tableAlias() { return 'tez' }
+}
+class DMQOperasyon extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Operasyon' }
+	static get table() { return 'operasyon' } static get tableAlias() { return 'op' } static get kodSaha() { return 'opno' }
 }
 class DMQPersonel extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Personel' }
