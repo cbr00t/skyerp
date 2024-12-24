@@ -127,6 +127,12 @@ class MQGercekleme extends MQSayacli {
 							)
 						}
 					}
+					const {paketKod, paketIcAdet} = rec; if (paketKod) {
+						htmlListe.push(
+							`<span class="paket"><span class="etiket">Paket:</span> <span class="veri bold royalblue">${paketKod}</span>` +
+							`${paketIcAdet ? `<span class="etiket ek-bilgi" style="margin-left: 13px">İç Adet:</span> <span class="veri bold forestgreen">${numberToString(paketIcAdet)}</span>` : ''}</span>`
+						)
+					}
 					const {iskartalar} = rec; if (!$.isEmptyObject(iskartalar)) {
 						const subHTMLListe = []; for (const kod in iskartalar) {
 							subHTMLListe.push(

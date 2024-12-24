@@ -1,8 +1,6 @@
 class BarkodParser_Kuralli extends BarkodParser {
-	get formatTipi() { return (this.kural || {}).formattipi }
-	get formatBaslangicmi() { return !this.formatTipi }
-	get formatAyiraclimi() { return this.formatTipi == 'A' }
-
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	get formatTipi() { return this.kural?.formattipi } get formatBaslangicmi() { return !this.formatTipi } get formatAyiraclimi() { return this.formatTipi == 'A' }
 	constructor(e) { e = e || {}; super(e); this.kural = e.kural }
 	static kuralFor(e) {
 		e = e || {}; const basKod = e.basKod || e.kod, barkod = e.barkod; if (!barkod) return null;
@@ -52,11 +50,10 @@ class BarkodParser_Kuralli extends BarkodParser {
 		}));
 		return Promise.all(promises)
 	}
-
 	parseDevam(e) { let result = super.parseDevam(e); return result || false }
 	parcaAl(e) {
-		if (!e.bas || !e.hane) return false
-		let value = e.value || this.barkod; if (value.length < (e.bas + e.hane - 1)) return false
-		value = value.substr(e.bas - 1, e.hane).trim(); e.callback.call(this, value, { value: value }); return true
+		if (!e.bas || !e.hane) { return false }
+		let value = e.value || this.barkod; if (value.length < (e.bas + e.hane - 1)) { return false }
+		value = value.substr(e.bas - 1, e.hane).trim(); e.callback.call(this, value, { value }); return true
 	}
 }

@@ -44,10 +44,8 @@
 .barkodluGercekleme.part #header #hat,
 .barkodluGercekleme.part #header #barkod,
 .barkodluGercekleme.part #header #miktar { --margin-right: 3px; margin-right: var(--margin-right) !important }
-.barkodluGercekleme.part #header #gonder > button,
-.barkodluGercekleme.part #header #iskarta > button,
-.barkodluGercekleme.part #header #kalite > button,
-.barkodluGercekleme.part #header #topluDegistir > button { margin-top: 3px; padding: 0 8px }
+.barkodluGercekleme.part #header #gonder > button, .barkodluGercekleme.part #header #iskarta > button, .barkodluGercekleme.part #header #kalite > button,
+	.barkodluGercekleme.part #header #topluDegistir > button { margin-top: 3px; padding: 0 8px }
 .barkodluGercekleme.part #header #topluSil > button { margin-top: 3px; margin-left: 15px; padding: 0 5px }
 .barkodluGercekleme.part #header #gerceklemeler > button, .barkodluGercekleme.part #header #paletliGiris > button,
 	.barkodluGercekleme.part #header #kalite > button, .barkodluGercekleme.part #header #topluDegistir > button { margin-left: 3px }
@@ -61,19 +59,16 @@
 .barkodluGercekleme.part #header #hat > .veri .jqx-combobox-input { font-size: 110%; font-weight: bold; color: #888; background-color: #eceef6; padding: 0 10px !important }
 .barkodluGercekleme.part #header #hat > .veri .jqx-combobox-input:focus { color: #64f047; background-color: #4a4d59e8; border-bottom: 5px solid royalblue !important }
 .barkodluGercekleme.part #ek-bilgiler-toggle { z-index: 1000 }
-.barkodluGercekleme.part #header #barkod { min-width: 400px }
+.barkodluGercekleme.part #header #barkod { min-width: 550px}
+@media (max-width: 900px) { .barkodluGercekleme.part #header #barkod { min-width: 550px } }
 .barkodluGercekleme.part #header #miktar { width: 100px }
 .barkodluGercekleme.part #header #ekle { width: var(--ekle-button-width); margin-top: 6px; margin-left: var(--ekle-button-margin-left); margin-right: calc(var(--ekle-button-margin-right) / 2) }
-.barkodluGercekleme.part #header #barkod > .veri, .barkodluGercekleme.part #header #miktar > .veri { font-size: 130%; padding: 2px 0 !important; color: lightcyan; background-color: #333333ee }
+.barkodluGercekleme.part #header #barkod > .veri, .barkodluGercekleme.part #header #miktar > .veri { font-size: 90%; padding: 2px 0 !important; color: lightcyan; background-color: #333333ee }
 body.dark-theme .barkodluGercekleme.part #header #barkod > .veri, .barkodluGercekleme.part #header #miktar > .veri { background-color: #111; filter: invert(1) hue-rotate(180deg) !important }
-.barkodluGercekleme.part #header #barkod > .veri:focus,
-.barkodluGercekleme.part #header #miktar > .veri:focus { background-color: #303030ee; border-bottom: 5px solid royalblue }
-.barkodluGercekleme.part #header #barkod > .veri:focus::placeholder,
-.barkodluGercekleme.part #header #miktar > .veri:focus::placeholder { color: #92d4ff }
-.barkodluGercekleme.part #header #barkod.barkod-success > .veri,
-.barkodluGercekleme.part #header #barkod.barkod-success > .veri::placeholder { color: #333 !important; background-color: lightgreen !important }
-.barkodluGercekleme.part #header #barkod.barkod-error > .veri,
-.barkodluGercekleme.part #header #barkod.barkod-error > .veri::placeholder { background-color: firebrick !important }
+.barkodluGercekleme.part #header #barkod > .veri:focus, .barkodluGercekleme.part #header #miktar > .veri:focus { background-color: #303030ee; border-bottom: 5px solid royalblue }
+.barkodluGercekleme.part #header #barkod > .veri:focus::placeholder, .barkodluGercekleme.part #header #miktar > .veri:focus::placeholder { color: #92d4ff }
+.barkodluGercekleme.part #header #barkod.barkod-success > .veri, .barkodluGercekleme.part #header #barkod.barkod-success > .veri::placeholder { color: #333 !important; background-color: lightgreen !important }
+.barkodluGercekleme.part #header #barkod.barkod-error > .veri, .barkodluGercekleme.part #header #barkod.barkod-error > .veri::placeholder { background-color: firebrick !important }
 .barkodluGercekleme.part #header #barkod.barkod-error > .veri { color: whitesmoke !important }
 .barkodluGercekleme.part #header #barkod.barkod-error > .veri::placeholder { color: #eee !important }
 .barkodluGercekleme.part #header #iskarta > button { background: #fdebeb }
@@ -82,9 +77,9 @@ body.dark-theme .barkodluGercekleme.part #header #barkod > .veri, .barkodluGerce
 .barkodluGercekleme.part #header #kalite > button { background: #add4f3  }
 .barkodluGercekleme.part #header #kalite > button.jqx-fill-state-hover { background: #f1f1f1 }
 .barkodluGercekleme.part #header #kalite > button.jqx-fill-state-pressed { background: #b0d7f6; color: #555 }
-.barkodluGercekleme.part #header #gonder { margin-right: 25px }
-.barkodluGercekleme.part #header #gerceklemeler { margin-left: 40px }
-.barkodluGercekleme.part #header #paletliGiris { margin-left: 25px }
+.barkodluGercekleme.part #header #gonder { margin-right: 5px }
+.barkodluGercekleme.part #header #gerceklemeler { margin-left: 25px !important }
+.barkodluGercekleme.part #header #paletliGiris { margin-left: 15px }
 .barkodluGercekleme.part #ek-bilgiler .bs-ayirac { font-weight: bold; color: #bbb; margin-top: 8px; margin-left: 5px }
 .barkodluGercekleme.part #ek-bilgiler #otoGonder { margin-top: 0 }
 .barkodluGercekleme.part #ek-bilgiler #otoGonder .etiket { font-weight: bold; color: blue }

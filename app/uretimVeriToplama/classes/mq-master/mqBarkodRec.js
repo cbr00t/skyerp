@@ -44,8 +44,9 @@ class MQBarkodRec extends MQMasterOrtak {
 			perKod: e.perKod ?? e.perkod ?? this.perKod, perAdi: e.perAdi ?? e.peradi ?? this.perAdi,
 			basTS: inverseCoalesce(e.basTS ?? e.basts, value => asDate(value)) || this.basTS || now(),
 			bitTS: inverseCoalesce(e.bitTS ?? e.bitts, value => asDate(value)) || this.bitTS || now(),
-			paketKod: (e.paketKod ?? e.paketkod ?? this.paketIcAdet) || '', paketIcAdet: coalesce(coalesce(e.paketIcAdet, this.paketIcAdet), null),
-			vardiyaNo: e.vardiyaNo ?? 1, ekOzellikler: e.ekOzellikler ?? this.ekOzellikler ?? {}, iskartalar: e.iskartalar ?? this.iskartalar, kaliteYapi: e.kaliteYapi ?? e.kalite ?? this.kaliteYapi
+			paketKod: (e.paketKod ?? e.paketkod ?? this.paketIcAdet) || '', paketIcAdet: (e.paketIcAdet ?? this.paketIcAdet ?? null),
+			vardiyaNo: e.vardiyaNo ?? 1, ekOzellikler: e.ekOzellikler ?? this.ekOzellikler ?? {},
+			iskartalar: e.iskartalar ?? this.iskartalar, kaliteYapi: e.kaliteYapi ?? e.kalite ?? this.kaliteYapi
 		});
 		let value = e.suAnmi ?? e.suAn ?? e.suan; if (value !== undefined) { this.suAnmi = value }
 		if (this.suAnmi == null && !this.noCheckFlag) { this.suAnmi = !!this.gorevmi }

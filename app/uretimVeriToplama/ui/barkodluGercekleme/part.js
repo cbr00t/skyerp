@@ -345,7 +345,7 @@ class BarkodluGerceklemePart extends Part {
 				belirtec: 'ekBilgi', text: 'Ek Bilgi', minWidth: 40, maxWidth: 500, width: '20%', filterable: false, filterType: 'input', cellClassName: globalCellsClassName,
 				cellBeginEdit: (...args) => this.onCellBeginEdit(...args), cellEndEdit: (...args) => this.onCellEndEdit(...args),
 				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-					const htmlListe = [],  ekOzellikler = rec.ekOzellikler || {};
+					const htmlListe = [], ekOzellikler = rec.ekOzellikler || {};
 					if (!$.isEmptyObject(ekOzellikler)) {
 						let subHTMLListe = []; for (let [key, value] of Object.entries(ekOzellikler)) {
 							if (!value) { continue } if (key?.toLowerCase().endsWith('kod')) { key = key.slice(0, -3) }
@@ -363,6 +363,12 @@ class BarkodluGerceklemePart extends Part {
 								</li>`
 							)
 						}
+					}
+					const {paketKod, paketIcAdet} = rec; if (paketKod) {
+						htmlListe.push(
+							`<span class="paket"><span class="etiket">Paket:</span> <span class="veri bold royalblue">${paketKod}</span>` +
+							`${paketIcAdet ? `<span class="etiket ek-bilgi" style="margin-left: 13px">İç Adet:</span> <span class="veri bold forestgreen">${numberToString(paketIcAdet)}</span>` : ''}</span>`
+						)
 					}
 					const {iskartalar} = rec; if (!$.isEmptyObject(iskartalar)) {
 						const subHTMLListe = []; for (const kod in iskartalar) {
@@ -452,29 +458,24 @@ class BarkodluGerceklemePart extends Part {
 		}*/
 	}
 	getBarkodRec(e) {
-		e = e || {}; let {barkodRec} = this;
-		if (!barkodRec) { barkodRec = this.barkodRec = new MQBarkodRec().suAn().serbest() }
-		const {barkodParser} = e; const barkod = e.barkod || (barkodParser || {}).okunanBarkod;
-		if (barkod != null) barkodRec.barkod = barkod
+		e = e || {}; let {barkodRec} = this; if (!barkodRec) { barkodRec = this.barkodRec = new MQBarkodRec().suAn().serbest() }
+		const {barkodParser} = e; const barkod = e.barkod || barkodParser?.okunanBarkod; if (barkod != null) { barkodRec.barkod = barkod }
 		if (barkodParser) {
-			let {miktar} = barkodParser;
-			if (!miktar) miktar = ((barkodParser.paketIcAdet || 0) * (barkodParser.carpan || 1))
-			if (!miktar) miktar = e.miktar || 1
-			const oemSayac = barkodParser.oemSayac ?? barkodParser.kaysayac, shKod = barkodParser.shKod ?? barkodParser.stokkod;
-			if (oemSayac) barkodRec.oemSayac = asInteger(oemSayac) || null
-			if (shKod) barkodRec.stokKod = shKod
-			const {numerikSahalarSet, anahtarSahalarBasit, ekOzellikSahalar} = barkodRec.class;
-			for (const key of anahtarSahalarBasit) {
-				const value = barkodParser[key];
-				if (value) barkodRec[key] = numerikSahalarSet[key] ? (asInteger(value) || null) : value
-			}
-			const ekOzellikler = barkodRec.ekOzellikler = barkodRec.ekOzellikler || {};
-			for (const key of ekOzellikSahalar) {
-				const value = barkodParser[key];
-				if (value) ekOzellikler[key] = value
-			}
-			barkodRec.miktar = miktar; barkodRec.carpan = barkodParser.carpan
+			let suAnmi = barkodRec?.suAnmi ?? true, serbestmi = barkodRec?.serbestmi ?? true;
+			barkodRec = this.barkodRec = new MQBarkodRec({ ...barkodParser, barkod })
 		}
+		/*if (barkodParser) {
+			let {miktar, paketIcAdet} = barkodParser, carpan = barkodParser.carpan || 1;
+			if (!miktar && paketIcAdet) { miktar = paketIcAdet * carpan } if (!miktar) { miktar = e.miktar || 1 }
+			const oemSayac = barkodParser.oemSayac ?? barkodParser.kaysayac, shKod = barkodParser.shKod ?? barkodParser.stokkod;
+			if (oemSayac) { barkodRec.oemSayac = asInteger(oemSayac) || null }
+			if (shKod) { barkodRec.stokKod = shKod }
+			const {numerikSahalarSet, anahtarSahalarBasit, ekOzellikSahalar} = barkodRec.class;
+			for (const key of anahtarSahalarBasit) { const value = barkodParser[key]; if (value) { barkodRec[key] = numerikSahalarSet[key] ? (asInteger(value) || null) : value } }
+			const ekOzellikler = barkodRec.ekOzellikler = barkodRec.ekOzellikler || {};
+			for (const key of ekOzellikSahalar) { const value = barkodParser[key]; if (value) { ekOzellikler[key] = value } }
+			$.extend(barkodRec, { miktar, carpan, paketIcAdet })
+		}*/
 		return barkodRec
 	}
 	barkod_listedenSecIstendi(e) {

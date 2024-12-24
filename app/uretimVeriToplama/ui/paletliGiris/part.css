@@ -9,9 +9,9 @@
 	background: linear-gradient(90deg, #e2e7e5 15%, white 90%) !important; overflow-y: auto !important
 }
 .paletliGiris.part #header #listedenSec-barkod { width: var(--listedenSec-barkod-width); height: var(--barkod-height); }
-.paletliGiris.part #header #barkodParent { max-width: 600px; min-width: 300px }
+.paletliGiris.part #header #barkodParent { min-width: 300px; max-width: 800px }
 .paletliGiris.part #header #barkodParent > #barkod {
-	font-size: 170%; height: var(--barkod-height) !important; padding: 5px 0 !important; color: lightcyan; background-color: #333333ee; border-radius: 5px }
+	font-size: 130%; height: var(--barkod-height) !important; padding: 5px 0 !important; color: lightcyan; background-color: #333333ee; border-radius: 5px }
 body.dark-theme .paletliGiris.part #header #barkodParent > #barkod { background-color: #111; filter: invert(1) hue-rotate(180deg) }
 .paletliGiris.part #header #barkodParent > #barkod:focus { background-color: #303030ee; border-bottom: 5px solid royalblue }
 .paletliGiris.part #header #barkodParent > #barkod:focus::placeholder { color: #28a1de }
