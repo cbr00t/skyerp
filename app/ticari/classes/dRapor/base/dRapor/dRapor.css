@@ -31,6 +31,7 @@
 #dRapor.part #items > .item .jqx-grid .jqx-grid-cell:not(.jqx-grid-cell-selected).toplam { background-color: #f1fff1 }
 #dRapor.part #items > .item .jqx-grid .jqx-grid-cell.zero > div { color: gray; opacity: .2 }
 #dRapor.part #items > .item .jqx-grid .jqx-grid-cell.negative > div { font-weight: bolder; color: orangered !important }
+body.dark-theme #dRapor.part #items > .item .jqx-grid .jqx-grid-cell > * img { filter: invert(1) hue-rotate(180deg) }
 #dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell:not(.leaf) { font-weight: bold; font-size: 115% }
 #dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell.level-0:not(.leaf) { font-size: 120% }
 #dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid tr:nth-child(even) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-0:not(.leaf) { background-color: #e2e7f1 }

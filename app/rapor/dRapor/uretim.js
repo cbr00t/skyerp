@@ -37,15 +37,22 @@ class DRapor_Uretim_Iskarta_Main extends DRapor_Uretim_Main {
 	}
 	loadServerData_queryDuzenle_ek(e) {
 		super.loadServerData_queryDuzenle_ek(e); let {iskartaMaxSayi} = app.params.operGenel, {stm, attrSet} = e, alias = 'onk';
-		/*let wUni; = new MQUnionAll({ from: '' })*/
+		let wUni = new MQUnionAll(); for (let i = 1; i <= iskartaMaxSayi; i++) {
+			let sent = new MQSent({ from: 'operemri', where: `iskartanedenkod${i} <> ''`, sahalar: ['gersayac', 'nedenkod', `iskartamiktar${i} iskmiktar`] });
+			wUni.add(sent)
+		}
+		stm.with.add(new MQToplu([
+			`onkomut ${new MQClause(['gersayac', 'nedenkod', 'iskmiktar']).parantezli()} AS`,
+			new MQClause([wUni]).parantezli()
+		]));
 		for (let sent of stm.getSentListe()) {
-			let {sahalar, where: wh} = sent; $.extend(e, { sent, alias });
-			if (attrSet.ISKNEDEN) { this.loadServerData_queryDuzenle_gerDetayBagla({ ...e, sent }).loadServerData_queryDuzenle_duraksamaBagla({ ...e, sent }) }
+			let {sahalar, where: wh} = sent; $.extend(e, { sent, alias }); sent.fromAdd('onkomut onk');
+			this.loadServerData_queryDuzenle_gerDetayBagla({ ...e, sent }); wh.add(`ger.kaysayac = onk.gersayac`);
 			this.donemBagla({ ...e, tarihSaha: `${alias}.gertarih` }); for (const key in attrSet) {
 				switch (key) {
 					case 'TEZGAH': sent.fromIliski('tekilmakina tez', 'ger.tezgahkod = tez.kod'); break
-					case 'NEDEN': sent.fromIliski('opiskartanedeni ined', `${alias}.isknedenkod = dned.kod`); wh.add('dned.bkritikmi <> 0'); sahalar.add(`${alias}.durnedenkod nedenkod`, 'dned.aciklama nedenadi'); break
-					case 'MIKTAR': sahalar.add('SUM(ger.iskmiktar) miktar'); break
+					case 'NEDEN': sent.fromIliski('opiskartanedeni ined', 'onk.isknedenkod = ined.kod'); sahalar.add('ined.kod nedenkod', 'ined.aciklama nedenadi'); break
+					case 'MIKTAR': sahalar.add('SUM(onk.iskmiktar) miktar'); break
 				}
 			}
 		}
@@ -73,7 +80,7 @@ class DRapor_Uretim_Duraksama_Main extends DRapor_Uretim_Main {
 			this.donemBagla({ ...e, tarihSaha: `${alias}.duraksamabasts` }); for (const key in attrSet) {
 				switch (key) {
 					case 'TEZGAH': sent.fromIliski('tekilmakina tez', `${alias}.makinakod = tez.kod`); break
-					case 'NEDEN': sent.fromIliski('makdurneden dned', `${alias}.durnedenkod = dned.kod`); wh.add('dned.bkritikmi <> 0'); sahalar.add(`${alias}.durnedenkod nedenkod`, 'dned.aciklama nedenadi'); break
+					case 'NEDEN': sent.fromIliski('makdurneden dned', `${alias}.durnedenkod = dned.kod`); wh.add('dned.bkritikmi <> 0'); sahalar.add('dned.kod nedenkod', 'dned.aciklama nedenadi'); break
 					case 'SURESN': sahalar.add(`SUM(${alias}.dursuresn) suresn`); break; case 'SUREDK': sahalar.add(`SUM(ROUND(${alias}.suresn / 60, 1)) dursuredk`); break
 				}
 			}
