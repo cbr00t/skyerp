@@ -107,7 +107,7 @@ class MQStokGenelParam extends MQTicariParamBase {
 				renk:   { rowAttr: 'hmrRenk', etiket: 'Renk', etiketEditable: true },
 				desen:  { rowAttr: 'hmrDesen', etiket: 'Desen', etiketEditable: true },
 				beden:  { rowAttr: 'hmrBeden', etiket: 'Beden', etiketEditable: true },
-				harDet: { rowAttr: 'hmrHardet', etiket: 'Hareket Detayı', etiketEditable: true },
+				harDet: { rowAttr: 'hmrHarDet', etiket: 'Hareket Detayı', etiketEditable: true },
 				lotNo:  { rowAttr: 'hmrLotNo', etiket: 'Lot No', etiketEditable: true },
 				utsNo:  { rowAttr: 'hmrUtsNo', etiket: 'Uts No', etiketEditable: true },
 				en: { rowAttr: 'hmrEn', etiket: 'En' }, boy: { rowAttr: 'hmrBoy', etiket: 'Boy' },
