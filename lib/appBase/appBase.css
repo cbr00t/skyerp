@@ -99,7 +99,8 @@ jqx-grid .jqx-group-collapse { width: 35px }
 .jqx-grid div[role=row] .jqx-grid-cell-selected { color: unset; background: #0d366333; border: none }
 .jqx-window-modal { background-color: black !important; opacity: .5 !important; filter: blur(10px) !important }
 body.dark-theme .jqx-window-modal { filter: invert(1) hue-rotate(180deg) !important }
-.jqx-window.active .jqx-window-header { color: whitesmoke; background-color: royalblue; margin-top: 0; }
+.jqx-window.active .jqx-window-header { color: #111; background-color: #a8c0ec; margin-top: 0 }
+body.dark-theme .jqx-window-header { color: #111; background-color: #99b1e4; filter: invert(1) hue-rotate(180deg) }
 .jqx-widget-header .jqx-window-close-button-background,
 .jqx-widget-header .jqx-window-collapse-button-background { width: 40px !important; height: 25px !important }
 .jqx-widget-header .jqx-window-close-button-background > div,

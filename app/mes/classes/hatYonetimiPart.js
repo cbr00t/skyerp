@@ -48,6 +48,7 @@ class HatYonetimiPart extends Part {
 		rfb.addIslemTuslari('islemTuslari').setParent(header).addStyle_fullWH().addCSS('islemTuslari')
 			.onAfterRun(({ builder: fbd }) => { const {id, rootPart, input} = fbd; rootPart.islemTuslari = input })
 			.setButonlarIlk([
+				{ id: 'ledDurumListe', text: 'LED', handler: e => this.ledDurumListeIstendi(e) },
 				{ id: 'tezgahMenu', text: 'TEZ', handler: e => this.tezgahMenuIstendi(e) },
 				/*{ id: 'isEmirleri', text: 'EMR', handler: e => this.bekleyenIsEmirleriIstendi(e) },*/
 				{ id: 'topluX', text: 'TPL', handler: e => this.topluXMenuIstendi(e) },
@@ -56,7 +57,7 @@ class HatYonetimiPart extends Part {
 				{ id: 'boyut', text: 'BYT', handler: e => this.boyutlandirIstendi(e) },
 				(secince ? { id: 'tamam', handler: e => this.tamamIstendi(e) } : null),
 				{ id: 'tazele', handler: e => this.tazele(e) }, { id: 'vazgec', handler: e => this.close(e) }
-			].filter(x => !!x)).setEkSagButonlar('tezgahMenu', 'isEmirleri', 'topluX', 'tumEkNotlar', 'ozet', 'boyut', 'tazele');
+			].filter(x => !!x)).setEkSagButonlar('ledDurumListe', 'tezgahMenu', 'isEmirleri', 'topluX', 'tumEkNotlar', 'ozet', 'boyut', 'tazele');
 		let parent = rfb.addFormWithParent('checkboxes').setParent(header).addCSS('checkboxes').addStyle_wh('max-content')
 				.addStyle(e =>
 					`$elementCSS { position: relative; left: 20px; top: calc(10px - var(--islemTuslari-height)); vertical-align: top; column-gap: 20px; z-index: 1011 !important }
@@ -92,6 +93,14 @@ class HatYonetimiPart extends Part {
 			let {_lastTezgahRecs: lastRecs} = this; if (basitmi && !(lastRecs && lastRecs.length == recs.length)) { basitmi = false }
 			if (!basitmi) { this.createLayout(e) } this.updateLayout(e)
 			this._lastTezgahRecs = lastRecs = recs
+			if (!basitmi) {
+				let {divListe} = this; for (let {tezgahKod} of recs) {
+					let elm = divListe.find(`.hat.item > .tezgahlar > .tezgah.item[data-id = ${tezgahKod}]`); if (!elm.length) { continue }
+					elm.attr('data-led', 'progress'); app.wsGetLEDDurum({ tezgahKod })
+						.then(({ result, ledDurum }) => { if (!result || ledDurum == null) { ledDurum = 'error' } elm.attr('data-led', ledDurum) })
+						.catch(ex => elm.attr('data-led', 'error') )
+				}
+			}
 		}
 		catch (ex) { if (!basitmi) { hConfirm(getErrorText(ex)) } throw ex }
 		return this
@@ -211,8 +220,7 @@ class HatYonetimiPart extends Part {
 			itemHat.appendTo(parent)
 		}
 		divListe.children().remove(); parent.appendTo(divListe); this.initLayoutEvents({ divListe });
-		makeScrollable(this.subContent);
-		if (lastSelection?.length) {
+		makeScrollable(this.subContent); if (lastSelection?.length) {
 			const cssClass = 'selected'; divListe.find(`.hat.item > .tezgahlar > .tezgah.item.selected`).removeClass(cssClass);
 			for (const kod of lastSelection) { divListe.find(`.hat.item > .tezgahlar > .tezgah.item:not(.selected)[data-id = "${kod}"]`).addClass(cssClass) }
 		}
@@ -240,7 +248,7 @@ class HatYonetimiPart extends Part {
 				let kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod && durumKod == 'DR' ? kritikDurNedenKodSet[durNedenKod] : false;
 				for (const is of isListe) { topSaymaInd += (is.isSaymaInd || 0); topSaymaSayisi += (is.isSaymaSayisi || 0) }
 				let itemTezgah = itemHat.find(`.tezgah.item[data-id = "${tezgahKod}"]`); if (!itemTezgah.length) { continue }
-				itemTezgah[sinyalKritik ? 'addClass' : 'removeClass']('sinyalKritik'); itemTezgah[duraksamaKritik ? 'addClass' : 'removeClass']('duraksamaKritik');
+				itemTezgah[sinyalKritik ? 'addClass' : 'removeClass']('sinyal-kritik'); itemTezgah[duraksamaKritik && kritikDurNedenmi ? 'addClass' : 'removeClass']('duraksama-kritik');
 				itemTezgah[kritikDurNedenmi ? 'addClass' : 'removeClass']('kritik-durNeden'); setHTMLValues(itemTezgah, rec,
 					'tezgahKod', 'tezgahAdi', 'ip', 'siradakiIsSayi', 'ekBilgi', 'perKod', 'perIsim', 'emirMiktar', 'onceUretMiktar', 'aktifUretMiktar', 'isIskMiktar', 'isNetMiktar',
 					'onceCevrimSayisi', 'aktifCevrimSayisi', 'aktifIsSayi', 'durumAdi', 'durNedenAdi'
@@ -295,6 +303,9 @@ class HatYonetimiPart extends Part {
 								<div class="ip-parent parent">
 									<span class="etiket">IP</span>
 									<span class="ip veri"></span>
+								</div>
+								<div class="ledDurum-parent parent">
+									<div class="ledDurum veri full-wh"></div>
 								</div>
 								<div class="siradakiIsSayi-parent parent">
 									<span class="etiket">+</span>
@@ -429,6 +440,7 @@ class HatYonetimiPart extends Part {
 				$(evt.currentTarget).parents('.tezgah.item').addClass(cssClass); this.tezgahButonTiklandi({ ...e, id: evt.currentTarget.id, evt })
 			})
 		}
+		elms = divListe.find('.hat.item > .tezgahlar > .tezgah.item .ledDurum'); if (elms.length) { elms.on('click', evt => this.ledDurumTiklandi({ ...e, evt })) }
 		return this
 	}
 	async tamamIstendi(e) {
@@ -469,6 +481,7 @@ class HatYonetimiPart extends Part {
 		content = wnd.find('div > .content > .subContent'); rfb.run();
 		wnd.on('close', evt => { $('body').removeClass('bg-modal'); wnd.jqxWindow('destroy'); wnd = null /* updateMQUI()*/ }); $('body').addClass('bg-modal')
 	}
+	ledDurumListeIstendi(e) { MQLEDDurum.listeEkraniAc() }
 	tezgahButonTiklandi(e) {
 		let {id, evt, hatKod} = e, {currentTarget: target} = evt ?? {};
 		if (!hatKod && target) { let parent = $(target).parents('.grup-islemTuslari'); if (parent.length) { hatKod = e.hatKod = parent.parents('.hat.item').data('id').toString() || null } }
@@ -514,6 +527,44 @@ class HatYonetimiPart extends Part {
 			}
 			else { try { await app.wsBaslatDurdur({ tezgahKod }); this.tazeleBasit() } catch (ex) { hConfirm(getErrorText(ex)) } }
 		}
+	}
+	ledDurumTiklandi(e) {
+		let tezgahKod = this.selectedTezgahKodListe?.[0]; if (!tezgahKod) { return } let tezgahRec = this.tezgah2Rec[tezgahKod] ?? {}, {tezgahAdi} = tezgahRec;
+		let title = `LED Değiştir: [(<span class="darkgray">${tezgahKod}</span>) <b class="royalblue">${tezgahAdi}</b>]`;
+		let wRFB = new RootFormBuilder('ledDegistir').addCSS('part').noDestroy().setInst({ tezgahRec });
+		let fbd_content = wRFB.addFormWithParent('content').altAlta().addStyle_fullWH().addStyle(e => `$elementCSS { position: relative; top: 10px; z-index: 100 }`);
+		fbd_content.addForm('ledDurum-parent').yanYana().addStyle_wh(400, 38)
+			.setLayout(({ builder: fbd }) => $(`<div class="${fbd.id} parent full-wh" style="border: 1px solid #aaa; background: transparent; gap: 25px; padding: 15px 30px !important"></div>`))
+			.onBuildEk(({ builder: fbd }) => {
+				let {layout, altInst: inst} = fbd; for (let ledDurum in MQLEDDurum.ledDurum2Color) {
+					let elm = $(`<div class="ledDurum-item item" data-led="${ledDurum}"><div class="ledDurum"></div></div>`);
+					elm.appendTo(layout)
+				}
+				layout.find('.ledDurum').on('click', evt => {
+					let elm = $(evt.currentTarget), item = elm; if ((elm = elm.parents('.ledDurum-item'))?.length) { item = elm }
+					let ledDurum = inst.ledDurum = item.attr('data-led'); if (ledDurum == 'progress') { return }
+					item.parents('.ledDurum-parent').find('.ledDurum-item').removeClass('selected');
+					item.attr('data-led', 'progress'); let {tezgahKod} = inst, _ledDurum = null;
+					(async () => {
+						try {
+							await app.wsSetLEDDurum({ tezgahKod, ledDurum }); let result = await app.wsGetLEDDurum({ tezgahKod });
+							if (!result.result) { return } _ledDurum = result.ledDurum; if (_ledDurum == null) { return }
+							let elm = layout.find(`.ledDurum-item [data-led = "${_ledDurum}"]`); if (elm.length) { elm.addClass('selected') }
+						}
+						catch (ex) { console.error(ex) } finally { item.attr('data-led', _ledDurum ?? ledDurum) }
+					})()
+				})
+			}).onAfterRun(({ builder: fbd }) => {
+				let {layout, altInst: inst} = fbd, {tezgahRec: rec} = inst, {tezgahKod} = rec;
+				app.wsGetLEDDurum({ tezgahKod }).then(result => {
+					if (!result.result) { return } let {ledDurum} = result; if (ledDurum == null) { return }
+					let elm = layout.find(`.ledDurum-item [data-led = "${ledDurum}"]`); if (elm.length) { elm.addClass('selected') }
+				})
+			});
+		let wnd = createJQXWindow({ title, args: { isModal: true, width: 480, height: 140, closeButtonAction: 'close' } });
+		wnd.on('close', evt => { wnd.jqxWindow('destroy'); this.tazeleBasit(); $('body').removeClass('bg-modal') });
+		wnd.prop('id', wRFB.id); wnd.addClass('part'); $('body').addClass('bg-modal');
+		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run()
 	}
 	personelSecIstendi(e) {
 		const {selectedTezgahKodListe: kodListe} = this; return MQPersonel.listeEkraniAc({

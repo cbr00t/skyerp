@@ -51,8 +51,36 @@ body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:hover, body.
 .hatYonetimi.part .content .liste .tezgah.item .sag { width: calc(var(--full) - var(--sol-width)) }
 .hatYonetimi.part .content .liste .tezgah.item .sol button { vertical-align: top; margin-top: -5px !important }
 .hatYonetimi.part .content .liste .tezgah.item .sub-item { position: relative; gap: 10px; min-height: 20px; margin-bottom: 1px }
-.hatYonetimi.part .content .liste .tezgah.item .ip { color: royalblue }
 .hatYonetimi.part .content .liste .tezgah.item:hover { background-color: #4169e115 }
+.hatYonetimi.part .content .liste .tezgah.item .ip { color: royalblue }
+.ledDurum-parent .ledDurum, .ledDurum-parent .ledDurum-item {
+	--led-color: transparent; width: 28px; height: 28px;
+	background: radial-gradient(var(--led-color) 50%, transparent 70%); border: 1px solid #aaaaaa55; border-radius: 100px; opacity: .7; cursor: pointer
+}
+.ledDurum-item, .ledDurum {
+	font-weight: bold; font-size: 120%; text-align: center; align-content: center; position: relative;
+	background-size: contain !important; background-position: center !important; background-repeat: no-repeat !important
+}
+.tezgah.item .ledDurum-parent { margin-top: -3px; margin-bottom: -8px }
+.ledDurum-item { border-radius: 10px }
+.tezgah.item .ledDurum { opacity: .5 } .tezgah.item.selected .ledDurum { opacity: 1 }
+body.dark-theme .ledDurum { filter: invert(1) hue-rotate(180deg) contrast(1) }
+.ledDurum-parent .ledDurum:hover { box-shadow: 0px 0px 10px 3px whitesmoke; opacity: .9 }
+.ledDurum-parent .ledDurum:active, .ledDurum-item.selected .ledDurum { box-shadow: 0px 0px 13px 8px lightcyan; opacity: 1 !important }
+[data-led = error] .ledDurum { background: unset; color: darkred; border: 1px solid #555 }
+[data-led = error] .ledDurum:after { content: 'X' }
+.ledDurum-item[data-led = progress] { pointer-events: none !important }
+[data-led = progress] .ledDurum {
+	border: 1px solid purple; background: unset !important; background-image: url(../../../images/loading.gif) !important; background-size: 22px !important;
+	background-position: center !important; background-repeat: no-repeat !important
+}
+[data-led = KAPALI] .ledDurum { --led-color: lightgray }
+[data-led = KIRMIZI] .ledDurum { --led-color: red }
+[data-led = YESIL] .ledDurum { --led-color: green }
+[data-led = SARI] .ledDurum { --led-color: orange }
+[data-led = MAVI] .ledDurum { --led-color: royalblue }
+[data-led = BEYAZ] .ledDurum { --led-color: whitesmoke }
+[data-led = SIYAH] .ledDurum { --led-color: #333 }
 .hatYonetimi.part .content .liste .tezgah.item.selected { background-color: #4169e133 }
 .hatYonetimi.part .content .liste .item .kod { font-weight: normal !important; color: #888 }
 .hatYonetimi.part .content .liste .item .etiket { font-weight: normal !important; color: #aaa }

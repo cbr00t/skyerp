@@ -49,7 +49,6 @@
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-orange { background-color: orange !important }
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-orangered { background-color: orangered !important }
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-lightorangered { background-color: #ff8254 !important }
-:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-red { background-color: red !important }
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-darkred { background-color: darkred !important }
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-firebrick { background-color: firebrick !important }
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-red { background-color: red !important }

@@ -291,3 +291,48 @@ class MQSinyal extends MQMasterOrtak {
 	keyHostVarsDuzenle(e) { super.keyHostVarsDuzenle(e); const {hv} = e, {tezgahKod: tezgahkod, ts} = this; $.extend(hv, { tezgahkod, ts }) }
 	keySetValues(e) { super.keySetValues(e); const {rec} = e, {tezgahkod: tezgahKod, ts} = rec; $.extend(this, { tezgahKod, ts }) }
 }
+class MQLEDDurum extends MQCogul {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get menuyeAlinmazmi() { return false }
+	static get kodListeTipi() { return 'LEDDURUM' } static get sinifAdi() { return 'LED Durum' } static get silinebilirmi() { return false }
+	static get ledDurum2Color() {
+		let result = this._ledDurum2Color; if (result == null) {
+			result = this._ledDurum2Color = {
+				BEYAZ: 'whitesmoke', SIYAH: 'bg-lightblack', KIRMIZI: 'bg-lightred', YESIL: 'bg-lightgreen',
+				SARI: 'bg-yellow', MAVI: 'bg-royalblue', KAPALI: 'bg-gray'
+			}
+		}
+		return result
+	}
+	static get durumKod2Color() {
+		let result = this._durumKod2Color; if (result == null) {
+			let {ledDurum2Color: c} = this;
+			result = this._durumKod2Color = { '': c.BEYAZ, BK: c.KAPALI, DV: c.YESIL, DR: c.SARI, AT: c.MAVI, MAVI: 'bg-royalblue', BT: c.KIRMIZI }
+		}
+		return result
+	}
+	static ekCSSDuzenle(e) {
+		let {rec, dataField: belirtec, result} = e; switch (belirtec) {
+			case 'durumKod': { let {durumKod} = rec, color = this.durumKod2Color[durumKod]; if (color) { result.push(color) } } break
+			case 'ledDurum': { let {ledDurum} = rec, color = this.ledDurum2Color[ledDurum]; if (color) { result.push(color) } } break
+		}
+	}
+	static orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(...[
+			new GridKolon({ belirtec: 'ip', text: 'IP', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'tezgahKod', text: 'Tezgah', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'tezgahAdi', text: 'Tezgah Adı', genislikCh: 30 }),
+			new GridKolon({ belirtec: 'durumKod', text: 'Durum', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'ledDurum', text: 'LED Durum', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'ts', text: 'LED Gönderim TS', genislikCh: 16 })
+		])
+	}
+	static async loadServerDataDogrudan(e) {
+		e = e ?? {}; let {wsArgs} = e, kod2Bilgi = await app.getTezgahKod2Rec(wsArgs) ?? {}, kod2LEDDurum = await app.wsGetLEDDurumAll() ?? {}, recs = [];
+		for (let [kod, ledBilgi] of Object.entries(kod2LEDDurum)) {
+			let _rec = kod2Bilgi[kod]; if (!(_rec && ledBilgi?.result)) { continue }
+			let {result, ledDurum, timestamp: ts} = ledBilgi;
+			let rec = { ..._rec, result, ledDurum, ts }; recs.push(rec)
+		}
+		return recs
+	}
+}

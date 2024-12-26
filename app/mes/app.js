@@ -1,5 +1,5 @@
 class MESApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'HATYONETIMI-ESKI' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'HATYONETIMI-YENI' }
 	get configParamSinif() { return MQYerelParamConfig_MES } get yerelParamSinif() { return MQYerelParam } get isLoginRequired() { return false }
 	get defaultWSPath() { return `ws/skyMES` } get useCloseAll() { return true }
 	get sqlExecWSPath() { return `${this.defaultWSPath}/hatIzleme` } get otoTazeleYapilirmi() { return !!(this.otoTazeleFlag && !this.otoTazeleDisabledFlag && this.tazele_timeout) }
@@ -44,7 +44,7 @@ class MESApp extends App {
 			new FRMenuChoice({ mne: HatYonetimiPart.kodListeTipi, text: HatYonetimiPart.sinifAdi, block: e => new HatYonetimiPart().run() })
 		];
 		/*if (config.dev) {*/
-		items.push(...[MQSinyal].map(cls =>
+		items.push(...[MQSinyal, MQLEDDurum].map(cls =>
 			new FRMenuChoice({ mne: cls.kodListeTipi || cls.classKey, text: cls.sinifAdi, block: e => cls.listeEkraniAc(e) })))
 		/*}*/
 		return new FRMenu({ items })
@@ -58,6 +58,22 @@ class MESApp extends App {
 		});
 		if (tezgahKodListe) { sent.where.inDizi(tezgahKodListe, 'tez.kod') } if (hatKodListe) { sent.where.inDizi(hatKodListe, 'tez.ismrkkod') }
 		const result = {}; let recs = await app.sqlExecSelect(sent); for (const rec of recs) { result[rec.kod] = rec }
+		return result
+	}
+	async getTezgahKod2Rec(e) {
+		let result = {}, recs = await this.wsTezgahBilgileri(e); if (!recs) { return null }
+		for (let _rec of recs) {
+			let {ip} = _rec, tezgahKod = _rec.tezgahKod ?? _rec.tezgahkod ?? _rec.id, tezgahAdi = _rec.tezgahAdi ?? _rec.tezgahadi ?? _rec.aciklama;
+			let durumKod = _rec.durumKod ?? _rec.durum ?? _rec.durum, rec = { ip, tezgahKod, tezgahAdi, durumKod }; result[tezgahKod] = rec
+		}
+		return result
+	}
+	async getTezgahIP2Rec(e) {
+		let result = {}, recs = await this.wsTezgahBilgileri(e); if (!recs) { return null }
+		for (let _rec of recs) {
+			let {ip} = _rec, tezgahKod = _rec.tezgahKod ?? _rec.tezgahkod ?? _rec.id, tezgahAdi = _rec.tezgahAdi ?? _rec.tezgahadi ?? _rec.aciklama;
+			let durumKod = _rec.durumKod ?? _rec.durum ?? _rec.durum, rec = { ip, tezgahKod, tezgahAdi, durumKod }; result[ip] = rec
+		}
 		return result
 	}
 	tazele_startTimer(e) {
