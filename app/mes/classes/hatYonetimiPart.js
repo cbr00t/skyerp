@@ -56,7 +56,7 @@ class HatYonetimiPart extends Part {
 				{ id: 'ozet', text: 'ÖZET', handler: e => this.ozetBilgiGoster(e) },
 				{ id: 'boyut', text: 'BYT', handler: e => this.boyutlandirIstendi(e) },
 				(secince ? { id: 'tamam', handler: e => this.tamamIstendi(e) } : null),
-				{ id: 'tazele', handler: e => this.tazele(e) }, { id: 'vazgec', handler: e => this.close(e) }
+				{ id: 'tazele', handler: e => this.tazele({ ...e, action: 'button' }) }, { id: 'vazgec', handler: e => this.close(e) }
 			].filter(x => !!x)).setEkSagButonlar('ledDurumListe', 'tezgahMenu', 'isEmirleri', 'topluX', 'tumEkNotlar', 'ozet', 'boyut', 'tazele');
 		let parent = rfb.addFormWithParent('checkboxes').setParent(header).addCSS('checkboxes').addStyle_wh('max-content')
 				.addStyle(e =>
@@ -82,7 +82,7 @@ class HatYonetimiPart extends Part {
 	tazeleWithSignal() { app.signalChange(); return this }
 	onSignalChange(e) { this.tazeleBasit(e); return this }
 	async tazele(e) {
-		e = e ?? {}; let basitmi = e.basit ?? e.basitmi;
+		e = e ?? {}; let basitmi = e.basit ?? e.basitmi, {action} = e, butonmu = action == 'button', waitMS = 500, waitArtis = 50;
 		try {
 			let recs = this.tezgahRecs = await this.loadServerData(e); if (!recs) { return this }
 			let hat2Sev = this.hat2Sev = {}, tezgah2Rec = this.tezgah2Rec = {}; for (const rec of recs) {
@@ -93,12 +93,14 @@ class HatYonetimiPart extends Part {
 			let {_lastTezgahRecs: lastRecs} = this; if (basitmi && !(lastRecs && lastRecs.length == recs.length)) { basitmi = false }
 			if (!basitmi) { this.createLayout(e) } this.updateLayout(e)
 			this._lastTezgahRecs = lastRecs = recs
-			if (!basitmi) {
+			if (butonmu) {
 				let {divListe} = this; for (let {tezgahKod} of recs) {
 					let elm = divListe.find(`.hat.item > .tezgahlar > .tezgah.item[data-id = ${tezgahKod}]`); if (!elm.length) { continue }
-					elm.attr('data-led', 'progress'); app.wsGetLEDDurum({ tezgahKod })
-						.then(({ result, ledDurum }) => { if (!result || ledDurum == null) { ledDurum = 'error' } elm.attr('data-led', ledDurum) })
-						.catch(ex => elm.attr('data-led', 'error') )
+					elm.attr('data-led', 'progress'); setTimeout(tezgahKod => {
+						app.wsGetLEDDurum({ tezgahKod })
+							.then(({ result, ledDurum }) => { if (!result || ledDurum == null) { ledDurum = 'error' } elm.attr('data-led', ledDurum) })
+							.catch(ex => elm.attr('data-led', 'error') )
+					}, waitMS, tezgahKod); waitMS += waitArtis
 				}
 			}
 		}
@@ -544,14 +546,16 @@ class HatYonetimiPart extends Part {
 					let elm = $(evt.currentTarget), item = elm; if ((elm = elm.parents('.ledDurum-item'))?.length) { item = elm }
 					let ledDurum = inst.ledDurum = item.attr('data-led'); if (ledDurum == 'progress') { return }
 					item.parents('.ledDurum-parent').find('.ledDurum-item').removeClass('selected');
-					item.attr('data-led', 'progress'); let {tezgahKod} = inst, _ledDurum = null;
+					item.attr('data-led', 'progress'); let {tezgahKod} = inst.tezgahRec, _ledDurum = null;
+					let elmTezgah = this.divListe.find(`.hat.item > .tezgahlar > .tezgah.item[data-id = ${tezgahKod}]`);
 					(async () => {
 						try {
-							await app.wsSetLEDDurum({ tezgahKod, ledDurum }); let result = await app.wsGetLEDDurum({ tezgahKod });
+							await app.wsSetLEDDurum({ tezgahKod, ledDurum }); let result = await app.wsGetLEDDurum({ tezgahKod }); /*let result = { result: true, ledDurum };*/
 							if (!result.result) { return } _ledDurum = result.ledDurum; if (_ledDurum == null) { return }
-							let elm = layout.find(`.ledDurum-item [data-led = "${_ledDurum}"]`); if (elm.length) { elm.addClass('selected') }
+							if (item?.length) { item.addClass('selected') }
+							if (elmTezgah.length) { elmTezgah.attr('data-led', ledDurum) }
 						}
-						catch (ex) { console.error(ex) } finally { item.attr('data-led', _ledDurum ?? ledDurum) }
+						catch (ex) { console.error(ex) } finally { item.attr('data-led', _ledDurum ?? ledDurum); if (elmTezgah.length) { elmTezgah.attr('data-led', 'error') } }
 					})()
 				})
 			}).onAfterRun(({ builder: fbd }) => {

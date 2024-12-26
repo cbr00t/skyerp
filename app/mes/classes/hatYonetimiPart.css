@@ -74,12 +74,13 @@ body.dark-theme .ledDurum { filter: invert(1) hue-rotate(180deg) contrast(1) }
 	border: 1px solid purple; background: unset !important; background-image: url(../../../images/loading.gif) !important; background-size: 22px !important;
 	background-position: center !important; background-repeat: no-repeat !important
 }
-[data-led = KAPALI] .ledDurum { --led-color: lightgray }
+[data-led = KAPALI] .ledDurum { background: unset; color: #555; border: 1px solid #888 }
+[data-led = KAPALI] .ledDurum:after { content: '-' }
 [data-led = KIRMIZI] .ledDurum { --led-color: red }
 [data-led = YESIL] .ledDurum { --led-color: green }
 [data-led = SARI] .ledDurum { --led-color: orange }
 [data-led = MAVI] .ledDurum { --led-color: royalblue }
-[data-led = BEYAZ] .ledDurum { --led-color: whitesmoke }
+[data-led = BEYAZ] .ledDurum { --led-color: white }
 [data-led = SIYAH] .ledDurum { --led-color: #333 }
 .hatYonetimi.part .content .liste .tezgah.item.selected { background-color: #4169e133 }
 .hatYonetimi.part .content .liste .item .kod { font-weight: normal !important; color: #888 }
