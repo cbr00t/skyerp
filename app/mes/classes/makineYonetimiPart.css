@@ -29,6 +29,9 @@
 .makineYonetimi.part > .content #oemBilgileri .hat .kod { color: whitesmoke !important }
 .makineYonetimi.part > .content #oemBilgileri .hat .adi { color: black !important }
 .makineYonetimi.part > .content #oemBilgileri .tezgah .ip { font-weight: bold; font-size: 90%; color: mediumpurple; min-width: 70px; margin-left: 20px }
+.makineYonetimi.part > .content #oemBilgileri .ledDurum-parent { }
+.makineYonetimi.part > .content #oemBilgileri .ledDurum-parent .ledDurum { position: absolute; top: -13px; right: 110px; cursor: unset !important }
+.makineYonetimi.part > .content #oemBilgileri .ledDurum-parent .ledDurum:hover { box-shadow: unset !important }
 .makineYonetimi.part > .content .zamanEtuduText { float: right; font-weight: bold; font-size: 100%; color: forestgreen; top: 0; right: 1px; padding: 5px; border: 3px solid limegreen }
 .makineYonetimi.part > .content #oemBilgileri .siradakiIsSayi { font-size: 95%; color: #333; text-align: right; width: 100px !important; padding-right: 20px !important }
 .makineYonetimi.part > .content #oemBilgileri .siradakiIsSayi .veri { font-weight: bold; color: orangered !important }

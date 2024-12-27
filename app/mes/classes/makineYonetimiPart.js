@@ -13,8 +13,9 @@ class MakineYonetimiPart extends Part {
 		this.tazele(e)
 	}
 	destroyPart(e) { super.destroyPart(e) }
-	activated(e) { super.activated(e); this.tazele(e) }
+	activated(e) { super.activated(e); this.tazeleBasit(e) }
 	async tazele(e) {
+		e = e ?? {}; let basitmi = e.basit ?? e.basitmi;
 		try {
 			let {tezgahKod} = this, recs, lastError; for (let i = 0; i < 3; i++) {
 				try { recs = tezgahKod ? await app.wsTekilTezgahBilgi({ tezgahKod }) : {}; lastError = null; break }
@@ -48,6 +49,14 @@ class MakineYonetimiPart extends Part {
 					}
 				}
 				catch (ex) { console.error(ex) }
+				if (!basitmi) {
+					setTimeout(() => {
+						let {subContent} = this; if (!subContent.length) { return } let elm = subContent.find('.ledDurum-parent'); if (!elm?.length) { return }
+						elm.attr('data-led', 'progress'); app.wsGetLEDDurum({ tezgahKod })
+							.then(({ result, ledDurum }) => { if (!result || ledDurum == null) { ledDurum = 'error' } elm.attr('data-led', ledDurum) })
+							.catch(ex => elm.attr('data-led', 'error') )
+					}, 500)
+				}
 				try { let {isID: isId} = inst, rec = isId ? await app.wsGorevZamanEtuduVeriGetir({ isId }) : null; if (rec?.bzamanetudu) { inst.zamanEtuduVarmi = true } }
 				catch (ex) { console.error(getErrorText(ex)) }
 			}
@@ -57,8 +66,9 @@ class MakineYonetimiPart extends Part {
 		catch (ex) { hConfirm(getErrorText(ex)); throw ex }
 		return this
 	}
+	tazeleBasit(e) { return this.tazele({ ...e, basit: true }) }
 	tazeleWithSignal() { app.signalChange(); return this }
-	onSignalChange(e) { this.tazele(e); return this }
+	onSignalChange(e) { this.tazeleBasit(e); return this }
 	updateTitle(e) {
 		const {sinifAdi} = this.class, {inst} = this; let tezgahText; if (inst) {
 			const {tezgahKod, tezgahAdi} = inst; if (tezgahKod) {
@@ -122,10 +132,10 @@ class MakineYonetimiPart extends Part {
 	}
 	tersKesmeIstendi_begin(e) { this._tersKesme_startTS = now() }
 	tersKesmeIstendi_end(e) { return this.gcsYapIstendi($.extend({}, e, { api: 'wsTersKesmeYap', delayMS: (now - this._tersKesme_startTS).getTime() })); delete this._tersKesme_startTS }
-	gcsYapIstendi(e) { const {tezgahKod} = this.inst, {api} = e; (app[api])({ tezgahKod }).then(() => this.tazeleWithSignal()).catch(ex => { this.tazele(e); hConfirm(getErrorText(ex)); console.error(ex) }) }
+	gcsYapIstendi(e) { const {tezgahKod} = this.inst, {api} = e; (app[api])({ tezgahKod }).then(() => this.tazeleWithSignal()).catch(ex => { this.tazeleBasit(e); hConfirm(getErrorText(ex)); console.error(ex) }) }
 	async isBittiIstendi(e) {
 		let rdlg = await ehConfirm(`Makine için <b class="darkred">İş Bitti</b> yapılacak, devam edilsin mi?`, this.title); if (!rdlg) { return }
-		const {tezgahKod} = this.inst; try { await app.wsIsBittiYap({ tezgahKod }); this.tazeleWithSignal() } catch(ex) { this.tazele(e); hConfirm(getErrorText(ex)); console.error(ex) }
+		const {tezgahKod} = this.inst; try { await app.wsIsBittiYap({ tezgahKod }); this.tazeleWithSignal() } catch(ex) { this.tazeleBasit(e); hConfirm(getErrorText(ex)); console.error(ex) }
 	}
 	getLayoutInternal(e) {
 		const html_oemBilgileri = this.getLayout_tblOEMBilgileri(e); return $(
@@ -155,6 +165,7 @@ class MakineYonetimiPart extends Part {
 						${zamanEtuduVarmi ? `<div class="zamanEtuduVarmi-parent parent"><span class="zamanEtuduText veri">Zmn.</span></div>` : ''}
 						<span class="kod">${inst.tezgahKod || ''}</span> <span class="adi">${inst.tezgahAdi || ''}</span>
 						${ip ? `<span class="ip">(${ip ||''})</span>` : ''}
+						<div class="ledDurum-parent parent"><div class="ledDurum veri full-wh"></div></div>
 					</td>
 					<td class="siradakiIsSayi item">${siradakiIsSayi ? `<span>+ </span><span class="veri">${siradakiIsSayi}</span>` : ''}</td>
 				</tr>

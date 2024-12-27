@@ -533,7 +533,7 @@ class HatYonetimiPart extends Part {
 	ledDurumTiklandi(e) {
 		let tezgahKod = this.selectedTezgahKodListe?.[0]; if (!tezgahKod) { return } let tezgahRec = this.tezgah2Rec[tezgahKod] ?? {}, {tezgahAdi} = tezgahRec;
 		let title = `LED Değiştir: [(<span class="darkgray">${tezgahKod}</span>) <b class="royalblue">${tezgahAdi}</b>]`;
-		let wRFB = new RootFormBuilder('ledDegistir').addCSS('part').noDestroy().setInst({ tezgahRec });
+		let wRFB = new RootFormBuilder({ id: 'ledDegistir' }).addCSS('part').noDestroy().setInst({ tezgahRec });
 		let fbd_content = wRFB.addFormWithParent('content').altAlta().addStyle_fullWH().addStyle(e => `$elementCSS { position: relative; top: 10px; z-index: 100 }`);
 		fbd_content.addForm('ledDurum-parent').yanYana().addStyle_wh(400, 38)
 			.setLayout(({ builder: fbd }) => $(`<div class="${fbd.id} parent full-wh" style="border: 1px solid #aaa; background: transparent; gap: 25px; padding: 15px 30px !important"></div>`))
@@ -565,7 +565,7 @@ class HatYonetimiPart extends Part {
 					let elm = layout.find(`.ledDurum-item [data-led = "${ledDurum}"]`); if (elm.length) { elm.addClass('selected') }
 				})
 			});
-		let wnd = createJQXWindow({ title, args: { isModal: true, width: 480, height: 140, closeButtonAction: 'close' } });
+		let wnd = createJQXWindow({ title, args: { isModal: true, width: 478, height: 138, closeButtonAction: 'close' } });
 		wnd.on('close', evt => { wnd.jqxWindow('destroy'); this.tazeleBasit(); $('body').removeClass('bg-modal') });
 		wnd.prop('id', wRFB.id); wnd.addClass('part'); $('body').addClass('bg-modal');
 		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run()

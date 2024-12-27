@@ -53,7 +53,7 @@ body.dark-theme .hatYonetimi.part .content .liste .hat.item > .grup:hover, body.
 .hatYonetimi.part .content .liste .tezgah.item .sub-item { position: relative; gap: 10px; min-height: 20px; margin-bottom: 1px }
 .hatYonetimi.part .content .liste .tezgah.item:hover { background-color: #4169e115 }
 .hatYonetimi.part .content .liste .tezgah.item .ip { color: royalblue }
-.ledDurum-parent .ledDurum, .ledDurum-parent .ledDurum-item {
+.ledDurum-parent .ledDurum, .ledDurum-item {
 	--led-color: transparent; width: 28px; height: 28px;
 	background: radial-gradient(var(--led-color) 50%, transparent 70%); border: 1px solid #aaaaaa55; border-radius: 100px; opacity: .7; cursor: pointer
 }
@@ -173,3 +173,4 @@ body.dark-theme .ekBilgi.jqx-window { filter: invert(1) hue-rotate(180deg) }
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .durum { } .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .on > * { color: lightgreen }
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .durum { } .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .pasif > * { color: orange }
 .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .durum { } .ozetBilgi.jqx-window .subContent .ozetBilgi-container li .off > * { color: indianred }
+#ledDegistir.jqx-window .jqx-window-content { overflow-y: hidden !important }
