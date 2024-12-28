@@ -105,7 +105,7 @@ class MESApp extends App {
 	wsGerceklemeYap(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/gerceklemeYap', args: e }) }) }
 	wsCevrimArttir(e) { return this.wsFnIslemi($.extend({}, e, { id: 'primary' })) }
 	wsKesmeYap(e) { return this.wsFnIslemi($.extend({}, e, { id: 'secondary' })) }
-	wsTersKesmeYap(e) { return this.wsFnIslemi($.extend({}, e, { id: 'tersKesme' })) }
+	wsTersKesmeYap(e) { e = e ?? {}; let {delayMS} = e; return this.wsFnIslemi($.extend({}, e, { id: 'f9', delayMS })) }
 	wsKartNo(e) { return this.wsFnIslemi($.extend({}, e, { id: 'kart' })) }
 	wsIptal(e) { return this.wsFnIslemi($.extend({}, e, { id: 'iptal' })) }
 	wsFnIslemi(e) { return ajaxPost({ url: this.getWSUrl({ api: 'makineDurum/fnIslemi', args: e }) }) }
