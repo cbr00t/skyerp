@@ -29,7 +29,7 @@ class MESApp extends App {
 		e = e || {}; super(e);
 		$.extend(this, {
 			otoTazeleFlag: ((e.otoTazele ?? e.otoTazeleFlag ?? qs.otoTazele) && !(e.disableRefresh ?? e.disableRefreshFlag ?? asBool(qs.disableRefresh))) ?? null,
-			tazeleKontrolSn: asFloat(e.tazeleKontrolSn ?? qs.tazeleKontrolSn ?? e.kontrolSn ?? qs.kontrolSn ?? 60)
+			tazeleKontrolSn: asFloat(e.tazeleKontrolSn ?? qs.tazeleKontrolSn ?? e.kontrolSn ?? qs.kontrolSn ?? 8)
 		})
 	}
 	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e) }

@@ -82,7 +82,7 @@ class HatYonetimiPart extends Part {
 	tazeleWithSignal() { app.signalChange(); return this }
 	onSignalChange(e) { this.tazeleBasit(e); return this }
 	async tazele(e) {
-		e = e ?? {}; let basitmi = e.basit ?? e.basitmi, {action} = e, butonmu = action == 'button', waitMS = 500, waitArtis = 50;
+		e = e ?? {}; let basitmi = e.basit ?? e.basitmi, {action} = e, butonmu = action == 'button', waitMS = 500;
 		try {
 			let recs = this.tezgahRecs = await this.loadServerData(e); if (!recs) { return this }
 			let hat2Sev = this.hat2Sev = {}, tezgah2Rec = this.tezgah2Rec = {}; for (const rec of recs) {
@@ -92,16 +92,23 @@ class HatYonetimiPart extends Part {
 			}
 			let {_lastTezgahRecs: lastRecs} = this; if (basitmi && !(lastRecs && lastRecs.length == recs.length)) { basitmi = false }
 			if (!basitmi) { this.createLayout(e) } this.updateLayout(e)
-			this._lastTezgahRecs = lastRecs = recs
-			if (butonmu) {
-				let {divListe} = this; for (let {tezgahKod} of recs) {
-					let elm = divListe.find(`.hat.item > .tezgahlar > .tezgah.item[data-id = ${tezgahKod}]`); if (!elm.length) { continue }
-					elm.attr('data-led', 'progress'); setTimeout(tezgahKod => {
-						app.wsGetLEDDurum({ tezgahKod })
-							.then(({ result, ledDurum }) => { if (!result || ledDurum == null) { ledDurum = 'error' } elm.attr('data-led', ledDurum) })
-							.catch(ex => elm.attr('data-led', 'error') )
-					}, waitMS, tezgahKod); waitMS += waitArtis
-				}
+			this._lastTezgahRecs = lastRecs = recs; if (butonmu) {
+				setTimeout(async () => {
+					let {divListe} = this, promises = []; for (let {tezgahKod} of recs) {
+						let elm = divListe.find(`.hat.item > .tezgahlar > .tezgah.item[data-id = ${tezgahKod}]`); if (!elm.length) { continue }
+						elm.attr('data-led', 'progress'); promises.push(new $.Deferred(async p => {
+							try {
+								let {result, ledDurum} = await app.wsGetLEDDurum({ tezgahKod }); if (!result || ledDurum == null) { throw { isError: true, rc: 'invalidData' } }
+								elm.attr('data-led', ledDurum); p.resolve(result)
+							}
+							catch (ex) { elm.attr('data-led', 'error'); p.resolve(ex) }
+						}));
+						if (promises.length >= 4) {
+							try { await Promise.all(promises) } catch (ex) { }
+							finally { promises = []; await new $.Deferred(p => setTimeout(() => p.resolve(), 20)) }
+						}
+					}
+				}, waitMS)
 			}
 		}
 		catch (ex) { if (!basitmi) { hConfirm(getErrorText(ex)) } throw ex }
