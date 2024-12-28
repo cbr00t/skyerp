@@ -21,7 +21,7 @@ class MakineYonetimiPart extends Part {
 				try { recs = tezgahKod ? await app.wsTekilTezgahBilgi({ tezgahKod }) : {}; lastError = null; break }
 				catch (ex) { lastError = ex; if (i) { await new $.Deferred(p => setTimeout(p.resolve(), i * 500) ) } }
 			}
-			if (lastError) { throw lastError }
+			if (lastError) { if (basitmi) { console.error(lastError) } else { throw lastError } } app.sonSyncTS = now();
 			this.ekNotlarYapi = await app.wsEkNotlar({ tip: 'TZ', kod: tezgahKod || '' });
 			let inst; if (recs?.length) {
 				const {durumKod2Aciklama} = app, donusum = { hatID: 'hatKod', hatAciklama: 'hatAdi', id: 'tezgahKod', aciklama: 'tezgahAdi' };
@@ -53,9 +53,9 @@ class MakineYonetimiPart extends Part {
 					setTimeout(() => {
 						let {subContent} = this; if (!subContent.length) { return } let elm = subContent.find('.ledDurum-parent'); if (!elm?.length) { return }
 						elm.attr('data-led', 'progress'); app.wsGetLEDDurum({ tezgahKod })
-							.then(({ result, ledDurum }) => { if (!result || ledDurum == null) { ledDurum = 'error' } elm.attr('data-led', ledDurum) })
-							.catch(ex => elm.attr('data-led', 'error') )
-					}, 500)
+							.then(({ result, ledDurum }) => { if (!result || ledDurum == null) { ledDurum = 'error' } elm.attr('data-led', ledDurum); this.sonLEDDurum = ledDurum })
+							.catch(ex => { let ledDurum = 'error'; elm.attr('data-led', ledDurum); this.sonLEDDurum = ledDurum })
+					}, 200)
 				}
 				try { let {isID: isId} = inst, rec = isId ? await app.wsGorevZamanEtuduVeriGetir({ isId }) : null; if (rec?.bzamanetudu) { inst.zamanEtuduVarmi = true } }
 				catch (ex) { console.error(getErrorText(ex)) }
@@ -146,7 +146,7 @@ class MakineYonetimiPart extends Part {
 		)
 	}
 	getLayout_tblOEMBilgileri(e) {
-		e = e ?? {}; const inst = e.rec = this.inst ?? {}, isListe = inst.isListe ?? [], isBilgiHTML = MQHatYonetimi.gridCell_getLayout_isBilgileri(e);
+		e = e ?? {}; const inst = e.rec = this.inst ?? {}, isListe = inst.isListe ?? [], {sonLEDDurum} = this, isBilgiHTML = MQHatYonetimi.gridCell_getLayout_isBilgileri(e);
 		const {sinyalKritik, duraksamaKritik, durNedenKod, durumKod, durumAdi, ip, zamanEtuduVarmi, siradakiIsSayi, sinyalSayilar} = inst, {kritikDurNedenKodSet} = app.params.mes;
 		const kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod ? kritikDurNedenKodSet[durNedenKod] : false, bostami = !durumKod || durumKod == '?' || durumKod == 'KP' || durumKod == 'BK';
 		let topSaymaInd = 0, topSaymaSayisi = 0; for (const is of isListe) { topSaymaInd += (is.isSaymaInd || 0); topSaymaSayisi += (is.isSaymaSayisi || 0) }
@@ -165,7 +165,7 @@ class MakineYonetimiPart extends Part {
 						${zamanEtuduVarmi ? `<div class="zamanEtuduVarmi-parent parent"><span class="zamanEtuduText veri">Zmn.</span></div>` : ''}
 						<span class="kod">${inst.tezgahKod || ''}</span> <span class="adi">${inst.tezgahAdi || ''}</span>
 						${ip ? `<span class="ip">(${ip ||''})</span>` : ''}
-						<div class="ledDurum-parent parent"><div class="ledDurum veri full-wh"></div></div>
+						<div class="ledDurum-parent parent"${sonLEDDurum == null ? '' : ` data-led="${sonLEDDurum}"`}><div class="ledDurum veri full-wh"></div></div>
 					</td>
 					<td class="siradakiIsSayi item">${siradakiIsSayi ? `<span>+ </span><span class="veri">${siradakiIsSayi}</span>` : ''}</td>
 				</tr>

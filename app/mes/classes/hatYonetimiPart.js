@@ -109,11 +109,10 @@ class HatYonetimiPart extends Part {
 	}
 	async loadServerData(e) {
 		let recs, lastError; for (let i = 0; i < 3; i++) {
-			try { recs = await this.loadServerData_internal(e); lastError = null; break }
+			try { recs = await this.loadServerData_internal(e); lastError = null; app.sonSyncTS = now(); break }
 			catch (ex) { lastError = ex; if (i) { await new $.Deferred(p => setTimeout(() => p.resolve(), i * 500) ) } }
 		}
-		if (lastError) { throw lastError }
-		return recs || []
+		if (lastError) { throw lastError } return recs || []
 	}
 	async loadServerData_internal(e) {
 		e = e ?? {}; let basitmi = e.basit ?? e.basitmi, {islemTuslari, excludeTezgahKod, filtreTokens} = this;
@@ -207,7 +206,7 @@ class HatYonetimiPart extends Part {
 		if (promise_tezgah2SinyalSayiRecs && tezgah2Rec) {
 			let _recs = await promise_tezgah2SinyalSayiRecs; for (const {tezgahkod: tezgahKod, bsanal: sanalmi, sayi} of _recs) {
 				let rec = tezgah2Rec[tezgahKod]; if (!rec) { continue }
-				let key = sanalmi ? 'sanal' : 'cihaz', sinyalSayilar = rec.sinyalSayilar = {};
+				let key = sanalmi ? 'sanal' : 'cihaz', sinyalSayilar = rec.sinyalSayilar = rec.sinyalSayilar ?? {};
 				sinyalSayilar[key] = (sinyalSayilar[key] || 0) + (sayi || 0)
 			}
 		}
@@ -298,6 +297,9 @@ class HatYonetimiPart extends Part {
 						</div>
 						<div class="sag parent">
 							<div class="tezgah-parent sub-item parent flex-row">
+								<div class="ledDurum-parent parent">
+									<div class="ledDurum veri full-wh"></div>
+								</div>
 								<div class="ka">
 									(<span class="tezgahKod kod veri"></span>)
 									<span class="tezgahAdi aciklama veri"></span>
@@ -306,16 +308,12 @@ class HatYonetimiPart extends Part {
 									<span class="etiket">IP</span>
 									<span class="ip veri"></span>
 								</div>
-								<div class="ledDurum-parent parent">
-									<div class="ledDurum veri full-wh"></div>
-								</div>
 								<div class="siradakiIsSayi-parent parent">
 									<span class="etiket">+</span>
 									<span class="siradakiIsSayi veri"></span>
 								</div>
 								<div class="ekBilgi-parent parent">
-									<button class="sil etiket"></button>
-									<span class="ekBilgi veri"></span>
+									<button id="ekBilgiSil" class="ekBilgi veri"></button>
 								</div>
 								<div class="zamanEtuduVarmi-parent parent">
 									<span class="zamanEtuduText veri">Zmn.</span>
@@ -498,7 +496,7 @@ class HatYonetimiPart extends Part {
 			case 'notEkle': this.ekNotEkleIstendi(e); break;
 			case 'dokumanYukle': this.dokumanYukleIstendi(e); break;
 			case 'dokumanSil': this.dokumanSilIstendi(e); break;
-			case 'ekBilgiSil': this.ekBilgiSilItendi(e); break;
+			case 'ekBilgi': case 'ekBilgiSil': this.ekBilgiSilItendi(e); break;
 			default: eConfirm(` <b>${$(evt.currentTarget).parents('.tezgah.item').find('.tezgahAdi').text()}</b> tezgahına ait <b>${id}</b> id'li butona tıklandı`)
 		}
 	}
@@ -552,22 +550,22 @@ class HatYonetimiPart extends Part {
 						try {
 							await app.wsSetLEDDurum({ tezgahKod, ledDurum }); let result = await app.wsGetLEDDurum({ tezgahKod }); /*let result = { result: true, ledDurum };*/
 							if (!result.result) { return } _ledDurum = result.ledDurum; if (_ledDurum == null) { return }
-							if (item?.length) { item.addClass('selected') }
-							if (elmTezgah.length) { elmTezgah.attr('data-led', ledDurum) }
+							if (item?.length) { item.addClass('selected') } if (elmTezgah.length) { elmTezgah.attr('data-led', _ledDurum) }
 						}
-						catch (ex) { console.error(ex) } finally { item.attr('data-led', _ledDurum ?? ledDurum); if (elmTezgah.length) { elmTezgah.attr('data-led', 'error') } }
+						catch (ex) { console.error(ex) }
+						finally { item.attr('data-led', _ledDurum ?? ledDurum); if (elmTezgah.length) { elmTezgah.attr('data-led', _ledDurum ?? ledDurum) } }
 					})()
 				})
 			}).onAfterRun(({ builder: fbd }) => {
 				let {layout, altInst: inst} = fbd, {tezgahRec: rec} = inst, {tezgahKod} = rec;
 				app.wsGetLEDDurum({ tezgahKod }).then(result => {
 					if (!result.result) { return } let {ledDurum} = result; if (ledDurum == null) { return }
-					let elm = layout.find(`.ledDurum-item [data-led = "${ledDurum}"]`); if (elm.length) { elm.addClass('selected') }
+					let elm = layout.find(`.ledDurum-item[data-led = '${ledDurum}']`); if (elm.length) { elm.addClass('selected') }
 				})
 			});
-		let wnd = createJQXWindow({ title, args: { isModal: true, width: 478, height: 138, closeButtonAction: 'close' } });
-		wnd.on('close', evt => { wnd.jqxWindow('destroy'); this.tazeleBasit(); $('body').removeClass('bg-modal') });
-		wnd.prop('id', wRFB.id); wnd.addClass('part'); $('body').addClass('bg-modal');
+		let wnd = createJQXWindow({ title, args: { isModal: false, width: 478, height: 138, closeButtonAction: 'close' } });
+		wnd.on('close', evt => { wnd.jqxWindow('destroy'); this.tazeleBasit(); setTimeout(() => $('body').removeClass('bg-modal'), 100) });
+		wnd.prop('id', wRFB.id); wnd.addClass('part'); /* setTimeout(() => $('body').addClass('bg-modal'), 100); */
 		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run()
 	}
 	personelSecIstendi(e) {

@@ -160,7 +160,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 	static orjBaslikListesi_hizliBulIslemi(e) { app.otoTazeleTempDisable(e); super.orjBaslikListesi_hizliBulIslemi(e) }
 	static async loadServerData(e) {
 		let recs, lastError; for (let i = 0; i < 3; i++) {
-			try { recs = await this.loadServerData_internal(e); lastError = null; break }
+			try { recs = await this.loadServerData_internal(e); lastError = null; app.sonSyncTS = now(); break }
 			catch (ex) { lastError = ex; if (i) { await new $.Deferred(p => setTimeout(() => p.resolve(), i * 500) ) } }
 		}
 		if (lastError) { if (e.action == 'otoTazele') { console.error(ex) } else { throw lastError } }
