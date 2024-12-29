@@ -3,6 +3,7 @@ class MQDemirbas extends MQKA {
 	static get shTip() { return 'D' } static get hizmetmi() { return true } static get sinifAdi() { return 'Demirbaş' }
 	static get table() { return 'demmst' } static get tableAlias() { return 'dem' } static get kodListeTipi() { return 'DEM' }
 	static get demirbasmi() { return true } static get ayrimTipKod() { return 'DMAYR' } static get ayrimTableAlias() { return 'dayr' } static get ozelSahaTipKod() { return 'DEM' }
+	static get vergiBelirtecler() { return ['kdv'] }
 	
 	constructor(e) {
 		e = e || {};

@@ -579,7 +579,7 @@ class GridPart extends Part {
 		if ($.isEmptyObject(expandedIndexes)) { this.kolonFiltreDegisti(e) }
 		if (bindingCompleteBlock) { await getFuncValue.call(this, bindingCompleteBlock, e) }
 		const kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridVeriYuklendi) { await kontrolcu.gridVeriYuklendi(e) }
-		this.gridGroupsChanged(e); if ($.isEmptyObject(expandedIndexes)) { for (const delayMS of [500]) { setTimeout(() => this.onResize(), delayMS) } }
+		this.gridGroupsChanged(e); if ($.isEmptyObject(expandedIndexes)) { for (const delayMS of [100]) { setTimeout(() => this.onResize(), delayMS) } }
 	}
 	gridVeriDegisti(e) {
 		const {gridVeriDegistiBlock} = this; if (gridVeriDegistiBlock) { getFuncValue.call(this, gridVeriDegistiBlock, e) }

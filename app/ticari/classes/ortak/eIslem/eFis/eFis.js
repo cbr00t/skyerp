@@ -318,8 +318,7 @@ class EFis extends EFisBase {
 		const promises = []; for (const eFis of liste) { promises.push(eFis.ekBilgileriBelirle(e)) } await Promise.all(promises)
 	}
 	async ekBilgileriBelirle(e) {
-		e = $.extend({}, e);
-		const mustKod = this.gondericiMustKod; if (!mustKod) return this
+		e = { ...e }; const mustKod = this.gondericiMustKod; if (!mustKod) { return this }
 		const shRefFis = this.shRefFis = await MQEIslSHRef.getMustKod2Inst({ mustKod });
 		if (shRefFis) { e.eFis = this; for (const det of this.detaylar) { await det.ekBilgileriBelirle(e) } }
 		

@@ -24,7 +24,7 @@ class GridKolonGrup_KA extends GridKolonGrup {
 		if (e.kodAttr && e.kaKolonu) { e.kaKolonu.belirtec = e.kodAttr }
 		$.extend(this, {
 			/* kodAttr: e.kodAttr || `${this.belirtec}Kod`, */ adiAttr: e.adiAttr || `${this.belirtec}Adi`,
-			isDropDown: e.dropDown ?? e.isDropDown ?? e.dropDownFlag, autoBindFlag: e.autoBind ?? e.autoBindFlag
+			isDropDown: e.dropDown ?? e.isDropDown ?? e.dropDownFlag, autoBindFlag: e.autoBind ?? e.autoBindFlag ?? true
 		});
 		this.kaKolonu = this.parseColDef(e.kaKolonu); return true
 	}

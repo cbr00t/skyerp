@@ -238,26 +238,14 @@ class MQVergi extends MQKA {
 		return this.getIstisnaDict($.extend({}, e, { kismi: false }))
 	}
 	static getTumIstisnaDict(e) {
-		e = e || {};
-		const {globals} = this;
-		const key = `tumIstisnaDict-${toJSONStr(e)}`;
-		let result = globals[key];
-		if (result == null) {
-			result = $.extend({}, this.getKismiIstisnaDict(e), this.getTamIstisnaDict(e));
-			globals[key] = result
-		}
+		e = e || {}; let {globals} = this, key  = `tumIstisnaDict-${toJSONStr(e)}`, result = globals[key];
+		if (result == null) { result = { ...this.getKismiIstisnaDict(e), ...this.getTamIstisnaDict(e) }; globals[key] = result }
 		const tamIstisnalar = (app.sabitTanimlar.vergi || {}).tamistisnalar || [];
 		if (!$.isEmptyObject(tamIstisnalar)) {
 			const uygunOlmayanKodSet = asSet(['301', '302', '303']);
-			for (const rec of tamIstisnalar) {
-				const {kod} = rec;
-				if (uygunOlmayanKodSet[kod]) {
-					result[kod] = new CKodAdiVeMadde({
-						kod: kod,
-						aciklama: rec.ad || rec.adi || rec.aciklama || '',
-						madde: rec.madde
-					})
-				}
+			for (const {kod} of tamIstisnalar) {
+				if (!uygunOlmayanKodSet[kod]) { continue }
+				result[kod] = new CKodAdiVeMadde({ kod, aciklama: rec.ad || rec.adi || rec.aciklama || '', madde: rec.madde })
 			}
 		}
 		return result

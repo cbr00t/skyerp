@@ -195,7 +195,7 @@ class MQSubWhereClause extends MQClause {
 		if (item == {}.toString()) { debugger } return super.addIcinUygunmu(item) && !this.liste.includes(item)
 	}
 	birlestirDict(e) {
-		e = e || {}; const dict = e.dict || e.birlestirDict || e.liste || e,  aliasVeNokta = e.alias ? `${e.alias}.` : ``, {not} = e;
+		e = e || {}; const dict = e.dict || e.birlestirDict || e.liste || e, aliasVeNokta = e.alias ? `${e.alias}.` : ``, {not} = e;
 		const isSetClause = e.isSetClause ?? this.class.isSetClause, isValuesClause = e.isValuesClause ?? this.class.isValuesClause;
 		if (!$.isEmptyObject(dict)) {
 			let and = new MQAndClause(); for (const key in dict) {

@@ -2,6 +2,7 @@ class MQHizmet extends MQKA {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Hizmet' } static get table() { return 'hizmst' } static get tableAlias() { return 'hiz' }
 	static get kodListeTipi() { return 'HIZMET' } static get hizmetmi() { return true } static get zeminRenkDesteklermi() { return true }
+	static get vergiBelirtecler() { return ['kdv', 'stopaj'] }
 
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);

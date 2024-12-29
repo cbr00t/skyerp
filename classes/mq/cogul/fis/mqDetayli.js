@@ -228,7 +228,7 @@ class MQDetayli extends MQSayacli {
 		/* üst'e bakma */ e = e || {}; if (!$.isPlainObject(e)) { e = { islem: 'degistir', eskiInst: e } }
 		this.detaylariNumaralandir(e); const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e;
 		e.proc = async e => {
-			e = e ?? {}; await this.degistirOncesiIslemler(e); let _e = $.extend({ ...e, toplu: new MQToplu() });
+			e = e ?? {}; await this.degistirOncesiIslemler(e); let _e = { ...e, toplu: new MQToplu() };
 			await this.topluDegistirmeKomutlariniOlustur(_e); await this.topluDegistirmeKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) { return true }
 			_e = { offlineMode, trnId, query: _e.toplu }; let result = await this.sqlExecNoneWithResult(_e); result = result?.[0] ?? result;
 			await this.degistirSonrasiIslemler(e); return result

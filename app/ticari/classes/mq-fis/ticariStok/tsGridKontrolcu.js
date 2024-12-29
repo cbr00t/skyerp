@@ -2,8 +2,7 @@ class TSGridKontrolcu extends GridKontrolcu {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) { e = e || {}; super(e); }
 	gridArgsDuzenle(e) {
-		super.gridArgsDuzenle(e);
-		$.extend(e.args, {
+		super.gridArgsDuzenle(e); $.extend(e.args, {
 			rowDetails: true, rowDetailsTemplate: rowIndex => {
 				return {
 					rowdetailsheight: 100,
@@ -12,27 +11,28 @@ class TSGridKontrolcu extends GridKontrolcu {
 			},
 			initRowDetails: (rowIndex, _parent, grid, parentRec) => {
 				grid = $(grid); const state_keyboardnavigation = grid.jqxGrid('keyboardnavigation'), {altAciklama} = parentRec, parent = $(_parent).children('.satir-ek');
-				setTimeout(() => {
-					const textarea_altAciklama = parent.children('.altAciklama'); textarea_altAciklama.val(altAciklama || '');
-					textarea_altAciklama.on('change', evt => parentRec.altAciklama = (evt.currentTarget.value || '').trimEnd());
-					textarea_altAciklama.on('focus', evt => grid.jqxGrid('keyboardnavigation', false));
-					textarea_altAciklama.on('blur', evt => grid.jqxGrid('keyboardnavigation', state_keyboardnavigation))
-				}, 10)
+				const textarea_altAciklama = parent.children('.altAciklama'); textarea_altAciklama.val(altAciklama || '');
+				textarea_altAciklama.on('change', evt => parentRec.altAciklama = (evt.currentTarget.value || '').trimEnd());
+				textarea_altAciklama.on('focus', evt => grid.jqxGrid('keyboardnavigation', false));
+				textarea_altAciklama.on('blur', evt => grid.jqxGrid('keyboardnavigation', state_keyboardnavigation))
 			}
 		})
 	}
 	gridVeriYuklendi(e) {
-		super.gridVeriYuklendi(e); const {gridWidget} = e;
+		super.gridVeriYuklendi(e); const {sender: gridPart, gridWidget} = e; gridPart.grid.css('opacity', 0);
 		setTimeout(() => {
-			const detaylar = gridWidget.getboundrows(); gridWidget.beginupdate();
-			for (let i = 0; i < detaylar.length; i++) { const det = detaylar[i]; if (!!det.altAciklama) gridWidget.showrowdetails(i) }
-			gridWidget.endupdate(false)
-		}, 50)
+			const detaylar = gridWidget.getboundrows();
+			for (let i = 0; i < detaylar.length; i++) { const det = detaylar[i]; if (!!det.altAciklama) { gridWidget.showrowdetails(i) } }
+			setTimeout(() => gridPart.grid.css('opacity', 'unset'), 1)
+		}, 200)
 	}
 	tabloKolonlariDuzenle(e) {
 		super.tabloKolonlariDuzenle(e); const shKolonGrup = MQStok.getGridKolonGrup_brmli({
 			belirtec: 'sh', kodAttr: 'shKod', adiAttr: 'shAdi', adiEtiket: 'Stok/Hizmet Adı', mfSinif: e => { const {rec} = e; return (rec == null ? TSStokDetay : rec.class)?.mfSinif } }).sabitle();
-		shKolonGrup.stmDuzenleyiciEkle(e => { const {aliasVeNokta, stm} = e; for (const sent of stm.getSentListe()) { sent.sahalar.add(`${aliasVeNokta}adidegisir adiDegisirmi`) } });
+		shKolonGrup.stmDuzenleyiciEkle(e => {
+			const {aliasVeNokta, stm} = e; for (const sent of stm.getSentListe()) {
+			sent.sahalar.add(`${aliasVeNokta}adidegisir adiDegisirmi`) }
+		});
 		const {tabloKolonlari} = e; tabloKolonlari.push(
 			shKolonGrup, new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 13, cellValueChanged: e => setTimeout(() => this.miktarFiyatDegisti(e), 10) }).tipDecimal().zorunlu(),
 			new GridKolon({ belirtec: 'fiyat', text: 'Fiyat', genislikCh: 18, cellValueChanged: e => setTimeout(() => this.miktarFiyatDegisti(e), 10) }).tipDecimal_fiyat()

@@ -69,7 +69,7 @@ class TicariFis extends TSOrtakFis {
 	}
 	static rootFormBuilderDuzenle(e) {
 		e = e || {}; super.rootFormBuilderDuzenle(e); const {tsnForm, baslikForm} = e.builders;
-		baslikForm.builders[1].addModelKullan('mustKod').setMFSinif(MQCari).etiketGosterim_normal()
+		baslikForm.builders[1].addModelKullan('mustKod').autoBind().setMFSinif(MQCari).etiketGosterim_normal()
 			.ozelQueryDuzenleBlock(e => { const {builder, alias, stm} = e; for (const sent of stm.getSentListe()) { sent.sahalar.add(`${alias}.efaturakullanirmi`) } })
 			.degisince(e => e.builder.altInst.cariDegisti(e)).addStyle(e => `$elementCSS { min-width: 70% !important }`)
 	}
@@ -251,23 +251,23 @@ class TicariFis extends TSOrtakFis {
 		}
 	}
 	async fisBakiyeDurumuGerekirseAyarla(e) {
-		if (!this.class.cikisGibimi) { return } const {trnId, eskiFis} = e, {mustKod} = this;
+		if (!this.class.cikisGibimi) { return } let {trnId, eskiFis} = e, {mustKod} = this;
 		let {musteriOncekiBakiyeDurumu} = this; if (musteriOncekiBakiyeDurumu && eskiFis && mustKod != eskiFis.mustKod) { musteriOncekiBakiyeDurumu = null }
 		if (!musteriOncekiBakiyeDurumu) {
 			if (eskiFis && eskiFis.mustKod == mustKod) {
-				const _musteriOncekiBakiyeDurumu = eskiFis.musteriOncekiBakiyeDurumu;
+				const {musteriOncekiBakiyeDurumu: _musteriOncekiBakiyeDurumu} = eskiFis;
 				if (_musteriOncekiBakiyeDurumu) { musteriOncekiBakiyeDurumu = (_musteriOncekiBakiyeDurumu.deepCopy ? _musteriOncekiBakiyeDurumu.deepCopy() : $.extend(true, {}, _musteriOncekiBakiyeDurumu)) }
 				else {
-					const sent = new MQSent({
+					let query = new MQSent({
 						from: 'carbakiye', sahalar: ['SUM(bakiye) bakiye', 'SUM(dvbakiye) dvbakiye'],
 						where: [ `ozelisaret <> 'X'`, { degerAta: mustKod, saha: 'must' }, { degerAta: this.altHesapKod, saha: 'althesapkod' } ]
 					});
-					let rec = await app.sqlExecTekil({ trnId, query: sent });
+					let rec = await app.sqlExecTekil({ trnId, query });
 					musteriOncekiBakiyeDurumu = { oncekiBakiye: new TLVeDVBedel({ tl: rec.bakiye, dv: rec.dvbakiye }), bakiyeEkle: new TLVeDVBedel() }
 				}
 			}
 		}
-		this.musteriOncekiBakiyeDurumu = musteriOncekiBakiyeDurumu
+		$.extend(this, musteriOncekiBakiyeDurumu)
 	}
 }
 class SiparisFis extends TicariFis {
@@ -296,7 +296,7 @@ class SevkiyatFis extends TicariFis {
 	static get dipEkBilgiTablo() { return 'pifdipekbilgi' } static get pifTipi() { return null } static get iade() { return '' }
 	get bakiyeciler() {
 		const {alimmi, iademi, fasonmu} = this.class, stok_sqlDuzenleyici = fasonmu ? 'stokBakiyeSqlEkDuzenle_pifFSStok' : 'stokBakiyeSqlEkDuzenle_pifStok';
-		return  [...super.bakiyeciler, new StokBakiyeci({ borcmu: e => alimmi != iademi, sqlDuzenleyici: stok_sqlDuzenleyici }) /* sipariş için gelecek/gidecek ayarı yapılacak */]
+		return [...super.bakiyeciler, new StokBakiyeci({ borcmu: e => alimmi != iademi, sqlDuzenleyici: stok_sqlDuzenleyici }) /* sipariş için gelecek/gidecek ayarı yapılacak */]
 	}
 	constructor(e) {
 		e = e || {}; super(e);
@@ -315,7 +315,7 @@ class SevkiyatFis extends TicariFis {
 			e.sender = e.gridPart = rootPart; $.extend(e, { builder });
 			if (altInst.yerOrtakmiDegisti) { altInst.yerOrtakmiDegisti(e) } if (kontrolcu.yerOrtakmiDegisti) { kontrolcu.yerOrtakmiDegisti(e) }
 		});
-		baslikForm.builders[0].addModelKullan('yerKod').setMFSinif(MQStokYer).comboBox().etiketGosterim_normal().addStyle_wh(400)
+		baslikForm.builders[0].addModelKullan('yerKod').setMFSinif(MQStokYer).comboBox().autoBind().etiketGosterim_normal().addStyle_wh(400)
 			.setVisibleKosulu(e => e.builder.altInst.yerOrtakmi ? true : 'basic-hidden')
 	}
 	static orjBaslikListesiDuzenle_ara(e) {
@@ -419,10 +419,7 @@ class SevkiyatFis extends TicariFis {
 class FaturaFis extends SevkiyatFis {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return `${super.sinifAdi}Fatura` } static get pifTipi() { return 'F' } static get faturami() { return true }
-	get bakiyeciler() {
-		const {alimmi, iademi} = this.class;
-		return  [...super.bakiyeciler, new CariBakiyeci({ borcmu: e => alimmi == iademi }) ]
-	}
+	get bakiyeciler() { const {alimmi, iademi} = this.class; return [...super.bakiyeciler, new CariBakiyeci({ borcmu: e => alimmi == iademi }) ] }
 	static async raporKategorileriDuzenle_baslik(e) {
 		await super.raporKategorileriDuzenle_baslik(e); const sections = ['FRFatura-IrsBilgi'];
 		await e.kat.ekSahaYukle({ section: sections })

@@ -202,7 +202,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 				stm: e => this.getDipEIcmalStm(e), seviyelendirici: e => seviyelendirAttrGruplari({ source: e.recs, attrGruplari: [['pstip', 'fissayac']] }),
 				yukleyici: e => e.eFis.dipEIcmalYukle($.extend({}, e, { recs: e.detaylar }))
 			}),
-			yukleIslemi({ stm: e => this.getOzelYontemStm(e), yukleyici: e => this.ozelYontemYukle($.extend({}, e)) }),
+			yukleIslemi({ stm: e => this.getOzelYontemStm(e), yukleyici: e => this.ozelYontemYukle({ ...e }) }),
 			yukleIslemi({
 				stm: e => this.getOncekiIrsTSNStm(e), seviyelendirici: e => seviyelendirAttrGruplari({ source: e.recs, attrGruplari: [['pstip', 'fissayac']] }),
 				yukleyici: e => e.eFis.oncekiIrsTSNYukle($.extend({}, e, { recs: e.detaylar }))

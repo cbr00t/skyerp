@@ -58,26 +58,29 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 			const {aliasVeNokta, stm, fis, mfSinif} = e, {kdvHesapKodPrefix_stok, kdvHesapKodPrefix_hizmet} = fis.class;
 			for (const sent of stm.getSentListe()) {
 				const hesapSaha_almSatPrefix = ((mfSinif.stokmu || mfSinif.demirbasmi) ? kdvHesapKodPrefix_stok : mfSinif.hizmetmi ? kdvHesapKodPrefix_hizmet : null);
-				if (!hesapSaha_almSatPrefix) { return } const {vergiBelirtecler} = TicariFis;
+				if (!hesapSaha_almSatPrefix) { return } const {vergiBelirtecler} = mfSinif;
 				for (const key of vergiBelirtecler) {
-					if (key == TicariFis.vergiBelirtec_kdv) { const kdvDegiskenmiClause = `${aliasVeNokta}${hesapSaha_almSatPrefix}kdvdegiskenmi`; sent.sahalar.add(`${kdvDegiskenmiClause} kdvDegiskenmi`); }
+					if (key == TicariFis.vergiBelirtec_kdv) {
+						const kdvDegiskenmiClause = `${aliasVeNokta}${hesapSaha_almSatPrefix}kdvdegiskenmi`; sent.sahalar.add(`${kdvDegiskenmiClause} kdvDegiskenmi`) }
 					const vergiHesapClause = `${aliasVeNokta}${hesapSaha_almSatPrefix}${key}hesapkod`;
 					sent.fromIliski(`vergihesap ${key}ver`, `${vergiHesapClause} = ${key}ver.kod`);
 					sent.sahalar.add(`${vergiHesapClause} ${key}Kod`, `${key}ver.belirtec ${key}Belirtec`)					/* ( stk.satkdvhesapkod kdvkod ... ) gibi */
 				}
 			}
+			mfSinif.ticariGrid_shKolon_stmDuzenleEk?.(e)
 		});
 		shColDef.degisince(async e => {
-			const {fis} = e, det = e.gridRec, detaySinif = det?.class; if (detaySinif.aciklamami) { return }
+			const {fis, mfSinif} = e, det = e.gridRec, detaySinif = det?.class; if (detaySinif.aciklamami) { return }
 			const isaretlimi = await fis.kayitIcinOzelIsaretlimi, rec = await e.rec, {vergiBelirtecler, vergiBelirtec_kdv} = TicariFis;
 			for (const key of vergiBelirtecler) {
-				const kdvmi = key == vergiBelirtec_kdv; let colAttr = `${key}Kod`, value = rec[colAttr] || ''; det[`orj${colAttr}`] = value;
-				let duzValue = isaretlimi ? '' : value; if (kdvmi) { det._kdvDegiskenmi = asBool(rec.kdvDegiskenmi); e.setCellValue({ belirtec: colAttr, value: duzValue }) } else { det[colAttr] = duzValue }
+				let kdvmi = key == vergiBelirtec_kdv, colAttr = `${key}Kod`, value = rec[colAttr] || '', duzValue = isaretlimi ? '' : value;
+				det[`orj${colAttr}`] = value; if (kdvmi) { det._kdvDegiskenmi = asBool(rec.kdvDegiskenmi); e.setCellValue({ belirtec: colAttr, value: duzValue }) } else { det[colAttr] = duzValue }
 				if (!kdvmi) {
 					colAttr = `${key}Belirtec`; value = rec[colAttr] || ''; det[`orj${colAttr}`] = value; duzValue = isaretlimi ? '' : value;
 					if (kdvmi) { det[colAttr] = duzValue } else { e.setCellValue({ belirtec: colAttr, value: duzValue }) }
 				}
-				delete e.rec; e.detay = det; this.satirBedelHesapla(e)
+				mfSinif.ticariGrid_shKolon_degisinceEk?.({ ...e, rec });
+				delete e.rec; /* e.rec => Promise (async) */ e.detay = det; this.satirBedelHesapla(e)
 			}
 		})
 	}

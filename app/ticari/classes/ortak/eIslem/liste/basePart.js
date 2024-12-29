@@ -25,7 +25,7 @@ class EIslemListeBasePart extends MasterListePart {
 		$.extend(args, { columnsHeight: 55, rowsHeight: 45, showGroupsHeader: true, showFilterRow: true, filterMode: 'default', virtualMode: false, selectionMode: 'checkbox' })
 	}
 	defaultLoadServerData(e) {
-		const _e = $.extend({}, e, { alias: 'fis' }), {secimler} = this, query = _e.query = secimler.getQueryStm(_e);
+		const _e = { ...e, alias: 'fis' }, {secimler} = this, query = _e.query = secimler.getQueryStm(_e);
 		return MQCogul.loadServerData_querySonucu(_e).then(recs => { _e.recs = recs; this.loadServerData_veriDuzenle(_e); return _e.recs })
 	}
 	loadServerData_veriDuzenle(e) { }

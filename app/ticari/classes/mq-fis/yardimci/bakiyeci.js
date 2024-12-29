@@ -1,8 +1,8 @@
 class Bakiyeci extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get tipKod() { return null } static get table() { return null }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static { this.delim = delimWS }
+	static get tipKod() { return null } static get table() { return null } get table() { return this.class.table }
 	static get anahtarSahalar() { return [] } static get sumSahalar() { return [] }
-	static get defaultBakiyeSqlDuzenleSelector() { return null }
+	static get anahNumSet() { return {} } static get defaultBakiyeSqlDuzenleSelector() { return null }
 	static get tip2Class() {
 		let result = this._tip2Class;
 		if (result == null) {
@@ -16,13 +16,20 @@ class Bakiyeci extends CObject {
 		$.extend(this, { borcmu: e.borcmu ?? e.borc, bakiyeSqlci: e.bakiyeSqlci, sqlDuzenleyici: e.sqlDuzenleyici ?? e.sqlDuzenleSelector ?? this.class.defaultBakiyeSqlDuzenleSelector })
 	}
 	async getBakiyeDict(e) {
-		const result = {}; const {anahtarSahalar, sumSahalar} = this.class, {trnId} = e, borcmu = e.borcmu = getFuncValue.call(this, this.borcmu, e);
+		let _result = {}, {anahtarSahalar, sumSahalar, anahNumSet, delim} = this.class, {trnId} = e, borcmu = e.borcmu = getFuncValue.call(this, this.borcmu, e);
 		let stm = await this.getBakiyeSql(e), recs = stm ? await app.sqlExecSelect({ trnId, query: stm }) : [];
-		for (const rec of recs) {
-			const anahStr = anahtarSahalar.map(key => rec[key]?.trimEnd()).join(delimWS), degerler = sumSahalar.map(key => rec[key]);
-			let eskiDegerler = result[anahStr]; if (eskiDegerler) { for (let i = 0; i < degerler.length; i++) { eskiDegerler[i] += degerlerler[i] || 0 } } else { result[anahStr] = degerler }
+		for (let rec of recs) {
+			let degerler = sumSahalar.map(key => rec[key] ?? 0);
+			let sabitler = []; for (let key of anahtarSahalar) { let value = rec[key]?.trimEnd() ?? rec[key]; sabitler.push(value) }
+			let anahStr = sabitler.join(delim), eskiDegerler = _result[anahStr];
+			if (eskiDegerler) { for (let i = 0; i < degerler.length; i++) { eskiDegerler[i] += degerler[i] || 0 } } else { _result[anahStr] = degerler }
 		}
-		return result
+		let results = []; for (let [anahStr, values] of Object.entries(_result)) {
+			let liste = anahStr.split(delim); let rec = { sabit: {}, toplam: {} }; results.push(rec);
+			for (let i = 0; i < liste.length; i++) { let key = anahtarSahalar[i], value = liste[i]; if (anahNumSet[key]) { value = value ? asFloat(value) : null } rec.sabit[key] = value }
+			liste = sumSahalar; for (let i = 0; i < liste.length; i++) { let key = sumSahalar[i], value = values[i] ?? 0; rec.toplam[key] = value }
+		}
+		return results
 	}
 	getBakiyeSql(e) {
 		const {bakiyeSqlci} = this; if (bakiyeSqlci) { return getFuncValue.call(this, bakiyeSqlci, e) }
@@ -51,7 +58,8 @@ class StokBakiyeci extends Bakiyeci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tipKod() { return 'ST' } static get table() { return 'sonstok' }
 	static get anahtarSahalar() { return [...super.anahtarSahalar, 'stokkod', 'yerkod', 'ozelisaret', 'opno', ...HMRBilgi.rowAttrListe] }
-	static get sumSahalar() { return [...super.sumSahalar, 'sonmiktar', 'sonmiktar2', 'gelecekmiktar', 'gidecekmiktar'] }
+	static get anahNumSet() { return { ...super.anahNumSet, opno: true, ...asSet(Object.values(HMRBilgi.belirtec2Bilgi).filter(rec => rec.numerikmi).map(rec => rec.rowAttr)) } }
+	static get sumSahalar() { return [...super.sumSahalar, 'sonmiktar', 'sonmiktar2', 'songelecekmiktar', 'songidecekmiktar'] }
 	static get defaultBakiyeSqlDuzenleSelector() { return 'stokBakiyeSqlEkDuzenle' }
 }
 class KasaBakiyeci extends Bakiyeci {

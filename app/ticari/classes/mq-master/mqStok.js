@@ -2,7 +2,7 @@ class MQStok extends MQKA {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Stok' } static get table() {return 'stkmst'} static get tableAlias() { return 'stk' } static get stokmu() { return true }
 	static get kodListeTipi() { return 'STK' } static get ayrimTipKod() { return 'STAYR' } static get ayrimTableAlias() { return 'sayr' } static get ozelSahaTipKod() { return 'STK' }
-	static get zeminRenkDesteklermi() { return true }
+	static get zeminRenkDesteklermi() { return true } static get vergiBelirtecler() { return ['kdv', 'otv', 'stopaj'] }
 
 	constructor(e) { e = e || {}; super(e) }
 	static altYapiDictDuzenle(e) {
@@ -37,7 +37,7 @@ class MQStok extends MQKA {
 	static getGridKolonGrup_brmli(e) {
 		const kolonGrup = this.getGridKolonGrup(e); if (!kolonGrup) { return kolonGrup }
 		const {tabloKolonlari} = kolonGrup; tabloKolonlari.push(new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 4 }).readOnly());
-		kolonGrup.stmDuzenleyiciEkle(e => { const {aliasVeNokta} = this; for (const sent of e.stm.getSentListe()) { sent.sahalar.add(`${aliasVeNokta}brm`) } });
+		kolonGrup.stmDuzenleyiciEkle(({ aliasVeNokta, stm }) => { for (const sent of stm.getSentListe()) { sent.sahalar.add(`${aliasVeNokta}brm`) } });
 		kolonGrup.degisince(e => { e.rec.then(rec => e.setCellValue({ belirtec: 'brm', value: rec.brm || '' })) });
 		return kolonGrup
 	}

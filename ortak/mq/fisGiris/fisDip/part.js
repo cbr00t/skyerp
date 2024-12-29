@@ -65,7 +65,7 @@ class FisDipPart extends GridliGirisPart {
 					layout.html() +
 				`</div>`
 			),
-			islem: islem, fis: fis
+			islem, fis
 		});
 		wndPart.run();
 		

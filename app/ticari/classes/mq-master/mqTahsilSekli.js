@@ -29,15 +29,14 @@ class MQTahsilSekli extends MQKA {
 	static rootFormBuilderDuzenle(e) {
 		e = e || {}; super.rootFormBuilderDuzenle(e);
 		const getAltFormBuilder = e =>
-			new FBuilderWithInitLayout($.extend({
+			new FBuilderWithInitLayout({
 				args: (e.args == null ? { tipSet: e.tipSet || asSet(e.tipListe || []) } : e.args),
 				visibleKosulu: e =>
-					((e.builder.args || {}).tipSet || {})[e.builder.inst.tip.char] ? true : 'jqx-hidden'
+					((e.builder.args || {}).tipSet || {})[e.builder.inst.tip.char] ? true : 'jqx-hidden',
 				/* buildEk: e => $(`<h5>${e.builder.id} form</h5>`).appendTo(e.builder.layout) */
-			}, e));
-
-		const {tanimFormBuilder} = e;
-		tanimFormBuilder.add(new FBuilder_TanimFormTabs({ id: 'tabPanel' }).add(
+				...e
+			});
+		const {tanimFormBuilder} = e; tanimFormBuilder.add(new FBuilder_TanimFormTabs({ id: 'tabPanel' }).add(
 			new FBuilder_TabPage({ id: 'genel', etiket: 'Genel' }).add(
 				new FBuilderWithInitLayout().yanYana(2).add(
 					new FBuilder_ModelKullan({ id: 'tip', etiket: 'Tip', source: e => TahsilSekliTip.instance.kaListe })
