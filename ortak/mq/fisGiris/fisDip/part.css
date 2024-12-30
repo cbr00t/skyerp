@@ -1,66 +1,10 @@
-
-.fisDip.part {
-	overflow: hidden;
-	--header-height: 80px;
-}
-.fisDip.part .dipGrid {
-}
-.fisDip.part .dipGrid .jqx-grid-content input {
-	font-size: 87% !important;
-	font-weight: bold;
-}
-.fisDip.part .dipGrid .jqx-grid-column-header {
-	font-size: 85% !important;
-	color: #999;
-}
-.fisDip.part .dipGrid div[role=gridcell] {
-	font-size: 75%;
-	font-weight: bold;
-}
-.fisDip.part .dipGrid div[role=gridcell]:not(.jqx-grid-cell-selected).etiket {
-	color: #888;
-}
-.fisDip.part .dipGrid div[role=gridcell]:not(.jqx-grid-cell-selected).bedel.dipSatir-BRUT {
-}
-.fisDip.part .dipGrid div[role=gridcell]:not(.jqx-grid-cell-selected).bedel.dipSatir-SONUC {
-	background: #b7dab7;
-}
-
-.fisDip.part .wnd-content,
-.fisDip.part .wnd-content {
-	margin-right: 0 !important;
-	padding-right: 0 !important;
-}
-.fisDip.part .wnd-content {
-	width: calc(100% - 13px) !important;
-}
-.fisDip.part .wnd-content .header {
-	position: relative;
-	width: 100% !important;
-	min-height: var(--header-height);
-	background-color: whitesmoke;
-	margin: 0 !important;
-	padding: 0 !important;
-}
-.fisDip.part .wnd-content .islemTuslari {
-	/* position: absolute !important; */
-	/* right: 5px !important; */
-	/* top: 50px; */
-	margin: 0 !important;
-	padding: 5px 0 0 0 !important;
-}
-.fisDip.part .wnd-content .islemTuslari button {
-	/* width: 70px; */
-	/* height: 50px; */
-}
-.fisDip.part .wnd-content .islemTuslari button#tamam {
-	/* margin-right: 10px; */
-}
-.fisDip.part .wnd-content .dipGrid {
-	font-size: 120%;
-	position: relative;
-	height: calc(var(--full) - var(--header-height)) !important;
-}
-.fisDip.part .wnd-content .dipGrid div[role=gridcell] {
-	padding-top: 5px;
-}
+.fisDip.part { overflow: hidden; --header-height: 80px }
+.fisDip.part .dipGrid .jqx-grid-content input { font-size: 87% !important; font-weight: bold }
+.fisDip.part .dipGrid .jqx-grid-column-header { font-size: 85% !important; color: #999 }
+.fisDip.part .dipGrid div[role=gridcell] { font-size: 75%; font-weight: bold }
+.fisDip.part .dipGrid div[role=gridcell]:not(.jqx-grid-cell-selected).etiket { color: #888 }
+.fisDip.part .dipGrid div[role=gridcell]:not(.jqx-grid-cell-selected).bedel.dipSatir-SONUC { background: #b7dab7 }
+.fisDip.part .wnd-content { width: calc(100% - 13px) !important }
+.fisDip.part .wnd-content .header { position: relative; width: var(--full) !important; min-height: var(--header-height); margin: 0 !important; padding: 0 !important }
+.fisDip.part .wnd-content .dipGrid { font-size: 120%; position: relative; width: var(--full) !important; height: calc(var(--full) - (var(--header-height) + 13px)) !important }
+.fisDip.part .wnd-content .dipGrid [role = row] > div > div { margin-top: 5px !important }
