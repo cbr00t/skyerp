@@ -150,6 +150,9 @@ class DMQMuhHesap extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Hesap' }
 	static get table() { return 'muhhesap' } static get tableAlias() { return 'mhes' }
 }
+class DMQMuhHesap_Kebir extends DMQMuhHesap {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kebir Hesap' } static get tableAlias() { return 'khes' }
+}
 class DMQMuhGrup extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Grup' }
 	static get table() { return 'muhgrup' } static get tableAlias() { return 'mhgrp' }

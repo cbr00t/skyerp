@@ -21,8 +21,8 @@ class DRapor_Uretim_Main extends DRapor_Donemsel_Main {
 	}
 	loadServerData_queryDuzenle_ek(e) {
 		let {stm, attrSet, alias} = e; for (let sent of stm.getSentListe()) {
-			let {sahalar, where: wh} = sent; $.extend(e, { sent });
-			if (attrSet.HAT || attrSet.TEZGAH || attrSet.PER) { this.loadServerData_queryDuzenle_gerDetayBagla({ ...e, sent }) } if (attrSet.STOK) { this.loadServerData_queryDuzenle_formulBagla({ ...e, sent }) }
+			let {sahalar, where: wh} = sent; $.extend(e, { sent }); this.loadServerData_queryDuzenle_gerDetayBagla({ ...e, sent });
+			if (attrSet.STOK) { this.loadServerData_queryDuzenle_formulBagla({ ...e, sent }) }
 			for (const key in attrSet) {
 				switch (key) {
 					case 'HAT': sent.fromIliski('ismerkezi hat', 'tez.ismrkkod = hat.kod'); sahalar.add('hat.kod hatkod', 'hat.aciklama hatadi'); wh.icerikKisitDuzenle_x({ ...e, belirtec: 'hat', saha: 'hat.kod' }); break

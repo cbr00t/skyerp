@@ -117,8 +117,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	loadServerData_queryDuzenle_tekilSonrasi(e) {
 		this.loadServerData_queryDuzenle_tekilSonrasi_ilk_ozel?.(e);
-		let {ekDBListe} = app.params.dRapor, {stm, attrSet} = e, alias_db = 'db';
-		if (ekDBListe?.length) {
+		let {konsolideCikti, ekDBListe} = app.params.dRapor, {stm, attrSet} = e, alias_db = 'db';
+		if (konsolideCikti) {
 			let asilUni = stm.sent = stm.sent.asUnionAll();
 			for (let {sahalar} of asilUni.getSentListe()) {
 				if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db)) { sahalar.add(`${`[ <span class=royalblue>${config.session.dbName}</span> ]`.sqlServerDegeri() ?? '- Aktif VT -'} ${alias_db}`) } }

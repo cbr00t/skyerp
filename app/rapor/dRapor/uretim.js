@@ -76,12 +76,12 @@ class DRapor_Uretim_Duraksama_Main extends DRapor_Uretim_Main {
 		super.loadServerData_queryDuzenle_ek(e); let {stm, attrSet} = e, alias = 'mdur';
 		for (let sent of stm.getSentListe()) {
 			let {sahalar, where: wh} = sent; $.extend(e, { sent, alias }); this.loadServerData_queryDuzenle_uretimOrtakBagla({ ...e, sent });
-			if (attrSet.DURNEDEN || attrSet.DURSURESN || attrSet.DURSUREDK) { this.loadServerData_queryDuzenle_gerDetayBagla({ ...e, sent }).loadServerData_queryDuzenle_duraksamaBagla({ ...e, sent }) }
+			this.loadServerData_queryDuzenle_gerDetayBagla({ ...e, sent }).loadServerData_queryDuzenle_duraksamaBagla({ ...e, sent });
 			this.donemBagla({ ...e, tarihSaha: `${alias}.duraksamabasts` }); for (const key in attrSet) {
 				switch (key) {
 					case 'TEZGAH': sent.fromIliski('tekilmakina tez', `${alias}.makinakod = tez.kod`); break
 					case 'NEDEN': sent.fromIliski('makdurneden dned', `${alias}.durnedenkod = dned.kod`); wh.add('dned.bkritikmi <> 0'); sahalar.add('dned.kod nedenkod', 'dned.aciklama nedenadi'); break
-					case 'SURESN': sahalar.add(`SUM(${alias}.dursuresn) suresn`); break; case 'SUREDK': sahalar.add(`SUM(ROUND(${alias}.suresn / 60, 1)) dursuredk`); break
+					case 'SURESN': sahalar.add(`SUM(${alias}.dursuresn) suresn`); break; case 'SUREDK': sahalar.add(`SUM(ROUND(${alias}.dursuresn / 60, 1)) dursuredk`); break
 				}
 			}
 		}
