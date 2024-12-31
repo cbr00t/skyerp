@@ -569,7 +569,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 				xw.writeElementString('cbc:PriceAmount', toFileStringWithFra(result.asilFiyat || 0, app.params.zorunlu.fiyatFra || 6), null, this.xattrYapi_bedel))
 		}
 	}
-	xmlGetProfileID(e) { const {baslik} = this; return baslik.alimIademi ? 'TEMELFATURA' : EIslemSenaryo.getSenaryoText(baslik.carsenaryo) }
+	xmlGetProfileID(e) { const {baslik} = this; return this.class.eArsivmi ? 'EARSIVFATURA': baslik.alimIademi ? 'TEMELFATURA' : EIslemSenaryo.getSenaryoText(baslik.carsenaryo) }
 	xmlGetBelgeTipKodu(e) {
 		const {baslik} = this; if (baslik.alimIademi) { return 'IADE' }
 		const fisTipi = baslik.fistipi; if (fisTipi == 'TV') { return 'TEVKIFAT' }
