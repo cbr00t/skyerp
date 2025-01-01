@@ -8,5 +8,6 @@
 
 .gidenEIslemListe.part .islemTuslari #eIslemGonder.jqx-fill-state-normal, gidenEIslemListe.part .islemTuslari #eIslemIzle.jqx-fill-state-normal,
 	.gidenEIslemListe.part .islemTuslari #eIslemSorgu.jqx-fill-state-normal { background-color: #ccc }
+.gidenEIslemListe.part .jqx-grid div[role=row] > div.efUUIDText.hasUUID { background-color: lightgreen !important }
 .gidenEIslemListe.part .jqx-grid div[role=row] > div.efgonderimts.gonderildi:not(.jqx-grid-cell-selected) { background-color: lightgreen }
 .gidenEIslemListe.part .islemTuslari #eIslemIptal.jqx-fill-state-normal, .gidenEIslemListe.part .islemTuslari #xmlKaldir.jqx-fill-state-normal { background-color: #9d9393 }

@@ -25,10 +25,10 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 			return ((sender, rowIndex, belirtec, value, rec) => {
 				let result = [belirtec]; const {efayrimtipi, efatonaydurumu, efatuuid, efgonderimts} = rec;
 				if (!$.isEmptyObject(ekCSS)) { const _liste = $.isArray(ekCSS) ? ekCSS : [ekCSS]; result.push(..._liste) }
-				if (efayrimtipi != null) result.push(`eIslTip-${efayrimtipi}`)
-				if (efatonaydurumu != null) result.push(`akibet-${efatonaydurumu}`)
-				if (efgonderimts) result.push('gonderildi')
-				if (efatuuid) result.push('hasUUID')
+				if (efayrimtipi != null) { result.push(`eIslTip-${efayrimtipi}`) }
+				if (efatonaydurumu != null) { result.push(`akibet-${efatonaydurumu}`) }
+				if (efgonderimts) { result.push('gonderildi') }
+				if (efatuuid) { result.push('hasUUID') }
 				if (duzenleyici) { const _e = $.extend({}, e, { sender, rowIndex, belirtec, value, rec, result }); getFuncValue.call(this, duzenleyici, _e); result = _e.result }
 				return result.join(' ')
 			})
@@ -39,19 +39,20 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 9, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }).tipDate(),
 			new GridKolon({ belirtec: 'fisnox', text: 'Belge<br/>No', genislikCh: 16, cellClassName: getCSSDuzenleyici() }),
 			new GridKolon({ belirtec: 'akibetText', text: 'Akıbet', genislikCh: 12, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
-			new GridKolon({ belirtec: 'efatuuid', text: 'UUID<br/>(ETTN)', genislikCh: 36, cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'efUUIDText', text: 'UUID<br/>(ETTN)', genislikCh: 36, cellClassName: getCSSDuzenleyici() }),
 			new GridKolon({ belirtec: 'efgonderimts', text: 'Gönderim<br/>Zamanı', genislikCh: 15, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
 			new GridKolon({ belirtec: 'mustText', text: 'Müşteri', filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
 			new GridKolon({ belirtec: 'sonucbedel', text: 'Sonuç<br/>Bedel', genislikCh: 14, cellClassName: getCSSDuzenleyici() }).tipDecimal_bedel()
 		])
 	}
 	loadServerData_veriDuzenle(e) {
-		super.loadServerData_veriDuzenle(e); const tSec_eIslTip = new EIslemTip(),  tSec_akibet = new EIslemOnayDurum(), {secimler} = this, {recs} = e;
+		super.loadServerData_veriDuzenle(e); const tSec_eIslTip = new EIslemTip(),  tSec_akibet = new EIslemOnayDurum(), {secimler: sec} = this, {recs} = e;
 		for (const rec of recs) {
 			const efAyrimTipi = rec.efayrimtipi = rec.efayrimtipi || 'A',  efOnayDurumu = rec.efatonaydurumu;
 			$.extend(rec, {
-				eIslTipText: tSec_eIslTip.kaDict[efAyrimTipi]?.aciklama || efAyrimTipi, belgeTipText: secimler.class.getBelgeTipText({ rec }),
-				akibetText: tSec_akibet.kaDict[efOnayDurumu]?.aciklama || efOnayDurumu, mustText: `(<b>${rec.mustkod}</b>) ${rec.birunvan}`
+				eIslTipText: tSec_eIslTip.kaDict[efAyrimTipi]?.aciklama || efAyrimTipi, belgeTipText: sec.class.getBelgeTipText({ rec }),
+				akibetText: tSec_akibet.kaDict[efOnayDurumu]?.aciklama || efOnayDurumu, mustText: `(<b>${rec.mustkod}</b>) ${rec.birunvan}`,
+				efUUIDText: rec.efatuuid || rec.zorunluguidstr
 			})
 		}
 	}

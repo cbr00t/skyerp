@@ -101,7 +101,7 @@ class EIslemOrtak extends CObject {
 			try { eIslemScript = (await app.wsEIslemXSLTScript({ belirtec: xsltBelirtec })) ?? null } catch (ex) { }
 			eIslemScript = temps.eIslemScript = eIslemScript ?? null
 		}
-		let uuidOlustumu = false; if (!baslik.uuid) { baslik.uuid = newGUID(); uuidOlustumu = true }
+		let uuidOlustumu = false; if (!baslik.uuid) { baslik.uuid = baslik.zorunluguidstr || newGUID(); uuidOlustumu = true }
 		let xw = e.xw = new XMLWriter(); xw.writeStartDocument(); await this.xmlDuzenle(e); xw = e.xw; xw.writeEndDocument(); /* delete e.xw; */
 		let result = xw.flush(); $.extend(e, { islem: 'xml', result });
 		try { await this.execEIslemScript(e); result = e.result; if (result) { xw = e.xw = result } } catch (ex) { console.error(ex) }
