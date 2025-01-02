@@ -201,8 +201,8 @@ class EYonetici extends CObject {
 				const updateIslemi = async () => {
 					if (!block_duzgunUUIDListe?.length) { return }
 					let upd = new MQIliskiliUpdate({ 
-						from: this.class.getPS2Table(psTip), set: [`efatuuid = ''`, `efgonderimts = NULL`],
-						where: [`(efgonderimts IS NOT NULL OR efatuuid <> '')`, { inDizi: block_duzgunUUIDListe, saha: 'efatuuid' }]
+						from: this.class.getPS2Table(psTip), set: [`efatuuid = ''`, `efimzats = NULL`, `efgonderimts = NULL`],
+						where: [`(efimzats IS NOT NULL OR efgonderimts IS NOT NULL OR efatuuid <> '')`, { inDizi: block_duzgunUUIDListe, saha: 'efatuuid' }]
 					});
 					await app.sqlExecNone(upd)
 				};
@@ -264,8 +264,8 @@ class EYonetici extends CObject {
 					const updateIslemi = async () => {
 						if (!block_duzgunUUIDListe?.length) { return }
 						let upd = new MQIliskiliUpdate({ 
-							from: this.class.getPS2Table(psTip), set: [`efatuuid = ''`, `efgonderimts = NULL`],
-							where: [`(efgonderimts IS NOT NULL OR efatuuid <> '')`, { inDizi: duzgunUUIDListe, saha: 'efatuuid' }]
+							from: this.class.getPS2Table(psTip), set: [`efatuuid = ''`, `efimzats = NULL`, `efgonderimts = NULL`],
+							where: [`(efimzats IS NOT NULL OR efgonderimts IS NOT NULL OR efatuuid <> '')`, { inDizi: duzgunUUIDListe, saha: 'efatuuid' }]
 						});
 						await app.sqlExecNone(upd)
 					};
@@ -384,7 +384,10 @@ class EYonetici extends CObject {
 								const xmlDosya = `${anaBolum}\\IMZALI\\${uuid}.xml`; /*await app.wsUpload({ remoteFile: xmlDosya, args: xmlStr });*/
 								uploadList.push({ name: xmlDosya, data: Base64.encode(xmlStr) });
 								/*if (config.dev) { const url = URL.createObjectURL(new Blob([xmlStr], { type: 'application/xml' })); openNewWindow(url) }*/
-							} catch (ex) { const rec = uuid2Result[uuid]; if (rec) { $.extend(rec, { isError: true, message: getErrorText(ex) }) } }
+							} catch (ex) {
+								uuid = baslik.uuid || uuid; let rec = uuid2Result[uuid] = uuid2Result[uuid] ?? { islemZamani: now(), eFis, baslik, efAyrimTipi };
+								$.extend(rec, { isError: true, message: getErrorText(ex) })
+							}
 							p.resolve()
 						}));
 						if (promises.length == 1) { await commit() }

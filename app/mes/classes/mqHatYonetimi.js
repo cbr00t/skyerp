@@ -422,7 +422,7 @@ class MQHatYonetimi extends MQMasterOrtak {
 		const gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootBuilder?.parentPart, recs = gridPart?._lastRecs; if (!recs) { return null }
 		const hat2Durum2Sayi = {}, durNeden2TezgahKod = {}; let topMakineSayi = 0, topAktifSayi = 0, topPasifSayi = 0, topOffSayi = 0;
 		for (let {hatKod: hatText, tezgahKod, sinyalKritik, durumKod, durNedenAdi} of recs) {
-			let orjDurumKod = durumKod; if (durumKod == 'DV') { durumKod = sinyalKritik ? 'APSF' : 'ZON' } else { durumKod = 'XOFF' }
+			let orjDurumKod = durumKod; durumKod = sinyalKritik ? 'APSF' : durumKod == 'DV' ? 'ZON' : 'XOFF';
 			let durum2Sayi = hat2Durum2Sayi[hatText]; if (durum2Sayi == null) { durum2Sayi = hat2Durum2Sayi[hatText] = {}; for (const key of ['ZON', 'APSF', 'XOFF']) { durum2Sayi[key] = 0 } }
 			durum2Sayi[durumKod] = (durum2Sayi[durumKod] || 0) + 1; topMakineSayi++;
 			if (durumKod == 'ZON') { topAktifSayi++ } else if (durumKod == 'APSF') { topPasifSayi++ } else { topOffSayi++ }

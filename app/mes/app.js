@@ -115,11 +115,11 @@ class MESApp extends App {
 	wsTekilTezgahBilgi(e) { e = e || {}; const sync = e.sync = asBool(e.sync), timeout = sync ? ajaxInfiniteMS : 15000; return ajaxPost({ url: this.getWSUrl({ api: 'makineDurum/tekilTezgahBilgi', args: e }) }) }
 	wsEkNotlar(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/ekNotlar', args: e }) }) }
 	wsGerceklemeYap(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/gerceklemeYap', args: e }) }) }
-	wsCevrimArttir(e) { return this.wsFnIslemi($.extend({}, e, { id: 'primary' })) }
-	wsKesmeYap(e) { return this.wsFnIslemi($.extend({}, e, { id: 'secondary' })) }
-	wsTersKesmeYap(e) { e = e ?? {}; let {delayMS} = e; return this.wsFnIslemi($.extend({}, e, { id: 'f9', delayMS })) }
-	wsKartNo(e) { return this.wsFnIslemi($.extend({}, e, { id: 'kart' })) }
-	wsIptal(e) { return this.wsFnIslemi($.extend({}, e, { id: 'iptal' })) }
+	wsCevrimArttir(e) { return this.wsFnIslemi({ ...e, id: 'primary' }) }
+	wsKesmeYap(e) { return this.wsFnIslemi({ ...e, id: 'secondary' }) }
+	wsTersKesmeYap(e) { e = e ?? {}; let {delayMS} = e; return this.wsFnIslemi({ ...e, id: 'f9', delayMS }) }
+	wsKartNo(e) { return this.wsFnIslemi({ ...e, id: 'kart' }) }
+	wsIptal(e) { return this.wsFnIslemi({ ...e, id: 'iptal' }) }
 	wsFnIslemi(e) { return ajaxPost({ url: this.getWSUrl({ api: 'makineDurum/fnIslemi', args: e }) }) }
 	wsSiradakiIsler(e) { const timeout = 15000; return ajaxPost({ timeout, url: this.getWSUrl({ api: 'hatIzleme/siradakiIsler', args: e }) }) }
 	wsBekleyenIsler(e) { const timeout = 20000; return ajaxPost({ timeout, url: this.getWSUrl({ api: 'hatIzleme/bekleyenIsler', args: e }) }) }

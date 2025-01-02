@@ -131,8 +131,14 @@ class MakineYonetimiPart extends Part {
 			secimlerDuzenle: ({secimler: sec}) => $.extend(sec.tezgahKod, { birKismimi: true, value: [tezgahKod] }) })
 	}
 	tersKesmeIstendi_begin(e) { this._tersKesme_startTS = now() }
-	tersKesmeIstendi_end(e) { return this.gcsYapIstendi({ ...e, api: 'wsTersKesmeYap', delayMS: (now() - this._tersKesme_startTS) }); delete this._tersKesme_startTS }
-	gcsYapIstendi(e) { const {tezgahKod} = this.inst, {api, delayMS} = e; (app[api])({ tezgahKod, delayMS }).then(() => this.tazeleWithSignal()).catch(ex => { this.tazeleBasit(e); hConfirm(getErrorText(ex)); console.error(ex) }) }
+	tersKesmeIstendi_end(e) {
+		const {tezgahKod, ip} = this.inst, {_tersKesme_startTS: startTS} = this; delete this._tersKesme_startTS;
+		return this.gcsYapIstendi({ ...e, tezgahKod, ip, api: 'wsTersKesmeYap', delayMS: (now() - startTS) })
+	}
+	gcsYapIstendi(e) {
+		const {tezgahKod, ip} = this.inst, {api, delayMS} = e;
+		(app[api])({ tezgahKod, ip, delayMS }).then(() => this.tazeleWithSignal()).catch(ex => { this.tazeleBasit(e); hConfirm(getErrorText(ex)); console.error(ex) })
+	}
 	async isBittiIstendi(e) {
 		let rdlg = await ehConfirm(`Makine için <b class="darkred">İş Bitti</b> yapılacak, devam edilsin mi?`, this.title); if (!rdlg) { return }
 		const {tezgahKod} = this.inst; try { await app.wsIsBittiYap({ tezgahKod }); this.tazeleWithSignal() } catch(ex) { this.tazeleBasit(e); hConfirm(getErrorText(ex)); console.error(ex) }

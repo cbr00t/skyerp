@@ -46,7 +46,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 				sahalar: [
 					`${MQSQLOrtak.sqlServerDegeri(psTip)} pstip`, `${ifSql} piftipi`, `${efAyrimTipiClause} efayrimtipi`,
 					`fis.kaysayac`, `fis.almsat`, `fis.iade`, `fis.ayrimtipi`, `fis.tarih`, `fis.fisnox`, `fis.ticmust mustkod`, `car.birunvan`, `fis.efatuuid`,
-					(fisTablo == 'piffis' ? 'fis.zorunluguidstr' : `'' zorunluguidstr`), `fis.efgonderimts`, `fis.efatonaydurumu`, `fis.net sonucbedel`, `car.vkno vkn`, 'car.efatsenaryotipi'
+					(fisTablo == 'piffis' ? 'fis.zorunluguidstr' : `'' zorunluguidstr`), `fis.efimzats`, `fis.efgonderimts`, `fis.efatonaydurumu`, `fis.net sonucbedel`, `car.vkno vkn`, 'car.efatsenaryotipi'
 				]
 			});
 			sent.fis2TicCariBagla();
@@ -64,7 +64,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 				where: [ { birlestir: wh } ],
 				sahalar: [
 					`'ST' pstip`, `fis.ozeltip piftipi`, `'IR' efayrimtipi`, `fis.kaysayac`, `'T' almsat`, `'' iade`, `fis.fisekayrim ayrimtipi`, `fis.tarih`, `fis.fisnox`,
-					`'' mustkod`, `'' birunvan`, `fis.efatuuid`, `'' zorunluguidstr`, `fis.efgonderimts`, `fis.efatonaydurumu`, `0 sonucbedel`,
+					`'' mustkod`, `'' birunvan`, `fis.efatuuid`, `'' zorunluguidstr`, `fis.efimzats`, `fis.efgonderimts`, `fis.efatonaydurumu`, `0 sonucbedel`,
 					`(case when fis.fisekayrim = 'SC' then ${MQSQLOrtak.sqlServerDegeri(VergiNo.perakendeVKN)} else ${MQSQLOrtak.sqlServerDegeri(app.params.isyeri.vergiVeyaVKN || '')} end) vkn`,
 					'car.efatsenaryotipi'
 				]
@@ -82,7 +82,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 				where: { birlestir: wh },
 				sahalar: 
 					[`'SM' pstip`, `'' piftipi`, `'MS' efayrimtipi`, `fis.kaysayac`, `'T' almsat`, `'' iade`, `'' ayrimtipi`, `ust.tarih`, `fis.makbuznox fisnox`,
-					`fis.mustahsilkod mustkod`, `car.birunvan`, `fis.efatuuid`, `'' zorunluguidstr`, `fis.efgonderimts`, `fis.efatonaydurumu`, `0 sonucbedel`, `car.vkno vkn`, 'car.efatsenaryotipi'
+					`fis.mustahsilkod mustkod`, `car.birunvan`, `fis.efatuuid`, `'' zorunluguidstr`, `fis.efimzats`, `fis.efgonderimts`, `fis.efatonaydurumu`, `0 sonucbedel`, `car.vkno vkn`, 'car.efatsenaryotipi'
 				]
 			});
 			uni.add(sent)

@@ -68,6 +68,7 @@
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-rebeccapurple { background-color: rebeccapurple !important }
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-lightpink { background-color: lightpink !important }
 
+.efimzats:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).imzali { background-color: #e8c5b7 }
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).gonderildi { background-color: #cfc6c3 }
 
 .editable { background: unset !important }

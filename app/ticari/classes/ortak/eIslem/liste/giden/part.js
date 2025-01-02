@@ -23,10 +23,11 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		const getCSSDuzenleyici = e => {
 			e = e || {}; const {ekCSS, duzenleyici} = e;
 			return ((sender, rowIndex, belirtec, value, rec) => {
-				let result = [belirtec]; const {efayrimtipi, efatonaydurumu, efatuuid, efgonderimts} = rec;
+				let result = [belirtec]; const {efayrimtipi, efatonaydurumu, efatuuid, efimzats, efgonderimts} = rec;
 				if (!$.isEmptyObject(ekCSS)) { const _liste = $.isArray(ekCSS) ? ekCSS : [ekCSS]; result.push(..._liste) }
 				if (efayrimtipi != null) { result.push(`eIslTip-${efayrimtipi}`) }
 				if (efatonaydurumu != null) { result.push(`akibet-${efatonaydurumu}`) }
+				if (efimzats) { result.push('imzali') }
 				if (efgonderimts) { result.push('gonderildi') }
 				if (efatuuid) { result.push('hasUUID') }
 				if (duzenleyici) { const _e = $.extend({}, e, { sender, rowIndex, belirtec, value, rec, result }); getFuncValue.call(this, duzenleyici, _e); result = _e.result }
@@ -40,7 +41,8 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 			new GridKolon({ belirtec: 'fisnox', text: 'Belge<br/>No', genislikCh: 16, cellClassName: getCSSDuzenleyici() }),
 			new GridKolon({ belirtec: 'akibetText', text: 'Akıbet', genislikCh: 12, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
 			new GridKolon({ belirtec: 'efUUIDText', text: 'UUID<br/>(ETTN)', genislikCh: 36, cellClassName: getCSSDuzenleyici() }),
-			new GridKolon({ belirtec: 'efgonderimts', text: 'Gönderim<br/>Zamanı', genislikCh: 15, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'efimzats', text: 'XML Oluş.<br/>Zamanı', genislikCh: 16, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'efgonderimts', text: 'Gönderim<br/>Zamanı', genislikCh: 16, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
 			new GridKolon({ belirtec: 'mustText', text: 'Müşteri', filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
 			new GridKolon({ belirtec: 'sonucbedel', text: 'Sonuç<br/>Bedel', genislikCh: 14, cellClassName: getCSSDuzenleyici() }).tipDecimal_bedel()
 		])

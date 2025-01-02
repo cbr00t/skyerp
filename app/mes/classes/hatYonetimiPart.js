@@ -15,9 +15,9 @@ class HatYonetimiPart extends Part {
 	get selectedTezgahRecs() { const {tezgah2Rec, selectedTezgahKodListe} = this; return selectedTezgahKodListe.map(kod => tezgah2Rec[kod]) }
 	constructor(e) {
 		e = e || {}; super(e); const {sinifAdi: title} = this.class, {args, secince} = e; $.extend(this, {
-			title, tezgahKod: (e.tezgahKod ?? e.tezgahId)?.trimEnd(), cokluSecimmi: e.cokluSecim ?? e.cokluSecimmi ?? false, boxSize: e.boxSize,
+			title, tezgahKod: (e.tezgahKod ?? e.tezgahId)?.trimEnd(), cokluSecimmi: e.cokluSecim ?? e.cokluSecimmi ?? false, boxSize: e.boxSize, secince,
 			hizliBulAttrListe: e.hizliBulAttrListe ?? ['hatKod', 'hatAdi', 'tezgahKod', 'tezgahAdi', 'perKod', 'perIsim', 'ip', 'isListe', 'zamanEtuduText', 'ekAramaText'],
-			secince, ...args
+			...args
 		})
 	}
 	static listeEkraniAc(e) { e = e ?? {}; let part = new this(e); part.run(); return part }
@@ -150,7 +150,7 @@ class HatYonetimiPart extends Part {
 			}
 			let _recs = recs; recs = [];
 			for (let rec of _recs) {
-				let {hatKod, tezgahKod, isID} = rec; if (excludeTezgahKod && tezgahKod == excludeTezgahKod) { continue }
+				let {hatKod, tezgahKod, perKod, ip, isID, sinyalKritik, duraksamaKritik, sinyalSayilar} = rec; if (excludeTezgahKod && tezgahKod == excludeTezgahKod) { continue }
 				let tezgahRec = tezgah2Rec[tezgahKod] ?? { ...rec }, {isListe} = tezgahRec;
 				if (!tezgah2Rec[tezgahKod]) { tezgah2Rec[tezgahKod] = tezgahRec; recs.push(tezgahRec); isListe = tezgahRec.isListe = [] }
 				let isSaymaInd = tezgahRec.isSaymaInd || 0, isSaymaSayisi = rec.isSaymaSayisi = rec.isSaymaSayisi || (isID ? 1 : 0);
@@ -159,7 +159,10 @@ class HatYonetimiPart extends Part {
 					const {oemgerceklesen, oemistenen} = rec; rec.oee = oemistenen ? roundToFra(Math.max(oemgerceklesen * 100 / oemistenen, 0), 2) : 0;
 					delete rec.isListe; isListe.push(rec); let set = isID2TezgahKodSet; (set[isID] = set[isID] || {})[tezgahKod] = true
 				}
-				rec.ekAramaText = `durum:${rec.durumKod}`
+				let ekAramaListe = [`hat:${hatKod} tezgah:${tezgahKod} per:${perKod} personel:${perKod} ip:${ip} durum:${rec.durumKod} sinyal:yok`];
+				if (sinyalKritik) { ekAramaListe.push('sinyalKritik sinyal-kritik ayrildi ayrildi') } else { ekAramaListe.push('yerinde') }
+				if (duraksamaKritik) { ekAramaListe.push('duraksamaKritik duraksama-kritik') }
+				tezgahRec.ekAramaText = ekAramaListe?.length ? ekAramaListe.join(' ') : ''
 			}
 		}
 		if (!basitmi && tezgah2Rec && !$.isEmptyObject(isID2TezgahKodSet)) {
@@ -175,6 +178,14 @@ class HatYonetimiPart extends Part {
 					p.resolve()
 				}))
 			} if (promises?.length) { await Promise.all(promises) }
+		}
+		if (promise_tezgah2SinyalSayiRecs && tezgah2Rec) {
+			let _recs = await promise_tezgah2SinyalSayiRecs; for (const {tezgahkod: tezgahKod, bsanal: sanalmi, sayi} of _recs) {
+				let rec = tezgah2Rec[tezgahKod]; if (!rec) { continue }
+				let key = sanalmi ? 'sanal' : 'cihaz', sinyalSayilar = rec.sinyalSayilar = rec.sinyalSayilar ?? {};
+				sinyalSayilar[key] = (sinyalSayilar[key] || 0) + (sayi || 0);
+				if (rec.ekAramaText?.includes('sinyal:yok')) { rec.ekAramaText = rec.ekAramaText.replaceAll('sinyal:yok', 'sinyal:var') }
+			}
 		}
 		if (recs && filtreTokens?.length) {
 			let {hizliBulAttrListe} = this, _recs = recs; recs = []; for (const rec of _recs) {
@@ -209,13 +220,6 @@ class HatYonetimiPart extends Part {
 					if (ekNotLastReadId < maxId && btnTumEkNotlar?.length) { btnTumEkNotlar.addClass('yeni-not') }
 				})
 			}, 500)
-		}
-		if (promise_tezgah2SinyalSayiRecs && tezgah2Rec) {
-			let _recs = await promise_tezgah2SinyalSayiRecs; for (const {tezgahkod: tezgahKod, bsanal: sanalmi, sayi} of _recs) {
-				let rec = tezgah2Rec[tezgahKod]; if (!rec) { continue }
-				let key = sanalmi ? 'sanal' : 'cihaz', sinyalSayilar = rec.sinyalSayilar = rec.sinyalSayilar ?? {};
-				sinyalSayilar[key] = (sinyalSayilar[key] || 0) + (sayi || 0)
-			}
 		}
 		return recs
 	}
@@ -255,7 +259,7 @@ class HatYonetimiPart extends Part {
 				let {tezgahKod, isListe, durumKod, durNedenKod, sinyalKritik, duraksamaKritik, sinyalSayilar} = rec, topSaymaInd = 0, topSaymaSayisi = 0;
 				let kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod && durumKod == 'DR' ? kritikDurNedenKodSet[durNedenKod] : false;
 				for (const is of isListe) { topSaymaInd += (is.isSaymaInd || 0); topSaymaSayisi += (is.isSaymaSayisi || 0) }
-				let itemTezgah = itemHat.find(`.tezgah.item[data-id = "${tezgahKod}"]`); if (!itemTezgah.length) { continue }
+				let itemTezgah = itemHat.find(`.tezgah.item[data-id = '${tezgahKod}']`); if (!itemTezgah.length) { continue }
 				itemTezgah[sinyalKritik ? 'addClass' : 'removeClass']('sinyal-kritik'); itemTezgah[duraksamaKritik && kritikDurNedenmi ? 'addClass' : 'removeClass']('duraksama-kritik');
 				itemTezgah[kritikDurNedenmi ? 'addClass' : 'removeClass']('kritik-durNeden'); setHTMLValues(itemTezgah, rec,
 					'tezgahKod', 'tezgahAdi', 'ip', 'siradakiIsSayi', 'ekBilgi', 'perKod', 'perIsim', 'emirMiktar', 'onceUretMiktar', 'aktifUretMiktar', 'isIskMiktar', 'isNetMiktar',
@@ -675,7 +679,7 @@ class HatYonetimiPart extends Part {
 		const recs = e.recs ?? this.tezgahRecs; if (!recs) { return null }
 		const hat2Durum2Sayi = {}, durNeden2TezgahKod = {}; let topMakineSayi = 0, topAktifSayi = 0, topPasifSayi = 0, topOffSayi = 0;
 		for (let {hatKod: hatText, tezgahKod, sinyalKritik, durumKod, durNedenAdi} of recs) {
-			let orjDurumKod = durumKod; if (durumKod == 'DV') { durumKod = sinyalKritik ? 'APSF' : 'ZON' } else { durumKod = 'XOFF' }
+			let orjDurumKod = durumKod; durumKod = sinyalKritik ? 'APSF' : durumKod == 'DV' ? 'ZON' : 'XOFF';
 			let durum2Sayi = hat2Durum2Sayi[hatText]; if (durum2Sayi == null) { durum2Sayi = hat2Durum2Sayi[hatText] = {}; for (const key of ['ZON', 'APSF', 'XOFF']) { durum2Sayi[key] = 0 } }
 			durum2Sayi[durumKod] = (durum2Sayi[durumKod] || 0) + 1; topMakineSayi++;
 			if (durumKod == 'ZON') { topAktifSayi++ } else if (durumKod == 'APSF') { topPasifSayi++ } else { topOffSayi++ }

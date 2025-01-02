@@ -560,6 +560,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 	xmlDuzenle_detayDevam_miktar(e) {
 		super.xmlDuzenle_detayDevam_miktar(e);
 		const det = e.detay, result = det.eMiktarYapi, brm = result.brm || det.brm, ulsBrm = app.params.stokBirim.brmDict[brm]?.intKod || 'NIU';			/* NIU = AD */
+		if (!ulsBrm) { throw { isError: true, rc: 'brmUls', errorText: `<b class="royalblue">${brm}</b> Stok Birim kodu için <u class="bold royalblue">Uls. Kod Karşılığı</u>, Stok Birim Parametrelerinden tanımlanmalıdır` } }
 		e.xw.writeElementString('cbc:InvoicedQuantity', result.asilMiktar || 0, null, { unitCode: ulsBrm })
 	}
 	xmlDuzenle_detayDevam_fiyat(e) {

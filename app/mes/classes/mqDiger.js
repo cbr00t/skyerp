@@ -257,6 +257,10 @@ class MQSinyal extends MQMasterOrtak {
 			let tSec = sec.sanalSecim.tekSecim; if (!tSec.hepsimi) { tSec.getTersBoolBitClause(`${alias}.bsanal`) }
 		})
 	}
+	static standartGorunumListesiDuzenle(e) {
+		super.standartGorunumListesiDuzenle(e); let {liste} = e;
+		e.liste = liste = liste.filter(x => x != 'ts')
+	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(...[
 			new GridKolon({ belirtec: 'tezgahkod', text: 'Tezgah', genislikCh: 10 }),

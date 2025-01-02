@@ -146,8 +146,8 @@ body.dark-theme .hatYonetimi.part .content .liste .tezgah.item .alt { filter: in
 [data-durum = 'DR'] { color: #dec8bf !important; box-shadow: 5px 5px 8px 5px #ed8562 }
 [data-durum = 'AT'] { color: #978ae6 !important; box-shadow: 8px 8px 13px 8px #978ae6 }
 [data-durum = 'BK'] { color: #bbb !important; box-shadow: 8px 8px 13px 10px #8d8d8d }
-[role = row] *:has([data-durum = 'DV'].sinyal-kritik) { box-shadow: 1px 1px 5px 1px #7aa964 }
-[data-durum = 'DV'].sinyal-kritik, .sinyal-kritik [data-durum = 'DV'] {
+[role = row] *:has([data-durum = 'DV'].sinyal-kritik), [role = row] *:has([data-durum = 'DR'].sinyal-kritik) { box-shadow: 1px 1px 5px 1px #7aa964 }
+[data-durum = 'DV'].sinyal-kritik, [data-durum = 'DR'].sinyal-kritik, .sinyal-kritik [data-durum = 'DV'], .sinyal-kritik [data-durum = 'DR'] {
 	color: whitesmoke !important; box-shadow: 5px 5px 8px 10px #1e8e1e; animation: 1300ms cubic-bezier(0.1, 0, 1, 1) 0ms infinite normal sinyal-kritik-bg }
 [role = row] *has:([data-durum = 'DR'].kritik-durNeden), .kritik-durNeden { box-shadow: 1px 1px 5px 1px #ad342d }
 [data-durum = 'DR'].kritik-durNeden, .kritik-durNeden [data-durum = 'DR'] { color: #cd857f !important; box-shadow: 5px 5px 5px 8px #ba524b }

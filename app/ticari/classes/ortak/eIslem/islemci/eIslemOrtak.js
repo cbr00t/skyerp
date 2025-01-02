@@ -110,7 +110,7 @@ class EIslemOrtak extends CObject {
 			const {updCallback} = e; delete e.updCallback;
 			let query = e.query = new MQIliskiliUpdate({
 				from: baslik.fisTable, where: { degerAta: baslik.fissayac, saha: 'kaysayac'},
-				set: { degerAta: baslik.uuid, saha: 'efatuuid' }
+				set: [{ degerAta: baslik.uuid, saha: 'efatuuid' }, { degerAta: now(), saha: 'efimzats' }]
 			});
 			if (updCallback) { await getFuncValue.call(this, updCallback, e) } else{ await app.sqlExecNone({ query }) }
 		}
