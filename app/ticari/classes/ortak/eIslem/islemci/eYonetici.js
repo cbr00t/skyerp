@@ -312,12 +312,12 @@ class EYonetici extends CObject {
 	async eIslemXMLOlustur(e) {
 		const {sender, callback} = e, {eConf} = this, eIslAnaSinif = this.eIslSinif;
 		$.extend(e, { ps2SayacListe: this.ps2SayacListe ?? this.class.getPS2SayacListe(e) });
-		const stm = eIslAnaSinif.getUUIDStm(e); for (const key of ['psTip2SayacListe', 'whereDuzenleyici']) delete e[key]
+		const stm = eIslAnaSinif.getUUIDStm(e); for (const key of ['psTip2SayacListe', 'whereDuzenleyici']) { delete e[key] }
 		if (!stm) { throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' } }
 		const efAyrimTipi2Arastirilacaklar = {}, olusacakPS2Sayaclar = {}; let recs = await app.sqlExecSelect(stm);
 		if (window.progressManager) { window.progressManager.progressMax = (window.progressManager.progressMax || 0) + recs.length }
-		for (const rec of recs) {
-			const {pstip, fissayac, uuid} = rec;
+		for (let rec of recs) {
+			let {pstip, fissayac, uuid} = rec;
 			if (!uuid) { (olusacakPS2Sayaclar[pstip] = olusacakPS2Sayaclar[pstip] || []).push(fissayac); continue }
 			const efAyrimTipi = rec.efayrimtipi = rec.efayrimtipi || 'A'; (efAyrimTipi2Arastirilacaklar[efAyrimTipi] = efAyrimTipi2Arastirilacaklar[efAyrimTipi] || []).push(rec)
 		}
@@ -333,9 +333,8 @@ class EYonetici extends CObject {
 				if (!$.isEmptyObject(dosyaAdiSet)) {
 					// toplu uuid2Dosya xml dosya kontrol
 					const fileNames = Object.keys(dosyaAdiSet);
-					const result = await app.wsDosyaListe({ args: { dir: anaBolum, recursive: true, includeDirs: false, pattern: `${'?'.repeat(newGUID().length)}.xml`, fileNames } }) || {};
-					const {recs} = result; for (const rec of recs) {
-						const dosyaAdi = rec.name, uuid = dosyaAdi.split('.')[0].trim(); delete eksikUUID2Dosya[uuid]; delete dosyaAdiSet[dosyaAdi] }
+					let {recs} = await app.wsDosyaListe({ args: { dir: anaBolum, recursive: true, includeDirs: false, pattern: `${'?'.repeat(newGUID().length)}.xml`, fileNames } }) || {};
+					for (const rec of recs) { const dosyaAdi = rec.name, uuid = dosyaAdi.split('.')[0].trim(); delete eksikUUID2Dosya[uuid]; delete dosyaAdiSet[dosyaAdi] }
 				}
 				for (const [efAyrimTipi, recs] of Object.entries(efAyrimTipi2Arastirilacaklar)) {
 					for (const {uuid, pstip: psTip, fissayac: fisSayac} of recs) {
@@ -343,29 +342,27 @@ class EYonetici extends CObject {
 				}
 			}
 		}
-		let kalanSayi = recs.length; const eFisListe = [], uuid2Result = e.uuid2Result = e.uuid2Result || {};
+		let kalanSayi = recs.length, eFisListe = [], uuid2Result = e.uuid2Result = e.uuid2Result || {};
 		if (!$.isEmptyObject(olusacakPS2Sayaclar)) {
-			for (const sayacListe of Object.values(olusacakPS2Sayaclar)) {
-				const sayi = sayacListe.length; kalanSayi -= sayi;
-				if (window.progressManager) { window.progressManager.progressStep(sayi) }
-			}
+			for (const {length: sayi} of Object.values(olusacakPS2Sayaclar)) {
+				kalanSayi -= sayi; if (window.progressManager) { window.progressManager.progressStep(sayi) } }
 		}
 		if (!$.isEmptyObject(olusacakPS2Sayaclar)) {
-			const _e = $.extend({}, e, this); $.extend(_e, { ps2SayacListe: olusacakPS2Sayaclar, temps: {} })
-			const stm = eIslAnaSinif.getEFisBaslikVeDetayStm(_e); if (!stm) { return } recs = await app.sqlExecSelect(stm);
-			const sevRecs = seviyelendirAttrGruplari({ source: recs, attrGruplari: [['pstip', 'fissayac']] }), ps2Sayac2EFis = _e.ps2Sayac2EFis = {};
-			for (const sev of sevRecs) {
-				const rec = sev.orjBilgi, psTip = rec.pstip, fisSayac = rec.fissayac, efAyrimTipi = rec.efayrimtipi = rec.efayrimtipi || 'A';
+			let _e = { ...e, ...this , ps2SayacListe: olusacakPS2Sayaclar, temps: {} };
+			let stm = eIslAnaSinif.getEFisBaslikVeDetayStm(_e); if (!stm) { return }
+			let recs = await app.sqlExecSelect(stm), sevRecs = seviyelendirAttrGruplari({ source: recs, attrGruplari: [['pstip', 'fissayac']] }), ps2Sayac2EFis = _e.ps2Sayac2EFis = {};
+			for (let sev of sevRecs) {
+				let {orjBilgi: rec} = sev, {pstip: psTip, fissayac: fisSayac} = rec, efAyrimTipi = rec.efayrimtipi = rec.efayrimtipi || 'A';
 				$.extend(rec, { tarihStr: asReverseDateString(rec.tarih), sevkTarihStr: timeToString(rec.sevktarih || now()) });
 				$.extend(sev, { orjBilgi: new EIslBaslik(sev.orjBilgi), detaylar: sev.detaylar.map(det => new EIslDetay(det)) });
-				const eFis = EIslemOrtak.newFor({ tip: efAyrimTipi, eConf }); await eFis.baslikVeDetaylariYukle($.extend({}, _e, { baslik: sev.orjBilgi, detaylar: sev.detaylar }));
-				const sayac2EFis = ps2Sayac2EFis[psTip] = ps2Sayac2EFis[psTip] || {}; sayac2EFis[fisSayac] = eFis
+				let eFis = EIslemOrtak.newFor({ tip: efAyrimTipi, eConf }); await eFis.baslikVeDetaylariYukle({ ..._e, baslik: sev.orjBilgi, detaylar: sev.detaylar });
+				let sayac2EFis = ps2Sayac2EFis[psTip] = ps2Sayac2EFis[psTip] || {}; sayac2EFis[fisSayac] = eFis
 			}
-			await eIslAnaSinif.tipIcinFislerEkDuzenlemeYap(_e); let temps = _e.temps = {};
-			const BlockSize = 100; for (const psTip in ps2Sayac2EFis) {
+			await eIslAnaSinif.tipIcinFislerEkDuzenlemeYap(_e); let temps = _e.temps = {}, BlockSize = 100;
+			for (const psTip in ps2Sayac2EFis) {
 				const sayac2EFis = ps2Sayac2EFis[psTip], fisSayacListe = Object.keys(sayac2EFis);
 				while (fisSayacListe.length) {
-					const subFisSayacListe = fisSayacListe.splice(0, BlockSize), uuid2SubResult = {};
+					let subFisSayacListe = fisSayacListe.splice(0, BlockSize), uuid2SubResult = {};
 					let toplu = new MQToplu(), updCallback = _e.updCallback = ({ query }) => { if (query) { toplu.add(query) } };
 					let promises = [], uploadList = []; const commit = async () => {
 						await Promise.all(promises); promises = [];
@@ -374,14 +371,14 @@ class EYonetici extends CObject {
 					};
 					for (const fisSayac of subFisSayacListe) {
 						promises.push(new $.Deferred(async p => {
-							const eFis = sayac2EFis[fisSayac], {baslik} = eFis, efAyrimTipi = baslik.efayrimtipi;
-							const eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi }), anaBolum = eConf.getAnaBolumFor({ eIslSinif });
+							let eFis = sayac2EFis[fisSayac], {baslik} = eFis, {efayrimtipi: efAyrimTipi} = baslik;
+							let eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi }), anaBolum = eConf.getAnaBolumFor({ eIslSinif });
 							if (!anaBolum) { throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' } }
 							let uuid; try {
-								const args = { ..._e }, xmlStr = await eFis.xmlOlustur(args); if (!xmlStr) { p.resolve() }
+								let args = { ..._e }, xmlStr = await eFis.xmlOlustur(args); if (!xmlStr) { p.resolve() }
 								uuid = baslik.uuid; uuid2Result[uuid] = uuid2Result[uuid] ?? { islemZamani: now(), isError: false, eFis, rec: baslik, efAyrimTipi };
 								/* const uuid2XML = e.uuid2XML = e.uuid2XML || {}; uuid2XML[uuid] = xmlStr; */
-								const xmlDosya = `${anaBolum}\\IMZALI\\${uuid}.xml`; /*await app.wsUpload({ remoteFile: xmlDosya, args: xmlStr });*/
+								let xmlDosya = `${anaBolum}\\IMZALI\\${uuid}.xml`; /*await app.wsUpload({ remoteFile: xmlDosya, args: xmlStr });*/
 								uploadList.push({ name: xmlDosya, data: Base64.encode(xmlStr) });
 								/*if (config.dev) { const url = URL.createObjectURL(new Blob([xmlStr], { type: 'application/xml' })); openNewWindow(url) }*/
 							} catch (ex) {
@@ -461,7 +458,7 @@ class EYonetici extends CObject {
 			}
 			catch (ex) { isError = true; errorText = getErrorText(ex); console.error(ex) }
 			$.extend(subResult, { islemZamani: now(), isError, errorText, uuid, eFis });
-			if (eFis) { const efAyrimTipi = eFis.eIslTip, {tarih, fisNox} = eFis; $.extend(subResult, { efAyrimTipi, tarih, fisNox }) }
+			if (eFis) { let {eIslTip: efAyrimTipi} = eFis, {tarih, fisNox} = eFis; $.extend(subResult, { efAyrimTipi, tarih, fisNox }) }
 			blockSubResults.push(subResult); uuid2Result[uuid] = subResult; seq++;
 			if (blockSubResults.length >= BlockSize) { await kismiVeriIsleVeBosalt(e) }
 		}

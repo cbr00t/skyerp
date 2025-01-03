@@ -5,55 +5,41 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 	get gondericiBilgi() { return app.params.isyeri } get aliciBilgi() { return this.baslik.aliciBilgi }
 	static getUUIDStm(e) {
 		e = e || {}; const gelenmi = e.gelen ?? e.gelenmi, ps2SayacListe = getFuncValue.call(this, e.ps2SayacListe || e.psTip2SayacListe, e) || {};
-		const genelWhereDuzenleyici = e.whereDuzenleyici, genelSentDuzenleyici = e.sentDuzenleyici, genelStmDuzenleyici = e.stmDuzenleyici; let stm;
+		let {whereDuzenleyici: genelWhereDuzenleyici, sentDuzenleyici: genelSentDuzenleyici, stmDuzenleyici: genelStmDuzenleyici} = e, stm;
 		if (gelenmi) {
-			const psTip = 'P', buSayaclar = ps2SayacListe[psTip];
-			const sent = new MQSent({
+			let psTip = 'P', buSayaclar = ps2SayacListe[psTip]; let sent = new MQSent({
 				from: 'efgecicialfatfis fis',
 				sahalar: [`'${psTip}' pstip`, 'fis.kaysayac fissayac', 'fis.efuuid uuid', 'fis.efbelge efayrimtipi', 'fis.tarih', 'fis.effatnox fisnox']
 			});
 			if (buSayaclar || genelWhereDuzenleyici) {
 				if (buSayaclar) { sent.where.inDizi(buSayaclar, 'fis.kaysayac') }
-				if (genelWhereDuzenleyici) {
-					const _e = $.extend({}, e, { psTip, table, uni, sent, where: sent.where });
-					if (genelWhereDuzenleyici) getFuncValue.call(this, genelWhereDuzenleyici, _e)
-				}
+				if (genelWhereDuzenleyici) { getFuncValue.call(this, genelWhereDuzenleyici, { ...e, psTip, table, uni, sent, where: sent.where }) }
 			}
-			sent.gereksizTablolariSil();
-			stm = new MQStm({ sent })
+			else if (!$.isEmptyObject(ps2SayacListe)) { return null }
+			sent.gereksizTablolariSil(); stm = new MQStm({ sent })
 		}
 		else {
-			const uni = new MQUnionAll(), psTipVeYapilar = [
+			let uni = new MQUnionAll(), psTipVeYapilar = [
 				{ psTip: 'P', table: 'piffis', whereDuzenleyici: e => e.where.add(`fis.ayrimtipi <> 'IN'`) },
 				{ psTip: 'S', table: 'sipfis', whereDuzenleyici: e => e.where.addAll(`fis.ayrimtipi = 'EM'`, `fis.ozeltip = 'E'`) },
 			];
-			for (const item of psTipVeYapilar) {
-				const {psTip, table, whereDuzenleyici} = item;
-				const sent = new MQSent({
-					from: `${table} fis`,
-					where: [
-						`fis.efayrimtipi IN ('E', 'A', '')`,
-						new MQOrClause([`(fis.almsat = 'T' AND fis.iade = '')`, `(fis.almsat = 'A' AND fis.iade = 'I')` ])
-					],
+			for (let {psTip, table, whereDuzenleyici} of psTipVeYapilar) {
+				let buSayaclar = ps2SayacListe[psTip], sent = new MQSent({
+					from: `${table} fis`, where: [`fis.efayrimtipi IN ('E', 'A', '')`, new MQOrClause([`(fis.almsat = 'T' AND fis.iade = '')`, `(fis.almsat = 'A' AND fis.iade = 'I')` ]) ],
 					sahalar: [`'${psTip}' pstip`, 'fis.kaysayac fissayac', 'fis.efatuuid uuid', 'fis.efayrimtipi', 'fis.tarih', 'fis.fisnox']
 				});
 				sent.fis2CariBagla(); sent.where.fisSilindiEkle();
-				const buSayaclar = ps2SayacListe[psTip];
 				if (buSayaclar || genelWhereDuzenleyici) {
 					if (buSayaclar) { sent.where.inDizi(buSayaclar, 'fis.kaysayac') }
 					if (whereDuzenleyici || genelWhereDuzenleyici) {
-						const _e = $.extend({}, e, { psTip, table, uni, sent, where: sent.where });
-						if (whereDuzenleyici) getFuncValue.call(this, whereDuzenleyici, _e)
-						if (genelWhereDuzenleyici) getFuncValue.call(this, genelWhereDuzenleyici, _e)
+						let _e = { ...e, psTip, table, uni, sent, where: sent.where };
+						if (whereDuzenleyici) { getFuncValue.call(this, whereDuzenleyici, _e) }
+						if (genelWhereDuzenleyici) { getFuncValue.call(this, genelWhereDuzenleyici, _e) }
 					}
 				}
-				sent.gereksizTablolariSil(); uni.add(sent);
-				if (genelSentDuzenleyici) {
-					(() => {
-						const _e = $.extend({}, e, { psTip, table, uni, sent, where: sent.where });
-						getFuncValue.call(this, genelSentDuzenleyici, _e)
-					})()
-				}
+				else if (!$.isEmptyObject(ps2SayacListe)) { continue }
+				if (genelSentDuzenleyici) { getFuncValue.call(this, genelSentDuzenleyici, { ...e, psTip, table, uni, sent, where: sent.where }) }
+				sent.gereksizTablolariSil(); uni.add(sent)
 			}
 			stm = $.isEmptyObject(uni.liste) ? null : new MQStm({ sent: uni })
 		}

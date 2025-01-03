@@ -80,7 +80,11 @@ class HatYonetimiPart extends Part {
 	hizliBulIslemi(e) { const {tokens} = e; this.filtreTokens = tokens; this.tazele(e); return this }
 	tazeleBasit(e) { return this.tazele({ ...e, basit: true }) }
 	tazeleWithSignal() { app.signalChange(); return this }
-	onSignalChange(e) { this.tazeleBasit(e); return this }
+	onSignalChange(e) {
+		clearTimeout(this._timer_signalChange);
+		this._timer_signalChange = setTimeout(() => { try { this.tazeleBasit(e) } finally { delete this._timer_signalChange } }, 2000);
+		return this
+	}
 	async tazele(e) {
 		e = e ?? {}; let basitmi = e.basit ?? e.basitmi, {action} = e, butonmu = action == 'button', waitMS = 500;
 		try {
@@ -326,7 +330,7 @@ class HatYonetimiPart extends Part {
 								<div class="ekBilgi-parent parent">
 									<button id="ekBilgiSil" class="ekBilgi veri"></button>
 								</div>
-								<div class="zamanEtuduVarmi-parent parent">
+								<div class="zamanEtuduVarmi-parent parent jqx-hidden">
 									<span class="zamanEtuduText veri">Zmn.</span>
 								</div>
 							</div>
