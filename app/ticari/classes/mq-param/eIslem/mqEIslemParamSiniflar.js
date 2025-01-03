@@ -28,7 +28,7 @@ class MQEIslemParam extends MQTicariParamBase {
 			.degisince(e => {
 				const {builder} = e, /*oeChar = builder.value?.char ?? builder.value,*/ {id2Builder} = builder.parentBuilder.id2Builder.oeParam;
 				const {id, altInst} = builder; let value = altInst[id]; if (typeof value != 'object') { value = altInst[id] = new EOzelEntegrator(value) }
-				for (const id of ['wsUser', 'wsPass']) {
+				for (const id of ['wsUser', 'wsPass', 'firmaKodu', 'subeKodu']) {
 					const subBuilder = id2Builder[id]; subBuilder.setAltInst(builder.altInst.oeParam ?? null);
 					const {altInst} = subBuilder; subBuilder.setVisibleKosulu(!!altInst); subBuilder.updateVisible();
 					if (altInst) { subBuilder.setValue(altInst[id] ?? '') }
@@ -36,6 +36,7 @@ class MQEIslemParam extends MQTicariParamBase {
 			})
 		let form = paramci.addFormWithParent('oeParam').setAltInst(e => e.paramci?.inst?.oeParam);
 			form.addString('wsUser', 'WS Kullanıcı').setRowAttr('kullaniciAdi'); form.addString('wsPass', 'WS Şifre').setRowAttr('sifre').addStyle(e => `$elementCSS > input { font-size: 80%; text-align: center }`);
+			form.addString('firmaKodu', 'Firma Kodu'); form.addString('subeKodu', 'Şube Kodu');
 		form.addBool('testmi', 'Test').setAltInst(e => e.paramci?.root?.inst);
 		form = paramci.addFormWithParent();
 			form.addString('gibAlias', 'GIB Alias').setRowAttr('efatGIBAlias'); form.addString('eArsGIBAlias', 'e-Arşiv GIB Alias').setRowAttr('earsGIBAlias'); form.addString('eIrsGIBAlias', 'e-İrs. GIB Alias').setRowAttr('eirsGIBAlias');
@@ -73,7 +74,9 @@ class MQEIslemParam extends MQTicariParamBase {
 			innova: rec.oeInnova || {}, edm: rec.oeEDM || {}, veriban: rec.oeVeriban || {}, eFinans: rec.oeEFinans || {}, nes: rec.oeNES || {}, nesV4: rec.oeNESv4 || {},
 			uyumsoft: rec.oeUyumsoft || {}, turkkep: rec.oeTurkkep || {}
 		};
-		const oeKeyDonusum = { kullaniciAdi: 'wsUser', sifre: 'wsPass', eArsivKullaniciAdi: 'eArsiv_wsUser', eArsivSifre: 'eArsiv_wsPass', originatorUserId: 'firmaKodu', institutionId: 'firmaKodu', erpKodu: 'firmaKodu', token: 'wsPass' };
+		const oeKeyDonusum = {
+			kullaniciAdi: 'wsUser', sifre: 'wsPass', eArsivKullaniciAdi: 'eArsiv_wsUser', eArsivSifre: 'eArsiv_wsPass', originatorUserId: 'firmaKodu', institutionId: 'firmaKodu', erpKodu: 'firmaKodu', token: 'wsPass'
+		};
 		for (const oeKey in oe) {
 			const oeParam = oe[oeKey]; if (!oeParam) { continue }
 			for (const [key, newKey] of Object.entries(oeKeyDonusum)) { const value = oeParam ? oeParam[key] : undefined; if (value !== undefined) { oeParam[newKey] = value; delete oeParam[key] } }
@@ -83,6 +86,7 @@ class MQEIslemParam extends MQTicariParamBase {
 				const value = rec[rowAttr]; if (value == null) { continue }
 				const ioAttr = oeKeyDonusum[rowAttr] ?? rowAttr; oeParam[ioAttr] = value
 			}
+			for (const key of ['wsUser', 'wsPass', 'firmaKodu', 'subeKodu']) { let value = this[key]; if (value != null && !oeParam[key]) { oeParam[key] = value } }
 		}
 		let keys = ['hmrKodListe', 'hmrKodListeEIrs']; for (const key of keys) this[key] = rec[key] || []
 		keys = ['eIhrAlinmayacakKolonlar']; for (const key of keys) this[key] = asSet(rec[key] || {})

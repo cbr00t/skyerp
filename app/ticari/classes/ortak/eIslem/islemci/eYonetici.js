@@ -153,6 +153,7 @@ class EYonetici extends CObject {
 						if (results) {
 							for (let i = 0; i < subRecs.length; i++) {
 								const result = results[i]; if (!result) { continue } const rec = subRecs[i], {uuid} = rec, sayac = rec.kaysayac;
+								if (result?.statusCode == 0) { $.extend(result, { isError: false }) }
 								$.extend(result, { islemZamani: now(), isError: result.isError ?? !result.result, psTip, sayac, uuid, rec, efAyrimTipi });
 								uuid2Result[uuid] = subUUID2Result[uuid] = result
 							}
