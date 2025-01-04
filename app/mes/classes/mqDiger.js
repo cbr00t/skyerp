@@ -9,9 +9,9 @@ class MQOEM extends MQMasterOrtak {
 					<th class="urun item">Ürün</th>
 				</tr></thead>
 				<tbody><tr>
-					<td class="emir item"><span class="veri">${rec.fisnox}</span> <span class="ek-bilgi">${rec.emirtarih}</span></th>
-					<td class="oper item"><span class="veri">${rec.opadi}</span> <span class="ek-bilgi">${rec.opno}</span></th>
-					<td class="urun item"><span class="veri">${rec.urunadi}</span> <span class="ek-bilgi">${rec.urunkod}</span></th>
+					<td class="emir item"><span class="veri">${rec.fisnox ?? rec.emirNox ?? ''}</span> <span class="ek-bilgi">${rec.emirtarih ?? rec.emirTarih ?? ''}</span></th>
+					<td class="oper item"><span class="veri">${rec.opadi ?? rec.opAdi ?? rec.operAciklama ?? ''}</span> <span class="ek-bilgi">${rec.opno ?? rec.opNo ?? rec.operNo}</span></th>
+					<td class="urun item"><span class="veri">${rec.urunadi ?? rec.urunAdi ?? rec.urunAciklama}</span> <span class="ek-bilgi">${rec.urunkod ?? rec.urunKod}</span></th>
 				</tr></tbody>
 			</table>`).appendTo(parent)
 	}
