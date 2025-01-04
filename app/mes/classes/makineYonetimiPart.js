@@ -57,8 +57,10 @@ class MakineYonetimiPart extends Part {
 							.catch(ex => { let ledDurum = 'error'; elm.attr('data-led', ledDurum); this.sonLEDDurum = ledDurum })
 					}, 200)
 				}
-				try { let {isID: isId} = inst, rec = isId ? await app.wsGorevZamanEtuduVeriGetir({ isId }) : null; if (rec?.bzamanetudu) { inst.zamanEtuduVarmi = true } }
-				catch (ex) { console.error(getErrorText(ex)) }
+				if (!basitmi) {
+					try { let {isID: isId} = inst, rec = isId ? await app.wsGorevZamanEtuduVeriGetir({ isId }) : null; if (rec?.bzamanetudu) { inst.zamanEtuduVarmi = true } }
+					catch (ex) { console.error(getErrorText(ex)) }
+				}
 			}
 			this.updateTitle(e); const {subContent} = this, html_oemBilgileri = this.getLayout_tblOEMBilgileri(e), layout = html_oemBilgileri ? $(html_oemBilgileri) : null;
 			subContent.children().remove(); if (layout?.length) { layout.appendTo(subContent); this.initEvents_tblOEMBilgileri({ layout }); makeScrollable(subContent.find('.isListe > .parent')) }

@@ -330,9 +330,6 @@ class HatYonetimiPart extends Part {
 								<div class="ekBilgi-parent parent">
 									<button id="ekBilgiSil" class="ekBilgi veri"></button>
 								</div>
-								<div class="zamanEtuduVarmi-parent parent jqx-hidden">
-									<span class="zamanEtuduText veri">Zmn.</span>
-								</div>
 							</div>
 							<div class="per-parent sub-item parent flex-row">
 								<div class="ka">
@@ -378,6 +375,7 @@ class HatYonetimiPart extends Part {
 							<div class="aktifIsSayi-parent item"><span class="aktifIsSayi"></span><span class="ek-bilgi"> iş</span></div>
 						</div>
 					</div>
+					<div class="zamanEtuduVarmi-parent parent jqx-hidden"><span class="zamanEtuduText veri">Zmn.</span></div>
 					<div class="grafik-parent parent"></div>
 				</div>
 				<div class="alt ust-alt flex-row full-width">
