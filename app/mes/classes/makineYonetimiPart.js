@@ -104,12 +104,12 @@ class MakineYonetimiPart extends Part {
 	}
 	isAtaKaldirIstendi(e) { const {tezgahKod, tezgahAdi} = this.inst; return MQSiradakiIsler.listeEkraniAc({ args: { tezgahKod, tezgahAdi } }) }
 	baslatDurdurIstendi(e) {
-		const {inst} = this, {tezgahKod, durumKod} = inst;
-		if (durumKod == 'DV') {
+		const {inst} = this, {tezgahKod, durumKod, sinyalKritik} = inst;
+		if (durumKod == 'DV' || (durumKod == 'DR' && sinyalKritik)) {
 			return MQDurNeden.listeEkraniAc({
 				tekil: true, args: { tezgahKod }, secince: async e => {
-					const {sender} = e, {tezgahKod} = sender; if (!tezgahKod) { return false }
-					const durNedenKod = e.value; try { await app.wsBaslatDurdur({ tezgahKod, durNedenKod }); this.tazeleWithSignal() } catch (ex) { hConfirm(getErrorText(ex)) }
+					const {sender, value: durNedenKod} = e, {tezgahKod} = sender; if (!(tezgahKod && durNedenKod)) { return false }
+					try { await app.wsBaslatDurdur({ tezgahKod, durNedenKod }); this.tazeleWithSignal() } catch (ex) { hConfirm(getErrorText(ex)) }
 				}
 			})
 		}
@@ -233,7 +233,7 @@ class MakineYonetimiPart extends Part {
 				<tr class="isBilgileri"><td class="item" colspan="3">${isBilgiHTML}</td></tr>
 				<tr class="separator" style="height: 30px"><td colspan="3"> </td></tr>
 				<tr class="durum-parent">
-					<td class="buttons item"><button id="baslatDurdur">${durumKod == 'DV' ? '||' : '|&gt;'}</button></td>
+					<td class="buttons item"><button id="baslatDurdur">${durumKod == 'DV' || (durumKod == 'DR' && sinyalKritik) ? '||' : '|&gt;'}</button></td>
 					<td class="veri item flex-row" colspan="2" data-durum="${durumKod || ''}">
 						<span class="durumText sub-item">${durumAdi}</span>
 						<span class="nedenText sub-item">${durumKod == 'DR' ? inst.durNedenAdi || '' : ''}</span>
