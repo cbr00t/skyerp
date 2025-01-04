@@ -16,7 +16,7 @@ class HatYonetimiPart extends Part {
 	constructor(e) {
 		e = e || {}; super(e); const {sinifAdi: title} = this.class, {args, secince} = e; $.extend(this, {
 			title, tezgahKod: (e.tezgahKod ?? e.tezgahId)?.trimEnd(), cokluSecimmi: e.cokluSecim ?? e.cokluSecimmi ?? false, boxSize: e.boxSize, secince,
-			hizliBulAttrListe: e.hizliBulAttrListe ?? ['hatKod', 'hatAdi', 'tezgahKod', 'tezgahAdi', 'perKod', 'perIsim', 'ip', 'isListe', 'zamanEtuduText', 'ekAramaText'],
+			hizliBulAttrListe: e.hizliBulAttrListe ?? ['hatKod', 'hatAdi', 'tezgahKod', 'tezgahAdi', 'perKod', 'perIsim', 'ip', 'isListe', 'ekAramaText_zamanEtudu', 'ekAramaText'],
 			...args
 		})
 	}
@@ -88,7 +88,7 @@ class HatYonetimiPart extends Part {
 	async tazele(e) {
 		e = e ?? {}; let basitmi = e.basit ?? e.basitmi, {action} = e, butonmu = action == 'button', waitMS = 500;
 		try {
-			let {tezgah2ZamanEtuduVarmi} = this; if (!(tezgah2ZamanEtuduVarmi && basitmi)) { this.tezgah2ZamanEtuduVarmi = {} }
+			let {tezgah2ZamanEtuduVarmi} = this; if (!tezgah2ZamanEtuduVarmi) { this.tezgah2ZamanEtuduVarmi = {} }
 			let recs = this.tezgahRecs = await this.loadServerData(e); if (!recs) { return this }
 			let hat2Sev = this.hat2Sev = {}, tezgah2Rec = this.tezgah2Rec = {}; for (const rec of recs) {
 				const {hatKod, tezgahKod} = rec; let sev = hat2Sev[hatKod];
@@ -174,8 +174,7 @@ class HatYonetimiPart extends Part {
 			let {tezgah2ZamanEtuduVarmi} = this; for (let [isId, tezgahKodSet] of Object.entries(isID2TezgahKodSet)) {
 				isId = asInteger(isId); for (const tezgahKod in tezgahKodSet) {
 					let tezgahRec = tezgah2Rec[tezgahKod]; if (!tezgahRec) { continue }
-					let varmi = tezgah2ZamanEtuduVarmi[tezgahKod];
-					$.extend(tezgahRec, { zamanEtuduVarmi: varmi, zamanEtuduText: varmi ? 'zmn:var zaman:var etüd:var' : 'zmn:yok zaman:yok etüd:yok' })
+					let varmi = tezgah2ZamanEtuduVarmi[tezgahKod]; $.extend(tezgahRec, { zamanEtuduVarmi: varmi, ekAramaText_zamanEtudu: varmi ? 'zmn:var zaman:var etüd:var' : 'zmn:yok zaman:yok etüd:yok' })
 				}
 			}
 			if (!basitmi) {
@@ -188,14 +187,14 @@ class HatYonetimiPart extends Part {
 								for (const tezgahKod in tezgahKodSet) {
 									let tezgahRec = tezgah2Rec[tezgahKod]; if (!tezgahRec) { continue }
 									let varmi = !!rec; tezgah2ZamanEtuduVarmi[tezgahKod] = varmi;
-									$.extend(tezgahRec, { zamanEtuduVarmi: varmi, zamanEtuduText: varmi ? 'zmn:var zaman:var etüd:var' : 'zmn:yok zaman:yok etüd:yok' })
+									$.extend(tezgahRec, { zamanEtuduVarmi: varmi, ekAramaText_zamanEtudu: varmi ? 'zmn:var zaman:var etüd:var' : 'zmn:yok zaman:yok etüd:yok' })
 								}
 							} catch (ex) { console.error(ex) } p.resolve()
 						}));
 						if (Limit && promises?.length >= Limit) { try { await Promise.all(promises) } finally { this.updateLayout() } promises = [] }
 					}
 					if (promises?.length) { try { await Promise.all(promises) } finally { this.updateLayout() } promises = [] }
-				}, 100)
+				}, 10)
 			}
 		}
 		if (promise_tezgah2SinyalSayiRecs && tezgah2Rec) {
@@ -207,6 +206,7 @@ class HatYonetimiPart extends Part {
 			}
 		}
 		if (recs && filtreTokens?.length) {
+			if (!basitmi) { await new $.Deferred(p => setTimeout(() => p.resolve(), 500)) }
 			let {hizliBulAttrListe} = this, _recs = recs; recs = []; for (const rec of _recs) {
 				let uygunmu = true; const values = hizliBulAttrListe.map(key => typeof rec[key] == 'object' ? toJSONStr(rec[key]) : rec[key]?.toString()).filter(value => !!value);
 				for (const token of filtreTokens) {
