@@ -205,7 +205,7 @@ class MQZamanEtudu extends MQMasterOrtak {
 	}
 	static async etudButonTiklandi(e) {
 		const {islem, builder} = e, part = builder?.rootPart ?? e.parentPart, altInst = builder?.altInst ?? part?.inst;
-		const {rec, degistirmi} = altInst, isId = rec.issayac, oemSayac = rec.oemsayac, tezgahKod = rec.tezgahkod;
+		const {rec, degistirmi} = altInst, isId = rec.issayac ?? rec.isId ?? rec.isID, oemSayac = rec.oemsayac ?? rec.oemID, tezgahKod = rec.tezgahkod ?? rec.tezgahKod;
 		try { 
 			let durum, sureGuncelleVeKapatmi = false; switch (islem) {
 				case 'tazele': await this.uiReload(e); return
@@ -229,7 +229,7 @@ class MQZamanEtudu extends MQMasterOrtak {
 	}
 	static async uiReload(e) {
 		const {builder} = e, rootBuilder = builder?.rootBuilder, part = rootBuilder?.part ?? e.parentPart, altInst = builder?.altInst ?? part?.inst;
-		const {parentPart, islem, events} = part, {rec} = altInst, isId = rec.issayac, oemSayac = rec.oemsayac, tezgahKod = rec.tezgahkod;
+		const {parentPart, islem, events} = part, {rec} = altInst, isId = rec.issayac ?? rec.isId ?? rec.isID, oemSayac = rec.oemsayac ?? rec.oemID, tezgahKod = rec.tezgahkod ?? rec.tezgahKod;
 		let zamanEtuduRec = altInst.zamanEtuduRec = await app.wsGorevZamanEtuduVeriGetir({ isId, oemSayac, tezgahKod });
 		new this({ rec, zamanEtuduRec, parentPart, events: $.extend({}, events) }).tanimla({ islem }); part.close()
 	}

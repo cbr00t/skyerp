@@ -88,6 +88,7 @@ class HatYonetimiPart extends Part {
 	async tazele(e) {
 		e = e ?? {}; let basitmi = e.basit ?? e.basitmi, {action} = e, butonmu = action == 'button', waitMS = 500;
 		try {
+			let {tezgah2ZamanEtuduVarmi} = this; if (!(tezgah2ZamanEtuduVarmi && basitmi)) { this.tezgah2ZamanEtuduVarmi = {} }
 			let recs = this.tezgahRecs = await this.loadServerData(e); if (!recs) { return this }
 			let hat2Sev = this.hat2Sev = {}, tezgah2Rec = this.tezgah2Rec = {}; for (const rec of recs) {
 				const {hatKod, tezgahKod} = rec; let sev = hat2Sev[hatKod];
@@ -169,19 +170,33 @@ class HatYonetimiPart extends Part {
 				tezgahRec.ekAramaText = ekAramaListe?.length ? ekAramaListe.join(' ') : ''
 			}
 		}
-		if (!basitmi && tezgah2Rec && !$.isEmptyObject(isID2TezgahKodSet)) {
-			let promises = []; for (let [isId, tezgahKodSet] of Object.entries(isID2TezgahKodSet)) {
-				isId = asInteger(isId); promises.push(new $.Deferred(async p => {
-					try {
-						let rec; try { rec = await app.wsGorevZamanEtuduVeriGetir({ isId }); if (!rec?.bzamanetudu) { rec = null } } catch (ex) { }
-						for (const tezgahKod in tezgahKodSet) {
-							let tezgahRec = tezgah2Rec[tezgahKod];
-							if (tezgahRec) { $.extend(tezgahRec, { zamanEtuduVarmi: !!rec, zamanEtuduText: rec ? 'zmn:var zaman:var etüd:var' : 'zmn:yok zaman:yok etüd:yok' }) }
-						}
-					} catch (ex) { console.error(ex) }
-					p.resolve()
-				}))
-			} if (promises?.length) { await Promise.all(promises) }
+		if (tezgah2Rec && !$.isEmptyObject(isID2TezgahKodSet)) {
+			let {tezgah2ZamanEtuduVarmi} = this; for (let [isId, tezgahKodSet] of Object.entries(isID2TezgahKodSet)) {
+				isId = asInteger(isId); for (const tezgahKod in tezgahKodSet) {
+					let tezgahRec = tezgah2Rec[tezgahKod]; if (!tezgahRec) { continue }
+					let varmi = tezgah2ZamanEtuduVarmi[tezgahKod];
+					$.extend(tezgahRec, { zamanEtuduVarmi: varmi, zamanEtuduText: varmi ? 'zmn:var zaman:var etüd:var' : 'zmn:yok zaman:yok etüd:yok' })
+				}
+			}
+			if (!basitmi) {
+				setTimeout(async () => {
+					let Limit = 5, promises = [];
+					for (let [isId, tezgahKodSet] of Object.entries(isID2TezgahKodSet)) {
+						isId = asInteger(isId); promises.push(new $.Deferred(async p => {
+							try {
+								let rec; try { rec = await app.wsGorevZamanEtuduVeriGetir({ isId }); if (!rec?.bzamanetudu) { rec = null } } catch (ex) { }
+								for (const tezgahKod in tezgahKodSet) {
+									let tezgahRec = tezgah2Rec[tezgahKod]; if (!tezgahRec) { continue }
+									let varmi = !!rec; tezgah2ZamanEtuduVarmi[tezgahKod] = varmi;
+									$.extend(tezgahRec, { zamanEtuduVarmi: varmi, zamanEtuduText: varmi ? 'zmn:var zaman:var etüd:var' : 'zmn:yok zaman:yok etüd:yok' })
+								}
+							} catch (ex) { console.error(ex) } p.resolve()
+						}));
+						if (Limit && promises?.length >= Limit) { try { await Promise.all(promises) } finally { this.updateLayout() } promises = [] }
+					}
+					if (promises?.length) { try { await Promise.all(promises) } finally { this.updateLayout() } promises = [] }
+				}, 100)
+			}
 		}
 		if (promise_tezgah2SinyalSayiRecs && tezgah2Rec) {
 			let _recs = await promise_tezgah2SinyalSayiRecs; for (const {tezgahkod: tezgahKod, bsanal: sanalmi, sayi} of _recs) {
@@ -375,7 +390,7 @@ class HatYonetimiPart extends Part {
 							<div class="aktifIsSayi-parent item"><span class="aktifIsSayi"></span><span class="ek-bilgi"> iş</span></div>
 						</div>
 					</div>
-					<div class="zamanEtuduVarmi-parent parent jqx-hidden"><span class="zamanEtuduText veri">Zmn.</span></div>
+					<div class="zamanEtuduVarmi-parent parent jqx-hidden"><button id="zamanEtudu" class="zamanEtuduText veri">Zmn.</button></div>
 					<div class="grafik-parent parent"></div>
 				</div>
 				<div class="alt ust-alt flex-row full-width">
@@ -500,16 +515,17 @@ class HatYonetimiPart extends Part {
 		if (!hatKod && target) { let parent = $(target).parents('.grup-islemTuslari'); if (parent.length) { hatKod = e.hatKod = parent.parents('.hat.item').data('id').toString() || null } }
 		switch (id) {
 			case 'tezgah': case 'tezgahMenu': this.tezgahMenuIstendi(e); break
-			case 'personel': case 'personelSec': this.personelSecIstendi(e); break;
-			case 'makineDurum': this.makineDurumIstendi(e); break;
-			case 'topluX': this.topluXMenuIstendi(e); break;
-			case 'bekleyenIsEmirleri': this.bekleyenIsEmirleriIstendi(e); break;
-			case 'hatBekleyenIsler': this.bekleyenIslerIstendi_hatBazinda(e); break;
-			case 'notlar': this.ekNotlarIstendi(e); break;
-			case 'notEkle': this.ekNotEkleIstendi(e); break;
-			case 'dokumanYukle': this.dokumanYukleIstendi(e); break;
-			case 'dokumanSil': this.dokumanSilIstendi(e); break;
-			case 'ekBilgi': case 'ekBilgiSil': this.ekBilgiSilItendi(e); break;
+			case 'personel': case 'personelSec': this.personelSecIstendi(e); break
+			case 'zamanEtudu': this.zamanEtuduIstendi(e); break
+			case 'makineDurum': this.makineDurumIstendi(e); break
+			case 'topluX': this.topluXMenuIstendi(e); break
+			case 'bekleyenIsEmirleri': this.bekleyenIsEmirleriIstendi(e); break
+			case 'hatBekleyenIsler': this.bekleyenIslerIstendi_hatBazinda(e); break
+			case 'notlar': this.ekNotlarIstendi(e); break
+			case 'notEkle': this.ekNotEkleIstendi(e); break
+			case 'dokumanYukle': this.dokumanYukleIstendi(e); break
+			case 'dokumanSil': this.dokumanSilIstendi(e); break
+			case 'ekBilgi': case 'ekBilgiSil': this.ekBilgiSilItendi(e); break
 			default: eConfirm(` <b>${$(evt.currentTarget).parents('.tezgah.item').find('.tezgahAdi').text()}</b> tezgahına ait <b>${id}</b> id'li butona tıklandı`)
 		}
 	}
@@ -589,6 +605,12 @@ class HatYonetimiPart extends Part {
 			}
 		})
 	}
+	zamanEtuduIstendi(e) {
+		const {selectedTezgahRecs: recs} = this, isListe = recs?.flatMap(rec => rec.isListe ?? []) ?? [];
+		for (let rec of isListe) {
+			let {isID: isId} = rec; app.wsGorevZamanEtuduVeriGetir({ isId }).then(zamanEtuduRec =>
+				new MQZamanEtudu({ rec, zamanEtuduRec }).tanimla({ islem: 'izle' })) }
+	}
 	makineDurumIstendi(e) {
 		const {selectedTezgahKodListe: kodListe} = this;
 		for (const tezgahKod of kodListe) { new MakineYonetimiPart({ tezgahKod }).run() }
@@ -646,8 +668,8 @@ class HatYonetimiPart extends Part {
 					case 'devam': await app.wsTopluDevamYap(wsArgs); break
 					case 'gerceklemeYap': await app.wsTopluGerceklemeYap(wsArgs); break
 					case 'isBitti': await app.wsTopluIsBittiYap(wsArgs); break
-					case 'zamanEtuduBaslat': await app.wsTopluZamanEtuduBaslat(wsArgs); break
-					case 'zamanEtuduKapat': await app.wsTopluZamanEtuduKapat(wsArgs); break
+					case 'zamanEtuduBaslat': await app.wsTopluZamanEtuduBaslat(wsArgs).then(() => this.tazele()); break
+					case 'zamanEtuduKapat': await app.wsTopluZamanEtuduKapat(wsArgs).then(() => this.tazele()); break
 					default: $.extend(wsArgs, { tip: id }); await app.wsTopluDuraksamaYap(wsArgs); break
 				}
 				this.tazele()
