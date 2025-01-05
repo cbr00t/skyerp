@@ -143,7 +143,10 @@ class MESApp extends App {
 	wsBekleyenIs_devredisiYapKaldir(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/bekleyenIs_devredisiYapKaldir', args: e }) }) }
 	wsYeniOperListeEkle(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/yeniOperListeEkle', args: e }) }) }
 	wsSureDuzenle(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/sureDuzenle', args: e }) }) }
-	wsGorevZamanEtuduVeriGetir(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/gorevZamanEtuduVeriGetir', args: e }) }) }
+	wsGorevZamanEtuduVeriGetir(e) {
+		return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/gorevZamanEtuduVeriGetir', args: e }) })
+			.catch(ex => { if (ex.statusText == 'parsererror') { return null } else { throw ex } })
+	}
 	wsGorevZamanEtuduDegistir(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/gorevZamanEtuduDegistir', args: e }) }) }
 	wsGorevZamanEtudSureGuncelleVeKapat(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/gorevZamanEtudSureGuncelleVeKapat', args: e }) }) }
 	wsTopluDevamYap(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/topluDevamYap', args: e }) }) }

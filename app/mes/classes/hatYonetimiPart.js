@@ -88,7 +88,6 @@ class HatYonetimiPart extends Part {
 	async tazele(e) {
 		e = e ?? {}; let basitmi = e.basit ?? e.basitmi, {action} = e, butonmu = action == 'button', waitMS = 500;
 		try {
-			let {tezgah2ZamanEtuduVarmi} = this; if (!tezgah2ZamanEtuduVarmi) { this.tezgah2ZamanEtuduVarmi = {} }
 			let recs = this.tezgahRecs = await this.loadServerData(e); if (!recs) { return this }
 			let hat2Sev = this.hat2Sev = {}, tezgah2Rec = this.tezgah2Rec = {}; for (const rec of recs) {
 				const {hatKod, tezgahKod} = rec; let sev = hat2Sev[hatKod];
@@ -128,7 +127,7 @@ class HatYonetimiPart extends Part {
 	}
 	async loadServerData_internal(e) {
 		e = e ?? {}; let basitmi = e.basit ?? e.basitmi, {islemTuslari, excludeTezgahKod, filtreTokens} = this;
-		let tezgahKodSet = {}, tezgah2Rec = {}, isID2TezgahKodSet = {}, promise_tezgah2SinyalSayiRecs;
+		let tezgahKodSet = {}, tezgah2Rec = {}, isId2Bilgi = {}, promise_tezgah2SinyalSayiRecs;
 		let hatIdListe = app.sabitHatKodVarmi ? app.sabitHatKodListe : $.makeArray(this.hatKod);
 		let wsArgs = {}; if (hatIdListe?.length) { $.extend(wsArgs, { hatIdListe: hatIdListe.join(delimWS) }) }
 		let recs = await app.wsTezgahBilgileri(wsArgs); if (recs) {
@@ -162,7 +161,7 @@ class HatYonetimiPart extends Part {
 				$.extend(tezgahRec, { isSaymaInd: isSaymaInd + isSaymaInd, isSaymaSayisi: isSaymaSayisi + isSaymaSayisi });
 				if (isID) {
 					const {oemgerceklesen, oemistenen} = rec; rec.oee = oemistenen ? roundToFra(Math.max(oemgerceklesen * 100 / oemistenen, 0), 2) : 0;
-					delete rec.isListe; isListe.push(rec); let set = isID2TezgahKodSet; (set[isID] = set[isID] || {})[tezgahKod] = true
+					delete rec.isListe; isListe.push(rec); isId2Bilgi[isID] = { tezgahRec, rec }
 				}
 				let ekAramaListe = [`hat:${hatKod} tezgah:${tezgahKod} per:${perKod} personel:${perKod} ip:${ip} durum:${rec.durumKod} sinyal:yok`];
 				if (sinyalKritik) { ekAramaListe.push('sinyalKritik sinyal-kritik ayrildi ayrildi') } else { ekAramaListe.push('yerinde') }
@@ -170,31 +169,11 @@ class HatYonetimiPart extends Part {
 				tezgahRec.ekAramaText = ekAramaListe?.length ? ekAramaListe.join(' ') : ''
 			}
 		}
-		if (tezgah2Rec && !$.isEmptyObject(isID2TezgahKodSet)) {
-			let {tezgah2ZamanEtuduVarmi} = this; for (let [isId, tezgahKodSet] of Object.entries(isID2TezgahKodSet)) {
-				isId = asInteger(isId); for (const tezgahKod in tezgahKodSet) {
-					let tezgahRec = tezgah2Rec[tezgahKod]; if (!tezgahRec) { continue }
-					let varmi = tezgah2ZamanEtuduVarmi[tezgahKod]; $.extend(tezgahRec, { zamanEtuduVarmi: varmi, ekAramaText_zamanEtudu: varmi ? 'zmn:var zaman:var etüd:var' : 'zmn:yok zaman:yok etüd:yok' })
-				}
-			}
-			if (!basitmi) {
-				setTimeout(async () => {
-					let Limit = 5, promises = [];
-					for (let [isId, tezgahKodSet] of Object.entries(isID2TezgahKodSet)) {
-						isId = asInteger(isId); promises.push(new $.Deferred(async p => {
-							try {
-								let rec; try { rec = await app.wsGorevZamanEtuduVeriGetir({ isId }); if (!rec?.bzamanetudu) { rec = null } } catch (ex) { }
-								for (const tezgahKod in tezgahKodSet) {
-									let tezgahRec = tezgah2Rec[tezgahKod]; if (!tezgahRec) { continue }
-									let varmi = !!rec; tezgah2ZamanEtuduVarmi[tezgahKod] = varmi;
-									$.extend(tezgahRec, { zamanEtuduVarmi: varmi, ekAramaText_zamanEtudu: varmi ? 'zmn:var zaman:var etüd:var' : 'zmn:yok zaman:yok etüd:yok' })
-								}
-							} catch (ex) { console.error(ex) } p.resolve()
-						}));
-						if (Limit && promises?.length >= Limit) { try { await Promise.all(promises) } finally { this.updateLayout() } promises = [] }
-					}
-					if (promises?.length) { try { await Promise.all(promises) } finally { this.updateLayout() } promises = [] }
-				}, 10)
+		if (!$.isEmptyObject(tezgah2Rec)) {
+			let zRecs = await app.wsGorevZamanEtuduVeriGetir({ tezgahIdListe: Object.keys(tezgah2Rec).join(delimWS) });
+			for (let {isid: isID, bzamanetudu: varmi} of zRecs) {
+				let {tezgahRec} = isId2Bilgi[isID] ?? {}; if (!tezgahRec) { continue }
+				$.extend(tezgahRec, { zamanEtuduVarmi: varmi, ekAramaText_zamanEtudu: varmi ? 'zmn:var zaman:var etüd:var' : 'zmn:yok zaman:yok etüd:yok' })
 			}
 		}
 		if (promise_tezgah2SinyalSayiRecs && tezgah2Rec) {
@@ -284,7 +263,7 @@ class HatYonetimiPart extends Part {
 					'tezgahKod', 'tezgahAdi', 'ip', 'siradakiIsSayi', 'ekBilgi', 'perKod', 'perIsim', 'emirMiktar', 'onceUretMiktar', 'aktifUretMiktar', 'isIskMiktar', 'isNetMiktar',
 					'onceCevrimSayisi', 'aktifCevrimSayisi', 'aktifIsSayi', 'durumAdi', 'durNedenAdi'
 				);
-				if (!basitmi) { setHTMLValues(itemTezgah, rec, 'zamanEtuduVarmi') }
+				setHTMLValues(itemTezgah, rec, 'zamanEtuduVarmi');
 				let _rec = { topSaymaInd, topSaymaSayisi }; setHTMLValues(itemTezgah, _rec, Object.keys(_rec));
 				let elm = itemTezgah.find('.isBilgi-parent'); if (elm.length) { elm.html(this.class.getLayout_isBilgileri(rec)) }
 				elm = itemTezgah.find('.grafik-parent'); if (elm.length) { elm.html(this.class.getLayout_grafikler(isListe)) }
