@@ -268,16 +268,18 @@ class ModelKullanPart extends Part {
 							kod = this.kod = item ? item[kodSaha] : (value == null ? widget.input.val() : e.value);
 							const text = widget.renderSelectedItem ? widget.renderSelectedItem(null, rec) : value; widget.input.val(text)
 						}
-						else { this.kod = kod }
+						else if (!(kod == null && type == 'value')) { this.kod = kod }
 					}
 				}
-				this.lastValue = kod
+				if (!(kod == null && type == 'value')) { this.lastValue = kod }
 			}
-			input.attr('data-value', kod ?? null);
-			if (!$.isEmptyObject(degisinceEvent) && kod !== undefined) {
-				for (const handler of degisinceEvent) {
-					if (widget.isOpened() && type != 'checkchange') { widget.close() }
-					getFuncValue.call(this, handler, { parentPart, sender: this, builder: this.builder, event: evt, coklumu, item, lastItem: lastSelectedItem, kod, value: kod })
+			if (!(kod == null && type == 'value')) {
+				input.attr('data-value', kod ?? null);
+				if (!$.isEmptyObject(degisinceEvent) && kod !== undefined) {
+					for (const handler of degisinceEvent) {
+						if (widget.isOpened() && type != 'checkchange') { widget.close() }
+						getFuncValue.call(this, handler, { parentPart, sender: this, builder: this.builder, event: evt, coklumu, item, lastItem: lastSelectedItem, kod, value: kod })
+					}
 				}
 			}
 		}

@@ -802,8 +802,8 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 		return super.defaultGetValue(e)
 	}
 	defaultSetValue(e) {
-		const {value} = e, {part} = this; if (part && !part.isDestroyed) { part.value = this.getConverted_setValue({ value }); return }
-		const {input} = this; if (input?.length) { input.val(this.getConverted_setValue({ value: value })); return }
+		let {value} = e, {part} = this; if (part && !part.isDestroyed) { value = this.getConverted_setValue({ value }); if (value) { part.kodAtandimi = true } part.value = value; return }
+		let {input} = this; if (input?.length) { input.val(this.getConverted_setValue({ value })); return }
 		return super.defaultSetValue(e)
 	}
 	tekli() { this.coklumu = false; return this } tekil() { return this.tekli() } coklu() { this.coklumu = true; return this }

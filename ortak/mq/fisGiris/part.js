@@ -31,8 +31,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 			theme, width: '100%', height: layout.height(), orientation: 'horizontal', splitBarSize: 20,
 			panels: [ { min: 87, size: 160 }, { min: 200 } ]
 		});
-		const {islem, fis, header} = this;
-		const baslikFormlar = this.baslikFormlar = [header.find('.baslikForm1'), header.find('.baslikForm2'), header.find('.baslikForm3')];
+		const {islem, fis, header} = this, baslikFormlar = this.baslikFormlar = [header.find('.baslikForm1'), header.find('.baslikForm2'), header.find('.baslikForm3')];
 		const subeForm = this.subeForm = header.find('.sube'), tsnForm = this.tsnForm = layout.find('.tsnForm');
 		const divHeaderDipOrtak = this.divHeaderDipOrtak = layout.find('.headerDipOrtak'), dipForm = divHeaderDipOrtak.find('.dipForm');
 		if (fis.class.dipKullanilirmi) {
@@ -92,21 +91,22 @@ class FisGirisPart extends GridliGirisWindowPart {
 				});
 				/* splitGridVeIslemTuslari.jqxSplitter('collapse', 0) */
 			}, 40)
-		}, 10);
+		}, 10)
+	}
+	afterRun(e) {
+		super.afterRun(e); if (app.activePart != this) { app._activePartStack.pop() }
+		let sender = this, {fis, islem, layout, header, tsnForm, subeForm, islemTuslari, baslikFormlar} = this;
 		setTimeout(async () => {
 			if (config.dev) { header.removeClass('jqx-hidden basic-hidden') }
-			if (fis.uiDuzenle_fisGiris) { setTimeout(() => { fis.uiDuzenle_fisGiris({ sender: this, islem, fis, layout, /*init: uiInitIslemleri,*/ header, tsnForm, subeForm, islemTuslari, baslikFormlar }) }, 10) }
+			if (fis.uiDuzenle_fisGiris) {
+				setTimeout(() => { fis.uiDuzenle_fisGiris({ sender, islem, fis, layout, /*init: uiInitIslemleri,*/ header, tsnForm, subeForm, islemTuslari, baslikFormlar }) }, 10) }
 			await this.initFormBuilder(e);
 			const selectors = ['input[type=textarea].jqx-input-content', 'input[type=textbox]', 'input[type=text]', 'input[type=number]'];
 			for (const selector of selectors) { const elm = layout.find(selector); if (elm.length) { elm.on('focus', evt => evt.target.select()) } }
 			setTimeout(() => { if (header.height() < 10) splitMain.jqxSplitter('collapse', 0) }, 200)
 			setTimeout(() => header.removeClass('jqx-hidden basic-hidden'), 500)
 		}, 10);
-		setTimeout(() => makeScrollable(header), 100)
-	}
-	afterRun(e) {
-		super.afterRun(e); if (app.activePart != this) { app._activePartStack.pop() }
-		setTimeout(() => this.onResize(e), 300)
+		setTimeout(() => makeScrollable(header), 100); setTimeout(() => this.onResize(e), 300)
 	}
 	async initFormBuilder(e) {
 		let {builder} = this; const {fis} = this;
