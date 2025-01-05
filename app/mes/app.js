@@ -145,7 +145,7 @@ class MESApp extends App {
 	wsSureDuzenle(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/sureDuzenle', args: e }) }) }
 	wsGorevZamanEtuduVeriGetir(e) {
 		return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/gorevZamanEtuduVeriGetir', args: e }) })
-			.catch(ex => { if (ex.statusText == 'parsererror') { return null } else { throw ex } })
+			.catch(ex => { if (ex.statusText?.toLowerCase() == 'parsererror' || ex.statusText?.toUpperCase() == 'OK') { return null } else { throw ex } })
 	}
 	wsGorevZamanEtuduDegistir(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/gorevZamanEtuduDegistir', args: e }) }) }
 	wsGorevZamanEtudSureGuncelleVeKapat(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/gorevZamanEtudSureGuncelleVeKapat', args: e }) }) }
