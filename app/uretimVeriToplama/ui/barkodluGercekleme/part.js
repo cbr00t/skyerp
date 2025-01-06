@@ -225,12 +225,12 @@ class BarkodluGerceklemePart extends Part {
 					belirtec: 'gerSayac', text: 'Ger.ID', genislikCh: 6,
 					/* filterType: 'checkedlist' */ cellClassName: globalCellsClassName,
 					cellBeginEdit: (...args) => this.onCellBeginEdit(...args), cellEndEdit: (...args) => this.onCellEndEdit(...args)
-				}).readOnly(),
+				}).tipNumerik().readOnly(),
 				new GridKolon({
 					belirtec: 'oemSayac', text: 'OEMID', genislikCh: 6,
 					/* filterType: 'checkedlist' */ cellClassName: globalCellsClassName,
 					cellBeginEdit: (...args) => this.onCellBeginEdit(...args), cellEndEdit: (...args) => this.onCellEndEdit(...args)
-				}).readOnly()
+				}).tipNumerik().readOnly()
 			)
 		}
 		tabloKolonlari.push(

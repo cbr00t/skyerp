@@ -28,11 +28,12 @@ class MQBarkodRec extends MQMasterOrtak {
 
 	constructor(e) {
 		e = e || {}; super(e); const sabit_hatKod = app.params.config.hatKod || null, resetFlag = e.reset;
-		if (e.rec) { e = e.rec } if (resetFlag) { this.reset(e) }
+		if (e.rec) { e = e.rec } if (resetFlag) { this.reset(e) } this.resetOEMIDFromBarkodFlag();
+				/* if (config.dev) { e.oemID = 1 } */
 		$.extend(this, {
 			_durum: e._durum ?? e.durum ?? this.durum ?? 'new', id: e.id || this.id || newGUID(), serbestmi: e.serbestmi ?? this.serbestmi ?? false, noCheckFlag: e.noCheck ?? e.noCheckFlag ?? false,
 			_gorevmi: e.gorevmi, barkod: e.barkod ?? this.barkod, carpan: e.carpan ?? this.carpan, isKapansinmi: e.isKapansinmi ?? false, sonAsamami: e.sonAsamami ?? asBoolQ(e.sonasama),
-			oemSayac: e.oemSayac ?? e.oemsayac ?? e.fissayac ?? e.kaysayac ?? this.oemSayac, isId: e.isId || e.isID || e.isid,
+			oemSayac: e.oemSayac ?? e.oemsayac ?? e.oemID ?? e.oemId ?? e.oemid ?? e.fissayac ?? e.kaysayac ?? this.oemSayac, isId: e.isId ?? e.isID ?? e.isid ?? e.isSayac ?? e.issayac,
 			formulSayac: e.formulSayac ?? e.formulsayac, onceOpNo: e.onceOpNo ?? e.onceopno,
 			emirNox: e.emirNox ?? e.emirnox ?? this.emirNox, emirTarih: e.emirTarih || e.emirtarih || this.emirTarih,
 			opNo: e.opNo || e.opno || this.opNo, opAdi: e.opAdi || e.opadi || this.opAdi,
@@ -48,6 +49,7 @@ class MQBarkodRec extends MQMasterOrtak {
 			vardiyaNo: e.vardiyaNo ?? 1, ekOzellikler: e.ekOzellikler ?? this.ekOzellikler ?? {},
 			iskartalar: e.iskartalar ?? this.iskartalar, kaliteYapi: e.kaliteYapi ?? e.kalite ?? this.kaliteYapi
 		});
+		if (this.oemSayac) { this.setOEMIDFromBarkodFlag() }
 		let value = e.suAnmi ?? e.suAn ?? e.suan; if (value !== undefined) { this.suAnmi = value }
 		if (this.suAnmi == null && !this.noCheckFlag) { this.suAnmi = !!this.gorevmi }
 		const {paketKod, miktar, paketIcAdet} = this; if (paketKod && paketIcAdet) { this.paketSayi = Math.ceil(miktar / paketIcAdet) }
@@ -468,26 +470,26 @@ class MQBarkodRec extends MQMasterOrtak {
 	}
 	ekBilgileriBelirle_force(e) { e = e || {}; return this.ekBilgileriBelirle($.extend({}, e, { force: true })) }
 	ekBilgileriBelirle(e) {
-		e = e || {}; const forceFlag = asBool(e.force), promises = [];
+		e = e || {}; const forceFlag = asBool(e.force ?? e.forceFlag), promises = [];
 		const {oemSayac, emirNox, opNo, stokKod, tezgahKod, perKod} = this;
 		if (forceFlag || !oemSayac) {
 			if (emirNox && opNo && stokKod) {
 				const idListe = [emirNox, opNo, stokKod], anah = idListe.join(MQLocalData.DelimAnah), {promise} = app.getMQRecs({ mfSinif: MQOEM, idListe: [idListe] }) || {};
 				if (promise) {
 					promises.push(promise); promise.then(recs => {
-						const rec = (recs || [])[0], oemSayac = this.oemSayac = rec ? rec[MQOEM.sayacSaha] : null;
-						if (rec) { if (this._durum == 'error') this.durum_none() } else if (!this.class.ozelDurumKodSet[this._durum]) this.durum_error()
-						if (this._durum == 'error' && !navigator.onLine) this.durum_offline()
+						let rec = (recs || [])[0], oemSayac = rec ? rec[MQOEM.sayacSaha] : null; if (!this._oemIDFromBarkodFlag) { this.oemSayac = oemSayac }
+						if (oemSayac) { if (this._durum == 'error') { this.durum_none() } } else if (!this.class.ozelDurumKodSet[this._durum]) { this.durum_error() }
+						if (this._durum == 'error' && !navigator.onLine) { this.durum_offline() }
 					})
 				}
 			}
 		}
-		if (emirNox) { const seriVeNo = getSeriVeNo(emirNox), {promise} = app.getMQRecs({ mfSinif: MQEmir, idListe: [[seriVeNo.seri, seriVeNo.no]] }) || {}; if (promise) promises.push(promise) }
+		if (emirNox) { const seriVeNo = getSeriVeNo(emirNox), {promise} = app.getMQRecs({ mfSinif: MQEmir, idListe: [[seriVeNo.seri, seriVeNo.no]] }) || {}; if (promise) { promises.push(promise) } }
 		if (opNo) { const {promise} = app.getMQRecs({ mfSinif: MQOperasyon, idListe: [opNo] }) || {}; if (promise) { promises.push(promise); promise.then(recs => { this.opAdi = recs[0].aciklama }) } }
 		if (stokKod) { const {promise} = app.getMQRecs({ mfSinif: MQStok, idListe: [stokKod] }) || {}; if (promise) { promises.push(promise); promise.then(recs => { this.stokAdi = recs[0].aciklama }) } }
 		if (tezgahKod) { const {promise} = app.getMQRecs({ mfSinif: MQTezgah, idListe: [tezgahKod] }) || {}; if (promise) { promises.push(promise); promise.then(recs => { this.tezgahAdi = recs[0].aciklama }) } }
 		if (perKod) { const {promise} = app.getMQRecs({ mfSinif: MQPersonel, idListe: [perKod] }) || {}; if (promise) { promises.push(promise); promise.then(recs => { this.perAdi = recs[0].aciklama }) } }
-		if (this._durum == 'error' || this._durum == 'processing') { if (!navigator.onLine) this.durum_offline() }
+		if (this._durum == 'error' || this._durum == 'processing') { if (!navigator.onLine) { this.durum_offline() } }
 		return Promise.all(promises)
 	}
 	reset(e) { this.reset_asil(e); this.reset_diger(e); return this }
@@ -497,8 +499,7 @@ class MQBarkodRec extends MQMasterOrtak {
 		for (const key of keys) { this[key] = null }
 		for (const key of ['emirTarih', 'opAdi', 'stokAdi']) { delete this[key] }
 		for (const key of ['basTS', 'bitTS']) { let value = this[key]; if (isInvalidDate(value)) value = this[key] = now() }
-		this.vardiyaNo = 1;
-		$.extend(this, { ekOzellikler: {}, iskartalar: {} }); return this
+		$.extend(this, { vardiyaNo: 1, ekOzellikler: {}, iskartalar: {} }); return this
 	}
 	reset_diger(e) {
 		for (const key of ['formulSayac', 'tezgahKod', 'perKod']) { this[key] = null }
@@ -510,4 +511,5 @@ class MQBarkodRec extends MQMasterOrtak {
 	durum_removed() { this._durum = 'removed'; return this } durum_offline() { this._durum = 'offline'; return this }
 	durum_processing() { this._durum = 'processing'; return this } durum_done() { this._durum = 'done'; return this }
 	durum_error() { this._durum = 'error'; return this }
+	setOEMIDFromBarkodFlag() { this._oemIDFromBarkodFlag = true; return this } resetOEMIDFromBarkodFlag() { this._oemIDFromBarkodFlag = false; return this }
 }

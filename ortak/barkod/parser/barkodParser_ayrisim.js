@@ -20,14 +20,16 @@ class BarkodParser_Ayrisim extends BarkodParser_Kuralli {
 			if (!result) { return false }
 		}
 		this.parcaAl({ belirtec: 'K', bas: kural.miktarbas, hane: kural.miktarhane, callback: value => this.miktar = asFloat(value) || null });
-		let {hmrBas2IOAttrDonusum} = kural, keys = [ 'paket', 'model', 'renk', 'desen', 'beden', 'lotno', 'serino', 'raf', 'emir', 'eou', 'tezgah', 'personel' ];
+		let {hmrBas2IOAttrDonusum} = kural, keys = [ 'paket', 'model', 'renk', 'desen', 'beden', 'lotNo', 'seriNo', 'raf', 'emir', 'eou', 'tezgah', 'personel', 'oemID' ];
 		for (const key of keys) {
-			this.parcaAl({ bas: kural[`${key}bas`], hane: kural[`${key}hane`], callback: value => this[hmrBas2IOAttrDonusum[key] || `${key}Kod`] = value }) }
+			let keyLower = key.toLowerCase();
+			this.parcaAl({ bas: kural[`${keyLower}bas`], hane: kural[`${keyLower}hane`], callback: value => this[hmrBas2IOAttrDonusum[key] || `${key}Kod`] = value }) }
 		keys = ['operasyon']; for (const key of keys) {
-			this.parcaAl({ bas: kural[`${key}bas`], hane: kural[`${key}hane`], callback: value => this[hmrBas2IOAttrDonusum[key] || `${key}Kod`] = asInteger(value) }) }
+			let keyLower = key.toLowerCase();
+			this.parcaAl({ bas: kural[`${keyLower}bas`], hane: kural[`${keyLower}hane`], callback: value => this[hmrBas2IOAttrDonusum[key] || `${key}Kod`] = asInteger(value) }) }
 		for (let i = 1; i <= 9; i++) {
-			const key = key.toLowerCase(), detKey = hmrBas2IOAttrDonusum[key] || `ekOz${i}`;
-			this.parcaAl({ bas: kural[`${key}bas`], hane: kural[`${key}hane`], callback: value => this[detKey] = asFloat(value) || null })
+			let key = `ekOz${i}`, keyLower = key.toLowerCase();
+			this.parcaAl({ bas: kural[`${keyLower}bas`], hane: kural[`${keyLower}hane`], callback: value => this[hmrBas2IOAttrDonusum[key] || key] = asFloat(value) || null })
 		}
 		return result
 	}
