@@ -323,15 +323,15 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 	async xmlDuzenle_docRefs(e) {
 		const {params} = app, {isyeri} = params, param_zorunlu = params.zorunlu, param_stok = params.stok, param_eIslem = params.eIslem, param_eIslemKullanim = param_eIslem.kullanim, param_eIslemKural = param_eIslem.kural;
 		const {xw} = e, {baslik, dvKod, dvKur} = this, {eYontem, ortalamavade, plasiyerkod, plasiyeradi, tahsekliadi, faturaOzelTipText, eArsivBelgeTipBelirtec, oncekiIrsTSNListe} = baslik;
-		const {sutOnayKodu, tapdkNox} = isyeri.diger;
-		await this.xmlDuzenleInternal_docRefBaslikEkSaha({ xw, name: 'Fatura Ek Tipi', value: faturaOzelTipText }); await super.xmlDuzenle_docRefs(e);
+		const {sutOnayKodu, tapdkNox} = isyeri.diger; await this.xmlDuzenleInternal_docRefBaslikEkSaha({ xw, name: 'Fatura Ek Tipi', value: faturaOzelTipText });
+		if (eYontem) { eYontem.xmlDuzenle_docRefs(e) } await this.xmlDuzenleInternal_logoBilgileri(e)
+		await super.xmlDuzenle_docRefs(e);
 		await this.xmlDuzenleInternal_docRefBaslikEkSaha({ xw, name: 'Süt Onay', value: sutOnayKodu }); await this.xmlDuzenleInternal_docRefBaslikEkSaha({ xw, name: 'Tapdk No', value: tapdkNox });
 		if ($.isEmptyObject(oncekiIrsTSNListe)) { await this.xmlDuzenleInternal_docRef({ xw, type: 'IS_DESPATCH' }) }
 		if (eArsivBelgeTipBelirtec) { await this.xmlDuzenleInternal_docRef({ xw, typeCode: 'SEND_TYPE', id: eArsivBelgeTipBelirtec }) }
 		if (param_eIslemKullanim.baslikVade) { await this.xmlDuzenleInternal_docRefBaslikEkSaha({ xw, name: param_eIslem.faturaVadeEtiket, value: dateToString(asDate(ortalamavade)) }) }
 		if (param_eIslemKullanim.baslikPlasiyer) { await this.xmlDuzenleInternal_docRefBaslikEkSaha({ xw, name: 'Plasiyer', value: plasiyerkod ? `(${plasiyerkod}) ${plasiyeradi}` : null }) }
 		if (param_eIslemKullanim.baslikTahsilatSekli) { await this.xmlDuzenleInternal_docRefBaslikEkSaha({ xw, name: 'Tahsil Şekli', value: tahsekliadi }) }
-		if (eYontem) { eYontem.xmlDuzenle_docRefs(e) } await this.xmlDuzenleInternal_logoBilgileri(e)
 	}
 	async xmlDuzenleInternal_logoBilgileri(e) {
 		const {xw} = e, {params} = app, param_eIslem = params.eIslem, logocu = await param_eIslem.getLogoData();
