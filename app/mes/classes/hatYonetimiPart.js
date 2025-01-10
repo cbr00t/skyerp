@@ -209,7 +209,7 @@ class HatYonetimiPart extends Part {
 				$.extend(rec, { grupStyle: `${styles_bgImg.join('; ')}`, aktifIsSayi: rec.isListe?.length })
 			}
 		}
-		if (!basitmi) {
+		let {ekNotlarUpdate} = e; if (!basitmi || ekNotlarUpdate) {
 			setTimeout(() => {
 				MQEkNotlar.loadServerData().then(recs => {
 					let {islemTuslari} = this, btnTumEkNotlar = islemTuslari?.find('button#tumEkNotlar'); if (btnTumEkNotlar?.length) { btnTumEkNotlar.removeClass('yeni-not') }
@@ -723,7 +723,7 @@ class HatYonetimiPart extends Part {
 	}
 	ekNotlarIstendi(e) {
 		const hepsimi = e.hepsi ?? e.hepsimi, rec = e.rec ?? this.selectedTezgahRecs[0] ?? {}, {hatKod} = e;
-		MQEkNotlar.listeEkraniAc({ kapaninca: e => this.tazeleBasit(), secimlerDuzenle: e => {
+		MQEkNotlar.listeEkraniAc({ kapaninca: e => this.tazeleBasit({ ekNotlarUpdate: true }), secimlerDuzenle: e => {
 			const sec = e.secimler, isHidden = !!app.params.config.hatKod;
 			if (!hepsimi && hatKod) { $.extend(sec.hatKod, { birKismimi: true, value: hatKod, isHidden }); sec.hatAdi.isHidden = isHidden }
 		}})

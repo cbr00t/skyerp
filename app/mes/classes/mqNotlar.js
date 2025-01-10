@@ -168,14 +168,20 @@ class MQEkNotlar extends MQSayacliOrtak {
 					part.on('text-change', evt => altInst[id] = part.root.innerHTML)
 				})
 	}
+	static gridVeriYuklendi(e) {
+		super.gridVeriYuklendi(e); const gridPart = e.gridPart ?? e.sender; if (!gridPart) { return }
+		let {localData} = app.params, ekNotLastReadId = asInteger(localData.getData('ekNotLastReadId')), savedLastReadId = ekNotLastReadId;
+		let {boundRecs: recs} = gridPart; for (let {kaysayac: id} of recs) { if (id && ekNotLastReadId < id) { ekNotLastReadId = id } }
+		if (ekNotLastReadId != savedLastReadId) { setTimeout(() => { localData.setData('ekNotLastReadId', ekNotLastReadId); localData.kaydet() }, 500) }
+	}
 	static orjBaslikListesi_gridRendered(e) {
-		super.orjBaslikListesi_gridRendered(e); const {type} = e;
+		super.orjBaslikListesi_gridRendered(e)/*; const {type} = e;
 		if (type == 'full') {
-			const {gridWidget} = e; if (!gridWidget) { return }
+			const {gridPart, gridWidget} = e; if (!gridWidget) { return }
 			const {localData} = app.params; let ekNotLastReadId = asInteger(localData.getData('ekNotLastReadId')), savedLastReadId = ekNotLastReadId;
 			for (const {kaysayac: id} of gridWidget.getvisiblerows()) { if (id && ekNotLastReadId < id) { ekNotLastReadId = id } }
 			if (ekNotLastReadId != savedLastReadId) { localData.setData('ekNotLastReadId', ekNotLastReadId); localData.kaydetDefer() }
-		}
+		}*/
 	}
 	static orjBaslikListesi_satirTiklandi(e) {
 		e = e || {}; const gridPart = e.gridPart ?? e.sender, gridWidget = e?.event?.args?.owner ?? gridPart.gridWidget;
