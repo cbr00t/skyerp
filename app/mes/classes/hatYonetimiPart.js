@@ -15,7 +15,7 @@ class HatYonetimiPart extends Part {
 	get selectedTezgahRecs() { const {tezgah2Rec, selectedTezgahKodListe} = this; return selectedTezgahKodListe.map(kod => tezgah2Rec[kod]) }
 	constructor(e) {
 		e = e || {}; super(e); const {sinifAdi: title} = this.class, {args, secince} = e; $.extend(this, {
-			title, tezgahKod: (e.tezgahKod ?? e.tezgahId)?.trimEnd(), cokluSecimmi: e.cokluSecim ?? e.cokluSecimmi ?? false, boxSize: e.boxSize, secince,
+			title, tezgahKod: (e.tezgahKod ?? e.tezgahId)?.trimEnd(), cokluSecimmi: e.cokluSecim ?? e.cokluSecimmi ?? true, boxSize: e.boxSize, secince,
 			hizliBulAttrListe: e.hizliBulAttrListe ?? ['hatKod', 'hatAdi', 'tezgahKod', 'tezgahAdi', 'perKod', 'perIsim', 'ip', 'isListe', 'ekAramaText_zamanEtudu', 'ekAramaText'],
 			...args
 		})
