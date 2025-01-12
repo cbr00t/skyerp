@@ -99,22 +99,14 @@ class FormBuilderBase extends CObject {
 		this.runDevam(e)
 	}
 	postRun(e) {
-		const styles = [];
-		for (const builder of this.getBuildersWithSelf()) {
-			const _e = $.extend({}, e, { target: styles });
-			builder.applyStyles(_e)
-		}
+		const styles = []; for (const builder of this.getBuildersWithSelf()) { const _e = $.extend({}, e, { target: styles }); builder.applyStyles(_e) }
 		if (!$.isEmptyObject(styles)) {
-			const {CSSClass_BuilderId} = FormBuilderBase;
-			const {id} = this;
-			const styleHTML = $(`<style data-${CSSClass_BuilderId}="${id}">${styles.join(CrLf)}</style>`);
-			styleHTML.appendTo('head')
+			const {CSSClass_BuilderId} = FormBuilderBase, {id} = this;
+			const styleHTML = $(`<style data-${CSSClass_BuilderId}="${id}">${styles.join(CrLf)}</style>`); styleHTML.appendTo('head')
 		}
 		if (this.isRootFormBuilder) {
-			e.builder = this;
-			const {afterRun} = this;
-			if (afterRun)
-				getFuncValue.call(this, afterRun, e)
+			e.builder = this; const {afterRun} = this; delete this._id2Builder;
+			if (afterRun) { getFuncValue.call(this, afterRun, e) }
 		}
 	}
 	runDevam(e) {
