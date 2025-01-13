@@ -27,7 +27,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				DP: { kod: 'DEPO', belirtec: 'yer', text: 'Yer' }
 			}
 		}
-		if (!app.params.dRapor.konsolideCikti) { result = { ...result }; delete result.DB }
+		if (!app.params?.dRapor?.konsolideCikti) { result = { ...result }; delete result.DB }
 		return result
 	}
 	secimlerDuzenle(e) {
@@ -73,7 +73,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	loadServerData_ilk(e) { } loadServerData_son(e) { }
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); const {result} = e;
-		if (app.params.dRapor.konsolideCikti) { result.addGrup(new TabloYapiItem().setKA('DB', 'Veritabanı').addColDef(new GridKolon({ belirtec: 'db', text: 'Veritabanı', genislikCh: 18 }))) }
+		if (app.params?.dRapor?.konsolideCikti) { result.addGrup(new TabloYapiItem().setKA('DB', 'Veritabanı').addColDef(new GridKolon({ belirtec: 'db', text: 'Veritabanı', genislikCh: 18 }))) }
 		this.tabloYapiDuzenle_ozel?.(e)
 	}
 	tabloYapiDuzenle_son(e) {
@@ -117,7 +117,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	loadServerData_queryDuzenle_tekilSonrasi(e) {
 		this.loadServerData_queryDuzenle_tekilSonrasi_ilk_ozel?.(e);
-		let {konsolideCikti, ekDBListe} = app.params.dRapor, {stm, attrSet} = e, alias_db = 'db';
+		let {konsolideCikti, ekDBListe} = app.params?.dRapor ?? {}, {stm, attrSet} = e, alias_db = 'db';
 		if (konsolideCikti) {
 			let asilUni = stm.sent = stm.sent.asUnionAll();
 			for (let {sahalar} of asilUni.getSentListe()) {
