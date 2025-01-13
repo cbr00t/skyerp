@@ -199,7 +199,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		let {recs} = e; const {tabloYapi} = this, {kaPrefixes, sortAttr, grupVeToplam} = tabloYapi, fixKA = (rec, prefix) => {
 			if (rec == null) { return } const item = grupVeToplam[prefix] ?? grupVeToplam[prefix.toUpperCase()], {kodsuzmu} = item || {};
 			const kod = kodsuzmu ? null : rec[prefix + 'kod'], adi = rec[prefix + 'adi'];
-			if (!(kod === undefined && adi === undefined)) { this.fixKA(rec, prefix, kodsuzmu) }
+			if (!kod || adi == null) { rec[prefix] = adi || kod; for (const postfix of ['kod', 'adi']) { delete rec[prefix + postfix] } }
+			else { this.fixKA(rec, prefix, kodsuzmu) }
 		};
 		let id = 1; for (const rec of recs) { for (const prefix of kaPrefixes) { fixKA(rec, prefix) } rec.id = id++ }
 		if (sortAttr) { recs.sort((a, b) => { a = a[sortAttr] || 0; b = b[sortAttr] || 0; return a > b ? -1 : a < b ? 1 : 0 }) }
