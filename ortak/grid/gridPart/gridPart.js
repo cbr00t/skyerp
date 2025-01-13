@@ -130,7 +130,7 @@ class GridPart extends Part {
 		};
 		const _e = $.extend({}, e, { sender: this, builder, grid, args }); this.gridArgsDuzenle(_e); let handler = this.gridArgsDuzenle_ek; if (handler) { getFuncValue.call(this, handler, _e) }
 		args = _e.args; args.autoHeight = !args.height;
-		if (args.autoRowHeight) args.autoRowHeight = args.pageable || args.autoHeight
+		if (args.autoRowHeight) { args.autoRowHeight = args.pageable || args.autoHeight }
 		if (args.virtualMode && args.groupable && !args.pageable) args.groupable = false
 		if (args.pageable && !args.pagesizeoptions) args.pageSizeOptions = [5, 7, 8, 9, 10, 11, 13, 14, 15, 18, 20, 25, 50, 80, 100, 200, 300, 500]
 		args.pageSize = 100; args.enableOptimization = true; if (args.adaptive == null) { args.adaptive = !(notAdaptiveFlag || args.editable) }

@@ -85,40 +85,40 @@ class FisGirisPart extends GridliGirisWindowPart {
 			}, 40)
 		}, 10)
 	}
-	afterRun(e) {
-		super.afterRun(e); if (app.activePart != this) { app._activePartStack.pop() }
-		let sender = this, {fis, islem, layout, header, tsnForm, subeForm, islemTuslari, baslikFormlar} = this;
-		setTimeout(async () => {
-			if (config.dev) { header.removeClass('jqx-hidden basic-hidden') }
-			if (fis.uiDuzenle_fisGiris) {
-				setTimeout(() => { fis.uiDuzenle_fisGiris({ sender, islem, fis, layout, /*init: uiInitIslemleri,*/ header, tsnForm, subeForm, islemTuslari, baslikFormlar }) }, 10) }
-			await this.initFormBuilder(e);
-			const selectors = ['input[type=textarea].jqx-input-content', 'input[type=textbox]', 'input[type=text]', 'input[type=number]'];
-			for (const selector of selectors) { const elm = layout.find(selector); if (elm.length) { elm.on('focus', evt => evt.target.select()) } }
-			setTimeout(() => { if (header.height() < 10) splitMain.jqxSplitter('collapse', 0) }, 200)
-			setTimeout(() => header.removeClass('jqx-hidden basic-hidden'), 500)
-		}, 10);
-		setTimeout(() => makeScrollable(header), 100); setTimeout(() => this.onResize(e), 300)
+	async afterRun(e) {
+		e = e ?? {}; try {
+			await super.afterRun(e); if (app.activePart != this) { app._activePartStack.pop() }
+			let sender = this, {fis, islem, layout, header, tsnForm, subeForm, islemTuslari, baslikFormlar} = this;
+			let _e = { ...e, sender, fis, islem, layout, islemTuslari, subeForm, islemTuslari, baslikFormlar };
+			if (this.yeniVeyaKopyami) { await fis.yeniTanimOncesiIslemler(_e) } /* setTimeout(() => this.wnd?.trigger('resize'), 0) */
+			setTimeout(async () => {
+				if (config.dev) { header.removeClass('jqx-hidden basic-hidden') }
+				if (fis.uiDuzenle_fisGiris) { setTimeout(() => { fis.uiDuzenle_fisGiris(_e) }, 10) }
+				await this.initFormBuilder(_e);
+				let selectors = ['input[type=textarea].jqx-input-content', 'input[type=textbox]', 'input[type=text]', 'input[type=number]'];
+				for (let selector of selectors) { let elm = layout.find(selector); if (elm.length) { elm.on('focus', evt => evt.target.select()) } }
+				setTimeout(() => { if (header.height() < 10) splitMain.jqxSplitter('collapse', 0) }, 200)
+				setTimeout(() => header.removeClass('jqx-hidden basic-hidden'), 500)
+			}, 10);
+			setTimeout(() => makeScrollable(header), 100); setTimeout(() => this.onResize(e), 300)
+		}
+		catch (ex) { hConfirm(getErrorText(ex), 'Fiş Giriş Ekranı'); throw ex }
 	}
 	async initFormBuilder(e) {
 		let {builder} = this; const {fis} = this;
-		if (!builder && fis) { const _e = { sender: this }; builder = (await fis.getRootFormBuilder(_e)) || (await fis.getFormBuilders(_e)) }
-		if ($.isEmptyObject(builder)) return
-		const {layout} = this, subBuilders = builder.isFormBuilder ? [builder] : builder, id2Builder = this.id2Builder = {};
-		for (const key in subBuilders) {
-			const builder = subBuilders[key]; if (!builder) continue
-			builder.part = this; let _parent = builder.parent;
+		if (!builder && fis) { let _e = { ...e, sender: this }; builder = (await fis.getRootFormBuilder(_e)) || (await fis.getFormBuilders(_e)) } if ($.isEmptyObject(builder)) { return }
+		let {layout} = this, subBuilders = builder.isFormBuilder ? [builder] : builder, id2Builder = this.id2Builder = {};
+		for (const builder of subBuilders) {
+			if (!builder) { continue } builder.part = this; let _parent = builder.parent;
 			if (builder.isRootFormBuilder) {
 				this.builder = builder; let _layout = builder.layout;
 				if (!(_parent?.length || _layout?.length)) _layout = builder.layout = layout;
 			}
-			else { if (!_parent?.length) _parent = builder.parent = layout }
-			let _id = builder.id;
-			if (!_id) _id = builder.id = builder.newElementId();
-			if (_id) id2Builder[_id] = builder;
+			else if (!_parent?.length) { _parent = builder.parent = layout }
+			let {id: _id} = builder; if (!_id) { _id = builder.id = builder.newElementId() }
+			if (_id) { id2Builder[_id] = builder }
 			builder.autoInitLayout(); builder.run();
-			const _layout = builder.layout;
-			if (_layout?.length) { _layout.addClass('jqx-hidden'); setTimeout(() => _layout.removeClass('jqx-hidden'), 1) }
+			let {layout: _layout} = builder; if (_layout?.length) { _layout.addClass('jqx-hidden'); setTimeout(() => _layout.removeClass('jqx-hidden'), 1) }
 		}
 	}
 	islemTuslariDuzenle(e) {
@@ -154,8 +154,8 @@ class FisGirisPart extends GridliGirisWindowPart {
 	gridArgsDuzenleDevam(e) { super.gridArgsDuzenleDevam(e); $.extend(e.args, { width: '99.5%', /*editMode: 'selectedrow',*/ groupable: false, sortable: false, groupable: false }) }
 	/*get defaultTabloKolonlari() { const tabloKolonlari = super.defaultTabloKolonlari || []; return tabloKolonlari }*/
 	async defaultLoadServerData(e) {
-		const {fis, kontrolcu} = this, {gridDetaySinif} = fis.class, _e = $.extend({}, e, { fis });
-		_e.recs = []; for (let i = 0; i < fis.detaylar.length + 1; i++) { _e.recs.push(this.newRec({ sinif: gridDetaySinif })) }
+		const {fis, kontrolcu, sabitFlag} = this, {gridDetaySinif} = fis.class, _e = $.extend({}, e, { fis });
+		_e.recs = []; for (let i = 0; i < fis.detaylar.length + (sabitFlag ? 0 : 1); i++) { _e.recs.push(this.newRec({ sinif: gridDetaySinif })) }
 		// if (!this.yenimi) {
 		let _result = await kontrolcu.fis2Grid(_e);
 		if (_result != true) { if (_result.errorText) { hConfirm(`<div class="red">${_result.errorText}</div>`) } return false }

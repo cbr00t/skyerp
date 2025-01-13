@@ -70,7 +70,7 @@ class ModelTanimPart extends Part {
 			for (const elm of elms) elm?.addClass(`${rootPartName} with-tabs`)
 			this.initTabPages(e)
 		}
-		if (this.yeniVeyaKopyami) this.yeniTanimOncesiIslemler(e) /* setTimeout(() => this.wnd?.trigger('resize'), 0) */
+		if (this.yeniVeyaKopyami) { this.yeniTanimOncesiIslemler(e) } /* setTimeout(() => this.wnd?.trigger('resize'), 0) */
 	}
 	async initFormBuilder(e) {
 		try {
@@ -234,10 +234,10 @@ class ModelTanimPart extends Part {
 			}
 			let result = await this.kaydetOncesiIslemler(e); if (result === false) { return result }
 			if (result == null) {
-				if (this.yeniVeyaKopyami) result = await inst.yaz()
-				else if (this.degistirmi) result = await inst.degistir(eskiInst)
-				else if (this.silmi) result = await inst.sil()
-				if (!result || result.isError) return false
+				if (this.yeniVeyaKopyami) { result = await inst.yaz() }
+				else if (this.degistirmi) { result = await inst.degistir(eskiInst) }
+				else if (this.silmi) { result = await inst.sil() }
+				if (!result || result.isError) { return false }
 			}
 			await this.kaydetSonrasiIslemler(e);
 			const {kaydedince} = this; if (kaydedince) { const _e = $.extend({}, e, { sender: this, mfSinif, inst, eskiInst, result }); getFuncValue.call(this, kaydedince, _e) }

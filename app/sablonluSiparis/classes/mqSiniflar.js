@@ -128,7 +128,29 @@ class SablonluSiparisOrtakFis extends MQGenelFis {
 				setKA('sablon', sablonSayac, MQSablon.getGloKod2Adi(sablonSayac)); setKA('must', mustKod, MQCari.getGloKod2Adi(mustKod))
 			})
 	}
-	static loadServerDataDogrudan() { return [] }
+	static loadServerDataDogrudan(e) { return [] }
+	async yeniTanimOncesiIslemler(e) {
+		super.yeniTanimOncesiIslemler(e); let {detaySinif} = this.class;
+		this.detaylar = (await this.class.loadServerData_detaylar(e)).map(rec => {
+			let det = new detaySinif(); det.setValues({ rec }); return rec })
+	}
+	static loadServerData_detaylar(e) {
+		let parentRec = e.parentRec ?? e.fis ?? e.inst, fissayac = parentRec.fissayac ?? parentRec.sayac, sablonsayac = parentRec.kaysayac ?? parentRec.sablonSayac;
+		let tarih = parentRec.tarih ?? today(), mustKod = parentRec.mustkod ?? parentRec.mustKod;
+		let recs = [
+			(sablonsayac == 1 ? { fissayac, seq: 1, shkod: 'S01', shadi: 'ürün 1' } : null),
+			(sablonsayac == 1 ? { fissayac, seq: 2, shkod: 'S02', shadi: 'ürün 2' } : null),
+			(sablonsayac == 1 ? { fissayac, seq: 3, shkod: 'S03', shadi: 'ürün 3' } : null),
+			(sablonsayac == 1 ? { fissayac, seq: 4, shkod: 'S04', shadi: 'ürün 4' } : null),
+			(sablonsayac == 2 ? { fissayac, seq: 1, shkod: 'S05', shadi: 'ürün 5' } : null),
+			(sablonsayac == 2 ? { fissayac, seq: 2, shkod: 'S06', shadi: 'ürün 6' } : null)
+		].filter(x => !!x);
+		if (recs) {
+			let {detaySinif} = this; recs = recs.map(rec => { let det = new detaySinif(); det.setValues({ rec }); return det })
+			for (let rec of recs) { let {shKod, shAdi} = rec; if (shKod != null) { rec.shText = `<b>${shKod}</b> ${shAdi}` } }
+		}
+		return recs
+	}
 	uiDuzenle_fisGirisIslemTuslari(e) { }
 }
 class SablonluSiparisFis extends SablonluSiparisOrtakFis {
@@ -142,7 +164,8 @@ class SablonluKonsinyeSiparisFis extends SablonluSiparisOrtakFis {
 
 class SablonluSiparisOrtakDetay extends MQDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static loadServerDataDogrudan() { return [] }
+	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { shKod: new PInstStr('shkod'), miktar: new PInstNum('miktar'), shAdi: new PInstStr() }) }
+	setValues(e) { super.setValues(e); let {rec} = e; $.extend(this, { shAdi: rec.shadi }) }
 }
 class SablonluSiparisDetay extends SablonluSiparisOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -153,7 +176,7 @@ class SablonluKonsinyeSiparisDetay extends SablonluSiparisOrtakDetay {
 
 class SablonluSiparisOrtakGridci extends GridKontrolcu {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	gridArgsDuzenle(e) { super.gridArgsDuzenle(e); $.extend(e.args, { rowsHeight: 50 }) }
+	gridArgsDuzenle(e) { super.gridArgsDuzenle(e); let gridPart = e.gridPart ?? e.sender, {args} = e; gridPart.sabit(); $.extend(args, { rowsHeight: 50 }) }
 	tabloKolonlariDuzenle_ilk(e) {
 		super.tabloKolonlariDuzenle_ilk(e); e.tabloKolonlari.push(...[
 			new GridKolon({ belirtec: 'shText', text: 'Ürün/Hizmet', genislikCh: 40 }).readOnly(),

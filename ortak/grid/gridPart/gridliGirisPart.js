@@ -43,7 +43,7 @@ class GridliGirisPart extends GridPart {
 			/*const colDef = this.belirtec2Kolon[column]; if (!(colDef && colDef.isEditable)) { elm.jqxDragDrop({ revert: true }); return }
 			gridWidget.setcellvalue(cell.row, column, value); const {uid} = (rec || {}); */
 			rec = rec.deepCopy ? rec.deepCopy() : $.extend(true, {}, rec);
-			for (const key of this.gridRecOzelkeys) delete rec[key]
+			for (const key of this.gridRecOzelkeys) { delete rec[key] }
 			const sender = this.sender || this, totalRecs = gridWidget.getrecordscount();
 			gridWidget.beginupdate();
 			if (rowIndex + 1 >= totalRecs) {
