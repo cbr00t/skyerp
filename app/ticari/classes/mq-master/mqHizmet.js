@@ -5,9 +5,7 @@ class MQHizmet extends MQKA {
 	static get vergiBelirtecler() { return ['kdv', 'stopaj'] }
 
 	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e);
-		const {pTanim} = e;
-		$.extend(pTanim, {
+		super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, {
 			aciklama2: new PInstStr('aciklama2'),
 			tip: new PInstTekSecim('tip', HizmetTipi),
 			grupKod: new PInstStr('grupkod'),
@@ -57,43 +55,23 @@ class MQHizmet extends MQKA {
 		form = tabPage_genel.addFormWithParent().yanYana(1).addStyle(e => `$elementCSS { margin-bottom: 70px }`);
 		form.addRadioButton({ id: 'tip', etiket: 'Tip  :', source: HizmetTipi.instance.kaListe})
 			.onChange(e => {
-				const {builder} = e;
-				const {rootPart} = builder;
-				const tabPanel_gelirGider = rootPart.fbd_tabPanel_gelirGider.part;
-				const {id2TabPage} = tabPanel_gelirGider;
-				const value = (e.value || '').trim();
-				builder.input.attr('data-tip', value);
+				const {builder} = e, {rootPart} = builder, tabPanel_gelirGider = rootPart.fbd_tabPanel_gelirGider?.part; if (!tabPanel_gelirGider) { return }
+				const {id2TabPage} = tabPanel_gelirGider, value = (e.value || '').trim(); builder.input.attr('data-tip', value);
 				tabPanel_gelirGider.divTabs.children('li').removeClass('jqx-hidden basic-hidden');
 				switch (value) {
-					case '':
-						id2TabPage.gider.layout.addClass('jqx-hidden');
-						tabPanel_gelirGider.activePageId = 'gelir';
-						break
-					case 'G':
-						id2TabPage.gelir.layout.addClass('jqx-hidden');
-						tabPanel_gelirGider.activePageId = 'gider';
-						break
+					case '': id2TabPage.gider.layout.addClass('jqx-hidden'); tabPanel_gelirGider.activePageId = 'gelir'; break
+					case 'G': id2TabPage.gelir.layout.addClass('jqx-hidden'); tabPanel_gelirGider.activePageId = 'gider'; break
 				}
-				tabPanel_gelirGider.render();
-				tabPanel_gelirGider.divTabs.children('li:not(.jqx-hidden):not(.basic-hidden):eq(0)').click()
+				tabPanel_gelirGider.render(); tabPanel_gelirGider.divTabs.children('li:not(.jqx-hidden):not(.basic-hidden):eq(0)').click()
 			})
-			.onAfterRun(e => {
-				const {builder} = e;
-				const {rootPart} = builder;
-				rootPart.fbd_tip = builder
-			});
-		
+			.onAfterRun(e => { const {builder} = e, {rootPart} = builder; rootPart.fbd_tip = builder });
 		const tabPanel_gelirGider = tabPage_genel.addTabPanel({ id: 'gelirGiderTabs' })
 			.addStyle_wh({ height: 'max-content !important' })
 			.onAfterRun(e => {
-				const {builder} = e;
-				const {rootPart} = builder;
-				rootPart.fbd_tabPanel_gelirGider = builder;
-				const {fbd_tip} = rootPart;
-				fbd_tip.signalChange({ builder: fbd_tip, value: fbd_tip.altInst.tip.char })
+				const {builder} = e, {rootPart} = builder; rootPart.fbd_tabPanel_gelirGider = builder;
+				const {fbd_tip} = rootPart; fbd_tip.signalChange({ builder: fbd_tip, value: fbd_tip.altInst.tip.char })
 			});
-		const tabPage_gelirFiyat = tabPanel_gelirGider.addTab({ id: 'gelir', etiket: 'Gelir' });
-		form = tabPage_gelirFiyat.addFormWithParent().yanYana(3);
+		const tabPage_gelirFiyat = tabPanel_gelirGider.addTab({ id: 'gelir', etiket: 'Gelir' }); form = tabPage_gelirFiyat.addFormWithParent().yanYana(3);
 		form.addModelKullan({ id: 'gelKdvHesapKod',  etiket: 'KDV', mfSinif: MQVergi })
 			.dropDown().kodsuz().ozelQueryDuzenleBlock(e => {
 				const {builder, aliasVeNokta, stm} = e;
@@ -328,20 +306,15 @@ class MQHizmet extends MQKA {
 		)
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e);
-		const {aliasVeNokta} = this;
-		const {sent} = e;
+		super.loadServerData_queryDuzenle(e); const {aliasVeNokta, kodSaha} = this, {sent} = e, {where: wh} = sent;
 		sent.fromIliski(`hizgrup hizgrp`, `${aliasVeNokta}grupkod = hizgrp.kod`);
 		sent.fromIliski(`hizistgrup hizigrp`, `${aliasVeNokta}histgrupkod = hizigrp.kod`);
 		sent.fromIliski(`kategori kat`, `${aliasVeNokta}kategorikod = kat.kod`);
-		sent.sahalar.add(`${aliasVeNokta}tip`);
+		wh.icerikKisitDuzenle_hizmet({ saha: aliasVeNokta + kodSaha });
+		sent.sahalar.add(`${aliasVeNokta}tip`)
 	}
 	static getGridKolonGrup_kategorili(e) {
-		let kolonGrup = this.getGridKolonGrup(e);
-		if (!kolonGrup)
-			return kolonGrup
-		e.kolonGrup = kolonGrup;
-		MQKategori.mqHizmetKolonGrupDuzenle(e);
-		return e.kolonGrup
+		let kolonGrup = this.getGridKolonGrup(e); if (!kolonGrup) { return kolonGrup }
+		e.kolonGrup = kolonGrup; MQKategori.mqHizmetKolonGrupDuzenle(e); return e.kolonGrup
 	}
 }

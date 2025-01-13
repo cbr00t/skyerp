@@ -26,12 +26,12 @@ class FisGirisPart extends GridliGirisWindowPart {
 		if (islem) { const islemText = islem[0].toUpperCase() + islem.slice(1); this.title += ` &nbsp;-&nbsp; <b class="window-title-ek">${islemText}</b>` }
 	}
 	runDevam(e) {
-		super.runDevam(e); const {layout} = this; const splitMain = this.splitMain = layout.find('.main-split');
+		super.runDevam(e); const sender = this, {layout} = this; const splitMain = this.splitMain = layout.find('.main-split');
 		splitMain.jqxSplitter({
 			theme, width: '100%', height: layout.height(), orientation: 'horizontal', splitBarSize: 20,
-			panels: [ { min: 87, size: 160 }, { min: 200 } ]
+			panels: [ { min: 87, size: 130 }, { min: 200 } ]
 		});
-		const {islem, fis, header} = this, baslikFormlar = this.baslikFormlar = [header.find('.baslikForm1'), header.find('.baslikForm2'), header.find('.baslikForm3')];
+		const {islem, fis, header, islemTuslari} = this, baslikFormlar = this.baslikFormlar = [header.find('.baslikForm1'), header.find('.baslikForm2'), header.find('.baslikForm3')];
 		const subeForm = this.subeForm = header.find('.sube'), tsnForm = this.tsnForm = layout.find('.tsnForm');
 		const divHeaderDipOrtak = this.divHeaderDipOrtak = layout.find('.headerDipOrtak'), dipForm = divHeaderDipOrtak.find('.dipForm');
 		if (fis.class.dipKullanilirmi) {
@@ -52,7 +52,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 		const gridIslemTuslari = this.gridIslemTuslari = splitGridVeIslemTuslari.find('.gridIslemTuslari');
 		const gridIslemTuslariWidth = asFloat(layout.css('--grid-islemTuslari-width').slice(0, -2));
 		setTimeout(async () => {
-			let _e = { sender: this, parent: $(document.createDocumentFragment()), islem, fis, layout, afterInit: [] };
+			let _e = { sender, parent: $(document.createDocumentFragment()), islem, fis, layout, afterInit: [] };
 			if (fis.uiDuzenle_fisGirisIslemTuslari) await fis.uiDuzenle_fisGirisIslemTuslari(_e)
 			_e.parent.appendTo(gridIslemTuslari); gridIslemTuslari.removeClass('jqx-hidden basic-hidden');
 			let buttons = gridIslemTuslari.find('button'); if (buttons.length) { buttons.jqxButton({ theme }) } _e.buttons = buttons;
@@ -74,23 +74,28 @@ class FisGirisPart extends GridliGirisWindowPart {
 			}
 			setTimeout(() => {
 				splitGridVeIslemTuslari.jqxSplitter({
-					theme, width: '100%', height: '100%', orientation: 'vertical', splitBarSize: 13,
-					panels: 
-						[
-							{ min: gridIslemTuslariWidth, size: gridIslemTuslariWidth, collapsible: true, collapsed: !gridIslemTuslari.find(':not(div)').length },
-							{ min: layout.width() - gridIslemTuslariWidth, collapsible: false }
-						]
+					theme, width: '100%', height: '100%', orientation: 'vertical', splitBarSize: 13, panels: 
+					[
+						{ min: gridIslemTuslariWidth, size: gridIslemTuslariWidth, collapsible: true, collapsed: false },
+						{ min: layout.width() - gridIslemTuslariWidth, collapsible: false }
+					]
 				});
 				/* splitGridVeIslemTuslari.jqxSplitter('collapse', 0) */
-			}, 40)
-		}, 10)
+			}, 10)
+		}, 0);
+		this.noAnimate(); let _e = { ...e, sender, fis, islem, layout, islemTuslari, subeForm, baslikFormlar, gridIslemTuslari };
+		if (this.yeniVeyaKopyami) {
+			let promise = fis.yeniTanimOncesiIslemler(_e); if (promise?.then) {
+				let css = 'opacity-0'; layout.addClass(css);
+				promise.then(() => this.tazele(_e)).finally(() => setTimeout(() => layout.removeClass(css), 1))
+			}
+		}
 	}
-	async afterRun(e) {
+	afterRun(e) {
 		e = e ?? {}; try {
-			await super.afterRun(e); if (app.activePart != this) { app._activePartStack.pop() }
-			let sender = this, {fis, islem, layout, header, tsnForm, subeForm, islemTuslari, baslikFormlar} = this;
-			let _e = { ...e, sender, fis, islem, layout, islemTuslari, subeForm, islemTuslari, baslikFormlar };
-			if (this.yeniVeyaKopyami) { await fis.yeniTanimOncesiIslemler(_e) } /* setTimeout(() => this.wnd?.trigger('resize'), 0) */
+			super.afterRun(e); if (app.activePart != this) { app._activePartStack.pop() }
+			let sender = this, {fis, islem, layout, header, tsnForm, subeForm, islemTuslari, baslikFormlar, gridIslemTuslari, splitGridVeIslemTuslari} = this;
+			let _e = { ...e, sender, fis, islem, layout, islemTuslari, subeForm, baslikFormlar, gridIslemTuslari };
 			setTimeout(async () => {
 				if (config.dev) { header.removeClass('jqx-hidden basic-hidden') }
 				if (fis.uiDuzenle_fisGiris) { setTimeout(() => { fis.uiDuzenle_fisGiris(_e) }, 10) }
@@ -100,7 +105,8 @@ class FisGirisPart extends GridliGirisWindowPart {
 				setTimeout(() => { if (header.height() < 10) splitMain.jqxSplitter('collapse', 0) }, 200)
 				setTimeout(() => header.removeClass('jqx-hidden basic-hidden'), 500)
 			}, 10);
-			setTimeout(() => makeScrollable(header), 100); setTimeout(() => this.onResize(e), 300)
+			setTimeout(() => makeScrollable(header), 100);
+			setTimeout(() => { this.onResize(e); if (!gridIslemTuslari.find(':not(div)').length) { splitGridVeIslemTuslari.jqxSplitter('collapse') } }, 300)
 		}
 		catch (ex) { hConfirm(getErrorText(ex), 'Fiş Giriş Ekranı'); throw ex }
 	}
@@ -188,12 +194,12 @@ class FisGirisPart extends GridliGirisWindowPart {
 		//}*/
 	}
 	async gridVeriYuklendi(e) {
-		e = e || {}; const {kontrolcu, fis} = this; await super.gridVeriYuklendi(e);
-		if (kontrolcu) await kontrolcu.fisGiris_gridVeriYuklendi({ sender: this, fis: fis, kontrolcu: kontrolcu, grid: this.grid, gridWidget: this.gridWidget })
+		e = e || {}; const {kontrolcu, fis, splitGridVeIslemTuslari} = this; await super.gridVeriYuklendi(e);
+		if (kontrolcu) { await kontrolcu.fisGiris_gridVeriYuklendi({ sender: this, fis: fis, kontrolcu: kontrolcu, grid: this.grid, gridWidget: this.gridWidget }) }
 		setTimeout(async () => {
 			const {dipIslemci} = fis;
 			if (dipIslemci) { await dipIslemci._promise_dipSatirlari; dipIslemci.detaylar = e => this.boundRecs; dipIslemci.topluHesapla($.extend({}, e, { sender: this })) }
-			this.dipTazele(e)
+			this.dipTazele(e); this.onResize(e)
 		}, 100)
 	}
 	dipTazele(e) {

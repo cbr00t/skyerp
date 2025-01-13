@@ -14,6 +14,10 @@ class MQStokGrup extends MQKA {
 			new GridKolon({ belirtec: 'anagrupadi', text: 'Ana Grup Adı', genislikCh: 15, sql: 'agrp.aciklama' })
 		)
 	}
-	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {aliasVeNokta} = this, {sent} = e; sent.fromIliski('stkanagrup agrp', 'sgrp.anagrupkod = agrp.kod') }
+	static loadServerData_queryDuzenle(e) {
+		super.loadServerData_queryDuzenle(e); const {aliasVeNokta, kodSaha} = this, {sent} = e, {where: wh} = sent;
+		sent.fromIliski('stkanagrup agrp', 'sgrp.anagrupkod = agrp.kod');
+		wh.icerikKisitDuzenle_stokGrup({ saha: aliasVeNokta + kodSaha })
+	}
 	tekilOku_queryDuzenle(e) { super.tekilOku_queryDuzenle(e) }
 }

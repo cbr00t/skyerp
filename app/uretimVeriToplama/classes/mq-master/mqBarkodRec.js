@@ -169,8 +169,8 @@ class MQBarkodRec extends MQMasterOrtak {
 			const {belirtec2Bilgi} = HMRBilgi, hmrEtiketDict = app.params.stokGenel?.hmrEtiket || {};
 			for (const [belirtec, rec] of Object.entries(belirtec2Bilgi)) {
 				const {ioAttr, numerikmi, kami, mfSinif} = rec, etiket = hmrEtiketDict.etiket || rec.etiket; let fbd;
-				if (kami && mfSinif) { fbd = form.addModelKullan(ioAttr, etiket).setMFSinif(mfSinif).addStyle_wh(300) }
-				else { fbd = form[numerikmi ? 'addNumberInput' : 'addTextInput'](ioAttr, etiket).addStyle_wh(130) }
+				if (kami && mfSinif) { fbd = form.addModelKullan(ioAttr, etiket).comboBox().autoBind().setMFSinif(mfSinif).addStyle_wh(400) }
+				else { fbd = form[numerikmi ? 'addNumberInput' : 'addTextInput'](ioAttr, etiket).addStyle_wh(200) }
 				if (fbd) { fbd.setAltInst(e => e.builder.inst.ekOzellikler) }
 			}
 		}

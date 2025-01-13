@@ -5,9 +5,8 @@ class MQGenelFis extends MQOrtakFis {
 	get tsn() { return new TicariSeriliNo(this) } set tsn(value) { $.extend(this, { seri: value?.seri || '', noYil: value?.noYil || 0, no: value?.no || 0 }) }
 	constructor(e) {
 		e = e || {}; super(e);
-		if (e.isCopy) return
-		const {numYapi} = this.class;
-		if (numYapi) this.numarator = numYapi.deepCopy()
+		if (e.isCopy) { return }
+		const {numYapi} = this.class; if (numYapi) { this.numarator = numYapi.deepCopy() }
 	}
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;

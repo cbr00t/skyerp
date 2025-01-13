@@ -118,7 +118,7 @@ class MQDetayli extends MQSayacli {
 		if (!$.isEmptyObject(detaySiniflar)) {
 			for (const detaySinif of detaySiniflar) {
 				delete e.detaySiniflar; e.detaySinif = detaySinif; e.query = this.loadServerData_detaylar_queryOlustur(e);
-				const _recs = await this.loadServerData_detaylar_querySonucu(e); if (!_recs) return _recs
+				const _recs = await this.loadServerData_detaylar_querySonucu(e); if (!_recs) { return _recs }
 				recs.push(..._recs)
 			}
 		}
@@ -197,7 +197,7 @@ class MQDetayli extends MQSayacli {
 			const _e = $.extend({}, e, { detaySinif }); for (const key of ['rec', 'parentRec', 'detaySiniflar']) { delete _e[key] }
 			const detRecs = _e.detRecs = await this.tekilOku_detaylar(_e); for (const rec of detRecs) {
 				const _detaySinif = this.class.detaySinifFor({ detaySinif, rec });
-				if (!_detaySinif) throw { isError: true, rc: 'detayBelirlenemedi', errorText: 'Detay sınıfı belirlenemedi' }
+				if (!_detaySinif) { throw { isError: true, rc: 'detayBelirlenemedi', errorText: 'Detay sınıfı belirlenemedi' } }
 				const det = new _detaySinif(); _e.rec = rec; det.setValues(_e);
 				const seq = det.seq || 0; (seq2Detaylar[seq] = seq2Detaylar[seq] || []).push(det)
 			}

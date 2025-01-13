@@ -65,7 +65,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	}
 	static async onaylaIstendi(e) {
 		try {
-			let gridPart = e.gridPart ?? e.sender, {fisSinif} = this; if (!fisSinif) { return null }
+			let gridPart = (e.gridPart ?? e.sender).parentPart, {fisSinif} = this; if (!fisSinif) { return null }
 			let {tarih, mustKod} = gridPart, {rec} = e, {kaysayac: sayac, bonayli: onaylimi, _parentRec: parentRec} = rec, {kaysayac: sablonSayac} = parentRec;
 			if (onaylimi) { throw { isError: true, errorText: 'Bu sipariş zaten onaylanmış' } }
 			return true
@@ -74,9 +74,9 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	}
 	static async degistirIstendi(e) {
 		try {
-			let gridPart = e.gridPart ?? e.sender, {fisSinif} = this; if (!fisSinif) { return null }
+			let gridPart = (e.gridPart ?? e.sender).parentPart, {fisSinif} = this; if (!fisSinif) { return null }
 			let {tarih, mustKod} = gridPart, {rec} = e, {kaysayac: sayac, bonayli: onaylimi, _parentRec: parentRec} = rec, {kaysayac: sablonSayac} = parentRec;
-			let fis = new fisSinif({ sayac, sablonSayac, tarih, mustKod }), result = await fis.yukle(); if (!result) { return }
+			let fis = new fisSinif({ sayac, sablonSayac, tarih, mustKod }), result = await fis.yukle({ ...e, rec: undefined }); if (!result) { return }
 			let islem = onaylimi ? 'izle' : 'degistir', kaydedince = e => gridPart.tazeleDefer();
 			return await fis.tanimla({ islem, kaydedince })
 		}
@@ -84,7 +84,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	}
 	static async silIstendi(e) {
 		try {
-			let gridPart = e.gridPart ?? e.sender, {fisSinif} = this; if (!fisSinif) { return false }
+			let gridPart = (e.gridPart ?? e.sender).parentPart, {fisSinif} = this; if (!fisSinif) { return false }
 			let {tarih, mustKod} = gridPart, {rec} = e, {kaysayac: sayac, bonayli: onaylimi} = rec; if (!sayac) { return false }
 			if (onaylimi) { throw { isError: true, errorText: 'Onaylı sipariş silinemez' } }
 			let fis = new fisSinif({ sayac, sablonSayac, tarih, mustKod }), result = await fis.yukle(); if (!result) { return }
@@ -96,15 +96,20 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 class MQSablon extends MQSablonOrtak { static { window[this.name] = this; this._key2Class[this.name] = this } static get fisSinif() { return SablonluSiparisFis } }
 class MQKonsinyeSablon extends MQSablonOrtak { static { window[this.name] = this; this._key2Class[this.name] = this } static get fisSinif() { return SablonluKonsinyeSiparisFis } }
 
-class SablonluSiparisOrtakFis extends MQGenelFis {
+class SablonluSiparisOrtakFis extends MQOrtakFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Sipariş' }
+	static get table() { return 'hizlisablongrup' } static get tableAlias() { return 'grp' } static get tanimUISinif() { return FisGirisPart }
 	static get detaySinif() { return SablonluSiparisOrtakDetay } static get gridKontrolcuSinif() { return SablonluSiparisOrtakGridci }
-	static get tumKolonlarGosterilirmi() { return true } static get tanimlanabilirmi() { return false }
-	static get silinebilirmi() { return false } static get raporKullanilirmi() { return false }
-	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { sablonSayac: new PInstNum('sablonSayac'), mustKod: new PInstStr('mustkod') }) }
+	static get tumKolonlarGosterilirmi() { return true } static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false } static get raporKullanilirmi() { return false }
+	static pTanimDuzenle(e) {
+		super.pTanimDuzenle(e); $.extend(e.pTanim, {
+			sablonSayac: new PInstNum('sablonsayac'), tarih: new PInstDateToday(),
+			mustKod: new PInstStr('mustkod')
+		})
+	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); let {builders: baslikFormlar} = e.builders.baslikForm, {inst} = e;
-		baslikFormlar[0].addForm('_baslikBilgi')
+		super.rootFormBuilderDuzenle(e); let {baslikForm: fbd_baslikForm} = e.builders, {builders: baslikFormlar} = fbd_baslikForm, {inst} = e;
+		baslikFormlar[0].altAlta().addForm('_baslikBilgi')
 			.addStyle(e =>
 				`$elementCSS { font-size: 150% } $elementCSS > ._row { gap: 10px } $elementCSS > ._row:not(:last-child) { margin-bottom: 5px }
 				$elementCSS .etiket { width: 130px !important } $elementCSS .veri { font-weight: bold; color: royalblue }`
@@ -130,29 +135,20 @@ class SablonluSiparisOrtakFis extends MQGenelFis {
 			})
 	}
 	static loadServerDataDogrudan(e) { return [] }
-	async yeniTanimOncesiIslemler(e) {
-		super.yeniTanimOncesiIslemler(e); let {detaySinif} = this.class;
-		this.detaylar = (await this.class.loadServerData_detaylar(e)).map(rec => {
-			let det = new detaySinif(); det.setValues({ rec }); return rec })
-	}
-	static loadServerData_detaylar(e) {
-		let parentRec = e.parentRec ?? e.fis ?? e.inst, fissayac = parentRec.fissayac ?? parentRec.sayac, sablonsayac = parentRec.kaysayac ?? parentRec.sablonSayac;
-		let tarih = parentRec.tarih ?? today(), mustKod = parentRec.mustkod ?? parentRec.mustKod;
-		let recs = [
-			(sablonsayac == 1 ? { fissayac, seq: 1, shkod: 'S01', shadi: 'ürün 1' } : null),
-			(sablonsayac == 1 ? { fissayac, seq: 2, shkod: 'S02', shadi: 'ürün 2' } : null),
-			(sablonsayac == 1 ? { fissayac, seq: 3, shkod: 'S03', shadi: 'ürün 3' } : null),
-			(sablonsayac == 1 ? { fissayac, seq: 4, shkod: 'S04', shadi: 'ürün 4' } : null),
-			(sablonsayac == 2 ? { fissayac, seq: 1, shkod: 'S05', shadi: 'ürün 5' } : null),
-			(sablonsayac == 2 ? { fissayac, seq: 2, shkod: 'S06', shadi: 'ürün 6' } : null)
-		].filter(x => !!x);
-		if (recs) {
-			let {detaySinif} = this; recs = recs.map(rec => { let det = new detaySinif(); det.setValues({ rec }); return det })
-			for (let rec of recs) { let {shKod, shAdi} = rec; if (shKod != null) { rec.shText = `<b>${shKod}</b> ${shAdi}` } }
+	async yeniTanimOncesiIslemler(e) { await super.yeniTanimOncesiIslemler(e); await this.detaylariDuzenle(e) }
+	async detaylariYukleSonrasi(e) { await super.detaylariYukleSonrasi(e); await this.detaylariDuzenle(e) }
+	async detaylariDuzenle(e) {
+		e = e ?? {}; e.inst = e.fis = this;
+		let {detaySinif} = this.class, seq2Det = {}; for (let det of this.detaylar) { seq2Det[det.seq] = det }
+		let {sender, inst, fis} = e, _e = { sender, inst, fis }, recs = await this.class.loadServerData_detaylar(_e), detaylar = [];
+		for (let rec of recs) {
+			let _det = seq2Det[rec.seq], det = new detaySinif(); det.setValues({ rec }); if (_det) { $.extend(det, _det) }
+			let {stokKod, stokAdi} = det; if (stokKod != null) { det.stokText = `<b>${stokKod}</b> ${stokAdi}` }
+			detaylar.push(det)
 		}
-		return recs
+		this.detaylar = detaylar
 	}
-	uiDuzenle_fisGirisIslemTuslari(e) { }
+	uiDuzenle_fisGirisIslemTuslari(e) { /* super yok */ }
 }
 class SablonluSiparisFis extends SablonluSiparisOrtakFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get kodListeTipi() { return 'SSIP' }
@@ -164,9 +160,39 @@ class SablonluKonsinyeSiparisFis extends SablonluSiparisOrtakFis {
 }
 
 class SablonluSiparisOrtakDetay extends MQDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { shKod: new PInstStr('shkod'), miktar: new PInstNum('miktar'), shAdi: new PInstStr() }) }
-	setValues(e) { super.setValues(e); let {rec} = e; $.extend(this, { shAdi: rec.shadi }) }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'hizlisablondetay' } static get fisSayacSaha() { return 'grupsayac' }
+	static pTanimDuzenle(e) {
+		super.pTanimDuzenle(e); $.extend(e.pTanim, {
+			stokKod: new PInstStr('stokkod'), miktar: new PInstNum('miktar'),
+			stokAdi: new PInstStr(), brm: new PInstStr()
+		})
+	}
+	static loadServerData_queryDuzenle(e) {
+		super.loadServerData_queryDuzenle(e); let {sent, fis} = e, {tableAlias: grupAlias} = fis.class, {tableAlias: harAlias} = this;
+		let {where: wh, sahalar} = sent, {sablonSayac} = fis;
+		sent.fromIliski(`hizlisablongrup ${grupAlias}`, `${harAlias}.grupsayac = ${grupAlias}.kaysayac`).fromIliski('stkmst stk', `${harAlias}.stokkod = stk.kod`)
+		wh.add(`${harAlias}.bdevredisi = 0`, `stk.silindi = ''`, `stk.satilamazfl = ''`).degerAta(sablonSayac, `${grupAlias}.fissayac`);
+		sahalar.add('stk.aciklama stokadi', 'stk.brm brm')
+	}
+	static loadServerData(e) {
+		return super.loadServerData(e)
+		/*let parentRec = e.parentRec ?? e.fis ?? e.inst, fissayac = parentRec.fissayac ?? parentRec.sayac, sablonsayac = parentRec.kaysayac ?? parentRec.sablonSayac;
+		let tarih = parentRec.tarih ?? today(), mustKod = parentRec.mustkod ?? parentRec.mustKod;
+		let recs = [
+			(sablonsayac == 1 ? { fissayac, seq: 1, stokkod: 'S01', stokadi: 'ürün 1' } : null),
+			(sablonsayac == 1 ? { fissayac, seq: 2, stokkod: 'S02', stokadi: 'ürün 2' } : null),
+			(sablonsayac == 1 ? { fissayac, seq: 3, stokkod: 'S03', stokadi: 'ürün 3' } : null),
+			(sablonsayac == 1 ? { fissayac, seq: 4, stokkod: 'S04', stokadi: 'ürün 4' } : null),
+			(sablonsayac == 2 ? { fissayac, seq: 1, stokkod: 'S05', stokadi: 'ürün 5' } : null),
+			(sablonsayac == 2 ? { fissayac, seq: 2, stokkod: 'S06', stokadi: 'ürün 6' } : null)
+		].filter(x => !!x);
+		let recs = await super.loadServerData(e); if (recs) {
+			let {detaySinif} = this; recs = recs.map(rec => { let det = new detaySinif(); det.setValues({ rec }); return det })
+			for (let rec of recs) { let {stokKod, stokAdi} = rec; if (stokKod != null) { rec.stokText = `<b>${stokKod}</b> ${stokAdi}` } }
+		}
+		return recs*/
+	}
+	setValues(e) { super.setValues(e); let {rec} = e; $.extend(this, { stokAdi: rec.stokadi, brm: rec.brm }) }
 }
 class SablonluSiparisDetay extends SablonluSiparisOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -177,10 +203,10 @@ class SablonluKonsinyeSiparisDetay extends SablonluSiparisOrtakDetay {
 
 class SablonluSiparisOrtakGridci extends GridKontrolcu {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	gridArgsDuzenle(e) { super.gridArgsDuzenle(e); let gridPart = e.gridPart ?? e.sender, {args} = e; gridPart.sabit(); $.extend(args, { rowsHeight: 50 }) }
+	gridArgsDuzenle(e) { super.gridArgsDuzenle(e); let gridPart = e.gridPart ?? e.sender, {args} = e; gridPart.sabit(); $.extend(args, { rowsHeight: 45 }) }
 	tabloKolonlariDuzenle_ilk(e) {
 		super.tabloKolonlariDuzenle_ilk(e); e.tabloKolonlari.push(...[
-			new GridKolon({ belirtec: 'shText', text: 'Ürün/Hizmet', genislikCh: 40 }).readOnly(),
+			new GridKolon({ belirtec: 'stokText', text: 'Ürün/Hizmet', genislikCh: 40 }).readOnly(),
 			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 13 }).tipDecimal()
 		])
 	}

@@ -115,7 +115,7 @@ class MQYapi extends CIO {
 			}
 		}
 	}
-	degistirOncesiIslemler(e) { return this.yeniTanimVeyaDegistirOncesiIslemler(e) }
+	degistirOncesiIslemler(e) { }
 	silmeOncesiIslemler(e) { return this.kaydetOncesiIslemler(e) }
 	yeniSonrasiIslemler(e) { return this.yeniVeyaDegistirSonrasiIslemler(e) }
 	degistirSonrasiIslemler(e) { return this.yeniVeyaDegistirSonrasiIslemler(e) }

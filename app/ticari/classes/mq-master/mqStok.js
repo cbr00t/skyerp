@@ -20,7 +20,7 @@ class MQStok extends MQKA {
 		liste.push('brm', 'grupAciklama', 'satfiyat1', 'almfiyat')
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {tableAlias: alias, aliasVeNokta} = this, {sent} = e;
+		super.loadServerData_queryDuzenle(e); const {tableAlias: alias, aliasVeNokta, kodSaha} = this, {sent} = e, {where: wh} = sent;
 		sent.fromIliski(`stkgrup grp`, `${aliasVeNokta}grupkod = grp.kod`);
 		sent.fromIliski(`stkanagrup agrp`, `grp.anagrupkod = agrp.kod`);
 		sent.fromIliski(`stkistgrup sigrp`, `${aliasVeNokta}sistgrupkod = sigrp.kod`);
@@ -32,6 +32,7 @@ class MQStok extends MQKA {
 		sent.fromIliski('vergihesap aver', `${aliasVeNokta}almkdvhesapkod = aver.kod`);
 		sent.fromIliski('vergihesap asver', `${aliasVeNokta}almstopajhesapkod = asver.kod`);
 		sent.leftJoin({ alias, from: `yukgrup ygrp`, on: `${aliasVeNokta}yukgrupkod = ygrp.kod` });
+		wh.icerikKisitDuzenle_stok({ saha: aliasVeNokta + kodSaha });
 		sent.sahalar.add(`${aliasVeNokta}calismadurumu`, `${aliasVeNokta}satilamazfl`)
 	}
 	static getGridKolonGrup_brmli(e) {
