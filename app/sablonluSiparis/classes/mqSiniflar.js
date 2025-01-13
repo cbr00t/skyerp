@@ -47,9 +47,9 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	static loadServerData_detaylar(e) {
 		const {parentRec} = e, {kaysayac: sablonsayac} = parentRec, tarih = today();
 		let recs = [
-			(sablonsayac == 1 ? { sablonsayac, tarih, fisnox: 'ABC 1', sevkadresadi: '' } : null),
-			(sablonsayac == 1 ? { sablonsayac, tarih, fisnox: 'ABC 2', sevkadresadi: '' } : null),
-			(sablonsayac == 2 ? { sablonsayac, tarih, fisnox: 'ABC 3', sevkadresadi: '' } : null)
+			(sablonsayac == 1 ? { kaysayac: 1, seq: 1, sablonsayac, tarih, fisnox: 'ABC 1', sevkadresadi: '', bonayli: 0 } : null),
+			(sablonsayac == 1 ? { kaysayac: 2, seq: 2, sablonsayac, tarih, fisnox: 'ABC 2', sevkadresadi: '', bonayli: 1 } : null),
+			(sablonsayac == 2 ? { kaysayac: 3, seq: 1, sablonsayac, tarih, fisnox: 'ABC 3', sevkadresadi: '', bonayli: 0 } : null)
 		].filter(x => !!x);
 		if (recs) { for (let rec of recs) { rec._parentRec = parentRec } }
 		return recs
@@ -66,7 +66,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	static async onaylaIstendi(e) {
 		try {
 			let gridPart = e.gridPart ?? e.sender, {fisSinif} = this; if (!fisSinif) { return null }
-			let {tarih, mustKod} = gridPart, {rec} = e, {sayac, bonayli: onaylimi, _parentRec: parentRec} = rec, {kaysayac: sablonSayac} = parentRec;
+			let {tarih, mustKod} = gridPart, {rec} = e, {kaysayac: sayac, bonayli: onaylimi, _parentRec: parentRec} = rec, {kaysayac: sablonSayac} = parentRec;
 			if (onaylimi) { throw { isError: true, errorText: 'Bu sipariş zaten onaylanmış' } }
 			return true
 		}
@@ -75,7 +75,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	static async degistirIstendi(e) {
 		try {
 			let gridPart = e.gridPart ?? e.sender, {fisSinif} = this; if (!fisSinif) { return null }
-			let {tarih, mustKod} = gridPart, {rec} = e, {sayac, bonayli: onaylimi, _parentRec: parentRec} = rec, {kaysayac: sablonSayac} = parentRec;
+			let {tarih, mustKod} = gridPart, {rec} = e, {kaysayac: sayac, bonayli: onaylimi, _parentRec: parentRec} = rec, {kaysayac: sablonSayac} = parentRec;
 			let fis = new fisSinif({ sayac, sablonSayac, tarih, mustKod }), result = await fis.yukle(); if (!result) { return }
 			let islem = onaylimi ? 'izle' : 'degistir', kaydedince = e => gridPart.tazeleDefer();
 			return await fis.tanimla({ islem, kaydedince })
@@ -85,7 +85,8 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	static async silIstendi(e) {
 		try {
 			let gridPart = e.gridPart ?? e.sender, {fisSinif} = this; if (!fisSinif) { return false }
-			let {tarih, mustKod} = gridPart, {rec} = e, {sayac, bonayli: onaylimi} = rec; if (!sayac) { return false }
+			let {tarih, mustKod} = gridPart, {rec} = e, {kaysayac: sayac, bonayli: onaylimi} = rec; if (!sayac) { return false }
+			if (onaylimi) { throw { isError: true, errorText: 'Onaylı sipariş silinemez' } }
 			let fis = new fisSinif({ sayac, sablonSayac, tarih, mustKod }), result = await fis.yukle(); if (!result) { return }
 			result = await fis.sil(); gridPart.tazeleDefer(); return result
 		}
