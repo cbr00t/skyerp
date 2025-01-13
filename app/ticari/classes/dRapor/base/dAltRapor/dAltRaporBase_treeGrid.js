@@ -199,9 +199,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		let {recs} = e; const {tabloYapi} = this, {kaPrefixes, sortAttr, grupVeToplam} = tabloYapi, fixKA = (rec, prefix) => {
 			if (rec == null) { return } const item = grupVeToplam[prefix] ?? grupVeToplam[prefix.toUpperCase()], {kodsuzmu} = item || {};
 			const kod = kodsuzmu ? null : rec[prefix + 'kod'], adi = rec[prefix + 'adi'];
-			if (!(kod === undefined && adi === undefined)) { this.fixKA(rec, prefix) }
-			/*let value = kod || ''; if (kod) { value = `(${value}) ` } value += adi || '';
-			rec[prefix] = value; delete rec[prefix + 'kod']; delete rec[prefix + 'adi']*/
+			if (!(kod === undefined && adi === undefined)) { this.fixKA(rec, prefix, kodsuzmu) }
 		};
 		let id = 1; for (const rec of recs) { for (const prefix of kaPrefixes) { fixKA(rec, prefix) } rec.id = id++ }
 		if (sortAttr) { recs.sort((a, b) => { a = a[sortAttr] || 0; b = b[sortAttr] || 0; return a > b ? -1 : a < b ? 1 : 0 }) }
@@ -241,7 +239,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				}
 				/*let orj_toplamAttrSet = asSet(gtTip2AttrListe.toplam);
 				let toplamAttrListe = jqxCols.map(({ datafield }) => datafield).filter(belirtec => orj_toplamAttrSet[belirtec.split('_')[0]]);*/
-				for (let rec of recs) { this.fixKA(rec, yatayBelirtec) }
+				const item = grupVeToplam[prefix] ?? grupVeToplam[prefix.toUpperCase()], {kodsuzmu} = item || {};
+				for (let rec of recs) { this.fixKA(rec, yatayBelirtec, kodsuzmu) }
 				let toplamAttrListe = gtTip2AttrListe.toplam, sevRecs = seviyelendirAttrGruplari({
 					source: recs, attrGruplari: [gtTip2AttrListe.sabit],
 					getter: ({ item }) => new DAltRapor_PanelRec_Donemsel({ yatayBelirtec, toplamAttrListe, ...item })

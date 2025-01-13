@@ -38,14 +38,14 @@ class DAltRapor extends DRapor {
 			}
 		}
 	}
-	static fixKA(rec, prefix) {
+	static fixKA(rec, prefix, kodsuzmu) {
 		if (rec == null) { return this }
 		const kodAttr = `${prefix}kod`, adiAttr = `${prefix}adi`;
-		const kod = rec[kodAttr], adi = rec[adiAttr]; if (kod !== undefined) {
+		const kod = kodsuzmu ? null : rec[kodAttr], adi = rec[adiAttr]; if (kod !== undefined) {
 			rec[prefix] = kod ? `(${kod ?? ''}) ${adi ?? ''}` : '';
 			for (const key of [kodAttr, adiAttr]) { delete rec[key] }
 		}
 		return this
 	}
-	fixKA(rec, prefix) { return this.class.fixKA(rec, prefix) }
+	fixKA(rec, prefix, kodsuzmu) { return this.class.fixKA(rec, prefix, kodsuzmu) }
 }
