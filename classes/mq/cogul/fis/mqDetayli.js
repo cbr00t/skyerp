@@ -37,8 +37,8 @@ class MQDetayli extends MQSayacli {
 		const tsnFormBuilder = templateBuilder.id2Builder.tsnForm, baslikFormBuilder = templateBuilder.id2Builder.baslikForm;
 		baslikFormBuilder.builders[0].yanYana(3); baslikFormBuilder.builders[1].yanYana(1); baslikFormBuilder.builders[2].yanYana(2);
 		let rootBuilder = new RootFormBuilder().add(templateBuilder);
-		const _e = $.extend({}, e, {
-			sender, fis: this, fismi: true, /*etiketGosterim: 'none',*/
+		const fis = e.fis ?? e.inst, inst = fis, _e = $.extend({}, e, {
+			sender, fis, inst, fismi: true, /*etiketGosterim: 'none',*/
 			builders: {
 				root: rootBuilder, template: templateBuilder, tsnForm: tsnFormBuilder, baslikForm: baslikFormBuilder,
 				gridIslemTuslari: templateBuilder.id2Builder.gridIslemTuslari

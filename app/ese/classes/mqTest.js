@@ -228,7 +228,7 @@ class MQTest extends MQGuidOrtak {
 	testUI_setValues(e) {
 		const {rec} = e; if (!rec) { return }
 		let keys = ['sablonID', 'sablonAdi', 'hastaID', 'doktorID', 'hastaAdi', 'doktorAdi'];
-		for (const key of keys) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
+		for (const key of keys) { let value = rec[key]; if (value !== undefined) { this[key.replace('ID', 'Id')] = value } }
 		$.extend(this, { ts: now(), detaylar: rec.detaylar || [] })
 	}
 	static uiState2AdiDuzenle(e) { const {liste} = e; $.extend(liste, { home: 'Hoşgeldiniz', test: 'Test Ekranı', end: 'Test Bitti' }) }

@@ -56,16 +56,8 @@ class FisGirisPart extends GridliGirisWindowPart {
 			if (fis.uiDuzenle_fisGirisIslemTuslari) await fis.uiDuzenle_fisGirisIslemTuslari(_e)
 			_e.parent.appendTo(gridIslemTuslari); gridIslemTuslari.removeClass('jqx-hidden basic-hidden');
 			let buttons = gridIslemTuslari.find('button'); if (buttons.length) { buttons.jqxButton({ theme }) } _e.buttons = buttons;
-
-			const {afterInit} = _e;
-			if ($.isEmptyObject(afterInit)) {
-				for (const i in afterInit) {
-					const handler = afterInit[i];
-					getFuncValue.call(this, handler, _e)
-				}
-			}
-			const {gridIslemTusYapilari} = this;
-			for (let i = 0; i < buttons.length; i++) {
+			const {afterInit} = _e; if ($.isEmptyObject(afterInit)) { for (const i in afterInit) { const handler = afterInit[i]; getFuncValue.call(this, handler, _e) } }
+			const {gridIslemTusYapilari} = this; for (let i = 0; i < buttons.length; i++) {
 				const elm = buttons.eq(i), id = elm.prop('id');
 				const clsElmInfo = class ElmInfo extends CObject {
 					static { window[this.name] = this; this._key2Class[this.name] = this }

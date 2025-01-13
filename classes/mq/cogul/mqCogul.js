@@ -618,7 +618,7 @@ class MQCogul extends MQYapi {
 		catch (ex) { displayMessage(getErrorText(ex)); throw ex }
 	}
 	static async tanimla(e) {
-		e = e || {}; const {tanimUISinif} = this, {tanimOncesiEkIslemler} = e; if (!tanimUISinif) return null
+		e = e || {}; const {tanimUISinif} = this, {tanimOncesiEkIslemler} = e; if (!tanimUISinif) { return null }
 		e.islem = e.islem || 'yeni'; e.mfSinif = e.mfSinif || this;
 		try {
 			const part = e.tanimPart = new tanimUISinif(e);

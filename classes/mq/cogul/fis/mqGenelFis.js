@@ -38,8 +38,7 @@ class MQGenelFis extends MQOrtakFis {
 	}
 	static secimlerDuzenleSon(e) { super.secimlerDuzenleSon(e) }
 	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e);
-		const {tsnKullanilirmi} = this, {tsnForm, baslikForm} = e.builders; tsnForm.yanYana();
+		e = e || {}; super.rootFormBuilderDuzenle(e); const {tsnKullanilirmi} = this, {tsnForm, baslikForm} = e.builders; tsnForm.yanYana();
 		let tarihFormParent = tsnKullanilirmi ? tsnForm : baslikForm.builders[0];
 		if (tsnKullanilirmi) {
 			tsnForm.addForm('numarator')
