@@ -58,34 +58,50 @@ class MQMuayene extends MQGuidOrtak {
 		form = tabPage_genel.addFormWithParent().altAlta(); form.addTextArea('tani', 'Tanı').setMaxLength(3000).setRows(8)
 	}
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { resimsayisi: this.resimSayisi }) }
+	async yeniSonrasiIslemler(e) {
+		await super.yeniSonrasiIslemler(e); let {id} = this;
+		let silent = true, gridPart = app.activeWndPart?.parentPart, recs = [ { id }], _e = { ...e, silent, gridPart, recs };
+		_e.recs = await this.class.loadServerData({ ozelQueryDuzenle: ({ sent }) => sent.where.degerAta(id, `${this.class.tableAlias}.id`) }); await this.class.testOlusturIstendi(_e);
+		_e.recs = await MQTest.loadServerData({ ozelQueryDuzenle: ({ sent }) => sent.where.degerAta(id, `${MQTest.tableAlias}.muayeneid`) }); MQTest.testIslemleriIstendi(_e)
+	}
+	async silmeOncesiIslemler(e) {
+		await super.silmeOncesiIslemler(e); let {id} = this; if (id) {
+			let {table: from} = MQTest, where = { degerAta: id, saha: 'muayeneid' }
+			let upd = new MQIliskiliUpdate({ from, where, set: `muayeneid = NULL` }); await app.sqlExecNone(upd)
+		}
+	}
 	static async testIslemleriIstendi(e) {
 		const gridPart = e.gridPart ?? e.parentPart ?? e.sender, title = 'Test İşlemleri';
-		app.activeWndPart.openContextMenu({ gridPart, title, argsDuzenle: _e => $.extend(_e.wndArgs, { width: 500, height: 150 }), formDuzenleyici: async _e => {
-			const {form, close, gridPart} = _e, recs = gridPart.selectedRecs, idListe = recs.map(rec => rec.id); form.yanYana().addStyle(e => `$elementCSS { padding-top: 20px }`);
-			let sent = new MQSent({ from: 'esetest', sahalar: 'muayeneid', where: { inDizi: idListe, saha: 'muayeneid' } });
-			const mevcutIdSet = asSet((await app.sqlExecSelect(sent)).map(rec => rec.muayeneid)), bostaIdListe = idListe.filter(id => !mevcutIdSet[id]);
-			let altForm = form.addFormWithParent('test').yanYana(2); /*altForm.addForm().setLayout(e =>
-				$(`<h5 class="bold center royalblue" style="padding-bottom: 13px; margin-right: 10px; border-bottom: 1px solid royalblue">${etiket || ''}</h5>`));*/
-			let handler = __e => {
-				const {id} = __e.builder, parts = id.split('_'), [selector] = parts;
-				close(); this[`${selector}Istendi`]({ ...e, ..._e, ...__e, id })
-			};
-			altForm.addButton('testOlustur', 'Test Kayıt').onClick(handler).setVisibleKosulu(bostaIdListe?.length ? true : 'basic-hidden');
-			altForm.addButton('testEkraniAc', 'Test Liste Aç').onClick(handler)
-		} })
+		app.activeWndPart.openContextMenu({
+			gridPart, title, argsDuzenle: _e => $.extend(_e.wndArgs, { width: 500, height: 150 }),
+			formDuzenleyici: async _e => {
+				delete _e.recs; const {form, close, gridPart} = _e, recs = e.recs ?? gridPart.selectedRecs;
+				let idListe = recs.map(rec => rec.id); form.yanYana().addStyle(e => `$elementCSS { padding-top: 20px }`);
+				let sent = new MQSent({ from: 'esetest', sahalar: 'muayeneid', where: { inDizi: idListe, saha: 'muayeneid' } });
+				const mevcutIdSet = asSet((await app.sqlExecSelect(sent)).map(rec => rec.muayeneid)), bostaIdListe = idListe.filter(id => !mevcutIdSet[id]);
+				let altForm = form.addFormWithParent('test').yanYana(2); /*altForm.addForm().setLayout(e =>
+					$(`<h5 class="bold center royalblue" style="padding-bottom: 13px; margin-right: 10px; border-bottom: 1px solid royalblue">${etiket || ''}</h5>`));*/
+				let handler = __e => {
+					const {id} = __e.builder, parts = id.split('_'), [selector] = parts;
+					close(); this[`${selector}Istendi`]({ ...e, ..._e, ...__e, id })
+				};
+				altForm.addButton('testOlustur', 'Test Kayıt').onClick(handler).setVisibleKosulu(bostaIdListe?.length ? true : 'basic-hidden');
+				altForm.addButton('testEkraniAc', 'Test Liste Aç').onClick(handler)
+			}
+		})
 	}
 	static async testOlusturIstendi(e) {
-		let {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender, {selectedRecs} = gridPart;
-		let idListe = selectedRecs?.map(rec => rec.id); if (!idListe?.length) { hConfirm('Kayıtlar seçilmelidir', sinifAdi); return }
+		let {sinifAdi} = this, {silent} = e, gridPart = e.gridPart ?? e.parentPart ?? e.sender, recs = e.recs ?? gridPart?.selectedRecs;
+		let idListe = recs?.map(rec => rec.id); if (!idListe?.length) { hConfirm('Kayıtlar seçilmelidir', sinifAdi); return }
 		try {
 			let sent = new MQSent({ from: 'esetest', sahalar: 'muayeneid', where: { inDizi: idListe, saha: 'muayeneid' } });
 			let mevcutIdSet = asSet((await app.sqlExecSelect(sent)).map(rec => rec.muayeneid)), bostaIdListe = idListe.filter(id => !mevcutIdSet[id]);
-			if (!bostaIdListe?.length) { hConfirm(`Seçilen muayeneye(ler)in tümüne ait ${etiket} Test'i zaten var`, sinifAdi); return }
-			let mua2HastaRec = {}; for (const rec of selectedRecs) {
+			if (!bostaIdListe?.length) { if (!silent) { hConfirm(`Seçilen muayeneye(ler)in tümüne ait ${etiket} Test'i zaten var`, sinifAdi) } return }
+			let mua2HastaRec = {}; for (const rec of recs) {
 				let {id, hastaid: hastaId, cinsiyet} = rec, dogumTarihi = asDate(rec.dogumtarihi); if (isInvalidDate(dogumTarihi)) { dogumTarihi = null }
 				mua2HastaRec[id] = { id: hastaId, cinsiyet, dogumTarihi }
 			}
-			let rdlg = await ehConfirm(`<b class="bold forestgreen">${bostaIdListe.length}</b> adet <b class="royalblue">Test</b> kaydı açılacak, devam edilsin mi?`, sinifAdi);
+			let rdlg = silent ? true : await ehConfirm(`<b class="bold forestgreen">${bostaIdListe.length}</b> adet <b class="royalblue">Test</b> kaydı açılacak, devam edilsin mi?`, sinifAdi);
 			if (!rdlg) { return } let promises = [];
 			for (const muayeneId of bostaIdListe) {
 				let ts = now(), tamamlandimi = false, onayKodu = 0; while (onayKodu < 100000) { onayKodu = asInteger(Math.random() * 1000000) }
@@ -95,20 +111,22 @@ class MQMuayene extends MQGuidOrtak {
 					app.sqlExecNone(new MQIliskiliUpdate({
 						from: 'esemuayene', where: { degerAta: muayeneId, saha: 'id' }, set: { degerAta: testInst.id, saha: 'testid' } }))))*/
 			}
-			await Promise.all(promises); gridPart.tazele(); /*testSinif.listeEkraniAc(e);*/
-			setTimeout(e => {
-				let {wnd} = displayMessage((
-					`<p><b class="bold forestgreen">${bostaIdListe.length}</b> adet <b class="royalblue">Test</b> kaydı açıldı</p>` +
-					`<div>Test ekranına gitmek için <a id="testEkraniAc" class="bold" href="#">buraya tıklayınız</a></div>`), sinifAdi);
-				wnd.find('#testEkraniAc').on('click', evt => {
-					$(evt.currentTarget).parents('.jqx-window').jqxWindow('close'); this.testEkraniAcIstendi({ ...e, id: 'testEkraniAc' }) })
-			}, 200, e)
+			await Promise.all(promises); gridPart?.tazele(); /*testSinif.listeEkraniAc(e);*/
+			if (!silent) {
+				setTimeout(e => {
+					let {wnd} = displayMessage((
+						`<p><b class="bold forestgreen">${bostaIdListe.length}</b> adet <b class="royalblue">Test</b> kaydı açıldı</p>` +
+						`<div>Test ekranına gitmek için <a id="testEkraniAc" class="bold" href="#">buraya tıklayınız</a></div>`), sinifAdi);
+					wnd.find('#testEkraniAc').on('click', evt => {
+						$(evt.currentTarget).parents('.jqx-window').jqxWindow('close'); this.testEkraniAcIstendi({ ...e, id: 'testEkraniAc' }) })
+				}, 200, e)
+			}
 		}
 		catch (ex) { hConfirm(getErrorText(ex), sinifAdi); throw ex }
 	}
 	static async testEkraniAcIstendi(e) {
-		let {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender; let {selectedRecs} = gridPart;
-		let idListe = selectedRecs?.map(rec => rec.id); if (!idListe?.length) { hConfirm('Kayıtlar seçilmelidir', sinifAdi); return }
+		let {sinifAdi} = this, {silent} = e, gridPart = e.gridPart ?? e.parentPart ?? e.sender, recs = e.recs ?? gridPart?.selectedRecs;
+		let idListe = recs?.map(rec => rec.id); if (!idListe?.length) { if (!silent) { hConfirm('Kayıtlar seçilmelidir', sinifAdi) } return }
 		return MQTest.listeEkraniAc({
 			secimlerDuzenle: idListe?.length
 				? ({ secimler: sec }) => { const birKismimi = true; $.extend(sec.muayeneId, { birKismimi, kodListe: idListe }); sec.tarih.temizle() }

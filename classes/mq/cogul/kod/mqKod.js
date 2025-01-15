@@ -26,7 +26,8 @@ class MQKod extends MQCogul {
 	static getFormBuilders_ka(e) { const _e = $.extend(e, { liste: [] }); this.formBuildersDuzenle_ka(_e); return e.liste }
 	static formBuildersDuzenle_ka(e) {
 		const {liste} = e, mfSinif = e.mfSinif ?? this, xEtiket =  mfSinif.kodEtiket ?? 'Kod';
-		const kaForm = e.kaForm = new FBuilderWithInitLayout({ id: 'kaForm' }).yanYana(1.2); liste.push(kaForm);
+		const kaForm = e.kaForm = new FBuilderWithInitLayout({ id: 'kaForm' }).yanYana(1.2);
+		kaForm.addStyle(e => `$elementCSS { margin-top: 5px; z-index: 1100 }`); liste.push(kaForm);
 		kaForm.addTextInput({ id: 'kod', etiket: xEtiket, placeholder: xEtiket })
 			.addCSS('kodParent parent') .addStyle(e => `$elementCSS { min-width: 150px; max-width: 300px }`)
 			.setVisibleKosulu(mfSinif.kodKullanilirmi ? true : 'jqx-hidden').onAfterRun(e => {

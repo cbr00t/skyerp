@@ -118,7 +118,7 @@ class MQOkulTipi extends MQGuidVeAdiOrtak {
 }
 class MQHasta extends MQGuidVeAdiOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Hasta' } static get yakinSayi() { return 2 }
-	static get kodListeTipi() { return 'HASTA' } static get table() { return 'esehasta' } static get tableAlias() { return 'has' }
+	static get kodListeTipi() { return 'HASTA' } static get table() { return 'esehasta' } static get tableAlias() { return 'has' } static get adiEtiket() { return 'Hasta Adı-Soyadı' }
 	static get ignoreBelirtecSet() { return {...super.ignoreBelirtecSet, ...asSet(['okultipid']) } }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e, {yakinSayi} = this; $.extend(pTanim, {

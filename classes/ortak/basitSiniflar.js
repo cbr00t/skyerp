@@ -65,12 +65,13 @@ class Countdown extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get state() { const {remainingSecs: r, totalSecs: t} = this; return r == null || r == t ? 'begin' : r <= 0 ? 'end' : 'progress' }
 	get needUpdate() {
-		const {remainingSecs: secs} = this, modulo = secs < 10 ? 1 : secs < 60 ? 10 : 60;
-		return secs % modulo == 0
+		/*const {remainingSecs: secs} = this, modulo = secs < 10 ? 1 : secs < 60 ? 10 : 30;
+		return secs % (modulo + 1) == modulo*/
+		return true 
 	}
 	get text() {
 		const {remainingSecs} = this; let result = this._lastText; if (remainingSecs == null) { return '' }
-		result = remainingSecs < 60 ? `${remainingSecs} sn` : `${asInteger(remainingSecs / 60)} dk`;
+		result = remainingSecs < 60 ? `${remainingSecs} sn` : `${Math.round(remainingSecs / 60, 1)} dk`;
 		return this._lastText = result
 	}
 	constructor(e) { e = e || {}; super(e); $.extend(this, { layout: e.layout, totalSecs: e.totalSecs ?? 0, remainingSecs: e.remainingSecs, callback: e.callback }) }
@@ -96,7 +97,7 @@ class Countdown extends CObject {
 		e = e || {}; const {layout} = this, force = e.force ?? e.forceFlag;
 		if ((force || this.needUpdate) && layout?.length) {
 			const {text} = this, remainingSecs = this.remainingSecs || this.totalSecs;
-			layout.html(text); layout[remainingSecs <= 10 ? 'addClass' : 'removeClass']('critical')
+			layout.html(numberToString(text)); layout[remainingSecs <= 10 ? 'addClass' : 'removeClass']('critical')
 		} return this
 	}
 	updateUIForce(e) { return this.updateUI({ ...e, force: true }) }

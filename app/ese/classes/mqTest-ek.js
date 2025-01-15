@@ -22,7 +22,19 @@ class TestSonuc extends CObject {
 	async kaydet(e) {
 		try {
 			if (!this.class.genelSonucmu) { throw { isError: true, errorText: `Bu Test Sonuç sınıfı için <b>kaydet()</b> işlemi yapılamaz` } }
-			const data = this.getWSData(e); return await app.wsTestSonucKaydet({ data })
+			let data = this.getWSData(e); let result = await app.wsTestSonucKaydet({ data });
+			if (result) {
+				let {tip} = this.class, mfSinif = MQTest.tip2Sinif[tip] ?? {}, {table: from, idSaha: saha} = mfSinif; if (from) {
+					let {id} = this, where = { degerAta: id, saha }, sent = new MQSent({ from, where, sahalar: '*' });
+					let rec = await app.sqlExecTekil(sent); if (rec) {
+						let dehbmi = app.dehbmi(rec); if (dehbmi != null) {
+							let upd = new MQIliskiliUpdate({ from, where, set: { degerAta: dehbmi, saha: 'bdehbvarmi' } });
+							await app.sqlExecNone(upd)
+						}
+					}
+				}
+			}
+			return result
 		}
 		catch (ex) { hConfirm(getErrorText(ex), 'Test Kayıt Sorunu'); throw ex }
 	}

@@ -163,21 +163,24 @@ class MQTest extends MQGuidOrtak {
 		finally { window.progressManager?.progressEnd(); setTimeout(() => hideProgress(), 100) }
 	}
 	static async testIslemleriIstendi(e) {
-		const gridPart = e.gridPart ?? e.parentPart ?? e.sender, title = 'Test İşlemleri';
-		app.activeWndPart.openContextMenu({ gridPart, title, argsDuzenle: _e => $.extend(_e.wndArgs, { width: Math.min(1100, $(window).width() - 50), height: 230 }), formDuzenleyici: async _e => {
-			const {form, close, gridPart} = _e, recs = gridPart.selectedRecs, idListe = recs.map(rec => rec.id);
-			if (!idListe?.length) { return } if (idListe?.length > 1) { hConfirm('Sadece bir tane Test seçilmelidir', title); return false }
-			form.yanYana().addStyle(e => `$elementCSS { padding-top: 40px }`);
-			let testId = idListe[0]; for (const {tip, belirtec, prefix, seq, etiket, sablonId} of app.params.ese.getIter()) {
-				let altForm = form.addFormWithParent(prefix).altAlta(); altForm.addForm()
-					.setLayout(e => $(`<h5 class="bold center royalblue" style="padding-bottom: 13px; margin-right: 10px; border-bottom: 1px solid royalblue">${etiket || ''}</h5>`));
-				let handler = __e => {
-					const {id} = __e.builder, parts = id.split('_'), [tip, belirtec, selector] = parts, seq = asInteger(parts[2]);
-					close(); this[`${selector}Istendi`]({ ...e, ..._e, ...__e, id: undefined, tip, belirtec, seq, testId, sablonId })
-				};
-				altForm.addButton(`${tip}_${belirtec}_testBaslat_${seq}`, 'Test Başlat').onClick(handler)
+		const gridPart = e.gridPart ?? e.parentPart ?? e.sender ?? {}, title = 'Test İşlemleri';
+		(gridPart ?? app.activeWndPart)?.openContextMenu({
+			gridPart, title, argsDuzenle: _e => $.extend(_e.wndArgs, { width: Math.min(1100, $(window).width() - 50), height: 230 }),
+			formDuzenleyici: async _e => {
+				delete _e.recs; const {form, close, gridPart} = _e, recs = e.recs ?? gridPart.selectedRecs, idListe = recs.map(rec => rec.id);
+				if (!idListe?.length) { return } if (idListe?.length > 1) { hConfirm('Sadece bir tane Test seçilmelidir', title); return false }
+				form.yanYana().addStyle(e => `$elementCSS { padding-top: 40px }`);
+				let testId = idListe[0]; for (const {tip, belirtec, prefix, seq, etiket, sablonId} of app.params.ese.getIter()) {
+					let altForm = form.addFormWithParent(prefix).altAlta(); altForm.addForm()
+						.setLayout(e => $(`<h5 class="bold center royalblue" style="padding-bottom: 13px; margin-right: 10px; border-bottom: 1px solid royalblue">${etiket || ''}</h5>`));
+					let handler = __e => {
+						const {id} = __e.builder, parts = id.split('_'), [tip, belirtec, selector] = parts, seq = asInteger(parts[2]);
+						close(); this[`${selector}Istendi`]({ ...e, ..._e, ...__e, id: undefined, tip, belirtec, seq, testId, sablonId })
+					};
+					altForm.addButton(`${tip}_${belirtec}_testBaslat_${seq}`, 'Test Başlat').onClick(handler)
+				}
 			}
-		} })
+		})
 	}
 	static async testBaslatIstendi(e) {
 		let gridPart = e.gridPart ?? e.parentPart ?? e.sender ?? {}, {tip, sablonId, belirtec} = e, testSinif = MQTest.getClass(tip); if (!testSinif) { return }
@@ -303,7 +306,7 @@ class MQTestCPT extends MQTest {
 			case 'test':
 				const {testSonucSinif} = this.class;
 				let gecerliResimURL, index = -1, repeatIndex = 0, resimGosterimTime, ilkTiklamaTime, hInternal;
-				parentPart.headerText = `Şu resme tıklayınız: <img class="target-img" src="${orjUrls[gecerliResimSeq - 1]}">`;
+				/*parentPart.headerText = `Şu resme tıklayınız: <img class="target-img" src="${orjUrls[gecerliResimSeq - 1]}">`;*/
 				const img = $(`<div class="resim"/>`); img.appendTo(content);
 				let clearFlag = false; let promise_wait = new $.Deferred();
 				let loopProc = () => {
@@ -332,10 +335,10 @@ class MQTestCPT extends MQTest {
 							repeatIndex++; index = 0; if (grupTekrarSayisi && repeatIndex >= grupTekrarSayisi) { parentPart.nextPage(); return false }
 							urls = shuffle(urls); if (genelSonuc) { genelSonuc.secilmeyenDogruSayi++ }
 						}
-						parentPart.progressText = (`<div class="flex-row">
+						/*parentPart.progressText = (`<div class="flex-row">
 							<div class="item"><span class="ek-bilgi">Resim: &nbsp;</span><span class="veri white">${index + 1} / ${imageCount}</span></div>
 							<div class="item"><span class="ek-bilgi">Grup: &nbsp;</span><span class="veri">${repeatIndex + 1} / ${grupTekrarSayisi}</span></div>
-						</div>`);
+						</div>`);*/
 						img.css('background-image', `url(${urls[index]})`); resimGosterimTime = now(); ilkTiklamaTime = null
 					}
 					clearFlag = !clearFlag; intervalTime = now(); return true
@@ -389,7 +392,9 @@ class MQTestAnket extends MQTest {
 			case 'test':
 				genelSonuc.tumSayi = soruSayi;
 				let btn = $(`<button id="bitti">TEST BİTTİ ise Buraya tıklayınız</button>`); btn.jqxButton({ theme }).on('click', evt => {
-					countdown.destroyPart(); countdown = null; parentPart.nextPage() }); btn.appendTo(header);
+					if (genelSonuc.cevapsizSayi) { hConfirm(`<b class="firebrick">Tüm soruları cevaplamalısınız</b>`, 'Uyarı'); return }
+					countdown.destroyPart(); countdown = null; delete this._countdown; parentPart.nextPage()
+				}); btn.appendTo(header);
 				htmlList.push(`<div class="anket">`); for (const [id, soru] of Object.entries(id2Soru)) {
 					if (soru == null) { continue }
 					htmlList.push(`<div class="item flex-row" data-id="${id}"><div class="soru">${soru || '&nbsp;'}</div><div name="${id}" class="secenekler">`);
@@ -403,7 +408,7 @@ class MQTestAnket extends MQTest {
 					genelSonuc.soruId2Cevap[soruId] = { soru: id2Soru[soruId], index, puan: this[`yanit${seq}Puan`] }
 				});
 				if (countdown) { countdown.abort() }
-				countdown = new Countdown({ totalSecs: sureDk * 60, layout: parentPart.headerLayouts.countdown });
+				countdown = this._countdown = new Countdown({ totalSecs: sureDk * 60, layout: parentPart.headerLayouts.countdown });
 				countdown.onCallback(({sender, state}) => {
 					if (parentPart?.isDestroyed || countdown == null) { sender.destroyPart(e); return false }
 					if (state == 'end') { countdown.destroyPart(); countdown = null; parentPart.nextPage() }
@@ -412,7 +417,7 @@ class MQTestAnket extends MQTest {
 				break
 			case 'end':
 				header.find('button#bitti').remove();
-				if (countdown) { countdown.layout?.addClass('jqx-hidden'); countdown.destroyPart(); countdown = null }
+				if (countdown) { countdown.layout?.addClass('jqx-hidden'); countdown.destroyPart(); countdown = null; delete this._countdown }
 				break
 		}
 	}

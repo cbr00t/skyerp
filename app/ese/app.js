@@ -39,9 +39,9 @@ class ESEApp extends App {
 			} /*if (raporItems?.length) { items.push(new FRMenuCascade({ mne: 'RAPOR', text: 'Raporlar', items: raporItems })) }*/
 			items.push(
 				new FRMenuChoice({ mne: MQParam_ESE.paramKod, text: MQParam_ESE.sinifAdi, block: e => this.params.ese.tanimla(e) }),
-				new FRMenuChoice({ mne: 'TEST_YUKLE', text: 'Dosyadan Test Yükle', block: e => this.dosyadanTestYukleIstendi(e) })
-			);
-			if (config.dev) { items.push(new FRMenuChoice({ mne: 'DEHB_ANALIZ', text: 'DEHB Durum Analizi Yap', block: e => this.testlerIcinOzelDEHBmiBelirleIstendi(e) })) }
+				new FRMenuChoice({ mne: 'TEST_YUKLE', text: 'Dosyadan Test Yükle', block: e => this.dosyadanTestYukleIstendi(e) }),
+				new FRMenuChoice({ mne: 'DEHB_ANALIZ', text: 'DEHB Durum Analizi Yap', block: e => this.testlerIcinOzelDEHBmiBelirleIstendi(e) })
+			)
 		}
 		else {
 			const {testId} = config.session, sablonId2Adi = ese.sablonId2Adi ?? {};

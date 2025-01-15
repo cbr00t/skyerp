@@ -16,7 +16,11 @@ class TestPart extends Part {
 		if (!app.kioskmu) { let part = this.islemTuslariPart = new ButonlarPart({ sender: this, layout: islemTuslari, tip: 'vazgec', butonlarDuzenleyici: e => this.islemTuslariDuzenle(e) }); part.run() }
 		this.tazele(e)
 	}
-	destroyPart(e) { $('body').removeClass('no-dark-theme'); super.destroyPart(e); if (app.kioskmu) { setTimeout(() => window.close(), 100) } else { app.exitKioskMode() } }
+	destroyPart(e) {
+		$('body').removeClass('no-dark-theme'); super.destroyPart(e);
+		if (app.kioskmu) { setTimeout(() => location.reload(), 100) } else { app.exitKioskMode() }
+		/*if (app.kioskmu) { setTimeout(() => window.close(), 100) } else { app.exitKioskMode() }*/
+	}
 	islemTuslariDuzenle(e) { const {liste} = e; liste.find(item => item.id == 'vazgec').handler = e => this.cikisIstendi(e) }
 	firstPage(e) { this.pageIndex = 0; this.tazele(e); return this } lastPage(e) { this.pageIndex = Math.max(this.states?.length - 1, 0); this.tazele(e); return this }
 	nextPage(e) { this.pageIndex = Math.min(this.pageIndex + 1, this.states?.length - 1); this.tazele(e); return this }
