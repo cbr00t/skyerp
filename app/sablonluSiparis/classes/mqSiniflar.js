@@ -206,7 +206,7 @@ class SablonluSiparisOrtakGridci extends GridKontrolcu {
 	gridArgsDuzenle(e) { super.gridArgsDuzenle(e); let gridPart = e.gridPart ?? e.sender, {args} = e; gridPart.sabit(); $.extend(args, { rowsHeight: 45 }) }
 	tabloKolonlariDuzenle_ilk(e) {
 		super.tabloKolonlariDuzenle_ilk(e); e.tabloKolonlari.push(...[
-			new GridKolon({ belirtec: 'stokText', text: 'Ürün/Hizmet', genislikCh: 40 }).readOnly(),
+			new GridKolon({ belirtec: 'stokText', text: 'Ürün/Hizmet', genislikCh: 60 }).readOnly(),
 			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 13 }).tipDecimal()
 		])
 	}
