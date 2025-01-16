@@ -22,7 +22,7 @@ class MQSayacli extends MQCogul {
 	static orjBaslikListesiDuzenle(e) { super.orjBaslikListesiDuzenle(e); e.mfSinif = this; MQKA.orjBaslikListesiDuzenle(e) }
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {sent} = e, {aliasVeNokta, kodSaha} = this;
-		if (!this.bosKodAlinirmi) { sent.where.add(`${aliasVeNokta}${kodSaha} <> ''`) }
+		/*if (!this.bosKodAlinirmi) { sent.where.add(`${aliasVeNokta}${kodSaha} <> ''`) }*/
 		if (!sent.sahalar.liste.find(saha => saha.alias == kodSaha)) { sent.sahalar.add(`${aliasVeNokta}${kodSaha}`) }
 		if (this.zeminRenkDesteklermi) sent.sahalar.add(`${aliasVeNokta}oscolor`)
 	}

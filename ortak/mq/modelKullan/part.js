@@ -282,7 +282,7 @@ class ModelKullanPart extends Part {
 					}
 				}
 			}
-			this.kod = kod
+			if (kod !== undefined) { this.kod = kod }
 		}
 		finally { setTimeout(() => this.inEvent = false, 30) }
 	}
