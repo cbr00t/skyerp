@@ -290,13 +290,14 @@ class MQTestCPT extends MQTest {
 				elmContainer.appendTo(content); let imgStates = { load: 0, error: 0 }, results = await Promise.all(promises); elmContainer.remove();
 				for (let rec of results) { imgStates[rec.result ? 'load' : 'error']++ }
 				let rightWidth = 250, infoHTML = (
-					`<p>Test başlamadan önce <b class="royalblue">${startCounter} saniyelik</b> bir geri sayım olacak ve ` +
-							`Test sırasında <b class="royalblue">${imageCount}</b> tane resim karışık sırada ve <b class="royalblue">${resimGosterimMS + resimBostaMS} ms</b> aralıklarla gösterilecektir.<br>` +
-						`Yanda gözüken resim gözükürse SPACE veya ENTER tuşuna basınız ya da Resme tıklayınız.</p>` +
-					`<p>Bir grup gösterim tamamlanınca aynı resimler bir daha karışık şekilde gösterilir. Grup gösterimi <b class="royalblue">${grupTekrarSayisi}</b> defa yapılır.<br/>` +
-						`Sonuçta yandaki resim değişik zamanlarda <b class="royalblue">${grupTekrarSayisi}</b> defa karşımıza çıkacaktır.</p>` +
-					`<p>Bu test tahmini <b class="forestgreen">${Math.ceil((resimGosterimMS + resimBostaMS) / 1000 * imageCount * grupTekrarSayisi / 60)} dakika</b> sürecektir.</p>` +
-					`<p>Hazırsanız <b>'İşleme Başla'</b> tuşuna basarak testi başlatınız.</p>`
+					`<p>Biraz sonra Sürekli Performans Testine başlayacaksınız.</p>` +
+					`<p>Bu testin amacı, alfabenin sadece belli bir harfine cevap vermektir.</p>` +
+					`<p>Alfabenin çeşitli harfleri kısa sürelerle ekranda gözükecektir.<br/>` +
+						`Sağ taraftaki resimde gösterilen harfi görür görmez <b>Ara Tuşuna (<i>SPACE</i>)</b> basınız.</p>` +
+					`<p>Başka harf görürseniz herhangi bir tuşa basmayınız</p>` +
+					`<p>Hazırsanız <b class="royalblue">'İşleme Başla'</b> tuşuna basarak testi başlatınız.</p>` +
+					`<p style="font-weight: bold; font-size: 180%; margin-top: 30px">Bu testi <span class="orangered">Çocuk</span> uygulayacaktır</p>` +
+					`<div style="margin-bottom: 50px"></div>`
 				);
 				$(`<div class="info float-left wrap-pretty" style="width: calc(var(--full) - (${rightWidth}px + 5px))">${infoHTML}</div>`).appendTo(content);
 				$(`<div class="target-img-parent float-right full-height" style="width: ${rightWidth}px">` +
@@ -385,7 +386,9 @@ class MQTestAnket extends MQTest {
 					`<p>Test Anket şeklinde verilecektir.<br>` +
 						`<b class="royalblue">${secenekler.join(', ')}</b> şeklinde yanıtlar verilmelidir.</p>` +
 					`<p>Anket <b class="royalblue">${soruSayi}</b> sorudan oluşmaktadır ve başladıktan sonra <b class="forestgreen">${sureDk} dakika</b> içinde tamamlanmalıdır.</p>` +
-					`<p>Hazırsanız <b>'İşleme Başla'</b> tuşuna basarak testi başlatınız.</p>`
+					`<p>Hazırsanız <b class="royalblue">'İşleme Başla'</b> tuşuna basarak testi başlatınız.</p>` +
+					`<p style="font-weight: bold; font-size: 180%; margin-top: 30px">Bu testi <span class="orangered">Ebeveyn</span> uygulayacaktır</p>` +
+					`<div style="margin-bottom: 50px"></div>`
 				);
 				$(`<div class="info wrap-pretty full-width">${infoHTML}</div>`).appendTo(content);
 				break

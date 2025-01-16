@@ -13,7 +13,7 @@ class TestPart extends Part {
 		$.extend(this, { header: layout.children('.header'), content: layout.children('.content'), islemTuslari: layout.find('.islemTuslari') });
 		const {header, islemTuslari, headerLayouts} = this; for (const key of ['adimText', 'headerText', 'progressText', 'tarih', 'hastaAdi', 'countdown']) {
 			headerLayouts[key] = layout.find(`.${key}`) }
-		if (!app.kioskmu) { let part = this.islemTuslariPart = new ButonlarPart({ sender: this, layout: islemTuslari, tip: 'vazgec', butonlarDuzenleyici: e => this.islemTuslariDuzenle(e) }); part.run() }
+		let part = this.islemTuslariPart = new ButonlarPart({ sender: this, layout: islemTuslari, tip: 'vazgec', butonlarDuzenleyici: e => this.islemTuslariDuzenle(e) }); part.run();
 		this.tazele(e)
 	}
 	destroyPart(e) {

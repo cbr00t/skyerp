@@ -38,20 +38,30 @@ class ESEApp extends App {
 				text += ' Raporu'; items.push(new FRMenuChoice({ mne, text, block: e => raporSinif.goster(e) }))
 			} /*if (raporItems?.length) { items.push(new FRMenuCascade({ mne: 'RAPOR', text: 'Raporlar', items: raporItems })) }*/
 			items.push(
-				new FRMenuChoice({ mne: MQParam_ESE.paramKod, text: MQParam_ESE.sinifAdi, block: e => this.params.ese.tanimla(e) }),
+				new FRMenuChoice({ mne: MQParam_ESE.paramKod, text: MQParam_ESE.sinifAdi, block: e => ese.tanimla(e) }),
 				new FRMenuChoice({ mne: 'TEST_YUKLE', text: 'Dosyadan Test Yükle', block: e => this.dosyadanTestYukleIstendi(e) }),
 				new FRMenuChoice({ mne: 'DEHB_ANALIZ', text: 'DEHB Durum Analizi Yap', block: e => this.testlerIcinOzelDEHBmiBelirleIstendi(e) })
 			)
 		}
 		else {
 			const {testId} = config.session, sablonId2Adi = ese.sablonId2Adi ?? {};
+			let {tableAlias: alias, idSaha} = MQTest, rec, tipVeSablonId2Yapildi = {};
+			try { rec = (await MQTest.loadServerData({ ozelQueryDuzenle: ({ sent }) => sent.where.degerAta(testId, `${alias}.${idSaha}`) }))?.[0] } catch (ex) { console.error(getErrorText(ex)) }
+			if (rec) {
+				for (let {tip, belirtec, sablonId} of ese.getIter()) {
+					let tipVeBelirtec = `${tip}${belirtec}`, key = `b${tipVeBelirtec}yapildi`, flag = rec[key];
+					let tipVeSablonId = `${tip}-${sablonId}`; tipVeSablonId2Yapildi[tipVeSablonId] = asBool(flag)
+				}
+			}
 			for (const cls of MQTest.subClasses) {
 				const {sablonTip, sablonSinif} = cls; let _items = sablon[sablonTip] ?? [];
 				for (let i = 0; i < _items.length; i++) {
 					let {belirtec, sablonId, etiket: text} = _items[i]; if (!sablonId) { continue }
-					let {tip} = cls, sablonAdi = sablonId2Adi[sablonId];
+					let {tip} = cls, tipVeSablonId = `${tip}-${sablonId}`, sablonAdi = sablonId2Adi[sablonId];
 					if (sablonAdi) { text += `<div class="royalblue" style="font-weight: normal; font-size: 90%; padding-top: 10px">${sablonAdi}</div>` }
-					let mne = `${tip.toUpperCase()}-${i + 1}`; items.push(new FRMenuChoice({ mne, text, block: e => this.testBaslat({ tip, belirtec, testId, sablonId }) }))
+					let disabled = false, cssColor = 'green'; if (tipVeSablonId2Yapildi[tipVeSablonId]) { disabled = true; cssColor = 'firebrick' }
+					text = `<div class="full-wh" style="border: 2px solid ${cssColor}; box-shadow: 0 0 5px 0px ${cssColor}"><div style="margin-top: 10%">${text}</div></div>`
+					let mne = `${tip.toUpperCase()}-${i + 1}`; items.push(new FRMenuChoice({ mne, text, disabled, block: e => this.testBaslat({ tip, belirtec, testId, sablonId }) }))
 				}
 			}
 		}
