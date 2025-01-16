@@ -450,7 +450,7 @@ class MQCari_Ticari extends MQCariAlt {
 		form.addCheckBox({ id: 'bMatbuuDokumDovizlimi',etiket: 'Matbuu Dökümde Dip Bilgileri "Dövizli" Yazdırılır' });
 		form = tabPage.addFormWithParent('tip2SatisBilgileri-parent').addStyle_fullWH(null, 100).addStyle(e => `$elementCSS { margin-top: 20px }`);
 		let fbd_grid = form.addGridliGiris_sabit('tip2SatisBilgileri').addStyle_fullWH()
-			.widgetArgsDuzenleIslemi(e => { $.extend(e.args, { editMode: 'click' }) })
+			.widgetArgsDuzenleIslemi(e => { $.extend(e.args, { /*editMode: 'click'*/ }) })
 			.setSource(({ builder: fbd }) => Object.values(fbd.altInst[fbd.id] ?? {}))
 			.setTabloKolonlari(({ builder: fbd }) => {
 				let {tip2SatisBilgileri} = fbd.altInst, satisTipSayi = Object.values(tip2SatisBilgileri ?? {}).length, satisTipCoklumu = satisTipSayi > 1;

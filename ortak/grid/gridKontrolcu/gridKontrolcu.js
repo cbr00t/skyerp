@@ -32,7 +32,7 @@ class GridKontrolcu extends CObject {
 			if (!mesajsizFlag) {
 				let satirNo, kolonText, hepsiBosmu = false;
 				if (!$.isEmptyObject(zorunluBelirtecler)) { hepsiBosmu = true; for (const belirtec in zorunluBelirtecler) { if (det[belirtec]) { hepsiBosmu = false; break } } } if (hepsiBosmu) { continue }
-				let result = this.geriYuklemeIcinUygunmu({ parentPart, gridPart, belirtec2Kolon, tabloKolonlari, mesajsiz: mesajsizFlag, detay: det, index, temps });
+				let result = this.geriYuklemeIcinUygunmu({ parentPart, gridPart, belirtec2Kolon, tabloKolonlari, zorunluBelirtecler, mesajsiz: mesajsizFlag, detay: det, index, temps });
 				if (typeof result == 'object') { return result } if (!result) { continue }
 			}
 			recs.push(det)
@@ -41,7 +41,7 @@ class GridKontrolcu extends CObject {
 		e.recs = recs; return true
 	}
 	geriYuklemeIcinUygunmu(e) {
-		let {zorunluBelirtecler, det} = e, {_kodDegerDurum} = det;
+		/*let {zorunluBelirtecler, detay: det} = e, {_kodDegerDurum} = det;
 		let bosOlanIlkBelirtec = Object.keys(zorunluBelirtecler).find(belirtec => !det[belirtec]); if (bosOlanIlkBelirtec) { return false }
 		if (_kodDegerDurum) {
 			const {parentPart} = this; for (const belirtec in _kodDegerDurum) {
@@ -49,7 +49,7 @@ class GridKontrolcu extends CObject {
 				const satirNo = index + 1, kolonText = parentPart.belirtec2Kolon[bosOlanIlkBelirtec].text;
 				return { isError: true, errorText: `<b>${satirNo}.</b> satırdaki <b>${kolonText}</b> bilgisi hatalıdır`, returnAction: e => e.focusTo({ rowIndex: i, belirtec }) }
 			}
-		}
+		}*/
 		return true
 	}
 	grid2FisMesajsiz(e) { e = e || {}; e.mesajsiz = true; delete e.mesajsizFlag; return this.grid2Fis(e) }

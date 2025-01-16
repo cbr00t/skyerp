@@ -69,9 +69,9 @@ class GridKolonGrup_KA extends GridKolonGrup {
 					part.input.on('bindingComplete', tmpHandler_veriYuklenince);
 					part.change(_e => {
 						const {mfSinif, adiAttr} = this, {adiSaha} = mfSinif, {value, item} = _e, rec = gridWidget.getrowdata(rowIndex);
-						if (rec && item) rec[adiAttr] = item[adiAttr] || item[adiSaha] || ''
-						gridWidget.setcellvalue(rowIndex, kodAttr, value);
-						kaKolonu.cellValueChanged({ args: { owner: gridWidget, datafield: kodAttr, rowindex: rowIndex, oldvalue: prevValue, newvalue: value } })
+						if (rec && item) { rec[adiAttr] = item[adiAttr] || item[adiSaha] || '' }
+						gridWidget.setcellvalue(rowIndex, kodAttr, value)
+						/*kaKolonu.cellValueChanged({ args: { owner: gridWidget, datafield: kodAttr, rowindex: rowIndex, oldvalue: prevValue, newvalue: value } })*/
 					});
 					const {widget} = part;
 					setTimeout(() => {
