@@ -34,18 +34,10 @@ class MQCari extends MQKA {
 		return super.getGridKolonGrup(e)
 	}
 	static getGridKolonGrup_yoreli(e) {
-		const kolonGrup = this.getGridKolonGrup(e); if (!kolonGrup) return kolonGrup
-		const {tabloKolonlari} = kolonGrup;
-		tabloKolonlari.push(new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 10 }).readOnly());
-		kolonGrup.stmDuzenleyiciEkle(e => {
-			const {aliasVeNokta} = this;
-			for (const sent of e.stm.getSentListe()) { sent.sahalar.add(`${aliasVeNokta}yore`) }
-		});
-		kolonGrup.degisince(async e => {
-			const rec = await e.rec;
-			if (rec)
-				e.setCellValue({ belirtec: 'yore', value: rec.yore || '' })
-		});
+		const kolonGrup = this.getGridKolonGrup(e); if (!kolonGrup) { return kolonGrup }
+		const {tabloKolonlari} = kolonGrup; tabloKolonlari.push(new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 20 }).readOnly());
+		kolonGrup.stmDuzenleyiciEkle(e => { const {aliasVeNokta} = this; for (const sent of e.stm.getSentListe()) { sent.sahalar.add(`${aliasVeNokta}yore`) } });
+		kolonGrup.degisince(async e => { const rec = await e.rec; if (rec) { e.setCellValue({ belirtec: 'yore', value: rec.yore || '' }) } });
 		return kolonGrup
 	}
 	alimEIslIcinSetValues(e) {
@@ -417,10 +409,9 @@ class MQCari_Ticari extends MQCariAlt {
 		})
 	}
 	static secimlerDuzenle(e) {
-		const sec = e.secimler;
-		sec.secimTopluEkle({ satisDurumu: new SecimTekSecim({ etiket: 'Satış Durumu', tekSecimSinif: SatilmaDurumu }) });
+		let {secimler: sec} = e; sec.secimTopluEkle({ satisDurumu: new SecimTekSecim({ etiket: 'Satış Durumu', tekSecimSinif: SatilmaDurumu }) });
 		sec.whereBlockEkle(e => {
-			const {aliasVeNokta} = this.mfSinif, wh = e.where, sec = e.secimler;
+			const {aliasVeNokta} = this.mfSinif, {secimler: sec, where: wh} = e;
 			wh.birlestir(sec.satisDurumu.tekSecim.getTersBoolClause(`${aliasVeNokta}satilamazfl`))
 		})
 	}
@@ -428,28 +419,8 @@ class MQCari_Ticari extends MQCariAlt {
 		const {rec, result} = e;
 		if (asBool(rec.satilamazfl)) { result.push('bg-lightred') }
 	}
-	static rootFormBuilderDuzenle(e) {
-		e = e || {}; const {mfSinif} = this, {tabPanel} = e, tabPage = tabPanel.addTab({ id: 'ticari', etiket: 'Ticari' });
-		tabPage.setAltInst(e => e.builder.inst.ticari);
-		let form = tabPage.addFormWithParent().yanYana(5)/*.addStyle(e=>`$elementCSS {box-shadow:5px 5px 20px cadetblue}`)*/;
-		form.addModelKullan({ id: 'bFormKonKod', etiket:' Yurt Dışı B Formu',mfSinif: MQCari }).dropDown();
-		form.addModelKullan({ id: 'kdvFl', etiket: 'Kdv Tipi', source: e => KdvTipi.instance.kaListe }).noMF().dropDown();
-		form.addModelKullan({ id: 'dvKod', etiket: 'Döviz', mfSinif: MQDoviz}).dropDown();
-		form.addModelKullan({ id: 'alimFisTipi', etiket: 'Alım Fiş Tipi', source: e => AlimFisTipi.instance.kaListe}).noMF().dropDown();
-		form.addModelKullan({ id: 'satisFisTipi', etiket: 'Satış Fiş Tipi', source: e => SatisFisTipi.instance.kaListe}).noMF().dropDown();
-		form.addModelKullan({ id: 'fiyatListeKod', etiket: 'Stok Fiyat No', source: e => FiyatListeNo.instance.kaListe}).noMF().dropDown()
-			.addStyle(e => `$elementCSS { max-width: 150px }`);
-		form = tabPage.addFormWithParent().yanYana(5);
-		form.addCheckBox({ id: 'satilamazFl',etiket: 'Satış Durdurulsun' });
-		form.addCheckBox({ id: 'otvUygulanir',etiket: 'ÖTV Uygulanır' });
-		form.addCheckBox({ id: 'degiskenAdres',etiket: 'Ticari Fişlerde Adres Değişkendir' });
-		form.addCheckBox({ id: 'altHesapZorunlu',etiket: 'Alt Hesap Zorunludur' });
-		form.addCheckBox({ id: 'bKdvSatirdanHesaplanir',etiket: 'Satış Kdv Detay Satirdan Hesaplanir' });
-		form.addCheckBox({ id: 'bMatbuuDokumDovizlimi',etiket: 'Matbuu Dökümde Dip Bilgileri "Dövizli" Yazdırılır' })
-	}
 	static orjBaslikListesiDuzenle(e) {
-		const {aliasVeNokta} = this.mfSinif;
-		const {liste} = e;
+		const {aliasVeNokta} = this.mfSinif, {liste} = e;
 		liste.push(
 			new GridKolon({ belirtec: 'bformkonkod', text: 'Yurtdışı B Form', genislikCh: 5 }),
 			new GridKolon({ belirtec: 'alimfistipi', text: 'Alım Fiş Tipi', genislikCh: 5 }),
@@ -461,6 +432,65 @@ class MQCari_Ticari extends MQCariAlt {
 		)
 	}
 	static loadServerData_queryDuzenle(e) { const {aliasVeNokta} = this.mfSinif, {sent} = e; sent.sahalar.add(`${aliasVeNokta}calismadurumu`) }
+	static rootFormBuilderDuzenle(e) {
+		e = e || {}; let {mfSinif} = this, {tabPanel} = e, tabPage = tabPanel.addTab('ticari', 'Ticari').setAltInst(e => e.builder.inst.ticari);
+		let form = tabPage.addFormWithParent().yanYana(5)/*.addStyle(e=>`$elementCSS {box-shadow:5px 5px 20px cadetblue}`)*/;
+		form.addModelKullan({ id: 'bFormKonKod', etiket:' Yurt Dışı B Formu',mfSinif: MQCari }).dropDown();
+		form.addModelKullan({ id: 'kdvFl', etiket: 'Kdv Tipi', source: e => KdvTipi.instance.kaListe }).noMF().dropDown();
+		form.addModelKullan({ id: 'dvKod', etiket: 'Döviz', mfSinif: MQDoviz}).dropDown();
+		form.addModelKullan({ id: 'alimFisTipi', etiket: 'Alım Fiş Tipi', source: e => AlimFisTipi.instance.kaListe}).noMF().dropDown();
+		form.addModelKullan({ id: 'satisFisTipi', etiket: 'Satış Fiş Tipi', source: e => SatisFisTipi.instance.kaListe}).noMF().dropDown();
+		form.addModelKullan({ id: 'fiyatListeKod', etiket: 'Stok Fiyat No', source: e => FiyatListeNo.instance.kaListe}).noMF().dropDown().addStyle(e => `$elementCSS { max-width: 150px }`);
+		form = tabPage.addFormWithParent().yanYana(5);
+		form.addCheckBox({ id: 'satilamazFl',etiket: 'Satış Durdurulsun' });
+		form.addCheckBox({ id: 'otvUygulanir',etiket: 'ÖTV Uygulanır' });
+		form.addCheckBox({ id: 'degiskenAdres',etiket: 'Ticari Fişlerde Adres Değişkendir' });
+		form.addCheckBox({ id: 'altHesapZorunlu',etiket: 'Alt Hesap Zorunludur' });
+		form.addCheckBox({ id: 'bKdvSatirdanHesaplanir',etiket: 'Satış Kdv Detay Satirdan Hesaplanir' });
+		form.addCheckBox({ id: 'bMatbuuDokumDovizlimi',etiket: 'Matbuu Dökümde Dip Bilgileri "Dövizli" Yazdırılır' });
+		form = tabPage.addFormWithParent('tip2SatisBilgileri-parent').addStyle_fullWH(null, 100).addStyle(e => `$elementCSS { margin-top: 20px }`);
+		let fbd_grid = form.addGridliGiris_sabit('tip2SatisBilgileri').addStyle_fullWH()
+			.widgetArgsDuzenleIslemi(e => { $.extend(e.args, { editMode: 'click' }) })
+			.setSource(({ builder: fbd }) => Object.values(fbd.altInst[fbd.id] ?? {}))
+			.setTabloKolonlari(({ builder: fbd }) => {
+				let {tip2SatisBilgileri} = fbd.altInst, satisTipSayi = Object.values(tip2SatisBilgileri ?? {}).length, satisTipCoklumu = satisTipSayi > 1;
+				return [
+					(satisTipCoklumu ? new GridKolon({ belirtec: 'kod', text: 'Kod', genislikCh: 8 }).readOnly() : null),
+					(satisTipCoklumu ? new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', genislikCh: 20 }).readOnly() : null),
+					...MQPlasiyer.getGridKolonlar({ belirtec: 'plasiyer', autoBind: true }),
+					new GridKolon({ belirtec: 'odemeGunKod', text: 'Öd.Gün', genislikCh: 10 }).tipString(12),
+					...MQTahsilSekli.getGridKolonlar({ belirtec: 'tahSekli', adiGenislikCh: 25, dropDown: true, autoBind: true })
+				].filter(x => !!x)
+			})
+	}
+	async yeniTanimOncesiIslemler(e) { await this.satisTipBilgileriOlustur(e) }
+	async yukleSonrasiIslemler(e) {
+		await this.satisTipBilgileriOlustur(e); let {tip2SatisBilgileri} = this, {must: kod} = e.rec;
+		let alias = 'csat', sent = new MQSent({
+			from: `carisatis ${alias}`, where: { degerAta: kod, saha: 'csat.must' },
+			fromIliskiler: [{ from: 'carmst pls', iliski: `${alias}.tavsiyeplasiyerkod = pls.must` }, { alias, leftJoin: 'tahsilsekli tsek', iliski: `${alias}.tahseklino = tsek.kodno` }],
+			sahalar: [`${alias}.satistipkod kod`, `${alias}.odemegunkodu odemeGunKod`, `${alias}.tahseklino tahSekliKod`, 'tsek.aciklama tahSekliAdi',
+					  `${alias}.tavsiyeplasiyerkod plasiyerKod`, 'pls.birunvan plasiyerUnvan']
+		}), satRecs = await app.sqlExecSelect(sent);
+		for (let rec of satRecs) {
+			let kod = rec.kod?.trimEnd() ?? '', satRec = tip2SatisBilgileri[kod];
+			if (satRec) { $.extend(satRec, rec) }
+		}
+	}
+	async kaydetSonrasiIslemler(e) {
+		let {tip2SatisBilgileri} = this, {kod: must} = this.inst, from = 'carisatis';
+		let toplu = new MQToplu(); for (let rec of Object.values(tip2SatisBilgileri)) {
+			let satistipkod = rec.kod?.trimEnd() ?? '', keyHV = { must, satistipkod };
+			let {plasiyerKod: tavsiyeplasiyerkod, odemeGunKod: odemegunkodu} = rec, tahseklino = rec.tahSekliKod || null, hv = { tavsiyeplasiyerkod, odemegunkodu, tahseklino };
+			toplu.add(new MQInsertOrUpdate({ from, keyHV, hv }))
+		}
+		if (toplu.bosDegilmi) { await app.sqlExecNone(toplu) }
+	}
+	async satisTipBilgileriOlustur(e) {
+		try { await app.satisTipleriBelirle(e) } catch (ex) { console.error(ex) } 
+		let tip2SatisBilgileri = this.tip2SatisBilgileri = {}; for (let rec of app.satisTipleri ?? []) { let kod = rec.kod?.trimEnd(); tip2SatisBilgileri[kod] = rec }
+		return this
+	}
 }
 class MQCari_EIslem extends MQCariAlt {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

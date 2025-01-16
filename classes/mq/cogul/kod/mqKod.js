@@ -102,19 +102,19 @@ class MQKA extends MQKod {
 			.setVisibleKosulu(this.adiKullanilirmi ? true : 'jqx-hidden').addStyle(e => `$elementCSS { min-width: 300px${kodKullanilirmi ? '; max-width: 60%' : ''} }`);
 		return this
 	}
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {cellsRenderer, liste} = e, {adiSaha} = this;
-		if (this.adiKullanilirmi) {
-			const colDef_adi = liste.find(colDef => colDef.belirtec == adiSaha);
-			if (!colDef_adi) {
-				const adiEtiket = this.adiEtiket ?? 'Açıklama';
-				liste.push(new GridKolon({ belirtec: adiSaha, text: adiEtiket,  minWidth: Math.min(200, asInteger($(window).width() / 4)), width: Math.min(600, asInteger($(window).width() / 2)), cellsRenderer }))
-			}
-		}
-	}
 	static standartGorunumListesiDuzenle(e) {
 		super.standartGorunumListesiDuzenle(e); const {liste} = e;
 		if (this.adiKullanilirmi) { liste.push(this.adiSaha) }
+	}
+	static orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e); const mfSinif = e.mfSinif ?? this, {cellsRenderer, liste} = e, {adiKullanilirmi, adiSaha} = mfSinif;
+		if (adiKullanilirmi) {
+			const colDef_adi = liste.find(colDef => colDef.belirtec == adiSaha);
+			if (!colDef_adi) {
+				const adiEtiket = mfSinif.adiEtiket ?? 'Açıklama';
+				liste.push(new GridKolon({ belirtec: adiSaha, text: adiEtiket,  minWidth: Math.min(200, asInteger($(window).width() / 4)), width: Math.min(600, asInteger($(window).width() / 2)), cellsRenderer }))
+			}
+		}
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {sent} = e;
@@ -134,10 +134,11 @@ class MQKA extends MQKod {
 		e = e || {}; const mfSinif = e.mfSinif || this; let _mfSinif = mfSinif; if (isFunction(_mfSinif)) { _mfSinif = getFuncValue.call(this, _mfSinif, {}) }
 		const {belirtec} = e, sinifAdi = e.sinifAdi || _mfSinif.sinifAdi, kodAttr = e.kodAttr || `${belirtec}Kod`, adiAttr = e.adiAttr || `${belirtec}Adi`;
 		const kodEtiket = e.kodEtiket || sinifAdi, adiEtiket = e.adiEtiket || /*_mfSinif.adiEtiket ||*/ sinifAdi;
+		const isDropDown = e.dropDown ?? e.isDropDown;
 		const ekStmDuzenleyici = e.stmDuzenle ?? e.stmDuzenleyici, degisince = e.degisince ?? e.ekDegisince ?? e.degisinceBlock, gelince = e.gelince ?? e.ekGelince ?? e.gelinceBlock;
 		const argsDuzenleBlock = e.argsDuzenle ?? e.argsDuzenleBlock;
 		let kolonGrup = new GridKolonGrup_KA({
-			mfSinif: mfSinif || this, belirtec, adiAttr, degisince, gelince,
+			mfSinif: mfSinif || this, belirtec, adiAttr, degisince, gelince, isDropDown,
 			kaKolonu: new GridKolon({ belirtec: kodAttr, text: adiEtiket || kodEtiket || `${sinifAdi}`, genislikCh: e.adiGenislikCh || 50 }),
 			dataBlock: async e => {
 				const {kod} = e; if (kod != null && !kod) { return [] }

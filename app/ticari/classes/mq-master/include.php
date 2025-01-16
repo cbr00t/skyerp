@@ -25,6 +25,7 @@
 <script src="<?=$_partRoot?>/mqHizmet.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqDemirbas.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqSatisTipi.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/mqSatisRota.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqUlke.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqEIslOzelYontem.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqEIslemOzelDip.js?<?=$appVersion?>"></script>

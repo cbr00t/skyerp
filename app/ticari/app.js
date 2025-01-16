@@ -1,5 +1,6 @@
 class TicariApp extends App {
     static { window[this.name] = this; this._key2Class[this.name] = this } get testBaseClass() { return Ticari_TestBase } get yerelParamSinif() { return MQYerelParamTicari }
+	constructor(e) { e = e ?? {}; super(e); $.extend(this, { satisTipleri: e.satisTipleri }) }
 	paramsDuzenle(e) {
 		super.paramsDuzenle(e); const {params} = e;
 		$.extend(params, {
@@ -22,6 +23,10 @@ class TicariApp extends App {
 	raporEkSahaDosyalariDuzenle(e) { super.raporEkSahaDosyalariDuzenle(e); const {liste} = e; liste.push('VioTicari.RaporEkSaha') }
 	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e); this.show() }
 	async getAnaMenu() { const response = await ajaxGet({ url: this.getWSUrl({ api: 'frMenu' }) }); return response ? FRMenu.from(response) : null }
+	satisTipleriBelirle(e) {
+		let sent = new MQSent({ from: 'satistipi', sahalar: ['kod', 'aciklama'] })
+		return app.sqlExecSelect(sent).then(recs => this.satisTipleri = recs)
+	}
 	wsSabitTanimlar_xml(e) { e = e || {}; if (e && typeof e != 'object') e = { belirtec: e }; return this.wsSabitTanimlar($.extend({}, e, { tip: 'xml' })) }
 	wsSabitTanimlar_secIni(e) { e = e || {}; if (e && typeof e != 'object') e = { belirtec: e }; return this.wsSabitTanimlar($.extend({}, e, { tip: 'sec-ini' })) }
 	wsSabitTanimlar_secIni_noDict(e) { e = e || {}; if (e && typeof e != 'object') e = { belirtec: e }; return this.wsSabitTanimlar_secIni($.extend({}, e, { noDict: true })) }

@@ -20,19 +20,20 @@ class GridKontrolcu extends CObject {
 	}
 	grid2Fis(e) {
 		e = e || {}; const mesajsizFlag = e.mesajsiz || e.mesajsizFlag;
-		const {parentPart} = this, tabloKolonlari = parentPart.tabloKolonlari ?? parentPart.gridPart?.tabloKolonlari;
-		const {gridWidget} = parentPart, zorunluBelirtecler = e.zorunluBelirtecler = {}, editBelirtecler = e.editBelirtecler = {};
+		const {parentPart} = this, gridPart = parentPart?.gridPart, tabloKolonlari = parentPart.tabloKolonlari ?? gridPart?.tabloKolonlari;
+		const {gridWidget} = parentPart, zorunluBelirtecler = e.zorunluBelirtecler = {}, editBelirtecler = e.editBelirtecler = {}, {belirtec2Kolon} = gridPart ?? {};
 		for (const colDefOrGrup of tabloKolonlari) {
 			if (colDefOrGrup.kodZorunlumu) { zorunluBelirtecler[colDefOrGrup.kodBelirtec] = true }
 			for (const colDef of colDefOrGrup.getIter()){ if (colDef.isEditable) { editBelirtecler[colDef.belirtec] = true } }
 		}
-		const recs = [], _recs = gridWidget.getboundrows(); let index = -1;
+		const recs = [], _recs = gridWidget.getboundrows(); let index = -1, temps = {};
 		for (const det of _recs) {
 			index++; const bosOlmayanVarmi = Object.keys(editBelirtecler).find(belirtec => !!det[belirtec]); if (!bosOlmayanVarmi) { continue }
 			if (!mesajsizFlag) {
 				let satirNo, kolonText, hepsiBosmu = false;
 				if (!$.isEmptyObject(zorunluBelirtecler)) { hepsiBosmu = true; for (const belirtec in zorunluBelirtecler) { if (det[belirtec]) { hepsiBosmu = false; break } } } if (hepsiBosmu) { continue }
-				let result = this.geriYuklemeIcinUygunmu({ mesajsiz: mesajsizFlag, detay: det, index }); if (typeof result == 'object') { return result } if (!result) { continue }
+				let result = this.geriYuklemeIcinUygunmu({ parentPart, gridPart, belirtec2Kolon, tabloKolonlari, mesajsiz: mesajsizFlag, detay: det, index, temps });
+				if (typeof result == 'object') { return result } if (!result) { continue }
 			}
 			recs.push(det)
 		}
@@ -40,19 +41,18 @@ class GridKontrolcu extends CObject {
 		e.recs = recs; return true
 	}
 	geriYuklemeIcinUygunmu(e) {
-		const {zorunluBelirtecler, det} = e, {_kodDegerDurum} = det, bosOlanIlkBelirtec = Object.keys(zorunluBelirtecler).find(belirtec => !det[belirtec]);
-		if (bosOlanIlkBelirtec) { return false } if (_kodDegerDurum) {
-			for (const belirtec in _kodDegerDurum) {
-				if (!_kodDegerDurum[belirtec]) {
-					const satirNo = index + 1, kolonText = parentPart.belirtec2Kolon[bosOlanIlkBelirtec].text;
-					return { isError: true, errorText: `<b>${satirNo}.</b> satırdaki <b>${kolonText}</b> bilgisi hatalıdır`, returnAction: e => e.focusTo({ rowIndex: i, belirtec }) }
-				}
+		let {zorunluBelirtecler, det} = e, {_kodDegerDurum} = det;
+		let bosOlanIlkBelirtec = Object.keys(zorunluBelirtecler).find(belirtec => !det[belirtec]); if (bosOlanIlkBelirtec) { return false }
+		if (_kodDegerDurum) {
+			const {parentPart} = this; for (const belirtec in _kodDegerDurum) {
+				if (_kodDegerDurum[belirtec]) { continue }
+				const satirNo = index + 1, kolonText = parentPart.belirtec2Kolon[bosOlanIlkBelirtec].text;
+				return { isError: true, errorText: `<b>${satirNo}.</b> satırdaki <b>${kolonText}</b> bilgisi hatalıdır`, returnAction: e => e.focusTo({ rowIndex: i, belirtec }) }
 			}
 		}
 		return true
 	}
 	grid2FisMesajsiz(e) { e = e || {}; e.mesajsiz = true; delete e.mesajsizFlag; return this.grid2Fis(e) }
-	geriYuklemeIcinUygunmu(e) { return true }
 	gridVeriYuklendi(e) { } gridContextMenuIstendi(e) { } gridRendered(e) { }
 	gridRowExpanded(e) { } gridRowCollapsed(e) { } gridGroupExpanded(e) { } gridGroupCollapsed(e) { }
 	gridSatirEklendi(e) { } gridSatirGuncellendi(e) { } gridSatirSilindi(e) { } gridSatirSayisiDegisti(e) { }

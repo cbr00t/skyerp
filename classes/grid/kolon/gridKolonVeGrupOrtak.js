@@ -25,7 +25,7 @@ class GridKolonVeGrupOrtak extends CObject {
 	belirtec2KolonDuzenle(e) { const {belirtec2Kolon} = e; belirtec2Kolon[this.belirtec] = this; }
 	readOnly() { this.isEditable = false; return this } editable() { this.isEditable = true; return this } 
 	kodZorunlu() { this.kodZorunlumu = true; return this } zorunlu() { this.kodZorunlu(); return this }
-	kodZorunluOlmasin() { this.kodZorunlumu = false; return this } zorunluDegil() { return this.kodZorunluOlmasin() }
+	kodZorunluOlmasin() { this.kodZorunlumu = false; return this } zorunluDegil() { return this.kodZorunluOlmasin() } kodZorunluDegil() { return this.kodZorunluOlmasin() }
 	setUserData(value) { this.userData = value; return this }
 	setKisitDuzenleyici(value) { this.kisitDuzenleyici = value; return this }
 	static getTemplate(e) { const {key} = e; delete e.key; return getFuncValue(this._templates[key], e) }

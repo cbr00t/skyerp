@@ -1,6 +1,5 @@
 class GridKolonGrup_KA extends GridKolonGrup {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultKodZorunlumu() { return true }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultKodZorunlumu() { return true }
 	get mfSinif() {
 		const value = this._mfSinif;
 		if (value && !value.prototype && ($.isFunction(value) || value.run)) {
@@ -26,7 +25,9 @@ class GridKolonGrup_KA extends GridKolonGrup {
 			/* kodAttr: e.kodAttr || `${this.belirtec}Kod`, */ adiAttr: e.adiAttr || `${this.belirtec}Adi`,
 			isDropDown: e.dropDown ?? e.isDropDown ?? e.dropDownFlag, autoBindFlag: e.autoBind ?? e.autoBindFlag ?? true
 		});
-		this.kaKolonu = this.parseColDef(e.kaKolonu); return true
+		let kaKolonu = this.kaKolonu = this.parseColDef(e.kaKolonu);
+		kaKolonu.kodZorunlumu = this.kodZorunlumu;
+		return true
 	}
 	readFrom_son(e) {
 		if (!super.readFrom_son(e)) { return false }

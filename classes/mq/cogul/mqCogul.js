@@ -554,6 +554,7 @@ class MQCogul extends MQYapi {
 	async yaz(e) { let result = await super.yaz(e); this.class.globalleriSil(); return result }
 	async degistir(e) { let result = await super.degistir(e); this.class.globalleriSil(); return result }
 	async sil(e) { let result = await super.sil(e); this.class.globalleriSil(); return result }
+	async yeniTanimOncesiIslemler(e) { await super.yeniTanimOncesiIslemler(e); await this.forAltYapiKeysDoAsync('yeniTanimOncesiIslemler', e) }
 	async yukleSonrasiIslemler(e) { await super.yukleSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('yukleSonrasiIslemler', e) }
 	async uiKaydetOncesiIslemler(e) {
 		await this.forAltYapiKeysDoAsync('uiKaydetOncesiIslemler', e)
@@ -737,8 +738,8 @@ class MQCogul extends MQYapi {
 			for (const cls of Object.values(altYapiDict)) {
 				if (cls) {
 					cls.__proto__.mfSinif = this;
-					if (selector) block = cls[selector]
-					if (block) results.push(await getFuncValue.call(cls, block, ...args))
+					if (selector) { block = cls[selector] }
+					if (block) { results.push(await getFuncValue.call(cls, block, ...args)) }
 				}
 			}
 		}
@@ -752,8 +753,8 @@ class MQCogul extends MQYapi {
 			for (const key in altYapiDict) {
 				const altInst = this[key];
 				if (altInst) {
-					if (selector) block = altInst[selector]
-					if (block) results.push(await getFuncValue.call(altInst, block, ...args))
+					if (selector) { block = altInst[selector] }
+					if (block) { results.push(await getFuncValue.call(altInst, block, ...args)) }
 				}
 			}
 		}

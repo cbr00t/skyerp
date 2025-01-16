@@ -371,6 +371,7 @@ class MQDetayli extends MQSayacli {
 }
 class MQDetayliMaster extends MQDetayli {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get hasTabs() { return false }
+	static get tanimUISinif() { return MQKA.tanimUISinif } static get tanimUISinif() { return MQKA.tanimUISinif }
 	static get detayliMastermi() { return true } static get sabitBilgiRaporcuSinif() { return MQCogul.sabitBilgiRaporcuSinif }
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); const tanimForm = e.tanimFormBuilder; e.mfSinif = e.mfSinif ?? this;
@@ -431,19 +432,5 @@ class MQDetayliGUID extends MQDetayliMaster {
 	}
 	yazSonrasi_sayacGeriYukle(e) { }
 }
-class MQDetayliVeAdi extends MQDetayliMaster {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get adiSaha() { return 'aciklama' } static get adiEtiket() { return 'Açıklama' }
-	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { aciklama: new PInstStr('aciklama') }) }
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e, {adiSaha, adiEtiket} = this;
-		liste.push(new GridKolon({ belirtec: adiSaha, text: adiEtiket, genislikCh: 40 }))
-	}
-}
-class MQDetayliGUIDVeAdi extends MQDetayliGUID {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get adiSaha() { return 'aciklama' } static get adiEtiket() { return 'Açıklama' }
-	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { aciklama: new PInstStr('aciklama') }) }
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e, {adiSaha, adiEtiket} = this;
-		liste.push(new GridKolon({ belirtec: adiSaha, text: adiEtiket, genislikCh: 40 }))
-	}
-}
+class MQDetayliVeAdi extends MQDetayliMaster { static { window[this.name] = this; this._key2Class[this.name] = this } static get adiKullanilirmi() { return true } }
+class MQDetayliGUIDVeAdi extends MQDetayliGUID { static { window[this.name] = this; this._key2Class[this.name] = this } static get adiKullanilirmi() { return true } }
