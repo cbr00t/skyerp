@@ -67,8 +67,7 @@ class ModelTanimPart extends Part {
 		e = e || {}; super.afterRun(e);
 		if (this.hasTabPages) {
 			const {rootPartName} = this.class; const elms = [this.wnd, this.wndContent];
-			for (const elm of elms) elm?.addClass(`${rootPartName} with-tabs`)
-			this.initTabPages(e)
+			for (const elm of elms) { elm?.addClass(`${rootPartName} with-tabs`) } this.initTabPages(e)
 		}
 		if (this.yeniVeyaKopyami) { this.yeniTanimOncesiIslemler(e) } /* setTimeout(() => this.wnd?.trigger('resize'), 0) */
 	}
@@ -147,10 +146,11 @@ class ModelTanimPart extends Part {
 		for (const builder of this.getBuilders(e)) { e.builder = builder; if (builder.initTabLayoutSonrasi) builder.initTabLayoutSonrasi(e) }
 		const {altLayoutParts} = e; if (altLayoutParts) { for (const part of altLayoutParts) part.initLayoutSonrasi(e) } delete e.altLayoutParts
 	}
-	yeniTanimOncesiIslemler(e) {
+	async yeniTanimOncesiIslemler(e) {
 		e = e || {}; e.sender = this;
-		for (const _e of this.getAltFormParts()) _e.part.yeniTanimOncesiIslemler(e)
-		for (const builder of this.getBuilders(e)) { e.builder = builder; if (builder.yeniTanimOncesiIslemler) builder.yeniTanimOncesiIslemler(e) }
+		for (const _e of this.getAltFormParts()) { await _e.part?.yeniTanimOncesiIslemler?.(e) }
+		for (const builder of this.getBuilders(e)) { e.builder = builder; await builder?.yeniTanimOncesiIslemler?.(e) }
+		let {mfSinif, inst, eskiInst, islem} = this; if (this.yeniVeyaKopyami) { await inst.yeniTanimOncesiIslemler({ ...e, mfSinif, inst, eskiInst, islem }) }
 	}
 	formGenelEventleriBagla(e) {
 		e = e || {}; e.sender = this;

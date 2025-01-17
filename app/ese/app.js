@@ -4,8 +4,9 @@ class ESEApp extends App {
 	get defaultWSPath() { return `${super.superDefaultWSPath}/ese` } static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_App }
 	constructor(e) { e = e || {}; super(e); this.isAdmin = qs.admin ?? false }
 	async runDevam(e) {
-		if (this.isAdmin) { $('body').addClass('admin') }
-		await super.runDevam(e); await this.anaMenuOlustur(e); this.show()
+		let {isAdmin} = this; if (isAdmin) { $('body').addClass('admin') } await super.runDevam(e);
+		if (!isAdmin) { let {session} = config; await app.wsLogout(); await app.wsLogin({ session }) }
+		await this.anaMenuOlustur(e); this.show()
 	}
 	loginTipleriDuzenle(e) {
 		const {loginTipleri} = e; loginTipleri.push(...[

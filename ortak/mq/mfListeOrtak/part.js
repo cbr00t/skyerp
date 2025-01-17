@@ -54,7 +54,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, {
-			ozelQueryDuzenleBlock: e.ozelQueryDuzenleBlock ?? e.ozelQueryDuzenle, ozelQuerySonucuBlock: e.ozelQuerySonucuBlock ?? e.ozelQuerySonucu,
+			ozelQueryDuzenleBlock: e.ozelQueryDuzenleBlock ?? e.ozelQueryDuzenle, ozelQuerySonucuBlock: e.ozelQuerySonucuBlock ?? e.ozelQuerySonucu, veriYukleninceBlock: e.veriYuklenince ?? e.veriYukleninceBlock,
 			yeniInstOlusturucu: e.yeniInstOlusturucu, tanimOncesiEkIslemler: e.tanimOncesiEkIslemler, _mfSinif: e.mfSinif, _secimler: e.secimler, _secimlerDuzenleBlock: e.secimlerDuzenleBlock ?? e.secimlerDuzenle,
 			_tanimUISinif: e.tanimUISinif, _tanimlanabilirmi: e.tanimlanabilirmi, _silinebilirmi: e.silinebilirmi, args: e.args, panelDuzenleyici: e.panelDuzenleyici
 		});
@@ -372,6 +372,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		if (panelDuzenleyici?.gridVeriYuklendi) { panelDuzenleyici.gridVeriYuklendi(e) }
 		if (mfSinif) { mfSinif.gridVeriYuklendi(e) }
 		if ((!mfSinif || mfSinif.bulFormKullanilirmi) && bulPart?.layout?.length) { const {noAutoFocus} = mfSinif || {}; if (!noAutoFocus) { setTimeout(() => bulPart.focus(), 50) } }
+		let {veriYukleninceBlock: veriYuklenince} = this; if (veriYuklenince) { getFuncValue.call(this, veriYuklenince, e) }
 	}
 	secimlerIstendi(e) {
 		let {secimlerPart} = this; if (secimlerPart) { secimlerPart.show() }
@@ -421,10 +422,11 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		try {
 			const {yeniInstOlusturucu} = this; if (yeniInstOlusturucu) { eskiInst = await getFuncValue.call(this, yeniInstOlusturucu, _e) }
 			if (eskiInst === undefined && mfSinif.yeniInstOlustur) eskiInst = await mfSinif.yeniInstOlustur(_e)
-			if (eskiInst === undefined) eskiInst = new mfSinif(_e)
+			if (eskiInst === undefined) { eskiInst = new mfSinif(_e) }
 			if (eskiInst == null) return false; eskiInst.keySetValues({ rec });
 			if (!await eskiInst.yukle($.extend({}, _e, { rec: null, _rec: rec }))) { const mesaj = 'Seçilen satır için bilgi yüklenemedi'; throw { isError: true, rc: 'instBelirle', errorText: mesaj } }
-			eskiInst.kopyaIcinDuzenle(_e); inst = eskiInst.deepCopy(); return inst.tanimla({ parentPart: this, islem: _e.islem, eskiInst, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince: e => this.tazele() })
+			inst = await eskiInst.kopyaIcinDuzenle(_e) ?? eskiInst.deepCopy();
+			return inst.tanimla({ parentPart: this, islem: _e.islem, eskiInst, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince: e => this.tazele() })
 		}
 		catch (ex) { hConfirm(getErrorText(ex), 'Kopyala'); throw ex }
 	}
@@ -485,6 +487,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	}
 	boyutlandirIstendi(e) { const {panelDuzenleyici} = this; if (panelDuzenleyici?.boyutlandirIstendi) { panelDuzenleyici?.boyutlandirIstendi(e) } }
 	tekil() { this.tekilmi = true; return this } coklu() { this.tekilmi = false; return this }
+	veriYuklenince(handler) { this.veriYukleninceBlock = handler; return this }
 }
 
 

@@ -211,7 +211,7 @@ class MQDetayli extends MQSayacli {
 		/* üst'e bakma */ e = e || {}; this.detaylariNumaralandir(e); let {sayac: _sayac} = this;
 		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e;
 		e.proc = async e => {
-			e = e ?? {}; const paramName_fisSayac = '@fisSayac'; await this.yeniTanimOncesiIslemler(e); let _e = { ...e, toplu: new MQToplu(), paramName_fisSayac };
+			e = e ?? {}; const paramName_fisSayac = '@fisSayac'; await this.yeniOncesiIslemler(e); let _e = { ...e, toplu: new MQToplu(), paramName_fisSayac };
 			await this.topluYazmaKomutlariniOlustur(_e); await this.topluYazmaKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) { return true }
 			let {toplu: query, sayac} = _e; _e = { offlineMode, trnId, query, sayac }; let result = await this.sqlExecNoneWithResult(_e); if ($.isArray(result)) { result = result[0] ?? true }
 			_e.sqlParam = result = result?.params?.[paramName_fisSayac] ?? result;

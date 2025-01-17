@@ -58,11 +58,14 @@ class MQMuayene extends MQGuidOrtak {
 		form = tabPage_genel.addFormWithParent().altAlta(); form.addTextArea('tani', 'Tanı').setMaxLength(3000).setRows(8)
 	}
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { resimsayisi: this.resimSayisi }) }
+	kopyaIcinDuzenle(e) { super.kopyaIcinDuzenle(e); $.extend(this, { ts: now() }) }
 	async yeniSonrasiIslemler(e) {
 		await super.yeniSonrasiIslemler(e); let {id} = this;
 		let silent = true, gridPart = app.activeWndPart?.parentPart, recs = [ { id }], _e = { ...e, silent, gridPart, recs };
-		_e.recs = await this.class.loadServerData({ ozelQueryDuzenle: ({ sent }) => sent.where.degerAta(id, `${this.class.tableAlias}.id`) }); await this.class.testOlusturIstendi(_e);
-		_e.recs = await MQTest.loadServerData({ ozelQueryDuzenle: ({ sent }) => sent.where.degerAta(id, `${MQTest.tableAlias}.muayeneid`) }); MQTest.testIslemleriIstendi(_e)
+		setTimeout(async () => {
+			_e.recs = await this.class.loadServerData({ ozelQueryDuzenle: ({ sent }) => sent.where.degerAta(id, `${this.class.tableAlias}.id`) }); await this.class.testOlusturIstendi(_e);
+			await this.class.testEkraniAcIstendi(_e); MQTest.testIslemleriIstendi(_e)
+		}, 50)
 	}
 	async silmeOncesiIslemler(e) {
 		await super.silmeOncesiIslemler(e); let {id} = this; if (id) {
@@ -125,10 +128,10 @@ class MQMuayene extends MQGuidOrtak {
 		catch (ex) { hConfirm(getErrorText(ex), sinifAdi); throw ex }
 	}
 	static async testEkraniAcIstendi(e) {
-		let {sinifAdi} = this, {silent} = e, gridPart = e.gridPart ?? e.parentPart ?? e.sender, recs = e.recs ?? gridPart?.selectedRecs;
+		let {sinifAdi} = this, {silent, acilinca} = e, gridPart = e.gridPart ?? e.parentPart ?? e.sender, recs = e.recs ?? gridPart?.selectedRecs;
 		let idListe = recs?.map(rec => rec.id); if (!idListe?.length) { if (!silent) { hConfirm('Kayıtlar seçilmelidir', sinifAdi) } return }
 		return MQTest.listeEkraniAc({
-			secimlerDuzenle: idListe?.length
+			acilinca, secimlerDuzenle: idListe?.length
 				? ({ secimler: sec }) => { const birKismimi = true; $.extend(sec.muayeneId, { birKismimi, kodListe: idListe }); sec.tarih.temizle() }
 				: undefined
 		})

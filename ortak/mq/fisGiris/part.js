@@ -83,9 +83,9 @@ class FisGirisPart extends GridliGirisWindowPart {
 				/* splitGridVeIslemTuslari.jqxSplitter('collapse', 0) */
 			}, 10)
 		}, 0);
-		this.noAnimate(); let _e = { ...e, sender, fis, islem, layout, islemTuslari, subeForm, baslikFormlar, gridIslemTuslari };
+		this.noAnimate(); let _e = { ...e, sender, mfSinif: fis.class, fis, islem, layout, islemTuslari, subeForm, baslikFormlar, gridIslemTuslari };
 		if (this.yeniVeyaKopyami) {
-			let promise = fis.yeniTanimOncesiIslemler(_e); if (promise?.then) {
+			let promise = fis.uiyeniTanimOncesiIslemler(_e); if (promise?.then) {
 				let css = 'opacity-0'; layout.addClass(css);
 				promise.then(() => this.tazele(_e)).finally(() => setTimeout(() => layout.removeClass(css), 1))
 			}

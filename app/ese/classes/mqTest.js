@@ -145,6 +145,7 @@ class MQTest extends MQGuidOrtak {
 					elm.on('click', evt => { navigator.clipboard.writeText(onayKodu).then(() => eConfirm('Onay Kodu panoya kopyalandı!', this.sinifAdi)) }) }
 			})
 	}
+	async yaz(e) { await super.yaz(e) }
 	static async eMailGonderIstendi(e) {
 		const {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender; let {selectedRecs} = gridPart; if (!selectedRecs?.length) { hConfirm('Kayıtlar seçilmelidir', sinifAdi); return null }
 		selectedRecs = selectedRecs.filter(({ email: eMail }) => !!eMail && eMail.length >= 5 && eMail.includes('@'));

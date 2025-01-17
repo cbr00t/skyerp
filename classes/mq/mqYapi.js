@@ -30,7 +30,7 @@ class MQYapi extends CIO {
 			$.extend(_e, { keyHV }); const result = await this.varmi(_e); delete _e.keyHV;
 			if (result) { throw { isError: true, rc: 'duplicateRecord', errorText: 'Kayıt tekrarlanıyor' } }
 		}
-		await this.yeniTanimOncesiIslemler(e); const hv = this.hostVars(e); if (!$.isEmptyObject(keyHV)) { $.extend(hv, keyHV) }
+		await this.yeniOncesiIslemler(e); const hv = this.hostVars(e); if (!$.isEmptyObject(keyHV)) { $.extend(hv, keyHV) }
 		const {table} = this.class; let query = _e.query = new MQInsert({ table, hv });
 		let result = await this.sqlExecNone(_e); await this.yeniSonrasiIslemler({ ...e, ..._e }); return result
 	}
@@ -115,6 +115,7 @@ class MQYapi extends CIO {
 			}
 		}
 	}
+	yeniOncesiIslemler(e) { }
 	degistirOncesiIslemler(e) { }
 	silmeOncesiIslemler(e) { }
 	yeniSonrasiIslemler(e) { return this.yeniVeyaDegistirSonrasiIslemler(e) }
