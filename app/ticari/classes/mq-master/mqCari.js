@@ -459,22 +459,49 @@ class MQCari_Ticari extends MQCariAlt {
 					(satisTipCoklumu ? new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', genislikCh: 20 }).readOnly() : null),
 					...MQPlasiyer.getGridKolonlar({ belirtec: 'plasiyer', autoBind: true }),
 					new GridKolon({ belirtec: 'odemeGunKod', text: 'Öd.Gün', genislikCh: 10 }).tipString(12),
-					...MQTahsilSekli.getGridKolonlar({ belirtec: 'tahSekli', adiGenislikCh: 25, dropDown: true, autoBind: true })
+					...MQTahsilSekli.getGridKolonlar({ belirtec: 'tahSekli', adiGenislikCh: 25, dropDown: true, autoBind: true }),
+					...(app.params.satis.kullanim.satisRota ? MQSatisRota.gunKodlari.map(text => new GridKolon({ belirtec: text, text, genislikCh: 5 }).tipBool()) : [])
 				].filter(x => !!x)
 			})
 	}
 	async yeniTanimOncesiIslemler(e) { await this.satisTipBilgileriOlustur(e) }
-	async yukleSonrasiIslemler(e) {
-		await this.satisTipBilgileriOlustur(e); let {tip2SatisBilgileri} = this, {must: kod} = e.rec;
+	async satisTipBilgileriOlustur(e) {
+		try { await app.satisTipleriBelirle(e) } catch (ex) { console.error(ex) } 
+		let tip2SatisBilgileri = this.tip2SatisBilgileri = {}; for (let rec of app.satisTipleri ?? []) { let kod = rec.kod?.trimEnd(); tip2SatisBilgileri[kod] = rec }
+		return this
+	}
+	async yukleSonrasiIslemler(e) { await this.satisTipBilgileriOlustur(e); await this.yukleSonrasiIslemler_rotaYukle(e) }
+	async yukleSonrasiIslemler_rotaYukle(e) {
+		let {tip2SatisBilgileri} = this, {must: kod} = e.rec;
 		let alias = 'csat', sent = new MQSent({
 			from: `carisatis ${alias}`, where: { degerAta: kod, saha: 'csat.must' },
-			fromIliskiler: [{ from: 'carmst pls', iliski: `${alias}.tavsiyeplasiyerkod = pls.must` }, { alias, leftJoin: 'tahsilsekli tsek', iliski: `${alias}.tahseklino = tsek.kodno` }],
-			sahalar: [`${alias}.satistipkod kod`, `${alias}.odemegunkodu odemeGunKod`, `${alias}.tahseklino tahSekliKod`, 'tsek.aciklama tahSekliAdi',
-					  `${alias}.tavsiyeplasiyerkod plasiyerKod`, 'pls.birunvan plasiyerUnvan']
-		}), satRecs = await app.sqlExecSelect(sent);
+			fromIliskiler: [
+				{ from: 'carmst pls', iliski: `${alias}.tavsiyeplasiyerkod = pls.must` },
+				{ alias, leftJoin: 'tahsilsekli tsek', iliski: `${alias}.tahseklino = tsek.kodno` }
+			],
+			sahalar: [`RTRIM(${alias}.satistipkod) kod`, `${alias}.odemegunkodu odemeGunKod`, `${alias}.tahseklino tahSekliKod`, 'tsek.aciklama tahSekliAdi',
+					  `RTRIM(${alias}.tavsiyeplasiyerkod) plasiyerKod`, 'pls.birunvan plasiyerUnvan']
+		}), satRecs = await app.sqlExecSelect(sent), plasiyer2Recs = {};
 		for (let rec of satRecs) {
-			let kod = rec.kod?.trimEnd() ?? '', satRec = tip2SatisBilgileri[kod];
-			if (satRec) { $.extend(satRec, rec) }
+			let kod = rec.kod?.trimEnd() ?? '', satRec = tip2SatisBilgileri[kod]; if (satRec) { $.extend(satRec, rec) }
+			let {plasiyerKod} = rec; if (plasiyerKod) { (plasiyer2Recs[plasiyerKod] = plasiyer2Recs[plasiyerKod] ?? []).push(satRec) }
+		}
+		if (app.params.satis.kullanim.satisRota && !$.isEmptyObject(plasiyer2Recs)) {
+			let or = new MQOrClause(Object.keys(plasiyer2Recs).map(kod => new MQSubWhereClause({ like: `${kod}-%`, saha: 'fis.kod', aynenAlinsin: true })));
+			let sent = new MQSent({
+				from: 'rotadetay har', fromIliskiler: [{ from: 'rota fis', iliski: 'har.fissayac = fis.kaysayac' }],
+				where: [{ degerAta: kod, saha: 'har.must' }, `fis.tipkod = 'T'`, `fis.sutalttip = ''`, `har.devredisi = ''`, or],
+				sahalar: ['RTRIM(fis.kod) text']
+			});
+			let {gun2Index} = MQSatisRota, plasiyer2GunSet = {}, recs = await app.sqlExecSelect(sent);
+			for (let {text} of recs) {
+				let tokens = text.split('-'), plasKod = tokens[0].trim(), gunKod = tokens[1]?.trim()?.toUpperCase();
+				if (gun2Index[gunKod] != null) { (plasiyer2GunSet[plasKod] = plasiyer2GunSet[plasKod] ?? {})[gunKod] = true }
+			}
+			for (let [satRec] of Object.values(plasiyer2Recs ?? [])) {
+				let {plasiyerKod: plasKod} = satRec, gunSet = plasiyer2GunSet[plasKod];
+				if (gunSet) { $.extend(satRec, gunSet) }
+			}
 		}
 	}
 	async kaydetSonrasiIslemler(e) {
@@ -485,11 +512,57 @@ class MQCari_Ticari extends MQCariAlt {
 			toplu.add(new MQInsertOrUpdate({ from, keyHV, hv }))
 		}
 		if (toplu.bosDegilmi) { await app.sqlExecNone(toplu) }
+		await this.kaydetSonrasiIslemler_rotaKaydet(e)
 	}
-	async satisTipBilgileriOlustur(e) {
-		try { await app.satisTipleriBelirle(e) } catch (ex) { console.error(ex) } 
-		let tip2SatisBilgileri = this.tip2SatisBilgileri = {}; for (let rec of app.satisTipleri ?? []) { let kod = rec.kod?.trimEnd(); tip2SatisBilgileri[kod] = rec }
-		return this
+	async kaydetSonrasiIslemler_rotaKaydet(e) {
+		let {tip2SatisBilgileri} = this, {kod: must} = this.inst, {gunKodlari, gun2Index} = MQSatisRota, plas2Eklenecek = {};
+		let rotaClause = [{ degerAta: must, saha: 'har.must' }, `fis.tipkod = 'T'`, `fis.sutalttip = ''`];
+		for (let satRec of Object.values(tip2SatisBilgileri)) {
+			let {plasiyerKod: plasKod} = satRec, eklenecek = plas2Eklenecek[plasKod] = plas2Eklenecek[plasKod] || {};
+			for (let gunKod of gunKodlari) { if (satRec[gunKod]) { eklenecek[gunKod] = true } }
+		}
+		let plasKodListe = Object.keys(plas2Eklenecek), or = new MQOrClause([ ...plasKodListe.map(plasKod => ({ like: `${plasKod}-%`, saha: 'fis.kod', aynenAlinsin: true })) ]);
+		let sent = new MQSent({
+			from: 'rotadetay har', fromIliskiler: [{ from: 'rota fis', iliski: 'har.fissayac = fis.kaysayac' }],
+			where: [...rotaClause, `har.devredisi = ''`, or], sahalar: ['RTRIM(fis.kod) text']
+		}), recs = await app.sqlExecSelect(sent), plas2Silinecek = {};
+		for (let {text} of recs) {
+			let tokens = text.split('-'), plasKod = tokens[0], gunKod = tokens[1]; if (gun2Index[gunKod] == null) { continue }
+			let eklenecek = plas2Eklenecek[plasKod] ?? {}, silinecek = plas2Silinecek[plasKod] = plas2Silinecek[plasKod] ?? {};
+			if (eklenecek[gunKod]) { delete eklenecek[gunKod] } else { silinecek[gunKod] = true }
+		}
+		if (!$.isEmptyObject(plas2Silinecek)) {
+			let toplu = new MQToplu(); for (let [plasKod, gunSet] of Object.entries(plas2Silinecek)) {
+				let kodlar = Object.keys(gunSet).map(gunKod => `${plasKod}-${gunKod}`);
+				toplu.add(new MQIliskiliDelete({
+					from: 'rotadetay har', fromIliskiler: [{ from: 'rota fis', iliski: 'har.fissayac = fis.kaysayac' }],
+					where: [...rotaClause, { inDizi: kodlar, saha: 'fis.kod' }], sahalar: 'fis.kod'
+				}))
+			}
+			if (toplu.bosDegilmi) { await app.sqlExecNone(toplu) }
+		}
+		if (!$.isEmptyObject(plas2Eklenecek)) {
+			for (let [plasKod, gunSet] of Object.entries(plas2Eklenecek)) {
+				let getSent = _kodlar => new MQSent({
+					from: 'rota fis', sahalar: ['RTRIM(kod) kod', 'kaysayac'],
+					where: [{ inDizi: _kodlar, saha: 'kod' }, `fis.tipkod = 'T'`, `fis.sutalttip = ''`]
+				});
+				let kodlar = Object.keys(gunSet).map(gunKod => `${plasKod}-${gunKod}`);
+				let sent = getSent(kodlar), kod2FisSayac = {}, fisSayac2KodVeMaxSeq = {};
+				for (let {kod, kaysayac: sayac} of await app.sqlExecSelect(sent)) { kod2FisSayac[kod] = sayac; fisSayac2KodVeMaxSeq[sayac] = { kod, maxSeq: 0 } };
+				let farklar = arrayFark(kodlar, Object.keys(kod2FisSayac)); if (farklar?.length) {
+					let hvListe = []; for (let kod of farklar) { hvListe.push({ kod, tipkod: 'T', sutalttip: '' }) } await app.sqlExecNone(new MQInsert({ table: 'rota', hvListe }));
+					sent = getSent(farklar); for (let {kod, kaysayac: sayac} of await app.sqlExecSelect(sent)) {
+						kod2FisSayac[kod] = sayac; fisSayac2KodVeMaxSeq[sayac] = { kod, maxSeq: 0 } }
+				}
+				sent = new MQSent({ from: 'rotadetay', where: { inDizi: Object.values(kod2FisSayac), saha: 'fissayac' }, sahalar: ['fissayac', 'MAX(seq) seq'] }); sent.groupByOlustur();
+				for (let {fissayac: sayac, seq} of await app.sqlExecSelect(sent)) { fisSayac2KodVeMaxSeq[sayac].maxSeq = seq || 0 }
+				let hvListe = []; for (let kod of kodlar) {
+					let fissayac = kod2FisSayac[kod], seq = (fisSayac2KodVeMaxSeq[fissayac]?.maxSeq || 0) + 1;
+					hvListe.push({ fissayac, seq, must })
+				} await app.sqlExecNone(new MQInsert({ table: 'rotadetay', hvListe }))
+			}
+		}
 	}
 }
 class MQCari_EIslem extends MQCariAlt {

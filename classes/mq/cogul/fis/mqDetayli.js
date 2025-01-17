@@ -370,13 +370,13 @@ class MQDetayli extends MQSayacli {
 	detaylarReset() { this.detaylar = []; return this }
 }
 class MQDetayliMaster extends MQDetayli {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get hasTabs() { return false }
-	static get tanimUISinif() { return MQKA.tanimUISinif } static get tanimUISinif() { return MQKA.tanimUISinif }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get hasTabs() { return false } static get tanimUISinif() { return MQKA.tanimUISinif }
 	static get detayliMastermi() { return true } static get sabitBilgiRaporcuSinif() { return MQCogul.sabitBilgiRaporcuSinif }
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); const tanimForm = e.tanimFormBuilder; e.mfSinif = e.mfSinif ?? this;
-		tanimForm.add(MQKA.getFormBuilders_ka(e)); this.formBuilder_addTabPanelWithGenelTab(e);
-		if (!this.hasTabs) { const {tabPanel} = e; if (tabPanel) { tabPanel.addStyle(e => `$elementCSS > .tabs { display: none !important }`) } }
+		super.rootFormBuilderDuzenle(e); /*const tanimForm = e.tanimFormBuilder; e.mfSinif = e.mfSinif ?? this;
+		tanimForm.add(MQKA.getFormBuilders_ka(e)); this.formBuilder_addTabPanelWithGenelTab(e);*/
+		let {tabPanel} = e; if (this.hasTabs) { this.formBuilder_addTabPanelWithGenelTab(e); tabPanel = e.tabPanel }
+		else { if (tabPanel) { tabPanel.addStyle(e => `$elementCSS > .tabs { display: none !important }`) } }
 	}
 	static rootFormBuilderDuzenleSonrasi(e) {
 		super.rootFormBuilderDuzenleSonrasi(e); this.rootFormBuilderDuzenle_gridOncesi(e);

@@ -2,7 +2,20 @@ class MQSatisRota extends MQDetayliVeAdi {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get kodKullanilirmi() { return true }
 	static get kodListeTipi() { return 'SATISROTA' } static get detaySinif() { return MQSatisRotaDetay } static get gridKontrolcuSinif() { return MQSatisRotaGridci }
 	static get sinifAdi() { return 'Satış Rotası' } static get table() { return 'rota' } static get tableAlias() { return 'rot' }
-	static varsayilanKeyHostVarsDuzenle(e) { super.varsayilanKeyHostVarsDuzenle(e); let {hv} = e; $.extend(hv, { tipkod: 'T' }) }
+	static varsayilanKeyHostVarsDuzenle(e) { super.varsayilanKeyHostVarsDuzenle(e); let {hv} = e; $.extend(hv, { tipkod: 'T', sutalttip: '' }) }
+	static get gunKodlari() {
+		let result = this._gunKodlari;
+		if (result == null) { result = this._gunKodlari = ['HER', 'PZT', 'SAL', 'CAR', 'PRS', 'CUM', 'CMT', 'PAZ'] }
+		return result
+	}
+	static get gun2Index() {
+		let result = this._gun2Index;
+		if (result == null) {
+			let {gunKodlari} = this; result = this._gun2Index = {};
+			for (let i = 0; i < gunKodlari.length; i++) { result[gunKodlari[i]] = i }
+		}
+		return result
+	}
 }
 class MQSatisRotaDetay extends MQDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'rotadetay' }

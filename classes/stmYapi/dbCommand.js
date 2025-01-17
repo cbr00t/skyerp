@@ -87,3 +87,31 @@ class MQTableInsert extends MQInsertBase {
 class MQQueryInsert extends MQInsertBase {
 	static { window[this.name] = this; this._key2Class[this.name] = this } get isTableInsert() { return false }
 }
+class MQInsertOrUpdate extends MQDbCommand {
+	static { window[this.name] = this; this._key2Class[this.name] = this } get isDBWriteClause() { return true }
+	constructor(e) {
+		e = e || {}; super(e); $.extend(this, {
+			table: e.table ?? e.from, keyHV: e.keyHV ?? e.keyHostVars, hv: e.hv ?? e.hostVars, operator: e.operator,
+			ekHV: e.ekHV ?? { ins: e.ekHV_ins ?? {}, upd: e.ekHV_upd ?? {} }
+		})
+	}
+	buildString(e) {
+		let {table, keyHV, hv, operator} = this; if ($.isEmptyObject(keyHV) || $.isEmptyObject(hv)) { return }
+		let insHV = {}, updHV = { ...hv }, wh = new MQWhereClause().birlestirDict(keyHV);
+		for (let [key, value] of Object.entries(keyHV)) { if (!insHV[key]) { insHV[key] = value } if (updHV[key]) { delete updHV[key] } }
+		for (let [key, value] of Object.entries(hv)) { if (!insHV[key]) { insHV[key] = value } }
+		let {ekHV} = this; $.extend(insHV, ekHV.ins); $.extend(updHV, ekHV.upd);
+		let set = new MQSetClause(); if (operator) { for (let [key, value] of Object.entries(updHV)) { set.add(`${key} = ${key} ${operator} ${value.sqlServerDegeri()}`) } }
+		else { set.birlestirDict(updHV) }
+		let delim = ', ', keys = Object.keys(insHV), values = Object.values(insHV).map(value => MQSQLOrtak.sqlServerDegeri(value));
+		super.buildString(e); e.result += [
+			`IF EXISTS (SELECT * FROM ${table} ${wh})`,
+			`	UPDATE ${table} ${set} ${wh}`,
+			'ELSE',
+			`	INSERT INTO ${table} (${keys.join(delim)}) VALUES (${values.join(delim)})`
+		].join(CrLf)
+	}
+	setTable(value) { this.table = value; return this } setKeyHV(value) { this.keyHV = value; return this } setHV(value) { this.hv = value; return this }
+	setInsHV(value) { this.ekHV.ins = value; return this } setUpdHV(value) { this.ekHV.upd = value; return this }
+	setOperator(value) { this.operator = value; return this } asEkle() { return this.setOperator('+') } asCikar() { return this.setOperator('-') } asCikart() { return this.asCikar() }
+}
