@@ -22,7 +22,10 @@ class MQKod extends MQCogul {
 			wh.basiSonu(sec.instKod, `${aliasVeNokta}${kodSaha}`)
 		})
 	}
-	static rootFormBuilderDuzenle(e) { e = e || {}; super.rootFormBuilderDuzenle(e); const tanimForm = e.tanimFormBuilder; tanimForm.add(this.getFormBuilders_ka(e)) }
+	static rootFormBuilderDuzenle(e) {
+		e = e || {}; super.rootFormBuilderDuzenle(e); let {kodKullanilirmi} = this;
+		if (kodKullanilirmi) { let {tanimFormBuilder: tanimForm} = e; if (tanimForm) { tanimForm.add(this.getFormBuilders_ka(e)) } }
+	}
 	static getFormBuilders_ka(e) { const _e = $.extend(e, { liste: [] }); this.formBuildersDuzenle_ka(_e); return e.liste }
 	static formBuildersDuzenle_ka(e) {
 		const {liste} = e, mfSinif = e.mfSinif ?? this, xEtiket =  mfSinif.kodEtiket ?? 'Kod';

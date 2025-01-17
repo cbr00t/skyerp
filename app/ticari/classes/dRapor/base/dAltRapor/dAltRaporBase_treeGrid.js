@@ -233,14 +233,14 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		if (recs && yatayAnaliz) {
 			let yatayBelirtec = tabloYapi.grup[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod]?.colDefs?.[0]?.belirtec;
 			if (yatayBelirtec) {
-				let gtTip2AttrListe = { sabit: [], toplam: [] };
+				let {grupVeToplam} = tabloYapi, gtTip2AttrListe = { sabit: [], toplam: [] };
 				for (let colDef of Object.values(belirtec2ColDef).filter(colDef => colDef.belirtec != yatayBelirtec)) {
 					let toplammi = colDef?.userData?.tip == 'toplam', selector = toplammi ? 'toplam' : 'sabit';
 					gtTip2AttrListe[selector].push(colDef.belirtec)
 				}
 				/*let orj_toplamAttrSet = asSet(gtTip2AttrListe.toplam);
 				let toplamAttrListe = jqxCols.map(({ datafield }) => datafield).filter(belirtec => orj_toplamAttrSet[belirtec.split('_')[0]]);*/
-				const item = grupVeToplam[prefix] ?? grupVeToplam[prefix.toUpperCase()], {kodsuzmu} = item || {};
+				const item = grupVeToplam[yatayBelirtec] ?? grupVeToplam[yatayBelirtec.toUpperCase()], {kodsuzmu} = item || {};
 				for (let rec of recs) { this.fixKA(rec, yatayBelirtec, kodsuzmu) }
 				let toplamAttrListe = gtTip2AttrListe.toplam, sevRecs = seviyelendirAttrGruplari({
 					source: recs, attrGruplari: [gtTip2AttrListe.sabit],
