@@ -154,7 +154,7 @@ class MakineYonetimiPart extends Part {
 		)
 	}
 	getLayout_tblOEMBilgileri(e) {
-		e = e ?? {}; const inst = e.rec = this.inst ?? {}, isListe = inst.isListe ?? [], {sonLEDDurum} = this, isBilgiHTML = MQHatYonetimi.gridCell_getLayout_isBilgileri(e);
+		e = e ?? {}; const inst = e.rec = this.inst ?? {}, isListe = inst.isListe ?? [], {sonLEDDurum} = this, isBilgiHTML = HatYonetimiPart.getLayout_isBilgileri(e);
 		const {sinyalKritik, duraksamaKritik, durNedenKod, durumKod, durumAdi, ip, zamanEtuduVarmi, siradakiIsSayi, sinyalSayilar} = inst, {kritikDurNedenKodSet} = app.params.mes;
 		const kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod ? kritikDurNedenKodSet[durNedenKod] : false, bostami = !durumKod || durumKod == '?' || durumKod == 'KP' || durumKod == 'BK';
 		let topSaymaInd = 0, topSaymaSayisi = 0; for (const is of isListe) { topSaymaInd += (is.isSaymaInd || 0); topSaymaSayisi += (is.isSaymaSayisi || 0) }

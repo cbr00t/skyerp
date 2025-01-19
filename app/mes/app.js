@@ -40,7 +40,7 @@ class MESApp extends App {
 	}
 	getAnaMenu(e) {
 		/* const disabledMenuIdSet = this.disabledMenuIdSet || {}; */ const items = [
-			new FRMenuChoice({ mne: MQHatYonetimi.kodListeTipi, text: MQHatYonetimi.sinifAdi, block: e => MQHatYonetimi.listeEkraniAc() }),
+			/*new FRMenuChoice({ mne: MQHatYonetimi.kodListeTipi, text: MQHatYonetimi.sinifAdi, block: e => MQHatYonetimi.listeEkraniAc() }),*/
 			new FRMenuChoice({ mne: HatYonetimiPart.kodListeTipi, text: HatYonetimiPart.sinifAdi, block: e => new HatYonetimiPart().run() })
 		];
 		/*if (config.dev) {*/

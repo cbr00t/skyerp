@@ -392,8 +392,10 @@ class HatYonetimiPart extends Part {
 		const grafikPart = new GaugeGrafikPart(), colors = grafikPart.colors ?? []; for (let i = 0; i < isListe.length; i++) {
 			const is = isListe[i], color = colors[i]; if (!is) { continue }
 			const {emirTarih, emirNox, operNo, operAciklama, urunKod, urunAciklama, isSaymaSayisi, isSaymaTekilEnDusukSure, isSaymaToplamEnDusukSure} = is;
-			const basZamanTS = is.basZamanTS ? asDate(is.basZamanTS) : null, isToplamBrutSureSn = basZamanTS ? asInteger((_now.getTime() - basZamanTS.getTime()) / 1000) : null;
-			const isToplamDuraksamaSureSn = is.isToplamDuraksamaSureSn || 0, isToplamNetSureSn = (isToplamBrutSureSn || 0) - (isToplamDuraksamaSureSn || 0);
+			const basZamanTS = is.basZamanTS ? asDate(is.basZamanTS) : null;
+			let isToplamBrutSureSn = basZamanTS ? asInteger((_now.getTime() - basZamanTS.getTime()) / 1000) : null;
+			let isToplamDuraksamaSureSn = is.isToplamDuraksamaSureSn || 0, isToplamNetSureSn = (isToplamBrutSureSn || 0) - (isToplamDuraksamaSureSn || 0);
+			if (is.isToplamNetSureSn != null) { isToplamBrutSureSn = is.isToplamBrutSureSn; isToplamDuraksamaSureSn = is.isToplamDuraksamaSureSn; isToplamNetSureSn = is.isToplamNetSureSn }
 			const isToplamBrutSureTS = isToplamBrutSureSn ? new Date(isToplamBrutSureSn * 1000).addHours(-new Date(0).getHours()) : null;
 			const isToplamNetSureTS = isToplamNetSureSn ? new Date(isToplamNetSureSn * 1000).addHours(-new Date(0).getHours()) : null;
 			let item = (
