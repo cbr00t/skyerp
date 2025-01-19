@@ -258,31 +258,26 @@ class MQCari_Vergi extends MQCariAlt {
 		})
 	}
 	static rootFormBuilderDuzenle(e) {
-		e = e || {}; const {mfSinif} = this, {tabPanel} = e;
-		// const tabPage = tabPanel.addTab({ id: 'vergi', etiket: 'Vergi' });
-		const tabPage = e.tabPage_genel; tabPage.addBaslik({ etiket: 'Vergi' });
-		let form = tabPage.addFormWithParent().yanYana(4);
-		form.setAltInst(e => e.builder.inst.vergi);
+		e = e || {}; const {mfSinif} = this, {tabPanel} = e, tabPage = e.tabPage_genel; tabPage.addBaslik({ etiket: 'Vergi' });
+		let vknTcknDegisince = ({ builder: fbd }) => { for (let _fbd of fbd.rootPart.fbd_gibAlias?.builders) { _fbd.dataBind() } };
+		let form = tabPage.addFormWithParent().yanYana(4).setAltInst(e => e.builder.inst.vergi);
 		form.addTextInput({ id: 'vergiDaire',etiket: 'Vergi Dairesi', maxLength: 20 }).addStyle(e => `$elementCSS { max-width: 150px }`);
-		form.addTextInput({ id: 'vergiNo', etiket: 'Vergi No', maxLength: 11 }).addStyle(e => `$elementCSS { max-width: 150px }`);
-		form.addTextInput({ id: 'tcKimlikNo', etiket: 'TC Kimlik No', maxLength: 12 }).addStyle(e => `$elementCSS { max-width: 150px }`);
+		form.addTextInput({ id: 'vergiNo', etiket: 'Vergi No', maxLength: 11 }).degisince(vknTcknDegisince).addStyle(e => `$elementCSS { max-width: 150px }`);
+		form.addTextInput({ id: 'tcKimlikNo', etiket: 'TC Kimlik No', maxLength: 12 }).degisince(vknTcknDegisince).addStyle(e => `$elementCSS { max-width: 150px }`);
 		form.addTextInput({ id: 'ticaretSicilNo', etiket: 'Ticaret Sicil No', maxLength: 11 }).addStyle(e => `$elementCSS { max-width: 150px }`);
 		form.addTextInput({ id: 'mersisNo',etiket: 'Mersis No', maxLength: 16 }).addStyle(e => `$elementCSS { max-width: 150px }`);
-		form.addCheckBox({ id: 'sahismi', etiket: 'Şahıstır' });
+		form.addCheckBox({ id: 'sahismi', etiket: 'Şahıstır' }).degisince(vknTcknDegisince);
 		form.addCheckBox({ id: 'mukellefmi', etiket: 'Vergi Mükellefidir' })
 	}
 	static secimlerDuzenle(e) {
-		const sec = e.secimler;
-		sec.grupTopluEkle([
-			{ kod: 'vergi', aciklama: 'Vergi', kapali: false }
-		]);
+		const {secimler: sec} = e;
+		sec.grupTopluEkle([ { kod: 'vergi', aciklama: 'Vergi', kapali: false } ]);
 		sec.secimTopluEkle({
 			sahismi: new SecimTekSecim({ etiket: 'Şahıs?', tekSecim: new BuDigerVeHepsi(['Şahıs', 'Tüzel Kişi']) }),
 			vkn: new SecimOzellik({ etiket: 'Vergi/TC Kimlik No', grupKod: 'vergi' })
 		});
 		sec.whereBlockEkle(e => {
-			const {aliasVeNokta} = this.mfSinif;
-			const sec = e.secimler, wh = e.where;
+			const {aliasVeNokta} = this.mfSinif, {secimler: sec, where: wh} = e;
 			wh.add(sec.sahismi.tekSecim.getBoolClause(`${aliasVeNokta}sahismi`));
 			wh.ozellik(sec.vkn, `(case when ${aliasVeNokta}sahismi = '' then ${aliasVeNokta}vnumara else ${aliasVeNokta}tckimlikno end)`)
 		})
@@ -584,7 +579,7 @@ class MQCari_EIslem extends MQCariAlt {
 		let {mfSinif} = this, {tabPanel} = e, tabPage = tabPanel.addTab({ id: 'eislem', etiket: 'E-İşlem' }); tabPage.setAltInst(({ builder: fbd }) => fbd.inst.eIslem);
 		let form = tabPage.addFormWithParent().yanYana(4)/*.addStyle(e=>`$elementCSS {box-shadow:5px 5px 20px cadetblue}`)*/;
 			/*tabPanel.addBaslik({ etiket: 'E-Fatura/E-Arşiv' });*/
-			form.addCheckBox({ id: 'eFaturaKullanirmi', etiket: 'E-Fatura' })
+			form.addCheckBox('eFaturaKullanirmi', 'E-Fatura').addStyle_wh(150)
 				.degisince(({ builder: fbd }) => { for (const subBuilder of fbd.parentBuilder.parentBuilder.id2Builder.ozelButceliKurum_parent.builders) { subBuilder.updateVisible() } });
 			let eFatKullanimKosulu = ({ builder: fbd }) => fbd.inst.eIslem.eFaturaKullanirmi;
 			form.addButton('ozelEntegratorKontrol', 'Özel Entegratörden Kontrol Et').onClick(_e => this.ozelEntegratordenKontrolEtIstendi({ ...e, ..._e }));
@@ -606,8 +601,18 @@ class MQCari_EIslem extends MQCariAlt {
 			form.addModelKullan({ id: 'eIslOzelDipKod', etiket:'E-İşlem Özel Dip', mfSinif: MQEIslemOzelDip }).dropDown();
 			form.addModelKullan({ id: 'eArsivBelgeTipi', etiket: 'E-Arşiv Belge Gönderim Tipi', source: e => EArsiv_BelgeTipi.instance.kaListe}).noMF().dropDown();
 		form.addCheckBox({ id: 'eIrsAlimiAdetTeslimeDuzenlenirmi',etiket: `E-İrsaliye Alim İade'de Sevk Yeri Varsa Alıcı Olarak Kabul Edilir`});
-		form = tabPage.addFormWithParent().yanYana(2);
-			form.addTextInput({ id: 'eFatGIBAlias', etiket: 'e-Fatura GIB Alias' }); form.addTextInput({ id: 'eIrsGIBAlias', etiket: 'e-İrsaliye GIB Alias' });
+		let getSource_gibAlias = (vknOrBuilder, vtTip) => {
+			return () => {
+				let vkn = vknOrBuilder; if (typeof vkn == 'object') { vkn = vkn?.vkn ?? vkn?.inst?.vkn } if (!vkn) { return [] }
+				let sent = new MQSent({
+					from: 'ORTAK..efatvkn2gibalias', sahalar: ['gibalias kod', 'gibalias aciklama'],
+					where: [{ degerAta: vkn, saha: 'vkno' }, { degerAta: vtTip, saha: 'aliasturu' }]
+				}); return app.sqlExecSelect(sent)
+			}
+		};
+		form = tabPage.addFormWithParent('gibAlias-parent').yanYana(2).onAfterRun(({ builder: fbd }) => fbd.rootPart.fbd_gibAlias = fbd);
+			form.addModelKullan('eFatGIBAlias', 'e-Fatura GIB Alias').comboBox().autoBind().noMF().kodsuz().setSource(({ builder: fbd }) => getSource_gibAlias(fbd, ''));
+			form.addModelKullan('eIrsGIBAlias', 'e-İrsaliye GIB Alias').comboBox().autoBind().noMF().kodsuz().setSource(({ builder: fbd }) => getSource_gibAlias(fbd, 'I'));
 		form = tabPage.addFormWithParent().yanYana(1);
 			form.addLabel({ id: 'bildirim1', etiket: `**GIB Alias Değeri 'defaultpk@firmaAdi.com' gibidir.`, renk: 'gray' });
 			form.addLabel({ id: 'bildirim2', etiket: `E-İrs. GIB alias izin verilmez ise E-Fat GIB alias esas Alınır.`, renk: 'black' });

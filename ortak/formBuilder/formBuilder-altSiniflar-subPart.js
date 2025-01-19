@@ -458,7 +458,7 @@ class FBuilder_CheckBox extends FBuilder_ToggleButton {
 			] );
 			if (elmLabel?.length) {
 				elmLabel.on('click', evt => input.click());
-				styles.push(`$elementCSS { vertical-align: middle } $elementCSS > label { width: auto }` )
+				styles.push(`$elementCSS { vertical-align: middle } $elementCSS > label { width: auto !important }` )
 			}
 		}
 	}
