@@ -2,7 +2,46 @@ class EYonetici extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get eIslTip2Token() { let result = this._eIslTip2Token; if (result === undefined) { result = this._eIslTip2Token = {} } return result }
 	static set eIslTip2Token(value) { this._eIslTip2Token = value }
-	constructor(e) { e = e || {}; super(e); $.extend(this, { eConf: e.eConf ?? MQEConf.instance, eIslSinif: e.eIslSinif, ps2SayacListe: e.ps2SayacListe, whereDuzenleyici: e.whereDuzenleyici }) }
+	constructor(e) {
+		e = e || {}; super(e);
+		$.extend(this, { eConf: e.eConf ?? MQEConf.instance, eIslSinif: e.eIslSinif, ps2SayacListe: e.ps2SayacListe, whereDuzenleyici: e.whereDuzenleyici })
+	}
+	/* api: mukellefDurumu */
+	static async mukellefSorgula(e) {
+		const eYoneticiler = await this.getEYoneticiListe(e); delete e.eYoneticiler; const uuid2Result = {};
+		for (const eYonetici of eYoneticiler) {
+			await eYonetici.mukellefSorgula(e);
+			const _uuid2Result = e.uuid2Result; if (!$.isEmptyObject(_uuid2Result)) { $.extend(uuid2Result, _uuid2Result) }
+		}
+		e.uuid2Result = uuid2Result
+	}
+	async mukellefSorgula(e) {
+		let vknListe = $.makeArray(e.vknListe ?? e.vkn); for (const key of ['psTip2SayacListe', 'whereDuzenleyici']) { delete e[key] }
+		if (!vknListe?.length) { throw { isError: true, rc: 'emptyArgument', errorText: 'VKN Liste(vknListe) belirtilmelidir' } }
+		let {sender, callback, internal} = e, eConf = e.eConf ?? this.eConf, {eIslEkArgs} = eConf;
+		let {eIslSinif} = this, {sinifAdi: eIslAdi, tip: efAyrimTipi} = eIslSinif, oe = eConf.getValue('ozelEntegrator')?.char || '';
+		let eIslemci = efAyrimTipi, eLogin = toJSONStr(eConf.eLogin), ekArgs = toJSONStr(eIslEkArgs), eIslemAPI = 'mukellefDurumu';
+		let BlockSize = 8, vkn2Result = {}, promises = [], error, savedToken = this.class.getTempToken(efAyrimTipi);
+		try {
+			vkn2Result = (await app.wsEIslemYap({ eIslemci, oe, eIslemAPI, eLogin, eToken: savedToken || '', ekArgs, args: { vknTckn: vknListe } }))?.[0];
+			let {token} = vkn2Result ?? {}; delete vkn2Result.token;
+			if (token && !(savedToken && savedToken == token)) { savedToken = token; this.class.setTempToken(efAyrimTipi, token) }
+		}
+		catch (ex) { console.error(ex); error = ex }
+		for (let vkn of vknListe) {
+			let result = vkn2Result[vkn]; if ($.isEmptyObject(result)) { result = null }
+			if (!(error || result)) { result = { isError: true, rc: 'mukellefYok', errorText: `${eIslAdi} mükellefi değil` } }
+			let subResult = vkn2Result[vkn] = {
+				islemZamani: now(), isError: error || (result?.isError ?? false), vkn,
+				rec: error || result?.isError ? undefined : result, efAyrimTipi, message: error ? getErrorText(error) : result.errorText ?? `${eIslAdi} MÜKELLEFİ`
+			}
+			$.extend(subResult, { islemZamaniText: dateTimeToString(subResult.islemZamani), eIslTipText: eIslAdi, efUUIDText: vkn })
+		}
+		if (promises?.length) { await Promise.all(promises); promises = [] }
+		if (window.progressManager) { window.progressManager.progressStep(results.length) } if (callback) { getFuncValue.call(this, callback, e) }
+		if (!internal && sender && !sender.isDestroyed) { sender.tazele?.() }
+		return { eYonetici: this, vkn2Result }
+	}
 	static async eIslemGonder(e) {
 		const eYoneticiler = await this.getEYoneticiListe(e); delete e.eYoneticiler; const uuid2Result = {};
 		for (const eYonetici of eYoneticiler) {

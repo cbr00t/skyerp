@@ -60,6 +60,7 @@ class MQCari extends MQKA {
 		$.extend(iletisim, { tel1: iletisimYapi?.tel || '', fax: iletisimYapi?.faks, eMail: iletisimYapi?.eMail });
 		this.forAltYapiKeysDo('alimEIslIcinSetValues', e); return this
 	}
+	ozelEntegratordenKontrolEt(e) { return this.eIslem.ozelEntegratordenKontrolEt(e) }
 }
 class MQCariAlt extends MQAlt {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -263,8 +264,8 @@ class MQCari_Vergi extends MQCariAlt {
 		let form = tabPage.addFormWithParent().yanYana(4);
 		form.setAltInst(e => e.builder.inst.vergi);
 		form.addTextInput({ id: 'vergiDaire',etiket: 'Vergi Dairesi', maxLength: 20 }).addStyle(e => `$elementCSS { max-width: 150px }`);
-		form.addTextInput({ id: 'vergiNo', etiket: 'Vergi No', maxLength: 10 }).addStyle(e => `$elementCSS { max-width: 150px }`);
-		form.addTextInput({ id: 'tcKimlikNo', etiket: 'tcKimlikNo', maxLength: 11 }).addStyle(e => `$elementCSS { max-width: 150px }`);
+		form.addTextInput({ id: 'vergiNo', etiket: 'Vergi No', maxLength: 11 }).addStyle(e => `$elementCSS { max-width: 150px }`);
+		form.addTextInput({ id: 'tcKimlikNo', etiket: 'TC Kimlik No', maxLength: 12 }).addStyle(e => `$elementCSS { max-width: 150px }`);
 		form.addTextInput({ id: 'ticaretSicilNo', etiket: 'Ticaret Sicil No', maxLength: 11 }).addStyle(e => `$elementCSS { max-width: 150px }`);
 		form.addTextInput({ id: 'mersisNo',etiket: 'Mersis No', maxLength: 16 }).addStyle(e => `$elementCSS { max-width: 150px }`);
 		form.addCheckBox({ id: 'sahismi', etiket: 'Şahıstır' });
@@ -291,7 +292,7 @@ class MQCari_Vergi extends MQCariAlt {
 		const {liste} = e;
 		liste.push(
 			new GridKolon({ belirtec: 'vdaire', text: 'Vergi Daire',genislikCh: 20 }), 
-			new GridKolon({ belirtec: 'sahismi', text: 'Şahıs?', genislikCh: 6 }).tipBool(), 
+			new GridKolon({ belirtec: 'sahismi', text: 'Şahıs?', genislikCh: 8 }).tipBool(), 
 			new GridKolon({ belirtec: 'vnumara', text: 'Vergi No', genislikCh: 13 }), 
 			new GridKolon({ belirtec: 'tckimlikno', text: 'T.C No', genislikCh: 14 }),
 			new GridKolon({ belirtec: 'bvergimukellefidir', text: 'Vergi Mükellefi mi?', genislikCh: 5 }),
@@ -560,7 +561,8 @@ class MQCari_Ticari extends MQCariAlt {
 				let hvListe = []; for (let kod of kodlar) {
 					let fissayac = kod2FisSayac[kod], seq = (fisSayac2KodVeMaxSeq[fissayac]?.maxSeq || 0) + 1;
 					hvListe.push({ fissayac, seq, must })
-				} await app.sqlExecNone(new MQInsert({ table: 'rotadetay', hvListe }))
+				}
+				if (hvListe?.length) { await app.sqlExecNone(new MQInsert({ table: 'rotadetay', hvListe })) }
 			}
 		}
 	}
@@ -568,97 +570,66 @@ class MQCari_Ticari extends MQCariAlt {
 class MQCari_EIslem extends MQCariAlt {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); const {pTanim} = e;
-		$.extend(pTanim, {
-			eFaturaKullanirmi: new PInstBool('efaturakullanirmi'),
-			senaryoTipi: new PInstTekSecim('efatsenaryotipi', SenaryoTipi),
-			eFaturaYontem: new PInstTekSecim('efatyontem', EIslGenelYontem),
-			efOzelYontemKod:new PInstStr('efozelyontemkod'),
-			ozelButceliVkn: new PInstStr('ozelbutcelivkn'),
-			ozelButceliUnvan: new PInstStr('ozelbutceliunvan'),
-			bOzelButceliKurumdur: new PInstBitBool('bozelbutcelikurumdur'),
-			eFatDovizliDokum: new PInstBool('efatdovizlidokum'),
-			beFatDipIsk2Satir: new PInstBitBool('befatdipisk2satir'),
-			fiyatGosterim: new PInstTekSecim('fiyatgosterim', EIslKural_Fiyat),
-			eArsivBelgeTipi: new PInstTekSecim('earsivbelgetipi', EArsiv_BelgeTipi),
-			eIslOzelDipKod: new PInstStr('eislozeldipkod'),
-			eIrsAlimiAdetTeslimeDuzenlenirmi: new PInstBitBool('beirsalimiadeteslimeduzenlenir'),
+		super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, {
+			eFaturaKullanirmi: new PInstBool('efaturakullanirmi'), senaryoTipi: new PInstTekSecim('efatsenaryotipi', SenaryoTipi),
+			eFaturaYontem: new PInstTekSecim('efatyontem', EIslGenelYontem), efOzelYontemKod:new PInstStr('efozelyontemkod'),
+			ozelButceliVkn: new PInstStr('ozelbutcelivkn'), ozelButceliUnvan: new PInstStr('ozelbutceliunvan'), bOzelButceliKurumdur: new PInstBitBool('bozelbutcelikurumdur'),
+			eFatDovizliDokum: new PInstBool('efatdovizlidokum'), beFatDipIsk2Satir: new PInstBitBool('befatdipisk2satir'),
+			fiyatGosterim: new PInstTekSecim('fiyatgosterim', EIslKural_Fiyat), eArsivBelgeTipi: new PInstTekSecim('earsivbelgetipi', EArsiv_BelgeTipi),
+			eIslOzelDipKod: new PInstStr('eislozeldipkod'), eIrsAlimiAdetTeslimeDuzenlenirmi: new PInstBitBool('beirsalimiadeteslimeduzenlenir'),
 			eFatGIBAlias: new PInstStr('efatgibalias'), eIrsGIBAlias: new PInstStr('eirsgibalias')
 		})
 	}
 	static rootFormBuilderDuzenle(e) {
-		const {mfSinif} = this;
-		const {tabPanel} = e;
-		const tabPage = tabPanel.addTab({ id: 'eislem', etiket: 'E-İşlem' });
-		tabPage.setAltInst(e => e.builder.inst.eIslem);
+		let {mfSinif} = this, {tabPanel} = e, tabPage = tabPanel.addTab({ id: 'eislem', etiket: 'E-İşlem' }); tabPage.setAltInst(({ builder: fbd }) => fbd.inst.eIslem);
 		let form = tabPage.addFormWithParent().yanYana(4)/*.addStyle(e=>`$elementCSS {box-shadow:5px 5px 20px cadetblue}`)*/;
-		//tabPanel.addBaslik({ etiket: 'E-Fatura/E-Arşiv' });
-		form.addCheckBox({ id: 'eFaturaKullanirmi', etiket: 'E-Fatura' })
-			.degisince(e => {
-				for (const subBuilder of e.builder.parentBuilder.parentBuilder.id2Builder.ozelButceliKurum_parent.builders)
-					subBuilder.updateVisible()
-			});
-		const eFatKullanimKosulu = e => {e.builder.inst.eIslem.eFaturaKullanirmi};
-		form.addButton({ value: 'Özel Entegratörden Kontrol Et', handler: e => this.ozelEntegratordenKontrolEtIstendi(e)});
-		form.addModelKullan({ id: 'senaryoTipi', etiket: 'Senaryo Tipi', source: e => SenaryoTipi.instance.kaListe}).noMF().dropDown()
-			.setVisibleKosulu(e => eFatKullanimKosulu(e));
-		form.addModelKullan({ id: 'eFaturaYontem', etiket: 'Genel Yöntem', source: e => EIslGenelYontem.instance.kaListe}).noMF().dropDown()
-			.setVisibleKosulu(e => eFatKullanimKosulu(e));
-		form.addModelKullan({ id: 'efOzelYontemKod',etiket:' Özel Yöntem', mfSinif: MQEIslOzelYontem}).dropDown()
-			.setVisibleKosulu(e => eFatKullanimKosulu(e));
-		form.addCheckBox({ id: 'bOzelButceliKurumdur',etiket: 'Özel Bütçeli Kurumdur'})
-			.degisince(e => {
-					for (const subBuilder of e.builder.parentBuilder.parentBuilder.id2Builder.ozelButceliKurum_parent.builders)
-						subBuilder.updateVisible()
-				});
-		//form = tabPage_eIslem.addFormWithParent({ id: 'ozleButceliKurum_parent' }).yanYana(6);
-		const rayicBedelVisibleKosulu = e =>
-			{e.builder.altInst.bOzelButceliKurumdur};
-		form.addTextInput({ id: 'ozelButceliVkn',etiket: 'VKN', maxLength: 11}).setVisibleKosulu(e => rayicBedelVisibleKosulu(e));
-		form.addTextInput({ id: 'ozelButceliUnvan',etiket: 'Ünvan'}).setVisibleKosulu(e => rayicBedelVisibleKosulu(e));
+			/*tabPanel.addBaslik({ etiket: 'E-Fatura/E-Arşiv' });*/
+			form.addCheckBox({ id: 'eFaturaKullanirmi', etiket: 'E-Fatura' })
+				.degisince(({ builder: fbd }) => { for (const subBuilder of fbd.parentBuilder.parentBuilder.id2Builder.ozelButceliKurum_parent.builders) { subBuilder.updateVisible() } });
+			let eFatKullanimKosulu = ({ builder: fbd }) => fbd.inst.eIslem.eFaturaKullanirmi;
+			form.addButton('ozelEntegratorKontrol', 'Özel Entegratörden Kontrol Et').onClick(_e => this.ozelEntegratordenKontrolEtIstendi({ ...e, ..._e }));
+			form.addModelKullan({ id: 'senaryoTipi', etiket: 'Senaryo Tipi', source: e => SenaryoTipi.instance.kaListe}).noMF().dropDown().setVisibleKosulu(e => eFatKullanimKosulu(e));
+			form.addModelKullan({ id: 'eFaturaYontem', etiket: 'Genel Yöntem', source: e => EIslGenelYontem.instance.kaListe}).noMF().dropDown().setVisibleKosulu(e => eFatKullanimKosulu(e));
+			form.addModelKullan({ id: 'efOzelYontemKod',etiket:' Özel Yöntem', mfSinif: MQEIslOzelYontem}).dropDown().setVisibleKosulu(e => eFatKullanimKosulu(e));
+			form.addCheckBox({ id: 'bOzelButceliKurumdur',etiket: 'Özel Bütçeli Kurumdur'})
+				.degisince(({ builder: fbd }) => { for (const subBuilder of fbd.parentBuilder.parentBuilder.id2Builder.ozelButceliKurum_parent.builders) { subBuilder.updateVisible() } });
+			let rayicBedelVisibleKosulu = ({ builder: fbd }) => fbd.altInst.bOzelButceliKurumdur;
+			form.addTextInput({ id: 'ozelButceliVkn',etiket: 'VKN', maxLength: 11}).setVisibleKosulu(rayicBedelVisibleKosulu);
+			form.addTextInput({ id: 'ozelButceliUnvan',etiket: 'Ünvan'}).setVisibleKosulu(rayicBedelVisibleKosulu);
 		form = tabPage.addFormWithParent().yanYana(1);
-		form.addLabel({ id: 'uyari', etiket: `SGK kamu kurumu olmasına rağmen senaryo olarak KAMU seçilmemelidir. Satış param'da  'SGK fatura' seçilmeli ve yeni açılan ekranda sgk param doldurulmalıdır.`, renk: 'cadetblue' });
+		form.addLabel({ id: 'uyari', renk: 'cadetblue', etiket: `SGK kamu kurumu olmasına rağmen senaryo olarak KAMU seçilmemelidir. Satış param'da  'SGK fatura' seçilmeli ve yeni açılan ekranda sgk param doldurulmalıdır.` });
 		form = tabPage.addFormWithParent().yanYana(2);
-		form.addCheckBox({ id: 'eFatDovizliDokum',etiket: 'E-Fatura Döviz Bedelleri İle Gösterilir' });
-		form.addCheckBox({ id: 'beFatDipIsk2Satir',etiket: 'Dip İskonto Satırlara Yansıtılır' });
+			form.addCheckBox({ id: 'eFatDovizliDokum',etiket: 'E-Fatura Döviz Bedelleri İle Gösterilir' });
+			form.addCheckBox({ id: 'beFatDipIsk2Satir',etiket: 'Dip İskonto Satırlara Yansıtılır' });
 		form = tabPage.addFormWithParent().yanYana(4);
-		form.addModelKullan({ id: 'fiyatGosterim', etiket: 'Fiyat Gösterim', source: e => EIslKural_Fiyat.instance.kaListe}).noMF().dropDown();
-		form.addModelKullan({ id: 'eIslOzelDipKod', etiket:'E-İşlem Özel Dip', mfSinif: MQEIslemOzelDip }).dropDown();
-		form.addModelKullan({ id: 'eArsivBelgeTipi', etiket: 'E-Arşiv Belge Gönderim Tipi', source: e => EArsiv_BelgeTipi.instance.kaListe}).noMF().dropDown();
+			form.addModelKullan({ id: 'fiyatGosterim', etiket: 'Fiyat Gösterim', source: e => EIslKural_Fiyat.instance.kaListe}).noMF().dropDown();
+			form.addModelKullan({ id: 'eIslOzelDipKod', etiket:'E-İşlem Özel Dip', mfSinif: MQEIslemOzelDip }).dropDown();
+			form.addModelKullan({ id: 'eArsivBelgeTipi', etiket: 'E-Arşiv Belge Gönderim Tipi', source: e => EArsiv_BelgeTipi.instance.kaListe}).noMF().dropDown();
 		form.addCheckBox({ id: 'eIrsAlimiAdetTeslimeDuzenlenirmi',etiket: `E-İrsaliye Alim İade'de Sevk Yeri Varsa Alıcı Olarak Kabul Edilir`});
 		form = tabPage.addFormWithParent().yanYana(2);
-		form.addTextInput({ id: 'eFatGIBAlias', etiket: 'e-Fatura GIB Alias' });
-		form.addTextInput({ id: 'eIrsGIBAlias',	etiket: 'e-İrsaliye GIB Alias' });
+			form.addTextInput({ id: 'eFatGIBAlias', etiket: 'e-Fatura GIB Alias' }); form.addTextInput({ id: 'eIrsGIBAlias', etiket: 'e-İrsaliye GIB Alias' });
 		form = tabPage.addFormWithParent().yanYana(1);
-		form.addLabel({ id: 'bildirim1', etiket: `**GIB Alias Değeri 'defaultpk@firmaAdi.com' gibidir.`, renk: 'gray' });
-		form.addLabel({ id: 'bildirim2', etiket: `E-İrs. GIB alias izin verilmez ise E-Fat GIB alias esas Alınır.`, renk: 'black' });
-		form.addLabel({ id: 'bildirim3', etiket: `Konsolide detaylarda irsaliye GİB alias varsa e-irsaliye o adrese gönderilir.`, renk: 'cadetblue' })
+			form.addLabel({ id: 'bildirim1', etiket: `**GIB Alias Değeri 'defaultpk@firmaAdi.com' gibidir.`, renk: 'gray' });
+			form.addLabel({ id: 'bildirim2', etiket: `E-İrs. GIB alias izin verilmez ise E-Fat GIB alias esas Alınır.`, renk: 'black' });
+			form.addLabel({ id: 'bildirim3', etiket: `Konsolide detaylarda irsaliye GİB alias varsa e-irsaliye o adrese gönderilir.`, renk: 'cadetblue' })
 	}
-	static secimlerDuzenle(e) {
-		const sec = e.secimler;
+	static secimlerDuzenle({ secimler: sec }) {
 		sec.liste.instAdi.etiket = 'Cari Ünvan';
-		sec.secimTopluEkle({
-			eFatDurum: new SecimTekSecim({ etiket: 'e-Fat Kullanım', tekSecimSinif: EvetHayirTekSecim })
-		});
+		sec.secimTopluEkle({ eFatDurum: new SecimTekSecim({ etiket: 'e-Fat Kullanım', tekSecimSinif: EvetHayirTekSecim }) });
 		sec.whereBlockEkle(e => {
-			const {aliasVeNokta} = this;
-			const sec = e.secimler, wh = e.where;
+			const {aliasVeNokta} = this, {secimler: sec, where: wh} = e;
 			wh.birlestir(sec.eFatDurum.tekSecim, `${aliasVeNokta}efaturakullanirmi`)
 		})
 	}
-	static standartGorunumListesiDuzenle(e) {
-		const {liste} = e;
-		liste.push('efaturakullanirmi')
-	}
-	static orjBaslikListesiDuzenle(e) {
-		const {aliasVeNokta} = this.mfSinif;
-		const {liste} = e;
+	static standartGorunumListesiDuzenle({ liste }) { liste.push('efaturakullanirmi') }
+	static orjBaslikListesiDuzenle({ liste }) {
 		liste.push(
-			new GridKolon({ belirtec: 'musrefkod', text: 'Müşteri Referans Kodu', genislikCh: 5 }),
-			new GridKolon({ belirtec: 'efaturakullanirmi', text: 'E-Fatura Kullanılır', genislikCh: 5 }).tipBool(),
-			new GridKolon({ belirtec: 'efatsenaryotipi', text: 'E-Fatura Senaryo Tipi', genislikCh: 5 }),
-			new GridKolon({ belirtec: 'efatyontem', text: 'E-Fatura Yöntemi', genislikCh: 5 }),
-			new GridKolon({ belirtec: 'efatgibalias', text: 'E-Fatura GIB Alias', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'musrefkod', text: 'Müş.Ref.Kod', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'efaturakullanirmi', text: 'e-Fat?', genislikCh: 8 }).tipBool(),
+			new GridKolon({ belirtec: 'efatsenaryotipi', text: 'E-Fatura Senaryo Tipi', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'efatyontem', text: 'E-Fatura Yöntemi', genislikCh: 8 }),
+			new GridKolon({ belirtec: 'efatgibalias', text: 'e-Fat. GIB Alias', genislikCh: 30 }),
+			new GridKolon({ belirtec: 'eirsgibalias', text: 'e-İrs. GIB Alias', genislikCh: 30 }),
 			new GridKolon({ belirtec: 'efozelyontemkod', text: 'E-Fatura Özel Yöntem Kod', genislikCh: 5 }),
 			new GridKolon({ belirtec: 'efozelyontem', text: 'E-Fatura Özel Yöntem', genislikCh: 20, sql: 'efoy.aciklama' }),
 			new GridKolon({ belirtec: 'efatdovizlidokum', text: 'E-Fat Dövizli Döküm', genislikCh: 5 }),
@@ -670,19 +641,29 @@ class MQCari_EIslem extends MQCariAlt {
 			new GridKolon({ belirtec: 'ozelbutceliunvan', text: 'Özel Bütçeli Kurum Ünvan ', genislikCh: 20 })
 		)
 	}
-	static loadServerData_queryDuzenle(e) {
-		// ilişkileri ve koşulları buraya yazıyoruz.
+	static loadServerData_queryDuzenle({ sent }) {
 		const {aliasVeNokta} = this.mfSinif;
-		const {sent} = e;
-		sent.fromIliski(`efozelyontem efoy`, `${aliasVeNokta}efozelyontemkod = efoy.kod`)
-		sent.fromIliski(`eislemozeldip eiod`, `${aliasVeNokta}eislozeldipkod = eiod.kod`)
+		sent.fromIliski(`efozelyontem efoy`, `${aliasVeNokta}efozelyontemkod = efoy.kod`).fromIliski(`eislemozeldip eiod`, `${aliasVeNokta}eislozeldipkod = eiod.kod`)
 	}
-	static ozelEntegratordenKontrolEtIstendi(e) {
-		displayMessage('butona tıklandı')
+	static async ozelEntegratordenKontrolEtIstendi(e) {
+		e = e ?? {}; let {builder} = e, inst = e.inst ?? this.inst;
+		try { return await inst.ozelEntegratordenKontrolEt(e) }
+		catch (ex) { hConfirm(getErrorText(ex), 'Özel Entegratörden Sorgula'); throw ex }
+	}
+	async ozelEntegratordenKontrolEt(e) {
+		let {builder} = e, inst = e.inst ?? this.inst, vkn = e.vkn ?? inst.vkn; if (!vkn) { throw { isError: true, rc: 'emptyArgument', errorText: `<b>Vergi</b> veya <b>TC Kimlik No</b> belirtilmelidir` } }
+		let {vkn2Result} = await new EYonetici({ eIslSinif: EIslFatura }).mukellefSorgula({ vkn }) ?? {};
+		let result = vkn2Result[vkn] ?? {}, {isError, message} = result; if (isError === undefined) { throw { isError: true, rc: 'noResult', errorText: 'Sorgulama sorunu' } }
+		let eFatmi = this.eFaturaKullanirmi = !isError; if (eFatmi) {
+			let rec = result.rec ?? result, {gibAliases} = rec; if (!this.eFatGIBAlias && gibAliases?.length) { this.eFatGIBAlias = gibAliases[0]?.gibAlias }
+			let _vkn2Result = (await new EYonetici({ eIslSinif: EIslIrsaliye }).mukellefSorgula({ vkn }))?.vkn2Result ?? {};
+			let _result = _vkn2Result[vkn] ?? {}, {isError} = _result, eIrsmi = !isError;
+			if (eIrsmi) { let rec = _result.rec ?? _result, {gibAliases} = rec; if (!this.eIrsGIBAlias && gibAliases?.length) { this.eIrsGIBAlias = gibAliases[0]?.gibAlias } }
+		}
+		if (message) { eConfirm(message, 'Özel Entegratör Sorgu Sonucu' ) }
+		return result
 	}
 }
 class MQCiranta extends MQCari {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() { return 'Ciranta' }
-	static get tableAlias() { return 'cir' }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ciranta' } static get tableAlias() { return 'cir' }
 }

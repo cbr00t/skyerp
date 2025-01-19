@@ -390,13 +390,12 @@ class HizGelirTabloTipi extends TekSecim {
 	}
 }
 class SenaryoTipi extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultChar() { return 'T' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return 'T' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
-		kaListe.push(
-			new CKodVeAdi(['T', 'Ticari Fatura']),
-			new CKodVeAdi(['K', 'Kamu'])
+		super.kaListeDuzenle(e); const {kaListe} = e; kaListe.push(
+			new CKodVeAdi(['M', 'Temel Fatura', 'temel']),
+			new CKodVeAdi(['T', 'Ticari Fatura', 'ticari']),
+			new CKodVeAdi(['K', 'Kamu', 'kamu'])
 		)
 	}
 }
