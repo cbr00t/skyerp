@@ -161,8 +161,8 @@ class MQSablonAnket extends MQSablon {
 			const belirtec = `yanit${i}puan`; liste.push(new GridKolon({ belirtec, text: `Puan ${i}`, genislikCh: 8 }).tipDecimal(1)) }
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); const {kaForm, tabPanel, tabPage_genel} = e, {maxSecenekSayisi} = MQSablonAnketYanit;
-		tabPanel.addStyle(e => `$elementCSS { margin-top: 0 } $elementCSS [data-builder-id = grid] > div { margin-top: 0 !important }`)
+		super.rootFormBuilderDuzenle(e); const {kaForm, tabPanel} = e, {maxSecenekSayisi} = MQSablonAnketYanit;
+		tabPanel?.addStyle(e => `$elementCSS { margin-top: 0 } $elementCSS [data-builder-id = grid] > div { margin-top: 0 !important }`)
 		kaForm.yanYana(); kaForm.id2Builder.aciklama.addStyle_wh('calc(var(--full) - 140px)');
 			kaForm.addNumberInput('sureDk', 'Süre (dk)').setMin(0).setMax(180).addStyle_wh(80);
 			for (let i = 1; i <= maxSecenekSayisi; i++) { const key = `yanit${i}Puan`; kaForm.addNumberInput(key, `Puan (${i})`).setMin(0).setMax(100).setFra(1).addStyle_wh(80) }
