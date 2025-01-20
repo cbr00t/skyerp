@@ -588,6 +588,10 @@ class MQValuesClause extends MQClause {
 }
 class MQOrderByClause extends MQClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get onEk() { return ` ORDER BY	` }
+	addIcinUygunmu(value) {
+		if (!super.addIcinUygunmu(value)) { return false }
+		let {liste} = this; return !liste.includes(value)
+	}
 	fromGridWSArgs(e) {
 		e = e || {}; const alias = e.alias;
 		const sahaConverter = alias ? (e => { let _alias = alias; if ($.isFunction(alias)) { _alias = alias.call(this, e) } return _alias ? `${_alias}.${e.saha}` : _alias }) : null;

@@ -156,7 +156,7 @@ class MQDetayli extends MQSayacli {
 						/*if (sql) sent.sahalar.add(`${sql} ${belirtec}`);*/
 						if (belirtec || sql) {sent.sahalar.add((sql ? sql : `${aliasVeNokta}${belirtec}`) + ` ${belirtec}`)}
 					}
-					if ($.isEmptyObject(sent.sahalar.liste)) sent.sahalar.add(`${aliasVeNokta}*`)
+					if ($.isEmptyObject(sent.sahalar.liste)) { sent.sahalar.add(`${aliasVeNokta}*`) }
 					// sent.groupByOlustur();
 					sent.gereksizTablolariSil({ disinda: [alias, fisAlias] })
 				}
