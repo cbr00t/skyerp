@@ -97,17 +97,17 @@ class MQDetayli extends MQSayacli {
 		this.tekilOku_detaylar_queryDuzenle(e); return stm
 	}
 	tekilOku_detaylar_queryDuzenle(e) {
-		e.fis = e.fis || this; e.fisSinif = e.fisSinif || this.class;
-		let {detaySinif} = e; if (!detaySinif && e.detaySiniflar) detaySinif = (e.detaySiniflar ?? this.detaySiniflar)[0]; if (!detaySinif) return null
+		let fis = e.fis = e.fis || this; e.fisSinif = e.fisSinif || this.class;
+		let {detaySinif} = e; if (!detaySinif && e.detaySiniflar) { detaySinif = (e.detaySiniflar ?? this.detaySiniflar)[0] } if (!detaySinif) { return null }
 		const alias = detaySinif.tableAlias || MQDetay.tableAlias, aliasVeNokta = detaySinif.aliasVeNokta || `${alias}.`;
-		const {stm, uni} = e; const sent = e.sent = new MQSent({ from: `${detaySinif.getDetayTable({ fis: this })} ${alias}`, sahalar: [`${aliasVeNokta}*`] }); uni.add(sent);
+		/*const {stm, uni} = e; const sent = e.sent = new MQSent({ from: `${detaySinif.getDetayTable({ fis })} ${alias}`, sahalar: [`${aliasVeNokta}*`] }); uni.add(sent);
 		const tabloKolonlari = detaySinif.listeBasliklari ?? e.tabloKolonlari;
 		for (const colDef of tabloKolonlari) {
 			if (!colDef.sqlIcinUygunmu) { continue }
 			const {belirtec, sql} = colDef; if (sql) sent.sahalar.add(`${sql} ${belirtec}`)
-		}
-		/*if ($.isEmptyObject(sent.sahalar.liste)) sent.sahalar.add(`${aliasVeNokta}*`);*/
-		let result = detaySinif.tekilOku_queryDuzenle(e); sent.gereksizTablolariSil({ disinda: alias });
+		}*/
+		this.class.loadServerData_detaylar_queryDuzenle(e); let result = detaySinif.tekilOku_queryDuzenle(e); let {stm} = e;
+		for (let sent of stm.getSentListe()) { sent.gereksizTablolariSil({ disinda: alias }) }
 		return result
 	}
 	static tekilOku_detaylar_querySonucu(e) { return this.loadServerData_detaylar_querySonucu(e) }
@@ -136,14 +136,14 @@ class MQDetayli extends MQSayacli {
 		return super.loadServerData_detaylar_queryOlustur(e)
 	}
 	static loadServerData_detaylar_queryDuzenle(e) {
-		e.fisSinif = e.fisSinif ?? this; let {detaySiniflar} = e;
+		let fisSinif = e.fisSinif = e.fisSinif ?? e.fis?.class ?? this; let {detaySiniflar} = e;
 		if (!detaySiniflar && e.detaySinif) { detaySiniflar = [e.detaySinif] }
 		if (!detaySiniflar) { detaySiniflar = this.detaySiniflar }
 		if (!$.isEmptyObject(detaySiniflar)) {
 			const {stm} = e, fisTableAndAlias = this.tableAndAlias, fisAlias = this.tableAlias, {sayacSaha} = this;
 			const sahalarAlinmasinFlag = e.sahalarAlinmasinFlag ?? e.sahalarAlinmasin; let result;
 			for (const detaySinif of detaySiniflar) {
-				const table = detaySinif.getDetayTable({ fisSinif: this }), alias = detaySinif.tableAlias || MQDetay.tableAlias, {fisSayacSaha} = detaySinif;
+				const table = detaySinif.getDetayTable({ fisSinif }), alias = detaySinif.tableAlias || MQDetay.tableAlias, {fisSayacSaha} = detaySinif;
 				const aliasVeNokta = detaySinif.aliasVeNokta || `${alias}.`, uni = stm.sent;
 				const sent = e.sent = new MQSent({
 					from: `${table} ${alias}`, /* sahalar: [`${aliasVeNokta}*`] */
@@ -152,7 +152,7 @@ class MQDetayli extends MQSayacli {
 				if (!sahalarAlinmasinFlag) {
 					const tabloKolonlari = e.tabloKolonlari ?? detaySinif.listeBasliklari;
 					for (const colDef of tabloKolonlari) {
-						if (!colDef.sqlIcinUygunmu) continue; const {belirtec, sql} = colDef;
+						if (!colDef.sqlIcinUygunmu) { continue } const {belirtec, sql} = colDef;
 						/*if (sql) sent.sahalar.add(`${sql} ${belirtec}`);*/
 						if (belirtec || sql) {sent.sahalar.add((sql ? sql : `${aliasVeNokta}${belirtec}`) + ` ${belirtec}`)}
 					}
@@ -194,7 +194,7 @@ class MQDetayli extends MQSayacli {
 		if (!detaySiniflar) { detaySiniflar = this.class.detaySiniflar || [] }
 		const fisSayac = this.sayac; $.extend(e, { fisSayac, fis: this, detaySiniflar }); const seq2Detaylar = {};
 		for (const detaySinif of detaySiniflar) {
-			const _e = $.extend({}, e, { detaySinif }); for (const key of ['rec', 'parentRec', 'detaySiniflar']) { delete _e[key] }
+			const _e = $.extend({}, e, { detaySinif }); for (const key of ['rec', 'parentRec', 'detaySiniflar', 'tabloKolonlari']) { delete _e[key] }
 			const detRecs = _e.detRecs = await this.tekilOku_detaylar(_e); for (const rec of detRecs) {
 				const _detaySinif = this.class.detaySinifFor({ detaySinif, rec });
 				if (!_detaySinif) { throw { isError: true, rc: 'detayBelirlenemedi', errorText: 'Detay sınıfı belirlenemedi' } }
@@ -272,8 +272,8 @@ class MQDetayli extends MQSayacli {
 		e.params = toplu.params = toplu.params || []; this.topluYazmaKomutlariniOlustur_sqlParamsDuzenle(e)
 	}
 	topluYazmaKomutlariniOlustur_baslikSayacBelirle(e) {
-		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {toplu, trnId, keyHV, paramName_fisSayac} = e, {table, sayacSaha} = this.class;
-		let query = new MQSent({ from: table, where: { birlestirDict: keyHV } });
+		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {toplu, trnId, /*keyHV,*/ paramName_fisSayac} = e, {table, sayacSaha} = this.class;
+		let query = new MQSent({ from: table /*, where: { birlestirDict: keyHV } */ });
 		if (offlineMode) {
 			query.sahalar.add(`MAX(${sayacSaha}) sayac`); let sayac = this.sqlExecTekilDeger({ offlineMode, trnId, query });
 			return (sayac || 0) + 1

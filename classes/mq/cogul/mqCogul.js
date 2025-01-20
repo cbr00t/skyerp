@@ -514,7 +514,9 @@ class MQCogul extends MQYapi {
 	static get listeBasliklari_detaylar() { const e = { liste: [] }; this.listeBasliklariDuzenle_detaylar(e); return e.liste }
 	static listeBasliklariDuzenle_detaylar(e) { this.orjBaslikListesiDuzenle_detaylar(e) }
 	static loadServerData_detaylar(e) {
-		e = e || {}; /* e.tabloKolonlari = e.tabloKolonlari || this.listeBasliklari_detaylar; */ e.query = this.loadServerData_detaylar_queryOlustur(e); return this.loadServerData_detaylar_querySonucu(e) }
+		e = e || {}; /* e.tabloKolonlari = e.tabloKolonlari || this.listeBasliklari_detaylar; */
+		e.query = this.loadServerData_detaylar_queryOlustur(e); return this.loadServerData_detaylar_querySonucu(e)
+	}
 	static loadServerData_detaylar_queryOlustur(e) { return null }
 	static loadServerData_detaylar_queryDuzenle(e) { this.forAltYapiClassesDo('loadServerData_detaylar_queryDuzenle', e) }
 	static async loadServerData_detaylar_querySonucu(e) {

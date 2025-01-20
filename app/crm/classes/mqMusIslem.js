@@ -32,28 +32,17 @@ class MQMusIslem extends MQDetayliMasterOrtak {
 			.fromIliski('crmislemturu itur', `${alias}.islemturkod = itur.kod`).fromIliski('personel tper', `${alias}.teslimkullanicikod = tper.kod`);
 		sent.sahalar.add(`${alias}.zamants`, `${alias}.seri`, `${alias}.fisno`, 'car.birunvan mustunvan', `${alias}.termints`, `${alias}.bitists`, `${alias}.yapilacakis`)
 	}
-	static orjBaslikListesiDuzenle_detaylar(e) {
-		super.orjBaslikListesiDuzenle_detaylar(e); const {tableAlias: alias} = this.detaySinif, {liste} = e; liste.push(
-			new GridKolon({ belirtec: 'detayts', text: 'Tarih', genislikCh: 10 }).tipDate(), new GridKolon({ belirtec: 'detaysaat', text: 'Saat', genislikCh: 10, sql: `${alias}.detayts` }).tipZaman(),
-			new GridKolon({ belirtec: 'detaykullanicikod', text: 'Kullanıcı', genislikCh: 16 }), new GridKolon({ belirtec: 'detaykullaniciadi', text: 'Kullanıcı Adı', genislikCh: 30, sql: 'dper.aciklama' }),
-			new GridKolon({ belirtec: 'detayaciklama', text: 'Detay Açıklama', genislikCh: 150 })
-		)
-	}
-	static loadServerData_detaylar_queryDuzenle(e) {
-		super.loadServerData_detaylar_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this.detaySinif;
-		sent.fromIliski('personel dper', `${alias}.detaykullanicikod = dper.kod`); sent.sahalar.add('dper.aciklama detaykullaniciadi')
-	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPanel, tabPage_genel} = e;
+		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {kaForm, tabPanel, tabPage_genel} = e; kaForm?.addCSS('jqx-hidden');
 		let form = tabPage_genel.addFormWithParent().yanYana(); form.addDateInput('zamanTarih', 'İşlem Tarih');
-			form.addTimeInput('zamanSaat', 'İşlem Saat'); form.addTextInput('zamanSaat', 'Seri').setMaxLength(3).addStyle_wh(80);
+			form.addTimeInput('zamanSaat', 'İşlem Saat'); form.addTextInput('seri', 'Seri').setMaxLength(3).addStyle_wh(80);
 		form.addNumberInput('fisNo', 'Fiş No').setMaxLength(17).addStyle_wh(250);
 			form.addDateInput('terminTarih', 'Termin Tarih'); form.addTimeInput('terminSaat', 'Termin Saat');
 			form.addDateInput('bitisTarih', 'Bitiş Tarih'); form.addTimeInput('bitisSaat', 'Bitiş Saat');
 		form = tabPage_genel.addFormWithParent().yanYana(2);
 			form.addModelKullan('mustKod', 'Müşteri').comboBox().setMFSinif(MQCari); form.addModelKullan('gorevliKullaniciKod', 'Görevli').comboBox().autoBind().setMFSinif(MQPersonel);
 		form = tabPage_genel.addFormWithParent().yanYana(2);
-			form.addModelKullan('islemTurKod', 'İşlem Türü').dropDown().kodsuz().autoBind().setMFSinif(MQIslemTuru).addStyle_wh(200);
+			form.addModelKullan('islemTurKod', 'İşlem Türü').dropDown().kodsuz().autoBind().setMFSinif(MQIslemTuru).addStyle_wh(400);
 			form.addModelKullan('teslimKullaniciKod', 'Teslim Eden').comboBox().autoBind().setMFSinif(MQPersonel);
 		form = tabPage_genel.addFormWithParent().yanYana(2);
 			form.addTextArea('yapilacakIs', 'Yapılacak İş').setMaxLength(600).setRows(5); form.addTextArea('bitisAciklama', 'Bitiş Açıklama').setMaxLength(200).setRows(5);
@@ -131,6 +120,17 @@ class MQMusIslemDetay extends MQDetay {
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); $.extend(e.pTanim, {
 			detayTS: new PInstDateTimeNow('detayts'), detayKullaniciKod: new PInstStr('detaykullanicikod'), detayAciklama: new PInstStr('detayaciklama') })
+	}
+	static orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e); const {tableAlias: alias} = this, {liste} = e; liste.push(
+			new GridKolon({ belirtec: 'detayts', text: 'Tarih', genislikCh: 10 }).tipDate(), new GridKolon({ belirtec: 'detaysaat', text: 'Saat', genislikCh: 10, sql: `${alias}.detayts` }).tipZaman(),
+			new GridKolon({ belirtec: 'detaykullanicikod', text: 'Kullanıcı', genislikCh: 16 }), new GridKolon({ belirtec: 'detaykullaniciadi', text: 'Kullanıcı Adı', genislikCh: 30, sql: 'dper.aciklama' }),
+			new GridKolon({ belirtec: 'detayaciklama', text: 'Detay Açıklama', genislikCh: 150 })
+		)
+	}
+	static loadServerData_queryDuzenle(e) {
+		super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this;
+		sent.fromIliski('personel dper', `${alias}.detaykullanicikod = dper.kod`); sent.sahalar.add('dper.aciklama detaykullaniciadi')
 	}
 }
 class MQMusIslemGridci extends GridKontrolcu {
