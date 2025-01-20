@@ -3,6 +3,7 @@ class ESEApp extends App {
 	get isLoginRequired() { return true } get defaultLoginTipi() { return this.isAdmin ? Session.DefaultLoginTipi : 'eseLogin' }
 	get defaultWSPath() { return `${super.superDefaultWSPath}/ese` } static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_App }
 	constructor(e) { e = e || {}; super(e); this.isAdmin = qs.admin ?? false }
+	async init(e) { await super.init(e); if (!config.colorScheme) { config.colorScheme = 'dark' } }
 	async runDevam(e) {
 		let {isAdmin} = this; if (isAdmin) { $('body').addClass('admin') } await super.runDevam(e);
 		if (!isAdmin) { let {session} = config; await app.wsLogout(); await app.wsLogin({ session }) }
@@ -58,11 +59,23 @@ class ESEApp extends App {
 				const {sablonTip, sablonSinif} = cls; let _items = sablon[sablonTip] ?? [];
 				for (let i = 0; i < _items.length; i++) {
 					let {belirtec, sablonId, etiket: text} = _items[i]; if (!sablonId) { continue }
-					let {tip} = cls, tipVeSablonId = `${tip}-${sablonId}`, sablonAdi = sablonId2Adi[sablonId];
+					let {tip, testUyariText} = cls, tipVeSablonId = `${tip}-${sablonId}`, sablonAdi = sablonId2Adi[sablonId];
 					if (sablonAdi) { text += `<div class="royalblue" style="font-weight: normal; font-size: 90%; padding-top: 10px">${sablonAdi}</div>` }
-					let disabled = false, cssColor = 'green'; if (tipVeSablonId2Yapildi[tipVeSablonId]) { disabled = true; cssColor = 'firebrick' }
-					text = `<div class="full-wh" style="border: 2px solid ${cssColor}; box-shadow: 0 0 5px 0px ${cssColor}"><div style="margin-top: 10%">${text}</div></div>`
-					let mne = `${tip.toUpperCase()}-${i + 1}`; items.push(new FRMenuChoice({ mne, text, disabled, block: e => this.testBaslat({ tip, belirtec, testId, sablonId }) }))
+					let disabled = false, tamamlandimi = false, cssColor = 'green';
+					if (tipVeSablonId2Yapildi[tipVeSablonId]) { /*disabled = true;*/ tamamlandimi = true; cssColor = 'firebrick' }
+					text = (
+						`<div class="full-wh" style="border: 2px solid ${cssColor}; box-shadow: 0 0 5px 0px ${cssColor}">` +
+							`<div style="margin-top: 10px">${text}</div>` +
+							(testUyariText ? `<div style="font-size: 120%; margin-top: 15px">${testUyariText}</div>` : '') +
+						`</div>`
+					);
+					let mne = `${tip.toUpperCase()}-${i + 1}`; items.push(new FRMenuChoice({
+						mne, text, disabled, block: e => {
+							/*let {menuItemElement: item} = e;*/
+							if (tamamlandimi) { hConfirm('Bu test tamamlandığı için işlem yapılamaz', 'Test'); return }
+							this.testBaslat({ tip, belirtec, testId, sablonId })
+						}
+					}))
 				}
 			}
 		}

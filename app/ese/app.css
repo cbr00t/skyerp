@@ -6,8 +6,8 @@ body.ESEApp.kiosk #root-parent > #ust-parent > #parent > main #anaMenu .menu.par
 body.ESEApp.kiosk #root-parent > #ust-parent > #parent > main #anaMenu .items-parent { height: var(--full) !important; padding-top: 50px !important }
 body.ESEApp.kiosk #root-parent > #ust-parent > #parent > main #anaMenu .items-parent .items { height: calc(var(--full) - 300px) !important }
 body.ESEApp.kiosk #root-parent > #ust-parent > #parent > main #anaMenu .items-parent .items button:not(:first-child) { margin-left: 30px !important }
-body.ESEApp.kiosk #root-parent > #ust-parent > #parent > main #anaMenu .items-parent .items button { width: 250px !important; height: 105px !important; padding: 0 !important }
-	body.ESEApp.kiosk #root-parent > #ust-parent > #parent > main #anaMenu .items-parent .items button > * > * { margin-top: 18px !important }
+	body.ESEApp.kiosk #root-parent > #ust-parent > #parent > main #anaMenu .items-parent .items button { width: 330px !important; height: 160px !important; max-height: unset !important; padding: 0 !important; margin-bottom: 25px !important }
+body.ESEApp.kiosk #root-parent > #ust-parent > #parent > main #anaMenu .items-parent .items button > * > * { margin-top: 13px !important }
 body:not(.admin) #loginForm.loginPart.part button#ayarlar { display: none !important }
 body:not(.admin) #loginForm.loginPart.part > .alt-form > div.row:nth-child(2) { display: none !important }
 body:not(.admin) #loginForm.loginPart.part > .alt-form > div.row:nth-child(3) > h5 { display: none !important }

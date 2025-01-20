@@ -6,7 +6,7 @@ class MQTestUygulanmaYeri extends TekSecim {
 class TestSonuc extends CObject {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return null } static get genelSonucmu() { return false }
 	static get reduceKeys() { return this.genelSonucmu ? ['id', 'belirtec', 'tip', 'tumSayi', 'cevapSayi', 'cevapsizSayi'] : [] }
-	get cevapSayi() { return 0 } get cevapsizSayi() { return Math.max((this.tumSayi || 0) - (this.cevapSayi || 0), 0) } get toplamPuan() { return 0 }
+	get cevapSayi() { return 0 } get cevapsizSayi() { return Math.max((this.tumSayi || 0) - (this.cevapSayi || 0), 0) }
 	constructor(e) {
 		e = e || {}; super(e);
 		if (this.class.genelSonucmu) { const {tip} = this.class, {belirtec} = e, id = e.testId ?? e.id; $.extend(this, { tip, belirtec, id, tumSayi: e.tumSayi ?? 0 }) }
@@ -43,19 +43,18 @@ class TestSonuc extends CObject {
 }
 class TestSonucCPT extends TestSonuc {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return MQTestCPT.tip }
-	static get parentKeys() { return ['dogru', 'yanlis'] } static get reduceKeys() { return [...super.reduceKeys, ...this.parentKeys, 'secildimi'] }
+	static get parentKeys() { return ['dogru', 'yanlis'] } static get reduceKeys() { return [...super.reduceKeys, ...this.parentKeys] }
 	constructor(e) {
 		e = e || {}; super(e); for (const parentKey of this.class.parentKeys) {
 			let parent = this[parentKey] = e[parentKey] ?? {};
-			for (const key of ['sayi', 'adat', 'secimSure']) { parent[key] = parent[key] ?? 0 }
+			for (const key of ['sayi', 'adat']) { parent[key] = parent[key] ?? 0 }
 		}
-		this.secildimi = e.secildimi ?? false;
 		console.info('test', 'new', this)
 	}
 	tiklamaEkle(dogrumu, sureMS) {
 		let parent = this[dogrumu ? 'dogru' : 'yanlis']; parent.sayi++;
 		parent.adat = roundToFra(parent.adat + sureMS /*/ (config.dev ? MQTestCPT.intervalKatSayi : 1)*/, 1);
-		this.secildimi = true; /*console.info('test', this, dogrumu, sureMS, parent);*/ return this
+		/*console.info('test', this, dogrumu, sureMS, parent);*/ return this
 	}
 	ortalamaOlustur() {
 		for (const parentKey of this.class.parentKeys) {
@@ -73,7 +72,6 @@ class TestGenelSonucCPT extends TestSonucCPT {
 			let parent = this[parentKey], digerParent = diger[parentKey];
 			for (const [key, value] of Object.entries(digerParent)) { parent[key] = roundToFra(parent[key] + value, 1) }
 		}
-		if (diger.secildimi) { this.secilmeyenDogruSayi-- }
 		return this
 	}
 }
@@ -83,5 +81,9 @@ class TestSonucAnket extends TestSonuc {
 class TestGenelSonucAnket extends TestSonucAnket {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get genelSonucmu() { return true }
 	static get reduceKeys() { return [...super.reduceKeys, 'soruId2Cevap'] } get cevapSayi() { return Object.keys(this.soruId2Cevap).length }
-	constructor(e) { e = e || {}; super(e); $.extend(this, { soruId2Cevap: e.soruId2Cevap || {} }) }
+	constructor(e) { e = e || {}; super(e); $.extend(this, { soruId2Cevap: e.soruId2Cevap || {}, toplamPuan: 0 }) }
+	totalEkle(diger) {
+		if (diger) { this.toplamPuan += diger.puan || 0 }
+		return this
+	}
 }

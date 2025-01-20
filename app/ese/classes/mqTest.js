@@ -269,21 +269,33 @@ class MQTest extends MQGuidOrtak {
 	testUI_kaydetOncesi(e) { } testUI_kaydet(e) { } testUI_kaydetSonrasi(e) { }
 }
 class MQTestCPT extends MQTest {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get intervalKatSayi() { return config.dev ? .5 : 1 }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get intervalKatSayi() { return config.dev ? .1: 1 }
 	static get sinifAdi() { return 'CPT Test' }  static get testSonucSinif() { return TestSonucCPT } static get testGenelSonucSinif() { return TestGenelSonucCPT }
 	static get kodListeTipi() { return 'TSTCPT' } static get sablonSinif() { return MQSablonCPT }
+	static get testUyariText() { return `Bu testi <span class="orangered">Çocuk</span> uygulayacaktır` }
 	testUI_setValues(e) {
 		super.testUI_setValues(e); const {rec} = e; if (!rec) { return }
-		for (const key of ['gecerliResimSeq', 'grupTekrarSayisi', 'baslamaOncesiBostaMS', 'resimGosterimMS', 'resimBostaMS']) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
+		for (const key of ['gecerliResimSeq', /*'grupTekrarSayisi',*/ 'baslamaOncesiBostaMS', 'resimGosterimMS', 'resimBostaMS']) {
+			let value = rec[key]; if (value !== undefined) { this[key] = value } }
 	}
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
-		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, content} = parentPart;
-		const {id: testId, detaylar, genelSonuc, gecerliResimSeq, grupTekrarSayisi, baslamaOncesiBostaMS, resimGosterimMS, resimBostaMS} = this, {tip, intervalKatSayi} = this.class;
+		await super.testUI_initLayout_ara(e); let {tip, intervalKatSayi, sablonSinif, testUyariText} = this.class, {parentPart} = e, {state, content} = parentPart;
+		let {id: testId, detaylar, genelSonuc, gecerliResimSeq, baslamaOncesiBostaMS, resimGosterimMS, resimBostaMS} = this;
 		let startCounter = 3, orjUrls = detaylar.map(det => det.resimLink), urls = [...orjUrls], imageCount = urls.length, keyDownHandler;
+		let {gecerliTekrarSayi, digerTekrarSayi, toplamTekrarSayi} = sablonSinif, gecerliResimInd = gecerliResimSeq - 1;
+		let shuffleOzel = _urls => {
+			let secilenUrl = orjUrls[gecerliResimInd], urls = [];
+			for (let i = 0; i < gecerliTekrarSayi; i++) { urls.push(secilenUrl) }
+			while (urls.length < toplamTekrarSayi) {
+				let rndInd; do { rndInd = Math.round(Math.random() * 100000) % orjUrls.length } while (rndInd == gecerliResimInd);
+				urls.push(orjUrls[rndInd])
+			} urls = shuffle(urls); imageCount = urls.length;
+			return urls
+		}
 		switch (state) {
 			case 'home':
-				let promises = []; for (let i = 0; i < imageCount; i++) { promises.push(new $.Deferred()) }
-				let elmContainer = $(`<div class="prefetch-parent" hidden/>`); for (let i = 0; i < imageCount; i++) {
+				let promises = []; for (let i = 0; i < orjUrls.length; i++) { promises.push(new $.Deferred()) }
+				let elmContainer = $(`<div class="prefetch-parent" hidden/>`); for (let i = 0; i < orjUrls.length; i++) {
 					let img = $(`<img class="prefetch" data-index="${i}" src="${urls[i]}"/>`); img.appendTo(elmContainer);
 					img.on('load', evt => promises[asInteger(evt.currentTarget.dataset.index)].resolve({ result: true, evt }));
 					img.on('error', evt => promises[asInteger(evt.currentTarget.dataset.index)].resolve({ result: false, evt }))
@@ -297,18 +309,18 @@ class MQTestCPT extends MQTest {
 						`Sağ taraftaki resimde gösterilen harfi görür görmez <b>Ara Tuşuna (<i>SPACE</i>)</b> basınız.</p>` +
 					`<p>Başka harf görürseniz herhangi bir tuşa basmayınız</p>` +
 					`<p>Hazırsanız <b class="royalblue">'İşleme Başla'</b> tuşuna basarak testi başlatınız.</p>` +
-					`<p style="font-weight: bold; font-size: 180%; margin-top: 30px">Bu testi <span class="orangered">Çocuk</span> uygulayacaktır</p>` +
+					`<p style="font-weight: bold; font-size: 180%; margin-top: 30px">${testUyariText || ''}</p>` +
 					`<div style="margin-bottom: 50px"></div>`
 				);
 				$(`<div class="info float-left wrap-pretty" style="width: calc(var(--full) - (${rightWidth}px + 5px))">${infoHTML}</div>`).appendTo(content);
 				$(`<div class="target-img-parent float-right full-height" style="width: ${rightWidth}px">` +
-					  `Şu resme tıklayınız: <div class="target-img full-wh" style="margin-left: 100px; background-image: url(${orjUrls[gecerliResimSeq - 1]})"></div>`).appendTo(content)
+					  `Şu resme tıklayınız: <div class="target-img full-wh" style="margin-left: 100px; background-image: url(${orjUrls[gecerliResimInd]})"></div>`).appendTo(content)
 				/*if (imgStates.error) { hConfirm(`<b>UYARI: </b><p/><div class="darkred"><b>${imgStates.error} adet</b> resim yüklenemedi!</div>`, parentPart.title); return }*/
 				break
 			case 'test':
 				const {testSonucSinif} = this.class;
-				let gecerliResimURL, index = -1, repeatIndex = 0, resimGosterimTime, ilkTiklamaTime, hInternal;
-				/*parentPart.headerText = `Şu resme tıklayınız: <img class="target-img" src="${orjUrls[gecerliResimSeq - 1]}">`;*/
+				let gecerliResimURL, index = -1, resimGosterimTime, ilkTiklamaTime, hInternal;
+				/*parentPart.headerText = `Şu resme tıklayınız: <img class="target-img" src="${orjUrls[gecerliResimInd]}">`;*/
 				const img = $(`<div class="resim"/>`); img.appendTo(content);
 				let clearFlag = false; let promise_wait = new $.Deferred();
 				let loopProc = () => {
@@ -318,8 +330,9 @@ class MQTestCPT extends MQTest {
 				let clickHandler = evt => {
 					if (!clearFlag || ilkTiklamaTime || !resimGosterimTime) { return } ilkTiklamaTime = now(); let dogrumu = urls[index] == gecerliResimURL;
 					let cssClicked = `clicked-${dogrumu ? 'dogru' : 'yanlis'}`; img.removeClass('clicked-dogru clicked-yanlis'); setTimeout(() => img.addClass(cssClicked), 1);
-					let tiklamaMSFarki = (ilkTiklamaTime - resimGosterimTime), grupNo = repeatIndex + 1;
-					let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif({ tip, testId }); testSonuc.tiklamaEkle(dogrumu, tiklamaMSFarki)
+					let tiklamaMSFarki = (ilkTiklamaTime - resimGosterimTime), grupNo = 1;
+					let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif({ tip, testId });
+					testSonuc.tiklamaEkle(dogrumu, tiklamaMSFarki); if (dogrumu) { genelSonuc.secilmeyenDogruSayi-- }
 				}; img.on('mousedown', clickHandler); img.on('touchstart', clickHandler);
 				keyDownHandler = evt => {
 					if (parentPart.isDestroyed || parentPart.state != 'test') { $('body').off('keydown', keyDownHandler); return }
@@ -332,19 +345,16 @@ class MQTestCPT extends MQTest {
 					if (clearFlag) { if (farkMS < resimGosterimMS * intervalKatSayi) { return true } img.css('background-image', '') }
 					else {
 						if (farkMS < resimBostaMS * intervalKatSayi) { return true }
-						index++; if (ilkmi) { ilkmi = false; if (genelSonuc) { genelSonuc.secilmeyenDogruSayi++ } } else { genelSonuc.tumSayi++ }
-						let cevrimBittimi = index >= imageCount; if (cevrimBittimi) {
-							repeatIndex++; index = 0; if (grupTekrarSayisi && repeatIndex >= grupTekrarSayisi) { parentPart.nextPage(); return false }
-							urls = shuffle(urls); if (genelSonuc) { genelSonuc.secilmeyenDogruSayi++ }
-						}
+						index++; let gecerliResimmi = urls[index] == gecerliResimURL;
+						if (ilkmi) { ilkmi = false } genelSonuc.tumSayi++; if (gecerliResimmi) { genelSonuc.secilmeyenDogruSayi++ }
+						let cevrimBittimi = index >= imageCount - 1; if (cevrimBittimi) { parentPart.nextPage(); return false }
 						/*parentPart.progressText = (`<div class="flex-row">
 							<div class="item"><span class="ek-bilgi">Resim: &nbsp;</span><span class="veri white">${index + 1} / ${imageCount}</span></div>
-							<div class="item"><span class="ek-bilgi">Grup: &nbsp;</span><span class="veri">${repeatIndex + 1} / ${grupTekrarSayisi}</span></div>
 						</div>`);*/
 						img.css('background-image', `url(${urls[index]})`); resimGosterimTime = now(); ilkTiklamaTime = null
 					}
 					clearFlag = !clearFlag; intervalTime = now(); return true
-				}; gecerliResimURL = urls[gecerliResimSeq - 1]; urls = shuffle(urls); intervalTime = now(), this._hInterval = setInterval(loopProc, 10); break
+				}; gecerliResimURL = urls[gecerliResimSeq - 1]; urls = shuffleOzel(urls); intervalTime = now(), this._hInterval = setInterval(loopProc, 10); break
 			case 'end':
 				$('body').off('keydown', keyDownHandler);
 				if (genelSonuc) {
@@ -362,6 +372,7 @@ class MQTestAnket extends MQTest {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Anket Test' } static get testSonucSinif() { return TestSonucAnket } static get testGenelSonucSinif() { return TestGenelSonucAnket }
 	static get kodListeTipi() { return 'TSTANKET' } static get sablonSinif() { return MQSablonAnket }
+	static get testUyariText() { return `Bu testi <span class="orangered">Ebeveyn</span> uygulayacaktır` }
 	testUI_setValues(e) {
 		super.testUI_setValues(e); const {rec} = e; if (!rec) { return }
 		const keys = ['sureDk', 'yanitID'], PrefixSecenek = 'secenek', PrefixYanit = 'yanit';
@@ -371,15 +382,15 @@ class MQTestAnket extends MQTest {
 	}
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
 		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, header, content, islemTuslari} = parentPart;
-		const {detaylar} = this, urls = detaylar.map(det => det.resimLink), imageCount = urls.length, PrefixSecenek = 'secenek', PrefixYanit = 'yanit';
+		let {detaylar} = this, PrefixSecenek = 'secenek', PrefixYanit = 'yanit';
 		let rec = detaylar[0], secenekler = []; for (const key of Object.keys({ ...this, ...rec })) {
 			if (key.startsWith(PrefixSecenek) || key.startsWith(PrefixYanit)) {
 				let value = (rec[key] ?? this[key])?.trimEnd?.();
 				if (value) { secenekler[asInteger(key.slice(PrefixSecenek.length)) - 1] = value }
 			}
 		} 
-		const id2Soru = {}; for (const det of detaylar) { let {id, soru} = det; if (soru == null) { continue } soru = soru.trimEnd(); id2Soru[id] = soru }
-		const {genelSonuc, testId, sureDk} = this, {tip, testSonucSinif} = this.class, soruSayi = Object.keys(id2Soru).length;
+		let id2Soru = {}; for (const det of detaylar) { let {id, soru} = det; if (soru == null) { continue } soru = soru.trimEnd(); id2Soru[id] = soru }
+		let {genelSonuc, testId, sureDk} = this, {tip, testSonucSinif, testUyariText} = this.class, soruSayi = Object.keys(id2Soru).length;
 		let htmlList = [], countdown;
 		switch (state) {
 			case 'home':
@@ -388,7 +399,7 @@ class MQTestAnket extends MQTest {
 						`<b class="royalblue">${secenekler.join(', ')}</b> şeklinde yanıtlar verilmelidir.</p>` +
 					`<p>Anket <b class="royalblue">${soruSayi}</b> sorudan oluşmaktadır ve başladıktan sonra <b class="forestgreen">${sureDk} dakika</b> içinde tamamlanmalıdır.</p>` +
 					`<p>Hazırsanız <b class="royalblue">'İşleme Başla'</b> tuşuna basarak testi başlatınız.</p>` +
-					`<p style="font-weight: bold; font-size: 180%; margin-top: 30px">Bu testi <span class="orangered">Ebeveyn</span> uygulayacaktır</p>` +
+					`<p style="font-weight: bold; font-size: 180%; margin-top: 30px">${testUyariText || ''}</p>` +
 					`<div style="margin-bottom: 50px"></div>`
 				);
 				$(`<div class="info wrap-pretty full-width">${infoHTML}</div>`).appendTo(content);
@@ -397,7 +408,9 @@ class MQTestAnket extends MQTest {
 				genelSonuc.tumSayi = soruSayi;
 				let btn = $(`<button id="bitti">TEST BİTTİ ise Buraya tıklayınız</button>`); btn.jqxButton({ theme }).on('click', evt => {
 					if (genelSonuc.cevapsizSayi) { hConfirm(`<b class="firebrick">Tüm soruları cevaplamalısınız</b>`, 'Uyarı'); return }
-					countdown.destroyPart(); countdown = null; delete this._countdown; parentPart.nextPage()
+					countdown?.destroyPart(); countdown = null; delete this._countdown;
+					if (genelSonuc) { for (const testSonuc of Object.values(genelSonuc.soruId2Cevap)) { genelSonuc.totalEkle(testSonuc) } }
+					parentPart.nextPage()
 				}); btn.appendTo(header);
 				htmlList.push(`<div class="anket">`); for (const [id, soru] of Object.entries(id2Soru)) {
 					if (soru == null) { continue }

@@ -22,10 +22,11 @@ class MQSablonCPT extends MQSablon {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'CPT Şablon' }
 	static get tip() { return 'cpt' } static get aciklama() { return 'CPT' } static get kodListeTipi() { return 'SABCPT' } static get table() { return 'esecptsablon' }
 	static get detaySinif() { return MQSablonCPTDetay } static get gridKontrolcuSinif() { return MQSablonCPTGridci } get resimSayisi() { return this.detaylar?.length }
+	static get gecerliTekrarSayi() { return 40 } static get digerTekrarSayi() { return 160 } static get toplamTekrarSayi() { return this.gecerliTekrarSayi + this.digerTekrarSayi }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); $.extend(e.pTanim, {
 			baslamaOncesiBostaMS: new PInstNum('baslamaoncesibostams'), resimGosterimMS: new PInstNum('resimgosterimms'), resimBostaMS: new PInstNum('resimbostams'),
-			gecerliResimSeq: new PInstNum({ rowAttr: 'gecerliresimseq', init: e => 1 }), grupTekrarSayisi: new PInstNum({ rowAttr: 'gruptekrarsayisi', init: e => 1 })
+			gecerliResimSeq: new PInstNum({ rowAttr: 'gecerliresimseq', init: e => 1 }), /* grupTekrarSayisi: new PInstNum({ rowAttr: 'gruptekrarsayisi', init: e => 1 }) */
 		})
 	}
 	static orjBaslikListesiDuzenle(e) {
@@ -34,7 +35,7 @@ class MQSablonCPT extends MQSablon {
 			new GridKolon({ belirtec: 'baslamaoncesibostams', text: 'Başlama Öncesi (ms)', genislikCh: 13, filterType: 'checkedlist' }).tipNumerik(),
 			new GridKolon({ belirtec: 'resimgosterimms', text: 'Resim Gösterim (ms)', genislikCh: 13, filterType: 'checkedlist' }).tipNumerik(),
 			new GridKolon({ belirtec: 'resimbostams', text: 'Resim Boşta (ms)', genislikCh: 13, filterType: 'checkedlist' }).tipNumerik(),
-			new GridKolon({ belirtec: 'gruptekrarsayisi', text: 'Grup Tekrar Sayısı', genislikCh: 13, filterType: 'checkedlist' }).tipNumerik(),
+			/* new GridKolon({ belirtec: 'gruptekrarsayisi', text: 'Grup Tekrar Sayısı', genislikCh: 13, filterType: 'checkedlist' }).tipNumerik(), */
 			new GridKolon({ belirtec: 'gecerliresimseq', text: 'Geçerli Resim No', genislikCh: 13, filterType: 'checkedlist' }).tipNumerik()
 		)
 	}
@@ -47,7 +48,7 @@ class MQSablonCPT extends MQSablon {
 		super.rootFormBuilderDuzenle(e); const {tabPage_genel, kaForm} = e, {aciklama: fbd_aciklama} = kaForm?.id2Builder;
 		fbd_aciklama?.addStyle_wh('calc(var(--full) - 450px)'); let form = kaForm.yanYana();
 		form.addNumberInput('baslamaOncesiBostaMS', 'Başlama Öncesi (ms)').addStyle_wh(130); form.addNumberInput('resimGosterimMS', 'Resim Gösterim (ms)').addStyle_wh(130);
-		form.addNumberInput('resimBostaMS', 'Resim Boşta (ms)').addStyle_wh(130); form.addNumberInput('grupTekrarSayisi', 'Grup Tekrar').addStyle_wh(130);
+		form.addNumberInput('resimBostaMS', 'Resim Boşta (ms)').addStyle_wh(130); /* form.addNumberInput('grupTekrarSayisi', 'Grup Tekrar').addStyle_wh(130); */
 		form.addNumberInput('gecerliResimSeq', 'Geçerli Resim No').addStyle_wh(150)
 	}
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { resimsayisi: this.resimSayisi }) }
