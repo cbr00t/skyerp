@@ -174,7 +174,6 @@ class TSOrtakFis extends MQTicariGenelFis {
 		}
 		if (degistimi) { fis.detaylar = _detaylar; e.fis = fis }
 	}
-	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; hv.oncelik = this.class.oncelik; }
 	uiSatirBedelHesaplaSonrasi(e) { }
 	cariDegisti(e) {
 		e = e || {}; const rec = e.item || e.rec || {}, eFatmi = asBoolQ(rec.efaturakullanirmi);

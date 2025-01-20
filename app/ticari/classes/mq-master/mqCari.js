@@ -504,8 +504,8 @@ class MQCari_Ticari extends MQCariAlt {
 		let {tip2SatisBilgileri} = this, {kod: must} = this.inst, from = 'carisatis';
 		let toplu = new MQToplu(); for (let rec of Object.values(tip2SatisBilgileri)) {
 			let satistipkod = rec.kod?.trimEnd() ?? '', keyHV = { must, satistipkod };
-			let {plasiyerKod: tavsiyeplasiyerkod, odemeGunKod: odemegunkodu} = rec, tahseklino = rec.tahSekliKod || null, hv = { tavsiyeplasiyerkod, odemegunkodu, tahseklino };
-			toplu.add(new MQInsertOrUpdate({ from, keyHV, hv }))
+			let tavsiyeplasiyerkod = rec.plasiyerKod ?? '', odemegunkodu = rec.odemeGunKod ?? '', tahseklino = rec.tahSekliKod ?? null;
+			let hv = { tavsiyeplasiyerkod, odemegunkodu, tahseklino }; toplu.add(new MQInsertOrUpdate({ from, keyHV, hv }))
 		}
 		if (toplu.bosDegilmi) { await app.sqlExecNone(toplu) }
 		await this.kaydetSonrasiIslemler_rotaKaydet(e)

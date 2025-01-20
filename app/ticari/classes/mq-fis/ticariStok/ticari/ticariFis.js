@@ -279,6 +279,7 @@ class SiparisFis extends TicariFis {
 		await super.raporKategorileriDuzenle_detaylar_tsStokMiktarOncesi(e); const section = ['FRFisTicariDetay-Teslim', 'FRSipDetay-SevkVeKalan'];
 		await e.kat.ekSahaYukle({ section })
 	}
+	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; delete hv.detyerkod }
 }
 class SatisSiparisFis extends SiparisFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -336,6 +337,7 @@ class SevkiyatFis extends TicariFis {
 		await e.kat.ekSahaYukle({ section })
 	}
 	static varsayilanKeyHostVarsDuzenle(e) { super.varsayilanKeyHostVarsDuzenle(e); const {hv} = e; $.extend(hv, { piftipi: this.pifTipi, iade: this.iade }) }
+	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; hv.oncelik = this.class.oncelik }
 	eBilgiIcinYukle(e) {
 		super.eBilgiIcinYukle(e); const eBilgi = this.eBilgi || {};
 		const {rec} = eBilgi; if (!rec) { return this } const yerRec = eBilgi.yerRec || {};

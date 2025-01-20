@@ -63,7 +63,7 @@ class TSSHDDetay extends TSDetay {
 			iskYapi: new PInstClass(TicIskYapi), kdvKod: new PInstStr(), ekVergiYapi: new PInstClass(EkVergiYapi), kkegYuzde: new PInstNum('kkegyuzde'),
 			adiDegisirmi: new PInstBool(), kdvDegiskenmi: new PInstBitBool(), altAciklama: new PInstStr()
 		});
-		if (!this.hizmetmi) { $.extend(pTanim, { yerKod: new PInstStr('detyerkod') }) }
+		if (!this.hizmetmi) { $.extend(pTanim, { yerKod: new PInstStr() }) }
 	}
 	static orjBaslikListesiDuzenleIlk(e) {
 		super.orjBaslikListesiDuzenleIlk(e); this.orjBaslikListesiDuzenleDevam(e);
@@ -142,14 +142,14 @@ class TSSHDDetay extends TSDetay {
 	hostVars(e) { for (const key of ['fiyat', 'brutBedel', 'netBedel']) { this[key] = (this[key] || 0) } return super.hostVars(e) }
 	hostVarsDuzenle(e) {
 		e = e || {}; super.hostVarsDuzenle(e); const {fis, hv} = e, {shKodSaha, shAdiSaha, hizmetmi} = this.class, {siparismi} = fis.class;
-		hv[shKodSaha] = this.shKod; if (!(siparismi || hizmetmi)) { hv.detyerkod = this.getYerKod({ fis }) }
+		hv[shKodSaha] = this.shKod; if (siparismi || hizmetmi) { delete hv.detyerkod } else { hv.detyerkod = this.getYerKod({ fis }) }
 		const {fiyat, netBedel} = this; hv.ekranverifiyat = hv.belgefiyat = fiyat; hv.belgebedel = netBedel
 	}
 	setValues(e) {
 		e = e || {}; super.setValues(e); const {rec, fis} = e, {shKodSaha, shAdiSaha, hizmetmi} = this.class, {siparismi} = fis.class;
 		$.extend(this, {
 			shKod: rec.shKod || rec.shkod || rec[shKodSaha], shAdi: rec.shAdi || rec.shadi || rec[shAdiSaha], brm: rec.brm,
-			kdvDegiskenmi: asBool(rec.kdvDegiskenmi), adiDegisirmi: asBool(rec.adiDegisirmi), takipNo: rec.dettakipno || '', takipAdi: rec.takipadi
+			kdvDegiskenmi: asBool(rec.kdvDegiskenmi), adiDegisirmi: asBool(rec.adiDegisirmi), takipNo: rec.dettakipno || '', takipAdi: rec.takipadi,
 		});
 		if (!(siparismi || hizmetmi)) { $.extend(this, { yerKod: rec.detyerkod ?? '', yerAdi: rec.yeradi }) }
 	}
@@ -333,10 +333,13 @@ class TSStokDetayOrtak extends TSStokHizmetDetay {
 		}
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {aliasVeNokta, shTable, shAlias, shKodSaha, shAdiSaha} = this, {sent} = e;
-		sent.fromIliski('stkyer yer', `${aliasVeNokta}detyerkod = yer.kod`);
+		super.loadServerData_queryDuzenle(e); const {aliasVeNokta, shTable, shAlias, shKodSaha, shAdiSaha, hizmetmi} = this;
+		let {sent, fisSinif} = e, {sahalar} = sent, {siparismi} = fisSinif ?? {};
+		if (!(hizmetmi || siparismi)) { sent.fromIliski('stkyer yer', `${aliasVeNokta}detyerkod = yer.kod`) }
 		sent.fromIliski('takipmst tak', `${aliasVeNokta}dettakipno = tak.kod`);
-		sent.sahalar.add(`${aliasVeNokta}miktar2`, 'yer.aciklama yeradi', 'tak.aciklama takipadi', `${shAlias}.brm2`, `${shAlias}.brmorani`)
+		sahalar.add(`${aliasVeNokta}miktar2`);
+		if (hizmetmi || siparismi) { sahalar.add(`'' yerkod`) }
+		sahalar.add(`${hizmetmi || siparismi ? `''` : 'yer.aciklama'} yeradi`, 'tak.aciklama takipadi', `${shAlias}.brm2`, `${shAlias}.brmorani`)
 	}
 	static tekilOku_detaylar_queryDuzenle_ticari(e) {
 		super.tekilOku_detaylar_queryDuzenle_ticari(e); const {aliasVeNokta} = this, {sent, fis} = e, {yildizlimi} = fis;
