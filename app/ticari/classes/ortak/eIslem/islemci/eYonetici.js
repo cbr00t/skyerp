@@ -81,10 +81,11 @@ class EYonetici extends CObject {
 						const results = await app.wsEIslemYap({
 							eIslemci: efAyrimTipi, oe: eConf.getValue('ozelEntegrator')?.char || '', eIslemAPI: 'belgeGonder', eLogin: toJSONStr(eConf.eLogin), eToken: savedToken || '',
 							ekArgs: toJSONStr(eIslEkArgs), args: subRecs.map(rec => {
-								const {uuid, seri} = rec, senaryoTipi = rec.efatsenaryotipi, eArsivGonderimTipi = rec.earsivbelgetipi || '', receiverVKN = rec.vkno, eMailStr = rec.revizeeislemmail;
-								const eMails = eMailStr ? eMailStr.split(';').filter(x => !!x?.trim() && x.length > 4 && x.includes('@') && x.includes('.')).map(x => x.trim()) : null;
-								const receiverGIBAlia = (efAyrimTipi == 'IR') ? (rec.eirsgibalias || rec.efatgibalias) : rec.efatgibalias, belgeNox = rec.fisnox;
-								return { uuid, seri, /*irsBaglantiVarmi,*/ senaryoTipi, receiverVKN, belgeNox, eMails }
+								let {uuid, seri} = rec, senaryoTipi = rec.efatsenaryotipi, eArsivGonderimTipi = rec.earsivbelgetipi || '';
+								let receiverVKN = rec.vkno, eMailStr = rec.revizeeislemmail;
+								let eMails = eMailStr ? eMailStr.split(';').filter(x => !!x?.trim() && x.length > 4 && x.includes('@') && x.includes('.')).map(x => x.trim()) : null;
+								let receiverGIBAlias = (efAyrimTipi == 'IR') ? (rec.eirsgibalias || rec.efatgibalias) : rec.efatgibalias, belgeNox = rec.fisnox;
+								return { uuid, seri, /*irsBaglantiVarmi,*/ senaryoTipi, receiverVKN, receiverGIBAlias, belgeNox, eMails }
 							})
 						});
 						if (results) {
