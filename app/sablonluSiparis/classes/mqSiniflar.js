@@ -100,7 +100,8 @@ class SablonluSiparisOrtakFis extends MQOrtakFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Sipariş' }
 	static get table() { return 'hizlisablongrup' } static get tableAlias() { return 'grp' } static get tanimUISinif() { return FisGirisPart }
 	static get detaySinif() { return SablonluSiparisOrtakDetay } static get gridKontrolcuSinif() { return SablonluSiparisOrtakGridci }
-	static get tumKolonlarGosterilirmi() { return true } static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false } static get raporKullanilirmi() { return false }
+	static get tumKolonlarGosterilirmi() { return true } static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false }
+	static get raporKullanilirmi() { return false } static get noSaha() { return null }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); $.extend(e.pTanim, {
 			sablonSayac: new PInstNum('sablonsayac'), tarih: new PInstDateToday(),
@@ -108,17 +109,20 @@ class SablonluSiparisOrtakFis extends MQOrtakFis {
 		})
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); let {baslikForm: fbd_baslikForm} = e.builders, {builders: baslikFormlar} = fbd_baslikForm, {inst} = e;
+		super.rootFormBuilderDuzenle(e); let {root: rfb, baslikForm: fbd_baslikForm} = e.builders, {builders: baslikFormlar} = fbd_baslikForm, {inst} = e;
+		rfb.addStyle(e => `$elementCSS .islemTuslari { position: absolute !important; top: 3px !important }`);
 		baslikFormlar[0].altAlta().addForm('_baslikBilgi')
 			.addStyle(e =>
-				`$elementCSS { font-size: 150% } $elementCSS > ._row { gap: 10px } $elementCSS > ._row:not(:last-child) { margin-bottom: 5px }
-				$elementCSS .etiket { width: 130px !important } $elementCSS .veri { font-weight: bold; color: royalblue }`
+				`$elementCSS { font-size: 130% } $elementCSS > ._row { gap: 10px } $elementCSS > ._row:not(:last-child) { margin-bottom: 5px }
+				$elementCSS .etiket { width: 100px !important } $elementCSS .veri { font-weight: bold; color: royalblue }`
 			 ).setLayout(({ builder: fbd }) => {
 				let {altInst: inst} = fbd, {tarih, mustKod, sablonSayac} = inst;
 				return $(`<div class="full-width">
-					<div class="tarih _row flex-row"><div class="etiket">Tarih:</div> <div class="veri">${dateToString(inst.tarih) || ''}</div></div>
-					<div class="must _row flex-row"><div class="etiket">Müşteri:</div> <div class="veri">${mustKod || ''}</div></div>
-					<div class="sablon _row flex-row"><div class="etiket">Şablon:</div> <div class="veri">${sablonSayac || ''}</div></div>
+					<div class="flex-row" style="gap: 100px">
+						<div class="tarih _row flex-row"><div class="etiket">Tarih</div><div style="margin-right: 10px"></div><div class="veri">${dateToString(inst.tarih) || ''}</div></div>
+						<div class="sablon _row flex-row"><div class="etiket">Şablon</div><div class="veri">${sablonSayac || ''}</div></div>
+					</div>
+					<div class="must _row flex-row"><div class="etiket">Müşteri</div><div class="veri">${mustKod?.trim() || ''}</div></div>
 				</div>`)
 			}).onBuildEk(({ builder: fbd }) => {
 				let {altInst: inst, layout} = fbd, {mustKod, sablonSayac} = inst;
@@ -126,15 +130,41 @@ class SablonluSiparisOrtakFis extends MQOrtakFis {
 					if (!selector) { return } let elm = layout.find(`.${selector}`); if (!elm?.length) { return }
 					if (kod) {
 						aciklama = await aciklama; if (!aciklama) { return }
-						let text = aciklama; if (kod && typeof kod == 'string') { text = `<span class="kod bold gray">${kod}</b> <span class="aciklama royalblue normal">${aciklama}</span>` };
-						elm.find('.veri').html(text); elm.parent().removeClass('jqx-hidden basic-hidden')
+						let text = aciklama?.trim(); if (kod && typeof kod == 'string') { text = `<span class="kod bold gray">${kod}</b> <span class="aciklama royalblue normal">${aciklama}</span>` };
+						elm.find('.veri').html(text.trim()); elm.removeClass('jqx-hidden basic-hidden')
 					}
-					else { elm.parent().addClass('jqx-hidden') }
+					else { elm.addClass('jqx-hidden') }
 				};
 				setKA('sablon', sablonSayac, MQSablon.getGloKod2Adi(sablonSayac)); setKA('must', mustKod, MQCari.getGloKod2Adi(mustKod))
 			})
 	}
 	static loadServerDataDogrudan(e) { return [] }
+	topluYazmaKomutlariniOlustur(e) {
+		const {toplu, paramName_fisSayac} = e, {table} = this.class, hv = this.hostVars(e); toplu.add(new MQInsert({ table, hv }));
+		const keyHV = this.alternateKeyHostVars(e); e.keyHV = keyHV; let sayac = e.sayac = this.topluYazmaKomutlariniOlustur_baslikSayacBelirle(e);
+		const detHVArg = { fis: this.shallowCopy() }; detHVArg.fis.sayac = sayac ?? new MQSQLConst(paramName_fisSayac);
+		const {detaylar} = this, detTable2HVListe = e.detTable2HVListe = {};
+		for (const det of detaylar) {
+			const hv = det.hostVars(detHVArg); if (!hv) { return false }
+			const detTable = det.class.getDetayTable(detHVArg), hvListe = detTable2HVListe[detTable] = detTable2HVListe[detTable] || [];
+			hvListe.push(hv)
+		}
+		for (const detTable in detTable2HVListe) { const hvListe = detTable2HVListe[detTable]; toplu.add(new MQInsert({ table: detTable, hvListe })) }
+		e.params = toplu.params = toplu.params || []; this.topluYazmaKomutlariniOlustur_sqlParamsDuzenle(e)
+	}
+	async topluDegistirmeKomutlariniOlustur(e) {
+		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {toplu, trnId} = e;
+		let {table, sayacSaha, detaySinif: thisDetaySinif} = this.class, harSayacSaha, fisSayacSaha, seqSaha;
+		let detTable2HVListe = e.detTable2HVListe = {}, {detaylar} = this, detHVArg = { fis: this };
+		for (let det of detaylar) {
+			let detaySinif = det?.class ?? thisDetaySinif; if (detaySinif && $.isPlainObject(det)) { det = new detaySinif(det) }
+		}
+	}
+	topluSilmeKomutlariniOlustur(e) {
+		const {toplu, sayac} = e, {table, sayacSaha, detaySiniflar, detayTablolar} = this.class, {fisSayacSaha} = detaySiniflar[0];
+		for (const detTable of detayTablolar) { toplu.add(new MQIliskiliDelete({ from: detTable, where: { degerAta: sayac, saha: fisSayacSaha } })) }
+		toplu.add(new MQIliskiliDelete({ from: table, where: { degerAta: sayac, saha: sayacSaha } }))
+	}
 	async yeniTanimOncesiIslemler(e) { await super.yeniTanimOncesiIslemler(e); await this.detaylariDuzenle(e) }
 	async detaylariYukleSonrasi(e) { await super.detaylariYukleSonrasi(e); await this.detaylariDuzenle(e) }
 	async detaylariDuzenle(e) {

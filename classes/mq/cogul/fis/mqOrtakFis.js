@@ -25,57 +25,38 @@ class MQOrtakFis extends MQDetayli {
 	get bakiyeciler() { return [] }
 	
 	constructor(e) {
-		e = e || {}; super(e); if (e.isCopy) return
-		this.fisNo = e.no ?? e.fisNo ?? this.no
+		e = e || {}; super(e); if (e.isCopy) { return }
+		const {noSaha} = this.class; if (noSaha) { this.fisNo = e.no ?? e.fisNo ?? this.no }
 	}
 	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); const {pTanim} = e;
-		$.extend(pTanim, { fisNo: new PInst() })
+		super.pTanimDuzenle(e); const {pTanim} = e, {noSaha} = this;
+		if (noSaha) { pTanim.fisNo = new PInst() }
 	}
 	static secimlerDuzenleSon(e) {
-		super.secimlerDuzenleSon(e); const {secimler} = e;
-		secimler.grupTopluEkle([ { kod: 'teknik', aciklama: 'Teknik', renk: '#eee', zeminRenk: 'orangered', kapalimi: true } ]);
-		secimler.secimTopluEkle({ sayac: new SecimInteger({ etiket: 'Belge ID' }) });
-		secimler.whereBlockEkle(e => {
-			const {aliasVeNokta, sayacSaha} = this, wh = e.where, sec = e.secimler;
+		super.secimlerDuzenleSon(e); const {secimler: sec} = e;
+		sec.grupTopluEkle([ { kod: 'teknik', aciklama: 'Teknik', renk: '#eee', zeminRenk: 'orangered', kapalimi: true } ]);
+		sec.secimTopluEkle({ sayac: new SecimInteger({ etiket: 'Belge ID' }) });
+		sec.whereBlockEkle(e => {
+			const {aliasVeNokta, sayacSaha} = this, {where: wh, secimler: sec} = e;
 			wh.basiSonu(sec.sayac, `${aliasVeNokta}${sayacSaha}`)
 		})
 	}
 	static getRootFormBuilder(e) { return this.getRootFormBuilder_fis(e) }
 	static rootFormBuilderDuzenle(e) { }
 	static rootFormBuilderDuzenleSonrasi_ayrimVeOzelSahalar_getParentBuilder(e) { return e.builders.baslikForm.builders[2] }
-	static rootFormBuilderDuzenle(e) {
-		e = e || {};
-		super.rootFormBuilderDuzenle(e);
-		this.rootFormBuilderDuzenle_ilk(e);
-		this.rootFormBuilderDuzenle_ara(e);
-		this.rootFormBuilderDuzenle_son(e)
-	}
-	static rootFormBuilderDuzenle_ilk(e) { this.forAltYapiClassesDo('rootFormBuilderDuzenle_ilk', e) }
-	static rootFormBuilderDuzenle_ara(e) { this.forAltYapiClassesDo('rootFormBuilderDuzenle_ara', e) }
+	static rootFormBuilderDuzenle(e) { e = e || {}; super.rootFormBuilderDuzenle(e); this.rootFormBuilderDuzenle_ilk(e); this.rootFormBuilderDuzenle_ara(e); this.rootFormBuilderDuzenle_son(e) }
+	static rootFormBuilderDuzenle_ilk(e) { this.forAltYapiClassesDo('rootFormBuilderDuzenle_ilk', e) } static rootFormBuilderDuzenle_ara(e) { this.forAltYapiClassesDo('rootFormBuilderDuzenle_ara', e) }
 	static rootFormBuilderDuzenle_son(e) { this.forAltYapiClassesDo('rootFormBuilderDuzenle_son', e) }
-	static standartGorunumListesiDuzenle(e) {
-		super.standartGorunumListesiDuzenle(e);
-		this.standartGorunumListesiDuzenle_ilk(e);
-		this.standartGorunumListesiDuzenle_ara(e);
-		this.standartGorunumListesiDuzenle_son(e)
-	}
-	static standartGorunumListesiDuzenle_ilk(e) { this.forAltYapiClassesDo('standartGorunumListesiDuzenle_ilk', e) }
-	static standartGorunumListesiDuzenle_ara(e) { this.forAltYapiClassesDo('standartGorunumListesiDuzenle_ara', e) }
+	static standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e); this.standartGorunumListesiDuzenle_ilk(e); this.standartGorunumListesiDuzenle_ara(e); this.standartGorunumListesiDuzenle_son(e) }
+	static standartGorunumListesiDuzenle_ilk(e) { this.forAltYapiClassesDo('standartGorunumListesiDuzenle_ilk', e) } static standartGorunumListesiDuzenle_ara(e) { this.forAltYapiClassesDo('standartGorunumListesiDuzenle_ara', e) }
 	static standartGorunumListesiDuzenle_son(e) { this.forAltYapiClassesDo('standartGorunumListesiDuzenle_son', e) }
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e);
-		this.orjBaslikListesiDuzenle_ilk(e);
-		this.orjBaslikListesiDuzenle_ara(e);
-		this.orjBaslikListesiDuzenle_son(e)
-	}
-	static orjBaslikListesiDuzenle_ilk(e) { this.forAltYapiClassesDo('orjBaslikListesiDuzenle_ilk', e) }
-	static orjBaslikListesiDuzenle_ara(e) { this.forAltYapiClassesDo('orjBaslikListesiDuzenle_ara', e) }
+	static orjBaslikListesiDuzenle(e) { super.orjBaslikListesiDuzenle(e); this.orjBaslikListesiDuzenle_ilk(e); this.orjBaslikListesiDuzenle_ara(e); this.orjBaslikListesiDuzenle_son(e) }
+	static orjBaslikListesiDuzenle_ilk(e) { this.forAltYapiClassesDo('orjBaslikListesiDuzenle_ilk', e) } static orjBaslikListesiDuzenle_ara(e) { this.forAltYapiClassesDo('orjBaslikListesiDuzenle_ara', e) }
 	static orjBaslikListesiDuzenle_son(e) { this.forAltYapiClassesDo('orjBaslikListesiDuzenle_son', e) }
 	fisBaslikOlusturucularDuzenle(e) { }
 	dipOlustur(e) {
-		let result = null;
-		if (this.class.dipKullanilirmi) { const {dipSinif} = this.class; if (dipSinif) { result = this.dipIslemci = new dipSinif({ fis: this }) } }
+		let result = null, {dipKullanilirmi} = this.class;
+		if (dipKullanilirmi) { const {dipSinif} = this.class, fis = this; if (dipSinif) { result = this.dipIslemci = new dipSinif({ fis }) } }
 		return result
 	}
 	getDipGridSatirlari(e) { e.liste = []; this.dipGridSatirlariDuzenle(e); return e.liste }
@@ -86,9 +67,9 @@ class MQOrtakFis extends MQDetayli {
 		this.donusumBilgileriniSil(e)
 	}
 	async disKaydetIslemi(e) {
-		e = e || {}; let {num} = this.numarator, {fisNo} = this;
+		e = e || {}; let {noSaha} = this.class, {numarator: num, fisNo} = this;
 		if (!num) { const {numYapi} = this; if (numYapi) { num = this.numarator = numYapi.deepCopy() } }
-		if (!fisNo && num) { await num.yukle(e); const {seri, noYil} = num; fisNo = num.sonNo; $.extend(this, { seri, noYil, fisNo }) }
+		if (noSaha && !fisNo && num) { await num.yukle(e); const {seri, noYil} = num; fisNo = num.sonNo; $.extend(this, { seri, noYil, fisNo }) }
 		let result = await this.disKaydetOncesiIslemler(e); if (result === false) { return false }
 		e.proc = async e => {
 			let result = await this.disKaydetOncesi_trn(e); if (result === false) { return false }
@@ -163,10 +144,13 @@ class MQOrtakFis extends MQDetayli {
 		return result
 	}
 	alternateKeyHostVarsDuzenle(e) {
-		super.alternateKeyHostVarsDuzenle(e); const {hv} = e;
-		hv[this.class.noSaha] = coalesce(this.fisNo, null)
+		super.alternateKeyHostVarsDuzenle(e); const {hv} = e, {noSaha} = this.class, {fisNo} = this;
+		if (noSaha) { hv[noSaha] = fisNo ?? null }
 	}
-	setValues(e) { super.setValues(e); const {rec} = e; this.fisNo = rec[this.class.noSaha] || 0 }
+	setValues(e) {
+		super.setValues(e); const {rec} = e, {noSaha} = this.class, {fisNo} = this;
+		if (noSaha) { this.fisNo = rec[this.class.noSaha] || 0 }
+	}
 	bakiyeSqlOrtakDuzenle(e) {
 		const {sent} = e, {table, sayacSaha} = this.class, {paramName_fisSayac} = e, {sayac} = this;
 		sent.fromAdd(`${table} fis`); sent.where.add(`fis.${sayacSaha} = ${sayac ? MQSQLOrtak.sqlServerDegeri(sayac) : paramName_fisSayac}`)

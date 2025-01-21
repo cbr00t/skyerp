@@ -1,7 +1,8 @@
 class FisGirisPart extends GridliGirisWindowPart {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'fisGiris' } get formDeferMS() { return 150 } static get defaultCacheFlag() { return false } static get defaultAsyncFlag() { return false }
-	get yenimi() { return this.islem == 'yeni' } get degistirmi() { return this.islem == 'degistir' } get kopyami() { return this.islem == 'kopya' } get silmi() { return this.islem == 'sil' }
+	get yenimi() { return this.islem == 'yeni' } get degistirmi() { return this.islem == 'degistir' }
+	get kopyami() { return this.islem == 'kopya' } get silmi() { return this.islem == 'sil' } get izlemi() { return this.islem == 'izle' }
 	get yeniVeyaKopyami() { return this.yenimi || this.kopyami } get degistirVeyaSilmi() { return this.degistirmi || this.silmi }
 	get inst() { return this.fis } set inst(value) { return this.fis = value }
 	get builder() {
@@ -118,21 +119,22 @@ class FisGirisPart extends GridliGirisWindowPart {
 			if (!builder) { continue } builder.part = this; let _parent = builder.parent;
 			if (builder.isRootFormBuilder) {
 				this.builder = builder; let _layout = builder.layout;
-				if (!(_parent?.length || _layout?.length)) _layout = builder.layout = layout;
+				if (!(_parent?.length || _layout?.length)) { _layout = builder.layout = layout }
 			}
 			else if (!_parent?.length) { _parent = builder.parent = layout }
 			let {id: _id} = builder; if (!_id) { _id = builder.id = builder.newElementId() }
-			if (_id) { id2Builder[_id] = builder }
-			builder.autoInitLayout(); builder.run();
+			if (_id) { id2Builder[_id] = builder } builder.autoInitLayout(); builder.run();
 			let {layout: _layout} = builder; if (_layout?.length) { _layout.addClass('jqx-hidden'); setTimeout(() => _layout.removeClass('jqx-hidden'), 1) }
 		}
 	}
 	islemTuslariDuzenle(e) {
 		super.islemTuslariDuzenle(e); const {liste} = e, yListe = [];
 		for (const item of liste) {
-			const {id} = item;
-			switch (id) {
-				case 'tamam': item.handler = e => this.tamamIstendi(e); break; }
+			const {id} = item; switch (id) {
+				case 'tamam':
+					if (this.izlemi) { continue }
+					item.handler = e => this.tamamIstendi(e); break
+			}
 			yListe.push(item)
 		}
 		e.liste = yListe
@@ -238,7 +240,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 		else if (this.degistirmi) { result = await fis.degistir(e) }
 		else if (this.silmi) { result = await fis.sil(e) }
 		else { return false }
-		if (result == false || result?.isError) return result
+		if (result == false || result?.isError) { return result }
 		result = await this.kaydetSonrasi(e); if (result == false || result?.isError) { return result }
 		return result
 	}
