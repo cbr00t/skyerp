@@ -191,18 +191,16 @@ class SablonluKonsinyeSiparisFis extends SablonluSiparisOrtakFis {
 
 class SablonluSiparisOrtakDetay extends MQDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'hizlisablondetay' } static get fisSayacSaha() { return 'grupsayac' }
-	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); $.extend(e.pTanim, {
-			stokKod: new PInstStr('stokkod'), miktar: new PInstNum('miktar'),
-			stokAdi: new PInstStr(), brm: new PInstStr()
-		})
+	constructor(e) {
+		e = e ?? {}; super(e); let {grupSayac, grupAdi, stokKod, stokAdi, brm, miktar} = e;
+		$.extend(this, { grupSayac, grupAdi, stokKod, stokAdi, brm, miktar })
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); let {sent, fis} = e, {tableAlias: grupAlias} = fis.class, {tableAlias: harAlias} = this;
 		let {where: wh, sahalar} = sent, {sablonSayac} = fis;
 		sent.fromIliski(`hizlisablongrup ${grupAlias}`, `${harAlias}.grupsayac = ${grupAlias}.kaysayac`).fromIliski('stkmst stk', `${harAlias}.stokkod = stk.kod`)
 		wh.add(`${harAlias}.bdevredisi = 0`, `stk.silindi = ''`, `stk.satilamazfl = ''`).degerAta(sablonSayac, `${grupAlias}.fissayac`);
-		sahalar.add('stk.aciklama stokadi', 'stk.brm brm')
+		sahalar.add(`${grupAlias}.grupadi`, 'stk.aciklama stokadi', 'stk.brm brm')
 	}
 	static loadServerData(e) {
 		return super.loadServerData(e)
@@ -222,7 +220,14 @@ class SablonluSiparisOrtakDetay extends MQDetay {
 		}
 		return recs*/
 	}
-	setValues(e) { super.setValues(e); let {rec} = e; $.extend(this, { stokAdi: rec.stokadi, brm: rec.brm }) }
+	hostVarsDuzenle(e) {
+		super.hostVarsDuzenle(e); let {hv} = e, {grupSayac: grupsayac, stokKod: stokkod} = this, miktar = this.miktar ?? 0;
+		$.extend(hv, { grupsayac, stokkod, miktar })
+	}
+	setValues(e) {
+		super.setValues(e); let {rec} = e, {grupsayac: grupSayac, grupadi: grupAdi, stokkod: stokKod, stokadi: stokAdi, brm, miktar} = rec;
+		$.extend(this, { grupSayac, grupAdi, stokKod, stokAdi, brm, miktar })
+	}
 }
 class SablonluSiparisDetay extends SablonluSiparisOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -233,12 +238,33 @@ class SablonluKonsinyeSiparisDetay extends SablonluSiparisOrtakDetay {
 
 class SablonluSiparisOrtakGridci extends GridKontrolcu {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	gridArgsDuzenle(e) { super.gridArgsDuzenle(e); let gridPart = e.gridPart ?? e.sender, {args} = e; gridPart.sabit(); $.extend(args, { rowsHeight: 45 }) }
+	gridArgsDuzenle(e) {
+		super.gridArgsDuzenle(e); let gridPart = e.gridPart ?? e.sender, {args} = e; gridPart.sabit();
+		$.extend(args, { rowsHeight: 45, groupsExpandedByDefault: true })
+	}
 	tabloKolonlariDuzenle_ilk(e) {
 		super.tabloKolonlariDuzenle_ilk(e); e.tabloKolonlari.push(...[
+			new GridKolon({ belirtec: 'grupAdi', text: 'Grup Adı', genislikCh: 20 }).hidden(),
 			new GridKolon({ belirtec: 'stokText', text: 'Ürün/Hizmet', genislikCh: 60 }).readOnly(),
-			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 13 }).tipDecimal()
+			new GridKolon({
+				belirtec: 'miktar', text: 'Miktar', genislikCh: 13,
+				cellValueChanging: (colDef, rowIndex, belirtec, colType, oldValue, newValue) => {
+					let {gridWidget} = colDef.gridPart, rec = gridWidget.getrowdata(rowIndex);
+					rec._degistimi = true; gridWidget.beginupdate(); gridWidget.endupdate(false)
+				},
+				cellClassName: (colDef, rowIndex, belirtec, value, _rec) => {
+					let {gridWidget} = colDef.gridPart, rec = gridWidget.getrowdata(rowIndex);
+					let result = [belirtec], {_degistimi: degistimi} = rec;
+					if (degistimi) { result.push('bg-lightgreen') }
+					return result.join(' ')
+				}
+			}).tipDecimal().sifirGosterme(),
+			new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 5 }).readOnly()
 		])
+	}
+	gridVeriYuklendi(e) {
+		super.gridVeriYuklendi(e); let {grid} = e;
+		grid.jqxGrid({ groupable: true, groups: ['grupAdi'] })
 	}
 }
 class SablonluSiparisGridci extends SablonluSiparisOrtakGridci { static { window[this.name] = this; this._key2Class[this.name] = this } }
