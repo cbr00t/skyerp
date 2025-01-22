@@ -227,6 +227,7 @@ class EIslemOrtak extends CObject {
 		try {
 			const qrCode = new QRCode($(`<div/>`)[0], { width: 180, height: 180, correctLevel : QRCode.CorrectLevel.L }); qrCode.makeCode(encodedQRData);
 			const img = qrCode._el.querySelector('img'); imgData = await new $.Deferred(p => setTimeout(() => p.resolve(img.src), 10));
+			if (!imgData) { throw { isError: true, rc: 'noImgData' } }
 			/*if (imgData) { imgData = imgData.split(',', 2)[1] || imgData }*/
 		}
 		catch (_ex) {
