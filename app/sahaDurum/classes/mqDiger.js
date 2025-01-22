@@ -90,7 +90,7 @@ class MQCariEkstre extends MQMasterOrtak {
 	}
 	static get tabloKolonlari_detaylar() { return this.detaySinif.orjBaslikListesi }
 	static async loadServerData_detaylar(e) {
-		let recs = await this.detaySinif.loadServerData(e); if (!recs?.length) return recs
+		let recs = await this.detaySinif.loadServerData(e); if (!recs?.length) { return recs }
 		const {parentRec} = e, fisSayac = parentRec.icerikfissayac; recs = recs.filter(rec => rec.icerikfissayac == fisSayac); return recs
 	}
 }
