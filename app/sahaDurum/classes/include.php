@@ -1,4 +1,4 @@
-<?php $_partRoot = "./classes" ?>
+<?php $_partRoot = "$webRoot_sahaDurum/classes" ?>
 <script src="<?=$_partRoot?>/yerelParam.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/yerelParam-config.js?<?=$appVersion?>"></script>
 <script src="<?=$webRoot?>/classes/offline/localData.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqOrtak.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/mqMustBilgi.js?<?=$appVersion?>"></script>

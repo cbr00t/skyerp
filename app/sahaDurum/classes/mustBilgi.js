@@ -1,6 +1,6 @@
 class MustBilgi extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static yaslandirmaKey = 'kapanmayanHesap_yaslandirma'; static kademeler = [0, 30, 60, 90, 120];
+	static { $.extend(this, { yaslandirmaKey: 'kapanmayanHesap_yaslandirma', kademeler: [0, 15, 30, 45, 60], kademeEk: 0 }) }
 	get yaslandirmalar() { return this[this.class.yaslandirmaKey] } set yaslandirmalar(value) { this[this.class.yaslandirmaKey] = value }
 	get bakiyeText() { return `Bakiye: <span class="bold green">${toStringWithFra(this.bakiye, 2)}</b>` }
 	constructor(e) {
@@ -26,9 +26,11 @@ class MustBilgi extends CObject {
 		return 0
 	}
 	static getKademeText(index) {
-		const {kademeler} = this; const kademe = kademeler[index];
-		switch (index) { case 0: return `0 -> ${kademeler[index + 1]}`; case kademeler.length - 1: return 'Sonrası' }
-		return `${kademe + 1} -> ${kademeler[index + 1]}`
+		const {kademeler, kademeEk} = this; let kademe = kademeler[index];
+		if (index == kademeler.length - 1) { return 'Sonrası' }
+		let _kademeBS = new CBasiSonu({ basi: kademe ? kademe + 1 : 0, sonu: kademeler[index + 1] });
+		if (kademeEk) { for (let key in _kademeBS) { _kademeBS[key] += kademeEk } }
+		return _kademeBS.toString()
 	}
 	getKademeGecmisBedeli(i) { return this.yaslandirmalar[i]?.gecmis || 0 }
 }
