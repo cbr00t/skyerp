@@ -223,13 +223,16 @@ class EIslemOrtak extends CObject {
 			qrData[`hesaplanankdv(${oran})`] = toFileStringWithFra(bedel || 0, 2)
 		}
 		const mimeType = 'image/png', encodedQRData = toJSONStr(qrData), type = 'KAREKOD_IMG';
-		let imgData; const qrURL = `https://api.qrserver.com/v1/create-qr-code/?charset-source=utf-8&ecc=L&size=180x180&qzone=1&format=jpg&data=${encodedQRData}`;
+		let imgData, qrURL = `https://api.qrserver.com/v1/create-qr-code/?charset-source=utf-8&ecc=L&size=180x180&qzone=1&format=jpg&data=${encodedQRData}`;
 		try {
 			const qrCode = new QRCode($(`<div/>`)[0], { width: 180, height: 180, correctLevel : QRCode.CorrectLevel.L }); qrCode.makeCode(encodedQRData);
 			const img = qrCode._el.querySelector('img'); imgData = await new $.Deferred(p => setTimeout(() => p.resolve(img.src), 10));
 			/*if (imgData) { imgData = imgData.split(',', 2)[1] || imgData }*/
 		}
-		catch (_ex) { try { imgData = (await app.wsWebRequest({ args: { method: 'GET', url: qrURL } }))?.data?.binary } catch (ex) { console.error(getErrorText(ex))} }
+		catch (_ex) {
+			try { imgData = `data:image/jpeg;base64,${(await app.wsWebRequest({ args: { method: 'GET', url: qrURL } }))?.data?.binary}` }
+			catch (ex) { console.error(getErrorText(ex))}
+		}
 		if (imgData) {
 			await this.xsltDuzenleyiciEkle({ args: { type, imgData }, handler: e => e.result.replaceAll(`[${e.args.type}]`, imgData /*`data:image/jpeg;base64,${imgData}`*/ ) });
 			await this.xmlDuzenleInternal_docRef({ xw, id: '0', type: 'KAREKOD_IMG', typeCode: 'dynamic' })
