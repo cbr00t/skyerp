@@ -1,6 +1,6 @@
 class DRapor_Uretim_MESSinyal extends DRapor_MES {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return super.uygunmu } static get araSeviyemi() { return false }
-	static get kod() { return 'MESSINYAL' } static get aciklama() { return 'MES Sinyal Analizi' } static get vioAdim() { return null }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get araSeviyemi() { return false } static get kod() { return 'MESSINYAL' } static get aciklama() { return 'MES Sinyal Analizi' } static get vioAdim() { return null }
 }
 class DRapor_Uretim_MESSinyal_Main extends DRapor_MES_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Uretim_MESSinyal }

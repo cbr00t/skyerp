@@ -13,7 +13,7 @@ class SkyRaporApp extends TicariApp {
 	}
 	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { dRapor: MQParam_DRapor.getInstance() }) }
 	async anaMenuOlustur(e) {
-		await this.promise_ready; let {kullanim} = app.params.aktarim, eksikParamIsimleri = [];
+		await this.promise_ready; let {kullanim} = app.params.aktarim, eksikParamIsimleri = []; this.sqlTables = await app.sqlGetTables();
 		if (!kullanim.webOzetRapor) { eksikParamIsimleri.push('Web Özet Rapor') }
 		if (eksikParamIsimleri.length) {
 			this.noMenuFlag = true; const paramIsimleriGosterim = eksikParamIsimleri.map(x => `<span class="bold firebrick">${x}</span>`).join(' VE ');

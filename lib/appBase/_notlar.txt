@@ -1,0 +1,34 @@
+/* pavo api */
+let processData = false, ajaxContentType = wsContentTypeVeCharSet;
+let wsURLBase = `https://localhost:9200/ws/api/pavo`, api, args, url, result;
+let device = { ip: '192.168.1.62', serialNumber: 'N860W6C0855' };
+let results = [];
+
+let fisNox = 'ABC2025000000003', tahSekliNo = 1, dvKod = 'TRY', dvKur = 1;
+let miktar = 3, fiyat = 20, kdvOrani = 20, bedel = roundToFra(miktar * fiyat);
+let kdvDahilFiyat = roundToFiyatFra(fiyat + (fiyat * kdvOrani / 100)), kdvDahilBedel = roundToBedelFra(bedel + (bedel * kdvOrani / 100));
+
+api = 'run', args = { actions: [
+	{ ...device, api: 'Pairing', args: {} },
+	{
+		...device, api: 'InitiateSale', args: {
+			Sale: {
+				RefererApp: 'VIO', RefererAppVersion: '1.0.0', MainDocumentType: 1, OrderNo: fisNox, TotalPrice: kdvDahilBedel, GrossPrice: kdvDahilBedel,
+				AddedSaleItems: [
+					{
+						IsGeneric: false, Name: 'Çikolata', UnitCode: 'KGM', TaxGroupCode: `KDV${kdvOrani}`,
+						ItemQuantity: miktar, UnitPriceAmount: kdvDahilFiyat, TotalPriceAmount: kdvDahilBedel, GrossPriceAmount: kdvDahilBedel
+					}
+				],
+				PaymentInformations: [ { Mediator: tahSekliNo, Amount: kdvDahilBedel, CurrencyCode: dvKod, ExchangeRate: dvKur } ],
+				AllowedPaymentMediators: [ { Mediator: 2 }, { Mediator: 1 } ]
+			}
+		}
+	},
+	{ ...device, tip: 'delay', args: { delayMS: 200 } },
+	{ ...device, api: 'GetSaleResult', args: { Sale: { OrderNo: fisNox } } }
+] };
+url = `${wsURLBase}/${api}`, data = toJSONStr(args), result;
+try { result = await ajaxPost({ processData, ajaxContentType, url, data }); if (result.HasError) { throw { isError: true, rc: result.ErrorCode, errorText: result.Message } } results.push(result) }
+catch (ex) { console.error(getErrorText(ex)) }
+console.table(Object.values(results[0])[0].map(x => x.result))

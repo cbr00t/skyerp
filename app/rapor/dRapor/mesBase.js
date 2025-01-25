@@ -1,6 +1,6 @@
 class DRapor_MES extends DRapor_Donemsel {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kategoriKod() { return 'MES' } static get uygunmu() { return app.params.ticariGenel.kullanim.uretim }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get kategoriKod() { return 'MES' }
+	static get uygunmu() { return app.params.operGenel.kullanim.mesVeriToplama && !!app.sqlTables?.operemri }
 }
 class DRapor_MES_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
