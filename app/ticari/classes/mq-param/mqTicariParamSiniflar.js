@@ -375,14 +375,18 @@ class MQMuhasebeParam extends MQTicariParamBase {
 }
 class MQWebParam extends MQTicariParamBase {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Web Parametreleri' } static get paramKod() { return 'WEB' }
-	constructor(e) { e = e || {}; super(e); let {x} = e; $.extend(this, { x }) }
+	/* constructor(e) { e = e || {}; super(e); let {x} = e; $.extend(this, { x }) } */
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); const {paramci} = e;
-		let form = paramci.addFormWithParent(); form.addBool('x', 'X')
-		/*let kullanim = paramci.addKullanim().addGrup({ etiket: 'Kullanım' }); let form = kullanim.addFormWithParent();
-			form.addBool('webOzetRapor', 'Web Özet Rapor').onBuildEk(e => e.builder.input.attr('disabled', ''));
-			form.addBool('tablet', 'Sky Tablet'); form.addBool('tablet', 'Sky Tablet'); form.addBool('yazarkasa', 'YazarKasa Aktarımı');
-			form.addBool('webSiparis', 'Web B2B Sipariş'); form.addBool('konsinyeLojistik', 'Konsinye Lojistik'); form.addBool('pdks', 'PDKS Veri Aktarımı')*/
+		let form = paramci.addFormWithParent() /*; form.addBool('x', 'X')*/
+	}
+	paramSetValues(e) { e = e || {}; super.paramSetValues(e) /*; const {rec} = e*/ }
+}
+class MQTabletParam extends MQTicariParamBase {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Sky Tablet Parametreleri' } static get paramKod() { return 'TABLET' }
+	static paramYapiDuzenle(e) {
+		super.paramYapiDuzenle(e); const {paramci} = e;
+		let form = paramci.addFormWithParent(); form.addBool('yaslandirmaTarihmi', `Yaşlandırma Tarih'e göredir`)
 	}
 	paramSetValues(e) { e = e || {}; super.paramSetValues(e) /*; const {rec} = e*/ }
 }

@@ -4,7 +4,8 @@ class SahaDurumApp extends App {
 	constructor(e) { e = e || {}; super(e) }
 	async runDevam(e) {
 		await super.runDevam(e); if (qs.user) { await this.loginIstendi(e) } else { this.promise_login.resolve() }
-		await this.promise_ready; await this.anaMenuOlustur(e); const {session} = config, yerelParam = this.params.yerel;
+		await this.promise_ready; if (app.params.tablet?.yaslandirmaTarihmi) { MustBilgi.kademeEk = 30 }
+		await this.anaMenuOlustur(e); const {session} = config, yerelParam = this.params.yerel;
 		let lastSession = yerelParam?.lastSession ?? session;
 		if (lastSession) {
 			lastSession = yerelParam.lastSession = $.isPlainObject(lastSession) ? new Session(lastSession) : lastSession.deepCopy(); /*lastSession.user = `<span class="gray italic">${yerelParam?.lastSession.user}</span>`;*/
@@ -15,6 +16,10 @@ class SahaDurumApp extends App {
 	loginTipleriDuzenle(e) {
 		super.loginTipleriDuzenle(e);
 		/*const {loginTipleri} = e; $.merge(loginTipleri, [ { kod: 'plasiyerLogin', aciklama: 'Plasiyer' }, { kod: 'musteriLogin', aciklama: 'Müşteri' } ])*/
+	}
+	paramsDuzenle(e) {
+		super.paramsDuzenle(e); let {params} = e;
+		$.extend(params, { tablet: MQTabletParam.getInstance() })
 	}
 	async paramsDuzenleSonrasi(e) { try { await super.paramsDuzenleSonrasi(e) } finally { this.params.localData = await MQLocalData.getInstance() } }
 	getAnaMenu(e) {

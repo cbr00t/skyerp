@@ -40,7 +40,7 @@ class CBasiSonu extends CObject {
 			sonu: converter.call(this, { value: value.substring(ind + 1).trim() })
 		})
 	}
-	toString(e) { const basi = this.basi ?? '', sonu = this.sonu; return basi ? (sonu ? `${basi} -> ${sonu}` : basi) : '' }
+	toString(e) { const basi = this.basi ?? '', sonu = this.sonu; return sonu ? `${basi} -> ${sonu}` : basi ?? '' }
 }
 class YilVeAy extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
