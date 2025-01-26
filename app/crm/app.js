@@ -6,11 +6,12 @@ class CRMApp extends App {
 	get offlineClasses() {
 		return [
 			...[MQMasterOrtak, MQKAOrtak, MQSayacliOrtak, MQDetayliOrtak, MQDetayliVeAdiOrtak, MQDetayliMasterOrtak].flatMap(cls => cls.subClasses).filter(cls => !!cls.table && cls.gonderildiDesteklenirmi),
-			MQMusIslemDetay
+			MQMusIslemDetay, ...MQApiOrtak.subClasses
 		]
 	}
+	get dropOfflineClasses() { return [...this.offlineClasses] }
 	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e); this.show() }
-	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { localData: MQLocalData.getInstance(), crm: MQParam_CRM.getInstance() }) }
+	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { localData: MQLocalData.getInstance(), crm: MQParam_CRM.getInstance(), tablet: MQTabletParam.getInstance() }) }
 	async getAnaMenu(e) {
 		const {noMenuFlag, offlineMode} = this; if (noMenuFlag) { return new FRMenu() }
 		let items = [
@@ -24,12 +25,18 @@ class CRMApp extends App {
 					new FRMenuChoice({ mne: cls.kodListeTipi, text: cls.sinifAdi, block: e => { cls.listeEkraniAc(e) } })),
 			...[MQDurumDegerlendirme].map(cls =>
 					new FRMenuChoice({ mne: cls.kodListeTipi, text: cls.sinifAdi, block: e => { cls.tanimla({ ...e, islem: 'izle' }) } })),
+			new FRMenuCascade({
+				mne: 'PARAM', text: 'Parametreler', items: [
+					new FRMenuChoice({ mne: 'CRM', text: 'CRM Parametreleri', block: e => app.params.crm.tanimla(e) }),
+					new FRMenuChoice({ mne: 'TABLET', text: 'Tablet Parametreleri', block: e => app.params.tablet.tanimla(e) })
+				]
+			}),
 			(offlineMode ? new FRMenuChoice({ mne: 'BILGIGONDER', text: 'Bilgi Gönder', block: e => this.bilgiGonderIstendi(e) }) : null),
 		].filter(x => !!x);
 		return new FRMenu({ items })
 	}
 	async tablolariSil(e) {
-		e = e ?? {}; let classes = e.classes ?? this.offlineClasses;
+		e = e ?? {}; let classes = e.classes ?? this.dropOfflineClasses;
 		let promises = []; for (const cls of classes) { promises.push(cls.offlineDropTable().then(() => window.progressManager?.progressStep()))
 		} await Promise.all(promises); return this
 	}
@@ -41,7 +48,7 @@ class CRMApp extends App {
 	}
 	async bilgiYukle(e) {
 		e = e ?? {}; let {offlineClasses: classes} = this, promises = []; window.progressManager?.setProgressMax(classes.length * 2 + 5);
-		await this.tablolariSil({ ...e, classes }); await this.dbMgr_tablolariOlustur(e); window.progressManager?.progressStep(5);
+		await this.tablolariSil({ ...e, classes: undefined }); await this.dbMgr_tablolariOlustur(e); window.progressManager?.progressStep(5);
 		for (const cls of classes) { promises.push(cls.offlineSaveToLocalTable().then(() => window.progressManager?.progressStep())) }
 		await Promise.all(promises); window.progressManager?.progressEnd(); return this
 	}
@@ -67,7 +74,7 @@ class CRMApp extends App {
 	wsTicKapanmayanHesap(e) {
 		e = e || {}; const {plasiyerKod, mustKod} = e, {yaslandirmaTarihmi} = app.params.tablet, params = [
 			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null), (mustKod ? { name: '@argMustKod', value: mustKod } : null),
-			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/ { name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
+			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/ { name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) },
 			(yaslandirmaTarihmi ? { name: '@argGecikmeTarihten', type: 'bit', value: bool2Int(yaslandirmaTarihmi) } : null)
 		].filter(x => !!x);
 		return this.sqlExecSP({ query: 'tic_kapanmayanHesap', params })

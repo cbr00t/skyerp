@@ -44,9 +44,9 @@ class MQKapanmayanHesaplar extends MQMasterOrtak {
 			(cariHareketTakipNo ? new GridKolon({ belirtec: 'takipno', text: 'Takip No', genislikCh: 20, filterType: 'checkedlist' }) : null)
 		].filter(x => !!x))
 	}
-	static orjBaslikListesi_groupsDuzenle(e) {
-		super.orjBaslikListesi_groupsDuzenle(e); const {cariHareketTakipNo} = app.params.tablet, {liste} = e;
-		if (cariHareketTakipNo) { liste.push('takipno' )}
+	static orjBaslikListesi_gridInit(e) {
+		super.orjBaslikListesi_gridInit(e); const {cariHareketTakipNo} = app.params.tablet, {gridPart} = e, {grid} = e;
+		if (cariHareketTakipNo) { grid.jqxGrid({ groupsExpandedByDefault: true, groups: ['takipno'] }) }
 	}
 	static loadServerData(e) {
 		let recs = this.loadServerDataFromMustBilgi(e); if (!recs) { return recs }

@@ -167,16 +167,16 @@ class MQYapi extends CIO {
 		return this.class.gonderildiIsaretiKoyKaldir({ ...e, keyHV })
 	}
 	static async offlineDropTable(e) {
-		e = e ?? {}; if (!this.dbMgr_db) { return false } const offlineTable = e.table ?? e.offlineTable ?? this.table, offlineMode = true;
-		let query = `DROP TABLE IF EXISTS ${offlineTable}`; return this.sqlExecNone({ ...e, offlineMode, query })
+		e = e ?? {}; if (!this.dbMgr_db) { return false } const offlineTable = e.table ?? e.offlineTable ?? this.table; if (!offlineTable) { return false }
+		let offlineMode = true; let query = `DROP TABLE IF EXISTS ${offlineTable}`; return this.sqlExecNone({ ...e, offlineMode, query })
 	}
 	static async offlineClearTable(e) {
-		e = e ?? {}; if (!this.dbMgr_db) { return false } const offlineTable = e.table ?? e.offlineTable ?? this.table
-		const {trnId} = e, offlineMode = e.offline ?? e.offlineMode ?? true;
+		e = e ?? {}; if (!this.dbMgr_db) { return false } const offlineTable = e.table ?? e.offlineTable ?? this.table; if (!offlineTable) { return false }
+		let {trnId} = e, offlineMode = e.offline ?? e.offlineMode ?? true;
 		let query = new MQIliskiliDelete({ from: offlineTable }); return this.sqlExecNone({ ...e, offlineMode, trnId, query })
 	}
 	static async offlineSaveToLocalTable(e) {
-		e = e ?? {}; if (!this.dbMgr_db) { return false } const offlineTable = e.table ?? e.offlineTable ?? this.table;
+		e = e ?? {}; if (!this.dbMgr_db) { return false } const offlineTable = e.table ?? e.offlineTable ?? this.table; if (!offlineTable) { return this }
 		const {idSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this, clear = e.clear ?? e.clearFlag;
 		const offlineMode = true, {trnId} = e; const recs = await this.loadServerData({ ...e, trnId, offlineMode: !offlineMode, offlineYukleRequest: true });
 		const {offlineSahaListe: attrListe, kodKullanilirmi, kodSaha} = this; let inLocalTrn = false, directFlag = true, okIdList = [];
@@ -216,7 +216,7 @@ class MQYapi extends CIO {
 		return this
 	}
 	static async offlineSaveToRemoteTable(e) {
-		e = e ?? {}; if (!this.dbMgr_db) { return false } const offlineTable = e.table ?? e.offlineTable ?? this.table;
+		e = e ?? {}; if (!this.dbMgr_db) { return false } const offlineTable = e.table ?? e.offlineTable ?? this.table; if (!offlineTable) { return this }
 		const {offlineSahaListe: attrListe, idSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this;
 		const offlineMode = false, offlineGonderRequest = true, {trnId} = e; const recs = await this.loadServerData({ ...e, offlineMode: !offlineMode, offlineGonderRequest });
 		if (attrListe?.length) {

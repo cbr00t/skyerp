@@ -147,6 +147,7 @@ CREATE INDEX IF NOT EXISTS idx_crmmusislemdetay_gonderimts ON crmmusislemdetay (
 CREATE TABLE IF NOT EXISTS kapanmayan_hesaplar (
 	tarih TEXT NOT NULL DEFAULT '',
 	belgeNox TEXT NOT NULL DEFAULT '',
+	takipno TEXT NOT NULL DEFAULT '',
 	vade TEXT NOT NULL DEFAULT '',
 	must TEXT NOT NULL DEFAULT '',
 	isladi TEXT NOT NULL DEFAULT '',

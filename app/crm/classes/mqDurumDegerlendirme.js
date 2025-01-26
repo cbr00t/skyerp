@@ -29,27 +29,42 @@ class MQDurumDegerlendirme extends MQMasterOrtak {
 		form = tabPage.addFormWithParent().yanYana().addStyle_fullWH(null, '50%');
 			form.addGridliGosterici('yaslandirma').addStyle_fullWH(yaslandirma_width).rowNumberOlmasin().notAdaptive()
 				.setTabloKolonlari(e => Yaslandirma.orjBaslikListesi)
-				.setSource(e => gridSources[e.builder.id] ?? []).onAfterRun(e => grids[e.builder.id] = e.builder.part);
+				.setSource(({ builder: fbd }) => gridSources[fbd.id] ?? [])
+				.onAfterRun(({ builder: fbd }) => { grids[fbd.id] = fbd.part })
+				.veriYukleninceIslemi(({ builder: fbd }) => {
+					let {id, part: gridPart} = fbd, {grid, gridWidget} = gridPart, mfSinif = Yaslandirma;
+					mfSinif?.orjBaslikListesi_gridInit?.({ ...e, sender: gridPart, gridPart, builder: fbd, mfSinif, grid, gridWidget })
+				});
 			form.addGridliGosterici('kapanmayanHesaplar').addStyle_fullWH(`calc(var(--full) - ${yaslandirma_width + 10}px)`)
-				.setTabloKolonlari(e => {
+				.setTabloKolonlari(({ builder: fbd }) => {
 					const ignoreKeys = asSet(['must', 'mustunvan']); return MQKapanmayanHesaplar.orjBaslikListesi.filter(colDef => !ignoreKeys[colDef.belirtec]) })
-				.setSource(e => gridSources[e.builder.id] ?? []).widgetArgsDuzenleIslemi(widgetArgsDuzenleIslemi)
-				.onAfterRun(e => grids[e.builder.id] = e.builder.part)
+				.setSource(({ builder: fbd }) => gridSources[fbd.id] ?? [])
+				.widgetArgsDuzenleIslemi(widgetArgsDuzenleIslemi)
+				.onAfterRun(({ builder: fbd }) => { grids[fbd.id] = fbd.part })
+				.veriYukleninceIslemi(({ builder: fbd }) => {
+					let {id, part: gridPart} = fbd, {grid, gridWidget} = gridPart, mfSinif = MQKapanmayanHesaplar;
+					mfSinif?.orjBaslikListesi_gridInit?.({ ...e, sender: gridPart, gridPart, builder: fbd, mfSinif, grid, gridWidget })
+				});
 		form = tabPage.addFormWithParent().altAlta().addStyle_fullWH(null, '50%');
 			form.addGridliGosterici('cariEkstre').addStyle_fullWH('calc(var(--full) - 5px)')
-				.setTabloKolonlari(e => {
+				.setTabloKolonlari(({ builder: fbd }) => {
 					const ignoreKeys = asSet(['must', 'mustunvan']); return MQCariEkstre.orjBaslikListesi.filter(colDef => !ignoreKeys[colDef.belirtec]) })
-				.setSource(e => gridSources[e.builder.id] ?? []).widgetArgsDuzenleIslemi(e => {
-					widgetArgsDuzenleIslemi(e); const {sender, args} = e; $.extend(args, {
+				.setSource(({ builder: fbd }) => gridSources[fbd.id] ?? [])
+				.widgetArgsDuzenleIslemi(({ sender, args }) => {
+					$.extend(args, {
 						selectionMode: 'checkbox', /* virtualMode: true, */ rowDetails: true,
 						rowDetailsTemplate: rowIndex => ({ rowdetails: `<div class="detay-grid-parent dock-bottom"><div class="detay-grid"/></div>`, rowdetailsheight: 350 }),
 						initRowDetails: (rowIndex, _parent, grid, parentRec) => {
-							if (grid && !grid?.html) grid = $(grid); const gridWidget = grid.jqxGrid('getInstance'), parent = $(_parent).find('.detay-grid');
+							if (grid && !grid?.html) { grid = $(grid) } const gridWidget = grid.jqxGrid('getInstance'), parent = $(_parent).find('.detay-grid');
 							this.initRowDetails({ grid, gridWidget, rowIndex, parent, parentRec, args: e.temps, mfSinif: MQCariEkstre_Icerik })
 						}
 					})
 				})
-				.onAfterRun(e => grids[e.builder.id] = e.builder.part)
+				.onAfterRun(({ builder: fbd }) => { grids[fbd.id] = fbd.part })
+				.veriYukleninceIslemi(({ builder: fbd }) => {
+					let {id, part: gridPart} = fbd, {grid, gridWidget} = gridPart, mfSinif = MQCariEkstre;
+					mfSinif?.orjBaslikListesi_gridInit?.({ ...e, sender: gridPart, gridPart, builder: fbd, mfSinif, grid, gridWidget })
+				})
 	}
 	static async mustKodDegisti(e) {
 		const {builder, value: mustKod} = e, {rootBuilder: rfb} = builder, {part, inst} = rfb, {grids, gridSources, fbd_bakiyeText} = part, {tabPanel} = rfb.builders[0].id2Builder;
