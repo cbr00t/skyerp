@@ -9,7 +9,7 @@ class MQMasterOrtak extends MQCogul {
 				selectionMode: 'checkbox', /* virtualMode: true, */ rowDetails: true,
 				rowDetailsTemplate: rowIndex => ({ rowdetails: `<div class="detay-grid-parent dock-bottom"><div class="detay-grid"/></div>`, rowdetailsheight: 350 }),
 				initRowDetails: (rowIndex, _parent, grid, parentRec) => {
-					if (grid && !grid?.html) grid = $(grid); const gridWidget = grid.jqxGrid('getInstance'), parent = $(_parent).find('.detay-grid');
+					if (grid && !grid?.html) { grid = $(grid) } const gridWidget = grid.jqxGrid('getInstance'), parent = $(_parent).find('.detay-grid');
 					this.initRowDetails({ grid, gridWidget, rowIndex, parent, parentRec, args: e.temps })
 				}
 			});

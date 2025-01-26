@@ -80,7 +80,7 @@ class MQMustBilgi extends MQKAOrtak {
 			if (ekIslemler.ilk) { getFuncValue.call(this, ekIslemler.ilk, { id, etiket, mfSinif, etiket, parentBuilder }) }
 			const prevFbd = parentBuilder.builders[parentBuilder.builders.length - 1], prevWidth = prevFbd?._width || 0;
 			const fbd = parentBuilder.addGridliGosterici(id).addStyle_fullWH()/*.addCSS('dock-bottom')*/.setMFSinif(mfSinif)
-				.widgetArgsDuzenleIslemi(({ builder: fbd }) => { const {mfSinif} = fbd; mfSinif.orjBaslikListesi_argsDuzenle(e) })
+				.widgetArgsDuzenleIslemi(({ sender, args, builder: fbd }) => { const {mfSinif} = fbd; mfSinif.orjBaslikListesi_argsDuzenle({ ...e, sender, args, builder: fbd }) })
 				.setTabloKolonlari(({ builder: fbd }) => fbd.mfSinif.listeBasliklari)
 				.setSource(({ builder: fbd }) => { const {rootPart, mfSinif} = fbd; e.mustKod = rootPart.inst.kod; return mfSinif.loadServerData(e) })
 			fbd.addCSS('full-height-important'); fbd.addStyle(e => `$elementCSS:not(.full-width):not(.full-width-important) { width: calc(var(--full) - ${ prevWidth ? prevWidth + 10 : 0 }px) !important }`)
@@ -104,7 +104,7 @@ class MQMustBilgi extends MQKAOrtak {
 				.addStyle(e => `$elementCSS { position: absolute; width: auto !important; height: auto !important; margin-top: -45px; z-index: 500 }`)
 				.addStyle(e => `$elementCSS > button { width: 45px !important; height: 45px !important }`);
 			const fbd = parentBuilder.addGridliGosterici(id).addStyle_fullWH({ width }).addCSS('dock-bold').setMFSinif(mfSinif).rowNumberOlmasin()
-				.widgetArgsDuzenleIslemi(({ builder: fbd }) => { const {mfSinif} = fbd; mfSinif.orjBaslikListesi_argsDuzenle(e) })
+				.widgetArgsDuzenleIslemi(({ sender, args, builder: fbd }) => { const {mfSinif} = fbd; mfSinif.orjBaslikListesi_argsDuzenle({ ...e, sender, args, builder: fbd }) })
 				.setTabloKolonlari(({ builder: fbd }) => fbd.mfSinif.listeBasliklari)
 				.setSource(({ builder: fbd }) => { const {rootPart, mfSinif} = fbd; e.mustKod = rootPart.inst.kod; return mfSinif.loadServerData(e) });
 			fbd.onAfterRun(({ builder: fbd }) => {
