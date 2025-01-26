@@ -386,7 +386,8 @@ class MQTabletParam extends MQTicariParamBase {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Sky Tablet Parametreleri' } static get paramKod() { return 'TABLET' }
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); const {paramci} = e;
-		let form = paramci.addFormWithParent(); form.addBool('yaslandirmaTarihmi', `Yaşlandırma Tarih'e göredir`)
+		let form = paramci.addFormWithParent(); form.addBool('yaslandirmaTarihmi', `Yaşlandırma Tarih'e göredir`);
+			form.addBool('cariHareketTakipNo', 'Cari Hareket Takip No Bazında Gruplanır')
 	}
 	paramSetValues(e) { e = e || {}; super.paramSetValues(e) /*; const {rec} = e*/ }
 }

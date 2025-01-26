@@ -26,7 +26,8 @@ class SahaDurumApp extends App {
 		/* const disabledMenuIdSet = this.disabledMenuIdSet || {}; */
 		return new FRMenu({ items: [
 			new FRMenuChoice({ mnemonic: 'BILGI-YUKLE', text: 'Bilgi Yükle', block: e => this.bilgiYukleIstendi(e) }),
-			new FRMenuChoice({ mnemonic: 'MUSTERILER', text: 'Müşteriler', block: e => MQMustBilgi.listeEkraniAc() })
+			new FRMenuChoice({ mnemonic: 'MUSTERILER', text: 'Müşteriler', block: e => MQMustBilgi.listeEkraniAc(e) }),
+			new FRMenuChoice({ mnemonic: 'TABLET-PARAM', text: 'Tablet Parametreleri', block: e => app.params.tablet.tanimla(e) })
 		]})
 	}
 	navLayoutOlustur_araIslem(e) {
@@ -113,11 +114,12 @@ class SahaDurumApp extends App {
 		})
 	}
 	wsTicKapanmayanHesap(e) {
-		e = e || {}; const {plasiyerKod, mustKod, cariTipKod} = e, params = [
+		e = e || {}; const {plasiyerKod, mustKod} = e, {yaslandirmaTarihmi} = app.params.tablet, params = [
 			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
 			(mustKod ? { name: '@argMustKod', value: mustKod } : null),
 			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/
-			{ name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
+			{ name: '@argSadecePlasiyereBagliOlanlar', type: 'bit', value: bool2Int(!!plasiyerKod) },
+			(yaslandirmaTarihmi ? { name: '@argGecikmeTarihten', type: 'bit', value: bool2Int(yaslandirmaTarihmi) } : null)
 		].filter(x => !!x);
 		return this.sqlExecSP({ query: 'tic_kapanmayanHesap', params })
 		/*return ajaxPost({
@@ -126,7 +128,7 @@ class SahaDurumApp extends App {
 		})*/
 	}
 	wsTicCariEkstre(e) {
-		e = e || {}; const {plasiyerKod, mustKod, cariTipKod} = e, params = [
+		e = e || {}; const {plasiyerKod, mustKod} = e, params = [
 			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
 			(mustKod ? { name: '@argMustKod', value: mustKod } : null),
 			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/

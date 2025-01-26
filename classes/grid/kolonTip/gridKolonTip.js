@@ -55,7 +55,7 @@ class GridKolonTip extends CObject {
 			const isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template'), {maxLength} = this;
 			const _editor = editor.children('.editor'); editor = _editor.length ? _editor : editor;
 			if (maxLength && isCustomEditor) { editor.prop('maxlength', maxLength) }
-			if (_editor?.length && _editor.select) setTimeout(() => { editor.focus(); editor.select() }, 150)
+			if (_editor?.length && _editor.select) setTimeout(() => { editor.focus(); editor.select() }, 50)
 		})
 	}
 	get validation() {
@@ -103,11 +103,10 @@ class GridKolonTip_Number extends GridKolonTip {
 		return ((colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
 			if (rec?.totalsrow) { return GridKolonTip.getHTML_groupsTotalRow(value) }
 			rec = colDef.gridPart.gridWidget.getboundrows()[rowIndex] ?? rec; rec = rec?.originalRecord || rec;
-			if (value?.constructor?.name == 'Number') value = asFloat(value)
+			if (value?.constructor?.name == 'Number') { value = asFloat(value) }
 			if (value != null) {
-				/* if (typeof value != 'number') */ let newValue = asFloat(value);
-				newValue = !value && this.sifirGostermeFlag ? '' : newValue.toString();
-				if (value !== newValue) html = changeTagContent(html, newValue)
+				let newValue = asFloat(value); newValue = !value && this.sifirGostermeFlag ? '' : newValue.toString();
+				if (value !== newValue) { html = changeTagContent(html, newValue) }
 			}
 			return html
 		})
@@ -125,7 +124,7 @@ class GridKolonTip_Number extends GridKolonTip {
 			if (isCustomEditor) {
 				editor.on('keydown', evt => {
 					let handler = this.keyDownHandler;
-					if (handler) { const {key} = evt; getFuncValue.call(this, handler, { sender: this, event: evt, key: key }) }
+					if (handler) { const {key} = evt; getFuncValue.call(this, handler, { sender: this, event: evt, key }) }
 				});
 				/*editor.on('keyup', evt => {
 					const {key} = evt;
@@ -154,14 +153,14 @@ class GridKolonTip_Number extends GridKolonTip {
 			const {maxLength} = this, isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
 			const rec = colDef.gridPart.gridWidget.getboundrows()[rowIndex], fra = this.getFra({ rec });
 			if (true || isCustomEditor) {
-				const _editor = editor.children('.editor'); if (_editor.length) editor = _editor
-				editor.prop('type', 'number'); editor.prop('value', value);
-				if (maxLength != null) editor.prop('maxlength', maxLength)
+				const _editor = editor.children('.editor'); if (_editor.length) { editor = _editor }
+				editor.prop('type', 'number'); editor.prop('value', value || null);
+				if (maxLength != null) { editor.prop('maxlength', maxLength) }
 				/*editor.css('text-align', 'right'); editor.css('margin-left', '10px');
 				editor.attr('style', editor.attr('style') + `; width: calc(var(--full) - 10px) !important`); editor.addClass('full-height')*/
 			}
 			else { editor.jqxNumberInput({ digits: 17, decimalDigits: fra || 0 }) }
-			setTimeout(() => { let input = editor.find('input'); if (!input?.length) { input = editor }; input.focus(); input.select() }, 150)
+			setTimeout(() => { let input = editor.find('input'); if (!input?.length) { input = editor }; input.focus(); input.select() }, 50)
 		})
 	}
 	get getEditorValue() {
@@ -169,10 +168,10 @@ class GridKolonTip_Number extends GridKolonTip {
 			const isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
 			if (true || isCustomEditor) { const _editor = editor.children('.editor'); if (_editor.length) editor = _editor }
 			const input = editor.hasClass('formul') ? editor : editor.find('input.formul');
-			value = (input?.length) ? asFloat(eval(input.val().replaceAll(',', '.'))) : asFloat(editor.val());
-			if (value?.constructor?.name == 'Number') value = asFloat(value)
+			value = input?.length ? asFloat(eval((input.val() ?? 0).replaceAll(',', '.'))) : asFloat(editor.val());
+			if (value?.constructor?.name == 'Number') { value = asFloat(value) }
 			const rec = colDef.gridPart.gridWidget.getboundrows()[rowIndex], fra = this.getFra({ rec });
-			if (fra != null) value = roundToFra(value, fra)
+			if (fra != null) { value = roundToFra(value, fra) }
 			return value
 		})
 	}
@@ -375,7 +374,7 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 						if (key == 'enter' || key == 'linefeed') {
 							widget.close();
 							const {gridPart} = colDef, gridWidget = gridPart?.gridWidget || gridPart?.gridPart?.gridWidget;
-							if (gridWidget && gridWidget.editmode != 'selectedrow') { if (gridWidget.editcell) setTimeout(() => gridWidget.endcelledit(), 0, false) }
+							if (gridWidget && gridWidget.editmode != 'selectedrow') { if (gridWidget.editcell) { setTimeout(() => gridWidget.endcelledit(), 0, false) } }
 						}
 					})
 				}

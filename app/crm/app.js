@@ -65,9 +65,10 @@ class CRMApp extends App {
 		const url = app.getWSUrl({ wsPath: 'ws/genel', api: 'plasiyerIcinCariler', args: e }); return ajaxPost({ timeout, processData, ajaxContentType, url })
 	}
 	wsTicKapanmayanHesap(e) {
-		e = e || {}; const {plasiyerKod, mustKod, cariTipKod} = e, params = [
+		e = e || {}; const {plasiyerKod, mustKod} = e, {yaslandirmaTarihmi} = app.params.tablet, params = [
 			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null), (mustKod ? { name: '@argMustKod', value: mustKod } : null),
 			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/ { name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
+			(yaslandirmaTarihmi ? { name: '@argGecikmeTarihten', type: 'bit', value: bool2Int(yaslandirmaTarihmi) } : null)
 		].filter(x => !!x);
 		return this.sqlExecSP({ query: 'tic_kapanmayanHesap', params })
 	}

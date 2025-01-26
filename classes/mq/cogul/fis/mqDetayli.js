@@ -175,6 +175,7 @@ class MQDetayli extends MQSayacli {
 		super.gridVeriYuklendi_detaylar(e); const {detaySiniflar} = this;
 		if (detaySiniflar) { for (const detaySinif of detaySiniflar) detaySinif.gridVeriYuklendi(e) }
 	}
+	getYazmaIcinDetaylar(e) { return this.detaylar }
 	async yukle(e) {
 		e = e || {}; let result = await this.baslikYukle(e); if (result === false) { return result }
 		await this.detaylariYukle(e); await this.detaylariYukleSonrasi(e); await this.yukleSonrasiIslemler(e); return true
@@ -261,8 +262,8 @@ class MQDetayli extends MQSayacli {
 		*/
 		const {toplu, paramName_fisSayac} = e, {table} = this.class, hv = this.hostVars(e); toplu.add(new MQInsert({ table, hv }));
 		const keyHV = this.alternateKeyHostVars(e); e.keyHV = keyHV; let sayac = e.sayac = this.topluYazmaKomutlariniOlustur_baslikSayacBelirle(e);
-		const detHVArg = { fis: this.shallowCopy() }; detHVArg.fis.sayac = sayac ?? new MQSQLConst(paramName_fisSayac);
-		const {detaylar} = this, detTable2HVListe = e.detTable2HVListe = {};
+		const detHVArg = e.detHVArg = { fis: this.shallowCopy() }; detHVArg.fis.sayac = sayac ?? new MQSQLConst(paramName_fisSayac);
+		const detaylar = this.getYazmaIcinDetaylar(e), detTable2HVListe = e.detTable2HVListe = {};
 		for (const det of detaylar) {
 			const hv = det.hostVars(detHVArg); if (!hv) { return false }
 			const detTable = det.class.getDetayTable(detHVArg), hvListe = detTable2HVListe[detTable] = detTable2HVListe[detTable] || [];
@@ -286,8 +287,8 @@ class MQDetayli extends MQSayacli {
 	async topluDegistirmeKomutlariniOlustur(e) {
 		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {toplu, trnId} = e;
 		let {table, detaySinif: thisDetaySinif} = this.class, harSayacSaha, fisSayacSaha, seqSaha;
-		let detTable2HVListe = e.detTable2HVListe = {}, {detaylar} = this, detHVArg = { fis: this };
-		for (let det of detaylar) {
+		let detTable2HVListe = e.detTable2HVListe = {}, detHVArg = e.detHVArg = { fis: this };
+		let detaylar = this.getYazmaIcinDetaylar(e); for (let det of detaylar) {
 			let detaySinif = det?.class ?? thisDetaySinif; if (detaySinif && $.isPlainObject(det)) { det = new detaySinif(det) }
 			if (!harSayacSaha) { harSayacSaha = detaySinif.sayacSaha } if (!fisSayacSaha) { fisSayacSaha = detaySinif.fisSayacSaha } if (!seqSaha) { seqSaha = det.class.seqSaha }
 			let hv = det.hostVars(detHVArg); if (!hv) { return false } hv._harsayac = det.okunanHarSayac;  /* yeni kayıt için null aksinde okunan harsayac */
