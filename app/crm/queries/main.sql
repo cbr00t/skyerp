@@ -147,14 +147,16 @@ CREATE INDEX IF NOT EXISTS idx_crmmusislemdetay_gonderimts ON crmmusislemdetay (
 CREATE TABLE IF NOT EXISTS kapanmayan_hesaplar (
 	tarih TEXT NOT NULL DEFAULT '',
 	belgeNox TEXT NOT NULL DEFAULT '',
-	takipno TEXT NOT NULL DEFAULT '',
 	vade TEXT NOT NULL DEFAULT '',
 	must TEXT NOT NULL DEFAULT '',
 	isladi TEXT NOT NULL DEFAULT '',
 	bedel REAL NOT NULL DEFAULT 0,
 	acikkisim REAL NOT NULL DEFAULT 0,
 	gecikmegun REAL NOT NULL DEFAULT 0,
-	gelecekgun REAL NOT NULL DEFAULT 0
+	gelecekgun REAL NOT NULL DEFAULT 0,
+	takipno TEXT NOT NULL DEFAULT '',
+	takipadi TEXT NOT NULL DEFAULT '',
+	takiptext TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_kapanmayan_hesaplar_tarih ON kapanmayan_hesaplar (tarih);
 
@@ -173,7 +175,11 @@ CREATE TABLE IF NOT EXISTS cari_ekstre (
 	sonuciskoran REAL NOT NULL DEFAULT 0,
 	borcbedel REAL NOT NULL DEFAULT 0,
 	alacakbedel REAL NOT NULL DEFAULT 0,
-	devoncelik INTEGER NOT NULL DEFAULT 0
+	bakiye REAL NOT NULL DEFAULT 0,
+	devoncelik INTEGER NOT NULL DEFAULT 0,
+	takipno TEXT NOT NULL DEFAULT '',
+	takipadi TEXT NOT NULL DEFAULT '',
+	takiptext TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_cari_ekstre_icerikfissayac ON cari_ekstre (icerikfissayac);
 CREATE INDEX IF NOT EXISTS idx_cari_ekstre_tarih ON cari_ekstre (tarih);

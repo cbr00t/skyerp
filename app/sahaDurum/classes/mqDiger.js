@@ -41,24 +41,25 @@ class MQKapanmayanHesaplar extends MQMasterOrtak {
 			new GridKolon({ belirtec: 'bedel', text: 'Orj. Bedel', genislikCh: 15 , aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
 			new GridKolon({ belirtec: 'acikkisim', text: 'Açık Kısım', genislikCh: 15, cellClassName: 'bold', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
 			new GridKolon({ belirtec: 'gecikmegun', text: 'Gecikme', genislikCh: 8 }).tipDecimal(), new GridKolon({ belirtec: 'gelecekgun', text: 'Gel.Gün', genislikCh: 8  }).tipDecimal(),
-			(cariHareketTakipNo ? new GridKolon({ belirtec: 'takipno', text: 'Takip No', genislikCh: 20, filterType: 'checkedlist' }) : null)
+			(cariHareketTakipNo ? new GridKolon({ belirtec: 'takiptext', text: 'Takip No', genislikCh: 45, filterType: 'checkedlist' }) : null)
 		].filter(x => !!x))
 	}
 	static orjBaslikListesi_gridInit(e) {
 		super.orjBaslikListesi_gridInit(e); const {cariHareketTakipNo} = app.params.tablet, {gridPart} = e, {grid} = e;
-		if (cariHareketTakipNo) { grid.jqxGrid({ groupsExpandedByDefault: true, groups: ['takipno'] }) }
+		if (cariHareketTakipNo) { grid.jqxGrid({ groupsExpandedByDefault: true, groups: ['takiptext'] }) }
 	}
 	static loadServerData(e) { return this.loadServerDataFromMustBilgi(e) }
 	static async loadServerDataDogrudan(e) {
 		e = e || {}; await super.loadServerDataDogrudan(e); let {wsArgs} = e, {cariHareketTakipNo} = app.params.tablet;
 		let recs = await app.wsTicKapanmayanHesap(wsArgs); for (let rec of recs) {
-			let {isaretligecikmegun: gecikmeGun, bedel, acikkisim: acikKisim} = rec;
+			let {isaretligecikmegun: gecikmeGun, bedel, acikkisim: acikKisim, takipno: takipNo, takipadi: takipAdi} = rec;
 			rec.odenen = (bedel || 0) - (acikKisim || 0);
 			if (gecikmeGun != null) {
 				gecikmeGun = typeof gecikmeGun === 'string' ? asDate(gecikmeGun) : gecikmeGun;
 				if (isDate(gecikmeGun)) { gecikmeGun = ((gecikmeGun - minDate) / Date_OneDayNum) + 1 }
 				rec.gecmis = rec.gelecek = 0; rec[gecikmeGun < 0 ? 'gecmis' : 'gelecek'] += gecikmeGun;
 			}
+			if (takipNo) { rec.takiptext = `<b class="gray">${takipNo}</b>-${takipAdi}` }
 			rec._vadeVeyaTarih = asDate(rec.vade ?? rec.tarih)
 		}
 		recs.sort((_a, _b) => {
@@ -90,21 +91,24 @@ class MQCariEkstre extends MQMasterOrtak {
 				cellClassName: (colDef, rowIndex, belirtec, value, rec) => {
 					let result = [belirtec, 'bold']; result.push(value ? (asFloat(value) < 0 ? 'red' : 'green') : ''); return result.filter(x => !!x).join(' ') }
 			}).tipDecimal_bedel(),
-			(cariHareketTakipNo ? new GridKolon({ belirtec: 'takipno', text: 'Takip No', genislikCh: 20, filterType: 'checkedlist' }) : null)
+			(cariHareketTakipNo ? new GridKolon({ belirtec: 'takiptext', text: 'Takip No', genislikCh: 45, filterType: 'checkedlist' }) : null)
 		)
 	}
-	static loadServerData(e) {
-		let recs = this.loadServerDataFromMustBilgi(e); if (!recs) { return recs }
-		let bakiye = 0; for (const rec of recs) {
-			let {bedel, ba} = rec; if (ba == 'A') { bedel = -bedel }
-			bakiye += bedel; $.extend(rec, { bedel, bakiye })
-		}
-		recs = [...recs].reverse(); return recs
-	}
+	static loadServerData(e) { return this.loadServerDataFromMustBilgi(e) }
 	static async loadServerDataDogrudan(e) {
 		e = e || {}; await super.loadServerDataDogrudan(e); const {wsArgs} = e;
 		let {cariTipKod} = app.params.config; if (cariTipKod) { wsArgs.cariTipKod = cariTipKod }
-		return await app.wsTicCariEkstre(wsArgs)
+		let must2Bakiye = {}, recs = await app.wsTicCariEkstre(wsArgs); for (const rec of recs) {
+			let {must, bedel, ba, borcbedel: borcBedel, alacakbedel: alacakBedel, takipno: takipNo, takipadi: takipAdi} = rec;
+			if (bedel == null) { bedel = rec.bedel = (borcBedel || 0) - (alacakBedel || 0) } if (ba == 'A') { bedel = -bedel }
+			if (borcBedel == null && alacakBedel == null) {
+				bedel = bedel ?? 0; rec[bedel < 0 ? 'alacakbedel' : 'borcbedel'] = bedel;
+				borcBedel = rec.borcbedel; alacakBedel = rec.alacakbedel
+			}
+			rec.bedel = bedel; rec.bakiye = must2Bakiye[must] = (must2Bakiye[must] || 0) + bedel;
+			if (takipNo) { rec.takiptext = `<b class="gray">${takipNo}</b>-${takipAdi}` }
+		}
+		recs.reverse(); return recs
 	}
 	static get tabloKolonlari_detaylar() { return this.detaySinif.orjBaslikListesi }
 	static async loadServerData_detaylar(e) {
