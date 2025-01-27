@@ -27,7 +27,7 @@ class CRMApp extends App {
 					new FRMenuChoice({ mne: cls.kodListeTipi, text: cls.sinifAdi, block: e => { cls.tanimla({ ...e, islem: 'izle' }) } })),
 			new FRMenuCascade({
 				mne: 'PARAM', text: 'Parametreler', items: [
-					new FRMenuChoice({ mne: 'CRM', text: 'CRM Parametreleri', block: e => app.params.crm.tanimla(e) }),
+					/*new FRMenuChoice({ mne: 'CRM', text: 'CRM Parametreleri', block: e => app.params.crm.tanimla(e) }),*/
 					new FRMenuChoice({ mne: 'TABLET', text: 'Tablet Parametreleri', block: e => app.params.tablet.tanimla(e) })
 				]
 			}),

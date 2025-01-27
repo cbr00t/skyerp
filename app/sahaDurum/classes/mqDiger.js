@@ -48,13 +48,24 @@ class MQKapanmayanHesaplar extends MQMasterOrtak {
 		super.orjBaslikListesi_gridInit(e); const {cariHareketTakipNo} = app.params.tablet, {gridPart} = e, {grid} = e;
 		if (cariHareketTakipNo) { grid.jqxGrid({ groupsExpandedByDefault: true, groups: ['takipno'] }) }
 	}
-	static loadServerData(e) {
-		let recs = this.loadServerDataFromMustBilgi(e); if (!recs) { return recs }
-		recs = [...recs].reverse(); return recs
-	}
+	static loadServerData(e) { return this.loadServerDataFromMustBilgi(e) }
 	static async loadServerDataDogrudan(e) {
-		e = e || {}; await super.loadServerDataDogrudan(e); const {wsArgs} = e, recs = await app.wsTicKapanmayanHesap(wsArgs);
-		for (const rec of recs) { const {bedel, acikkisim} = rec; rec.odenen = (bedel || 0) - (acikkisim || 0) }
+		e = e || {}; await super.loadServerDataDogrudan(e); let {wsArgs} = e, {cariHareketTakipNo} = app.params.tablet;
+		let recs = await app.wsTicKapanmayanHesap(wsArgs); for (let rec of recs) {
+			let {isaretligecikmegun: gecikmeGun, bedel, acikkisim: acikKisim} = rec;
+			rec.odenen = (bedel || 0) - (acikKisim || 0);
+			if (gecikmeGun != null) {
+				gecikmeGun = typeof gecikmeGun === 'string' ? asDate(gecikmeGun) : gecikmeGun;
+				if (isDate(gecikmeGun)) { gecikmeGun = ((gecikmeGun - minDate) / Date_OneDayNum) + 1 }
+				rec.gecmis = rec.gelecek = 0; rec[gecikmeGun < 0 ? 'gecmis' : 'gelecek'] += gecikmeGun;
+			}
+			rec._vadeVeyaTarih = asDate(rec.vade ?? rec.tarih)
+		}
+		recs.sort((_a, _b) => {
+			const  a = { takipNo: _a.takipno ?? '', vadeVeyaTarih: _a._vadeVeyaTarih }, b = { takipNo: _b.takipno ?? '', vadeVeyaTarih: _b._vadeVeyaTarih };
+			const takipNoCompare = b.takipNo > a.takipNo ? 1 : b.takipNo < a.takipNo ? -1 : 0, tarihCompare = b.vadeVeyaTarih - a.vadeVeyaTarih;
+			return takipNoCompare || tarihCompare
+		});
 		return recs
 	}
 }
@@ -63,8 +74,8 @@ class MQCariEkstre extends MQMasterOrtak {
 	static get dataKey() { return 'cariEkstre' } static get sinifAdi() { return 'Cari Ekstreler' } get tableAlias() { return 'ceks' }
 	static get detaySinif() { return MQCariEkstre_Detay } static get gridDetaylimi() { return true }
 	static orjBaslikListesiDuzenle(e) {
-		const tarihGosterim = (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => changeTagContent(html, dateToString(asDate(value)));
-		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(
+		super.orjBaslikListesiDuzenle(e); const tarihGosterim = (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => changeTagContent(html, dateToString(asDate(value)));
+		const {cariHareketTakipNo} = app.params.tablet, {liste} = e; liste.push(
 			/*new GridKolon({ belirtec: 'must', text: 'Müşteri', genislikCh: 16 }),*/
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12, cellsRenderer: (...args) => tarihGosterim(...args) }).tipDate(),
 			new GridKolon({ belirtec: 'fisnox', text: 'Belge Seri/No', genislikCh: 20 }),
@@ -75,15 +86,17 @@ class MQCariEkstre extends MQMasterOrtak {
 			new GridKolon({ belirtec: 'borcbedel', text: 'Borç Bedel.', genislikCh: 16, cellClassName: 'green', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
 			new GridKolon({ belirtec: 'alacakbedel', text: 'Alacak Bedel.', genislikCh: 16, cellClassName: 'red', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
 			new GridKolon({
-				belirtec: 'bakiye', text: 'Bakiye', genislikCh: 16, aggregates: [{ TOPLAM: gridDipIslem_sum }], cellClassName: (colDef, rowIndex, belirtec, value, rec) => {
-					let result = [belirtec, 'bold']; result.push(value ? (asFloat(value) < 0 ? 'red' : 'green') : ''); return result.filter(x => !!x).join(' ') },
-			}).tipDecimal_bedel()
+				belirtec: 'bakiye', text: 'Bakiye', genislikCh: 16, aggregates: [{ TOPLAM: gridDipIslem_sum }],
+				cellClassName: (colDef, rowIndex, belirtec, value, rec) => {
+					let result = [belirtec, 'bold']; result.push(value ? (asFloat(value) < 0 ? 'red' : 'green') : ''); return result.filter(x => !!x).join(' ') }
+			}).tipDecimal_bedel(),
+			(cariHareketTakipNo ? new GridKolon({ belirtec: 'takipno', text: 'Takip No', genislikCh: 20, filterType: 'checkedlist' }) : null)
 		)
 	}
 	static loadServerData(e) {
 		let recs = this.loadServerDataFromMustBilgi(e); if (!recs) { return recs }
 		let bakiye = 0; for (const rec of recs) {
-			const {borcbedel: borc, alacakbedel: alacak} = rec, bedel = borc - alacak;
+			let {bedel, ba} = rec; if (ba == 'A') { bedel = -bedel }
 			bakiye += bedel; $.extend(rec, { bedel, bakiye })
 		}
 		recs = [...recs].reverse(); return recs
@@ -138,11 +151,18 @@ class MQKapanmayanHesaplar_Yaslandirma extends MQMasterOrtak {
 	}
 	static loadServerData(e) {
 		let recs = this.loadServerDataFromMustBilgi(e); if (recs) {
-			const toplam = { gecmis: 0, gelecek: 0 };
-			for (const rec of recs) { for (const key of ['gecmis', 'gelecek']) { toplam[key] = (toplam[key] || 0) + (rec[key] || 0) } };
-			const recToplam = { toplammi: true, kademeText: `<u>TOPLAM</u> =&gt;` }; for (const key in toplam) { recToplam[key] = toplam[key] };
+			let toplam = { gecmis: 0, gelecek: 0 }; for (const rec of recs) {
+				let {isaretligecikmegun: gecikmeGun} = rec; if (gecikmeGun != null) {
+					gecikmeGun = typeof gecikmeGun === 'string' ? asDate(gecikmeGun) : gecikmeGun;
+					if (isDate(gecikmeGun)) { gecikmeGun = ((gecikmeGun - minDate) / Date_OneDayNum) + 1 }
+					rec.gecmis = rec.gelecek = 0; rec[gecikmeGun < 0 ? 'gecmis' : 'gelecek'] += gecikmeGun;
+				}
+				for (const key of ['gecmis', 'gelecek']) { toplam[key] += rec[key] }
+			};
+			let recToplam = { toplammi: true, kademeText: `<u>TOPLAM</u> =&gt;` }; for (const key in toplam) { recToplam[key] = toplam[key] };
 			recs = [recToplam, ...recs]
-		} return recs
+		}
+		return recs
 	}
 	static loadServerDataFromMustBilgi(e) { let recs = super.loadServerDataFromMustBilgi(e); if (!$.isArray(recs)) { recs = Object.values(recs || {}) } return recs }
 }

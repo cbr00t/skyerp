@@ -12,7 +12,7 @@ class MQYerelParamConfig_App extends MQYerelParamConfig {
 }
 class MQParam_CRM extends MQParam {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() { return 'CRP Parametreleri' } static get paramKod() { return 'CRPPARAM' }
+	static get sinifAdi() { return 'CRM Parametreleri' } static get paramKod() { return 'CRMPARAM' }
 	constructor(e) { e = e || {}; super(e) /*$.extend(this, { sablon: e.sablon }) */ }
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); const {paramci} = e; paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`)

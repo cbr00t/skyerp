@@ -23,8 +23,8 @@ class MQKapanmayanHesaplar extends MQDegerlendirmeEkOrtak {
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12 /*, cellsRenderer: (...args) => tarihGosterim(...args)*/ }).tipDate(),
 			new GridKolon({ belirtec: 'vade', text: 'Vade', genislikCh: 12 /*, cellsRenderer: (...args) => tarihGosterim(...args)*/ }).tipDate(),
 			new GridKolon({ belirtec: 'must', text: 'Müşteri', genislikCh: 16 }), new GridKolon({ belirtec: 'mustunvan', text: 'Müşteri Ünvan', genislikCh: 40, sql: 'car.birunvan' }),
-			new GridKolon({ belirtec: 'gecikmegun', text: 'Gecikme', genislikCh: 8 }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'gelecekgun', text: 'Gel.Gün', genislikCh: 8 }).tipDecimal_bedel(),
+			new GridKolon({ belirtec: 'gecikmegun', text: 'Gecikme', genislikCh: 8 }).tipNumerik(),
+			new GridKolon({ belirtec: 'gelecekgun', text: 'Gel.Gün', genislikCh: 8 }).tipNumerik(),
 			new GridKolon({ belirtec: 'bedel', text: 'Orj. Bedel', genislikCh: 15 , aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
 			new GridKolon({ belirtec: 'acikkisim', text: 'Açık Kısım', genislikCh: 15, cellClassName: 'bold', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
 			(cariHareketTakipNo ? new GridKolon({ belirtec: 'takipno', text: 'Takip No', genislikCh: 20, filterType: 'checkedlist' }) : null)
@@ -36,7 +36,20 @@ class MQKapanmayanHesaplar extends MQDegerlendirmeEkOrtak {
 	}
 	static loadServerDataDogrudan(e) {
 		e = e || {}; const {mustKod} = e; let recs = app.wsTicKapanmayanHesap({ mustKod }); if (!recs?.length) { return recs }
-		recs.sort((a, b) => (b.vade ?? b.tarih) - (a.vade ?? a.tarih)); return recs
+		for (const rec of recs) {
+			let {isaretligecikmegun: gecikmeGun} = rec; if (gecikmeGun != null) {
+				gecikmeGun = typeof gecikmeGun === 'string' ? asDate(gecikmeGun) : gecikmeGun;
+				if (isDate(gecikmeGun)) { gecikmeGun = ((gecikmeGun - minDate) / Date_OneDayNum) + 1 }
+				rec.gecmis = rec.gelecek = 0; rec[gecikmeGun < 0 ? 'gecmis' : 'gelecek'] += gecikmeGun;
+			}
+			rec._vadeVeyaTarih = asDate(rec.vade ?? rec.tarih)
+		};
+		recs.sort((_a, _b) => {
+			const  a = { takipNo: _a.takipno ?? '', vadeVeyaTarih: _a._vadeVeyaTarih }, b = { takipNo: _b.takipno ?? '', vadeVeyaTarih: _b._vadeVeyaTarih };
+			const takipNoCompare = b.takipNo > a.takipNo ? 1 : b.takipNo < a.takipNo ? -1 : 0, tarihCompare = b.vadeVeyaTarih - a.vadeVeyaTarih;
+			return takipNoCompare || tarihCompare
+		});
+		return recs
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this;
