@@ -4,7 +4,7 @@ class SahaDurumApp extends App {
 	constructor(e) { e = e || {}; super(e) }
 	async runDevam(e) {
 		await super.runDevam(e); if (qs.user) { await this.loginIstendi(e) } else { this.promise_login.resolve() }
-		await this.promise_ready; if (app.params.tablet?.yaslandirmaTarihmi) { MustBilgi.kademeEk = 30 }
+		await this.promise_ready; /*if (app.params.tablet?.yaslandirmaTarihmi) { MustBilgi.kademeEk = 30 }*/
 		await this.anaMenuOlustur(e); const {session} = config, yerelParam = this.params.yerel;
 		let lastSession = yerelParam?.lastSession ?? session;
 		if (lastSession) {
