@@ -55,10 +55,11 @@ class FBuilder_Tabs extends FBuilder_TabsOrtak {
 			builder: this, parent, layout, parentPart, tabPageChangedBlock,
 			initTabContent: e => {
 				const {layout, initTabLayoutBlock} = this, {tabPage} = e, tabID = tabPage.id, tabIndex = tabPage.index, sender = this, builder = this;
-				setTimeout(() => {
+				return new $.Deferred(p => setTimeout(async () => {
 					const _e = { ...e,  sender, builder, tabPage, tabID, tabIndex }; if (this.initTabLayout) { this.initTabLayout(_e) }
-					if (initTabLayoutBlock) { getFuncValue.call(this, initTabLayoutBlock, _e) } this._initTabIDSet[tabID] = true
-				}, 10)
+					if (initTabLayoutBlock) { await getFuncValue.call(this, initTabLayoutBlock, _e) }
+					this._initTabIDSet[tabID] = true; p.resolve()
+				}, 50))
 			}
 		} });
 		const {widgetArgsDuzenle} = this; if (widgetArgsDuzenle) { getFuncValue.call(this, widgetArgsDuzenle, _e) }

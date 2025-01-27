@@ -13,6 +13,10 @@ class MQMustBilgi extends MQKAOrtak {
 		super.orjBaslikListesi_gridInit(e); const {grid} = e;
 		grid.on('filter', evt => { if (grid.jqxGrid('groups').length && evt.args.filters?.length) grid.jqxGrid('expandallgroups') })
 	}
+	static ekCSSDuzenle(e) {
+		super.ekCSSDuzenle(e); const belirtec = e.dataField, {rec, result} = e;
+		if (belirtec == 'bakiye' || belirtec.startsWith('kademe')) { let value = rec[belirtec]; if (value) { result.push(value < 0 ? 'red' : 'green') } else { result.push('lightgray') } }
+	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e, session = config.session ?? app.params.yerel.lastSession ?? {}, {loginTipi, user} = session;
 		let colDef = liste.find(colDef => colDef.belirtec == 'kod'); colDef.hidden();
@@ -27,7 +31,9 @@ class MQMustBilgi extends MQKAOrtak {
 			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 16, cellClassName: 'darkgray' }),
 			new GridKolon({ belirtec: 'bakiye', text: 'Bakiye', genislikCh: 16, cellClassName: 'bold', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel()
 		]);
-		for (let i = 1; i <= MustBilgi.kademeler.length; i++) { liste.push(new GridKolon({ belirtec: `kademe${i}Bedel`, text: MustBilgi.getKademeText(i - 1), genislikCh: 16, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel()) }
+		for (let i = 1; i <= MustBilgi.kademeler.length; i++) {
+			liste.push(new GridKolon({ belirtec: `kademe${i}Bedel`, text: MustBilgi.getKademeText(i - 1), genislikCh: 16, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel())
+		}
 		liste.push(new GridKolon({ belirtec: 'plasiyerText', text: 'Plasiyer', genislikCh: 10, cellClassName: 'darkgray' }))
 	}
 	static gridVeriYuklendi(e) {
@@ -50,7 +56,7 @@ class MQMustBilgi extends MQKAOrtak {
 					const subRecs = mustBilgi[subDataKey] = mustBilgi[subDataKey] || []; subRecs.push(rec)
 				}
 			}
-			const AsyncMax = 10; let promises = []; for (const mustBilgi of Object.values(result)) {
+			const AsyncMax = 5; let promises = []; for (const mustBilgi of Object.values(result)) {
 				promises.push(new $.Deferred(p => p.resolve( mustBilgi.kapanmayanHesap_yaslandirmaOlustur(e) )));
 				if (promises.length >= AsyncMax) { await Promise.all(promises); promises = [] }
 			}

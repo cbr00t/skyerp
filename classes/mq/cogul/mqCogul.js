@@ -337,7 +337,7 @@ class MQCogul extends MQYapi {
 			return result
 		};
 		const {liste} = e; for (const colDef of liste) {
-			const savedCellClassName = colDef.cellClassName /*, savedCellsRenderer = colDef.cellsRenderer*/;
+			const {cellClassName: savedCellClassName} = colDef /*, savedCellsRenderer = colDef.cellsRenderer*/;
 			colDef.cellClassName = (sender, rowIndex, belirtec, value, rec) => {
 				const prefix = savedCellClassName ? getFuncValue.call(this, savedCellClassName, sender, rowIndex, belirtec, value, rec) : null;
 				return getFuncValue.call(this, getCellClassName, sender, rowIndex, belirtec, value, rec, prefix)

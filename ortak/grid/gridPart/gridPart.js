@@ -113,18 +113,14 @@ class GridPart extends Part {
 			source: new $.jqx.dataAdapter(
 				{ cache, async, id: this.gridIDBelirtec, dataType: wsDataType, url: `${webRoot}/empty.php` }, {
 					cache, async, addrow: (rowIndex, rec, position, commit) => { commit(true) }, updaterow: (rowIndex, rec, commit) => { rec._degisti = true; commit(true) }, deleterow: (rowIndexes, commit) => { commit(true) },
-					loadServerData: (wsArgs, source, callback) => {
+					loadServerData: async (wsArgs, source, callback) => {
 						let {gridWidget, grid} = this; if (!gridWidget && grid?.length) { gridWidget = this.gridWidget = grid.jqxGrid('getInstance') }
-						setTimeout(async () => {
-							const action = this._tazele_lastAction; let result = await this.loadServerData({ wsArgs, source, callback, action });
-							if (result) {
-								if ($.isArray(result)) { result = { totalrecords: result.length, records: result } } result = result ?? { totalrecords: 0, records: [] };
-								if (typeof result == 'object') {
-									if (result.records && !result.totalrecords) { result.totalrecords = result.records.length }
-									try { callback(result) } catch (ex) { console.error(ex) }
-								}
-							}
-						}, 0)
+						const action = this._tazele_lastAction; let result = await this.loadServerData({ wsArgs, source, callback, action });
+						if (result) {
+							if ($.isArray(result)) { result = { totalrecords: result.length, records: result } } result = result ?? { totalrecords: 0, records: [] };
+							if (typeof result == 'object' && result.records && !result.totalrecords) { result.totalrecords = result.records.length }
+							if (typeof result == 'object') { setTimeout(() => { try { callback(result) } catch (ex) { console.error(ex) } }, 1) }
+						}
 					}
 				})
 		};

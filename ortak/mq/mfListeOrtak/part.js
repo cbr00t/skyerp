@@ -237,7 +237,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 				grid.addClass(animation); clearTimeout(this.timer_animate);
 				this.timer_animate = setTimeout(() => { grid.removeClass(animation); delete this.timer_animate }, 4000)
 			}, 5);*/
-			try { gridWidget.beginupdate() } catch (ex) { }
+			try { gridWidget.beginupdate() } catch (ex) { } gridWidget.clearselection(); gridWidget.selectrow(index);
 			if (!$.isEmptyObject(expandedIndexes)) { for (let _index in expandedIndexes) { _index = asInteger(_index); if (index != _index) { gridWidget.hiderowdetails(_index) } } }
 			expandedIndexes[index] = true; /*setTimeout(() => gridWidget.ensurerowvisible(index > 0 ? index - 1 : index), 10)*/
 			try { gridWidget.endupdate(false) } catch (ex) { }

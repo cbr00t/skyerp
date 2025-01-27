@@ -27,7 +27,7 @@ class MQKapanmayanHesaplar extends MQDegerlendirmeEkOrtak {
 			new GridKolon({ belirtec: 'gelecekgun', text: 'Gel.Gün', genislikCh: 8 }).tipNumerik(),
 			new GridKolon({ belirtec: 'bedel', text: 'Orj. Bedel', genislikCh: 15 , aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
 			new GridKolon({ belirtec: 'acikkisim', text: 'Açık Kısım', genislikCh: 15, cellClassName: 'bold', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
-			(cariHareketTakipNo ? new GridKolon({ belirtec: 'takiptext', text: 'Takip No', genislikCh: 45, filterType: 'checkedlist' }) : null)
+			(cariHareketTakipNo ? new GridKolon({ belirtec: 'takiptext', text: 'Takip', genislikCh: 45, filterType: 'checkedlist' }) : null)
 		].filter(x => !!x))
 	}
 	static orjBaslikListesi_gridInit(e) {
@@ -37,13 +37,15 @@ class MQKapanmayanHesaplar extends MQDegerlendirmeEkOrtak {
 	static loadServerDataDogrudan(e) {
 		e = e || {}; const {mustKod} = e; let recs = app.wsTicKapanmayanHesap({ mustKod }); if (!recs?.length) { return recs }
 		for (const rec of recs) {
-			let {isaretligecikmegun: gecikmeGun} = rec; if (gecikmeGun != null) {
-				gecikmeGun = typeof gecikmeGun === 'string' ? asDate(gecikmeGun) : gecikmeGun;
-				if (isDate(gecikmeGun)) { gecikmeGun = ((gecikmeGun - minDate) / Date_OneDayNum) + 1 }
-				rec.gecmis = rec.gelecek = 0; rec[gecikmeGun < 0 ? 'gecmis' : 'gelecek'] += gecikmeGun;
+			let {isaretligecikmegun: isaretliGecikmeGun, bedel, acikkisim: acikKisim, takipno: takipNo, takipadi: takipAdi} = rec;
+			if (isaretliGecikmeGun != null) {
+				isaretliGecikmeGun = typeof isaretliGecikmeGun === 'string' ? asDate(isaretliGecikmeGun) : isaretliGecikmeGun;
+				if (isDate(isaretliGecikmeGun)) { isaretliGecikmeGun = ((isaretliGecikmeGun - minDate) / Date_OneDayNum) + 1 }
+				rec.gecikmegun = rec.gelecekgun = 0; rec[isaretliGecikmeGun < 0 ? 'gelecekgun' : 'gecikmegun'] += Math.abs(isaretliGecikmeGun);
+				delete rec.isaretligecikmegun
 			}
 			if (takipNo) { rec.takiptext = `<b class="gray">${takipNo}</b>-${takipAdi}` }
-			rec._vadeVeyaTarih = asDate(rec.vade ?? rec.tarih)
+			rec.odenen = (bedel || 0) - (acikKisim || 0); rec._vadeVeyaTarih = asDate(rec.vade ?? rec.tarih)
 		};
 		recs.sort((_a, _b) => {
 			const  a = { takipNo: _a.takipno ?? '', vadeVeyaTarih: _a._vadeVeyaTarih }, b = { takipNo: _b.takipno ?? '', vadeVeyaTarih: _b._vadeVeyaTarih };
@@ -68,7 +70,7 @@ class MQCariEkstre extends MQDegerlendirmeEkOrtak {
 	}
 	static orjBaslikListesiDuzenle(e) {
 		/*const tarihGosterim = (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => changeTagContent(html, dateToString(asDate(value)));*/
-		super.orjBaslikListesiDuzenle(e); const {cariHareketTakipNo} = app.params.tablet, {liste} = e; liste.push(
+		super.orjBaslikListesiDuzenle(e); const {cariHareketTakipNo} = app.params.tablet, {liste} = e; liste.push(...[
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12 /*, cellsRenderer: (...args) => tarihGosterim(...args)*/ }).tipDate(),
 			new GridKolon({ belirtec: 'must', text: 'Müşteri', genislikCh: 16 }), new GridKolon({ belirtec: 'mustunvan', text: 'Müşteri Ünvan', genislikCh: 40, sql: 'car.birunvan' }),
 			new GridKolon({ belirtec: 'fisnox', text: 'Belge Seri/No', genislikCh: 20 }),
@@ -84,7 +86,7 @@ class MQCariEkstre extends MQDegerlendirmeEkOrtak {
 					let result = [belirtec, 'bold']; result.push(value ? (asFloat(value) < 0 ? 'red' : 'green') : ''); return result.filter(x => !!x).join(' ') }
 			}).tipDecimal_bedel(),
 			(cariHareketTakipNo ? new GridKolon({ belirtec: 'takiptext', text: 'Takip No', genislikCh: 45, filterType: 'checkedlist' }) : null)
-		)
+		].filter(x => !!x))
 	}
 	static async loadServerDataDogrudan(e) {
 		e = e || {}; let {mustKod} = e, must2Bakiye = {}, recs = await app.wsTicCariEkstre({ mustKod });
@@ -115,14 +117,14 @@ class MQCariEkstre_Icerik extends MQApiOrtak {
 	}
 	static orjBaslikListesiDuzenle(e) {
 		/*const tarihGosterim = (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => changeTagContent(html, dateToString(asDate(value)));*/
-		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(
+		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(...[
 			new GridKolon({ belirtec: 'shkod', text: 'Stok Kod', maxWidth: 13 * katSayi_ch2Px }),
 			new GridKolon({ belirtec: 'stokadi', text: 'Stok Adı', maxWidth: 40 * katSayi_ch2Px }),
 			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 10, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal(),
 			new GridKolon({ belirtec: 'fiyat', text: 'Fiyat', genislikCh: 13, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_fiyat(),
 			new GridKolon({ belirtec: 'sonuciskoran', text: 'İsk%', genislikCh: 6, aggregates: [{ ORT: gridDipIslem_avg }] }).tipDecimal(),
 			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 13, cellClassName: 'bold', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel()
-		)
+		])
 	}
 	static loadServerData(e) {
 		e = e ?? {}; let {parentRec, fisSayac} = e; if (!fisSayac && parentRec) { fisSayac = parentRec.icerikfissayac } if (!fisSayac && parentRec) { return [] }
