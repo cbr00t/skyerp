@@ -12,7 +12,8 @@ class MustBilgi extends CObject {
 		const {kademeler} = this.class, yaslandirmalar = this.yaslandirmalar = this.yaslandirmalar || [];
 		const kapanmayanHesaplar = this[MQKapanmayanHesaplar.dataKey] || [];
 		for (let index = 0; index < kademeler.length; index++) { yaslandirmalar[index] = new Yaslandirma({ index, gecmis: 0, gelecek: 0 }) }
-		let {kod: mustKod} = this; for (const rec of kapanmayanHesaplar) {
+		let {kod: mustKod} = this; if (mustKod == 'M05D48928') { debugger } 
+		for (const rec of kapanmayanHesaplar) {
 			let {isaretligecikmegun: isaretliGecikmeGun} = rec, acikKisim = rec.acikkisim || 0; if (isaretliGecikmeGun != null) {
 				isaretliGecikmeGun = typeof isaretliGecikmeGun === 'string' ? asDate(isaretliGecikmeGun) : isaretliGecikmeGun;
 				if (isDate(isaretliGecikmeGun)) { isaretliGecikmeGun = ((isaretliGecikmeGun - minDate) / Date_OneDayNum) + 1 }
@@ -20,15 +21,15 @@ class MustBilgi extends CObject {
 				delete rec.isaretligecikmegun
 			}
 			let {gecikmegun: gecikmeGun, gelecekgun: gelecekGun} = rec;
-			const index = this.class.getGunIcinKademeIndex(gecikmeGun), yaslandirma = yaslandirmalar[index];
-			let selector = gelecekGun ? 'gelecek' : 'gecmis'; if (mustKod == 'M05D48419') { debugger } yaslandirma[selector] = (yaslandirma[selector] || 0) + acikKisim
+			const index = this.class.getGunIcinKademeIndex(gecikmeGun || gelecekGun), yaslandirma = yaslandirmalar[index];
+			let selector = gelecekGun ? 'gelecek' : 'gecmis'; yaslandirma[selector] = (yaslandirma[selector] || 0) + acikKisim
 		}
 		let bakiye = 0; for (const yaslandirma of yaslandirmalar) { bakiye += yaslandirma.bedel } this.bakiye = bakiye
 		for (let i = 1; i <= kademeler.length; i++) { this[`kademe${i}Bedel`] = this.getKademeGecmisBedeli(i - 1) }
 	}
 	static getGunIcinKademeIndex(gun) {
 		const {kademeler} = this; for (let i = kademeler.length - 1; i >= 0; i--) {
-			const kademe = kademeler[i]; if (gun >= kademe) { return i } }
+			const kademe = kademeler[i]; if (gun > kademe) { return i } }
 		return 0
 	}
 	static getKademeText(index) {

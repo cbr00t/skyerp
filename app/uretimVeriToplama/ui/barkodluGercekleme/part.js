@@ -291,13 +291,12 @@ class BarkodluGerceklemePart extends Part {
 				}
 			}),
 			new GridKolon({
-				belirtec: 'basTS', text: 'Başlangıç', width: 80, editable: false, filterable: false, filterType: 'input', cellClassName: globalCellsClassName, columnType: 'template',
+				belirtec: 'basTS', text: 'Başlangıç', width: 110, editable: false, filterable: false, filterType: 'input', cellClassName: globalCellsClassName, columnType: 'template',
 				cellBeginEdit: (...args) => this.onCellBeginEdit(...args), cellEndEdit: (...args) => this.onCellEndEdit(...args),
 				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-					value = asDate(value);
-					if (value != null && value.setSeconds) value.setSeconds(0)
-					if (timeKisaString(value) == '00:00') value = ''
-					return changeTagContent(html, timeKisaString(asDate(value), true) || '')
+					value = asDate(value); if (value != null && value.setSeconds) { value.setSeconds(0) }
+					value = dateTimeAsKisaString(asDate(value), true) || ''; if (value == '00:00') { value = ''}
+					return changeTagContent(html, value)
 				},
 				createEditor: (colDef, rowIndex, value, editor, cellText, cellWidth, cellHeight) => {
 					editor.addClass(`${colDef.belirtec} ts`);
@@ -313,17 +312,13 @@ class BarkodluGerceklemePart extends Part {
 				belirtec: 'bitTS', text: 'Bitiş', width: 110, editable: false, filterable: false, filterType: 'input', cellClassName: globalCellsClassName, columnType: 'template',
 				cellBeginEdit: (...args) => this.onCellBeginEdit(...args), cellEndEdit: (...args) => this.onCellEndEdit(...args),
 				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-					value = asDate(value);
-					if (value != null && value.setSeconds)
-						value.setSeconds(0)
-					
-					let bitTS = value, basTS = asDate(rec.basTS);
-					let farkSn = (bitTS < basTS) ? (24 * 60 * 60) - ((basTS - bitTS) / 1000) : (bitTS - basTS) / 1000;
-					if (farkSn) farkSn = asSaniyeKisaString(roundToFra(farkSn, 0), true)
-					if (timeKisaString(value) == '00:00') value = ''
+					value = asDate(value); if (value != null && value.setSeconds) { value.setSeconds(0) }
+					let bitTS = value, basTS = asDate(rec.basTS), farkSn = (bitTS < basTS) ? (24 * 60 * 60) - ((basTS - bitTS) / 1000) : (bitTS - basTS) / 1000;
+					if (farkSn) { farkSn = asSaniyeKisaString(roundToFra(farkSn, 0), true) }
+					value = dateTimeAsKisaString(asDate(value), true) || ''; if (value == '00:00') { value = ''}
 					return changeTagContent(
 						html, (
-							`<div class="kod">${timeKisaString(value, true) || ''}</div>` +
+							`<div class="kod">${value || ''}</div>` +
 							( farkSn ? `<div class="ek-veri"><span class="title">Fark: </span><span class="veri">${farkSn || ''}</span></div>` : '' )
 						)
 					)

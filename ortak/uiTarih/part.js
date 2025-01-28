@@ -4,7 +4,7 @@ class TarihUIPart extends Part {
 	get hasTime() { const {timeLayout} = this; return timeLayout?.length }
 	get value() {
 		const {layout, hasTime} = this; let result = asDate(tarihDegerDuzenlenmis(layout?.length ? layout.val() : this._value));
-		if (hasTime) { const _value = this.timeLayout.val(); if (_value) result.setTime(asDate(timeFormatString(_value, this.saniyesizFlag))) }
+		if (hasTime) { const _value = this.timeLayout.val(); if (_value) { result.setTime(asDate(timeFormatString(_value, this.saniyesizFlag))) } }
 		return result
 	}
 	set value(value) {
@@ -42,7 +42,7 @@ class TarihUIPart extends Part {
 		input.on('focus', evt => evt.target.select());
 		input.on('blur', evt => {
 			const elm = $(evt.target), value = tarihDegerDuzenlenmis(elm.val(), () => elm.data('lastValue'));
-			if (value) { evt.preventDefault(); elm.val(value || ''); } else if (this.hasTime) this.timeLayout.val(null)
+			if (value) { evt.preventDefault(); elm.val(value || ''); } else if (this.hasTime) { this.timeLayout.val(null) }
 		});
 		const value = this._value || null; if (value !== undefined) input.val(dateToString(value));
 		if (this.hasTime) {

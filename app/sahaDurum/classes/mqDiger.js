@@ -53,7 +53,7 @@ class MQKapanmayanHesaplar extends MQMasterOrtak {
 		e = e || {}; await super.loadServerDataDogrudan(e); let {wsArgs} = e, {cariHareketTakipNo} = app.params.tablet;
 		let recs = await app.wsTicKapanmayanHesap(wsArgs); for (let rec of recs) {
 			let mustKod = rec.must ?? rec.mustkod, {isaretligecikmegun: isaretliGecikmeGun, bedel, acikkisim: acikKisim, takipno: takipNo, takipadi: takipAdi} = rec;
-			/*if (mustKod == 'M05D48419') { debugger }*/
+			/*if (mustKod == 'M05D48928') { debugger }*/
 			if (isaretliGecikmeGun != null) {
 				isaretliGecikmeGun = typeof isaretliGecikmeGun === 'string' ? asDate(isaretliGecikmeGun) : isaretliGecikmeGun;
 				if (isDate(isaretliGecikmeGun)) { isaretliGecikmeGun = ((isaretliGecikmeGun - minDate) / Date_OneDayNum) + 1 }
@@ -157,7 +157,7 @@ class MQKapanmayanHesaplar_Yaslandirma extends MQMasterOrtak {
 	}
 	static loadServerData(e) {
 		let recs = this.loadServerDataFromMustBilgi(e); if (recs) {
-			let {mustKod} = e, toplam = { gecmis: 0, gelecek: 0 }; /*if (mustKod == 'M05D48419') { debugger }*/
+			let {mustKod} = e, toplam = { gecmis: 0, gelecek: 0 }; /*if (mustKod == 'M05D48928') { debugger }*/
 			for (const rec of recs) {
 				let {isaretligecikmegun: isaretliGecikmeGun} = rec;
 				if (isaretliGecikmeGun != null) {
