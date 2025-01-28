@@ -52,7 +52,8 @@ class MQKapanmayanHesaplar extends MQMasterOrtak {
 	static async loadServerDataDogrudan(e) {
 		e = e || {}; await super.loadServerDataDogrudan(e); let {wsArgs} = e, {cariHareketTakipNo} = app.params.tablet;
 		let recs = await app.wsTicKapanmayanHesap(wsArgs); for (let rec of recs) {
-			let {isaretligecikmegun: isaretliGecikmeGun, bedel, acikkisim: acikKisim, takipno: takipNo, takipadi: takipAdi} = rec;
+			let mustKod = rec.must ?? rec.mustkod, {isaretligecikmegun: isaretliGecikmeGun, bedel, acikkisim: acikKisim, takipno: takipNo, takipadi: takipAdi} = rec;
+			/*if (mustKod == 'M05D48419') { debugger }*/
 			if (isaretliGecikmeGun != null) {
 				isaretliGecikmeGun = typeof isaretliGecikmeGun === 'string' ? asDate(isaretliGecikmeGun) : isaretliGecikmeGun;
 				if (isDate(isaretliGecikmeGun)) { isaretliGecikmeGun = ((isaretliGecikmeGun - minDate) / Date_OneDayNum) + 1 }
@@ -106,6 +107,7 @@ class MQCariEkstre extends MQMasterOrtak {
 				borcBedel = rec.borcbedel; alacakBedel = rec.alacakbedel
 			}
 			rec.bedel = bedel; rec.bakiye = must2Bakiye[must] = (must2Bakiye[must] || 0) + bedel;
+			for (let key of ['borcbedel', 'alacakbedel']) { rec[key] = Math.abs(rec[key] || 0) }
 			if (takipNo) { rec.takiptext = `<b class="gray">${takipNo}</b>-${takipAdi}` }
 		}
 		recs.reverse(); return recs
@@ -155,8 +157,10 @@ class MQKapanmayanHesaplar_Yaslandirma extends MQMasterOrtak {
 	}
 	static loadServerData(e) {
 		let recs = this.loadServerDataFromMustBilgi(e); if (recs) {
-			let toplam = { gecmis: 0, gelecek: 0 }; for (const rec of recs) {
-				let {isaretligecikmegun: isaretliGecikmeGun} = rec; if (isaretliGecikmeGun != null) {
+			let {mustKod} = e, toplam = { gecmis: 0, gelecek: 0 }; /*if (mustKod == 'M05D48419') { debugger }*/
+			for (const rec of recs) {
+				let {isaretligecikmegun: isaretliGecikmeGun} = rec;
+				if (isaretliGecikmeGun != null) {
 					isaretliGecikmeGun = typeof isaretliGecikmeGun === 'string' ? asDate(isaretliGecikmeGun) : isaretliGecikmeGun;
 					if (isDate(isaretliGecikmeGun)) { isaretliGecikmeGun = ((isaretliGecikmeGun - minDate) / Date_OneDayNum) + 1 }
 					rec.gecmis = rec.gelecek = 0; rec[isaretliGecikmeGun < 0 ? 'gelecek' : 'gecmis'] += Math.abs(isaretliGecikmeGun);

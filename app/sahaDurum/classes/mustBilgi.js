@@ -12,17 +12,16 @@ class MustBilgi extends CObject {
 		const {kademeler} = this.class, yaslandirmalar = this.yaslandirmalar = this.yaslandirmalar || [];
 		const kapanmayanHesaplar = this[MQKapanmayanHesaplar.dataKey] || [];
 		for (let index = 0; index < kademeler.length; index++) { yaslandirmalar[index] = new Yaslandirma({ index, gecmis: 0, gelecek: 0 }) }
-		for (const rec of kapanmayanHesaplar) {
-			let {isaretligecikmegun: isaretliGecikmeGun} = rec, selector = isaretliGecikmeGun < 0 ? 'gelecek' : 'gecmis';
-			if (isaretliGecikmeGun != null) {
+		let {kod: mustKod} = this; for (const rec of kapanmayanHesaplar) {
+			let {isaretligecikmegun: isaretliGecikmeGun} = rec, acikKisim = rec.acikkisim || 0; if (isaretliGecikmeGun != null) {
 				isaretliGecikmeGun = typeof isaretliGecikmeGun === 'string' ? asDate(isaretliGecikmeGun) : isaretliGecikmeGun;
 				if (isDate(isaretliGecikmeGun)) { isaretliGecikmeGun = ((isaretliGecikmeGun - minDate) / Date_OneDayNum) + 1 }
 				rec.gecikmegun = rec.gelecekgun = 0; rec[isaretliGecikmeGun < 0 ? 'gelecekgun' : 'gecikmegun'] += Math.abs(isaretliGecikmeGun);
 				delete rec.isaretligecikmegun
 			}
 			let {gecikmegun: gecikmeGun, gelecekgun: gelecekGun} = rec;
-			const index = this.class.getGunIcinKademeIndex(gecikmeGun || gelecekGun), yaslandirma = yaslandirmalar[index];
-			yaslandirma[selector] = (yaslandirma[selector] || 0) + (rec.acikkisim || 0)
+			const index = this.class.getGunIcinKademeIndex(gecikmeGun), yaslandirma = yaslandirmalar[index];
+			let selector = gelecekGun ? 'gelecek' : 'gecmis'; if (mustKod == 'M05D48419') { debugger } yaslandirma[selector] = (yaslandirma[selector] || 0) + acikKisim
 		}
 		let bakiye = 0; for (const yaslandirma of yaslandirmalar) { bakiye += yaslandirma.bedel } this.bakiye = bakiye
 		for (let i = 1; i <= kademeler.length; i++) { this[`kademe${i}Bedel`] = this.getKademeGecmisBedeli(i - 1) }
