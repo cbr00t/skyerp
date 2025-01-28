@@ -579,8 +579,7 @@ class MQCari_EIslem extends MQCariAlt {
 		let {mfSinif} = this, {tabPanel} = e, tabPage = tabPanel.addTab({ id: 'eislem', etiket: 'E-İşlem' }); tabPage.setAltInst(({ builder: fbd }) => fbd.inst.eIslem);
 		let form = tabPage.addFormWithParent().yanYana(4)/*.addStyle(e=>`$elementCSS {box-shadow:5px 5px 20px cadetblue}`)*/;
 			/*tabPanel.addBaslik({ etiket: 'E-Fatura/E-Arşiv' });*/
-			form.addCheckBox('eFaturaKullanirmi', 'E-Fatura').addStyle_wh(150)
-				.degisince(({ builder: fbd }) => { for (const subBuilder of fbd.parentBuilder.parentBuilder.id2Builder.ozelButceliKurum_parent.builders) { subBuilder.updateVisible() } });
+			form.addCheckBox('eFaturaKullanirmi', 'E-Fatura').addStyle_wh(150);
 			let eFatKullanimKosulu = ({ builder: fbd }) => fbd.inst.eIslem.eFaturaKullanirmi;
 			form.addButton('ozelEntegratorKontrol', 'Özel Entegratörden Kontrol Et').onClick(_e => this.ozelEntegratordenKontrolEtIstendi({ ...e, ..._e }));
 			form.addModelKullan({ id: 'senaryoTipi', etiket: 'Senaryo Tipi', source: e => SenaryoTipi.instance.kaListe}).noMF().dropDown().setVisibleKosulu(e => eFatKullanimKosulu(e));
