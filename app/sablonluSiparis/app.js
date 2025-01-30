@@ -1,6 +1,6 @@
 class SablonluSiparisApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	get yerelParamSinif() { return MQYerelParam } get autoExecMenuId() { return SablonluKonsinyeSiparisListeFis.kodListeTipi }
+	get yerelParamSinif() { return MQYerelParam } get autoExecMenuId() { return SablonluSiparisListeFis.kodListeTipi }
 	paramsDuzenle(e) { super.paramsDuzenle(e) /*; const {params} = e; $.extend(params, { x: MQParam_X.getInstance() })*/ }
 	async anaMenuOlustur(e) {
 		await this.promise_ready; let {kullanim} = app.params.aktarim, eksikParamIsimleri = [];

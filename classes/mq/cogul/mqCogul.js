@@ -660,7 +660,7 @@ class MQCogul extends MQYapi {
 	static async getGloKod2Rec(e) {
 		e = e || {}; const {globals} = this; let result = globals.kod2Rec;
 		if (!result) {
-			const recs = (await this.loadServerData(e)) || [], kodSaha = e.kodSaha ?? this.kodSaha; result = globals.kod2Rec = {};
+			const recs = (await this.loadServerData({ ...e, basit: true })) || [], kodSaha = e.kodSaha ?? this.kodSaha; result = globals.kod2Rec = {};
 			for (const rec of recs) { const kod = rec[kodSaha]; result[kod] = rec }
 		}
 		return result

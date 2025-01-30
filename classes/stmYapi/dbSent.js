@@ -33,8 +33,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	birlestir(diger) {
 		this.sahalar.birlestir(diger.sahalar); this.from.birlestir(diger.from); this.where.birlestir(diger.where);
 		this.groupBy.birlestir(diger.groupBy); this.having.birlestir(diger.having); this.zincirler.birlestir(diger.zincirler);
-		const _params = diger.params;
-		if (!$.isEmptyObject(_params)) { const params = this.params = this.params || []; params.push(..._params) }
+		const {params: _params} = diger; if (!$.isEmptyObject(_params)) { const params = this.params = this.params || []; params.push(..._params) }
 		return this
 	}
 	distinctYap() { this.distinct = true; return this }

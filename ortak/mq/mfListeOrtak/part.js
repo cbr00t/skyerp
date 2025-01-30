@@ -298,7 +298,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 				const keys = ['recordstartindex', 'recordendindex', 'pagenum', 'pageindex', 'pagesize']; for (const key of keys) { delete wsArgs[key] } }
 		}
 		const mfSinif = this.getMFSinif();
-		try { const _e = $.extend({ sender: e, tabloKolonlari: this.tabloKolonlari_detaylar, fisSinif: mfSinif }, e); return mfSinif.loadServerData_detaylar(_e) }
+		try { const _e = { ...e, sender: this, tabloKolonlari: this.tabloKolonlari_detaylar, fisSinif: mfSinif }; return mfSinif.loadServerData_detaylar(_e) }
 		catch (ex) { console.error(ex); const errorText = getErrorText(ex); hConfirm(`<div style="color: firebrick;">${errorText}</div>`, 'Detay Grid Verisi Alınamadı') }
 	}
 	 static async openContextMenu(e) {

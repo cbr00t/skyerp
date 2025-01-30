@@ -106,7 +106,7 @@ class MQDetayli extends MQSayacli {
 			if (!colDef.sqlIcinUygunmu) { continue }
 			const {belirtec, sql} = colDef; if (sql) sent.sahalar.add(`${sql} ${belirtec}`)
 		}*/
-		this.class.loadServerData_detaylar_queryDuzenle(e); let result = detaySinif.tekilOku_queryDuzenle(e); let {stm} = e;
+		this.class.loadServerData_detaylar_queryDuzenle(e); let result = detaySinif.tekilOku_queryDuzenle(e), {stm} = e;
 		for (let sent of stm.getSentListe()) { sent.gereksizTablolariSil({ disinda: alias }) }
 		return result
 	}

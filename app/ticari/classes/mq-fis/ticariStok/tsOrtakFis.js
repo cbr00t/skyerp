@@ -7,9 +7,8 @@ class TSOrtakFis extends MQTicariGenelFis {
 	static get stokmu() { return false } static get ticarimi() { return false } static get tsnKullanilirmi() { return true }
 	static get numTipKod() { return null } static get islTipKod() { return null } static get varsayilanIslKod() { return null }
 	static get oncelik() { return 0 } static get cikisGibimi() { return false } static get girisGibimi() { return false }
-	static get iademi() { return this.iade == 'I' }
-	static get numYapi() { return new MQTicNumarator({ tip: this.numTipKod }) }
-	get eIslemSinif() { return EIslemOrtak.getClass({ tip: this.efAyrimTipi })}
+	static get iademi() { return this.iade == 'I' } static get numYapi() { return new MQTicNumarator({ tip: this.numTipKod }) }
+	static get mustSaha() { return null } get eIslemSinif() { return EIslemOrtak.getClass({ tip: this.efAyrimTipi })}
 
 	constructor(e) { e = e || {}; super(e); }
 	static pTanimDuzenle(e) {

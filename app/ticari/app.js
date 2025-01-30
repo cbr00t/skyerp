@@ -56,6 +56,14 @@ class TicariApp extends App {
 		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
 		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'bekleyenSiparisler_detaylar', args: e }) })
 	}
+	wsSiparisler(e) {
+		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
+		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'siparisler', args: e }) })
+	}
+	wsSiparisler_detaylar(e) {
+		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
+		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'siparisler_detaylar', args: e }) })
+	}
 	wsBekleyenIrsaliyeler(e) {
 		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
 		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'bekleyenIrsaliyeler', args: e }) })
@@ -63,6 +71,14 @@ class TicariApp extends App {
 	wsBekleyenIrsaliyeler_detaylar(e) {
 		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
 		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'bekleyenIrsaliyeler_detaylar', args: e }) })
+	}
+	wsIrsaliyeler(e) {
+		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
+		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'irsaliyeler', args: e }) })
+	}
+	wsIrsaliyeler_detaylar(e) {
+		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
+		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'irsaliyeler_detaylar', args: e }) })
 	}
 	wsFaturalar(e) {
 		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }

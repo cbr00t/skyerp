@@ -511,7 +511,7 @@ class GridPart extends Part {
 		return _e.result
 	}
 	tazeleDefer(e) {
-		e = e || {}; const deferMS = (typeof e == 'object' ? e.deferMS : e) ?? 1300; const timerKey = '_timer_tazeleDefer'; clearTimeout(this[timerKey]);
+		e = e || {}; const deferMS = (typeof e == 'object' ? e.deferMS : e) ?? 500; const timerKey = '_timer_tazeleDefer'; clearTimeout(this[timerKey]);
 		this[timerKey] = setTimeout(() => { if (this.isDestroyed) { return } try { this.tazele(e) } finally { delete this[timerKey] } }, deferMS)
 		return this
 	}

@@ -21,17 +21,18 @@ class TicariFis extends TSOrtakFis {
 	static get kdvKAListe() { return this._kdvKAListe } static get kdvKod2Rec() { return this._kdvKod2Rec }
 	static get islTipKod() { return (this.alimmi ? 'AF' : this.satismi ? 'TF' : this.mustahsilmi ? 'MF' : super.islTipKod) }
 	static get varsayilanIslKod() { return ( this.alimmi ? 'AF' : this.satismi ? 'TF' : this.mustahsilmi ? 'MF' : super.islTipKod ) }
+	static get mustSaha() { return 'must' }
 	get fisTopIslBedel() { let toplam = 0; const {detaylar} = this; for (const det of detaylar) { toplam += (det.iskBedelToplam || 0) } return toplam }
 	get ekVergiVarmi() { const {detaylar} = this; for (const det of detaylar) { if (det.ekVergiYapi && !det.bosmu) { return true } } return false }
 	static async getMustKonKendiDetayKod(e) {
 		e = e || {}; const {mustKod} = e; if (!mustKod) { return null }
-		const sent = new MQSent({ from: 'carmst', where: { degerAta: mustKod, saha: 'must' }, sahalar: ['kendidetaykod'] })
+		const sent = new MQSent({ from: 'carmst', where: { degerAta: mustKod, saha: this.mustSaha }, sahalar: ['kendidetaykod'] })
 		return await app.sqlExecTekilDeger(sent)?.trimEnd()
 	}
 	async getMustKonKendiDetayKod(e) { e = e || {}; return this.getMustKonKendiDetayKod($.extend({}, e, { mustKod: this.mustKod })) }
 	static async getMusKarsiRefKod(e) {
 		e = e || {}; const {mustKod} = e; if (!mustKod) { return null }
-		const sent = new MQSent({ from: 'carmst', where: { degerAta: mustKod, saha: 'must' }, sahalar: ['musrefkod'] })
+		const sent = new MQSent({ from: 'carmst', where: { degerAta: mustKod, saha: this.mustSaha }, sahalar: ['musrefkod'] })
 		return await app.sqlExecTekilDeger(sent)?.trimEnd()
 	}
 	async getMusKarsiRefKod(e) { e = e || {}; return this.getMusKarsiRefKod($.extend({}, e, { mustKod: this.mustKod })) }
@@ -48,7 +49,7 @@ class TicariFis extends TSOrtakFis {
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
 		$.extend(pTanim, {
-			mustKod: new PInstStr('must'),
+			mustKod: new PInstStr(this.mustSaha),
 			ticMustKod: new PInstStr('ticmust'),
 			altHesapKod: new PInstStr('cariitn')
 		})
@@ -76,7 +77,7 @@ class TicariFis extends TSOrtakFis {
 	static orjBaslikListesiDuzenle_ara(e) {
 		super.orjBaslikListesiDuzenle_ara(e); const {liste} = e;
 		liste.push(
-			new GridKolon({ belirtec: 'must', text: 'Müşteri', genislikCh: 25 }),
+			new GridKolon({ belirtec: 'must', text: 'Müşteri', genislikCh: 25, sql: `fis.${this.mustSaha}` }),
 			new GridKolon({ belirtec: 'mustunvan', text: 'Müşteri Ünvan', genislikCh: 50, sql: 'car.birunvan' })
 		)
 	}
@@ -260,7 +261,7 @@ class TicariFis extends TSOrtakFis {
 				else {
 					let query = new MQSent({
 						from: 'carbakiye', sahalar: ['SUM(bakiye) bakiye', 'SUM(dvbakiye) dvbakiye'],
-						where: [ `ozelisaret <> 'X'`, { degerAta: mustKod, saha: 'must' }, { degerAta: this.altHesapKod, saha: 'althesapkod' } ]
+						where: [ `ozelisaret <> 'X'`, { degerAta: mustKod, saha: this.class.mustSaha }, { degerAta: this.altHesapKod, saha: 'althesapkod' } ]
 					});
 					let rec = await app.sqlExecTekil({ trnId, query });
 					musteriOncekiBakiyeDurumu = { oncekiBakiye: new TLVeDVBedel({ tl: rec.bakiye, dv: rec.dvbakiye }), bakiyeEkle: new TLVeDVBedel() }
