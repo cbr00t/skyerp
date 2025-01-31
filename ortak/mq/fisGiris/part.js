@@ -133,7 +133,9 @@ class FisGirisPart extends GridliGirisWindowPart {
 			const {id} = item; switch (id) {
 				case 'tamam':
 					if (this.izlemi) { continue }
-					item.handler = e => this.tamamIstendi(e); break
+					item.handler = e => this.tamamIstendi(e);
+					if (this.silmi) { item.id = 'sil' }
+					break
 			}
 			yListe.push(item)
 		}

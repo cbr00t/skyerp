@@ -8,7 +8,7 @@ class ButonlarPart extends Part {
 		$.extend(this, {
 			sender: e.sender || this.parentPart, builder: e.builder, tip: e.tip, id2Handler: e.id2Handler, butonlarDuzenleyici: e.butonlarDuzenleyici,
 			prepend: asBool(e.prepend), ekButonlarIlk: e.ekButonlarIlk || [], ekButonlarSon: e.ekButonlarSon || [],
-			sagButonIdSet: e.sagButonIdSet || asSet(['tamam', 'kaydet', 'tazele', 'sec', 'vazgec', 'temizle']),
+			sagButonIdSet: e.sagButonIdSet || asSet(['tamam', 'kaydet', 'tazele', 'sec', 'vazgec', 'temizle', 'sil']),
 			ekSagButonIdSet: asSet(e.ekSagButonIdSet) || {}, userData: e.userData
 		})
 	}

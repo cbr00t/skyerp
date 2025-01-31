@@ -1,6 +1,7 @@
 class MQSablonOrtak extends MQDetayliVeAdi {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get gereksizTablolariSilYapilirmi() { return false }
 	static get detaySinif() { return MQSablonOrtakDetay } static get listeFisSinif() { return SablonluSiparisListeOrtakFis } static get fisSinif() { return this.listeFisSinif?.fisSinif }
+	static get fisIcinDetaySinif(){ return this.listeFisSinif?.fisIcinDetaySinif } static get fisIcinDetayTable(){ return this.listeFisSinif?.fisIcinDetayTable }
 	static get table() { return 'hizlisablon' } static get tableAlias() { return 'sab' } static get adiEtiket() { return 'Şablon Adı' }
 	static get kodListeTipi() { return this.listeFisSinif.kodListeTipi } static get sinifAdi() { return this.listeFisSinif.sinifAdi } static get tumKolonlarGosterilirmi() { return true }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false } static get raporKullanilirmi() { return false }
@@ -34,9 +35,8 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); let basitmi = e.basit ?? e.basitmi; if (basitmi) { return }
-		let {tableAlias: alias, fisSinif} = this, {detaySinif, detayTable, mustSaha} = fisSinif, gridPart = e.gridPart ?? e.sender ?? {};
+		let {tableAlias: alias, fisSinif} = this, {fisIcinDetayTable: detayTable, mustSaha} = fisSinif, gridPart = e.gridPart ?? e.sender ?? {};
 		let {tarih, mustKod} = gridPart, {subeKod} = config.session, {stm, sent} = e;
-		if (!detaySinif) { detaySinif = fisSinif.detaySinifFor('') } if (!detayTable) { detayTable = detaySinif?.table }
 		sent.sahalar.addWithAlias(alias, 'bvadegunkullanilir', 'vadegunu', 'emailadresler'); stm.with.add(sent.asTmpTable('hamveri'));
 		sent = e.sent = stm.sent = new MQSent({
 			from: 'hamveri ham', fromIliskiler: [{ from: `${fisSinif.table} fis`, iliski: 'ham.kaysayac = fis.sablonsayac' }],
@@ -54,7 +54,12 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		});
 		stm.orderBy.liste = ['aciklama']
 	}
-	static loadServerData_detaylar(e) { let {parentRec} = e; return this.detaySinif.loadServerData(e).then(recs => { for (let rec of recs) { rec._parentRec = parentRec } return recs }) }
+	static loadServerData_detaylar(e) {
+		let {detaySinif} = this, {parentRec} = e; return detaySinif.loadServerData(e).then(recs => {
+			for (let rec of recs) { rec._parentRec = parentRec }
+			return recs
+		})
+	}
 	static async yeniIstendi(e) {
 		try {
 			let {sender: gridPart} = e, {listeFisSinif} = this; if (!listeFisSinif) { return null }
@@ -87,11 +92,11 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	static async silIstendi(e) {
 		try {
 			let gridPart = e.sender.parentPart, {listeFisSinif} = this; if (!listeFisSinif) { return null }
-			let {tarih, mustKod} = gridPart, {rec} = e, {kaysayac: fisSayac, bonayli: onaylimi} = rec; if (!sayac) { return false }
+			let {tarih, mustKod} = gridPart, {rec} = e, {kaysayac: fisSayac, bonayli: onaylimi, _parentRec: parentRec} = rec, {kaysayac: sablonSayac} = parentRec;
 			if (onaylimi) { throw { isError: true, errorText: 'Onaylı sipariş silinemez' } }
-			let fis = new listeFisSinif({ fisSayac, sablonSayac, tarih, mustKod });
-			let result = await fis.yukle({ ...e, parentRec, rec: undefined }); if (!result) { return }
-			result = await fis.sil(); gridPart.tazeleDefer(); return result
+			let fis = new listeFisSinif({ fisSayac, sablonSayac, tarih, mustKod }), result = await fis.yukle({ ...e, parentRec, rec: undefined }); if (!result) { return }
+			let islem = 'sil', kaydedince = e => gridPart.tazeleDefer();
+			return await fis.tanimla({ islem, kaydedince })
 		}
 		catch (ex) { setTimeout(() => hConfirm(getErrorText(ex), 'Değiştir'), 100); throw ex }
 	}
@@ -128,12 +133,14 @@ class MQSablonOrtakDetay extends MQDetay {
 	static loadServerDataDogrudan(e) { let stm = e.query = e.stm = new MQStm(); e.sent = stm.sent; this.loadServerData_queryDuzenle(e); return super.loadServerData_querySonucu(e) }
 	static loadServerData_queryDuzenle(e) {
 		let {sender: gridPart, parentRec} = e, {kaysayac: sablonSayac} = parentRec, {tarih, mustKod} = gridPart, {subeKod} = config.session;
-		let {fisSinif} = this, {detaySinif, detayTable, mustSaha} = fisSinif;
-		if (!detaySinif) { detaySinif = fisSinif.detaySinifFor('') } if (!detayTable) { detayTable = detaySinif?.table }
+		let {fisSinif} = this, {table, fisIcinDetayTable: detayTable, mustSaha} = fisSinif;
 		let {stm} = e, sent = stm.sent = new MQSent({
-			from: `${fisSinif.table} fis`,
+			from: `${table} fis`,
 			where: [{ alias: 'fis', birlestirDict: fisSinif.varsayilanKeyHostVars() }, { degerAta: sablonSayac, saha: 'fis.sablonsayac' }, `fis.kapandi = ''`],
-			sahalar: ['fis.kaysayac', 'fis.tarih', 'fis.fisnox', `fis.${mustSaha} mustkod`, 'car.birunvan mustunvan']
+			sahalar: [
+				'fis.kaysayac', 'fis.tarih', 'fis.fisnox', `fis.${mustSaha} mustkod`, 'car.birunvan mustunvan',
+				`(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`
+			]
 		}).fis2CariBagla().fisSilindiEkle(); if (subeKod != null) { sent.where.degerAta(subeKod, 'fis.bizsubekod') }
 		if (tarih) { sent.where.degerAta(tarih, 'fis.tarih') } if (mustKod) { sent.where.degerAta(mustKod, `fis.${mustSaha}`) }
 		stm.orderBy.add('tarih DESC', 'fisnox DESC')

@@ -1,6 +1,5 @@
 class MQTicNumarator extends MQNumarator {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	// static get tanimUISinif() { return TicNumaratorTanimPart }
 	static get numaratorPartSinif() { return TicNumaratorPart } static get fisGirisLayoutSelector() { return '.ticNumarator' }
 	static get sinifAdi() { return 'Ticari Numaratör' } static get table() { return 'tnumara' } static get sayacSaha() { return 'sayac' } static get kodSaha() { return 'belirtec' }
 	get belirtec() { return this.kod } set belirtec(value) { return this.kod = value }

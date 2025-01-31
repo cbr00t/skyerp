@@ -31,7 +31,8 @@ class ModelTanimPart extends Part {
 		return result
 	}
 	set builder(value) { this._builder = value }
-	get yenimi() { return this.islem == 'yeni' } get degistirmi() { return this.islem == 'degistir' } get silmi() { return this.islem == 'silmi' } get izlemi() { return this.islem == 'izle' }
+	get yenimi() { return this.islem == 'yeni' } get degistirmi() { return this.islem == 'degistir' }
+	get silmi() { return this.islem == 'sil' } get izlemi() { return this.islem == 'izle' }
 	get kopyami() { return this.islem == 'kopya' } get yeniVeyaKopyami() { return this.yenimi || this.kopyami } 
 
 	constructor(e) {
@@ -95,7 +96,7 @@ class ModelTanimPart extends Part {
 	}
 	initIslemTuslari(e) {
 		const {header} = this, islemTuslari = this.islemTuslari = header.find(`.islemTuslari`);
-		let _e = { args: { sender: this, layout: islemTuslari } }; if (this.islemTuslariArgsDuzenle(_e) === false) { return null }
+		let _e = { args: { sender: this, layout: islemTuslari, butonlarDuzenleyici: e => this.islemTuslariDuzenle(e) } }; if (this.islemTuslariArgsDuzenle(_e) === false) { return null }
 		const islemTuslariPart = this.islemTuslariPart = new ButonlarPart(_e.args); islemTuslariPart.run(); return islemTuslariPart
 	}
 	initTabPages(e) {
@@ -179,6 +180,19 @@ class ModelTanimPart extends Part {
 		const {args} = e; e.sender = this;
 		$.extend(args, { tip: this.izlemi ? 'vazgec' : 'tamamVazgec', id2Handler: { tamam: e => this.kaydetIstendi(e), vazgec: e => this.vazgecIstendi(e) } });
 		for (const builder of this.getBuilders(e)) { e.builder = builder; if (builder.islemTuslariArgsDuzenle) { builder.islemTuslariArgsDuzenle(e) } }
+	}
+	islemTuslariDuzenle(e) {
+		const {args} = e; const {liste} = e, yListe = [];
+		for (const item of liste) {
+			const {id} = item; switch (id) {
+				case 'tamam':
+					if (this.izlemi) { continue }
+					if (this.silmi) { item.id = 'sil' }
+					break
+			}
+			yListe.push(item)
+		}
+		e.liste = yListe
 	}
 	initTabPagesArgsDuzenle(e) {
 		const {args} = e, {wnd} = this;

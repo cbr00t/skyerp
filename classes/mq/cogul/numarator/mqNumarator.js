@@ -54,7 +54,7 @@ class MQNumarator extends MQKA {
 	keyHostVarsDuzenle(e) { super.keyHostVarsDuzenle(e); const {hv} = e; hv.seri = this.seri }
 	keySetValues(e) {
 		super.keySetValues(e); const {rec} = e;
-		let value = rec.seri; if (value != null) this.seri = value
+		let value = rec.seri; if (value != null) { this.seri = value }
 	}
 	superKeyHostVarsDuzenle(e) { super.keyHostVarsDuzenle(e) }
 	superKeySetValues(e) { super.keySetValues(e) }
