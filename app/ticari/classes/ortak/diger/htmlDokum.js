@@ -18,7 +18,7 @@ class HTMLDokum extends CObject {
 		rootElement = rootElement ?? this.doc; rootElement = rootElement?.documentElement ?? rootElement;
         for (let key in dict) {
 			let elms = [...rootElement.querySelectorAll('*')].filter(elm => elm.innerHTML.includes(`[${key}]`));
-			for (let elm of elms) { elm.innerHTML = elm.innerHTML.replace(new RegExp(`\\[${key}\\]`, "g"), dict[key]); }
+			for (let elm of elms) { elm.innerHTML = elm.innerHTML.replace(new RegExp(`\\[${key}\\]`, "g"), dict[key]) }
         }
 		return this
     }
