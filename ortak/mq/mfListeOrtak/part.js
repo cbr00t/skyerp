@@ -389,7 +389,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			if (yeniInstOlusturucu) { inst = await getFuncValue.call(this, yeniInstOlusturucu, _e) }
 			if (inst === undefined && mfSinif.yeniInstOlustur) { inst = await mfSinif.yeniInstOlustur(_e) }
 			if (inst === undefined) inst = new mfSinif(_e); if (inst == null) { return false }
-			return inst.tanimla({ parentPart: this, islem: _e.islem, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince: e => { this.tazele() } })
+			return inst.tanimla({ parentPart: this, islem: _e.islem, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince: e => this.tazele() })
 		}
 		catch (ex) { hConfirm(getErrorText(ex), 'Yeni'); throw ex }
 	}
@@ -407,7 +407,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			if (eskiInst == null) return false; eskiInst.keySetValues({ rec });
 			if (!await eskiInst.yukle($.extend({}, _e, { rec: null, _rec: rec }))) { const mesaj = 'Seçilen satır için bilgi yüklenemedi'; throw { isError: true, rc: 'instBelirle', errorText: mesaj } }
 			inst = eskiInst.deepCopy();
-			return inst.tanimla({ parentPart: this, islem: _e.islem, eskiInst, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince: e => { this.tazele() } })
+			return inst.tanimla({ parentPart: this, islem: _e.islem, eskiInst, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince: e => this.tazele() })
 		}
 		catch (ex) { hConfirm(getErrorText(ex), 'Değiştir'); throw ex }
 	}

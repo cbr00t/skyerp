@@ -64,8 +64,9 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		try {
 			let {sender: gridPart} = e, {listeFisSinif} = this; if (!listeFisSinif) { return null }
 			let {tarih, mustKod} = gridPart, {rec} = e, {kaysayac: sablonSayac} = rec;
+			if (!mustKod) { throw { isError: true, errorText: `<b>Müşteri</b> seçilmelidir` } }
 			let fis = new listeFisSinif({ sablonSayac, tarih, mustKod }), result = await fis.yukle({ ...e, rec: undefined }); if (!result) { return }
-			let islem = 'yeni', kaydedince = e => gridPart.tazeleDefer();
+			let islem = 'yeni', kaydedince = _e => this.tazele({ ...e, gridPart });
 			return fis.tanimla({ islem, kaydedince })
 		}
 		catch (ex) { setTimeout(() => hConfirm(getErrorText(ex), 'Yeni'), 100); throw ex }
@@ -73,18 +74,25 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	static async onaylaIstendi(e) {
 		try {
 			let gridPart = e.sender.parentPart, {listeFisSinif} = this; if (!listeFisSinif) { return null }
-			let {tarih, mustKod} = gridPart, {rec} = e, {kaysayac: sayac, bonayli: onaylimi, _parentRec: parentRec} = rec, {kaysayac: sablonSayac} = parentRec;
+			let {tarih, mustKod} = gridPart, {rec} = e, {kaysayac: fisSayac, bonayli: onaylimi, _parentRec: parentRec} = rec, {kaysayac: sablonSayac} = parentRec;
 			if (onaylimi) { throw { isError: true, errorText: 'Bu sipariş zaten onaylanmış' } }
-			return true
+			let fis = new listeFisSinif({ fisSayac, sablonSayac, tarih, mustKod }), result = await fis.yukle({ ...e, parentRec, rec: undefined }); if (!result) { return }
+			let islem = 'onayla', kaydedince = _e => this.tazele({ ...e, gridPart });
+			let kaydetIslemi = _e => this.onaylaDevam({ ...e, ..._e, gridPart });
+			return await fis.tanimla({ islem, kaydetIslemi, kaydedince })
 		}
 		catch (ex) { setTimeout(() => hConfirm(getErrorText(ex), 'Onayla'), 100); throw ex }
+	}
+	static async onaylaDevam(e) {
+		let {gridPart: listePart, sender: fisGirisPart, fis, rec} = e, {fisSayac} = fis;
+		debugger
 	}
 	static async degistirIstendi(e) {
 		try {
 			let gridPart = e.sender.parentPart, {listeFisSinif} = this; if (!listeFisSinif) { return null }
 			let {tarih, mustKod} = gridPart, {rec} = e, {kaysayac: fisSayac, bonayli: onaylimi, _parentRec: parentRec} = rec, {kaysayac: sablonSayac} = parentRec;
 			let fis = new listeFisSinif({ fisSayac, sablonSayac, tarih, mustKod }), result = await fis.yukle({ ...e, parentRec, rec: undefined }); if (!result) { return }
-			let islem = onaylimi ? 'izle' : 'degistir', kaydedince = e => gridPart.tazeleDefer();
+			let islem = onaylimi ? 'izle' : 'degistir', kaydedince = _e => this.tazele({ ...e, gridPart });
 			return await fis.tanimla({ islem, kaydedince })
 		}
 		catch (ex) { setTimeout(() => hConfirm(getErrorText(ex), 'Değiştir'), 100); throw ex }
@@ -95,10 +103,19 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			let {tarih, mustKod} = gridPart, {rec} = e, {kaysayac: fisSayac, bonayli: onaylimi, _parentRec: parentRec} = rec, {kaysayac: sablonSayac} = parentRec;
 			if (onaylimi) { throw { isError: true, errorText: 'Onaylı sipariş silinemez' } }
 			let fis = new listeFisSinif({ fisSayac, sablonSayac, tarih, mustKod }), result = await fis.yukle({ ...e, parentRec, rec: undefined }); if (!result) { return }
-			let islem = 'sil', kaydedince = e => gridPart.tazeleDefer();
+			let islem = 'sil', kaydedince = _e => this.tazele({ ...e, gridPart });
 			return await fis.tanimla({ islem, kaydedince })
 		}
 		catch (ex) { setTimeout(() => hConfirm(getErrorText(ex), 'Değiştir'), 100); throw ex }
+	}
+	static tazele(e) {
+		let gridPart = e.gridPart ?? e.sender, {expandedIndexes, bindingCompleteBlock, gridWidget} = gridPart;
+		let rowIndex = e.rowIndex ?? e.args?.rowindex; expandedIndexes[rowIndex] = true;
+		gridPart.bindingCompleteBlock = _e => {
+			gridPart.bindingCompleteBlock = bindingCompleteBlock;
+			if (!$.isEmptyObject(expandedIndexes)) { for (let ind in expandedIndexes) { gridWidget.showrowdetails(ind) } }
+		};
+		gridPart.tazeleDefer(e)
 	}
 }
 class MQSablon extends MQSablonOrtak {

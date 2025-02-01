@@ -19,7 +19,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 		e = e || {}; super(e);
 		$.extend(this, {
 			islem: e.islem, listePart: e.listePart, eskiFis: e.eskiInst || e.eskiFis || null, fis: e.inst || e.fis,
-			kaydedince: e.kaydedince, _builder: e.builder, dipEventsDisabledFlag: false, gridIslemTusYapilari: {}
+			kaydetIslemi: e.kaydetIslemi, kaydedince: e.kaydedince, _builder: e.builder, dipEventsDisabledFlag: false, gridIslemTusYapilari: {}
 		});
 		if (!this.kontrolcu) { const gridKontrolcuSinif = this.fis.gridKontrolcuSinif || GridKontrolcu; this.kontrolcu = new gridKontrolcuSinif({ parentPart: this }) }
 		const {listePart, wndArgs, fis, islem} = this, {sinifAdi} = fis.class;
@@ -217,13 +217,16 @@ class FisGirisPart extends GridliGirisWindowPart {
 		return this.kaydetIstendi(e)
 	}
 	async kaydetIstendi(e) {
-		let result; try { result = await this.kaydetIslemi(e); if (!result) { return false } } catch (ex) { const err = getErrorText(ex); hConfirm(err, 'Fiş Kayıt Sorunu'); throw ex }
-		const {kaydedince} = this; if (kaydedince) { const _e = $.extend({}, e, { sender: this }); result = await getFuncValue.call(this, kaydedince, _e) }
-		if (result === false) return false
-		this.kaydetCalistimi = true; this.destroyPart(); return true
+		let result; try {
+			result = await this.kaydet(e); if (!result) { return false }
+			let {kaydedince} = this; if (kaydedince) { result = await getFuncValue.call(this, kaydedince, { ...e, sender: this }) }
+			if (result === false) { return false }
+			this.kaydetCalistimi = true; this.destroyPart()
+		} catch (ex) { const err = getErrorText(ex); hConfirm(err, 'Fiş Kayıt Sorunu'); throw ex }
+		return true
 	}
-	kaydetIslemi(e) {
-		const {kontrolcu} = this; let result = kontrolcu.grid2Fis(e);
+	kaydet(e) {
+		let {kontrolcu} = this, result = kontrolcu.grid2Fis(e);
 		if (result != true) {
 			if (result.errorText) { hConfirm(`<div class="red">${result.errorText}</div>`, ' ') }
 			if (result.returnAction) {
@@ -233,11 +236,12 @@ class FisGirisPart extends GridliGirisWindowPart {
 			}
 			return false
 		}
-		const {fis} = this; fis.detaylar = e.recs; return this.kaydet(e)
+		const {fis} = this; fis.detaylar = e.recs;
+		return this.kaydetDevam(e)
 	}
-	async kaydet(e) {
+	async kaydetDevam(e) {
 		e = e || {}; const {fis} = this;
-		let result = await this.kaydetOncesi(e); if (result == false || result?.isError) { return result}
+		let result = await this.kaydetOncesi(e); if (result == false || result?.isError) { return result }
 		if (this.yeniVeyaKopyami) { result = await fis.yaz(e) }
 		else if (this.degistirmi) { result = await fis.degistir(e) }
 		else if (this.silmi) { result = await fis.sil(e) }
@@ -248,6 +252,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 	}
 	async kaydetOncesi(e) {
 		e = e || {}; const {yeniVeyaKopyami, degistirVeyaSilmi, builder, islem, eskiFis} = this, gridPart = this, {gridWidget} = gridPart; let {fis} = this;
+		if (gridWidget?.editcell) { gridWidget.endcelledit() }
 		const _e = $.extend({}, e, { sender: this, builder, gridPart, islem, fis, eskiFis, yeniVeyaKopyami });
 		if (degistirVeyaSilmi) { e.eskiFis = this.eskiFis }
 		if (yeniVeyaKopyami) {
@@ -259,9 +264,13 @@ class FisGirisPart extends GridliGirisWindowPart {
 				}
 			}
 		}
-		if (gridWidget?.editcell) { gridWidget.endcelledit() }
-		await fis.uiKaydetOncesiIslemler(_e); for (const key of ['islem', 'fis', 'eskiFis']) { const value = _e[key]; if (value !== undefined) this[key] = e[key] = value }
-		fis = this.fis; return true
+		let result = await fis.uiKaydetOncesiIslemler(_e) ?? true; for (const key of ['islem', 'fis', 'eskiFis']) {
+			const value = _e[key]; if (value !== undefined) { this[key] = e[key] = value } }
+		const {kaydetIslemi} = this; if (kaydetIslemi) {
+			_e.result = result; result = await getFuncValue.call(this, kaydetIslemi, _e) ?? true;
+			for (const key of ['islem', 'fis', 'eskiFis']) { const value = _e[key]; if (value !== undefined) { this[key] = e[key] = value } }
+		}
+		fis = this.fis; return result
 	}
 	kaydetSonrasi(e) {
 		e = e || {}; const {fis} = this, {numarator} = fis;
@@ -276,4 +285,5 @@ class FisGirisPart extends GridliGirisWindowPart {
 	islemDegistir() { this.islem = 'degistir'; return this }
 	islemKopya() { this.islem = 'kopya'; return this }
 	islemSil() { this.islem = 'sil'; return this }
+	setKaydetIslemi(value) { this.kaydetIslemi = value; return this } setKaydedince(value) { this.kaydedince = value; return this }
 }

@@ -18,7 +18,8 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 		})
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); let {root: rfb, baslikForm: fbd_baslikForm} = e.builders, {builders: baslikFormlar} = fbd_baslikForm, {inst} = e;
+		super.rootFormBuilderDuzenle(e); let {root: rfb, baslikForm: fbd_baslikForm} = e.builders, {builders: baslikFormlar} = fbd_baslikForm;
+		let {sender: gridPart, inst, islem} = e, {grid, gridWidget, layout} = gridPart;
 		rfb.addStyle(e => `$elementCSS .islemTuslari { position: absolute !important; top: 3px !important }`);
 		baslikFormlar[0].altAlta().addForm('_baslikBilgi')
 			.addStyle(e =>
@@ -45,7 +46,16 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 					else { elm.addClass('jqx-hidden') }
 				};
 				setKA('sablon', sablonSayac, MQSablon.getGloKod2Adi(sablonSayac)); setKA('must', mustKod, MQCari.getGloKod2Adi(mustKod))
-			})
+			});
+		let disableWithInfo = ({ color, text }) => {
+			grid.jqxGrid('editable', false); gridPart.baslikFormlar[0].parent().css('box-shadow', `0 2px 5px 3px ${color}`);
+			baslikFormlar[2].addForm('_ekBilgi').addStyle_fullWH(null, 'unset').addStyle(() => `$elementCSS { margin-top: 5px; padding: 5px 5px 10px 20px }`)
+				.setLayout(({ builder: fbd }) => $(`<h4 class="bold ${color}">Bu sipariş ${text}:</h4>`))
+		};
+		switch (islem) {
+			case 'onayla': disableWithInfo({ color: 'green', text: 'onaylanacak' }); break
+			case 'sil': disableWithInfo({ color: 'firebrick', text: '<u>SİLİNECEK</u>' }); break
+		}
 	}
 	async yukle(e) {
 		e = e || {}; delete e.rec; await this.baslikVeDetaylariYukle(e); await this.detaylariYukleSonrasi(e);

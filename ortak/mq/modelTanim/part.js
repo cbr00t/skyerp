@@ -270,12 +270,12 @@ class ModelTanimPart extends Part {
 		let result = await this.inst.uiKaydetOncesiIslemler(_e); if (typeof result == 'boolean') { return result }
 		for (const key of ['inst', 'eskiInst']) { const value = _e[key]; if (value !== undefined) this[key] = e[key] = value }
 		const {kaydetIslemi} = this; if (kaydetIslemi) { _e.result = result; result = await getFuncValue.call(this, kaydetIslemi, _e) }
-		if (result != null) return result
+		if (result != null) { return result }
 	}
 	async kaydetSonrasiIslemler(e) {
 		e = e || {}; e.sender = this;
-		for (const builder of this.getBuilders(e)) { e.builder = builder; if (builder.kaydetSonrasiIslemler) await builder.kaydetSonrasiIslemler(e) }
-		for (const _e of this.getAltFormParts()) await _e.part.kaydetSonrasiIslemler(e)
+		for (const builder of this.getBuilders(e)) { e.builder = builder; if (builder.kaydetSonrasiIslemler) { await builder.kaydetSonrasiIslemler(e) } }
+		for (const _e of this.getAltFormParts()) { await _e.part.kaydetSonrasiIslemler(e) }
 	}
 	destroyPart(e) {
 		e = e || {}; for (const builder of this.getBuilders(e)) { e.builder = builder; if (builder.destroyPart) builder.destroyPart(e) }
@@ -306,15 +306,21 @@ class ModelTanimPart extends Part {
 	*getAltFormParts(e) {
 		e = e || {}; const filter = e.filter ? asSet(typeof e.filter == 'object' ? e.filter : [e.filter]) : null;
 		const {genelAltFormParts, tabID2AltFormParts} = this;
-		if (genelAltFormParts && (!filter || (filter.genel || filter.noTabs || filter.noTab)))
-			for (const id in genelAltFormParts) yield { id, part: genelAltFormParts[id] }
-		if (tabID2AltFormParts && (!filter || (filter.tabs || filter.tab)))
-			for (const tabID in tabID2AltFormParts) { const altFormParts = tabID2AltFormParts[tabID]; for (const id in altFormParts) yield { id, part: altFormParts[id], tabID } }
+		if (genelAltFormParts && (!filter || (filter.genel || filter.noTabs || filter.noTab))) {
+			for (const id in genelAltFormParts) { yield { id, part: genelAltFormParts[id] } }
+		}
+		if (tabID2AltFormParts && (!filter || (filter.tabs || filter.tab))) {
+			for (const [tabID, altFormParts] of Object.entries(tabID2AltFormParts))
+			for (const id in altFormParts) yield { id, part: altFormParts[id], tabID }
+		}
 	}
 	*getBuilders(e) {
-		const {id2Builder} = this;
-		if (id2Builder) { for (const builder of Object.values(id2Builder)) { for (const subBuilder of builder.getBuildersWithSelf()) yield subBuilder } }
+		const {id2Builder} = this; if (id2Builder) {
+			for (const builder of Object.values(id2Builder))
+			for (const subBuilder of builder.getBuildersWithSelf()) { yield subBuilder }
+		}
 	}
+	setKaydetIslemi(value) { this.kaydetIslemi = value; return this } setKaydedince(value) { this.kaydedince = value; return this }
 }
 
 

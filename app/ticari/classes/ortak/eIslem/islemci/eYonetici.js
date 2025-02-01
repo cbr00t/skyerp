@@ -414,8 +414,8 @@ class EYonetici extends CObject {
 						promises.push(new $.Deferred(async p => {
 							let eFis = sayac2EFis[fisSayac], {baslik} = eFis, {efayrimtipi: efAyrimTipi} = baslik;
 							let eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi }), anaBolum = eConf.getAnaBolumFor({ eIslSinif });
-							if (!anaBolum) { throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' } }
 							let uuid; try {
+								if (!anaBolum) { throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' } }
 								let args = { ..._e }, xmlStr = await eFis.xmlOlustur(args); if (!xmlStr) { p.resolve() }
 								uuid = baslik.uuid; uuid2Result[uuid] = uuid2Result[uuid] ?? { islemZamani: now(), isError: false, eFis, rec: baslik, efAyrimTipi };
 								/* const uuid2XML = e.uuid2XML = e.uuid2XML || {}; uuid2XML[uuid] = xmlStr; */
