@@ -5,11 +5,13 @@ class CRMApp extends App {
 	static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_App }
 	get offlineClasses() {
 		return [
-			...[MQMasterOrtak, MQKAOrtak, MQSayacliOrtak, MQDetayliOrtak, MQDetayliVeAdiOrtak, MQDetayliMasterOrtak].flatMap(cls => cls.subClasses).filter(cls => !!cls.table && cls.gonderildiDesteklenirmi),
-			MQMusIslemDetay, ...MQApiOrtak.subClasses
+			...[MQMasterOrtak, MQKAOrtak, MQSayacliOrtak, MQDetayliOrtak,
+					MQDetayliVeAdiOrtak, MQDetayliMasterOrtak].flatMap(cls => cls.subClasses).filter(cls => !!cls.table && cls.gonderildiDesteklenirmi),
+			MQMusIslemDetay
 		]
 	}
-	get dropOfflineClasses() { return [...this.offlineClasses] }
+	get yukleOfflineClasses() { return [...this.offlineClasses, ...MQApiOrtak.subClasses] } get dropOfflineClasses() { return this.yukleOfflineClasses }
+	get gonderOfflineClasses() { return this.offlineClasses }
 	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e); this.show() }
 	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { localData: MQLocalData.getInstance(), crm: MQParam_CRM.getInstance(), tablet: MQTabletParam.getInstance() }) }
 	async getAnaMenu(e) {
@@ -47,7 +49,7 @@ class CRMApp extends App {
 		finally { setTimeout(() => hideProgress(), 100) }
 	}
 	async bilgiYukle(e) {
-		e = e ?? {}; let {offlineClasses: classes} = this, promises = []; window.progressManager?.setProgressMax(classes.length * 2 + 5);
+		e = e ?? {}; let {yukleOfflineClasses: classes} = this, promises = []; window.progressManager?.setProgressMax(classes.length * 2 + 5);
 		await this.tablolariSil({ ...e, classes: undefined }); await this.dbMgr_tablolariOlustur(e); window.progressManager?.progressStep(5);
 		for (const cls of classes) { promises.push(cls.offlineSaveToLocalTable().then(() => window.progressManager?.progressStep())) }
 		await Promise.all(promises); window.progressManager?.progressEnd(); return this
@@ -59,7 +61,7 @@ class CRMApp extends App {
 		finally { setTimeout(() => hideProgress(), 100) }
 	}
 	async bilgiGonder(e) {
-		let classes = this.offlineClasses.filter(cls => !cls.detaymi), promises = []; window.progressManager?.setProgressMax(classes.length * 2);
+		let classes = this.gonderOfflineClasses.filter(cls => !cls.detaymi), promises = []; window.progressManager?.setProgressMax(classes.length * 2);
 		for (const cls of classes) { promises.push(cls.offlineSaveToRemoteTable().then(() => window.progressManager?.progressStep())) }
 		await Promise.all(promises); delete this.trnId; window.progressManager?.progressEnd(); return this
 	}
