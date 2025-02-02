@@ -71,9 +71,9 @@ class MQSube extends MQKA {
 		)
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {aliasVeNokta} = this, {sent} = e;
+		super.loadServerData_queryDuzenle(e); const {aliasVeNokta, kodSaha} = this, {sent} = e, {where: wh} = sent;
 		sent.fromIliski('isygrup igrp', `${aliasVeNokta}isygrupkod = igrp.kod`);
-		sent.where.add(`${aliasVeNokta}silindi = ''`)
+		wh.add(`${aliasVeNokta}silindi = ''`).icerikKisitDuzenle_sube({ saha: `${aliasVeNokta}${kodSaha}`})
 	}
 	hostVarsDuzenle(e) {
 		super.hostVarsDuzenle(e); const {hv} = e;

@@ -217,7 +217,7 @@ class OzelSahaTipi extends TekSecim {
 				return new FBuilder_NumberInput({ fra: 0 });
 			case 'NR': return new FBuilder_NumberInput({ fra: e.fra || 0 });
 			case 'DT': return new FBuilder_DateInput();
-			case 'TS': return new FBuilder_ModelKullan({ source: e => { debugger; return ['a', 'b', 'c'] } }).dropDown();
+			case 'TS': return new FBuilder_ModelKullan({ /*source: e => { debugger; return ['a', 'b', 'c'] }*/ }).dropDown();
 			case 'CH': return new FBuilder_ToggleButton({ onLabel: 'EVET', offLabel: 'HAYIR' });
 			case 'NL': return new FBuilder_TextArea({ rows: 5 });
 		}

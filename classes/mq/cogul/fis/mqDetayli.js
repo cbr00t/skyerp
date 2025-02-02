@@ -49,9 +49,12 @@ class MQDetayli extends MQSayacli {
 		return rootBuilder
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); let {builders, sender} = e, {islemTuslariPart} = sender, {ekButonlarIlk, ekSagButonIdSet} = islemTuslariPart;
-		ekButonlarIlk.push({ id: 'kolonFiltre', handler: e => this.kolonFiltreIstendi(e) }); ekSagButonIdSet.kolonFiltre = true;
-		islemTuslariPart.butonlariOlustur()
+		super.rootFormBuilderDuzenle(e); let {builders, sender} = e, {islemTuslariPart} = sender;
+		if (islemTuslariPart) {
+			let {ekButonlarIlk, ekSagButonIdSet} = islemTuslariPart;
+			ekButonlarIlk.push({ id: 'kolonFiltre', handler: e => this.kolonFiltreIstendi(e) }); ekSagButonIdSet.kolonFiltre = true;
+			islemTuslariPart.butonlariOlustur()
+		}
 	}
 	static orjBaslikListesi_argsDuzenle_detaylar(e) {
 		const {detaySiniflar} = this; if (!$.isEmptyObject(detaySiniflar)) { for (const cls of detaySinif) { detaySinif?.orjBaslikListesi_argsDuzenle(e) } }

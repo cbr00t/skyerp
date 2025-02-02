@@ -142,7 +142,7 @@ class MQCogul extends MQYapi {
 	}
 	static async rootFormBuilderDuzenleSonrasi_ayrimVeOzelSahalar_getParentBuilder(e) {
 		let {tanimFormBuilder: parentBuilder} = e; if (parentBuilder) {
-			let subBuilder = parentBuilder.builders.find(({ builder: fbd }) => fbd.isTabs); if (subBuilder) {
+			let subBuilder = parentBuilder.builders.find(fbd => fbd.isTabs); if (subBuilder) {
 				parentBuilder = subBuilder; let id = getFuncValue.call(this, e.tabPageId, e), etiket = getFuncValue.call(this, e.tabPageEtiket, e);
 				let tabPageBuilder = new FBuilder_TabPage({ id, etiket }); parentBuilder.add(tabPageBuilder); parentBuilder = tabPageBuilder
 			}

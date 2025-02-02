@@ -19,10 +19,11 @@ class MQCari extends MQKA {
 		if (builder_aciklama) builder_aciklama.setVisibleKosulu(false)
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {aliasVeNokta, kodSaha} = this, {sent} = e, {where: wh} = sent;
+		super.loadServerData_queryDuzenle(e); const {aliasVeNokta, kodSaha} = this, {sender, sent} = e, {where: wh} = sent;
 		sent.fromIliski(`efozelyontem efoy`, `${aliasVeNokta}efozelyontemkod = efoy.kod`);
 		sent.fromIliski(`eislemozeldip eiod`, `${aliasVeNokta}eislozeldipkod = eiod.kod`);
-		wh.icerikKisitDuzenle_cari({ saha: aliasVeNokta + kodSaha })
+		wh.icerikKisitDuzenle_cari({ saha: `${aliasVeNokta}${kodSaha}`});
+		if (sender?.modelKullanmi) { wh.add(`${aliasVeNokta}silindi = ''`, `${aliasVeNokta}calismadurumu <> ''`) }
 	}
 	static varsayilanKeyHostVarsDuzenle(e) {
 		super.varsayilanKeyHostVarsDuzenle(e); const {hv} = e;
@@ -143,8 +144,7 @@ class MQCari_Genel extends MQCariAlt {
 		})
 	}
 	static orjBaslikListesiDuzenle(e) {
-		const {aliasVeNokta} = this.mfSinif;
-		const {liste} = e;
+		const {aliasVeNokta} = this.mfSinif, {liste} = e;
 		liste.push(
 			new GridKolon({ belirtec: 'unvan1',text: 'Ünvan-1', genislikCh: 15 }),
 			new GridKolon({ belirtec: 'unvan2',text: 'Ünvan-2', genislikCh: 15 }),
@@ -169,8 +169,7 @@ class MQCari_Genel extends MQCariAlt {
 		);
 	}
 	static loadServerData_queryDuzenle(e) {
-		const {aliasVeNokta} = this.mfSinif;
-		const {sent} = e;
+		const {aliasVeNokta} = this.mfSinif, {sent} = e;
 		sent.fromIliski('caril il', `${aliasVeNokta}ilkod = il.kod`);
 		sent.fromIliski(`ulke ulk `, `${aliasVeNokta}ulkekod = ulk.kod`);
 		sent.fromIliski(`carbolge carb`, `${aliasVeNokta}bolgekod = carb.kod`);

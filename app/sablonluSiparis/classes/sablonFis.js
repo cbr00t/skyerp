@@ -38,7 +38,12 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			.addStyle(e => `$elementCSS { margin-left: 30px } $elementCSS > input { width: 130px !important }`);
 		if (subeKod == null) {
 			rfb.addModelKullan('subeKod', 'Şube').dropDown().setMFSinif(MQSube).autoBind().etiketGosterim_yok().setParent(sol)
-				.degisince(({ builder: fbd }) => fbd.rootPart.tazeleDefer(e))
+				.ozelQueryDuzenleHandler(({ builder: fbd, aliasVeNokta, stm }) => {
+					for (let {where: wh} of stm.getSentListe()) {
+						wh.add(`${aliasVeNokta}silindi = ''`)
+						/*wh.icerikKisitDuzenle_sube({ saha: `${aliasVeNokta}kod` })*/
+					}
+				}).degisince(({ builder: fbd }) => fbd.rootPart.tazeleDefer(e))
 				.addStyle(e => `$elementCSS { width: 350px !important; margin: 5px 0 0 30px }`)
 		}
 		else {
@@ -48,7 +53,12 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		}
 		if (!mustKod) {
 			rfb.addModelKullan('mustKod', 'Müşteri').comboBox().setMFSinif(MQCari).autoBind().setParent(header)
-				.degisince(({ builder: fbd }) => fbd.rootPart.tazeleDefer(e))
+				.ozelQueryDuzenleHandler(({ builder: fbd, aliasVeNokta, stm }) => {
+					for (let {where: wh} of stm.getSentListe()) {
+						wh.add(`${aliasVeNokta}silindi = ''`, `${aliasVeNokta}calismadurumu <> ''`)
+						/*wh.icerikKisitDuzenle_cari({ saha: `${aliasVeNokta}kod` })*/
+					}
+				}).degisince(({ builder: fbd }) => fbd.rootPart.tazeleDefer(e))
 		}
 		else {
 			rfb.addForm('must', ({ builder: fbd }) => $(`<div class="${fbd.id}">${mustKod}</div>`)).setParent(header)
@@ -112,7 +122,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	}
 	static async onaylaDevam(e) {
 		let {gridPart: listePart, sender: fisGirisPart, fis, rec} = e, {fisSayac} = fis;
-		debugger
+		fisGirisPart?.close()
 	}
 	static async degistirIstendi(e) {
 		try {
@@ -178,11 +188,14 @@ class MQSablonOrtakDetay extends MQDetay {
 	}
 	static loadServerDataDogrudan(e) { let stm = e.query = e.stm = new MQStm(); e.sent = stm.sent; this.loadServerData_queryDuzenle(e); return super.loadServerData_querySonucu(e) }
 	static loadServerData_queryDuzenle(e) {
-		let {sender: gridPart, parentRec} = e, {kaysayac: sablonSayac} = parentRec, {tarih, mustKod} = gridPart, subeKod = gridPart.subeKod ?? config.session;
-		let {fisSinif} = this, {table, fisIcinDetayTable: detayTable, mustSaha} = fisSinif;
+		let {sender: gridPart, parentRec} = e, {kaysayac: sablonSayac} = parentRec, {tarih, mustKod} = gridPart, subeKod = gridPart.subeKod ?? config.session.subeKod;
+		let {fisSinif} = this, {table, fisIcinDetayTable: detayTable, mustSaha} = fisSinif, cariYil = app.params.zorunlu?.cariYil || today().getYil();
 		let {stm} = e, sent = stm.sent = new MQSent({
 			from: `${table} fis`,
-			where: [{ alias: 'fis', birlestirDict: fisSinif.varsayilanKeyHostVars() }, { degerAta: sablonSayac, saha: 'fis.sablonsayac' }, `fis.kapandi = ''`],
+			where: [
+				{ alias: 'fis', birlestirDict: fisSinif.varsayilanKeyHostVars() }, { degerAta: sablonSayac, saha: 'fis.sablonsayac' },
+				`fis.kapandi = ''`, `fis.tarih >= CAST('${cariYil}-01-01T00:00:00' AS DATETIME)`
+			],
 			sahalar: [
 				'fis.kaysayac', 'fis.tarih', 'fis.fisnox', `fis.bizsubekod subekod`, 'sub.aciklama subeadi', `fis.${mustSaha} mustkod`, 'car.birunvan mustunvan',
 				`(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`

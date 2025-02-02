@@ -94,11 +94,12 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 			let anahStr = getAnahStr(rec); anah2Det[anahStr] = anah2Det[anahStr] ?? det
 		}
 		if (degistirmi) {
-			let {fisSayac} = this, {fisIcinDetayTable: detayTable} = this.class;
+			let {fisSayac} = this, {fisIcinDetayTable: detayTable} = this.class, cariYil;
 			let sent = new MQSent({
 				from: `${detayTable} har`, where: { degerAta: fisSayac, saha: 'fissayac' },
-				sahalar: ['har.kaysayac', 'RTRIM(har.stokkod) stokkod', 'SUM(har.miktar) miktar']
-			}), {sahalar} = sent;
+				sahalar: ['har.kaysayac', 'har.stokkod', 'SUM(har.miktar) miktar']
+			}), {sahalar, where: wh} = sent;
+			wh.icerikKisitDuzenle_stok({ saha: 'har.stokkod' });
 			for (let {table, tableAlias: alias, rowAttr} of ekOzellikler) {
 				sent.fromIliski(`${table} ${alias}`, `har.${rowAttr} = ${alias}.kod`);
 				sahalar.add(`har.${rowAttr}`)

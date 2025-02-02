@@ -1,5 +1,5 @@
 class ModelKullanPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get isSubPart() { return true }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get isSubPart() { return true } get modelKullanmi() { return true }
 	static get partName() { return 'modelKullan' } get jqxSelector() { return this.isDropDown ? 'jqxDropDownList' : 'jqxComboBox' }
 	get mfSinif() {
 		const value = this._mfSinif;
@@ -415,7 +415,10 @@ class ModelKullanPart extends Part {
 					let temps = {}; const {wsArgsDuzenleBlock, ozelQueryDuzenleBlock} = this;
 					for (let i = 0; i < 3; i++) {
 						try {
-							if (wsArgsDuzenleBlock) { const _e = { ...e, wsArgs, source, temps }; await wsArgsDuzenleBlock.call(this, wsArgsDuzenleBlock, _e); wsArgs = _e.wsArgs; temps = _e.temps }
+							if (wsArgsDuzenleBlock) {
+								const _e = { ...e, wsArgs, source, temps }; await wsArgsDuzenleBlock.call(this, wsArgsDuzenleBlock, _e);
+								wsArgs = _e.wsArgs; temps = _e.temps
+							}
 							if (ozelQueryDuzenleBlock) { wsArgs.ozelQueryDuzenleBlock = ozelQueryDuzenleBlock; wsArgs.temps = temps }
 							let {tabloKolonlari} = wsArgs; if (!tabloKolonlari) {
 								tabloKolonlari = this._wsArgs_tabloKolonlari; if (!tabloKolonlari) {

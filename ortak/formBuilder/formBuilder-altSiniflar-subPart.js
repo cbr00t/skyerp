@@ -818,7 +818,6 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 	bosKodEklenir() { this.bosKodEklenirmi = true; return this } bosKodEklenmez() { this.bosKodEklenirmi = false; return this }
 	tekil() { this.coklumu = false; return this } coklu() { this.coklumu = true; return this }
 	loadServerDataHandler(handler) { this.loadServerDataBlock = handler; return this }
-	ozelQueryDuzenleBlock(handler) { this.ozelQueryDuzenle = handler; return this }
 	ozelQueryDuzenleHandler(handler) { this.ozelQueryDuzenle = handler; return this } ozelQueryDuzenleBlock(handler) { return this.ozelQueryDuzenleHandler(handler) }
 	initArgsDuzenleHandler(handler) { this.initArgsDuzenle = handler; return this } initArgsDuzenleBlock(handler) { return this.initArgsDuzenleHandler(handler) }
 	listeArgsDuzenleHandler(handler) { this.listeArgsDuzenle = handler; return this } listeArgsDuzenleBlock(handler) { return this.listeArgsDuzenleHandler(handler) }
@@ -924,7 +923,9 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 	autoGrow() { return this.setSabitmi(false) } setNoEmptyRow(value) { this.noEmptyRowFlag = value; return this }
 	noEmptyRow() { return this.setNoEmptyRow(true) } allowEmptyRow() { return this.setNoEmptyRow(false) }
 	setGridSinif(value) { this.gridSinif = value; return this } setDetaySinif(value) { this.detaySinif = value; return this }
-	setTabloKolonlari(value) { this.tabloKolonlari = value; return this } ozelQueryDuzenleBlock(handler) { this.ozelQueryDuzenle = handler; return this }
+	setTabloKolonlari(value) { this.tabloKolonlari = value; return this }
+	ozelQueryDuzenleHandler(handler) { this.ozelQueryDuzenle = handler; return this } ozelQueryDuzenleBlock(handler) { return this.ozelQueryDuzenleHandler(handler) }
+	ozelQuerySonucuHandler(handler) { this.ozelQuerySonucu = handler; return this } ozelQuerySonucuBlock(handler) { return this.ozelQuerySonucuHandler(handler) }
 	veriYukleninceIslemi(handler) { this.veriYuklenince = handler; return this } veriYukleninceBlock(handler) { return this.veriYukleninceIslemi(handler) }
 	veriDegisinceIslemi(handler) { this.veriDegisince = handler; return this } veriDegisinceBlock(handler) { return this.veriDegisinceIslemi(handler) }
 	groupsChangedIslemi(handler) { this.groupsChanged = handler; return this } onBindingComplete(value) { return this.veriYukleninceIslemi(value) }
