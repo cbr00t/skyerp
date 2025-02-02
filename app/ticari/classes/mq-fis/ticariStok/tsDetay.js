@@ -55,8 +55,7 @@ class TSSHDDetay extends TSDetay {
 		this.iskYapiPropertyleriOlustur(e); this.eBilgi = e.eBilgi
 	}
 	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); const {pTanim} = e;
-		$.extend(pTanim, {
+		super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, {
 			shKod: new PInstStr(), shAdi: new PInst(), miktar: new PInstNum('miktar'), brm: new PInstStr(), fiyat: new PInstNum('fiyat'),
 			brutBedel: new PInstNum('brutbedel'), netBedel: new PInstNum('bedel'), takipNo: new PInstStr('dettakipno'), ekAciklama: new PInstStr('ekaciklama'),
 			/* Ticari sahalar */
@@ -143,7 +142,8 @@ class TSSHDDetay extends TSDetay {
 	hostVarsDuzenle(e) {
 		e = e || {}; super.hostVarsDuzenle(e); const {fis, hv} = e, {shKodSaha, shAdiSaha, hizmetmi} = this.class, {siparismi} = fis.class;
 		hv[shKodSaha] = this.shKod; if (siparismi || hizmetmi) { delete hv.detyerkod } else { hv.detyerkod = this.getYerKod({ fis }) }
-		const {fiyat, netBedel} = this; hv.ekranverifiyat = hv.belgefiyat = fiyat; hv.belgebedel = netBedel
+		const {fiyat, netBedel} = this; hv.ekranverifiyat = hv.belgefiyat = fiyat; hv.belgebedel = netBedel;
+		let {hmr} = this; if (hmr) { hmr.hostVarsDuzenle(e); for (let {rowAttr, ioAttr} of hmr.hmrIter()) { hv[rowAttr] = this[ioAttr] } }
 	}
 	setValues(e) {
 		e = e || {}; super.setValues(e); const {rec, fis} = e, {shKodSaha, shAdiSaha, hizmetmi} = this.class, {siparismi} = fis.class;
@@ -152,10 +152,10 @@ class TSSHDDetay extends TSDetay {
 			kdvDegiskenmi: asBool(rec.kdvDegiskenmi), adiDegisirmi: asBool(rec.adiDegisirmi), takipNo: rec.dettakipno || '', takipAdi: rec.takipadi,
 		});
 		if (!(siparismi || hizmetmi)) { $.extend(this, { yerKod: rec.detyerkod ?? '', yerAdi: rec.yeradi }) }
+		let {hmr} = this; if (hmr) { hmr.setValues(e); for (let {rowAttr, ioAttr} of hmr.hmrIter()) { this[ioAttr] = rec[rowAttr] } }
 	}
 	ticariHostVarsDuzenle(e) {
-		const {fis, hv} = e; $.extend(hv, { kdvhesapkod: this.kdvKod || '', perkdv: this.kdv || 0, perstopaj: this.stopaj || 0 });
-		this.ekVergiYapi.ticariHostVarsDuzenle(e);
+		const {fis, hv} = e; $.extend(hv, { kdvhesapkod: this.kdvKod || '', perkdv: this.kdv || 0, perstopaj: this.stopaj || 0 }); this.ekVergiYapi.ticariHostVarsDuzenle(e);
 		const {iskYapi} = this;
 		const iskHVEkle = e => {
 			const {belirtec, rowAttrPrefix, oranMax} = e, oranlar = iskYapi[belirtec];
@@ -309,10 +309,6 @@ class TSStokDetayOrtak extends TSStokHizmetDetay {
 			/* Ticari sahalar */ otvKod: new PInstStr(), hmr: new PInstClass(HMRBilgi)
 		})
 	}
-	static orjBaslikListesiDuzenleHMR(e) {
-		super.orjBaslikListesiDuzenleHMR(e); const alias = this.tableAlias, {liste} = e;
-		for (const item of HMRBilgi.hmrIter()) { const colDefs = item.asGridGosterimKolonlar({ alias: alias }); if (!$.isEmptyObject(colDefs)) { liste.push(...colDefs) } }
-	}
 	static raporQueryDuzenle(e) {
 		super.raporQueryDuzenle(e); const {sent, fisSinif, attrListesi} = e;
 		sent.har2StokBagla(); sent.har2PaketBagla();
@@ -330,6 +326,13 @@ class TSStokDetayOrtak extends TSStokHizmetDetay {
 				const oemSiraStr = attr.substring(Prefix.length), oemAlias = `soem${oemSiraStr}`;
 				sent.leftJoin({ alias: 'har', table: `stokoem ${oemAlias}`, on: [`har.stokkod = ${oemAlias}.stokkod`, `${oemAlias}.oemsira = ${oemSiraStr}`] })
 			}
+		}
+	}
+	static orjBaslikListesiDuzenleHMR(e) {
+		super.orjBaslikListesiDuzenleHMR(e); const {tableAlias: alias} = this, {liste} = e;
+		for (const item of HMRBilgi.hmrIter()) {
+			const colDefs = item.asGridGosterimKolonlar({ alias }); if ($.isEmptyObject(colDefs)) { continue }
+			for (let colDef of colDefs) { colDef.noSql() } liste.push(...colDefs)
 		}
 	}
 	static loadServerData_queryDuzenle(e) {
@@ -377,13 +380,12 @@ class TSStokDetayOrtak extends TSStokHizmetDetay {
 		return this
 	}
 	hmrPropertyleriOlustur(e) {
-		const {hmr} = this; if (!hmr) { return }
+		e = e ?? {}; const {hmr} = this; if (!hmr) { return }
 		for (const item of hmr.hmrIter()) {
 			const {ioAttr, adiAttr} = item;
 			Object.defineProperty(this, ioAttr, { get: () => this.hmr[ioAttr], set: value => this.hmr[ioAttr] = value });
-			if (adiAttr) {
-				Object.defineProperty(this, adiAttr, { get: () => this.hmr[adiAttr], set: value => this.hmr[adiAttr] = value })
-			}
+			if (adiAttr) { Object.defineProperty(this, adiAttr, { get: () => this.hmr[adiAttr], set: value => this.hmr[adiAttr] = value }) }
+			this[ioAttr] = e[ioAttr]; this[adiAttr] = e[adiAttr]
 		}
 	}
 }

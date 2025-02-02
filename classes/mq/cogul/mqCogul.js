@@ -2,7 +2,7 @@ class MQCogul extends MQYapi {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static _altYapiDictOlustuSet = {}; static _extYapiOlustuSet = {};
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'parentItem'] } static get parentMFSinif() { return null }
-	static get listeSinifAdi() { return null } static get kodListeTipi() { return null }
+	static get listeSinifAdi() { return null } static get kodListeTipi() { return null } static get noAutoFocus() { return false }
 	static get listeUISinif() { return MasterListePart } static get tanimUISinif() { return null } static get secimSinif() { return Secimler }
 	static get sabitBilgiRaporcuSinif() { return MasterRapor } static get ozelSahaTipKod() { return null }
 	static get ayrimTipKod() { return null } static get ayrimBelirtec() { return this.tableAlias } static get ayrimTable() { return `${this.tableAlias}ayrim`} static get ayrimTableAlias() { return null } 
@@ -13,7 +13,7 @@ class MQCogul extends MQYapi {
 	static get islemTuslari_sagButonlar_ekMarginX() { return $(window).width() < 800 ? 0 : 15 } static get orjBaslik_gridRenderDelayMS() { return null } static get defaultOrjBaslik_gridRenderDelayMS() { return 200 }
 	static get orjBaslikListesi_panelGrupAttrListe() { const _e = { liste: [] }; this.orjBaslikListesi_panelGrupAttrListeDuzenle(_e); return _e.liste }
 	static get orjBaslikListesi_panelUstSeviyeAttrListe() { const _e = { liste: [] }; this.orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(_e); return _e.liste }
-	static get orjBaslikListesi_defaultRowsHeight() { return null } static get orjBaslikListesi_maxColCount() { return 5 }  static get orjBaslikListesi_defaultColCount() { return null } static get noAutoFocus() { return false }
+	static get orjBaslikListesi_defaultRowsHeight() { return null } static get orjBaslikListesi_maxColCount() { return 5 } static get orjBaslikListesi_defaultColCount() { return null }
 	static get yerelParam() { return app.params.yerel } static get mqGlobals() { return app.mqGlobals = app.mqGlobals || {} } static get mqTemps() { return app.mqTemps = app.mqTemps || {} }
 	static get globals() { const {classKey, mqGlobals} = this; return mqGlobals[classKey] = mqGlobals[classKey] || {} } static get temps() { const {classKey, mqTemps} = this; return mqTemps[classKey] = mqTemps[classKey] || {} }
 	static get paramGlobals() { const dataKey = this.dataKey || this.classKey, {yerelParam} = this, mfSinif2Globals = yerelParam?.mfSinif2Globals || {}, result = mfSinif2Globals[dataKey] = mfSinif2Globals[dataKey] || {}; return result }
@@ -108,51 +108,43 @@ class MQCogul extends MQYapi {
 		await this.rootFormBuilderDuzenleSonrasi_ayrimVeOzelSahalar(e)
 	}
 	static async rootFormBuilderDuzenleSonrasi_ayrimVeOzelSahalar(e) {
-		const {etiketGosterim} = e, {ayrimIsimleri} = this;
-		if (!$.isEmptyObject(ayrimIsimleri)) {
-			const parentBuilder = await this.rootFormBuilderDuzenleSonrasi_ayrimVeOzelSahalar_getParentBuilder($.extend({}, e, { tabPageId: 'ayrim', tabPageEtiket: 'Ayrım' }));
+		const {etiketGosterim} = e, {ayrimIsimleri} = this; if (!$.isEmptyObject(ayrimIsimleri)) {
+			const parentBuilder = await this.rootFormBuilderDuzenleSonrasi_ayrimVeOzelSahalar_getParentBuilder({ ...e, tabPageId: 'ayrim', tabPageEtiket: 'Ayrım' });
 			if (parentBuilder) {
 				parentBuilder.addCSS('flex-row'); const {sinifAdi, tableAlias, ayrimTable, ayrimTableAlias} = this;
 				for (let i = 0; i < ayrimIsimleri.length; i++) {
-					const seq = i + 1, id = seq, ayrimAdi = ayrimIsimleri[i];
-					const ayrMFSinif = class extends MQKA {
+					const seq = i + 1, id = seq, ayrimAdi = ayrimIsimleri[i], ayrMFSinif = class extends MQKA {
 					    static { window[this.name] = this; this._key2Class[this.name] = this }
-						static get sinifAdi() { return ayrimAdi }
-						static get table() { return `${ayrimTable}${seq}` }
-						static get tableAlias() { return `${ayrimTableAlias}${seq}` }
-						static get kodSaha() { return this.sayacSaha }
-						static get sayacSaha() { return 'sayac' }
+						static get sinifAdi() { return ayrimAdi } static get table() { return `${ayrimTable}${seq}` } static get tableAlias() { return `${ayrimTableAlias}${seq}` }
+						static get kodSaha() { return this.sayacSaha } static get sayacSaha() { return 'sayac' }
 					};
 					parentBuilder.add(
-						new FBuilder_ModelKullan({
-							id, etiket: ayrimAdi, mfSinif: ayrMFSinif, kodSaha: ayrMFSinif.adiSaha,
-							etiketGosterim: etiketGosterim, placeHolder: ayrimAdi, altInst: e => e.builder.inst.ayrimlar,
-							onChange: e => {
-								const {builder, sender, item} = e, kodAttr = e.kodAttr || sender.kodAttr || (sender.mfSinif || ayrMFSinif).kodSaha;
-								const value = coalesce((item || {})[kodAttr], e.value); builder.altInst[builder.id] = asInteger(value) || null
-							},
-							styles: [e => { const prefix = e.builder.getCSSElementSelector(e.builder.layout); return `${prefix} { width: 20% !important; min-width: 120px !important; margin-bottom: 8px !important }` }]
-						}).dropDown().kodsuz().bosKodEklenir()
+						new FBuilder_ModelKullan({ id, etiket: ayrimAdi, kodSaha: ayrMFSinif.adiSaha, etiketGosterim, placeHolder: ayrimAdi })
+							.dropDown().kodsuz().bosKodEklenir().setMFSinif(ayrMFSinif).setAltInst(({ builder: fbd }) => fbd.inst.ayrimlar)
+							.degisince(({ builder: fbd, sender, item, value, kodAttr }) => {
+								let {id} = fbd; kodAttr ||= sender.kodAttr || (sender.mfSinif || ayrMFSinif).kodSaha;
+								value = item?.[kodAttr] ?? value; fbd.altInst[id] = asInteger(value) || null
+							}).addStyle(e => `$elementCSS { width: 20% !important; min-width: 120px !important; margin-bottom: 8px !important }`)
 					)
 				}
-				const lastBuilder = parentBuilder.builders[parentBuilder.builders.length - 1];
-				if (lastBuilder)
-					lastBuilder.onAfterRun(e => { const {parent} = e.builder; /* const parentElmId = parentBuilder.getElementId(parent); */ setTimeout(() => parent.jqxSortable({ theme: theme, items: `> div` }), 10) })
+				const lastBuilder = parentBuilder.builders[parentBuilder.builders.length - 1]; if (lastBuilder) {
+					lastBuilder.onAfterRun(({ builder: fbd }) => {
+						/* const {parent} = fbd, parentElmId = parentBuilder.getElementId(parent); */
+						setTimeout(() => parent.jqxSortable({ theme, items: `> div` }), 10)
+					})
+				}
 			}
 		}
-		const ozelSahaYapilari = await this.getOzelSahaYapilari(e);
-		if (!$.isEmptyObject(ozelSahaYapilari)) {
-			const parentBuilder = await this.rootFormBuilderDuzenleSonrasi_ayrimVeOzelSahalar_getParentBuilder( $.extend({}, e, { tabPageId: 'ozelSaha', tabPageEtiket: 'Özel Saha' }));
-			if (parentBuilder) { for (const ozelSahaGrup of ozelSahaYapilari) parentBuilder.add(ozelSahaGrup.getOzelSahaFormBuilders(e)) }
+		const ozelSahaYapilari = await this.getOzelSahaYapilari(e); if (!$.isEmptyObject(ozelSahaYapilari)) {
+			const parentBuilder = await this.rootFormBuilderDuzenleSonrasi_ayrimVeOzelSahalar_getParentBuilder({ ...e, tabPageId: 'ozelSaha', tabPageEtiket: 'Özel Saha' });
+			if (parentBuilder) { for (const ozelSahaGrup of ozelSahaYapilari) { parentBuilder.add(ozelSahaGrup.getOzelSahaFormBuilders(e)) } }
 		}
 	}
 	static async rootFormBuilderDuzenleSonrasi_ayrimVeOzelSahalar_getParentBuilder(e) {
-		let parentBuilder = e.tanimFormBuilder;
-		if (parentBuilder) {
-			let subBuilder = parentBuilder.builders.find(builder => builder.isTabs);
-			if (subBuilder) {
-				parentBuilder = subBuilder; const tabPageBuilder = new FBuilder_TabPage({ id: getFuncValue.call(this, e.tabPageId, e), etiket: getFuncValue.call(this, e.tabPageEtiket, e) });
-				parentBuilder.add(tabPageBuilder); parentBuilder = tabPageBuilder
+		let {tanimFormBuilder: parentBuilder} = e; if (parentBuilder) {
+			let subBuilder = parentBuilder.builders.find(({ builder: fbd }) => fbd.isTabs); if (subBuilder) {
+				parentBuilder = subBuilder; let id = getFuncValue.call(this, e.tabPageId, e), etiket = getFuncValue.call(this, e.tabPageEtiket, e);
+				let tabPageBuilder = new FBuilder_TabPage({ id, etiket }); parentBuilder.add(tabPageBuilder); parentBuilder = tabPageBuilder
 			}
 		}
 		return parentBuilder
@@ -673,12 +665,12 @@ class MQCogul extends MQYapi {
 		const part = e.result = new ModelKullanPart(_e.args); part.run(); return part
 	}
 	static getGridKolonlar(e) {
-		e = e || {}; const {belirtec} = e, _e = $.extend({}, e, { mfSinif: this, belirtec, liste: [], kodEtiket: e.kodEtiket, adiEtiket: e.adiEtiket });
+		e = e || {}; const {belirtec} = e, _e = { ...e, mfSinif: this, belirtec, liste: [], kodEtiket: e.kodEtiket, adiEtiket: e.adiEtiket };
 		const gridKolonGrupcu = e.gridKolonGrupcu || 'getGridKolonGrup';
 		let colDef = $.isFunction(gridKolonGrupcu) ? getFuncValue.call(this, gridKolonGrupcu, _e) : getFuncValue.call(this, this[gridKolonGrupcu], _e);
 		if (colDef) {
-			const sabitleFlag = e.sabitle ?? e.sabitleFlag, hiddenFlag = e.hidden ?? e.hiddenFlag, autoBind = e.autoBind ?? e.autoBindFlag;
-			if (sabitleFlag) { colDef.sabitle() } if (hiddenFlag) { colDef.hidden() } if (autoBind) { colDef.autoBind() }
+			const sabitleFlag = e.sabitle ?? e.sabitleFlag, hiddenFlag = e.hidden ?? e.hiddenFlag, autoBind = e.autoBind ?? e.autoBindFlag, readOnly = e.readOnly ?? e.readOnlyFlag;
+			if (sabitleFlag) { colDef.sabitle() } if (hiddenFlag) { colDef.hidden() } if (autoBind) { colDef.autoBind() } if (readOnly) { colDef.readOnly() }
 			_e.liste.push(colDef)
 		}
 		this.gridKolonlarDuzenle(_e); return _e.liste

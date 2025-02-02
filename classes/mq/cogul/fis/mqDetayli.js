@@ -48,6 +48,11 @@ class MQDetayli extends MQSayacli {
 		if (_e.root) { rootBuilder = _e.root }
 		return rootBuilder
 	}
+	static rootFormBuilderDuzenle(e) {
+		super.rootFormBuilderDuzenle(e); let {builders, sender} = e, {islemTuslariPart} = sender, {ekButonlarIlk, ekSagButonIdSet} = islemTuslariPart;
+		ekButonlarIlk.push({ id: 'kolonFiltre', handler: e => this.kolonFiltreIstendi(e) }); ekSagButonIdSet.kolonFiltre = true;
+		islemTuslariPart.butonlariOlustur()
+	}
 	static orjBaslikListesi_argsDuzenle_detaylar(e) {
 		const {detaySiniflar} = this; if (!$.isEmptyObject(detaySiniflar)) { for (const cls of detaySinif) { detaySinif?.orjBaslikListesi_argsDuzenle(e) } }
 	}
@@ -370,6 +375,10 @@ class MQDetayli extends MQSayacli {
 	}
 	addDetaylar(liste) { return this.addDetay(liste) }
 	detaylarReset() { this.detaylar = []; return this }
+	static kolonFiltreIstendi(e) {
+		e = e ?? {}; let gridPart = e.gridPart ?? e.sender; if (!gridPart) { return }
+		return gridPart.kolonFiltreIstendi(e)
+	}
 }
 class MQDetayliMaster extends MQDetayli {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get hasTabs() { return false } static get tanimUISinif() { return MQKA.tanimUISinif }

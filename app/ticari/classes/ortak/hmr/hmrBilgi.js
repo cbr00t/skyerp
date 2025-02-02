@@ -1,10 +1,16 @@
 class HMRBilgi extends CIO {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get belirtecListe() {
-		let result = this._belirtecListe;
-		if (!result) {
-			result = this._belirtecListe = []; const _hmr = app.params.stokGenel.hmr || {};
-			for (const key in _hmr) { if (_hmr[key]) { result.push(key) } }
+		let result = this._belirtecListe; if (result == null) {
+			result = this._belirtecListe = []; const {hmr, ekOzellikBilgileri} = app.params.stokGenel;
+			if (hmr) { for (const key in hmr) { if (hmr[key]) { result.push(key) } } }
+			if (ekOzellikBilgileri) {
+				let seq = 0; for (let item of ekOzellikBilgileri) {
+					let {adi} = item ?? {}; if (!adi) { continue } seq++;
+					result.push(`ekOz${seq}`)
+				}
+			}
+			
 		}
 		return result
 	}
@@ -13,28 +19,48 @@ class HMRBilgi extends CIO {
 		this.cacheReset(); this._belirtecListe = value || [];
 	}
 	static get belirtecSet() { let result = this._belirtecSet; if (result == null) { result = this._belirtecSet = asSet(this.belirtecListe) } return result }
-	static get hmrEtiketDict() { let result = this._hmrEtiketDict; if (result == null) { result = this._hmrEtiketDict = app.params.stokGenel.hmrEtiket } return result }
+	static get hmrEtiketDict() {
+		let result = this._hmrEtiketDict; if (result == null) {
+			let {hmrEtiket, ekOzellikBilgileri} = app.params.stokGenel;
+			result = this._hmrEtiketDict = { ...(hmrEtiket ?? {}) };
+			if (ekOzellikBilgileri) {
+				let seq = 0; for (let item of ekOzellikBilgileri) {
+					let {adi} = item ?? {}; if (!adi) { continue } seq++;
+					result[`ekOz${seq}`] = adi
+				}
+			}
+		}
+		return result
+	}
 	static get ioAttrListe() { let result = this._ioAttrListe; if (result == null) { result = this._ioAttrListe = Object.values(HMRBilgi.belirtec2Bilgi).map(item => item.ioAttr) } return result }
 	static get rowAttrListe() { let result = this._rowAttrListe; if (result == null) { result = this._rowAttrListe = Object.values(HMRBilgi.belirtec2Bilgi).map(item => item.rowAttr) } return result }
 	static get belirtec2Bilgi() {
-		let result = this._belirtec2Bilgi;
-		if (!result) {
+		let result = this._belirtec2Bilgi; if (!result) {
 			const _result = {
 				model: { ioAttr: 'modelKod', adiAttr: 'modelAdi', rowAttr: 'modelkod', rowAdiAttr: 'modeladi', etiket: 'Model', kami: true, mfSinif: MQModel },
 				renk: { ioAttr: 'renkKod', adiAttr: 'renkAdi', rowAttr: 'renkkod', rowAdiAttr: 'renkadi', etiket: 'Renk', kami: true, mfSinif: MQRenk },
 				desen: { ioAttr: 'desenKod', adiAttr: 'desenAdi', rowAttr: 'desenkod', rowAdiAttr: 'desenadi', etiket: 'Desen', kami: true, mfSinif: MQDesen },
 				raf: { ioAttr: 'rafKod', adiAttr: 'rafKod', rowAttr: 'rafkod', rowAdiAttr: 'rafkod', etiket: 'Raf', kami: false, mfSinif: MQYerRaf },
-				beden: { ioAttr: 'beden', rowAttr: 'beden', etiket: 'Beden' },
-				harDet: { ioAttr: 'harDet', rowAttr: 'hardet', etiket: 'Har.Det.' },
-				lotNo: { ioAttr: 'lotNo', rowAttr: 'lotno', etiket: 'Lot No' },
-				utsNo: { ioAttr: 'utsNo', rowAttr: 'utsno', etiket: 'UTS No' },
-				en: { ioAttr: 'en', rowAttr: 'en', etiket: 'En', numerikmi: true },
-				boy: { ioAttr: 'boy', rowAttr: 'boy', etiket: 'Boy', numerikmi: true },
+				beden: { ioAttr: 'beden', rowAttr: 'beden', etiket: 'Beden' }, harDet: { ioAttr: 'harDet', rowAttr: 'hardet', etiket: 'Har.Det.' },
+				lotNo: { ioAttr: 'lotNo', rowAttr: 'lotno', etiket: 'Lot No' }, utsNo: { ioAttr: 'utsNo', rowAttr: 'utsno', etiket: 'UTS No' },
+				en: { ioAttr: 'en', rowAttr: 'en', etiket: 'En', numerikmi: true }, boy: { ioAttr: 'boy', rowAttr: 'boy', etiket: 'Boy', numerikmi: true },
 				yukseklik: { ioAttr: 'yukseklik', rowAttr: 'yukseklik', etiket: 'Yükseklik', numerikmi: true }
 			};
-			const {belirtecSet, hmrEtiketDict} = this; result = {};
-			for (const belirtec in _result) {
-				const item = _result[belirtec]; item.belirtec = belirtec; if (!belirtecSet[belirtec]) { continue }
+			let {ekOzellikBilgileri} = app.params.stokGenel ?? {}; if (ekOzellikBilgileri) {
+				let seq = 0; for (let item of ekOzellikBilgileri) {
+					let {adi} = item ?? {}; if (!adi) { continue } seq++;
+					let clsDef = `(class MQEkOzellik${seq} extends MQKA {
+						static { window[this.name] = this; this._key2Class[this.name] = this }
+						static get sinifAdi() { return '${adi}' } static get table() { return '${`stokekoz${seq}`}' } static get tableAlias() { return '${`ekoz${seq}`}' }
+					})`;
+					_result[`ekOz${seq}`] = {
+						index: seq - 1, seq, ioAttr: `ekOz${seq}Kod`, adiAttr: `ekOz${seq}Adi`, rowAttr: `ekoz${seq}kod`, rowAdiAttr: `ekoz${seq}adi`,
+						etiket: adi, kami: true, ekOzellikmi: true, mfSinif: eval(clsDef)
+					}
+				}
+			}
+			let {belirtecSet, hmrEtiketDict} = this; result = {}; for (const [belirtec, item] of Object.entries(_result)) {
+				item.belirtec = belirtec; if (!belirtecSet[belirtec]) { continue }
 				const etiket = hmrEtiketDict[belirtec]; if (etiket) { item.etiket = etiket }
 				result[belirtec] = item
 			}
@@ -52,11 +78,15 @@ class HMRBilgi extends CIO {
 		}
 	}
 	static *hmrIter(e) {
-		const DefaultGenislikCh = 20, {belirtec2Bilgi, belirtecSet} = this;
-		for (const belirtec in belirtec2Bilgi) {
-			if (!belirtecSet[belirtec]) { continue } const item = $.extend({}, belirtec2Bilgi[belirtec], /*{ belirtec: belirtec }*/);
-			yield $.extend(item, {
+		e = e ?? {}; const DefaultGenislikCh = 10, DefaultAdiGenislikCh = DefaultGenislikCh + 13, {belirtec2Bilgi, belirtecSet} = this, ekOzellikmi = e.ekOzellik ?? e.ekOzellikmi;
+		for (let [belirtec, _item] of Object.entries(belirtec2Bilgi)) {
+			if (!belirtecSet[belirtec]) { continue }
+			if (ekOzellikmi != null) { let {ekOzellikmi: flag} = _item; if (ekOzellikmi != flag) { continue } }
+			let item = {
+				..._item,
 				get defaultValue() { return item.numerikmi ? 0 : '' },
+				get table() { return item.mfSinif?.table }, get tableAlias() { return item.mfSinif?.tableAlias }, get tableAndAlias() { return item.mfSinif?.tableAndAlias },
+				get kodSaha() { return item.mfSinif?.kodSaha }, get adiSaha() { return item.mfSinif?.adiSaha },
 				asGridKolon(e) {
 					e = e || {}; let result = this._gridKolon;
 					if (result === undefined) {
@@ -65,14 +95,14 @@ class HMRBilgi extends CIO {
 							result = this._gridKolon = kami
 								? mfSinif.getGridKolonGrup({
 									belirtec: item.belirtec, kodAttr: item.ioAttr, adiAttr: item.adiAttr,
-									kodEtiket: item.etiket || ioAttr, text: item.etiket, adiGenislikCh: DefaultGenislikCh
+									kodEtiket: item.etiket || ioAttr, text: item.etiket, adiGenislikCh: DefaultGenislikCh + DefaultAdiGenislikCh
 								})
 								: new GridKolon({ belirtec: item.ioAttr, text: item.etiket, genislikCh: DefaultGenislikCh });
 							if (result) { result.kodZorunluOlmasin() } if (item.numerikmi) { result.tipDecimal(2) }
 							if (kami && mfSinif) {
 								result.stmDuzenleyiciEkle(e => mfSinif.hmr_queryEkDuzenle(e)); result.degisince(e => mfSinif.hmrSetValuesEk(e));
 								let colDef = result; if (colDef?.kaKolonu) { colDef = colDef.kaKolonu }
-								mfSinif.hmrTabloKolonDuzenle({ orjColDef: result, colDef })
+								mfSinif.hmrTabloKolonDuzenle?.({ orjColDef: result, colDef })
 							}
 						}
 					}
@@ -85,13 +115,12 @@ class HMRBilgi extends CIO {
 						if (kami && !mfSinif) { result = null }
 						else {
 							const {rowAttr, etiket, adiAttr} = item, mfSinif = item.mfSinif ?? MQHMR;
-							const kodKolonu = new GridKolon({ belirtec: rowAttr, text: etiket, genislikCh: asInteger(DefaultGenislikCh / 2) });
-							if (item.numerikmi) { kodKolonu.tipDecimal(2) }
-							result = [kodKolonu];
+							const kodKolonu = new GridKolon({ belirtec: rowAttr, text: etiket, genislikCh: asInteger(DefaultGenislikCh) });
+							if (item.numerikmi) { kodKolonu.tipDecimal(2) } result = [kodKolonu];
 							if (kami && mfSinif) {
 								if (adiAttr) {
 									const mfAlias = mfSinif.tableAlias, mfAliasVeNokta = mfAlias ? `${mfAlias}.` : '';
-									result.push(new GridKolon({ belirtec: adiAttr, text: `${etiket} Adı`, genislikCh: DefaultGenislikCh, sql: `${mfAliasVeNokta}${mfSinif.adiSaha}` }))
+									result.push(new GridKolon({ belirtec: adiAttr, text: `${etiket} Adı`, genislikCh: DefaultAdiGenislikCh, sql: `${mfAliasVeNokta}${mfSinif.adiSaha}` }))
 								}
 								for (const colDef of result) { mfSinif.hmrTabloKolonDuzenle({ orjColDef: colDef, colDef }) }
 							}
@@ -115,17 +144,19 @@ class HMRBilgi extends CIO {
 					}
 					return result
 				}
-			})
+			};
+			yield item
 		}
 	}
+	static hmrIter_hmr(e) { return this.hmrIter({ ...e, ekOzellik: false }) }
+	static hmrIter_ekOzellik(e) { return this.hmrIter({ ...e, ekOzellik: true }) }
 	hmrIter(e) { return this.class.hmrIter(e) }
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e) }
 	setValues(e) {
 		super.setValues(e); const {rec} = e;
-		for (const item of this.hmrIter()) {
-			const {adiAttr, kami, mfSinif} = item;
+		for (const {adiAttr, kami, mfSinif} of this.hmrIter()) {
 			if (adiAttr) { const value = rec[adiAttr]; if (value != null) { this[adiAttr] = value } }
-			if (kami && mfSinif) { mfSinif.hmrSetValuesEk($.extend({}, e, { inst: this, rec })) }
+			if (kami && mfSinif) { mfSinif.hmrSetValuesEk({ ...e, inst: this, rec }) }
 		}
 	}
 	static cacheReset() {

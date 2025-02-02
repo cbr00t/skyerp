@@ -19,6 +19,7 @@ class GridKolonGrup_KA extends GridKolonGrup {
 		this.ozelStmDuzenleyiciTriggerFlag = e.ozelStmDuzenleyiciTriggerFlag ?? e.ozelStmDuzenleyiciTrigger
 	}
 	readFrom_ara(e) {
+		if (e.isCopy) { return true }
 		$.extend(this, { _mfSinif: e.mfSinif, dataBlock: getFunc(e.dataBlock) }); if (!super.readFrom_ara(e)) { return false }
 		if (e.kodAttr && e.kaKolonu) { e.kaKolonu.belirtec = e.kodAttr }
 		$.extend(this, {

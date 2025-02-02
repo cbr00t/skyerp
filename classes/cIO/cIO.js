@@ -32,7 +32,7 @@ class CIO extends CObject {
 	pTanim2InstSonrasi(e) { }
 	hostVars(e) { e = e || {}; e.hv = {}; this.pIO_hostVarsDuzenle(e); this.hostVarsDuzenle(e); return e.hv }
 	hostVarsDuzenle(e) { }
-	setValues(e) { e = e || {}; this.pIO_setValues(e); }
+	setValues(e) { e = e || {}; this.pIO_setValues(e) }
 	pIO_hostVarsDuzenle(e) {
 		e = e || {}; const {hv} = e, {_p} = this;
 		for (const ioAttr in _p) { const pInst = _p[ioAttr], {rowAttr} = pInst; if (rowAttr) { hv[rowAttr] = pInst.hostVarsDegeri } }

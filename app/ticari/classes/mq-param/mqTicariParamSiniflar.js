@@ -100,8 +100,7 @@ class MQStokGenelParam extends MQTicariParamBase {
 		return result
 	}
 	static get hmrYapi() {
-		let result = this._hmrYapi;
-		if (result === undefined) {
+		let result = this._hmrYapi; if (result === undefined) {
 			result = {
 				model:  { rowAttr: 'hmrModel', etiket: 'Model', etiketEditable: true },
 				renk:   { rowAttr: 'hmrRenk', etiket: 'Renk', etiketEditable: true },
@@ -129,7 +128,7 @@ class MQStokGenelParam extends MQTicariParamBase {
 	}
 	get hmrYapi() { return this.class.hmrYapi } get hmr2Belirtec() { return this.class.hmr2Belirtec }
 	constructor(e) {
-		e = e || {}; super(e); $.extend(this, { hmr: e.hmr || {}, hmrEtiket: e.hmrEtiket || {} });
+		e = e || {}; super(e); $.extend(this, { hmr: e.hmr || {}, hmrEtiket: e.hmrEtiket || {}, ekOzellikBilgileri: e.ekOzellikBilgileri ?? [] });
 		const {hmr, hmrEtiket} = this; for (const key in this.hmrYapi) { for (const altInst of [hmr, hmrEtiket]) { if (hmr[key] === undefined) { altInst[key] = null } } }
 	}
 	static paramYapiDuzenle(e) {
@@ -140,7 +139,7 @@ class MQStokGenelParam extends MQTicariParamBase {
 			form.addBool('seriNo', 'Seri No'); form.addBool('seriMiktarli', 'Seri İçin Miktar Kullanılır'); form.addBool('dayaniksizGaranti', 'Dayanıksız Mal Garanti Takibi');
 			form.addBool('transferSiparisi', 'Transfer Siparişi')
 		let tabPage_form = paramci.addTabPage('hmr', 'HMR').addFormWithParent();
-		tabPage_form.addGridGiris_sabit('_hmr').setRowAttr(null).addStyle_wh(500, 600)
+		tabPage_form.addGridGiris_sabit('_hmr').setRowAttr(null).addStyle_fullWH(null, 800)
 			.setTabloKolonlari(e => {
 				const handlers = {
 					grid_cellClassName(colDef, rowIndex, belirtec, value, rec) {
@@ -157,21 +156,45 @@ class MQStokGenelParam extends MQTicariParamBase {
 					new GridKolon({
 						belirtec: 'etiket', text: 'Etiket', genislikCh: 25,
 						cellClassName: (...args) => handlers.grid_cellClassName(...args), cellBeginEdit: (...args) => handlers.grid_cellBeginEdit(...args), cellEndEdit: (...args) => handlers.grid_cellEndEdit(...args),
-						cellValueChanged: e => { const {builder, belirtec, gridRec, value} = e, {key} = gridRec, {altInst} = builder; gridRec[belirtec] = altInst.hmrEtiket[key] = (value || hmrYapi[key]?.etiket) ?? null }
+						cellValueChanged: ({ builder: fbd, belirtec, gridRec, value }) => { let {key} = gridRec, {altInst} = fbd; gridRec[belirtec] = altInst.hmrEtiket[key] = (value || hmrYapi[key]?.etiket) ?? null }
 					}),
 					new GridKolon({
 						belirtec: 'kullanim', text: ' ', genislikCh: 10,
 						cellClassName: (...args) => handlers.grid_cellClassName(...args), cellBeginEdit: (...args) => handlers.grid_cellBeginEdit(...args), cellEndEdit: (...args) => handlers.grid_cellEndEdit(...args),
-						cellValueChanged: e => { const {builder, belirtec, gridRec, value} = e, {key} = gridRec, {altInst} = builder; gridRec[belirtec] = altInst.hmr[key] = asBool(value) }
+						cellValueChanged: ({ builder: fbd, belirtec, gridRec, value }) => { let {key} = gridRec, {altInst} = fbd; gridRec[belirtec] = altInst.hmr[key] = asBool(value) }
 					}).tipBool()
 				]
 			})
-			.setSource(e => {
-				const {altInst} = e.builder, hmr = altInst.hmr || {}, hmrEtiket = altInst.hmrEtiket || {}, recs = [];
+			.setSource(({ builder: fbd }) => {
+				const {altInst} = fbd, hmr = altInst.hmr || {}, hmrEtiket = altInst.hmrEtiket || {}, recs = [];
 				for (const [key, yapi] of Object.entries(hmrYapi)) { const etiket = hmrEtiket[key] || yapi.etiket || key, kullanim = asBool(hmr[key]); recs.push({ key, etiket, kullanim }) }
 				return recs
 			})
-			.veriYukleninceIslemi(e => setTimeout(() => e.builder.part.gridWidget.render(), 0));
+			.veriYukleninceIslemi(({ builder: fbd }) => setTimeout(() => fbd.part.gridWidget.render(), 0));
+		tabPage_form = paramci.addTabPage('ekOzellik', 'Ek Özellik').addFormWithParent();
+		tabPage_form.addGridGiris('ekOzellikBilgileri').addStyle_fullWH(null, 800)
+			.setTabloKolonlari(e => {
+				const handlers = {
+					grid_cellClassName(colDef, rowIndex, belirtec, value, rec) {
+						const {key} = rec, result = [belirtec]; if (belirtec == 'etiket' && !(hmrYapi[key]?.etiketEditable && rec.kullanim)) { result.push('grid-readOnly') }
+						return result.join(' ')
+					},
+					grid_cellBeginEdit(colDef, rowIndex, belirtec, colType, value) {
+						const rec = colDef.gridPart.gridWidget.getrowdata(rowIndex), {key} = rec;
+						if (belirtec == 'etiket' && !(hmrYapi[key]?.etiketEditable && rec.kullanim)) { return false }
+					},
+					grid_cellEndEdit(colDef, rowIndex, belirtec, colType, value) { setTimeout(() => colDef.gridPart.gridWidget.render(), 0) }
+				}
+				return [
+					new GridKolon({
+						belirtec: 'adi', text: 'Adı', genislikCh: 50,
+						cellClassName: (...args) => handlers.grid_cellClassName(...args), cellBeginEdit: (...args) => handlers.grid_cellBeginEdit(...args), cellEndEdit: (...args) => handlers.grid_cellEndEdit(...args)
+						/*cellValueChanged: ({ builder: fbd, belirtec, gridRec, value }) => { let {key} = gridRec, {altInst} = fbd; gridRec[belirtec] = altInst.hmrEtiket[key] = (value || hmrYapi[key]?.etiket) ?? null }*/
+					})
+				]
+			})
+			.setSource(({ builder: fbd }) => { let {altInst} = fbd; return (altInst.ekOzellikBilgileri = altInst.ekOzellikBilgileri ?? []) })
+			.veriYukleninceIslemi(({ builder: fbd }) => setTimeout(() => fbd.part.gridWidget.render(), 0));
 		tabPage_form = paramci.addTabPage('resim', 'Resim').addFormWithParent().altAlta();
 		tabPage_form.addGrup({ etiket: 'Stok Resim' }); let altForm = tabPage_form.addFormWithParent().yanYana(2);
 			altForm.addBool('stokResimKullanilir', 'Kullanılır'); altForm.addString('resimExt', 'Dosya Ext.');
@@ -181,7 +204,8 @@ class MQStokGenelParam extends MQTicariParamBase {
 			altForm.addBool('rbkResimKullanilir', 'Kullanılır'); altForm.addString('rbkResimAnaBolum', 'Yerel Ana Bölüm'); altForm.addString('rbkResimFTPAnaBolum', 'FTP Ana Bölüm')
 	}
 	paramHostVarsDuzenle(e) {
-		e = e || {}; super.paramHostVarsDuzenle(e); const {hv} = e, {hmrYapi} = this;
+		e = e || {}; super.paramHostVarsDuzenle(e); let {hv} = e, {hmrYapi, ekOzellikBilgileri} = this;
+		ekOzellikBilgileri = this.ekOzellikBilgileri = ekOzellikBilgileri?.filter(({ adi }) => !!adi);
 		const hmr = this.hmr || {}, hmrEtiket = this.hmrEtiket || {};
 		for (const [key, yapi] of Object.entries(hmrYapi)) {
 			const {rowAttr, etiketEditable} = yapi; if (!rowAttr) { continue }
@@ -189,7 +213,8 @@ class MQStokGenelParam extends MQTicariParamBase {
 		}
 	}
 	paramSetValues(e) {
-		e = e || {}; super.paramSetValues(e); const {rec} = e, {hmrYapi} = this;
+		e = e || {}; super.paramSetValues(e); let {rec} = e, {hmrYapi, ekOzellikBilgileri} = this;
+		ekOzellikBilgileri = this.ekOzellikBilgileri = ekOzellikBilgileri?.filter(({ adi }) => !!adi) ?? [];
 		const hmr = this.hmr = this.hmr || {}, hmrEtiket = this.hmrEtiket = this.hmrEtiket || {};
 		for (const [key, yapi] of Object.entries(hmrYapi)) {
 			const {rowAttr, etiketEditable} = yapi; if (!rowAttr) { continue }
@@ -374,7 +399,7 @@ class MQMuhasebeParam extends MQTicariParamBase {
 	paramSetValues(e) { e = e || {}; super.paramSetValues(e) /*; const {rec} = e*/ }
 }
 class MQWebParam extends MQTicariParamBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Web Parametreleri' } static get paramKod() { return 'WEB' }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Web Parametreleri' } static get paramKod() { return 'TICWEB' }
 	/* constructor(e) { e = e || {}; super(e); let {x} = e; $.extend(this, { x }) } */
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); const {paramci} = e;
