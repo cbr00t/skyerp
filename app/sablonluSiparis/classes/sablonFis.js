@@ -52,7 +52,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 				.addStyle(e => `$elementCSS { width: auto !important; margin: 13px 0 0 30px }`)
 		}
 		if (!mustKod) {
-			rfb.addModelKullan('mustKod', 'Müşteri').comboBox().setMFSinif(MQCari).autoBind().setParent(header)
+			rfb.addModelKullan('mustKod', 'Müşteri').comboBox().setMFSinif(MQSCari).autoBind().setParent(header)
 				.ozelQueryDuzenleHandler(({ builder: fbd, aliasVeNokta, stm }) => {
 					for (let {where: wh} of stm.getSentListe()) {
 						wh.add(`${aliasVeNokta}silindi = ''`, `${aliasVeNokta}calismadurumu <> ''`)
@@ -62,7 +62,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		}
 		else {
 			rfb.addForm('must', ({ builder: fbd }) => $(`<div class="${fbd.id}">${mustKod}</div>`)).setParent(header)
-				.onAfterRun(({ builder: fbd }) => setKA(fbd, mustKod, MQCari.getGloKod2Adi(mustKod)))
+				.onAfterRun(({ builder: fbd }) => setKA(fbd, mustKod, MQSCari.getGloKod2Adi(mustKod)))
 		}
 	}
 	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); $.extend(e.args, { rowsHeight: 60, groupable: false, selectionMode: 'none' }) }
@@ -198,9 +198,9 @@ class MQSablonOrtakDetay extends MQDetay {
 			],
 			sahalar: [
 				'fis.kaysayac', 'fis.tarih', 'fis.fisnox', `fis.bizsubekod subekod`, 'sub.aciklama subeadi', `fis.${mustSaha} mustkod`, 'car.birunvan mustunvan',
-				`(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`
+				'fis.xadreskod sevkadreskod', 'sadr.aciklama sevkadresadi', `(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`
 			]
-		}).fis2SubeBagla().fis2CariBagla().fisSilindiEkle(); if (subeKod != null) { sent.where.degerAta(subeKod, 'fis.bizsubekod') }
+		}).fis2SubeBagla().fis2CariBagla().fis2SevkAdresBagla().fisSilindiEkle(); if (subeKod != null) { sent.where.degerAta(subeKod, 'fis.bizsubekod') }
 		if (tarih) { sent.where.degerAta(tarih, 'fis.tarih') } if (mustKod) { sent.where.degerAta(mustKod, `fis.${mustSaha}`) }
 		stm.orderBy.add('tarih DESC', 'fisnox DESC')
 	}
@@ -210,4 +210,11 @@ class MQSablonDetay extends MQSablonOrtakDetay {
 }
 class MQKonsinyeSablonDetay extends MQSablonOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQKonsinyeSablon }
+	static loadServerData_queryDuzenle(e) {
+		super.loadServerData_queryDuzenle(e); let {sender: gridPart, parentRec, stm} = e, {kaysayac: sablonSayac} = parentRec;
+		let {tarih, mustKod} = gridPart, subeKod = gridPart.subeKod ?? config.session.subeKod;
+		let {fisSinif} = this, {table, fisIcinDetayTable: detayTable, mustSaha} = fisSinif, cariYil = app.params.zorunlu?.cariYil || today().getYil();
+		let uni = stm.sent = e.sent = stm.sent.asUnionAll()
+		/*let sent = new MQSent();*/
+	}
 }

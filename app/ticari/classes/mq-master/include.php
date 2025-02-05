@@ -36,6 +36,7 @@
 <script src="<?=$_partRoot?>/mqCariIstGrup.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqCari.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqPlasiyer.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/mqSevkAdres.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqAltHesapGrup.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqAltHesap.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqKasa.js?<?=$appVersion?>"></script>

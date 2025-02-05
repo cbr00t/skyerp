@@ -16,7 +16,7 @@ class MQCari extends MQKA {
 	}
 	static formBuildersDuzenle_ka(e) {
 		super.formBuildersDuzenle_ka(e); const {kaForm} = e, builder_aciklama = kaForm.id2Builder.aciklama;
-		if (builder_aciklama) builder_aciklama.setVisibleKosulu(false)
+		if (builder_aciklama) { builder_aciklama.setVisibleKosulu(false) }
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {aliasVeNokta, kodSaha} = this, {sender, sent} = e, {where: wh} = sent;

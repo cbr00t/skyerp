@@ -8,7 +8,7 @@ class TicariFis extends TSOrtakFis {
 	}
 	static get gridKontrolcuSinif() { return TicariGridKontrolcu } static get noYilKullanilirmi() { return true } static get dipKullanilirmi() { return true } static get dipNakliyeKullanilirmi() { return false }
 	static get tsStokDetayTable() { return this.siparismi ? 'sipstok' : 'pifstok' } static get tsHizmetDetayTable() { return this.siparismi ? 'siphizmet' : 'pifhizmet' }
-	static get tsFasonDetayTable() { return this.siparismi ? 'sipfsstok' : 'piffsstok' } 	static get tsHizmetDetayTable() { return this.siparismi ? 'siphizmet' : 'pifhizmet' }
+	static get tsFasonDetayTable() { return this.siparismi ? 'sipfsstok' : 'piffsstok' } static get tsHizmetDetayTable() { return this.siparismi ? 'siphizmet' : 'pifhizmet' }
 	static get tsDemirbasDetayTable() { return this.siparismi ? 'sipdemirbas' : 'pifdemirbas' } static get tsAciklamaDetayTable() { return this.siparismi ? 'sipaciklama' : 'pifaciklama' }
 	static get almSat() { return null } static get ayrimTipi() { return null } static get fisEkAyrim() { return null }
 	static get ayrimTipKod() { return 'TFSAY' } static get ayrimBelirtec() { return 'tfis' } static get ayrimTableAlias() { return 'tfayr' }
@@ -49,9 +49,8 @@ class TicariFis extends TSOrtakFis {
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
 		$.extend(pTanim, {
-			mustKod: new PInstStr(this.mustSaha),
-			ticMustKod: new PInstStr('ticmust'),
-			altHesapKod: new PInstStr('cariitn')
+			mustKod: new PInstStr(this.mustSaha), ticMustKod: new PInstStr('ticmust'),
+			altHesapKod: new PInstStr('cariitn'), sevkAdresKod: new PInstStr('xadreskod')
 		})
 	}
 	static secimlerDuzenle(e) {
@@ -78,7 +77,9 @@ class TicariFis extends TSOrtakFis {
 		super.orjBaslikListesiDuzenle_ara(e); const {liste} = e;
 		liste.push(
 			new GridKolon({ belirtec: 'must', text: 'Müşteri', genislikCh: 25, sql: `fis.${this.mustSaha}` }),
-			new GridKolon({ belirtec: 'mustunvan', text: 'Müşteri Ünvan', genislikCh: 50, sql: 'car.birunvan' })
+			new GridKolon({ belirtec: 'mustunvan', text: 'Müşteri Ünvan', genislikCh: 50, sql: 'car.birunvan' }),
+			new GridKolon({ belirtec: 'xadreskod', text: 'Sevk Adres', genislikCh: 25 }),
+			new GridKolon({ belirtec: 'xadresadi', text: 'Sevk Adres Adı', genislikCh: 35, sql: 'sadr.aciklama' })
 		)
 	}
 	static standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e); const {liste} = e; liste.push('must', 'mustunvan') }
@@ -144,7 +145,7 @@ class TicariFis extends TSOrtakFis {
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {aliasVeNokta, almSat, ayrimTipi, fisEkAyrim} = this, {sent} = e;
-		sent.fromIliski('carmst car', 'fis.must = car.must');
+		sent.fromIliski('carmst car', 'fis.must = car.must').fromIliski('carsevkadres sadr', `${aliasVeNokta}xadreskod = sadr.kod`);
 		if (almSat) { sent.where.degerAta(almSat, `${aliasVeNokta}almsat`) }
 		if (ayrimTipi != null) { sent.where.degerAta(ayrimTipi, `${aliasVeNokta}ayrimtipi`) }
 		if (fisEkAyrim != null) { sent.where.degerAta(ayrimTipi, `${aliasVeNokta}ayrimtipi`) }

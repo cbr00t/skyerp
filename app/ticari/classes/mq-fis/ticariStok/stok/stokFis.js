@@ -92,5 +92,6 @@ class StokTransferOrtakFis extends StokFis {
 		stm = e.stm = uni.asToplamStm(); e.sent = stm.sent
 	}
 }
-class StokTransferFis extends StokTransferOrtakFis { static { window[this.name] = this; this._key2Class[this.name] = this } }
-
+class StokTransferFis extends StokTransferOrtakFis {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+}
