@@ -1,15 +1,13 @@
-
+.yerelParamConfigTanim.part > .content .chkGelismisAyarlar-parent { width: auto !important; padding: 10px 0 }
+.yerelParamConfigTanim.part > .content #chkGelismisAyarlar + label { font-weight: bold }
+.yerelParamConfigTanim.part > .content #chkGelismisAyarlar:is(:checked) + label { color: royalblue }
+.yerelParamConfigTanim.part > .content #chkGelismisAyarlar:is(:not(:checked)) + label { color: #555 }
 .yerelParamConfigTanim.part > .content #sql > .sub-parent,
-.yerelParamConfigTanim.part > .content #uzakScript > .sub-parent { padding-inline-end: 20px }
+	.yerelParamConfigTanim.part > .content #uzakScript > .sub-parent { padding-inline-end: 20px }
 .yerelParamConfigTanim.part > .content #sql > .sub-parent { width: 40%; min-width: 300px }
 .yerelParamConfigTanim.part > .content .uzakScript > .sub-parent { }
-.yerelParamConfigTanim.part > .content .uzakScript > #uzakScriptURL {width: 80%;margin-inline-end: 10px;}
+.yerelParamConfigTanim.part > .content .uzakScript > #uzakScriptURL { width: 80%; margin-inline-end: 10px }
 .yerelParamConfigTanim.part > .content .uzakScript > #uzakScriptIntervalSecs { width: 230px }
 .yerelParamConfigTanim.part > .content .uzakScript > #uzakScriptIntervalSecs .veri { text-align: right; width: 75% }
-.yerelParamConfigTanim.part > .content .uzakScript > #uzakScriptIntervalSecs .ek-bilgi {
-	font-weight: bold; color: #aaa;
-	margin: 10px 0 0 10px
-}
-@media (max-width: 900px) {
-	.yerelParamConfigTanim.part > .content > #sql > .sub-parent { width: var(--full) }
-}
+.yerelParamConfigTanim.part > .content .uzakScript > #uzakScriptIntervalSecs .ek-bilgi { font-weight: bold; color: #aaa; margin: 10px 0 0 10px }
+@media (max-width: 900px) { .yerelParamConfigTanim.part > .content > #sql > .sub-parent { width: var(--full) } }
