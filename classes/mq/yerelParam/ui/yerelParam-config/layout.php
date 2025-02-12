@@ -9,19 +9,19 @@
 	                <div class="ek-bilgi"><b>https://SERVER_IP:9200</b> veya <b>http://SERVER_IP:8200</b> ... gibi yazınız</div>
 	            </div>
 	        </div>
-			<div class="parent full-width flex-row">
-				<div class="chkGelismisAyarlar-parent">
-					<input id="chkGelismisAyarlar" name="chkGelismisAyarlar" type="checkbox"></input>
-					<label for="chkGelismisAyarlar">Gelişmiş Ayarları Göster</label>
-				</div>
-			</div>
-			<div class="parent full-width gelismis">
+			<div class="parent full-width">
 	            <div id="wsProxyServerURL" class="full-wh">
 	                <div><input type="textbox" class="veri" placeholder="Yönlendirme URL"></input></div>
 	                <div class="ek-bilgi"><b>https://SERVER_IP:9200</b> veya <b>http://SERVER_IP:8200</b> ... gibi yazınız</div>
 					<div class="ek-bilgi"><b>*</b> <u>SkyWS URL</u> kısmında yazan WebServis üzerinden, buraya yazılan <b>Asıl Merkez Sunucu</b> ile iletişim kurulur</div>
 	            </div>
 	        </div>
+			<div class="parent full-width flex-row">
+				<div class="chkGelismisAyarlar-parent">
+					<input id="chkGelismisAyarlar" name="chkGelismisAyarlar" type="checkbox"></input>
+					<label for="chkGelismisAyarlar">Gelişmiş Ayarları Göster</label>
+				</div>
+			</div>
 			<div id="sql" class="parent flex-row full-width gelismis">
 				<div id="sql-server" class="sub-parent">
 					<div><input type="textbox" class="veri" placeholder="SQL Ana Sistem"></input></div>

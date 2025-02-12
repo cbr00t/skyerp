@@ -67,6 +67,7 @@ class MQTicariGenelParam extends MQTicariParamBase {
 			form.addBool('toplamKalite', 'Toplam Kalite'); form.addBool('demirbas', 'Demirbaş'); form.addBool('eFatura', 'e-Fatura'); form.addBool('eIrsaliye', 'e-İrsaliye');
 			form.addBool('eMustahsil', 'e-Müstahsil'); form.addBool('eArsivLimit', 'e-Belge'); form.addBool('gelenEArsiv', 'Gelen e-Arşiv');
 		let tabPage = paramci.addTabPage('diger', 'Diğer'); form = tabPage.addFormWithParent().addStyle(e => `$elementCSS > .parent { width: 19% !important }`);
+		form.addTextInput('wordGenelBolum', 'Word/HTML Ana Bölüm');
 		let altForm = form.addGrup({ etiket: 'Tarih' }).addFormWithParent(); altForm.addDateInput('enDusukTarih', 'En Düşük'); altForm.addDateInput('enYuksekTarih', 'En Yüksek');
 		altForm = tabPage.addGrup({ etiket: 'Ayrım' }); altForm.addML('ayrimIsimleri', 'Ayrım İsimleri').setRowCount(8).degisince(e => e.builder.value = (e.builder.value || '').split('\n').map(x => x.trimEnd()))
 	}
