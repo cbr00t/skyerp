@@ -7,9 +7,9 @@ class MQCogul extends MQYapi {
 	static get sabitBilgiRaporcuSinif() { return MasterRapor } static get ozelSahaTipKod() { return null }
 	static get ayrimTipKod() { return null } static get ayrimBelirtec() { return this.tableAlias } static get ayrimTable() { return `${this.tableAlias}ayrim`} static get ayrimTableAlias() { return null } 
 	static get tanimlanabilirmi() { return !!this.tanimUISinif } static get silinebilirmi() { return true } static get raporKullanilirmi() { return false } static get silindiDesteklenirmi() { return false }
+	static get kolonDuzenlemeYapilirmi() { return true } static get kolonFiltreKullanilirmi() { return true } static get gridIslemTuslariKullanilirmi() { return $(window).width() >= 700 }
 	static get yerelParamBelirtec() { return this.classKey } static get sayacSahaGosterilirmi() { return false } static get tumKolonlarGosterilirmi() { return false }
 	static get gridDetaylimi() { return this.detaylimi } static get ozelTanimIslemi() { return null } static get bulFormKullanilirmi() { return true } static get gereksizTablolariSilYapilirmi() { return true }
-	static get kolonDuzenlemeYapilirmi() { return true } static get kolonFiltreKullanilirmi() { return true } static get gridIslemTuslariKullanilirmi() { return $(window).width() >= 700 }
 	static get islemTuslari_sagButonlar_ekMarginX() { return $(window).width() < 800 ? 0 : 15 } static get orjBaslik_gridRenderDelayMS() { return null } static get defaultOrjBaslik_gridRenderDelayMS() { return 200 }
 	static get orjBaslikListesi_panelGrupAttrListe() { const _e = { liste: [] }; this.orjBaslikListesi_panelGrupAttrListeDuzenle(_e); return _e.liste }
 	static get orjBaslikListesi_panelUstSeviyeAttrListe() { const _e = { liste: [] }; this.orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(_e); return _e.liste }
@@ -516,7 +516,7 @@ class MQCogul extends MQYapi {
 		result = result ? result[result.length - 1] : undefined; if (result !== undefined) return result
 		return await this.loadServerData_querySonucu(e)
 	}
-	static get ayrimIsimleri() { const {ayrimTipKod} = this; return ayrimTipKod ? (app.params.ticariGenel.ayrimIsimleri[ayrimTipKod] || []) : null }
+	static get ayrimIsimleri() { const {ayrimTipKod} = this; return ayrimTipKod ? (app.params.ticariGenel?.ayrimIsimleri[ayrimTipKod] || []) : null }
 	static getOzelSahaYapilari(e) {
 		let result = this.globals.ozelSahaYapilari;
 		if (result === undefined && this.ozelSahaTipKod) result = this.globals.ozelSahaYapilari = this.getOzelSahaYapilariDogrudan(e)

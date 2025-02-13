@@ -184,7 +184,7 @@ class MQStokGenel extends MQStokAlt {
 		})
 	}
 	static orjBaslikListesiDuzenle(e) {
-		const {liste} = e, fiyatSayi = app.params.fiyatVeIsk.fiyatSayi || 1;
+		const {liste} = e, fiyatSayi = app.params.fiyatVeIsk?.fiyatSayi || 1;
 		for (let i = 1; i <= fiyatSayi; i++) {
 			liste.push(
 				new GridKolon({ belirtec: `satfiyat${i}`, text: `Satış Fiyat ${i}`, genislikCh: 17 }).tipDecimal_fiyat(),
