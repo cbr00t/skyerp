@@ -269,14 +269,18 @@ class MQSinyal extends MQMasterOrtak {
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e, {aliasVeNokta} = this;
 		liste.push(...[
-			new GridKolon({ belirtec: 'tezgahkod', text: 'Tezgah', genislikCh: 15 }),
-			new GridKolon({ belirtec: 'tezgahadi', text: 'Tezgah Adı', genislikCh: 35, sql: 'tez.aciklama' }),
+			new GridKolon({ belirtec: 'tezgahkod', text: 'Tezgah', genislikCh: 15, filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'tezgahadi', text: 'Tezgah Adı', genislikCh: 35, sql: 'tez.aciklama', filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 15, sql: `CONVERT(VARCHAR(10), ${aliasVeNokta}ts, 104)` }).tipDate(),
 			new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 15, sql: `CONVERT(VARCHAR(10), ${aliasVeNokta}ts, 108)` }).tipTime(),
-			new GridKolon({ belirtec: 'farkSn', text: 'Fark (sn)', genislikCh: 15 }).noSql().tipDecimal(0),
+			new GridKolon({
+				belirtec: 'farkSn', text: 'Fark (sn)', genislikCh: 15, filterType: 'checkedlist',
+				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) =>
+					changeTagContent(html, rec.farkSn ? asSaniyeKisaString(rec.farkSn, false, true) : '')
+			}).noSql(),
 			new GridKolon({ belirtec: 'kayitsayisi', text: 'Sayı', genislikCh: 15, sql: 'COUNT(*)', aggregates: [{'TOPLAM': gridDipIslem_sum}] }).tipNumerik(),
-			new GridKolon({ belirtec: 'bsanal', text: 'Sanal?', genislikCh: 10 }).tipBool(),
-			new GridKolon({ belirtec: 'ip', text: 'Cihaz IP', genislikCh: 18 })
+			new GridKolon({ belirtec: 'bsanal', text: 'Sanal?', genislikCh: 10, filterType: 'checkedlist' }).tipBool(),
+			new GridKolon({ belirtec: 'ip', text: 'Cihaz IP', genislikCh: 18, filterType: 'checkedlist' })
 		])
 	}
 	static orjBaslikListesi_groupsDuzenle(e) {
