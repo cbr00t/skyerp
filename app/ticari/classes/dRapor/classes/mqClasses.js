@@ -174,6 +174,10 @@ class DMQPersonel extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Personel' }
 	static get table() { return 'personel' } static get tableAlias() { return 'per' }
 }
+class DMQDepartman extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Departman' }
+	static get table() { return 'maldepartman' } static get tableAlias() { return 'dep' }
+}
 class DMQDurNeden extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Duraksama Nedeni' }
 	static get table() { return 'makdurneden' } static get tableAlias() { return 'dned' }
@@ -181,4 +185,34 @@ class DMQDurNeden extends DMQKA {
 class DMQIskNeden extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Iskarta Nedeni' }
 	static get table() { return 'opiskartanedeni' } static get tableAlias() { return 'ined' }
+}
+class DMQPDKSGorev extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Görev' }
+	static get table() { return 'pergorev' } static get tableAlias() { return 'pgor' }
+}
+class DMQPDKSGorevTip extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Görev Tip' }
+	static get table() { return 'gorevtipi' } static get tableAlias() { return 'pgtip' }
+}
+class DMQPDKSNeden extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Neden' }
+	static get table() { return 'pdksizinneden' } static get tableAlias() { return 'ned' }
+}
+class PDKSAnaTip extends TekSecim {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' }
+	kaListeDuzenle(e) {
+		super.kaListeDuzenle(e); const {kaListe} = e;
+		kaListe.push(
+			new CKodVeAdi(['YL', 'Yıllık', 'yillikmi']),
+			new CKodVeAdi(['UC', 'Ücretli Diğer', 'ucretliDigermi']),
+			new CKodVeAdi(['DG', 'Doğum', 'dogummu']),
+			new CKodVeAdi(['EV', 'Evlenme', 'evlenmemi']),
+			new CKodVeAdi(['OL', 'Ölüm', 'olummu']),
+			new CKodVeAdi(['', 'Ücretsiz', 'ucretsizmi'])
+		)
+	}
+}
+class DMQPDKSAnaTip extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ana Tip' }
+	static loadServerData_dogrudan(e) { return PDKSAnaTip.kaListe }
 }

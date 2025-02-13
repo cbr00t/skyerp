@@ -4,7 +4,6 @@ class DRapor_Uretim extends DRapor_Donemsel {
 }
 class DRapor_Uretim_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	tabloYapiDuzenle(e) { super.tabloYapiDuzenle(e) }
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); const {result} = e; result
 			.addKAPrefix('tezgah', 'per', 'stok', 'op')

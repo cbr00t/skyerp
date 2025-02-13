@@ -5,7 +5,7 @@ class SkyRaporApp extends TicariApp {
 		let result = this._kategoriKod2Adi; if (result == null) {
 			result = {
 				TICARI: '', 'TICARI-STOK': 'Ticari (<b class="royalblue">Stok</b>)', 'TICARI-HIZMET': 'Ticari (<b class="orangered">Hizmet</b>)',
-				FINANS: 'Finans', URETIM: 'Üretim', MES: 'MES'
+				FINANS: 'Finans', URETIM: 'Üretim', MES: 'MES', PDKS: 'PDKS'
 		};
 			this._kategoriKod2Adi = result
 		}
