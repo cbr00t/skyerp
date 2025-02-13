@@ -33,23 +33,25 @@ class MQEkNotlar extends MQSayacliOrtak {
 		super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, {
 			kayitTarih: new PInstDateNow('kayittarih'), kayitZaman: new PInstStr({ rowAttr: 'kayitzaman', init: e => timeToString(now()) }),
 			grupKod: new PInstStr('grupkod'), tip: new PInstTekSecim('tip', HatTezgah), hatKod: new PInstStr('hatkod'), tezgahKod: new PInstStr('tezgahkod'),
-			notlar: new PInstStr('notlar')
+			perKod: new PInstStr('perkod'), notlar: new PInstStr('notlar')
 		});
 		for (let i = 1; i <= this.urlCount; i++) { pTanim[`url${i}`] = new PInstStr(`url${i}`) }
 	}
 	static rootFormBuilderDuzenle_listeEkrani(e) {
-		super.rootFormBuilderDuzenle_listeEkrani(e); const rfb = e.rootBuilder;
+		super.rootFormBuilderDuzenle_listeEkrani(e); const {rootBuilder: rfb} = e;
 		this.fbd_listeEkrani_addButton(rfb, { id: 'dokumanGoster', text: 'Döküman Göster', handler: e => this.dokumanGosterIstendi(e) })
 	}
 	static secimlerDuzenle(e) {
-		const {secimler: sec} = e; sec.grupTopluEkle([ { kod: 'grup', aciklama: 'Grup', kapali: true }, { kod: 'hatTezgah', aciklama: 'Hat/Tezgah', kapali: true } ]);
+		const {secimler: sec} = e;
+		sec.grupTopluEkle([ { kod: 'grup', aciklama: 'Grup', kapali: true }, { kod: 'hatTezgah', aciklama: 'Hat/Tezgah', kapali: true } ]);
 		sec.secimTopluEkle({
 			kayitTarih: new SecimDate({ etiket: 'Kayıt Tarih' }),
 			grupKod: new SecimString({ etiket: 'Grup', mfSinif: MQEkNotGrup, grupKod: 'grup' }), grupAdi: new SecimOzellik({ etiket: 'Grup Adı', grupKod: 'grup' }),
 			anaGrupKod: new SecimString({ etiket: 'Ana Grup', mfSinif: MQEkNotAnaGrup, grupKod: 'grup' }), anaGrupAdi: new SecimOzellik({ etiket: 'Ana Grup Adı', grupKod: 'grup' }),
 			tipSecim: new SecimTekSecim({ etiket: 'Tip', tekSecim: new BuDigerVeHepsi(['Hat', 'Tezgah']), grupKod: 'hatTezgah' }),
 			hatKod: new SecimString({ etiket: 'Hat', mfSinif: MQHat, grupKod: 'hatTezgah' }), hatAdi: new SecimOzellik({ etiket: 'Hat Adı', grupKod: 'hatTezgah' }),
-			tezgahKod: new SecimString({ etiket: 'Tezgah', mfSinif: MQTezgah, grupKod: 'hatTezgah' }), tezgahAdi: new SecimOzellik({ etiket: 'Tezgah Adı', grupKod: 'hatTezgah' })
+			tezgahKod: new SecimString({ etiket: 'Tezgah', mfSinif: MQTezgah, grupKod: 'hatTezgah' }), tezgahAdi: new SecimOzellik({ etiket: 'Tezgah Adı', grupKod: 'hatTezgah' }),
+			perKod: new SecimString({ etiket: 'Personel', mfSinif: MQPersonel, grupKod: 'hatTezgah' }), perIsim: new SecimOzellik({ etiket: 'Personel İsim', grupKod: 'hatTezgah' }),
 		});
 		sec.whereBlockEkle(e => {
 			const {secimler: sec, where: wh} = e, alias = e.alias ?? this.tableAlias;
@@ -59,6 +61,7 @@ class MQEkNotlar extends MQSayacliOrtak {
 			let tSec = sec.tipSecim.tekSecim; if (!tSec.hepsimi) { wh.degerAta(tSec.bumu ? 'HT' : 'TZ', `${alias}.tip`) }
 			wh.basiSonu(sec.hatKod, `${alias}.hatkod`).ozellik(sec.hatAdi, 'hat.aciklama');
 			wh.basiSonu(sec.tezgahKod, `${alias}.tezgahkod`).ozellik(sec.tezgahAdi, 'tez.aciklama')
+			wh.basiSonu(sec.perKod, `${alias}.perkod`).ozellik(sec.perIsim, 'per.aciklama')
 		})
 	}
 	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); const {args} = e; $.extend(args, { rowsHeight: 180 /*selectionmode: 'multiplecellsextended'*/ }) }
@@ -84,6 +87,8 @@ class MQEkNotlar extends MQSayacliOrtak {
 			new GridKolon({ belirtec: 'hatadi', text: 'Hat Adı', genislikCh: 15, sql: 'hat.aciklama' }),
 			new GridKolon({ belirtec: 'tezgahkod', text: 'Tezgah', genislikCh: 16 }),
 			new GridKolon({ belirtec: 'tezgahadi', text: 'Tezgah Adı', genislikCh: 30, sql: 'tez.aciklama' }),
+			new GridKolon({ belirtec: 'perkod', text: 'Personel', genislikCh: 16 }),
+			new GridKolon({ belirtec: 'perisim', text: 'Personel İsim', genislikCh: 30, sql: 'per.aciklama' }),
 			new GridKolon({ belirtec: 'grupkod', text: 'Grup', genislikCh: 16 }),
 			new GridKolon({ belirtec: 'anagrupkod', text: 'Ana Grup', genislikCh: 8, sql: 'grp.anagrupkod' }),
 		]);
@@ -113,11 +118,12 @@ class MQEkNotlar extends MQSayacliOrtak {
 		)
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {stm, sent} = e, alias = e.alias ?? this.tableAlias;
+		super.loadServerData_queryDuzenle(e); const alias = e.alias ?? this.tableAlias, {stm, sent} = e, {orderBy} = stm, {sahalar} = sent;
 		sent.fromIliski('meseknotgrup grp', `${alias}.grupkod = grp.kod`).fromIliski('meseknotanagrup agrp', 'grp.anagrupkod = agrp.kod');
 		sent.fromIliski('ismerkezi hat', `${alias}.hatkod = hat.kod`).fromIliski('tekilmakina tez', `${alias}.tezgahkod = tez.kod`);
-		sent.sahalar.add(`${alias}.tip`); for (let i = 1; i <= this.urlCount; i++) { sent.sahalar.add(`${alias}.url${i}`) };
-		stm.orderBy.add(`${alias}.kayittarih DESC`, `${alias}.kayitzaman DESC`)
+		sent.fromIliski('personel per', `${alias}.perkod = per.kod`);
+		sahalar.add(`${alias}.tip`); for (let i = 1; i <= this.urlCount; i++) { sahalar.add(`${alias}.url${i}`) };
+		orderBy.add(`${alias}.kayittarih DESC`, `${alias}.kayitzaman DESC`)
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); const {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e;
@@ -125,6 +131,7 @@ class MQEkNotlar extends MQSayacliOrtak {
 		let form = tanimForm.addFormWithParent().yanYana(3);
 			form.addDateInput('kayitTarih', 'Kayıt Tarihi'); form.addTimeInput('kayitZaman');
 			form.addModelKullan('grupKod', 'Grup').setMFSinif(MQEkNotGrup).comboBox().autoBind().addStyle_wh(500);
+			form.addModelKullan('perKod', 'Personel').setMFSinif(MQPersonel).comboBox().autoBind().addStyle_wh(500);
 		form = tanimForm.addFormWithParent().yanYana(3);
 			form.addModelKullan('tip', 'Tip').kodsuz().bosKodAlinmaz().bosKodEklenmez().dropDown().noMF().autoBind().setSource(e => HatTezgah.kaListe).degisince(e => {
 				const {builder} = e, {id2Builder} = builder.parentBuilder, value = builder.value?.char ?? builder.value;

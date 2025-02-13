@@ -732,7 +732,8 @@ class HatYonetimiPart extends Part {
 	}
 	ekNotEkleIstendi(e) {
 		let rec = e.rec ?? this.selectedTezgahRecs[0], tezgahKod = rec?.tezgahKod ?? '', {hatKod} = e;
-		if (!hatKod && rec) { hatKod = rec.hatkod } let inst = new MQEkNotlar({ hatKod, tezgahKod }); return inst.tanimla({ islem: 'yeni' })
+		if (!hatKod && rec) { hatKod = rec.hatkod } let inst = new MQEkNotlar({ hatKod, tezgahKod });
+		return inst.tanimla({ islem: 'yeni' })
 	}
 	dokumanYukleIstendi(e) {
 		e = e || {}; const rec = e.rec ?? this.selectedTezgahRecs[0] ?? {}, {hatKod} = e; if (!hatKod) { return }
