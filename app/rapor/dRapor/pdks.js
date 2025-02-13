@@ -23,7 +23,7 @@ class DRapor_PDKS_Izin_Main extends DRapor_PDKS_Main {
 		if (attrSet.PER || attrSet.GOREV || attrSet.GOREVTIP || attrSet.DEP) { sent.fromIliski('personel per', `${alias}.perkod = per.kod`) }
 		if (attrSet.GOREV || attrSet.GOREVTIP) { sent.fromIliski('pergorev pgor', 'per.gorevkod = dep.kod') }
 		if (attrSet.NEDEN || attrSet.ANATIP) { sent.fromIliski('pdksizinneden ned', `${alias}.nedenkod = ned.kod`) }
-		this.donemBagla({ ...e, tarihSaha: `${alias}.cikists` }); for (const key in attrSet) {
+		this.donemBagla({ ...e, tarihSaha: 'cikists' }); for (const key in attrSet) {
 			switch (key) {
 				case 'PER': sahalar.add(`${alias}.perkod`, 'per.aciklama peradi'); wh.icerikKisitDuzenle_personel({ ...e, saha: `${alias}.perkod` }); break
 				case 'GOREV': sahalar.add('per.gorevkod', 'pgor.aciklama gorevadi'); wh.icerikKisitDuzenle_x({ ...e, belirtec: 'gorev', saha: 'per.gorevkod' }); break
@@ -32,10 +32,10 @@ class DRapor_PDKS_Izin_Main extends DRapor_PDKS_Main {
 				case 'SURETIPI': sahalar.add(`${alias}.suretipi`); break
 				case 'NEDEN': sahalar.add(`${alias}.nedenkod`, 'ned.aciklama nedenadi'); break
 				case 'ANATIP':
-					sahalar.add('per.depkod', 'dep.aciklama depadi');
+					sahalar.add('ned.anatip anatipkod', `${PDKSAnaTip.getClause('ned.anatip')} anatipadi`);
 					break
 			}
 		}
-		this.loadServerData_queryDuzenle_tarih({ ...e, alias, tarihSaha: `${alias}.cikists` })
+		this.loadServerData_queryDuzenle_tarih({ ...e, alias, tarihSaha: 'cikists' })
 	}
 }
