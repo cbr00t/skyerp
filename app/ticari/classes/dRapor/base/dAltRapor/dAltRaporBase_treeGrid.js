@@ -139,7 +139,14 @@ class DAltRapor_TreeGrid extends DAltRapor {
 			}
 			else if (tip instanceof GridKolonTip_Date) {
 				colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) =>
-					this.cellsRenderer({ colDef, rowIndex, belirtec, value, rec, html: `<span>${dateToString(asDate(value))}</span>` }) }
+					this.cellsRenderer({ 
+						colDef, rowIndex, belirtec, value, rec,
+						html: `<span>${isDate(value)
+									? dateKisaString(value)
+									: (value.length == DateTimeFormat.length || value.length == DateTimeFormat.length - 1 ? value?.slice(0, 10) : (value ?? ''))
+							  }</span>`
+					})
+			}
 			else {
 				colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) =>
 					this.cellsRenderer({ colDef, rowIndex, belirtec, value, rec, html: `<span>${value}</span>` }) }
@@ -190,7 +197,11 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		})
 	}
 	ekCSSDuzenle(e) { this.ekCSSDuzenle_ozel?.(e) }
-	cellsRenderer(e) { return this.cellsRenderer_ozel?.(e) ?? e.html }
+	cellsRenderer(e) {
+		let result = this.cellsRenderer_ozel?.(e); if (result != null) { return result }
+		let {html, rec, belirtec: key, value} = e; result = getTagContent(html) == 'null' ? `<span>${value ?? rec?.[key] ?? ''}</span>` : html;
+		return result
+	}
 	async loadServerData(e) {
 		let recs = e.recs = this.raporTanim.secilenVarmi ? await super.loadServerData(e) : [];
 		await this.ozetBilgiRecsOlustur(e); return recs

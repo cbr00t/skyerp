@@ -21,14 +21,14 @@ class DRapor_PDKS_Izin_Main extends DRapor_PDKS_Main {
 		super.loadServerData_queryDuzenle_ek(e); let {stm, attrSet} = e, {sent} = stm, {sahalar, where: wh} = sent;
 		let alias = 'izn'; $.extend(e, { sent, alias }); sent.fromAdd(`pdksizin ${alias}`);
 		if (attrSet.PER || attrSet.GOREV || attrSet.GOREVTIP || attrSet.DEP) { sent.fromIliski('personel per', `${alias}.perkod = per.kod`) }
-		if (attrSet.GOREV || attrSet.GOREVTIP) { sent.fromIliski('pergorev pgor', 'per.gorevkod = dep.kod') }
+		if (attrSet.GOREV || attrSet.GOREVTIP) { sent.fromIliski('maldepartman dep', 'per.depkod = dep.kod').fromIliski('pergorev pgor', 'per.gorevkod = dep.kod') }
 		if (attrSet.NEDEN || attrSet.ANATIP) { sent.fromIliski('pdksizinneden ned', `${alias}.nedenkod = ned.kod`) }
 		this.donemBagla({ ...e, tarihSaha: 'cikists' }); for (const key in attrSet) {
 			switch (key) {
 				case 'PER': sahalar.add(`${alias}.perkod`, 'per.aciklama peradi'); wh.icerikKisitDuzenle_personel({ ...e, saha: `${alias}.perkod` }); break
 				case 'GOREV': sahalar.add('per.gorevkod', 'pgor.aciklama gorevadi'); wh.icerikKisitDuzenle_x({ ...e, belirtec: 'gorev', saha: 'per.gorevkod' }); break
 				case 'GOREVTIP': sent.fromIliski('gorevtipi pgtip', 'pgor.gorevtipkod = pgtip.kod'); sahalar.add('pgor.gorevtipkod', 'pgtip.aciklama gorevtipadi'); wh.icerikKisitDuzenle_x({ ...e, belirtec: 'gorevTip', saha: 'pgor.gorevtipkod' }); break
-				case 'DEP': sent.fromIliski('maldepartman dep', 'per.depkod = dep.kod'); sahalar.add('per.depkod', 'dep.aciklama depadi'); wh.icerikKisitDuzenle_x({ ...e, belirtec: 'departman', saha: 'per.depkod' }); break
+				case 'DEP': sahalar.add('per.depkod', 'dep.aciklama depadi'); wh.icerikKisitDuzenle_x({ ...e, belirtec: 'departman', saha: 'per.depkod' }); break
 				case 'SURETIPI': sahalar.add(`${alias}.suretipi`); break
 				case 'NEDEN': sahalar.add(`${alias}.nedenkod`, 'ned.aciklama nedenadi'); break
 				case 'ANATIP':
