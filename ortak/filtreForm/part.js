@@ -50,7 +50,7 @@ class FiltreFormPart extends Part {
 		e = e || {}; const {degisinceEvent, value} = this;
 		if (degisinceEvent) {
 			const tokens = value ? value.split(' ').map(x => x.trim()).filter(x => !!x) : null;
-			for (const handler of degisinceEvent) getFuncValue.call(this, handler, $.extend({}, e, { sender: this, value, tokens }));
+			for (const handler of degisinceEvent) { getFuncValue.call(this, handler, $.extend({}, e, { sender: this, value, tokens })) }
 		}
 		return this
 	}
