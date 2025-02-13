@@ -10,6 +10,7 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 			.addGrup(new TabloYapiItem().setKA('AYADI', 'Ay').addColDef(new GridKolon({ belirtec: 'ayadi', text: 'Ay', genislikCh: 20, filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('HAFTA', 'Hafta').addColDef(new GridKolon({ belirtec: 'haftano', text: 'Hafta', genislikCh: 20, filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('TARIH', 'Tarih').addColDef(new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 20, filterType: 'checkedlist' }).tipDate()))
+			.addGrup(new TabloYapiItem().setKA('SAAT', 'Saat').addColDef(new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 20, filterType: 'checkedlist' }).tipTime()))
 	}
 	secimlerDuzenle(e) {
 		const {secimler} = e, {tabloYapi} = this, {grupVeToplam} = tabloYapi;
@@ -49,15 +50,17 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 	super_loadServerDataInternal(e) { super.loadServerDataInternal(e) } superSuper_loadServerDataInternal(e) { super.super_loadServerDataInternal(e) }
 	donemBagla({ donemBS, tarihSaha, sent }) { if (donemBS) { sent.where.basiSonu(donemBS, tarihSaha) } return this }
 	loadServerData_queryDuzenle_tarih(e) {
-		const {attrSet, stm} = e, alias = e.alias ?? 'fis', tarihSaha = e.tarihSaha ?? 'tarih', tarihClause = alias ? `${alias}.${tarihSaha}` : tarihSaha;
-		for (const sent of stm.getSentListe()) {
+		let {attrSet, stm} = e, alias = e.alias ?? 'fis', aliasVeNokta = alias ? `${alias}.` : '';
+		let tarihSaha = e.tarihSaha ?? 'tarih', tarihClause = aliasVeNokta + tarihSaha;
+		for (const {sahalar} of stm.getSentListe()) {
 			for (const key in attrSet) {
 				switch (key) {
-					case 'YILAY': sent.sahalar.add(`(CAST(DATEPART(year, ${tarihClause}) AS CHAR(4)) + ' - ' + dbo.ayadi(${tarihClause})) yilay`); break
-					case 'YILHAFTA': sent.sahalar.add(`(CAST(DATEPART(year, ${tarihClause}) AS CHAR(4)) + ' - ' + CAST(DATEPART(week, ${tarihClause}) AS VARCHAR(2))) yilhafta`); break
-					case 'AYADI': sent.sahalar.add(`dbo.ayadi(${tarihClause}) ayadi`); break
-					case 'HAFTA': sent.sahalar.add(`DATEPART(week, ${tarihClause}) haftano`); break
-					case 'TARIH': sent.sahalar.add(`${tarihClause} tarih`); break
+					case 'YILAY': sahalar.add(`(CAST(DATEPART(YEAR, ${tarihClause}) AS CHAR(4)) + ' - ' + dbo.ayadi(${tarihClause})) yilay`); break
+					case 'YILHAFTA': sahalar.add(`(CAST(DATEPART(YEAR, ${tarihClause}) AS CHAR(4)) + ' - ' + CAST(DATEPART(WEEK, ${tarihClause}) AS VARCHAR(2))) yilhafta`); break
+					case 'AYADI': sahalar.add(`dbo.ayadi(${tarihClause}) ayadi`); break
+					case 'HAFTA': sahalar.add(`DATEPART(week, ${tarihClause}) haftano`); break
+					case 'TARIH': sahalar.add(`CONVERT(VARCHAR(10), ${tarihClause}, 104) tarih`); break
+					case 'SAAT': sahalar.add(`CONVERT(VARCHAR(10), ${tarihClause}, 108) saat`); break
 				}
 			}
 		}

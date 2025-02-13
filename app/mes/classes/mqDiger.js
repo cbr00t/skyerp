@@ -261,14 +261,22 @@ class MQSinyal extends MQMasterOrtak {
 		super.standartGorunumListesiDuzenle(e); let {liste} = e;
 		e.liste = liste = liste.filter(x => x != 'ts')
 	}
+	static ekCSSDuzenle(e) {
+		let {rec, dataField: belirtec, result} = e; switch (belirtec) {
+			case 'farkSn': { let {farkSn: value} = rec; result.push(!value ? 'darkgray' : value > 60 * 60 ? 'red' : 'green') } break
+		}
+	}
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(...[
-			new GridKolon({ belirtec: 'tezgahkod', text: 'Tezgah', genislikCh: 10 }),
-			new GridKolon({ belirtec: 'tezgahadi', text: 'Tezgah Adı', genislikCh: 30, sql: 'tez.aciklama' }),
-			new GridKolon({ belirtec: 'ts', text: 'Tarih/Saat', genislikCh: 25 }),
-			new GridKolon({ belirtec: 'kayitsayisi', text: 'Sayı', genislikCh: 13, sql: 'COUNT(*)', aggregates: [{'TOPLAM': gridDipIslem_sum}] }).tipNumerik(),
+		super.orjBaslikListesiDuzenle(e); const {liste} = e, {aliasVeNokta} = this;
+		liste.push(...[
+			new GridKolon({ belirtec: 'tezgahkod', text: 'Tezgah', genislikCh: 15 }),
+			new GridKolon({ belirtec: 'tezgahadi', text: 'Tezgah Adı', genislikCh: 35, sql: 'tez.aciklama' }),
+			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 15, sql: `CONVERT(VARCHAR(10), ${aliasVeNokta}ts, 104)` }).tipDate(),
+			new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 15, sql: `CONVERT(VARCHAR(10), ${aliasVeNokta}ts, 108)` }).tipTime(),
+			new GridKolon({ belirtec: 'farkSn', text: 'Fark (sn)', genislikCh: 15 }).noSql().tipDecimal(0),
+			new GridKolon({ belirtec: 'kayitsayisi', text: 'Sayı', genislikCh: 15, sql: 'COUNT(*)', aggregates: [{'TOPLAM': gridDipIslem_sum}] }).tipNumerik(),
 			new GridKolon({ belirtec: 'bsanal', text: 'Sanal?', genislikCh: 10 }).tipBool(),
-			new GridKolon({ belirtec: 'ip', text: 'Cihaz IP', genislikCh: 16 })
+			new GridKolon({ belirtec: 'ip', text: 'Cihaz IP', genislikCh: 18 })
 		])
 	}
 	static orjBaslikListesi_groupsDuzenle(e) {
@@ -284,8 +292,19 @@ class MQSinyal extends MQMasterOrtak {
 		return stm
 	}
 	static async loadServerData_queryDuzenle(e) {
-		await super.loadServerData_queryDuzenle(e); const {sent} = e, alias = e.alias ?? this.tableAlias;
-		sent.fromIliski('tekilmakina tez', 'sny.tezgahkod = tez.kod');
+		await super.loadServerData_queryDuzenle(e); const {stm, sent} = e, {orderBy} = stm, {sahalar} = sent;
+		const alias = e.alias ?? this.tableAlias, aliasVeNokta = alias ? `${alias}.` : '';
+		sent.fromIliski('tekilmakina tez', `${aliasVeNokta}tezgahkod = tez.kod`);
+		sahalar.add(`${aliasVeNokta}ts`); if (!orderBy.liste.length) { orderBy.add('ts DESC') }
+	}
+	static orjBaslikListesi_recsDuzenle(e) {
+		super.orjBaslikListesi_recsDuzenle(e); let {recs} = e; if (recs?.length) {
+			let sonTS; for (let i = 0; i < recs.length; i++) {
+				let rec = recs[i], ts = asDate(rec.ts);
+				rec.farkSn = sonTS && ts ? (sonTS - ts) / 1000 : 0;
+				sonTS = ts;
+			}
+		}
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); const {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e;
