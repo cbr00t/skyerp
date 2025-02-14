@@ -33,7 +33,7 @@ class MQEkNotlar extends MQSayacliOrtak {
 		super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, {
 			kayitTarih: new PInstDateNow('kayittarih'), kayitZaman: new PInstStr({ rowAttr: 'kayitzaman', init: e => timeToString(now()) }),
 			grupKod: new PInstStr('grupkod'), tip: new PInstTekSecim('tip', HatTezgah), hatKod: new PInstStr('hatkod'), tezgahKod: new PInstStr('tezgahkod'),
-			perKod: new PInstStr('perkod'), notlar: new PInstStr('notlar')
+			perKod: new PInstStr({ ioAttr: 'perkod', init: () => this.paramGlobals.sonPerKod }), notlar: new PInstStr('notlar')
 		});
 		for (let i = 1; i <= this.urlCount; i++) { pTanim[`url${i}`] = new PInstStr(`url${i}`) }
 	}
@@ -128,17 +128,21 @@ class MQEkNotlar extends MQSayacliOrtak {
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); const {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e;
 		rfb.addStyle(e => `$elementCSS .modelTanim.form { margin-top: -50px !important; z-index: 1000 !important }`);
-		let form = tanimForm.addFormWithParent().yanYana(3);
+		let form = tanimForm.addFormWithParent().yanYana(2.5);
 			form.addDateInput('kayitTarih', 'Kayıt Tarihi'); form.addTimeInput('kayitZaman');
-			form.addModelKullan('grupKod', 'Grup').setMFSinif(MQEkNotGrup).comboBox().autoBind().addStyle_wh(500);
-			form.addModelKullan('perKod', 'Personel').setMFSinif(MQPersonel).comboBox().autoBind().addStyle_wh(500);
-		form = tanimForm.addFormWithParent().yanYana(3);
-			form.addModelKullan('tip', 'Tip').kodsuz().bosKodAlinmaz().bosKodEklenmez().dropDown().noMF().autoBind().setSource(e => HatTezgah.kaListe).degisince(e => {
-				const {builder} = e, {id2Builder} = builder.parentBuilder, value = builder.value?.char ?? builder.value;
-				for (const key of ['hatKod', 'tezgahKod']) { id2Builder[key]?.updateVisible() }
-			});
-			form.addModelKullan('hatKod', 'Hat').setMFSinif(MQHat).comboBox().autoBind().setVisibleKosulu(e => { let value = e.builder.altInst.tip; value = value?.char ?? value; return value == 'HT' ? true : 'jqx-hidden' });
-			form.addModelKullan('tezgahKod', 'Tezgah').setMFSinif(MQTezgah).comboBox().autoBind().setVisibleKosulu(e => { let value = e.builder.altInst.tip; value = value?.char ?? value; return value == 'TZ' ? true : 'jqx-hidden' });;
+			form.addModelKullan('grupKod', 'Grup').setMFSinif(MQEkNotGrup).comboBox().autoBind().addStyle_wh(250);
+			form.addModelKullan('perKod', 'Personel').setMFSinif(MQPersonel).comboBox().autoBind().addStyle_wh(350)
+				.degisince(({ builder: fbd, value }) => { this.paramGlobals.sonPerKod = value; app.params.yerel.kaydet() });
+		// form = tanimForm.addFormWithParent().yanYana(3);
+			form.addModelKullan('tip', 'Tip').kodsuz().bosKodAlinmaz().bosKodEklenmez().dropDown().noMF().autoBind()
+				.addStyle_wh(130).setSource(e => HatTezgah.kaListe).degisince(e => {
+					const {builder} = e, {id2Builder} = builder.parentBuilder, value = builder.value?.char ?? builder.value;
+					for (const key of ['hatKod', 'tezgahKod']) { id2Builder[key]?.updateVisible() }
+				});
+			form.addModelKullan('hatKod', 'Hat').setMFSinif(MQHat).comboBox().autoBind()
+				.addStyle_wh(300).setVisibleKosulu(e => { let value = e.builder.altInst.tip; value = value?.char ?? value; return value == 'HT' ? true : 'jqx-hidden' });
+			form.addModelKullan('tezgahKod', 'Tezgah').setMFSinif(MQTezgah).comboBox().autoBind()
+				.addStyle_wh(350).setVisibleKosulu(e => { let value = e.builder.altInst.tip; value = value?.char ?? value; return value == 'TZ' ? true : 'jqx-hidden' });;
 		form = tanimForm.addFormWithParent().yanYana().addStyle(e => `$elementCSS { margin-top: 10px }`);
 		for (let i = 1; i <= this.urlCount; i++) {
 			form.addTextInput(`url${i}`, `Doküman URL ${i}`).onAfterRun(e => {
@@ -151,7 +155,9 @@ class MQEkNotlar extends MQSayacliOrtak {
 				$elementCSS > label { width: calc(var(--full) - var(--button-right)) !important }`
 		   )
 		}
-		form = tanimForm.addFormWithParent().altAlta().addStyle_fullWH(null, 'calc(var(--full) - 300px)').addStyle(e => `$elementCSS { margin-top: 10px }`);
+		form = tanimForm.addFormWithParent().altAlta()
+			.addStyle_fullWH(null, `calc(var(--full) - ${$(window).width() < 1100 ? 400: 350}px)`)
+			.addStyle(e => `$elementCSS { margin-top: 10px }`);
 			form.addDiv('notlar', 'Notlar').addStyle_fullWH()
 				.onAfterRun(({ builder }) => {
 					const toolbar = [
