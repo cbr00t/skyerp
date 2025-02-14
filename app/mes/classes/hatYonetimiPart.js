@@ -281,12 +281,13 @@ class HatYonetimiPart extends Part {
 		return this
 	}
 	static getLayout_hat(e) {
-		let rec = e?.sev ?? e?.rec ?? e ?? {}, {hatKod, hatAdi, detaylar} = rec; return $(
+		let rec = e?.sev ?? e?.rec ?? e ?? {}, {sabitHatKodVarmi} = app, {hatKod, hatAdi, detaylar} = rec;
+		return $(
 			`<div class="hat item full-width" data-id="${hatKod}"">
 				<div class="grup flex-row">
 					<div class="title">(<span class="hatKod kod"></span>) <span class="hatAdi aciklama"></span></div>
 					<div class="grup-islemTuslari">
-						<button id="notlar">NOT</button> <button id="notEkle">+</button>
+						${sabitHatKodVarmi ? '' : `<button id="notlar">NOT</button> `}<button id="notEkle">+</button>
 						<button id="topluX">TPL</button> <button id="bekleyenIsEmirleri">EMR</button>
 						<button id="dokumanYukle">RESİM</button> <button id="dokumanSil">R.SİL</button>
 					</div>

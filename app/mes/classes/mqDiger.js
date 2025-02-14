@@ -18,17 +18,17 @@ class MQOEM extends MQMasterOrtak {
 }
 class MQPersonel extends MQKAOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Personel' }
-	static loadServerData(e) { return app.wsPersoneller() }
+	static get table() { return 'personel' } static get tableAlias() { return 'per' }
 }
 class MQHat extends MQKAOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() { return 'Hat' } static get table() { return 'ismerkezi' } static get tableAlias() { return 'hat' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Hat' }
+	static get table() { return 'ismerkezi' } static get tableAlias() { return 'hat' }
 	static rootFormBuilderDuzenle_listeEkrani(e) {
-		super.rootFormBuilderDuzenle_listeEkrani(e); const rfb = e.rootBuilder;
-		if (!app.params.config.hatKod) {
+		super.rootFormBuilderDuzenle_listeEkrani(e); const {rootBuilder: rfb} = e, {config} = app.params;
+		if (!config.hatKod) {
 			this.fbd_listeEkrani_addCheckBox(rfb, 'tumHatlariGoster', 'Tüm Hatları Göster').onAfterRun(e => {
 				const {builder} = e, {rootPart, layout} = builder, input = layout.children('input'), {grid, gridWidget} = rootPart, args = rootPart.args = rootPart.args || {};
-				input.prop('checked', args.tumHatlariGosterFlag)
+				input.prop('checked', args.tumHatlariGosterFlag);
 				input.on('change', evt => { args.tumHatlariGosterFlag = $(evt.currentTarget).is(':checked'); rootPart.tazeleDefer() })
 			})
 		}
@@ -271,7 +271,7 @@ class MQSinyal extends MQMasterOrtak {
 		liste.push(...[
 			new GridKolon({ belirtec: 'tezgahkod', text: 'Tezgah', genislikCh: 15, filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'tezgahadi', text: 'Tezgah Adı', genislikCh: 35, sql: 'tez.aciklama', filterType: 'checkedlist' }),
-			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 15, sql: `CONVERT(VARCHAR(10), ${aliasVeNokta}ts, 104)` }).tipDate(),
+			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 15, filterable: false, sql: `CAST(${aliasVeNokta}ts AS DATE)` }).tipDate(),
 			new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 15, sql: `CONVERT(VARCHAR(10), ${aliasVeNokta}ts, 108)` }).tipTime(),
 			new GridKolon({
 				belirtec: 'farkSn', text: 'Fark (sn)', genislikCh: 15, filterType: 'checkedlist',
@@ -284,31 +284,41 @@ class MQSinyal extends MQMasterOrtak {
 		])
 	}
 	static orjBaslikListesi_groupsDuzenle(e) {
-		super.orjBaslikListesi_groupsDuzenle(e); const {listeBasliklari} = this, {liste} = e;
+		super.orjBaslikListesi_groupsDuzenle(e); const {listeBasliklari} = this, {liste, gridWidget} = e;
 		const detaylimi = !!listeBasliklari.find(({ belirtec }) => belirtec == 'ts');
-		if (detaylimi) { liste.push('tezgahadi') }
+		if (detaylimi) { let belirtec = 'tezgahadi'; liste.push(belirtec); gridWidget.hidecolumn(belirtec) }
 	}
 	static async loadServerData_queryOlustur(e) {
 		await super.loadServerData_queryOlustur(e); const {stm} = e;
 		for (const sent of stm.getSentListe()) { sent.groupByOlustur() }
-		if (!!this.listeBasliklari.find(({ belirtec }) => belirtec == 'tezgahkod')) { stm.orderBy.liste.unshift('tezgahkod DESC') }
-		if (!!this.listeBasliklari.find(({ belirtec }) => belirtec == 'ts')) { stm.orderBy.liste.unshift('ts DESC') }
 		return stm
 	}
 	static async loadServerData_queryDuzenle(e) {
 		await super.loadServerData_queryDuzenle(e); const {stm, sent} = e, {orderBy} = stm, {sahalar} = sent;
 		const alias = e.alias ?? this.tableAlias, aliasVeNokta = alias ? `${alias}.` : '';
 		sent.fromIliski('tekilmakina tez', `${aliasVeNokta}tezgahkod = tez.kod`);
-		sahalar.add(`${aliasVeNokta}ts`); if (!orderBy.liste.length) { orderBy.add('ts DESC') }
+		if (!orderBy.liste.length) {
+			let mevcutSet = {}; for (let {alias} of sahalar.liste) { mevcutSet[alias] = true }
+			if (!mevcutSet.ts && mevcutSet.tarih) {
+				mevcutSet.ts = true;
+				sahalar.add(mevcutSet.saat ? `${aliasVeNokta}ts` : `CAST(${aliasVeNokta}ts AS DATE) ts`)
+			}
+			for (let alias of ['tezgahkod', 'tezgahadi']) { if (mevcutSet[alias]) { orderBy.add(`${alias} DESC`); break } } /* sadece uygun ilkini ekle */
+			for (let alias of ['ts']) { if (mevcutSet[alias]) { orderBy.add(`${alias} DESC`) } } /* uygun olanların tamamını ekle */
+		}
 	}
 	static orjBaslikListesi_recsDuzenle(e) {
+		let ts = now(); console.log('orjBaslikListesi_recsDuzenle begin');
 		super.orjBaslikListesi_recsDuzenle(e); let {recs} = e; if (recs?.length) {
 			let sonTS; for (let i = 0; i < recs.length; i++) {
-				let rec = recs[i], ts = asDate(rec.ts);
+				let rec = recs[i], {ts} = rec;
+				ts = typeof ts == 'string' ? strAsDateFast(ts) : (typeof ts == 'number' ? ts : 0);
 				rec.farkSn = sonTS && ts ? (sonTS - ts) / 1000 : 0;
-				sonTS = ts;
+				sonTS = ts
 			}
 		}
+		console.log('orjBaslikListesi_recsDuzenle end');
+		console.log(`orjBaslikListesi_recsDuzenle time = ${(now() - ts) / 1000}ms`)
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); const {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e;

@@ -33,7 +33,7 @@ class MQEkNotlar extends MQSayacliOrtak {
 		super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, {
 			kayitTarih: new PInstDateNow('kayittarih'), kayitZaman: new PInstStr({ rowAttr: 'kayitzaman', init: e => timeToString(now()) }),
 			grupKod: new PInstStr('grupkod'), tip: new PInstTekSecim('tip', HatTezgah), hatKod: new PInstStr('hatkod'), tezgahKod: new PInstStr('tezgahkod'),
-			perKod: new PInstStr({ ioAttr: 'perkod', init: () => this.paramGlobals.sonPerKod }), notlar: new PInstStr('notlar')
+			perKod: new PInstStr({ rowAttr: 'perkod', init: () => this.paramGlobals.sonPerKod }), notlar: new PInstStr('notlar')
 		});
 		for (let i = 1; i <= this.urlCount; i++) { pTanim[`url${i}`] = new PInstStr(`url${i}`) }
 	}
@@ -92,7 +92,8 @@ class MQEkNotlar extends MQSayacliOrtak {
 			new GridKolon({ belirtec: 'grupkod', text: 'Grup', genislikCh: 16 }),
 			new GridKolon({ belirtec: 'anagrupkod', text: 'Ana Grup', genislikCh: 8, sql: 'grp.anagrupkod' }),
 		]);
-		for (let i = 1; i <= urlCount; i++) { liste.push(new GridKolon({ belirtec: `url${i}`, text: `Dokuman URL ${i}` })) }
+		for (let i = 1; i <= urlCount; i++) {
+			liste.push(new GridKolon({ belirtec: `url${i}`, text: `Dokuman URL ${i}` })) }
 		for (let i = 1; i <= urlCount; i++) {
 			liste.push(new GridKolon({
 				filterable: false, sortable: false, groupable: false,
@@ -155,31 +156,29 @@ class MQEkNotlar extends MQSayacliOrtak {
 				$elementCSS > label { width: calc(var(--full) - var(--button-right)) !important }`
 		   )
 		}
-		form = tanimForm.addFormWithParent().altAlta()
-			.addStyle_fullWH(null, `calc(var(--full) - ${$(window).width() < 1100 ? 400: 350}px)`)
-			.addStyle(e => `$elementCSS { margin-top: 10px }`);
-			form.addDiv('notlar', 'Notlar').addStyle_fullWH()
-				.onAfterRun(({ builder }) => {
-					const toolbar = [
-						 ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
-						 ['blockquote', 'code-block'],
-						 ['link', /*'image',*/ 'video', 'formula'],
-						 [{ 'header': 1 }, { 'header': 2 }],               // custom button values
-						 [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
-						 [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
-						 [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
-						 [{ 'direction': 'rtl' }],                         // text direction
-						 [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
-						 [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-						 [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
-						 [{ 'font': [] }],
-						 [{ 'align': [] }],
-						 ['clean']                                         // remove formatting button
-					];
-					const {id, altInst, input, etiket: placeholder} = builder; input.html(altInst[id]);
-					const part = builder.part = new Quill(input[0], { theme: 'snow', placeholder, modules: { toolbar } }); input.addClass('full-wh bg-white')
-					part.on('text-change', evt => altInst[id] = part.root.innerHTML)
-				})
+		form = tanimForm.addFormWithParent().altAlta().addStyle(e => `$elementCSS { margin-top: 10px }`)
+				.addStyle_fullWH(null, `calc(var(--full) - ${$(window).width() < 1100 ? 400: 350}px)`);
+			form.addDiv('notlar', 'Notlar').addStyle_fullWH().onAfterRun(({ builder }) => {
+				const toolbar = [
+					 ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+					 ['blockquote', 'code-block'],
+					 ['link', /*'image',*/ 'video', 'formula'],
+					 [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+					 [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
+					 [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+					 [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+					 [{ 'direction': 'rtl' }],                         // text direction
+					 [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+					 [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+					 [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+					 [{ 'font': [] }],
+					 [{ 'align': [] }],
+					 ['clean']                                         // remove formatting button
+				];
+				const {id, altInst, input, etiket: placeholder} = builder; input.html(altInst[id]);
+				const part = builder.part = new Quill(input[0], { theme: 'snow', placeholder, modules: { toolbar } }); input.addClass('full-wh bg-white')
+				part.on('text-change', evt => altInst[id] = part.root.innerHTML)
+			})
 	}
 	static gridVeriYuklendi(e) {
 		super.gridVeriYuklendi(e); const gridPart = e.gridPart ?? e.sender; if (!gridPart) { return }
