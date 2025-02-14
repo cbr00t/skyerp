@@ -287,7 +287,7 @@ class HatYonetimiPart extends Part {
 				<div class="grup flex-row">
 					<div class="title">(<span class="hatKod kod"></span>) <span class="hatAdi aciklama"></span></div>
 					<div class="grup-islemTuslari">
-						${sabitHatKodVarmi ? '' : `<button id="notlar">NOT</button> `}<button id="notEkle">+</button>
+						${sabitHatKodVarmi ? '' : `<button id="notlar">NOT</button> `}<button id="notEkle">NOT +</button>
 						<button id="topluX">TPL</button> <button id="bekleyenIsEmirleri">EMR</button>
 						<button id="dokumanYukle">RESİM</button> <button id="dokumanSil">R.SİL</button>
 					</div>
@@ -319,7 +319,7 @@ class HatYonetimiPart extends Part {
 									<span class="ip veri"></span>
 								</div>
 								<div class="siradakiIsSayi-parent parent">
-									<span class="etiket">+</span>
+									<span class="etiket">NO</span>
 									<span class="siradakiIsSayi veri"></span>
 								</div>
 								<div class="ekBilgi-parent parent">
