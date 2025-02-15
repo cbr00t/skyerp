@@ -55,7 +55,7 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 					break
 			}
 		}
-		this.loadServerData_queryDuzenle_hmr(e).loadServerData_queryDuzenle_ek(e); sent.groupByOlustur()
+		this.loadServerData_queryDuzenle_hmr(e).loadServerData_queryDuzenle_ek(e)
 	}
 	loadServerData_queryDuzenle_ek(e) { super.loadServerData_queryDuzenle_ek(e) }
 }

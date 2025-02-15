@@ -53,7 +53,7 @@ class DRapor_Muhasebe_Main extends DRapor_Donemsel_Main {
 			}
 		}
 		this.loadServerData_queryDuzenle_tarih({ ...e, alias, tarihSaha: 'tarih' })
-		this.loadServerData_queryDuzenle_tarih(e).loadServerData_queryDuzenle_ek(e); sent.groupByOlustur()
+		this.loadServerData_queryDuzenle_tarih(e).loadServerData_queryDuzenle_ek(e)
 	}
 	loadServerData_queryDuzenle_ek(e) { super.loadServerData_queryDuzenle_ek(e) }
 }

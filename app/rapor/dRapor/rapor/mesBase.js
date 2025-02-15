@@ -7,7 +7,7 @@ class DRapor_MES_Main extends DRapor_Donemsel_Main {
 	tabloYapiDuzenle(e) { super.tabloYapiDuzenle(e) }
 	loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); let {stm, attrSet} = e, {sent} = stm, {where: wh} = sent;
-		$.extend(e, { sent }); this.loadServerData_queryDuzenle_ek(e); sent.groupByOlustur()
+		$.extend(e, { sent }); this.loadServerData_queryDuzenle_ek(e)
 	}
 	loadServerData_queryDuzenle_ek(e) { super.loadServerData_queryDuzenle_ek(e) }
 }

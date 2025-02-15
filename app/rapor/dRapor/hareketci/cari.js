@@ -1,25 +1,45 @@
-class CariHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get kod() { return 'cari' } static get aciklama() { return 'Cari' }
-	static hareketTipSecim_kaListeDuzenle(e) {
-		super.hareketTipSecim_kaListeDuzenle(e); const {kaListe} = e; kaListe.push(
-			new CKodVeAdi(['kasa', 'Kasa Tahsilat/Ödeme']), new CKodVeAdi(['hizmet', 'Hizmet Gelir/Gider']), new CKodVeAdi(['havaleEFT', 'Havale/EFT']),
-			new CKodVeAdi(['tahsilatOdeme', 'Cari Tahsilat/Ödeme']), new CKodVeAdi(['virman', 'Cari Virman', 'virmanmi']), new CKodVeAdi(['dekont', 'Genel Dekont']),
-			new CKodVeAdi(['topluIslem', 'Toplu İşlem']), new CKodVeAdi(['devir', 'Cari Devir']), new CKodVeAdi(['cek', 'Çek']), new CKodVeAdi(['SENET', 'Senet']),
-			new CKodVeAdi(['kredi', 'Banka Kredi']), new CKodVeAdi(['pos', 'POS İşlemi']), new CKodVeAdi(['fatura', 'Fatura']), new CKodVeAdi(['masraf', 'Faiz/Masraf'])
-		)
+class DRapor_Hareketci_Cari extends DRapor_Hareketci {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return true }
+	static get araSeviyemi() { return false } static get vioAdim() { return null }
+	static get kod() { return 'CARIHAR' } static get aciklama() { return 'Cari Hareketci' }
+}
+class DRapor_Hareketci_Cari_Main extends DRapor_Hareketci_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return CariHareketci }
+	static get raporClass() { return DRapor_Hareketci_Cari }
+	tabloYapiDuzenle(e) {
+		super.tabloYapiDuzenle(e); let {result} = e;
+		this.tabloYapiDuzenle_cari(e).tabloYapiDuzenle_plasiyer(e).tabloYapiDuzenle_takip(e);
+		result.addKAPrefix('ref', 'isl', 'althesap')
+			.addGrupBasit('ALTHESAP', 'Alt Hesap', 'althesap')
+			.addGrupBasit('FISNOX', 'Fis No', 'fisnox').addGrupBasit('REFERANS', 'Referans', 'ref')
+			.addGrupBasit('ANAISLEM', 'Ana İşlem', 'anaislemadi').addGrupBasit('ISLEM', 'İşlem', 'isl')
+			.addGrupBasit('ODEMEGUN', 'Ödeme Gün', 'odgunkod').addGrupBasit('DVKOD', 'Dv.Kod', 'dvkod').addGrupBasit('DVKUR', 'Dv.Kur', 'dvkur');
+		this.tabloYapiDuzenle_baBedel(e)
 	}
-	constructor(e) { e = e || {}; super(e) } defaultSonIslem(e) { this.uniOrtakSonIslem(e) }
+	loadServerData_queryDuzenle_hrkSent(e) {
+		super.loadServerData_queryDuzenle_hrkSent(e); let {attrSet, sentHVEkle, sent, hrkHV: hv, hrkDefHV: defHV, hvDegeri} = e, {sahalar} = sent;
+		let mustClause = hvDegeri('must'); this.loadServerData_queryDuzenle_cari({ ...e, kodClause: mustClause });
+		this.loadServerData_queryDuzenle_takip({ ...e, kodClause: hvDegeri('takipno') });
+		let baClause = hvDegeri('ba'), bedelClause = hvDegeri('bedel').sumOlmaksizin();
+		for (let key in attrSet) {
+			switch (key) {
+				case 'FISNOX': sentHVEkle('fisnox'); break; case 'CARI': sentHVEkle('must'); break; case 'REFERANS': sentHVEkle('refkod', 'refadi'); break;
+				case 'ANAISLEM': sentHVEkle('anaislemadi'); break; case 'ISLEM': sentHVEkle('islkod', 'isladi'); break
+				case 'ODEMEGUN': sentHVEkle('odgunkod'); break; case 'ALTHESAP': sentHVEkle('althesapkod', 'althesapadi'); break
+				case 'DVKOD': sentHVEkle('dvkod'); break
+			}
+		}
+		this.loadServerData_queryDuzenle_baBedel({ ...e, baClause, bedelClause })
+	}
+}
+/*
 	static varsayilanHVDuzenle(e) {
 		const {hv} = e, sqlEmptyDate = 'cast(null as datetime)', sqlEmpty = `''`, sqlZero = '0';
-		for (const key of [
-			'iceriktipi', 'anaislemadi', 'islkod', 'isladi', 'refkod', 'refadi', 'plasiyerkod', 'plasiyeradi', 'odgunkod', 'iade', 'kdetay', 'satistipkod',
-			'fistipi', 'fisektipi', 'dovizsanalmi', 'dvkod', 'ticmust', 'must', 'althesapkod', 'althesapadi', 'takipno', 'aciklama', 'ekaciklama', 'gxbnox', 'taksitadi',
-			'riskdurumu', 'cskendisimi'
-		]) { hv[key] = sqlEmpty }
+		for (const key of [ 'iade', 'fistipi', 'fisektipi' ]) { hv[key] = sqlEmpty }
 		for (const key of ['seq', 'belgeno', 'dvkur', 'noyil', 'bedel', 'dvbedel', 'acikkisim', 'ekstrarisk', 'ekstrarisk2']) { hv[key] = sqlZero }
 		for (const key of ['reftarih', 'karsiodemetarihi', 'vade', 'gxbtarihi']) { hv[key] = sqlEmptyDate }
 		$.extend(hv, {
-			fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac', ozelisaret: 'fis.ozelisaret', bizsubekod: 'fis.bizsubekod', tarih: 'fis.tarih', basliktarih: 'fis.tarih',
+			fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac', tarih: 'fis.tarih', basliktarih: 'fis.tarih',
 			seri: 'fis.seri', fisno: 'fis.no', baslikno: 'fis.no', fisnox: 'fis.fisnox', disfisnox: 'fis.fisnox', muhfissayac: 'fis.muhfissayac',
 			sonzamants: 'fis.sonzamants', koopdonemno: 'cast(null as int)'
 		})
@@ -27,7 +47,6 @@ class CariHareketci extends Hareketci {
 	static uygunluk2UnionBilgiListeDuzenleDevam(e) {
 		let dekont;
 		super.uygunluk2UnionBilgiListeDuzenleDevam(e); const {liste} = e; $.extend(liste, {
-				/* Banka */
 			havaleEFT: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(e => {
 					const {sent} = e, {where: wh} = sent;
@@ -96,7 +115,6 @@ class CariHareketci extends Hareketci {
 					})
 			   })
 			],
-				/* Finans */
 			dekont: dekont = [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(e => {
 					const {sent} = e, {where: wh} = sent; sent.fisHareket('finansfis', 'finanshar')
@@ -154,5 +172,4 @@ class CariHareketci extends Hareketci {
 			]
 		});
 		for (const key of ['hizmet', 'kasa', 'virman', 'devir']) { liste[key] = dekont }
-	}
-}
+*/

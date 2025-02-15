@@ -16,7 +16,9 @@ class MQSentVeIliskiliYapiOrtak extends MQDbCommand {
 		for (const sent of this.getSentListe()) {
 			for (const saha of sent.sahalar.liste) {
 				const {deger} = saha; if (!deger) { continue }
-				let uygunmu = false; for (const match of ['SUM(', 'COUNT(']) { if (deger.toUpperCase().startsWith(match) && deger.includes(')')) { uygunmu = true; break } }
+				let uygunmu = false; for (const match of ['SUM(', 'COUNT(', 'AVG(', 'STRING_AGG(']) {
+					if (deger.toUpperCase().startsWith(match) && deger.includes(')')) { uygunmu = true; break }
+				}
 				if (uygunmu) { toplanabilirSahalarSet[saha.aliasVeyaDeger] = true }
 			}
 		}

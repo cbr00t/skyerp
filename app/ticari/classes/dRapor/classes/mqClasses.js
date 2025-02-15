@@ -142,6 +142,10 @@ class DMQCari extends DMQKA {
 	}
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.cari2TipBagla(); sent.cari2IstGrupBagla(); sent.cari2BolgeBagla(); sent.cari2IlBagla() }
 }
+class DMQAltHesap extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Alt Hesap' }
+	static get table() { return 'althesap' } static get tableAlias() { return 'alth' }
+}
 class DMQPlasiyer extends DMQCari {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Plasiyer' }
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this.class; sent.where.add(`${alias}.kayittipi = 'X'`) }

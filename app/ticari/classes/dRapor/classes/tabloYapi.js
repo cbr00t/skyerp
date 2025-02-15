@@ -21,6 +21,13 @@ class TabloYapi extends CObject {
 		}
 		return this
 	}
+	addGrupBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici) { return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici) }
+	addToplamBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici) { return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici) }
+	addItemBasit(selector, kod, text, belirtec, mfSinif, genislikCh, duzenleyici) {
+		let colDef = new GridKolon({ belirtec, text, maxWidth: genislikCh ?? 450, filterType: 'checkedlist' });
+		let _e = { item: this, selector, kod, text, belirtec, mfSinif, genislikCh, colDef }; duzenleyici?.call(this, _e); colDef = _e.colDef;
+		return this[selector](new TabloYapiItem({ mfSinif }).setKA(kod, text).addColDef(colDef))
+	}
 	addKAPrefix(...items) {
 		const {kaPrefixes} = this; for (const item of items) {
 			if ($.isArray(item)) { this.addKAPrefix(...item); continue }
@@ -52,16 +59,18 @@ class TabloYapiItem extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get tipStringmi() { return !this.tip } get tipNumerikmi() { return this.tip == 'number' } get tipTarihmi() { return this.tip == 'date' } get tipBoolmu() { return this.tip == 'boolean' }
 	get secimSinif() { return this.tipNumerikmi ? SecimNumber : this.tipTarihmi ? SecimDate : SecimString } get kaYapimi() { return !!this.mfSinif } get formulmu() { return !!this.formul }
+	// get hrkAttr() { return this._hrkAttr }
 	get orderBySaha() {
-		let belirtec = this._orderBySaha; if (belirtec !== undefined) { return belirtec }
-		let {kaYapimi} = this; belirtec = this.colDefs[0]?.belirtec; if (belirtec && kaYapimi) {
-			const belirtecLower = belirtec.toLowerCase(); if (!(belirtecLower.endsWith('kod') || belirtecLower.endsWith('adi'))) { belirtec += 'kod' } }
-		return belirtec
-	} set orderBySaha(value) { this._orderBySaha = value }
+		let result = this._orderBySaha; if (result !== undefined) { return result }
+		let {kaYapimi} = this; result = this.colDefs[0]?.belirtec;
+		if (result && kaYapimi) { let lower = result.toLowerCase(); if (!(lower.endsWith('kod') || lower.endsWith('adi'))) { result += 'kod' } }
+		return result
+	}
+	set orderBySaha(value) { this._orderBySaha = value }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, {
 			tip: e.tip == 'string' ? null : e.tip, mfSinif: e.mfSinif, secimKullanilirFlag: e.secimKullanilirFlag, orderBySaha: e.orderBySaha,
-			colDefs: e.colDefs ?? [], secimlerDuzenleyici: e.secimlerDuzenleyici, tbWhereClauseDuzenleyici: e.tbWhereClauseDuzenleyici,
+			hrkAttr: e.hrkAttr, colDefs: e.colDefs ?? [], secimlerDuzenleyici: e.secimlerDuzenleyici, tbWhereClauseDuzenleyici: e.tbWhereClauseDuzenleyici,
 			kodsuzmu: e.kodsuzmu, isHidden: e.hidden ?? e.isHidden
 		});
 		this.setKA(e.ka).setFormul(e.formul)
@@ -114,7 +123,8 @@ class TabloYapiItem extends CObject {
 		if (e != null && $.isPlainObject(e)) { e = new DRaporFormul(e) }
 		this.formul = e; return this
 	}
-	setOrderBySaha(value) { this.orderBySaha = value; return this } setOrderBy(value) { return this.setOrderBySaha(value) } noOrderBy() { return this.setOrderBySaha(null) }
+	setOrderBySaha(value) { this.orderBySaha = value; return this } setOrderBy(value) { return this.setOrderBySaha(value) }
+	noOrderBy() { return this.setOrderBySaha(null) } setHrkAttr(value) { this.hrkAttr = value; return this }
 	kodsuz() { this.kodsuzmu = true; return this } kodlu() { this.kodsuzmu = false; return this }
 	hidden() { this.isHidden = true; return this } visible() { this.isHidden = false; return this }
 	tipString() { this.tip = null; return this } tipNumerik() { this.tip = 'number'; return this } tipDate() { this.tip = 'date'; return this } tipBool() { this.tip = 'boolean'; return this }

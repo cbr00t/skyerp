@@ -17,7 +17,7 @@ class DRapor_Uretim_Main extends DRapor_Donemsel_Main {
 	}
 	loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); let {stm, attrSet} = e, {sent} = stm, {where: wh} = sent;
-		$.extend(e, { sent }); this.loadServerData_queryDuzenle_ek(e); sent.groupByOlustur()
+		$.extend(e, { sent }); this.loadServerData_queryDuzenle_ek(e)
 	}
 	loadServerData_queryDuzenle_ek(e) {
 		let {stm, attrSet, alias} = e; for (let sent of stm.getSentListe()) {

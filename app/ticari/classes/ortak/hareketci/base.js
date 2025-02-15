@@ -83,13 +83,8 @@ class Hareketci extends CObject {
 		let uni = stm.sent; if (uni.unionmu) { uni.liste = uni.liste.filter(sent => !!sent?.sahalar?.liste?.length) } return stm
 	}
 	stmDuzenle(e) { const {stm} = e; const uni = stm.sent = this.uniOlustur(e); return this.stmDuzenleDevam(e) } stmDuzenleDevam(e) { }
-	uniOlustur(e) { e = e || {}; const uni = new MQUnionAll(), _e = { ...e, uni }; this.uniDuzenle(_e); return uni }
+	uniOlustur(e) { e = e || {}; const uni = new MQUnionAll(), _e = { ...e, uni, sqlEmpty: `''` }; this.uniDuzenle(_e); return uni }
 	uniDuzenle(e) {
-		e = e || {}; $.extend(e, {
-			...e, sqlEmpty: `''`, ekleyici: (e, ...items) => { for (const item of items) { let sql = item[0], alias = item[1]; this.sentSahaEkleyici({ ...e, sql, alias }) } }
-		}); return this.uniDuzenleDevam(e)
-	}
-	uniDuzenleDevam(e) {
 		const {uygunluk2UnionBilgiListe, varsayilanHV, zorunluAttrSet} = this.class, {uygunluk, attrSet} = this, {uni} = e, uygunlukVarmi = uygunluk.bosDegilmi;
 		for (const [selector, unionBilgiListe] of Object.entries(uygunluk2UnionBilgiListe)) {
 			if (uygunlukVarmi && !uygunluk[selector]) { continue }

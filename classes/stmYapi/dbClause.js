@@ -414,7 +414,6 @@ class MQSubWhereClause extends MQClause {
 	icerikKisitDuzenle_stokIstGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'stokIstGrup' }) }
 	icerikKisitDuzenle_yer(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'yer' }).icerikKisitDuzenle_x({ ...e, belirtec: 'stokYer' }) }
 	icerikKisitDuzenle_yerGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'yerGrup' }).icerikKisitDuzenle_x({ ...e, belirtec: 'stokYerGrup' }) }
-	icerikKisitDuzenle_plasiyer(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'plasiyer' }) }
 	icerikKisitDuzenle_plasiyerTip(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'plasiyerTip' }) }
 	icerikKisitDuzenle_hizmet(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmet' }) }
 	icerikKisitDuzenle_hizmetGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmetGrup' }) }
@@ -422,6 +421,7 @@ class MQSubWhereClause extends MQClause {
 	icerikKisitDuzenle_hizmetIstGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmetIstGrup' }) }
 	icerikKisitDuzenle_personel(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'personel' }) }
 	icerikKisitDuzenle_muhHesap(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'muhHesap' }) }
+	icerikKisitDuzenle_takipNo(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'takipNo' }) }
 }
 class MQWhereClause extends MQSubWhereClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

@@ -162,7 +162,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	get tabloYapi() {
 		let result = this._tabloYapi;
 		if (result == null) {
-			let _e = { result: new TabloYapi() }; this.tabloYapiDuzenle(_e); this.tabloYapiDuzenle_son(_e);
+			let _e = { result: new TabloYapi() };
+			this.tabloYapiDuzenle(_e); this.tabloYapiDuzenle_son(_e);
 			this.tabloYapiDuzenle_ozel?.(_e); result = _e.result;
 			const tipSet = result.tipSet = {}, kaListe = result.kaListe = [];
 			for (const selector of ['grup', 'toplam']) {

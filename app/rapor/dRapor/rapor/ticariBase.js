@@ -16,56 +16,31 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 	get stokmu() { return this.rapor?.stokmu } get hizmetmi() { return this.rapor?.hizmetmi }
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); const {result} = e, {toplamPrefix} = this.class;
-		this.tabloYapiDuzenle_shd(e); result
-			.addKAPrefix('tip', 'bolge', 'cistgrup', 'cari', 'il', 'ulke', 'sube', 'subegrup', 'takip', 'takipgrup', 'plasiyer')
-			.addGrup(new TabloYapiItem().setKA('CRTIP', 'Cari Tip').secimKullanilir().setMFSinif(DMQCariTip).addColDef(new GridKolon({ belirtec: 'tip', text: 'Cari Tip', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('CRANABOL', 'Ana Bölge').secimKullanilir().setMFSinif(DMQCariAnaBolge).addColDef(new GridKolon({ belirtec: 'anabolge', text: 'Ana Bölge', maxWidth: 450, filterType: 'input' })))
-			.addGrup(new TabloYapiItem().setKA('CRBOL', 'Bölge').secimKullanilir().setMFSinif(DMQCariBolge).addColDef(new GridKolon({ belirtec: 'bolge', text: 'Bölge', maxWidth: 450, filterType: 'input' })))
-			.addGrup(new TabloYapiItem().setKA('CRISTGRP', 'Cari İst. Grup').secimKullanilir().setMFSinif(DMQCariIstGrup).addColDef(new GridKolon({ belirtec: 'cistgrup', text: 'Cari İst. Grup', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('CARI', 'Cari').secimKullanilir().setMFSinif(DMQCari).addColDef(new GridKolon({ belirtec: 'cari', text: 'Cari', maxWidth: 600, filterType: 'input' })))
-			.addGrup(new TabloYapiItem().setKA('CRIL', 'İl').secimKullanilir().setMFSinif(DMQIl).addColDef(new GridKolon({ belirtec: 'il', text: 'İl', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('CRULKE', 'Ülke').secimKullanilir().setMFSinif(DMQUlke).addColDef(new GridKolon({ belirtec: 'ulke', text: 'Ülke', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('SUBE', 'Şube').secimKullanilir().setMFSinif(DMQSube).addColDef(new GridKolon({ belirtec: 'sube', text: 'Şube', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('SUBEGRUP', 'Şube Grup').secimKullanilir().setMFSinif(DMQSubeGrup).addColDef(new GridKolon({ belirtec: 'subegrup', text: 'Şube Grup', maxWidth: 450, filterType: 'checkedlist' })))
+		this.tabloYapiDuzenle_shd(e).tabloYapiDuzenle_cari(e).tabloYapiDuzenle_sube(e);
+		this.tabloYapiDuzenle_takip(e).tabloYapiDuzenle_plasiyer(e);
+		/*result
+			.addKAPrefix('takip', 'takipgrup')
 			.addGrup(new TabloYapiItem().setKA('TAKIPNO', 'Takip No').secimKullanilir().setMFSinif(DMQTakipNo).addColDef(new GridKolon({ belirtec: 'takip', text: 'Takip No', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('TAKIPGRUP', 'Takip Grup').secimKullanilir().setMFSinif(DMQTakipGrup).addColDef(new GridKolon({ belirtec: 'takipgrup', text: 'Takip Grup', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('PLASIYER', 'Plasiyer').secimKullanilir().setMFSinif(DMQPlasiyer).addColDef(new GridKolon({ belirtec: 'plasiyer', text: 'Plasiyer', maxWidth: 550, filterType: 'checkedlist' })))
-		this.tabloYapiDuzenle_hmr(e).tabloYapiDuzenle_miktar(e).tabloYapiDuzenle_ciro(e);
+			.addGrup(new TabloYapiItem().setKA('TAKIPGRUP', 'Takip Grup').secimKullanilir().setMFSinif(DMQTakipGrup).addColDef(new GridKolon({ belirtec: 'takipgrup', text: 'Takip Grup', maxWidth: 450, filterType: 'checkedlist' })))*/
+		this.tabloYapiDuzenle_hmr(e).tabloYapiDuzenle_miktar(e).tabloYapiDuzenle_ciro(e)
 	}
 	loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); let {stm, attrSet, trfSipmi} = e, {sent} = stm, {where: wh} = sent, fisMustSaha = trfSipmi ? 'irsmust' : 'must';
 		$.extend(e, { sent }); this.fisVeHareketBagla(e); this.donemBagla({ ...e, tarihSaha: 'fis.tarih' });
 		wh.fisSilindiEkle(); wh.add(`fis.ozelisaret <> 'X'`);
-		if (attrSet.CRTIP || attrSet.CRBOL || attrSet.CRANABOL || attrSet.CARI ||
-				attrSet.CRIL || attrSet.CRULKE || attrSet.CRISTGRP) { sent.fis2CariBagla({ fisMustSaha }) }
-		if (attrSet.CRANABOL) { sent.cari2BolgeBagla() } if (Object.keys(attrSet).find(x => x?.includes('MIKTAR'))) { sent.har2StokBagla() }
-		if (attrSet.SUBE || attrSet.SUBEGRUP) { sent.fis2SubeBagla() }
-		if (attrSet.TAKIPNO || attrSet.TAKIPGRUP) { sent.fromIliski('takipmst tak', `(case when fis.takiportakdir = '' then har.dettakipno else fis.orttakipno end) = tak.kod`) }
-		for (const key in attrSet) {
+		this.loadServerData_queryDuzenle_cari({ ...e, kodClause: `fis.${fisMustSaha}` }).loadServerData_queryDuzenle_sube({ ...e, kodClause: 'fis.bizsubekod' });
+		this.loadServerData_queryDuzenle_takip({ ...e, kodClause: `(case when fis.takiportakdir = '' then har.dettakipno else fis.orttakipno end)` });
+		this.loadServerData_queryDuzenle_plasiyer({ ...e, kodClause: 'fis.plasiyerkod' });
+		if (Object.keys(attrSet).find(x => x?.includes('MIKTAR'))) { sent.har2StokBagla() }
+		/*for (const key in attrSet) {
 			switch (key) {
-				case 'CRTIP': sent.cari2TipBagla(); sent.sahalar.add('car.tipkod', 'ctip.aciklama tipadi'); wh.icerikKisitDuzenle_cariTip({ ...e, saha: 'car.tipkod' }); break
-				case 'CRANABOL': sent.bolge2AnaBolgeBagla(); sent.sahalar.add('bol.anabolgekod', 'abol.aciklama anabolgeadi'); wh.icerikKisitDuzenle_cariAnaBolge({ ...e, saha: 'bol.anabolgekod' }); break
-				case 'CRBOL': sent.cari2BolgeBagla(); sent.sahalar.add('car.bolgekod', 'bol.aciklama bolgeadi'); wh.icerikKisitDuzenle_cariBolge({ ...e, saha: 'car.bolgekod' }); break
-				case 'CRISTGRP': sent.cari2IstGrupBagla(); sent.sahalar.add('car.cistgrupkod', 'cigrp.aciklama cistgrupadi'); wh.icerikKisitDuzenle_cariIstGrup({ ...e, saha: 'car.cistgrupkod' }); break
-				case 'CARI': sent.sahalar.add(`fis.${fisMustSaha} carikod`, 'car.birunvan cariadi'); wh.icerikKisitDuzenle_cari({ ...e, saha: `fis.${fisMustSaha}` }); break
-				case 'CRIL': sent.cari2IlBagla(); sent.sahalar.add('car.ilkod', 'il.aciklama iladi'); wh.icerikKisitDuzenle_cariIl({ ...e, saha: 'car.ilkod' }); break
-				/*case 'CRULKE': sent.cari2UlkeBagla(); sent.sahalar.add('car.ulkekod', `(case when ulk.aciklama = '' then '' else ulk.aciklama end) ulkeadi`); break*/
-				case 'CRULKE': sent.cari2UlkeBagla(); sent.sahalar.add('car.ulkekod', 'ulk.aciklama ulkeadi'); wh.icerikKisitDuzenle_cariUlke({ ...e, saha: 'car.ulkekod' }); break
-				case 'SUBE': sent.sahalar.add('fis.bizsubekod subekod', 'sub.aciklama subeadi'); wh.icerikKisitDuzenle_sube({ ...e, saha: 'fis.bizsubekod' }); break
-				case 'SUBEGRUP': sent.sahalar.add('sub.isygrupkod subegrupkod', 'igrp.aciklama subegrupadi'); wh.icerikKisitDuzenle_subeGrup({ ...e, saha: 'sub.isygrupkod' }); break
-				case 'TAKIPNO':
-					sent.sahalar.add('tak.kod takipkod', 'tak.aciklama takipadi'); break
-				case 'TAKIPGRUP':
-					sent.fromIliski('takipgrup tgrp', 'tak.grupkod = tgrp.kod');
-					sent.sahalar.add('tgrp.kod takipgrupkod', 'tgrp.aciklama takipgrupadi'); break
-				case 'PLASIYER':
-					sent.fromIliski('carmst pls', 'fis.plasiyerkod = pls.must'); sent.sahalar.add('fis.plasiyerkod', 'pls.birunvan plasiyeradi');
-					wh.icerikKisitDuzenle_plasiyer({ ...e, saha: 'fis.plasiyerkod' }); break
+				case 'TAKIPNO': sahalar.add('tak.kod takipkod', 'tak.aciklama takipadi'); wh.icerikKisitDuzenle_takipNo({ ...e, saha: 'tak.kod' }); break
+				case 'TAKIPGRUP': sahalar.add('tgrp.kod takipgrupkod', 'tgrp.aciklama takipgrupadi'); break
 			}
-		}
+		}*/
 		this.loadServerData_queryDuzenle_tarih({ ...e, alias: 'fis', tarihSaha: 'tarih' }).loadServerData_queryDuzenle_shd(e);
 		this.loadServerData_queryDuzenle_hmr(e).loadServerData_queryDuzenle_miktar(e).loadServerData_queryDuzenle_ciro(e);
-		this.loadServerData_queryDuzenle_ek(e); sent.groupByOlustur()
+		this.loadServerData_queryDuzenle_ek(e)
 	}
 	loadServerData_queryDuzenle_ek(e) { super.loadServerData_queryDuzenle_ek(e) }
 	loadServerData_recsDuzenle(e) { return super.loadServerData_recsDuzenle(e) /*; let {recs} = e; for (let rec of recs) { } return recs */ }

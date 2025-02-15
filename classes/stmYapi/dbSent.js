@@ -191,7 +191,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	fis2CariBagla(e) { e = e ?? {}; let mustSaha = (e.mustSaha ?? e.fisMustSaha) || 'must'; this.fromIliski('carmst car', `fis.${mustSaha} = car.must`); return this }
 	fis2TicCariBagla(e) { this.fromIliski('carmst car', 'fis.ticmust = car.must'); return this }
 	fis2AltHesapBagla(e) { this.fromIliski('althesap alth', 'fis.althesapkod = alth.kod'); return this }
-	fis2PlasiyerBagla(e) { this.fromIliski('carmst pls', 'fis.must = car.must'); return this }
+	fis2PlasiyerBagla(e) { this.fromIliski('carmst pls', 'fis.plasiyerkod = pls.must'); return this }
 	fis2SevkAdresBagla(e) { this.fromIliski('carsevkadres sadr', 'fis.xadreskod = sadr.kod'); return this }
 	fis2KasaBagla(e) { this.fromIliski('kasmst kas', 'fis.kasakod = kas.kod'); return this }
 	fis2BankaHesapBagla(e) { this.fromIliski('banbizhesap bhes', 'fis.banhesapkod = bhes.kod'); return this }
