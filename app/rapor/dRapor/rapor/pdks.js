@@ -1,6 +1,5 @@
 class DRapor_PDKS_Izin extends DRapor_PDKS {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get araSeviyemi() { return false } static get vioAdim() { return null }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get vioAdim() { return null }
 	static get kod() { return 'PDKSIZIN' } static get aciklama() { return 'PDKS İzin' }
 }
 class DRapor_PDKS_Izin_Main extends DRapor_PDKS_Main {
@@ -15,7 +14,8 @@ class DRapor_PDKS_Izin_Main extends DRapor_PDKS_Main {
 			.addGrup(new TabloYapiItem().setKA('SURETIPI', 'Süre Tipi').secimKullanilir().addColDef(new GridKolon({ belirtec: 'suretipi', text: 'Süre Tipi', minWidth: 230, maxWidth: 300, filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('NEDEN', 'Neden').secimKullanilir().setMFSinif(DMQPDKSNeden).addColDef(new GridKolon({ belirtec: 'neden', text: 'Neden', minWidth: 230, maxWidth: 300, filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('ANATIP', 'Ana Tip').secimKullanilir().setMFSinif(DMQPDKSAnaTip).addColDef(new GridKolon({ belirtec: 'anatip', text: 'Ana Tip', minWidth: 230, maxWidth: 300, filterType: 'checkedlist' })))
-	
+			.addToplam(new TabloYapiItem().setKA('GUNSAYI', 'Gün Sayısı').secimKullanilir().addColDef(new GridKolon({ belirtec: 'gunsayi', text: 'Gün Sayısı', minWidth: 230, maxWidth: 300, filterType: 'checkedlist' }).tipNumerik()))
+			.addToplam(new TabloYapiItem().setKA('EKSAAT', 'Ek Saat').secimKullanilir().addColDef(new GridKolon({ belirtec: 'eksaat', text: 'Ek Saat', minWidth: 230, maxWidth: 300, filterType: 'checkedlist' }).tipDecimal(1)))
 	}
 	loadServerData_queryDuzenle_ek(e) {
 		super.loadServerData_queryDuzenle_ek(e); let {stm, attrSet} = e, {sent} = stm, {sahalar, where: wh} = sent;
@@ -31,9 +31,9 @@ class DRapor_PDKS_Izin_Main extends DRapor_PDKS_Main {
 				case 'DEP': sahalar.add('per.depkod', 'dep.aciklama depadi'); wh.icerikKisitDuzenle_x({ ...e, belirtec: 'departman', saha: 'per.depkod' }); break
 				case 'SURETIPI': sahalar.add(`${alias}.suretipi`); break
 				case 'NEDEN': sahalar.add(`${alias}.nedenkod`, 'ned.aciklama nedenadi'); break
-				case 'ANATIP':
-					sahalar.add('ned.anatip anatipkod', `${PDKSAnaTip.getClause('ned.anatip')} anatipadi`);
-					break
+				case 'ANATIP': sahalar.add('ned.anatip anatipkod', `${PDKSAnaTip.getClause('ned.anatip')} anatipadi`); break
+				case 'GUNSAYI': sahalar.add(`SUM(case when ${alias}.suretipi = 'G' then cast(${alias}.izinsure as int) else 0 end) gunsayi`); break
+				case 'EKSAAT': sahalar.add(`SUM(case when ${alias}.suretipi = '' then ${alias}.izinsure else 0.0 end) eksaat`); break
 			}
 		}
 		this.loadServerData_queryDuzenle_tarih({ ...e, alias, tarihSaha: 'cikists' })

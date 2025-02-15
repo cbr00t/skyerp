@@ -132,8 +132,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 					{ let saha = sahalar.liste.find(x => x.alias == alias_db); if (saha) { saha.deger = db.sqlServerDegeri() } }
 				} asilUni.addAll(uni.liste)
 			}
-			stm = e.stm = stm.asToplamStm(); this.loadServerData_queryDuzenle_tekilSonrasi_son_ozel?.(e);
 		}
+		if (stm.sent.unionmu) { stm = e.stm = stm.asToplamStm() }
+		this.loadServerData_queryDuzenle_tekilSonrasi_son_ozel?.(e)
 	}
 	loadServerData_queryDuzenle_genelSon(e) {
 		this.loadServerData_queryDuzenle_genelSon_ilk_ozel?.(e); let {stm, attrSet} = e, {orderBy} = stm, {grup} = this.tabloYapi;

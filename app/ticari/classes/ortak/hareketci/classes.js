@@ -30,7 +30,7 @@ class CariHareketci extends Hareketci {
 				/* Banka */
 			havaleEFT: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(e => {
-					const {sent} = e, wh = sent.where;
+					const {sent} = e, {where: wh} = sent;
 					sent.fisHareket('hefis', 'hehar'); sent.fis2PlasiyerBagla(e).fis2BankaHesapBagla(e).har2AltHesapBagla(e);
 					wh.fisSilindiEkle().inDizi(['SH', 'SE', 'SS', 'GL', 'TP'], 'fis.fistipi')
 				}).hvDuzenleIslemi(e => {
@@ -49,7 +49,7 @@ class CariHareketci extends Hareketci {
 			],
 			kredi: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(e => {
-					const {sent} = e, wh = sent.where; sent.fromAdd('kredifis fis'); sent.fis2KrediBankaHesapBagla(e).fis2AltHesapBagla(e);
+					const {sent} = e, {where: wh} = sent; sent.fromAdd('kredifis fis'); sent.fis2KrediBankaHesapBagla(e).fis2AltHesapBagla(e);
 					wh.fisSilindiEkle().add(`fis.fistipi = 'A'`, `fis.hedeftipi = 'C'`)
 				}).hvDuzenleIslemi(e => $.extend(e.hv, {
 					kaysayac: 'fis.kaysayac', oncelik: '30', unionayrim: `'Kre'`, kayittipi: `'KRE'`, anaislemadi: `'Kredi'`, isladi: `'Kredi Alımı'`, fistipi: 'fis.fistipi',
@@ -60,7 +60,7 @@ class CariHareketci extends Hareketci {
 			],
 			pos: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(e => {
-					const {sent} = e, wh = sent.where; sent.fisHareket('posfis', 'posilkhar'); sent.fis2PlasiyerBagla(e).har2AltHesapBagla(e).har2BankaHesapBagla(e);
+					const {sent} = e, {where: wh} = sent; sent.fisHareket('posfis', 'posilkhar'); sent.fis2PlasiyerBagla(e).har2AltHesapBagla(e).har2BankaHesapBagla(e);
 					wh.fisSilindiEkle().add(`fis.fistipi = 'AL'`)
 				}).hvDuzenleIslemi(e => {
 					let {cariGenel} = app.params, k = cariGenel.kullanim;
@@ -79,7 +79,7 @@ class CariHareketci extends Hareketci {
 			],
 			masraf: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(e => {
-					const {sent} = e, wh = sent.where; sent.fisHareket('posfis', 'posilkhar').fis2PlasiyerBagla(e).har2AltHesapBagla(e).har2BankaHesapBagla(e);
+					const {sent} = e, {where: wh} = sent; sent.fisHareket('posfis', 'posilkhar').fis2PlasiyerBagla(e).har2AltHesapBagla(e).har2BankaHesapBagla(e);
 					wh.fisSilindiEkle().add(`fis.fistipi = 'AL'`, `har.masraf <> 0`)
 				}).hvDuzenleIslemi(e => {
 					let {cariGenel} = app.params, k = cariGenel.kullanim;
@@ -99,7 +99,7 @@ class CariHareketci extends Hareketci {
 				/* Finans */
 			dekont: dekont = [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(e => {
-					const {sent} = e, wh = sent.where; sent.fisHareket('finansfis', 'finanshar')
+					const {sent} = e, {where: wh} = sent; sent.fisHareket('finansfis', 'finanshar')
 						.leftJoin({ alias: 'fis', from: 'carisl isl', on: 'fis.carislkod = isl.kod' })
 						.leftJoin({ alias: 'har', from: 'kategoridetay kdet', on: 'har.kdetaysayac = kdet.kaysayac' })
 						.fis2PlasiyerBagla().fis2KasaBagla().har2AltHesapBagla().har2HizmetBagla()
@@ -132,7 +132,7 @@ class CariHareketci extends Hareketci {
 			],
 			serbestMeslek: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(e => {
-					const {sent} = e, wh = sent.where; sent.fisHareket('finansfis', 'finanshar')
+					const {sent} = e, {where: wh} = sent; sent.fisHareket('finansfis', 'finanshar')
 						.leftJoin({ alias: 'fis', from: 'carisl isl', on: 'fis.carislkod = isl.kod' })
 						.leftJoin({ alias: 'har', from: 'kategoridetay kdet', on: 'har.kdetaysayac = kdet.kaysayac' })
 						.fis2KasaBagla().fis2PlasiyerBagla().har2AltHesapBagla().har2HizmetBagla()

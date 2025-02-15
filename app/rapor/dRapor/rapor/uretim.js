@@ -12,11 +12,13 @@ class DRapor_Uretim_Gercekleme_Main extends DRapor_Uretim_Main {
 	loadServerData_queryDuzenle_ek(e) {
 		super.loadServerData_queryDuzenle_ek(e); let {stm, attrSet} = e, alias = 'ger';
 		for (let sent of stm.getSentListe()) {
-			let {sahalar, where: wh} = sent; $.extend(e, { sent, alias }); this.loadServerData_queryDuzenle_uretimOrtakBagla({ ...e, sent });
-			this.donemBagla({ ...e, tarihSaha: `${alias}.detbitts` }); for (const key in attrSet) {
+			let {sahalar, where: wh} = sent; $.extend(e, { sent, alias });
+			this.loadServerData_queryDuzenle_uretimOrtakBagla({ ...e, sent }); this.donemBagla({ ...e, tarihSaha: `${alias}.detbitts` });
+			if (attrSet.TEZGAH || attrSet.HAT) { sent.fromIliski('tekilmakina tez', `${alias}.tezgahkod = tez.kod`) }
+			for (const key in attrSet) {
 				switch (key) {
-					case 'TEZGAH': sent.fromIliski('tekilmakina tez', 'ger.tezgahkod = tez.kod'); break
-					case 'MIKTAR': sahalar.add('SUM(ger.miktar) miktar'); break; case 'MIKTAR2': sahalar.add('SUM(ger.miktar2) miktar2'); break
+					case 'MIKTAR': sahalar.add(`SUM(${alias}.miktar) miktar`); break
+					case 'MIKTAR2': sahalar.add(`SUM(${alias}.miktar2) miktar2`); break
 				}
 			}
 		}

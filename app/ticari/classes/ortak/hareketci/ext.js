@@ -1,12 +1,12 @@
 class ModulExt_Hareketci_Cari extends ModulExt_Hareketci { static { window[this.name] = this; this._key2Class[this.name] = this } }
 class ModulExt_Hareketci_Cari_SutAlim extends ModulExt_Hareketci_Cari {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static hareketTipSecim_kaListeDuzenle(e) { super.hareketTipSecim_kaListeDuzenle(e); const {kaListe} = e; kaListe.push( new CKodVeAdi(['sutAlimMakbuz', 'Süt Alım Makbuz']) ) }
+	static hareketTipSecim_kaListeDuzenle(e) { super.hareketTipSecim_kaListeDuzenle(e); e.kaListe.push( new CKodVeAdi(['sutAlimMakbuz', 'Süt Alım Makbuz']) ) }
 	static uygunluk2UnionBilgiListeDuzenle(e) {
-		super.uygunluk2UnionBilgiListeDuzenle(e); const {liste} = e; $.extend(liste, {
+		super.uygunluk2UnionBilgiListeDuzenle(e); $.extend(e.liste, {
 			sutAlimMakbuz: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(e => {
-					const {sent} = e, wh = sent.where;
+					const {sent} = e, {where: wh} = sent;
 					sent.fromAdd('topmakbuzfis fis').fromIliski('topmakbuzara ara', 'fis.kaysayac = ara.fissayac').fromIliski('topmakbuzstok har', 'ara.kaysayac = har.arasayac')
 						.fromIliski('carmst car', 'ara.mustahsilkod = car.must').leftJoin({ alias: 'fis', from: 'rota rot', on: 'fis.rotasayac = rot.kaysayac' }).fis2AltHesapBagla();
 					wh.fisSilindiEkle().add(`ara.biptalmi = 0`, `fis.fistipi = 'M'`);
@@ -26,12 +26,12 @@ class ModulExt_Hareketci_Cari_SutAlim extends ModulExt_Hareketci_Cari {
 }
 class ModulExt_Hareketci_Cari_YazarKasa extends ModulExt_Hareketci_Cari {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static hareketTipSecim_kaListeDuzenle(e) { super.hareketTipSecim_kaListeDuzenle(e); const {kaListe} = e; kaListe.push( new CKodVeAdi(['yazarKasa', 'Yazar Kasa']) ) }
+	static hareketTipSecim_kaListeDuzenle(e) { super.hareketTipSecim_kaListeDuzenle(e); e.kaListe.push( new CKodVeAdi(['yazarKasa', 'Yazar Kasa']) ) }
 	static uygunluk2UnionBilgiListeDuzenle(e) {
 		super.uygunluk2UnionBilgiListeDuzenle(e); const {liste} = e; $.extend(liste, {
 			yazarKasa: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(e => {
-					const {sent} = e, wh = sent.where;
+					const {sent} = e, {where: wh} = sent;
 					sent.fromAdd('yktotalcari ykcar').fromIliski('carmst car', 'ykcar.mustkod = car.must').fromIliski('yktotalfis yktot', 'ykcar.fissayac = yktot.kaysayac')
 					wh.fisSilindiEkle('yktot').add(`ykcar.mustkod <> ''`);
 				}).hvDuzenleIslemi(e => {

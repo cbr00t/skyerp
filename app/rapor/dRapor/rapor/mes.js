@@ -1,10 +1,10 @@
-class DRapor_Uretim_MESSinyal extends DRapor_MES {
+class DRapor_MES_MESSinyal extends DRapor_MES {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get araSeviyemi() { return false } static get vioAdim() { return null }
 	static get kod() { return 'MESSINYAL' } static get aciklama() { return 'MES Sinyal Analizi' }
 }
-class DRapor_Uretim_MESSinyal_Main extends DRapor_MES_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Uretim_MESSinyal }
+class DRapor_MES_MESSinyal_Main extends DRapor_MES_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_MES_MESSinyal }
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); const {result} = e; result
 			.addKAPrefix('tezgah')
