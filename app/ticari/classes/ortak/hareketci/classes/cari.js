@@ -29,7 +29,7 @@ class CariHareketci extends Hareketci {
 		this.uniDuzenle_banka(e).uniDuzenle_finans(e)
 	}
 	static uniDuzenle_banka({ liste }) {
-		$.extend(e.liste, {
+		$.extend(liste, {
 			havaleEFT: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(e => {
 					const {sent} = e, {where: wh} = sent;
@@ -102,7 +102,7 @@ class CariHareketci extends Hareketci {
 		return this
 	}
 	static uniDuzenle_finans({ liste }) {
-		let dekont; $.extend(e.liste, {
+		let dekont; $.extend(liste, {
 			dekont: dekont = [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(e => {
 					const {sent} = e, {where: wh} = sent; sent.fisHareket('finansfis', 'finanshar')
