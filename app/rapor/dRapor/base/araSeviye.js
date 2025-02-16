@@ -258,6 +258,12 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		return this
 	}
+	loadServerData_queryDuzenle_kasa(e) {
+		let {stm, attrSet, kodClause} = e, sent = e.sent ?? stm.sent, {where: wh, sahalar} = sent;
+		for (const key in attrSet) {
+		}
+		return this
+	}
 	tabloYapiDuzenle_takip(e) {
 		e.result.addKAPrefix('takip', 'takipgrup')
 			.addGrupBasit('TAKIPNO', 'Takip No', 'takip', DMQTakipNo).addGrupBasit('TAKIPGRUP', 'Takip Grup', 'takipgrup', DMQTakipGrup);
@@ -287,7 +293,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			switch (key) {
 				case 'BORCBEDEL': sahalar.add(`SUM(case when ${baClause} = 'B' then ${bedelClause} else 0 end) borcbedel`); break
 				case 'ALACAKBEDEL': sahalar.add(`SUM(case when ${baClause} = 'B' then 0 else ${bedelClause} end) alacakbedel`); break
-				case 'ISARETLIBEDEL': sahalar.add(`SUM(case when ${baClause} = 'B' then ${bedelClause} else 0 - (${bedelClause}) end) isaretlibedel`); break
+				case 'ISARETLIBEDEL': sahalar.add(`SUM(case when ${baClause} = 'B' then ${bedelClause} else (0 - ${bedelClause}) end) isaretlibedel`); break
 			}
 		}
 		return this

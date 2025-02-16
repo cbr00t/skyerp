@@ -6,7 +6,13 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return null }
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); let {result} = e;
-		this.tabloYapiDuzenle_ozelIsaret(e).tabloYapiDuzenle_sube(e)
+		this.tabloYapiDuzenle_ozelIsaret(e).tabloYapiDuzenle_sube(e);
+		result.addKAPrefix('ref', 'isl', 'althesap')
+			.addGrupBasit('FISNOX', 'Fis No', 'fisnox').addGrupBasit('ALTHESAP', 'Alt Hesap', 'althesap').addGrupBasit('ODEMEGUN', 'Ödeme Gün', 'odgunkod')
+			.addGrupBasit('REFERANS', 'Referans', 'ref').addGrupBasit('ANAISLEM', 'Ana İşlem', 'anaislemadi').addGrupBasit('ISLEM', 'İşlem', 'isl');
+		this.tabloYapiDuzenle_plasiyer(e).tabloYapiDuzenle_takip(e);
+		result.addGrupBasit('DVKOD', 'Dv.Kod', 'dvkod').addGrupBasit('DVKUR', 'Dv.Kur', 'dvkur');
+		this.tabloYapiDuzenle_baBedel(e)
 	}
 	loadServerData_queryDuzenle(e) {
 		e.alias = e.alias ?? 'hrk'; let {hareketciSinif} = this.class, {stm, attrSet} = e;
@@ -24,10 +30,22 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		}
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
-		let {hvDegeri} = e, tarihSaha = hvDegeri('tarih'); this.donemBagla({ ...e, tarihSaha });
+		let {attrSet, sentHVEkle, sent, hrkHV: hv, hrkDefHV: defHV, hvDegeri} = e, {sahalar} = sent;
+		let tarihSaha = hvDegeri('tarih'); this.donemBagla({ ...e, tarihSaha });
 		this.loadServerData_queryDuzenle_ozelIsaret({ ...e, kodClause: hvDegeri('ozelisaret') });
 		this.loadServerData_queryDuzenle_sube({ ...e, kodClause: hvDegeri('bizsubekod') });
-		this.loadServerData_queryDuzenle_tarih({ ...e, alias: '', tarihSaha })
+		this.loadServerData_queryDuzenle_tarih({ ...e, alias: '', tarihSaha });
+		this.loadServerData_queryDuzenle_takip({ ...e, kodClause: hvDegeri('takipno') });
+		for (let key in attrSet) {
+			switch (key) {
+				case 'FISNOX': sentHVEkle('fisnox'); break; case 'REFERANS': sentHVEkle('refkod', 'refadi'); break;
+				case 'ANAISLEM': sentHVEkle('anaislemadi'); break; case 'ISLEM': sentHVEkle('islkod', 'isladi'); break
+				case 'ODEMEGUN': sentHVEkle('odgunkod'); break; case 'ALTHESAP': sentHVEkle('althesapkod', 'althesapadi'); break
+				case 'DVKOD': sentHVEkle('dvkod'); break
+			}
+		}
+		let baClause = hvDegeri('ba'), bedelClause = hvDegeri('bedel').sumOlmaksizin();
+		this.loadServerData_queryDuzenle_baBedel({ ...e, baClause, bedelClause })
 	}
 	hrkSentHVEkle(e) {
 		let {key: alias, sent} = e, {sahalar} = sent;

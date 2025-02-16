@@ -188,10 +188,10 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	fis2SubeBagla(e) { this.fromIliski('isyeri sub', 'fis.bizsubekod = sub.kod'); this.sube2GrupBagla(e); return this }
 	sube2GrupBagla(e) { this.fromIliski('isygrup igrp', 'sub.isygrupkod = igrp.kod'); return this }
 	takip2GrupBagla(e) { this.fromIliski('takipgrup tak', 'tak.grupkod = tgrp.kod'); return this }
-	fis2YerBagla(e) { return this.x2YerBagla({ ...e, alias: e.alias ?? 'fis' }) }
-	har2YerBagla(e) { return this.fis2YerBagla({ ...e, alias: e.alias ?? 'har' }) }
+	fis2YerBagla(e) { return this.x2YerBagla({ ...e, alias: e?.alias ?? 'fis' }) }
+	har2YerBagla(e) { return this.fis2YerBagla({ ...e, alias: e?.alias ?? 'har' }) }
 	har2KatDetayBagla(e) { let alias = e?.alias ?? 'har'; this.leftJoin({ alias, from: 'kategoridetay kdet', on: `${alias}.kdetaysayac = kdet.kaysayac` }); return this }
-	x2YerBagla(e) { const {alias} = e, aliasVeNokta = alias ? `${alias}.` : ''; this.fromIliski('stkyer yer', `${aliasVeNokta}yerkod = yer.kod`) }
+	x2YerBagla(e) { const {alias} = e, aliasVeNokta = alias ? `${alias}.` : ''; this.fromIliski('stkyer yer', `${aliasVeNokta}yerkod = yer.kod`); return this }
 	fis2CariBagla(e) { e = e ?? {}; let mustSaha = (e.mustSaha ?? e.fisMustSaha) || 'must'; this.fromIliski('carmst car', `fis.${mustSaha} = car.must`); return this }
 	fis2TicCariBagla(e) { this.fromIliski('carmst car', 'fis.ticmust = car.must'); return this }
 	fis2AltHesapBagla(e) { this.fromIliski('althesap alth', 'fis.althesapkod = alth.kod'); return this }
@@ -205,30 +205,30 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	har2CariBagla(e) { e = e ?? {}; let mustSaha = (e.mustSaha ?? e.harMustSaha) || 'must'; this.fromIliski('carmst car', `har.${mustSaha} = car.must`); return this }
 	har2PosKosulBagla(e) { this.fromIliski('poskosul pkos', 'har.poskosulkod = pkos.kod'); return this }
 	muhHesap2GrupBagla(e) { this.fromIliski('muhgrup mhgrp', 'mhes.grupkod = mhgrp.kod'); return this }
-	cariHepsiBagla(e) { e = e || {}; this.cariYardimciBagla(e); this.cariAyrimBagla(e); return this }
+	cariHepsiBagla(e) { this.cariYardimciBagla(e); this.cariAyrimBagla(e); return this }
 	cari2BolgeBagla(e) {
-		e = e || {}; const alias = e.alias ?? 'car', aliasVeNokta = alias ? `${alias}.` : '';
+		const alias = e?.alias ?? 'car', aliasVeNokta = alias ? `${alias}.` : '';
 		this.fromIliski('carbolge bol', `${aliasVeNokta}bolgekod = bol.kod`); return this
 	}
 	bolge2AnaBolgeBagla(e) { this.fromIliski('caranabolge abol', 'bol.anabolgekod = abol.kod'); return this }
 	cari2IlBagla(e) {
-		e = e || {}; const alias = e.alias ?? 'car', aliasVeNokta = alias + '.';
+		const alias = e?.alias ?? 'car', aliasVeNokta = alias + '.';
 		this.fromIliski('caril il', `${aliasVeNokta}ilkod = il.kod`); return this
 	}
 	cari2UlkeBagla(e) {
-		e = e || {}; const alias = e.alias ?? 'car', aliasVeNokta = alias + '.';
+		const alias = e?.alias ?? 'car', aliasVeNokta = alias + '.';
 		this.fromIliski('ulke ulk', `${aliasVeNokta}ulkekod = ulk.kod`); return this
 	}
 	cari2TipBagla(e) {
-		e = e || {}; const alias = e.alias ?? 'car', aliasVeNokta = alias + '.';
+		const alias = e?.alias ?? 'car', aliasVeNokta = alias + '.';
 		this.fromIliski('cartip ctip', `${aliasVeNokta}tipkod = ctip.kod`); return this
 	}
 	cari2IstGrupBagla(e) {
-		e = e || {}; const alias = e.alias ?? 'car', aliasVeNokta = alias + '.';
+		const alias = e?.alias ?? 'car', aliasVeNokta = alias + '.';
 		this.fromIliski('caristgrup cigrp', `${aliasVeNokta}cistgrupkod = cigrp.kod`); return this
 	}
 	cariYardimciBagla(e) {
-		e = e || {}; const alias = e.alias ?? 'car', aliasVeNokta = alias + '.';
+		const alias = e?.alias ?? 'car', aliasVeNokta = alias + '.';
 		this.cari2BolgeBagla(e); this.bolge2AnaBolgeBagla(e); this.cari2IstGrupBagla(e);
 		this.cari2IlBagla(e); this.cari2TipBagla(e); this.cari2UlkeBagla(e);
 		this.leftJoin({ alias: alias, table: 'muhhesap cmuh', on: `${aliasVeNokta}muhhesap = cmuh.kod` });
@@ -241,7 +241,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		this.fromIliski('banmst cban', `${aliasVeNokta}bankakod = cban.kod`);
 		return this
 	}
-	cariAyrimBagla(e) { /* tamamlanacak */ e = e || {}; const alias = e.alias ?? 'car', aliasVeNokta = alias + '.'; return this }
+	cariAyrimBagla(e) { /* tamamlanacak */ const alias = e?.alias ?? 'car', aliasVeNokta = alias + '.'; return this }
 	har2AltHesapBagla(e) { this.fromIliski('althesap alth', 'har.cariitn = alth.kod'); return this }
 	har2KasaBagla(e) { this.fromIliski('kasmst kas', 'har.kasakod = kas.kod'); return this }
 	har2BankaHesapBagla(e) { this.fromIliski('banbizhesap bhes', 'har.banhesapkod = bhes.kod'); return this }
@@ -250,30 +250,30 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	son2YerBagla(e) { this.fromIliski('stkyer yer', 'son.yerkod = yer.kod'); return this }
 	yer2GrupBagla(e) { this.fromIliski('stkyergrup ygrp', 'yer.yergrupkod = ygrp.kod'); return this }
 	yer2SubeBagla(e) { this.fromIliski('isyeri sub', 'yer.bizsubekod = sub.kod'); return this }
-	stokHepsiBagla(e) { e = e || {}; this.stokYardimciBagla(e); this.stokAyrimBagla(e); return this }
+	stokHepsiBagla(e) { this.stokYardimciBagla(e); this.stokAyrimBagla(e); return this }
 	stokYardimciBagla(e) {
-		e = e || {}; const alias = e.alias ?? 'stk', aliasVeNokta = alias + '.';
+		const alias = e?.alias ?? 'stk', aliasVeNokta = alias + '.';
 		this.stok2GrupBagla(e); this.stokGrup2AnaGrupBagla(e); this.stok2IstGrupBagla(e); this.stok2BarkodBagla(e); return this
 	}
-	stokAyrimBagla(e) { /* tamamlanacak */ e = e || {}; const alias = e.alias ?? 'stk', aliasVeNokta = alias + '.'; return this }
+	stokAyrimBagla(e) { /* tamamlanacak */ const alias = e?.alias ?? 'stk', aliasVeNokta = alias + '.'; return this }
 	stok2GrupBagla(e) {
-		e = e || {}; const alias = e.alias ?? 'stk',  aliasVeNokta = alias + '.';
+		const alias = e?.alias ?? 'stk',  aliasVeNokta = alias + '.';
 		this.fromIliski('stkgrup grp', `${aliasVeNokta}grupkod = grp.kod`); return this
 	}
 	stokGrup2AnaGrupBagla(e) {
-		e = e || {}; const alias = e.alias ?? 'grp',  aliasVeNokta = alias + '.';
+		const alias = e?.alias ?? 'grp',  aliasVeNokta = alias + '.';
 		this.fromIliski('stkanagrup agrp', `${aliasVeNokta}anagrupkod = agrp.kod`); return this
 	}
 	stok2IstGrupBagla(e) {
-		e = e || {}; const alias = e.alias ?? 'stk',  aliasVeNokta = alias + '.';
+		const alias = e?.alias ?? 'stk',  aliasVeNokta = alias + '.';
 		this.fromIliski('stkistgrup sigrp', `${aliasVeNokta}sistgrupkod = sigrp.kod`); return this
 	}
 	stok2MarkaBagla(e) {
-		e = e || {}; const alias = e.alias ?? 'stk',  aliasVeNokta = alias + '.';
+		const alias = e?.alias ?? 'stk',  aliasVeNokta = alias + '.';
 		this.fromIliski('stokmarka smar', `${aliasVeNokta}smarkakod = smar.kod`); return this
 	}
 	stok2BarkodBagla(e) {
-		e = e || {}; const alias = e.alias ?? 'stk',  aliasVeNokta = alias + '.';
+		const alias = e?.alias ?? 'stk',  aliasVeNokta = alias + '.';
 		const iliskiler = [`${alias}.kod = sbar.stokkod`, 'sbar.paketsayac IS NULL', `sbar.varsayilan <> ''`];
 		for (const item of HMRBilgi.hmrIter()) {
 			const {defaultValue, rowAttr} = item;
@@ -283,26 +283,26 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		return this
 	}
 	stokGTIPBagla(e) {
-		e = e || {}; const alias = e.alias ?? 'stk', aliasVeNokta = alias + '.';
+		const alias = e?.alias ?? 'stk', aliasVeNokta = alias + '.';
 		this.fromIliski('stkgtip gtip', `${aliasVeNokta}gtipkod = gtip.kod`); return this
 	}
 	har2HizmetBagla(e) { this.fromIliski('hizmst hiz', 'har.hizmetkod = hiz.kod'); return this }
-	hizmetHepsiBagla(e) { e = e || {}; this.hizmetYardimciBagla(e); this.hizmetAyrimBagla(e); return this }
+	hizmetHepsiBagla(e) { this.hizmetYardimciBagla(e); this.hizmetAyrimBagla(e); return this }
 	hizmetYardimciBagla(e) {
-		e = e || {}; const alias = e.alias ?? 'hiz', aliasVeNokta = alias + '.';
+		const alias = e?.alias ?? 'hiz', aliasVeNokta = alias + '.';
 		this.hizmet2GrupBagla(e); this.hizmetGrup2AnaGrupBagla(e); this.hizmet2IstGrupBagla(e); return this
 	}
-	hizmetAyrimBagla(e) { /* tamamlanacak */ e = e || {}; const alias = e.alias ?? 'hiz', aliasVeNokta = alias + '.'; return this }
+	hizmetAyrimBagla(e) { /* tamamlanacak */ const alias = e?.alias ?? 'hiz', aliasVeNokta = alias + '.'; return this }
 	hizmet2GrupBagla(e) {
-		e = e || {}; const alias = e.alias ?? 'hiz',  aliasVeNokta = alias + '.';
+		const alias = e?.alias ?? 'hiz',  aliasVeNokta = alias + '.';
 		this.fromIliski('hizgrup grp', `${aliasVeNokta}grupkod = grp.kod`); return this
 	}
 	hizmetGrup2AnaGrupBagla(e) {
-		e = e || {}; const alias = e.alias ?? 'grp',  aliasVeNokta = alias + '.';
+		const alias = e?.alias ?? 'grp',  aliasVeNokta = alias + '.';
 		this.fromIliski('hizanagrup agrp', `${aliasVeNokta}anagrupkod = agrp.kod`); return this
 	}
 	hizmet2IstGrupBagla(e) {
-		e = e || {}; const alias = e.alias ?? 'hiz',  aliasVeNokta = alias + '.';
+		const alias = e?.alias ?? 'hiz',  aliasVeNokta = alias + '.';
 		this.fromIliski('hizistgrup higrp', `${aliasVeNokta}histgrupkod = higrp.kod`); return this
 	}
 	har2VarsayilanUrunPaketBagla(e) {
@@ -311,7 +311,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	}
 	har2HizmetBagla(e) { this.fromIliski('hizmst hiz', 'har.hizmetkod = hiz.kod'); return this }
 	har2DemirbasBagla(e) {
-		e = e || {}; const sahaAdi = e.sahaAdi || 'demirbaskod';
+		const sahaAdi = e.sahaAdi || 'demirbaskod';
 		this.fromIliski('demmst dem', `har.${sahaAdi} = dem.kod`); return this
 	}
 	har2KDVBagla(e) { this.fromIliski('vergihesap kver', 'har.kdvhesapkod = kver.kod'); return this }
@@ -319,7 +319,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	har2StopajBagla(e) { this.fromIliski('vergihesap sver', 'har.stopajhesapkod = sver.kod'); return this }
 	har2PaketBagla(e) { this.leftJoin({ alias: 'har', table: 'paket pak', on: 'har.paketsayac = pak.kaysayac' }); return this }
 	har2HMRBagla(e) {
-		e = e || {}; const harAlias = e.harAlias ?? e.alias ?? 'har', harAliasVeNokta = harAlias + '.';
+		const harAlias = e?.harAlias ?? e?.alias ?? 'har', harAliasVeNokta = harAlias + '.';
 		const kodSahaEkleFlag = e.kodEkle ?? e.kodSahaEkle ?? e.kodSahaEkleFlag, adiSahaEkleFlag = e.adiEkle ?? e.adiSahaEkle ?? e.adiSahaEkleFlag;
 		for (const item of HMRBilgi.hmrIter()) {
 			const {kami, mfSinif, rowAttr, rowAdiAttr} = item;

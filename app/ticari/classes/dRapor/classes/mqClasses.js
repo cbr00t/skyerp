@@ -150,6 +150,10 @@ class DMQPlasiyer extends DMQCari {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Plasiyer' }
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this.class; sent.where.add(`${alias}.kayittipi = 'X'`) }
 }
+class DMQKasa extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kasa' }
+	static get table() { return 'kasmst' } static get tableAlias() { return 'kas' }
+}
 class DMQMuhHesap extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Hesap' }
 	static get table() { return 'muhhesap' } static get tableAlias() { return 'mhes' }
@@ -161,7 +165,6 @@ class DMQMuhGrup extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Grup' }
 	static get table() { return 'muhgrup' } static get tableAlias() { return 'mhgrp' }
 }
-
 class DMQHat extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Hat' }
 	static get table() { return 'ismerkezi' } static get tableAlias() { return 'hat' }
