@@ -51,7 +51,7 @@ class CariHareketci extends Hareketci {
 			],
 			kredi: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(e => {
-					const {sent} = e, {where: wh} = sent; sent.fromAdd('kredifis fis'); sent.fis2KrediBankaHesapBagla(e).fis2AltHesapBagla(e);
+					const {sent} = e, {where: wh} = sent; sent.fromAdd('kredifis fis').fis2KrediBankaHesapBagla(e).fis2AltHesapBagla(e);
 					wh.fisSilindiEkle().add(`fis.fistipi = 'A'`, `fis.hedeftipi = 'C'`)
 				}).hvDuzenleIslemi(e => $.extend(e.hv, {
 					kaysayac: 'fis.kaysayac', oncelik: '30', unionayrim: `'Kre'`, kayittipi: `'KRE'`, anaislemadi: `'Kredi'`, isladi: `'Kredi Alımı'`, fistipi: 'fis.fistipi',
@@ -62,7 +62,7 @@ class CariHareketci extends Hareketci {
 			],
 			pos: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(e => {
-					const {sent} = e, {where: wh} = sent; sent.fisHareket('posfis', 'posilkhar'); sent.fis2PlasiyerBagla(e).har2AltHesapBagla(e).har2BankaHesapBagla(e);
+					const {sent} = e, {where: wh} = sent; sent.fisHareket('posfis', 'posilkhar').fis2PlasiyerBagla(e).har2AltHesapBagla(e).har2BankaHesapBagla(e);
 					wh.fisSilindiEkle().add(`fis.fistipi = 'AL'`)
 				}).hvDuzenleIslemi(e => {
 					let {cariGenel} = app.params, k = cariGenel.kullanim;
@@ -106,9 +106,7 @@ class CariHareketci extends Hareketci {
 			dekont: dekont = [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(e => {
 					const {sent} = e, {where: wh} = sent; sent.fisHareket('finansfis', 'finanshar')
-						.leftJoin({ alias: 'fis', from: 'carisl isl', on: 'fis.carislkod = isl.kod' })
-						.leftJoin({ alias: 'har', from: 'kategoridetay kdet', on: 'har.kdetaysayac = kdet.kaysayac' })
-						.fis2PlasiyerBagla().fis2KasaBagla().har2AltHesapBagla().har2HizmetBagla()
+						.fis2IslBagla_leftJoin().har2KatDetayBagla().fis2PlasiyerBagla().fis2KasaBagla().har2AltHesapBagla().har2HizmetBagla()
 					wh.fisSilindiEkle().inDizi(['CI', 'CH', 'KC'], 'fis.fistipi')
 				}).hvDuzenleIslemi(e => {
 					let fisNoxClause = `(case when har.belgeno = 0 then fis.fisnox else har.belgenox end)`, vadeSql = `coalesce(har.vade, har.belgetarih, fis.fisvade, fis.tarih)`;
@@ -139,9 +137,7 @@ class CariHareketci extends Hareketci {
 			serbestMeslek: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(e => {
 					const {sent} = e, {where: wh} = sent; sent.fisHareket('finansfis', 'finanshar')
-						.leftJoin({ alias: 'fis', from: 'carisl isl', on: 'fis.carislkod = isl.kod' })
-						.leftJoin({ alias: 'har', from: 'kategoridetay kdet', on: 'har.kdetaysayac = kdet.kaysayac' })
-						.fis2KasaBagla().fis2PlasiyerBagla().har2AltHesapBagla().har2HizmetBagla()
+						.fis2IslBagla_leftJoin().har2KatDetayBagla().fis2KasaBagla().fis2PlasiyerBagla().har2AltHesapBagla().har2HizmetBagla()
 					wh.fisSilindiEkle().add(`fis.fistipi = 'SM'`)
 				}).hvDuzenleIslemi(e => {
 					let fisNoxClause = `(case when har.belgeno=0 then fis.fisnox else har.belgenox end)`, vadeSql = `coalesce(har.vade, har.belgetarih, fis.fisvade, fis.tarih)`;

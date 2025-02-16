@@ -182,11 +182,15 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		this.fromIliski({ from: `${harTable} har`, iliski: 'fis.kaysayac = har.fissayac' })
 		return this
 	}
+	fis2IslBagla(e) { let alias = e.alias ?? 'fis'; this.fromIliski('carisl isl', `${alias}.carislkod = isl.kod`); return this }
+	fis2IslBagla_leftJoin(e) { let alias = e.alias ?? 'fis'; this.leftJoin({ alias, from: 'carisl isl', on: `${alias}.carislkod = isl.kod` }); return this }
+	har2TahSekliBagla(e) { let alias = e.alias ?? 'har'; this.fromIliski('tahsilsekli tsek', `${alias}.tahseklino = tsek.kodno`); return this }
 	fis2SubeBagla(e) { this.fromIliski('isyeri sub', 'fis.bizsubekod = sub.kod'); this.sube2GrupBagla(e); return this }
 	sube2GrupBagla(e) { this.fromIliski('isygrup igrp', 'sub.isygrupkod = igrp.kod'); return this }
 	takip2GrupBagla(e) { this.fromIliski('takipgrup tak', 'tak.grupkod = tgrp.kod'); return this }
 	fis2YerBagla(e) { return this.x2YerBagla({ ...e, alias: e.alias ?? 'fis' }) }
-	har2YerBagla(e) { return this.x2YerBagla({ ...e, alias: e.alias ?? 'har' }) }
+	har2YerBagla(e) { return this.fis2YerBagla({ ...e, alias: e.alias ?? 'har' }) }
+	har2KatDetayBagla(e) { let alias = e.alias ?? 'har'; sent.leftJoin({ alias, from: 'kategoridetay kdet', on: `${alias}.kdetaysayac = kdet.kaysayac` }); return this }
 	x2YerBagla(e) { const {alias} = e, aliasVeNokta = alias ? `${alias}.` : ''; this.fromIliski('stkyer yer', `${aliasVeNokta}yerkod = yer.kod`) }
 	fis2CariBagla(e) { e = e ?? {}; let mustSaha = (e.mustSaha ?? e.fisMustSaha) || 'must'; this.fromIliski('carmst car', `fis.${mustSaha} = car.must`); return this }
 	fis2TicCariBagla(e) { this.fromIliski('carmst car', 'fis.ticmust = car.must'); return this }
