@@ -1,7 +1,7 @@
 class CariHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get kod() { return 'cari' } static get aciklama() { return 'Cari' }
 	static hareketTipSecim_kaListeDuzenle(e) {
-		super.hareketTipSecim_kaListeDuzenle(e); const {kaListe} = e; kaListe.push(
+		super.hareketTipSecim_kaListeDuzenle(e); e.kaListe.push(
 			new CKodVeAdi(['kasa', 'Kasa Tahsilat/Ödeme']), new CKodVeAdi(['hizmet', 'Hizmet Gelir/Gider']), new CKodVeAdi(['havaleEFT', 'Havale/EFT']),
 			new CKodVeAdi(['tahsilatOdeme', 'Cari Tahsilat/Ödeme']), new CKodVeAdi(['virman', 'Cari Virman', 'virmanmi']), new CKodVeAdi(['dekont', 'Genel Dekont']),
 			new CKodVeAdi(['topluIslem', 'Toplu İşlem']), new CKodVeAdi(['devir', 'Cari Devir']), new CKodVeAdi(['cek', 'Çek']), new CKodVeAdi(['SENET', 'Senet']),
@@ -10,7 +10,7 @@ class CariHareketci extends Hareketci {
 	}
 	constructor(e) { e = e || {}; super(e) } defaultSonIslem(e) { this.uniOrtakSonIslem(e) }
 	static varsayilanHVDuzenle(e) {
-		const {hv} = e, sqlEmptyDate = 'cast(null as datetime)', sqlEmpty = `''`, sqlZero = '0';
+		super.varsayilanHVDuzenle(e); const {hv} = e, sqlEmptyDate = 'cast(null as datetime)', sqlEmpty = `''`, sqlZero = '0';
 		for (const key of [
 			'iceriktipi', 'anaislemadi', 'islkod', 'isladi', 'refkod', 'refadi', 'plasiyerkod', 'plasiyeradi', 'odgunkod', 'iade', 'kdetay', 'satistipkod',
 			'fistipi', 'fisektipi', 'dovizsanalmi', 'dvkod', 'ticmust', 'must', 'althesapkod', 'althesapadi', 'takipno', 'aciklama', 'ekaciklama', 'gxbnox', 'taksitadi',
@@ -25,9 +25,11 @@ class CariHareketci extends Hareketci {
 		})
 	}
 	static uygunluk2UnionBilgiListeDuzenleDevam(e) {
-		let dekont;
-		super.uygunluk2UnionBilgiListeDuzenleDevam(e); const {liste} = e; $.extend(liste, {
-				/* Banka */
+		super.uygunluk2UnionBilgiListeDuzenleDevam(e);
+		this.uniDuzenle_banka(e).uniDuzenle_finans(e)
+	}
+	static uniDuzenle_banka({ liste }) {
+		$.extend(e.liste, {
 			havaleEFT: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(e => {
 					const {sent} = e, {where: wh} = sent;
@@ -95,8 +97,12 @@ class CariHareketci extends Hareketci {
 						refkod: 'har.banhesapkod', refadi: 'bhes.aciklama', aciklama: 'har.aciklama', ekaciklama: 'fis.aciklama'
 					})
 			   })
-			],
-				/* Finans */
+			]
+		});
+		return this
+	}
+	static uniDuzenle_finans({ liste }) {
+		let dekont; $.extend(e.liste, {
 			dekont: dekont = [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(e => {
 					const {sent} = e, {where: wh} = sent; sent.fisHareket('finansfis', 'finanshar')
@@ -154,5 +160,6 @@ class CariHareketci extends Hareketci {
 			]
 		});
 		for (const key of ['hizmet', 'kasa', 'virman', 'devir']) { liste[key] = dekont }
+		return this
 	}
 }
