@@ -78,7 +78,9 @@ class MQCariGenelParam extends MQTicariParamBase {
 	static get sinifAdi() { return 'Cari Genel Parametreleri' } static get paramKod() { return 'XCGEN' }
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); const {paramci} = e;
-		let kullanim = paramci.addKullanim().addGrup({ etiket: 'Kullanım' }); let form = kullanim.addFormWithParent();
+		paramci.addGrup().setEtiket('Genel'); let form = paramci.addFormWithParent();
+			form.addBool('cekSenetDevirCariyeIslenir', 'Çek/Senet Devir Cariye İşlenir');
+		let kullanim = paramci.addKullanim().addGrup().setEtiket('Kullanım'); form = kullanim.addFormWithParent();
 			form.addBool('konsolide', 'Konsolide'); form.addBool('altHesap', 'Alt Hesap')
 	}
 }
