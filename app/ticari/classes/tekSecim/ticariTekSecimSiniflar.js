@@ -553,3 +553,12 @@ class ResimBelirlemeKurali extends TekSecim {
 		)
 	}
 }
+class TicBorclanmaSekli extends TekSecim {
+	static get defaultChar() { return 'F' }
+	kaListeDuzenle(e) {
+		super.kaListeDuzenle(e); e.kaListe.push(
+			new CKodVeAdi(['S', 'Sipariş', 'siparismi']), new CKodVeAdi(['I', 'İrsaliye', 'irsaliyemi']),
+			new CKodVeAdi(['X', 'Fatura ve Bekleyen İrsaliye', 'faturaVeBekleyenIrsaliyemi']), new CKodVeAdi(['F', 'Fatura', 'faturami'])
+		)
+	}
+}
