@@ -13,9 +13,8 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 			.addGrup(new TabloYapiItem().setKA('SAAT', 'Saat').addColDef(new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 20, filterType: 'checkedlist' }).tipTime()))
 	}
 	secimlerDuzenle(e) {
-		const {secimler} = e, {tabloYapi} = this, {grupVeToplam} = tabloYapi;
-		secimler.grupEkle('donemVeTarih', 'Dönem Ve Tarih');
-		secimler.secimTopluEkle({
+		const {secimler: sec} = e; sec.grupEkle('donemVeTarih', 'Dönem Ve Tarih');
+		sec.secimTopluEkle({
 			donem: new SecimTekSecim({ etiket: 'Dönem', tekSecimSinif: DonemTarihAralikVeHepsiSecim, grupKod: 'donemVeTarih' }).autoBind()
 				.setOzetBilgiValueGetter(e => {
 					const kod = e.value?.kod ?? e.value, result = [e.value?.aciklama ?? kod];

@@ -22,12 +22,12 @@ class KasaHareketci extends Hareketci {
 			fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', ba: 'fis.ba', bedel: 'har.bedel', dvbedel: 'har.dvbedel'
 		})
 	}
-	static uygunluk2UnionBilgiListeDuzenleDevam(e) {
+	uygunluk2UnionBilgiListeDuzenleDevam(e) {
 		super.uygunluk2UnionBilgiListeDuzenleDevam(e);
 		this.uniDuzenle_finans(e).uniDuzenle_cekSenet(e).uniDuzenle_dekont(e);
 		this.uniDuzenle_krediKarti(e).uniDuzenle_ticari(e)
 	}
-	static uniDuzenle_finans({ liste }) {
+	uniDuzenle_finans({ uygunluk, liste }) {
 		let getUniBilgiler_banka = fisTipi => [
 			new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 				const {where: wh} = sent; sent.fisHareket('finansfis', 'finanshar')
@@ -60,7 +60,7 @@ class KasaHareketci extends Hareketci {
 			],
 			banka: getUniBilgiler_banka('KB'), kasaCari: getUniBilgiler_banka('KC'), hizmet: getUniBilgiler_banka('KH'),
 			cariTahsilatOdeme: [new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-				const {where: wh} = sent; sent.fisHareket('carifis', 'carihar').har2TahSekliBagla().fis2CariBagla({ mustSaha: 'fis.mustkod' }).fis2PlasiyerBagla();
+				const {where: wh} = sent; sent.fisHareket('carifis', 'carihar').har2TahSekliBagla().fis2CariBagla({ mustSaha: 'mustkod' }).fis2PlasiyerBagla();
 				wh.fisSilindiEkle().degerAta('NK', 'tsek.tahsiltipi')
 			}).hvDuzenleIslemi(({ hv }) => {
 				$.extend(hv, {
@@ -76,7 +76,7 @@ class KasaHareketci extends Hareketci {
 		});
 		return this
 	}
-	static uniDuzenle_cekSenet({ liste }) {
+	uniDuzenle_cekSenet({ uygunluk, liste }) {
 		$.extend(liste, {
 			csBankadanCekilen: [new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 				const {where: wh} = sent; sent.fromAdd('csfis fis')
@@ -112,7 +112,7 @@ class KasaHareketci extends Hareketci {
 		});
 		return this
 	}
-	static uniDuzenle_dekont({ liste }) {
+	uniDuzenle_dekont({ uygunluk, liste }) {
 		$.extend(liste, {
 			genelDekont: [new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 				const {where: wh} = sent; sent.fisHareket('geneldekontfis', 'geneldekonthar')
@@ -127,7 +127,6 @@ class KasaHareketci extends Hareketci {
 			kasaVirman: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {												/* çıkış açısından (fis subesi = cikis kasa subesi) */
 					const {where: wh} = sent; sent.fisHareket('geneldekontfis', 'geneldekonthar')
-						.fromIliski('csportfoy prt', 'har.portfkod = prt.kod')
 						.fromIliski('geneldekonthar gir', 'har.fissayac = gir.fissayac')
 						.fromIliski('kasmst gkas', 'gir.kasakod = gkas.kod')
 					wh.fisSilindiEkle().degerAta('K', 'fis.ozeltip').add('har.seq % 2 = 1', 'gir.seq = (har.seq + 1)')
@@ -135,12 +134,11 @@ class KasaHareketci extends Hareketci {
 					$.extend(hv, {
 						kasakod: 'har.kasakod', ba: 'har.ba', kayittipi: `'KSVIR'`, takipno: 'har.takipno', refsubekod: 'gkas.bizsubekod',
 						refkod: 'gir.kasakod', refadi: 'gkas.aciklama', oncelik: '70', islemadi: `'Kasa Virman'`,
-						dvkur: 'har.dvkur', bedel: 'bel.bedel', dvbedel: 'bel.dvbedel'
+						dvkur: 'har.dvkur', bedel: 'har.bedel', dvbedel: 'har.dvbedel'
 					})
 				}),
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {												/* giriş açısından */
 					const {where: wh} = sent; sent.fisHareket('geneldekontfis', 'geneldekonthar')
-						.fromIliski('csportfoy prt', 'har.portfkod = prt.kod')
 						.fromIliski('geneldekonthar cik', 'har.fissayac = cik.fissayac')
 						.fromIliski('kasmst ckas', 'cik.kasakod = ckas.kod')
 						.fromIliski('kasmst kas', 'har.kasakod = kas.kod')
@@ -149,15 +147,14 @@ class KasaHareketci extends Hareketci {
 					$.extend(hv, {
 						kasakod: 'har.kasakod', ba: 'har.ba', kayittipi: `'KSVIR'`, bizsubekod: 'kas.bizsubekod', refsubekod: 'fis.bizsubekod',
 						takipno: 'har.takipno', refkod: 'cik.kasakod', refadi: 'ckas.aciklama', oncelik: '12', islemadi: `'Kasa Virman'`,
-						bedel: `(case when har.bedel = 0 then bel.bedel else har.bedel end)`,
-						dvbedel: `(case when har.bedel = 0 then bel.dvbedel else har.dvbedel end)`
+						bedel: 'har.bedel', dvbedel: 'har.dvbedel'
 					})
 				})
 			]
 		});
 		return this
 	}
-	static uniDuzenle_krediKarti({ liste }) {
+	uniDuzenle_krediKarti({ uygunluk, liste }) {
 		$.extend(liste, {
 			krediKartOdeme: [new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 				const {where: wh} = sent; sent.fisHareket('posfis', 'posilkhar').har2PosKosulBagla();
@@ -171,31 +168,32 @@ class KasaHareketci extends Hareketci {
 		});
 		return this
 	}
-	static uniDuzenle_ticari({ liste }) {
-		let getUniBilgiler = perakendemi => [
-			new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-				const {where: wh} = sent; sent.fisHareket('piffis', 'piftaksit')
-					.fromIliski('tahsilsekli tsek', 'har.taktahsilsekli = tsek.kodno')
-					.fis2CariBagla().fis2YerBagla().fis2PlasiyerBagla();
-				wh.fisSilindiEkle().degerAta('NK', 'tsek.tahsiltipi')
-					.degerAta(perakendemi ? 'P' : 'F', 'fis.piftipi').degerAta('A', 'fis.almsat')
-					.add(`har.refkasakod <> ''`);
-			}).hvDuzenleIslemi(({ hv }) => {
-				$.extend(hv, {
-					kasakod: 'tsek.kasakod', kayittipi: `'PIFA'`, plasiyerkod: 'fis.plasiyerkod', plasiyeradi: 'pls.birunvan',
-					takipno: 'fis.orttakipno', althesapkod: 'fis.cariitn', oncelik: `(case when fis.almsat = 'T' then 20 else 55 end)`, 
-					ba: `(case when har.btersmi = 0 then dbo.ticaricarba(fis.almsat, fis.iade) else dbo.tersba(dbo.ticaricarba(fis.almsat, fis.iade)) end)`,
-					islemadi: `(case when fis.piftipi = 'P' then
-									(case fis.ayrimtipi when 'PR' then 'Mağaza Satış' when 'GP' then 'Gider Pusula'
-									    else dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Perakende Alım', 'Perakende Satış')) end)
-								  else dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Alım Ödeme', 'Satış Tahsilat')) end)`,
-					refkod: `(case when fis.must = '' then fis.yerkod else fis.must end)`, refadi: `(case when fis.must = '' then yer.aciklama else car.birunvan end)`,
-					dvkur: `(case when har.karsidvvar = '' then fis.dvkur else har.karsidvkur end)`, dvbedel: `(case when har.karsidvvar = '' then har.dvbedel else har.karsidvbedel end)`,
-					bedel: 'bel.bedel', fisaciklama: 'fis.cariaciklama', detaciklama: 'har.aciklama' 
+	uniDuzenle_ticari({ uygunluk, liste }) {
+		$.extend(liste, {
+			faturaTahsilatOdeme$perakende: [
+				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
+					const {perakende: perakendemi} = uygunluk;
+					const {where: wh} = sent; sent.fisHareket('piffis', 'piftaksit')
+						.fromIliski('tahsilsekli tsek', 'har.taktahsilsekli = tsek.kodno')
+						.fis2CariBagla().fis2YerBagla().fis2PlasiyerBagla();
+					wh.fisSilindiEkle().degerAta('NK', 'tsek.tahsiltipi')
+						.degerAta(perakendemi ? 'P' : 'F', 'fis.piftipi').degerAta('A', 'fis.almsat');
+				}).hvDuzenleIslemi(({ hv }) => {
+					$.extend(hv, {
+						kasakod: 'tsek.kasakod', kayittipi: `'PIFA'`, plasiyerkod: 'fis.plasiyerkod', plasiyeradi: 'pls.birunvan',
+						takipno: 'fis.orttakipno', althesapkod: 'fis.cariitn', oncelik: `(case when fis.almsat = 'T' then 20 else 55 end)`, 
+						ba: `(case when har.btersmi = 0 then dbo.ticaricarba(fis.almsat, fis.iade) else dbo.tersba(dbo.ticaricarba(fis.almsat, fis.iade)) end)`,
+						islemadi: `(case when fis.piftipi = 'P' then
+										(case fis.ayrimtipi when 'PR' then 'Mağaza Satış' when 'GP' then 'Gider Pusula'
+										    else dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Perakende Alım', 'Perakende Satış')) end)
+									  else dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Alım Ödeme', 'Satış Tahsilat')) end)`,
+						refkod: `(case when fis.must = '' then fis.yerkod else fis.must end)`, refadi: `(case when fis.must = '' then yer.aciklama else car.birunvan end)`,
+						dvkur: `(case when har.karsidvvar = '' then fis.dvkur else har.karsidvkur end)`, dvbedel: `(case when har.karsidvvar = '' then har.dvbedel else har.karsidvbedel end)`,
+						bedel: 'har.bedel', fisaciklama: 'fis.cariaciklama', detaciklama: 'har.aciklama' 
+					})
 				})
-			})
-		];
-		$.extend(liste, { faturaTahsilatOdeme: getUniBilgiler(false), perakende: getUniBilgiler(true) });
+			]
+		});
 		return this
 	}
 }

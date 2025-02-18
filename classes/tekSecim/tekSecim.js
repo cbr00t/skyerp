@@ -3,7 +3,11 @@ class TekSecim extends CIO {
 	static get defaultChar() { return null } get coklumu() { return $.isArray(this.char) }
 	static get kaListe() { return this.instance.kaListe } static get kaDict() { return this.instance.kaDict }
 	static get kodListe() { return this.instance.kodListe } static get adiListe() { return this.instance.adiListe }
-	get kaListe() { return this._kaListe } set kaListe(value) { const savedValue = this._kaListe; this._kaListe = value; if (!(this.kaDict && value == savedValue)) { this.kaDictOlustur() } }
+	get kaListe() { return this._kaListe }
+	set kaListe(value) {
+		const savedValue = this._kaListe; this._kaListe = value;
+		if (!(this.kaDict && value == savedValue)) { this.kaDictOlustur() }
+	}
 	get secilen() {
 		const {coklumu, kaDict, char} = this;
 		if (coklumu) { const result = []; for (const kod of char) { const ka = kaDict[kod]; if (ka != null) { result.push(ka) } } return result }

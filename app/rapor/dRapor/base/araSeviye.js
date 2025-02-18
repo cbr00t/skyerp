@@ -65,8 +65,13 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		await super.loadServerDataInternal(e); const {raporTanim, secimler} = this, attrSet = e.attrSet ?? raporTanim.attrSet, {maxRow, donemBS} = e;
 		let _e = { ...e, stm: new MQStm(), attrSet, donemBS }, recs = await this.loadServerData_ilk(e); if (recs !== undefined) { return recs }
 		this.loadServerData_queryDuzenle_tekil(_e); this.loadServerData_queryDuzenle_tekilSonrasi(_e); this.loadServerData_queryDuzenle_genelSon(_e);
-		let query = _e.stm; recs = e.recs = query ? await app.sqlExecSelect({ query, maxRow }) : null;
-		let _recs = await this.loadServerData_son(e); if (_recs !== undefined) { recs = _recs }
+		let query = _e.stm;
+		try {
+			recs = e.recs = query ? await app.sqlExecSelect({ query, maxRow }) : null;
+			let _recs = await this.loadServerData_son(e); if (_recs !== undefined) { recs = _recs }
+			console.info({ sender: this, query, recs }, query?.getQueryYapi() ?? query.toString())
+		}
+		catch (ex) { console.warn({ sender: this, query, ex, errorText: getErrorText(ex) }, query?.getQueryYapi() ?? query.toString()); throw ex }
 		return recs
 	}
 	super_loadServerDataInternal(e) { return super.loadServerDataInternal(e) }
@@ -283,8 +288,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	tabloYapiDuzenle_baBedel(e) {
 		e.result
-			.addToplamBasit('BORCBEDEL', 'Borç Bedel', 'borcbedel').addToplamBasit('ALACAKBEDEL', 'Alacak Bedel', 'alacakbedel')
-			.addToplamBasit('ISARETLIBEDEL', 'İşaretli Bedel', 'isaretlibedel')
+			.addToplamBasit_bedel('BORCBEDEL', 'Borç Bedel', 'borcbedel').addToplamBasit_bedel('ALACAKBEDEL', 'Alacak Bedel', 'alacakbedel')
+			.addToplamBasit_bedel('ISARETLIBEDEL', 'İşaretli Bedel', 'isaretlibedel')
 		return this
 	}
 	loadServerData_queryDuzenle_baBedel(e) {

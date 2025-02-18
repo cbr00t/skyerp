@@ -151,11 +151,17 @@ class MQSQLConst extends CObject {
 }
 class MQAliasliYapi extends MQSQLOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } get aliasliYapimi() { return true }
+	get alias() {
+		let {_alias: result} = this;
+		if (result == undefined) { result = this._alias = this.class.getSahaDegeri(this.deger) }
+		return result
+	}
+	set alias(value) { this._alias = value }
 	get aliasVeyaDeger() { return this.alias || this.deger } get degerAlias() { return this.class.getDegerAlias(this.deger) }
 	get degerAliasListe() { return this.class.getDegerAliasListe(this.deger) }
 	
 	constructor(e) {
-		e = e || {}; super(e); this.deger = e.deger || ''; this.alias = e.alias || '';
+		e = e || {}; super(e); this.deger = e.deger || ''; this.alias = e.alias ?? undefined;    /* alias === undefined için getSahaDegeri ile getterda belirlenir */
 		this.aliaslimi = e.aliaslimi ?? (e.isCopy ? null : !!this.alias && this.alias != this.sql)
 	}
 	static newForFromText(e) {
@@ -225,6 +231,16 @@ class MQAliasliYapi extends MQSQLOrtak {
 			result[temp] = true
 		}
 		return Object.keys(result)
+	}
+	static getSahaDegeri(text) {
+		// har.kasakod   		gibi ==> 'kasakod'
+		// har.kasakod xkod		gibi ==> 'xkod'
+		//		aksinde			 ==> null
+		text = text?.toString().trim(); if (!text) { return null }
+		let parts = text.split(' '); if (parts.length > 1) { return parts[parts.length - 1] }
+		let ilk = text[0]; if (ilk >= '0' && ilk <= '9') { return null }
+		if (ilk == '(' || ilk == `'` || text.toUpperCase() == 'NULL') { return null }
+		parts = text.split('.'); return parts.length == 2 ? parts[parts.length - 1] : null;
 	}
 	buildString(e) {
 		super.buildString(e); e.result += this.deger || '';

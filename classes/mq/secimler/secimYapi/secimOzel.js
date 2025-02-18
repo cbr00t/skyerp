@@ -144,7 +144,8 @@ class SecimBoolTrue extends SecimBool {
 	readFrom(e) { e = e || {}; super.readFrom(e); if (e.value == null) { this.value = true } }
 }
 class SecimTekSecim extends SecimOzel {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'tekSecim' } static get birKismimi() { return false } get birKismimi() { return this.class }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'tekSecim' }
+	static get birKismimi() { return false } get birKismimi() { return this.class }
 	get value() { return this.getConvertedValue(this.tekSecim?.char) } set value(value) { const {tekSecim} = this; if (tekSecim) { tekSecim.char = this.getConvertedValue(value) } }
 	get ozetBilgiValue() {
 		let {value} = this; if (value == null) { return value }

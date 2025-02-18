@@ -21,8 +21,17 @@ class TabloYapi extends CObject {
 		}
 		return this
 	}
-	addGrupBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici) { return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici) }
-	addToplamBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici) { return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici) }
+	addGrupBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici) {
+		return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici)
+	}
+	addToplamBasit(kod, text, belirtec, mfSinif, genislikCh, fra, duzenleyici) {
+		let _duzenleyici = duzenleyici; duzenleyici = e => { e.colDef.tipDecimal(fra); _duzenleyici?.call(e) };
+		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici)
+	}
+	addToplamBasit_bedel(kod, text, belirtec, mfSinif, genislikCh, duzenleyici) {
+		let _duzenleyici = duzenleyici; duzenleyici = e => { e.colDef.tipDecimal_bedel(); _duzenleyici?.call(e) };
+		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici)
+	}
 	addItemBasit(selector, kod, text, belirtec, mfSinif, genislikCh, duzenleyici) {
 		let colDef = new GridKolon({ belirtec, text, maxWidth: genislikCh ?? 450, filterType: 'checkedlist' });
 		let _e = { item: this, selector, kod, text, belirtec, mfSinif, genislikCh, colDef }; duzenleyici?.call(this, _e); colDef = _e.colDef;
