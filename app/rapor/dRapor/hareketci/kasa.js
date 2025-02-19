@@ -1,5 +1,5 @@
 class DRapor_Hareketci_Kasa extends DRapor_Hareketci {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return config.dev }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get araSeviyemi() { return false } static get vioAdim() { return null }
 	static get kod() { return 'KASAHAR' } static get aciklama() { return 'Kasa Hareketci' }
 }
