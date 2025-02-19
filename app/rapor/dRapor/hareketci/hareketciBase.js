@@ -22,9 +22,9 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); let {result} = e;
 		this.tabloYapiDuzenle_ozelIsaret(e).tabloYapiDuzenle_sube(e);
-		result.addKAPrefix('ref', 'isl', 'althesap')
+		result.addKAPrefix('ref', 'islem', 'althesap')
 			.addGrupBasit('FISNOX', 'Fis No', 'fisnox').addGrupBasit('ALTHESAP', 'Alt Hesap', 'althesap').addGrupBasit('ODEMEGUN', 'Ödeme Gün', 'odgunkod')
-			.addGrupBasit('REFERANS', 'Referans', 'ref').addGrupBasit('ANAISLEM', 'Ana İşlem', 'anaislemadi').addGrupBasit('ISLEM', 'İşlem', 'isl');
+			.addGrupBasit('REFERANS', 'Referans', 'ref').addGrupBasit('ANAISLEM', 'Ana İşlem', 'anaislemadi').addGrupBasit('ISLEM', 'İşlem', 'islem');
 		this.tabloYapiDuzenle_plasiyer(e).tabloYapiDuzenle_takip(e);
 		result.addGrupBasit('DVKOD', 'Dv.Kod', 'dvkod').addGrupBasit('DVKUR', 'Dv.Kur', 'dvkur');
 		this.tabloYapiDuzenle_baBedel(e)
