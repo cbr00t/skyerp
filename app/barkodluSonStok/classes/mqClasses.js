@@ -111,16 +111,17 @@ class MQBarkodluSonStok extends MQDetayliMasterOrtak {
 		}
 		if (!hmrCount) { return [] }
 		sahalar.add(`SUM(${alias}.sonmiktar) miktar`); sent.groupByOlustur();
-		let {Delim_HMR: delim} = this, anahStr2Item = {}; for (let rec of await app.sqlExecSelect(sent)) {
+		let {Delim_HMR: delim} = this, anahStr2Item = {}, darkCSS = config.colorScheme == 'dark' ? `filter: invert(1) hue-rotate(180deg); ` : '';
+		for (let rec of await app.sqlExecSelect(sent)) {
 			let {oscolor1, oscolor2, imagesayac, miktar} = rec; if (!miktar) { continue }
 			let etiket = hmrBilgiler.map(({ rowAttr, rowAdiAttr }) => (rec[rowAdiAttr] || rec[rowAttr])?.toString() ?? '').filter(x => !!x).join(delim);
 			if (oscolor1) {
 				let color = { start: os2HTMLColor(oscolor1), end: os2HTMLColor(oscolor2) };
-				etiket = `<div class="full-wh" style="font-weight: bold; color: ${getContrastedColor(color.start ?? '')}; background-repeat: no-repeat !important; background: linear-gradient(180deg, ${color.end} 20%, ${color.start} 80%) !important">${etiket}</div>`
+				etiket = `<div class="full-wh" style="${darkCSS}font-weight: bold; color: ${getContrastedColor(color.start ?? '')}; background-repeat: no-repeat !important; background: linear-gradient(180deg, ${color.end} 20%, ${color.start} 80%) !important">${etiket}</div>`
 			}
 			if (imagesayac) {
 				let url = `${app.getWSUrlBase({ wsPath: 'ws/genel' })}/dbResimData/?id=${imagesayac}`;
-				etiket = `<div class="grid-resim full-wh" style="font-weight: bold; background-repeat: no-repeat !important; background-size: cover; background-image: url(${url}) !important">${etiket}</div>`
+				etiket = `<div class="grid-resim full-wh" style="${darkCSS}font-weight: bold; background-repeat: no-repeat !important; background-size: cover; background-image: url(${url}) !important">${etiket}</div>`
 			}
 			let item = anahStr2Item[etiket] = anahStr2Item[etiket] || { ...rec, etiket, veri: 0 };
 			item.veri += miktar
