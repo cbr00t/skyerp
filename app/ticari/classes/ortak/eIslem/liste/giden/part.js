@@ -4,7 +4,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 	constructor(e) { e = e || {}; super(e); this.title = e.title == null ? ( 'Giden e-İşlem Listesi' ) : e.title || '' }
 	runDevam(e) {
 		e = e || {}; super.runDevam(e);
-		const {dbName} = config.session, {kural} = app.params.eIslem, {sadeceAdi2mi} = kural.shAdi;
+		const {dbName} = config.session, {kural} = app.params.eIslem, {sadeceAdi2mi} = kural?.shAdi ?? {};
 		if (!sadeceAdi2mi && dbName?.toUpperCase().includes('BAKERMAN')) { setTimeout(() => hConfirm(`<b>BAKERMAN</b> veritabanı için e-İşlem Parametresi <b class="red">Stok Adı Gösterim</b> kuralı <u class="bold royalblue">2. Adı</u> olarak işaretlenmelidir`, 'UYARI'), 1000) }
 	}
 	islemTuslariDuzenle(e) {
