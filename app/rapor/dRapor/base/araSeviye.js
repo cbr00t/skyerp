@@ -181,7 +181,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	loadServerData_queryDuzenle_hmr(e) {
-		const {stm, attrSet} = e, alias = e.alias == 'fis' ? 'har' : e.alias, aliasVeNokta = alias ? `${alias}.` : ''; for (let sent of stm.getSentListe()) {
+		const {stm, attrSet} = e, alias = e.alias == 'fis' ? 'har' : e.alias, aliasVeNokta = alias ? `${alias}.` : '';
+		for (let sent of stm.getSentListe()) {
 			const {where: wh, sahalar} = sent; for (const {belirtec, rowAttr, kami, mfSinif} of HMRBilgi.hmrIter()) {
 				const tip = belirtec.toUpperCase(); if (!attrSet[tip]) { continue }
 				const hmrTable = kami && kami ? mfSinif?.table : null;
@@ -204,7 +205,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	loadServerData_queryDuzenle_ozelIsaret(e) {
-		let {stm, attrSet, kodClause} = e, sent = e.sent ?? stm.sent, {where: wh, sahalar} = sent;
+		let {stm, attrSet, kodClause} = e; if (!kodClause) { return this }
+		let sent = e.sent ?? stm.sent, {where: wh, sahalar} = sent;
 		for (const key in attrSet) { switch (key) { case 'ISARET': sahalar.add(kodClause); break } }
 		return this
 	}
@@ -215,8 +217,10 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	loadServerData_queryDuzenle_sube(e) {
-		let {stm, attrSet, kodClause} = e, sent = e.sent ?? stm.sent, {where: wh, sahalar} = sent;
+		let {stm, attrSet, kodClause} = e; if (!kodClause) { return this }
+		let sent = e.sent ?? stm.sent, {where: wh, sahalar} = sent;
 		if (attrSet.SUBE || attrSet.SUBEGRUP) { sent.fromIliski('isyeri sub', `${kodClause} = sub.kod`) }
+		if (attrSet.SUBEGRUP) { sent.sube2GrupBagla() }
 		for (const key in attrSet) {
 			switch (key) {
 				case 'SUBE': sahalar.add(`${kodClause} subekod`, 'sub.aciklama subeadi'); wh.icerikKisitDuzenle_sube({ ...e, saha: kodClause }); break
@@ -234,7 +238,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	loadServerData_queryDuzenle_cari(e) {
-		let {stm, attrSet, kodClause} = e, sent = e.sent ?? stm.sent, {where: wh} = sent;
+		let {stm, attrSet, kodClause} = e; if (!kodClause) { return this }
+		let sent = e.sent ?? stm.sent, {where: wh, sahalar} = sent;
 		if (attrSet.CRTIP || attrSet.CRBOL || attrSet.CRANABOL || attrSet.CARI ||
 				attrSet.CRIL || attrSet.CRULKE || attrSet.CRISTGRP) { sent.fromIliski('carmst car', `${kodClause} = car.must`) }
 		if (attrSet.CRANABOL) { sent.cari2BolgeBagla() }
@@ -256,16 +261,11 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	loadServerData_queryDuzenle_plasiyer(e) {
-		let {stm, attrSet, kodClause} = e, sent = e.sent ?? stm.sent, {where: wh, sahalar} = sent;
+		let {stm, attrSet, kodClause} = e; if (!kodClause) { return this }
+		let sent = e.sent ?? stm.sent, {where: wh, sahalar} = sent;
 		if (attrSet.PLASIYER) { sent.fromIliski('carmst pls', `${kodClause} = pls.must`) }
 		for (const key in attrSet) {
 			switch (key) { case 'PLASIYER': sahalar.add(`${kodClause} plasiyerkod`, 'pls.birunvan plasiyeradi'); wh.icerikKisitDuzenle_plasiyer({ ...e, saha: kodClause }); break }
-		}
-		return this
-	}
-	loadServerData_queryDuzenle_kasa(e) {
-		let {stm, attrSet, kodClause} = e, sent = e.sent ?? stm.sent, {where: wh, sahalar} = sent;
-		for (const key in attrSet) {
 		}
 		return this
 	}
@@ -275,7 +275,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	loadServerData_queryDuzenle_takip(e) {
-		let {stm, attrSet, kodClause} = e, sent = e.sent ?? stm.sent, {where: wh, sahalar} = sent;
+		let {stm, attrSet, kodClause} = e; if (!kodClause) { return this }
+		let sent = e.sent ?? stm.sent, {where: wh, sahalar} = sent;
 		if (attrSet.TAKIPNO || attrSet.TAKIPGRUP) { sent.fromIliski('takipmst tak', `${kodClause} = tak.kod`) }
 		if (attrSet.TAKIPGRUP) { sent.fromIliski('takipgrup tgrp', 'tak.grupkod = tgrp.kod') }
 		for (const key in attrSet) {
@@ -293,7 +294,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	loadServerData_queryDuzenle_baBedel(e) {
-		let {stm, attrSet, baClause, bedelClause} = e, sent = e.sent ?? stm.sent, {where: wh, sahalar} = sent;
+		let {stm, attrSet, baClause, bedelClause} = e; if (!(baClause || bedelClause)) { return this }
+		let sent = e.sent ?? stm.sent, {where: wh, sahalar} = sent;
 		for (const key in attrSet) {
 			switch (key) {
 				case 'BORCBEDEL': sahalar.add(`SUM(case when ${baClause} = 'B' then ${bedelClause} else 0 end) borcbedel`); break

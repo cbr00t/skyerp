@@ -57,7 +57,7 @@ class Hareketci extends CObject {
 		if (result == null) {
 			const {uygunluk} = this, {zorunluAttrSet} = this.class;
 			this.uygunluk2UnionBilgiListeDuzenle(e = { uygunluk, zorunluAttrSet, liste: {} });
-			result = this._uygunluk2UnionBilgiListe = e.liste
+			let {liste} = e; this.uniBilgiAllHVFix({ liste }); result = this._uygunluk2UnionBilgiListe = liste
 		}
 		return result
 	}
@@ -81,6 +81,12 @@ class Hareketci extends CObject {
 	}
 	uygunluk2UnionBilgiListeDuzenle(e) { this.uygunluk2UnionBilgiListeDuzenleDevam(e) }
 	uygunluk2UnionBilgiListeDuzenleDevam(e) { e.hareketci = this; for (const ext of this.getExtIter()) { ext.uygunluk2UnionBilgiListeDuzenle(e) } }
+	uniBilgiAllHVFix(e) {
+		let liste = e.liste ?? e.uygunluk2UnionBilgiListe ?? this.uygunluk2UnionBilgiListe ?? [], {varsayilanHV: defHV} = this.class;
+		if (!$.isArray(liste)) { liste = Object.values(liste) } liste = liste.flat();
+		let allKeys = {}; for (let {hv} of liste) { $.extend(allKeys, asSet(Object.keys(hv))) }
+		for (let {hv} of liste) { for (let key in allKeys) { let value = hv[key] ?? defHV[key]; if (value == null) { hv[key] = 'NULL' } } }
+	}
 	static extListeDuzenle(e) {
 		const {liste} = e, {kod} = this; for (const modul of app.getModulIter()) {
 			const extSinif = modul[`extSinif_hareketci_${kod}`]; if (extSinif) { liste.push(extSinif) } }
@@ -108,14 +114,14 @@ class Hareketci extends CObject {
 				let selectors = selectorStr.split('$').filter(x => !!x); uygunmu = selectors.find(selector => uygunluk[selector]);
 				if (!uygunmu) { continue }
 			}
-			for (const uniBilgi of unionBilgiListe.filter(x => !!x)) {
+			unionBilgiListe = unionBilgiListe.filter(x => !!x);
+			for (const uniBilgi of unionBilgiListe) {
 				let {sent} = uniBilgi; if (!sent) { continue }
 				let {hv} = uniBilgi, _e = { ...e, sent, hv }; if (hv) {
 					sent = _e.sent = sent.deepCopy(); for (const alias in { ...zorunluAttrSet }) {
 						let deger = hv[alias] || defHV[alias];
 						if (isFunction(deger)) { deger = deger?.call(this, { ...e, sender, hareketci, uniBilgi, key: alias, sent, hv, defHV }) }
-						if (!deger) { continue } /*let saha = alias ? new MQAliasliYapi({ alias, deger }) : MQAliasliYapi.newForSahaText(deger);*/
-						let saha = deger; if (alias) { saha += ` ${alias}` }
+						deger = deger ?? 'NULL'; let saha = deger; if (alias) { saha += ` ${alias}` }
 						sent.add(saha)
 					}
 				}
@@ -149,6 +155,7 @@ class Hareketci extends CObject {
 	clearSonIslem(value) { this.sonIslem = null; return this }
 	setWHD_master(value) { this.whereYapi.master = value; return this } setWHD_hareket(value) { this.whereYapi.hareket = value; return this } setUygunluk(value) { this.uygunluk = value; return this }
 	gereksizTablolariSil() { this.gereksizTablolariSilFlag = true; return this } gereksizTablolariSilme() { this.gereksizTablolariSilFlag = false; return this }
+	reset(e) { for (let key of ['_uygunluk2UnionBilgiListe', '_defaultAttrSet', '_zorunluAttrSet']) { delete this[key] } return this }
 }
 
 /*

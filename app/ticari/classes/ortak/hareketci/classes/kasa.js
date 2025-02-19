@@ -46,8 +46,8 @@ class KasaHareketci extends Hareketci {
 					detaciklama: `(case when fis.fistipi in ('KB', 'KC') then har.aciklama 
 									when fis.fistipi = 'KH' then dbo.hizmetack(har.belgetarih, har.belgeseri, har.belgeno, har.aciklama)
 									else '' end)`,
-					refkod: `(case fis.fistipi when 'KB' then har.banhesapkod when 'KC' then har.must when 'KH' then kdet.kdetay end)`,
-					refadi: `(case fis.fistipi when 'KB' then bhes.aciklama when 'KC' then car.birunvan when 'KH' then '' end)`
+					refkod: `(case fis.fistipi when 'KB' then har.banhesapkod when 'KC' then har.must when 'KH' then kdet.kdetay else '' end)`,
+					refadi: `(case fis.fistipi when 'KB' then bhes.aciklama when 'KC' then car.birunvan when 'KH' then '' else '' end)`
 				})
 			})
 		];
@@ -65,7 +65,7 @@ class KasaHareketci extends Hareketci {
 			}).hvDuzenleIslemi(({ hv }) => {
 				$.extend(hv, {
 					kasakod: 'har.tahkasakod', ba: `dbo.tersba(fis.ba)`, kayittipi: `'CRHAR'`, makbuzno: 'har.belgeno',
-					takipno: 'fis.takipno', althesapkod: 'fis.althesapkod',
+					takipno: 'fis.takipno', althesapkod: 'har.detalthesapkod',
 					refkod: 'fis.mustkod', refadi: 'car.birunvan', oncelik: `(case when fis.ba = 'A' then 5 else 60 end)`,
 					islemadi: `(case when fis.ba = 'B' then 'Cari Ödeme' else 'Cari Tahsilat' end)`,
 					detaciklama: `dbo.hizmetack(cast(NULL as datetime), har.belgeseri, har.belgeno, har.aciklama)`,
@@ -87,8 +87,7 @@ class KasaHareketci extends Hareketci {
 				$.extend(hv, {
 					kasakod: 'fis.kasakod', ba: `'B'`, kayittipi: `'CSILK'`, takipno: 'fis.takipno',
 					refkod: 'bel.banhesapkod', refadi: 'bhes.aciklama', oncelik: '15',
-					islemadi: `(case when fis.ba = 'B' then 'Cari Ödeme' else 'Cari Tahsilat' end)`,
-					dvkur: 'fis.dvkur', bedel: 'bel.bedel', dvbedel: 'bel.dvbedel',
+					islemadi: `'Çek ile Çekilen'`, dvkur: 'fis.dvkur', bedel: 'bel.bedel', dvbedel: 'bel.dvbedel',
 					detaciklama: `('No:' + LTRIM(STR(bel.belgeno)))`
 				})
 			})],
@@ -101,7 +100,7 @@ class KasaHareketci extends Hareketci {
 			}).hvDuzenleIslemi(({ hv }) => {
 				$.extend(hv, {
 					kasakod: 'fis.kasakod', kayittipi: `'CSDIG'`, takipno: 'fis.takipno',
-					refkod: 'bel.ciranta', refadi: 'car.birunvan refadi', oncelik: '20', dvkur: 'fis.dvkur',
+					refkod: 'bel.ciranta', refadi: 'car.birunvan', oncelik: '20', dvkur: 'fis.dvkur',
 					ba: `(case when fis.belgetipi in ('AC', 'AS') then 'B' else 'A' end)`,
 					islemadi: `(case when fis.belgetipi in ('AC', 'AS') then 'Ç/S Elden Tahsil' else 'Ç/S Elden Ödeme' end)`,
 					bedel: `(case when har.bedel = 0 then bel.bedel else har.bedel end)`,

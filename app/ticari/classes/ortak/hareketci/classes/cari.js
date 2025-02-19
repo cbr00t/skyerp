@@ -59,7 +59,7 @@ class CariHareketci extends Hareketci {
 				}).hvDuzenleIslemi(({ hv }) => $.extend(hv, {
 					kaysayac: 'fis.kaysayac', oncelik: '30', unionayrim: `'Kre'`, kayittipi: `'KRE'`, anaislemadi: `'Kredi'`, isladi: `'Kredi Alımı'`, fistipi: 'fis.fistipi',
 					ba: `'B'`, must: 'fis.must', asilmust: 'fis.must', vade: 'fis.tarih', bedel: 'fis.topbrutbedel', dvbedel: 'fis.topdvbrutbedel',
-					althesapkod: 'har.cariitn', althesapadi: 'alth.aciklama', dvkod: `dbo.emptycoalesce(alth.dvkod, car.dvkod)`,
+					althesapkod: 'fis.althesapkod', althesapadi: 'alth.aciklama', dvkod: `dbo.emptycoalesce(alth.dvkod, car.dvkod)`,
 					refkod: 'fis.kredihesapkod', refadi: 'bhes.aciklama', dvkur: 'fis.dvkur', aciklama: 'har.aciklama', ekaciklama: 'fis.aciklama'
 				}))
 			],
@@ -209,13 +209,13 @@ class CariHareketci extends Hareketci {
 		$.extend(liste, {
 			cekSenet: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-					const {where: wh} = sent; sent.fromAdd('csfis fis').fis2PlasiyerBagla()
-						.fromIliski('csportfoy prt', 'fis.portfkod = prt.kod').fis2AltHesapBagla_eski()
+					const {where: wh} = sent; sent.fromAdd('csfis fis').fis2PlasiyerBagla().fis2AltHesapBagla_eski()
+						.fromIliski('csportfoy prt', 'fis.portfkod = prt.kod')
 				}).hvDuzenleIslemi(({ hv }) => {
 					$.extend(hv, {
 						kaysayac: 'fis.kaysayac', oncelik: '15', unionayrim: `'CekSen'`, kayittipi: `(fis.belgetipi + 'CSFIS')`, iceriktipi: `'CSFIS'`,
 						fistipi: 'fis.fistipi', iade: 'fis.iade', anaislemadi: `'Çek/Senet'`, must: 'fis.fisticciranta', asilmust: 'fis.fisciranta',
-						plasiyerkod: 'fis.plasiyerkod', althesapkod: 'fis.cariitn', takipno: 'har.takipno',
+						plasiyerkod: 'fis.plasiyerkod', althesapkod: 'fis.cariitn', takipno: 'fis.takipno',
 						refkod: 'fis.portfkod', refadi: 'prt.aciklama', ba: `dbo.csba(fis.fistipi, fis.iade)`,
 						isladi: `dbo.csacik2(fis.belgetipi, '', fis.fistipi, fis.iade)`,
 						vade: 'coalesce(har.vade, fis.tarih)', bedel: 'fis.toplambedel', dvbedel: 'fis.toplamdvbedel',

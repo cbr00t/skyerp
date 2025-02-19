@@ -31,10 +31,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	}
 	loadServerData_queryDuzenle(e) {
 		e.alias = e.alias ?? 'hrk'; let {stm, attrSet} = e, {hareketci} = this, {uygunluk} = hareketci;
-		let {varsayilanHV: hrkDefHV} = hareketci.class; $.extend(e, { hareketci, hrkDefHV });
-		hareketci
-			/*.withAttrs(Object.keys(hrkAttrSet)).setWHD_master(e => { const {wh, attr2Deger} = e; wh.degerAta('C1', attr2Deger.asilmust) })
-			.setWHD_hareket(e => { const {wh, attr2Deger} = e; wh.basiSonu({ basi: today().yilBasi(), sonu: today() }, attr2Deger.tarih) })*/
+		hareketci.reset(); let {varsayilanHV: hrkDefHV} = hareketci.class; $.extend(e, { hareketci, hrkDefHV });
 		let uni = e.uni = stm.sent = new MQUnionAll(), {uygunluk2UnionBilgiListe} = hareketci, _e = { ...e, hrkDefHV, temps: {} }
 		for (let [selectorStr, [{ sent, hv: hrkHV }]] of Object.entries(uygunluk2UnionBilgiListe)) {
 			let selectors = selectorStr.split('$').filter(x => !!x);
@@ -56,7 +53,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		for (let key in attrSet) {
 			switch (key) {
 				case 'FISNOX': sentHVEkle('fisnox'); break; case 'REFERANS': sentHVEkle('refkod', 'refadi'); break;
-				case 'ANAISLEM': sentHVEkle('anaislemadi'); break; case 'ISLEM': sentHVEkle('islkod', 'isladi'); break
+				case 'ANAISLEM': sentHVEkle('anaislemadi'); break; case 'ISLEM': sentHVEkle('islemkod', 'islemadi'); break
 				case 'ODEMEGUN': sentHVEkle('odgunkod'); break; case 'ALTHESAP': sentHVEkle('althesapkod', 'althesapadi'); break
 				case 'DVKOD': sentHVEkle('dvkod'); break
 			}
@@ -74,6 +71,6 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 			const sender = this, {hareketci} = this;
 			deger = deger?.call(this, { ...e, sender, hareketci, key, hv, defHV })
 		}
-		return result
+		return result ?? 'NULL'
 	}
 }
