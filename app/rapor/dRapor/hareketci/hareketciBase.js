@@ -40,16 +40,12 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 				sent, hrkHV, hvDegeri: key => this.hrkHVDegeri({ ..._e, key }),
 				sentHVEkle: (...keys) => { for (let key of keys) { this.hrkSentHVEkle({ ..._e, key }) } }
 			});
-			this.loadServerData_queryDuzenle_hrkSent(_e); uni.add(sent)
+			uni.add(sent); this.loadServerData_queryDuzenle_hrkSent(_e)
 		}
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		let {attrSet, sentHVEkle, sent, hrkHV: hv, hrkDefHV: defHV, hvDegeri} = e, {sahalar} = sent;
 		let tarihSaha = hvDegeri('tarih'); this.donemBagla({ ...e, tarihSaha });
-		this.loadServerData_queryDuzenle_ozelIsaret({ ...e, kodClause: hvDegeri('ozelisaret') });
-		this.loadServerData_queryDuzenle_sube({ ...e, kodClause: hvDegeri('bizsubekod') });
-		this.loadServerData_queryDuzenle_tarih({ ...e, alias: '', tarihSaha });
-		this.loadServerData_queryDuzenle_takip({ ...e, kodClause: hvDegeri('takipno') });
 		for (let key in attrSet) {
 			switch (key) {
 				case 'FISNOX': sentHVEkle('fisnox'); break; case 'REFERANS': sentHVEkle('refkod', 'refadi'); break;
@@ -58,6 +54,10 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 				case 'DVKOD': sentHVEkle('dvkod'); break
 			}
 		}
+		this.loadServerData_queryDuzenle_ozelIsaret({ ...e, kodClause: hvDegeri('ozelisaret') });
+		this.loadServerData_queryDuzenle_sube({ ...e, kodClause: hvDegeri('bizsubekod') });
+		this.loadServerData_queryDuzenle_tarih({ ...e, alias: '', tarihSaha });
+		this.loadServerData_queryDuzenle_takip({ ...e, kodClause: hvDegeri('takipno') });
 		let baClause = hvDegeri('ba'), bedelClause = hvDegeri('bedel').sumOlmaksizin();
 		this.loadServerData_queryDuzenle_baBedel({ ...e, baClause, bedelClause })
 	}

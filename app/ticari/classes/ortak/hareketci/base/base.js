@@ -76,7 +76,9 @@ class Hareketci extends CObject {
 	static getClass(e) { const kod = typeof e == 'object' ? (e.kod ?? e.tip) : e; return this.kod2Sinif[kod] }
 	static hareketTipSecim_kaListeDuzenle(e) { e.hareketci = this; for (const ext of this.getExtIter()) { ext.hareketTipSecim_kaListeDuzenle(e) } }
 	static varsayilanHVDuzenle({ hv }) {
-		const sqlEmptyDate = 'cast(null as datetime)', sqlEmpty = `''`, sqlZero = '0';
+		const sqlEmptyDate = 'cast(null as datetime)', sqlNull = 'NULL', sqlEmpty = `''`, sqlZero = '0';
+		for (const key of ['yilay', 'yilhafta', 'ayadi', 'haftano', 'tarih', 'saat']) { hv[key] = sqlNull }
+		for (const key of ['anaislemadi', 'islemkod', 'islemadi', 'refkod', 'refadi', 'plasiyerkod', 'plasiyeradi']) { hv[key] = sqlEmpty }
 		for (const key of ['oncelik']) { hv[key] = sqlZero }
 	}
 	uygunluk2UnionBilgiListeDuzenle(e) { this.uygunluk2UnionBilgiListeDuzenleDevam(e) }

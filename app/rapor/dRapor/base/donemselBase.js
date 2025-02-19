@@ -49,9 +49,9 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 	super_loadServerDataInternal(e) { super.loadServerDataInternal(e) } superSuper_loadServerDataInternal(e) { super.super_loadServerDataInternal(e) }
 	donemBagla({ donemBS, tarihSaha, sent }) { if (donemBS) { sent.where.basiSonu(donemBS, tarihSaha) } return this }
 	loadServerData_queryDuzenle_tarih(e) {
-		let {attrSet, stm} = e, alias = e.alias ?? 'fis', aliasVeNokta = alias ? `${alias}.` : '';
+		let {attrSet, stm} = e, sentIter = (e.sent ?? stm).getSentListe(), alias = e.alias ?? 'fis', aliasVeNokta = alias ? `${alias}.` : '';
 		let tarihSaha = e.tarihSaha ?? 'tarih', tarihClause = aliasVeNokta + tarihSaha;
-		for (const {sahalar} of stm.getSentListe()) {
+		for (const {sahalar} of sentIter) {
 			for (const key in attrSet) {
 				switch (key) {
 					case 'YILAY': sahalar.add(`(CAST(DATEPART(YEAR, ${tarihClause}) AS CHAR(4)) + ' - ' + dbo.ayadi(${tarihClause})) yilay`); break
