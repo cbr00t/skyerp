@@ -56,7 +56,16 @@ class MQLogocu extends MQOrtakParamBase {
 class MQTicariGenelParam extends MQTicariParamBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Ticari Genel Parametreleri' } static get paramKod() { return 'CGEN' }
-	constructor(e) { e = e || {}; super(e); this.ayrimIsimleri = e.ayrimIsimleri || {} }
+	get ayrimIsimleri() { 
+		let {_ayrimIsimleri: result} = this; if (!result) { result = this.ayrimIsimleri = {} }
+		return result
+	}
+	set ayrimIsimleri(value) { this._ayrimIsimleri = value }
+	get stokAyrimIsimleri() { let {ayrimIsimleri: d} = this; return d.STAYR = d.STAYR ?? [] } set stokAyrimIsimleri(value) { this.ayrimIsimleri.STAYR = $.isArray(value) ? value : null }
+	get cariAyrimIsimleri() { let {ayrimIsimleri: d} = this; return d.CRAYR = d.CRAYR ?? [] } set cariAyrimIsimleri(value) { this.ayrimIsimleri.CRAYR = $.isArray(value) ? value : null }
+	get stokAyrimIsimleriText() { return this.stokAyrimIsimleri?.join('\n') ?? [] } set stokAyrimIsimleriText(value) { this.stokAyrimIsimleri = value?.split?.('\n')?.map?.(x => x.trimEnd()) ?? [] }
+	get cariAyrimIsimleriText() { return this.cariAyrimIsimleri?.join('\n') ?? [] } set cariAyrimIsimleriText(value) { this.cariAyrimIsimleri = value?.split?.('\n')?.map?.(x => x.trimEnd()) ?? [] }
+	static paramAttrListeDuzenle(e) { super.paramAttrListeDuzenle(e); e.liste.push('ayrimIsimleri') }
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); const {paramci} = e; paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`);
 		paramci.addGrup().setEtiket('Genel'); let form = paramci.addFormWithParent();
@@ -65,14 +74,17 @@ class MQTicariGenelParam extends MQTicariParamBase {
 		let kullanim = paramci.addKullanim().addGrup().setEtiket('Kullanım'); form = kullanim.addFormWithParent();
 			form.addBool('doviz', 'Döviz'); form.addBool('sms', 'SMS İşlemleri'); form.addBool('plasiyer', 'Plasiyer'); form.addBool('mustahsil', 'Müstahsil');
 			form.addBool('sicakSatis', 'Sıcak Satış'); form.addBool('muhasebe', 'Muhasebe'); form.addBool('takipNo', 'Takip No'); form.addBool('masraf', 'Masraf Yeri');
-			form.addBool('uretim', 'Üretim');
+			form.addBool('uretim', 'Üretim').addBool('siteYonetimi', 'Site Yönetimi').addBool('sutAlim', 'Süt Alım');
 		form = kullanim.addFormWithParent();
 			form.addBool('toplamKalite', 'Toplam Kalite'); form.addBool('demirbas', 'Demirbaş'); form.addBool('eFatura', 'e-Fatura'); form.addBool('eIrsaliye', 'e-İrsaliye');
 			form.addBool('eMustahsil', 'e-Müstahsil'); form.addBool('eArsivLimit', 'e-Belge'); form.addBool('gelenEArsiv', 'Gelen e-Arşiv');
 		let tabPage = paramci.addTabPage('diger', 'Diğer'); form = tabPage.addFormWithParent().addStyle(e => `$elementCSS > .parent { width: 19% !important }`);
 		form.addTextInput('wordGenelBolum', 'Word/HTML Ana Bölüm');
 		let altForm = form.addGrup({ etiket: 'Tarih' }).addFormWithParent(); altForm.addDateInput('enDusukTarih', 'En Düşük'); altForm.addDateInput('enYuksekTarih', 'En Yüksek');
-		altForm = tabPage.addGrup({ etiket: 'Ayrım' }); altForm.addML('ayrimIsimleri', 'Ayrım İsimleri').setRowCount(8).degisince(e => e.builder.value = (e.builder.value || '').split('\n').map(x => x.trimEnd()))
+		altForm = tabPage.addGrup({ etiket: 'Ayrım' }).addFormWithParent().addStyle_wh(400).yanYana();
+			let degisince = ({ builder: fbd, value }) => fbd.altInst[fbd.id] = value?.split('\n')?.map(x => x.trimEnd()) ?? [];
+			altForm.addML('stokAyrimIsimleriText', 'Stok Ayrım İsimleri').noRowAttr().setRowCount(8);
+			altForm.addML('cariAyrimIsimleriText', 'Cari Ayrım İsimleri').noRowAttr().setRowCount(8)
 	}
 	paramSetValues(e) { e = e || {}; super.paramSetValues(e); const {rec} = e; this.ayrimIsimleri = rec.ayrimIsimleri || rec.tip2AyrimIsimleri || {} }
 }
@@ -329,7 +341,7 @@ class MQSatisParam extends MQAlimSatisParamOrtak {
 		super.paramYapiDuzenle(e); const {paramci, temps} = e;
 		let form = temps.islem_kullanim, kullanim = form.addKullanim();
 			kullanim.addBool('satisRota', 'Satış Rotası'); kullanim.addBool('malKabulNo', 'Mal Kabul No'); kullanim.addBool('kunyeVeBorsa', 'Künye ve Borsa');
-			kullanim.addBool('mikroIhracat', 'Mikro İhracat'); kullanim.addBool('internetSatisi', 'İnternet Satışı');
+			kullanim.addBool('mikroIhracat', 'Mikro İhracat'); kullanim.addBool('internetSatisi', 'İnternet Satışı'); kullanim.addBool('kamuIhale', 'Kamu İhale');
 		form = temps.sip2_irsFat; form.addBool('sip2Irsaliye', 'Sip -> İrs Dönüşüm Yapılır'); form.addBool('sip2XSecerek', 'Sip->İrs/Fat Seçerek Dönüşüm'); form.addBool('sip2XEkransalDuzenleme', 'Sip->İrs/Fat Toplu Dönüşüm');
 		let tabPage = paramci.addTabPage('sf', 'Sip->Fat'); form = tabPage.addGrup().addFormWithParent(); kullanim = form.addKullanim();
 			form.addBool('sip2Fatura', 'Sip->Fat Dönüşüm Yapılır');
@@ -388,6 +400,7 @@ class MQAktarimParam extends MQTicariParamBase {
 		let kullanim = paramci.addKullanim().addGrup({ etiket: 'Kullanım' }); let form = kullanim.addFormWithParent();
 			form.addBool('webOzetRapor', 'Web Özet Rapor').onBuildEk(e => e.builder.input.attr('disabled', ''));
 			form.addBool('tablet', 'Sky Tablet'); form.addBool('pdks', 'PDKS'); form.addBool('yazarkasa', 'YazarKasa Aktarımı');
+			form.addBool('pratikSatis', 'Pratik Satış'); form.addBool('magaza', 'Mağaza');
 			form.addBool('webSiparis', 'Web B2B Sipariş'); form.addBool('konsinyeLojistik', 'Konsinye Lojistik'); form.addBool('pdks', 'PDKS Veri Aktarımı')
 	}
 	paramSetValues(e) { e = e || {}; super.paramSetValues(e) /*; const {rec} = e*/ }

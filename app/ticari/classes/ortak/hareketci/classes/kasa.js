@@ -12,15 +12,9 @@ class KasaHareketci extends Hareketci {
 	}
 	constructor(e) { e = e || {}; super(e) } defaultSonIslem(e) { this.uniOrtakSonIslem(e) }
 	static varsayilanHVDuzenle(e) {
-		super.varsayilanHVDuzenle(e); const {hv} = e, sqlEmptyDate = 'cast(null as datetime)', sqlEmpty = `''`, sqlZero = '0';
-		for (const key of ['refsubekod', 'refkod', 'refadi', 'plasiyerkod', 'plasiyeradi', 'takipno', 'althesapkod', 'kdetay' ]) { hv[key] = sqlEmpty }
-		for (const key of ['oncelik', 'kdetay', 'makbuzno']) { hv[key] = sqlZero }
-		/*for (const key of []) { hv[key] = sqlEmptyDate }*/
-		$.extend(hv, {
-			fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac', ozelisaret: 'fis.ozelisaret', bizsubekod: 'fis.bizsubekod',
-			tarih: 'fis.tarih', seri: 'fis.seri', fisno: 'fis.no', fisnox: 'fis.fisnox', bastarih: 'fis.tarih', basseri: 'fis.seri', basno: 'fis.no',
-			fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', ba: 'fis.ba', bedel: 'har.bedel', dvbedel: 'har.dvbedel'
-		})
+		super.varsayilanHVDuzenle(e); const {hv, sqlZero} = e;
+		for (const key of ['makbuzno']) { hv[key] = sqlZero }
+		$.extend(hv, { bastarih: 'fis.tarih', basseri: 'fis.seri', basno: 'fis.no' })
 	}
 	uygunluk2UnionBilgiListeDuzenleDevam(e) {
 		super.uygunluk2UnionBilgiListeDuzenleDevam(e);

@@ -13,6 +13,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				SG: { kod: 'SUBEGRUP', belirtec: 'subegrup', text: 'Şube Grup' },
 				SB: { kod: 'SUBE', belirtec: 'sube', text: 'Şube' },
 				DB: { kod: 'DB', belirtec: 'db', text: 'Veritabanı' },
+				TR: { kod: 'TARIH', belirtec: 'tarih', text: 'Tarih' },
+				VD: { kod: 'VADE', belirtec: 'vade', text: 'Vade' },
 				SM: { kod: 'STOKMARKA', belirtec: 'stokmarka', text: 'Stok Marka' },
 				AG: { kod: 'STANAGRP', belirtec: 'anagrup', text: 'Stok Ana Grup' },
 				TG: { kod: 'STGRP', belirtec: 'grup', text: 'Stok Grup' },
@@ -22,6 +24,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				IL: { kod: 'CRIL', belirtec: 'il', text: 'İl' },
 				AB: { kod: 'CRANABOL', belirtec: 'anabolge', text: 'Ana Bölge' },
 				BL: { kod: 'CRBOL', belirtec: 'bolge', text: 'Bölge' },
+				CI: { kod: 'CISTGRP', belirtec: 'cistgrup', text: 'Cari İst. Grup' },
 				PL: { kod: 'PLASIYER', belirtec: 'plasiyer', text: 'Plasiyer' },
 				DG: { kod: 'DEPOGRUP', belirtec: 'yergrup', text: 'Yer Grup' },
 				DP: { kod: 'DEPO', belirtec: 'yer', text: 'Yer' }

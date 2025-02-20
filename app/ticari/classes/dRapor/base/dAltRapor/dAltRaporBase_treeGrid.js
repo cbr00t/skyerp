@@ -356,7 +356,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 					for (let yatayText of liste) {
 						let colDef = _colDef.deepCopy(); colDefs.push(colDef); colDef.belirtec += `_${yatayText}`;
 						let colText = yatayText, tokens = colText.split(') '); if (tokens.length > 1) { colText = tokens[1] || colText }
-						colDef.text += `<br/>[ <span class=forestgreen>${colText}</span> ]`; tumYatayAttrSet[colDef.belirtec] = true
+						colDef.text += `<br/>[ <span class=royalblue>${colText}</span> ]`; tumYatayAttrSet[colDef.belirtec] = true
 					}
 				}
 			}

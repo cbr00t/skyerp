@@ -30,8 +30,9 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		this.tabloYapiDuzenle_baBedel(e)
 	}
 	loadServerData_queryDuzenle(e) {
-		e.alias = e.alias ?? 'hrk'; let {stm, attrSet} = e, {hareketci} = this, {uygunluk} = hareketci;
+		e.alias = e.alias ?? 'hrk'; let {stm, attrSet} = e, {hareketci, raporTanim} = this, {yatayAnaliz} = raporTanim.kullanim, {uygunluk} = hareketci;
 		hareketci.reset(); let {varsayilanHV: hrkDefHV} = hareketci.class; $.extend(e, { hareketci, hrkDefHV });
+		if (yatayAnaliz) { attrSet[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod] = true }
 		let uni = e.uni = stm.sent = new MQUnionAll(), {uygunluk2UnionBilgiListe} = hareketci, _e = { ...e, hrkDefHV, temps: {} }
 		for (let [selectorStr, [{ sent, hv: hrkHV }]] of Object.entries(uygunluk2UnionBilgiListe)) {
 			let selectors = selectorStr.split('$').filter(x => !!x);

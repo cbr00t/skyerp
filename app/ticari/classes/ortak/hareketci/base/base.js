@@ -75,11 +75,22 @@ class Hareketci extends CObject {
 	}
 	static getClass(e) { const kod = typeof e == 'object' ? (e.kod ?? e.tip) : e; return this.kod2Sinif[kod] }
 	static hareketTipSecim_kaListeDuzenle(e) { e.hareketci = this; for (const ext of this.getExtIter()) { ext.hareketTipSecim_kaListeDuzenle(e) } }
-	static varsayilanHVDuzenle({ hv }) {
-		const sqlEmptyDate = 'cast(null as datetime)', sqlNull = 'NULL', sqlEmpty = `''`, sqlZero = '0';
-		for (const key of ['yilay', 'yilhafta', 'ayadi', 'haftano', 'tarih', 'saat']) { hv[key] = sqlNull }
-		for (const key of ['anaislemadi', 'islemkod', 'islemadi', 'refkod', 'refadi', 'plasiyerkod', 'plasiyeradi']) { hv[key] = sqlEmpty }
-		for (const key of ['oncelik']) { hv[key] = sqlZero }
+	static varsayilanHVDuzenle(e) {
+		const {hv} = e, sqlNull = 'NULL', sqlEmpty = `''`, sqlZero = '0'; $.extend(e, { sqlNull, sqlEmpty, sqlZero });
+		for (const key of [
+			'ayadi', 'tarih', 'saat', 'unionayrim', 'iceriktipi', 'anaislemadi', 'islemkod', 'islemadi', 'refsubekod', 'refkod', 'refadi',
+			'plasiyerkod', 'plasiyeradi', 'fistipi', 'fisektipi', 'must', 'ticmust', 'asilmust', 'althesapkod', 'althesapadi', 'takipno', 'kdetay',
+			'aciklama', 'ekaciklama', 'odgunkod', 'iade', 'kdetay', 'dovizsanalmi', 'dvkod', 'reftarih', 'vade'
+		]) { hv[key] = sqlNull }
+		for (const key of [
+			'yilay', 'yilhafta', 'haftano', 'oncelik', 'seq', 'belgeno', 'noyil',
+			'dvkur', 'bedel', 'dvbedel'
+		]) { hv[key] = sqlZero }
+		$.extend(hv, {
+			fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac', ozelisaret: 'fis.ozelisaret', bizsubekod: 'fis.bizsubekod', tarih: 'fis.tarih',
+			seri: 'fis.seri', fisno: 'fis.no', fisnox: 'fis.fisnox', disfisnox: 'fis.fisnox', ba: 'fis.ba', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
+			muhfissayac: 'fis.muhfissayac', sonzamants: 'fis.sonzamants', karsiodemetarihi: ({ hv }) => hv.vade, fisaciklama: 'har.aciklama', detaciklama: 'fis.aciklama'
+		})
 	}
 	uygunluk2UnionBilgiListeDuzenle(e) { this.uygunluk2UnionBilgiListeDuzenleDevam(e) }
 	uygunluk2UnionBilgiListeDuzenleDevam(e) { e.hareketci = this; for (const ext of this.getExtIter()) { ext.uygunluk2UnionBilgiListeDuzenle(e) } }
@@ -91,7 +102,9 @@ class Hareketci extends CObject {
 	}
 	static extListeDuzenle(e) {
 		const {liste} = e, {kod} = this; for (const modul of app.getModulIter()) {
-			const extSinif = modul[`extSinif_hareketci_${kod}`]; if (extSinif) { liste.push(extSinif) } }
+			const extSinif = modul[`extSinif_hareketci_${kod}`];
+			if (extSinif && extSinif.uygunmu !== false) { liste.push(extSinif) }
+		}
 	}
 	static *getExtIter() { const {extListe} = this; if (extListe) { for (const ext of extListe) { yield ext } } }
 	*getExtIter() { return this.class.getExtIter() }

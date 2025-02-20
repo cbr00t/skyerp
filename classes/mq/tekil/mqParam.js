@@ -36,7 +36,8 @@ class MQParam extends MQTekil {
 			if (!paramci._initFlag) { paramci.run(e) } if (paramci.formBuilderDuzenle) { paramci.formBuilderDuzenle(e) }
 		}
 	}
-	static paramAttrListeDuzenle(e) { } static tekSecimDonusumDuzenle(e) { }
+	static paramAttrListeDuzenle(e) { }
+	static tekSecimDonusumDuzenle(e) { }
 	async kaydetOncesiIslemler(e) {
 		const {paramci} = this; if (paramci) { for (const item of paramci.getItemsAndSelf()) { if (item.kaydetOncesi) await item.kaydetOncesi(e) } }
 		super.kaydetOncesiIslemler(e)
@@ -60,9 +61,9 @@ class MQParam extends MQTekil {
 		const {hv} = e; hv.jsonstr = toJSONStr(result)
 	}
 	setValues(e) {
-		e = e || {}; super.setValues(e); const {rec} = e;
+		e = e || {}; super.setValues(e); let {rec} = e;
 		let result = rec.jsonstr; if (result && typeof result != 'object') { result = JSON.parse(result) } if (!result) { return }
-		this.paramSetValues({ ...e, rec: result })
+		e.rec = result; this.paramSetValues({ ...e, rec: result })
 	}
 	paramHostVars(e) { const hv = {}; this.paramHostVarsDuzenle($.extend({}, e, { hv })); return hv }
 	paramHostVarsDuzenle(e) {

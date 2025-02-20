@@ -20,7 +20,12 @@ class ParamBuilder extends CObject {
 	set inst(value) { this._inst = value }
 	get altInst() {
 		let result = this._altInst;
-		if (result === undefined) { result = this._altInst = e => { let _result = this.defaultAltInst ?? this.parent?.altInst; if (_result !== undefined) { return _result } return this.inst } }
+		if (result === undefined) {
+			result = this._altInst = e => {
+				let _result = this.defaultAltInst ?? this.parent?.altInst;
+				return _result === undefined ? this.inst : _result
+			}
+		}
 		if (isFunction(result)) { result = this._altInst = getFuncValue.call(this, result, this.getBuilderArgs()) }
 		if (typeof result == 'string') { const {inst} = this; result = this._altInst = inst ? inst[result] : null }
 		if (result == null) { result = this._altInst = this.defaultAltInst ?? this.inst }
@@ -294,6 +299,7 @@ class ParamBuilder extends CObject {
 	setInst(value) { this.inst = value; return this }
 	setAltInst(value) { this.altInst = value; return this }
 	setLayout(value) { this.layout = value; return this }
+	getValueIslemi(...args) { this.fbdEkIslem(({ builder: fbd }) => fbd.getValueIslemi(...args)); return this }
 	setValue(value) { this.value = value; return this }
 	setConverter(handler) { this.converter = handler; return this }
 	paramHostVarsDuzenleIslemi(handler) { this._paramHostVarsDuzenle = handler; return this }
@@ -321,27 +327,21 @@ class ParamBuilder extends CObject {
 	disable(_e) { this.fbdEkIslem(e => e.builder.disable(_e)); return this }
 	shallowCopy(e) {
 		const inst = super.shallowCopy(e);
-		for (const key of this.class.copyOzelKeys)
-			inst[key] = this[key]
+		for (const key of this.class.copyOzelKeys) { inst[key] = this[key] }
 		return inst
 	}
 	deepCopy(e) {
 		const inst = super.deepCopy(e);
-		for (const key of this.class.copyOzelKeys)
-			inst[key] = this[key]
+		for (const key of this.class.copyOzelKeys) { inst[key] = this[key] }
 		return inst
 	}
 	getBuilderArgs(e) { e = e ?? {}; return $.extend({}, e, { paramci: this }) }
 	getItemsAndSelf() { return this.getItems({ withSelf: true }) }
 	*getItems(e) {
-		e = e ?? {};
-		const {withSelf} = e;
-		if (withSelf)
-			yield this
-		for (const item of (this.items || [])) {
+		e = e ?? {}; const {withSelf} = e; if (withSelf) { yield this }
+		const items = this.items ?? []; for (const item of items) {
 			yield item;
-			for (const subItem of item.getItems())
-				yield subItem
+			for (const subItem of item.getItems()) { yield subItem }
 		}
 	}
 }
@@ -379,8 +379,8 @@ class ParamBuilder_AltInst extends ParamBuilderAlt {
 		let {inst} = this, result = inst; if (inst) {
 			const {id} = this; result = inst[id];
 			if (result == null) {
-				const {newInst} = this; if (newInst != null) { result = inst[id] = newInst }
-				if (result != null) { inst = result }
+				const {newInst} = this;
+				if (newInst != null) { result = inst[id] = newInst }
 			}
 		}
 		return result

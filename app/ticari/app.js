@@ -14,10 +14,11 @@ class TicariApp extends App {
 	sabitTanimlarDuzenle(e) { super.sabitTanimlarDuzenle(e); const {sabitTanimlar} = e; $.extend(sabitTanimlar, { vergi: this.wsSabitTanimlar_xml('EBYN-KDV-Kodlar') }) }
 	static tumModulleriDuzenle(e) {
 		super.tumModulleriDuzenle(e); const {liste} = e; liste.push(
-			Modul_CokluSube, Modul_EDefter, Modul_Demirbas, Modul_ETicaret, Modul_WebRapor, Modul_WebOzetRapor, Modul_TicariKosul, Modul_Promosyon, Modul_MasrafYeri, Modul_SicakSatis,
+			...Modul.subClasses
+			/*Modul_CokluSube, Modul_EDefter, Modul_Demirbas, Modul_ETicaret, Modul_WebRapor, Modul_WebOzetRapor, Modul_TicariKosul, Modul_Promosyon, Modul_MasrafYeri, Modul_SicakSatis,
 			Modul_DisTicaret, Modul_EIslem, Modul_EIrsaliye, Modul_EMustahsil, Modul_Emanet, Modul_Fason, Modul_MustahsilMakbuzu, Modul_TalepTeklif, Modul_TicariPDKS, Modul_Magaza, Modul_YazarKasa,
 			Modul_Kalite, Modul_Uretim, Modul_UretimMaliyetMuhasebesi, Modul_SuperAgac, Modul_RBK, Modul_Tekstil, Modul_SevkiyatPlani, Modul_TabletDepo, Modul_TabletSahaSatis,
-			Modul_TabletSutToplama, Modul_SutAlim, Modul_UygunsuzlukYonetimi, Modul_OfflineSube
+			Modul_TabletSutToplama, Modul_SutAlim, Modul_UygunsuzlukYonetimi, Modul_OfflineSube, Modul_KonsinyeLojistik, Modul_SiteYonetim*/
 		)
 	}
 	raporEkSahaDosyalariDuzenle(e) { super.raporEkSahaDosyalariDuzenle(e); const {liste} = e; liste.push('VioTicari.RaporEkSaha') }

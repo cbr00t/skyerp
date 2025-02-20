@@ -56,12 +56,15 @@ class MQYapi extends CIO {
 		await this.silmeSonrasiIslemler({ ...e, ..._e }); return result
 	}
 	async yukle(e) {
-		e = e || {}; let {rec} = e;
+		e = e || {}; let {rec} = e; e.orjRec = rec;
 		if (rec) { this.setValues(e) }
 		else {
 			rec = await this.tekilOku(e); const {params} = rec || {};
-			if (params) { const param = params.result ?? params.baslik ?? params.fis; if (params) { rec = params.value } } e.rec = rec
-			if (!rec) { return false }
+			if (params) {
+				const param = params.result ?? params.baslik ?? params.fis;
+				if (params) { rec = params.value }
+			}
+			e.rec = rec; if (!rec) { return false }
 		}
 		const basitFlag = e.basit ?? e.basitmi ?? e.basitFlag; if (!basitFlag) { await this.yukleSonrasiIslemler(e) }
 		return true

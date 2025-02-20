@@ -27,11 +27,12 @@
 #dRapor.part #items > .item.hasFocus > label { background-color: #c9cdd9; user-select: none }
 .dRapor .anim-raporTanim-highlight, #dRapor .anim-raporTanim-highlight { border: 3px solid forestgreen !important; animation: 850ms infinite cubic-bezier(0.46, 0.03, 0.52, 0.96) anim-raporTanim-hightlight }
 @keyframes anim-raporTanim-hightlight { 50% { background-color: #c9e0c9 } }
-.dRapor.masterListe.part .jqx-grid [role = row] > div, #dRapor.part #items > .item .jqx-grid .jqx-grid-cell.toplam { font-weight: bold }
+.dRapor.masterListe.part .jqx-grid [role = row], #dRapor.part #items > .item .jqx-grid .jqx-grid-cell.toplam { font-weight: bold }
 #dRapor.part #items > .item .jqx-grid .jqx-grid-cell:not(.jqx-grid-cell-selected).toplam { background-color: #f1fff1 }
-#dRapor.part #items > .item .jqx-grid .jqx-grid-cell.zero > div { color: gray; opacity: .2 }
-#dRapor.part #items > .item .jqx-grid .jqx-grid-cell.negative > div { font-weight: bolder; color: orangered !important }
-body.dark-theme #dRapor.part #items > .item .jqx-grid .jqx-grid-cell > * img { filter: invert(1) hue-rotate(180deg) }
+#dRapor.part #items > .item .jqx-grid .jqx-grid-cell.zero  { color: lightgray /*; opacity: 1*/ }
+#dRapor.part #items > .item .jqx-grid .jqx-grid-cell.toplam { color: forestgreen }
+#dRapor.part #items > .item .jqx-grid .jqx-grid-cell.negative { font-weight: bolder; color: lightcoral !important }
+body.dark-theme #dRapor.part #items > .item .jqx-grid .jqx-grid-cell img { filter: invert(1) hue-rotate(180deg) }
 #dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell:not(.leaf) { font-weight: bold; font-size: 115% }
 #dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid .jqx-grid-cell.level-0:not(.leaf) { font-size: 120% }
 #dRapor.part #items > .item[data-builder-id = 'main'] .jqx-grid tr:nth-child(even) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-0:not(.leaf) { background-color: #e2e7f1 }
