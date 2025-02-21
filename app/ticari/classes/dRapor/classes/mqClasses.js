@@ -154,6 +154,19 @@ class DMQKasa extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kasa' }
 	static get table() { return 'kasmst' } static get tableAlias() { return 'kas' }
 }
+class DMQBanka extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Banka' }
+	static get table() { return 'banmst' } static get tableAlias() { return 'ban' }
+}
+class DMQBankaHesap extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Banka Hesap' }
+	static get table() { return 'banbizhesap' } static get tableAlias() { return 'bhes' }
+	static orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e); const {liste} = e;
+		liste.push(new GridKolon({ belirtec: 'bankakod', text: 'Banka', genislikCh: 10 }), new GridKolon({ belirtec: 'bankaadi', text: 'Banka Adı', genislikCh: 25, sql: 'ban.aciklama' }))
+	}
+	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.bankaHesap2BankaBagla() }
+}
 class DMQMuhHesap extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Hesap' }
 	static get table() { return 'muhhesap' } static get tableAlias() { return 'mhes' }

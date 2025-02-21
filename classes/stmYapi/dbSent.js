@@ -310,6 +310,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		const alias = e?.alias ?? 'hiz',  aliasVeNokta = alias + '.';
 		this.fromIliski('hizistgrup higrp', `${aliasVeNokta}histgrupkod = higrp.kod`); return this
 	}
+	bankaHesap2BankaBagla(e) { this.fromIliski('banmst ban', 'bhes.bankakod = ban.kod'); return this }
 	har2VarsayilanUrunPaketBagla(e) {
 		this.leftJoin({ alias: 'har', table: 'urunpaket varp', on: ['har.stokkod = varp.urunkod', `varp.varsayilan <> ''`] });
 		return this
