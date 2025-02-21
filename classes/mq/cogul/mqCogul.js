@@ -89,6 +89,11 @@ class MQCogul extends MQYapi {
 		if (gonderimTSSaha && !!rec[gonderimTSSaha]) { result.push('gonderildi') }
 	}
 	static listeEkrani_init(e) { this.forAltYapiClassesDo('listeEkrani_init', e) }
+	static async listeEkrani_vazgecOncesi(e) {
+		let result = await this.forAltYapiClassesDoAsync('listeEkrani_vazgecOncesi', e);
+		result = result ? result[result.length - 1] : undefined; if (result !== undefined) { return result }
+		return true
+	}
 	static listeEkrani_afterRun(e) { this.forAltYapiClassesDo('listeEkrani_afterRun', e) }
 	static listeEkrani_destroyPart(e) { this.forAltYapiClassesDo('listeEkrani_destroyPart', e) }
 	static listeEkrani_activated(e) { this.forAltYapiClassesDo('listeEkrani_activated', e) }
@@ -513,7 +518,7 @@ class MQCogul extends MQYapi {
 	static loadServerData_detaylar_queryDuzenle(e) { this.forAltYapiClassesDo('loadServerData_detaylar_queryDuzenle', e) }
 	static async loadServerData_detaylar_querySonucu(e) {
 		let result = await this.forAltYapiClassesDoAsync('loadServerData_detaylar_querySonucu', e);
-		result = result ? result[result.length - 1] : undefined; if (result !== undefined) return result
+		result = result ? result[result.length - 1] : undefined; if (result !== undefined) { return result }
 		return await this.loadServerData_querySonucu(e)
 	}
 	static get ayrimIsimleri() { const {ayrimTipKod} = this; return ayrimTipKod ? (app.params.ticariGenel?.ayrimIsimleri[ayrimTipKod] || []) : null }

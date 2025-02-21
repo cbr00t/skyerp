@@ -55,10 +55,10 @@ class GridliGostericiWindowPart extends GridliGostericiPart {
 	gridArgsDuzenleDevam(e) { super.gridArgsDuzenleDevam(e); const {args} = e; $.extend(args, this.gridArgs) }
 	tazeleIstendi(e) { this.tazele(e) }
 	async secIstendi(e) {
-		e = e || {}; const secimBilgi = this.secimBilgi || {}; if (!secimBilgi) return false
+		e = e || {}; const secimBilgi = this.secimBilgi || {}; if (!secimBilgi) { return false }
 		const {secince} = this; if (!secince) return false
 		const {gridWidget} = this; const recs = e.rec ? [e.rec] : (e.recs ?? this.selectedRecs);
-		if (!this.secinceKontroluYapilmazmi && $.isEmptyObject(recs)) return false
+		if (!this.secinceKontroluYapilmazmi && $.isEmptyObject(recs)) { return false }
 		const _e = { sender: this, grid: this.grid, gridWidget: this.gridWidget, recs, secince, tekilmi: this.tekilmi, mfSinif: this.getMFSinif(e), converter: this.converter };
 		const result = await secimBilgi.sec(_e); if (result === false) return false
 		this.secIstendimi = true; this.destroyPart(); return true
@@ -81,4 +81,5 @@ class GridliGostericiWindowPart extends GridliGostericiPart {
 		return true
 	}
 	/*triggerKapanincaEvent(e) { if (!this.secIstendimi) { const vazgecince = (this.secimBilgi || {}).vazgecince; const _e = { sender: this }; return getFuncValue.call(this, vazgecince, _e) } }*/
+	secinceKontroluYapilmaz() { this.secinceKontroluYapilmazmi = true; return this }
 }

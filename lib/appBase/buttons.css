@@ -71,3 +71,8 @@ button#secimler {background-image: url(../../images/filtre.png) !important;}
 button#upload { background-color: transparent; background-image: url(../../images/yukari.png); background-size: 48px !important }
 button#dropDownMenu { background-image: url(../../images/nav-toggle.png) !important }
 button#dropDownMenu.jqx-fill-state-normal { background-color: #00000055 }
+button#siralama, button#yukari, button#asagi { background-size: 40px !important }
+button#siralama.jqx-fill-state-pressed, button#yukari.jqx-fill-state-pressed, button#asagi.jqx-fill-state-pressed { filter: invert(1) hue-rotate(180deg) }
+button#siralama { background-image: url(../../images/a_z.png) !important }
+button#yukari { background-image: url(../../images/yukari.png) !important }
+button#asagi { background-image: url(../../images/asagi.png) !important }

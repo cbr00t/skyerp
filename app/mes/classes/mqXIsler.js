@@ -60,7 +60,10 @@ class MQXIsler extends MQMasterOrtak {
 			})
 		}
 	}
-	static gridVeriYuklendi(e) { super.gridVeriYuklendi(e); const {gridWidget} = e; gridWidget.clearselection() }
+	static gridVeriYuklendi(e) {
+		super.gridVeriYuklendi(e); const gridPart = e.gridPart ?? e.sender ?? e.parentPart, {gridWidget} = e, {siralamami} = gridPart;
+		if (!siralamami) { gridWidget.clearselection() }
+	}
 	static islemTuslariDuzenle_listeEkrani(e) {
 		const {liste} = e, butonlarPart = e.part, gridPart = e.gridPart ?? e.sender ?? e.parentPart, {noSwitchFlag} = gridPart;
 		if (!noSwitchFlag && this.switchPartClass) { liste.push({ id: 'switch', text: this.switchButtonText, handler: e => this.switchIstendi(e) }) }
@@ -112,9 +115,17 @@ class MQSiradakiIsler extends MQXIsler {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'SIRADAKI_ISLER' } static get sinifAdi() { return 'Sıradaki İşler' }
 	static get switchPartClass() { return MQBekleyenIsler } static get switchButtonText() { return 'B' }
+	static listeEkrani_init(e) {
+		super.listeEkrani_init(e); const gridPart = e.gridPart ?? e.sender, {layout, siralamami, secince} = gridPart;
+		if (siralamami) {
+			gridPart.noAnimate();
+			layout.addClass('siralama'); gridPart.secince = async e => {
+				await this.siralamaKaydetIstendi(e); return await secince?.call(this, e) }
+		}
+	}
 	static islemTuslariDuzenle_listeEkrani(e) {
-		super.islemTuslariDuzenle_listeEkrani(e); const {liste} = e, gridPart = e.gridPart ?? e.sender ?? e.parentPart;
-		liste.push(
+		super.islemTuslariDuzenle_listeEkrani(e); const {liste} = e, gridPart = e.gridPart ?? e.sender ?? e.parentPart, {siralamami} = gridPart;
+		liste.push(...[
 			{ id: 'isAtaKaldir', text: 'İŞ ATA/KALDIR', handler: e => this.isAtaKaldirIstendi(e) },
 			{ id: 'sirayadanKaldir', text: 'SIRADAN KALDIR', handler: e => this.siradanKaldirIstendi(e) },
 			{ id: 'isBitti', text: 'İŞ BİTTİ', handler: e => this.isBittiIstendi(e) },
@@ -122,10 +133,11 @@ class MQSiradakiIsler extends MQXIsler {
 			{ id: 'zamanEtudu', text: 'ZAMAN ETÜDÜ', handler: e => this.zamanEtuduIstendi(e) },
 			{ id: 'baskaTezgahaTasi', text: 'TAŞI', handler: e => this.baskaTezgahaTasiIstendi(e) },
 			{ id: 'isParcala', text: 'PARÇALA', handler: e => this.isParcalaIstendi(e) },
-			{ id: 'yeniOper', text: 'YENİ OPER', handler: e => this.yeniOperIstendi(e) }
-			/*{ id: 'yukari', text: '', handler: e => this.siralaIstendi({ ...e, yon: 'yukari' }) },
-			{ id: 'asagi', text: '', handler: e => this.siralaIstendi({ ...e, yon: 'asagi' }) }*/
-		)
+			{ id: 'yeniOper', text: 'YENİ OPER', handler: e => this.yeniOperIstendi(e) },
+			(siralamami ? null : { id: 'siralama', handler: e => this.siralamaIstendi(e) }),
+			(siralamami ? { id: 'yukari', handler: e => this.siraDegistirIstendi({ ...e, yon: 'yukari' }) } : null),
+			(siralamami ? { id: 'asagi', handler: e => this.siraDegistirIstendi({ ...e, yon: 'asagi' }) } : null)
+		].filter(x => !!x))
 	}
 	static orjBaslikListesiDuzenle(e) {
 		const {liste} = e; liste.push(...[
@@ -135,10 +147,18 @@ class MQSiradakiIsler extends MQXIsler {
 		]); super.orjBaslikListesiDuzenle(e)
 	}
 	static async loadServerDataDevam(e) {
-		await super.loadServerDataDevam(e); const {args} = e; const recs = await app.wsSiradakiIsler(args); if (!recs) { return recs }
-		let sonRecInd, maxIsID; for (let i = 0; i < recs.length; i++) { const rec = recs[i], isID = rec.issayac; if (maxIsID == null || isID > maxIsID) { maxIsID = isID; sonRecInd = i } }
-		if (sonRecInd == -1) { sonRecInd = null }
-		if (sonRecInd != null) { let rec = recs[sonRecInd]; rec.sonmu = true }
+		await super.loadServerDataDevam(e); let gridPart = e.gridPart ?? e.sender, {siralamami, _recs} = gridPart, {args} = e;
+		let recs = siralamami && _recs ? _recs : await app.wsSiradakiIsler(args); if (!recs) { return recs }
+		if (!(siralamami && _recs)) {
+			let sonRecInd = null, maxIsID = -Infinity; if (recs?.length) {
+				for (let i = 0; i < recs.length; i++) {
+					let rec = recs[i], {issayac: isID} = rec;
+					if (isID > maxIsID) { maxIsID = isID; sonRecInd = i }
+				}
+				if (sonRecInd != null) { recs[sonRecInd].sonmu = true }
+			}
+		}
+		if (siralamami && recs) { _recs = gridPart._recs = recs }
 		return recs
 	}
 	static async isAtaKaldirIstendi(e) {
@@ -224,14 +244,46 @@ class MQSiradakiIsler extends MQXIsler {
 			catch (ex) { console.error(ex); hConfirm(getErrorText(ex), islemAdi) }
 		} })
 	}
-	async siralaIstendi(e) {
-		const islemAdi = 'Sırala', gridPart = e.gridPart ?? e.parentPart ?? e.sender, {hatKod, tezgahKod} = gridPart, {yon} = e;
-		const isIdListe = gridPart.selectedRecs.filter(rec => !rec.devreDisimi).map(rec => rec.issayac);
+	static siralamaIstendi(e) {
+		const gridPart = e.gridPart = e.gridPart ?? e.sender ?? e.parentPart, {mfSinif} = gridPart, args = { ...gridPart.args, siralamami: true };
+		return mfSinif.listeEkraniAc({ args, secinceKontroluYapilmaz: true /*, secince: e => gridPart.tazeleDefer()*/ })
+	}
+	static siraDegistirIstendi(e) {
+		const islemAdi = 'Sırala', gridPart = e.gridPart ?? e.parentPart ?? e.sender, {tezgahKod} = gridPart, {yon} = e;
+		let recs = e.recs ?? gridPart.boundRecs, selRecs = [...(e.selRecs ?? gridPart.selectedRecs)];
+		selRecs.sort((a, b) => recs.indexOf(a) - recs.indexOf(b));
+		switch (yon) {
+	        case 'yukari':
+	            for (let i = 0; i < selRecs.length; i++) {  /* Baştan sona doğru işliyoruz */
+	                let rec = selRecs[i], ind = recs.indexOf(rec); if (ind < 1) { continue }  /* En üstteki kayıt yukarı çıkamaz */
+	                [recs[ind], recs[ind - 1]] = [recs[ind - 1], recs[ind]]
+	            }
+	            break;
+	        case 'asagi':
+	            for (let i = selRecs.length - 1; i >= 0; i--) {  /* Baştan sona işlemek yerine, TERSTEN işliyoruz */
+	                let rec = selRecs[i], ind = recs.indexOf(rec); if (ind >= recs.length - 1) { continue }  /* En alttaki kayıt aşağı inemez */
+	                [recs[ind], recs[ind + 1]] = [recs[ind + 1], recs[ind]]
+	            }
+	            break;
+	    }
+	    let newRowIndexes = selRecs.map(rec => recs.indexOf(rec));  /* Swap sonrası tüm yeni indeksleri al */
+		gridPart.veriYuklenince(e => {
+			const {gridPart: p, gridWidget: w} = e; w.clearselection();
+			for (let ind of newRowIndexes) { w.selectrow(ind) }  /* sırası değişen yeni satırları seç */
+			p.veriYuklenince(null)
+		});
+		gridPart.tazele()
+	}
+	static async siralamaKaydetIstendi(e) {
+		const islemAdi = 'Sırala', gridPart = e.gridPart ?? e.parentPart ?? e.sender, {tezgahKod} = gridPart;
+		let {boundRecs: recs} = gridPart, isIdListe = recs.filter(rec => !rec.devreDisimi).map(rec => rec.issayac);
 		if (!isIdListe?.length) { hConfirm('İşlem yapılacak Aktif kayıt(lar) seçilmelidir', islemAdi); return }
 		try {
-			/*tezgahId, isIdListe: isIdListe.join('|') */
-			await app.wsSiraDuzenle({ isIdListe: isIdListe.join(delimWS), tezgahKod });
-		} catch (ex) { console.error(ex); hConfirm(getErrorText(ex), islemAdi) }
+			isIdListe = [...isIdListe].reverse();  /* UYARI: 'recs' verisi 'ORDER BY seq DESC' sebebiyle TERS SIRADA gelecek. Sıralamayı kaydederken de TERS SIRADA verilmelidir */
+			await app.wsSiraDuzenle({ tezgahKod, isIdListe: isIdListe.join(delimWS) });
+			gridPart.degistimi = false; gridPart.close()
+		}
+		catch (ex) { console.error(ex); hConfirm(getErrorText(ex), islemAdi) }
 	}
 	static async yeniOperIstendi_ek(e) {
 		let {opNoListe, gridPart} = e, {args} = gridPart, {part} = MQBekleyenIsler.listeEkraniAc({ args });
@@ -253,6 +305,15 @@ class MQSiradakiIsler extends MQXIsler {
 			let recs = (await app.sqlExecSelect(sent)).map(({ oemsayac }) => oemsayac);
 			await MQBekleyenIsler.sirayaAlIstendi({ ...e, tezgahKod, hatBazinda, hatBazindami, recs });
 		} catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Yeni Operasyon: Sıraya Al') }*/
+	}
+	static async listeEkrani_vazgecOncesi(e) {
+		if (await super.listeEkrani_vazgecOncesi(e) === false) { return false }
+		const gridPart = e.gridPart ?? e.parentPart ?? e.sender, {siralamami, degistimi} = gridPart;
+		if (siralamami && degistimi) {
+			let mesaj = `<p><b class=gray><u>UYARI</u>:</b> <b class=red>Kaydedilmemiş Sıralama Değişkliği</b> var</p><p>Yine de ekran kapatılsın mı?</p>`;
+			if (!await ehConfirm(mesaj, 'Kaydedilmemiş Sıralama')) { return false }
+		}
+		return true
 	}
 }
 class MQBekleyenIsler extends MQXIsler {

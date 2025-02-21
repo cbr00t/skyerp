@@ -486,6 +486,11 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		const modelRapor = new sabitBilgiRaporcuSinif({ parentPart: this, mfSinif: mfSinif, secimler }); modelRapor.raporEkraniAc()
 	}
 	boyutlandirIstendi(e) { const {panelDuzenleyici} = this; if (panelDuzenleyici?.boyutlandirIstendi) { panelDuzenleyici?.boyutlandirIstendi(e) } }
+	async vazgecIstendi(e) {
+		e = e ?? {}; const mfSinif = this.getMFSinif(e)
+		if (await mfSinif?.listeEkrani_vazgecOncesi(e) === false) { return false }
+		return await super.vazgecIstendi(e)
+	}
 	tekil() { this.tekilmi = true; return this } coklu() { this.tekilmi = false; return this }
 	veriYuklenince(handler) { this.veriYukleninceBlock = handler; return this }
 }

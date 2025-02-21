@@ -12,3 +12,4 @@
 .MQXIsler.masterListe.part .jqx-grid [role = row] > .devreDisi { color: #777; background: #ccc; text-decoration-line: line-through }
 .MQXIsler.masterListe.part .jqx-grid [role = row] > .fisnox > * > * { margin-inline-end: 5px !important }
 .MQXIsler.masterListe.part .jqx-grid [role = row] > * .diger { font-weight: bold; color: royalblue }
+.MQXIsler.masterListe.part.siralama, .MQXIsler.masterListe.part.siralama .jqx-grid { box-shadow: 3px 5px 10px 10px green }
