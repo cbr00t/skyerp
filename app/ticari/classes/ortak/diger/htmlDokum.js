@@ -20,7 +20,17 @@ class HTMLDokum extends CObject {
     async fromTip(e) {
 		if (typeof e != 'object') { e = { tip: e } }
 		let {tip} = e, tanim = await this.getTanim({ ...e, tip }); if (!tanim) { throw new Error(`<b class=red>${tip}</b> tipi için tanım belirlenemedi`) }
-		let {tabloNo, dosyaAdi} = tanim; if (!dosyaAdi) { throw new Error(`<b>${tip}</b> tip'ine ait Word Dokuman Tanımı'nda <b class=red>Dosya Adı</b> belirtilmelidir`) }
+		return await this.fromDosyaAdi({ ...tanim, ...e })
+		/*let {tabloNo, dosyaAdi} = tanim; if (!dosyaAdi) { throw new Error(`<b>${tip}</b> tip'ine ait Word Dokuman Tanımı'nda <b class=red>Dosya Adı</b> belirtilmelidir`) }
+		let {wordGenelBolum: rootDir} = app.params.ticariGenel, sablonDosya = `${rootDir.trimEnd_slashes()}/${dosyaAdi}`;
+		let sablon = await app.wsDownloadAsStream({ remoteFile: sablonDosya, contentType: 'text/html' }); $.extend(this, { tabloNo, sablon, sablonDosya });
+		return this*/
+	}
+	static async FromDosyaAdi(e) { let inst = new this(); await inst.fromDosyaAdi(e); return inst }
+    async fromDosyaAdi(e) {
+		if (typeof e != 'object') { e = { dosyaAdi: e } }
+		let dosyaAdi = e.dosyaAdi ?? e.name, {tabloNo} = e;
+		if (!dosyaAdi) { throw new Error(`<b>${tip}</b> tip'ine ait Word Dokuman Tanımı'nda <b class=red>Dosya Adı</b> belirtilmelidir`) }
 		let {wordGenelBolum: rootDir} = app.params.ticariGenel, sablonDosya = `${rootDir.trimEnd_slashes()}/${dosyaAdi}`;
 		let sablon = await app.wsDownloadAsStream({ remoteFile: sablonDosya, contentType: 'text/html' }); $.extend(this, { tabloNo, sablon, sablonDosya });
 		return this
@@ -63,13 +73,13 @@ class HTMLDokum extends CObject {
 		tabloNo = tabloNo ?? 1; headerRowCount = headerRowCount ?? 1; if (tabloNo < 1) { return false } 
         let doc = this.getDocWithError(), table = doc.querySelectorAll('table')?.[tabloNo - 1]; if (!table) { throw new Error('Geçersiz tablo numarası') }
 	    let rows = [...table.querySelectorAll('tr')]; if ((rows?.length ?? 0) < headerRowCount + 1) { throw new Error('Tabloda yeterli satır bulunmuyor') }
-	    let detayRowTemplate = rows[headerRowCount].outerHTML, detayHTML = detaylar.map(rec => {
+	    let detayRowTemplate = rows[headerRowCount].outerHTML, detayHTML = detaylar?.map(rec => {
 		    let template = detayRowTemplate; for (const key in rec) {
 		        let regex = new RegExp(`\\[${key}\\]`, 'g');
 		        template = template.replace(regex, rec[key])
 		    }
 		    return template
-		}).join('');
+		})?.join('') ?? '';
 	    rows[headerRowCount].outerHTML = detayHTML;
 	    if (dip && rows[headerRowCount + 1]) {
 	        let dipRow = rows[headerRowCount + 1]; for (const key in dip) {

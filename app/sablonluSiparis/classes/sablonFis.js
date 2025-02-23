@@ -120,9 +120,44 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		}
 		catch (ex) { setTimeout(() => hConfirm(getErrorText(ex), 'Onayla'), 100); throw ex }
 	}
-	static async onaylaDevam(e) {
-		let {gridPart: listePart, sender: fisGirisPart, fis, rec} = e, {fisSayac} = fis;
-		fisGirisPart?.close()
+	static async onaylaDevam({ gridPart: listePart, sender: fisGirisPart, fis: listeFis, rec }) {
+		const {fiyatFra, bedelFra} = app.params.zorunlu, {asilFis: fis} = listeFis;
+		const {fisSayac, detaylar} = fis, {table, sayacSaha} = fis.class, dvKod = fis.dvKod || 'TL';
+		/* fis.detaylar = fis.detaylar.filter(det => !!det.miktar); (** 'listeFis.asilFis' nesnesinden zaten sadece miktar dolu olanlar gelecek) */
+		const dokumYapVeEMailGonder = async musterimi => {
+			let dokumcu; try { dokumcu = await HTMLDokum.FromDosyaAdi(`VioWeb.KonLojistik.Siparis.${musterimi ? 'Musteri' : 'Diger'}.htm`) }
+			catch (ex) { console.error(ex); return }
+			if (dokumcu != null) {
+				let toListe = [];
+				/* musterimi?? durumuna göre email ilgili adreslerini belirle. belirsiz veya boş ise ise return */
+				if (!toListe.length) { return }
+				let SERI = '', KLFIRMAADI = '', SEVKADRES1 = '', SEVKADRES2 = '', TESLIMTARIHIVARTEXT = '', EKNOTLAR = '', cro = { TEMSILCI: '', TELEFON: '' };
+				let {fisnox: FISNO, mustunvan: MUSTUNVAN, sevkadreskod, sevkadresadi, _parentRec: parentRec} = rec;
+				let {aciklama: SABLONADI} = parentRec, TARIH = dateKisaString(asDate(rec.tarih)), TESLIMYERIADIPARANTEZLI = new CKodVeAdi(sevkadreskod, sevkadresadi).parantezliOzet();
+				let baslik = { MUSTUNVAN, SEVKADRES1, SEVKADRES2, SABLONADI, KLFIRMAADI, TESLIMYERIADIPARANTEZLI, TARIH, TESLIMTARIHIVARTEXT, SERI, FISNO, EKNOTLAR };
+				for (let [key, value] of Object.entries(cro)) { baslik[`CRO-OZ${key}`] = value }
+				let dip = { brm2Miktar: {}, TOPBEDEL: 0 }, detaylar = fis.detaylar.map(det => {
+					let {stokKod: STOKKOD, stokAdi: STOKADI, brm: BRM, miktar, fiyat, bedel} = det;
+					dip.brm2Miktar[BRM] = (dip.brm2Miktar[BRM] ?? 0) + (miktar ?? 0); dip.BEDEL += (bedel ?? 0);
+					let MIKTAR = numberToString(miktar ?? 0), FIYAT = `${toStringWithFra(fiyat ?? 0, fiyatFra)} ${dvKod}`, BEDEL = `${toStringWithFra(bedel ?? 0, bedelFra)} ${dvKod}`;
+					return { STOKKOD, STOKADI, MIKTAR, BRM, FIYAT, BEDEL }
+				});
+				let bm_ents = Object.entries(dip.brm2Miktar); $.extend(dip, {
+					TOPMIKTAR: bm_ents.map(([, miktar]) => numberToString(miktar)).join(`<br/>${CrLf}`),
+					BRM: bm_ents.map(([brm]) => brm).join(`<br/>${CrLf}`),
+					TOPBEDEL: `${toStringWithFra(dip.TOPBEDEL, bedelFra)} ${dvKod}`
+				}); delete dip.brm2Miktar;
+				let data = { baslik, detaylar, dip }, {result: htmlData} = dokumcu.process(data) ?? {}
+				if (config.dev) {
+					let url = URL.createObjectURL(new Blob([htmlData], { type: 'text/html' }));
+					openNewWindow(url)
+				}
+				/* app.wsEMailQueue_add(..., body: htmlData) */
+			}
+		};
+		await Promise.allSettled([dokumYapVeEMailGonder(true), dokumYapVeEMailGonder(false)]);
+		let upd = new MQIliskiliUpdate({ from: table, where: { degerAta: fisSayac, saha: sayacSaha }, set: `onaytipi = ''` });
+		await app.sqlExecNone(upd); listePart?.tazeleDefer(); fisGirisPart?.close()
 	}
 	static async degistirIstendi(e) {
 		try {
