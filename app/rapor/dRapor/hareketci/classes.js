@@ -1,7 +1,7 @@
 class DRapor_Hareketci_Cari extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return true }
 	static get araSeviyemi() { return false } static get vioAdim() { return null }
-	static get kod() { return 'CARIHAR' } static get aciklama() { return 'Cari Hareketci' }
+	static get kod() { return 'CARIHAR' } static get aciklama() { return 'Cari' }
 }
 class DRapor_Hareketci_Cari_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return CariHareketci }
@@ -19,7 +19,7 @@ class DRapor_Hareketci_Cari_Main extends DRapor_Hareketci_Main {
 class DRapor_Hareketci_Kasa extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get araSeviyemi() { return false } static get vioAdim() { return null }
-	static get kod() { return 'KASAHAR' } static get aciklama() { return 'Kasa Hareketci' }
+	static get kod() { return 'KASAHAR' } static get aciklama() { return 'Kasa' }
 }
 class DRapor_Hareketci_Kasa_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return KasaHareketci }
@@ -41,7 +41,7 @@ class DRapor_Hareketci_Kasa_Main extends DRapor_Hareketci_Main {
 class DRapor_Hareketci_Banka extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get araSeviyemi() { return false } static get vioAdim() { return null }
-	static get kod() { return 'BANKAHAR' } static get aciklama() { return 'Banka Hareketci' }
+	static get kod() { return 'BANKAHAR' } static get aciklama() { return 'Banka Mevduat' }
 }
 class DRapor_Hareketci_Banka_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return BankaHareketci }

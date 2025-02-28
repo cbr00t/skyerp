@@ -84,9 +84,14 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 				{ from: 'hizlisablondetay har', iliski: 'har.grupsayac = grp.kaysayac' },
 				{ from: 'stkmst stk', iliski: 'har.stokkod = stk.kod' }
 			],
-			where: [{ degerAta: sablonSayac, saha: 'grp.fissayac' }, 'har.bdevredisi = 0', `stk.silindi = ''`, `stk.satilamazfl = ''`],
-			sahalar: ['grp.kaysayac grupsayac', 'grp.seq grupseq', 'grp.grupadi', 'har.seq',
-					  'har.stokkod', 'stk.aciklama stokadi', 'stk.brm']
+			where: [
+				{ degerAta: sablonSayac, saha: 'grp.fissayac' },
+				'har.bdevredisi = 0', `stk.silindi = ''`, `stk.satilamazfl = ''`
+			],
+			sahalar: [
+				'grp.kaysayac grupsayac', 'grp.seq grupseq', 'grp.grupadi', 'har.seq',
+				'har.stokkod', 'stk.aciklama stokadi', 'stk.brm'
+			]
 		}), {sahalar} = sent;
 		for (let {table, tableAlias: alias, rowAttr, rowAdiAttr} of ekOzellikler) {
 			sent.fromIliski(`${table} ${alias}`, `har.${rowAttr} = ${alias}.kod`);

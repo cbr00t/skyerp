@@ -140,13 +140,13 @@ class TSSHDDetay extends TSDetay {
 	}
 	hostVars(e) { for (const key of ['fiyat', 'brutBedel', 'netBedel']) { this[key] = (this[key] || 0) } return super.hostVars(e) }
 	hostVarsDuzenle(e) {
-		e = e || {}; super.hostVarsDuzenle(e); const {fis, hv} = e, {shKodSaha, shAdiSaha, hizmetmi} = this.class, {siparismi} = fis.class;
+		e = e || {}; super.hostVarsDuzenle(e); const {fis, hv} = e, {shKodSaha, shAdiSaha, hizmetmi} = this.class, {siparismi} = fis?.class ?? {};
 		hv[shKodSaha] = this.shKod; if (siparismi || hizmetmi) { delete hv.detyerkod } else { hv.detyerkod = this.getYerKod({ fis }) }
 		const {fiyat, netBedel} = this; hv.ekranverifiyat = hv.belgefiyat = fiyat; hv.belgebedel = netBedel;
 		let {hmr} = this; if (hmr) { hmr.hostVarsDuzenle(e); for (let {rowAttr, ioAttr} of hmr.hmrIter()) { hv[rowAttr] = this[ioAttr] } }
 	}
 	setValues(e) {
-		e = e || {}; super.setValues(e); const {rec, fis} = e, {shKodSaha, shAdiSaha, hizmetmi} = this.class, {siparismi} = fis.class;
+		e = e || {}; super.setValues(e); const {rec, fis} = e, {shKodSaha, shAdiSaha, hizmetmi} = this.class, {siparismi} = fis?.class ?? {};
 		$.extend(this, {
 			shKod: rec.shKod || rec.shkod || rec[shKodSaha], shAdi: rec.shAdi || rec.shadi || rec[shAdiSaha], brm: rec.brm,
 			kdvDegiskenmi: asBool(rec.kdvDegiskenmi), adiDegisirmi: asBool(rec.adiDegisirmi), takipNo: rec.dettakipno || '', takipAdi: rec.takipadi,
@@ -381,8 +381,7 @@ class TSStokDetayOrtak extends TSStokHizmetDetay {
 	}
 	hmrPropertyleriOlustur(e) {
 		e = e ?? {}; const {hmr} = this; if (!hmr) { return }
-		for (const item of hmr.hmrIter()) {
-			const {ioAttr, adiAttr} = item;
+		for (const {ioAttr, adiAttr} of hmr.hmrIter()) {
 			Object.defineProperty(this, ioAttr, { get: () => this.hmr[ioAttr], set: value => this.hmr[ioAttr] = value });
 			if (adiAttr) { Object.defineProperty(this, adiAttr, { get: () => this.hmr[adiAttr], set: value => this.hmr[adiAttr] = value }) }
 			this[ioAttr] = e[ioAttr]; this[adiAttr] = e[adiAttr]

@@ -1,6 +1,6 @@
 class BankaHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-    static get kod() { return 'banka' } static get aciklama() { return 'Banka' }
+    static get kod() { return 'banka' } static get aciklama() { return 'Banka Mevduat' }
     static hareketTipSecim_kaListeDuzenle(e) {
         super.hareketTipSecim_kaListeDuzenle(e); e.kaListe.push(
             new CKodVeAdi(['devir', 'Devir']), new CKodVeAdi(['kasa', 'Kasa Yatan/Çekilen']),

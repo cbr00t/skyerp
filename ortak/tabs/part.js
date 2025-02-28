@@ -9,8 +9,8 @@ class TabsPart extends Part {
 		block = e.toggled || e.onToggled; if (block) { this.on('toggled', block) }
 	}
 	runDevam(e) {
-		super.runDevam(e);
-		const {layout} = this, useCloseAllFlag = app.useCloseAll, btnToggle = this.btnToggle = layout.children('#toggle'), btnCloseAll = this.btnCloseAll = layout.children('#closeAll');
+		super.runDevam(e); const {layout} = this; if (!layout?.length) { return }
+		let useCloseAllFlag = app.useCloseAll, btnToggle = this.btnToggle = layout.children('#toggle'), btnCloseAll = this.btnCloseAll = layout.children('#closeAll');
 		if (btnToggle?.length) {
 			btnToggle.jqxButton({ theme, width: false, height: false }); btnToggle.on('click', evt => this.toggle($.extend({}, e, { event: evt })));
 			if (useCloseAllFlag) { btnToggle.addClass('jqx-hidden') }

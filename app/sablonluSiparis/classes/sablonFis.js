@@ -124,20 +124,20 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		const {fiyatFra, bedelFra} = app.params.zorunlu, {asilFis: fis} = listeFis;
 		const {fisSayac, detaylar} = fis, {table, sayacSaha} = fis.class, dvKod = fis.dvKod || 'TL';
 		/* fis.detaylar = fis.detaylar.filter(det => !!det.miktar); (** 'listeFis.asilFis' nesnesinden zaten sadece miktar dolu olanlar gelecek) */
-		const dokumYapVeEMailGonder = async musterimi => {
+		const hmrBilgiler = Array.from(HMRBilgi.hmrIter()), dokumYapVeEMailGonder = async musterimi => {
 			let dokumcu; try { dokumcu = await HTMLDokum.FromDosyaAdi(`VioWeb.KonLojistik.Siparis.${musterimi ? 'Musteri' : 'Diger'}.htm`) }
 			catch (ex) { console.error(ex); return }
 			if (dokumcu != null) {
 				let toListe = [];
 				/* musterimi?? durumuna göre email ilgili adreslerini belirle. belirsiz veya boş ise ise return */
-				if (!toListe.length) { return }
 				let SERI = '', KLFIRMAADI = '', SEVKADRES1 = '', SEVKADRES2 = '', TESLIMTARIHIVARTEXT = '', EKNOTLAR = '', cro = { TEMSILCI: '', TELEFON: '' };
 				let {fisnox: FISNO, mustunvan: MUSTUNVAN, sevkadreskod, sevkadresadi, _parentRec: parentRec} = rec;
 				let {aciklama: SABLONADI} = parentRec, TARIH = dateKisaString(asDate(rec.tarih)), TESLIMYERIADIPARANTEZLI = new CKodVeAdi(sevkadreskod, sevkadresadi).parantezliOzet();
 				let baslik = { MUSTUNVAN, SEVKADRES1, SEVKADRES2, SABLONADI, KLFIRMAADI, TESLIMYERIADIPARANTEZLI, TARIH, TESLIMTARIHIVARTEXT, SERI, FISNO, EKNOTLAR };
 				for (let [key, value] of Object.entries(cro)) { baslik[`CRO-OZ${key}`] = value }
 				let dip = { brm2Miktar: {}, TOPBEDEL: 0 }, detaylar = fis.detaylar.map(det => {
-					let {stokKod: STOKKOD, stokAdi: STOKADI, brm: BRM, miktar, fiyat, bedel} = det;
+					let {shKod: STOKKOD, shAdi: STOKADI, brm: BRM, miktar, fiyat, netBedel: bedel} = det;
+					for (const {adiAttr} of hmrBilgiler) { let value = det[adiAttr]?.trim(); if (value) { STOKADI += ` (<b style="color: royalblue">${value}</b>)` } }
 					dip.brm2Miktar[BRM] = (dip.brm2Miktar[BRM] ?? 0) + (miktar ?? 0); dip.BEDEL += (bedel ?? 0);
 					let MIKTAR = numberToString(miktar ?? 0), FIYAT = `${toStringWithFra(fiyat ?? 0, fiyatFra)} ${dvKod}`, BEDEL = `${toStringWithFra(bedel ?? 0, bedelFra)} ${dvKod}`;
 					return { STOKKOD, STOKADI, MIKTAR, BRM, FIYAT, BEDEL }
@@ -152,7 +152,11 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 					let url = URL.createObjectURL(new Blob([htmlData], { type: 'text/html' }));
 					openNewWindow(url)
 				}
-				/* app.wsEMailQueue_add(..., body: htmlData) */
+				let html = true, subject = 'SkyERP Web Sipariş', body = htmlData;
+				if (toListe.length) {
+					try { await app.wsEMailQueue_add({ data: { to, subject, html, body } }) }
+					catch (ex) { console.error(getErrorText(ex)) }
+				}
 			}
 		};
 		await Promise.allSettled([dokumYapVeEMailGonder(true), dokumYapVeEMailGonder(false)]);
