@@ -1,6 +1,6 @@
 .info {
 	font-weight: bold; font-size: 230%;
-	position: relative; left: 40%; top: 38%; width: max-content !important;
+	position: relative; left: 35%; top: 38%; width: max-content !important;
 	padding: 30px 60px; border-radius: 10px; border: 2px solid #888;
 	box-shadow: 1px 1px 10px 1px #ccc
 }

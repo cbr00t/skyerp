@@ -1,6 +1,7 @@
 <?php header('Content-Type: text/javascript'); require_once('config.php') ?>
 const APP_NAME = '<?=$globalAppName?>', VERSION = '<?=$appVersion?>';
-const CACHE_NAME = `cache-${APP_NAME}-${VERSION}`, StreamHeaders = { 'text/event-stream': true, 'application/x-ndjson': true };
+const CACHE_NAME = `cache-${APP_NAME}-${VERSION}`;
+const StreamHeaders = { 'text/event-stream': true, 'application/x-ndjson': true };
 addEventListener('install', async e => {
     skipWaiting(); const staticAssets = ['./', './lib', './ortak', './app', './images'];
     const cache = await caches.open(CACHE_NAME); for (const url of staticAssets) { try { cache.add(url) } catch (ex) { } }
@@ -9,8 +10,11 @@ addEventListener('install', async e => {
 addEventListener('activate', evt => { clients.claim() });
 addEventListener('fetch', evt => {
     const req = evt.request; /*if (!req.referrer || req.url.startsWith(new URL(evt.referrer).origin))*/
-	if (req.method == 'GET' && !StreamHeaders[req.headers?.get('Content-Type')]) { return }
-    evt.respondWith(handleFetchFromNetwork(req))
+	const upgradeHeader = req.headers?.get('Upgrade');
+	/*if (req.method == 'GET' && !StreamHeaders[req.headers?.get('Content-Type')] ) { return }*/
+	if (req.method != 'GET') { return }
+	if (StreamHeaders[req.headers?.get('Content-Type')] || upgradeHeader == 'websocket') { return }
+	evt.respondWith(handleFetchFromNetwork(req))
 });
 addEventListener('push', evt => {
     const data = evt.data?.json() ?? {}, {title, icon} = data, body = data.text ?? data.body;
