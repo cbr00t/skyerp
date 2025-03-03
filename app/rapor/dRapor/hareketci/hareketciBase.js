@@ -67,10 +67,11 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		let deger = this.hrkHVDegeri(e); sahalar.add(new MQAliasliYapi({ deger, alias }));
 		return this
 	}
-	hrkHVDegeri({ key, hrkHV: hv, hrkDefHV: defHV }) {
+	hrkHVDegeri(e) {
+		const{ key, hrkHV: hv, hrkDefHV: defHV } = e;
 		let result = hv[key] || defHV[key]; if (isFunction(result)) {
 			const sender = this, {hareketci} = this;
-			deger = deger?.call(this, { ...e, sender, hareketci, key, hv, defHV })
+			result = result?.call(this, { ...e, sender, hareketci, key, hv, defHV })
 		}
 		return result ?? 'NULL'
 	}

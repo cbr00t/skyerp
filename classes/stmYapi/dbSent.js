@@ -188,6 +188,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	fis2IslBagla_leftJoin(e) { let alias = e?.alias ?? 'fis'; this.leftJoin({ alias, from: 'carisl isl', on: `${alias}.carislkod = isl.kod` }); return this }
 	fis2StokIslemBagla(e) { let alias = e?.alias ?? 'fis'; this.fromIliski('stkisl isl', `${alias}.islkod = isl.kod`); return this }
 	fis2StokIslemBagla_leftJoin(e) { let alias = e?.alias ?? 'fis'; this.leftJoin({ alias, from: 'stkisl isl', on: `${alias}.islkod = isl.kod` }); return this }
+	fis2TahSekliBagla(e) { let alias = e?.alias ?? 'fis'; this.fromIliski('tahsilsekli tsek', `${alias}.tahseklino = tsek.kodno`); return this }
 	har2TahSekliBagla(e) { let alias = e?.alias ?? 'har'; this.fromIliski('tahsilsekli tsek', `${alias}.tahseklino = tsek.kodno`); return this }
 	fis2SubeBagla(e) { this.fromIliski('isyeri sub', 'fis.bizsubekod = sub.kod'); this.sube2GrupBagla(e); return this }
 	sube2GrupBagla(e) { this.fromIliski('isygrup igrp', 'sub.isygrupkod = igrp.kod'); return this }
@@ -208,8 +209,9 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	fisAyrimBagla(e) { /* tamamlanacak */ return this }
 	har2MuhHesapBagla(e) { this.fromIliski('muhhesap mhes', 'har.hesapkod = mhes.kod'); return this }
 	har2CariBagla(e) { e = e ?? {}; let mustSaha = (e.mustSaha ?? e.harMustSaha) || 'must'; this.fromIliski('carmst car', `har.${mustSaha} = car.must`); return this }
-	har2PosKosulBagla(e) { this.fromIliski('poskosul pkos', 'har.poskosulkod = pkos.kod'); return this }
+	har2PosKosulBagla(e) { let kodSaha = e?.kodSaha ?? 'poskosulkod'; this.fromIliski('poskosul pkos', `har.${kodSaha} = pkos.kod`); return this }
 	muhHesap2GrupBagla(e) { this.fromIliski('muhgrup mhgrp', 'mhes.grupkod = mhgrp.kod'); return this }
+	fis2MuhIslBagla(e) { this.fromIliski('muhisl isl', 'fis.islkod = isl.kod'); return this }
 	cariHepsiBagla(e) { this.cariYardimciBagla(e); this.cariAyrimBagla(e); return this }
 	cari2BolgeBagla(e) {
 		const alias = e?.alias ?? 'car', aliasVeNokta = alias ? `${alias}.` : '';

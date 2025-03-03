@@ -10,7 +10,7 @@ class KasaHareketci extends Hareketci {
 			new CKodVeAdi(['faturaTahsilatOdeme', 'Fatura Tahsilat/Ödeme']), new CKodVeAdi(['perakende', 'Perakende'])
 		)
 	}
-	constructor(e) { e = e || {}; super(e) } defaultSonIslem(e) { this.uniOrtakSonIslem(e) }
+	constructor(e) { e = e || {}; super(e) }
 	static varsayilanHVDuzenle(e) {
 		super.varsayilanHVDuzenle(e); const {hv, sqlZero} = e;
 		for (const key of ['makbuzno']) { hv[key] = sqlZero }

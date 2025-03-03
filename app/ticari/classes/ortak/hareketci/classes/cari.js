@@ -9,7 +9,7 @@ class CariHareketci extends Hareketci {
 			new CKodVeAdi(['cariTahsilatOdeme', 'Cari Tahsilat/Ödeme'])
 		)
 	}
-	constructor(e) { e = e || {}; super(e) } defaultSonIslem(e) { this.uniOrtakSonIslem(e) }
+	constructor(e) { e = e || {}; super(e) }
 	static varsayilanHVDuzenle(e) {
 		super.varsayilanHVDuzenle(e); const {hv, sqlNull, sqlEmpty, sqlZero} = e;
 		for (const key of ['satistipkod', 'taksitadi', 'riskdurumu', 'cskendisimi', 'gxbnox', 'gxbtarihi', 'koopdonemno']) { hv[key] = sqlNull }

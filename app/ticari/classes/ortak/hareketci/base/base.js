@@ -77,11 +77,13 @@ class Hareketci extends CObject {
 	static hareketTipSecim_kaListeDuzenle(e) { e.hareketci = this; for (const ext of this.getExtIter()) { ext.hareketTipSecim_kaListeDuzenle(e) } }
 	static varsayilanHVDuzenle(e) {
 		const {hv} = e, /*sqlNull = 'NULL',*/ sqlEmpty = `''`, sqlNull = sqlEmpty, sqlZero = '0'; $.extend(e, { sqlNull, sqlEmpty, sqlZero });
+		/* cast(null as ??) değerlerini sadece NULL olarak tutabiliriz, CAST işlemine gerek yok */
+		for (const key of ['vade', 'reftarih']) { hv[key] = sqlNull }
 		for (const key of [
-			'ayadi', 'tarih', 'saat', 'unionayrim', 'iceriktipi', 'anaislemadi', 'islemkod', 'islemadi', 'refsubekod', 'refkod', 'refadi',
+			'ayadi', 'saat', 'unionayrim', 'iceriktipi', 'anaislemadi', 'islemkod', 'islemadi', 'refsubekod', 'refkod', 'refadi',
 			'plasiyerkod', 'plasiyeradi', 'fistipi', 'fisektipi', 'must', 'ticmust', 'asilmust', 'althesapkod', 'althesapadi', 'takipno', 'kdetay',
-			'aciklama', 'ekaciklama', 'odgunkod', 'iade', 'kdetay', 'dovizsanalmi', 'dvkod', 'reftarih', 'vade'
-		]) { hv[key] = sqlNull }
+			'aciklama', 'ekaciklama', 'odgunkod', 'iade', 'dovizsanalmi', 'dvkod'
+		]) { hv[key] = sqlEmpty }
 		for (const key of [
 			'yilay', 'yilhafta', 'haftano', 'oncelik', 'seq', 'belgeno', 'noyil',
 			'dvkur', 'bedel', 'dvbedel'
@@ -89,7 +91,8 @@ class Hareketci extends CObject {
 		$.extend(hv, {
 			fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac', ozelisaret: 'fis.ozelisaret', bizsubekod: 'fis.bizsubekod', tarih: 'fis.tarih',
 			seri: 'fis.seri', fisno: 'fis.no', fisnox: 'fis.fisnox', disfisnox: 'fis.fisnox', ba: 'fis.ba', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
-			muhfissayac: 'fis.muhfissayac', sonzamants: 'fis.sonzamants', karsiodemetarihi: ({ hv }) => hv.vade, fisaciklama: 'har.aciklama', detaciklama: 'fis.aciklama'
+			fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama',
+			muhfissayac: 'fis.muhfissayac', sonzamants: 'fis.sonzamants', karsiodemetarihi: ({ hv }) => hv.vade
 		})
 	}
 	uygunluk2UnionBilgiListeDuzenle(e) { this.uygunluk2UnionBilgiListeDuzenleDevam(e) }
@@ -108,7 +111,7 @@ class Hareketci extends CObject {
 	}
 	static *getExtIter() { const {extListe} = this; if (extListe) { for (const ext of extListe) { yield ext } } }
 	*getExtIter() { return this.class.getExtIter() }
-	defaultSonIslem(e) { }
+	defaultSonIslem(e) { this.uniOrtakSonIslem(e) }
 	stmOlustur(e) {
 		e = e || {}; let _e, stm = new MQStm({ orderBy: ['oncelik'] });
 		this.stmDuzenle(_e = { ...e, stm }); stm = _e.stm;

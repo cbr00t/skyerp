@@ -9,12 +9,13 @@ addEventListener('install', async e => {
 });
 addEventListener('activate', evt => { clients.claim() });
 addEventListener('fetch', evt => {
-    const req = evt.request; /*if (!req.referrer || req.url.startsWith(new URL(evt.referrer).origin))*/
-	const upgradeHeader = req.headers?.get('Upgrade');
-	/*if (req.method == 'GET' && !StreamHeaders[req.headers?.get('Content-Type')] ) { return }*/
-	if (req.method != 'GET') { return }
-	if (StreamHeaders[req.headers?.get('Content-Type')] || upgradeHeader == 'websocket') { return }
-	evt.respondWith(handleFetchFromNetwork(req))
+    const req = evt.request, {url, referrer} = req; /*if (!referrer || req.url.startsWith(new URL(referrer).origin))*/
+	const {headers} = req ?? {}, upgradeHeader = headers?.get?.('Upgrade'), method = req.method?.toUpperCase();
+	/*if (method == 'GET' && !StreamHeaders[headers?.get('Content-Type')] ) { return }*/
+	if (!(referrer && url.startsWith(new URL(referrer).origin))) { return }
+	if (method != 'GET' || StreamHeaders[headers?.get('Content-Type')] || upgradeHeader == 'websocket') { return }
+	if (url.includes('ws/skyMES')) { return }
+	const resp = handleFetchFromNetwork(req); evt.respondWith(resp)
 });
 addEventListener('push', evt => {
     const data = evt.data?.json() ?? {}, {title, icon} = data, body = data.text ?? data.body;
@@ -27,7 +28,14 @@ addEventListener('notificationclick', evt => {
 });
 async function handleFetchFromNetwork(req) {
 	const cache = await caches.open(CACHE_NAME);
-	try {  const resp = await fetch(req); try { await cache.put(req, await resp.clone()) } catch (ex) { } return resp }
-	catch (ex) { const cachedResponse = await cache.match(req); if (!cachedResponse) { throw ex } return cachedResponse }
+	try {
+		const resp = await fetch(req);
+		try { await cache.put(req, await resp.clone()) } catch (ex) { }
+		return resp
+	}
+	catch (ex) {
+		const cachedResponse = await cache.match(req); if (!cachedResponse) { throw ex }
+		return cachedResponse
+	}
 }
 async function handleFetchFromCache(req) { const cache = await caches.open(CACHE_NAME), cachedResponse = await cache.match(req); return cachedResponse || await handleFetchFromNetwork(req) }

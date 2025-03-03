@@ -1,15 +1,19 @@
-class IPCApp extends App {
+class IPCApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-    get isLoginRequired() { return false; } get defaultWSPath() { return 'ws/genel' }
+    get isLoginRequired() { return false } /*get defaultWSPath() { return 'ws/skyERP' }*/
     constructor(e) {
         e = e ?? {}; super(e);
         $.extend(this, { ipcKey: qs.ipc ?? qs.ipcKey ?? 'sky-ipc', ws: null })
     }
     async runDevam(e) {
-        await super.runDevam(e); await this.anaMenuOlustur();
-        this.content.children().remove(); this.show(); this.initIPC(e)
+		if (qs.user) { await app.loginIstendi() }
+		await super.runDevam(e)
+	}
+	async afterRun(e) {
+		await super.afterRun(e);
+		this.content.children().remove(); this.show(); this.initIPC(e)
     }
-    getAnaMenu() { return new FRMenu(); }
+    getAnaMenu() { return new FRMenu() }
     /** WebSocket IPC bağlantısını başlatır */
     initIPC(e) {
         e = e ?? {}; let {content, ipcKey} = this, url = app.getWebSocketURL({ key: ipcKey });
@@ -20,20 +24,20 @@ class IPCApp extends App {
             onerror: ({ currentTarget: ws }) => content.html(`<div class="info error">IPC WebSocket erişim sorunu</div>`),
             onclose: () => content.html(`<div class="info error">IPC WebSocket kapandı</div>`)
         });
-        this.initTimerTest({ ...e, content, ws, ipcKey })
+        this.initTimerTest({ ...e, content, ipcKey })
     }
     /** WebSocket IPC bağlantısı için keep-alive mekanizması */
     initTimerTest(e) {
         if (this.timerTest) { return; } e = e ?? {};
-        let ipcKey = e.ipcKey ?? this.ipcKey, ws = e.ws ?? this.ws;
+        let ipcKey = e.ipcKey ?? this.ipcKey;
         this.timerTest = setInterval(async () => {
-			switch (ws?.readyState) {
+			const {ws} = this; switch (ws?.readyState) {
 				case WebSocket.OPEN: break
-				//case WebSocket.CLOSED: this.initIPC(e); return
+				case WebSocket.CLOSED: this.initIPC(e); return
 				default: return
 			}
-            await ws.send(toJSONStr({ result: undefined }))
-        }, 1000)
+            // await ws.send(toJSONStr({ result: undefined }))
+        }, 10_000)
     }
     /** Gelen WebSocket mesajlarını işleyerek eval() çalıştırır */
     async onMessage(e) {
@@ -44,9 +48,12 @@ class IPCApp extends App {
         });
         try {
             /* Gelen mesajı `(e => { ... })` formatına dönüştürüp eval() et */
-            let evalStr = `(e => { ${data} })`, result = await eval(evalStr);
+            let evalStr = `(async e => { ${data} })`, result = await eval(evalStr);
             /* Eğer sonuç fonksiyon döndürüyorsa, tekrar çalıştır */
             if (isFunction(result) || result?.run) { result = await getFuncValue.call(this, result, e) }
-        } catch (err) { console.error("WebSocket eval() hatası:", err) }
+        } catch (ex) {
+			e.callback({ isError: true, code: ex.code ?? ex.rc, errorText: getErrorText(ex) });
+			console.error("WebSocket eval() hatası:", ex)
+		}
     }
 }

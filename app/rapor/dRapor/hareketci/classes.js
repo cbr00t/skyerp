@@ -48,8 +48,8 @@ class DRapor_Hareketci_Banka_Main extends DRapor_Hareketci_Main {
 	static get raporClass() { return DRapor_Hareketci_Banka }
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); let {result} = e;
-		result.addKAPrefix('banka', 'bankahesap')
-			.addGrupBasit('BANKAHESAP', 'Banka Hesap', 'bankahesap', DMQBankaHesap)
+		result.addKAPrefix('banka', 'banhesap')
+			.addGrupBasit('BANKAHESAP', 'Banka Hesap', 'banhesap', DMQBankaHesap)
 			.addGrupBasit('BANKA', 'Banka', 'banka', DMQBanka)
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
@@ -58,8 +58,52 @@ class DRapor_Hareketci_Banka_Main extends DRapor_Hareketci_Main {
 		if (attrSet.BANKAHESAP || attrSet.BANKA) { sent.fromIliski('banbizhesap bhes', `${kodClause} = bhes.kod`) }
 		if (attrSet.BANKA) { sent.fromIliski('banmst ban', 'bhes.bankakod = ban.kod') }
 		for (let key in attrSet) {
-			switch (key) { case 'BANKAHESAP': sahalar.add(`${kodClause} bankahesapkod`, 'bhes.aciklama bankaadi'); wh.icerikKisitDuzenle_bankaHesap({ ...e, saha: kodClause }); break }
+			switch (key) { case 'BANKAHESAP': sahalar.add(`${kodClause} banhesapkod`, 'bhes.aciklama bankaadi'); wh.icerikKisitDuzenle_bankaHesap({ ...e, saha: kodClause }); break }
 			switch (key) { case 'BANKA': sahalar.add('bhes.bankakod', 'ban.aciklama bankaadi'); wh.icerikKisitDuzenle_banka({ ...e, saha: 'bhes.bankakod' }); break }
 		}
 	}
+}
+
+class DRapor_Hareketci_POSKrOrtak extends DRapor_Hareketci {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get araSeviyemi() { return this == DRapor_Hareketci_POSKrOrtak } static get vioAdim() { return null }
+	static get kod() { return 'POSKRHAR' } static get aciklama() { return 'POS/Kredi Kartı' }
+}
+class DRapor_Hareketci_POSKrOrtak_Main extends DRapor_Hareketci_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return PsKrOrtakHareketci }
+	static get raporClass() { return DRapor_Hareketci_POSKrOrtak }
+	tabloYapiDuzenle(e) {
+		super.tabloYapiDuzenle(e); let {result} = e;
+		result.addKAPrefix('banka', 'banhesap')
+			.addGrupBasit('BANKAHESAP', 'Banka Hesap', 'banhesap', DMQBankaHesap)
+			.addGrupBasit('BANKA', 'Banka', 'banka', DMQBanka)
+	}
+	loadServerData_queryDuzenle_hrkSent(e) {
+		super.loadServerData_queryDuzenle_hrkSent(e);
+		let {attrSet, sent, hvDegeri} = e, {where: wh, sahalar} = sent, kodClause = hvDegeri('banhesapkod');
+		if (attrSet.BANKAHESAP || attrSet.BANKA) { sent.fromIliski('banbizhesap bhes', `${kodClause} = bhes.kod`) }
+		if (attrSet.BANKA) { sent.fromIliski('banmst ban', 'bhes.bankakod = ban.kod') }
+		for (let key in attrSet) {
+			switch (key) { case 'BANKAHESAP': sahalar.add(`${kodClause} banhesapkod`, 'bhes.aciklama bankaadi'); wh.icerikKisitDuzenle_bankaHesap({ ...e, saha: kodClause }); break }
+			switch (key) { case 'BANKA': sahalar.add('bhes.bankakod', 'ban.aciklama bankaadi'); wh.icerikKisitDuzenle_banka({ ...e, saha: 'bhes.bankakod' }); break }
+		}
+	}
+}
+class DRapor_Hareketci_POS extends DRapor_Hareketci_POSKrOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get araSeviyemi() { return false } static get vioAdim() { return null }
+	static get kod() { return 'POSHAR' } static get aciklama() { return 'POS' }
+}
+class DRapor_Hareketci_POS_Main extends DRapor_Hareketci_POSKrOrtak_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return POSHareketci }
+	static get raporClass() { return DRapor_Hareketci_POS }
+}
+class DRapor_Hareketci_KrediKarti extends DRapor_Hareketci_POSKrOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get araSeviyemi() { return false } static get vioAdim() { return null }
+	static get kod() { return 'KREDIHAR' } static get aciklama() { return 'Kredi Kartı' }
+}
+class DRapor_Hareketci_KrediKarti_Main extends DRapor_Hareketci_POSKrOrtak_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return KrediKartiHareketci }
+	static get raporClass() { return DRapor_Hareketci_KrediKarti }
 }

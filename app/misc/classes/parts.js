@@ -20,8 +20,10 @@ class MiscResimPart extends Part {
 		return $(`
 			<div class="full-wh">
 				<div class="header full-width jqx-hidden">
-					<div class="islemTuslari"/></div></div>
-					<div class="content full-width dock-bottom"><div class="dokumanForm full-wh"/>
+					<div class="islemTuslari"></div>
+				</div>
+				<div class="content full-width dock-bottom">
+					<div class="dokumanForm full-wh"></div>
 				</div>
 			</div>`
 		)
