@@ -164,7 +164,8 @@ class TicariFis extends TSOrtakFis {
 		super.topluDegistirmeKomutlariniOlusturSonrasi(e); const {sayac} = this, {table} = this.class, {trnId, toplu} = e;
 		const sayacSaha = table == 'sipfis' ? 'sipsayac' : 'pifsayac', uniqueKeys = ['pifsayac', 'sipsayac', 'seq'];
 		let hvListe = this.getDipEBilgi_hvListe(e); const eskiWhere = new MQWhereClause({ degerAta: sayac, saha: sayacSaha });
-		const farkBilgi = await MQSQLOrtak.topluYazVeyaDegistirIcinYap({ trnId, toplu, uniqueKeys, table: 'dipebilgi', hvListe, eskiWhere }); return farkBilgi
+		const farkBilgi = await MQSQLOrtak.topluYazVeyaDegistirIcinYap({ trnId, toplu, uniqueKeys, table: 'dipebilgi', hvListe, eskiWhere });
+		return farkBilgi
 	}
 	// Stok/Hizmet/Demirbaş için Vergi bilgileri ek belirlemeler
 	async detaylariYukleSonrasi(e) { e = e || {}; await super.detaylariYukleSonrasi(e); await this.class.kdvKod2RecGlobalOlustur(e) }

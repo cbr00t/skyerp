@@ -9,13 +9,9 @@ class DRapor_Hareketci_Cari_Main extends DRapor_Hareketci_Main {
 	tabloYapiDuzenle(e) { super.tabloYapiDuzenle(e); let {result} = e; this.tabloYapiDuzenle_cari(e) }
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e); let {hvDegeri} = e, kodClause = hvDegeri('must');
-		this.loadServerData_queryDuzenle_cari({ ...e, kodClause });
-		/*for (let key in attrSet) {
-			switch (key) { case 'KASA': sahalar.add(`${kodClause} carikod`, 'car.birunvan cariunvan'); wh.icerikKisitDuzenle_cari({ ...e, saha: kodClause }); break }
-		}*/
+		this.loadServerData_queryDuzenle_cari({ ...e, kodClause })
 	}
 }
-
 class DRapor_Hareketci_Kasa extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get araSeviyemi() { return false } static get vioAdim() { return null }
@@ -40,8 +36,7 @@ class DRapor_Hareketci_Kasa_Main extends DRapor_Hareketci_Main {
 
 class DRapor_Hareketci_BankaOrtak extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kategoriKod() { return 'BRK-BANKA' } static get kategoriAdi() { return `Hareketçi (<b class=gray>Banka</span>)` }
-	static get araSeviyemi() { return this == DRapor_Hareketci_BankaOrtak } 
+	static get kategoriKod() { return 'FIN' } static get araSeviyemi() { return this == DRapor_Hareketci_BankaOrtak } 
 }
 class DRapor_Hareketci_BankaOrtak_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Hareketci_BankaOrtak }

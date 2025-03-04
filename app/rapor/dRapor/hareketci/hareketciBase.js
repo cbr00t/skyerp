@@ -1,6 +1,6 @@
 class DRapor_Hareketci extends DRapor_Donemsel {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kategoriKod() { return 'HRK' } static get kategoriAdi() { return 'Hareketci' }
+	static get kategoriKod() { return 'FIN' } static get kategoriAdi() { return 'Finansal' }
 	static get uygunmu() { return window[`${this.name}_Main`]?.hareketciSinif?.uygunmu ?? true }
 }
 class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {

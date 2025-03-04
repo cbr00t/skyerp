@@ -27,12 +27,13 @@ class FisGirisPart extends GridliGirisWindowPart {
 		if (islem) { const islemText = islem[0].toUpperCase() + islem.slice(1); this.title += ` &nbsp;-&nbsp; <b class="window-title-ek">${islemText}</b>` }
 	}
 	runDevam(e) {
-		super.runDevam(e); const sender = this, {layout} = this; const splitMain = this.splitMain = layout.find('.main-split');
+		super.runDevam(e); const sender = this, {layout, fis, islem, header, islemTuslari} = this;
+		const splitMain = this.splitMain = layout.find('.main-split');
+		const baslikFormlar = this.baslikFormlar = [header.find('.baslikForm1'), header.find('.baslikForm2'), header.find('.baslikForm3')];
 		splitMain.jqxSplitter({
 			theme, width: '100%', height: layout.height(), orientation: 'horizontal', splitBarSize: 20,
-			panels: [ { min: 87, size: 130 }, { min: 200 } ]
+			panels: [ { min: 87, size: fis.class.getUISplitHeight({ ...e, fis, islem }) ?? 135 }, { min: 200 } ]
 		});
-		const {islem, fis, header, islemTuslari} = this, baslikFormlar = this.baslikFormlar = [header.find('.baslikForm1'), header.find('.baslikForm2'), header.find('.baslikForm3')];
 		const subeForm = this.subeForm = header.find('.sube'), tsnForm = this.tsnForm = layout.find('.tsnForm');
 		const divHeaderDipOrtak = this.divHeaderDipOrtak = layout.find('.headerDipOrtak'), dipForm = divHeaderDipOrtak.find('.dipForm');
 		if (fis.class.dipKullanilirmi) {

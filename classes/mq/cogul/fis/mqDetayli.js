@@ -20,8 +20,8 @@ class MQDetayli extends MQSayacli {
 	static get detayTableAlias() { return (this.detaySinif || MQDetay).tableAlias }
 	static detaySinifFor(e) { e = e || {}; return e.detaySinif || (this.detaySiniflar || [])[0] }
 	static get sabitBilgiRaporcuSinif() { return FisRapor }
-
 	constructor(e) { e = e || {}; super(e); this.detaylar = e.detaylar || [] }
+	static getUISplitHeight(e) { return null }
 	static detaySiniflarDuzenle(e) { }
 	static async getRootFormBuilder_fis(e) {
 		e = e || {}; const {sender} = e, {baslikFormlar} = sender;

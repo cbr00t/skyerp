@@ -1,6 +1,6 @@
 class BankaAkreditifHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get uygunmu() { return true || app?.params?.bankaGenel?.kullanim?.akreditif }
+	static get uygunmu() { return app?.params?.bankaGenel?.kullanim?.akreditif }
     /* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
     static hareketTipSecim_kaListeDuzenle(e) {
         super.hareketTipSecim_kaListeDuzenle(e); e.kaListe.push(
@@ -12,11 +12,6 @@ class BankaAkreditifHareketci extends Hareketci {
 		Hareketci.varsayilanHVDuzenle değerleri aynen alınır, sadece eksikler eklenir */
     static varsayilanHVDuzenle(e) {
         super.varsayilanHVDuzenle(e); const {hv, sqlNull, sqlEmpty, sqlZero} = e;
-		/* (refsubekod, dvkur, kdetay, takipno, refkod, refadi) için
-				gerekli default hv değerleri Hareketci.varsayilanHVDuzenle seviyesinde zaten mevcut */
-		/* yeni talimat: { (ozelisaret: '') değerleri (ozelisaret = 'fis.ozelisaret') olmalı.
-			bu da base.varsayilanHVDuzenle seviyesinde mevcut.
-			sqlEmpty ataması bu yüzden bu seviyede sadece comment yapıldı } */
 		for (const key of ['fisaciklama', 'detaciklama']) { hv[key] = sqlEmpty }
 		for (const key of ['dvbedel']) { hv[key] = sqlZero }
 		$.extend(hv, {

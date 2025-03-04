@@ -3,7 +3,10 @@ class SkyRaporApp extends TicariApp {
 	get yerelParamSinif() { return MQYerelParam } get autoExecMenuId() { return null /* 'TICARI-STSATIS' */ }
 	static get kategoriKod2Adi() {
 		let result = this._kategoriKod2Adi; if (result == null) {
-			result = { TICARI: '', 'TICARI-STOK': 'Ticari (<b class="royalblue">Stok</b>)', 'TICARI-HIZMET': 'Ticari (<b class="orangered">Hizmet</b>)' };
+			result = {
+				TICARI: '', 'TICARI-STOK': 'Ticari (<b class="royalblue">Stok</b>)', 'TICARI-HIZMET': 'Ticari (<b class="orangered">Hizmet</b>)',
+				FINANSAL: 'Finansal'
+			};
 			let {kod2Sinif} = DRapor, e = { liste: result }; for (const [mne, cls] of Object.entries(kod2Sinif)) {
 				if (cls.dAltRapormu || !cls.uygunmu) { continue }
 				const {kategoriKod: kod} = cls; if (!kod) { continue }

@@ -1,6 +1,7 @@
 class SablonluSatisSiparisOrtakFisTemplate extends CObject {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) { let {pTanim} = e; $.extend(pTanim, { sablonSayac: new PInstNum('sablonsayac'), onayTipi: new PInst('onaytipi') }) }
+	static getUISplitHeight({ islem }) { return islem == 'onayla' || islem == 'sil' ? 200 : MQDetayli.getUISplitHeight(...arguments) }
 }
 class SablonluSatisSiparisOrtayDetayTemplate extends CObject {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -9,6 +10,7 @@ class SablonluSatisSiparisOrtayDetayTemplate extends CObject {
 
 class SablonluSatisSiparisFis extends SatisSiparisFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get detaySinif() { return SablonluSatisSiparisDetay }
+	static getUISplitHeight(e) { return SablonluSatisSiparisOrtakFisTemplate.getUISplitHeight(e) }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); SablonluSatisSiparisOrtakFisTemplate.pTanimDuzenle(e) }
 	static detaySiniflarDuzenle(e) { /* super yok */ }
 	onaysiz() { this.onayTipi = 'BK'; return this } onayli() { this.onayTipi = ''; return this }
@@ -24,6 +26,7 @@ class SablonluSatisSiparisDetay extends TSStokDetay {
 
 class SablonluKonsinyeSiparisFis extends SatisSiparisFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get detaySinif() { return SablonluKonsinyeSiparisDetay }
+	static getUISplitHeight(e) { return SablonluSatisSiparisOrtakFisTemplate.getUISplitHeight(e) }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); SablonluSatisSiparisOrtakFisTemplate.pTanimDuzenle(e) }
 	static detaySiniflarDuzenle(e) { /* super yok */ }
 	onaysiz() { this.onayTipi = 'BK'; return this } onayli() { this.onayTipi = ''; return this }

@@ -1,6 +1,6 @@
 class BankaTeminatMektupHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get uygunmu() { return true ||app?.params?.bankaGenel?.kullanim?.teminatMektubu }
+	static get uygunmu() { return app?.params?.bankaGenel?.kullanim?.teminatMektubu }
     /* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
     static hareketTipSecim_kaListeDuzenle(e) {
         super.hareketTipSecim_kaListeDuzenle(e); e.kaListe.push(

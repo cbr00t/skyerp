@@ -5,6 +5,7 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 	static get tumKolonlarGosterilirmi() { return true } static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false }
 	static get raporKullanilirmi() { return false } static get noSaha() { return null } get listemi() { return true }
 	static get fisIcinDetaySinif(){ let {fisSinif} = this; return fisSinif?.detaySinifFor?.('') ?? fisSinif?.detaySinif }
+	static get fisTable(){ return this.fisSinif?.table }
 	static get fisIcinDetayTable(){ let {fisSinif, fisIcinDetaySinif} = this; return fisIcinDetaySinif?.getDetayTable?.({ fisSinif }) ?? fisIcinDetaySinif?.table }
 	get asilFis() {
 		let {fisSinif} = this.class, {fisSayac: sayac, sablonSayac, tarih, subeKod, mustKod, sevkAdresKod} = this, detaylar = this.getYazmaIcinDetaylar();
@@ -12,6 +13,7 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 		if (fis.onayTipi == null) { fis.onaysiz() }
 		return fis
 	}
+	static getUISplitHeight(e) { return this.fisSinif?.getUISplitHeight(e) }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); $.extend(e.pTanim, {
 			sablonSayac: new PInstNum(), tarih: new PInstDateToday(), subeKod: new PInstStr(),
@@ -68,11 +70,13 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 		}
 	}
 	async yukle(e) {
-		e = e || {}; delete e.rec; await this.baslikVeDetaylariYukle(e); await this.detaylariYukleSonrasi(e);
-		if (e.rec) { await this.yukleSonrasiIslemler(e) } return true
+		e = e || {}; let {rec} = e; delete e.rec;
+		await this.baslikVeDetaylariYukle(e); await this.detaylariYukleSonrasi(e);
+		e.rec = rec; await this.yukleSonrasiIslemler(e);
+		return true
 	}
 	async baslikVeDetaylariYukle(e) {
-		let {detaySinif} = this.class, {sablonSayac} = this, {parentRec, gridRec} = e, degistirmi = !!parentRec;
+		let {detaySinif} = this.class, {sablonSayac} = this, {parentRec, gridRec, belirtec: islem} = e, yenimi = !parentRec;
 		$.extend(this, {
 			tarih: gridRec?.tarih || this.tarih || now(), subeKod: gridRec?.subekod || this.subeKod,
 			mustKod: gridRec?.mustkod || this.mustKod, sevkAdresKod: gridRec?.sevkadreskod || this.sevkAdresKod
@@ -108,23 +112,30 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 			}
 			let anahStr = getAnahStr(rec); anah2Det[anahStr] = anah2Det[anahStr] ?? det
 		}
-		if (degistirmi) {
+		if (!yenimi) {
 			let {fisSayac} = this, {fisIcinDetayTable: detayTable} = this.class;
-			let query = e.stm = new MQStm(); this.baslikVeDetaylariYukle_degistir_queryDuzenle(e); query = e.stm;
-			let recs = await this.class.loadServerData_querySonucu({ ...e, query });
+			let query = e.stm = new MQStm(); this.baslikVeDetaylariYukle_degistir_queryDuzenle(e);
+			query = e.stm; let recs = await this.class.loadServerData_querySonucu({ ...e, query });
+			{
+				let rec = recs[0]; if (rec) {
+					let {tarih, seri, noyil: noYil, no: fisNo} = rec;
+					$.extend(this, { tarih, seri, noYil, fisNo })
+				}
+			}
 			for (let rec of recs) {
 				let anahStr = getAnahStr(rec), det = anah2Det[anahStr]; if (!det) { continue }
 				let {kaysayac: okunanHarSayac, miktar} = rec; $.extend(det, { okunanHarSayac, miktar })
 			}
+			if (islem == 'onayla' || islem == 'sil') { detaylar = this.detaylar = detaylar.filter(({ miktar }) => !!miktar) }
 		}
 		return true
 	}
 	baslikVeDetaylariYukle_degistir_queryDuzenle(e) {
-		let {fisSayac} = this, {fisIcinDetayTable: detayTable} = this.class;
+		let {fisSayac} = this, {fisTable: table, fisIcinDetayTable: detayTable} = this.class;
 		let {stm, ekOzellikler} = e, sent = e.sent = stm.sent = new MQSent({
-			from: `${detayTable} har`, where: { degerAta: fisSayac, saha: 'fissayac' },
-			sahalar: ['har.kaysayac', 'har.stokkod', 'SUM(har.miktar) miktar']
-		}), {sahalar, where: wh} = sent;
+			where: { degerAta: fisSayac, saha: 'fissayac' },
+			sahalar: ['fis.tarih', 'fis.seri', 'fis.noyil', 'fis.no', 'har.kaysayac', 'har.stokkod', 'SUM(har.miktar) miktar']
+		}), {sahalar, where: wh} = sent; sent.fisHareket(table, detayTable);
 		wh.icerikKisitDuzenle_stok({ saha: 'har.stokkod' });
 		for (let {table, tableAlias: alias, rowAttr} of ekOzellikler) {
 			sent.fromIliski(`${table} ${alias}`, `har.${rowAttr} = ${alias}.kod`);
@@ -141,12 +152,12 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 		return await fis.yaz(e)
 	}
 	degistir(e) {
-		e = e ?? {}; let {asilFis: fis} = this, {eskiInst} = e; if (eskiInst) { eskiInst = e.eskiInst = eskiInst.asilFis ?? eskiInst }
-		this.asilFis_argFix(e, fis); fis.degistir(e)
+		e = e ?? {}; let {asilFis: fis} = this;
+		this.asilFis_argFix(e, fis); return fis.degistir(e)
 	}
 	sil(e) {
-		e = e ?? {}; let {asilFis: fis} = this, {eskiInst} = e; if (eskiInst) { eskiInst = e.eskiInst = eskiInst.asilFis ?? eskiInst }
-		this.asilFis_argFix(e, fis); fis.sil(e)
+		e = e ?? {}; let {asilFis: fis} = this;
+		this.asilFis_argFix(e, fis); return fis.sil(e)
 	}
 	getYazmaIcinDetaylar(e) {
 		let {fisIcinDetaySinif} = this.class, detaylar = super.getYazmaIcinDetaylar(e).filter(det => det.miktar);
@@ -158,6 +169,7 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 	asilFis_argFix(e, fis) {
 		if (!e) { return this }
 		for (let key of ['inst', 'fis']) { if (e[key] !== undefined) { e[key] = fis } }
+		for (let key of ['tarih', 'seri', 'noYil', 'fisNo']) { let value = this[key]; if (value != null) { fis[key] = value } }
 		return this
 	}
 }
@@ -172,7 +184,7 @@ class SablonluKonsinyeSiparisListeFis extends SablonluSiparisListeOrtakFis {
 	static get detaySinif() { return SablonluKonsinyeSiparisListeDetay } static get gridKontrolcuSinif() { return SablonluKonsinyeSiparisListeGridci }
 	baslikVeDetaylariYukle_degistir_queryDuzenle(e) {
 		super.baslikVeDetaylariYukle_degistir_queryDuzenle(e); let {fisSayac} = this, {fisIcinDetayTable: detayTable} = this.class;
-		let {stm, ekOzellikler} = e, uni = e.sent = stm.sent = stm.sent.asUnionAll()
+		let {stm} = e, uni = e.sent = stm.sent = stm.sent.asUnionAll()
 		/*let sent = new MQSent({
 			from: `${detayTable} har`, where: { degerAta: fisSayac, saha: 'fissayac' },
 			sahalar: ['har.kaysayac', 'har.stokkod', 'SUM(har.miktar) miktar']
