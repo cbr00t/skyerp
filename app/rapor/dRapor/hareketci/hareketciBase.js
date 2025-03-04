@@ -1,6 +1,7 @@
 class DRapor_Hareketci extends DRapor_Donemsel {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kategoriKod() { return 'HRK' } static get kategoriAdi() { return 'Hareketci' }
+	static get uygunmu() { return window[`${this.name}_Main`]?.hareketciSinif?.uygunmu ?? true }
 }
 class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return null }
@@ -34,14 +35,17 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		hareketci.reset(); let {varsayilanHV: hrkDefHV} = hareketci.class; $.extend(e, { hareketci, hrkDefHV });
 		if (yatayAnaliz) { attrSet[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod] = true }
 		let uni = e.uni = stm.sent = new MQUnionAll(), {uygunluk2UnionBilgiListe} = hareketci, _e = { ...e, hrkDefHV, temps: {} }
-		for (let [selectorStr, [{ sent, hv: hrkHV }]] of Object.entries(uygunluk2UnionBilgiListe)) {
+		for (let [selectorStr, unionBilgiListe] of Object.entries(uygunluk2UnionBilgiListe)) {
 			let selectors = selectorStr.split('$').filter(x => !!x);
 			let uygunmu = selectors.find(selector => uygunluk[selector]); if (!uygunmu) { continue }
-			$.extend(_e, {
-				sent, hrkHV, hvDegeri: key => this.hrkHVDegeri({ ..._e, key }),
-				sentHVEkle: (...keys) => { for (let key of keys) { this.hrkSentHVEkle({ ..._e, key }) } }
-			});
-			uni.add(sent); this.loadServerData_queryDuzenle_hrkSent(_e)
+			unionBilgiListe = unionBilgiListe.map(item => getFuncValue.call(this, item, e)).filter(x => !!x);
+			for (let { sent, hv: hrkHV } of unionBilgiListe) {
+				$.extend(_e, {
+					sent, hrkHV, hvDegeri: key => this.hrkHVDegeri({ ..._e, key }),
+					sentHVEkle: (...keys) => { for (let key of keys) { this.hrkSentHVEkle({ ..._e, key }) } }
+				});
+				uni.add(sent); this.loadServerData_queryDuzenle_hrkSent(_e)
+			}
 		}
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {

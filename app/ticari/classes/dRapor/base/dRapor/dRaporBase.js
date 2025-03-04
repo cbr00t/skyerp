@@ -3,10 +3,14 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 	static get dRapormu() { return true } get dRapormu() { return this.class.dRapormu } static get dAltRapormu() { return false } get dAltRapormu() { return this.class.dAltRapormu }
 	static get anaTip() { return null } static get araSeviyemi() { return false } static get sinifAdi() { return this.aciklama }
 	static get kategoriKod() { return null } static get kod() { return null } static get aciklama() { return null } static get detaylimi() { return false }
-	static get tumKolonlarGosterilirmi() { return false } static get noOverflowFlag() { return false } static get uygunmu() { return true } get uygunmu() { return this.class.uygunmu }
+	static get tumKolonlarGosterilirmi() { return false } static get noOverflowFlag() { return false }
+	static get uygunmu() { return true } get uygunmu() { return this.class.uygunmu }
 	static get kod2Sinif() {
 		let result = this._kod2Sinif; if (result == null) {
-			result = {}; const {subClasses} = this; for (const cls of subClasses) { const {araSeviyemi, kod} = cls; if (!araSeviyemi && kod) { result[kod] = cls } }
+			result = {}; const {subClasses} = this; for (const cls of subClasses) {
+				const {araSeviyemi, uygunmu, kod} = cls;
+				if (!araSeviyemi && uygunmu && kod) { result[kod] = cls }
+			}
 			this._kod2Sinif = result
 		}
 		return result

@@ -354,7 +354,8 @@ class MQBankaGenelParam extends MQTicariParamBase {
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); const {paramci} = e;
 		let form = paramci.addKullanim().addFormWithParent();
-			form.addBool('taksitliKredi', 'Taksitli Kredi'); form.addBool('yatirim', 'Yatırım'); form.addBool('akreditif', 'Akreditif');
+			form.addBool('taksitliKredi', 'Taksitli Kredi'); form.addBool('yatirim', 'Yatırım');
+			form.addBool('akreditif', 'Akreditif'); form.addBool('teminatMektubu', 'Teminat Mektubu');
 			form.addBool('zorunluTaksit', 'Zorunlu Taksit'); form.addBool('eskiNakdeDonusum', 'Eski Nakde Dönüşüm')
 	}
 }

@@ -1,5 +1,5 @@
 class Hareketci extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return true }
 	static get kod() { return null } static get aciklama() { return null } static get araSeviyemi() { return this == Hareketci }
 	static get kod2Sinif() {
 		let {_kod2Sinif: result} = this; if (result == null) {
@@ -74,20 +74,20 @@ class Hareketci extends CObject {
 		const {whereYapi} = this; for (const key of ['master', 'hareket']) { const value = e[key]; if (value !== undefined) { whereYapi[key] = value } }
 	}
 	static getClass(e) { const kod = typeof e == 'object' ? (e.kod ?? e.tip) : e; return this.kod2Sinif[kod] }
-	static hareketTipSecim_kaListeDuzenle(e) { e.hareketci = this; for (const ext of this.getExtIter()) { ext.hareketTipSecim_kaListeDuzenle(e) } }
+	static hareketTipSecim_kaListeDuzenle(e) {
+		e.hareketci = this; if (!this.uygunmu) { return }
+		for (const ext of this.getExtIter()) { ext.hareketTipSecim_kaListeDuzenle(e) }
+	}
 	static varsayilanHVDuzenle(e) {
 		const {hv} = e, /*sqlNull = 'NULL',*/ sqlEmpty = `''`, sqlNull = sqlEmpty, sqlZero = '0'; $.extend(e, { sqlNull, sqlEmpty, sqlZero });
 		/* cast(null as ??) değerlerini sadece NULL olarak tutabiliriz, CAST işlemine gerek yok */
 		for (const key of ['vade', 'reftarih']) { hv[key] = sqlNull }
 		for (const key of [
 			'ayadi', 'saat', 'unionayrim', 'iceriktipi', 'anaislemadi', 'islemkod', 'islemadi', 'refsubekod', 'refkod', 'refadi',
-			'plasiyerkod', 'plasiyeradi', 'fistipi', 'fisektipi', 'must', 'ticmust', 'asilmust', 'althesapkod', 'althesapadi', 'takipno', 'kdetay',
-			'aciklama', 'ekaciklama', 'odgunkod', 'iade', 'dovizsanalmi', 'dvkod'
+			'plasiyerkod', 'plasiyeradi', 'fistipi', 'fisektipi', 'must', 'ticmust', 'asilmust', 'althesapkod', 'althesapadi',
+			'kdetay', 'takipno', 'aciklama', 'ekaciklama', 'odgunkod', 'iade', 'dovizsanalmi', 'dvkod'
 		]) { hv[key] = sqlEmpty }
-		for (const key of [
-			'yilay', 'yilhafta', 'haftano', 'oncelik', 'seq', 'belgeno', 'noyil',
-			'dvkur', 'bedel', 'dvbedel'
-		]) { hv[key] = sqlZero }
+		for (const key of [ 'yilay', 'yilhafta', 'haftano', 'oncelik', 'seq', 'belgeno', 'noyil', 'dvkur' ]) { hv[key] = sqlZero }
 		$.extend(hv, {
 			fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac', ozelisaret: 'fis.ozelisaret', bizsubekod: 'fis.bizsubekod', tarih: 'fis.tarih',
 			seri: 'fis.seri', fisno: 'fis.no', fisnox: 'fis.fisnox', disfisnox: 'fis.fisnox', ba: 'fis.ba', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
@@ -95,11 +95,12 @@ class Hareketci extends CObject {
 			muhfissayac: 'fis.muhfissayac', sonzamants: 'fis.sonzamants', karsiodemetarihi: ({ hv }) => hv.vade
 		})
 	}
-	uygunluk2UnionBilgiListeDuzenle(e) { this.uygunluk2UnionBilgiListeDuzenleDevam(e) }
+	uygunluk2UnionBilgiListeDuzenle(e) { if (this.class.uygunmu) { this.uygunluk2UnionBilgiListeDuzenleDevam(e) } }
 	uygunluk2UnionBilgiListeDuzenleDevam(e) { e.hareketci = this; for (const ext of this.getExtIter()) { ext.uygunluk2UnionBilgiListeDuzenle(e) } }
 	uniBilgiAllHVFix(e) {
 		let liste = e.liste ?? e.uygunluk2UnionBilgiListe ?? this.uygunluk2UnionBilgiListe ?? [], {varsayilanHV: defHV} = this.class;
-		if (!$.isArray(liste)) { liste = Object.values(liste) } liste = liste.flat();
+		if (!$.isArray(liste)) { liste = Object.values(liste) }
+		liste = liste.flat().map(item => getFuncValue.call(this, item, e)).filter(x => !!x);
 		let allKeys = {}; for (let {hv} of liste) { $.extend(allKeys, asSet(Object.keys(hv))) }
 		for (let {hv} of liste) { for (let key in allKeys) { let value = hv[key] ?? defHV[key]; if (value == null) { hv[key] = 'NULL' } } }
 	}
@@ -132,7 +133,7 @@ class Hareketci extends CObject {
 				let selectors = selectorStr.split('$').filter(x => !!x); uygunmu = selectors.find(selector => uygunluk[selector]);
 				if (!uygunmu) { continue }
 			}
-			unionBilgiListe = unionBilgiListe.filter(x => !!x);
+			unionBilgiListe = unionBilgiListe.map(item => getFuncValue.call(this, item, e)).filter(x => !!x);
 			for (const uniBilgi of unionBilgiListe) {
 				let {sent} = uniBilgi; if (!sent) { continue }
 				let {hv} = uniBilgi, _e = { ...e, sent, hv }; if (hv) {

@@ -18,7 +18,10 @@ class PsKrOrtakHareketci extends Hareketci {
 		Hareketci.varsayilanHVDuzenle değerleri aynen alınır, sadece eksikler eklenir */
     static varsayilanHVDuzenle(e) {
         super.varsayilanHVDuzenle(e); const {hv, sqlNull, sqlEmpty, sqlZero} = e;
-		for (const key of ['ozelisaret', 'mustkod', 'hizmetkod']) { hv[key] = sqlEmpty }
+		/* yeni talimat: { (ozelisaret: '') değerleri (ozelisaret = 'fis.ozelisaret') olmalı.
+			bu da base.varsayilanHVDuzenle seviyesinde mevcut.
+			sqlEmpty ataması bu yüzden bu seviyede sadece comment yapıldı } */
+		for (const key of [/*'ozelisaret',*/ 'mustkod', 'hizmetkod']) { hv[key] = sqlEmpty }
 		for (const key of ['onayno', 'komisyon', 'katkipayi']) { hv[key] = sqlZero }
 		/* 'mustkod' olan durumda ('must', 'ticmust') sahalarına ihtiyaç yok, bunların yerini alır */
 		for (const key of ['must', 'ticmust']) { delete hv[key] }
@@ -29,9 +32,12 @@ class PsKrOrtakHareketci extends Hareketci {
 			anaislemadi: ({ hv }) => hv.islemadi,
 			/* 'detaciklama' gecicidir - 'detaciklama' ve 'fisaciklama' birleserek 'aciklama' olusturulur. (bos olan alinmaz) */
 			aciklama: ({ hv }) => {
-				const withCoalesce = clause = `COALESCE(${clause}, '')`, {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv, hepsiDolumu = fisAciklama && detAciklama;
-				return hepsiDolumu ? `${withCoalesce(fisAciklama)} + ${withCoalesce(detAciklama)}` : withCoalesce(detAciklama || fisAciklama)
-			}
+                const withCoalesce = (clause) => `COALESCE(${clause}, '')`;
+                const {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv;
+                return fisAciklama && detAciklama 
+                    ? `${withCoalesce(fisAciklama)} + ' ' + ${withCoalesce(detAciklama)}` 
+                    : withCoalesce(detAciklama || fisAciklama)
+            }
 		})
     }
     /** UNION sorgusu hazırlama – hareket tipleri için */

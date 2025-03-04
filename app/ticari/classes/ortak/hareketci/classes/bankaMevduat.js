@@ -1,4 +1,4 @@
-class BankaHareketci extends Hareketci {
+class BankaMevduatHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
     static get kod() { return 'banka' } static get aciklama() { return 'Banka Mevduat' }
     static hareketTipSecim_kaListeDuzenle(e) {
@@ -15,8 +15,8 @@ class BankaHareketci extends Hareketci {
         )
     }
     static varsayilanHVDuzenle(e) {
-        super.varsayilanHVDuzenle(e); const {hv, sqlNull} = e;
-		// for (const key of ['bizsubekod']) { hv[key] = sqlNull }
+        super.varsayilanHVDuzenle(e) /*; const {hv, sqlEmpty} = e
+		for (const key of ['bizsubekod']) { hv[key] = sqlEmpty }*/
     }
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
         super.uygunluk2UnionBilgiListeDuzenleDevam(e);
@@ -121,7 +121,7 @@ class BankaHareketci extends Hareketci {
 					wh.fisSilindiEkle().add(
 						'har.masraf > 0', new MQOrClause([
 							{ inDizi: ['SH', 'SE', 'SS', 'BH', 'BE', 'BS'], saha: 'fis.fistipi' },
-							new MQAndClause([`fis.fistipi = TP`, { inDizi: ['AHAV', 'AEFT', 'ASWF', 'APOS'], saha: 'har.hisl' }])
+							new MQAndClause([`fis.fistipi = 'TP'`, { inDizi: ['AHAV', 'AEFT', 'ASWF', 'APOS'], saha: 'har.hisl' }])
 						])
 					)
                 }).hvDuzenleIslemi(({ hv }) => {

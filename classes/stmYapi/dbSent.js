@@ -198,14 +198,16 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	har2KatDetayBagla(e) { let alias = e?.alias ?? 'har'; this.leftJoin(alias, 'kategoridetay kdet', `${alias}.kdetaysayac = kdet.kaysayac`); return this }
 	x2YerBagla(e) { const {alias} = e, aliasVeNokta = alias ? `${alias}.` : ''; this.fromIliski('stkyer yer', `${aliasVeNokta}yerkod = yer.kod`); return this }
 	fis2CariBagla(e) { e = e ?? {}; let mustSaha = (e.mustSaha ?? e.fisMustSaha) || 'must'; this.fromIliski('carmst car', `fis.${mustSaha} = car.must`); return this }
+	fis2HizmetBagla(e) { this.fromIliski('hizmst hiz', 'fis.hizmetkod = hiz.kod'); return this }
 	fis2TicCariBagla(e) { this.fromIliski('carmst car', 'fis.ticmust = car.must'); return this }
 	fis2AltHesapBagla(e) { this.fromIliski('althesap alth', 'fis.althesapkod = alth.kod'); return this }
 	fis2AltHesapBagla_eski(e) { this.fromIliski('althesap alth', 'fis.cariitn = alth.kod'); return this }
 	fis2PlasiyerBagla(e) { this.fromIliski('carmst pls', 'fis.plasiyerkod = pls.must'); return this }
 	fis2SevkAdresBagla(e) { this.fromIliski('carsevkadres sadr', 'fis.xadreskod = sadr.kod'); return this }
 	fis2KasaBagla(e) { this.fromIliski('kasmst kas', 'fis.kasakod = kas.kod'); return this }
-	fis2BankaHesapBagla(e) { this.fromIliski('banbizhesap bhes', 'fis.banhesapkod = bhes.kod'); return this }
-	fis2KrediBankaHesapBagla(e) { this.fromIliski('banbizhesap bhes', 'fis.kredihesapkod = bhes.kod'); return this }
+	fis2BankaHesapBagla(e) { return this.x2BankaHesapBagla({ kodClause: 'fis.banhesapkod' }) }
+	fis2KrediBankaHesapBagla(e) { return this.x2BankaHesapBagla({ kodClause: 'fis.kredihesapkod' }) }
+	x2BankaHesapBagla(e) { let kodClause = e?.kodClause; this.fromIliski('banbizhesap bhes', `${kodClause} = bhes.kod`); return this }
 	fisAyrimBagla(e) { /* tamamlanacak */ return this }
 	har2MuhHesapBagla(e) { this.fromIliski('muhhesap mhes', 'har.hesapkod = mhes.kod'); return this }
 	har2CariBagla(e) { e = e ?? {}; let mustSaha = (e.mustSaha ?? e.harMustSaha) || 'must'; this.fromIliski('carmst car', `har.${mustSaha} = car.must`); return this }
