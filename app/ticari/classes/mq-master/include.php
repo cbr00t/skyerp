@@ -46,5 +46,6 @@
 <script src="<?=$_partRoot?>/mqTahsilSekli.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqTakipNo.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqPortjoy.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/mqStokCariRef.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqEConf.js?<?=$appVersion?>"></script>
 <?php require_once("$webRoot_ticari/classes/ortak/hmr/include-son.php")?>

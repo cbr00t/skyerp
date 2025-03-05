@@ -5,6 +5,6 @@
 	require_once("$webRoot/ortak/gridliKolonFiltre/include.php"); require_once("$webRoot/classes/mq/secimler/include.php");
 	require_once("$webRoot/ortak/mq/fisListe/include.php"); require_once("$webRoot/ortak/mq/modelTanim/include.php"); 
 	require_once("$webRoot/classes/mq/cogul/kod/tanim/include.php"); require_once("$webRoot_ticari/classes/ortak/modul/include.php");
-	require_once("$webRoot/ortak/mq/fisGiris/include.php"); require_once("$webRoot_ticari/classes/ortak/hareketci/include.php");
-	require_once("$webRoot_ticari/classes/ortak/rapor/include.php")
+	require_once("$webRoot/ortak/mq/fisGiris/include.php"); require_once("$webRoot_ticari/classes/ortak/satisKosul/include.php");
+	require_once("$webRoot_ticari/classes/ortak/hareketci/include.php"); require_once("$webRoot_ticari/classes/ortak/rapor/include.php")
 ?>

@@ -191,6 +191,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	fis2TahSekliBagla(e) { let alias = e?.alias ?? 'fis'; this.fromIliski('tahsilsekli tsek', `${alias}.tahseklino = tsek.kodno`); return this }
 	har2TahSekliBagla(e) { let alias = e?.alias ?? 'har'; this.fromIliski('tahsilsekli tsek', `${alias}.tahseklino = tsek.kodno`); return this }
 	fis2SubeBagla(e) { this.fromIliski('isyeri sub', 'fis.bizsubekod = sub.kod'); this.sube2GrupBagla(e); return this }
+	bolge2SubeBagla(e) { this.fromIliski('isyeri sub', 'bol.bizsubekod = sub.kod'); this.sube2GrupBagla(e); return this }
 	sube2GrupBagla(e) { this.fromIliski('isygrup igrp', 'sub.isygrupkod = igrp.kod'); return this }
 	takip2GrupBagla(e) { this.fromIliski('takipgrup tak', 'tak.grupkod = tgrp.kod'); return this }
 	fis2YerBagla(e) { return this.x2YerBagla({ ...e, alias: e?.alias ?? 'fis' }) }
@@ -240,12 +241,12 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		const alias = e?.alias ?? 'car', aliasVeNokta = alias + '.';
 		this.cari2BolgeBagla(e); this.bolge2AnaBolgeBagla(e); this.cari2IstGrupBagla(e);
 		this.cari2IlBagla(e); this.cari2TipBagla(e); this.cari2UlkeBagla(e);
-		this.leftJoin({ alias: alias, table: 'muhhesap cmuh', on: `${aliasVeNokta}muhhesap = cmuh.kod` });
+		this.leftJoin({ alias, table: 'muhhesap cmuh', on: `${aliasVeNokta}muhhesap = cmuh.kod` });
 		this.fromIliski('carkosulgrup ckgrp', `${aliasVeNokta}kosulgrupkod = ckgrp.kod`);
-		this.leftJoin({ alias: alias, table: 'carmemo cmem', on: `${aliasVeNokta}must = cmem.must` });
+		this.leftJoin({ alias, table: 'carmemo cmem', on: `${aliasVeNokta}must = cmem.must` });
 		this.fromIliski('carmst kon', `(case ${aliasVeNokta}konsolidemusterikod = '' then ${aliasVeNokta}must else ${aliasVeNokta}konsolidemusterikod end) = kon.must`); this.zincirEkle(['car', 'kon']);
 		this.fromIliski('carmst bfrm', `(case ${aliasVeNokta}bformkonkod = '' then ${aliasVeNokta}must else ${aliasVeNokta}bformkonkod end) = bfrm.must`); this.zincirEkle(['car', 'bfrm']);
-		this.leftJoin({ alias: alias, table: 'carisatis csat', on: [`${aliasVeNokta}must = csat.must`, `csat.satistipkod = ''`] });
+		this.leftJoin({ alias, table: 'carisatis csat', on: [`${aliasVeNokta}must = csat.must`, `csat.satistipkod = ''`] });
 		this.leftJoin({ alias: 'csat', table: 'tahsilsekli ctsek', on: 'csat.tahseklino = ctsek.kodno' });
 		this.fromIliski('banmst cban', `${aliasVeNokta}bankakod = cban.kod`);
 		return this
@@ -288,7 +289,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 			const {defaultValue, rowAttr} = item;
 			iliskiler.push(`sbar.${rowAttr} = ${MQSQLOrtak.sqlServerDegeri(defaultValue)}`)
 		}
-		this.leftJoin({ alias: alias, table: 'sbarref sbar', on: iliskiler });
+		this.leftJoin({ alias, table: 'sbarref sbar', on: iliskiler });
 		return this
 	}
 	stokGTIPBagla(e) {

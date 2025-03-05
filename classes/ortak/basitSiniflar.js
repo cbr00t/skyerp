@@ -40,6 +40,10 @@ class CBasiSonu extends CObject {
 			sonu: converter.call(this, { value: value.substring(ind + 1).trim() })
 		})
 	}
+	uygunmu(e) {
+		e = e ?? {}; let value = e.value ?? e, {basi, sonu} = this;
+		return (!basi || basi <= value) || (!sonu || sonu >= value)
+	}
 	toString(e) { const basi = this.basi ?? '', sonu = this.sonu; return sonu ? `${basi} -> ${sonu}` : basi ?? '' }
 }
 class YilVeAy extends CObject {
