@@ -29,6 +29,35 @@ class SatisKosul extends CKodVeAdi {
 		e = e ?? {}; const tipKod = typeof e == 'object' ? e.tipKod : e;
 		return this.tip2Sinif[tipKod]
 	}
+	/** Stoklar için Fiyat, En Düşük Fiyat bilgilerini ver
+		@example:
+		  let satisKosul = await SatisKosul.newFor('FY');
+		  if (!satisKosul.yukle('1200027')) { satisKosul = null }
+		  await SatisKosul.stoklarIcinFiyatlar(stokKodListe, satisKosul)
+	*/
+	static async stoklarIcinFiyatlar(e, _satisKosul) {
+	    e = e ?? {}; let isObj = typeof e == 'object' && !$.isArray(e);
+		let kodListe = $.makeArray(isObj ? e.kodListe ?? e.kod : e); if (!kodListe.length) { return result }
+		let satisKosul = isObj ? e.satisKosul ?? e.kosul : _satisKosul;
+	    let result = {}, eksikKodListe = []
+	    if (satisKosul) {
+	        for (let [stokKod, rec] of Object.entries(await satisKosul.getAltKosullar(kodListe))) {
+	            result[stokKod] = rec;
+	            if (!rec.fiyat) { eksikKodListe.push(stokKod) }
+	        }
+	    }
+		else { for (let stokKod of kodListe) { result[stokKod] = {}; eksikKodListe.push(stokKod) } }
+	    if (eksikKodListe.length) {
+	        let sent = new MQSent({ from: 'stkmst' }), { sahalar, where: wh } = sent;
+	        sahalar.add('kod stokKod', 'satfiyat1 fiyat');
+	        wh.inDizi(eksikKodListe, 'kod'); 
+	        for (let { stokKod, fiyat } of await app.sqlExecSelect(sent)) {
+	            let rec = result[stokKod] = result[stokKod] ?? {};
+	            rec.fiyat = fiyat
+	        }
+	    }
+	    return result
+	}
 	async yukle(e) {
 		e = e ?? {}; const mustKod = typeof e == 'object' ? e.mustKod : e;
 		let stm = new MQStm(), {sent} = stm, _e = { ...e, stm, sent, mustKod }; this.yukle_queryDuzenle(_e);
@@ -135,3 +164,9 @@ class SatisKosul extends CKodVeAdi {
 		const result = {}; for (const key of keys) { result[key] = kapsam[key] } return result
 	}
 }
+
+
+/* örnek kullanım
+let kosul; try { await (kosul = SatisKosul.newFor('FY')).yukle('1200027') ? await kosul?.getAltKosullar(['000025', '100333']) : {} }
+catch (ex) { console.error(getErrorText(ex)); throw ex }
+*/
