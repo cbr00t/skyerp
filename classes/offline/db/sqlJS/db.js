@@ -56,19 +56,24 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		this.execute([
 			`PRAGMA page_size = ${32 * 1024}`, 'PRAGMA journal_mode = WAL',
 			`PRAGMA synchronous = NORMAL`, `PRAGMA cache_size=-${4 * 1024}`,
-			`PRAGMA temp_store=MEMORY`, 'VACUUM'
+			`PRAGMA temp_store = MEMORY`, 'VACUUM'
 		].join(`; ${CrLf}`));
 		if (window?.app) { return app.dbMgr_tablolariOlustur?.(e) }
 	}
 	async executeAsync(e, params, isRetry) { await this.execute(e, params, isRetry) }
-	execute(e, params, isRetry) {
-		if (this.internalDB) { return this._execute(e, params, isRetry) }
-		return this.open(e).then(() => this._execute(e, params, isRetry))
+	execute(e, params, isRetry, noAutoTrim) {
+		if (this.internalDB) { return this._execute(e, params, isRetry, noAutoTrim) }
+		return this.open(e).then(() => this._execute(e, params, isRetry, noAutoTrim))
 	}
-	_execute(e, _params, isRetry) {
+	_execute(e, _params, isRetry, _noAutoTrim) {
 		e = e || {}; if (window?.app) { app.sqlType = 'sqlite' }
-		if (typeof e == 'object' && !$.isPlainObject(e)) { const queryObj = e; e = { query: queryObj.toString() }; e.params = queryObj.params }
-		if (!e.query) { e = { query: e } } if (_params !== undefined) { e.params = _params }
+		if (typeof e == 'object' && !$.isPlainObject(e)) {
+			const queryObj = e; e = { query: queryObj.toString() };
+			e.params = queryObj.params
+		}
+		if (!e.query) { e = { query: e } }
+		if (_params !== undefined) { e.params = _params }
+		e.noAutoTrim = e.noAutoTrim ?? _noAutoTrim;
 		if (e.query?.toplumu) {
 			let {liste} = e.query, result; for (const subQuery of liste) {
 				let queryYapi = subQuery.getQueryYapi(); if ($.isEmptyObject(queryYapi)) { continue }
@@ -77,11 +82,18 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 			return result
 		}
 		let savedParams = e.params, _query = e.query, isDBWrite = this.isDBWrite(_query);
-		e = { ...e }; if (_query?.getQueryYapi) { $.extend(e, _query.getQueryYapi()) } else if (_query?.query) { $.extend(e, _query) } else { e.query = _query?.toString() ?? '' }
+		e = { ...e };
+		if (_query?.getQueryYapi) { $.extend(e, _query.getQueryYapi()) }
+		else if (_query?.query) { $.extend(e, _query) }
+		else { e.query = _query?.toString() ?? '' }
 		if (!e.query) { return null }
 		if (!$.isEmptyObject(savedParams)) {
-			let {params} = e; if ($.isEmptyObject(params)) { params = e.params = savedParams }
-			else if (params != savedParams) { if ($.isArray(params)) { params.push(...savedParams) } else { $.extend(params, savedParams) } }
+			let {params} = e;
+			if ($.isEmptyObject(params)) { params = e.params = savedParams }
+			else if (params != savedParams) {
+				if ($.isArray(params)) { params.push(...savedParams) }
+				else { $.extend(params, savedParams) }
+			}
 		}
 		if (typeof e.query == 'string') {
 			if (e.query.toUpperCase().includes('NOT NULL AUTO')) { e.query = e.query.replaceAll('rowid\t', '--rowid\t').replaceAll('rowid ', '--rowid ') }
@@ -96,12 +108,23 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 					app.dbMgr_tabloEksikleriTamamla({ ...e, db: this, noCacheReset: true }); return this.execute(e, _params, true) }
 			}
 			/*if (dbOpCallback) { await dbOpCallback.call(this, { operation: 'executeSql', state: null, error: ex }, e) }*/
-			console.error('sqlite exec', { ...e, db: this, isDBWrite, ex }); throw ex
+			console.error('sqlite exec', { ...e, db: this, isDBWrite, ex });
+			throw ex
 		}
-		if (!_result) { return _result } _result = $.isArray(_result) ? _result[0] : null;
+		if (!_result) { return _result }
+		_result = $.isArray(_result) ? _result[0] : null;
 		if ($.isEmptyObject(_result) && (isDBWrite || (typeof _result == 'number' && result) )) { this.onChange(e) }
 		let result = { rows: [] }, {columns, values} = _result || {};
-		if (values) { for (const _rec of values) { const rec = {}; for (let i = 0; i < columns.length; i++) { rec[columns[i]] = _rec[i] } result.rows.push(rec) } }
+		if (values) {
+			const {noAutoTrim} = e; for (const _rec of values) {
+				const rec = {}; for (let i = 0; i < columns.length; i++) {
+					let value = _rec[i];
+					if (!noAutoTrim && typeof value == "string") { value = value.trimEnd() }
+					rec[columns[i]] = value
+				}
+				result.rows.push(rec)
+			}
+		}
 		result = result.rows ?? result; /*if (dbOpCallback) { setTimeout(() => dbOpCallback.call(this, { operation: 'executeSql', state: false }, e), 20) }*/
 		return result
 	}
