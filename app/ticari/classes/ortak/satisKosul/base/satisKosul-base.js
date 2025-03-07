@@ -1,7 +1,8 @@
 class SatisKosul extends CKodVeAdi {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tipKod() { return null } static get aciklama() { return null }
-	static get table() { return null } static get detayMustTable() { return null } static get detayTables() { return null }
+	static get table() { return null } static get detayTables() { return null }
+	static get detayMustTable() { return null }
 	static get tip2Sinif() {
 		let {_tip2Sinif: result} = this;
 		if (result == null) {
@@ -52,12 +53,10 @@ class SatisKosul extends CKodVeAdi {
 		}
 		return uygunmu
     }
-	yukle_queryDuzenle(e) {  /* edt: a!cbr00t-CGP */
-		const {stm, sent, mustKod} = e, {kapsam} = this;
-		const alias = 'fis', {table} = this.class, {where: wh, sahalar} = sent, {orderBy} = stm;
+	yukle_queryDuzenle({ stm, sent, mustKod }) {  /* edt: a!cbr00t-CGP */
+		const {kapsam} = this, {table} = this.class, {where: wh, sahalar} = sent, {orderBy} = stm, alias = 'fis';
 		const {tipListe, tip2RowAttrListe} = SatisKosulKapsam, mustSqlDegeri = mustKod?.sqlServerDegeri();
-		sent.fromAdd(`${table} ${alias}`); wh.fisSilindiEkle();
-		wh.inDizi(['', 'N'], `${alias}.isaretdurum`).add(`${alias}.devredisi = ''`, `${alias}.ayrimkod = ''`);
+		sent.fromAdd(`${table} ${alias}`); wh.fisSilindiEkle(); wh.add(`${alias}.devredisi = ''`);
 		if (mustKod) {
 			wh.add(new MQOrClause([
 				`fis.detaylimust = ''`,
@@ -69,8 +68,8 @@ class SatisKosul extends CKodVeAdi {
 		}
 		kapsam?.uygunlukClauseDuzenle({ alias, where: wh });
 		sahalar.addWithAlias(alias,
-			'kaysayac sayac', 'kod', 'aciklama', 'kgrupkod grupKod', 'dvkod dvKod', 'detaylimust mustDetaydami',
-			'subeicinozeldir subeIcinOzelmi', 'iskontoyok iskontoYokmu', 'promosyonyok promosyonYokmu'
+			'kaysayac sayac', 'kod', 'aciklama', 'kgrupkod grupKod', 'dvkod dvKod',
+			'detaylimust mustDetaydami', 'subeicinozeldir subeIcinOzelmi'
 		);
 		for (const tip of tipListe) {
 			const rowAttrs = tip2RowAttrListe[tip] || [`${tip}b`, `${tip}s`];
@@ -86,27 +85,57 @@ class SatisKosul extends CKodVeAdi {
 		this.konsolideSubemi = rec.konTipKod == 'S'
 	}
 	async getAltKosullar(e) {
-		e = e ?? {}; const {kapsam, iskontoYokmu, promosyonYokmu} = this;
-		const stokKodListe = $.makeArray(typeof e == 'object' && !$.isArray(e) ? e.stokKodListe ?? e.kodListe : e);
-		let stm = new MQStm(), {sent} = stm, _e = { ...e, stokKodListe, stm, sent}; this.getAltKosullar_queryDuzenle(_e);
-		stm = _e.stm; sent = _e.sent; let recs = await app.sqlExecSelect(stm), sevRecs = seviyelendir({ source: recs, attrListe: ['stokkod'] });
-		let result = {}; for (const {detaylar} of sevRecs) {
-			for (const rec of detaylar) {
-				const {stokKod} = rec; if (!stokKod) { continue }
-				$.extend(rec, { iskontoYokmu, promosyonYokmu });
-				result[stokKod] = rec;
+		e = e ?? {}; const _satisKosul = this, {iskontoYokmu, promosyonYokmu} = this;
+		let stokKodListe = $.makeArray(typeof e == 'object' && !$.isArray(e) ? e.stokKodListe ?? e.kodListe : e);
+		let result = {}; if ($.isEmptyObject(stokKodListe)) { return result }
+		let stok2GrupKod = {}, grup2StokKodSet = {};
+		{	/* Stoklar için Grup Kodlarını belirle */
+			let sent = new MQSent({
+				from: 'stkmst stk', sahalar: ['stk.kod stokKod', 'stk.grupkod grupKod'],
+				where: [{ inDizi: stokKodListe, saha: 'stk.kod' }, `stk.grupkod > ''`]
+			});
+			for (let {stokKod, grupKod} of await app.sqlExecSelect(sent)) {
+				if (!grupKod) { continue } stok2GrupKod[stokKod] = grupKod;
+				(grup2StokKodSet[grupKod] = grup2StokKodSet[grupKod] ?? {})[stokKod] = true
+			}
+		}
+		{	/* Stok Gruplar için Alt Koşulları belirle (init values - öncelik #2) */
+			let stm = new MQStm(), {sent} = stm, kodListe = Object.keys(grup2StokKodSet);
+			let _e = { ...e, kodListe, stm, sent, grupmu: true }; if (this.getAltKosullar_queryDuzenle(_e) !== false) {
+				stm = _e.stm; sent = _e.sent; let sevRecs = seviyelendir({ source: await app.sqlExecSelect(stm), attrListe: ['xKod'] });
+				const detTip = 'G'; for (const {detaylar} of sevRecs) {
+					for (const _rec of detaylar) {
+						const {xKod: grupKod} = _rec; if (!grupKod) { continue }										  /* sent.where koşulundan dolayı normalde boş grupKod gelmemesi gerekir, sadece önlem */
+						let stokKodSet = grup2StokKodSet[grupKod]; if ($.isEmptyObject(stokKodSet)) { continue }		  /* grupKod'a ait stokKod liste boş ise işlem yapma. normalde bu dict values içeriğinin boş gelmemesi bekleniyor */
+						$.extend(_rec, { _satisKosul, detTip, iskontoYokmu, promosyonYokmu });							  /* ortak değerleri orijinal _rec içine ata */
+						for (let xKod in stokKodSet) { let rec = { ..._rec, xKod }; result[xKod] = rec }				  /* grupKod'a ait her 'stokKod' için kopya kayıt ile result'a eklenti yap */
+					}
+				}
+			}
+		}
+		{	/* Stoklar için Alt Koşulları belirle (with override - öncelik #1) */
+			let stm = new MQStm(), {sent} = stm, kodListe = stokKodListe;
+			let _e = { ...e, kodListe, stm, sent, grupmu: false }; if (this.getAltKosullar_queryDuzenle(_e) !== false) {
+				stm = _e.stm; sent = _e.sent; let sevRecs = seviyelendir({ source: await app.sqlExecSelect(stm), attrListe: ['xKod'] });
+				const detTip = 'S'; for (const {detaylar} of sevRecs) {
+					for (const rec of detaylar) {
+						const {xKod} = rec; if (!xKod) { continue }														 /* stokKod boş ise işlem yapma. normalde boş gelmemesi bekleniyor */
+						$.extend(rec, { _satisKosul, detTip, iskontoYokmu, promosyonYokmu });							 /* ortak değerleri ata */
+						result[xKod] = rec																				 /* result'a eklenti yap */
+					}
+				}
 			}
 		}
 		return result
 	}
-	getAltKosullar_queryDuzenle({ stm, sent, stokKodListe }) {
+	getAltKosullar_queryDuzenle({ stm, sent, kodListe, grupmu }) {
 		let {table, detayTables} = this.class, {sayac, kapsam} = this, {mustKod} = kapsam;
-		const {where: wh, sahalar} = sent, {orderBy} = stm;
-		detayTables = detayTables ?? {}; let {stok: detTable_stok, grup: detTable_grup} = detayTables;
-		sent.fromAdd(`${detTable_stok} har`); wh.degerAta(sayac, 'har.fissayac');
-		if (stokKodListe?.length) { wh.inDizi(stokKodListe, 'har.stokkod') }
-		sahalar.addWithAlias('har', 'fissayac fisSayac', 'kaysayac sayac', 'stokkod stokKod');
-		orderBy.add('stokKod')
+		const {where: wh, sahalar} = sent, {orderBy} = stm, xKodClause = grupmu ? 'grupkod' : 'stokkod';
+		let detTable = detayTables?.[grupmu ? 'grup' : 'stok']; if (!detTable) { return false }
+		sent.fromAdd(`${detTable} har`); wh.degerAta(sayac, 'har.fissayac');
+		if (kodListe?.length) { wh.inDizi(kodListe, `har.${xKodClause}`) }
+		sahalar.addWithAlias('har', 'fissayac fisSayac', `${xKodClause} xKod`);
+		orderBy.add('xKod');
 	}
 	static async getMust2Rec(e) {
 		e = e ?? {}; const kod = (typeof e == 'object' ? e.mustKod ?? e.mustkod ?? e.must ?? e.kod : e)?.trimEnd();

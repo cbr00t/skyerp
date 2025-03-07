@@ -1,7 +1,13 @@
 class SatisKosul_Fiyat extends SatisKosul {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tipKod() { return 'FY' } static get aciklama() { return 'Fiyat' }
-	static get table() { return 'fiyliste' } static get detayMustTable() { return 'fiymust' } static get detayTables() { return { stok: 'fiytarife' } }
+	static get table() { return 'fiyliste' } static get detayTables() { return { stok: 'fiytarife', grup: 'fiytargrup' } }
+	static get detayMustTable() { return 'fiymust' }
+	yukle_queryDuzenle({ stm, sent, mustKod }) {
+		super.yukle_queryDuzenle(...arguments); let {where: wh, sahalar} = sent;
+		wh.add(`fis.ayrimkod = ''`).inDizi(['', 'N'], 'fis.isaretdurum');
+		sahalar.addWithAlias('fis', 'iskontoyok iskontoYokmu', 'promosyonyok promosyonYokmu')
+	}
 	getAltKosullar_queryDuzenle({ stm, sent, stokKodListe }) {
 		super.getAltKosullar_queryDuzenle(...arguments); const {where: wh, sahalar} = sent, ekClause = 'har.ozelfiyat';
 		wh.add(`${ekClause} > 0`); sahalar.add(`${ekClause} fiyat`, 'har.endusukfiyat enDusukFiyat')
@@ -97,41 +103,3 @@ class SatisKosul_Fiyat extends SatisKosul {
 		return result
 	}
 }
-
-
-/*class SatisKosul_IskVeKamOrtak extends SatisKosul {
-    static get attrPrefix() { return '' }  // Alt sınıflar bunu belirtecek
-    static get table() { return '' }       // Alt sınıflar için tanımlanacak
-    static get detayMustTable() { return '' }
-    static get detayTables() { return { stok: '' } }
-
-	getAltKosullar_queryDuzenle({ stm, sent, stokKodListe }) {
-		super.getAltKosullar_queryDuzenle(...arguments);
-		const {where: wh, sahalar} = sent;
-		const prefix = this.class.attrPrefix;  // 'isk' veya 'kam'
-
-		for (let i = 1; i <= app.params.fiyatVeIsk.iskSayi.sabit; i++) {
-			sahalar.add(`har.${prefix}oran${i} oran${i}`);
-		}
-	}
-}
-class SatisKosul_Iskonto extends SatisKosul_IskVeKamOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get tipKod() { return 'SB' } 
-	static get aciklama() { return 'İskonto' }
-	static get attrPrefix() { return 'isk' } 
-	static get table() { return 'sabittarife' } 
-	static get detayMustTable() { return 'sbtmust' } 
-	static get detayTables() { return { stok: 'sbttarife' } }
-}
-
-class SatisKosul_Kampanya extends SatisKosul_IskVeKamOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get tipKod() { return 'KM' } 
-	static get aciklama() { return 'Kampanya' }
-	static get attrPrefix() { return 'kam' } 
-	static get table() { return 'kampanya' } 
-	static get detayMustTable() { return 'kammust' } 
-	static get detayTables() { return { stok: 'kamtarife' } }
-}
-*/
