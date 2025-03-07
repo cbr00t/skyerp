@@ -52,7 +52,7 @@ class SatisKosul extends CKodVeAdi {
 		}
 		return uygunmu
     }
-	yukle_queryDuzenle(e) {
+	yukle_queryDuzenle(e) {  /* edt: a!cbr00t-CGP */
 		const {stm, sent, mustKod} = e, {kapsam} = this;
 		const alias = 'fis', {table} = this.class, {where: wh, sahalar} = sent, {orderBy} = stm;
 		const {tipListe, tip2RowAttrListe} = SatisKosulKapsam, mustSqlDegeri = mustKod?.sqlServerDegeri();
