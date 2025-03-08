@@ -27,6 +27,15 @@ class SatisKosul_Fiyat extends SatisKosul {
 			await SatisKosul_Fiyat.stoklarIcinFiyatlar(stokKodListe, satisKosul, mustKod)
 	*/
 	static async stoklarIcinFiyatlar(e, _satisKosul, _mustKod) {
+		let result = await this._stoklarIcinFiyatlar(e, _satisKosul, _mustKod); if (result) {
+			for (const [xKod, rec] of Object.entries(result)) {
+				if (rec.detTip == null) { rec.detTip = 'S' }
+				if (rec.xKod == null) { rec.xKod = xKod }
+			}
+		}
+		return result
+	}
+	static async _stoklarIcinFiyatlar(e, _satisKosul, _mustKod) {
 	    e = e ?? {}; let isObj = typeof e == 'object' && !$.isArray(e);
 		let kodListe = $.makeArray(isObj ? e.kodListe ?? e.kod : e); if (!kodListe.length) { return result }
 		let satisKosul = isObj ? e.satisKosul ?? e.kosul : _satisKosul;
@@ -92,6 +101,7 @@ class SatisKosul_Fiyat extends SatisKosul {
 			}).fromAdd('carmst car');
 			/* const iskontoYokmu = false, promosyonYokmu = false; -- !! don't override flags */
 			for (let {stokKod, fiyat} of await app.sqlExecSelect(sent)) {
+				if (!fiyat) { continue }
 				let rec = result[stokKod] = result[stokKod] ?? {}, kod = '', kayitTipi = 'S';
 				$.extend(rec, { kayitTipi, kod, fiyat }); delete eksikKodSet[stokKod]
 			}

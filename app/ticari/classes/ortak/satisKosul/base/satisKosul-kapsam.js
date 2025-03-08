@@ -10,7 +10,8 @@ class SatisKosulKapsam extends CObject {
 		let {_uygunmuKontrol: result} = this; if (result == null) {
 			const {tipListe} = this, offlineMode = window.MQCogul?.isOfflineMode ?? app?.offlineMode ?? false;
 			result = this._uygunmuKontrol = { js: asSet(offlineMode ? ['tarih'] : []) };
-			result.sql = asSet(tipListe.filter(x => !result.js[x]))
+			result.sql = asSet(tipListe.filter(x => !result.js[x]));
+			result.all = { ...result.js, ...result.sql }
 		}
 		return result
 	}
@@ -27,7 +28,8 @@ class SatisKosulKapsam extends CObject {
 	setValues(e) {
 		e = e ?? {}; const {rec} = e, {tipListe, dateTipSet} = this.class;
 		for (const tip of tipListe) {
-			let bs = rec[`${tip}Kod`] ?? rec[`${tip}kod`] ?? rec[tip]; if (bs) {
+			let bs = rec[`${tip}Kod`] ?? rec[`${tip}kod`] ?? rec[tip];
+			if (bs != null) {
 				if (bs.basi === undefined && bs.sonu === undefined) { bs = new CBasiSonu({ basi: bs, sonu: bs }) }
 				else if ($.isPlainObject(bs)) { bs = new CBasiSonu(bs) }
 			}

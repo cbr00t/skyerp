@@ -26,8 +26,9 @@ class SatisKosul_IskVeKamOrtak extends SatisKosul {
 		let satisKosul = isObj ? e.satisKosul ?? e.kosul : _satisKosul, result = {};
 		/* Satış Koşul varsa koşuldan oranları belirle */
 	    if (satisKosul) {
-	        for (let [stokKod, rec] of Object.entries(await satisKosul.getAltKosullar(kodListe))) {
-	            result[stokKod] = rec; rec.kayitTipi = 'K'
+	        const kayitTipi = 'K'; for (let [xKod, rec] of Object.entries(await satisKosul.getAltKosullar(kodListe))) {
+	            $.extend(rec, { xKod, kayitTipi });
+				result[xKod] = rec
 			}
 	    }
 		return result

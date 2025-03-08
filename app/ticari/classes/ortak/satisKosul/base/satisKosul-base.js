@@ -31,13 +31,15 @@ class SatisKosul extends CKodVeAdi {
 		return this.tip2Sinif[tipKod]
 	}
 	async yukle(e) {
-		e = e ?? {}; const mustKod = typeof e == 'object' ? e.mustKod : e;
+		e = e ?? {}; let {kapsam} = this, mustKod; {
+			let {basi, sonu} = kapsam?.must ?? {};
+			if (basi && basi == sonu) { mustKod = basi }
+		}
 		let stm = new MQStm(), {sent} = stm, _e = { ...e, stm, sent, mustKod }; this.yukle_queryDuzenle(_e);
 		stm = _e.stm; sent = _e.sent; let recs = await app.sqlExecSelect(stm), uygunmu = false;
 		for (const rec of recs) {
 			this.setValues({ rec }); stm = sent = null;
-			uygunmu = true; let {kapsam} = this;
-			if (mustKod && this.mustDetaydami) {
+			uygunmu = true; if (mustKod && this.mustDetaydami) {
 				let {sayac} = this, {detayMustTable} = this.class;
 				let sent = new MQSent({
 					from: detayMustTable, sahalar: 'COUNT(*) sayi',
@@ -45,7 +47,7 @@ class SatisKosul extends CKodVeAdi {
 				}).distinctYap();
 				uygunmu = !!asInteger(await app.sqlExecTekilDeger(sent))
 			}
-			if (uygunmu) {
+			if (uygunmu && kapsam) {
 				let diger = this.mustRec = e.mustRec ?? await this.class.getMust2Rec(mustKod);
 				uygunmu = kapsam.uygunmu(diger)
 			}
