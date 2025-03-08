@@ -22,7 +22,7 @@ class HTMLDokum extends CObject {
 		let {tip} = e, tanim = await this.getTanim({ ...e, tip }); if (!tanim) { throw new Error(`<b class=red>${tip}</b> tipi için tanım belirlenemedi`) }
 		return await this.fromDosyaAdi({ ...tanim, ...e })
 		/*let {tabloNo, dosyaAdi} = tanim; if (!dosyaAdi) { throw new Error(`<b>${tip}</b> tip'ine ait Word Dokuman Tanımı'nda <b class=red>Dosya Adı</b> belirtilmelidir`) }
-		let {wordGenelBolum: rootDir} = app.params.ticariGenel, sablonDosya = `${rootDir.trimEnd_slashes()}/${dosyaAdi}`;
+		let {wordGenelBolum: rootDir} = app.params.ticariGenel, sablonDosya = `${rootDir?.trimEnd_slashes()}/${dosyaAdi}`;
 		let sablon = await app.wsDownloadAsStream({ remoteFile: sablonDosya, contentType: 'text/html' }); $.extend(this, { tabloNo, sablon, sablonDosya });
 		return this*/
 	}
@@ -31,7 +31,8 @@ class HTMLDokum extends CObject {
 		if (typeof e != 'object') { e = { dosyaAdi: e } }
 		let dosyaAdi = e.dosyaAdi ?? e.name, {tabloNo} = e;
 		if (!dosyaAdi) { throw new Error(`<b>${tip}</b> tip'ine ait Word Dokuman Tanımı'nda <b class=red>Dosya Adı</b> belirtilmelidir`) }
-		let {wordGenelBolum: rootDir} = app.params.ticariGenel, sablonDosya = `${rootDir.trimEnd_slashes()}/${dosyaAdi}`;
+		let {wordGenelBolum: rootDir} = app.params.ticariGenel; if (!rootDir) { throw new Error(`<b>Ticari Genel Parametreler</b> adımında <b class=red>Word Ana Bölüm</b> belirtilmelidir`) }
+		let sablonDosya = `${rootDir?.trimEnd_slashes()}/${dosyaAdi}`;
 		let sablon = await app.wsDownloadAsStream({ remoteFile: sablonDosya, contentType: 'text/html' }); $.extend(this, { tabloNo, sablon, sablonDosya });
 		return this
 	}

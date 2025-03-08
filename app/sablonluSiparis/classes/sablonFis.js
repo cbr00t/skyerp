@@ -138,7 +138,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 				let dip = { brm2Miktar: {}, TOPBEDEL: 0 }, detaylar = fis.detaylar.map(det => {
 					let {shKod: STOKKOD, shAdi: STOKADI, brm: BRM, miktar, fiyat, netBedel: bedel} = det;
 					for (const {adiAttr} of hmrBilgiler) { let value = det[adiAttr]?.trim(); if (value) { STOKADI += ` (<b style="color: royalblue">${value}</b>)` } }
-					dip.brm2Miktar[BRM] = (dip.brm2Miktar[BRM] ?? 0) + (miktar ?? 0); dip.BEDEL += (bedel ?? 0);
+					dip.brm2Miktar[BRM] = (dip.brm2Miktar[BRM] ?? 0) + (miktar ?? 0); dip.TOPBEDEL += (bedel ?? 0);
 					let MIKTAR = numberToString(miktar ?? 0), FIYAT = `${toStringWithFra(fiyat ?? 0, fiyatFra)} ${dvKod}`, BEDEL = `${toStringWithFra(bedel ?? 0, bedelFra)} ${dvKod}`;
 					return { STOKKOD, STOKADI, MIKTAR, BRM, FIYAT, BEDEL }
 				});

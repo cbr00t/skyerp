@@ -105,20 +105,12 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 		let recs = await this.class.loadServerData_querySonucu(e), detaylar = this.detaylar = [];
 		let {mustKod} = this, kapsam = { mustKod }, stokKodListe = recs.map(({ stokkod: kod }) => kod);
 		let satisKosul = new SatisKosul_Fiyat({ kapsam }); if (!await satisKosul.yukle()) { satisKosul = null }
-		let fiyatYapilar = await SatisKosul_Fiyat.stoklarIcinFiyatlar(stokKodListe, satisKosul, mustKod);
 		let anah2Det = {}; for (let rec of recs) {
 			let {stokkod: stokKod, stokadi: stokAdi} = rec, stokText = new CKodVeAdi([stokKod, stokAdi]).parantezliOzet({ styled: true });
 			let det = new detaySinif({ stokText }); det.setValues({ rec }); detaylar.push(det);
 			for (let {belirtec, ioAttr, adiAttr, rowAttr, rowAdiAttr} of ekOzellikler) {
 				let kod = rec[rowAttr], aciklama = rec[rowAdiAttr]; if (kod === undefined) { continue }
 				det[ioAttr] = kod; det[adiAttr] = aciklama; det[belirtec] = kod ? `<b>(${kod})</b> ${aciklama}` : ''
-			}
-			if (fiyatYapilar && det.bedel !== undefined) {
-				let {fiyat} = fiyatYapilar[stokKod] ?? {};
-				if (fiyat) {
-					let miktar = rec.miktar || 0, bedel = roundToBedelFra(miktar * fiyat);
-					$.extend(rec, { fiyat, bedel })
-				}
 			}
 			let anahStr = getAnahStr(rec); anah2Det[anahStr] = anah2Det[anahStr] ?? det
 		}
@@ -138,13 +130,24 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 			}
 			if (islem == 'onayla' || islem == 'sil') { detaylar = this.detaylar = detaylar.filter(({ miktar }) => !!miktar) }
 		}
+		if (detaylar?.length) {
+			let fiyatYapilar = await SatisKosul_Fiyat.stoklarIcinFiyatlar(stokKodListe, satisKosul, mustKod);
+			for (const det of detaylar) {
+				if (fiyatYapilar && det.netBedel == undefined) { continue }
+				let {stokKod} = det, fiyat = det.fiyat || fiyatYapilar[stokKod]?.fiyat;
+				if (fiyat) {
+					let miktar = det.miktar || 0, netBedel = roundToBedelFra(miktar * fiyat);
+					$.extend(det, { fiyat, netBedel })
+				}
+			}
+		}
 		return true
 	}
 	baslikVeDetaylariYukle_degistir_queryDuzenle(e) {
 		let {fisSayac} = this, {fisTable: table, fisIcinDetayTable: detayTable} = this.class;
 		let {stm, ekOzellikler} = e, sent = e.sent = stm.sent = new MQSent({
 			where: { degerAta: fisSayac, saha: 'fissayac' },
-			sahalar: ['fis.tarih', 'fis.seri', 'fis.noyil', 'fis.no', 'har.kaysayac', 'har.stokkod', 'SUM(har.miktar) miktar']
+			sahalar: ['fis.tarih', 'fis.seri', 'fis.noyil', 'fis.no', 'har.kaysayac', 'har.stokkod', 'SUM(har.miktar) miktar', 'SUM(har.fiyat) fiyat', 'SUM(har.bedel) bedel']
 		}), {sahalar, where: wh} = sent; sent.fisHareket(table, detayTable);
 		wh.icerikKisitDuzenle_stok({ saha: 'har.stokkod' });
 		for (let {table, tableAlias: alias, rowAttr} of ekOzellikler) {
@@ -232,11 +235,12 @@ class SablonluSiparisListeDetay extends SablonluSiparisListeOrtakDetay {
 class SablonluKonsinyeSiparisListeDetay extends SablonluSiparisListeOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {
-		e = e ?? {}; super(e); let fiyat = e.fiyat ?? 0, bedel = e.bedel ?? 0; $.extend(this, { fiyat, bedel })
+		e = e ?? {}; super(e); let fiyat = e.fiyat ?? 0, netBedel = e.bedel ?? 0; $.extend(this, { fiyat, netBedel })
 	}
 	setValues(e) {
-		super.setValues(e); let {rec} = e, fiyat = rec.fiyat ?? 0, bedel = rec.bedel ?? 0;
-		$.extend(this, { fiyat, bedel })
+		super.setValues(e); let {rec} = e, {fiyat, bedel: netBedel} = rec;
+		if (fiyat) { this.fiyat = fiyat }
+		if (netBedel) { this.netBedel = netBedel }
 	}
 }
 
@@ -285,11 +289,11 @@ class SablonluKonsinyeSiparisListeGridci extends SablonluSiparisListeOrtakGridci
 	tabloKolonlariDuzenle_ara({ tabloKolonlari }) {
 		super.tabloKolonlariDuzenle_ara(...arguments); tabloKolonlari.push(...[
 			new GridKolon({ belirtec: 'fiyat', text: 'Fiyat', genislikCh: 13, groupable: false }).readOnly().tipDecimal_fiyat().sifirGosterme(),
-			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 13, groupable: false }).readOnly().tipDecimal_bedel().sifirGosterme()
+			new GridKolon({ belirtec: 'netBedel', text: 'Bedel', genislikCh: 13, groupable: false }).readOnly().tipDecimal_bedel().sifirGosterme()
 		])
 	}
 	bedelHesapla({ gridWidget, rowIndex, miktar, fiyat }) {
 		super.bedelHesapla(...arguments);
-		gridWidget.setcellvalue(rowIndex, 'bedel', roundToBedelFra(miktar * fiyat))
+		gridWidget.setcellvalue(rowIndex, 'netBedel', roundToBedelFra(miktar * fiyat))
 	}
 }
