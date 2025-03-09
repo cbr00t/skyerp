@@ -65,16 +65,17 @@ class SatisKosulKapsam extends CObject {
 		return tipListe.every(tip => this[tip]?.uygunmu(diger[`${tip}Kod`] ?? diger[`${tip}kod`] ?? diger[tip]) ?? true)
 	}
 	uygunlukClauseDuzenle({ alias, where: wh }) {  /* this: diger */
-		let {uygunmuKontrol, tipListe} = this.class, aliasVeNokta = alias ? `${alias}.` : '';
+		let {uygunmuKontrol, tipListe, dateTipSet} = this.class, aliasVeNokta = alias ? `${alias}.` : '';
 		for (const tip of tipListe) {
 			if (uygunmuKontrol && !uygunmuKontrol.sql?.[tip]) { continue }
 			const bs = this[tip] ?? {}, {basi, sonu} = bs; if (!(basi || sonu)) { continue }
 			const saha = { basi: `${aliasVeNokta}${tip}b`, sonu: `${aliasVeNokta}${tip}s` };
 			const or = new MQOrClause(), addClause = (selector, operator) => {
 				let value = bs[selector]; if (!value) { return }
-				or.add(`${value.sqlServerDegeri()} ${operator} ${saha[selector]}`)
+				if (dateTipSet[tip]) { value = asDate(value) }
+				or.add(`${saha[selector]} ${operator} ${value.sqlServerDegeri()}`)
 			};
-			addClause('basi', '>='); addClause('sonu', '<=');
+			addClause('basi', '<='); addClause('sonu', '>=');
 			if (or.liste.length) { wh.add(or) }
 		}
 		return this

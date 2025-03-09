@@ -18,6 +18,7 @@ class SatisKosul_Fiyat extends SatisKosul {
 			let satisKosul = new SatisKosul_Fiyat({ kapsam }); if (!await satisKosul.yukle()) { satisKosul = null }
 			console.table(await SatisKosul_Fiyat.stoklarIcinFiyatlar(stokKodListe, satisKosul, mustKod))
 	*/
+	static getAltKosulYapilar() { return this.stoklarIcinFiyatlar(...arguments) }
 	static async stoklarIcinFiyatlar(e, _satisKosul, _mustKod) {
 		let result = await this._stoklarIcinFiyatlar(e, _satisKosul, _mustKod); if (result) {
 			for (const [xKod, rec] of Object.entries(result)) {

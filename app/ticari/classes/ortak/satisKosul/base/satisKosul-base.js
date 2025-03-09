@@ -30,8 +30,11 @@ class SatisKosul extends CKodVeAdi {
 		e = e ?? {}; const tipKod = typeof e == 'object' ? e.tipKod : e;
 		return this.tip2Sinif[tipKod]
 	}
+	getAltKosulYapilar() { return null }
 	async yukle(e) {
-		e = e ?? {}; let {kapsam} = this, mustKod; {
+		e = e ?? {}; let kapsam = e.kapsam ?? this.kapsam ?? {}, mustKod;
+		if ($.isPlainObject(kapsam)) { kapsam = new SatisKosulKapsam(kapsam) }
+		{
 			let {basi, sonu} = kapsam?.must ?? {};
 			if (basi && basi == sonu) { mustKod = basi }
 		}
@@ -63,8 +66,8 @@ class SatisKosul extends CKodVeAdi {
 			wh.add(new MQOrClause([
 				`fis.detaylimust = ''`,
 				new MQAndClause([
-					`(COALESCE(${alias}.mustb, '') = '' OR ${mustSqlDegeri} >= ${alias}.mustb)`,
-					`(COALESCE(${alias}.musts, '') = '' OR ${mustSqlDegeri} <= ${alias}.musts)`
+					`(COALESCE(${alias}.mustb, '') = '' OR ${alias}.mustb <= ${mustSqlDegeri})`,
+					`(COALESCE(${alias}.musts, '') = '' OR ${alias}.musts >= ${mustSqlDegeri})`
 				])
 			]))
 		}

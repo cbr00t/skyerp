@@ -6,6 +6,7 @@ class SatisKosul_IskVeKamOrtak extends SatisKosul {
 		wh.add(`har.${prefix}oran1 > 0`);
 		for (let i = 1; i <= maxSayi; i++) { sahalar.add(`har.${prefix}oran${i} oran${i}`) }
 	}
+	static getAltKosulYapilar() { return this.stoklarIcinOranlar(...arguments) }
 	/** Stoklar için Oran bilgilerini ver
 		@example(s):
 			let tarih = asDate('09.03.2025'), subeKod = '1001', mustKod = 'M120 10 001', stokKodListe = ['8691520102767', '8691520108325'], kapsam = { tarih, subeKod, mustKod };

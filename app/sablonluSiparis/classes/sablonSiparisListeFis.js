@@ -105,7 +105,7 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 		let stm = e.stm = e.query = new MQStm({ sent, orderBy: ['fissayac', 'grupseq', 'seq'] });
 		let recs = await this.class.loadServerData_querySonucu(e), detaylar = this.detaylar = [];
 		let {tarih, subeKod, mustKod} = this, kapsam = { tarih, subeKod, mustKod }, stokKodListe = recs.map(({ stokkod: kod }) => kod);
-		let satisKosul = new SatisKosul_Fiyat({ kapsam }); if (!await satisKosul.yukle()) { satisKosul = null }
+		let satisKosul = new SatisKosul_Fiyat(); if (!await satisKosul.yukle({ kapsam })) { satisKosul = null }
 		let anah2Det = {}; for (let rec of recs) {
 			let {stokkod: stokKod, stokadi: stokAdi} = rec, stokText = new CKodVeAdi([stokKod, stokAdi]).parantezliOzet({ styled: true });
 			let det = new detaySinif({ stokText }); det.setValues({ rec }); detaylar.push(det);
