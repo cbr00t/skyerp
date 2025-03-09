@@ -41,8 +41,8 @@ class CBasiSonu extends CObject {
 		})
 	}
 	uygunmu(e) {
-		e = e ?? {}; let value = e.value ?? e, {basi, sonu} = this;
-		return (!basi || basi <= value) || (!sonu || sonu >= value)
+		let value = e?.value ?? e, {basi, sonu} = this;
+		return $.isEmptyObject(value) ? true : (!basi || basi <= value) && (!sonu || sonu >= value)
 	}
 	toString(e) { const basi = this.basi ?? '', sonu = this.sonu; return sonu ? `${basi} -> ${sonu}` : basi ?? '' }
 }

@@ -9,7 +9,8 @@ class SatisKosulKapsam extends CObject {
 	static get uygunmuKontrol() {
 		let {_uygunmuKontrol: result} = this; if (result == null) {
 			const {tipListe} = this, offlineMode = window.MQCogul?.isOfflineMode ?? app?.offlineMode ?? false;
-			result = this._uygunmuKontrol = { js: asSet(offlineMode ? ['tarih'] : []) };
+			let js = ['sube', 'subeGrup', (offlineMode ? 'tarih' : null)].filter(x => !!x);
+			result = this._uygunmuKontrol = { js: asSet(js) };
 			result.sql = asSet(tipListe.filter(x => !result.js[x]));
 			result.all = { ...result.js, ...result.sql }
 		}
@@ -24,11 +25,16 @@ class SatisKosulKapsam extends CObject {
 		}
 		return result
 	}
-	constructor(e) { e = e ?? {}; super(e); this.setValues({ rec: e }) }
+	constructor(e) {
+		e = e ?? {}; super(e);
+		if (!$.isEmptyObject(e)) { this.setValues({ rec: e }) }
+	}
 	setValues(e) {
-		e = e ?? {}; const {rec} = e, {tipListe, dateTipSet} = this.class;
+		e = e ?? {}; let {rec, mustRec} = e, {tipListe, dateTipSet} = this.class, {subeIcinOzeldir} = rec;
+		if (subeIcinOzeldir != null && !subeIcinOzeldir) { tipListe = tipListe.filter(tip => !(tip == 'sube' || tip == 'subeGrup')) }
 		for (const tip of tipListe) {
-			let bs = rec[`${tip}Kod`] ?? rec[`${tip}kod`] ?? rec[tip];
+			let bs = rec[`${tip}Kod`] ?? rec[`${tip}kod`] ?? rec[tip] ??
+						mustRec?.[`${tip}Kod`] ?? mustRec?.[`${tip}kod`] ?? mustRec?.[tip];
 			if (bs != null) {
 				if (bs.basi === undefined && bs.sonu === undefined) { bs = new CBasiSonu({ basi: bs, sonu: bs }) }
 				else if ($.isPlainObject(bs)) { bs = new CBasiSonu(bs) }
@@ -47,11 +53,16 @@ class SatisKosulKapsam extends CObject {
 			}
 			if (bs) { this[tip] = bs }
 		}
+		/*if (mustRec) {
+			let bosmu = item => !(item?.basi || item), setBS = (selector, value) => this[key] = new CBasiSonu({ basi: value, sonu: value });
+			let setBSIfEmpty = (key, value) => { let item = this[key]; if (bosmu(item)) { setBS(key, value) };
+			setBSIfEmpty('sube', mustRec.subeKod); setBSIfEmpty('subeGrup', mustRec.subeGrupKod)
+		}*/
 	}
 	uygunmu(e) {
-		e = e ?? {}; let {uygunmuKontrol, tipListe} = this.class, diger = (typeof e == 'object' ? e.kapsam ?? e.diger : e) ?? {};
-		if (uygunmuKontrol) { tipListe = tipListe.filter(x => uygunmuKontrol.js?.[x]) }
-		return tipListe.every(tip => this[tip]?.uygunmu(diger[tip]) ?? true)
+		e = e ?? {}; let {uygunmuKontrol, tipListe} = this.class, diger = e.kapsam ?? e.diger ?? e;
+		if (uygunmuKontrol) { tipListe = tipListe.filter(x => uygunmuKontrol.all?.[x]) }
+		return tipListe.every(tip => this[tip]?.uygunmu(diger[`${tip}Kod`] ?? diger[`${tip}kod`] ?? diger[tip]) ?? true)
 	}
 	uygunlukClauseDuzenle({ alias, where: wh }) {  /* this: diger */
 		let {uygunmuKontrol, tipListe} = this.class, aliasVeNokta = alias ? `${alias}.` : '';
@@ -61,7 +72,7 @@ class SatisKosulKapsam extends CObject {
 			const saha = { basi: `${aliasVeNokta}${tip}b`, sonu: `${aliasVeNokta}${tip}s` };
 			const or = new MQOrClause(), addClause = (selector, operator) => {
 				let value = bs[selector]; if (!value) { return }
-				or.add(`${saha[selector]} ${operator} ${value.sqlServerDegeri()}`)
+				or.add(`${value.sqlServerDegeri()} ${operator} ${saha[selector]}`)
 			};
 			addClause('basi', '>='); addClause('sonu', '<=');
 			if (or.liste.length) { wh.add(or) }

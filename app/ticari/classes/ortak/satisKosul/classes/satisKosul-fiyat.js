@@ -14,17 +14,9 @@ class SatisKosul_Fiyat extends SatisKosul {
 	}
 	/** Stoklar için Fiyat, En Düşük Fiyat bilgilerini ver
 		@example(s):
-			let mustKod = '1200026', stokKodListe = ['000025', '100333'], kapsam = { mustKod };
+			let tarih = asDate('09.03.2025'), subeKod = '1001', mustKod = 'M120 10 001', stokKodListe = ['8691520102767', '8691520108325'], kapsam = { tarih, subeKod, mustKod };
 			let satisKosul = new SatisKosul_Fiyat({ kapsam }); if (!await satisKosul.yukle()) { satisKosul = null }
-			await SatisKosul_Fiyat.stoklarIcinFiyatlar(stokKodListe, satisKosul, mustKod)
-
-			let mustKod = null, stokKodListe = ['000025', '100333'], kapsam = { mustKod };
-			let satisKosul = new SatisKosul_Fiyat({ kapsam }); if (!await satisKosul.yukle()) { satisKosul = null }
-			await SatisKosul_Fiyat.stoklarIcinFiyatlar(stokKodListe, satisKosul, mustKod)
-
-			let mustKod = 'hatalı müşteri kodu', stokKodListe = ['000025', '100333'], kapsam = { mustKod };
-			let satisKosul = new SatisKosul_Fiyat({ kapsam }); if (!await satisKosul.yukle()) { satisKosul = null }
-			await SatisKosul_Fiyat.stoklarIcinFiyatlar(stokKodListe, satisKosul, mustKod)
+			console.table(await SatisKosul_Fiyat.stoklarIcinFiyatlar(stokKodListe, satisKosul, mustKod))
 	*/
 	static async stoklarIcinFiyatlar(e, _satisKosul, _mustKod) {
 		let result = await this._stoklarIcinFiyatlar(e, _satisKosul, _mustKod); if (result) {

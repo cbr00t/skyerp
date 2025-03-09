@@ -24,6 +24,7 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 		super.rootFormBuilderDuzenle(e); let {root: rfb, baslikForm: fbd_baslikForm} = e.builders, {builders: baslikFormlar} = fbd_baslikForm;
 		let {sender: gridPart, inst, islem} = e, {grid, gridWidget, layout} = gridPart;
 		rfb.addStyle(e => `$elementCSS .islemTuslari { position: absolute !important; top: 3px !important }`);
+		rfb.vazgecIstendi = async e => { return false };
 		baslikFormlar[0].altAlta().addForm('_baslikBilgi')
 			.addStyle(e =>
 				`$elementCSS { font-size: 130% } $elementCSS > ._row { gap: 10px } $elementCSS > ._row:not(:last-child) { margin-bottom: 5px }
@@ -103,7 +104,7 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 		}
 		let stm = e.stm = e.query = new MQStm({ sent, orderBy: ['fissayac', 'grupseq', 'seq'] });
 		let recs = await this.class.loadServerData_querySonucu(e), detaylar = this.detaylar = [];
-		let {mustKod} = this, kapsam = { mustKod }, stokKodListe = recs.map(({ stokkod: kod }) => kod);
+		let {tarih, subeKod, mustKod} = this, kapsam = { tarih, subeKod, mustKod }, stokKodListe = recs.map(({ stokkod: kod }) => kod);
 		let satisKosul = new SatisKosul_Fiyat({ kapsam }); if (!await satisKosul.yukle()) { satisKosul = null }
 		let anah2Det = {}; for (let rec of recs) {
 			let {stokkod: stokKod, stokadi: stokAdi} = rec, stokText = new CKodVeAdi([stokKod, stokAdi]).parantezliOzet({ styled: true });

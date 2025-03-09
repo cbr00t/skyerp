@@ -8,17 +8,14 @@ class SatisKosul_IskVeKamOrtak extends SatisKosul {
 	}
 	/** Stoklar için Oran bilgilerini ver
 		@example(s):
-			let mustKod = '1200026', stokKodListe = ['000025', '100333'], kapsam = { mustKod };
-			let satisKosul = new SatisKosul_Iskonto/SatisKosul_Kampanya({ kapsam }); if (!await satisKosul.yukle()) { satisKosul = null }
-			await SatisKosul_Iskonto/SatisKosul_Kampanya.stoklarIcinOranlar(stokKodListe, satisKosul)
+			let tarih = asDate('09.03.2025'), subeKod = '1001', mustKod = 'M120 10 001', stokKodListe = ['8691520102767', '8691520108325'], kapsam = { tarih, subeKod, mustKod };
+			let satisKosul = new SatisKosul_Iskonto({ kapsam }); if (!await satisKosul.yukle()) { satisKosul = null }
+			console.table(await SatisKosul_Iskonto.stoklarIcinOranlar(stokKodListe, satisKosul))
 
-			let mustKod = null, stokKodListe = ['000025', '100333'], kapsam = { mustKod };
-			let satisKosul = new SatisKosul_Iskonto/SatisKosul_Kampanya({ kapsam }); if (!await satisKosul.yukle()) { satisKosul = null }
-			await SatisKosul_Iskonto/SatisKosul_Kampanya.stoklarIcinOranlar(stokKodListe, satisKosul)
+			let tarih = asDate('09.03.2025'), subeKod = '1001', mustKod = 'M120 10 001', stokKodListe = ['8691520102767', '8691520108325'], kapsam = { tarih, subeKod, mustKod };
+			let satisKosul = new SatisKosul_Kampanya({ kapsam }); if (!await satisKosul.yukle()) { satisKosul = null }
+			console.table(await SatisKosul_Kampanya.stoklarIcinOranlar(stokKodListe, satisKosul))
 
-			let mustKod = 'hatalı müşteri kodu', stokKodListe = ['000025', '100333'], kapsam = { mustKod };
-			let satisKosul = new SatisKosul_Iskonto/SatisKosul_Kampanya({ kapsam }); if (!await satisKosul.yukle()) { satisKosul = null }
-			await SatisKosul_Iskonto/SatisKosul_Kampanya.stoklarIcinOranlar(stokKodListe, satisKosul, mustKod)
 	*/
 	static async stoklarIcinOranlar(e, _satisKosul) {
 	    e = e ?? {}; let isObj = typeof e == 'object' && !$.isArray(e);

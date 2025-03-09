@@ -16,8 +16,8 @@ class SatisKosul extends CKodVeAdi {
 	}
 	constructor(e) {
 		e = e ?? {}; super(e); this.sayac = e.sayac || null;
-		for (const key of ['kod', 'aciklama', 'grupKod', 'dvKod']) { this[key] = e[key] ?? '' }
-		for (const key of ['mustDetaydami', 'subeIcinOzelmi', 'iskontoYokmu', 'promosyonYokmu']) { this[key] = asBool(e[key]) }
+		for (const key of ['kod', 'aciklama', 'grupKod', 'dvKod', 'subeIcinOzeldir']) { this[key] = e[key] ?? '' }
+		for (const key of ['mustDetaydami', 'iskontoYokmu', 'promosyonYokmu']) { this[key] = asBool(e[key]) }
 		let kapsam = e.kapsam ?? {}; if ($.isPlainObject(kapsam)) { kapsam = new SatisKosulKapsam(kapsam) } this.kapsam = kapsam;
 		this.mustRec = e.mustRec
 	}
@@ -48,8 +48,8 @@ class SatisKosul extends CKodVeAdi {
 				uygunmu = !!asInteger(await app.sqlExecTekilDeger(sent))
 			}
 			if (uygunmu && kapsam) {
-				let diger = this.mustRec = e.mustRec ?? await this.class.getMust2Rec(mustKod);
-				uygunmu = kapsam.uygunmu(diger)
+				let mustRec = this.mustRec = e.mustRec ?? await this.class.getMust2Rec(mustKod);
+				uygunmu = kapsam.uygunmu(mustRec)
 			}
 			if (uygunmu) { break }
 		}
@@ -63,28 +63,28 @@ class SatisKosul extends CKodVeAdi {
 			wh.add(new MQOrClause([
 				`fis.detaylimust = ''`,
 				new MQAndClause([
-					`(COALESCE(${alias}.mustb, '') = '' OR ${alias}.mustb <= ${mustSqlDegeri})`,
-					`(COALESCE(${alias}.musts, '') = '' OR ${alias}.musts >= ${mustSqlDegeri})`
+					`(COALESCE(${alias}.mustb, '') = '' OR ${mustSqlDegeri} >= ${alias}.mustb)`,
+					`(COALESCE(${alias}.musts, '') = '' OR ${mustSqlDegeri} <= ${alias}.musts)`
 				])
 			]))
 		}
 		kapsam?.uygunlukClauseDuzenle({ alias, where: wh });
 		sahalar.addWithAlias(alias,
 			'kaysayac sayac', 'kod', 'aciklama', 'kgrupkod grupKod', 'dvkod dvKod',
-			'detaylimust mustDetaydami', 'subeicinozeldir subeIcinOzelmi'
+			'detaylimust mustDetaydami', 'subeicinozeldir subeIcinOzeldir'
 		);
 		for (const tip of tipListe) {
-			const rowAttrs = tip2RowAttrListe[tip] || [`${tip}b`, `${tip}s`];
-			sahalar.addWithAlias('fis', ...rowAttrs)
+			const rowAttrs = tip2RowAttrListe[tip] ?? [`${tip}b`, `${tip}s`];
+			if (rowAttrs?.length) { sahalar.addWithAlias('fis', ...rowAttrs) }
 		}
-		orderBy.add('subeIcinOzelmi', 'tarihb', 'kod')
+		orderBy.add('subeIcinOzeldir', 'tarihb', 'kod')
 	}
 	setValues({ rec }) {
 		this.sayac = rec.sayac || null;
-		for (const key of ['kod', 'aciklama', 'grupKod', 'dvKod']) { this[key] = rec[key] ?? '' }
-		for (const key of ['mustDetaydami', 'subeIcinOzelmi', 'iskontoYokmu', 'promosyonYokmu']) { this[key] = asBool(rec[key]) }
-		const kapsam = this.kapsam = new SatisKosulKapsam(); kapsam.setValues(...arguments);
-		this.konsolideSubemi = rec.konTipKod == 'S'
+		for (const key of ['kod', 'aciklama', 'grupKod', 'dvKod', 'subeIcinOzeldir']) { this[key] = rec[key] ?? '' }
+		for (const key of ['mustDetaydami', 'iskontoYokmu', 'promosyonYokmu']) { this[key] = asBool(rec[key]) }
+		this.konsolideSubemi = rec.konsolideSubemi = rec.konTipKod == 'S';
+		const kapsam = this.kapsam = new SatisKosulKapsam(); kapsam.setValues(...arguments)
 	}
 	async getAltKosullar(e) {
 		e = e ?? {}; const _satisKosul = this, {iskontoYokmu, promosyonYokmu} = this;

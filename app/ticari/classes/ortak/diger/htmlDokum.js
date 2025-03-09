@@ -63,7 +63,7 @@ class HTMLDokum extends CObject {
         let elms = [...rootElement.querySelectorAll(':not(script, style)')]; for (let key in dict) {
 			let regex = new RegExp(`\\[${key}\\]`, 'g');
 			for (let elm of elms) { let {childNodes} = elm;
-				if (childNodes.length == 1 && childNodes[0].nodeType == Node.TEXT_NODE) { elm.textContent = elm.textContent.replace(regex, dict[key]) }
+				if (childNodes.length == 1 && childNodes[0].nodeType == Node.TEXT_NODE) { elm.innerHTML = elm.innerHTML.replace(regex, dict[key]) }
 				else { elm.innerHTML = elm.innerHTML.replace(regex, dict[key]) }
 			}
         }
