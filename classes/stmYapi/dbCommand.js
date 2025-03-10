@@ -104,9 +104,13 @@ class MQInsertOrUpdate extends MQDbCommand {
 		for (let [key, value] of Object.entries(keyHV)) { if (!insHV[key]) { insHV[key] = value } if (updHV[key]) { delete updHV[key] } }
 		for (let [key, value] of Object.entries(hv)) { if (!insHV[key]) { insHV[key] = value } }
 		let {ekHV} = this; $.extend(insHV, ekHV.ins); $.extend(updHV, ekHV.upd);
-		let set = new MQSetClause(); if (operator) { for (let [key, value] of Object.entries(updHV)) { set.add(`${key} = ${key} ${operator} ${value.sqlServerDegeri()}`) } }
+		let set = new MQSetClause(); if (operator) {
+			for (let [key, value] of Object.entries(updHV)) {
+				set.add(`${key} = ${key} ${operator} ${MQSQLOrtak.sqlServerDegeri(value)}`) }
+		}
 		else { set.birlestirDict(updHV) }
-		let delim = ', ', keys = Object.keys(insHV), values = Object.values(insHV).map(value => MQSQLOrtak.sqlServerDegeri(value));
+		let delim = ', ', keys = Object.keys(insHV);
+		let values = Object.values(insHV).map(value => MQSQLOrtak.sqlServerDegeri(value));
 		super.buildString(e); e.result += [
 			`IF EXISTS (SELECT * FROM ${table} ${wh})`,
 			`	UPDATE ${table} ${set} ${wh}`,

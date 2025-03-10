@@ -60,7 +60,7 @@ class SatisKosul extends CKodVeAdi {
     }
 	yukle_queryDuzenle({ stm, sent, mustKod }) {  /* edt: a!cbr00t-CGP */
 		const {kapsam} = this, {table} = this.class, {where: wh, sahalar} = sent, {orderBy} = stm, alias = 'fis';
-		const {tipListe, tip2RowAttrListe} = SatisKosulKapsam, mustSqlDegeri = mustKod?.sqlServerDegeri();
+		const {tipListe, tip2RowAttrListe} = SatisKosulKapsam, mustSqlDegeri = MQSQLOrtak.sqlServerDegeri(mustKod);
 		sent.fromAdd(`${table} ${alias}`); wh.fisSilindiEkle(); wh.add(`${alias}.devredisi = ''`);
 		if (mustKod) {
 			wh.add(new MQOrClause([
