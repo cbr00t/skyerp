@@ -49,6 +49,14 @@ class TicariApp extends App {
 		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
 		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'cariEkstre_fiili', args: e }) })
 	}
+	wsKapanmayanHesaplar(e) {
+		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
+		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'kapanmayanHesaplar', args: e }) })
+	}
+	wsTopluDurum(e) {
+		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
+		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'topluDurum', args: e }) })
+	}
 	wsBekleyenSiparisler(e) {
 		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
 		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'bekleyenSiparisler', args: e }) })
