@@ -106,8 +106,12 @@ class MQYapi extends CIO {
 		return this[tekilOku_querySonucu_returnValueGereklimi ? 'sqlExecNoneWithResult' : 'sqlExecTekil'](_e)
 	}
 	yeniTanimOncesiIslemler(e) { } 
+	yeniOncesiIslemler(e) { }
+	degistirOncesiIslemler(e) { }
+	silmeOncesiIslemler(e) { return this.kaydetVeyaSilmeOncesiIslemler(e) }
 	async kaydetOncesiIslemler(e) {
-		e = e ?? {}; const {islem} = e; if (islem == 'degistir') {
+		e = e ?? {}; await this.kaydetVeyaSilmeOncesiIslemler(e);
+		const {islem} = e; if (islem == 'degistir') {
 			const {isOfflineMode, gonderildiDesteklenirmi, gonderimTSSaha} = this.class;
 			if (isOfflineMode && gonderildiDesteklenirmi && gonderimTSSaha) {
 				let keyHV = this.alternateKeyHostVars(e); if ($.isEmptyObject(keyHV)) { keyHV = this.keyHostVars(e) } if (!$.isEmptyObject(keyHV)) {
@@ -118,16 +122,12 @@ class MQYapi extends CIO {
 			}
 		}
 	}
-	yeniOncesiIslemler(e) { }
-	degistirOncesiIslemler(e) { }
-	silmeOncesiIslemler(e) { }
-	yeniSonrasiIslemler(e) { return this.yeniVeyaDegistirSonrasiIslemler(e) }
-	degistirSonrasiIslemler(e) { return this.yeniVeyaDegistirSonrasiIslemler(e) }
-	silmeSonrasiIslemler(e) { /* return this.kaydetSonrasiIslemler(e) */ }
-	yeniVeyaDegistirOncesiIslemler(e) { return this.kaydetOncesiIslemler(e) }
-	yeniVeyaDegistirSonrasiIslemler(e) { return this.kaydetSonrasiIslemler(e) }
+	kaydetVeyaSilmeOncesiIslemler(e) { }
+	yeniSonrasiIslemler(e) { return this.kaydetSonrasiIslemler(e) }
 	degistirSonrasiIslemler(e) { return this.kaydetSonrasiIslemler(e) }
-	kaydetSonrasiIslemler(e) { }
+	silmeSonrasiIslemler(e) { return this.kaydetVeyaSilmeSonrasiIslemler(e) }
+	kaydetSonrasiIslemler(e) { return this.kaydetVeyaSilmeSonrasiIslemler(e) }
+	kaydetVeyaSilmeSonrasiIslemler(e) { }
 	static varsayilanKeyHostVars(e) { const hv = {}; this.varsayilanKeyHostVarsDuzenle($.extend({}, e, { hv })); return hv }
 	static varsayilanKeyHostVarsDuzenle(e) { }
 	keyHostVars(e) { const hv = {}; this.keyHostVarsDuzenle($.extend({}, e, { hv })); return hv }

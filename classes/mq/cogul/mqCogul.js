@@ -287,9 +287,9 @@ class MQCogul extends MQYapi {
 	static orjBaslikListesi_argsDuzenle(e) { this.forAltYapiClassesDo('orjBaslikListesi_argsDuzenle', e) }
 	static orjBaslikListesi_argsDuzenle_detaylar(e) { this.forAltYapiClassesDo('orjBaslikListesi_argsDuzenle_detaylar', e) }
 	static gridTazeleIstendi(e) { return this.forAltYapiClassesDo('gridTazeleIstendi', e) }
-	static orjBaslikListesi_recsDuzenle(e) { this.forAltYapiClassesDo('orjBaslikListesi_recsDuzenle', e) }
-	static orjBaslikListesi_recsDuzenleSon(e) { this.forAltYapiClassesDo('orjBaslikListesi_recsDuzenleSon', e) }
-	static orjBaslikListesi_recsDuzenle_hizliBulIslemi(e) { this.forAltYapiClassesDo('orjBaslikListesi_recsDuzenle_hizliBulIslemi', e) }
+	static orjBaslikListesi_recsDuzenle(e) { this.forAltYapiClassesDoAsync('orjBaslikListesi_recsDuzenle', e) }
+	static orjBaslikListesi_recsDuzenleSon(e) { this.forAltYapiClassesDoAsync('orjBaslikListesi_recsDuzenleSon', e) }
+	static orjBaslikListesi_recsDuzenle_hizliBulIslemi(e) { this.forAltYapiClassesDoAsync('orjBaslikListesi_recsDuzenle_hizliBulIslemi', e) }
 	static orjBaslikListesi_getPanelDuzenleyici(e) { return null }
 	static orjBaslikListesi_initRowDetails(e) { this.forAltYapiClassesDo('orjBaslikListesi_initRowDetails', e) }
 	static orjBaslikListesi_initRowDetails_son(e) { this.forAltYapiClassesDo('orjBaslikListesi_initRowDetails_son', e) }
@@ -562,15 +562,16 @@ class MQCogul extends MQYapi {
 	}
 	async dataDuzgunmu(e) { await this.forAltYapiKeysDoAsync('dataDuzgunmu', e); return null }
 	async kaydetOncesiIslemler(e) { await super.kaydetOncesiIslemler(e); e.ozelSahaYapilari = this.class.getOzelSahaYapilari(e); await this.forAltYapiKeysDoAsync('kaydetOncesiIslemler', e) }
-	async kaydetSonrasiIslemler(e) { await super.kaydetSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('kaydetSonrasiIslemler', e) }
+	async kaydetVeyaSilmeOncesiIslemler(e) { await super.kaydetVeyaSilmeOncesiIslemler(e); await this.forAltYapiKeysDoAsync('kaydetVeyaSilmeOncesiIslemler', e) }
 	async yeniOncesiIslemler(e) { await super.yeniOncesiIslemler(e); await this.forAltYapiKeysDoAsync('yeniOncesiIslemler', e) }
 	async degistirOncesiIslemler(e) { await super.degistirOncesiIslemler(e); await this.forAltYapiKeysDoAsync('degistirOncesiIslemler', e) }
 	async silmeOncesiIslemler(e) { await super.silmeOncesiIslemler(e); await this.forAltYapiKeysDoAsync('silmeOncesiIslemler', e) }
-	async yeniVeyaDegistirOncesiIslemler(e) { await super.yeniVeyaDegistirOncesiIslemler(e); await this.forAltYapiKeysDoAsync('yeniVeyaDegistirOncesiIslemler', e) }
+	async kaydetOncesiIslemler(e) { await super.kaydetOncesiIslemler(e); await this.forAltYapiKeysDoAsync('kaydetOncesiIslemler', e) }
 	async yeniSonrasiIslemler(e) { await super.yeniSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('yeniSonrasiIslemler', e) }
 	async degistirSonrasiIslemler(e) { await super.degistirSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('degistirSonrasiIslemler', e) }
 	async silmeSonrasiIslemler(e) { await super.silmeSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('silmeSonrasiIslemler', e) }
-	async yeniVeyaDegistirSonrasiIslemler(e) { await super.yeniVeyaDegistirSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('yeniVeyaDegistirSonrasiIslemler', e) }
+	async kaydetSonrasiIslemler(e) { await super.kaydetSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('kaydetSonrasiIslemler', e) }
+	async kaydetVeyaSilmeSonrasiIslemler(e) { await super.kaydetVeyaSilmeSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('kaydetVeyaSilmeSonrasiIslemler', e) }
 	donusumBilgileriniSil(e) { }
 	static varsayilanKeyHostVars(e) {
 		const hv = super.varsayilanKeyHostVars(e), _results = this.forAltYapiClassesDo('varsayilanKeyHostVars', e) || [];

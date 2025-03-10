@@ -147,8 +147,7 @@ class TSOrtakFis extends MQTicariGenelFis {
 		sent.fromIliski('takipmst tak', 'fis.orttakipno = tak.kod');
 		sent.sahalar.add(`${aliasVeNokta}efayrimtipi`)
 	}
-	async yeniVeyaDegistirOncesiIslemler(e) { await super.yeniVeyaDegistirOncesiIslemler(e); await MQStokIslem.getKod2OzelIsaret(e) }
-	async yeniVeyaDegistirSonrasiIslemler(e) { await super.yeniVeyaDegistirSonrasiIslemler(e) }
+	async kaydetOncesiIslemler(e) { await super.kaydetOncesiIslemler(e); await MQStokIslem.getKod2OzelIsaret(e) }
 	async degistirSonrasiIslemler(e) { await super.degistirSonrasiIslemler(e) }
 	async detaylariYukleSonrasi(e) {
 		e = e || {}; await super.detaylariYukleSonrasi(e);

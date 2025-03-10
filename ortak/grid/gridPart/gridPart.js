@@ -215,7 +215,7 @@ class GridPart extends Part {
 	}
 	async loadServerData(e) {
 		const {parentPart, builder, grid, gridWidget, loadServerDataBlock} = this, editCell = gridWidget?.editcell;
-		e = e || {}; $.extend(e, { sender: this, parentPart, builder }); const {wsArgs, source, action} = e;
+		e = e || {}; $.extend(e, { sender: this, gridPart: this, parentPart, builder }); const {wsArgs, source, action} = e;
 		if (wsArgs && gridWidget) {
 			if (gridWidget.pageable || gridWidget.virtualmode) {
 				if (source) {

@@ -152,7 +152,7 @@ class TicariFis extends TSOrtakFis {
 		sent.sahalar.add(`${aliasVeNokta}piftipi`, `${aliasVeNokta}almsat`, `${aliasVeNokta}iade`, `${aliasVeNokta}ayrimtipi`, `${aliasVeNokta}fisekayrim`)
 	}
 	tekilOku_detaylar_queryDuzenle(e) { super.tekilOku_detaylar_queryDuzenle(e); e.detaySinif.tekilOku_detaylar_queryDuzenle_ticari(e) }
-	async yeniVeyaDegistirOncesiIslemler(e) { await super.yeniVeyaDegistirOncesiIslemler(e); await this.fisBakiyeDurumuGerekirseAyarla(e) }
+	async kaydetOncesiIslemler(e) { await super.kaydetOncesiIslemler(e); await this.fisBakiyeDurumuGerekirseAyarla(e) }
 	async topluYazmaKomutlariniOlusturSonrasi(e) {
 		super.topluYazmaKomutlariniOlusturSonrasi(e); const {table} = this.class, {trnId,toplu} = e;
 		const uniqueKeys = ['pifsayac', 'sipsayac', 'seq']; let hvListe = this.getDipEBilgi_hvListe(e);

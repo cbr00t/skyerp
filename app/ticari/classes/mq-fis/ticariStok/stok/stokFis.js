@@ -7,9 +7,27 @@ class StokFis extends TSOrtakFis {
 	static get gridKontrolcuSinif() { return StokGridKontrolcu }
 	static get stokmu() { return true } static get gcTipi() { return null } static get ozelTip() { return '' } static get fisEkAyrim() { return '' }
 	static get tsStokDetayTable() { return 'ststok' } static get tsFasonDetayTable() { return 'stfsstok' }
-	static get tsDemirbasDetayTable() { return 'stdemirbas' } static get tsAciklamaDetayTable() { return 'staciklama' } static get mustSaha() { return 'irsmust' }
-	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); const {pTanim} = e;
+	static get tsDemirbasDetayTable() { return 'stdemirbas' } static get tsAciklamaDetayTable() { return 'staciklama' }
+	static get mustSaha() { return 'irsmust' }
+	static loadServerData_queryDuzenle({ sent }) {
+		super.loadServerData_queryDuzenle(...arguments); const {aliasVeNokta, pifTipi, iade} = this;
+		if (pifTipi) { sent.where.degerAta(pifTipi, `${aliasVeNokta}piftipi`) }
+		if (iade != null) { sent.where.degerAta(iade, `${aliasVeNokta}iade`) }
+	}
+	static async raporKategorileriDuzenle_baslik(e) {
+		await super.raporKategorileriDuzenle_baslik(e); const {kullanim} = app.params.ticariGenel;
+		const sections = ['PTBaslikFisIslem', (kullanim.takipNo ? 'TakipNo' : null)]; await e.kat.ekSahaYukle({ section: sections })
+	}
+	static varsayilanKeyHostVarsDuzenle(e) {
+		super.varsayilanKeyHostVarsDuzenle(e); const {hv} = e;
+		$.extend(hv, { gctipi: this.gcTipi, ozeltip: this.ozelTip, fisekayrim: this.fisEkAyrim })
+	}
+}
+
+class TransferVeGCOrtakFis extends StokFis {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments);
 		$.extend(pTanim, { yerKod: new PInstStr({ rowAttr: 'yerkod', init: e => 'A' }), yerOrtakmi: new PInstTrue('byerortakdir') })
 	}
 	static secimlerDuzenle(e) {
@@ -23,30 +41,23 @@ class StokFis extends TSOrtakFis {
 			where.basiSonu(secimler.yer, `${aliasVeNokta}yerkod`); where.ozellik(secimler.yerAdi, 'yer.aciklama')
 		})
 	}
-	static orjBaslikListesiDuzenle_ara(e) {
-		super.orjBaslikListesiDuzenle_ara(e); const {liste} = e;
-		liste.push(
+	static orjBaslikListesiDuzenle_ara({ liste }) {
+		super.orjBaslikListesiDuzenle_ara(...arguments); liste.push(
 			new GridKolon({ belirtec: 'yerkod', text: 'Yer', genislikCh: 7 }),
 			new GridKolon({ belirtec: 'yeradi', text: 'Yer Adı', genislikCh: 20, sql: 'yer.aciklama' })
 		)
 	}
-	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {aliasVeNokta, pifTipi, iade} = this, {sent} = e;
+	static loadServerData_queryDuzenle({ sent }) {
+		super.loadServerData_queryDuzenle(...arguments);
 		sent.fromIliski('stkyer yer', 'fis.yerkod = yer.kod');
-		if (pifTipi) { sent.where.degerAta(pifTipi, `${aliasVeNokta}piftipi`) }
-		if (iade != null) { sent.where.degerAta(iade, `${aliasVeNokta}iade`) }
 	}
 	static async raporKategorileriDuzenle_baslik(e) {
 		await super.raporKategorileriDuzenle_baslik(e); const {kullanim} = app.params.ticariGenel;
-		const sections = ['PTBaslikFisIslem', 'FRFisGenel-Yer', (kullanim.takipNo ? 'TakipNo' : null)]; await e.kat.ekSahaYukle({ section: sections })
-	}
-	static varsayilanKeyHostVarsDuzenle(e) {
-		super.varsayilanKeyHostVarsDuzenle(e); const {hv} = e;
-		$.extend(hv, { gctipi: this.gcTipi, ozeltip: this.ozelTip, fisekayrim: this.fisEkAyrim })
+		const sections = ['FRFisGenel-Yer']; await e.kat.ekSahaYukle({ section: sections })
 	}
 	fisBaslikOlusturucularDuzenle(e) { super.fisBaslikOlusturucularDuzenle(e); const {liste} = e; liste.push( FisBaslikOlusturucu_StokYer) }
 }
-class StokGCFis extends StokFis {
+class StokGCFis extends TransferVeGCOrtakFis {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get bakiyeciler() { return [...super.bakiyeciler, new StokBakiyeci({ borcmu: e => (this.gcTipi == 'G') != this.iademi })] }
 	stokBakiyeSqlEkDuzenle(e) {
@@ -69,9 +80,11 @@ class StokCikisOrtakFis extends StokGCFis {
 class StokCikisFis extends StokCikisOrtakFis {
 	 static { window[this.name] = this; this._key2Class[this.name] = this }
 }
-class StokTransferOrtakFis extends StokFis {
+
+class StokTransferOrtakFis extends TransferVeGCOrtakFis {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return `${super.sinifAdi} Transfer` }
-	static get numTipKod() { return 'ST' } static get islTipKod() { return 'ST' } static get varsayilanIslKod() { return 'T' }
+	static get numTipKod() { return 'ST' } static get islTipKod() { return 'ST' }
+	static get gcTipi() { return 'T' } static get varsayilanIslKod() { return 'T' }
 	get bakiyeciler() { return [...super.bakiyeciler, new StokBakiyeci({ borcmu: false })] }
 	static async raporKategorileriDuzenle_baslik(e) {
 		await super.raporKategorileriDuzenle_baslik(e); const {kullanim} = app.params.ticariGenel;
@@ -94,4 +107,40 @@ class StokTransferOrtakFis extends StokFis {
 }
 class StokTransferFis extends StokTransferOrtakFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+}
+
+class TransferSiparisOrtakFis extends StokFis {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 200 }
+	static get islTipKod() { return StokTransferOrtakFis.islTipKod } static get gcTipi() { return 'S' }
+	static get varsayilanIslKod() { return StokTransferOrtakFis.varsayilanIslKod }
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments); $.extend(pTanim, {
+			teslimOrtakdir: new PInstBitBool('bteslimortakdir'),
+			baslikTeslimTarihi: new PInstDate('basteslimtarihi')
+		})
+	}
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments);
+		hv.oncelik = this.class.oncelik
+	}
+}
+class TransferSiparisFis extends TransferSiparisOrtakFis {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İrsaliyeli Transfer Sipariş' }
+	static get numTipKod() { return 'XI' } static get ozelTip() { return 'IR' }
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments); $.extend(pTanim, {
+			mustKod: new PInstStr(this.mustSaha),
+			cYerKod: new PInstStr('yerkod'), gYerKod: new PInstStr('refyerkod'),
+			sevkYerKod: new PInstStr('xadreskod')
+		})
+	}
+}
+class SubelerArasiSiparisFis extends TransferSiparisOrtakFis {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Şubeler Arası Sipariş' }
+	static get numTipKod() { return 'XS' } static get ozelTip() { return 'SB' }
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments); $.extend(pTanim, {
+			cRefSubeKod: new PInstStr('refsubekod')
+		})
+	}
 }
