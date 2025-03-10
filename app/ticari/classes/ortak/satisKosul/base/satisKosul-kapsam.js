@@ -73,7 +73,7 @@ class SatisKosulKapsam extends CObject {
 			const or = new MQOrClause(), addClause = (selector, operator) => {
 				let value = bs[selector]; if (!value) { return }
 				if (dateTipSet[tip]) { value = asDate(value) }
-				or.add(`${saha[selector]} ${operator} ${value.sqlServerDegeri()}`)
+				or.add(`${saha[selector]} ${operator} ${MQSQLOrtak.sqlServerDegeri(value)}`)
 			};
 			addClause('basi', '<='); addClause('sonu', '>=');
 			if (or.liste.length) { wh.add(or) }
