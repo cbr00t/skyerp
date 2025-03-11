@@ -77,7 +77,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); let basitmi = e.basit ?? e.basitmi; if (basitmi) { return }
 		let {tableAlias: alias} = this, {sent, stm} = e, {sahalar, where: wh} = sent, {orderBy} = stm;
-		sahalar.addWithAlias(alias, 'bvadegunkullanilir', 'vadegunu', 'emailadresler');
+		sahalar.addWithAlias(alias, 'bvadegunkullanilir vadeGunKullanilirmi', 'vadegunu vadeGunu', 'emailadresler email_sablonEk');
 		orderBy.liste = ['aciklama']
 	}
 	static async orjBaslikListesi_recsDuzenle(e) {
@@ -112,28 +112,43 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	static async onaylaIstendi(e) {
 		try {
 			let gridPart = e.sender.parentPart, {listeFisSinif} = this; if (!listeFisSinif) { return null }
-			let {rec} = e, {kaysayac: fisSayac, bonayli: onaylimi, _parentRec: parentRec} = rec, {kaysayac: sablonSayac} = parentRec;
+			let {rec} = e, {kaysayac: fisSayac, bonayli: onaylimi, _parentRec: parentRec} = rec;
+			let {kaysayac: sablonSayac} = parentRec, {mustkod: mustKod, sevkadreskod: sevkAdresKod} = rec;
 			if (onaylimi) { throw { isError: true, errorText: 'Bu sipariş zaten onaylanmış' } }
 			let fis = new listeFisSinif({ fisSayac, sablonSayac });
 			let result = await fis.yukle({ ...e, parentRec, rec: undefined }); if (!result) { return }
 			let islem = 'onayla', kaydedince = _e => this.tazele({ ...e, gridPart });
-			let kaydetIslemi = _e => this.onaylaDevam({ ...e, ..._e, gridPart });
+			let kaydetIslemi = async _e => await this.onaylaDevam({ ...e, ..._e, gridPart });
+			$.extend({ sablonSayac, mustKod, sevkAdresKod }); await listeFisSinif.instance.fisSinifBelirle(e);
 			return await fis.tanimla({ islem, kaydetIslemi, kaydedince })
 		}
 		catch (ex) { setTimeout(() => hConfirm(getErrorText(ex), 'Onayla'), 100); throw ex }
 	}
 	static async onaylaDevam({ gridPart: listePart, sender: fisGirisPart, fis: listeFis, rec }) {
-		const {fiyatFra, bedelFra} = app.params.zorunlu, {asilFis: fis} = listeFis;
-		const {sayac, detaylar} = fis, {table, sayacSaha} = fis.class, dvKod = fis.dvKod || 'TL';
+		const {fiyatFra, bedelFra} = app.params.zorunlu, {asilFis: fis} = listeFis, {_parentRec: parentRec} = rec;
+		const {sayac: fisSayac, detaylar} = fis, {table, sayacSaha} = fis.class, dvKod = fis.dvKod || 'TL';
 		/* fis.detaylar = fis.detaylar.filter(det => !!det.miktar); (** 'listeFis.asilFis' nesnesinden zaten sadece miktar dolu olanlar gelecek) */
 		const hmrBilgiler = Array.from(HMRBilgi.hmrIter()), dokumYapVeEMailGonder = async musterimi => {
 			let dokumcu; try { dokumcu = await HTMLDokum.FromDosyaAdi(`VioWeb.KonLojistik.Siparis.${musterimi ? 'Musteri' : 'Diger'}.htm`) }
 			catch (ex) { console.error(ex); return }
 			if (dokumcu != null) {
-				let toListe = [];
-				/* musterimi?? durumuna göre email ilgili adreslerini belirle. belirsiz veya boş ise ise return */
+				let to = [], cc = [], bcc = [], eMailYapi = await listeFis.class.getEMailYapi({ fisSayac }) ?? {};
+				if (eMailYapi) {
+					let {email_sablonEk} = parentRec; if (email_sablonEk) {
+						email_sablonEk = email_sablonEk.split(';').map(x => x.trim()).filter(x => !!x);
+						if (email_sablonEk?.length) { $.extend(eMailYapi, { mail_sablonEk }) }
+					}
+					let eMailSelectors = ['sablon', 'sablonEk', 'bolge', 'ozel', (musterimi ? 'alici' : 'teslimatci')].filter(x => !!x), eMailSet = {};
+					for (let selector of eMailSelectors) {
+						let eMails = eMailYapi[selector]?.filter(x => x?.length >= 5 && x.includes('@')) ?? [];
+						for (let eMail of eMails) {
+							eMail = eMail.trim(); if (eMailSet[eMail]) { continue }
+							eMailSet[eMail] = true; (to.length ? bcc : to).push(eMail)
+						}
+					}
+				}
 				let SERI = '', KLFIRMAADI = '', SEVKADRES1 = '', SEVKADRES2 = '', TESLIMTARIHIVARTEXT = '', EKNOTLAR = '', cro = { TEMSILCI: '', TELEFON: '' };
-				let {fisnox: FISNO, mustunvan: MUSTUNVAN, sevkadreskod, sevkadresadi, _parentRec: parentRec} = rec;
+				let {fisnox: FISNO, mustunvan: MUSTUNVAN, sevkadreskod, sevkadresadi} = rec;
 				let {aciklama: SABLONADI} = parentRec, TARIH = dateKisaString(asDate(rec.tarih)), TESLIMYERIADIPARANTEZLI = new CKodVeAdi(sevkadreskod, sevkadresadi).parantezliOzet();
 				let baslik = { MUSTUNVAN, SEVKADRES1, SEVKADRES2, SABLONADI, KLFIRMAADI, TESLIMYERIADIPARANTEZLI, TARIH, TESLIMTARIHIVARTEXT, SERI, FISNO, EKNOTLAR };
 				for (let [key, value] of Object.entries(cro)) { baslik[`CRO-OZ${key}`] = value }
@@ -155,15 +170,15 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 					openNewWindow(url)
 				}
 				let html = true, subject = 'SkyERP Web Sipariş', body = htmlData;
-				if (toListe.length) {
-					try { await app.wsEMailQueue_add({ data: { to, subject, html, body } }) }
+				if (to.length) {
+					try { await app.wsEMailQueue_add({ data: { to, cc, bcc, subject, html, body } }) }
 					catch (ex) { console.error(getErrorText(ex)) }
 				}
 			}
 		};
-		await Promise.allSettled([dokumYapVeEMailGonder(true), dokumYapVeEMailGonder(false)]);
-		if (!sayac) { throw { isError: true, errorText: 'Onaylanacak Sipariş için ID belirlenemedi' } }
-		let upd = new MQIliskiliUpdate({ from: table, where: { degerAta: sayac, saha: sayacSaha }, set: `onaytipi = ''` });
+		await dokumYapVeEMailGonder(true); await dokumYapVeEMailGonder(false);
+		if (!fisSayac) { throw { isError: true, errorText: 'Onaylanacak Sipariş için ID belirlenemedi' } }
+		let upd = new MQIliskiliUpdate({ from: table, where: { degerAta: fisSayac, saha: sayacSaha }, set: `onaytipi = ''` });
 		await app.sqlExecNone(upd); listePart?.tazeleDefer(); fisGirisPart?.close()
 	}
 	static async degistirIstendi(e) {

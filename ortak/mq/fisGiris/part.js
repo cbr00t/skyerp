@@ -226,7 +226,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 		} catch (ex) { const err = getErrorText(ex); hConfirm(err, 'Fiş Kayıt Sorunu'); throw ex }
 		return true
 	}
-	kaydet(e) {
+	async kaydet(e) {
 		let {kontrolcu} = this, result = kontrolcu.grid2Fis(e);
 		if (result != true) {
 			if (result.errorText) { hConfirm(`<div class="red">${result.errorText}</div>`, ' ') }
@@ -238,7 +238,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 			return false
 		}
 		const {fis} = this; fis.detaylar = e.recs;
-		return this.kaydetDevam(e)
+		return await this.kaydetDevam(e)
 	}
 	async kaydetDevam(e) {
 		e = e || {}; const {fis} = this;

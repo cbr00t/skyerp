@@ -173,6 +173,66 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 			sent.groupByOlustur()
 		}
 	}
+	static async getEMailYapi(e) {
+		let {fisSayac} = e ?? {}; if (!fisSayac) { return {} }
+		let stm = new MQStm(), _e = { ...e, stm }; this.eMailYapiQueryDuzenle(_e); stm = _e.stm;
+		let EMailPrefix = 'email_', rec = await app.sqlExecTekil(stm); if (!rec) { return rec }
+		let eMail = rec.eMail = {}; for (let [key, value] of Object.entries(rec)) {
+			if (key.startsWith(EMailPrefix)) {
+				value = value.split(';').map(x => x.trim()).filter(x => !!x)
+				let newKey = key.slice(EMailPrefix.length);
+				rec[newKey] = value; delete rec[key]
+			}
+		}
+		return rec
+	}
+	static eMailYapiQueryDuzenle({ fisSayac, stm }) {
+		let uni = stm.sent = new MQUnionAll();
+		let sent = this.getSablonluVeKLDagitimliOnSent(...arguments), {sahalar} = sent;
+		sent.fromIliski('carmst car', 'fis.teslimcarikod = car.must')
+			.fromIliski('carsevkadres sadr', 'fis.xadreskod = sadr.kod')
+			.leftJoin('kdag', 'klfirmabolge kfbol', 'kdag.klfirmabolgekod = kfbol.kod')
+			.leftJoin('kdag', 'carmst ktes', 'kdag.klteslimatcikod = ktes.must');
+		sahalar.add(
+			'sab.emailadresler email_sablon', 'kfbol.email email_bolge',
+			`(case when kdag.klteslimatcikod > '' then ktes.email else '' end) email_teslimatci`,
+			`(case when kdag.klteslimatcikod > '' and kdag.bteslimatmailozeldir > 0 then kdag.ozelmaillistestr else '' end) email_ozel`,
+			`(case when sadr.email = '' then car.email else sadr.email end) email_alici`
+		);
+		uni.add(sent)
+	}
+	static getSablonluVeKLDagitimliOnSent({ fisSayac }) {
+		let {table, sayacSaha, mustSaha} = AlimSiparisFis;
+		let maxSent = new MQSent({
+			from: `${table} xfis`, fromIliskiler: [
+				{ from: 'hizlisablon xsab', iliski: 'xfis.sablonsayac = xsab.kaysayac' },
+				{
+					from: 'kldagitim xdag', iliski: [
+						`xfis.${mustSaha} = xdag.mustkod`, `xsab.klfirmakod = xdag.klfirmakod`,
+						new MQOrClause([`xfis.xadreskod = xdag.sevkadreskod`, `xdag.sevkadreskod = ''`])
+					]
+				},
+			],
+			where: { degerAta: fisSayac, saha: 'xfis.kaysayac' },
+			sahalar: [
+				'MAX(xdag.sevkadreskod) sevkadreskod', 'xfis.kaysayac fissayac',
+				'xfis.sablonsayac sablonsayac', 'xsab.klfirmakod klfirmakod', 'xdag.mustkod teslimcarikod'
+			]
+		}).groupByOlustur();
+		return new MQSent({
+			from: `(${maxSent.toString()}) kmax`,
+			fromIliskiler: [
+				{
+					from: 'kldagitim kdag', iliski: [
+						'kmax.teslimcarikod = kdag.mustkod', 'kmax.klfirmakod = kdag.klfirmakod',
+						'kmax.sevkadreskod = kdag.sevkadreskod'
+					]
+				},
+				{ from: `${table} fis`, iliski: 'kmax.fissayac = fis.kaysayac' },
+				{ from: 'hizlisablon sab', iliski: 'kmax.sablonsayac = sab.kaysayac' }
+			]
+		})
+	}
 	async fisSinifBelirle(e) { this._fisSinif = await this.fisSinifBelirleInternal(e); return this }
 	fisSinifBelirleInternal(e) { return null }
 	async yaz(e) {
