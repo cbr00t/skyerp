@@ -1,0 +1,4 @@
+paths-ignore:
+  - "lib_external/**"
+  - "node_modules/**"
+  - "third_party/**"
