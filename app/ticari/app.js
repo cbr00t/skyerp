@@ -8,7 +8,8 @@ class TicariApp extends App {
 			ticariGenel: MQTicariGenelParam.getInstance(), aktarim: MQAktarimParam.getInstance(), fiyatVeIsk: MQFiyatVeIskontoParam.getInstance(), stokBirim: MQStokBirimParam.getInstance(), stokGenel: MQStokGenelParam.getInstance(),
 			cariGenel: MQCariGenelParam.getInstance(), hizmetGenel: MQHizmetGenelParam.getInstance(), demirbasGenel: MQDemirbasGenelParam.getInstance(), bankaGenel: MQBankaGenelParam.getInstance(),
 			alim: MQAlimParam.getInstance(), satis: MQSatisParam.getInstance(), eIslem: MQEIslemParam.getInstance(), uretim: MQUretimParam.getInstance(), operGenel: MQOperGenelParam.getInstance(),
-			kalite: MQKaliteParam.getInstance(), muhasebe: MQMuhasebeParam.getInstance(), web: MQWebParam.getInstance()
+			kalite: MQKaliteParam.getInstance(), muhasebe: MQMuhasebeParam.getInstance(), web: MQWebParam.getInstance(),
+			eMailVT: MQVTMailParam.getInstance(), eMailOrtak: MQOrtakMailParam.getInstance()
 		})
 	}
 	sabitTanimlarDuzenle(e) { super.sabitTanimlarDuzenle(e); const {sabitTanimlar} = e; $.extend(sabitTanimlar, { vergi: this.wsSabitTanimlar_xml('EBYN-KDV-Kodlar') }) }
@@ -24,6 +25,30 @@ class TicariApp extends App {
 	raporEkSahaDosyalariDuzenle(e) { super.raporEkSahaDosyalariDuzenle(e); const {liste} = e; liste.push('VioTicari.RaporEkSaha') }
 	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e); this.show() }
 	async getAnaMenu() { const response = await ajaxGet({ url: this.getWSUrl({ api: 'frMenu' }) }); return response ? FRMenu.from(response) : null }
+	async getMailParam(e) {
+		let {eMailKeys} = MQOrtakMailParam, {params} = this;
+		let setValues = (source, target) => {
+			if (!(source && target)) { return }
+			for (let key of eMailKeys) { let value = source[key]; if (value) { target[key] = value } }
+			target.port = target.port || target.defaultPort
+		};
+		let recs = await MQEMailUst.loadServerData(e); if (!recs?.length) {
+			let {eMailVT, eMailOrtak} = params, rec;
+			for (let param of [eMailOrtak, eMailVT]) {
+				if (!param) { continue }
+				if (rec == null) { rec = new MQEMailUst() }
+				setValues(param, rec); recs = [rec]
+			}
+		}
+		{
+			let rec = recs?.length <= 1 ? recs?.[0] : recs[asInteger(now().getTime()) % recs.length];
+			if ($.isPlainObject(rec)) {
+				let inst = new MQEMailUst(); await inst.setValues({ rec });
+				rec = inst
+			}
+			return rec
+		}
+	}
 	satisTipleriBelirle(e) {
 		let sent = new MQSent({ from: 'satistipi', sahalar: ['kod', 'aciklama'] })
 		return app.sqlExecSelect(sent).then(recs => this.satisTipleri = recs)

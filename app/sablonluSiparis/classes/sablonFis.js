@@ -171,8 +171,9 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 				}
 				let html = true, subject = 'SkyERP Web Sipariş', body = htmlData;
 				if (to.length) {
-					try { await app.wsEMailQueue_add({ data: { to, cc, bcc, subject, html, body } }) }
-					catch (ex) { console.error(getErrorText(ex)) }
+					let data = { to, cc, bcc, subject, html, body };
+					let rec = await app.getMailParam(); rec?.wsEMailArgsDuzenle?.({ args: data });
+					try { await app.wsEMailQueue_add({ data }) } catch (ex) { console.error(getErrorText(ex)) }
 				}
 			}
 		};

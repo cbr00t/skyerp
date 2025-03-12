@@ -1,4 +1,5 @@
 <?php require_once("$webRoot_ticari/classes/ortak/hmr/include-ilk.php"); $_partRoot = "$webRoot_ticari/classes/mq-master" ?>
+<script src="<?=$_partRoot?>/mqEMail.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqSube.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqIsyeri.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqDoviz.js?<?=$appVersion?>"></script>

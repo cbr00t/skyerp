@@ -23,25 +23,33 @@ class MQZorunluParam extends MQTicariParamBase {
 class MQOrtakMailParam extends MQOrtakParamBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static DefaultPort = 25; static get sinifAdi() { return 'Mail Parametreleri (ORTAK)' } static get paramKod() { return 'MAIL' }
-	static paramSetValues_ortak(e) {
-		const {inst, rec} = e; let keys = ['smtpServer', 'ozelPortFlag', 'port', 'ssl', 'from', 'user', 'pass'];
-		for (const key of keys) { const value = rec[key]; if (value !== undefined) inst[key] = value }
-	}
-	paramSetValues(e) { e.inst = this; this.class.paramSetValues_ortak(e) }
-	static paramYapiDuzenle_ortak(e) {
-		const {paramci} = e; paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`);
-		let grup = paramci.addGrup({ etiket: 'Gönderici Bilgileri' }).altAlta(); let form = grup.addFormWithParent(); form.addString('smtpServer', 'SMTP Sunucusu');
-			form.addNumber('port', 'Port').degisince(e => e.builder.altInst.ozelPortFlag = !!asInteger(e.value)); form.addBool('ssl', 'SSL');
-		form = grup.addFormWithParent(); form.addString('from', 'Gönderici e-Mail');
-			form.addString('user', 'Kullanıcı').degisince(e => { const {value, builder} = e, {altInst} = builder; if (!altInst.from) altInst.from = value }); form.addString('pass', 'Şifre')
-	}
+	static get eMailKeys() { return MQEMailUst.eMailKeys }
+	get sslmi() { return this.ssl } set sslmi(value) { this.ssl = value } get defaultPort() { return MQEMailUst.getDefaultPort(sslFlag) }
+	get asWSEMailArgs() { let args = {}; this.wsEMailArgsDuzenle({ args }); return args }
 	static paramYapiDuzenle(e) { super.paramYapiDuzenle(e); return this.paramYapiDuzenle_ortak(e) }
+	paramSetValues(e) { e.inst = this; this.class.paramSetValues_ortak(e) }
+	static paramYapiDuzenle_ortak({ paramci }) {
+		paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`);
+		let form = paramci.addFormWithParent(); form.addString('smtpServer', 'SMTP Sunucusu');
+			form.addNumber('port', 'Port').degisince(({ value, builder: fbd }) => fbd.altInst.ozelPortFlag = !!asInteger(value));
+			form.addBool('ssl', 'SSL');
+		form = paramci.addFormWithParent(); form.addString('from', 'Gönderici e-Mail');
+			form.addString('user', 'Kullanıcı').degisince(({ value, builder: fbd }) => { let {altInst} = fbd; if (!altInst.from) { altInst.from = value } });
+			form.addString('pass', 'Şifre')
+	}
+	static paramSetValues_ortak({ inst, rec }) {
+		for (const key of this.eMailKeys) { const value = rec[key]; inst[key] = value }
+	}
+	wsEMailArgsDuzenle(e) { return MQEMailUst.wsEMailArgsDuzenle({ ...e, inst: this }) }
 }
 class MQVTMailParam extends MQTicariParamBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Mail Parametreleri (Bu Firma)' } static get paramKod() { return MQOrtakMailParam.paramKod }
-	paramSetValues(e) { e.inst = this; MQOrtakMailParam.paramSetValues_ortak(e) }
+	get sslmi() { return this.ssl } set sslmi(value) { this.ssl = value } get defaultPort() { return MQEMailUst.getDefaultPort(sslFlag) }
+	get asWSEMailArgs() { let args = {}; this.wsEMailArgsDuzenle({ args }); return args }
 	static paramYapiDuzenle(e) { super.paramYapiDuzenle(e); return MQOrtakMailParam.paramYapiDuzenle_ortak(e) }
+	paramSetValues(e) { e.inst = this; MQOrtakMailParam.paramSetValues_ortak(e) }
+	wsEMailArgsDuzenle(e) { return MQEMailUst.wsEMailArgsDuzenle({ ...e, inst: this }) }
 }
 class MQLogocu extends MQOrtakParamBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }

@@ -372,7 +372,7 @@ class MQCogul extends MQYapi {
 	static listeBasliklariDuzenle(e) {
 		const {yerelParamBelirtec} = this, mfSinif2KolonAyarlari = app.params.yerel?.mfSinif2KolonAyarlari || {};
 		const kolonAyarlari = mfSinif2KolonAyarlari[yerelParamBelirtec] || {}, {orjBaslikListesi} = this, {liste} = e;
-		let {gorunumListesi} = kolonAyarlari; if ($.isEmptyObject(gorunumListesi)) gorunumListesi = this.standartGorunumListesi
+		let {gorunumListesi} = kolonAyarlari; if ($.isEmptyObject(gorunumListesi)) { gorunumListesi = this.standartGorunumListesi }
 		if ($.isEmptyObject(gorunumListesi)) { liste.push(...orjBaslikListesi) }
 		else {
 			const belirtec2OrjBaslik = {};
