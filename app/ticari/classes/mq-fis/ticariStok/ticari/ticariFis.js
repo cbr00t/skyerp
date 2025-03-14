@@ -278,6 +278,12 @@ class SiparisFis extends TicariFis {
 	static get sinifAdi() { return `${super.sinifAdi}Siparis` } static get table() { return 'sipfis' }
 	static get baslikOzelAciklamaTablo() { return 'sipbasekaciklama' } static get dipSerbestAciklamaTablo() { return 'sipdipaciklama' } static get dipEkBilgiTablo() { return 'sipdipekbilgi' }
 	static get pifTipi() { return 'S' } static get siparismi() { return true }
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments); $.extend(pTanim, {
+			teslimOrtakdir: new PInstBitBool('bteslimortakdir'),
+			baslikTeslimTarihi: new PInstDate('basteslimtarihi')
+		})
+	}
 	static async raporKategorileriDuzenle_detaylar_tsStokMiktarOncesi(e) {
 		await super.raporKategorileriDuzenle_detaylar_tsStokMiktarOncesi(e); const section = ['FRFisTicariDetay-Teslim', 'FRSipDetay-SevkVeKalan'];
 		await e.kat.ekSahaYukle({ section })

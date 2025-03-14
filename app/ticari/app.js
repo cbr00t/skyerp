@@ -26,7 +26,7 @@ class TicariApp extends App {
 	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e); this.show() }
 	async getAnaMenu() { const response = await ajaxGet({ url: this.getWSUrl({ api: 'frMenu' }) }); return response ? FRMenu.from(response) : null }
 	async getMailParam(e) {
-		let {eMailKeys} = MQOrtakMailParam, {params} = this;
+		let {eMailKeys} = MQEMailUst, {params} = this;
 		let setValues = (source, target) => {
 			if (!(source && target)) { return }
 			for (let key of eMailKeys) { let value = source[key]; if (value) { target[key] = value } }
