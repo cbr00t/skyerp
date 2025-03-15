@@ -144,7 +144,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		if (eMailYapi) {
 			let {email_sablonEk} = parentRec; if (email_sablonEk) {
 				email_sablonEk = email_sablonEk.split(';').map(x => x.trim()).filter(x => !!x);
-				if (email_sablonEk?.length) { $.extend(eMailYapi, { mail_sablonEk }) }
+				if (email_sablonEk?.length) { $.extend(eMailYapi, { email_sablonEk }) }
 			}
 			let eMailSelectors = ['sablon', 'sablonEk', 'bolge', 'ozel', (musterimi ? 'alici' : 'teslimatci')].filter(x => !!x), eMailSet = {};
 			for (let selector of eMailSelectors) {
