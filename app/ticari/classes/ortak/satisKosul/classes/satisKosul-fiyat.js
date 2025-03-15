@@ -30,7 +30,7 @@ class SatisKosul_Fiyat extends SatisKosul {
 	}
 	static async _stoklarIcinFiyatlar(e, _satisKosul, _mustKod) {
 	    e = e ?? {}; let isObj = typeof e == 'object' && !$.isArray(e);
-		let kodListe = $.makeArray(isObj ? e.kodListe ?? e.kod : e); if (!kodListe.length) { return result }
+		let kodListe = $.makeArray(isObj ? e.kodListe ?? e.kod : e); if (!kodListe.length) { return {} }
 		let satisKosul = isObj ? e.satisKosul ?? e.kosul : _satisKosul;
 		/* Satış koulundan belirlemede mustKod değerine ihtiyaç yok, satisKosul nesnesinin içinde zaten atanmış durumdadır.
 		       Ancak koşul yoksa satisKosul == null olacağı için, ek fiyat belirleme kısımlarında gerekli.

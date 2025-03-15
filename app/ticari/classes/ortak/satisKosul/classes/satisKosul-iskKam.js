@@ -20,7 +20,7 @@ class SatisKosul_IskVeKamOrtak extends SatisKosul {
 	*/
 	static async stoklarIcinOranlar(e, _satisKosul) {
 	    e = e ?? {}; let isObj = typeof e == 'object' && !$.isArray(e);
-		let kodListe = $.makeArray(isObj ? e.kodListe ?? e.kod : e); if (!kodListe.length) { return result }
+		let kodListe = $.makeArray(isObj ? e.kodListe ?? e.kod : e); if (!kodListe.length) { return {} }
 		let satisKosul = isObj ? e.satisKosul ?? e.kosul : _satisKosul, result = {};
 		/* Satış Koşul varsa koşuldan oranları belirle */
 	    if (satisKosul) {
@@ -36,11 +36,13 @@ class SatisKosul_Iskonto extends SatisKosul_IskVeKamOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tipKod() { return 'SB' } static get aciklama() { return 'İskonto' } static get prefix() { return 'isk' }
 	static get table() { return 'sabittarife' } static get detayTables() { return { stok: 'sbttarife', grup: 'sbttargrup' } }
-	static get detayMustTable() { return 'sbtmust' } static get maxSayi() { return app.params?.fiyatVeIsk?.iskSayi?.sabit || 0 }
+	static get detayMustTable() { return 'sbtmust' } static get fisSayacSaha() { return 'sbtsayac' }
+	static get maxSayi() { return app.params?.fiyatVeIsk?.iskSayi?.sabit || 0 }
 }
 class SatisKosul_Kampanya extends SatisKosul_IskVeKamOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tipKod() { return 'KM' } static get aciklama() { return 'İskonto' } static get prefix() { return 'kam' }
 	static get table() { return 'kampanya' } static get detayTables() { return { stok: 'kamtarife', grup: 'kamtargrup' } }
-	static get detayMustTable() { return 'kammust' } static get maxSayi() { return app.params?.fiyatVeIsk?.iskSayi?.kampanya || 0 }
+	static get detayMustTable() { return 'kammust' } static get fisSayacSaha() { return 'kamsayac' }
+	static get maxSayi() { return app.params?.fiyatVeIsk?.iskSayi?.kampanya || 0 }
 }

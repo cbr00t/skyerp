@@ -2,7 +2,7 @@ class SatisKosul extends CKodVeAdi {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tipKod() { return null } static get aciklama() { return null }
 	static get table() { return null } static get detayTables() { return null }
-	static get detayMustTable() { return null }
+	static get detayMustTable() { return null } static get fisSayacSaha() { return 'fissayac' }
 	static get tip2Sinif() {
 		let {_tip2Sinif: result} = this;
 		if (result == null) {
@@ -32,7 +32,7 @@ class SatisKosul extends CKodVeAdi {
 	}
 	getAltKosulYapilar() { return null }
 	async yukle(e) {
-		e = e ?? {}; let kapsam = e.kapsam ?? this.kapsam ?? {}, mustKod;
+		e = e ?? {}; let kapsam = e.kapsam ?? this.kapsam ?? {}, mustKod, {fisSayacSaha} = this.class;
 		if ($.isPlainObject(kapsam)) { kapsam = new SatisKosulKapsam(kapsam) }
 		{
 			let {basi, sonu} = kapsam?.must ?? {};
@@ -46,7 +46,7 @@ class SatisKosul extends CKodVeAdi {
 				let {sayac} = this, {detayMustTable} = this.class;
 				let sent = new MQSent({
 					from: detayMustTable, sahalar: 'COUNT(*) sayi',
-					where: [{ degerAta: sayac, saha: 'fissayac' }, { degerAta: mustKod, saha: 'must' }]
+					where: [{ degerAta: sayac, saha: fisSayacSaha }, { degerAta: mustKod, saha: 'must' }]
 				}).distinctYap();
 				uygunmu = !!asInteger(await app.sqlExecTekilDeger(sent))
 			}
@@ -134,12 +134,12 @@ class SatisKosul extends CKodVeAdi {
 		return result
 	}
 	getAltKosullar_queryDuzenle({ stm, sent, kodListe, grupmu }) {
-		let {table, detayTables} = this.class, {sayac, kapsam} = this, {mustKod} = kapsam;
+		let {table, detayTables, fisSayacSaha} = this.class, {sayac, kapsam} = this, {mustKod} = kapsam;
 		const {where: wh, sahalar} = sent, {orderBy} = stm, xKodClause = grupmu ? 'grupkod' : 'stokkod';
 		let detTable = detayTables?.[grupmu ? 'grup' : 'stok']; if (!detTable) { return false }
-		sent.fromAdd(`${detTable} har`); wh.degerAta(sayac, 'har.fissayac');
+		sent.fromAdd(`${detTable} har`); wh.degerAta(sayac, `har.${fisSayacSaha}`);
 		if (kodListe?.length) { wh.inDizi(kodListe, `har.${xKodClause}`) }
-		sahalar.addWithAlias('har', 'fissayac fisSayac', `${xKodClause} xKod`);
+		sahalar.addWithAlias('har', `${fisSayacSaha} fisSayac`, `${xKodClause} xKod`);
 		orderBy.add('xKod');
 	}
 	static async getMust2Rec(e) {

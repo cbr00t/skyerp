@@ -220,7 +220,7 @@ class GridPart extends Part {
 			if (gridWidget.pageable || gridWidget.virtualmode) {
 				if (source) {
 					const keys = ['recordstartindex', 'recordendindex', 'pagenum', 'pageindex', 'pagesize'];
-					for (const key of keys) { const value = source[key]; if (value != null) wsArgs[key] = value }
+					for (const key of keys) { const value = source[key]; if (value != null) { wsArgs[key] = value } }
 				}
 			}
 			else {
@@ -230,7 +230,7 @@ class GridPart extends Part {
 		}
 		(() => {
 			const keys = ['recordstartindex', 'recordendindex', 'pagenum', 'pageindex', 'pagesize'];
-			for (const key of keys) { const value = qs[key]; if (value != null) wsArgs[key] = asInteger(value) }
+			for (const key of keys) { const value = qs[key]; if (value != null) { wsArgs[key] = asInteger(value) } }
 			let _value = qs.maxRow ?? qs.maxrow; if (_value != null) { wsArgs.pagesize = asInteger(_value) }
 		})();
 		try {

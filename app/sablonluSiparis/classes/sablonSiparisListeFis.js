@@ -84,7 +84,7 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 		return true
 	}
 	async baslikVeDetaylariYukle(e) {
-		let {detaySinif} = this.class, {parentRec, gridRec, belirtec: islem} = e, yenimi = !parentRec;
+		let {detaySinif, konsinyemi} = this.class, {parentRec, gridRec, belirtec: islem} = e, yenimi = !parentRec;
 		$.extend(this, {
 			tarih: gridRec?.tarih || this.tarih || now(), subeKod: gridRec?.subekod || this.subeKod,
 			mustKod: gridRec?.mustkod || this.mustKod, sevkAdresKod: gridRec?.sevkadreskod || this.sevkAdresKod
@@ -107,7 +107,7 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 				'har.stokkod', 'stk.aciklama stokadi', 'stk.brm'
 			]
 		}), {sahalar} = sent;
-		if (yenimi) { sent.fromIliski('kldagitim dag', [`dag.mustkod = ${mustKod.sqlServerDegeri()}`, 'sab.klfirmakod = dag.klfirmakod']) }
+		if (konsinyemi && yenimi) { sent.fromIliski('kldagitim dag', [`dag.mustkod = ${mustKod.sqlServerDegeri()}`, 'sab.klfirmakod = dag.klfirmakod']) }
 		for (let {table, tableAlias: alias, rowAttr, rowAdiAttr} of ekOzellikler) {
 			sent.fromIliski(`${table} ${alias}`, `har.${rowAttr} = ${alias}.kod`);
 			sahalar.add(`har.${rowAttr}`, `${alias}.aciklama ${rowAdiAttr}`)
@@ -118,13 +118,13 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 			throw {
 				isError: true, errorText: (
 					`<b class=royalblue>${mustKod}-${mustUnvan}</b> Carisi ve <b class=royalblue>${sablonAdi}</b> Şablonuna ait ` +
-					`<u class="bold red">Dağıtım Kaydı yok</u> veya <u class="bold red">Ürün listesi boş</u>`
+					`${konsinyemi ? `<u class="bold red">Dağıtım Kaydı yok</u> veya ` : ''}<u class="bold red">Ürün listesi boş</u>`
 				)
 			}
 		}
 		let detaylar = this.detaylar = [];
 		let kapsam = { tarih, subeKod, mustKod }, stokKodListe = recs.map(({ stokkod: kod }) => kod);
-		let satisKosul = new SatisKosul_Fiyat(); if (!await satisKosul.yukle({ kapsam })) { satisKosul = null }
+		let kosulYapilar = new SatisKosulYapi({ kapsam }); if (!await kosulYapilar.yukle()) { kosulYapilar = null }
 		let anah2Det = {}; for (let rec of recs) {
 			let {stokkod: stokKod, stokadi: stokAdi} = rec, stokText = new CKodVeAdi([stokKod, stokAdi]).parantezliOzet({ styled: true });
 			let det = new detaySinif({ stokText }); det.setValues({ rec }); detaylar.push(det);
@@ -134,7 +134,29 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 			}
 			let anahStr = getAnahStr(rec); anah2Det[anahStr] = anah2Det[anahStr] ?? det
 		}
-		if (!yenimi) {
+		if (yenimi) {
+			if (detaylar?.length) {
+				let fiyatYapilar = await SatisKosul_Fiyat.stoklarIcinFiyatlar(stokKodListe, kosulYapilar?.FY, mustKod), iskontoArastirStokSet = {};
+				for (const det of detaylar) {
+					if (fiyatYapilar && det.netBedel == undefined) { continue }
+					let {stokKod} = det, kosulRec = fiyatYapilar[stokKod] ?? {}, {iskontoYokmu} = kosulRec;
+					if (!iskontoYokmu) { iskontoArastirStokSet[stokKod] = true }
+					let fiyat = det.fiyat || kosulRec.fiyat; if (fiyat) {
+						let miktar = det.miktar || 0, netBedel = roundToBedelFra(miktar * fiyat);
+						$.extend(det, { fiyat, netBedel })
+					}
+				}
+				let iskYapilar = await SatisKosul_Iskonto.stoklarIcinOranlar(Object.keys(iskontoArastirStokSet), kosulYapilar?.SB);
+				let prefix = 'oran'; for (const det of detaylar) {
+					let {stokKod} = det, kosulRec = iskYapilar[stokKod] ?? {};
+					for (let [key, value] of Object.entries(iskYapilar)) {
+						if (!(value && key.startsWith(prefix))) { continue }
+						let i = asInteger(key.slice(prefix.length)); det[`iskOran${i}`] = value
+					}
+				}
+			}
+		}
+		else {
 			let query = e.stm = new MQStm(); this.baslikVeDetaylariYukle_degistir_queryDuzenle(e);
 			query = e.stm; let recs = await this.class.loadServerData_querySonucu({ ...e, query });
 			{
@@ -144,33 +166,25 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 				}
 			}
 			for (let rec of recs) {
-				let anahStr = getAnahStr(rec), det = anah2Det[anahStr]; if (!det) { continue }
-				let {kaysayac: okunanHarSayac, miktar} = rec; $.extend(det, { okunanHarSayac, miktar })
+				let anahStr = getAnahStr(rec), det = anah2Det[anahStr];
+				if (det) { det.setValues({ rec }) }
 			}
 			if (islem == 'onayla' || islem == 'sil') { detaylar = this.detaylar = detaylar.filter(({ miktar }) => !!miktar) }
-		}
-		if (detaylar?.length) {
-			let fiyatYapilar = await SatisKosul_Fiyat.stoklarIcinFiyatlar(stokKodListe, satisKosul, mustKod);
-			for (const det of detaylar) {
-				if (fiyatYapilar && det.netBedel == undefined) { continue }
-				let {stokKod} = det, fiyat = det.fiyat || fiyatYapilar[stokKod]?.fiyat;
-				if (fiyat) {
-					let miktar = det.miktar || 0, netBedel = roundToBedelFra(miktar * fiyat);
-					$.extend(det, { fiyat, netBedel })
-				}
-			}
 		}
 		return true
 	}
 	baslikVeDetaylariYukle_degistir_queryDuzenle(e) {
-		let {fisSayac, fisTable: table, fisIcinDetayTable: detayTable} = this;
+		let {fisSayac, fisSinif, fisTable: table, fisIcinDetayTable: detayTable} = this;
+		let {ticarimi} = fisSinif, {sabit: iskSayi} = app.params?.fiyatVeIsk?.iskSayi;
 		let {stm, ekOzellikler} = e, sent = e.sent = stm.sent = new MQSent({
 			where: { degerAta: fisSayac, saha: 'fissayac' }, sahalar: [
 				'fis.tarih', 'fis.seri', 'fis.noyil', 'fis.no', 'fis.xadreskod', 'fis.basteslimtarihi',
-				'har.kaysayac', 'har.stokkod', 'SUM(har.miktar) miktar', 'SUM(har.fiyat) fiyat', 'SUM(har.bedel) bedel'
+				'har.kaysayac', 'har.stokkod', 'har.fiyat fiyat', 'SUM(har.miktar) miktar',
+				'SUM(har.belgebrutbedel) brutbedel', 'SUM(har.bedel) bedel'
 			]
 		}), {sahalar, where: wh} = sent; sent.fisHareket(table, detayTable);
 		wh.icerikKisitDuzenle_stok({ saha: 'har.stokkod' });
+		if (ticarimi) { for (let i = 1; i < iskSayi; i++) { sahalar.add(`har.iskoran${i}`) } }
 		for (let {table, tableAlias: alias, rowAttr} of ekOzellikler) {
 			sent.fromIliski(`${table} ${alias}`, `har.${rowAttr} = ${alias}.kod`);
 			sahalar.add(`har.${rowAttr}`)
@@ -196,7 +210,7 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 	}
 	static async getEMailYapi(e) {
 		let {fisSayac} = e ?? {}; if (!fisSayac) { return {} }
-		let stm = new MQStm(), _e = { ...e, stm }; this.eMailYapiQueryDuzenle(_e); stm = _e.stm;
+		let stm = new MQStm(), _e = { ...e, stm }; stm = this.eMailYapiQueryDuzenle(_e) === false ? null : _e.stm;
 		let EMailPrefix = 'email_', recs = await app.sqlExecSelect(stm); if (!recs?.length) { return null }
 		let result = { ...recs[0] }; for (let rec of recs) {
 			for (let [key, value] of Object.entries(rec)) {
@@ -212,6 +226,7 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 		return result
 	}
 	static eMailYapiQueryDuzenle({ fisSayac, stm }) {
+		if (!this.konsinyemi) { return false }
 		let teslimCariKodClause = `fis.${this.teslimCariKodSaha}`, uni = stm.sent = new MQUnionAll();
 		let sentEkle = (fisSinif, teslimCariKodSaha) => {
 			let sent = this.getSablonluVeKLDagitimliOnSent({ fisSinif, fisSayac }), {sahalar} = sent;
@@ -370,7 +385,8 @@ class SablonluKonsinyeSiparisListeFis extends SablonluSiparisListeOrtakFis {
 		}
 	}
 	async fisSinifBelirleInternal(e) {
-		await super.fisSinifBelirleInternal(e); let rec = await this.class.getSablonIcinTeslimBilgisi(e); if (!rec) { return null }
+		await super.fisSinifBelirleInternal(e); if (!this.konsinyemi) { return SablonluSatisSiparisFis }
+		let rec = await this.class.getSablonIcinTeslimBilgisi(e); if (!rec) { return null }
 		let {TSEK: tip} = rec, {belirtec: islem, gridRec: fisRec} = e;
 		if (islem == 'yeni' || islem == 'kopya') { fisRec = e.gridRec = null }
 		let kendimizmi = tip == 'K', kayitSTmi = fisRec?.kayitTipi == 'ST';
@@ -418,13 +434,23 @@ class SablonluSiparisListeOrtakDetay extends MQDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'hizlisablondetay' }
 	static get fisSayacSaha() { return 'grupsayac' } get listemi() { return true }
 	constructor(e) {
-		e = e ?? {}; super(e); let {grupSayac, grupAdi, stokKod, stokAdi, stokText, brm} = e, miktar = e.miktar ?? 0;
-		$.extend(this, { grupSayac, grupAdi, stokKod, stokAdi, stokText, miktar, brm });
+		e = e ?? {}; super(e); let {grupSayac, grupAdi, stokKod, stokAdi, stokText, brm} = e;
+		let miktar = e.miktar ?? 0, fiyat = e.fiyat ?? 0, brutBedel = e.brutBedel ?? 0, netBedel = e.bedel ?? 0;
+		$.extend(this, { grupSayac, grupAdi, stokKod, stokAdi, stokText, miktar, brm, fiyat, brutBedel, netBedel });
 		for (let {ioAttr, adiAttr} of HMRBilgi.hmrIter_ekOzellik()) { for (let key of [ioAttr, adiAttr]) { this[key] = e[key] } }
 	}
 	setValues(e) {
-		super.setValues(e); let {rec} = e, {grupsayac: grupSayac, grupadi: grupAdi, stokkod: stokKod, stokadi: stokAdi, brm} = rec, miktar = rec.miktar ?? 0;
-		$.extend(this, { grupSayac, grupAdi, stokKod, stokAdi, brm, miktar })
+		super.setValues(e); let {rec} = e, {grupsayac: grupSayac, grupadi: grupAdi, stokkod: stokKod, stokadi: stokAdi, brm} = rec;
+		let miktar = rec.miktar ?? 0, {fiyat, brutbedel: brutBedel, bedel: netBedel} = rec;
+		$.extend(this, { grupSayac, grupAdi, stokKod, stokAdi, brm, miktar });
+		if (fiyat) { this.fiyat = fiyat } if (brutBedel) { this.brutBedel = brutBedel } if (netBedel) { this.netBedel = netBedel }
+		for (let [key, value] of Object.entries(rec)) {
+			for (let prefix of ['isk', 'kam']) {
+				if (!(value && key.startsWith(prefix))) { continue }
+				let i = asInteger(key.slice(`${prefix}oran`.length)); if (!i) { continue }
+				this[`${prefix}Oran${i}`] = value
+			}
+		}
 		for (let {ioAttr, adiAttr} of HMRBilgi.hmrIter_ekOzellik()) { for (let key of [ioAttr, adiAttr]) { this[key] = e[key] } }
 	}
 }
@@ -433,14 +459,6 @@ class SablonluSiparisListeDetay extends SablonluSiparisListeOrtakDetay {
 }
 class SablonluKonsinyeSiparisListeDetay extends SablonluSiparisListeOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	constructor(e) {
-		e = e ?? {}; super(e); let fiyat = e.fiyat ?? 0, netBedel = e.bedel ?? 0; $.extend(this, { fiyat, netBedel })
-	}
-	setValues(e) {
-		super.setValues(e); let {rec} = e, {fiyat, bedel: netBedel} = rec;
-		if (fiyat) { this.fiyat = fiyat }
-		if (netBedel) { this.netBedel = netBedel }
-	}
 }
 
 class SablonluSiparisListeOrtakGridci extends GridKontrolcu {
@@ -474,25 +492,55 @@ class SablonluSiparisListeOrtakGridci extends GridKontrolcu {
 		for (let {belirtec, etiket: text, mfSinif} of HMRBilgi.hmrIter_ekOzellik()) {
 			tabloKolonlari.push(new GridKolon({ belirtec, text, genislikCh: 20, filterType: 'checkedlist' }).readOnly()) }
 	}
+	tabloKolonlariDuzenle_ara({ tabloKolonlari }) {
+		super.tabloKolonlariDuzenle_ara(...arguments); let {sabit: iskSayi} = app.params?.fiyatVeIsk?.iskSayi;
+		tabloKolonlari.push(...[
+			new GridKolon({ belirtec: 'fiyat', text: 'Fiyat', genislikCh: 13, groupable: false }).readOnly().tipDecimal_fiyat().sifirGosterme(),
+			new GridKolon({ belirtec: 'brutBedel', text: 'Brüt Bedel', genislikCh: 13, groupable: false }).readOnly().tipDecimal_bedel().sifirGosterme(),
+			(iskSayi ? new GridKolon({
+				belirtec: `iskOranlar`, text: `İsk.`, genislikCh: 13, groupable: false,
+				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
+					let result = []; for (let i = 1; i <= iskSayi; i++) {
+						let value = rec[`iskOran${i}`]; if (value) { result.push(value) } }
+					return changeTagContent(html, result.length ? `%${result.join(' + ')}` : '')
+				}
+			}).readOnly().sifirGosterme() : null),
+			new GridKolon({ belirtec: 'netBedel', text: 'Net Bedel', genislikCh: 13, groupable: false }).readOnly().tipDecimal_bedel().sifirGosterme()
+		].filter(x => !!x))
+	}
+	fis2Grid({ gridPart, fis }) {
+		/*let {detaylar} = fis ?? {}; 
+		if (detaylar && !gridPart.yenimi) {
+			for (let rec of detaylar) {
+				let {miktar, fiyat} = rec;
+				this.bedelHesapla({ rec, miktar, fiyat })
+			}
+		}*/
+		return super.fis2Grid(...arguments)
+	}
 	gridVeriYuklendi(e) {
 		super.gridVeriYuklendi(e); let {grid} = e;
 		grid.jqxGrid({ sortable: true, filterable: true, groupable: true, groups: ['grupAdi'] })
 	}
-	bedelHesapla(e) { /* do nothing */ }
+	bedelHesapla({ gridWidget, rowIndex, rec, miktar, fiyat }) {
+		let brutBedel = roundToBedelFra(miktar * fiyat), netBedel = brutBedel;
+		let Prefix = 'iskOran'; for (let [key, value] of Object.entries(rec)) {
+			if (value && key.startsWith(Prefix)) {
+				value = typeof value == 'number' ? value : asFloat(value);
+				netBedel -= (netBedel * value / 100)
+			}
+			netBedel = roundToBedelFra(netBedel)
+		}
+		if (gridWidget) {
+			gridWidget.setcellvalue(rowIndex, 'brutBedel', brutBedel);
+			gridWidget.setcellvalue(rowIndex, 'netBedel', netBedel)
+		}
+		else { $.extend(rec, { brutBedel, netBedel }) }
+	}
 }
 class SablonluSiparisListeGridci extends SablonluSiparisListeOrtakGridci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 }
 class SablonluKonsinyeSiparisListeGridci extends SablonluSiparisListeOrtakGridci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	tabloKolonlariDuzenle_ara({ tabloKolonlari }) {
-		super.tabloKolonlariDuzenle_ara(...arguments); tabloKolonlari.push(...[
-			new GridKolon({ belirtec: 'fiyat', text: 'Fiyat', genislikCh: 13, groupable: false }).readOnly().tipDecimal_fiyat().sifirGosterme(),
-			new GridKolon({ belirtec: 'netBedel', text: 'Bedel', genislikCh: 13, groupable: false }).readOnly().tipDecimal_bedel().sifirGosterme()
-		])
-	}
-	bedelHesapla({ gridWidget, rowIndex, miktar, fiyat }) {
-		super.bedelHesapla(...arguments);
-		gridWidget.setcellvalue(rowIndex, 'netBedel', roundToBedelFra(miktar * fiyat))
-	}
 }

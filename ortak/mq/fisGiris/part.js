@@ -27,7 +27,8 @@ class FisGirisPart extends GridliGirisWindowPart {
 		if (islem) { const islemText = islem[0].toUpperCase() + islem.slice(1); this.title += ` &nbsp;-&nbsp; <b class="window-title-ek">${islemText}</b>` }
 	}
 	runDevam(e) {
-		super.runDevam(e); const sender = this, {layout, fis, islem, header, islemTuslari} = this;
+		e = e ?? {}; let islem = e.islem = this.islem;
+		super.runDevam(e); const sender = this, {layout, fis, header, islemTuslari} = this;
 		const splitMain = this.splitMain = layout.find('.main-split');
 		const baslikFormlar = this.baslikFormlar = [header.find('.baslikForm1'), header.find('.baslikForm2'), header.find('.baslikForm3')];
 		splitMain.jqxSplitter({

@@ -52,7 +52,15 @@ class TSSHDDetay extends TSDetay {
 		e = e || {}; super(e); const {shSahaPrefix} = this.class;
 		let value = e[`${shSahaPrefix}Kod`]; if (value != null) { this.shKod = value }
 		value = e[`${shSahaPrefix}Adi`]; if (value != null) { this.shAdi = value }
-		this.iskYapiPropertyleriOlustur(e); this.eBilgi = e.eBilgi
+		this.iskYapiPropertyleriOlustur(e); this.eBilgi = e.eBilgi;
+		let prefix2OranlarSelector = { isk: 'iskOranlar', kam: 'kamOranlar' };
+		for (let [key, value] of Object.entries(e)) {
+			for (let [prefix, oranlarSelector] of Object.entries(prefix2OranlarSelector)) {
+				if (!(value && key.startsWith(prefix))) { continue }
+				if (typeof value != 'number') { value = asFloat(value) }
+				let oranlar = this[oranlarSelector]; oranlar.push(value)
+			}
+		}
 	}
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, {
@@ -143,7 +151,8 @@ class TSSHDDetay extends TSDetay {
 		e = e || {}; super.hostVarsDuzenle(e); const {fis, hv} = e, {shKodSaha, shAdiSaha, hizmetmi} = this.class;
 		let {stokmu, siparismi} = fis?.class ?? {};
 		hv[shKodSaha] = this.shKod; if (siparismi || hizmetmi) { delete hv.detyerkod } else { hv.detyerkod = this.getYerKod({ fis }) }
-		const {fiyat, netBedel} = this; hv.ekranverifiyat = hv.belgefiyat = fiyat; hv.belgebedel = netBedel;
+		const {fiyat, brutBedel, netBedel} = this;
+		$.extend(hv, { ekranverifiyat: fiyat, belgefiyat: fiyat, belgebrutbedel: brutBedel, belgebedel: netBedel });
 		if (stokmu) { for (let key of ['brutbedel', 'kkegyuzde']) { delete hv[key] } }
 		let {hmr} = this; if (hmr) { hmr.hostVarsDuzenle(e); for (let {rowAttr, ioAttr} of hmr.hmrIter()) { hv[rowAttr] = this[ioAttr] } }
 	}
@@ -159,8 +168,7 @@ class TSSHDDetay extends TSDetay {
 	}
 	ticariHostVarsDuzenle(e) {
 		const {fis, hv} = e; $.extend(hv, { kdvhesapkod: this.kdvKod || '', perkdv: this.kdv || 0, perstopaj: this.stopaj || 0 }); this.ekVergiYapi.ticariHostVarsDuzenle(e);
-		const {iskYapi} = this;
-		const iskHVEkle = e => {
+		const {iskYapi} = this, iskHVEkle = e => {
 			const {belirtec, rowAttrPrefix, oranMax} = e, oranlar = iskYapi[belirtec];
 			for (let i = 0; i < oranMax; i++) { const oran = oranlar[i] || 0, rowAttr = `${rowAttrPrefix}oran${i + 1}`; hv[rowAttr] = oran }
 		};
