@@ -385,7 +385,7 @@ class SablonluKonsinyeSiparisListeFis extends SablonluSiparisListeOrtakFis {
 		}
 	}
 	async fisSinifBelirleInternal(e) {
-		await super.fisSinifBelirleInternal(e); if (!this.konsinyemi) { return SablonluSatisSiparisFis }
+		await super.fisSinifBelirleInternal(e); if (!this.class.konsinyemi) { return SablonluSatisSiparisFis }
 		let rec = await this.class.getSablonIcinTeslimBilgisi(e); if (!rec) { return null }
 		let {TSEK: tip} = rec, {belirtec: islem, gridRec: fisRec} = e;
 		if (islem == 'yeni' || islem == 'kopya') { fisRec = e.gridRec = null }

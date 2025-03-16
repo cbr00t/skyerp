@@ -1,3 +1,10 @@
+class Callable extends CObject {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	constructor(block, args) {
+        super(); if (args) { Object.assign(this, args) }
+        return block ? block.bind(this) : (() => {})
+    }
+}
 class CPoint extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get empty() { return new this({ x: 0, y: 0 }) } static get zero() { return this.empty } static get oneOne() { return new this({ x: 1, y: 1 }) }

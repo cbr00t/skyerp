@@ -20,7 +20,22 @@ class CObject {
 	}
 	static get subClasses() { let result = this._subClasses; if (result === undefined) { result = this._subClasses = Object.values(this.key2SubClasses) } return result }
 	static get instance() { const {classKey, _class2SingletonInstance} = this; return _class2SingletonInstance[classKey] = _class2SingletonInstance[classKey] ?? new this() }
-	constructor(e) { if (window.boot) window.boot.step() }
+	get super1() { return this.superN(1) } get super2() { return this.superN(2) } get super3() { return this.superN(3) }
+	get super4() { return this.superN(4) } get super5() { return this.superN(5) } get super6() { return this.superN(6) }
+	superN(n) {
+		if (!n || n < 1) { return null }
+		/* let result = this[`super${n}`]; if (result !== undefined) { return result } */
+		let getProto = n => {
+			let $this = n == 1 ? this : this.superN(n - 1);
+			return $this == null ? null : Object.getPrototypeOf($this)
+		}
+		let result = (this._supers ??= {})[n] = getProto(n) ?? null;
+		return result
+	}
+	constructor(e) {
+		this._supers = {};
+		if (window.boot) { window.boot.step() }
+	}
 	static From(e) { e = e || {}; const inst = new this(); { for (const key in e) { const value = e[key]; inst[key] = value } } return inst }
 	static Serialize(e) {
 		if (!e) return null; if (e.serialize) return e.serialize()
