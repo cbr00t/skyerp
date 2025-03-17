@@ -16,11 +16,10 @@ class SatisKosul_Fiyat extends SatisKosul {
 		@example(s):
 			let tarih = asDate('09.03.2025'), subeKod = '1001', mustKod = 'M120 10 001', stokKodListe = ['8691520102767', '8691520108325'], kapsam = { tarih, subeKod, mustKod };
 			let satisKosul = new SatisKosul_Fiyat({ kapsam }); if (!await satisKosul.yukle()) { satisKosul = null }
-			console.table(await SatisKosul_Fiyat.stoklarIcinFiyatlar(stokKodListe, satisKosul, mustKod))
+			console.table(await SatisKosul_Fiyat.getAltKosulYapilar(stokKodListe, satisKosul, mustKod))
 	*/
-	static getAltKosulYapilar() { return this.stoklarIcinFiyatlar(...arguments) }
-	static async stoklarIcinFiyatlar(e, _satisKosul, _mustKod) {
-		let result = await this._stoklarIcinFiyatlar(e, _satisKosul, _mustKod); if (result) {
+	static async getAltKosulYapilar(e, _satisKosul, _mustKod) {
+		let result = await this._getAltKosulYapilar(e, _satisKosul, _mustKod); if (result) {
 			for (const [xKod, rec] of Object.entries(result)) {
 				if (rec.detTip == null) { rec.detTip = 'S' }
 				if (rec.xKod == null) { rec.xKod = xKod }
@@ -28,7 +27,7 @@ class SatisKosul_Fiyat extends SatisKosul {
 		}
 		return result
 	}
-	static async _stoklarIcinFiyatlar(e, _satisKosul, _mustKod) {
+	static async _getAltKosulYapilar(e, _satisKosul, _mustKod) {
 	    e = e ?? {}; let isObj = typeof e == 'object' && !$.isArray(e);
 		let kodListe = $.makeArray(isObj ? e.kodListe ?? e.kod : e); if (!kodListe.length) { return {} }
 		let satisKosul = isObj ? e.satisKosul ?? e.kosul : _satisKosul;

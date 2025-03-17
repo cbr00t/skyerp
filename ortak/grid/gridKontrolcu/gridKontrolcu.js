@@ -5,7 +5,8 @@ class GridKontrolcu extends CObject {
 	constructor(e) { super(e); e = e || {}; $.extend(this, { parentPart: e.parentPart }) }
 	gridArgsDuzenle(e) { }
 	get tabloKolonlari() { let result = this._tabloKolonlari; if (!result) { const _e = { tabloKolonlari: [] }; this.tabloKolonlariDuzenle(_e); result = _e.tabloKolonlari } return result }
-	tabloKolonlariDuzenle(e) {
+	tabloKolonlariDuzenle(e) { e = e || {}; this.tabloKolonlariDuzenle_ortak(e) }
+	tabloKolonlariDuzenle_ortak(e) {
 		e = e || {}; if (config.dev) {
 			const {tabloKolonlari} = e; tabloKolonlari.push(new GridKolon({ belirtec: 'okunanHarSayac', text: '-har-', genislikCh: 5 }).tipNumerik().readOnly().sabitle()) }
 		this.tabloKolonlariDuzenle_ilk(e); this.tabloKolonlariDuzenle_ara(e); this.tabloKolonlariDuzenle_son(e)

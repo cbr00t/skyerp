@@ -30,7 +30,8 @@ class SatisKosul extends CKodVeAdi {
 		e = e ?? {}; const tipKod = typeof e == 'object' ? e.tipKod : e;
 		return this.tip2Sinif[tipKod]
 	}
-	getAltKosulYapilar() { return null }
+	getAltKosulYapilar(e, _mustKod) { return this.class.getAltKosulYapilar(e, this, _mustKod) }
+	static async yukle(e) { let inst = new this(e); return await inst.yukle(e) ? inst : null }
 	async yukle(e) {
 		e = e ?? {}; let kapsam = e.kapsam ?? this.kapsam ?? {}, mustKod, {fisSayacSaha} = this.class;
 		if ($.isPlainObject(kapsam)) { kapsam = new SatisKosulKapsam(kapsam) }

@@ -121,7 +121,10 @@ class MQKA extends MQKod {
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {sent} = e;
-		if (this.adiKullanilirmi) { const {aliasVeNokta, adiSaha} = this; if (adiSaha && !sent.sahalar.liste.find(saha => saha.alias == adiSaha)) { sent.sahalar.add(`${aliasVeNokta}${adiSaha}`) } }
+		if (this.adiKullanilirmi) {
+			const {aliasVeNokta, adiSaha} = this;
+			if (adiSaha && !sent.sahalar.liste.find(saha => saha.alias == adiSaha)) { sent.sahalar.add(`${aliasVeNokta}${adiSaha}`) }
+		}
 	}
 	parantezliOzet(e) {
 		e = e || {}; if (!(this.adiKullanilirmi && this.aciklama)) { return super.parantezliOzet(e) }

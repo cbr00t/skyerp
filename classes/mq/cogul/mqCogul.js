@@ -438,8 +438,8 @@ class MQCogul extends MQYapi {
 				const parts = value.split(' '); for (const _part of parts) {
 					const part = _part?.trim(); if (!part) { continue }
 					const or = new MQOrClause(); or.like(`%${part}%`, `${aliasVeNokta}${kodSaha}`); if (adiSaha) {
-						or.like(`%${part.toUpperCase()}%`, `UPPER(${aliasVeNokta}${adiSaha})`);
-						or.like(`%${part.toLocaleUpperCase()}%`, `UPPER(${aliasVeNokta}${adiSaha})`)
+						or.like(`%${part.toUpperCase()}%`, `${aliasVeNokta}${adiSaha}`);
+						or.like(`%${part.asTRUpper()}%`, `${aliasVeNokta}${adiSaha}`)
 					}
 					orClauses.push(or)
 				}

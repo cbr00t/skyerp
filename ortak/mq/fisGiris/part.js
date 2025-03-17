@@ -53,13 +53,14 @@ class FisGirisPart extends GridliGirisWindowPart {
 		else { dipForm.addClass('jqx-hidden') }
 		const splitGridVeIslemTuslari = this.splitGridVeIslemTuslari = layout.find('.gridVeIslemTuslari');
 		const gridIslemTuslari = this.gridIslemTuslari = splitGridVeIslemTuslari.find('.gridIslemTuslari');
-		const gridIslemTuslariWidth = asFloat(layout.css('--grid-islemTuslari-width').slice(0, -2));
+		let gridIslemTuslariWidth = asFloat(layout.css('--grid-islemTuslari-width').slice(0, -2));
 		setTimeout(async () => {
-			let _e = { sender, parent: $(document.createDocumentFragment()), islem, fis, layout, afterInit: [] };
-			if (fis.uiDuzenle_fisGirisIslemTuslari) await fis.uiDuzenle_fisGirisIslemTuslari(_e)
+			let _e = { ...e, sender, parent: $(document.createDocumentFragment()), islem, fis, layout, afterInit: [] };
+			if (fis.uiDuzenle_fisGirisIslemTuslari) { await fis.uiDuzenle_fisGirisIslemTuslari(_e) }
 			_e.parent.appendTo(gridIslemTuslari); gridIslemTuslari.removeClass('jqx-hidden basic-hidden');
-			let buttons = gridIslemTuslari.find('button'); if (buttons.length) { buttons.jqxButton({ theme }) } _e.buttons = buttons;
-			const {afterInit} = _e; if ($.isEmptyObject(afterInit)) { for (const i in afterInit) { const handler = afterInit[i]; getFuncValue.call(this, handler, _e) } }
+			let buttons = gridIslemTuslari?.length ? gridIslemTuslari.find('button') : null; _e.buttons = buttons;
+			if (buttons?.length) { buttons.jqxButton({ theme }) } else { layout.css('--grid-islemTuslari-width', '0px') }
+			const {afterInit} = _e; if ($.isEmptyObject(afterInit)) { for (let i in afterInit) { const handler = afterInit[i]; getFuncValue.call(this, handler, _e) } }
 			const {gridIslemTusYapilari} = this; for (let i = 0; i < buttons.length; i++) {
 				const elm = buttons.eq(i), id = elm.prop('id');
 				const clsElmInfo = class ElmInfo extends CObject {
@@ -170,7 +171,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 		_e.recs = []; for (let i = 0; i < fis.detaylar.length + (sabitFlag ? 0 : 1); i++) { _e.recs.push(this.newRec({ sinif: gridDetaySinif })) }
 		// if (!this.yenimi) {
 		let _result = await kontrolcu.fis2Grid(_e);
-		if (_result != true) { if (_result.errorText) { hConfirm(`<div class="red">${_result.errorText}</div>`) } return false }
+		if (_result != true) { if (_result?.errorText) { hConfirm(`<div class="red">${_result.errorText}</div>`) } return false }
 		//}
 		return _e.recs
 	}

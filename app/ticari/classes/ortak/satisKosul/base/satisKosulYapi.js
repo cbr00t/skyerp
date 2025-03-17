@@ -16,6 +16,7 @@ class SatisKosulYapi extends CObject {
 		e = e ?? {}; super(e); let {kapsam} = e;
 		$.extend(this, { kapsam })
 	}
+	static async yukle(e) { let inst = new this(e); return await inst.yukle(e) ? inst : null }
 	reset(e) {
 		const {kosulSiniflar} = this.class, {kapsam} = this;
 		for (const cls of kosulSiniflar) { const {tipKod} = cls; this[tipKod] = new cls({ kapsam }) }
@@ -32,9 +33,7 @@ class SatisKosulYapi extends CObject {
 		await Promise.allSettled(promises); return this
 	}
 	*getIter() {
-		const {tipListe} = this.class; for (const tip of tipListe) {
-			let item = this[tip]; if (item == null) { continue }
-			yield item
-		}
+		const {tipListe} = this.class;
+		for (const tip of tipListe) { let item = this[tip]; if (item != null) { yield item } }
 	}
 }
