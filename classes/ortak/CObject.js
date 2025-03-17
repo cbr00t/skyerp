@@ -36,7 +36,11 @@ class CObject {
 		this._supers = {};
 		if (window.boot) { window.boot.step() }
 	}
-	static From(e) { e = e || {}; const inst = new this(); { for (const key in e) { const value = e[key]; inst[key] = value } } return inst }
+	static From(e) {
+		e = e || {}; const inst = new this();
+		for (const [key, value] in Object.entries(e)) { inst[key] = value }
+		return inst
+	}
 	static Serialize(e) {
 		if (!e) return null; if (e.serialize) return e.serialize()
 		if (e.reduce && !$.isArray(e)) e = e.reduce()
