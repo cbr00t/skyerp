@@ -34,7 +34,10 @@ class TSSHDDetay extends TSDetay {
 	static get shKodSaha() { const {shSahaPrefix} = this; return shSahaPrefix ? shSahaPrefix + 'kod' : null; }
 	static get shAdiSaha() { const {shSahaPrefix} = this; return shSahaPrefix ? shSahaPrefix + 'adi' : null; }
 	static getOrjKdvKodClause(e) { return null } static getAdiDegisirmiClause(e) { return null } static getKdvDegiskenmiClause(e) { return null }
-	get dipHesabaEsasDegerler() { const result = super.dipHesabaEsasDegerler || {}; $.extend(result, { brutBedel: this.brutBedel, iskBedelYapi: this.iskBedelYapi, netBedel: this.netBedel }); return result }
+	get dipHesabaEsasDegerler() {
+		const result = super.dipHesabaEsasDegerler || {}; $.extend(result, { brutBedel: this.brutBedel, iskBedelYapi: this.iskBedelYapi, netBedel: this.netBedel });
+		return result
+	}
 	get ekVergiTipi() { return this.ekVergiYapi.tip }
 	get tevkifatKod() { return this.ekVergiYapi.tevkifatKod } set tevkifatKod(value) { return this.ekVergiYapi.tevkifatKod = value }
 	get istisnaKod() { return this.ekVergiYapi.istisnaKod } set istisnaKod(value) { return this.ekVergiYapi.istisnaKod = value }
@@ -146,7 +149,10 @@ class TSSHDDetay extends TSDetay {
 		}
 		else { sent.sahalar.add(`${aliasVeNokta}kdvhesapkod orjkdvkod`) }
 	}
-	hostVars(e) { for (const key of ['fiyat', 'brutBedel', 'netBedel']) { this[key] = (this[key] || 0) } return super.hostVars(e) }
+	hostVars(e) {
+		for (const key of ['fiyat', 'brutBedel', 'netBedel']) { this[key] = (this[key] || 0) }
+		return super.hostVars(e)
+	}
 	hostVarsDuzenle(e) {
 		e = e || {}; super.hostVarsDuzenle(e); const {fis, hv} = e, {shKodSaha, shAdiSaha, hizmetmi} = this.class;
 		let {stokmu, siparismi} = fis?.class ?? {};
@@ -161,8 +167,9 @@ class TSSHDDetay extends TSDetay {
 		let {stokmu, siparismi} = fis?.class ?? {};
 		$.extend(this, {
 			shKod: rec.shKod || rec.shkod || rec[shKodSaha], shAdi: rec.shAdi || rec.shadi || rec[shAdiSaha], brm: rec.brm,
-			kdvDegiskenmi: asBool(rec.kdvDegiskenmi), adiDegisirmi: asBool(rec.adiDegisirmi), takipNo: rec.dettakipno || '', takipAdi: rec.takipadi,
+			kdvDegiskenmi: asBool(rec.kdvDegiskenmi), adiDegisirmi: asBool(rec.adiDegisirmi), takipNo: rec.dettakipno || '', takipAdi: rec.takipadi
 		});
+		if (stokmu) { this.brutBedel = rec.belgebrutbedel }
 		if (!(siparismi || hizmetmi)) { $.extend(this, { yerKod: rec.detyerkod ?? '', yerAdi: rec.yeradi }) }
 		let {hmr} = this; if (hmr) { hmr.setValues(e); for (let {rowAttr, ioAttr} of hmr.hmrIter()) { this[ioAttr] = rec[rowAttr] } }
 	}
@@ -175,15 +182,16 @@ class TSSHDDetay extends TSDetay {
 		for (const item of TicIskYapi.getIskYapiIter()) { iskHVEkle({ belirtec: item.key, rowAttrPrefix: item.belirtec, oranMax: item.maxSayi }) }
 	}
 	ticariSetValues(e) {
-		const {fis, rec} = e;
-		$.extend(this, { kdvKod: rec.kdvhesapkod, orjkdvKod: rec.orjkdvkod, kdvOrani: rec.kdvorani, kdv: rec.perkdv, otv: rec.perotv, stopaj: rec.perstopaj });
+		const {fis, rec} = e; $.extend(this, {
+			kdvKod: rec.kdvhesapkod, orjkdvKod: rec.orjkdvkod, kdvOrani: rec.kdvorani, kdv: rec.perkdv,
+			otv: rec.perotv, stopaj: rec.perstopaj });
 		this.ekVergiYapi.ticariSetValues(e);
 		/* const {sabitIskOranMax, kampanyaIskOranMax} = app.params.fiyatVeIsk;*/
 		const {iskYapi} = this, iskSetValues = e => {
 			const {belirtec, rowAttrPrefix, oranMax} = e, oranlar = iskYapi[belirtec] = [];
 			for (let i = 0; i < oranMax; i++) {
 				const rowAttr = `${rowAttrPrefix}oran${i + 1}`, oran = rec[rowAttr] || 0;
-				oranlar.push(oran);
+				oranlar.push(oran)
 			}
 		};
 		for (const item of TicIskYapi.getIskYapiIter()) { iskSetValues({ belirtec: item.key, rowAttrPrefix: item.belirtec, oranMax: item.maxSayi }) }
@@ -191,7 +199,9 @@ class TSSHDDetay extends TSDetay {
 		iskSetValues({ belirtec: 'kampanya', rowAttrPrefix: 'kam', oranMax: kampanyaIskOranMax });*/
 		if (fis?.class?.ticarimi) {
 			const {vergiBelirtecler} = TicariFis;
-			for (const belirtec of vergiBelirtecler) { if (this[`${belirtec}Kod`] && this[`${belirtec}Orani`] == null) { this.vergileriHesapla(e) } }
+			for (const belirtec of vergiBelirtecler) {
+				if (this[`${belirtec}Kod`] && this[`${belirtec}Orani`] == null) { this.vergileriHesapla(e) }
+			}
 		}
 	}
 	eBilgiSetValues_ilk(e) {
@@ -206,12 +216,13 @@ class TSSHDDetay extends TSDetay {
 	eBilgiSetValues_son(e) { super.eBilgiSetValues_son(e); this.bedelHesapla({ ticarimi: true }) }
 	getYerKod(e) { e = e || {}; const {fis} = e; return fis?.yerOrtakmi ? fis.yerKod : this.yerKod }
 	uiSatirBedelHesaplaDevam(e) {
-		super.uiSatirBedelHesaplaDevam(e); const {gridWidget, fis} = e;
+		super.uiSatirBedelHesaplaDevam(e); const {gridWidget, fis, rowIndex} = e;
+		const ticarimi = e.ticarimi ?? (fis?.class?.ticarimi ?? false); this.bedelHesapla(e);
+		if (ticarimi) { this.vergileriHesapla(e) }
 		if (gridWidget) {
-			gridWidget.setcellvalue(e.rowIndex, 'brutBedel', this.brutBedel);
-			gridWidget.setcellvalue(e.rowIndex, 'netBedel', this.netBedel)
+			gridWidget.setcellvalue(rowIndex, 'brutBedel', this.brutBedel);
+			gridWidget.setcellvalue(rowIndex, 'netBedel', this.netBedel)
 		}
-		const ticarimi = e.ticarimi ?? (fis?.class?.ticarimi ?? false); this.bedelHesapla(e); if (ticarimi) { this.vergileriHesapla(e) }
 	}
 	miktar2Hesapla(e) { }
 	bedelHesapla(e) {
@@ -220,7 +231,7 @@ class TSSHDDetay extends TSDetay {
 	}
 	netBedelHesapla(e) {
 		e = e || {}; this.iskBedelYapiReset();
-		const {fis} = e, {brutBedel} = this; let netBedel = brutBedel;
+		let {fis} = e, {brutBedel} = this, netBedel = brutBedel;
 		const ticarimi = e.ticarimi ?? fis?.class?.ticarimi ?? false; if (ticarimi) { netBedel -= this.iskBedelToplam }
 		return this.netBedel = netBedel
 	}

@@ -41,14 +41,14 @@ class DipIslemci extends CObject {
 		e = e || {}; let {dipSatirlari} = this; if (!dipSatirlari) { this.dipSatirlariOlustur(e); dipSatirlari = this.dipSatirlari }
 		const gelismisFlag = e.gelismis, _e = $.extend({}, e, { liste: [] });
 		if (gelismisFlag) { this.dipGridSatirlariDuzenle_gelismis(_e) } else { this.dipGridSatirlariDuzenle_basit(_e) }
-		dipSatirlari = _e.liste; if (!gelismisFlag) { dipSatirlari = dipSatirlari.filter(item => !!item._basitVisible) }
+		dipSatirlari = _e.liste; if (!gelismisFlag) { dipSatirlari = dipSatirlari.filter(item => item._visible && item._basitVisible) }
 		return dipSatirlari
 	}
 	dipSatirlariOlustur(e) {
 		const {fis} = this, _e = $.extend({}, e || {}, { fis, dipIslemci: this }); delete this._belirtec2DipSatir;
 		const dipSatirlari = this.dipSatirlari = fis.getDipGridSatirlari(_e), {belirtec2DipSatir} = this;
 		for (const dipSatir of dipSatirlari) { belirtec2DipSatir[dipSatir.belirtec] = dipSatir }
-		let {_promise_dipSatirlari} = this; if (_promise_dipSatirlari) _promise_dipSatirlari.resolve(dipSatirlari)
+		let {_promise_dipSatirlari} = this; if (_promise_dipSatirlari) { _promise_dipSatirlari.resolve(dipSatirlari) }
 		return this
 	}
 	topluHesapla(e) { this.hesapcilarOnDegerleriYukle(e); this.satirlariHesapla(e); return this }
@@ -140,7 +140,7 @@ class DipIslemci extends CObject {
 			else if (dipSatir.tevkifatmi) _belirtec2DipSatir.TOPTEV.tlBedel += dipSatir.tlBedel
 		}
 		for (const dipSatir of result) { if (!dipSatir.tlBedel) { dipSatir.hidden() } }
-		_belirtec2DipSatir.SONUC.visible()
+		for (let key of ['BRUT', 'SONUC', 'TOPKDV']) { _belirtec2DipSatir[key]?.visible() }
 	}
 	dipGridSatirlariDuzenle_gelismis(e) { const result = e.liste; result.push(...this.dipSatirlari) }
 	add(e, _ref) {

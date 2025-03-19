@@ -6,7 +6,8 @@ class TicariFis extends TSOrtakFis {
 		super.detaySiniflarDuzenle(e); const {liste} = e; liste.push(TSHizmetDetay);
 		if (app.params.ticariGenel.kullanim.demirbas) { liste.push(TSDemirbasDetay) }
 	}
-	static get gridKontrolcuSinif() { return TicariGridKontrolcu } static get noYilKullanilirmi() { return true } static get dipKullanilirmi() { return true } static get dipNakliyeKullanilirmi() { return false }
+	static get gridKontrolcuSinif() { return TicariGridKontrolcu } static get noYilKullanilirmi() { return true }
+	static get dipKullanilirmi() { return true } static get dipNakliyeKullanilirmi() { return false }
 	static get tsStokDetayTable() { return this.siparismi ? 'sipstok' : 'pifstok' } static get tsHizmetDetayTable() { return this.siparismi ? 'siphizmet' : 'pifhizmet' }
 	static get tsFasonDetayTable() { return this.siparismi ? 'sipfsstok' : 'piffsstok' } static get tsHizmetDetayTable() { return this.siparismi ? 'siphizmet' : 'pifhizmet' }
 	static get tsDemirbasDetayTable() { return this.siparismi ? 'sipdemirbas' : 'pifdemirbas' } static get tsAciklamaDetayTable() { return this.siparismi ? 'sipaciklama' : 'pifaciklama' }

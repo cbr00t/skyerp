@@ -8,9 +8,8 @@ class FinansFis extends MQGenelFis {
 		const {numTipKod} = this;
 		return numTipKod ? new MQNumarator({ kod: numTipKod }) : null
 	}
-	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e);
-		const {pTanim} = e;
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments);
 		$.extend(pTanim, { baslikAciklama: new PInstStr('aciklama') })
 	}
 	static rootFormBuilderDuzenle_ilk(e) {

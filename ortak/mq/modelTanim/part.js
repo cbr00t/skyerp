@@ -1,5 +1,5 @@
 class ModelTanimPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get slowAnimationFlag() { return true }
 	static get rootPartName() { return 'modelTanim' } static get partName() { return this.rootPartName }
 	static get asyncRunFlag() { return true } static get isWindowPart() { return true }
 	static get formDeferMS() { return 30 }

@@ -4,6 +4,7 @@ class MQOrtakFis extends MQDetayli {
 	static get dipSinif() { return DipIslemci } static get dipKullanilirmi() { return false } static get dipNakliyeKullanilirmi() { return false }
 	static get dipIskOranSayi() { return 0 } static get dipIskBedelSayi() { return 0 }
 	static get tsnKullanilirmi() { return true } static get numYapi() { return null }
+	static get numaratorGosterilirmi() { return true } static get dipGirisYapilirmi() { return true }
 	get numYapi() { return this.class.numYapi } get fisNox() { return this.tsn?.asText() }
 	get dipIslemci() {
 		let result = this._dipIslemci; if (result === undefined) { this.dipOlustur(); result = this._dipIslemci }

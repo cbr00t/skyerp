@@ -1,6 +1,5 @@
 class TSGridKontrolcu extends GridKontrolcu {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	constructor(e) { e = e || {}; super(e); }
 	gridArgsDuzenle(e) {
 		super.gridArgsDuzenle(e); $.extend(e.args, {
 			rowDetails: true, rowDetailsTemplate: rowIndex => {
@@ -39,7 +38,13 @@ class TSGridKontrolcu extends GridKontrolcu {
 		);
 		this.tabloKolonlariDuzenle_fiyat_netBedel_arasi(e);
 		tabloKolonlari.push(new GridKolon({ belirtec: 'netBedel', text: 'Net Bedel', genislikCh: 18 }).tipDecimal_bedel().readOnly());
-		for (const item of HMRBilgi.hmrIter()) { let colDefOrArray = item.asGridKolon(); if (colDefOrArray) { if ($.isArray(colDefOrArray)) { tabloKolonlari.push(...colDefOrArray) } else { tabloKolonlari.push(colDefOrArray) } } }
+		for (const item of HMRBilgi.hmrIter()) {
+			let colDefOrArray = item.asGridKolon();
+			if (colDefOrArray) {
+				if ($.isArray(colDefOrArray)) { tabloKolonlari.push(...colDefOrArray) }
+				else { tabloKolonlari.push(colDefOrArray) }
+			}
+		}
 		tabloKolonlari.push(new GridKolon({ belirtec: 'ekAciklama', text: 'Açıklama', genislikCh: 30 }))
 	}
 	tabloKolonlariDuzenle_fiyat_netBedel_arasi(e) {
@@ -54,17 +59,20 @@ class TSGridKontrolcu extends GridKontrolcu {
 		const {fis} = this, det = e.detay, rowIndex = e.index, satirNo = rowIndex + 1;
 		if (!(fis.class.siparismi || det?.class?.hizmetmi)) {
 			const {kullanim} = app.params.ticariGenel;
-			if (!fis.yerOrtakmi && !det.yerKod) { const belirtec = 'takipNo'; return { isError: true, errorText: `<b>${satirNo}.</b> satırdaki <b>Detay Yer (Depo)</b> bilgisi boş olamaz`, returnAction: e => e.focusTo({ rowIndex, belirtec }) } }
+			if (!fis.yerOrtakmi && !det.yerKod) {
+				const belirtec = 'takipNo';
+				return { isError: true, errorText: `<b>${satirNo}.</b> satırdaki <b>Detay Yer (Depo)</b> bilgisi boş olamaz`, returnAction: e => e.focusTo({ rowIndex, belirtec }) }
+			}
 			/* if (kullanim.takipNo && !fis.takipOrtakmi && !det.takipNo) { const belirtec = 'yerKod'; return { isError: true, errorText: `<b>${satirNo}.</b> satırdaki <b>Detay Takip No</b> bilgisi boş olamaz`, returnAction: e => e.focusTo({ rowIndex, belirtec }) } } */
 		}
 		return super.geriYuklemeIcinUygunmu(e)
 	}
+	miktarFiyatDegisti(e) { this.satirBedelHesapla(e) }
 	satirBedelHesapla(e) {			/* Ticari seviyede farklı hesap yapılır */
 		const args = e.args || {}, {uid} = args, rowIndex = args.rowindex, {gridWidget, fis} = this;
 		const det = e.detay || e.rec || (uid == null ? gridWidget.getrowdata(rowIndex) : gridWidget.getrowdatabyid(uid));
-		const _e = $.extend({}, e, { fis: fis, gridWidget: gridWidget, uid: uid, rowIndex: rowIndex, belirtec: args.datafield }); det.uiSatirBedelHesapla(_e);
+		const _e = { ...e, fis, gridWidget, uid, rowIndex, belirtec: args.datafield }; det.uiSatirBedelHesapla(_e)
 	}
-	miktarFiyatDegisti(e) { this.satirBedelHesapla(e) }
 	yerOrtakmiDegisti(e) { const grupBelirtec = 'yer'; return this.xOrtakmiDegisti({ ...e, grupBelirtec }) }
 	takipOrtakmiDegisti(e) { const grupBelirtec = 'takip'; return this.xOrtakmiDegisti({ ...e, grupBelirtec }) }
 	xOrtakmiDegisti(e) {

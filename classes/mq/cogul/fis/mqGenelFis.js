@@ -37,37 +37,40 @@ class MQGenelFis extends MQOrtakFis {
 	}
 	static secimlerDuzenleSon(e) { super.secimlerDuzenleSon(e) }
 	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e); const {tsnKullanilirmi} = this, {tsnForm, baslikForm} = e.builders; tsnForm.yanYana();
+		e = e || {}; super.rootFormBuilderDuzenle(e); this.rootFormBuilderDuzenle_numarator(e);
+		const {tsnKullanilirmi} = this, {tsnForm, baslikForm} = e.builders;
 		let tarihFormParent = tsnKullanilirmi ? tsnForm : baslikForm.builders[0];
-		if (tsnKullanilirmi) {
-			tsnForm.addForm('numarator')
-				.setLayout(e => {
-					const {builder} = e, {parentParent, inst} = builder;
-					let layout = parentParent.find(inst.numarator?.class?.fisGirisLayoutSelector);
-					if (!layout?.length) { layout = builder.parent } return layout
-				})
-				.onInit(e => {
-					const {builder} = e, {rootPart, inst, layout, parent} = builder, {numarator} = inst; if (!numarator) { return }
-					$(`<label class="_etiket" style="color: #ccc; min-width: 150px; width: 100%; height: 15px;">Seri-No</label>`).prependTo(layout);
-					const part = numarator.class.partLayoutDuzenle($.extend({}, e, { islem: rootPart.islem, fis: inst, layout: layout }));
-					builder.part = rootPart.numaratorPart = part; layout.removeClass('jqx-hidden basic-hidden'); parent.removeClass('jqx-hidden basic-hidden');
-					const {txtNoYil} = part;
-					if (txtNoYil?.length) {
-						if (inst.class.satismi == inst.class.iademi) { txtNoYil.removeAttr('readonly') }
-						else { txtNoYil.attr('readonly', ''); txtNoYil.addClass('readOnly') }
-					}
-				})
-				.addStyle_wh({ width: '450px !important' })
-		}
 		tarihFormParent.addDateInput({ id: 'tarih', etiket: 'Tarih', placeHolder: 'Fiş Tarih' }).etiketGosterim_normal().addStyle_wh({ width: '130px !important' });
 		tarihFormParent.addModelKullan({ id: 'subeKod', mfSinif: MQSube }).dropDown().etiketGosterim_normal().addStyle_wh({ width: '450px !important'})
 	}
-	static standartGorunumListesiDuzenle(e) {
-		const {liste} = e;
+	static rootFormBuilderDuzenle_numarator(e) {
+		e = e || {}; const {tsnKullanilirmi} = this, {tsnForm} = e.builders; tsnForm.yanYana(); if (!tsnKullanilirmi) { return }
+		tsnForm.addForm('numarator')
+			.setLayout(({ builder: fbd }) => {
+				const {parentParent, inst: fis} = fbd, {fisGirisLayoutSelector: selector} = fis.numarator?.class ?? {};
+				let layout = selector ? parentParent.find(selector) : null;
+				return layout?.length ? layout : fbd.parent
+			})
+			.onInit(({ builder: fbd }) => {
+				const {rootPart, inst: fis, layout, parent} = fbd, {numarator} = fis; if (!numarator) { return }
+				let {islem} = rootPart, part = numarator.class.partLayoutDuzenle({ ...e, islem, fis, layout });
+				fbd.part = rootPart.numaratorPart = part;
+				if (fis.class.numaratorGosterilirmi) {
+					$(`<label class="_etiket" style="color: #ccc; min-width: 150px; width: 100%; height: 15px;">Seri-No</label>`).prependTo(layout);
+					layout.removeClass('jqx-hidden basic-hidden'); parent.removeClass('jqx-hidden basic-hidden');
+					let {txtNoYil} = part; if (txtNoYil?.length) {
+						if (fis.class.satismi == fis.class.iademi) { txtNoYil.removeAttr('readonly') }
+						else { txtNoYil.attr('readonly', ''); txtNoYil.addClass('readOnly') }
+					}
+				}
+			})
+			.addStyle_wh({ width: '450px !important' })
+	}
+	static standartGorunumListesiDuzenle({ liste }) {
 		liste.push(this.subeKodSaha, this.tarihSaha, this.seriSaha);
-		if (this.noYilKullanilirmi) liste.push('noyil')
+		if (this.noYilKullanilirmi) { liste.push('noyil') }
 		liste.push(this.noSaha, 'ozelisaret');
-		super.standartGorunumListesiDuzenle(e)
+		super.standartGorunumListesiDuzenle(...arguments)
 	}
 	static orjBaslikListesiDuzenle_ilk(e) {
 		const {liste} = e;
@@ -95,55 +98,33 @@ class MQGenelFis extends MQOrtakFis {
 			new RRSahaDegisken({ attr: 'fisSeriVeNo', baslik: ['Birleşik', 'Fiş No'], genislikCh: 18, sql: `fis.fisnox` }).alignRight()
 		)
 	}
-	static raporQueryDuzenle(e) {
-		super.raporQueryDuzenle(e);
-		const {sent} = e;
-		sent.fis2SubeBagla()
+	static raporQueryDuzenle({ sent }) { super.raporQueryDuzenle(...arguments); sent.fis2SubeBagla() }
+	static loadServerData_queryDuzenle({ sent }) {
+		super.loadServerData_queryDuzenle(...arguments); let {aliasVeNokta} = this, {where: wh} = sent;
+		wh.add(`${aliasVeNokta}silindi = ''`)
 	}
-	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e);
-		const {aliasVeNokta} = this;
-		const {sent} = e;
-		sent.where.add(`${aliasVeNokta}silindi = ''`)
+	alternateKeyHostVarsDuzenle({ hv }) {
+		super.alternateKeyHostVarsDuzenle(...arguments); const {subeKodSaha, seriSaha, noYilKullanilirmi} = this.class;
+		hv[subeKodSaha] = this.subeKod || ''; hv[seriSaha] = this.seri || '';
+		if (noYilKullanilirmi) { const {noYil} = this; if (noYil != null) { hv.noyil = noYil } }
 	}
-	alternateKeyHostVarsDuzenle(e) {
-		super.alternateKeyHostVarsDuzenle(e);
-		const {hv} = e;
-		hv[this.class.subeKodSaha] = this.subeKod || '';
-		hv[this.class.seriSaha] = this.seri || '';
-		if (this.class.noYilKullanilirmi) {
-			const {noYil} = this;
-			if (noYil != null)
-				hv.noyil = noYil
-		}
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments); const {tarih} = this, {ozelIsaretDesteklenirmi, tarihSaha} = this.class;
+		if (ozelIsaretDesteklenirmi) { hv.ozelisaret = this.ozelIsaret }
+		hv[tarihSaha] = (tarih ? asDate(tarih) : null)
 	}
-	hostVarsDuzenle(e) {
-		super.hostVarsDuzenle(e);
-		const {hv} = e;
-		const {tarih} = this;
-		if (this.class.ozelIsaretDesteklenirmi)
-			hv.ozelisaret = this.ozelIsaret
-		hv[this.class.tarihSaha] = (tarih ? asDate(tarih) : null)
-	}
-	setValues(e) {
-		super.setValues(e);
-		const {rec} = e;
-		if (this.class.ozelIsaretDesteklenirmi)
-			this.ozelIsaret = rec.ozelisaret
-		this.subeKod = rec[this.class.subeKodSaha] || null;
-		this.tarih = asDate(rec[this.class.tarihSaha]) || null,
-		this.seri = rec[this.class.seriSaha] || '';
-		if (this.class.noYilKullanilirmi)
-			this.noYil = rec.noyil
+	setValues({ rec }) {
+		super.setValues(...arguments); const {ozelIsaretDesteklenirmi, subeKodSaha, tarihSaha, seriSaha, noYilKullanilirmi} = this.class;;
+		if (this.class.ozelIsaretDesteklenirmi) { this.ozelIsaret = rec.ozelisaret }
+		$.extend(this, { subeKod: rec[subeKodSaha] || null, tarih: asDate(rec[tarihSaha]) || null, seri: rec[seriSaha] || '' })
+		if (noYilKullanilirmi) { this.noYil = rec.noyil }
 	}
 	uiDuzenle_fisGiris(e) {
 		super.uiDuzenle_fisGiris(e);
-		if (this.class.ozelIsaretDesteklenirmi)
-			this.ozelIsaretDegisti(e)
+		if (this.class.ozelIsaretDesteklenirmi) { this.ozelIsaretDegisti(e) }
 	}
-	ozelIsaretDegisti(e) {
-		const {layout} = e.sender || e.parentPart;
-		const {ozelIsaret} = this;
+	ozelIsaretDegisti({ sender, parentPart }) {
+		const {layout} = sender || parentPart, {ozelIsaret} = this;
 		layout.attr('data-ozelisaret', ozelIsaret || '')
 	}
 }

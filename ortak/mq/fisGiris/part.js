@@ -1,5 +1,5 @@
 class FisGirisPart extends GridliGirisWindowPart {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get slowAnimationFlag() { return true }
 	static get partName() { return 'fisGiris' } get formDeferMS() { return 150 } static get defaultCacheFlag() { return false } static get defaultAsyncFlag() { return false }
 	get yenimi() { return this.islem == 'yeni' } get degistirmi() { return this.islem == 'degistir' }
 	get kopyami() { return this.islem == 'kopya' } get silmi() { return this.islem == 'sil' } get izlemi() { return this.islem == 'izle' }
@@ -33,7 +33,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 		const baslikFormlar = this.baslikFormlar = [header.find('.baslikForm1'), header.find('.baslikForm2'), header.find('.baslikForm3')];
 		splitMain.jqxSplitter({
 			theme, width: '100%', height: layout.height(), orientation: 'horizontal', splitBarSize: 20,
-			panels: [ { min: 87, size: fis.class.getUISplitHeight({ ...e, fis, islem }) ?? 135 }, { min: 200 } ]
+			panels: [ { min: 87, size: fis.class.getUISplitHeight({ ...e, fis, islem }) ?? 165 }, { min: 200 } ]
 		});
 		const subeForm = this.subeForm = header.find('.sube'), tsnForm = this.tsnForm = layout.find('.tsnForm');
 		const divHeaderDipOrtak = this.divHeaderDipOrtak = layout.find('.headerDipOrtak'), dipForm = divHeaderDipOrtak.find('.dipForm');
@@ -210,14 +210,14 @@ class FisGirisPart extends GridliGirisWindowPart {
 		}, 100)
 	}
 	dipTazele(e) {
-		const {dipEventsDisabledFlag, fisDipPart} = this; if (dipEventsDisabledFlag) return false
-		if (fisDipPart && !fisDipPart.isDestroyed) fisDipPart.tazele()
+		const {dipEventsDisabledFlag, fisDipPart} = this; if (dipEventsDisabledFlag) { return false }
+		if (fisDipPart && !fisDipPart.isDestroyed) { fisDipPart.tazele() }
 		return true
 	}
 	async tamamIstendi(e) {
-		e = e || {}; const evt = e.event || {}, {fisDipPart} = this;
-		if (!(evt.ctrlKey || evt.shiftKey) && fisDipPart && !fisDipPart.isDestroyed) return fisDipPart.open(e)
-		return this.kaydetIstendi(e)
+		e = e || {}; const evt = e.event || {}, {fis, fisDipPart} = this;
+		if (fis.class.dipGirisYapilirmi && !(evt.ctrlKey || evt.shiftKey) && fisDipPart && !fisDipPart.isDestroyed) { return fisDipPart.open(e) }
+		return await this.kaydetIstendi(e)
 	}
 	async kaydetIstendi(e) {
 		let result; try {
@@ -260,7 +260,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 		if (degistirVeyaSilmi) { e.eskiFis = this.eskiFis }
 		if (yeniVeyaKopyami) {
 			const {numaratorPart} = this, {otoNummu, numarator} = numaratorPart || {}; $.extend(_e, { otoNummu, numaratorPart, numarator });
-			if (numarator && numaratorPart?.otoNummu) {
+			if (numaratorPart?.otoNummu) {
 				while (true) {
 					fis.fisNo = (await numarator.kesinlestir(_e)).sonNo;
 					let result = await fis.varmi(); if (!result) { break }

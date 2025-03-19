@@ -1,5 +1,6 @@
 class FisDipPart extends GridliGirisPart {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'fisDip' } static get isSubPart() { return false } static get isWindowPart() { return false }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'fisDip' }
+	static get isSubPart() { return false } static get isWindowPart() { return false }
 	static get gelismisFlag() { return false } get defaultGridIDBelirtec() { return 'belirtec' }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { islem: e.islem, fis: e.inst || e.fis, dipIslemci: e.dipIslemci }) }
 	runDevam(e) {
@@ -27,10 +28,10 @@ class FisDipPart extends GridliGirisPart {
 		let {wndPart} = this; if (!wndPart || wndPart.isDestroyed) { return null }
 		wndPart.close(e); return wndPart
 	}
-	gridArgsDuzenleDevam(e) { super.gridArgsDuzenleDevam(e); $.extend(e.args, { width: '100%', height: '100%', autoRowHeight: false, columnsHeight: 18, rowsHeight: 40 }) }
+	gridArgsDuzenleDevam(e) { super.gridArgsDuzenleDevam(e); $.extend(e.args, { width: '100%', height: '100%', autoRowHeight: false, columnsHeight: 18, rowsHeight: 30 }) }
 	get defaultTabloKolonlari() {
 		let liste = [
-			new GridKolon({ belirtec: 'etiket', text: ' ', minWidth: 200, maxWidth: 400, cellClassName: (sender, rowIndex, belirtec, value, rec) => `${belirtec} readOnly` }).readOnly() ];
+			new GridKolon({ belirtec: 'etiket', text: ' ', minWidth: 150, maxWidth: 300, cellClassName: (sender, rowIndex, belirtec, value, rec) => `${belirtec} readOnly` }).readOnly() ];
 		if (this.class.gelismisFlag) {
 			liste.push(
 				new GridKolon({
@@ -40,20 +41,20 @@ class FisDipPart extends GridliGirisPart {
 						const {_ekCSS} = rec; if (_ekCSS) { result += ` ${_ekCSS}` }
 						return result
 					},
-					cellBeginEdit: (colDef, rowIndex, belirtec, colType, value, result) => { const {gridWidget} = this, rec = gridWidget.getrowdata(rowIndex); return !!rec._oranEditable },
+					cellBeginEdit: (colDef, rowIndex, belirtec, colType, value, result) => !!this.gridWidget.getrowdata(rowIndex)?._oranEditable,
 					cellValueChanged: e => { this.gridHucreDegeriDegisti(e) }
 				}).tipDecimal_bedel().sifirGosterme()
 			);
 		}
 		liste.push(
 			new GridKolon({
-				belirtec: 'tlBedel', text: 'TL Bedel', minWidth: 100, maxWidth: 160,
+				belirtec: 'tlBedel', text: 'TL Bedel', minWidth: 80, maxWidth: 160,
 				cellClassName: (sender, rowIndex, belirtec, value, rec) => {
 					let result = `${belirtec} bedel`; result += rec._bedelEditable ? ' editable' : ' readOnly';
 					const {_ekCSS} = rec; if (_ekCSS) { result += ` ${_ekCSS}` }
 					return result
 				},
-				cellBeginEdit: (colDef, rowIndex, belirtec, colType, value, result) => { const {gridWidget} = this, rec = gridWidget.getrowdata(rowIndex); return !!rec._bedelEditable },
+				cellBeginEdit: (colDef, rowIndex, belirtec, colType, value, result) => !!this.gridWidget.getrowdata(rowIndex)._bedelEditable,
 				cellValueChanged: e => { this.gridHucreDegeriDegisti(e) }
 			}).tipDecimal_bedel().sifirGosterme()
 		);

@@ -1,10 +1,14 @@
-.fisDip.part { overflow: hidden; --header-height: 80px }
-.fisDip.part .dipGrid .jqx-grid-content input { font-size: 87% !important; font-weight: bold }
-.fisDip.part .dipGrid .jqx-grid-column-header { font-size: 85% !important; color: #999 }
-.fisDip.part .dipGrid div[role=gridcell] { font-size: 75%; font-weight: bold }
+.fisGiris.part .dipGrid {
+	--top: calc(var(--islemTuslari-height) - 8px);
+	position: relative; top: var(--top) !important; height: calc(var(--full) - var(--top)) !important
+}
+.fisDip.part { overflow: hidden }
+.fisDip.part .dipGrid .jqx-grid-content input { font-size: 100% !important; font-weight: bold }
+.fisDip.part .dipGrid .jqx-grid-column-header { font-size: 105% !important; color: #999 }
+.fisDip.part .dipGrid div[role=gridcell] { font-size: 83%; font-weight: bold }
 .fisDip.part .dipGrid div[role=gridcell]:not(.jqx-grid-cell-selected).etiket { color: #888 }
 .fisDip.part .dipGrid div[role=gridcell]:not(.jqx-grid-cell-selected).bedel.dipSatir-SONUC { background: #b7dab7 }
-.fisDip.part .wnd-content { width: calc(100% - 13px) !important }
+.fisDip.part .wnd-content { width: calc(100% - 10px) !important }
 .fisDip.part .wnd-content .header { position: relative; width: var(--full) !important; min-height: var(--header-height); margin: 0 !important; padding: 0 !important }
 .fisDip.part .wnd-content .dipGrid { font-size: 120%; position: relative; width: var(--full) !important; height: calc(var(--full) - (var(--header-height) + 13px)) !important }
 .fisDip.part .wnd-content .dipGrid [role = row] > div > div { margin-top: 5px !important }

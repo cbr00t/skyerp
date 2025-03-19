@@ -1,15 +1,14 @@
 class TicariGridKontrolcu extends TSGridKontrolcu {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle(e) {
-		let {tabloKolonlari} = e;
-		tabloKolonlari.push(
+		let {tabloKolonlari} = e; tabloKolonlari.push(
 			new GridKolon({
 				belirtec: 'tip', text: ' ', genislikCh: 8,
 				cellValueChanged: e => {
-					e = e.args || e; const gridWidget = e.owner, tip = e.newvalue; let rec = gridWidget.getrowdata(e.rowindex, e.datafield); const {uid} = rec;
-					switch (tip) {
-						case 'stok': rec = new TSStokDetay(rec); break; case 'hizmet': rec = new TSHizmetDetay(rec); break;
-						case 'demirbas': rec = new TSDemirbasDetay(rec); break; case 'aciklama': rec = new TSAciklamaDetay(rec); break;
+					e = e.args || e; const gridWidget = e.owner, tip = e.newvalue; let rec = gridWidget.getrowdata(e.rowindex, e.datafield);
+					const {uid} = rec; switch (tip) {
+						case 'stok': rec = new TSStokDetay(rec); break; case 'hizmet': rec = new TSHizmetDetay(rec); break
+						case 'demirbas': rec = new TSDemirbasDetay(rec); break; case 'aciklama': rec = new TSAciklamaDetay(rec); break
 					}
 					const colDef = this.parentPart.belirtec2Kolon.sh; rec.shKod = rec.shAdi = null; gridWidget.updaterow(uid, rec)
 				}

@@ -118,7 +118,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	}
 	static async getEMailYapi(e) {
 		let {fisSayac} = e ?? {}; if (!fisSayac) { return {} }
-		let stm = new MQStm(), _e = { ...e, stm }; stm = this.eMailYapiQueryDuzenle(_e) === false ? null : _e.stm;
+		let stm = new MQStm(), _e = { ...e, stm }; stm = this.eMailYapiQueryDuzenle(_e) === false ? null : _e.stm; if (stm == null) { return null }
 		let EMailPrefix = 'email_', recs = await app.sqlExecSelect(stm); if (!recs?.length) { return null }
 		let result = { ...recs[0] }; for (let rec of recs) {
 			for (let [key, value] of Object.entries(rec)) {
@@ -182,10 +182,10 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		try {
 			let {sender, rec} = e, {parentPart: gridPart} = sender, {bonayli: onaylimi} = rec;
 			if (onaylimi) { throw { isError: true, errorText: 'Bu sipariş zaten onaylanmış' } }
-			let {kaysayac: fisSayac, mustkod: mustKod, sevkadreskod: sevkAdresKod, _parentRec: parentRec} = rec, {kaysayac: sablonSayac, klFirmaKod} = parentRec;
+			let {kaysayac: sayac, mustkod: mustKod, sevkadreskod: sevkAdresKod, _parentRec: parentRec} = rec, {kaysayac: sablonSayac, klFirmaKod} = parentRec;
 			let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod, sevkAdresKod }); if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
-			let fis = new fisSinif({ fisSayac, sablonSayac, klFirmaKod });
-			let _e = { ...e, parentRec }; delete _e.rec; let result = await fis.yukle(_e); if (!result) { return }
+			let fis = new fisSinif({ sayac }), _e = { ...e, parentRec }; delete _e.rec;
+			let result = await fis.yukle(_e); if (!result) { return }
 			let islem = 'onayla', kaydedince = _e => this.tazele({ ...e, gridPart });
 			let kaydetIslemi = async _e => await this.onaylaDevam({ ...e, ..._e, gridPart });
 			return await fis.tanimla({ islem, kaydetIslemi, kaydedince })
@@ -195,11 +195,10 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	static async degistirIstendi(e) {
 		try {
 			let {sender, rec} = e, {parentPart: gridPart} = sender ?? {};
-			let {kaysayac: fisSayac, bonayli: onaylimi, sevkadreskod: sevkAdresKod, _parentRec: parentRec} = rec;
+			let {kaysayac: sayac, bonayli: onaylimi, sevkadreskod: sevkAdresKod, _parentRec: parentRec} = rec;
 			let mustKod = rec.mustkod ?? gridPart.mustKod, {kaysayac: sablonSayac, klFirmaKod} = parentRec;
 			let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod, sevkAdresKod }); if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
-			let fis = new fisSinif({ fisSayac, sablonSayac, klFirmaKod });
-			let _e = { ...e, parentRec }; delete _e.rec;
+			let fis = new fisSinif({ sayac }), _e = { ...e, parentRec }; delete _e.rec;
 			let result = await fis.yukle(_e); if (!result) { return }
 			let islem = onaylimi ? 'izle' : 'degistir', kaydedince = _e => this.tazele({ ...e, ..._e, gridPart });
 			return await fis.tanimla({ islem, kaydedince })
@@ -210,11 +209,10 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		try {
 			let {sender, rec} = e, {parentPart: gridPart} = sender ?? {}, {bonayli: onaylimi} = rec;
 			if (onaylimi) { throw { isError: true, errorText: 'Onaylı sipariş silinemez' } }
-			let {kaysayac: fisSayac, sevkadreskod: sevkAdresKod, _parentRec: parentRec} = rec;
+			let {kaysayac: sayac, sevkadreskod: sevkAdresKod, _parentRec: parentRec} = rec;
 			let mustKod = rec.mustkod ?? gridPart.mustKod, {kaysayac: sablonSayac, klFirmaKod} = parentRec;
 			let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod, sevkAdresKod }); if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
-			let fis = new fisSinif({ fisSayac, sablonSayac, klFirmaKod });
-			let _e = { ...e, parentRec }; delete _e.rec;
+			let fis = new fisSinif({ sayac }), _e = { ...e, parentRec }; delete _e.rec;
 			let result = await fis.yukle(_e); if (!result) { return }
 			let islem = 'sil', kaydedince = _e => this.tazele({ ...e, ..._e, gridPart });
 			return await fis.tanimla({ islem, kaydedince })
@@ -244,7 +242,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		catch (ex) { console.error(ex); return false } if (dokumcu == null) { return }
 		fisSayac = fisSayac || fis?.sayac; parentRec = parentRec ?? rec?._parentRec;
 		const {fiyatFra, bedelFra} = app.params.zorunlu, dvKod = fis.dvKod || 'TL';
-		let to = [], cc = [], bcc = [], eMailYapi = await listeFis.class.getEMailYapi({ fisSayac }) ?? {};
+		let to = [], cc = [], bcc = [], eMailYapi = await this.getEMailYapi({ fisSayac }) ?? {};
 		if (eMailYapi) {
 			let {email_sablonEk} = parentRec; if (email_sablonEk) {
 				email_sablonEk = email_sablonEk.split(';').map(x => x.trim()).filter(x => !!x);
@@ -339,26 +337,6 @@ class MQKonsinyeSablon extends MQSablonOrtak {
 		let kendimizmi = tip == 'K', kayitSTmi = fisRec?.kayitTipi == 'ST';
 		return kendimizmi || kayitSTmi ? SablonluKonsinyeTransferFis : SablonluKonsinyeAlimSiparisFis
 	}
-	static eMailYapiQueryDuzenle(e) {
-		super.eMailYapiQueryDuzenle(e); let teslimCariKodClause = `fis.${this.teslimCariKodSaha}`;
-		let {fisSayac, stm} = e, uni = stm.sent = new MQUnionAll();
-		let sentEkle = (fisSinif, teslimCariKodSaha) => {
-			let sent = this.getSablonluVeKLDagitimliOnSent({ fisSinif, fisSayac }), {sahalar} = sent;
-			sent.fromIliski('carmst car', `fis.${teslimCariKodSaha} = car.must`)
-				.fromIliski('carsevkadres sadr', 'fis.xadreskod = sadr.kod')
-				.leftJoin('kdag', 'klfirmabolge kfbol', 'kdag.klfirmabolgekod = kfbol.kod')
-				.leftJoin('kdag', 'carmst ktes', 'kdag.klteslimatcikod = ktes.must');
-			sahalar.add(
-				'sab.emailadresler email_sablon', 'kfbol.email email_bolge',
-				`(case when kdag.klteslimatcikod > '' then ktes.email else '' end) email_teslimatci`,
-				`(case when kdag.klteslimatcikod > '' and kdag.bteslimatmailozeldir > 0 then kdag.ozelmaillistestr else '' end) email_ozel`,
-				`(case when sadr.email = '' then car.email else sadr.email end) email_alici`
-			);
-			uni.add(sent); return sent
-		}
-		sentEkle(SablonluKonsinyeAlimSiparisFis, 'teslimcarikod');
-		sentEkle(SablonluKonsinyeTransferFis, 'irsmust')
-	}
 	static getSablonIcinTeslimBilgisi({ sablonSayac, mustKod, sevkAdresKod }) {
 		let sent = new MQSent({
 			from: 'hizlisablon sab', fromIliskiler: [
@@ -395,6 +373,26 @@ class MQKonsinyeSablon extends MQSablonOrtak {
 		/* TSEK: { K: kendimiz, A: anafirma, T: teslimatci } */
 		return app.sqlExecTekil(sent)
 	}
+	static eMailYapiQueryDuzenle(e) {
+		super.eMailYapiQueryDuzenle(e); let teslimCariKodClause = `fis.${this.teslimCariKodSaha}`;
+		let {fisSayac, stm} = e, uni = stm.sent = new MQUnionAll();
+		let sentEkle = (fisSinif, teslimCariKodSaha) => {
+			let sent = this.getSablonluVeKLDagitimliOnSent({ fisSinif, fisSayac }), {sahalar} = sent;
+			sent.fromIliski('carmst car', `fis.${teslimCariKodSaha} = car.must`)
+				.fromIliski('carsevkadres sadr', 'fis.xadreskod = sadr.kod')
+				.leftJoin('kdag', 'klfirmabolge kfbol', 'kdag.klfirmabolgekod = kfbol.kod')
+				.leftJoin('kdag', 'carmst ktes', 'kdag.klteslimatcikod = ktes.must');
+			sahalar.add(
+				'sab.emailadresler email_sablon', 'kfbol.email email_bolge',
+				`(case when kdag.klteslimatcikod > '' then ktes.email else '' end) email_teslimatci`,
+				`(case when kdag.klteslimatcikod > '' and kdag.bteslimatmailozeldir > 0 then kdag.ozelmaillistestr else '' end) email_ozel`,
+				`(case when sadr.email = '' then car.email else sadr.email end) email_alici`
+			);
+			uni.add(sent); return sent
+		}
+		sentEkle(SablonluKonsinyeAlimSiparisFis, 'teslimcarikod');
+		sentEkle(SablonluKonsinyeTransferFis, 'irsmust')
+	}
 }
 
 /** Şablon'a ait Önceki Siparişler */
@@ -425,10 +423,16 @@ class MQSablonOrtakDetay extends MQDetay {
 /** Şablon'a ait Önceki Siparişler */
 class MQSablonDetay extends MQSablonOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQSablon }
+	static async loadServerDataDogrudan(e) {
+		let {sender: gridPart, parentRec} = e;  /* gridPart: SablonOrtakFis'in liste ekranı ; parentRec: Şablon başlık kaydı */
+		let {kaysayac: sablonSayac} = parentRec, {tarih, mustKod} = gridPart;
+		e.fisSinif = await this.sablonSinif.fisSinifBelirle({ ...e, sablonSayac, mustKod });
+		return await super.loadServerDataDogrudan(e)
+	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); let {sender: gridPart, parentRec} = e;  /* gridPart: SablonOrtakFis'in liste ekranı ; parentRec: Şablon başlık kaydı */
+		super.loadServerData_queryDuzenle(e); let {sender: gridPart, parentRec, fisSinif} = e;  /* gridPart: SablonOrtakFis'in liste ekranı ; parentRec: Şablon başlık kaydı */
 		let {kaysayac: sablonSayac} = parentRec, {tarih, mustKod} = gridPart, subeKod = gridPart.subeKod ?? config.session.subeKod;
-		let {fisSinif} = this.instance, {table, mustSaha} = fisSinif, cariYil = app.params.zorunlu?.cariYil || today().getYil();
+		let {table, mustSaha} = fisSinif, cariYil = app.params.zorunlu?.cariYil || today().getYil();
 		let {stm} = e, sent = stm.sent = new MQSent({
 			from: `${table} fis`,
 			where: [
