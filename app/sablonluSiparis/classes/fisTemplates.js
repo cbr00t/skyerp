@@ -71,6 +71,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		/*let {tableAlias: alias, mustSaha} = fisSinif, {sahalar} = sent;
 		sahalar.addWithAlias(alias, 'sablonsayac', mustSaha)*/
 	}
+	static async yukleSonrasiIslemler(e) { return await this.sablonYukleVeBirlestir({ ...e }) }
 	static async sablonYukleVeBirlestir({ fis, islem, belirtec }) {
 		let {sablonSayac, tarih, subeKod, mustKod} = fis; if (!mustKod) { throw { isError:  true, errorText: `<b>Müşteri</b> seçilmelidir` } }
 		let {detaySinif, konsinyemi} = fis.class; islem = islem || belirtec;
@@ -113,12 +114,21 @@ class SablonluSiparisFisTemplate extends CObject {
 				)
 			}
 		}
+		let stokKodListe = recs?.map(({ shkod }) => shkod), izinliStokKodSet = null;
+		if (stokKodListe?.length && await app.sqlHasTable('pzmusturunfis')) {
+			let sent = new MQSent(), {where: wh, sahalar} = sent;
+			sent.fisHareket('pzmusturunfis', 'pzmusturundetay'); sahalar.add('stokkod');
+			wh.add(`fis.devredisi = ''`).degerAta(mustKod, 'fis.mustkod').inDizi(stokKodListe, 'stokkod');
+			izinliStokKodSet = asSet((await app.sqlExecSelect(sent)).map(({ stokkod }) => stokkod));
+			if ($.isEmptyObject(izinliStokKodSet)) { izinliStokKodSet = null }
+		}
 		let getAnahStr = rec => [
 			(rec.shkod ?? rec.shKod),
 			 ...ekOzellikler.map(({ rowAttr, ioAttr }) => rec[rowAttr] ?? rec[ioAttr] ?? '')
 		].join(delimWS);
 		let anah2Det = {}; for (let rec of recs) {
-			let _e = { grupSayac: rec.grupsayac, grupSeq: rec.grupseq, grupAdi: rec.grupadi, shKod: rec.shkod, shAdi: rec.shadi };
+			let {shkod: shKod} = rec; if (izinliStokKodSet && !izinliStokKodSet[shKod]) { continue }
+			let _e = { grupSayac: rec.grupsayac, grupSeq: rec.grupseq, grupAdi: rec.grupadi, shKod, shAdi: rec.shadi };
 			let det = new detaySinif(_e);
 			for (let {belirtec, ioAttr, adiAttr, rowAttr, rowAdiAttr} of ekOzellikler) {
 				let kod = rec[rowAttr], aciklama = rec[rowAdiAttr]; if (kod === undefined) { continue }
@@ -135,7 +145,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		fis.detaylar = detaylar;
 		let stokKod2Detaylar = {}; for (let det of detaylar) {
 			if (!det._initFlag) { (stokKod2Detaylar[det.shKod] = stokKod2Detaylar[det] ?? []).push(det) } }
-		let stokKodListe = Object.keys(stokKod2Detaylar); kosulYapilar = await kosulYapilar;
+		stokKodListe = Object.keys(stokKod2Detaylar); kosulYapilar = await kosulYapilar;
 		let fiyatYapilar = await SatisKosul_Fiyat.getAltKosulYapilar(stokKodListe, kosulYapilar?.FY, mustKod), iskontoArastirStokSet = {};
 		for (let det of detaylar) {
 			if (fiyatYapilar && det.netBedel == undefined) { continue }
@@ -155,7 +165,6 @@ class SablonluSiparisFisTemplate extends CObject {
 			}
 		}
 	}
-	static async yukleSonrasiIslemler(e) { return await this.sablonYukleVeBirlestir({ ...e }) }
 	static uiDuzenle_fisGirisIslemTuslari(e) { /* super yok */ }
 }
 

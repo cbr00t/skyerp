@@ -52,10 +52,19 @@ class ParamBuilder extends CObject {
 		})
 	}
 	run(e) {
-		if (this._initFlag) return
+		if (this._initFlag) { return }
 		this.runInternal(e); this.afterRun(e); this._initFlag = true; return this
 	}
-	runInternal(e) { this.root = this.root || this; this.preBuild(e); this.build(e); this.afterBuild(e); return this }
+	runInternal(e) {
+		let root = this.root = this.root || this;
+		if (this == root) {
+			this.addStyle(() =>
+				`$elementCSS .formBuilder-element.parent { margin: 0 0 15px 0 !important }
+				 $elementCSS .formBuilder-element.parent > *:not(label) { margin-right: 15px !important }`
+			)
+		}
+		this.preBuild(e); this.build(e); this.afterBuild(e); return this
+	}
 	afterRun(e) {
 		const {root, items} = this;
 		let {value} = this, initValue; if (value === undefined) { value = initValue = this.convertedValue_setValues(this.initValue) }
@@ -105,8 +114,7 @@ class ParamBuilder extends CObject {
 		if (!$.isEmptyObject(fbd_ekIslemler)) { for (const handler of fbd_ekIslemler) { getFuncValue.call(this, handler, e) } }
 		if (_formBuilderDuzenle) { getFuncValue.call(this, _formBuilderDuzenle, e) }
 		const {_savedBuilder} = e; if (_savedBuilder) { builder = e.builder = _savedBuilder; delete e._savedBuilder } else { builder = e.builder = parentBuilder }
-		const {items} = this;
-		if (!$.isEmptyObject(items)) { for (const item of items) { item.formBuilderDuzenle(e) } }
+		const {items} = this; if (!$.isEmptyObject(items)) { for (const item of items) { item.formBuilderDuzenle(e) } }
 	}
 	paramHostVarsDuzenle(e) {
 		const {hv} = e, {rowAttr, _paramHostVarsDuzenle} = this;
@@ -315,6 +323,10 @@ class ParamBuilder extends CObject {
 	addCSS(...args) { this.fbdEkIslem(e => e.builder.addCSS(...args)); return this }
 	addStyle_wh(...args) { this.fbdEkIslem(e => e.builder.addStyle_wh(...args)); return this }
 	addStyle_fullWH(...args) { this.fbdEkIslem(e => e.builder.addStyle_fullWH(...args)); return this }
+	etiketGosterim_normal(...args) { this.fbdEkIslem(({ builder: fbd }) => fbd.etiketGosterim_normal(...args)); return this }
+	etiketGosterim_placeHolder(...args) { this.fbdEkIslem(({ builder: fbd }) => fbd.etiketGosterim_placeHolder(...args)); return this }
+	etiketGosterim_placeholder(...args) { this.fbdEkIslem(({ builder: fbd }) => fbd.etiketGosterim_placeholder(...args)); return this }
+	etiketGosterim_yok(...args) { this.fbdEkIslem(({ builder: fbd }) => fbd.etiketGosterim_yok(...args)); return this }
 	onInit(handler) { this.fbdEkIslem(e => e.builder.onInit(handler)); return this }
 	onBuildEk(handler) { this.fbdEkIslem(e => e.builder.onBuildEk(handler)); return this }
 	onAfterRun(handler) { this.fbdEkIslem(e => e.builder.onAfterRun(handler)); return this }

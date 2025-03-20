@@ -1,6 +1,6 @@
 class SablonluSiparisApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	get yerelParamSinif() { return MQYerelParam } get autoExecMenuId() { return MQKonsinyeSablon.kodListeTipi }
+	get yerelParamSinif() { return MQYerelParam } get autoExecMenuId() { return null /* MQKonsinyeSablon.kodListeTipi */ }
 	paramsDuzenle(e) { super.paramsDuzenle(e) /*; const {params} = e; $.extend(params, { x: MQParam_X.getInstance() })*/ }
 	async anaMenuOlustur(e) {
 		await this.promise_ready; let {kullanim} = app.params.aktarim, eksikParamIsimleri = [];
@@ -27,6 +27,15 @@ class SablonluSiparisApp extends TicariApp {
 			let {kodListeTipi: mne, sinifAdi: text} = cls, block = e => cls.listeEkraniAc(e);
 			return new FRMenuChoice({ mne, text, block })
 		});
+		if (config.session.isAdmin) {
+			items.push(new FRMenuCascade({
+				mne: 'PARAM', text: 'Parametreler', items: ['ticariGenel', 'web'].map(selector => {
+					let param = app.params[selector]; if (!param) { return null }
+					let {paramKod: mne, sinifAdi: text} = param.class;
+					return new FRMenuChoice({ mne, text, block: e => param.tanimla(e) })
+				}).filter(x => !!x)
+			}))
+		}
 		return new FRMenu({ items })
 	}
 }

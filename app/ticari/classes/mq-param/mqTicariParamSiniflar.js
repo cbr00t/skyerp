@@ -86,8 +86,9 @@ class MQTicariGenelParam extends MQTicariParamBase {
 		form = kullanim.addFormWithParent();
 			form.addBool('toplamKalite', 'Toplam Kalite'); form.addBool('demirbas', 'Demirbaş'); form.addBool('eFatura', 'e-Fatura'); form.addBool('eIrsaliye', 'e-İrsaliye');
 			form.addBool('eMustahsil', 'e-Müstahsil'); form.addBool('eArsivLimit', 'e-Belge'); form.addBool('gelenEArsiv', 'Gelen e-Arşiv');
+		form = paramci.addFormWithParent();
+			form.addTextInput('wordGenelBolum', 'Word/HTML Ana Bölüm');
 		let tabPage = paramci.addTabPage('diger', 'Diğer'); form = tabPage.addFormWithParent().addStyle(e => `$elementCSS > .parent { width: 19% !important }`);
-		form.addTextInput('wordGenelBolum', 'Word/HTML Ana Bölüm');
 		let altForm = form.addGrup({ etiket: 'Tarih' }).addFormWithParent(); altForm.addDateInput('enDusukTarih', 'En Düşük'); altForm.addDateInput('enYuksekTarih', 'En Yüksek');
 		altForm = tabPage.addGrup({ etiket: 'Ayrım' }).addFormWithParent().addStyle_wh(400).yanYana();
 			let degisince = ({ builder: fbd, value }) => fbd.altInst[fbd.id] = value?.split('\n')?.map(x => x.trimEnd()) ?? [];
@@ -429,12 +430,54 @@ class MQMuhasebeParam extends MQTicariParamBase {
 }
 class MQWebParam extends MQTicariParamBase {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Web Parametreleri' } static get paramKod() { return 'TICWEB' }
-	/* constructor(e) { e = e || {}; super(e); let {x} = e; $.extend(this, { x }) } */
-	static paramYapiDuzenle(e) {
-		super.paramYapiDuzenle(e); const {paramci} = e;
-		let form = paramci.addFormWithParent() /*; form.addBool('x', 'X')*/
+	get ekOzellikKodlariStr() { return array2MLStr(this.ekOzellikKodlari) } set ekOzellikKodlariStr(value) { this.ekOzellikKodlari = mlStr2Array(value) }
+	get konBuFirma_eMailListeStr() { return array2EMailStr(this.konBuFirma_eMailListe) } set konBuFirma_eMailListeStr(value) { this.konBuFirma_eMailListe = eMailStr2Array(value) }
+	constructor(e) {
+		e = e || {}; super(e); let {sablonSip_degisiklik, sablonSip_eMail} = e;
+		$.extend(this, { sablonSip_degisiklik: sablonSip_degisiklik ?? true, sablonSip_eMail: sablonSip_eMail ?? true })
 	}
-	paramSetValues(e) { e = e || {}; super.paramSetValues(e) /*; const {rec} = e*/ }
+	static paramYapiDuzenle({ paramci }) {
+		super.paramYapiDuzenle(...arguments);
+		let form = paramci.addFormWithParent().yanYana(1.4);
+			if (window.MQCari) { form.addModelKullan('pesinMustKod', 'Peşin Müşteri').comboBox().autoBind().setMFSinif(MQCari) }
+				else { form.addString('pesinMustKod', 'Peşin Müşteri') };
+			form.addML('ekOzellikKodlariStr', 'Ek Özellik Kodları').noRowAttr().setRowCount(5).addStyle_wh(200);
+		let grup = paramci.addGrup().setEtiket('Şablonlu Sipariş')
+		form = grup.addFormWithParent().yanYana();
+			form.addBool('stokResim', 'Stok Resim Kullanılır'); form.addBool('sablonSip_degisiklik', 'Değişiklik Yapılır');
+			form.addBool('sablonSip_eMail', 'e-Mail Gönderilir');
+		form = grup.addFormWithParent();
+			form.addString('konBuFirma_eMailListeStr', 'Bu Firma e-Mail Adresleri');
+		form = paramci.addAltObject('sablonDefKisit').addGrup().setEtiket('Def.Kısıt').addFormWithParent().yanYana();
+			form.addBool('sube', 'Şube'); form.addBool('musteri', 'Müşteri')
+
+	/*  at: 'ekOzellikKodlari'				put: self portalStokEkOzellikAttrListe;
+		at: 'pesinMustKod'					put: self pesinMustKod;
+		at: 'stokResim'						put: self stokResimKullanilirmi;
+		at: 'stokResim_urlMask'				put: self stokResimURLMask;
+		at: 'konBuFirma_eMailListe'			put: (self buFirmaMailAdresleri bosmu
+													ifTrue: [ #() ]
+													ifFalse: [ (self buFirmaMailAdresleri subStringsWithAnyone: $;) collect: [ :x | x trimSeparators ] ]);
+		at: 'sablonDefKisit'				put: (Isimlendirici new
+			sube: self sablonHepsiKisitlimiSube;
+			musteri: self sablonHepsiKisitlimiMusteri;
+			isimlendirmeBitti);
+		at: 'sablonSip_degisiklik'			put: self subeMusteriPortal_degisiklikYapilirmi;
+		at: 'sablonSip_eMail'				put: self subeMusteriPortal_sablonMailGonderilirmi;
+		at: 'numSayacListe'					put: (Isimlendirici new
+			subePortal: self subePortalSipNumSayac;
+			musteriPortal: self musteriPortalSipNumSayac;
+			satis_teklif: self satisTeklifNumSayac;
+			satis_siparis: self satisSipNumSayac;
+			satis_irsaliye: self satisIrsaliyeNumSayac;
+			satis_eFatura: self satisEFaturaNumSayac;
+			satis_eArsiv: self satisEArsivNumSayac;
+			isimlendirmeBitti) */
+	}
+	paramSetValues({ rec }) {
+		super.paramSetValues(...arguments);
+		for (let key of ['sablonSip_degisiklik', 'sablonSip_eMail']) { this[key] = this[key] ?? true }
+	}
 }
 class MQTabletParam extends MQTicariParamBase {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Sky Tablet Parametreleri' } static get paramKod() { return 'TABLET' }

@@ -136,6 +136,7 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 	}
 	etiketGosterim_normal() { this.etiketGosterim = ''; return this }
 	etiketGosterim_placeholder() { this.etiketGosterim = 'placeholder'; return this }
+	etiketGosterim_placeHolder() { return this.etiketGosterim_placeholder()}
 	etiketGosterim_yok() { this.etiketGosterim = 'none'; return this }
 	setMaxLength(value) { this.maxLength = value; return this }
 	setSource(value) { this.source = value; return this }

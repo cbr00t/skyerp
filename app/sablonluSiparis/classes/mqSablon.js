@@ -77,7 +77,9 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); let basitmi = e.basit ?? e.basitmi; if (basitmi) { return }
-		let {konsinyemi, tableAlias: alias} = this, {sent, stm} = e, {sahalar, where: wh} = sent, {orderBy} = stm;
+		let gridPart = e.gridPart ?? e.sender, {subeKod, mustKod} = gridPart, {konsinyemi, tableAlias: alias} = this;
+		let {sent, stm} = e, {sahalar, where: wh} = sent, {orderBy} = stm;
+		// sent.leftJ
 		sahalar.addWithAlias(alias, 'bvadegunkullanilir vadeGunKullanilirmi', 'vadegunu vadeGunu', 'emailadresler email_sablonEk');
 		if (konsinyemi) { sahalar.add(`${alias}.klfirmakod klFirmaKod`) }
 		orderBy.liste = ['aciklama']
@@ -117,20 +119,22 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		}
 	}
 	static async getEMailYapi(e) {
-		let {fisSayac} = e ?? {}; if (!fisSayac) { return {} }
-		let stm = new MQStm(), _e = { ...e, stm }; stm = this.eMailYapiQueryDuzenle(_e) === false ? null : _e.stm; if (stm == null) { return null }
-		let EMailPrefix = 'email_', recs = await app.sqlExecSelect(stm); if (!recs?.length) { return null }
-		let result = { ...recs[0] }; for (let rec of recs) {
-			for (let [key, value] of Object.entries(rec)) {
-				if (key.startsWith(EMailPrefix)) {
-					value = value.split(';').map(x => x.trim()).filter(x => !!x);
-					let newKey = key.slice(EMailPrefix.length);
-					let array = result[newKey] = result[newKey] ?? [];
-					if (value?.length) { array.push(...value) }
-					delete result[key]
+		let {fisSayac} = e ?? {}, {sablonSip_eMail, konBuFirma_eMailListe} = app.params.web; 
+		if (!(fisSayac && sablonSip_eMail)) { return {} }
+		let stm = new MQStm(), _e = { ...e, stm }; stm = this.eMailYapiQueryDuzenle(_e) === false ? null : _e.stm;
+		let EMailPrefix = 'email_', recs = stm ? await app.sqlExecSelect(stm) : null;
+		let result = { ...recs?.[0] }; if (recs?.length) {
+			for (let rec of recs) {
+				for (let [key, value] of Object.entries(rec)) {
+					if (key.startsWith(EMailPrefix)) {
+						value = eMailStr2Array(value);
+						let newKey = key.slice(EMailPrefix.length), array = result[newKey] = result[newKey] ?? [];
+						if (value?.length) { array.push(...value) } delete result[key]
+					}
 				}
 			}
 		}
+		if (konBuFirma_eMailListe) { result.buFirma = eMailStr2Array(konBuFirma_eMailListe) }
 		return result
 	}
 	static eMailYapiQueryDuzenle(e) { return false }
@@ -220,8 +224,8 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		catch (ex) { setTimeout(() => hConfirm(getErrorText(ex), 'Değiştir'), 100); throw ex }
 	}
 	static tazele(e) {
-		let gridPart = e.gridPart ?? e.sender, {expandedIndexes, bindingCompleteBlock, gridWidget} = gridPart;
-		let rowIndex = e.rowIndex ?? e.args?.rowindex; expandedIndexes[rowIndex] = true;
+		let {parentPart} = e, gridPart = e.gridPart ?? e.sender, {expandedIndexes, bindingCompleteBlock, gridWidget} = gridPart;
+		let rowIndex = e.rowIndex ?? e.args?.rowindex; if ($.isEmptyObject(expandedIndexes)) { expandedIndexes[rowIndex] = true }
 		gridPart.bindingCompleteBlock = _e => {
 			gridPart.bindingCompleteBlock = bindingCompleteBlock;
 			if (!$.isEmptyObject(expandedIndexes)) { for (let ind in expandedIndexes) { gridWidget.showrowdetails(ind) } }
@@ -243,12 +247,12 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		fisSayac = fisSayac || fis?.sayac; parentRec = parentRec ?? rec?._parentRec;
 		const {fiyatFra, bedelFra} = app.params.zorunlu, dvKod = fis.dvKod || 'TL';
 		let to = [], cc = [], bcc = [], eMailYapi = await this.getEMailYapi({ fisSayac }) ?? {};
-		if (eMailYapi) {
+		if (!$.isEmptyObject(eMailYapi)) {
 			let {email_sablonEk} = parentRec; if (email_sablonEk) {
 				email_sablonEk = email_sablonEk.split(';').map(x => x.trim()).filter(x => !!x);
 				if (email_sablonEk?.length) { $.extend(eMailYapi, { email_sablonEk }) }
 			}
-			let eMailSelectors = ['sablon', 'sablonEk', 'bolge', 'ozel', (musterimi ? 'alici' : 'teslimatci')].filter(x => !!x), eMailSet = {};
+			let eMailSelectors = ['buFirma', 'sablon', 'sablonEk', 'bolge', 'ozel', (musterimi ? 'alici' : 'teslimatci')].filter(x => !!x), eMailSet = {};
 			for (let selector of eMailSelectors) {
 				let eMails = eMailYapi[selector]?.filter(x => x?.length >= 5 && x.includes('@')) ?? [];
 				for (let eMail of eMails) {
@@ -404,8 +408,10 @@ class MQSablonOrtakDetay extends MQDetay {
 			rowsHeight: 50, groupable: true, filterable: true, showGroupsHeader: true, adaptive: false })
 	}
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); let {liste} = e, {konsinyemi, sablonSinif} = this;
+		super.orjBaslikListesiDuzenle(e); let {liste} = e, {konsinyemi, sablonSinif} = this, {sablonSip_degisiklik} = app.params.web;
 		liste.push(...[
+			new GridKolon({ belirtec: 'subekod', text: 'Şube', genislikCh: 13 }),
+			new GridKolon({ belirtec: 'subeadi', text: 'Şube Adı', genislikCh: 23 }),
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 15 }).tipDate(),
 			new GridKolon({ belirtec: 'fisnox', text: 'Sip. No', genislikCh: 20 }),
 			new GridKolon({ belirtec: 'mustunvan', text: 'Müşteri' }),
@@ -413,7 +419,7 @@ class MQSablonOrtakDetay extends MQDetay {
 			(konsinyemi ? new GridKolon({ belirtec: 'basteslimtarihi', text: 'Teslim Tarihi', genislikCh: 13 }).tipDate() : null),
 			new GridKolon({ belirtec: 'bonayli', text: 'Onay?', genislikCh: 8 }).tipBool(),
 			new GridKolon({ belirtec: 'onayla', text: ' ', genislikCh: 5 }).noSql().tipButton('O').onClick(_e => { sablonSinif.onaylaIstendi({ ...e, ..._e }) }),
-			new GridKolon({ belirtec: 'degistir', text: ' ', genislikCh: 5 }).noSql().tipButton('D').onClick(_e => { sablonSinif.degistirIstendi({ ...e, ..._e }) }),
+			(sablonSip_degisiklik ? new GridKolon({ belirtec: 'degistir', text: ' ', genislikCh: 5 }).noSql().tipButton('D').onClick(_e => { sablonSinif.degistirIstendi({ ...e, ..._e }) }) : null),
 			new GridKolon({ belirtec: 'sil', text: ' ', genislikCh: 5 }).noSql().tipButton('X').onClick(_e => { sablonSinif.silIstendi({ ...e, ..._e }) })
 		].filter(x => !!x))
 	}
@@ -468,7 +474,8 @@ class MQKonsinyeSablonDetay extends MQSablonOrtakDetay {
 					'fis.kaysayac', 'fis.tarih', 'fis.fisnox', `fis.bizsubekod subekod`, 'sub.aciklama subeadi', `fis.${mustSaha} mustkod`, 'car.birunvan mustunvan',
 					'fis.xadreskod sevkadreskod', 'sadr.aciklama sevkadresadi', 'fis.basteslimtarihi', `(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`
 				]
-			}).fis2SubeBagla().fis2CariBagla({ mustSaha }).fis2SevkAdresBagla().fisSilindiEkle(); if (subeKod != null) { sent.where.degerAta(subeKod, 'fis.bizsubekod') }
+			}).fis2SubeBagla().fis2CariBagla({ mustSaha }).fis2SevkAdresBagla().fisSilindiEkle();
+			if (subeKod) { sent.where.degerAta(subeKod, 'fis.bizsubekod') }
 			if (tarih) { sent.where.degerAta(tarih, 'fis.tarih') } if (mustKod) { sent.where.degerAta(mustKod, `fis.${mustSaha}`) }
 			uni.add(sent); return sent
 		}
