@@ -115,13 +115,12 @@ class TransferSiparisOrtakFis extends StokFis {
 	static get varsayilanIslKod() { return StokTransferOrtakFis.varsayilanIslKod }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments); $.extend(pTanim, {
-			teslimOrtakdir: new PInstBitBool('bteslimortakdir'),
-			baslikTeslimTarihi: new PInstDate('basteslimtarihi')
+			teslimOrtakdir: new PInstBitBool('bteslimortakdir'), baslikTeslimTarihi: new PInstDate('basteslimtarihi')
 		})
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments);
-		hv.oncelik = this.class.oncelik
+		$.extend(hv, { oncelik: this.class.oncelik, basteslimtarihi: hv.basteslimtarihi || this.tarih })
 	}
 }
 class TransferSiparisFis extends TransferSiparisOrtakFis {
@@ -129,18 +128,13 @@ class TransferSiparisFis extends TransferSiparisOrtakFis {
 	static get numTipKod() { return 'XI' } static get ozelTip() { return 'IR' }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments); $.extend(pTanim, {
-			mustKod: new PInstStr(this.mustSaha),
-			cYerKod: new PInstStr('yerkod'), gYerKod: new PInstStr('refyerkod'),
-			sevkYerKod: new PInstStr('xadreskod')
+			mustKod: new PInstStr(this.mustSaha), sevkAdresKod: new PInstStr('xadreskod'),
+			cYerKod: new PInstStr('yerkod'), gYerKod: new PInstStr('refyerkod')
 		})
 	}
 }
 class SubelerArasiSiparisFis extends TransferSiparisOrtakFis {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Şubeler Arası Sipariş' }
 	static get numTipKod() { return 'XS' } static get ozelTip() { return 'SB' }
-	static pTanimDuzenle({ pTanim }) {
-		super.pTanimDuzenle(...arguments); $.extend(pTanim, {
-			cRefSubeKod: new PInstStr('refsubekod')
-		})
-	}
+	static pTanimDuzenle({ pTanim }) { super.pTanimDuzenle(...arguments); $.extend(pTanim, { cRefSubeKod: new PInstStr('refsubekod') }) }
 }

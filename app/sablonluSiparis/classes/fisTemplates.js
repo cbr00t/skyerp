@@ -5,9 +5,9 @@ class SablonluSiparisFisTemplate extends CObject {
 	static pTanimDuzenle({ fisSinif, pTanim }) {
 		$.extend(pTanim, {
 			sablonSayac: new PInstNum('sablonsayac'), onayTipi: new PInstStr({ rowAttr: 'onaytipi', init: () => 'BK' }),
-			klFirmaKod: new PInstStr(), teslimOrtakdir: new PInstBitTrue('bteslimortakdir')
-		});
-		if (fisSinif.ticarimi) { $.extend(pTanim, { klFirmaKod: new PInstStr('teslimcarikod') }) }
+			klFirmaKod: new PInstStr(), teslimOrtakdir: new PInstBitTrue('bteslimortakdir'),
+			teslimCariKod: new PInstStr()
+		})
 	}
 	static rootFormBuilderDuzenle({ fisSinif, builders, sender: gridPart, islem /* , inst */ }) {
 		fisSinif.rootFormBuilderDuzenle_numarator(...arguments);
@@ -115,12 +115,56 @@ class SablonluSiparisFisTemplate extends CObject {
 			}
 		}
 		let stokKodListe = recs?.map(({ shkod }) => shkod), izinliStokKodSet = null;
-		if (stokKodListe?.length && await app.sqlHasTable('pzmusturunfis')) {
-			let sent = new MQSent(), {where: wh, sahalar} = sent;
-			sent.fisHareket('pzmusturunfis', 'pzmusturundetay'); sahalar.add('stokkod');
-			wh.add(`fis.devredisi = ''`).degerAta(mustKod, 'fis.mustkod').inDizi(stokKodListe, 'stokkod');
-			izinliStokKodSet = asSet((await app.sqlExecSelect(sent)).map(({ stokkod }) => stokkod));
-			if ($.isEmptyObject(izinliStokKodSet)) { izinliStokKodSet = null }
+		if (stokKodListe?.length) {
+			let tables = await app.sqlGetTables();
+			if (tables.pzmusturunfis) {
+				let sent = new MQSent(), {where: wh, sahalar} = sent;
+				sent.fisHareket('pzmusturunfis', 'pzmusturundetay'); sahalar.add('har.stokkod stokKod');
+				wh.add(`fis.devredisi = ''`).degerAta(mustKod, 'fis.mustkod').inDizi(stokKodListe, 'har.stokkod');
+				izinliStokKodSet = asSet((await app.sqlExecSelect(sent)).map(({ stokKod }) => stokKod));
+				if ($.isEmptyObject(izinliStokKodSet)) { izinliStokKodSet = null }
+			}
+			if (tables.hizlisablonkisit) {
+				let {sablonDefKisit} = app.params.web, {sube: defKisit_sube, musteri: defKisit_musteri} = sablonDefKisit;
+				let sent = new MQSent(), {where: wh, sahalar} = sent;
+				sent.fisHareket('hizlisablonkisit', 'hizlisablonkisitdetay');
+				wh.degerAta(sablonSayac, 'fis.sablonsayac').inDizi(stokKodListe, 'har.stokkod');
+				wh.add(
+					new MQAndClause([`fis.kayittipi = ''`, { degerAta: subeKod ?? '', saha: 'fis.subekod' }]),
+					new MQAndClause([`fis.kayittipi = 'M'`, { degerAta: mustKod, saha: 'fis.mustkod' }])
+				);
+				sahalar.add('fis.kayittipi kayitTipi', 'har.stokkod stokKod');
+				let tip2StokKodSet = { sube: {}, musteri: {} };
+				for (let {kayitTipi, stokKod} of await app.sqlExecSelect(sent)) {
+					let selector = kayitTipi == 'M' ? 'musteri' : !kayitTipi ? 'sube' : null; if (!selector) { continue }
+					tip2StokKodSet[selector][stokKod] = true
+				}
+				if (
+					(defKisit_sube && $.isEmptyObject(tip2StokKodSet.sube)) ||
+					(defKisit_musteri && $.isEmptyObject(tip2StokKodSet.musteri))
+				) { recs = null }
+				else {
+					let _izinliStokKodSet = {}; for (let xSet of Object.values(tip2StokKodSet)) {
+						if (!$.isEmptyObject(xSet)) { $.extend(_izinliStokKodSet, xSet) } }
+					if (izinliStokKodSet) {
+						for (let key of Object.keys(izinliStokKodSet)) {
+							if (!_izinliStokKodSet[key]) { delete izinliStokKodSet[key] } }
+					}
+					else { izinliStokKodSet = _izinliStokKodSet }
+					if ($.isEmptyObject(izinliStokKodSet)) { izinliStokKodSet = null }
+				}
+			}
+		}
+		if (!recs?.length) {
+			let mustUnvan = mustKod ? await MQSCari.getGloKod2Adi(mustKod) : null;
+			let sablonAdi = sablonSayac ? await MQSablonOrtak.getGloKod2Adi(sablonSayac) : null;
+			throw {
+				isError: true, errorText: (
+					(mustKod ? `<b class=royalblue>${mustKod}-${mustUnvan}</b> Carisi ve ` : '') +
+					(sablonSayac ? `<b class=royalblue>${sablonAdi}</b> Şablonuna ait ` : '') +
+					`<u class="bold red">Kullanılabilir Ürün Listesi boş</u>`
+				)
+			}
 		}
 		let getAnahStr = rec => [
 			(rec.shkod ?? rec.shKod),
@@ -165,6 +209,9 @@ class SablonluSiparisFisTemplate extends CObject {
 			}
 		}
 	}
+	static getYazmaIcinDetaylar({ fis }) { return fis.detaylar.filter(det => !!det.miktar) }
+	static hostVarsDuzenle({ fis, hv }) { /*if (fis.class.ticarimi) { hv.teslimcarikod = fis.teslimCariKod }*/ }
+	static setValues({ fis, rec }) { if (fis.class.ticarimi) { fis.teslimCariKod = rec.teslimcarikod } }
 	static uiDuzenle_fisGirisIslemTuslari(e) { /* super yok */ }
 }
 
@@ -254,6 +301,9 @@ class SablonluSiparisGridciTemplate extends CObject {
 		}*/
 		grid.jqxGrid({ sortable: true, filterable: true, groupable: true, groups: ['grupAdi'] })
 	}
-	static miktarFiyatDegisti({ gridWidget, rowIndex, belirtec, gridRec: det, value }) { det._degistimi = true; gridWidget.render() }
+	static miktarFiyatDegisti({ gridWidget, rowIndex, belirtec, gridRec: det, value }) {
+		det._degistimi = true; gridWidget.render();
+		gridWidget.ensurerowvisible(rowIndex)
+	}
 	static bedelHesapla(e) { }
 }

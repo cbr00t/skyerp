@@ -289,7 +289,10 @@ class SiparisFis extends TicariFis {
 		await super.raporKategorileriDuzenle_detaylar_tsStokMiktarOncesi(e); const section = ['FRFisTicariDetay-Teslim', 'FRSipDetay-SevkVeKalan'];
 		await e.kat.ekSahaYukle({ section })
 	}
-	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; delete hv.detyerkod }
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments); delete hv.detyerkod;
+		hv.basteslimtarihi = hv.basteslimtarihi || this.tarih
+	}
 }
 class SatisSiparisFis extends SiparisFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

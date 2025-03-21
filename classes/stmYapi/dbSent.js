@@ -162,8 +162,8 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	buildString(e) {
 		const {sqlitemi} = window?.app ?? {};
 		super.buildString(e); e.result += `SELECT `;
-		let {top} = this; if (!sqlitemi && top != null) { e.result += ` TOP ${top} ` }
 		if (this.distinct) { e.result += `DISTINCT ` }
+		let {top} = this; if (!sqlitemi && top != null) { e.result += ` TOP ${top} ` }
 		let value = this.sahalar.toString(); e.result += value;
 		let where = new MQWhereClause(); this.from.iliskiler2Where({ where }); where.birlestir(this.where);
 		let ekle = clause => { clause = clause?.toString(); if (clause) { e.result += `${CrLf}${clause}` } }

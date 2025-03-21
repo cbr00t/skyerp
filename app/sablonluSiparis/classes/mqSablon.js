@@ -2,8 +2,8 @@
 class MQSablonOrtak extends MQDetayliVeAdi {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get gereksizTablolariSilYapilirmi() { return false } static get noAutoFocus() { return true }
-	static get detaySinif() { return MQSablonOrtakDetay } static get konsinyemi() { return this.listeFisSinif?.konsinyemi } 
-	static get fisIcinDetayTable(){ return this.listeFisTemplate?.fisIcinDetayTable } static get table() { return 'hizlisablon' } static get tableAlias() { return 'sab' }
+	static get table() { return 'hizlisablon' } static get tableAlias() { return 'sab' }
+	static get detaySinif() { return MQSablonOrtakDetay } static get konsinyemi() { return false } 
 	static get adiEtiket() { return 'Şablon Adı' } static get tumKolonlarGosterilirmi() { return true }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false } static get raporKullanilirmi() { return false }
 	static secimlerDuzenle(e) {
@@ -21,9 +21,10 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	static listeEkrani_init(e) { super.listeEkrani_init(e); let gridPart = e.gridPart ?? e.sender; gridPart.tarih = today(); gridPart.rowNumberOlmasin() }
 	static rootFormBuilderDuzenle_listeEkrani(e) {
 		super.rootFormBuilderDuzenle_listeEkrani(e); let {konsinyemi} = this, session = config.session ?? {};
-		let loginTipi = session.loginTipi || 'login', loginSubemi = loginTipi == 'login' && session.subeKod != null, loginMusterimi = loginTipi == 'musteri';
-		let subeKod = loginSubemi ? session.subeKod : null, mustKod = loginMusterimi ? session.kod : null;
 		let gridPart = e.gridPart ?? e.sender, {header, islemTuslariPart} = gridPart, {layout, sol} = islemTuslariPart;
+		let loginTipi = session.loginTipi || 'login', loginSubemi = loginTipi == 'login' && session.subeKod != null, loginMusterimi = loginTipi == 'musteri';
+		let subeKod = gridPart.subeKod = loginSubemi ? session.subeKod : qs.subeKod ?? qs.sube;
+		let mustKod = gridPart.mustKod = loginMusterimi ? session.kod : qs.mustKod ?? qs.must;
 		let {rootBuilder: rfb} = e; rfb.setInst(gridPart).addStyle(e => `$elementCSS { --header-height: 160px !important } $elementCSS .islemTuslari { overflow: hidden !important }`);
 		let setKA = async (fbdOrLayout, kod, aciklama) => {
 			let elm = fbdOrLayout?.layout ?? fbdOrLayout; if (!elm?.length) { return }
@@ -60,6 +61,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 							sent.fromAdd('hizlisablon sab').fromIliski('kldagitim dag', [`dag.mustkod = ${aliasVeNokta}must`, 'sab.klfirmakod = dag.klfirmakod']) }
 						wh.add(`${aliasVeNokta}silindi = ''`, `${aliasVeNokta}calismadurumu <> ''`)
 						/*wh.icerikKisitDuzenle_cari({ saha: `${aliasVeNokta}kod` })*/
+						sent.distinctYap()
 					}
 				}).degisince(({ builder: fbd }) => fbd.rootPart.tazeleDefer(e))
 		}
@@ -79,9 +81,13 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		super.loadServerData_queryDuzenle(e); let basitmi = e.basit ?? e.basitmi; if (basitmi) { return }
 		let gridPart = e.gridPart ?? e.sender, {subeKod, mustKod} = gridPart, {konsinyemi, tableAlias: alias} = this;
 		let {sent, stm} = e, {sahalar, where: wh} = sent, {orderBy} = stm;
-		// sent.leftJ
 		sahalar.addWithAlias(alias, 'bvadegunkullanilir vadeGunKullanilirmi', 'vadegunu vadeGunu', 'emailadresler email_sablonEk');
-		if (konsinyemi) { sahalar.add(`${alias}.klfirmakod klFirmaKod`) }
+		if (konsinyemi) {
+			sahalar.add(`${alias}.klfirmakod klFirmaKod`, `${alias}.klfirmakod teslimCariKod`);
+			/*sent.fromIliski('kldagitim dag', ['sab.klfirmakod = dag.klfirmakod', `dag.sevkadreskod = ''`]);
+			sahalar.add(`${alias}.klfirmakod klFirmaKod`, 'dag.mustkod teslimCariKod');
+			sent.distinctYap()*/
+		}
 		orderBy.liste = ['aciklama']
 	}
 	static async orjBaslikListesi_recsDuzenle(e) {
@@ -112,7 +118,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		for (let sent of stm.getSentListe()) {
 			let {sahalar, where: wh} = sent; wh.fisSilindiEkle().add(`fis.kapandi = ''`)
 			if (sablonSayacListe?.length) { wh.inDizi(sablonSayacListe, 'fis.sablonsayac') }
-			if (subeKod != null) { wh.degerAta(subeKod, 'fis.bizsubekod') }
+			if (subeKod) { wh.degerAta(subeKod, 'fis.bizsubekod') }
 			if (tarih) { wh.degerAta(tarih, 'fis.tarih') }
 			sahalar.add('fis.sablonsayac sablonSayac', 'COUNT(*) topSayi');
 			sent.groupByOlustur()
@@ -173,10 +179,10 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	static async yeniIstendi(e) {
 		try {
 			let {sender: gridPart} = e, {tarih, mustKod} = gridPart; if (!mustKod) { throw { isError: true, errorText: `<b>Müşteri</b> seçilmelidir` } }
-			let subeKod = gridPart.subeKod ?? config.session?.subeKod, {rec} = e, {kaysayac: sablonSayac, klFirmaKod} = rec;
+			let subeKod = gridPart.subeKod ?? config.session?.subeKod, {rec} = e, {kaysayac: sablonSayac, klFirmaKod, teslimCariKod} = rec;
 			let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod }); if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
 			let _e = { ...e}; delete _e.rec;
-			let fis = new fisSinif({ sablonSayac, tarih, subeKod, mustKod, klFirmaKod }); await fis.sablonYukleVeBirlestir(_e);
+			let fis = new fisSinif({ sablonSayac, tarih, subeKod, mustKod, klFirmaKod, teslimCariKod }); await fis.sablonYukleVeBirlestir(_e);
 			let islem = 'yeni', kaydedince = _e => this.tazele({ ...e, gridPart });
 			return fis.tanimla({ islem, kaydedince })
 		}
@@ -186,7 +192,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		try {
 			let {sender, rec} = e, {parentPart: gridPart} = sender, {bonayli: onaylimi} = rec;
 			if (onaylimi) { throw { isError: true, errorText: 'Bu sipariş zaten onaylanmış' } }
-			let {kaysayac: sayac, mustkod: mustKod, sevkadreskod: sevkAdresKod, _parentRec: parentRec} = rec, {kaysayac: sablonSayac, klFirmaKod} = parentRec;
+			let {kaysayac: sayac, mustkod: mustKod, sevkadreskod: sevkAdresKod, _parentRec: parentRec} = rec, {kaysayac: sablonSayac} = parentRec;
 			let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod, sevkAdresKod }); if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
 			let fis = new fisSinif({ sayac }), _e = { ...e, parentRec }; delete _e.rec;
 			let result = await fis.yukle(_e); if (!result) { return }
@@ -200,7 +206,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		try {
 			let {sender, rec} = e, {parentPart: gridPart} = sender ?? {};
 			let {kaysayac: sayac, bonayli: onaylimi, sevkadreskod: sevkAdresKod, _parentRec: parentRec} = rec;
-			let mustKod = rec.mustkod ?? gridPart.mustKod, {kaysayac: sablonSayac, klFirmaKod} = parentRec;
+			let mustKod = rec.mustkod ?? gridPart.mustKod, {kaysayac: sablonSayac} = parentRec;
 			let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod, sevkAdresKod }); if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
 			let fis = new fisSinif({ sayac }), _e = { ...e, parentRec }; delete _e.rec;
 			let result = await fis.yukle(_e); if (!result) { return }
@@ -214,7 +220,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			let {sender, rec} = e, {parentPart: gridPart} = sender ?? {}, {bonayli: onaylimi} = rec;
 			if (onaylimi) { throw { isError: true, errorText: 'Onaylı sipariş silinemez' } }
 			let {kaysayac: sayac, sevkadreskod: sevkAdresKod, _parentRec: parentRec} = rec;
-			let mustKod = rec.mustkod ?? gridPart.mustKod, {kaysayac: sablonSayac, klFirmaKod} = parentRec;
+			let mustKod = rec.mustkod ?? gridPart.mustKod, {kaysayac: sablonSayac} = parentRec;
 			let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod, sevkAdresKod }); if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
 			let fis = new fisSinif({ sayac }), _e = { ...e, parentRec }; delete _e.rec;
 			let result = await fis.yukle(_e); if (!result) { return }
@@ -322,8 +328,9 @@ class MQSablon extends MQSablonOrtak {
 }
 /** Şablon listesi, Home screen */
 class MQKonsinyeSablon extends MQSablonOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get detaySinif() { return MQKonsinyeSablonDetay }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'KSSIP' } static get sinifAdi() { return 'Konsinye Sipariş' }
+	static get konsinyemi() { return true } static get detaySinif() { return MQKonsinyeSablonDetay }
 	static sablonEkQueryDuzenle_ilk({ sent: uni, sablonSayacListe, mustKod, tarih }) {
 		super.sablonEkQueryDuzenle_ilk(...arguments); let fisSiniflar = [SablonluKonsinyeAlimSiparisFis, SablonluKonsinyeTransferFis];
 		for (let fisSinif of fisSiniflar) { 
@@ -401,8 +408,9 @@ class MQKonsinyeSablon extends MQSablonOrtak {
 
 /** Şablon'a ait Önceki Siparişler */
 class MQSablonOrtakDetay extends MQDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQSablonOrtak }
-	static get listeFisSinif() { return this.sablonSinif.listeFisSinif } static get fisSinif() { return this.sablonSinif.fisSinif } static get table() { return this.fisSinif.table }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return this.fisSinif.table }
+	static get sablonSinif() { return MQSablonOrtak } static get fisSinif() { return this.sablonSinif.fisSinif }
+	static get konsinyemi() { return this.sablonSinif.konsinyemi }
 	static orjBaslikListesi_argsDuzenle(e) {
 		super.orjBaslikListesi_argsDuzenle(e); $.extend(e.args, {
 			rowsHeight: 50, groupable: true, filterable: true, showGroupsHeader: true, adaptive: false })
@@ -415,8 +423,8 @@ class MQSablonOrtakDetay extends MQDetay {
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 15 }).tipDate(),
 			new GridKolon({ belirtec: 'fisnox', text: 'Sip. No', genislikCh: 20 }),
 			new GridKolon({ belirtec: 'mustunvan', text: 'Müşteri' }),
-			(konsinyemi ? new GridKolon({ belirtec: 'sevkadresadi', text: 'Sevk Adres', genislikCh: 30 }) : null),
-			(konsinyemi ? new GridKolon({ belirtec: 'basteslimtarihi', text: 'Teslim Tarihi', genislikCh: 13 }).tipDate() : null),
+			new GridKolon({ belirtec: 'sevkadresadi', text: 'Sevk Adres', genislikCh: 30 }),
+			new GridKolon({ belirtec: 'basteslimtarihi', text: 'Teslim Tarihi', genislikCh: 13 }).tipDate(),
 			new GridKolon({ belirtec: 'bonayli', text: 'Onay?', genislikCh: 8 }).tipBool(),
 			new GridKolon({ belirtec: 'onayla', text: ' ', genislikCh: 5 }).noSql().tipButton('O').onClick(_e => { sablonSinif.onaylaIstendi({ ...e, ..._e }) }),
 			(sablonSip_degisiklik ? new GridKolon({ belirtec: 'degistir', text: ' ', genislikCh: 5 }).noSql().tipButton('D').onClick(_e => { sablonSinif.degistirIstendi({ ...e, ..._e }) }) : null),
@@ -449,8 +457,10 @@ class MQSablonDetay extends MQSablonOrtakDetay {
 				'fis.kaysayac', 'fis.tarih', 'fis.fisnox', `fis.bizsubekod subekod`, 'sub.aciklama subeadi', `fis.${mustSaha} mustkod`, 'car.birunvan mustunvan',
 				'fis.xadreskod sevkadreskod', 'sadr.aciklama sevkadresadi', 'fis.basteslimtarihi', `(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`
 			]
-		}).fis2SubeBagla().fis2CariBagla().fis2SevkAdresBagla().fisSilindiEkle(); if (subeKod != null) { sent.where.degerAta(subeKod, 'fis.bizsubekod') }
-		if (tarih) { sent.where.degerAta(tarih, 'fis.tarih') } if (mustKod) { sent.where.degerAta(mustKod, `fis.${mustSaha}`) }
+		}).fis2SubeBagla().fis2CariBagla().fis2SevkAdresBagla().fisSilindiEkle();
+		if (subeKod) { sent.where.degerAta(subeKod, 'fis.bizsubekod') }
+		if (tarih) { sent.where.degerAta(tarih, 'fis.tarih') }
+		if (mustKod) { sent.where.degerAta(mustKod, `fis.${mustSaha}`) }
 		stm.orderBy.add('tarih DESC', 'fisnox DESC')
 	}
 }
