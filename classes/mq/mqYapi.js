@@ -106,8 +106,8 @@ class MQYapi extends CIO {
 		return this[tekilOku_querySonucu_returnValueGereklimi ? 'sqlExecNoneWithResult' : 'sqlExecTekil'](_e)
 	}
 	yeniTanimOncesiIslemler(e) { } 
-	yeniOncesiIslemler(e) { }
-	degistirOncesiIslemler(e) { }
+	yeniOncesiIslemler(e) { return this.kaydetOncesiIslemler(e) }
+	degistirOncesiIslemler(e) { return this.kaydetOncesiIslemler(e) }
 	silmeOncesiIslemler(e) { return this.kaydetVeyaSilmeOncesiIslemler(e) }
 	async kaydetOncesiIslemler(e) {
 		e = e ?? {}; await this.kaydetVeyaSilmeOncesiIslemler(e);

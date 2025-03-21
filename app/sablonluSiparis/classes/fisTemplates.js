@@ -1,6 +1,6 @@
 class SablonluSiparisFisTemplate extends CObject {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQSablonOrtak }
-	static getUISplitHeight({ islem }) { return islem == 'onayla' || islem == 'sil' ? 200 : MQDetayli.getUISplitHeight(...arguments) }
+	static getUISplitHeight({ islem }) { return 170 + ($(window).width() < 1300 ? 90 : 0) + (islem == 'onayla' || islem == 'sil' ? 65 : 0) }
 	static get numaratorGosterilirmi() { return false } static get dipGirisYapilirmi() { return false }
 	static pTanimDuzenle({ fisSinif, pTanim }) {
 		$.extend(pTanim, {
@@ -15,47 +15,55 @@ class SablonluSiparisFisTemplate extends CObject {
 		let {konsinyemi} = fisSinif, {grid, gridWidget, layout} = gridPart;
 		rfb.addStyle(e => `$elementCSS .islemTuslari { position: absolute !important; top: 3px !important }`);
 		/* rfb.vazgecIstendi = e => false; */
+		let updateHeader = async e => {
+			e = e ?? {}; let fbd = e.builder ?? gridPart.fbd_baslikBilgi;
+			let {altInst: inst, layout} = fbd; await this.teslimCariKodBelirle({ fis: inst });
+			let {subeKod, mustKod, sablonSayac, klFirmaKod, teslimCariKod} = inst;
+			let setKA = async (selector, kod, aciklama) => {
+				let elm = selector ? layout.find(`.${selector}`) : null; if (!elm?.length) { return }
+				if (kod) {
+					aciklama = await aciklama; if (!aciklama) { return }
+					let text = aciklama?.trim(); if (kod && typeof kod == 'string') {
+						text = `<span class="kod bold gray">${kod}</b> <span class="aciklama royalblue normal">${aciklama}</span>` };
+					elm.find('.veri').html(text.trim()); elm.removeClass('jqx-hidden basic-hidden')
+				}
+				else { elm.addClass('jqx-hidden') }
+			};
+			setKA('sablon', sablonSayac, MQSablon.getGloKod2Adi(sablonSayac));
+			setKA('sube', subeKod, MQSube.getGloKod2Adi(subeKod));
+			if (konsinyemi && klFirmaKod) { setKA('klFirma', klFirmaKod, MQSKLFirma.getGloKod2Adi(klFirmaKod)) }
+			setKA('must', mustKod, MQSCari.getGloKod2Adi(mustKod));
+			setKA('teslimCari', teslimCariKod, MQSTeslimatci.getGloKod2Adi(teslimCariKod))
+		};
 		baslikFormlar[0].altAlta().addForm('_baslikBilgi')
 			.addStyle(e =>
 				`$elementCSS { font-size: 130% } $elementCSS > ._row { gap: 10px } $elementCSS > ._row:not(:last-child) { margin-bottom: 5px }
 				$elementCSS .etiket { width: 130px !important } $elementCSS .veri { font-weight: bold; color: royalblue }`
 			 ).setLayout(({ builder: fbd }) => {
-				let {altInst: inst} = fbd, {tarih, subeKod, mustKod, sablonSayac, klFirmaKod} = inst;
+				let {altInst: inst} = fbd, {tarih, subeKod, mustKod, sablonSayac, klFirmaKod, teslimCariKod} = inst, css = `gap: 50px`;
 				return $(`<div class="full-width">
-					<div class="flex-row" style="gap: 50px">
+					<div class="flex-row" style="${css}">
 						<div class="tarih _row flex-row"><div class="etiket">Tarih</div><div style="margin-right: 10px"></div><div class="veri">${dateToString(inst.tarih) || ''}</div></div>
 						<div class="sablon _row flex-row"><div class="etiket">Şablon</div><div class="veri">${sablonSayac || ''}</div></div>
 						${konsinyemi ? `<div class="klFirma _row flex-row"><div class="etiket">KL Firma</div><div class="veri">${klFirmaKod || ''}</div></div>` : ''}
 					</div>
-					<div class="flex-row" style="gap: 50px">
-						${subeKod ? `<div class="sube _row flex-row"><div class="etiket">Şube</div><div class="veri" style="margin-right: 10px">${subeKod?.trim() || ''}</div></div>` : ''}
+					<div class="flex-row" style="${css}">
 						${mustKod ? `<div class="must _row flex-row"><div class="etiket">Müşteri</div><div class="veri">${mustKod?.trim() || ''}</div></div>` : ''}
 					</div>
+					<div class="flex-row" style="${css}">
+						${subeKod ? `<div class="sube _row flex-row"><div class="etiket">Şube</div><div class="veri" style="margin-right: 10px">${subeKod?.trim() || ''}</div></div>` : ''}
+						${konsinyemi ? `<div class="teslimCari _row flex-row jqx-hidden"><div class="etiket">Teslimatçı</div><div class="veri">${teslimCariKod?.trim() || ''}</div></div>` : ''}
+					</div>
 				</div>`)
-			}).onBuildEk(({ builder: fbd }) => {
-				let {altInst: inst, layout} = fbd, {subeKod, mustKod, sablonSayac, klFirmaKod} = inst;
-				let setKA = async (selector, kod, aciklama) => {
-					let elm = selector ? layout.find(`.${selector}`) : null; if (!elm?.length) { return }
-					if (kod) {
-						aciklama = await aciklama; if (!aciklama) { return }
-						let text = aciklama?.trim(); if (kod && typeof kod == 'string') {
-							text = `<span class="kod bold gray">${kod}</b> <span class="aciklama royalblue normal">${aciklama}</span>` };
-						elm.find('.veri').html(text.trim()); elm.removeClass('jqx-hidden basic-hidden')
-					}
-					else { elm.addClass('jqx-hidden') }
-				};
-				setKA('sablon', sablonSayac, MQSablon.getGloKod2Adi(sablonSayac));
-				setKA('sube', subeKod, MQSube.getGloKod2Adi(subeKod));
-				if (konsinyemi && klFirmaKod) { setKA('klFirma', klFirmaKod, MQSKLFirma.getGloKod2Adi(klFirmaKod)) }
-				setKA('must', mustKod, MQSCari.getGloKod2Adi(mustKod))
-			});
+			}).onBuildEk(({ builder: fbd }) => { fbd.rootPart.fbd_baslikBilgi = fbd; updateHeader() });
 		baslikFormlar[1].yanYana();
 		baslikFormlar[1].addModelKullan('sevkAdresKod', 'Sevk Adres').comboBox().autoBind().setMFSinif(MQSSevkAdres)
 			.addStyle_wh(500)
 			.ozelQueryDuzenleHandler(({ builder: fbd, aliasVeNokta, stm }) => {
 				let {altInst: inst} = fbd ?? {}, {mustKod} = inst ?? {}; if (!mustKod) { return }
 				for (let sent of stm.getSentListe()) { sent.where.degerAta(mustKod, `${aliasVeNokta}must`) }
-			});
+			})
+			.degisince(({ builder: fbd }) => updateHeader());
 		baslikFormlar[1].addDateInput('baslikTeslimTarihi', 'Teslim Tarihi');
 		let disableWithInfo = ({ color, text }) => {
 			grid.jqxGrid('editable', false); gridPart.baslikFormlar[0].parent().css('box-shadow', `0 2px 5px 3px ${color}`);
@@ -210,9 +218,23 @@ class SablonluSiparisFisTemplate extends CObject {
 		}
 	}
 	static getYazmaIcinDetaylar({ fis }) { return fis.detaylar.filter(det => !!det.miktar) }
-	static hostVarsDuzenle({ fis, hv }) { /*if (fis.class.ticarimi) { hv.teslimcarikod = fis.teslimCariKod }*/ }
+	static kaydetOncesiIslemler({ fis }) { this.teslimCariKodBelirle(...arguments) }
+	static hostVarsDuzenle({ fis, hv }) { if (fis.class.ticarimi) { hv.teslimcarikod = fis.teslimCariKod } }
 	static setValues({ fis, rec }) { if (fis.class.ticarimi) { fis.teslimCariKod = rec.teslimcarikod } }
 	static uiDuzenle_fisGirisIslemTuslari(e) { /* super yok */ }
+	static async teslimCariKodBelirle({ fis }) {
+		let {konsinyemi} = fis.class, {klFirmaKod} = fis;
+		if (!(konsinyemi && klFirmaKod)) { fis.teslimCariKod = ''; return null }
+		let {sablonSayac, mustKod, sevkAdresKod} = fis, sent = new MQSent(), {where: wh, sahalar} = sent;
+		sent.fromAdd('kldagitim dag').fromIliski('klfirma dfir', 'dag.klfirmakod = dfir.kod');
+		wh.degerAta(klFirmaKod, 'dag.klfirmakod').degerAta(mustKod, 'dag.mustkod')
+		wh.add(new MQOrClause([
+			`dag.sevkadreskod = ''`,
+			(sevkAdresKod ? { degerAta: sevkAdresKod, saha: 'dag.sevkadreskod' } : null)
+		].filter(x => !!x)));
+		sahalar.add(`(case dag.bkendimizteslim when 0 then '' else dag.klteslimatcikod end) teslimCariKod`);
+		return fis.teslimCariKod = await app.sqlExecTekilDeger(sent)
+	}
 }
 
 class SablonluSiparisDetayTemplate extends CObject {
