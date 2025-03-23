@@ -236,3 +236,8 @@ class DMQPDKSAnaTip extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ana Tip' }
 	static loadServerData_dogrudan(e) { return PDKSAnaTip.kaListe }
 }
+class DMQKategori extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kategori' }
+	static get table() { return 'kategori' } static get tableAlias() { return 'kat' }
+}
+

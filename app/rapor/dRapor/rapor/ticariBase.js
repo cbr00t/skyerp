@@ -81,7 +81,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 	}
 	tabloYapiDuzenle_hizmet(e) {
 		const {result} = e; result
-			.addKAPrefix('anagrup', 'grup', 'histgrup', 'hizmet')
+			.addKAPrefix('anagrup', 'grup', 'histgrup', 'hizmet', 'kategori')
 			.addGrup(new TabloYapiItem().setKA('HZANAGRP', 'Hizmet Ana Grup').secimKullanilir().setMFSinif(DMQHizmetAnaGrup)
 				.addColDef(new GridKolon({ belirtec: 'anagrup', text: 'Hizmet Ana Grup', maxWidth: 450, filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('HZGRP', 'Hizmet Grup').secimKullanilir().setMFSinif(DMQHizmetGrup)
@@ -89,19 +89,26 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 			.addGrup(new TabloYapiItem().setKA('HZISTGRP', 'Hizmet İst. Grup').secimKullanilir().setMFSinif(DMQHizmetIstGrup)
 				.addColDef(new GridKolon({ belirtec: 'sistgrup', text: 'Hizmet İst. Grup', maxWidth: 450, filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('HIZMET', 'Hizmet').secimKullanilir().setMFSinif(DMQHizmet)
-				.addColDef(new GridKolon({ belirtec: 'hizmet', text: 'Hizmet', maxWidth: 600, filterType: 'input' })));
+				.addColDef(new GridKolon({ belirtec: 'hizmet', text: 'Hizmet', maxWidth: 600, filterType: 'input' })))
+			.addGrup(new TabloYapiItem().setKA('KATEGORI', 'Kategori').secimKullanilir().setMFSinif(DMQKategori)
+				.addColDef(new GridKolon({ belirtec: 'kategori', text: 'Kategori', maxWidth: 600, filterType: 'input' })))
+			.addGrup(new TabloYapiItem().setKA('KATDETAY', 'Kategori Detay')
+				.addColDef(new GridKolon({ belirtec: 'katdetay', text: 'Kat. Detay', maxWidth: 600, filterType: 'input' })));
 		return this
 	}
 	loadServerData_queryDuzenle_hizmet(e) {
 		const {attrSet, stm} = e; for (const sent of stm.getSentListe()) {
-			let wh = sent.where; if (attrSet.HZANAGRP) { sent.hizmet2GrupBagla() }
+			let {sahalar, where: wh} = sent; if (attrSet.HZANAGRP) { sent.hizmet2GrupBagla() }
 			if (attrSet.HZANAGRP || attrSet.HZGRP || attrSet.HZISTGRP || attrSet.HIZMET) { sent.har2HizmetBagla() }
+			if (attrSet.KATEGORI || attrSet.KATDETAY) { sent.har2KatDetayBagla() }
 			for (const key in attrSet) {
 				switch (key) {
-					case 'HZANAGRP': sent.hizmetGrup2AnaGrupBagla(); sent.sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi'); wh.icerikKisitDuzenle_hizmetAnaGrup({ ...e, saha: 'grp.anagrupkod' }); break
-					case 'HZGRP': sent.hizmet2GrupBagla(); sent.sahalar.add('hiz.grupkod', 'grp.aciklama grupadi'); wh.icerikKisitDuzenle_hizmetGrup({ ...e, saha: 'hiz.grupkod' }); break
-					case 'HZISTGRP': sent.hizmet2IstGrupBagla(); sent.sahalar.add('hiz.histgrupkod', 'higrp.aciklama histgrupadi'); wh.icerikKisitDuzenle_hizmetIstGrup({ ...e, saha: 'grp.histgrupkod' }); break
-					case 'HIZMET': sent.sahalar.add('har.hizmetkod', 'hiz.aciklama hizmetadi'); wh.icerikKisitDuzenle_hizmet({ ...e, saha: 'har.hizmetkod' }); break
+					case 'HZANAGRP': sent.hizmetGrup2AnaGrupBagla(); sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi'); wh.icerikKisitDuzenle_hizmetAnaGrup({ ...e, saha: 'grp.anagrupkod' }); break
+					case 'HZGRP': sent.hizmet2GrupBagla(); sahalar.add('hiz.grupkod', 'grp.aciklama grupadi'); wh.icerikKisitDuzenle_hizmetGrup({ ...e, saha: 'hiz.grupkod' }); break
+					case 'HZISTGRP': sent.hizmet2IstGrupBagla(); sahalar.add('hiz.histgrupkod', 'higrp.aciklama histgrupadi'); wh.icerikKisitDuzenle_hizmetIstGrup({ ...e, saha: 'grp.histgrupkod' }); break
+					case 'HIZMET': sahalar.add('har.hizmetkod', 'hiz.aciklama hizmetadi'); wh.icerikKisitDuzenle_hizmet({ ...e, saha: 'har.hizmetkod' }); break
+					case 'KATDETAY': sahalar.add('kdet.kdetay katdetay'); break
+					case 'KATEGORI': sent.leftJoin('kdet', 'kategori kat', 'kdet.fissayac = kat.kaysayac'); sahalar.add('kat.kod kategorikod', 'kat.aciklama kategoriadi'); break
 				}
 			}
 		}
