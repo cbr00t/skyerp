@@ -54,8 +54,7 @@ class QRGenerator extends CObject {
     qrDraw(data, format, prefix) {
 		format = format || this.class.defaultFormat; let img = this.makeQR(data); if (!img) { return null }
         let selector = format == 'png' ? 'createPNG' : 'createBMP', blob = this[selector](img);
-		let base64URL = `data:image/${format};base64,${Base64.fromUint8Array(img.data)}`;
-        return { data, img, base64URL, blob }
+		let base64URL = URL.createObjectURL(blob); return { data, img, base64URL, blob }
     }
 	qrSave(blob, format, prefix) {
         format = format || this.class.defaultFormat; let fileName = this.getFileName(format, prefix);

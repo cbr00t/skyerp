@@ -42,8 +42,8 @@ class DAltRapor extends DRapor {
 		if (rec == null) { return this }
 		const kodAttr = `${prefix}kod`, adiAttr = `${prefix}adi`;
 		const kod = kodsuzmu ? null : rec[kodAttr], adi = rec[adiAttr]; if (kod !== undefined) {
-			rec[prefix] = kod ? `(${kod ?? ''}) ${adi ?? ''}` : '';
-			for (const key of [kodAttr, adiAttr]) { delete rec[key] }
+			rec[prefix] = kod ? `(${kod ?? ''}) ${adi ?? ''}` : ''
+			/* for (const key of [kodAttr, adiAttr]) { delete rec[key] } */
 		}
 		return this
 	}

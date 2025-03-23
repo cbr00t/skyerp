@@ -24,18 +24,25 @@ class TabloYapi extends CObject {
 	addGrupBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici) {
 		return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici)
 	}
-	addToplamBasit(kod, text, belirtec, mfSinif, genislikCh, fra, duzenleyici) {
-		let _duzenleyici = duzenleyici; duzenleyici = e => { e.colDef.tipDecimal(fra); _duzenleyici?.call(e) };
+	addToplamBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, fra) {
+		let _duzenleyici = duzenleyici; duzenleyici = e => { e.colDef.tipDecimal(fra); _duzenleyici?.call(this, e) };
+		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici)
+	
+	}
+	addToplamBasit_fiyat(kod, text, belirtec, mfSinif, genislikCh, duzenleyici) {
+		let _duzenleyici = duzenleyici; duzenleyici = e => { e.colDef.tipDecimal_fiyat(); _duzenleyici?.call(this, e) };
 		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici)
 	}
 	addToplamBasit_bedel(kod, text, belirtec, mfSinif, genislikCh, duzenleyici) {
-		let _duzenleyici = duzenleyici; duzenleyici = e => { e.colDef.tipDecimal_bedel(); _duzenleyici?.call(e) };
+		let _duzenleyici = duzenleyici; duzenleyici = e => { e.colDef.tipDecimal_bedel(); _duzenleyici?.call(this, e) };
 		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici)
 	}
 	addItemBasit(selector, kod, text, belirtec, mfSinif, genislikCh, duzenleyici) {
 		let colDef = new GridKolon({ belirtec, text, maxWidth: genislikCh ?? 450, filterType: 'checkedlist' });
-		let _e = { item: this, selector, kod, text, belirtec, mfSinif, genislikCh, colDef }; duzenleyici?.call(this, _e); colDef = _e.colDef;
-		return this[selector](new TabloYapiItem({ mfSinif }).setKA(kod, text).addColDef(colDef))
+		let item = new TabloYapiItem({ mfSinif }).setKA(kod, text);
+		let _e = { tabloYapi: this, item, selector, kod, text, belirtec, mfSinif, genislikCh, colDef };
+		duzenleyici?.call(this, _e); colDef = _e.colDef; item.addColDef(colDef);
+		return this[selector](item)
 	}
 	addKAPrefix(...items) {
 		const {kaPrefixes} = this; for (const item of items) {
