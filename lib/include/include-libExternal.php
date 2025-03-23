@@ -9,4 +9,5 @@
 <!--<script src="<?=$_partRoot?>/jqx/jquery-3.3.1.min.js"></script> <script src="<?=$_partRoot?>/jqx/jquery.ajax-cross-origin.min.js"></script>
 <link rel="stylesheet" href="<?=$_partRoot?>/jqx/css/jquery-ui.min.css" /> <script src="<?=$_partRoot?>/jqx/jquery-ui.min.js"></script>
 <link class="theme-base" rel="stylesheet" href="<?=$_partRoot?>/jqx/css/jqx.base.min.css" /> <script src="<?=$_partRoot?>/jqx/jqx-all.min.js"></script>-->
-<script src="<?=$_partRoot?>/etc/qrcode/qrcode.min.js"></script>
+<!--<script src="<?=$_partRoot?>/etc/qrcode/qrcode.min.js"></script>--> <script src="<?=$_partRoot?>/etc/qrcode/qrcode.js"></script>
+

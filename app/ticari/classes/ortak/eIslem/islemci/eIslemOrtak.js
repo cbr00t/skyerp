@@ -225,8 +225,8 @@ class EIslemOrtak extends CObject {
 		const mimeType = 'image/png', encodedQRData = toJSONStr(qrData), type = 'KAREKOD_IMG';
 		let imgData, qrURL = `https://api.qrserver.com/v1/create-qr-code/?charset-source=utf-8&ecc=L&size=180x180&qzone=1&format=jpg&data=${encodedQRData}`;
 		try {
-			const qrCode = new QRCode($(`<div/>`)[0], { width: 180, height: 180, correctLevel : QRCode.CorrectLevel.L }); qrCode.makeCode(encodedQRData);
-			const img = qrCode._el.querySelector('img'); imgData = await new $.Deferred(p => setTimeout(() => p.resolve(img.src), 10));
+			let qrCode = new QRCode($(`<div/>`)[0], { width: 180, height: 180, correctLevel : QRCode.CorrectLevel.L }); qrCode.makeCode(encodedQRData);
+			let {_elImage: img} = qrCode, imgData = await new $.Deferred(p => setTimeout(() => p.resolve(img.src), 10));
 			if (!imgData) { throw { isError: true, rc: 'noImgData' } }
 			/*if (imgData) { imgData = imgData.split(',', 2)[1] || imgData }*/
 		}
