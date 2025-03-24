@@ -1,12 +1,12 @@
 class DRapor_Hareketci_Cari extends DRapor_Hareketci {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return true }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get araSeviyemi() { return false } static get vioAdim() { return null }
 	static get kod() { return 'CARIHAR' } static get aciklama() { return 'Cari' }
 }
 class DRapor_Hareketci_Cari_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return CariHareketci }
 	static get raporClass() { return DRapor_Hareketci_Cari }
-	tabloYapiDuzenle(e) { super.tabloYapiDuzenle(e); let {result} = e; this.tabloYapiDuzenle_cari(e) }
+	tabloYapiDuzenle({ result }) { super.tabloYapiDuzenle(...arguments); this.tabloYapiDuzenle_cari(...arguments) }
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e); let {hvDegeri} = e, kodClause = hvDegeri('must');
 		this.loadServerData_queryDuzenle_cari({ ...e, kodClause })
@@ -20,8 +20,8 @@ class DRapor_Hareketci_Kasa extends DRapor_Hareketci {
 class DRapor_Hareketci_Kasa_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return KasaHareketci }
 	static get raporClass() { return DRapor_Hareketci_Kasa }
-	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e); let {result} = e;
+	tabloYapiDuzenle({ result }) {
+		super.tabloYapiDuzenle(...arguments);
 		result.addKAPrefix('kasa').addGrupBasit('KASA', 'Kasa', 'kasa', DMQKasa)
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
@@ -40,8 +40,8 @@ class DRapor_Hareketci_BankaOrtak extends DRapor_Hareketci {
 }
 class DRapor_Hareketci_BankaOrtak_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Hareketci_BankaOrtak }
-	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e); let {result} = e;
+	tabloYapiDuzenle({ result }) {
+		super.tabloYapiDuzenle(...arguments);
 		result.addKAPrefix('banka', 'banhesap')
 			.addGrupBasit('BANKAHESAP', 'Banka Hesap', 'banhesap', DMQBankaHesap)
 			.addGrupBasit('BANKA', 'Banka', 'banka', DMQBanka)
@@ -116,4 +116,26 @@ class DRapor_Hareketci_TeminatMektup extends DRapor_Hareketci_BankaOrtak {
 class DRapor_Hareketci_TeminatMektup_Main extends DRapor_Hareketci_BankaOrtak_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return BankaTeminatMektupHareketci }
 	static get raporClass() { return DRapor_Hareketci_TeminatMektup }
+}
+
+class DRapor_Hareketci_CekSenet extends DRapor_Hareketci {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return false }
+	static get araSeviyemi() { return false } static get vioAdim() { return null }
+	static get kod() { return 'CS' } static get aciklama() { return 'Çek/Senet' }
+}
+class DRapor_Hareketci_CekSenet_Main extends DRapor_Hareketci_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return CSHareketci }
+	static get raporClass() { return DRapor_Hareketci_CekSenet }
+	tabloYapiDuzenle({ result }) {
+		super.tabloYapiDuzenle(...arguments);
+		/* result.addKAPrefix('kasa').addGrupBasit('KASA', 'Kasa', 'kasa', DMQKasa) */
+	}
+	loadServerData_queryDuzenle_hrkSent(e) {
+		super.loadServerData_queryDuzenle_hrkSent(e);
+		let {attrSet, sent, hvDegeri} = e, {where: wh, sahalar} = sent, kodClause = hvDegeri('kasakod');
+		if (attrSet.KASA) { sent.fromIliski('kasmst kas', `${kodClause} = kas.kod`) }
+		for (let key in attrSet) {
+			switch (key) { case 'KASA': sahalar.add(`${kodClause} kasakod`, 'kas.aciklama kasaadi'); wh.icerikKisitDuzenle_kasa({ ...e, saha: kodClause }); break }
+		}
+	}
 }
