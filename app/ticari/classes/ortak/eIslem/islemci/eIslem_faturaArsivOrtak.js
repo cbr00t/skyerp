@@ -556,15 +556,21 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 	}
 	xmlGetProfileID(e) { const {baslik} = this; return this.class.eArsivmi ? 'EARSIVFATURA': baslik.alimIademi ? 'TEMELFATURA' : EIslemSenaryo.getSenaryoText(baslik.carsenaryo) }
 	xmlGetBelgeTipKodu(e) {
-		let {baslik, icmal, bedelSelector} = this, {fistipi: fisTipi, alimIademi} = baslik;
-		if (alimIademi) { return 'IADE' }
+		let {baslik, detaylar, icmal, bedelSelector} = this, {fistipi: fisTipi, ayrimtipi: ayrimTipi, alimIademi, eYontem} = baslik, {eIslem} = app.params;
+		if (alimIademi) { return fisTipi == 'SR' ? 'TEVKIFATIADE' : 'IADE' }
 		if (fisTipi == 'TV') { return 'TEVKIFAT' }
-		istisnaTipSet = asSet(['KI', 'TK', 'TR', 'IS']); if (istisnaTipSet[fisTipi]) { return 'ISTISNA' }
-		let ekVergiTipleri = {}; for (let {detkdvekvergitipi: tip} of this.detaylar) {  if (tip) { ekVergiTipleri[tip] = true } }
+		if (ayrimTipi == 'IK') { return 'IHRACKAYITLI' }
+		let istisnaTipSet = asSet(['KI', 'TK', 'TR', 'IS']), ihracatTipSet = asSet(['IH', 'MI']);
+		if (istisnaTipSet[fisTipi] || ihracatTipSet[ayrimTipi]) { return 'ISTISNA' }
+		let ekVergiTipleri = {}; for (let {detkdvekvergitipi: tip} of detaylar) { if (tip) { ekVergiTipleri[tip] = true } }
 		if (ekVergiTipleri.TV) { return 'TEVKIFAT' }
-		if (ekVergiTipleri.IS || ekVergiTipleri.KI) { return 'ISTISNA' }
+		let detaylarHepsiIstisnami = detaylar.every(({ detkdvekvergitipi: tip }) => tip == 'IS' || tip == 'KI');
+		if (detaylarHepsiIstisnami) { return 'ISTISNA' }
 		let {vergiTip2Oran2EVergiRecs_tevkifatsiz: vergiTip2Oran2Recs} = icmal;
-		if ($.isEmptyObject(vergiTip2Oran2Recs?.[MQVergiKdv.eIslTypeCode])) { return 'ISTISNA' }
+			/* Detay KDV'ler = 0 & Detayda ISTISNA YOK & app.params.eIslem.kdvMuafiyetKod == '812' => 'OZELMATRAH' */
+		if ($.isEmptyObject(vergiTip2Oran2Recs?.[MQVergiKdv.eIslTypeCode])) {
+			return !(ekVergiTipleri.IS || ekVergiTipleri.KI) && eIslem.kdvMuafiyetKod == '812' ? 'OZELMATRAH' : 'ISTISNA' }
+		if (eYontem?.varsaGenelYontem?.sgkmi) { return 'SGK' }
 		return 'SATIS'
 	}
 }

@@ -36,13 +36,13 @@ class EIslBaslik extends EIslBaslikVeDetayOrtak {
 	}
 	get genelYontemKod() { return this.rec.genelyontem } get ozelYontemKod() { return this.rec.ozelyontem }
 	get eYontem() {
-		let result = this._eYontem;
+		let {_eYontem: result} = this;
 		if (result === undefined) {
-			const {ozelYontemKod, genelYontemKod, _temps} = this;
+			let {ozelYontemKod, genelYontemKod, _temps} = this;
 			if (genelYontemKod) { result = new MQEIslGeneldenOzelYontem({ genelYontem: new EIslGenelYontem(genelYontemKod) }) }
 			else {
-				result = new MQEIslOzelYontem(); const {ozelYontemKod2Rec} = _temps, rec = ozelYontemKod2Rec ? ozelYontemKod2Rec[ozelYontemKod] : null;
-				if (rec) { result.setValues({ rec }) }
+				result = new MQEIslOzelYontem(); let {ozelYontemKod2Rec} = _temps;
+				let rec = ozelYontemKod2Rec ? ozelYontemKod2Rec[ozelYontemKod] : null; if (rec) { result.setValues({ rec }) }
 			}
 			this._eYontem = result
 		}

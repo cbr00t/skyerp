@@ -47,8 +47,10 @@ class MQEIslemParam extends MQTicariParamBase {
 		form = paramci.addAltObject('kisit').setAltInst(e => e.paramci?.inst.kisit).addGrup('Gönderimde Kısıtlama').addFormWithParent();
 			form.addBool('kullanilirmi', 'Kullanılır').setRowAttr('gonderimdeTipKisitlamasi');
 			form.addBool('fatura', 'Fatura').setRowAttr('gonKisitFatura'); form.addBool('irsaliye', 'İrsaliye').setRowAttr('gonKisitIrsaliye');
-			form.addBool('magaza', 'Mağaza').setRowAttr('gonKisitMagaza'); form.addBool('musMakbuz', 'Müstahsil Makbuz').setRowAttr('gonKisitMusMakbuz')
+			form.addBool('magaza', 'Mağaza').setRowAttr('gonKisitMagaza'); form.addBool('musMakbuz', 'Müstahsil Makbuz').setRowAttr('gonKisitMusMakbuz');
 			/*for (const item of form.getItems()) { item.setAltInst(altInstci) }*/
+		form = paramci.addFormWithParent();
+			form.addString('kdvMuafiyetKod', 'KDV Muafiyet Kod').addStyle_wh(130)
 	}
 	static tekSecimDonusumDuzenle(e) {
 		super.tekSecimDonusumDuzenle(e);

@@ -113,15 +113,13 @@ class MQEIslGeneldenOzelYontem extends MQEIslOzelYontem {
 	metroIcinUygunmuDegilseMesaj(e) { return this.malKabulNoKontrolu(e) ?? null }
 }
 class EIslGenelYontem extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { window[this.name] = this; this._key2Class[this.name] = this } get stokYerineBarkodmu() { return this.getirmi } get stokYerineRefKodmu() { return this.kipami || this.carrefourmu }
 	static get defaultChar() { return ' ' } get yokmu() { return this.char == ' ' } get migrosmu() { return this.char == 'MIG' } get metromu() { return this.char == 'MET' }
 	get carrefourmu() { return this.char == 'CSA' } get bimmi() { return this.char == 'BIM' } get a101mi() { return this.char == 'A101' } get kilermi() { return this.char == 'KIL' }
 	get kipami() { return this.char == 'KIP' } get adesami() { return this.char == 'ADE' } get ozenmi() { return this.char == 'OZN' } get eformu() { return this.char == 'EFOR' }
 	get cetinkayami() { return this.char == 'CET' } get lezitami() { return this.char == 'LEZ' } get sofraGrupmu() { return this.char == 'SOF' } get getirmi() { return this.char == 'GET' }
-	get stokYerineBarkodmu() { return this.getirmi }
 	get tofasmi() { return this.char == 'TOF' } get fordmu() { return this.char == 'FOR' } get sgkmi() { return this.char == 'SGK' } get dmomu() { return this.char == 'DMO' } get ibbmi() { return this.char == 'IBB' }
 	get subeMusterimidir() { return false } get subeBayimidir() { return this.migrosmu || this.kilermi || this.a101mi || this.metromu || this.bimmi || this.carrefourmu }
-	get stokYerineRefKodmu() { return this.kipamni || this.carrefourmu }
 	get stokCariReferansZorunlumu() { return this.carrefourmu || this.migrosmu || this.metromu || this.kilermi || this.sofraGrupmu || this.kipami || this.tofasmi || this.getirmi || this.fordmu || this.a101mi }
 	get stokBarkodZorunlumu() { return this.carrefourmu || this.migrosmu || this.metromu || this.kilermi || this.bimmi || this.getirmi } get stokYerReferansZorunlumu() { return this.ibbmi }
 	get konsolideSubeReferansZorunlumu() { return this.carrefourmu || this.cetinkayami || this.eformu || this.kilermi || this.kipami || this.metrommu || this.migrosmu || this.ozenmi || this.adesemi }
