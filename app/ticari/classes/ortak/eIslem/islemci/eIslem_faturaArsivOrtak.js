@@ -558,10 +558,13 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 	}
 	xmlGetProfileID(e) { const {baslik} = this; return this.class.eArsivmi ? 'EARSIVFATURA': baslik.alimIademi ? 'TEMELFATURA' : EIslemSenaryo.getSenaryoText(baslik.carsenaryo) }
 	xmlGetBelgeTipKodu(e) {
-		const {baslik} = this; if (baslik.alimIademi) { return 'IADE' }
-		const fisTipi = baslik.fistipi; if (fisTipi == 'TV') { return 'TEVKIFAT' }
+		let {baslik} = this, {fistipi: fisTipi, alimIademi} = baslik; if (alimIademi) { return 'IADE' }
+		if (fisTipi == 'TV') { return 'TEVKIFAT' }
 		if (fisTipi == 'KI' || fisTipi == 'IS') { return 'ISTISNA' }
-		const ekVergiTipleri = {}; for (const det of this.detaylar) { const _value = det.detkdvekvergitipi; if (_value) { ekVergiTipleri[_value] = true } }
+		let ekVergiTipleri = {}; for (const det of this.detaylar) { 
+			let _value = det.detkdvekvergitipi;
+			if (_value) { ekVergiTipleri[_value] = true }
+		}
 		if (ekVergiTipleri.IS || ekVergiTipleri.KI) { return 'ISTISNA' }
 		if (ekVergiTipleri.TV) { return 'TEVKIFAT' }
 		return 'SATIS'
@@ -569,32 +572,22 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 }
 class EIslFatura extends EIslFaturaArsivOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get eFaturami() { return true }
-	static get ortakSinif() { return EIslFaturaArsivOrtak }
-	static get tip() { return 'E' }
-	static get sinifAdi() { return 'e-Fatura' }
-	static get kisaAdi() { return 'e-Fat' }
-	/*static get paramSelector() { return 'eFatura' }*/
+	static get eFaturami() { return true } static get ortakSinif() { return EIslFaturaArsivOrtak }
+	static get tip() { return 'E' } static get sinifAdi() { return 'e-Fatura' }
+	static get kisaAdi() { return 'e-Fat' } /*static get paramSelector() { return 'eFatura' }*/
 	get xsltBelirtec() { return 'EFatura' }
 }
 class EIslIhracat extends EIslFatura {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get eIhracatmi() { return true }
-	static get tip() { return 'IH' }
-	static get sinifAdi() { return 'e-İhracat' }
-	static get kisaAdi() { return 'e-İhr' }
-	/*static get paramSelector() { return 'eIhracat' }*/
-	get xsltBelirtec() { return 'EIhracat' }
+	static get eIhracatmi() { return true } static get tip() { return 'IH' }
+	static get sinifAdi() { return 'e-İhracat' } static get kisaAdi() { return 'e-İhr' }
+	/*static get paramSelector() { return 'eIhracat' }*/ get xsltBelirtec() { return 'EIhracat' }
 }
 class EIslArsiv extends EIslFaturaArsivOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get eArsivmi() { return true }
-	static get ortakSinif() { return EIslFaturaArsivOrtak }
-	static get tip() { return 'A' }
-	static get altBolum() { return 'EArsiv' }
-	static get sinifAdi() { return 'e-Arşiv' }
-	static get kisaAdi() { return 'e-Arş' }
-	/*static get paramSelector() { return 'eArsiv' }*/
-	get xsltBelirtec() { return 'EArsiv' }
+	static get eArsivmi() { return true } static get ortakSinif() { return EIslFaturaArsivOrtak }
+	static get tip() { return 'A' } static get altBolum() { return 'EArsiv' }
+	static get sinifAdi() { return 'e-Arşiv' } static get kisaAdi() { return 'e-Arş' }
+	/*static get paramSelector() { return 'eArsiv' }*/ get xsltBelirtec() { return 'EArsiv' }
 }
 

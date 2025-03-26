@@ -64,10 +64,9 @@ var proto = XMLWriter.prototype = {
 	},
 	//add a text node to the active node
 	writeString:function( text ){
-		if (text == null)
-			return
-		if( this.active )
-			this.active.c.push(text.toString());
+		if (text == null) { return }
+		if (window.escapeXML) { text = escapeXML(text.toString()) }
+		if(this.active) { this.active.c.push(text.toString()) }
 	},
 	//add plain xml content to the active node without any further checks and escaping
 	writeXML:function( text ){

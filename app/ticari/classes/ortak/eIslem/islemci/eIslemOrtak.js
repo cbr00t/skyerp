@@ -161,7 +161,10 @@ class EIslemOrtak extends CObject {
 		xw.writeElements({ 'cbc:ID': baslik.fisnox, 'cbc:CopyIndicator': false, 'cbc:UUID': baslik.uuid, 'cbc:IssueDate': baslik.tarihStr, 'cbc:IssueTime': baslik.sevkTarihStr })
 	}
 	xmlDuzenle_belgeTipKodu(e) { }
-	xmlDuzenle_notes(e) { const {dipNotlar} = this, {xw} = e; if (!$.isEmptyObject(dipNotlar)) { for (const value of dipNotlar) { xw.writeElementString('cbc:Note', escapeXML(value)) } } }
+	xmlDuzenle_notes({ xw }) {
+		let {dipNotlar} = this; if (!$.isEmptyObject(dipNotlar)) {
+			for (const value of dipNotlar) { xw.writeElementString('cbc:Note', escapeXML(value)) } }
+	}
 	xmlDuzenle_doviz(e) { }
 	xmlDuzenleInternal_doviz(e) {
 		const {xw} = e, {dvKod} = this;
@@ -178,18 +181,19 @@ class EIslemOrtak extends CObject {
 		const {params} = app, {isyeri} = params, param_zorunlu = params.zorunlu, param_stok = params.stokGenel, param_eIslem = params.eIslem, param_eIslemKullanim = param_eIslem.kullanim;
 		const param_eIslemKural = param_eIslem.kural, {baslik, dvKod, dvKur} = this, {eYontem} = baslik, {xw} = e;
 		await this.xmlDuzenle_docRefs_sgk(e); await this.xmlDuzenle_docRefs_qrCode(e); await this.xmlDuzenle_docRefs_eIslemEkBilgi(e); await this.xmlDuzenle_docRefs_xslt(e);
-		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'DVKUR', value: `(${dvKod}) ${toStringWithFra(roundToBedelFra(Math.abs(dvKur)))}` });
-		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'BEDEL_FORMAT_STR', value: `##.##0,${'0'.repeat(param_zorunlu.bedelFra || 5)}` });
-		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'GENEL_PUNTO', value: param_eIslem.goruntuOzelPunto });
-		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'FIYAT_GOSTERIM_KURALI', value: param_eIslemKural.fiyat.char ?? '' });
-		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'DOVIZ_GOSTERIM_KURALI', value: param_eIslemKural.doviz.char ?? '' });
-		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'MIKTAR_GOSTERIM_KURALI', value: param_eIslemKural.miktar.char ?? '' });
-		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'SATIRDA_MIKTAR2', value: (param_stok.miktar2 && param_eIslemKullanim.miktar.birliktemi) ?? false });
+		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'BEDEL_FORMAT_STR', value: `##.##0,${'0'.repeat(param_zorunlu.bedelFra || 2)}` });
+		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'FIYAT_FORMAT_STR', value: `##.##0,${'0'.repeat(param_zorunlu.fiyatFra || 5)}` });
 		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'SATIRDA_BARKOD', value: (param_eIslemKullanim.satirBarkod && !eYontem?.barkodReferansKaldir) ?? false });
+		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'SATIRDA_MIKTAR2', value: (param_stok.miktar2 && param_eIslemKullanim.miktar.birliktemi) ?? false });
 		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'SATIRDA_ISKONTO_BEDELI', value: (param_eIslemKullanim.satirIskBedeli && !param_eIslemKural.fiyat.netmi) ?? false });
 		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'SATIRDA_KDV', value: param_eIslemKullanim.satirKdv ?? false });
 		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'SATIRDA_DIGER_VERGILER', value: param_eIslemKullanim.satirDigerVergi ?? false });
 		/*await this.xmlDuzenleInternal_docRefParam({ xw, name: 'DIPTE_VERGILER_DAHIL_TOPLAM_TUTAR', value: true });*/
+		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'GENEL_PUNTO', value: param_eIslem.goruntuOzelPunto });
+		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'FIYAT_GOSTERIM_KURALI', value: param_eIslemKural.fiyat.char ?? '' });
+		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'DOVIZ_GOSTERIM_KURALI', value: param_eIslemKural.doviz.char ?? '' });
+		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'MIKTAR_GOSTERIM_KURALI', value: param_eIslemKural.miktar.char ?? '' });
+		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'DVKUR', value: `(${dvKod}) ${toStringWithFra(roundToBedelFra(Math.abs(dvKur)))}` });
 		if (param_eIslemKullanim.baslikMusteriKod) { await this.xmlDuzenle_docRefs_mustKod(e) }
 		await this.xmlDuzenle_docRefs_vioFisBilgi(e); await this.xmlDuzenle_docRefs_yalnizYazisi(e)
 	}
