@@ -20,8 +20,8 @@ class CObject {
 	}
 	static get subClasses() { let result = this._subClasses; if (result === undefined) { result = this._subClasses = Object.values(this.key2SubClasses) } return result }
 	static get instance() { const {classKey, _class2SingletonInstance} = this; return _class2SingletonInstance[classKey] = _class2SingletonInstance[classKey] ?? new this() }
-	get super1() { return this.superN(1) } get super2() { return this.superN(2) } get super3() { return this.superN(3) }
-	get super4() { return this.superN(4) } get super5() { return this.superN(5) } get super6() { return this.superN(6) }
+	/*get super1() { return this.superN(1) } get super2() { return this.superN(2) } get super3() { return this.superN(3) }
+	get super4() { return this.superN(4) } get super5() { return this.superN(5) } get super6() { return this.superN(6) }*/
 	superN(n) {
 		if (!n || n < 1) { return null }
 		/* let result = this[`super${n}`]; if (result !== undefined) { return result } */

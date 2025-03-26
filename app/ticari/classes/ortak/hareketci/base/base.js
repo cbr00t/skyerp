@@ -91,8 +91,8 @@ class Hareketci extends CObject {
 		$.extend(hv, {
 			fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac', ozelisaret: 'fis.ozelisaret', bizsubekod: 'fis.bizsubekod', tarih: 'fis.tarih',
 			seri: 'fis.seri', fisno: 'fis.no', fisnox: 'fis.fisnox', disfisnox: 'fis.fisnox', ba: 'fis.ba', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
-			fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama',
-			muhfissayac: 'fis.muhfissayac', sonzamants: 'fis.sonzamants', karsiodemetarihi: ({ hv }) => hv.vade
+			fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', muhfissayac: 'fis.muhfissayac', sonzamants: 'fis.sonzamants',
+			karsiodemetarihi: ({ hv }) => hv.vade
 		})
 	}
 	uygunluk2UnionBilgiListeDuzenle(e) { if (this.class.uygunmu) { this.uygunluk2UnionBilgiListeDuzenleDevam(e) } }
