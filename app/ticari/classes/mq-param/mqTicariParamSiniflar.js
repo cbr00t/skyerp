@@ -477,6 +477,8 @@ class MQWebParam extends MQTicariParamBase {
 	paramSetValues({ rec }) {
 		super.paramSetValues(...arguments);
 		for (let key of ['sablonSip_degisiklik', 'sablonSip_eMail']) { this[key] = this[key] ?? true }
+		let {sablonDefKisit} = this; if (sablonDefKisit?.sablonDefKisit) {
+			$.extend(sablonDefKisit, sablonDefKisit.sablonDefKisit); delete sablonDefKisit.sablonDefKisit }
 	}
 }
 class MQTabletParam extends MQTicariParamBase {

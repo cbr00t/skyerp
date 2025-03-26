@@ -38,7 +38,7 @@ class CObject {
 	}
 	static From(e) {
 		e = e || {}; const inst = new this();
-		for (const [key, value] in Object.entries(e)) { inst[key] = value }
+		for (const [key, value] of Object.entries(e)) { inst[key] = value }
 		return inst
 	}
 	static Serialize(e) {

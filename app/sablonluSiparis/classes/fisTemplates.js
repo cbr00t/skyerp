@@ -85,6 +85,16 @@ class SablonluSiparisFisTemplate extends CObject {
 		let {detaySinif, konsinyemi} = fis.class; islem = islem || belirtec;
 		let yenimi = islem == 'yeni', onaylaVeyaSilmi = (islem == 'onayla' || islem == 'sil');
 		tarih = fis.tarih = tarih || today();
+		let {numarator} = fis, {numTipKod} = fis.class; if (numarator) { numarator.belirtec = 'W' }
+		/*numSayac = app.param.web.x;
+		if (numSayac) {
+			let sent = new MQSent({
+				from: 'tnumara', where: [{ degerAta: numTipKod, saha: 'tip' }, { degerAta: numSayac, saha: 'sayac' }],
+				sahalar: ['belirtec']
+			})
+			let belirtec = await app.sqlExecTekilDeger(sent);
+			if (belirtec) { numarator.belirtec = belirtec }
+		}*/
 		let kapsam = { tarih, subeKod, mustKod }, kosulYapilar = SatisKosulYapi.yukle({ kapsam });
 		let sent = new MQSent({
 			from: 'hizlisablon sab', fromIliskiler: [
@@ -137,10 +147,10 @@ class SablonluSiparisFisTemplate extends CObject {
 				let sent = new MQSent(), {where: wh, sahalar} = sent;
 				sent.fisHareket('hizlisablonkisit', 'hizlisablonkisitdetay');
 				wh.degerAta(sablonSayac, 'fis.sablonsayac').inDizi(stokKodListe, 'har.stokkod');
-				wh.add(
+				wh.add(new MQOrClause([
 					new MQAndClause([`fis.kayittipi = ''`, { degerAta: subeKod ?? '', saha: 'fis.subekod' }]),
 					new MQAndClause([`fis.kayittipi = 'M'`, { degerAta: mustKod, saha: 'fis.mustkod' }])
-				);
+				]));
 				sahalar.add('fis.kayittipi kayitTipi', 'har.stokkod stokKod');
 				let tip2StokKodSet = { sube: {}, musteri: {} };
 				for (let {kayitTipi, stokKod} of await app.sqlExecSelect(sent)) {
@@ -148,7 +158,7 @@ class SablonluSiparisFisTemplate extends CObject {
 					tip2StokKodSet[selector][stokKod] = true
 				}
 				if (
-					(defKisit_sube && $.isEmptyObject(tip2StokKodSet.sube)) ||
+					(defKisit_sube && $.isEmptyObject(tip2StokKodSet.sube)) &&
 					(defKisit_musteri && $.isEmptyObject(tip2StokKodSet.musteri))
 				) { recs = null }
 				else {
@@ -159,11 +169,13 @@ class SablonluSiparisFisTemplate extends CObject {
 							if (!_izinliStokKodSet[key]) { delete izinliStokKodSet[key] } }
 					}
 					else { izinliStokKodSet = _izinliStokKodSet }
-					if ($.isEmptyObject(izinliStokKodSet)) { izinliStokKodSet = null }
+					if (!(defKisit_sube || defKisit_musteri) && $.isEmptyObject(izinliStokKodSet)) { izinliStokKodSet = null }
 				}
 			}
 		}
-		if (!recs?.length) {
+		if (izinliStokKodSet && recs?.length) {    /* izinliStokKodSet içindeki kayıtlar filtrelenir */
+			recs = recs.filter(({ shkod: stokKod }) => !!izinliStokKodSet[stokKod]) }
+		if (recs && !recs?.length) {
 			let mustUnvan = mustKod ? await MQSCari.getGloKod2Adi(mustKod) : null;
 			let sablonAdi = sablonSayac ? await MQSablonOrtak.getGloKod2Adi(sablonSayac) : null;
 			throw {
@@ -307,7 +319,7 @@ class SablonluSiparisGridciTemplate extends CObject {
 						let value = rec[`iskOran${i}`]; if (value) { result.push(value) } }
 					return changeTagContent(html, result.length ? `%${result.join(' + ')}` : '')
 				}
-			}).readOnly().sifirGosterme() : null).readOnly(),
+			}).readOnly().sifirGosterme() : null)?.readOnly(),
 			new GridKolon({ belirtec: 'netBedel', text: 'Net Bedel', genislikCh: 13, groupable: false }).readOnly().tipDecimal_bedel().sifirGosterme()
 		].filter(x => !!x))
 	}

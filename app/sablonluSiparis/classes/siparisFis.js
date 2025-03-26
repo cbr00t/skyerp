@@ -3,6 +3,7 @@ class SablonluSatisSiparisFis extends SatisSiparisFis {
 	static get sablonSinif() { return MQSablonOrtak } static get templateSinif() { return SablonluSiparisFisTemplate } get templateSinif() { return this.class.templateSinif }
 	static get detaySinif() { return SablonluSatisSiparisDetay } static get gridKontrolcuSinif() { return SablonluSatisSiparisGridci }
 	static get numaratorGosterilirmi() { return this.templateSinif.numaratorGosterilirmi } static get dipGirisYapilirmi() { return this.templateSinif.dipGirisYapilirmi }
+	static get numYapi() { let result = super.numYapi; if (result) { result.seri = 'ABC' } return result }
 	static detaySiniflarDuzenle(e) { /* super yok - 'this.detaySiniflar' boş ise 'this.detaySinif' kullanılır */ }
 	static getUISplitHeight(e) { e = e ?? {}; e.fisSinif = this; return this.templateSinif.getUISplitHeight(e) }
 	static pTanimDuzenle(e) { e = e ?? {}; e.fisSinif = this; super.pTanimDuzenle(e); this.templateSinif.pTanimDuzenle(e) }

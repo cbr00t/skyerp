@@ -251,11 +251,11 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		fisSayac = fisSayac || fis?.sayac; parentRec = parentRec ?? rec?._parentRec;
 		const {fiyatFra, bedelFra} = app.params.zorunlu, dvKod = fis.dvKod || 'TL';
 		let to = [], cc = [], bcc = [], eMailYapi = await this.getEMailYapi({ fisSayac }) ?? {};
+		let {email_sablonEk} = parentRec; if (email_sablonEk) {
+			email_sablonEk = email_sablonEk.split(';').map(x => x.trim()).filter(x => !!x);
+			if (email_sablonEk?.length) { $.extend(eMailYapi, { sablonEk: email_sablonEk }) }
+		}
 		if (!$.isEmptyObject(eMailYapi)) {
-			let {email_sablonEk} = parentRec; if (email_sablonEk) {
-				email_sablonEk = email_sablonEk.split(';').map(x => x.trim()).filter(x => !!x);
-				if (email_sablonEk?.length) { $.extend(eMailYapi, { email_sablonEk }) }
-			}
 			let eMailSelectors = ['buFirma', 'sablon', 'sablonEk', 'bolge', 'ozel', (musterimi ? 'alici' : 'teslimatci')].filter(x => !!x), eMailSet = {};
 			for (let selector of eMailSelectors) {
 				let eMails = eMailYapi[selector]?.filter(x => x?.length >= 5 && x.includes('@')) ?? [];

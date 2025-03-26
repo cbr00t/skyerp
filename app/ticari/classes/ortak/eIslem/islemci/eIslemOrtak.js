@@ -222,21 +222,25 @@ class EIslemOrtak extends CObject {
 			qrData[`kdvmatrah(${oran})`] = toFileStringWithFra(matrah, 2);
 			qrData[`hesaplanankdv(${oran})`] = toFileStringWithFra(bedel || 0, 2)
 		}
-		const format = 'png', mimeType = `image/${format}`, encodedQRData = toJSONStr(qrData), type = 'KAREKOD_IMG';
+		let format = 'jpg', encodedQRData = toJSONStr(qrData), type = 'KAREKOD_IMG';
 		let imgData, qrURL = `https://api.qrserver.com/v1/create-qr-code/?charset-source=utf-8&ecc=L&size=180x180&qzone=1&format=${format}&data=${encodedQRData}`;
 		try {
-			let {base64URL} = new QRGenerator().qrDraw(qrData, format) ?? {};  /* img.data bakılacak */
-			imgData = base64URL; if (!imgData) { throw { isError: true, rc: 'noImgData' } }
+			let {imageURL, mimeType} = new QRGenerator().qrDraw(qrData, format) ?? {};
+			imgData = await imageURL; if (!imgData) { throw { isError: true, rc: 'noImgData' } }
 			/*if (imgData) { imgData = imgData.split(',', 2)[1] || imgData }*/
 		}
 		catch (_ex) {
-			try { imgData = `data:image/jpeg;base64,${(await app.wsWebRequest({ args: { method: 'GET', url: qrURL } }))?.data?.binary}` }
+			const mimeType = `image/${format == 'jpg' ? 'jpeg' : format}`;
+			try { imgData = `data:${mimeType};base64,${(await app.wsWebRequest({ args: { method: 'GET', url: qrURL } }))?.data?.binary}` }
 			catch (ex) { console.error(getErrorText(ex))}
 		}
 		if (imgData) {
-			await this.xsltDuzenleyiciEkle({ args: { type, imgData }, handler: e => e.result.replaceAll(`[${e.args.type}]`, imgData /*`data:image/jpeg;base64,${imgData}`*/ ) });
+			await this.xsltDuzenleyiciEkle({
+				args: { type, imgData },
+				handler: ({ result, args }) => result.replaceAll(`[${args.type}]`, args.imgData /*`data:image/jpeg;base64,${imgData}`*/ )
+			});
 			await this.xmlDuzenleInternal_docRef({ xw, id: '0', type: 'KAREKOD_IMG', typeCode: 'dynamic' })
-			/*this.xmlDuzenleInternal_docRef({ xw, id: '0', type, attachment: { mimeType, value: imgData, fileName: `${type}.png` } })*/
+			/*-- iptal --  this.xmlDuzenleInternal_docRef({ xw, id: '0', type, attachment: { mimeType, value: imgData, fileName: `${type}.png` } })*/
 		}
 		else { await this.xmlDuzenleInternal_docRef({ xw, id: '0', typeCode: qrURL, type }) }
 	}

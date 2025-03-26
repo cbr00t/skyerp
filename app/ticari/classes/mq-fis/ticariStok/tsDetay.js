@@ -404,9 +404,10 @@ class TSStokDetayOrtak extends TSStokHizmetDetay {
 	hmrPropertyleriOlustur(e) {
 		e = e ?? {}; const {hmr} = this; if (!hmr) { return }
 		for (const {ioAttr, adiAttr} of hmr.hmrIter()) {
+			let adiVarmi = adiAttr && adiAttr != ioAttr;
 			Object.defineProperty(this, ioAttr, { get: () => this.hmr[ioAttr], set: value => this.hmr[ioAttr] = value });
-			if (adiAttr) { Object.defineProperty(this, adiAttr, { get: () => this.hmr[adiAttr], set: value => this.hmr[adiAttr] = value }) }
-			this[ioAttr] = e[ioAttr]; this[adiAttr] = e[adiAttr]
+			if (adiVarmi) { Object.defineProperty(this, adiAttr, { get: () => this.hmr[adiAttr], set: value => this.hmr[adiAttr] = value }) }
+			this[ioAttr] = e[ioAttr]; if (adiVarmi) { this[adiAttr] = e[adiAttr] }
 		}
 	}
 }

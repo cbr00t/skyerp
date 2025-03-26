@@ -1,4 +1,5 @@
 class QRGenerator extends CObject {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
     static get defaultFormat() { return 'bmp' } static get defaultWaitMS() { return 1000 }
 	makeQR(data) {
 		data = data ?? ''; if (typeof data == 'object') { data = toJSONStr(data) }
@@ -41,11 +42,15 @@ class QRGenerator extends CObject {
 		}
 		return new Blob([buf], { type: 'image/bmp' })
 	}
-	createPNG(img) {
+	createPNG(img) { return this.createX(img, 'png') }
+	createJPG(img) { return this.createX(img, 'jpeg') }
+	createX(img, format) {
+		if (format == 'jpg') { format = 'jpeg' }
+		let type = `image/${format}`;
 		let canvas = document.createElement('canvas'), {width, height} = img; Object.assign(canvas, { width, height });
 		let ctx = canvas.getContext('2d'); ctx.putImageData(img, 0, 0);
-		let dataUrl = canvas.toDataURL('image/png'), arr = Base64.toUint8Array(dataUrl.split(',')[1]);
-		return new Blob([arr], { type: 'image/png' })
+		let dataUrl = canvas.toDataURL(type), arr = Base64.toUint8Array(dataUrl.split(',')[1]);
+		return new Blob([arr], { type })
 	}
 	getFileName(ext, prefix) {
 		let now = new Date(), ts = now.toISOString().replace(/[-T:.Z]/g, '').slice(0, 14)
@@ -53,8 +58,28 @@ class QRGenerator extends CObject {
 	}
     qrDraw(data, format, prefix) {
 		format = format || this.class.defaultFormat; let img = this.makeQR(data); if (!img) { return null }
-        let selector = format == 'png' ? 'createPNG' : 'createBMP', blob = this[selector](img);
-		let base64URL = URL.createObjectURL(blob); return { data, img, base64URL, blob }
+        let selector = format == 'bmp' ? 'createBMP' : 'createX', blob = this[selector](img, format);    /* ** createBMP() için tek arg var ancak js ignore eder */
+		let mimeType = `image/${format == 'jpg' ? 'jpeg' : format}`, result = (class extends CObject {
+			get blobURL() {
+				let {_blobURL: result, blob} = this;
+				if (result == null) { result = this._blobURL = blob ? URL.createObjectURL(blob) : null }
+				return result
+			}
+			get imageURL() {
+				let {_imageURL: result, blob} = this; if (result == null) {
+					result = this._imageURL = blob
+						? new $.Deferred(p => {
+							const reader = new FileReader();
+						    reader.onloadend = () => p.resolve(reader.result);			/* data:image/png;base64,... */
+						    reader.onerror = p.reject;
+						    reader.readAsDataURL(blob)
+						})
+						: null
+				}
+				return result
+			}
+		}).From({ mimeType, data, img, blob });
+		return result
     }
 	qrSave(blob, format, prefix) {
         format = format || this.class.defaultFormat; let fileName = this.getFileName(format, prefix);
