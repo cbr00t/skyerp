@@ -58,15 +58,15 @@ var proto = XMLWriter.prototype = {
 		this.active = this.stack.pop() || this.root;
 	},
 	//add an attribute to the active node
-	writeAttributeString:function( name, value ){
-		if( this.active )
-			this.active.a[name] = value;
+	writeAttributeString: function( name, value ){
+		if (typeof value == 'string' && window.escapeXML) { value = escapeXML(value) }
+		if (this.active) { this.active.a[name] = value }
 	},
 	//add a text node to the active node
-	writeString:function( text ){
+	writeString: function( text ){
 		if (text == null) { return }
 		if (window.escapeXML) { text = escapeXML(text.toString()) }
-		if(this.active) { this.active.c.push(text.toString()) }
+		if (this.active) { this.active.c.push(text.toString()) }
 	},
 	//add plain xml content to the active node without any further checks and escaping
 	writeXML:function( text ){
