@@ -410,6 +410,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		for (let oran2Recs of Object.values(vergiTip2Oran2EVergiRecs_tevkifatsiz))
 		for (let eSatirlar of Object.values(oran2Recs))
 		for (let eRec of eSatirlar) { toplamBedel += eRec.bedelYapi[bedelSelector] }
+		if (!toplamBedel) { return }
 		xw.writeElementBlock('cac:TaxTotal', null, () => {
 			xw.writeElementString('cbc:TaxAmount', toFileStringWithFra(toplamBedel, 2), null, xattrYapi_bedel);
 			for (const oran2VergiRecs of Object.values(vergiTip2Oran2EVergiRecs_tevkifatsiz))
@@ -432,6 +433,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		if ($.isEmptyObject(vergiRecs_tevkifatlar)) { return }
 		let {bedelSelector, xattrYapi_bedel, dovizlimi} = this, toplamBedel = 0;
 		for (const eRec of vergiRecs_tevkifatlar) { toplamBedel += eRec.bedelYapi[bedelSelector] }
+		if (!toplamBedel) { return }
 		xw.writeElementBlock('cac:WithholdingTaxTotal', null, () => {
 			xw.writeElementString('cbc:TaxAmount', toFileStringWithFra(toplamBedel, 2), null, xattrYapi_bedel);
 			for (const eRec of vergiRecs_tevkifatlar) {
@@ -475,18 +477,18 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		};
 		xw.writeElementBlock('cac:TaxTotal', null, () => {
 			xw.writeElementString('cbc:TaxAmount', toFileStringWithFra(toplamBedel, 2), null, xattrYapi_bedel);
-			for (let [tip, rec] in Object.entries(tip2VergiYapi)) {
-				if (!rec) { continue }
+			for (let [tip, rec] of Object.entries(tip2VergiYapi)) {
+				if (!rec) { continue } let {bedel, istisnaKod} = rec;
 				xw.writeElementBlock('cac:TaxSubtotal', null, () =>
 					xw.writeElementString('cbc:TaxableAmount', toFileStringWithFra(matrah, 2), null, xattrYapi_bedel)
 					  .writeElementString('cbc:TaxAmount', toFileStringWithFra(rec.bedel || 0, 2), null, xattrYapi_bedel)
 					  .writeElementString('cbc:CalculationSequenceNumeric', '2.0')
 					  .writeElementString('cbc:Percent', rec.oran || 0)
 					  .writeElementBlock('cac:TaxCategory', null, () => {
-						  let {istisnaKod} = rec; if (istisnaKod) {
+						  if (istisnaKod) {
 							  if (!tumIstisnaDict) { tumIstisnaDict = MQVergi.getTumIstisnaDict() }
 							  xw.writeElementString('cbc:TaxExemptionReasonCode', istisnaKod);
-							  xw.writeElementString('cbc:TaxExemptionReason', (tumIstisnaDict[istisnaKod] || {}).aciklama || '.')
+							  xw.writeElementString('cbc:TaxExemptionReason', tumIstisnaDict[istisnaKod]?.aciklama || '.')
 						  }
 						  xw.writeElementBlock('cac:TaxScheme', null, () =>
 							  xw.writeElementString('cbc:Name', rec.taxName || '')
@@ -497,66 +499,68 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 			}
 		})
 	}
-	xmlDuzenle_detayDevam_tevkifatli_taxTotal(e) {
+	xmlDuzenle_detayDevam_tevkifatli_taxTotal({ xw, detay: det }) {
 		/* 'har.detkdvekvergitipi', 'har.detistisnakod',
 			'har.perkdv', 'har.pertevkifat', 'har.perstopaj', 'kver.kdvorani', 'sver.stopajorani',
 			'tevver.kdvtevoranx', 'tevver.kdvtevoranpay', 'tevver.tevislemturu' */
-		super.xmlDuzenle_detayDevam_tevkifatli_taxTotal(e);
-		const {xw} = e, {bedelSelector, xattrYapi_bedel, dovizlimi} = this;
-		const det = e.detay, matrah = det.bedel, bedel = det.pertevkifat || 0, oran = (det.kdvtevoranpay || 0) * 10, toplamBedel = bedel;
-		if (bedel) {
-			let tevkifatDict;
-			xw.writeElementBlock('cac:WithholdingTaxTotal', null, () => {
-				xw.writeElementString('cbc:TaxAmount', toFileStringWithFra(toplamBedel, 2), null, xattrYapi_bedel);
-				xw.writeElementBlock('cac:TaxSubtotal', null, () => {
-					xw
-						.writeElementString('cbc:TaxableAmount', toFileStringWithFra(matrah, 2), null, xattrYapi_bedel)
-						.writeElementString('cbc:TaxAmount', toFileStringWithFra(bedel, 2), null, xattrYapi_bedel)
-						.writeElementString('cbc:CalculationSequenceNumeric', '2.0')
-						.writeElementString('cbc:Percent', oran)
-						.writeElementBlock('cac:TaxCategory', null, () => {
-							xw.writeElementBlock('cac:TaxScheme', null, () => {
-								const tevIslemTuru = det.tevislemturu;
-								if (!tevkifatDict) { tevkifatDict = MQVergi.getTevkifatDict() }
-								xw.writeElementString('cbc:Name', tevkifatDict[tevIslemTuru]?.aciklama || '.').writeElementString('cbc:TaxTypeCode', tevIslemTuru)
-							})
+		super.xmlDuzenle_detayDevam_tevkifatli_taxTotal(...arguments);
+		const {bedelSelector, xattrYapi_bedel, dovizlimi} = this;
+		let {bedel: matrah, pertevkifat, kdvtevoranpay} = det, bedel = pertevkifat || 0, oran = (kdvtevoranpay || 0) * 10;
+		let toplamBedel = bedel; if (!toplamBedel) { return }
+		let tevkifatDict; xw.writeElementBlock('cac:WithholdingTaxTotal', null, () => {
+			xw.writeElementString('cbc:TaxAmount', toFileStringWithFra(toplamBedel, 2), null, xattrYapi_bedel);
+			xw.writeElementBlock('cac:TaxSubtotal', null, () => {
+				xw
+					.writeElementString('cbc:TaxableAmount', toFileStringWithFra(matrah, 2), null, xattrYapi_bedel)
+					.writeElementString('cbc:TaxAmount', toFileStringWithFra(bedel, 2), null, xattrYapi_bedel)
+					.writeElementString('cbc:CalculationSequenceNumeric', '2.0')
+					.writeElementString('cbc:Percent', oran)
+					.writeElementBlock('cac:TaxCategory', null, () => {
+						xw.writeElementBlock('cac:TaxScheme', null, () => {
+							let {tevislemturu: tevIslemTuru} = det; if (!tevkifatDict) { tevkifatDict = MQVergi.getTevkifatDict() }
+							xw.writeElementString('cbc:Name', tevkifatDict[tevIslemTuru]?.aciklama || '.').writeElementString('cbc:TaxTypeCode', tevIslemTuru)
 						})
-				})
+					})
 			})
-		}
+		})
 	}
-	xmlDuzenle_detayDevam_item_additionalItemIds_miktar2(e) {
-		super.xmlDuzenle_detayDevam_item_additionalItemIds_miktar2(e); const det = e.detay, result = det.eMiktarYapi, {miktar2} = result || {};
-		if (miktar2) {
-			const brm2 = result.brm || det.brm2;
-			this.xmlDuzenleInternal_detAdditionalIdent({ xw: e.xw, schemeID: 'MIKTAR2GORUNUM', id: miktar2 })
-			this.xmlDuzenleInternal_detAdditionalIdent({ xw: e.xw, schemeID: 'BRM2GORUNUM', id: brm2 })
-		}
+	xmlDuzenle_detayDevam_item_additionalItemIds_miktar2({ xw, detay: det }) {
+		super.xmlDuzenle_detayDevam_item_additionalItemIds_miktar2(...arguments); let {eMiktarYapi: result} = det;
+		let {miktar2} = result || {}; if (!miktar2) { return }
+		let  brm2 = result.brm || det.brm2;
+		this.xmlDuzenleInternal_detAdditionalIdent({ xw, schemeID: 'MIKTAR2GORUNUM', id: miktar2 })
+		this.xmlDuzenleInternal_detAdditionalIdent({ xw, schemeID: 'BRM2GORUNUM', id: brm2 })
 	}
-	xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat(e) {
-		super.xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat(e);
-		const det = e.detay, {dovizlimi} = this, result = det.getEFiyatYapi({ dovizlimi }), {netFiyat} = result || {};
+	xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat({ xw, detay: det }) {
+		super.xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat(...arguments);
+		let {dovizlimi} = this, result = det.getEFiyatYapi({ dovizlimi }), {netFiyat} = result || {};
 		if (netFiyat) {
 			const fiyatFra = app.params.zorunlu.fiyatFra || 6;
-			this.xmlDuzenleInternal_detAdditionalIdent({ xw: e.xw, schemeID: 'NET_FIYAT', id: toFileStringWithFra(netFiyat, fiyatFra) })
+			this.xmlDuzenleInternal_detAdditionalIdent({ xw, schemeID: 'NET_FIYAT', id: toFileStringWithFra(netFiyat, fiyatFra) })
 		}
 	}
-	xmlDuzenle_detayDevam_miktar(e) {
-		super.xmlDuzenle_detayDevam_miktar(e);
-		const det = e.detay, result = det.eMiktarYapi, brm = result.brm || det.brm, ulsBrm = app.params.stokBirim.brmDict[brm]?.intKod || 'NIU';			/* NIU = AD */
+	xmlDuzenle_detayDevam_miktar({ xw, detay: det }) {
+		super.xmlDuzenle_detayDevam_miktar(...arguments); let {eMiktarYapi: result} = det;
+		let brm = result.brm || det.brm, ulsBrm = app.params.stokBirim.brmDict[brm]?.intKod || 'NIU';			/* NIU = AD */
 		if (!ulsBrm) { throw { isError: true, rc: 'brmUls', errorText: `<b class="royalblue">${brm}</b> Stok Birim kodu için <u class="bold royalblue">Uls. Kod Karşılığı</u>, Stok Birim Parametrelerinden tanımlanmalıdır` } }
-		e.xw.writeElementString('cbc:InvoicedQuantity', result.asilMiktar || 0, null, { unitCode: ulsBrm })
+		xw.writeElementString('cbc:InvoicedQuantity', result.asilMiktar || 0, null, { unitCode: ulsBrm })
 	}
-	xmlDuzenle_detayDevam_fiyat(e) {
-		super.xmlDuzenle_detayDevam_fiyat(e); const {xw} = e, det = e.detay, result = det.getEFiyatYapi({ dovizlimi: this.dovizlimi });
-		if (result) {
-			xw.writeElementBlock('cac:Price', null, () =>
-				xw.writeElementString('cbc:PriceAmount', toFileStringWithFra(result.asilFiyat || 0, app.params.zorunlu.fiyatFra || 6), null, this.xattrYapi_bedel))
-		}
+	xmlDuzenle_detayDevam_fiyat({ xw, detay: det }) {
+		super.xmlDuzenle_detayDevam_fiyat(...arguments); let result = det.getEFiyatYapi({ dovizlimi: this.dovizlimi });
+		if (!result) { return }
+		xw.writeElementBlock('cac:Price', null, () =>
+			xw.writeElementString('cbc:PriceAmount', toFileStringWithFra(result.asilFiyat || 0, app.params.zorunlu.fiyatFra || 6), null, this.xattrYapi_bedel))
 	}
-	xmlGetProfileID(e) { const {baslik} = this; return this.class.eArsivmi ? 'EARSIVFATURA': baslik.alimIademi ? 'TEMELFATURA' : EIslemSenaryo.getSenaryoText(baslik.carsenaryo) }
+	xmlGetProfileID(e) {
+		const {baslik, class: cls} = this; return (
+			cls.eArsivmi ? 'EARSIVFATURA':
+			baslik.alimIademi ? 'TEMELFATURA' :
+			EIslemSenaryo.getSenaryoText(baslik.carsenaryo)
+		)
+	}
 	xmlGetBelgeTipKodu(e) {
-		let {baslik, detaylar, icmal, bedelSelector} = this, {fistipi: fisTipi, ayrimtipi: ayrimTipi, alimIademi, eYontem} = baslik, {eIslem} = app.params;
+		let {baslik, detaylar, icmal, bedelSelector} = this, {eIslem} = app.params;
+		let {fistipi: fisTipi, ayrimtipi: ayrimTipi, alimIademi, eYontem} = baslik;
 		if (alimIademi) { return fisTipi == 'SR' ? 'TEVKIFATIADE' : 'IADE' }
 		if (fisTipi == 'TV') { return 'TEVKIFAT' }
 		if (ayrimTipi == 'IK') { return 'IHRACKAYITLI' }
@@ -581,12 +585,6 @@ class EIslFatura extends EIslFaturaArsivOrtak {
 	static get kisaAdi() { return 'e-Fat' } /*static get paramSelector() { return 'eFatura' }*/
 	get xsltBelirtec() { return 'EFatura' }
 }
-class EIslIhracat extends EIslFatura {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get eIhracatmi() { return true } static get tip() { return 'IH' }
-	static get sinifAdi() { return 'e-İhracat' } static get kisaAdi() { return 'e-İhr' }
-	/*static get paramSelector() { return 'eIhracat' }*/ get xsltBelirtec() { return 'EIhracat' }
-}
 class EIslArsiv extends EIslFaturaArsivOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get eArsivmi() { return true } static get ortakSinif() { return EIslFaturaArsivOrtak }
@@ -594,4 +592,9 @@ class EIslArsiv extends EIslFaturaArsivOrtak {
 	static get sinifAdi() { return 'e-Arşiv' } static get kisaAdi() { return 'e-Arş' }
 	/*static get paramSelector() { return 'eArsiv' }*/ get xsltBelirtec() { return 'EArsiv' }
 }
-
+class EIslIhracat extends EIslFatura {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get eIhracatmi() { return true } static get tip() { return 'IH' }
+	static get sinifAdi() { return 'e-İhracat' } static get kisaAdi() { return 'e-İhr' }
+	/*static get paramSelector() { return 'eIhracat' }*/ get xsltBelirtec() { return 'EIhracat' }
+}
