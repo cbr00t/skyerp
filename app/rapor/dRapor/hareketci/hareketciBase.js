@@ -9,8 +9,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		super.onInit(e); let {hareketciSinif} = this.class;
 		this.hareketci = new hareketciSinif()
 	}
-	secimlerDuzenle(e) {
-		super.secimlerDuzenle(e); const {secimler: sec} = e, {hareketci} = this, {hareketTipSecim: tekSecim} = hareketci.class;
+	secimlerDuzenle({ secimler: sec }) {
+		super.secimlerDuzenle(...arguments); let {hareketci} = this, {hareketTipSecim: tekSecim} = hareketci.class;
 		sec.secimTopluEkle({ tip: new SecimBirKismi({ etiket: 'Tip', tekSecim, grupKod: 'donemVeTarih' }).birKismi().autoBind() })
 	}
 	secimlerInitEvents(e) {
@@ -31,20 +31,24 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		this.tabloYapiDuzenle_baBedel(e)
 	}
 	loadServerData_queryDuzenle(e) {
-		e.alias = e.alias ?? 'hrk'; let {stm, attrSet} = e, {hareketci, raporTanim} = this, {yatayAnaliz} = raporTanim.kullanim, {uygunluk} = hareketci;
-		hareketci.reset(); let {varsayilanHV: hrkDefHV} = hareketci.class; $.extend(e, { hareketci, hrkDefHV });
+		e.alias = e.alias ?? 'hrk'; let {stm, attrSet} = e, {hareketci, raporTanim} = this, {yatayAnaliz} = raporTanim.kullanim;
+		hareketci.reset(); let {uygunluk} = hareketci, uygunlukVarmi = !$.isEmptyObject(uygunluk);
+		let {varsayilanHV: hrkDefHV} = hareketci.class; $.extend(e, { hareketci, hrkDefHV });
 		if (yatayAnaliz) { attrSet[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod] = true }
 		let uni = e.uni = stm.sent = new MQUnionAll(), {uygunluk2UnionBilgiListe} = hareketci, _e = { ...e, hrkDefHV, temps: {} }
 		for (let [selectorStr, unionBilgiListe] of Object.entries(uygunluk2UnionBilgiListe)) {
-			let selectors = selectorStr.split('$').filter(x => !!x);
-			let uygunmu = selectors.find(selector => uygunluk[selector]); if (!uygunmu) { continue }
+			let uygunmu = true; if (uygunlukVarmi) {
+				let anahStr = selectorStr.split('$').filter(x => !!x).join('$');
+				uygunmu = uygunlukVarmi ? !!uygunluk[anahStr] : true; if (!uygunmu) { continue }
+			}
 			unionBilgiListe = unionBilgiListe.map(item => getFuncValue.call(this, item, e)).filter(x => !!x);
 			for (let { sent, hv: hrkHV } of unionBilgiListe) {
 				$.extend(_e, {
 					sent, hrkHV, hvDegeri: key => this.hrkHVDegeri({ ..._e, key }),
 					sentHVEkle: (...keys) => { for (let key of keys) { this.hrkSentHVEkle({ ..._e, key }) } }
 				});
-				uni.add(sent); this.loadServerData_queryDuzenle_hrkSent(_e)
+				this.loadServerData_queryDuzenle_hrkSent(_e);
+				if (sent?.sahalar?.liste?.length) { uni.add(sent) }
 			}
 		}
 	}

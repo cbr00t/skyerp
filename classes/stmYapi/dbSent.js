@@ -340,6 +340,21 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		}
 		return this
 	}
+	pcsBaslikBagla(e) {
+		return this.fromIliski('csportfoy prt', 'fis.portfkod = prt.kod')
+			.fromIliski('csportfoy refprt', 'fis.refportfkod = refprt.kod')
+			.fromIliski('carmst fiscar', 'fis.fisciranta = fiscar.must')
+			.fromIliski('caril fiscaril', 'fiscar.ilkod = fiscaril.kod')
+			.fromIliski('cartip fisctip', 'fiscar.tipkod = fisctip.kod')
+			.fromIliski('banbizhesap bhes', 'fis.banhesapkod = bhes.kod')
+			.fromIliski('banbizhesap refhes', 'fis.refhesapkod = refhes.kod')
+	}
+	pcsPortfoy2DigerBagla(e) {
+		this.pcsBaslikBagla(e)
+			.fromIliski('carmst belcir', 'bel.ciranta = belcir.must')
+			.fromIliski('carmst devcir', 'bel.devirciranta = devcir.must')
+			.fromIliski('cartip devctip', 'devcir.tipkod = devctip.kod')
+	}
 	/* CDB ext */
 	cDB_execute(e) {
 		super.cDB_execute(e); const {db} = e.ctx, {from, where} = this, recs = [];

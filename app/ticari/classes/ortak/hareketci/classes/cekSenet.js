@@ -1,50 +1,132 @@
 class CSHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get trfCikismi() { return false }
-    /* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
-    /** Varsayılan değer atamaları (host vars) – temel sınıfa eklemeler.
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	constructor(e) { e = e ?? {}; super(e); $.extend(this, { trfCikismi: e.trfCikis ?? e.trfCikismi ?? false }) }
+	static get ortakHVYapilar() {
+		let {_ortakHVYapilar: result} = this;
+		if (result == null) { let e = { result: {} }; this.ortakHVYapilarDuzenle(e); result = this._ortakHVYapilar = e.result }
+		return result
+	}
+	static get ortakUniDuzenleyiciler() {
+		let {_ortakUniDuzenleyiciler: result} = this;
+		if (result == null) { let e = { result: {} }; this.ortakUniDuzenleyicilerDuzenle(e); result = this._ortakUniDuzenleyiciler = e.result }
+		return result
+	}
+	static ortakHVYapilarDuzenle({ result }) {
+		let sqlEmpty = `''`; $.extend(result, {
+			belgeOrtak: () => ({
+				belsayac: 'bel.kaysayac', belgeyil: 'bel.belgeyil', bankakod: 'bel.bankakod',
+				belgeno: 'bel.belgeno', belbanhesapkod: 'bel.banhesapkod'
+			}),
+			fisOrtak: () => ({
+				bizsubekod: 'fis.bizsubekod', tarih: 'fis.tarih', fisnox: 'fis.fisnox', ozelisaret: 'fis.ozelisaret',
+				dvkur: 'fis.dvkur', belgetipi: 'fis.belgetipi', fisaciklama: 'fis.aciklama', takipno: 'fis.takipno'
+			}),
+			sahis3DevirGirisIcinPortfoyBilgileri: () => ({ portfkod: 'bel.devirciranta', portfadi: 'devcir.birunvan', portdvkod: 'devcir.dvkod' }),
+			sahis3DevirCikisIcinPortfoyBilgileri: () => ({ portfkod: sqlEmpty, portfadi: sqlEmpty, portdvkod: sqlEmpty }),
+			sahis3IsiBittiCikisIcinPortfoyVeAnalizTipi: () => ({
+				portftipi: `'C'`, portftiptext: (CSIslemler.getPortfoyTipAdi('C') ?? '').sqlServerDegeri(), portfkisatiptext: (CSIslemler.getPortfoyTipKisaAdi('C') ?? '').sqlServerDegeri(),
+				portfkod: 'fis.fisciranta', portfadi: 'fiscar.birunvan', portdvkod: 'fiscar.dvkod', refportftipi: `'X3'`,
+				refportftiptext: (CSIslemler.getPortfoyTipAdi('X3') ?? '').sqlServerDegeri(), refportfkisatiptext: (CSIslemler.getPortfoyTipKisaAdi('X3') ?? '').sqlServerDegeri(),
+				refportfkod: sqlEmpty, refportfadi: `'3. Şahıs İşi Bitti'`, refportdvkod: sqlEmpty, finanaliztipi: sqlEmpty
+			}),
+			sahis3IsiBittiGirisIcinPortfoyVeAnalizTipi: ({ cikisAnalizTipi }) => {
+				let keys = ['portftipi', 'portftiptext', 'portfkisatiptext', 'portfkod', 'portfadi', 'portdvkod'];
+				let result = []; for (let key of keys) {
+					let refKey = `ref${key}`;
+					result[refKey] = cikisAnalizTipi?.[key];
+					result[key] = cikisAnalizTipi?.[refKey]
+				}
+				result.finanaliztipi = cikisAnalizTipi?.finanaliztipi;
+				return result
+			}
+		})
+	}
+	static ortakUniDuzenleyicilerDuzenle({ result }) {
+		$.extend(result, {
+			transfer: ({ cikismi }) => {
+				return new Hareketci_UniBilgi()
+					.sentDuzenleIslemi(({ sent }) => {
+						sent.fisHareket('csfis', 'csdigerhar')
+							.fromIliski('csilkhar bel', 'har.ilksayac = bel.fissayac')
+							.pcsPortfoy2DigerBagla();
+						let {where: wh} = sent; wh.fisSilindiEkle()
+					}).hvDuzenleIslemi(({ hv, sqlEmpty }) => {
+						let csIslemler = this.newCSIslemler(); $.extend(hv, {
+							fissayac: 'fis.kaysayac', harsayac: 'har.kaysayac', ilk: sqlEmpty,
+							ba: (cikismi ? 'A' : 'B').sqlServerDegeri(), bedel: 'har.bedel', dvbedel: 'har.dvbedel',
+							detaciklama: 'har.aciklama', bankadekontnox: 'har.bankadekontnox',
+							...csIslemler.getPortfoyVeReferansTanimlari(cikismi),
+							islemadi: csIslemler.getFisTipiClauseIlkHareket(),
+							...this.getOrtakHV('belgeOrtak'), ...this.getOrtakHV('fisOrtak')
+						})
+					})
+			},
+			sahis3_isiBitti: ({ cikismi, cikisAnalizDict }) => {
+				return new Hareketci_UniBilgi()
+					.sentDuzenleIslemi(({ sent }) => {
+						sent.fisHareket('csfis', 'csdigerhar')
+							.fromIliski('csilkhar bel', 'har.ilksayac = bel.fissayac')
+							.pcsPortfoy2DigerBagla();
+						let {where: wh} = sent; wh.fisSilindiEkle();
+						wh.inDizi(['AC', 'AS'], 'fis.belgetipi').add(
+							`fis.fistipi = '3S'`, `fis.iade = ''`,
+							'bel.belgesonharseq = har.belgeharseq', 'bel.vade < getdate()'
+						)
+					}).hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
+						let refHV = cikismi ? cikisAnalizDict : this.getOrtakHV('sahis3IsiBittiGirisIcinPortfoyVeAnalizTipi', { cikisAnalizDict });
+						$.extend(hv, {
+							fissayac: sqlNull, harsayac: sqlNull, ilk: sqlEmpty,
+							ba: (cikismi ? 'A' : 'B').sqlServerDegeri(), bedel: 'har.bedel', dvbedel: 'har.dvbedel',
+							detaciklama: 'har.aciklama', bankadekontnox: sqlEmpty, bizsubekod: 'fis.bizsubekod',
+							tarih: '(bel.vade + 1)', fisnox: sqlEmpty, belgetipi: 'fis.belgetipi',
+							...refHV, islemadi: `'3. Şahıs İşi Bitti'`,
+							...this.getOrtakHV('belgeOrtak'), ...this.getOrtakHV('fisOrtak')
+						})
+					})
+			}
+		})
+	}
+    static getOrtakHV(selector, e) { e = e ?? {}; return getFuncValue.call(this, this.ortakHVYapilar[selector], e) }
+	static ortakUniDuzenle_sent(selector, e) {    /* e: { sent, ... } */
+		e = e ?? {}; let uniBilgi = getFuncValue.call(this, this.ortakUniDuzenleyiciler[selector], e);
+		uniBilgi?.sentDuzenle?.(e); return this
+	}
+	static ortakUniDuzenle_hv(selector, e) {    /* e: { hv, ... } */
+		e = e ?? {}; let uniBilgi = getFuncValue.call(this, this.ortakUniDuzenleyiciler[selector], e);
+		uniBilgi?.hvDuzenle?.(e); return this
+	}
+	getOrtakHV(selector, e) { return this.class.getOrtakHV(selector, e) }
+	ortakUniDuzenle_sent(selector, e) { return this.class.ortakUniDuzenle_sent(selector, e) }
+	ortakUniDuzenle_hv(selector, e) { return this.class.ortakUniDuzenle_hv(selector, e) }
+	/** Varsayılan değer atamaları (host vars) – temel sınıfa eklemeler.
 		Hareketci.varsayilanHVDuzenle değerleri aynen alınır, sadece eksikler eklenir */
-    static varsayilanHVDuzenle({hv, sqlNull, sqlEmpty, sqlZero}) {
-        super.varsayilanHVDuzenle(...arguments);
-		for (const key of ['ilk', 'finanaliztipi', 'bankadekontnox']) { hv[key] = sqlEmpty }
-		for (const key of ['disfisnox', 'must', 'ticmust', 'asilmust', 'althesapkod', 'althesapadi', 'muhfissayac', 'sonzamants', 'karsiodemetarihi']) { delete hv[key] }
-		$.extend(hv, { belgetipi: 'fis.belgetipi' })
+    static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
+        /* super.varsayilanHVDuzenle(...arguments); */
+		for (const key of ['ayadi', 'saat', 'bankadekontnox']) { hv[key] = sqlEmpty }
     }
-    /** UNION sorgusu hazırlama – hareket tipleri için */
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
-        super.uygunluk2UnionBilgiListeDuzenleDevam(e)
-    }
-    /** (Devir, İlk Kayıt, Nakde Dönüşüm) için UNION */
-    uniDuzenle_devir$ilkKayit$nakdeDonusum({ uygunluk, liste }) {
-        $.extend(liste, {
-            devir$ilkKayit$nakdeDonusum: [
-                new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-					const tipDizi = [
-						(uygunluk.devir ? 'DV' : null),
-						(uygunluk.ilkKayit ? ['AL', 'AK'] : null),
-						(uygunluk.nakdeDonusum ? 'ND' : null)
-					].flat().filter(x => !!x);
-					const {where: wh} = sent, {almSat, almSatClause} = this.class;
-                    sent.fisHareket('posfis', 'posilkhar').har2CariBagla().har2PosKosulBagla()
-                    wh.fisSilindiEkle().inDizi(tipDizi, 'fis.fistipi')
-						.add(almSatClause).degerAta(almSat, 'pkos.almsat')
-                }).hvDuzenleIslemi(({ hv }) => {
-                    $.extend(hv, {
-						kayittipi: `(case when fis.fistipi = 'DV' then 'PSDEV' when fis.fistipi = 'ND' then 'PSNAK' when fis.fistipi in ('AL', 'AK') then 'PSTAH' else '??' end)`,
-                        banhesapkod: 'har.banhesapkod', tarih: 'coalesce(har.belgetarih, fis.tarih)',
-						fisnox: `(case when har.belgeno = 0 then fis.fisnox else har.belgenox end)`,
-						oncelik: `(case when fis.fistipi = 'DV' then 0 when fis.fistipi = 'ND' then 9 else 1 end)`,
-						ba: `(case when fis.almsat = 'T' then (case when fis.fistipi = 'ND' then 'A' when fis.iade = 'I' then 'A' else 'B' end) else (case when fis.fistipi = 'ND' then 'B' when fis.iade = 'I' then 'B' else 'A' end) end)`,
-						islemadi: `(case when fis.fistipi = 'DV' then 'Devir' when fis.fistipi = 'ND' then (case when fis.almsat = 'T' then 'Nakde Dönü?üm' else 'Kr.Kart Ödeme' end) when fis.fistipi in ('AL', 'AK') then (case when fis.almsat = 'T' then 'Pos Tahsil' else 'Kr.Kart ile Ödeme' end) else '??' end)`,
-						detaciklama: 'har.aciklama', takipno: 'har.takipno',
-						dvkur: 'har.dvkur', bedel: `(case when fis.fistipi = 'ND' then har.brutbedel else har.bedel end)`, dvbedel: 'har.dvbedel',
-						ndvade: 'har.nakdedonusumvade', vade: 'har.vade', plasiyerkod: `(case when fis.fistipi = 'AL' then fis.plasiyerkod else '' end)`,
-						refkod: `(case when fis.fistipi = 'AL' then har.must else '' end)`, refadi: `(case when fis.fistipi = 'AL' then car.birunvan else '' end)`,
-						mustkod: `(case when fis.fistipi = 'AL' then har.must else '' end)`, onayno: 'har.onayno', poskosulkod: 'har.poskosulkod',
-						komisyon: 'har.olasikomisyon', katkipayi: 'har.olasikatkipayi'
-                    })
-                })
-            ]
-        });
-        return this
-    }
+		let {trfCikismi} = this; $.extend(e, { trfCikismi });
+		super.uygunluk2UnionBilgiListeDuzenleDevam(e);
+		this.uniDuzenle_transfer(e).uniDuzenle_sahis3(e)
+	}
+	uniDuzenle_transfer({ liste, trfCikismi: cikismi }) {
+		$.extend(liste, {
+			transfer: [
+				new Hareketci_UniBilgi()
+					.sentDuzenleIslemi(({ sent }) => this.ortakUniDuzenle_sent('transfer', { sent, cikismi }))
+					.hvDuzenleIslemi(({ hv, sqlEmpty }) => this.ortakUniDuzenle_hv('transfer', { hv, cikismi }))
+			]
+		});
+		return this
+	}
+	uniDuzenle_sahis3({ liste }) {
+		$.extend(liste, {
+			sahis3: [
+			]
+		});
+		return this
+	}
+	static newCSIslemler(e) { return new CSIslemler(e) }
+	newCSIslemler(e) { return this.class.newCSIslemler(e) }
+	trfCikis() { this.trfCikismi = true; return this }
 }

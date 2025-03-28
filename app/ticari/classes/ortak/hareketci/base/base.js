@@ -126,27 +126,28 @@ class Hareketci extends CObject {
 		this.uniDuzenle(_e = { ...e, uni, sqlEmpty: `''` }); return uni
 	}
 	uniDuzenle(e) {
-		const {uygunluk2UnionBilgiListe, varsayilanHV: defHV, zorunluAttrSet} = this.class, {uygunluk} = this, uygunlukVarmi = uygunluk.bosDegilmi, {uni} = e;
-		const sender = this, hareketci = this; $.extend(e, { uygunluk, zorunluAttrSet });
+		let {uygunluk2UnionBilgiListe} = this, {varsayilanHV: defHV, zorunluAttrSet} = this.class;
+		let {uygunluk} = this, uygunlukVarmi = uygunluk.bosDegilmi, {uni} = e;
+		let sender = this, hareketci = this; $.extend(e, { uygunluk, zorunluAttrSet });
 		for (let [selectorStr, unionBilgiListe] of Object.entries(uygunluk2UnionBilgiListe)) {
-			if (uygunlukVarmi) {
-				let selectors = selectorStr.split('$').filter(x => !!x); uygunmu = selectors.find(selector => uygunluk[selector]);
-				if (!uygunmu) { continue }
+			let uygunmu = true; if (uygunlukVarmi) {
+				let anahStr = selectorStr.split('$').filter(x => !!x).join('$');
+				uygunmu = uygunlukVarmi ? !!uygunluk[anahStr] : true; if (!uygunmu) { continue }
 			}
 			unionBilgiListe = unionBilgiListe.map(item => getFuncValue.call(this, item, e)).filter(x => !!x);
 			for (const uniBilgi of unionBilgiListe) {
 				let {sent} = uniBilgi; if (!sent) { continue }
 				let {hv} = uniBilgi, _e = { ...e, sent, hv }; if (hv) {
-					sent = _e.sent = sent.deepCopy(); for (const alias in { ...zorunluAttrSet }) {
+					sent = _e.sent = sent.deepCopy(); for (const alias in { ...zorunluAttrSet, ...hv }) {
 						let deger = hv[alias] || defHV[alias];
 						if (isFunction(deger)) { deger = deger?.call(this, { ...e, sender, hareketci, uniBilgi, key: alias, sent, hv, defHV }) }
 						deger = deger ?? 'NULL'; let saha = deger; if (alias) { saha += ` ${alias}` }
 						sent.add(saha)
 					}
 				}
-				if (!sent?.sahalar?.liste?.length) { continue }
 				this.uniDuzenle_whereYapi(_e).uniDuzenle_sonIslem(_e); sent = _e.sent;
-				sent.groupByOlustur().gereksizTablolariSil(); uni.add(sent)
+				sent.groupByOlustur().gereksizTablolariSil();
+				if (sent?.sahalar?.liste?.length) { uni.add(sent) }
 			}
 		}
 	}
