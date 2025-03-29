@@ -1,7 +1,7 @@
 class DAltRapor extends DRapor {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'altRapor' }
-	static get dAltRapormu() { return true } static get secimSinif() { return MQCogul.secimSinif }
-	get width() { return null } get height() { return null }
+	static get dRapormu() { return false } static get dAltRapormu() { return true }
+	static get secimSinif() { return MQCogul.secimSinif } get width() { return null } get height() { return null }
 	constructor(e) {
 		e = e || {}; super(e);
 		$.extend(this, { rapor: e.rapor, parentBuilder: e.parentBuilder, secimler: e.secimler, secimlerDuzenleBlock: e.secimlerDuzenleBlock ?? e.secimlerDuzenle })

@@ -5,6 +5,11 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 	static get kategoriKod() { return null } static get kod() { return null } static get aciklama() { return null } static get detaylimi() { return false }
 	static get tumKolonlarGosterilirmi() { return false } static get noOverflowFlag() { return false }
 	static get uygunmu() { return true } get uygunmu() { return this.class.uygunmu }
+	static get raporBilgiler() {
+		return Object.values(this.kod2Sinif)
+			.filter(({ uygunmu, araSeviyemi, dRapormu, kod }) => uygunmu && !araSeviyemi && dRapormu && kod)
+			.map(cls => ({ kod: cls.kod, aciklama: cls.aciklama, vioAdim: cls.vioAdim, cls }))
+	}
 	static get kod2Sinif() {
 		let result = this._kod2Sinif; if (result == null) {
 			result = {}; const {subClasses} = this; for (const cls of subClasses) {

@@ -61,7 +61,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	}
 	havingOlustur(e) {
 		e = e ?? {}; let {sahalar, having, class: cls} = this, converter = e.converter ?? (clause => `${clause} <> 0`);
-		let aggregateFunctionsSet = { ...cls.aggregateFunctionsSet }; delete aggregateFunctionsSet.STRING_AGG;
+		let aggregateFunctionsSet = { ...cls.aggregateFunctionsSet }; for (let key of ['COUNT', 'STRING_AGG']) { delete aggregateFunctionsSet[key] }
 		let aggregateFunctions = Object.keys(aggregateFunctionsSet);
 		let or = new MQOrClause(); for (let {deger: clause} of sahalar.liste) {
 			let clauseUpper = clause?.toUpperCase(); if (!clauseUpper) { continue }

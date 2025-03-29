@@ -2,8 +2,14 @@ class DRapor_AraSeviye extends DGrupluPanelRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get altRaporClassPrefix() { return this.name }
 }
 class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get tazeleYapilirmi() { return true }
-	static get dvKodListe() { let result = this._dvKodListe; if (result === undefined) { result = this._dvKodListe = ['USD', 'EUR'] } return result } get dvKodListe() { return this.class.dvKodListe }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get araSeviyemi() { return this == DRapor_AraSeviye_Main } get tazeleYapilirmi() { return true }
+	static get dvKodListe() {
+		let result = this._dvKodListe;
+		if (result === undefined) { result = this._dvKodListe = ['USD', 'EUR'] }
+		return result
+	}
+	get dvKodListe() { return this.class.dvKodListe }
 	static get yatayTip2Bilgi() {
 		let result = this._yatayTip2Bilgi; if (result == null) {
 			result = this._yatayTip2Bilgi = {
@@ -205,14 +211,15 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			}
 		} return this
 	}
-	tabloYapiDuzenle_ozelIsaret(e) {
-		e.result.addGrupBasit('ISARET', 'İşaret', 'ozelisaret', MQOzelIsaret);
+	tabloYapiDuzenle_ozelIsaret({ result }) {
+		result.addGrupBasit('ISARET', 'İşaret', 'ozelisaret', MQOzelIsaret, null, ({ item }) => item.setOrderBy('ozelisaret'));
 		return this
 	}
-	loadServerData_queryDuzenle_ozelIsaret(e) {
-		let {stm, attrSet, kodClause} = e; if (!kodClause) { return this }
-		let sent = e.sent ?? stm.sent, {where: wh, sahalar} = sent;
-		for (const key in attrSet) { switch (key) { case 'ISARET': sahalar.add(kodClause); break } }
+	loadServerData_queryDuzenle_ozelIsaret({ stm, sent, attrSet, kodClause }) {
+		if (!kodClause) { return this } sent = sent ?? stm.sent; let {where: wh, sahalar} = sent;
+		for (const key in attrSet) {
+			switch (key) { case 'ISARET': sahalar.add(kodClause); break }
+		}
 		return this
 	}
 	tabloYapiDuzenle_sube(e) {
