@@ -64,7 +64,7 @@ class MasterFisRaporOrtak extends ModelRapor {
 
 		const tbWhereClause = this.getTBWhereClause({ alias: tableAlias });
 		for (const sent of stm.getSentListe()) {
-			sent.sahalarVeGroupByReset();
+			sent.sahalarVeGroupByVeHavingReset();
 			sent.where.birlestir(tbWhereClause)
 		}
 		this.queryKolonlariDuzenle(_e);

@@ -214,7 +214,7 @@ class CSIslemler extends CObject {
 	getFisTipiClause({ kosulcu }) {
 		let {csHareketBilgiler: harBilgiler} = this;
 		let sqlDegeri = value => MQSQLOrtak.sqlServerDegeri(value);
-		let tiKodClause = 'RTRIM(fis.fistipi + fis.iade)', caseClause = `(case fis.tipkod`;
+		let tiClause = 'RTRIM(fis.fistipi + fis.iade)', caseClause = `(case ${tiClause}`;
 		for (let aCSTekilIslem of harBilgiler) {
 			if (kosulcu && !kosulcu(aCSTekilIslem)) { continue } let {tipVeIade, islemAdi} = aCSTekilIslem;
 			caseClause += ` when ${sqlDegeri(tipVeIade)} then ${sqlDegeri(islemAdi)}`

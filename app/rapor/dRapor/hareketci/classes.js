@@ -9,8 +9,10 @@ class DRapor_Hareketci_Cari_Main extends DRapor_Hareketci_Main {
 	tabloYapiDuzenle({ result }) { super.tabloYapiDuzenle(...arguments); this.tabloYapiDuzenle_cari(...arguments) }
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e); let {hvDegeri} = e, kodClause = hvDegeri('must');
-		this.loadServerData_queryDuzenle_cari({ ...e, kodClause })
+		this.loadServerData_queryDuzenle_cari({ ...e, kodClause });
+		this.loadServerData_queryDuzenle_odemeGun({ ...e, kodClause: hvDegeri('odgunkod') })
 	}
+	tabloYapiDuzenle_odemeGun(e) { super.super_tabloYapiDuzenle_odemeGun(e) }
 }
 class DRapor_Hareketci_Kasa extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -119,9 +121,9 @@ class DRapor_Hareketci_TeminatMektup_Main extends DRapor_Hareketci_BankaOrtak_Ma
 }
 
 class DRapor_Hareketci_CekSenet extends DRapor_Hareketci {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return false }
-	static get araSeviyemi() { return false } static get vioAdim() { return null }
-	static get kod() { return 'CS' } static get aciklama() { return 'Çek/Senet' }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false }
+	static get uygunmu() { return !!config.dev } static get vioAdim() { return null }
+	static get kod() { return 'CSHAR' } static get aciklama() { return 'Çek/Senet' }
 }
 class DRapor_Hareketci_CekSenet_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return CSHareketci }
@@ -138,4 +140,5 @@ class DRapor_Hareketci_CekSenet_Main extends DRapor_Hareketci_Main {
 			switch (key) { case 'KASA': sahalar.add(`${kodClause} kasakod`, 'kas.aciklama kasaadi'); wh.icerikKisitDuzenle_kasa({ ...e, saha: kodClause }); break }
 		}
 	}
+	tabloYapiDuzenle_takip(e) { /* do nothing */ }
 }

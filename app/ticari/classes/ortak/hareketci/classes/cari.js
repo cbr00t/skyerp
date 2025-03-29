@@ -1,5 +1,6 @@
 class CariHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get kod() { return 'cari' } static get aciklama() { return 'Cari' }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kod() { return 'cari' } static get aciklama() { return 'Cari' }
 	static hareketTipSecim_kaListeDuzenle(e) {
 		super.hareketTipSecim_kaListeDuzenle(e); e.kaListe.push(
 			new CKodVeAdi(['kasa', 'Kasa Tahsilat/Ödeme']), new CKodVeAdi(['hizmet', 'Hizmet Gelir/Gider']), new CKodVeAdi(['havaleEFT', 'Havale/EFT']),

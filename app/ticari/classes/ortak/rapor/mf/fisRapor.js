@@ -47,12 +47,12 @@ class FisRapor extends MasterFisRaporOrtak {
 		const _e = { modelRapor: this, stm, sent: basSent, attrListesi: tumAttrListesi, attrSet: tumAttrSet, filtreRecs, sahalarAlinmasin: true };
 		mfSinif.loadServerData_queryDuzenle(_e); mfSinif.raporQueryDuzenle(_e); stm = _e.stm;
 		const tbWhereClause = this.getTBWhereClause({ alias: tableAlias });
-		for (const _sent of stm.getSentListe()) { _sent.sahalarVeGroupByReset(); _sent.where.birlestir(tbWhereClause); }
+		for (const _sent of stm.getSentListe()) { _sent.sahalarVeGroupByVeHavingReset(); _sent.where.birlestir(tbWhereClause) }
 		for (let i = 0; i < detaySiniflar.length; i++) {
 			const detaySinif = detaySiniflar[i], detayTable = detaySinif.table, sent = stm.sent.liste[i];
 			const _e = { modelRapor: this, fisSinif: mfSinif, detaySinif, detayTable, stm, uni, sent, index: i + 1, attrListesi: tumAttrListesi, attrSet: tumAttrSet, filtreRecs };
 			/*mfSinif.loadServerData_detaylar_queryDuzenle(_e);				// ** bu işlem sonucunda _e.sent oluşur ve uni'ye add yapılmış olur
-			const sent = _e.sent; sent.birlestir(basSent); sent.where.add(`har.fissayac = fis.kaysayac`); sent.sahalarVeGroupByReset();*/
+			const sent = _e.sent; sent.birlestir(basSent); sent.where.add(`har.fissayac = fis.kaysayac`); sent.sahalarVeGroupByVeHavingReset();*/
 			this.queryKolonlariDuzenle(_e); mfSinif.raporQueryDuzenle_detaylar(_e); stm = _e.stm;
 			sent.groupByOlustur(); sent.gereksizTablolariSil();
 		}

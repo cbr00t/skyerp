@@ -22,14 +22,20 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	}
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); let {result} = e;
+		result.addKAPrefix('ref', 'althesap');
 		this.tabloYapiDuzenle_ozelIsaret(e).tabloYapiDuzenle_sube(e);
-		result.addKAPrefix('ref', 'islem', 'althesap')
-			.addGrupBasit('FISNOX', 'Fis No', 'fisnox').addGrupBasit('ALTHESAP', 'Alt Hesap', 'althesap').addGrupBasit('ODEMEGUN', 'Ödeme Gün', 'odgunkod')
-			.addGrupBasit('REFERANS', 'Referans', 'ref').addGrupBasit('ANAISLEM', 'Ana İşlem', 'anaislemadi').addGrupBasit('ISLEM', 'İşlem', 'islem');
+		result.addGrupBasit('FISNOX', 'Fis No', 'fisnox');
+		result .addGrupBasit('ALTHESAP', 'Alt Hesap', 'althesap');
+		this.tabloYapiDuzenle_odemeGun(e);
+		result.addGrupBasit('REFERANS', 'Referans', 'ref');
+		result.addGrupBasit('ANAISLEM', 'Ana İşlem', 'anaislemadi');
+		result.addGrupBasit('ISLEM', 'İşlem', 'islemadi');
 		this.tabloYapiDuzenle_plasiyer(e).tabloYapiDuzenle_takip(e);
-		result.addGrupBasit('DVKOD', 'Dv.Kod', 'dvkod').addGrupBasit('DVKUR', 'Dv.Kur', 'dvkur');
+		result.addGrupBasit('DVKOD', 'Dv.Kod', 'dvkod');
+		result.addGrupBasit('DVKUR', 'Dv.Kur', 'dvkur');
 		this.tabloYapiDuzenle_baBedel(e)
 	}
+	tabloYapiDuzenle_odemeGun(e) { /* do nothing */ }
 	loadServerData_queryDuzenle(e) {
 		e.alias = e.alias ?? 'hrk'; let {stm, attrSet} = e, {hareketci, raporTanim} = this, {yatayAnaliz} = raporTanim.kullanim;
 		hareketci.reset(); let {uygunluk} = hareketci, uygunlukVarmi = !$.isEmptyObject(uygunluk);
@@ -53,13 +59,13 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		}
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
-		let {attrSet, sentHVEkle, sent, hrkHV: hv, hrkDefHV: defHV, hvDegeri} = e, {sahalar} = sent;
-		let tarihSaha = hvDegeri('tarih'); this.donemBagla({ ...e, tarihSaha });
-		for (let key in attrSet) {
+		let { attrSet, sentHVEkle, sent, hrkHV: hv, hrkDefHV: defHV, hvDegeri } = e;
+		let {sahalar} = sent, tarihSaha = hvDegeri('tarih');
+		this.donemBagla({ ...e, tarihSaha }); for (let key in attrSet) {
 			switch (key) {
 				case 'FISNOX': sentHVEkle('fisnox'); break; case 'REFERANS': sentHVEkle('refkod', 'refadi'); break;
-				case 'ANAISLEM': sentHVEkle('anaislemadi'); break; case 'ISLEM': sentHVEkle('islemkod', 'islemadi'); break
-				case 'ODEMEGUN': sentHVEkle('odgunkod'); break; case 'ALTHESAP': sentHVEkle('althesapkod', 'althesapadi'); break
+				case 'ANAISLEM': sentHVEkle('anaislemadi'); break; case 'ISLEM': sentHVEkle('islemadi'); break
+				case 'ALTHESAP': sentHVEkle('althesapkod', 'althesapadi'); break
 				case 'DVKOD': sentHVEkle('dvkod'); break
 			}
 		}
@@ -68,8 +74,10 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		this.loadServerData_queryDuzenle_tarih({ ...e, alias: '', tarihSaha });
 		this.loadServerData_queryDuzenle_takip({ ...e, kodClause: hvDegeri('takipno') });
 		let baClause = hvDegeri('ba'), bedelClause = hvDegeri('bedel').sumOlmaksizin();
+		this.loadServerData_queryDuzenle_plasiyer({ ...e, kodClause: hvDegeri('plasiyerkod') });
 		this.loadServerData_queryDuzenle_baBedel({ ...e, baClause, bedelClause })
 	}
+	super_tabloYapiDuzenle_odemeGun(e) { super.tabloYapiDuzenle_odemeGun(e) }
 	hrkSentHVEkle(e) {
 		let {key: alias, sent} = e, {sahalar} = sent;
 		let deger = this.hrkHVDegeri(e); sahalar.add(new MQAliasliYapi({ deger, alias }));

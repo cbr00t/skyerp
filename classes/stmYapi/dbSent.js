@@ -1,8 +1,16 @@
 class MQSent extends MQSentVeIliskiliYapiOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get unionmu() { return false } get isDBWriteClause() { return this.toString()?.toUpperCase()?.includes('INTO ') }
-	static get aggregateFunctions() { let result = this._aggregateFunctions; if (!result) { result = this._aggregateFunctions = ['SUM', 'COUNT', 'MIN', 'MAX', 'AVG'] } return result }
-	static get aggregateFunctionsSet() { let result = this._aggregateFunctionsSet; if (!result) { result = this._aggregateFunctionsSet = asSet(this.aggregateFunctions) } return result }
+	static get aggregateFunctions() {
+		let result = this._aggregateFunctions;
+		if (!result) { result = this._aggregateFunctions = ['SUM', 'COUNT', 'MIN', 'MAX', 'AVG', 'STRING_AGG'] }
+		return result
+	}
+	static get aggregateFunctionsSet() {
+		let result = this._aggregateFunctionsSet;
+		if (!result) { result = this._aggregateFunctionsSet = asSet(this.aggregateFunctions) }
+		return result
+	}
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, {
 			distinct: asBool(e.distinct),
@@ -23,10 +31,11 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		}
 		if (birlestir) { this.birlestir(birlestir) } if (groupByOlustur) { this.groupByOlustur() }
 	}
-	static hasAggregateFunctions(e) {
-		if (typeof e != 'object') e = { sql: e };
+	static hasAggregateFunctions(e, _aggregateFunctions) {
+		if (typeof e != 'object') e = { sql: e, aggregateFunctions: _aggregateFunctions };
 		const {sql} = e; if (!sql) { return false }
-		for (const prefix of this.aggregateFunctions) { if (sql.includes(`${prefix}(`) || sql.includes(`${prefix.toLowerCase()}(`)) { return true } }
+		let aggregateFunctions = e.aggregateFunctions ?? this.aggregateFunctions;
+		for (const prefix of aggregateFunctions) { if (sql.includes(`${prefix}(`) || sql.includes(`${prefix.toLowerCase()}(`)) { return true } }
 		return false
 	}
 	fromGridWSArgs(e) { e = e || {}; this.where.fromGridWSArgs(e) }
@@ -50,9 +59,21 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		if (aggregateVarmi) { groupBy.addAll(Object.keys(ekleneceklerSet)) }
 		return this
 	}
-	sahalarVeGroupByReset() { this.sahalarReset(); this.groupByReset(); return this }
+	havingOlustur(e) {
+		e = e ?? {}; let {sahalar, having, class: cls} = this, converter = e.converter ?? (clause => `${clause} <> 0`);
+		let aggregateFunctionsSet = { ...cls.aggregateFunctionsSet }; delete aggregateFunctionsSet.STRING_AGG;
+		let aggregateFunctions = Object.keys(aggregateFunctionsSet);
+		let or = new MQOrClause(); for (let {deger: clause} of sahalar.liste) {
+			let clauseUpper = clause?.toUpperCase(); if (!clauseUpper) { continue }
+			if (!cls.hasAggregateFunctions(clauseUpper, aggregateFunctions)) { continue }
+			or.add(converter(clause))
+		}
+		if (or.liste.length) { having.add(or) }
+		return this
+	}
+	sahalarVeGroupByVeHavingReset() { return this.sahalarReset().groupByVeHavingReset() }
 	sahalarReset() { this.sahalar = new MQSahalar(); return this }
-	groupByReset() { this.groupBy = new MQGroupByClause(); this.having = new MQHavingClause(); return this }
+	groupByVeHavingReset() { this.groupBy = new MQGroupByClause(); this.having = new MQHavingClause(); return this }
 	fromAdd(e) {
 		e = e || {}; if (typeof e != 'object') { e = { from: e } } else { e.from = e.from || e.fromText || e.table }
 		let fromText = e.from; this.from.add(fromText); return this

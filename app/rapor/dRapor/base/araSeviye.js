@@ -144,10 +144,12 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		this.loadServerData_queryDuzenle_tekilSonrasi_son_ozel?.(e)
 	}
 	loadServerData_queryDuzenle_genelSon(e) {
-		this.loadServerData_queryDuzenle_genelSon_ilk_ozel?.(e); let {stm, attrSet} = e, {orderBy} = stm, {grup} = this.tabloYapi;
-		for (let sent of stm.getSentListe()) { sent.groupByOlustur() }
+		this.loadServerData_queryDuzenle_genelSon_ilk_ozel?.(e);
+		let {stm, attrSet} = e, {grup} = this.tabloYapi;
+		for (let sent of stm.getSentListe()) { sent.groupByOlustur().havingOlustur() }
 		if (stm.sent.unionmu) { stm = e.stm = stm.asToplamStm() }
-		for (const kod in attrSet) { let {orderBySaha} = grup[kod] ?? {}; if (orderBySaha) { orderBy.add(orderBySaha) } }
+		let {orderBy} = stm; for (const kod in attrSet) {
+			let {orderBySaha} = grup[kod] ?? {}; if (orderBySaha) { orderBy.add(orderBySaha) } }
 		this.loadServerData_queryDuzenle_genelSon_son_ozel?.(e)
 	}
 	loadServerData_recsDuzenle(e) { return super.loadServerData_recsDuzenle(e) }
@@ -259,46 +261,59 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		return this
 	}
-	tabloYapiDuzenle_plasiyer(e) {
-		e.result.addKAPrefix('plasiyer').addGrupBasit('PLASIYER', 'Plasiyer', 'plasiyer', DMQPlasiyer);
+	tabloYapiDuzenle_plasiyer({ result }) {
+		result.addKAPrefix('plasiyer').addGrupBasit('PLASIYER', 'Plasiyer', 'plasiyer', DMQPlasiyer);
 		return this
 	}
-	loadServerData_queryDuzenle_plasiyer(e) {
-		let {stm, attrSet, kodClause} = e; if (!kodClause) { return this }
-		let sent = e.sent ?? stm.sent, {where: wh, sahalar} = sent;
+	loadServerData_queryDuzenle_plasiyer({ stm, sent, attrSet, kodClause }) {
+		if (!kodClause) { return this } sent = sent ?? stm.sent; let {where: wh, sahalar} = sent;
 		if (attrSet.PLASIYER) { sent.fromIliski('carmst pls', `${kodClause} = pls.must`) }
 		for (const key in attrSet) {
-			switch (key) { case 'PLASIYER': sahalar.add(`${kodClause} plasiyerkod`, 'pls.birunvan plasiyeradi'); wh.icerikKisitDuzenle_plasiyer({ ...e, saha: kodClause }); break }
+			switch (key) {
+				case 'PLASIYER':
+					sahalar.add(`${kodClause} plasiyerkod`, 'pls.birunvan plasiyeradi'); wh.icerikKisitDuzenle_plasiyer({ ...arguments[0], saha: kodClause });
+					break
+			}
 		}
 		return this
 	}
-	tabloYapiDuzenle_takip(e) {
-		e.result.addKAPrefix('takip', 'takipgrup')
-			.addGrupBasit('TAKIPNO', 'Takip No', 'takip', DMQTakipNo).addGrupBasit('TAKIPGRUP', 'Takip Grup', 'takipgrup', DMQTakipGrup);
+	tabloYapiDuzenle_takip({ result }) {
+		result.addKAPrefix('takip', 'takipgrup')
+			.addGrupBasit('TAKIPNO', 'Takip No', 'takip', DMQTakipNo)
+			.addGrupBasit('TAKIPGRUP', 'Takip Grup', 'takipgrup', DMQTakipGrup);
 		return this
 	}
-	loadServerData_queryDuzenle_takip(e) {
-		let {stm, attrSet, kodClause} = e; if (!kodClause) { return this }
-		let sent = e.sent ?? stm.sent, {where: wh, sahalar} = sent;
+	loadServerData_queryDuzenle_takip({ stm, sent, attrSet, kodClause }) {
+		if (!kodClause) { return this } sent = sent ?? stm.sent; let {where: wh, sahalar} = sent;
 		if (attrSet.TAKIPNO || attrSet.TAKIPGRUP) { sent.fromIliski('takipmst tak', `${kodClause} = tak.kod`) }
 		if (attrSet.TAKIPGRUP) { sent.fromIliski('takipgrup tgrp', 'tak.grupkod = tgrp.kod') }
 		for (const key in attrSet) {
 			switch (key) {
-				case 'TAKIPNO': sahalar.add(`${kodClause} takipkod`, 'tak.aciklama takipadi'); wh.icerikKisitDuzenle_takipNo({ ...e, saha: kodClause }); break
+				case 'TAKIPNO': sahalar.add(`${kodClause} takipkod`, 'tak.aciklama takipadi'); wh.icerikKisitDuzenle_takipNo({ ...arguments[0], saha: kodClause }); break
 				case 'TAKIPGRUP': sahalar.add('tgrp.kod takipgrupkod', 'tgrp.aciklama takipgrupadi'); break
 			}
 		}
 		return this
 	}
-	tabloYapiDuzenle_baBedel(e) {
-		e.result
-			.addToplamBasit_bedel('BORCBEDEL', 'Borç Bedel', 'borcbedel').addToplamBasit_bedel('ALACAKBEDEL', 'Alacak Bedel', 'alacakbedel')
-			.addToplamBasit_bedel('ISARETLIBEDEL', 'İşaretli Bedel', 'isaretlibedel')
+	tabloYapiDuzenle_odemeGun({ result }) {
+		result.addGrupBasit('ODEMEGUN', 'Ödeme Gün', 'odgunkod');
 		return this
 	}
-	loadServerData_queryDuzenle_baBedel(e) {
-		let {stm, attrSet, baClause, bedelClause} = e; if (!(baClause || bedelClause)) { return this }
-		let sent = e.sent ?? stm.sent, {where: wh, sahalar} = sent;
+	loadServerData_queryDuzenle_odemeGun({ stm, sent, attrSet, kodClause }) {
+		if (!kodClause) { return this } sent = sent ?? stm.sent; let {where: wh, sahalar} = sent;
+		for (const key in attrSet) {
+			switch (key) {case 'ODEMEGUN': sahalar.add(`${kodClause} odgunkod`); break }
+		}
+		return this
+	}
+	tabloYapiDuzenle_baBedel({ result }) {
+		result
+			.addToplamBasit_bedel('BORCBEDEL', 'Borç Bedel', 'borcbedel').addToplamBasit_bedel('ALACAKBEDEL', 'Alacak Bedel', 'alacakbedel')
+			.addToplamBasit_bedel('ISARETLIBEDEL', 'İşaretli Bedel', 'isaretlibedel');
+		return this
+	}
+	loadServerData_queryDuzenle_baBedel({ stm, sent, attrSet, baClause, bedelClause }) {
+		if (!(baClause || bedelClause)) { return this } sent = sent ?? stm.sent; let {where: wh, sahalar} = sent;
 		for (const key in attrSet) {
 			switch (key) {
 				case 'BORCBEDEL': sahalar.add(`SUM(case when ${baClause} = 'B' then ${bedelClause} else 0 end) borcbedel`); break
