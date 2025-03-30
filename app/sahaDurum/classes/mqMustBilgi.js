@@ -42,32 +42,38 @@ class MQMustBilgi extends MQKAOrtak {
 		if (groups?.length) { grid.jqxGrid('groups', groups) }
 	}
 	static async loadServerData(e) {
-		e = e || {}; await super.loadServerData(e); const {localData} = app.params, dataKey = this.dataKey, {wsArgs} = e;
+		e = e || {}; await super.loadServerData(e); let {localData} = app.params, dataKey = this.dataKey, {wsArgs} = e;
 		let result = localData.getData(dataKey); if (result == null) {
-			let recs = await MQCari.loadServerDataDogrudan(e); result = {}; const classes = [MQKapanmayanHesaplar, MQCariEkstre, MQCariEkstre_Detay];
-			for (const rec of recs) { const {kod} = rec; if (!kod) { continue } result[kod] = new MustBilgi(rec) }
-			const cariEkstre_fisSayac2Rec = {}; for (const cls of classes) {
-				const subDataKey = cls.dataKey; if (!subDataKey) { continue }
-				const recs = await cls.loadServerDataDogrudan(e); for (const rec of recs) { let parentRec;
-					if (cls == MQCariEkstre) { const fisSayac = rec.icerikfissayac; if (fisSayac) { cariEkstre_fisSayac2Rec[fisSayac] = rec } }
-					else if (cls == MQCariEkstre_Detay) { const fisSayac = rec.icerikfissayac; parentRec = cariEkstre_fisSayac2Rec[fisSayac] }
-					const kod = (rec.mustkod ?? rec.mustKod ?? rec.must ?? rec.kod) ?? (parentRec?.mustkod ?? parentRec?.mustKod ?? parentRec?.must ?? parentRec?.kod); if (!kod) { continue }
-					const mustBilgi = result[kod]; if (!mustBilgi) { continue }
-					const subRecs = mustBilgi[subDataKey] = mustBilgi[subDataKey] || []; subRecs.push(rec)
+			let recs = await MQCari.loadServerDataDogrudan(e), classes = [MQKapanmayanHesaplar, MQKapanmayanHesaplar_Dip, MQCariEkstre, MQCariEkstre_Detay];
+			result = {}; for (const rec of recs) { let {kod} = rec; if (kod) { result[kod] = new MustBilgi(rec) } }
+			let cariEkstre_fisSayac2Rec = {}; for (let cls of classes) {
+				let subDataKey = cls.dataKey; if (!subDataKey) { continue }
+				let recs = await cls.loadServerDataDogrudan(e) ?? []; for (let rec of recs) {
+					let parentRec, {icerikfissayac: fisSayac} = rec;;
+					switch (cls) {
+						case MQCariEkstre: if (fisSayac) { cariEkstre_fisSayac2Rec[fisSayac] = rec } break
+						case MQCariEkstre_Detay: parentRec = cariEkstre_fisSayac2Rec[fisSayac]; break
+					}
+					let kod = (rec.mustkod ?? rec.mustKod ?? rec.must ?? rec.kod) ??
+									(parentRec?.mustkod ?? parentRec?.mustKod ?? parentRec?.must ?? parentRec?.kod);
+					if (!kod) { continue }
+					let mustBilgi = result[kod]; if (!mustBilgi) { continue }
+					let subRecs = mustBilgi[subDataKey] = mustBilgi[subDataKey] || []; subRecs.push(rec)
 				}
 			}
-			const AsyncMax = 5; let promises = []; for (const mustBilgi of Object.values(result)) {
+			let AsyncMax = 5, promises = []; for (let mustBilgi of Object.values(result)) {
 				promises.push(new $.Deferred(p => p.resolve( mustBilgi.kapanmayanHesap_yaslandirmaOlustur(e) )));
 				if (promises.length >= AsyncMax) { await Promise.all(promises); promises = [] }
 			}
-			if (promises.length) { await Promise.all(promises) } localData.setData(dataKey, result); localData.kaydetDefer()
+			if (promises.length) { await Promise.all(promises) }
+			localData.setData(dataKey, result); localData.kaydetDefer()
 		}
 		if (result) { for (let kod in result) { let rec = result[kod]; if ($.isPlainObject(rec)) { result[kod] = rec = new MustBilgi(rec) } } }
-		const recs = Object.values(result); return recs
+		let recs = Object.values(result); return recs
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); const rfb = e.rootBuilder, tanimForm = e.tanimFormBuilder, rootPart = e.sender, {mfSinif, inst, kaForm} = e;
-		const {layout} = rootPart, width = 'var(--full)';
+		super.rootFormBuilderDuzenle(e);
+		let {rootBuilder: rfb, tanimFormBuilder: tanimForm, sender: rootPart, mfSinif, inst, kaForm} = e, {layout} = rootPart;
 		rfb.addCSS('no-scroll').addStyle(e => `$elementCSS .form-layout > [data-builder-id = "kaForm"] { margin-top: -80px }`)
 		rfb.setAltInst(e => {
 			const {localData} = app.params, dataKey = this.dataKey, mustBilgiDict = localData.getData(dataKey);
@@ -82,15 +88,15 @@ class MQMustBilgi extends MQKAOrtak {
 			.addStyle(e => `$elementCSS > .content > div { padding-bottom: 0 !important }`);
 		const addGrid = (id, etiket, mfSinif, ekIslemler, parentBuilder) => {
 			ekIslemler = ekIslemler || {}; etiket = etiket ?? mfSinif?.sinifAdi ?? '';
-			if (!parentBuilder) { parentBuilder = tabPanel.addTab(id, etiket).addStyle_fullWH().yanYana() } /*const altForm = parentBuilder.addBaslik(id).setEtiket(etiket).addCSS('baslik').addStyle_fullWH(); */
+			if (!parentBuilder) { parentBuilder = tabPanel.addTab(id, etiket).yanYana().addStyle_fullWH() } /*const altForm = parentBuilder.addBaslik(id).setEtiket(etiket).addCSS('baslik').addStyle_fullWH(); */
 			if (ekIslemler.ilk) { getFuncValue.call(this, ekIslemler.ilk, { id, etiket, mfSinif, etiket, parentBuilder }) }
-			const prevFbd = parentBuilder.builders[parentBuilder.builders.length - 1], prevWidth = prevFbd?._width || 0;
-			const fbd = parentBuilder.addGridliGosterici(id).addStyle_fullWH()/*.addCSS('dock-bottom')*/.setMFSinif(mfSinif)
+			let prevFbd = parentBuilder.builders[parentBuilder.builders.length - 1], prevWidth = prevFbd?._width || 0;
+			let fbd = parentBuilder.addGridliGosterici(id).addStyle_fullWH()/*.addCSS('dock-bottom')*/.setMFSinif(mfSinif)
 				.widgetArgsDuzenleIslemi(({ sender, args, builder: fbd }) => { const {mfSinif} = fbd; mfSinif.orjBaslikListesi_argsDuzenle({ ...e, sender, args, builder: fbd }) })
 				.setTabloKolonlari(({ builder: fbd }) => fbd.mfSinif.listeBasliklari)
 				.setSource(({ builder: fbd }) => { const {rootPart, mfSinif} = fbd; e.mustKod = rootPart.inst.kod; return mfSinif.loadServerData(e) })
-			fbd.addCSS('full-height-important'); fbd.addStyle(e => `$elementCSS:not(.full-width):not(.full-width-important) { width: calc(var(--full) - ${ prevWidth ? prevWidth + 10 : 0 }px) !important }`)
-			/* fbd.addStyle_wh({ width: `calc(var(--full) - ${ prevWidth ? prevWidth + 10 : 0 }px)`, height: 'var(--full)' }) */
+			fbd.addCSS('full-height-important').addStyle(e =>
+				`$elementCSS:not(.full-width):not(.full-width-important) { width: calc(var(--full) - ${prevWidth ? prevWidth + 10 : 0}px) !important }`)
 			fbd.onAfterRun(({ builder: fbd }) => {
 				if (mfSinif?.orjBaslikListesi_gridInit) {
 					const {part} = fbd, {grid, gridWidget} = part;
@@ -101,25 +107,46 @@ class MQMustBilgi extends MQKAOrtak {
 			return fbd
 		};
 		addGrid('kapanmayanHesaplar', null, MQKapanmayanHesaplar, { ilk: e => {
-			const id = MQKapanmayanHesaplar_Yaslandirma.dataKey, mfSinif = MQKapanmayanHesaplar_Yaslandirma, width = 400, {parentBuilder} = e;
+			let {parentBuilder} = e;
 			parentBuilder.addButton('navToggle')
 				.onClick(e => {
-					const {builder} = e, {parentBuilder, rootPart} = builder; const builder_sol = parentBuilder.id2Builder[id], builder_sag = parentBuilder.id2Builder.kapanmayanHesaplar;
-					builder_sol.layout.toggleClass('jqx-hidden'); builder_sag.layout.toggleClass('full-width-important'); rootPart.onResize()
-				})
-				.addStyle(e => `$elementCSS { position: absolute; width: auto !important; height: auto !important; margin-top: -45px; z-index: 500 }`)
+					let {builder} = e, {parentBuilder, rootPart} = builder;
+					let builder_sol = parentBuilder.id2Builder[id], builder_sag = parentBuilder.id2Builder.kapanmayanHesaplar;
+					builder_sol.layout.toggleClass('jqx-hidden'); builder_sag.layout.toggleClass('full-width-important');
+					rootPart.onResize()
+				}).addStyle(e => `$elementCSS { position: absolute; width: auto !important; height: auto !important; margin-top: -45px; z-index: 500 }`)
 				.addStyle(e => `$elementCSS > button { width: 45px !important; height: 45px !important }`);
-			const fbd = parentBuilder.addGridliGosterici(id).addStyle_fullWH({ width }).addCSS('dock-bold').setMFSinif(mfSinif).rowNumberOlmasin()
-				.widgetArgsDuzenleIslemi(({ sender, args, builder: fbd }) => { const {mfSinif} = fbd; mfSinif.orjBaslikListesi_argsDuzenle({ ...e, sender, args, builder: fbd }) })
-				.setTabloKolonlari(({ builder: fbd }) => fbd.mfSinif.listeBasliklari)
-				.setSource(({ builder: fbd }) => { const {rootPart, mfSinif} = fbd; e.mustKod = rootPart.inst.kod; return mfSinif.loadServerData(e) });
-			fbd.onAfterRun(({ builder: fbd }) => {
-				if (mfSinif?.orjBaslikListesi_gridInit) {
-					const {part} = fbd, {grid, gridWidget} = part;
-					mfSinif.orjBaslikListesi_gridInit({ ...e, sender: part, gridPart: part, builder: fbd, mfSinif, grid, gridWidget })
-				}
-			});
-			fbd._width = width
+			let width = 400, subParentBuilder = parentBuilder.addFormWithParent().altAlta().addStyle_fullWH(width); subParentBuilder._width = width;
+			{
+				let mfSinif = MQKapanmayanHesaplar_Yaslandirma, {dataKey: id} = mfSinif;
+				let fbd = subParentBuilder.addGridliGosterici(id).addStyle_fullWH(null, 350)
+					.setMFSinif(mfSinif).rowNumberOlmasin()
+					.widgetArgsDuzenleIslemi(({ sender, args, builder: fbd }) => {
+						let {mfSinif} = fbd; mfSinif.orjBaslikListesi_argsDuzenle({ ...e, sender, args, builder: fbd }) })
+					.setTabloKolonlari(({ builder: fbd }) => fbd.mfSinif.listeBasliklari)
+					.setSource(({ builder: fbd }) => { let {rootPart, mfSinif} = fbd; e.mustKod = rootPart.inst.kod; return mfSinif.loadServerData(e) });
+				fbd.onAfterRun(({ builder: fbd }) => {
+					if (mfSinif?.orjBaslikListesi_gridInit) {
+						let {part} = fbd, {grid, gridWidget} = part;
+						mfSinif.orjBaslikListesi_gridInit({ ...e, sender: part, gridPart: part, builder: fbd, mfSinif, grid, gridWidget })
+					}
+				})
+			}
+			{
+				let mfSinif = MQKapanmayanHesaplar_Dip, {dataKey: id} = mfSinif;
+				let fbd = subParentBuilder.addGridliGosterici(id).addStyle_fullWH(null, 400)
+					.setMFSinif(mfSinif).rowNumberOlmasin()
+					.widgetArgsDuzenleIslemi(({ sender, args, builder: fbd }) => {
+						let {mfSinif} = fbd; mfSinif.orjBaslikListesi_argsDuzenle({ ...e, sender, args, builder: fbd }) })
+					.setTabloKolonlari(({ builder: fbd }) => fbd.mfSinif.listeBasliklari)
+					.setSource(({ builder: fbd }) => { let {rootPart, mfSinif} = fbd; e.mustKod = rootPart.inst.kod; return mfSinif.loadServerData(e) });
+				fbd.onAfterRun(({ builder: fbd }) => {
+					if (mfSinif?.orjBaslikListesi_gridInit) {
+						let {part} = fbd, {grid, gridWidget} = part;
+						mfSinif.orjBaslikListesi_gridInit({ ...e, sender: part, gridPart: part, builder: fbd, mfSinif, grid, gridWidget })
+					}
+				})
+			}
 		} });
 		addGrid('cariEkstre', null, MQCariEkstre)
 	}

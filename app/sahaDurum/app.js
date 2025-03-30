@@ -113,6 +113,13 @@ class SahaDurumApp extends App {
 			url: app.getWSUrl({ wsPath: 'ws/genel', api: 'plasiyerIcinCariler', args: e })
 		})
 	}
+	wsTopluDurum(e) {
+		e = e || {}; const {plasiyerKod, mustKod} = e, params = [
+			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
+			(mustKod ? { name: '@argMustKod', value: mustKod } : null)
+		].filter(x => !!x);
+		return this.sqlExecSP({ query: 'tic_topluDurum', params })
+	}
 	wsTicKapanmayanHesap(e) {
 		e = e || {}; const {plasiyerKod, mustKod} = e, {yaslandirmaTarihmi} = app.params.tablet, params = [
 			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),

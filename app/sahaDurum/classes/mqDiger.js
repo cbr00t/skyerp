@@ -95,9 +95,12 @@ class MQCariEkstre extends MQMasterOrtak {
 			(cariHareketTakipNo ? new GridKolon({ belirtec: 'takiptext', text: 'Takip No', genislikCh: 45, filterType: 'checkedlist' }) : null)
 		].filter(x => !!x))
 	}
-	static loadServerData(e) { e = e || {}; e.mustKod = e.mustKod ?? e.parentRec?.must; return this.loadServerDataFromMustBilgi(e) }
-	static async loadServerDataDogrudan(e) {
-		e = e || {}; await super.loadServerDataDogrudan(e); const {wsArgs} = e;
+	static loadServerData(e) {
+		e = e || {}; e.mustKod = e.mustKod ?? e.parentRec?.must;
+		return this.loadServerDataFromMustBilgi(e)
+	}
+	static async loadServerDataDogrudan({ wsArgs }) {
+		await super.loadServerDataDogrudan(...arguments);
 		let {cariTipKod} = app.params.config; if (cariTipKod) { wsArgs.cariTipKod = cariTipKod }
 		let must2Bakiye = {}, recs = await app.wsTicCariEkstre(wsArgs); for (const rec of recs) {
 			let {must, bedel, ba, borcbedel: borcBedel, alacakbedel: alacakBedel, takipno: takipNo, takipadi: takipAdi} = rec;
@@ -141,37 +144,91 @@ class MQCariEkstre_Detay extends MQMasterOrtak {
 class MQKapanmayanHesaplar_Yaslandirma extends MQMasterOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get dataKey() { return MustBilgi.yaslandirmaKey }
 	static get sinifAdi() { return 'Kapanmayan Hesaplar (Total Bilgi)' } get tableAlias() { return 'ktot' }
-	static orjBaslikListesi_argsDuzenle(e) {
-		super.orjBaslikListesi_argsDuzenle(e); const {args} = e; $.extend(args, { sortable: false, groupable: false, showFilterRow: false, rowsHeight: 30 }) }
-	static ekCSSDuzenle(e) {
-		super.ekCSSDuzenle(e); const belirtec = e.dataField, {rec, result} = e;
+	static orjBaslikListesi_argsDuzenle({ args }) {
+		super.orjBaslikListesi_argsDuzenle(...arguments);
+		$.extend(args, { sortable: false, groupable: false, showFilterRow: false, rowsHeight: 30, adaptive: false })
+	}
+	static ekCSSDuzenle({ dataField: belirtec, rec, result }) {
+		super.ekCSSDuzenle(...arguments);
 		if (rec?.toplammi) { result.push('bg-lightroyalblue', 'bold'); if (belirtec == 'gecmis') { result.push('red') } else if (belirtec == 'gelecek') { result.push('green') } }
 		else { if (belirtec == 'gecmis') { result.push('bg-lightpink') } else if (belirtec == 'gelecek') { result.push('bg-lightgreen') }}
 	}
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(...[
-			new GridKolon({ belirtec: 'kademeText', text: 'Kademe', genislikCh: 6, minWidth: 0, columnType: 'n', align: 'right' }),
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments); liste.push(...[
+			new GridKolon({ belirtec: 'kademeText', text: 'Kademe', genislikCh: 10, columnType: 'n', align: 'right' }),
 			new GridKolon({ belirtec: 'gecmis', text: 'Geçmiş', genislikCh: 14 }).tipDecimal_bedel(),
 			new GridKolon({ belirtec: 'gelecek', text: 'Gelecek', genislikCh: 14 }).tipDecimal_bedel()
 		])
 	}
-	static loadServerData(e) {
-		let recs = this.loadServerDataFromMustBilgi(e); if (recs) {
-			let {mustKod} = e, toplam = { gecmis: 0, gelecek: 0 }; /*if (mustKod == 'M05D48928') { debugger }*/
-			for (const rec of recs) {
-				let {isaretligecikmegun: isaretliGecikmeGun} = rec;
-				if (isaretliGecikmeGun != null) {
-					isaretliGecikmeGun = typeof isaretliGecikmeGun === 'string' ? asDate(isaretliGecikmeGun) : isaretliGecikmeGun;
-					if (isDate(isaretliGecikmeGun)) { isaretliGecikmeGun = ((isaretliGecikmeGun - minDate) / Date_OneDayNum) + 1 }
-					rec.gecmis = rec.gelecek = 0; rec[isaretliGecikmeGun < 0 ? 'gelecek' : 'gecmis'] += Math.abs(isaretliGecikmeGun);
-					delete rec.isaretligecikmegun
-				}
-				for (const key of ['gecmis', 'gelecek']) { toplam[key] += rec[key] }
+	static loadServerData({ mustKod }) {
+		let recs = this.loadServerDataFromMustBilgi(...arguments); if (!recs) { return recs }
+		let toplam = { gecmis: 0, gelecek: 0 }; /*if (mustKod == 'M05D48928') { debugger }*/
+		for (const rec of recs) {
+			let {isaretligecikmegun: isaretliGecikmeGun} = rec;
+			if (isaretliGecikmeGun != null) {
+				isaretliGecikmeGun = typeof isaretliGecikmeGun === 'string' ? asDate(isaretliGecikmeGun) : isaretliGecikmeGun;
+				if (isDate(isaretliGecikmeGun)) { isaretliGecikmeGun = ((isaretliGecikmeGun - minDate) / Date_OneDayNum) + 1 }
+				rec.gecmis = rec.gelecek = 0; rec[isaretliGecikmeGun < 0 ? 'gelecek' : 'gecmis'] += Math.abs(isaretliGecikmeGun);
+				delete rec.isaretligecikmegun
 			}
-			let recToplam = { toplammi: true, kademeText: `<u>TOPLAM</u> =&gt;` }; for (const key in toplam) { recToplam[key] = toplam[key] }
-			recs = [recToplam, ...recs]
+			for (const key of ['gecmis', 'gelecek']) { toplam[key] += rec[key] }
+		}
+		let recToplam = { toplammi: true, kademeText: `<u>TOPLAM</u> =&gt;` }; for (const key in toplam) { recToplam[key] = toplam[key] }
+		recs = [recToplam, ...recs]; return recs
+	}
+	static loadServerDataFromMustBilgi(e) {
+		let recs = super.loadServerDataFromMustBilgi(e);
+		if (!$.isArray(recs)) { recs = Object.values(recs || {}) }
+		return recs
+	}
+}
+class MQKapanmayanHesaplar_Dip extends MQMasterOrtak {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get dataKey() { return 'dip' }
+	static get sinifAdi() { return 'Dip' } get tableAlias() { return 'dip' }
+	static orjBaslikListesi_argsDuzenle({ args }) {
+		super.orjBaslikListesi_argsDuzenle(...arguments);
+		$.extend(args, { sortable: false, groupable: false, showFilterRow: false, rowsHeight: 30, adaptive: false })
+	}
+	static ekCSSDuzenle({ dataField: belirtec, rec, result }) {
+		super.ekCSSDuzenle(...arguments);
+		if (rec?.toplammi) { result.push('bg-lightroyalblue', 'bold') }
+		if (belirtec == 'veri') {
+			let {veri: bedel} = rec; result.push('bold');
+			if (bedel) { result.push(bedel < 0 ? 'red' : 'green') }
+		}
+	}
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments); liste.push(...[
+			new GridKolon({ belirtec: 'etiket', text: ' ', genislikCh: 23 }),
+			new GridKolon({ belirtec: 'veri', text: 'Bedel', genislikCh: 16 }).alignRight()
+		])
+	}
+	static loadServerData(e) {
+		e = e || {}; e.mustKod = e.mustKod ?? e.parentRec?.must;
+		let _recs = this.loadServerDataFromMustBilgi(e); if (!_recs?.length) { return [] }
+		let donusum = {
+			risklimiti: 'Risk Limiti', vaderisklimiti: 'Vade R.Limiti', kalanrisk: 'Kalan Risk', vadelikalanrisk: 'Vadeli K.Risk', vadelikisim: 'Vadeli Kısım',
+			ortalamavade: 'Ort. Vade', vadeliortalamavade: 'Vadeli Ort. Vade'
+		};
+		let recs = []; for (let _rec of _recs) {
+			let rec = {}; for (let [key, etiket] of Object.entries(donusum)) {
+				let veri = _rec[key]; if (!veri) { continue }
+				if (typeof veri == 'string') { veri = asDate(veri) }
+				if (typeof veri == 'number') { veri = fra2Str(veri) }
+				else if (!isInvalidDate(veri)) { veri = dateKisaString(veri) }
+				recs.push({ etiket, veri })
+			}
 		}
 		return recs
 	}
-	static loadServerDataFromMustBilgi(e) { let recs = super.loadServerDataFromMustBilgi(e); if (!$.isArray(recs)) { recs = Object.values(recs || {}) } return recs }
+	static async loadServerDataDogrudan({ wsArgs }) {
+		await super.loadServerDataDogrudan(...arguments);
+		let {cariTipKod} = app.params.config; if (cariTipKod) { wsArgs.cariTipKod = cariTipKod }
+		let recs = await app.wsTopluDurum(wsArgs); return recs
+	}
+	static loadServerDataFromMustBilgi(e) {
+		let recs = super.loadServerDataFromMustBilgi(e);
+		if (!$.isArray(recs)) { recs = Object.values(recs || {}) }
+		return recs
+	}
 }
