@@ -2,16 +2,15 @@ class BankaTeminatMektupHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return app?.params?.bankaGenel?.kullanim?.teminatMektubu }
     /* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
-    static hareketTipSecim_kaListeDuzenle(e) {
-        super.hareketTipSecim_kaListeDuzenle(e); e.kaListe.push(
+    static hareketTipSecim_kaListeDuzenle({ kaListe }) {
+        super.hareketTipSecim_kaListeDuzenle(...arguments); kaListe.push(
 			new CKodVeAdi(['temAcilis', 'Teminat Mektubu Açılışı']),
 			new CKodVeAdi(['temKapanis', 'Teminat Mektubu Kapanışı'])
 		)
     }
-    /** Varsayılan değer atamaları (host vars) */
-    static varsayilanHVDuzenle(e) {
-        super.varsayilanHVDuzenle(e); const { hv, sqlNull, sqlEmpty, sqlZero } = e; /* AI: Kısa tanımlar, ilk satırla birleştirilebilir */
-        $.extend(hv, {
+   /** Varsayılan değer atamaları (hostVars) */
+    static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
+        super.varsayilanHVDuzenle(...arguments); $.extend(hv, {
             detaciklama: sqlEmpty, anaislemadi: ({ hv }) => hv.islemadi,
             aciklama: ({ hv }) => {
                 const withCoalesce = (clause) => `COALESCE(${clause}, '')`, {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv;

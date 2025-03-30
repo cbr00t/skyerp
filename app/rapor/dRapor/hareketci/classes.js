@@ -6,7 +6,9 @@ class DRapor_Hareketci_Cari extends DRapor_Hareketci {
 class DRapor_Hareketci_Cari_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return CariHareketci }
 	static get raporClass() { return DRapor_Hareketci_Cari }
-	tabloYapiDuzenle({ result }) { super.tabloYapiDuzenle(...arguments); this.tabloYapiDuzenle_cari(...arguments) }
+	tabloYapiDuzenle({ result }) {
+		super.tabloYapiDuzenle(...arguments); this.tabloYapiDuzenle_cari(...arguments)
+	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e); let {hvDegeri} = e, kodClause = hvDegeri('must');
 		this.loadServerData_queryDuzenle_cari({ ...e, kodClause });
@@ -34,6 +36,56 @@ class DRapor_Hareketci_Kasa_Main extends DRapor_Hareketci_Main {
 			switch (key) { case 'KASA': sahalar.add(`${kodClause} kasakod`, 'kas.aciklama kasaadi'); wh.icerikKisitDuzenle_kasa({ ...e, saha: kodClause }); break }
 		}
 	}
+}
+class DRapor_Hareketci_Hizmet extends DRapor_Hareketci {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get araSeviyemi() { return false } static get vioAdim() { return 'HZ-TT' }
+	static get kod() { return 'HIZHAR' } static get aciklama() { return 'Hizmet' }
+}
+class DRapor_Hareketci_Hizmet_Main extends DRapor_Hareketci_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return HizmetHareketci }
+	static get raporClass() { return DRapor_Hareketci_Hizmet }
+	tabloYapiDuzenle({ result }) {
+		super.tabloYapiDuzenle(...arguments);
+		result
+			.addKAPrefix('anagrup', 'grup', 'histgrup', 'kategori')
+			.addGrup(new TabloYapiItem().setKA('HZANAGRP', 'Hizmet Ana Grup').secimKullanilir().setMFSinif(DMQHizmetAnaGrup)
+				.addColDef(new GridKolon({ belirtec: 'anagrup', text: 'Hizmet Ana Grup', maxWidth: 450, filterType: 'checkedlist' })))
+			.addGrup(new TabloYapiItem().setKA('HZGRP', 'Hizmet Grup').secimKullanilir().setMFSinif(DMQHizmetGrup)
+				.addColDef(new GridKolon({ belirtec: 'grup', text: 'Hizmet Grup', maxWidth: 450, filterType: 'checkedlist' })))
+			.addGrup(new TabloYapiItem().setKA('HZISTGRP', 'Hizmet İst. Grup').secimKullanilir().setMFSinif(DMQHizmetIstGrup)
+				.addColDef(new GridKolon({ belirtec: 'sistgrup', text: 'Hizmet İst. Grup', maxWidth: 450, filterType: 'checkedlist' })));
+		this.tabloYapiDuzenle_hizmet(...arguments);
+		result
+			.addGrup(new TabloYapiItem().setKA('KATEGORI', 'Kategori').secimKullanilir().setMFSinif(DMQKategori)
+				.addColDef(new GridKolon({ belirtec: 'kategori', text: 'Kategori', maxWidth: 600, filterType: 'input' })))
+			.addGrup(new TabloYapiItem().setKA('KATDETAY', 'Kategori Detay')
+				.addColDef(new GridKolon({ belirtec: 'katdetay', text: 'Kat. Detay', maxWidth: 600, filterType: 'input' })))
+	}
+	loadServerData_queryDuzenle_hrkSent({ stm, attrSet, hvDegeri }) {
+		super.loadServerData_queryDuzenle_hrkSent(...arguments);
+		let kodClause = hvDegeri('hizmetkod'); this.loadServerData_queryDuzenle_hizmet({ ...arguments[0], kodClause });
+		for (let sent of stm.getSentListe()) {
+			let {sahalar, where: wh} = sent;
+			if (attrSet.HZANAGRP) { sent.hizmet2GrupBagla() }
+			if (attrSet.HZANAGRP || attrSet.HZGRP || attrSet.HZISTGRP) { sent.x2HizmetBagla({ kodClause }) }
+			if (attrSet.KATEGORI || attrSet.KATDETAY) { sent.har2KatDetayBagla() }
+			for (const key in attrSet) {
+				switch (key) {
+					case 'HZANAGRP': sent.hizmetGrup2AnaGrupBagla(); sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi'); wh.icerikKisitDuzenle_hizmetAnaGrup({ ...e, saha: 'grp.anagrupkod' }); break
+					case 'HZGRP': sent.hizmet2GrupBagla(); sahalar.add('hiz.grupkod', 'grp.aciklama grupadi'); wh.icerikKisitDuzenle_hizmetGrup({ ...e, saha: 'hiz.grupkod' }); break
+					case 'HZISTGRP': sent.hizmet2IstGrupBagla(); sahalar.add('hiz.histgrupkod', 'higrp.aciklama histgrupadi'); wh.icerikKisitDuzenle_hizmetIstGrup({ ...e, saha: 'grp.histgrupkod' }); break
+					case 'KATDETAY': sahalar.add('kdet.kdetay katdetay'); break
+					case 'KATEGORI':
+						sent.leftJoin('kdet', 'kategori kat', 'kdet.fissayac = kat.kaysayac');
+						sahalar.add('kat.kod kategorikod', 'kat.aciklama kategoriadi');
+						break
+				}
+			}
+		}
+		return this
+	}
+	tabloYapiDuzenle_odemeGun(e) { super.super_tabloYapiDuzenle_odemeGun(e) }
 }
 
 class DRapor_Hareketci_BankaOrtak extends DRapor_Hareketci {

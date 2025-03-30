@@ -1,5 +1,7 @@
 class MQStm extends MQDbCommand {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	get unionSahaListe() { return this.sent.unionSahaListe }
+	get unionAliasListe() { return this.sent.unionAliasListe }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, {
 			with: ($.isPlainObject(e.with) ? new MQWith(e.with) : e.with) || new MQWith(),

@@ -63,7 +63,11 @@ class Hareketci extends CObject {
 	}
 	static get varsayilanHV() {
 		let {_varsayilanHV: result} = this, e;
-		if (result == null) { this.varsayilanHVDuzenle(e = { hv: {} }); result = this._varsayilanHV = e.hv }
+		if (result == null) {
+			let hv = {}, sqlEmpty = `''`, sqlNull = sqlEmpty, sqlZero = '0';
+			e = { hv, sqlEmpty, sqlNull, sqlZero };
+			this.varsayilanHVDuzenle(e); result = this._varsayilanHV = e.hv
+		}
 		return result
 	}
 	constructor(e) {
@@ -135,10 +139,10 @@ class Hareketci extends CObject {
 				uygunmu = uygunlukVarmi ? !!uygunluk[anahStr] : true; if (!uygunmu) { continue }
 			}
 			unionBilgiListe = unionBilgiListe.map(item => getFuncValue.call(this, item, e)).filter(x => !!x);
-			for (const uniBilgi of unionBilgiListe) {
+			for (let uniBilgi of unionBilgiListe) {
 				let {sent} = uniBilgi; if (!sent) { continue }
 				let {hv} = uniBilgi, _e = { ...e, sent, hv }; if (hv) {
-					sent = _e.sent = sent.deepCopy(); for (const alias in { ...zorunluAttrSet, ...hv }) {
+					sent = _e.sent = sent.deepCopy(); for (let alias in { ...zorunluAttrSet, ...defHV, ...hv }) {
 						let deger = hv[alias] || defHV[alias];
 						if (isFunction(deger)) { deger = deger?.call(this, { ...e, sender, hareketci, uniBilgi, key: alias, sent, hv, defHV }) }
 						deger = deger ?? 'NULL'; let saha = deger; if (alias) { saha += ` ${alias}` }

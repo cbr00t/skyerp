@@ -341,7 +341,8 @@ class MQAlimParam extends MQAlimSatisParamOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get paramKod() { return 'SFAL' } static get sinifAdi() { return 'Alım Genel Parametreleri' }
 	static paramYapiDuzenle(e){
 		super.paramYapiDuzenle(e); const {paramci, temps} = e;
-		let form = temps.islem_kullanim, kullanim = form.addKullanim(); kullanim.addBool('hizmetGiderPusulasi', 'Hizmet Gider Pusulası')
+		let form = temps.islem_kullanim, kullanim = form.addKullanim();
+			kullanim.addBool('hizmetGiderPusulasi', 'Hizmet Gider Pusulası'); kullanim.addBool('stokGiderPusulasi', 'Stok Gider Pusulası')
 	}
 }
 class MQSatisParam extends MQAlimSatisParamOrtak {
@@ -363,9 +364,13 @@ class MQBankaGenelParam extends MQTicariParamBase {
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); const {paramci} = e;
 		let form = paramci.addKullanim().addFormWithParent();
-			form.addBool('taksitliKredi', 'Taksitli Kredi'); form.addBool('yatirim', 'Yatırım');
+			form.addBool('taksitliKredi', 'Taksitli Kredi'); form.addBool('yatirimGeliri', 'Yatırım');
 			form.addBool('akreditif', 'Akreditif'); form.addBool('teminatMektubu', 'Teminat Mektubu');
 			form.addBool('zorunluTaksit', 'Zorunlu Taksit'); form.addBool('eskiNakdeDonusum', 'Eski Nakde Dönüşüm')
+	}
+	paramSetValues({ rec }) {
+		super.paramSetValues(...arguments);
+		this.yatirimGeliri = rec.yatirimGeliri ?? rec.yatirim ?? this.yatirimGeliri
 	}
 }
 class MQUretimParam extends MQTicariParamBase {
@@ -405,15 +410,19 @@ class MQKaliteParam extends MQTicariParamBase {
 class MQAktarimParam extends MQTicariParamBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Ticari Aktarım Parametreleri' } static get paramKod() { return 'CAKT' }
-	static paramYapiDuzenle(e) {
-		super.paramYapiDuzenle(e); const {paramci} = e;
+	static paramYapiDuzenle({ paramci }) {
+		super.paramYapiDuzenle(...arguments);
 		let kullanim = paramci.addKullanim().addGrup({ etiket: 'Kullanım' }); let form = kullanim.addFormWithParent();
 			form.addBool('webOzetRapor', 'Web Özet Rapor').onBuildEk(e => e.builder.input.attr('disabled', ''));
-			form.addBool('tablet', 'Sky Tablet'); form.addBool('pdks', 'PDKS'); form.addBool('yazarkasa', 'YazarKasa Aktarımı');
+			form.addBool('tablet', 'Sky Tablet'); form.addBool('pdks', 'PDKS'); form.addBool('yazarKasa', 'YazarKasa Aktarımı');
 			form.addBool('pratikSatis', 'Pratik Satış'); form.addBool('magaza', 'Mağaza');
-			form.addBool('webSiparis', 'Web B2B Sipariş'); form.addBool('konsinyeLojistik', 'Konsinye Lojistik'); form.addBool('pdks', 'PDKS Veri Aktarımı')
+			form.addBool('webSiparis', 'Web B2B Sipariş'); form.addBool('konsinyeLojistik', 'Konsinye Lojistik');
+			form.addBool('pdks', 'PDKS Veri Aktarımı'); form.addBool('guleryuzOnline', 'Güleryüz Online')
 	}
-	paramSetValues(e) { e = e || {}; super.paramSetValues(e) /*; const {rec} = e*/ }
+	paramSetValues({ rec }) {
+		super.paramSetValues(...arguments);
+		this.yazarKasa = rec.yazarKasa ?? rec.yazarkasa ?? this.yazarKasa
+	}
 }
 class MQMuhasebeParam extends MQTicariParamBase {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Parametreleri' } static get paramKod() { return 'MHGN' }

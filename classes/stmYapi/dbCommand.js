@@ -3,6 +3,16 @@ class MQDbCommand extends MQSQLOrtak {
 }
 class MQSentVeIliskiliYapiOrtak extends MQDbCommand {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	get unionSahaListe() {
+		let result = []; for (let sent of this.getSentListe()) {
+			result.push(sent.sahalar.liste.flat()) }
+		return result
+	}
+	get unionAliasListe() {
+		let result = []; for (let sent of this.getSentListe()) {
+			result.push(sent.sahalar.liste.flatMap(saha => saha.alias)) }
+		return result
+	}
 	asToplamStm(e) {
 		e = e || {}; const sumListe = e.sumListe ?? [], orderFlag = e.order ?? e.orderBy, tmpTabloVeAlias = e.tmpTabloVeAlias ?? e.tmpTableVeAlias, {liste} = this;
 		let ilkSent; for (const sent of this.getSentListe()) { ilkSent = sent; break } if (!ilkSent) { return new MQStm() }

@@ -284,6 +284,22 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		return this
 	}
+	tabloYapiDuzenle_hizmet({ result }) {
+		result.addKAPrefix('hizmet').addGrupBasit('HIZMET', 'Hizmet', 'hizmet', DMQHizmet);
+		return this
+	}
+	loadServerData_queryDuzenle_hizmet({ stm, sent, attrSet, kodClause }) {
+		if (!kodClause) { return this } sent = sent ?? stm.sent; let {where: wh, sahalar} = sent;
+		if (attrSet.HIZMET) { sent.x2HizmetBagla({ kodClause }) }
+		for (const key in attrSet) {
+			switch (key) {
+				case 'HIZMET':
+					sahalar.add(`${kodClause} hizmetkod`, 'hiz.aciklama hizmetadi'); wh.icerikKisitDuzenle_hizmet({ ...arguments[0], saha: kodClause });
+					break
+			}
+		}
+		return this
+	}
 	tabloYapiDuzenle_takip({ result }) {
 		result.addKAPrefix('takip', 'takipgrup')
 			.addGrupBasit('TAKIPNO', 'Takip No', 'takip', DMQTakipNo)

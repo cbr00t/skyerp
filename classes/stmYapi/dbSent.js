@@ -220,7 +220,9 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	har2KatDetayBagla(e) { let alias = e?.alias ?? 'har'; this.leftJoin(alias, 'kategoridetay kdet', `${alias}.kdetaysayac = kdet.kaysayac`); return this }
 	x2YerBagla(e) { const {alias} = e, aliasVeNokta = alias ? `${alias}.` : ''; this.fromIliski('stkyer yer', `${aliasVeNokta}yerkod = yer.kod`); return this }
 	fis2CariBagla(e) { e = e ?? {}; let mustSaha = (e.mustSaha ?? e.fisMustSaha) || 'must'; this.fromIliski('carmst car', `fis.${mustSaha} = car.must`); return this }
-	fis2HizmetBagla(e) { this.fromIliski('hizmst hiz', 'fis.hizmetkod = hiz.kod'); return this }
+	x2HizmetBagla(e) { let kodClause = e?.kodClause; this.fromIliski('hizmst hiz', `${kodClause} = hiz.kod`); return this }
+	fis2HizmetBagla(e) { return this.x2HizmetBagla({ kodClause: 'fis.hizmetkod' }) }
+	har2HizmetBagla(e) { return this.x2HizmetBagla({ kodClause: 'har.hizmetkod' }) }
 	fis2TicCariBagla(e) { this.fromIliski('carmst car', 'fis.ticmust = car.must'); return this }
 	fis2AltHesapBagla(e) { this.fromIliski('althesap alth', 'fis.althesapkod = alth.kod'); return this }
 	fis2AltHesapBagla_eski(e) { this.fromIliski('althesap alth', 'fis.cariitn = alth.kod'); return this }
@@ -317,7 +319,6 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		const alias = e?.alias ?? 'stk', aliasVeNokta = alias + '.';
 		this.fromIliski('stkgtip gtip', `${aliasVeNokta}gtipkod = gtip.kod`); return this
 	}
-	har2HizmetBagla(e) { this.fromIliski('hizmst hiz', 'har.hizmetkod = hiz.kod'); return this }
 	hizmetHepsiBagla(e) { this.hizmetYardimciBagla(e); this.hizmetAyrimBagla(e); return this }
 	hizmetYardimciBagla(e) {
 		const alias = e?.alias ?? 'hiz', aliasVeNokta = alias + '.';
