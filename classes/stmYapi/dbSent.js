@@ -93,13 +93,17 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		}
 		return this
 	}
-	innerJoin(e) {
+	innerJoin(e, _from, _iliskiDizi) {
 		if (typeof e != 'object') { e = { alias: e, from: _from, on: _iliskiDizi } };
 		let {alias} = e; const fromText = e.from || e.leftJoin || e.fromText || e.table;
 		let iliskiDizi = e.on || e.iliskiDizi || e.iliskiText || e.iliski; if (iliskiDizi && !$.isArray(iliskiDizi)) { iliskiDizi = [iliskiDizi] }
 		const xJoin = MQInnerJoin.newForFromText({ text: fromText, on: iliskiDizi });
 		const tableYapi = this.from.aliasIcinTable(alias);
-		if (!tableYapi) { debugger; throw { isError: true, rc: 'innerJoinTable', errorText: `Inner Join (<i class="bold lightgray">${fromText}</i>) için eklenmek istenen alias (<b class="red">${alias}</b>) bulunamadı` } }
+		if (!tableYapi) {
+			debugger; throw {
+				isError: true, rc: 'innerJoinTable',
+				errorText: `Inner Join (<i class="bold lightgray">${fromText}</i>) için eklenmek istenen alias (<b class="red">${alias}</b>) bulunamadı` }
+		}
 		tableYapi.addLeftInner(xJoin);
 		for (const iliskiText of iliskiDizi) {
 			const iliski = MQIliskiYapisi.newForText(iliskiText);
@@ -113,7 +117,10 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		let iliskiDizi = e.on || e.iliskiDizi || e.iliskiText || e.iliski; if (iliskiDizi && !$.isArray(iliskiDizi)) { iliskiDizi = [iliskiDizi] }
 		const xJoin = MQLeftJoin.newForFromText({ text: fromText, on: iliskiDizi }), tableYapi = this.from.aliasIcinTable(alias);
 		if (!tableYapi) {
-			debugger; throw { isError: true, rc: 'leftJoinTable', errorText: `Left Join (<i class="bold lightgray">${fromText}</i>) için eklenmek istenen alias (<b class="red">${alias}</b>) bulunamadı` }
+			debugger; throw {
+				isError: true, rc: 'leftJoinTable',
+				errorText: `Left Join (<i class="bold lightgray">${fromText}</i>) için eklenmek istenen alias (<b class="red">${alias}</b>) bulunamadı`
+			}
 		}
 		tableYapi.addLeftInner(xJoin);
 		for (const iliskiText of iliskiDizi) {
@@ -228,6 +235,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	fis2AltHesapBagla_eski(e) { this.fromIliski('althesap alth', 'fis.cariitn = alth.kod'); return this }
 	fis2PlasiyerBagla(e) { this.fromIliski('carmst pls', 'fis.plasiyerkod = pls.must'); return this }
 	fis2SevkAdresBagla(e) { this.fromIliski('carsevkadres sadr', 'fis.xadreskod = sadr.kod'); return this }
+	fis2DegAdresBagla(e) { this.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox'); return this }
 	fis2KasaBagla(e) { this.fromIliski('kasmst kas', 'fis.kasakod = kas.kod'); return this }
 	fis2BankaHesapBagla(e) { return this.x2BankaHesapBagla({ kodClause: 'fis.banhesapkod' }) }
 	fis2KrediBankaHesapBagla(e) { return this.x2BankaHesapBagla({ kodClause: 'fis.kredihesapkod' }) }

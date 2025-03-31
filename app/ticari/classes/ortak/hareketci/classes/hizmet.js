@@ -53,7 +53,9 @@ class HizmetHareketci extends Hareketci {
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
         super.uygunluk2UnionBilgiListeDuzenleDevam(e);
         this.uniDuzenle_devir(e).uniDuzenle_finansalIslemler(e).uniDuzenle_tahsilatOdeme(e);
-		this.uniDuzenle_pos(e).uniDuzenle_dekont(e).uniDuzenle_ekMasraf(e)
+		this.uniDuzenle_pos(e);this.uniDuzenle_dekont(e).uniDuzenle_ekMasraf(e).uniDuzenle_goMaliyet(e);
+		this.uniDuzenle_fatura_giderPusula_perakende(e).uniDuzenle_fasonFatura(e);
+		this.uniDuzenle_taksitliKredi(e).uniDuzenle_krediFaizi(e).uniDuzenle_yatirimGeliri(e)
     }
     /** (Hizmet Devir) için UNION */
     uniDuzenle_devir({ uygunluk, liste }) {
@@ -81,9 +83,10 @@ class HizmetHareketci extends Hareketci {
 							(uygunluk.kasa ? 'KH' : ''), (uygunluk.banka ? 'HH' : ''),
 							(uygunluk.cari ? 'CH' : ''), (uygunluk.serbestMeslek ? 'SM' : '')
 						].filter(x => !!x);
-						sent.fisHareket('finansfis', 'finanshar').har2HizmetBagla().har2KatDetayBagla()
+						sent.fisHareket('finansfis', 'finanshar')
+							.har2HizmetBagla().har2KatDetayBagla()
 							.fis2KasaBagla().har2BankaHesapBagla().har2CariBagla()
-							.fromIliski('carmst fiscar', 'fis.fismustkod = fiscar.must')
+							.fromIliski('carmst fiscar', 'fis.fismustkod = fiscar.must');
 	                    let {where: wh} = sent; wh.fisSilindiEkle().inDizi(tipListe, 'fis.fistipi')
 	                })
 					.hvDuzenleIslemi(({ hv }) => {
@@ -276,6 +279,264 @@ class HizmetHareketci extends Hareketci {
 							ba: `'B'`, bedel: 'har.masraf', islemadi: `'Protesto Masrafı'`, takipno: 'fis.takipno',
 							refkod: `(case fis.fistipi when 'KR' then fis.banhesapkod when 'EK' then fis.portfkod when '3K' then fis.fisciranta else '' end)`,
 							refadi: `(case fis.fistipi when 'KR' then bhes.aciklama when 'EK' then prt.aciklama when '3K' then ciran.birunvan else '' end)`
+						})
+	                })
+            ]
+        });
+        return this
+    }
+	/** (Güleryüz Maliyet) için UNION */
+	uniDuzenle_goMaliyet({ uygunluk, liste }) {
+		const getUniBilgi = tahakkukmu => {
+			return new Hareketci_UniBilgi()
+				.sentDuzenleIslemi(({ sent }) => {
+					let {where: wh} = sent;
+                    sent.fromAdd('gofirmahakedis ghak')
+						.innerJoin('ghak', 'gofirmaekhizmet ekhiz', 'ghak.kaysayac = ekhiz.fissayac')
+						.fromIliski('gomstfirma gfrm', 'ghak.firmaid = gfrm.webrefid')
+						.fromIliski('gomstcalismaalan gcaln', 'ghak.calismaalanid = gcaln.webrefid')
+						.fromIliski('gomstekhizmet ghiz', 'ekhiz.ekhizmetid = ghiz.webrefid')
+						.fromIliski('gofmal2tip2hizmet fhdon', ['ghak.firmaid = fhdon.firmaid', 'ekhiz.ekhizmetid = fhdon.hizmetid'])
+					wh.add(`fhdon.hizmetkod > ''`);
+					if (tahakkukmu) { wh.degerAta('T', 'ghiz.tip') }
+				})
+				.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
+					$.extend(hv, {
+						kaysayac: sqlNull, kdetay: sqlEmpty, kdetaysayac: sqlNull,
+						bizsubekod: sqlEmpty, detaciklama: sqlEmpty,
+						kayittipi: `'GOML'`, hizmetkod: 'fhdon.hizmetkod', tarih: 'ghak.tarih', fisnox: 'ghak.fisnox',
+                        takipno: 'ghak.takipno', fisaciklama: 'gcaln.aciklama',
+						islemadi: `('GO-${tahakkukmu ? 'Hakediş' : 'Gider'}: ' + RTRIM(ghiz.aciklama))`,
+						refadi: 'gfrm.aciklama', ba: `'${tahakkukmu ? 'A' : 'B'}'`, bedel: 'ekhiz.ekhizmetbedeli'
+					})
+				})
+		}
+        $.extend(liste, { goMaliyet: [getUniBilgi(false), getUniBilgi(true)] });
+        return this
+	}
+	/** (Fatura & Gider Pusula & Perakende) için UNION */
+	uniDuzenle_fatura_giderPusula_perakende({ uygunluk, liste }) {
+		$.extend(liste, {
+			fatura$giderPusula$perakende: [
+				/* 1) Fiş-Detay Hareketleri */
+				new Hareketci_UniBilgi()
+					.sentDuzenleIslemi(({ sent }) => {
+						let {fatura, giderPusula, perakende} = uygunluk;
+						let fisTipleri = [], ayrimTipleri = [], ayrimTipEkClauses = [];
+						if (fatura) { fisTipleri.push('F') }
+						if (giderPusula || perakende) {
+							fisTipleri.push('P'); ayrimTipleri.push(giderPusula ? 'GP' : '');  /* ya 'giderPusula' ya da 'perakende' dir */
+							ayrimTipEkClauses.push(new MQOrClause([`fis.piftipi <> 'P'`]).inDizi(ayrimTipleri, 'fis.ayrimtipi'))
+						}
+						/* dbSent.js: yeni method:
+								fis2DegAdresBagla(e) { this.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox'); return this } */
+						sent.fisHareket('piffis', 'pifhizmet').fis2CariBagla()
+							.har2KatDetayBagla().fis2DegAdresBagla();
+						let {where: wh} = sent; wh.fisSilindiEkle();
+						wh.inDizi(fisTipleri, 'fis.fistipi');
+						if (ayrimTipEkClauses.length) { wh.add(...ayrimTipEkClauses) }
+					})
+					.hvDuzenleIslemi(({ hv }) => {
+						$.extend(hv, {
+							kayittipi: `'PIFHZ'`, depkod: 'har.depkod',
+							masrafkod: `(case when fis.masrafortakdir = '' then har.detmasrafkod else fis.masrafkod end)`,
+							plasiyerkod: 'fis.plasiyerkod', vade: 'fis.ortalamavade', miktar: 'har.miktar', dvkur: 'fis.dvkur',
+							ba: `(case when har.btersmi = 0 then dbo.almsattext(fis.almsat, 'B', 'A') else dbo.almsattext(fis.almsat, 'A', 'B') end)`,
+							bedel: '(case when har.btersmi = 0 then (har.bedel - har.dipiskonto) else 0 - (har.bedel - har.dipiskonto) end)',
+							dvbedel: '(case when har.btersmi = 0 then har.dvbedel else 0 - har.dvbedel end)',
+							islemadi: (
+								`(case when fis.piftipi = 'F' then dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Alım Fatura', 'Satış Fatura'))` +
+								` else (case when fis.ayrimtipi = 'GP' then 'Gider Pusulası' else dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Perakende Alım', 'Perakende Satış')) end)` +
+								` end)`
+							),
+							althesapkod: 'fis.cariitn', takipno: 'har.dettakipno', mustkod: 'fis.must',
+							refkod: `(case when fis.ayrimtipi = 'GP' then fis.degiskenvknox else fis.must end)`,
+							refadi: `(case when fis.ayrimtipi = 'GP' then dadr.birunvan else car.birunvan end)`,
+							detaciklama: `dbo.strconcat(coalesce(har.degiskenadi, ''), har.ekaciklama)`
+						})
+					}),
+				/* 2) Tahsilat şeklinde Hizmet verilmesi */
+				new Hareketci_UniBilgi()
+					.sentDuzenleIslemi(({ sent }) => {
+						let {fatura, giderPusula, perakende} = uygunluk;
+						let fisTipleri = [
+							(fatura ? 'F' : null),
+							(giderPusula || perakende ? 'P' : null)
+						].filter(x => x != null);
+						sent.fisHareket('piffis', 'piftaksit').fis2CariBagla().fis2TahSekliBagla();
+						let {where: wh} = sent; wh.fisSilindiEkle();
+						wh.inDizi(fisTipleri, 'fis.fistipi').degerAta('HZ', 'tsek.tahsiltipi')
+					})
+					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
+						$.extend(hv, {
+							kayittipi : `'PIFTK'`, hizmetkod: 'tsek.hizmetkod', plasiyerkod: 'fis.plasiyerkod',
+							refkod: 'fis.must', refadi: 'car.birunvan', althesapkod: 'fis.cariitn', mustkod: 'fis.must',
+							vade: 'har.vade', ba: `dbo.almsattext(fis.almsat, 'B', 'A')`, dvkur: 'fis.dvkur', dvbedel: 'har.dvbedel',
+							kdetaysayac: sqlNull, kdetay: sqlEmpty, fisaciklama: 'fis.cariaciklama',
+							islemadi: (
+								`(case when fis.piftipi = 'F' then dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Alım Fatura', 'Satış Fatura'))` +
+								` else dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Perakende Alım', 'Perakende Satış')) end)`
+							)
+						})
+					}),
+				/* 3) Fatura Dip Hizmetleri */
+				new Hareketci_UniBilgi()
+					.sentDuzenleIslemi(({ sent }) => {
+						let {fatura, giderPusula, perakende} = uygunluk;
+						let fisTipleri = [
+							(fatura ? 'F' : null),
+							(giderPusula || perakende ? 'P' : null)
+						].filter(x => x != null);
+						sent.fisHareket('piffis', 'pifdiphizmet').fis2CariBagla();
+						let {where: wh} = sent; wh.fisSilindiEkle();
+						wh.inDizi(fisTipleri, 'fis.fistipi');
+						wh.add(`har.anatip <> 'II'`)    /* dip kisma atilan satir iskonto alinmaz */
+					})
+					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
+						$.extend(hv, {
+							kayittipi: `'PIFDIP'`, plasiyerkod: 'fis.plasiyerkod', vade: 'fis.ortalamavade',
+							althesapkod: 'fis.cariitn', takipno: 'fis.orttakipno', mustkod: 'fis.must',
+							ba: 'har.ba', bedel: 'har.bedel', dvkur: 'fis.dvkur', dvbedel: 'har.dvbedel',
+							kdetaysayac: sqlNull, kdetay: sqlEmpty, fisaciklama: 'fis.cariaciklama',
+							islemadi: (
+								`(case when fis.piftipi = 'F' then dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Alım Fatura', 'Satış Fatura'))` +
+								` else dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Perakende Alım', 'Perakende Satış')) end)`
+							)
+						})
+					})
+			]
+		});
+		return this
+	}
+	/* (Fason Fatura) için UNION */
+	uniDuzenle_fasonFatura({ uygunluk, liste }) {
+		const getUniBilgi = (karsimi, duzenleyici) => {
+			return new Hareketci_UniBilgi()
+				.sentDuzenleIslemi(({ sent }) => {
+					let {where: wh} = sent;
+                    sent.fisHareket('piffis', 'piffsstok').fis2CariBagla().har2KatDetayBagla();
+					wh.fisSilindiEkle().degerAta('F', 'piftipi').degerAta('FS', 'fis.ayrimtipi');
+					duzenleyici?.call(this, { sent, wh })
+				})
+				.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
+					let baArgs = [`'B'`, `'A'`]; if (karsimi) { baArgs.reverse() }
+					let islemAdiClause = `dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Alım Fason Fatura', 'Satış Fason Fatura'))`;
+					$.extend(hv, {
+						kayittipi: `'PIFFS'`, depkod: 'har.depkod', plasiyerkod: 'fis.plasiyerkod',
+						althesapkod: 'fis.cariitn', takipno: 'har.dettakipno', mustkod: 'fis.must',
+						refkod: 'fis.must', refadi: 'car.birunvan',
+						vade: 'fis.ortalamavade', ba: `dbo.almsattext(fis.almsat, ${baArgs.join(', ')})`,
+						miktar: 'har.miktar', dvkur: 'fis.dvkur', bedel: '(har.bedel - har.dipiskonto)', dvbedel: 'har.dvbedel',
+						islemadi: `${islemAdiClause}${karsimi ? ` + 'Karşılık'` : ''}`,
+						fisaciklama: 'fis.cariaciklama', detaciklama: 'har.ekaciklama'
+					})
+				})
+		}
+        $.extend(liste, {
+			fasonFatura: [
+				getUniBilgi(false),
+				getUniBilgi(true, ({ wh }) => wh.degerAta('A', 'fis.almsat'))    /* Fason Alım karşılığı */
+			]
+		});
+        return this
+	}
+	/* (Taksitli Kredi) için UNION */
+    uniDuzenle_taksitliKredi({ uygunluk, liste }) {
+        $.extend(liste, {
+            taksitliKredi: [
+                new Hareketci_UniBilgi()
+					.sentDuzenleIslemi(({ sent }) => {
+						sent.fromAdd('kredifis fis').fis2KrediBankaHesapBagla();
+	                    let {where: wh} = sent; wh.fisSilindiEkle();
+						wh.degerAta('A', 'fis.fistipi').degerAta('H', 'fis.hedeftipi')    /* Hizmet Karşılığı Alınan Kredi ise */
+	                })
+					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
+	                    $.extend(hv, {
+							kaysayac: 'fis.kaysayac', kayittipi: `'KRE'`, hizmetkod: 'fis.hizmetkod',
+							islemadi: `'Kredi Alımı'`, refkod: 'fis.kredihesapkod', refadi: 'bhes.aciklama',
+							ba: `'B'`, bedel: 'fis.topbrutbedel',
+							kdetaysayac: sqlNull, kdetay: sqlEmpty, detaciklama: sqlEmpty
+						})
+	                })
+            ]
+        });
+        return this
+    }
+	/* (Kredi Faizi) için UNION */
+	uniDuzenle_krediFaizi({ uygunluk, liste }) {
+        $.extend(liste, {
+            krediFaizi: [
+				/* 1) Kredi alım veya devir */
+                new Hareketci_UniBilgi()
+					.sentDuzenleIslemi(({ sent }) => {
+						sent.fisHareket('kredifis', 'kredihar').fis2KrediBankaHesapBagla();
+	                    let {where: wh} = sent; wh.fisSilindiEkle();
+						wh.inDizi(['A', 'D'], 'fis.fistipi').add(`har.faiz <> 0`)
+	                })
+					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
+						let {zorunlu} = app.params, cariYil = zorunlu.cariYil || today().yil;
+	                    $.extend(hv, {
+							kaysayac: 'fis.kaysayac', kayittipi: `'KRFZ'`, refkod: 'fis.kredihesapkod', refadi: 'bhes.aciklama',
+							hizmetkod: `(case when year(coalesce(har.vade, fis.tarih)) <= ${cariYil} then fis.bufaizhizmetkod else fis.gelfaizhizmetkod end)`,
+							islemadi: `(case when fis.fistipi = 'D' then 'Kredi Devir' else 'Kredi Alımı' end)`,
+							vade: 'har.vade', ba: `'B'`, bedel: 'har.faiz', dvbedel: 'har.dvfaiz',
+							kdetaysayac: sqlNull, kdetay: sqlEmpty, detaciklama: sqlEmpty
+						})
+	                }),
+				/* 2) Kendimize havale ile Kredi kapatımı */
+				new Hareketci_UniBilgi()
+					.sentDuzenleIslemi(({ sent }) => {
+						sent.fisHareket('hefis', 'hehar').fis2BankaHesapBagla()
+							.fromIliski('kredihar khar', 'har.krediharsayac = khar.kaysayac')
+							.fromIliski('kredifis kfis', 'khar.fissayac = kfis.kaysayac');
+	                    let {where: wh} = sent; wh.fisSilindiEkle();
+						wh.degerAta('BH', 'fis.fistipi').add(`har.krediharsayac IS NOT NULL`, `har.kredifaiz <> 0`)
+	                })
+					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
+						$.extend(hv, {
+							kaysayac: 'fis.kaysayac', kayittipi: `'KRHV'`, hizmetkod: 'har.faizkrehizkod',
+							islemadi: `'Kendimize Havale'`, refkod: 'fis.banhesapkod', refadi: 'bhes.aciklama',
+							vade: 'khar.vade', ba: `'A'`, bedel: 'har.kredifaiz', dvbedel: 'har.kredidvfaiz',
+							kdetaysayac: sqlNull, kdetay: sqlEmpty, detaciklama: sqlEmpty
+						})
+	                }),
+				/* 3) Banka Yatan ile Kredi kapatımı */
+				new Hareketci_UniBilgi()
+					.sentDuzenleIslemi(({ sent }) => {
+						sent.fisHareket('finansfis', 'finanshar').fis2KasaBagla()
+							.fromIliski('kredihar khar', 'har.krediharsayac = khar.kaysayac')
+							.fromIliski('kredifis kfis', 'khar.fissayac = kfis.kaysayac');
+	                    let {where: wh} = sent; wh.fisSilindiEkle();
+						wh.degerAta('KB', 'fis.fistipi').degerAta('A', 'fis.ba');
+						wh.add(`har.krediharsayac IS NOT NULL`, `har.kredifaiz <> 0`)
+	                })
+					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
+						$.extend(hv, {
+							kaysayac: 'fis.kaysayac',kayittipi: `'KRYT'`, hizmetkod: 'har.faizkrehizkod',
+							islemadi: `'Kendimize Havale'`, refkod: 'fis.kasakod', refadi: 'kas.aciklama',
+							vade: 'khar.vade', ba: `'A'`, bedel: 'har.kredifaiz', dvbedel: 'har.kredidvfaiz',
+							kdetaysayac: sqlNull, kdetay: sqlEmpty, detaciklama: sqlEmpty
+						})
+	                })
+            ]
+        });
+        return this
+    }
+	/* (Taksitli Kredi) için UNION */
+    uniDuzenle_yatirimGeliri({ uygunluk, liste }) {
+        $.extend(liste, {
+            yatirimGeliri: [
+                new Hareketci_UniBilgi()
+					.sentDuzenleIslemi(({ sent }) => {
+						sent.fisHareket('finansfis', 'finanshar').har2BankaHesapBagla();
+	                    let {where: wh} = sent; wh.fisSilindiEkle().degerAta('HY', 'fis.fistipi')
+	                })
+					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
+	                    $.extend(hv, {
+							kaysayac: 'fis.kaysayac', kayittipi: `'YAT'`,
+							islemadi: `'Yatırım Geliri'`, refkod: 'har.banhesapkod', refadi: 'bhes.aciklama',
+							ba: `'A'`, bedel: 'har.brutbedel', dvbedel: 'har.dvbrutbedel',
+							kdetaysayac: sqlNull, kdetay: sqlEmpty
 						})
 	                })
             ]
