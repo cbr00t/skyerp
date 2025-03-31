@@ -105,7 +105,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	loadServerData_recsDuzenle(e) { this.loadServerData_recsDuzenle_ozel?.(e) }
 	loadServerData_recsDuzenleEk(e) { this.loadServerData_recsDuzenleEk_ozel?.(e) }
 	loadServerData_recsDuzenleSon(e) { this.loadServerData_recsDuzenleSon_ozel?.(e) }
-	loadServerData_recsDuzenle_seviyelendir(e) {this.loadServerData_recsDuzenle_seviyelendir_ozel?.(e) }
+	loadServerData_recsDuzenle_seviyelendir(e) { this.loadServerData_recsDuzenle_seviyelendir_ozel?.(e) }
 	exportExcelIstendi(e) { return this.exportXIstendi({ ...e, type: 'xls', mimeType: 'application/vnd.ms-excel' }) }
 	exportPDFIstendi(e) { return this.exportXIstendi({ ...e, type: 'pdf', mimeType: 'application/pdf' }) }
 	exportHTMLIstendi(e) { return this.exportXIstendi({ ...e, type: 'html', mimeType: 'text/html' }) }
@@ -161,17 +161,19 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	static get raporClass() { return null } static get kod() { return 'main' } static get aciklama() { return this.raporClass.aciklama }
 	get width() { return '70%' } get height() { return 'var(--full)' }
 	get tabloYapi() {
-		let result = this._tabloYapi;
+		let {_tabloYapi: result} = this;
 		if (result == null) {
-			let _e = { result: new TabloYapi() };
-			this.tabloYapiDuzenle(_e); this.tabloYapiDuzenle_son(_e);
+			let _e = { result: new TabloYapi() }; this.tabloYapiDuzenle(_e); this.tabloYapiDuzenle_son(_e);
 			this.tabloYapiDuzenle_ozel?.(_e); result = _e.result;
 			const tipSet = result.tipSet = {}, kaListe = result.kaListe = [];
 			for (const selector of ['grup', 'toplam']) {
 				const tip2Item = result[selector];
 				for (const [kod, item] of Object.entries(tip2Item)) {
-					tipSet[kod] = true; kaListe.push(item.ka); const {colDefs} = item;
-					if (colDefs) { for (const colDef of colDefs) { const userData = colDef.userData = colDef.userData || {}; userData.tip = selector; userData.kod = kod }  }
+					tipSet[kod] = true; kaListe.push(item.ka);
+					const {colDefs} = item; if (colDefs) {
+						for (const colDef of colDefs) {
+							const userData = colDef.userData = colDef.userData || {}; userData.tip = selector; userData.kod = kod }
+					 }
 				}
 			}
 			this._tabloYapi = result
