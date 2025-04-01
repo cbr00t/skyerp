@@ -869,7 +869,6 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 			const e = this.getBuilderBlockArgs({ result }); result = getFuncValue.call(this, result, e);
 			if (e.commitFlag) { this._tabloKolonlari = result }
 		}
-
 		return result
 	}
 	set tabloKolonlari(value) { this._tabloKolonlari = value }

@@ -1,5 +1,5 @@
 class BankaTeminatMektupHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 6 }
 	static get kod() { return 'teminatMektup' } static get aciklama() { return 'Teminat Mektubu' }
 	static get uygunmu() { return app?.params?.bankaGenel?.kullanim?.teminatMektubu }
 	static mstYapiDuzenle({ result }) {

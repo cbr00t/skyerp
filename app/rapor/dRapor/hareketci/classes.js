@@ -7,7 +7,8 @@ class DRapor_Hareketci_Cari_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return CariHareketci }
 	static get raporClass() { return DRapor_Hareketci_Cari }
 	tabloYapiDuzenle({ result }) {
-		super.tabloYapiDuzenle(...arguments); this.tabloYapiDuzenle_cari(...arguments)
+		this.tabloYapiDuzenle_cari(...arguments);
+		super.tabloYapiDuzenle(...arguments)
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e); let {hvDegeri} = e, kodClause = hvDegeri('must');
@@ -25,8 +26,8 @@ class DRapor_Hareketci_Kasa_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return KasaHareketci }
 	static get raporClass() { return DRapor_Hareketci_Kasa }
 	tabloYapiDuzenle({ result }) {
-		super.tabloYapiDuzenle(...arguments);
-		result.addKAPrefix('kasa').addGrupBasit('KASA', 'Kasa', 'kasa', DMQKasa)
+		result.addKAPrefix('kasa').addGrupBasit('KASA', 'Kasa', 'kasa', DMQKasa);
+		super.tabloYapiDuzenle(...arguments)
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e);
@@ -46,7 +47,6 @@ class DRapor_Hareketci_Hizmet_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return HizmetHareketci }
 	static get raporClass() { return DRapor_Hareketci_Hizmet }
 	tabloYapiDuzenle({ result }) {
-		super.tabloYapiDuzenle(...arguments);
 		result
 			.addKAPrefix('anagrup', 'grup', 'histgrup', 'kategori')
 			.addGrup(new TabloYapiItem().setKA('HZANAGRP', 'Hizmet Ana Grup').secimKullanilir().setMFSinif(DMQHizmetAnaGrup)
@@ -60,7 +60,8 @@ class DRapor_Hareketci_Hizmet_Main extends DRapor_Hareketci_Main {
 			.addGrup(new TabloYapiItem().setKA('KATEGORI', 'Kategori').secimKullanilir().setMFSinif(DMQKategori)
 				.addColDef(new GridKolon({ belirtec: 'kategori', text: 'Kategori', maxWidth: 600, filterType: 'input' })))
 			.addGrup(new TabloYapiItem().setKA('KATDETAY', 'Kategori Detay')
-				.addColDef(new GridKolon({ belirtec: 'katdetay', text: 'Kat. Detay', maxWidth: 600, filterType: 'input' })))
+				.addColDef(new GridKolon({ belirtec: 'katdetay', text: 'Kat. Detay', maxWidth: 600, filterType: 'input' })));
+		super.tabloYapiDuzenle(...arguments)
 	}
 	loadServerData_queryDuzenle_hrkSent({ stm, attrSet, hvDegeri }) {
 		super.loadServerData_queryDuzenle_hrkSent(...arguments);
@@ -95,10 +96,10 @@ class DRapor_Hareketci_BankaOrtak extends DRapor_Hareketci {
 class DRapor_Hareketci_BankaOrtak_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Hareketci_BankaOrtak }
 	tabloYapiDuzenle({ result }) {
-		super.tabloYapiDuzenle(...arguments);
-		result.addKAPrefix('banka', 'banhesap')
+		result.addKAPrefix('banhesap', 'banka')
 			.addGrupBasit('BANKAHESAP', 'Banka Hesap', 'banhesap', DMQBankaHesap)
-			.addGrupBasit('BANKA', 'Banka', 'banka', DMQBanka)
+			.addGrupBasit('BANKA', 'Banka', 'banka', DMQBanka, null, ({ item }) => item.secimKullanilmaz())
+		super.tabloYapiDuzenle(...arguments)
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e);

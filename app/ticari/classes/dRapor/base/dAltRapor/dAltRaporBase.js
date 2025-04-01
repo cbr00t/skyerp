@@ -24,7 +24,7 @@ class DAltRapor extends DRapor {
 	onBuildEk(e) { this.onBuildEk_ozel?.(e) }
 	onAfterRun(e) {
 		let {fullScreen: builder} = this.parentBuilder.id2Builder, {id2AltRapor} = this.rapor;
-		if (Object.keys(id2AltRapor).length < 2) { setTimeout(() => this.toggleFullScreen({ builder }), 1) }
+		/* if (Object.keys(id2AltRapor).length < 2) { setTimeout(() => this.toggleFullScreen({ builder }), 1) } */
 		this.onAfterRun_ozel?.(e)
 	}
 	onResize(e) { }

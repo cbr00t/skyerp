@@ -1,5 +1,5 @@
 class Hareketci extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return true }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return true } static get oncelik() { return 99 }
 	static get kod() { return null } static get aciklama() { return null } static get araSeviyemi() { return this == Hareketci }
 	static get mstYapi() {
 		let {_mstYapi: result} = this;
@@ -108,7 +108,8 @@ class Hareketci extends CObject {
 		for (const key of [
 			'ayadi', 'saat', 'unionayrim', 'iceriktipi', 'anaislemadi', 'islemkod', 'islemadi', 'refsubekod', 'refkod', 'refadi',
 			'plasiyerkod', 'plasiyeradi', 'fistipi', 'fisektipi', 'must', 'ticmust', 'asilmust', 'althesapkod', 'althesapadi',
-			'kdetay', 'takipno', 'aciklama', 'ekaciklama', 'odgunkod', 'iade', 'dovizsanalmi', 'dvkod'
+			'kdetay', 'takipno', 'aciklama', 'ekaciklama', 'odgunkod', 'iade', 'dovizsanalmi', 'dvkod',
+			'portftipi', 'portfkod', 'portfadi', 'portfkisatiptext', 'refportftipi', 'refportfkod', 'refportfadi', 'refportfkisatiptext'
 		]) { hv[key] = sqlEmpty }
 		for (const key of [ 'yilay', 'yilhafta', 'haftano', 'oncelik', 'seq', 'belgeno', 'noyil', 'dvkur' ]) { hv[key] = sqlZero }
 		$.extend(hv, {
@@ -146,7 +147,7 @@ class Hareketci extends CObject {
 	stmDuzenleDevam(e) { }
 	uniOlustur(e) {
 		e = e || {}; let _e, uni = new MQUnionAll();
-		this.uniDuzenle(_e = { ...e, uni, sqlEmpty: `''` }); return uni
+		this.uniDuzenle(_e = { ...e, uni, ...Hareketci_UniBilgi.ortakArgs }); return uni
 	}
 	uniDuzenle(e) {
 		let {uygunluk2UnionBilgiListe, attrSet} = this, {varsayilanHV: defHV, zorunluAttrSet} = this.class;
@@ -158,11 +159,14 @@ class Hareketci extends CObject {
 				let anahStr = selectorStr.split('$').filter(x => !!x).join('$');
 				uygunmu = uygunlukVarmi ? !!uygunluk[anahStr] : true; if (!uygunmu) { continue }
 			}
-			unionBilgiListe = unionBilgiListe.map(item => getFuncValue.call(this, item, e)).filter(x => !!x);
+			unionBilgiListe = unionBilgiListe.map(item => getFuncValue.call(this, item, e)).filter(({ sent, hv }) => sent && !$.isEmptyObject(hv));
+			let tumHVKeys = { ...zorunluAttrSet, ...defHV };
+			for (let {hv} of unionBilgiListe) { $.extend(tumHVKeys, hv) }
 			for (let uniBilgi of unionBilgiListe) {
-				let {sent} = uniBilgi; if (!sent) { continue }
-				let {hv} = uniBilgi, _e = { ...e, sent, hv }; if (hv) {
-					sent = _e.sent = sent.deepCopy(); for (let alias in { ...zorunluAttrSet, ...defHV, ...hv }) {
+				let {sent, hv} = uniBilgi, _e = { ...e, sent, hv };
+				if (hv) {
+					sent = _e.sent = sent.deepCopy();
+					for (let alias in tumHVKeys) {
 						if (attrSet && !attrSet[alias]) { continue }
 						let deger = hv[alias] || defHV[alias];
 						if (isFunction(deger)) { deger = deger?.call(this, { ...e, sender, hareketci, uniBilgi, key: alias, sent, hv, defHV }) }
@@ -171,7 +175,7 @@ class Hareketci extends CObject {
 						sent.add(saha)
 					}
 				}
-				this.uniDuzenle_whereYapi(_e).uniDuzenle_sonIslem(_e); sent = _e.sent;
+				this.uniDuzenle_tumSonIslemler(_e); sent = _e.sent;
 				sent.groupByOlustur().gereksizTablolariSil();
 				if (sent?.sahalar?.liste?.length) { uni.add(sent) }
 			}
@@ -181,9 +185,33 @@ class Hareketci extends CObject {
 	uniDuzenle_tumSonIslemler(e) {    /* degerci bosGcbEkle value: sent. degerci koopDonemEkle value: sent. degerci sonIslem value: sent */
 		return this.uniDuzenle_whereYapi(e).uniDuzenle_ekDuzenleyiciler(e).uniDuzenle_sonIslem(e)
 	}
-	uniDuzenle_whereYapi(e) { const {whereYapi} = this; if (whereYapi) { for (const key in whereYapi) { const handler = whereYapi[e]; getFuncValue.call(this, handler, e) } } return this }
-	uniDuzenle_ekDuzenleyiciler(e) { const {ekDuzenleyiciler} = this; if (ekDuzenleyiciler) { for (const key in ekDuzenleyiciler) { const handler = key2Handlers[e]; getFuncValue.call(this, handler, e) } } return this }
-	uniDuzenle_sonIslem(e) { const {sonIslem} = this; if (sonIslem) { getFuncValue.call(this, sonIslem, e) } return this }
+	uniDuzenle_whereYapi(e) {
+		let {whereYapi: handlers} = this; if (handlers) {
+			let _e = { ...e, hareketci: this }, {sent} = e; if (sent) { _e.where = sent.where }
+			for (let key in handlers) {
+				let handler = handlers[key];
+				if (handler) { getFuncValue.call(this, handler, _e) }
+			}
+		}
+		return this
+	}
+	uniDuzenle_ekDuzenleyiciler(e) {
+		let {ekDuzenleyiciler: handlers} = this; if (handlers) {
+			let _e = { ...e, hareketci: this }, {sent} = e; if (sent) { _e.where = sent.where }
+			for (let key in handlers) {
+				let handler = handlers[key];
+				if (handler) { getFuncValue.call(this, handler, _e) }
+			}
+		}
+		return this
+	}
+	uniDuzenle_sonIslem(e) {
+		let {sonIslem: handler} = this; if (handler) {
+			let _e = { ...e, hareketci: this }, {sent} = e; if (sent) { _e.where = sent.where }
+			getFuncValue.call(this, handler, _e)
+		}
+		return this
+	}
 	sentSahaEkleyici(e) {
 		const {sent, sql, alias, attr2Deger} = e, {attrSet} = this;
 		let saha = alias ? new MQAliasliYapi({ alias, deger: sql }) : MQAliasliYapi.newForSahaText(sql);
@@ -195,7 +223,7 @@ class Hareketci extends CObject {
 	addWhereDuzenleyici(key, value) { key = key ?? newGUID(); this.whereYapi[key] = value; return this }
 	clearWhereDuzenleyici() { this.whereYapi = {}; return this }
 	setEkDuzenleyiciler(value) { this.ekDuzenleyiciler = value; return this }
-	addEkDuzenleyiciler(key, value) { key = key ?? newGUID(); this.ekDuzenleyiciler[key] = value; return this }
+	addEkDuzenleyici(key, value) { key = key ?? newGUID(); this.ekDuzenleyiciler[key] = value; return this }
 	clearEkDuzenleyiciler() { this.ekDuzenleyiciler = {}; return this }
 	setSonIslem(value) { this.sonIslem = sonIslem; return this }
 	clearSonIslem(value) { this.sonIslem = null; return this }

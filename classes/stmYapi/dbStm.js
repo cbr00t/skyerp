@@ -1,7 +1,8 @@
 class MQStm extends MQDbCommand {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	get unionSahaListe() { return this.sent.unionSahaListe }
-	get unionAliasListe() { return this.sent.unionAliasListe }
+	get unionSahaListe() { return this.sent.unionSahaListe } get unionAliasListe() { return this.sent.unionAliasListe }
+	get siraliSahaVeDegerler() { let result = []; for (let sent of this.getSentListe()) { result.push(sent.alias2Deger) }; return result }
+	get siraliSahalar() { return this.siraliSahaVeDegerler.map(dict => Object.keys(dict)) }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, {
 			with: ($.isPlainObject(e.with) ? new MQWith(e.with) : e.with) || new MQWith(),

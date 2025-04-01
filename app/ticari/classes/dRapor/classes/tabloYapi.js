@@ -24,10 +24,13 @@ class TabloYapi extends CObject {
 	addGrupBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici) {
 		return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici)
 	}
+	addGrupBasit_numerik(kod, text, belirtec, mfSinif, genislikCh, duzenleyici) {
+		let _duzenleyici = duzenleyici; duzenleyici = e => { e.colDef.tipNumerik(); _duzenleyici?.call(this, e) };
+		return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici)
+	}
 	addToplamBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, fra) {
 		let _duzenleyici = duzenleyici; duzenleyici = e => { e.colDef.tipDecimal(fra); _duzenleyici?.call(this, e) };
 		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici)
-	
 	}
 	addToplamBasit_fiyat(kod, text, belirtec, mfSinif, genislikCh, duzenleyici) {
 		let _duzenleyici = duzenleyici; duzenleyici = e => { e.colDef.tipDecimal_fiyat(); _duzenleyici?.call(this, e) };
@@ -92,8 +95,10 @@ class TabloYapiItem extends CObject {
 		this.setKA(e.ka).setFormul(e.formul)
 	}
 	secimlerDuzenle(e) {
-		const {secimKullanilirFlag} = this; if (secimKullanilirFlag) {
-			const {ka, secimSinif, mfSinif} = this, kod = ka?.kod, kodSaha = mfSinif?.kodSaha;
+		let {secimKullanilirFlag, mfSinif} = this;
+		secimKullanilirFlag = secimKullanilirFlag ?? !!mfSinif;
+		if (secimKullanilirFlag) {
+			let {ka, secimSinif} = this, kod = ka?.kod, kodSaha = mfSinif?.kodSaha;
 			if (kod != null && secimSinif && mfSinif && kodSaha) {
 				const {adiSaha} = mfSinif, sec = e.secimler, etiket = ka.aciklama;
 				const grupKod = kod, zeminRenk = undefined, kapali = true; sec.grupEkle({ kod: grupKod, aciklama: etiket, zeminRenk, kapali });

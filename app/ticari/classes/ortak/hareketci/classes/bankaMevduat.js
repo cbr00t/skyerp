@@ -1,5 +1,5 @@
 class BankaMevduatHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 2 }
     static get kod() { return 'bankaMevduat' } static get aciklama() { return 'Banka Mevduat' }
 	static mstYapiDuzenle({ result }) {
 		super.mstYapiDuzenle(...arguments);
@@ -90,7 +90,7 @@ class BankaMevduatHareketci extends Hareketci {
 					wh.fisSilindiEkle()
                 }).hvDuzenleIslemi(({ hv }) => {
                     $.extend(hv, {
-                        kaysayac: 'har.kaysayac', banhesapkod: 'har.bizhesapkod', takipno: 'har.takipno',
+                        kaysayac: 'har.kaysayac', banhesapkod: 'fis.banhesapkod', takipno: 'har.takipno',
 						kayittipi: `((case when fis.fistipi = 'GL' then 'G' when fis.fistipi = 'TP' then 'T' when fis.fistipi in ('BH', 'BE', 'BS') then 'B' else 'S' end) + 'BNHE')`,    /* (+) CONCAT işlemi sebebiyle dışına parantez koyduk ki sonuna ` ${alias}` geldiğinde sorun olmasın */
 						oncelik: `(case when (fis.fistipi = 'GL' or (fis.fistipi = 'TP' and har.hba = 'B')) then 5 when fis.fistipi in ('BH', 'BE', 'BS') then 10 else 60 end)'`,
 						ba: `(case when fis.fistipi = 'GL' then 'B' when fis.fistipi = 'TP' then har.hba else 'A' end)`,

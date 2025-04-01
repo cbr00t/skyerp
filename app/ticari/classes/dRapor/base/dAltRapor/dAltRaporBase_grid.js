@@ -108,4 +108,3 @@ class DAltRapor_Grid_Ozet extends DAltRapor_Grid {
 	tabloKolonlariDuzenle(e) { super.tabloKolonlariDuzenle(e) }
 	loadServerData(e) { super.loadServerData(e); const {main} = this.rapor; return main.ozetBilgi?.recs || [] }
 }
-

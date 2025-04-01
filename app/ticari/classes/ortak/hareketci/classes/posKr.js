@@ -202,8 +202,8 @@ class PsKrOrtakHareketci extends Hareketci {
     }
 }
 class POSHareketci extends PsKrOrtakHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get posmu() { return true }
-    static get kod() { return 'pos' } static get aciklama() { return 'POS İşlemleri' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 3 }
+    static get kod() { return 'pos' } static get aciklama() { return 'POS İşlemleri' } static get posmu() { return true }
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
 		super.uygunluk2UnionBilgiListeDuzenleDevam(e);
 		this.uniDuzenle_nakdeDonusum(e)
@@ -240,8 +240,8 @@ class POSHareketci extends PsKrOrtakHareketci {
     }
 }
 class KrediKartiHareketci extends PsKrOrtakHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get posmu() { return false }
-    static get kod() { return 'krediKart' } static get aciklama() { return 'Kredi Kartı İşlemleri' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 4 }
+    static get kod() { return 'krediKart' } static get aciklama() { return 'Kredi Kartı İşlemleri' } static get posmu() { return false }
     /** Hareket tipleri seçimine ek olarak masraf ödeme tipini ekle */
     static hareketTipSecim_kaListeDuzenle(e) {
         super.hareketTipSecim_kaListeDuzenle(e);

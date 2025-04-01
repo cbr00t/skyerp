@@ -4,27 +4,36 @@ class DRapor_DonemselIslemler extends DRapor_Donemsel {
 	static get sabitmi() { return true } static get vioAdim() { return null }
 	static get kategoriKod() { return DRapor_Hareketci.kategoriKod } static get kategoriAdi() { return DRapor_Hareketci.kategoriAdi }
 	static get kod() { return 'DONISL' } static get aciklama() { return 'Dönemsel İşlemler' }
+	altRaporlarDuzenle(e) {
+		super.altRaporlarDuzenle(e);
+		this.add(DRapor_DonemselIslemler_Detaylar)
+	}
 }
 class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_DonemselIslemler }
+	get width() { return 'var(--full)' } get height() { return `calc(var(--full) - 300px)` }
+	get detaylar() { return this.ekBilgi?.detaylar } set detaylar(value) { let ekBilgi = this.ekBilgi = this.ekBilgi ?? {}; ekBilgi.detaylar = value }
+	get dip() { return this.ekBilgi?.dip } set dip(value) { let ekBilgi = this.ekBilgi = this.ekBilgi ?? {}; ekBilgi.dip = value }
+	onGridInit(e) { super.onGridInit(e); this.ekBilgi = {} }
 	tabloYapiDuzenle({ result }) {
 		super.tabloYapiDuzenle(...arguments);
-		result.addKAPrefix('mst')
-			.addGrupBasit('ONCELIK', 'Öncelik', 'oncelik')
-			.addGrupBasit('HARTIPKOD', 'Har. Tip', 'hartipkod')
-			.addGrupBasit('HARTIPADI', 'Har. Tip Adı', 'hartipadi')
-			.addGrupBasit('MST', 'Master Tip', 'mst', null, null, ({ item }) => item.setOrderBy('mstkod'))
-			.addGrupBasit('TARIH', 'Tarih', 'tarih')
-			.addToplamBasit_bedel('BEDEL', 'Bedel', 'bedel')
-			.addGrupBasit('BA', 'B/A', 'ba')
-			.addToplamBasit_bedel('ISARETLIBEDEL', 'İşaretli Bedel', 'isaretlibedel', null, null, ({ item }) =>
-				item.setFormul(['BA', 'BEDEL'], ({ rec }) => rec.ba == 'A' ? -rec.bedel : rec.bedel))
+		result.addKAPrefix('hartip', 'mst')
+			.addGrupBasit_numerik('ONCELIK', 'Öncelik', 'oncelik')
+			.addGrupBasit('HARTIP', 'Ana Bilgi', 'hartip')
+			.addGrupBasit('HARTIPKOD', 'Ana Bilgi', 'hartipkod')
+			.addGrupBasit('HARTIPADI', 'Ana Bilgi', 'hartipadi')
+			.addGrupBasit('MST', '', 'mst', 'Alt Bilgi')
+			.addToplamBasit_bedel('DEVIR', 'Devir', 'devir')
+			.addToplamBasit_bedel('BORC', 'Borç', 'borc')
+			.addToplamBasit_bedel('ALACAK', 'Alacak', 'alacak')
+			.addToplamBasit_bedel('BAKIYE', 'Bakiye', 'bakiye', null, null, ({ item }) =>
+				item.setFormul(['DEVIR', 'BORC', 'ALACAK'], ({ rec }) => roundToBedelFra(rec.devir + rec.borc - rec.alacak)))
 	}
 	sabitRaporTanimDuzenle({ result }) {
 		super.sabitRaporTanimDuzenle(...arguments);
 		result.resetSahalar()
 			.addGrup('HARTIPADI')
-			.addIcerik('MST', 'TARIH', 'BEDEL', 'BA')
+			.addIcerik('MST', 'DEVIR', 'BORC', 'ALACAK', 'BAKIYE')
 	}
 	loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); let {stm, donemBS} = e, {grupVeToplam} = this.tabloYapi;
@@ -33,19 +42,34 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		if (!(tBasi && tSonu)) { throw { isError: true, errorText: `Seçimlerden <b>Dönem</b> seçilmeli veya <b>Tarih Aralık</b> belirtilmelidir` } }
 		let tBasiClause = tBasi.sqlServerDegeri(), tSonuClause = tSonu.sqlServerDegeri();
 		/*let belirtecler = Object.keys(attrSet).map(kod => grupVeToplam[kod]?.colDefs?.[0]?.belirtec).filter(x => !!x);*/
-		let uni = new MQUnionAll(); for (let cls of harClasses) {
-			let har = new cls(), {kod, aciklama, mstYapi} = har.class, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
-			let belirtecler = ['tarih', 'bedel', 'ba', mstKodAlias].filter(x => !!x);
-			har.withAttrs(belirtecler); let harUni = har.uniOlustur();
-			for (let harSent of harUni.getSentListe()) {
-				if (!harSent) { continue } let {where: wh, sahalar, alias2Deger} = harSent; sahalar.liste = [];
+		let sabitBelirtecler = ['tarih', 'bedel', 'ba'];
+		let harListe = []; for (let cls of harClasses) {
+			let {mstYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
+			let belirtecler = [...sabitBelirtecler, mstKodAlias, mstAdiAlias].filter(x => !!x);
+			let har = new cls(); har.withAttrs(belirtecler); harListe.push(har)
+		}
+		let uni = new MQUnionAll(); for (let har of harListe) {
+			let {kod, aciklama, oncelik, mstYapi} = har.class, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
+			let harUni = har.uniOlustur(); for (let harSent of harUni.getSentListe()) {
+				if (!harSent) { continue } let {where: wh, sahalar, alias2Deger} = harSent;
 				let {tarih: tarihClause, ba: baClause, bedel: bedelClause} = alias2Deger;
 				bedelClause = bedelClause.sumOlmaksizin(); wh.add(`${tarihClause} <= ${tSonuClause}`);
 				let kodClause = alias2Deger[mstKodAlias], adiClause = alias2Deger[mstAdiAlias];
+				/* if (mstAdiAlias) { debugger } */
+				sahalar.liste = [];
 				if (adiClause) { sahalar.add(`${adiClause} mstadi`) }
 				else { mstYapi.sentDuzenle({ sent: harSent, wh, kodClause }) }
+				
+				/*   DEBUG  
+				if (!harSent.alias2Deger.mstadi) {
+					console.info(har, Object.keys(har.attrSet), harSent, harSent.getQueryYapi());
+					console.table(harSent.alias2Deger);
+					debugger
+				}
+				*/
+				
 				sahalar.add(
-					/* mstadi, */ `${kodClause} mstkod`, `'${kod}' hartipkod`, `'${aciklama}' hartipadi`,
+					/* mstadi, */ `${kodClause} mstkod`, `'${kod}' hartipkod`, `${oncelik} oncelik`, `'${aciklama}' hartipadi`, `'(<b class=gray>${kod}</b> ${aciklama}' hartip`,
 					`SUM(case when ${tarihClause} < ${tBasiClause} then (case when ${baClause} = 'B' then ${bedelClause} else 0 - ${bedelClause} end) else 0 end) devir`,
 					`SUM(case when ${tarihClause} >= ${tBasiClause} AND ${baClause} = 'B' then ${bedelClause} else 0 end) borc`,
 					`SUM(case when ${tarihClause} >= ${tBasiClause} AND ${baClause} = 'A' then ${bedelClause} else 0 end) alacak`
@@ -54,50 +78,87 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 				uni.add(harSent)
 			}
 		}
+		/* console.table(uni.siraliSahalar) */
 		stm = e.stm = uni.asToplamStm();
-		stm.orderBy.add('hartipkod', 'mstkod')
-		
-
-		/* with tumuni (kod, devir, borç, alacak)
-  as (select masterkod, sum(case when tarih<@tarihBasi then (case when ba='B' then bedel else 0-bedel end) else 0 end) devir
-    , sum(case when tarih>=@tarihBasi and ba='B' then bedel else 0 end) borc
-    , sum(case when tarih>=@tarihBasi and ba='A' then bedel else 0 end) alacak
-    from tablo 					-- hareketçi uni her elemani icin dongü
-    where tarih<=@tarihSonu
-    group by masterkod
-    union all
-    …)
-select tum.kod, mst.aciklama
-	, sum(tum.devir) devir, sum(tum.borc) borc, sum(tum.alacak) alacak, sum(tum.devir+tum.borc-tum.alacak) bakiye
-	from tumuni tum, master mst		-- ilgili hareketciye ait master tablo
-	where tum.kod=mst.kod
-	group by tum.kod, mst.aciklama */
-
-		
-		/*uni.add(new MQSent().add(`'test' anatipadi`, `'X' mstkod`, `'XYZ' mstadi`, `'B' ba`, `1234.56 bedel`));
-		uni.add(new MQSent().add(`'test' anatipadi`, `'Y' mstkod`, `'ABC' mstadi`, `'A' ba`, `10 bedel`));
-		uni.add(new MQSent().add(`'test2' anatipadi`, `'Z' mstkod`, `'QWERTY' mstadi`, `'B' ba`, `111 bedel`))*/
-		
-		/*
-		stm.orderBy.liste = ['oncelik'];
-		let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => !!cls.donemselIslemlerIcinUygunmu);
-		orderBy.liste = []; for (let cls of harClasses) {
-			let har = new cls().withAttrs(belirtecler), {kod, aciklama} = har.class;
-			let _uni = har.uniOlustur(); if (!_uni?.liste?.length) { continue }
-			for (let _sent of _uni.getSentListe()) {
-				if (!_sent) { continue }
-				let {alias2Deger, sahalar} = _sent, _sahalar = [...sahalar.liste];
-				sahalar.liste = []; sahalar.add(
-					`'${kod}' _anatipkod`, `'${aciklama}' _anatipadi`,
-					..._sahalar
-				);
-				//let baClause = hvDegeri('ba'), bedelClause = hvDegeri('bedel').sumOlmaksizin();
-				//this.loadServerData_queryDuzenle_baBedel({ ...e, baClause, bedelClause })
-				
-				_sent.groupByOlustur()
-			}
-			uni.add(..._uni.liste)
+		stm.orderBy.add('oncelik', 'hartipkod', 'mstkod')
+	}
+	loadServerData_recsDuzenle({ recs }) {
+		super.loadServerData_recsDuzenle(...arguments)
+		/* let bakiye = 0; for (let rec of recs) { } */
+	}
+	async detaylariOlustur({ event: evt }) {
+		let {row: rec} = evt.args, {hartipkod: harTip, mstkod: kod, level} = rec ?? {}, harSinif = Hareketci.kod2Sinif[harTip];
+		if (!(level && harSinif && kod != null)) { return false }
+		let {id2AltRapor} = this.rapor, belirtecler = ['mstkod', 'mstadi', 'tarih', 'fisnox', 'islemadi', 'refkod', 'refadi', 'ba', 'bedel'];
+		let {oncelik, kod: tipKod, mstYapi} = harSinif, {hvAlias: mstAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
+		mstAlias = mstAlias || 'mstkod'; mstAdiAlias = mstAdiAlias || 'mstadi';
+		let har = new harSinif()
+			.withAttrs(belirtecler)
+			.addEkDuzenleyici('mst', ({ hv, sent, where: wh }) => {
+				sent.sahalar.add(`${oncelik} _oncelik`, `'${tipKod}' _hartipkod`);
+				wh.degerAta(kod, hv[mstAlias])
+			});
+		let uni = har.uniOlustur(), orderBy = ['_oncelik', '_hartipkod'];
+		let stm = new MQStm({ sent: uni, orderBy }), recs;
+		try { recs = await app.sqlExecSelect(stm) }
+		catch (ex) { hConfirm(getErrorText(ex), 'Detay Bilgi Yükleme Sorunu'); throw ex }
+		recs = recs ?? []; let bakiye = 0;
+		for (let rec of recs) {
+			let {ba, bedel, islemadi, refkod, refadi} = rec;
+			let ref = refkod ? `(<b class=gray>${refkod ?? ''})  ${refadi || ''}</b>` : '';
+			if (ba == 'A') { bedel = -bedel } let alacakmi = bedel < 0;
+			bakiye += bedel; bedel = Math.abs(bedel);
+			$.extend(rec, {
+				aciklama: islemadi || '', ref,
+				borc: alacakmi ? 0 : bedel, alacak: alacakmi ? bedel : 0, bakiye
+			})
 		}
-		if (!uni.liste.length) { stm = e.stm = e.sent = null }*/
+		this.detaylar = recs;
+		return true
+	}
+	ozetBilgiRecsOlustur(e) { }
+	async gridSatirTiklandi(e) {
+		if (await this.detaylariOlustur(...arguments)) {
+			let {id2AltRapor} = this.rapor; for (let altRapor of Object.values(id2AltRapor)) {
+				if (altRapor != this) { altRapor.tazele?.() } }
+		}
+	}
+}
+
+class DRapor_DonemselIslemler_DetaylarVeDip extends DAltRapor_Grid {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_DonemselIslemler }
+	get height() { return `calc(var(--full) - ${this.rapor.id2AltRapor.main.height})` }
+	gridArgsDuzenle({ args }) { $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: false, showGroupsHeader: false, rowsHeight: 30, columnsHeight: 25 }) }
+	tazele(e) { super.tazele(e) }
+	tabloKolonlariDuzenle(e) { super.tabloKolonlariDuzenle(e) }
+	loadServerData(e) {
+		super.loadServerData(e); let {kod} = this.class, {main} = this.rapor;
+		return main[kod] || []
+	}
+}
+class DRapor_DonemselIslemler_Detaylar extends DRapor_DonemselIslemler_DetaylarVeDip {
+	static { window[this.name] = this; this._key2Class[this.name] = this } get width() { return 'var(--full)' }
+	static get kod() { return 'detaylar' } static get aciklama() { return 'Detaylar' }
+	tabloKolonlariDuzenle({ liste }) {
+		let cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
+			let result = [belirtec];
+			if (value) {
+				switch (belirtec) {
+					case 'borc': result.push('bold green'); break
+					case 'alacak': result.push('bold red'); break
+					case 'bakiye': result.push(`bold ${value < 0 ? 'red' : 'green'}`); break
+				}
+			}
+			return result.join(' ')
+		};
+		super.tabloKolonlariDuzenle(...arguments); liste.push(...[
+			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13, cellClassName }).tipTarih(),
+			new GridKolon({ belirtec: 'fisnox', text: 'Fiş No', cellClassName, genislikCh: 16 }).alignRight(),
+			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', cellClassName }),
+			new GridKolon({ belirtec: 'ref', text: 'Referans', cellClassName }),
+			new GridKolon({ belirtec: 'borc', text: 'Borç', genislikCh: 17, cellClassName }).tipDecimal_bedel(),
+			new GridKolon({ belirtec: 'alacak', text: 'Alacak', genislikCh: 17, cellClassName }).tipDecimal_bedel(),
+			new GridKolon({ belirtec: 'bakiye', text: 'Bakiye', genislikCh: 17, cellClassName }).tipDecimal_bedel()
+		])
 	}
 }

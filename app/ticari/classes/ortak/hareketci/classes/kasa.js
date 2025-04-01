@@ -1,5 +1,5 @@
 class KasaHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 1 }
 	static get kod() { return 'kasa' } static get aciklama() { return 'Kasa' }
 	static hareketTipSecim_kaListeDuzenle({ kaListe }) {
 		super.hareketTipSecim_kaListeDuzenle(...arguments); kaListe.push(
