@@ -102,6 +102,14 @@ class MQToplu extends MQClause {
 }
 class MQSahalar extends MQClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	get alias2Deger() {
+		let result = {}; for (let item of this.liste) {
+			if (!item) { continue }
+			if (typeof item != 'object') { item = MQAliasliYapi.newForSahaText(item) }
+			let {alias, deger} = item; if (alias) { result[alias] = deger }
+		}
+		return result
+	}
 	donusmusDeger(item) {
 		item = super.donusmusDeger(item); if (item == null) { return item }
 		return typeof item == 'object' ? item : MQAliasliYapi.newForSahaText(item)

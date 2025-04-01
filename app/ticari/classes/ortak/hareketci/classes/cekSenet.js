@@ -1,5 +1,6 @@
 class CSHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kod() { return 'cekSenet' } static get aciklama() { return 'Çek/Senet' }
 	constructor(e) { e = e ?? {}; super(e); $.extend(this, { trfCikismi: e.trfCikis ?? e.trfCikismi ?? false }) }
 	static get ortakHVYapilar() {
 		let {_ortakHVYapilar: result} = this;
@@ -13,6 +14,7 @@ class CSHareketci extends Hareketci {
 	}
 	static ortakHVYapilarDuzenle({ result }) {
 		let sqlEmpty = `''`; $.extend(result, {
+			isaretlibedel: ({ hv }) => hv.bedel,
 			belgeOrtak: () => ({
 				belsayac: 'bel.kaysayac', belgeyil: 'bel.belgeyil', bankakod: 'bel.bankakod',
 				belgeno: 'bel.belgeno', belbanhesapkod: 'bel.banhesapkod'
@@ -124,11 +126,19 @@ class CSHareketci extends Hareketci {
 	getOrtakHV(selector, e) { return this.class.getOrtakHV(selector, e) }
 	ortakUniDuzenle_sent(selector, e) { return this.class.ortakUniDuzenle_sent(selector, e) }
 	ortakUniDuzenle_hv(selector, e) { return this.class.ortakUniDuzenle_hv(selector, e) }
+	static mstYapiDuzenle({ result }) {
+		super.mstYapiDuzenle(...arguments);
+		result.setHVAlias('portfkod').setHVAdiAlias('portfadi')
+	}
 	/** Varsayılan değer atamaları (host vars) – temel sınıfa eklemeler.
 		Hareketci.varsayilanHVDuzenle değerleri aynen alınır, sadece eksikler eklenir */
     static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
         /* super.varsayilanHVDuzenle(...arguments); */
-		for (const key of ['ayadi', 'saat', 'bizsubekod', 'bankadekontnox']) { hv[key] = sqlEmpty }
+		for (const key of [
+			'ayadi', 'saat', 'bizsubekod', 'bankadekontnox',
+			'anaislemadi', 'islemadi', 'refkod', 'refadi'
+		]) { hv[key] = sqlEmpty }
+		$.extend(hv, { isaretlibedel: ({ hv }) => hv.bedel })
     }
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
 		let {trfCikismi} = this; $.extend(e, { trfCikismi }); super.uygunluk2UnionBilgiListeDuzenleDevam(e);

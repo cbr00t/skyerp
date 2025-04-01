@@ -1,7 +1,8 @@
 class KasaHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get kod() { return 'kasa' } static get aciklama() { return 'Cari' }
-	static hareketTipSecim_kaListeDuzenle(e) {
-		super.hareketTipSecim_kaListeDuzenle(e); e.kaListe.push(
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kod() { return 'kasa' } static get aciklama() { return 'Kasa' }
+	static hareketTipSecim_kaListeDuzenle({ kaListe }) {
+		super.hareketTipSecim_kaListeDuzenle(...arguments); kaListe.push(
 			new CKodVeAdi(['devir', 'Kasa Devir']), new CKodVeAdi(['banka', 'Banka']),
 			new CKodVeAdi(['kasaCari', 'Kasa/Cari']), new CKodVeAdi(['hizmet', 'Hizmet']),
 			new CKodVeAdi(['cariTahsilatOdeme', 'Cari Tahsilat/Ödeme']),
@@ -10,9 +11,13 @@ class KasaHareketci extends Hareketci {
 			new CKodVeAdi(['faturaTahsilatOdeme', 'Fatura Tahsilat/Ödeme']), new CKodVeAdi(['perakende', 'Perakende'])
 		)
 	}
-	constructor(e) { e = e || {}; super(e) }
-	static varsayilanHVDuzenle(e) {
-		super.varsayilanHVDuzenle(e); const {hv, sqlZero} = e;
+	static mstYapiDuzenle({ result }) {
+		super.mstYapiDuzenle(...arguments);
+		result.set('kasakod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
+			sent.fromIliski(`kasmst ${mstAlias}`, `${kodClause} = ${mstAlias}.kod`).add(`${mstAlias}.aciklama ${mstAdiAlias}`))
+	}
+	static varsayilanHVDuzenle({ hv, sqlZero }) {
+		super.varsayilanHVDuzenle(...arguments);
 		for (const key of ['makbuzno']) { hv[key] = sqlZero }
 		$.extend(hv, { bastarih: 'fis.tarih', basseri: 'fis.seri', basno: 'fis.no' })
 	}
@@ -54,7 +59,10 @@ class KasaHareketci extends Hareketci {
 			],
 			banka: getUniBilgiler_banka('KB'), kasaCari: getUniBilgiler_banka('KC'), hizmet: getUniBilgiler_banka('KH'),
 			cariTahsilatOdeme: [new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-				const {where: wh} = sent; sent.fisHareket('carifis', 'carihar').har2TahSekliBagla().fis2CariBagla({ mustSaha: 'mustkod' }).fis2PlasiyerBagla();
+				const {where: wh} = sent; sent.fisHareket('carifis', 'carihar')
+					.har2TahSekliBagla()
+					.fis2CariBagla({ mustSaha: 'mustkod' })
+					.fis2PlasiyerBagla();
 				wh.fisSilindiEkle().degerAta('NK', 'tsek.tahsiltipi')
 			}).hvDuzenleIslemi(({ hv }) => {
 				$.extend(hv, {

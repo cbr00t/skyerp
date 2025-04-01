@@ -1,5 +1,12 @@
 class HizmetHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kod() { return 'hizmet' } static get aciklama() { return 'Hizmet' }
+	static get donemselIslemlerIcinUygunmu() { return false }
+	static mstYapiDuzenle({ result }) {
+		super.mstYapiDuzenle(...arguments);
+		result.set('hizmetkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
+			sent.fromIliski(`hizmst ${mstAlias}`, `${kodClause} = ${mstAlias}.kod`).add(`${mstAlias}.aciklama ${mstAdiAlias}`))
+	}
     /* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
         super.hareketTipSecim_kaListeDuzenle(...arguments);
@@ -40,7 +47,7 @@ class HizmetHareketci extends Hareketci {
 			bizsubekod: 'fis.bizsubekod', ozelisaret: 'fis.ozelisaret', kaysayac: 'har.kaysayac', hizmetkod: 'har.hizmetkod',
 			/*kdetaysayac: 'har.kdetaysayac', kdetay: 'kdet.kdetay',*/ tarih: 'fis.tarih', fisnox: 'fis.fisnox',
 			fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', bedel: 'har.bedel',
-			vade: ({ hv }) => hv.tarih, brutbedel: ({ hv }) => hv.bedel,
+			vade: ({ hv }) => hv.tarih, brutbedel: ({ hv }) => hv.bedel, isaretlibedel: ({ hv }) => hv.bedel,
 			aciklama: ({ hv }) => {
                 const withCoalesce = (clause) => `COALESCE(${clause}, '')`, {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv;
                 return fisAciklama && detAciklama

@@ -11,6 +11,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		if (!result) { result = this._aggregateFunctionsSet = asSet(this.aggregateFunctions) }
 		return result
 	}
+	get alias2Deger() { return this.sahalar?.alias2Deger }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, {
 			distinct: asBool(e.distinct),
@@ -152,7 +153,8 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		e = typeof e == 'object' && !$.isArray(e) ? e : { disinda: e };
 		let {disinda} = e; if (disinda != null && typeof disinda == 'string') { disinda = [disinda] }
 		const disindaSet = e.disinda = (disinda && $.isArray(disinda) ? asSet(disinda) : disinda) || {};
-		for (const alias of ['har', 'fis']) { disindaSet[alias] = true } return this.gereksizTablolariSilDogrudan(e)
+		for (const alias of ['har', 'fis']) { disindaSet[alias] = true }
+		return this.gereksizTablolariSilDogrudan(e)
 	}
 	gereksizTablolariSilDogrudan(e) {
 		e = typeof e == 'object' && !$.isArray(e) ? e : { disinda: e };
@@ -225,7 +227,8 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	fis2YerBagla(e) { return this.x2YerBagla({ ...e, alias: e?.alias ?? 'fis' }) }
 	har2YerBagla(e) { return this.fis2YerBagla({ ...e, alias: e?.alias ?? 'har' }) }
 	har2KatDetayBagla(e) { let alias = e?.alias ?? 'har'; this.leftJoin(alias, 'kategoridetay kdet', `${alias}.kdetaysayac = kdet.kaysayac`); return this }
-	x2YerBagla(e) { const {alias} = e, aliasVeNokta = alias ? `${alias}.` : ''; this.fromIliski('stkyer yer', `${aliasVeNokta}yerkod = yer.kod`); return this }
+	x2YerBagla(e) { e = e ?? {}; let {alias} = e, aliasVeNokta = alias ? `${alias}.` : ''; this.fromIliski('stkyer yer', `${aliasVeNokta}yerkod = yer.kod`); return this }
+	x2CariBagla(e) { e = e ?? {}; let {kodClause} = e; this.fromIliski('carmst car', `${kodClause} = car.must`); return this }
 	fis2CariBagla(e) { e = e ?? {}; let mustSaha = (e.mustSaha ?? e.fisMustSaha) || 'must'; this.fromIliski('carmst car', `fis.${mustSaha} = car.must`); return this }
 	x2HizmetBagla(e) { let kodClause = e?.kodClause; this.fromIliski('hizmst hiz', `${kodClause} = hiz.kod`); return this }
 	fis2HizmetBagla(e) { return this.x2HizmetBagla({ kodClause: 'fis.hizmetkod' }) }

@@ -1,10 +1,15 @@
 class PsKrOrtakHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get posmu() { return null }
     static get almSat() { return this.posmu ? 'T' : 'A' } static get almSatClause() { return `fis.almsat = '${this.almSat}'` }
+	static mstYapiDuzenle({ result }) {
+		super.mstYapiDuzenle(...arguments);
+		result.set('banhesapkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
+			sent.fromIliski(`banbizhesap ${mstAlias}`, `${kodClause} = ${mstAlias}.kod`).add(`${mstAlias}.aciklama ${mstAdiAlias}`))
+	}
     /* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
-    static hareketTipSecim_kaListeDuzenle(e) {
-        super.hareketTipSecim_kaListeDuzenle(e); const {posmu} = this;
-        e.kaListe.push(...[
+    static hareketTipSecim_kaListeDuzenle({ kaListe }) {
+        super.hareketTipSecim_kaListeDuzenle(...arguments); const {posmu} = this;
+        kaListe.push(...[           
             new CKodVeAdi(['devir', posmu ? 'POS Devir' : 'Kredi Kart Devir']),
             new CKodVeAdi(['ilkKayit', posmu ? 'POS ile Tahsil' : 'Kredi Kart ile Ödeme']),
             new CKodVeAdi(['fatKayit', `Fatura ${posmu ? 'POS ile Tahsil' : 'Kredi Kart ile Ödeme'}`]),
@@ -16,8 +21,8 @@ class PsKrOrtakHareketci extends Hareketci {
     }
     /** Varsayılan değer atamaları (host vars) – temel sınıfa eklemeler.
 		Hareketci.varsayilanHVDuzenle değerleri aynen alınır, sadece eksikler eklenir */
-    static varsayilanHVDuzenle(e) {
-        super.varsayilanHVDuzenle(e); const {hv, sqlNull, sqlEmpty, sqlZero} = e;
+    static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
+        super.varsayilanHVDuzenle(...arguments);
 		/* yeni talimat: { (ozelisaret: '') değerleri (ozelisaret = 'fis.ozelisaret') olmalı.
 			bu da base.varsayilanHVDuzenle seviyesinde mevcut.
 			sqlEmpty ataması bu yüzden bu seviyede sadece comment yapıldı } */
@@ -115,13 +120,8 @@ class PsKrOrtakHareketci extends Hareketci {
             cariTahsilatOdeme: [
                 new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
                     sent.fisHareket('carifis', 'carihar')
-						/* !! { MQSent::fis2CariBagla} methodu `fis.${mustSaha} = car.must` ilişkisini verir, { mustSaha } değeri { e.mustSaha ?? e.fisMustSaha } ile alınabiliyor */
 						.fis2CariBagla({ mustSaha: 'mustkod' })
-						/* !! { MQSent::har2TahSekliBagla} methodu `${alias}.tahseklino = tsek.kodno` ilişkisini verir, { alias } değeri { e?.alias ?? 'har' } ile alınabiliyor.
-								('alias' için default = 'har') ==> mevcut sentence'a uygundur */
-						.har2TahSekliBagla()
-						/* !! { MQSent::har2PosKosulBagla} methodu `har.${kodSaha} = pkos.kod` ilişkisini verir. { kodSaha } değeri { e?.kodSaha ?? 'poskosulkod' } ile alınabiliyor */
-						.har2PosKosulBagla({ kodSaha: 'tahposkosulkod' })
+						.har2TahSekliBagla().har2PosKosulBagla({ kodSaha: 'tahposkosulkod' })
                         .fromIliski('caripos cpos', 'har.kaysayac = cpos.harsayac')
                     const {where: wh} = sent, {almSat} = this.class;
 					/* sadece OR clauseları nesnel olarak ayırmak yeterli, AND kısımları string kalabilir.
@@ -241,7 +241,7 @@ class POSHareketci extends PsKrOrtakHareketci {
 }
 class KrediKartiHareketci extends PsKrOrtakHareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get posmu() { return false }
-    static get kod() { return 'krkart' } static get aciklama() { return 'Kredi Kartı İşlemleri' }
+    static get kod() { return 'krediKart' } static get aciklama() { return 'Kredi Kartı İşlemleri' }
     /** Hareket tipleri seçimine ek olarak masraf ödeme tipini ekle */
     static hareketTipSecim_kaListeDuzenle(e) {
         super.hareketTipSecim_kaListeDuzenle(e);

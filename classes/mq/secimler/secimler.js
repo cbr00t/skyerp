@@ -1,7 +1,6 @@
 class Secimler extends CIO {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get uiSinif() { return window.SecimlerWindowPart } static get duzenlemeUISinif() { return this.uiSinif }
-
 	constructor(e) {
 		e = e || {}; super(e); const {eConf} = e; if (eConf != null) { this.eConf = eConf }
 		if ($.isArray(e)) { e = { liste: e } } else { this.uiSinif = e.uiSinif; this.duzenlemeUISinif = e.duzenlemeUISinif || this.uiSinif }
@@ -12,14 +11,21 @@ class Secimler extends CIO {
 	static getClass(e) { return this }	
 	static from(e) {
 		if (!e) { return null } const cls = this.getClass(e); if (!cls) { return null }
-		const result = new cls(e); if (!result.readFrom(e)) { return null } return result
+		const result = new cls(e); if (!result.readFrom(e)) { return null }
+		return result
 	}
 	duzenlemeEkraniAc(e) {
-		e = e || {}; const uiSinif = e.uiSinif || this.duzenlemeUISinif; if (!uiSinif) { return null } const {parentPart, mfSinif, tamamIslemi} = e;
-		const secimler = this, part = new uiSinif($.extend({}, e, { parentPart, secimler, mfSinif, tamamIslemi })); part.run(); return part
+		e = e || {}; const uiSinif = e.uiSinif || this.duzenlemeUISinif; if (!uiSinif) { return null }
+		const {parentPart, mfSinif, tamamIslemi} = e;
+		const secimler = this, part = new uiSinif($.extend({}, e, { parentPart, secimler, mfSinif, tamamIslemi }));
+		part.run(); return part
 	}
 	listeOlustur(e) { }
-	initProps(e) { const {liste} = this; for (const key in liste) { Object.defineProperty(this, key, { configurable: true, get() { return this.liste[key] }, set(value) { this.liste[key] = value } }) } }
+	initProps(e) {
+		const {liste} = this; for (const key in liste) {
+			Object.defineProperty(this, key, { configurable: true, get() { return this.liste[key] }, set(value) { this.liste[key] = value } })
+		}
+	}
 	get asObject() {
 		const _e = { _reduce: true }; this.writeTo(_e); delete _e._reduce;
 		for (const key of Object.keys(_e)) { if (key[0] == '_') { delete _e[key]; continue } const item = _e[key]; if ($.isEmptyObject(item)) { delete _e[key]; continue } }
@@ -104,7 +110,7 @@ class Secimler extends CIO {
 	tbWhereClauseDuzenle(e) { }
 	get asHTMLElements() { const _e = { grup2Info: {} }; this.buildHTMLElementsInto(_e); return _e.grup2Info }
 	buildHTMLElementsInto(e) {
-		const {grup2Info} = e, {liste, grupListe} = this, grupKod2Liste = {};
+		let {grup2Info} = e, {liste, grupListe} = this, grupKod2Liste = {};
 		for (const key in liste) { const secim = liste[key], grupKod = secim.grupKod || '', _liste = (grupKod2Liste[grupKod] = grupKod2Liste[grupKod] || {}); _liste[key] = secim }
 		for (const grupKod in grupKod2Liste) {
 			const grup = grupListe[grupKod] || { aciklama: grupKod },  grupInfo = grup2Info[grupKod] = grup2Info[grupKod] || { grup, key2Info: {} }, _liste = grupKod2Liste[grupKod];
@@ -121,6 +127,17 @@ class Secimler extends CIO {
 			}
 		}
 	}
+	initHTMLElements({ secim2Info }) {
+		let secimler = this; this.initHTMLElements_ilk({ ...arguments[0], secimler });
+		for (let {secim, element: parent} of Object.values(secim2Info)) {
+			if (!secim) { continue }
+			secim.initHTMLElements({ ...arguments[0], secimler, parent });
+			/*setTimeout(async () => await secim.initHTMLElements({ secimler, parent }), waitMS); waitMS += WaitMS_Ek*/
+		}
+		this.initHTMLElements_ara({ ...arguments[0], secimler });
+		this.initHTMLElements_son({ ...arguments[0], secimler });
+	}
+	initHTMLElements_ilk(e) { } initHTMLElements_ara(e) { } initHTMLElements_son(e) { }
 	grupOzetBilgiDuzenle(e) {
 		const {elmGrup} = e, elmHeaderText = elmGrup?.find('.header > .jqx-expander-header-content');
 		if (elmHeaderText?.length) { elmHeaderText.html(this.getGrupHeaderHTML(e)) }
@@ -131,4 +148,44 @@ class Secimler extends CIO {
 		return `<div class="item asil float-left">${grupText}</div><div class="item diger float-left">${innerHTML || ''}</div>`
 	}
 	getGrupOzetBilgiHTML(e) { let innerHTML = e.html ?? $.isArray(e.liste) ? e.liste.join('') : null; if (innerHTML?.html) { innerHTML = innerHTML.html() } return innerHTML || null }
+}
+class DonemselSecimler extends Secimler {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	get tarihBS() {
+		let {donem, tarihAralik} = this, {tarihAralikmi, basiSonu} = donem?.tekSecim ?? {};
+		if (tarihAralikmi) { basiSonu = new CBasiSonu(tarihAralik) }
+		return basiSonu
+	}
+	get tarihBSVeyaCariDonem() {
+		let {tarihBS} = this; if (tarihBS?.bosDegilmi) { return tarihBS }
+		let donemBS = new CBasiSonu({ basi: today().yilBasi(), sonu: today().yilSonu() });
+		let {cariYil: yil} = app.params?.zorunlu ?? {}; if (yil && yil != today().yil) {
+			for (const key of ['basi', 'sonu']) { let value = donemBS[key]; if (!isInvalidDate(value)) { value.setYil(yil) } }
+		}
+		let {donem, tarihAralik} = this, {tarihAralikmi, basiSonu: bs} = donem?.tekSecim ?? {};
+		if (tarihAralikmi) { bs = new CBasiSonu(tarihAralik) }
+		if (bs?.bosmu ?? true) { bs = donemBS }
+		return bs
+	}
+	listeOlustur({ liste }) {
+		let grupKod = 'donemVeTarih'; this.grupEkle(grupKod, 'Dönem Ve Tarih');
+		$.extend(liste, {
+			donem: new SecimTekSecim({ etiket: 'Dönem', tekSecimSinif: DonemTarihAralikVeHepsiSecim, grupKod }).autoBind().setOzetBilgiValueGetter(e => {
+				const kod = e.value?.kod ?? e.value, result = [e.value?.aciklama ?? kod];
+				if (kod == 'TR') { let value = this.tarihAralik.ozetBilgiValueDuzenlenmis; if (value) { result.push(value) } }
+				return result
+			}),
+			tarihAralik: new SecimDate({ etiket: 'Tarih', grupKod }).hidden()
+		});
+		super.listeOlustur(...arguments)
+	}
+	initHTMLElements_son({ secim2Info }) {
+		super.initHTMLElements_son(...arguments);
+		let part = secim2Info?.donem?.element?.find('.ddList')?.data('part'); if (part) {
+			part.degisince(e => {
+				const {tarihAralikmi} = secim2Info.donem.secim.tekSecim;
+				secim2Info.tarihAralik.element[tarihAralikmi ? 'removeClass' : 'addClass']('jqx-hidden')
+			})
+		}
+	}
 }

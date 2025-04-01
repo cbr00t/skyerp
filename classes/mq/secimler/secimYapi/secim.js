@@ -42,7 +42,8 @@ class Secim extends CIO {
 	temizle(e) { return this }
 	uiSetValues(e) { }
 	get asHTMLElementString() { const _e = { target: '' }; this.buildHTMLElementStringInto(_e); return _e.target }
-	buildHTMLElementStringInto(e) { } initHTMLElements(e) { }
+	buildHTMLElementStringInto(e) { }
+	initHTMLElements(e) { }
 	ozetBilgiHTMLOlustur(e) {
 		const {liste} = e; if (this.isHidden) { return this }
 		let result = this.ozetBilgiValueDuzenlenmis; if (result && !$.isArray(result)) { result = [result] }

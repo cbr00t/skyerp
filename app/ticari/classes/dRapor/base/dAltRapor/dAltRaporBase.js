@@ -20,10 +20,18 @@ class DAltRapor extends DRapor {
 	}
 	secimlerDuzenle(e) { } secimlerDuzenleSon(e) { } secimlerInitEvents(e) { }
 	loadServerData_wsArgsDuzenle(e) { const {secimler} = this; $.extend(e, { secimler }) }
-	onInit(e) { this.onInit_ozel?.(e) } onBuildEk(e) { this.onBuildEk_ozel?.(e) } onAfterRun(e) { this.onAfterRun_ozel?.(e) } onResize(e) { }
+	onInit(e) { this.onInit_ozel?.(e) }
+	onBuildEk(e) { this.onBuildEk_ozel?.(e) }
+	onAfterRun(e) {
+		let {fullScreen: builder} = this.parentBuilder.id2Builder, {id2AltRapor} = this.rapor;
+		if (Object.keys(id2AltRapor).length < 2) { setTimeout(() => this.toggleFullScreen({ builder }), 1) }
+		this.onAfterRun_ozel?.(e)
+	}
+	onResize(e) { }
 	tazeleDiger(e) { const {id2AltRapor} = this.rapor; for (const altRapor of Object.values(id2AltRapor)) { if (altRapor != this) { altRapor.tazele(e) } } }
 	toggleFullScreen(e) {
-		const {builder} = e, {rootBuilder, parentBuilder, layout, part} = builder, parentLayout = parentBuilder.layout, itemsLayout = rootBuilder.id2Builder.items.layout;
+		const {builder} = e, {rootBuilder, parentBuilder, layout, part} = builder;
+		let parentLayout = parentBuilder.layout, itemsLayout = rootBuilder.id2Builder.items.layout;
 		for (const _layout of [parentLayout, itemsLayout]) { _layout.toggleClass('maximized') }
 		layout.trigger('resize'); if (part?.onResize) { part.onResize(e) }
 		const {id2AltRapor} = this.rapor; for (const altRapor of Object.values(id2AltRapor)) { altRapor.onResize(e) }

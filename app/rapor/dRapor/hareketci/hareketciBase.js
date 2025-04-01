@@ -8,15 +8,16 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return null }
 	onInit(e) {
 		super.onInit(e); let {hareketciSinif} = this.class;
-		this.hareketci = new hareketciSinif()
+		if (hareketciSinif) { this.hareketci = new hareketciSinif() }
 	}
 	secimlerDuzenle({ secimler: sec }) {
-		super.secimlerDuzenle(...arguments); let {hareketci} = this, {hareketTipSecim: tekSecim} = hareketci.class;
-		sec.secimTopluEkle({ tip: new SecimBirKismi({ etiket: 'Tip', tekSecim, grupKod: 'donemVeTarih' }).birKismi().autoBind() })
+		super.secimlerDuzenle(...arguments); let {hareketci} = this, {hareketTipSecim: tekSecim} = hareketci?.class ?? {};
+		if (tekSecim) { sec.secimTopluEkle({ tip: new SecimBirKismi({ etiket: 'Tip', tekSecim, grupKod: 'donemVeTarih' }).birKismi().autoBind() }) }
 	}
 	secimlerInitEvents(e) {
-		super.secimlerInitEvents(e); const {secimlerPart} = this, {secim2Info} = secimlerPart || {}; if (!secim2Info) { return }
-		let part = secim2Info.tip.element.find('.ddList').data('part'); part?.degisince(e => {
+		super.secimlerInitEvents(e); let {secimlerPart} = this, {secim2Info} = secimlerPart || {}; if (!secim2Info) { return }
+		let part = secim2Info?.tip?.element?.find('.ddList')?.data('part');
+		part?.degisince(e => {
 			let {hareketci} = this, {value} = secim2Info.tip.secim;
 			hareketci.uygunluk = $.isEmptyObject(value) ? null : asSet(value)
 		})
@@ -74,8 +75,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		this.loadServerData_queryDuzenle_sube({ ...e, kodClause: hvDegeri('bizsubekod') });
 		this.loadServerData_queryDuzenle_tarih({ ...e, alias: '', tarihSaha });
 		this.loadServerData_queryDuzenle_takip({ ...e, kodClause: hvDegeri('takipno') });
-		let baClause = hvDegeri('ba'), bedelClause = hvDegeri('bedel').sumOlmaksizin();
 		this.loadServerData_queryDuzenle_plasiyer({ ...e, kodClause: hvDegeri('plasiyerkod') });
+		let baClause = hvDegeri('ba'), bedelClause = hvDegeri('bedel').sumOlmaksizin();
 		this.loadServerData_queryDuzenle_baBedel({ ...e, baClause, bedelClause })
 	}
 	super_tabloYapiDuzenle_odemeGun(e) { super.tabloYapiDuzenle_odemeGun(e) }

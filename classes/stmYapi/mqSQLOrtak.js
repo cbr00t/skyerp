@@ -79,6 +79,11 @@ class MQSQLOrtak extends CObject {
 		const Prefix = 'SUM('; if (!text?.toUpperCase().includes(Prefix)) { return text }
 		return text.fastReplaceSplit(Prefix, '(')
 	}
+	static asSumDeger(text) {
+		if (!text || text == 'NULL' || text == `''` || text == '0') { return text }
+		return `SUM(${sumOlmaksizin(text)})`
+	}
+	static asSUMDeger(text) { return this.asSumDeger(text) }
 	static boolClause(e, _styled) {
 		e = e || {}; const saha = typeof e == 'object' ? e.saha : e, isStyled = typeof e == 'object' ? e.styled : _styled;
 		return (

@@ -1,17 +1,23 @@
 class BankaAkreditifHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kod() { return 'akreditif' } static get aciklama() { return 'Banka Akreditif' }
 	static get uygunmu() { return app?.params?.bankaGenel?.kullanim?.akreditif }
+	static mstYapiDuzenle({ result }) {
+		super.mstYapiDuzenle(...arguments);
+		result.set('banhesapkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
+			sent.fromIliski(`banbizhesap ${mstAlias}`, `${kodClause} = ${mstAlias}.kod`).add(`${mstAlias}.aciklama ${mstAdiAlias}`))
+	}
     /* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
-    static hareketTipSecim_kaListeDuzenle(e) {
-        super.hareketTipSecim_kaListeDuzenle(e); e.kaListe.push(
+    static hareketTipSecim_kaListeDuzenle({ kaListe }) {
+        super.hareketTipSecim_kaListeDuzenle(arguments); kaListe.push(...[
 			new CKodVeAdi(['akrAcilis', 'Akreditif Açılışı']),
 			new CKodVeAdi(['akrKapanis', 'Akreditif Kapanışı'])
-		)
+		])
     }
     /** Varsayılan değer atamaları (host vars) – temel sınıfa eklemeler.
 		Hareketci.varsayilanHVDuzenle değerleri aynen alınır, sadece eksikler eklenir */
-    static varsayilanHVDuzenle(e) {
-        super.varsayilanHVDuzenle(e); const {hv, sqlNull, sqlEmpty, sqlZero} = e;
+    static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
+        super.varsayilanHVDuzenle(...arguments);
 		for (const key of ['fisaciklama', 'detaciklama']) { hv[key] = sqlEmpty }
 		for (const key of ['dvbedel']) { hv[key] = sqlZero }
 		$.extend(hv, {

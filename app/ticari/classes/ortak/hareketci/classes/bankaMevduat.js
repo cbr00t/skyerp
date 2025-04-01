@@ -1,8 +1,13 @@
 class BankaMevduatHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-    static get kod() { return 'banka' } static get aciklama() { return 'Banka Mevduat' }
-    static hareketTipSecim_kaListeDuzenle(e) {
-        super.hareketTipSecim_kaListeDuzenle(e); e.kaListe.push(
+    static get kod() { return 'bankaMevduat' } static get aciklama() { return 'Banka Mevduat' }
+	static mstYapiDuzenle({ result }) {
+		super.mstYapiDuzenle(...arguments);
+		result.set('banhesapkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
+			sent.fromIliski(`banbizhesap ${mstAlias}`, `${kodClause} = ${mstAlias}.kod`).add(`${mstAlias}.aciklama ${mstAdiAlias}`))
+	}
+    static hareketTipSecim_kaListeDuzenle({ kaListe }) {
+        super.hareketTipSecim_kaListeDuzenle(...arguments); kaListe.push(
             new CKodVeAdi(['devir', 'Devir']), new CKodVeAdi(['kasa', 'Kasa Yatan/Çekilen']),
             new CKodVeAdi(['yatirim', 'Yatırım']), new CKodVeAdi(['hizmet', 'Banka Hizmet']),
             new CKodVeAdi(['havaleEFT', 'Havale/EFT']), new CKodVeAdi(['tahsilSekli', 'Fatura ve Cari Tahsil']),
@@ -13,10 +18,6 @@ class BankaMevduatHareketci extends Hareketci {
             new CKodVeAdi(['virman', 'Banka Hesap Virman']), new CKodVeAdi(['alimSatis', 'Fatura Nakit']), new CKodVeAdi(['akreditif', 'Akreditif']),
 			new CKodVeAdi(['teminatMektup', 'Teminat Mektubu']), new CKodVeAdi(['krediAlim', 'Kredi Alımı'])
         )
-    }
-    static varsayilanHVDuzenle(e) {
-        super.varsayilanHVDuzenle(e) /*; const {hv, sqlEmpty} = e
-		for (const key of ['bizsubekod']) { hv[key] = sqlEmpty }*/
     }
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
         super.uygunluk2UnionBilgiListeDuzenleDevam(e);

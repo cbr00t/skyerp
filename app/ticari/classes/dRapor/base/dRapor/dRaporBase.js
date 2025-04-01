@@ -85,8 +85,10 @@ class DRaporOzel extends DRapor {
 	super_tazele(e) { super.tazele(e) }
 }
 class DPanelRapor extends DRaporOzel {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get anaTip() { return 'panel' } static get dPanelRapormu() { return true } get main() { return this.id2AltRapor.main }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get dPanelRapormu() { return true }
+	static get anaTip() { return 'panel' } static get sabitmi() { return false }
+	static get ozetVarmi() { return !this.sabitmi } static get chartVarmi() { return !this.sabitmi }
+	get main() { return this.id2AltRapor?.main }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, { id2AltRapor: e.id2AltRapor, altRapor_lastZIndex: 100 });
 		if (this.id2AltRapor == null) { this.clear(); this.altRaporlarDuzenle(e) }
@@ -104,24 +106,31 @@ class DPanelRapor extends DRaporOzel {
 		}
 	}
 	onAfterRun(e) {
-		super.onAfterRun(e); const {rfb} = e, itemsLayout = rfb.id2Builder.items.layout, itemSelector = '.item', focusSelector = 'hasFocus';
+		super.onAfterRun(e); const {rfb} = e, {layout: itemsLayout} = rfb.id2Builder.items, itemSelector = '.item', focusSelector = 'hasFocus';
 		const elmSubItems = itemsLayout.children(itemSelector); elmSubItems.eq(0).addClass(focusSelector);
-		elmSubItems.on('click', evt => { const itemLayout = $(evt.currentTarget); itemLayout.parent().children(itemSelector).removeClass(focusSelector); itemLayout.addClass(focusSelector) })
+		elmSubItems.on('click', evt => {
+			const itemLayout = $(evt.currentTarget);
+			itemLayout.parent().children(itemSelector).removeClass(focusSelector);
+			itemLayout.addClass(focusSelector)
+		})
 	}
 	onResize(e) {
 		if (super.onResize(e) === false) { return false }
 		const {id2AltRapor} = this; if (!id2AltRapor) { return }
-		for (const altRapor of Object.values(id2AltRapor)) { if (altRapor.onResize) { altRapor.onResize(e) } }
+		for (const altRapor of Object.values(id2AltRapor)) { altRapor?.onResize?.(e) }
 	}
 	altRaporlarDuzenle(e) { }
 	tazele(e) {
 		super.super_tazele(e); const {id2AltRapor} = this;
-		for (const altRapor of Object.values(id2AltRapor)) { if (altRapor && altRapor.tazeleYapilirmi && altRapor.tazele) { altRapor.tazele(e) } }
+		for (const altRapor of Object.values(id2AltRapor)) { if (altRapor?.tazeleYapilirmi) { altRapor.tazele?.(e) } }
 	}
 	hizliBulIslemi_ara(e) {
-		super.hizliBulIslemi_ara(e); const {tokens} = e, {id2AltRapor} = this;
-		for (const altRapor of [id2AltRapor.main].filter(x => !!x)) {
-			if (altRapor.fbd_grid) { const gridPart = altRapor.fbd_grid.part; gridPart.filtreTokens = tokens; gridPart.tazele({ action: 'hizliBul' }) } }
+		super.hizliBulIslemi_ara(e); const {tokens} = e, {main} = this;
+		for (const altRapor of [main]) {
+			if (!altRapor.fbd_grid) { continue }
+			let {part: gridPart} = altRapor.fbd_grid;
+			gridPart.filtreTokens = tokens; gridPart.tazele({ action: 'hizliBul' })
+		}
 	}
 	add(...items) {
 		const {id2AltRapor} = this; for (const item of items) {
@@ -138,21 +147,24 @@ class DGrupluPanelRapor extends DPanelRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGrupluPanelRapormu() { return true }
 	static get noOverflowFlag() { return true } static get altRaporClassPrefix() { return null }
 	altRaporlarDuzenle(e) {
-		super.altRaporlarDuzenle(e); const prefix = this.class.altRaporClassPrefix; if (prefix) {
+		super.altRaporlarDuzenle(e); let {altRaporClassPrefix: prefix, ozetVarmi, chartVarmi} = this.class;
+		if (prefix) {
 			const postfixes = ['_Main'/*, '_Ozet', '_Chart', '_Diagram'*/], classes = postfixes.map(postfix => window[prefix + postfix]).filter(cls => !!cls);
 			this.add(...classes)
 		}
-		this.add(DAltRapor_Grid_Ozet, DAltRapor_Chart)
+		if (ozetVarmi) { this.add(DAltRapor_Grid_Ozet) }
+		if (chartVarmi) { this.add(DAltRapor_Chart) }
 	}
 	islemTuslariArgsDuzenle(e) {
-		super.islemTuslariArgsDuzenle(e); const {liste} = e; liste.push(
-			{ id: 'raporTanim', text: 'Rapor Tanım', handler: _e => this.id2AltRapor.main.raporTanimIstendi({ ...e, ..._e }) },
-			{ id: 'secimler', text: '', handler: _e => this.id2AltRapor.main.secimlerIstendi({ ...e, ..._e }) },
-			{ id: 'seviyeAc', text: 'Seviye Aç', handler: _e => this.id2AltRapor.main.seviyeAcIstendi({ ...e, ..._e }) },
-			{ id: 'seviyeKapat', text: 'Seviye Kapat', handler: _e => this.id2AltRapor.main.seviyeKapatIstendi({ ...e, ..._e }) },
-			{ id: 'excel', text: '', handler: _e => this.id2AltRapor.main.exportExcelIstendi({ ...e, ..._e }) },
-			/*{ id: 'pdf', text: '', handler: _e => this.id2AltRapor.main.exportPDFIstendi({ ...e, ..._e }) },*/
-			{ id: 'html', text: '', handler: _e => this.id2AltRapor.main.exportHTMLIstendi({ ...e, ..._e }) }
-		)
+		super.islemTuslariArgsDuzenle(e); let {liste} = e, {sabitmi} = this.class;
+		liste.push(...[
+			(sabitmi ? null : { id: 'raporTanim', text: 'Rapor Tanım', handler: _e => this.main.raporTanimIstendi({ ...e, ..._e }) }),
+			{ id: 'secimler', text: '', handler: _e => this.main.secimlerIstendi({ ...e, ..._e }) },
+			{ id: 'seviyeAc', text: 'Seviye Aç', handler: _e => this.main.seviyeAcIstendi({ ...e, ..._e }) },
+			{ id: 'seviyeKapat', text: 'Seviye Kapat', handler: _e => this.main.seviyeKapatIstendi({ ...e, ..._e }) },
+			{ id: 'excel', text: '', handler: _e => this.main.exportExcelIstendi({ ...e, ..._e }) },
+			/*{ id: 'pdf', text: '', handler: _e => this.main.exportPDFIstendi({ ...e, ..._e }) },*/
+			{ id: 'html', text: '', handler: _e => this.main.exportHTMLIstendi({ ...e, ..._e }) }
+		].filter(x => !!x))
 	}
 }

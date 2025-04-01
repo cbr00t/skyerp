@@ -96,7 +96,8 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 				.addColDef(new GridKolon({ belirtec: 'katdetay', text: 'Kat. Detay', maxWidth: 600, filterType: 'input' })));
 		return this
 	}
-	loadServerData_queryDuzenle_hizmet({ attrSet, stm }) {
+	loadServerData_queryDuzenle_hizmet(e) {
+		let {attrSet, stm} = e;
 		for (let sent of stm.getSentListe()) {
 			let {sahalar, where: wh} = sent;
 			if (attrSet.HZANAGRP) { sent.hizmet2GrupBagla() }

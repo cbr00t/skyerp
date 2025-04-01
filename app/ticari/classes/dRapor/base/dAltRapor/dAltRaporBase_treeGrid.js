@@ -2,7 +2,6 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridmi() { return true } static get dTreeGridmi() { return true }
 	constructor(e) { e = e || {}; super(e) }
 	/*subFormBuilderDuzenle(e) { super.subFormBuilderDuzenle(e); const {rfb} = e; rfb.addCSS('no-overflow') }*/
-	onInit(e) { super.onInit(e) }
 	onBuildEk(e) {
 		super.onBuildEk(e);  if (this.secimler == null) { this.secimler = this.newSecimler(e) }
 		const {parentBuilder, noAutoColumns} = this, {layout} = parentBuilder;
@@ -157,22 +156,24 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	}
 }
 class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridliAltRapormu() { return true } get noAutoColumns() { return true }
-	static get raporClass() { return null } static get kod() { return 'main' } static get aciklama() { return this.raporClass.aciklama }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridliAltRapormu() { return true }
+	static get raporClass() { return null } static get kod() { return 'main' } static get aciklama() { return this.raporClass?.aciklama }
+	get noAutoColumns() { return true } get sabitmi() { return this.class.raporClass?.sabitmi }
+	get ozetVarmi() { return this.class.raporClass?.ozetVarmi } get chartVarmi() { return this.class.raporClass?.chartVarmi }
 	get width() { return '70%' } get height() { return 'var(--full)' }
 	get tabloYapi() {
-		let {_tabloYapi: result} = this;
-		if (result == null) {
+		let {_tabloYapi: result} = this; if (result == null) {
 			let _e = { result: new TabloYapi() }; this.tabloYapiDuzenle(_e); this.tabloYapiDuzenle_son(_e);
 			this.tabloYapiDuzenle_ozel?.(_e); result = _e.result;
 			const tipSet = result.tipSet = {}, kaListe = result.kaListe = [];
-			for (const selector of ['grup', 'toplam']) {
-				const tip2Item = result[selector];
-				for (const [kod, item] of Object.entries(tip2Item)) {
-					tipSet[kod] = true; kaListe.push(item.ka);
-					const {colDefs} = item; if (colDefs) {
-						for (const colDef of colDefs) {
-							const userData = colDef.userData = colDef.userData || {}; userData.tip = selector; userData.kod = kod }
+			for (let selector of ['grup', 'toplam']) {
+				let tip2Item = result[selector];
+				for (let [kod, {ka, colDefs}] of Object.entries(tip2Item)) {
+					tipSet[kod] = true; kaListe.push(ka); if (colDefs) {
+						for (let colDef of colDefs) {
+							let userData = colDef.userData = colDef.userData || {};
+							userData.tip = selector; userData.kod = kod
+						}
 					 }
 				}
 			}
@@ -180,11 +181,21 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		}
 		return result
 	}
+	get sabitRaporTanim() {
+		let {_sabitRaporTanim: result} = this; if (result == null) {
+			let rapor = this, e = { result: new DMQRapor({ rapor }) };
+			this.sabitRaporTanimDuzenle(e); this.sabitRaporTanimDuzenle_son(e);
+			result = this._sabitRaporTanim = e.result
+		}
+		return result
+	}
 	secimlerDuzenle(e) { super.secimlerDuzenle(e) } secimlerInitEvents(e) { super.secimlerInitEvents(e) }
 	tabloYapiDuzenle(e) { } tabloYapiDuzenle_son(e) { }
+	sabitRaporTanimDuzenle(e) { } sabitRaporTanimDuzenle_son(e) { }
 	onGridInit(e) {
-		super.onGridInit(e); this.ozetBilgi = { colDefs: null, recs: null };
-		const rapor = this; this.raporTanim = DMQRapor.getDefault({ ...e, rapor })
+		super.onGridInit(e); let rapor = this, {sabitmi} = this;
+		this.ozetBilgi = { colDefs: null, recs: null };
+		this.raporTanim = sabitmi ? this.sabitRaporTanim : DMQRapor.getDefault({ ...e, rapor })
 	}
 	onGridRun(e) { super.onGridRun(e); this.tazeleOncesi(e) }
 	tabloKolonlariDuzenle(e) {

@@ -41,51 +41,54 @@ class SecimlerPart extends Part {
 		if (btnKolonFiltreTemizle?.length) { btnKolonFiltreTemizle.jqxButton({ theme }); btnKolonFiltreTemizle.on('click', evt => this.kolonFiltreTemizleIstendi($.extend({}, e, { event: evt }))) }
 		const divKolonFiltreBilgi = this.divKolonFiltreBilgi = divKolonFiltreBilgiParent && divKolonFiltreBilgiParent.length ? divKolonFiltreBilgiParent.find('.kolonFiltre-bilgi') : null;
 		let {secimlerForm} = e; if (!(secimlerForm && secimlerForm.length)) { secimlerForm = this.secimlerForm }
-		if (!secimlerForm?.length) { secimlerForm = layout.find('.secimler-form') } if (!secimlerForm?.length) { secimlerForm = layout }
-		this.secimlerForm = secimlerForm; const {secimler} = this, grup2Info = secimler.asHTMLElements, secim2Info = this.secim2Info = {};
+		if (!secimlerForm?.length) { secimlerForm = layout.find('.secimler-form') }
+		if (!secimlerForm?.length) { secimlerForm = layout }
+		this.secimlerForm = secimlerForm;
+		let {secimler} = this, {asHTMLElements: grup2Info} = secimler, secim2Info = this.secim2Info = {};
 		if (grup2Info) {
 			secimlerForm.children().remove(); const docFrg = $(document.createDocumentFragment());
-			for (const grupKod in grup2Info) {
-				const grupBilgi = grup2Info[grupKod], grup = grupBilgi.grup || {}, key2Info = grupBilgi.key2Info || {};
-				const _e = { ...e, liste: [], grupKod }; for (const {secim} of Object.values(key2Info)) { secim.ozetBilgiHTMLOlustur(_e) }
-				const grupHeaderHTML = secimler.getGrupHeaderHTML(_e), divGrup = grupBilgi.element = $(
+			for (let [grupKod, grupBilgi] of Object.entries(grup2Info)) {
+				let grup = grupBilgi.grup || {}, key2Info = grupBilgi.key2Info || {};
+				let _e = { ...e, liste: [], grupKod }; for (let {secim} of Object.values(key2Info)) { secim.ozetBilgiHTMLOlustur(_e) }
+				let grupHeaderHTML = secimler.getGrupHeaderHTML(_e), divGrup = grupBilgi.element = $(
 					`<div class="secim-grup" data-id="${grupKod}">` +
 						`<div class="header" style="color:${grup.renk || ''};background-color:${grup.zeminRenk || ''};${grup.css}">${grupHeaderHTML}</div>` +
 						`<div class="content"></div>` +
 					`</div>`
 				);
-				const divGrupContent = divGrup.find('.content');
-				for (const key in key2Info) { const secimBilgi = key2Info[key], {secim, element} = secimBilgi; if (element?.length) { element.appendTo(divGrupContent) } secim2Info[key] = secimBilgi }
+				let divGrupContent = divGrup.find('.content');
+				for (let [key, secimBilgi] of Object.entries(key2Info)) {
+					let {secim, element} = secimBilgi; if (element?.length) { element.appendTo(divGrupContent) }
+					secim2Info[key] = secimBilgi
+				}
 				divGrup.appendTo(docFrg)
 			}
 			docFrg.appendTo(secimlerForm);
-			for (const grupKod in grup2Info) {
-				const grupBilgi = grup2Info[grupKod], {element} = grupBilgi;
-				if (element?.length) {
-					const {grup} = grupBilgi, {kapalimi} = grup;
-					const navBar = element.jqxNavigationBar({ theme, animationType, expandMode: 'toggle', width: false, /*toggleMode: 'none',*/ expandAnimationDuration: 10, collapseAnimationDuration: 10, expandedIndexes: kapalimi ? [] : [0] });
-					const navBarArrowClickHandler = evt => {
-						const widget = navBar.jqxNavigationBar('getInstance'), index = 0;
-						if (widget.expandedIndexes.includes(index)) { widget.collapseAt(index) } else { widget.expandAt(index) }
-						const timeouts = [50, 100]; for (const timeout of timeouts) { setTimeout(() => this.onResize(e), timeout) }
-					};
-					navBar.find(`.jqx-expander-header-content`).off('click, mouseup, touchend')
-						.on('click, mouseup, touchend', evt => {
-							const {target} = evt, tagName = target.tagName.toUpperCase();
-							if (!(tagName == 'INPUT' || tagName == 'TEXTAREA' || tagName == 'BUTTON' || target.classList.contains(`jqx-input-icon`))) { navBarArrowClickHandler(evt) }
-						});
-					navBar.on('expandedItem', event => this.onNavBarExpanded({ event, ...e })); navBar.on('collapsedItem', event => { this.onNavBarCollapsed({ event, ...e }) })
-				}
+			for (let [grupKod, grupBilgi] of Object.entries(grup2Info)) {
+				let {element} = grupBilgi; if (!element?.length) { continue }
+				let {grup} = grupBilgi, {kapalimi} = grup;
+				let navBar = element.jqxNavigationBar({
+					theme, animationType, expandMode: 'toggle', width: false, /*toggleMode: 'none',*/
+					expandAnimationDuration: 10, collapseAnimationDuration: 10, expandedIndexes: kapalimi ? [] : [0]
+				});
+				let navBarArrowClickHandler = evt => {
+					let index = 0, widget = navBar.jqxNavigationBar('getInstance');
+					if (widget.expandedIndexes.includes(index)) { widget.collapseAt(index) } else { widget.expandAt(index) }
+					for (let timeout of [50, 100]) { setTimeout(() => this.onResize(e), timeout) }
+				};
+				navBar.find(`.jqx-expander-header-content`).off('click, mouseup, touchend')
+					.on('click, mouseup, touchend', evt => {
+						const {target} = evt, tagName = target.tagName.toUpperCase();
+						if (!(tagName == 'INPUT' || tagName == 'TEXTAREA' ||
+							  tagName == 'BUTTON' || target.classList.contains(`jqx-input-icon`))) {
+							navBarArrowClickHandler(evt)
+						}
+					});
+				navBar.on('expandedItem', event => this.onNavBarExpanded({ event, ...e }));
+				navBar.on('collapsedItem', event => { this.onNavBarCollapsed({ event, ...e }) })
 			}
-			const WaitMS_Ek = 0; let waitMS = 0, focusYapildimi = false;
-			for (const secimBilgi of Object.values(secim2Info)) {
-				const {secim, element} = secimBilgi;
-				if (secim) {
-					secim.initHTMLElements({ secimler: this, parent: element });
-					/*setTimeout(async () => await secim.initHTMLElements({ secimler: this, parent: element }), waitMS);
-					waitMS += WaitMS_Ek*/
-				}
-			}
+			let WaitMS_Ek = 0, waitMS = 0, focusYapildimi = false;
+			let _e = { ...e, sender: this, part: this, secim2Info }; secimler?.initHTMLElements(_e);
 			setTimeout(() => layout.blur(), 100)
 		}
 	}
@@ -187,9 +190,9 @@ class SecimlerPart extends Part {
 			args: { tipBelirtec },
 			secince: e => {
 				const {aciklama, icerik} = e.rec ?? {}; if (!icerik) { return }
-				const {secimler, secim2Info} = this; for (const [key, _secim] of Object.entries(icerik)) {
-					const secim = secimler[key]; if (!secim) { continue } $.extend(secim, _secim); 
-					const {element: parent} = secim2Info[key]; if (parent) { secim.uiSetValues({ parent }) }
+				const {secimler, secim2Info} = this; for (let [key, _secim] of Object.entries(icerik)) {
+					let secim = secimler[key]; if (!secim) { continue } $.extend(secim, _secim); 
+					let {element: parent} = secim2Info[key]; if (parent) { secim.uiSetValues({ parent }) }
 				}
 				this.seviyeleriAcKapatIstendi({ flag: true }) /* eConfirm(`<b>${aciklama}</b> seçim içerikleri yüklendi`, [this.mfSinif?.sinifAdi, 'Seçimler'].filter(x => x).join(' ')) */
 			}

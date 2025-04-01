@@ -1,10 +1,22 @@
 class Hareketci extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return true }
 	static get kod() { return null } static get aciklama() { return null } static get araSeviyemi() { return this == Hareketci }
+	static get mstYapi() {
+		let {_mstYapi: result} = this;
+		if (result == null) {
+			let e = { result: new Hareketci_MstYapi() }; this.mstYapiDuzenle(e);
+			result = this._mstYapi = e.result
+		}
+		return result
+	}
+	static get donemselIslemlerIcinUygunmu() { return true }
 	static get kod2Sinif() {
 		let {_kod2Sinif: result} = this; if (result == null) {
 			result = {}; const {subClasses} = this;
-			for (const {araSeviyemi, kod} of subClasses) { if (!araSeviyemi && kod) { result[kod] = cls } }
+			for (const cls of subClasses) {
+				let {uygunmu, araSeviyemi, kod} = cls;
+				if (uygunmu && !araSeviyemi && kod) { result[kod] = cls }
+			}
 			this._kod2Sinif = result
 		}
 		return result
@@ -53,6 +65,12 @@ class Hareketci extends CObject {
 	static get extListe() { let result = this._extListe; if (result == null) { let e = { liste: [] }; this.extListeDuzenle(e); result = this._extListe = e.liste } return result }
 	static set extListe(value) { this._extListe = value }
 	get uygunluk2UnionBilgiListe() {
+		let {uygunluk} = this, {zorunluAttrSet} = this.class, e;
+		this.uygunluk2UnionBilgiListeDuzenle(e = { uygunluk, zorunluAttrSet, liste: {} });
+		let {liste} = e; this.uniBilgiAllHVFix({ liste });
+		return liste
+	}
+	/*get uygunluk2UnionBilgiListe() {
 		let {_uygunluk2UnionBilgiListe: result} = this, e;
 		if (result == null) {
 			const {uygunluk} = this, {zorunluAttrSet} = this.class;
@@ -60,7 +78,7 @@ class Hareketci extends CObject {
 			let {liste} = e; this.uniBilgiAllHVFix({ liste }); result = this._uygunluk2UnionBilgiListe = liste
 		}
 		return result
-	}
+	}*/
 	static get varsayilanHV() {
 		let {_varsayilanHV: result} = this, e;
 		if (result == null) {
@@ -78,6 +96,7 @@ class Hareketci extends CObject {
 		const {whereYapi} = this; for (const key of ['master', 'hareket']) { const value = e[key]; if (value !== undefined) { whereYapi[key] = value } }
 	}
 	static getClass(e) { const kod = typeof e == 'object' ? (e.kod ?? e.tip) : e; return this.kod2Sinif[kod] }
+	static mstYapiDuzenle(e) { }
 	static hareketTipSecim_kaListeDuzenle(e) {
 		e.hareketci = this; if (!this.uygunmu) { return }
 		for (const ext of this.getExtIter()) { ext.hareketTipSecim_kaListeDuzenle(e) }
@@ -96,7 +115,7 @@ class Hareketci extends CObject {
 			fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac', ozelisaret: 'fis.ozelisaret', bizsubekod: 'fis.bizsubekod', tarih: 'fis.tarih',
 			seri: 'fis.seri', fisno: 'fis.no', fisnox: 'fis.fisnox', disfisnox: 'fis.fisnox', ba: 'fis.ba', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
 			fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', muhfissayac: 'fis.muhfissayac', sonzamants: 'fis.sonzamants',
-			karsiodemetarihi: ({ hv }) => hv.vade
+			karsiodemetarihi: ({ hv }) => hv.vade, isaretlibedel: ({ hv }) => hv.bedel
 		})
 	}
 	uygunluk2UnionBilgiListeDuzenle(e) { if (this.class.uygunmu) { this.uygunluk2UnionBilgiListeDuzenleDevam(e) } }
@@ -130,7 +149,8 @@ class Hareketci extends CObject {
 		this.uniDuzenle(_e = { ...e, uni, sqlEmpty: `''` }); return uni
 	}
 	uniDuzenle(e) {
-		let {uygunluk2UnionBilgiListe} = this, {varsayilanHV: defHV, zorunluAttrSet} = this.class;
+		let {uygunluk2UnionBilgiListe, attrSet} = this, {varsayilanHV: defHV, zorunluAttrSet} = this.class;
+		if ($.isEmptyObject(attrSet)) { attrSet = null }
 		let {uygunluk} = this, uygunlukVarmi = uygunluk.bosDegilmi, {uni} = e;
 		let sender = this, hareketci = this; $.extend(e, { uygunluk, zorunluAttrSet });
 		for (let [selectorStr, unionBilgiListe] of Object.entries(uygunluk2UnionBilgiListe)) {
@@ -143,9 +163,11 @@ class Hareketci extends CObject {
 				let {sent} = uniBilgi; if (!sent) { continue }
 				let {hv} = uniBilgi, _e = { ...e, sent, hv }; if (hv) {
 					sent = _e.sent = sent.deepCopy(); for (let alias in { ...zorunluAttrSet, ...defHV, ...hv }) {
+						if (attrSet && !attrSet[alias]) { continue }
 						let deger = hv[alias] || defHV[alias];
 						if (isFunction(deger)) { deger = deger?.call(this, { ...e, sender, hareketci, uniBilgi, key: alias, sent, hv, defHV }) }
-						deger = deger ?? 'NULL'; let saha = deger; if (alias) { saha += ` ${alias}` }
+						deger = deger ?? 'NULL';
+						let saha = deger; if (alias) { saha += ` ${alias}` }
 						sent.add(saha)
 					}
 				}
@@ -168,7 +190,7 @@ class Hareketci extends CObject {
 		let {alias: sahaAlias} = saha; if (!attrSet || attrSet[sahaAlias]) { sent.add(saha) }
 		attr2Deger[sahaAlias] = saha.deger; return this
 	}
-	withAttrs(...items) { this.attrSet = items.flat(); return this }
+	withAttrs(...items) { this.attrSet = asSet(items.flat()); return this }
 	setWhereDuzenleyiciler(value) { this.whereYapi = value; return this }
 	addWhereDuzenleyici(key, value) { key = key ?? newGUID(); this.whereYapi[key] = value; return this }
 	clearWhereDuzenleyici() { this.whereYapi = {}; return this }

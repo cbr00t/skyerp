@@ -1,6 +1,12 @@
 class BankaTeminatMektupHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kod() { return 'teminatMektup' } static get aciklama() { return 'Teminat Mektubu' }
 	static get uygunmu() { return app?.params?.bankaGenel?.kullanim?.teminatMektubu }
+	static mstYapiDuzenle({ result }) {
+		super.mstYapiDuzenle(...arguments);
+		result.set('banhesapkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
+			sent.fromIliski(`banbizhesap ${mstAlias}`, `${kodClause} = ${mstAlias}.kod`).add(`${mstAlias}.aciklama ${mstAdiAlias}`))
+	}
     /* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
         super.hareketTipSecim_kaListeDuzenle(...arguments); kaListe.push(

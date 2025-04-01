@@ -1,9 +1,15 @@
-class KrediTaksitOrtakHareketci extends Hareketci {
+class KrediTaksitHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kod() { return 'krediTaksit' } static get aciklama() { return 'Kredi Taksit' }
 	static getBuGelecekClause(tarihClause) {
 		const sqlNull = 'NULL'; if (!tarihClause || tarihClause?.toUpperCase() == sqlNull) { return sqlNull }
 		const cariYil = app?.params?.zorunlu?.cariYil || today().yil;
 		return `(case when ${tarihClause} <= ${cariYil} then 'B' else 'G' end)`
+	}
+	static mstYapiDuzenle({ result }) {
+		super.mstYapiDuzenle(...arguments);
+		result.set('banhesapkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
+			sent.fromIliski(`banbizhesap ${mstAlias}`, `${kodClause} = ${mstAlias}.kod`).add(`${mstAlias}.aciklama ${mstAdiAlias}`))
 	}
     /* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
     static hareketTipSecim_kaListeDuzenle(e) {
@@ -15,8 +21,8 @@ class KrediTaksitOrtakHareketci extends Hareketci {
     }
     /** Varsayılan değer atamaları (host vars) – temel sınıfa eklemeler.
 		Hareketci.varsayilanHVDuzenle değerleri aynen alınır, sadece eksikler eklenir */
-    static varsayilanHVDuzenle(e) {
-        super.varsayilanHVDuzenle(e); const {hv, sqlNull, sqlEmpty, sqlZero} = e;
+    static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
+        super.varsayilanHVDuzenle(...arguments);
 		/* (vade, takipno, refkod, refadi) için gerekli default hv değerleri Hareketci.varsayilanHVDuzenle seviyesinde zaten mevcut */
 		/*for (const key of ['vade', 'takipno', 'refkod', 'refadi']) { hv[key] = sqlNull }*/
 		/* yeni talimat: { (ozelisaret: '') değerleri (ozelisaret = 'fis.ozelisaret') olmalı.

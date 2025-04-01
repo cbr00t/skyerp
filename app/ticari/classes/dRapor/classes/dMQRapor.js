@@ -8,10 +8,12 @@ class DMQRapor extends DMQSayacliKA {
 	get grupListe() { return Object.keys(this.grup || {}) } set grupListe(value) { return this.grup = asSet(value || []) }
 	get icerikListe() { return Object.keys(this.icerik || {}) } set icerikListe(value) { return this.icerik = asSet(value || []) }
 	get secilenVarmi() { return !!(Object.keys(this.grup).length || Object.keys(this.icerik).length) }
+	get yatayAnaliz() { return this.kullanim?.yatayAnaliz } set yatayAnaliz(value) { return (this.kullanim = this.kullanim ?? {}).yatayAnaliz = value }
 	constructor(e) {
 		e = e || {}; super(e); const {isCopy} = e, {user, encUser} = config.session; this.rapor = e.rapor?.main ?? e.rapor
 		$.extend(this, {
-			user: e.userkod ?? user, encUser: e.encuser ?? e.encUser ?? encUser, grup: e.grupListe ?? e.grup, icerik: e.icerikListe ?? e.icerik,
+			user: e.userkod ?? user, encUser: e.encuser ?? e.encUser ?? encUser,
+			grup: e.grupListe ?? e.grup ?? {}, icerik: e.icerikListe ?? e.icerik ?? {},
 			ozetMax: e.ozetMax ?? 5, kullanim: asSet(e.kullanim) ?? {}
 		});
 		if (!isCopy) {
@@ -22,8 +24,9 @@ class DMQRapor extends DMQSayacliKA {
 		}
 	}
 	static getRaporKod(e) {
-		e = e ?? {}; let kod = typeof e == 'object'
-			? (e.raporKod ?? e.raporkod ?? e.raporTip ?? e.raportip ?? e.kod ?? e.tip ?? e.rapor?.kod ?? e.class?.raporClass?.kod ?? e.rapor?.class?.kod ?? e.class?.kod) : e;
+		e = e ?? {}; let kod = typeof e == 'object' ? 
+			(e.raporKod ?? e.raporkod ?? e.raporTip ?? e.raportip ?? e.kod ?? e.tip ??
+			e.rapor?.kod ?? e.class?.raporClass?.kod ?? e.rapor?.class?.kod ?? e.class?.kod) : e;
 		return kod || null
 	}
 	static getDefault(e) {
@@ -177,5 +180,17 @@ class DMQRapor extends DMQSayacliKA {
 			ozetMax: rec.ilkxsayi, kullanim
 		})
 	}
+	addGrup(...liste) { return this.addSaha('grup', ...liste) }
+	addIcerik(...liste) { return this.addSaha('icerik', ...liste) }
+	addSaha(selector, ...liste) {
+		let target = this[selector]; for (let kod of liste) {
+			if ($.isArray(kod)) { this.addSaha(selector, ...kod); continue }
+			if (kod) { target[kod] = true }
+		}
+		return this
+	}
+	ozetMax(value) { this.ozetMax = value; return this }
+	setYatayAnaliz(value) { this.yatayAnaliz = value; return this }
 	reset(e) { $.extend(this, new this.class()); return this }
+	resetSahalar(e) { $.extend(this, { grup: {}, icerik: {} }); return this }
 }

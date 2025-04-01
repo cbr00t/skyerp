@@ -152,7 +152,7 @@ class DRapor_Hareketci_KrediTaksit extends DRapor_Hareketci_BankaOrtak {
 	static get kod() { return 'KRTAKSIT' } static get aciklama() { return 'Kredi Kartı Taksit' }
 }
 class DRapor_Hareketci_KrediTaksit_Main extends DRapor_Hareketci_BankaOrtak_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return KrediTaksitOrtakHareketci }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return KrediTaksitHareketci }
 	static get raporClass() { return DRapor_Hareketci_KrediTaksit }
 }
 class DRapor_Hareketci_Akreditif extends DRapor_Hareketci_BankaOrtak {

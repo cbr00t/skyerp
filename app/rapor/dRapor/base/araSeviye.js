@@ -94,7 +94,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		super.tabloYapiDuzenle_son(e); const {result} = e; this.tabloYapiDuzenle_son_ozel?.(e);
 		result.addToplam(new TabloYapiItem().setKA('KAYITSAYISI', 'Kayıt Sayısı').addColDef(new GridKolon({ belirtec: 'kayitsayisi', text: 'Kayıt Sayısı', genislikCh: 10, filterType: 'numberinput', aggregates: ['sum'] }).tipNumerik()))
 	}
-	loadServerData_queryDuzenle_tekil(e) { e = e ?? {}; this.loadServerData_queryDuzenle(e); this.loadServerData_queryDuzenle_son(e) }
+	loadServerData_queryDuzenle_tekil(e) {e = e ?? {}; this.loadServerData_queryDuzenle(e); this.loadServerData_queryDuzenle_son(e) }
 	loadServerData_queryDuzenle(e) {
 		let alias = e.alias = e.alias ?? 'fis'; const {secimler, raporTanim, tabloYapi} = this, {yatayAnaliz} = raporTanim.kullanim, {stm} = e;
 		let {attrSet: _attrSet} = e, attrSet = e.attrSet = raporTanim._ozelAttrSet = { ..._attrSet };
@@ -117,15 +117,19 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	loadServerData_queryDuzenle_son(e) {
 		this.loadServerData_queryDuzenle_son_ilk_ozel?.(e); let {alias, stm, attrSet} = e, {secimler, tabloYapi} = this;
 		let dvKodSet = asSet(this.dvKodListe), gecerliDvKodSet = {}, dvKodVarmi = false;
-		for (const key in attrSet) { const dvKod = key.split('_').slice(-1)[0]; if (dvKodSet[dvKod]) { gecerliDvKodSet[dvKod] = dvKodVarmi = true } }
+		for (let key in attrSet) {
+			const dvKod = key.split('_').slice(-1)[0];
+			if (dvKodSet[dvKod]) { gecerliDvKodSet[dvKod] = dvKodVarmi = true }
+		}
 		for (const sent of stm.getSentListe()) {
 			for (const dvKod in gecerliDvKodSet) {
-				const kurAlias = `kur${dvKod}`;
+				let kurAlias = `kur${dvKod}`;
 				sent.leftJoin({ alias, from: `ORTAK..ydvkur ${kurAlias}`, on: [`${alias}.tarih = ${kurAlias}.tarih`, `${kurAlias}.kod = '${dvKod}'`] })
 			}
 			sent.sahalar.add(`COUNT(*) kayitsayisi`)
 		}
-		let tbWhere = secimler?.getTBWhereClause(e); for (const {where: wh, sahalar} of stm.getSentListe()) { if (tbWhere?.liste?.length) { wh.birlestir(tbWhere) } }
+		let tbWhere = secimler?.getTBWhereClause(e);
+		for (const {where: wh, sahalar} of stm.getSentListe()) { if (tbWhere?.liste?.length) { wh.birlestir(tbWhere) } }
 		/*for (const sent of stm.getSentListe()) { sent.gereksizTablolariSil({ disinda: [alias] }) }*/
 		this.loadServerData_queryDuzenle_son_son_ozel?.(e)
 	}
@@ -135,7 +139,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		if (konsolideCikti) {
 			let asilUni = stm.sent = stm.sent.asUnionAll();
 			for (let {sahalar} of asilUni.getSentListe()) {
-				if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db)) { sahalar.add(`${`[ <span class=royalblue>${config.session.dbName}</span> ]`.sqlServerDegeri() ?? '- Aktif VT -'} ${alias_db}`) } }
+				if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db)) {
+					sahalar.add(`${`[ <span class=royalblue>${config.session.dbName}</span> ]`.sqlServerDegeri() ?? '- Aktif VT -'} ${alias_db}`) }
+			}
 			for (let db of ekDBListe ?? []) {
 				let uni = asilUni.deepCopy(); if (!uni.liste.length) { continue }
 				for (let sent of uni.getSentListe()) {
@@ -155,7 +161,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		for (let sent of stm.getSentListe()) { sent.groupByOlustur().havingOlustur() }
 		if (stm.sent.unionmu) { stm = e.stm = stm.asToplamStm() }
 		let {orderBy} = stm; for (const kod in attrSet) {
-			let {orderBySaha} = grup[kod] ?? {}; if (orderBySaha) { orderBy.add(orderBySaha) } }
+			let {orderBySaha} = grup[kod] ?? {};
+			if (orderBySaha) { orderBy.add(orderBySaha) }
+		}
 		this.loadServerData_queryDuzenle_genelSon_son_ozel?.(e)
 	}
 	loadServerData_recsDuzenle(e) { return super.loadServerData_recsDuzenle(e) }

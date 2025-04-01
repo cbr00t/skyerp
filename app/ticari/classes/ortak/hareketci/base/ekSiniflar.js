@@ -40,3 +40,29 @@ class Hareketci_UniBilgi extends CObject {
 	sentDuzenleIslemi(value) { this.sentDuzenleyici = value; return this }
 	hvDuzenleIslemi(value) { this.hvDuzenleyici = value; return this }
 }
+class Hareketci_MstYapi extends CObject {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get tableAlias() { return 'mst' } static get aliasVeNokta() { return [this.tableAlias, ''].join('.') }
+	constructor(e) {
+		e = e ?? {}; super(e);
+		$.extend(this, { hvAlias: e.hvAlias, hvAdiAlias: e.hvAdiAlias, duzenleyici: e.duzenleyici })
+	}
+	sentDuzenle(e) {  /* e: { sent, wh } */
+		e = e ?? {}; let {kod, hvAlias} = this, mstAdiAlias = 'mstadi', {tableAlias: mstAlias, aliasVeNokta: mstAliasVeNokta} = this.class;
+		if (e.where && !e.wh) { e.wh = e.where; delete e.where }
+		let args = { ...e, kod, hvAlias, mstAlias, mstAliasVeNokta, mstAdiAlias }; this.duzenleyici?.call(this, args);
+		let {sent} = args; $.extend(e, { sent, wh: sent?.where });
+		return this
+	}
+	set(e, _duzenleyici) {
+		e = typeof e == 'object' ? e : { hvAlias: e, duzenleyici: _duzenleyici };
+		for (let key of ['hvAlias', 'duzenleyici']) {
+			let value = e[key];
+			if (value !== undefined) { this[key] = e[key] }
+		}
+		return this
+	}
+	setHVAlias(value) { this.hvAlias = value; return this }
+	setHVAdiAlias(value) { this.hvAdiAlias = value; return this }
+	setDuzenleyici(handler) { this.duzenleyici = handler; return this }
+}
