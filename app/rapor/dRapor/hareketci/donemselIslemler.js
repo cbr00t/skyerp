@@ -47,7 +47,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 			throw { isError: true, errorText: `Seçimlerden <b>Dönem</b> seçilmeli veya <b>Tarih Aralık</b> belirtilmelidir` } }
 		let tBasiClause = tBasi.sqlServerDegeri(), tSonuClause = tSonu.sqlServerDegeri();
 		/*let belirtecler = Object.keys(attrSet).map(kod => grupVeToplam[kod]?.colDefs?.[0]?.belirtec).filter(x => !!x);*/
-		let sabitBelirtecler = ['dvkod', 'tarih', 'bedel', 'ba'];
+		let sabitBelirtecler = ['tarih', 'ba', 'bedel', 'dvbedel', 'dvkod'];
 		let harListe = []; for (let cls of harClasses) {
 			let {mstYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
 			let belirtecler = [...sabitBelirtecler, mstKodAlias, mstAdiAlias].filter(x => !!x);
@@ -57,9 +57,9 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 			let {kod, aciklama, oncelik, mstYapi} = har.class, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
 			let harUni = har.uniOlustur(); for (let harSent of harUni.getSentListe()) {
 				if (!harSent) { continue } let {where: wh, sahalar, alias2Deger} = harSent;
-				let {tarih: tarihClause, ba: baClause, bedel: bedelClause, dvkod: dvKodClause} = alias2Deger;
-				bedelClause = bedelClause.sumOlmaksizin(); wh.add(`${tarihClause} <= ${tSonuClause}`);
+				let {tarih: tarihClause, ba: baClause, bedel: tlBedelClause, dvbedel: dvBedelClause, dvkod: dvKodClause} = alias2Deger;
 				dvKodClause = dvKodClause || sqlEmpty;
+				let bedelClause = `(case when ${dvKodClause} = '' OR ${dvKodClause} = 'TL' then ${tlBedelClause.sumOlmaksizin()} else ${dvBedelClause.sumOlmaksizin()} end)`;
 				let kodClause = alias2Deger[mstKodAlias], adiClause = alias2Deger[mstAdiAlias];
 				/* if (mstAdiAlias) { debugger } */
 				sahalar.liste = [];
@@ -79,6 +79,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 					`SUM(case when ${tarihClause} >= ${tBasiClause} AND ${baClause} = 'B' then ${bedelClause} else 0 end) borc`,
 					`SUM(case when ${tarihClause} >= ${tBasiClause} AND ${baClause} = 'A' then ${bedelClause} else 0 end) alacak`
 				)
+				wh.add(`${tarihClause} <= ${tSonuClause}`); 
 				harSent.groupByOlustur().gereksizTablolariSil();
 				uni.add(harSent)
 			}

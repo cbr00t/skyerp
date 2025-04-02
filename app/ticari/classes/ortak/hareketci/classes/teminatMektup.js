@@ -17,7 +17,7 @@ class BankaTeminatMektupHareketci extends Hareketci {
    /** Varsayılan değer atamaları (hostVars) */
     static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
         super.varsayilanHVDuzenle(...arguments); $.extend(hv, {
-            detaciklama: sqlEmpty, anaislemadi: ({ hv }) => hv.islemadi,
+            detaciklama: sqlEmpty, anaislemadi: ({ hv }) => hv.islemadi, dvbedel: sqlZero,
             aciklama: ({ hv }) => {
                 const withCoalesce = (clause) => `COALESCE(${clause}, '')`, {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv;
                 return fisAciklama && detAciklama
