@@ -13,7 +13,7 @@ class CSHareketci extends Hareketci {
 		return result
 	}
 	static ortakHVYapilarDuzenle({ result }) {
-		let sqlEmpty = `''`; $.extend(result, {
+		let {sqlEmpty} = Hareketci_UniBilgi.ortakArgs; $.extend(result, {
 			isaretlibedel: ({ hv }) => hv.bedel,
 			belgeOrtak: () => ({
 				belsayac: 'bel.kaysayac', belgeyil: 'bel.belgeyil', bankakod: 'bel.bankakod',
@@ -70,10 +70,8 @@ class CSHareketci extends Hareketci {
 							.fromIliski('csilkhar bel', 'har.ilksayac = bel.kaysayac')
 							.pcsPortfoy2DigerBagla();
 						let {where: wh} = sent; wh.fisSilindiEkle();
-						wh.inDizi(['AC', 'AS'], 'fis.belgetipi').add(
-							`fis.fistipi = '3S'`, `fis.iade = ''`,
-							'bel.belgesonharseq = har.belgeharseq', 'bel.vade < getdate()'
-						)
+						wh.inDizi(['AC', 'AS'], 'fis.belgetipi').degerAta('3S', 'fis.fistipi')
+							.add(`fis.iade = ''`, 'bel.belgesonharseq = har.belgeharseq', 'bel.vade < getdate()')
 					}).hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
 						let refHV = cikismi ? portfoyAnalizDict : this.getOrtakHV('sahis3IsiBittiGirisIcinPortfoyVeAnalizTipi', { portfoyAnalizDict });
 						$.extend(hv, {

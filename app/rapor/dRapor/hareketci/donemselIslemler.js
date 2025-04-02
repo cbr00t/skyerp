@@ -16,33 +16,38 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 	get dip() { return this.ekBilgi?.dip } set dip(value) { let ekBilgi = this.ekBilgi = this.ekBilgi ?? {}; ekBilgi.dip = value }
 	onGridInit(e) { super.onGridInit(e); this.ekBilgi = {} }
 	tabloYapiDuzenle({ result }) {
-		super.tabloYapiDuzenle(...arguments);
+		// super.tabloYapiDuzenle(...arguments);
 		result.addKAPrefix('hartip', 'mst')
-			.addGrupBasit_numerik('ONCELIK', 'Öncelik', 'oncelik')
-			.addGrupBasit('HARTIP', 'Ana Bilgi', 'hartip')
-			.addGrupBasit('HARTIPKOD', 'Ana Bilgi', 'hartipkod')
-			.addGrupBasit('HARTIPADI', 'Ana Bilgi', 'hartipadi')
-			.addGrupBasit('MST', '', 'mst', 'Alt Bilgi')
-			.addToplamBasit_bedel('DEVIR', 'Devir', 'devir')
-			.addToplamBasit_bedel('BORC', 'Borç', 'borc')
-			.addToplamBasit_bedel('ALACAK', 'Alacak', 'alacak')
-			.addToplamBasit_bedel('BAKIYE', 'Bakiye', 'bakiye', null, null, ({ item }) =>
-				item.setFormul(['DEVIR', 'BORC', 'ALACAK'], ({ rec }) => roundToBedelFra(rec.devir + rec.borc - rec.alacak)))
+			.addGrupBasit_numerik('ONCELIK', 'Öncelik', 'oncelik', null, null, null, false)
+			.addGrupBasit('GRUP', 'Ana Bilgi', 'grup', null, null, ({ item }) => {
+				item.setFormul(['HARTIPADI', 'DVKOD'], ({ rec }) =>
+					`${rec.hartipadi} (<span class=royalblue>${rec.dvkod || 'TL'}</span>)`)
+			}, false)
+			.addGrupBasit('HARTIPADI', '', 'hartipadi', null, null, null, false)
+			.addGrupBasit('MST', 'Alt Bilgi', 'mst', null, null, null, false)
+			.addToplamBasit_bedel('DEVIR', 'Devir', 'devir', null, null, null, false)
+			.addToplamBasit_bedel('BORC', 'Borç', 'borc', null, null, null, false)
+			.addToplamBasit_bedel('ALACAK', 'Alacak', 'alacak', null, null, null, false)
+			.addToplamBasit_bedel('BAKIYE', 'Bakiye', 'bakiye', null, null, ({ item }) => {
+				item.setFormul(['DEVIR', 'BORC', 'ALACAK'], ({ rec }) =>
+					roundToBedelFra(rec.devir + rec.borc - rec.alacak))
+			}, false)
 	}
 	sabitRaporTanimDuzenle({ result }) {
 		super.sabitRaporTanimDuzenle(...arguments);
 		result.resetSahalar()
-			.addGrup('HARTIPADI')
+			.addGrup('GRUP')
 			.addIcerik('MST', 'DEVIR', 'BORC', 'ALACAK', 'BAKIYE')
 	}
 	loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); let {stm, donemBS} = e, {grupVeToplam} = this.tabloYapi;
+		super.loadServerData_queryDuzenle(e);
+		let {stm, donemBS} = e, {grupVeToplam} = this.tabloYapi, {sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
 		let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => !!cls.donemselIslemlerIcinUygunmu);
-		let {basi: tBasi, sonu: tSonu} = donemBS;
-		if (!(tBasi && tSonu)) { throw { isError: true, errorText: `Seçimlerden <b>Dönem</b> seçilmeli veya <b>Tarih Aralık</b> belirtilmelidir` } }
+		let {basi: tBasi, sonu: tSonu} = donemBS; if (!(tBasi && tSonu)) {
+			throw { isError: true, errorText: `Seçimlerden <b>Dönem</b> seçilmeli veya <b>Tarih Aralık</b> belirtilmelidir` } }
 		let tBasiClause = tBasi.sqlServerDegeri(), tSonuClause = tSonu.sqlServerDegeri();
 		/*let belirtecler = Object.keys(attrSet).map(kod => grupVeToplam[kod]?.colDefs?.[0]?.belirtec).filter(x => !!x);*/
-		let sabitBelirtecler = ['tarih', 'bedel', 'ba'];
+		let sabitBelirtecler = ['dvkod', 'tarih', 'bedel', 'ba'];
 		let harListe = []; for (let cls of harClasses) {
 			let {mstYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
 			let belirtecler = [...sabitBelirtecler, mstKodAlias, mstAdiAlias].filter(x => !!x);
@@ -52,14 +57,14 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 			let {kod, aciklama, oncelik, mstYapi} = har.class, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
 			let harUni = har.uniOlustur(); for (let harSent of harUni.getSentListe()) {
 				if (!harSent) { continue } let {where: wh, sahalar, alias2Deger} = harSent;
-				let {tarih: tarihClause, ba: baClause, bedel: bedelClause} = alias2Deger;
+				let {tarih: tarihClause, ba: baClause, bedel: bedelClause, dvkod: dvKodClause} = alias2Deger;
 				bedelClause = bedelClause.sumOlmaksizin(); wh.add(`${tarihClause} <= ${tSonuClause}`);
+				dvKodClause = dvKodClause || sqlEmpty;
 				let kodClause = alias2Deger[mstKodAlias], adiClause = alias2Deger[mstAdiAlias];
 				/* if (mstAdiAlias) { debugger } */
 				sahalar.liste = [];
 				if (adiClause) { sahalar.add(`${adiClause} mstadi`) }
 				else { mstYapi.sentDuzenle({ sent: harSent, wh, kodClause }) }
-				
 				/*   DEBUG  
 				if (!harSent.alias2Deger.mstadi) {
 					console.info(har, Object.keys(har.attrSet), harSent, harSent.getQueryYapi());
@@ -67,9 +72,9 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 					debugger
 				}
 				*/
-				
 				sahalar.add(
-					/* mstadi, */ `${kodClause} mstkod`, `'${kod}' hartipkod`, `${oncelik} oncelik`, `'${aciklama}' hartipadi`, `'(<b class=gray>${kod}</b> ${aciklama}' hartip`,
+					/* mstadi, */ `${kodClause} mstkod`, `'${kod}' hartipkod`, `${oncelik} oncelik`,
+					`${dvKodClause} dvkod`, `'${aciklama}' hartipadi`, `'(<b class=gray>${kod}</b> ${aciklama}' hartip`,
 					`SUM(case when ${tarihClause} < ${tBasiClause} then (case when ${baClause} = 'B' then ${bedelClause} else 0 - ${bedelClause} end) else 0 end) devir`,
 					`SUM(case when ${tarihClause} >= ${tBasiClause} AND ${baClause} = 'B' then ${bedelClause} else 0 end) borc`,
 					`SUM(case when ${tarihClause} >= ${tBasiClause} AND ${baClause} = 'A' then ${bedelClause} else 0 end) alacak`
@@ -80,11 +85,14 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		}
 		/* console.table(uni.siraliSahalar) */
 		stm = e.stm = uni.asToplamStm();
-		stm.orderBy.add('oncelik', 'hartipkod', 'mstkod')
+		stm.orderBy.add('oncelik', 'hartipkod', 'dvkod', 'mstkod')
 	}
 	loadServerData_recsDuzenle({ recs }) {
 		super.loadServerData_recsDuzenle(...arguments)
-		/* let bakiye = 0; for (let rec of recs) { } */
+		/*for (let rec of recs) {
+			let {hartipadi, dvkod} = rec;
+			rec.grup = `${hartipadi} (<span class=royalblue>${dvkod}</span>)`
+		}*/
 	}
 	async detaylariOlustur({ event: evt }) {
 		let {row: rec} = evt.args, {hartipkod: harTip, mstkod: kod, level} = rec ?? {}, harSinif = Hareketci.kod2Sinif[harTip];

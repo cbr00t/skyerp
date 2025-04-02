@@ -21,28 +21,32 @@ class TabloYapi extends CObject {
 		}
 		return this
 	}
-	addGrupBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici) {
-		return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici)
+	addGrupBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha) {
+		return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha)
 	}
-	addGrupBasit_numerik(kod, text, belirtec, mfSinif, genislikCh, duzenleyici) {
+	addGrupBasit_numerik(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha) {
 		let _duzenleyici = duzenleyici; duzenleyici = e => { e.colDef.tipNumerik(); _duzenleyici?.call(this, e) };
-		return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici)
+		return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha)
 	}
-	addToplamBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, fra) {
+	addToplamBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, fra, orderBySaha) {
 		let _duzenleyici = duzenleyici; duzenleyici = e => { e.colDef.tipDecimal(fra); _duzenleyici?.call(this, e) };
-		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici)
+		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha)
 	}
-	addToplamBasit_fiyat(kod, text, belirtec, mfSinif, genislikCh, duzenleyici) {
+	addToplamBasit_fiyat(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha) {
 		let _duzenleyici = duzenleyici; duzenleyici = e => { e.colDef.tipDecimal_fiyat(); _duzenleyici?.call(this, e) };
-		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici)
+		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha)
 	}
-	addToplamBasit_bedel(kod, text, belirtec, mfSinif, genislikCh, duzenleyici) {
+	addToplamBasit_bedel(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha) {
 		let _duzenleyici = duzenleyici; duzenleyici = e => { e.colDef.tipDecimal_bedel(); _duzenleyici?.call(this, e) };
-		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici)
+		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha)
 	}
-	addItemBasit(selector, kod, text, belirtec, mfSinif, genislikCh, duzenleyici) {
+	addItemBasit(selector, kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha) {
 		let colDef = new GridKolon({ belirtec, text, maxWidth: genislikCh ?? 600, filterType: 'checkedlist' });
 		let item = new TabloYapiItem({ mfSinif }).setKA(kod, text);
+		if (orderBySaha != null) {
+			if (orderBySaha === false) { orderBySaha = null }
+			item.setOrderBy(orderBySaha)
+		}
 		let _e = { tabloYapi: this, item, selector, kod, text, belirtec, mfSinif, genislikCh, colDef };
 		duzenleyici?.call(this, _e); colDef = _e.colDef; item.addColDef(colDef);
 		return this[selector](item)

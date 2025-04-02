@@ -59,12 +59,12 @@ class CSIslemler extends CObject {
 			portfoy: {
 				giris: (aCSTekilIslem) => (
 					aCSTekilIslem.portfoyTipi == null ? null :
-						['portfoyTipi', 'portfoyKod', 'portfoyAdi', 'portfoyDvKod']
+						['portfoyTipi', 'portfoyKod', 'dvKod', 'refDvKod']
 							.map(key => aCSTekilIslem[key]).join(this.delim)
 				),
 				cikis: (aCSTekilIslem, sadeceGercekOlanmi) => (
 					sadeceGercekOlanmi && !aCSTekilIslem.refBilgiPortoymu ? null :
-						['refPortfoyTipi', 'refPortfoyKod', 'refPortfoyAdi', 'refPortfoyDvKod']
+						['refPortfoyTipi', 'refPortfoyKod', 'refPortfoyAdi', 'refDvKod']
 							.map(key => aCSTekilIslem[key]).join(this.delim)
 				)
 			}
@@ -143,11 +143,11 @@ class CSIslemler extends CObject {
 		return result
 	}
 	getWhenler_portfoy({ tipVeIadeClause, anah2Tipler }) {
-		let {delim} = this.class, result = {};
+		let {sqlEmpty} = Hareketci_UniBilgi.ortakArgs, {delim} = this.class, result = {};
 		for (let [anah, tipler] of Object.entries(anah2Tipler)) {
 			let tokens = anah.split(delim), [portfTip, kodClause, adiClause, dvKodClause] = tokens;
 			let inStr = new MQInClause({ liste: tipler, saha: tipVeIadeClause }).toString();
-			let getWhenClause = value => ` when ${inStr} then ${MQSQLOrtak.sqlServerDegeri(value)}`;
+			let getWhenClause = value => ` when ${inStr} then ${value || sqlEmpty}`;
 			let donusum = { kod: kodClause, adi: adiClause, doviz: dvKodClause }; for (let [key, value] of Object.entries(donusum)) {
 				if (value != null) { (result[key] = result[key] ?? []).push(getWhenClause(value)) } }
 		}

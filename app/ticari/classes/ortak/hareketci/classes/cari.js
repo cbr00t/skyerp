@@ -140,7 +140,9 @@ class CariHareketci extends Hareketci {
 			serbestMeslek: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent; sent.fisHareket('finansfis', 'finanshar')
-						.fis2IslBagla_leftJoin().har2KatDetayBagla().fis2KasaBagla().fis2CariBagla().fis2PlasiyerBagla().har2AltHesapBagla().har2HizmetBagla()
+						.fis2IslBagla_leftJoin().har2KatDetayBagla().fis2KasaBagla()
+						.fis2CariBagla({ mustSaha: 'fisticmustkod' })
+						.fis2PlasiyerBagla().har2AltHesapBagla().har2HizmetBagla()
 					wh.fisSilindiEkle().add(`fis.fistipi = 'SM'`)
 				}).hvDuzenleIslemi(({ hv }) => {
 					let fisNoxClause = `(case when har.belgeno=0 then fis.fisnox else har.belgenox end)`, vadeSql = `coalesce(har.vade, har.belgetarih, fis.fisvade, fis.tarih)`;
