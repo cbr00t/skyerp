@@ -109,6 +109,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 				wh.degerAta(kod, hv[mstAlias]); if (hv.dvkod) { wh.degerAta(dvKod, dvKodClause(hv)) }
 			});
 		let uni = har.uniOlustur(), orderBy = ['_oncelik', '_hartipkod', 'tarih DESC', 'fisnox DESC', 'islemadi'];
+		for (let sent of uni.getSentListe()) { sent.groupByOlustur() }
 		let stm = new MQStm({ sent: uni, orderBy }), recs;
 		try { recs = await app.sqlExecSelect(stm) }
 		catch (ex) { hConfirm(getErrorText(ex), 'Detay Bilgi Yükleme Sorunu'); throw ex }
@@ -166,7 +167,7 @@ class DRapor_DonemselIslemler_Detaylar extends DRapor_DonemselIslemler_DetaylarV
 		super.tabloKolonlariDuzenle(...arguments); liste.push(...[
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12, cellClassName }).tipTarih(),
 			new GridKolon({ belirtec: 'fisnox', text: 'Fiş No', cellClassName, genislikCh: 13 }).tipNumerik(),
-			new GridKolon({ belirtec: 'islemadi', text: 'İşlem', cellClassName, genislikCh: 40 }),
+			new GridKolon({ belirtec: 'islemadi', text: 'İşlem', cellClassName, genislikCh: 40, filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'ref', text: 'Referans', cellClassName }),
 			new GridKolon({ belirtec: 'borc', text: 'Borç', genislikCh: 17, cellClassName }).tipDecimal_bedel(),
 			new GridKolon({ belirtec: 'alacak', text: 'Alacak', genislikCh: 17, cellClassName }).tipDecimal_bedel(),
