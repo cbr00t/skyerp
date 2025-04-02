@@ -40,7 +40,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 			.addIcerik('MST', 'DEVIR', 'BORC', 'ALACAK', 'BAKIYE')
 	}
 	loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e);
+		super.loadServerData_queryDuzenle(e); let {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu;
 		let {stm, donemBS} = e, {grupVeToplam} = this.tabloYapi, {sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
 		let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => !!cls.donemselIslemlerIcinUygunmu);
 		let {basi: tBasi, sonu: tSonu} = donemBS; if (!(tBasi && tSonu)) {
@@ -48,6 +48,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		let tBasiClause = tBasi.sqlServerDegeri(), tSonuClause = tSonu.sqlServerDegeri();
 		/*let belirtecler = Object.keys(attrSet).map(kod => grupVeToplam[kod]?.colDefs?.[0]?.belirtec).filter(x => !!x);*/
 		let sabitBelirtecler = ['tarih', 'ba', 'bedel', 'dvbedel', 'dvkod'];
+		if (ozelIsaretVarmi) { sabitBelirtecler.push('ozelisaret') }
 		let harListe = []; for (let cls of harClasses) {
 			let {mstYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
 			let belirtecler = [...sabitBelirtecler, mstKodAlias, mstAdiAlias].filter(x => !!x);
@@ -57,7 +58,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 			let {kod, aciklama, oncelik, mstYapi} = har.class, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
 			let harUni = har.uniOlustur(); for (let harSent of harUni.getSentListe()) {
 				if (!harSent) { continue } let {where: wh, sahalar, alias2Deger} = harSent;
-				let {tarih: tarihClause, ba: baClause, bedel: tlBedelClause, dvbedel: dvBedelClause, dvkod: dvKodClause} = alias2Deger;
+				let {ozelisaret: ozelIsaretClause, tarih: tarihClause, ba: baClause, bedel: tlBedelClause, dvbedel: dvBedelClause, dvkod: dvKodClause} = alias2Deger;
 				dvKodClause = dvKodClause || sqlEmpty;
 				let bedelClause = `(case when COALESCE(${dvKodClause}, '') IN ('', 'TL', 'TRY', 'TRL') then ${tlBedelClause.sumOlmaksizin()} else ${dvBedelClause.sumOlmaksizin()} end)`;
 				let kodClause = alias2Deger[mstKodAlias], adiClause = alias2Deger[mstAdiAlias];
@@ -74,12 +75,13 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 				*/
 				sahalar.add(
 					/* mstadi, */ `${kodClause} mstkod`, `'${kod}' hartipkod`, `${oncelik} oncelik`,
-					`${dvKodClause} dvkod`, `'${aciklama}' hartipadi`, `'(<b class=gray>${kod}</b> ${aciklama}' hartip`,
+					`${dvKodClause} dvkod`, `'${aciklama}' hartipadi`, /*`'(<b class=gray>${kod}</b>) ${aciklama}' hartip`,*/
 					`SUM(case when ${tarihClause} < ${tBasiClause} then (case when ${baClause} = 'B' then ${bedelClause} else 0 - ${bedelClause} end) else 0 end) devir`,
 					`SUM(case when ${tarihClause} >= ${tBasiClause} AND ${baClause} = 'B' then ${bedelClause} else 0 end) borc`,
 					`SUM(case when ${tarihClause} >= ${tBasiClause} AND ${baClause} = 'A' then ${bedelClause} else 0 end) alacak`
 				)
 				wh.add(`${tarihClause} <= ${tSonuClause}`); 
+				if (ozelIsaretVarmi && ozelIsaretClause) { wh.add(`${ozelIsaretClause} = ''`) }
 				harSent.groupByOlustur().gereksizTablolariSil();
 				uni.add(harSent)
 			}
@@ -96,23 +98,24 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		}*/
 	}
 	async detaylariOlustur({ event: evt }) {
-		let {row: rec} = evt.args, {hartipkod: harTip, mstkod: kod, dvkod: dvKod, level} = rec ?? {}, harSinif = Hareketci.kod2Sinif[harTip];
-		if (!(level && harSinif && kod != null)) { return false }
-		let {id2AltRapor} = this.rapor, belirtecler = ['mstkod', 'mstadi', 'tarih', 'fisnox', 'islemadi', 'refkod', 'refadi', 'ba', 'bedel', 'dvbedel', 'dvkod'];
+		let {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu, {row: rec} = evt.args, {hartipkod: harTip, mstkod: kod, dvkod: dvKod, level, ozelisaret: ozelIsaret} = rec ?? {};
+		let harSinif = Hareketci.kod2Sinif[harTip]; if (!(level && harSinif && kod != null)) { return false }
+		let {id2AltRapor} = this.rapor, sabitBelirtecler = ['mstkod', 'mstadi', 'tarih', 'fisnox', 'islemadi', 'refkod', 'refadi', 'ba', 'bedel', 'dvbedel', 'dvkod'];
+		if (ozelIsaretVarmi) { sabitBelirtecler.push('ozelisaret') }
 		let {oncelik, kod: tipKod, mstYapi} = harSinif, {hvAlias: mstAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
 		mstAlias = mstAlias || 'mstkod'; mstAdiAlias = mstAdiAlias || 'mstadi';
-		let dvKodClause = hv => `(case when COALESCE(${hv.dvkod || ''}, '') IN ('', 'TL', 'TRY', 'TRL') then '' else ${hv.dvkod || ''} end)`;
-		let har = new harSinif()
-			.withAttrs(belirtecler)
+		let dvKodClausecu = hv => `(case when COALESCE(${hv.dvkod || ''}, '') IN ('', 'TL', 'TRY', 'TRL') then '' else ${hv.dvkod || ''} end)`;
+		let ozelIsaretClausecu = ozelIsaret ? hv => hv.ozelisaret : null;
+		let har = new harSinif().withAttrs(sabitBelirtecler)
 			.addEkDuzenleyici('mst', ({ hv, sent, where: wh }) => {
 				sent.sahalar.add(`${oncelik} _oncelik`, `'${tipKod}' _hartipkod`);
-				wh.degerAta(kod, hv[mstAlias]); if (hv.dvkod) { wh.degerAta(dvKod, dvKodClause(hv)) }
+				wh.degerAta(kod, hv[mstAlias]);
+				if (hv.dvkod) { wh.degerAta(dvKod, dvKodClausecu(hv)) }
+				if (ozelIsaretVarmi && ozelIsaretClausecu) { wh.add(`${ozelIsaretClausecu(hv)} = ''`) }
 			});
 		let uni = har.uniOlustur(), orderBy = ['_oncelik', '_hartipkod', 'tarih DESC', 'fisnox DESC', 'islemadi'];
 		for (let sent of uni.getSentListe()) { sent.groupByOlustur() }
-		let stm = new MQStm({ sent: uni, orderBy }), recs;
-		try { recs = await app.sqlExecSelect(stm) }
-		catch (ex) { hConfirm(getErrorText(ex), 'Detay Bilgi Yükleme Sorunu'); throw ex }
+		let stm = new MQStm({ sent: uni, orderBy }), recs = await app.sqlExecSelect(stm)
 		let tlDvKodSet = asSet(['', 'TL', 'TRY', 'TRL']);
 		recs = recs ?? []; let bakiye = 0;
 		for (let rec of recs) {
@@ -131,7 +134,9 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 	}
 	ozetBilgiRecsOlustur(e) { }
 	async gridSatirTiklandi(e) {
-		if (await this.detaylariOlustur(...arguments)) {
+		let result; try { result = await this.detaylariOlustur(...arguments) }
+		catch (ex) { hConfirm(getErrorText(ex), 'Detay Bilgi Yükleme Sorunu'); throw ex }
+		if (result) {
 			let {id2AltRapor} = this.rapor; for (let altRapor of Object.values(id2AltRapor)) {
 				if (altRapor != this) { altRapor.tazele?.() } }
 		}

@@ -19,6 +19,7 @@ class MQZorunluParam extends MQTicariParamBase {
 		form = paramci.addGrup({ etiket: 'Ondalık' }).altAlta().addFormWithParent(); form.addNumber('fiyatFra', 'Fiyat').setValue(2); form.addNumber('dvFiyatFra', 'Dv.Fiyat').setValue(2);
 			form.addNumber('bedelFra', 'Bedel').setValue(2); form.addNumber('dvBedelFra', 'Dv.Bedel').setValue(2); form.addNumber('dvKurFra', 'Dv.Kur').setValue(6)
 	}
+	paramSetValues({ rec }) { super.paramSetValues(...arguments) }
 }
 class MQOrtakMailParam extends MQOrtakParamBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }

@@ -64,7 +64,7 @@ class SecimBasSon extends Secim {
 			let input = txtSonu.find('input'); if (!input?.length) { input = txtSonu } /*input?.focus()*/
 		});
 		if (mfSinif) {
-			let focusWidget; const {kodSaha} = mfSinif, dropDown = false, autoBind = false, noAutoWidth = true, maxRow = app.params.ortak.autoComplete_maxRow * 4;
+			let focusWidget; const {kodSaha} = mfSinif, dropDown = false, autoBind = false, noAutoWidth = true, maxRow = (app.params?.ortak?.autoComplete_maxRow || 50) * 4;
 			const modelKullanOlustur = e => {
 				const {editor, selector, etiket} = e, value = this.getConvertedUIValue(this[selector]), {parentPart, builder} = this, layout = editor;
 				const placeHolder = etiket, kod = value
