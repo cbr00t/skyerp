@@ -98,7 +98,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 				sent.sahalar.add(`${oncelik} _oncelik`, `'${tipKod}' _hartipkod`);
 				wh.degerAta(kod, hv[mstAlias])
 			});
-		let uni = har.uniOlustur(), orderBy = ['_oncelik', '_hartipkod'];
+		let uni = har.uniOlustur(), orderBy = ['_oncelik', '_hartipkod', 'tarih DESC', 'fisnox DESC', 'islemadi'];
 		let stm = new MQStm({ sent: uni, orderBy }), recs;
 		try { recs = await app.sqlExecSelect(stm) }
 		catch (ex) { hConfirm(getErrorText(ex), 'Detay Bilgi Yükleme Sorunu'); throw ex }
@@ -109,7 +109,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 			if (ba == 'A') { bedel = -bedel } let alacakmi = bedel < 0;
 			bakiye += bedel; bedel = Math.abs(bedel);
 			$.extend(rec, {
-				aciklama: islemadi || '', ref,
+				islemadi: islemadi || '', ref,
 				borc: alacakmi ? 0 : bedel, alacak: alacakmi ? bedel : 0, bakiye
 			})
 		}
@@ -128,7 +128,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 class DRapor_DonemselIslemler_DetaylarVeDip extends DAltRapor_Grid {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_DonemselIslemler }
 	get height() { return `calc(var(--full) - ${this.rapor.id2AltRapor.main.height})` }
-	gridArgsDuzenle({ args }) { $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: false, showGroupsHeader: false, rowsHeight: 30, columnsHeight: 25 }) }
+	gridArgsDuzenle({ args }) { $.extend(args, { showStatusBar: false, showAggregates: true, showGroupAggregates: false, showGroupsHeader: true, rowsHeight: 30, columnsHeight: 25 }) }
 	tazele(e) { super.tazele(e) }
 	tabloKolonlariDuzenle(e) { super.tabloKolonlariDuzenle(e) }
 	loadServerData(e) {
@@ -153,8 +153,8 @@ class DRapor_DonemselIslemler_Detaylar extends DRapor_DonemselIslemler_DetaylarV
 		};
 		super.tabloKolonlariDuzenle(...arguments); liste.push(...[
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12, cellClassName }).tipTarih(),
-			new GridKolon({ belirtec: 'fisnox', text: 'Fiş No', cellClassName, genislikCh: 13 }).alignRight(),
-			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', cellClassName, genislikCh: 25 }),
+			new GridKolon({ belirtec: 'fisnox', text: 'Fiş No', cellClassName, genislikCh: 13 }).tipNumerik(),
+			new GridKolon({ belirtec: 'islemadi', text: 'İşlem', cellClassName, genislikCh: 40 }),
 			new GridKolon({ belirtec: 'ref', text: 'Referans', cellClassName }),
 			new GridKolon({ belirtec: 'borc', text: 'Borç', genislikCh: 17, cellClassName }).tipDecimal_bedel(),
 			new GridKolon({ belirtec: 'alacak', text: 'Alacak', genislikCh: 17, cellClassName }).tipDecimal_bedel(),

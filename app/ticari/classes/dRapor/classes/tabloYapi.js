@@ -41,7 +41,7 @@ class TabloYapi extends CObject {
 		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici)
 	}
 	addItemBasit(selector, kod, text, belirtec, mfSinif, genislikCh, duzenleyici) {
-		let colDef = new GridKolon({ belirtec, text, maxWidth: genislikCh ?? 450, filterType: 'checkedlist' });
+		let colDef = new GridKolon({ belirtec, text, maxWidth: genislikCh ?? 600, filterType: 'checkedlist' });
 		let item = new TabloYapiItem({ mfSinif }).setKA(kod, text);
 		let _e = { tabloYapi: this, item, selector, kod, text, belirtec, mfSinif, genislikCh, colDef };
 		duzenleyici?.call(this, _e); colDef = _e.colDef; item.addColDef(colDef);
