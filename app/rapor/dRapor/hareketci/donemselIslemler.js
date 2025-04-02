@@ -1,6 +1,6 @@
 class DRapor_DonemselIslemler extends DRapor_Donemsel {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get uygunmu() { return !!config.dev } static get araSeviyemi() { return false }
+	static get uygunmu() { return true } static get araSeviyemi() { return false }
 	static get sabitmi() { return true } static get vioAdim() { return null }
 	static get kategoriKod() { return DRapor_Hareketci.kategoriKod } static get kategoriAdi() { return DRapor_Hareketci.kategoriAdi }
 	static get kod() { return 'DONISL' } static get aciklama() { return 'Dönemsel İşlemler' }
@@ -11,7 +11,7 @@ class DRapor_DonemselIslemler extends DRapor_Donemsel {
 }
 class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_DonemselIslemler }
-	get width() { return 'var(--full)' } get height() { return `calc(var(--full) - 300px)` }
+	get width() { return 'var(--full)' } get height() { return `calc(var(--full) - 328px)` }
 	get detaylar() { return this.ekBilgi?.detaylar } set detaylar(value) { let ekBilgi = this.ekBilgi = this.ekBilgi ?? {}; ekBilgi.detaylar = value }
 	get dip() { return this.ekBilgi?.dip } set dip(value) { let ekBilgi = this.ekBilgi = this.ekBilgi ?? {}; ekBilgi.dip = value }
 	onGridInit(e) { super.onGridInit(e); this.ekBilgi = {} }
@@ -59,7 +59,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 				if (!harSent) { continue } let {where: wh, sahalar, alias2Deger} = harSent;
 				let {tarih: tarihClause, ba: baClause, bedel: tlBedelClause, dvbedel: dvBedelClause, dvkod: dvKodClause} = alias2Deger;
 				dvKodClause = dvKodClause || sqlEmpty;
-				let bedelClause = `(case when ${dvKodClause} = '' OR ${dvKodClause} = 'TL' then ${tlBedelClause.sumOlmaksizin()} else ${dvBedelClause.sumOlmaksizin()} end)`;
+				let bedelClause = `(case when COALESCE(${dvKodClause}, '') IN ('', 'TL', 'TRY', 'TRL') then ${tlBedelClause.sumOlmaksizin()} else ${dvBedelClause.sumOlmaksizin()} end)`;
 				let kodClause = alias2Deger[mstKodAlias], adiClause = alias2Deger[mstAdiAlias];
 				/* if (mstAdiAlias) { debugger } */
 				sahalar.liste = [];
@@ -96,29 +96,32 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		}*/
 	}
 	async detaylariOlustur({ event: evt }) {
-		let {row: rec} = evt.args, {hartipkod: harTip, mstkod: kod, level} = rec ?? {}, harSinif = Hareketci.kod2Sinif[harTip];
+		let {row: rec} = evt.args, {hartipkod: harTip, mstkod: kod, dvkod: dvKod, level} = rec ?? {}, harSinif = Hareketci.kod2Sinif[harTip];
 		if (!(level && harSinif && kod != null)) { return false }
-		let {id2AltRapor} = this.rapor, belirtecler = ['mstkod', 'mstadi', 'tarih', 'fisnox', 'islemadi', 'refkod', 'refadi', 'ba', 'bedel'];
+		let {id2AltRapor} = this.rapor, belirtecler = ['mstkod', 'mstadi', 'tarih', 'fisnox', 'islemadi', 'refkod', 'refadi', 'ba', 'bedel', 'dvbedel', 'dvkod'];
 		let {oncelik, kod: tipKod, mstYapi} = harSinif, {hvAlias: mstAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
 		mstAlias = mstAlias || 'mstkod'; mstAdiAlias = mstAdiAlias || 'mstadi';
+		let dvKodClause = hv => `(case when COALESCE(${hv.dvkod || ''}, '') IN ('', 'TL', 'TRY', 'TRL') then '' else ${hv.dvkod || ''} end)`;
 		let har = new harSinif()
 			.withAttrs(belirtecler)
 			.addEkDuzenleyici('mst', ({ hv, sent, where: wh }) => {
 				sent.sahalar.add(`${oncelik} _oncelik`, `'${tipKod}' _hartipkod`);
-				wh.degerAta(kod, hv[mstAlias])
+				wh.degerAta(kod, hv[mstAlias]); if (hv.dvkod) { wh.degerAta(dvKod, dvKodClause(hv)) }
 			});
 		let uni = har.uniOlustur(), orderBy = ['_oncelik', '_hartipkod', 'tarih DESC', 'fisnox DESC', 'islemadi'];
 		let stm = new MQStm({ sent: uni, orderBy }), recs;
 		try { recs = await app.sqlExecSelect(stm) }
 		catch (ex) { hConfirm(getErrorText(ex), 'Detay Bilgi Yükleme Sorunu'); throw ex }
+		let tlDvKodSet = asSet(['', 'TL', 'TRY', 'TRL']);
 		recs = recs ?? []; let bakiye = 0;
 		for (let rec of recs) {
-			let {ba, bedel, islemadi, refkod, refadi} = rec;
-			let ref = refkod ? `(<b class=gray>${refkod ?? ''})  ${refadi || ''}</b>` : '';
+			let {ba, dvkod: dvKod, bedel: tlBedel, dvbedel: dvBedel, islemadi: islemAdi, refkod: refKod, refadi: refAdi} = rec;
+			let ref = refKod ? `(<b class=gray>${refKod ?? ''})  ${refAdi || ''}</b>` : '';
+			let dovizmi = !tlDvKodSet[dvKod || ''], bedel = rec[dovizmi ? 'dvbedel' : 'bedel'];
 			if (ba == 'A') { bedel = -bedel } let alacakmi = bedel < 0;
 			bakiye += bedel; bedel = Math.abs(bedel);
 			$.extend(rec, {
-				islemadi: islemadi || '', ref,
+				islemadi: islemAdi || '', ref,
 				borc: alacakmi ? 0 : bedel, alacak: alacakmi ? bedel : 0, bakiye
 			})
 		}
