@@ -3,7 +3,8 @@ class DRapor_AraSeviye extends DGrupluPanelRapor {
 }
 class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get araSeviyemi() { return this == DRapor_AraSeviye_Main } get tazeleYapilirmi() { return true }
+	static get araSeviyemi() { return this == DRapor_AraSeviye_Main } get tazeleYapilirmi() { return true } static get konsolideKullanilirmi() { return true }
+	static get konsolideVarmi() { return this.konsolideKullanilirmi && app.params?.dRapor?.konsolideCikti }
 	static get dvKodListe() {
 		let result = this._dvKodListe;
 		if (result === undefined) { result = this._dvKodListe = ['USD', 'EUR'] }
@@ -36,7 +37,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				DP: { kod: 'DEPO', belirtec: 'yer', text: 'Yer' }
 			}
 		}
-		if (!app.params?.dRapor?.konsolideCikti) { result = { ...result }; delete result.DB }
+		if (!this.konsolideVarmi) { result = { ...result }; delete result.DB }
 		return result
 	}
 	secimlerDuzenle(e) {
@@ -87,7 +88,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	loadServerData_ilk(e) { } loadServerData_son(e) { }
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); const {result} = e;
-		if (app.params?.dRapor?.konsolideCikti) { result.addGrup(new TabloYapiItem().setKA('DB', 'Veritabanı').addColDef(new GridKolon({ belirtec: 'db', text: 'Veritabanı', genislikCh: 18 }))) }
+		if (this.konsolideVarmi) { result.addGrup(new TabloYapiItem().setKA('DB', 'Veritabanı').addColDef(new GridKolon({ belirtec: 'db', text: 'Veritabanı', genislikCh: 18 }))) }
 		this.tabloYapiDuzenle_ozel?.(e)
 	}
 	tabloYapiDuzenle_son(e) {
@@ -134,9 +135,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		this.loadServerData_queryDuzenle_son_son_ozel?.(e)
 	}
 	loadServerData_queryDuzenle_tekilSonrasi(e) {
-		this.loadServerData_queryDuzenle_tekilSonrasi_ilk_ozel?.(e);
-		let {konsolideCikti, ekDBListe} = app.params?.dRapor ?? {}, {stm, attrSet} = e, alias_db = 'db';
-		if (konsolideCikti) {
+		this.loadServerData_queryDuzenle_tekilSonrasi_ilk_ozel?.(e); let {konsolideVarmi} = this;
+		let {ekDBListe} = app.params?.dRapor ?? {}, {stm, attrSet} = e, alias_db = 'db';
+		if (konsolideVarmi) {
 			let asilUni = stm.sent = stm.sent.asUnionAll();
 			for (let {sahalar} of asilUni.getSentListe()) {
 				if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db)) {

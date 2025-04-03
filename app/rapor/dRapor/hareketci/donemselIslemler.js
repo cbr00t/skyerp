@@ -1,7 +1,7 @@
 class DRapor_DonemselIslemler extends DRapor_Donemsel {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return true } static get araSeviyemi() { return false }
-	static get sabitmi() { return true } static get vioAdim() { return null }
+	static get sabitmi() { return true } static get vioAdim() { return null } static get konsolideKullanilirmi() { return false }
 	static get kategoriKod() { return DRapor_Hareketci.kategoriKod } static get kategoriAdi() { return DRapor_Hareketci.kategoriAdi }
 	static get kod() { return 'DONISL' } static get aciklama() { return 'Dönemsel İşlemler' }
 	altRaporlarDuzenle(e) {

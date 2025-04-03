@@ -57,3 +57,12 @@ class IPCApp extends TicariApp {
 		}
     }
 }
+
+/*
+	ÖRNEK KULLANIM  [console]:
+		let key = 'x', data = `alert('A'); e.callback(await MQCari.loadServerData())`;
+		await app.wsWebSocket_writeAll({ key, data })
+		let result; try { result = await app.wsWebSocket_readAny({ key }) } catch (ex) { console.error(getErrorText(ex)) }
+		result = result?.result;
+		console.table(result)
+*/

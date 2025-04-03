@@ -55,7 +55,10 @@ class SkyRaporApp extends TicariApp {
 		let items = [], items_raporlar = [], {kategoriKod2Adi} = this.class;
 		for (const [kategoriKod, _items] of Object.entries(kategoriKod2MenuItems)) {
 			let kategoriAdi = kategoriKod2Adi[kategoriKod] ?? kategoriKod, target = items_raporlar;
-			if (kategoriAdi) { const parentItem = new FRMenuCascade({ mne: kategoriKod, text: kategoriAdi }); target.push(parentItem); target = parentItem.items }
+			if (kategoriAdi) {
+				let parentItem = new FRMenuCascade({ mne: kategoriKod, text: kategoriAdi });
+				target.push(parentItem); target = parentItem.items
+			}
 			target.push(..._items)
 		} items.push(...items_raporlar.filter(x => !!x))
 		if (isAdmin) { items.push(new FRMenuChoice({ mne: 'DRAPOR_PARAM', text: 'Rapor Parametreleri', block: e => this.params.dRapor.tanimla(e) })) }

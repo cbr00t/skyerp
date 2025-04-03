@@ -1,2 +1,2 @@
-<?php require_once("$webRoot/app/ticari/include.php") ?>
+<?php require_once("$webRoot_ticari/include.php"); require_once("$webRoot_rapor/include.php") ?>
 <!--<script src="./aiPart.js?<?=$appVersion?>"></script>-->
