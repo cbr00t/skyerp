@@ -22,7 +22,7 @@ class BankaTeminatMektupHareketci extends Hareketci {
                 const withCoalesce = (clause) => `COALESCE(${clause}, '')`, {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv;
                 return fisAciklama && detAciklama
                     ? `${withCoalesce(fisAciklama)} + ' ' + ${withCoalesce(detAciklama)}`
-                    : withCoalesce(detAciklama || fisAciklama)
+                    : withCoalesce(detAciklama || fisAciklama || sqlEmpty)
             }
         })
     }

@@ -41,7 +41,7 @@ class PsKrOrtakHareketci extends Hareketci {
                 const {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv;
                 return fisAciklama && detAciklama 
                     ? `${withCoalesce(fisAciklama)} + ' ' + ${withCoalesce(detAciklama)}` 
-                    : withCoalesce(detAciklama || fisAciklama)
+                    : withCoalesce(detAciklama || fisAciklama || sqlEmpty)
             }
 		})
     }

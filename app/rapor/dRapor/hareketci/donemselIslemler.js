@@ -15,6 +15,10 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 	get detaylar() { return this.ekBilgi?.detaylar } set detaylar(value) { let ekBilgi = this.ekBilgi = this.ekBilgi ?? {}; ekBilgi.detaylar = value }
 	get dip() { return this.ekBilgi?.dip } set dip(value) { let ekBilgi = this.ekBilgi = this.ekBilgi ?? {}; ekBilgi.dip = value }
 	onGridInit(e) { super.onGridInit(e); this.ekBilgi = {} }
+	secimlerDuzenle({ secimler: sec }) {
+		super.secimlerDuzenle(...arguments)
+		/*sec.secimTopluEkle({ logTS: new SecimDateTime({ etiket: 'Log Zamanı' }) })*/
+	}
 	tabloYapiDuzenle({ result }) {
 		// super.tabloYapiDuzenle(...arguments);
 		result.addKAPrefix('hartip', 'mst')
@@ -35,19 +39,18 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 	}
 	sabitRaporTanimDuzenle({ result }) {
 		super.sabitRaporTanimDuzenle(...arguments);
-		result.resetSahalar()
-			.addGrup('GRUP')
+		result.resetSahalar().addGrup('GRUP')
 			.addIcerik('MST', 'DEVIR', 'BORC', 'ALACAK', 'BAKIYE')
 	}
 	loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); let {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu;
-		let {stm, donemBS} = e, {grupVeToplam} = this.tabloYapi, {sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
+		let {stm, secimler: sec, donemBS} = e, {grupVeToplam} = this.tabloYapi, {sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
 		let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => !!cls.donemselIslemlerIcinUygunmu);
 		let {basi: tBasi, sonu: tSonu} = donemBS; if (!(tBasi && tSonu)) {
 			throw { isError: true, errorText: `Seçimlerden <b>Dönem</b> seçilmeli veya <b>Tarih Aralık</b> belirtilmelidir` } }
 		let tBasiClause = tBasi.sqlServerDegeri(), tSonuClause = tSonu.sqlServerDegeri();
 		/*let belirtecler = Object.keys(attrSet).map(kod => grupVeToplam[kod]?.colDefs?.[0]?.belirtec).filter(x => !!x);*/
-		let sabitBelirtecler = ['tarih', 'ba', 'bedel', 'dvbedel', 'dvkod'];
+		let sabitBelirtecler = ['tarih', 'ba', 'bedel', 'dvbedel', 'dvkod' /*, 'logzamani'*/];
 		if (ozelIsaretVarmi) { sabitBelirtecler.push('ozelisaret') }
 		let harListe = []; for (let cls of harClasses) {
 			let {mstYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
@@ -57,7 +60,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		let uni = new MQUnionAll(); for (let har of harListe) {
 			let {kod, aciklama, oncelik, mstYapi} = har.class, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
 			let harUni = har.uniOlustur(); for (let harSent of harUni.getSentListe()) {
-				if (!harSent) { continue } let {where: wh, sahalar, alias2Deger} = harSent;
+				if (!harSent) { continue } let {from, where: wh, sahalar, alias2Deger} = harSent;
 				let {ozelisaret: ozelIsaretClause, tarih: tarihClause, ba: baClause, bedel: tlBedelClause, dvbedel: dvBedelClause, dvkod: dvKodClause} = alias2Deger;
 				dvKodClause = dvKodClause || sqlEmpty;
 				let bedelClause = `(case when COALESCE(${dvKodClause}, '') IN ('', 'TL', 'TRY', 'TRL') then ${tlBedelClause.sumOlmaksizin()} else ${dvBedelClause.sumOlmaksizin()} end)`;
@@ -82,6 +85,10 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 				)
 				wh.add(`${tarihClause} <= ${tSonuClause}`); 
 				if (ozelIsaretVarmi && ozelIsaretClause) { wh.add(`${ozelIsaretClause} = ''`) }
+				/*let fisAliasVarmi = !!from.liste.find(({ alias }) => alias == 'fis');
+				let logZamaniClause = fisAliasVarmi ? 'fis.logzamani' : sqlNull;
+				sahalar.add(`${logZamaniClause} logzamani`);
+				if (fisAliasVarmi) { wh.basiSonu(sec.logTS, logZamaniClause) }*/
 				harSent.groupByOlustur().gereksizTablolariSil();
 				uni.add(harSent)
 			}
@@ -98,9 +105,12 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		}*/
 	}
 	async detaylariOlustur({ event: evt }) {
-		let {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu, {row: rec} = evt.args, {hartipkod: harTip, mstkod: kod, dvkod: dvKod, level, ozelisaret: ozelIsaret} = rec ?? {};
+		let {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu, {id2AltRapor} = this.rapor, {row: rec} = evt.args;
+		let {hartipkod: harTip, mstkod: kod, dvkod: dvKod, level, ozelisaret: ozelIsaret} = rec ?? {};
 		let harSinif = Hareketci.kod2Sinif[harTip]; if (!(level && harSinif && kod != null)) { return false }
-		let {id2AltRapor} = this.rapor, sabitBelirtecler = ['mstkod', 'mstadi', 'tarih', 'fisnox', 'islemadi', 'refkod', 'refadi', 'ba', 'bedel', 'dvbedel', 'dvkod'];
+		let tlDvKodSet = asSet(['', 'TL', 'TRY', 'TRL']), sabitBelirtecler = [
+			'mstkod', 'mstadi', 'tarih', 'fisnox', 'islemadi', 'refkod', 'refadi', 'ba', 'bedel', 'dvbedel', 'dvkod', 'aciklama'
+		];
 		if (ozelIsaretVarmi) { sabitBelirtecler.push('ozelisaret') }
 		let {oncelik, kod: tipKod, mstYapi} = harSinif, {hvAlias: mstAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
 		mstAlias = mstAlias || 'mstkod'; mstAdiAlias = mstAdiAlias || 'mstadi';
@@ -115,8 +125,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 			});
 		let uni = har.uniOlustur(), orderBy = ['_oncelik', '_hartipkod', 'tarih DESC', 'fisnox DESC', 'islemadi'];
 		for (let sent of uni.getSentListe()) { sent.groupByOlustur() }
-		let stm = new MQStm({ sent: uni, orderBy }), recs = await app.sqlExecSelect(stm)
-		let tlDvKodSet = asSet(['', 'TL', 'TRY', 'TRL']);
+		let stm = new MQStm({ sent: uni, orderBy }), recs = await app.sqlExecSelect(stm);
 		recs = recs ?? []; let bakiye = 0;
 		for (let rec of recs) {
 			let {ba, dvkod: dvKod, bedel: tlBedel, dvbedel: dvBedel, islemadi: islemAdi, refkod: refKod, refadi: refAdi} = rec;
@@ -176,7 +185,8 @@ class DRapor_DonemselIslemler_Detaylar extends DRapor_DonemselIslemler_DetaylarV
 			new GridKolon({ belirtec: 'ref', text: 'Referans', cellClassName }),
 			new GridKolon({ belirtec: 'borc', text: 'Borç', genislikCh: 17, cellClassName }).tipDecimal_bedel(),
 			new GridKolon({ belirtec: 'alacak', text: 'Alacak', genislikCh: 17, cellClassName }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'bakiye', text: 'Bakiye', genislikCh: 17, cellClassName }).tipDecimal_bedel()
+			new GridKolon({ belirtec: 'bakiye', text: 'Bakiye', genislikCh: 17, cellClassName }).tipDecimal_bedel(),
+			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', cellClassName, genislikCh: 40 })
 		])
 	}
 }

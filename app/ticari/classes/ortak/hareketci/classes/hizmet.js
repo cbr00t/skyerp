@@ -52,7 +52,7 @@ class HizmetHareketci extends Hareketci {
                 const withCoalesce = (clause) => `COALESCE(${clause}, '')`, {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv;
                 return fisAciklama && detAciklama
                     ? `${withCoalesce(fisAciklama)} + ' ' + ${withCoalesce(detAciklama)}`
-                    : withCoalesce(detAciklama || fisAciklama || sqlNull)
+                    : withCoalesce(detAciklama || fisAciklama || sqlEmpty)
             }
         })
     }
