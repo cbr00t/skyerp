@@ -44,16 +44,17 @@ class IPCApp extends TicariApp {
         let ws = e.ws ?? this.ws, {data} = e; if (!data) { return }
         e = e ?? {}; $.extend(e, {
             ws, 
-            callback: data => ws.send(toJSONStr({ result: data }))
+            callback: result => ws.send(toJSONStr({ result }))
         });
+		let evalStr, result;
         try {
             /* Gelen mesajı `(e => { ... })` formatına dönüştürüp eval() et */
-            let evalStr = `(async e => { ${data} })`, result = await eval(evalStr);
+            evalStr = `(async e => { ${data} })`, result = await eval(evalStr);
             /* Eğer sonuç fonksiyon döndürüyorsa, tekrar çalıştır */
             if (isFunction(result) || result?.run) { result = await getFuncValue.call(this, result, e) }
         } catch (ex) {
 			e.callback({ isError: true, code: ex.code ?? ex.rc, errorText: getErrorText(ex) });
-			console.error("WebSocket eval() hatası:", ex)
+			console.error('WebSocket eval() hatası', ex, { evalStr, result })
 		}
     }
 }

@@ -183,7 +183,10 @@ class MQDetayli extends MQSayacli {
 		super.gridVeriYuklendi_detaylar(e); const {detaySiniflar} = this;
 		if (detaySiniflar) { for (const detaySinif of detaySiniflar) detaySinif.gridVeriYuklendi(e) }
 	}
-	getYazmaIcinDetaylar(e) { return this.detaylar }
+	getYazmaIcinDetaylar(e) {
+		let detSinif = this.class.detaySinifFor?.('') ?? this.class.detaySinif;
+		return this.detaylar.map(det => $.isPlainObject(det) ? new detSinif(det) : det)
+	}
 	async yukle(e) {
 		e = e || {}; let result = await this.baslikYukle(e); if (result === false) { return result }
 		await this.detaylariYukle(e); await this.detaylariYukleSonrasi(e); await this.yukleSonrasiIslemler(e); return true
@@ -271,8 +274,8 @@ class MQDetayli extends MQSayacli {
 		const {toplu, paramName_fisSayac} = e, {table} = this.class, hv = this.hostVars(e); toplu.add(new MQInsert({ table, hv }));
 		const keyHV = this.alternateKeyHostVars(e); e.keyHV = keyHV; let sayac = e.sayac = this.topluYazmaKomutlariniOlustur_baslikSayacBelirle(e);
 		const detHVArg = e.detHVArg = { fis: this.shallowCopy() }; detHVArg.fis.sayac = sayac ?? new MQSQLConst(paramName_fisSayac);
-		const detaylar = this.getYazmaIcinDetaylar(e), detTable2HVListe = e.detTable2HVListe = {};
-		for (const det of detaylar) {
+		let detaylar = this.getYazmaIcinDetaylar(e), detTable2HVListe = e.detTable2HVListe = {};
+		for (let det of detaylar) {
 			const hv = det.hostVars(detHVArg); if (!hv) { return false }
 			const detTable = det.class.getDetayTable(detHVArg), hvListe = detTable2HVListe[detTable] = detTable2HVListe[detTable] || [];
 			hvListe.push(hv)
