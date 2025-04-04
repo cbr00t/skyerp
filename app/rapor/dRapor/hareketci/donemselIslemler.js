@@ -29,7 +29,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 			}, false)
 			.addGrupBasit('HARTIPADI', '', 'hartipadi', null, null, null, false)
 			.addGrupBasit('MST', 'Alt Bilgi', 'mst', null, null, null, false)
-			.addGrupBasit('LOGTS', 'Log Zamanı', 'logTS', null, null, null, false)
+			/* .addGrupBasit('LOGTS', 'Log Zamanı', 'logTS', null, null, null, false) */
 			.addToplamBasit_bedel('DEVIR', 'Devir', 'devir', null, null, null, false)
 			.addToplamBasit_bedel('BORC', 'Borç', 'borc', null, null, null, false)
 			.addToplamBasit_bedel('ALACAK', 'Alacak', 'alacak', null, null, null, false)
@@ -89,6 +89,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 				let fisAliasVarmi = !!from.liste.find(({ alias }) => alias == 'fis');
 				let logZamaniClause = fisAliasVarmi ? 'fis.sonzamants' : sqlNull;
 				sahalar.add(`${logZamaniClause} logTS`);
+				this.donemBagla({ donemBS, tarihSaha: tarihClause, sent: harSent });
 				if (fisAliasVarmi) { wh.basiSonu(sec.logTS, logZamaniClause) }
 				harSent.groupByOlustur().gereksizTablolariSil();
 				uni.add(harSent)
@@ -132,7 +133,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 			let logZamaniClause = fisAliasVarmi ? 'fis.sonzamants' : sqlNull;
 			sahalar.add(`${logZamaniClause} logTS`);
 			if (fisAliasVarmi) { wh.basiSonu(sec.logTS, logZamaniClause) }
-			sent.groupByOlustur()
+			sent.groupByOlustur().gereksizTablolariSil();
 		}
 		let stm = new MQStm({ sent: uni, orderBy }), recs = await app.sqlExecSelect(stm);
 		recs = recs ?? []; let bakiye = 0;

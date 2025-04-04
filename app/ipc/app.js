@@ -66,4 +66,86 @@ class IPCApp extends TicariApp {
 		let result; try { result = await app.wsWebSocket_readAny({ key }) } catch (ex) { console.error(getErrorText(ex)) }
 		result = result?.result;
 		console.table(result)
+
+		
+		let key = 'skyERP-1';
+		{
+			let result; try { result = await app.wsBrowserIPC({ key }) } catch (ex) { console.error(getErrorText(ex)) }
+			result = result?.result ?? result;
+			console.table(result)
+		}
+		new $.Deferred(p => setTimeout(() => p.resolve(), 1000))
+		{
+			let {loginTipi, user, pass} = config.session, sessionStr = toJSONStr({ loginTipi, user, pass });
+		    let wsSQLStr = toJSONStr(app.wsSQL), data = `let {callback} = e;
+		    app.wsSQL = ${wsSQLStr};
+		    config.session = new Session(${sessionStr});
+		    let fis = new SatisFaturaFis({
+		        seri: 'TST', fisNo: 100001, mustKod: '12011003', detaylar: [
+		            { seq: 1, shKod: '42-695', miktar: 1 },
+		            { seq: 2, shKod: '42-609', miktar: 1 }
+		        ]
+		    });
+		    let result = await fis.yaz();
+			await callback({ result, session: config.session, wsSQL: app.wsSQL });
+			`;
+		    console.info('eval', data);
+			await app.wsWebSocket_write({ key, data })
+			let result; try { result = await app.wsWebSocket_read({ key }) } catch (ex) { console.error(getErrorText(ex)) }
+			result = result?.result;
+			console.table(result)
+		}
+
+		let key = 'skyERP-1';
+		{
+			let result; try { result = await app.wsBrowserIPC({ key }) } catch (ex) { console.error(getErrorText(ex)) }
+			result = result?.result ?? result;
+			console.table(result)
+		}
+		new $.Deferred(p => setTimeout(() => p.resolve(), 1000))
+		{
+			let {loginTipi, user, pass} = config.session, sessionStr = toJSONStr({ loginTipi, user, pass });
+		    let wsSQLStr = toJSONStr(app.wsSQL), data = `let {callback} = e;
+		    app.wsSQL = ${wsSQLStr};
+		    config.session = new Session(${sessionStr});
+		    await callback({ result: 'opened' });
+			await callback({ result: 'closing' });
+		    self.close()
+			`;
+		    console.info('eval', data);
+			await app.wsWebSocket_write({ key, data })
+		    for (let i = 0; i < 2; i++) {
+		        let result; try { result = await app.wsWebSocket_read({ key }) } catch (ex) { console.error(getErrorText(ex)) }
+		    	result = result?.result; console.table(result)
+		    }
+		}
+
+		let key = 'skyERP-1';
+		{
+			let result; try { result = await app.wsBrowserIPC({ key }) } catch (ex) { console.error(getErrorText(ex)) }
+			result = result?.result ?? result;
+			console.table(result)
+		}
+		new $.Deferred(p => setTimeout(() => p.resolve(), 1000))
+		{
+			let {loginTipi, user, pass} = config.session, sessionStr = toJSONStr({ loginTipi, user, pass });
+		    let wsSQLStr = toJSONStr(app.wsSQL), data = `let {callback} = e;
+		    app.wsSQL = ${wsSQLStr};
+		    config.session = new Session(${sessionStr});
+		    await callback({ result: 'opened' });
+		    await eConfirm('s.a');
+			await callback({ result: 'a.s' });
+		    await new $.Deferred(p => setTimeout(() => p.resolve(), 2000));
+		    await callback({ result: 'closing' });
+		    self.close()
+			`;
+		    console.info('eval', data);
+			await app.wsWebSocket_write({ key, data })
+		    for (let i = 0; i < 3; i++) {
+		        let result; try { result = await app.wsWebSocket_read({ key }) } catch (ex) { console.error(getErrorText(ex)) }
+		    	result = result?.result; console.table(result)
+		    }
+		}
+
+
 */
