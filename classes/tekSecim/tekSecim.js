@@ -19,7 +19,7 @@ class TekSecim extends CIO {
 	constructor(e) {
 		if (e != null && typeof e != 'object') { e = { char: e } } e = e || {}; super(e);
 		this.init(e); this.kaListeOlustur(e); const defaultChar = this.defaultChar = e.defaultChar ?? this.class.defaultChar;
-		const kaListe = this.kaListe ?? []; this.char = e.char ?? (defaultChar == null ? this.kaListe[0]?.char : defaultChar);
+		const kaListe = this.kaListe = e.kaListe ?? this.kaListe ?? []; this.char = e.char ?? (defaultChar == null ? kaListe[0]?.char : defaultChar);
 		if (!this._propInitFlag) { this.initProps() }
 	}
 	static pTanimDuzenle(e) {

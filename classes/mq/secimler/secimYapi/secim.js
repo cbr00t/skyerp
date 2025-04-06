@@ -34,6 +34,7 @@ class Secim extends CIO {
 		this.userData = e.userData;
 		this.isHidden = asBool(e.hidden); this.isDisabled = asBool(e.disabled);
 		this.etiket = e.etiket; this.grupKod = e.grupKod ?? e.grup?.kod ?? null;
+		this.placeHolder = e.placeHolder ?? e.placeholder ?? '';
 		let {mfSinif} = e; if (typeof mfSinif == 'string') mfSinif = getFunc.call(this, mfSinif, e); this.mfSinif = mfSinif
 		this.ozetBilgiValueGetter = e.ozetBilgiValueGetter;
 		return true

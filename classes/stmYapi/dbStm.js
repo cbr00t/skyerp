@@ -3,6 +3,7 @@ class MQStm extends MQDbCommand {
 	get unionSahaListe() { return this.sent.unionSahaListe } get unionAliasListe() { return this.sent.unionAliasListe }
 	get siraliSahaVeDegerler() { let result = []; for (let sent of this.getSentListe()) { result.push(sent.alias2Deger) }; return result }
 	get siraliSahalar() { return this.siraliSahaVeDegerler.map(dict => Object.keys(dict)) }
+	get debugListe() { return this.sent.liste.map(sent => ({ from: sent.from.toString(), sahalar: sent.sahalar.toString(), where: sent.where.liste.join(' ') })) }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, {
 			with: ($.isPlainObject(e.with) ? new MQWith(e.with) : e.with) || new MQWith(),

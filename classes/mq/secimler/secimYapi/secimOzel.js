@@ -99,16 +99,20 @@ class SecimTekilDate extends SecimOzel {
 	get ozetBilgiValue() { let {value} = this; if (value == null) { return value } return dateToString(value) }
 	uiSetValues(e) { super.uiSetValues(e); const {parent} = e; if (!parent.length) { return false } parent.find('.input').val(this.getConvertedUIValue(this.value)) }
 	buildHTMLElementStringInto(e) {
-		super.buildHTMLElementStringInto(e); e.target += `<div class="flex-row">`;
-		e.target += 	`<input class="veri input ozel" type="textbox" maxlength="20" value="${this.getConvertedUIValue(this.value) || '0'}"></input>`;
+		super.buildHTMLElementStringInto(e); let {placeHolder} = this;
+		e.target += `<div class="flex-row">`;
+		e.target += 	`<input class="veri input ozel" type="textbox" maxlength="20" placeholder="${placeHolder}" value="${this.getConvertedUIValue(this.value) || '0'}"></input>`;
 		if (this.hasTime) { e.target += `<input class="veri input-time time ozel" type="textbox" maxlength="8"></input>` }
 		e.target += `</div>`
 	}
 	initHTMLElements(e) {
 		super.initHTMLElements(e); const {parent} = e, input = parent.find('.input.ozel');
 		if (input?.length) {
-			const layout = input, {value, hasTime} = this; _e = $.extend({}, e, { args: { layout, value, timeLayout: hasTime ? parent.find('.input-time.ozel') : null } }); this.tarihPartArgsDuzenle(_e);
-			const part = e.part = this.part = new TarihUIPart(_e.args); part.change(e => this.value = e.value); part.run(); return part
+			let layout = input, {value, hasTime} = this;
+			let _e = $.extend({}, e, { args: { layout, value, timeLayout: hasTime ? parent.find('.input-time.ozel') : null } });
+			this.tarihPartArgsDuzenle(_e);
+			let part = e.part = this.part = new TarihUIPart(_e.args);
+			part.change(e => this.value = e.value); part.run(); return part
 		}
 	}
 	tarihPartArgsDuzenle(e) { }
@@ -211,19 +215,27 @@ class SecimTekSecim extends SecimOzel {
 		}
 	}
 	static initHTMLElements_birKismi(e) {
-		const {parent, mfSinif, autoBind, coklumu, getValue, setValue} = e, source = e.source ?? e.loadServerDataBlock ?? e.loadServerData, editor = parent.find('.ddList');
+		let {parent, mfSinif, autoBind, coklumu, getValue, setValue} = e, {placeHolder} = this;
+		let source = e.source ?? e.loadServerDataBlock ?? e.loadServerData, editor = parent.find('.ddList');
 		let focusWidget; const part = e.part = new ModelKullanPart({
 			layout: editor, dropDown: !coklumu, autoBind, coklumu, maxRow: e.maxRow, mfSinif, value: getFuncValue.call(this, getValue, e), /*placeHolder: this.etiket,*/
-			source, kodGosterilsinmi: !source, argsDuzenle: e => { /*$.extend(e.args, { itemHeight: 40, dropDownHeight: 410 })*/ }
+			placeHolder, source, kodGosterilsinmi: !source, argsDuzenle: e => { /*$.extend(e.args, { itemHeight: 40, dropDownHeight: 410 })*/ }
 		});
 		if (part.autoBind) { part.dataBindYapildiFlag = true }
 		editor.data('part', part); part.run(); const {widget} = part;
-		part.change(_e => { const value = _e.value ?? _e.kod, {item} = _e; if (value !== undefined) { getFuncValue.call(this, setValue, $.extend({}, e, _e)) } });
+		part.change(_e => {
+			let value = _e.value ?? _e.kod, {item} = _e;
+			if (value !== undefined) { getFuncValue.call(this, setValue, $.extend({}, e, _e)) }
+		});
 		widget.input.on('focus', evt => {
 			const {source} = widget; if (!part.dataBindYapildiFlag && source?.dataBind) { source.dataBind(); part.dataBindYapildiFlag = true }
 			if (focusWidget != widget) { setTimeout(() => evt.target.select(), 150); focusWidget = widget }
 		});
-		widget.input.on('keyup', evt => { const key = evt.key?.toLowerCase(); if (key == 'enter' || key == 'linefeed' || key == 'tab') { if (widget.isOpened()) widget.close() } })
+		widget.input.on('keyup', evt => {
+			let key = evt.key?.toLowerCase();
+			if (key == 'enter' || key == 'linefeed' || key == 'tab') {
+				if (widget.isOpened()) widget.close() }
+		})
 	}
 	autoBind() { this.autoBindFlag = true; return this } noAutoBind() { this.autoBindFlag = false; return this }
 }

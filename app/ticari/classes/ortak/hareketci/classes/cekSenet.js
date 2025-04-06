@@ -217,7 +217,8 @@ class CSHareketci extends Hareketci {
 							bizsubekod: 'fis.bizsubekod', fisnox: 'fis.fisnox', fissayac: 'fis.kaysayac', harsayac: 'har.kaysayac',
 							ilk: sqlEmpty, ba: 'har.ba', bedel: 'har.bedel', dvbedel: 'har.dvbedel', dvkur: 'fis.dvkur',
 							fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', islemadi: `'Genel Dekont'`,
-							...this.getOrtakHV('belgeOrtak'), ...this.getOrtakHV('fisOrtak')
+							...this.getOrtakHV('belgeOrtak'), ...this.getOrtakHV('fisOrtak'),
+							belgetipi: `(case fis.ozeltip when 'TC' then 'AC' when 'TS' then 'AS' when 'BC' then 'BC' when 'PT' then prt.cstip else '' end)`
 						});
 						for (let key in refDict) {
 							let value = ''; switch (key) {

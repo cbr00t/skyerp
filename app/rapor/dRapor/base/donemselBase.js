@@ -13,10 +13,9 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 			.addGrup(new TabloYapiItem().setKA('TARIH', 'Tarih').addColDef(new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 20, filterType: 'checkedlist' }).tipDate()))
 			.addGrup(new TabloYapiItem().setKA('SAAT', 'Saat').addColDef(new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 20, filterType: 'checkedlist' }).tipTime()))
 	}
-	async loadServerDataInternal(e) {
-		e = e ?? {}; let {secimler} = this;
-		e.donemBS = secimler.tarihBSVeyaCariDonem;
-		return await super.loadServerDataInternal(e)
+	loadServerData(e) {
+		e = e ?? {}; let {secimler} = this; e.donemBS = secimler.tarihBSVeyaCariDonem;
+		return super.loadServerData(e)
 	}
 	super_loadServerDataInternal(e) { super.loadServerDataInternal(e) }
 	superSuper_loadServerDataInternal(e) { super.super_loadServerDataInternal(e) }

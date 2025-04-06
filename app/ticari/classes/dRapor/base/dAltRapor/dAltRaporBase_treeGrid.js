@@ -3,7 +3,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	constructor(e) { e = e || {}; super(e) }
 	/*subFormBuilderDuzenle(e) { super.subFormBuilderDuzenle(e); const {rfb} = e; rfb.addCSS('no-overflow') }*/
 	onBuildEk(e) {
-		super.onBuildEk(e);  if (this.secimler == null) { this.secimler = this.newSecimler(e) }
+		super.onBuildEk(e); if (this.secimler == null) { this.secimler = this.newSecimler(e) }
 		const {parentBuilder, noAutoColumns} = this, {layout} = parentBuilder;
 		this.fbd_grid = parentBuilder.addForm('grid').setLayout(e => $(`<div class="${e.builder.id} part full-wh"/>`))
 			.onAfterRun(async e => {
@@ -192,6 +192,10 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	secimlerDuzenle(e) { super.secimlerDuzenle(e) } secimlerInitEvents(e) { super.secimlerInitEvents(e) }
 	tabloYapiDuzenle(e) { } tabloYapiDuzenle_son(e) { }
 	sabitRaporTanimDuzenle(e) { } sabitRaporTanimDuzenle_son(e) { }
+	onBuildEk({ builder: fbd }) {
+		super.onBuildEk(...arguments);
+		if (this.class.mainmi) { fbd.addCSS('_main') }
+	}
 	onGridInit(e) {
 		super.onGridInit(e); let rapor = this, {sabitmi} = this;
 		this.ozetBilgi = { colDefs: null, recs: null };
@@ -335,6 +339,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		rootBuilder.layout.find('.islemTuslari > div button#tabloTanimlari')[secilenVarmi ? 'removeClass' : 'addClass']('anim-tabloTanimlari-highlight');
 		if (!secilenVarmi) { if (!this._tabloTanimGosterildiFlag) { this.raporTanimIstendi(e) } return }
 	}
+	tazeleSonrasi(e) { }
 	async tazele(e) {
 		e = e ?? {}; try {
 			showProgress('Rapor oluşturuluyor...', null, true); await new $.Deferred(p => setTimeout(() => p.resolve(), 50)); window.progressManager?.setProgressMax(20);
@@ -414,7 +419,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			raporTanim.degistimi = false; await gridPart._promise_kaFix;
 			if (defUpdateOnly) { delete e.recs; await this.gridVeriYuklendi(e); await this.ozetBilgiRecsOlustur(e) } else { await super.tazele(e) }
 			window.progressManager?.progressStep(2); await this.tazeleDiger(e); window.progressManager?.progressStep(1);
-			setTimeout(() => window.progressManager?.progressEnd(), 5)
+			setTimeout(() => window.progressManager?.progressEnd(), 5);
+			this.tazeleSonrasi(e)
 		}
 		catch (ex) { hideProgress(); hConfirm(getErrorText(ex), this.class.aciklama); throw ex }
 		finally { setTimeout(() => hideProgress(), 300) }

@@ -1,7 +1,7 @@
 class DAltRapor_Chart extends DAltRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return null }
 	static get uygunmu() { return false } static get kod() { return 'chart' } static get aciklama() { return 'Grafik' }
-	get width() { return `calc(var(--full) - ${this.rapor.id2AltRapor.main.width})` } get height() { return '50%' }
+	get width() { return `calc(var(--full) - ${this.rapor.id2AltRapor.main.width} - 15px)` } get height() { return '50%' }
 	onBuildEk(e) {
 		super.onBuildEk(e); const {parentBuilder, noAutoColumns} = this, {layout} = parentBuilder;
 		const width = '99.8%', height = 'calc(var(--full) - 5px)';

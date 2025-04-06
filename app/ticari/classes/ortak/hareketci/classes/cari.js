@@ -29,7 +29,8 @@ class CariHareketci extends Hareketci {
 			havaleEFT: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent;
-					sent.fisHareket('hefis', 'hehar'); sent.har2CariBagla({ mustSaha: 'ticmustkod' })
+					sent.fisHareket('hefis', 'hehar')
+						.har2CariBagla({ mustSaha: 'ticmustkod' })
 						.fis2PlasiyerBagla().fis2BankaHesapBagla().har2AltHesapBagla();
 					wh.fisSilindiEkle().inDizi(['SH', 'SE', 'SS', 'GL', 'TP'], 'fis.fistipi')
 				}).hvDuzenleIslemi(({ hv }) => {

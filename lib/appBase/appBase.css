@@ -14,6 +14,7 @@ html, body {
 	position: relative !important; width: var(--full) !important; height: var(--full) !important
 }
 html { /* background: #efefef */ }
+/* .x { color: #96cd96 } */
 body { background: linear-gradient(300deg, #eae1d42b 15%, #d2d0e626 90%) !important }
 html, .jqx-widget, .jqx-widget div[role=row] > *,
 input, button, select, optgroup, textarea { font-family: SkyERP-Default, Segoe UI, Verdana, sans-serif !important; font-size: var(--base-fontSize) }

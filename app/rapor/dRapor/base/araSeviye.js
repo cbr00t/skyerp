@@ -1,16 +1,33 @@
 class DRapor_AraSeviye extends DGrupluPanelRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get altRaporClassPrefix() { return this.name }
-}
-class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get araSeviyemi() { return this == DRapor_AraSeviye_Main } get tazeleYapilirmi() { return true } static get konsolideKullanilirmi() { return true }
-	static get konsolideVarmi() { return this.konsolideKullanilirmi && app.params?.dRapor?.konsolideCikti }
-	static get dvKodListe() {
-		let result = this._dvKodListe;
-		if (result === undefined) { result = this._dvKodListe = ['USD', 'EUR'] }
+	get dvKodListe() {
+		let {_dvKodListe: result} = this;
+		if (result == null) { result = this._dvKodListe = Object.keys(this.dvKod2Rec ?? {}) }
 		return result
 	}
-	get dvKodListe() { return this.class.dvKodListe }
+	get dovizKAListe() {
+		let {_dovizKAListe: result} = this;
+		if (result == null) {
+			let recs = Object.values(this.dvKod2Rec ?? {});
+			result = this._dovizKAListe = recs.map(rec => new CKodVeAdi(rec))
+		}
+		return result
+	}
+	async ilkIslemler(e) { await super.ilkIslemler(e); await this.dovizListeBelirle(e) }
+	async dovizListeBelirle(e) {
+		let dvKod2Rec = this.dvKod2Rec = {}, recs = await MQDoviz.loadServerData();
+		for (let rec of recs) {
+			let {kod, aciklama} = rec; rec.aciklama = aciklama || kod;
+			dvKod2Rec[kod] = rec
+		}
+		return this
+	}
+}
+class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get mainmi() { return true }
+	static get araSeviyemi() { return this == DRapor_AraSeviye_Main } get tazeleYapilirmi() { return true } static get konsolideKullanilirmi() { return true }
+	static get konsolideVarmi() { return this.konsolideKullanilirmi && app.params?.dRapor?.konsolideCikti }
+	get dvKod2Rec() { return this.rapor.dvKod2Rec } get dovizKAListe() { return this.rapor.dovizKAListe } get dvKodListe() { return this.rapor.dvKodListe }
 	static get yatayTip2Bilgi() {
 		let result = this._yatayTip2Bilgi; if (result == null) {
 			result = this._yatayTip2Bilgi = {
@@ -117,17 +134,19 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	loadServerData_queryDuzenle_ek(e) { this.loadServerData_queryDuzenle_ek_ozel?.(e) }
 	loadServerData_queryDuzenle_son(e) {
 		this.loadServerData_queryDuzenle_son_ilk_ozel?.(e); let {alias, stm, attrSet} = e, {secimler, tabloYapi} = this;
-		let dvKodSet = asSet(this.dvKodListe), gecerliDvKodSet = {}, dvKodVarmi = false;
-		for (let key in attrSet) {
-			const dvKod = key.split('_').slice(-1)[0];
-			if (dvKodSet[dvKod]) { gecerliDvKodSet[dvKod] = dvKodVarmi = true }
-		}
-		for (const sent of stm.getSentListe()) {
-			for (const dvKod in gecerliDvKodSet) {
-				let kurAlias = `kur${dvKod}`;
-				sent.leftJoin({ alias, from: `ORTAK..ydvkur ${kurAlias}`, on: [`${alias}.tarih = ${kurAlias}.tarih`, `${kurAlias}.kod = '${dvKod}'`] })
+		if (alias) {
+			let {dvKod2Rec: dvKodSet} = this, gecerliDvKodSet = {}, dvKodVarmi = false;
+			for (let key in attrSet) {
+				const dvKod = key.split('_').slice(-1)[0];
+				if (dvKodSet[dvKod]) { gecerliDvKodSet[dvKod] = dvKodVarmi = true }
 			}
-			sent.sahalar.add(`COUNT(*) kayitsayisi`)
+			for (const sent of stm.getSentListe()) {
+				for (const dvKod in gecerliDvKodSet) {
+					let kurAlias = `kur${dvKod}`;
+					sent.leftJoin({ alias, from: `ORTAK..ydvkur ${kurAlias}`, on: [`${alias}.tarih = ${kurAlias}.tarih`, `${kurAlias}.kod = '${dvKod}'`] })
+				}
+				sent.sahalar.add(`COUNT(*) kayitsayisi`)
+			}
 		}
 		let tbWhere = secimler?.getTBWhereClause(e);
 		for (const {where: wh, sahalar} of stm.getSentListe()) { if (tbWhere?.liste?.length) { wh.birlestir(tbWhere) } }
@@ -364,5 +383,25 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return `SUM(case when ${getWhereClause('brm')} then ${getMiktarClause(`${harAliasVeNokta}${miktarPrefix}miktar`)}` +
 						` when ${getWhereClause('brm2')} then ${getMiktarClause(`${harAliasVeNokta}${miktarPrefix}miktar2`)}` +
 						` else 0 end)`
+	}
+	getDvBosmuClause(e) {
+		let dvKodClause = typeof e == 'object' ? e.dvKodClause : e;
+		if ((dvKodClause || `''`) == `''`) { return '1 = 1' }
+		return `COALESCE(${dvKodClause}, '') IN ('', 'TL', 'TRY', 'TRL')`
+	}
+	getDovizliBedelClause(e, _tlBedelClause, _dvBedelClause, _sumOlmaksizinmi) {
+		let objmi = typeof e == 'object', sumOlmaksizinmi = objmi ? e.sumOlmaksizin ?? e.sumOlmaksizinmi : _sumOlmaksizinmi;
+		let dvKodClause = objmi ? e.dvKodClause : e, dvBosmuClause = this.getDvBosmuClause(dvKodClause);
+		let tlBedelClause = objmi ? e.tlBedelClause ?? e.bedelClause : _tlBedelClause;
+		let dvBedelClause = objmi ? e.dvBedelClause : _dvBedelClause;
+		if (sumOlmaksizinmi) { tlBedelClause = tlBedelClause?.sumOlmaksizin(); dvBedelClause = dvBedelClause?.sumOlmaksizin() }
+		if ((dvKodClause || `''`) == `''`) { return tlBedelClause }
+		return `(case when ${dvBosmuClause} then ${tlBedelClause} else ${dvBedelClause} end)`;
+	}
+	getRevizeDvKodClause(e) {
+		let dvKodClause = typeof e == 'object' ? e.dvKodClause : e;
+		if ((dvKodClause || `''`) == `''`) { return dvKodClause }
+		let dvBosmuClause = this.getDvBosmuClause(dvKodClause);
+		return `(case when ${dvBosmuClause} then '' else ${dvKodClause} end)`
 	}
 }

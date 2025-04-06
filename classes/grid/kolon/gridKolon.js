@@ -201,6 +201,13 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	dipSum(e) { this.aggregates = ['sum']; return this } dipAvg(e) { this.aggregates = ['avg']; return this }
 	dipSumVeAvg(e) { this.aggregates = ['sum', 'avg']; return this } setDip(value) { this.aggregates = value; return this }
 	*getIter() { yield this }
+	setBelirtec(value) { this.belirtec = value; return this }
+	setText(value) { this.text = value; return this }
+	setWidth(value) { this.width = value; return this }
+	setMinWidth(value) { this.minWidth = value; return this }
+	setMaxWidth(value) { this.maxWidth = value; return this }
+	setGenislikCh(value) { this.genislikCh = value; return this }
+	setTip(value) { this.tip = value; return this }
 }
 
 (function() {

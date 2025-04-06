@@ -27,6 +27,7 @@ button#sil { margin-left: 10px; margin-right: 20px } button#secimler { margin-ri
 #logout { background-image: url(../../images/logout.png); background-size: cover !important }
 #logout.jqx-fill-state-normal { background-color: #a05d45 }
 #fullScreen { background-image: url(../../images/tamEkranAc.png) }
+body.dark-theme #fullScreen { background-image: url(../../images/tamEkranAcBeyaz.png); filter: invert(1) hue-rotate(180deg) !important }
 #cacheReset { background-image: url(../../images/temizle.png) }
 #navToggle, .navToggle { background-image: url(../../images/nav-toggle.png) !important }
 .islemTuslari > div > button.jqx-fill-state-normal { color: #eee; background-color: var(--islemTuslari-button-bg-normal) }

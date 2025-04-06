@@ -4,10 +4,7 @@ class DRapor_DonemselIslemler extends DRapor_Donemsel {
 	static get sabitmi() { return true } static get vioAdim() { return null } static get konsolideKullanilirmi() { return false }
 	static get kategoriKod() { return DRapor_Hareketci.kategoriKod } static get kategoriAdi() { return DRapor_Hareketci.kategoriAdi }
 	static get kod() { return 'DONISL' } static get aciklama() { return 'Dönemsel İşlemler' }
-	altRaporlarDuzenle(e) {
-		super.altRaporlarDuzenle(e);
-		this.add(DRapor_DonemselIslemler_Detaylar)
-	}
+	altRaporlarDuzenle(e) { super.altRaporlarDuzenle(e); this.add(DRapor_DonemselIslemler_Detaylar) }
 }
 class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_DonemselIslemler }
@@ -64,7 +61,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 				if (!harSent) { continue } let {from, where: wh, sahalar, alias2Deger} = harSent;
 				let {ozelisaret: ozelIsaretClause, tarih: tarihClause, ba: baClause, bedel: tlBedelClause, dvbedel: dvBedelClause, dvkod: dvKodClause} = alias2Deger;
 				dvKodClause = dvKodClause || sqlEmpty;
-				let bedelClause = `(case when COALESCE(${dvKodClause}, '') IN ('', 'TL', 'TRY', 'TRL') then ${tlBedelClause.sumOlmaksizin()} else ${dvBedelClause.sumOlmaksizin()} end)`;
+				let bedelClause = this.getDovizliBedelClause({ dvKodClause, tlBedelClause, dvBedelClause, sumOlmaksizin: true });
 				let kodClause = alias2Deger[mstKodAlias], adiClause = alias2Deger[mstAdiAlias];
 				/* if (mstAdiAlias) { debugger } */
 				sahalar.liste = [];
@@ -88,7 +85,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 				if (ozelIsaretVarmi && ozelIsaretClause) { wh.add(`${ozelIsaretClause} = ''`) }
 				let fisAliasVarmi = !!from.liste.find(({ alias }) => alias == 'fis');
 				let logZamaniClause = fisAliasVarmi ? 'fis.sonzamants' : sqlNull;
-				sahalar.add(`${logZamaniClause} logTS`);
+				/* sahalar.add(`${logZamaniClause} logTS`); */
 				this.donemBagla({ donemBS, tarihSaha: tarihClause, sent: harSent });
 				if (fisAliasVarmi) { wh.basiSonu(sec.logTS, logZamaniClause) }
 				harSent.groupByOlustur().gereksizTablolariSil();

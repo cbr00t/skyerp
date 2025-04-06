@@ -1,6 +1,7 @@
 class Hareketci extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return true } static get oncelik() { return 99 }
 	static get kod() { return null } static get aciklama() { return null } static get araSeviyemi() { return this == Hareketci }
+	static get donemselIslemlerIcinUygunmu() { return true } static get eldekiVarliklarIcinUygunmu() { return this.donemselIslemlerIcinUygunmu }
 	static get mstYapi() {
 		let {_mstYapi: result} = this;
 		if (result == null) {
@@ -9,7 +10,6 @@ class Hareketci extends CObject {
 		}
 		return result
 	}
-	static get donemselIslemlerIcinUygunmu() { return true }
 	static get kod2Sinif() {
 		let {_kod2Sinif: result} = this; if (result == null) {
 			result = {}; const {subClasses} = this;
@@ -20,7 +20,16 @@ class Hareketci extends CObject {
 			this._kod2Sinif = result
 		}
 		return result
-   }
+	}
+	static get anaTipTekSecim() { let {anaTipKAListe: kaListe} = this; return new TekSecim({ kaListe }) }
+	static get anaTipKAListe() {
+		let cacheSelector = '_anaTipKAListe', result = this[cacheSelector];
+		if (result == null) {
+			let {kod2Sinif} = this; result = this[cacheSelector] = [];
+			for (let [kod, cls] of Object.entries(kod2Sinif)) { result.push(new CKodAdiVeEkBilgi({ kod, aciklama: cls.aciklama, ekBilgi: cls })) }
+		}
+		return result
+	}
 	static get hareketTipSecim() {
 		let cacheSelector = '_hareketTipSecim', result = this[cacheSelector];
 		if (result === undefined) { result = this[cacheSelector] = this.hareketTipSecimInternal } return result

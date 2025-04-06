@@ -622,4 +622,5 @@ class MQOrderByClause extends MQClause {
 class MQWith extends MQClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get onEk() { return `WITH	` } static get baglac() { return `,${CrLf}` }
+	get debugListe() { return this.sent.liste.map(sent => ({ from: sent.from.toString(), sahalar: sent.sahalar.toString(), where: sent.where.liste.join(' ') })) }
 }

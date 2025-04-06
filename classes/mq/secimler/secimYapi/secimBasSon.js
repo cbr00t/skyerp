@@ -41,14 +41,14 @@ class SecimBasSon extends Secim {
 		SecimBirKismi.uiSetValues_birKismi(e); parent.find('.birKismiToggle').val(birKismimi); this.birKismiToggleDegisti(e)
 	}
 	buildHTMLElementStringInto(e) {
-		super.buildHTMLElementStringInto(e); const {mfSinif, birKismimi, isHidden} = this;
+		super.buildHTMLElementStringInto(e); const {mfSinif, birKismimi, isHidden, placeHolder} = this;
 		e.target += `<div class="flex-row${isHidden ? ' jqx-hidden' : ''}">`;
 		if (mfSinif) { e.target += `<div class="birKismiToggle"></div>`; }
 		e.target += 	`<div class="bs-parent flex-row${birKismimi ? ' jqx-hidden' : ''}">`;
-		if (mfSinif) { e.target += 	`<div class="veri basi bs"></div>` }
+		if (mfSinif) { e.target += 	`<div class="veri basi bs" placeholder="${placeHolder}"></div>` }
 		else { e.target += 	`<input class="veri basi bs" type="textbox" value="${this.getConvertedUIValue(this.basi) || ''}"></input>` }
 		e.target += 		`<button class="kopya">--&gt;</button>`;
-		if (mfSinif) { e.target += 	`<div class="veri sonu bs"></div>` }
+		if (mfSinif) { e.target += 	`<div class="veri sonu bs" placeholder="${placeHolder}"></div>` }
 		else { e.target += 	`<input class="veri sonu bs" type="textbox" value="${this.getConvertedUIValue(this.sonu) || ''}"></input>` }
 		e.target += 	`</div>`;
 		if (mfSinif) { $.extend(e, { hidden: true, tip: this.class.tip }); SecimBirKismi.buildHTMLElementStringInto_birKismi(e) }

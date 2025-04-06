@@ -19,7 +19,10 @@
 .secimler.part .islemTuslari button#vazgec { }
 .secimler.part.with-tabs #tabPanel { --top: 10px; position: relative !important; top: var(--top); height: calc(var(--full) - (var(--top) + 5px)) !important }
 .secimler.part.with-tabs #tabPanel > .content { width: var(--full); height: calc(var(--full) - (var(--header-height) + var(--tabs-header-margin-bottom) * 2)) }
-.secimler.part .secimler-kolonFiltre-bilgi-parent { font-size: 76%; width: 100%; padding: 0 !important; margin-bottom: 3px; background-color: #f8f8f8; border: .5px solid #ddd }
+.secimler.part .secimler-kolonFiltre-bilgi-parent {
+	font-size: 76%; width: var(--full); padding: 0 !important;
+	margin-bottom: 3px; background-color: #f8f8f8; border: .5px solid #ddd
+}
 .secimler.part .secimler-kolonFiltre-bilgi-parent .kolonFiltre-temizle {
 	width: 55px !important; height: 100% !important; margin: 0 !important; margin-right: 15px !important; padding: 0 !important;
 	background-image: url(../../../../images/temizle.png); background-size: 20px 20px !important
@@ -58,7 +61,8 @@
 .secimler.part .secimler-form .secim.basSon .basi, .secimler.part .secimler-form .secim.ozel :not(.jqx-widget) .input { margin-left: 5px !important }
 .secimler.part .secimler-form .secim.basSon .uiTarih.basi, .secimler.part .secimler-form .secim.basSon .basi:not(.modelKullan.part),
 .secimler.part .secimler-form .secim.ozel .veri:not(.jqx-widget).input, .secimler.part .secimler-form .secim.ozel .veri :not(.jqx-widget).input,
-.secimler.part .secimler-form .secim.ozel .veri.bool, .secimler.part .secimler-form .secim.ozel .veri.ozellik, .secimler.part .secimler-form .secim.ozel .veri.string { margin-left: 62px !important }
+	.secimler.part .secimler-form .secim.ozel .veri.bool,
+	.secimler.part .secimler-form .secim.ozel .veri.ozellik, .secimler.part .secimler-form .secim.ozel .veri.string { margin-left: 62px !important }
 .secimler.part .secimler-form .secim:not(.date):not(.tekilDate) .veri:not(button):not(.jqx-switchbutton):not(.uiTarih) { width: 900px !important }
 .secimler.part .secimler-form .secim:not(.date):not(.tekilDate) .bs-parent .veri:not(button):not(.jqx-switchbutton):not(.uiTarih) { width: 600px !important }
 .secimler.part .secimler-form .secim:not(.jqx-widget) .ddList { min-width: 130px !important; width: 90% !important; height: var(--secim-minHeight) !important }
