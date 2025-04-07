@@ -14,7 +14,8 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 			.addGrup(new TabloYapiItem().setKA('SAAT', 'Saat').addColDef(new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 20, filterType: 'checkedlist' }).tipTime()))
 	}
 	loadServerData(e) {
-		e = e ?? {}; let {secimler} = this; e.donemBS = secimler.tarihBSVeyaCariDonem;
+		e = e ?? {}; let {secimler: sec} = this, {tarihBS: donemBS} = sec;
+		$.extend(e, { donemBS }); /* e.donemBS = sec.tarihBSVeyaCariDonem; */
 		return super.loadServerData(e)
 	}
 	super_loadServerDataInternal(e) { super.loadServerDataInternal(e) }

@@ -44,11 +44,14 @@
 	position: absolute; max-width: calc(var(--full) - 250px); top: 0; right: 15px; padding: 0 5px;
 	overflow: hidden hidden !important; z-index: 100 !important
 }
-.secimler.part .secimler-form .secim-grup > .header > .jqx-expander-header-content > .diger > .ozetBilgi-item {
-	height: var(--full); padding: 3px 8px; padding-top: 0; border: 1px solid #aaa; border-radius: 10px;
-	white-space: nowrap !important; text-wrap: nowrap !important; text-overflow: ellipsis !important; overflow: hidden !important
-}
-.secimler.part .secimler-form .secim-grup > .header > .jqx-expander-header-content > .diger > .ozetBilgi-item:not(:first-child) { margin-left: 10px }
+.secimler.part .secimler-form .secim-grup > .header > .jqx-expander-header-content > .diger > .ozetBilgi-item,
+	.secimBilgi .ozetBilgi-item {
+		height: var(--full); padding: 3px 8px; padding-top: 0; border: 1px solid #aaa; border-radius: 10px;
+		white-space: nowrap !important; text-wrap: nowrap !important; text-overflow: ellipsis !important; overflow: hidden !important
+	}
+.secimler.part .secimler-form .secim-grup > .header > .jqx-expander-header-content > .diger > .ozetBilgi-item:not(:first-child),
+	.secimBilgi > .ozetBilgi-item:not(:first-child) { margin-left: 10px }
+.secimBilgi { font-size: 75%; padding-top: 5px !important }
 .secimler.part .secimler-form .secim-grup > .header:not(.jqx-expander-header-expanded) { background-color: #dbdde4; opacity: .7 }
 .secimler.part .secimler-form .secim-grup > .header.jqx-expander-header-expanded { opacity: 1 }
 .secimler.part .secimler-form .secim-grup > .header .jqx-expander-arrow { background-size: 32px 32px; margin: 5px 15px !important }

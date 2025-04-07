@@ -295,13 +295,16 @@ class ModelKullanPart extends Part {
 				if (value) {
 					value = $.makeArray(value); if (value?.length) {
 						let valueSet = asSet(value), wItems = widget.getItems(); widget[isDropDown ? 'uncheckAll' : 'clearSelection']();
-						this.disableEventsFlag = true; for (let i = 0; i < wItems.length; i++) { if (valueSet[wItems[i].value]) { widget.selectIndex(i) } } this.disableEventsFlag = false
+						this.disableEventsFlag = true;
+						for (let i = 0; i < wItems.length; i++) { if (valueSet[wItems[i].value]) { widget.selectIndex(i) } }
+						this.disableEventsFlag = false
 					}
 				}
 				this.kodAtandimi = true
 			}
+			if (widget.isOpened()) { widget.close() }
 			if (veriYukleninceBlock) {
-				const _e = $.extend({}, e, {
+				let _e = $.extend({}, e, {
 					parentPart, sender: this, builder: this.builder, get wItems() { return widget.getItems() },
 					get source() { return widget.source }, get recs() { return widget.source?.records }
 				}); getFuncValue.call(this, veriYukleninceBlock, _e)
@@ -340,14 +343,17 @@ class ModelKullanPart extends Part {
 				},
 				converter: e => ((e.recs || [])[0] ?? e.rec ?? {})[kodSaha],
 				secince: e => {
-					this.inEvent = false; const {isDropDown, coklumu, layout, widget} = this, {listBox} = widget; let value; $('body').removeClass('bg-modal');
-					const wndContents = $('.wnd-content'); if (wndContents?.length) { for (const key of ['animate-wnd-content', 'animate-wnd-content-slow']) {wndContents.removeClass(key) } }
+					this.inEvent = false; let {isDropDown, coklumu, layout, widget} = this, {listBox} = widget, value;
+					$('body').removeClass('bg-modal');
+					let wndContents = $('.wnd-content'); if (wndContents?.length) {
+						for (const key of ['animate-wnd-content', 'animate-wnd-content-slow']) {wndContents.removeClass(key) } }
 					if (isDropDown) {
 						setTimeout(() => showProgress(), 20);
 						setTimeout(() => {
 							if (coklumu) {
-								const valuesSet = asSet(e.values ?? [e.value]); widget.clearSelection();
-								for (const item of widget.getItems() || []) { const _value = item?.value ?? item; item.checked = !!valuesSet[_value] }
+								let valuesSet = asSet(e.values ?? [e.value]); 
+								listBox.clearSelection(); widget.clearSelection(); listBox.clear();
+								for (let item of widget.getItems() || []) { const _value = item?.value ?? item; item.checked = !!valuesSet[_value] }
 								this.onChange({ force: true, type: 'trigger' })
 							}
 							else { value = e.value ?? null; this.val(value); this.onChange({ force: true, type: 'trigger', args: { item: e.rec, value } }) }
@@ -361,8 +367,8 @@ class ModelKullanPart extends Part {
 						setTimeout(() => {
 							try {
 								if (coklumu) {
-									listBox.clear(); widget.clearSelection();
-									for (const rec of _recs) { widget.addItem(rec); widget.selectItem(widget.getItems().slice(-1)[0]) }
+									listBox.clearSelection(); widget.clearSelection(); listBox.clear();
+									for (let rec of _recs) { widget.addItem(rec); widget.selectItem(widget.getItems().slice(-1)[0]) }
 									input.val(''); this.onChange({ force: true, type: 'trigger' }).then(() => {
 										let handler = evt => {
 											layout.off('bindingComplete', handler);
@@ -371,7 +377,7 @@ class ModelKullanPart extends Part {
 										layout.on('bindingComplete', handler); widget.dataBind() })
 								}
 								else {
-									const text = widget.renderSelectedItem ? widget.renderSelectedItem(null, rec) : value;
+									let text = widget.renderSelectedItem ? widget.renderSelectedItem(null, rec) : value;
 									this.val(value); this.onChange({ force: true, type: 'trigger', args: { item: e.rec, value } });
 									setTimeout(() => widget.input.val(text), 100)
 								}

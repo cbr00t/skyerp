@@ -61,7 +61,8 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	tabloKolonlariDuzenle(e) { }
 	async getDataAdapter(e) {
 		try {
-			let recs = await (this.loadServerData_ozel?.(e) ?? this.loadServerData(e)), tRec = recs[0] || {}, key_items = 'detaylar';		/*key_id = 'id',*/
+			let recs = await (this.loadServerData_ozel?.(e) ?? this.loadServerData(e)); if (!recs) { return null }
+			let tRec = recs?.[0] || {}, key_items = 'detaylar';		/*key_id = 'id',*/
 			return new $.jqx.dataAdapter({
 				hierarchy: { root: key_items }, dataType: 'array', localData: recs, /* hierarchy: { keyDataField: { name: key_id }, parentDataField: { name: 'parentId' } }, */
 				dataFields: Object.keys(tRec).map(name => ({ name, type: typeof tRec[name] == 'object' ? 'array' : (typeof tRec[name] || 'string') })),
@@ -223,7 +224,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	}
 	async loadServerData(e) {
 		let recs = e.recs = this.raporTanim.secilenVarmi ? await super.loadServerData(e) : [];
-		await this.ozetBilgiRecsOlustur(e); return recs
+		if (recs) { await this.ozetBilgiRecsOlustur(e) }
+		return recs
 	}
 	loadServerData_recsDuzenleIlk(e) {
 		let {recs} = e; const {tabloYapi} = this, {kaPrefixes, sortAttr, grupVeToplam} = tabloYapi, fixKA = (rec, prefix) => {

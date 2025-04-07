@@ -40,6 +40,8 @@ body.dark-theme #dRapor.part #items > .item .jqx-grid .jqx-grid-cell img { filte
 #dRapor.part #items > .item._main .jqx-grid .jqx-grid-cell.level-0:not(.leaf) { font-size: 120% }
 #dRapor.part #items > .item._main .jqx-grid tr:nth-child(even) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-0:not(.leaf) { background-color: #e2e7f1 }
 #dRapor.part #items > .item._main .jqx-grid tr:nth-child(odd) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-0:not(.leaf) { background-color: #ecf2fe }
+body.dark-theme #dRapor.part #items > .item._main .jqx-grid tr:nth-child(odd) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-0:not(.leaf) { background-color: #c8cfff }
+body.dark-theme #dRapor.part #items > .item._main .jqx-grid tr:nth-child(even) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-0:not(.leaf) { background-color: #bebbff }
 #dRapor.part #items > .item._main .jqx-grid .jqx-grid-cell.level-1:not(.leaf) { font-size: 110% }
 #dRapor.part #items > .item._main .jqx-grid tr:nth-child(even) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-1:not(.leaf) { background-color: #f8e8d5 }
 #dRapor.part #items > .item._main .jqx-grid tr:nth-child(odd) .jqx-grid-cell:not(.jqx-grid-cell-selected).level-1:not(.leaf) { background-color: #e6d7c5 }

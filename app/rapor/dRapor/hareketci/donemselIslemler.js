@@ -12,6 +12,11 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 	get detaylar() { return this.ekBilgi?.detaylar } set detaylar(value) { let ekBilgi = this.ekBilgi = this.ekBilgi ?? {}; ekBilgi.detaylar = value }
 	get dip() { return this.ekBilgi?.dip } set dip(value) { let ekBilgi = this.ekBilgi = this.ekBilgi ?? {}; ekBilgi.dip = value }
 	onGridInit(e) { super.onGridInit(e); this.ekBilgi = {} }
+	tazele(e) {
+		let {secimler: sec, rapor} = this, {tarihBS} = sec;
+		if (!tarihBS?.basi) { this.secimlerIstendi(); setTimeout(() => super.tazele(e), 100) }
+		else { super.tazele(e) }
+	}
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments);
 		let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => cls.donemselIslemlerIcinUygunmu);
@@ -19,7 +24,9 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		let grupKod = 'donemVeTarih'; sec.secimTopluEkle({
 			logTS: new SecimDateTime({ etiket: 'Log Zamanı', grupKod }),
 			anaTip: new SecimBirKismi({ grupKod, etiket: 'Gösterilecek Bilgiler', kaListe: anaTip_kaListe }).birKismi().autoBind()
-		})
+		});
+		let {donem, tarihAralik} = sec; donem?.tekSecim?.tarihAralik?.();
+		if (tarihAralik) { tarihAralik.visible(); tarihAralik.sonu = tarihAralik.sonu || today() }
 	}
 	tabloYapiDuzenle({ result }) {
 		// super.tabloYapiDuzenle(...arguments);
@@ -50,9 +57,9 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		let {stm, secimler: sec, donemBS} = e, {grupVeToplam} = this.tabloYapi, {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
 		let anaTipSet = asSet(sec.anaTip?.value); if ($.isEmptyObject(anaTipSet)) { anaTipSet = null }
 		let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => !!cls.donemselIslemlerIcinUygunmu && (!anaTipSet || anaTipSet[cls.kod]));
-		let {basi: tBasi, sonu: tSonu} = donemBS; if (!(tBasi && tSonu)) {
-			throw { isError: true, errorText: `Seçimlerden <b>Dönem</b> seçilmeli veya <b>Tarih Aralık</b> belirtilmelidir` } }
-		let tBasiClause = tBasi.sqlServerDegeri(), tSonuClause = tSonu.sqlServerDegeri();
+		let {basi: tBasi, sonu: tSonu} = donemBS ?? {}; tSonu = tSonu || today();
+		if (!(tBasi && tSonu)) { throw { isError: true, errorText: `Seçimlerden <b>Dönem</b> seçilmeli veya <b>Tarih Aralık</b> belirtilmelidir` } }
+		let tBasiClause = MQSQLOrtak.sqlServerDegeri(tBasi), tSonuClause = MQSQLOrtak.sqlServerDegeri(tSonu);
 		/*let belirtecler = Object.keys(attrSet).map(kod => grupVeToplam[kod]?.colDefs?.[0]?.belirtec).filter(x => !!x);*/
 		let sabitBelirtecler = ['tarih', 'ba', 'bedel', 'dvbedel', 'dvkod'];
 		if (ozelIsaretVarmi) { sabitBelirtecler.push('ozelisaret') }
@@ -169,7 +176,6 @@ class DRapor_DonemselIslemler_DetaylarVeDip extends DAltRapor_Grid {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_DonemselIslemler }
 	get height() { return `calc(var(--full) - ${this.rapor.id2AltRapor.main.height})` }
 	gridArgsDuzenle({ args }) { $.extend(args, { showStatusBar: false, showAggregates: true, showGroupAggregates: false, showGroupsHeader: true, rowsHeight: 30, columnsHeight: 25 }) }
-	tazele(e) { super.tazele(e) }
 	tabloKolonlariDuzenle(e) { super.tabloKolonlariDuzenle(e) }
 	loadServerData(e) {
 		super.loadServerData(e); let {kod} = this.class, {main} = this.rapor;

@@ -149,13 +149,13 @@ class SecimBoolTrue extends SecimBool {
 }
 class SecimTekSecim extends SecimOzel {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'tekSecim' }
-	static get birKismimi() { return false } get birKismimi() { return this.class }
+	static get birKismimi() { return false } get birKismimi() { return this.class.birKismimi }
 	get value() { return this.getConvertedValue(this.tekSecim?.char) } set value(value) { const {tekSecim} = this; if (tekSecim) { tekSecim.char = this.getConvertedValue(value) } }
 	get ozetBilgiValue() {
 		let {value} = this; if (value == null) { return value }
-		if (!$.isArray(value)) { value = [value] }
+		if (!$.isArray(value)) { value = [value] } value = value.filter(x => !!x);
 		const {kaDict} = this.tekSecim; value = value.map(kod => kaDict[kod] ?? kod);
-		return this.class.birKismi ? value.filter(x => !!x) : value[0]
+		return this.birKismimi ? value.filter(x => !!x) : value[0]
 	}
 	get secilen() {
 		const {coklumu, tekSecim} = this; let secilen = tekSecim.secilen;

@@ -52,6 +52,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				PL: { kod: 'PLASIYER', belirtec: 'plasiyer', text: 'Plasiyer' },
 				DG: { kod: 'DEPOGRUP', belirtec: 'yergrup', text: 'Yer Grup' },
 				DP: { kod: 'DEPO', belirtec: 'yer', text: 'Yer' }
+				/*HG: { kod: 'GRUP', belirtec: 'grup', text: 'Har. Ana Tip' }*/
 			}
 		}
 		if (!this.konsolideVarmi) { result = { ...result }; delete result.DB }
@@ -69,6 +70,14 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			islemYap(Object.keys(grupVeToplam) || {}, 'tbWhereClauseDuzenle', { ...e, ..._e })
 			/*islemYap(Object.keys(this.raporTanim?.attrSet || {}), 'tbWhereClauseDuzenle', { ...e, ..._e })*/
 		})
+	}
+	tazele(e) {
+		/*let {rfb_items} = this.rapor, {main} = rfb_items.id2Builder, {layout} = main, elmLabel = layout.children('label');
+		let elmEkBilgi = elmLabel.children('.secimBilgi'); if (elmEkBilgi?.length) {
+			let {secimler: sec} = this, ozetBilgiHTML = sec?.getGrupHeaderHTML();
+			if (ozetBilgiHTML) { elmEkBilgi.html(ozetBilgiHTML) }
+		}*/
+		return super.tazele(e)
 	}
 	cellsRenderer(e) {
 		e.html = super.cellsRenderer(e); const {belirtec, rec} = e;
@@ -88,11 +97,22 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		return e.html
 	}
+	tabloYapiDuzenle(e) {
+		super.tabloYapiDuzenle(e); const {result} = e;
+		if (this.konsolideVarmi) { result.addGrup(new TabloYapiItem().setKA('DB', 'Veritabanı').addColDef(new GridKolon({ belirtec: 'db', text: 'Veritabanı', genislikCh: 18 }))) }
+		this.tabloYapiDuzenle_ozel?.(e)
+	}
+	tabloYapiDuzenle_son(e) {
+		super.tabloYapiDuzenle_son(e); const {result} = e; this.tabloYapiDuzenle_son_ozel?.(e);
+		result.addToplam(new TabloYapiItem().setKA('KAYITSAYISI', 'Kayıt Sayısı').addColDef(new GridKolon({ belirtec: 'kayitsayisi', text: 'Kayıt Sayısı', genislikCh: 10, filterType: 'numberinput', aggregates: ['sum'] }).tipNumerik()))
+	}
 	async loadServerDataInternal(e) {
 		await super.loadServerDataInternal(e); const {raporTanim, secimler} = this, attrSet = e.attrSet ?? raporTanim.attrSet, {maxRow, donemBS} = e;
 		let _e = { ...e, stm: new MQStm(), attrSet, donemBS }, recs = await this.loadServerData_ilk(e); if (recs !== undefined) { return recs }
-		this.loadServerData_queryDuzenle_tekil(_e); this.loadServerData_queryDuzenle_tekilSonrasi(_e); this.loadServerData_queryDuzenle_genelSon(_e);
-		let query = _e.stm;
+		if (this.loadServerData_queryDuzenle_tekil(_e) === false) { return null }
+		if (this.loadServerData_queryDuzenle_tekilSonrasi(_e) === false) { return null }
+		if (this.loadServerData_queryDuzenle_genelSon(_e) === false) { return null }
+		let {stm: query} = _e;
 		try {
 			recs = e.recs = query ? await app.sqlExecSelect({ query, maxRow }) : null;
 			let _recs = await this.loadServerData_son(e); if (_recs !== undefined) { recs = _recs }
@@ -103,16 +123,22 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	super_loadServerDataInternal(e) { return super.loadServerDataInternal(e) }
 	loadServerData_ilk(e) { } loadServerData_son(e) { }
-	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e); const {result} = e;
-		if (this.konsolideVarmi) { result.addGrup(new TabloYapiItem().setKA('DB', 'Veritabanı').addColDef(new GridKolon({ belirtec: 'db', text: 'Veritabanı', genislikCh: 18 }))) }
-		this.tabloYapiDuzenle_ozel?.(e)
+	gridVeriYuklendi({ rootPart }) {
+		super.gridVeriYuklendi(...arguments);
+		let {rfb_items} = this.rapor, {main} = rfb_items.id2Builder, {layout} = main, elmLabel = layout.children('label');
+		let elmEkBilgi = elmLabel.children('.secimBilgi'); if (!elmEkBilgi?.length) { elmEkBilgi = $(`<div class="secimBilgi float-right"></div>`); elmEkBilgi.appendTo(elmLabel) }
+		let {secimler} = this, _e = { liste: [] };
+		for (let [key, sec] of Object.entries(secimler.liste)) {
+			if (sec.isHidden || sec.isDisabled || key == 'tarihAralik') { continue }
+			sec.ozetBilgiHTMLOlustur(_e)
+		}
+		let ozetBilgiHTML = _e.liste?.filter(x => !!x).join(' ');
+		if (ozetBilgiHTML) { elmEkBilgi.html(ozetBilgiHTML) }
 	}
-	tabloYapiDuzenle_son(e) {
-		super.tabloYapiDuzenle_son(e); const {result} = e; this.tabloYapiDuzenle_son_ozel?.(e);
-		result.addToplam(new TabloYapiItem().setKA('KAYITSAYISI', 'Kayıt Sayısı').addColDef(new GridKolon({ belirtec: 'kayitsayisi', text: 'Kayıt Sayısı', genislikCh: 10, filterType: 'numberinput', aggregates: ['sum'] }).tipNumerik()))
+	loadServerData_queryDuzenle_tekil(e) {
+		e = e ?? {}; if (this.loadServerData_queryDuzenle(e) === false) { return false }
+		if (this.loadServerData_queryDuzenle_son(e) === false) { return false }
 	}
-	loadServerData_queryDuzenle_tekil(e) {e = e ?? {}; this.loadServerData_queryDuzenle(e); this.loadServerData_queryDuzenle_son(e) }
 	loadServerData_queryDuzenle(e) {
 		let alias = e.alias = e.alias ?? 'fis'; const {secimler, raporTanim, tabloYapi} = this, {yatayAnaliz} = raporTanim.kullanim, {stm} = e;
 		let {attrSet: _attrSet} = e, attrSet = e.attrSet = raporTanim._ozelAttrSet = { ..._attrSet };

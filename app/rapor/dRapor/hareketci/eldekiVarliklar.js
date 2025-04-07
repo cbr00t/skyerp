@@ -36,8 +36,8 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 			.addGrupBasit('GRUP', '', 'grup', null, null, null, false)
 			.addGrupBasit('MST', this.class.mstEtiket, 'mst', null, 430, null, false);
 		for (let {kod, aciklama} of this.dovizKAListe) {
-			result.addToplamBasit_bedel(`BEDEL_${kod}`, `${aciklama} Bedel`, `bedel_${kod}`, null, 135, null, false) }
-		result.addToplamBasit_bedel('BEDEL', 'TL Bedel', 'bedel', null, 135, null, false)
+			result.addToplamBasit_bedel(`BEDEL_${kod}`, `${aciklama} Bedel`, `bedel_${kod}`, null, 125, null, false) }
+		result.addToplamBasit_bedel('BEDEL', 'TL Bedel', 'bedel', null, 100, null, false)
 	}
 	sabitRaporTanimDuzenle({ result }) {
 		super.sabitRaporTanimDuzenle(...arguments);
@@ -48,11 +48,11 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 	loadServerData_queryDuzenle(e) {
 		e.alias = ''; super.loadServerData_queryDuzenle(e); let {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu;
 		let {stm, secimler: sec} = e, {grupVeToplam} = this.tabloYapi, {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
-		let {hareketciYapilari} = this, clsKey2HarYapi = {};
-		for (let item of hareketciYapilari) { clsKey2HarYapi[item.sinif.classKey] = item }
-		let {secilen: secHareketciYapilari} = sec.anaTip; if (secHareketciYapilari?.length) {
+		let {hareketciYapilari} = this, clsKey2HarYapi = {}; for (let item of hareketciYapilari) { clsKey2HarYapi[item.sinif.classKey] = item }
+		let {secilen: secHareketciYapilari} = sec.anaTip;
+		if (secHareketciYapilari?.length) {
 			/* Seçilen HarYapilar varsa, sadece (bu - sol/sağ) uygun olanı alınır */
-			secHareketciYapilari = secHareketciYapilari.filter(({ kod }) => kod2HarYapi[kod])
+			secHareketciYapilari = secHareketciYapilari.filter(({ sinif: cls }) => clsKey2HarYapi[cls.classKey])
 		}
 		else {
 			/* Aksinde, (bu - sol/sağ) için hareketciYapilari listesi aynen alınır - orijinal liste zaten sadece bu alt sınıfa uygun olanları içerir */
@@ -93,8 +93,10 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		}
 		/* console.table(uni.siraliSahalar) */
 		let topStm = uni.asToplamStm(); stm.with.birlestir(topStm.with); stm.sent = topStm.sent;
-		stm.orderBy.add('hartipkod', 'dvkod', 'mstkod');
-		self.uni = topStm.with.liste[0].sent
+		stm.orderBy.add('hartipkod', 'dvkod', 'mstkod')
+		let withSent = topStm.with.liste[0]?.sent;
+		if (!withSent?.liste?.length) { return false }
+		/* self.uni = withSent */
 	}
 	/*loadServerDataInternal(e) { return [] }
 	loadServerData_recsDuzenleIlk({ recs }) {

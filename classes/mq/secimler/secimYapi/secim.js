@@ -45,15 +45,16 @@ class Secim extends CIO {
 	get asHTMLElementString() { const _e = { target: '' }; this.buildHTMLElementStringInto(_e); return _e.target }
 	buildHTMLElementStringInto(e) { }
 	initHTMLElements(e) { }
-	ozetBilgiHTMLOlustur(e) {
-		const {liste} = e; if (this.isHidden) { return this }
-		let result = this.ozetBilgiValueDuzenlenmis; if (result && !$.isArray(result)) { result = [result] }
-		if (result) { result = result.map(value => `<div class="float-left ozetBilgi-item">${value}</div>`); liste.push(...result) }
+	ozetBilgiHTMLOlustur({ liste }) {
+		if (this.isHidden) { return this }
+		let result = this.ozetBilgiValueDuzenlenmis; if (result?.bosmu == true) { result = null }
+		if (result && !$.isArray(result)) { result = [result] }
+		if (result) { result = result.filter(value => !!value).map(value => `<div class="float-left ozetBilgi-item">${value}</div>`); liste.push(...result) }
 		return this
 	}
 	getConvertedValue(value) { return value } getConvertedUIValue(value) { return value }
-	hidden() { this.isHidden = true; return this }
-	disabled() { this.isDisabled = true; return this }
+	visible() { this.isHidden = false; return this } hidden() { this.isHidden = true; return this }
+	enabled() { this.isDisabled = false; return this } disabled() { this.isDisabled = true; return this }
 	setOzetBilgiValueGetter(handler) { this.ozetBilgiValueGetter = handler; return this }
 }
 

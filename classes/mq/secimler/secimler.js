@@ -139,15 +139,24 @@ class Secimler extends CIO {
 	}
 	initHTMLElements_ilk(e) { } initHTMLElements_ara(e) { } initHTMLElements_son(e) { }
 	grupOzetBilgiDuzenle(e) {
-		const {elmGrup} = e, elmHeaderText = elmGrup?.find('.header > .jqx-expander-header-content');
+		let {elmGrup} = e, elmHeaderText = elmGrup?.find('.header > .jqx-expander-header-content');
 		if (elmHeaderText?.length) { elmHeaderText.html(this.getGrupHeaderHTML(e)) }
 	}
 	getGrupHeaderHTML(e) {
-		const innerHTML = this.getGrupOzetBilgiHTML(e), {elmGrup} = e, grupKod = e.grupKod ?? (elmGrup?.data('id') || elmGrup?.prop('id'));
-		const grup = this.grupListe[grupKod], grupText = grup?.aciklama ?? '';
-		return `<div class="item asil float-left">${grupText}</div><div class="item diger float-left">${innerHTML || ''}</div>`
+		e = e ?? {}; let innerHTML = this.getGrupOzetBilgiHTML(e), {elmGrup} = e;
+		let grupKod = e.grupKod ?? (elmGrup?.data('id') || elmGrup?.prop('id'));
+		let grup = this.grupListe?.[grupKod], grupText = grup?.aciklama ?? '';
+		if (!(grupKod || innerHTML)) { return null }
+		return (
+			(grupText ? `<div class="item asil float-left">${grupText}</div>` : '') +
+			`<div class="item diger float-left">${innerHTML || ''}</div>`
+		)
 	}
-	getGrupOzetBilgiHTML(e) { let innerHTML = e.html ?? $.isArray(e.liste) ? e.liste.join('') : null; if (innerHTML?.html) { innerHTML = innerHTML.html() } return innerHTML || null }
+	getGrupOzetBilgiHTML(e) {
+		let innerHTML = e.html ?? $.isArray(e.liste) ? e.liste.join('') : null;
+		if (innerHTML?.html) { innerHTML = innerHTML.html() }
+		return innerHTML || null
+	}
 }
 class DonemselSecimler extends Secimler {
     static { window[this.name] = this; this._key2Class[this.name] = this }

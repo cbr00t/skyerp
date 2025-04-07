@@ -240,8 +240,8 @@ class SecimlerPart extends Part {
 		const _e = { ...e, liste: [], elmGrup }; secimler.grupOzetBilgiDuzenle(_e); this.onNavBarToggled(e)
 	}
 	onNavBarCollapsed(e) {
-		const evt = e.event, elmGrup = $(evt.currentTarget), secimElms = elmGrup.find('.content > .secim'), {secim2Info, secimler} = this;
-		const _e = { ...e, liste: [], elmGrup };
+		let {event: evt} = e, elmGrup = $(evt.currentTarget), secimElms = elmGrup.find('.content > .secim');
+		let {secim2Info, secimler} = this, _e = { ...e, liste: [], elmGrup };
 		for (let i = 0; i < secimElms.length; i++) {
 			let id = secimElms.eq(i).prop('id'), item = secim2Info[id]; if (!item) { continue }
 			let elm = item.element, {secim} = item; if (secim.isHidden || secim.isDisabled) { continue }
