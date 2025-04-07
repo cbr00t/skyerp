@@ -316,7 +316,8 @@ class ModelKullanPart extends Part {
 		clearTimeout(this.openTimer); setTimeout(() => { if (widget.isOpened()) widget.close() }, 20);
 		const {coklumu, initArgsDuzenleBlock} = this; let initArgs = {
 			..._e, sender: this, args: {
-				sender, parentPart, builder, mfSinif, tekilmi: !coklumu, wndArgsDuzenle: e => { const {wndArgs} = e /* wndArgs.isModal = true */ },
+				sender, parentPart, builder, mfSinif, tekilmi: !coklumu, secinceKontroluYapilmaz: !!coklumu,
+				wndArgsDuzenle: e => { const {wndArgs} = e /* wndArgs.isModal = true */ },
 				argsDuzenle: _e => {
 					_e = { ...e, ..._e }; const {args} = _e, {listeArgsDuzenleBlock} = this; /*if (!coklumu) { args.selectionMode = 'singlerow' } */
 					if (listeArgsDuzenleBlock) { getFuncValue.call(this, listeArgsDuzenleBlock, _e) }
@@ -345,7 +346,7 @@ class ModelKullanPart extends Part {
 						setTimeout(() => showProgress(), 20);
 						setTimeout(() => {
 							if (coklumu) {
-								const valuesSet = asSet(e.values ?? [e.value]);
+								const valuesSet = asSet(e.values ?? [e.value]); widget.clearSelection();
 								for (const item of widget.getItems() || []) { const _value = item?.value ?? item; item.checked = !!valuesSet[_value] }
 								this.onChange({ force: true, type: 'trigger' })
 							}
@@ -360,7 +361,8 @@ class ModelKullanPart extends Part {
 						setTimeout(() => {
 							try {
 								if (coklumu) {
-									listBox.clear(); for (const rec of _recs) { widget.addItem(rec); widget.selectItem(widget.getItems().slice(-1)[0]) }
+									listBox.clear(); widget.clearSelection();
+									for (const rec of _recs) { widget.addItem(rec); widget.selectItem(widget.getItems().slice(-1)[0]) }
 									input.val(''); this.onChange({ force: true, type: 'trigger' }).then(() => {
 										let handler = evt => {
 											layout.off('bindingComplete', handler);
