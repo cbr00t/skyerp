@@ -34,10 +34,10 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		result.addKAPrefix('hartip', 'mst')
 			.addGrupBasit_numerik('ONCELIK', 'Öncelik', 'oncelik', null, null, null, false)
 			.addGrupBasit('GRUP', '', 'grup', null, null, null, false)
-			.addGrupBasit('MST', this.class.mstEtiket, 'mst', null, 430, null, false);
+			.addGrupBasit('MST', this.class.mstEtiket, 'mst', null, 450, null, false);
 		for (let {kod, aciklama} of this.dovizKAListe) {
-			result.addToplamBasit_bedel(`BEDEL_${kod}`, `${aciklama} Bedel`, `bedel_${kod}`, null, 125, null, false) }
-		result.addToplamBasit_bedel('BEDEL', 'TL Bedel', 'bedel', null, 100, null, false)
+			result.addToplamBasit_bedel(`BEDEL_${kod}`, `${aciklama} Bedel`, `bedel_${kod}`, null, 110, null, false) }
+		result.addToplamBasit_bedel('BEDEL', 'TL Bedel', 'bedel', null, 140, null, false)
 	}
 	sabitRaporTanimDuzenle({ result }) {
 		super.sabitRaporTanimDuzenle(...arguments);
@@ -47,7 +47,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 	}
 	loadServerData_queryDuzenle(e) {
 		e.alias = ''; super.loadServerData_queryDuzenle(e); let {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu;
-		let {stm, secimler: sec} = e, {grupVeToplam} = this.tabloYapi, {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
+		let {stm} = e, {secimler: sec} = this, {grupVeToplam} = this.tabloYapi, {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
 		let {hareketciYapilari} = this, clsKey2HarYapi = {}; for (let item of hareketciYapilari) { clsKey2HarYapi[item.sinif.classKey] = item }
 		let {secilen: secHareketciYapilari} = sec.anaTip;
 		if (secHareketciYapilari?.length) {
@@ -68,35 +68,46 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		}
 		let sonTarih = sec.tarih.value || null;
 		let uni = new MQUnionAll(); for (let har of harListe) {
-			let {aciklama: harTipAdi, oncelik, mstYapi} = har.class, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
+			let {oncelik, mstYapi} = har.class, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
 			let harUni = har.uniOlustur(); for (let harSent of harUni.getSentListe()) {
 				if (!harSent) { continue } let {classKey} = har.class;
 				let harYapi = clsKey2HarYapi[classKey]; if (!harYapi) { debugger; continue }
-				let {kod: harTipKod} = harYapi, {from, where: wh, sahalar, alias2Deger} = harSent;
+				let {kod: harTipKod, aciklama: harTipAdi} = harYapi, {from, where: wh, sahalar, alias2Deger} = harSent; sahalar.liste = []; 
 				let {ozelisaret: ozelIsaretClause, tarih: tarihClause, ba: baClause, bedel: tlBedelClause, dvbedel: dvBedelClause, dvkod: dvKodClause} = alias2Deger;
 				dvKodClause = dvKodClause || sqlEmpty; let dvBosmuClause = this.getDvBosmuClause(dvKodClause);
 				let bedelClause = this.getDovizliBedelClause({ dvKodClause, tlBedelClause, dvBedelClause, sumOlmaksizin: true });
 				let kodClause = alias2Deger[mstKodAlias], adiClause = alias2Deger[mstAdiAlias];
-				sahalar.liste = []; sahalar.add(`'${harTipKod}' hartipkod`);
-				if (adiClause) { sahalar.add(`${adiClause} mstadi`) } else { mstYapi.sentDuzenle({ sent: harSent, wh, kodClause }) }
+				sahalar.add(`'${harTipKod}' anatip`);
+				if (adiClause) { sahalar.add(`${adiClause} mstadi`) }
+				else { mstYapi.duzenle({ sent: harSent, wh, kodClause }) }
 				sahalar.add(
-					`${kodClause} mstkod`, `'${harTipAdi}' grup`,
+					`${kodClause} mstkod`, `'${harTipAdi}' grup`, `${oncelik} oncelik`,
 					`${this.getRevizeDvKodClause(dvKodClause)} dvkod`,
-					`SUM(case when ${baClause} = 'B' then ${bedelClause} else 0 - ${bedelClause} end) bakiye`
-				)
+					`SUM(case when ${baClause} = 'B' then ${bedelClause} else 0 - ${bedelClause} end) bedel`
+				);
 				if (ozelIsaretVarmi && ozelIsaretClause) { wh.notDegerAta('X', ozelIsaretClause) }
-				if (sonTarih) { wh.dateBasiSonu(null, sonTarih, tarihClause) }
-				harYapi.duzenle({ har, hv: alias2Deger, sent: harSent, wh, harTipKod, kodClause, adiClause, mstKodAlias, mstAdiAlias });
+				if (sonTarih) { wh.basiSonu(null, sonTarih, tarihClause) }
+				harYapi.duzenle({
+					har, hv: alias2Deger, sent: harSent, wh, harTipKod,
+					kodClause, adiClause, mstKodAlias, mstAdiAlias
+				});
 				harSent.groupByOlustur().gereksizTablolariSil();
 				uni.add(harSent)
 			}
 		}
 		/* console.table(uni.siraliSahalar) */
 		let topStm = uni.asToplamStm(); stm.with.birlestir(topStm.with); stm.sent = topStm.sent;
-		stm.orderBy.add('hartipkod', 'dvkod', 'mstkod')
+		stm.orderBy.add('oncelik', 'anatip', 'dvkod', 'mstkod')
 		let withSent = topStm.with.liste[0]?.sent;
 		if (!withSent?.liste?.length) { return false }
 		/* self.uni = withSent */
+	}
+	loadServerData_recsDuzenle({ recs }) {
+		super.loadServerData_recsDuzenle(...arguments);
+		for (let rec of recs) {
+			let {dvkod: dvKod, bedel} = rec;
+			if (this.getDovizmi(dvKod)) { rec[`bedel_${dvKod}`] = bedel; rec.bedel = 0 }
+		}
 	}
 	/*loadServerDataInternal(e) { return [] }
 	loadServerData_recsDuzenleIlk({ recs }) {
@@ -118,15 +129,15 @@ class DRapor_EldekiVarliklar_Sol extends DAltRapor_EldekiVarliklar_Ortak {
 	get hareketciYapilari() {
 		return [
 			...super.hareketciYapilari,
-			new DRapor_EldekiVarlik_HarYapi().setSinif(KasaHareketci),
-			new DRapor_EldekiVarlik_HarYapi().setSinif(BankaMevduatHareketci),
-			new DRapor_EldekiVarlik_HarYapi().setSinif(POSHareketci),
-			new DRapor_EldekiVarlik_HarYapi(['alcek', 'Alacak Çekleri']).setSinif(CSHareketci)
+			new DRapor_HarYapi().setSinif(KasaHareketci),
+			new DRapor_HarYapi().setSinif(BankaMevduatHareketci),
+			new DRapor_HarYapi().setSinif(POSHareketci),
+			new DRapor_HarYapi(['alcek', 'Alacak Çekleri']).setSinif(CSHareketci)
 				.setDuzenleyici(({ hv, wh }) => wh.degerAta('AC', hv.belgetipi)),
-			new DRapor_EldekiVarlik_HarYapi(['alsenet', 'Alacak Senetleri']).setSinif(CSHareketci)
+			new DRapor_HarYapi(['alsenet', 'Alacak Senetleri']).setSinif(CSHareketci)
 				.setDuzenleyici(({ hv, wh }) => wh.degerAta('AS', hv.belgetipi)),
-			new DRapor_EldekiVarlik_HarYapi(['must', 'Müşteriler']).setSinif(CariHareketci)
-				.setDuzenleyici(({ hv, sent, wh, kodClause }) => {
+			new DRapor_HarYapi(['must', 'Müşteriler']).setSinif(CariHareketci)
+				.setDuzenleyici(({ sent, wh, kodClause }) => {
 					if (!sent.from.aliasIcinTable('car')) { sent.fromIliski('carmst car', `${kodClause} = car.must`) }
 					sent.cari2TipBagla(); wh.add(`ctip.satmustip = ''`)
 				})
@@ -154,15 +165,15 @@ class DRapor_EldekiVarliklar_Sag extends DAltRapor_EldekiVarliklar_Ortak {
 	get hareketciYapilari() {
 		return [
 			...super.hareketciYapilari,
-			new DRapor_EldekiVarlik_HarYapi().setSinif(KrediTaksitHareketci),
-			new DRapor_EldekiVarlik_HarYapi().setSinif(KrediKartiHareketci),
-			new DRapor_EldekiVarlik_HarYapi().setSinif(BankaAkreditifHareketci),
-			new DRapor_EldekiVarlik_HarYapi().setSinif(BankaTeminatMektupHareketci),
-			new DRapor_EldekiVarlik_HarYapi(['brcek', 'Borç Çekleri']).setSinif(CSHareketci)
+			new DRapor_HarYapi().setSinif(KrediTaksitHareketci),
+			new DRapor_HarYapi().setSinif(KrediKartiHareketci),
+			new DRapor_HarYapi().setSinif(BankaAkreditifHareketci),
+			new DRapor_HarYapi().setSinif(BankaTeminatMektupHareketci),
+			new DRapor_HarYapi(['brcek', 'Borç Çekleri']).setSinif(CSHareketci)
 				.setDuzenleyici(({ hv, wh }) => wh.degerAta('BC', hv.belgetipi)),
-			new DRapor_EldekiVarlik_HarYapi(['brsenet', 'Borç Senetleri']).setSinif(CSHareketci)
+			new DRapor_HarYapi(['brsenet', 'Borç Senetleri']).setSinif(CSHareketci)
 				.setDuzenleyici(({ hv, wh }) => wh.degerAta('BS', hv.belgetipi)),
-			new DRapor_EldekiVarlik_HarYapi(['satici', 'Satıcılar']).setSinif(CariHareketci)
+			new DRapor_HarYapi(['satici', 'Satıcılar']).setSinif(CariHareketci)
 				.setDuzenleyici(({ hv, sent, wh, kodClause }) => {
 					if (!sent.from.aliasIcinTable('car')) { sent.fromIliski('carmst car', `${kodClause} = car.must`) }
 					sent.cari2TipBagla(); wh.add(`ctip.satmustip = 'S'`)
@@ -180,32 +191,4 @@ class DRapor_EldekiVarliklar_Sag extends DAltRapor_EldekiVarliklar_Ortak {
 		]);
 		return recs
 	}*/
-}
-
-class DRapor_EldekiVarlik_HarYapi extends CKodVeAdi {
-	get sinif() {
-		let e = { harYapi: this };
-		return getFuncValue.call(this, this._sinif, e)
-	}
-	set sinif(value) { this._sinif = value; this.sinifIcinFix() }
-	constructor(e) {
-		e = e ?? {}; super(e);
-		if ($.isArray(e)) { $.extend(this, { sinif: e[2], duzenleyici: e[3] }) }
-		else { $.extend(this, { _sinif: e.sinif, duzenleyici: e.duzenleyici ?? e.duzenle }) }
-		this.sinifIcinFix()
-	}
-	duzenle(e) {
-		let {duzenleyici: handler} = this; if (!handler) { return this }
-		let {sent, where: wh} = e; wh = wh ?? e.wh ?? sent?.where;
-		let _e = { ...e, sent, wh }; delete _e.where;
-		getFuncValue.call(this, handler, _e);
-		wh = e.wh = _e.wh; if (sent) { sent.where = wh }
-		return this
-	}
-	sinifIcinFix(e) {
-		let {sinif} = this; if (!sinif) { return }
-		$.extend(this, { kod: this.kod || sinif.kod, aciklama: this.aciklama || sinif.aciklama })
-	}
-	setSinif(value) { this.sinif = value; return this }
-	setDuzenleyici(value) { this.duzenleyici = value; return this }
 }

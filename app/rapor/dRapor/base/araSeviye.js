@@ -410,6 +410,15 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 						` when ${getWhereClause('brm2')} then ${getMiktarClause(`${harAliasVeNokta}${miktarPrefix}miktar2`)}` +
 						` else 0 end)`
 	}
+	getDovizmi(e) {
+		let dvKod = typeof e == 'object' ? e.dvKod ?? e.dvkod : e;
+		switch (dvKod ?? '') {
+			case '': case 'TL':
+			case 'TRY': case 'TRL':
+				return false
+		}
+		return true
+	}
 	getDvBosmuClause(e) {
 		let dvKodClause = typeof e == 'object' ? e.dvKodClause : e;
 		if ((dvKodClause || `''`) == `''`) { return '1 = 1' }

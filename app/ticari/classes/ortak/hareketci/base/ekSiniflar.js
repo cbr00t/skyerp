@@ -47,16 +47,21 @@ class Hareketci_MstYapi extends CObject {
 		e = e ?? {}; super(e);
 		$.extend(this, { hvAlias: e.hvAlias, hvAdiAlias: e.hvAdiAlias, duzenleyici: e.duzenleyici })
 	}
-	sentDuzenle(e) {  /* e: { sent, wh } */
-		e = e ?? {}; let {kod, hvAlias} = this, mstAdiAlias = 'mstadi', {tableAlias: mstAlias, aliasVeNokta: mstAliasVeNokta} = this.class;
-		if (e.where && !e.wh) { e.wh = e.where; delete e.where }
-		let args = { ...e, kod, hvAlias, mstAlias, mstAliasVeNokta, mstAdiAlias }; this.duzenleyici?.call(this, args);
-		let {sent} = args; $.extend(e, { sent, wh: sent?.where });
+	duzenle(e) {  /* e: { sent, wh } */
+		let {duzenleyici: handler} = this; if (!handler) { return this }
+		let {sent, where: wh} = e; wh = wh ?? e.wh ?? sent?.where;
+		let {tableAlias: mstAlias, aliasVeNokta: mstAliasVeNokta} = this.class;
+		let {kod, hvAlias} = this, mstAdiAlias = 'mstadi';
+		let _e = { ...e, sent, wh, kod, hvAlias, mstAlias, mstAdiAlias, mstAliasVeNokta }; delete _e.where;
+		if (_e.mstKodClause && !_e.kodClause) { _e.kodClause = _e.mstKodClause; delete _e.mstKodClause }
+		if (_e.mstAdiClause && !_e.adiClause) { _e.adiClause = _e.mstAdiClause; delete _e.mstAdiClause }
+		getFuncValue.call(this, handler, _e);
+		sent = _e.sent; wh = _e.where ?? sent?.where; $.extend(e, { sent, wh });
 		return this
 	}
 	set(e, _duzenleyici) {
 		e = typeof e == 'object' ? e : { hvAlias: e, duzenleyici: _duzenleyici };
-		for (let key of ['hvAlias', 'duzenleyici']) {
+		for (let key of ['hvAlias', 'hvAdiAlias', 'duzenleyici']) {
 			let value = e[key];
 			if (value !== undefined) { this[key] = e[key] }
 		}
@@ -65,4 +70,61 @@ class Hareketci_MstYapi extends CObject {
 	setHVAlias(value) { this.hvAlias = value; return this }
 	setHVAdiAlias(value) { this.hvAdiAlias = value; return this }
 	setDuzenleyici(handler) { this.duzenleyici = handler; return this }
+}
+class DRapor_DuzenleyiciliKAYapi extends CKodVeAdi {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	constructor(e) {
+		e = e ?? {}; super(e);
+		if ($.isArray(e)) { $.extend(this, { duzenleyici: e[2] }) }
+		else { $.extend(this, { duzenleyici: e.duzenleyici ?? e.duzenle }) }
+	}
+	duzenle(e) {
+		let {duzenleyici: handler} = this; if (!handler) { return this }
+		let {sent, where: wh} = e; wh = wh ?? e.wh ?? sent?.where;
+		let _e = { ...e, sent, wh }; delete _e.where;
+		if (_e.mstKodClause && !_e.kodClause) { _e.kodClause = _e.mstKodClause; delete _e.mstKodClause }
+		if (_e.mstAdiClause && !_e.adiClause) { _e.adiClause = _e.mstAdiClause; delete _e.mstAdiClause }
+		getFuncValue.call(this, handler, _e);
+		sent = _e.sent; wh = _e.where ?? sent?.where; $.extend(e, { sent, wh });
+		return this
+	}
+	setKA(e, _aciklama) {
+		let arraymi = $.isArray(e), objmi = !arraymi && typeof e == 'object', plainmi = !(isArray || isObject);
+		$.extend(this, {
+			kod: arraymi ? e[0] : objmi ? e.kod : e,
+			aciklama: arraymi ? e[1] : objmi ? e.aciklama : _aciklama,
+		});
+		return this
+	}
+	setDuzenleyici(value) { this.duzenleyici = value; return this }
+}
+class DRapor_AltTipYapi extends DRapor_DuzenleyiciliKAYapi {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	get ortakmi() { return !this.target } get solmu() { return this.target == 'sol' } get sagmi() { return this.target == 'sag' }
+	constructor(e) {
+		e = e ?? {}; super(e);
+		if ($.isArray(e)) { $.extend(this, { target: e[3] }) }
+		else { $.extend(this, { target: e.target ?? e.yon }) }
+	}
+	ortak() { this.target = null; return this } sol() { this.target = 'sol'; return this } sag() { this.target = 'sag'; return this }
+}
+class DRapor_HarYapi extends DRapor_DuzenleyiciliKAYapi {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	get sinif() {
+		let e = { harYapi: this };
+		return getFuncValue.call(this, this._sinif, e)
+	}
+	set sinif(value) { this._sinif = value; this.sinifIcinFix() }
+	constructor(e) {
+		e = e ?? {}; super(e);
+		if ($.isArray(e)) { $.extend(this, { sinif: e[2], duzenleyici: e[3] }) }
+		else { $.extend(this, { _sinif: e.sinif, duzenleyici: e.duzenleyici ?? e.duzenle }) }
+		this.sinifIcinFix()
+	}
+	sinifIcinFix(e) {
+		let {sinif} = this; if (!sinif) { return this }
+		$.extend(this, { kod: this.kod || sinif.kod, aciklama: this.aciklama || sinif.aciklama })
+		return this
+	}
+	setSinif(value) { this.sinif = value; return this }
 }

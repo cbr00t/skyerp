@@ -1,11 +1,7 @@
 class KrediTaksitHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 5 }
 	static get kod() { return 'krediTaksit' } static get aciklama() { return 'Kredi Taksit' }
-	static getBuGelecekClause(tarihClause) {
-		const sqlNull = 'NULL'; if (!tarihClause || tarihClause?.toUpperCase() == sqlNull) { return sqlNull }
-		const cariYil = app?.params?.zorunlu?.cariYil || today().yil;
-		return `(case when ${tarihClause} <= ${cariYil} then 'B' else 'G' end)`
-	}
+	static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sag() }
 	static mstYapiDuzenle({ result }) {
 		super.mstYapiDuzenle(...arguments);
 		result.set('banhesapkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
@@ -19,6 +15,11 @@ class KrediTaksitHareketci extends Hareketci {
             new CKodVeAdi(['odeme', 'Kredi Ödeme']), new CKodVeAdi(['dekont', 'Genel Dekont'])
         ]/*.filter(x => !!x)*/)
     }
+	static getBuGelecekClause(tarihClause) {
+		const sqlNull = 'NULL'; if (!tarihClause || tarihClause?.toUpperCase() == sqlNull) { return sqlNull }
+		const cariYil = app?.params?.zorunlu?.cariYil || today().yil;
+		return `(case when ${tarihClause} <= ${cariYil} then 'B' else 'G' end)`
+	}
     /** Varsayılan değer atamaları (host vars) – temel sınıfa eklemeler.
 		Hareketci.varsayilanHVDuzenle değerleri aynen alınır, sadece eksikler eklenir */
     static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {

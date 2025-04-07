@@ -1,18 +1,42 @@
 class CariHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 10 }
 	static get kod() { return 'cari' } static get aciklama() { return 'Cari' }
+	static altTipYapilarDuzenle({ result }) {
+		/* super.altTipYapilarDuzenle(...arguments); */
+		$.extend(result, {
+			musteri: new DRapor_AltTipYapi(['musteri', `'Müşteriler'`]).sol()
+				.setDuzenleyici(({ sent, wh, kodClause }) => {
+					if (!sent.from.aliasIcinTable('car')) { sent.fromIliski('carmst car', `${kodClause} = car.must`) }
+					sent.cari2TipBagla(); wh.degerAta('', 'ctip.satmustip')
+				}),
+			satici: new DRapor_AltTipYapi(['satici', `'Satıcılar'`]).sag()
+				.setDuzenleyici(({ sent, wh, kodClause }) => {
+					if (!sent.from.aliasIcinTable('car')) { sent.fromIliski('carmst car', `${kodClause} = car.must`) }
+					sent.cari2TipBagla(); wh.degerAta('S', 'ctip.satmustip')
+				})
+		})
+	}
 	static mstYapiDuzenle({ result }) {
 		super.mstYapiDuzenle(...arguments);
 		result.set('must', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
 			sent.fromIliski(`carmst ${mstAlias}`, `${kodClause} = ${mstAlias}.must`).add(`${mstAlias}.birunvan ${mstAdiAlias}`))
 	}
 	static hareketTipSecim_kaListeDuzenle({ kaListe }) {
-		super.hareketTipSecim_kaListeDuzenle(...arguments); kaListe.push(
+		super.hareketTipSecim_kaListeDuzenle(...arguments); let {params} = app;
+		let {kullanim: ticGenel} = params.ticariGenel ?? {}, {kullanim: akt} = params.aktarim ?? {}, {kullanim: satis} = params.satis ?? {};
+		kaListe.push(
 			new CKodVeAdi(['kasa', 'Kasa Tahsilat/Ödeme']), new CKodVeAdi(['hizmet', 'Hizmet Gelir/Gider']), new CKodVeAdi(['havaleEFT', 'Havale/EFT']),
 			new CKodVeAdi(['cariTahsilatOdeme', 'Cari Tahsilat/Ödeme']), new CKodVeAdi(['virman', 'Cari Virman', 'virmanmi']), new CKodVeAdi(['genelDekont', 'Genel Dekont']),
 			new CKodVeAdi(['topluIslem', 'Toplu İşlem/Devir']), new CKodVeAdi(['cekSenet', 'Çek/Senet']),
 			new CKodVeAdi(['kredi', 'Banka Kredi']), new CKodVeAdi(['pos', 'POS İşlemi']), new CKodVeAdi(['fatura', 'Fatura']), new CKodVeAdi(['masraf', 'Faiz/Masraf'])
-		)
+		);
+		if (ticGenel.sutAlim) { kaListe.push(new CKodVeAdi(['sutAlimMakbuz', 'Süt Alım Makbuz'])) }
+		if (akt.yazarKasa || akt.pratikSatis) {
+			if (akt.yazarKasa) { kaListe.push(new CKodVeAdi(['ykZRapor', 'Yazar Kasa Z Raporu'])) }
+			kaListe.push(new CKodVeAdi(['kasiyerIslem', 'Kasiyer İşlem']))
+		}
+		if (akt.konsinyeLojistik || satis.kamuIhale) { kaListe.push(new CKodVeAdi(['konsinyeLojistik', 'Konsinye Resmi Kurum'])) }
+		if (ticGenel.siteYonetimi) { kaListe.push(new CKodVeAdi(['siteYonetimTahakkuk', 'Site Yönetim Tahakkuk'])) }
 	}
 	static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
 		super.varsayilanHVDuzenle(...arguments);
@@ -22,7 +46,9 @@ class CariHareketci extends Hareketci {
 	uygunluk2UnionBilgiListeDuzenleDevam(e) {
 		super.uygunluk2UnionBilgiListeDuzenleDevam(e);
 		this.uniDuzenle_banka(e).uniDuzenle_finans(e).uniDuzenle_genelDekont(e);
-		this.uniDuzenle_cariTahsilatOdeme(e).uniDuzenle_cekSenet(e).uniDuzenle_ticari(e)
+		this.uniDuzenle_cariTahsilatOdeme(e).uniDuzenle_cekSenet(e).uniDuzenle_ticari(e);
+		this.uniDuzenle_sutAlimMakbuz(e).uniDuzenle_ykZRapor(e).uniDuzenle_kasiyerIslem(e);
+		this.uniDuzenle_konsinyeLojistik(e).uniDuzenle_siteYonetimTahakkuk(e)
 	}
 	uniDuzenle_banka({ uygunluk, liste }) {
 		$.extend(liste, {
@@ -378,7 +404,7 @@ class CariHareketci extends Hareketci {
 			return _etkilenmeOr
 		}
 		$.extend(liste, {
-			ticari: [
+			fatura: [
 				(borclanmaSekli.siparismi ?
 					new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 						let {where: wh} = sent; sent.fromAdd('sipfis fis').fis2TicCariBagla().fis2PlasiyerBagla().fis2StokIslemBagla().fis2AltHesapBagla_eski();
@@ -442,6 +468,112 @@ class CariHareketci extends Hareketci {
 					})
 				}) : null)
 			].filter(x => !!x)
+		});
+		return this
+	}
+	uniDuzenle_sutAlimMakbuz({ uygunluk, liste }) {
+		$.extend(liste, {
+			sutAlimMakbuz: [
+				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
+					let {where: wh} = sent;
+					sent.fromAdd('topmakbuzfis fis').fis2AltHesapBagla()
+						.leftJoin({ alias: 'fis', from: 'rota rot', on: 'fis.rotasayac = rot.kaysayac' })
+						.fromIliski('topmakbuzara ara', 'fis.kaysayac = ara.fissayac').fromIliski('topmakbuzstok har', 'ara.kaysayac = har.arasayac')
+						.fromIliski('carmst car', 'ara.mustahsilkod = car.must');
+					wh.fisSilindiEkle().degerAta(0, 'ara.biptalmi').degerAta('M', 'fis.fistipi')
+				}).hvDuzenleIslemi(({ hv }) => {
+					$.extend(hv, {
+						kaysayac: 'har.kaysayac', oncelik: 80, unionayrim: `'TMak'`, kayittipi: `'TPMAK'`, iceriktipi: `'TMAK'`,
+						anaislemadi: `'Toplu Alım Makbuzu'`, isladi: `'Toplu Alım Makbuzu'`, refkod: 'rot.kod', refadi: 'rot.aciklama',
+						fistipi: 'fis.fistipi', must: 'ara.mustahsilkod', fisnox: 'ara.makbuznox', althesapkod: 'fis.althesapkod',
+						ba: `'A'`, bedel: 'har.sonuc', aciklama: 'fis.aciklama'
+					})
+				})
+			]
+		})
+		return this
+	}
+	uniDuzenle_ykZRapor({ liste, uygunluk }) {
+		let {kullanim: akt} = app.params?.aktarim ?? {};
+		$.extend(liste, {
+			ykZRapor: [
+				(akt.yazarKasa ? new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
+					let {where: wh} = sent; sent.fromAdd('yktotalcari ykcar')
+						.fromIliski('carmst car', 'ykcar.mustkod = car.must')
+						.fromIliski('yktotalfis yktot', 'ykcar.fissayac = yktot.kaysayac');
+					wh.fisSilindiEkle('yktot').add(`ykcar.mustkod <> ''`);
+				}).hvDuzenleIslemi(({ hv, sqlEmpty }) => {
+					$.extend(hv, {
+						kaysayac: 'ykcar.kaysayac', fissayac: 'yktot.kaysayac', ozelisaret: 'yktot.ozelisaret', oncelik: '145',
+						unionayrim: `'ZTot'`, kayittipi: `'ZTot'`, iceriktipi: `'ZTot'`,
+						anaislemadi: `'Z Total Bilgi'`, islemadi: `'YK. Veresiye'`, ba: `'B'`,
+						bizsubekod: 'yktot.bizsubekod', refadi: 'yktot.zbilgi', tarih: 'yktot.tarih', must: 'ykcar.mustkod',
+						fisnox: sqlEmpty, bedel: 'ykcar.bedel'
+					})
+				}) : null)
+			].filter(x => !!x)
+		});
+		return this
+	}
+	uniDuzenle_kasiyerIslem({ liste, uygunluk }) {
+		$.extend(liste, {
+			kasiyerIslem: [
+				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
+					let {where: wh} = sent; sent.fromAdd('kasiyerislem pisl')
+						.fromIliski('carmst car', 'pisl.mustkod = car.must')
+						.fromIliski('kasiyer ksy', 'pisl.kasiyerkod = ksy.kod');
+					wh.add(`pisl.mustkod <> ''`).inDizi(['NT', 'PT', 'NO'], 'pisl.tipkod');
+				}).hvDuzenleIslemi(({ hv }) => {
+					$.extend(hv, {
+						kaysayac: 'pisl.kaysayac', ozelisaret: 'pisl.ozelisaret', oncelik: '150',
+						unionayrim: `'Ksy'`, kayittipi: `'Ksy'`, iceriktipi: `'Ksy'`,
+						anaislemadi: `'Kasiyer İşlemi'`, islemadi: `'Kasiyer İşlemi'`, ba: `dbo.tersba(pisl.ba)`,
+						bizsubekod: 'pisl.bizsubekod', refkod: 'pisl.kasiyerkod', refadi: 'ksy.aciklama', tarih: 'pisl.tarih', fisnox: 'pisl.fisno',
+						must: 'pisl.mustkod', bedel: 'pisl.bedel', aciklama: 'pisl.aciklama'
+					})
+				})
+			]
+		});
+		return this
+	}
+	uniDuzenle_konsinyeLojistik({ liste, uygunluk }) {
+		let getUniBilgiler = (kayitTipi, adi, bedelSql, acikSql) => [
+			new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
+					let {where: wh} = sent; sent.fromAdd('piffis fis').fis2CariBagla()
+					wh.fisSilindiEkle().degerAta('F', 'fis.piftipi')
+						.degerAta('', 'fis.fisekayrim').add(`${bedelSql} > 0`);
+				}).hvDuzenleIslemi(({ hv, sqlZero }) => {
+					let kayitTipiSql = kayitTipi.sqlServerDegeri(), adiSql = adi.sqlServerDegeri();
+					$.extend(hv, {
+						kaysayac: 'fis.kaysayac', oncelik: '160', kayittipi: kayitTipiSql, unionayrim: `'KLoj'`,
+						iade: 'fis.iade', must: 'fis.must', anaislemadi: adiSql, islemadi: adiSql, fisnox: 'fis.fisnox',
+						ba: `(case when fis.gc = 'C' then 'A' else 'B' end)`, bedel: bedelSql, dvbedel: sqlZero, aciklama: 'fis.cariaciklama'
+					})
+				})
+		];
+		$.extend(liste, {
+			konsinyeLojistik: [
+				...getUniBilgiler('KLojD', 'Konsinye Damga Vergisi', 'fis.kldamgavergisi', 'fis.kldamgaacikkisim'),
+				...getUniBilgiler('KLojR', 'Konsinye Reyon Bedeli', 'fis.klreyonbedeli', 'fis.klreyonacikkisim')
+			]
+		});
+		return this
+	}
+	uniDuzenle_siteYonetimTahakkuk({ liste, uygunluk }) {
+		$.extend(liste, {
+			siteYonetimTahakkuk: [
+				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
+					let {where: wh} = sent;
+					sent.fisHareket('sytahfis', 'sytahhar').har2CariBagla().fis2AltHesapBagla()
+						.fromIliski('sytahgrup tgrp', 'fis.tahgrupkod = tgrp.kod')
+				}).hvDuzenleIslemi(({ hv, sqlEmpty }) => {
+					$.extend(hv, {
+						kaysayac: 'har.kaysayac', ozelisaret: sqlEmpty, oncelik: 2, bizsubekod: sqlEmpty, kayittipi: `'SYON'`, unionayrim: `'SYonet'`,
+						anaislemadi: 'tgrp.aciklama', fistipi: sqlEmpty, must: 'har.must', fisnox: sqlEmpty, althesapkod: 'fis.althesapkod',
+						ba: `'B'`, isladi: 'tgrp.aciklama', bedel: 'har.bedel' 
+					})
+				})
+			]
 		});
 		return this
 	}

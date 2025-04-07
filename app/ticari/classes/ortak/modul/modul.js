@@ -129,22 +129,22 @@ class Modul_OfflineSube extends Modul {
 class Modul_SutAlim extends Modul {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return 'MPSUTA' } static get aciklama() { return 'Süt Alım' }
-	static get extSinif_hareketci_cari() { return ModulExt_Hareketci_Cari_SutAlim }
+	/*static get extSinif_hareketci_cari() { return ModulExt_Hareketci_Cari_SutAlim }*/
 }
 class Modul_YazarKasa extends Modul {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kullaniliyormu() { const {kullanim} = app.params?.aktarim ?? {}; return kullanim?.yazarKasa || kullanim?.pratikSatis }
 	static get kod() { return 'MPYKAS' } static get aciklama() { return 'Yazar Kasa' }
-	static get extSinif_hareketci_cari() { return ModulExt_Hareketci_Cari_YazarKasa }
+	/*static get extSinif_hareketci_cari() { return ModulExt_Hareketci_Cari_YazarKasa }*/
 }
 class Modul_KonsinyeLojistik extends Modul {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kullaniliyormu() { const {params} = app; params?.aktarim?.kullanim?.konsinyeLojistik ?? params?.satis?.kullanim?.kamuIhale }
 	static get kod() { return 'MKONLJ' } static get aciklama() { return 'Konsinye Lojistik' }
-	static get extSinif_hareketci_cari() { return ModulExt_Hareketci_Cari_KonsinyeLojistik }
+	/*static get extSinif_hareketci_cari() { return ModulExt_Hareketci_Cari_KonsinyeLojistik }*/
 }
 class Modul_SiteYonetim extends Modul {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get kullaniliyormu() { return app.params?.ticariGenel?.kullanim?.siteYonetimi }
 	static get kod() { return 'MSYONT' } static get aciklama() { return 'Gayrımenkul Yönetimi' }
-	static get extSinif_hareketci_cari() { return ModulExt_Hareketci_Cari_SiteYonetim }
+	/*static get extSinif_hareketci_cari() { return ModulExt_Hareketci_Cari_SiteYonetim }*/
 }

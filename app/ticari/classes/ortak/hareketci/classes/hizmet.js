@@ -2,6 +2,7 @@ class HizmetHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return 'hizmet' } static get aciklama() { return 'Hizmet' }
 	static get donemselIslemlerIcinUygunmu() { return false }
+	static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sol() }
 	static mstYapiDuzenle({ result }) {
 		super.mstYapiDuzenle(...arguments);
 		result.set('hizmetkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
@@ -34,7 +35,7 @@ class HizmetHareketci extends Hareketci {
         /* super.varsayilanHVDuzenle(...arguments); */
 		for (let key of ['tarih']) { hv[key] = sqlNull }
 		for (let key of [
-			'ozelisaret', 'fisnox', 'mustkod', 'refkod', 'refadi', 'plasiyerkod', 'althesapkod',
+			'alttip', 'ozelisaret', 'fisnox', 'mustkod', 'refkod', 'refadi', 'plasiyerkod', 'althesapkod',
 			'takipno', 'kdetay', 'depkod', 'masrafkod', 'ba'
 		]) { hv[key] = sqlEmpty }
 		for (let key of [

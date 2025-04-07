@@ -14,7 +14,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 	onGridInit(e) { super.onGridInit(e); this.ekBilgi = {} }
 	tazele(e) {
 		let {secimler: sec, rapor} = this, {tarihBS} = sec;
-		if (!tarihBS?.basi) { this.secimlerIstendi(); setTimeout(() => super.tazele(e), 100) }
+		if (!(tarihBS?.basi || this.secimlerIstendimi)) { this.secimlerIstendi(); this.secimlerIstendimi = true /*; setTimeout(() => super.tazele(e), 100) */ }
 		else { super.tazele(e) }
 	}
 	secimlerDuzenle({ secimler: sec }) {
@@ -30,13 +30,13 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 	}
 	tabloYapiDuzenle({ result }) {
 		// super.tabloYapiDuzenle(...arguments);
-		result.addKAPrefix('hartip', 'mst')
+		result.addKAPrefix('mst')
 			.addGrupBasit_numerik('ONCELIK', 'Öncelik', 'oncelik', null, null, null, false)
 			.addGrupBasit('GRUP', 'Ana Bilgi', 'grup', null, null, ({ item }) => {
-				item.setFormul(['HARTIPADI', 'DVKOD'], ({ rec }) =>
-					`${rec.hartipadi} (<span class=royalblue>${rec.dvkod || 'TL'}</span>)`)
+				item.setFormul(['GRUP', 'DVKOD'], ({ rec }) =>
+					`${rec.grup} (<span class=royalblue>${rec.dvkod || 'TL'}</span>)`)
 			}, false)
-			.addGrupBasit('HARTIPADI', '', 'hartipadi', null, null, null, false)
+			.addGrupBasit('GRUP', '', 'grup', null, null, null, false)
 			.addGrupBasit('MST', 'Alt Bilgi', 'mst', null, null, null, false)
 			/* .addGrupBasit('LOGTS', 'Log Zamanı', 'logTS', null, null, null, false) */
 			.addToplamBasit_bedel('DEVIR', 'Devir', 'devir', null, null, null, false)
@@ -54,71 +54,89 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 	}
 	loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); let {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu;
-		let {stm, secimler: sec, donemBS} = e, {grupVeToplam} = this.tabloYapi, {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
+		let {stm} = e, {grupVeToplam} = this.tabloYapi, {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
+		let {secimler: sec} = this, {tarihBS: donemBS} = sec;
 		let anaTipSet = asSet(sec.anaTip?.value); if ($.isEmptyObject(anaTipSet)) { anaTipSet = null }
 		let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => !!cls.donemselIslemlerIcinUygunmu && (!anaTipSet || anaTipSet[cls.kod]));
 		let {basi: tBasi, sonu: tSonu} = donemBS ?? {}; tSonu = tSonu || today();
-		if (!(tBasi && tSonu)) { throw { isError: true, errorText: `Seçimlerden <b>Dönem</b> seçilmeli veya <b>Tarih Aralık</b> belirtilmelidir` } }
+		/*if (!(tBasi && tSonu)) { throw { isError: true, errorText: `Seçimlerden <b>Dönem</b> seçilmeli veya <b>Tarih Aralık</b> belirtilmelidir` } }*/
 		let tBasiClause = MQSQLOrtak.sqlServerDegeri(tBasi), tSonuClause = MQSQLOrtak.sqlServerDegeri(tSonu);
 		/*let belirtecler = Object.keys(attrSet).map(kod => grupVeToplam[kod]?.colDefs?.[0]?.belirtec).filter(x => !!x);*/
-		let sabitBelirtecler = ['tarih', 'ba', 'bedel', 'dvbedel', 'dvkod'];
+		let sabitBelirtecler = [/*'alttip',*/ 'tarih', 'ba', 'bedel', 'dvbedel', 'dvkod', 'belgetipi'];
 		if (ozelIsaretVarmi) { sabitBelirtecler.push('ozelisaret') }
 		let harListe = []; for (let cls of harClasses) {
-			let {mstYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
+			let {mstYapi, altTipYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
 			let belirtecler = [...sabitBelirtecler, mstKodAlias, mstAdiAlias].filter(x => !!x);
 			let har = new cls(); har.withAttrs(belirtecler); harListe.push(har)
 		}
 		let uni = new MQUnionAll(); for (let har of harListe) {
-			let {kod, aciklama, oncelik, mstYapi} = har.class, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
-			let harUni = har.uniOlustur(); for (let harSent of harUni.getSentListe()) {
-				if (!harSent) { continue } let {from, where: wh, sahalar, alias2Deger} = harSent;
-				let {ozelisaret: ozelIsaretClause, tarih: tarihClause, ba: baClause, bedel: tlBedelClause, dvbedel: dvBedelClause, dvkod: dvKodClause} = alias2Deger;
-				dvKodClause = dvKodClause || sqlEmpty;
-				let bedelClause = this.getDovizliBedelClause({ dvKodClause, tlBedelClause, dvBedelClause, sumOlmaksizin: true });
-				let kodClause = alias2Deger[mstKodAlias], adiClause = alias2Deger[mstAdiAlias];
-				/* if (mstAdiAlias) { debugger } */
-				sahalar.liste = [];
-				if (adiClause) { sahalar.add(`${adiClause} mstadi`) }
-				else { mstYapi.sentDuzenle({ sent: harSent, wh, kodClause }) }
-				/*   DEBUG  
-				if (!harSent.alias2Deger.mstadi) {
-					console.info(har, Object.keys(har.attrSet), harSent, harSent.getQueryYapi());
-					console.table(harSent.alias2Deger);
-					debugger
+			let {kod: harTipKod, aciklama: harTipAdi, oncelik, altTipYapilar, mstYapi} = har.class;
+			let {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
+			for (let altTipYapi of Object.values(altTipYapilar)) {
+				let harUni = har.uniOlustur(), harSentListe = harUni.liste.filter(x => !!x);
+				for (let harSent of harSentListe) {
+					let {kod: altTipKod, aciklama: altTipAdiClause} = altTipYapi;
+					let {from, where: wh, sahalar, alias2Deger} = harSent; sahalar.liste = [];
+					/* let {alttip: altTipClause} = alias2Deger; */
+					let mstKodClause = alias2Deger[mstKodAlias], mstAdiClause = alias2Deger[mstAdiAlias];
+					/* if (mstAdiAlias) { debugger } */
+					if (mstAdiClause) { sahalar.add(`${mstAdiClause} mstadi`) }
+					else { mstYapi.duzenle({ sent: harSent, wh, mstKodClause }) }
+					let grupKod = altTipKod || harTipKod, grupAdiClause = altTipAdiClause || (harTipAdi || '').sqlServerDegeri();
+					/*   DEBUG  
+					if (!harSent.alias2Deger.mstadi) {
+						console.info(har, Object.keys(har.attrSet), harSent, harSent.getQueryYapi());
+						console.table(harSent.alias2Deger); debugger
+					}
+					*/
+					let {ozelisaret: ozelIsaretClause, tarih: tarihClause, ba: baClause,
+						 bedel: tlBedelClause, dvbedel: dvBedelClause, dvkod: dvKodClause} = alias2Deger;
+					dvKodClause = dvKodClause || sqlEmpty;
+					let bedelClause = this.getDovizliBedelClause({ dvKodClause, tlBedelClause, dvBedelClause, sumOlmaksizin: true });
+					sahalar.add(
+						/* mstadi, */ `${mstKodClause} mstkod`, `'${harTipKod}' anatip`, /* `${altTipClause} alttip`, */
+						`${grupAdiClause} grup`, `${oncelik} oncelik`, `${dvKodClause} dvkod`
+					);
+					if (tBasi) {
+						sahalar.add(
+							`SUM(case when ${tarihClause} < ${tBasiClause} then (case when ${baClause} = 'B' then ${bedelClause} else 0 - ${bedelClause} end) else 0 end) devir`,
+							`SUM(case when ${tarihClause} >= ${tBasiClause} AND ${baClause} = 'B' then ${bedelClause} else 0 end) borc`,
+							`SUM(case when ${tarihClause} >= ${tBasiClause} AND ${baClause} = 'A' then ${bedelClause} else 0 end) alacak`
+						)
+					}
+					else {
+						sahalar.add(
+							`0 devir`,
+							`SUM(case when ${baClause} = 'B' then ${bedelClause} else 0 end) borc`,
+							`SUM(case when ${baClause} = 'A' then ${bedelClause} else 0 end) alacak`
+						)
+					}
+					if (tSonu) { wh.add(`${tarihClause} <= ${tSonuClause}`) }
+					if (ozelIsaretVarmi && ozelIsaretClause) { wh.notDegerAta('X', ozelIsaretClause) }
+					let fisAliasVarmi = !!from.liste.find(({ alias }) => alias == 'fis');
+					let logZamaniClause = fisAliasVarmi ? 'fis.sonzamants' : sqlNull;
+					/* sahalar.add(`${logZamaniClause} logTS`); */
+					/* this.donemBagla({ donemBS, tarihSaha: tarihClause, sent: harSent }); */
+					if (fisAliasVarmi) { wh.basiSonu(sec.logTS, logZamaniClause) }
+					altTipYapi.duzenle({
+						har, hv: alias2Deger, sent: harSent, wh, harTipKod,
+						mstKodClause, mstAdiClause, mstKodAlias, mstAdiAlias
+					});
+					harSent.groupByOlustur().gereksizTablolariSil();
+					uni.add(harSent)
 				}
-				*/
-				sahalar.add(
-					/* mstadi, */ `${kodClause} mstkod`, `'${kod}' hartipkod`, `${oncelik} oncelik`,
-					`${dvKodClause} dvkod`, `'${aciklama}' hartipadi`, /*`'(<b class=gray>${kod}</b>) ${aciklama}' hartip`,*/
-					`SUM(case when ${tarihClause} < ${tBasiClause} then (case when ${baClause} = 'B' then ${bedelClause} else 0 - ${bedelClause} end) else 0 end) devir`,
-					`SUM(case when ${tarihClause} >= ${tBasiClause} AND ${baClause} = 'B' then ${bedelClause} else 0 end) borc`,
-					`SUM(case when ${tarihClause} >= ${tBasiClause} AND ${baClause} = 'A' then ${bedelClause} else 0 end) alacak`
-				)
-				wh.add(`${tarihClause} <= ${tSonuClause}`); 
-				if (ozelIsaretVarmi && ozelIsaretClause) { wh.notDegerAta('X', ozelIsaretClause) }
-				let fisAliasVarmi = !!from.liste.find(({ alias }) => alias == 'fis');
-				let logZamaniClause = fisAliasVarmi ? 'fis.sonzamants' : sqlNull;
-				/* sahalar.add(`${logZamaniClause} logTS`); */
-				this.donemBagla({ donemBS, tarihSaha: tarihClause, sent: harSent });
-				if (fisAliasVarmi) { wh.basiSonu(sec.logTS, logZamaniClause) }
-				harSent.groupByOlustur().gereksizTablolariSil();
-				uni.add(harSent)
 			}
 		}
 		/* console.table(uni.siraliSahalar) */
 		stm = e.stm = uni.asToplamStm();
-		stm.orderBy.add('oncelik', 'hartipkod', 'dvkod', 'mstkod')
+		stm.orderBy.add('oncelik', 'anatip', 'grup', 'dvkod', 'mstkod')
 	}
-	loadServerData_recsDuzenle({ recs }) {
-		super.loadServerData_recsDuzenle(...arguments)
-		/*for (let rec of recs) {
-			let {hartipadi, dvkod} = rec;
-			rec.grup = `${hartipadi} (<span class=royalblue>${dvkod}</span>)`
-		}*/
-	}
-	async detaylariOlustur({ event: evt }) {
-		let {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu, {secimler: sec} = this, {id2AltRapor} = this.rapor, {row: rec} = evt.args;
-		let {hartipkod: harTip, mstkod: kod, dvkod: dvKod, level, ozelisaret: ozelIsaret} = rec ?? {};
+	loadServerData_recsDuzenle({ recs }) { super.loadServerData_recsDuzenle(...arguments) }
+	async detaylariOlustur(e) {
+		let {event: evt} = e, {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu;
+		let {secimler: sec} = this, {tarihBS: donemBS} = sec;
+		let {id2AltRapor} = this.rapor, {row: parentRec} = evt.args;
+		let {anatip: harTip, mstkod: kod, dvkod: dvKod, level, ozelisaret: ozelIsaret, devir} = parentRec ?? {};
 		let harSinif = Hareketci.kod2Sinif[harTip]; if (!(level && harSinif && kod != null)) { return false }
 		let tlDvKodSet = asSet(['', 'TL', 'TRY', 'TRL']), sabitBelirtecler = [
 			'mstkod', 'mstadi', 'tarih', 'fisnox', 'islemadi', 'refkod', 'refadi',
@@ -136,17 +154,18 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		let uni = har.uniOlustur(), orderBy = ['_oncelik', '_hartipkod', 'tarih DESC', 'fisnox DESC', 'islemadi'];
 		for (let sent of uni.getSentListe()) {
 			let {from, sahalar, where: wh, alias2Deger} = sent;
+			let {ozelisaret: ozelIsaretClause, tarih: tarihClause} = alias2Deger;
 			if (alias2Deger.dvkod) { wh.degerAta(dvKod, dvKodClausecu(alias2Deger)) }
-			if (ozelIsaretVarmi && alias2Deger.ozelisaret) { wh.notDegerAta('X', alias2Deger.ozelisaret) }
+			if (ozelIsaretVarmi && ozelIsaretClause) { wh.notDegerAta('X', ozelIsaretClause) }
+			if (tarihClause) { this.donemBagla({ donemBS, tarihSaha: tarihClause, sent }); }
 			let fisAliasVarmi = !!from.liste.find(({ alias }) => alias == 'fis');
 			let logZamaniClause = fisAliasVarmi ? 'fis.sonzamants' : sqlNull;
 			sahalar.add(`${logZamaniClause} logTS`);
 			if (fisAliasVarmi) { wh.basiSonu(sec.logTS, logZamaniClause) }
 			sent.groupByOlustur().gereksizTablolariSil();
 		}
-		let stm = new MQStm({ sent: uni, orderBy }), recs = await app.sqlExecSelect(stm);
-		recs = recs ?? []; let bakiye = 0;
-		for (let rec of recs) {
+		let stm = new MQStm({ sent: uni, orderBy }), _recs = (await app.sqlExecSelect(stm)) ?? []
+		let bakiye = 0; for (let rec of _recs) {
 			let {ba, dvkod: dvKod, bedel: tlBedel, dvbedel: dvBedel, islemadi: islemAdi, refkod: refKod, refadi: refAdi, logTS} = rec;
 			let ref = refKod ? `(<b class=gray>${refKod ?? ''})  ${refAdi || ''}</b>` : '';
 			let dovizmi = !tlDvKodSet[dvKod || ''], bedel = rec[dovizmi ? 'dvbedel' : 'bedel'];
@@ -158,6 +177,15 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 				logTS: logTS ? dateTimeAsKisaString(asDate(logTS)) : ''
 			})
 		}
+		let recs = _recs; if (devir) {
+			let alacakmi = devir < 0, dBedel = Math.abs(devir);
+			let dRec = {
+				islemadi: `<div class="bold orangered full-wh" style="font-size: 120%">DEVİR</div>`,
+				borc: alacakmi ? 0 : dBedel, alacak: alacakmi ? dBedel : 0,
+				bakiye: devir
+			};
+			recs = [..._recs, dRec]
+		}
 		this.detaylar = recs;
 		return true
 	}
@@ -166,8 +194,8 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		let result; try { result = await this.detaylariOlustur(...arguments) }
 		catch (ex) { hConfirm(getErrorText(ex), 'Detay Bilgi Yükleme Sorunu'); throw ex }
 		if (result) {
-			let {id2AltRapor} = this.rapor; for (let altRapor of Object.values(id2AltRapor)) {
-				if (altRapor != this) { altRapor.tazele?.() } }
+			let {id2AltRapor} = this.rapor;
+			for (let altRapor of Object.values(id2AltRapor)) { if (altRapor != this) { altRapor.tazele?.() } }
 		}
 	}
 }

@@ -1,6 +1,12 @@
 class KasaHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 1 }
 	static get kod() { return 'kasa' } static get aciklama() { return 'Kasa' }
+	static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sol() }
+	static mstYapiDuzenle({ result }) {
+		super.mstYapiDuzenle(...arguments);
+		result.set('kasakod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
+			sent.fromIliski(`kasmst ${mstAlias}`, `${kodClause} = ${mstAlias}.kod`).add(`${mstAlias}.aciklama ${mstAdiAlias}`))
+	}
 	static hareketTipSecim_kaListeDuzenle({ kaListe }) {
 		super.hareketTipSecim_kaListeDuzenle(...arguments); kaListe.push(
 			new CKodVeAdi(['devir', 'Kasa Devir']), new CKodVeAdi(['banka', 'Banka']),
@@ -10,11 +16,6 @@ class KasaHareketci extends Hareketci {
 			new CKodVeAdi(['genelDekont', 'Genel Dekont']), new CKodVeAdi(['kasaVirman', 'Kasa Virman']), new CKodVeAdi(['krediKartOdeme', 'Kredi Kart Ödeme']),
 			new CKodVeAdi(['faturaTahsilatOdeme', 'Fatura Tahsilat/Ödeme']), new CKodVeAdi(['perakende', 'Perakende'])
 		)
-	}
-	static mstYapiDuzenle({ result }) {
-		super.mstYapiDuzenle(...arguments);
-		result.set('kasakod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
-			sent.fromIliski(`kasmst ${mstAlias}`, `${kodClause} = ${mstAlias}.kod`).add(`${mstAlias}.aciklama ${mstAdiAlias}`))
 	}
 	static varsayilanHVDuzenle({ hv, sqlZero }) {
 		super.varsayilanHVDuzenle(...arguments);

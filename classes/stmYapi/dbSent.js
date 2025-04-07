@@ -234,8 +234,12 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	fis2IslBagla_leftJoin(e) { let alias = e?.alias ?? 'fis'; this.leftJoin({ alias, from: 'carisl isl', on: `${alias}.carislkod = isl.kod` }); return this }
 	fis2StokIslemBagla(e) { let alias = e?.alias ?? 'fis'; this.fromIliski('stkisl isl', `${alias}.islkod = isl.kod`); return this }
 	fis2StokIslemBagla_leftJoin(e) { let alias = e?.alias ?? 'fis'; this.leftJoin({ alias, from: 'stkisl isl', on: `${alias}.islkod = isl.kod` }); return this }
-	fis2TahSekliBagla(e) { let alias = e?.alias ?? 'fis'; this.fromIliski('tahsilsekli tsek', `${alias}.tahseklino = tsek.kodno`); return this }
-	har2TahSekliBagla(e) { let alias = e?.alias ?? 'har'; this.fromIliski('tahsilsekli tsek', `${alias}.tahseklino = tsek.kodno`); return this }
+	fis2TahSekliBagla(e) { return this.x2TahSekliBagla({ alias: 'fis', ...e }) }
+	har2TahSekliBagla(e) { return this.x2TahSekliBagla({ alias: 'har', ...e }) }
+	x2TahSekliBagla(e) {
+		e = e ?? {}; let {alias} = e, kodSaha = e.kodSaha ?? 'tahseklino', kodClause = e.kodClause ?? `${alias}.${kodSaha}`;
+		return this.fromIliski('tahsilsekli tsek', `${kodClause} = tsek.kodno`)
+	}
 	fis2SubeBagla(e) { this.fromIliski('isyeri sub', 'fis.bizsubekod = sub.kod'); this.sube2GrupBagla(e); return this }
 	bolge2SubeBagla(e) { this.fromIliski('isyeri sub', 'bol.bizsubekod = sub.kod'); this.sube2GrupBagla(e); return this }
 	sube2GrupBagla(e) { this.fromIliski('isygrup igrp', 'sub.isygrupkod = igrp.kod'); return this }

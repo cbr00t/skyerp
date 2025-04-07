@@ -1,6 +1,7 @@
 class PsKrOrtakHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get posmu() { return null }
     static get almSat() { return this.posmu ? 'T' : 'A' } static get almSatClause() { return `fis.almsat = '${this.almSat}'` }
+	static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sag() }
 	static mstYapiDuzenle({ result }) {
 		super.mstYapiDuzenle(...arguments);
 		result.set('banhesapkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>

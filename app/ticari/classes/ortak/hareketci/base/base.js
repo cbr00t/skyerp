@@ -2,14 +2,6 @@ class Hareketci extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return true } static get oncelik() { return 99 }
 	static get kod() { return null } static get aciklama() { return null } static get araSeviyemi() { return this == Hareketci }
 	static get donemselIslemlerIcinUygunmu() { return true } static get eldekiVarliklarIcinUygunmu() { return this.donemselIslemlerIcinUygunmu }
-	static get mstYapi() {
-		let {_mstYapi: result} = this;
-		if (result == null) {
-			let e = { result: new Hareketci_MstYapi() }; this.mstYapiDuzenle(e);
-			result = this._mstYapi = e.result
-		}
-		return result
-	}
 	static get kod2Sinif() {
 		let {_kod2Sinif: result} = this; if (result == null) {
 			result = {}; const {subClasses} = this;
@@ -73,6 +65,22 @@ class Hareketci extends CObject {
 	set uygunluk(value) { this._uygunluk = value }
 	static get extListe() { let result = this._extListe; if (result == null) { let e = { liste: [] }; this.extListeDuzenle(e); result = this._extListe = e.liste } return result }
 	static set extListe(value) { this._extListe = value }
+	static get altTipYapilar() {
+		let {_altTipYapilar: result} = this;
+		if (result == null) {
+			let e = { result: {} }; this.altTipYapilarDuzenle(e);
+			result = this._altTipYapilar = e.result
+		}
+		return result
+	}
+	static get mstYapi() {
+		let {_mstYapi: result} = this;
+		if (result == null) {
+			let e = { result: new Hareketci_MstYapi() }; this.mstYapiDuzenle(e);
+			result = this._mstYapi = e.result
+		}
+		return result
+	}
 	get uygunluk2UnionBilgiListe() {
 		let {uygunluk} = this, {zorunluAttrSet} = this.class, e;
 		this.uygunluk2UnionBilgiListeDuzenle(e = { uygunluk, zorunluAttrSet, liste: {} });
@@ -105,19 +113,24 @@ class Hareketci extends CObject {
 		const {whereYapi} = this; for (const key of ['master', 'hareket']) { const value = e[key]; if (value !== undefined) { whereYapi[key] = value } }
 	}
 	static getClass(e) { const kod = typeof e == 'object' ? (e.kod ?? e.tip) : e; return this.kod2Sinif[kod] }
+	static getAltTip2Adi(kod) { this.altTipYapilar[kod]?.aciklama }
+	static altTipYapilarDuzenle(e) {
+		let {result} = e;
+		e.def = result[''] = new DRapor_AltTipYapi()
+	}
 	static mstYapiDuzenle(e) { }
 	static hareketTipSecim_kaListeDuzenle(e) {
 		e.hareketci = this; if (!this.uygunmu) { return }
 		for (const ext of this.getExtIter()) { ext.hareketTipSecim_kaListeDuzenle(e) }
 	}
 	static varsayilanHVDuzenle(e) {
-		const {hv} = e, /*sqlNull = 'NULL',*/ sqlEmpty = `''`, sqlNull = sqlEmpty, sqlZero = '0'; $.extend(e, { sqlNull, sqlEmpty, sqlZero });
+		$.extend(e, Hareketci_UniBilgi.ortakArgs); let {hv, sqlNull, sqlEmpty, sqlZero} = e;
 		/* cast(null as ??) değerlerini sadece NULL olarak tutabiliriz, CAST işlemine gerek yok */
 		for (const key of ['vade', 'reftarih']) { hv[key] = sqlNull }
 		for (const key of [
 			'ayadi', 'saat', 'unionayrim', 'iceriktipi', 'anaislemadi', 'islemkod', 'islemadi', 'refsubekod', 'refkod', 'refadi',
 			'plasiyerkod', 'plasiyeradi', 'fistipi', 'fisektipi', 'must', 'ticmust', 'asilmust', 'althesapkod', 'althesapadi',
-			'kdetay', 'takipno', 'aciklama', 'ekaciklama', 'odgunkod', 'iade', 'dovizsanalmi', 'dvkod',
+			'kdetay', 'takipno', 'aciklama', 'ekaciklama', 'odgunkod', 'iade', 'dovizsanalmi', 'dvkod', 'belgetipi',
 			'portftipi', 'portfkod', 'portfadi', 'portfkisatiptext', 'refportftipi', 'refportfkod', 'refportfadi', 'refportfkisatiptext'
 		]) { hv[key] = sqlEmpty }
 		for (const key of [ 'yilay', 'yilhafta', 'haftano', 'oncelik', 'seq', 'belgeno', 'noyil', 'dvkur' ]) { hv[key] = sqlZero }
@@ -161,14 +174,19 @@ class Hareketci extends CObject {
 	uniDuzenle(e) {
 		let {uygunluk2UnionBilgiListe, attrSet} = this, {varsayilanHV: defHV, zorunluAttrSet} = this.class;
 		if ($.isEmptyObject(attrSet)) { attrSet = null }
-		let {uygunluk} = this, uygunlukVarmi = uygunluk.bosDegilmi, {uni} = e;
-		let sender = this, hareketci = this; $.extend(e, { uygunluk, zorunluAttrSet });
+		let {uygunluk} = this, uygunlukVarmi = !$.isEmptyObject(uygunluk);
+		if (!uygunlukVarmi) {
+			let {hareketTipSecim} = this.class; uygunlukVarmi = !$.isEmptyObject(hareketTipSecim.kaListe);
+			if (uygunlukVarmi) { uygunluk = asSet(hareketTipSecim.kaListe.map(({ kod }) => kod)) }
+		}
+		let sender = this, hareketci = this, {uni} = e; $.extend(e, { uygunluk, zorunluAttrSet });
 		for (let [selectorStr, unionBilgiListe] of Object.entries(uygunluk2UnionBilgiListe)) {
 			let uygunmu = true; if (uygunlukVarmi) {
-				let anahStr = selectorStr.split('$').filter(x => !!x).join('$');
-				uygunmu = uygunlukVarmi ? !!uygunluk[anahStr] : true; if (!uygunmu) { continue }
+				let keys = selectorStr.split('$').filter(x => !!x);
+				uygunmu = !!keys.find(key => uygunluk[key]); if (!uygunmu) { continue }
 			}
-			unionBilgiListe = unionBilgiListe.map(item => getFuncValue.call(this, item, e)).filter(({ sent, hv }) => sent && !$.isEmptyObject(hv));
+			unionBilgiListe = unionBilgiListe.map(item =>
+				getFuncValue.call(this, item, e)).filter(({ sent, hv }) => sent && !$.isEmptyObject(hv));
 			let tumHVKeys = { ...zorunluAttrSet, ...defHV };
 			for (let {hv} of unionBilgiListe) { $.extend(tumHVKeys, hv) }
 			for (let uniBilgi of unionBilgiListe) {

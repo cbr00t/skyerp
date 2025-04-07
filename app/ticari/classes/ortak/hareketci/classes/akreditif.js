@@ -2,6 +2,7 @@ class BankaAkreditifHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 7 }
 	static get kod() { return 'akreditif' } static get aciklama() { return 'Banka Akreditif' }
 	static get uygunmu() { return app?.params?.bankaGenel?.kullanim?.akreditif }
+	static altTipYapilarDuzenle({ def }) { super.altTipYapilarDuzenle(...arguments); def.ortak() }
 	static mstYapiDuzenle({ result }) {
 		super.mstYapiDuzenle(...arguments);
 		result.set('banhesapkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
