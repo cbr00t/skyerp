@@ -23,10 +23,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments); let grupKod = 'donemVeTarih';
 		let {id2AltRapor} = this.rapor, anaTip_kaListe = [];
-		for (let altRapor of Object.values(id2AltRapor)) {
-			let {hareketciYapilari} = altRapor;
-			anaTip_kaListe.push(...hareketciYapilari)
-		}
+		for (let {hareketciYapilari} of Object.values(id2AltRapor)) { anaTip_kaListe.push(...hareketciYapilari) }
 		sec.grupEkle(grupKod, 'Tarih ve Bilgiler');
 		sec.secimTopluEkle({
 			tarih: new SecimTekilDate({ grupKod, etiket: '... Tarihdeki Durum', placeHolder: 'Bugünkü Durum' }),
@@ -87,7 +84,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 					`${this.getRevizeDvKodClause(dvKodClause)} dvkod`,
 					`SUM(case when ${baClause} = 'B' then ${bedelClause} else 0 - ${bedelClause} end) bakiye`
 				)
-				if (ozelIsaretVarmi && ozelIsaretClause) { wh.add(`${ozelIsaretClause} = ''`) }
+				if (ozelIsaretVarmi && ozelIsaretClause) { wh.notDegerAta('X', ozelIsaretClause) }
 				if (sonTarih) { wh.dateBasiSonu(null, sonTarih, tarihClause) }
 				harYapi.duzenle({ har, hv: alias2Deger, sent: harSent, wh, harTipKod, kodClause, adiClause, mstKodAlias, mstAdiAlias });
 				harSent.groupByOlustur().gereksizTablolariSil();
