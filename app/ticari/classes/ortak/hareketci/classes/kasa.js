@@ -5,7 +5,7 @@ class KasaHareketci extends Hareketci {
 	static mstYapiDuzenle({ result }) {
 		super.mstYapiDuzenle(...arguments);
 		result.set('kasakod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
-			sent.fromIliski(`kasmst ${mstAlias}`, `${kodClause} = ${mstAlias}.kod`).add(`${mstAlias}.aciklama ${mstAdiAlias}`))
+			sent.sahalar.add(`kas.aciklama ${mstAdiAlias}`))
 	}
 	static hareketTipSecim_kaListeDuzenle({ kaListe }) {
 		super.hareketTipSecim_kaListeDuzenle(...arguments); kaListe.push(
@@ -16,6 +16,15 @@ class KasaHareketci extends Hareketci {
 			new CKodVeAdi(['genelDekont', 'Genel Dekont']), new CKodVeAdi(['kasaVirman', 'Kasa Virman']), new CKodVeAdi(['krediKartOdeme', 'Kredi Kart Ödeme']),
 			new CKodVeAdi(['faturaTahsilatOdeme', 'Fatura Tahsilat/Ödeme']), new CKodVeAdi(['perakende', 'Perakende'])
 		)
+	}
+	uniOrtakSonIslem({ sender, hv, sent }) {
+		super.uniOrtakSonIslem(...arguments); let {from, where: wh} = sent;
+		if (!from.aliasIcinTable('kas')) { sent.x2KasaBagla({ kodClause: hv.kasakod }) }
+		/* if (sender.donemselIslemlermi || sender.eldekiVarliklarmi) { } */
+	}
+	static varsayilanHVDuzenle_ortak({ hv, sqlNull, sqlEmpty }) {
+		super.varsayilanHVDuzenle_ortak(...arguments);
+		$.extend(hv, { finanalizkullanilmaz: 'kas.finanalizkullanilmaz' })
 	}
 	static varsayilanHVDuzenle({ hv, sqlZero }) {
 		super.varsayilanHVDuzenle(...arguments);

@@ -1,16 +1,11 @@
-class KrediTaksitHareketci extends Hareketci {
+class KrediTaksitHareketci extends BankaOrtakHareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 5 }
 	static get kod() { return 'krediTaksit' } static get aciklama() { return 'Kredi Taksit' }
 	static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sag() }
-	static mstYapiDuzenle({ result }) {
-		super.mstYapiDuzenle(...arguments);
-		result.set('banhesapkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
-			sent.fromIliski(`banbizhesap ${mstAlias}`, `${kodClause} = ${mstAlias}.kod`).add(`${mstAlias}.aciklama ${mstAdiAlias}`))
-	}
-    /* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
-    static hareketTipSecim_kaListeDuzenle(e) {
-        super.hareketTipSecim_kaListeDuzenle(e);
-        e.kaListe.push(...[
+	/* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
+    static hareketTipSecim_kaListeDuzenle({ kaListe }) {
+        super.hareketTipSecim_kaListeDuzenle(...arguments);
+        kaListe.push(...[
             new CKodVeAdi(['devir', 'Kredi Devir']), new CKodVeAdi(['krediAlim', 'Kredi Alımı']),
             new CKodVeAdi(['odeme', 'Kredi Ödeme']), new CKodVeAdi(['dekont', 'Genel Dekont'])
         ]/*.filter(x => !!x)*/)

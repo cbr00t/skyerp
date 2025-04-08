@@ -174,7 +174,7 @@ class CSIslemler extends CObject {
 				almaCase += ` when ${inClause} then ${almaClause}`
 			}
 			almaCase += ` else '' end)`;
-			result.finanaliztipi = almaCase
+			result.finanalizkullanilmaz = almaCase
 		}
 		return result    /* hv */
 	}

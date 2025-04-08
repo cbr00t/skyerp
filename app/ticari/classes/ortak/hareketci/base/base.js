@@ -99,9 +99,9 @@ class Hareketci extends CObject {
 	static get varsayilanHV() {
 		let {_varsayilanHV: result} = this, e;
 		if (result == null) {
-			let hv = {}, sqlEmpty = `''`, sqlNull = sqlEmpty, sqlZero = '0';
-			e = { hv, sqlEmpty, sqlNull, sqlZero };
-			this.varsayilanHVDuzenle(e); result = this._varsayilanHV = e.hv
+			let hv = {}, e = { hv, ...Hareketci_UniBilgi.ortakArgs };
+			this.varsayilanHVDuzenle_ortak(e); this.varsayilanHVDuzenle(e);
+			result = this._varsayilanHV = hv = e.hv
 		}
 		return result
 	}
@@ -123,8 +123,22 @@ class Hareketci extends CObject {
 		e.hareketci = this; if (!this.uygunmu) { return }
 		for (const ext of this.getExtIter()) { ext.hareketTipSecim_kaListeDuzenle(e) }
 	}
-	static varsayilanHVDuzenle(e) {
-		$.extend(e, Hareketci_UniBilgi.ortakArgs); let {hv, sqlNull, sqlEmpty, sqlZero} = e;
+	uniOrtakSonIslem({ sender, hv, sent, sqlNull, sqlEmpty }) {
+		if (sender?.finansalAnalizmi) {
+			let {finanalizkullanilmaz: finAnalizKullanimClause} = hv;
+			if (finAnalizKullanimClause == sqlEmpty || finAnalizKullanimClause == sqlNull) { finAnalizKullanimClause = null }
+			if (finAnalizKullanimClause) {
+				let {where: wh} = sent;
+				wh.degerAta('', finAnalizKullanimClause)    /* ''(false) = kullanılır,  '*'(true) = kullanılMAZ */
+			}
+			/*let {from, where: wh} = sent, digerHarmi = from.aliasIcinTable('har')?.deger == 'csdigerhar';
+			wh.degerAta('', `ctip.finanaliztipi`)*/
+		}
+	}
+	static varsayilanHVDuzenle_ortak({ hv, sqlNull, sqlEmpty }) {
+		for (const key of ['finanalizkullanilmaz']) { hv[key] = sqlEmpty }
+	}
+	static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
 		/* cast(null as ??) değerlerini sadece NULL olarak tutabiliriz, CAST işlemine gerek yok */
 		for (const key of ['vade', 'reftarih']) { hv[key] = sqlNull }
 		for (const key of [
@@ -202,13 +216,12 @@ class Hareketci extends CObject {
 						sent.add(saha)
 					}
 				}
-				this.uniDuzenle_tumSonIslemler(_e); sent = _e.sent;
+				_e.hv = { ...defHV, ..._e.hv }; this.uniDuzenle_tumSonIslemler(_e); sent = _e.sent;
 				sent.groupByOlustur().gereksizTablolariSil();
 				if (sent?.sahalar?.liste?.length) { uni.add(sent) }
 			}
 		}
 	}
-	uniOrtakSonIslem(e) { /* degerci #sonIslem method içeriği */ }
 	uniDuzenle_tumSonIslemler(e) {    /* degerci bosGcbEkle value: sent. degerci koopDonemEkle value: sent. degerci sonIslem value: sent */
 		return this.uniDuzenle_whereYapi(e).uniDuzenle_ekDuzenleyiciler(e).uniDuzenle_sonIslem(e)
 	}

@@ -1,13 +1,8 @@
-class BankaAkreditifHareketci extends Hareketci {
+class BankaAkreditifHareketci extends BankaOrtakHareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 7 }
 	static get kod() { return 'akreditif' } static get aciklama() { return 'Banka Akreditif' }
 	static get uygunmu() { return app?.params?.bankaGenel?.kullanim?.akreditif }
 	static altTipYapilarDuzenle({ def }) { super.altTipYapilarDuzenle(...arguments); def.ortak() }
-	static mstYapiDuzenle({ result }) {
-		super.mstYapiDuzenle(...arguments);
-		result.set('banhesapkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
-			sent.fromIliski(`banbizhesap ${mstAlias}`, `${kodClause} = ${mstAlias}.kod`).add(`${mstAlias}.aciklama ${mstAdiAlias}`))
-	}
     /* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
         super.hareketTipSecim_kaListeDuzenle(arguments); kaListe.push(...[

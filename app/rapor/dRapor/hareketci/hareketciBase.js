@@ -48,7 +48,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		}
 		let {varsayilanHV: hrkDefHV} = hareketci.class; $.extend(e, { hareketci, hrkDefHV });
 		if (yatayAnaliz) { attrSet[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod] = true }
-		let uni = e.uni = stm.sent = new MQUnionAll(), {uygunluk2UnionBilgiListe} = hareketci, _e = { ...e, hrkDefHV, temps: {} };
+		let uni = e.uni = stm.sent = new MQUnionAll(), {uygunluk2UnionBilgiListe} = hareketci;
+		let _e = { ...e, sender: this, hrkDefHV, temps: {} };
 		for (let [selectorStr, unionBilgiListe] of Object.entries(uygunluk2UnionBilgiListe)) {
 			let uygunmu = true; if (uygunlukVarmi) {
 				let keys = selectorStr.split('$').filter(x => !!x);
@@ -57,11 +58,13 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 			unionBilgiListe = unionBilgiListe.map(item => getFuncValue.call(this, item, e)).filter(x => !!x);
 			for (let { sent, hv: hrkHV } of unionBilgiListe) {
 				$.extend(_e, {
-					sent, hrkHV, hvDegeri: key => this.hrkHVDegeri({ ..._e, key }),
+					sent, hrkHV, hv: hrkHV, hvDegeri: key => this.hrkHVDegeri({ ..._e, key }),
 					sentHVEkle: (...keys) => { for (let key of keys) { this.hrkSentHVEkle({ ..._e, key }) } }
 				});
 				this.loadServerData_queryDuzenle_hrkSent(_e);
-				if (sent?.sahalar?.liste?.length) { uni.add(sent) }
+				hareketci.uniDuzenle_tumSonIslemler(_e); sent = _e.sent;
+				if (!sent?.sahalar?.liste?.length) { continue }
+				sent.groupByOlustur().gereksizTablolariSil(); uni.add(sent)
 			}
 		}
 	}

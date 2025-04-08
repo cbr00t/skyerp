@@ -5,21 +5,15 @@ class CariHareketci extends Hareketci {
 		/* super.altTipYapilarDuzenle(...arguments); */
 		$.extend(result, {
 			musteri: new DRapor_AltTipYapi(['musteri', `'Müşteriler'`]).sol()
-				.setDuzenleyici(({ sent, wh, kodClause }) => {
-					if (!sent.from.aliasIcinTable('car')) { sent.fromIliski('carmst car', `${kodClause} = car.must`) }
-					sent.cari2TipBagla(); wh.degerAta('', 'ctip.satmustip')
-				}),
+				.setDuzenleyici(({ sent, wh, kodClause }) => wh.degerAta('', 'ctip.satmustip')),
 			satici: new DRapor_AltTipYapi(['satici', `'Satıcılar'`]).sag()
-				.setDuzenleyici(({ sent, wh, kodClause }) => {
-					if (!sent.from.aliasIcinTable('car')) { sent.fromIliski('carmst car', `${kodClause} = car.must`) }
-					sent.cari2TipBagla(); wh.degerAta('S', 'ctip.satmustip')
-				})
+				.setDuzenleyici(({ sent, wh, kodClause }) => wh.degerAta('S', 'ctip.satmustip'))
 		})
 	}
 	static mstYapiDuzenle({ result }) {
 		super.mstYapiDuzenle(...arguments);
 		result.set('must', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
-			sent.fromIliski(`carmst ${mstAlias}`, `${kodClause} = ${mstAlias}.must`).add(`${mstAlias}.birunvan ${mstAdiAlias}`))
+			sent.sahalar.add(`car.birunvan ${mstAdiAlias}`))
 	}
 	static hareketTipSecim_kaListeDuzenle({ kaListe }) {
 		super.hareketTipSecim_kaListeDuzenle(...arguments); let {params} = app;
@@ -37,6 +31,15 @@ class CariHareketci extends Hareketci {
 		}
 		if (akt.konsinyeLojistik || satis.kamuIhale) { kaListe.push(new CKodVeAdi(['konsinyeLojistik', 'Konsinye Resmi Kurum'])) }
 		if (ticGenel.siteYonetimi) { kaListe.push(new CKodVeAdi(['siteYonetimTahakkuk', 'Site Yönetim Tahakkuk'])) }
+	}
+	uniOrtakSonIslem({ sender, hv, sent }) {
+		super.uniOrtakSonIslem(...arguments); let {from, where: wh} = sent;
+		if (!from.aliasIcinTable('car')) { sent.x2CariBagla({ kodClause: hv.must }) }
+		if (!from.aliasIcinTable('ctip')) { sent.cari2TipBagla() }
+	}
+	static varsayilanHVDuzenle_ortak({ hv, sqlNull, sqlEmpty }) {
+		super.varsayilanHVDuzenle_ortak(...arguments);
+		$.extend(hv, { finanalizkullanilmaz: 'ctip.finanaliztipi' })
 	}
 	static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
 		super.varsayilanHVDuzenle(...arguments);
@@ -197,8 +200,10 @@ class CariHareketci extends Hareketci {
 					.leftJoin('har','geneldekonthar dig', ['har.fissayac = dig.fissayac', 'dig.seq = (case when har.seq % 2 = 0 then har.seq - 1 else har.seq + 1 end)'])
 					.har2AltHesapBagla().leftJoin('dig', 'carmst dcar', 'dig.must = dcar.must');
 				wh.fisSilindiEkle();
-				if (uygunluk.genelDekont) { wh.add(`fis.ozeltip = ''`, `har.kayittipi = 'CR'`) }
-				if (uygunluk.virman) { wh.add(`fis.ozeltip = 'C'`) }
+				let or = new MQOrClause();
+				if (uygunluk.genelDekont) { or.add(new MQAndClause([`fis.ozeltip = ''`, `har.kayittipi = 'CR'`])) }
+				if (uygunluk.virman) { or.add(`fis.ozeltip = 'C'`) }
+				wh.add(or)
 			}).hvDuzenleIslemi(({ hv }) => {
 				$.extend(hv, {
 					kaysayac: 'har.kaysayac', oncelik: '20', unionayrim: `'GDek'`, kayittipi: `'GDEK'`, anaislemadi: `'Genel Dekont'`,

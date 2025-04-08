@@ -1,13 +1,8 @@
-class PsKrOrtakHareketci extends Hareketci {
+class PsKrOrtakHareketci extends BankaOrtakHareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get posmu() { return null }
     static get almSat() { return this.posmu ? 'T' : 'A' } static get almSatClause() { return `fis.almsat = '${this.almSat}'` }
 	static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sag() }
-	static mstYapiDuzenle({ result }) {
-		super.mstYapiDuzenle(...arguments);
-		result.set('banhesapkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
-			sent.fromIliski(`banbizhesap ${mstAlias}`, `${kodClause} = ${mstAlias}.kod`).add(`${mstAlias}.aciklama ${mstAdiAlias}`))
-	}
-    /* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
+	/* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
         super.hareketTipSecim_kaListeDuzenle(...arguments); const {posmu} = this;
         kaListe.push(...[           
@@ -22,7 +17,7 @@ class PsKrOrtakHareketci extends Hareketci {
     }
     /** Varsayılan değer atamaları (host vars) – temel sınıfa eklemeler.
 		Hareketci.varsayilanHVDuzenle değerleri aynen alınır, sadece eksikler eklenir */
-    static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
+	static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
         super.varsayilanHVDuzenle(...arguments);
 		/* yeni talimat: { (ozelisaret: '') değerleri (ozelisaret = 'fis.ozelisaret') olmalı.
 			bu da base.varsayilanHVDuzenle seviyesinde mevcut.

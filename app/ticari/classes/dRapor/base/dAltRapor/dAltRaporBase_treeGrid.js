@@ -81,7 +81,10 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		return recs
 	}
 	loadServerDataInternal(e) { return null }
-	loadServerData_wsArgsDuzenle(e) { super.loadServerData_wsArgsDuzenle(e); let _value = qs.maxRow ?? qs.maxrow; if (_value != null) { e.maxRow = asInteger(_value) } }
+	loadServerData_wsArgsDuzenle(e) {
+		super.loadServerData_wsArgsDuzenle(e);
+		let _value = qs.maxRow ?? qs.maxrow; if (_value != null) { e.maxRow = asInteger(_value) }
+	}
 	loadServerData_recsDuzenleIlk(e) {
 		let {recs} = e; const {gridPart} = this, {filtreTokens} = gridPart;
 		if (filtreTokens?.length) { const _recs = this.loadServerData_recsDuzenle_hizliBulIslemi(e); recs = _recs == null ? e.recs : _recs }
@@ -207,8 +210,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		super.tabloKolonlariDuzenle(e); const {liste} = e, {tabloYapi} = this, {grup, toplam} = tabloYapi;
 		for (const item of [grup, toplam]) { for (const {colDefs} of Object.values(item)) { if (colDefs?.length) { liste.push(...colDefs) } } }
 	}
-	gridArgsDuzenle(e) {
-		super.gridArgsDuzenle(e) ; const {args} = e; $.extend(args, {
+	gridArgsDuzenle({ args }) {
+		super.gridArgsDuzenle(...arguments); $.extend(args, {
 			showSubAggregates: false, /*showStatusBar: true, showGroupAggregates: true , compact: true*/
 			exportSettings: {
 				columnsHeader: true, hiddenColumns: false, collapsedRecords: true, recordsInView: true, fileName: null,

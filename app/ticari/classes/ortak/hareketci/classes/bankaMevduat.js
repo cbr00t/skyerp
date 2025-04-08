@@ -1,12 +1,7 @@
-class BankaMevduatHareketci extends Hareketci {
+class BankaMevduatHareketci extends BankaOrtakHareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 2 }
     static get kod() { return 'bankaMevduat' } static get aciklama() { return 'Banka Mevduat' }
 	static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sol() }
-	static mstYapiDuzenle({ result }) {
-		super.mstYapiDuzenle(...arguments);
-		result.set('banhesapkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
-			sent.fromIliski(`banbizhesap ${mstAlias}`, `${kodClause} = ${mstAlias}.kod`).add(`${mstAlias}.aciklama ${mstAdiAlias}`))
-	}
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
         super.hareketTipSecim_kaListeDuzenle(...arguments); kaListe.push(
             new CKodVeAdi(['devir', 'Devir']), new CKodVeAdi(['kasa', 'Kasa Yatan/Çekilen']),
@@ -59,7 +54,7 @@ class BankaMevduatHareketci extends Hareketci {
                       kayittipi: `(case when fis.fistipi = 'KB' then 'KBNAK' when fis.fistipi = 'HY' then 'BNYAT' when fis.fistipi = 'HH' then 'BNHIZ' else '' end)`,  /* bu bir sql clause ancak içinde ' (tek tırnak VAR). Bu sebeple tamamını `` (string template) içine aldık */
                       oncelik: `(case when fis.fistipi = 'KB' then dbo.banum(dbo.tersba(fis.ba), 50, 15) when fis.fistipi = 'HY' then 40 when fis.fistipi = 'HH' then dbo.banum(fis.ba, 70, 30) else 0 end)`,
                       ba: `(case when fis.fistipi = 'KB' then dbo.tersba(fis.ba) when fis.fistipi = 'HY' then 'B' when fis.fistipi = 'HH' then fis.ba else fis.ba end)`,
-                      islemadi: `(case when fis.fistipi='KB' then dbo.batext(fis.ba,'Bankadan Çekilen','Bankaya Yatan') when fis.fistipi = 'HY' then 'Yatırım' when fis.fistipi = 'HH' then hiz.aciklama else '' end)`,
+                      islemadi: `(case when fis.fistipi = 'KB' then dbo.batext(fis.ba,'Bankadan Çekilen','Bankaya Yatan') when fis.fistipi = 'HY' then 'Yatırım' when fis.fistipi = 'HH' then hiz.aciklama else '' end)`,
                       anaislemadi: `(case when fis.fistipi = 'KB' then 'Yatan/Çekilen' when fis.fistipi = 'HY' then 'Yatırım' when fis.fistipi = 'HH' then 'Banka Hizmet' else '' end)`,
                       detaciklama: `(case when fis.fistipi in ('KB', 'HY') then har.aciklama when fis.fistipi = 'HH' then dbo.hizmetack(har.belgetarih, har.belgeseri, har.belgeno, har.aciklama) else '' end)`,
                       dvkur: 'har.dvkur', bedel: `(case when fis.fistipi = 'HY' then har.brutbedel else (har.bedel - har.kredifaiz) end)`,

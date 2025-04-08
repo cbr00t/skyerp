@@ -25,7 +25,11 @@ class SecimBasSon extends Secim {
 	writeTo(e) {
 		if (!super.writeTo(e)) { return false } const {birKismimi} = this; if (this.birKismimi) { e.birKismimi = true }
 		if (birKismimi) { const {kodListe} = this; if (kodListe != null) { e.kodListe = kodListe } }
-		else { const {basi, sonu} = this; if (basi != null) { e.basi = basi } if (sonu != null) { e.sonu = sonu } }
+		else {
+			let {basi, sonu} = this;
+			if (basi != null) { e.basi = this.getConvertedUIValue(basi) }
+			if (sonu != null) { e.sonu = this.getConvertedUIValue(sonu) }
+		}
 		return true
 	}
 	temizle(e) {
@@ -37,7 +41,11 @@ class SecimBasSon extends Secim {
 		super.uiSetValues(e); const {parent} = e; if (!parent?.length) { return false }
 		const {birKismimi} = this, bsParent = parent.find('.bs-parent'), birKismiParent = parent.find('.birKismi-parent');
 		for (const key of ['basi', 'sonu']) { bsParent.find(`.${key}.bs`).val(this.getConvertedUIValue(this[key]) ?? '') }
-		e.value = this.getConvertedValue(this.value);
+		let {value} = this; if (value?.basi != null) {
+			let bs = value; for (let [_key, _value] of Object.entries(bs)) {
+				this[_key] = bs[_key] = this.getConvertedValue(_value) }
+		}
+		e.value = this.getConvertedValue(value);
 		SecimBirKismi.uiSetValues_birKismi(e); parent.find('.birKismiToggle').val(birKismimi); this.birKismiToggleDegisti(e)
 	}
 	buildHTMLElementStringInto(e) {

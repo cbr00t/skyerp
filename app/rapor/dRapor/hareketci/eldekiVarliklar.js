@@ -15,7 +15,7 @@ class DRapor_EldekiVarliklar extends DRapor_AraSeviye {
 	}
 }
 class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get eldekiVarliklarmi() { return true } 
 	static get mstEtiket() { return '' } static get borderColor() { return '' }
 	static get aciklama() { return `<div class="full-wh" style="background-color: ${this.borderColor}">${this.mstEtiket}</div>` }
 	static get raporClass() { return DRapor_EldekiVarliklar } get width() { return '49.5%' }
@@ -34,9 +34,9 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		result.addKAPrefix('hartip', 'mst')
 			.addGrupBasit_numerik('ONCELIK', 'Öncelik', 'oncelik', null, null, null, false)
 			.addGrupBasit('GRUP', '', 'grup', null, null, null, false)
-			.addGrupBasit('MST', this.class.mstEtiket, 'mst', null, 450, null, false);
+			.addGrupBasit('MST', this.class.mstEtiket, 'mst', null, 550, null, false);
 		for (let {kod, aciklama} of this.dovizKAListe) {
-			result.addToplamBasit_bedel(`BEDEL_${kod}`, `${aciklama} Bedel`, `bedel_${kod}`, null, 110, null, false) }
+			result.addToplamBasit_bedel(`BEDEL_${kod}`, `${aciklama} Bedel`, `bedel_${kod}`, null, 110, ({ colDef }) => colDef?.hidden(), false) }
 		result.addToplamBasit_bedel('BEDEL', 'TL Bedel', 'bedel', null, 140, null, false)
 	}
 	sabitRaporTanimDuzenle({ result }) {
@@ -59,7 +59,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 			secHareketciYapilari = hareketciYapilari
 		}
 		let harClasses = secHareketciYapilari.map(({ sinif }) => sinif);
-		let sabitBelirtecler = ['tarih', 'ba', 'bedel', 'dvbedel', 'dvkod', 'belgetipi'];
+		let sabitBelirtecler = ['tarih', 'ba', 'bedel', 'dvbedel', 'dvkod', 'belgetipi', 'finanalizkullanilmaz'];
 		if (ozelIsaretVarmi) { sabitBelirtecler.push('ozelisaret') }
 		let harListe = []; for (let cls of harClasses) {
 			let {kod: anaTip, mstYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
@@ -69,7 +69,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		let sonTarih = sec.tarih.value || null;
 		let uni = new MQUnionAll(); for (let har of harListe) {
 			let {oncelik, mstYapi} = har.class, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
-			let harUni = har.uniOlustur(); for (let harSent of harUni.getSentListe()) {
+			let harUni = har.uniOlustur({ sender: this }); for (let harSent of harUni.getSentListe()) {
 				if (!harSent) { continue } let {classKey} = har.class;
 				let harYapi = clsKey2HarYapi[classKey]; if (!harYapi) { debugger; continue }
 				let {kod: harTipKod, aciklama: harTipAdi} = harYapi, {from, where: wh, sahalar, alias2Deger} = harSent; sahalar.liste = []; 
@@ -86,7 +86,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 					`SUM(case when ${baClause} = 'B' then ${bedelClause} else 0 - ${bedelClause} end) bedel`
 				);
 				if (ozelIsaretVarmi && ozelIsaretClause) { wh.notDegerAta('X', ozelIsaretClause) }
-				if (sonTarih) { wh.basiSonu(null, sonTarih, tarihClause) }
+				if (sonTarih) { wh.basiSonu({ sonu: sonTarih }, tarihClause) }
 				harYapi.duzenle({
 					har, hv: alias2Deger, sent: harSent, wh, harTipKod,
 					kodClause, adiClause, mstKodAlias, mstAdiAlias
@@ -104,9 +104,11 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 	}
 	loadServerData_recsDuzenle({ recs }) {
 		super.loadServerData_recsDuzenle(...arguments);
-		for (let rec of recs) {
-			let {dvkod: dvKod, bedel} = rec;
-			if (this.getDovizmi(dvKod)) { rec[`bedel_${dvKod}`] = bedel; rec.bedel = 0 }
+		let recsDvKodSet = this.recsDvKodSet = {}; for (let rec of recs) {
+			let {dvkod: dvKod, bedel} = rec; if (this.getDovizmi(dvKod)) {
+				rec[`bedel_${dvKod}`] = bedel; rec.bedel = 0;
+				recsDvKodSet[dvKod] = true
+			}
 		}
 	}
 	/*loadServerDataInternal(e) { return [] }
@@ -119,8 +121,13 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 	}*/
 	tazeleDiger(e) { /* do nothing */ }
 	gridVeriYuklendi(e) {
-		let {gridPart} = this, {gridWidget} = gridPart, {boundRecs} = e; gridPart.expandedRowsSet = {};
-		if (boundRecs?.length) { gridWidget.expandAll() }
+		let {gridPart, recsDvKodSet} = this, {gridWidget} = gridPart, {base} = gridWidget;
+		for (let dvKod of this.dvKodListe) {
+			let dvKodVarmi = recsDvKodSet[dvKod];
+			base[dvKodVarmi ? 'showColumn' : 'hideColumn'](`bedel_${dvKod}`)
+		}
+		let {boundRecs: recs} = e; gridPart.expandedRowsSet = {};
+		if (recs?.length) { gridWidget.expandAll() }
 	}
 }
 class DRapor_EldekiVarliklar_Sol extends DAltRapor_EldekiVarliklar_Ortak {

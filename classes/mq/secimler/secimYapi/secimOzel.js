@@ -50,7 +50,7 @@ class SecimOzellik extends SecimOzel {
 		super.uiSetValues(e); const {parent} = e;
 		if (!parent?.length) { return false }
 		parent.find('.yazildigiGibimi').val(this.yazildigiGibimi); parent.find('.disindakilermi').val(this.disindakilermi);
-		parent.find('.ozellik').val(coalesce(this.getConvertedValue(this.value), ''))
+		parent.find('.ozellik').val(this.getConvertedValue(this.value) ?? '')
 	}
 	buildHTMLElementStringInto(e) {
 		super.buildHTMLElementStringInto(e); e.target += (

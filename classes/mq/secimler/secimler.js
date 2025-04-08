@@ -163,6 +163,10 @@ class DonemselSecimler extends Secimler {
 	get tarihBS() {
 		let {donem, tarihAralik} = this, {tarihAralikmi, basiSonu} = donem?.tekSecim ?? {};
 		if (tarihAralikmi) { basiSonu = new CBasiSonu(tarihAralik) }
+		if (basiSonu) {
+			for (let [key, value] of Object.entries(basiSonu)) {
+				if (value && typeof value == 'string') { basiSonu[key] = value = asDate(value) } }
+		}
 		return basiSonu
 	}
 	get tarihBSVeyaCariDonem() {

@@ -170,25 +170,29 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		};
 		iterBlock(this.sahalar); iterBlock(this.groupBy); iterBlock(this.having);
 		let {where, zincirler, from} = this;
-		/*let debugBreak = false; if (config.dev) {
-			let search = `fis.ba = 'A' and tsek.tahsiltipi = 'PS'`;
-			if (this.toString().includes(search)) { debugBreak = true }
-		}*/
+		let debugBreak = false; if (config.dev) {
+			if (from.aliasIcinTable('ctip')) { debugBreak = true }
+			/*let search = `fis.ba = 'A' and tsek.tahsiltipi = 'PS'`;
+			if (this.toString().includes(search)) { debugBreak = true }*/
+		}
 		for (let text of where.liste) {
 			try {
 				let clauseObjmi = text instanceof MQClause;
 				/*if (debugBreak && clauseObjmi) { debugger }*/
-				if (clauseObjmi) { text = text.toString_baslangicsiz() }
+				if (clauseObjmi) { text = text.toString() }
 				const iliskiYapisi = MQIliskiYapisi.newForText(text); if (iliskiYapisi.isError) { throw iliskiYapisi }
 				const aliasYapilar = [iliskiYapisi.sol, iliskiYapisi.sag].filter(x => !!x);
 				if (iliskiYapisi.saha) { aliasYapilar.push(MQAliasliYapi.newForSahaText(iliskiYapisi.saha)) }
 				for (const {degerAliasListe} of aliasYapilar) {
-					for (let degerAlias of degerAliasListe){ if (degerAlias) { disindaSet[degerAlias] = true } }
+					/* if (debugBreak) { debugger } */
+					for (let degerAlias of degerAliasListe){
+						if (degerAlias) { disindaSet[degerAlias] = true } }
 				}
 			}
 			catch (ex) { if (!(ex && ex.rc == 'queryBuilderError')) { throw ex } }
 		}
 		let tumAliasSet = {}; for (let zincir of zincirler.liste) {
+			/* if (debugBreak && zincir.includes('ctip')) { debugger } */
 			let zincirAlias = zincir.at(-1); tumAliasSet[zincirAlias] = true;
 			if (disindaSet[zincirAlias]) { $.extend(disindaSet, asSet(zincir.slice(0, -1))) }
 		}
@@ -259,7 +263,8 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	fis2PlasiyerBagla(e) { this.fromIliski('carmst pls', 'fis.plasiyerkod = pls.must'); return this }
 	fis2SevkAdresBagla(e) { this.fromIliski('carsevkadres sadr', 'fis.xadreskod = sadr.kod'); return this }
 	fis2DegAdresBagla(e) { this.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox'); return this }
-	fis2KasaBagla(e) { this.fromIliski('kasmst kas', 'fis.kasakod = kas.kod'); return this }
+	x2KasaBagla(e) { e = e ?? {}; let {kodClause} = e; this.fromIliski('kasmst kas', `${kodClause} = kas.kod`); return this }
+	fis2KasaBagla(e) { return this.x2KasaBagla({ kodClause: 'fis.kasakod' }) }
 	fis2BankaHesapBagla(e) { return this.x2BankaHesapBagla({ kodClause: 'fis.banhesapkod' }) }
 	fis2KrediBankaHesapBagla(e) { return this.x2BankaHesapBagla({ kodClause: 'fis.kredihesapkod' }) }
 	x2BankaHesapBagla(e) { let kodClause = e?.kodClause; this.fromIliski('banbizhesap bhes', `${kodClause} = bhes.kod`); return this }
@@ -308,7 +313,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	}
 	cariAyrimBagla(e) { /* tamamlanacak */ const alias = e?.alias ?? 'car', aliasVeNokta = alias + '.'; return this }
 	har2AltHesapBagla(e) { this.fromIliski('althesap alth', 'har.cariitn = alth.kod'); return this }
-	har2KasaBagla(e) { this.fromIliski('kasmst kas', 'har.kasakod = kas.kod'); return this }
+	har2KasaBagla(e) { return this.x2KasaBagla({ kodClause: 'har.kasakod' }) }
 	har2BankaHesapBagla(e) { this.fromIliski('banbizhesap bhes', 'har.banhesapkod = bhes.kod'); return this }
 	har2StokBagla(e) { this.fromIliski('stkmst stk', 'har.stokkod = stk.kod'); return this }
 	son2StokBagla(e) { this.fromIliski('stkmst stk', 'son.stokkod = stk.kod'); return this }

@@ -259,8 +259,13 @@ class MQSubWhereClause extends MQClause {
 		if (birKismimi) { this.birKismi({ liste: bs.kodListe, saha, not: isNot }) }
 		const sub = new MQAndClause();
 		if (bs) {
-			if (bs.basi) { sub.addDogrudan(`${saha} >= ${MQSQLOrtak.sqlServerDegeri(bs.basi)}`) }
-			if (bs.sonu) { sub.addDogrudan(`${saha} <= ${MQSQLOrtak.sqlServerDegeri(bs.sonu)}`) }
+			let {basi, sonu} = bs ?? {}, eqOp = { sonu: '=' };
+			if (basi) {
+				sub.addDogrudan(`${saha} >= ${MQSQLOrtak.sqlServerDegeri(basi)}`) }
+			if (sonu) {
+				if (isDate(sonu)) { sonu = sonu.clone().addDays(1); eqOp.sonu = '' }
+				sub.addDogrudan(`${saha} <${eqOp.sonu} ${MQSQLOrtak.sqlServerDegeri(sonu)}`)
+			}
 		}
 		let text = sub.toString_baslangicsiz(); if (isNot) { text = text ? `NOT(${text})` : '1 = 2' }
 		if (text) { this.addDogrudan(text) } return this

@@ -27,6 +27,10 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get mainmi() { return true }
 	static get araSeviyemi() { return this == DRapor_AraSeviye_Main } get tazeleYapilirmi() { return true } static get konsolideKullanilirmi() { return true }
 	static get konsolideVarmi() { return this.konsolideKullanilirmi && app.params?.dRapor?.konsolideCikti }
+	static get finansalAnalizmi() { return this.donemselIslemlermi || this.eldekiVarliklarmi || this.nakitAkismi }
+	static get donemselIslemlermi() { return false } static get eldekiVarliklarmi() { return false } static get nakitAkismi() { return false }
+	get finansalAnalizmi() { return this.class.finansalAnalizmi } get donemselIslemlermi() { return this.class.donemselIslemlermi }
+	get eldekiVarliklarmi() { return this.class.eldekiVarliklarmi } get nakitAkismi() { return this.class.nakitAkismi }
 	get dvKod2Rec() { return this.rapor.dvKod2Rec } get dovizKAListe() { return this.rapor.dovizKAListe } get dvKodListe() { return this.rapor.dvKodListe }
 	static get yatayTip2Bilgi() {
 		let result = this._yatayTip2Bilgi; if (result == null) {
@@ -231,7 +235,13 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		return recs*/
 	}
-	donemBagla(e) { const {donemBS, tarihSaha, sent} = e; if (donemBS) { sent.where.basiSonu(donemBS, tarihSaha) } return this }
+	donemBagla({ donemBS, tarihSaha, sent }) {
+		if (donemBS) {
+			let {where: wh} = sent, {basi, sonu} = donemBS;
+			wh.basiSonu(donemBS, tarihSaha)
+		}
+		return this
+	}
 	tabloYapiDuzenle_hmr(e) {
 		const {result} = e;
 		for (const {belirtec, etiket: text, numerikmi, kami: _kami, mfSinif} of HMRBilgi.hmrIter()) {
