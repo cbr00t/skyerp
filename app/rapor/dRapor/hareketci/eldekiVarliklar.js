@@ -121,6 +121,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 	}*/
 	tazeleDiger(e) { /* do nothing */ }
 	gridVeriYuklendi(e) {
+		super.gridVeriYuklendi(e);
 		let {gridPart, recsDvKodSet} = this, {gridWidget} = gridPart, {base} = gridWidget;
 		for (let dvKod of this.dvKodListe) {
 			let dvKodVarmi = recsDvKodSet[dvKod];

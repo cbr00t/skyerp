@@ -23,7 +23,8 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		let anaTip_kaListe = []; for (let {kod, aciklama} of harClasses) { anaTip_kaListe.push(new CKodVeAdi([kod, aciklama])) }
 		let grupKod = 'donemVeTarih'; sec.secimTopluEkle({
 			logTS: new SecimDateTime({ etiket: 'Log Zamanı', grupKod }),
-			anaTip: new SecimBirKismi({ grupKod, etiket: 'Gösterilecek Bilgiler', kaListe: anaTip_kaListe }).birKismi().autoBind()
+			anaTip: new SecimBirKismi({ grupKod, etiket: 'Gösterilecek Bilgiler', kaListe: anaTip_kaListe }).birKismi().autoBind(),
+			devirAlinmasin: new SecimBool({ grupKod, etiket: `Devir <b class=firebrick>AlınMAsın</b>` })
 		});
 		let {donem, tarihAralik} = sec; donem?.tekSecim?.tarihAralik?.();
 		if (tarihAralik) { tarihAralik.visible(); tarihAralik.sonu = tarihAralik.sonu || today() }
@@ -55,7 +56,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 	loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); let {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu;
 		let {stm} = e, {grupVeToplam} = this.tabloYapi, {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
-		let {secimler: sec} = this, {tarihBS: donemBS} = sec;
+		let {secimler: sec} = this, {tarihBS: donemBS} = sec, {value: devirAlinmasin} = sec.devirAlinmasin;
 		let anaTipSet = asSet(sec.anaTip?.value); if ($.isEmptyObject(anaTipSet)) { anaTipSet = null }
 		let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => !!cls.donemselIslemlerIcinUygunmu && (!anaTipSet || anaTipSet[cls.kod]));
 		let {basi: tBasi, sonu: tSonu} = donemBS ?? {}; tSonu = tSonu || today();
@@ -98,7 +99,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 						/* mstadi, */ `${mstKodClause} mstkod`, `'${harTipKod}' anatip`, /* `${altTipClause} alttip`, */
 						`${grupAdiClause} grup`, `${oncelik} oncelik`, `${dvKodClause} dvkod`
 					);
-					if (tBasi) {
+					if (!devirAlinmasin && tBasi) {
 						sahalar.add(
 							`SUM(case when ${tarihClause} < (${tBasiClause}) then (case when ${baClause} = 'B' then ${bedelClause} else 0 - ${bedelClause} end) else 0 end) devir`,
 							`SUM(case when ${tarihClause} >= ${tBasiClause} AND ${baClause} = 'B' then ${bedelClause} else 0 end) borc`,
@@ -112,12 +113,12 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 							`SUM(case when ${baClause} = 'A' then ${bedelClause} else 0 end) alacak`
 						)
 					}
-					if (tSonu) { wh.add(`${tarihClause} < ${tSonuClause} + 1`) }
+					if (devirAlinmasin) { this.donemBagla({ donemBS, tarihSaha: tarihClause, sent: harSent }) }
+					else if (tSonu) { wh.add(`${tarihClause} < ${tSonuClause} + 1`) }
 					if (ozelIsaretVarmi && ozelIsaretClause) { wh.notDegerAta('X', ozelIsaretClause) }
 					let fisAliasVarmi = !!from.liste.find(({ alias }) => alias == 'fis');
 					let logZamaniClause = fisAliasVarmi ? 'fis.sonzamants' : sqlNull;
 					/* sahalar.add(`${logZamaniClause} logTS`); */
-					/* this.donemBagla({ donemBS, tarihSaha: tarihClause, sent: harSent }); */
 					if (fisAliasVarmi) { wh.basiSonu(sec.logTS, logZamaniClause) }
 					altTipYapi.duzenle({
 						har, hv: alias2Deger, sent: harSent, wh, harTipKod,
@@ -192,6 +193,13 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		return true
 	}
 	ozetBilgiRecsOlustur(e) { }
+	gridVeriYuklendi(e) {
+		super.gridVeriYuklendi(e);
+		let {gridPart, secimler: sec} = this, {gridWidget} = gridPart, {base} = gridWidget, {value: devirAlinmasin} = sec.devirAlinmasin;
+		base[devirAlinmasin ? 'hideColumn' : 'showColumn']('devir');
+		let {boundRecs: recs} = e; gridPart.expandedRowsSet = {};
+		if (recs?.length) { gridWidget.collapseAll() }
+	}
 	async gridSatirTiklandi(e) {
 		let result; try { result = await this.detaylariOlustur(...arguments) }
 		catch (ex) { hConfirm(getErrorText(ex), 'Detay Bilgi Yükleme Sorunu'); throw ex }
