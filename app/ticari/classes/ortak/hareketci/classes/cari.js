@@ -393,11 +393,7 @@ class CariHareketci extends Hareketci {
 				let or = _etkilenmeOr = new MQOrClause();
 				if (borclanmaSekli.faturami) { or.add(`fis.piftipi = 'F'`) }
 				else if (borclanmaSekli.faturaVeBekleyenIrsaliyemi) {
-					or.add(new MQOrClause([
-						`fis.piftipi = 'F'`,
-						new MQAndClause([`fis.piftipi = 'I'`, bekIrsClause])
-					]))
-				}
+					or.add(new MQOrClause([ `fis.piftipi = 'F'`, new MQAndClause([`fis.piftipi = 'I'`, bekIrsClause]) ])) }
 				else if (borclanmaSekli.irsaliyemi) {
 					if (sifSonrasiAlinir) {
 						or.add(new MQOrClause([
@@ -408,10 +404,7 @@ class CariHareketci extends Hareketci {
 				}
 				else if (borclanmaSekli.siparismi) {
 					or.add(new MQOrClause(sifSonrasiAlinir
-						? [
-							`fis.piftipi = 'F'`,
-							new MQAndClause([`fis.piftipi = 'I'`, `fis.onctip <> 'KN'`, bekIrsClause])
-						]
+						? [`fis.piftipi = 'F'`, new MQAndClause([`fis.piftipi = 'I'`, `fis.onctip <> 'KN'`, bekIrsClause]) ]
 						: new MQAndClause([`fis.piftipi = 'F'`, `fis.onctip = ''`])
 				  ))
 				}
@@ -454,21 +447,25 @@ class CariHareketci extends Hareketci {
 					})
 				}),
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-					let {where: wh} = sent; sent.fromAdd('sipfis fis')
+					let {where: wh} = sent; sent.fromAdd('piffis fis')
 						.fis2TicCariBagla().fis2PlasiyerBagla()
 						.fis2StokIslemBagla().fis2AltHesapBagla_eski()
-						.fromIliski('siptaksit stak', 'fis.kaysayac = stak.fissayac')
-						.leftJoin('stak', 'tahsilsekli tsek', 'stak.taktahsilsekli = tsek.kodno');
-					wh.fisSilindiEkle().add(`fis.piftipi = 'F'`, 'fis.bdevirdir = 0', `fis.fisekayrim <> 'DV'`, getEtkilenmeOr())
+						.fromIliski('piftaksit ptak', 'fis.kaysayac = ptak.fissayac')
+						.leftJoin('ptak', 'tahsilsekli tsek', 'ptak.taktahsilsekli = tsek.kodno');
+					wh.fisSilindiEkle().add(`fis.piftipi = 'F'`, 'fis.bdevirdir = 0', `fis.fisekayrim <> 'DV'`)
 				}).hvDuzenleIslemi(({ hv }) => {
 					$.extend(hv, {
 						kaysayac: 'fis.kaysayac', oncelik: '2', unionayrim: `'IrsFat'`, kayittipi: `'PIFK'`, fistipi: 'fis.almsat', iade: `fis.iade`,
 						anaislemadi: `(case when RTRIM(fis.almsat + fis.iade) IN ('T', 'AI') then 'Fatura Tahsilatı' else 'Fatura Ödemesi' end)`,
 						must: 'fis.ticmust', asilmust: 'fis.must', islemkod: 'fis.islkod',
-						islemadi: `dbo.iadetext(fis.iade, (case when fis.piftipi = 'P' then 'Perakende Fat.' else dbo.ticonek(fis.ayrimtipi, fis.almsat) + RTRIM(isl.aciklama) end))`,
+						islemadi: (
+							`dbo.iadetext(fis.iade, (case when fis.piftipi = 'P' then 'Perakende Fat.' else` +
+							`dbo.ticonek(fis.ayrimtipi, fis.almsat) + RTRIM(isl.aciklama) end))`
+						),
 						ba: `dbo.tersba(dbo.ticaricarba(fis.almsat, fis.iade))`, plasiyerkod: 'fis.plasiyerkod',
-						vade: 'coalesce(stak.vade, fis.tarih)', karsiodemetarihi: 'coalesce(stak.karsiodemetarihi, stak.vade, fis.tarih)',
-						bedel: 'stak.bedel', dvbedel: 'stak.dvbedel', althesapkod: 'fis.cariitn', takipno: 'fis.orttakipno', fisaciklama: 'fis.cariaciklama'
+						vade: 'coalesce(ptak.vade, fis.tarih)', karsiodemetarihi: 'coalesce(ptak.karsiodemetarihi, ptak.vade, fis.tarih)',
+						bedel: 'ptak.bedel', dvbedel: 'ptak.dvbedel', althesapkod: 'fis.cariitn',
+						takipno: 'fis.orttakipno', fisaciklama: 'fis.cariaciklama'
 					})
 				}),
 				(ozelIsaret ? new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
@@ -552,7 +549,7 @@ class CariHareketci extends Hareketci {
 						unionayrim: `'Ksy'`, kayittipi: `'Ksy'`, iceriktipi: `'Ksy'`,
 						anaislemadi: `'Kasiyer İşlemi'`, islemadi: `'Kasiyer İşlemi'`, ba: `dbo.tersba(pisl.ba)`,
 						bizsubekod: 'pisl.bizsubekod', refkod: 'pisl.kasiyerkod', refadi: 'ksy.aciklama',
-						tarih: 'pisl.tarih', fisnox: 'pisl.fisno',
+						tarih: 'pisl.tarih', fisnox: 'LTRIM(STR(pisl.fisno))',
 						must: 'pisl.mustkod', bedel: 'pisl.bedel', dvbedel: sqlZero, aciklama: 'pisl.aciklama'
 					})
 				})
