@@ -10,8 +10,12 @@ class BankaOrtakHareketci extends Hareketci {
 		if (!from.aliasIcinTable('bhes')) { sent.x2BankaHesapBagla({ kodClause: hv.banhesapkod }) }
 		/* if (sender.donemselIslemlermi || sender.eldekiVarliklarmi) { } */
 	}
-	static varsayilanHVDuzenle_ortak({ hv, sqlNull, sqlEmpty }) {
+	static varsayilanHVDuzenle_ortak({ hv }) {
 		super.varsayilanHVDuzenle_ortak(...arguments);
 		$.extend(hv, { finanalizkullanilmaz: 'bhes.finanalizkullanilmaz' })
+	}
+	static varsayilanHVDuzenle({ hv }) {
+		super.varsayilanHVDuzenle(...arguments);
+		/*$.extend(hv, { dvkod: 'bhes.dvtipi' }*/
 	}
 }

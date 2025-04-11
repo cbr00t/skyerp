@@ -143,7 +143,8 @@ class CariHareketci extends Hareketci {
 					let fisTipi = uygunluk.kasa ? 'KC' : uygunluk.hizmet ? 'CH' : 'CI';
 					wh.fisSilindiEkle().degerAta(fisTipi, 'fis.fistipi')
 				}).hvDuzenleIslemi(({ hv }) => {
-					let fisNoxClause = `(case when har.belgeno = 0 then fis.fisnox else har.belgenox end)`, vadeSql = `coalesce(har.vade, har.belgetarih, fis.fisvade, fis.tarih)`;
+					let fisNoxClause = `(case when har.belgeno = 0 then fis.fisnox else har.belgenox end)`,
+						vadeSql = `coalesce(har.vade, har.belgetarih, fis.fisvade, fis.tarih)`;
 					$.extend(hv, {
 						kaysayac: 'har.kaysayac', fisektipi: 'fis.almsat', unionayrim: `'Fin'`, fistipi: `(fis.fistipi + fis.ba)`,
 						oncelik: `(case when fis.fistipi = 'CI' and fis.ozeltip = 'D' then 0 else 1 end)`, vade: vadeSql, karsiodemetarihi: vadeSql,
