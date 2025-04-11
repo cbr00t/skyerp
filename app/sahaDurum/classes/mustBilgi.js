@@ -16,7 +16,7 @@ class MustBilgi extends CObject {
 		let {kademeler} = this.class, yaslandirmalar = this.yaslandirmalar = this.yaslandirmalar || [];
 		let kapanmayanHesaplar = this[MQKapanmayanHesaplar.dataKey] || [];
 		for (let index = 0; index < kademeler.length; index++) { yaslandirmalar[index] = new Yaslandirma({ index, gecmis: 0, gelecek: 0 }) }
-		let {kod: mustKod} = this; if (mustKod == 'M05D48928') { debugger } 
+		let {kod: mustKod} = this; /* if (mustKod == 'M05D48928') { debugger } */
 		for (let rec of kapanmayanHesaplar) {
 			let {isaretligecikmegun: isaretliGecikmeGun} = rec, acikKisim = rec.acikkisim || 0; if (isaretliGecikmeGun != null) {
 				isaretliGecikmeGun = typeof isaretliGecikmeGun === 'string' ? asDate(isaretliGecikmeGun) : isaretliGecikmeGun;

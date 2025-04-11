@@ -23,16 +23,19 @@ class MQMustBilgi extends MQKAOrtak {
 		colDef = liste.find(colDef => colDef.belirtec == 'aciklama'); $.extend(colDef, {
 			genislikCh: null, cellsRenderer: (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => {
 				rec = rec?.tanim ?? rec; const marginStyle = 'margin-inline-end: 20px';
-				return changeTagContent(html, `<div class="flex-row"><div class="bold gray" style="${marginStyle}">${rec.kod || ''}</div>` + `<div style="${marginStyle}">${rec.aciklama || ''}</div></div>`)
+				return changeTagContent(html,
+					`<div class="flex-row"><div class="bold gray" style="${marginStyle}">${rec.kod || ''}</div>` +
+					`<div style="${marginStyle}">${rec.aciklama || ''}</div></div>`
+				)
 			}
 		});
 		liste.push(...[
-			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 25, cellClassName: 'darkgray' }),
-			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 16, cellClassName: 'darkgray' }),
-			new GridKolon({ belirtec: 'bakiye', text: 'Bakiye', genislikCh: 16, cellClassName: 'bold', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel()
+			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 20, cellClassName: 'darkgray' }),
+			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 13, cellClassName: 'darkgray' }),
+			new GridKolon({ belirtec: 'bakiye', text: 'Bakiye', genislikCh: 13, cellClassName: 'bold', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel()
 		]);
 		for (let i = 1; i <= MustBilgi.kademeler.length; i++) {
-			liste.push(new GridKolon({ belirtec: `kademe${i}Bedel`, text: MustBilgi.getKademeText(i - 1), genislikCh: 16, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel())
+			liste.push(new GridKolon({ belirtec: `kademe${i}Bedel`, text: MustBilgi.getKademeText(i - 1), genislikCh: 13, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel())
 		}
 		liste.push(new GridKolon({ belirtec: 'plasiyerText', text: 'Plasiyer', genislikCh: 10, cellClassName: 'darkgray' }))
 	}
