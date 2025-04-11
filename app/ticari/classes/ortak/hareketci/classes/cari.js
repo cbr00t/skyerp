@@ -460,7 +460,7 @@ class CariHareketci extends Hareketci {
 						must: 'fis.ticmust', asilmust: 'fis.must', islemkod: 'fis.islkod',
 						islemadi: (
 							`dbo.iadetext(fis.iade, (case when fis.piftipi = 'P' then 'Perakende Fat.' else` +
-							`dbo.ticonek(fis.ayrimtipi, fis.almsat) + RTRIM(isl.aciklama) end))`
+							` dbo.ticonek(fis.ayrimtipi, fis.almsat) + RTRIM(isl.aciklama) end))`
 						),
 						ba: `dbo.tersba(dbo.ticaricarba(fis.almsat, fis.iade))`, plasiyerkod: 'fis.plasiyerkod',
 						vade: 'coalesce(ptak.vade, fis.tarih)', karsiodemetarihi: 'coalesce(ptak.karsiodemetarihi, ptak.vade, fis.tarih)',
