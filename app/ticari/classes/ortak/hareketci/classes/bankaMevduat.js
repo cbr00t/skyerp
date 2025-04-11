@@ -352,7 +352,7 @@ class BankaMevduatHareketci extends BankaOrtakHareketci {
                 new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh, sahalar} = sent;
 					sent.fisHareket('csfis', 'csdigerhar')
-						.fromIliski('csilkhar bel', 'bel.fissayac = fis.kaysayac')
+						.fromIliski('csilkhar bel', 'har.ilksayac = bel.kaysayac')
 						.fromIliski('carmst car', 'bel.ciranta = car.must')
 					wh.fisSilindiEkle()
 						.inDizi(['TE', 'BE'], 'fis.fistipi')
