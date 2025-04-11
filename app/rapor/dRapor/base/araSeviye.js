@@ -434,6 +434,12 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		if ((dvKodClause || `''`) == `''`) { return '1 = 1' }
 		return `COALESCE(${dvKodClause}, '') IN ('', 'TL', 'TRY', 'TRL')`
 	}
+	getRevizeDvKodClause(e) {
+		let dvKodClause = typeof e == 'object' ? e.dvKodClause : e;
+		if ((dvKodClause || `''`) == `''`) { return dvKodClause }
+		let dvBosmuClause = this.getDvBosmuClause(dvKodClause);
+		return `(case when ${dvBosmuClause} then '' else ${dvKodClause} end)`
+	}
 	getDovizliBedelClause(e, _tlBedelClause, _dvBedelClause, _sumOlmaksizinmi) {
 		let objmi = typeof e == 'object', sumOlmaksizinmi = objmi ? e.sumOlmaksizin ?? e.sumOlmaksizinmi : _sumOlmaksizinmi;
 		let dvKodClause = objmi ? e.dvKodClause : e, dvBosmuClause = this.getDvBosmuClause(dvKodClause);
@@ -442,11 +448,5 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		if (sumOlmaksizinmi) { tlBedelClause = tlBedelClause?.sumOlmaksizin(); dvBedelClause = dvBedelClause?.sumOlmaksizin() }
 		if ((dvKodClause || `''`) == `''`) { return tlBedelClause }
 		return `(case when ${dvBosmuClause} then ${tlBedelClause} else ${dvBedelClause} end)`;
-	}
-	getRevizeDvKodClause(e) {
-		let dvKodClause = typeof e == 'object' ? e.dvKodClause : e;
-		if ((dvKodClause || `''`) == `''`) { return dvKodClause }
-		let dvBosmuClause = this.getDvBosmuClause(dvKodClause);
-		return `(case when ${dvBosmuClause} then '' else ${dvKodClause} end)`
 	}
 }

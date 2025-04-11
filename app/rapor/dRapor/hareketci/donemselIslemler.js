@@ -97,7 +97,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 					let bedelClause = this.getDovizliBedelClause({ dvKodClause, tlBedelClause, dvBedelClause, sumOlmaksizin: true });
 					sahalar.add(
 						/* mstadi, */ `${mstKodClause} mstkod`, `'${harTipKod}' anatip`, /* `${altTipClause} alttip`, */
-						`${grupAdiClause} grup`, `${oncelik} oncelik`, `${dvKodClause} dvkod`
+						`${grupAdiClause} grup`, `${oncelik} oncelik`, `${this.getRevizeDvKodClause(dvKodClause)} dvkod`
 					);
 					if (!devirAlinmasin && tBasi) {
 						sahalar.add(
@@ -133,7 +133,13 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		stm = e.stm = uni.asToplamStm();
 		stm.orderBy.add('oncelik', 'anatip', 'grup', 'dvkod', 'mstkod')
 	}
-	loadServerData_recsDuzenle({ recs }) { super.loadServerData_recsDuzenle(...arguments) }
+	loadServerData_recsDuzenle({ recs }) {
+		super.loadServerData_recsDuzenle(...arguments)
+		for (let rec of recs) {
+			let {dvkod: dvKod} = rec;
+			if (this.getDovizmi(dvKod)) { rec.grup += ` (<span class="bold orangered">${dvKod}</span>)` }
+		}
+	}
 	async detaylariOlustur(e) {
 		let {event: evt} = e, {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu;
 		let {secimler: sec} = this, {tarihBS: donemBS} = sec;
@@ -148,7 +154,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		if (ozelIsaretVarmi) { sabitBelirtecler.push('ozelisaret') }
 		let {oncelik, kod: tipKod, mstYapi} = harSinif, {hvAlias: mstAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
 		mstAlias = mstAlias || 'mstkod'; mstAdiAlias = mstAdiAlias || 'mstadi';
-		let dvKodClausecu = hv => `(case when COALESCE(${hv.dvkod || ''}, '') IN ('', 'TL', 'TRY', 'TRL') then '' else ${hv.dvkod || ''} end)`;
+		// let dvKodClausecu = hv => `(case when COALESCE(${hv.dvkod || ''}, '') IN ('', 'TL', 'TRY', 'TRL') then '' else ${hv.dvkod || ''} end)`;
 		let har = new harSinif().withAttrs(sabitBelirtecler)
 			.addEkDuzenleyici('mst', ({ hv, sent, where: wh }) => {
 				sent.sahalar.add(`${oncelik} _oncelik`, `'${tipKod}' _hartipkod`);
@@ -157,8 +163,8 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		let uni = har.uniOlustur({ sender: this }), orderBy = ['_oncelik', '_hartipkod', 'tarih DESC', 'fisnox DESC', 'islemadi'];
 		for (let sent of uni.getSentListe()) {
 			let {from, sahalar, where: wh, alias2Deger} = sent;
-			let {ozelisaret: ozelIsaretClause, tarih: tarihClause} = alias2Deger;
-			if (alias2Deger.dvkod) { wh.degerAta(dvKod, dvKodClausecu(alias2Deger)) }
+			let {ozelisaret: ozelIsaretClause, tarih: tarihClause, dvkod: dvKodClause} = alias2Deger;
+			if (dvKodClause) { wh.degerAta(dvKod, this.getRevizeDvKodClause({ dvKodClause })) }
 			if (ozelIsaretVarmi && ozelIsaretClause) { wh.notDegerAta('X', ozelIsaretClause) }
 			if (tarihClause && donemBS) { this.donemBagla({ donemBS, tarihSaha: tarihClause, sent }) }
 			let fisAliasVarmi = !!from.liste.find(({ alias }) => alias == 'fis');

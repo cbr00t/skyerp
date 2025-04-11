@@ -211,7 +211,7 @@ class BankaMevduatHareketci extends BankaOrtakHareketci {
     uniDuzenle_virman({ uygunluk, liste }) {
         $.extend(liste, {
             virman: [
-				/* Giriş açısından */
+				/* Çıkış açısından */
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent;
                     sent.fisHareket('geneldekontfis', 'geneldekonthar')
@@ -228,7 +228,7 @@ class BankaMevduatHareketci extends BankaOrtakHareketci {
 						detaciklama: 'har.aciklama'
                     })
 				}),
-				/* Çıkış açısından */
+				/* Giriş açısından */
                 new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent;
                     sent.fisHareket('geneldekontfis', 'geneldekonthar')
@@ -354,7 +354,9 @@ class BankaMevduatHareketci extends BankaOrtakHareketci {
 					sent.fisHareket('csfis', 'csdigerhar')
 						.fromIliski('csilkhar bel', 'bel.fissayac = fis.kaysayac')
 						.fromIliski('carmst car', 'bel.ciranta = car.must')
-					wh.fisSilindiEkle().degerAta('BN', 'fis.fistipi').degerAta('BC', 'fis.belgetipi')
+					wh.fisSilindiEkle()
+						.inDizi(['TE', 'BE'], 'fis.fistipi')
+						.inDizi(['AC', 'AS', 'BC', 'BS'], 'fis.belgetipi')
                 }).hvDuzenleIslemi(({ hv }) => {
                     $.extend(hv, {
                         kaysayac: 'har.kaysayac', kayittipi: `fis.belgetipi + 'CSDIGER'`,

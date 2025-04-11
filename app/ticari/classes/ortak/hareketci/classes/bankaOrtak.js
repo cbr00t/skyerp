@@ -16,6 +16,6 @@ class BankaOrtakHareketci extends Hareketci {
 	}
 	static varsayilanHVDuzenle({ hv }) {
 		super.varsayilanHVDuzenle(...arguments);
-		/*$.extend(hv, { dvkod: 'bhes.dvtipi' }*/
+		$.extend(hv, { dvkod: 'bhes.dvtipi' })
 	}
 }

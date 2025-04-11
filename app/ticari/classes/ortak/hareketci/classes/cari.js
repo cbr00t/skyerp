@@ -139,9 +139,12 @@ class CariHareketci extends Hareketci {
 					let {where: wh} = sent; sent.fisHareket('finansfis', 'finanshar')
 						.fis2IslBagla_leftJoin().har2KatDetayBagla()
 						.har2CariBagla({ mustSaha: 'ticmustkod' }).fis2PlasiyerBagla()
-						.fis2KasaBagla().har2AltHesapBagla().har2HizmetBagla()
-					let fisTipi = uygunluk.kasa ? 'KC' : uygunluk.hizmet ? 'CH' : 'CI';
-					wh.fisSilindiEkle().degerAta(fisTipi, 'fis.fistipi')
+						.fis2KasaBagla().har2AltHesapBagla().har2HizmetBagla();
+					let tipListe = [];
+					if (uygunluk.topluIslem) { tipListe.push('CI') }
+					if (uygunluk. kasa) { tipListe.push('KC') }
+					if (uygunluk.hizmet) { tipListe.push('CH') }
+					wh.fisSilindiEkle().inDizi(tipListe, 'fis.fistipi')
 				}).hvDuzenleIslemi(({ hv }) => {
 					let fisNoxClause = `(case when har.belgeno = 0 then fis.fisnox else har.belgenox end)`,
 						vadeSql = `coalesce(har.vade, har.belgetarih, fis.fisvade, fis.tarih)`;

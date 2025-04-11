@@ -55,7 +55,7 @@ class SecimBasSon extends Secim {
 		e.target += 	`<div class="bs-parent flex-row${birKismimi ? ' jqx-hidden' : ''}">`;
 		if (mfSinif) { e.target += 	`<div class="veri basi bs" placeholder="${placeHolder}"></div>` }
 		else { e.target += 	`<input class="veri basi bs" type="textbox" value="${this.getConvertedUIValue(this.basi) || ''}"></input>` }
-		e.target += 		`<button class="kopya">--&gt;</button>`;
+		e.target += 		`<button class="kopya" tabindex="-1">--&gt;</button>`;
 		if (mfSinif) { e.target += 	`<div class="veri sonu bs" placeholder="${placeHolder}"></div>` }
 		else { e.target += 	`<input class="veri sonu bs" type="textbox" value="${this.getConvertedUIValue(this.sonu) || ''}"></input>` }
 		e.target += 	`</div>`;
