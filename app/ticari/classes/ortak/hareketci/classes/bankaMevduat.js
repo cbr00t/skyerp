@@ -218,7 +218,7 @@ class BankaMevduatHareketci extends BankaOrtakHareketci {
                         .fromIliski('geneldekonthar gir', 'har.fissayac = gir.fissayac')
 						.fromIliski('banbizhesap ghes', 'gir.banhesapkod = ghes.kod');
 					wh.degerAta('H', 'fis.ozeltip').degerAta('MV', 'har.kayittipi')
-						.add('har.seq % 2 = 1', 'gir.seq = (har.seq - 1)')
+						.add('har.seq % 2 = 1', 'gir.seq = (har.seq + 1)')
                 }).hvDuzenleIslemi(({ hv }) => {
                     $.extend(hv, {
                         refsubekod: 'ghes.bizsubekod', kaysayac: 'har.kaysayac', kayittipi: `'BNVIR'`,
