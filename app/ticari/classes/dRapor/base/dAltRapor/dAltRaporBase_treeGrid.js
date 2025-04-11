@@ -66,7 +66,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 			return new $.jqx.dataAdapter({
 				hierarchy: { root: key_items }, dataType: 'array', localData: recs, /* hierarchy: { keyDataField: { name: key_id }, parentDataField: { name: 'parentId' } }, */
 				dataFields: Object.keys(tRec).map(name => ({ name, type: typeof tRec[name] == 'object' ? 'array' : (typeof tRec[name] || 'string') })),
-			}, { autoBind: false, loadComplete: (boundRecs, recs) => setTimeout(() => this.gridVeriYuklendi({ ...e, boundRecs, recs }), 10) })
+			}, { autoBind: false, loadComplete: (boundRecs, recs) => setTimeout(() => this.gridVeriYuklendi({ ...e, boundRecs, recs }), 5) })
 		}
 		catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Grid Verisi Yüklenemedi'); return null }
 	}
@@ -347,7 +347,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	tazeleSonrasi(e) { }
 	async tazele(e) {
 		e = e ?? {}; try {
-			showProgress('Rapor oluşturuluyor...', null, true); await new $.Deferred(p => setTimeout(() => p.resolve(), 50)); window.progressManager?.setProgressMax(20);
+			showProgress('Rapor oluşturuluyor...', null, true); await new $.Deferred(p => setTimeout(() => p.resolve(), 30)); window.progressManager?.setProgressMax(20);
 			await this.tazeleOncesi(e); window.progressManager?.progressStep(1);
 			let {gridPart, raporTanim} = this, {degistimi, kullanim} = raporTanim, {yatayAnaliz} = kullanim;
 			let {grid, gridWidget} = gridPart, {base} = gridWidget, {defUpdateOnly} = e;
@@ -428,7 +428,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			this.tazeleSonrasi(e)
 		}
 		catch (ex) { hideProgress(); hConfirm(getErrorText(ex), this.class.aciklama); throw ex }
-		finally { setTimeout(() => hideProgress(), 300) }
+		finally { setTimeout(() => hideProgress(), 50) }
 	}
 	raporTanimIstendi(e) {
 		const {raporTanim} = this, inst = raporTanim, title = `${raporTanim.class.sinifAdi} Tanım`, ustHeight = '50px', ustEkHeight = '33px', islemTuslariHeight = '55px';

@@ -141,7 +141,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		}
 	}
 	async detaylariOlustur(e) {
-		let {event: evt} = e, {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu;
+		let {event: evt} = e, {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu, {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
 		let {secimler: sec} = this, {tarihBS: donemBS} = sec;
 		let {id2AltRapor} = this.rapor, {row: parentRec} = evt.args;
 		let {anatip: harTip, mstkod: kod, dvkod: dvKod, level, ozelisaret: ozelIsaret, devir} = parentRec ?? {};
@@ -243,7 +243,7 @@ class DRapor_DonemselIslemler_Detaylar extends DRapor_DonemselIslemler_DetaylarV
 		};
 		super.tabloKolonlariDuzenle(...arguments); liste.push(...[
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12, cellClassName }).tipTarih(),
-			new GridKolon({ belirtec: 'fisnox', text: 'Fiş No', cellClassName, genislikCh: 13 }).tipNumerik(),
+			new GridKolon({ belirtec: 'fisnox', text: 'Fiş No', cellClassName, genislikCh: 13 }),
 			new GridKolon({ belirtec: 'islemadi', text: 'İşlem', cellClassName, genislikCh: 40, filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'ref', text: 'Referans', cellClassName }),
 			new GridKolon({ belirtec: 'borc', text: 'Borç', genislikCh: 17, cellClassName }).tipDecimal_bedel(),

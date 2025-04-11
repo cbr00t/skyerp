@@ -35,16 +35,21 @@ class CariHareketci extends Hareketci {
 	uniOrtakSonIslem({ sender, hv, sent }) {
 		super.uniOrtakSonIslem(...arguments); let {from, where: wh} = sent;
 		if (!from.aliasIcinTable('car')) { sent.x2CariBagla({ kodClause: hv.must }) }
+		if (!from.aliasIcinTable('alth')) { sent.fromIliski('althesap alth', `${hv.althesapkod} = alth.kod`) }
 		if (!from.aliasIcinTable('ctip')) { sent.cari2TipBagla() }
 	}
 	static varsayilanHVDuzenle_ortak({ hv, sqlNull, sqlEmpty }) {
 		super.varsayilanHVDuzenle_ortak(...arguments);
-		$.extend(hv, { finanalizkullanilmaz: 'ctip.finanaliztipi' })
+		$.extend(hv, {
+			finanalizkullanilmaz: 'ctip.finanaliztipi', dvkod: `dbo.emptycoalesce(alth.dvkod, car.dvkod)`,
+			althesapadi: 'alth.aciklama'
+		})
 	}
 	static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
 		super.varsayilanHVDuzenle(...arguments);
 		for (const key of ['satistipkod', 'taksitadi', 'riskdurumu', 'cskendisimi', 'gxbnox', 'gxbtarihi', 'koopdonemno']) { hv[key] = sqlNull }
 		for (const key of ['acikkisim', 'ekstrarisk', 'ekstrarisk2']) { hv[key] = sqlZero }
+		$.extend(hv, { dvkod: 'car.dvkod' })
 	}
 	uygunluk2UnionBilgiListeDuzenleDevam(e) {
 		super.uygunluk2UnionBilgiListeDuzenleDevam(e);
@@ -60,7 +65,7 @@ class CariHareketci extends Hareketci {
 					let {where: wh} = sent;
 					sent.fisHareket('hefis', 'hehar')
 						.har2CariBagla({ mustSaha: 'ticmustkod' })
-						.fis2PlasiyerBagla().fis2BankaHesapBagla().har2AltHesapBagla();
+						.fis2PlasiyerBagla().fis2BankaHesapBagla();
 					wh.fisSilindiEkle().inDizi(['SH', 'SE', 'SS', 'GL', 'TP'], 'fis.fistipi')
 				}).hvDuzenleIslemi(({ hv }) => {
 					$.extend(hv, {
@@ -71,27 +76,26 @@ class CariHareketci extends Hareketci {
 						kayittipi: `((case when fis.fistipi = 'GL' then 'G' when fis.fistipi = 'TP' then 'T' else 'S' end) + 'BNHE')`,
 						must: 'har.ticmustkod', asilmust: 'har.must', tarih: 'coalesce(har.belgetarih, fis.tarih)', plasiyerkod: 'fis.plasiyerkod', plasiyeradi: 'pls.aciklama',
 						dvkur: `(case when har.karsidvvar = '' then har.dvkur else har.karsidvkur end)`, 
-						althesapkod: 'har.cariitn', althesapadi: 'alth.aciklama', dvkod: `dbo.emptycoalesce(alth.dvkod, car.dvkod)`,
-						ba: `(case when fis.fistipi in ('SH', 'SE', 'SS') then 'B' when fis.fistipi = 'TP' then dbo.tersba(har.hba) else 'A' end)`
+						althesapkod: 'har.cariitn', ba: `(case when fis.fistipi in ('SH', 'SE', 'SS') then 'B' when fis.fistipi = 'TP' then dbo.tersba(har.hba) else 'A' end)`
 					})
 				})
 			],
 			kredi: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent; sent.fromAdd('kredifis fis')
-						.fis2CariBagla().fis2KrediBankaHesapBagla().fis2AltHesapBagla();
+						.fis2CariBagla().fis2KrediBankaHesapBagla();
 					wh.fisSilindiEkle().add(`fis.fistipi = 'A'`, `fis.hedeftipi = 'C'`)
 				}).hvDuzenleIslemi(({ hv }) => $.extend(hv, {
 					kaysayac: 'fis.kaysayac', oncelik: '30', unionayrim: `'Kre'`, kayittipi: `'KRE'`, anaislemadi: `'Kredi'`, islemadi: `'Kredi Alımı'`, fistipi: 'fis.fistipi',
 					ba: `'B'`, must: 'fis.must', asilmust: 'fis.must', vade: 'fis.tarih', bedel: 'fis.topbrutbedel', dvbedel: 'fis.topdvbrutbedel',
-					althesapkod: 'fis.althesapkod', althesapadi: 'alth.aciklama', dvkod: `dbo.emptycoalesce(alth.dvkod, car.dvkod)`,
-					refkod: 'fis.kredihesapkod', refadi: 'bhes.aciklama', dvkur: 'fis.dvkur', fisaciklama: 'har.aciklama', detaciklama: 'fis.aciklama'
+					althesapkod: 'fis.althesapkod', refkod: 'fis.kredihesapkod', refadi: 'bhes.aciklama', dvkur: 'fis.dvkur', fisaciklama: 'har.aciklama', detaciklama: 'fis.aciklama'
 				}))
 			],
 			pos: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent; sent.fisHareket('posfis', 'posilkhar')
-						.har2CariBagla({ mustSaha: 'ticmustkod' }).fis2PlasiyerBagla().har2AltHesapBagla().har2BankaHesapBagla();
+						.har2CariBagla({ mustSaha: 'ticmustkod' })
+						.fis2PlasiyerBagla().har2BankaHesapBagla();
 					wh.fisSilindiEkle().add(`fis.fistipi = 'AL'`)
 				}).hvDuzenleIslemi(({ hv }) => {
 					let {cariGenel} = app.params, {kullanim: k} = cariGenel;
@@ -103,16 +107,15 @@ class CariHareketci extends Hareketci {
 						ba: `(case when rtrim(fis.almsat + fis.iade) in ('T', 'AI') then 'A' else 'B' end)`,
 						must: 'har.ticmustkod', asilmust: 'har.must', plasiyerkod: 'fis.plasiyerkod', plasiyeradi: 'pls.aciklama',
 						vade: vadeSql, karsiodemetarihi: vadeSql, bedel: 'SUM(har.bedel)', dvbedel: 'SUM(har.karsidvbedel)',
-						althesapkod: 'har.cariitn', althesapadi: 'alth.aciklama', dvkod: `dbo.emptycoalesce(alth.dvkod, car.dvkod)`,
-						refkod: 'har.banhesapkod', refadi: 'bhes.aciklama', dvkur: 'fis.dvkur', fisaciklama: 'har.aciklama', detaciklama: 'fis.aciklama'
+						althesapkod: 'har.cariitn', refkod: 'har.banhesapkod', refadi: 'bhes.aciklama', dvkur: 'fis.dvkur', fisaciklama: 'har.aciklama', detaciklama: 'fis.aciklama'
 					})
 				})
 			],
 			masraf: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent; sent.fisHareket('posfis', 'posilkhar')
-						.har2CariBagla({ mustSaha: 'ticmustkod' }).fis2PlasiyerBagla()
-						.har2AltHesapBagla().har2BankaHesapBagla();
+						.har2CariBagla({ mustSaha: 'ticmustkod' })
+						.fis2PlasiyerBagla().har2BankaHesapBagla();
 					wh.fisSilindiEkle().add(`fis.fistipi = 'AL'`, `har.masraf <> 0`)
 				}).hvDuzenleIslemi(({ hv }) => {
 					let {cariGenel} = app.params, {kullanim: k} = cariGenel;
@@ -124,8 +127,7 @@ class CariHareketci extends Hareketci {
 						ba: `(case when rtrim(fis.almsat + fis.iade) in ('T', 'AI') then 'A' else 'B' end)`,
 						must: 'har.ticmustkod', asilmust: 'har.must', plasiyerkod: 'fis.plasiyerkod', plasiyeradi: 'pls.aciklama',
 						vade: vadeSql, karsiodemetarihi: vadeSql, bedel: 'SUM(har.masraf)', dvbedel: '0',
-						althesapkod: 'har.cariitn', althesapadi: 'alth.aciklama',
-						refkod: 'har.banhesapkod', refadi: 'bhes.aciklama', fisaciklama: 'har.aciklama', detaciklama: 'fis.aciklama'
+						althesapkod: 'har.cariitn', refkod: 'har.banhesapkod', refadi: 'bhes.aciklama', fisaciklama: 'har.aciklama', detaciklama: 'fis.aciklama'
 					})
 			   })
 			]
@@ -136,10 +138,11 @@ class CariHareketci extends Hareketci {
 		$.extend(liste, {
 			kasa$hizmet$topluIslem: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-					let {where: wh} = sent; sent.fisHareket('finansfis', 'finanshar')
+					let {where: wh} = sent;
+					sent.fisHareket('finansfis', 'finanshar')
 						.fis2IslBagla_leftJoin().har2KatDetayBagla()
 						.har2CariBagla({ mustSaha: 'ticmustkod' }).fis2PlasiyerBagla()
-						.fis2KasaBagla().har2AltHesapBagla().har2HizmetBagla();
+						.fis2KasaBagla().har2HizmetBagla();
 					let tipListe = [];
 					if (uygunluk.topluIslem) { tipListe.push('CI') }
 					if (uygunluk. kasa) { tipListe.push('KC') }
@@ -164,7 +167,7 @@ class CariHareketci extends Hareketci {
 						ba: `(case when fis.fistipi = 'KC' then dbo.tersba(fis.ba) else fis.ba end)`,
 						plasiyerkod: `(case when fis.fistipi = 'KC' then fis.plasiyerkod else '' end)`, plasiyeradi: `(case when fis.fistipi = 'KC' then fis.birunvan else '' end)`,
 						kdetay: 'kdet.kdetay', bedel: '(har.bedel + har.kredifaiz)', dvbedel: `(case when har.karsidvvar = '' then har.dvbedel else har.karsidvbedel end)`,
-						acikkisim: 'har.acikkisim', althesapkod: 'har.cariitn', althesapadi: 'alth.aciklama', dvkod: `dbo.emptycoalesce(alth.dvkod, car.dvkod)`,
+						acikkisim: 'har.acikkisim', althesapkod: 'har.cariitn',
 						refkod: `(case when fis.fistipi = 'KC' then fis.kasakod else '' end)`, refadi: `(case when fis.fistipi = 'KC' then kas.aciklama else '' end)`,
 						dvkur: `(case when har.karsidvvar = '' then har.dvkur else har.karsidvkur end)`, riskdurumu: `'V'`, detaciklama: 'fis.aciklama',
 						fisaciklama: `(case when fis.fistipi = 'KC' then har.aciklama else dbo.hizmetack(fis.tarih, fis.seri, fis.no, har.aciklama) end)`
@@ -176,7 +179,7 @@ class CariHareketci extends Hareketci {
 					let {where: wh} = sent; sent.fisHareket('finansfis', 'finanshar')
 						.fis2IslBagla_leftJoin().har2KatDetayBagla().fis2KasaBagla()
 						.fis2CariBagla({ mustSaha: 'fisticmustkod' })
-						.fis2PlasiyerBagla().har2AltHesapBagla().har2HizmetBagla()
+						.fis2PlasiyerBagla().har2HizmetBagla()
 					wh.fisSilindiEkle().add(`fis.fistipi = 'SM'`)
 				}).hvDuzenleIslemi(({ hv }) => {
 					let fisNoxClause = `(case when har.belgeno=0 then fis.fisnox else har.belgenox end)`, vadeSql = `coalesce(har.vade, har.belgetarih, fis.fisvade, fis.tarih)`;
@@ -185,10 +188,10 @@ class CariHareketci extends Hareketci {
 						anaislemadi: `'Serbest Meslek'`, islemkod: 'har.hizmetkod', islemadi: 'hiz.aciklama', tarih: 'coalesce(har.belgetarih, fis.tarih)', ba: 'fis.ba',
 						vade: vadeSql, karsiodemetarihi: vadeSql, seri: `(case when har.belgeno = 0 then fis.seri else har.belgeseri end)`,
 						noyil: `(case when har.belgeno = 0 then 0 else har.belgenoyil end)`, fisno: `(case when har.belgeno = 0 then fis.no else har.belgeno end)`,
-						fisnox: fisNoxClause, disfisnox: fisNoxClause, must: 'fis.fisticmustkod', asilmust: 'fis.fismustkod', althesapkod: 'har.cariitn', althesapadi: 'alth.aciklama',
+						fisnox: fisNoxClause, disfisnox: fisNoxClause, must: 'fis.fisticmustkod', asilmust: 'fis.fismustkod', althesapkod: 'har.cariitn',
 						kdetay: 'kdet.kdetay', takipno: 'har.takipno', riskdurumu: `'V'`, detaciklama: 'fis.aciklama',
 						bedel: 'har.bedel', dvbedel: `(case when har.karsidvvar = '' then har.dvbedel else har.karsidvbedel end)`,
-						acikkisim: 'har.acikkisim', dvkod: `dbo.emptycoalesce(alth.dvkod, car.dvkod)`, dvkur: `(case when har.karsidvvar = '' then har.dvkur else har.karsidvkur end)`,
+						acikkisim: 'har.acikkisim', dvkur: `(case when har.karsidvvar = '' then har.dvkur else har.karsidvkur end)`,
 						fisaciklama: `dbo.hizmetack(fis.tarih, fis.seri, fis.no, har.aciklama)`
 					})
 				})
@@ -199,10 +202,11 @@ class CariHareketci extends Hareketci {
 	uniDuzenle_genelDekont({ uygunluk, liste }) {
 		$.extend(liste, {
 			genelDekont$virman: [new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-				let {where: wh} = sent; sent.fisHareket('geneldekontfis', 'geneldekonthar')
+				let {where: wh} = sent;
+				sent.fisHareket('geneldekontfis', 'geneldekonthar')
 					.leftJoin('fis', 'muhisl isl', 'fis.islkod = isl.kod').har2KatDetayBagla()
 					.leftJoin('har','geneldekonthar dig', ['har.fissayac = dig.fissayac', 'dig.seq = (case when har.seq % 2 = 0 then har.seq - 1 else har.seq + 1 end)'])
-					.har2AltHesapBagla().leftJoin('dig', 'carmst dcar', 'dig.must = dcar.must');
+					.leftJoin('dig', 'carmst dcar', 'dig.must = dcar.must');
 				wh.fisSilindiEkle();
 				let or = new MQOrClause();
 				if (uygunluk.genelDekont) { or.add(new MQAndClause([`fis.ozeltip = ''`, `har.kayittipi = 'CR'`])) }
@@ -226,7 +230,9 @@ class CariHareketci extends Hareketci {
 		$.extend(liste, {
 			cariTahsilatOdeme: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-					let {where: wh} = sent; sent.fisHareket('carifis', 'carihar').fis2CariBagla({ mustSaha: 'ticmustkod' }).fis2PlasiyerBagla()
+					let {where: wh} = sent;
+					sent.fisHareket('carifis', 'carihar')
+						.fis2CariBagla({ mustSaha: 'ticmustkod' }).fis2PlasiyerBagla()
 						.fromIliski('tahsilsekli tsek', 'har.tahseklino = tsek.kodno');
 					wh.fisSilindiEkle().add(`tsek.tahsiltipi > ''`)
 				}).hvDuzenleIslemi(({ hv }) => {
@@ -248,7 +254,8 @@ class CariHareketci extends Hareketci {
 		$.extend(liste, {
 			cekSenet: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-					let {where: wh} = sent;sent.fromAdd('csfis fis')
+					let {where: wh} = sent;
+					sent.fromAdd('csfis fis')
 						.fis2PlasiyerBagla().fis2AltHesapBagla_eski()
 						.fromIliski('csportfoy prt', 'fis.portfkod = prt.kod');
 					wh.fisSilindiEkle().add(`fis.iade = ''`)
@@ -259,9 +266,8 @@ class CariHareketci extends Hareketci {
 						fistipi: 'fis.fistipi', iade: 'fis.iade', anaislemadi: `'Çek/Senet'`, must: 'fis.fisticciranta', asilmust: 'fis.fisciranta',
 						plasiyerkod: 'fis.plasiyerkod', althesapkod: 'fis.cariitn', takipno: 'fis.takipno',
 						refkod: 'fis.portfkod', refadi: 'prt.aciklama', ba: `dbo.csba(fis.fistipi, fis.iade)`,
-						islemadi: `dbo.csacik2(fis.belgetipi, '', fis.fistipi, fis.iade)`,
-						vade: 'coalesce(har.vade, fis.tarih)', bedel: 'fis.toplambedel', dvbedel: 'fis.toplamdvbedel',
-						fisaciklama: 'har.aciklama', detaciklama: 'fis.aciklama'
+						islemadi: `dbo.csacik2(fis.belgetipi, '', fis.fistipi, fis.iade)`, vade: 'fis.tarih',
+						bedel: 'fis.toplambedel', dvbedel: 'fis.toplamdvbedel', fisaciklama: 'fis.aciklama'
 					})
 				}),
 				cekSenetDevirCariyeIslenir ? (
@@ -277,7 +283,8 @@ class CariHareketci extends Hareketci {
 							kaysayac: 'fis.kaysayac', oncelik: '15', unionayrim: `'CekSen'`, kayittipi: `(fis.belgetipi + 'CSILK')`, iceriktipi: `'CSILK'`,
 							fistipi: 'fis.fistipi', iade: 'fis.iade', anaislemadi: `'Çek/Senet'`, must: 'har.ciranta', asilmust: 'har.ciranta',
 							islemadi: `dbo.csacik2(fis.belgetipi, '', fis.fistipi, fis.iade)`, ba: `'A'`,
-							plasiyerkod: 'fis.plasiyerkod', vade: 'coalesce(fis.ortalamavade, fis.tarih)', bedel: 'SUM(har.bedel)', dvbedel: 'SUM(har.dvbedel)',
+							plasiyerkod: 'fis.plasiyerkod', vade: 'coalesce(fis.ortalamavade, fis.tarih)',
+							bedel: 'SUM(har.bedel)', dvbedel: 'SUM(har.dvbedel)',
 							althesapkod: 'fis.cariitn', takipno: 'fis.takipno', refkod: `(case when fis.fistipi = 'H' then fis.banhesapkod else fis.portfkod end)`,
 							refadi: `(case when fis.fistipi = 'H' then bhes.aciklama else prt.aciklama end)`, fisaciklama: 'fis.aciklama'
 						})
@@ -296,16 +303,15 @@ class CariHareketci extends Hareketci {
 						islemadi: `dbo.csacik2(fis.belgetipi, '', fis.fistipi, fis.iade)`, detaciklama: 'fis.aciklama',
 						must: 'fis.fisticciranta', asilmust: 'fis.fisciranta', ba: 'dbo.csba(fis.fistipi, fis.iade)',
 						plasiyerkod: 'fis.plasiyerkod', vade: 'bel.vade', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
-						althesapkod: 'fis.cariitn', althesapadi: 'alth.acikama', takipno: 'fis.takipno',
+						althesapkod: 'fis.cariitn', takipno: 'fis.takipno',
 						refkod: 'fis.portfkod', refadi: 'prt.aciklama', fisaciklama: 'fis.aciklama'
 					})
 				}),
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent; sent.fisHareket('csfis', 'csdigerhar')
-						.fis2PlasiyerBagla().fis2BankaHesapBagla().fis2AltHesapBagla_eski()
+						.fis2PlasiyerBagla().fis2BankaHesapBagla()
 						.fromIliski('csilkhar bel', 'har.ilksayac = bel.kaysayac')
-						.fromIliski('csportfoy prt', 'fis.portfkod = prt.kod')
-						.fromIliski('althesap haralth', 'har.ciralthesapkod = haralth.kod');
+						.fromIliski('csportfoy prt', 'fis.portfkod = prt.kod');
 					wh.fisSilindiEkle().inDizi(['KR', 'EK', '3K'], 'fis.fistipi')    /* Karşılıksızlar */
 				}).hvDuzenleIslemi(({ hv }) => {
 					$.extend(hv, {
@@ -317,7 +323,6 @@ class CariHareketci extends Hareketci {
 						ba: `(case when fis.belgetipi in ('AC', 'AS') then 'B' else 'A' end)`,
 						plasiyerkod: 'fis.plasiyerkod', vade: 'bel.vade', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
 						althesapkod: `(case when fis.fistipi = 'EK' then fis.cariitn else har.ciralthesapkod end)`,
-						althesapadi: `(case when fis.fistipi = 'EK' then alth.aciklama else haralth.aciklama end)`,
 						takipno: 'fis.takipno', refkod: `(case when fis.fistipi = 'KR' then fis.banhesapkod else fis.portfkod end)`,
 						refadi: `(case when fis.fistipi = 'KR' then bhes.aciklama else prt.aciklama end)`,
 						fisaciklama: 'dbo.csbelgestr(fis.belgetipi, bel.belgeyil, bel.bankakod, bel.belgeno, bel.banhesapkod)'
@@ -334,7 +339,8 @@ class CariHareketci extends Hareketci {
 						kaysayac: 'har.kaysayac', oncelik: '18', unionayrim: `'CekSen'`, kayittipi: `(fis.belgetipi + 'CSDIGK')`, iceriktipi: `'CSDIG'`,
 						fistipi: 'fis.fistipi', iade: 'fis.iade', anaislemadi: `'Çek/Senet'`, must: 'fis.fisticciranta', asilmust: 'fis.fisciranta',
 						islemadi: `dbo.csacik2(fis.belgetipi, '', fis.fistipi, fis.iade)`, ba: `'A'`, plasiyerkod: 'fis.plasiyerkod', 
-						vade: 'bel.vade', bedel: 'har.bedel', dvbedel: 'har.dvbedel', althesapkod: 'fis.cariitn', takipno: 'fis.takipno',
+						vade: 'bel.vade', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
+						althesapkod: 'fis.cariitn', takipno: 'fis.takipno',
 						fisaciklama: 'dbo.csbelgestr(fis.belgetipi, bel.belgeyil, bel.bankakod, bel.belgeno, bel.banhesapkod)', detaciklama: 'fis.aciklama'
 					})
 				}),
@@ -349,7 +355,8 @@ class CariHareketci extends Hareketci {
 						kaysayac: 'fis.kaysayac', oncelik: '19', unionayrim: `'CekSen'`, kayittipi: `(fis.belgetipi + 'CSMAS')`,
 						fistipi: 'fis.fistipi', iade: 'fis.iade', anaislemadi: `'Senet Protesto Masrafı'`, islemadi: `'Senet Protesto Masrafı'`,
 						must: 'bel.ciranta', asilmust: 'bel.ciranta', ba: `(case when fis.belgetipi in ('AC', 'AS') then 'B' else 'A' end)`,
-						vade: 'fis.tarih', bedel: 'har.masraf', dvbedel: '0', althesapkod: 'har.ciralthesapkod', takipno: 'fis.takipno',
+						vade: 'fis.tarih', bedel: 'har.masraf', dvbedel: '0',
+						althesapkod: 'har.ciralthesapkod', takipno: 'fis.takipno',
 						refkod: `(case when fis.fistipi = 'KR' then fis.banhesapkod else fis.portfkod end)`,
 						refadi: `(case when fis.fistipi = 'KR' then bhes.aciklama else prt.aciklama end)`,
 						fisaciklama: 'dbo.csbelgestr(fis.belgetipi,bel.belgeyil,bel.bankakod,bel.belgeno,bel.banhesapkod)', detaciklama: 'fis.aciklama'
@@ -359,7 +366,6 @@ class CariHareketci extends Hareketci {
 					let {where: wh} = sent; sent.fisHareket('csfis', 'csdigerhar')
 						.fis2BankaHesapBagla()
 						.fromIliski('csilkhar bel', 'har.ilksayac = bel.kaysayac')
-						.fromIliski('althesap alth', 'har.ciralthesapkod=alth.kod')
 						.fromIliski('csportfoy prt', 'fis.portfkod = prt.kod')
 					wh.fisSilindiEkle().inDizi(['AS', 'BS'], 'fis.belgetipi')
 					  .add(`fis.fistipi = '3K'`, 'har.masraf > 0')
@@ -416,7 +422,10 @@ class CariHareketci extends Hareketci {
 			fatura: [
 				(borclanmaSekli.siparismi ?
 					new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-						let {where: wh} = sent; sent.fromAdd('sipfis fis').fis2TicCariBagla().fis2PlasiyerBagla().fis2StokIslemBagla().fis2AltHesapBagla_eski();
+						let {where: wh} = sent;
+						sent.fromAdd('sipfis fis')
+							.fis2TicCariBagla().fis2PlasiyerBagla()
+							.fis2StokIslemBagla().fis2AltHesapBagla_eski();
 						wh.fisSilindiEkle().add(`fis.onaytipi = ''`, 'fis.bdevirdir = 0', `fis.caridisi = ''`, `fis.kapandi = ''`)
 					}).hvDuzenleIslemi(({ hv }) => {
 						$.extend(hv, {
@@ -424,8 +433,8 @@ class CariHareketci extends Hareketci {
 							must: 'fis.ticmust', asilmust: 'fis.must', anaislemadi: `'Çek/Senet'`, islemkod: 'fis.islkod',
 							islemadi: `(case fis.ayrimtipi when 'EX' then 'Emanet Sip.' when 'KN' then 'Konsinye Sip.' when 'IH' then 'İhracat Sip.'' when 'IK' then 'İhraç Kaydıyla Sip.' else ''(Sip) '' + RTRIM(isl.aciklama) end)`,
 							ba: `dbo.ticaricarba(fis.almsat, '')`, plasiyerkod: 'fis.plasiyerkod', vade: 'coalesce(fis.ortalamavade, fis.tarih)',
-							karsiodemetarihi: 'coalesce(fis.karsiortodemetarihi, fis.ortalamavade, fis.tarih)', bedel: 'fis.net', dvbedel: 'fis.dvnet',
-							althesapkod: 'fis.cariitn', takipno: 'fis.orttakipno', fisaciklama: 'fis.cariaciklama'
+							karsiodemetarihi: 'coalesce(fis.karsiortodemetarihi, fis.ortalamavade, fis.tarih)',
+							bedel: 'fis.net', dvbedel: 'fis.dvnet', althesapkod: 'fis.cariitn', takipno: 'fis.orttakipno', fisaciklama: 'fis.cariaciklama'
 						})
 					})
 				: null),
@@ -445,7 +454,9 @@ class CariHareketci extends Hareketci {
 					})
 				}),
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-					let {where: wh} = sent; sent.fromAdd('sipfis fis').fis2TicCariBagla().fis2PlasiyerBagla().fis2StokIslemBagla().fis2AltHesapBagla_eski()
+					let {where: wh} = sent; sent.fromAdd('sipfis fis')
+						.fis2TicCariBagla().fis2PlasiyerBagla()
+						.fis2StokIslemBagla().fis2AltHesapBagla_eski()
 						.fromIliski('siptaksit stak', 'fis.kaysayac = stak.fissayac')
 						.leftJoin('stak', 'tahsilsekli tsek', 'stak.taktahsilsekli = tsek.kodno');
 					wh.fisSilindiEkle().add(`fis.piftipi = 'F'`, 'fis.bdevirdir = 0', `fis.fisekayrim <> 'DV'`, getEtkilenmeOr())
@@ -461,7 +472,9 @@ class CariHareketci extends Hareketci {
 					})
 				}),
 				(ozelIsaret ? new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-					let {where: wh} = sent; sent.fromAdd('piffis fis').fis2TicCariBagla().fis2PlasiyerBagla().fis2StokIslemBagla().fis2AltHesapBagla_eski();
+					let {where: wh} = sent; sent.fromAdd('piffis fis')
+						.fis2TicCariBagla().fis2PlasiyerBagla()
+						.fis2StokIslemBagla().fis2AltHesapBagla_eski();
 					wh.fisSilindiEkle().add(
 						`fis.piftipi = 'F'`, `fis.ayrimtipi <> 'IK'`,
 						new MQOrClause(['fis.topfiktifkdv <> 0', 'fis.topfiktifdvkdv <> 0']),
@@ -485,7 +498,7 @@ class CariHareketci extends Hareketci {
 			sutAlimMakbuz: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent;
-					sent.fromAdd('topmakbuzfis fis').fis2AltHesapBagla()
+					sent.fromAdd('topmakbuzfis fis')
 						.leftJoin({ alias: 'fis', from: 'rota rot', on: 'fis.rotasayac = rot.kaysayac' })
 						.fromIliski('topmakbuzara ara', 'fis.kaysayac = ara.fissayac').fromIliski('topmakbuzstok har', 'ara.kaysayac = har.arasayac')
 						.fromIliski('carmst car', 'ara.mustahsilkod = car.must');
@@ -528,17 +541,19 @@ class CariHareketci extends Hareketci {
 		$.extend(liste, {
 			kasiyerIslem: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-					let {where: wh} = sent; sent.fromAdd('kasiyerislem pisl')
+					let {where: wh} = sent;
+					sent.fromAdd('kasiyerislem pisl')
 						.fromIliski('carmst car', 'pisl.mustkod = car.must')
 						.fromIliski('kasiyer ksy', 'pisl.kasiyerkod = ksy.kod');
 					wh.add(`pisl.mustkod <> ''`).inDizi(['NT', 'PT', 'NO'], 'pisl.tipkod');
-				}).hvDuzenleIslemi(({ hv }) => {
+				}).hvDuzenleIslemi(({ hv, sqlZero }) => {
 					$.extend(hv, {
 						kaysayac: 'pisl.kaysayac', ozelisaret: 'pisl.ozelisaret', oncelik: '150',
 						unionayrim: `'Ksy'`, kayittipi: `'Ksy'`, iceriktipi: `'Ksy'`,
 						anaislemadi: `'Kasiyer İşlemi'`, islemadi: `'Kasiyer İşlemi'`, ba: `dbo.tersba(pisl.ba)`,
-						bizsubekod: 'pisl.bizsubekod', refkod: 'pisl.kasiyerkod', refadi: 'ksy.aciklama', tarih: 'pisl.tarih', fisnox: 'pisl.fisno',
-						must: 'pisl.mustkod', bedel: 'pisl.bedel', aciklama: 'pisl.aciklama'
+						bizsubekod: 'pisl.bizsubekod', refkod: 'pisl.kasiyerkod', refadi: 'ksy.aciklama',
+						tarih: 'pisl.tarih', fisnox: 'pisl.fisno',
+						must: 'pisl.mustkod', bedel: 'pisl.bedel', dvbedel: sqlZero, aciklama: 'pisl.aciklama'
 					})
 				})
 			]
@@ -556,7 +571,8 @@ class CariHareketci extends Hareketci {
 					$.extend(hv, {
 						kaysayac: 'fis.kaysayac', oncelik: '160', kayittipi: kayitTipiSql, unionayrim: `'KLoj'`,
 						iade: 'fis.iade', must: 'fis.must', anaislemadi: adiSql, islemadi: adiSql, fisnox: 'fis.fisnox',
-						ba: `(case when fis.gc = 'C' then 'A' else 'B' end)`, bedel: bedelSql, dvbedel: sqlZero, aciklama: 'fis.cariaciklama'
+						ba: `(case when fis.gc = 'C' then 'A' else 'B' end)`,
+						bedel: bedelSql, dvbedel: sqlZero, aciklama: 'fis.cariaciklama'
 					})
 				})
 		];
@@ -573,13 +589,13 @@ class CariHareketci extends Hareketci {
 			siteYonetimTahakkuk: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent;
-					sent.fisHareket('sytahfis', 'sytahhar').har2CariBagla().fis2AltHesapBagla()
+					sent.fisHareket('sytahfis', 'sytahhar').har2CariBagla()
 						.fromIliski('sytahgrup tgrp', 'fis.tahgrupkod = tgrp.kod')
-				}).hvDuzenleIslemi(({ hv, sqlEmpty }) => {
+				}).hvDuzenleIslemi(({ hv, sqlEmpty, sqlZero }) => {
 					$.extend(hv, {
 						kaysayac: 'har.kaysayac', ozelisaret: sqlEmpty, oncelik: 2, bizsubekod: sqlEmpty, kayittipi: `'SYON'`, unionayrim: `'SYonet'`,
 						anaislemadi: 'tgrp.aciklama', fistipi: sqlEmpty, must: 'har.must', fisnox: sqlEmpty, althesapkod: 'fis.althesapkod',
-						ba: `'B'`, isladi: 'tgrp.aciklama', bedel: 'har.bedel' 
+						ba: `'B'`, isladi: 'tgrp.aciklama', bedel: 'har.bedel', dvbedel: sqlZero
 					})
 				})
 			]
