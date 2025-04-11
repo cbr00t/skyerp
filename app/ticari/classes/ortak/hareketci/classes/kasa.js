@@ -29,7 +29,7 @@ class KasaHareketci extends Hareketci {
 	static varsayilanHVDuzenle({ hv, sqlZero }) {
 		super.varsayilanHVDuzenle(...arguments);
 		for (const key of ['makbuzno']) { hv[key] = sqlZero }
-		$.extend(hv, { bastarih: 'fis.tarih', basseri: 'fis.seri', basno: 'fis.no' })
+		$.extend(hv, { bastarih: 'fis.tarih', basseri: 'fis.seri', basno: 'fis.no', dvkod: 'kas.dvtipi' })
 	}
 	uygunluk2UnionBilgiListeDuzenleDevam(e) {
 		super.uygunluk2UnionBilgiListeDuzenleDevam(e);
@@ -145,7 +145,7 @@ class KasaHareketci extends Hareketci {
 					$.extend(hv, {
 						kasakod: 'har.kasakod', ba: 'har.ba', kayittipi: `'KSVIR'`, takipno: 'har.takipno', refsubekod: 'gkas.bizsubekod',
 						refkod: 'gir.kasakod', refadi: 'gkas.aciklama', oncelik: '70', islemadi: `'Kasa Virman'`,
-						dvkur: 'har.dvkur', bedel: 'har.bedel', dvbedel: 'har.dvbedel'
+						dvkur: 'har.dvkur', dvkod: 'gkas.dvtipi', bedel: 'har.bedel', dvbedel: 'har.dvbedel'
 					})
 				}),
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {												/* giriş açısından */
@@ -158,7 +158,7 @@ class KasaHareketci extends Hareketci {
 					$.extend(hv, {
 						kasakod: 'har.kasakod', ba: 'har.ba', kayittipi: `'KSVIR'`, bizsubekod: 'kas.bizsubekod', refsubekod: 'fis.bizsubekod',
 						takipno: 'har.takipno', refkod: 'cik.kasakod', refadi: 'ckas.aciklama', oncelik: '12', islemadi: `'Kasa Virman'`,
-						bedel: 'har.bedel', dvbedel: 'har.dvbedel'
+						dvkod: 'kas.dvtipi', bedel: 'har.bedel', dvbedel: 'har.dvbedel'
 					})
 				})
 			]
