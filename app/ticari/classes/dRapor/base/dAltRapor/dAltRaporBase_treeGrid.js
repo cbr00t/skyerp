@@ -22,7 +22,10 @@ class DAltRapor_TreeGrid extends DAltRapor {
 				args = _e.args; grid.jqxTreeGrid(args); gridPart.gridWidget = grid.jqxTreeGrid('getInstance');
 				grid.on('rowExpand', event => this.gridRowExpanded({ ...e, event }));
 				grid.on('rowCollapse', event => this.gridRowCollapsed({ ...e, event }));
-				grid.on('rowClick', event => this.gridSatirTiklandi({ ...e, event }));
+				grid.on('rowSelect', event => {
+					let timerKey = '_timer_rowSelect'; clearTimeout(this[timerKey]);
+					this[timerKey] = setTimeout(() => { try { this.gridSatirTiklandi({ ...e, event }) } finally { delete this[timerKey] } }, 200)
+				});
 				grid.on('rowDoubleClick', event => this.gridSatirCiftTiklandi({ ...e, event }));
 				grid.on('sort', event => this.gridSortIstendi({ ...e, event }));
 				this.onGridRun(e)
