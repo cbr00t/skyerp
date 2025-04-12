@@ -79,7 +79,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 				let kodClause = alias2Deger[mstKodAlias], adiClause = alias2Deger[mstAdiAlias], adiClause2 = alias2Deger[mstAdiAlias2];
 				sahalar.add(`'${harTipKod}' anatip`);
 				if (adiClause) { sahalar.add(`${adiClause} mstadi`) } else { mstYapi.duzenle({ sent: harSent, wh, kodClause }) }
-				sahalar.add(`${adiClause2 || sqlEmpty} mstadi2`)
+				sahalar.add(`${adiClause2 || sqlEmpty} mstadi2`);
 				sahalar.add(
 					`${kodClause} mstkod`, `'${harTipAdi}' grup`, `${oncelik} oncelik`,
 					`${this.getRevizeDvKodClause(dvKodClause)} dvkod`,

@@ -83,7 +83,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 					let mstKodClause = alias2Deger[mstKodAlias], mstAdiClause = alias2Deger[mstAdiAlias], mstAdiClause2 = alias2Deger[mstAdiAlias2];
 					/* if (mstAdiAlias) { debugger } */
 					if (mstAdiClause) { sahalar.add(`${mstAdiClause} mstadi`) } else { mstYapi.duzenle({ sent: harSent, wh, mstKodClause }) }
-					if (mstAdiClause2) { sahalar.add(`${mstAdiClause2 || sqlEmpty} mstadi2`) }
+					sahalar.add(`${mstAdiClause2 || sqlEmpty} mstadi2`);
 					let grupKod = altTipKod || harTipKod, grupAdiClause = altTipAdiClause || (harTipAdi || '').sqlServerDegeri();
 					/*   DEBUG  
 					if (!harSent.alias2Deger.mstadi) {
