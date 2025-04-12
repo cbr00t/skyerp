@@ -17,14 +17,26 @@ class CSHareketci extends Hareketci {
 		/* super.altTipYapilarDuzenle(...arguments); */
 		$.extend(result, {
 			alcek: new DRapor_AltTipYapi(['alcek', `'Alacak Çekleri'`]).sol()
-				.setDuzenleyici(({ sent, wh, hv }) => wh.degerAta('AC', hv.belgetipi)),
+				.setDuzenleyici(({ wh, hv }) => wh.degerAta('AC', hv.belgetipi)),
 			alsenet: new DRapor_AltTipYapi(['alsenet', `'Alacak Senetleri'`]).sol()
-				.setDuzenleyici(({ sent, wh, hv }) => wh.degerAta('AS', hv.belgetipi)),
+				.setDuzenleyici(({ wh, hv }) => wh.degerAta('AS', hv.belgetipi)),
 			brcek: new DRapor_AltTipYapi(['brcek', `'Borç Çekleri'`]).sag()
-				.setDuzenleyici(({ sent, wh, hv }) => wh.degerAta('BC', hv.belgetipi)),
+				.setDuzenleyici(({ wh, hv }) => wh.degerAta('BC', hv.belgetipi)),
 			brsenet: new DRapor_AltTipYapi(['brsenet', `'Borç Senetleri'`]).sag()
-				.setDuzenleyici(({ sent, wh, hv }) => wh.degerAta('BS', hv.belgetipi))
+				.setDuzenleyici(({ wh, hv }) => wh.degerAta('BS', hv.belgetipi))
 		})
+	}
+	static getAltTipAdiVeOncelikClause({ hv }) {
+		let {belgetipi: clause} = hv; return {
+			adi: (
+				`(case ${clause} when 'AC' then 'Alacak Çekleri' when 'AS' then 'Alacak Senetleri' ` +
+				`when 'BC' then 'Borç Çekleri' when 'BS' then 'Borç Senetleri' else '??' end)`
+			),
+			oncelik: (
+				`(case ${clause} when 'AC' then 0 when 'AS' then 1 ` +
+				`when 'BC' then 2 when 'BS' then 3 else 4 end)`
+			)
+		}
 	}
 	static mstYapiDuzenle({ result }) {
 		super.mstYapiDuzenle(...arguments);

@@ -375,7 +375,7 @@ class HizmetHareketci extends Hareketci {
 							(fatura ? 'F' : null),
 							(giderPusula || perakende ? 'P' : null)
 						].filter(x => x != null);
-						sent.fisHareket('piffis', 'piftaksit').fis2CariBagla().fis2TahSekliBagla();
+						sent.fisHareket('piffis', 'piftaksit').fis2CariBagla().x2TahSekliBagla({ kodClause: 'har.taktahsilsekli' });
 						let {where: wh} = sent; wh.fisSilindiEkle();
 						wh.inDizi(fisTipleri, 'fis.fistipi').degerAta('HZ', 'tsek.tahsiltipi')
 					})

@@ -104,10 +104,15 @@ class DRapor_AltTipYapi extends DRapor_DuzenleyiciliKAYapi {
 	get ortakmi() { return !this.target } get solmu() { return this.target == 'sol' } get sagmi() { return this.target == 'sag' }
 	constructor(e) {
 		e = e ?? {}; super(e);
-		if ($.isArray(e)) { $.extend(this, { target: e[3] }) }
-		else { $.extend(this, { target: e.target ?? e.yon }) }
+		if ($.isArray(e)) { $.extend(this, { target: e[3], kosul: e[4] }) }
+		else { $.extend(this, { target: e.target ?? e.yon, kosul: e[5] }) }
+	}
+	uygunmu(e) {
+		let altTipYapi = this, {kosul, kod, aciklama: adiClause} = this;
+		return this.kosul?.call(this, { ...e, /* hv */ altTipYapi, kod, adiClause }) ?? false
 	}
 	ortak() { this.target = null; return this } sol() { this.target = 'sol'; return this } sag() { this.target = 'sag'; return this }
+	setKosul(value) { this.kosul = value; return this }
 }
 class DRapor_HarYapi extends DRapor_DuzenleyiciliKAYapi {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

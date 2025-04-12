@@ -118,6 +118,9 @@ class Hareketci extends CObject {
 		let {result} = e;
 		e.def = result[''] = new DRapor_AltTipYapi()
 	}
+	static getAltTipAdiVeOncelikClause({ hv }) {
+		return ({ adi: this.aciklama.sqlServerDegeri(), oncelik: '0' })
+	}
 	static mstYapiDuzenle(e) { }
 	static hareketTipSecim_kaListeDuzenle(e) {
 		e.hareketci = this; if (!this.uygunmu) { return }
@@ -125,12 +128,11 @@ class Hareketci extends CObject {
 	}
 	uniOrtakSonIslem({ sender, hv, sent, sqlNull, sqlEmpty }) {
 		if (sender?.finansalAnalizmi) {
-			let {finanalizkullanilmaz: finAnalizKullanimClause} = hv;
+			let {finanalizkullanilmaz: finAnalizKullanimClause} = hv, {where: wh, sahalar} = sent;
 			if (finAnalizKullanimClause == sqlEmpty || finAnalizKullanimClause == sqlNull) { finAnalizKullanimClause = null }
-			if (finAnalizKullanimClause) {
-				let {where: wh} = sent;
-				wh.degerAta('', finAnalizKullanimClause)    /* ''(false) = kullanılır,  '*'(true) = kullanılMAZ */
-			}
+			if (finAnalizKullanimClause) { wh.degerAta('', finAnalizKullanimClause) }    /* ''(false) = kullanılır,  '*'(true) = kullanılMAZ */
+			let {adi: altTipAdiClause, oncelik: oncelikClause} = this.class.getAltTipAdiVeOncelikClause({ hv }) ?? {};
+			sahalar.add(`${altTipAdiClause} alttipadi`, `${oncelikClause} alttiponcelik`)
 			/*let {from, where: wh} = sent, digerHarmi = from.aliasIcinTable('har')?.deger == 'csdigerhar';
 			wh.degerAta('', `ctip.finanaliztipi`)*/
 		}

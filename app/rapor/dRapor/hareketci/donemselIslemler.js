@@ -64,7 +64,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		let tBasiClause = MQSQLOrtak.sqlServerDegeri(tBasi), tSonuClause = MQSQLOrtak.sqlServerDegeri(tSonu);
 		/* let devirTBasi = tBasi ? tBasi.clone().addDays(1) : null, devir_tBasiClause = MQSQLOrtak.sqlServerDegeri(devirTBasi); */
 		/*let belirtecler = Object.keys(attrSet).map(kod => grupVeToplam[kod]?.colDefs?.[0]?.belirtec).filter(x => !!x);*/
-		let sabitBelirtecler = [/*'alttip',*/ 'tarih', 'ba', 'bedel', 'dvbedel', 'dvkod', 'belgetipi', 'finanalizkullanilmaz'];
+		let sabitBelirtecler = ['alttiponcelik', 'alttipadi', 'tarih', 'ba', 'bedel', 'dvbedel', 'dvkod', 'belgetipi', 'finanalizkullanilmaz'];
 		if (ozelIsaretVarmi) { sabitBelirtecler.push('ozelisaret') }
 		let harListe = []; for (let cls of harClasses) {
 			let {mstYapi, altTipYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi;
@@ -77,14 +77,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 			for (let altTipYapi of Object.values(altTipYapilar)) {
 				let harUni = har.uniOlustur({ sender: this }), harSentListe = harUni.liste.filter(x => !!x);
 				for (let harSent of harSentListe) {
-					let {kod: altTipKod, aciklama: altTipAdiClause} = altTipYapi;
 					let {from, where: wh, sahalar, alias2Deger} = harSent; sahalar.liste = [];
-					/* let {alttip: altTipClause} = alias2Deger; */
-					let mstKodClause = alias2Deger[mstKodAlias], mstAdiClause = alias2Deger[mstAdiAlias], mstAdiClause2 = alias2Deger[mstAdiAlias2];
-					/* if (mstAdiAlias) { debugger } */
-					if (mstAdiClause) { sahalar.add(`${mstAdiClause} mstadi`) } else { mstYapi.duzenle({ sent: harSent, wh, mstKodClause }) }
-					sahalar.add(`${mstAdiClause2 || sqlEmpty} mstadi2`);
-					let grupKod = altTipKod || harTipKod, grupAdiClause = altTipAdiClause || (harTipAdi || '').sqlServerDegeri();
 					/*   DEBUG  
 					if (!harSent.alias2Deger.mstadi) {
 						console.info(har, Object.keys(har.attrSet), harSent, harSent.getQueryYapi());
@@ -92,12 +85,15 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 					}
 					*/
 					let {ozelisaret: ozelIsaretClause, tarih: tarihClause, ba: baClause,
-						 bedel: tlBedelClause, dvbedel: dvBedelClause, dvkod: dvKodClause} = alias2Deger;
+						 bedel: tlBedelClause, dvbedel: dvBedelClause, dvkod: dvKodClause,
+						 alttipadi: grupClause, alttiponcelik: grupOncelikClause} = alias2Deger;
 					dvKodClause = dvKodClause || sqlEmpty;
+					let mstKodClause = alias2Deger[mstKodAlias], mstAdiClause = alias2Deger[mstAdiAlias], mstAdiClause2 = alias2Deger[mstAdiAlias2];
 					let bedelClause = this.getDovizliBedelClause({ dvKodClause, tlBedelClause, dvBedelClause, sumOlmaksizin: true });
+					if (mstAdiClause) { sahalar.add(`${mstAdiClause} mstadi`) } else { mstYapi.duzenle({ sent: harSent, wh, mstKodClause }) }
 					sahalar.add(
-						/* mstadi, */ `${mstKodClause} mstkod`, `'${harTipKod}' anatip`, /* `${altTipClause} alttip`, */
-						`${grupAdiClause} grup`, `${oncelik} oncelik`, `${this.getRevizeDvKodClause(dvKodClause)} dvkod`
+						/* mstadi, */ `${mstAdiClause2 || sqlEmpty} mstadi2`, `${mstKodClause} mstkod`, `'${harTipKod}' anatip`, /* `${altTipClause} alttip`, */
+						`${grupClause} grup`, `${oncelik} oncelik`, `${grupOncelikClause} gruponcelik`, `${this.getRevizeDvKodClause(dvKodClause)} dvkod`
 					);
 					if (!devirAlinmasin && tBasi) {
 						sahalar.add(
@@ -131,7 +127,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		}
 		/* console.table(uni.siraliSahalar) */
 		stm = e.stm = uni.asToplamStm();
-		stm.orderBy.add('oncelik', 'anatip', 'grup', 'dvkod', 'mstkod')
+		stm.orderBy.add('oncelik', 'anatip', 'gruponcelik', 'dvkod', 'mstkod')
 	}
 	loadServerData_recsDuzenleIlk({ recs }) {
 		for (let rec of recs) {
@@ -142,7 +138,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		super.loadServerData_recsDuzenleIlk(...arguments)
 	}
 	async detaylariOlustur(e) {
-		let {event: evt} = e, {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu, {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
+		let {event: evt} = e, /*{ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu*/ ozelIsaretVarmi = true, {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
 		let {secimler: sec} = this, {tarihBS: donemBS} = sec;
 		let {id2AltRapor} = this.rapor, {row: parentRec} = evt.args;
 		let {anatip: harTip, mstkod: kod, dvkod: dvKod, level, ozelisaret: ozelIsaret, devir} = parentRec ?? {};

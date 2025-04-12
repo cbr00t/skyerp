@@ -46,7 +46,8 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		result.addIcerik('BEDEL')
 	}
 	loadServerData_queryDuzenle(e) {
-		e.alias = ''; super.loadServerData_queryDuzenle(e); let {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu;
+		e.alias = ''; super.loadServerData_queryDuzenle(e);
+		let /*{ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu; */ ozelIsaretVarmi = true;
 		let {stm} = e, {secimler: sec} = this, {grupVeToplam} = this.tabloYapi, {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
 		let {hareketciYapilari} = this, clsKey2HarYapi = {}; for (let item of hareketciYapilari) { clsKey2HarYapi[item.sinif.classKey] = item }
 		let {secilen: secHareketciYapilari} = sec.anaTip;

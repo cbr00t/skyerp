@@ -5,10 +5,16 @@ class CariHareketci extends Hareketci {
 		/* super.altTipYapilarDuzenle(...arguments); */
 		$.extend(result, {
 			musteri: new DRapor_AltTipYapi(['musteri', `'Müşteriler'`]).sol()
-				.setDuzenleyici(({ sent, wh, kodClause }) => wh.degerAta('', 'ctip.satmustip')),
+				.setDuzenleyici(({ wh }) => wh.degerAta('', 'ctip.satmustip')),
 			satici: new DRapor_AltTipYapi(['satici', `'Satıcılar'`]).sag()
-				.setDuzenleyici(({ sent, wh, kodClause }) => wh.degerAta('S', 'ctip.satmustip'))
+				.setDuzenleyici(({ wh }) => wh.degerAta('S', 'ctip.satmustip'))
 		})
+	}
+	static getAltTipAdiVeOncelikClause({ hv }) {
+		return {
+			adi: `(case ctip.satmustip when 'S' then 'Satıcılar' else 'Müşteriler' end)`,
+			oncelik: `(case ctip.satmustip when 'S' then 1 else 0 end)`
+		}
 	}
 	static mstYapiDuzenle({ result }) {
 		super.mstYapiDuzenle(...arguments);
