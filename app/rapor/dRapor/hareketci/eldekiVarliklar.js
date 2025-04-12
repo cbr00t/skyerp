@@ -62,13 +62,13 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		let sabitBelirtecler = ['tarih', 'ba', 'bedel', 'dvbedel', 'dvkod', 'belgetipi', 'finanalizkullanilmaz'];
 		if (ozelIsaretVarmi) { sabitBelirtecler.push('ozelisaret') }
 		let harListe = []; for (let cls of harClasses) {
-			let {kod: anaTip, mstYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
-			let belirtecler = [...sabitBelirtecler, mstKodAlias, mstAdiAlias].filter(x => !!x);
+			let {kod: anaTip, mstYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi;
+			let belirtecler = [...sabitBelirtecler, mstKodAlias, mstAdiAlias, mstAdiAlias2].filter(x => !!x);
 			let har = new cls(); har.withAttrs(belirtecler); harListe.push(har)
 		}
 		let sonTarih = sec.tarih.value || null;
 		let uni = new MQUnionAll(); for (let har of harListe) {
-			let {oncelik, mstYapi} = har.class, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
+			let {oncelik, mstYapi} = har.class, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi;
 			let harUni = har.uniOlustur({ sender: this }); for (let harSent of harUni.getSentListe()) {
 				if (!harSent) { continue } let {classKey} = har.class;
 				let harYapi = clsKey2HarYapi[classKey]; if (!harYapi) { debugger; continue }
@@ -76,10 +76,10 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 				let {ozelisaret: ozelIsaretClause, tarih: tarihClause, ba: baClause, bedel: tlBedelClause, dvbedel: dvBedelClause, dvkod: dvKodClause} = alias2Deger;
 				dvKodClause = dvKodClause || sqlEmpty; let dvBosmuClause = this.getDvBosmuClause(dvKodClause);
 				let bedelClause = this.getDovizliBedelClause({ dvKodClause, tlBedelClause, dvBedelClause, sumOlmaksizin: true });
-				let kodClause = alias2Deger[mstKodAlias], adiClause = alias2Deger[mstAdiAlias];
+				let kodClause = alias2Deger[mstKodAlias], adiClause = alias2Deger[mstAdiAlias], adiClause2 = alias2Deger[mstAdiAlias2];
 				sahalar.add(`'${harTipKod}' anatip`);
-				if (adiClause) { sahalar.add(`${adiClause} mstadi`) }
-				else { mstYapi.duzenle({ sent: harSent, wh, kodClause }) }
+				if (adiClause) { sahalar.add(`${adiClause} mstadi`) } else { mstYapi.duzenle({ sent: harSent, wh, kodClause }) }
+				sahalar.add(`${adiClause2 || sqlEmpty} mstadi2`)
 				sahalar.add(
 					`${kodClause} mstkod`, `'${harTipAdi}' grup`, `${oncelik} oncelik`,
 					`${this.getRevizeDvKodClause(dvKodClause)} dvkod`,
@@ -102,13 +102,12 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		if (!withSent?.liste?.length) { return false }
 		/* self.uni = withSent */
 	}
-	loadServerData_recsDuzenle({ recs }) {
-		super.loadServerData_recsDuzenle(...arguments);
+	loadServerData_recsDuzenleIlk({ recs }) {
+		super.loadServerData_recsDuzenleIlk(...arguments);
 		let recsDvKodSet = this.recsDvKodSet = {}; for (let rec of recs) {
-			let {dvkod: dvKod, bedel} = rec; if (this.getDovizmi(dvKod)) {
-				rec[`bedel_${dvKod}`] = bedel; rec.bedel = 0;
-				recsDvKodSet[dvKod] = true
-			}
+			let {dvkod: dvKod, bedel, mstadi: mstAdi, mstadi2: mstAdi2} = rec;
+			if (this.getDovizmi(dvKod)) { rec[`bedel_${dvKod}`] = bedel; rec.bedel = 0; recsDvKodSet[dvKod] = true }
+			if (!mstAdi && mstAdi2) { mstAdi = rec.mstadi = mstAdi2 }
 		}
 	}
 	/*loadServerDataInternal(e) { return [] }

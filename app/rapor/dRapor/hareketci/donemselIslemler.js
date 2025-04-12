@@ -67,23 +67,23 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		let sabitBelirtecler = [/*'alttip',*/ 'tarih', 'ba', 'bedel', 'dvbedel', 'dvkod', 'belgetipi', 'finanalizkullanilmaz'];
 		if (ozelIsaretVarmi) { sabitBelirtecler.push('ozelisaret') }
 		let harListe = []; for (let cls of harClasses) {
-			let {mstYapi, altTipYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
-			let belirtecler = [...sabitBelirtecler, mstKodAlias, mstAdiAlias].filter(x => !!x);
+			let {mstYapi, altTipYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi;
+			let belirtecler = [...sabitBelirtecler, mstKodAlias, mstAdiAlias, mstAdiAlias2].filter(x => !!x);
 			let har = new cls(); har.withAttrs(belirtecler); harListe.push(har)
 		}
 		let uni = new MQUnionAll(); for (let har of harListe) {
 			let {kod: harTipKod, aciklama: harTipAdi, oncelik, altTipYapilar, mstYapi} = har.class;
-			let {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
+			let {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi;
 			for (let altTipYapi of Object.values(altTipYapilar)) {
 				let harUni = har.uniOlustur({ sender: this }), harSentListe = harUni.liste.filter(x => !!x);
 				for (let harSent of harSentListe) {
 					let {kod: altTipKod, aciklama: altTipAdiClause} = altTipYapi;
 					let {from, where: wh, sahalar, alias2Deger} = harSent; sahalar.liste = [];
 					/* let {alttip: altTipClause} = alias2Deger; */
-					let mstKodClause = alias2Deger[mstKodAlias], mstAdiClause = alias2Deger[mstAdiAlias];
+					let mstKodClause = alias2Deger[mstKodAlias], mstAdiClause = alias2Deger[mstAdiAlias], mstAdiClause2 = alias2Deger[mstAdiAlias2];
 					/* if (mstAdiAlias) { debugger } */
-					if (mstAdiClause) { sahalar.add(`${mstAdiClause} mstadi`) }
-					else { mstYapi.duzenle({ sent: harSent, wh, mstKodClause }) }
+					if (mstAdiClause) { sahalar.add(`${mstAdiClause} mstadi`) } else { mstYapi.duzenle({ sent: harSent, wh, mstKodClause }) }
+					if (mstAdiClause2) { sahalar.add(`${mstAdiClause2 || sqlEmpty} mstadi2`) }
 					let grupKod = altTipKod || harTipKod, grupAdiClause = altTipAdiClause || (harTipAdi || '').sqlServerDegeri();
 					/*   DEBUG  
 					if (!harSent.alias2Deger.mstadi) {
@@ -122,7 +122,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 					if (fisAliasVarmi) { wh.basiSonu(sec.logTS, logZamaniClause) }
 					altTipYapi.duzenle({
 						har, hv: alias2Deger, sent: harSent, wh, harTipKod,
-						mstKodClause, mstAdiClause, mstKodAlias, mstAdiAlias
+						mstKodClause, mstAdiClause, mstAdiClause2, mstKodAlias, mstAdiAlias
 					});
 					harSent.groupByOlustur().gereksizTablolariSil();
 					uni.add(harSent)
@@ -133,12 +133,13 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		stm = e.stm = uni.asToplamStm();
 		stm.orderBy.add('oncelik', 'anatip', 'grup', 'dvkod', 'mstkod')
 	}
-	loadServerData_recsDuzenle({ recs }) {
-		super.loadServerData_recsDuzenle(...arguments)
+	loadServerData_recsDuzenleIlk({ recs }) {
 		for (let rec of recs) {
-			let {dvkod: dvKod} = rec;
+			let {dvkod: dvKod, mstadi: mstAdi, mstadi2: mstAdi2} = rec;
 			if (this.getDovizmi(dvKod)) { rec.grup += ` (<span class="bold orangered">${dvKod}</span>)` }
+			if (!mstAdi && mstAdi2) { mstAdi = rec.mstadi = mstAdi2 }
 		}
+		super.loadServerData_recsDuzenleIlk(...arguments)
 	}
 	async detaylariOlustur(e) {
 		let {event: evt} = e, {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu, {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;

@@ -28,7 +28,7 @@ class CSHareketci extends Hareketci {
 	}
 	static mstYapiDuzenle({ result }) {
 		super.mstYapiDuzenle(...arguments);
-		result.setHVAlias('portfkod').setHVAdiAlias('portfadi')
+		result.setHVAlias('portfkod').setHVAdiAlias('portfadi').setHVAdiAlias2('refportfadi')
 	}
 	static ortakHVYapilarDuzenle({ result }) {
 		let {sqlEmpty} = Hareketci_UniBilgi.ortakArgs; $.extend(result, {
@@ -158,9 +158,12 @@ class CSHareketci extends Hareketci {
 			'ayadi', 'saat', 'bizsubekod', 'fisnox', 'bedel', 'ba', 'bankadekontnox',
 			'anaislemadi', 'islemkod', 'islemadi', 'refkod', 'refadi',
 			'portftipi', 'portfkod', 'portfadi', 'portfkisatiptext',
-			'refportftipi', 'refportfkod', 'refportfadi', 'refportfkisatiptext',
+			'refportftipi', 'refportfkod', 'refportfadi', 'refportfkisatiptext'
 		]) { hv[key] = sqlEmpty }
-		$.extend(hv, { isaretlibedel: ({ hv }) => hv.bedel })
+		$.extend(hv, {
+			isaretlibedel: ({ hv }) => hv.bedel
+			/* portfVeyaRefPortfAdi: ({ hv }) => { return `dbo.emptycoalesce(${hv.portfadi}, ${hv.refportfadi})` } */
+		})
     }
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
 		let {trfCikismi} = this; $.extend(e, { trfCikismi }); super.uygunluk2UnionBilgiListeDuzenleDevam(e);
@@ -243,13 +246,13 @@ class CSHareketci extends Hareketci {
 							belgetipi: `(case fis.ozeltip when 'TC' then 'AC' when 'TS' then 'AS' when 'BC' then 'BC' when 'PT' then prt.cstip else '' end)`
 						});
 						for (let key in refDict) {
-							let value = ''; switch (key) {
+							let value = sqlEmpty; switch (key) {
 								case 'portftipi': value = `(case when har.kayittipi = 'PT' then 'P' else 'H' end)`; break
-								case 'portfkod': value = `(case when har.kayittipi = 'PT' then har.portfkod else har.banhesapkod end)`; break
 								case 'portftiptext': value = (
 									`(case har.kayittipi when 'PT' then 'Portföy' when 'TC' then 'Takas Çek' when 'TS' then 'Takas Senet'` +
 									 `when 'BC' then 'Borç Çek' else '' end)`
 								); break
+								case 'portfkod': value = `(case when har.kayittipi = 'PT' then har.portfkod else har.banhesapkod end)`; break
 								case 'portfadi': value = `(case when har.kayittipi = 'PT' then prt.aciklama else bhes.aciklama end)`; break
 								case 'portdvkod': value = `(case when har.kayittipi = 'PT' then prt.dvtipi else bhes.dvtipi end)`; break
 							}

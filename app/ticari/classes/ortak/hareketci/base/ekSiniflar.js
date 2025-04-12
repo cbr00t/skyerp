@@ -45,7 +45,7 @@ class Hareketci_MstYapi extends CObject {
 	static get tableAlias() { return 'mst' } static get aliasVeNokta() { return [this.tableAlias, ''].join('.') }
 	constructor(e) {
 		e = e ?? {}; super(e);
-		$.extend(this, { hvAlias: e.hvAlias, hvAdiAlias: e.hvAdiAlias, duzenleyici: e.duzenleyici })
+		$.extend(this, { hvAlias: e.hvAlias, hvAdiAlias: e.hvAdiAlias, hvAdiAlias2: e.hvAdiAlias2, duzenleyici: e.duzenleyici })
 	}
 	duzenle(e) {  /* e: { sent, wh } */
 		let {duzenleyici: handler} = this; if (!handler) { return this }
@@ -61,7 +61,7 @@ class Hareketci_MstYapi extends CObject {
 	}
 	set(e, _duzenleyici) {
 		e = typeof e == 'object' ? e : { hvAlias: e, duzenleyici: _duzenleyici };
-		for (let key of ['hvAlias', 'hvAdiAlias', 'duzenleyici']) {
+		for (let key of ['hvAlias', 'hvAdiAlias', 'hvAdiAlias2', 'duzenleyici']) {
 			let value = e[key];
 			if (value !== undefined) { this[key] = e[key] }
 		}
@@ -69,6 +69,7 @@ class Hareketci_MstYapi extends CObject {
 	}
 	setHVAlias(value) { this.hvAlias = value; return this }
 	setHVAdiAlias(value) { this.hvAdiAlias = value; return this }
+	setHVAdiAlias2(value) { this.hvAdiAlias2 = value; return this }
 	setDuzenleyici(handler) { this.duzenleyici = handler; return this }
 }
 class DRapor_DuzenleyiciliKAYapi extends CKodVeAdi {
