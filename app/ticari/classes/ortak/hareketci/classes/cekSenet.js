@@ -13,19 +13,14 @@ class CSHareketci extends Hareketci {
 		if (result == null) { let e = { result: {} }; this.ortakUniDuzenleyicilerDuzenle(e); result = this._ortakUniDuzenleyiciler = e.result }
 		return result
 	}
-	static altTipYapilarDuzenle({ result }) {
-		/* super.altTipYapilarDuzenle(...arguments); */
+	/*static altTipYapilarDuzenle({ result }) {
 		$.extend(result, {
-			alcek: new DRapor_AltTipYapi(['alcek', `'Alacak Çekleri'`]).sol()
-				.setDuzenleyici(({ wh, hv }) => wh.degerAta('AC', hv.belgetipi)),
-			alsenet: new DRapor_AltTipYapi(['alsenet', `'Alacak Senetleri'`]).sol()
-				.setDuzenleyici(({ wh, hv }) => wh.degerAta('AS', hv.belgetipi)),
-			brcek: new DRapor_AltTipYapi(['brcek', `'Borç Çekleri'`]).sag()
-				.setDuzenleyici(({ wh, hv }) => wh.degerAta('BC', hv.belgetipi)),
-			brsenet: new DRapor_AltTipYapi(['brsenet', `'Borç Senetleri'`]).sag()
-				.setDuzenleyici(({ wh, hv }) => wh.degerAta('BS', hv.belgetipi))
+			alcek: new DRapor_AltTipYapi(['alcek', `'Alacak Çekleri'`]).sol().setDuzenleyici(({ wh, hv }) => wh.degerAta('AC', hv.belgetipi)),
+			alsenet: new DRapor_AltTipYapi(['alsenet', `'Alacak Senetleri'`]).sol().setDuzenleyici(({ wh, hv }) => wh.degerAta('AS', hv.belgetipi)),
+			brcek: new DRapor_AltTipYapi(['brcek', `'Borç Çekleri'`]).sag().setDuzenleyici(({ wh, hv }) => wh.degerAta('BC', hv.belgetipi)),
+			brsenet: new DRapor_AltTipYapi(['brsenet', `'Borç Senetleri'`]).sag().setDuzenleyici(({ wh, hv }) => wh.degerAta('BS', hv.belgetipi))
 		})
-	}
+	}*/
 	static getAltTipAdiVeOncelikClause({ hv }) {
 		let {belgetipi: clause} = hv; return {
 			adi: (
@@ -35,7 +30,8 @@ class CSHareketci extends Hareketci {
 			oncelik: (
 				`(case ${clause} when 'AC' then 0 when 'AS' then 1 ` +
 				`when 'BC' then 2 when 'BS' then 3 else 4 end)`
-			)
+			),
+			yon: `(case when ${clause} IN ('BC', 'BS') then 'sag' else 'sol' end)`
 		}
 	}
 	static mstYapiDuzenle({ result }) {

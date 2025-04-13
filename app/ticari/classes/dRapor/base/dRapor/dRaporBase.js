@@ -55,7 +55,9 @@ class DRaporOzel extends DRapor {
 	}
 	async ilkIslemler(e) { } async ilkIslemler_ek(e) { this.ilkIslemler_ozel?.(e) } async sonIslemler(e) { } async sonIslemler_ek(e) { }
 	rootFormBuilderDuzenle(e) {
-		const {rfb} = e; this.rootBuilder = rfb; rfb.addIslemTuslari('islemTuslari').addCSS('islemTuslari').setTip('tazeleVazgec')
+		const {rfb} = e; this.rootBuilder = rfb;
+		/* rfb.addStyle(e => `$elementCSS { overflow: hidden !important }`); */
+		rfb.addIslemTuslari('islemTuslari').addCSS('islemTuslari').setTip('tazeleVazgec')
 			.setButonlarDuzenleyici(e => this.islemTuslariArgsDuzenle(e)).setId2Handler(this.islemTuslariGetId2Handler(e))
 		rfb.addForm('bulForm')
 			.setLayout(e => $(`<div class="${e.builder.id} part"><input class="input full-wh" type="textbox" maxlength="100"></input></div>`))
@@ -107,7 +109,7 @@ class DPanelRapor extends DRaporOzel {
 			const raporAdi = altRapor.class.aciklama ?? '';
 			let fbd = altRapor.parentBuilder = form.addForm(id).addCSS('item').addStyle_fullWH()
 				.setLayout(e => $(`<div class="${id}"><label>${raporAdi || ''}</label></div>`))
-				.addStyle(e => `$elementCSS { z-index: ${this.altRapor_lastZIndex++} }`);
+				.addStyle(e => `$elementCSS { overflow: hidden !important; z-index: ${this.altRapor_lastZIndex++} !important }`);
 			let _e = { ...e, id, builder: fbd }; altRapor.subFormBuilderDuzenle(_e);
 			let {width, height} = altRapor; if (width || height) { fbd.addStyle_wh(width, height) }
 			altRapor.rootFormBuilderDuzenle(e)

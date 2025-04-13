@@ -94,35 +94,22 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		}
 		return this
 	}
-	innerJoin(e, _from, _iliskiDizi) {
+	innerJoin(e, _from, _iliskiDizi) { return this.innerVeyaLeftJoin(e, _from, _iliskiDizi, true) }
+	leftJoin(e, _from, _iliskiDizi) { return this.innerVeyaLeftJoin(e, _from, _iliskiDizi, false) }
+	innerVeyaLeftJoin(e, _from, _iliskiDizi, innermi) {
 		if (typeof e != 'object') { e = { alias: e, from: _from, on: _iliskiDizi } };
-		let {alias} = e; const fromText = e.from || e.leftJoin || e.fromText || e.table;
-		let iliskiDizi = e.on || e.iliskiDizi || e.iliskiText || e.iliski; if (iliskiDizi && !$.isArray(iliskiDizi)) { iliskiDizi = [iliskiDizi] }
-		const xJoin = MQInnerJoin.newForFromText({ text: fromText, on: iliskiDizi });
-		const tableYapi = this.from.aliasIcinTable(alias);
+		let {alias} = e; let fromText = e.from || e.leftJoin || e.fromText || e.table;
+		let iliskiDizi = e.on || e.iliskiDizi || e.iliskiText || e.iliski;
+		if (iliskiDizi && !$.isArray(iliskiDizi)) { iliskiDizi = [iliskiDizi] }
+		let joinClass = innermi ? MQInnerJoin : MQLeftJoin;
+		let {from} = this, xJoin = joinClass.newForFromText({ text: fromText, on: iliskiDizi }), tableYapi = from.aliasIcinTable(alias);
 		if (!tableYapi) {
 			debugger; throw {
-				isError: true, rc: 'innerJoinTable',
-				errorText: `Inner Join (<i class="bold lightgray">${fromText}</i>) için eklenmek istenen alias (<b class="red">${alias}</b>) bulunamadı` }
-		}
-		tableYapi.addLeftInner(xJoin);
-		for (const iliskiText of iliskiDizi) {
-			const iliski = MQIliskiYapisi.newForText(iliskiText);
-			const {varsaZincir: zincir} = iliski; if (zincir) { this.zincirEkle(zincir) }
-		}
-		return this
-	}
-	leftJoin(e, _from, _iliskiDizi) {
-		if (typeof e != 'object') { e = { alias: e, from: _from, on: _iliskiDizi } };
-		let {alias} = e; const fromText = e.from || e.leftJoin || e.fromText || e.table;
-		let iliskiDizi = e.on || e.iliskiDizi || e.iliskiText || e.iliski; if (iliskiDizi && !$.isArray(iliskiDizi)) { iliskiDizi = [iliskiDizi] }
-		const xJoin = MQLeftJoin.newForFromText({ text: fromText, on: iliskiDizi }), tableYapi = this.from.aliasIcinTable(alias);
-		if (!tableYapi) {
-			debugger; throw {
-				isError: true, rc: 'leftJoinTable',
-				errorText: `Left Join (<i class="bold lightgray">${fromText}</i>) için eklenmek istenen alias (<b class="red">${alias}</b>) bulunamadı`
+				isError: true, rc: 'xJoinTable',
+				errorText: `${innermi ? 'Inner' : 'Left'} Join (<i class="bold lightgray">${fromText}</i>) için eklenmek istenen alias (<b class="red">${alias}</b>) bulunamadı`
 			}
 		}
+		if (!from.addIcinUygunmu(xJoin)) { return this }
 		tableYapi.addLeftInner(xJoin);
 		for (const iliskiText of iliskiDizi) {
 			const iliski = MQIliskiYapisi.newForText(iliskiText);
@@ -250,7 +237,12 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	takip2GrupBagla(e) { this.fromIliski('takipgrup tak', 'tak.grupkod = tgrp.kod'); return this }
 	fis2YerBagla(e) { return this.x2YerBagla({ ...e, alias: e?.alias ?? 'fis' }) }
 	har2YerBagla(e) { return this.fis2YerBagla({ ...e, alias: e?.alias ?? 'har' }) }
-	har2KatDetayBagla(e) { let alias = e?.alias ?? 'har'; this.leftJoin(alias, 'kategoridetay kdet', `${alias}.kdetaysayac = kdet.kaysayac`); return this }
+	har2KatDetayBagla(e) { let alias = e?.alias ?? 'har'; return this.x2KatDetayBagla({ alias }); }
+	x2KatDetayBagla(e) {
+		let {alias, kodSaha, kodClause} = e; kodSaha = kodSaha ?? 'kdetaysayac'; kodClause = kodClause ?? `${alias}.${kodSaha}`;
+		this.leftJoin(alias, 'kategoridetay kdet', `${kodClause} = kdet.kaysayac`);
+		return this
+	}
 	x2YerBagla(e) { e = e ?? {}; let {alias} = e, aliasVeNokta = alias ? `${alias}.` : ''; this.fromIliski('stkyer yer', `${aliasVeNokta}yerkod = yer.kod`); return this }
 	x2CariBagla(e) { e = e ?? {}; let {kodClause} = e; this.fromIliski('carmst car', `${kodClause} = car.must`); return this }
 	fis2CariBagla(e) { e = e ?? {}; let mustSaha = (e.mustSaha ?? e.fisMustSaha) || 'must'; this.fromIliski('carmst car', `fis.${mustSaha} = car.must`); return this }

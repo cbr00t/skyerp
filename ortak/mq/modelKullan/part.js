@@ -302,7 +302,7 @@ class ModelKullanPart extends Part {
 				}
 				this.kodAtandimi = true
 			}
-			if (widget.isOpened()) { widget.close() }
+			/* if (widget.isOpened()) { widget.close() } */
 			if (veriYukleninceBlock) {
 				let _e = $.extend({}, e, {
 					parentPart, sender: this, builder: this.builder, get wItems() { return widget.getItems() },

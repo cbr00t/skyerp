@@ -12,7 +12,7 @@ class MQClause extends MQSQLOrtak {
 	add(...sahalar) {
 		const {liste} = this; for (const saha of sahalar) {
 			if (saha == null) { continue } if ($.isArray(saha)) { this.add(...saha); continue }
-			const value = this.donusmusDeger(saha); if (this.addIcinUygunmu(value)) { liste.push(value) }
+			let value = this.donusmusDeger(saha); if (this.addIcinUygunmu(value)) { liste.push(value) }
 		}
 		return this
 	}
@@ -116,7 +116,10 @@ class MQSahalar extends MQClause {
 	}
 	addIcinUygunmu(item) {
 		if (!super.addIcinUygunmu(item)) { return false }
-		const {liste} = this; if (liste.find(x => ((x?.aliasVeyaDeger && item?.aliasVeyaDeger) && x.aliasVeyaDeger == item.aliasVeyaDeger))) { return false }
+		if (this.liste.find(x => ((x?.aliasVeyaDeger && item?.aliasVeyaDeger) && x.aliasVeyaDeger == item.aliasVeyaDeger))) {
+			/* console.warn('MQSahalar::addIcinUygunmu', item, 'duplicate alias'); */
+			return false
+		}
 		return true
 	}
 	addWithAlias(alias, ...sahalar) { return this.addAllWithAlias({ alias: alias, sahalar: sahalar }) }
@@ -149,8 +152,19 @@ class MQFromClause extends MQClause {
 		return typeof item == 'object' ? item : MQTable.newForFromText(item)
 	}
 	addIcinUygunmu(aMQTable) {
-		if (!super.addIcinUygunmu(aMQTable)) return false
-		const varmi = !!this.liste.find(item => item.aliasVeyaDeger == aMQTable.aliasVeyaDeger); return !varmi
+		if (!super.addIcinUygunmu(aMQTable)) { return false }
+		let targetAlias = aMQTable?.aliasVeyaDeger ?? aMQTable, {liste} = this;
+		for (let {aliasVeyaDeger: alias, leftVeInner} of liste) {
+			if (alias == targetAlias) {
+				/* console.warn('MQFromClause::addIcinUygunmu > from', aMQTable, targetAlias, 'duplicate alias'); */
+				return false
+			}
+			if (!!leftVeInner?.find(({ aliasVeyaDeger: alias }) => alias == targetAlias)) {
+				console.warn('MQFromClause::addIcinUygunmu > inner/left join', aMQTable, targetAlias, 'duplicate alias');
+				return false
+			}
+		}
+		return true
 	}
 	aliasIcinTable(alias) { return this.liste.find(anMQTable => anMQTable.aliasVarmi(alias)) }
 	iliskiler2Where(e) {
@@ -200,7 +214,8 @@ class MQSubWhereClause extends MQClause {
 		if ($.isArray(e)) { if (!$.isEmptyObject(e)) { for (const item of e) { initBlock(item) } } } else { initBlock(e) }
 	}
 	addIcinUygunmu(item) {
-		if (item == {}.toString()) { debugger } return super.addIcinUygunmu(item) && !this.liste.includes(item)
+		if (item == {}.toString()) { debugger }
+		return super.addIcinUygunmu(item) && !this.liste.includes(item)
 	}
 	birlestirDict(e) {
 		e = e || {}; const dict = e.dict || e.birlestirDict || e.liste || e, aliasVeNokta = e.alias ? `${e.alias}.` : ``, {not} = e;
@@ -452,16 +467,13 @@ class MQXJoinTable extends MQAliasliYapi {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get onEk() { return null }
 	constructor(e) {
-		e = e || {};
-		super(e);
+		e = e || {}; super(e);
 		this.on = ((!e.on || $.isPlainObject(e.on) || typeof e.on == 'string' || $.isArray(e.on))
 							? new MQOnClause(e.on)
 							: e.on
 						) || new MQOnClause();
 	}
-	aliasVarmi(alias) {
-		return this.alias == alias
-	}
+	aliasVarmi(alias) { return this.aliasVeyaDeger == alias }
 	buildString(e) {
 		super.buildString(e);
 		this.on.buildString(e);
@@ -487,10 +499,14 @@ class MQTable extends MQAliasliYapi {
 		this.leftVeInner = (e.leftVeInner && !$.isArray(e.leftVeInner) ? [e.leftVeInner] : e.leftVeInner) || [];
 		this.iliskiler = (e.iliskiler && !$.isArray(e.iliskiler) ? [e.iliskiler] : e.iliskiler) || []
 	}
-	addLeftInner(e) { this.leftVeInner.push(e); return this }
+	addLeftInner(e) {
+		let {aliasVeyaDeger} = e;
+		if (this.aliasVarmi(aliasVeyaDeger)) { console.warn('addLeftInner', e, e?.aliasVeyaDeger, 'duplicate alias'); return this }
+		this.leftVeInner.push(e); return this
+	}
 	addIliski(e) { this.iliskiler.push(e); return this }
 	aliasVarmi(alias) {
-		if (this.alias == alias) { return true }
+		if (this.aliasVeyaDeger == alias) { return true }
 		const liste = this.leftVeInner || []; return liste.find(item => item.aliasVarmi(alias))
 	}
 	disindakiXTablolariSil(e) {
@@ -608,7 +624,8 @@ class MQOrderByClause extends MQClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get onEk() { return ` ORDER BY	` }
 	addIcinUygunmu(value) {
 		if (!super.addIcinUygunmu(value)) { return false }
-		let {liste} = this; return !liste.includes(value)
+		if (this.liste.includes(value)) { console.warn('MQOrderByClause::addIcinUygunmu', value, 'duplicate alias'); return false }
+		return true
 	}
 	fromGridWSArgs(e) {
 		e = e || {}; const alias = e.alias;

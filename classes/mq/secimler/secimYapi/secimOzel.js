@@ -155,7 +155,7 @@ class SecimTekSecim extends SecimOzel {
 		let {value} = this; if (value == null) { return value }
 		if (!$.isArray(value)) { value = [value] } value = value.filter(x => !!x);
 		const {kaDict} = this.tekSecim; value = value.map(kod => kaDict[kod] ?? kod);
-		return this.birKismimi ? value.filter(x => !!x) : value[0]
+		return this.birKismimi ? value.filter(x => !!x).map(x => x?.aciklama ?? x) : value[0]
 	}
 	get secilen() {
 		const {coklumu, tekSecim} = this; let secilen = tekSecim.secilen;

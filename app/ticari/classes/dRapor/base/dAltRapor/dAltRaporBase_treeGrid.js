@@ -1,6 +1,5 @@
 class DAltRapor_TreeGrid extends DAltRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridmi() { return true } static get dTreeGridmi() { return true }
-	constructor(e) { e = e || {}; super(e) }
 	/*subFormBuilderDuzenle(e) { super.subFormBuilderDuzenle(e); const {rfb} = e; rfb.addCSS('no-overflow') }*/
 	onBuildEk(e) {
 		super.onBuildEk(e); if (this.secimler == null) { this.secimler = this.newSecimler(e) }
@@ -434,6 +433,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		finally { setTimeout(() => hideProgress(), 50) }
 	}
 	raporTanimIstendi(e) {
+		if (this.wnd_raporTanim?.length) { return this.restartWndRaporTanim(e) }
 		const {raporTanim} = this, inst = raporTanim, title = `${raporTanim.class.sinifAdi} Tanım`, ustHeight = '50px', ustEkHeight = '33px', islemTuslariHeight = '55px';
 		let wnd, wRFB = new RootFormBuilder({ id: 'raporTanim' }).setInst(inst).addCSS('part')
 			.addStyle(e => `$elementCSS { --islemTuslariHeight: ${islemTuslariHeight}; --ustHeight: ${ustHeight}; --ustEkHeight : ${ustEkHeight} }`);
@@ -531,12 +531,24 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			if (rdlg) { raporTanim.sil().then(() => this.restartWndRaporTanim(e)) }
 		})
 	}
-	raporTanim_temizleIstendi(e) {
-		const {raporTanim, wnd_raporTanim} = this; if (wnd_raporTanim?.length) { wnd_raporTanim.jqxWindow('collapse') }
-		ehConfirm(`<p class="bold firebrick">Mevcut Rapor içeriği temizlenecek</p><p>Devam edilsin mi silinsin mi?</p>`, 'Rapor Tanım').then(rdlg => {
-			if (wnd_raporTanim?.length) { wnd_raporTanim.jqxWindow('expand') }
-			if (rdlg) { raporTanim.reset(); this.restartWndRaporTanim(e) }
-		})
+	raporTanim_hepsiniAl(e) { return this.raporTanim_hepsiniAlIstendi({ ...e, silent: true }) }
+	raporTanim_temizle(e) { return this.raporTanim_temizleIstendi({ ...e, silent: true }) }
+	async raporTanim_hepsiniAlIstendi(e) {
+		e = e ?? {}; let {silent} = e, {raporTanim, tabloYapi, wnd_raporTanim} = this;
+		if (!silent && wnd_raporTanim?.length) { wnd_raporTanim.jqxWindow('collapse') }
+		let rdlg = silent || await ehConfirm(`<p class="bold firebrick">Mevcut Rapor içeriği temizlenecek ve Tüm Sahalar <b>İçerik</b> kısmına aktarılacak.</p><p>Devam edilsin mi?</p>`, 'Rapor Tanım');
+		if (wnd_raporTanim?.length) { wnd_raporTanim.jqxWindow('expand') } if (!rdlg) { return this }
+		raporTanim.reset(); raporTanim.icerikListe = Object.keys(tabloYapi.grupVeToplam);
+		if (wnd_raporTanim?.length) { this.restartWndRaporTanim(e) }
+		return this
+	}
+	async raporTanim_temizleIstendi(e) {
+		e = e ?? {}; let {silent} = e, {raporTanim, wnd_raporTanim} = this;
+		if (!silent && wnd_raporTanim?.length) { wnd_raporTanim.jqxWindow('collapse') }
+		let rdlg = silent || await ehConfirm(`<p class="bold firebrick">Mevcut Rapor içeriği temizlenecek.</p><p>Devam edilsin mi?</p>`, 'Rapor Tanım');
+		if (wnd_raporTanim?.length) { wnd_raporTanim.jqxWindow('expand') } if (!rdlg) { return this }
+		raporTanim.reset(); if (wnd_raporTanim?.length) { this.restartWndRaporTanim(e) }
+		return this
 	}
 	seviyeAcIstendi(e) { const {gridPart} = this, {gridWidget} = gridPart; gridWidget.expandAll() }
 	seviyeKapatIstendi(e) { const {gridPart} = this, {gridWidget} = gridPart; gridWidget.collapseAll(); gridPart.expandedRowsSet = {} }
@@ -561,3 +573,12 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		return colDefs
 	}
 }
+
+/*
+let {main} = app.activeWndPart.inst;
+main.raporTanim_hepsiniAl(); main.raporTanimIstendi()
+
+let {main} = app.activeWndPart.inst;
+await main.raporTanim_hepsiniAl(); await main.raporTanim.setDefault();
+await main.tazele()
+*/

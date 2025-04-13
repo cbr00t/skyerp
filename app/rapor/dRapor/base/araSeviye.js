@@ -63,7 +63,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return result
 	}
 	secimlerDuzenle(e) {
-		super.secimlerDuzenle(e); const {secimler} = e, {grupVeToplam} = this.tabloYapi;
+		super.secimlerDuzenle(e); let {secimler} = e, {grupVeToplam} = this.tabloYapi;
 		const islemYap = (keys, callSelector, args) => {
 			for (const key of keys) {
 				const item = key ? grupVeToplam[key] : null; if (item == null) { continue }

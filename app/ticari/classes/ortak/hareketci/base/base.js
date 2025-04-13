@@ -65,14 +65,6 @@ class Hareketci extends CObject {
 	set uygunluk(value) { this._uygunluk = value }
 	static get extListe() { let result = this._extListe; if (result == null) { let e = { liste: [] }; this.extListeDuzenle(e); result = this._extListe = e.liste } return result }
 	static set extListe(value) { this._extListe = value }
-	static get altTipYapilar() {
-		let {_altTipYapilar: result} = this;
-		if (result == null) {
-			let e = { result: {} }; this.altTipYapilarDuzenle(e);
-			result = this._altTipYapilar = e.result
-		}
-		return result
-	}
 	static get mstYapi() {
 		let {_mstYapi: result} = this;
 		if (result == null) {
@@ -110,16 +102,16 @@ class Hareketci extends CObject {
 			_attrSet: e.attrListe ?? e.attrSet, _uygunluk: e.uygunluk, whereYapi: e.whereYapi ?? {}, ekDuzenleyiciler: e.ekDuzenleyiciler ?? e.ekDuzenleyici ?? {},
 			sonIslem: e.sonIslem ?? (e => this.defaultSonIslem(e)), gereksizTablolariSilFlag: e.gereksizTablolariSil ?? e.gereksizTablolariSilFlag ?? false
 		});
-		const {whereYapi} = this; for (const key of ['master', 'hareket']) { const value = e[key]; if (value !== undefined) { whereYapi[key] = value } }
+		let {whereYapi} = this; for (const key of ['master', 'hareket']) {
+			let value = e[key]; if (value !== undefined) { whereYapi[key] = value } }
 	}
 	static getClass(e) { const kod = typeof e == 'object' ? (e.kod ?? e.tip) : e; return this.kod2Sinif[kod] }
-	static getAltTip2Adi(kod) { this.altTipYapilar[kod]?.aciklama }
-	static altTipYapilarDuzenle(e) {
+	/*static altTipYapilarDuzenle(e) {
 		let {result} = e;
 		e.def = result[''] = new DRapor_AltTipYapi()
-	}
+	}*/
 	static getAltTipAdiVeOncelikClause({ hv }) {
-		return ({ adi: this.aciklama.sqlServerDegeri(), oncelik: '0' })
+		return ({ adi: this.aciklama.sqlServerDegeri(), oncelik: '0', yon: `'sol'` })
 	}
 	static mstYapiDuzenle(e) { }
 	static hareketTipSecim_kaListeDuzenle(e) {
@@ -131,22 +123,24 @@ class Hareketci extends CObject {
 			let {finanalizkullanilmaz: finAnalizKullanimClause} = hv, {where: wh, sahalar} = sent;
 			if (finAnalizKullanimClause == sqlEmpty || finAnalizKullanimClause == sqlNull) { finAnalizKullanimClause = null }
 			if (finAnalizKullanimClause) { wh.degerAta('', finAnalizKullanimClause) }    /* ''(false) = kullanılır,  '*'(true) = kullanılMAZ */
-			let {adi: altTipAdiClause, oncelik: oncelikClause} = this.class.getAltTipAdiVeOncelikClause({ hv }) ?? {};
-			sahalar.add(`${altTipAdiClause} alttipadi`, `${oncelikClause} alttiponcelik`)
+			let {adi: altTipAdiClause, oncelik: oncelikClause, yon: yonClause} = this.class.getAltTipAdiVeOncelikClause({ hv }) ?? {};
+			sahalar.add(`${altTipAdiClause} alttipadi`, `${oncelikClause} alttiponcelik`, `${yonClause} yon`)
 			/*let {from, where: wh} = sent, digerHarmi = from.aliasIcinTable('har')?.deger == 'csdigerhar';
 			wh.degerAta('', `ctip.finanaliztipi`)*/
 		}
 	}
 	static varsayilanHVDuzenle_ortak({ hv, sqlNull, sqlEmpty }) {
-		for (const key of ['finanalizkullanilmaz']) { hv[key] = sqlEmpty }
+		for (const key of [
+			'finanalizkullanilmaz', 'ayadi', 'saat', 'unionayrim', 'iceriktipi',
+			'anaislemadi', 'islemkod', 'islemadi', 'dvkod']
+		) { hv[key] = sqlEmpty }
 	}
 	static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
 		/* cast(null as ??) değerlerini sadece NULL olarak tutabiliriz, CAST işlemine gerek yok */
 		for (const key of ['vade', 'reftarih']) { hv[key] = sqlNull }
 		for (const key of [
-			'ayadi', 'saat', 'unionayrim', 'iceriktipi', 'anaislemadi', 'islemkod', 'islemadi', 'refsubekod', 'refkod', 'refadi',
-			'plasiyerkod', 'plasiyeradi', 'fistipi', 'fisektipi', 'must', 'ticmust', 'asilmust', 'althesapkod', 'althesapadi',
-			'kdetay', 'takipno', 'aciklama', 'ekaciklama', 'odgunkod', 'iade', 'dovizsanalmi', 'dvkod', 'belgetipi',
+			'refsubekod', 'refkod', 'refadi', 'plasiyerkod', 'plasiyeradi', 'fistipi', 'fisektipi', 'must', 'ticmust', 'asilmust', 'althesapkod', 'althesapadi',
+			'kdetay', 'takipno', 'aciklama', 'ekaciklama', 'odgunkod', 'iade', 'dovizsanalmi', 'belgetipi',
 			'portftipi', 'portfkod', 'portfadi', 'portfkisatiptext', 'refportftipi', 'refportfkod', 'refportfadi', 'refportfkisatiptext'
 		]) { hv[key] = sqlEmpty }
 		for (const key of [ 'yilay', 'yilhafta', 'haftano', 'oncelik', 'seq', 'belgeno', 'noyil', 'dvkur' ]) { hv[key] = sqlZero }
@@ -164,7 +158,13 @@ class Hareketci extends CObject {
 		if (!$.isArray(liste)) { liste = Object.values(liste) }
 		liste = liste.flat().map(item => getFuncValue.call(this, item, e)).filter(x => !!x);
 		let allKeys = {}; for (let {hv} of liste) { $.extend(allKeys, asSet(Object.keys(hv))) }
-		for (let {hv} of liste) { for (let key in allKeys) { let value = hv[key] ?? defHV[key]; if (value == null) { hv[key] = 'NULL' } } }
+		for (let {hv: _hv} of liste) {
+			let hv = liste.hv = {};
+			for (let key in allKeys) {
+				let value = _hv[key] ?? defHV[key] ?? 'NULL';
+				hv[key] = value
+			}
+		}
 	}
 	static extListeDuzenle(e) {
 		const {liste} = e, {kod} = this; for (const modul of app.getModulIter()) {

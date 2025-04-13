@@ -13,6 +13,13 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 			.addGrup(new TabloYapiItem().setKA('TARIH', 'Tarih').addColDef(new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 20, filterType: 'checkedlist' }).tipDate()))
 			.addGrup(new TabloYapiItem().setKA('SAAT', 'Saat').addColDef(new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 20, filterType: 'checkedlist' }).tipTime()))
 	}
+	secimlerDuzenle({ secimler: sec }) {
+		super.secimlerDuzenle(...arguments);
+		/*if (config.dev) {
+			let {tekSecim: donem} = sec.donem, {tarihAralik: tarih} = sec;
+			donem.tarihAralik(); tarih.basi = today().addDays(-10)
+		}*/
+	}
 	loadServerData(e) {
 		e = e ?? {}; let {secimler: sec} = this, {tarihBS: donemBS} = sec;
 		$.extend(e, { donemBS }); /* e.donemBS = sec.tarihBSVeyaCariDonem; */

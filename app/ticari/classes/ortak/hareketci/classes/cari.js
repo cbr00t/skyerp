@@ -1,19 +1,19 @@
 class CariHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 10 }
 	static get kod() { return 'cari' } static get aciklama() { return 'Cari' }
-	static altTipYapilarDuzenle({ result }) {
-		/* super.altTipYapilarDuzenle(...arguments); */
+	/*static altTipYapilarDuzenle({ result }) {
 		$.extend(result, {
 			musteri: new DRapor_AltTipYapi(['musteri', `'Müşteriler'`]).sol()
 				.setDuzenleyici(({ wh }) => wh.degerAta('', 'ctip.satmustip')),
 			satici: new DRapor_AltTipYapi(['satici', `'Satıcılar'`]).sag()
 				.setDuzenleyici(({ wh }) => wh.degerAta('S', 'ctip.satmustip'))
 		})
-	}
+	}*/
 	static getAltTipAdiVeOncelikClause({ hv }) {
 		return {
 			adi: `(case ctip.satmustip when 'S' then 'Satıcılar' else 'Müşteriler' end)`,
-			oncelik: `(case ctip.satmustip when 'S' then 1 else 0 end)`
+			oncelik: `(case ctip.satmustip when 'S' then 1 else 0 end)`,
+			yon: `(case ctip.satmustip when 'S' then 'sag' else 'sol' end)`
 		}
 	}
 	static mstYapiDuzenle({ result }) {

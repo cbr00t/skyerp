@@ -63,8 +63,10 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 				});
 				this.loadServerData_queryDuzenle_hrkSent(_e);
 				hareketci.uniDuzenle_tumSonIslemler(_e); sent = _e.sent;
-				if (!sent?.sahalar?.liste?.length) { continue }
-				sent.groupByOlustur().gereksizTablolariSil(); uni.add(sent)
+				let sahaSayisi = sent?.sahalar?.liste?.length ?? 0; if (!sahaSayisi) { continue }
+				// if (config.dev && selectorStr.includes('perakende') /* && sahaSayisi != 30 */) { debugger }
+				sent.groupByOlustur().gereksizTablolariSil();
+				uni.add(sent)
 			}
 		}
 	}

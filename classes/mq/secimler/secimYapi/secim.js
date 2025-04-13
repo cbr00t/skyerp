@@ -49,7 +49,10 @@ class Secim extends CIO {
 		if (this.isHidden) { return this }
 		let result = this.ozetBilgiValueDuzenlenmis; if (result?.bosmu == true) { result = null }
 		if (result && !$.isArray(result)) { result = [result] }
-		if (result) { result = result.filter(value => !!value).map(value => `<div class="float-left ozetBilgi-item">${value}</div>`); liste.push(...result) }
+		if (result) {
+			result = result.filter(value => !!value).map(value => `<div class="float-left ozetBilgi-item">${value}</div>`);
+			liste.push(...result)
+		}
 		return this
 	}
 	getConvertedValue(value) { return value } getConvertedUIValue(value) { return value }

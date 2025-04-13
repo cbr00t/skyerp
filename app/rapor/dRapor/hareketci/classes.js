@@ -63,25 +63,27 @@ class DRapor_Hareketci_Hizmet_Main extends DRapor_Hareketci_Main {
 				.addColDef(new GridKolon({ belirtec: 'katdetay', text: 'Kat. Detay', maxWidth: 600, filterType: 'input' })));
 		super.tabloYapiDuzenle(...arguments)
 	}
-	loadServerData_queryDuzenle_hrkSent({ stm, attrSet, hvDegeri }) {
-		super.loadServerData_queryDuzenle_hrkSent(...arguments);
+	loadServerData_queryDuzenle_hrkSent({ sent, attrSet, hvDegeri }) {
+		super.loadServerData_queryDuzenle_hrkSent(...arguments); let {sqlNull} = Hareketci_UniBilgi.ortakArgs;
+		let {from, sahalar, where: wh} = sent, kDetayClause;
 		let kodClause = hvDegeri('hizmetkod'); this.loadServerData_queryDuzenle_hizmet({ ...arguments[0], kodClause });
-		for (let sent of stm.getSentListe()) {
-			let {sahalar, where: wh} = sent;
-			if (attrSet.HZANAGRP) { sent.hizmet2GrupBagla() }
-			if (attrSet.HZANAGRP || attrSet.HZGRP || attrSet.HZISTGRP) { sent.x2HizmetBagla({ kodClause }) }
-			if (attrSet.KATEGORI || attrSet.KATDETAY) { sent.har2KatDetayBagla() }
-			for (const key in attrSet) {
-				switch (key) {
-					case 'HZANAGRP': sent.hizmetGrup2AnaGrupBagla(); sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi'); wh.icerikKisitDuzenle_hizmetAnaGrup({ ...e, saha: 'grp.anagrupkod' }); break
-					case 'HZGRP': sent.hizmet2GrupBagla(); sahalar.add('hiz.grupkod', 'grp.aciklama grupadi'); wh.icerikKisitDuzenle_hizmetGrup({ ...e, saha: 'hiz.grupkod' }); break
-					case 'HZISTGRP': sent.hizmet2IstGrupBagla(); sahalar.add('hiz.histgrupkod', 'higrp.aciklama histgrupadi'); wh.icerikKisitDuzenle_hizmetIstGrup({ ...e, saha: 'grp.histgrupkod' }); break
-					case 'KATDETAY': sahalar.add('kdet.kdetay katdetay'); break
-					case 'KATEGORI':
-						sent.leftJoin('kdet', 'kategori kat', 'kdet.fissayac = kat.kaysayac');
-						sahalar.add('kat.kod kategorikod', 'kat.aciklama kategoriadi');
-						break
-				}
+		if (attrSet.HZANAGRP) { sent.hizmet2GrupBagla() }
+		if (attrSet.HZANAGRP || attrSet.HZGRP || attrSet.HZISTGRP) { sent.x2HizmetBagla({ kodClause }) }
+		if (attrSet.KATEGORI || attrSet.KATDETAY) {
+			kDetayClause = hvDegeri('kdetaysayac');
+			if (kDetayClause?.sqlDoluDegermi()) { sent.har2KatDetayBagla({ kodClause: kDetayClause }) }
+			else { sent.x2KatDetayBagla({ alias: 'fis', kodClause: sqlNull }) }
+		}
+		for (const key in attrSet) {
+			switch (key) {
+				case 'HZANAGRP': sent.hizmetGrup2AnaGrupBagla(); sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi'); wh.icerikKisitDuzenle_hizmetAnaGrup({ ...arguments[0], saha: 'grp.anagrupkod' }); break
+				case 'HZGRP': sent.hizmet2GrupBagla(); sahalar.add('hiz.grupkod', 'grp.aciklama grupadi'); wh.icerikKisitDuzenle_hizmetGrup({ ...arguments[0], saha: 'hiz.grupkod' }); break
+				case 'HZISTGRP': sent.hizmet2IstGrupBagla(); sahalar.add('hiz.histgrupkod', 'higrp.aciklama histgrupadi'); wh.icerikKisitDuzenle_hizmetIstGrup({ ...arguments[0], saha: 'grp.histgrupkod' }); break
+				case 'KATDETAY': sahalar.add('kdet.kdetay katdetay'); break
+				case 'KATEGORI':
+					sent.leftJoin('kdet', 'kategori kat', 'kdet.fissayac = kat.kaysayac');
+					sahalar.add('kat.kod kategorikod', 'kat.aciklama kategoriadi');
+					break
 			}
 		}
 		return this

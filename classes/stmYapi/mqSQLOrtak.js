@@ -75,6 +75,14 @@ class MQSQLOrtak extends CObject {
 		}
 		return e
 	}
+	static sqlBosDegermi(text) {
+		let sqlNull = 'NULL', sqlEmpty = `''`, sqlZero = '0';
+		if (!text) { return true } text = text.toUpperCase();
+		switch (text) { case sqlNull: case sqlEmpty: case sqlZero: return true }
+		if (text.startsWith('CAST(NULL')) { return true }
+		return false
+	}
+	static sqlDoluDegermi(text) { return !this.sqlBosDegermi(text) }
 	static sumOlmaksizin(text) {
 		const Prefix = 'SUM('; if (!text?.toUpperCase().includes(Prefix)) { return text }
 		return text.fastReplaceSplit(Prefix, '(')

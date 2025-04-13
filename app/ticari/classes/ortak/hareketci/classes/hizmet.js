@@ -14,7 +14,7 @@ class HizmetHareketci extends Hareketci {
 		let {params} = app, {kullanim: ticGenel} = params.ticariGenel, {kullanim: muhasebe} = params.muhasebe, {kullanim: banka} = params.bankaGenel;
 		let {kullanim: alim} = params.alim, {kullanim: satis} = params.satis, {kullanim: aktarim} = params.aktarim;
 		kaListe.push(...[
-			new CKodVeAdi(['hizmetDevir', 'Devir']), new CKodVeAdi(['Kasa', 'Kasa Hizmet']),
+			new CKodVeAdi(['hizmetDevir', 'Devir']), new CKodVeAdi(['kasa', 'Kasa Hizmet']),
 			new CKodVeAdi(['banka', 'Banka Hizmet']), new CKodVeAdi(['cari', 'Cari Hizmet']),
 			new CKodVeAdi(['pos', 'POS Hizmet']), new CKodVeAdi(['tahsilatOdeme', 'Cari Tahsilat/Ödeme']),
 			new CKodVeAdi(['fatura', 'Fatura Hizmet']), new CKodVeAdi(['perakende', 'Perakende Hizmet']),
@@ -37,15 +37,16 @@ class HizmetHareketci extends Hareketci {
     /** Varsayılan değer atamaları (hostVars) */
     static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
         /* super.varsayilanHVDuzenle(...arguments); */
-		for (let key of ['tarih']) { hv[key] = sqlNull }
+		for (let key of ['tarih', 'kdetaysayac']) { hv[key] = sqlNull }
 		for (let key of [
 			'alttip', 'ozelisaret', 'fisnox', 'mustkod', 'refkod', 'refadi', 'plasiyerkod', 'althesapkod',
-			'takipno', 'kdetay', 'depkod', 'masrafkod', 'ba'
+			'takipno', 'kdetay', 'depkod', 'masrafkod', 'ba', 'tahhizmetkod', 'masrafhizkod', 'masrafkathizkod',
+			'anagrupkod', 'anagrupadi', 'grupkod', 'grupadi', 'hizmetadi', 'histgrupkod', 'histgrupadi', 'kategorikod', 'kategoriadi', 'katdetay'
 		]) { hv[key] = sqlEmpty }
 		for (let key of [
-			'oncelik', 'seq', 'kaysayac', 'fissayac', 'kdetaysayac',
-			'miktar', 'bedel', 'dvbedel', 'dvkur'
+			'oncelik', 'seq', 'kaysayac', 'fissayac', 'miktar', 'bedel', 'dvbedel', 'dvkur'
 		]) { hv[key] = sqlZero }
+		
 		/* 'mustkod' varsa ['must', 'ticmust'] gereksizdir */
 		for (let key of ['must', 'ticmust', 'muhfissayac', 'no']) { delete hv[key] }
 		$.extend(hv, {
@@ -215,7 +216,7 @@ class HizmetHareketci extends Hareketci {
 	/** (Genel Dekont) için UNION */
     uniDuzenle_dekont({ uygunluk, liste }) {
         $.extend(liste, {
-            dekont: [
+            genelDekont: [
                 new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent }) => {
 						sent.fisHareket('geneldekontfis', 'geneldekonthar')
@@ -256,10 +257,9 @@ class HizmetHareketci extends Hareketci {
 								])
 						])
 	                })
-					.hvDuzenleIslemi(({ hv, sqlEmpty }) => {
+					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
 	                    $.extend(hv, {
-							kayittipi: `'BNHE'`, hizmetkod: 'har.masrafhizkod',
-							kdetaysayac: 'cast(null as int)', kdetay: sqlEmpty,
+							kayittipi: `'BNHE'`, hizmetkod: 'har.masrafhizkod', kdetaysayac: sqlNull, kdetay: sqlEmpty,
 							tarih: 'coalesce(har.belgetarih, fis.tarih)', ba: `'B'`, bedel: 'har.masraf',
 							fisnox: '(case when har.belgeno > 0 then har.belgenox else fis.fisnox end)',
 							islemadi: (
@@ -284,10 +284,9 @@ class HizmetHareketci extends Hareketci {
 	                    let {where: wh} = sent; wh.fisSilindiEkle();
 						wh.inDizi(['KR', 'EK', '3K'], 'fis.fistipi').add(`har.masraf > 0`)
 	                })
-					.hvDuzenleIslemi(({ hv, sqlEmpty }) => {
+					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
 	                    $.extend(hv, {
-							kayittipi: `'CSDIG'`, hizmetkod: 'har.masrafhizkod',
-							kdetaysayac: 'cast(null as int)', kdetay: sqlEmpty,
+							kayittipi: `'CSDIG'`, hizmetkod: 'har.masrafhizkod', kdetaysayac: sqlNull, kdetay: sqlEmpty,
 							ba: `'B'`, bedel: 'har.masraf', islemadi: `'Protesto Masrafı'`, takipno: 'fis.takipno',
 							refkod: `(case fis.fistipi when 'KR' then fis.banhesapkod when 'EK' then fis.portfkod when '3K' then fis.fisciranta else '' end)`,
 							refadi: `(case fis.fistipi when 'KR' then bhes.aciklama when 'EK' then prt.aciklama when '3K' then ciran.birunvan else '' end)`
