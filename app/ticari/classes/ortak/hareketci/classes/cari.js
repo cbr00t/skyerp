@@ -459,16 +459,13 @@ class CariHareketci extends Hareketci {
 						.fis2StokIslemBagla().fis2AltHesapBagla_eski()
 						.fromIliski('piftaksit ptak', 'fis.kaysayac = ptak.fissayac')
 						.leftJoin('ptak', 'tahsilsekli tsek', 'ptak.taktahsilsekli = tsek.kodno');
-					wh.fisSilindiEkle().add(`fis.piftipi = 'F'`, 'fis.bdevirdir = 0', `fis.fisekayrim <> 'DV'`)
+					wh.fisSilindiEkle().add(`fis.piftipi = 'F'`, 'fis.bdevirdir = 0', `fis.fisekayrim <> 'DV'`, `ptak.anindakapat <> ''`)
 				}).hvDuzenleIslemi(({ hv }) => {
 					$.extend(hv, {
 						kaysayac: 'fis.kaysayac', oncelik: '2', unionayrim: `'IrsFat'`, kayittipi: `'PIFK'`, fistipi: 'fis.almsat', iade: `fis.iade`,
 						anaislemadi: `(case when RTRIM(fis.almsat + fis.iade) IN ('T', 'AI') then 'Fatura Tahsilatı' else 'Fatura Ödemesi' end)`,
+						islemadi: ({ hv }) => hv.anaislemadi,
 						must: 'fis.ticmust', asilmust: 'fis.must', islemkod: 'fis.islkod',
-						islemadi: (
-							`dbo.iadetext(fis.iade, (case when fis.piftipi = 'P' then 'Perakende Fat.' else` +
-							` dbo.ticonek(fis.ayrimtipi, fis.almsat) + RTRIM(isl.aciklama) end))`
-						),
 						ba: `dbo.tersba(dbo.ticaricarba(fis.almsat, fis.iade))`, plasiyerkod: 'fis.plasiyerkod',
 						vade: 'coalesce(ptak.vade, fis.tarih)', karsiodemetarihi: 'coalesce(ptak.karsiodemetarihi, ptak.vade, fis.tarih)',
 						bedel: 'ptak.bedel', dvbedel: 'ptak.dvbedel', althesapkod: 'fis.cariitn',
