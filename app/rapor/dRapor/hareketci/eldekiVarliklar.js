@@ -96,12 +96,12 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		/* self.uni = withSent */
 	}
 	loadServerData_recsDuzenleIlk({ recs }) {
-		super.loadServerData_recsDuzenleIlk(...arguments);
 		let recsDvKodSet = this.recsDvKodSet = {}; for (let rec of recs) {
 			let {dvkod: dvKod, bedel, mstadi: mstAdi, mstadi2: mstAdi2} = rec;
 			if (this.getDovizmi(dvKod)) { rec[`bedel_${dvKod}`] = bedel; rec.bedel = 0; recsDvKodSet[dvKod] = true }
 			if (!mstAdi && mstAdi2) { mstAdi = rec.mstadi = mstAdi2 }
 		}
+		return super.loadServerData_recsDuzenleIlk(...arguments)
 	}
 	/*loadServerDataInternal(e) { return [] }
 	loadServerData_recsDuzenleIlk({ recs }) {
@@ -111,6 +111,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 				(onc1 - onc2) || (grup1 - grup2) || (mst1 - mst2)
 		)
 	}*/
+	tazele(e) { return super.tazele(e) }
 	tazeleDiger(e) { /* do nothing */ }
 	gridVeriYuklendi(e) {
 		super.gridVeriYuklendi(e);

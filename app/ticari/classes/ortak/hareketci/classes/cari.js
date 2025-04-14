@@ -43,6 +43,7 @@ class CariHareketci extends Hareketci {
 		if (!from.aliasIcinTable('car')) { sent.x2CariBagla({ kodClause: hv.must }) }
 		if (!from.aliasIcinTable('alth')) { sent.fromIliski('althesap alth', `${hv.althesapkod} = alth.kod`) }
 		if (!from.aliasIcinTable('ctip')) { sent.cari2TipBagla() }
+		wh.add(`car.silindi = ''`, `car.calismadurumu <> ''`)
 	}
 	static varsayilanHVDuzenle_ortak({ hv, sqlNull, sqlEmpty }) {
 		super.varsayilanHVDuzenle_ortak(...arguments);

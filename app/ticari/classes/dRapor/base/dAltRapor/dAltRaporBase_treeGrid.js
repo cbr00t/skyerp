@@ -90,19 +90,25 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	loadServerData_recsDuzenleIlk(e) {
 		let {recs} = e; const {gridPart} = this, {filtreTokens} = gridPart;
 		if (filtreTokens?.length) { const _recs = this.loadServerData_recsDuzenle_hizliBulIslemi(e); recs = _recs == null ? e.recs : _recs }
-		return recs
+		e.recs = recs
 	}
 	loadServerData_recsDuzenle_hizliBulIslemi(e) {
-		const {fbd_grid, gridPart} = this; const {filtreTokens} = gridPart; if (!filtreTokens?.length) { return }
-		const colDefs = this.tabloKolonlari; const attrListe = []; for (const colDef of colDefs) { if (!(colDef.ekKolonmu || !colDef.text?.trim)) { attrListe.push(colDef.belirtec) } }
-		let orjRecs = e.recs, recs = []; for (const rec of orjRecs) {
-			let uygunmu = true; const values = attrListe.map(key => rec[key]?.toString()).filter(value => !!value);
-			for (const token of filtreTokens) {
+		let {fbd_grid, gridPart} = this, {filtreTokens} = gridPart; if (!filtreTokens?.length) { return }
+		let {tabloKolonlari: colDefs} = this, attrListe = [];
+		for (let colDef of colDefs) { if (!(colDef.ekKolonmu || !colDef.text?.trim)) { attrListe.push(colDef.belirtec) } }
+		let {recs: orjRecs} = e, recs = []; for (let rec of orjRecs) {
+			let uygunmu = true, values = attrListe.map(key => rec[key]?.toString()).filter(value => !!value);
+			for (let token of filtreTokens) {
 				let _uygunmu = false; for (let value of values) {
 					if (value == null) { continue } value = value.toString();
-					if (value.toUpperCase().includes(token.toUpperCase()) || value.toLocaleUpperCase(culture).includes(token.toLocaleUpperCase(culture))) { _uygunmu = true; break }
-				} if (!_uygunmu) { uygunmu = false; break }
-			} if (!uygunmu) { continue }
+					if (value.toUpperCase().includes(token.toUpperCase()) ||
+							value.toLocaleUpperCase(culture).includes(token.toLocaleUpperCase(culture))) {
+						_uygunmu = true; break
+					}
+				}
+				if (!_uygunmu) { uygunmu = false; break }
+			}
+			if (!uygunmu) { continue }
 			recs.push(rec)
 		}
 		return recs

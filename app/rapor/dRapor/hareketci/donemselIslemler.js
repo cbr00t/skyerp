@@ -130,7 +130,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 			if (this.getDovizmi(dvKod)) { rec.grup += ` (<span class="bold orangered">${dvKod}</span>)` }
 			if (!mstAdi && mstAdi2) { mstAdi = rec.mstadi = mstAdi2 }
 		}
-		super.loadServerData_recsDuzenleIlk(...arguments)
+		return super.loadServerData_recsDuzenleIlk(...arguments)
 	}
 	async detaylariOlustur(e) {
 		let {event: evt} = e, /*{ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu*/ ozelIsaretVarmi = true, {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;

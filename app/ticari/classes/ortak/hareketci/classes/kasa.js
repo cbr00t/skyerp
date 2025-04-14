@@ -20,7 +20,7 @@ class KasaHareketci extends Hareketci {
 	uniOrtakSonIslem({ sender, hv, sent }) {
 		super.uniOrtakSonIslem(...arguments); let {from, where: wh} = sent;
 		if (!from.aliasIcinTable('kas')) { sent.x2KasaBagla({ kodClause: hv.kasakod }) }
-		/* if (sender.donemselIslemlermi || sender.eldekiVarliklarmi) { } */
+		wh.add(`kas.calismadurumu <> ''`)
 	}
 	static varsayilanHVDuzenle_ortak({ hv, sqlNull, sqlEmpty }) {
 		super.varsayilanHVDuzenle_ortak(...arguments);

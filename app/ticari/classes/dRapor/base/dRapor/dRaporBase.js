@@ -147,15 +147,22 @@ class DPanelRapor extends DRaporOzel {
 	}
 	altRaporlarDuzenle(e) { }
 	tazele(e) {
-		super.super_tazele(e); const {id2AltRapor} = this;
-		for (const altRapor of Object.values(id2AltRapor)) { if (altRapor?.tazeleYapilirmi) { altRapor.tazele?.(e) } }
+		super.super_tazele(e); const {id2AltRapor} = this, {main} = id2AltRapor, {gridPart: mainGridPart} = main ?? {};
+		for (const altRapor of Object.values(id2AltRapor)) {
+			if (!altRapor?.tazeleYapilirmi) { continue }
+			if (mainGridPart && altRapor != main) {
+				let {mainmi} = altRapor.class, {gridPart} = altRapor;
+				if (mainmi && gridPart) { gridPart.filtreTokens = mainGridPart.filtreTokens }
+			}
+			altRapor.tazele?.(e)
+		}
 	}
 	hizliBulIslemi_ara(e) {
 		super.hizliBulIslemi_ara(e); const {tokens} = e, {main} = this;
 		for (const altRapor of [main]) {
 			if (!altRapor.fbd_grid) { continue }
-			let {part: gridPart} = altRapor.fbd_grid;
-			gridPart.filtreTokens = tokens; gridPart.tazele({ action: 'hizliBul' })
+			let {part: gridPart} = altRapor.fbd_grid; gridPart.filtreTokens = tokens;
+			this.tazele({ action: 'hizliBul' })
 		}
 	}
 	add(...items) {
