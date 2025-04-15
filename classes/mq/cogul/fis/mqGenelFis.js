@@ -38,13 +38,13 @@ class MQGenelFis extends MQOrtakFis {
 	static secimlerDuzenleSon(e) { super.secimlerDuzenleSon(e) }
 	static rootFormBuilderDuzenle(e) {
 		e = e || {}; super.rootFormBuilderDuzenle(e); this.rootFormBuilderDuzenle_numarator(e);
-		const {tsnKullanilirmi} = this, {tsnForm, baslikForm} = e.builders;
+		let {tsnKullanilirmi} = this, {tsnForm, baslikForm} = e.builders;
 		let tarihFormParent = tsnKullanilirmi ? tsnForm : baslikForm.builders[0];
 		tarihFormParent.addDateInput({ id: 'tarih', etiket: 'Tarih', placeHolder: 'Fiş Tarih' }).etiketGosterim_normal().addStyle_wh({ width: '130px !important' });
 		tarihFormParent.addModelKullan({ id: 'subeKod', mfSinif: MQSube }).dropDown().etiketGosterim_normal().addStyle_wh({ width: '450px !important'})
 	}
 	static rootFormBuilderDuzenle_numarator(e) {
-		e = e || {}; const {tsnKullanilirmi} = this, {tsnForm} = e.builders; tsnForm.yanYana(); if (!tsnKullanilirmi) { return }
+		e = e || {}; let {tsnKullanilirmi} = this, {tsnForm} = e.builders; tsnForm.yanYana(); if (!tsnKullanilirmi) { return }
 		tsnForm.addForm('numarator')
 			.setLayout(({ builder: fbd }) => {
 				const {parentParent, inst: fis} = fbd, {fisGirisLayoutSelector: selector} = fis.numarator?.class ?? {};

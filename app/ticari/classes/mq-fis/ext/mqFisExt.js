@@ -42,7 +42,7 @@ class ExtFis_Cari extends ExtFis {
 		let {inst} = this, {ticMustKullanilirmi, aliasVeNokta, mustSaha} = inst.class;
 		if (ticMustKullanilirmi && !hv.ticmustkod) { hv.ticmustkod = hv[mustSaha] || '' }
 	}
-	async dataDuzgunmu(e) { return await MQCari.kodYoksaMesaj(this.inst.mustKod) }
+	async dataDuzgunmu(e) { return await MQCari.bosVeyaKodYoksaMesaj(this.inst.mustKod) }
 }
 class ExtFis_AltHesap extends ExtFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

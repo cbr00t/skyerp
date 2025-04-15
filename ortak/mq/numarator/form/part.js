@@ -15,7 +15,7 @@ class NumaratorPart extends Part {
 		btnListedenSec.on('click', evt => this.listedenSecIstendi({ event: evt }));
 		const txtSeri = this.txtSeri = seriNoForm.find('#seri');
 		txtSeri.on('change', evt => { const elm = evt.currentTarget; elm.value = fis.seri = elm.value?.toUpperCase() || '' });
-		if (!numarator?.tip) { txtSeri.removeClass('readOnly'); txtSeri.removeAttr('readonly') }
+		/* if (!numarator?.tip) { txtSeri.removeClass('readOnly'); txtSeri.removeAttr('readonly') } */
 		const txtFisNo = this.txtFisNo = seriNoForm.find('#fisNo'); this.fisNo_orjPlaceHolder = txtFisNo.attr('placeholder');
 		txtFisNo.on('keyup', evt => evt.target.value = asInteger(evt.target.value) || null);
 		txtFisNo.on('change', evt => fis.fisNo = asInteger(evt.target.value) || null);
@@ -30,8 +30,8 @@ class NumaratorPart extends Part {
 					txtSeri.val(fis.seri || ''); txtFisNo.val(fisNo)
 				};
 				if (yeniVeyaKopyami) {
-					const inputs = layout.find('input'); if (inputs.length) { inputs.attr('readonly', ''); inputs.addClass('readOnly') }
-					const buttons = layout.find('button'); if (buttons.length) { setButonEnabled(buttons, false) }
+					/*let inputs = layout.find('input'); if (inputs.length) { inputs.attr('readonly', ''); inputs.addClass('readOnly') }
+					let buttons = layout.find('button'); if (buttons.length) { setButonEnabled(buttons, false) }*/
 					uiGoster()
 				}
 				else { numarator.yukle().finally(() => { uiGoster() }) }

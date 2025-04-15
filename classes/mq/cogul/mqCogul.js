@@ -564,12 +564,11 @@ class MQCogul extends MQYapi {
 		let results = (await this.forAltYapiKeysDoAsync('dataDuzgunmu', e))?.filter(x => !!x);
 		return results?.length ? `<ul>${results.map(x => `<li>${x}</li>`).join(CrLf)}</ul>` : null
 	}
-	async kaydetOncesiIslemler(e) { await super.kaydetOncesiIslemler(e); e.ozelSahaYapilari = this.class.getOzelSahaYapilari(e); await this.forAltYapiKeysDoAsync('kaydetOncesiIslemler', e) }
 	async kaydetVeyaSilmeOncesiIslemler(e) { await super.kaydetVeyaSilmeOncesiIslemler(e); await this.forAltYapiKeysDoAsync('kaydetVeyaSilmeOncesiIslemler', e) }
 	async yeniOncesiIslemler(e) { await super.yeniOncesiIslemler(e); await this.forAltYapiKeysDoAsync('yeniOncesiIslemler', e) }
 	async degistirOncesiIslemler(e) { await super.degistirOncesiIslemler(e); await this.forAltYapiKeysDoAsync('degistirOncesiIslemler', e) }
 	async silmeOncesiIslemler(e) { await super.silmeOncesiIslemler(e); await this.forAltYapiKeysDoAsync('silmeOncesiIslemler', e) }
-	async kaydetOncesiIslemler(e) { await super.kaydetOncesiIslemler(e); await this.forAltYapiKeysDoAsync('kaydetOncesiIslemler', e) }
+	async kaydetOncesiIslemler(e) { await super.kaydetOncesiIslemler(e); e.ozelSahaYapilari = this.class.getOzelSahaYapilari(e); await this.forAltYapiKeysDoAsync('kaydetOncesiIslemler', e) }
 	async yeniSonrasiIslemler(e) { await super.yeniSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('yeniSonrasiIslemler', e) }
 	async degistirSonrasiIslemler(e) { await super.degistirSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('degistirSonrasiIslemler', e) }
 	async silmeSonrasiIslemler(e) { await super.silmeSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('silmeSonrasiIslemler', e) }
@@ -666,7 +665,12 @@ class MQCogul extends MQYapi {
 		}
 		return result
 	}
-	static kodVarmi(e) { e = e || {}; const kod = typeof e == 'object' ? e.kod : e; return kod && new this({ kod }).varmi(e) }
+	static kodVarmi(e) {
+		e = e || {}; let kod = typeof e == 'object' ? e.kod : e;
+		let zorunlumu = typeof e == 'object' ? e.zorunlu ?? e.zorunlumu : _zorunlumu;
+		if (zorunlumu && !kod) { return false }
+		return !kod || new this({ kod }).varmi(e)
+	}
 	static partLayoutDuzenle(e) {
 		const {sender, layout, fis, argsDuzenle} = e, noAutoWidth = e.noAutoWidth ?? false, isDropDown = e.dropDown ?? false, mfSinif = e.mfSinif || this;
 		const _e = $.extend({}, e, { args: { sender: sender, layout, dropDown: isDropDown, mfSinif, noAutoWidth, dropDownWidth: '200%', value: getFuncValue.call(this, e.value ?? e.kod, { sender, fis }) } });
@@ -691,18 +695,22 @@ class MQCogul extends MQYapi {
 	static getGridKolonGrup(e) { }
 	static globalleriSil() { const {classKey, mqGlobals} = this, result = mqGlobals[classKey]; delete app.mqGlobals[classKey]; return result }
 	static tempsReset() { const {classKey, mqTemps} = this, result = mqTemps[classKey]; delete mqTemps[classKey]; return result }
-	static async kodYoksaMesaj(e, _etiket) {
-		e = e || {}; const kod = typeof e == 'object' ? e.kod : e;
-		const etiket = (typeof e == 'object' ? e.etiket ?? e.sinifAdi : _etiket) ?? this.sinifAdi ?? '';
-		return this.kodVarmi && !(await this.kodVarmi({ kod }))
+	static async kodYoksaMesaj(e, _etiket, _zorunlumu) {
+		e = e || {}; let kod = typeof e == 'object' ? e.kod : e;
+		let etiket = (typeof e == 'object' ? e.etiket ?? e.sinifAdi : _etiket) ?? this.sinifAdi ?? '';
+		let zorunlu = _zorunlumu ?? e.zorunlu ?? e.zorunlu;
+		return this.kodVarmi && !(await this.kodVarmi({ kod, zorunlu }))
 			? `<u class="bold royalblue">${etiket}</u> ${kod ? `için <b class="red">${kod}</b> değeri hatalıdır` : `<b>boş olamaz</b>`}`
 			: null
 	}
+	static bosVeyaKodYoksaMesaj(e, _etiket) { return this.kodYoksaMesaj(e, _etiket, true) }
 	static async sayacYoksaMesaj(e) {
-		e = e || {}; const sayac = typeof e == 'object' ? e.sayac : e;
-		const etiket = (typeof e == 'object' ? e.etiket ?? e.sinifAdi : _etiket) ?? this.sinifAdi ?? '';
-		return this.sayacVarmi && !(await this.sayacVarmi({ sayac })) ? `${etiket} için kayıt bulunamadı` : null
+		e = e || {}; let sayac = typeof e == 'object' ? e.sayac : e;
+		let etiket = (typeof e == 'object' ? e.etiket ?? e.sinifAdi : _etiket) ?? this.sinifAdi ?? '';
+		let zorunlu = _zorunlumu ?? e.zorunlu ?? e.zorunlu;
+		return this.sayacVarmi && !(await this.sayacVarmi({ sayac, zorunlu })) ? `${etiket} için kayıt bulunamadı` : null
 	}
+	static bosVeyaSayacYoksaMesaj(e, _etiket) { return this.sayacYoksaMesaj(e, _etiket, true) }
 	static get tekrarlayanKolonlar() {
 		const sahaSet = {}, result = {};
 		for (const colDef of this.orjBaslikListesi) {

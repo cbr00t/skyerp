@@ -69,8 +69,11 @@ class MQOrtakFis extends MQDetayli {
 	}
 	async disKaydetIslemi(e) {
 		e = e || {}; let {noSaha} = this.class, {numarator: num, fisNo} = this;
-		if (!num) { const {numYapi} = this; if (numYapi) { num = this.numarator = numYapi.deepCopy() } }
-		if (noSaha && !fisNo && num) { await num.yukle(e); const {seri, noYil} = num; fisNo = num.sonNo; $.extend(this, { seri, noYil, fisNo }) }
+		if (!num) { let {numYapi} = this; if (numYapi) { num = this.numarator = numYapi.deepCopy() } }
+		if (noSaha && !fisNo && num) {
+			await num.yukle(e); let {seri, noYil} = num;
+			fisNo = num.sonNo; $.extend(this, { seri, noYil, fisNo })
+		}
 		let result = await this.disKaydetOncesiIslemler(e); if (result === false) { return false }
 		e.proc = async e => {
 			let result = await this.disKaydetOncesi_trn(e); if (result === false) { return false }
@@ -78,7 +81,8 @@ class MQOrtakFis extends MQDetayli {
 			result = await this.disKaydetSonrasi_trn(e); if (result === false) { return false }
 			return await this.yaz(e)
 		};
-		const trnResult = await app.sqlTrnDo(e); result = await this.disKaydetSonrasiIslemler(e); if (result === false) { return false }
+		const trnResult = await app.sqlTrnDo(e);
+		result = await this.disKaydetSonrasiIslemler(e); if (result === false) { return false }
 		return trnResult?.result ?? trnResult
 	}
 	disKaydetOncesi_trn(e) { } disKaydetSonrasi_trn(e) { }

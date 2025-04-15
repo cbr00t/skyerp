@@ -4,10 +4,7 @@ class FinansFis extends MQGenelFis {
 	static get gridKontrolcuSinif() { return FinansGridci }
 	static get tsnKullanilirmi() { return true }
 	static get ticMustKullanilirmi() { return true }
-	static get numYapi() {
-		const {numTipKod} = this;
-		return numTipKod ? new MQNumarator({ kod: numTipKod }) : null
-	}
+	static get numYapi() { let {numTipKod: kod} = this; return kod ? new MQNumarator({ kod }) : null }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		$.extend(pTanim, { baslikAciklama: new PInstStr('aciklama') })

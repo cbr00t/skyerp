@@ -3,6 +3,7 @@ class CariTahsilatOdemeOrtakFis extends FinansFis {
 	static get table() { return 'carifis' } static get noSaha() { return 'fisno' }
 	static get mustSaha() { return 'mustkod' } static get altHesapSaha() { return 'althesapkod' }
 	static get detaySinif() { return CariTahsilatOdemeDetay } static get gridKontrolcuSinif() { return CariTahsilatOdemeGridci }
+	static get tsnKullanilirmi() { return true } static get numYapi() { let {numTipKod: kod} = this; return kod ? new MQNumarator({ kod }) : null }
 	static extYapilarDuzenle({ liste }) {
 		super.extYapilarDuzenle(...arguments);
 		liste.push(ExtFis_Cari, /*ExtFis_CariVeAltHesap,*/ ExtFis_Plasiyer);
@@ -26,10 +27,12 @@ class CariTahsilatOdemeOrtakFis extends FinansFis {
 class CariTahsilatFis extends CariTahsilatOdemeOrtakFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get ba() { return 'B' }
 	static get kodListeTipi() { return 'CARITAH' } static get sinifAdi() { return 'Cari Tahsilat' }
+	static get numTipKod() { return 'CRTAH' }
 }
 class CariOdemeFis extends CariTahsilatOdemeOrtakFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get ba() { return 'A' }
 	static get kodListeTipi() { return 'CARIODE' } static get sinifAdi() { return 'Cari Ödeme' }
+	static get numTipKod() { return 'CRODE' }
 }
 
 class CariTahsilatOdemeDetay extends FinansDetay {

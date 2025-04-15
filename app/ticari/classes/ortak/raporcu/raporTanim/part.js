@@ -293,7 +293,7 @@ class RaporTanimPart extends Part {
 					if (_result === false) return false; if (result?.isError) throw result
 				}
 			}
-			let result = await this.kaydetOncesiIslemler(e); if (result === false) return result
+			let result = await this.kaydetOncesiIslemler(e); if (result === false) { return result }
 			if (result == null) {
 				if (this.yeniVeyaKopyami) result = await inst.yaz()
 				else if (this.degistirmi) result = await inst.degistir(eskiInst)
