@@ -95,5 +95,5 @@ class MQSayacli extends MQCogul {
 	static sayacVarmi(e) { e = e || {}; const sayac = typeof e == 'object' ? e.sayac : e; return new this({ sayac }).varmi(e) }
 	cizgiliOzet(e) { return new CKodVeAdi(this).cizgiliOzet(e) } parantezliOzet(e) { return new CKodVeAdi(this).parantezliOzet(e) } toString(e) { return this.parantezliOzet(e) }
 	static getGridKolonGrup(e) { e = e || {}; e.mfSinif = e.mfSinif ?? this; return MQKA.getGridKolonGrup(e) }
-	static kodVarmi(e) { e = e || {}; const kod = typeof e == 'object' ? e.kod : e; return new this({ kod }).varmi(e) }
+	static kodVarmi(e) { e = e || {}; const kod = typeof e == 'object' ? e.kod : e; return kod && new this({ kod }).varmi(e) }
 }

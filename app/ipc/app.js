@@ -1,9 +1,9 @@
 class IPCApp extends TicariApp {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static MaxCloseCount = (asInteger(Math.random() * 10) % 5) + 4;
     get isLoginRequired() { return false } /*get defaultWSPath() { return 'ws/skyERP' }*/
     constructor(e) {
         e = e ?? {}; super(e);
-        $.extend(this, { ipcKey: qs.ipc ?? qs.ipcKey ?? 'sky-ipc', ws: null })
+        $.extend(this, { ipcKey: qs.ipc ?? qs.ipcKey ?? 'sky-ipc', ws: null, closeCount: 0 })
     }
     async runDevam(e) {
 		if (qs.user) { await app.loginIstendi() }
@@ -15,16 +15,25 @@ class IPCApp extends TicariApp {
     }
     getAnaMenu() { return new FRMenu() }
     /** WebSocket IPC bağlantısını başlatır */
-    initIPC(e) {
+    async initIPC(e) {
         e = e ?? {}; let {content, ipcKey} = this, url = app.getWebSocketURL({ key: ipcKey });
         this.ws?.close(); let ws = this.ws = new WebSocket(url);
+		clearInterval(this.timerTest); delete this.timerTest;
         $.extend(ws, {
-            onopen: () => content.html(`<div class="info success">IPC WebSocket aktif</div>`),
+            onopen: () => {
+				content.html(`<div class="info success">IPC WebSocket aktif</div>`);
+				this.initTimerTest({ ...e, content, ipcKey })
+			},
             onmessage: async ({ data }) => this.onMessage({ ...e, ws, ipcKey, data }),
             onerror: ({ currentTarget: ws }) => content.html(`<div class="info error">IPC WebSocket erişim sorunu</div>`),
-            onclose: () => content.html(`<div class="info error">IPC WebSocket kapandı</div>`)
-        });
-        this.initTimerTest({ ...e, content, ipcKey })
+            onclose: () => {
+				content.html(`<div class="info error">IPC WebSocket kapandı</div>`);
+				if (++this.closeCount >= this.class.MaxCloseCount) {
+					clearInterval(this.timerTest); delete this.timerTest;
+					self.close()
+				}
+			}
+        })
     }
     /** WebSocket IPC bağlantısı için keep-alive mekanizması */
     initTimerTest(e) {
@@ -33,11 +42,11 @@ class IPCApp extends TicariApp {
         this.timerTest = setInterval(async () => {
 			const {ws} = this; switch (ws?.readyState) {
 				case WebSocket.OPEN: break
-				case WebSocket.CLOSED: this.initIPC(e); return
+				case WebSocket.CLOSED: await this.initIPC(e); return
 				default: return
 			}
             // await ws.send(toJSONStr({ result: undefined }))
-        }, 10_000)
+        }, 1_000)
     }
     /** Gelen WebSocket mesajlarını işleyerek eval() çalıştırır */
     async onMessage(e) {

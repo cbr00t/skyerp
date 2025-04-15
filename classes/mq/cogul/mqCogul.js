@@ -560,7 +560,10 @@ class MQCogul extends MQYapi {
 		let result = await this.dataDuzgunmu(e);
 		if (!(result == null || result == true)) { if (typeof result != 'object') result = { isError: false, rc: 'hataliBilgiGirisi', errorText: (typeof result == 'boolean' ? null : result?.toString()) }; throw result }
 	}
-	async dataDuzgunmu(e) { await this.forAltYapiKeysDoAsync('dataDuzgunmu', e); return null }
+	async dataDuzgunmu(e) {
+		let results = (await this.forAltYapiKeysDoAsync('dataDuzgunmu', e))?.filter(x => !!x);
+		return results?.length ? `<ul>${results.map(x => `<li>${x}</li>`).join(CrLf)}</ul>` : null
+	}
 	async kaydetOncesiIslemler(e) { await super.kaydetOncesiIslemler(e); e.ozelSahaYapilari = this.class.getOzelSahaYapilari(e); await this.forAltYapiKeysDoAsync('kaydetOncesiIslemler', e) }
 	async kaydetVeyaSilmeOncesiIslemler(e) { await super.kaydetVeyaSilmeOncesiIslemler(e); await this.forAltYapiKeysDoAsync('kaydetVeyaSilmeOncesiIslemler', e) }
 	async yeniOncesiIslemler(e) { await super.yeniOncesiIslemler(e); await this.forAltYapiKeysDoAsync('yeniOncesiIslemler', e) }
@@ -663,7 +666,7 @@ class MQCogul extends MQYapi {
 		}
 		return result
 	}
-	static kodVarmi(e) { e = e || {}; const kod = typeof e == 'object' ? e.kod : e; return new this({ kod }).varmi(e) }
+	static kodVarmi(e) { e = e || {}; const kod = typeof e == 'object' ? e.kod : e; return kod && new this({ kod }).varmi(e) }
 	static partLayoutDuzenle(e) {
 		const {sender, layout, fis, argsDuzenle} = e, noAutoWidth = e.noAutoWidth ?? false, isDropDown = e.dropDown ?? false, mfSinif = e.mfSinif || this;
 		const _e = $.extend({}, e, { args: { sender: sender, layout, dropDown: isDropDown, mfSinif, noAutoWidth, dropDownWidth: '200%', value: getFuncValue.call(this, e.value ?? e.kod, { sender, fis }) } });
@@ -675,8 +678,11 @@ class MQCogul extends MQYapi {
 		const gridKolonGrupcu = e.gridKolonGrupcu || 'getGridKolonGrup';
 		let colDef = $.isFunction(gridKolonGrupcu) ? getFuncValue.call(this, gridKolonGrupcu, _e) : getFuncValue.call(this, this[gridKolonGrupcu], _e);
 		if (colDef) {
-			const sabitleFlag = e.sabitle ?? e.sabitleFlag, hiddenFlag = e.hidden ?? e.hiddenFlag, autoBind = e.autoBind ?? e.autoBindFlag, readOnly = e.readOnly ?? e.readOnlyFlag;
-			if (sabitleFlag) { colDef.sabitle() } if (hiddenFlag) { colDef.hidden() } if (autoBind) { colDef.autoBind() } if (readOnly) { colDef.readOnly() }
+			let sabitleFlag = e.sabitle ?? e.sabitleFlag, hiddenFlag = e.hidden ?? e.hiddenFlag, autoBind = e.autoBind ?? e.autoBindFlag;
+			let readOnly = e.readOnly ?? e.readOnlyFlag, kodsuzFlag = e.kodsuz ?? e.kodsuzFlag;
+			if (sabitleFlag) { colDef.sabitle() } if (hiddenFlag) { colDef.hidden() }
+			if (autoBind) { colDef.autoBind() } if (readOnly) { colDef.readOnly() }
+			if (kodsuzFlag) { colDef.kodsuz() }
 			_e.liste.push(colDef)
 		}
 		this.gridKolonlarDuzenle(_e); return _e.liste
@@ -688,12 +694,14 @@ class MQCogul extends MQYapi {
 	static async kodYoksaMesaj(e, _etiket) {
 		e = e || {}; const kod = typeof e == 'object' ? e.kod : e;
 		const etiket = (typeof e == 'object' ? e.etiket ?? e.sinifAdi : _etiket) ?? this.sinifAdi ?? '';
-		return this.kodVarmi && !(await this.kodVarmi(e)) ? `<u>${etiket}</u> için <b class="red">${kod}</b> değeri hatalıdır` : null
+		return this.kodVarmi && !(await this.kodVarmi({ kod }))
+			? `<u class="bold royalblue">${etiket}</u> ${kod ? `için <b class="red">${kod}</b> değeri hatalıdır` : `<b>boş olamaz</b>`}`
+			: null
 	}
 	static async sayacYoksaMesaj(e) {
 		e = e || {}; const sayac = typeof e == 'object' ? e.sayac : e;
 		const etiket = (typeof e == 'object' ? e.etiket ?? e.sinifAdi : _etiket) ?? this.sinifAdi ?? '';
-		return this.sayacVarmi && !(await this.sayacVarmi(e)) ? `${etiket} için kayıt bulunamadı` : null
+		return this.sayacVarmi && !(await this.sayacVarmi({ sayac })) ? `${etiket} için kayıt bulunamadı` : null
 	}
 	static get tekrarlayanKolonlar() {
 		const sahaSet = {}, result = {};

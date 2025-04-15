@@ -7,13 +7,13 @@ class MQTakipNo extends MQKA {
 
 	static getGridKolonGrup(e) {
 		e = e || {};
-		if (!e.kodAttr)
-			e.kodAttr = 'takipNo'
-		if (!e.adiAttr)
-			e.adiAttr = 'takipAdi'
+		if (!e.kodAttr) { e.kodAttr = 'takipNo' }
+		if (!e.adiAttr) { e.adiAttr = 'takipAdi' }
 		return super.getGridKolonGrup(e)
 	}
 	static getGridKolonlar(e) {
-		const liste = []; if (app.params.ticariGenel.kullanim.takipNo) { liste.push(...super.getGridKolonlar(e)) } return liste
+		const liste = [];
+		if (app.params.ticariGenel.kullanim.takipNo) { liste.push(...super.getGridKolonlar(e)) }
+		return liste
 	}
 }

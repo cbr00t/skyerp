@@ -30,8 +30,25 @@ class CPoint extends CObject {
 }
 class CBasiSonu extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get empty() { return new this({ basi: '', sonu: '' }) } static get zero() { return new this({ basi: 0, sonu: 0 }) }
 	get bosmu() { return !(this.basi || this.sonu) } get bosDegilmi() { return !this.bosmu }
+	static get empty() { return new this({ basi: '', sonu: '' }) } static get zero() { return new this({ basi: 0, sonu: 0 }) }
+	get kisaText() {
+	    const {basi, sonu} = this, {namesAbbr: kisaAy} = localizationObj.months;
+	    if (!(isDate(basi) || isDate(sonu))) {
+			return (
+				basi && sonu ? `${basi} -> ${sonu}` :
+				basi ? `${basi} -> '...'` :
+				sonu ? `'...' -> ${sonu}` : ''
+			)
+		}
+	    if (!(basi && sonu)) { return `${basi ? gA(basi) : '...'} -> ${sonu ? gA(sonu) : '...'}` }
+	    let b = { gun: basi.gun.sifirlaDoldur(2), ay: basi.ay, yil: basi.yil };
+		let s = { gun: sonu.gun.sifirlaDoldur(2), ay: sonu.ay, yil: sonu.yil };
+	    if (b.yil === s.yil && b.ay === s.ay) { return `${b.gun}->${s.gun} ${kisaAy[b.ay - 1]} ${b.yil}` }
+	    if (b.yil === s.yil) { return `${b.gun}.${kisaAy[b.ay - 1]} -> ${s.gun}.${kisaAy[s.ay - 1]} ${b.yil}` }
+	    return `${b.gun}.${kisaAy[b.ay - 1]}.${(b.yil % 100).sifirlaDoldur(2)} -> ${s.gun}.${kisaAy[s.ay - 1]}.${(s.yil % 100).sifirlaDoldur(2)}`
+	}
+	
 	constructor(e) { e = e || {}; super(e); $.extend(this, { basi: e.basi ?? e.Basi, sonu: e.sonu ?? e.Sonu }) }
 	static fromText(e) {
 		e = e || {}; if (typeof e == 'object' && !$.isPlainObject(e)) return e		/* CBasiSonu gelmistir */
@@ -51,7 +68,86 @@ class CBasiSonu extends CObject {
 		let value = e?.value ?? e, {basi, sonu} = this;
 		return $.isEmptyObject(value) ? true : (!basi || basi <= value) && (!sonu || sonu >= value)
 	}
-	toString(e) { const basi = this.basi ?? '', sonu = this.sonu; return sonu ? `${basi} -> ${sonu}` : basi ?? '' }
+	toString(e) { return this.kisaText }
+	/*
+	#bindWithArguments: , #bindWith: , #bindWith:with: , #bindWith:with:with: , #bindWith:with:with:with: ...
+		===> js: template formatted string
+			('hi %1 %2' bindWith: adi with: soyadi) = js `hi ${adi} ${soyadi}`
+	
+	Number>>#sifirlaDoldur:
+		" ==> js: sifirlaDoldur(value) ==> return value?.toString()?.padStart(2, '0') "
+
+	Date class>>#ayKisaDizi
+	ayKisaDizi
+		^#('Oca' 'Şub' 'Mar' 'Nis' 'May' 'Haz' 'Tem' 'Ağu' 'Eyl' 'Eki' 'Kas' 'Ara')
+			===> js: localizationObj.months.namesAbbr
+
+	Date>>#ayKisaAdi
+	ayKisaAdi
+		^self class ayKisaDizi at: self ay ifAbsent: ['']
+			===> js: localizationObj.months.namesAbbr[aDate.ay - 1]
+	
+	Date>>#gAy
+		" gün num[2 hane] ve Ay adı "
+	
+		^'%1.%2.%3'
+			bindWith: (self gun sifirlaDoldur: 2)
+			with: self ayKisaAdi
+			with: ((self yil \\ 100) sifirlaDoldur: 2)
+	
+	BasiSonu>>#tarihAralikText
+		" 01->07 May 2021
+		17.May -> 08.Haz 2021
+		20.Ara.21 -> 15.Oca.22 (bu durumda yil 2 hane) "
+	
+		| basGunText sonGunText basAy sonAy basYil sonYil ayDizi |
+	
+		(self basi isNil
+			or: [ self sonu isNil ]
+			) ifTrue: [
+				^'%1 -> %2'
+					bindWith: (self basi ifNil: [ '...' ] else: [ :trh | trh gA ])
+						with: (self sonu ifNil: [ '...' ] else: [ :trh | trh gA ])
+					].
+	
+		ayDizi := Date ayKisaDizi.
+		basGunText := self basi gun sifirlaDoldur: 2.
+		sonGunText := self sonu gun sifirlaDoldur: 2.
+		basYil := self basi yil.
+		sonYil := self sonu yil.
+		basAy := self basi ay.
+		sonAy := self sonu ay.
+	
+		(basYil = sonYil)
+			ifTrue: [
+					basAy = sonAy
+						ifTrue: [ ^'%1->%2 %3 %4'		" 01->07 May 2021 "
+										bindWith: basGunText
+											with: sonGunText
+											with: (ayDizi at: basAy)
+											with: basYil asString
+										].
+					^'%1.%2 -> %3.%4 %5'		" 17.May -> 08.Haz 2021 "
+							bindWithArguments: (OrderedCollection new
+													add: basGunText;
+													add: (ayDizi at: basAy);
+													add: sonGunText;
+													add: (ayDizi at: sonAy);
+													add: basYil asString;
+													yourself)
+					].
+	
+		^'%1.%2.%3 -> %4.%5.%6'		" 20.Ara.2021 -> 15.Oca.2022 "
+				bindWithArguments: (OrderedCollection new
+										add: basGunText;
+										add: (ayDizi at: basAy);
+										add: (basYil \\ 100) asString;
+										add: sonGunText;
+										add: (ayDizi at: sonAy);
+										add: (sonYil \\ 100) asString;
+										yourself)
+
+	*/
 }
 class YilVeAy extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }

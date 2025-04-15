@@ -174,15 +174,15 @@ class MQOrtakFis extends MQDetayli {
 			}
 		}
 	}
-	uiDuzenle_fisGirisIslemTuslari(e) {
-		const {parent, sender} = e; let btn = $(`<button id="listedenSec">LST</button>`);
+	uiDuzenle_fisGirisIslemTuslari({ parent, sender }) {
+		/*let btn = $(`<button id="listedenSec">LST</button>`);
 		btn.on('click', evt => {
 			let {gridWidget} = sender, listedenSecIslemi = colDef => { const {kaKolonu} = colDef || {}; if (kaKolonu?.listedenSec) { kaKolonu.listedenSec({ sender, args: cell }); return true } };
 			let cell = gridWidget.getselectedcell(), {datafield} = cell;
 			let colDef = sender.tabloKolonlari.find(_colDef => _colDef.kodAttr == datafield || _colDef.adiAttr == datafield);
 			if (!listedenSecIslemi(colDef)) { colDef = sender.tabloKolonlari.find(_colDef => !!_colDef.kaKolonu?.listedenSec); listedenSecIslemi(colDef) }
 		});
-		btn.appendTo(parent)
+		btn.appendTo(parent)*/
 	}
 	fisGiris_gridVeriYuklendi(e) { }
 }

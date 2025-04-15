@@ -153,4 +153,9 @@ class MQTahsilSekli extends MQKA {
 		sent.sahalar.add(`${aliasVeNokta}tahsiltipi`, `${aliasVeNokta}ahalttipi`)
 		/* sent.where.add(`${aliasVeNokta}baktifmi > 0`) */
 	}
+	static getGridKolonGrup(e) {
+		e = e || {};
+		if (!e.kodAttr) { e.kodAttr = 'tahSekliNo' }
+		return super.getGridKolonGrup(e)
+	}
 }
