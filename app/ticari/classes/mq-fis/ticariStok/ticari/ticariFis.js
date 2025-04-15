@@ -46,12 +46,16 @@ class TicariFis extends TSOrtakFis {
 			_kdvKAListe: kaListe
 		})
 	}
-	constructor(e) { e = e || {}; super(e); $.extend(this, { musteriOncekiBakiyeDurumu: e.musteriOncekiBakiyeDurumu }) }
+	constructor(e) {
+		e = e || {}; super(e);
+		$.extend(this, { musteriOncekiBakiyeDurumu: e.musteriOncekiBakiyeDurumu })
+	}
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
 		$.extend(pTanim, {
 			mustKod: new PInstStr(this.mustSaha), ticMustKod: new PInstStr('ticmust'),
-			altHesapKod: new PInstStr('cariitn'), sevkAdresKod: new PInstStr('xadreskod')
+			altHesapKod: new PInstStr('cariitn'), sevkAdresKod: new PInstStr('xadreskod'),
+			nakSekliKod: new PInstStr('nakseklikod')
 		})
 	}
 	static secimlerDuzenle(e) {
@@ -279,6 +283,11 @@ class SiparisFis extends TicariFis {
 	static get sinifAdi() { return `${super.sinifAdi}Siparis` } static get table() { return 'sipfis' }
 	static get baslikOzelAciklamaTablo() { return 'sipbasekaciklama' } static get dipSerbestAciklamaTablo() { return 'sipdipaciklama' } static get dipEkBilgiTablo() { return 'sipdipekbilgi' }
 	static get pifTipi() { return 'S' } static get siparismi() { return true }
+	constructor(e) {
+		e = e || {}; super(e);
+		this.baslikTeslimTarihi = e.teslimTarihi || this.baslikTeslimTarihi;
+		if (this.baslikTeslimTarihi) { this.teslimOrtakdir = true }
+	}
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments); $.extend(pTanim, {
 			teslimOrtakdir: new PInstBitBool('bteslimortakdir'),

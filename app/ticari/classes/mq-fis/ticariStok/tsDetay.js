@@ -60,6 +60,7 @@ class TSSHDDetay extends TSDetay {
 		for (let [key, value] of Object.entries(e)) {
 			for (let [prefix, oranlarSelector] of Object.entries(prefix2OranlarSelector)) {
 				if (!(value && key.startsWith(prefix))) { continue }
+				if ($.isArray(value)) { this[oranlarSelector] = value; continue }
 				if (typeof value != 'number') { value = asFloat(value) }
 				let oranlar = this[oranlarSelector]; oranlar.push(value)
 			}
