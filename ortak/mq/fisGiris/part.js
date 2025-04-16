@@ -17,12 +17,13 @@ class FisGirisPart extends GridliGirisWindowPart {
 	
 	constructor(e) {
 		e = e || {}; super(e);
+		let fis = e.inst ?? e.fis, {mfSinif} = e; if (!fis && mfSinif) { fis = this.fis = new mfSinif() }
 		$.extend(this, {
 			islem: e.islem, listePart: e.listePart, eskiFis: e.eskiInst || e.eskiFis || null, fis: e.inst || e.fis,
 			kaydetIslemi: e.kaydetIslemi, kaydedince: e.kaydedince, _builder: e.builder, dipEventsDisabledFlag: false, gridIslemTusYapilari: {}
 		});
-		if (!this.kontrolcu) { const gridKontrolcuSinif = this.fis.gridKontrolcuSinif || GridKontrolcu; this.kontrolcu = new gridKontrolcuSinif({ parentPart: this }) }
-		const {listePart, wndArgs, fis, islem} = this, {sinifAdi} = fis.class;
+		if (!this.kontrolcu) { const gridKontrolcuSinif = fis.gridKontrolcuSinif || GridKontrolcu; this.kontrolcu = new gridKontrolcuSinif({ parentPart: this }) }
+		fis = this.fis; let {listePart, wndArgs, islem} = this, {sinifAdi} = fis.class;
 		this.title = e.title == null ? (( sinifAdi ? `<u style="font-size: 110%;">${sinifAdi}</u> Fiş Girişi` : null ) || 'Fiş Giriş Ekranı') : e.title || '';
 		if (islem) { const islemText = islem[0].toUpperCase() + islem.slice(1); this.title += ` &nbsp;-&nbsp; <b class="window-title-ek">${islemText}</b>` }
 	}

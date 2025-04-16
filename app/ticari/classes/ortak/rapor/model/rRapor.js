@@ -106,7 +106,7 @@ class RRapor extends MQDetayli {
 		this._detayEkIslemlerYapildimi = true
 	}
 	static detaySinifFor(e) {
-		const {rec} = e, tip = rec?.dettip?.trim();
+		let {rec} = e, tip = (e.detTip ?? rec?.dettip)?.trim();
 		return tip == 'AT' || tip == 'SS' ? RROzelIslem : ( RRaporDetay.tip2Sinif[tip] ??  super.detaySinifFor(e) )
 	}
 	*tumSahalarIter() {

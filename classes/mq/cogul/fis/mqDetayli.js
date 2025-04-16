@@ -20,7 +20,17 @@ class MQDetayli extends MQSayacli {
 	static get detayTableAlias() { return (this.detaySinif || MQDetay).tableAlias }
 	static detaySinifFor(e) { e = e || {}; return e.detaySinif || (this.detaySiniflar || [])[0] }
 	static get sabitBilgiRaporcuSinif() { return FisRapor }
-	constructor(e) { e = e || {}; super(e); this.detaylar = e.detaylar || [] }
+	constructor(e) {
+		e = e || {}; super(e); let detaylar = this.detaylar = e.detaylar || [];
+		let hasNull = false; for (let [i, det] of Object.entries(detaylar)) {
+			if (det == null) { hasNull = true; continue }
+			if (!$.isPlainObject(det)) { continue }
+			let detTip = det.detTip ?? det.dettip ?? det._detTip ?? det.tip ?? '';
+			let detSinif = this.class.detaySinifFor({ detTip, rec: det });
+			if (detSinif) { det = detaylar[i] = new detSinif(det) }
+		}
+		if (hasNull) { detaylar = this.detaylar = detaylar.filter(x => x != null) }
+	}
 	static getUISplitHeight(e) { return null }
 	static detaySiniflarDuzenle(e) { }
 	static async getRootFormBuilder_fis(e) {
@@ -184,7 +194,7 @@ class MQDetayli extends MQSayacli {
 		if (detaySiniflar) { for (const detaySinif of detaySiniflar) detaySinif.gridVeriYuklendi(e) }
 	}
 	getYazmaIcinDetaylar(e) {
-		let detSinif = this.class.detaySinifFor?.('') ?? this.class.detaySinif;
+		let detSinif = this.class.detaySinifFor?.({ }) ?? this.class.detaySinif;
 		return this.detaylar.map(det => $.isPlainObject(det) ? new detSinif(det) : det)
 	}
 	async yukle(e) {
@@ -256,6 +266,14 @@ class MQDetayli extends MQSayacli {
 			_e = { offlineMode, trnId, query: _e.toplu }; let result = await this.sqlExecNone(_e); await this.silmeSonrasiIslemler(e); return result
 		};
 		return offlineMode ? await e.proc(e) : (await app.sqlTrnDo(e)).result
+	}
+	async kaydetOncesiIslemler(e) {
+		await super.kaydetOncesiIslemler(e); let {detaylar} = this;
+		for (let det of detaylar) { await det?.kaydetOncesiIslemler(e) }
+	}
+	async kaydetSonrasiIslemler(e) {
+		await super.kaydetSonrasiIslemler(e); let {detaylar} = this;
+		for (let det of detaylar) { await det?.kaydetSonrasiIslemler(e) }
 	}
 	detaylariNumaralandir(e) {
 		const {detaylar} = this; if (!detaylar) { return }

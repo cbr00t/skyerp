@@ -112,7 +112,7 @@ class DipSatir_Kdv extends DipSatir_KdvOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	get kdvBedelmi() { return true } get satirBelirtec() { return `KDV${this.ekKod}` } get satirEtiket() { return `KDV (%${this.oran})` }
 	get matrahSatir() { const {belirtec2DipSatir} = this._dipIslemci, vergikod = this.ekKod; return belirtec2DipSatir[`KMAT${vergikod}`] }
-	odenecektenDusulurmu(e) { const {fis} = e; return fis.class.ihracKaydiylami }
+	odenecektenDusulurmu({ fis }) { return fis.class.ihracKaydiylami }
 	hesaplaDevam(e) {
 		super.hesaplaDevam(e); const {_temps} = this._dipIslemci;
 		_temps.araDeger = roundToBedelFra(_temps.araDeger + (this.tlBedel || 0))

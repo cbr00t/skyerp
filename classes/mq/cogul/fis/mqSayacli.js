@@ -92,13 +92,12 @@ class MQSayacli extends MQCogul {
 		e = e || {}; super.setValues(e); const {rec} = e;
 		if (this.class.zeminRenkDesteklermi) { const {oscolor} = rec; this.zeminRenk = oscolor ? os2HTMLColor(oscolor) : '' }
 	}
-	static sayacVarmi(e) {
+	static sayacVarmi(e, _zorunlumu) {
 		e = e || {}; let sayac = typeof e == 'object' ? e.sayac : e;
-		let zorunlumu = typeof e == 'object' ? e.zorunlu ?? e.zorunlumu : _zorunlumu;
+		let zorunlumu = _zorunlumu ?? (typeof e == 'object' ? e.zorunlu ?? e.zorunlumu : null);
 		if (zorunlumu && !sayac) { return false }
 		return !sayac || new this({ sayac }).varmi(e)
 	}
 	cizgiliOzet(e) { return new CKodVeAdi(this).cizgiliOzet(e) } parantezliOzet(e) { return new CKodVeAdi(this).parantezliOzet(e) } toString(e) { return this.parantezliOzet(e) }
 	static getGridKolonGrup(e) { e = e || {}; e.mfSinif = e.mfSinif ?? this; return MQKA.getGridKolonGrup(e) }
-	static kodVarmi(e) { e = e || {}; const kod = typeof e == 'object' ? e.kod : e; return kod && new this({ kod }).varmi(e) }
 }

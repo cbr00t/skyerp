@@ -115,7 +115,7 @@ class MQTahsilSekli extends MQKA {
 			where.basiSonu(secimler.mevduatHesapKod, `${aliasVeNokta}mevduathesapkod`);
 			where.ozellik(secimler.mevduatHesapAdi, `bhes.aciklama`);
 			where.basiSonu(secimler.posKosulKod, `${aliasVeNokta}poskosulkod`);
-			where.ozellik(secimler.posKosulAdi, `bkos.aciklama`);
+			where.ozellik(secimler.posKosulAdi, `pkos.aciklama`);
 			where.basiSonu(secimler.mustKod, `${aliasVeNokta}mustkod`);
 			where.ozellik(secimler.mustUnvan, `car.birunvan`);
 			where.basiSonu(secimler.hizmetKod, `${aliasVeNokta}hizmetkod`);
@@ -134,7 +134,7 @@ class MQTahsilSekli extends MQKA {
 			new GridKolon({ belirtec: 'mevduathesapkod', text: 'Banka Hesap', genislikCh: 13 }),
 			new GridKolon({ belirtec: 'mevduathesapadi', text: 'Hesap Adı', genislikCh: 30, sql: 'bhes.aciklama' }),
 			new GridKolon({ belirtec: 'poskosulkod', text: 'POS Koşul', genislikCh: 13 }),
-			new GridKolon({ belirtec: 'poskosuladi', text: 'POS Koşul Adı', genislikCh: 30, sql: 'bkos.aciklama' }),
+			new GridKolon({ belirtec: 'poskosuladi', text: 'POS Koşul Adı', genislikCh: 30, sql: 'pkos.aciklama' }),
 			new GridKolon({ belirtec: 'mustkod', text: 'Müşteri', genislikCh: 20 }),
 			new GridKolon({ belirtec: 'mustunvan', text: 'Cari Ünvan', genislikCh: 30, sql: 'car.birunvan' }),
 			new GridKolon({ belirtec: 'hizmetkod', text: 'Hizmet', genislikCh: 10 }),
@@ -144,18 +144,46 @@ class MQTahsilSekli extends MQKA {
 		);
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {aliasVeNokta} = this, {sent} = e;
+		super.loadServerData_queryDuzenle(e);
+		let alias = e.alias ?? this.tableAlias, aliasVeNokta = alias ? `${alias}.` : '';
+		let {sent} = e, {where: wh, sahalar} = sent;
 		sent.fromIliski('kasmst kas', `${aliasVeNokta}kasakod = kas.kod`);
-		sent.fromIliski('banbizhesap bhes', `${aliasVeNokta}mevduathesapkod = bhes.kod`);
-		sent.fromIliski('poskosul bkos', `${aliasVeNokta}poskosulkod = bkos.kod`);
+		sent.fromIliski('poskosul pkos', `${aliasVeNokta}poskosulkod = pkos.kod`);
+		sent.fromIliski('banbizhesap bhes', `(case when ${aliasVeNokta}tahsiltipi IN ('HV', 'HG') then tsek.mevduathesapkod else pkos.mevduathesapkod end) = bhes.kod`);
 		sent.fromIliski('carmst car', `${aliasVeNokta}mustkod = car.must`);
 		sent.fromIliski('hizmst hiz', `${aliasVeNokta}hizmetkod = hiz.kod`);
-		sent.sahalar.add(`${aliasVeNokta}tahsiltipi`, `${aliasVeNokta}ahalttipi`)
-		/* sent.where.add(`${aliasVeNokta}baktifmi > 0`) */
+		sahalar.add(
+			`${aliasVeNokta}tahsiltipi`, `${aliasVeNokta}ahalttipi`,
+			`(case when ${aliasVeNokta}tahsiltipi IN ('NK') then ${aliasVeNokta}kasakod
+					when ${aliasVeNokta}tahsiltipi IN ('PS', 'KR') then pkos.mevduathesapkod
+					when ${aliasVeNokta}tahsiltipi IN ('HV', 'HG') then ${aliasVeNokta}mevduathesapkod
+					when ${aliasVeNokta}tahsiltipi IN ('HZ') then ${aliasVeNokta}hizmetkod
+					when ${aliasVeNokta}tahsiltipi IN ('YM') then ${aliasVeNokta}mustkod
+					else '' end) ekkod`,
+			`(case when ${aliasVeNokta}tahsiltipi IN ('NK') then kas.aciklama
+					when ${aliasVeNokta}tahsiltipi IN ('PS', 'HV', 'KR', 'HG') then bhes.aciklama
+					when ${aliasVeNokta}tahsiltipi IN ('HZ') then hiz.aciklama
+					when ${aliasVeNokta}tahsiltipi IN ('YM') then car.birunvan
+					else '' end) ekadi`,
+			`(case when ${aliasVeNokta}tahsiltipi IN ('NK') and kas.subegecerlilik = '' then kas.bizsubekod
+					when ${aliasVeNokta}tahsiltipi IN ('PS', 'HV', 'KR', 'HG') and bhes.subegecerlilik = '' then bhes.bizsubekod
+					else NULL end) eksubekod`,
+			`(case when ${aliasVeNokta}tahsiltipi IN ('NK') then kas.dvtipi
+					when ${aliasVeNokta}tahsiltipi IN ('PS', 'HV', 'KR', 'HG') then bhes.dvtipi
+					when ${aliasVeNokta}tahsiltipi IN ('HZ') then hiz.dvkod
+					when ${aliasVeNokta}tahsiltipi IN ('YM') then car.dvkod
+					else '' end) tahdvkod`,
+			'pkos.sanalmi', 'tsek.poskosulkod'
+		)
+		wh.add(`${aliasVeNokta}baktifmi > 0`)
 	}
+	/*static fisGirisIcinQueryDuzenle({ alias, sent }) {
+		this.loadServerData_queryDuzenle(...arguments);
+		alias = alias ?? this.tableAlias; let aliasVeNokta = alias ? `${alias}.` : '';
+		let {where: wh, sahalar} = sent
+	}*/
 	static getGridKolonGrup(e) {
-		e = e || {};
-		if (!e.kodAttr) { e.kodAttr = 'tahSekliNo' }
+		e = e || {}; if (!e.kodAttr) { e.kodAttr = 'tahSekliNo' }
 		return super.getGridKolonGrup(e)
 	}
 }

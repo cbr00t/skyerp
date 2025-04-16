@@ -202,10 +202,12 @@ class TicariFis extends TSOrtakFis {
 		}
 		if (dipSatir_sonuc) {
 			const sonucBedelYapi = dipSatir_sonuc.bedelYapi, hv_vergiDahil = dipSatir_sonuc.eDipBosHostVars, hv_odenecek = dipSatir_sonuc.eDipBosHostVars;
-			$.extend(hv_vergiDahil, {anatip: 'DP', alttip: 'VD', xadi: 'Vergi Dahil Bedel',
-						bedel: roundToBedelFra(sonucBedelYapi.tl + vergiDahilIcinEklenecek.tl), dvbedel: roundToBedelFra(sonucBedelYapi.dv + vergiDahilIcinEklenecek.dv) })
-			$.extend(hv_odenecek, { anatip: 'DP', alttip: 'OD', xadi: 'Ödenecek Bedel',
-						bedel: roundToBedelFra(sonucBedelYapi.tl - odenecekIcinDusulecek.tl), dvbedel: roundToBedelFra(sonucBedelYapi.dv - odenecekIcinDusulecek.dv) })
+			$.extend(hv_vergiDahil, {
+				anatip: 'DP', alttip: 'VD', xadi: 'Vergi Dahil Bedel',
+				bedel: roundToBedelFra(sonucBedelYapi.tl + vergiDahilIcinEklenecek.tl), dvbedel: roundToBedelFra(sonucBedelYapi.dv + vergiDahilIcinEklenecek.dv) })
+			$.extend(hv_odenecek, {
+				anatip: 'DP', alttip: 'OD', xadi: 'Ödenecek Bedel',
+				bedel: roundToBedelFra(sonucBedelYapi.tl - odenecekIcinDusulecek.tl), dvbedel: roundToBedelFra(sonucBedelYapi.dv - odenecekIcinDusulecek.dv) })
 			for (const hv of [hv_vergiDahil, hv_odenecek]) { hv[psAttr] = sayac; hv.seq = ++seq; hvListe.push(hv) }
 		}
 		return hvListe

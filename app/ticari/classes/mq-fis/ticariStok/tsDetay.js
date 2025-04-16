@@ -56,6 +56,7 @@ class TSSHDDetay extends TSDetay {
 		let value = e[`${shSahaPrefix}Kod`]; if (value != null) { this.shKod = value }
 		value = e[`${shSahaPrefix}Adi`]; if (value != null) { this.shAdi = value }
 		this.iskYapiPropertyleriOlustur(e); this.eBilgi = e.eBilgi;
+		this.brutBedel = e.bedel ?? this.brutBedel;
 		let prefix2OranlarSelector = { isk: 'iskOranlar', kam: 'kamOranlar' };
 		for (let [key, value] of Object.entries(e)) {
 			for (let [prefix, oranlarSelector] of Object.entries(prefix2OranlarSelector)) {
@@ -150,6 +151,15 @@ class TSSHDDetay extends TSDetay {
 		}
 		else { sent.sahalar.add(`${aliasVeNokta}kdvhesapkod orjkdvkod`) }
 	}
+	async disKaydetOncesiIslemler(e) {
+		e = e ?? {}; await super.disKaydetOncesiIslemler(e);
+		let {fis} = e, {miktar, fiyat, brutBedel, netBedel} = this;
+		if (miktar && fiyat && !(brutBedel && netBedel)) {
+			let {ticarimi} = fis?.class ?? {}, _e = { ...e, ticarimi };
+			await this[brutBedel ? 'netBedelHesapla' : 'bedelHesapla'](_e)
+			await this.vergileriHesapla(_e)
+		}
+	}
 	hostVars(e) {
 		for (const key of ['fiyat', 'brutBedel', 'netBedel']) { this[key] = (this[key] || 0) }
 		return super.hostVars(e)
@@ -233,13 +243,15 @@ class TSSHDDetay extends TSDetay {
 	netBedelHesapla(e) {
 		e = e || {}; this.iskBedelYapiReset();
 		let {fis} = e, {brutBedel} = this, netBedel = brutBedel;
-		const ticarimi = e.ticarimi ?? fis?.class?.ticarimi ?? false; if (ticarimi) { netBedel -= this.iskBedelToplam }
+		const ticarimi = e.ticarimi ?? fis?.class?.ticarimi ?? false;
+		if (ticarimi) { netBedel -= this.iskBedelToplam }
 		return this.netBedel = netBedel
 	}
 	async vergileriHesapla(e) {
-		const {netBedel} = this, {vergiBelirtecler} = TicariFis;
-		for (const belirtec of vergiBelirtecler) {
-			const kod = this[`${belirtec}Kod`], oran = kod ? await MQVergi.getKod2Oran({ belirtec, kod }) : null;
+		let {netBedel} = this, {vergiBelirtecler} = TicariFis, {fiyatKDVlidir} = app.params?.fiyatVeIsk ?? {};
+		for (let belirtec of vergiBelirtecler) {
+			if (fiyatKDVlidir && belirtec == 'kdv') { continue }
+			let kod = this[`${belirtec}Kod`], oran = kod ? await MQVergi.getKod2Oran({ belirtec, kod }) : null;
 			if (oran != null) { this[`${belirtec}Orani`] = oran; this[belirtec] = roundToBedelFra(netBedel * oran / 100) }
 		}
 	}

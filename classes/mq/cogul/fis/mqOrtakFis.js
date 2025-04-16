@@ -27,7 +27,7 @@ class MQOrtakFis extends MQDetayli {
 	
 	constructor(e) {
 		e = e || {}; super(e); if (e.isCopy) { return }
-		const {noSaha} = this.class; if (noSaha) { this.fisNo = e.no ?? e.fisNo ?? this.no }
+		let {noSaha} = this.class; if (noSaha) { this.fisNo = e.no ?? e.fisNo ?? this.no }
 	}
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e, {noSaha} = this;
@@ -85,8 +85,26 @@ class MQOrtakFis extends MQDetayli {
 		result = await this.disKaydetSonrasiIslemler(e); if (result === false) { return false }
 		return trnResult?.result ?? trnResult
 	}
-	disKaydetOncesi_trn(e) { } disKaydetSonrasi_trn(e) { }
-	disKaydetOncesiIslemler(e) { } disKaydetSonrasiIslemler(e) { }
+	async disKaydetOncesiIslemler(e) {
+		e = { ...e, temps: e?.temps ?? {}, fis: this }; let {detaylar} = this;
+		let errorText = await this.dataDuzgunmu?.(e); if (errorText) { throw { isError: true, rc: 'invalidArgument', errorText } }
+		for (let det of detaylar) {
+			if (det == null) { continue }
+			let errorText = await det.dataDuzgunmu?.(e); if (errorText) { throw { isError: true, rc: 'invalidArgument', errorText } }
+			await det.disKaydetOncesiIslemler?.(e)
+		}
+		await fis.dipIslemci?.dipSatirlariOlustur?.(e);
+		await fis.dipIslemci?.topluHesapla?.(e)
+	}
+	async disKaydetSonrasiIslemler(e) {
+		e = { ...e, temps: e?.temps ?? {}, fis: this }; let {detaylar} = this;
+		for (let det of detaylar) {
+			if (det == null) { continue }
+			await det.disKaydetSonrasiIslemler?.(e)
+		}
+	}
+	disKaydetOncesi_trn(e) { }
+	disKaydetSonrasi_trn(e) { }
 	async yeniSonrasiIslemler(e) { await super.yeniSonrasiIslemler(e); let tip2Yapi = await this.getTip2BakiyeciYapi(e) ?? {}; await this.bakiyeYapilarKaydet({ ...e, tip2Yapi }) }
 	async degistirOncesiIslemler(e) { await super.degistirOncesiIslemler(e); e.eski_tip2BakiyeciYapi = await this.getTip2BakiyeciYapi(e) ?? {} }
 	async degistirSonrasiIslemler(e) {				/* degistirOncesiIslemler(e) den elde edilen değerler (-), yeni değerler (+) olarak birleştirilerek güncellenir */

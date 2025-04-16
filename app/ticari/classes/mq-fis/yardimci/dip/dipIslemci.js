@@ -67,55 +67,53 @@ class DipIslemci extends CObject {
 	}
 	satirlariHesapla(e) {
 		// this.add(new DipSatir_Kdv({ dipIslemci: this, oran: 8 }), this.offsetRefs.kdv);
-		const {offsetRefs, belirtec2DipSatir} = this; let i, offsetRef_kdv = offsetRefs.kdv;
-		const brut = belirtec2DipSatir.BRUT.tlBedel, dipSatirlar = Object.values(belirtec2DipSatir);
+		let {offsetRefs, belirtec2DipSatir} = this, i, offsetRef_kdv = offsetRefs.kdv;
+		let brut = belirtec2DipSatir.BRUT.tlBedel, dipSatirlar = Object.values(belirtec2DipSatir);
 		// kdv oncesine kadar
 		for (i = 0; i < dipSatirlar.length; i++) {
-			const dipSatir = dipSatirlar[i]; dipSatir.hesapla(e);
+			let dipSatir = dipSatirlar[i]; dipSatir.hesapla(e);
 			if (offsetRef_kdv && dipSatir == offsetRef_kdv) { break }
 		}
 		let {araDeger} = this._temps;
-		const yansitilacakIskonto = brut - araDeger, dipSatir_nakliye = belirtec2DipSatir.NAK;
-		const {fis} = this, {alimmi, kdvKod_nakliye} = fis.class;
-		const yansitilacakNakliye = alimmi && dipSatir_nakliye ? dipSatir_nakliye.tlBedel : 0, {fisTopNet} = fis;
-		const kdvKod2Yapi = this.kdvKod2Yapi = {}, detaylar = this.detaylar || fis.detaylar;
+		let yansitilacakIskonto = brut - araDeger, dipSatir_nakliye = belirtec2DipSatir.NAK;
+		let {fis} = this, {alimmi, kdvKod_nakliye} = fis.class;
+		let yansitilacakNakliye = alimmi && dipSatir_nakliye ? dipSatir_nakliye.tlBedel : 0, {fisTopNet} = fis;
+		let kdvKod2Yapi = this.kdvKod2Yapi = {}, detaylar = this.detaylar || fis.detaylar;
 		for (const det of detaylar) {
 			const {netBedel, stokNetBedel, kdvKod} = det, dagitDipIskBedel = det.dagitDipIskBedel = roundToBedelFra(netBedel * yansitilacakIskonto / fisTopNet);
 			const vergiMatrah = det.vergiMatrah = roundToBedelFra(netBedel - dagitDipIskBedel);
 			const dagitDipNakBedel = det.dagitDipNakBedel = roundToBedelFra(stokNetBedel * yansitilacakNakliye / fisTopNet);
 			// const {kdvKod, kdvOrani} = det;
 			if (kdvKod) {
-				const {kdvOrani, kdv} = det; if (!kdvOrani) { continue }
+				let {kdvOrani, kdv} = det; if (!kdvOrani) { continue }
 				const vergiYapi = new TicVergiYapi({ kod: kdvKod, oran: kdvOrani }); vergiYapi.matrah += vergiMatrah; vergiYapi.bedel += kdv;
 				if (dipSatir_nakliye && kdvKod == kdvKod_nakliye) vergiYapi.ekMatrah += dipSatir_nakliye.tlBedel;
 				kdvKod2Yapi[kdvKod] = vergiYapi
 			}
 		}
 		this.dipSatirlari = this.dipSatirlari.filter(dipSatir => !dipSatir.kdvMatrahVeyaBedelmi);
-		for (const belirtec of Object.keys(belirtec2DipSatir)) {
-			const dipSatir = belirtec2DipSatir[belirtec];
+		for (let [belirtec, dipSatir] of Object.entries(belirtec2DipSatir)) {
 			if (dipSatir.kdvMatrahVeyaBedelmi) { delete belirtec2DipSatir[belirtec] }
 		}
 		const kdvOran2YapiListe = {};
-		for (const kdvKod in kdvKod2Yapi) {
-			const vergiYapi = kdvKod2Yapi[kdvKod], {oran} = vergiYapi;
-			(kdvOran2YapiListe[oran] = kdvOran2YapiListe[oran] || []) .push(vergiYapi)
+		for (let [kdvKod, vergiYapi] of Object.entries(kdvKod2Yapi)) {
+			let {oran} = vergiYapi; (kdvOran2YapiListe[oran] = kdvOran2YapiListe[oran] || []) .push(vergiYapi)
 		}
 		const kdvOranListe = new Uint8Array(Object.keys(kdvOran2YapiListe)).sort();
-		for (const oran of kdvOranListe) {
-			const vergiYapilar = kdvOran2YapiListe[oran];
-			for (const vergiYapi of vergiYapilar) {
-				const kdvKod = vergiYapi.kod; let kdvSatir = { matrah: belirtec2DipSatir[`KMAT${kdvKod}`], kdv: belirtec2DipSatir[`KDV${kdvKod}`] };
+		for (let oran of kdvOranListe) {
+			let vergiYapilar = kdvOran2YapiListe[oran];
+			for (let vergiYapi of vergiYapilar) {
+				let {kod: kdvKod} = vergiYapi, kdvSatir = { matrah: belirtec2DipSatir[`KMAT${kdvKod}`], kdv: belirtec2DipSatir[`KDV${kdvKod}`] };
 				if (!kdvSatir.matrah) {
 					const dipSatir = kdvSatir.matrah = new DipSatir_KdvMatrah({ dipIslemci: this, ekKod: kdvKod, oran: vergiYapi.oran, visible: !!vergiYapi.oran }).basitHidden();
 					this.add(dipSatir, offsetRef_kdv); offsetRef_kdv = dipSatir
 				}
 				if (!kdvSatir.kdv) {
-					const dipSatir = kdvSatir.kdv = new DipSatir_Kdv({ dipIslemci: this, ekKod: kdvKod, oran: vergiYapi.oran, visible: !!vergiYapi.oran })/*.basitHidden()*/;
+					let dipSatir = kdvSatir.kdv = new DipSatir_Kdv({ dipIslemci: this, ekKod: kdvKod, oran: vergiYapi.oran, visible: !!vergiYapi.oran })/*.basitHidden()*/;
 					this.add(dipSatir, offsetRef_kdv); offsetRef_kdv = dipSatir
 				}
 				kdvSatir.matrah.tlBedel = vergiYapi.topMatrah; kdvSatir.kdv.tlBedel = vergiYapi.bedel;
-				for (const dipSatir of Object.values(kdvSatir)) { dipSatir.hesapla(e) }
+				for (let dipSatir of Object.values(kdvSatir)) { dipSatir.hesapla(e) }
 			}
 		}
 		offsetRef_kdv = offsetRefs.kdv;

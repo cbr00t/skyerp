@@ -39,6 +39,8 @@ class MQDetay extends MQSayacli {
 		}
 	}
 	static tekilOku_queryDuzenle(e) { this.loadServerData_queryDuzenle(e) }
+	async disKaydetOncesiIslemler(e) { }
+	async disKaydetSonrasiIslemler(e) { }
 	kopyaIcinDuzenle(e) { super.kopyaIcinDuzenle(e); if (this.okunanHarSayac) { this.okunanHarSayac = null } }
 	hostVarsDuzenle(e) {
 		super.hostVarsDuzenle(e); const {hv, fis} = e, {fisSayacSaha, seqSaha, table} = this.class;

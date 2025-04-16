@@ -572,6 +572,7 @@ class MQCogul extends MQYapi {
 	async yeniSonrasiIslemler(e) { await super.yeniSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('yeniSonrasiIslemler', e) }
 	async degistirSonrasiIslemler(e) { await super.degistirSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('degistirSonrasiIslemler', e) }
 	async silmeSonrasiIslemler(e) { await super.silmeSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('silmeSonrasiIslemler', e) }
+	async kaydetOncesiIslemler(e) { await super.kaydetOncesiIslemler(e); e.ozelSahaYapilari = this.class.getOzelSahaYapilari(e); await this.forAltYapiKeysDoAsync('kaydetOncesiIslemler', e) }
 	async kaydetSonrasiIslemler(e) { await super.kaydetSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('kaydetSonrasiIslemler', e) }
 	async kaydetVeyaSilmeSonrasiIslemler(e) { await super.kaydetVeyaSilmeSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('kaydetVeyaSilmeSonrasiIslemler', e) }
 	donusumBilgileriniSil(e) { }
@@ -665,9 +666,9 @@ class MQCogul extends MQYapi {
 		}
 		return result
 	}
-	static kodVarmi(e) {
+	static kodVarmi(e, _zorunlumu) {
 		e = e || {}; let kod = typeof e == 'object' ? e.kod : e;
-		let zorunlumu = typeof e == 'object' ? e.zorunlu ?? e.zorunlumu : _zorunlumu;
+		let zorunlumu = _zorunlumu ?? (typeof e == 'object' ? e.zorunlu ?? e.zorunlumu : null);
 		if (zorunlumu && !kod) { return false }
 		return !kod || new this({ kod }).varmi(e)
 	}
@@ -678,15 +679,16 @@ class MQCogul extends MQYapi {
 		const part = e.result = new ModelKullanPart(_e.args); part.run(); return part
 	}
 	static getGridKolonlar(e) {
-		e = e || {}; const {belirtec} = e, _e = { ...e, mfSinif: this, belirtec, liste: [], kodEtiket: e.kodEtiket, adiEtiket: e.adiEtiket };
-		const gridKolonGrupcu = e.gridKolonGrupcu || 'getGridKolonGrup';
-		let colDef = $.isFunction(gridKolonGrupcu) ? getFuncValue.call(this, gridKolonGrupcu, _e) : getFuncValue.call(this, this[gridKolonGrupcu], _e);
+		e = e || {}; let {belirtec} = e, gridKolonGrupcu = e.gridKolonGrupcu || 'getGridKolonGrup', {duzenleyici} = e;
+		let _e = { ...e, mfSinif: this, belirtec, liste: [], kodEtiket: e.kodEtiket, adiEtiket: e.adiEtiket };
+		let colDef = $.isFunction(gridKolonGrupcu) ? gridKolonGrupcu.call(this, _e) : this[gridKolonGrupcu].call(this, _e);
 		if (colDef) {
 			let sabitleFlag = e.sabitle ?? e.sabitleFlag, hiddenFlag = e.hidden ?? e.hiddenFlag, autoBind = e.autoBind ?? e.autoBindFlag;
 			let readOnly = e.readOnly ?? e.readOnlyFlag, kodsuzFlag = e.kodsuz ?? e.kodsuzFlag;
 			if (sabitleFlag) { colDef.sabitle() } if (hiddenFlag) { colDef.hidden() }
 			if (autoBind) { colDef.autoBind() } if (readOnly) { colDef.readOnly() }
 			if (kodsuzFlag) { colDef.kodsuz() }
+			_e.colDef = colDef; duzenleyici?.call(this, _e)
 			_e.liste.push(colDef)
 		}
 		this.gridKolonlarDuzenle(_e); return _e.liste
