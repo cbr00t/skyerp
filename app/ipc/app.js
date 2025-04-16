@@ -1,5 +1,5 @@
 class IPCApp extends TicariApp {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static MaxCloseCount = (asInteger(Math.random() * 10) % 5) + 4;
+    static { window[this.name] = this; this._key2Class[this.name] = this } static MaxCloseCount = (asInteger(Math.random() * 10) % 5) + 6;
     get isLoginRequired() { return false } /*get defaultWSPath() { return 'ws/skyERP' }*/
     constructor(e) {
         e = e ?? {}; super(e);
@@ -18,17 +18,19 @@ class IPCApp extends TicariApp {
     async initIPC(e) {
         e = e ?? {}; let {content, ipcKey} = this, url = app.getWebSocketURL({ key: ipcKey });
         this.ws?.close(); let ws = this.ws = new WebSocket(url);
-		clearInterval(this.timerTest); delete this.timerTest;
         $.extend(ws, {
             onopen: () => {
 				content.html(`<div class="info success">IPC WebSocket aktif</div>`);
-				this.initTimerTest({ ...e, content, ipcKey })
+				this.closeCount = 0; this.initTimerTest({ ...e, content, ipcKey })
 			},
             onmessage: async ({ data }) => this.onMessage({ ...e, ws, ipcKey, data }),
-            onerror: ({ currentTarget: ws }) => content.html(`<div class="info error">IPC WebSocket erişim sorunu</div>`),
-            onclose: () => {
+            onerror: ({ currentTarget: ws }) => {
+				setTimeout(()=> content.html(`<div class="info error">IPC WebSocket erişim sorunu</div>`), 10);
+				this.initTimerTest({ ...e, content, ipcKey })
+			},
+            onclose: ({ reason }) => {
 				content.html(`<div class="info error">IPC WebSocket kapandı</div>`);
-				if (++this.closeCount >= this.class.MaxCloseCount) {
+				if (++this.closeCount >= this.class.MaxCloseCount || reason == 'ClosedByServer') {
 					clearInterval(this.timerTest); delete this.timerTest;
 					self.close()
 				}
