@@ -93,8 +93,9 @@ class MQOrtakFis extends MQDetayli {
 			let errorText = await det.dataDuzgunmu?.(e); if (errorText) { throw { isError: true, rc: 'invalidArgument', errorText } }
 			await det.disKaydetOncesiIslemler?.(e)
 		}
-		await fis.dipIslemci?.dipSatirlariOlustur?.(e);
-		await fis.dipIslemci?.topluHesapla?.(e)
+		let {dipIslemci} = this;
+		await dipIslemci?.dipSatirlariOlustur?.(e);
+		await dipIslemci?.topluHesapla?.(e)
 	}
 	async disKaydetSonrasiIslemler(e) {
 		e = { ...e, temps: e?.temps ?? {}, fis: this }; let {detaylar} = this;

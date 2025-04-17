@@ -4,7 +4,7 @@ class TicariFis extends TSOrtakFis {
 	static get ticarimi() { return true } static get detaySinif() { return super.detaySinif }
 	static detaySiniflarDuzenle(e) {
 		super.detaySiniflarDuzenle(e); const {liste} = e; liste.push(TSHizmetDetay);
-		if (app.params.ticariGenel.kullanim.demirbas) { liste.push(TSDemirbasDetay) }
+		if (app.params.ticariGenel?.kullanim?.demirbas) { liste.push(TSDemirbasDetay) }
 	}
 	static get gridKontrolcuSinif() { return TicariGridKontrolcu } static get noYilKullanilirmi() { return true }
 	static get dipKullanilirmi() { return true } static get dipNakliyeKullanilirmi() { return false }

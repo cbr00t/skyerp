@@ -70,5 +70,5 @@ class MQNumarator extends MQKA {
 		}
 		return await super.yukle($.extend({}, e, { rec }))
 	}
-	async kesinlestir(e) { e = e || {}; await this.yukle(); this.sonNo = ++sonNo; return this }
+	async kesinlestir(e) { this.sonNo = this.sonNo + 1; return this }
 }
