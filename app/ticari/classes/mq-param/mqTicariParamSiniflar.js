@@ -413,7 +413,7 @@ class MQAktarimParam extends MQTicariParamBase {
 	static get sinifAdi() { return 'Ticari Aktarım Parametreleri' } static get paramKod() { return 'CAKT' }
 	static paramYapiDuzenle({ paramci }) {
 		super.paramYapiDuzenle(...arguments);
-		let kullanim = paramci.addKullanim().addGrup({ etiket: 'Kullanım' }); let form = kullanim.addFormWithParent();
+		let kullanim = paramci.addKullanim().addGrup({ etiket: 'Kullanım' }), form = kullanim.addFormWithParent();
 			form.addBool('webOzetRapor', 'Web Özet Rapor').onBuildEk(e => e.builder.input.attr('disabled', ''));
 			form.addBool('tablet', 'Sky Tablet'); form.addBool('pdks', 'PDKS'); form.addBool('yazarKasa', 'YazarKasa Aktarımı');
 			form.addBool('pratikSatis', 'Pratik Satış'); form.addBool('magaza', 'Mağaza');

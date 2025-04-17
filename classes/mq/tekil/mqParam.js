@@ -1,4 +1,6 @@
-class MQTekil extends MQYapi { static { window[this.name] = this; this._key2Class[this.name] = this } }
+class MQTekil extends MQYapi {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+}
 class MQParam extends MQTekil {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get ozelCopyKeys() { return ['_promise', '_paramci', '_builder'] } static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, ...this.ozelCopyKeys] }
@@ -13,7 +15,11 @@ class MQParam extends MQTekil {
 		e = e || {}; super(e); if (e.isCopy) { return }
 		$.extend(this, { _promise: new $.Deferred(), kullanim: e.kullanim || {} }); this.paramciInit(e)
 	}
-	paramciInit(e) { const paramci = this.paramci = this.class.paramYapi; if (paramci) { paramci.inst = this; paramci.run(e) } }
+	paramciInit(e) {
+		let paramci = this.paramci = this.class.paramYapi;
+		if (paramci) { paramci.inst = this; paramci.run(e) }
+		return this
+	}
 	static paramYapiDuzenle(e) { }
 	static getRootFormBuilder(e) {
 		e = e || {}; const {inst} = e, paramci = inst?.paramci ?? this.paramYapi;
@@ -38,6 +44,21 @@ class MQParam extends MQTekil {
 	}
 	static paramAttrListeDuzenle(e) { }
 	static tekSecimDonusumDuzenle(e) { }
+	static async topluYukleVerisiOlustur(e) {
+		let {table} = this, uni = new MQUnionAll([
+			new MQSent({ from: `ORTAK..${table}`, where: `kod <> ''`, sahalar: ['kod', 'jsonstr'] }),
+			new MQSent({ from: table, where: `kod <> ''`, sahalar: ['kod', 'jsonstr'] })
+		]), stm = new MQStm({ sent: uni });
+		let recs = await app.sqlExecSelect(stm), kod2Rec = this._topluYukle_kod2Rec = {};
+		for (let rec of recs) { let {kod} = rec; kod2Rec[kod] = rec }
+		return this
+	}
+	async getInstance_yukleIslemi(e) { return await this.topluYukle(e) }
+	topluYukle(e) {
+		e = { ...e }; let {_topluYukle_kod2Rec, paramKod: kod} = this.class;
+		e.rec = _topluYukle_kod2Rec?.[kod];
+		return this.yukle(e)
+	}
 	async kaydetOncesiIslemler(e) {
 		const {paramci} = this; if (paramci) { for (const item of paramci.getItemsAndSelf()) { if (item.kaydetOncesi) await item.kaydetOncesi(e) } }
 		super.kaydetOncesiIslemler(e)
@@ -46,10 +67,9 @@ class MQParam extends MQTekil {
 		const {paramci} = this; if (paramci) { for (const item of paramci.getItemsAndSelf()) { if (item.kaydedince) await item.kaydedince(e) } }
 		await super.kaydetSonrasiIslemler(e)
 	}
-	static varsayilanKeyHostVarsDuzenle(e) {
-		e = e || {}; super.varsayilanKeyHostVarsDuzenle(e);
-		const {hv} = e, {paramci} = this; hv.kod = this.paramKod;
-		if (paramci) { for (const item of paramci.getItemsAndSelf()) { if (item.varsayilanKeyHostVarsDuzenle) item.varsayilanKeyHostVarsDuzenle(e) } }
+	static varsayilanKeyHostVarsDuzenle({ hv }) {
+		super.varsayilanKeyHostVarsDuzenle(...arguments);
+		let {paramKod: kod} = this; $.extend(hv, { kod });
 	}
 	keyHostVarsDuzenle(e) {
 		e = e || {}; e.varsayilanAlma = false; const {paramci} = this;
@@ -75,13 +95,13 @@ class MQParam extends MQTekil {
 		e = e || {}; const {rec} = e, {paramAttrListe} = this.class;
 		for (const key of paramAttrListe) {
 			if (key == '_p' && key[0] == '_') continue
-			let value = rec[key]; if (value !== undefined && !isFunction(value)) this[key] = value
+			let value = rec[key]; if (value !== undefined && !isFunction(value)) { this[key] = value }
 		}
-		const {tekSecimDonusum} = this.class, {tekSecimDonusum_receiver} = this; for (const key in tekSecimDonusum) {
-			const cls = tekSecimDonusum[key]; if (!cls) { continue }
-			const value = rec[key]; tekSecimDonusum_receiver[key] = new cls(value || '')
+		let {tekSecimDonusum} = this.class, {tekSecimDonusum_receiver} = this; for (const key in tekSecimDonusum) {
+			let cls = tekSecimDonusum[key]; if (!cls) { continue }
+			let value = rec[key]; tekSecimDonusum_receiver[key] = new cls(value || '')
 		}
-		const {paramci} = this; if (paramci) { for (const item of paramci.getItemsAndSelf()) { if (item.paramSetValues) { item.paramSetValues(e) } } }
+		let {paramci} = this; if (paramci) { for (let item of paramci.getItemsAndSelf()) { item?.paramSetValues(e) } }
 	}
 	static async tanimla(e) {
 		const {tanimUISinif} = this; if (!tanimUISinif) { return null }

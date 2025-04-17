@@ -14,9 +14,9 @@ class MQYapi extends CIO {
 	static getInstance() {
 		let result = this._instance; if (!result) {
 			result = new this(); result._promise = new $.Deferred();
-			result.yukle()
-				.then(() => { result._yuklendimi = true; const {_promise} = result; if (_promise) { _promise.resolve(result) } })
-				.catch(ex => { result._yuklendimi = false; const {_promise} = result; if (_promise) { _promise.reject(ex) } })
+			result.getInstance_yukleIslemi()
+				.then(() => { result._yuklendimi = true; let {_promise} = result; if (_promise) { _promise.resolve(result) } })
+				.catch(ex => { result._yuklendimi = false; let {_promise} = result; if (_promise) { _promise.reject(ex) } })
 			this._instance = result
 		}
 		return result
@@ -55,21 +55,23 @@ class MQYapi extends CIO {
 		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e, _e = { offlineMode, trnId, query }; let result = await this.sqlExecNone(_e);
 		await this.silmeSonrasiIslemler({ ...e, ..._e }); return result
 	}
+	async getInstance_yukleIslemi(e) { return await this.yukle(e) }
 	async yukle(e) {
 		e = e || {}; let {rec} = e; e.orjRec = rec;
-		if (rec) { this.setValues(e) }
-		else {
-			rec = await this.tekilOku(e); const {params} = rec || {};
+		if (!rec) {
+			rec = await this.tekilOku(e); let {params} = rec || {};
 			if (params) {
-				const param = params.result ?? params.baslik ?? params.fis;
+				let param = params.result ?? params.baslik ?? params.fis;
 				if (params) { rec = params.value }
 			}
-			e.rec = rec; if (!rec) { return false }
+			e.rec = rec
 		}
-		const basitFlag = e.basit ?? e.basitmi ?? e.basitFlag; if (!basitFlag) { await this.yukleSonrasiIslemler(e) }
+		if (!rec) { return false }
+		let basitFlag = e.basit ?? e.basitmi ?? e.basitFlag;
+		if (!basitFlag) { await this.yukleSonrasiIslemler(e) }
 		return true
 	}
-	yukleSonrasiIslemler(e) { this.setValues(e) }
+	yukleSonrasiIslemler(e) { return this.setValues(e) }
 	kopyaIcinDuzenle(e) { }
 	async varmi(e) {
 		let result = await this.varmiDogrudan(e); if (!result) { return false } /* kod değeri varsa içeriksel kontrol yapılacak */
