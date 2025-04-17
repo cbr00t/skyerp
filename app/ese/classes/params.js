@@ -16,10 +16,11 @@ class MQParam_ESE extends MQParam {
 	get asArray() { const result = []; for (const rec of this.getIter()) { result.push(rec) } return result }
 	constructor(e) { e = e || {}; super(e); const {sablon, sablonId2Adi} = e; $.extend(this, { sablon, sablonId2Adi }); this.fix(e) }
 	static paramYapiDuzenle(e) {
-		super.paramYapiDuzenle(e); const {paramci} = e; paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`);
-		let form = paramci.addFormWithParent(); form.addGrup({ etiket: 'Varsayılan Şablon' }); let formSablon = form.addFormWithParent().yanYana().addStyle_fullWH();
+		super.paramYapiDuzenle(e); const {paramci} = e; paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 0px !important }`);
+		let form = paramci.addFormWithParent(); form.addGrup({ etiket: 'Varsayılan Şablon' });
+		let formSablon = form.addFormWithParent().yanYana().addStyle_fullWH();
 		for (const [tip, cls] of Object.entries(MQSablon.tip2Sinif)) {
-			let {maxSayi} = cls; formSablon.addGridGiris_sabit(tip).addStyle_fullWH('49%')
+			let {maxSayi} = cls; formSablon.addGridGiris_sabit(tip).addStyle_fullWH('49.5%')
 				.setTabloKolonlari(_e => [
 					new GridKolon({ belirtec: 'kisaEtiket', text: 'Kısa Etiket', genislikCh: 10 }),
 					new GridKolon({ belirtec: 'etiket', text: 'Etiket', genislikCh: 20 }),

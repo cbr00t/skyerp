@@ -60,11 +60,19 @@ class MQMuayene extends MQGuidOrtak {
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { resimsayisi: this.resimSayisi }) }
 	kopyaIcinDuzenle(e) { super.kopyaIcinDuzenle(e); $.extend(this, { ts: now() }) }
 	async yeniSonrasiIslemler(e) {
-		await super.yeniSonrasiIslemler(e); let {id} = this;
+		await super.yeniSonrasiIslemler(e); let {id} = this, {tableAlias: alias} = this.class;
 		let silent = true, gridPart = app.activeWndPart?.parentPart, recs = [ { id }], _e = { ...e, silent, gridPart, recs };
 		setTimeout(async () => {
-			_e.recs = await this.class.loadServerData({ ozelQueryDuzenle: ({ sent }) => sent.where.degerAta(id, `${this.class.tableAlias}.id`) }); await this.class.testOlusturIstendi(_e);
-			await this.class.testEkraniAcIstendi(_e); MQTest.testIslemleriIstendi(_e)
+			_e.recs = await this.class.loadServerData({ ozelQueryDuzenle: ({ sent }) => sent.where.degerAta(id, `${alias}.id`) });
+			await this.class.testOlusturIstendi(_e); let {testIdListe} = _e, testId = testIdListe?.[0];
+			let {recs} = _e; recs.forEach(rec => rec.testid = testId);
+			let veriYuklenince = 
+			await this.class.testEkraniAcIstendi({
+				..._e, veriYuklenince: __e => {
+					let {gridPart} = __e; delete gridPart.veriYukleninceBlock;
+					MQTest.testIslemleriIstendi({ ..._e, ...__e, forcedRecs: gridPart.boundRecs })
+				}
+			})
 		}, 50)
 	}
 	async silmeOncesiIslemler(e) {
@@ -74,9 +82,11 @@ class MQMuayene extends MQGuidOrtak {
 		}
 	}
 	static async testIslemleriIstendi(e) {
-		const gridPart = e.gridPart ?? e.parentPart ?? e.sender, title = 'Test İşlemleri';
+		e = e ?? {}; let title = 'Test İşlemleri', {recs} = e;
+		let gridPart = e.gridPart ?? e.parentPart ?? e.sender ?? {};
 		app.activeWndPart.openContextMenu({
-			gridPart, title, argsDuzenle: _e => $.extend(_e.wndArgs, { width: 500, height: 150 }),
+			gridPart, title,
+			argsDuzenle: _e => $.extend(_e.wndArgs, { width: 500, height: 150 }),
 			formDuzenleyici: async _e => {
 				delete _e.recs; const {form, close, gridPart} = _e, recs = e.recs ?? gridPart.selectedRecs;
 				let idListe = recs.map(rec => rec.id); form.yanYana().addStyle(e => `$elementCSS { padding-top: 20px }`);
@@ -105,17 +115,20 @@ class MQMuayene extends MQGuidOrtak {
 				mua2HastaRec[id] = { id: hastaId, cinsiyet, dogumTarihi }
 			}
 			let rdlg = silent ? true : await ehConfirm(`<b class="bold forestgreen">${bostaIdListe.length}</b> adet <b class="royalblue">Test</b> kaydı açılacak, devam edilsin mi?`, sinifAdi);
-			if (!rdlg) { return } let promises = [];
-			for (const muayeneId of bostaIdListe) {
+			if (!rdlg) { return } let testIdListe = e.testIdListe = [];
+			for (let muayeneId of bostaIdListe) {
 				let ts = now(), tamamlandimi = false, onayKodu = 0; while (onayKodu < 100000) { onayKodu = asInteger(Math.random() * 1000000) }
 				let {id: hastaId, cinsiyet, dogumTarihi} = mua2HastaRec[muayeneId]; let aktifYas = dogumTarihi ? new Date(now() - dogumTarihi).yil - new Date(0).yil : 0;
-				let testInst = new MQTest({ muayeneId, hastaId, ts, tamamlandimi, cinsiyet, onayKodu, aktifYas }); promises.push(testInst.yaz())
+				let id = newGUID(), testInst = new MQTest({ id, muayeneId, hastaId, ts, tamamlandimi, cinsiyet, onayKodu, aktifYas });
+				await testInst.yaz(); testIdListe.push(testInst.id)
 				/*promises.push(testInst.yaz().then(() =>
 					app.sqlExecNone(new MQIliskiliUpdate({
 						from: 'esemuayene', where: { degerAta: muayeneId, saha: 'id' }, set: { degerAta: testInst.id, saha: 'testid' } }))))*/
 			}
-			await Promise.all(promises); gridPart?.tazele(); /*testSinif.listeEkraniAc(e);*/
-			if (!silent) {
+			if (silent) {
+				gridPart?.tazeleDefer() }
+			else {
+				gridPart?.tazele(); /*testSinif.listeEkraniAc(e);*/
 				setTimeout(e => {
 					let {wnd} = displayMessage((
 						`<p><b class="bold forestgreen">${bostaIdListe.length}</b> adet <b class="royalblue">Test</b> kaydı açıldı</p>` +
@@ -128,10 +141,12 @@ class MQMuayene extends MQGuidOrtak {
 		catch (ex) { hConfirm(getErrorText(ex), sinifAdi); throw ex }
 	}
 	static async testEkraniAcIstendi(e) {
-		let {sinifAdi} = this, {silent, acilinca} = e, gridPart = e.gridPart ?? e.parentPart ?? e.sender, recs = e.recs ?? gridPart?.selectedRecs;
+		let {sinifAdi} = this, {silent, acilinca, veriYuklenince} = e;
+		let gridPart = e.gridPart ?? e.parentPart ?? e.sender, recs = e.recs ?? gridPart?.selectedRecs;
 		let idListe = recs?.map(rec => rec.id); if (!idListe?.length) { if (!silent) { hConfirm('Kayıtlar seçilmelidir', sinifAdi) } return }
 		return MQTest.listeEkraniAc({
-			acilinca, secimlerDuzenle: idListe?.length
+			acilinca, veriYuklenince,
+			secimlerDuzenle: idListe?.length
 				? ({ secimler: sec }) => { const birKismimi = true; $.extend(sec.muayeneId, { birKismimi, kodListe: idListe }); sec.tarih.temizle() }
 				: undefined
 		})

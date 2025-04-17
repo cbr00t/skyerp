@@ -59,8 +59,8 @@ class ParamBuilder extends CObject {
 		let root = this.root = this.root || this;
 		if (this == root) {
 			this.addStyle(() =>
-				`$elementCSS .formBuilder-element.parent { margin: 0 0 15px 0 !important }
-				 $elementCSS .formBuilder-element.parent > *:not(label) { margin-right: 15px !important }`
+				`/* $elementCSS .formBuilder-element.parent { margin: 0 0 10px 0 !important } */
+				 $elementCSS .formBuilder-element.parent > *:not(label):not(div) { margin-right: 10px !important }`
 			)
 		}
 		this.preBuild(e); this.build(e); this.afterBuild(e); return this

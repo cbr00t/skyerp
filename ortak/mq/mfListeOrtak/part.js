@@ -318,7 +318,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			e => `$elementCSS button.jqx-fill-state-pressed { color: whitesmoke !important; background-color: royalblue !important }`
 		]);
 		 $.extend(e, {
-			...e,  evt, sender: this, gridPart, gridWidget, cells, recs, belirtec, title, close, rfb, form,
+			evt, sender: this, gridPart, gridWidget, cells, recs, belirtec, title, close, rfb, form,
 			wndArgs: { isModal: false, closeButtonAction: 'close', width: Math.min(700, $(window).width() - 50), height: Math.min(350, $(window).height() - 100) }
 		});
 		const {formDuzenleyici} = e; if (formDuzenleyici) { const result = await getFuncValue.call(this, formDuzenleyici, e); if (result === false) { return false } }

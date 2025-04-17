@@ -164,11 +164,13 @@ class MQTest extends MQGuidOrtak {
 		finally { window.progressManager?.progressEnd(); setTimeout(() => hideProgress(), 100) }
 	}
 	static async testIslemleriIstendi(e) {
-		const gridPart = e.gridPart ?? e.parentPart ?? e.sender ?? {}, title = 'Test İşlemleri';
+		e = e ?? {}; let title = 'Test İşlemleri', {forcedRecs} = e;
+		let gridPart = e.gridPart ?? e.parentPart ?? e.sender ?? {};
 		(gridPart ?? app.activeWndPart)?.openContextMenu({
-			gridPart, title, argsDuzenle: _e => $.extend(_e.wndArgs, { width: Math.min(1100, $(window).width() - 50), height: 230 }),
+			gridPart, title, forcedRecs,
+			argsDuzenle: _e => $.extend(_e.wndArgs, { width: Math.min(1100, $(window).width() - 50), height: 230 }),
 			formDuzenleyici: async _e => {
-				delete _e.recs; const {form, close, gridPart} = _e, recs = e.recs ?? gridPart.selectedRecs, idListe = recs.map(rec => rec.id);
+				delete _e.recs; const {form, close, gridPart} = _e, recs = _e.forcedRecs ?? e.recs ?? gridPart.selectedRecs, idListe = recs.map(rec => rec.id);
 				if (!idListe?.length) { return } if (idListe?.length > 1) { hConfirm('Sadece bir tane Test seçilmelidir', title); return false }
 				form.yanYana().addStyle(e => `$elementCSS { padding-top: 40px }`);
 				let testId = idListe[0]; for (const {tip, belirtec, prefix, seq, etiket, sablonId} of app.params.ese.getIter()) {
@@ -203,7 +205,7 @@ class MQTest extends MQGuidOrtak {
 		progressManager?.setProgressMax(recs.length); const eMailAuth = await app.getEMailAuth();
 		for (const rec of recs) {
 			if (pAborted?.result) { break } const {email: to, hastaadi: hastaAdi, onaykodu: onayKodu} = rec, {DefaultWSHostName_SkyServer: wsHostName} = config.class;
-			const url = `https://${wsHostName}:90/skyerp/app/ese/?hostname=${wsHostName}&user=${to}&pass=${onayKodu}&`;
+			const url = `https://${wsHostName}:90/skyerp/app/ese/?ssl&hostname=${wsHostName}&user=${to}&pass=${onayKodu}&`;
 			promises.push(app.wsEMailGonder({ data: {
 				...eMailAuth, to, subject: 'ESE Test', body: (
 					`<div style="font-size: 14pt;">
