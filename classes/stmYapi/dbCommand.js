@@ -14,31 +14,31 @@ class MQSentVeIliskiliYapiOrtak extends MQDbCommand {
 		return result
 	}
 	asToplamStm(e) {
-		e = e || {}; const sumListe = e.sumListe ?? [], orderFlag = e.order ?? e.orderBy, tmpTabloVeAlias = e.tmpTabloVeAlias ?? e.tmpTableVeAlias, {liste} = this;
-		let ilkSent; for (const sent of this.getSentListe()) { ilkSent = sent; break } if (!ilkSent) { return new MQStm() }
-		const tmpTabloAdi = tmpTabloVeAlias?.deger ?? 'toplam', tmpAlias = tmpTabloVeAlias?.alias ?? 'xtop';		/* aMQAliasliYapi */
-		const stm = new MQStm(), sahaAdi2Deger = {};
-		for (const saha of ilkSent.sahalar.liste) {
-			const {alias, deger} = saha; if (!deger) { continue }
-			sahaAdi2Deger[alias] = deger
-		}
+		e = e || {}; let sumListe = e.sumListe ?? [], orderFlag = e.order ?? e.orderBy;
+		let tmpTabloVeAlias = e.tmpTabloVeAlias ?? e.tmpTableVeAlias, {toplamInd} = e, {liste} = this;
+		let ilkSent; for (let sent of this.getSentListe()) { ilkSent = sent; break } if (!ilkSent) { return new MQStm() } 
+		let tmpTabloAdi = tmpTabloVeAlias?.deger ?? `${MQStm.toplamTable}${toplamInd ?? ''}`;
+		let tmpAlias = tmpTabloVeAlias?.alias ?? `xtop${toplamInd ?? ''}`;		/* aMQAliasliYapi */
+		let stm = new MQStm(), {with: _with, orderBy} = stm, sahaAdi2Deger = {};
+		for (let { alias, deger } of ilkSent.sahalar.liste) { if (deger) { sahaAdi2Deger[alias] = deger } }
 		let topSahalarAdiSet = asSet(sumListe ?? []);
 		for (const sent of this.getSentListe()) {
 			for (const {alias, deger} of sent.sahalar.liste) {
 				if (!deger) { continue } let uygunmu = false;
 				for (const match of ['SUM(', 'COUNT(', 'AVG(', 'STRING_AGG(']) {
-					if (deger.toUpperCase().startsWith(match) && deger.includes(')')) { uygunmu = true; break }
+					if (deger.toUpperCase().startsWith(match) && deger.includes(')')) {
+						uygunmu = true; break }
 				}
 				if (uygunmu) { topSahalarAdiSet[alias] = true }
 			}
 		}
 		const tumSahaAdlari = Object.keys(sahaAdi2Deger), topSahaAdlari = Object.keys(topSahalarAdiSet);
 		const digerSahaAdlari = tumSahaAdlari.filter(saha => !topSahalarAdiSet[saha]);
-		stm.with.add(new MQTmpTable({ table: tmpTabloAdi, sahalar: tumSahaAdlari, sent: this }));
+		_with.add(new MQTmpTable({ table: tmpTabloAdi, sahalar: tumSahaAdlari, sent: this }));
 		const asilSent = stm.sent; asilSent.fromAdd(`${tmpTabloAdi} ${tmpAlias}`); asilSent.sahalar.liste = [];
 		for (const sahaAdi of digerSahaAdlari) { asilSent.sahalar.add(`${tmpAlias}.${sahaAdi}`) }
 		for (const sahaAdi of topSahaAdlari) { asilSent.sahalar.add(`SUM(${tmpAlias}.${sahaAdi}) ${sahaAdi}`) }
-		asilSent.groupByOlustur(); if (orderFlag) { stm.orderBy.liste = []; stm.orderBy.addAll(digerSahaAdlari) }
+		asilSent.groupByOlustur(); if (orderFlag) { orderBy.liste = []; orderBy.addAll(digerSahaAdlari) }
 		return stm
 	}
 	asToplamStmWithOrderBy(e) { e = e || {}; e.order = true; delete e.orderBy; return this.asToplamStm(e) }

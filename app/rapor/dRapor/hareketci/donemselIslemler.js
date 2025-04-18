@@ -1,7 +1,7 @@
 class DRapor_DonemselIslemler extends DRapor_Donemsel {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return true } static get araSeviyemi() { return false }
-	static get sabitmi() { return true } static get vioAdim() { return null } static get konsolideKullanilirmi() { return false }
+	static get sabitmi() { return true } static get vioAdim() { return null } static get konsolideKullanilirmi() { return true }
 	static get kategoriKod() { return DRapor_Hareketci.kategoriKod } static get kategoriAdi() { return DRapor_Hareketci.kategoriAdi }
 	static get kod() { return 'DONISL' } static get aciklama() { return 'Dönemsel İşlemler' }
 	altRaporlarDuzenle(e) { super.altRaporlarDuzenle(e); this.add(DRapor_DonemselIslemler_Detaylar) }
@@ -12,11 +12,6 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 	get detaylar() { return this.ekBilgi?.detaylar } set detaylar(value) { let ekBilgi = this.ekBilgi = this.ekBilgi ?? {}; ekBilgi.detaylar = value }
 	get dip() { return this.ekBilgi?.dip } set dip(value) { let ekBilgi = this.ekBilgi = this.ekBilgi ?? {}; ekBilgi.dip = value }
 	onGridInit(e) { super.onGridInit(e); this.ekBilgi = {} }
-	tazele(e) {
-		let {secimler: sec, rapor} = this, {tarihBS} = sec;
-		if (!(tarihBS?.basi || this.secimlerIstendimi)) { this.secimlerIstendi(); this.secimlerIstendimi = true /*; setTimeout(() => super.tazele(e), 100) */ }
-		else { super.tazele(e) }
-	}
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments);
 		let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => cls.donemselIslemlerIcinUygunmu);
@@ -33,6 +28,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 	tabloYapiDuzenle({ result }) {
 		// super.tabloYapiDuzenle(...arguments);
 		result.addKAPrefix('mst')
+			.addGrupBasit('DB', 'Veritabanı', 'db', null, null, null, false)
 			.addGrupBasit_numerik('ONCELIK', 'Öncelik', 'oncelik', null, null, null, false)
 			.addGrupBasit('GRUP', 'Ana Bilgi', 'grup', null, null, ({ item }) => {
 				item.setFormul(['GRUP', 'DVKOD'], ({ rec }) =>
@@ -54,9 +50,17 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		result.resetSahalar().addGrup('GRUP')
 			.addIcerik('MST', 'DEVIR', 'BORC', 'ALACAK', 'BAKIYE')
 	}
+	tazele(e) {
+		let {secimler: sec, rapor, raporTanim, konsolideVarmi} = this, {tarihBS} = sec;
+		if (!(tarihBS?.basi || this.secimlerIstendimi)) { this.secimlerIstendi(); this.secimlerIstendimi = true; return }
+		let {kullanim} = raporTanim; kullanim.yatayAnaliz = konsolideVarmi ? 'DB' : null;
+		return super.tazele(e)
+	}
 	loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); let {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu;
-		let {stm} = e, {grupVeToplam} = this.tabloYapi, {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
+		super.loadServerData_queryDuzenle(e); let {attrSet} = e, {length: attrSetSize} = Object.keys(attrSet);
+		/* if (attrSetSize == 1 && attrSet.DB) { return } */
+		let {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu, {stm} = e, {grupVeToplam} = this.tabloYapi;
+		let {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
 		let {secimler: sec} = this, {tarihBS: donemBS} = sec, {value: devirAlinmasin} = sec.devirAlinmasin;
 		let anaTipSet = asSet(sec.anaTip?.value); if ($.isEmptyObject(anaTipSet)) { anaTipSet = null }
 		let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => !!cls.donemselIslemlerIcinUygunmu && (!anaTipSet || anaTipSet[cls.kod]));

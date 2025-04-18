@@ -1,5 +1,6 @@
 class MQStm extends MQDbCommand {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get toplamTable() { return 'toplam' }
 	get unionSahaListe() { return this.sent.unionSahaListe } get unionAliasListe() { return this.sent.unionAliasListe }
 	get siraliSahaVeDegerler() { let result = []; for (let sent of this.getSentListe()) { result.push(sent.alias2Deger) }; return result }
 	get siraliSahalar() { return this.siraliSahaVeDegerler.map(dict => Object.keys(dict)) }
@@ -12,7 +13,18 @@ class MQStm extends MQDbCommand {
 			limit: e.limit, offset: e.offset
 		})
 	}
-	asToplamStm(e) { return this.sent.asToplamStm(e) } asToplamStmWithOrderBy(e) { return this.sent.asToplamStmWithOrderBy(e) }
+	asToplamStm(e) {
+		e = e ?? {}; let {with: buWith, sent} = this;
+		let {toplamTable} = this.class, orjToplamTable = toplamTable, i;
+		while (!!buWith.hasTable(toplamTable)) {
+			i = i || 1; i++;
+			toplamTable = `${orjToplamTable}${i}`
+		} $.extend(e, { toplamTable, toplamInd: i });
+		let stm = sent.asToplamStm(e);
+		if (buWith?.liste?.length) { stm.with.liste.unshift(...buWith.liste) }
+		return stm
+	}
+	asToplamStmWithOrderBy(e) { return this.sent.asToplamStmWithOrderBy(e) }
 	fromGridWSArgs(e) {
 		e = e || {}; for (const sent of this.getSentListe()) { sent.fromGridWSArgs(e) }
 		this.orderBy.fromGridWSArgs(e);

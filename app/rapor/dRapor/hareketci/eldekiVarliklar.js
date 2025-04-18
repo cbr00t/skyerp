@@ -1,7 +1,7 @@
 class DRapor_EldekiVarliklar extends DRapor_AraSeviye {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return true } static get araSeviyemi() { return false }
-	static get sabitmi() { return true } static get vioAdim() { return null } static get konsolideKullanilirmi() { return false }
+	static get sabitmi() { return true } static get vioAdim() { return null } static get konsolideKullanilirmi() { return true }
 	static get kategoriKod() { return DRapor_Hareketci.kategoriKod } static get kategoriAdi() { return DRapor_Hareketci.kategoriAdi }
 	static get kod() { return 'ELDVAR' } static get aciklama() { return 'Eldeki Varlıklar' }
 	altRaporlarDuzenle(e) { this.add(DRapor_EldekiVarliklar_Sol, DRapor_EldekiVarliklar_Sag) }
@@ -31,6 +31,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 	}
 	tabloYapiDuzenle({ result }) {
 		result.addKAPrefix('hartip', 'mst')
+			.addGrupBasit('DB', 'Veritabanı', 'db', null, null, null, false)
 			.addGrupBasit_numerik('ONCELIK', 'Öncelik', 'oncelik', null, null, null, false)
 			.addGrupBasit('GRUP', '', 'grup', null, null, null, false)
 			.addGrupBasit('MST', this.class.mstEtiket, 'mst', null, 550, null, false);
@@ -44,10 +45,18 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		for (let kod of this.dvKodListe) { result.addIcerik(`BEDEL_${kod}`) }
 		result.addIcerik('BEDEL')
 	}
+	tazele(e) {
+		let {raporTanim, konsolideVarmi} = this, {kullanim} = raporTanim;
+		kullanim.yatayAnaliz = konsolideVarmi ? 'DB' : null;
+		return super.tazele(e)
+	}
+	tazeleDiger(e) { /* do nothing */ }
 	loadServerData_queryDuzenle(e) {
-		e.alias = ''; super.loadServerData_queryDuzenle(e); let {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
+		e.alias = ''; super.loadServerData_queryDuzenle(e); let {attrSet} = e, {length: attrSetSize} = Object.keys(attrSet);
+		/* if (attrSetSize == 1 && attrSet.DB) { return } */
 		let /*{ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu; */ ozelIsaretVarmi = true;
 		let {stm} = e, {secimler: sec} = this, {grupVeToplam} = this.tabloYapi, {yon} = this.class;
+		let {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
 		let anaTipSet = asSet(sec.anaTip?.value); if ($.isEmptyObject(anaTipSet)) { anaTipSet = null }
 		let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => !!cls.eldekiVarliklarIcinUygunmu && (!anaTipSet || anaTipSet[cls.kod]));
 		let sabitBelirtecler = [
@@ -111,8 +120,6 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 				(onc1 - onc2) || (grup1 - grup2) || (mst1 - mst2)
 		)
 	}*/
-	tazele(e) { return super.tazele(e) }
-	tazeleDiger(e) { /* do nothing */ }
 	gridVeriYuklendi(e) {
 		super.gridVeriYuklendi(e);
 		let {gridPart, recsDvKodSet} = this, {gridWidget} = gridPart, {base} = gridWidget;

@@ -26,7 +26,7 @@ class DRapor_AraSeviye extends DGrupluPanelRapor {
 class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get mainmi() { return true }
 	static get araSeviyemi() { return this == DRapor_AraSeviye_Main } get tazeleYapilirmi() { return true } static get konsolideKullanilirmi() { return true }
-	static get konsolideVarmi() { return this.konsolideKullanilirmi && app.params?.dRapor?.konsolideCikti }
+	static get konsolideVarmi() { return this.konsolideKullanilirmi && app.params?.dRapor?.konsolideCikti } get konsolideVarmi() { return this.class.konsolideVarmi }
 	static get finansalAnalizmi() { return this.donemselIslemlermi || this.eldekiVarliklarmi || this.nakitAkismi }
 	static get donemselIslemlermi() { return false } static get eldekiVarliklarmi() { return false } static get nakitAkismi() { return false }
 	get finansalAnalizmi() { return this.class.finansalAnalizmi } get donemselIslemlermi() { return this.class.donemselIslemlermi }
@@ -184,10 +184,12 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		this.loadServerData_queryDuzenle_son_son_ozel?.(e)
 	}
 	loadServerData_queryDuzenle_tekilSonrasi(e) {
-		this.loadServerData_queryDuzenle_tekilSonrasi_ilk_ozel?.(e); let {konsolideVarmi} = this;
-		let {ekDBListe} = app.params?.dRapor ?? {}, {stm, attrSet} = e, alias_db = 'db';
-		if (konsolideVarmi) {
+		this.loadServerData_queryDuzenle_tekilSonrasi_ilk_ozel?.(e);
+		let {toplamTable} = MQStm, {stm, attrSet} = e, {with: _with} = stm, {konsolideVarmi} = this;
+		if (konsolideVarmi && !_with.toplamVarmi) {
+			let {ekDBListe} = app.params?.dRapor ?? {}, alias_db = 'db';
 			let asilUni = stm.sent = stm.sent.asUnionAll();
+			if (!asilUni.liste.length) { asilUni.add(new MQSent()) }
 			for (let {sahalar} of asilUni.getSentListe()) {
 				if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db)) {
 					sahalar.add(`${`[ <span class=royalblue>${config.session.dbName}</span> ]`.sqlServerDegeri() ?? '- Aktif VT -'} ${alias_db}`) }
@@ -199,8 +201,12 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 						let {deger} = item, hasDB = deger.includes('.');
 						if (!hasDB) { item.deger = deger = `${db}..${deger}` }
 					}
-					{ let saha = sahalar.liste.find(x => x.alias == alias_db); if (saha) { saha.deger = db.sqlServerDegeri() } }
-				} asilUni.addAll(uni.liste)
+					{
+						let saha = sahalar.liste.find(x => x.alias == alias_db);
+						if (saha) { saha.deger = db.sqlServerDegeri() }
+					}
+				}
+				asilUni.addAll(uni.liste)
 			}
 		}
 		this.loadServerData_queryDuzenle_tekilSonrasi_son_ozel?.(e)
