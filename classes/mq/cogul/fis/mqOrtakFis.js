@@ -167,6 +167,14 @@ class MQOrtakFis extends MQDetayli {
 		}
 		return result
 	}
+	static logRecDonusturucuDuzenle({ result }) {
+		super.logRecDonusturucuDuzenle(...arguments); let {noSaha} = this.class;
+		result[noSaha] = 'xno'
+	}
+	logHVDuzenle({ hv }) {
+		super.logHVDuzenle(...arguments);
+		$.extend(hv, { xno: this.fisNo || 0 })
+	}
 	alternateKeyHostVarsDuzenle(e) {
 		super.alternateKeyHostVarsDuzenle(e); const {hv} = e, {noSaha} = this.class, {fisNo} = this;
 		if (noSaha) { hv[noSaha] = fisNo ?? null }

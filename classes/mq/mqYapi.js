@@ -9,6 +9,8 @@ class MQYapi extends CIO {
 	static get tekilOku_sqlBatchFlag() { return true } static get tekilOkuYapilazmi() { return false }
 	static get gonderildiDesteklenirmi() { return false } static get gonderimTSSaha() { return 'gonderimts' }
 	static get offlineSahaListe() { return new this().offlineSahaListe } get offlineSahaListe() { return Object.keys(this.hostVars() ?? {}) }
+	static get logRecDonusturucu() { let e = { result: {} }; this.logRecDonusturucuDuzenle(e); return e.result }
+	get logHV() { let e = { hv: {} }; this.logHVDuzenle(e); return e.hv }
 
 	constructor(e) { e = e || {}; super(e) }
 	static getInstance() {
@@ -130,6 +132,34 @@ class MQYapi extends CIO {
 	silmeSonrasiIslemler(e) { return this.kaydetVeyaSilmeSonrasiIslemler(e) }
 	kaydetSonrasiIslemler(e) { return this.kaydetVeyaSilmeSonrasiIslemler(e) }
 	kaydetVeyaSilmeSonrasiIslemler(e) { }
+	static async logKaydet(e) {
+		e = e ?? {}; let {
+			sent: _sent, where, wh, degisenler, adimBelirtec, tableVeAlias, tabloVeAlias, table, alias,
+			duzenle, logRecDonusturucu, duzenleyici
+		} = e;
+		degisenler = degisenler ?? []; adimBelirtec = adimBelirtec ?? this.kodListeTipi;
+		where = where ?? wh ?? _sent?.where; duzenleyici = duzenleyici ?? duzenle; tableVeAlias = tableVeAlias ?? tabloVeAlias;
+		table = table ?? tableVeAlias?.table ?? this.table; let tAlias = (alias ?? tableVeAlias?.alias ?? this.tableAlias) || 't';
+		logRecDonusturucu = logRecDonusturucu ?? this.logRecDonusturucu;
+		let sent = new MQSent({ from: `${table} ${tAlias}`, where }), {sahalar} = sent;
+		sahalar.add(`${table.sqlServerDegeri()} tablo`);
+		let _e = { ...e, sent, where, table, alias: tAlias }; duzenleyici.call(this, _e);
+		sent = _e.sent; sahalar = sent.sahalar;
+		sent.gereksizTablolariSilDisinda({ disindaSet: tAlias });
+		let {alias2Deger} = sent, sahaAdiSet = asSet(Object.values(sent.alias2Deger));
+		for (let [buAttr, logAttr] of Object.entries(logRecDonusturucu)) {
+			if (sahaAdiSet[logAttr]) { continue }
+			sahalar.add(`${tAlias}.${buAttr} ${logAttr}`)
+		}
+		let ins = _e.ins = new MQSelect2Insert({ table, sent });
+		$.extend(_e, { degisenler: degisenler.map(x => x.replaceAll(' ', '_')) })
+		this.logInsertDuzenle(_e); ins = _e.ins;
+		return await app.sqlExecNone(ins)
+	}
+	logKaydet(e) { return this.class.logKaydet(e) }
+	static logInsertDuzenle(e) { }
+	static logRecDonusturucuDuzenle(e) { }
+	logHVDuzenle(e) { }
 	static varsayilanKeyHostVars(e) { const hv = {}; this.varsayilanKeyHostVarsDuzenle($.extend({}, e, { hv })); return hv }
 	static varsayilanKeyHostVarsDuzenle(e) { }
 	keyHostVars(e) { const hv = {}; this.keyHostVarsDuzenle($.extend({}, e, { hv })); return hv }

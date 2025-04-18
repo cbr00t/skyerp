@@ -69,7 +69,20 @@ class MQSayacli extends MQCogul {
 		if (!sayac) throw { isError: true, rc: 'sayacBelirlenemedi', errorText: 'Kaydedilen fiş belirlenemedi' }
 		return sayac
 	}
-	kopyaIcinDuzenle(e) { super.kopyaIcinDuzenle(e); let {sayacSaha} = this.class; if (sayacSaha) { this.sayac = null } }
+	kopyaIcinDuzenle(e) {
+		super.kopyaIcinDuzenle(e);
+		let {sayacSaha} = this.class; if (sayacSaha) { this.sayac = null }
+	}
+	static logRecDonusturucuDuzenle({ result }) {
+		super.logRecDonusturucuDuzenle(...arguments);
+		let {sayacSaha} = this.class; result[sayacSaha] = 'xsayac'
+		let {kodKullanilirmi, kodSaha} = this.class; if (kodKullanilirmi) { result[kodSaha] = 'xkod' }
+	}
+	logHVDuzenle({ hv }) {
+		super.logHVDuzenle(...arguments);
+		hv.xsayac = this.sayac || 0;
+		let {kodKullanilirmi} = this.class; if (kodKullanilirmi) { hv.xkod = this.kod || '' }
+	}
 	keyHostVarsDuzenle(e) {
 		super.keyHostVarsDuzenle(e); const {hv} = e, {sayacSaha, kodKullanilirmi, kodSaha} = this.class, {sayac, kod} = this;
 		if (sayacSaha && sayac) { hv[sayacSaha] = sayac }

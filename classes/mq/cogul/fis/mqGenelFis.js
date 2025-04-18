@@ -103,6 +103,14 @@ class MQGenelFis extends MQOrtakFis {
 		super.loadServerData_queryDuzenle(...arguments); let {aliasVeNokta} = this, {where: wh} = sent;
 		wh.add(`${aliasVeNokta}silindi = ''`)
 	}
+	static logRecDonusturucuDuzenle({ result }) {
+		super.logRecDonusturucuDuzenle(...arguments);
+		$.extend(result, { bizsubekod: 'xbizsubekod', tarih: 'xtarih', seri: 'xseri' })
+	}
+	logHVDuzenle({ hv }) {
+		super.logHVDuzenle(...arguments);
+		$.extend(hv, { xbizsubekod: this.subeKod || '', xtarih: this.tarih, xseri: this.seri || '' })
+	}
 	alternateKeyHostVarsDuzenle({ hv }) {
 		super.alternateKeyHostVarsDuzenle(...arguments); const {subeKodSaha, seriSaha, noYilKullanilirmi} = this.class;
 		hv[subeKodSaha] = this.subeKod || ''; hv[seriSaha] = this.seri || '';

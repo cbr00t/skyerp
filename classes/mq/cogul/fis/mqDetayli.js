@@ -460,12 +460,21 @@ class MQDetayliGUID extends MQDetayliMaster {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sayacSaha() { return 'id' }
 	get id() { return this.sayac } set id(value) { this.sayac = value }
 	/*yaz(e) { this.id = this.id || newGUID(); return super.yaz(e) }*/
-	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); this.id = this.id || newGUID(); const {sayacSaha} = this.class, {hv} = e; hv[sayacSaha] = this.id }
 	topluYazmaKomutlariniOlustur_baslikSayacBelirle(e) { }
 	topluYazmaKomutlariniOlustur_sqlParamsDuzenle(e) {
 		const {params, paramName_fisSayac} = e; params.push({ name: paramName_fisSayac, type: 'uniqueidentifier', direction: 'input', value: this.id })
 	}
 	yazSonrasi_sayacGeriYukle(e) { }
+	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); this.id = this.id || newGUID(); const {sayacSaha} = this.class, {hv} = e; hv[sayacSaha] = this.id }
+	static logRecDonusturucuDuzenle({ result }) {
+		super.logRecDonusturucuDuzenle(...arguments);
+		let {sayacSaha: kodSaha} = this.class; result[kodSaha] = 'xsayac'
+	}
+	logHVDuzenle({ hv }) {
+		super.logHVDuzenle(...arguments);
+		hv.xkod = this.id || 0;
+		let {kodKullanilirmi} = this.class; if (kodKullanilirmi) { hv.xkod = this.kod || '' }
+	}
 }
 class MQDetayliVeAdi extends MQDetayliMaster { static { window[this.name] = this; this._key2Class[this.name] = this } static get adiKullanilirmi() { return true } }
 class MQDetayliGUIDVeAdi extends MQDetayliGUID { static { window[this.name] = this; this._key2Class[this.name] = this } static get adiKullanilirmi() { return true } }

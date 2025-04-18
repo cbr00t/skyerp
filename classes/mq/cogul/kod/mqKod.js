@@ -70,6 +70,14 @@ class MQKod extends MQCogul {
 		super.tekilOku_queryDuzenle(e); const {aliasVeNokta, kodSaha} = this.class, kod = this.kodUyarlanmis, {sent} = e;
 		if (kodSaha && kod) { sent.where.degerAta(kod, `${aliasVeNokta}${kodSaha}`) }
 	}
+	static logRecDonusturucuDuzenle({ result }) {
+		super.logRecDonusturucuDuzenle(...arguments);
+		let {kodSaha} = this.class; result[kodSaha] = 'xkod'
+	}
+	logHVDuzenle({ hv }) {
+		super.logHVDuzenle(...arguments);
+		hv.xkod = this.kod || ''
+	}
 	keyHostVarsDuzenle(e) { super.keyHostVarsDuzenle(e); const {hv} = e; hv[this.class.kodSaha] = this.kodUyarlanmis }
 	keySetValues(e) { super.keySetValues(e); const {rec} = e; let value = rec[this.class.kodSaha]; if (value != null) { this.kod = value } }
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; if (this.class.zeminRenkDesteklermi) hv.oscolor = html2OSColor(this.zeminRenk) || 0 }

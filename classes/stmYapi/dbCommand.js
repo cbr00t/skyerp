@@ -48,6 +48,19 @@ class MQSentVeIliskiliYapiOrtak extends MQDbCommand {
 		e.callback.call(this, this, { item: this, index: 1, liste: [this] })
 	}
 }
+class MQSelect2Insert extends MQDbCommand {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get onEk() { return `INSERT INTO ` } get isDBWriteClause() { return true }
+	constructor(e) {
+		e = e || {}; super(e); let {sent} = e;
+		$.extend(this, { table: e.table ?? e.from, sent })
+	}
+	buildString(e) {
+		super.buildString(e); let {table, sent} = this, {onEk} = this.class;
+		if (!(table && sent) || sent?.sahalar?.liste?.length === 0) { return }
+		e.result += `${onEk}${table} ${sent.toString()}`
+	}
+}
 class MQInsertBase extends MQDbCommand {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get onEk() { return `INSERT INTO ` }
 	get isTableInsert() { return this.tableInsertFlag } get isDBWriteClause() { return true }
@@ -56,18 +69,22 @@ class MQInsertBase extends MQDbCommand {
 		$.extend(this, { table: e.table ?? e.from, hvListe, tableInsertFlag: null })
 	}
 	buildString(e) {
-		super.buildString(e); const {table, hvListe} = this; if (!table || $.isEmptyObject(hvListe)) { return }
-		const {sqlitemi, offlineMode} = window?.app ?? {}, {onEk} = this.class, ilkHV = hvListe[0], keys = Object.keys(ilkHV), hvSize = hvListe.length;
+		super.buildString(e); let {table, hvListe} = this; if (!table || $.isEmptyObject(hvListe)) { return }
+		let {sqlitemi, offlineMode} = window?.app ?? {}, {onEk} = this.class, ilkHV = hvListe[0], keys = Object.keys(ilkHV), hvSize = hvListe.length;
 			// SQL Bulk Insert (values ?? .. ??) için SQL tarafında en fazla 1000 kayıta kadar izin veriliyor
 		let isTableInsert = hvSize > 1000 ? true : this.isTableInsert; if (isTableInsert == null) { isTableInsert = hvSize > 500 }
 		e.result += `${onEk}${table} (`; e.result += keys.join(','); e.result += ') ';
 		if (sqlitemi && offlineMode !== false) {
-			let hvParamClauses = []; e.params = []; for (const hv of hvListe) {
-				let hvParam = []; for (const key of keys) {
-					let value = hv[key] ?? null; if (isDate(value)) { value = asReverseDateTimeString(value) } else if (typeof value == 'boolean') { value = bool2Int(value) }
+			let params = e.params = [], hvParamClauses = [];
+			for (let hv of hvListe) {
+				let hvParam = []; for (let key of keys) {
+					let value = hv[key] ?? null;
+					if (isDate(value)) { value = asReverseDateTimeString(value) }
+					else if (typeof value == 'boolean') { value = bool2Int(value) }
 					hvParam.push(value)
 				}
-				hvParamClauses.push(`(${hvParam.map(x => '?').join(', ')})`); e.params.push(...hvParam)
+				hvParamClauses.push(`(${hvParam.map(x => '?').join(', ')})`);
+				params.push(...hvParam)
 			}
 			e.result += `VALUES ${hvParamClauses.join(', ')}`
 		}
@@ -78,8 +95,8 @@ class MQInsertBase extends MQDbCommand {
 				e.result += ' VALUES ';
 				for (let i = 0; i < hvSize; i++) {
 					if (i != 0) { e.result += ',' }
-					e.result += '('; const hv = hvListe[i]; let ilkDegermi = true;
-					for (const key in hv) {
+					e.result += '(';
+					let hv = hvListe[i], ilkDegermi = true; for (const key in hv) {
 						if (ilkDegermi) { ilkDegermi = false } else { e.result += ',' }
 						const value = hv[key]; e.result += MQSQLOrtak.sqlServerDegeri(value)
 					}

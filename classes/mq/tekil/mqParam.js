@@ -60,12 +60,20 @@ class MQParam extends MQTekil {
 		return this.yukle(e)
 	}
 	async kaydetOncesiIslemler(e) {
-		const {paramci} = this; if (paramci) { for (const item of paramci.getItemsAndSelf()) { if (item.kaydetOncesi) await item.kaydetOncesi(e) } }
+		const {paramci} = this; if (paramci) { for (const item of paramci.getItemsAndSelf()) { if (item.kaydetOncesi) { await item.kaydetOncesi(e) } } }
 		super.kaydetOncesiIslemler(e)
 	}
 	async kaydetSonrasiIslemler(e) {
-		const {paramci} = this; if (paramci) { for (const item of paramci.getItemsAndSelf()) { if (item.kaydedince) await item.kaydedince(e) } }
+		const {paramci} = this; if (paramci) { for (const item of paramci.getItemsAndSelf()) { if (item.kaydedince) { await item.kaydedince(e) } } }
 		await super.kaydetSonrasiIslemler(e)
+	}
+	static logRecDonusturucuDuzenle({ result }) {
+		super.logRecDonusturucuDuzenle(...arguments);
+		result.kod = 'xkod'
+	}
+	logHVDuzenle({ hv }) {
+		super.logHVDuzenle(...arguments);
+		hv.xkod = this.class.paramKod || ''
 	}
 	static varsayilanKeyHostVarsDuzenle({ hv }) {
 		super.varsayilanKeyHostVarsDuzenle(...arguments);
