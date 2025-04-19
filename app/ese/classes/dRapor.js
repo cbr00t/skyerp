@@ -6,10 +6,21 @@ class DRapor_ESETest extends DRapor_Donemsel {
 class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_ESETest }
 	static get table() { return 'esetest' } static get detayVeyaGrupTable() { return null } get tazeleYapilirmi() { return true }
+	onInit(e) {
+		super.onInit(e); let {yatayTip2Bilgi} = DRapor_AraSeviye_Main;
+		$.extend(yatayTip2Bilgi, {
+			YG: { kod: 'YASGRUP', belirtec: 'yasgrup', text: 'Yaş Grubu' },
+			YS: { kod: 'AKTIFYAS', belirtec: 'aktifyas', text: 'Aktif Yaş' },
+			CN: { kod: 'CINSIYET', belirtec: 'cinsiyet', text: 'Cinsiyet' },
+			DT: { kod: 'DOKTOR', belirtec: 'doktor', text: 'Doktor' },
+			HS: { kod: 'HASTA', belirtec: 'hasta', text: 'Hasta' }
+		})
+		$.extend(DRapor_AraSeviye_Main, { yatayTip2Bilgi })
+	}
 	ekCSSDuzenle(e) {
 		super.ekCSSDuzenle(e); const {belirtec, result} = e; switch (belirtec) {
 			case 'dogrusayi': case 'dogrusecimsurems': result.push('limegreen'); break
-			case 'yanlissayi': case 'yanlissecimsurems': case 'yanitsizsayi': result.push('firebrick'); break
+			case 'yanlissayi': case 'yanlissecimsurems': case 'secilmeyendogrusayi': result.push('firebrick'); break
 		}
 	}
 	tabloYapiDuzenle(e) {
@@ -44,7 +55,7 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 			.addToplam(new TabloYapiItem().setKA('YANLISSECIMSUREMS', 'Yanlış Seçim Süre (ms)').hidden().addColDef(new GridKolon({ belirtec: 'yanlissecimsurems' }).tipDecimal()))
 			.addToplam(new TabloYapiItem().setKA('ORTYANLISSECIMSUREMS', 'Ort. Yanlış Seçim Süre (ms)').setFormul(['YANLISSECIMSUREMS'], ({ rec }) => roundToFra1(rec.yanlissecimsurems / rec.kayitsayisi))
 				.addColDef(new GridKolon({ belirtec: 'ortyanlissecimsurems', text: 'Ort. Yanlış Seçim (ms)', genislikCh: 15, filterType: 'numberinput'}).tipDecimal().dipAvg()))
-			.addToplam(new TabloYapiItem().setKA('YANITSIZSAYI', 'Yanıtsız Sayı').addColDef(new GridKolon({ belirtec: 'yanitsizsayi', text: 'Yanıtsız Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik().dipAvg()));
+			/* .addToplam(new TabloYapiItem().setKA('YANITSIZSAYI', 'Yanıtsız Sayı').addColDef(new GridKolon({ belirtec: 'yanitsizsayi', text: 'Yanıtsız Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik().dipAvg())); */
 		for (const prefix of ['HI', 'DE']) {
 			const prefixLower = prefix.toLowerCase(); result
 				.addToplam(new TabloYapiItem().setKA(`${prefix}SKOR`).hidden())
@@ -66,8 +77,8 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 		if (attrSet.YASGRUP) {
 			sent.leftJoin({ alias, from: 'eseyasgrup ygrp', on: [`(ygrp.yasbasi = 0 or ${alias}.aktifyas >= ygrp.yasbasi)`, `(ygrp.yassonu = 0 or ${alias}.aktifyas <= ygrp.yassonu)`] }) }
 		if (attrSet.SORU) { sent.leftJoin({ alias, from: 'eseanketsablondetay sdet', on: 'har.esedetayid = sdet.id' }) }
-		if (Object.keys(attrSet).find(key => key.startsWith('YANIT'))) {
-			sent.leftJoin({ alias, from: 'eseanketsablon sab', on: 'fis.esesablonid = sab.id' }).leftJoin({ alias, from: 'eseanketyanit ynt', on: 'sab.yanitid = ynt.id' }) }
+		/*if (Object.keys(attrSet).find(key => key.startsWith('YANIT'))) {
+			sent.leftJoin({ alias, from: 'eseanketsablon sab', on: 'fis.esesablonid = sab.id' }).leftJoin({ alias, from: 'eseanketyanit ynt', on: 'sab.yanitid = ynt.id' }) }*/
 		for (const key in attrSet) {
 			switch (key) {
 				case 'TESTID': sahalar.add('fis.id testid'); break

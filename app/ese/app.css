@@ -36,8 +36,8 @@ body.dark-theme .MQSablonCPT.modelTanim.part > .form [data-builder-id = grid-par
 .MQTest.masterListe.part .islemTuslari button#eMailGonder, .MQTest.masterListe.part .islemTuslari button#testIslemleri { font-size: 95%; width: 110px; line-height: 19px }
 .MQTest.masterListe.part .islemTuslari button#eMailGonder.jqx-fill-state-normal { background-color: #795c90 }
 .MQTest.masterListe.part .islemTuslari button#testIslemleri.jqx-fill-state-normal { background-color: #337333 }
-.MQTest.masterListe.part .jqx-grid [role = row] > .bdehbvarmi.dehb { background-color: #da9081 }
-.MQTest.masterListe.part .jqx-grid [role = row] > .bdehbmiozel.dehb { background-color: #dab981 }
-.MQTest.masterListe.part .jqx-grid [role = row] > .cpt:not(.jqx-grid-cell-selected) { background-color: #c5d7db !important }
-.MQTest.masterListe.part .jqx-grid [role = row] > .anket-hi:not(.jqx-grid-cell-selected) { background-color: #f5eada !important }
-.MQTest.masterListe.part .jqx-grid [role = row] > .anket-de:not(.jqx-grid-cell-selected) { background-color: #c9c2be !important }
+.MQTest.masterListe.part .jqx-grid [role = row] .bdehbvarmi.dehb { background-color: #da9081 }
+.MQTest.masterListe.part .jqx-grid [role = row] .bdehbmiozel.dehb { background-color: #dab981 }
+.MQTest.masterListe.part .jqx-grid [role = row] .cpt:not(.jqx-grid-cell-selected) { background-color: #c5d7db !important }
+.MQTest.masterListe.part .jqx-grid [role = row] .anket-hi:not(.jqx-grid-cell-selected) { background-color: #f5eada !important }
+.MQTest.masterListe.part .jqx-grid [role = row] .anket-de:not(.jqx-grid-cell-selected) { background-color: #c9c2be !important }

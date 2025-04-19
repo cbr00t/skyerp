@@ -62,6 +62,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		if (!this.konsolideVarmi) { result = { ...result }; delete result.DB }
 		return result
 	}
+	static set yatayTip2Bilgi(value) { this._yatayTip2Bilgi = value }
 	secimlerDuzenle(e) {
 		super.secimlerDuzenle(e); let {secimler} = e, {grupVeToplam} = this.tabloYapi;
 		const islemYap = (keys, callSelector, args) => {

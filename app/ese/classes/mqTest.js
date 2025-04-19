@@ -380,7 +380,9 @@ class MQTestAnket extends MQTest {
 		const keys = ['sureDk', 'yanitID'], PrefixSecenek = 'secenek', PrefixYanit = 'yanit';
 		for (const key of keys) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
 		for (const [key, value] of Object.entries(rec)) {
-			if (key.startsWith(PrefixSecenek) || key.startsWith(PrefixYanit)) { let value = rec[key]; if (value !== undefined) { this[key] = value } } }
+			if (key.startsWith(PrefixSecenek) || key.startsWith(PrefixYanit)) {
+				let value = rec[key]; if (value !== undefined) { this[key] = value } }
+		}
 	}
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
 		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, header, content, islemTuslari} = parentPart;
@@ -392,7 +394,8 @@ class MQTestAnket extends MQTest {
 			}
 		} 
 		let id2Soru = {}; for (const det of detaylar) { let {id, soru} = det; if (soru == null) { continue } soru = soru.trimEnd(); id2Soru[id] = soru }
-		let {genelSonuc, testId, sureDk} = this, {tip, testSonucSinif, testUyariText} = this.class, soruSayi = Object.keys(id2Soru).length;
+		let {genelSonuc, testId, sureDk} = this, {tip, testSonucSinif, testUyariText} = this.class;
+		let soruSayi = Object.values(id2Soru).filter(x => x && x[0] != '#').length;
 		let htmlList = [], countdown;
 		switch (state) {
 			case 'home':
@@ -411,17 +414,33 @@ class MQTestAnket extends MQTest {
 				let btn = $(`<button id="bitti">TEST BİTTİ ise Buraya tıklayınız</button>`); btn.jqxButton({ theme }).on('click', evt => {
 					if (genelSonuc.cevapsizSayi) { hConfirm(`<b class="firebrick">Tüm soruları cevaplamalısınız</b>`, 'Uyarı'); return }
 					countdown?.destroyPart(); countdown = null; delete this._countdown;
-					if (genelSonuc) { for (const testSonuc of Object.values(genelSonuc.soruId2Cevap)) { genelSonuc.totalEkle(testSonuc) } }
+					if (genelSonuc) { for (let testSonuc of Object.values(genelSonuc.soruId2Cevap)) { genelSonuc.totalEkle(testSonuc) } }
 					parentPart.nextPage()
 				}); btn.appendTo(header);
-				htmlList.push(`<div class="anket">`); for (const [id, soru] of Object.entries(id2Soru)) {
-					if (soru == null) { continue }
-					htmlList.push(`<div class="item flex-row" data-id="${id}"><div class="soru">${soru || '&nbsp;'}</div><div name="${id}" class="secenekler">`);
-					for (let i = 0; i < secenekler.length; i++) { htmlList.push(`<button class="secenek">${secenekler[i]}</button>`) }
-					htmlList.push(`</div></div>`)
+				let id2Grup = {}, grupId2Id2Soru = {}, _id2Soru = {};
+				let grup = { id: '_default', text: '' }; id2Grup[grup.id] = grup;
+				for (let [id, soru] of Object.entries(id2Soru)) {
+					if (!soru) { continue } _id2Soru[id] = soru;
+					if (soru[0] == '#') {
+						let text = soru.slice(1).trimStart(); id2Grup[id] = grup = { id, text };
+						continue
+					}
+					(grupId2Id2Soru[grup.id] = grupId2Id2Soru[grup.id] ?? {})[id] = soru
 				}
+				htmlList.push(`<div class="anket">`);
+				for (let [grupId, id2Soru] of Object.entries(grupId2Id2Soru)) {
+					let grup = id2Grup[grupId], {text} = grup;
+					htmlList.push(`<div class="grup">`, `<div class="etiket">${text}</div>`);
+					for (let [id, soru] of Object.entries(id2Soru)) {
+						htmlList.push(`<div class="item flex-row" data-id="${id}"><div class="soru">${soru || '&nbsp;'}</div><div name="${id}" class="secenekler">`);
+						for (let i = 0; i < secenekler.length; i++) { htmlList.push(`<button class="secenek">${secenekler[i]}</button>`) }
+						htmlList.push(`</div></div>`)
+					}
+					htmlList.push(`</div>`)
+				}
+				htmlList.push(`</div>`);
 				$(htmlList.join('')).appendTo(content); makeScrollable(content.find('.anket'));
-				content.find('.anket > .item > .secenekler').jqxButtonGroup({ theme, mode: 'radio' }).on('buttonclick', evt => {
+				content.find('.anket .item > .secenekler').jqxButtonGroup({ theme, mode: 'radio' }).on('buttonclick', evt => {
 					let {index} = evt.args; if (index == null) { return } index = asInteger(index); const seq = index + 1;
 					let soruId = $(evt.currentTarget).parents('.item').data('id'); if (!soruId) { return }
 					genelSonuc.soruId2Cevap[soruId] = { soru: id2Soru[soruId], index, puan: this[`yanit${seq}Puan`] }
