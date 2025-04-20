@@ -43,7 +43,7 @@ class NumaratorPart extends Part {
 		const {numarator} = this, numKod = numarator.kod, seri = numarator.seri = numKod2Seri[numKod] || '';
 		if (!await numarator.yukle()) {
 			numarator.seri = '';
-			if (!await numarator.yukle()) { $.extend(numarator, { sonNo: 0 }); numarator.yaz() }
+			if (!await numarator.yukle()) { $.extend(numarator, { sonNo: 0 }); await numarator.yaz() }
 		}
 		const _e = $.extend({}, e, { seri: numarator.seri, noYil: numarator.noYil, sonNo: numarator.sonNo + 1 }); this.otoNumGoster(_e)
 	}

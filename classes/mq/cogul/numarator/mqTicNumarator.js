@@ -9,7 +9,7 @@ class MQTicNumarator extends MQNumarator {
 		super.pTanimDuzenle(e); const {pTanim} = e;
 		$.extend(pTanim, {
 			sayac: new PInstNum(this.sayacSaha), tip: new PInstStr('tip'),
-			noYil: new PInstNum({ rowAttr: 'noyil', init: e => app.params.zorunlu.cariYil || today().getYear() })
+			noYil: new PInstNum({ rowAttr: 'noyil' /*, init: e => app.params.zorunlu.cariYil || today().getYear() */ })
 		})
 	}
 	static rootFormBuilderDuzenle(e) {
@@ -65,8 +65,9 @@ class MQTicNumarator extends MQNumarator {
 	keyHostVarsDuzenle(e) { super.superKeyHostVarsDuzenle(e); const {hv} = e; hv.tip = this.tip; }
 	keySetValues(e) { super.superKeySetValues(e); const {rec} = e; let value = rec.tip; if (value != null) this.tip = value }
 	async kesinlestir(e) {
-		const {table} = this.class, {sayac} = this, {sayacSaha} = this.class; let sonNo = this.sonNo || 0;
-		let result = await app.sqlExecNoneWithResult({
+		const {table} = this.class, {sayac} = this;
+		let sonNo = this.sonNo || 0; if (!sayac) { this.sonNo = ++sonNo; return this }
+		let {sayacSaha} = this.class, result = await app.sqlExecNoneWithResult({
 			query: `UPDATE ${table} SET @sonNo = sonno = sonno + 1 WHERE ${sayacSaha} = ${sayac}`,
 			params: [{ name: '@sonNo', type: 'int', direction: 'output' }]
 		});

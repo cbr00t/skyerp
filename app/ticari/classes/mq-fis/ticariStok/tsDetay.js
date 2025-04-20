@@ -115,14 +115,13 @@ class TSSHDDetay extends TSDetay {
 		}
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {aliasVeNokta, shTable, shAlias, shKodSaha} = this, {sent} = e;
+		super.loadServerData_queryDuzenle(e); let {aliasVeNokta, shTable, shAlias, shKodSaha} = this, {sent} = e;
 		sent.fromIliski(`${shTable} ${shAlias}`, `${aliasVeNokta}${shKodSaha} = ${shAlias}.kod`);
 		sent.sahalar.add(
 			`${aliasVeNokta}${shKodSaha} shKod`, `${shAlias}.aciklama shAdi`, `${shAlias}.brm`,
 			`${aliasVeNokta}miktar`, `${aliasVeNokta}fiyat`, `${aliasVeNokta}bedel`, `${aliasVeNokta}ekaciklama`
 		);
-		const {stokGibimi} = this;
-		for (const item of HMRBilgi.hmrIter()) {
+		let {stokGibimi} = this; for (let item of HMRBilgi.hmrIter()) {
 			const {kami, mfSinif, rowAttr, ioAttr, adiAttr} = item;
 			const {table, tableAlias, kodSaha, adiSaha} = mfSinif || {}; if (!(kami && mfSinif)) { continue }
 			if (stokGibimi) {

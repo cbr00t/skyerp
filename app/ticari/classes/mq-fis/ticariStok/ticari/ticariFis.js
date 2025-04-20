@@ -11,7 +11,7 @@ class TicariFis extends TSOrtakFis {
 	static get tsStokDetayTable() { return this.siparismi ? 'sipstok' : 'pifstok' } static get tsHizmetDetayTable() { return this.siparismi ? 'siphizmet' : 'pifhizmet' }
 	static get tsFasonDetayTable() { return this.siparismi ? 'sipfsstok' : 'piffsstok' } static get tsHizmetDetayTable() { return this.siparismi ? 'siphizmet' : 'pifhizmet' }
 	static get tsDemirbasDetayTable() { return this.siparismi ? 'sipdemirbas' : 'pifdemirbas' } static get tsAciklamaDetayTable() { return this.siparismi ? 'sipaciklama' : 'pifaciklama' }
-	static get almSat() { return null } static get ayrimTipi() { return null } static get fisEkAyrim() { return null }
+	static get almSat() { return null } static get ayrimTipi() { return '' } static get fisEkAyrim() { return null } static get ozelTip() { return null }
 	static get ayrimTipKod() { return 'TFSAY' } static get ayrimBelirtec() { return 'tfis' } static get ayrimTableAlias() { return 'tfayr' }
 	static get dipIskOranSayi() { return 1 } static get dipIskBedelSayi() { return 1 }
 	static get satismi() { return this.almSat == 'T' } static get alimmi() { return this.almSat == 'A' }
@@ -158,6 +158,23 @@ class TicariFis extends TSOrtakFis {
 	}
 	tekilOku_detaylar_queryDuzenle(e) { super.tekilOku_detaylar_queryDuzenle(e); e.detaySinif.tekilOku_detaylar_queryDuzenle_ticari(e) }
 	async kaydetOncesiIslemler(e) { await super.kaydetOncesiIslemler(e); await this.fisBakiyeDurumuGerekirseAyarla(e) }
+	async disKaydetOncesiIslemler(e) {
+		await super.disKaydetOncesiIslemler(e);
+		let {tarih, subeKod, mustKod, detaylar} = this, kapsam = { tarih, subeKod, mustKod };
+		let kosulYapilar = new SatisKosulYapi({ kapsam }); if (!await kosulYapilar.yukle()) { kosulYapilar = null }
+		let {FY} = kosulYapilar ?? {}; if (FY) {
+			let duzDetaylar = detaylar.filter(det => det.stokmu && !det.promosyonmu && !det.fiyat);
+			let stokKodSet = asSet(duzDetaylar.map(det => det.shKod));
+			if (!$.isEmptyObject(stokKodSet)) {
+				let kod2KosulResult = (await SatisKosul_Fiyat.getAltKosulYapilar(Object.keys(stokKodSet), kosulYapilar?.FY, mustKod)) ?? {};
+				let {fiyat} = kosulResult ?? {}; if (fiyat) { $.extend(det, { fiyat, ozelFiyatVarmi: true }) }
+				for (let det of duzDetaylar) {
+					let {fiyat} = kod2KosulResult[det.shKod] ?? {};
+					if (fiyat) { $.extend(det, { fiyat }) }
+				}
+			}
+		}
+	}
 	async topluYazmaKomutlariniOlusturSonrasi(e) {
 		super.topluYazmaKomutlariniOlusturSonrasi(e); const {table} = this.class, {trnId,toplu} = e;
 		const uniqueKeys = ['pifsayac', 'sipsayac', 'seq']; let hvListe = this.getDipEBilgi_hvListe(e);
@@ -174,20 +191,21 @@ class TicariFis extends TSOrtakFis {
 	}
 	// Stok/Hizmet/Demirbaş için Vergi bilgileri ek belirlemeler
 	async detaylariYukleSonrasi(e) { e = e || {}; await super.detaylariYukleSonrasi(e); await this.class.kdvKod2RecGlobalOlustur(e) }
-	static varsayilanKeyHostVarsDuzenle(e) {
-		super.varsayilanKeyHostVarsDuzenle(e); const {hv} = e, {almSat, ayrimTipi, fisEkAyrim} = this;
+	static varsayilanKeyHostVarsDuzenle({ hv }) {
+		super.varsayilanKeyHostVarsDuzenle(...arguments); let {almSat, ayrimTipi, fisEkAyrim, ozelTip} = this;
 		if (almSat != null) { hv.almsat = almSat }
 		if (ayrimTipi != null) { hv.ayrimtipi = ayrimTipi }
 		if (fisEkAyrim != null) { hv.fisekayrim = fisEkAyrim }
+		if (ozelTip != null) { hv.ozeltip = ozelTip }
 	}
-	hostVarsDuzenle(e) {
-		super.hostVarsDuzenle(e); const {hv} = e; if (!hv.ticmust) { hv.ticmust = hv.must }
-		const {dipIslemci} = this; dipIslemci.ticariFisHostVarsDuzenle(e)
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments); if (!hv.ticmust) { hv.ticmust = hv.must }
+		this.dipIslemci?.ticariFisHostVarsDuzenle(...arguments)
 	}
 	detayHostVarsDuzenle(e) { super.detayHostVarsDuzenle(e); const {det} = e; e.fis = this; if (det?.ticariHostVarsDuzenle) { det.ticariHostVarsDuzenle(e) } }
 	detaySetValues(e) {
-		super.detaySetValues(e); const {det} = e; e.fis = this;
-		if (det?.ticariSetValues) det.ticariSetValues(e)
+		super.detaySetValues(e); let {det} = e;
+		e.fis = this; det?.ticariSetValues?.(e)
 	}
 	getDipEBilgi_hvListe(e) {
 		const {table} = this.class, {sayac, dipIslemci} = this, {belirtec2DipSatir} = dipIslemci;
@@ -260,6 +278,12 @@ class TicariFis extends TSOrtakFis {
 			if (vergiKullanim.ekVergi) { kolonGoster({ belirtec: 'kdvEkText' }) }
 		}
 	}
+	async satisKosulYapiOlustur(e) {
+		await super.satisKosulYapiOlustur(e);
+		let {tarih, subeKod, mustKod} = this, kapsam = { tarih, subeKod, mustKod };
+		let kosulYapilar = new SatisKosulYapi({ kapsam }); if (!await kosulYapilar.yukle()) { kosulYapilar = null }
+		$.extend(this, { kosulYapilar }); return this
+	}
 	async fisBakiyeDurumuGerekirseAyarla(e) {
 		if (!this.class.cikisGibimi) { return } let {trnId, eskiFis} = e, {mustKod} = this;
 		let {musteriOncekiBakiyeDurumu} = this; if (musteriOncekiBakiyeDurumu && eskiFis && mustKod != eskiFis.mustKod) { musteriOncekiBakiyeDurumu = null }
@@ -281,12 +305,12 @@ class TicariFis extends TSOrtakFis {
 	}
 }
 class SiparisFis extends TicariFis {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get siparismi() { return true }
 	static get sinifAdi() { return `${super.sinifAdi}Siparis` } static get table() { return 'sipfis' }
 	static get baslikOzelAciklamaTablo() { return 'sipbasekaciklama' } static get dipSerbestAciklamaTablo() { return 'sipdipaciklama' } static get dipEkBilgiTablo() { return 'sipdipekbilgi' }
-	static get pifTipi() { return 'S' } static get siparismi() { return true }
+	static get pifTipi() { return 'S' } static get ozelTip() { return '' }
 	constructor(e) {
-		e = e || {}; super(e);
+		e = e || {}; super(e); this.noYil = 0;
 		this.baslikTeslimTarihi = e.teslimTarihi || this.baslikTeslimTarihi;
 		if (this.baslikTeslimTarihi) { this.teslimOrtakdir = true }
 	}
@@ -297,8 +321,8 @@ class SiparisFis extends TicariFis {
 		})
 	}
 	static async raporKategorileriDuzenle_detaylar_tsStokMiktarOncesi(e) {
-		await super.raporKategorileriDuzenle_detaylar_tsStokMiktarOncesi(e); const section = ['FRFisTicariDetay-Teslim', 'FRSipDetay-SevkVeKalan'];
-		await e.kat.ekSahaYukle({ section })
+		await super.raporKategorileriDuzenle_detaylar_tsStokMiktarOncesi(e);
+		let section = ['FRFisTicariDetay-Teslim', 'FRSipDetay-SevkVeKalan']; await e.kat.ekSahaYukle({ section })
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments); delete hv.detyerkod;
@@ -318,7 +342,7 @@ class SevkiyatFis extends TicariFis {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get gridKontrolcuSinif() { return this.eBilgi?.gridKontrolcuSinif || super.gridKontrolcuSinif }
 	static get table() { return 'piffis' } static get baslikOzelAciklamaTablo() { return 'pifbasekaciklama' } static get dipSerbestAciklamaTablo() { return 'pifdipaciklama' }
-	static get dipEkBilgiTablo() { return 'pifdipekbilgi' } static get pifTipi() { return null } static get iade() { return '' }
+	static get dipEkBilgiTablo() { return 'pifdipekbilgi' } static get pifTipi() { return null } static get iade() { return '' } static get fisEkAyrim() { return '' }
 	get bakiyeciler() {
 		const {alimmi, iademi, fasonmu} = this.class, stok_sqlDuzenleyici = fasonmu ? 'stokBakiyeSqlEkDuzenle_pifFSStok' : 'stokBakiyeSqlEkDuzenle_pifStok';
 		return [...super.bakiyeciler, new StokBakiyeci({ borcmu: e => alimmi != iademi, sqlDuzenleyici: stok_sqlDuzenleyici }) /* sipariş için gelecek/gidecek ayarı yapılacak */]

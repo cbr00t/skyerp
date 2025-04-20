@@ -8,7 +8,8 @@ class UretimVeriToplamaApp extends App {
 	init(e) { super.init(e) }
 	async runDevam(e) { await super.runDevam(e); await this.wsConfigKontrol(e) }
 	async afterRun(e) {
-		await super.afterRun(e); await this.setValuesFromParam(e); await this.gerceklemeler_ilkIslemler(e);
+		await super.afterRun(e); await app.promise_ready;
+		await this.setValuesFromParam(e); await this.gerceklemeler_ilkIslemler(e);
 		let kullanim = app.params.operGenel?.kullanim || {}, eksikParamIsimleri = [];
 		if (!kullanim.operasyonIsYonetimi) { eksikParamIsimleri.push('Operasyon İş Yönetimi') }
 		if (!kullanim.mesVeriToplama) { eksikParamIsimleri.push('Tablet Veri Toplama') }
@@ -63,9 +64,12 @@ class UretimVeriToplamaApp extends App {
 			let result = await promise; if (result) await this.verileriSil(e)
 		}
 	}
-	setValuesFromParam(e) { const {params} = this; const hmr = asSet(params.operGenel?.hmr) ?? {}; /*if (!$.isEmptyObject(hmr))*/ if (hmr) { HMRBilgi.belirtecListe = Object.keys(hmr) } }
+	setValuesFromParam(e) {
+		let {params} = this, hmr = asSet(params.operGenel?.hmr) ?? {}; /*if (!$.isEmptyObject(hmr))*/
+		if (hmr) { HMRBilgi.belirtecListe = Object.keys(hmr) }
+	}
 	gerceklemeler_ilkIslemler(e) {
-		const yerelParam = this.params.yerel, gerceklemeler = yerelParam.gerceklemeler || [];
+		const {yerel: yerelParam} = this.params, gerceklemeler = yerelParam.gerceklemeler || [];
 		let degistimi = false; const durumSet = asSet(['processing', 'changing', 'error']);
 		for (const rec of gerceklemeler) { const {_durum} = rec; if (durumSet[_durum]) { rec._durum = ''; degistimi = true } }
 		if (degistimi) { yerelParam.kaydet(); const {activePart} = this; if (activePart?.tazele) activePart.tazele() }

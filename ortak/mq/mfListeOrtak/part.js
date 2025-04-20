@@ -324,6 +324,8 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		const {formDuzenleyici} = e; if (formDuzenleyici) { const result = await getFuncValue.call(this, formDuzenleyici, e); if (result === false) { return false } }
 		const wndArgsDuzenleyici = e.wndArgsDuzenle ?? e.wndArgsDuzenleyici ?? e.argsDuzenle; if (wndArgsDuzenleyici) { getFuncValue.call(this, wndArgsDuzenleyici, e) }
 		wnd = e.wnd = createJQXWindow({ content: wndContent, title, args: e.wndArgs }); wndContent = e.wndContent = wnd.find('div > .content > .subContent');
+		let mfSinif = e.mfSinif ?? gridPart?.getMFSinif?.() ?? gridPart?.mfSinif;
+		let wndClassNames = [mfSinif?.name, ...this.wndClassNames, 'contextMenu'].filter(x => !!x); wnd.addClass(wndClassNames.filter(x => !!x));
 		rfb.onAfterRun(e => { setTimeout(() => e.builder.id2Builder.islemTuslari.layout.find(`:eq(0) > button`).focus(), 100) })
 		rfb.run(); wnd.on('close', evt => { $('body').removeClass('bg-modal'); wnd.jqxWindow('destroy'); wnd = null }); $('body').addClass('bg-modal');
 		return e

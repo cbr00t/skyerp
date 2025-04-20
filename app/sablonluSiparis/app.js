@@ -1,7 +1,14 @@
 class SablonluSiparisApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	get yerelParamSinif() { return MQYerelParam } get autoExecMenuId() { return null /* MQKonsinyeSablon.kodListeTipi */ }
+	get configParamSinif() { return MQYerelParamConfig_App } get yerelParamSinif() { return MQYerelParam }
+	get autoExecMenuId() { return null /* MQKonsinyeSablon.kodListeTipi */ }
+	get sonStokDB() { let {webSiparis_sonStokDB: sonStokDB} = app.params.web, {dbName} = config.session; return sonStokDB || dbName }
+	get gecerliDepolar() { let {webSiparis_yerKodListe: yerKodListe} = app.params.web; return $.makeArray(yerKodListe?.length ? yerKodListe : ['A']) }
 	paramsDuzenle(e) { super.paramsDuzenle(e) /*; const {params} = e; $.extend(params, { x: MQParam_X.getInstance() })*/ }
+	async runDevam(e) {
+		await super.runDevam(e); let {ekOzellikKodlari} = app.params.web; await this.promise_ready;
+		if (ekOzellikKodlari) { HMRBilgi.ekOzellikListe = ekOzellikKodlari }
+	}
 	async anaMenuOlustur(e) {
 		await this.promise_ready; let {kullanim} = app.params.aktarim, eksikParamIsimleri = [];
 		/*if (!kullanim.webOzetRapor) { eksikParamIsimleri.push('Web Özet Rapor') }*/

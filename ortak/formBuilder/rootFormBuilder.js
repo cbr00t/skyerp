@@ -33,7 +33,7 @@ class RootFormBuilder extends SubPartBuilder {
 				static get canDestroy() { return true /*this.builder.canDestroy ?? super.canDestroy*/ }
 				static get isCloseable() { return true /*this.builder.canDestroy ?? super.canDestroy*/ }
 				static get noFullHeightFlag() { return this.builder.noFullHeightFlag ?? super.noFullHeightFlag }
-				get wndClassNames() { return this.class.builder.wndClassNames ?? super.wndClassNames }
+				static get wndClassNames() { return this.builder.wndClassNames ?? super.wndClassNames }
 				get formDeferMS() { return this.class.builder.formDeferMS ?? super.formDeferMS }
 				constructor(e) {
 					e = e || {}; super(e); const {builder} = this.class;

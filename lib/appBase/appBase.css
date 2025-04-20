@@ -8,7 +8,9 @@
   -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; display: inline-block
 }
 *, *::before, *::after { box-sizing: content-box }
-body.dark-theme:not(.no-dark-theme) { filter: invert(1) hue-rotate(180deg) contrast(.9) brightness(1) }
+body.dark-theme:not(.no-dark-theme),
+	body.dark-theme.no-dark-theme .jqx-window { filter: invert(1) hue-rotate(180deg) contrast(1) brightness(1) !important }
+body.dark-theme.no-dark-theme .jqx-window .title { font-weight: bold; color: #eee; filter: invert(1) hue-rotate(180deg) contrast(1) brightness(1) }
 html, body {
 	font-family: SkyERP-Default, Segoe UI, Verdana, sans-serif; margin: 0; padding: 0; overflow: hidden;
 	position: relative !important; width: var(--full) !important; height: var(--full) !important

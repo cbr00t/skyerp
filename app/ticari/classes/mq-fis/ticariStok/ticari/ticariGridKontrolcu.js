@@ -3,38 +3,42 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 	tabloKolonlariDuzenle(e) {
 		let {tabloKolonlari} = e; tabloKolonlari.push(
 			new GridKolon({
-				belirtec: 'tip', text: ' ', genislikCh: 8,
-				cellValueChanged: e => {
-					e = e.args || e; const gridWidget = e.owner, tip = e.newvalue; let rec = gridWidget.getrowdata(e.rowindex, e.datafield);
-					const {uid} = rec; switch (tip) {
+				belirtec: 'tip', text: ' ', genislikCh: 8, cellValueChanged: e => {
+					e = e.args || e; let {owner: gridWidget, newvalue: tip} = e, rec = gridWidget.getrowdata(e.rowindex, e.datafield);
+					let {uid} = rec; switch (tip) {
 						case 'stok': rec = new TSStokDetay(rec); break; case 'hizmet': rec = new TSHizmetDetay(rec); break
 						case 'demirbas': rec = new TSDemirbasDetay(rec); break; case 'aciklama': rec = new TSAciklamaDetay(rec); break
 					}
-					const colDef = this.parentPart.belirtec2Kolon.sh; rec.shKod = rec.shAdi = null; gridWidget.updaterow(uid, rec)
+					let {sh: colDef} = this.parentPart.belirtec2Kolon;
+					rec.shKod = rec.shAdi = null; gridWidget.updaterow(uid, rec)
 				}
 			}).noSql().alignCenter().sabitle().tipTekSecim({ tekSecimSinif: MQSHTipVeAciklama, kodGosterilmesin: true })
 		);
-		super.tabloKolonlariDuzenle(e); const {fis} = this; tabloKolonlari = e.tabloKolonlari;
-		const shColDef = tabloKolonlari.find(colDef => colDef.belirtec == 'sh'), {kaKolonu} = shColDef;
-		const savedEditorHandlers = {}; for (const selector of ['createEditor', 'initEditor', 'getEditorValue']) { savedEditorHandlers[selector] = kaKolonu[selector] }
+		super.tabloKolonlariDuzenle(e); let {fis} = this; tabloKolonlari = e.tabloKolonlari;
+		let shColDef = tabloKolonlari.find(colDef => colDef.belirtec == 'sh'), {kaKolonu} = shColDef;
+		let savedEditorHandlers = {}; for (let selector of ['createEditor', 'initEditor', 'getEditorValue']) {
+			savedEditorHandlers[selector] = kaKolonu[selector] }
 		$.extend(kaKolonu, {
 			createEditor: (colDef, rowIndex, value, parent, cellText, cellWidth, cellHeight) => {
-				const {gridWidget} = colDef.gridPart, detaySinif = gridWidget.getrowdata(rowIndex)?.class;
+				let {gridWidget} = colDef.gridPart, detaySinif = gridWidget.getrowdata(rowIndex)?.class;
 				if (detaySinif?.aciklamami) {
-					const editor = $(`<input type="textbox" class="editor full-wh"></input>`); editor.jqxInput({ theme }); editor.appendTo(parent);
+					let editor = $(`<input type="textbox" class="editor full-wh"></input>`); editor.jqxInput({ theme }); editor.appendTo(parent);
 					setTimeout(() => editor.focus(), 10); return
 				}
-				const handler = savedEditorHandlers.createEditor; if (handler) { getFuncValue.call(this, handler, colDef, rowIndex, value, parent, cellText, cellWidth, cellHeight) }
+				let handler = savedEditorHandlers.createEditor;
+				if (handler) { getFuncValue.call(this, handler, colDef, rowIndex, value, parent, cellText, cellWidth, cellHeight) }
 			},
 			initEditor: (colDef, rowIndex, value, parent, cellText, pressedChar) => {
-				const {gridWidget} = colDef.gridPart, detaySinif = gridWidget.getrowdata(rowIndex)?.class;
-				if (detaySinif?.aciklamami) { const editor = parent.children('.editor'); editor.val(value); setTimeout(() => editor.focus(), 10); return }
-				const handler = savedEditorHandlers.initEditor; if (handler) { getFuncValue.call(this, handler, colDef, rowIndex, value, parent, cellText, pressedChar) }
+				let {gridWidget} = colDef.gridPart, detaySinif = gridWidget.getrowdata(rowIndex)?.class;
+				if (detaySinif?.aciklamami) { let editor = parent.children('.editor'); editor.val(value); setTimeout(() => editor.focus(), 10); return }
+				let handler = savedEditorHandlers.initEditor;
+				if (handler) { getFuncValue.call(this, handler, colDef, rowIndex, value, parent, cellText, pressedChar) }
 			},
 			getEditorValue: (colDef, rowIndex, value, parent) => {
 				const {gridWidget} = colDef.gridPart, detaySinif = gridWidget.getrowdata(rowIndex)?.class;
 				if (detaySinif?.aciklamami) { return parent.children('.editor').val() }
-				let result = value; const handler = savedEditorHandlers.getEditorValue; if (handler) { result = getFuncValue.call(this, handler, colDef, rowIndex, value, parent) }
+				let result = value, handler = savedEditorHandlers.getEditorValue;
+				if (handler) { result = getFuncValue.call(this, handler, colDef, rowIndex, value, parent) }
 				return result
 			}
 		});
@@ -54,14 +58,14 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 			new GridKolon({ belirtec: 'kdvEkText', text: 'KDV Ek', genislikCh: 12, cellClassName: 'kdvEkText grid-readOnly' }).readOnly().hidden()
 		);
 		shColDef.stmDuzenleyiciEkle(e => {
-			const {aliasVeNokta, stm, fis, mfSinif} = e, {kdvHesapKodPrefix_stok, kdvHesapKodPrefix_hizmet} = fis.class;
-			for (const sent of stm.getSentListe()) {
-				const hesapSaha_almSatPrefix = ((mfSinif.stokmu || mfSinif.demirbasmi) ? kdvHesapKodPrefix_stok : mfSinif.hizmetmi ? kdvHesapKodPrefix_hizmet : null);
-				if (!hesapSaha_almSatPrefix) { return } const {vergiBelirtecler} = mfSinif;
-				for (const key of vergiBelirtecler) {
+			let {aliasVeNokta, stm, fis, mfSinif} = e, {kdvHesapKodPrefix_stok, kdvHesapKodPrefix_hizmet} = fis.class;
+			for (let sent of stm.getSentListe()) {
+				let hesapSaha_almSatPrefix = ((mfSinif.stokmu || mfSinif.demirbasmi) ? kdvHesapKodPrefix_stok : mfSinif.hizmetmi ? kdvHesapKodPrefix_hizmet : null);
+				if (!hesapSaha_almSatPrefix) { return } let {vergiBelirtecler} = mfSinif;
+				for (let key of vergiBelirtecler) {
 					if (key == TicariFis.vergiBelirtec_kdv) {
-						const kdvDegiskenmiClause = `${aliasVeNokta}${hesapSaha_almSatPrefix}kdvdegiskenmi`; sent.sahalar.add(`${kdvDegiskenmiClause} kdvDegiskenmi`) }
-					const vergiHesapClause = `${aliasVeNokta}${hesapSaha_almSatPrefix}${key}hesapkod`;
+						let kdvDegiskenmiClause = `${aliasVeNokta}${hesapSaha_almSatPrefix}kdvdegiskenmi`; sent.sahalar.add(`${kdvDegiskenmiClause} kdvDegiskenmi`) }
+					let vergiHesapClause = `${aliasVeNokta}${hesapSaha_almSatPrefix}${key}hesapkod`;
 					sent.fromIliski(`vergihesap ${key}ver`, `${vergiHesapClause} = ${key}ver.kod`);
 					sent.sahalar.add(`${vergiHesapClause} ${key}Kod`, `${key}ver.belirtec ${key}Belirtec`)					/* ( stk.satkdvhesapkod kdvkod ... ) gibi */
 				}
@@ -69,66 +73,82 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 			mfSinif.ticariGrid_shKolon_stmDuzenleEk?.(e)
 		});
 		shColDef.degisince(async e => {
-			const {fis, mfSinif} = e, det = e.gridRec, detaySinif = det?.class; if (detaySinif.aciklamami) { return }
-			const isaretlimi = await fis.kayitIcinOzelIsaretlimi, rec = await e.rec, {vergiBelirtecler, vergiBelirtec_kdv} = TicariFis;
-			for (const key of vergiBelirtecler) {
+			let { fis, mfSinif, gridRec: det, rec, setCellValue } = e;
+			let detaySinif = det?.class; if (detaySinif.aciklamami) { return }
+			let isaretlimi = await fis.kayitIcinOzelIsaretlimi;
+			rec = await rec; let {mustKod} = fis, {shKod} = rec ?? {};
+			let kosulResult; if (mustKod && shKod) {
+				let {kosulYapilar} = fis, {FY} = kosulYapilar ?? {};
+				kosulResult = shKod ? Object.values(await SatisKosul_Fiyat.getAltKosulYapilar([shKod], FY, mustKod))?.[0] : null;
+				let {fiyat} = kosulResult ?? {}; if (fiyat) { $.extend(det, { fiyat, ozelFiyatVarmi: true }) }
+			}
+			let {vergiBelirtecler, vergiBelirtec_kdv} = TicariFis; for (let key of vergiBelirtecler) {
 				let kdvmi = key == vergiBelirtec_kdv, colAttr = `${key}Kod`, value = rec[colAttr] || '', duzValue = isaretlimi ? '' : value;
-				det[`orj${colAttr}`] = value; if (kdvmi) { det._kdvDegiskenmi = asBool(rec.kdvDegiskenmi); e.setCellValue({ belirtec: colAttr, value: duzValue }) } else { det[colAttr] = duzValue }
+				det[`orj${colAttr}`] = value;
+				if (kdvmi) { det._kdvDegiskenmi = asBool(rec.kdvDegiskenmi); setCellValue({ belirtec: colAttr, value: duzValue }) }
+				else { det[colAttr] = duzValue }
 				if (!kdvmi) {
 					colAttr = `${key}Belirtec`; value = rec[colAttr] || ''; det[`orj${colAttr}`] = value; duzValue = isaretlimi ? '' : value;
-					if (kdvmi) { det[colAttr] = duzValue } else { e.setCellValue({ belirtec: colAttr, value: duzValue }) }
+					if (kdvmi) { det[colAttr] = duzValue } else { setCellValue({ belirtec: colAttr, value: duzValue }) }
 				}
 				mfSinif.ticariGrid_shKolon_degisinceEk?.({ ...e, rec });
-				delete e.rec; /* e.rec => Promise (async) */ e.detay = det; this.satirBedelHesapla(e)
+				delete e.rec; /* e.rec => Promise (async) */
+				e.detay = det; this.satirBedelHesapla(e)
 			}
 		})
 	}
 	tabloKolonlariDuzenle_fiyat_netBedel_arasi(e) {
-		super.tabloKolonlariDuzenle_fiyat_netBedel_arasi(e); const {tabloKolonlari} = e;
-		for (const item of TicIskYapi.getIskYapiIter()) {
-			const {maxSayi} = item; if (!maxSayi) { continue } const belirtec = item.selector, etiket = `${item.etiket}%`;
+		super.tabloKolonlariDuzenle_fiyat_netBedel_arasi(e); let {tabloKolonlari} = e;
+		for (let item of TicIskYapi.getIskYapiIter()) {
+			let {maxSayi} = item; if (!maxSayi) { continue }
+			let belirtec = item.selector, etiket = `${item.etiket}%`;
 			tabloKolonlari.push(
 				new GridKolon({
 					userData: { iskYapiItem: item }, belirtec: belirtec, text: etiket, genislikCh: 25,
 					cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
 						const oranlar = value;
 						if (oranlar) {
-							const result = []; for (const oran of oranlar) { if (oran && oran > 0) { result.push(oran) } }
+							let result = []; for (let oran of oranlar) { if (oran && oran > 0) { result.push(oran) } }
 							html = changeTagContent(html, ($.isEmptyObject(result) ? '' : `%${result.map(x => x.toString()).join('+')}`))
 						}
 						return html
 					},
 					columnType: 'template', createEditor: (colDef, rowIndex, value, editor, cellText, cellWidth, cellHeight) => {
-						const {gridWidget} = colDef.gridPart, rec = gridWidget.getrowdata(rowIndex);
-						const iskYapiItem = (colDef.userData || {}).iskYapiItem || {}, iskKey = iskYapiItem.key, {maxSayi} = iskYapiItem;
+						let {gridWidget} = colDef.gridPart, rec = gridWidget.getrowdata(rowIndex);
+						let iskYapiItem = (colDef.userData || {}).iskYapiItem || {}, iskKey = iskYapiItem.key, {maxSayi} = iskYapiItem;
 						for (let i = 0; i < maxSayi; i++) {
 							const input = $(`<input class="${iskKey} isk" style="width: 80px;" maxlength="3" data-iskkey="${iskKey}" data-iskindex="${i}"></input>`);
 							input.on('focus', evt => evt.currentTarget.select());
-							input.on('change', evt => { let {value} = evt.currentTarget; value = evt.currentTarget.value = roundToBedelFra(asFloat(value)) })
+							input.on('change', ({ currentTarget: target }) => target.value = roundToBedelFra(asFloat(target.value)));
 							input.appendTo(editor);
 						}
 					},
 					initEditor: (colDef, rowIndex, value, editor, cellText) => {
-						const {gridWidget} = colDef.gridPart, rec = gridWidget.getrowdata(rowIndex), oranlar = value, inputs = editor.find('.isk');
+						let {gridWidget} = colDef.gridPart, rec = gridWidget.getrowdata(rowIndex), oranlar = value, inputs = editor.find('.isk');
 						if (inputs.length) {
 							for (let i = 0; i < inputs.length; i++) { const input = inputs.eq(i), iskIndex = asInteger(input.data('iskindex')); input.val(asFloat(oranlar[iskIndex])); }
 							setTimeout(() => inputs.eq(0).focus(), 100)
 						}
 					},
 					getEditorValue: (colDef, rowIndex, value, editor) => {
-						const {gridWidget} = colDef.gridPart, rec = gridWidget.getrowdata(rowIndex), result = [], inputs = editor.find('.isk');
+						let {gridWidget} = colDef.gridPart, rec = gridWidget.getrowdata(rowIndex), result = [], inputs = editor.find('.isk');
 						for (let i = 0; i < inputs.length; i++) {
-							const input = inputs.eq(i), iskIndex = asInteger(input.data('iskindex')), oran = asFloat(input.val());
+							let input = inputs.eq(i), iskIndex = asInteger(input.data('iskindex')), oran = asFloat(input.val());
 							if (oran && oran > 0) { result.push(oran) }
 						}
-						return result;
+						return result
 					},
 					validation: (colDef, cell, value) => {
 						value = value || [];
-						for (let i = 0; i < value.length; i++) { const oran = value[i]; if (oran && (oran < 0 || oran > 100)) { return { result: false, message: `<u class="bold">${i + 1}.</u> oran değeri <b>(0 - 100)</b> arasında olmalıdır` } } } return true
+						for (let i = 0; i < value.length; i++) {
+							let oran = value[i];
+							if (oran && (oran < 0 || oran > 100)) {
+								return ({ result: false, message: `<u class="bold">${i + 1}.</u> oran değeri <b>(0 - 100)</b> arasında olmalıdır` }) }
+						}
+						return true
 					},
-					cellValueChanged: e => {
-						this.satirBedelHesapla(e); const {args} = e, gridWidget = args.owner, rec = gridWidget.getrowdata(args.rowindex);
+					cellValueChanged: ({ args }) => {
+						this.satirBedelHesapla(e); let {owner: gridWidget} = args, rec = gridWidget.getrowdata(args.rowindex);
 						setTimeout(() => gridWidget.updaterow(rec.uid, rec), 10)
 					}
 				})

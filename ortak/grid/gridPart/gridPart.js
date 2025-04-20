@@ -1,8 +1,8 @@
 class GridPart extends Part {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get isSubPart() { return true } static get isGridPart() { return true } get isGridPart() { return this.class.isGridPart } get wndClassNames() { return $.merge(['grid'], super.wndClassNames || []) }
-	get gridFormSelector() { return '.grid-parent .grid' } get defaultLayoutSelector() { return this.class.isWindowPart ? super.defaultLayoutSelector : this.gridFormSelector }
-	
+	static get isSubPart() { return true } static get partName() { return 'grid' } static get isGridPart() { return true } get isGridPart() { return this.class.isGridPart }
+	static get wndClassNames() { return [this.partName, ...super.wndClassNames] } get gridFormSelector() { return '.grid-parent .grid' }
+	get defaultLayoutSelector() { return this.class.isWindowPart ? super.defaultLayoutSelector : this.gridFormSelector }
 	static get defaultAsyncFlag() { return true } static get defaultCacheFlag() { return true }
 	get asyncFlag() { return this.async == null ? this.class.defaultAsyncFlag : this.async } get cacheFlag() { return this.async == null ? this.class.defaultCacheFlag : this.cache }
 	get gridRecOzelkeys() { return ['uid', 'uniqueid', 'visibleindex', 'boundindex'] } get defaultGridIDBelirtec() { return undefined }

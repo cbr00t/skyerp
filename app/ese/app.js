@@ -62,20 +62,23 @@ class ESEApp extends App {
 					let {tip, testUyariText} = cls, tipVeSablonId = `${tip}-${sablonId}`, sablonAdi = sablonId2Adi[sablonId];
 					if (sablonAdi) { text += `<div class="royalblue" style="font-weight: normal; font-size: 90%; padding-top: 10px">${sablonAdi}</div>` }
 					let disabled = false, tamamlandimi = false, cssColor = 'green';
-					if (tipVeSablonId2Yapildi[tipVeSablonId]) { /*disabled = true;*/ tamamlandimi = true; cssColor = 'firebrick' }
+					if (tipVeSablonId2Yapildi[tipVeSablonId]) {
+						/*disabled = true;*/ tamamlandimi = true; cssColor = 'firebrick';
+						testUyariText = `<div class="bold firebrick" style="margin-top: 25px">[ TAMAMLANDI ]</div>`;
+						/*text += `<div class="bold firebrick" style="margin-top: 8px">[ TAMAMLANDI ]</div>`*/
+					}
 					text = (
 						`<div class="full-wh" style="border: 2px solid ${cssColor}; box-shadow: 0 0 5px 0px ${cssColor}">` +
 							`<div style="margin-top: 10px">${text}</div>` +
 							(testUyariText ? `<div style="font-size: 120%; margin-top: 15px">${testUyariText}</div>` : '') +
 						`</div>`
 					);
-					let mne = `${tip.toUpperCase()}-${i + 1}`; items.push(new FRMenuChoice({
-						mne, text, disabled, block: e => {
-							/*let {menuItemElement: item} = e;*/
-							if (tamamlandimi) { hConfirm('Bu test tamamlandığı için işlem yapılamaz', 'Test'); return }
-							this.testBaslat({ tip, belirtec, testId, sablonId })
-						}
-					}))
+					let mne = `${tip.toUpperCase()}-${i + 1}`;
+					items.push(new FRMenuChoice({ mne, text, disabled, block: e => {
+						/*let {menuItemElement: item} = e;*/
+						if (tamamlandimi) { hConfirm('Bu test tamamlandığı için işlem yapılamaz', 'Test'); return }
+						this.testBaslat({ tip, belirtec, testId, sablonId })
+					} }))
 				}
 			}
 		}

@@ -110,7 +110,8 @@ class MQCariGenelParam extends MQTicariParamBase {
 	}
 }
 class MQStokGenelParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok Genel Parametreler' } static get paramKod() { return 'SGN' }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sinifAdi() { return 'Stok Genel Parametreler' } static get paramKod() { return 'SGN' }
 	static get tip2BrmListe() {
 		let result = this._tip2BrmListe; if (result == null) {
 			result = this._tip2BrmListe = {
@@ -243,11 +244,11 @@ class MQStokGenelParam extends MQTicariParamBase {
 	paramSetValues(e) {
 		e = e || {}; super.paramSetValues(e); let {rec} = e, {hmrYapi, ekOzellikBilgileri} = this;
 		ekOzellikBilgileri = this.ekOzellikBilgileri = ekOzellikBilgileri?.filter(({ adi }) => !!adi) ?? [];
-		const hmr = this.hmr = this.hmr || {}, hmrEtiket = this.hmrEtiket = this.hmrEtiket || {};
-		for (const [key, yapi] of Object.entries(hmrYapi)) {
-			const {rowAttr, etiketEditable} = yapi; if (!rowAttr) { continue }
-			const ekRowAttr = key == 'harDet' ? 'hardet' : null;
-			const kullanim = rec[rowAttr] ?? rec[ekRowAttr]; if (kullanim != null) { hmr[key] = kullanim }
+		let hmr = this.hmr = this.hmr || {}, hmrEtiket = this.hmrEtiket = this.hmrEtiket || {};
+		for (let [key, yapi] of Object.entries(hmrYapi)) {
+			let {rowAttr, etiketEditable} = yapi; if (!rowAttr) { continue }
+			let ekRowAttr = key == 'harDet' ? 'hardet' : null;
+			let kullanim = rec[rowAttr] ?? rec[ekRowAttr]; if (kullanim != null) { hmr[key] = kullanim }
 			if (etiketEditable) { const etiket = rec[rowAttr + 'Etiket'] ?? rec[ekRowAttr + 'Etiket']; if (etiket) { hmrEtiket[key] = etiket } }
 		}
 		{	let {kullanim} = this; for (let key in kullanim) {
@@ -443,23 +444,36 @@ class MQWebParam extends MQTicariParamBase {
 	get ekOzellikKodlariStr() { return array2MLStr(this.ekOzellikKodlari) } set ekOzellikKodlariStr(value) { this.ekOzellikKodlari = mlStr2Array(value) }
 	get konBuFirma_eMailListeStr() { return array2EMailStr(this.konBuFirma_eMailListe) } set konBuFirma_eMailListeStr(value) { this.konBuFirma_eMailListe = eMailStr2Array(value) }
 	constructor(e) {
-		e = e || {}; super(e); let {sablonSip_degisiklik, sablonSip_eMail} = e;
-		$.extend(this, { sablonSip_degisiklik: sablonSip_degisiklik ?? true, sablonSip_eMail: sablonSip_eMail ?? true })
+		e = e || {}; super(e); let {sablonSip_degisiklik, sablonSip_eMail, ekOzellikKodlari, yerKodListe} = e;
+		$.extend(this, { sablonSip_degisiklik: sablonSip_degisiklik ?? true, sablonSip_eMail: sablonSip_eMail ?? true, ekOzellikKodlari: ekOzellikKodlari ?? [], yerKodListe: yerKodListe ?? [] })
 	}
 	static paramYapiDuzenle({ paramci }) {
-		super.paramYapiDuzenle(...arguments);
+		super.paramYapiDuzenle(...arguments); let {dbName} = config.session, dbNamePrefix = dbName?.slice(0, 4);
 		let form = paramci.addFormWithParent().yanYana(1.4);
 			if (window.MQCari) { form.addModelKullan('pesinMustKod', 'Peşin Müşteri').comboBox().autoBind().setMFSinif(MQCari) }
 				else { form.addString('pesinMustKod', 'Peşin Müşteri') };
 			form.addML('ekOzellikKodlariStr', 'Ek Özellik Kodları').noRowAttr().setRowCount(5).addStyle_wh(200);
-		let grup = paramci.addGrup().setEtiket('Şablonlu Sipariş')
+		let grup = paramci.addGrup().setEtiket('Şablonlu Sipariş');
 		form = grup.addFormWithParent().yanYana();
 			form.addBool('stokResim', 'Stok Resim Kullanılır'); form.addBool('sablonSip_degisiklik', 'Değişiklik Yapılır');
 			form.addBool('sablonSip_eMail', 'e-Mail Gönderilir');
 		form = grup.addFormWithParent();
 			form.addString('konBuFirma_eMailListeStr', 'Bu Firma e-Mail Adresleri');
 		form = paramci.addAltObject('sablonDefKisit').addGrup().setEtiket('Def.Kısıt').addFormWithParent().yanYana();
-			form.addBool('sube', 'Şube'); form.addBool('musteri', 'Müşteri')
+			form.addBool('sube', 'Şube'); form.addBool('musteri', 'Müşteri');
+		form = grup.addFormWithParent().altAlta();
+		let altForm = form.addFormWithParent().yanYana(2);
+		altForm.addBool('webSiparis_sonStokGosterilirmi', 'Son Stok Gösterilir');
+		altForm.addModelKullan('webSiparis_sonStokDB', 'Son Stok Veritabanı')
+			.comboBox().autoBind().kodsuz().noMF()
+			.setSource(async e =>
+				(await app.wsDBListe())
+					.filter(name => !dbNamePrefix || name.startsWith(dbNamePrefix))
+					.map(adi => new CKodVeAdi([adi, adi]))
+			);
+		form.addModelKullan('webSiparis_yerKodListe', 'Depolar')
+			.comboBox().autoBind().coklu().setMFSinif(MQStokYer)
+			.setPlaceHolder('(A) Merkez Ambarı')
 
 	/*  at: 'ekOzellikKodlari'				put: self portalStokEkOzellikAttrListe;
 		at: 'pesinMustKod'					put: self pesinMustKod;
@@ -484,11 +498,18 @@ class MQWebParam extends MQTicariParamBase {
 			satis_eArsiv: self satisEArsivNumSayac;
 			isimlendirmeBitti) */
 	}
+	paramHostVarsDuzenle({ hv }) {
+		super.paramHostVarsDuzenle(...arguments); let {ekOzellikKodlari} = this;
+		$.extend(hv, { ekOzellikKodlari });
+	}
 	paramSetValues({ rec }) {
 		super.paramSetValues(...arguments);
-		for (let key of ['sablonSip_degisiklik', 'sablonSip_eMail']) { this[key] = this[key] ?? true }
+		for (let key of ['sablonSip_degisiklik', 'sablonSip_eMail', 'webSiparis_sonStokGosterilirmi']) { this[key] = this[key] ?? true }
+		for (let key of ['ekOzellikKodlari', 'yerKodListe']) { this[key] = rec[key] ?? this[key] ?? [] }
 		let {sablonDefKisit} = this; if (sablonDefKisit?.sablonDefKisit) {
-			$.extend(sablonDefKisit, sablonDefKisit.sablonDefKisit); delete sablonDefKisit.sablonDefKisit }
+			$.extend(sablonDefKisit, sablonDefKisit.sablonDefKisit);
+			delete sablonDefKisit.sablonDefKisit
+		}
 	}
 }
 class MQTabletParam extends MQTicariParamBase {

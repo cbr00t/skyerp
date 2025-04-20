@@ -199,17 +199,18 @@ class MQDetayli extends MQSayacli {
 	}
 	async yukle(e) {
 		e = e || {}; let result = await this.baslikYukle(e); if (result === false) { return result }
-		await this.detaylariYukle(e); await this.detaylariYukleSonrasi(e); await this.yukleSonrasiIslemler(e); return true
+		await this.detaylariYukle(e); await this.detaylariYukleSonrasi(e);
+		await this.yukleSonrasiIslemler(e); return true
 	}
-	baslikYukle(e) {
-		e = e || {}; const {sayacSaha} = this.class, {rec} = e;
+	async baslikYukle(e) {
+		e = e || {}; let {sayacSaha} = this.class, {rec} = e;
 		if (sayacSaha) {
-			const fisSayac = this.sayac || rec?.[sayacSaha]; if (!fisSayac) {
-				const keyHV = this.alternateKeyHostVars(); if (keyHV) { delete keyHV[sayacSaha] }
+			let fisSayac = this.sayac || rec?.[sayacSaha]; if (!fisSayac) {
+				let  keyHV = this.alternateKeyHostVars(); if (keyHV) { delete keyHV[sayacSaha] }
 				if ($.isEmptyObject(keyHV)) { throw { isError: true, rc: 'fisSayacBelirlenemedi', errorText: 'Fiş için kaysayac bilgisi belirlenemedi' } }
 			}
 		}
-		try { e.basit = true; return super.yukle(e) } finally { delete e.basit }
+		try { e.basit = true; return await super.yukle(e) } finally { delete e.basit }
 	}
 	async detaylariYukle(e) {
 		e = e || {}; let {detaySiniflar} = e; if (!detaySiniflar && e.detaySinif) { detaySiniflar = [e.detaySinif] }

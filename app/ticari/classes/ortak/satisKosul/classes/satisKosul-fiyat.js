@@ -78,11 +78,11 @@ class SatisKosul_Fiyat extends SatisKosul {
 		}
 		if ($.isEmptyObject(eksikKodSet)) { return result }
 		/* 4) 'mustKod' belli iken: hala eksik fiyatlar varsa stok tanımından fiyatını belirle */ {
-			let fiyatSayi = app.params.fiyatVeIsk.fiyatSayi || 1, fiyatClause = 'stk.satfiyat1';
+			let fiyatSayi = app.params.fiyatVeIsk.fiyatSayi || 1, fiyatClause = 'stk.satfiyat';
 			if (fiyatSayi > 1) {
 				fiyatClause = '(CASE'; for (let i = 2; i <= fiyatSayi; i++) {
 					fiyatClause += ` WHEN car.stkfytind = ${i} THEN stk.satfiyat${i}` }
-		        fiyatClause += ' ELSE stk.satfiyat1 END)'
+		        fiyatClause += ' ELSE stk.satfiyat END)'
 			}
 			let sent = new MQSent({
 				from: 'stkmst stk', where: [

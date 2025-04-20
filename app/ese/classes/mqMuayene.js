@@ -66,7 +66,6 @@ class MQMuayene extends MQGuidOrtak {
 			_e.recs = await this.class.loadServerData({ ozelQueryDuzenle: ({ sent }) => sent.where.degerAta(id, `${alias}.id`) });
 			await this.class.testOlusturIstendi(_e); let {testIdListe} = _e, testId = testIdListe?.[0];
 			let {recs} = _e; recs.forEach(rec => rec.testid = testId);
-			let veriYuklenince = 
 			await this.class.testEkraniAcIstendi({
 				..._e, veriYuklenince: __e => {
 					let {gridPart} = __e; delete gridPart.veriYukleninceBlock;
@@ -82,16 +81,25 @@ class MQMuayene extends MQGuidOrtak {
 		}
 	}
 	static async testIslemleriIstendi(e) {
-		e = e ?? {}; let title = 'Test İşlemleri', {recs} = e;
-		let gridPart = e.gridPart ?? e.parentPart ?? e.sender ?? {};
+		e = e ?? {}; let title = 'Test İşlemleri', gridPart = e.gridPart ?? e.parentPart ?? e.sender ?? {};
+		let recs = e.recs ?? gridPart.selectedRecs, idListe = recs.map(rec => rec.id);
+		let sent = new MQSent({ from: 'esetest', sahalar: 'muayeneid', where: { inDizi: idListe, saha: 'muayeneid' } });
+		let mevcutIdSet = asSet((await app.sqlExecSelect(sent)).map(rec => rec.muayeneid));
+		let bostaIdListe = idListe.filter(id => !mevcutIdSet[id]);
+		if (!bostaIdListe.length) {
+			return await this.testEkraniAcIstendi({
+				...e, veriYuklenince: _e => {
+					let {gridPart} = _e; delete gridPart.veriYukleninceBlock;
+					MQTest.testIslemleriIstendi({ ...e, ..._e, forcedRecs: gridPart.boundRecs })
+				}
+			})
+		}
 		app.activeWndPart.openContextMenu({
 			gridPart, title,
 			argsDuzenle: _e => $.extend(_e.wndArgs, { width: 500, height: 150 }),
 			formDuzenleyici: async _e => {
-				delete _e.recs; const {form, close, gridPart} = _e, recs = e.recs ?? gridPart.selectedRecs;
-				let idListe = recs.map(rec => rec.id); form.yanYana().addStyle(e => `$elementCSS { padding-top: 20px }`);
-				let sent = new MQSent({ from: 'esetest', sahalar: 'muayeneid', where: { inDizi: idListe, saha: 'muayeneid' } });
-				const mevcutIdSet = asSet((await app.sqlExecSelect(sent)).map(rec => rec.muayeneid)), bostaIdListe = idListe.filter(id => !mevcutIdSet[id]);
+				delete _e.recs; const {form, close, gridPart} = _e;
+				form.yanYana().addStyle(e => `$elementCSS { padding-top: 20px }`);
 				let altForm = form.addFormWithParent('test').yanYana(2); /*altForm.addForm().setLayout(e =>
 					$(`<h5 class="bold center royalblue" style="padding-bottom: 13px; margin-right: 10px; border-bottom: 1px solid royalblue">${etiket || ''}</h5>`));*/
 				let handler = __e => {

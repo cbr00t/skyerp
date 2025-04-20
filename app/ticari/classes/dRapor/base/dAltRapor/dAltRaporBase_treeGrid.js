@@ -372,23 +372,29 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				gtTip2ColDefs[selector].push(colDef); if (toplammi && !colDef?.aggregates) { colDef.aggregates = ['sum'] }
 			}
 			if (yatayAnaliz) {
-				window.progressManager?.setProgressMax((window.progressManager?.progressMax || 0) + 5);
-				let {belirtec} = DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz] ?? {}, tumYatayAttrSet = e.tumYatayAttrSet = {};
-				let recs = await this.loadServerDataInternal({ attrSet: asSet([DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod]) });
-				window.progressManager?.progressStep(4); let liste = [];
-				for (let rec of recs) {
-					let value = rec[belirtec]?.trimEnd?.(); if (value === undefined) {
-						let kod = rec[`${belirtec}kod`]?.trimEnd?.(), aciklama = rec[`${belirtec}adi`]?.trimEnd?.();
-						if (!(kod == null && aciklama == null)) { this.fixKA(rec, belirtec); value = rec[belirtec] }
-					}
-					if (value) { liste.push(value) }
-				} 
-				liste.sort(); liste.unshift('TOPLAM'); colDefs = [...gtTip2ColDefs.sabit];
-				for (let _colDef of gtTip2ColDefs.toplam) {
-					for (let yatayText of liste) {
-						let colDef = _colDef.deepCopy(); colDefs.push(colDef); colDef.belirtec += `_${yatayText}`;
-						let colText = yatayText, tokens = colText.split(') '); if (tokens.length > 1) { colText = tokens[1] || colText }
-						colDef.text += `<br/>[ <span class=royalblue>${colText}</span> ]`; tumYatayAttrSet[colDef.belirtec] = true
+				let _attrSet = asSet([DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod].filter(x => !!x));
+				if ($.isEmptyObject(_attrSet)) {
+					yatayAnaliz = kullanim.yatayAnaliz = null
+				}
+				else {
+					window.progressManager?.setProgressMax((window.progressManager?.progressMax || 0) + 5);
+					let {belirtec} = DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz] ?? {}, tumYatayAttrSet = e.tumYatayAttrSet = {};
+					let recs = await this.loadServerDataInternal({ attrSet: _attrSet });
+					window.progressManager?.progressStep(4); let liste = [];
+					for (let rec of recs) {
+						let value = rec[belirtec]?.trimEnd?.(); if (value === undefined) {
+							let kod = rec[`${belirtec}kod`]?.trimEnd?.(), aciklama = rec[`${belirtec}adi`]?.trimEnd?.();
+							if (!(kod == null && aciklama == null)) { this.fixKA(rec, belirtec); value = rec[belirtec] }
+						}
+						if (value) { liste.push(value) }
+					} 
+					liste.sort(); liste.unshift('TOPLAM'); colDefs = [...gtTip2ColDefs.sabit];
+					for (let _colDef of gtTip2ColDefs.toplam) {
+						for (let yatayText of liste) {
+							let colDef = _colDef.deepCopy(); colDefs.push(colDef); colDef.belirtec += `_${yatayText}`;
+							let colText = yatayText, tokens = colText.split(') '); if (tokens.length > 1) { colText = tokens[1] || colText }
+							colDef.text += `<br/>[ <span class=royalblue>${colText}</span> ]`; tumYatayAttrSet[colDef.belirtec] = true
+						}
 					}
 				}
 			}

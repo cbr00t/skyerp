@@ -9,6 +9,7 @@ class TSOrtakFis extends MQTicariGenelFis {
 	static get oncelik() { return 0 } static get cikisGibimi() { return false } static get girisGibimi() { return false }
 	static get iademi() { return this.iade == 'I' } static get numYapi() { return new MQTicNumarator({ tip: this.numTipKod }) }
 	static get mustSaha() { return null } get eIslemSinif() { return EIslemOrtak.getClass({ tip: this.efAyrimTipi })}
+	get kosulYapilar() { return this._kosulYapilar } set kosulYapilar(value) { this._kosulYapilar = value }
 
 	constructor(e) { e = e || {}; super(e); }
 	static pTanimDuzenle(e) {
@@ -147,12 +148,16 @@ class TSOrtakFis extends MQTicariGenelFis {
 		sent.fromIliski('takipmst tak', 'fis.orttakipno = tak.kod');
 		sent.sahalar.add(`${aliasVeNokta}efayrimtipi`)
 	}
+	async yeniTanimOncesiVeyaYukleSonrasiIslemler(e) {
+		await super.yeniTanimOncesiVeyaYukleSonrasiIslemler(e);
+		if (this.mustKod) { await this.satisKosulYapiOlustur(e) }
+	}
 	async kaydetOncesiIslemler(e) { await super.kaydetOncesiIslemler(e); await MQStokIslem.getKod2OzelIsaret(e) }
 	async degistirSonrasiIslemler(e) { await super.degistirSonrasiIslemler(e) }
 	async detaylariYukleSonrasi(e) {
 		e = e || {}; await super.detaylariYukleSonrasi(e);
-		let {detaylar} = this; this._orjDetaylar = $.merge([], detaylar);
-		let aktifUstDetay; const _detaylar = [];
+		let {detaylar} = this; this._orjDetaylar = [...detaylar];
+		let aktifUstDetay, _detaylar = [];
 		for (const det of detaylar) {
 			if (det.aciklamami) { if (aktifUstDetay) { if (aktifUstDetay.altAciklama) { aktifUstDetay.altAciklama += CrLf } aktifUstDetay.altAciklama += det.aciklama } }
 			else { aktifUstDetay = det; _detaylar.push(det) }
@@ -172,8 +177,9 @@ class TSOrtakFis extends MQTicariGenelFis {
 		}
 		if (degistimi) { fis.detaylar = _detaylar; e.fis = fis }
 	}
+	async satisKosulYapiOlustur(e) { return this }
 	uiSatirBedelHesaplaSonrasi(e) { }
-	cariDegisti(e) {
+	async cariDegisti(e) {
 		e = e || {}; const rec = e.item || e.rec || {}, eFatmi = asBoolQ(rec.efaturakullanirmi);
 		if (eFatmi != null) {
 			const efAyrimTipi = (this.class.faturami ? (eFatmi ? EIslFatura.tip : null) : null); this.efAyrimTipi.char = efAyrimTipi || 'A'
@@ -182,6 +188,7 @@ class TSOrtakFis extends MQTicariGenelFis {
 			if (layout?.length) layout.attr('data-efAyrimTipi', efAyrimTipi || '');
 			if (builder_efatGosterim) { const cls = EIslemOrtak.getClass(efAyrimTipi); builder_efatGosterim.layout.html(cls ? cls.sinifAdi : '') }
 		}
+		await this.satisKosulYapiOlustur(e)
 	}
 	efAyrimTipiDegisti(e) { }
 	takipNoDegisti(e) { }

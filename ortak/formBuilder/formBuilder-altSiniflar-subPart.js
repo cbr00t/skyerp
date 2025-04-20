@@ -712,9 +712,8 @@ class FBuilder_Button extends FBuilder_InputOrtak {
 		for (const handler of onClickEvent) { getFuncValue.call(this, handler, e) }
 		return this
 	}
-
-	enabled() { this.disabled = false; return this }
-	disabled() { this.disabled = true; return this }
+	enable() { this.disabled = false; return this }
+	disable() { this.disabled = true; return this }
 	tiklaninca(handler) { this.onClick(handler); return this }
 	onClick(handler) {
 		let {onClickEvent} = this; if (!onClickEvent) { onClickEvent = this.onClickEvent = [] } else if (!$.isArray(onClickEvent)) { onClickEvent = this.onClickEvent = [onClickEvent] }

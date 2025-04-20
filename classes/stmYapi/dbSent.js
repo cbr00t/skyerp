@@ -212,8 +212,8 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		const innerJoinFlag = typeof e == 'object' ? (e.innerJoin || e.inner || e.innerJoinFlag) : _innerJoinFlag;
 		const fisTable = typeof e == 'object' ? (e.fisTable || e.fisTablo) : e, harTable = typeof e == 'object' ? (e.harTable || e.harTablo) : _harTablo;
 		this.fromAdd(`${fisTable} fis`);
-		if (innerJoinFlag) { this.innerJoin({ alias: 'fis', from: `${harTable} har`, on: 'har.fissayac = fis.kaysayac' }) }
-		else { this.fromIliski({ from: `${harTable} har`, iliski: 'har.fissayac = fis.kaysayac' }) }
+		if (innerJoinFlag) { this.innerJoin({ alias: 'fis', from: `${harTable} har`, on: 'fis.kaysayac = har.fissayac' }) }
+		else { this.fromIliski({ from: `${harTable} har`, iliski: 'fis.kaysayac = har.fissayac' }) }
 		return this
 	}
 	fis2HarBagla(e) {

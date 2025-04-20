@@ -23,13 +23,16 @@ class MQKod extends MQCogul {
 		})
 	}
 	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e); let {kodKullanilirmi} = this;
-		if (kodKullanilirmi) { let {tanimFormBuilder: tanimForm} = e; if (tanimForm) { tanimForm.add(this.getFormBuilders_ka(e)) } }
+		e = e || {}; super.rootFormBuilderDuzenle(e); let {kodKullanilirmi, adiKullanilirmi} = this;
+		if (kodKullanilirmi || adiKullanilirmi) {
+			let {tanimFormBuilder: tanimForm} = e;
+			if (tanimForm) { tanimForm.add(this.getFormBuilders_ka(e)) }
+		}
 	}
 	static getFormBuilders_ka(e) { const _e = $.extend(e, { liste: [] }); this.formBuildersDuzenle_ka(_e); return e.liste }
 	static formBuildersDuzenle_ka(e) {
-		const {liste} = e, mfSinif = e.mfSinif ?? this, xEtiket =  mfSinif.kodEtiket ?? 'Kod';
-		const kaForm = e.kaForm = new FBuilderWithInitLayout({ id: 'kaForm' }).yanYana(1.2);
+		let {liste} = e, mfSinif = e.mfSinif ?? this, xEtiket =  mfSinif.kodEtiket ?? 'Kod';
+		let kaForm = e.kaForm = new FBuilderWithInitLayout({ id: 'kaForm' }).yanYana(1.2);
 		kaForm.addStyle(e => `$elementCSS { margin-top: -40px; z-index: 1100 }`); liste.push(kaForm);
 		kaForm.addTextInput({ id: 'kod', etiket: xEtiket, placeholder: xEtiket })
 			.addCSS('kodParent parent') .addStyle(e => `$elementCSS { min-width: 150px; max-width: 300px }`)
@@ -205,4 +208,7 @@ class MQGuidVeAdi extends MQKA {
 	kopyaIcinDuzenle(e) { this.kod = newGUID(); return super.kopyaIcinDuzenle(e) }
 	kaydetOncesiIslemler(e) { this.kod = this.kod || newGUID(); return super.kaydetOncesiIslemler(e) }
 }
-class MQGuid extends MQGuidVeAdi { static { window[this.name] = this; this._key2Class[this.name] = this } static get adiKullanilirmi() { return false } }
+class MQGuid extends MQGuidVeAdi {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get adiKullanilirmi() { return false }
+}

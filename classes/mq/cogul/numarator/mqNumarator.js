@@ -51,9 +51,13 @@ class MQNumarator extends MQKA {
 		const _e = $.extend({}, e, { args: { sender, layout, islem, fis } }); if (argsDuzenle) getFuncValue.call(this, argsDuzenle, _e.args);
 		const part = e.result = new this.numaratorPartSinif(_e.args); part.run(); return part
 	}
-	keyHostVarsDuzenle(e) { super.keyHostVarsDuzenle(e); const {hv} = e; hv.seri = this.seri }
-	keySetValues(e) {
-		super.keySetValues(e); const {rec} = e;
+	keyHostVarsDuzenle({ hv }) { super.keyHostVarsDuzenle(...arguments); hv.seri = this.seri }
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments);
+		let {sayacSaha} = this.class; delete hv[sayacSaha]
+	}
+	keySetValues({ rec }) {
+		super.keySetValues(...arguments);
 		let value = rec.seri; if (value != null) { this.seri = value }
 	}
 	superKeyHostVarsDuzenle(e) { super.keyHostVarsDuzenle(e) }
@@ -61,14 +65,14 @@ class MQNumarator extends MQKA {
 	async yukle(e) {
 		e = e || {}; let {rec} = e;
 		if (!rec) {
-			const {kod, seri} = this; if (!kod && seri == null) return false
-			const sent = new MQSent({
+			let {kod, seri} = this; if (!kod && seri == null) { return false }
+			let sent = new MQSent({
 				from: this.class.table, sahalar: 'sonno',
 				where: seri == null ? { birlestirDict: this.keyHostVars(e) } : { birlestirDict: this.alternateKeyHostVars(e) }
 			});
-			rec = await app.sqlExecTekil(sent);
+			rec = await app.sqlExecTekil(sent)
 		}
-		return await super.yukle($.extend({}, e, { rec }))
+		return await super.yukle({ ...e, rec })
 	}
 	async kesinlestir(e) { this.sonNo = this.sonNo + 1; return this }
 }

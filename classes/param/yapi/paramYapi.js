@@ -316,6 +316,8 @@ class ParamBuilder extends CObject {
 	kaydedinceIslemi(handler) { this._kaydedince = handler; return this }
 	formBuilderDuzenleIslemi(handler) { this._formBuilderDuzenle = handler; return this }
 	fbdEkIslem(handler) { this.fbd_ekIslemler.push(handler); return this }
+	setPlaceHolder(...args) { this.fbdEkIslem(({ builder: fbd }) => fbd.setPlaceHolder(...args)); return this }
+	setPlaceholder(...args) { this.fbdEkIslem(({ builder: fbd }) => fbd.setPlaceholder(...args)); return this }
 	altAlta(...args) { this.fbdEkIslem(e => e.builder.altAlta(...args)); return this }
 	yanYana(...args) { this.fbdEkIslem(e => e.builder.yanYana(...args)); return this }
 	addStyle(...args) { this.fbdEkIslem(e => e.builder.addStyle(...args)); return this }

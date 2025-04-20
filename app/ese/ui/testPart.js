@@ -7,9 +7,14 @@ class TestPart extends Part {
 	get tarih() { return asDate(this.headerLayouts.tarih?.html()) } set tarih(value) { this.headerLayouts.tarih?.html(dateTimeAsKisaString(value)) }
 	get hastaAdi() { return this.headerLayouts.hastaAdi?.html() } set hastaAdi(value) { this.headerLayouts.hastaAdi?.html(value ?? '') }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { inst: e.inst, pageIndex: e.pageIndex ?? 0, headerLayouts: {} }) }
-	init(e) { const {inst} = this, states = this.states = inst?.class?.uiStates || []; this.title = `${inst?.class?.aciklama || ''} Test Ekranı`; super.init(e) }
+	init(e) {
+		let {inst} = this, states = this.states = inst?.class?.uiStates || [];
+		this.title = `${inst?.class?.aciklama || ''} Test Ekranı`;
+		super.init(e)
+	}
 	runDevam(e) {
-		super.runDevam(e); const {layout, inst, state} = this; app.enterKioskMode(); $('body').addClass('no-dark-theme');
+		super.runDevam(e); let {layout, inst, state} = this;
+		app.enterKioskMode(); $('body').addClass('no-dark-theme');
 		$.extend(this, { header: layout.children('.header'), content: layout.children('.content'), islemTuslari: layout.find('.islemTuslari') });
 		const {header, islemTuslari, headerLayouts} = this; for (const key of ['adimText', 'headerText', 'progressText', 'tarih', 'hastaAdi', 'countdown']) {
 			headerLayouts[key] = layout.find(`.${key}`) }
@@ -21,7 +26,10 @@ class TestPart extends Part {
 		if (app.kioskmu) { setTimeout(() => location.reload(), 100) } else { app.exitKioskMode() }
 		/*if (app.kioskmu) { setTimeout(() => window.close(), 100) } else { app.exitKioskMode() }*/
 	}
-	islemTuslariDuzenle(e) { const {liste} = e; liste.find(item => item.id == 'vazgec').handler = e => this.cikisIstendi(e) }
+	islemTuslariDuzenle({ liste }) {
+		let item = liste.find(item => item.id == 'vazgec');
+		if (item) { item.handler = e => this.cikisIstendi(e) }
+	}
 	firstPage(e) { this.pageIndex = 0; this.tazele(e); return this } lastPage(e) { this.pageIndex = Math.max(this.states?.length - 1, 0); this.tazele(e); return this }
 	nextPage(e) { this.pageIndex = Math.min(this.pageIndex + 1, this.states?.length - 1); this.tazele(e); return this }
 	prevPage(e) { this.pageIndex = Math.max(this.pageIndex - 1, 0); this.tazele(e); return this }
@@ -33,7 +41,16 @@ class TestPart extends Part {
 		try { if (!await this.kaydet(e)) { return false } } catch (ex) { hConfirm(getErrorText(ex), this.title); throw ex }
 		this.close(e); return true
 	}
-	cikisIstendi(e) { this.close(e); return this }
+	async cikisIstendi(e) {
+		let {state} = this;
+		if (state == 'test') {
+			let rdlg = await ehConfirm(`<p class="firebrick bold">Test henüz tamamlan<u>ma</u>dı!</p><p>Ekrandan çıkmak istediğinizden emin misiniz?</p>`, 'TEST DEVAM EDİYOR');
+			if (rdlg) { this.close(e) }
+			return this
+		}
+		this.cikis(e); return this
+	}
+	cikis(e) { return this.close(e) }
 	async kaydet(e) {
 		const {inst} = e; if (!inst) { return false }
 		clearTimeout(this._timerProgress); this._timerProgress = setTimeout(() => showProgress(), 500);

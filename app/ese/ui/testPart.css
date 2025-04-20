@@ -23,8 +23,8 @@ body:not(.kiosk) .test.part .header { margin-top: calc(0px - (var(--header-heigh
 	padding: 10px 20px; border-radius: 13px; border: 1px solid #ccc; z-index: 1001 !important; pointer-events: none
 }
 .test.part .header .countdown.critical { font-size: 110% !important; color: orangered !important; border-color: orangered }
-.test.part .header button#bitti { position: absolute; top: 15px; right: 280px; border: 1px solid #aaa !important; padding: 15px 20px; z-index: 1002 !important }
-.test.part .header button#bitti.jqx-fill-state-normal { color: white; background-color: #697c69 }
+.test.part .header button#bitti { position: absolute; top: 15px; right: 280px; border: 1px solid #aaa !important; box-shadow: 0 0 8px 0 limegreen; padding: 15px 20px; z-index: 1002 !important }
+.test.part .header button#bitti.jqx-fill-state-normal { color: white; background-color: #202a20 }
 .test.part .header button#bitti.jqx-fill-state-hover { background-color: #e2f0e2 }
 .test.part .header button#bitti.jqx-fill-state-pressed { color: #333 !important; background-color: #86c986 !important }
 .test.part .target-img { background-size: contain; background-repeat: no-repeat !important; background-position: center !important }
@@ -34,7 +34,7 @@ body:not(.kiosk) .test.part .header { margin-top: calc(0px - (var(--header-heigh
 .test.part .content .info { padding: 0px }
 .test.part .content .info > * { font-size: 120%; padding: 0 20px }
 .test.part .content button#baslat { font-size: 200%; color: #333; position: relative; top: 50px; left: 20%; width: 60%; height: 100px }
-.test.part .content button#baslat.jqx-fill-state-normal { border: 1px solid #aaa !important; background-color: #c7c7c7 }
+.test.part .content button#baslat.jqx-fill-state-normal { border: 1px solid #aaa !important;  background-color: #c7c7c7 }
 .test.part .content button#baslat.jqx-fill-state-hover { border: 1px solid green !important; background-color: whitesmoke }
 .test.part .content button#baslat.jqx-fill-state-pressed { color: white }
 .test.part .content .resim {
@@ -56,7 +56,10 @@ body:not(.kiosk) .test.part .header { margin-top: calc(0px - (var(--header-heigh
 .test.part .content button.cikis.jqx-fill-state-normal { color: royalblue }
 .test.part .content .resultText { font-weight: bold; font-size: 130%; margin: 20px 0 10px 80px }
 .test.part .content .anket, .test.part .content .anket-sonuclar { font-size: 120%; width: calc(var(--full) - 1px); height: calc(var(--full) - 1px); overflow-y: auto !important }
-.test.part .content .anket .grup .etiket { font-weight: bold; font-size: 180%; padding: 8px; margin-bottom: 8px; color: #aaa; background-color: #12223f }
+.test.part .content .anket .grup .etiket {
+	font-weight: bold; font-size: 180%; padding: 8px; margin-bottom: 8px; color: #aaa;
+	background-color: #12223f; background-image: linear-gradient(180deg, #2c4c87 10%, #12223f 80%) !important;
+}
 .test.part .content .anket .item, .test.part .content .anket-sonuclar .item { --secenekler-width: 450px; padding: 5px 15px; border: 1px solid #aaa }
 .test.part .content .anket .item:not(:first-child), .test.part .content .anket-sonuclar .item:not(:first-child) { margin-top: 0 }
 .test.part .content .anket .item .soru,

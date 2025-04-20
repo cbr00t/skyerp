@@ -164,23 +164,34 @@ class MQTest extends MQGuidOrtak {
 		finally { window.progressManager?.progressEnd(); setTimeout(() => hideProgress(), 100) }
 	}
 	static async testIslemleriIstendi(e) {
-		e = e ?? {}; let title = 'Test İşlemleri', {forcedRecs} = e;
+		e = e ?? {}; let title = 'Test İşlemleri', {forcedRecs} = e, {ese} = app.params;
 		let gridPart = e.gridPart ?? e.parentPart ?? e.sender ?? {};
 		(gridPart ?? app.activeWndPart)?.openContextMenu({
 			gridPart, title, forcedRecs,
 			argsDuzenle: _e => $.extend(_e.wndArgs, { width: Math.min(1100, $(window).width() - 50), height: 230 }),
 			formDuzenleyici: async _e => {
-				delete _e.recs; const {form, close, gridPart} = _e, recs = _e.forcedRecs ?? e.recs ?? gridPart.selectedRecs, idListe = recs.map(rec => rec.id);
+				delete _e.recs; let {form, close, gridPart} = _e, recs = _e.forcedRecs ?? e.recs ?? gridPart.selectedRecs;
+				let idListe = recs.map(rec => rec.id), testId = idListe[0];
 				if (!idListe?.length) { return } if (idListe?.length > 1) { hConfirm('Sadece bir tane Test seçilmelidir', title); return false }
+				let bitenTestKeySet = {}; for (let rec of recs) {
+					for (let { prefix: key } of ese.getIter()) {
+						let value = rec[`b${key}yapildi`];
+						if (value) { bitenTestKeySet[key] = true }
+					}
+				}
 				form.yanYana().addStyle(e => `$elementCSS { padding-top: 40px }`);
-				let testId = idListe[0]; for (const {tip, belirtec, prefix, seq, etiket, sablonId} of app.params.ese.getIter()) {
-					let altForm = form.addFormWithParent(prefix).altAlta(); altForm.addForm()
-						.setLayout(e => $(`<h5 class="bold center royalblue" style="padding-bottom: 13px; margin-right: 10px; border-bottom: 1px solid royalblue">${etiket || ''}</h5>`));
+				/* let sent = new MQSent({ from, where: { degerAta: testId, saha: idSaha }, sahalar: '*' }) */
+				for (let {tip, belirtec, prefix, seq, etiket, sablonId} of ese.getIter()) {
+					let altForm = form.addFormWithParent(prefix).altAlta();
+					altForm.addForm() .setLayout(e => $(
+						`<h5 class="bold center royalblue" style="padding-bottom: 13px; margin-right: 10px; border-bottom: 1px solid royalblue">${etiket || ''}</h5>`));
 					let handler = __e => {
 						const {id} = __e.builder, parts = id.split('_'), [tip, belirtec, selector] = parts, seq = asInteger(parts[2]);
 						close(); this[`${selector}Istendi`]({ ...e, ..._e, ...__e, id: undefined, tip, belirtec, seq, testId, sablonId })
 					};
-					altForm.addButton(`${tip}_${belirtec}_testBaslat_${seq}`, 'Test Başlat').onClick(handler)
+					let bittimi = bitenTestKeySet[prefix], btnEtiket =  bittimi ? `<span class="orangered">[ TAMAMLANDI ]</span>` : 'Test Başlat';
+					let fbd_btn = altForm.addButton(`${tip}_${belirtec}_testBaslat_${seq}`, btnEtiket).onClick(handler)
+					if (bittimi) { fbd_btn.disable() }
 				}
 			}
 		})

@@ -73,7 +73,6 @@ class MQYapi extends CIO {
 		if (!basitFlag) { await this.yukleSonrasiIslemler(e) }
 		return true
 	}
-	yukleSonrasiIslemler(e) { return this.setValues(e) }
 	kopyaIcinDuzenle(e) { }
 	async varmi(e) {
 		let result = await this.varmiDogrudan(e); if (!result) { return false } /* kod değeri varsa içeriksel kontrol yapılacak */
@@ -109,7 +108,9 @@ class MQYapi extends CIO {
 		if (ozelQuerySonucuBlock) { return getFuncValue.call(this, ozelQuerySonucuBlock, _e) }
 		return this[tekilOku_querySonucu_returnValueGereklimi ? 'sqlExecNoneWithResult' : 'sqlExecTekil'](_e)
 	}
-	yeniTanimOncesiIslemler(e) { } 
+	async yeniTanimOncesiIslemler(e) { await this.yeniTanimOncesiVeyaYukleSonrasiIslemler(e) } 
+	async yukleSonrasiIslemler(e) { let results = [await this.setValues(e), await this.yeniTanimOncesiVeyaYukleSonrasiIslemler(e)]; return results.filter(x => !!x)[0] }
+	async yeniTanimOncesiVeyaYukleSonrasiIslemler(e) { }
 	yeniOncesiIslemler(e) { return this.kaydetOncesiIslemler(e) }
 	degistirOncesiIslemler(e) { return this.kaydetOncesiIslemler(e) }
 	silmeOncesiIslemler(e) { return this.kaydetVeyaSilmeOncesiIslemler(e) }
