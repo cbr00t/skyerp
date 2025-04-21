@@ -10,14 +10,14 @@ class RotaliSutIslemApp extends App {
 		await super.runDevam(e); await this.params.config.sonIslemler(e)
 	}
 	async afterRun(e) {
-		await super.afterRun(e); const {session} = config, yerelParam = this.params.yerel;
+		await super.afterRun(e); /*await app.promise_ready;*/ let {session} = config, {yerel: yerelParam} = this.params;
 		let lastSession = yerelParam?.lastSession ?? session;
 		if (lastSession) {
 			lastSession = yerelParam.lastSession = $.isPlainObject(lastSession) ? new Session(lastSession) : lastSession.deepCopy(); /*lastSession.user = `<span class="gray italic">${yerelParam?.lastSession.user}</span>`;*/
 			setTimeout(() => yerelParam.kaydet(), 100)
 		}
 		this.updateAppTitle({ userSession: session?.hasSession ? session : new Session(yerelParam?.lastSession) });
-		const {params, appName} = this, sutParam = params.sut || {}; let {kullanim} = sutParam;
+		let {params, appName} = this, sutParam = params.sut || {}, {kullanim} = sutParam;
 		if (kullanim.sutToplama == false) {
 			this.disabledMenuIdSet = asSet(['ROTALI-FIS']);
 			const wnd = createJQXWindow({

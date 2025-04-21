@@ -3,17 +3,28 @@ class MQYerelParamBase extends CIO {
 	static get paramKod() { return null } get paramKod() { return this.class.paramKod} static get sinifAdi() { return 'Yerel Parametreler' } static get tanimUISinif() { return null }
 	get tableWithPrefix() { '' } get rootTable() { return app.rootName } get fullTableName() { return `${this.rootTable}.${this.paramKod || ''}${this.tableWithPrefix || ''}` }
 	static get paramAttrListe() { let result = this._paramAttrListe; if (!result) { result = this._paramAttrListe = []; this.paramAttrListeDuzenle({ liste: result }) } return result }
-	static getInstance() { let result = this._instance; if (!result) { result = new this(); result.yukle(); this._instance = result } return result }
+	static getInstance() {
+		let result = this._instance; if (!result) {
+			result = new this(); result._promise = new $.Deferred();
+			result.getInstance_yukleIslemi()
+				.then(() => { result._yuklendimi = true; let {_promise} = result; if (_promise) { _promise.resolve(result) } })
+				.catch(ex => { result._yuklendimi = false; let {_promise} = result; if (_promise) { _promise.reject(ex) } })
+			this._instance = result
+		}
+		return result
+	}
 	constructor(e) {
 		e = e || {}; super(e); const {paramAttrListe} = this.class, table = e.table ?? e.tableName; $.extend(this, { table });
 		for (const key of paramAttrListe) { const value = e[key]; if (value !== undefined) { this[key] = value } }
 		this.resetCache(e)
 	}
 	static paramAttrListeDuzenle(e) { }
+	getInstance_yukleIslemi(e) { return this.yukle(e) }
 	async yukle(e) {
 		e = { ...e }; this.resetCache(e); this.yukleOncesi(e);
 		let rec = await this.yukleIslemi(e); if (typeof rec == 'string') { rec = rec ? JSON.parse(rec) : {} } if (!$.isEmptyObject(rec)) { e.rec = rec; this.setValues(e) }
-		await this.yukleSonrasi(e); return this
+		await await this.yukleSonrasi(e);
+		return this
 	}
 	kaydetDefer(e) { clearTimeout(this._timer_kaydetDefer); this._timer_kaydetDefer = setTimeout(e => { try { this.kaydet(e) } finally { delete this._timer_kaydetDefer } }, 500) }
 	async kaydet(e) {

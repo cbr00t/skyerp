@@ -23,7 +23,7 @@ class TicariApp extends App {
 		)
 	}
 	raporEkSahaDosyalariDuzenle(e) { super.raporEkSahaDosyalariDuzenle(e); const {liste} = e; liste.push('VioTicari.RaporEkSaha') }
-	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e); this.show() }
+	async afterRun(e) { await super.afterRun(e); await this.anaMenuOlustur(e); this.show() }
 	async getAnaMenu() { const response = await ajaxGet({ url: this.getWSUrl({ api: 'frMenu' }) }); return response ? FRMenu.from(response) : null }
 	async getMailParam(e) {
 		let {eMailKeys} = MQEMailUst, {params} = this;

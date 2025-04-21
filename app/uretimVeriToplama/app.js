@@ -8,8 +8,7 @@ class UretimVeriToplamaApp extends App {
 	init(e) { super.init(e) }
 	async runDevam(e) { await super.runDevam(e); await this.wsConfigKontrol(e) }
 	async afterRun(e) {
-		await super.afterRun(e); await app.promise_ready;
-		await this.setValuesFromParam(e); await this.gerceklemeler_ilkIslemler(e);
+		await super.afterRun(e); await this.setValuesFromParam(e); await this.gerceklemeler_ilkIslemler(e);
 		let kullanim = app.params.operGenel?.kullanim || {}, eksikParamIsimleri = [];
 		if (!kullanim.operasyonIsYonetimi) { eksikParamIsimleri.push('Operasyon İş Yönetimi') }
 		if (!kullanim.mesVeriToplama) { eksikParamIsimleri.push('Tablet Veri Toplama') }

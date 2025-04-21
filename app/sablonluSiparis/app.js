@@ -6,7 +6,7 @@ class SablonluSiparisApp extends TicariApp {
 	get gecerliDepolar() { let {webSiparis_yerKodListe: yerKodListe} = app.params.web; return $.makeArray(yerKodListe?.length ? yerKodListe : ['A']) }
 	paramsDuzenle(e) { super.paramsDuzenle(e) /*; const {params} = e; $.extend(params, { x: MQParam_X.getInstance() })*/ }
 	async runDevam(e) {
-		await super.runDevam(e); let {ekOzellikKodlari} = app.params.web; await this.promise_ready;
+		await super.runDevam(e); let {ekOzellikKodlari} = app.params.web;
 		if (ekOzellikKodlari) { HMRBilgi.ekOzellikListe = ekOzellikKodlari }
 	}
 	async anaMenuOlustur(e) {
