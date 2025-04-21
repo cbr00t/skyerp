@@ -5,25 +5,29 @@ class DRapor_SonStok extends DRapor_AraSeviye {
 class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_SonStok } get stokmu() { return this.rapor?.stokmu }
 	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e); const {result} = e, {toplamPrefix} = this.class, brmDict = app.params?.stokBirim?.brmDict ?? {}, {isAdmin, rol} = config.session ?? {};
+		super.tabloYapiDuzenle(e);
+		let {result} = e, {toplamPrefix} = this.class, {isAdmin, rol} = config.session ?? {};
+		let brmDict = app.params?.stokBirim?.brmDict ?? {}, {tip2BrmListe} = MQStokGenelParam;
+		let brmListe = Object.keys(tip2BrmListe ?? {});
 		result
 			.addKAPrefix('anagrup', 'grup', 'sistgrup', 'stok', 'yer', 'yergrup', 'sube', 'subegrup')
-			.addGrup(new TabloYapiItem().setKA('SUBE', 'Şube').secimKullanilir().setMFSinif(DMQSube).addColDef(new GridKolon({ belirtec: 'sube', text: 'Şube', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('SUBEGRUP', 'Şube Grup').secimKullanilir().setMFSinif(DMQSubeGrup).addColDef(new GridKolon({ belirtec: 'subegrup', text: 'Şube Grup', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('STANAGRP', 'Stok Ana Grup').secimKullanilir().setMFSinif(DMQStokAnaGrup).addColDef(new GridKolon({ belirtec: 'anagrup', text: 'Stok Ana Grup', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('STGRP', 'Stok Grup').secimKullanilir().setMFSinif(DMQStokGrup).addColDef(new GridKolon({ belirtec: 'grup', text: 'Stok Grup', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('STISTGRP', 'Stok İst. Grup').secimKullanilir().setMFSinif(DMQStokIstGrup).addColDef(new GridKolon({ belirtec: 'sistgrup', text: 'Stok İst. Grup', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('STOK', 'Stok').secimKullanilir().setMFSinif(DMQStok).addColDef(new GridKolon({ belirtec: 'stok', text: 'Stok', maxWidth: 600, filterType: 'input' })))
-			.addGrup(new TabloYapiItem().setKA('DEPO', 'Depo').secimKullanilir().setMFSinif(DMQYer).addColDef(new GridKolon({ belirtec: 'yer', text: 'Depo', maxWidth: 500, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('DEPOGRUP', 'Depo Grup').secimKullanilir().setMFSinif(DMQYerGrup).addColDef(new GridKolon({ belirtec: 'yergrup', text: 'Depo Grup', maxWidth: 500, filterType: 'checkedlist' })));
-		for (const tip of Object.keys(MQStokGenelParam.tip2BrmListe) ?? []) {
-			const fra = brmDict[tip]; result.addToplam(new TabloYapiItem().setKA(`MIKTAR${tip}`, `Miktar (${tip})`)
-				 .addColDef(new GridKolon({ belirtec: `miktar${tip}`, text: `${tip}`, genislikCh: 15, filterType: 'numberinput' }).tipDecimal(fra)))
+			.addGrupBasit('SUBE', 'Şube', 'sube', DMQSube)
+			.addGrupBasit('SUBEGRUP', 'Şube Grup', 'subegrup', DMQSubeGrup)
+			.addGrupBasit('STANAGRP', 'Stok Ana Grup', 'anagrup', DMQStokAnaGrup)
+			.addGrupBasit('STGRP', 'Stok Grup', 'grup', DMQStokGrup)
+			.addGrupBasit('STISTGRP', 'Stok İst. Grup', 'sistgrup', DMQStokIstGrup)
+			.addGrupBasit('STOK', 'Stok', 'stok', DMQStok)
+			.addGrupBasit('DEPO', 'Depo', 'yer', DMQYer)
+			.addGrupBasit('DEPOGRUP', 'Depo Grup', 'yergrup', DMQYerGrup);
+		for (let tip of brmListe) {
+			let fra = brmDict[tip];
+			result.addToplamBasit(`MIKTAR${tip}`, `Miktar (${tip})`, `miktar${tip}`, null, 100, ({ colDef }) => colDef.tipDecimal(fra))
 		}
 		if (isAdmin || !rol?.ozelRolVarmi('XMALYT')) {
 			result
-				.addToplam(new TabloYapiItem().setKA('ALIMNETFIYAT', 'Alım Net Fiyat').addColDef(new GridKolon({ belirtec: 'alimnetfiyat', text: 'Alım Net Fiyat', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
-				/*.addToplam(new TabloYapiItem().setKA('SATISCIRO', 'Satış Ciro').addColDef(new GridKolon({ belirtec: 'satisciro', text: 'Satış Cirosu', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))*/
+				.addToplamBasit_bedel('DEG_ALIMNETFIYAT', 'Değerleme: Alım Net Fiyat', 'deg_alimnetfiyat')
+				.addToplamBasit_bedel('DEG_ORTMALIYET', 'Değerleme: Ort. Maliyet', 'deg_ortmaliyet')
+				.addToplamBasit_bedel('DEG_RAYICALIM', 'Değerleme: Rayiç Alım', 'deg_rayicalim')
 		}
 		this.tabloYapiDuzenle_hmr(e)
 	}
@@ -34,6 +38,7 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 		if (attrSet.DEPOGRUP || attrSet.DEPO || attrSet.SUBE || attrSet.SUBEGRUP) { sent.son2YerBagla() } if (attrSet.DEPOGRUP) { sent.yer2GrupBagla() }
 		if (attrSet.SUBE || attrSet.SUBEGRUP) { sent.yer2SubeBagla() } if (attrSet.SUBEGRUP) { sent.sube2GrupBagla() }
 		if (attrSet.STOK || Object.keys(attrSet).find(x => x.startsWith(PrefixMiktar))) { sahalar.add('brm') }
+		let degMiktarClause = `(case when stk.almfiyatmiktartipi = '2' then son.sonmiktar2 else son.sonmiktar end)`;
 		for (const key in attrSet) {
 			switch (key) {
 				case 'SUBE': sahalar.add('yer.bizsubekod subekod', 'sub.aciklama subeadi'); wh.icerikKisitDuzenle_sube({ ...e, saha: 'fis.bizsubekod' }); break
@@ -44,12 +49,14 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 				case 'STOK': sahalar.add('son.stokkod', 'stk.aciklama stokadi'); wh.icerikKisitDuzenle_stok({ ...e, saha: 'son.stokkod' }); break
 				case 'DEPO': sahalar.add('son.yerkod', 'yer.aciklama yeradi'); wh.icerikKisitDuzenle_yer({ ...e, saha: 'son.yerkod' }); break
 				case 'DEPOGRUP': sahalar.add('yer.yergrupkod yergrupkod', 'ygrp.aciklama yergrupadi'); wh.icerikKisitDuzenle_yerGrup({ ...e, saha: 'yer.yergrupkod' }); break
-				case 'ALIMNETFIYAT': sent.sahalar.add('SUM(son.sonmiktar * stk.almnetfiyat) alimnetfiyat'); break
-				/*case 'SATISCIRO': sent.sahalar.add('SUM(son.sonmiktar * stk.satfiyat1) satisciro'); break*/
-				case PrefixMiktar: sahalar.add('SUM(son.sonmiktar) miktar'); break
+				case 'DEG_ALIMNETFIYAT': sahalar.add(`SUM(${degMiktarClause} * stk.almnetfiyat) deg_alimnetfiyat`); break
+				case 'DEG_ORTMALIYET': sahalar.add(`SUM(${degMiktarClause} * stk.ortmalfiyat) deg_ortmaliyet`); break
+				case 'DEG_RAYICALIM': sahalar.add(`SUM(${degMiktarClause} * (case when stk.rayicalimfiyati < stk.almnetfiyat then stk.almnetfiyat else stk.rayicalimfiyati end)) deg_rayicalim`); break
+				/*case 'SATISCIRO': sahalar.add(`SUM(${degMiktarClause} * stk.satfiyat1) satisciro`); break*/
+				case PrefixMiktar: sahalar.add(`SUM(son.sonmiktar) miktar`); break
 				default:
 					if (key.startsWith(PrefixMiktar)) {
-						const brmTip = key.slice(PrefixMiktar.length)?.toUpperCase();
+						let brmTip = key.slice(PrefixMiktar.length)?.toUpperCase();
 						sahalar.add(`${this.getBrmliMiktarClause({ brmTip, mstAlias: 'stk', harAlias: 'son', miktarPrefix: 'son' })} miktar${brmTip}`)
 					}
 					break

@@ -333,10 +333,10 @@ class HizmetHareketci extends Hareketci {
 				new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent }) => {
 						let {fatura, giderPusula, perakende} = uygunluk;
-						let fisTipleri = [], ayrimTipleri = [], ayrimTipEkClauses = [];
-						if (fatura) { fisTipleri.push('F') }
+						let pifTipleri = [], ayrimTipleri = [], ayrimTipEkClauses = [];
+						if (fatura) { pifTipleri.push('F') }
 						if (giderPusula || perakende) {
-							fisTipleri.push('P'); ayrimTipleri.push(giderPusula ? 'GP' : '');  /* ya 'giderPusula' ya da 'perakende' dir */
+							pifTipleri.push('P'); ayrimTipleri.push(giderPusula ? 'GP' : '');  /* ya 'giderPusula' ya da 'perakende' dir */
 							ayrimTipEkClauses.push(new MQOrClause([`fis.piftipi <> 'P'`]).inDizi(ayrimTipleri, 'fis.ayrimtipi'))
 						}
 						/* dbSent.js: yeni method:
@@ -344,7 +344,7 @@ class HizmetHareketci extends Hareketci {
 						sent.fisHareket('piffis', 'pifhizmet').fis2CariBagla()
 							.har2KatDetayBagla().fis2DegAdresBagla();
 						let {where: wh} = sent; wh.fisSilindiEkle();
-						wh.inDizi(fisTipleri, 'fis.fistipi');
+						wh.inDizi(pifTipleri, 'fis.piftipi');
 						if (ayrimTipEkClauses.length) { wh.add(...ayrimTipEkClauses) }
 					})
 					.hvDuzenleIslemi(({ hv }) => {
@@ -370,13 +370,13 @@ class HizmetHareketci extends Hareketci {
 				new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent }) => {
 						let {fatura, giderPusula, perakende} = uygunluk;
-						let fisTipleri = [
+						let pifTipleri = [
 							(fatura ? 'F' : null),
 							(giderPusula || perakende ? 'P' : null)
 						].filter(x => x != null);
 						sent.fisHareket('piffis', 'piftaksit').fis2CariBagla().x2TahSekliBagla({ kodClause: 'har.taktahsilsekli' });
 						let {where: wh} = sent; wh.fisSilindiEkle();
-						wh.inDizi(fisTipleri, 'fis.fistipi').degerAta('HZ', 'tsek.tahsiltipi')
+						wh.inDizi(pifTipleri, 'fis.piftipi').degerAta('HZ', 'tsek.tahsiltipi')
 					})
 					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
 						$.extend(hv, {
@@ -394,13 +394,13 @@ class HizmetHareketci extends Hareketci {
 				new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent }) => {
 						let {fatura, giderPusula, perakende} = uygunluk;
-						let fisTipleri = [
+						let pifTipleri = [
 							(fatura ? 'F' : null),
 							(giderPusula || perakende ? 'P' : null)
 						].filter(x => x != null);
 						sent.fisHareket('piffis', 'pifdiphizmet').fis2CariBagla();
 						let {where: wh} = sent; wh.fisSilindiEkle();
-						wh.inDizi(fisTipleri, 'fis.fistipi');
+						wh.inDizi(pifTipleri, 'fis.piftipi');
 						wh.add(`har.anatip <> 'II'`)    /* dip kisma atilan satir iskonto alinmaz */
 					})
 					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {

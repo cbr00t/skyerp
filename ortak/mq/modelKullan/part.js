@@ -243,7 +243,7 @@ class ModelKullanPart extends Part {
 							if (records) { rec = records.find(rec => (rec.originalItem || rec)[kodaEsasSaha] == _kod) }
 						}
 					}
-					if (!rec && records?.length && !(_kod == null || (typeof _kod == 'string' && !_kod.trim()))) { rec = records[0]; rec = rec.originalItem ?? rec ?? {}; kod = value = rec[kodSaha] ?? rec.key }
+					if (!rec && records?.length && !(_kod == null || (typeof _kod == 'string' && !_kod))) { rec = records[0]; rec = rec.originalItem ?? rec ?? {}; kod = value = rec[kodSaha] ?? rec.key }
 					item = rec?.originalItem ?? rec
 				}
 				if (item == null) { item = wItem }

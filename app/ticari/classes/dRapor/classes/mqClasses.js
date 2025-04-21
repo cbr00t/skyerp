@@ -111,11 +111,14 @@ class DMQSubeGrup extends DMQKA {
 class DMQSube extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Şube' }
 	static get table() { return 'isyeri' } static get tableAlias() { return 'sub' }
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e;
-		liste.push(new GridKolon({ belirtec: 'subegrupkod', text: 'Şube Grup', genislikCh: 10 }), new GridKolon({ belirtec: 'subegrupadi', text: 'Şube Grup Adı', genislikCh: 20, sql: 'igrp.aciklama' }))
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments);
+		liste.push(
+			new GridKolon({ belirtec: 'isygrupkod', text: 'Şube Grup', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'isygrupadi', text: 'Şube Grup Adı', genislikCh: 20, sql: 'igrp.aciklama' })
+		)
 	}
-	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.sube2GrupBagla() }
+	static loadServerData_queryDuzenle({ sent }) { super.loadServerData_queryDuzenle(...arguments); sent.sube2GrupBagla() }
 }
 class DMQTakipGrup extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Takip Grup' }

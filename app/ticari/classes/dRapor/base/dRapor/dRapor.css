@@ -64,7 +64,8 @@ body.dark-theme #dRapor.part #items > .item._main .jqx-grid tr:nth-child(even) .
 #dRapor.part #items > .item .jqx-grid .jqx-grid-statusbar > div > .jqx-grid-cell { font-weight: bold; color: royalblue }
 #dRapor.part #items > .item._main .jqx-grid .jqx-grid-statusbar > div > .jqx-grid-cell { font-size: 80% !important }
 #dRapor.part #items > .item[data-builder-id = 'ozet'] .jqx-grid .jqx-grid-statusbar > div > .jqx-grid-cell { font-size: 105% !important }
-#dRapor.part #items > .item[data-builder-id = 'ozet'] .jqx-grid .jqx-grid-cell { font-size: 83% }
+#dRapor.part #items > .item[data-builder-id = 'ozet'] .jqx-grid .jqx-grid-cell { font-size: 83 }
+#dRapor.part #items > .item[data-builder-id = 'ozet'] .jqx-grid .jqx-grid-cell > div { padding-right: 13px }
 .secimler.dRapor.part .secimler-form > div { padding-top: 5px }
 .secimler.dRapor.part .secimler-form .secim { padding: 5px }
 .secimler.dRapor.part .secimler-form .modelKullan.part { padding: 5px 5px }

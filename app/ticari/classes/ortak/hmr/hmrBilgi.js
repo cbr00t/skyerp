@@ -14,8 +14,8 @@ class HMRBilgi extends CIO {
 	static get belirtecListe() {
 		let {_belirtecListe: result} = this; if (result == null) {
 			result = this._belirtecListe = []; let {hmr} = app.params.stokGenel, {ekOzellikListe} = this;
-			if (hmr) { for (const key in hmr) { if (hmr[key]) { result.push(key) } } }
-			result.push(...ekOzellikListe.map((_, i) => `ekOz${i + 1}`))
+			if (hmr) { for (let key in hmr) { if (hmr[key]) { result.push(key) } } }
+			result.push(...ekOzellikListe.map(kod => `ekOz${asInteger(string2Numeric(kod))}`))
 		}
 		return result
 	}
@@ -30,9 +30,13 @@ class HMRBilgi extends CIO {
 	}
 	static get hmrEtiketDict() {
 		let {_hmrEtiketDict: result} = this; if (result == null) {
-			let {hmrEtiket} = app.params.stokGenel, {ekOzellikListe} = this;
+			let {hmrEtiket, ekOzellikBilgileri} = app.params.stokGenel, {ekOzellikListe} = this;
 			result = this._hmrEtiketDict = { ...(hmrEtiket ?? {}) };
-			ekOzellikListe.forEach((adi, i) => result[`ekOz${i + 1}`] = adi)
+			for (let kod of ekOzellikListe) {
+				let seq = asInteger(string2Numeric(kod));
+				let key = `ekOz${seq}`, adi = hmrEtiket[key] || ekOzellikBilgileri[seq - 1]?.adi;
+				if (adi) { result[key] = adi }
+			}
 		}
 		return result
 	}
@@ -59,10 +63,14 @@ class HMRBilgi extends CIO {
 				yukseklik: { ioAttr: 'yukseklik', rowAttr: 'yukseklik', etiket: 'Yükseklik', numerikmi: true }
 			};
 			let {ekOzellikBilgileri} = app.params.stokGenel, {ekOzellikListe} = this;
-			let adi2EkOzSeq = {}; ekOzellikBilgileri?.filter(x => !!x)?.forEach(({ adi }, i) => adi2EkOzSeq[adi] = i + 1);
-			for (let i = 0; i < ekOzellikListe.length; i++) {
-				let adi = ekOzellikListe[i], seq = adi2EkOzSeq[adi] || null; /*i + 1*/ if (!seq) { continue }
-				clsDef = `(class MQEkOzellik${seq} extends MQKA {
+			let ekOzSeq2Adi = {}; for (let kod of ekOzellikListe) {
+				let seq = asInteger(string2Numeric(kod)); ekOzSeq2Adi[seq] = kod }
+			/* let adi2EkOzSeq = {}; ekOzellikBilgileri?.filter(x => !!x)?.forEach(({ adi }, i) => adi2EkOzSeq[adi] = i + 1); */
+			for (let i = 0; i < ekOzellikBilgileri.length; i++) {
+				let item = ekOzellikBilgileri[i] ?? {}; if (!item) { continue }
+				let seq = i + 1, adi = ekOzSeq2Adi[seq]; if (!adi) { continue }
+				adi = ekOzellikBilgileri[i]?.adi || adi;
+				let clsDef = `(class MQEkOzellik${seq} extends MQKA {
 					static { window[this.name] = this; this._key2Class[this.name] = this }
 					static get sinifAdi() { return '${adi}' } static get table() { return '${`stokekoz${seq}`}' } static get tableAlias() { return '${`ekoz${seq}`}' }
 				})`;

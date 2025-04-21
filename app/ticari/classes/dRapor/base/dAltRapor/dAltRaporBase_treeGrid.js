@@ -140,23 +140,23 @@ class DAltRapor_TreeGrid extends DAltRapor {
 			colDef.aggregatesRenderer = (colDef, aggregates, jqCol, elm) => {
 				let result = []; for (let [tip, value] of Object.entries(aggregates)) {
 					if (value != null) { value = asFloat(value) } const dipBelirtec = tip == 'sum' ? 'T' : tip == 'avg' ? 'O' : tip;
-					result.push(`<div class="toplam-item"><span class="lightgray">${dipBelirtec}</span> <span>${roundToFra(value, 2).toLocaleString()}</span></div>`)
+					result.push(`<div class="toplam-item"><div class="lightgray">${dipBelirtec}</span> <span>${roundToFra(value, 2).toLocaleString()}</span></div>`)
 				}
 				return result.join('')
 			};
 			if (tip instanceof GridKolonTip_Number) {
 				const {fra} = tip; colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) =>
-					this.cellsRenderer({ colDef, rowIndex, belirtec, value, rec, html: `<span class="right">${toStringWithFra(value, fra)}</span>` })
+					this.cellsRenderer({ colDef, rowIndex, belirtec, value, rec, html: `<div class="right">${toStringWithFra(value, fra)}</div>` })
 				/*if (!colDef.aggregates &&  tip instanceof GridKolonTip_Decimal) { colDef.aggregates = [(total, value) => asFloat(total) + asFloat(value)] }*/
 			}
 			else if (tip instanceof GridKolonTip_Date) {
 				colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) =>
 					this.cellsRenderer({ 
 						colDef, rowIndex, belirtec, value, rec,
-						html: `<span>${isDate(value)
+						html: `<div>${isDate(value)
 									? dateKisaString(value)
 									: (value.length == DateTimeFormat.length || value.length == DateTimeFormat.length - 1 ? value?.slice(0, 10) : (value ?? ''))
-							  }</span>`
+							  }</div>`
 					})
 			}
 			else {
@@ -344,7 +344,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				digerRec[icerikAttr] = digerSayi ? roundToFra((digerRec[icerikAttr] || 0) / digerSayi, icerikColDef.tip?.fra ?? 0) : 0 }
 			result.push(digerRec)
 		}
-		ozetBilgi.recs = result
+		ozetBilgi.recs = result;
 		window.progressManager?.progressStep(2);
 	}
 	tazeleOncesi(e) {
@@ -388,7 +388,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 						}
 						if (value) { liste.push(value) }
 					} 
-					liste.sort(); liste.unshift('TOPLAM'); colDefs = [...gtTip2ColDefs.sabit];
+					liste.sort(); liste.unshift('TOPLAM');
+					colDefs = [...gtTip2ColDefs.sabit];
 					for (let _colDef of gtTip2ColDefs.toplam) {
 						for (let yatayText of liste) {
 							let colDef = _colDef.deepCopy(); colDefs.push(colDef); colDef.belirtec += `_${yatayText}`;
@@ -407,7 +408,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				colDef.text = [...(Object.keys(grup).map(kod => `<span class="royalblue">${tabloYapi.grup[kod]?.colDefs[0]?.text || ''}</span>`) || []), colDef.text].join(' + ')
 			}
 			if (!defUpdateOnly) { grid.jqxTreeGrid('clear') } colDefs = this.getColumns(colDefs);
-			let {sortcolumn: sortBelirtec, sortdirection: sortDir} = base, sortTipKod = belirtec2Tip[sortBelirtec]; ozetBilgi.grupTipKod = ozetBilgi.icerikTipKod = null;
+			let {sortcolumn: sortBelirtec, sortdirection: sortDir} = base;
+			let sortTipKod = belirtec2Tip[sortBelirtec]; ozetBilgi.grupTipKod = ozetBilgi.icerikTipKod = null;
 			if (sortTipKod) {
 				if (tabloYapi.toplam[sortTipKod]) { ozetBilgi.icerikTipKod = sortTipKod }
 				/*const selector = `${tabloYapi.toplam[sortTipKod] ? 'icerik' : 'grup'}TipKod`; ozetBilgi[selector] = sortTipKod*/
@@ -429,11 +431,21 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			window.progressManager?.progressStep(1);
 			try { grid.jqxTreeGrid('columns', colDefs.flatMap(colDef => colDef.jqxColumns)) } catch (ex) { console.error(ex) } window.progressManager?.progressStep(1);
 			/* gridWidget.base.sortcolumn */
-			const ozetBilgi_getColumns = (source, kod, colDefDuzenle) =>
-				this.getColumns((source[kod]?.colDefs || [])).map(_colDef => { const colDef = _colDef/*.deepCopy()*/; if (colDefDuzenle) { getFuncValue.call(this, colDefDuzenle, colDef) } return colDef });
+			let ozetBilgi_getColumns = (source, kod, colDefDuzenle) => {
+				return this.getColumns((source[kod]?.colDefs || [])).map(colDef => {
+					if (colDefDuzenle) { getFuncValue.call(this, colDefDuzenle, colDef) }
+					return colDef
+				})
+			};
 			ozetBilgi.colDefs = ozetBilgi.grupTipKod ? [
-				...ozetBilgi_getColumns(tabloYapi.grup, ozetBilgi.grupTipKod, colDef => $.extend(colDef, { minWidth: 140, maxWidth: null, genislikCh: null })),
-				...ozetBilgi_getColumns(tabloYapi.toplam, ozetBilgi.icerikTipKod, colDef => $.extend(colDef, { minWidth: null, maxWidth: null, genislikCh: 16, aggregates: ozetBilgi.icerikColDef?.aggregates || ['sum'] }))
+				...ozetBilgi_getColumns(
+					tabloYapi.grup, ozetBilgi.grupTipKod,
+					colDef => $.extend(colDef, { minWidth: 140, maxWidth: null, genislikCh: null })),
+				...ozetBilgi_getColumns(
+					tabloYapi.toplam, ozetBilgi.icerikTipKod,
+					colDef => $.extend(colDef, {
+						minWidth: null, maxWidth: null, genislikCh: 16, aggregates: ozetBilgi.icerikColDef?.aggregates || ['sum']
+					}).tipDecimal_bedel() )
 			] : [];
 			raporTanim.degistimi = false; await gridPart._promise_kaFix;
 			if (defUpdateOnly) { delete e.recs; await this.gridVeriYuklendi(e); await this.ozetBilgiRecsOlustur(e) } else { await super.tazele(e) }
@@ -571,7 +583,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	getColumns(colDefs) {
 		colDefs = super.getColumns(colDefs); if (!colDefs) { return colDefs }
 		const {gridPart, tabloYapi} = this; let icerikColsSet; for (const colDef of colDefs) {
-			const kod = colDef.userData?.kod; if (tabloYapi.toplam[kod]) { if (!colDef.align) { colDef.alignRight() } /*if (!colDef.cellsFormat) { colDef.cellsFormat = 'd' }*/ }
+			let kod = colDef.userData?.kod; if (tabloYapi.toplam[kod]) { if (!colDef.align) { colDef.alignRight() } /*if (!colDef.cellsFormat) { colDef.cellsFormat = 'd' }*/ }
 			colDef.cellClassName = (colDef, rowIndex, belirtec, value, rec) => {
 				if (icerikColsSet == null) { const {raporTanim} = this; icerikColsSet = raporTanim.icerik }
 				const kod = colDef.userData?.kod; let result = ['treeRow', belirtec]; if (rec) { result.push(rec.leaf ? 'leaf' : 'grup') }

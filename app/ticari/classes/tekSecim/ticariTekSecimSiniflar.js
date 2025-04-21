@@ -443,15 +443,10 @@ class CSBelgeTipi extends TekSecim {
 }
 class HizmetTipi extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultChar() { return '' }
-	get gelirmi() { return this.char == '' }
-	get gidermi() { return this.char == 'G' }
-	get tahakkukmu() { return this.char == 'T' }
-	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e
-		kaListe.push(
-			new CKodVeAdi(['', 'Gelir']),
-			new CKodVeAdi(['G', 'Gider']),
+	static get defaultChar() { return null } get gelirmi() { return this.char == ' ' } get gidermi() { return this.char == 'G' } get tahakkukmu() { return this.char == 'T' }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments); kaListe.push(
+			new CKodVeAdi([' ', 'Gelir']), new CKodVeAdi(['G', 'Gider']),
 			new CKodVeAdi(['T', 'Tahakkuk'])
 		)
 	}

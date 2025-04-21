@@ -82,8 +82,13 @@ class DRaporFormul extends CObject {
 class TabloYapiItem extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get tipStringmi() { return !this.tip } get tipNumerikmi() { return this.tip == 'number' } get tipTarihmi() { return this.tip == 'date' } get tipBoolmu() { return this.tip == 'boolean' }
-	get secimSinif() { return this.tipNumerikmi ? SecimNumber : this.tipTarihmi ? SecimDate : SecimString } get kaYapimi() { return !!this.mfSinif } get formulmu() { return !!this.formul }
-	// get hrkAttr() { return this._hrkAttr }
+	get secimSinif() {
+		return (this.tipNumerikmi ? SecimNumber : this.tipTarihmi ? SecimDate : SecimString)
+		/*return this.kaYapimi
+			? (this.tipNumerikmi ? SecimNumber : this.tipTarihmi ? SecimDate : SecimString)
+			: (this.tipNumerikmi ? SecimTekilNumber : this.tipTarihmi ? SecimTekilDate : SecimOzellik)*/
+	}
+	get kaYapimi() { return !!this.mfSinif }  get formulmu() { return !!this.formul }
 	get orderBySaha() {
 		let result = this._orderBySaha; if (result !== undefined) { return result }
 		let {kaYapimi} = this; result = this.colDefs[0]?.belirtec;
@@ -103,12 +108,14 @@ class TabloYapiItem extends CObject {
 		let {secimKullanilirFlag, mfSinif} = this;
 		secimKullanilirFlag = secimKullanilirFlag ?? !!mfSinif;
 		if (secimKullanilirFlag) {
-			let {ka, secimSinif} = this, kod = ka?.kod, kodSaha = mfSinif?.kodSaha;
-			if (kod != null && secimSinif && mfSinif && kodSaha) {
-				const {adiSaha} = mfSinif, sec = e.secimler, etiket = ka.aciklama;
-				const grupKod = kod, zeminRenk = undefined, kapali = true; sec.grupEkle({ kod: grupKod, aciklama: etiket, zeminRenk, kapali });
-				const userData = { kod }, liste = {}; liste[kod] = new secimSinif({ etiket: 'Kod', mfSinif, grupKod, userData });
-				if (adiSaha) { liste[kod + 'Adi'] = new SecimOzellik({ etiket: 'Adı', grupKod, userData }) }
+			let {ka, secimSinif, colDefs, kaYapimi} = this, kod = ka?.kod, kodSaha = mfSinif?.kodSaha;
+			let clauseVarmi = kodSaha || colDefs[0]?.belirtec;
+			if (clauseVarmi && kod != null && secimSinif) {
+				let {adiSaha} = mfSinif ?? {}, {secimler: sec} = e, {aciklama: etiket} = ka;
+				let grupKod = kod, zeminRenk = undefined, kapali = true; sec.grupEkle({ kod: grupKod, aciklama: etiket, zeminRenk, kapali });
+				let userData = { kod }, liste = {};
+				liste[kod] = new secimSinif({ etiket: kaYapimi ? 'Kod' : 'Değer', mfSinif, grupKod, userData });
+				if (kaYapimi && adiSaha) { liste[kod + 'Adi'] = new SecimOzellik({ etiket: 'Adı', grupKod, userData }) }
 				sec.secimTopluEkle(liste)
 			}
 		}
@@ -116,10 +123,14 @@ class TabloYapiItem extends CObject {
 	}
 	tbWhereClauseDuzenle(e) {
 		const {secimKullanilirFlag} = this; if (secimKullanilirFlag) {
-			const {ka, secimSinif, mfSinif} = this, kod = ka?.kod, kodSaha = mfSinif?.kodSaha;
-			if (kod != null && secimSinif && mfSinif && kodSaha) {
-				const {aliasVeNokta, adiSaha} = mfSinif, sec = e.secimler, wh = e.where; wh.basiSonu(sec[kod], aliasVeNokta + kodSaha);
-				if (adiSaha) { wh.ozellik(sec[kod + 'Adi'], aliasVeNokta + adiSaha) }
+			const {ka, secimSinif, mfSinif, colDefs, kaYapimi} = this, kod = ka?.kod;
+			let kodSaha = mfSinif?.kodSaha, aliasVeNokta = mfSinif?.aliasVeNokta ?? '';
+			let clause = kodSaha ? `${aliasVeNokta}${kodSaha}` : colDefs[0]?.belirtec;
+			if (clause && kod != null && secimSinif) {
+				let {adiSaha} = mfSinif ?? {}, {secimler: sec, where: wh} = e;
+				// wh[kaYapimi ? 'basiSonu' : 'ozellik'](sec[kod], clause);
+				wh.basiSonu(sec[kod], clause);
+				if (kaYapimi && adiSaha) { wh.ozellik(sec[kod + 'Adi'], `${aliasVeNokta}${adiSaha}`) }
 			}
 		}
 		const {tbWhereClauseDuzenleyici} = this; if (tbWhereClauseDuzenleyici != null) { getFuncValue.call(this, tbWhereClauseDuzenleyici, e) }

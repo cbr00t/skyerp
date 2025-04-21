@@ -145,11 +145,10 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		return this
 	}
 	tabloYapiDuzenle_ciro(e) {
-		const {result} = e, toplamPrefix = e.toplamPrefix ?? this.class.toplamPrefix, {isAdmin, rol} = config.session ?? {};
-		/*if (isAdmin || !rol?.ozelRolVarmi('XMALYT')) {*/
+		let {result} = e, toplamPrefix = e.toplamPrefix ?? this.class.toplamPrefix, {isAdmin, rol} = config.session ?? {};
 		result
-			.addToplam(new TabloYapiItem().setKA('BRCIRO', `${toplamPrefix}Brüt Ciro`)
-				.addColDef(new GridKolon({ belirtec: 'brciro', text: `${toplamPrefix}Brüt Ciro`, genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
+			.addToplam(new TabloYapiItem().setKA('STBRCIRO', `${toplamPrefix}Brüt Ciro`)
+				.addColDef(new GridKolon({ belirtec: 'stbrciro', text: `${toplamPrefix}Brüt Ciro`, genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
 			.addToplam(new TabloYapiItem().setKA('ISKBEDEL', `${toplamPrefix}İskonto Bedel`)
 				.addColDef(new GridKolon({ belirtec: 'iskbedel', text: `${toplamPrefix}İskonto Bedel`, genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
 			.addToplam(new TabloYapiItem().setKA('CIRO', `${toplamPrefix}Net Ciro`)
@@ -171,9 +170,13 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		for (const {sahalar} of stm.getSentListe()) {
 			for (const key in attrSet) {
 				switch (key) {
-					case 'BRCIRO': sahalar.add('SUM(har.brutbedel) brciro'); break
-					case 'CIRO': sahalar.add('SUM(har.bedel) ciro'); break
+					case 'STBRCIRO': sahalar.add('SUM(har.brutbedel) stbrciro'); break
+					case 'CIRO': sahalar.add('SUM(har.bedel - har.dipiskonto) ciro'); break
 					case 'ISKBEDEL': sahalar.add('SUM(har.brutbedel - har.bedel) iskbedel'); break
+					case 'TUMMALIYET': sahalar.add('SUM(har.fmalhammadde + har.fmalmuh) tummaliyet'); break;
+					case 'HAMMALIYET': sahalar.add('SUM(har.fmalhammadde) hammaliyet'); break;
+					case 'MALMUH': sahalar.add('SUM(har.fmalmuh) malmuh'); break;
+					case 'BRUTKAR': sahalar.add('SUM(har.bedel - har.dipiskonto - (har.fmalhammadde + har.fmalmuh)) brutkar'); break;
 					default:
 						for (const dvKod of this.dvKodListe) {
 							if (key == `BRCIRO_${dvKod}`) {
@@ -234,7 +237,9 @@ class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 		return this
 	}
 	tabloYapiDuzenle_ciro(e) {
-		super.tabloYapiDuzenle_ciro(e); const {result} = e, tip2Bilgi = { BR: { miktarPrefix: 'br', etiketPrefix: 'Brüt' }, IA: { miktarPrefix: 'ia', etiketPrefix: 'İADE' } };
+		super.tabloYapiDuzenle_ciro(e); let {isAdmin, rol} = config.session ?? {};
+		let maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT'), {uretimMalMuh} = app.params.uretim.kullanim;
+		let {result} = e, tip2Bilgi = { BR: { miktarPrefix: 'br', etiketPrefix: 'Brüt' }, IA: { miktarPrefix: 'ia', etiketPrefix: 'İADE' } };
 		result
 			.addToplam(new TabloYapiItem().setKA('BRCIRO', 'Brüt Ciro').addColDef(new GridKolon({ belirtec: 'brciro', text: 'Brüt Ciro', genislikCh: 19, filterType: 'numberinput' }).tipDecimal()))
 			.addToplam(new TabloYapiItem().setKA('IACIRO', 'İADE Ciro').addColDef(new GridKolon({ belirtec: 'iaciro', text: 'İADE Ciro', genislikCh: 19, filterType: 'numberinput' }).tipDecimal()))
@@ -244,6 +249,24 @@ class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 			.addToplam(new TabloYapiItem().setKA('IACIROFIYAT', 'İADE Ciro Fiyat')
 				.setFormul(['IACIRO', 'IAMIKTAR'], ({ rec }) => roundToFiyatFra(rec.iaciro / rec.iamiktar))
 				.addColDef(new GridKolon({ belirtec: 'iacirofiyat', text: 'İADE Ciro Fiyat', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_fiyat()))
+		if (maliyetGorurmu) {
+			result
+				.addToplamBasit_bedel('TUMMALIYET', 'Tüm Maliyet', 'tummaliyet')
+				.addToplamBasit('YUZDE_CIRO_TUMMALIYET', 'Mal. Ciro(%)', 'yuzde_ciro_tummaliyet', null, null, ({ item }) =>
+					item.setFormul(['TUMMALIYET', 'CIRO'], ({ rec }) => rec.ciro ? roundToFra((rec.tummaliyet / rec.ciro) * 100, 1) : 0))
+				.addToplamBasit_bedel('HAMMALIYET', 'Ham Maliyet', 'hammaliyet');
+			if (uretimMalMuh) { result.addToplamBasit_bedel('MALMUH', 'Maliyet Muhasebesi', 'malmuh') }
+			result
+				.addToplamBasit_bedel('BRUTKAR', 'Brüt Kar', 'brutkar')
+				.addToplamBasit('YUZDE_CIRO_BRUTKAR', 'Kar Ciro(%)', 'yuzde_ciro_brutkar', null, null, ({ item }) =>
+					item.setFormul(['BRUTKAR', 'CIRO'], ({ rec }) => rec.ciro ? roundToFra((rec.brutkar / rec.ciro) * 100, 1) : 0))
+				.addToplamBasit('YUZDE_MALIYET_BRUTKAR', 'Kar Mal.(%)', 'yuzde_maliyet_brutkar', null, null, ({ item }) =>
+					item.setFormul(['BRUTKAR', 'TUMMALIYET'], ({ rec }) => rec.tummaliyet ? roundToFra((rec.brutkar / rec.tummaliyet) * 100, 1) : 0))
+				.addToplamBasit('BRMMALIYET', 'Brm. Maliyet', 'brmmaliyet', null, null, ({ item }) =>
+					item.setFormul(['TUMMALIYET', 'MIKTAR'], ({ rec }) => rec.miktar ? roundToFra((rec.tummaliyet / rec.miktar) * 100, 1) : 0))
+				.addToplamBasit('BRMIKAR', 'Br. Miktar', 'brmiktar', null, null, ({ item }) =>
+					item.setFormul(['BRUTKAR', 'MIKTAR'], ({ rec }) => rec.miktar ? roundToFra((rec.brutkar / rec.miktar) * 100, 1) : 0))
+		}
 		return this
 	}
 	loadServerData_queryDuzenle_ciro(e) {

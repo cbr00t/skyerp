@@ -46,6 +46,12 @@ class DRapor_Hareketci_Hizmet extends DRapor_Hareketci {
 class DRapor_Hareketci_Hizmet_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return HizmetHareketci }
 	static get raporClass() { return DRapor_Hareketci_Hizmet }
+	secimlerDuzenle({ secimler: sec }) {
+		super.secimlerDuzenle(...arguments); let {grupVeToplam} = this.tabloYapi;
+		sec.secimTopluEkle({
+			hizmetTipi: new SecimBirKismi({ etiket: 'Hizmet Tipi', tekSecimSinif: HizmetTipi, grupKod: 'HIZMET' }).birKismi()
+		}).whereBlockEkle(({ secimler: sec, where: wh }) => { wh.birKismi(sec.hizmetTipi, 'hiz.tip') })
+	}
 	tabloYapiDuzenle({ result }) {
 		result
 			.addKAPrefix('anagrup', 'grup', 'histgrup', 'kategori')

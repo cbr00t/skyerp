@@ -241,9 +241,14 @@ class MQStokGenelParam extends MQTicariParamBase {
 			hv[rowAttr] = hmr[key]; if (etiketEditable) { hv[rowAttr + 'Etiket'] = hmrEtiket[key] }
 		}
 	}
-	paramSetValues(e) {
-		e = e || {}; super.paramSetValues(e); let {rec} = e, {hmrYapi, ekOzellikBilgileri} = this;
-		ekOzellikBilgileri = this.ekOzellikBilgileri = ekOzellikBilgileri?.filter(({ adi }) => !!adi) ?? [];
+	paramSetValues({ rec }) {
+		super.paramSetValues(...arguments); let {hmrYapi} = this;
+		let ekOzellikBilgileri = [];
+		for (let item of this.ekOzellikBilgileri) {
+			if (typeof item == 'string') { try { item = JSON.parse(item) } catch (ex) { console.error(ex); item = null } }
+			if (item?.adi) { ekOzellikBilgileri.push(item) }
+		}
+		this.ekOzellikBilgileri = ekOzellikBilgileri;
 		let hmr = this.hmr = this.hmr || {}, hmrEtiket = this.hmrEtiket = this.hmrEtiket || {};
 		for (let [key, yapi] of Object.entries(hmrYapi)) {
 			let {rowAttr, etiketEditable} = yapi; if (!rowAttr) { continue }
@@ -379,9 +384,32 @@ class MQUretimParam extends MQTicariParamBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get paramKod() { return 'URETIM' } static get sinifAdi() { return 'Üretim Parametreleri' }
 	constructor(e) { e = e || {}; super(e) }
-	static paramYapiDuzenle(e) { super.paramYapiDuzenle(e); const {paramci} = e /* paramci.addNumber('uretimNumuneSayisi', 'Üretim Numune Sayısı') */ }
-	paramHostVarsDuzenle(e) { e = e || {}; super.paramHostVarsDuzenle(e); const {hv} = e }
-	paramSetValues(e) { e = e || {}; super.paramSetValues(e); const {rec} = e }
+	static paramYapiDuzenle({ paramci }) {
+		super.paramYapiDuzenle(...arguments);
+		let form = paramci.addKullanim().addFormWithParent();
+			form.addBool('uretimMalMuh', 'Maliyet Muhasebesi')
+		/*
+		at: 'superAgac'				put: self sablonsalFormul;
+		at: 'saOzellikZorunlumu'	put: self sablonsaldaOzellikSecimiZorunludur;
+		at: 'ayrisimUretimi'		put: self ayrisimKullanilir;
+		at: 'varyantliUretim'		put: self varyantKullanilir;
+		at: 'uretimMalMuh'			put: self malMuhKullanilir;
+		at: 'formulRevizyon'		put: self formulRevizyonKullanilir;
+
+		at: 'otoLotNo'				put: self otoLotUygulanir;
+		at: 'otoLotKurali'			put: self otoLotNoKurali;
+		at: 'otoLotUygulamaSekli'	put: self otoLotUygulamaSekli;		" PUretLotlamaTipi "
+		at: 'otoSeriNo'				put: self otoSeriUygulanir;
+		at: 'otoSeriKurali'			put: self otoSeriNoKurali;
+
+		at: 'formulHizmet'			put: self uretimHizmeti;
+		at: 'fasonAlimIcinFasonUrerim'		put: self fasonAlimIcinGerekirseFasonUretimYapilsin;
+		at: 'fasoncuYonetimi'		put: self fasoncuYonetimi;
+		at: 'mrp'					put: self mrp;
+		at: 'formulDerinlemesineMaxSeviye'	put: self formulDerinlemesineSeviye;
+		at: 'formulFiyatFra'		put: self formulFiyatFra;
+		*/
+	}
 }
 class MQOperGenelParam extends MQTicariParamBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }

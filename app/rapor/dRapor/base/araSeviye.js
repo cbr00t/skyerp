@@ -65,12 +65,22 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	static set yatayTip2Bilgi(value) { this._yatayTip2Bilgi = value }
 	secimlerDuzenle(e) {
 		super.secimlerDuzenle(e); let {secimler} = e, {grupVeToplam} = this.tabloYapi;
-		const islemYap = (keys, callSelector, args) => {
-			for (const key of keys) {
-				const item = key ? grupVeToplam[key] : null; if (item == null) { continue }
-				const proc = item[callSelector]; if (proc) { proc.call(item, args) }
+		if (this.konsolideVarmi) {
+			let grupKod = 'DB'; secimler.grupEkle(grupKod, 'Veritabanı');
+			let sec = new SecimBirKismi({ etiket: 'Veritabanı', grupKod }).birKismi();
+			app.wsDBListe()
+				.then(arr => arr.filter(x => x != 'ORTAK').map(x => new CKodVeAdi([x, x])))
+				.then(kaListe => sec.tekSecim = new TekSecim({ kaListe }));
+			secimler.secimTopluEkle({ db: sec });
+			// result.addGrupBasit('DB', 'Veritabanı', 'db')
+		}
+		let islemYap = (keys, callSelector, args) => {
+			for (let key of keys) {
+				let item = key ? grupVeToplam[key] : null; if (item == null) { continue }
+				let proc = item[callSelector]; if (proc) { proc.call(item, args) }
 			}
-		}; islemYap(Object.keys(grupVeToplam), 'secimlerDuzenle', e);
+		};
+		islemYap(Object.keys(grupVeToplam), 'secimlerDuzenle', e);
 		secimler.whereBlockEkle(_e => {
 			islemYap(Object.keys(grupVeToplam) || {}, 'tbWhereClauseDuzenle', { ...e, ..._e })
 			/*islemYap(Object.keys(this.raporTanim?.attrSet || {}), 'tbWhereClauseDuzenle', { ...e, ..._e })*/
@@ -104,7 +114,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); const {result} = e;
-		if (this.konsolideVarmi) { result.addGrup(new TabloYapiItem().setKA('DB', 'Veritabanı').addColDef(new GridKolon({ belirtec: 'db', text: 'Veritabanı', genislikCh: 18 }))) }
+		if (this.konsolideVarmi) { result.addGrupBasit('DB', 'Veritabanı', 'db', null, null, null) }
 		this.tabloYapiDuzenle_ozel?.(e)
 	}
 	tabloYapiDuzenle_son(e) {
@@ -186,17 +196,24 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	loadServerData_queryDuzenle_tekilSonrasi(e) {
 		this.loadServerData_queryDuzenle_tekilSonrasi_ilk_ozel?.(e);
-		let {toplamTable} = MQStm, {stm, attrSet} = e, {with: _with} = stm, {konsolideVarmi} = this;
+		let {toplamTable} = MQStm, {stm, attrSet} = e, {with: _with} = stm, {konsolideVarmi, secimler: sec} = this;
 		if (konsolideVarmi && !_with.toplamVarmi) {
-			let {ekDBListe} = app.params?.dRapor ?? {}, alias_db = 'db';
-			let asilUni = stm.sent = stm.sent.asUnionAll();
-			if (!asilUni.liste.length) { asilUni.add(new MQSent()) }
-			for (let {sahalar} of asilUni.getSentListe()) {
-				if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db)) {
-					sahalar.add(`${`[ <span class=royalblue>${config.session.dbName}</span> ]`.sqlServerDegeri() ?? '- Aktif VT -'} ${alias_db}`) }
+			let {session} = config, {dbName: buDBName} = session, {ekDBListe} = app.params?.dRapor ?? {}, alias_db = 'db';
+			let {value: filtreDBListe} = sec.db, filtreDBSet = filtreDBListe?.length ? asSet(filtreDBListe) : null;
+			if (filtreDBListe?.length) { ekDBListe = filtreDBListe.filter(name => name != buDBName) }
+			let uniDuzenlendimi = false, asilUni = stm.sent = stm.sent.asUnionAll();
+			if (!filtreDBSet || filtreDBSet[buDBName]) {
+				if (!asilUni.liste.length) { asilUni.add(new MQSent()) }
+				for (let {sahalar} of asilUni.getSentListe()) {
+					if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db)) {
+						sahalar.add(`${`[ <span class=royalblue>${buDBName}</span> ]`.sqlServerDegeri() ?? '- Aktif VT -'} ${alias_db}`) }
+				}
+				uniDuzenlendimi = true
 			}
 			for (let db of ekDBListe ?? []) {
-				let uni = asilUni.deepCopy(); if (!uni.liste.length) { continue }
+				if (filtreDBSet && !filtreDBSet[db]) { continue }
+				let uni = asilUni; if (!uni.liste.length) { continue }
+				if (uniDuzenlendimi) { uni = uni.deepCopy() }
 				for (let sent of uni.getSentListe()) {
 					let {from, sahalar} = sent; for (let item of from.liste) {
 						let {deger} = item, hasDB = deger.includes('.');
@@ -204,10 +221,14 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 					}
 					{
 						let saha = sahalar.liste.find(x => x.alias == alias_db);
+						if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db)) {
+							sahalar.add(`'NULL' ${alias_db}`);
+							saha = sahalar.liste.find(x => x.alias == alias_db);
+						}
 						if (saha) { saha.deger = db.sqlServerDegeri() }
 					}
 				}
-				asilUni.addAll(uni.liste)
+				asilUni.addAll(uni.liste); uniDuzenlendimi = true
 			}
 		}
 		this.loadServerData_queryDuzenle_tekilSonrasi_son_ozel?.(e)
@@ -356,17 +377,20 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	tabloYapiDuzenle_hizmet({ result }) {
-		result.addKAPrefix('hizmet').addGrupBasit('HIZMET', 'Hizmet', 'hizmet', DMQHizmet);
+		result.addKAPrefix('hizmet')
+			.addGrupBasit('HIZMET', 'Hizmet', 'hizmet', DMQHizmet)
+			.addGrupBasit('HIZMETTIP', 'Hizmet Tipi', 'hizmettiptext');
 		return this
 	}
 	loadServerData_queryDuzenle_hizmet({ stm, sent, attrSet, kodClause }) {
 		if (!kodClause) { return this } sent = sent ?? stm.sent; let {where: wh, sahalar} = sent;
-		if (attrSet.HIZMET) { sent.x2HizmetBagla({ kodClause }) }
+		if (attrSet.HIZMET || attrSet.HIZMETTIP) { sent.x2HizmetBagla({ kodClause }) }
 		for (const key in attrSet) {
 			switch (key) {
 				case 'HIZMET':
 					sahalar.add(`${kodClause} hizmetkod`, 'hiz.aciklama hizmetadi'); wh.icerikKisitDuzenle_hizmet({ ...arguments[0], saha: kodClause });
 					break
+				case 'HIZMETTIP': sahalar.add(`${HizmetTipi.getClause('hiz.tip')} hizmettiptext`); break
 			}
 		}
 		return this

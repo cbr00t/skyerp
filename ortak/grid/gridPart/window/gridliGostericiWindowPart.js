@@ -67,11 +67,15 @@ class GridliGostericiWindowPart extends GridliGostericiPart {
 		e = e || {}; super.gridVeriYuklendi(e);
 		const {gridWidget} = e, selectionMode = gridWidget.selectionmode, sel = gridWidget.getselection();
 		if (selectionMode && selectionMode != 'none' && $.isEmptyObject(sel.rows) && $.isEmptyObject(sel.cells)) {
-			try { gridWidget.clearselection() } catch (ex) { }
-			if (selectionMode == 'checkbox' || selectionMode.toLowerCase().includes('row')) { try { gridWidget.selectrow(0) } catch (ex) { } }
-			else { const colDef = this.duzKolonTanimlari.find(_colDef => _colDef.isEditable) || {}; if (colDef) { try { gridWidget.selectcell(0, colDef.belirtec) } catch (ex) { } } }
+			try { gridWidget?.clearselection() } catch (ex) { }
+			/*if (selectionMode == 'checkbox' || selectionMode.toLowerCase().includes('row')) {
+				try { gridWidget.selectrow(0) } catch (ex) { } }
+			else {
+				let colDef = this.duzKolonTanimlari.find(_colDef => _colDef.isEditable) || {};
+				if (colDef) { try { gridWidget.selectcell(0, colDef.belirtec) } catch (ex) { } }
+			}*/
 		}
-		gridWidget.focus()
+		gridWidget?.focus()
 	}
 	gridSatirCiftTiklandi(e) {
 		e = e || {}; if (super.gridSatirCiftTiklandi(e) === false) return false
