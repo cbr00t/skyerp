@@ -172,7 +172,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	static get raporClass() { return null } static get kod() { return 'main' } static get aciklama() { return this.raporClass?.aciklama }
 	get noAutoColumns() { return true } get sabitmi() { return this.class.raporClass?.sabitmi }
 	get ozetVarmi() { return this.class.raporClass?.ozetVarmi } get chartVarmi() { return this.class.raporClass?.chartVarmi }
-	get width() { return '70%' } get height() { return 'var(--full)' }
+	get width() { return '70%' } get height() { return 'calc(var(--full) - 10px)' }
 	get tabloYapi() {
 		let {_tabloYapi: result} = this; if (result == null) {
 			let _e = { result: new TabloYapi() }; this.tabloYapiDuzenle(_e); this.tabloYapiDuzenle_son(_e);

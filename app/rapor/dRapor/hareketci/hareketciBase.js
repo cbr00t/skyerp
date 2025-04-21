@@ -26,7 +26,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		super.tabloYapiDuzenle(e); let {result} = e;
 		result.addKAPrefix('ref', 'althesap');
 		this.tabloYapiDuzenle_ozelIsaret(e).tabloYapiDuzenle_sube(e);
-		result.addGrupBasit('FISNOX', 'Fis No', 'fisnox');
+		result.addGrupBasit('FISNOX', 'Fis No', 'fisnox', null, null, ({ item }) => item.secimKullanilir());
 		result.addGrupBasit('ALTHESAP', 'Alt Hesap', 'althesap', DMQAltHesap);
 		this.tabloYapiDuzenle_odemeGun(e);
 		result.addGrupBasit('REFERANS', 'Referans', 'ref', null, null, ({ item }) => item.setOrderBy('refadi'));

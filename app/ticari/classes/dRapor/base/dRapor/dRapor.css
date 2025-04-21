@@ -1,7 +1,9 @@
 #dRapor.part { --islemTuslari-height: 53px; width: var(--full) !important;  margin: 0 !important; padding: 0 !important; box-sizing: border-box !important; overflow: hidden }
 #dRapor.part .butonlar.part { --button-width: 90px }
 #dRapor.part > .islemTuslari { width: var(--full); height: var(--islemTuslari-height) }
-#dRapor.part > .islemTuslari #secimler.jqx-fill-state-normal { background-color: #7f8cb0 } #dRapor.part > .islemTuslari #secimler.jqx-fill-state-hover { background-color: #c0cced } #dRapor.part > .islemTuslari #secimler.jqx-fill-state-pressed { background-color: #4860a2 }
+#dRapor.part > .islemTuslari #secimler.jqx-fill-state-normal { background-color: #7f8cb0 }
+#dRapor.part > .islemTuslari #secimler.jqx-fill-state-hover { background-color: #c0cced }
+#dRapor.part > .islemTuslari #secimler.jqx-fill-state-pressed { background-color: #4860a2 }
 #dRapor.part > .islemTuslari #raporTanim.jqx-fill-state-normal { color: #3d4c7c; background-color: #b2c7b2; border: 1px solid #95989f !important; box-shadow: 1px 1px 5px 3px #c7cde7 }
 #dRapor.part > .wnd-content > *:not(.bulForm):not(.islemTuslari) { background: white !important }
 #dRapor.part #items {
@@ -23,11 +25,15 @@
 #dRapor.part #items > .item > [data-builder-id = 'fullScreen'] { position: absolute; width: 32px !important; height: 32px !important; top: 3px !important; right: -10px !important; z-index: 1100 !important; box-sizing: border-box !important }
 #dRapor.part #items > .item > [data-builder-id = 'fullScreen'] button { width: var(--full) !important; height: var(--full) !important; background-color: transparent !important; background-size: contain !important }
 #dRapor.part #items > .item > [data-builder-id = 'fullScreen'] button.jqx-fill-state-normal { opacity: .5 }
+#dRapor.part #items > .main.item > [data-builder-id = 'fullScreen'] { top: 8px !important; right: 0 !important }
 #dRapor.part #items > .item > label {
 	font-weight: bold; font-size: 135%; color: #888; background-color: #eee;
-	width: calc(var(--full) - 70px); margin: 0 0 5px 0; padding: 0 0 3px 10px; border-radius: 10px
+	width: calc(var(--full) - 10px); margin: 0 0 5px 0; padding: 0 0 3px 10px; border-radius: 10px;
+	position: relative !important; overflow-y: auto !important
 }
 #dRapor.part #items > .item.hasFocus > label { box-shadow: 0 0 5px 1px; color: #333; background-color: #c9cdd9; user-select: none }
+#dRapor.part #items > ._main.item > label { height: 65px !important }
+#dRapor.part #items > ._main.item > :not(label) { max-height: calc(var(--full) - 82px) }
 .dRapor .anim-raporTanim-highlight, #dRapor .anim-raporTanim-highlight { border: 3px solid forestgreen !important; animation: 850ms infinite cubic-bezier(0.46, 0.03, 0.52, 0.96) anim-raporTanim-hightlight }
 @keyframes anim-raporTanim-hightlight { 50% { background-color: #c9e0c9 } }
 .dRapor.masterListe.part .jqx-grid [role = row], #dRapor.part #items > .item .jqx-grid .jqx-grid-cell.toplam { font-weight: bold }
@@ -59,5 +65,11 @@ body.dark-theme #dRapor.part #items > .item._main .jqx-grid tr:nth-child(even) .
 #dRapor.part #items > .item._main .jqx-grid .jqx-grid-statusbar > div > .jqx-grid-cell { font-size: 80% !important }
 #dRapor.part #items > .item[data-builder-id = 'ozet'] .jqx-grid .jqx-grid-statusbar > div > .jqx-grid-cell { font-size: 105% !important }
 #dRapor.part #items > .item[data-builder-id = 'ozet'] .jqx-grid .jqx-grid-cell { font-size: 83% }
-.secimler.dRapor.part .secimler-form > div { padding-top: 10px }
+.secimler.dRapor.part .secimler-form > div { padding-top: 5px }
 .secimler.dRapor.part .secimler-form .secim { padding: 5px }
+.secimler.dRapor.part .secimler-form .modelKullan.part { padding: 5px 5px }
+.secimler.dRapor.part .secimler-form .modelKullan.part:has(.jqx-combobox-multi-item) { min-height: 100px !important }
+.secimler.dRapor.part .secimler-form .modelKullan.part .jqx-combobox-multi-item { margin-top: 5px; padding: 4px 8px }
+#dRapor.part #items > .item.main .secimBilgi { width: calc(var(--full) - 150px) }
+#dRapor.part #items > .item.main .secimBilgi .ozetBilgi-item { font-size: 90% !important; color: royalblue; padding: 2px 4px !important }
+#dRapor.part #items > .item.main .secimBilgi .ozetBilgi-item:not(:first-child) { margin-left: 3px !important }
