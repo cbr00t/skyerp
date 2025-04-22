@@ -4,17 +4,18 @@ class SahaDurumApp extends App {
 	constructor(e) { e = e || {}; super(e) }
 	async runDevam(e) {
 		await super.runDevam(e); if (qs.user) { await this.loginIstendi(e) } else { this.promise_login.resolve() }
-		await this.promise_ready; /*if (app.params.tablet?.yaslandirmaTarihmi) { MustBilgi.kademeEk = 30 }*/
-		await this.anaMenuOlustur(e); const {session} = config, yerelParam = this.params.yerel;
+		/*if (app.params.tablet?.yaslandirmaTarihmi) { MustBilgi.kademeEk = 30 }*/
+		await this.anaMenuOlustur(e); let {session} = config, {yerel: yerelParam} = this.params;
 		let lastSession = yerelParam?.lastSession ?? session;
 		if (lastSession) {
-			lastSession = yerelParam.lastSession = $.isPlainObject(lastSession) ? new Session(lastSession) : lastSession.deepCopy(); /*lastSession.user = `<span class="gray italic">${yerelParam?.lastSession.user}</span>`;*/
+			lastSession = yerelParam.lastSession = $.isPlainObject(lastSession) ? new Session(lastSession) : lastSession.deepCopy();
+			/*lastSession.user = `<span class="gray italic">${yerelParam?.lastSession.user}</span>`;*/
 			setTimeout(() => yerelParam.kaydet(), 100)
 		}
 		this.updateAppTitle({ userSession: session?.hasSession ? session : new Session(yerelParam?.lastSession) });
 	}
 	loginTipleriDuzenle(e) {
-		super.loginTipleriDuzenle(e);
+		super.loginTipleriDuzenle(e)
 		/*const {loginTipleri} = e; $.merge(loginTipleri, [ { kod: 'plasiyerLogin', aciklama: 'Plasiyer' }, { kod: 'musteriLogin', aciklama: 'Müşteri' } ])*/
 	}
 	paramsDuzenle(e) {
