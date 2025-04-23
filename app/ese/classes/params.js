@@ -53,13 +53,15 @@ class MQParam_ESE extends MQParam {
 		return this
 	}
 	*getIter(e) {
-		const {sablon} = this; for (let [tip, items] of Object.entries(sablon ?? {})) {
+		let {sablon} = this; for (let [tip, items] of Object.entries(sablon ?? {})) {
 			for (let i = 0; i < items?.length || 0; i++) {
 				let item = items[i], sablonId = item?.sablonId; if (!sablonId) { continue }
 				let seq = i + 1, belirtec = item.belirtec || '', prefix = tip + belirtec;
 				let etiket = item.etiket || '', kisaEtiket = item.kisaEtiket || etiket;
-				yield { i, seq, item, tip, belirtec, prefix, kisaEtiket, etiket, sablonId }
+				let sablonTable = `ese${tip}sablon`;
+				yield { i, seq, item, tip, belirtec, prefix, kisaEtiket, etiket, sablonId, sablonTable }
 			}
 		}
 	}
+	[Symbol.iterator](e) { return this.getIter(e) }
 }

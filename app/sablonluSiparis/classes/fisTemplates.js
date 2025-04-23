@@ -380,8 +380,8 @@ class SablonluSiparisGridciTemplate extends CObject {
 		grid.jqxGrid({ sortable: true, filterable: true, groupable: true, groups: ['grupAdi'] })
 	}
 	static miktarFiyatDegisti({ gridWidget, rowIndex, belirtec, gridRec: det, value }) {
-		det._degistimi = true; gridWidget.render();
-		gridWidget.ensurerowvisible(rowIndex)
+		det._degistimi = true
+		/* gridWidget.render(); gridWidget.ensurerowvisible(rowIndex) */
 	}
 	static bedelHesapla(e) { }
 }

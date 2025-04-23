@@ -1,5 +1,6 @@
 class MQTest extends MQGuidOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Test' } static get kodListeTipi() { return 'TEST' }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sinifAdi() { return 'Test' } static get kodListeTipi() { return 'TEST' }
 	static get tip() { return this.sablonTip } static get kod() { return this.tip } static get aciklama() { return this.sablonSinif?.aciklama }
 	static get table() { return 'esetest' } static get tableAlias() { return 'tst' } static get tanimUISinif() { return ModelTanimPart } static get raporSinif() { return DRapor_ESETest }
 	static get sablonSinif() { return null } static get sablonTip() { return this.sablonSinif?.tip } static get testSonucSinif() { return null } static get testGenelSonucSinif() { return null } 
@@ -30,7 +31,7 @@ class MQTest extends MQGuidOrtak {
 			uygulanmaYeri: new PInstTekSecim('uygulanmayeri', MQTestUygulanmaYeri), onayKodu: new PInstNum('onaykodu'), aktifYas: new PInstNum('aktifyas'), cinsiyet: new PInstTekSecim('cinsiyet', Cinsiyet)
 			/*deSkor: new PInstNum('deskor'), hiSkor: new PInstNum('hiskor'), deBelirtiSayi: new PInstNum('debelirtisayi'), hiBelirtiSayi: new PInstNum('hibelirtisayi')*/
 		});
-		for (const {tip, belirtec, prefix, etiket} of app.params.ese.getIter()) {
+		for (const {tip, belirtec, prefix, etiket} of app.params.ese) {
 			if (tip == 'anket') { for (const key of ['Skor', 'BelirtiSayi']) { const prefix = belirtec + key; pTanim[prefix] = new PInstNum(prefix.toLowerCase()) } }
 			pTanim[`${prefix}Yapildimi`] = new PInstBitBool(`b${prefix}yapildi`)
 		}
@@ -69,7 +70,7 @@ class MQTest extends MQGuidOrtak {
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 10, sql: `${alias}.tarihsaat` }).tipDate(),
 			new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 9, sql: `${alias}.tarihsaat` }).tipTime()
 		].filter(x => !!x));
-		for (const {prefix, kisaEtiket, sablonId} of app.params.ese.getIter()) {
+		for (const {prefix, kisaEtiket, sablonId} of app.params.ese) {
 			liste.push(new GridKolon({ belirtec: `b${prefix}yapildi`, text: `${kisaEtiket}?`, genislikCh: 10, filterType: 'checkedlist' }).tipBool()) }
 		liste.push(...[
 			new GridKolon({ belirtec: 'bdehbvarmi', text: 'DEHB?', genislikCh: 8 }).tipBool(), new GridKolon({ belirtec: 'bdehbmiozel', text: 'Hes.DEHB?', genislikCh: 8 }).tipBool(),
@@ -100,7 +101,7 @@ class MQTest extends MQGuidOrtak {
 			.leftJoin({ alias, from: 'esemuayene mua', on: `${alias}.muayeneid = mua.id` })
 			.leftJoin({ alias: 'mua', from: 'esedoktor dok', on: 'mua.doktorid = dok.id' });
 		sent.sahalar.add(`${alias}.muayeneid`, `${alias}.hastaid`, 'has.aciklama hastaadi', `${alias}.uygulanmayeri`, `${alias}.onaykodu`, `${alias}.cinsiyet`, 'has.email');
-		for (const {prefix} of app.params.ese.getIter()) { sent.sahalar.add(`b${prefix}yapildi`) }
+		for (const {prefix} of app.params.ese) { sent.sahalar.add(`b${prefix}yapildi`) }
 		if (e.tekilOku) { const {sahalar} = sent; sahalar.liste = sahalar.liste.filter(({ deger }) => !deger.includes('SUM(')) }
 		else { sent.groupByOlustur() }
 	}
@@ -108,19 +109,26 @@ class MQTest extends MQGuidOrtak {
 		super.islemTuslariDuzenle_listeEkrani(e); const removeIdSet = asSet(['yeni', 'kopya']);
 		let {liste} = e; liste = e.liste = liste.filter(item => !removeIdSet[item.id]);
 		liste.push(
-			{ id: 'eMailGonder', text: 'e-Mail', handler: _e => this.eMailGonderIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) },
-			{ id: 'testIslemleri', text: 'TEST', handler: _e => this.testIslemleriIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) }
+			{ id: 'testIslemleri', text: 'TEST', handler: _e => this.testIslemleriIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) },
+			{ id: 'eMailGonder', text: 'e-Mail', handler: _e => this.eMailIslemleriIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) }
 		)
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); const {tanimFormBuilder: tanimForm} = e, {dev} = config;
-		let form = tanimForm.addFormWithParent().altAlta().addStyle(`$elementCSS { margin-top: 50px !important }`);
+		let form = tanimForm.addFormWithParent().altAlta().addStyle(() => `$elementCSS { margin-top: 40px !important }`);
 		/*if (dev) { form.addModelKullan('sablonId', 'Şablon').dropDown().kodsuz().setMFSinif(this.sablonSinif) }*/
-		let altForm = form.addFormWithParent().yanYana(); for (const {prefix, etiket} of app.params.ese.getIter()) {
+		let altForm = form.addFormWithParent().yanYana(); for (const {prefix, etiket} of app.params.ese) {
 			altForm.addCheckBox(`${prefix}Yapildimi`, `${etiket} Yapıldı?`).addCSS('testTip-flag testTip').addStyle(e => `$elementCSS { margin-top: 10px !important }`) }
-		tanimForm.addDiv('ozetBilgi').etiketGosterim_yok().addCSS('bold gray').addStyle_fullWH(null, 'auto').addStyle(e => `$elementCSS { font-size: 120%; padding: 10px 20px }`)
-			.onAfterRun(async e => {
-				const {altInst: inst, input} = e.builder, {ts, muayeneId, hastaId, sablonId} = inst, {tip} = inst.class;
+		tanimForm.addDiv('ozetBilgi').etiketGosterim_yok().addCSS('bold gray')
+			.addStyle_fullWH(null, 130)
+			.addStyle(...[e =>
+				`$elementCSS { font-size: 120%; padding: 10px 20px }
+				 $elementCSS .onayKodu.veri { text-decoration: unset; margin-left: 10px }
+				 $elementCSS .onayKodu.veri:hover, $elementCSS .onayKodu.veri:active { text-decoration: underline !important; cursor: pointer !important }
+				 $elementCSS .onayKodu.veri:hover { color: steelblue !important } $elementCSS .onayKodu.veri:active { color: slateblue !important }
+			`])
+			.onAfterRun(async ({ builder: fbd }) => {
+				const {altInst: inst, input} = fbd, {ts, muayeneId, hastaId, sablonId} = inst, {tip} = inst.class;
 				let {uygulanmaYeri, onayKodu, aktifYas, dehbVarmi} = inst, cinsiyet = inst.cinsiyet?.char ?? inst.cinsiyet;
 				let cinsiyetText = (cinsiyet == 'E' ? 'Erkek' : cinsiyet == 'K' ? 'Kadın' : null);
 				let hastaAdi = hastaId ? await MQHasta.getGloKod2Adi(hastaId) : null;
@@ -133,35 +141,61 @@ class MQTest extends MQGuidOrtak {
 					elm.appendTo(parent); parent.appendTo(input)
 				};
 				/*if (!dev && sablonAdi) { addItem(`<span class="gray etiket">Şablon:</span> <b class="veri forestgreen">${sablonAdi}</b>`, 'flex-row'), `font-size: 130%` }*/
-				addItem(`${ts ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri royalblue">${dateTimeAsKisaString(ts)}</b>` : ''}`, 'flex-row');
+				/*addItem(`${ts ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri royalblue">${dateTimeAsKisaString(ts)}</b>` : ''} <span style="onayKodu-parent"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="gray etiket">Onay Kodu:</span> <u class="onayKodu veri bold royalblue">${onayKodu}</u></span>`, null, `margin-top: 30px; cursor: pointer`, 'flex-row');*/
 				if ((muayeneRec?.fisnox || '0') != '0') { addItem(`<span class="gray etiket">Muayene:</span> <b class="veri">${muayeneRec.fisnox}</b>`, 'flex-row') }
-				addItem((
+				/*addItem((
 					`<span class="gray">Hasta: <b class="royalblue">${hastaAdi || ''}</b></span>` + (aktifYas ? ` ${hastaAdi ? '- ' : ''}(Yaş: <b class="royalblue">${aktifYas}</b>)` : '') +
 					(cinsiyetText ? ` - <b class="royalblue">${cinsiyetText}</b>` : '') + (dehbVarmi ? ` <b class="orangered" style="margin-left: 30px">DEHB</b>` : '')
 				), 'flex-row');
-				if (uygulanmaYeri) { addItem(`<span class="darkgray etiket">Uygulanma Yeri:</span> <b>${MQTestUygulanmaYeri.kaDict[uygulanmaYeri]?.aciklama || ''}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }
-				if (onayKodu) { addItem(`<span class="gray etiket">Onay Kodu:</span> <u class="onayKodu veri bold royalblue">${onayKodu}</u>`, null, `margin-top: 30px; cursor: pointer`) }
+				if (uygulanmaYeri) { addItem(`<span class="darkgray etiket">Uygulanma Yeri:</span> <b>${MQTestUygulanmaYeri.kaDict[uygulanmaYeri]?.aciklama || ''}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }*/
+				if (onayKodu) { addItem(`<span style="onayKodu-parent"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="gray etiket">Onay Kodu:</span> <u class="onayKodu veri bold royalblue">${onayKodu}</u></span>`) }
 				let elm = input.find('.onayKodu.veri'); if (elm?.length) {
 					elm.on('click', evt => { navigator.clipboard.writeText(onayKodu).then(() => eConfirm('Onay Kodu panoya kopyalandı!', this.sinifAdi)) }) }
+			});
+		tanimForm.addDiv('testSonuc').etiketGosterim_yok().addStyle_fullWH(null, `calc(var(--full) - 75px)`)
+			.addStyle(e => `$elementCSS { margin-top: -90px; padding: 5px; overflow-y: auto !important }`)
+			.onAfterRun(async ({ builder: fbd, rootPart }) => {
+				let {layout, input, inst} = fbd, {id} = inst, {aliasVeNokta, idSaha} = this;
+				let rec = (await this.loadServerData({ ozelQueryDuzenle: ({ sent }) => sent.where.degerAta(id, `${aliasVeNokta}${idSaha}`) }))?.[0];
+				input.html(await this.getHTML_testSonuc({ rec }));
+				makeScrollable(layout)
 			})
 	}
 	async yaz(e) { await super.yaz(e) }
-	static async eMailGonderIstendi(e) {
-		const {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender; let {selectedRecs} = gridPart; if (!selectedRecs?.length) { hConfirm('Kayıtlar seçilmelidir', sinifAdi); return null }
-		selectedRecs = selectedRecs.filter(({ email: eMail }) => !!eMail && eMail.length >= 5 && eMail.includes('@'));
-		if (!selectedRecs?.length) { hConfirm('Seçilenler arasında <u>Geçerli e-Mail Adresi Olan</u> kayıt bulunamadı', sinifAdi); return null }
-		if (!await ehConfirm(`Seçilen <b>${selectedRecs.length}</b> adet kişiye <b>Test Onay Kodu için e-Mail</b> gönderilsin mi?`, sinifAdi)) { return null }
-		e.pAborted = { result: false }; showProgress(`<b>${selectedRecs.length}</b> kişiye Toplu e-Mail Gönderimi yapılıyor...`, sinifAdi, true, () => e.pAborted.result = true);
-		try {
-			let result = await this.eMailGonder({ ...e, recs: selectedRecs });
-			eConfirm(`Toplu e-Mail Gönderimi Bitti<p/>` +
-				(result?.send ? `<div><span class="darkgray">Başarılı:</span> <b class="green">${result?.send ?? '??'}</b></div>` : '') +
-				(result?.error ? `<div><span class="darkgray">Hatalı:</span> <b class="red">${result?.error ?? '??'}</b></div>` : '') +
-				((result?.total && !(result.send || result.error)) ? `<div><span class="darkgray">Toplam:</span> <b class="royalblue">${result?.total ?? '??'}</b></div>` : '')
-			, sinifAdi);
-			return result
-		}
-		finally { window.progressManager?.progressEnd(); setTimeout(() => hideProgress(), 100) }
+	static async eMailIslemleriIstendi(e) {
+		e = e ?? {}; let title = 'e-Mail İşlemleri', {forcedRecs} = e, {ese} = app.params;
+		let gridPart = e.gridPart ?? e.parentPart ?? e.sender ?? {};
+		(gridPart ?? app.activeWndPart)?.openContextMenu({
+			gridPart, title, forcedRecs,
+			argsDuzenle: _e => $.extend(_e.wndArgs, { width: Math.min(700, $(window).width() - 50), height: 230 }),
+			formDuzenleyici: async _e => {
+				delete _e.recs; let {form, close, gridPart} = _e, recs = _e.forcedRecs ?? e.recs ?? gridPart.selectedRecs;
+				let testIdListe = recs.map(rec => rec.id); if (!testIdListe?.length) { return false }
+				let bitenTestKeySet = {}; for (let rec of recs) {
+					for (let { prefix: key } of ese) {
+						let value = rec[`b${key}yapildi`];
+						if (value) { bitenTestKeySet[key] = true }
+					}
+				}
+				let bitenTestKeys = Object.keys(bitenTestKeySet);
+				let yapildimi = !!bitenTestKeys.length, bittimi = bitenTestKeys.length >= Array.from(ese).length;
+				form.yanYana().addStyle(e => `$elementCSS { padding-top: 40px }`);
+				let addButton = (id, islemAdi, disabled) => {
+					let getBody = `getHTML_${id}`, altForm = form.addFormWithParent(id).altAlta();
+					altForm.addForm().setLayout(e => $(
+						`<h5 class="bold center royalblue" style="padding-bottom: 13px; margin-right: 10px; border-bottom: 1px solid royalblue">${islemAdi || ''}</h5>`));
+					let handler = __e => {
+						let {id} = __e.builder, args = { ...e, ..._e, ...__e, testIdListe, islemAdi, getBody };
+						delete args.id; close(); this.eMailGonderIstendi(args)
+					};
+					let fbd_btn = altForm.addButton(id, 'e-Mail Gönder').onClick(handler);
+					if (disabled) { fbd_btn.disable() }
+					return { id, islemAdi, disabled, fbd_btn }
+				};
+				addButton('testGiris', 'Test Giriş Link', bittimi);
+				addButton('testSonuc', 'Test Sonuçları', !yapildimi)
+			}
+		})
 	}
 	static async testIslemleriIstendi(e) {
 		e = e ?? {}; let title = 'Test İşlemleri', {forcedRecs} = e, {ese} = app.params;
@@ -174,23 +208,24 @@ class MQTest extends MQGuidOrtak {
 				let idListe = recs.map(rec => rec.id), testId = idListe[0];
 				if (!idListe?.length) { return } if (idListe?.length > 1) { hConfirm('Sadece bir tane Test seçilmelidir', title); return false }
 				let bitenTestKeySet = {}; for (let rec of recs) {
-					for (let { prefix: key } of ese.getIter()) {
+					for (let {prefix: key} of ese) {
 						let value = rec[`b${key}yapildi`];
 						if (value) { bitenTestKeySet[key] = true }
 					}
 				}
 				form.yanYana().addStyle(e => `$elementCSS { padding-top: 40px }`);
 				/* let sent = new MQSent({ from, where: { degerAta: testId, saha: idSaha }, sahalar: '*' }) */
-				for (let {tip, belirtec, prefix, seq, etiket, sablonId} of ese.getIter()) {
+				for (let {tip, belirtec, prefix, seq, etiket, sablonId} of ese) {
 					let altForm = form.addFormWithParent(prefix).altAlta();
-					altForm.addForm() .setLayout(e => $(
+					altForm.addForm().setLayout(e => $(
 						`<h5 class="bold center royalblue" style="padding-bottom: 13px; margin-right: 10px; border-bottom: 1px solid royalblue">${etiket || ''}</h5>`));
 					let handler = __e => {
-						const {id} = __e.builder, parts = id.split('_'), [tip, belirtec, selector] = parts, seq = asInteger(parts[2]);
-						close(); this[`${selector}Istendi`]({ ...e, ..._e, ...__e, id: undefined, tip, belirtec, seq, testId, sablonId })
+						let {id} = __e.builder, parts = id.split('_'), [tip, belirtec, selector] = parts, seq = asInteger(parts[2]);
+						let args = { ...e, ..._e, ...__e, tip, belirtec, seq, testId, sablonId }; delete args.id;
+						close(); this[`${selector}Istendi`](args)
 					};
-					let bittimi = bitenTestKeySet[prefix], btnEtiket =  bittimi ? `<span class="orangered">[ TAMAMLANDI ]</span>` : 'Test Başlat';
-					let fbd_btn = altForm.addButton(`${tip}_${belirtec}_testBaslat_${seq}`, btnEtiket).onClick(handler)
+					let bittimi = bitenTestKeySet[prefix], text = bittimi ? `<span class="orangered">[ TAMAMLANDI ]</span>` : 'Test Başlat';
+					let fbd_btn = altForm.addButton(`${tip}_${belirtec}_testBaslat_${seq}`, text).onClick(handler)
 					if (bittimi) { fbd_btn.disable() }
 				}
 			}
@@ -202,36 +237,125 @@ class MQTest extends MQGuidOrtak {
 		let inst = new testSinif({ id, sablonId, belirtec }), {part} = await inst.baslat(e) || {};
 		if (part?.kapaninca) { part.kapaninca(e => gridPart?.tazele()) }
 	}
+	static async eMailGonderIstendi(e) {
+		let {sinifAdi} = this, gridPart = e.gridPart ?? e.parentPart ?? e.sender;
+		let {selectedRecs} = gridPart; if (!selectedRecs?.length) { hConfirm('Kayıtlar seçilmelidir', sinifAdi); return null }
+		selectedRecs = selectedRecs.filter(({ email: eMail }) => !!eMail && eMail.length >= 5 && eMail.includes('@'));
+		if (!selectedRecs?.length) { hConfirm('Seçilenler arasında <u>Geçerli e-Mail Adresi Olan</u> kayıt bulunamadı', sinifAdi); return null }
+		let {islemAdi, subject} = e; e.subject = subject = subject ?? `ESE ${islemAdi}`;
+		if (!await ehConfirm(`Seçilen <b>${selectedRecs.length}</b> adet kişiye <b class="royalblue">${islemAdi}</b> <b>için e-Mail</b> gönderilsin mi?`, sinifAdi)) { return null }
+		e.pAborted = { result: false };
+		showProgress(`<b>${selectedRecs.length}</b> kişiye <b class="royalblue">${islemAdi}</b> için <b>e-Mail Gönderimi</b> yapılıyor...`, sinifAdi, true, () => e.pAborted.result = true);
+		try {
+			let result = await this.eMailGonder({ ...e, recs: selectedRecs, subject });
+			eConfirm(`Toplu e-Mail Gönderimi Bitti<p/>` +
+				(result?.send ? `<div><span class="darkgray">Başarılı:</span> <b class="green">${result?.send ?? '??'}</b></div>` : '') +
+				(result?.error ? `<div><span class="darkgray">Hatalı:</span> <b class="red">${result?.error ?? '??'}</b></div>` : '') +
+				((result?.total && !(result.send || result.error)) ? `<div><span class="darkgray">Toplam:</span> <b class="royalblue">${result?.total ?? '??'}</b></div>` : '')
+			, sinifAdi);
+			return result
+		}
+		finally { window.progressManager?.progressEnd(); setTimeout(() => hideProgress(), 100) }
+	}
 	static async eMailGonder(e) {
-		const recs = e.recs || [], {pAborted} = e, TopluSayi = 2; let promises = [], allResults = { total: 0, send: 0, error: 0 };
-		const waitBlock = async () => {
+		let recs = e.recs || [], {pAborted} = e, TopluSayi = 2;
+		let promises = [], allResults = { total: 0, send: 0, error: 0 };
+		let flush = async () => {
 			try {
 				if (pAborted?.result) { return }
-				let results = await Promise.all(promises);
-				for (let result of results) { if (!result || result.result === false) { throw {} } else { allResults.send++ } }
+				let results = await Promise.allSettled(promises);
+				for (let result of results) {
+					if (!result || result.result === false) { throw {} }
+					allResults.send++
+				}
 			}
 			catch (ex) { allResults.error += promises.length; console.error(ex) }
 			finally { progressManager?.progressStep(promises.length); allResults.total += promises.length; promises = [] }
 		}
-		progressManager?.setProgressMax(recs.length); const eMailAuth = await app.getEMailAuth();
-		for (const rec of recs) {
-			if (pAborted?.result) { break } const {email: to, hastaadi: hastaAdi, onaykodu: onayKodu} = rec, {DefaultWSHostName_SkyServer: wsHostName} = config.class;
-			const url = `https://${wsHostName}:90/skyerp/app/ese/?ssl&hostname=${wsHostName}&user=${to}&pass=${onayKodu}&`;
-			promises.push(app.wsEMailGonder({ data: {
-				...eMailAuth, to, subject: 'ESE Test', body: (
-					`<div style="font-size: 14pt;">
-						<p style="font-size: 130%; font-weight: bold; color: #555">Sayın ${hastaAdi || ''},</p>
-						<p><b>ESE Uygulaması Test'i</b> için onay kodunuz:<br/>
-							<b style="font-size: 160%; color: forestgreen">${onayKodu}</b></p>
-						<p><b>Sisteme Giriş Adresi:<br/>
-							<a href="${url}" style="font-weight: bold; font-size: 120%">${url}</a></p>
-					</div>`
-				)
-			} })); if (promises.length >= TopluSayi) { await waitBlock() }
-		} if (promises.length) { await waitBlock() }
+		progressManager?.setProgressMax(recs.length);
+		let {subject, getBody} = e, eMailAuth = await app.getEMailAuth();
+		for (let rec of recs) {
+			if (pAborted?.result) { break } let {email: to} = rec;
+			let _e = { ...e, rec };
+			let body = await (typeof getBody == 'string' ? this[getBody]?.(_e) : getBody?.call(this, _e)); if (!body) { continue }
+			promises.push(app.wsEMailGonder({ data: { ...eMailAuth, html: true, to, subject, body }}));
+			if (promises.length >= TopluSayi) { await flush() }
+		}
+		if (promises.length) { await flush() }
 		return allResults
 	}
-	static baslat(e) { let inst = new this({ id: e.testId ?? e.id, belirtec: e.belirtec, sablonId: e.sablonId }); return inst.baslat(e) }
+	static async getHTML_testGiris({ rec }) {
+		let {ese} = app.params, sablonDosya = ese.eMailSablonDosya_testGiris || '/VioData/ESE/ESE.TestGiris.Sablon.htm';
+		let dokumcu = await HTMLDokum.FromDosya(sablonDosya);
+		let {DefaultWSHostName_SkyServer: wsHostName} = config.class, {email: to, hastaadi: HASTAADI, onaykodu: onayKodu} = rec;
+		let URL = `https://${wsHostName}:90/skyerp/app/ese/?ssl&hostname=${wsHostName}&user=${to}&pass=${onayKodu}&`;
+		let baslik = { HASTAADI, URL };
+		let {result: html} = dokumcu.process({ baslik }) ?? {};
+		if (config.dev) { let url = URL.createObjectURL(new Blob([html], { type: 'text/html' })); openNewWindow(url) }
+		return html
+	}
+	static async getHTML_testSonuc({ rec }) {
+		let {ese} = app.params, sablonDosya = ese.eMailSablonDosya_testGiris || '/VioData/ESE/ESE.TestSonuc.Sablon.htm';
+		let dokumcu = await HTMLDokum.FromDosya(sablonDosya);
+		let testTip2Bilgi = {}, uni = new MQUnionAll(); for (let item of ese) {
+			let {tip, prefix, sablonTable, sablonId} = item; testTip2Bilgi[prefix] = item;
+			switch (tip) {
+				case 'anket': {
+					let sent = new MQSent({
+						from: `${sablonTable}detay`, where: [
+							{ degerAta: sablonId, saha: 'fisid' },
+							{ notLike: `#%`, saha: 'soru', aynenAlinsin: true }
+						],
+						sahalar: [`${prefix.sqlServerDegeri()} prefix`, `COUNT(*) sayi`, '0 tekrar']
+					}).groupByOlustur(); uni.add(sent);
+					break
+				}
+				case 'cpt': {
+					let sent = new MQSent({
+						from: sablonTable, where: [ { degerAta: sablonId, saha: 'id' } ],
+						sahalar: [`${prefix.sqlServerDegeri()} prefix`, `(resimsayisi * gruptekrarsayisi) sayi`, 'gruptekrarsayisi tekrar']
+					}).groupByOlustur(); uni.add(sent);
+					break
+				}
+			}
+		}
+		if (uni.liste.length) {
+			try {
+				let stm = uni.asToplamStm(), recs = await app.sqlExecSelect(stm);
+				for (let {prefix, sayi: soruSayi, tekrar} of recs) {
+					let item = testTip2Bilgi[prefix];
+					if (item) { $.extend(item, { soruSayi, tekrar }) }
+				}
+			}
+			catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Test Bilgisi') }
+		}
+		let {tarih, hastaadi: HASTAADI, cinsiyet, aktifyas: YAS, doktoradi: DOKTORADI, uygulanmayeri: UYGTURU} = rec;
+		let TARIH = dateToString(tarih), KURUMADI = 'ESE', CINSIYET = Cinsiyet.kaDict[cinsiyet]?.aciklama;
+		let toplamSayi = rec.dogrusayi + rec.secilmeyendogrusayi;
+		let baslik = {
+			TARIH, HASTAADI, YAS, CINSIYET, DOKTORADI, KURUMADI, UYGTURU,
+			ANKETDE_ADI: testTip2Bilgi.anketde?.etiket, ANKETDE_SORUSAYI: testTip2Bilgi.anketde?.soruSayi,
+				ANKETDE_BELIRTISAYI: rec.debelirtisayi, ANKETDE_SKOR: rec.deskor,
+			ANKETHI_ADI: testTip2Bilgi.ankethi?.etiket, ANKETHI_SORUSAYI: testTip2Bilgi.ankethi?.soruSayi,
+				ANKETHI_BELIRTISAYI: rec.hibelirtisayi, ANKETHI_SKOR: rec.hiskor,
+			DOGRU_SAYI: testTip2Bilgi.cpt?.soruSayi || 0, YANLIS_SAYI: (testTip2Bilgi.cpt?.soruSayi || 0) - (1 * (testTip2Bilgi.cpt?.tekrar || 0)),
+			DOGRU_DEGER: rec.dogrusayi, DOGRU_YUZDE: roundToFra1(rec.dogrusayi * 100 / toplamSayi), DOGRU_ORT_SECIM: rec.dogrusecimsurems,
+			YANLIS_DEGER: rec.yanlissayi, YANLIS_YUZDE: roundToFra1(rec.yanlissayi * 100 / toplamSayi), YANLIS_ORT_SECIM: rec.yanlissecimsurems
+		};
+		$.extend(baslik, {
+			TOPLAM_SORUSAYI: (testTip2Bilgi.anketde?.soruSayi || 0) + (testTip2Bilgi.ankethi?.soruSayi || 0),
+			TOPLAM_BELIRTISAYI: baslik.ANKETDE_BELIRTISAYI + baslik.ANKETHI_BELIRTISAYI,
+			TOPLAM_SKOR: baslik.ANKETDE_SKOR + baslik.ANKETHI_SKOR,
+			DEHB_SONUC: rec.bdehbvarmi ? `<div class="var">VAR</div>` : `<div class="yok">YOK</div>`
+		});
+		let {result: html} = dokumcu.process({ baslik }) ?? {};
+		if (config.dev) { let url = URL.createObjectURL(new Blob([html], { type: 'text/html' })); openNewWindow(url) }
+		return html
+	}
+	static baslat(e) {
+		let inst = new this({ id: e.testId ?? e.id, belirtec: e.belirtec, sablonId: e.sablonId });
+		return inst.baslat(e)
+	}
 	async baslat(e) {
 		const inst = this, {tip} = this.class, {id: testId, sablonId, belirtec} = this;
 		clearTimeout(this._timerProgress); this._timerProgress = setTimeout(() => showProgress(), 500);
@@ -248,7 +372,9 @@ class MQTest extends MQGuidOrtak {
 		for (const key of keys) { let value = rec[key]; if (value !== undefined) { this[key.replace('ID', 'Id')] = value } }
 		$.extend(this, { ts: now(), detaylar: rec.detaylar || [] })
 	}
-	static uiState2AdiDuzenle(e) { const {liste} = e; $.extend(liste, { home: 'Hoşgeldiniz', test: 'Test Ekranı', end: 'Test Bitti' }) }
+	static uiState2AdiDuzenle({ liste }) {
+		$.extend(liste, { home: 'Hoşgeldiniz', test: 'Test Ekranı', end: 'Test Bitti' })
+	}
 	async testUI_initLayout(e) {
 		const {parentPart} = e, {header, content} = parentPart; content.children().remove();
 		const {ts: tarih, hastaAdi} = this; $.extend(parentPart, { tarih, hastaAdi });

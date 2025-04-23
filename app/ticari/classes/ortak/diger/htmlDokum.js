@@ -6,15 +6,17 @@ class HTMLDokum extends CObject {
 	}
 	set doc(value) { this._doc = value }
 	get sablon() { return this._sablon } set sablon(value) { this._sablon = value; this.doc = null }
+	get style() { return getTagContent(this.sablon, 'style') } get body() { return getTagContent(this.sablon, 'body') }
     constructor(e, _tabloNo, _baslikSayisi) {
 		e = e ?? {}; super(e); if (typeof e != 'object') { e = { sablon: e } }
 		$.extend(this, {
 			tip: e.tip ?? e.tipKod, tabloNo: e.tabloNo ?? _tabloNo,
 			headerRowCount: e.baslikSayisi ?? _baslikSayisi, parser: new DOMParser()
 		})
-		let sablon = e.sablon ?? e.html ?? e.elm;
+		let sablon = e.sablon ?? e.sablonHTML ?? e.sablonText ?? e.html ?? e.text ?? e.elm;
 		if (isFunction(sablon) || sablon?.run) { sablon = getFuncValue.call(this, sablon, { ...e, sender: this }) }
-		if (sablon?.html) { sablon = sablon[0] } this.sablon = sablon?.outerHTML ?? sablon
+		if (sablon?.html) { sablon = sablon[0] }
+		this.sablon = sablon?.outerHTML ?? sablon
     }
 	static async FromTip(e) { let inst = new this(); await inst.fromTip(e); return inst }
     async fromTip(e) {
@@ -27,13 +29,22 @@ class HTMLDokum extends CObject {
 		return this*/
 	}
 	static async FromDosyaAdi(e) { let inst = new this(); await inst.fromDosyaAdi(e); return inst }
+	static async FromDosya(e) { let inst = new this(); await inst.fromDosya(e); return inst }
     async fromDosyaAdi(e) {
 		if (typeof e != 'object') { e = { dosyaAdi: e } }
-		let dosyaAdi = e.dosyaAdi ?? e.name, {tabloNo} = e;
+		let dosyaAdi = e.dosyaAdi ?? e.fileName ?? e.name, {tabloNo} = e;
 		if (!dosyaAdi) { throw new Error(`<b>${tip}</b> tip'ine ait Word Dokuman Tanımı'nda <b class=red>Dosya Adı</b> belirtilmelidir`) }
 		let {wordGenelBolum: rootDir} = app.params.ticariGenel; if (!rootDir) { throw new Error(`<b>Ticari Genel Parametreler</b> adımında <b class=red>Word Ana Bölüm</b> belirtilmelidir`) }
 		let sablonDosya = `${rootDir?.trimEnd_slashes()}/${dosyaAdi}`;
-		let sablon = await app.wsDownloadAsStream({ remoteFile: sablonDosya, contentType: 'text/html' }); $.extend(this, { tabloNo, sablon, sablonDosya });
+		let _e = { ...e, sablonDosya }; for (let key of ['dosya', 'dosya', 'file', 'path', 'dosyaAdi', 'fileName']) { delete _e[key] }
+		return await this.fromDosya(_e)
+	}
+	async fromDosya(e) {
+		if (typeof e != 'object') { e = { sablonDosya: e } }
+		let sablonDosya = e.sablonDosya ?? e.dosya ?? e.file ?? e.path, {tabloNo} = e;
+		if (!sablonDosya) { throw new Error(`<b>Şablon Dosyası</b> belirtilmelidir`) }
+		let sablon = await app.wsDownloadAsStream({ remoteFile: sablonDosya, contentType: 'text/html' });
+		$.extend(this, { tabloNo, sablon, sablonDosya });
 		return this
 	}
 	static async getTanimlar(e) {
@@ -60,31 +71,37 @@ class HTMLDokum extends CObject {
     /** Belirtilen map içeriğine göre şablondaki değişkenleri değiştirir */
     searchAndReplace(dict, rootElement) {
 		rootElement = rootElement ?? this.getDocWithError(); rootElement = rootElement?.documentElement ?? rootElement;
-        let elms = [...rootElement.querySelectorAll(':not(script, style)')]; for (let key in dict) {
-			let regex = new RegExp(`\\[${key}\\]`, 'g');
-			for (let elm of elms) { let {childNodes} = elm;
-				if (childNodes.length == 1 && childNodes[0].nodeType == Node.TEXT_NODE) { elm.innerHTML = elm.innerHTML.replace(regex, dict[key]) }
-				else { elm.innerHTML = elm.innerHTML.replace(regex, dict[key]) }
+        let elms = [...rootElement.querySelectorAll(':not(script, style)')];
+		for (let [key, value] of Object.entries(dict)) {
+			value = value ?? '';
+			let regex = new RegExp(`\\[${key}\\]`, 'g'); for (let elm of elms) {
+				let {childNodes} = elm; elm.innerHTML = elm.innerHTML.replace(regex, value)
+				/*if (childNodes.length == 1 && childNodes[0].nodeType == Node.TEXT_NODE) { elm.innerHTML = elm.innerHTML.replace(regex, dict[key] ?? '') }
+				else { elm.innerHTML = elm.innerHTML.replace(regex, dict[key] ?? '') } */
 			}
         }
 		return this
     }
     /** Detay tablosunu güncelleyerek belirtilen detayları ekler */
     updateDetayTable(tabloNo, headerRowCount, detaylar, dip) {
+		if (!detaylar) { return false }
 		tabloNo = tabloNo ?? 1; headerRowCount = headerRowCount ?? 1; if (tabloNo < 1) { return false } 
-        let doc = this.getDocWithError(), table = doc.querySelectorAll('table')?.[tabloNo - 1]; if (!table) { throw new Error('Geçersiz tablo numarası') }
+        let doc = this.getDocWithError(), table = doc.querySelectorAll('table')?.[tabloNo - 1]; if (!table) { return false }
 	    let rows = [...table.querySelectorAll('tr')]; if ((rows?.length ?? 0) < headerRowCount + 1) { throw new Error('Tabloda yeterli satır bulunmuyor') }
 	    let detayRowTemplate = rows[headerRowCount].outerHTML, detayHTML = detaylar?.map(rec => {
-		    let template = detayRowTemplate; for (const key in rec) {
-		        let regex = new RegExp(`\\[${key}\\]`, 'g');
-		        template = template.replace(regex, rec[key])
+		    let template = detayRowTemplate; for (let [key, value] of Object.entries(rec)) {
+		        value = value ?? ''; let regex = new RegExp(`\\[${key}\\]`, 'g');
+				template = template.replace(regex, value)
 		    }
 		    return template
 		})?.join('') ?? '';
 	    rows[headerRowCount].outerHTML = detayHTML;
 	    if (dip && rows[headerRowCount + 1]) {
-	        let dipRow = rows[headerRowCount + 1]; for (const key in dip) {
-				dipRow.innerHTML = dipRow.innerHTML.replace(new RegExp(`\\[${key}\\]`, 'g'), dip[key]) }
+	        let dipRow = rows[headerRowCount + 1];
+			for (let [key, value] of Object.entries(dip)) {
+				value = dip[key] ?? '';
+				dipRow.innerHTML = dipRow.innerHTML.replace(new RegExp(`\\[${key}\\]`, 'g'), value)
+			}
 	    }
     }
     /** Tüm işlemleri yürütüp güncellenmiş HTML çıktısını döndürür */
@@ -114,4 +131,5 @@ class HTMLDokum extends CObject {
 		let result = dokumcu.process(data), url = URL.createObjectURL(new Blob([result.result], { type: 'text/html' }));
 		openNewWindow(url, 'htmlDokumcu'); return result
 	}
+	sablon_bodyOnly() { let {body} = this; if (body) { this.sablon = body } return this }
 }
