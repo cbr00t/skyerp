@@ -182,9 +182,9 @@ class ModelTanimPart extends Part {
 		for (const builder of this.getBuilders(e)) { e.builder = builder; if (builder.islemTuslariArgsDuzenle) { builder.islemTuslariArgsDuzenle(e) } }
 	}
 	islemTuslariDuzenle(e) {
-		const {args} = e; const {liste} = e, yListe = [];
-		for (const item of liste) {
-			const {id} = item; switch (id) {
+		let {args, liste} = e, yListe = [];
+		for (let item of liste) {
+			let {id} = item; switch (id) {
 				case 'tamam':
 					if (this.izlemi) { continue }
 					if (this.silmi) { item.id = 'sil' }

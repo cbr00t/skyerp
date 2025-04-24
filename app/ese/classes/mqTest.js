@@ -113,8 +113,8 @@ class MQTest extends MQGuidOrtak {
 			{ id: 'eMailGonder', text: 'e-Mail', handler: _e => this.eMailIslemleriIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) }
 		)
 	}
-	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); const {tanimFormBuilder: tanimForm} = e, {dev} = config;
+	static async rootFormBuilderDuzenle(e) {
+		await super.rootFormBuilderDuzenle(e); let {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e, {dev} = config;
 		let form = tanimForm.addFormWithParent().altAlta().addStyle(() => `$elementCSS { margin-top: 40px !important }`);
 		/*if (dev) { form.addModelKullan('sablonId', 'Şablon').dropDown().kodsuz().setMFSinif(this.sablonSinif) }*/
 		let altForm = form.addFormWithParent().yanYana(); for (const {prefix, etiket} of app.params.ese) {
@@ -153,16 +153,25 @@ class MQTest extends MQGuidOrtak {
 				let elm = input.find('.onayKodu.veri'); if (elm?.length) {
 					elm.on('click', evt => { navigator.clipboard.writeText(onayKodu).then(() => eConfirm('Onay Kodu panoya kopyalandı!', this.sinifAdi)) }) }
 			});
-		tanimForm.addDiv('testSonuc').etiketGosterim_yok()
-			.addStyle_fullWH(null, `calc(var(--full) - 75px)`)
-			.addStyle(e => `$elementCSS { margin-top: -90px; padding: 5px; overflow-y: auto !important; user-select: text !important; cursor: all !important }`)
-			.onAfterRun(async ({ builder: fbd, rootPart }) => {
-				let {layout, input, inst} = fbd, {id} = inst, {aliasVeNokta, idSaha} = this;
-				let rec = (await this.loadServerData({ ozelQueryDuzenle: ({ sent }) => sent.where.degerAta(id, `${aliasVeNokta}${idSaha}`) }))?.[0];
-				let html; try { html = await this.getHTML_testSonuc({ rec }) }
-				catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Test Bilgisi Gösterimi') }
-				input.html(html); makeScrollable(layout)
-			})
+		{
+			let {inst} = e, {id} = inst, {aliasVeNokta, idSaha} = this;
+			let rec = (await this.loadServerData({ ozelQueryDuzenle: ({ sent }) => sent.where.degerAta(id, `${aliasVeNokta}${idSaha}`) }))?.[0];
+			tanimForm.addDiv('testSonuc').etiketGosterim_yok()
+				.addStyle_fullWH(null, `calc(var(--full) - 75px)`)
+				.addStyle(e => `$elementCSS { margin-top: -90px; padding: 5px; overflow-y: auto !important; user-select: text !important; cursor: all !important }`)
+				.onAfterRun(async ({ builder: fbd, rootPart }) => {
+					let {layout, input} = fbd;
+					let html; try { html = await this.getHTML_testSonuc({ rec }) }
+					catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Test Bilgisi Gösterimi') }
+					input.html(html); makeScrollable(layout)
+				});
+			rfb.islemTuslariArgsDuzenle = ({ args }) => {
+				$.extend(args, {
+					ekButonlarIlk: [ { id: 'izle', handler: _e => this.testSonuc_preview({ ...e, ..._e, rec }) } ],
+					ekSagButonIdSet: asSet(['izle'])
+				})
+			}
+		}
 	}
 	async yaz(e) { await super.yaz(e) }
 	static async eMailIslemleriIstendi(e) {
@@ -387,6 +396,13 @@ class MQTest extends MQGuidOrtak {
 	static uiState2AdiDuzenle({ liste }) {
 		$.extend(liste, { home: 'Hoşgeldiniz', test: 'Test Ekranı', end: 'Test Bitti' })
 	}
+	static async testSonuc_preview({ rec }) {
+		let html = await this.getHTML_testSonuc({ rec });
+		let blob = new Blob([html], { type: 'text/html' });
+		let url = URL.createObjectURL(blob);
+		openNewWindow(url)
+
+	}
 	async testUI_initLayout(e) {
 		const {parentPart} = e, {header, content} = parentPart; content.children().remove();
 		const {ts: tarih, hastaAdi} = this; $.extend(parentPart, { tarih, hastaAdi });
@@ -473,7 +489,7 @@ class MQTestCPT extends MQTest {
 				let gecerliResimURL, index = -1, resimGosterimTime, ilkTiklamaTime, hInternal;
 				/*parentPart.headerText = `Şu resme tıklayınız: <img class="target-img" src="${orjUrls[gecerliResimInd]}">`;*/
 				const img = $(`<div class="resim"/>`); img.appendTo(content);
-				let clearFlag = false; let promise_wait = new $.Deferred();
+				let clearFlag = false, promise_wait = new $.Deferred();
 				let loopProc = () => {
 					if (startCounter <= 0 || parentPart.isDestroyed || parentPart.state != 'test') { clearInterval(this._hInterval); delete this._hInterval; promise_wait?.resolve(); return false }
 					img.html(clearFlag ? '' : `<div class="veri full-wh">${startCounter--}</div>`); clearFlag = !clearFlag
