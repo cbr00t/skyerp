@@ -126,6 +126,7 @@ class MQTest extends MQGuidOrtak {
 				 $elementCSS .onayKodu.veri { text-decoration: unset; margin-left: 10px }
 				 $elementCSS .onayKodu.veri:hover, $elementCSS .onayKodu.veri:active { text-decoration: underline !important; cursor: pointer !important }
 				 $elementCSS .onayKodu.veri:hover { color: steelblue !important } $elementCSS .onayKodu.veri:active { color: slateblue !important }
+				 @media print { $elementCSS .onayKodu-parent { display: none !important } }
 			`])
 			.onAfterRun(async ({ builder: fbd }) => {
 				const {altInst: inst, input} = fbd, {ts, muayeneId, hastaId, sablonId} = inst, {tip} = inst.class;
@@ -148,17 +149,19 @@ class MQTest extends MQGuidOrtak {
 					(cinsiyetText ? ` - <b class="royalblue">${cinsiyetText}</b>` : '') + (dehbVarmi ? ` <b class="orangered" style="margin-left: 30px">DEHB</b>` : '')
 				), 'flex-row');
 				if (uygulanmaYeri) { addItem(`<span class="darkgray etiket">Uygulanma Yeri:</span> <b>${MQTestUygulanmaYeri.kaDict[uygulanmaYeri]?.aciklama || ''}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }*/
-				if (onayKodu) { addItem(`<span style="onayKodu-parent"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="gray etiket">Onay Kodu:</span> <u class="onayKodu veri bold royalblue">${onayKodu}</u></span>`) }
+				if (onayKodu) { addItem(`<span class="onayKodu-parent"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="gray etiket">Onay Kodu:</span> <u class="onayKodu veri bold royalblue">${onayKodu}</u></span>`) }
 				let elm = input.find('.onayKodu.veri'); if (elm?.length) {
 					elm.on('click', evt => { navigator.clipboard.writeText(onayKodu).then(() => eConfirm('Onay Kodu panoya kopyalandı!', this.sinifAdi)) }) }
 			});
-		tanimForm.addDiv('testSonuc').etiketGosterim_yok().addStyle_fullWH(null, `calc(var(--full) - 75px)`)
-			.addStyle(e => `$elementCSS { margin-top: -90px; padding: 5px; overflow-y: auto !important }`)
+		tanimForm.addDiv('testSonuc').etiketGosterim_yok()
+			.addStyle_fullWH(null, `calc(var(--full) - 75px)`)
+			.addStyle(e => `$elementCSS { margin-top: -90px; padding: 5px; overflow-y: auto !important; user-select: text !important; cursor: all !important }`)
 			.onAfterRun(async ({ builder: fbd, rootPart }) => {
 				let {layout, input, inst} = fbd, {id} = inst, {aliasVeNokta, idSaha} = this;
 				let rec = (await this.loadServerData({ ozelQueryDuzenle: ({ sent }) => sent.where.degerAta(id, `${aliasVeNokta}${idSaha}`) }))?.[0];
-				input.html(await this.getHTML_testSonuc({ rec }));
-				makeScrollable(layout)
+				let html; try { html = await this.getHTML_testSonuc({ rec }) }
+				catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Test Bilgisi Gösterimi') }
+				input.html(html); makeScrollable(layout)
 			})
 	}
 	async yaz(e) { await super.yaz(e) }
@@ -243,7 +246,7 @@ class MQTest extends MQGuidOrtak {
 		selectedRecs = selectedRecs.filter(({ email: eMail }) => !!eMail && eMail.length >= 5 && eMail.includes('@'));
 		if (!selectedRecs?.length) { hConfirm('Seçilenler arasında <u>Geçerli e-Mail Adresi Olan</u> kayıt bulunamadı', sinifAdi); return null }
 		let {islemAdi, subject} = e; e.subject = subject = subject ?? `ESE ${islemAdi}`;
-		if (!await ehConfirm(`Seçilen <b>${selectedRecs.length}</b> adet kişiye <b class="royalblue">${islemAdi}</b> <b>için e-Mail</b> gönderilsin mi?`, sinifAdi)) { return null }
+		/* if (!await ehConfirm(`Seçilen <b>${selectedRecs.length}</b> adet kişiye <b class="royalblue">${islemAdi}</b> <b>için e-Mail</b> gönderilsin mi?`, sinifAdi)) { return null } */
 		e.pAborted = { result: false };
 		showProgress(`<b>${selectedRecs.length}</b> kişiye <b class="royalblue">${islemAdi}</b> için <b>e-Mail Gönderimi</b> yapılıyor...`, sinifAdi, true, () => e.pAborted.result = true);
 		try {
@@ -297,23 +300,30 @@ class MQTest extends MQGuidOrtak {
 	static async getHTML_testSonuc({ rec }) {
 		let {ese} = app.params, sablonDosya = ese.eMailSablonDosya_testGiris || '/VioData/ESE/ESE.TestSonuc.Sablon.htm';
 		let dokumcu = await HTMLDokum.FromDosya(sablonDosya);
+		let {gecerliTekrarSayi, digerTekrarSayi, toplamTekrarSayi} = MQSablonCPT;
 		let testTip2Bilgi = {}, uni = new MQUnionAll(); for (let item of ese) {
-			let {tip, prefix, sablonTable, sablonId} = item; testTip2Bilgi[prefix] = item;
+			let {tip, prefix, sablonTable, sablonId} = item;
+			testTip2Bilgi[prefix] = { ...item };
 			switch (tip) {
-				case 'anket': {
-					let sent = new MQSent({
-						from: `${sablonTable}detay`, where: [
-							{ degerAta: sablonId, saha: 'fisid' },
-							{ notLike: `#%`, saha: 'soru', aynenAlinsin: true }
-						],
-						sahalar: [`${prefix.sqlServerDegeri()} prefix`, `COUNT(*) sayi`, '0 tekrar']
-					}).groupByOlustur(); uni.add(sent);
-					break
-				}
 				case 'cpt': {
 					let sent = new MQSent({
 						from: sablonTable, where: [ { degerAta: sablonId, saha: 'id' } ],
-						sahalar: [`${prefix.sqlServerDegeri()} prefix`, `(resimsayisi * gruptekrarsayisi) sayi`, 'gruptekrarsayisi tekrar']
+						sahalar: [
+							`${prefix.sqlServerDegeri()} prefix`, `(resimsayisi * gruptekrarsayisi) soruSayi`,
+							`ROUND((baslamaoncesibostams + ((resimbostams + resimgosterimms + resimarasisn * 1000) * resimsayisi * ${toplamTekrarSayi})) / 60000, 0) sureDk`
+						]
+					}).groupByOlustur(); uni.add(sent);
+					break
+				}
+				case 'anket': {
+					let sent = new MQSent({
+						from: `${sablonTable} fis`,
+						fromIliskiler: [ { from: `${sablonTable}detay har`, iliski: 'har.fisid = fis.id' } ],
+						where: [
+							{ degerAta: sablonId, saha: 'har.fisid' },
+							{ notLike: `#%`, saha: 'har.soru', aynenAlinsin: true }
+						],
+						sahalar: [`${prefix.sqlServerDegeri()} prefix`, `COUNT(*) soruSayi`, 'fis.suredk sureDk']
 					}).groupByOlustur(); uni.add(sent);
 					break
 				}
@@ -322,28 +332,30 @@ class MQTest extends MQGuidOrtak {
 		if (uni.liste.length) {
 			try {
 				let stm = uni.asToplamStm(), recs = await app.sqlExecSelect(stm);
-				for (let {prefix, sayi: soruSayi, tekrar} of recs) {
-					let item = testTip2Bilgi[prefix];
-					if (item) { $.extend(item, { soruSayi, tekrar }) }
+				for (let rec of recs) {
+					let {prefix} = rec, item = testTip2Bilgi[prefix];
+					if (item) { $.extend(item, rec) }
 				}
 			}
 			catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Test Bilgisi') }
 		}
 		let {tarih, hastaadi: HASTAADI, cinsiyet, aktifyas: YAS, doktoradi: DOKTORADI, uygulanmayeri: UYGTURU} = rec;
 		let TARIH = dateToString(tarih), KURUMADI = 'ESE', CINSIYET = Cinsiyet.kaDict[cinsiyet]?.aciklama;
-		let toplamSayi = rec.dogrusayi + rec.secilmeyendogrusayi;
+		let {dogrusayi, yanlissayi, secilmeyendogrusayi, dogrusecimsurems, yanlissecimsurems} = rec;
+		let {debelirtisayi, deskor, hibelirtisayi, hiskor} = rec;
+		let cpt = testTip2Bilgi.cpt ?? {}, de = testTip2Bilgi.anketde ?? {}, hi = testTip2Bilgi.ankethi ?? {};
+		for (let obj of [cpt, de, hi]) { for (let key of ['soruSayi', 'sureDk']) { obj[key] = obj[key] ?? 1 } }
+		let {soruSayi, sureDk} = cpt, duySayi = gecerliTekrarSayi, yanlisSayi = digerTekrarSayi;
 		let baslik = {
 			TARIH, HASTAADI, YAS, CINSIYET, DOKTORADI, KURUMADI, UYGTURU,
-			ANKETDE_ADI: testTip2Bilgi.anketde?.etiket, ANKETDE_SORUSAYI: testTip2Bilgi.anketde?.soruSayi,
-				ANKETDE_BELIRTISAYI: rec.debelirtisayi, ANKETDE_SKOR: rec.deskor,
-			ANKETHI_ADI: testTip2Bilgi.ankethi?.etiket, ANKETHI_SORUSAYI: testTip2Bilgi.ankethi?.soruSayi,
-				ANKETHI_BELIRTISAYI: rec.hibelirtisayi, ANKETHI_SKOR: rec.hiskor,
-			DOGRU_SAYI: testTip2Bilgi.cpt?.soruSayi || 0, YANLIS_SAYI: (testTip2Bilgi.cpt?.soruSayi || 0) - (1 * (testTip2Bilgi.cpt?.tekrar || 0)),
-			DOGRU_DEGER: rec.dogrusayi, DOGRU_YUZDE: roundToFra1(rec.dogrusayi * 100 / toplamSayi), DOGRU_ORT_SECIM: rec.dogrusecimsurems,
-			YANLIS_DEGER: rec.yanlissayi, YANLIS_YUZDE: roundToFra1(rec.yanlissayi * 100 / toplamSayi), YANLIS_ORT_SECIM: rec.yanlissecimsurems
+			CPT_SIKLIK: toplamTekrarSayi, CPT_ORTSURE: sureDk,
+			DUY_SAYI: duySayi, DUY_DEGER: dogrusayi, DUY_YUZDE: roundToFra1(dogrusayi * 100 / duySayi), DUY_ORT_SECIM: dogrusecimsurems,
+			YANLIS_SAYI: yanlisSayi, YANLIS_DEGER: yanlissayi, YANLIS_YUZDE: roundToFra1(yanlissayi * 100 / yanlisSayi), YANLIS_ORT_SECIM: yanlissecimsurems,
+			ANKETDE_ADI: de.etiket, ANKETDE_SORUSAYI: de.soruSayi, ANKETDE_BELIRTISAYI: debelirtisayi, ANKETDE_SKOR: deskor,
+			ANKETHI_ADI: hi.etiket, ANKETHI_SORUSAYI: hi.soruSayi, ANKETHI_BELIRTISAYI: hibelirtisayi, ANKETHI_SKOR: hiskor
 		};
 		$.extend(baslik, {
-			TOPLAM_SORUSAYI: (testTip2Bilgi.anketde?.soruSayi || 0) + (testTip2Bilgi.ankethi?.soruSayi || 0),
+			TOPLAM_SORUSAYI: de.soruSayi + hi.soruSayi,
 			TOPLAM_BELIRTISAYI: baslik.ANKETDE_BELIRTISAYI + baslik.ANKETHI_BELIRTISAYI,
 			TOPLAM_SKOR: baslik.ANKETDE_SKOR + baslik.ANKETHI_SKOR,
 			DEHB_SONUC: rec.bdehbvarmi ? `<div class="var">VAR</div>` : `<div class="yok">YOK</div>`

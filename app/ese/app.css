@@ -27,6 +27,12 @@ body.dark-theme .MQSablonCPT.modelTanim.part > .form [data-builder-id = grid-par
 		filter: invert(1) hue-rotate(180deg) !important
 	}
 @media (max-width: 1000px) { .modelTanim.part > .form [data-builder-id = kaForm] [data-builder-id = aciklama] { width: 250px !important } }
+@media print {
+	body.dark-theme .part .dokumanForm, .part .skyResim.part #resim > .widget,
+		body.dark-theme .part .skyResim.part #resim > .widget .item > .content,
+		body.dark-theme .MQSablonCPT.modelTanim.part > .form [data-builder-id = grid-parent] div[role = row] > .resim > *,
+		body.dark-theme .MQSablonAnket.modelTanim.part > .form [data-builder-id = grid-parent] div[role = row] > .resim > * { filter: invert(1) hue-rotate(180deg) }
+}
 .MQTest.part .jqx-window-content button:not([disabled]) { border: 2px solid forestgreen !important }
 .MQTest.part .jqx-window-content button[disabled] { border: 2px solid firebrick !important }
 .MQSablonAnket.part .jqx-grid [role = row] > .soru.jqx-grid-cell { text-wrap: pretty }

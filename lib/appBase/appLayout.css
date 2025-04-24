@@ -7,6 +7,15 @@
 	--yil-renk: rebeccapurple; --db-renk: green; --main-padding-x: 15px; --main-padding-y: 0px; --islemTuslari-height: 45px;
 }
 * { accent-color: #1a3588 }
+@media print {
+	body.dark-theme > * { filter: invert(1) hue-rotate(180deg) !important }
+	button, .jqx-grid-groups-header, .jqx-scrollbar,
+	.bulForm.part, .filtreForm.part, .islemTuslari, #islemTuslari,
+	body #ust-parent > #nav,
+	body > #root-parent #nav-toggle,
+	body > #root-parent #parent > main, body > #root-parent #parent > :not(#windows-parent),
+		body > #root-parent #parent > main, body > #root-parent #parent > #windows-parent > div > #windows > :not(.content) { display: none !important }
+}
 body > #root-parent,
 body #ust-parent > #nav,
 body #ust-parent > #parent,

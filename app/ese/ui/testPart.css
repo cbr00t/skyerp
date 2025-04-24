@@ -80,3 +80,5 @@ body:not(.kiosk) .test.part .header { margin-top: calc(0px - (var(--header-heigh
 .test.part .content .anket-sonuclar .item .soru { font-weight: normal }
 .test.part .content .anket-sonuclar .item .cevap { font-weight: bold; color: royalblue }
 .test.part .content .error { color: red }
+
+@media print { body.dark-theme:has(.test.part) { filter: invert(1) hue-rotate(180deg) !important } }
