@@ -15,7 +15,9 @@
 	body > #root-parent #nav-toggle,
 	body > #root-parent #parent > main, body > #root-parent #parent > :not(#windows-parent),
 		body > #root-parent #parent > main, body > #root-parent #parent > #windows-parent > div > #windows > :not(.content) { display: none !important }
+	body > #root-parent #parent > main, body > #root-parent #parent > #windows-parent > div > #windows > .content * { overflow: hidden !important }
 }
+@page { size: A4 portrait; margin: 5mm }
 body > #root-parent,
 body #ust-parent > #nav,
 body #ust-parent > #parent,

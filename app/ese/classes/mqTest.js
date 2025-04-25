@@ -96,13 +96,16 @@ class MQTest extends MQGuidOrtak {
 		].filter(x => !!x))
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {sent} = e, {tip, tableAlias: alias, sablonSinif, pTanim} = this;
+		super.loadServerData_queryDuzenle(e); let {sent} = e, {sahalar} = sent, {tip, tableAlias: alias, sablonSinif, pTanim} = this;
 		sent.leftJoin({ alias, from: 'esehasta has', on: `${alias}.hastaid = has.id` })
 			.leftJoin({ alias, from: 'esemuayene mua', on: `${alias}.muayeneid = mua.id` })
 			.leftJoin({ alias: 'mua', from: 'esedoktor dok', on: 'mua.doktorid = dok.id' });
-		sent.sahalar.add(`${alias}.muayeneid`, `${alias}.hastaid`, 'has.aciklama hastaadi', `${alias}.uygulanmayeri`, `${alias}.onaykodu`, `${alias}.cinsiyet`, 'has.email');
-		for (const {prefix} of app.params.ese) { sent.sahalar.add(`b${prefix}yapildi`) }
-		if (e.tekilOku) { const {sahalar} = sent; sahalar.liste = sahalar.liste.filter(({ deger }) => !deger.includes('SUM(')) }
+		sahalar.add(
+			`${alias}.muayeneid`, `${alias}.hastaid`, 'has.aciklama hastaadi', `${alias}.uygulanmayeri`, `${alias}.onaykodu`, `${alias}.cinsiyet`, 'has.email',
+			'mua.doktorid', 'dok.aciklama doktoradi'
+		);
+		for (const {prefix} of app.params.ese) { sahalar.add(`b${prefix}yapildi`) }
+		if (e.tekilOku) { sahalar.liste = sahalar.liste.filter(({ deger }) => !deger.includes('SUM(')) }
 		else { sent.groupByOlustur() }
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
@@ -348,20 +351,31 @@ class MQTest extends MQGuidOrtak {
 			}
 			catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Test Bilgisi') }
 		}
+		let {bcptyapildi, banketdeyapildi, bankethiyapildi} = rec;
+		let cptYapildimi = asBool(bcptyapildi), anketDEYapildimi = asBool(banketdeyapildi), anketHIYapildimi = asBool(bankethiyapildi);
+		let anketYapildimi = banketdeyapildi || bankethiyapildi;
 		let {tarih, hastaadi: HASTAADI, cinsiyet, aktifyas: YAS, doktoradi: DOKTORADI, uygulanmayeri: UYGTURU} = rec;
 		let TARIH = dateToString(tarih), KURUMADI = 'ESE', CINSIYET = Cinsiyet.kaDict[cinsiyet]?.aciklama;
 		let {dogrusayi, yanlissayi, secilmeyendogrusayi, dogrusecimsurems, yanlissecimsurems} = rec;
+		if (!cptYapildimi) { dogrusayi = yanlissayi = secilmeyendogrusayi = dogrusecimsurems = yanlissecimsurems = 0 }
 		let {debelirtisayi, deskor, hibelirtisayi, hiskor} = rec;
+		if (!anketDEYapildimi) { debelirtisayi = deskor = 0 }
+		if (!anketHIYapildimi) { hibelirtisayi = hiskor = 0 }
 		let cpt = testTip2Bilgi.cpt ?? {}, de = testTip2Bilgi.anketde ?? {}, hi = testTip2Bilgi.ankethi ?? {};
 		for (let obj of [cpt, de, hi]) { for (let key of ['soruSayi', 'sureDk']) { obj[key] = obj[key] ?? 1 } }
+		if (!anketDEYapildimi) { de.soruSayi = de.sureDk = 0 }
+		if (!anketHIYapildimi) { hi.soruSayi = hi.sureDk = 0 }
 		let {soruSayi, sureDk} = cpt, duySayi = gecerliTekrarSayi, yanlisSayi = digerTekrarSayi;
 		let baslik = {
 			TARIH, HASTAADI, YAS, CINSIYET, DOKTORADI, KURUMADI, UYGTURU,
 			CPT_SIKLIK: toplamTekrarSayi, CPT_ORTSURE: sureDk,
-			DUY_SAYI: duySayi, DUY_DEGER: dogrusayi, DUY_YUZDE: roundToFra1(dogrusayi * 100 / duySayi), DUY_ORT_SECIM: dogrusecimsurems,
-			YANLIS_SAYI: yanlisSayi, YANLIS_DEGER: yanlissayi, YANLIS_YUZDE: roundToFra1(yanlissayi * 100 / yanlisSayi), YANLIS_ORT_SECIM: yanlissecimsurems,
+			DUY_SAYI: duySayi, DUY_DEGER: dogrusayi, DUY_YUZDE: duySayi ? roundToFra1(dogrusayi * 100 / duySayi) : 0, DUY_ORT_SECIM: dogrusecimsurems,
+			YANLIS_SAYI: yanlisSayi, YANLIS_DEGER: yanlissayi, YANLIS_YUZDE: yanlisSayi ? roundToFra1(yanlissayi * 100 / yanlisSayi) : 0, YANLIS_ORT_SECIM: yanlissecimsurems,
 			ANKETDE_ADI: de.etiket, ANKETDE_SORUSAYI: de.soruSayi, ANKETDE_BELIRTISAYI: debelirtisayi, ANKETDE_SKOR: deskor,
-			ANKETHI_ADI: hi.etiket, ANKETHI_SORUSAYI: hi.soruSayi, ANKETHI_BELIRTISAYI: hibelirtisayi, ANKETHI_SKOR: hiskor
+			ANKETHI_ADI: hi.etiket, ANKETHI_SORUSAYI: hi.soruSayi, ANKETHI_BELIRTISAYI: hibelirtisayi, ANKETHI_SKOR: hiskor,
+			CSS_CPT: cptYapildimi ? '' : ' hidden', CSS_CPT_ERROR: cptYapildimi ? ' hidden' : '',
+			CSS_ANKET: anketYapildimi ? '' : ' hidden', CSS_ANKET_ERROR: anketYapildimi ? ' hidden' : '',
+			CSS_ANKET_DE: anketDEYapildimi ? '' : ' hidden', CSS_ANKET_HI: anketHIYapildimi ? '' : ' hidden'
 		};
 		$.extend(baslik, {
 			TOPLAM_SORUSAYI: de.soruSayi + hi.soruSayi,
