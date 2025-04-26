@@ -170,8 +170,8 @@ class MQTest extends MQGuidOrtak {
 				});
 			rfb.islemTuslariArgsDuzenle = ({ args }) => {
 				$.extend(args, {
-					ekButonlarIlk: [ { id: 'izle', handler: _e => this.testSonuc_preview({ ...e, ..._e, rec }) } ],
-					ekSagButonIdSet: asSet(['izle'])
+					ekButonlarIlk: [ { id: 'yazdir', handler: _e => this.testSonuc_preview({ ...e, ..._e, rec }) } ],
+					ekSagButonIdSet: asSet(['yazdir'])
 				})
 			}
 		}
@@ -412,9 +412,10 @@ class MQTest extends MQGuidOrtak {
 	}
 	static async testSonuc_preview({ rec }) {
 		let html = await this.getHTML_testSonuc({ rec });
+		html = html.replaceAll('</head>', `<script>setTimeout(() => print(), 100)</script></head>`);
 		let blob = new Blob([html], { type: 'text/html' });
 		let url = URL.createObjectURL(blob);
-		openNewWindow(url)
+		let wnd = openNewWindow(url);
 
 	}
 	async testUI_initLayout(e) {
