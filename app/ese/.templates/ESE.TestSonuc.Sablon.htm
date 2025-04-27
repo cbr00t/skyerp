@@ -1,0 +1,119 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        .main { font-size: 13pt; font-weight: normal; color: black; width: 100%; padding: 3px; line-height: 26px }
+        .main .header { font-size: 160%; font-weight: bold; color: forestgreen; margin-bottom: 10px }
+        .main .ana-grup, .grup { font-weight: bold }
+        .main .ana-grup { margin: 20px 0 0 0 }
+        .main .ana-grup span:first-child { font-size: 130%; color: royalblue; textDEcoration: underline }
+        .main .ana-grup span + span { font-style: unset; text-decoration: unset; color: #999; margin-left: 20px }
+        .main .grup { font-size: 110%; color: steelblue; margin: 10px 0 }
+        .main .grup-border { border: 1px solid gray; padding: 10px } 
+        .main .field { min-width: 300px; display: flex }
+        .main .field:not(:first-child) { margin-left: 50px }
+        .main .etiket { font-weight: normal }
+        .main .veri { font-weight: bold; color: slateblue }
+        .main .field .etiket { width: 110px }
+        .main .field .veri { padding-left: 10px }
+        .main .parent .field { min-width: 250px }
+        .main .parent .etiket { width: 100px }
+        .main .parent .veri { padding-left: 5px }
+        .main .parent { width: 600px }
+        .main .table { width: min-content; font-size: 100%; font-weight: normal; color: #333; margin-top: 10px; border-collapse: collapse }
+        .main .th, .td { font-size: 100%; border: 1px solid gray; text-align: center; width: 50px }
+        .main .th { font-weight: bold; color: whitesmoke; background-color: royalblue; padding: 5px }
+        .main .td { font-weight: normal; padding: 3px; min-width: 120px }
+        .main .adi { color: steelblue; min-width: 200px !important }
+        .main .tr.toplam > td { font-weight: bold; color: #222; background-color: #eee }
+        .main .tr.toplam .adi { color: #555 }
+        .main .result { font-size: 130%; font-weight: bold }
+        body.dark-theme .main .result { filter: invert(1) hue-rotate(180deg) }
+        .main .result .var { color: orangered }
+        .main .result .yok { color: limegreen }
+        .main .bold { font-weight: bold } .info { color: gray } .info-highlight { color: royalblue }
+        .main .left { text-align: left } .center { text-align: center } .right { text-align: right }
+        .main .flex-row { display: flex; flex-wrap: wrap; gap: 5px }
+        .main .big { font-size: 180% } .long-blank { margin: 5px 0 }
+        .main .error { font-weight: bold; color: firebrick }
+        .main .hidden { display: none }
+        @media print {
+            .main { width: 750px !important; margin: auto !important }
+            /* .table { width: 100% } */
+        }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <p class="header">DEHB Test Sonucu</p>
+
+        <div class="flex-row">
+            <div class="field"><div class="etiket">Kurum:</div> <div class="veri">[KURUMADI]</div></div>
+            <div class="field"><div class="etiket">Uygulayan:</div> <div class="veri">[DOKTORADI]</div></div>
+        </div>
+
+        <div class="flex-row">
+            <div class="field"><div class="etiket">Çocuk Adı:</div> <div class="veri">[HASTAADI]</div></div>
+        </div>
+        <div class="flex-row">
+            <div class="field"><div class="etiket">Yaş:</div> <div class="veri">[YAS]</div></div>
+            <div class="field"><div class="etiket">Cinsiyet:</div> <div class="veri">[CINSIYET]</div></div>
+        </div>
+
+        <div class="flex-row">
+            <div class="field"><div class="etiket">Tarih:</div> <div class="veri">[TARIH]</div></div>
+            <!--<div class="field"><div class="etiket">Uyg. Tür:</div> <div class="veri">[UYGTURU]</div></div>-->
+            <div class="field"><div class="etiket">DEHB:</div> <div class="result veri">[DEHB_SONUC]</div></div>
+        </div>
+
+        <p class="ana-grup"><span>CPT Testi</span> <span class="info">([CPT_SIKLIK] Sıklık / [CPT_ORTSURE] Dk)</span></p>
+        <div class="big long-blank error[CSS_CPT_ERROR]">CPT için Test Sonucu yok</div>
+        <div class="parent[CSS_CPT]">
+            <div class="grup">Duyarlılık Analizi</div>
+            <div class="grup-border flex-row">
+                <div class="field"><div class="etiket">Sayı:</div> <div class="veri">[DUY_SAYI]</div></div>
+                <div class="field"><div class="etiket">Yüzde:</div> <div class="veri">[DUY_YUZDE]% &nbsp;<span class="info-highlight">([DUY_DEGER])</span></div></div>
+                <div class="field"><div class="etiket">Ort. Seçim:</div> <div class="veri">[DUY_ORT_SECIM] <span class="info">ms</span></div></div>
+            </div>
+            <div class="grup">Yanlışlık Analizi</div>
+            <div class="grup-border flex-row">
+                <div class="field"><div class="etiket">Sayı:</div> <div class="veri">[YANLIS_SAYI]</div></div>
+                <div class="field"><div class="etiket">Yüzde:</div> <div class="veri">[YANLIS_YUZDE]% &nbsp;<span class="info-highlight">([YANLIS_DEGER])</span></div></div>
+                <div class="field"><div class="etiket">Ort. Seçim:</div> <div class="veri">[YANLIS_ORT_SECIM] <span class="info">ms</span></div></div>
+            </div>
+        </div>
+
+        <p class="ana-grup"><span>Anket Testleri</span></p>
+        <div class="big long-blank error[CSS_ANKET_ERROR]">Anket için Test Sonucu yok</div>
+        <table class="table[CSS_ANKET]">
+            <tr class="tr">
+                <th class="th">Adı</th>
+                <th class="th">Soru Sayısı</th>
+                <th class="th">Belirtili Sayısı</th>
+                <th class="th">Skor</th>
+            </tr>
+            <tr class="tr[CSS_ANKET_DE]">
+                <td class="td adi">[ANKETDE_ADI]</td>
+                <td class="td ">[ANKETDE_SORUSAYI]</td>
+                <td class="td">[ANKETDE_BELIRTISAYI]</td>
+                <td class="td">[ANKETDE_SKOR]</td>
+            </tr>
+            <tr class="tr[CSS_ANKET_HI]">
+                <td class="td adi">[ANKETHI_ADI]</td>
+                <td class="td ">[ANKETHI_SORUSAYI]</td>
+                <td class="td">[ANKETHI_BELIRTISAYI]</td>
+                <td class="td">[ANKETHI_SKOR]</td>
+            </tr>
+            <tr class="tr toplam">
+                <td class="td adi">Toplam</td>
+                <td class="td">[TOPLAM_SORUSAYI]</td>
+                <td class="td">[TOPLAM_BELIRTISAYI]</td>
+                <td class="td">[TOPLAM_SKOR]</td>
+            </tr>
+        </table>
+
+        <!--<div class="grup big">Sonuç:</div>
+        <div class="result">[DEHB_SONUC]</div>-->
+    </div>
+</body>
+</html>
