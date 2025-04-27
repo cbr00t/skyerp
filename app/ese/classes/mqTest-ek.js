@@ -45,9 +45,10 @@ class TestSonucCPT extends TestSonuc {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return MQTestCPT.tip }
 	static get parentKeys() { return ['dogru', 'yanlis'] } static get reduceKeys() { return [...super.reduceKeys, ...this.parentKeys] }
 	constructor(e) {
-		e = e || {}; super(e); for (const parentKey of this.class.parentKeys) {
+		e = e || {}; super(e); 
+		let {parentKeys} = this.class; for (let parentKey of parentKeys) {
 			let parent = this[parentKey] = e[parentKey] ?? {};
-			for (const key of ['sayi', 'adat']) { parent[key] = parent[key] ?? 0 }
+			for (let key of ['toplamSayi', 'sayi', 'adat']) { parent[key] = parent[key] ?? 0 }
 		}
 		console.info('test', 'new', this)
 	}
@@ -57,8 +58,11 @@ class TestSonucCPT extends TestSonuc {
 		/*console.info('test', this, dogrumu, sureMS, parent);*/ return this
 	}
 	ortalamaOlustur() {
-		for (const parentKey of this.class.parentKeys) {
-			let parent = this[parentKey], {sayi, adat} = parent; parent.secimSure = sayi ? roundToFra(adat, 1) : 0 }
+		let {parentKeys} = this.class;
+		for (let parentKey of parentKeys) {
+			let parent = this[parentKey], {toplamSayi, sayi, adat} = parent;
+			parent.secimSure = toplamSayi ? roundToFra(adat / sayi, 1) : 0
+		}
 		return this
 	}
 }
@@ -68,9 +72,10 @@ class TestGenelSonucCPT extends TestSonucCPT {
 	constructor(e) { e = e || {}; super(e); $.extend(this, { grupNo2Bilgi: e.grupNo2Bilgi || {}, secilmeyenDogruSayi: 0 }) }
 	totalEkle(diger) {
 		if (!diger) { return this }
-		for (const parentKey of this.class.parentKeys) {
+		let {parentKeys} = this.class; for (let parentKey of parentKeys) {
 			let parent = this[parentKey], digerParent = diger[parentKey];
-			for (const [key, value] of Object.entries(digerParent)) { parent[key] = roundToFra(parent[key] + value, 1) }
+			for (let [key, value] of Object.entries(digerParent)) {
+				parent[key] = roundToFra(parent[key] + value, 1) }
 		}
 		return this
 	}

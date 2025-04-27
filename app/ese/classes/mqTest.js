@@ -82,8 +82,6 @@ class MQTest extends MQGuidOrtak {
 			new GridKolon({ belirtec: 'secilmeyendogrusayi', text: 'Seçilmeyen Doğru', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'dogrusecimsurems', text: 'Doğru Seçim(ms)', genislikCh: 10 }).tipDecimal(1),
 			new GridKolon({ belirtec: 'yanlissecimsurems', text: 'Yanlış Seçim(ms)', genislikCh: 10 }).tipDecimal(1),
-			new GridKolon({ belirtec: 'ortdogrusecimsurems', text: 'Ort. Doğru Seçim(ms)', genislikCh: 10, sql: `(case when ${alias}.dogrusayi = 0 then 0 else ROUND(SUM(${alias}.dogrusecimsurems) / SUM(${alias}.dogrusayi), 1) end)` }).tipDecimal(1),
-			new GridKolon({ belirtec: 'ortyanlissecimsurems', text: 'Ort. Yanlış Seçim(ms)', genislikCh: 10, sql: `(case when ${alias}.yanlissayi = 0 then 0 else ROUND(SUM(${alias}.yanlissecimsurems) / SUM(${alias}.yanlissayi), 1) end)` }).tipDecimal(1),
 			new GridKolon({ belirtec: 'deskor', text: 'DE Skor', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'debelirtisayi', text: 'DE Belirti', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'hiskor', text: 'HI Skor', genislikCh: 10 }).tipNumerik(),
@@ -306,7 +304,7 @@ class MQTest extends MQGuidOrtak {
 		let URL = `https://${wsHostName}:90/skyerp/app/ese/?ssl&hostname=${wsHostName}&user=${to}&pass=${onayKodu}&`;
 		let baslik = { HASTAADI, URL };
 		let {result: html} = dokumcu.process({ baslik }) ?? {};
-		if (config.dev) { let url = URL.createObjectURL(new Blob([html], { type: 'text/html' })); openNewWindow(url) }
+		/* if (config.dev) { let url = URL.createObjectURL(new Blob([html], { type: 'text/html' })); openNewWindow(url) } */
 		return html
 	}
 	static async getHTML_testSonuc({ rec }) {
@@ -321,8 +319,8 @@ class MQTest extends MQGuidOrtak {
 					let sent = new MQSent({
 						from: sablonTable, where: [ { degerAta: sablonId, saha: 'id' } ],
 						sahalar: [
-							`${prefix.sqlServerDegeri()} prefix`, `(resimsayisi * gruptekrarsayisi) soruSayi`,
-							`ROUND((baslamaoncesibostams + ((resimbostams + resimgosterimms + resimarasisn * 1000) * resimsayisi * ${toplamTekrarSayi})) / 60000, 0) sureDk`
+							`${prefix.sqlServerDegeri()} prefix`, `${toplamTekrarSayi.sqlServerDegeri()} soruSayi`,
+							`ROUND((baslamaoncesibostams + ((resimbostams + resimgosterimms) * ${toplamTekrarSayi})) / 60000, 0) sureDk`
 						]
 					}).groupByOlustur(); uni.add(sent);
 					break
@@ -384,7 +382,7 @@ class MQTest extends MQGuidOrtak {
 			DEHB_SONUC: rec.bdehbvarmi ? `<div class="var">VAR</div>` : `<div class="yok">YOK</div>`
 		});
 		let {result: html} = dokumcu.process({ baslik }) ?? {};
-		if (config.dev) { let url = URL.createObjectURL(new Blob([html], { type: 'text/html' })); openNewWindow(url) }
+		/*if (config.dev) { let url = URL.createObjectURL(new Blob([html], { type: 'text/html' })); openNewWindow(url) }*/
 		return html
 	}
 	static baslat(e) {
@@ -451,7 +449,7 @@ class MQTest extends MQGuidOrtak {
 	testUI_kaydetOncesi(e) { } testUI_kaydet(e) { } testUI_kaydetSonrasi(e) { }
 }
 class MQTestCPT extends MQTest {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get intervalKatSayi() { return config.dev ? .1: 1 }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get intervalKatSayi() { return config.dev ? .5: 1 }
 	static get sinifAdi() { return 'CPT Test' }  static get testSonucSinif() { return TestSonucCPT } static get testGenelSonucSinif() { return TestGenelSonucCPT }
 	static get kodListeTipi() { return 'TSTCPT' } static get sablonSinif() { return MQSablonCPT }
 	static get testUyariText() { return `Bu testi <span class="orangered">Çocuk</span> uygulayacaktır` }
@@ -459,10 +457,12 @@ class MQTestCPT extends MQTest {
 		super.testUI_setValues(e); const {rec} = e; if (!rec) { return }
 		for (const key of ['gecerliResimSeq', /*'grupTekrarSayisi',*/ 'baslamaOncesiBostaMS', 'resimGosterimMS', 'resimBostaMS']) {
 			let value = rec[key]; if (value !== undefined) { this[key] = value } }
+		this.baslamaOncesiBostaMS = rec.baslamaOncesiMS
 	}
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
 		await super.testUI_initLayout_ara(e); let {tip, intervalKatSayi, sablonSinif, testUyariText} = this.class, {parentPart} = e, {state, content} = parentPart;
 		let {id: testId, detaylar, genelSonuc, gecerliResimSeq, baslamaOncesiBostaMS, resimGosterimMS, resimBostaMS} = this;
+		baslamaOncesiBostaMS *= intervalKatSayi; resimGosterimMS *= intervalKatSayi; resimBostaMS *= intervalKatSayi;
 		let startCounter = 3, orjUrls = detaylar.map(det => det.resimLink), urls = [...orjUrls], imageCount = urls.length, keyDownHandler;
 		let {gecerliTekrarSayi, digerTekrarSayi, toplamTekrarSayi} = sablonSinif, gecerliResimInd = gecerliResimSeq - 1;
 		let shuffleOzel = _urls => {
@@ -500,20 +500,25 @@ class MQTestCPT extends MQTest {
 				/*if (imgStates.error) { hConfirm(`<b>UYARI: </b><p/><div class="darkred"><b>${imgStates.error} adet</b> resim yüklenemedi!</div>`, parentPart.title); return }*/
 				break
 			case 'test':
-				const {testSonucSinif} = this.class;
+				let {testSonucSinif} = this.class;
+				let grupNo = 1, testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif({ tip, testId });
+				let donusum = { dogru: gecerliTekrarSayi, yanlis: digerTekrarSayi };
+				for (let [parentKey, toplamSayi] of Object.entries(donusum)) {
+					testSonuc[parentKey].toplamSayi = genelSonuc[parentKey].toplamSayi = toplamSayi }
 				let gecerliResimURL, index = -1, resimGosterimTime, ilkTiklamaTime, hInternal;
 				/*parentPart.headerText = `Şu resme tıklayınız: <img class="target-img" src="${orjUrls[gecerliResimInd]}">`;*/
-				const img = $(`<div class="resim"/>`); img.appendTo(content);
+				let img = $(`<div class="resim"/>`); img.appendTo(content);
 				let clearFlag = false, promise_wait = new $.Deferred();
 				let loopProc = () => {
 					if (startCounter <= 0 || parentPart.isDestroyed || parentPart.state != 'test') { clearInterval(this._hInterval); delete this._hInterval; promise_wait?.resolve(); return false }
 					img.html(clearFlag ? '' : `<div class="veri full-wh">${startCounter--}</div>`); clearFlag = !clearFlag
 				}; this._hInterval = setInterval(loopProc, 1000 * intervalKatSayi); await promise_wait; img.html('');
 				let clickHandler = evt => {
-					if (!clearFlag || ilkTiklamaTime || !resimGosterimTime) { return } ilkTiklamaTime = now(); let dogrumu = urls[index] == gecerliResimURL;
+					if (!clearFlag || ilkTiklamaTime || !resimGosterimTime) { return }
+					ilkTiklamaTime = now();
+					let dogrumu = urls[index] == gecerliResimURL;
 					let cssClicked = `clicked-${dogrumu ? 'dogru' : 'yanlis'}`; img.removeClass('clicked-dogru clicked-yanlis'); setTimeout(() => img.addClass(cssClicked), 1);
-					let tiklamaMSFarki = (ilkTiklamaTime - resimGosterimTime), grupNo = 1;
-					let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif({ tip, testId });
+					let tiklamaMSFarki = (ilkTiklamaTime - resimGosterimTime);
 					testSonuc.tiklamaEkle(dogrumu, tiklamaMSFarki); if (dogrumu) { genelSonuc.secilmeyenDogruSayi-- }
 				}; img.on('mousedown', clickHandler); img.on('touchstart', clickHandler);
 				keyDownHandler = evt => {
@@ -524,19 +529,29 @@ class MQTestCPT extends MQTest {
 				loopProc = async () => {
 					if (parentPart.isDestroyed || parentPart.state != 'test') { clearInterval(this._hInterval); delete this._hInterval; return false }
 					let farkMS = now() - intervalTime;
-					if (clearFlag) { if (farkMS < resimGosterimMS * intervalKatSayi) { return true } img.css('background-image', '') }
+					if (clearFlag) {
+						if (farkMS < resimGosterimMS) { return true }
+						img.css('background-image', '')
+					}
 					else {
-						if (farkMS < resimBostaMS * intervalKatSayi) { return true }
-						index++; let gecerliResimmi = urls[index] == gecerliResimURL;
-						if (ilkmi) { ilkmi = false } genelSonuc.tumSayi++; if (gecerliResimmi) { genelSonuc.secilmeyenDogruSayi++ }
-						let cevrimBittimi = index >= imageCount - 1; if (cevrimBittimi) { parentPart.nextPage(); return false }
+						if (farkMS < resimBostaMS - 50) { return true }
+						if (ilkmi) { ilkmi = false }
+						let gecerliResimmi = urls[++index] == gecerliResimURL;
+						genelSonuc.tumSayi++; if (gecerliResimmi) { genelSonuc.secilmeyenDogruSayi++ }
+						let cevrimBittimi = index >= imageCount - 1;
+						if (cevrimBittimi) { parentPart.nextPage(); return false }
 						/*parentPart.progressText = (`<div class="flex-row">
 							<div class="item"><span class="ek-bilgi">Resim: &nbsp;</span><span class="veri white">${index + 1} / ${imageCount}</span></div>
 						</div>`);*/
-						img.css('background-image', `url(${urls[index]})`); resimGosterimTime = now(); ilkTiklamaTime = null
+						img.css('background-image', `url(${urls[index]})`);
+						resimGosterimTime = now(); ilkTiklamaTime = null
 					}
-					clearFlag = !clearFlag; intervalTime = now(); return true
-				}; gecerliResimURL = urls[gecerliResimSeq - 1]; urls = shuffleOzel(urls); intervalTime = now(), this._hInterval = setInterval(loopProc, 10); break
+					clearFlag = !clearFlag; intervalTime = now();
+					return true
+				};
+				gecerliResimURL = urls[gecerliResimSeq - 1]; urls = shuffleOzel(urls); intervalTime = now();
+				this._hInterval = setInterval(loopProc, 10);
+				break
 			case 'end':
 				$('body').off('keydown', keyDownHandler);
 				if (genelSonuc) {
