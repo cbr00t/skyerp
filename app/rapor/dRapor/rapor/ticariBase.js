@@ -50,29 +50,26 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 	tabloYapiDuzenle_stok(e) {
 		const {result} = e; result
 			.addKAPrefix('anagrup', 'grup', 'sistgrup', 'stok', 'stokmarka')
-			.addGrup(new TabloYapiItem().setKA('STANAGRP', 'Stok Ana Grup').secimKullanilir().setMFSinif(DMQStokAnaGrup)
-				.addColDef(new GridKolon({ belirtec: 'anagrup', text: 'Stok Ana Grup', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('STGRP', 'Stok Grup').secimKullanilir().setMFSinif(DMQStokGrup)
-				.addColDef(new GridKolon({ belirtec: 'grup', text: 'Stok Grup', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('STISTGRP', 'Stok İst. Grup').secimKullanilir().setMFSinif(DMQStokIstGrup)
-				.addColDef(new GridKolon({ belirtec: 'sistgrup', text: 'Stok İst. Grup', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('STOK', 'Stok').secimKullanilir().setMFSinif(DMQStok)
-				.addColDef(new GridKolon({ belirtec: 'stok', text: 'Stok', maxWidth: 600, filterType: 'input' })))
-			.addGrup(new TabloYapiItem().setKA('STOKMARKA', 'Stok Marka').secimKullanilir().setMFSinif(DMQStokMarka)
-				.addColDef(new GridKolon({ belirtec: 'stokmarka', text: 'Stok Marka', maxWidth: 450, filterType: 'input' })));
+			.addGrupBasit('STANAGRP', 'Stok Ana Grup', 'anagrup', DMQStokAnaGrup)
+			.addGrupBasit('STGRP', 'Stok Grup', 'grup', DMQStokGrup)
+			.addGrupBasit('STISTGRP', 'Stok İst. Grup', 'sistgrup', DMQStokIstGrup)
+			.addGrupBasit('STOK', 'Stok', 'stok', DMQStok)
+			.addGrupBasit('STOKMARKA', 'Stok Marka', 'stokmarka', DMQStokMarka)
+			.addGrupBasit('STOKRESIM', 'Stok Resim', 'stokresim');
 		return this
 	}
 	loadServerData_queryDuzenle_stok(e) {
 		const {attrSet, stm} = e; for (const sent of stm.getSentListe()) {
 			let {where: wh, sahalar} = sent;
-			if (attrSet.STANAGRP) { sent.stok2GrupBagla() } if (attrSet.STOKMARKA) { sent.stok2MarkaBagla() }
 			if (attrSet.STANAGRP || attrSet.STGRP || attrSet.STISTGRP || attrSet.STOK || attrSet.STOKMARKA) { sent.har2StokBagla() }
+			if (attrSet.STANAGRP) { sent.stok2GrupBagla() } if (attrSet.STOKMARKA) { sent.stok2MarkaBagla() }
 			for (const key in attrSet) {
 				switch (key) {
 					case 'STANAGRP': sent.stokGrup2AnaGrupBagla(); sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi'); wh.icerikKisitDuzenle_stokAnaGrup({ ...e, saha: 'grp.anagrupkod' }); break
 					case 'STGRP': sent.stok2GrupBagla(); sahalar.add('stk.grupkod', 'grp.aciklama grupadi'); wh.icerikKisitDuzenle_stokGrup({ ...e, saha: 'stk.grupkod' }); break
 					case 'STISTGRP': sent.stok2IstGrupBagla(); sahalar.add('stk.sistgrupkod', 'sigrp.aciklama sistgrupadi'); wh.icerikKisitDuzenle_stokIstGrup({ ...e, saha: 'grp.sistgrupkod' }); break
 					case 'STOK': sahalar.add('har.stokkod', 'stk.aciklama stokadi'); wh.icerikKisitDuzenle_stok({ ...e, saha: 'har.stokkod' }); break
+					case 'STOKRESIM': sahalar.add('har.stokkod resimid', 'NULL stokresim'); break
 					case 'STOKMARKA': sahalar.add('stk.smarkakod stokmarkakod', 'smar.aciklama stokmarkaadi'); break
 				}
 			}

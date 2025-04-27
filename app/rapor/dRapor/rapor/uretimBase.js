@@ -1,12 +1,20 @@
-class DRapor_Uretim extends DRapor_Donemsel {
+class DRapor_UretimBase extends DRapor_Donemsel {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kategoriKod() { return 'URETIM' } static get kategoriAdi() { return 'Üretim' }
 	static get uygunmu() { return /*app.params.ticariGenel.kullanim.uretim &&*/ !!app.sqlTables?.operemri }
 }
-class DRapor_Uretim_Main extends DRapor_Donemsel_Main {
+class DRapor_UretimBase_Main extends DRapor_Donemsel_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+}
+
+class DRapor_Uretim extends DRapor_UretimBase {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+}
+class DRapor_Uretim_Main extends DRapor_UretimBase_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e); const {result} = e; result
+		super.tabloYapiDuzenle(e); let {result} = e;
+		result
 			.addKAPrefix('hat', 'tezgah', 'per', 'stok', 'op')
 			.addGrup(new TabloYapiItem().setKA('HAT', 'Hat').secimKullanilir().setMFSinif(DMQHat).addColDef(new GridKolon({ belirtec: 'hat', text: 'Hat', minWidth: 150, maxWidth: 350, filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('TEZGAH', 'Tezgah').secimKullanilir().setMFSinif(DMQTezgah).addColDef(new GridKolon({ belirtec: 'tezgah', text: 'Tezgah', minWidth: 230, maxWidth: 450, filterType: 'checkedlist' })))

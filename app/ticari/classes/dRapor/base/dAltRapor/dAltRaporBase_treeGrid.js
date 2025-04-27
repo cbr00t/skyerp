@@ -113,10 +113,10 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		}
 		return recs
 	}
-	loadServerData_recsDuzenle(e) { this.loadServerData_recsDuzenle_ozel?.(e) }
-	loadServerData_recsDuzenleEk(e) { this.loadServerData_recsDuzenleEk_ozel?.(e) }
-	loadServerData_recsDuzenleSon(e) { this.loadServerData_recsDuzenleSon_ozel?.(e) }
-	loadServerData_recsDuzenle_seviyelendir(e) { this.loadServerData_recsDuzenle_seviyelendir_ozel?.(e) }
+	loadServerData_recsDuzenle(e) { return this.loadServerData_recsDuzenle_ozel?.(e) }
+	loadServerData_recsDuzenleEk(e) { return this.loadServerData_recsDuzenleEk_ozel?.(e) }
+	loadServerData_recsDuzenleSon(e) { return this.loadServerData_recsDuzenleSon_ozel?.(e) }
+	loadServerData_recsDuzenle_seviyelendir(e) { return this.loadServerData_recsDuzenle_seviyelendir_ozel?.(e) }
 	exportExcelIstendi(e) { return this.exportXIstendi({ ...e, type: 'xls', mimeType: 'application/vnd.ms-excel' }) }
 	exportPDFIstendi(e) { return this.exportXIstendi({ ...e, type: 'pdf', mimeType: 'application/pdf' }) }
 	exportHTMLIstendi(e) { return this.exportXIstendi({ ...e, type: 'html', mimeType: 'text/html' }) }

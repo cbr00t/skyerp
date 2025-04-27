@@ -17,8 +17,8 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 			.addGrupBasit('STGRP', 'Stok Grup', 'grup', DMQStokGrup)
 			.addGrupBasit('STISTGRP', 'Stok İst. Grup', 'sistgrup', DMQStokIstGrup)
 			.addGrupBasit('STOK', 'Stok', 'stok', DMQStok)
-			.addGrupBasit('DEPO', 'Depo', 'yer', DMQYer)
-			.addGrupBasit('DEPOGRUP', 'Depo Grup', 'yergrup', DMQYerGrup);
+			.addGrupBasit('STOKRESIM', 'Stok Resim', 'stokresim');
+		this.tabloYapiDuzenle_yer(e);
 		for (let tip of brmListe) {
 			let fra = brmDict[tip];
 			result.addToplamBasit(`MIKTAR${tip}`, `Miktar (${tip})`, `miktar${tip}`, null, 100, ({ colDef }) => colDef.tipDecimal(fra))
@@ -47,6 +47,7 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 				case 'STGRP': sent.stok2GrupBagla(); sahalar.add('stk.grupkod', 'grp.aciklama grupadi'); wh.icerikKisitDuzenle_stokGrup({ ...e, saha: 'stk.grupkod' }); break
 				case 'STISTGRP': sent.stok2IstGrupBagla(); sahalar.add('stk.sistgrupkod', 'sigrp.aciklama sistgrupadi'); wh.icerikKisitDuzenle_stokIstGrup({ ...e, saha: 'grp.sistgrupkod' }); break
 				case 'STOK': sahalar.add('son.stokkod', 'stk.aciklama stokadi'); wh.icerikKisitDuzenle_stok({ ...e, saha: 'son.stokkod' }); break
+				case 'STOKRESIM': sahalar.add('son.stokkod resimid', 'NULL stokresim'); break
 				case 'DEPO': sahalar.add('son.yerkod', 'yer.aciklama yeradi'); wh.icerikKisitDuzenle_yer({ ...e, saha: 'son.yerkod' }); break
 				case 'DEPOGRUP': sahalar.add('yer.yergrupkod yergrupkod', 'ygrp.aciklama yergrupadi'); wh.icerikKisitDuzenle_yerGrup({ ...e, saha: 'yer.yergrupkod' }); break
 				case 'DEG_ALIMNETFIYAT': sahalar.add(`SUM(${degMiktarClause} * stk.almnetfiyat) deg_alimnetfiyat`); break

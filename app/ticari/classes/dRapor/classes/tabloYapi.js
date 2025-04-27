@@ -122,8 +122,10 @@ class TabloYapiItem extends CObject {
 		const {secimlerDuzenleyici} = this; if (secimlerDuzenleyici != null) { getFuncValue.call(this, secimlerDuzenleyici, e) }
 	}
 	tbWhereClauseDuzenle(e) {
-		const {secimKullanilirFlag} = this; if (secimKullanilirFlag) {
-			const {ka, secimSinif, mfSinif, colDefs, kaYapimi} = this, kod = ka?.kod;
+		let {secimKullanilirFlag, mfSinif} = this;
+		secimKullanilirFlag = secimKullanilirFlag ?? !!mfSinif;
+		if (secimKullanilirFlag) {
+			let {ka, secimSinif, mfSinif, colDefs, kaYapimi} = this, kod = ka?.kod;
 			let kodSaha = mfSinif?.kodSaha, aliasVeNokta = mfSinif?.aliasVeNokta ?? '';
 			let clause = kodSaha ? `${aliasVeNokta}${kodSaha}` : colDefs[0]?.belirtec;
 			if (clause && kod != null && secimSinif) {

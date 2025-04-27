@@ -122,7 +122,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		result.addToplam(new TabloYapiItem().setKA('KAYITSAYISI', 'Kayıt Sayısı').addColDef(new GridKolon({ belirtec: 'kayitsayisi', text: 'Kayıt Sayısı', genislikCh: 10, filterType: 'numberinput', aggregates: ['sum'] }).tipNumerik()))
 	}
 	async loadServerDataInternal(e) {
-		await super.loadServerDataInternal(e); const {raporTanim, secimler} = this, attrSet = e.attrSet ?? raporTanim.attrSet, {maxRow, donemBS} = e;
+		await super.loadServerDataInternal(e); let {raporTanim, secimler} = this, attrSet = e.attrSet ?? raporTanim.attrSet, {maxRow, donemBS} = e;
 		let _e = { ...e, stm: new MQStm(), attrSet, donemBS }, recs = await this.loadServerData_ilk(e); if (recs !== undefined) { return recs }
 		if (this.loadServerData_queryDuzenle_tekil(_e) === false) { return null }
 		if (this.loadServerData_queryDuzenle_tekilSonrasi(_e) === false) { return null }
@@ -244,7 +244,17 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		this.loadServerData_queryDuzenle_genelSon_son_ozel?.(e)
 	}
-	loadServerData_recsDuzenle(e) { return super.loadServerData_recsDuzenle(e) }
+	async loadServerData_recsDuzenle({ attrSet, recs }) {
+		attrSet = attrSet ?? this.raporTanim.attrSet;
+		if (attrSet.STOKRESIM) {
+			for (let rec of recs) {
+				let {resimid: id} = rec; if (!id) { continue }
+				let url = app.getWSUrl({ session: false, api: 'stokResim', args: { id } });
+				rec.stokresim = `<img class="full-wh" src="${url}"/>`
+			}
+		}
+		return await super.loadServerData_recsDuzenle({ ...arguments })
+	}
 	loadServerData_recsDuzenleSon(e) {
 		return super.loadServerData_recsDuzenleSon(e) /* const {attrSet} = this.raporTanim, {toplam} = this.tabloYapi, avgBelirtec2ColDef = {};
 		for (const key in attrSet) {
@@ -308,33 +318,34 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	loadServerData_queryDuzenle_ozelIsaret({ stm, sent, attrSet, kodClause }) {
-		if (!kodClause) { return this } sent = sent ?? stm.sent; let {where: wh, sahalar} = sent;
+		if (!kodClause) { return this }
+		sent = sent ?? stm.sent; let {where: wh, sahalar} = sent;
 		for (const key in attrSet) {
 			switch (key) { case 'ISARET': sahalar.add(kodClause); break }
 		}
 		return this
 	}
-	tabloYapiDuzenle_sube(e) {
-		e.result.addKAPrefix('sube', 'subegrup')
+	tabloYapiDuzenle_sube({ result }) {
+		result.addKAPrefix('sube', 'subegrup')
 			.addGrupBasit('SUBE', 'Şube', 'sube', DMQSube)
 			.addGrupBasit('SUBEGRUP', 'Şube Grup', 'subegrup', DMQSubeGrup);
 		return this
 	}
-	loadServerData_queryDuzenle_sube(e) {
-		let {stm, attrSet, kodClause} = e; if (!kodClause) { return this }
-		let sent = e.sent ?? stm.sent, {where: wh, sahalar} = sent;
+	loadServerData_queryDuzenle_sube({ stm, sent, attrSet, kodClause }) {
+		if (!kodClause) { return this }
+		sent = sent ?? stm.sent; let {where: wh, sahalar} = sent;
 		if (attrSet.SUBE || attrSet.SUBEGRUP) { sent.fromIliski('isyeri sub', `${kodClause} = sub.kod`) }
 		if (attrSet.SUBEGRUP) { sent.sube2GrupBagla() }
 		for (const key in attrSet) {
 			switch (key) {
-				case 'SUBE': sahalar.add(`${kodClause} subekod`, 'sub.aciklama subeadi'); wh.icerikKisitDuzenle_sube({ ...e, saha: kodClause }); break
-				case 'SUBEGRUP': sahalar.add('sub.isygrupkod subegrupkod', 'igrp.aciklama subegrupadi'); wh.icerikKisitDuzenle_subeGrup({ ...e, saha: 'sub.isygrupkod' }); break
+				case 'SUBE': sahalar.add(`${kodClause} subekod`, 'sub.aciklama subeadi'); wh.icerikKisitDuzenle_sube({ ...arguments[0], saha: kodClause }); break
+				case 'SUBEGRUP': sahalar.add('sub.isygrupkod subegrupkod', 'igrp.aciklama subegrupadi'); wh.icerikKisitDuzenle_subeGrup({ ...arguments[0], saha: 'sub.isygrupkod' }); break
 			}
 		}
 		return this
 	}
-	tabloYapiDuzenle_cari(e) {
-		e.result.addKAPrefix('tip', 'bolge', 'cistgrup', 'cari', 'il', 'ulke')
+	tabloYapiDuzenle_cari({ result }) {
+		result.addKAPrefix('tip', 'bolge', 'cistgrup', 'cari', 'il', 'ulke')
 			.addGrupBasit('CRTIP', 'Cari Tip', 'tip', DMQCariTip)
 			.addGrupBasit('CRANABOL', 'Ana Bölge', 'anabolge', DMQCariAnaBolge).addGrupBasit('CRBOL', 'Bölge', 'bolge', DMQCariBolge)
 			.addGrupBasit('CRISTGRP', 'Cari İst. Grup', 'cistgrup', DMQCariIstGrup).addGrupBasit('CARI', 'Cari', 'cari', DMQCari)
@@ -372,6 +383,56 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				case 'PLASIYER':
 					sahalar.add(`${kodClause} plasiyerkod`, 'pls.birunvan plasiyeradi'); wh.icerikKisitDuzenle_plasiyer({ ...arguments[0], saha: kodClause });
 					break
+			}
+		}
+		return this
+	}
+	tabloYapiDuzenle_yer({ result }) {
+		result.addKAPrefix('yer', 'yergrup')
+			.addGrupBasit('DEPO', 'Depo', 'yer', DMQYer)
+			.addGrupBasit('DEPOGRUP', 'Depo Grup', 'yergrup', DMQYerGrup);
+		return this
+	}
+	loadServerData_queryDuzenle_yer({ stm, sent, attrSet, kodClause }) {
+		if (!kodClause) { return this }
+		sent = sent ?? stm.sent; let {where: wh, sahalar} = sent;
+		if (attrSet.DEPOGRUP || attrSet.DEPO) { sent.x2YerBagla({ kodClause }) }
+		if (attrSet.DEPOGRUP) { sent.yer2GrupBagla() }
+		for (const key in attrSet) {
+			switch (key) {
+				case 'DEPO': sahalar.add(`${kodClause} yerkod`, 'yer.aciklama yeradi'); wh.icerikKisitDuzenle_yer({ ...arguments[0], saha: kodClause }); break
+				case 'DEPOGRUP': sahalar.add('yer.yergrupkod yergrupkod', 'ygrp.aciklama yergrupadi'); wh.icerikKisitDuzenle_yerGrup({ ...arguments[0], saha: 'yer.yergrupkod' }); break
+			}
+		}
+		return this
+	}
+	tabloYapiDuzenle_stok({ result }) {
+		result.addKAPrefix('anagrup', 'grup', 'sistgrup', 'stok', 'stokmarka')
+			.addGrupBasit('STANAGRP', 'Stok Ana Grup', 'anagrup', DMQStokAnaGrup)
+			.addGrupBasit('STGRP', 'Stok Grup', 'grup', DMQStokGrup)
+			.addGrupBasit('STISTGRP', 'Stok İst. Grup', 'sistgrup', DMQStokIstGrup)
+			.addGrupBasit('STOK', 'Stok', 'stok', DMQStok)
+			.addGrupBasit('STOKMARKA', 'Stok Marka', 'stokmarka', DMQStokMarka)
+			.addGrupBasit('BRM', 'Br', 'brm')
+			.addGrupBasit('BRM2', 'Brm2', 'brm2')
+			.addGrupBasit('STOKRESIM', 'Stok Resim', 'stokresim')
+		return this
+	}
+	loadServerData_queryDuzenle_stok({ stm, sent, attrSet, kodClause }) {
+		if (!kodClause) { return this }
+		sent = sent ?? stm.sent; let {where: wh, sahalar} = sent;
+		if (attrSet.STANAGRP || attrSet.STGRP || attrSet.STISTGRP || attrSet.STOK || attrSet.STOKMARKA || attrSet.STOKRESIM) { sent.x2StokBagla({ kodClause }) }
+		if (attrSet.STANAGRP) { sent.stok2GrupBagla() } if (attrSet.STOKMARKA) { sent.stok2MarkaBagla() }
+		for (const key in attrSet) {
+			switch (key) {
+				case 'STOK': sahalar.add(`${kodClause} stokkod`, 'stk.aciklama stokadi'); wh.icerikKisitDuzenle_stok({ ...arguments[0], saha: kodClause }); break
+				case 'STANAGRP': sent.stokGrup2AnaGrupBagla(); sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi'); wh.icerikKisitDuzenle_stokAnaGrup({ ...arguments[0], saha: 'grp.anagrupkod' }); break
+				case 'STGRP': sent.stok2GrupBagla(); sahalar.add('stk.grupkod', 'grp.aciklama grupadi'); wh.icerikKisitDuzenle_stokGrup({ ...arguments[0], saha: 'stk.grupkod' }); break
+				case 'STISTGRP': sent.stok2IstGrupBagla(); sahalar.add('stk.sistgrupkod', 'sigrp.aciklama sistgrupadi'); wh.icerikKisitDuzenle_stokIstGrup({ ...arguments[0], saha: 'grp.sistgrupkod' }); break
+				case 'STOKMARKA': sahalar.add('stk.smarkakod stokmarkakod', 'smar.aciklama stokmarkaadi'); break;
+				case 'BRM': sahalar.add('stk.brm'); break
+				case 'BRM2': sahalar.add('stk.brm2'); break
+				case 'STOKRESIM': sahalar.add(`${kodClause} resimid`, 'NULL stokresim'); break
 			}
 		}
 		return this
