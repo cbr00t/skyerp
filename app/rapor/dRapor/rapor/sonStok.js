@@ -18,6 +18,12 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 			.addGrupBasit('STISTGRP', 'Stok İst. Grup', 'sistgrup', DMQStokIstGrup)
 			.addGrupBasit('STOK', 'Stok', 'stok', DMQStok)
 			.addGrupBasit('STOKRESIM', 'Stok Resim', 'stokresim');
+		if (isAdmin || !rol?.ozelRolVarmi('XMALYT')) {
+			result
+				.addGrupBasit('STK_ALIMNETFIYAT', 'Stok: Alım Net Fiyat', 'stk_alimnetfiyat', null, null, ({ colDef }) => colDef.tipDecimal(2))
+				.addGrupBasit('STK_ORTMALIYET', 'Stok: Ort. Maliyet', 'stk_ortmaliyet', null, null, ({ colDef }) => colDef.tipDecimal(2))
+				.addGrupBasit('STK_RAYICALIM', 'Stok: Rayiç Alım', 'stk_rayicalim', null, null, ({ colDef }) => colDef.tipDecimal(2))
+		}
 		this.tabloYapiDuzenle_yer(e);
 		for (let tip of brmListe) {
 			let fra = brmDict[tip];
@@ -50,6 +56,9 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 				case 'STOKRESIM': sahalar.add('son.stokkod resimid', 'NULL stokresim'); break
 				case 'DEPO': sahalar.add('son.yerkod', 'yer.aciklama yeradi'); wh.icerikKisitDuzenle_yer({ ...e, saha: 'son.yerkod' }); break
 				case 'DEPOGRUP': sahalar.add('yer.yergrupkod yergrupkod', 'ygrp.aciklama yergrupadi'); wh.icerikKisitDuzenle_yerGrup({ ...e, saha: 'yer.yergrupkod' }); break
+				case 'STK_ALIMNETFIYAT': sahalar.add('stk.almnetfiyat stk_alimnetfiyat'); break
+				case 'STK_ORTMALIYET': sahalar.add('stk.ortmalfiyat stk_ortmaliyet'); break
+				case 'STK_RAYICALIM': sahalar.add(`(case when stk.rayicalimfiyati < stk.almnetfiyat then stk.almnetfiyat else stk.rayicalimfiyati end) stk_rayicalim`); break
 				case 'DEG_ALIMNETFIYAT': sahalar.add(`SUM(${degMiktarClause} * stk.almnetfiyat) deg_alimnetfiyat`); break
 				case 'DEG_ORTMALIYET': sahalar.add(`SUM(${degMiktarClause} * stk.ortmalfiyat) deg_ortmaliyet`); break
 				case 'DEG_RAYICALIM': sahalar.add(`SUM(${degMiktarClause} * (case when stk.rayicalimfiyati < stk.almnetfiyat then stk.almnetfiyat else stk.rayicalimfiyati end)) deg_rayicalim`); break

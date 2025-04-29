@@ -202,34 +202,36 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			let {session} = config, {dbName: buDBName} = session, {ekDBListe} = app.params?.dRapor ?? {}, alias_db = 'db';
 			let {value: filtreDBListe} = sec.db, filtreDBSet = filtreDBListe?.length ? asSet(filtreDBListe) : null;
 			if (filtreDBListe?.length) { ekDBListe = filtreDBListe.filter(name => name != buDBName) }
-			let uniDuzenlendimi = false, asilUni = stm.sent = stm.sent.asUnionAll();
+			let asilUniDuzenlendimi = false, asilUni = stm.sent = stm.sent.asUnionAll();
 			if (!filtreDBSet || filtreDBSet[buDBName]) {
 				if (!asilUni.liste.length) { asilUni.add(new MQSent()) }
 				for (let {sahalar} of asilUni.getSentListe()) {
 					if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db)) {
 						sahalar.add(`${`[ <span class=royalblue>${buDBName}</span> ]`.sqlServerDegeri() ?? '- Aktif VT -'} ${alias_db}`) }
 				}
-				uniDuzenlendimi = true
+				asilUniDuzenlendimi = true
 			}
-			for (let db of ekDBListe ?? []) {
-				if (filtreDBSet && !filtreDBSet[db]) { continue }
-				let uni = asilUni; if (!uni.liste.length) { continue }
-				if (uniDuzenlendimi) { uni = uni.deepCopy() }
-				for (let sent of uni.getSentListe()) {
-					let {from, sahalar} = sent; for (let item of from.liste) {
-						let {deger} = item, hasDB = deger.includes('.');
-						if (!hasDB) { item.deger = deger = `${db}..${deger}` }
-					}
-					{
-						let saha = sahalar.liste.find(x => x.alias == alias_db);
-						if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db)) {
-							sahalar.add(`'NULL' ${alias_db}`);
-							saha = sahalar.liste.find(x => x.alias == alias_db);
+			if (ekDBListe?.length && asilUni.liste.length) {
+				let ekSentListe = []; for (let db of ekDBListe) {
+					if (filtreDBSet && !filtreDBSet[db]) { continue }
+					let {liste} = asilUni.deepCopy(); for (let sent of liste) {
+						let {from, sahalar} = sent; for (let item of from.liste) {
+							let {deger} = item, hasDB = deger.includes('.');
+							if (!hasDB) { item.deger = deger = `${db}..${deger}` }
 						}
-						if (saha) { saha.deger = db.sqlServerDegeri() }
+						{
+							let saha = sahalar.liste.find(x => x.alias == alias_db);
+							if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db)) {
+								sahalar.add(`'NULL' ${alias_db}`);
+								saha = sahalar.liste.find(x => x.alias == alias_db);
+							}
+							if (saha) { saha.deger = db.sqlServerDegeri() }
+						}
 					}
+					ekSentListe.push(...liste)
 				}
-				asilUni.addAll(uni.liste); uniDuzenlendimi = true
+				if (!asilUniDuzenlendimi) { asilUni.liste = [] }
+				if (ekSentListe.length) { asilUni.addAll(ekSentListe) }
 			}
 		}
 		this.loadServerData_queryDuzenle_tekilSonrasi_son_ozel?.(e)
