@@ -6,7 +6,7 @@ class Secim extends CIO {
 	get bosmu() { const {value} = this; return !value || $.isEmptyObject(value) } get bosDegilmi() { return !this.bosmu }
 	get ozetBilgiValue() { return this.bosmu ? null : this.value } get super_ozetBilgiValue() { return super.ozetBilgiValue } 
 	get ozetBilgiValueDuzenlenmis() {
-		const {ozetBilgiValueGetter} = this; let value = this.ozetBilgiValue;
+		let {ozetBilgiValueGetter} = this, {ozetBilgiValue: value} = this;
 		if (ozetBilgiValueGetter) { value = getFuncValue.call(this, ozetBilgiValueGetter, { secim: this, value }) }
 		return value
 	}
@@ -47,7 +47,7 @@ class Secim extends CIO {
 	initHTMLElements(e) { }
 	ozetBilgiHTMLOlustur({ liste }) {
 		if (this.isHidden) { return this }
-		let result = this.ozetBilgiValueDuzenlenmis; if (result?.bosmu == true) { result = null }
+		let {ozetBilgiValueDuzenlenmis: result} = this; if (result?.bosmu == true) { result = null }
 		if (result && !$.isArray(result)) { result = [result] }
 		if (result) {
 			result = result.filter(value => !!value).map(value => `<div class="float-left ozetBilgi-item">${value}</div>`);

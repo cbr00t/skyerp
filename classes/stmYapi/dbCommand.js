@@ -43,6 +43,7 @@ class MQSentVeIliskiliYapiOrtak extends MQDbCommand {
 	}
 	asToplamStmWithOrderBy(e) { e = e || {}; e.order = true; delete e.orderBy; return this.asToplamStm(e) }
 	*getSentListe(e) { yield this }
+	[Symbol.iterator](e) { return this.getSentListe(e) }
 	sentDo(e) {
 		e = e || {}; if (typeof e != 'object') e = { callback: e }
 		e.callback.call(this, this, { item: this, index: 1, liste: [this] })

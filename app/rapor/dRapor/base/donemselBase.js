@@ -28,11 +28,11 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 	super_loadServerDataInternal(e) { super.loadServerDataInternal(e) }
 	superSuper_loadServerDataInternal(e) { super.super_loadServerDataInternal(e) }
 	donemBagla({ donemBS, tarihSaha, sent }) { if (donemBS) { sent.where.basiSonu(donemBS, tarihSaha) } return this }
-	loadServerData_queryDuzenle_tarih(e) {
-		let {attrSet, stm} = e, sentIter = (e.sent ?? stm).getSentListe(), alias = e.alias ?? 'fis', aliasVeNokta = alias ? `${alias}.` : '';
-		let tarihSaha = e.tarihSaha ?? 'tarih', tarihClause = aliasVeNokta + tarihSaha;
-		for (const {sahalar} of sentIter) {
-			for (const key in attrSet) {
+	loadServerData_queryDuzenle_tarih({ attrSet, stm, sent, alias, tarihSaha, tarihClause }) {
+		let sentOrUni = sent ?? stm?.sent; alias = alias ?? 'fis'; let aliasVeNokta = alias ? `${alias}.` : '';
+		tarihSaha = tarihSaha ?? 'tarih'; tarihClause = tarihClause ?? `${aliasVeNokta}${tarihSaha}`;
+		for (let {sahalar} of sentOrUni) {
+			for (let key in attrSet) {
 				switch (key) {
 					case 'YILAY': sahalar.add(`(CAST(DATEPART(YEAR, ${tarihClause}) AS CHAR(4)) + ' - ' + dbo.ayadi(${tarihClause})) yilay`); break
 					case 'YILHAFTA': sahalar.add(`(CAST(DATEPART(YEAR, ${tarihClause}) AS CHAR(4)) + ' - ' + CAST(DATEPART(WEEK, ${tarihClause}) AS VARCHAR(2))) yilhafta`); break

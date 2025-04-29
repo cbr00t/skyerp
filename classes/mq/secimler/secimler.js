@@ -185,7 +185,7 @@ class DonemselSecimler extends Secimler {
 		$.extend(liste, {
 			donem: new SecimTekSecim({ etiket: 'Dönem', tekSecimSinif: DonemTarihAralikVeHepsiSecim, grupKod }).autoBind().setOzetBilgiValueGetter(e => {
 				const kod = e.value?.kod ?? e.value, result = [e.value?.aciklama ?? kod];
-				if (kod == 'TR') { let value = this.tarihAralik.ozetBilgiValueDuzenlenmis; if (value) { result.push(value) } }
+				if (kod == 'TR') { let {ozetBilgiValueDuzenlenmis: value} = this.tarihAralik; if (value) { result.push(value) } }
 				return result
 			}),
 			tarihAralik: new SecimDate({ etiket: 'Tarih', grupKod }).hidden()

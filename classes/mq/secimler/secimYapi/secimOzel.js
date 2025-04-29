@@ -129,7 +129,10 @@ class SecimTekilDateTime extends SecimTekilDate {
 }
 class SecimBool extends SecimOzel {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'bool' }
-	get ozetBilgiValue() { let {value} = this; if (value == null) { return value } return typeof value == 'boolean' ? (value ? 'Evet' : 'Hayır') : value?.toString() }
+	get ozetBilgiValue() {
+		let {value} = this; if (value == null) { return value }
+		return typeof (value == 'boolean') ? (value ? this.etiket : null) : value?.toString()
+	}
 	uiSetValues(e) { super.uiSetValues(e); const {parent} = e; if (!parent.length) { return false } parent.find('.bool').jqxSwitchButton({ checked: !!this.value }) }
 	buildHTMLElementStringInto(e) {
 		super.buildHTMLElementStringInto(e); e.target += `<div class="flex-row">`;

@@ -54,6 +54,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				BL: { kod: 'CRBOL', belirtec: 'bolge', text: 'Bölge' },
 				CI: { kod: 'CISTGRP', belirtec: 'cistgrup', text: 'Cari İst. Grup' },
 				PL: { kod: 'PLASIYER', belirtec: 'plasiyer', text: 'Plasiyer' },
+				PR: { kod: 'PER', belirtec: 'per', text: 'Personel' },
 				DG: { kod: 'DEPOGRUP', belirtec: 'yergrup', text: 'Yer Grup' },
 				DP: { kod: 'DEPO', belirtec: 'yer', text: 'Yer' }
 				/*HG: { kod: 'GRUP', belirtec: 'grup', text: 'Har. Ana Tip' }*/
