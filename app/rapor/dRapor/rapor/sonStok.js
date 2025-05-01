@@ -45,7 +45,7 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 		if (attrSet.SUBE || attrSet.SUBEGRUP) { sent.yer2SubeBagla() } if (attrSet.SUBEGRUP) { sent.sube2GrupBagla() }
 		if (attrSet.STOK || Object.keys(attrSet).find(x => x.startsWith(PrefixMiktar))) { sahalar.add('brm') }
 		let degMiktarClause = `(case when stk.almfiyatmiktartipi = '2' then son.sonmiktar2 else son.sonmiktar end)`;
-		for (const key in attrSet) {
+		for (let key in attrSet) {
 			switch (key) {
 				case 'SUBE': sahalar.add('yer.bizsubekod subekod', 'sub.aciklama subeadi'); wh.icerikKisitDuzenle_sube({ ...e, saha: 'fis.bizsubekod' }); break
 				case 'SUBEGRUP': sahalar.add('sub.isygrupkod subegrupkod', 'igrp.aciklama subegrupadi'); wh.icerikKisitDuzenle_subeGrup({ ...e, saha: 'sub.isygrupkod' }); break

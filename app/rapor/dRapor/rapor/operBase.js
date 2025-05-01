@@ -30,12 +30,12 @@ class DRapor_OperBase_Main extends DRapor_Donemsel_Main {
 		$.extend(e, { sent }); this.loadServerData_queryDuzenle_ek(e)
 	}
 	loadServerData_queryDuzenle_ek(e) {
-		let {stm, attrSet} = e; for (let sent of stm) {
+		let {stm, attrSet, tezgahKodClause, perKodClause} = e; for (let sent of stm) {
 			let {sahalar, where: wh} = sent; $.extend(e, { sent });
 			this.loadServerData_queryDuzenle_gerDetayBagla({ ...e, sent });
-			if (attrSet.HAT || attrSet.TEZGAH) { sent.fromIliski('tekilmakina tez', 'gdet.tezgahkod = tez.kod') }
+			if (attrSet.HAT || attrSet.TEZGAH) { sent.fromIliski('tekilmakina tez', `${tezgahKodClause} = tez.kod`) }
 			if (attrSet.STOK) { this.loadServerData_queryDuzenle_formulBagla({ ...e, sent }) }
-			for (const key in attrSet) {
+			for (let key in attrSet) {
 				switch (key) {
 					case 'HAT':
 						sent.fromIliski('ismerkezi hat', 'tez.ismrkkod = hat.kod');
@@ -43,14 +43,13 @@ class DRapor_OperBase_Main extends DRapor_Donemsel_Main {
 						wh.icerikKisitDuzenle_x({ ...e, belirtec: 'hat', saha: 'hat.kod' });
 						break
 					case 'TEZGAH':
-						let tezgahKodClause = e.tezgahKodClause ?? 'gdet.tezgahkod';
 						sahalar.add(`${tezgahKodClause} tezgahkod`, 'tez.aciklama tezgahadi');
-						wh.icerikKisitDuzenle_x({ ...e, belirtec: 'tezgah', saha: 'gdet.tezgahkod' });
+						wh.icerikKisitDuzenle_x({ ...e, belirtec: 'tezgah', saha: tezgahKodClause });
 						break
 					case 'PER':
-						sent.fromIliski('personel per', 'gdet.perkod = per.kod');
-						sahalar.add('gdet.perkod perkod', 'per.aciklama peradi');
-						wh.icerikKisitDuzenle_x({ ...e, belirtec: 'personel', saha: 'gdet.perkod' });
+						sent.fromIliski('personel per', `${perKodClause} = per.kod`);
+						sahalar.add(`${perKodClause} perkod`, 'per.aciklama peradi');
+						wh.icerikKisitDuzenle_x({ ...e, belirtec: 'personel', saha: perKodClause });
 						break
 					case 'STOK':
 						sent.fromIliski('stkmst stk', 'frm.formul = stk.kod');

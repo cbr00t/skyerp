@@ -1,12 +1,12 @@
-class DRapor_Oper_Gercekleme extends DRapor_OperBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false }
-	static get kod() { return 'GERCEKLEME' } static get aciklama() { return 'Gerçekleme Analizi' } static get vioAdim() { return null }
+class DRapor_Oper_GerDurumOrtak extends DRapor_OperBase {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return true }
 }
-class DRapor_Oper_Gercekleme_Main extends DRapor_OperBase_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Oper_Gercekleme }
+class DRapor_Oper_GerDurumOrtak_Main extends DRapor_OperBase_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get raporClass() { return DRapor_Oper_GerDurumOrtak } static get defaultAlias() { return null }
 	secimlerDuzenle({ secimler: sec }) {
-		super.secimlerDuzenle(...arguments); let grupKod = 'ger';
-		sec.grupEkle(grupKod, 'Gerçekleme', false);
+		super.secimlerDuzenle(...arguments); let grupKod = 'emirOper';
+		sec.grupEkle(grupKod, 'Emir/Oper.', false);
 		sec.secimTopluEkle({
 			sadeceDevamEdenEmirler: new SecimBoolTrue({ grupKod, etiket: 'Sadece Devam Eden Emirler' }),
 			operasyonDurumu: new SecimTekSecim({
@@ -35,12 +35,62 @@ class DRapor_Oper_Gercekleme_Main extends DRapor_OperBase_Main {
 		super.tabloYapiDuzenle(...arguments);
 		result
 			.addGrupBasit('BASTS', 'Baş. Zaman', 'basts')
-			.addGrupBasit('BITTS', 'Bit. Zaman', 'bitts')
-			.addToplamBasit('BRUTMIKTAR', 'Brüt Miktar', 'brutmiktar')
-			.addToplamBasit('FIREMIKTAR', 'Fire Miktar', 'firemiktar')
-			.addToplamBasit('ISKMIKTAR', 'Iskarta Miktarı', 'iskmiktar')
-			.addToplamBasit('NETMIKTAR', 'Net Miktar', 'netmiktar')
-			.addToplamBasit('NETMIKTAR2', 'Net Miktar 2', 'netmiktar2')
+			.addGrupBasit('BITTS', 'Bit. Zaman', 'bitts');
+		this.tabloYapiDuzenle_brutMiktarOncesi(...arguments);
+		result
+			.addToplamBasit('BRUTMIKTAR', 'Brüt Mkt.', 'brutmiktar')
+			.addToplamBasit('FIREMIKTAR', 'Fire Mkt.', 'firemiktar')
+			.addToplamBasit('ISKMIKTAR', 'Iskarta Mkt.', 'iskmiktar')
+			.addToplamBasit('NETMIKTAR', 'Net Mkt.', 'netmiktar')
+			.addToplamBasit('NETMIKTAR2', 'Net Mkt 2', 'netmiktar2');
+		let brmDict = app.params?.stokBirim?.brmDict ?? {}, {tip2BrmListe} = MQStokGenelParam;
+		let brmListe = Object.keys(tip2BrmListe ?? {});
+		for (let tip of brmListe) {
+			let fra = brmDict[tip];
+			result.addToplamBasit(`NETMIKTAR${tip}`, `Net Mkt-${tip}`, `netmiktar${tip}`, null, 100, ({ colDef }) => colDef.tipDecimal(fra))
+		}
+	}
+	tabloYapiDuzenle_brutMiktarOncesi(e) { }
+	loadServerData_queryDuzenle_ek(e) {
+		let {defaultAlias: alias} = this.class; $.extend(e, { tezgahKodClause: `${alias}.tezgahkod`, perKodClause: `${alias}.perkod` });
+		super.loadServerData_queryDuzenle_ek(e); let {stm, attrSet, netMiktarClause} = e, PrefixMiktar = 'NETMIKTAR';
+		for (let sent of stm) {
+			let {sahalar, where: wh} = sent; $.extend(e, { sent });
+			this.loadServerData_queryDuzenle_operOrtakBagla({ ...e, sent });
+			if (attrSet.STOK || Object.keys(attrSet).find(x => x.startsWith(PrefixMiktar))) {
+				this.loadServerData_queryDuzenle_formulBagla(e);
+				sent.x2StokBagla({ kodClause: 'frm.formul' });
+				sahalar.add('stk.brm')
+			}
+			for (let key in attrSet) {
+				switch (key) {
+					case PrefixMiktar:
+						sahalar.add(`SUM(${netMiktarClause}) netmiktar`);
+						break
+					default:
+						if (key.startsWith(PrefixMiktar)) {
+							let brmTip = key.slice(PrefixMiktar.length)?.toUpperCase();
+							sahalar.add(`${this.getBrmliMiktarClause({ brmTip, mstAlias: 'stk', getMiktarClause: () => netMiktarClause })} netmiktar${brmTip}`)
+						}
+						break
+				}
+			}
+			this.donemBagla({ ...e, tarihSaha: 'emr.tarih' })
+		}
+		this.loadServerData_queryDuzenle_tarih({ ...e, alias: 'emr', tarihSaha: 'tarih' })
+	}
+}
+
+class DRapor_Oper_Gercekleme extends DRapor_Oper_GerDurumOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false }
+	static get kod() { return 'GERCEKLEME' } static get aciklama() { return 'Gerçekleme Analizi' } static get vioAdim() { return null }
+}
+class DRapor_Oper_Gercekleme_Main extends DRapor_Oper_GerDurumOrtak_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false }
+	static get raporClass() { return DRapor_Oper_Gercekleme } static get defaultAlias() { return 'gdet' }
+	tabloYapiDuzenle({ result }) {
+		super.tabloYapiDuzenle(...arguments);
+		result
 			.addToplamBasit('SURESN', 'Olası İşlem (sn)', 'suresn')
 			.addToplamBasit('BRUTSURESN', 'Olası Brüt (sn)', 'brutsuresn')
 			.addToplamBasit('DURSURESN', 'Olası Duraksama (sn)', 'dursuresn')
@@ -48,31 +98,65 @@ class DRapor_Oper_Gercekleme_Main extends DRapor_OperBase_Main {
 			.addToplamBasit('FAZLASURESN', 'Fazla Süre (sn)', 'fazlasuresn')
 	}
 	loadServerData_queryDuzenle_ek(e) {
-		super.loadServerData_queryDuzenle_ek(e); let {stm, attrSet} = e;
-		for (let sent of stm) {
-			let {sahalar, where: wh} = sent; $.extend(e, { sent });
-			this.loadServerData_queryDuzenle_operOrtakBagla({ ...e, sent });
-			this.donemBagla({ ...e, tarihSaha: 'emr.tarih' });
-			for (const key in attrSet) {
+		let {defaultAlias: alias} = this.class, {stm, attrSet} = e;
+		let netMiktarClause = e.netMiktarClause = `${alias}.netmiktar`;
+		super.loadServerData_queryDuzenle_ek(e);
+		for (let {sahalar, where: wh} of stm) {
+			for (let key in attrSet) {
 				switch (key) {
-					case 'BASTS': sahalar.add(`gdet.detbasts basts`); break
-					case 'BITTS': sahalar.add(`gdet.detbitts bitts`); break
-					case 'BRUTMIKTAR': sahalar.add(`SUM(gdet.miktar) brutmiktar`); break
-					case 'FIREMIKTAR': sahalar.add(`SUM(gdet.firemiktar) firemiktar`); break
-					case 'ISKMIKTAR': sahalar.add(`SUM(gdet.iskartamiktar) iskmiktar`); break
-					case 'NETMIKTAR': sahalar.add(`SUM(gdet.netmiktar) netmiktar`); break
-					case 'NETMIKTAR2': sahalar.add(`SUM(gdet.miktar2) netmiktar2`); break
-					case 'SURESN': sahalar.add(`SUM(gdet.olasisuresn) suresn`); break
-					case 'BRUTSURESN': sahalar.add(`SUM(gdet.brutislemsuresn) brutsuresn`); break
-					case 'DURSURESN': sahalar.add(`SUM(gdet.topduraksamasuresn) dursuresn`); break
-					case 'NETSURESN': sahalar.add(`SUM(gdet.netislemsuresn) netsuresn`); break
-					case 'FAZLASURESN': sahalar.add(`SUM(gdet.olasifazlasuresn) fazlasuresn`); break
+					case 'BASTS': sahalar.add(`${alias}.detbasts basts`); break
+					case 'BITTS': sahalar.add(`${alias}.detbitts bitts`); break
+					case 'BRUTMIKTAR': sahalar.add(`SUM(${alias}.miktar) brutmiktar`); break
+					case 'FIREMIKTAR': sahalar.add(`SUM(${alias}.firemiktar) firemiktar`); break
+					case 'ISKMIKTAR': sahalar.add(`SUM(${alias}.iskartamiktar) iskmiktar`); break
+					case 'NETMIKTAR2': sahalar.add(`SUM(${alias}.miktar2) netmiktar2`); break
+					case 'SURESN': sahalar.add(`SUM(${alias}.olasisuresn) suresn`); break
+					case 'BRUTSURESN': sahalar.add(`SUM(${alias}.brutislemsuresn) brutsuresn`); break
+					case 'DURSURESN': sahalar.add(`SUM(${alias}.topduraksamasuresn) dursuresn`); break
+					case 'NETSURESN': sahalar.add(`SUM(${alias}.netislemsuresn) netsuresn`); break
+					case 'FAZLASURESN': sahalar.add(`SUM(${alias}.olasifazlasuresn) fazlasuresn`); break
 				}
 			}
 		}
-		this.loadServerData_queryDuzenle_tarih({ ...e, alias: 'emr', tarihSaha: 'tarih' })
 	}
 }
+
+class DRapor_Oper_Durum extends DRapor_Oper_GerDurumOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false }
+	static get kod() { return 'OPERDURUM' } static get aciklama() { return 'Oper. Durum Analizi' } static get vioAdim() { return null }
+}
+class DRapor_Oper_Durum_Main extends DRapor_Oper_GerDurumOrtak_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false }
+	static get raporClass() { return DRapor_Oper_Durum } static get defaultAlias() { return 'oem' }
+	tabloYapiDuzenle_brutMiktarOncesi({ result }) {
+		super.tabloYapiDuzenle_brutMiktarOncesi(...arguments);
+		result.addToplamBasit('EMIRMIKTAR', 'Emir Miktar', 'emirmiktar')
+	}
+	tabloYapiDuzenle({ result }) {
+		super.tabloYapiDuzenle(...arguments);
+		result.addGrupBasit('ISLENEBILIRMIKTAR', 'İşl.Mikt.', 'islenebilirmiktar')
+	}
+	loadServerData_queryDuzenle_ek(e) {
+		let {defaultAlias: alias} = this.class, {stm, attrSet} = e;
+		let netMiktarClause = e.netMiktarClause = `${alias}.uretnetmiktar`;
+		super.loadServerData_queryDuzenle_ek(e);
+		for (let {sahalar, where: wh} of stm) {
+			for (let key in attrSet) {
+				switch (key) {
+					case 'BASTS': sahalar.add(`(case when ${alias}.bastarih IS NULL then NULL else ${alias}.bastarih + ${alias}.baszaman end) basts`); break
+					case 'BITTS': sahalar.add(`(case when ${alias}.bittarih IS NULL then NULL else ${alias}.bittarih + ${alias}.bitzaman end) bitts`); break
+					case 'ISLENEBILIRMIKTAR': sahalar.add(`SUM(${alias}.islenebilirmiktar) islenebilirmiktar`); break
+					case 'EMIRMIKTAR': sahalar.add(`SUM(${alias}.emirmiktar) emirmiktar`); break
+					case 'BRUTMIKTAR': sahalar.add(`SUM(${alias}.uretbrutmiktar) brutmiktar`); break
+					case 'FIREMIKTAR': sahalar.add(`SUM(${alias}.uretfiremiktar) firemiktar`); break
+					case 'ISKMIKTAR': sahalar.add(`SUM(${alias}.uretiskartamiktar) iskmiktar`); break
+					case 'NETMIKTAR2': sahalar.add(`SUM(${alias}.uretnetmiktar2) netmiktar2`); break
+				}
+			}
+		}
+	}
+}
+
 
 class DRapor_Oper_Iskarta extends DRapor_OperBase {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false } static get uygunmu() { return false }
@@ -87,6 +171,7 @@ class DRapor_Oper_Iskarta_Main extends DRapor_OperBase_Main {
 			.addToplamBasit('MIKTAR', 'Miktar', 'miktar')
 	}
 	loadServerData_queryDuzenle_ek(e) {
+		$.extend(e, { tezgahKodClause: 'gdet.tezgahkod', perKodClause: 'gdet.perkod' });
 		super.loadServerData_queryDuzenle_ek(e); let {iskartaMaxSayi} = app.params.operGenel, {stm, attrSet} = e;
 		let wUni = new MQUnionAll(); for (let i = 1; i <= iskartaMaxSayi; i++) {
 			let sent = new MQSent({
@@ -133,8 +218,8 @@ class DRapor_Oper_Duraksama_Main extends DRapor_OperBase_Main {
 			.addToplamBasit('SUREDK', 'Dur. Süre (dk)', 'suredk')
 	}
 	loadServerData_queryDuzenle_ek(e) {
+		$.extend(e, { tezgahKodClause: 'mdur.makinakod', perKodClause: 'gdet.perkod' });
 		super.loadServerData_queryDuzenle_ek(e); let {stm, attrSet} = e;
-		$.extend(e, { tezgahKodClause: 'mdur.makinakod' });
 		for (let sent of stm) {
 			let {sahalar, where: wh} = sent; $.extend(e, { sent });
 			this.loadServerData_queryDuzenle_operOrtakBagla(e).loadServerData_queryDuzenle_gerDetayBagla(e);
