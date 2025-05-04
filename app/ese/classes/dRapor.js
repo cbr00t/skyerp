@@ -31,39 +31,56 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 			   .addColDef(new GridKolon({ belirtec: 'testid', text: 'Test ID', filterType: 'input' })))
 		}
 		result
-			.addGrup(new TabloYapiItem().setKA('DOKTOR', 'Doktor').setMFSinif(MQDoktor).kodsuz().setOrderBy('doktoradi').addColDef(new GridKolon({ belirtec: 'doktor', text: 'Doktor', filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('HASTA', 'Hasta').setMFSinif(MQHasta).kodsuz().setOrderBy('hastaadi').addColDef(new GridKolon({ belirtec: 'hasta', text: 'Hasta', filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('ILBOLGE', 'İl Bölgesi').setMFSinif(MQIlBolge).addColDef(new GridKolon({ belirtec: 'ilbolge', text: 'İl Bölgesi', filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('IL', 'İl').setMFSinif(MQCariIl).addColDef(new GridKolon({ belirtec: 'il', text: 'İl', filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('CINSIYET', 'Cinsiyet').addColDef(new GridKolon({ belirtec: 'cinsiyet', text: 'Cinsiyet', filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('AKTIFYAS', 'Aktif Yaş').addColDef(new GridKolon({ belirtec: 'aktifyas', text: 'Aktif Yaş', genislikCh: 25, filterType: 'checkedlist' }).tipNumerik()))
-			.addGrup(new TabloYapiItem().setKA('YASGRUP', 'Yaş Grubu').kodsuz().setMFSinif(MQYasGrup).addColDef(new GridKolon({ belirtec: 'yasgrup', text: 'Yaş Grubu', genislikCh: 25, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('DEHBVARMI', 'DEHB?').addColDef(new GridKolon({ belirtec: 'dehbvarmi', text: 'DEHB?', genislikCh: 10 }).tipBool()));
+			.addGrupBasit('DOKTOR', 'Doktor', 'doktor', MQDoktor, null, ({ item }) => item.kodsuz(), 'doktoradi')
+			.addGrupBasit('HASTA', 'Hasta', 'hasta', MQHasta, null, ({ item }) => item.kodsuz(), 'hastaadi')
+			.addGrupBasit('ILBOLGE', 'İl Bölgesi', 'ilbolge', MQIlBolge)
+			.addGrupBasit('IL', 'İl', 'il', MQCariIl)
+			.addGrupBasit('CINSIYET', 'Cinsiyet', 'cinsiyet')
+			.addGrupBasit('AKTIFYAS', 'Aktif Yaş', 'aktifyas', null, null, ({ colDef }) => colDef.tipNumerik())
+			.addGrupBasit('YASGRUP', 'Yaş Grubu', 'yasgrup', MQYasGrup, null, ({ item }) => item.kodsuz(), 'yasgrupadi')
+			.addGrupBasit('DEHBVARMI', 'DEHB?', 'dehbvarmi', null, null, ({ colDef }) => colDef.tipBool(), false)
 		result
-			.addToplam(new TabloYapiItem().setKA('DOGRUSAYI', 'Doğru Sayı').hidden().addColDef(new GridKolon({ belirtec: 'dogrusayi' }).tipDecimal(1)))
-			.addToplam(new TabloYapiItem().setKA('ORTDOGRUSAYI', 'Ort. Doğru Sayı').setFormul(['DOGRUSAYI'], ({ rec }) => roundToFra1(rec.dogrusayi / rec.kayitsayisi))
-				.addColDef(new GridKolon({ belirtec: 'ortdogrusayi', text: 'Ort. Doğru Sayı', genislikCh: 10, filterType: 'numberinput' }).tipDecimal(1).dipAvg()))
-			.addToplam(new TabloYapiItem().setKA('YANLISSAYI', 'Yanlış Sayı').hidden().addColDef(new GridKolon({ belirtec: 'yanlissayi' }).tipDecimal(1)))
-			.addToplam(new TabloYapiItem().setKA('ORTYANLISSAYI', 'Ort. Yanlış Sayı').setFormul(['YANLISSAYI'], ({ rec }) => roundToFra1(rec.yanlissayi / rec.kayitsayisi))
-				.addColDef(new GridKolon({ belirtec: 'ortyanlissayi', text: 'Ort. Yanlış Sayı', genislikCh: 10, filterType: 'numberinput' }).tipDecimal(1).dipAvg()))
-			.addToplam(new TabloYapiItem().setKA('SECILMEYENDOGRUSAYI', 'Seçilmeyen Doğru').hidden().addColDef(new GridKolon({ belirtec: 'secilmeyendogrusayi' }).tipDecimal(1)))
-			.addToplam(new TabloYapiItem().setKA('ORTSECILMEYENDOGRUSAYI', 'Ort. Seçilmeyen Doğru').setFormul(['SECILMEYENDOGRUSAYI'], ({ rec }) => roundToFra1(rec.secilmeyendogrusayi / rec.kayitsayisi))
-				.addColDef(new GridKolon({ belirtec: 'ortsecilmeyendogrusayi', text: 'Ort. Seçilmeyen Doğru', genislikCh: 15, filterType: 'numberinput'}).tipDecimal().dipAvg()))
-			.addToplam(new TabloYapiItem().setKA('DOGRUSECIMSUREMS', 'Doğru Seçim Süre (ms)').hidden().addColDef(new GridKolon({ belirtec: 'dogrusecimsurems' }).tipDecimal()))
-			.addToplam(new TabloYapiItem().setKA('ORTDOGRUSECIMSUREMS', 'Ort. Doğru Seçim Süre (ms)').setFormul(['DOGRUSECIMSUREMS'], ({ rec }) => roundToFra1(rec.dogrusecimsurems / rec.kayitsayisi))
-				.addColDef(new GridKolon({ belirtec: 'ortdogrusecimsurems', text: 'Ort. Doğru Seçim (ms)', genislikCh: 15, filterType: 'numberinput'}).tipDecimal().dipAvg()))
-			.addToplam(new TabloYapiItem().setKA('YANLISSECIMSUREMS', 'Yanlış Seçim Süre (ms)').hidden().addColDef(new GridKolon({ belirtec: 'yanlissecimsurems' }).tipDecimal()))
-			.addToplam(new TabloYapiItem().setKA('ORTYANLISSECIMSUREMS', 'Ort. Yanlış Seçim Süre (ms)').setFormul(['YANLISSECIMSUREMS'], ({ rec }) => roundToFra1(rec.yanlissecimsurems / rec.kayitsayisi))
-				.addColDef(new GridKolon({ belirtec: 'ortyanlissecimsurems', text: 'Ort. Yanlış Seçim (ms)', genislikCh: 15, filterType: 'numberinput'}).tipDecimal().dipAvg()))
-			/* .addToplam(new TabloYapiItem().setKA('YANITSIZSAYI', 'Yanıtsız Sayı').addColDef(new GridKolon({ belirtec: 'yanitsizsayi', text: 'Yanıtsız Sayı', genislikCh: 10, filterType: 'numberinput' }).tipNumerik().dipAvg())); */
-		for (const prefix of ['HI', 'DE']) {
-			const prefixLower = prefix.toLowerCase(); result
-				.addToplam(new TabloYapiItem().setKA(`${prefix}SKOR`).hidden())
-				.addToplam(new TabloYapiItem().setKA(`${prefix}BELIRTISAYI`).hidden())
-				.addToplam(new TabloYapiItem().setKA(`ORT${prefix}SKOR`, `Ort. ${prefix} Skor`).setFormul([`${prefix}SKOR`], ({ rec }) => rec[`${prefixLower}skor`] / rec.kayitsayisi)
-					.addColDef(new GridKolon({ belirtec: `ort${prefixLower}skor`, text: `Ort. ${prefix} Skor`, genislikCh: 13, filterType: 'numberinput' }).tipDecimal(1).dipAvg()))
-				.addToplam(new TabloYapiItem().setKA(`${prefix}BELIRTISAYI`, `Ort. ${prefix} Belirti Sayı`).setFormul([`${prefix}BELIRTISAYI`], ({ rec }) => rec[`${prefixLower}belirtisayi`] / rec.kayitsayisi)
-					.addColDef(new GridKolon({ belirtec: `ort${prefixLower}belirtisayi`, text: `Ort. ${prefix} Belirti`, genislikCh: 13, filterType: 'numberinput' }).tipDecimal(1).dipAvg()))
+			.addToplamBasit('DEHBVARSAYI', 'DEHB Var Sayı', 'dehbvarsayi')
+			.addToplamBasit('DEHBYOKSAYI', 'DEHB Yok Sayı', 'dehbyoksayi')
+			.addToplamBasit('DOGRUSAYI', 'Doğru Sayı', 'dogrusayi', null, ({ colDef, item }) => { colDef.tipDecimal(1); item.hidden() })
+			.addToplamBasit('ORTDOGRUSAYI', 'Ort. Doğru Sayı', 'ortdogrusayi', null, ({ colDef, item }) => {
+				colDef.tipDecimal(1).dipAvg();
+				item.setFormul(['DOGRUSAYI'], ({ rec }) => roundToFra1(rec.dogrusayi / rec.kayitsayisi))
+			 })
+			.addToplamBasit('YANLISSAYI', 'Yanlış Sayı', 'yanlissayi', null, ({ colDef, item }) => { colDef.tipDecimal(1); item.hidden() })
+			.addToplamBasit('ORTYANLISSAYI', 'Ort. Doğru Sayı', 'ortyanlissayi', null, ({ colDef, item }) => {
+				colDef.tipNumerik().dipAvg();
+				item.setFormul(['YANLISSAYI'], ({ rec }) => roundToFra1(rec.yanlissayi / rec.kayitsayisi))
+			})
+			.addToplamBasit('SECILMEYENDOGRUSAYI', 'Seçilmeyen Doğru Sayı', 'secilmeyendogrusayi', null, ({ colDef, item }) => { colDef.tipDecimal(1); item.hidden() })
+			.addToplamBasit('ORTSECILMEYENDOGRUSAYI', 'Ort. Seçilmeyen Doğru Sayı', 'ortsecilmeyendogrusayi', null, ({ colDef, item }) => {
+				colDef.tipNumerik().dipAvg();
+				item.setFormul(['SECILMEYENDOGRUSAYI'], ({ rec }) => roundToFra1(rec.secilmeyendogrusayi / rec.kayitsayisi))
+			})
+			.addToplamBasit('DOGRUSECIMSUREMS', 'Doğru Seçim Süre (ms)', 'dogrusecimsurems', null, ({ colDef, item }) => { colDef.tipDecimal(1); item.hidden() })
+			.addToplamBasit('ORTDOGRUSECIMSUREMS', 'Ort. Doğru Seçim Süre (ms)', 'ortdogrusecimsurems', null, ({ colDef, item }) => {
+				colDef.tipDecimal().dipAvg();
+				item.setFormul(['DOGRUSECIMSUREMS'], ({ rec }) => roundToFra1(rec.dogrusecimsurems / rec.kayitsayisi))
+			})
+			.addToplamBasit('YANLISSECIMSUREMS', 'Yanlış Seçim Süre (ms)', 'yanlissecimsurems', null, ({ colDef, item }) => { colDef.tipDecimal(1); item.hidden() })
+			.addToplamBasit('ORTYANLISSECIMSUREMS', 'Ort. Yanlış Seçim Süre (ms)', 'ortyanlissecimsurems', null, ({ colDef, item }) => {
+				colDef.tipDecimal().dipAvg();
+				item.setFormul(['YANLISSECIMSUREMS'], ({ rec }) => roundToFra1(rec.dogrusecimsurems / rec.kayitsayisi))
+			})
+		for (let prefix of ['HI', 'DE']) {
+			let prefixLower = prefix.toLowerCase();
+			result
+				.addToplamBasit(`${prefix}SKOR`, null, `${prefixLower}skor`, null, ({ item }) => item.hidden())
+				.addToplamBasit(`${prefix}BELIRTISAYI`, null, `${prefixLower}belirtisayi`, null, ({ item }) => item.hidden())
+				.addToplamBasit(prefix, null, prefixLower, null, ({ item }) => item.hidden())
+				.addToplamBasit(`ORT$${prefix}SKOR`, `Ort. ${prefix} Skor`, `ort${prefixLower}skor`, null, ({ colDef, item }) => {
+					colDef.tipDecimal(1).dipAvg();
+					item.setFormul([`${prefix}SKOR`], ({ rec }) => roundToFra1(rec[`${prefixLower}skor`] / rec.kayitsayisi))
+				})
+				.addToplamBasit(`ORT$${prefix}BELIRTISAYI`, `Ort. ${prefix} Belirti`, `ort${prefixLower}belirtisayi`, null, ({ colDef, item }) => {
+					colDef.tipDecimal(1).dipAvg();
+					item.setFormul([`${prefix}BELIRTISAYI`], ({ rec }) => roundToFra1(rec[`${prefixLower}belirtisayi`] / rec.kayitsayisi))
+				})
 		}
 	}
 	loadServerData_queryDuzenle(e) {
@@ -90,6 +107,8 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 				case 'AKTIFYAS': sahalar.add(`${alias}.aktifyas`); break
 				case 'YASGRUP': sahalar.add('ygrp.id yasgrupkod', 'ygrp.aciklama yasgrupadi'); break
 				case 'DEHBVARMI': sahalar.add(`(case when fis.bdehbvarmi = 0 then '' else '${MQSQLOrtak.resimClause_ok({ ekCSS: `filter: hue-rotate(130deg)` })}' end) dehbvarmi`); break
+				case 'DEHBVARSAYI': sahalar.add(`SUM(case when fis.bdehbvarmi = 0 then 0 else 1 end) dehbvarsayi`); break
+				case 'DEHBYOKSAYI': sahalar.add(`SUM(case when fis.bdehbvarmi = 0 then 1 else 0 end) dehbyoksayi`); break
 				case 'DOGRUSAYI': sahalar.add('SUM(fis.dogrusayi) dogrusayi'); break; case 'YANLISSAYI': sahalar.add('SUM(fis.yanlissayi) yanlissayi'); break
 				case 'SECILMEYENDOGRUSAYI': sahalar.add('SUM(fis.secilmeyendogrusayi) secilmeyendogrusayi'); break
 				case 'ORTDOGRUSECIMSUREMS': sahalar.add('SUM(fis.dogrusecimsurems) dogrusecimsurems'); break
