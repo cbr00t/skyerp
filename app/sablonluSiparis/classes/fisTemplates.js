@@ -15,7 +15,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		let {root: rfb, baslikForm: fbd_baslikForm} = builders, {builders: baslikFormlar} = fbd_baslikForm;
 		let {konsinyemi} = fisSinif, {grid, gridWidget, layout} = gridPart;
 		rfb.addStyle(e =>
-			`$elementCSS .islemTuslari { position: absolute !important; top: 3px !important }
+			`/*$elementCSS .islemTuslari { position: absolute !important; top: 3px !important }*/
 			 $elementCSS .grid [role = row] > .sonStokBilgi > * { font-size: 90% !important; margin-top: 3px !important; line-height: 23px !important }
 		`);
 		/* rfb.vazgecIstendi = e => false; */

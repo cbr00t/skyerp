@@ -234,8 +234,8 @@ class FisGirisPart extends GridliGirisWindowPart {
 		if (result != true) {
 			if (result.errorText) { hConfirm(`<div class="red">${result.errorText}</div>`, ' ') }
 			if (result.returnAction) {
-				const {grid, gridWidget} = this;
-				const _e = { sender: this, grid, gridWidget, focusTo(e) { gridWidget.clearselection(); gridWidget.selectcell(e.rowIndex, e.belirtec || e.dataField) } };
+				let {grid, gridWidget} = this;
+				let _e = { sender: this, grid, gridWidget, focusTo(e) { gridWidget.clearselection(); gridWidget.selectcell(e.rowIndex, e.belirtec || e.dataField) } };
 				getFuncValue.call(this, result.returnAction, _e)
 			}
 			return false
@@ -270,16 +270,17 @@ class FisGirisPart extends GridliGirisWindowPart {
 		}
 		let result = await fis.uiKaydetOncesiIslemler(_e) ?? true; for (const key of ['islem', 'fis', 'eskiFis']) {
 			const value = _e[key]; if (value !== undefined) { this[key] = e[key] = value } }
-		const {kaydetIslemi} = this; if (kaydetIslemi) {
+		let {kaydetIslemi} = this; if (kaydetIslemi) {
 			_e.result = result; result = await getFuncValue.call(this, kaydetIslemi, _e) ?? true;
-			for (const key of ['islem', 'fis', 'eskiFis']) { const value = _e[key]; if (value !== undefined) { this[key] = e[key] = value } }
+			for (const key of ['islem', 'fis', 'eskiFis']) { let value = _e[key]; if (value !== undefined) { this[key] = e[key] = value } }
 		}
 		fis = this.fis; return result
 	}
 	kaydetSonrasi(e) {
-		e = e || {}; const {fis} = this, {numarator} = fis;
+		e = e || {}; let {fis} = this, {numarator} = fis;
 		if (numarator) {
-			const locals = app.getLocals('sonDegerler'), numKod2Seri = locals.numKod2Seri = locals.numKod2Seri || {}; numKod2Seri[numarator.kod] = fis.seri;
+			let locals = app.getLocals('sonDegerler'), numKod2Seri = locals.numKod2Seri = locals.numKod2Seri || {};
+			numKod2Seri[numarator.kod] = fis.seri;
 			app.setLocals('sonDegerler', locals); numarator.kaydet();
 		}
 		return true

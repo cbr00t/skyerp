@@ -3,6 +3,7 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 	static get dRapormu() { return true } get dRapormu() { return this.class.dRapormu } static get dAltRapormu() { return false } get dAltRapormu() { return this.class.dAltRapormu }
 	static get anaTip() { return null } static get araSeviyemi() { return false } static get sinifAdi() { return this.aciklama }
 	static get kategoriKod() { return null } static get kod() { return null } static get aciklama() { return null } static get detaylimi() { return false }
+	static get mainClass() { return window[`${this.name}_Main`] }
 	static get tumKolonlarGosterilirmi() { return false } static get noOverflowFlag() { return false }
 	static get uygunmu() { return true } get uygunmu() { return this.class.uygunmu }
 	static get raporBilgiler() {
@@ -25,6 +26,7 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 		let inst = new this(e); const result = await inst.goster(); if (result == null) { return null }
 		const {part} = result, {builder} = part; return { inst, part, builder }
 	}
+	static autoGenerateSubClasses(e) { }
 	goster(e) { return null } tazele(e) { }
 	onInit(e) { } onBuildEk(e) { } onAfterRun(e) { }
 }

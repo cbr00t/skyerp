@@ -1,6 +1,10 @@
 class TabloYapi extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	get grupVeToplam() { let result = this._grupVeToplam; if (result == null) { const {grup, toplam} = this; result = this._grupVeToplam = { ...grup, ...toplam } } return result }
+	get grupVeToplam() {
+		let {_grupVeToplam: result} = this;
+		if (result == null) { let {grup, toplam} = this; result = this._grupVeToplam = { ...grup, ...toplam } }
+		return result
+	}
 	constructor(e) {
 		e = e || {}; super(e);
 		$.extend(this, { grup: e.grup ?? {}, toplam: e.toplam ?? {}, kaPrefixes: e.kaPrefixes ?? [], sortAttr: e.sortAttr ?? null })
@@ -59,6 +63,11 @@ class TabloYapi extends CObject {
 		}
 		return this
 	}
+	getKod2ColDef(e) {
+		let kod = typeof e == 'object' ? e.kod ?? e.key : e;
+		return this.grupVeToplam[kod]?.colDefs?.[0]
+	}
+	getKod2Alias(e) { return this.getKod2ColDef(e)?.belirtec }
 	setGruplar(value) { this.grup = value ?? {}; return this } setToplamlar(value) { this.toplam = value ?? {}; return this }
 	setSortAttr(value) { this.sortAttr = value; return this } setKAPrefixes(value) { this.kaPrefixes = value; return this }
 }

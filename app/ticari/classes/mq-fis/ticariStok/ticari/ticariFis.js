@@ -2,8 +2,8 @@ class TicariFis extends TSOrtakFis {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return (this.alimmi ? 'Alım ' : this.satismi ? 'Satış ' : '') + (this.iademi ? 'İADE ' : '') }
 	static get ticarimi() { return true } static get detaySinif() { return super.detaySinif }
-	static detaySiniflarDuzenle(e) {
-		super.detaySiniflarDuzenle(e); const {liste} = e; liste.push(TSHizmetDetay);
+	static detaySiniflarDuzenle({ liste }) {
+		super.detaySiniflarDuzenle(...arguments); liste.push(TSHizmetDetay);
 		if (app.params.ticariGenel?.kullanim?.demirbas) { liste.push(TSDemirbasDetay) }
 	}
 	static get gridKontrolcuSinif() { return TicariGridKontrolcu } static get noYilKullanilirmi() { return true }
@@ -72,11 +72,11 @@ class TicariFis extends TSOrtakFis {
 			wh.basiSonu(sec.yerKod, `${aliasVeNokta}yerkod`)
 		})
 	}
-	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e); const {tsnForm, baslikForm} = e.builders;
-		baslikForm.builders[1].addModelKullan('mustKod').autoBind().setMFSinif(MQCari).etiketGosterim_normal()
-			.ozelQueryDuzenleBlock(e => { const {builder, alias, stm} = e; for (const sent of stm.getSentListe()) { sent.sahalar.add(`${alias}.efaturakullanirmi`) } })
-			.degisince(e => e.builder.altInst.cariDegisti(e)).addStyle(e => `$elementCSS { min-width: 70% !important }`)
+	static rootFormBuilderDuzenle({ builders: allBuilders }) {
+		super.rootFormBuilderDuzenle(...arguments); let {builders} = allBuilders.baslikForm;
+		builders[0].addModelKullan('mustKod').autoBind().setMFSinif(MQCari).etiketGosterim_normal()
+			.ozelQueryDuzenleBlock(({ alias, stm }) => { for (let {sahalar} of stm) { sahalar.add(`${alias}.efaturakullanirmi`) } })
+			.degisince(({ builder: fbd }) => fbd.altInst.cariDegisti(...arguments)).addStyle(e => `$elementCSS { min-width: 70% !important }`)
 	}
 	static orjBaslikListesiDuzenle_ara(e) {
 		super.orjBaslikListesiDuzenle_ara(e); const {liste} = e;
@@ -208,8 +208,9 @@ class TicariFis extends TSOrtakFis {
 		e.fis = this; det?.ticariSetValues?.(e)
 	}
 	getDipEBilgi_hvListe(e) {
-		const {table} = this.class, {sayac, dipIslemci} = this, {belirtec2DipSatir} = dipIslemci;
-		const psAttr = (table == 'sipfis' ? 'sipsayac' : 'pifsayac'), hvListe = [];
+		let {table} = this.class, {sayac, dipIslemci} = this, {belirtec2DipSatir} = dipIslemci ?? {};
+		if (!belirtec2DipSatir) { return [] }
+		let psAttr = (table == 'sipfis' ? 'sipsayac' : 'pifsayac'), hvListe = [];
 		let seq = 0, vergiDahilIcinEklenecek = new TLVeDVBedel(), odenecekIcinDusulecek = new TLVeDVBedel(), dipSatir_sonuc;
 		for (const dipSatir of Object.values(belirtec2DipSatir)) {
 			if (dipSatir.sonucmu) { dipSatir_sonuc = dipSatir; continue }
@@ -359,12 +360,12 @@ class SevkiyatFis extends TicariFis {
 	}
 	static rootFormBuilderDuzenle(e) {
 		e = e || {}; super.rootFormBuilderDuzenle(e); const {baslikForm} = e.builders;
-		baslikForm.builders[0].addCheckBox('yerOrtakmi', 'Yer Ortakdır').degisince(e => {
+		baslikForm.builders[1].addCheckBox('yerOrtakmi', 'Yer Ortakdır').degisince(e => {
 			const {builder} = e, {altInst, rootPart, parentBuilder} = builder, {kontrolcu} = rootPart; parentBuilder.id2Builder.yerKod.updateVisible();
 			e.sender = e.gridPart = rootPart; $.extend(e, { builder });
 			if (altInst.yerOrtakmiDegisti) { altInst.yerOrtakmiDegisti(e) } if (kontrolcu.yerOrtakmiDegisti) { kontrolcu.yerOrtakmiDegisti(e) }
 		});
-		baslikForm.builders[0].addModelKullan('yerKod').setMFSinif(MQStokYer).comboBox().autoBind().etiketGosterim_normal().addStyle_wh(400)
+		baslikForm.builders[1].addModelKullan('yerKod').setMFSinif(MQStokYer).comboBox().autoBind().etiketGosterim_normal().addStyle_wh(400)
 			.setVisibleKosulu(e => e.builder.altInst.yerOrtakmi ? true : 'basic-hidden')
 	}
 	static orjBaslikListesiDuzenle_ara(e) {

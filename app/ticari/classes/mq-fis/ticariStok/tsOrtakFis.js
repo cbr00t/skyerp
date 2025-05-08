@@ -34,49 +34,60 @@ class TSOrtakFis extends MQTicariGenelFis {
 			wh.birKismi(sec.efAyrimTipi, `${aliasVeNokta}efayrimtipi`)
 		})
 	}
-	static secimlerDuzenleSon(e) {
-		super.secimlerDuzenleSon(e); const sec = e.secimler;
+	static secimlerDuzenleSon({ secimler: sec }) {
+		super.secimlerDuzenleSon(...arguments);
 		sec.secimTopluEkle({ baslikAciklama: new SecimOzellik({ etiket: 'Belge Açıklama' }) });
-		sec.whereBlockEkle(e => { const {aliasVeNokta} = this, wh = e.where, sec = e.secimler; wh.ozellik(sec.baslikAciklama, `${aliasVeNokta}cariaciklama`) })
+		sec.whereBlockEkle(({ secimler: sec, where: wh }) => {
+			let {aliasVeNokta} = this;
+			wh.ozellik(sec.baslikAciklama, `${aliasVeNokta}cariaciklama`)
+		})
 	}
 	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e); const {tsnForm, baslikForm} = e.builders;
+		super.rootFormBuilderDuzenle(e); let {tsnForm, baslikForm} = e.builders;
 		tsnForm.addFormWithParent('efatGosterim')
-			.onBuildEk(e => {
-				const {builder} = e, {layout, altInst, rootPart} = builder, efAyrimTipi = altInst.efAyrimTipi?.char ?? altInst.efAyrimTipi;
-				const cls = EIslemOrtak.getClass(efAyrimTipi); layout.html(cls ? (cls.sinifAdi || '') : '')
-				rootPart.layout.attr('data-efAyrimTipi', efAyrimTipi || ''); rootPart.builder_efatGosterim = builder
+			.onBuildEk(({ builder: fbd }) => {
+				let {layout, altInst, rootPart} = fbd, efAyrimTipi = altInst.efAyrimTipi?.char ?? altInst.efAyrimTipi;
+				let cls = EIslemOrtak.getClass(efAyrimTipi); layout.html(cls ? (cls.sinifAdi || '') : '')
+				rootPart.layout.attr('data-efAyrimTipi', efAyrimTipi || ''); rootPart.builder_efatGosterim = fbd
 			})
 			.addStyle(e => `$elementCSS { min-width: auto !important; max-width: 100px !important; width: max-content !important; height: max-content !important; margin-top: 28px; padding: 8px 15px !important; border-radius: 8px }`)
 		tsnForm.addModelKullan('islKod').setMFSinif(MQStokIslem).dropDown().etiketGosterim_normal().addStyle_wh(200)
-				.ozelQueryDuzenleBlock(e => { const {builder, alias, stm} = e, {islTipKod} = builder.altInst; for (const sent of stm.getSentListe()) { sent.where.degerAta(islTipKod, `${alias}.isltip`) } })
-				.onBuildEk(e => { const {builder} = e, {altInst} = builder; builder.oldValue = builder.value = altInst.islKod })
-				.degisince(async e => {
-					const {builder} = e, {altInst, rootPart} = builder, {kontrolcu} = rootPart, islKod = e.value;
-					const islKod2OzelIsaret = (await MQStokIslem.getKod2OzelIsaret()) || {}, ozelIsaret = altInst.ozelIsaret = islKod2OzelIsaret[islKod] || '';
+				.ozelQueryDuzenleBlock(({ builder: fbd, alias, stm }) => {
+					let {islTipKod} = fbd.altInst;
+					for (let {where: wh} of stm) { wh.degerAta(islTipKod, `${alias}.isltip`) }
+				})
+				.onBuildEk(({ builder: fbd }) => { let {altInst} = fbd; fbd.oldValue = fbd.value = altInst.islKod })
+				.degisince(async ({ builder: fbd, value }) => {
+					let {altInst, rootPart} = fbd, {kontrolcu} = rootPart;
+					let islKod2OzelIsaret = (await MQStokIslem.getKod2OzelIsaret()) || {};
+					let ozelIsaret = altInst.ozelIsaret = islKod2OzelIsaret[islKod] || '';
 					if (kontrolcu?.islKodIsaretDegisti) {
-						const {oldValue} = builder, eskiOzelIsaret = islKod2OzelIsaret[oldValue] || '';
+						let {oldValue} = fbd, eskiOzelIsaret = islKod2OzelIsaret[oldValue] || '';
 						if ((eskiOzelIsaret == '*') != (ozelIsaret == '*')) {
-							e.sender = e.gridPart = rootPart; $.extend(e, { builder, oldValue, ozelIsaret, eskiOzelIsaret });
-							inst.ozelIsaretDegisti(e); kontrolcu.islKodIsaretDegisti(e)
+							e.sender = e.gridPart = rootPart; $.extend(e, { builder: fbd, oldValue, ozelIsaret, eskiOzelIsaret });
+							await inst.ozelIsaretDegisti(...arguments); await kontrolcu.islKodIsaretDegisti(...arguments)
 						}
 					}
-					builder.oldValue = islKod
+					fbd.oldValue = islKod
 				});
 		if (app.params.ticariGenel.kullanim.takipNo) {
-			baslikForm.builders[0].addCheckBox('takipOrtakmi', 'Takip Ortakdır').degisince(e => {
-				const {builder} = e, {altInst, rootPart, parentBuilder} = builder, {kontrolcu} = rootPart; parentBuilder.id2Builder.takipNo.updateVisible();
+			baslikForm.builders[1].addCheckBox('takipOrtakmi', 'Takip Ortakdır').degisince(({ builder: fbd }) => {
+				let {altInst, rootPart, parentBuilder} = fbd, {kontrolcu} = rootPart;
+				parentBuilder.id2Builder.takipNo.updateVisible();
 				e.sender = e.gridPart = rootPart; $.extend(e, { builder });
-				if (altInst.takipOrtakmiDegisti) { altInst.takipOrtakmiDegisti(e) } if (kontrolcu.takipOrtakmiDegisti) { kontrolcu.takipOrtakmiDegisti(e) }
+				if (altInst.takipOrtakmiDegisti) { altInst.takipOrtakmiDegisti(e) }
+				if (kontrolcu.takipOrtakmiDegisti) { kontrolcu.takipOrtakmiDegisti(e) }
 			});
-			baslikForm.builders[0].addModelKullan('takipNo').setMFSinif(MQTakipNo).comboBox().etiketGosterim_normal().addStyle_wh(400)
-				.setVisibleKosulu(e => e.builder.altInst.takipOrtakmi ? true : 'basic-hidden')
+			baslikForm.builders[1].addModelKullan('takipNo').setMFSinif(MQTakipNo).comboBox()
+				.etiketGosterim_normal().addStyle_wh(400)
+				.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.takipOrtakmi ? true : 'basic-hidden')
 		}
-		baslikForm.builders[2].addTextInput('baslikAciklama', 'Fiş Açıklama').setPlaceHolder('Fiş Açıklama').etiketGosterim_normal()
-				.addStyle(e => `$elementCSS  { min-width: 150px !important; max-width: 400px !important }`)
+		baslikForm.builders[2].addTextInput('baslikAciklama', 'Fiş Açıklama')
+			.setPlaceHolder('Fiş Açıklama').etiketGosterim_normal()
+			.addStyle(e => `$elementCSS  { min-width: 150px !important; max-width: 400px !important }`)
 	}
 	static ekCSSDuzenle(e) { super.ekCSSDuzenle(e) }
-	static standartGorunumListesiDuzenle_son(e) { super.standartGorunumListesiDuzenle_son(e); const {liste} = e; liste.push('cariaciklama') }
+	static standartGorunumListesiDuzenle_son(e) { super.standartGorunumListesiDuzenle_son(e); let {liste} = e; liste.push('cariaciklama') }
 	static orjBaslikListesiDuzenle_ara(e) {
 		super.orjBaslikListesiDuzenle_ara(e); const {liste} = e, {kullanim} = app.params.ticariGenel;
 		liste.push(...[
@@ -85,9 +96,13 @@ class TSOrtakFis extends MQTicariGenelFis {
 			(kullanim.takipNo ? new GridKolon({ belirtec: 'takipadi', text: 'Takip Adı', genislikCh: 20, sql: 'tak.aciklama' }) : null),
 			new GridKolon({
 				belirtec: 'efayrimtipi', text: 'e-İşl.', genislikCh: 6,
-				cellClassName: (sender, rowIndex, belirtec, value, rec) => { value = value || 'A'; const result = [belirtec]; if (value) { result.push(`eIslem-${value}`) } return result },
+				cellClassName: (sender, rowIndex, belirtec, value, rec) => {
+					value = value || 'A';
+					let result = [belirtec]; if (value) { result.push(`eIslem-${value}`) }
+					return result
+				},
 				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-					const tip = (value || '').trim() || 'A', cls = EIslemOrtak.getClass({ tip });
+					let tip = (value || '').trim() || 'A', cls = EIslemOrtak.getClass({ tip });
 					html = changeTagContent(html, (cls ? cls.kisaAdi : null) || ''); return html
 				}
 			})

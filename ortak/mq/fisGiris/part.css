@@ -1,6 +1,6 @@
 
 :root {
-	--islemTuslari-height: 55px; --islemTuslari-box-shadow-height: 10px;
+	--islemTuslari-height: 55px; --islemTuslari-box-shadow-height: 3px;
 	--islemTuslari-bottom: calc(var( --islemTuslari-height) + var(--islemTuslari-box-shadow-height)); --grid-islemTuslari-width: 100px }
 
 .fisGiris.part, .fisGiris.part .split, .fisGiris.part .split > div, .fisGiris.part .header .sub-parent { overflow: hidden }
@@ -9,7 +9,7 @@
 .fisGiris.part .headerDipOrtak > div { float: left; width: var(--full); height: 99%; background-color: #f8f9fa; margin: 0 !important; padding: 0 !important }
 .fisGiris.part .header { border: 1.3px outset #ccc }
 .fisGiris.part .dipForm .dipGrid { font-size: 115% }
-.fisGiris.part .islemTuslari { width: var(--full); height: var(--islemTuslari-height); position: relative; top: 0; right: 5px; pointer-events: none }
+.fisGiris.part .islemTuslari { width: var(--full); height: var(--islemTuslari-height); position: absolute; top: 0; right: 5px; pointer-events: none }
 .fisGiris.part .islemTuslari button { pointer-events: auto }
 .fisGiris.part .baslikFormlar { position: relative; top: 5px }
 .fisGiris.part .header .sub-parent { margin: 0; padding: 0 }
@@ -27,6 +27,6 @@
 .fisGiris.part .gridVeIslemTuslari.split .gridIslemTuslari button { font-weight: bold; font-size: 75%; width: calc(var(--full) - 5px) !important; min-height: 45px; max-height: 70px }
 .fisGiris.part .gridVeIslemTuslari.split .gridIslemTuslari > button.jqx-fillstate-normal { color: #aaa }
 .fisGiris.part .gridVeIslemTuslari.split .gridIslemTuslari > button:not(:first-child) { margin: 3px 0 }
-.fisGiris.part .gridVeIslemTuslari.split .grid-parent { width: calc(var(--full) - 111px) !important; height: calc(var(--full) - 18px) !important }
+.fisGiris.part .gridVeIslemTuslari.split .grid-parent { width: calc(var(--full) - 111px) !important; height: calc(var(--full) - 10px) !important }
 .fisGiris.part .gridVeIslemTuslari.split .jqx-splitter-splitbar-collapsed + .grid-parent { width: calc(var(--full) - 10px) !important }
 .fisGiris.part .gridVeIslemTuslari.split .grid-parent .grid { font-size: 90% }

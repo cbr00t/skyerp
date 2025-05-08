@@ -383,7 +383,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	async yeniIstendi(e) {
 		const mfSinif = this.getMFSinif(e); const tanimUISinif = this.getTanimUISinif($.extend({}, e, { mfSinif })); if (!tanimUISinif) { return false }
 		const {tanimOncesiEkIslemler, gridWidget} = this, {args} = this, {ozelTanimIslemi} = mfSinif; let inst;
-		const rowIndex = coalesce(e.rowIndex, gridWidget.getselectedrowindex()), rec = e.rec ?? gridWidget.getrowdata(rowIndex);
+		const rowIndex = e?.rowIndex ?? gridWidget.getselectedrowindex(), rec = e?.rec ?? gridWidget.getrowdata(rowIndex);
 		const _e = { sender: this, listePart: this, islem: 'yeni', mfSinif, tanimUISinif, rec, rowIndex, args };
 		if (ozelTanimIslemi) return await getFuncValue.call(this, ozelTanimIslemi, _e)
 		try {
@@ -391,7 +391,8 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			if (yeniInstOlusturucu) { inst = await getFuncValue.call(this, yeniInstOlusturucu, _e) }
 			if (inst === undefined && mfSinif.yeniInstOlustur) { inst = await mfSinif.yeniInstOlustur(_e) }
 			if (inst === undefined) inst = new mfSinif(_e); if (inst == null) { return false }
-			return inst.tanimla({ parentPart: this, islem: _e.islem, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince: e => this.tazele() })
+			let {kaydedince: _kaydedince} = e ?? {}, kaydedince = e => { this.tazele(e); _kaydedince?.call(this, e) };
+			return inst.tanimla({ parentPart: this, islem: _e.islem, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince })
 		}
 		catch (ex) { hConfirm(getErrorText(ex), 'Yeni'); throw ex }
 	}
@@ -409,7 +410,8 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			if (eskiInst == null) return false; eskiInst.keySetValues({ rec });
 			if (!await eskiInst.yukle($.extend({}, _e, { rec: null, _rec: rec }))) { const mesaj = 'Seçilen satır için bilgi yüklenemedi'; throw { isError: true, rc: 'instBelirle', errorText: mesaj } }
 			inst = eskiInst.deepCopy();
-			return inst.tanimla({ parentPart: this, islem: _e.islem, eskiInst, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince: e => this.tazele() })
+			let {kaydedince: _kaydedince} = e ?? {}, kaydedince = e => { this.tazele(e); _kaydedince?.call(this, e) };
+			return inst.tanimla({ parentPart: this, islem: _e.islem, eskiInst, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince })
 		}
 		catch (ex) { hConfirm(getErrorText(ex), 'Değiştir'); throw ex }
 	}
@@ -428,7 +430,8 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			if (eskiInst == null) return false; eskiInst.keySetValues({ rec });
 			if (!await eskiInst.yukle($.extend({}, _e, { rec: null, _rec: rec }))) { const mesaj = 'Seçilen satır için bilgi yüklenemedi'; throw { isError: true, rc: 'instBelirle', errorText: mesaj } }
 			inst = await eskiInst.kopyaIcinDuzenle(_e) ?? eskiInst.deepCopy();
-			return inst.tanimla({ parentPart: this, islem: _e.islem, eskiInst, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince: e => this.tazele() })
+			let {kaydedince: _kaydedince} = e ?? {}, kaydedince = e => { this.tazele(e); _kaydedince?.call(this, e) };
+			return inst.tanimla({ parentPart: this, islem: _e.islem, eskiInst, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince })
 		}
 		catch (ex) { hConfirm(getErrorText(ex), 'Kopyala'); throw ex }
 	}

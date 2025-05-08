@@ -3,7 +3,10 @@
 .grid.part > .grid-parent { width: var(--full); height: calc(var(--full) - var(--header-height)) }
 .jqx-grid { cursor: default }
 .jqx-grid .detay-grid-parent { width: var(--full); height: calc(var(--full) - 13px) }
-.jqx-grid .detay-grid-parent .jqx-grid { font-size: 95%; width: var(--full); max-width: 98% !important; max-height: 98% !important; margin: 5px /*; animation: 1000ms 1 grid-open */ }
+.jqx-grid .detay-grid-parent .jqx-grid {
+	font-size: 95%; width: var(--full); max-width: calc(var(--full) - 26px) !important; max-height: calc(var(--full) - 13px) !important;
+	margin: 3px 0 0 0 /*; animation: 1000ms 1 grid-open */
+}
 /*@media (max-width: 610px) {
 	.jqx-grid [role = columnheader]:nth-child(1),
 	.jqx-grid [role = columnheader]:nth-child(2),

@@ -4,41 +4,41 @@ class MQDbCommand extends MQSQLOrtak {
 class MQSentVeIliskiliYapiOrtak extends MQDbCommand {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	get unionSahaListe() {
-		let result = []; for (let sent of this.getSentListe()) {
-			result.push(sent.sahalar.liste.flat()) }
+		let result = []; for (let {sahalar} of this) {
+			result.push(sahalar.liste.flat()) }
 		return result
 	}
 	get unionAliasListe() {
-		let result = []; for (let sent of this.getSentListe()) {
-			result.push(sent.sahalar.liste.flatMap(saha => saha.alias)) }
+		let result = []; for (let {sahalar} of this) {
+			result.push(sahalar.liste.flatMap(saha => saha.alias)) }
 		return result
 	}
 	asToplamStm(e) {
 		e = e || {}; let sumListe = e.sumListe ?? [], orderFlag = e.order ?? e.orderBy;
 		let tmpTabloVeAlias = e.tmpTabloVeAlias ?? e.tmpTableVeAlias, {toplamInd} = e, {liste} = this;
-		let ilkSent; for (let sent of this.getSentListe()) { ilkSent = sent; break } if (!ilkSent) { return new MQStm() } 
+		let ilkSent; for (let sent of this) { ilkSent = sent; break } if (!ilkSent) { return new MQStm() } 
 		let tmpTabloAdi = tmpTabloVeAlias?.deger ?? `${MQStm.toplamTable}${toplamInd ?? ''}`;
 		let tmpAlias = tmpTabloVeAlias?.alias ?? `xtop${toplamInd ?? ''}`;		/* aMQAliasliYapi */
 		let stm = new MQStm(), {with: _with, orderBy} = stm, sahaAdi2Deger = {};
 		for (let { alias, deger } of ilkSent.sahalar.liste) { if (deger) { sahaAdi2Deger[alias] = deger } }
-		let topSahalarAdiSet = asSet(sumListe ?? []);
-		for (const sent of this.getSentListe()) {
-			for (const {alias, deger} of sent.sahalar.liste) {
-				if (!deger) { continue } let uygunmu = false;
-				for (const match of ['SUM(', 'COUNT(', 'AVG(', 'STRING_AGG(']) {
-					if (deger.toUpperCase().startsWith(match) && deger.includes(')')) {
-						uygunmu = true; break }
-				}
-				if (uygunmu) { topSahalarAdiSet[alias] = true }
-			}
+		let topSahalarAdiSet = asSet(sumListe ?? []), matchList = ['SUM(', 'COUNT(', 'AVG(', 'STRING_AGG('];
+		for (let {sahalar} of this)
+		for (let {alias, deger} of sahalar.liste) {
+			deger = deger?.toUpperCase(); if (!deger) { continue }
+			let uygunmu = !!matchList.find(match => deger.startsWith(match) && deger.includes(')'));
+			if (uygunmu) { topSahalarAdiSet[alias] = true }
 		}
-		const tumSahaAdlari = Object.keys(sahaAdi2Deger), topSahaAdlari = Object.keys(topSahalarAdiSet);
-		const digerSahaAdlari = tumSahaAdlari.filter(saha => !topSahalarAdiSet[saha]);
+		let tumSahaAdlari = Object.keys(sahaAdi2Deger), topSahaAdlari = Object.keys(topSahalarAdiSet);
+		let digerSahaAdlari = tumSahaAdlari.filter(saha => !topSahalarAdiSet[saha]);
 		_with.add(new MQTmpTable({ table: tmpTabloAdi, sahalar: tumSahaAdlari, sent: this }));
-		const asilSent = stm.sent; asilSent.fromAdd(`${tmpTabloAdi} ${tmpAlias}`); asilSent.sahalar.liste = [];
-		for (const sahaAdi of digerSahaAdlari) { asilSent.sahalar.add(`${tmpAlias}.${sahaAdi}`) }
-		for (const sahaAdi of topSahaAdlari) { asilSent.sahalar.add(`SUM(${tmpAlias}.${sahaAdi}) ${sahaAdi}`) }
-		asilSent.groupByOlustur(); if (orderFlag) { orderBy.liste = []; orderBy.addAll(digerSahaAdlari) }
+		let asilSent = stm.sent; asilSent.fromAdd(`${tmpTabloAdi} ${tmpAlias}`); asilSent.sahalar.liste = [];
+		{
+			let {sahalar} = asilSent;
+			for (let sahaAdi of digerSahaAdlari) { sahalar.add(`${tmpAlias}.${sahaAdi}`) }
+			for (let sahaAdi of topSahaAdlari) { sahalar.add(`SUM(${tmpAlias}.${sahaAdi}) ${sahaAdi}`) }
+		}
+		asilSent.groupByOlustur();
+		if (orderFlag) { orderBy.liste = []; orderBy.addAll(digerSahaAdlari) }
 		return stm
 	}
 	asToplamStmWithOrderBy(e) { e = e || {}; e.order = true; delete e.orderBy; return this.asToplamStm(e) }

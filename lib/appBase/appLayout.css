@@ -202,6 +202,7 @@ main#content { background: var(--s-whitesmoke) }
 .jqx-listitem-element > * > * { width: var(--full) }
 .jqx-listitem-element .part.wnd-content,
 .jqx-listitem-element .part.wnd-content > div { background: transparent }
+.jqx-tabs-title { background-color: #e1e4ef; height: 23px }
 .part.wnd-content:not(.list-item) { padding: 2px 5px }
 .list-item.jqx-grid { background: transparent; border: none }
 main#content { padding: var(--main-padding-y) var(--main-padding-x) }

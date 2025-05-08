@@ -443,7 +443,7 @@ class MQAktarimParam extends MQTicariParamBase {
 	static paramYapiDuzenle({ paramci }) {
 		super.paramYapiDuzenle(...arguments);
 		let kullanim = paramci.addKullanim().addGrup({ etiket: 'Kullanım' }), form = kullanim.addFormWithParent();
-			form.addBool('webOzetRapor', 'Web Özet Rapor').onBuildEk(e => e.builder.input.attr('disabled', ''));
+			form.addBool('webOzetRapor', 'Web Özet Rapor').onBuildEk(({ builder: fbd }) => fbd.input.attr('disabled', ''));
 			form.addBool('tablet', 'Sky Tablet'); form.addBool('pdks', 'PDKS'); form.addBool('yazarKasa', 'YazarKasa Aktarımı');
 			form.addBool('pratikSatis', 'Pratik Satış'); form.addBool('magaza', 'Mağaza');
 			form.addBool('webSiparis', 'Web B2B Sipariş'); form.addBool('konsinyeLojistik', 'Konsinye Lojistik');

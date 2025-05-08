@@ -1,8 +1,49 @@
 class DRapor_Hareketci extends DRapor_Donemsel {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return this == DRapor_Hareketci } 
+	static get uygunmu() { return this.mainClass?.hareketciSinif?.uygunmu ?? true }
+	static get totalmi() { return !(this.hareketmi || this.envantermi) }
+	static get hareketmi() { return false } static get envantermi() { return false }
 	static get kategoriKod() { return 'FIN' } static get kategoriAdi() { return 'Finansal' }
-	static get araSeviyemi() { return this == DRapor_Hareketci } 
-	static get uygunmu() { return window[`${this.name}_Main`]?.hareketciSinif?.uygunmu ?? true }
+	static get kod() {
+		let {_kod: result, kodEk: ek} = this;
+		if (ek) { result = `${ek}_${result.replace('TOTAL', '')}` }
+		return result
+	}
+	static get aciklama() {
+		let {_aciklama: result, aciklamaEk: ek} = this;
+		if (ek) { result = `${result.replace('Total', '')} ${ek}` }
+		return result
+	}
+	static get _kod() { return super.kod } static get _aciklama() { return super.aciklama }
+	static get kodEk() { let {hareketmi, envantermi} = this; return hareketmi ? 'HAR' : envantermi ? 'ENV' : '' }
+	static get aciklamaEk() { let {hareketmi, envantermi} = this; return hareketmi ? 'Hareket' : envantermi ? 'Envanter' : 'Total' }
+	static autoGenerateSubClasses(e) {
+		let subNames = ['Hareket', 'Envanter'], {raporBilgiler} = this;
+		let evalList = []; for (let {kod, cls} of raporBilgiler) {
+			let parent; {
+				let {mainClass, name} = cls; if (!mainClass) { continue }
+				let {name: mainName} = mainClass; parent = { cls, name, mainClass, mainName }
+			}
+			for (let subPostfix of subNames) {
+				let selector = subPostfix.toLowerCase();
+				let sub = { name: `${parent.name}_${subPostfix}`, selector };
+				$.extend(sub, { mainName: `${sub.name}_Main` });
+				evalList.push(
+					`class ${sub.name} extends ${parent.name} {`,
+					`	static { window[this.name] = this; this._key2Class[this.name] = this }`,
+					`	static get uygunmu() { return config.dev } static get ${selector}mi() { return true }`,
+					'}',
+					`class ${sub.mainName} extends ${parent.mainName} {`,
+					`	static { window[this.name] = this; this._key2Class[this.name] = this }`,
+					`	static get raporClass() { return ${sub.name} }`,
+					'}'
+				)
+			}
+		}
+		if (evalList.length) { eval(evalList.join(CrLf)) }
+		delete this._kod2Sinif;    /* cache reset */
+		return this
+	}
 }
 class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return null }
@@ -39,6 +80,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		this.tabloYapiDuzenle_baBedel(e)
 	}
 	tabloYapiDuzenle_odemeGun(e) { /* do nothing */ }
+	super_tabloYapiDuzenle_odemeGun(e) { super.tabloYapiDuzenle_odemeGun(e) }
 	loadServerData_queryDuzenle(e) {
 		e.alias = e.alias ?? 'hrk'; let {stm, attrSet} = e, {hareketci, raporTanim} = this, {yatayAnaliz} = raporTanim.kullanim;
 		hareketci.reset(); let {uygunluk} = hareketci, uygunlukVarmi = !$.isEmptyObject(uygunluk);
@@ -69,9 +111,10 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 				uni.add(sent)
 			}
 		}
+		return this.loadServerData_queryDuzenle_ek(e)
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
-		let { attrSet, sentHVEkle, sent, hrkHV: hv, hrkDefHV: defHV, hvDegeri } = e;
+		let {attrSet, sentHVEkle, sent, hrkHV: hv, hrkDefHV: defHV, hvDegeri} = e;
 		let {sahalar} = sent, tarihSaha = hvDegeri('tarih');
 		this.donemBagla({ ...e, tarihSaha }); for (let key in attrSet) {
 			switch (key) {
@@ -89,7 +132,34 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		let baClause = hvDegeri('ba'), bedelClause = hvDegeri('bedel').sumOlmaksizin();
 		this.loadServerData_queryDuzenle_baBedel({ ...e, baClause, bedelClause })
 	}
-	super_tabloYapiDuzenle_odemeGun(e) { super.tabloYapiDuzenle_odemeGun(e) }
+	loadServerData_queryDuzenle_ek(e) {
+		super.loadServerData_queryDuzenle_ek(e);
+		if (false) {
+			let {attrSet, stm} = e, {tabloYapi, raporTanim, secimler} = this, {grupVeToplam} = tabloYapi, {tarihBS} = secimler;
+			attrSet = attrSet ?? raporTanim.attrSet; let attrListe = Object.keys(attrSet);
+			let kirilmaSet = asSet(attrListe.filter(key => raporTanim.grup[key]));
+			let leafSabitSet = asSet(attrListe.filter(key => tabloYapi.grup[key] && !toplamSet[key]));
+			let toplamSet = asSet(attrListe.filter(key => tabloYapi.toplam[key]));
+			if (tarihBS?.basi) {
+				let {sqlNull} = Hareketci_UniBilgi.ortakArgs, devirDonusum = { tarih: tarihBS?.basi || 'NULL' };
+				for (let alias of ['mstadi', 'islemadi', 'isladi', 'refadi']) { devirDonusum[alias] = 'DEVİR ==>' }
+				let dStm = stm.asToplamStm();
+				for (let {where, sahalar, alias2Deger} of dStm) {
+					for (let alias in alias2Deger) {
+						if (!leafSabitSet[alias]) { continue }
+						alias2Deger[alias] = devirDonusum[alias] || sqlNull
+					}
+					for (let aMQAliasliYapi of sahalar.liste) {
+						let {alias} = aMQAliasliYapi;
+						aMQAliasliYapi.deger = alias2Deger[alias]
+					}
+				}
+				stm.birlestir(dStm)
+				/* stm.with.add(dStm.with); stm.sent.add(dStm.sent) */
+			}
+			debugger
+		}
+	}
 	hrkSentHVEkle(e) {
 		let {key: alias, sent} = e, {sahalar} = sent;
 		let deger = this.hrkHVDegeri(e); sahalar.add(new MQAliasliYapi({ deger, alias }));

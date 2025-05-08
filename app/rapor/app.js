@@ -17,6 +17,10 @@ class SkyRaporApp extends TicariApp {
 		}
 		return result
 	}
+	async runDevam(e) {
+		await super.runDevam(e);
+		await window.DRapor_Hareketci?.autoGenerateSubClasses(e)
+	}
 	paramsDuzenle({ params }) {
 		super.paramsDuzenle(...arguments);
 		$.extend(params, { dRapor: MQParam_DRapor.getInstance() })

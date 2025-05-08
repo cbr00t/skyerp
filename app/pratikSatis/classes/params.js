@@ -7,29 +7,21 @@ class MQYerelParam extends MQYerelParamTicari {
 class MQYerelParamConfig_App extends MQYerelParamConfig {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static paramAttrListeDuzenle({ liste }) {
-		super.paramAttrListeDuzenle(...arguments);
+		super.paramAttrListeDuzenle(...arguments)
 		/* liste.push('yerKodListe', 'sonStokDB') */
 	}
 	static async rootFormBuilderDuzenle({ rootBuilder: rfb }) {
-		await super.rootFormBuilderDuzenle(...arguments) /*; let {hasSession, dbName} = session;
+		await super.rootFormBuilderDuzenle(...arguments) /*; let {hasSession, dbName} = session; */
 		let contentForm = rfb.addForm('content', ({ builder: fbd }) => fbd.parentBuilder.layout.find('.content'));
-		if (!hasSession) {
+		/* if (!hasSession) {
 			contentForm.addForm().autoAppend().setLayout(e =>
 				$(`<div class="ek-bilgi firebrick bold center" style="font-size: 90%; margin-top: 15px; padding: 10px; border: 1px solid #aaa">` +
-				  `<b>Depolar</b> ve <b>Son Stok Veritabanı</b> seçimi için önce oturum açılmalıdır</div>`));
+				  `Ek parametreleri düzenlemek için önce oturum açılmalıdır</div>`));
 			return
 		}
-		await app.promise_ready; let dbNamePrefix = dbName?.slice(0, 4);
+		await app.promise_ready; */
 		let form = contentForm.addFormWithParent().yanYana(2);
-		form.addModelKullan('yerKodListe', 'Depolar')
-			.comboBox().autoBind().listedenSecilmez().coklu().setMFSinif(MQStokYer);
-		form.addModelKullan('sonStokDB', 'Son Stok Veritabanı')
-			.comboBox().autoBind().listedenSecilmez().kodsuz().noMF()
-			.setPlaceHolder('(A) Merkez Ambarı')
-			.setSource(async e =>
-				(await app.wsDBListe())
-					.filter(name => !dbNamePrefix || name.startsWith(dbNamePrefix))
-					.map(adi => new CKodVeAdi([adi, adi]))
-			)*/
+		form.addCheckBox('soundFlag_barkodOkutma', 'Barkod Okutma Sesi');
+		form.addCheckBox('soundFlag_barkodHata', 'Barkod Hata Sesi')
 	}
 }

@@ -84,7 +84,7 @@ class MQSQLOrtak extends CObject {
 	}
 	static sqlDoluDegermi(text) { return !this.sqlBosDegermi(text) }
 	static sumOlmaksizin(text) {
-		const Prefix = 'SUM('; if (!text?.toUpperCase().includes(Prefix)) { return text }
+		let Prefix = 'SUM('; if (!text?.toUpperCase().includes(Prefix)) { return text }
 		return text.fastReplaceSplit(Prefix, '(')
 	}
 	static asSumDeger(text) {
@@ -93,7 +93,8 @@ class MQSQLOrtak extends CObject {
 	}
 	static asSUMDeger(text) { return this.asSumDeger(text) }
 	static boolClause(e, _styled) {
-		e = e || {}; const saha = typeof e == 'object' ? e.saha : e, isStyled = typeof e == 'object' ? e.styled : _styled;
+		e = e || {}; let saha = typeof e == 'object' ? e.saha : e;
+		let isStyled = typeof e == 'object' ? e.styled : _styled;
 		return (
 			`(case when ${saha} = '' then '` +
 			( isStyled ? `<span class="readOnly">` : '' ) +
@@ -103,8 +104,8 @@ class MQSQLOrtak extends CObject {
 	   )
 	}
 	static tersBoolClause(e, _styled) {
-		e = e || {}; const saha = typeof e == 'object' ? e.saha : e;
-		const isStyled = typeof e == 'object' ? e.styled : _styled;
+		e = e || {}; let saha = typeof e == 'object' ? e.saha : e;
+		let isStyled = typeof e == 'object' ? e.styled : _styled;
 		return (
 			`(case when ${saha} <> '' then '` +
 			( isStyled ? `<span class="forestgreen">` : '' ) +
@@ -114,9 +115,8 @@ class MQSQLOrtak extends CObject {
 	   )
 	}
 	static boolBitClause(e, _styled) {
-		e = e || {};
-		const saha = typeof e == 'object' ? e.saha : e;
-		const isStyled = typeof e == 'object' ? e.styled : _styled;
+		e = e || {}; let saha = typeof e == 'object' ? e.saha : e;
+		let isStyled = typeof e == 'object' ? e.styled : _styled;
 		return (
 			`(case when ${saha} = 0 then '` +
 			( isStyled ? `<span class="readOnly">` : '' ) +
@@ -126,9 +126,8 @@ class MQSQLOrtak extends CObject {
 	   )
 	}
 	static tersBoolBitClause(e, _styled) {
-		e = e || {};
-		const saha = typeof e == 'object' ? e.saha : e;
-		const isStyled = typeof e == 'object' ? e.styled : _styled;
+		e = e || {}; let saha = typeof e == 'object' ? e.saha : e;
+		let isStyled = typeof e == 'object' ? e.styled : _styled;
 		return (
 			`(case when ${saha} <> 0 then '` +
 			( isStyled ? `<span class="forestgreen">` : '' ) +
@@ -138,12 +137,13 @@ class MQSQLOrtak extends CObject {
 	   )
 	}
 	static resimClause_ok(e) {
-		e = e ?? {}; const ekCSS = e.ekCSS ?? e.cssEk; return (
+		e = e ?? {}; let ekCSS = e.ekCSS ?? e.cssEk;
+		return (
 			`<div style="height: 32px; margin-left: 30%; background-image: url(../../images/tamam_blue.png); background-repeat: no-repeat; background-size: contain` +
 			`${ekCSS ? `; ${ekCSS}` : ''}"/>`
 		)
 	}
-	getQueryYapi(e) { e = e || {}; let query = this.toString(e); return { query, params: this.params } }
+	getQueryYapi(e) { let query = this.toString(e); return { query, params: this.params } }
 	toString(e) {
 		e = e || {}; e.result = e.result || ''; e.params = this.params || [];
 		let value = e.prefix || this.prefix; if (value) e.result += `${value} `

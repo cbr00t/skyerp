@@ -92,8 +92,9 @@ class GridPart extends Part {
 		let args = {
 			theme: _theme, localization: localizationObj, width: '99.9%', height: '99.6%', editMode: 'selectedcell', sortMode: 'many', autoHeight: false, autoRowHeight: false, rowsHeight: 35, autoShowLoadElement: true,
 			altRows: true, enableTooltips: true, columnsHeight: 25, columnsMenuWidth: 50, columnsResize: true, columnsReorder: true, columnsMenu: true, autoShowColumnsMenuButton: true, sortable: true, /* compact: false, */
-			filterable: true, filterRowHeight: 40, filterMode: 'default', showFilterRow: false, groupable: true, showGroupsHeader: false, groupIndentWidth: 40, groupsHeaderHeight: 33, groupsExpandedByDefault: false,
-			enableBrowserSelection: false, selectionMode: 'multiplecellsextended', pageable: false, pagermode: 'advanced', adaptive: undefined, virtualMode: false, updatedelay: 0, scrollbarsize: 20, scrollMode: 'logical',		/* default | logical | deferred */
+			filterable: true, filterRowHeight: 40, filterMode: 'default', showFilterRow: false, groupable: true, showGroupsHeader: false, groupIndentWidth: 30, groupsHeaderHeight: 33, groupsExpandedByDefault: false,
+			enableBrowserSelection: false, selectionMode: 'multiplecellsextended', pageable: false, pagermode: 'advanced', adaptive: undefined, virtualMode: false, updatedelay: 0,
+			scrollbarsize: 13, scrollMode: 'logical',		/* default | logical | deferred */
 			renderGridRows: e => { const recs = e.data?.records || e.data; return recs  /* return recs.slice(e.startindex, e.startindex + e.endindex) */ },
 			groupColumnRenderer: text => `<div style="padding: 5px 10px; float: left;">${text}</div>`,
 			groupsRenderer: (text, group, expanded, groupInfo) => `<div class="grid-cell-group">${group}</div>`,
