@@ -20,7 +20,7 @@ class MasrafHareketci extends Hareketci {
     }
 	uniOrtakSonIslem({ sender, hv, sent, attrSet }) {
 		super.uniOrtakSonIslem(...arguments); let {from, where: wh} = sent;
-		if (!from.aliasIcinTable('mas') && (!attrSet || attrSet.MASRAF)) { sent.fromIliski('stkmasraf mas', `${hv.masrafkod} = mas.kod`) }
+		// if (!from.aliasIcinTable('mas') && (!attrSet || attrSet.MASRAF)) { sent.fromIliski('stkmasraf mas', `${hv.masrafkod} = mas.kod`) }
 		if (!from.aliasIcinTable('car')) { sent.x2CariBagla({ kodClause: hv.mustkod }) }
 		/*if (sender?.finansalAnalizmi) { }*/
 	}
@@ -59,9 +59,8 @@ class MasrafHareketci extends Hareketci {
 			return new Hareketci_UniBilgi()
 				.sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent;
-					sent.fisHareket('piffis', pifHarTablo)
-						.leftJoin('har', 'pifmasrafdagilim mdag', [/*`fis.masrafortakdir = 'O'`,*/ `har.kaysayac = mdag.${dagilimSayacAttr}`]);
-																		/* ** ^--> har -> mdag left join bağlantısında 'fis' alias için koşul verilemez */
+					sent.fisHareket('piffis', pifHarTablo, true)    /* true: innerJoinFlag */
+						.leftJoin('har', 'pifmasrafdagilim mdag', [`fis.masrafortakdir = 'O'`, `har.kaysayac = mdag.${dagilimSayacAttr}`]);
 					wh.fisSilindiEkle().degerAta('F', 'fis.piftipi').degerAta('A', 'fis.almsat').add(
 						new MQOrClause([
 							new MQAndClause([`fis.masrafortakdir = ''`, `har.detmasrafkod > ''`]),

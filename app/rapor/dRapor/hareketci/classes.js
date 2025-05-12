@@ -190,16 +190,16 @@ class DRapor_Hareketci_CekSenet_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return CSHareketci }
 	static get raporClass() { return DRapor_Hareketci_CekSenet }
 	tabloYapiDuzenle({ result }) {
-		super.tabloYapiDuzenle(...arguments);
+		super.tabloYapiDuzenle(...arguments)
 		/* result.addKAPrefix('kasa').addGrupBasit('KASA', 'Kasa', 'kasa', DMQKasa) */
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
-		super.loadServerData_queryDuzenle_hrkSent(e);
-		let {attrSet, sent, hvDegeri} = e, {where: wh, sahalar} = sent, kodClause = hvDegeri('kasakod');
+		super.loadServerData_queryDuzenle_hrkSent(e)
+		/*let {attrSet, sent, hvDegeri} = e, {where: wh, sahalar} = sent, kodClause = hvDegeri('kasakod');
 		if (attrSet.KASA) { sent.fromIliski('kasmst kas', `${kodClause} = kas.kod`) }
 		for (let key in attrSet) {
 			switch (key) { case 'KASA': sahalar.add(`${kodClause} kasakod`, 'kas.aciklama kasaadi'); wh.icerikKisitDuzenle_kasa({ ...e, saha: kodClause }); break }
-		}
+		}*/
 	}
 	tabloYapiDuzenle_takip(e) { /* do nothing */ }
 }
@@ -215,17 +215,28 @@ class DRapor_Hareketci_Masraf_Main extends DRapor_Hareketci_Main {
 	tabloYapiDuzenle({ result }) {
 		super.tabloYapiDuzenle(...arguments);
 		this.tabloYapiDuzenle_cari(...arguments);
-		result.addKAPrefix('masraf').addGrupBasit('MASRAF', 'Masraf', 'masraf', DMQMasraf);
+		result.addKAPrefix('masraf')
+			.addGrupBasit('MASRAF', 'Masraf', 'masraf', DMQMasraf, null, ({ item }) => item.secimKullanilmaz());
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e);
 		let {attrSet, sent, hvDegeri} = e, {where: wh, sahalar} = sent, kodClause = hvDegeri('masrafkod');
-		if (attrSet.MASRAF) { sent.fromIliski('stkmasraf kas', `${kodClause} = mas.kod`) }
+		/* if (attrSet.MASRAF) { sent.fromIliski('stkmasraf kas', `${kodClause} = mas.kod`) } */
 		this.loadServerData_queryDuzenle_cari({ ...e, kodClause: 'car.must' });
 		for (let key in attrSet) {
 			switch (key) {
-				case 'MASRAF': sahalar.add(`${kodClause} masrafkod`, 'mas.aciklama masrafadi'); wh.icerikKisitDuzenle_kasa({ ...e, saha: kodClause }); break
+				case 'MASRAF': sahalar.add(`${kodClause} masrafkod` /*, 'mas.aciklama masrafadi'*/); break
 			}
 		}
+	}
+	async loadServerData_recsDuzenleIlk({ recs }) {
+		let kod2Adi; for (let rec of recs) {
+			let {masrafkod: kod, masrafadi: adi} = rec;
+			if (adi == null) {
+				if (kod2Adi == null) { kod2Adi = await DMQMasraf.getGloKod2Adi() }
+				adi = rec.masrafadi = kod2Adi[kod]?.trimEnd() ?? ''
+			}
+		}
+		await super.loadServerData_recsDuzenleIlk(...arguments)
 	}
 }
