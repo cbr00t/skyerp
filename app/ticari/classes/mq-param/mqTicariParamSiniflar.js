@@ -81,9 +81,10 @@ class MQTicariGenelParam extends MQTicariParamBase {
 			form.addTekSecim('borclanmaSekli', 'Borçlanma Şekli').dropDown().noMF().kodsuz().setTekSecim(TicBorclanmaSekli).addStyle_wh(300);
 			form.addBool('sipIrsBorclanmaSonrasiEsasAlinir', 'Sip./İrs. Borçlanma Sonrası Esas Alınır');
 		let kullanim = paramci.addKullanim().addGrup().setEtiket('Kullanım'); form = kullanim.addFormWithParent();
-			form.addBool('doviz', 'Döviz'); form.addBool('sms', 'SMS İşlemleri'); form.addBool('plasiyer', 'Plasiyer'); form.addBool('mustahsil', 'Müstahsil');
-			form.addBool('sicakSatis', 'Sıcak Satış'); form.addBool('muhasebe', 'Muhasebe'); form.addBool('takipNo', 'Takip No'); form.addBool('masraf', 'Masraf Yeri');
-			form.addBool('uretim', 'Üretim').addBool('siteYonetimi', 'Site Yönetimi').addBool('sutAlim', 'Süt Alım');
+			form.addBool('doviz', 'Döviz'); form.addBool('sms', 'SMS İşlemleri'); form.addBool('plasiyer', 'Plasiyer');
+			form.addBool('mustahsil', 'Müstahsil'); form.addBool('sicakSatis', 'Sıcak Satış'); form.addBool('muhasebe', 'Muhasebe');
+			form.addBool('takipNo', 'Takip No'); form.addBool('masraf', 'Masraf Yeri'); form.addBool('uretim', 'Üretim');
+			form.addBool('siteYonetimi', 'Site Yönetimi'); form.addBool('sutAlim', 'Süt Alım');
 		form = kullanim.addFormWithParent();
 			form.addBool('toplamKalite', 'Toplam Kalite'); form.addBool('demirbas', 'Demirbaş'); form.addBool('eFatura', 'e-Fatura'); form.addBool('eIrsaliye', 'e-İrsaliye');
 			form.addBool('eMustahsil', 'e-Müstahsil'); form.addBool('eArsivLimit', 'e-Belge'); form.addBool('gelenEArsiv', 'Gelen e-Arşiv');

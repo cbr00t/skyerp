@@ -243,4 +243,7 @@ class DMQKategori extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kategori' }
 	static get table() { return 'kategori' } static get tableAlias() { return 'kat' }
 }
-
+class DMQMasraf extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Masraf' }
+	static get table() { return 'stkmasraf' } static get tableAlias() { return 'mas' }
+}

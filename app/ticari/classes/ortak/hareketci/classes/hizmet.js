@@ -30,9 +30,9 @@ class HizmetHareketci extends Hareketci {
 			(aktarim.guleryuzOnline ? new CKodVeAdi(['goMaliyet', 'Güleryüz Maliyet']) : null)
 		].filter(x => !!x))
     }
-	uniOrtakSonIslem({ sender, hv, sent }) {
-		super.uniOrtakSonIslem(...arguments);
-		/* if (sender.donemselIslemlermi || sender.eldekiVarliklarmi) { } */
+	uniOrtakSonIslem({ sender, sent, wh }) {
+		super.uniOrtakSonIslem(...arguments)
+		/*if (sender?.finansalAnalizmi) { }*/
 	}
     /** Varsayılan değer atamaları (hostVars) */
     static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {

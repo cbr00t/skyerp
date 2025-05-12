@@ -390,7 +390,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	}
 	har2HizmetBagla(e) { this.fromIliski('hizmst hiz', 'har.hizmetkod = hiz.kod'); return this }
 	har2DemirbasBagla(e) {
-		const sahaAdi = e.sahaAdi || 'demirbaskod';
+		const sahaAdi = e?.sahaAdi || 'demirbaskod';
 		this.fromIliski('demmst dem', `har.${sahaAdi} = dem.kod`); return this
 	}
 	har2KDVBagla(e) { this.fromIliski('vergihesap kver', 'har.kdvhesapkod = kver.kod'); return this }

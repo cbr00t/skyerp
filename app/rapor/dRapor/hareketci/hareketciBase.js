@@ -3,7 +3,8 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 	static get uygunmu() { return this.mainClass?.hareketciSinif?.uygunmu ?? true }
 	static get totalmi() { return !(this.hareketmi || this.envantermi) }
 	static get hareketmi() { return false } static get envantermi() { return false }
-	static get kategoriKod() { return 'FIN' } static get kategoriAdi() { return 'Finansal' }
+	static get kategoriKod() { return `FIN${this.totalmi ? '' : `-${this.kodEk}`}` }
+	static get kategoriAdi() { return `Finansal (${this.aciklamaEk})` }
 	static get kod() {
 		let {_kod: result, kodEk: ek} = this;
 		if (ek) { result = `${ek}_${result.replace('TOTAL', '')}` }
@@ -31,7 +32,7 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 				evalList.push(
 					`class ${sub.name} extends ${parent.name} {`,
 					`	static { window[this.name] = this; this._key2Class[this.name] = this }`,
-					`	static get uygunmu() { return config.dev } static get ${selector}mi() { return true }`,
+					`	static get uygunmu() { return true /*config.dev*/ } static get ${selector}mi() { return true }`,
 					'}',
 					`class ${sub.mainName} extends ${parent.mainName} {`,
 					`	static { window[this.name] = this; this._key2Class[this.name] = this }`,
@@ -70,7 +71,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		result.addGrupBasit('FISNOX', 'Fis No', 'fisnox', null, null, ({ item }) => item.secimKullanilir());
 		result.addGrupBasit('ALTHESAP', 'Alt Hesap', 'althesap', DMQAltHesap);
 		this.tabloYapiDuzenle_odemeGun(e);
-		result.addGrupBasit('REFERANS', 'Referans', 'ref', null, null, ({ item }) => item.setOrderBy('refadi'));
+		result.addGrupBasit('REF', 'Referans', 'ref', null, null, ({ item }) => item.setOrderBy('refadi'));
 		result.addGrupBasit('ANAISLEM', 'Ana İşlem', 'anaislemadi');
 		result.addGrupBasit('ISLEM', 'İşlem', 'islemadi');
 		this.tabloYapiDuzenle_plasiyer(e);
@@ -118,7 +119,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		let {sahalar} = sent, tarihSaha = hvDegeri('tarih');
 		this.donemBagla({ ...e, tarihSaha }); for (let key in attrSet) {
 			switch (key) {
-				case 'FISNOX': sentHVEkle('fisnox'); break; case 'REFERANS': sentHVEkle('refkod', 'refadi'); break;
+				case 'FISNOX': sentHVEkle('fisnox'); break; case 'REF': sentHVEkle('refkod', 'refadi'); break;
 				case 'ANAISLEM': sentHVEkle('anaislemadi'); break; case 'ISLEM': sentHVEkle('islemadi'); break
 				case 'ALTHESAP': sentHVEkle('althesapkod', 'althesapadi'); break
 				case 'DVKOD': sentHVEkle('dvkod'); break

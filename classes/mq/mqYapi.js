@@ -9,6 +9,7 @@ class MQYapi extends CIO {
 	static get tekilOku_sqlBatchFlag() { return true } static get tekilOkuYapilazmi() { return false }
 	static get gonderildiDesteklenirmi() { return false } static get gonderimTSSaha() { return 'gonderimts' }
 	static get offlineSahaListe() { return new this().offlineSahaListe } get offlineSahaListe() { return Object.keys(this.hostVars() ?? {}) }
+	static get logKullanilirmi() { return true } static get logAnaTip() { return 'K' }
 	static get logRecDonusturucu() { let e = { result: {} }; this.logRecDonusturucuDuzenle(e); return e.result }
 	get logHV() { let e = { hv: {} }; this.logHVDuzenle(e); return e.hv }
 
@@ -134,30 +135,34 @@ class MQYapi extends CIO {
 	kaydetSonrasiIslemler(e) { return this.kaydetVeyaSilmeSonrasiIslemler(e) }
 	kaydetVeyaSilmeSonrasiIslemler(e) { }
 	static async logKaydet(e) {
+		if (!this.logKullanilirmi) { return true }
 		e = e ?? {}; let {
-			sent: _sent, where, wh, degisenler, adimBelirtec, tableVeAlias, tabloVeAlias, table, alias,
-			duzenle, logRecDonusturucu, duzenleyici
-		} = e;
-		degisenler = degisenler ?? []; adimBelirtec = adimBelirtec ?? this.kodListeTipi;
+			sent: _sent, where, wh, adimBelirtec, logAnaTip, islem, degisenler,
+			tableVeAlias, tabloVeAlias, table, alias,
+			logHV, logRecDonusturucu, duzenle, duzenleyici
+		} = e, {user: loginUser} = config.session;
+		islem = islem ?? '';
+		degisenler = degisenler ?? []; adimBelirtec = adimBelirtec ?? this.kodListeTipi; logAnaTip = logAnaTip ?? this.logAnaTip;
+		degisenler = degisenler.map(x => x.replaceAll(' ', '_'));
 		where = where ?? wh ?? _sent?.where; duzenleyici = duzenleyici ?? duzenle; tableVeAlias = tableVeAlias ?? tabloVeAlias;
 		table = table ?? tableVeAlias?.table ?? this.table; let tAlias = (alias ?? tableVeAlias?.alias ?? this.tableAlias) || 't';
 		logRecDonusturucu = logRecDonusturucu ?? this.logRecDonusturucu;
-		let sent = new MQSent({ from: `${table} ${tAlias}`, where }), {sahalar} = sent;
-		sahalar.add(`${table.sqlServerDegeri()} tablo`);
-		let _e = { ...e, sent, where, table, alias: tAlias }; duzenleyici.call(this, _e);
-		sent = _e.sent; sahalar = sent.sahalar;
-		sent.gereksizTablolariSilDisinda({ disindaSet: tAlias });
-		let {alias2Deger} = sent, sahaAdiSet = asSet(Object.values(sent.alias2Deger));
-		for (let [buAttr, logAttr] of Object.entries(logRecDonusturucu)) {
-			if (sahaAdiSet[logAttr]) { continue }
-			sahalar.add(`${tAlias}.${buAttr} ${logAttr}`)
-		}
-		let ins = _e.ins = new MQSelect2Insert({ table, sent });
-		$.extend(_e, { degisenler: degisenler.map(x => x.replaceAll(' ', '_')) })
-		this.logInsertDuzenle(_e); ins = _e.ins;
+		let _e = { ...e, degisenler }, {computerName, userName, ip} = await app.sysInfo();
+		let hv = _e.hv = {
+			adimbelirtec: adimBelirtec, islem,
+			kullanici: loginUser?.slice(0, 20),
+			terminal: [ip, computerName, userName].join('_'),
+			anatip: logAnaTip, tablo: table, ...logHV,
+			xdegisenler: degisenler.join(', ').slice(0, 400)
+		};
+		duzenleyici?.call(this, _e); hv = _e.hv;
+		let ins = _e.ins = new MQInsert({ table: 'vtlog', hv }); this.logInsertDuzenle(_e); ins = _e.ins;
 		return await app.sqlExecNone(ins)
 	}
-	logKaydet(e) { return this.class.logKaydet(e) }
+	logKaydet(e) {
+		e = e ?? {}; let logHV = e.logHV ?? this.logHV;
+		return this.class.logKaydet({ ...e, logHV })
+	}
 	static logInsertDuzenle(e) { }
 	static logRecDonusturucuDuzenle(e) { }
 	logHVDuzenle(e) { }

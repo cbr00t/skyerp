@@ -4,7 +4,9 @@ class SkyRaporApp extends TicariApp {
 	static get kategoriKod2Adi() {
 		let result = this._kategoriKod2Adi; if (result == null) {
 			result = {
-				TICARI: '', 'TICARI-STOK': 'Ticari (<b class="royalblue">Stok</b>)', 'TICARI-HIZMET': 'Ticari (<b class="orangered">Hizmet</b>)',
+				TICARI: '',
+				'TICARI-STOK': 'Ticari (<b class="royalblue">Stok</b>)',
+				'TICARI-HIZMET': 'Ticari (<b class="orangered">Hizmet</b>)',
 				FINANSAL: 'Finansal'
 			};
 			let {kod2Sinif} = DRapor, e = { liste: result }; for (const [mne, cls] of Object.entries(kod2Sinif)) {
@@ -49,8 +51,9 @@ class SkyRaporApp extends TicariApp {
 		const {isAdmin} = config.session ?? {}, {kod2Sinif} = DRapor, kategoriKod2MenuItems = {};
 		for (const [mne, sinif] of Object.entries(kod2Sinif)) {
 			if (sinif.dAltRapormu || !sinif.uygunmu) { continue }
-			const {vioAdim} = sinif, kategoriKod = sinif.kategoriKod ?? '';
-			(kategoriKod2MenuItems[kategoriKod] = kategoriKod2MenuItems[kategoriKod] || []).push(new FRMenuChoice({
+			let {vioAdim} = sinif, kategoriKod = sinif.kategoriKod ?? '';
+			let subItems = (kategoriKod2MenuItems[kategoriKod] = kategoriKod2MenuItems[kategoriKod] || []);
+			subItems.push(new FRMenuChoice({
 				mne, vioAdim, text: sinif.aciklama, block: async e => {
 					const item = e?.menuItemElement, menuId = (qs.sameWindow == null ? !!$('body').hasClass('no-wnd') : asBool(qs.sameWindow)) ? null : item?.mneText;
 					if (menuId) { this.openNewWindow({ menuId, qs: { sameWindow: true } }); return }
@@ -59,11 +62,11 @@ class SkyRaporApp extends TicariApp {
 				}
 			}))
 		}
-		let items = [], items_raporlar = [], {kategoriKod2Adi} = this.class;
-		for (const [kategoriKod, _items] of Object.entries(kategoriKod2MenuItems)) {
+		let items = [], items_raporlar = [], {kategoriKod2Adi} = this.class, kategoriKod2Cascade = {};
+		for (let [kategoriKod, _items] of Object.entries(kategoriKod2MenuItems)) {
 			let kategoriAdi = kategoriKod2Adi[kategoriKod] ?? kategoriKod, target = items_raporlar;
 			if (kategoriAdi) {
-				let parentItem = new FRMenuCascade({ mne: kategoriKod, text: kategoriAdi });
+				let parentItem = kategoriKod2Cascade[kategoriKod] = kategoriKod2Cascade[kategoriKod] ?? new FRMenuCascade({ mne: kategoriKod, text: kategoriAdi });
 				target.push(parentItem); target = parentItem.items
 			}
 			target.push(..._items)

@@ -74,8 +74,8 @@ class MQKod extends MQCogul {
 		if (kodSaha && kod) { sent.where.degerAta(kod, `${aliasVeNokta}${kodSaha}`) }
 	}
 	static logRecDonusturucuDuzenle({ result }) {
-		super.logRecDonusturucuDuzenle(...arguments);
-		let {kodSaha} = this.class; result[kodSaha] = 'xkod'
+		super.logRecDonusturucuDuzenle(...arguments); let {kodSaha} = this;
+		result[kodSaha] = 'xkod'
 	}
 	logHVDuzenle({ hv }) {
 		super.logHVDuzenle(...arguments);

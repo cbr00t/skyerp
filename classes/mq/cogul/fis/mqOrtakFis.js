@@ -175,33 +175,26 @@ class MQOrtakFis extends MQDetayli {
 		super.logHVDuzenle(...arguments);
 		$.extend(hv, { xno: this.fisNo || 0 })
 	}
-	alternateKeyHostVarsDuzenle(e) {
-		super.alternateKeyHostVarsDuzenle(e); const {hv} = e, {noSaha} = this.class, {fisNo} = this;
+	alternateKeyHostVarsDuzenle({ hv }) {
+		super.alternateKeyHostVarsDuzenle(...arguments); let {noSaha} = this.class, {fisNo} = this;
 		if (noSaha) { hv[noSaha] = fisNo ?? null }
 	}
-	setValues(e) {
-		super.setValues(e); const {rec} = e, {noSaha} = this.class, {fisNo} = this;
-		if (noSaha) { this.fisNo = rec[this.class.noSaha] || 0 }
+	setValues({ rec }) {
+		super.setValues(...arguments); let {noSaha} = this.class, {fisNo} = this;
+		if (noSaha) { this.fisNo = rec[noSaha] || 0 }
 	}
-	bakiyeSqlOrtakDuzenle(e) {
-		const {sent} = e, {table, sayacSaha} = this.class, {paramName_fisSayac} = e, {sayac} = this;
-		sent.fromAdd(`${table} fis`); sent.where.add(`fis.${sayacSaha} = ${sayac ? MQSQLOrtak.sqlServerDegeri(sayac) : paramName_fisSayac}`)
+	bakiyeSqlOrtakDuzenle({ sent, paramName_fisSayac }) {
+		let {table, sayacSaha} = this.class, {sayac} = this;
+		sent.fromAdd(`${table} fis`); sent.where.add(`fis.${sayacSaha} = ${sayac ? sayac.sqlServerDegeri() : paramName_fisSayac}`)
 	}
 	uiDuzenle_fisGiris(e) {
-		const {fisBaslikOlusturucular} = this;
-		if (fisBaslikOlusturucular) {
+		let {fisBaslikOlusturucular} = this; if (fisBaslikOlusturucular) {
 			for (let baslikOlusturucu of fisBaslikOlusturucular) {
-				const _e = $.extend({}, e);
-				if (baslikOlusturucu) {
-					if (baslikOlusturucu.prototype)
-						baslikOlusturucu = new baslikOlusturucu();
-					else
-						baslikOlusturucu = getFuncValue.call(this, baslikOlusturucu, _e);
+				let _e = { ...e }; if (baslikOlusturucu) {
+					baslikOlusturucu = baslikOlusturucu.prototype
+						? new baslikOlusturucu()
+						: getFuncValue.call(this, baslikOlusturucu, _e)
 				}
-				if (baslikOlusturucu && baslikOlusturucu.prototype)
-					baslikOlusturucu = new baslikOlusturucu();
-				if (baslikOlusturucu)
-					getFuncValue.call(this, baslikOlusturucu, _e);
 			}
 		}
 	}

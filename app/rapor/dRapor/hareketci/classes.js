@@ -99,7 +99,7 @@ class DRapor_Hareketci_Hizmet_Main extends DRapor_Hareketci_Main {
 
 class DRapor_Hareketci_BankaOrtak extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kategoriKod() { return 'FIN' } static get araSeviyemi() { return this == DRapor_Hareketci_BankaOrtak } 
+	static get araSeviyemi() { return this == DRapor_Hareketci_BankaOrtak } 
 }
 class DRapor_Hareketci_BankaOrtak_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Hareketci_BankaOrtak }
@@ -202,4 +202,30 @@ class DRapor_Hareketci_CekSenet_Main extends DRapor_Hareketci_Main {
 		}
 	}
 	tabloYapiDuzenle_takip(e) { /* do nothing */ }
+}
+
+class DRapor_Hareketci_Masraf extends DRapor_Hareketci {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get araSeviyemi() { return false } static get vioAdim() { return null }
+	static get _kod() { return 'MASHAR' } static get _aciklama() { return 'Masraf' }
+}
+class DRapor_Hareketci_Masraf_Main extends DRapor_Hareketci_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get hareketciSinif() { return MasrafHareketci } static get raporClass() { return DRapor_Hareketci_Masraf }
+	tabloYapiDuzenle({ result }) {
+		super.tabloYapiDuzenle(...arguments);
+		this.tabloYapiDuzenle_cari(...arguments);
+		result.addKAPrefix('masraf').addGrupBasit('MASRAF', 'Masraf', 'masraf', DMQMasraf);
+	}
+	loadServerData_queryDuzenle_hrkSent(e) {
+		super.loadServerData_queryDuzenle_hrkSent(e);
+		let {attrSet, sent, hvDegeri} = e, {where: wh, sahalar} = sent, kodClause = hvDegeri('masrafkod');
+		if (attrSet.MASRAF) { sent.fromIliski('stkmasraf kas', `${kodClause} = mas.kod`) }
+		this.loadServerData_queryDuzenle_cari({ ...e, kodClause: 'car.must' });
+		for (let key in attrSet) {
+			switch (key) {
+				case 'MASRAF': sahalar.add(`${kodClause} masrafkod`, 'mas.aciklama masrafadi'); wh.icerikKisitDuzenle_kasa({ ...e, saha: kodClause }); break
+			}
+		}
+	}
 }

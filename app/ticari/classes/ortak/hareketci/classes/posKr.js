@@ -22,10 +22,10 @@ class PsKrOrtakHareketci extends BankaOrtakHareketci {
 		/* yeni talimat: { (ozelisaret: '') değerleri (ozelisaret = 'fis.ozelisaret') olmalı.
 			bu da base.varsayilanHVDuzenle seviyesinde mevcut.
 			sqlEmpty ataması bu yüzden bu seviyede sadece comment yapıldı } */
-		for (const key of [/*'ozelisaret',*/ 'mustkod', 'hizmetkod']) { hv[key] = sqlEmpty }
-		for (const key of ['onayno', 'komisyon', 'katkipayi']) { hv[key] = sqlZero }
+		for (let key of [/*'ozelisaret',*/ 'mustkod', 'hizmetkod']) { hv[key] = sqlEmpty }
+		for (let key of ['onayno', 'komisyon', 'katkipayi']) { hv[key] = sqlZero }
 		/* 'mustkod' olan durumda ('must', 'ticmust') sahalarına ihtiyaç yok, bunların yerini alır */
-		for (const key of ['must', 'ticmust']) { delete hv[key] }
+		for (let key of ['must', 'ticmust']) { delete hv[key] }
 		$.extend(hv, {
 			/* 'ndvade' (nakde dönüşüm vadesi) değeri aksi belirtilemdikçe = (hv.vade) değeri ile aynıdır */
 			ndvade: ({ hv }) => hv.vade,
@@ -33,8 +33,8 @@ class PsKrOrtakHareketci extends BankaOrtakHareketci {
 			anaislemadi: ({ hv }) => hv.islemadi,
 			/* 'detaciklama' gecicidir - 'detaciklama' ve 'fisaciklama' birleserek 'aciklama' olusturulur. (bos olan alinmaz) */
 			aciklama: ({ hv }) => {
-                const withCoalesce = (clause) => `COALESCE(${clause}, '')`;
-                const {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv;
+                let withCoalesce = (clause) => `COALESCE(${clause}, '')`;
+                let {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv;
                 return fisAciklama && detAciklama 
                     ? `${withCoalesce(fisAciklama)} + ' ' + ${withCoalesce(detAciklama)}` 
                     : withCoalesce(detAciklama || fisAciklama || sqlEmpty)
