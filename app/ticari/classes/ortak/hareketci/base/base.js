@@ -2,6 +2,7 @@ class Hareketci extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return true } static get oncelik() { return 99 }
 	static get kod() { return null } static get aciklama() { return null } static get araSeviyemi() { return this == Hareketci }
 	static get donemselIslemlerIcinUygunmu() { return true } static get eldekiVarliklarIcinUygunmu() { return this.donemselIslemlerIcinUygunmu }
+	static get defaultYon() { return 'sol' }
 	static get kod2Sinif() {
 		let {_kod2Sinif: result} = this; if (result == null) {
 			result = {}; const {subClasses} = this;
@@ -111,20 +112,24 @@ class Hareketci extends CObject {
 		e.def = result[''] = new DRapor_AltTipYapi()
 	}*/
 	static getAltTipAdiVeOncelikClause({ hv }) {
-		return ({ adi: this.aciklama.sqlServerDegeri(), oncelik: '0', yon: `'sol'` })
+		return { }
+		/*return ({ adi: this.aciklama.sqlServerDegeri(), oncelik: '0', yon: this.defaultYon })*/
 	}
 	static mstYapiDuzenle(e) { }
 	static hareketTipSecim_kaListeDuzenle(e) {
 		e.hareketci = this; if (!this.uygunmu) { return }
 		for (const ext of this.getExtIter()) { ext.hareketTipSecim_kaListeDuzenle(e) }
 	}
-	uniOrtakSonIslem({ sender, hv, sent, sqlNull, sqlEmpty }) {
+	uniOrtakSonIslem({ sender, hv, sent, sqlNull, sqlEmpty, sqlZero }) {
 		if (sender?.finansalAnalizmi) {
 			let {finanalizkullanilmaz: finAnalizKullanimClause} = hv, {where: wh, sahalar} = sent;
 			if (finAnalizKullanimClause == sqlEmpty || finAnalizKullanimClause == sqlNull) { finAnalizKullanimClause = null }
 			if (finAnalizKullanimClause) { wh.degerAta('', finAnalizKullanimClause) }    /* ''(false) = kullanılır,  '*'(true) = kullanılMAZ */
-			let {adi: altTipAdiClause, oncelik: oncelikClause, yon: yonClause} = this.class.getAltTipAdiVeOncelikClause({ hv }) ?? {};
-			sahalar.add(`${altTipAdiClause} alttipadi`, `${oncelikClause} alttiponcelik`, `${yonClause} yon`)
+			let {adi: altTipAdiClause, oncelik: altTipOncelikClause, yon: yonClause} = this.class.getAltTipAdiVeOncelikClause({ hv }) ?? {};
+			altTipAdiClause = altTipAdiClause || (this.class.aciklama?.sqlServerDegeri() ?? sqlEmpty);
+			altTipOncelikClause = altTipOncelikClause || sqlZero;
+			yonClause = yonClause || (this.class.defaultYon?.sqlServerDegeri() ?? sqlEmpty);
+			sahalar.add(`${altTipAdiClause} alttipadi`, `${altTipOncelikClause} alttiponcelik`, `${yonClause} yon`)
 			/*let {from, where: wh} = sent, digerHarmi = from.aliasIcinTable('har')?.deger == 'csdigerhar';
 			wh.degerAta('', `ctip.finanaliztipi`)*/
 		}

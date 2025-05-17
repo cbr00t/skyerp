@@ -147,7 +147,7 @@ body #ust-parent > #nav ul > li > a { font-size: 80%; color: #555; text-decorati
 body #ust-parent > #nav ul > li { cursor: pointer }
 body #ust-parent > #nav ul > li:hover { background: linear-gradient(0deg, #cedeef4a 30%, transparent 90%) !important }
 body #ust-parent > #nav ul > li:hover > a { color: royalblue }
-body #ust-parent > #nav ul > li > a:focus { font-weight: bold; text-decoration: underline; color: #999 }
+body #ust-parent > #nav ul > li > a:focus { font-weight: bold; text-decoration: underline }
 body #ust-parent > #nav ul > li > a:not(:hover):focus { box-shadow: none }
 body #ust-parent > #nav ul > li:focus-within > a { border: none !important }
 body #ust-parent > #nav ul > li > a.dropdown-toggle { font-weight: bold }

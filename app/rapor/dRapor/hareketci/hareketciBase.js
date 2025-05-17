@@ -77,7 +77,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		this.tabloYapiDuzenle_plasiyer(e);
 		this.tabloYapiDuzenle_takip(e);
 		result.addGrupBasit('DVKOD', 'Dv.Kod', 'dvkod');
-		result.addGrupBasit('DVKUR', 'Dv.Kur', 'dvkur');
+		result.addGrupBasit('DVKUR', 'Dv.Kur', 'dvkur', null, null, ({ item }) => item.noOrderBy());
 		this.tabloYapiDuzenle_baBedel(e)
 	}
 	tabloYapiDuzenle_odemeGun(e) { /* do nothing */ }

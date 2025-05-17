@@ -25,7 +25,7 @@ main #anaMenu { position: relative; width: calc(var(--full) - 25px); height: var
 	.menu.part .menu-parent .nav .nav-item:not(.disabled):not(.nav-separator):focus { text-decoration: underline }
 	.menu.part .menu-parent .nav .nav-item:not(.disabled):not(.nav-separator):active { color: slateblue }
 .menu.part .menu-parent .nav .nav-separator { margin: 0 20px; color: #cecece }
-.menu.part .menu-parent .nav .nav-item.disabled { color: #888; font-weight: bold }
+.menu.part .menu-parent .nav .nav-item.disabled { color: green; font-weight: bold }
 .menu.part .menu-parent .items-parent {
 	width: calc(var(--full) - var(--menu-items-parent-padding-x)); /* height: var(--full); */
 	padding: var(--menu-items-parent-padding-y) var(--menu-items-parent-padding-x);

@@ -1,8 +1,10 @@
 class MasrafHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 7 }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 95 }
 	static get kod() { return 'masraf' } static get aciklama() { return 'Masraf' }
 	static get uygunmu() { return app?.params?.ticariGenel?.kullanim?.masraf }
-	static altTipYapilarDuzenle({ def }) { super.altTipYapilarDuzenle(...arguments); def.ortak() }
+	static getAltTipAdiVeOncelikClause({ hv }) {
+		return { yon: `'sag'` }
+	}
 	static mstYapiDuzenle({ result }) {
 		super.mstYapiDuzenle(...arguments);
 		result.set('masrafkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
