@@ -321,11 +321,11 @@ class GridPart extends Part {
 		return recs
 	}
 	gridHandleKeyboardNavigation(e) {
-		const evt = e.event, {timeStamp} = evt; let {_lastEventTimeStamp_handleKeyboardNavigation} = this;
-		if (_lastEventTimeStamp_handleKeyboardNavigation && _lastEventTimeStamp_handleKeyboardNavigation == timeStamp) return
-		if (!this.isSubPart && app.activePart && app.activePart != this) /*&& (evt.target == document.body || $(evt.target).parents('.jqx-grid').length)*/ return
+		let evt = e.event, {timeStamp} = evt, {_lastEventTimeStamp_handleKeyboardNavigation} = this;
+		if (_lastEventTimeStamp_handleKeyboardNavigation && _lastEventTimeStamp_handleKeyboardNavigation == timeStamp) { return }
+		if (!this.isSubPart && app.activePart && app.activePart != this) /*&& (evt.target == document.body || $(evt.target).parents('.jqx-grid').length)*/ { return }
 		const activeElement = document.activeElement ? $(document.activeElement) : null;
-		const gridHasFocus = activeElement.hasClass('jqx-grid') || !!activeElement.parents('.jqx-grid').length; if (!gridHasFocus) return
+		const gridHasFocus = activeElement.hasClass('jqx-grid') || !!activeElement.parents('.jqx-grid').length; if (!gridHasFocus) { return }
 		const {builder, grid, gridWidget, belirtec2Kolon} = this; if (!(gridWidget && grid?.length)) return
 		if (activeElement && (activeElement[0].tagName.toUpperCase() == 'TEXTAREA' || activeElement.hasClass('jqx-combobox-input'))) { /*evt.preventDefault()*/ return }
 		_lastEventTimeStamp_handleKeyboardNavigation = this._lastEventTimeStamp_handleKeyboardNavigation = timeStamp;
@@ -340,11 +340,11 @@ class GridPart extends Part {
 		const belirtec = _selectedCell.datafield, uid = rowIndex < 0 ? null : gridWidget.getrowid(rowIndex), selectedRec = rowIndex < 0 ? null : gridWidget.getrowdatabyid(uid);
 		const colDef = belirtec ? belirtec2Kolon[belirtec] : null, jqxCol = belirtec ? gridWidget.getcolumn(belirtec) : null, colEditable = jqxCol?.editable;
 		const modifiers = { ctrl: evt.ctrlKey, shift: evt.shiftKey, alt: evt.altKey }; const hasModifiers = modifiers.ctrl || modifiers.shift || modifiers.alt;
-		let totalRecs = gridWidget.dataview.totalrecords; if (totalRecs == null) totalRecs = gridWidget.getboundrows()?.length
-		if (rowIndex < 0) rowIndex = 0
+		let totalRecs = gridWidget.dataview.totalrecords; if (totalRecs == null) { totalRecs = gridWidget.getboundrows()?.length }
+		if (rowIndex < 0) { rowIndex = 0 }
 		const _e = {
-			sender, builder, event, eventType, key, modifiers, hasModifiers, timeStamp, targetIsGrid, grid, gridWidget, rowIndex, belirtec, colDef, jqxCol,
-			selectedCell, editCell, gridEditable, colEditable, result: undefined
+			sender, builder, event, eventType, key, modifiers, hasModifiers, timeStamp, targetIsGrid,
+			grid, gridWidget, rowIndex, belirtec, colDef, jqxCol, selectedCell, editCell, gridEditable, colEditable, result: undefined
 		};
 		if (colDef?.handleKeyboardNavigation) { const _result = getFuncValue.call(colDef, colDef.handleKeyboardNavigation, _e); if (_result !== undefined) _e.result = _result }
 		const {tusaBasilincaBlock} = this; if (tusaBasilincaBlock) { const _result = getFuncValue.call(this, tusaBasilincaBlock, _e); if (_result !== undefined) _e.result = _result }
@@ -353,7 +353,7 @@ class GridPart extends Part {
 				const keyLower = key?.toLowerCase() || '';
 				if (gridEditable) {
 					if (editCell) {
-						if (keyLower == 'escape') gridWidget.endcelledit(rowIndex, belirtec, false)
+						if (keyLower == 'escape') { gridWidget.endcelledit(rowIndex, belirtec, false) }
 					}
 					else {
 						const _isLetterOrDigit = key && isLetterOrDigit(key);
