@@ -60,7 +60,8 @@ class GridKontrolcu extends CObject {
 	grid2FisMesajsiz(e) { e = e || {}; e.mesajsiz = true; delete e.mesajsizFlag; return this.grid2Fis(e) }
 	gridVeriYuklendi(e) { } gridContextMenuIstendi(e) { } gridRendered(e) { }
 	gridRowExpanded(e) { } gridRowCollapsed(e) { } gridGroupExpanded(e) { } gridGroupCollapsed(e) { }
-	gridSatirEklendi(e) { } gridSatirGuncellendi(e) { } gridSatirSilindi(e) { } gridSatirSayisiDegisti(e) { }
+	gridSatirEklendi(e) { } gridSatirGuncellendi(e) { } gridSatirSayisiDegisti(e) { }
+	gridSatirSilinecek(e) { } gridSatirSilindi(e) { }
 	gridSatirTiklandi(e) { } gridSatirCiftTiklandi(e) { } gridHucreTiklandi(e) { } gridHucreCiftTiklandi(e) { }
 	fisGiris_gridVeriYuklendi(e) { e = e || {}; const fis = e.fis = e.fis || this.fis; if (fis.fisGiris_gridVeriYuklendi) { fis.fisGiris_gridVeriYuklendi(e) } }
 }

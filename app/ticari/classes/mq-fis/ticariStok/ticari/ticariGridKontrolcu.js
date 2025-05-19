@@ -12,13 +12,14 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 					let {sh: colDef} = this.parentPart.belirtec2Kolon;
 					rec.shKod = rec.shAdi = null; gridWidget.updaterow(uid, rec)
 				}
-			}).noSql().alignCenter().sabitle().tipTekSecim({ tekSecimSinif: MQSHTipVeAciklama, kodGosterilmesin: true })
+			}).noSql().kodsuz().alignCenter().sabitle().tipTekSecim({ tekSecimSinif: MQSHTipVeAciklama }).kodsuz()
 		);
 		super.tabloKolonlariDuzenle(e); let {fis} = this; tabloKolonlari = e.tabloKolonlari;
 		let shColDef = tabloKolonlari.find(colDef => colDef.belirtec == 'sh'), {kaKolonu} = shColDef;
 		let savedEditorHandlers = {}; for (let selector of ['createEditor', 'initEditor', 'getEditorValue']) {
 			savedEditorHandlers[selector] = kaKolonu[selector] }
 		$.extend(kaKolonu, {
+			satirEklendi: e => { }, satirSilinecek: e => { }, satirSilindi: e => { },
 			createEditor: (colDef, rowIndex, value, parent, cellText, cellWidth, cellHeight) => {
 				let {gridWidget} = colDef.gridPart, detaySinif = gridWidget.getrowdata(rowIndex)?.class;
 				if (detaySinif?.aciklamami) {
@@ -114,7 +115,7 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 						return html
 					},
 					columnType: 'template', createEditor: (colDef, rowIndex, value, editor, cellText, cellWidth, cellHeight) => {
-						let {gridWidget} = colDef.gridPart, rec = gridWidget.getrowdata(rowIndex);
+						let {gridWidget} = colDef.gridPart, rec = gridWidget?.getrowdata(rowIndex);
 						let iskYapiItem = (colDef.userData || {}).iskYapiItem || {}, iskKey = iskYapiItem.key, {maxSayi} = iskYapiItem;
 						for (let i = 0; i < maxSayi; i++) {
 							const input = $(`<input class="${iskKey} isk" style="width: 80px;" maxlength="3" data-iskkey="${iskKey}" data-iskindex="${i}"></input>`);
@@ -124,14 +125,14 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 						}
 					},
 					initEditor: (colDef, rowIndex, value, editor, cellText) => {
-						let {gridWidget} = colDef.gridPart, rec = gridWidget.getrowdata(rowIndex), oranlar = value, inputs = editor.find('.isk');
+						let {gridWidget} = colDef.gridPart, rec = gridWidget?.getrowdata(rowIndex), oranlar = value, inputs = editor.find('.isk');
 						if (inputs.length) {
 							for (let i = 0; i < inputs.length; i++) { const input = inputs.eq(i), iskIndex = asInteger(input.data('iskindex')); input.val(asFloat(oranlar[iskIndex])); }
 							setTimeout(() => inputs.eq(0).focus(), 100)
 						}
 					},
 					getEditorValue: (colDef, rowIndex, value, editor) => {
-						let {gridWidget} = colDef.gridPart, rec = gridWidget.getrowdata(rowIndex), result = [], inputs = editor.find('.isk');
+						let {gridWidget} = colDef.gridPart, rec = gridWidget?.getrowdata(rowIndex), result = [], inputs = editor.find('.isk');
 						for (let i = 0; i < inputs.length; i++) {
 							let input = inputs.eq(i), iskIndex = asInteger(input.data('iskindex')), oran = asFloat(input.val());
 							if (oran && oran > 0) { result.push(oran) }

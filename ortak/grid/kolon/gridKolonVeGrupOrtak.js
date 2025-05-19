@@ -22,7 +22,8 @@ class GridKolonVeGrupOrtak extends CObject {
 	}
 	readFrom_ara(e) { return true } readFrom_son(e) { return true }
 	parseColDef(value) { let result = value; if (result && $.isPlainObject(result)) result = GridKolonVeGrupOrtak.from(result); return result }
-	belirtec2KolonDuzenle(e) { const {belirtec2Kolon} = e; belirtec2Kolon[this.belirtec] = this; }
+	belirtec2KolonDuzenle(e) { let {belirtec2Kolon} = e; belirtec2Kolon[this.belirtec] = this; }
+	handleKeyboardNavigation_ortak(e) { }
 	readOnly() { this.isEditable = false; return this } editable() { this.isEditable = true; return this } 
 	kodZorunlu() { this.kodZorunlumu = true; return this } zorunlu() { this.kodZorunlu(); return this }
 	kodZorunluOlmasin() { this.kodZorunlumu = false; return this } zorunluDegil() { return this.kodZorunluOlmasin() } kodZorunluDegil() { return this.kodZorunluOlmasin() }

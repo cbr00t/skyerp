@@ -2,30 +2,35 @@ class GridKolon extends GridKolonVeGrupOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static colEventNames = [
 		'cellClassName', 'renderer', 'rendered', 'cellsRenderer', 'createEditor', 'initEditor', 'getEditorValue', 'destroyEditor',
-		'cellValueChanging', 'createFilterPanel', 'createFilterWidget', 'cellBeginEdit', 'cellEndEdit', 'validation', 'aggregatesRenderer'
+		'cellValueChanging', 'createFilterPanel', 'createFilterWidget', 'cellBeginEdit', 'cellEndEdit', 'validation', 'aggregatesRenderer',
+		'satirEklendi', 'satirDGuncellendi', 'satirSilinecek', 'satirSilindi', 'rowCountDegisti', 'satirTiklandi', 'satirCiftTiklandi'
 	];
-	static globalEventNames = ['cellValueChanged', 'cellSelect', 'cellUnselect', 'handleKeyboardNavigation', 'filter', 'sort', 'rowClick', 'rowDoubleClick', 'cellClick', 'groupsChanged', 'bindingComplete'];
+	static globalEventNames = [
+		'cellValueChanged', 'cellSelect', 'cellUnselect', 'handleKeyboardNavigation', 'filter', 'sort',
+		'rowClick', 'rowDoubleClick', 'cellClick', 'groupsChanged', 'bindingComplete'
+	];
 	static deferredEventNames = asSet(['cellValueChanged']);
 
 	readFrom_ara(e) {
 		if (!super.readFrom_ara(e)) { return false }
-		const {maxLength} = e; const genislik = e.genislik ?? e.width ?? null, tipOrDef = e.tip ?? null; /* this.belirtec = e.belirtec || e.attr || e.dataField || e.datafield; */
+		let {maxLength} = e, genislik = e.genislik ?? e.width ?? null, tipOrDef = e.tip ?? null;
+		/* this.belirtec = e.belirtec || e.attr || e.dataField || e.datafield; */
 		this.text = e.text ?? '';
 		if (genislik) { this.genislik = genislik } else if (e.genislikCh != null) { this.genislikCh = e.genislikCh }
 		this.minWidth = e.minWidth ?? 0; this.maxWidth = e.maxWidth; this.sql = e.sql ?? (e.noSql ? false : null);
 		this.columnType = e.columnType ?? null; this.cellsFormat = e.cellsFormat ?? null; this.aggregates = e.aggregates ?? null;
 		this.filterType = e.filterType ?? null; this.filterCondition = e.filterCondition ?? null;
 		this.setAttributes(e); const {colEventNames, globalEventNames} = this.class;
-		for (const key of colEventNames) {
+		for (let key of colEventNames) {
 			if (key == 'cellClassName') { this[key] = e[key] }
-			else { const func = getFunc(e[key]); if (func) { this[key] = func } }
+			else { let func = getFunc(e[key]); if (func) { this[key] = func } }
 		}
-		for (const key of globalEventNames) { const func = getFunc(e[key]); if (func) { this[key] = func } }
+		for (let key of globalEventNames) { let func = getFunc(e[key]); if (func) { this[key] = func } }
 		let tip = null; if (tipOrDef) {
 			if (typeof tipOrDef == 'object') { tip = $.isPlainObject(tipOrDef) ? GridKolonTip.from(tipOrDef) : tipOrDef }
 			else if (typeof tipOrDef == 'string') { tip = GridKolonTip.from($.extend({}, e, { tip: tipOrDef })) }
 		}
-		if (!tip) { tip = new GridKolonTip_String(); this.tip = tip }
+		if (!tip) { tip = this.tip = new GridKolonTip_String() }
 		if (maxLength) { tip.maxLength = maxLength }
 		const savedCellValueChanging = this.cellValueChanging; this.cellValueChanging = (colDef, rowIndex, dataField, columnType, oldValue, newValue) => {
 			if (colDef && !colDef.isEditable) { return oldValue }
@@ -63,8 +68,13 @@ class GridKolon extends GridKolonVeGrupOrtak {
 				if (align) { result.push(align) } return result.join(' ')
 			}
 		}
-		let align = this.align = e.align || e.align || null; if (tip && !align) { const {defaultAlign} = tip.class; if (defaultAlign) { align = this.align = defaultAlign } }
+		let align = this.align = e.align || e.align || null;
+		if (tip && !align) { let {defaultAlign} = tip.class; if (defaultAlign) { align = this.align = defaultAlign } }
 		return true
+	}
+	handleKeyboardNavigation_ortak(e) {
+		let result = super.handleKeyboardNavigation_ortak(e); if (result != null) { return result }
+		return this.tip?.handleKeyboardNavigation_ortak(e)
 	}
 	setAttributes(e) {
 		e = e || {}; const attributes = this.attributes = {
@@ -103,7 +113,7 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	jqxColumnsDuzenle(e) { super.jqxColumnsDuzenle(e); const {columns} = e; columns.push(this.jqxColumn) }
 	get jqxColumn() { const e = { column: {} }; this.jqxColumnDuzenle(e); return e.column }
 	jqxColumnDuzenle(e) {
-		e.colDef = this; const {column} = e, {belirtec, text, genislik, aggregates, tip, minWidth, maxWidth} = this;
+		e.colDef = this; let {column} = e, {belirtec, text, genislik, aggregates, tip, minWidth, maxWidth} = this;
 		if (tip) { tip.jqxColumnDuzenle(e) }
 		let {align, columnType, cellsFormat, filterType, filterCondition} = this;
 		if (tip) {
@@ -138,7 +148,7 @@ class GridKolon extends GridKolonVeGrupOrtak {
 				return result
 			};
 			column[key] = deferredEventNames[key]
-				? (...args) => setTimeout((key, tip, ...args) => handler(key, tip, ...args), 10, key, tip, ...args)
+				? (...args) => setTimeout((key, tip, ...args) => handler(key, tip, ...args), 5, key, tip, ...args)
 				: (...args) => handler(key, tip, ...args)
 		}
 	}

@@ -186,20 +186,8 @@ class FisGirisPart extends GridliGirisWindowPart {
 		fis.detaylar = _e.recs; super.gridSatirSayisiDegisti(e); this.gridYapiDegisti(e)
 	}
 	gridYapiDegisti(e) {
-		e = e || {};
-		const gridWidget = e.event?.args.owner ?? this.gridWidget, timerKey = 'timer_gridRefresh'; clearTimeout(this[timerKey]);
-		this[timerKey] = setTimeout(() => { try { if (!gridWidget.editcell) gridWidget.refresh() } finally { delete this[timerKey] } }, 1000)
-		/*const evt = e.event || {};
-		const args = evt.args || e.args || {};
-		const gridWidget = args.owner || this.gridWidget
-		
-		//if (gridWidget.getrowdata(0) != gridWidget.getvisiblerowdata(0)) {
-		setTimeout(() => {
-			gridWidget.beginupdate();
-			gridWidget._datachanged = true;
-			gridWidget.endupdate(false)
-		}, 10)
-		//}*/
+		/*e = e || {}; const gridWidget = e.event?.args.owner ?? this.gridWidget, timerKey = 'timer_gridRefresh'; clearTimeout(this[timerKey]);
+		this[timerKey] = setTimeout(() => { try { if (!gridWidget.editcell) gridWidget.refresh() } finally { delete this[timerKey] } }, 1000) */
 	}
 	async gridVeriYuklendi(e) {
 		e = e || {}; const {kontrolcu, fis, splitGridVeIslemTuslari} = this; await super.gridVeriYuklendi(e);

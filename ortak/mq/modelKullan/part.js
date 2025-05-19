@@ -134,6 +134,16 @@ class ModelKullanPart extends Part {
 			}
 		});
 		/* input.on('dblclick', evt => this.listedenSecIstendi({ event: evt })) */
+		this.lastText = input.val();
+		input.on('keyup', ({ target, key }) => {
+			let {value} = target;
+			if (!(this.coklumu || this.isDropDown || this.lastText == value)) {
+				key = key?.toLowerCase() ?? '';
+				let ozelKeymi = key?.length != 1 || key == '\t';
+				if (!ozelKeymi) { widget.listBox.clearSelection() }
+			}
+			this.lastText = value
+		});
 		input.on('change', evt => this.onChange({ event: evt }));
 		input.on('checkChange', evt => this.onChange({ type: 'mouse', event: evt }));
 		/* $(widget.input).on('focus', evt => { if (!widget.isOpened()) { clearTimeout(this.openTimer); this.openTimer = setTimeout(() => { try { widget.open() } finally { delete this.openTimer } }, 10) } }) */
@@ -142,16 +152,12 @@ class ModelKullanPart extends Part {
 			if (isDropDown) {
 				if ($.isEmptyObject(widget.getItems())) { this.dataBind() } }
 			else {
-				setTimeout(() => {
-					if (widget.isOpened()) { return } this.disableEventsFlag = true;
-					setTimeout(() => delete this.disableEventsFlag, 50);
-					if (this.focusSelectYapildiFlag && !widget.isOpened()) { widget.open() }
-				}, 10);
-				setTimeout(() => {
-					if (widget.searchString == null) { widget.searchString = '' }
-					if (this.focusSelectYapildiFlag && _input?.length) { _input.select() }
-					setTimeout(() => { this.focusSelectYapildiFlag = true }, 20)
-				}, 10)
+				if (widget.isOpened()) { return } this.disableEventsFlag = true;
+				setTimeout(() => delete this.disableEventsFlag, 50);
+				if (this.focusSelectYapildiFlag && !widget.isOpened()) { widget.open() }
+				if (widget.searchString == null) { widget.searchString = '' }
+				if (this.focusSelectYapildiFlag && _input?.length) { _input.select() }
+				setTimeout(() => { this.focusSelectYapildiFlag = true }, 10)
 			}
 			makeScrollable($(widget.listBox.content))
 		});
@@ -160,7 +166,7 @@ class ModelKullanPart extends Part {
 		});
 		widget.input.on('focus', evt => {
 			if (!isDropDown && widget.searchString == null) { widget.searchString = '' }
-			setTimeout(() => widget.input.select(), 50)
+			// widget.input.select()
 		});
 		if (isDropDown || this.autoBind) { input[jqxSelector]({ source: da }) } else { widget.source = da }
 		if (!this.listedenSecilemezFlag) {
@@ -230,7 +236,10 @@ class ModelKullanPart extends Part {
 			}
 			else {
 				const args = e.args || evt?.args || {}; wItem = coklumu ? widget.getSelectedItems() : args.item;
-				if (wItem == null) { _kod = value; wItem = _kod == null || this.noAutoGetSelectedItemFlag ? null : (coklumu ? widget.getSelectedItems() : widget.getSelectedItem()) }
+				if (wItem == null) {
+					_kod = value;
+					wItem = _kod == null || this.noAutoGetSelectedItemFlag ? null : (coklumu ? widget.getSelectedItems() : widget.getSelectedItem())
+				}
 				if (wItem == null) {
 					if (!records) { records = (widget.getItems ? widget.getItems() : null) ?? (source.records || ($.isArray(source) ? source : null)) }
 					if (rec == null && records?.length) { rec = records.find(rec => (rec.originalItem || rec)[kodaEsasSaha] == _kod) }
@@ -238,12 +247,16 @@ class ModelKullanPart extends Part {
 					if (rec == null && _kod != null) {
 						const promise = new $.Deferred(); const da = this.getDataAdapter({ autoBind: false, maxRow: 10 });
 						if (da) {
-							da._source.data.value = _kod; da._options.loadComplete = _recs => promise.resolve({ da, recs: _recs }); da.dataBind();
+							da._source.data.value = _kod;
+							da._options.loadComplete = _recs => promise.resolve({ da, recs: _recs }); da.dataBind();
 							records = (await promise)?.recs; records = records?.records ?? records;
 							if (records) { rec = records.find(rec => (rec.originalItem || rec)[kodaEsasSaha] == _kod) }
 						}
 					}
-					if (!rec && records?.length && !(_kod == null || (typeof _kod == 'string' && !_kod))) { rec = records[0]; rec = rec.originalItem ?? rec ?? {}; kod = value = rec[kodSaha] ?? rec.key }
+					if (!rec && records?.length && !(_kod == null || (typeof _kod == 'string' && !_kod))) {
+						rec = records[0]; rec = rec.originalItem ?? rec ?? {};
+						kod = value = (rec[kodSaha] ?? rec.key) || value
+					}
 					item = rec?.originalItem ?? rec
 				}
 				if (item == null) { item = wItem }
@@ -291,7 +304,7 @@ class ModelKullanPart extends Part {
 			const {input, parentPart, widget, veriYukleninceBlock, coklumu, isDropDown} = this; if (this.isDestroyed || !input?.length) { return }
 			if (!this.veriYuklendiFlag) {
 				this.veriYuklendiFlag = true; /*if (widget.isOpened()) widget.close();*/
-				let {value} = this; if (value != null && !this.kodAtandimi) { input.val(value); input.attr('data-value', value ?? null) }
+				let {value} = this; if (value != null && !this.kodAtandimi) { input.attr('data-value', value ?? null) }
 				if (value) {
 					value = $.makeArray(value); if (value?.length) {
 						let valueSet = asSet(value), wItems = widget.getItems(); widget[isDropDown ? 'uncheckAll' : 'clearSelection']();
@@ -300,6 +313,7 @@ class ModelKullanPart extends Part {
 						this.disableEventsFlag = false
 					}
 				}
+				if (value != null && !this.kodAtandimi) { input.val(value) }
 				this.kodAtandimi = true
 			}
 			/* if (widget.isOpened()) { widget.close() } */

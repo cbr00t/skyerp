@@ -13,6 +13,22 @@ class GridKolonTip extends CObject {
 		})*/
 	}
 	get createEditor() { return null } get initEditor() { return null } get getEditorValue() { return null }
+	get initEditor() {
+		return ((colDef, rowIndex, value, editor, cellText, pressedChar) => {
+			const isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template'), {maxLength} = this;
+			const _editor = editor.children('.editor'); editor = _editor.length ? _editor : editor;
+			if (maxLength && isCustomEditor) { editor.prop('maxlength', maxLength) }
+			if (_editor?.length && _editor.select) setTimeout(() => { editor.focus(); editor.select() }, 50)
+		})
+	}
+	get validation() {
+		return ((colDef, info, value) => {
+			const {maxLength} = this;
+			if (maxLength != null && value != null && (typeof value == 'string' || typeof value == 'number') && value.toString().length > maxLength)
+				return ({ result: false, message: `Değer <b>${maxLength}</b> karakterden fazla olamaz` })
+			return true
+		})
+	}
 	
 	constructor(e) { super(e); e = e || {}; this.readFrom(e) }
 	static getClass(e) { e = e || {}; const tip = typeof e == 'object' ? e.tip : e; return this._tip2Sinif[tip] || this; }
@@ -30,6 +46,56 @@ class GridKolonTip extends CObject {
 		this.kodGosterilmesinmi = e.kodGosterilmesin ?? e.kodGosterilmesinmi ?? e.kodsuzmu ?? e.kodsuz;
 		this.listedenSecilemezFlag = e.listedenSecilemez ?? e.listedenSecilemezmi ?? e.listedenSecilemezFlag;
 		return true
+	}
+	/* return true: override grid default handler, return (true / false) = event handled */
+	handleKeyboardNavigation_ortak(e) {
+		let {keyState: state} = e, {gridPart, gridWidget, editable, editing, sabitmi, modifiers, keyLower: key} = state;
+		let {ctrl, shift, alt} = modifiers;
+		switch (key) {
+			case 'enter': case 'tab': {
+				let preventGridEvents = !editing;
+				if (!editing) { gridPart.endCellEdit(true) }
+				gridPart.selectEditableCell({ ...e, prev: !!modifiers.shift });
+				return preventGridEvents
+			}
+			case 'insert': { if (editable && !sabitmi) { gridPart.addRow({ offset: state.selectedRowIndex }) } return true }
+			case 'delete': { if (editable && !sabitmi && ctrl) { gridPart.deleteRow(); return true } }
+			case 'arrowdown': {
+				let {belirtec, totalRecs} = state, rowIndex = state.rowIndex + 1;
+				if (editable && !sabitmi && rowIndex + 1 > totalRecs) { gridPart.addRow({ offset: 'last' }) }
+				break
+			}
+			/*case 'arrowleft': case 'arrowright': {
+				let back = key == 'arrowleft', {rowIndex, colIndex, totalCols} = state;
+				let belirtec; while (true) {
+					colIndex = back ? colIndex - 1 : colIndex + 1;
+					let jqxCol = gridWidget.getcolumnat(colIndex); belirtec = jqxCol?.datafield;
+					let uygunmu = gridWidget.iscolumnvisible(belirtec);
+					if (uygunmu || !(colIndex >= 0 && colIndex + 1 <= totalCols)) {
+						if (!uygunmu) { belirtec = null }
+						break
+					}
+				}
+				if (belirtec) {
+					gridWidget.clearselection(); gridWidget.selectcell(rowIndex, belirtec);
+					if (editing) { gridPart.endCellEdit(true) }
+				}
+				return true
+			}
+			case 'arrowup': case 'arrowdown': {
+				let back = key == 'arrowup', {rowIndex, belirtec, totalRecs} = state;
+				rowIndex = back ? rowIndex - 1 : rowIndex + 1;
+				if (rowIndex < 0) { return true }
+				if (rowIndex + 1 > totalRecs) { gridPart.addRow({ offset: 'last' }) }
+				gridWidget.clearselection(); gridWidget.selectcell(rowIndex, belirtec);
+				return true
+			}*/
+			case 'f2': {
+				let {rowIndex, belirtec} = state;
+				if (!editing && rowIndex != null && belirtec) { gridWidget.begincelledit(rowIndex, belirtec) }
+				return true
+			}
+		}
 	}
 	static getHTML_groupsTotalRow(value) {
 		if (typeof value == 'number') { value = numberToString(value) }
@@ -49,22 +115,6 @@ class GridKolonTip extends CObject {
 		if (jqxFilterCondition) { column.filterCondition = jqxFilterCondition }
 		if (jqxCellsFormat !== undefined && !(jqxColumnType == 'template' || jqxColumnType == 'custom')) { column.cellsFormat = jqxCellsFormat }
 		if (isEditable != null) { column.editable = isEditable }
-	}
-	get initEditor() {
-		return ((colDef, rowIndex, value, editor, cellText, pressedChar) => {
-			const isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template'), {maxLength} = this;
-			const _editor = editor.children('.editor'); editor = _editor.length ? _editor : editor;
-			if (maxLength && isCustomEditor) { editor.prop('maxlength', maxLength) }
-			if (_editor?.length && _editor.select) setTimeout(() => { editor.focus(); editor.select() }, 50)
-		})
-	}
-	get validation() {
-		return ((colDef, info, value) => {
-			const {maxLength} = this;
-			if (maxLength != null && value != null && (typeof value == 'string' || typeof value == 'number') && value.toString().length > maxLength)
-				return ({ result: false, message: `Değer <b>${maxLength}</b> karakterden fazla olamaz` })
-			return true
-		})
 	}
 	setMaxLength(value) { this.maxLength = value; return this } kodsuz() { return this.kodGosterilmesin() }
 	kodGosterilmesin() { this.kodGosterilmesinmi = true; return this } kodGosterilsin() { this.kodGosterilmesinmi = false; return this }
@@ -117,7 +167,8 @@ class GridKolonTip_Number extends GridKolonTip {
 			if (isCustomEditor && !editor.hasClass('editor')) {
 				const parent = editor; parent.addClass('full-wh');
 				parent.css('margin', 0); parent.css('padding', 0);
-				editor = $(`<input type="number" class="editor" style="width: ${cellWidth}px; height: ${cellHeight}px"/>`); editor.appendTo(parent)
+				editor = $(`<input type="number" class="editor" style="width: ${cellWidth}px; height: ${cellHeight}px"/>`);
+				editor.appendTo(parent)
 			}
 			const rec = colDef.gridPart.gridWidget.getboundrows()[rowIndex], fra = this.getFra({ rec });
 			if (value && fra && typeof value != 'string') value = roundToFra(value, fra)
@@ -141,8 +192,8 @@ class GridKolonTip_Number extends GridKolonTip {
 				input.on('keyup', evt => {
 					const {key} = evt;
 					if (key == '+' || key == '-') {
-						editor.html(`<input type="textbox" class="editor formul" style="width: 100%; height: 100%;" value="${editor.val()}"></input>`);
-						const input = editor.find('input'); /* input.on('keyup', handler); */ input.off('keyup'); input.focus(); input.select()
+						editor.html(`<input type="textbox" class="editor formul full-wh" value="${editor.val()}"></input>`);
+						let input = editor.find('input'); /* input.on('keyup', handler); */ input.off('keyup'); input.focus(); input.select()
 					}
 				})
 			}
@@ -160,7 +211,7 @@ class GridKolonTip_Number extends GridKolonTip {
 				editor.attr('style', editor.attr('style') + `; width: calc(var(--full) - 10px) !important`); editor.addClass('full-height')*/
 			}
 			else { editor.jqxNumberInput({ digits: 17, decimalDigits: fra || 0 }) }
-			setTimeout(() => { let input = editor.find('input'); if (!input?.length) { input = editor }; input.focus(); input.select() }, 50)
+			setTimeout(() => { let input = editor.find('input'); if (!input?.length) { input = editor }; input.focus(); input.select() }, 0)
 		})
 	}
 	get getEditorValue() {
@@ -270,7 +321,7 @@ class GridKolonTip_Date extends GridKolonTip {
 				value = typeof value == 'number' || value?.constructor?.name == 'Number' ? new Date(asFloat(value)) : asDate(value);
 				const {gridPart} = colDef, gridWidget = gridPart?.gridWidget ?? gridPart?.gridPart?.gridWidget, isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
 				const rec = (gridWidget?.getboundrows ? gridWidget.getboundrows()[rowIndex] : null) ?? rec;
-				const part = editor.data('part'); part.val(value || ''); if (gridWidget.editmode != 'selectedrow') { setTimeout(() => part.focus(), 100) }
+				const part = editor.data('part'); part.val(value || ''); if (gridWidget.editmode != 'selectedrow') { setTimeout(() => part.focus(), 0) }
 			}
 		})
 	}
@@ -374,7 +425,7 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 						if (key == 'enter' || key == 'linefeed') {
 							widget.close();
 							const {gridPart} = colDef, gridWidget = gridPart?.gridWidget || gridPart?.gridPart?.gridWidget;
-							if (gridWidget && gridWidget.editmode != 'selectedrow') { if (gridWidget.editcell) { setTimeout(() => gridWidget.endcelledit(), 0, false) } }
+							if (gridWidget && gridWidget.editmode != 'selectedrow') { if (gridWidget.editcell) { setTimeout(() => gridWidget.endcelledit(false), 0) } }
 						}
 					})
 				}

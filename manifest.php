@@ -1,7 +1,7 @@
 <?php
 	header('Content-Type: application/json');
-	require_once('config.php');
-	/* "display_override": ["fullscreen", "standalone", "window-controls-overlay"], */
+	require_once('config.php')
+	/* "display_override": ["fullscreen", "standalone", "window-controls-overlay"] */
 ?>
 {
 	"manifest_version": 3, "offline_enabled": true, "id": "<?=$appClass?>", "version": "<?=$appVersion?>",

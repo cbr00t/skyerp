@@ -26,6 +26,13 @@ class GridKolonGrup extends GridKolonVeGrupOrtak {
 		if (!$.isEmptyObject(tabloKolonlari)) { for (let colDef of tabloKolonlari) { colDef.belirtec2KolonDuzenle(e) } }
 		return this
 	}
+	handleKeyboardNavigation_ortak(e) {
+		let result = super.handleKeyboardNavigation_ortak(e); if (result != null) { return result }
+		for (let colDef of this.tabloKolonlari) {
+			result = colDef?.handleKeyboardNavigation_ortak?.(e);
+			if (result != null) { return result }
+		}
+	}
 	asRSahalar(e) { return this.tabloKolonlari.map(colDef => colDef.asRSaha(e)) }
 	asRSaha(e) { return null }
 	jqxColumnsDuzenle(e) {
