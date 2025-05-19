@@ -22,7 +22,7 @@ class MasrafHareketci extends Hareketci {
     }
 	uniOrtakSonIslem({ sender, hv, sent, attrSet }) {
 		super.uniOrtakSonIslem(...arguments); let {from, where: wh} = sent;
-		// if (!from.aliasIcinTable('mas') && (!attrSet || attrSet.MASRAF)) { sent.fromIliski('stkmasraf mas', `${hv.masrafkod} = mas.kod`) }
+		if (!from.aliasIcinTable('mas')) { sent.fromIliski('stkmasraf mas', `${hv.masrafkod} = mas.kod`); wh.add(`${hv.masrafkod} > ''`) }
 		if (!from.aliasIcinTable('car')) { sent.x2CariBagla({ kodClause: hv.mustkod }) }
 		/*if (sender?.finansalAnalizmi) { }*/
 	}

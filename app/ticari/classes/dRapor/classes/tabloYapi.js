@@ -71,23 +71,6 @@ class TabloYapi extends CObject {
 	setGruplar(value) { this.grup = value ?? {}; return this } setToplamlar(value) { this.toplam = value ?? {}; return this }
 	setSortAttr(value) { this.sortAttr = value; return this } setKAPrefixes(value) { this.kaPrefixes = value; return this }
 }
-class DRaporFormul extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	constructor(e) { e = e || {}; super(e); this.setAttrListe(e.attrListe).setBlock(e.block) }
-	run(e) {
-		const {rec} = e, {block} = this; if (!(rec && block)) { return this }
-		const formul = this, {item} = e, kod = e.kod ?? e.name ?? e.tip; return getFuncValue.call(this, block, { kod, rec, formul, item })
-	}
-	addAttr(...items) {
-		const {attrListe} = this; for (const item of items) {
-			if ($.isArray(item)) { this.addAttr(...item); continue }
-			if (item != null) { attrListe.push(item) }
-		}
-		return this
-	}
-	setAttrListe(value) { this.attrListe = value ?? []; return this }
-	setBlock(value) { if (typeof value == 'string') { value = getFunc(value) } this.block = value; return this }
-}
 class TabloYapiItem extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get tipStringmi() { return !this.tip } get tipNumerikmi() { return this.tip == 'number' } get tipTarihmi() { return this.tip == 'date' } get tipBoolmu() { return this.tip == 'boolean' }
@@ -99,9 +82,12 @@ class TabloYapiItem extends CObject {
 	}
 	get kaYapimi() { return !!this.mfSinif }  get formulmu() { return !!this.formul }
 	get orderBySaha() {
-		let result = this._orderBySaha; if (result !== undefined) { return result }
+		let {_orderBySaha: result} = this; if (result !== undefined) { return result }
 		let {kaYapimi} = this; result = this.colDefs[0]?.belirtec;
-		if (result && kaYapimi) { let lower = result.toLowerCase(); if (!(lower.endsWith('kod') || lower.endsWith('adi'))) { result += 'kod' } }
+		if (result && kaYapimi) {
+			let lower = result.toLowerCase();
+			if (!(lower.endsWith('kod') || lower.endsWith('adi'))) { result = [`${result}kod`, `${result}adi`] }
+		}
 		return result
 	}
 	set orderBySaha(value) { this._orderBySaha = value }
@@ -128,7 +114,8 @@ class TabloYapiItem extends CObject {
 				sec.secimTopluEkle(liste)
 			}
 		}
-		const {secimlerDuzenleyici} = this; if (secimlerDuzenleyici != null) { getFuncValue.call(this, secimlerDuzenleyici, e) }
+		let {secimlerDuzenleyici} = this;
+		if (secimlerDuzenleyici != null) { getFuncValue.call(this, secimlerDuzenleyici, e) }
 	}
 	tbWhereClauseDuzenle(e) {
 		let {secimKullanilirFlag, mfSinif} = this;
@@ -179,4 +166,21 @@ class TabloYapiItem extends CObject {
 	setColDefs(value) { this.colDefs = value; return this } setMFSinif(value) { this.mfSinif = value; return this }
 	secimKullanilir() { this.secimKullanilirFlag = true; return this } secimKullanilmaz() { this.secimKullanilirFlag = false; return this }
 	setSecimlerDuzenleyici(value) { this.secimlerDuzenleyici = value; return this } setTBWhereClauseDuzenleyici(value) { this.tbWhereClauseDuzenleyici = value; return this }
+}
+class DRaporFormul extends CObject {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	constructor(e) { e = e || {}; super(e); this.setAttrListe(e.attrListe).setBlock(e.block) }
+	run(e) {
+		const {rec} = e, {block} = this; if (!(rec && block)) { return this }
+		const formul = this, {item} = e, kod = e.kod ?? e.name ?? e.tip; return getFuncValue.call(this, block, { kod, rec, formul, item })
+	}
+	addAttr(...items) {
+		const {attrListe} = this; for (const item of items) {
+			if ($.isArray(item)) { this.addAttr(...item); continue }
+			if (item != null) { attrListe.push(item) }
+		}
+		return this
+	}
+	setAttrListe(value) { this.attrListe = value ?? []; return this }
+	setBlock(value) { if (typeof value == 'string') { value = getFunc(value) } this.block = value; return this }
 }

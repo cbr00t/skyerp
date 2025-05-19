@@ -213,30 +213,29 @@ class DRapor_Hareketci_Masraf_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get hareketciSinif() { return MasrafHareketci } static get raporClass() { return DRapor_Hareketci_Masraf }
 	tabloYapiDuzenle({ result }) {
-		super.tabloYapiDuzenle(...arguments);
-		this.tabloYapiDuzenle_cari(...arguments);
+		super.tabloYapiDuzenle(...arguments); this.tabloYapiDuzenle_cari(...arguments);
 		result.addKAPrefix('masraf')
-			.addGrupBasit('MASRAF', 'Masraf', 'masraf', DMQMasraf, null, ({ item }) => item.secimKullanilmaz());
+			.addGrupBasit('MASRAF', 'Masraf', 'masraf', DMQMasraf, null, null, 'masrafkod');
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e);
 		let {attrSet, sent, hvDegeri} = e, {where: wh, sahalar} = sent, kodClause = hvDegeri('masrafkod');
-		/* if (attrSet.MASRAF) { sent.fromIliski('stkmasraf kas', `${kodClause} = mas.kod`) } */
+		sent.fromIliski('stkmasraf kas', `${kodClause} = mas.kod`);
 		this.loadServerData_queryDuzenle_cari({ ...e, kodClause: 'car.must' });
 		for (let key in attrSet) {
 			switch (key) {
-				case 'MASRAF': sahalar.add(`${kodClause} masrafkod` /*, 'mas.aciklama masrafadi'*/); break
+				case 'MASRAF': sahalar.add(`${kodClause} masrafkod`, 'mas.aciklama masrafadi'); break
 			}
 		}
 	}
 	async loadServerData_recsDuzenleIlk({ recs }) {
-		let kod2Adi; for (let rec of recs) {
+		/*let kod2Adi; for (let rec of recs) {
 			let {masrafkod: kod, masrafadi: adi} = rec;
 			if (adi == null) {
 				if (kod2Adi == null) { kod2Adi = await DMQMasraf.getGloKod2Adi() }
 				adi = rec.masrafadi = kod2Adi[kod]?.trimEnd() ?? ''
 			}
-		}
+		}*/
 		await super.loadServerData_recsDuzenleIlk(...arguments)
 	}
 }
