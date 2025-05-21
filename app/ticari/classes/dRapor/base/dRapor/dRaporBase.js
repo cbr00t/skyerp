@@ -96,7 +96,7 @@ class DRaporOzel extends DRapor {
 }
 class DPanelRapor extends DRaporOzel {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dPanelRapormu() { return true }
-	static get anaTip() { return 'panel' } static get sabitmi() { return false }
+	static get anaTip() { return 'panel' } static get sabitmi() { return false } static get yatayAnalizVarmi() { return !this.sabitmi }
 	static get ozetVarmi() { return !this.sabitmi } static get chartVarmi() { return !this.sabitmi }
 	get main() { return this.id2AltRapor?.main }
 	constructor(e) {
@@ -149,8 +149,8 @@ class DPanelRapor extends DRaporOzel {
 	}
 	altRaporlarDuzenle(e) { }
 	tazele(e) {
-		super.super_tazele(e); const {id2AltRapor} = this, {main} = id2AltRapor, {gridPart: mainGridPart} = main ?? {};
-		for (const altRapor of Object.values(id2AltRapor)) {
+		super.super_tazele(e); let {id2AltRapor} = this, {main} = id2AltRapor, {gridPart: mainGridPart} = main ?? {};
+		for (let altRapor of Object.values(id2AltRapor)) {
 			if (!altRapor?.tazeleYapilirmi) { continue }
 			if (mainGridPart && altRapor != main) {
 				let {mainmi} = altRapor.class, {gridPart} = altRapor;
@@ -184,7 +184,7 @@ class DGrupluPanelRapor extends DPanelRapor {
 	altRaporlarDuzenle(e) {
 		super.altRaporlarDuzenle(e); let {altRaporClassPrefix: prefix, ozetVarmi, chartVarmi} = this.class;
 		if (prefix) {
-			const postfixes = ['_Main'/*, '_Ozet', '_Chart', '_Diagram'*/], classes = postfixes.map(postfix => window[prefix + postfix]).filter(cls => !!cls);
+			let postfixes = ['_Main'/*, '_Ozet', '_Chart', '_Diagram'*/], classes = postfixes.map(postfix => window[prefix + postfix]).filter(cls => !!cls);
 			this.add(...classes)
 		}
 		if (ozetVarmi) { this.add(DAltRapor_Grid_Ozet) }

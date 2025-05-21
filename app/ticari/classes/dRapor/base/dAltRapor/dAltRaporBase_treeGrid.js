@@ -172,7 +172,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	static get raporClass() { return null } static get kod() { return 'main' } static get aciklama() { return this.raporClass?.aciklama }
 	get noAutoColumns() { return true } get sabitmi() { return this.class.raporClass?.sabitmi }
 	get ozetVarmi() { return this.class.raporClass?.ozetVarmi } get chartVarmi() { return this.class.raporClass?.chartVarmi }
-	get width() { return '70%' } get height() { return 'calc(var(--full) - 10px)' }
+	get width() { return this.ozetVarmi || this.chartVarmi ? '70%' : 'var(--full)' } get height() { return 'calc(var(--full) - 0px)' }
 	get tabloYapi() {
 		let {_tabloYapi: result} = this; if (result == null) {
 			let _e = { result: new TabloYapi() }; this.tabloYapiDuzenle(_e); this.tabloYapiDuzenle_son(_e);
@@ -284,7 +284,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				}
 				/*let orj_toplamAttrSet = asSet(gtTip2AttrListe.toplam);
 				let toplamAttrListe = jqxCols.map(({ datafield }) => datafield).filter(belirtec => orj_toplamAttrSet[belirtec.split('_')[0]]);*/
-				const item = grupVeToplam[yatayBelirtec] ?? grupVeToplam[yatayBelirtec.toUpperCase()], {kodsuzmu} = item || {};
+				let item = grupVeToplam[yatayBelirtec] ?? grupVeToplam[yatayBelirtec.toUpperCase()], {kodsuzmu} = item || {};
 				for (let rec of recs) { this.fixKA(rec, yatayBelirtec, kodsuzmu) }
 				let toplamAttrListe = gtTip2AttrListe.toplam, sevRecs = seviyelendirAttrGruplari({
 					source: recs, attrGruplari: [gtTip2AttrListe.sabit],
@@ -373,13 +373,11 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			}
 			if (yatayAnaliz) {
 				let _attrSet = asSet([DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod].filter(x => !!x));
-				if ($.isEmptyObject(_attrSet)) {
-					yatayAnaliz = kullanim.yatayAnaliz = null
-				}
+				if ($.isEmptyObject(_attrSet)) { yatayAnaliz = kullanim.yatayAnaliz = null }
 				else {
 					window.progressManager?.setProgressMax((window.progressManager?.progressMax || 0) + 5);
 					let {belirtec} = DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz] ?? {}, tumYatayAttrSet = e.tumYatayAttrSet = {};
-					let recs = await this.loadServerDataInternal({ attrSet: _attrSet });
+					let recs = await this.loadServerDataInternal({ yatayAnaliz: true, internal: true, attrSet: _attrSet });
 					window.progressManager?.progressStep(4); let liste = [];
 					for (let rec of recs) {
 						let value = rec[belirtec]?.trimEnd?.(); if (value === undefined) {

@@ -1,5 +1,5 @@
 class MQKod extends MQCogul {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get kami() { return true }
 	static get kodSaha() { return 'kod' } static get tanimUISinif() { return ModelTanimPart }
 	static get kodKullanilirmi() { return true } static get bosKodAlinirmi() { return false }
 	static get zeminRenkDesteklermi() { return false } static get kodEtiket() { this.kodKullanilirmi ? super.kodEtiket : 'ID' }

@@ -127,31 +127,47 @@ class DMQTakipGrup extends DMQKA {
 class DMQTakipNo extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Takip No' }
 	static get table() { return 'takipmst' } static get tableAlias() { return 'tak' }
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e;
-		liste.push(new GridKolon({ belirtec: 'takipgrupkod', text: 'Takip Grup', genislikCh: 10 }), new GridKolon({ belirtec: 'takipgrupadi', text: 'Takip Grup Adı', genislikCh: 20, sql: 'tgrp.aciklama' }))
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		/*liste.push(
+			new GridKolon({ belirtec: 'takipgrupkod', text: 'Takip Grup', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'takipgrupadi', text: 'Takip Grup Adı', genislikCh: 20, sql: 'tgrp.aciklama' })
+		)*/
 	}
-	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.takip2GrupBagla() }
+	static loadServerData_queryDuzenle({ sent }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		/*sent.takip2GrupBagla()*/
+	}
 }
 class DMQCari extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cari' } static get zeminRenkDesteklermi() { return true }
 	static get table() { return 'carmst' } static get tableAlias() { return 'car' } static get kodSaha() { return 'must' } static get adiSaha() { return 'birunvan' }
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(
+		super.orjBaslikListesiDuzenle(e); let {liste} = e; liste.push(
 			new GridKolon({ belirtec: 'tipkod', text: 'Tip', genislikCh: 10 }), new GridKolon({ belirtec: 'tipadi', text: 'Tip Adı', genislikCh: 20, sql: 'ctip.aciklama' }),
 			new GridKolon({ belirtec: 'bolgekod', text: 'Bölge', genislikCh: 10, }), new GridKolon({ belirtec: 'bolgeadi', text: 'Bölge Adı', genislikCh: 25, sql: 'bol.aciklama' }),
 			new GridKolon({ belirtec: 'cistgrupkod', text: 'İst. Grup', genislikCh: 10 }), new GridKolon({ belirtec: 'cistgrupadi', text: 'İst. Grup Adı', genislikCh: 20, sql: 'cigrp.aciklama' })
 		)
 	}
-	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.cari2TipBagla(); sent.cari2IstGrupBagla(); sent.cari2BolgeBagla(); sent.cari2IlBagla() }
+	static super_orjBaslikListesiDuzenle(e) { super.orjBaslikListesiDuzenle(e) }
+	static loadServerData_queryDuzenle({ sent }) {
+		super.loadServerData_queryDuzenle(...arguments);
+		sent.cari2TipBagla(); sent.cari2IstGrupBagla(); sent.cari2BolgeBagla(); sent.cari2IlBagla()
+	}
+	static super_loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e) }
 }
 class DMQAltHesap extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Alt Hesap' }
 	static get table() { return 'althesap' } static get tableAlias() { return 'alth' }
 }
 class DMQPlasiyer extends DMQCari {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Plasiyer' }
-	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this; sent.where.add(`${alias}.kayittipi = 'X'`) }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sinifAdi() { return 'Plasiyer' } static get tableAlias() { return 'pls' }
+	static orjBaslikListesiDuzenle(e) { super.super_orjBaslikListesiDuzenle(e) }
+	static loadServerData_queryDuzenle({ sent }) {
+		super.super_loadServerData_queryDuzenle(...arguments); let {tableAlias: alias} = this, {where: wh} = sent;
+		wh.add(`${alias}.kayittipi = 'X'`)
+	}
 }
 class DMQKasa extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kasa' }

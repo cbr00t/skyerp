@@ -2,6 +2,7 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return this == DRapor_Hareketci } 
 	static get uygunmu() { return this.mainClass?.hareketciSinif?.uygunmu ?? true }
 	static get totalmi() { return !(this.hareketmi || this.envantermi) }
+	static get yatayAnalizVarmi() { return this.totalmi } static get ozetVarmi() { return this.totalmi } static get chartVarmi() { return this.totalmi }
 	static get hareketmi() { return false } static get envantermi() { return false }
 	static get kategoriKod() { return `FIN${this.totalmi ? '' : `-${this.kodEk}`}` }
 	static get kategoriAdi() { return `Finansal (${this.aciklamaEk})` }
@@ -19,7 +20,7 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 	static get kodEk() { let {hareketmi, envantermi} = this; return hareketmi ? 'HAR' : envantermi ? 'ENV' : '' }
 	static get aciklamaEk() { let {hareketmi, envantermi} = this; return hareketmi ? 'Hareket' : envantermi ? 'Envanter' : 'Total' }
 	static autoGenerateSubClasses(e) {
-		let subNames = ['Hareket', 'Envanter'], {raporBilgiler} = this;
+		let subNames = ['Hareket' /*, 'Envanter'*/], {raporBilgiler} = this;
 		let evalList = []; for (let {kod, cls} of raporBilgiler) {
 			let parent; {
 				let {mainClass, name} = cls; if (!mainClass) { continue }
@@ -65,8 +66,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		})
 	}
 	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e); let {result} = e;
-		result.addKAPrefix('ref', 'althesap');
+		super.tabloYapiDuzenle(e); let {result} = e; result.addKAPrefix('ref', 'althesap');
 		this.tabloYapiDuzenle_ozelIsaret(e).tabloYapiDuzenle_sube(e);
 		result.addGrupBasit('FISNOX', 'Fis No', 'fisnox', null, null, ({ item }) => item.secimKullanilir());
 		result.addGrupBasit('ALTHESAP', 'Alt Hesap', 'althesap', DMQAltHesap);
@@ -104,8 +104,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 					sent, hrkHV, hv: hrkHV, hvDegeri: key => this.hrkHVDegeri({ ..._e, key }),
 					sentHVEkle: (...keys) => { for (let key of keys) { this.hrkSentHVEkle({ ..._e, key }) } }
 				});
-				this.loadServerData_queryDuzenle_hrkSent(_e);
-				hareketci.uniDuzenle_tumSonIslemler(_e); sent = _e.sent;
+				this.loadServerData_queryDuzenle_hrkSent(_e); hareketci.uniDuzenle_tumSonIslemler(_e);
+				this.loadServerData_queryDuzenle_hkrSent_son(_e); sent = _e.sent;
 				let sahaSayisi = sent?.sahalar?.liste?.length ?? 0; if (!sahaSayisi) { continue }
 				// if (config.dev && selectorStr.includes('perakende') /* && sahaSayisi != 30 */) { debugger }
 				sent.groupByOlustur().gereksizTablolariSil();
@@ -119,7 +119,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		let {sahalar} = sent, tarihSaha = hvDegeri('tarih');
 		this.donemBagla({ ...e, tarihSaha }); for (let key in attrSet) {
 			switch (key) {
-				case 'FISNOX': sentHVEkle('fisnox'); break; case 'REF': sentHVEkle('refkod', 'refadi'); break;
+				case 'FISNOX': sentHVEkle('fisnox'); break; case 'REF': sentHVEkle('refkod', 'refadi'); break
 				case 'ANAISLEM': sentHVEkle('anaislemadi'); break; case 'ISLEM': sentHVEkle('islemadi'); break
 				case 'ALTHESAP': sentHVEkle('althesapkod', 'althesapadi'); break
 				case 'DVKOD': sentHVEkle('dvkod'); break
@@ -133,9 +133,23 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		let baClause = hvDegeri('ba'), bedelClause = hvDegeri('bedel').sumOlmaksizin();
 		this.loadServerData_queryDuzenle_baBedel({ ...e, baClause, bedelClause })
 	}
+	loadServerData_queryDuzenle_hkrSent_son(e) { }
+	loadServerData_queryDuzenle_filtreBaglantiYap({ sent, attrSet }) {
+		return super.loadServerData_queryDuzenle_filtreBaglantiYap(...arguments)
+		/*let {secimler, tabloYapi} = this;    -- MD: Where ve Kolonlara göre tablo bağlantıları oluşturulabilir
+		for (let [key, item] of Object.entries(tabloYapi.grup)) {
+			let {kaYapimi} = item; if (!kaYapimi || item.secimKullanilmazFlag === false || item.formulmu) { continue }
+			let sec_kod = secimler[key], sec_adi = secimler[`${key}Adi`], {mfSinif} = sec_kod ?? {};
+			if (sec_kod && !mfSinif?.mqCogulmu) { continue }
+			let {belirtec} = item.colDefs[0], kodSaha = belirtec, adiSaha;
+			if (kaYapimi) { kodSaha = `${belirtec}kod`; adiSaha = `${belirtec}adi` }
+			if (sec_kod.bosDegilmi) { mfSinif }
+			if (sec_adi.bosDegilmi) { }
+			debugger
+		}*/
+	}
 	loadServerData_queryDuzenle_ek(e) {
-		super.loadServerData_queryDuzenle_ek(e);
-		if (false) {
+		super.loadServerData_queryDuzenle_ek(e) /* if (false) {
 			let {attrSet, stm} = e, {tabloYapi, raporTanim, secimler} = this, {grupVeToplam} = tabloYapi, {tarihBS} = secimler;
 			attrSet = attrSet ?? raporTanim.attrSet; let attrListe = Object.keys(attrSet);
 			let kirilmaSet = asSet(attrListe.filter(key => raporTanim.grup[key]));
@@ -156,10 +170,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 					}
 				}
 				stm.birlestir(dStm)
-				/* stm.with.add(dStm.with); stm.sent.add(dStm.sent) */
 			}
-			debugger
-		}
+		} */
 	}
 	hrkSentHVEkle(e) {
 		let {key: alias, sent} = e, {sahalar} = sent;

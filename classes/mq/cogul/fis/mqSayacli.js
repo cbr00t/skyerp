@@ -1,5 +1,6 @@
 class MQSayacli extends MQCogul {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get kodKullanilirmi() { return false } static get adiKullanilirmi() { return false }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static kami() { return this.kodKullanilirmi }
+	static get kodKullanilirmi() { return false } static get adiKullanilirmi() { return false }
 	static get sayacSaha() { return 'kaysayac' } static get kodSaha() { return this.kodKullanilirmi ? MQKA.kodSaha : this.sayacSaha } static get bosKodAlinirmi() { return false }
 	static get adiSaha() { return this.adiKullanilirmi ? MQKA.adiSaha : null } static get kodEtiket() { return MQKA.kodEtiket } static get adiEtiket() { return MQKA.adiEtiket }
 	static get offlineSahaListe() { return [...super.offlineSahaListe, this.sayacSaha, this.kodKullanilirmi ? this.kodSaha : null, this.adiKullanilirmi ? this.adiSaha : null].filter(x => !!x) }

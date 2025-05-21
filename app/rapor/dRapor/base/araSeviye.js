@@ -152,13 +152,15 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		if (ozetBilgiHTML) { elmEkBilgi.html(ozetBilgiHTML) }
 	}
 	loadServerData_queryDuzenle_tekil(e) {
-		e = e ?? {}; if (this.loadServerData_queryDuzenle(e) === false) { return false }
+		e = e ?? {}; let {internal} = e;
+		if (this.loadServerData_queryDuzenle(e) === false) { return false }
+		if (!internal) { if (this.loadServerData_queryDuzenle_filtreBaglantiYap(e) === false) { return false } }
 		if (this.loadServerData_queryDuzenle_son(e) === false) { return false }
 	}
 	loadServerData_queryDuzenle(e) {
 		let alias = e.alias = e.alias ?? 'fis'; const {secimler, raporTanim, tabloYapi} = this, {yatayAnaliz} = raporTanim.kullanim, {stm} = e;
 		let {attrSet: _attrSet} = e, attrSet = e.attrSet = raporTanim._ozelAttrSet = { ..._attrSet };
-		for (const sent of stm.getSentListe()) { sent.sahalar.add(`COUNT(*) kayitsayisi`) }
+		for (const sent of stm) { sent.sahalar.add(`COUNT(*) kayitsayisi`) }
 		if (secimler) {
 			for (const [key, secim] of Object.entries(secimler.liste)) {
 				if (secim.isHidden || secim.isDisabled) { continue } const kod = secim.userData?.kod; if (!kod) { continue }
@@ -166,7 +168,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				if (uygunmu) { attrSet[kod] = true }
 			}
 		}
-		const {toplam} = tabloYapi; for (let key in attrSet) {
+		let {toplam} = tabloYapi; for (let key in attrSet) {
 			const formul = toplam[key]?.formul; if (!formul) { continue }
 			let {attrListe} = formul; if (attrListe?.length) { $.extend(attrSet, asSet(attrListe)) }
 		}
@@ -175,25 +177,46 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	loadServerData_queryDuzenle_ek(e) { this.loadServerData_queryDuzenle_ek_ozel?.(e) }
 	loadServerData_queryDuzenle_son(e) {
-		this.loadServerData_queryDuzenle_son_ilk_ozel?.(e); let {alias, stm, attrSet} = e, {secimler, tabloYapi} = this;
+		let {internal, alias, stm, attrSet} = e; if (internal) { return }
+		let {secimler, tabloYapi} = this;
+		this.loadServerData_queryDuzenle_son_ilk_ozel?.(e);
 		if (alias) {
 			let {dvKod2Rec: dvKodSet} = this, gecerliDvKodSet = {}, dvKodVarmi = false;
 			for (let key in attrSet) {
 				const dvKod = key.split('_').slice(-1)[0];
 				if (dvKodSet[dvKod]) { gecerliDvKodSet[dvKod] = dvKodVarmi = true }
 			}
-			for (const sent of stm.getSentListe()) {
-				for (const dvKod in gecerliDvKodSet) {
+			for (let sent of stm) {
+				for (let dvKod in gecerliDvKodSet) {
 					let kurAlias = `kur${dvKod}`;
-					sent.leftJoin({ alias, from: `ORTAK..ydvkur ${kurAlias}`, on: [`${alias}.tarih = ${kurAlias}.tarih`, `${kurAlias}.kod = '${dvKod}'`] })
+					sent.leftJoin(alias, `ORTAK..ydvkur ${kurAlias}`, [`${alias}.tarih = ${kurAlias}.tarih`, `${kurAlias}.kod = '${dvKod}'`])
 				}
 				sent.sahalar.add(`COUNT(*) kayitsayisi`)
 			}
 		}
 		let tbWhere = secimler?.getTBWhereClause(e);
-		for (const {where: wh, sahalar} of stm.getSentListe()) { if (tbWhere?.liste?.length) { wh.birlestir(tbWhere) } }
-		/*for (const sent of stm.getSentListe()) { sent.gereksizTablolariSil({ disinda: [alias] }) }*/
+		for (let {where: wh, sahalar} of stm) { if (tbWhere?.liste?.length) { wh.birlestir(tbWhere) } }
+		/*for (const sent of stm) { sent.gereksizTablolariSil({ disinda: [alias] }) }*/
 		this.loadServerData_queryDuzenle_son_son_ozel?.(e)
+	}
+	loadServerData_queryDuzenle_filtreBaglantiYap(e) {
+		let {stm, attrSet: orjAttrSet} = e, {secimler, tabloYapi} = this;
+		let internal = true, attrSet = { ...orjAttrSet };
+		for (let [key, item] of Object.entries(tabloYapi.grup)) {
+			let {kaYapimi} = item; if (!kaYapimi || item.secimKullanilmazFlag === false || item.formulmu) { continue }
+			let sec_kod = secimler[key], sec_adi = secimler[`${key}Adi`], {mfSinif} = sec_kod ?? {};
+			if (!mfSinif?.mqCogulmu || (sec_kod?.bosmu && sec_adi?.bosmu)) { continue }
+			attrSet[key] = true
+		}
+		if (Object.keys(attrSet).length == Object.keys(orjAttrSet).length) { /* yeni birşey eklenmedi */ return }
+		let _e = { ...e, stm: new MQStm(), attrSet, internal }; delete _e.sent; delete _e.uni;
+		if (this.loadServerData_queryDuzenle_tekil(_e) === false) { return false }
+		let {stm: _stm} = _e, _enm = _stm.getSentListe();    /* her iki stm içindeki sent sayısı aynı olmalıdır */
+		for (let asilSent of stm) {
+			let {done, value: sent} = _enm.next();
+			asilSent.from.liste = [...sent.from.liste];
+			if (done) { break }
+		}
 	}
 	loadServerData_queryDuzenle_tekilSonrasi(e) {
 		this.loadServerData_queryDuzenle_tekilSonrasi_ilk_ozel?.(e);
@@ -205,7 +228,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			let asilUniDuzenlendimi = false, asilUni = stm.sent = stm.sent.asUnionAll();
 			if (!filtreDBSet || filtreDBSet[buDBName]) {
 				if (!asilUni.liste.length) { asilUni.add(new MQSent()) }
-				for (let {sahalar} of asilUni.getSentListe()) {
+				for (let {sahalar} of asilUni) {
 					if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db)) {
 						sahalar.add(`${`[ <span class=royalblue>${buDBName}</span> ]`.sqlServerDegeri() ?? '- Aktif VT -'} ${alias_db}`) }
 				}
@@ -239,9 +262,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	loadServerData_queryDuzenle_genelSon(e) {
 		this.loadServerData_queryDuzenle_genelSon_ilk_ozel?.(e);
 		let {stm, attrSet} = e, {grup} = this.tabloYapi;
-		for (let sent of stm.getSentListe()) { sent.groupByOlustur().havingOlustur() }
+		for (let sent of stm) { sent.groupByOlustur().havingOlustur() }
 		if (stm.sent.unionmu) { stm = e.stm = stm.asToplamStm() }
-		let {orderBy} = stm; for (const kod in attrSet) {
+		let {orderBy} = stm; for (let kod in attrSet) {
 			let {orderBySaha} = grup[kod] ?? {};
 			if (orderBySaha) { orderBy.add(orderBySaha) }
 		}
@@ -298,7 +321,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	loadServerData_queryDuzenle_hmr(e) {
 		const {stm, attrSet} = e, alias = e.alias == 'fis' ? 'har' : e.alias, aliasVeNokta = alias ? `${alias}.` : '';
-		for (let sent of stm.getSentListe()) {
+		for (let sent of stm) {
 			const {where: wh, sahalar} = sent; for (const {belirtec, rowAttr, kami, mfSinif} of HMRBilgi.hmrIter()) {
 				const tip = belirtec.toUpperCase(); if (!attrSet[tip]) { continue }
 				const hmrTable = kami && kami ? mfSinif?.table : null;

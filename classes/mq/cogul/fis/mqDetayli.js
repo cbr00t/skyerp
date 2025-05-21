@@ -460,7 +460,8 @@ class MQDetayliMaster extends MQDetayli {
 	static getGridKolonGrup(e) { return MQKA.getGridKolonGrup({ ...e, mfSinif: this }) }
 }
 class MQDetayliGUID extends MQDetayliMaster {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sayacSaha() { return 'id' }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sayacSaha() { return 'id' } static get kami() { return true }
 	get id() { return this.sayac } set id(value) { this.sayac = value }
 	/*yaz(e) { this.id = this.id || newGUID(); return super.yaz(e) }*/
 	topluYazmaKomutlariniOlustur_baslikSayacBelirle(e) { }

@@ -54,7 +54,8 @@ class DMQRapor extends DMQSayacliKA {
 		tanimForm.addStyle(e => `$elementCSS { --ustHeight: ${ustHeight} }`);
 		kaForm.yanYana().addStyle(e => `$elementCSS { --ozetMax-width: 80px; --sag-width: calc(var(--ozetMax-width) + 230px); margin: 10px 0 0 0 !important; padding 0 !important }`);
 		kaForm.id2Builder.aciklama.addStyle_wh(`calc(var(--full) - var(--sag-width)) !important`).addStyle(e => `$elementCSS { max-width: unset !important }`);
-		kaForm.addNumberInput('ozetMax', 'İlk ... kayıt').addStyle_wh('var(--ozetMax-width)');
+		kaForm.addNumberInput('ozetMax', 'İlk ... kayıt').addStyle_wh('var(--ozetMax-width)')
+			.setVisibleKosulu(({ builder: fbd }) => rapor.class.ozetVarmi ? true : 'jqx-hidden');
 		let form = kaForm.addFormWithParent('kullanim');
 			form.addModelKullan('yatayAnaliz', 'Çapraz').setInst(null).dropDown().noMF().kodsuz().listedenSecilemez()
 				.setSource(e => {
@@ -62,7 +63,8 @@ class DMQRapor extends DMQSayacliKA {
 					for (let [kod, {text: aciklama}] of Object.entries(DRapor_AraSeviye_Main.yatayTip2Bilgi)) { result.push(new CKodVeAdi({ kod, aciklama })) }
 					return result
 				})
-				.setValue(kullanim.yatayAnaliz).degisince(({ value }) => kullanim.yatayAnaliz = value);
+				.setValue(kullanim.yatayAnaliz).degisince(({ value }) => kullanim.yatayAnaliz = value)
+				.setVisibleKosulu(({ builder: fbd }) => rapor.class.yatayAnalizVarmi ? true : 'jqx-hidden')
 		let fbd_content = tanimForm.addFormWithParent('content').yanYana().addStyle_fullWH(null, 'calc(var(--full) - var(--ustHeight) - var(--top) + 8px)').addStyle([e =>
 			`$elementCSS { --top: ${contentTop}; position: relative; top: var(--top); z-index: 100 }
 			 $elementCSS > div .${className_listBox} { --label-height: 30px; --label-margin-bottom: 20px }

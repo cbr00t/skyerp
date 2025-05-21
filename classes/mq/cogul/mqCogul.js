@@ -1,6 +1,6 @@
 class MQCogul extends MQYapi {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static _altYapiDictOlustuSet = {}; static _extYapiOlustuSet = {};
+	static _altYapiDictOlustuSet = {}; static _extYapiOlustuSet = {}; static get mqCogulmu() { return true }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'parentItem'] } static get parentMFSinif() { return null }
 	static get listeSinifAdi() { return null } static get kodListeTipi() { return null } static get noAutoFocus() { return false }
 	static get listeUISinif() { return MasterListePart } static get tanimUISinif() { return null } static get secimSinif() { return Secimler }

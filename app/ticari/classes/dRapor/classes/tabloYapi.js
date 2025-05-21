@@ -118,7 +118,7 @@ class TabloYapiItem extends CObject {
 		if (secimlerDuzenleyici != null) { getFuncValue.call(this, secimlerDuzenleyici, e) }
 	}
 	tbWhereClauseDuzenle(e) {
-		let {secimKullanilirFlag, mfSinif} = this;
+		let {secimKullanilirFlag, mfSinif, tbWhereClauseDuzenleyici} = this;
 		secimKullanilirFlag = secimKullanilirFlag ?? !!mfSinif;
 		if (secimKullanilirFlag) {
 			let {ka, secimSinif, mfSinif, colDefs, kaYapimi} = this, kod = ka?.kod;
@@ -126,12 +126,11 @@ class TabloYapiItem extends CObject {
 			let clause = kodSaha ? `${aliasVeNokta}${kodSaha}` : colDefs[0]?.belirtec;
 			if (clause && kod != null && secimSinif) {
 				let {adiSaha} = mfSinif ?? {}, {secimler: sec, where: wh} = e;
-				// wh[kaYapimi ? 'basiSonu' : 'ozellik'](sec[kod], clause);
 				wh.basiSonu(sec[kod], clause);
 				if (kaYapimi && adiSaha) { wh.ozellik(sec[kod + 'Adi'], `${aliasVeNokta}${adiSaha}`) }
 			}
 		}
-		const {tbWhereClauseDuzenleyici} = this; if (tbWhereClauseDuzenleyici != null) { getFuncValue.call(this, tbWhereClauseDuzenleyici, e) }
+		tbWhereClauseDuzenleyici?.call(this, e)
 	}
 	formulEval(e) {
 		const {colDefs} = this; if (!colDefs?.length) { return this }
