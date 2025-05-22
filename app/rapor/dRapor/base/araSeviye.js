@@ -178,7 +178,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	loadServerData_queryDuzenle_ek(e) { this.loadServerData_queryDuzenle_ek_ozel?.(e) }
 	loadServerData_queryDuzenle_son(e) {
 		let {internal, alias, stm, attrSet} = e; if (internal) { return }
-		let {secimler, tabloYapi} = this;
+		let {secimler, tabloYapi} = this, {totalmi} = this.class;
 		this.loadServerData_queryDuzenle_son_ilk_ozel?.(e);
 		if (alias) {
 			let {dvKod2Rec: dvKodSet} = this, gecerliDvKodSet = {}, dvKodVarmi = false;
@@ -187,11 +187,12 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				if (dvKodSet[dvKod]) { gecerliDvKodSet[dvKod] = dvKodVarmi = true }
 			}
 			for (let sent of stm) {
+				let {sahalar} = sent;
 				for (let dvKod in gecerliDvKodSet) {
 					let kurAlias = `kur${dvKod}`;
 					sent.leftJoin(alias, `ORTAK..ydvkur ${kurAlias}`, [`${alias}.tarih = ${kurAlias}.tarih`, `${kurAlias}.kod = '${dvKod}'`])
 				}
-				sent.sahalar.add(`COUNT(*) kayitsayisi`)
+				sahalar.add(`${totalmi === false ? '1' : 'COUNT(*)'} kayitsayisi`)
 			}
 		}
 		let tbWhere = secimler?.getTBWhereClause(e);

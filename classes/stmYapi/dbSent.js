@@ -65,6 +65,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		let aggregateFunctionsSet = { ...cls.aggregateFunctionsSet }; for (let key of ['COUNT', 'STRING_AGG']) { delete aggregateFunctionsSet[key] }
 		let aggregateFunctions = Object.keys(aggregateFunctionsSet);
 		let or = new MQOrClause(); for (let {deger: clause} of sahalar.liste) {
+			if (clause?.toUpperCase == null) { debugger }
 			let clauseUpper = clause?.toUpperCase(); if (!clauseUpper) { continue }
 			if (!cls.hasAggregateFunctions(clauseUpper, aggregateFunctions)) { continue }
 			or.add(converter(clause))

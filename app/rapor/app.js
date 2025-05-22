@@ -55,7 +55,9 @@ class SkyRaporApp extends TicariApp {
 			let subItems = (kategoriKod2MenuItems[kategoriKod] = kategoriKod2MenuItems[kategoriKod] || []);
 			subItems.push(new FRMenuChoice({
 				mne, vioAdim, text: sinif.aciklama, block: async e => {
-					const item = e?.menuItemElement, menuId = (qs.sameWindow == null ? !!$('body').hasClass('no-wnd') : asBool(qs.sameWindow)) ? null : item?.mneText;
+					let {menuItemElement: item, event: evt} = e ?? {}, {ctrlKey: ctrl, shiftKey: shift} = evt ?? {};
+					let newWindow = (ctrl || shift) || !($('body').hasClass('no-wnd') || asBool(qs.sameWindow));
+					let menuId = newWindow ? item?.mneText : null;
 					if (menuId) { this.openNewWindow({ menuId, qs: { sameWindow: true } }); return }
 					let result = (await sinif.goster(e)) || {}, part = result.part ?? result;
 					if (qs.inNewWindow && part?.kapaninca) { part.kapaninca(e => window.close()) }

@@ -1,8 +1,8 @@
 class DRapor_Hareketci extends DRapor_Donemsel {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return this == DRapor_Hareketci } 
 	static get uygunmu() { return this.mainClass?.hareketciSinif?.uygunmu ?? true }
-	static get totalmi() { return !(this.hareketmi || this.envantermi) }
 	static get yatayAnalizVarmi() { return this.totalmi } static get ozetVarmi() { return this.totalmi } static get chartVarmi() { return this.totalmi }
+	static get totalmi() { return !(this.hareketmi || this.envantermi) }
 	static get hareketmi() { return false } static get envantermi() { return false }
 	static get kategoriKod() { return `FIN${this.totalmi ? '' : `-${this.kodEk}`}` }
 	static get kategoriAdi() { return `Finansal (${this.aciklamaEk})` }
@@ -49,13 +49,28 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 }
 class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return null }
+	static get totalmi() { return this.raporClass.totalmi }
+	static get hareketmi() { return this.raporClass.hareketmi } static get envantermi() { return this.raporClass.envantermi }
 	onInit(e) {
 		super.onInit(e); let {hareketciSinif} = this.class;
 		if (hareketciSinif) { this.hareketci = new hareketciSinif() }
 	}
+	tazele(e) {
+		let {totalmi} = this.class, {secimler: sec} = this, {tarihBS} = sec;
+		if (!(totalmi || tarihBS?.basi || this.secimlerIstendimi)) { this.secimlerIstendi(); this.secimlerIstendimi = true; return }
+		return super.tazele(e)
+	}
 	secimlerDuzenle({ secimler: sec }) {
-		super.secimlerDuzenle(...arguments); let {hareketci} = this, {hareketTipSecim: tekSecim} = hareketci?.class ?? {};
-		if (tekSecim) { sec.secimTopluEkle({ tip: new SecimBirKismi({ etiket: 'Tip', tekSecim, grupKod: 'donemVeTarih' }).birKismi().autoBind() }) }
+		super.secimlerDuzenle(...arguments);
+		let grupKod = 'donemVeTarih', {hareketci} = this, {totalmi} = this.class;
+		let {hareketTipSecim: tekSecim} = hareketci?.class ?? {};
+		let liste = {}; if (tekSecim) { liste.tip = new SecimBirKismi({ etiket: 'Tip', tekSecim, grupKod }).birKismi().autoBind() }
+		if (!totalmi) { liste.devirAlinmasin = new SecimBool({ grupKod, etiket: `Devir <b class=firebrick>AlınMAsın</b>` }) }
+		if (!$.isEmptyObject(liste)) { sec.secimTopluEkle(liste) }
+		if (!totalmi) {
+			let {donem, tarihAralik} = sec; donem?.tekSecim?.tarihAralik?.();
+			if (tarihAralik) { tarihAralik.visible(); tarihAralik.sonu = tarihAralik.sonu || today() }
+		}
 	}
 	secimlerInitEvents(e) {
 		super.secimlerInitEvents(e); let {secimlerPart} = this, {secim2Info} = secimlerPart || {}; if (!secim2Info) { return }
@@ -82,8 +97,22 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	}
 	tabloYapiDuzenle_odemeGun(e) { /* do nothing */ }
 	super_tabloYapiDuzenle_odemeGun(e) { super.tabloYapiDuzenle_odemeGun(e) }
+	async loadServerDataInternal(e) {
+		let {secimler, raporTanim} = this, {totalmi} = this.class;
+		let {value: devirAlinmasin} = secimler.devirAlinmasin ?? { value: true };
+		let {donemBS, attrSet} = e, {basi: tarihBasi} = donemBS ?? {};
+		attrSet = attrSet ?? raporTanim.attrSet; if (!totalmi) { attrSet.TARIH = true } e.attrSet = attrSet;
+		let result = [], addRecs = recs => { if (recs?.length) { result.push(...recs) } }
+		if (!(totalmi || devirAlinmasin)) {
+			let devir = true /*, attrSet = { ...orjAttrSet, TARIH: true } */;
+			addRecs(await super.loadServerDataInternal({ ...e, devir, attrSet }))
+		}
+		addRecs(await super.loadServerDataInternal(e));
+		return result
+	}
 	loadServerData_queryDuzenle(e) {
-		e.alias = e.alias ?? 'hrk'; let {stm, attrSet} = e, {hareketci, raporTanim} = this, {yatayAnaliz} = raporTanim.kullanim;
+		e.alias = e.alias ?? 'hrk';
+		let {stm, attrSet} = e, {hareketci, raporTanim} = this, {yatayAnaliz} = raporTanim.kullanim;
 		hareketci.reset(); let {uygunluk} = hareketci, uygunlukVarmi = !$.isEmptyObject(uygunluk);
 		if (!uygunlukVarmi) {
 			let {hareketTipSecim} = hareketci.class; uygunlukVarmi = !$.isEmptyObject(hareketTipSecim.kaListe);
@@ -106,7 +135,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 				});
 				this.loadServerData_queryDuzenle_hrkSent(_e); hareketci.uniDuzenle_tumSonIslemler(_e);
 				this.loadServerData_queryDuzenle_hkrSent_son(_e); sent = _e.sent;
-				let sahaSayisi = sent?.sahalar?.liste?.length ?? 0; if (!sahaSayisi) { continue }
+				// let sahaSayisi = sent?.sahalar?.liste?.length ?? 0; if (!sahaSayisi) { continue }
 				// if (config.dev && selectorStr.includes('perakende') /* && sahaSayisi != 30 */) { debugger }
 				sent.groupByOlustur().gereksizTablolariSil();
 				uni.add(sent)
@@ -134,44 +163,44 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		this.loadServerData_queryDuzenle_baBedel({ ...e, baClause, bedelClause })
 	}
 	loadServerData_queryDuzenle_hkrSent_son(e) { }
-	loadServerData_queryDuzenle_filtreBaglantiYap({ sent, attrSet }) {
-		return super.loadServerData_queryDuzenle_filtreBaglantiYap(...arguments)
-		/*let {secimler, tabloYapi} = this;    -- MD: Where ve Kolonlara göre tablo bağlantıları oluşturulabilir
-		for (let [key, item] of Object.entries(tabloYapi.grup)) {
-			let {kaYapimi} = item; if (!kaYapimi || item.secimKullanilmazFlag === false || item.formulmu) { continue }
-			let sec_kod = secimler[key], sec_adi = secimler[`${key}Adi`], {mfSinif} = sec_kod ?? {};
-			if (sec_kod && !mfSinif?.mqCogulmu) { continue }
-			let {belirtec} = item.colDefs[0], kodSaha = belirtec, adiSaha;
-			if (kaYapimi) { kodSaha = `${belirtec}kod`; adiSaha = `${belirtec}adi` }
-			if (sec_kod.bosDegilmi) { mfSinif }
-			if (sec_adi.bosDegilmi) { }
-			debugger
-		}*/
-	}
 	loadServerData_queryDuzenle_ek(e) {
-		super.loadServerData_queryDuzenle_ek(e) /* if (false) {
-			let {attrSet, stm} = e, {tabloYapi, raporTanim, secimler} = this, {grupVeToplam} = tabloYapi, {tarihBS} = secimler;
-			attrSet = attrSet ?? raporTanim.attrSet; let attrListe = Object.keys(attrSet);
-			let kirilmaSet = asSet(attrListe.filter(key => raporTanim.grup[key]));
-			let leafSabitSet = asSet(attrListe.filter(key => tabloYapi.grup[key] && !toplamSet[key]));
-			let toplamSet = asSet(attrListe.filter(key => tabloYapi.toplam[key]));
-			if (tarihBS?.basi) {
-				let {sqlNull} = Hareketci_UniBilgi.ortakArgs, devirDonusum = { tarih: tarihBS?.basi || 'NULL' };
-				for (let alias of ['mstadi', 'islemadi', 'isladi', 'refadi']) { devirDonusum[alias] = 'DEVİR ==>' }
-				let dStm = stm.asToplamStm();
-				for (let {where, sahalar, alias2Deger} of dStm) {
-					for (let alias in alias2Deger) {
-						if (!leafSabitSet[alias]) { continue }
-						alias2Deger[alias] = devirDonusum[alias] || sqlNull
-					}
-					for (let aMQAliasliYapi of sahalar.liste) {
-						let {alias} = aMQAliasliYapi;
-						aMQAliasliYapi.deger = alias2Deger[alias]
-					}
-				}
-				stm.birlestir(dStm)
+		super.loadServerData_queryDuzenle_ek(e);
+		if (this.class.hareketmi) { this.loadServerData_queryDuzenle_ek_hareket(e) }
+	}
+	loadServerData_queryDuzenle_ek_hareket(e) {
+		let {devir: devirmi, attrSet, stm, donemBS} = e;
+		let {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
+		let {tabloYapi, raporTanim} = this, {grupVeToplam} = tabloYapi;
+		let {basi: tarih} = donemBS ?? {}, tarihDegerClause = tarih?.sqlServerDegeri() ?? sqlNull;
+		attrSet = attrSet ?? raporTanim.attrSet; let attrListe = Object.keys(attrSet);
+		let alias2Key = {}; for (let [key, { kaYapimi, colDefs }] of Object.entries(grupVeToplam)) {
+			let {belirtec: alias} = colDefs?.[0] ?? {}; if (!alias) { continue }
+			alias2Key[alias] = key; if (kaYapimi) { for (let postfix of ['kod', 'adi']) { alias2Key[`${alias}${postfix}`] = key } }
+		}
+		let kirilmaSet = asSet(attrListe.filter(key => raporTanim.grup[key]));
+		let toplamSet = asSet(attrListe.filter(key => tabloYapi.toplam[key]));
+		let leafSabitSet = asSet(attrListe.filter(key => grupVeToplam[key] && !(kirilmaSet[key] || toplamSet[key])));
+		let cnv = {}; if (devirmi) {
+			cnv.TARIH = tarihDegerClause || sqlNull;
+			cnv[Object.keys(leafSabitSet)[0]] = `'DEVİR =>'`
+		}
+		stm = e.stm = stm.deepCopy(); for (let key of ['sent', 'uni']) { delete e[key] }
+		for (let sent of stm) {
+			let {where: wh, sahalar, alias2Deger} = sent, {tarih: tarihClause} = alias2Deger;
+			for (let [alias, deger] of Object.entries(alias2Deger)) {
+				if (deger.sqlBosDegermi()) { continue }
+				let key = alias2Key[alias]; if (!key) { continue }
+				alias2Deger[alias] =
+					(devirmi && leafSabitSet[key]) ? (cnv[key] || sqlNull) :
+					toplamSet[key] ? deger.sumOlmaksizin() : deger
 			}
-		} */
+			for (let aMQAliasliYapi of sahalar.liste) {
+				aMQAliasliYapi.deger = alias2Deger[aMQAliasliYapi.alias] }
+			if (tarihClause && tarihDegerClause) {
+				wh.add(`(${tarihClause} IS NULL OR ${tarihClause} ${devirmi ? '<' : '>='} ${tarihDegerClause})`)
+			}
+			sent.groupByOlustur()
+		}
 	}
 	hrkSentHVEkle(e) {
 		let {key: alias, sent} = e, {sahalar} = sent;
