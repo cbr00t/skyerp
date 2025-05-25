@@ -101,10 +101,13 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		let {secimler, raporTanim} = this, {totalmi} = this.class;
 		let {value: devirAlinmasin} = secimler.devirAlinmasin ?? { value: true };
 		let {donemBS, attrSet} = e, {basi: tarihBasi} = donemBS ?? {};
-		attrSet = attrSet ?? raporTanim.attrSet; if (!totalmi) { attrSet.TARIH = true } e.attrSet = attrSet;
+		attrSet = attrSet ?? raporTanim.attrSet;
+		if (!(totalmi || attrSet.TARIH)) { devirAlinmasin = true }
+		/* if (!totalmi) { attrSet.TARIH = true }
+		e.attrSet = attrSet; */
 		let result = [], addRecs = recs => { if (recs?.length) { result.push(...recs) } }
 		if (!(totalmi || devirAlinmasin)) {
-			let devir = true /*, attrSet = { ...orjAttrSet, TARIH: true } */;
+			let devir = true;  /*, attrSet = { ...orjAttrSet, TARIH: true } */
 			addRecs(await super.loadServerDataInternal({ ...e, devir, attrSet }))
 		}
 		addRecs(await super.loadServerDataInternal(e));

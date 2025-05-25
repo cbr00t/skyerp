@@ -97,7 +97,10 @@ class MQTicariGenelParam extends MQTicariParamBase {
 			altForm.addML('stokAyrimIsimleriText', 'Stok Ayrım İsimleri').noRowAttr().setRowCount(8);
 			altForm.addML('cariAyrimIsimleriText', 'Cari Ayrım İsimleri').noRowAttr().setRowCount(8)
 	}
-	paramSetValues(e) { e = e || {}; super.paramSetValues(e); const {rec} = e; this.ayrimIsimleri = rec.ayrimIsimleri || rec.tip2AyrimIsimleri || {} }
+	paramSetValues({ rec }) {
+		super.paramSetValues(...arguments);
+		this.ayrimIsimleri = rec.ayrimIsimleri || rec.tip2AyrimIsimleri || {}
+	}
 }
 class MQCariGenelParam extends MQTicariParamBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -132,14 +135,14 @@ class MQStokGenelParam extends MQTicariParamBase {
 	static get hmrYapi() {
 		let result = this._hmrYapi; if (result === undefined) {
 			result = {
-				model:  { rowAttr: 'hmrModel', etiket: 'Model', etiketEditable: true },
-				renk:   { rowAttr: 'hmrRenk', etiket: 'Renk', etiketEditable: true },
-				desen:  { rowAttr: 'hmrDesen', etiket: 'Desen', etiketEditable: true },
-				beden:  { rowAttr: 'hmrBeden', etiket: 'Beden', etiketEditable: true },
-				harDet: { rowAttr: 'hmrHarDet', etiket: 'Hareket Detayı', etiketEditable: true },
-				lotNo:  { rowAttr: 'hmrLotNo', etiket: 'Lot No', etiketEditable: true },
-				utsNo:  { rowAttr: 'hmrUtsNo', etiket: 'Uts No', etiketEditable: true },
-				en: { rowAttr: 'hmrEn', etiket: 'En' }, boy: { rowAttr: 'hmrBoy', etiket: 'Boy' },
+				model:     { rowAttr: 'hmrModel', etiket: 'Model', etiketEditable: true },
+				renk:      { rowAttr: 'hmrRenk', etiket: 'Renk', etiketEditable: true },
+				desen:     { rowAttr: 'hmrDesen', etiket: 'Desen', etiketEditable: true },
+				beden:     { rowAttr: 'hmrBeden', etiket: 'Beden', etiketEditable: true },
+				harDet:    { rowAttr: 'hmrHarDet', etiket: 'Hareket Detayı', etiketEditable: true },
+				lotNo:     { rowAttr: 'hmrLotNo', etiket: 'Lot No', etiketEditable: true },
+				utsNo:     { rowAttr: 'hmrUtsNo', etiket: 'Uts No', etiketEditable: true },
+				en:        { rowAttr: 'hmrEn', etiket: 'En' }, boy: { rowAttr: 'hmrBoy', etiket: 'Boy' },
 				yukseklik: { rowAttr: 'hmrYukseklik' }, raf: { rowAttr: 'hmrRaf', etiket: 'Raf' }
 			};
 			this._hmrYapi = result
@@ -306,7 +309,8 @@ class MQFiyatVeIskontoParam extends MQTicariParamBase {
 	constructor(e) { e = e || {}; super(e); for (const key of ['iskSayi', 'iskOranMax']) this[key] = e[key] || {} }
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); const {paramci} = e;
-		let form = paramci.addFormWithParent(); form.addBool('fiyatKDVlidir', 'KDVli Fiyat').setRowAttr('kdvliFiyat'); form.addNumber('fiyatSayi', 'Fiyat Sayısı'); form.addNumber('iskFra', 'İskonto Ondalık');
+		let form = paramci.addFormWithParent(); form.addBool('fiyatKDVlidir', 'KDVli Fiyat').setRowAttr('kdvliFiyat');
+		form.addNumber('fiyatSayi', 'Fiyat Sayısı'); form.addNumber('iskFra', 'İskonto Ondalık');
 		form = paramci.addKullanim().addGrup('Kullanım').addFormWithParent(); form.addBool('kademeliIskonto', 'Kademeli İskonto')
 	}
 	paramSetValues(e) {

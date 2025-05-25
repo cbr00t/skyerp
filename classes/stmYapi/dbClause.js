@@ -107,6 +107,7 @@ class MQSahalar extends MQClause {
 			if (!item) { continue }
 			if (typeof item != 'object') { item = MQAliasliYapi.newForSahaText(item) }
 			let {alias, deger} = item; if (alias) { result[alias] = deger }
+			if (config.dev && alias?.includes('fis.tarih)')) { debugger }
 		}
 		return result
 	}

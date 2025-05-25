@@ -1,7 +1,10 @@
 class DMQRapor extends DMQSayacliKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'rapor'] }
-	static get kodListeTipi() { return 'DMQRAPOR' } static get sinifAdi() { return 'Rapor' } static get table() { return 'wgruprapor' } static get tableAlias() { return 'rap' }
-	static get tanimlanabilirmi() { return true } static get silinebilirmi() { return true } static get tanimUISinif() { return ModelTanimPart } static get secimSinif() { return Secimler }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'rapor'] }
+	static get kodListeTipi() { return 'DMQRAPOR' } static get sinifAdi() { return 'Rapor' }
+	static get table() { return 'wgruprapor' } static get tableAlias() { return 'rap' }
+	static get tanimlanabilirmi() { return true } static get silinebilirmi() { return true }
+	static get tanimUISinif() { return ModelTanimPart } static get secimSinif() { return Secimler }
 	static get kodKullanilirmi() { return false } static get idSaha() { return this.sayacSaha }
 	get raporKod() { let result = this._raporKod; if (result === undefined) { result = this.class.getRaporKod(this.rapor) }; return result }
 	get attrSet() { const result = {}; for (const selector of ['grup', 'icerik']) { $.extend(result, asSet(Object.keys(this[selector]))) } return result }
@@ -40,14 +43,15 @@ class DMQRapor extends DMQSayacliKA {
 		return this
 	}
 	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e); const rfb = e.rootBuilder, tanimForm = e.tanimFormBuilder, kaForm = tanimForm.builders.find(fbd => fbd.id == 'kaForm');
-		const {inst} = e, {rapor, ozetMax, kullanim} = inst, {tabloYapi} = rapor, {kaListe, grupVeToplam} = tabloYapi;
-		const kaDict = {}; for (const ka of kaListe) { kaDict[ka.kod] = ka }
-		const tumAttrSet = asSet(Object.keys(kaDict)), getKalanlarSource = selector => {
+		e = e || {}; super.rootFormBuilderDuzenle(e);
+		let {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e, kaForm = tanimForm.builders.find(fbd => fbd.id == 'kaForm');
+		let {inst} = e, {rapor, ozetMax, kullanim} = inst, {tabloYapi} = rapor, {kaListe, grupVeToplam} = tabloYapi;
+		let kaDict = {}; for (let ka of kaListe) { kaDict[ka.kod] = ka }
+		let tumAttrSet = asSet(Object.keys(kaDict)), getKalanlarSource = selector => {
 			let {attrSet} = inst, tabloYapiItems = selector ? tabloYapi[selector] : null;
 			return Object.keys(tumAttrSet).filter(attr => !attrSet[attr] && (!tabloYapiItems || tabloYapiItems[attr]))
 		}
-		const className_listBox = 'listBox', ustHeight = '50px', contentTop = '13px';
+		let className_listBox = 'listBox', ustHeight = '50px', contentTop = '13px';
 		let solWidth = '230px', ortaWidth = `calc(var(--full) - (${solWidth} + 10px))`;
 		let ortaHeight_grup = '35%', ortaHeight_icerik = `calc(var(--full) - (${ortaHeight_grup} + 5px))`; /*ortaHeight = 'calc((var(--full) / 2) - 5px)'*/;
 		if ($(window).width() >= 700) { ortaHeight_grup = ortaHeight_icerik = 'calc(var(--full) - 50px)' }
@@ -55,23 +59,24 @@ class DMQRapor extends DMQSayacliKA {
 		kaForm.yanYana().addStyle(e => `$elementCSS { --ozetMax-width: 80px; --sag-width: calc(var(--ozetMax-width) + 230px); margin: 10px 0 0 0 !important; padding 0 !important }`);
 		kaForm.id2Builder.aciklama.addStyle_wh(`calc(var(--full) - var(--sag-width)) !important`).addStyle(e => `$elementCSS { max-width: unset !important }`);
 		kaForm.addNumberInput('ozetMax', 'İlk ... kayıt').addStyle_wh('var(--ozetMax-width)')
-			.setVisibleKosulu(({ builder: fbd }) => rapor.class.ozetVarmi ? true : 'jqx-hidden');
+			.setVisibleKosulu(({ builder: fbd }) => rapor.rapor.class.ozetVarmi ? true : 'jqx-hidden');
 		let form = kaForm.addFormWithParent('kullanim');
 			form.addModelKullan('yatayAnaliz', 'Çapraz').setInst(null).dropDown().noMF().kodsuz().listedenSecilemez()
 				.setSource(e => {
 					let result = [new CKodVeAdi(['', ''])];
-					for (let [kod, {text: aciklama}] of Object.entries(DRapor_AraSeviye_Main.yatayTip2Bilgi)) { result.push(new CKodVeAdi({ kod, aciklama })) }
+					for (let [kod, {text: aciklama}] of Object.entries(DRapor_AraSeviye_Main.yatayTip2Bilgi)) {
+						result.push(new CKodVeAdi({ kod, aciklama })) }
 					return result
 				})
 				.setValue(kullanim.yatayAnaliz).degisince(({ value }) => kullanim.yatayAnaliz = value)
-				.setVisibleKosulu(({ builder: fbd }) => rapor.class.yatayAnalizVarmi ? true : 'jqx-hidden')
+				.setVisibleKosulu(({ builder: fbd }) => rapor.rapor.class.yatayAnalizVarmi ? true : 'jqx-hidden')
 		let fbd_content = tanimForm.addFormWithParent('content').yanYana().addStyle_fullWH(null, 'calc(var(--full) - var(--ustHeight) - var(--top) + 8px)').addStyle([e =>
 			`$elementCSS { --top: ${contentTop}; position: relative; top: var(--top); z-index: 100 }
 			 $elementCSS > div .${className_listBox} { --label-height: 30px; --label-margin-bottom: 20px }
 			 $elementCSS > div .${className_listBox} > label { font-size: 180%; color: #999; height: var(--label-height); padding-bottom: var(--label-margin-bottom) }
 			 $elementCSS > div .${className_listBox} > :not(label) { vertical-align: top; height: calc(var(--full) - var(--label-height) - var(--label-margin-bottom)) !important }
 			 $elementCSS > div .${className_listBox} > .jqx-listbox .jqx-listitem-element { font-size: 110% }`]);
-		const kalanlarSourceDuzenlenmis = _source => {
+		let kalanlarSourceDuzenlenmis = _source => {
 			if (_source?.length) { _source = _source.filter(({ kod }) => grupVeToplam[kod] && !grupVeToplam[kod].isHidden ) }
 			_source = [..._source, ...(new Array(10).fill(null).map(x => ({ /*group: ' ',*/ disabled: true })))];
 			/*for (const item of _source) {
@@ -80,18 +85,19 @@ class DMQRapor extends DMQSayacliKA {
 			}*/
 			return _source
 		};
-		const updateKalanlarDS = listBox => listBox.jqxListBox('source', kalanlarSourceDuzenlenmis(getKalanlarSource(listBox.data('selector')).map(kod => kaDict[kod])));
-		const initListBox = e => {
-			const {builder} = e, {id, altInst, input, userData} = builder, selector = userData?.selector; let {source} = e;
+		let updateKalanlarDS = listBox => listBox.jqxListBox('source', kalanlarSourceDuzenlenmis(getKalanlarSource(listBox.data('selector')).map(kod => kaDict[kod])));
+		let initListBox = e => {
+			let {builder, source} = e, {id, altInst, input, userData} = builder, selector = userData?.selector;
 			if (source == null) { source = (id.startsWith('kalanlar') ? getKalanlarSource(selector) : altInst[id] ?? []).map(kod => kaDict[kod]) }
 			if (source?.length && typeof source[0] != 'object') { source = source.map(kod => new CKodVeAdi({ kod, aciklama: kod })) }
 			if (id.startsWith('kalanlar')) { source = kalanlarSourceDuzenlenmis(source) } if (source) { source = source.filter(x => !!x) }
 			if (source?.length) { source = source.filter(({ kod }) => grupVeToplam[kod] && !grupVeToplam[kod].isHidden ) }
-			const width = '100%', height = width, valueMember = 'kod', displayMember = 'aciklama';
-			const allowDrop = true, allowDrag = allowDrop, autoHeight = false, itemHeight = 36, scrollBarSize = 20, filterable = true, filterHeight = 40, filterPlaceHolder = 'Bul', searchMode = 'containsignorecase';
+			let width = '100%', height = width, valueMember = 'kod', displayMember = 'aciklama';
+			let allowDrop = true, allowDrag = allowDrop, autoHeight = false, itemHeight = 36, scrollBarSize = 20;
+			let filterable = true, filterHeight = 40, filterPlaceHolder = 'Bul', searchMode = 'containsignorecase';
 			input.prop('id', id); if (selector != null) { input.data('selector', selector) }
 			input.jqxListBox({ theme, width, height, valueMember, displayMember, source, allowDrag, allowDrop, autoHeight, itemHeight, scrollBarSize, filterable, filterHeight, filterPlaceHolder, searchMode });
-			const changeHandler = evt => {
+			let changeHandler = evt => {
 				const target = evt.currentTarget, {id} = target, args = evt.args ?? {}, {owner, type} = args, {vScrollInstance} = owner ?? {};
 				if (id.startsWith('kalanlar')) {
 					if (!type || type == 'none') {
@@ -112,8 +118,8 @@ class DMQRapor extends DMQSayacliKA {
 		};
 		let fbd_sol = fbd_content.addFormWithParent('sol').altAlta().addStyle_fullWH(solWidth);
 		let fbd_tabs = fbd_sol.addTabPanel('kalanlar').addStyle_fullWH().tabPageChangedHandler(e => {
-			for (const fbd_tabPage of e.builder.builders) {
-				const {input} = fbd_tabPage.builders[0];
+			for (let fbd_tabPage of e.builder.builders) {
+				let {input} = fbd_tabPage.builders[0];
 				if (input?.length) { setTimeout(input => { updateKalanlarDS(input) /*input.jqxListBox('refresh')*/ }, 20, input) } }
 		});
 		fbd_tabs.addTab('grup', 'Sabitler').addStyle_fullWH().addDiv('kalanlar_grup').setEtiket('Kalanlar').etiketGosterim_yok().addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'grup' }).onAfterRun(e => initListBox(e));
@@ -121,10 +127,16 @@ class DMQRapor extends DMQSayacliKA {
 		let fbd_orta = fbd_content.addFormWithParent('orta').yanYana().addStyle_fullWH(ortaWidth)
 			.addStyle(e => `$elementCSS > .formBuilder-element { max-width: 250px !important; min-width: 150px !important; min-height: 200px !important }`)
 		fbd_orta.addDiv('grupListe').setEtiket('Grup').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight_grup).onAfterRun(e => initListBox(e));
-		fbd_orta.addDiv('icerikListe').setEtiket('İçerik').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight_icerik).onAfterRun(e => initListBox(e))
+		fbd_orta.addDiv('icerikListe').setEtiket('İçerik').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight_icerik).onAfterRun(e => initListBox(e));
+		rfb.onAfterRun(({ builder: fbd }) => {
+			setTimeout(() => {
+				let {wnd_raporTanim: wnd} = fbd.inst.rapor;
+				wnd?.jqxWindow('resize')
+			}, 1)
+		})
 	}
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments); liste.push(
 			new GridKolon({ belirtec: 'grupbelirtecler', text: 'Gruplar', maxWidth: 500 }), new GridKolon({ belirtec: 'icerikbelirtecler', text: 'İçerikler', maxWidth: 500 }),
 			new GridKolon({ belirtec: 'ilkxsayi', text: 'Özet Sayı', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'xuserkod', text: 'Kullanıcı', genislikCh: 10 }),
@@ -132,14 +144,14 @@ class DMQRapor extends DMQSayacliKA {
 		)
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {aliasVeNokta} = this, {sent} = e, args = e.args || {};
-		const {encUser, isAdmin} = config.session, {rapor} = args, raporKod = this.getRaporKod(rapor);
+		super.loadServerData_queryDuzenle(e); let {aliasVeNokta} = this, {sent} = e, args = e.args || {};
+		let {encUser, isAdmin} = config.session, {rapor} = args, raporKod = this.getRaporKod(rapor);
 		if (raporKod) { sent.where.degerAta(raporKod, `${aliasVeNokta}raportip`) }
 		if (!isAdmin && encUser) { sent.where.add(new MQOrClause([`${aliasVeNokta}xuserkod = ''`, { degerAta: encUser, saha: `${aliasVeNokta}xuserkod` }])) }
 		sent.sahalar.add(`${aliasVeNokta}raportip`, `${aliasVeNokta}xuserkod`)
 	}
 	static yeniInstOlustur(e) {
-		const inst = super.yeniInstOlustur(e), args = e.args || {}, {rapor} = args;
+		let inst = super.yeniInstOlustur(e), args = e.args || {}, {rapor} = args;
 		if (inst && rapor) { inst.rapor = rapor } return inst
 	}
 	async dataDuzgunmu(e) { await super.dataDuzgunmu(e); return await this.dataDuzgunmuDevam(e) }

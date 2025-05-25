@@ -2,6 +2,7 @@ class DRapor_Ticari extends DRapor_Donemsel {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get kategoriKod() { return 'TICARI' } static get shd() { return null }
 	get stokmu() { return this.shd == 'stok' } get hizmetmi() { return this.shd == 'hizmet' }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { shd: e.shd ?? e.shd ?? this.class.shd }) }
+	async ilkIslemler(e) { await super.ilkIslemler(e); await MQStok.getOzelSahaYapilari()}
 	stok() { this.shd = 'stok'; return this } hizmet() { this.shd = 'hizmet'; return this }
 }
 class DRapor_TicariStok extends DRapor_Ticari {
@@ -47,8 +48,8 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 	fisVeHareketBagla(e) { }
 	tabloYapiDuzenle_shd(e) { const {shd} = this; if (shd) { this[`tabloYapiDuzenle_${shd}`](e) } return this }
 	loadServerData_queryDuzenle_shd(e) { const {shd} = this; if (shd) { this[`loadServerData_queryDuzenle_${shd}`](e) } return this }
-	tabloYapiDuzenle_stok(e) {
-		const {result} = e; result
+	tabloYapiDuzenle_stok({ result }) {
+		result
 			.addKAPrefix('anagrup', 'grup', 'sistgrup', 'stok', 'stokmarka')
 			.addGrupBasit('STANAGRP', 'Stok Ana Grup', 'anagrup', DMQStokAnaGrup)
 			.addGrupBasit('STGRP', 'Stok Grup', 'grup', DMQStokGrup)
@@ -56,10 +57,13 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 			.addGrupBasit('STOK', 'Stok', 'stok', DMQStok)
 			.addGrupBasit('STOKMARKA', 'Stok Marka', 'stokmarka', DMQStokMarka)
 			.addGrupBasit('STOKRESIM', 'Stok Resim', 'stokresim');
+		for (let {attr, aciklama} of MQStok.getOzelSahaYapilari().flatMap(grup => grup.detaylar)) {
+			if (attr) { result.addGrupBasit(attr, aciklama, attr) }
+		}
 		return this
 	}
 	loadServerData_queryDuzenle_stok(e) {
-		const {attrSet, stm} = e; for (const sent of stm.getSentListe()) {
+		let {attrSet, stm} = e; for (let sent of stm) {
 			let {where: wh, sahalar} = sent;
 			if (attrSet.STANAGRP || attrSet.STGRP || attrSet.STISTGRP || attrSet.STOK || attrSet.STOKMARKA) { sent.har2StokBagla() }
 			if (attrSet.STANAGRP) { sent.stok2GrupBagla() } if (attrSet.STOKMARKA) { sent.stok2MarkaBagla() }
@@ -71,6 +75,10 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 					case 'STOK': sahalar.add('har.stokkod', 'stk.aciklama stokadi'); wh.icerikKisitDuzenle_stok({ ...e, saha: 'har.stokkod' }); break
 					case 'STOKRESIM': sahalar.add('har.stokkod resimid', 'NULL stokresim'); break
 					case 'STOKMARKA': sahalar.add('stk.smarkakod stokmarkakod', 'smar.aciklama stokmarkaadi'); break
+					default:
+						for (let {attr, aciklama} of MQStok.getOzelSahaYapilari().flatMap(grup => grup.detaylar)) {
+							if (attr) { sahalar.add(`stk.${attr}`) }
+						}
 				}
 			}
 		}
