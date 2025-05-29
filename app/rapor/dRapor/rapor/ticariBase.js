@@ -77,7 +77,8 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 					case 'STOKMARKA': sahalar.add('stk.smarkakod stokmarkakod', 'smar.aciklama stokmarkaadi'); break
 					default:
 						for (let {attr, aciklama} of MQStok.getOzelSahaYapilari().flatMap(grup => grup.detaylar)) {
-							if (attr) { sahalar.add(`stk.${attr}`) }
+							if (!(attr && attrSet[attr] )) { continue }
+							sahalar.add(`stk.${attr}`)
 						}
 				}
 			}
