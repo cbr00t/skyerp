@@ -263,3 +263,7 @@ class DMQMasraf extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Masraf' }
 	static get table() { return 'stkmasraf' } static get tableAlias() { return 'mas' }
 }
+class DMQOzelIsaret extends MQOzelIsaret {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get defaultChar() { return ['', '*'] }
+}

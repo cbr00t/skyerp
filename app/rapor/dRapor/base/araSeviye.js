@@ -341,7 +341,11 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		} return this
 	}
 	tabloYapiDuzenle_ozelIsaret({ result }) {
-		result.addGrupBasit('ISARET', 'İşaret', 'ozelisaret', MQOzelIsaret, null, ({ item }) => item.setOrderBy('ozelisaret'));
+		result.addGrupBasit('ISARET', 'İşaret', 'ozelisaret', DMQOzelIsaret, null, ({ item }) => {
+			item
+				.setOrderBy('ozelisaret')
+				.setSecimlerDuzenleyici(({ secimler: sec, kod }) => sec.liste[kod].value = ['', '*'])
+		});
 		return this
 	}
 	loadServerData_queryDuzenle_ozelIsaret({ stm, sent, attrSet, kodClause }) {

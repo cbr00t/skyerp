@@ -30,7 +30,7 @@ class SatilmaDurumu extends BuDigerVeHepsi {
 }
 class MQOzelIsaret extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultChar() { return ' ' }
+	static get sinifAdi() { return 'Özel İşaret' } static get tableAlias() { return 'fis' } static get defaultChar() { return ' ' }
 	get yildizmi() { return this.char == '*' } get fiktifmi() { return this.char == 'X' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); const {kaListe} = e;

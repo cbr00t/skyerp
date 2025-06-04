@@ -343,7 +343,10 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		}
 		return result
 	}
-	getRowsHeight(e) { const mfSinif = this.getMFSinif(e), {paramGlobals} = mfSinif; return paramGlobals.rowsHeight || mfSinif?.orjBaslikListesi_defaultRowsHeight }
+	getRowsHeight(e) {
+		let mfSinif = this.getMFSinif(e), {paramGlobals} = mfSinif;
+		return paramGlobals?.rowsHeight || mfSinif?.orjBaslikListesi_defaultRowsHeight
+	}
 	getParentRecAtIndex(rowIndex, gridPart) { const {gridWidget} = this || {}; return (rowIndex == null || rowIndex < 0 ? null : gridWidget.getrowdata(rowIndex)) ?? this.selectedRec }
 	getSubRecs(e) { return this.panelDuzenleyici?.getSubRecs(e) } getSubRec(e) { return this.panelDuzenleyici?.getSubRec(e) }
 	async tazeleIstendi(e) {
@@ -493,7 +496,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	boyutlandirIstendi(e) { const {panelDuzenleyici} = this; if (panelDuzenleyici?.boyutlandirIstendi) { panelDuzenleyici?.boyutlandirIstendi(e) } }
 	async vazgecIstendi(e) {
 		e = e ?? {}; const mfSinif = this.getMFSinif(e)
-		if (await mfSinif?.listeEkrani_vazgecOncesi(e) === false) { return false }
+		if (await mfSinif?.listeEkrani_vazgecOncesi?.(e) === false) { return false }
 		return await super.vazgecIstendi(e)
 	}
 	tekil() { this.tekilmi = true; return this } coklu() { this.tekilmi = false; return this }
