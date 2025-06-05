@@ -67,10 +67,12 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	secimlerDuzenle(e) {
 		super.secimlerDuzenle(e); let {secimler} = e, {grupVeToplam} = this.tabloYapi;
 		if (this.konsolideVarmi) {
+			let {session} = config, {dbName: buDBName} = session, {ekDBListe} = app.params?.dRapor ?? {};
+			let tumDBNameSet = asSet([ buDBName, ...(ekDBListe ?? []) ]);
 			let grupKod = 'DB'; secimler.grupEkle(grupKod, 'Veritabanı');
 			let sec = new SecimBirKismi({ etiket: 'Veritabanı', grupKod }).birKismi();
 			app.wsDBListe()
-				.then(arr => arr.filter(x => x != 'ORTAK').map(x => new CKodVeAdi([x, x])))
+				.then(arr => arr.filter(x => tumDBNameSet[x]).map(x => new CKodVeAdi([x, x])))
 				.then(kaListe => sec.tekSecim = new TekSecim({ kaListe }));
 			secimler.secimTopluEkle({ db: sec });
 			// result.addGrupBasit('DB', 'Veritabanı', 'db')
@@ -138,7 +140,18 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return recs
 	}
 	super_loadServerDataInternal(e) { return super.loadServerDataInternal(e) }
-	loadServerData_ilk(e) { } loadServerData_son(e) { }
+	async loadServerData_ilk(e) {
+		let {attrSet, yatayAnaliz} = e;
+		if (yatayAnaliz && Object.keys(attrSet).length == 1 && attrSet.DB) {
+			let {session} = config, {dbName: buDBName} = session, {ekDBListe} = app.params?.dRapor ?? {}, alias_db = 'db';
+			let {secimler: sec} = this, {value: filtreDBListe} = sec.db, filtreDBSet = filtreDBListe?.length ? asSet(filtreDBListe) : null;
+			let result = filtreDBListe?.length ? filtreDBListe : [buDBName, ...(ekDBListe ?? [])];
+			let getDBText = db => db == buDBName ? `(<span class=forestgreen>${db}</span>)` : db;
+			return result.map(db => ({ db: getDBText(db) }))
+		}
+		return undefined
+	}
+	loadServerData_son(e) { return undefined }
 	gridVeriYuklendi({ rootPart }) {
 		super.gridVeriYuklendi(...arguments);
 		let {rfb_items} = this.rapor, {main} = rfb_items.id2Builder, {layout} = main, elmLabel = layout.children('label');
@@ -221,17 +234,20 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	loadServerData_queryDuzenle_tekilSonrasi(e) {
 		this.loadServerData_queryDuzenle_tekilSonrasi_ilk_ozel?.(e);
-		let {toplamTable} = MQStm, {stm, attrSet} = e, {with: _with} = stm, {konsolideVarmi, secimler: sec} = this;
+		let {stm, attrSet} = e, {with: _with} = stm, {konsolideVarmi, secimler: sec} = this;
 		if (konsolideVarmi && !_with.toplamVarmi) {
 			let {session} = config, {dbName: buDBName} = session, {ekDBListe} = app.params?.dRapor ?? {}, alias_db = 'db';
 			let {value: filtreDBListe} = sec.db, filtreDBSet = filtreDBListe?.length ? asSet(filtreDBListe) : null;
-			if (filtreDBListe?.length) { ekDBListe = filtreDBListe.filter(name => name != buDBName) }
+			if (filtreDBListe?.length) {
+				ekDBListe = filtreDBListe.filter(name => name != buDBName)
+				/* if (!filtreDBSet[buDBName]) { filtreDBSet[buDBName] = true } */
+			}
 			let asilUniDuzenlendimi = false, asilUni = stm.sent = stm.sent.asUnionAll();
 			if (!filtreDBSet || filtreDBSet[buDBName]) {
 				if (!asilUni.liste.length) { asilUni.add(new MQSent()) }
 				for (let {sahalar} of asilUni) {
 					if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db)) {
-						sahalar.add(`${`[ <span class=royalblue>${buDBName}</span> ]`.sqlServerDegeri() ?? '- Aktif VT -'} ${alias_db}`) }
+						sahalar.add(`${`(<span class=forestgreen>${buDBName}</span>)`.sqlServerDegeri() ?? '- Aktif VT -'} ${alias_db}`) }
 				}
 				asilUniDuzenlendimi = true
 			}
@@ -519,7 +535,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	tabloYapiDuzenle_baBedel({ result }) {
 		result
 			.addToplamBasit_bedel('BORCBEDEL', 'Borç Bedel', 'borcbedel').addToplamBasit_bedel('ALACAKBEDEL', 'Alacak Bedel', 'alacakbedel')
-			.addToplamBasit_bedel('ISARETLIBEDEL', 'İşaretli Bedel', 'isaretlibedel');
+			.addToplamBasit_bedel('ISARETLIBEDEL', 'B-A Bakiye', 'isaretlibedel');
 		return this
 	}
 	loadServerData_queryDuzenle_baBedel({ stm, sent, attrSet, baClause, bedelClause }) {

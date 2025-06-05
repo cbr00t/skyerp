@@ -386,7 +386,11 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 						}
 						if (value) { liste.push(value) }
 					} 
-					liste.sort(); liste.unshift('TOPLAM');
+					if (!(Object.keys(_attrSet).length == 1 && _attrSet.DB)) {
+						/* Yatay Analiz, VT liste çekme için veri sort edilmez */
+						liste.sort()
+					}
+					liste.unshift('TOPLAM');
 					colDefs = [...gtTip2ColDefs.sabit];
 					for (let _colDef of gtTip2ColDefs.toplam) {
 						for (let yatayText of liste) {
