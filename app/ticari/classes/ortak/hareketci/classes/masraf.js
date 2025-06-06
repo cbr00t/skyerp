@@ -2,9 +2,7 @@ class MasrafHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 95 }
 	static get kod() { return 'masraf' } static get aciklama() { return 'Masraf' }
 	static get uygunmu() { return app?.params?.ticariGenel?.kullanim?.masraf }
-	static getAltTipAdiVeOncelikClause({ hv }) {
-		return { yon: `'sag'` }
-	}
+	static getAltTipAdiVeOncelikClause({ hv }) { return { yon: `'sag'` } }
 	static mstYapiDuzenle({ result }) {
 		super.mstYapiDuzenle(...arguments);
 		result.set('masrafkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
@@ -13,16 +11,18 @@ class MasrafHareketci extends Hareketci {
     /* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
         super.hareketTipSecim_kaListeDuzenle(arguments); kaListe.push(...[
-			new CKodVeAdi(['alimFatura', 'Alım fatura']),
-			new CKodVeAdi(['hizmet', 'Hizmet Fişleri']),
-			new CKodVeAdi(['krKarti', 'Kredi Kart Masraf']),
-			new CKodVeAdi(['stokCikis', 'Stok Çıkış']),
+			new CKodVeAdi(['alimFatura', 'Alım fatura']), new CKodVeAdi(['hizmet', 'Hizmet Fişleri']),
+			new CKodVeAdi(['krKarti', 'Kredi Kart Masraf']), new CKodVeAdi(['stokCikis', 'Stok Çıkış']),
 			new CKodVeAdi(['genelDekont', 'Genel Dekont'])
 		])
     }
 	uniOrtakSonIslem({ sender, hv, sent, attrSet }) {
 		super.uniOrtakSonIslem(...arguments); let {from, where: wh} = sent;
-		if (!from.aliasIcinTable('mas')) { sent.fromIliski('stkmasraf mas', `${hv.masrafkod} = mas.kod`); wh.add(`${hv.masrafkod} > ''`) }
+		if (!from.aliasIcinTable('mas')) {
+			let kodClause = hv.masrafkod;
+			sent.fromIliski('stkmasraf mas', `${kodClause} = mas.kod`);
+			wh.add(`${kodClause} > ''`)
+		}
 		if (!from.aliasIcinTable('car')) { sent.x2CariBagla({ kodClause: hv.mustkod }) }
 		/*if (sender?.finansalAnalizmi) { }*/
 	}

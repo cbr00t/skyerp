@@ -239,3 +239,24 @@ class DRapor_Hareketci_Masraf_Main extends DRapor_Hareketci_Main {
 		await super.loadServerData_recsDuzenleIlk(...arguments)
 	}
 }
+
+class DRapor_Hareketci_Takip extends DRapor_Hareketci {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get araSeviyemi() { return false } static get vioAdim() { return null }
+	static get _kod() { return 'TAKIPHAR' } static get _aciklama() { return 'Takip' }
+}
+class DRapor_Hareketci_Takip_Main extends DRapor_Hareketci_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get hareketciSinif() { return TakipHareketci } static get raporClass() { return DRapor_Hareketci_Takip }
+	tabloYapiDuzenle({ result }) {
+		super.tabloYapiDuzenle(...arguments);
+		this.tabloYapiDuzenle_cari(...arguments).tabloYapiDuzenle_takip(...arguments)
+	}
+	loadServerData_queryDuzenle_hrkSent(e) {
+		super.loadServerData_queryDuzenle_hrkSent(e); let {attrSet, sent, hvDegeri} = e;
+		let {where: wh, sahalar} = sent, kodClause = hvDegeri('takipno');
+		sent.fromIliski('takipno tak', `${kodClause} = tak.kod`);
+		this.loadServerData_queryDuzenle_takip({ ...e, kodClause });
+		this.loadServerData_queryDuzenle_cari({ ...e, kodClause: 'car.must' })
+	}
+}
