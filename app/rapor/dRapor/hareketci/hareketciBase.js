@@ -1,22 +1,22 @@
 class DRapor_Hareketci extends DRapor_Donemsel {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return this == DRapor_Hareketci } 
-	static get uygunmu() { return this.mainClass?.hareketciSinif?.uygunmu ?? true }
+	static get uygunmu() { return this.mainClass?.hareketciSinif?.uygunmu ?? true } static get hareketciSinif() { return null }
 	static get yatayAnalizVarmi() { return this.totalmi } static get ozetVarmi() { return this.totalmi } static get chartVarmi() { return this.totalmi }
-	static get totalmi() { return !(this.hareketmi || this.envantermi) }
-	static get hareketmi() { return false } static get envantermi() { return false }
+	static get totalmi() { return !(this.hareketmi || this.envantermi) } static get hareketmi() { return false } static get envantermi() { return false }
 	static get kategoriKod() { return `FIN${this.totalmi ? '' : `-${this.kodEk}`}` }
 	static get kategoriAdi() { return `Finansal (${this.aciklamaEk})` }
 	static get kod() {
 		let {_kod: result, kodEk: ek} = this;
-		if (ek) { result = `${ek}_${result.replace('TOTAL', '')}` }
+		if (ek && result) { result = `${ek}_${result.replace('TOTAL', '')}` }
 		return result
 	}
 	static get aciklama() {
 		let {_aciklama: result, aciklamaEk: ek} = this;
-		if (ek) { result = `${result.replace('Total', '')} ${ek}` }
+		if (ek && result) { result = `${result.replace('Total', '')} ${ek}` }
 		return result
 	}
-	static get _kod() { return super.kod } static get _aciklama() { return super.aciklama }
+	static get _kod() { return `${this.hareketciSinif?.kod?.toUpperCase()}HAR` }
+	static get _aciklama() { return this.hareketciSinif?.aciklama || super.aciklama }
 	static get kodEk() { let {hareketmi, envantermi} = this; return hareketmi ? 'HAR' : envantermi ? 'ENV' : '' }
 	static get aciklamaEk() { let {hareketmi, envantermi} = this; return hareketmi ? 'Hareket' : envantermi ? 'Envanter' : 'Total' }
 	static autoGenerateSubClasses(e) {
@@ -48,9 +48,10 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 	}
 }
 class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get hareketciSinif() { return null }
-	static get totalmi() { return this.raporClass.totalmi }
-	static get hareketmi() { return this.raporClass.hareketmi } static get envantermi() { return this.raporClass.envantermi }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get hareketciSinif() { return this.raporClass?.hareketciSinif } static get secimWhereBaglanirmi() { return false }
+	static get totalmi() { return this.raporClass.totalmi } static get hareketmi() { return this.raporClass.hareketmi }
+	static get envantermi() { return this.raporClass.envantermi }
 	onInit(e) {
 		super.onInit(e); let {hareketciSinif} = this.class;
 		if (hareketciSinif) { this.hareketci = new hareketciSinif() }
@@ -98,13 +99,14 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	tabloYapiDuzenle_odemeGun(e) { /* do nothing */ }
 	super_tabloYapiDuzenle_odemeGun(e) { super.tabloYapiDuzenle_odemeGun(e) }
 	async loadServerDataInternal(e) {
-		let {secimler, raporTanim} = this, {totalmi} = this.class;
+		let {hareketci, secimler, raporTanim} = this, {totalmi} = this.class;
 		let {value: devirAlinmasin} = secimler.devirAlinmasin ?? { value: true };
 		let {donemBS, attrSet} = e, {basi: tarihBasi} = donemBS ?? {};
 		attrSet = attrSet ?? raporTanim.attrSet;
 		if (!(totalmi || attrSet.TARIH)) { devirAlinmasin = true }
 		/* if (!totalmi) { attrSet.TARIH = true }
 		e.attrSet = attrSet; */
+		await hareketci?.class?.ilkIslemler(e);
 		let result = [], addRecs = recs => { if (recs?.length) { result.push(...recs) } }
 		if (!(totalmi || devirAlinmasin)) {
 			let devir = true;  /*, attrSet = { ...orjAttrSet, TARIH: true } */

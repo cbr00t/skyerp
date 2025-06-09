@@ -253,21 +253,24 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	loadServerData_recsDuzenle_seviyelendir(e) {
 		super.loadServerData_recsDuzenle_seviyelendir(e); const {gridPart, tabloYapi, raporTanim} = this, {gridWidget} = gridPart;
 		let {grup, icerik} = raporTanim, {kullanim} = raporTanim, {yatayAnaliz} = kullanim;
-		let attrSet = raporTanim._ozelAttrSet ?? raporTanim.attrSet, belirtec2ColDef = [], grupColAttrListe = [], _sumAttrListe = [], _avgAttrListe = [];
-		for (const kod in grup) {
-			const item = tabloYapi.grup[kod]; if (!item) { continue } const {colDefs} = item; if (!colDefs) { continue }
-			for (const colDef of colDefs) { const {belirtec} = colDef; belirtec2ColDef[belirtec] = colDef; grupColAttrListe.push(belirtec) }
+		let attrSet = raporTanim._ozelAttrSet ?? raporTanim.attrSet;
+		let belirtec2ColDef = [], grupColAttrListe = [], _sumAttrListe = [], _avgAttrListe = [];
+		for (let kod in grup) {
+			let item = tabloYapi.grup[kod]; if (!item) { continue }
+			let {colDefs} = item; if (!colDefs) { continue }
+			for (let colDef of colDefs) { let {belirtec} = colDef; belirtec2ColDef[belirtec] = colDef; grupColAttrListe.push(belirtec) }
 		}
-		for (const kod in attrSet) {
+		for (let kod in attrSet) {
 			if (grup[kod]) { continue } let toplammi = false, item = tabloYapi.grup[kod]; if (!item && (item = tabloYapi.toplam[kod])) { toplammi = true }
-			if (!item) { continue } const {colDefs} = item; if (!colDefs) { continue }
-			for (const colDef of colDefs) {
-				const {belirtec} = colDef; belirtec2ColDef[belirtec] = colDef; if (toplammi) { _sumAttrListe.push(belirtec) }
+			if (!item) { continue }
+			let {colDefs} = item; if (!colDefs) { continue }
+			for (let colDef of colDefs) {
+				let {belirtec} = colDef; belirtec2ColDef[belirtec] = colDef; if (toplammi) { _sumAttrListe.push(belirtec) }
 				/*if (toplammi) { (colDef?.aggregates?.includes('avg') ? _avgAttrListe : _sumAttrListe).push(belirtec) } */
 			}
 		}
-		const {records: jqxCols} = gridWidget.base.columns, grupTextColAttr = jqxCols?.[0]?.datafield;
-		const formuller = []; for (const key in attrSet) { const item = tabloYapi.grupVeToplam[key]; if (item?.formulmu) { formuller.push(item) } }
+		let {records: jqxCols} = gridWidget.base.columns, grupTextColAttr = jqxCols?.[0]?.datafield;
+		let formuller = []; for (let key in attrSet) { const item = tabloYapi.grupVeToplam[key]; if (item?.formulmu) { formuller.push(item) } }
 		let {recs} = e; if (recs) {
 			let _recs = recs; recs = []; for (let _rec of _recs) {
 				if (!_rec) { continue } let rec = new DAltRapor_PanelRec({ ..._rec }); recs.push(rec);
@@ -354,8 +357,15 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	}
 	tazeleSonrasi(e) { }
 	async tazele(e) {
-		e = e ?? {}; try {
-			showProgress('Rapor oluşturuluyor...', null, true); await new $.Deferred(p => setTimeout(() => p.resolve(), 30)); window.progressManager?.setProgressMax(20);
+		e = e ?? {}; await new $.Deferred(p => setTimeout(() => p.resolve(), 300));
+		let {part} = this.rapor; if (part?.isDestroyed) { return }
+		try {
+			this._timer_progress = setTimeout(async () => {
+				showProgress('Rapor oluşturuluyor...', null, true);
+				await new $.Deferred(p => setTimeout(() => p.resolve(), 10));
+				window.progressManager?.setProgressMax(10);
+				window.progressManager?.setProgressValue(0)
+			}, 1500);
 			await this.tazeleOncesi(e); window.progressManager?.progressStep(1);
 			let {gridPart, raporTanim} = this, {degistimi, kullanim} = raporTanim, {yatayAnaliz} = kullanim;
 			let {grid, gridWidget} = gridPart, {base} = gridWidget, {defUpdateOnly} = e;
@@ -371,6 +381,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				let {kod} = colDef.userData ?? {}, toplammi = tabloYapi.toplam[kod], selector = toplammi ? 'toplam' : 'sabit';
 				gtTip2ColDefs[selector].push(colDef); if (toplammi && !colDef?.aggregates) { colDef.aggregates = ['sum'] }
 			}
+			window.progressManager?.progressStep(1);
 			if (yatayAnaliz) {
 				let _attrSet = asSet([DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod].filter(x => !!x));
 				if ($.isEmptyObject(_attrSet)) { yatayAnaliz = kullanim.yatayAnaliz = null }
@@ -378,8 +389,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 					window.progressManager?.setProgressMax((window.progressManager?.progressMax || 0) + 5);
 					let {belirtec} = DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz] ?? {}, tumYatayAttrSet = e.tumYatayAttrSet = {};
 					let recs = await this.loadServerDataInternal({ yatayAnaliz: true, internal: true, attrSet: _attrSet });
-					window.progressManager?.progressStep(4); let liste = [];
-					for (let rec of recs) {
+					window.progressManager?.progressStep(3);
+					let liste = []; for (let rec of recs) {
 						let value = rec[belirtec]?.trimEnd?.(); if (value === undefined) {
 							let kod = rec[`${belirtec}kod`]?.trimEnd?.(), aciklama = rec[`${belirtec}adi`]?.trimEnd?.();
 							if (!(kod == null && aciklama == null)) { this.fixKA(rec, belirtec); value = rec[belirtec] }
@@ -388,7 +399,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 					} 
 					if (!(Object.keys(_attrSet).length == 1 && _attrSet.DB)) {
 						/* Yatay Analiz, VT liste çekme için veri sort edilmez */
-						liste.sort()
+						liste.sort().reverse()
 					}
 					liste.unshift('TOPLAM');
 					colDefs = [...gtTip2ColDefs.sabit];
@@ -401,6 +412,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 					}
 				}
 			}
+			else { window.progressManager?.progressStep(3) }
 			_colDefs = colDefs; colDefs = []; let belirtecSet = {}; for (let colDef of _colDefs) {
 				let {belirtec} = colDef; if (belirtecSet[belirtec]) { continue }
 				belirtecSet[belirtec] = true; colDefs.push(colDef)
@@ -421,17 +433,19 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 					let savedColDefs = colDefs; colDefs = [savedColDefs[0], ...sortColDefs, ...savedColDefs.slice(1).filter(colDef => !sortBelirtecSet[colDef.belirtec])]
 				}*/
 			}
-			for (const tip in attrSet) {
+			window.progressManager?.progressStep(1);
+			for (let tip in attrSet) {
 				if (ozetBilgi.grupTipKod && ozetBilgi.icerikTipKod) { break }
 				if (!ozetBilgi.grupTipKod && !tabloYapi.toplam[tip]) { ozetBilgi.grupTipKod = tip }
 				else if (!ozetBilgi.icerikTipKod && tabloYapi.toplam[tip]) { ozetBilgi.icerikTipKod = tip }
 			}
-			for (const prefix of ['grup', 'icerik']) {
+			for (let prefix of ['grup', 'icerik']) {
 				let colDef = ozetBilgi[`${prefix}ColDef`] = tip2ColDefs[ozetBilgi[`${prefix}TipKod`]]?.[0]; $.extend(colDef, { sortDir })
 				ozetBilgi[`${prefix}Attr`] = colDef?.belirtec; ozetBilgi[`${prefix}Text`] = colDef?.text;
 			}
 			window.progressManager?.progressStep(1);
-			try { grid.jqxTreeGrid('columns', colDefs.flatMap(colDef => colDef.jqxColumns)) } catch (ex) { console.error(ex) } window.progressManager?.progressStep(1);
+			try { grid.jqxTreeGrid('columns', colDefs.flatMap(colDef => colDef.jqxColumns)) } catch (ex) { console.error(ex) }
+			window.progressManager?.progressStep(2);
 			/* gridWidget.base.sortcolumn */
 			let ozetBilgi_getColumns = (source, kod, colDefDuzenle) => {
 				return this.getColumns((source[kod]?.colDefs || [])).map(colDef => {
@@ -449,14 +463,19 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 						minWidth: null, maxWidth: null, genislikCh: 16, aggregates: ozetBilgi.icerikColDef?.aggregates || ['sum']
 					}).tipDecimal_bedel() )
 			] : [];
+			window.progressManager?.progressStep(1);
 			raporTanim.degistimi = false; await gridPart._promise_kaFix;
 			if (defUpdateOnly) { delete e.recs; await this.gridVeriYuklendi(e); await this.ozetBilgiRecsOlustur(e) } else { await super.tazele(e) }
-			window.progressManager?.progressStep(2); await this.tazeleDiger(e); window.progressManager?.progressStep(1);
-			setTimeout(() => window.progressManager?.progressEnd(), 5);
+			window.progressManager?.progressStep(2);
+			await this.tazeleDiger(e); window.progressManager?.progressStep(1);
 			this.tazeleSonrasi(e)
+			setTimeout(() => window.progressManager?.progressEnd(), 0);
 		}
 		catch (ex) { hideProgress(); hConfirm(getErrorText(ex), this.class.aciklama); throw ex }
-		finally { setTimeout(() => hideProgress(), 50) }
+		finally {
+			clearTimeout(this._timer_progress); delete this._timer_progress;
+			setTimeout(() => hideProgress(), 50)
+		}
 	}
 	raporTanimIstendi(e) {
 		if (this.wnd_raporTanim?.length) { return this.restartWndRaporTanim(e) }

@@ -4,28 +4,33 @@ class DAltRapor extends DRapor {
 	static get secimSinif() { return MQCogul.secimSinif } get width() { return null } get height() { return null }
 	constructor(e) {
 		e = e || {}; super(e);
-		$.extend(this, { rapor: e.rapor, parentBuilder: e.parentBuilder, secimler: e.secimler, secimlerDuzenleBlock: e.secimlerDuzenleBlock ?? e.secimlerDuzenle })
+		$.extend(this, {
+			rapor: e.rapor, parentBuilder: e.parentBuilder, acilinca: e.acilinca,
+			secimler: e.secimler, secimlerDuzenleBlock: e.secimlerDuzenleBlock ?? e.secimlerDuzenle
+		})
 	}
 	rootFormBuilderDuzenle(e) { }
 	subFormBuilderDuzenle(e) {
-		const {parentBuilder} = this; parentBuilder.onInit(e => this.onInit(e)).onBuildEk(e => this.onBuildEk(e)).onAfterRun(e => this.onAfterRun(e));
+		let {parentBuilder} = this;
+		parentBuilder.onInit(e => this.onInit(e)).onBuildEk(e => this.onBuildEk(e));
 		parentBuilder.addButton('fullScreen').onClick(_e => { this.toggleFullScreen({ ...e, ..._e }) })
+		parentBuilder.onAfterRun(e => this.onAfterRun(e));
 	}
 	newSecimler(e) {
-		const {secimSinif} = this.class; if (secimSinif == null) { return null }
-		const _e = { ...e, secimler: new secimSinif() }; _e.secimler.beginUpdate();
+		let {secimSinif} = this.class; if (secimSinif == null) { return null }
+		let _e = { ...e, secimler: new secimSinif() }; _e.secimler.beginUpdate();
 		this.secimlerDuzenle(_e); this.secimlerDuzenleSon(_e); this.secimlerDuzenle_ozel?.(e);
 		if (_e.secimler) { _e.secimler.endUpdate() }
 		return _e.secimler
 	}
 	secimlerDuzenle(e) { } secimlerDuzenleSon(e) { } secimlerInitEvents(e) { }
-	loadServerData_wsArgsDuzenle(e) { const {secimler} = this; $.extend(e, { secimler }) }
+	loadServerData_wsArgsDuzenle(e) { let {secimler} = this; $.extend(e, { secimler }) }
 	onInit(e) { this.onInit_ozel?.(e) }
 	onBuildEk(e) { this.onBuildEk_ozel?.(e) }
 	onAfterRun(e) {
 		let {fullScreen: builder} = this.parentBuilder.id2Builder, {id2AltRapor} = this.rapor;
 		/* if (Object.keys(id2AltRapor).length < 2) { setTimeout(() => this.toggleFullScreen({ builder }), 1) } */
-		this.onAfterRun_ozel?.(e)
+		this.onAfterRun_ozel?.(e); this.acilinca?.call(this, e)
 	}
 	onResize(e) { }
 	tazeleDiger(e) { const {id2AltRapor} = this.rapor; for (const altRapor of Object.values(id2AltRapor)) { if (altRapor != this) { altRapor.tazele(e) } } }
@@ -56,4 +61,5 @@ class DAltRapor extends DRapor {
 		return this
 	}
 	fixKA(rec, prefix, kodsuzmu) { return this.class.fixKA(rec, prefix, kodsuzmu) }
+	secimlerDuzenleyici(handler) { this.secimlerDuzenleBlock = handler; return this }
 }

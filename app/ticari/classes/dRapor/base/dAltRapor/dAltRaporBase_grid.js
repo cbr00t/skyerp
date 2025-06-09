@@ -1,6 +1,9 @@
 class DAltRapor_Grid extends DAltRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridmi() { return true }
-	constructor(e) { e = e || {}; super(e); if (this.secimler == null) { this.secimler = this.newSecimler(e) } }
+	constructor(e) {
+		e = e || {}; super(e);
+		if (this.secimler == null) { this.secimler = this.newSecimler(e) }
+	}
 	subFormBuilderDuzenle(e) {
 		super.subFormBuilderDuzenle(e); const {parentBuilder} = this;
 		let fbd = this.fbd_grid = parentBuilder.addGridliGosterici('grid').rowNumberOlmasin().notAdaptive()

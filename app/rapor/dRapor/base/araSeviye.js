@@ -25,7 +25,8 @@ class DRapor_AraSeviye extends DGrupluPanelRapor {
 }
 class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get mainmi() { return true }
-	static get araSeviyemi() { return this == DRapor_AraSeviye_Main } get tazeleYapilirmi() { return true } static get konsolideKullanilirmi() { return true }
+	static get araSeviyemi() { return this == DRapor_AraSeviye_Main } get tazeleYapilirmi() { return true }
+	static get secimWhereBaglanirmi() { return true } static get konsolideKullanilirmi() { return true }
 	static get konsolideVarmi() { return this.konsolideKullanilirmi && app.params?.dRapor?.konsolideCikti } get konsolideVarmi() { return this.class.konsolideVarmi }
 	static get finansalAnalizmi() { return this.donemselIslemlermi || this.eldekiVarliklarmi || this.nakitAkismi }
 	static get donemselIslemlermi() { return false } static get eldekiVarliklarmi() { return false } static get nakitAkismi() { return false }
@@ -126,7 +127,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	async loadServerDataInternal(e) {
 		await super.loadServerDataInternal(e); let {raporTanim, secimler} = this, attrSet = e.attrSet ?? raporTanim.attrSet, {maxRow, donemBS} = e;
-		let _e = { ...e, stm: new MQStm(), attrSet, donemBS }, recs = await this.loadServerData_ilk(e); if (recs !== undefined) { return recs }
+		let _e = { ...e, stm: new MQStm(), attrSet, donemBS, raporTanim, secimler, maxRow, donemBS };
+		let recs = await this.loadServerData_ilk(_e); if (recs !== undefined) { return recs }
 		if (this.loadServerData_queryDuzenle_tekil(_e) === false) { return null }
 		if (this.loadServerData_queryDuzenle_tekilSonrasi(_e) === false) { return null }
 		if (this.loadServerData_queryDuzenle_genelSon(_e) === false) { return null }
@@ -208,9 +210,11 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				sahalar.add(`${totalmi === false ? '1' : 'COUNT(*)'} kayitsayisi`)
 			}
 		}
-		let tbWhere = secimler?.getTBWhereClause(e);
-		for (let {where: wh, sahalar} of stm) { if (tbWhere?.liste?.length) { wh.birlestir(tbWhere) } }
-		/*for (const sent of stm) { sent.gereksizTablolariSil({ disinda: [alias] }) }*/
+		if (this.class.secimWhereBaglanirmi) {
+			let tbWhere = secimler?.getTBWhereClause(e);
+			for (let {where: wh, sahalar} of stm) { if (tbWhere?.liste?.length) { wh.birlestir(tbWhere) } }
+			/*for (const sent of stm) { sent.gereksizTablolariSil({ disinda: [alias] }) }*/
+		}
 		this.loadServerData_queryDuzenle_son_son_ozel?.(e)
 	}
 	loadServerData_queryDuzenle_filtreBaglantiYap(e) {
@@ -357,10 +361,20 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		} return this
 	}
 	tabloYapiDuzenle_ozelIsaret({ result }) {
-		result.addGrupBasit('ISARET', 'İşaret', 'ozelisaret', DMQOzelIsaret, null, ({ item }) => {
+		let tekSecimSinif = NormalFiili;
+		result.addGrupBasit('ISARET', 'İşaret', 'ozelisaret', tekSecimSinif, null, ({ item }) => {
 			item
-				.setOrderBy('ozelisaret')
-				.setSecimlerDuzenleyici(({ secimler: sec, kod }) => sec.liste[kod].value = ['', '*'])
+				.setOrderBy('ozelisaret').ozelWhereClause()
+				.setSecimlerDuzenleyici(({ secimler, kod, item }) => {
+					let {grupListe, liste} = secimler;
+					let grupKod = kod; grupListe[grupKod].kapalimi = false;
+					let sec = liste[kod] = new SecimTekSecim({ etiket: 'İşaret', tekSecimSinif, grupKod }).autoBind()
+				}).setTBWhereClauseDuzenleyici(({ kod, secimler, where: wh, kodClause }) => {
+					let sec = secimler.liste[kod], {tekSecim: tSec} = sec;
+					if (!kodClause) { kodClause = item.colDefs[0].belirtec }
+					let values = tSec.fiilimi ? ['', '*'] : ['', 'X'];
+					if (values?.length) { wh.inDizi(values, kodClause) }
+				})
 		});
 		return this
 	}
@@ -460,8 +474,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			.addGrupBasit('STISTGRP', 'Stok İst. Grup', 'sistgrup', DMQStokIstGrup)
 			.addGrupBasit('STOK', 'Stok', 'stok', DMQStok)
 			.addGrupBasit('STOKMARKA', 'Stok Marka', 'stokmarka', DMQStokMarka)
-			.addGrupBasit('BRM', 'Br', 'brm')
-			.addGrupBasit('BRM2', 'Brm2', 'brm2')
+			.addGrupBasit('BRM', 'Brm', 'brm', null, 60, ({ colDef }) => colDef.alignCenter())
+			.addGrupBasit('BRM2', 'Br2', 'brm2', null, 60, ({ colDef }) => colDef.alignCenter())
+			.addGrupBasit('BRMORANI', 'Br/Br2%', 'brmorani', null, 100, ({ colDef }) => colDef.tipDecimal())
 			.addGrupBasit('STOKRESIM', 'Stok Resim', 'stokresim')
 		return this
 	}
@@ -534,7 +549,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	tabloYapiDuzenle_baBedel({ result }) {
 		result
-			.addToplamBasit_bedel('BORCBEDEL', 'Borç Bedel', 'borcbedel').addToplamBasit_bedel('ALACAKBEDEL', 'Alacak Bedel', 'alacakbedel')
+			.addToplamBasit_bedel('BORCBEDEL', 'Borç Bedel', 'borcbedel')
+			.addToplamBasit_bedel('ALACAKBEDEL', 'Alacak Bedel', 'alacakbedel')
 			.addToplamBasit_bedel('ISARETLIBEDEL', 'B-A Bakiye', 'isaretlibedel');
 		return this
 	}

@@ -93,7 +93,8 @@ class TabloYapiItem extends CObject {
 	set orderBySaha(value) { this._orderBySaha = value }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, {
-			tip: e.tip == 'string' ? null : e.tip, mfSinif: e.mfSinif, secimKullanilirFlag: e.secimKullanilirFlag, orderBySaha: e.orderBySaha,
+			tip: e.tip == 'string' ? null : e.tip, mfSinif: e.mfSinif, secimKullanilirFlag: e.secimKullanilirFlag,
+			ozelWhereClauseFlag: e.ozelWhereClauseFlag, orderBySaha: e.orderBySaha,
 			hrkAttr: e.hrkAttr, colDefs: e.colDefs ?? [], secimlerDuzenleyici: e.secimlerDuzenleyici, tbWhereClauseDuzenleyici: e.tbWhereClauseDuzenleyici,
 			kodsuzmu: e.kodsuzmu, isHidden: e.hidden ?? e.isHidden
 		});
@@ -102,7 +103,7 @@ class TabloYapiItem extends CObject {
 	secimlerDuzenle(e) {
 		let {secimKullanilirFlag, mfSinif} = this;
 		let {ka, secimSinif, colDefs, kaYapimi} = this, kod = ka?.kod, kodSaha = mfSinif?.kodSaha;
-		secimKullanilirFlag = secimKullanilirFlag ?? !!mfSinif;
+		secimKullanilirFlag = secimKullanilirFlag ?? !!mfSinif; e.item = this;
 		if (secimKullanilirFlag) {
 			let clauseVarmi = kodSaha || colDefs[0]?.belirtec;
 			if (clauseVarmi && kod != null && secimSinif) {
@@ -118,19 +119,26 @@ class TabloYapiItem extends CObject {
 		this.secimlerDuzenleyici?.call(this, { ...e, kod })
 	}
 	tbWhereClauseDuzenle(e) {
-		let {secimKullanilirFlag, mfSinif, tbWhereClauseDuzenleyici} = this;
-		let {ka, secimSinif, colDefs, kaYapimi} = this, kod = ka?.kod;
+		let {secimKullanilirFlag, mfSinif, ozelWhereClauseFlag, tbWhereClauseDuzenleyici} = this;
+		let {ka, secimSinif, colDefs, kaYapimi} = this, kod = ka?.kod; e.item = this;
 		secimKullanilirFlag = secimKullanilirFlag ?? !!mfSinif;
 		let kodSaha = mfSinif?.kodSaha, alias = mfSinif?.tableAlias || '';
-		let aliasVeNokta = alias ? `${alias}.` : '', clause = `${aliasVeNokta}${kodSaha || colDefs[0]?.belirtec}`;
-		if (secimKullanilirFlag) {
-			if (clause && kod != null && secimSinif) {
-				let {adiSaha} = mfSinif ?? {}, {secimler: sec, where: wh} = e;
-				wh.basiSonu(sec[kod], clause);
+		let aliasVeNokta = alias ? `${alias}.` : '', {belirtec} = colDefs[0], kodClause = `${aliasVeNokta}${kodSaha || belirtec}`;
+		let hv = e.hv ?? e.hrkHV, defHV = e.defHV ?? e.hrkDefHV;
+		let hvDegeri = e.hvDegeri ?? (hv || defHV ? (key => hv?.[key] ?? defHV?.[key]) : null);
+		if (hvDegeri) {
+			let _kodClause = hvDegeri(belirtec) ?? kodClause;
+			if (_kodClause?.sqlDoluDegermi()) { kodClause = _kodClause }
+		}
+		let _e = { ...e, hv, kodClause, hv, defHV, hvDegeri };
+		if (secimKullanilirFlag && !ozelWhereClauseFlag) {
+			if (kodClause && kod != null && secimSinif) {
+				let {adiSaha} = mfSinif ?? {}, {secimler: sec, where: wh} = _e;
+				wh.basiSonu(sec[kod], kodClause);
 				if (kaYapimi && adiSaha) { wh.ozellik(sec[kod + 'Adi'], `${aliasVeNokta}${adiSaha}`) }
 			}
 		}
-		tbWhereClauseDuzenleyici?.call(this, { ...e, kod })
+		tbWhereClauseDuzenleyici?.call(this, { ..._e, kod })
 	}
 	formulEval(e) {
 		const {colDefs} = this; if (!colDefs?.length) { return this }
@@ -164,6 +172,7 @@ class TabloYapiItem extends CObject {
 	tipString() { this.tip = null; return this } tipNumerik() { this.tip = 'number'; return this } tipDate() { this.tip = 'date'; return this } tipBool() { this.tip = 'boolean'; return this }
 	setColDefs(value) { this.colDefs = value; return this } setMFSinif(value) { this.mfSinif = value; return this }
 	secimKullanilir() { this.secimKullanilirFlag = true; return this } secimKullanilmaz() { this.secimKullanilirFlag = false; return this }
+	ozelWhereClause() { this.ozelWhereClauseFlag = true; return this } normalWhereClause() { this.ozelWhereClauseFlag = false; return this }
 	setSecimlerDuzenleyici(value) { this.secimlerDuzenleyici = value; return this } setTBWhereClauseDuzenleyici(value) { this.tbWhereClauseDuzenleyici = value; return this }
 }
 class DRaporFormul extends CObject {

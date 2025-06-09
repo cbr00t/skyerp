@@ -1,8 +1,7 @@
 class DRapor_DonemselIslemler extends DRapor_Donemsel {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get uygunmu() { return true } static get araSeviyemi() { return false }
+	static get uygunmu() { return true } static get araSeviyemi() { return false } static get kategoriKod() { return 'FINANLZ' }
 	static get sabitmi() { return true } static get vioAdim() { return null } static get konsolideKullanilirmi() { return true }
-	static get kategoriKod() { return DRapor_Hareketci.kategoriKod } static get kategoriAdi() { return DRapor_Hareketci.kategoriAdi }
 	static get kod() { return 'DONISL' } static get aciklama() { return 'Dönemsel İşlemler' }
 	altRaporlarDuzenle(e) { super.altRaporlarDuzenle(e); this.add(DRapor_DonemselIslemler_Detaylar) }
 }
@@ -56,26 +55,34 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		let {kullanim} = raporTanim; kullanim.yatayAnaliz = konsolideVarmi ? 'DB' : null;
 		return super.tazele(e)
 	}
+	async loadServerDataInternal(e) {
+		let {secimler: sec} = this, anaTipSet = e.anaTipSet = asSet(sec.anaTip?.value);
+		let {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu;
+		if ($.isEmptyObject(anaTipSet)) { anaTipSet = null }
+		let sabitBelirtecler = e.sabitBelirtecler = ['alttiponcelik', 'alttipadi', 'tarih', 'ba', 'bedel', 'dvbedel', 'dvkod', 'belgetipi', 'finanalizkullanilmaz'];
+		if (ozelIsaretVarmi) { sabitBelirtecler.push('ozelisaret') }
+		let harClasses = e.harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => !!cls.donemselIslemlerIcinUygunmu && (!anaTipSet || anaTipSet[cls.kod]));
+		let harListe = e.harListe = [], promises = [];
+		for (let cls of harClasses) {
+			let {mstYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi;
+			let belirtecler = [...sabitBelirtecler, mstKodAlias, mstAdiAlias, mstAdiAlias2].filter(x => !!x);
+			promises.push(cls.ilkIslemler())
+			let har = new cls(); har.withAttrs(belirtecler); harListe.push(har)
+		}
+		if (promises?.length) { await Promise.allSettled(promises) }
+		return await super.loadServerDataInternal(e)
+	}
 	loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); let {attrSet} = e, {length: attrSetSize} = Object.keys(attrSet);
 		/* if (attrSetSize == 1 && attrSet.DB) { return } */
-		let {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu, {stm} = e, {grupVeToplam} = this.tabloYapi;
+		let {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu, {stm, sabitBelirtecler, harListe} = e, {grupVeToplam} = this.tabloYapi;
 		let {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
 		let {secimler: sec} = this, {tarihBS: donemBS} = sec, {value: devirAlinmasin} = sec.devirAlinmasin;
-		let anaTipSet = asSet(sec.anaTip?.value); if ($.isEmptyObject(anaTipSet)) { anaTipSet = null }
-		let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => !!cls.donemselIslemlerIcinUygunmu && (!anaTipSet || anaTipSet[cls.kod]));
 		let {basi: tBasi, sonu: tSonu} = donemBS ?? {}; tSonu = tSonu || today();
 		/*if (!(tBasi && tSonu)) { throw { isError: true, errorText: `Seçimlerden <b>Dönem</b> seçilmeli veya <b>Tarih Aralık</b> belirtilmelidir` } }*/
 		let tBasiClause = MQSQLOrtak.sqlServerDegeri(tBasi), tSonuClause = MQSQLOrtak.sqlServerDegeri(tSonu);
 		/* let devirTBasi = tBasi ? tBasi.clone().addDays(1) : null, devir_tBasiClause = MQSQLOrtak.sqlServerDegeri(devirTBasi); */
 		/*let belirtecler = Object.keys(attrSet).map(kod => grupVeToplam[kod]?.colDefs?.[0]?.belirtec).filter(x => !!x);*/
-		let sabitBelirtecler = ['alttiponcelik', 'alttipadi', 'tarih', 'ba', 'bedel', 'dvbedel', 'dvkod', 'belgetipi', 'finanalizkullanilmaz'];
-		if (ozelIsaretVarmi) { sabitBelirtecler.push('ozelisaret') }
-		let harListe = []; for (let cls of harClasses) {
-			let {mstYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi;
-			let belirtecler = [...sabitBelirtecler, mstKodAlias, mstAdiAlias, mstAdiAlias2].filter(x => !!x);
-			let har = new cls(); har.withAttrs(belirtecler); harListe.push(har)
-		}
 		let uni = new MQUnionAll(); for (let har of harListe) {
 			let {kod: harTipKod, aciklama: harTipAdi, oncelik, mstYapi} = har.class;
 			let {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi;

@@ -120,7 +120,8 @@ class Hareketci extends CObject {
 		e.hareketci = this; if (!this.uygunmu) { return }
 		for (const ext of this.getExtIter()) { ext.hareketTipSecim_kaListeDuzenle(e) }
 	}
-	uniOrtakSonIslem({ sender, hv, sent, sqlNull, sqlEmpty, sqlZero }) {
+	static ilkIslemler(e) { }
+	uniOrtakSonIslem({ sender, hv, sent, secimler, sqlNull, sqlEmpty, sqlZero }) {
 		if (sender?.finansalAnalizmi) {
 			let {finanalizkullanilmaz: finAnalizKullanimClause} = hv, {where: wh, sahalar} = sent;
 			if (finAnalizKullanimClause == sqlEmpty || finAnalizKullanimClause == sqlNull) { finAnalizKullanimClause = null }
@@ -133,11 +134,13 @@ class Hareketci extends CObject {
 			/*let {from, where: wh} = sent, digerHarmi = from.aliasIcinTable('har')?.deger == 'csdigerhar';
 			wh.degerAta('', `ctip.finanaliztipi`)*/
 		}
+		let {where: wh} = sent, tbWhere = secimler?.getTBWhereClause(...arguments);
+		if (tbWhere?.liste?.length) { wh.birlestir(tbWhere) }
 	}
 	static varsayilanHVDuzenle_ortak({ hv, sqlNull, sqlEmpty }) {
 		for (const key of [
-			'finanalizkullanilmaz', 'ayadi', 'saat', 'unionayrim', 'iceriktipi',
-			'anaislemadi', 'islemkod', 'islemadi', 'dvkod']
+			'finanalizkullanilmaz', 'ayadi', 'saat', 'unionayrim',
+			'iceriktipi', 'islemkod', 'anaislemadi', 'dvkod']
 		) { hv[key] = sqlEmpty }
 	}
 	static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
@@ -153,7 +156,15 @@ class Hareketci extends CObject {
 			fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac', ozelisaret: 'fis.ozelisaret', bizsubekod: 'fis.bizsubekod', tarih: 'fis.tarih',
 			seri: 'fis.seri', fisno: 'fis.no', fisnox: 'fis.fisnox', disfisnox: 'fis.fisnox', ba: 'fis.ba', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
 			fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', muhfissayac: 'fis.muhfissayac', sonzamants: 'fis.sonzamants',
-			karsiodemetarihi: ({ hv }) => hv.vade, isaretlibedel: ({ hv }) => hv.bedel
+			islemadi: ({ hv }) => hv.anaislemadi, fistarih: ({ hv }) => hv.tarih,
+			karsiodemetarihi: ({ hv }) => hv.vade, isaretlibedel: ({ hv }) => hv.bedel,
+			aciklama: ({ hv }) => {
+                let withCoalesce = (clause) => `COALESCE(${clause}, '')`;
+                let {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv;
+                return fisAciklama && detAciklama 
+                    ? `${withCoalesce(fisAciklama)} + ' ' + ${withCoalesce(detAciklama)}` 
+                    : withCoalesce(detAciklama || fisAciklama || sqlEmpty)
+            }
 		})
 	}
 	uygunluk2UnionBilgiListeDuzenle(e) { if (this.class.uygunmu) { this.uygunluk2UnionBilgiListeDuzenleDevam(e) } }
@@ -194,6 +205,7 @@ class Hareketci extends CObject {
 	}
 	uniDuzenle(e) {
 		let {uygunluk2UnionBilgiListe, attrSet} = this, {varsayilanHV: defHV, zorunluAttrSet} = this.class;
+		let rapor = e.rapor ?? e.sender, secimler = e.secimler ?? rapor?.secimler;
 		if ($.isEmptyObject(attrSet)) { attrSet = null }
 		let {uygunluk} = this, uygunlukVarmi = !$.isEmptyObject(uygunluk);
 		if (!uygunlukVarmi) {
@@ -222,8 +234,11 @@ class Hareketci extends CObject {
 						let saha = deger; if (alias) { saha += ` ${alias}` }
 						sent.add(saha)
 					}
+					hv = _e.hv
 				}
-				_e.hv = { ...defHV, ..._e.hv }; this.uniDuzenle_tumSonIslemler(_e); sent = _e.sent;
+				let hvDegeri = key => hv?.[key] || defHV?.[key];
+				$.extend(_e, { ...defHV, ...hv, rapor, secimler, hvDegeri });
+				this.uniDuzenle_tumSonIslemler(_e); sent = _e.sent;
 				sent.groupByOlustur().gereksizTablolariSil();
 				if (sent?.sahalar?.liste?.length) { uni.add(sent) }
 			}

@@ -85,11 +85,12 @@ class MQSQLOrtak extends CObject {
 	static sqlDoluDegermi(text) { return !this.sqlBosDegermi(text) }
 	static sumOlmaksizin(text) {
 		let Prefix = 'SUM('; if (!text?.toUpperCase().includes(Prefix)) { return text }
-		return text.fastReplaceSplit(Prefix, '(')
+		text = text.fastReplaceSplit(Prefix, '(').trim('()');
+		return text
 	}
 	static asSumDeger(text) {
 		if (!text || text == 'NULL' || text == `''` || text == '0') { return text }
-		return `SUM(${sumOlmaksizin(text)})`
+		return `SUM(${this.sumOlmaksizin(text)})`
 	}
 	static asSUMDeger(text) { return this.asSumDeger(text) }
 	static boolClause(e, _styled) {

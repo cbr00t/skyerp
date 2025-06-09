@@ -97,10 +97,10 @@ class HMRBilgi extends CIO {
 		}
 	}
 	static *hmrIter(e) {
-		e = e ?? {}; const DefaultGenislikCh = 10, DefaultAdiGenislikCh = DefaultGenislikCh + 13;
+		e = e ?? {}; let DefaultGenislikCh = 10, DefaultAdiGenislikCh = DefaultGenislikCh + 13;
 		let {belirtec2Bilgi, belirtecSet} = this, ekOzellikmi = e.ekOzellik ?? e.ekOzellikmi;
 		for (let [belirtec, _item] of Object.entries(belirtec2Bilgi)) {
-			if (!belirtecSet[belirtec] || (ekOzellikmi == null ? true : ekOzellikmi != _item.ekOzellikmi)) { continue }
+			if (!belirtecSet[belirtec] || (ekOzellikmi == null ? false : ekOzellikmi != _item.ekOzellikmi)) { continue }
 			let item = {
 				..._item,
 				get defaultValue() { return item.numerikmi ? 0 : '' },
@@ -171,6 +171,7 @@ class HMRBilgi extends CIO {
 	hmrIter(e) { return this.class.hmrIter(e) }
 	static hmrIter_hmr(e) { return this.hmrIter({ ...e, ekOzellik: false }) }
 	static hmrIter_ekOzellik(e) { return this.hmrIter({ ...e, ekOzellik: true }) }
+	static [Symbol.iterator](e) { return this.hmrIter(e) }
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e) }
 	setValues(e) {
 		super.setValues(e); const {rec} = e;

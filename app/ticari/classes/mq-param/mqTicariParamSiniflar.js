@@ -338,7 +338,8 @@ class MQAlimSatisParamOrtak extends MQTicariParamBase {
 			kullanim = form.addKullanim(); kullanim.addBool('dogrudanIrsaliye', 'Siparişsiz İrsaliye girişi yapılır'); kullanim.addBool('dogrudanFatura', 'İrsaliyesiz Fatura girişi yapılır');
 	    tabPage = paramci.addTabPage('ekmodul', 'Ek Modül'); form = temps.islem_kullanim = tabPage.addGrup({ id: 'islemKullanim', etiket: 'İşlem Kullanımı' }).addFormWithParent();
 		kullanim = form.addKullanim();
-			kullanim.addBool('ihracKaydiyla', 'İhraç Kaydıyla'); kullanim.addBool('konsinye', 'Konsinye'); kullanim.addBool('emanet', 'Emanet'); kullanim.addBool('fason', 'Fason');
+			kullanim.addBool('ihracKaydiyla', 'İhraç Kaydıyla'); kullanim.addBool('konsinye', 'Konsinye');
+			kullanim.addBool('emanet', 'Emanet'); kullanim.addBool('yeniEmanet', 'Yeni Emanet'); kullanim.addBool('fason', 'Fason');
 			kullanim.addBool('talepTeklif', 'Talep/Teklif'); kullanim.addBool('ticariKosul', 'Alım Koşulları'); kullanim.addBool('serbestMeslekMakbuzu', 'Serbest Meslek Makbuzu');
 		tabPage = paramci.addTabPage('if', 'İrs->Fat');
 		form = tabPage.addGrup({ etiket: 'İrs->Fat' }).addFormWithParent();
@@ -364,6 +365,7 @@ class MQSatisParam extends MQAlimSatisParamOrtak {
 		let form = temps.islem_kullanim, kullanim = form.addKullanim();
 			kullanim.addBool('satisRota', 'Satış Rotası'); kullanim.addBool('malKabulNo', 'Mal Kabul No'); kullanim.addBool('kunyeVeBorsa', 'Künye ve Borsa');
 			kullanim.addBool('mikroIhracat', 'Mikro İhracat'); kullanim.addBool('internetSatisi', 'İnternet Satışı'); kullanim.addBool('kamuIhale', 'Kamu İhale');
+			kullanim.addBool('stokIadeGiderPusulasi', 'Gider Pusulası')
 		form = temps.sip2_irsFat; form.addBool('sip2Irsaliye', 'Sip -> İrs Dönüşüm Yapılır'); form.addBool('sip2XSecerek', 'Sip->İrs/Fat Seçerek Dönüşüm'); form.addBool('sip2XEkransalDuzenleme', 'Sip->İrs/Fat Toplu Dönüşüm');
 		let tabPage = paramci.addTabPage('sf', 'Sip->Fat'); form = tabPage.addGrup().addFormWithParent(); kullanim = form.addKullanim();
 			form.addBool('sip2Fatura', 'Sip->Fat Dönüşüm Yapılır');
@@ -458,6 +460,17 @@ class MQAktarimParam extends MQTicariParamBase {
 		super.paramSetValues(...arguments);
 		this.yazarKasa = rec.yazarKasa ?? rec.yazarkasa ?? this.yazarKasa
 	}
+}
+class MQMaliyetParam extends MQTicariParamBase {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sinifAdi() { return 'Maliyet Parametreleri' } static get paramKod() { return 'STML' }
+	static paramYapiDuzenle(e) {
+		super.paramYapiDuzenle(e); const {paramci} = e; paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`);
+		let form = paramci.addFormWithParent();
+			form.addTekSecim('yerMaliyetSekli', 'Yer Maliyet Şekli').dropDown().noMF().kodsuz().setTekSecim(YerMaliyetSekli).addStyle_wh(300);
+			form.addBool('alimIadeHesap', 'Alım İADEleri Hesaplanır')
+	}
+	paramSetValues({ rec }) { super.paramSetValues(...arguments) }
 }
 class MQMuhasebeParam extends MQTicariParamBase {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Parametreleri' } static get paramKod() { return 'MHGN' }

@@ -28,7 +28,9 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 	}
 	static autoGenerateSubClasses(e) { }
 	goster(e) { return null } tazele(e) { }
-	onInit(e) { } onBuildEk(e) { } onAfterRun(e) { }
+	onInit(e) { }
+	onBuildEk(e) { }
+	onAfterRun({ rfb }) { /* let {layout} = rfb; layout.addClass('slow-animation') */ }
 }
 class DRaporMQ extends DRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'mq' } static get dMQRapormu() { return true }
@@ -45,7 +47,8 @@ class DRaporOzel extends DRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'ozel' } static get dOzelRapormu() { return true }
 	async goster(e) {
 		e = e || {}; const inst = this, {partName} = this, {aciklama} = this.class, title = e.title ?? `<b class="royalblue">${aciklama}</b> Raporu`
-		let rfb = new RootFormBuilder({ id: partName }).noDestroy().setInst(this).asWindow(title), _e = { ...e, rfb }; this.rootFormBuilderDuzenle(_e); rfb = _e.rfb;
+		let rfb = new RootFormBuilder({ id: partName }).noDestroy().setInst(this).asWindow(title).addCSS('slow-animation');
+		let _e = { ...e, rfb }; this.rootFormBuilderDuzenle(_e); rfb = _e.rfb;
 		await this.ilkIslemler(e); await this.ilkIslemler_ek(e);
 		rfb.onInit(e => this.onInit({ ...e, rfb: e.builder }));
 		rfb.onBuildEk(e => this.onBuildEk({ ...e, rfb: e.builder }));
@@ -64,13 +67,14 @@ class DRaporOzel extends DRapor {
 		rfb.addForm('bulForm')
 			.setLayout(e => $(`<div class="${e.builder.id} part"><input class="input full-wh" type="textbox" maxlength="100"></input></div>`))
 			.onAfterRun(e => {
-				const {builder} = e, {layout} = builder;
+				let {builder} = e, {layout} = builder;
 				let bulPart = builder.part = new FiltreFormPart({ layout, degisince: e => { const {tokens} = e; this.hizliBulIslemi({ ...e, builder, bulPart, sender: this, layout, tokens }) } });
 				bulPart.run()
 			})
 	}
 	onAfterRun(e) {
-		super.onAfterRun(e); const {rfb} = e, rootPart = rfb.part; $.extend(rootPart, { builder: rfb, inst: this });
+		super.onAfterRun(e); let {rfb} = e, {part: rootPart} = rfb;
+		$.extend(rootPart, { builder: rfb, inst: this });
 		let resizeHandler = this._resizeHandler = event => this.onResize({ ...e, event });
 		rootPart.builder = rfb; rootPart.layout.prop('id', rfb.id); window.addEventListener('resize', resizeHandler)
 	}
@@ -78,10 +82,15 @@ class DRaporOzel extends DRapor {
 	islemTuslariArgsDuzenle(e) { }
 	islemTuslariGetId2Handler(e) { return ({ tazele: e => e.builder.inst.tazele(e), vazgec: e => e.builder.rootPart.close(e) }) }
 	hizliBulIslemi(e) {
-		const {bulPart} = e; clearTimeout(this._timer_hizliBulIslemi_ozel); this._timer_hizliBulIslemi_ozel = setTimeout(() => {
+		let {bulPart} = e; clearTimeout(this._timer_hizliBulIslemi_ozel); this._timer_hizliBulIslemi_ozel = setTimeout(() => {
 			try {
-				const {input} = bulPart; this.hizliBulIslemi_ara(e)
-				for (const delayMS of [400, 1000]) { setTimeout(() => { bulPart.focus(); setTimeout(() => { input[0].selectionStart = input[0].selectionEnd = input[0].value?.length }, 205) }, delayMS) }
+				let {input} = bulPart; this.hizliBulIslemi_ara(e);
+				for (let  delayMS of [400, 1000]) {
+					setTimeout(() => {
+						bulPart.focus();
+						setTimeout(() => { input[0].selectionStart = input[0].selectionEnd = input[0].value?.length }, 205)
+					}, delayMS)
+				}
 				setTimeout(() => FiltreFormPart.hizliBulIslemi(e), 500)
 			}
 			finally { delete this._timer_hizliBulIslemi_ozel }
@@ -89,8 +98,10 @@ class DRaporOzel extends DRapor {
 	}
 	hizliBulIslemi_ara(e) { }
 	tazele(e) {
-		super.tazele(e); const {builder} = e, rfb = builder.rootBuilder, parentBuilder = rfb.id2Builder.items ?? rfb;
-		for (const fbd of parentBuilder.getBuilders()) { const {part} = fbd; if (part?.tazele) { part.tazele(e) } if (part?.dataBind) { part.dataBind(e) } }
+		super.tazele(e); let {rootBuilder: rfb} = e.builder, parentBuilder = rfb.id2Builder.items ?? rfb;
+		for (let {part} of parentBuilder.getBuilders()) {
+			if (part) { part.tazele?.(e); part.dataBind?.(e) }
+		}
 	}
 	super_tazele(e) { super.tazele(e) }
 }

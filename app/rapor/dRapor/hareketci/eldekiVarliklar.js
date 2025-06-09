@@ -1,8 +1,7 @@
 class DRapor_EldekiVarliklar extends DRapor_AraSeviye {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get uygunmu() { return true } static get araSeviyemi() { return false }
+	static get uygunmu() { return true } static get araSeviyemi() { return false } static get kategoriKod() { return 'FINANLZ' }
 	static get sabitmi() { return true } static get vioAdim() { return null } static get konsolideKullanilirmi() { return true }
-	static get kategoriKod() { return DRapor_Hareketci.kategoriKod } static get kategoriAdi() { return DRapor_Hareketci.kategoriAdi }
 	static get kod() { return 'ELDVAR' } static get aciklama() { return 'Eldeki Varlıklar' }
 	altRaporlarDuzenle(e) { this.add(DRapor_EldekiVarliklar_Sol, DRapor_EldekiVarliklar_Sag) }
 	rootFormBuilderDuzenle(e) {

@@ -126,7 +126,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		const {result} = e, {stokmu} = this, toplamPrefix = e.toplamPrefix ?? this.class.toplamPrefix;
 		result.addToplam(new TabloYapiItem().setKA('MIKTAR', `${toplamPrefix}Miktar`).addColDef(new GridKolon({ belirtec: 'miktar', text: `${toplamPrefix}Miktar`, genislikCh: 15, filterType: 'numberinput' }).tipDecimal()));
 		if (stokmu) {
-			for (const tip of Object.keys(MQStokGenelParam.tip2BrmListe) ?? []) {
+			for (let tip of Object.keys(MQStokGenelParam.tip2BrmListe) ?? []) {
 				result.addToplam(new TabloYapiItem().setKA(`MIKTAR${tip}`, `${toplamPrefix}Miktar (${tip})`)
 					 .addColDef(new GridKolon({ belirtec: `miktar${tip}`, text: `${toplamPrefix}${tip}`, genislikCh: 15, filterType: 'numberinput' }).tipDecimal()))
 			}
@@ -134,14 +134,16 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		return this
 	}
 	loadServerData_queryDuzenle_miktar(e) {
-		const {attrSet, stm} = e, PrefixMiktar = 'MIKTAR'; for (const sent of stm.getSentListe()) {
-			const {sahalar} = sent; if (attrSet.STOK || Object.keys(attrSet).find(x => x.startsWith(PrefixMiktar))) { sahalar.add('brm') }
+		let {attrSet, stm} = e, PrefixMiktar = 'MIKTAR';
+		for (let sent of stm.getSentListe()) {
+			const {sahalar} = sent;
+			if (attrSet.STOK || Object.keys(attrSet).find(x => x.startsWith(PrefixMiktar))) { sahalar.add('brm') }
 			for (const key in attrSet) {
 				switch (key) {
 					case PrefixMiktar: sahalar.add('SUM(har.miktar) miktar'); break
 					default:
 						if (key.startsWith(PrefixMiktar)) {
-							const brmTip = key.slice(PrefixMiktar.length)?.toUpperCase();
+							let brmTip = key.slice(PrefixMiktar.length)?.toUpperCase();
 							sahalar.add(`${this.getBrmliMiktarClause({ brmTip, mstAlias: 'stk', harAlias: 'har' })} miktar${brmTip}`)
 						}
 						break

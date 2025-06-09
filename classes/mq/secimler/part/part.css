@@ -36,8 +36,8 @@
 /*.secimler.part .secimler-form:not(:focus) { overflow-y: hidden }*/
 .secimler.part .secimler-form .secim-grup { position: relative; font-size: var(--full); margin: 0 0 5px 0 }
 .secimler.part .secimler-form .secim-grup > div { position: relative; padding-right: 0 !important }
-.secimler.part .secimler-form .secim-grup > .header { font-size: 120%; position: relative; width: var(--full); height: var(--full); min-height: initial !important; height: 25px !important; padding: 0 !important }
-.secimler.part .secimler-form .secim-grup > .header > .jqx-expander-header-content { font-weight: bold; width: var(--full); height: var(--full); position: relative; margin-top: 0; padding-left: 10px }
+.secimler.part .secimler-form .secim-grup > .header { font-size: 120%; position: relative; width: var(--full); height: var(--full); min-height: initial !important; height: 26px !important; padding: 0 !important }
+.secimler.part .secimler-form .secim-grup > .header > .jqx-expander-header-content { font-weight: bold; width: var(--full); height: 33px; position: relative; margin-top: 0; padding-left: 10px }
 .secimler.part .secimler-form .secim-grup > .header > .jqx-expander-header-content > .asil { position: relative; z-index: 200 !important }
 .secimler.part .secimler-form .secim-grup > .header > .jqx-expander-header-content > .diger {
 	font-size: 85%; text-align: right; color: royalblue; height: calc(var(--full) - 7px);
@@ -46,12 +46,17 @@
 }
 .secimler.part .secimler-form .secim-grup > .header > .jqx-expander-header-content > .diger > .ozetBilgi-item,
 	.secimBilgi .ozetBilgi-item {
-		height: var(--full); padding: 3px 8px; padding-top: 0; border: 1px solid #aaa; border-radius: 10px;
-		white-space: nowrap !important; text-wrap: nowrap !important; text-overflow: ellipsis !important; overflow: hidden !important
+		text-align: center; height: var(--full); padding: 3px 8px !important;
+		border: 1px solid #aaa; border-radius: 8px; box-sizing: border-box !important;
+		white-space: nowrap !important; text-wrap: nowrap !important;
+		text-overflow: ellipsis !important; overflow: hidden !important
 	}
+.secimler.part .secimler-form .secim-grup > .header > .jqx-expander-header-content > .diger > .ozetBilgi-item {
+	padding: 0 8px !important; border-radius: 5px !important
+}
 .secimler.part .secimler-form .secim-grup > .header > .jqx-expander-header-content > .diger > .ozetBilgi-item:not(:first-child),
 	.secimBilgi > .ozetBilgi-item:not(:first-child) { margin-left: 10px }
-.secimBilgi { font-size: 75%; padding-top: 5px !important }
+.secimBilgi { font-size: 80%; padding: 0 !important }
 .secimler.part .secimler-form .secim-grup > .header:not(.jqx-expander-header-expanded) { background-color: #dbdde4; opacity: .7 }
 .secimler.part .secimler-form .secim-grup > .header.jqx-expander-header-expanded { opacity: 1 }
 .secimler.part .secimler-form .secim-grup > .header .jqx-expander-arrow { background-size: 32px 32px; margin: 5px 15px !important }

@@ -2,7 +2,8 @@ class MasrafHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 95 }
 	static get kod() { return 'masraf' } static get aciklama() { return 'Masraf' }
 	static get uygunmu() { return app?.params?.ticariGenel?.kullanim?.masraf }
-	static getAltTipAdiVeOncelikClause({ hv }) { return { yon: `'sag'` } }
+	static get eldekiVarliklarIcinUygunmu() { return false }
+	static getAltTipAdiVeOncelikClause({ hv }) { return { } }
 	static mstYapiDuzenle({ result }) {
 		super.mstYapiDuzenle(...arguments);
 		result.set('masrafkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
@@ -18,12 +19,10 @@ class MasrafHareketci extends Hareketci {
     }
 	uniOrtakSonIslem({ sender, hv, sent, attrSet }) {
 		super.uniOrtakSonIslem(...arguments); let {from, where: wh} = sent;
-		if (!from.aliasIcinTable('mas')) {
-			let kodClause = hv.masrafkod;
-			sent.fromIliski('stkmasraf mas', `${kodClause} = mas.kod`);
-			wh.add(`${kodClause} > ''`)
-		}
+		let {masrafkod: kodClause} = hv;
+		if (!from.aliasIcinTable('mas')) { sent.fromIliski('stkmasraf mas', `${kodClause} = mas.kod`) }
 		if (!from.aliasIcinTable('car')) { sent.x2CariBagla({ kodClause: hv.mustkod }) }
+		wh.add(`${kodClause} > ''`)
 		/*if (sender?.finansalAnalizmi) { }*/
 	}
     /** Varsayılan değer atamaları (host vars) – temel sınıfa eklemeler.
@@ -33,18 +32,6 @@ class MasrafHareketci extends Hareketci {
 		for (let key of ['mustkod', 'brm']) { hv[key] = sqlEmpty }
 		for (let key of ['miktar']) { hv[key] = sqlZero }
 		for (let key of ['must', 'ticmust', 'fisaciklama', 'detaciklama']) { delete hv[key] }
-		$.extend(hv, {
-			/* 'anaislemadi' yoksa 'islemadi' degeri esas alinir */
-			anaislemadi: ({ hv }) => hv.islemadi,
-			/* 'detaciklama' gecicidir - 'detaciklama' ve 'fisaciklama' birleserek 'aciklama' olusturulur. (bos olan alinmaz) */
-			aciklama: ({ hv }) => {
-                let withCoalesce = (clause) => `COALESCE(${clause}, '')`;
-                let {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv;
-                return fisAciklama && detAciklama 
-                    ? `${withCoalesce(fisAciklama)} + ' ' + ${withCoalesce(detAciklama)}` 
-                    : withCoalesce(detAciklama || fisAciklama || sqlEmpty)
-            }
-		})
     }
     /** UNION sorgusu hazırlama – hareket tipleri için */
     uygunluk2UnionBilgiListeDuzenleDevam(e) {

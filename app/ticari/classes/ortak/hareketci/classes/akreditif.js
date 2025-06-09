@@ -16,18 +16,6 @@ class BankaAkreditifHareketci extends BankaOrtakHareketci {
         super.varsayilanHVDuzenle(...arguments);
 		for (const key of ['fisaciklama', 'detaciklama']) { hv[key] = sqlEmpty }
 		for (const key of ['dvbedel']) { hv[key] = sqlZero }
-		$.extend(hv, {
-			/* 'anaislemadi' yoksa 'islemadi' degeri esas alinir */
-			anaislemadi: ({ hv }) => hv.islemadi,
-			/* 'detaciklama' gecicidir - 'detaciklama' ve 'fisaciklama' birleserek 'aciklama' olusturulur. (bos olan alinmaz) */
-			aciklama: ({ hv }) => {
-                const withCoalesce = (clause) => `COALESCE(${clause}, '')`;
-                const {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv;
-                return fisAciklama && detAciklama 
-                    ? `${withCoalesce(fisAciklama)} + ' ' + ${withCoalesce(detAciklama)}` 
-                    : withCoalesce(detAciklama || fisAciklama || sqlEmpty)
-            }
-		})
     }
     /** UNION sorgusu hazırlama – hareket tipleri için */
     uygunluk2UnionBilgiListeDuzenleDevam(e) {

@@ -7,7 +7,7 @@ class SkyRaporApp extends TicariApp {
 				TICARI: '',
 				'TICARI-STOK': 'Ticari (<b class="royalblue">Stok</b>)',
 				'TICARI-HIZMET': 'Ticari (<b class="orangered">Hizmet</b>)',
-				FINANSAL: 'Finansal'
+				FINANSAL: 'Finansal', FINANLZ: 'Finansal Analiz'
 			};
 			let {kod2Sinif} = DRapor, e = { liste: result }; for (const [mne, cls] of Object.entries(kod2Sinif)) {
 				if (cls.dAltRapormu || !cls.uygunmu) { continue }

@@ -30,29 +30,37 @@ class ButonlarPart extends Part {
 		if (!$.isEmptyObject(ekButonlarIlk)) { liste.push(...ekButonlarIlk) }
 		if (!$.isEmptyObject(_liste)) { liste.push(..._liste) }
 		if (!$.isEmptyObject(ekButonlarSon)) { liste.push(...ekButonlarSon) }
-		for (const key in liste) { let item = liste[key]; if (typeof item != 'object') { item = { id: item, text: '' }; liste[key] = item } }
-		if (butonlarDuzenleyici) {
-			const _e = { ...e, sender, parentPart, builder, part: this, userData, liste }; let result = getFuncValue.call(this, butonlarDuzenleyici, _e);
-			if (typeof result == 'object') { result = result.liste ?? result } liste = result ?? _e.liste
+		for (let key in liste) {
+			let item = liste[key];
+			if (typeof item != 'object') { item = { id: item, text: '' }; liste[key] = item }
 		}
-		const subParent = this.sol = $(`<div class="sol"/>`), subParent_sag = this.sag = $(`<div class="sag"/>`), sagButonIdSet = this.sagButonIdSet || {}, {ekSagButonIdSet} = this;
-		for (const item of liste) {
-			const {id, text, args} = item, btn = $(`<button id="${id}">${text || ''}</button>`);
-			const sagmi = (sagButonIdSet && sagButonIdSet[id]) || (ekSagButonIdSet && ekSagButonIdSet[id]);
-			const _subParent = sagmi ? subParent_sag : subParent, _prependFlag = prepend; btn[_prependFlag ? 'prependTo' : 'appendTo'](_subParent); btn.jqxButton($.extend({ theme }, args || {}));
-			let {handler} = item; btn.data('handler', handler);
-			if (handler) {
-				btn.on('click', evt => {
-					handler = $(evt.currentTarget).data('handler');
-					const _e = { parentPart, sender, builder, userData, event: evt, button: btn, id: evt.currentTarget.id }; getFuncValue.call(this, handler, _e)
-				})
-			}
+		if (butonlarDuzenleyici) {
+			let _e = { ...e, sender, parentPart, builder, part: this, userData, liste }; let result = getFuncValue.call(this, butonlarDuzenleyici, _e);
+			if (typeof result == 'object') { result = result.liste ?? result }
+			liste = result ?? _e.liste
+		}
+		let subParent = this.sol = $(`<div class="sol"/>`), subParent_sag = this.sag = $(`<div class="sag"/>`), sagButonIdSet = this.sagButonIdSet || {}, {ekSagButonIdSet} = this;
+		for (let item of liste) {
+			let {id, text, args} = item, btn = $(`<button id="${id}">${text || ''}</button>`);
+			let sagmi = (sagButonIdSet && sagButonIdSet[id]) || (ekSagButonIdSet && ekSagButonIdSet[id]);
+			let _subParent = sagmi ? subParent_sag : subParent, _prependFlag = prepend; btn[_prependFlag ? 'prependTo' : 'appendTo'](_subParent); btn.jqxButton($.extend({ theme }, args || {}));
+			let {handler} = item; if (handler) { btn.data('handler', handler) }
+			let eventHandler = async (evt, handler) => {
+				let {currentTarget: target} = evt, {id} = target, button = $(target);
+				handler = btn.data('handler');
+				let _e = { parentPart, sender, builder, userData, event: evt, button, id };
+				setButonEnabled(btn, false);
+				try { await getFuncValue.call(this, handler, _e) }
+				finally { setTimeout(() => setButonEnabled(btn, true), 800) }
+			};
+			if (handler) { btn.on('click', evt => eventHandler(evt, handler)) }
 			if (id2Handler) {
 				handler = id2Handler[id];
-				if (handler) { btn.on('click', evt => { const _e = { parentPart, sender, builder, userData, event: evt, button: btn, id: evt.currentTarget.id }; getFuncValue.call(this, handler, _e) }) }
+				if (handler) { btn.off('click').on('click', evt => eventHandler(evt, handler)) }
 			}
 		}
-		subParent.appendTo(layout); subParent_sag.appendTo(layout); const sagButonlar = subParent_sag.children('button');
+		subParent.appendTo(layout); subParent_sag.appendTo(layout);
+		let sagButonlar = subParent_sag.children('button');
 		layout.css('--width-sag', `calc((var(--button-right) * ${sagButonlar.length}) + var(--width-sag-ek))`)
 	}
 	static templatesOlustur(e) {

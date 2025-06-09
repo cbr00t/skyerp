@@ -396,7 +396,7 @@ class CariHareketci extends Hareketci {
 		let {borclanmaSekli, sipIrsBorclanmaSonrasiEsasAlinir: sifSonrasiAlinir} = ticariGenel;
 		let _etkilenmeOr, getEtkilenmeOr = () => {
 			if (_etkilenmeOr == null) {
-				const bekIrsClause = `NOT EXISTS (SELECT xdon.fatsayac FROM irs2fat xdon WHERE fis.kaysayac = xdon.irssayac)`;
+				let bekIrsClause = `NOT EXISTS (SELECT xdon.fatsayac FROM irs2fat xdon WHERE fis.kaysayac = xdon.irssayac)`;
 				let or = _etkilenmeOr = new MQOrClause();
 				if (borclanmaSekli.faturami) { or.add(`fis.piftipi = 'F'`) }
 				else if (borclanmaSekli.faturaVeBekleyenIrsaliyemi) {
@@ -440,7 +440,8 @@ class CariHareketci extends Hareketci {
 				: null),
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent; sent.fromAdd('piffis fis').fis2TicCariBagla().fis2PlasiyerBagla().fis2StokIslemBagla().fis2AltHesapBagla_eski();
-					wh.fisSilindiEkle().add(`fis.bdevirdir = 0`, `fis.fisekayrim <> 'DV'`, getEtkilenmeOr());
+					wh.fisSilindiEkle().add(`fis.bdevirdir = 0`, `fis.fisekayrim <> 'DV'`);
+					let or = getEtkilenmeOr(); if (or?.liste?.length) { wh.add(or) }
 				}).hvDuzenleIslemi(({ hv }) => {
 					$.extend(hv, {
 						kaysayac: 'fis.kaysayac', oncelik: '1', unionayrim: `'IrsFat'`, icerikTipi: `'PIF'`, fistipi: 'fis.almsat', iade: 'fis.iade',

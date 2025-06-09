@@ -3,9 +3,8 @@ class TekSecim extends CIO {
 	static get defaultChar() { return null } get coklumu() { return $.isArray(this.char) }
 	static get kaListe() { return this.instance.kaListe } static get kaDict() { return this.instance.kaDict }
 	static get kodListe() { return this.instance.kodListe } static get adiListe() { return this.instance.adiListe }
-	static get kaYapimi() { return true }
-	static get orjBaslikListesi() { return MQKA.orjBaslikListesi }
-	static get listeBasliklari() { return this.orjBaslikListesi }
+	static get kaYapimi() { return true } static get table() { return null } static get tableAlias() { return '' }
+	static get orjBaslikListesi() { return MQKA.orjBaslikListesi } static get listeBasliklari() { return this.orjBaslikListesi }
 	static loadServerData(e) { return this.instance.kaListe }
 	get kaListe() { return this._kaListe }
 	set kaListe(value) {

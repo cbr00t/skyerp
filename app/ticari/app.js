@@ -8,8 +8,8 @@ class TicariApp extends App {
 			ticariGenel: MQTicariGenelParam.getInstance(), aktarim: MQAktarimParam.getInstance(), fiyatVeIsk: MQFiyatVeIskontoParam.getInstance(), stokBirim: MQStokBirimParam.getInstance(), stokGenel: MQStokGenelParam.getInstance(),
 			cariGenel: MQCariGenelParam.getInstance(), hizmetGenel: MQHizmetGenelParam.getInstance(), demirbasGenel: MQDemirbasGenelParam.getInstance(), bankaGenel: MQBankaGenelParam.getInstance(),
 			alim: MQAlimParam.getInstance(), satis: MQSatisParam.getInstance(), eIslem: MQEIslemParam.getInstance(), uretim: MQUretimParam.getInstance(), operGenel: MQOperGenelParam.getInstance(),
-			kalite: MQKaliteParam.getInstance(), muhasebe: MQMuhasebeParam.getInstance(), web: MQWebParam.getInstance(),
-			eMailVT: MQVTMailParam.getInstance(), eMailOrtak: MQOrtakMailParam.getInstance()
+			maliyet: MQMaliyetParam.getInstance(), kalite: MQKaliteParam.getInstance(), muhasebe: MQMuhasebeParam.getInstance(),
+			web: MQWebParam.getInstance(), eMailVT: MQVTMailParam.getInstance(), eMailOrtak: MQOrtakMailParam.getInstance()
 		})
 	}
 	sabitTanimlarDuzenle(e) { super.sabitTanimlarDuzenle(e); const {sabitTanimlar} = e; $.extend(sabitTanimlar, { vergi: this.wsSabitTanimlar_xml('EBYN-KDV-Kodlar') }) }

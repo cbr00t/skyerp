@@ -226,6 +226,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	fis2IslBagla_leftJoin(e) { let alias = e?.alias ?? 'fis'; this.leftJoin({ alias, from: 'carisl isl', on: `${alias}.carislkod = isl.kod` }); return this }
 	fis2StokIslemBagla(e) { let alias = e?.alias ?? 'fis'; this.fromIliski('stkisl isl', `${alias}.islkod = isl.kod`); return this }
 	fis2StokIslemBagla_leftJoin(e) { let alias = e?.alias ?? 'fis'; this.leftJoin({ alias, from: 'stkisl isl', on: `${alias}.islkod = isl.kod` }); return this }
+	fis2UretimIslemBagla(e) { let alias = e?.alias ?? 'fis'; this.fromIliski('urtisl isl', `${alias}.islkod = isl.kod`); return this }
 	fis2TahSekliBagla(e) { return this.x2TahSekliBagla({ alias: 'fis', ...e }) }
 	har2TahSekliBagla(e) { return this.x2TahSekliBagla({ alias: 'har', ...e }) }
 	x2TahSekliBagla(e) {

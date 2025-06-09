@@ -41,6 +41,17 @@ class MQOzelIsaret extends TekSecim {
 		)
 	}
 }
+class NormalFiili extends TekSecim {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sinifAdi() { return 'Normal/Fiili' } static get defaultChar() { return 'F' }
+	kaListeDuzenle(e) {
+		super.kaListeDuzenle(e); const {kaListe} = e;
+		kaListe.push(
+			new CKodVeAdi(['N', 'Normal', 'normalmi']),
+			new CKodVeAdi(['F', 'Fiili', 'fiilimi'])
+		)
+	}
+}
 class NormalIade extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' } get normalmi() { return this.char == '' } get iademi() { return this.char == 'I' }
@@ -554,6 +565,17 @@ class TicBorclanmaSekli extends TekSecim {
 		super.kaListeDuzenle(e); e.kaListe.push(
 			new CKodVeAdi(['S', 'Sipariş', 'siparismi']), new CKodVeAdi(['I', 'İrsaliye', 'irsaliyemi']),
 			new CKodVeAdi(['X', 'Fatura ve Bekleyen İrsaliye', 'faturaVeBekleyenIrsaliyemi']), new CKodVeAdi(['F', 'Fatura', 'faturami'])
+		)
+	}
+}
+class YerMaliyetSekli extends TekSecim {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sinifAdi() { return 'Yer Maliyet Şekli' } static get defaultChar() { return '' }
+	kaListeDuzenle(e) {
+		super.kaListeDuzenle(e); const {kaListe} = e;
+		kaListe.push(
+			new CKodVeAdi(['', 'Normal', 'normalmi']),
+			new CKodVeAdi(['Y', 'Yer Bazında Maliyet', 'yerBazindami'])
 		)
 	}
 }
