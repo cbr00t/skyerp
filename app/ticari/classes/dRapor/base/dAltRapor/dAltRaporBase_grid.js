@@ -109,5 +109,5 @@ class DAltRapor_Grid_Ozet extends DAltRapor_Grid {
 		setTimeout(() => { gridWidget?.beginupdate(); gridPart?.updateColumns(colDefs); gridWidget?.endupdate(false) }, 100)
 	}
 	tabloKolonlariDuzenle(e) { super.tabloKolonlariDuzenle(e) }
-	loadServerData(e) { super.loadServerData(e); const {main} = this.rapor; return main.ozetBilgi?.recs || [] }
+	loadServerData(e) { super.loadServerData(e); let {main} = this.rapor; return main.ozetBilgi?.recs || [] }
 }

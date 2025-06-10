@@ -283,18 +283,22 @@ class DRapor_Hareketci_Stok_Main extends DRapor_Hareketci_Main {
 		super.tabloYapiDuzenle(...arguments); let {tip2BrmListe} = MQStokGenelParam, brmListe = Object.keys(tip2BrmListe);
 		let {isAdmin, rol} = config.session ?? {}, maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT'), {toplam} = result;
 		this.tabloYapiDuzenle_cari(...arguments).tabloYapiDuzenle_stok(...arguments);
-		result.addGrupBasit('GC', 'G/Ç', 'gc');
+		result.addGrupBasit('GC', 'G/Ç', 'gc', null, 60, ({ colDef }) => colDef.alignCenter());
+		result.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, null, ({ item }) => item.hidden());
+		/* for (let tip of brmListe) { result.addToplamBasit(`MIKTAR${tip}`, `Miktar(${tip})`, `miktar${tip}`) } */
+		result.addToplamBasit('MIKTAR2', 'Miktar2', 'miktar2', null, null, ({ item }) => item.hidden());
+		result.addToplamBasit('KALAN_MIKTAR', 'K.Miktar', 'kalanmiktar', null, null, ({ item }) =>
+			item.setFormul(['GIRIS_MIKTAR', 'CIKIS_MIKTAR', 'MIKTAR', 'GC'], ({ rec }) => rec.girismiktar - rec.cikismiktar));
+		result.addToplamBasit('KALAN_MIKTAR2', 'K.Miktar2', 'kalanmiktar2', null, null, ({ item }) =>
+			item.setFormul(['GIRIS_MIKTAR2', 'CIKIS_MIKTAR2', 'MIKTAR2', 'GC'], ({ rec }) => rec.girismiktar2 - rec.cikismiktar2));
 		result.addToplamBasit('GIRIS_MIKTAR', 'G.Miktar', 'girismiktar', null, null, ({ item }) =>
 			item.setFormul(['MIKTAR', 'GC'], ({ rec }) => rec.gc == 'G' ? rec.miktar : 0));
 		result.addToplamBasit('CIKIS_MIKTAR', 'Ç.Miktar', 'cikismiktar', null, null, ({ item }) =>
 			item.setFormul(['MIKTAR', 'GC'], ({ rec }) => rec.gc == 'C' ? rec.miktar : 0));
-		result.addToplamBasit('GIRIS_MIKTAR2', 'G.Miktar2', 'girismiktar', null, null, ({ item }) =>
+		result.addToplamBasit('GIRIS_MIKTAR2', 'G.Miktar2', 'girismiktar2', null, null, ({ item }) =>
 			item.setFormul(['MIKTAR2', 'GC'], ({ rec }) => rec.gc == 'G' ? rec.miktar2 : 0));
-		result.addToplamBasit('CIKIS_MIKTAR2', 'Ç.Miktar2', 'cikismiktar', null, null, ({ item }) =>
+		result.addToplamBasit('CIKIS_MIKTAR2', 'Ç.Miktar2', 'cikismiktar2', null, null, ({ item }) =>
 			item.setFormul(['MIKTAR2', 'GC'], ({ rec }) => rec.gc == 'C' ? rec.miktar2 : 0));
-		result.addToplamBasit('MIKTAR', 'Kalan Miktar', 'miktar');
-		for (let tip of brmListe) { result.addToplamBasit(`MIKTAR${tip}`, `K.Miktar(${tip})`, `miktar${tip}`) }
-		result.addToplamBasit('MIKTAR2', 'Kalan Miktar2', 'miktar2');
 		{	let item = toplam.ISARETLIBEDEL; item.ka.aciklama = item.colDefs[0].text = 'Bedel'
 			for (let key of ['BORCBEDEL', 'ALACAKBEDEL']) { delete toplam[key] }
 		}
@@ -327,8 +331,10 @@ class DRapor_Hareketci_Stok_Main extends DRapor_Hareketci_Main {
 				case 'BRMORANI': sahalar.add('stk.brmorani'); break
 				case 'MIKTAR2': sahalar.add(`${hvDegeri('miktar2')} miktar2`); break
 				default:
-					if (key.startsWith(PrefixMiktar)) {
-						if (key == PrefixMiktar) { sahalar.add(`${hvDegeri('miktar')} miktar`) }
+					if (key.startsWith(PrefixMiktar) || key.endsWith(PrefixMiktar)) {
+						if (key == PrefixMiktar || key.endsWith(PrefixMiktar)) {
+							sahalar.add(`${hvDegeri('miktar')} miktar`)
+						}
 						else {
 							let brmTip = key.slice(PrefixMiktar.length)?.toUpperCase();
 							sahalar.add(`${this.getBrmliMiktarClause({ brmTip, mstAlias: 'stk', harAlias: 'har' })} miktar${brmTip}`)

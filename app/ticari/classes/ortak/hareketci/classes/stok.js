@@ -1,11 +1,10 @@
 class StokHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 20 }
 	static get kod() { return `stok-${this.kodEk}` } static get aciklama() { return `Stok ${this.adiEk}` }
-	static get kodEk() { return '' } static get adiEk() { return '' }
+	static get kodEk() { return '' } static get adiEk() { return '' } static get sablonsalVarmi() { return this._sablonsalVarmi }
 	static get uygunmu() { return true } static get araSeviyemi() { return this == StokHareketci }
 	static get donemselIslemlerIcinUygunmu() { return false } static get eldekiVarliklarIcinUygunmu() { return false }
 	static get gercekmi() { return false } static get maliyetlimi() { return false }
-	static get sablonsalVarmi() { return this._sablonsalVarmi }
 	static get clausecu() {
 		let {_clausecu: result} = this;
 		if (result == null) {
@@ -18,7 +17,25 @@ class StokHareketci extends Hareketci {
 				        ? `dbo.ticarimaliyetnum(fis.almsat, fis.iade, ${malClause}, ${this.clausecu.ticNetBedel()})`
 				        : `dbo.almsatnum(fis.almsat, ${this.clausecu.ticNetBedel()}, ${malClause})`,
 				irsDisiMaliyet: malClause =>
-					`(case when fis.piftipi = 'I' then 0.0 else ${this.clausecu.tumMaliyet(malClause)} end)`
+					`(case when fis.piftipi = 'I' then 0.0 else ${this.clausecu.tumMaliyet(malClause)} end)`,
+				urunMiktarClause: () =>
+					'coalesce(hbed.miktar, cast(har.urunsayisi as dec(17,5)))',
+				tekstilSentBaslat: (sent, harTablo) => {
+					let {where: wh} = sent;
+					sent.fisHareket('kesimfis', harTablo)
+						.leftJoin('fis', 'ufis uret', 'fis.kaysayac = uret.kesimfissayac');
+					wh.fisSilindiEkle().add('uret.kesimfissayac IS NULL', 'fis.bdevirmi = 0');    /* uretim fisine donusmemis kesim */
+				},
+				tekstilUrunSentBaslat: (sent, harTablo) => {
+					this.clausecu.tekstilSentBaslat(sent, 'kesimdetay'); let {where: wh} = sent;
+					sent.leftJoin('har', 'kesimdetbeden hbed', 'har.kaysayac = hbed.harsayac')
+						.fromIliski('maldepartman dep', 'fis.depkod = dep.kod');
+					wh.add(`coalesce(hbed.miktar, har.urunsayisi) <> 0`)
+				},
+				tekstilDigerSentBaslat: (sent, harTablo) => {
+					this.clausecu.tekstilSentBaslat(sent, 'kesimdetay'); let {where: wh} = sent;
+					sent.fromIliski('stkmst urn', 'fis.urunkod = urn.kod');
+				}
 			}
 		}
 		return result
@@ -67,7 +84,23 @@ class StokHareketci extends Hareketci {
 					belgedipnak: 'har.dipnakliye', belgedipotvvegekap: 'har.dipotvvegekap', bedel: 'har.bedel',
 					maliyet: this.clausecu.irsDisiMaliyet(maliyetsizmi ? sqlZero : '(har.malhammadde + har.malmuh)'),
 					fmaliyet: this.clausecu.irsDisiMaliyet(maliyetsizmi ? sqlZero : '(har.fmalhammadde + har.fmalmuh)')
-				})
+				}),
+				hmrKumas: hv =>
+					({ renkkod: hv.renkkod || 'har.renkkod', desenkod: hv.desenkod || 'har.desenkod' }),
+				hmrEkUrun: hv =>
+					({ ...this.hvci.hmrKumas(hv), beden: hv.beden || 'har.beden' }),
+				hmrAsilUrun: hv => ({
+					renkkod: hv.renkkod || 'har.karmarenkkod', desenkod: hv.desenkod || 'har.desenkod',
+					beden: hv.beden || `coalesce(hbed.asortiveyabeden, '')`
+				}),
+				tekstilDef: () => ({
+					kayittipi: `'KESDET'`, dosyatipi: `'Kes'`, anaislemadi: `'Kesim İşlemi'`, yerkod: 'fis.yerkod',
+					fisaciklama: 'fis.basaciklama' , maliyet: sqlZero
+				}),
+				tekstilUrunDef: () =>
+					({ ...this.hvci.tekstilDef(), refkod: 'fis.depkod', refadi: 'dep.aciklama' }),
+				tekstilDigerDef: () =>
+					({ ...this.hvci.tekstilDef(), refkod: 'fis.urunkod', refadi: 'urn.aciklama' }),
 			}
 		}
 		return result
@@ -140,7 +173,7 @@ class StokHareketci extends Hareketci {
         this.uniDuzenle_stokGirisCikisTransfer(e).uniDuzenle_ticari(e);
 		this.uniDuzenle_perakendeVeGiderPusulasi(e).uniDuzenle_magaza(e);
 		this.uniDuzenle_fason(e).uniDuzenle_uretim(e).uniDuzenle_genelDekont(e);
-		this.uniDuzenle_topluAlimMakbuz(e)
+		this.uniDuzenle_topluAlimMakbuz(e).uniDuzenle_kesimIslemi(e)
     }
 	static getHV_hmr_normal(e) { return this.getHV_hmr({ ...e, empty: false }) }
 	static getHV_hmr_bos(e) { return this.getHV_hmr({ ...e, empty: true }) }
@@ -549,6 +582,80 @@ class StokHareketci extends Hareketci {
 	    });
 	    return this
 	}
+	/** (Tekstil: Kesim) için UNION */
+    uniDuzenle_kesimIslemi({ uygunluk, liste }) {
+		let {gercekmi} = this.class; if (!gercekmi) { return this }
+		let {hvci, clausecu} = this.class;
+		$.extend(liste, {
+			kesimIslemi: [
+				/* Tekstil Kesim Kumas */
+				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
+					clausecu.tekstilDigerSentBaslat(sent, 'kesimdetay'); let {where: wh} = sent;
+					wh.add('har.kumasmiktar <> 0')
+				}).hvDuzenleIslemi(({ hv }) => {
+					$.extend(hv, { ...hvci.tekstilDigerDef() });
+					$.extend(hv, { ...hvci.hmrKumas(hv) })
+				}),
+				/* fire kumastan ek urun */
+				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
+					clausecu.tekstilDigerSentBaslat(sent, 'kesimdetay'); let {where: wh} = sent;
+					wh.add('har.firedenuretmiktar <> 0', `har.firedenstokkod > ''`)
+				}).hvDuzenleIslemi(({ hv }) => {
+					$.extend(hv, {
+						...hvci.tekstilDigerDef(), oncelik: '35', gc: `'G'`,
+						stokkod: 'fis.firedenstokkod', miktar: 'har.firedenuretmiktar'
+					});
+					$.extend(hv, { ...hvci.hmrEkUrun(hv) })
+				}),
+				/* tekstil ek malzeme cikisi ve yari mamul girisi */
+				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
+					clausecu.tekstilDigerSentBaslat(sent, 'kesimek'); let {where: wh} = sent;
+					wh.add('har.firedenuretmiktar <> 0', `har.firedenstokkod > ''`)
+				}).hvDuzenleIslemi(({ hv }) => {
+					$.extend(hv, {
+						...hvci.tekstilDigerDef(), oncelik: '38',
+						gc: `(case when har.kayittipi = 'E' then 'G' else 'C' end)`,
+						stokkod: 'har.firedenstokkod', miktar: 'har.miktar'
+					});
+					$.extend(hv, { ...hvci.hmrEkUrun(hv) })
+				}),
+				/* tekstil urun girisi */
+				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
+					clausecu.tekstilUrunSentBaslat(sent, 'kesimdetay'); let {where: wh} = sent;
+					wh.add('har.firedenuretmiktar <> 0', `har.firedenstokkod > ''`)
+				}).hvDuzenleIslemi(({ hv }) => {
+					$.extend(hv, {
+						...hvci.tekstilUrunDef(), oncelik: '40', gc: `'G'`,
+						stokkod: 'fis.urunkod', miktar: clausecu.urunMiktarClause()
+					});
+					$.extend(hv, { ...hvci.hmrAsilUrun(hv) })
+				}),
+				/* tekstil urun-2 girisi */
+				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
+					clausecu.tekstilUrunSentBaslat(sent, 'kesimdetay'); let {where: wh} = sent;
+					wh.add(`har.urunkod2 > ''`)
+				}).hvDuzenleIslemi(({ hv }) => {
+					$.extend(hv, {
+						...hvci.tekstilUrunDef(), oncelik: '40', gc: `'G'`,
+						stokkod: 'fis.urunkod2', miktar: clausecu.urunMiktarClause()
+					});
+					$.extend(hv, { ...hvci.hmrAsilUrun(hv) })
+				}),
+				/* tekstil urun-3 girisi */
+				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
+					clausecu.tekstilUrunSentBaslat(sent, 'kesimdetay'); let {where: wh} = sent;
+					wh.add(`har.urunkod3 > ''`)
+				}).hvDuzenleIslemi(({ hv }) => {
+					$.extend(hv, {
+						...hvci.tekstilUrunDef(), oncelik: '40', gc: `'G'`,
+						stokkod: 'fis.urunkod3', miktar: clausecu.urunMiktarClause()
+					});
+					$.extend(hv, { ...hvci.hmrAsilUrun(hv) })
+				})
+			]
+		});
+        return this
+    }
 }
 class StokHareketci_Gercek extends StokHareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get gercekmi() { return true }

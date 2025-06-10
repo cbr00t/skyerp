@@ -47,17 +47,13 @@ class ButonlarPart extends Part {
 			let {handler} = item; if (handler) { btn.data('handler', handler) }
 			let eventHandler = async (evt, handler) => {
 				let {currentTarget: target} = evt, {id} = target, button = $(target);
-				handler = btn.data('handler');
+				handler = btn.data('handler') ?? id2Handler[id];
 				let _e = { parentPart, sender, builder, userData, event: evt, button, id };
 				setButonEnabled(btn, false);
 				try { await getFuncValue.call(this, handler, _e) }
 				finally { setTimeout(() => setButonEnabled(btn, true), 800) }
 			};
-			if (handler) { btn.on('click', evt => eventHandler(evt, handler)) }
-			if (id2Handler) {
-				handler = id2Handler[id];
-				if (handler) { btn.off('click').on('click', evt => eventHandler(evt, handler)) }
-			}
+			if (handler || id2Handler[id]) { btn.on('click', evt => eventHandler(evt))  }
 		}
 		subParent.appendTo(layout); subParent_sag.appendTo(layout);
 		let sagButonlar = subParent_sag.children('button');

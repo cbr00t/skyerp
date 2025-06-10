@@ -47,8 +47,8 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	super_tazele(e) { super.tazele(e) }
 	hizliBulIslemi(e) { const {gridPart} = this; gridPart.filtreTokens = e.tokens; this.tazele(e) }
 	gridVeriYuklendi(e) {
-		const {gridPart} = this, {grid, gridWidget} = gridPart, {boundRecs, recs} = e; gridPart.expandedRowsSet = {};
-		if (boundRecs?.length) { gridWidget.expandRow(0) }
+		const {gridPart} = this, {grid, gridWidget} = gridPart, {boundRecs, recs} = e; gridPart.expandedRowsSet = {}
+		/* if (boundRecs?.length) { gridWidget.expandRow(0) } */
 	}
 	gridSortIstendi(e) {
 		const {tabloYapi, gridPart} = this, {base} = gridPart.gridWidget, {sortcolumn: sortBelirtec} = base; let sortTipKod;
@@ -456,11 +456,11 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			ozetBilgi.colDefs = ozetBilgi.grupTipKod ? [
 				...ozetBilgi_getColumns(
 					tabloYapi.grup, ozetBilgi.grupTipKod,
-					colDef => $.extend(colDef, { minWidth: 140, maxWidth: null, genislikCh: null })),
+					colDef => $.extend(colDef, { minWidth: 150, maxWidth: 500, genislikCh: 33 / Math.pow(getViewportInfo().zoom, 1.5) })),
 				...ozetBilgi_getColumns(
 					tabloYapi.toplam, ozetBilgi.icerikTipKod,
 					colDef => $.extend(colDef, {
-						minWidth: null, maxWidth: null, genislikCh: 16, aggregates: ozetBilgi.icerikColDef?.aggregates || ['sum']
+						minWidth: null, maxWidth: null, genislikCh: 19, aggregates: ozetBilgi.icerikColDef?.aggregates || ['sum']
 					}).tipDecimal_bedel() )
 			] : [];
 			window.progressManager?.progressStep(1);
