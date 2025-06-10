@@ -389,8 +389,8 @@ class StokHareketci extends Hareketci {
 						refkod: `(case when fis.must <> '' then fis.must else '' end)`,
 						refadi: `(case when fis.must <> '' then car.birunvan else '' end)`,
 					/* miktar/bedel sahalari sum() hale gelir */
-						maliyet: clausecu.tumMaliyet('SUM(har.malhammadde + har.malmuh)'),
-						fmaliyet: clausecu.tumMaliyet('SUM(har.fmalhammadde + har.fmalmuh)')
+						maliyet: clausecu.tumMaliyet('(har.malhammadde + har.malmuh)'),
+						fmaliyet: clausecu.tumMaliyet('(har.fmalhammadde + har.fmalmuh)')
 					});
 					let _hv = hvci.basitToplanabilir('har.miktar');
 					for (let [key, value] of Object.entries(_hv)) { hv[key] = value.asSumDeger() }

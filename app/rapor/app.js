@@ -21,11 +21,26 @@ class SkyRaporApp extends TicariApp {
 	}
 	async runDevam(e) {
 		await super.runDevam(e);
+		await this.ilkIslemler(e);
 		await window.DRapor_Hareketci?.autoGenerateSubClasses(e)
 	}
 	paramsDuzenle({ params }) {
 		super.paramsDuzenle(...arguments);
 		$.extend(params, { dRapor: MQParam_DRapor.getInstance() })
+	}
+	async ilkIslemler(e) {
+		{
+			let maxLen = 25, table = 'wgruprapor', field = 'raportip';
+			let len = Object.values(await app.sqlGetColumns(table, field))[0]?.length;
+			if (len != null && len < maxLen) {
+				try { await app.sqlExecNone(`alter table ${table} alter column ${field} varchar(${maxLen}) not null`) }
+				catch (ex) {
+					console.error(getErrorText(ex));
+					try { await app.sqlExecNone(`alter table ${table} alter column ${field} char(${maxLen}) not null`) }
+					catch (ex2) { console.error(getErrorText(ex2)) }
+				}
+			}
+		}
 	}
 	async anaMenuOlustur(e) {
 		let {kullanim} = app.params.aktarim, eksikParamIsimleri = []; this.sqlTables = await app.sqlGetTables();

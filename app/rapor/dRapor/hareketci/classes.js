@@ -265,8 +265,8 @@ class DRapor_Hareketci_Takip_Main extends DRapor_Hareketci_Main {
 		this.loadServerData_queryDuzenle_cari({ ...e, kodClause: 'car.must' });
 		for (let key in attrSet) {
 			switch (key) {
-				case 'TUMMALIYET': sahalar.add(`SUM(${hvDegeri('maliyet')}) tummaliyet`); break;
-				case 'BRUTKAR': sahalar.add(`SUM(har.bedel - (${hvDegeri('maliyet')})) brutkar`); break;
+				case 'TUMMALIYET': sahalar.add(`${hvDegeri('maliyet').asSumDeger()} tummaliyet`); break
+				case 'BRUTKAR': sahalar.add(`SUM(${hvDegeri('isaretlibedel').sumOlmaksizin()} - ${hvDegeri('maliyet').sumOlmaksizin()}) brutkar`); break
 			}
 		}
 	}
@@ -324,16 +324,16 @@ class DRapor_Hareketci_Stok_Main extends DRapor_Hareketci_Main {
 		for (let key in attrSet) {
 			switch (key) {
 				case 'GC': sahalar.add(`${hvDegeri('gc')} gc`); break
-				case 'TUMMALIYET': sahalar.add(`SUM(${hvDegeri('maliyet')}) tummaliyet`); break
-				case 'BRUTKAR': sahalar.add(`SUM(${hvDegeri('isaretlibedel')} - ${hvDegeri('maliyet')}) brutkar`); break
+				case 'TUMMALIYET': sahalar.add(`${hvDegeri('maliyet').asSumDeger()} tummaliyet`); break
+				case 'BRUTKAR': sahalar.add(`SUM(${hvDegeri('isaretlibedel').sumOlmaksizin()} - ${hvDegeri('maliyet').sumOlmaksizin()}) brutkar`); break
 				case 'BRM': sahalar.add(`${hvDegeri('brm')} brm`); break
 				case 'BRM2': sahalar.add(`${hvDegeri('brm2')} brm2`); break
 				case 'BRMORANI': sahalar.add('stk.brmorani'); break
-				case 'MIKTAR2': sahalar.add(`${hvDegeri('miktar2')} miktar2`); break
+				case 'MIKTAR2': sahalar.add(`${hvDegeri('miktar2').asSumDeger()} miktar2`); break
 				default:
 					if (key.startsWith(PrefixMiktar) || key.endsWith(PrefixMiktar)) {
 						if (key == PrefixMiktar || key.endsWith(PrefixMiktar)) {
-							sahalar.add(`${hvDegeri('miktar')} miktar`)
+							sahalar.add(`${hvDegeri('miktar').asSumDeger()} miktar`)
 						}
 						else {
 							let brmTip = key.slice(PrefixMiktar.length)?.toUpperCase();
