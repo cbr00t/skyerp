@@ -282,7 +282,7 @@ class StokHareketci extends Hareketci {
 					wh.fisSilindiEkle().notDegerAta('PR', 'fis.ayrimtipi');                         /* magaza fisleri buraya gelmez ('FS' icin pifstok kaydi olmaz) */
 					if (uygunluk.fatura && maliyetlimi) {
 						sent.leftJoin('fis', 'ihrfat2intac ihrdon', ['fis.kaysayac = ihrdon.ihrfatsayac', `fis.ayrimtipi = 'IH'`])
-						wh.degerAta('F', 'fis.fistipi');
+						wh.degerAta('F', 'fis.piftipi');
 						wh.add(new MQOrClause([                                                     /* ihr fat intaca donusmus ise alinmaz (ayrimtipi = 'IN' olanlar alinir) */
 							{ notDegerAta: 'IH', saha: 'fis.ayrimtipi'},
 							`ihrdon.intacfissayac IS NULL`

@@ -327,10 +327,83 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		return this
 	}
-	tabloYapiDuzenle_hmr(e) {
-		const {result} = e;
-		for (const {belirtec, etiket: text, numerikmi, kami: _kami, mfSinif} of HMRBilgi.hmrIter()) {
-			const tip = belirtec.toUpperCase(), kami = _kami && !!mfSinif, genislikCh = 15;
+	tabloYapiDuzenle_gc(e) { return this.tabloYapiDuzenle_gcX({ ...e, gcTip: 'GC' }) }
+	loadServerData_queryDuzenle_gc(e) { return this.loadServerData_queryDuzenle_gcX({ ...e, gcTip: 'GC' }) }
+	tabloYapiDuzenle_ba(e) { return this.tabloYapiDuzenle_gcX({ ...e, gcTip: 'BA' }) }
+	loadServerData_queryDuzenle_ba(e) { return this.loadServerData_queryDuzenle_gcX({ ...e, gcTip: 'BA' }) }
+	tabloYapiDuzenle_gcX({ result, tip, etiket, gcTip, gcEtiketPrefixes, addSelf }) {
+		addSelf = addSelf ?? false; gcTip = gcTip || 'GC';
+		let {grup, toplam} = result;
+		let belirtec = tip.toLowerCase(), gcBelirtec = gcTip.toLowerCase();
+		etiket = etiket ?? tip; gcEtiketPrefixes = gcEtiketPrefixes || [gcTip[0], gcTip[1]];
+		if (!grup[gcTip]) {
+			result.addGrupBasit(gcTip, `${gcTip[0]}/${gcTip[1]}`, gcBelirtec, null, 60, ({ colDef }) =>
+				colDef.alignCenter())
+		}
+		if (!toplam[tip]) {
+			result.addToplamBasit(tip, etiket, belirtec, null, null, ({ item }) =>
+				{ if (!addSelf) { item.hidden() } })
+		}
+		if (this.class.envantermi && !toplam[`DEVIR_${tip}`]) {
+			result.addToplamBasit(`DEVIR_${tip}`, `D.${etiket}`, `devir${belirtec}`)
+		}
+		if (!toplam[`GIRIS_${tip}`]) {
+			result.addToplamBasit(`GIRIS_${tip}`, `${gcEtiketPrefixes[0]}.${etiket}`, `giris${belirtec}`, null, null, ({ item }) =>
+				item.setFormul([tip, gcTip], ({ rec }) => rec[gcBelirtec] == 'G' || rec[gcBelirtec] == 'B' ? (rec[belirtec] || 0) : 0))
+		}
+		if (!toplam[`CIKIS_${tip}`]) {
+			result.addToplamBasit(`CIKIS_${tip}`, `${gcEtiketPrefixes[1]}.${etiket}`, `cikis${belirtec}`, null, null, ({ item }) =>
+				item.setFormul([tip, gcTip], ({ rec }) => rec[gcBelirtec] == 'C' || rec[gcBelirtec] == 'A' ? 0 - (rec[belirtec] || 0) : 0))
+		}
+		if (!toplam[`KALAN_${tip}`]) {
+			result.addToplamBasit(`KALAN_${tip}`, `K.${etiket}`, `kalan${belirtec}`, null, null, ({ item }) =>
+				item.setFormul([tip, gcTip, `GIRIS_${tip}`, `CIKIS_${tip}`], ({ rec }) => {
+					let v = {
+						devir: (rec[`devir${belirtec}`] || 0),
+						giris: rec[gcBelirtec] == 'G' || rec[gcBelirtec] == 'B' ? (rec[belirtec] || 0) : 0,
+						cikis: rec[gcBelirtec] == 'C' || rec[gcBelirtec] == 'A' ? 0 - (rec[belirtec] || 0) : 0
+					};
+					return v.devir + v.giris - v.cikis
+				})
+			)
+		}
+		return this
+	}
+	loadServerData_queryDuzenle_gcX({ stm, sent, attrSet, tip, clause, kodClause, gcTip, gcClause, donemBS, tarihBS, tarihClause, sumFlag }) {
+		sent = sent ?? stm.sent; let {where: wh, sahalar} = sent, {sqlNull} = Hareketci_UniBilgi.ortakArgs;
+		donemBS = donemBS ?? tarihBS ?? this.donemBS; clause = clause ?? kodClause;
+		sumFlag = sumFlag ?? !this.hareketmi;
+		let belirtec = tip.toLowerCase(), gcBelirtec = gcTip.toLowerCase();
+		let dgckPrefixes = ['DEVIR_', 'GIRIS_', 'CIKIS_', 'KALAN_'];
+		let dgckVarmi = false; for (let key in attrSet) {
+			for (let prefix of dgckPrefixes) {
+				if (key == prefix + tip) { dgckVarmi = true; break }
+			}
+		}
+		if (dgckVarmi) {
+			let tipListe = [gcTip, tip], entries = tipListe.map(tip => [tip, true]);
+			$.extend(attrSet, Object.fromEntries(entries))
+		}
+		let sumDuzenlenmis = _clause => sumFlag == null ? _clause : sumFlag ? _clause.asSumDeger() : _clause.sumOlmaksizin();
+		clause = sumDuzenlenmis(clause);
+		/*let gcClauses = {
+			giren: sumDuzenlenmis(`(case when ${gcClause} IN ('G', 'B') then ${clause.sumOlmaksizin()} else 0 end)`),
+			cikan: sumDuzenlenmis(`(case when ${gcClause} IN ('C', 'A') then 0 - ${clause.sumOlmaksizin()} else 0 end)`),
+			kalan: sumDuzenlenmis(`()`)
+		}*/
+		for (let key in attrSet) {
+			if (key == gcTip) { sahalar.add(`${gcClause} ${gcBelirtec}`) }
+			else if (key == tip) { sahalar.add(`${clause} ${belirtec}`) }
+			else if (tarihClause && key == `DEVIR_${tip}`) {
+				sahalar.add(`(case when ${tarihClause} < ${donemBS.basi?.sqlServerDegeri() ?? sqlNull} then ${clause.sumOlmaksizin()} else 0 end) devir${belirtec}`)
+			}
+			/*else if (key == `GIREN${key}`) { sahalar.add(`${gcClauses.giren} giren${belirtec}`) }*/
+		}
+		return this
+	}
+	tabloYapiDuzenle_hmr({ result }) {
+		for (let {belirtec, etiket: text, numerikmi, kami: _kami, mfSinif} of HMRBilgi.hmrIter()) {
+			let tip = belirtec.toUpperCase(), kami = _kami && !!mfSinif, genislikCh = 15;
 			if (kami) { result.addKAPrefix(belirtec) }
 			result.addGrup(new TabloYapiItem().setKA(tip, text).secimKullanilir().setMFSinif(mfSinif).addColDef(
 				numerikmi
@@ -341,7 +414,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	loadServerData_queryDuzenle_hmr(e) {
-		const {stm, attrSet} = e, alias = e.alias == 'fis' ? 'har' : e.alias, aliasVeNokta = alias ? `${alias}.` : '';
+		let {stm, attrSet} = e, alias = e.alias == 'fis' ? 'har' : e.alias, aliasVeNokta = alias ? `${alias}.` : '';
 		for (let sent of stm) {
 			const {where: wh, sahalar} = sent; for (const {belirtec, rowAttr, kami, mfSinif} of HMRBilgi.hmrIter()) {
 				const tip = belirtec.toUpperCase(); if (!attrSet[tip]) { continue }
@@ -476,7 +549,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			.addGrupBasit('STOKMARKA', 'Stok Marka', 'stokmarka', DMQStokMarka)
 			.addGrupBasit('BRM', 'Brm', 'brm', null, 60, ({ colDef }) => colDef.alignCenter())
 			.addGrupBasit('BRM2', 'Br2', 'brm2', null, 60, ({ colDef }) => colDef.alignCenter())
-			.addGrupBasit('BRMORANI', 'Br/Br2%', 'brmorani', null, 100, ({ colDef }) => colDef.tipDecimal())
+			.addGrupBasit('BRMORANI', 'Brm Oranı', 'brmorani', null, 100, ({ colDef }) => colDef.tipDecimal())
 			.addGrupBasit('STOKRESIM', 'Stok Resim', 'stokresim')
 		return this
 	}
@@ -555,7 +628,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	loadServerData_queryDuzenle_baBedel({ stm, sent, attrSet, baClause, bedelClause }) {
-		if (!(baClause || bedelClause)) { return this } sent = sent ?? stm.sent; let {where: wh, sahalar} = sent;
+		if (!(baClause || bedelClause)) { return this }
+		sent = sent ?? stm.sent; let {where: wh, sahalar} = sent;
 		for (let key in attrSet) {
 			switch (key) {
 				case 'BORCBEDEL': sahalar.add(`SUM(case when ${baClause} = 'B' then ${bedelClause} else 0 end) borcbedel`); break

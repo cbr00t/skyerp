@@ -26,7 +26,14 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 		return super.loadServerData(e)
 	}
 	super_loadServerDataInternal(e) { super.loadServerDataInternal(e) } superSuper_loadServerDataInternal(e) { super.super_loadServerDataInternal(e) }
-	donemBagla({ donemBS, tarihSaha, sent }) { if (donemBS) { sent.where.basiSonu(donemBS, tarihSaha) } return this }
+	donemBagla({ donemBS, tarihSaha, sent }) {
+		let {hareketmi, envantermi} = this.class, {where: wh} = sent;
+		if (donemBS) {
+			if (hareketmi || envantermi) { wh.basiSonu({ sonu: donemBS.sonu }, tarihSaha) }
+			else { wh.basiSonu(donemBS, tarihSaha) }
+		}
+		return this
+	}
 	loadServerData_queryDuzenle_tarih({ attrSet, stm, sent, alias, tarihSaha, tarihClause }) {
 		let sentOrUni = sent ?? stm?.sent; alias = alias ?? 'fis'; let aliasVeNokta = alias ? `${alias}.` : '';
 		tarihSaha = tarihSaha ?? 'tarih'; tarihClause = tarihClause ?? `${aliasVeNokta}${tarihSaha}`;

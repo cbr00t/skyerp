@@ -20,8 +20,9 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 	static get kodEk() { let {hareketmi, envantermi} = this; return hareketmi ? 'HAR' : envantermi ? 'ENV' : '' }
 	static get aciklamaEk() { let {hareketmi, envantermi} = this; return hareketmi ? 'Hareket' : envantermi ? 'Envanter' : 'Total' }
 	static autoGenerateSubClasses(e) {
-		let subNames = ['Hareket' /*, 'Envanter'*/], {raporBilgiler} = this;
-		let evalList = []; for (let {kod, cls} of raporBilgiler) {
+		let subNames = ['Hareket', 'Envanter'];
+		let {raporBilgiler} = this, evalList = [];
+		for (let {kod, cls} of raporBilgiler) {
 			let parent; {
 				let {mainClass, name} = cls; if (!mainClass) { continue }
 				let {name: mainName} = mainClass; parent = { cls, name, mainClass, mainName }
@@ -171,10 +172,11 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	loadServerData_queryDuzenle_ek(e) {
 		super.loadServerData_queryDuzenle_ek(e);
 		if (this.class.hareketmi) { this.loadServerData_queryDuzenle_ek_hareket(e) }
+		if (this.class.envantermi) { this.loadServerData_queryDuzenle_ek_envanter(e) }
 	}
 	loadServerData_queryDuzenle_ek_hareket(e) {
-		let {devir: devirmi, attrSet, stm, donemBS} = e;
 		let {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
+		let {devir: devirmi, attrSet, stm, donemBS} = e;
 		let {tabloYapi, raporTanim} = this, {grupVeToplam} = tabloYapi;
 		let {basi: tarih} = donemBS ?? {}, tarihDegerClause = tarih?.sqlServerDegeri() ?? sqlNull;
 		attrSet = attrSet ?? raporTanim.attrSet; let attrListe = Object.keys(attrSet);
@@ -207,6 +209,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 			sent.groupByOlustur()
 		}
 	}
+	loadServerData_queryDuzenle_ek_envanter(e) { }
 	hrkSentHVEkle(e) {
 		let {key: alias, sent} = e, {sahalar} = sent;
 		let deger = this.hrkHVDegeri(e); sahalar.add(new MQAliasliYapi({ deger, alias }));
