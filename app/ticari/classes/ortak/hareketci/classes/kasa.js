@@ -200,7 +200,7 @@ class KasaHareketci extends Hareketci {
 									  else dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Alım Ödeme', 'Satış Tahsilat')) end)`,
 						refkod: `(case when fis.must = '' then fis.yerkod else fis.must end)`, refadi: `(case when fis.must = '' then yer.aciklama else car.birunvan end)`,
 						dvkur: `(case when har.karsidvvar = '' then fis.dvkur else har.karsidvkur end)`, dvbedel: `(case when har.karsidvvar = '' then har.dvbedel else har.karsidvbedel end)`,
-						bedel: 'har.bedel', fisaciklama: 'fis.cariaciklama', detaciklama: 'har.aciklama' 
+						bedel: 'har.bedel', detaciklama: 'yer.aciklama'
 					})
 				})
 			]

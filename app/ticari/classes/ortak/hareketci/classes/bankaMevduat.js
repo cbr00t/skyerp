@@ -129,7 +129,7 @@ class BankaMevduatHareketci extends BankaOrtakHareketci {
 						anaislemadi: `(case fis.fistipi when 'TP' then 'Toplu Havale/EFT/POS' when 'GL' then 'Müşteriden Havale/EFT'
 											else (case when fis.fistipi in ('BN','BE','BS') then 'Kendimize Havale/EFT' else '' end)
 											end)`,
-						detaciklama: 'har.aciklama detaciklama', bedel: 'har.masraf', fisnox: 'fis.fisnox', takipno: 'har.takipno',
+						detaciklama: 'har.aciklama', bedel: 'har.masraf', fisnox: 'fis.fisnox', takipno: 'har.takipno',
 						refkod: `(case when fis.fistipi in ('BE', 'BH', 'BS') then har.bizhesapkod else har.ticmustkod end)`,
 						refadi: `(case when fis.fistipi in ('BE', 'BH', 'BS') then dhes.aciklama else car.birunvan end)`
                     })

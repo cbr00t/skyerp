@@ -111,8 +111,8 @@ class Hareketci extends CObject {
 		let {result} = e;
 		e.def = result[''] = new DRapor_AltTipYapi()
 	}*/
-	static getAltTipAdiVeOncelikClause({ hv }) {
-		return { }
+	static getAltTipAdiVeOncelikClause({ hv, sqlEmpty }) {
+		return {}
 		/*return ({ adi: this.aciklama.sqlServerDegeri(), oncelik: '0', yon: this.defaultYon })*/
 	}
 	static mstYapiDuzenle(e) { }
@@ -159,9 +159,9 @@ class Hareketci extends CObject {
 			islemadi: ({ hv }) => hv.anaislemadi, fistarih: ({ hv }) => hv.tarih,
 			karsiodemetarihi: ({ hv }) => hv.vade, isaretlibedel: ({ hv }) => hv.bedel,
 			aciklama: ({ hv }) => {
-                let withCoalesce = (clause) => `COALESCE(${clause}, '')`;
+                let withCoalesce = clause => (clause?.sqlDoluDegermi ?? false) ? `COALESCE(${clause}, '')` : sqlEmpty;
                 let {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv;
-                return fisAciklama && detAciklama 
+                return fisAciklama && detAciklama
                     ? `${withCoalesce(fisAciklama)} + ' ' + ${withCoalesce(detAciklama)}` 
                     : withCoalesce(detAciklama || fisAciklama || sqlEmpty)
             }
