@@ -71,7 +71,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			let {session} = config, {dbName: buDBName} = session, {ekDBListe} = app.params?.dRapor ?? {};
 			let tumDBNameSet = asSet([ buDBName, ...(ekDBListe ?? []) ]);
 			let grupKod = 'DB'; secimler.grupEkle(grupKod, 'Veritabanı');
-			let sec = new SecimBirKismi({ etiket: 'Veritabanı', grupKod }).birKismi();
+			let sec = new SecimBirKismi({ etiket: 'Veritabanı', grupKod }).birKismi().autoBind();
 			app.wsDBListe()
 				.then(arr => arr.filter(x => tumDBNameSet[x]).map(x => new CKodVeAdi([x, x])))
 				.then(kaListe => sec.tekSecim = new TekSecim({ kaListe }));
