@@ -746,7 +746,7 @@ class GridPart extends Part {
 	gridRowExpanded(e) { this.getKontrolcu(e)?.gridRowExpanded?.(e) }
 	gridRowCollapsed(e) { this.getKontrolcu(e)?.gridRowCollapsed?.(e) }
 	gridGroupExpanded(e) {
-		this.getKontrolcu(e)?.gridGroupExpanded?.(e);
+		let kontrolcu = this.getKontrolcu(e); kontrolcu?.gridGroupExpanded?.(e);
 		let type = 'groupExpanded', {event} = e, gridPart = this, {inst, builder} = gridPart, mfSinif = gridPart.mfSinif ?? inst?.class;
 		clearTimeout(this._timer_rendered);
 		this._timer_rendered = setTimeout(() =>

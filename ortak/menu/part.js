@@ -62,7 +62,10 @@ class MenuPart extends Part {
 						const {mneText} = (item || {}); sender.val(mneText || ''); if (!item) { return }
 						if ($.isPlainObject(item)) { item = this.source.mne2Item[item.mneText] }
 						if (item?.cascademi && this.parentItem != item) { this.parentItem = item; this.tazele() }
-							else if (item.choicemi) { try { item.run({ ...e, menuItemElement: item }) } catch (ex) { hConfirm(getErrorText(ex), item.text); throw ex } }
+						else if (item?.choicemi) {
+							try { item.run({ ...e, menuItemElement: item }) }
+							catch (ex) { hConfirm(getErrorText(ex), item.text); throw ex }
+						}
 					};
 					if (item) { islemBlock(item); return }
 					if (value) {

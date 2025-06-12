@@ -48,9 +48,10 @@ class SecimlerPart extends Part {
 		if (grup2Info) {
 			secimlerForm.children().remove(); const docFrg = $(document.createDocumentFragment());
 			for (let [grupKod, grupBilgi] of Object.entries(grup2Info)) {
+				grupKod = grupKod ?? '';
 				let grup = grupBilgi.grup || {}, key2Info = grupBilgi.key2Info || {};
 				let _e = { ...e, liste: [], grupKod }; for (let {secim} of Object.values(key2Info)) { secim.ozetBilgiHTMLOlustur(_e) }
-				let grupHeaderHTML = secimler.getGrupHeaderHTML(_e), divGrup = grupBilgi.element = $(
+				let grupHeaderHTML = secimler.getGrupHeaderHTML(_e) ?? '', divGrup = grupBilgi.element = $(
 					`<div class="secim-grup" data-id="${grupKod}">` +
 						`<div class="header" style="color:${grup.renk || ''};background-color:${grup.zeminRenk || ''};${grup.css}">${grupHeaderHTML}</div>` +
 						`<div class="content"></div>` +

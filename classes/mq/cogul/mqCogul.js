@@ -250,12 +250,12 @@ class MQCogul extends MQYapi {
 		const {tanimFormBuilder} = e; tanimFormBuilder.add(tabPanel)
 	}
 	static async formBuilder_getTabPanelWithGenelTab(e) {
-		const _e = $.extend({}, e), result = await this.formBuilder_getTabPanel(_e); $.extend(_e, result);
+		let _e = $.extend({}, e), result = await this.formBuilder_getTabPanel(_e); $.extend(_e, result);
 		this.formBuilder_addTabPanelWithGenelTab(_e); $.extend(_e, result); return _e
 	}
 	static formBuilder_addTabPanelWithGenelTab(e) {
 		let {tabPanel} = e; if (!tabPanel) { this.formBuilder_addTabPanel(e); tabPanel = e.tabPanel }
-		const id_genel = 'genel'; let tabPage_genel = tabPanel.builders.find(builder => builder.id == id_genel);
+		let id_genel = 'genel'; let tabPage_genel = tabPanel.builders.find(builder => builder.id == id_genel);
 		if (!tabPage_genel) { tabPanel.builders.unshift(tabPage_genel = new FBuilder_TabPage({ id: id_genel, etiket: 'Genel' })) }
 		tabPage_genel.addStyle_fullWH(); e.tabPage_genel = tabPage_genel
 	}

@@ -110,18 +110,23 @@ class MQYapi extends CIO {
 		return this[tekilOku_querySonucu_returnValueGereklimi ? 'sqlExecNoneWithResult' : 'sqlExecTekil'](_e)
 	}
 	async yeniTanimOncesiIslemler(e) { await this.yeniTanimOncesiVeyaYukleSonrasiIslemler(e) } 
-	async yukleSonrasiIslemler(e) { let results = [await this.setValues(e), await this.yeniTanimOncesiVeyaYukleSonrasiIslemler(e)]; return results.filter(x => !!x)[0] }
+	async yukleSonrasiIslemler(e) {
+		let results = [await this.setValues(e), await this.yeniTanimOncesiVeyaYukleSonrasiIslemler(e)];
+		return results.filter(x => !!x)[0]
+	}
 	async yeniTanimOncesiVeyaYukleSonrasiIslemler(e) { }
 	yeniOncesiIslemler(e) { return this.kaydetOncesiIslemler(e) }
 	degistirOncesiIslemler(e) { return this.kaydetOncesiIslemler(e) }
 	silmeOncesiIslemler(e) { return this.kaydetVeyaSilmeOncesiIslemler(e) }
 	async kaydetOncesiIslemler(e) {
 		e = e ?? {}; await this.kaydetVeyaSilmeOncesiIslemler(e);
-		const {islem} = e; if (islem == 'degistir') {
+		let {islem} = e; if (islem == 'degistir') {
 			const {isOfflineMode, gonderildiDesteklenirmi, gonderimTSSaha} = this.class;
 			if (isOfflineMode && gonderildiDesteklenirmi && gonderimTSSaha) {
-				let keyHV = this.alternateKeyHostVars(e); if ($.isEmptyObject(keyHV)) { keyHV = this.keyHostVars(e) } if (!$.isEmptyObject(keyHV)) {
-					const {table} = this.class, {trnId} = e; let query = new MQSent({ from: table, where: [`${gonderimTSSaha} <> ''`, { birlestirDict: keyHV }], sahalar: 'count(*) sayi' });
+				let keyHV = this.alternateKeyHostVars(e); if ($.isEmptyObject(keyHV)) { keyHV = this.keyHostVars(e) }
+				if (!$.isEmptyObject(keyHV)) {
+					let {table} = this.class, {trnId} = e;
+					let query = new MQSent({ from: table, where: [`${gonderimTSSaha} <> ''`, { birlestirDict: keyHV }], sahalar: 'count(*) sayi' });
 					let _e = { trnId, isOfflineMode, query }; let result = await this.sqlExecTekilDeger(_e);
 					if (!!result) { throw { isError: true, errorText: 'Bu kayıt merkeze gönderildiği için üzerinde değişiklik yapılamaz' } }
 				}

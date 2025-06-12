@@ -55,7 +55,7 @@ class CariHareketci extends Hareketci {
 	static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
 		super.varsayilanHVDuzenle(...arguments);
 		for (const key of ['satistipkod', 'taksitadi', 'riskdurumu', 'cskendisimi', 'gxbnox', 'gxbtarihi', 'koopdonemno']) { hv[key] = sqlNull }
-		for (const key of ['acikkisim', 'ekstrarisk', 'ekstrarisk2']) { hv[key] = sqlZero }
+		for (const key of ['acikkisim', 'ekstrarisk', 'ekstrarisk2', 'dvbedel']) { hv[key] = sqlZero }
 		$.extend(hv, { dvkod: 'car.dvkod' })
 	}
 	uygunluk2UnionBilgiListeDuzenleDevam(e) {

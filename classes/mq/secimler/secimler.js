@@ -63,7 +63,7 @@ class Secimler extends CIO {
 		return this
 	}
 	secimEkle(e, _secim, _noInit) {
-		e = e || {}; const key = e.key ?? e.belirtec ?? e, noInitFlag = (e.noInit ?? _noInit ?? this._noInit);
+		e = e || {}; let key = e.key ?? e.belirtec ?? e, noInitFlag = (e.noInit ?? _noInit ?? this._noInit);
 		let secim = e.secim ?? e.value ?? e.item ?? _secim;
 		if (!noInitFlag) { this.beginUpdate() }
 		if (key && secim) {
@@ -84,6 +84,18 @@ class Secimler extends CIO {
 			const renk = e.renk ?? _renk, zeminRenk = e.zeminRenk ?? _zeminRenk, css = e.css ?? _css, ekBilgi = e.ekBilgi ?? _ekBilgi;
 			grupListe[kod] = { kod, aciklama, kapalimi, renk, zeminRenk, css, ekBilgi }
 		}
+		return this
+	}
+	addKA(e, _mfSinif, _kodClause, _adiClause) {
+		e = typeof e == 'object' ? e : { grupKod: e, mfSinif: _mfSinif, kodClause: _kodClause, adiClause: _adiClause };
+		let {grupKod, mfSinif, kodClause, adiClause} = e, {sinifAdi: etiket} = mfSinif;
+		this.grupEkle(grupKod, etiket);
+		this.secimEkle(`${grupKod}Kod`, new SecimBasSon({ etiket, mfSinif, grupKod }));
+		this.secimEkle(`${grupKod}Adi`, new SecimOzellik({ etiket: `${etiket} Adı`, grupKod }));
+		this.whereBlockEkle(({ secimler: sec, where: wh }) => {
+			wh.basiSonu(sec[`${grupKod}Kod`], kodClause);
+			wh.ozellik(sec[`${grupKod}Adi`], adiClause)
+		});
 		return this
 	}
 	secimleriTemizle(e) { this.liste = {}; this.gruplariTemizle(e); return this }
@@ -140,7 +152,7 @@ class Secimler extends CIO {
 	initHTMLElements_ilk(e) { } initHTMLElements_ara(e) { } initHTMLElements_son(e) { }
 	grupOzetBilgiDuzenle(e) {
 		let {elmGrup} = e, elmHeaderText = elmGrup?.find('.header > .jqx-expander-header-content');
-		if (elmHeaderText?.length) { elmHeaderText.html(this.getGrupHeaderHTML(e)) }
+		if (elmHeaderText?.length) { elmHeaderText.html(this.getGrupHeaderHTML(e) ?? '') }
 	}
 	getGrupHeaderHTML(e) {
 		e = e ?? {}; let innerHTML = this.getGrupOzetBilgiHTML(e), {elmGrup} = e;

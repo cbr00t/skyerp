@@ -56,7 +56,7 @@ class MQYerelParamConfig extends MQYerelParamApp {
 		if (!(qs.hostName || qs.hostname || qs.wsURL)) { ws.url = this.wsURL || _config.ws?.url }
 		if (!(qs.proxyServerURL || qs.proxyServerUrl || qs.proxyServer || qs.proxy)) { ws.proxyServerURL = this.wsProxyServerURL || _config.ws?.proxyServerURL }
 		if (sql) {
-			const wsSQL = app.wsSQL = app.wsSQL || {};
+			let wsSQL = app.wsSQL = app.wsSQL || {};
 			for (const key in sql) { const value = sql[key]; if (value) { wsSQL[key] = value } }
 		}
 		this.applyColorScheme(e);
