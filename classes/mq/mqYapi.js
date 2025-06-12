@@ -58,6 +58,14 @@ class MQYapi extends CIO {
 		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e, _e = { offlineMode, trnId, query }; let result = await this.sqlExecNone(_e);
 		await this.silmeSonrasiIslemler({ ...e, ..._e }); return result
 	}
+	static async oku(e) {
+		let inst = new this(e);
+		return await inst.oku(e)
+	}
+	async oku(e) {
+		if (!await this.yukle(e)) { return null }
+		return this
+	}
 	async getInstance_yukleIslemi(e) { return await this.yukle(e) }
 	async yukle(e) {
 		e = e || {}; let {rec} = e; e.orjRec = rec;

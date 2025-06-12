@@ -652,18 +652,36 @@ class MQCogul extends MQYapi {
 	}
 	static async getGloKod2Adi(e) {
 		e = e || {}; if (typeof e != 'object') e = { kod: e }
-		const {kod} = e, {globals} = this; let result = globals.kod2Adi; delete e.kod;
+		let {kod} = e, {globals} = this, {kod2Adi: result} = globals; delete e.kod;
 		if (!result) {
-			const kod2Rec = await this.getGloKod2Rec(e), adiSaha = e.adiSaha ?? this.adiSaha;
-			result = globals.kod2Adi = {}; for (const kod in kod2Rec) { result[kod] = kod2Rec[kod][adiSaha] }
+			let kod2Rec = await this.getGloKod2Rec(e), adiSaha = e.adiSaha ?? this.adiSaha;
+			result = globals.kod2Adi = {}; for (let kod in kod2Rec) {
+				result[kod] = kod2Rec[kod][adiSaha] }
 		}
 		return kod ? result[kod] : result
 	}
 	static async getGloKod2Rec(e) {
-		e = e || {}; const {globals} = this; let result = globals.kod2Rec;
-		if (!result) {
-			const recs = (await this.loadServerData({ ...e, basit: true })) || [], kodSaha = e.kodSaha ?? this.kodSaha; result = globals.kod2Rec = {};
-			for (const rec of recs) { const kod = rec[kodSaha]; result[kod] = rec }
+		let {globals} = this, {kod2Rec: result} = globals;
+		if (result == null) { result = globals.kod2Rec = await this.getKod2Rec(e) }
+		return result
+	}
+	static async getKod2Rec(e) {
+		let basit = true, kodSaha = e?.kodSaha ?? this.kodSaha;
+		let recs = (await this.loadServerData({ ...e, basit })) || [];
+		let result = {}; for (let rec of recs) {
+			let kod = rec[kodSaha]; result[kod] = rec }
+		return result
+	}
+	static async getGloKod2Inst(e) {
+		let {globals} = this, {kod2Inst: result} = globals;
+		if (result == null) { result = globals.kod2Inst = await this.getKod2Inst(e) }
+		return result
+	}
+	static async getKod2Inst(e) {
+		let kod2Rec = await this.getKod2Rec(e) ?? {};
+		let result = {}; for (let [kod, rec] of Object.entries(kod2Rec)) {
+			let inst = new this();
+			if (await inst.yukle({ rec })) { result[kod] = rec }
 		}
 		return result
 	}

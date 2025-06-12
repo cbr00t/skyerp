@@ -1,9 +1,23 @@
 class PortalApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get configParamSinif() { return MQYerelParamConfig_App } get yerelParamSinif() { return MQYerelParam }
-	get defaultWSPath() { return 'ws/vioPortal' } get autoExecMenuId() { return null }
+	get defaultWSPath() { return 'ws/vioPortal' } get defaultLoginTipi() { return 'bayiLogin' }
+	get autoExecMenuId() { return null }
+	loginTipleriDuzenle({ loginTipleri }) {
+		/* super yok */
+		loginTipleri.push(...[
+			{ kod: 'login', aciklama: 'Yönetici' },
+			{ kod: 'bayiLogin', aciklama: 'Bayi' },
+			{ kod: 'musteriLogin', aciklama: 'Müşteri' }
+		])
+	}
 	paramsDuzenle(e) { super.paramsDuzenle(e) /*; const {params} = e; $.extend(params, { x: MQParam_X.getInstance() })*/ }
-	async runDevam(e) { await super.runDevam(e) }
+	async afterRun(e) {
+		let {loginTipi, user: kod} = config.session;
+		let login = MQLogin.current = MQLogin.newFor({ loginTipi, kod });
+		await login?.yukle();
+		await super.afterRun(e)
+	}
 	async anaMenuOlustur(e) {
 		await this.promise_ready; let eksikParamIsimleri = [];
 		/*if (!kullanim.webOzetRapor) { eksikParamIsimleri.push('Web Özet Rapor') }*/
@@ -28,7 +42,7 @@ class PortalApp extends TicariApp {
 		let items = [
 			new FRMenuCascade({
 				mne: 'TAN', text: 'Tanımlar', items: (
-					[MQLogin_Admin, MQLogin_Bayi].map(cls => {
+					[MQLogin_Admin, MQLogin_Bayi].filter(cls => cls.uygunmu).map(cls => {
 						let {kodListeTipi: mne, sinifAdi: text} = cls, block = e => cls.listeEkraniAc(e)
 						return new FRMenuChoice({ mne, text, block })
 					})

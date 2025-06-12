@@ -4,6 +4,8 @@ class MQAktivasyon extends MQDetayli {
 	static get table() { return 'muslisans' } static get tableAlias() { return 'fis' }
 	static get detaySinif() { return MQAktivasyonDetay } static get gridKontrolcuSinif() { return MQAktivasyonGridci }
 	/* static get tumKolonlarGosterilirmi() { return true } */ static get raporKullanilirmi() { return false }
+	static get tanimlanabilirmi() { return super.tanimlanabilirmi && MQLogin.current?.yetkiVarmi('tanimla') }
+	static get silinebilirmi() { return super.silinebilirmi && MQLogin.current?.yetkiVarmi('sil') }
 	static secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
 		/*sec.grupTopluEkle([ { kod: 'inst', etiket: 'Şablon', kapali: false } ])
@@ -81,17 +83,12 @@ class MQAktivasyon extends MQDetayli {
 			new GridKolon({ belirtec: 'yeni', text: ' ', genislikCh: 8 }).noSql().tipButton('+').onClick(_e => { this.yeniIstendi({ ...e, ..._e }) })
 		])
 	}
-	static loadServerData_queryDuzenle({ basit, basitmi, gridPart, sender, stm, sent }) {
-		super.loadServerData_queryDuzenle(...arguments);
-		basitmi = basit ?? basitmi; if (basitmi) { return }
-		gridPart = gridPart ?? sender; let {subeKod, mustKod} = gridPart, {konsinyemi, tableAlias: alias} = this;
-		let {sahalar, where: wh} = sent, {orderBy} = stm;
-		sahalar.addWithAlias(alias, 'bvadegunkullanilir vadeGunKullanilirmi', 'vadegunu vadeGunu', 'emailadresler email_sablonEk');
-		if (konsinyemi && mustKod) {
-			sent.fromIliski('kldagitim dag', ['sab.klfirmakod = dag.klfirmakod', `dag.sevkadreskod = ''`, `dag.mustkod = ${mustKod.sqlServerDegeri()}`]);
-			sahalar.add(`${alias}.klfirmakod klFirmaKod`)
-		}
-		orderBy.liste = ['aciklama']
+	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent }) {
+		super.loadServerData_queryDuzenle(...arguments); let {tableAlias: alias} = this;
+		sent.fromIliski('musteri mus', `${alias}.mustkod = mus.kod`)
+			.fromIliski(`${MQLogin_Bayi.table} bay`, `mus.bayikod = bay.kod`)
+			.fromIliski(`${MQVPIl.table} il`, `mus.ilkod = il.kod`);
+		let clauses = { bayi: 'mus.bayikod' }; MQLogin.current.yetkiClauseDuzenle({ sent, clauses })
 	}
 	static async orjBaslikListesi_recsDuzenle(e) {
 		super.orjBaslikListesi_recsDuzenle(e); let {recs} = e;   /* 'await' super.orjBaslikListesi_recsDuzenle(e)  yapınca  'e.recs' bozuluyor ?? */
