@@ -3,45 +3,31 @@ class MQHMR extends MQKA {
 	static get tableAlias() { return 'hmr' }
 	static hmrTabloKolonDuzenle(e) {}
 	static hmr_queryEkDuzenle(e) { }
-	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e);
-		this.hmr_queryEkDuzenle(e)
-	}
-	static hmrSetValuesEk(e) { e.inst = coalesce(e.inst, () => (e.gridRec || {}).hmr); }
+	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); this.hmr_queryEkDuzenle(e) }
+	static hmrSetValuesEk(e) { e.inst = e.inst ?? e.gridRec?.hmr; }
 }
 class MQModel extends MQHMR {
-	static get sinifAdi() { return 'Model' }
-	static get table() { return 'tmodel' }
-	static get tableAlias() { return 'mod' }
-	static get kodListeTipi() { return 'MOD' }
+	static get sinifAdi() { return 'Model' } static get table() { return 'tmodel' }
+	static get tableAlias() { return 'mod' } static get kodListeTipi() { return 'MOD' }
 }
 class MQRenk extends MQHMR {
-	static get sinifAdi() { return 'Renk' }
-	static get table() { return 'trenk' }
-	static get tableAlias() { return 'rnk' }
-	static get kodListeTipi() { return 'RENK' }
+	static get sinifAdi() { return 'Renk' } static get table() { return 'trenk' }
+	static get tableAlias() { return 'rnk' } static get kodListeTipi() { return 'RENK' }
 	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e);
-		const {pTanim} = e;
-		$.extend(pTanim, {
-			renk1: new PInstStr(),
-			renk2: new PInstStr()
-		})
+		super.pTanimDuzenle(e); let {pTanim} = e;
+		$.extend(pTanim, { renk1: new PInstStr(), renk2: new PInstStr() })
 	}
 	static hmrTabloKolonDuzenle(e) {
-		super.hmrTabloKolonDuzenle(e);
-		const {colDef} = e;
-		const savedHandlers = { cellsRenderer: colDef.cellsRenderer };
+		super.hmrTabloKolonDuzenle(e); let {colDef} = e;
+		let savedHandlers = { cellsRenderer: colDef.cellsRenderer };
 		colDef.cellsRenderer = (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-			if (savedHandlers.cellsRenderer)
-				html = getFuncValue.call(this, savedHandlers.cellsRenderer, colDef, rowIndex, columnField, value, html, jqxCol, rec);
-			if (html == null)
-				return html
-			const {oscolor1, oscolor2} = ((rec.hmr || {})._temps || {}).renk || rec;
-			const htmlColor1 = oscolor1 ? os2HTMLColor(oscolor1) : null;
-			const htmlColor2 = oscolor2 ? os2HTMLColor(oscolor2) : null;
+			if (savedHandlers.cellsRenderer) { html = getFuncValue.call(this, savedHandlers.cellsRenderer, colDef, rowIndex, columnField, value, html, jqxCol, rec) }
+			if (html == null) { return html }
+			let {oscolor1, oscolor2} = ((rec.hmr || {})._temps || {}).renk || rec;
+			let htmlColor1 = oscolor1 ? os2HTMLColor(oscolor1) : null;
+			let htmlColor2 = oscolor2 ? os2HTMLColor(oscolor2) : null;
 			if (htmlColor1) {
-				const textColor = getContrastedColor(htmlColor1);
+				let textColor = getContrastedColor(htmlColor1);
 				html = html.replace('style="',
 					htmlColor2
 						? `style="background: linear-gradient(90deg, ${htmlColor1} 20%, ${htmlColor2} 80%) !important; color: ${textColor};`
@@ -52,15 +38,9 @@ class MQRenk extends MQHMR {
 		}
 	}
 	static async hmrSetValuesEk(e) {
-		await super.hmrSetValuesEk(e);
-		const {inst} = e;
-		if (!inst)
-			return
-		const rec = await e.rec;
-		const globalTemps = inst._temps = inst._temps || {};
-		const temps = globalTemps.renk = globalTemps.renk || {};
-		for (const key of ['oscolor1', 'oscolor2'])
-			temps[key] = rec[key]
+		await super.hmrSetValuesEk(e); let {inst} = e; if (!inst) { return }
+		let rec = await e.rec, globalTemps = inst._temps = inst._temps || {}, temps = globalTemps.renk = globalTemps.renk || {};
+		for (const key of ['oscolor1', 'oscolor2']) { temps[key] = rec[key] }
 	}
 	static rootFormBuilderDuzenle(e) {
 		e = e || {};
@@ -91,27 +71,22 @@ class MQRenk extends MQHMR {
 	}
 	static hmr_queryEkDuzenle(e) {
 		super.hmr_queryEkDuzenle(e);
-		const {sent, bosClausemi} = e;
-		const alias = coalesce(e.alias, this.tableAlias);
-		const aliasVeNokta = alias ? `${alias}.` : '';
-		sent.sahalar.addAll(
+		let {sent, bosClausemi} = e, {sahalar} = sent, alias = e.alias ?? this.tableAlias;
+		let aliasVeNokta = alias ? `${alias}.` : '';
+		sahalar.addAll(
 			bosClausemi ? `'' oscolor1` : `${aliasVeNokta}oscolor1`,
 			bosClausemi ? `'' oscolor2` : `${aliasVeNokta}oscolor2`
 		)
 	}
 	hostVarsDuzenle(e) {
-		super.hostVarsDuzenle(e);
-		const {hv} = e;
+		super.hostVarsDuzenle(e); let {hv} = e;
 		$.extend(hv, {
 			oscolor1: html2OSColor(this.renk1) || 0,
 			oscolor2: html2OSColor(this.renk2) || 0
 		})
 	}
 	setValues(e) {
-		e = e || {};
-		super.setValues(e);
-		const {rec} = e;
-		const {oscolor1, oscolor2} = rec;
+		super.setValues(e); let {rec} = e, {oscolor1, oscolor2} = rec;
 		$.extend(this, {
 			renk1: oscolor1 ? os2HTMLColor(oscolor1) : '',
 			renk2: oscolor1 ? os2HTMLColor(oscolor2) : ''

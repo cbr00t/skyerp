@@ -48,7 +48,7 @@ class PortalApp extends TicariApp {
 					})
 				)
 			}),
-			...[MQLogin_Musteri].map(cls => {
+			...[MQLogin_Musteri, MQAktivasyon].map(cls => {
 				let {kodListeTipi: mne, sinifAdi: text} = cls, block = e => cls.listeEkraniAc(e);
 				return new FRMenuChoice({ mne, text, block })
 			})

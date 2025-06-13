@@ -78,7 +78,9 @@ class MQCari_Genel extends MQCariAlt {
 			calismaDurumu: new PInstTrue('calismadurumu'), potansiyel: new PInstBool('potansiyel')
 		})
 	}
-	static ekCSSDuzenle(e) { const {rec, result} = e; if (!asBool(rec.calismadurumu)) { result.push('bg-lightgray', 'iptal') } }
+	static ekCSSDuzenle({ rec, result }) {
+		if (!asBool(rec.calismadurumu)) { result.push('bg-lightgray', 'iptal') }
+	}
 	static rootFormBuilderDuzenle(e) {
 		e = e || {}; const {mfSinif} = this; mfSinif.formBuilder_addTabPanelWithGenelTab(e); const tabPage_genel = e.tabPage_genel;
 		tabPage_genel.addStyle(e => `$elementCSS .baslik { color: cadetblue }`);

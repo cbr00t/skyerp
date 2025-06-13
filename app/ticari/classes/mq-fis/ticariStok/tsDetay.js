@@ -122,17 +122,17 @@ class TSSHDDetay extends TSDetay {
 			`${aliasVeNokta}miktar`, `${aliasVeNokta}fiyat`, `${aliasVeNokta}bedel`, `${aliasVeNokta}ekaciklama`
 		);
 		let {stokGibimi} = this; for (let item of HMRBilgi.hmrIter()) {
-			const {kami, mfSinif, rowAttr, ioAttr, adiAttr} = item;
-			const {table, tableAlias, kodSaha, adiSaha} = mfSinif || {}; if (!(kami && mfSinif)) { continue }
+			let {kami, mfSinif, rowAttr, ioAttr, adiAttr} = item;
+			let {table, tableAlias, kodSaha, adiSaha} = mfSinif || {}; if (!(kami && mfSinif)) { continue }
 			if (stokGibimi) {
 				sent.fromIliski(`${table} ${tableAlias}`, `${aliasVeNokta}${rowAttr} = ${tableAlias}.${kodSaha}`);
 				sent.sahalar.add(`${aliasVeNokta}${rowAttr}`);
 				if (adiAttr) { sent.sahalar.add(`${tableAlias}.${adiSaha} ${adiAttr}`); }
-				mfSinif.hmr_queryEkDuzenle($.extend({}, e, { alias: tableAlias }))
+				mfSinif?.hmr_queryEkDuzenle?.({ ...e, alias: tableAlias })
 			}
 			else {
 				sent.sahalar.add(`'' ${rowAttr}`); if (adiAttr) { sent.sahalar.add(`'' ${adiAttr}`); }
-				mfSinif.hmr_queryEkDuzenle($.extend({}, e, { alias: tableAlias, bosClausemi: true }))
+				mfSinif?.hmr_queryEkDuzenle?.({ ...e, alias: tableAlias, bosClausemi: true })
 			}
 		}
 	}

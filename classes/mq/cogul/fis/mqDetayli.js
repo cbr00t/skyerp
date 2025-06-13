@@ -413,8 +413,13 @@ class MQDetayliMaster extends MQDetayli {
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); /*const tanimForm = e.tanimFormBuilder; e.mfSinif = e.mfSinif ?? this;
 		tanimForm.add(MQKA.getFormBuilders_ka(e)); this.formBuilder_addTabPanelWithGenelTab(e);*/
-		let {tabPanel} = e; if (this.hasTabs) { this.formBuilder_addTabPanelWithGenelTab(e); tabPanel = e.tabPanel }
+		let {tabPanel, kaForm} = e; if (this.hasTabs) { this.formBuilder_addTabPanelWithGenelTab(e); tabPanel = e.tabPanel }
 		else { if (tabPanel) { tabPanel.addStyle(e => `$elementCSS > .tabs { display: none !important }`) } }
+		if (kaForm && !this.adiKullanilirmi) {
+			let {builders} = kaForm;
+			let ind = builders.findIndex(fbd => fbd.id == 'aciklama');
+			if (ind > -1) { builders.splice(ind, 1) }
+		}
 	}
 	static rootFormBuilderDuzenleSonrasi(e) {
 		super.rootFormBuilderDuzenleSonrasi(e); this.rootFormBuilderDuzenle_gridOncesi(e);

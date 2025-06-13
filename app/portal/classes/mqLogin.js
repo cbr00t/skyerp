@@ -2,6 +2,7 @@ class MQLogin extends MQKA {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get tableAlias() { return 'usr' }
 	static get yetkiSelectors() { return [] } static get yetkiRowAttrPrefix() { return 'b' } static get uygunmu() { return this != MQLogin }
 	static get current() { return this._current } static set current(value) { this._current = value }
+	static get tumKolonlarGosterilirmi() { return true } static get raporKullanilirmi() { return false }
 	static get tanimlanabilirmi() { return super.tanimlanabilirmi && MQLogin.current?.yetkiVarmi('tanimla') }
 	static get silinebilirmi() { return super.silinebilirmi && MQLogin.current?.yetkiVarmi('sil') }
 	static get tip2Sinif() {
@@ -47,6 +48,9 @@ class MQLogin extends MQKA {
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments); let {yetkiSelectors, yetkiRowAttrPrefix} = this;
+		liste.push(...[
+			new GridKolon({ belirtec: 'aktifmi', text: 'Aktif?', genislikCh: 16 }).tipBool()
+		]);
 		for (let ioAttr of yetkiSelectors) {
 			let belirtec = `${yetkiRowAttrPrefix}${ioAttr.toLowerCase()}`, text = ioAttr[0].toUpperCase() + ioAttr.slice(1);
 			liste.push(new GridKolon({ belirtec, text, genislikCh: 10 }).tipBool())

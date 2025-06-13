@@ -120,7 +120,7 @@ class HMRBilgi extends CIO {
 								: new GridKolon({ belirtec: item.ioAttr, text: item.etiket, genislikCh: DefaultGenislikCh });
 							if (result) { result.kodZorunluOlmasin() } if (item.numerikmi) { result.tipDecimal(2) }
 							if (kami && mfSinif) {
-								result.stmDuzenleyiciEkle(e => mfSinif.hmr_queryEkDuzenle(e)); result.degisince(e => mfSinif.hmrSetValuesEk(e));
+								result.stmDuzenleyiciEkle(e => mfSinif?.hmr_queryEkDuzenle?.(e)); result.degisince(e => mfSinif.hmrSetValuesEk(e));
 								let colDef = result; if (colDef?.kaKolonu) { colDef = colDef.kaKolonu }
 								mfSinif.hmrTabloKolonDuzenle?.({ orjColDef: result, colDef })
 							}
@@ -143,7 +143,7 @@ class HMRBilgi extends CIO {
 									let {tableAlias: mfAlias} = mfSinif, mfAliasVeNokta = mfAlias ? `${mfAlias}.` : '';
 									result.push(new GridKolon({ belirtec: adiAttr, text: `${etiket} Adı`, genislikCh: DefaultAdiGenislikCh, sql: `${mfAliasVeNokta}${mfSinif.adiSaha}` }))
 								}
-								for (const colDef of result) { mfSinif.hmrTabloKolonDuzenle({ orjColDef: colDef, colDef }) }
+								for (const colDef of result) { mfSinif?.hmrTabloKolonDuzenle?.({ orjColDef: colDef, colDef }) }
 							}
 						}
 					}
@@ -177,7 +177,7 @@ class HMRBilgi extends CIO {
 		super.setValues(e); const {rec} = e;
 		for (const {adiAttr, kami, mfSinif} of this.hmrIter()) {
 			if (adiAttr) { const value = rec[adiAttr]; if (value != null) { this[adiAttr] = value } }
-			if (kami && mfSinif) { mfSinif.hmrSetValuesEk({ ...e, inst: this, rec }) }
+			if (kami && mfSinif) { mfSinif.hmrSetValuesEk?.({ ...e, inst: this, rec }) }
 		}
 	}
 	static cacheReset() {
