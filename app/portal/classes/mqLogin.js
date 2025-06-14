@@ -5,6 +5,7 @@ class MQLogin extends MQKA {
 	static get tumKolonlarGosterilirmi() { return true } static get raporKullanilirmi() { return false }
 	static get tanimlanabilirmi() { return super.tanimlanabilirmi && MQLogin.current?.yetkiVarmi('tanimla') }
 	static get silinebilirmi() { return super.silinebilirmi && MQLogin.current?.yetkiVarmi('sil') }
+	static get kolonFiltreKullanilirmi() { return false }
 	static get tip2Sinif() {
 		let {_tip2Sinif: result} = this;
 		if (result == null) {

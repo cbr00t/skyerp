@@ -27,12 +27,14 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		let loginTipi = session.loginTipi || 'login', loginSubemi = loginTipi == 'login' && session.subeKod != null, loginMusterimi = loginTipi == 'musteri';
 		let subeKod = gridPart.subeKod = loginSubemi ? session.subeKod : qs.subeKod ?? qs.sube;
 		let mustKod = gridPart.mustKod = loginMusterimi ? session.kod : qs.mustKod ?? qs.must;
-		let {rootBuilder: rfb} = e; rfb.setInst(gridPart).addStyle(e => `$elementCSS { --header-height: 160px !important } $elementCSS .islemTuslari { overflow: hidden !important }`);
+		let {rootBuilder: rfb} = e; rfb.setInst(gridPart).addStyle(
+			`$elementCSS { --header-height: 160px !important } $elementCSS .islemTuslari { overflow: hidden !important }`);
 		let setKA = async (fbdOrLayout, kod, aciklama) => {
 			let elm = fbdOrLayout?.layout ?? fbdOrLayout; if (!elm?.length) { return }
 			if (kod) {
 				aciklama = await aciklama; if (!aciklama) { return }
-				let text = aciklama?.trim(); if (kod && typeof kod == 'string') { text = `<span class="kod bold gray">${kod}</b> <span class="aciklama royalblue normal">${aciklama}</span>` };
+				let text = aciklama?.trim(); if (kod && typeof kod == 'string') {
+					text = `<span class="kod bold gray">${kod}</b> <span class="aciklama royalblue normal">${aciklama}</span>` }
 				elm.html(text.trim()); elm.removeClass('jqx-hidden basic-hidden')
 			}
 			else { elm.addClass('jqx-hidden') }
@@ -55,7 +57,11 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 				.onAfterRun(({ builder: fbd }) => setKA(fbd, subeKod, MQSube.getGloKod2Adi(subeKod)))
 				.addStyle(e => `$elementCSS { width: auto !important; margin: 13px 0 0 30px }`)
 		}
-		if (!mustKod) {
+		if (mustKod) {
+			rfb.addForm('must', ({ builder: fbd }) => $(`<div class="${fbd.id}">${mustKod}</div>`)).setParent(header)
+				.onAfterRun(({ builder: fbd }) => setKA(fbd, mustKod, MQSCari.getGloKod2Adi(mustKod)))
+		}
+		else {
 			rfb.addModelKullan('mustKod', 'Müşteri').comboBox().setMFSinif(MQSCari).autoBind().setParent(header)
 				.ozelQueryDuzenleHandler(({ builder: fbd, aliasVeNokta, stm }) => {
 					for (let sent of stm.getSentListe()) {
@@ -66,10 +72,6 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 						sent.distinctYap()
 					}
 				}).degisince(({ builder: fbd }) => fbd.rootPart.tazeleDefer(e))
-		}
-		else {
-			rfb.addForm('must', ({ builder: fbd }) => $(`<div class="${fbd.id}">${mustKod}</div>`)).setParent(header)
-				.onAfterRun(({ builder: fbd }) => setKA(fbd, mustKod, MQSCari.getGloKod2Adi(mustKod)))
 		}
 	}
 	static orjBaslikListesi_argsDuzenle({ args }) {

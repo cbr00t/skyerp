@@ -1,8 +1,8 @@
 class PortalApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get configParamSinif() { return MQYerelParamConfig_App } get yerelParamSinif() { return MQYerelParam }
-	get defaultWSPath() { return 'ws/vioPortal' } get defaultLoginTipi() { return 'bayiLogin' }
-	get autoExecMenuId() { return null }
+	get defaultWSPath() { return 'ws/vioPortal' } get defaultLoginTipi() { return 'bayiLogin' } get autoExecMenuId() { return null }
+	constructor(e) { super(e); this.defaultSurum = '416' }
 	loginTipleriDuzenle({ loginTipleri }) {
 		/* super yok */
 		loginTipleri.push(...[
@@ -48,10 +48,12 @@ class PortalApp extends TicariApp {
 					})
 				)
 			}),
-			...[MQLogin_Musteri, MQAktivasyon].map(cls => {
-				let {kodListeTipi: mne, sinifAdi: text} = cls, block = e => cls.listeEkraniAc(e);
-				return new FRMenuChoice({ mne, text, block })
-			})
+			...[MQLogin_Musteri, MQAktivasyon, ...MQKontor.subClasses]
+				.filter(cls => cls.uygunmu != false)
+				.map(cls => {
+					let {kodListeTipi: mne, sinifAdi: text} = cls, block = e => cls.listeEkraniAc(e);
+					return new FRMenuChoice({ mne, text, block })
+				})
 		].filter(x => !!x)
 		return new FRMenu({ items })
 	}

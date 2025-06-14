@@ -356,7 +356,8 @@ class GridKolonTip_Time extends GridKolonTip_String {
 	}
 }
 class GridKolonTip_TekSecim extends GridKolonTip {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'tekSecim' } static get tekSecimmi() { return true } static get birKismimi() { return false }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'tekSecim' }
+	static get tekSecimmi() { return true } static get birKismimi() { return false }
 	get jqxColumnType() { return 'custom' } get jqxFilterType() { return 'checkedlist' }
 	get source() { return this._source } set source(value) { this._source = value }
 	get kaListe() { return this.tekSecim?.kaListe } get defaultChar() { return this.tekSecim?.char }
@@ -369,7 +370,7 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 			if (tekSecim) { tekSecim = getFuncValue.call(this, tekSecim, e) }
 			if ($.isPlainObject(tekSecim)) { tekSecim = tekSecimSinif ? new tekSecimSinif(tekSecim) : null }
 		}
-		if (!tekSecim) tekSecim = new TekSecim();
+		if (!tekSecim) { tekSecim = new TekSecim() }
 		if (kaListe) {
 			if (typeof kaListe == 'string') { kaListe = getFunc.call(this, kaListe, e) }
 			if (kaListe) { kaListe = getFuncValue.call(this, kaListe, e) }

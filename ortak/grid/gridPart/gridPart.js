@@ -339,8 +339,8 @@ class GridPart extends Part {
 		return recs
 	}
 	gridHandleKeyboardNavigation(e) {
-		let gridPart = this, {event} = e;
-		let {gridKeyState: state} = this; if (!state) { state = this.gridKeyState = new GridKeyState({ gridPart }) };
+		let gridPart = this, {event} = e, {gridKeyState: state} = this;
+		if (!state) { state = this.gridKeyState = new GridKeyState({ gridPart }) };
 		let result = state.setEvent(event).run(e); if (result != null) {
 			// if (result === false) { event.preventDefault() }
 			return result

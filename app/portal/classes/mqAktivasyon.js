@@ -3,14 +3,14 @@ class MQAktivasyon extends MQDetayliMaster {
 	static get kodListeTipi() { return 'AKT' } static get sinifAdi() { return 'Aktivasyon' }
 	static get table() { return 'muslisans' } static get tableAlias() { return 'fis' } static get sayacSaha() { return 'kaysayac' }
 	static get detaySinif() { return MQAktivasyonDetay } static get gridKontrolcuSinif() { return MQAktivasyonGridci }
-	static get tumKolonlarGosterilirmi() { return true } static get raporKullanilirmi() { return false }
+	static get tumKolonlarGosterilirmi() { return true } static get kolonFiltreKullanilirmi() { return false } static get raporKullanilirmi() { return false }
 	static get tanimlanabilirmi() { return super.tanimlanabilirmi && MQLogin.current?.yetkiVarmi('tanimla') }
 	static get silinebilirmi() { return super.silinebilirmi && MQLogin.current?.yetkiVarmi('sil') }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		$.extend(pTanim, {
 			tarih: new PInstDateToday('tarih'), ilkTarih: new PInstDateToday('ilktarih'), mustKod: new PInstStr('mustkod'),
-			baktifmi: new PInstBitTrue('baktifmi'), surum: new PInstStr('416'),
+			baktifmi: new PInstBitTrue('baktifmi'), surum: new PInstStr({ rowAttr: 'surum', init: () => app.defaultSurum }),
 			kullaniciSayi: new PInstNum('kullanicisayi'), elTerminalSayi: new PInstNum('elterminalsayi'), dokunmatikSayi: new PInstNum('dokunmatiksayi'),
 			topBedel: new PInstNum('topbedel'), demoSuresiSifirlaTarih: new PInstDate('demosuresifirlatarih'),
 			ekBilgi: new PInstStr('ekbilgi'), ozelEkBilgi: new PInstStr('ozelekbilgi')
@@ -67,7 +67,8 @@ class MQAktivasyon extends MQDetayliMaster {
 		sent.fromIliski('musteri mus', `${alias}.mustkod = mus.kod`)
 			.fromIliski(`${MQLogin_Bayi.table} bay`, `mus.bayikod = bay.kod`)
 			.fromIliski(`${MQVPIl.table} il`, `mus.ilkod = il.kod`);
-		let clauses = { bayi: 'mus.bayikod' }; MQLogin.current.yetkiClauseDuzenle({ sent, clauses })
+		let clauses = { bayi: 'mus.bayikod', musteri: `${alias}.mustkod` };
+		MQLogin.current.yetkiClauseDuzenle({ sent, clauses })
 	}
 }
 class MQAktivasyonDetay extends MQDetay {

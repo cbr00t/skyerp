@@ -23,7 +23,7 @@ class GridState extends CObject {
 	get canHandleEvents() {
 		let {gridWidget, activePart, isSubPart, activeElement, eventTS, lastEventTS} = this;
 		if (!gridWidget) { return false }
-		if (!!this.isSubPart && app.activePart && app.activePart != this) { return false }
+		if (!/*!this.isSubPart &&*/ app.activePart && app.activePart != this) { return false }
 		if (lastEventTS && eventTS == lastEventTS) { return false }
 		if (activeElement?.[0].tagName?.toUpperCase() == 'TEXTAREA') { return false }
 		return true
