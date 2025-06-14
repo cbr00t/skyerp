@@ -20,3 +20,15 @@ class KontorAHTip extends TekSecim {
 		])
 	}
 }
+class KontorFatDurum extends TekSecim {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get defaultChar() { return '' }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments);
+		kaListe.push(...[
+			new CKodVeAdi(['', '', 'yokmu']),
+			new CKodVeAdi(['B', 'Fatura Edilecek', 'faturaEdilecekmi']),
+			new CKodVeAdi(['X', 'Fatura Edildi', 'faturaEdildimi'])
+		])
+	}
+}

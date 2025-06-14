@@ -2,10 +2,11 @@ class MQLogin extends MQKA {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get tableAlias() { return 'usr' }
 	static get yetkiSelectors() { return [] } static get yetkiRowAttrPrefix() { return 'b' } static get uygunmu() { return this != MQLogin }
 	static get current() { return this._current } static set current(value) { this._current = value }
-	static get tumKolonlarGosterilirmi() { return true } static get raporKullanilirmi() { return false }
+	static get tumKolonlarGosterilirmi() { return true } static get raporKullanilirmi() { return false } static get kolonFiltreKullanilirmi() { return false }
 	static get tanimlanabilirmi() { return super.tanimlanabilirmi && MQLogin.current?.yetkiVarmi('tanimla') }
 	static get silinebilirmi() { return super.silinebilirmi && MQLogin.current?.yetkiVarmi('sil') }
-	static get kolonFiltreKullanilirmi() { return false }
+	static get adminmi() { return false } static get bayimi() { return false } static get musterimi() { return false }
+	get adminmi() { return this.class.adminmi } get bayimi() { return this.class.bayimi } get musterimi() { return this.class.musterimi }
 	static get tip2Sinif() {
 		let {_tip2Sinif: result} = this;
 		if (result == null) {
@@ -93,6 +94,7 @@ class MQLogin extends MQKA {
 		let clauses = e.clauses ?? {}; this._yetkiClauseDuzenle({ ...e, wh, clauses });
 		return this
 	}
+	_yetkiClauseDuzenle({ wh, clauses }) { }
 }
 class MQLogin_Admin extends MQLogin {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return MQLogin.current.adminmi }
@@ -101,13 +103,12 @@ class MQLogin_Admin extends MQLogin {
 	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent }) {
 		super.loadServerData_queryDuzenle(...arguments); let {tableAlias: alias, kodSaha} = this, {where: wh} = sent;
 		if (!MQLogin.current.adminmi) { wh.add('1 = 2') }
-		else { let clauses = { bayi: `${alias}.${kodSaha}` }; MQLogin.current.yetkiClauseDuzenle({ sent, clauses }) }
 	}
 }
 class MQLogin_Bayi extends MQLogin {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return !MQLogin.current.musterimi }
-	static get kodListeTipi() { return 'USRBAYI' } static get sinifAdi() { return 'Bayi' }
-	static get table() { return 'bayi' } static get bayimi() { return true } static get yetkiRowAttrPrefix() { return 'byetki' }
+	static get kodListeTipi() { return 'USRBAYI' } static get sinifAdi() { return 'Bayi' } static get bayimi() { return true }
+	static get table() { return 'bayi' } static get yetkiRowAttrPrefix() { return 'byetki' }
 	static get yetkiSelectors() { return [...super.yetkiSelectors, 'aktivasyonYap', 'aktivasyonSil', 'anahtarVer', 'demoSureSifirla'] }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
@@ -154,6 +155,7 @@ class MQLogin_Bayi extends MQLogin {
 		return super._yetkiVarmi(...arguments)
 	}
 	_yetkiClauseDuzenle({ wh, clauses }) {
+		super._yetkiClauseDuzenle(...arguments);
 		if (!this.sefmi) { let {bayi: kodClause} = clauses; if (kodClause) { wh.degerAta(this.kod, kodClause) } }
 	}
 }
