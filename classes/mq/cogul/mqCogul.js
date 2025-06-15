@@ -80,6 +80,11 @@ class MQCogul extends MQYapi {
 			}
 		}
 	}
+	static openContextMenu(e) {
+		let {title} = e, gridPart = e.gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder?.rootPart;
+		let rec = e.rec = e.rec ?? gridPart.selectedRec, recs = e.recs = gridPart.selectedRecs;
+		return gridPart.openContextMenu(e)
+	}
 	static getEkCSS(e) {
 		e = e || {}; let {rec} = e; rec = e.rec = rec?.bounddata ?? rec?.boundrec ?? rec?.boundrow ?? rec;
 		if (rec) { const _e = $.extend({}, e, { sender: this, rec, result: [] }); this.ekCSSDuzenle(_e); return _e.result }
@@ -625,7 +630,7 @@ class MQCogul extends MQYapi {
 		this.forAltYapiKeysDo('setValues', e)
 	}
 	static listeEkraniAc(e) {
-		const {listeUISinif} = this; if (!listeUISinif) { return null }
+		let {listeUISinif} = this; if (!listeUISinif) { return null }
 		e = e || {}; e.mfSinif = e.mfSinif || this;
 		try { const part = new listeUISinif(e), result = part.run(); return { part, result } }
 		catch (ex) { displayMessage(getErrorText(ex)); throw ex }

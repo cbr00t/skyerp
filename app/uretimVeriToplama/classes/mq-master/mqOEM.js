@@ -804,9 +804,4 @@ class MQOEMVeGorev extends MQOEM {
 		}
 		catch (ex) { hConfirm(getErrorText(ex), 'Gerçekleme Yap'); throw ex }
 	}
-	static openContextMenu(e) {
-		let {title} = e; /*title = e.title = title ?? `<b class="gray">(${rec.tezgahKod})</b> ${rec.tezgahAdi}${cells?.length > 1 ? ` <b class="cadetblue">(+ ${cells.length})</b>` : ''}`;*/
-		const gridPart = e.gridPart = e.gridPart ?? e.sender ?? e.parentPart ?? e.builder.rootPart, rec = e.rec = e.rec ?? gridPart.selectedRec, recs = e.recs = gridPart.selectedRecs;
-		return gridPart.openContextMenu(e)
-	}
 }

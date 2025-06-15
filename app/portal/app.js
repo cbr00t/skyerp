@@ -15,8 +15,7 @@ class PortalApp extends TicariApp {
 	async afterRun(e) {
 		let {loginTipi, user: kod} = config.session;
 		let login = MQLogin.current = MQLogin.newFor({ loginTipi, kod });
-		await login?.yukle();
-		await super.afterRun(e)
+		await login?.yukle(); await super.afterRun(e)
 	}
 	async anaMenuOlustur(e) {
 		await this.promise_ready; let eksikParamIsimleri = [];

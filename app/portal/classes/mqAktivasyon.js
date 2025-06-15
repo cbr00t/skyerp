@@ -32,8 +32,9 @@ class MQAktivasyon extends MQDetayliMaster {
 			wh.basiSonu(sec.surum, `${alias}.surum`)
 		})
 	}
-	static rootFormBuilderDuzenle_listeEkrani(e) {
-		super.rootFormBuilderDuzenle_listeEkrani(e)
+	static rootFormBuilderDuzenleSonrasi_listeEkrani(e) {
+		super.rootFormBuilderDuzenleSonrasi_listeEkrani(e); let {rootBuilder: rfb} = e;
+		this.fbd_listeEkrani_addButton(rfb, 'kontorMenu', '...', 50, e => this.kontorMenuIstendi(e))
 	}
 	static ekCSSDuzenle({ rec, result }) {
 		super.ekCSSDuzenle(...arguments);
@@ -69,6 +70,22 @@ class MQAktivasyon extends MQDetayliMaster {
 			.fromIliski(`${MQVPIl.table} il`, `mus.ilkod = il.kod`);
 		let clauses = { bayi: 'mus.bayikod', musteri: `${alias}.mustkod` };
 		MQLogin.current.yetkiClauseDuzenle({ sent, clauses })
+	}
+	static kontorMenuIstendi(e) {
+		this.openContextMenu({
+			...e, title: 'Kontör İşlemleri',
+			wndArgsDuzenle: ({ wndArgs: args }) => $.extend(args, { height: 150 }),
+			formDuzenleyici: ({ form: parentForm, close, rec }) => {
+				let listele = cls => {
+					let {mustkod: mustKod} = rec;
+					cls.listeEkraniAc({ args: { mustKod } });
+				};
+				parentForm.altAlta().addStyle(e = `$elementCSS .formBuilder-element.parent { margin-top: 5px !important }`);
+				let form = parentForm.addFormWithParent().yanYana(2);
+				form.addButton('eBelge', undefined, 'e-Belge Kontör').onClick(() => { close(); listele(MQKontor_EBelge) });
+				form.addButton('turmob', undefined, 'Turmob Kontör').onClick(() => { close(); listele(MQKontor_Turmob) })
+			}
+		})
 	}
 }
 class MQAktivasyonDetay extends MQDetay {

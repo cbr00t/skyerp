@@ -54,22 +54,26 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, {
-			ozelQueryDuzenleBlock: e.ozelQueryDuzenleBlock ?? e.ozelQueryDuzenle, ozelQuerySonucuBlock: e.ozelQuerySonucuBlock ?? e.ozelQuerySonucu, veriYukleninceBlock: e.veriYuklenince ?? e.veriYukleninceBlock,
+			initBlock: e.initBlock ?? e.init, ozelQueryDuzenleBlock: e.ozelQueryDuzenleBlock ?? e.ozelQueryDuzenle,
+			ozelQuerySonucuBlock: e.ozelQuerySonucuBlock ?? e.ozelQuerySonucu, veriYukleninceBlock: e.veriYuklenince ?? e.veriYukleninceBlock,
 			yeniInstOlusturucu: e.yeniInstOlusturucu, tanimOncesiEkIslemler: e.tanimOncesiEkIslemler, _mfSinif: e.mfSinif, _secimler: e.secimler, _secimlerDuzenleBlock: e.secimlerDuzenleBlock ?? e.secimlerDuzenle,
 			_tanimUISinif: e.tanimUISinif, _tanimlanabilirmi: e.tanimlanabilirmi, _silinebilirmi: e.silinebilirmi, args: e.args, panelDuzenleyici: e.panelDuzenleyici
 		});
-		const mfSinif = this._mfSinif = this.getMFSinif(e); $.extend(e, { sender: this, gridPart: this, mfSinif });
-		const {eConf} = e; if (eConf != null) { this.eConf = eConf }
+		let mfSinif = this._mfSinif = this.getMFSinif(e); $.extend(e, { sender: this, gridPart: this, mfSinif });
+		let {eConf} = e; if (eConf != null) { this.eConf = eConf }
 		let secimler = e.secimler = this.getSecimler(e); let {sinifAdi} = e;
 		if (mfSinif) { if (!secimler) { secimler = mfSinif.newSecimler } if (sinifAdi == null) { sinifAdi = mfSinif.listeSinifAdi ?? mfSinif.sinifAdi } }
+		let _e = { ...e, sender: this, builder: this.builder, mfSinif, sinifAdi, secimler };
 		if (secimler) {
-			const {secimlerDuzenleBlock} = this;
+			let {secimlerDuzenleBlock} = this;
 			if (secimlerDuzenleBlock) {
-				const _e = $.extend({}, e, { sender: this, builder: this.builder, mfSinif, sinifAdi, secimler }); getFuncValue.call(this, secimlerDuzenleBlock, _e)
-				let result = _e.secimler; if (result !== undefined) { secimler = _e.secimler }
+				getFuncValue.call(this, secimlerDuzenleBlock, _e);
+				let {secimler: result} = _e; if (result !== undefined) { secimler = _e.secimler }
 			}
-		} this._secimler = secimler;
-		let {panelDuzenleyici} = this; if (!panelDuzenleyici && mfSinif?.orjBaslikListesi_getPanelDuzenleyici) { panelDuzenleyici = mfSinif.orjBaslikListesi_getPanelDuzenleyici(e) }
+		}
+		this._secimler = secimler;
+		let {panelDuzenleyici} = this; if (!panelDuzenleyici && mfSinif?.orjBaslikListesi_getPanelDuzenleyici) {
+			panelDuzenleyici = mfSinif.orjBaslikListesi_getPanelDuzenleyici(_e) }
 		/* if (!panelDuzenleyici) { panelDuzenleyici = new GridPanelDuzenleyici() } */
 		if (panelDuzenleyici) {
 			let grupAttrListe = mfSinif?.orjBaslikListesi_panelGrupAttrListe || [], ustSeviyeAttrListe = mfSinif?.orjBaslikListesi_panelUstSeviyeAttrListe || [];
@@ -81,7 +85,8 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		}
 		this.panelDuzenleyici = panelDuzenleyici;
 		this.title = e.title == null ? ( ( sinifAdi ? `<span class="wnd-title sinifAdi">${sinifAdi}</span> listesi` : null ) || 'Liste Ekranı' ) : e.title;
-		const {args} = this; if (!$.isEmptyObject(args)) { $.extend(this, args) }
+		let {args} = this; if (!$.isEmptyObject(args)) { $.extend(this, args) }
+		this.initBlock?.call(this, _e)
 	}
 	runDevam(e) {
 		e = e || {}; const mfSinif = this.getMFSinif(e), {layout} = this; $.extend(e, { layout, sender: this });
@@ -274,10 +279,11 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		return tabloKolonlari
 	}
 	defaultLoadServerData(e) {
-		e = e || {}; const mfSinif = this.getMFSinif(e); e.args = this.args;
+		e = e || {}; let mfSinif = this.getMFSinif(e); e.args = this.args;
 		if (!mfSinif) { return super.defaultLoadServerData(e) }
-		const {builder, tabloKolonlari, secimler, ozelQueryDuzenleBlock, ozelQuerySonucuBlock} = this;
-		const _e = $.extend({ sender: this, builder, tabloKolonlari, secimler, ozelQueryDuzenleBlock, ozelQuerySonucuBlock }, e); return mfSinif.loadServerData(_e)
+		let {builder, tabloKolonlari, secimler, ozelQueryDuzenleBlock, ozelQuerySonucuBlock} = this;
+		let _e = { sender: this, builder, tabloKolonlari, mfSinif, secimler, ozelQueryDuzenleBlock, ozelQuerySonucuBlock, e };
+		return mfSinif.loadServerData(_e)
 	}
 	loadServerData_recsDuzenle_ilk(e) {
 		super.loadServerData_recsDuzenle(e); const mfSinif = e.mfSinif = this.getMFSinif(e); let {recs} = e; e.args = this.args;
@@ -500,6 +506,8 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		return await super.vazgecIstendi(e)
 	}
 	tekil() { this.tekilmi = true; return this } coklu() { this.tekilmi = false; return this }
+	onInit(handler) { this.initBlock = handler; return this }
+	secimlerDuzenleIslemi(handler) { this.secimlerDuzenleBlock = handler; return this }
 	veriYuklenince(handler) { this.veriYukleninceBlock = handler; return this }
 }
 

@@ -16,7 +16,7 @@ class KontorAHTip extends TekSecim {
 		super.kaListeDuzenle(...arguments);
 		kaListe.push(...[
 			new CKodVeAdi(['A', 'Alınan', 'alinanmi']),
-			new CKodVeAdi(['H', 'Haracanan', 'harcananmi'])
+			new CKodVeAdi(['H', 'Harcanan', 'harcananmi'])
 		])
 	}
 }
@@ -27,8 +27,8 @@ class KontorFatDurum extends TekSecim {
 		super.kaListeDuzenle(...arguments);
 		kaListe.push(...[
 			new CKodVeAdi(['', '', 'yokmu']),
-			new CKodVeAdi(['B', 'Fatura Edilecek', 'faturaEdilecekmi']),
-			new CKodVeAdi(['X', 'Fatura Edildi', 'faturaEdildimi'])
+			new CKodVeAdi(['B', '<span class=orangered>Fatura Edilecek</span>', 'faturaEdilecekmi']),
+			new CKodVeAdi(['X', '<span class=green>Fatura Edildi</span>', 'faturaEdildimi'])
 		])
 	}
 }
