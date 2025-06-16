@@ -208,12 +208,6 @@ class MQKontorDetay extends MQDetay {
 					case 'H': result.push('firebrick'); break
 				}
 				break
-			/* case 'fatdurumtext':
-				switch (rec.fatdurum) {
-					case 'B': result.push('orangered'); break
-					case 'X': result.push('green'); break
-				}
-				break */
 			case 'kontorsayi':
 				if ((rec[belirtec] ?? 0) < 0) { result.push('red') }
 				break

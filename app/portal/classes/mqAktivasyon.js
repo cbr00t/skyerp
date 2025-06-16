@@ -18,12 +18,12 @@ class MQAktivasyon extends MQDetayliMaster {
 		})
 	}
 	static secimlerDuzenle({ secimler: sec }) {
-		super.secimlerDuzenle(...arguments); let {tableAlias: alias} = this;
+		let {tableAlias: alias} = this;
 		sec.grupTopluEkle([ { kod: 'genel', etiket: 'Genel', kapali: false } ]);
 		sec
 			.secimTopluEkle({
-				aktifSecim: new SecimTekSecim({ etiket: 'Aktiflik', tekSecimSinif: AktifVeDevreDisi }),
-				surum: new SecimBirKismi({ etiket: 'Sürüm', tekSecimSinif: VIOSurum }),
+				aktifSecim: new SecimTekSecim({ etiket: 'Aktiflik', tekSecim: new AktifVeDevreDisi().bu() }),
+				surum: new SecimBirKismi({ etiket: 'Sürüm', tekSecim: new VIOSurum().secimYok() }).birKismi(),
 				tanitim: new SecimOzellik({ etiket: 'Tanıtım' })
 			})
 			.addKA('must', MQLogin_Musteri, `${alias}.mustkod`, 'mus.aciklama')
@@ -61,7 +61,7 @@ class MQAktivasyon extends MQDetayliMaster {
 	}
 	static ekCSSDuzenle({ rec, result }) {
 		super.ekCSSDuzenle(...arguments);
-		if (!rec.baktifmi) { result.push('bg-lightgray', 'iptal') }
+		if (!rec.baktifmi) { result.push('bg-lightgray', 'iptal', 'firebrick') }
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments); let {tableAlias: alias} = this;
@@ -70,12 +70,12 @@ class MQAktivasyon extends MQDetayliMaster {
 			new GridKolon({ belirtec: 'baktifmi', text: 'Aktif?', genislikCh: 8 }).tipBool(),
 			new GridKolon({ belirtec: 'mustkod', text: 'Müşteri', genislikCh: 16 }),
 			new GridKolon({ belirtec: 'mustadi', text: 'Müşteri Adı', genislikCh: 45, sql: 'mus.aciklama' }),
+			new GridKolon({ belirtec: 'surumtext', text: 'Sürüm', genislikCh: 13, sql: VIOSurum.getClause(`${alias}.surum`) }).alignCenter(),
 			new GridKolon({ belirtec: 'bayikod', text: 'Bayi', genislikCh: 10, sql: 'mus.bayikod' }),
-			new GridKolon({ belirtec: 'bayiadi', text: 'Bayi Adı', genislikCh: 30, sql: 'bay.aciklama' }),
+			new GridKolon({ belirtec: 'bayiadi', text: 'Bayi Adı', genislikCh: 25, sql: 'bay.aciklama' }),
 			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 25, sql: 'mus.yore' }),
 			new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 8, sql: 'mus.ilkod' }),
 			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 25, sql: 'il.aciklama' }),
-			new GridKolon({ belirtec: 'surumtext', text: 'Sürüm', genislikCh: 8, sql: VIOSurum.getClause(`${alias}.surum`) }).alignCenter(),
 			new GridKolon({ belirtec: 'tanitim', text: 'Tanıtım', genislikCh: 43, sql: 'mus.tanitim' }),
 			new GridKolon({ belirtec: 'kullanicisayi', text: 'Kull.Sayı', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'elterminalsayi', text: 'ElTerm.Sayı', genislikCh: 10 }).tipNumerik(),

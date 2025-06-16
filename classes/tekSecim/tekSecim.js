@@ -56,5 +56,6 @@ class TekSecim extends CIO {
 		this._propInitFlag = true
 	}
 	toString(e) { const {coklumu, secilen} = this; return secilen ? (coklumu ? secilen.map(x => x.kod).join(',') : secilen).toString(e) : '' }
+	secimYok() { this.char = null; return this }
 }
 
