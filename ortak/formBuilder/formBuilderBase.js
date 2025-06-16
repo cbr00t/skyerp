@@ -333,7 +333,7 @@ class FormBuilderBase extends CObject {
 		const id = typeof e == 'object' ? e.id : e;
 		const etiket = typeof e == 'object' ? e.etiket : _etiket;
 		const value = typeof e == 'object' ? e.value : _value;
-		const placeHolder = typeof e == 'object' ? coalesce(e.placeHolder, e.placeholder) : _placeHolder;
+		const placeHolder = typeof e == 'object' ? e.placeHolder ?? e.placeholder : _placeHolder;
 		const maxLength = typeof e == 'object' ? e.maxLength : _maxLength;
 		const builder = new FBuilder_PassInput({ id: id, etiket: etiket, value: value, placeHolder: placeHolder, maxLength: maxLength });
 		this.add(builder);
@@ -344,7 +344,7 @@ class FormBuilderBase extends CObject {
 		const id = typeof e == 'object' ? e.id : e;
 		const etiket = typeof e == 'object' ? e.etiket : _etiket;
 		const value = typeof e == 'object' ? e.value : _value;
-		const placeHolder = typeof e == 'object' ? coalesce(e.placeHolder, e.placeholder) : _placeHolder;
+		const placeHolder = typeof e == 'object' ? e.placeHolder ?? e.placeholder : _placeHolder;
 		const maxLength = typeof e == 'object' ? e.maxLength : _maxLength;
 		const fra = typeof e == 'object' ? e.fra : _fra;
 		const min = typeof e == 'object' ? e.min : _min;
@@ -362,7 +362,7 @@ class FormBuilderBase extends CObject {
 		const id = typeof e == 'object' ? e.id : e;
 		const etiket = typeof e == 'object' ? e.etiket : _etiket;
 		const value = typeof e == 'object' ? e.value : _value;
-		const placeHolder = typeof e == 'object' ? coalesce(e.placeHolder, e.placeholder) : _placeHolder;
+		const placeHolder = typeof e == 'object' ? e.placeHolder ?? e.placeholder : _placeHolder;
 		const builder = new FBuilder_DateInput({ id: id, etiket: etiket, value: value, placeHolder: placeHolder });
 		this.add(builder);
 		return builder
@@ -372,7 +372,7 @@ class FormBuilderBase extends CObject {
 		const id = typeof e == 'object' ? e.id : e;
 		const etiket = typeof e == 'object' ? e.etiket : _etiket;
 		const value = typeof e == 'object' ? e.value : _value;
-		const placeHolder = typeof e == 'object' ? coalesce(e.placeHolder, e.placeholder) : _placeHolder;
+		const placeHolder = typeof e == 'object' ? e.placeHolder ?? e.placeholder : _placeHolder;
 		const builder = new FBuilder_TimeInput({ id: id, etiket: etiket, value: value, placeHolder: placeHolder });
 		this.add(builder);
 		return builder
@@ -382,7 +382,7 @@ class FormBuilderBase extends CObject {
 		const id = typeof e == 'object' ? e.id : e;
 		const etiket = typeof e == 'object' ? e.etiket : _etiket;
 		const value = typeof e == 'object' ? e.value : _value;
-		const placeHolder = typeof e == 'object' ? coalesce(e.placeHolder, e.placeholder) : _placeHolder;
+		const placeHolder = typeof e == 'object' ? e.placeHolder ?? e.placeholder : _placeHolder;
 		const maxLength = typeof e == 'object' ? e.maxLength : _maxLength;
 		const rowCount = typeof e == 'object' ? coalesce(e.rowCount, e.rows) : _rowCount;
 		const builder = new FBuilder_TextArea({

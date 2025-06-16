@@ -633,19 +633,23 @@ class GridKolonTip_Bool extends GridKolonTip_Ozel {
 	get jqxColumnType() { return 'checkbox' } get jqxFilterType() { return 'checkedlist' }
 	get createEditor_ozel() {
 		return ((colDef, rowIndex, value, editor, cellText, cellWidth, cellHeight) => {
-			const isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
+			let isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
 			if (isCustomEditor && !editor.hasClass('editor')) {
-				const parent = editor; parent.addClass('full-wh');
-				editor = $(`<input type="checkbox" class="editor" style="width: ${cellWidth}px; height: ${cellHeight - 5}px"/>`); editor.appendTo(parent)
+				let parent = editor; parent.addClass('full-wh');
+				editor = $(`<input type="checkbox" class="editor" style="width: ${cellWidth}px; height: ${cellHeight - 5}px"/>`);
+				editor.appendTo(parent)
 			}
 		})
 	}
 	get initEditor_ozel() {
 		return ((colDef, rowIndex, value, editor, cellText, pressedChar) => {
-			if (!(typeof value == 'boolean' || typeof value == 'number')) { value = this.value } value = !asBool(value);
-			const isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template'); if (isCustomEditor) {
-				const _editor = editor.children('.editor'); if (_editor.length) { editor = _editor }
-				editor.attr('type', 'checkbox'); editor.prop('checked', asBool(value)); /*editor.css('text-align', 'center'); editor.css('margin', '5px 0 0 5px'); editor.addClass('full-wh');*/
+			if (!(typeof value == 'boolean' || typeof value == 'number')) { value = this.value }
+			value = !asBool(value);
+			let isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
+			if (isCustomEditor) {
+				let _editor = editor.children('.editor'); if (_editor.length) { editor = _editor }
+				editor.attr('type', 'checkbox');
+				editor.prop('checked', asBool(value)); /*editor.css('text-align', 'center'); editor.css('margin', '5px 0 0 5px'); editor.addClass('full-wh');*/
 				setTimeout(() => editor.focus(), 50)
 			}
 		})
@@ -654,7 +658,7 @@ class GridKolonTip_Bool extends GridKolonTip_Ozel {
 		return ((colDef, rowIndex, value, editor) => {
 			const isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template'); if (isCustomEditor) {
 				const _editor = editor.children('.editor'); if (_editor.length) { editor = _editor }
-				return editor.is(':checked')
+												return editor.is(':checked')
 			}
 			return value
 		})
@@ -679,11 +683,15 @@ class GridKolonTip_Bool extends GridKolonTip_Ozel {
 	}
 	get cellBeginEdit() {
 		return ((colDef, rowIndex, belirtec, colType, value) => {
-			const {gridWidget} = colDef.gridPart;
-			if (!(gridWidget.editable && colDef.isEditable)) return false
+			let {gridWidget} = colDef.gridPart;
+			if (!(gridWidget.editable && colDef.isEditable)) { return false }
 			if ((colDef.columnType == 'checkbox' || colDef.columnType == 'custom' || colDef.columnType == 'template')) {
 				gridWidget.setcellvalue(rowIndex, belirtec, !value);
-				setTimeout(() => gridWidget.endcelledit(rowIndex, belirtec, false), 0);
+				setTimeout(() => {
+					gridWidget.beginupdate();
+					gridWidget.endcelledit(rowIndex, belirtec, false);
+					gridWidget.endupdate()
+				}, 100);
 				return false
 			}
 		})

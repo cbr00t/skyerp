@@ -6,11 +6,12 @@ class MQAktivasyon extends MQDetayliMaster {
 	static get tumKolonlarGosterilirmi() { return true } static get kolonFiltreKullanilirmi() { return false } static get raporKullanilirmi() { return false }
 	static get tanimlanabilirmi() { return super.tanimlanabilirmi && MQLogin.current?.yetkiVarmi('tanimla') }
 	static get silinebilirmi() { return super.silinebilirmi && MQLogin.current?.yetkiVarmi('sil') }
+	static get gridHeight_bosluk() { return 360 }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		$.extend(pTanim, {
 			tarih: new PInstDateToday('tarih'), ilkTarih: new PInstDateToday('ilktarih'), mustKod: new PInstStr('mustkod'),
-			baktifmi: new PInstBitTrue('baktifmi'), surum: new PInstStr({ rowAttr: 'surum', init: () => app.defaultSurum }),
+			aktifmi: new PInstBitTrue('baktifmi'), surum: new PInstTekSecim('surum', VIOSurum), tanitim: new PInstStr(),
 			kullaniciSayi: new PInstNum('kullanicisayi'), elTerminalSayi: new PInstNum('elterminalsayi'), dokunmatikSayi: new PInstNum('dokunmatiksayi'),
 			topBedel: new PInstNum('topbedel'), demoSuresiSifirlaTarih: new PInstDate('demosuresifirlatarih'),
 			ekBilgi: new PInstStr('ekbilgi'), ozelEkBilgi: new PInstStr('ozelekbilgi')
@@ -22,36 +23,59 @@ class MQAktivasyon extends MQDetayliMaster {
 		sec
 			.secimTopluEkle({
 				aktifSecim: new SecimTekSecim({ etiket: 'Aktiflik', tekSecimSinif: AktifVeDevreDisi }),
-				surum: new SecimString({ etiket: 'Sürüm' })
+				surum: new SecimBirKismi({ etiket: 'Sürüm', tekSecimSinif: VIOSurum }),
+				tanitim: new SecimOzellik({ etiket: 'Tanıtım' })
 			})
 			.addKA('must', MQLogin_Musteri, `${alias}.mustkod`, 'mus.aciklama')
 			.addKA('bayi', MQLogin_Bayi, 'mus.bayikod', 'bay.aciklama')
 			.addKA('il', MQVPIl, 'mus.ilkod', 'il.aciklama')
 		sec.whereBlockEkle(({ secimler: sec, where: wh }) => {
 			let {tekSecim: aktifSecim} = sec.aktifSecim; wh.birlestir(aktifSecim.getBoolBitClause(`${alias}.baktifmi`));
-			wh.basiSonu(sec.surum, `${alias}.surum`)
+			wh
+				.birKismi(sec.surum, `${alias}.surum`)
+				.ozellik(sec.tanitim, 'mus.tanitim')
 		})
 	}
 	static rootFormBuilderDuzenleSonrasi_listeEkrani(e) {
 		super.rootFormBuilderDuzenleSonrasi_listeEkrani(e); let {rootBuilder: rfb} = e;
 		this.fbd_listeEkrani_addButton(rfb, 'kontorMenu', '...', 50, e => this.kontorMenuIstendi(e))
 	}
+	static rootFormBuilderDuzenle(e) {
+		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e);
+		let {current: login} = MQLogin, {tanimFormBuilder: tanimForm, tabPage_genel: tabPage} = e;
+		let form = tabPage.addFormWithParent().yanYana();
+			form.addDateInput('tarih', 'Tarih'); form.addDateInput('ilkTarih', 'İlk Lisans');
+			form.addModelKullan('surum', 'Sürüm').dropDown().noMF().kodsuz().autoBind().addStyle_wh(150);
+			form.addNumberInput('kullaniciSayi', 'Kullanıcı').setMaxLength(4).addStyle_wh(150);
+			form.addNumberInput('elTerminalSayi', 'El Term.').setMaxLength(4).addStyle_wh(150);
+			form.addNumberInput('dokunmatikSayi', 'Tablet').setMaxLength(4).addStyle_wh(150);
+			form.addCheckBox('aktifmi', 'Aktif?').addStyle(`$elementCSS { margin: 40px 0 0 20px !important }`);
+		form = tabPage.addFormWithParent().yanYana();
+			form.addModelKullan('mustKod', 'Müşteri').comboBox().setMFSinif(MQLogin_Musteri).autoBind().addStyle_wh(800);
+			form.addNumberInput('topBedel', 'Toplam Bedel').setFra(2).setMaxLength(17).addStyle_wh(200);
+		form = tabPage.addFormWithParent().yanYana();
+			form.addTextInput('tanitim', 'Tanıtım').addStyle_wh(800).readOnly().addCSS('center');
+		form = tabPage.addFormWithParent().yanYana();
+			form.addTextArea('ekBilgi', 'Ek Bilgi').setRows(3).setMaxLength(300);
+			if (login.adminmi || login.sefmi) { form.addTextArea('ozelEkBilgi', 'Ek Bilgi').setRows(3).setMaxLength(300) }
+	}
 	static ekCSSDuzenle({ rec, result }) {
 		super.ekCSSDuzenle(...arguments);
 		if (!rec.baktifmi) { result.push('bg-lightgray', 'iptal') }
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
-		super.orjBaslikListesiDuzenle(...arguments); liste.push(...[
+		super.orjBaslikListesiDuzenle(...arguments); let {tableAlias: alias} = this;
+		liste.push(...[
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13 }).tipDate(),
-			new GridKolon({ belirtec: 'baktifmi', text: 'Aktif?', genislikCh: 8}).tipBool(),
+			new GridKolon({ belirtec: 'baktifmi', text: 'Aktif?', genislikCh: 8 }).tipBool(),
 			new GridKolon({ belirtec: 'mustkod', text: 'Müşteri', genislikCh: 16 }),
-			new GridKolon({ belirtec: 'mustadi', text: 'Bayi Adı', genislikCh: 45, sql: 'mus.aciklama' }),
+			new GridKolon({ belirtec: 'mustadi', text: 'Müşteri Adı', genislikCh: 45, sql: 'mus.aciklama' }),
 			new GridKolon({ belirtec: 'bayikod', text: 'Bayi', genislikCh: 10, sql: 'mus.bayikod' }),
 			new GridKolon({ belirtec: 'bayiadi', text: 'Bayi Adı', genislikCh: 30, sql: 'bay.aciklama' }),
 			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 25, sql: 'mus.yore' }),
 			new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 8, sql: 'mus.ilkod' }),
 			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 25, sql: 'il.aciklama' }),
-			new GridKolon({ belirtec: 'surum', text: 'Sürüm', genislikCh: 8 }).alignCenter(),
+			new GridKolon({ belirtec: 'surumtext', text: 'Sürüm', genislikCh: 8, sql: VIOSurum.getClause(`${alias}.surum`) }).alignCenter(),
 			new GridKolon({ belirtec: 'tanitim', text: 'Tanıtım', genislikCh: 43, sql: 'mus.tanitim' }),
 			new GridKolon({ belirtec: 'kullanicisayi', text: 'Kull.Sayı', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'elterminalsayi', text: 'ElTerm.Sayı', genislikCh: 10 }).tipNumerik(),
@@ -64,12 +88,18 @@ class MQAktivasyon extends MQDetayliMaster {
 		])
 	}
 	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent }) {
-		super.loadServerData_queryDuzenle(...arguments); let {tableAlias: alias} = this;
+		super.loadServerData_queryDuzenle(...arguments);
+		let {tableAlias: alias} = this, {sahalar} = sent;
 		sent.fromIliski('musteri mus', `${alias}.mustkod = mus.kod`)
 			.fromIliski(`${MQLogin_Bayi.table} bay`, `mus.bayikod = bay.kod`)
 			.fromIliski(`${MQVPIl.table} il`, `mus.ilkod = il.kod`);
 		let clauses = { bayi: 'mus.bayikod', musteri: `${alias}.mustkod` };
-		MQLogin.current.yetkiClauseDuzenle({ sent, clauses })
+		MQLogin.current.yetkiClauseDuzenle({ sent, clauses });
+		sahalar.add(`${alias}.surum`, 'mus.tanitim')
+	}
+	setValues({ rec }) {
+		super.setValues(...arguments); let {tanitim} = rec;
+		$.extend(this, { tanitim })
 	}
 	static kontorMenuIstendi(e) {
 		this.openContextMenu({
@@ -91,67 +121,60 @@ class MQAktivasyon extends MQDetayliMaster {
 class MQAktivasyonDetay extends MQDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'muslisansdetay' }
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments);
+		$.extend(pTanim, {
+			psmKod: new PInstStr('psmkod'), psmAdi: new PInstStr(),
+			hesapSekli: new PInstTekSecim('hesapsekli', AktHesapSekli),
+			otoAnahtarmi: new PInstBitBool('botoanahtarverilirmi'), anahtar: new PInstStr('anahtar')
+		})
+	}
 	static orjBaslikListesiDuzenle({ liste }) {
-		super.orjBaslikListesiDuzenle(...arguments)
+		super.orjBaslikListesiDuzenle(...arguments); let {tableAlias: alias} = this;
+		liste.push(...[
+			new GridKolon({ belirtec: 'psmkod', text: 'Prog/Set/Modül', genislikCh: 16 }),
+			new GridKolon({ belirtec: 'psmadi', text: 'Prog. Adı', genislikCh: 30, sql: 'psm.aciklama' }),
+			new GridKolon({ belirtec: 'botoanahtarverilirmi', text: 'Oto?', genislikCh: 8 }).tipBool(),
+			new GridKolon({ belirtec: 'anahtar', text: 'Anahtar', genislikCh: 20 }).alignCenter(),
+			new GridKolon({ belirtec: 'hesapseklitext', text: 'Hesap Şekli', genislikCh: 13, sql: AktHesapSekli.getClause(`${alias}.hesapsekli`) })
+		])
 	}
 	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent }) {
-		super.loadServerData_queryDuzenle(...arguments); let {tableAlias: alias} = this;
-		sent.fromIliski('progsetmodul psm', `${alias}.psmkod = psm.kod`)
+		super.loadServerData_queryDuzenle(...arguments);
+		let {tableAlias: alias} = this, {sahalar} = sent;
+		sent.fromIliski('progsetmodul psm', `${alias}.psmkod = psm.kod`);
+		sahalar.add('psm.aciklama psmadi', `${alias}.hesapsekli`)
+	}
+	setValues({ rec }) {
+		super.setValues(...arguments); let {psmadi: psmAdi} = rec;
+		$.extend(this, { psmAdi })
 	}
 }
 class MQAktivasyonGridci extends GridKontrolcu {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static gridArgsDuzenle({ gridPart, sender, args }) {
+	gridArgsDuzenle({ gridPart, sender, args }) {
 		gridPart = gridPart ?? sender;
-		$.extend(args, { groupsExpandedByDefault: true, editMode: 'click', selectionMode: 'singlecell' })
+		$.extend(args, { groupsExpandedByDefault: true /*, editMode: 'click'*/ })
 	}
-	static tabloKolonlariDuzenle_ilk({ tabloKolonlari }) {
+	tabloKolonlariDuzenle_ilk({ tabloKolonlari }) {
+		super.tabloKolonlariDuzenle_ilk(...arguments);
 		tabloKolonlari.push(...[
-			new GridKolon({ belirtec: 'grupAdi', text: 'Grup Adı', genislikCh: 20 }).hidden(),
-			new GridKolon({ belirtec: 'stokText', text: 'Ürün/Hizmet', genislikCh: 60, filterable: false }).readOnly(),
-			new GridKolon({
-				belirtec: 'miktar', text: 'Miktar', genislikCh: 13, groupable: false,
-				cellValueChanged: e => {
-					let { sender: gridPart, gridWidget, rowIndex, belirtec, value } = e;
-					let rec = gridWidget.getrowdata(rowIndex), orj = rec._orj = rec._orj ?? {};
-					if (orj[belirtec] === undefined) { orj[belirtec] = rec[belirtec] }
-					rec._degistimi = (orj[belirtec] || 0) != value;
-					gridPart.kontrolcu.miktarFiyatDegisti(e)
-					/*gridWidget.beginupdate(); gridWidget.endupdate(false); gridWidget.ensurerowvisible(rowIndex)*/
-				},
-				cellClassName: (colDef, rowIndex, belirtec, value, _rec) => {
-					let {gridWidget} = colDef.gridPart, rec = gridWidget.getrowdata(rowIndex);
-					let result = [belirtec], {_degistimi: degistimi} = rec;
-					if (degistimi) { result.push('bg-lightgreen') }
-					return result.join(' ')
-				}
-			}).tipDecimal().sifirGosterme(),
-			new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 5 }).readOnly()
+			...MQPSM.getGridKolonlar({ belirtec: 'psm', kodEtiket: 'Program' }),
+			new GridKolon({ belirtec: 'otoAnahtarmi', text: 'Oto?', genislikCh: 8, degisince: e => this.otoAnahtarmiDegisti(e) }).tipBool(),
+			new GridKolon({ belirtec: 'anahtar', text: 'Anahtar', genislikCh: 20, degisince: e => this.bedelHesapla(e) }).readOnly().alignCenter(),
+			new GridKolon({ belirtec: 'hesapSekli', text: 'Hesap Şekli', genislikCh: 15 }).tipTekSecim({ tekSecimSinif: AktHesapSekli }).kodsuz().autoBind()
 		]);
 		for (let {belirtec, etiket: text, mfSinif} of HMRBilgi.hmrIter_ekOzellik()) {
 			tabloKolonlari.push(new GridKolon({ belirtec, text, genislikCh: 20, filterType: 'checkedlist' }).readOnly()) }
 	}
-	static tabloKolonlariDuzenle_ara({ tabloKolonlari }) {
-		let {params} = app, {sabit: iskSayi} = params.fiyatVeIsk?.iskSayi, {webSiparis_sonStokGosterilirmi} = params.web;
-		tabloKolonlari.push(...[
-			(webSiparis_sonStokGosterilirmi ? new GridKolon({ belirtec: 'sonStokBilgi', text: 'Son Stok', genislikCh: 13, groupable: false }).readOnly() : null),
-			new GridKolon({ belirtec: 'fiyat', text: 'Fiyat', genislikCh: 13, groupable: false }).readOnly().tipDecimal_fiyat().sifirGosterme(),
-			new GridKolon({ belirtec: 'brutBedel', text: 'Brüt Bedel', genislikCh: 13, groupable: false }).readOnly().tipDecimal_bedel().sifirGosterme(),
-			(iskSayi ? new GridKolon({
-				belirtec: 'iskOranlar', text: `İsk.`, genislikCh: 13, groupable: false,
-				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-					let result = []; for (let i = 1; i <= iskSayi; i++) {
-						let value = rec[`iskOran${i}`]; if (value) { result.push(value) } }
-					return changeTagContent(html, result.length ? `%${result.join(' + ')}` : '')
-				}
-			}).readOnly().sifirGosterme() : null)?.readOnly(),
-			new GridKolon({ belirtec: 'netBedel', text: 'Net Bedel', genislikCh: 13, groupable: false }).readOnly().tipDecimal_bedel().sifirGosterme()
-		].filter(x => !!x))
+	static async otoAnahtarmiDegisti({ sender: gridPart, rowIndex, belirtec, gridRec: det, value: flag }) {
+		if (flag) {
+			/*
+				let anahtar = await (skyws'den anahtar üret);
+				gridPart.setcellvalue(rowIndex, 'anahtar', anahtar)
+			*/ 
+		}
+		this.bedelHesapla(...arguments)
 	}
-	static tabloKolonlariDuzenle_son({ tabloKolonlari }) { }
-	static miktarFiyatDegisti({ gridWidget, rowIndex, belirtec, gridRec: det, value }) {
-		det._degistimi = true
-		/* gridWidget.render(); gridWidget.ensurerowvisible(rowIndex) */
-	}
-	static bedelHesapla(e) { }
+	static bedelHesapla({ sender: gridPart, rowIndex, belirtec, gridRec: det, value }) { }
 }

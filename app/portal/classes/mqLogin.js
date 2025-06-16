@@ -47,8 +47,7 @@ class MQLogin extends MQKA {
 		})
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e);
-		this.formBuilder_addTabPanelWithGenelTab(e); let {tabPage_genel: tabPage} = e;
+		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); let {tabPage_genel: tabPage} = e;
 		let form = tabPage.addFormWithParent().yanYana();
 			form.addPassInput('sifre', 'Şifre').setMaxLength(36).addStyle_wh(500)
 				.onBuildEk(({ builder: fbd }) => {
@@ -178,13 +177,12 @@ class MQLogin_Musteri extends MQLogin {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'USRMUST' } static get sinifAdi() { return 'Müşteri' }
 	static get table() { return 'musteri' } static get musterimi() { return true }
-	static get yetkiSelectors() { return [...super.yetkiSelectors, 'referanslisteyealma'] }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		$.extend(pTanim, {
 			tanitim: new PInstStr('tanitim'), bayiKod: new PInstStr('bayikod'), tip: new PInstStr('tip'),
 			ilKod: new PInstStr('ilkod'), yore: new PInstStr('yore'), eMail: new PInstStr('email'),
-			vkn: new PInstStr('vkn'), vDaire: new PInstStr('vdaire')
+			vkn: new PInstStr('vkn'), vDaire: new PInstStr('vdaire'), refListeyeAlinmazmi: new PInstBitTrue('breferanslisteyealma')
 		})
 	}
 	static secimlerDuzenle({ secimler: sec }) {
@@ -201,20 +199,20 @@ class MQLogin_Musteri extends MQLogin {
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); let {tanimFormBuilder: tanimForm, tabPage_genel: tabPage} = e;
-		let form = tabPage.addFormWithParent().yanYana();
+		let form = tabPage.builders[tabPage.builders.length - 1];
+			form.addCheckBox('refListeyeAlinmazmi', 'Ref. Listeye AlınMAz');
+		form = tabPage.addFormWithParent().yanYana();
 			form.addModelKullan('bayiKod', 'Bayi').comboBox().setMFSinif(MQLogin_Bayi).autoBind();
 			form.addTextInput('tip', 'Tip').setMaxLength(1).addStyle_wh(50);
 		form = tabPage.addFormWithParent().yanYana();
 			form.addTextInput('tanitim', 'Tanıtım').setMaxLength(39).addCSS('center');
 		form = tabPage.addFormWithParent().yanYana();
-			form.addModelKullan('ilkod', 'İl').dropDown().setMFSinif(MQVPIl).autoBind().kodsuz().addStyle_wh(250);
+			form.addModelKullan('ilKod', 'İl').dropDown().setMFSinif(MQVPIl).autoBind().kodsuz().addStyle_wh(250);
 			form.addTextInput('yore', 'Yöre').setMaxLength(25).addStyle_wh(250);
-			form.addTextInput('email', 'e-Mail').setMaxLength(25).addStyle_wh(250);
+			form.addTextInput('eMail', 'e-Mail').setMaxLength(25).addStyle_wh(500);
 		form = tabPage.addFormWithParent().yanYana();
 			form.addTextInput('vkn', 'VKN').setMaxLength(11).addStyle_wh(150);
-			form.addTextInput('vdaire', 'V.Daire').setMaxLength(25).addStyle_wh(300);
-		form = tabPage.addFormWithParent().altAlta();
-			form.addTextArea('ekbilgi', 'Ek Bilgi').setRows(5).setMaxLength(300)
+			form.addTextInput('vDaire', 'V.Daire').setMaxLength(25).addStyle_wh(300)
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments);
@@ -229,6 +227,7 @@ class MQLogin_Musteri extends MQLogin {
 			new GridKolon({ belirtec: 'email', text: 'e-Mail', genislikCh: 40 }),
 			new GridKolon({ belirtec: 'vkn', text: 'VKN', genislikCh: 13 }),
 			new GridKolon({ belirtec: 'vdaire', text: 'V.D', genislikCh: 25 }),
+			new GridKolon({ belirtec: 'breferanslisteyealma', text: 'Ref.AlınMAz', genislikCh: 13 }).tipBool(),
 			new GridKolon({ belirtec: 'ekbilgi', text: 'Ek Bilgi', genislikCh: 100 })
 		)
 	}
