@@ -37,16 +37,17 @@ class PortalApp extends TicariApp {
 		await super.anaMenuOlustur(e)
 	}
 	getAnaMenu(e) {
-		let{noMenuFlag} = this, {isAdmin} = config.session ?? {}; if (noMenuFlag) { return new FRMenu() }
+		let{noMenuFlag} = this; if (noMenuFlag) { return new FRMenu() }
+		let {current: login} = MQLogin, {adminmi, bayimi} = login;
 		let items = [
-			new FRMenuCascade({
+			(adminmi || bayimi ? new FRMenuCascade({
 				mne: 'TAN', text: 'Tanımlar', items: (
 					[MQLogin_Admin, MQLogin_Bayi].filter(cls => cls.uygunmu).map(cls => {
 						let {kodListeTipi: mne, sinifAdi: text} = cls, block = e => cls.listeEkraniAc(e)
 						return new FRMenuChoice({ mne, text, block })
 					})
 				)
-			}),
+			}) : null),
 			...[MQLogin_Musteri, MQAktivasyon, ...MQKontor.subClasses]
 				.filter(cls => cls.uygunmu != false)
 				.map(cls => {

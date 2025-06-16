@@ -133,8 +133,8 @@ class MQAktivasyonDetay extends MQDetay {
 		super.orjBaslikListesiDuzenle(...arguments); let {tableAlias: alias} = this;
 		liste.push(...[
 			new GridKolon({ belirtec: 'psmkod', text: 'Prog/Set/Modül', genislikCh: 16 }),
-			new GridKolon({ belirtec: 'psmadi', text: 'Prog. Adı', genislikCh: 30, sql: 'psm.aciklama' }),
-			new GridKolon({ belirtec: 'botoanahtarverilirmi', text: 'Oto?', genislikCh: 8 }).tipBool(),
+			new GridKolon({ belirtec: 'psmadi', text: 'Prog. Adı', genislikCh: 50, sql: 'psm.aciklama' }),
+			new GridKolon({ belirtec: 'botoanahtarverilirmi', text: 'Oto?', genislikCh: 13 }).tipBool(),
 			new GridKolon({ belirtec: 'anahtar', text: 'Anahtar', genislikCh: 20 }).alignCenter(),
 			new GridKolon({ belirtec: 'hesapseklitext', text: 'Hesap Şekli', genislikCh: 13, sql: AktHesapSekli.getClause(`${alias}.hesapsekli`) })
 		])

@@ -7,6 +7,7 @@ class MQLogin extends MQKA {
 	static get silinebilirmi() { return super.silinebilirmi && MQLogin.current?.yetkiVarmi('sil') }
 	static get adminmi() { return false } static get bayimi() { return false } static get musterimi() { return false }
 	get adminmi() { return this.class.adminmi } get bayimi() { return this.class.bayimi } get musterimi() { return this.class.musterimi }
+	static get sifreGirilirmi() { return true }
 	static get tip2Sinif() {
 		let {_tip2Sinif: result} = this;
 		if (result == null) {
@@ -54,7 +55,8 @@ class MQLogin extends MQKA {
 					let {input} = fbd;
 					input.attr('autocomplete', 'new-password');
 					input.attr('placeholder', 'Değiştirmek için Yeni bir şifre yazınız')
-				});
+				})
+				.setVisibleKosulu(({ builder: fbd }) => this.sifreGirilirmi);
 			form.addCheckBox('aktifmi', 'Aktif?')
 	}
 	static ekCSSDuzenle({ rec, result }) {
@@ -64,7 +66,7 @@ class MQLogin extends MQKA {
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments); let {yetkiSelectors, yetkiRowAttrPrefix} = this;
 		liste.push(...[
-			new GridKolon({ belirtec: 'aktifmi', text: 'Aktif?', genislikCh: 16 }).tipBool()
+			new GridKolon({ belirtec: 'aktifmi', text: 'Aktif?', genislikCh: 13 }).tipBool()
 		]);
 		for (let ioAttr of yetkiSelectors) {
 			let belirtec = `${yetkiRowAttrPrefix}${ioAttr.toLowerCase()}`, text = ioAttr[0].toUpperCase() + ioAttr.slice(1);
@@ -181,6 +183,7 @@ class MQLogin_Musteri extends MQLogin {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'USRMUST' } static get sinifAdi() { return 'Müşteri' }
 	static get table() { return 'musteri' } static get musterimi() { return true }
+	static get sifreGirilirmi() { return false }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		$.extend(pTanim, {
@@ -207,29 +210,27 @@ class MQLogin_Musteri extends MQLogin {
 		super.rootFormBuilderDuzenle(e); let {tanimFormBuilder: tanimForm, tabPage_genel: tabPage} = e;
 		let form = tabPage.builders[tabPage.builders.length - 1];
 			form.addCheckBox('refListeyeAlinmazmi', 'Ref. Listeye AlınMAz');
-		form = tabPage.addFormWithParent().yanYana();
-			form.addModelKullan('bayiKod', 'Bayi').comboBox().setMFSinif(MQLogin_Bayi).autoBind();
-			form.addTextInput('tip', 'Tip').setMaxLength(2).addStyle_wh(50);
-		form = tabPage.addFormWithParent().yanYana();
-			form.addTextInput('tanitim', 'Tanıtım').setMaxLength(39).addCSS('center');
+		form = tabPage.addFormWithParent().yanYana(2);
+			form.addModelKullan('bayiKod', 'Bayi').comboBox().setMFSinif(MQLogin_Bayi).autoBind().addStyle_wh(500);
+			form.addTextInput('tanitim', 'Tanıtım').setMaxLength(39).addCSS('center').addStyle_wh(550);
+			form.addTextInput('tip', 'Tip').setMaxLength(2).addStyle_wh(100).addCSS('center');    /* .addStyle(`$elementCSS { margin-left: 10px !important }`) */
 		form = tabPage.addFormWithParent().yanYana();
 			form.addModelKullan('ilKod', 'İl').dropDown().setMFSinif(MQVPIl).autoBind().kodsuz().addStyle_wh(250);
 			form.addTextInput('yore', 'Yöre').setMaxLength(25).addStyle_wh(250);
 			form.addTextInput('eMail', 'e-Mail').setMaxLength(50).addStyle_wh(500);
-			form.addTextInput('vkn', 'VKN').setMaxLength(11).addStyle_wh(150);
+			form.addTextInput('vkn', 'VKN').setMaxLength(11).addStyle_wh(150).addCSS('center');
 			form.addTextInput('vDaire', 'V.Daire').setMaxLength(25).addStyle_wh(300)
+		form = tabPage.addFormWithParent().yanYana();
 			form.addTextInput('firmaTelefon', 'Firma Telefon').setMaxLength(13).addStyle_wh(200);
-		form = tabPage.addFormWithParent().yanYana()
 			form.addTextInput('yetkiliKisi', 'Yetkili Kişi').setMaxLength(50).addStyle_wh(300);
 			form.addTextInput('yetkiliTelefon', 'Yetkili Telefon').setMaxLength(13).addStyle_wh(200);
-			form.addTextInput('yaptigiIs', 'Yaptığı İş').setMaxLength(100).addStyle_wh(500)
+			form.addTextInput('yaptigiIs', 'Yaptığı İş').setMaxLength(100).addStyle_wh(450)
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments);
 		liste.push(
 			new GridKolon({ belirtec: 'bayikod', text: 'Bayi Kod', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'bayiadi', text: 'Bayi Adı', genislikCh: 30, sql: 'bay.aciklama' }),
-			new GridKolon({ belirtec: 'tip', text: 'Tip', genislikCh: 8 }),
 			new GridKolon({ belirtec: 'tanitim', text: 'Tanıtım', genislikCh: 45 }),
 			new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 8 }),
 			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 25, sql: 'il.aciklama' }),
@@ -242,6 +243,7 @@ class MQLogin_Musteri extends MQLogin {
 			new GridKolon({ belirtec: 'yetkilitelefon', text: 'Yetkili Telefon', genislikCh: 20 }),
 			new GridKolon({ belirtec: 'yaptigiis', text: 'Yaptığı İş', genislikCh: 80 }),
 			new GridKolon({ belirtec: 'breferanslisteyealma', text: 'Ref.AlınMAz', genislikCh: 13 }).tipBool(),
+			new GridKolon({ belirtec: 'tip', text: 'Tip', genislikCh: 8 }),
 			new GridKolon({ belirtec: 'ekbilgi', text: 'Ek Bilgi', genislikCh: 100 })
 		)
 	}

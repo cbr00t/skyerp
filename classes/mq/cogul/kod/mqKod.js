@@ -55,12 +55,12 @@ class MQKod extends MQCogul {
 	static standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e); const {liste} = e; if (this.kodKullanilirmi) { liste.push(this.kodSaha) } }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const mfSinif = e.mfSinif ?? this;
-		const cellsRenderer = e.cellsRenderer = (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-			const _osColor = rec.oscolor, htmlColor = _osColor ? os2HTMLColor(_osColor) : null;
-			if (htmlColor) { const textColor = getContrastedColor(htmlColor); html = html.replace('style="', `style="background-color: ${htmlColor}; color: ${textColor} `) }
+		let cellsRenderer = e.cellsRenderer = (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
+			let _osColor = rec.oscolor, htmlColor = _osColor ? os2HTMLColor(_osColor) : null;
+			if (htmlColor) { let textColor = getContrastedColor(htmlColor); html = html.replace('style="', `style="background-color: ${htmlColor}; color: ${textColor} `) }
 			return html
 		};
-		const {kodKullanilirmi, mqGUIDmi} = mfSinif, kodEtiket = mfSinif.kodEtiket ?? (mqGUIDmi ? 'ID' : 'Kod'), {liste} = e;
+		let {kodKullanilirmi, mqGUIDmi} = mfSinif, kodEtiket = mfSinif.kodEtiket ?? (mqGUIDmi ? 'ID' : 'Kod'), {liste} = e;
 		liste.push(new GridKolon({ belirtec: mfSinif.kodSaha, text: kodEtiket, minWidth: 100, width: mqGUIDmi ? 320 : 250, cellsRenderer, hidden: !(kodKullanilirmi || mqGUIDmi), sql: kodKullanilirmi ? undefined : false }))
 	}
 	static loadServerData_queryDuzenle(e) {
@@ -100,33 +100,36 @@ class MQKA extends MQKod {
 		if (this.adiKullanilirmi) { $.extend(pTanim, { aciklama: new PInstStr(this.adiSaha) }) }
 	}
 	static secimlerDuzenle(e) {
-		super.secimlerDuzenle(e); const {secimler: sec} = e;
+		super.secimlerDuzenle(e); let {secimler: sec} = e;
 		if (this.adiKullanilirmi) {
 			sec.secimEkle('instAdi', new SecimOzellik({ etiket: `${this.sinifAdi} Adı` }));
 			sec.whereBlockEkle(e => {
-				const {aliasVeNokta} = this, {where: wh, secimler: sec} = e;
+				let {aliasVeNokta} = this, {where: wh, secimler: sec} = e;
 				wh.ozellik(sec.instAdi, `${aliasVeNokta}${this.adiSaha}`)
 			})
 		}
 	}
 	static formBuildersDuzenle_ka(e) {
-		super.formBuildersDuzenle_ka(e); const mfSinif = e.mfSinif ?? this, {kodKullanilirmi} = mfSinif, xEtiket = mfSinif.adiEtiket ?? 'Açıklama';
-		const {kaForm} = e; if (kodKullanilirmi) { kaForm.yanYana(2.3) } else { kaForm.altAlta() }
+		super.formBuildersDuzenle_ka(e); let mfSinif = e.mfSinif ?? this, {kodKullanilirmi} = mfSinif, xEtiket = mfSinif.adiEtiket ?? 'Açıklama';
+		let {kaForm} = e; if (kodKullanilirmi) { kaForm.yanYana(2.3) } else { kaForm.altAlta() }
 		kaForm.addTextInput({ id: 'aciklama', etiket: xEtiket, placeholder: xEtiket }).addCSS('aciklamaParent parent')
 			.setVisibleKosulu(this.adiKullanilirmi ? true : 'jqx-hidden').addStyle(e => `$elementCSS { min-width: 300px${kodKullanilirmi ? '; max-width: 60%' : ''} }`);
 		return this
 	}
 	static standartGorunumListesiDuzenle(e) {
-		super.standartGorunumListesiDuzenle(e); const {liste} = e;
+		super.standartGorunumListesiDuzenle(e); let {liste} = e;
 		if (this.adiKullanilirmi) { liste.push(this.adiSaha) }
 	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const mfSinif = e.mfSinif ?? this, {cellsRenderer, liste} = e, {adiKullanilirmi, adiSaha} = mfSinif;
 		if (adiKullanilirmi) {
-			const colDef_adi = liste.find(colDef => colDef.belirtec == adiSaha);
+			let colDef_adi = liste.find(colDef => colDef.belirtec == adiSaha);
 			if (!colDef_adi) {
 				const adiEtiket = mfSinif.adiEtiket ?? 'Açıklama';
-				liste.push(new GridKolon({ belirtec: adiSaha, text: adiEtiket,  minWidth: Math.min(200, asInteger($(window).width() / 4)), width: Math.min(600, asInteger($(window).width() / 2)), cellsRenderer }))
+				liste.push(new GridKolon({
+					belirtec: adiSaha, text: adiEtiket, cellsRenderer,
+					minWidth: Math.min(200, asInteger($(window).width() / 4)), width: Math.min(700, asInteger($(window).width() / 2)),
+				}))
 			}
 		}
 	}

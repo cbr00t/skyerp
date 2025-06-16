@@ -70,34 +70,36 @@ class MQDetayli extends MQSayacli {
 		}
 	}
 	static orjBaslikListesi_argsDuzenle_detaylar(e) {
-		const {detaySiniflar} = this; if (!$.isEmptyObject(detaySiniflar)) { for (const cls of detaySinif) { detaySinif?.orjBaslikListesi_argsDuzenle(e) } }
+		let {detaySiniflar} = this;
+		if (!$.isEmptyObject(detaySiniflar)) { for (let cls of detaySinif) { detaySinif?.orjBaslikListesi_argsDuzenle(e) } }
 	}
 	static get orjBaslikListesi_detaylar() {
-		const {detaySiniflar} = this; let result; if (!$.isEmptyObject(detaySiniflar)) { result = detaySiniflar[0].orjBaslikListesi }
+		let {detaySiniflar} = this, result;
+		if (!$.isEmptyObject(detaySiniflar)) { result = detaySiniflar[0].orjBaslikListesi }
 		if (!result) { result = super.orjBaslikListesi_detaylar }
 		return result
 	}
 	static orjBaslikListesiDuzenle_detaylar(e) {
-		e.fisSinif = e.fisSinif || this;
-		const {detaySiniflar} = this; if (!$.isEmptyObject(detaySiniflar)) { return detaySiniflar[0].orjBaslikListesiDuzenle(e) }
+		e.fisSinif = e.fisSinif || this; let {detaySiniflar} = this;
+		if (!$.isEmptyObject(detaySiniflar)) { return detaySiniflar[0].orjBaslikListesiDuzenle(e) }
 		return super.orjBaslikListesiDuzenle_detaylar(e)
 	}
 	static get listeBasliklari_detaylar() {
-		const {detaySiniflar} = this; let result;
+		let {detaySiniflar} = this, result;
 		if (!$.isEmptyObject(detaySiniflar)) { result = detaySiniflar[0].listeBasliklari }
 		if ($.isEmptyObject(result)) { result = super.listeBasliklari_detaylar }
 		return result
 	}
 	static listeBasliklariDuzenle_detaylar(e) {
-		e.fisSinif = e.fisSinif || this; const {detaySiniflar} = this; let result;
+		e.fisSinif = e.fisSinif || this; let {detaySiniflar} = this, result;
 		if (!$.isEmptyObject(detaySiniflar)) { result = detaySiniflar[0].listeBasliklariDuzenle(e) }
 		if (!result) { result = super.listeBasliklariDuzenle_detaylar(e) }
 		return result
 	}
 	static raporSabitKolonlarOlustur_detaylar(e) {
-		super.raporSabitKolonlarOlustur_detaylar(e); const {liste} = e;
-		const {orjBaslikListesi_detaylar} = this; e.alias = this.tableAlias;
-		for (const colDef of orjBaslikListesi_detaylar) { liste.push(...colDef.asRSahalar(e).filter(saha => !!saha)) }
+		super.raporSabitKolonlarOlustur_detaylar(e);
+		let {liste} = e, {orjBaslikListesi_detaylar} = this; e.alias = this.tableAlias;
+		for (let colDef of orjBaslikListesi_detaylar) { liste.push(...colDef.asRSahalar(e).filter(saha => !!saha)) }
 	}
 	static raporKategorileriDuzenle_baslik(e) { }
 	static raporKategorileriDuzenle_baslikDetayArasi(e) { }

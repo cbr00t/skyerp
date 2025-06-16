@@ -197,22 +197,29 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		}
 	}
 	initRowDetails(e) {
-		e = $.extend({}, e, { parentPart: this }); const {grid, gridWidget} = this, {parent, parentRec, rowIndex} = e, mfSinif = e.mfSinif = this.getMFSinif(e);
+		e = $.extend({}, e, { parentPart: this });
+		let {grid, gridWidget} = this, {parent, parentRec, rowIndex} = e, mfSinif = e.mfSinif = this.getMFSinif(e);
 		if (mfSinif?.orjBaslikListesi_initRowDetails) {
 			const _e = $.extend({}, e, { sender: this, mfSinif, grid, gridWidget });
 			try { let result = mfSinif.orjBaslikListesi_initRowDetails(_e); if (result === false) { gridWidget.hiderowdetails(rowIndex); return } }
 			catch (ex) { hConfirm(getErrorText(ex), 'Detay Grid Gösterim'); throw ex }
 		}
-		const detGridPart = e.detGridPart = new GridliGostericiPart({
+		let detGridPart = e.detGridPart = new GridliGostericiPart({
 			parentPart: this, parentBuilder: this.builder,
 			layout: parent, argsDuzenle: e => {
-				const {args} = e; $.extend(args, { virtualMode: false, selectionMode: 'multiplerowsextended' });
-				const mfSinif = this.getMFSinif(e); if (mfSinif?.orjBaslikListesi_argsDuzenle_detaylar) { mfSinif.orjBaslikListesi_argsDuzenle_detaylar(e) }
+				let {args} = e; $.extend(args, {
+					virtualMode: false, selectionMode: 'multiplerowsextended',
+					showGroupsHeader: true, groupsExpandedByDefault: true
+				});
+				let mfSinif = this.getMFSinif(e); if (mfSinif?.orjBaslikListesi_argsDuzenle_detaylar) { mfSinif.orjBaslikListesi_argsDuzenle_detaylar(e) }
 			},
 			tabloKolonlari: e => this.tabloKolonlari_detaylar,
 			loadServerData: async _e => {
-				const {mfSinif, secimler} = this;
-				$.extend(_e, { gridPart: this, sender: this, mfSinif, secimler, parent, parentRec, gridPart: detGridPart, grid: detGridPart.grid, gridWidget: detGridPart.gridWidget, args: this.args });
+				let {mfSinif, secimler, args} = this;
+				$.extend(_e, {
+					gridPart: this, sender: this, mfSinif, secimler, parent, parentRec,
+					gridPart: detGridPart, grid: detGridPart.grid, gridWidget: detGridPart.gridWidget, args
+				});
 				try { return await this.loadServerData_detaylar(_e) }
 				catch (ex) { console.error(ex); const errorText = getErrorText(ex); hConfirm(`<div style="color: firebrick;">${errorText}</div>`, 'Grid Verisi Alınamadı') }
 			},
