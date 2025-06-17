@@ -18,7 +18,7 @@
 .secimler.part .islemTuslari button#secimYukle.jqx-fill-state-normal { background-color: green }
 .secimler.part .islemTuslari button#vazgec { }
 .secimler.part.with-tabs #tabPanel { --top: 10px; position: relative !important; top: var(--top); height: calc(var(--full) - (var(--top) + 5px)) !important }
-.secimler.part.with-tabs #tabPanel > .content { width: var(--full); height: calc(var(--full) - (var(--header-height) + var(--tabs-header-margin-bottom) * 2)) }
+.secimler.part.with-tabs #tabPanel > .content { width: var(--full); height: calc(var(--full) - (var(--header-height) + var(--tabs-header-margin-bottom) * 2)) !important }
 .secimler.part .secimler-kolonFiltre-bilgi-parent {
 	font-size: 76%; width: var(--full); padding: 0 !important;
 	margin-bottom: 3px; background-color: #f8f8f8; border: .5px solid #ddd
@@ -32,9 +32,9 @@
 .secimler.part .secimler-kolonFiltre-bilgi-parent .kolonFiltre-temizle.jqx-fill-state-pressed { background-color: #c2572f }
 .secimler.part .secimler-kolonFiltre-bilgi-parent .kolonFiltre-bilgi .filtre-item { padding: 8px 20px !important; border: .5px solid #ddd }
 .secimler.part .secimler-kolonFiltre-bilgi-parent .kolonFiltre-bilgi .filtre-item:not(:first-child) { margin-left: 3px }
-.secimler.part .secimler-form { font-size: 90%; height: calc(var(--full) + 250px) !important; margin: 5px 5px 0 0; padding: 0; overflow-y: auto }
+.secimler.part .secimler-form { font-size: 90%; height: var(--full) !important; margin: 5px 5px 0 0; padding: 0; overflow-y: auto }
 /*.secimler.part .secimler-form:not(:focus) { overflow-y: hidden }*/
-.secimler.part .secimler-form .secim-grup { position: relative; font-size: var(--full); margin: 0 0 5px 0 }
+.secimler.part .secimler-form .secim-grup { position: relative; font-size: var(--full); margin: 0 0 5px 0; overflow-x: hidden !important }
 .secimler.part .secimler-form .secim-grup > div { position: relative; padding-right: 0 !important }
 .secimler.part .secimler-form .secim-grup > .header { font-size: 120%; position: relative; width: var(--full); height: var(--full); min-height: initial !important; height: 26px !important; padding: 0 !important }
 .secimler.part .secimler-form .secim-grup > .header > .jqx-expander-header-content { font-weight: bold; width: var(--full); height: 33px; position: relative; margin-top: 0; padding-left: 10px }

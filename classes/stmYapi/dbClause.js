@@ -271,7 +271,7 @@ class MQSubWhereClause extends MQClause {
 	notOperand() { return this.operand(...arguments).asNot() }
 	basiSonu(e, _saha) {
 		e = e?.saha ? e : { deger: e, saha: _saha };
-		const isNot = typeof e == 'object' && asBool(e.not), {saha} = e, bs = e.deger,  birKismimi = bs?.birKismimi;
+		const isNot = typeof e == 'object' && asBool(e.not), {saha} = e, bs = e.deger, birKismimi = bs?.birKismimi;
 		if (birKismimi) { this.birKismi({ liste: bs.kodListe, saha, not: isNot }) }
 		const sub = new MQAndClause();
 		if (bs) {

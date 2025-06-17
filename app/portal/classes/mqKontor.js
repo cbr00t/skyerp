@@ -202,14 +202,14 @@ class MQKontorDetay extends MQDetay {
 	static ekCSSDuzenle({ rec, result, dataField: belirtec }) {
 		super.ekCSSDuzenle(...arguments);
 		switch (belirtec) {
-			case 'ahtipitext':
+			/*case 'ahtipitext':
 				switch (rec.ahtipi) {
 					case 'A': result.push('green'); break
 					case 'H': result.push('firebrick'); break
 				}
-				break
+				break*/
 			case 'kontorsayi':
-				if ((rec[belirtec] ?? 0) < 0) { result.push('red') }
+				if ((rec[belirtec] ?? 0) < 0) { result.push('bold red') }
 				break
 		}
 	}

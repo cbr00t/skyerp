@@ -344,10 +344,11 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			result.addToplamBasit(tip, etiket, belirtec, null, null, ({ item }) =>
 				{ if (!addSelf) { item.hidden() } })
 		}
-		if (this.class.envantermi && !toplam[`DEVIR_${tip}`]) {
-			result.addToplamBasit(`DEVIR_${tip}`, `D.${etiket}`, `devir${belirtec}`)
-		}
-		if (!toplam[`GIRIS_${tip}`]) {
+		if (this.class.envantermi && !toplam[`DEVIR_${tip}`]) { result.addToplamBasit(`DEVIR_${tip}`, `D.${etiket}`, `devir${belirtec}`) }
+		if (!toplam[`GIRIS_${tip}`]) { result.addToplamBasit(`GIRIS_${tip}`, `${gcEtiketPrefixes[0]}.${etiket}`, `giris${belirtec}`) }
+		if (!toplam[`CIKIS_${tip}`]) { result.addToplamBasit(`CIKIS_${tip}`, `${gcEtiketPrefixes[1]}.${etiket}`, `cikis${belirtec}`) }
+		if (!toplam[`KALAN_${tip}`]) { result.addToplamBasit(`KALAN_${tip}`, `K.${etiket}`, `kalan${belirtec}`) }
+		/*if (!toplam[`GIRIS_${tip}`]) {
 			result.addToplamBasit(`GIRIS_${tip}`, `${gcEtiketPrefixes[0]}.${etiket}`, `giris${belirtec}`, null, null, ({ item }) =>
 				item.setFormul([tip, gcTip], ({ rec }) => rec[gcBelirtec] == 'G' || rec[gcBelirtec] == 'B' ? (rec[belirtec] || 0) : 0))
 		}
@@ -366,38 +367,47 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 					return v.devir + v.giris - v.cikis
 				})
 			)
-		}
+		}*/
 		return this
 	}
-	loadServerData_queryDuzenle_gcX({ stm, sent, attrSet, tip, clause, kodClause, gcTip, gcClause, donemBS, tarihBS, tarihClause, sumFlag }) {
+	loadServerData_queryDuzenle_gcX({ stm, sent, attrSet, tip, asilClause, clause, kodClause, gcTip, gcClause, donemBS, tarihBS, tarihClause, sumFlag }) {
 		sent = sent ?? stm.sent; let {where: wh, sahalar} = sent, {sqlNull} = Hareketci_UniBilgi.ortakArgs;
-		donemBS = donemBS ?? tarihBS ?? this.donemBS; clause = clause ?? kodClause;
-		sumFlag = sumFlag ?? !this.hareketmi;
-		let belirtec = tip.toLowerCase(), gcBelirtec = gcTip.toLowerCase();
-		let dgckPrefixes = ['DEVIR_', 'GIRIS_', 'CIKIS_', 'KALAN_'];
+		donemBS ??= tarihBS ?? this.donemBS; asilClause ??= clause ?? kodClause;
+		sumFlag = sumFlag ?? !this.hareketmi; let belirtec = tip.toLowerCase(), gcBelirtec = gcTip.toLowerCase();
+		/*let dgckPrefixes = ['DEVIR_', 'GIRIS_', 'CIKIS_', 'KALAN_'];
 		let dgckVarmi = false; for (let key in attrSet) {
-			for (let prefix of dgckPrefixes) {
-				if (key == prefix + tip) { dgckVarmi = true; break }
-			}
+			for (let prefix of dgckPrefixes) { if (key == prefix + tip) { dgckVarmi = true; break } }
 		}
 		if (dgckVarmi) {
 			let tipListe = [gcTip, tip], entries = tipListe.map(tip => [tip, true]);
 			$.extend(attrSet, Object.fromEntries(entries))
+		}*/
+		let getTarihWh = (kontrol, bs, zorunlumu) => {
+			let wh = new MQSubWhereClause();
+			if (getFuncValue.call(this, kontrol, bs)) { wh.basiSonu(bs, tarihClause) }
+			else if (zorunlumu) { wh.add('1 = 2') }
+			return wh
 		}
 		let sumDuzenlenmis = _clause => sumFlag == null ? _clause : sumFlag ? _clause.asSumDeger() : _clause.sumOlmaksizin();
-		clause = sumDuzenlenmis(clause);
-		/*let gcClauses = {
-			giren: sumDuzenlenmis(`(case when ${gcClause} IN ('G', 'B') then ${clause.sumOlmaksizin()} else 0 end)`),
-			cikan: sumDuzenlenmis(`(case when ${gcClause} IN ('C', 'A') then 0 - ${clause.sumOlmaksizin()} else 0 end)`),
-			kalan: sumDuzenlenmis(`()`)
-		}*/
+		asilClause = sumDuzenlenmis(asilClause);    /* asilClause: miktar, maliyet, bedel, ... */
+		let tarihClauses = {
+			devir: getTarihWh(donemBS.basi, { sonu: donemBS.basi?.clone()?.addDays(-1) }, true),
+			cari: getTarihWh(donemBS.bosDegilmi, donemBS, false),
+			kalan: getTarihWh(donemBS.bosDegilmi, { sonu: donemBS.sonu }, false)
+		};
+		let gcClauses = {
+			devir: sumDuzenlenmis(`(case when ${tarihClauses.devir} then ${clause.sumOlmaksizin()} else 0 end)`),
+			giris: sumDuzenlenmis(`(case when ${tarihClauses.cari} and ${gcClause} = '${gcTip[0]}' then ${clause.sumOlmaksizin()} else 0 end)`),
+			cikis: sumDuzenlenmis(`(case when ${tarihClauses.cari} and ${gcClause} = '${gcTip[1]}' then 0 - ${clause.sumOlmaksizin()} else 0 end)`),
+			kalan: sumDuzenlenmis(`(${asilClause.sumOlmaksizin()} * (case when ${tarihClauses.kalan.degerAta(gcTip[0], gcClause)} then 1 else -1 end))`)
+		}
 		for (let key in attrSet) {
 			if (key == gcTip) { sahalar.add(`${gcClause} ${gcBelirtec}`) }
-			else if (key == tip) { sahalar.add(`${clause} ${belirtec}`) }
-			else if (tarihClause && key == `DEVIR_${tip}`) {
-				sahalar.add(`(case when ${tarihClause} < ${donemBS.basi?.sqlServerDegeri() ?? sqlNull} then ${clause.sumOlmaksizin()} else 0 end) devir${belirtec}`)
-			}
-			/*else if (key == `GIREN${key}`) { sahalar.add(`${gcClauses.giren} giren${belirtec}`) }*/
+			else if (key == tip) { sahalar.add(`${asilClause} ${belirtec}`) }
+			else if (tarihClause && key == `DEVIR_${tip}`) { sahalar.add(`${gcClauses.devir} devir${belirtec}`) }
+			else if (key == `GIRIS_${tip}`) { sahalar.add(`${gcClauses.giris} giris${belirtec}`) }
+			else if (key == `CIKIS_${tip}`) { sahalar.add(`${gcClauses.cikis} cikis${belirtec}`) }
+			else if (key == `KALAN_${tip}`) { sahalar.add(`${gcClauses.kalan} kalan${belirtec}`) }
 		}
 		return this
 	}

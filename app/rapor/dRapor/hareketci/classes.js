@@ -308,7 +308,6 @@ class DRapor_Hareketci_Stok_Main extends DRapor_Hareketci_Main {
 		
 		if (maliyetGorurmu) {
 			this.tabloYapiDuzenle_gc({ ...e, tip: 'MALIYET', etiket: 'Maliyet', belirtec: 'tummaliyet' })
-			
 			/*result.addToplamBasit_bedel('TUMMALIYET', 'Tüm Maliyet', 'tummaliyet', null, null, ({ item }) => item.hidden());
 			result.addToplamBasit_bedel('GIRIS_MALIYET', 'G.Maliyet', 'girismaliyet', null, null, ({ item }) =>
 				item.setFormul(['TUMMALIYET', 'GC'], ({ rec }) => rec.gc == 'G' ? rec.tummaliyet : 0));
@@ -319,8 +318,8 @@ class DRapor_Hareketci_Stok_Main extends DRapor_Hareketci_Main {
 		}
 
 		{ let {ISARETLIBEDEL: item} = toplam; if (item) { item.ka.aciklama = item.colDefs[0].text = 'Bedel' } }
-		{ let {TUMMALIYET: item} = toplam; if (item) { item.ka.aciklama = item.colDefs[0].text = 'Tüm Maliyet' } }
-		for (let key of ['BORCBEDEL', 'ALACAKBEDEL']) { delete toplam[key] }
+		/*{ let {TUMMALIYET: item} = toplam; if (item) { item.ka.aciklama = item.colDefs[0].text = 'Tüm Maliyet' } }*/
+		for (let key of ['BORCBEDEL', 'ALACAKBEDEL', 'TUMMALIYET']) { delete toplam[key] }
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e); let {attrSet, sent, hvDegeri} = e;
@@ -331,7 +330,7 @@ class DRapor_Hareketci_Stok_Main extends DRapor_Hareketci_Main {
 		this.loadServerData_queryDuzenle_takip({ ...e, kodClause: hvDegeri('takipno') });
 		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MIKTAR', clause: hvDegeri('miktar'), gcClause, tarihClause });
 		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MIKTAR2', clause: hvDegeri('miktar2'), gcClause, tarihClause });
-		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'TUMMALIYET', clause: hvDegeri('maliyet'), gcClause, tarihClause })
+		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MALIYET', clause: hvDegeri('maliyet'), gcClause, tarihClause })
 		for (let key in attrSet) {
 			switch (key) {
 				/*case 'GC': sahalar.add(`${hvDegeri('gc')} gc`); break
