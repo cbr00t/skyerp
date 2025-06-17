@@ -910,7 +910,9 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 	}
 	veriYuklendi(e) {
 		const {part} = this, {gridWidget} = part;
-		if (gridWidget.editable && !part.sabitFlag && !this.noEmptyRowFlag) { if ($.isEmptyObject(gridWidget.getboundrows())) { gridWidget.addrow(null, part.newRec()) } }
+		if (gridWidget.editable && !part.sabitFlag && !this.noEmptyRowFlag) {
+			if ($.isEmptyObject(gridWidget.getboundrows())) { gridWidget.addrow(null, part.newRec()) }
+		}
 		const {veriYuklenince} = this; if (veriYuklenince) { getFuncValue.call(this, veriYuklenince, e) }
 	}
 	gridliGiris() { this.gridSinif = GridliGirisPart; return this } gridliGosterici() { this.gridSinif = GridliGostericiPart; return this }

@@ -80,6 +80,7 @@ class ProgressManager extends CObject {
 		}
 		return this
 	}
+	setText(value) { this.text = value; return this }
 	showProgress(e) { const {wnd} = this; if (wnd?.length) { this.isProgressVisible = true } return this }
 	hideProgress(e) { const {wnd} = this; if (wnd?.length) { this.isProgressVisible = false } return this }
 	showImg(e) { const {wnd} = this; if (wnd?.length) { this.isImgVisible = true } return this }

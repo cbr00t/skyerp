@@ -53,7 +53,8 @@ class PortalApp extends TicariApp {
 				.map(cls => {
 					let {kodListeTipi: mne, sinifAdi: text} = cls, block = e => cls.listeEkraniAc(e);
 					return new FRMenuChoice({ mne, text, block })
-				})
+				}),
+			(adminmi ? new FRMenuChoice({ mne: 'TURMOB_IMPORT', text: 'Turmob Kayıtlarını İçeri Al', block: e => MQKontor_Turmob.importRecordsIstendi(e) }) : null)
 		].filter(x => !!x)
 		return new FRMenu({ items })
 	}

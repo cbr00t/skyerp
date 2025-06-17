@@ -218,19 +218,20 @@ class MQSubWhereClause extends MQClause {
 		if (item == {}.toString()) { debugger }
 		return super.addIcinUygunmu(item) && !this.liste.includes(item)
 	}
-	birlestirDict(e) {
-		e = e || {}; const dict = e.dict || e.birlestirDict || e.liste || e, aliasVeNokta = e.alias ? `${e.alias}.` : ``, {not} = e;
-		const isSetClause = e.isSetClause ?? this.class.isSetClause, isValuesClause = e.isValuesClause ?? this.class.isValuesClause;
+	birlestirDict(e, _alias, _not) {
+		e = e || {}; let dict = e.dict || e.birlestirDict || e.liste || e, not = e.not ?? _not;
+		let alias = e.alias ?? e.tableAlias ?? _alias, aliasVeNokta = alias ? `${alias}.` : '';
+		let isSetClause = e.isSetClause ?? this.class.isSetClause, isValuesClause = e.isValuesClause ?? this.class.isValuesClause;
 		if (!$.isEmptyObject(dict)) {
-			let and = new MQAndClause(); for (const key in dict) {
-				const value = dict[key]; and.degerAta({ isSetClause, not, deger: value, saha: `${aliasVeNokta}${key}` }) }
-			const isSetOrValues = isSetClause || isValuesClause; this.add(isSetOrValues ? and.liste : and)
+			let and = new MQAndClause();
+			for (let [key, value] of Object.entries(dict)) { and.degerAta({ isSetClause, not, deger: value, saha: `${aliasVeNokta}${key}` }) }
+			let isSetOrValues = isSetClause || isValuesClause; this.add(isSetOrValues ? and.liste : and)
 		}
 		return this
 	}
-	notBirlestirDict(e) {
-		e = e || {}; const dict = e.dict || e.birlestirDict || e.liste; if (!dict) e = { dict: e }
-		e.not = true; return this.birlestirDict(e)
+	notBirlestirDict(e, _alias) {
+		e = e || {}; if (typeof e == 'object') { e.not = true }
+		return this.birlestirDict(e, _alias, true)
 	}
 	degerAta(e, _saha) {
 		e = e?.saha ? e : { deger: e, saha: _saha }; const isSetClause = e.isSetClause ?? this.class.isSetClause; 

@@ -29,14 +29,19 @@ class GridKontrolcu extends CObject {
 		const {gridWidget} = parentPart, zorunluBelirtecler = e.zorunluBelirtecler = {}, editBelirtecler = e.editBelirtecler = {}, {belirtec2Kolon} = gridPart ?? {};
 		for (const colDefOrGrup of tabloKolonlari) {
 			if (colDefOrGrup.kodZorunlumu) { zorunluBelirtecler[colDefOrGrup.kodBelirtec] = true }
-			for (const colDef of colDefOrGrup.getIter()){ if (colDef.isEditable) { editBelirtecler[colDef.belirtec] = true } }
+			for (const colDef of colDefOrGrup.getIter()) {
+				if (colDef.isEditable) { editBelirtecler[colDef.belirtec] = true } }
 		}
-		const recs = [], _recs = gridWidget.getboundrows(); let index = -1, temps = {};
+		let recs = [], _recs = gridWidget.getboundrows(), index = -1, temps = {};
 		for (const det of _recs) {
 			index++; const bosOlmayanVarmi = Object.keys(editBelirtecler).find(belirtec => !!det[belirtec]); if (!bosOlmayanVarmi) { continue }
 			if (!mesajsizFlag) {
 				let satirNo, kolonText, hepsiBosmu = false;
-				if (!$.isEmptyObject(zorunluBelirtecler)) { hepsiBosmu = true; for (const belirtec in zorunluBelirtecler) { if (det[belirtec]) { hepsiBosmu = false; break } } } if (hepsiBosmu) { continue }
+				if (!$.isEmptyObject(zorunluBelirtecler)) {
+					hepsiBosmu = true;
+					for (const belirtec in zorunluBelirtecler) { if (det[belirtec]) { hepsiBosmu = false; break } }
+				}
+				if (hepsiBosmu) { continue }
 				let result = this.geriYuklemeIcinUygunmu({ parentPart, gridPart, belirtec2Kolon, tabloKolonlari, zorunluBelirtecler, mesajsiz: mesajsizFlag, detay: det, index, temps });
 				if (typeof result == 'object') { return result } if (!result) { continue }
 			}

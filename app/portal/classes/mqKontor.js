@@ -4,6 +4,7 @@ class MQKontor extends MQDetayliMaster {
 	static get kodListeTipi() { return `KNT-${this.tip}` } static get sinifAdi() { return `${this.tipAdi} Kontör` }
 	static get table() { return 'muskontor' } static get tableAlias() { return 'knt' } static get sayacSaha() { return 'kaysayac' }
 	static get detaySinif() { return MQKontorDetay } static get gridKontrolcuSinif() { return MQKontorGridci }
+	static get vioSeri() { return null } static get vioHizmetKod() { return null }
 	static get tumKolonlarGosterilirmi() { return false } static get kolonFiltreKullanilirmi() { return false }
 	static get raporKullanilirmi() { return false } static get noAutoFocus() { return true }
 	static get tanimlanabilirmi() { return super.tanimlanabilirmi && MQLogin.current?.class?.adminmi && config.dev }
@@ -30,8 +31,9 @@ class MQKontor extends MQDetayliMaster {
 		let {current: login} = MQLogin, {musterimi: loginMusterimi} = login?.class;
 		let mustKod = gridPart.mustKod = gridPart.mustKod ?? (loginMusterimi ? login.kod : qs.mustKod ?? qs.must);
 		let {rootBuilder: rfb} = e; rfb.setInst(gridPart).addStyle(
-			`$elementCSS { --header-height: 80px !important }
-			$elementCSS .islemTuslari { overflow: hidden !important; margin-bottom: -15px !important }`);
+			`$elementCSS { --header-height: 80px !important; --toolbarItem-top: -12px; --toolbarItem-leftEk: ${config.dev ? 210 : 0}px }
+			$elementCSS .islemTuslari { overflow: hidden !important; margin-bottom: -15px !important }
+		`);
 		let setKA = async (fbdOrLayout, kod, aciklama) => {
 			let elm = fbdOrLayout?.layout ?? fbdOrLayout; if (!elm?.length) { return }
 			if (kod) {
@@ -60,7 +62,7 @@ class MQKontor extends MQDetayliMaster {
 		if (login.adminmi || login.bayimi) {
 			let form = rfb.addFormWithParent('kontor').setParent(islemTuslari).yanYana()
 				.addCSS('absolute').addStyle_wh(300)
-				.addStyle(`$elementCSS { top: calc(0px - var(--islemTuslari-height) + 12px); left: ${config.dev ? 510 : 300}px }`);
+				.addStyle(`$elementCSS { top: calc(0px - (var(--islemTuslari-height) + var(--toolbarItem-top))); left: calc(300px + var(--toolbarItem-leftEk))}`);
 			form.addNumberInput('kontorSayi', 'Kontör Satışı').etiketGosterim_yok()
 				.addStyle_wh(130).addCSS('center')
 				.onAfterRun(({ builder: fbd }) =>
@@ -72,10 +74,21 @@ class MQKontor extends MQDetayliMaster {
 						}
 					})
 				);
-			form.addButton('kontorEkle', '+').addStyle_wh(90).onClick(async e => {
-				try { await this.kontor_yeniIstendi(e) }
-				catch (ex) { hConfirm(getErrorText(ex), 'Kontör Satışı'); throw ex }
+			form.addButton('kontorEkle', '+')
+				.addStyle_wh(80).addStyle(`$elementCSS { min-width: unset !important }`)
+				.onClick(async e => {
+					try { await this.kontor_yeniIstendi(e) }
+					catch (ex) { hConfirm(getErrorText(ex), 'Kontör Satışı'); throw ex }
 			})
+		}
+		if (login.adminmi || login.sefmi) {
+			rfb.addButton('faturalastir', 'FAT').setParent(islemTuslari)
+				.addCSS('absolute').addStyle_wh(90)
+				.addStyle(`$elementCSS { top: calc(0px - (var(--islemTuslari-height) + var(--toolbarItem-top) - 3px)); left: calc(230px + var(--toolbarItem-leftEk))}`)
+				.onClick(async e => {
+					try { await this.kontor_topluFaturalastirIstendi(e) }
+					catch (ex) { hConfirm(getErrorText(ex), 'Kontör Faturalaştır'); throw ex }
+				})
 		}
 	}
 	static rootFormBuilderDuzenle({ sender, inst, rootBuilder: rfb, tanimFormBuilder: tanimForm }) {
@@ -157,6 +170,92 @@ class MQKontor extends MQDetayliMaster {
 		wnd = createJQXWindow({ title: islemAdi, content: rfb.layout, args: { width: 500, height: 200 } });
 		return true
 	}
+	static async kontor_topluFaturalastirIstendi(e) {
+		let islemAdi = e.islemAdi = 'Kontör Faturalaştır';
+		let {part} = e.builder.rootBuilder, {current: login} = MQLogin;
+		let recs = e.recs ?? part.selectedRecs;
+		if (!(login.adminmi || login.sefmi)) { hConfirm('<b>Kontör Faturalaştırma</b> yetkiniz yok', islemAdi); return false }
+		if (!login.yetkiVarmi('degistir')) { hConfirm('Kayıt <b>Değiştirme</b> yetkiniz yok', islemAdi); return false }
+		if (!recs?.length) { hConfirm('Faturalaşacak kayıtlar seçilmelidir', islemAdi); return false }
+		if (!await ehConfirm('Seçilen kayıtlara ait <b>Alınan Faturalaşmamış</b> olan Kontörler için Faturalar kesilecektir, devam edilsin mi?', islemAdi)) { return false }
+		let {table, detayTable, varsayilanKeyHostVars: defKeyHV, tipAdi} = this;
+		let sent = new MQSent(), {where: wh, sahalar} = sent;
+		sent.fisHareket(table, detayTable);
+		wh.birlestirDict(defKeyHV, 'fis').add(`har.ahtipi = 'A'`, `har.fatdurum = 'B'`, 'har.kontorsayi <> 0');
+		sahalar.addWithAlias('fis', 'mustkod').add('har.*');    /*.addWithAlias('har', 'tarih', 'fisnox', 'kontorsayi', 'vkn', 'turmobterminal', 'turmobanahtar');*/
+		let orderBy = ['tarih', 'fisnox'], stm = new MQStm({ sent, orderBy });
+		clearTimeout(this._hTimer_faturalastir); delete this._hTimer_faturalastir;
+		let abortFlag = false, abortCheck = () => { if (abortFlag) { throw { rc: 'userInterrupt' } } };
+		let mesaj = `<p>Alınan ${tipAdi} Kontörler, faturalaştırılıyor...</p>`;
+		let pm = showProgress(mesaj, null, true, ({ close }) => abortFlag = true, undefined, false).progressNoValue();
+		let kRecs = await app.sqlExecSelect(stm); pm.setProgressMax((kRecs.length * 3) + 3);
+		pm.setProgressValue(0); pm.progressStep(3); abortCheck();
+		if (!kRecs.length) {
+			hConfirm('Faturalaşacak kontör kaydı bulanamadı', islemAdi);
+			hideProgress(); delete this._hTimer_faturalastir;
+			return false
+		}
+		let must2Recs = {}; for (let rec of kRecs) {
+			abortCheck(); let {mustkod: mustKod} = rec;
+			(must2Recs[mustKod] = must2Recs[mustKod] ?? []).push(rec);
+			pm.progressStep()
+		}
+		abortCheck();
+		let fisSinif = SatisFaturaFis, detaySinif = fisSinif.detaySinifFor();
+		let fisler = [], {vioSeri: seri, vioHizmetKod: shKod} = this;
+		for (let [mustKod, [{kaysayac: sayac, tarih, kontorsayi: miktar}]] of Object.entries(must2Recs)) {
+			abortCheck(); let fis = new fisSinif({ tarih, seri, mustKod });
+			let det = new detaySinif({ shKod, miktar });
+			det._kontorBilgi = { sayac };
+			fis.addDetay(det); fisler.push(fis)
+		}
+		if (!fisler?.length) {
+			hConfirm('Faturalaşacak bilgi yok', islemAdi);
+			hideProgress(); delete this._hTimer_faturalastir;
+			return false
+		}
+		abortCheck(); let toplu = new MQToplu();
+		try {
+			await app.setCurrentDBAndDo('YI25SKYLOGFAT', null, e => {
+				for (let fis of fisler) {
+					/* await fis.yaz(); */
+					let sayacListe = fis.detaylar.map(({ _kontorBilgi: item }) => item.sayac).filter(x => !!x);
+					if (sayacListe.length) {
+						toplu.add(new MQIliskiliUpdate({
+							from: detayTable, set: { degerAta: 'X', saha: 'fatdurum' },
+							where: { inDizi: sayacListe, saha: 'kaysayac' }
+						}))
+					}
+					pm.progressStep(); abortCheck()
+				}
+			})
+		}
+		finally {
+			pm.hideAbortButton();
+			let size = toplu?.liste?.length ?? 0;
+			if (size) {
+				/* await app.sqlExecNone(toplu); */
+				pm?.progressStep(size); toplu.liste = []
+			}
+		}
+		pm.setText('Faturalaştırma işlemi tamamlandı!').progressEnd().showAbortButton().setAbortText('TAMAM');
+		delete this._hTimer_importRecords_progress;
+		/* this._hTimer_importRecords_progress = setTimeout(() => { hideProgress(); delete this._hTimer_importRecords_progress }, 5000); */
+		return true
+	}
+	static async importRecordsIstendi(e) {
+		e = e ?? {}; let {tipAdi} = this, islemAdi = e.islemAdi = `${tipAdi} İçeri Al`, tarih = e.tarih = asDate('01.06.2025');
+		let mesaj = `<p class="firebrick"><b>${dateKisaString(tarih)}</b> tarihinden itibaren olan ${tipAdi} Kayıtları içeri alınacak</p><p>Devam edilsin mi?</p>`;
+		if (await ehConfirm(mesaj, islemAdi)) {
+			try { await this.importRecords(e) }
+			catch (ex) {
+				hideProgress();
+				if (ex.rc != 'userAbort') { hConfirm(getErrorText(ex), islemAdi) }
+				throw ex
+			}
+		}
+		return this
+	}
 	static async kontor_ekle({ islemAdi, inst, part }) {
 		let {mustKod, kontorSayi, fatDurum} = inst;
 		if ((kontorSayi ?? 0) <= 0) {  hConfirm('<b>Kontör Sayısı</b> geçersizdir', islemAdi); return false }
@@ -181,6 +280,7 @@ class MQKontor extends MQDetayliMaster {
 		let result = await app.sqlExecNoneWithResult({ query, params }); part?.tazele();
 		return result
 	}
+	static async importRecords(e) { return null }
 }
 class MQKontorDetay extends MQDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -356,20 +456,30 @@ class MQKontorGridci extends GridKontrolcu {
 	tabloKolonlariDuzenle_ilk({ tabloKolonlari }) {
 		super.tabloKolonlariDuzenle_ilk(...arguments);
 		tabloKolonlari.push(...[
-			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 11 }).tipDate(),
-			new GridKolon({ belirtec: 'ahTipi', text: 'A/H Tip', genislikCh: 18 }).tipTekSecim({ tekSecimSinif: KontorAHTip }).kodsuz().autoBind(),
-			new GridKolon({ belirtec: 'fisNox', text: 'Fiş No', genislikCh: 25 }),
-			new GridKolon({ belirtec: 'kontorSayi', text: 'Kontör', genislikCh: 9 }).tipDecimal(0),
+			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 11 }).tipDate().zorunlu(),
+			new GridKolon({ belirtec: 'ahTipi', text: 'A/H Tip', genislikCh: 18 }).tipTekSecim({ tekSecimSinif: KontorAHTip }).kodsuz().autoBind().zorunlu(),
+			new GridKolon({ belirtec: 'fisNox', text: 'Fiş No', genislikCh: 25 }).zorunlu(),
+			new GridKolon({ belirtec: 'kontorSayi', text: 'Kontör', genislikCh: 9 }).tipDecimal(0).zorunlu(),
+			new GridKolon({ belirtec: 'fatDurum', text: 'Fat.Durum', genislikCh: 20 }).tipTekSecim({ tekSecimSinif: KontorFatDurum }).kodsuz().autoBind().zorunlu(),
 			new GridKolon({ belirtec: 'tcSorgu_anahtar', text: 'Turmob: Token', genislikCh: 35 }),
 			new GridKolon({ belirtec: 'tcSorgu_vkn', text: 'Turmob: VKN', genislikCh: 14 }),
 			new GridKolon({ belirtec: 'tcSorgu_terminal', text: 'Turmob: Terminal', genislikCh: 20 })
 		])
+	}
+	geriYuklemeIcinUygunmu({ zorunluBelirtecler, detay: det, index: rowIndex, belirtec, focusTo }) {
+		let zorunluAttrListe = Object.keys(zorunluBelirtecler), satirNo = rowIndex + 1
+		for (let belirtec of zorunluAttrListe) {
+			if (det[belirtec]) { continue }
+			return { isError: true, errorText: `<b>${satirNo}.</b> satırdaki <b>${belirtec}</b> bilgisi boş olamaz`, returnAction: e => e.focusTo({ rowIndex, belirtec }) }
+		}
+		return super.geriYuklemeIcinUygunmu(...arguments)
 	}
 }
 
 class MQKontor_EBelge extends MQKontor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'BL' } static get detaySinif() { return MQKontorDetay_EBelge }
+	static get vioSeri() { return 'SEB' } static get vioHizmetKod() { return 'H034' }
 }
 class MQKontorDetay_EBelge extends MQKontorDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -378,6 +488,53 @@ class MQKontorDetay_EBelge extends MQKontorDetay {
 class MQKontor_Turmob extends MQKontor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'TR' } static get detaySinif() { return MQKontorDetay_Turmob }
+	static get vioSeri() { return 'STM' } static get vioHizmetKod() { return 'H035' }
+	static async importRecords({ islemAdi, tarih }) {
+		await super.importRecords(...arguments);
+		clearTimeout(this._hTimer_importRecords_progress); delete this._hTimer_importRecords_progress;
+		let ProgressMax = 14, {tip, tipAdi} = this, {table, detayTable} = this;
+		let tokens = config.getWSUrlBase().split(':'); tokens[tokens.length - 1] = 8119;
+		let url = `${tokens.join(':').trim(' ', '\t', '/')}/ws/turmob/log/?tarihBasi=${asReverseDateString(tarih)}`;
+		let abortFlag = false, abortCheck = () => { if (abortFlag) { throw { rc: 'userInterrupt' } } };
+		let mesaj = `<p>${tipAdi} Servisinden veri yükleniyor...</p><p style="margin-left: 20px"><b class="royalblue" font-size: "80%">${url}</b></p>`;
+		let pm = showProgress(mesaj, null, true, ({ close }) => abortFlag = true, undefined, false);
+		pm.setProgressMax(ProgressMax).progressNoValue();
+		let remoteRecs = await ajaxPost({ url }); pm.setProgressValue(0); pm.progressStep(4); abortCheck();
+		let mustKodListe = Object.keys(asSet(remoteRecs.map(({ mustKod }) => [mustKod, true])));
+		let getKontorBaslikSent = (mustKodListe, sahalar) =>
+			new MQSent({ from: table, where: [`tip = '${tip}'`, { inDizi: $.makeArray(mustKodListe), saha: 'mustkod' }], sahalar });
+		let sent = getKontorBaslikSent(mustKodListe, 'mustkod').distinctYap(), portalRecs = await app.sqlExecSelect(sent);
+		let portalKodSet = Object.fromEntries(portalRecs.map(({ mustkod }) => [mustkod, true]));
+		let must2HVYapilar = {}, fissayac = '@fisSayac'.sqlConst();
+		for (let rec of remoteRecs) {
+			let {mustKod: mustkod} = rec; if (!mustkod) { continue }
+			let ahtipi = 'H', tarih = asDate(rec.sorguTS), {remoteIP: turmobterminal, turmobToken: turmobanahtar, vkn} = rec;
+			let d = today(), fisnox = `TH1${d.toString('yyyyMMddHHmmss')}`, kontorsayi = 1;
+			let hvYapi = must2HVYapilar[mustkod] ?? { baslik: { tip, mustkod }, detaylar: [], fisNoxSet: {} };
+			let {fisNoxSet, detaylar} = hvYapi; if (fisNoxSet[fisnox]) { continue }
+			detaylar.push({ fissayac, ahtipi, tarih, fisnox, kontorsayi, turmobterminal, turmobanahtar, vkn });
+			must2HVYapilar[mustkod] = must2HVYapilar[mustkod] ?? hvYapi; abortCheck()
+		}
+		pm.progressStep(2); abortCheck();
+		if ($.isEmptyObject(must2HVYapilar)) {
+			hideProgress(); displayMessage('Yüklenecek bilgi bulunamadı', islemAdi);
+			return null
+		}
+		let toplu = new MQToplu(['DECLARE @fisSayac INT']).withDefTrn();
+		for (let [mustKod, {baslik: basHV, detaylar: detHVListe}] of Object.entries(must2HVYapilar)) {
+			abortCheck(); toplu.add(
+				`IF NOT EXISTS (${getKontorBaslikSent(mustKod, 'COUNT(*)')})`,
+					new MQQueryInsert({ table, hv: basHV }),
+				getKontorBaslikSent(mustKod, '@fisSayac = MAX(kaysayac)'),
+				new MQQueryInsert({ table: detayTable, hvListe: detHVListe })
+			)
+		}
+		pm.progressStep(2); abortCheck();
+		pm.hideAbortButton(); /* await app.sqlExecNone(toplu); pm.progressStep(5); */
+		pm.setText('Veri yükleme tamamlandı!').progressEnd().showAbortButton().setAbortText('TAMAM');
+		this._hTimer_importRecords_progress = setTimeout(() => { hideProgress(); delete this._hTimer_importRecords_progress }, 5000);
+		return remoteRecs
+	}
 }
 class MQKontorDetay_Turmob extends MQKontorDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

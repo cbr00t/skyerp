@@ -441,7 +441,7 @@ class MQDetayliMaster extends MQDetayli {
 	}
 	static async rootFormBuilderDuzenle_grid_loadServerData(e) {
 		const {builder} = e, {rootPart, inst} = builder, {part: gridPart} = builder, {kontrolcu} = gridPart, {gridDetaySinif} = inst.class;
-		const _e = { ...e, fis: inst, inst, recs: [] }; for (let i = 0; i < inst.detaylar?.length + 1; i++) { _e.recs.push(this.newRec({ sinif: gridDetaySinif })) }
+		const _e = { ...e, fis: inst, inst, recs: [] }; for (let i = 0; i < Math.max(inst.detaylar?.length ?? 0, 1); i++) { _e.recs.push(this.newRec({ sinif: gridDetaySinif })) }
 		let result = await kontrolcu?.fis2Grid(_e); if (result != true) { if (result?.errorText) { hConfirm(`<div class="red">${_result.errorText}</div>`) } return false }
 		return _e.recs
 	}
