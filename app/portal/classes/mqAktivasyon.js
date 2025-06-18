@@ -1,12 +1,19 @@
 class MQAktivasyon extends MQDetayliMaster {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kodListeTipi() { return 'AKT' } static get sinifAdi() { return 'Aktivasyon' }
+	static get kodListeTipi() { return 'AKT' } static get sinifAdi() { return 'Aktivasyon' } static get gridHeight_bosluk() { return 360 }
 	static get table() { return 'muslisans' } static get tableAlias() { return 'fis' } static get sayacSaha() { return 'kaysayac' }
 	static get detaySinif() { return MQAktivasyonDetay } static get gridKontrolcuSinif() { return MQAktivasyonGridci }
 	static get tumKolonlarGosterilirmi() { return true } static get kolonFiltreKullanilirmi() { return false } static get raporKullanilirmi() { return false }
-	static get tanimlanabilirmi() { return super.tanimlanabilirmi && MQLogin.current?.yetkiVarmi('tanimla') }
-	static get silinebilirmi() { return super.silinebilirmi && MQLogin.current?.yetkiVarmi('sil') }
-	static get gridHeight_bosluk() { return 360 }
+	static get tanimlanabilirmi() {
+		if (!(super.tanimlanabilirmi && MQLogin.current?.yetkiVarmi('tanimla'))) { return false }
+		let {current: login} = MQLogin; if (login.adminmi) { return true }
+		return login.bayimi && login.yetkiVarmi('aktivasyonYap')
+	}
+	static get silinebilirmi() {
+		if (!(super.silinebilirmi && MQLogin.current?.yetkiVarmi('sil'))) { return false }
+		let {current: login} = MQLogin; if (login.adminmi) { return true }
+		return login.bayimi && login.yetkiVarmi('aktivasyonSil')
+	}
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		$.extend(pTanim, {

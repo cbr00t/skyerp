@@ -59,6 +59,14 @@ class MQLogin extends MQKA {
 				.setVisibleKosulu(({ builder: fbd }) => this.sifreGirilirmi);
 			form.addCheckBox('aktifmi', 'Aktif?')
 	}
+	static rootFormBuilderDuzenleSonrasi(e) {
+		super.rootFormBuilderDuzenleSonrasi(e); let {yetkiSelectors} = this, {tabPanel} = e;
+		if (yetkiSelectors?.length) {
+			let tabPage = e.tabPage_yetki = tabPanel.addTab('yetki', 'Yetki');
+			let form = tabPage.addFormWithParent().yanYana(2).setAltInst(({ builder: fbd }) => fbd.inst.yetki);
+			for (let ioAttr of yetkiSelectors) { form.addCheckBox(ioAttr, ioAttr) }
+		}
+	}
 	static ekCSSDuzenle({ rec, result }) {
 		super.ekCSSDuzenle(...arguments);
 		if (!rec.aktifmi) { result.push('bg-lightgray', 'iptal', 'firebrick') }
@@ -72,6 +80,10 @@ class MQLogin extends MQKA {
 			let belirtec = `${yetkiRowAttrPrefix}${ioAttr.toLowerCase()}`, text = ioAttr[0].toUpperCase() + ioAttr.slice(1);
 			liste.push(new GridKolon({ belirtec, text, genislikCh: 10 }).tipBool())
 		}
+	}
+	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent, basit }) {
+		super.loadServerData_queryDuzenle(...arguments); let {tableAlias: alias, kodSaha} = this, {where: wh, sahalar} = sent;
+		sahalar.add(`${alias}.aktifmi`)
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments); let {yetkiSelectors, yetkiRowAttrPrefix} = this.class;
@@ -160,8 +172,9 @@ class MQLogin_Bayi extends MQLogin {
 		)
 	}
 	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent, basit }) {
-		super.loadServerData_queryDuzenle(...arguments); let {tableAlias: alias, kodSaha} = this, {where: wh} = sent;
+		super.loadServerData_queryDuzenle(...arguments); let {tableAlias: alias, kodSaha} = this, {where: wh, sahalar} = sent;
 		sent.fromIliski(`${MQVPIl.table} il`, `${alias}.ilkod = il.kod`);
+		sahalar.add(`${alias}.bsefmi`);
 		if (!basit) {
 			if (MQLogin.current.musterimi) { wh.add('1 = 2') }
 			else { let clauses = { bayi: `${alias}.${kodSaha}` }; MQLogin.current.yetkiClauseDuzenle({ sent, clauses }) }

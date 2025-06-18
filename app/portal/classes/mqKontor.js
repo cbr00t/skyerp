@@ -81,7 +81,7 @@ class MQKontor extends MQDetayliMaster {
 					catch (ex) { hConfirm(getErrorText(ex), 'Kontör Satışı'); throw ex }
 			})
 		}
-		if (login.adminmi || login.sefmi) {
+		if (config.dev && (login.adminmi || login.sefmi)) {
 			rfb.addButton('faturalastir', 'FAT').setParent(islemTuslari)
 				.addCSS('absolute').addStyle_wh(90)
 				.addStyle(`$elementCSS { top: calc(0px - (var(--islemTuslari-height) + var(--toolbarItem-top) - 3px)); left: calc(230px + var(--toolbarItem-leftEk))}`)
@@ -148,7 +148,7 @@ class MQKontor extends MQDetayliMaster {
 	static kontor_yeniIstendi(e) {
 		let islemAdi = e.islemAdi = 'Kontör Satışı', {part} = e.builder.rootBuilder, {mustKod, kontorSayi} = part, {current: login} = MQLogin;
 		if (!mustKod) { hConfirm('Müşteri seçilmelidir', islemAdi); return false }
-		if (!(login.adminmi || login.sefmi)) { hConfirm('<b>Kontör İşlemi Yapma</b> yetkiniz yok', islemAdi); return false }
+		if (!(login.adminmi || login.bayimi)) { hConfirm('<b>Kontör İşlemi Yapma</b> yetkiniz yok', islemAdi); return false }
 		if (!login.yetkiVarmi('degistir')) { hConfirm('Kayıt <b>Değiştirme</b> yetkiniz yok', islemAdi); return false }
 		/* if ((kontorSayi ?? 0) <= 0) { hConfirm('Kontör Sayısı geçersizdir', islemAdi); return false } */
 		let {detaySinif} = this, inst = new detaySinif({ mustKod, kontorSayi });
