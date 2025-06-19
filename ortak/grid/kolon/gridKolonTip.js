@@ -65,6 +65,18 @@ class GridKolonTip extends CObject {
 				if (editable && !sabitmi && rowIndex + 1 > totalRecs) { gridPart.addRow({ offset: 'last' }) }
 				break
 			}
+			case 'f2': {
+				let {rowIndex, belirtec} = state;
+				if (!editing && rowIndex != null && belirtec) { gridWidget.begincelledit(rowIndex, belirtec) }
+				return true
+			}
+			case 'f': {
+				if (ctrl) {
+					let {parentPart} = gridPart, bulPart = gridPart.bulPart ?? parentPart.bulPart, {input} = bulPart ?? {};
+					input?.focus();
+					return true
+				}
+			}
 			/*case 'arrowleft': case 'arrowright': {
 				let back = key == 'arrowleft', {rowIndex, colIndex, totalCols} = state;
 				let belirtec; while (true) {
@@ -89,12 +101,7 @@ class GridKolonTip extends CObject {
 				if (rowIndex + 1 > totalRecs) { gridPart.addRow({ offset: 'last' }) }
 				gridWidget.clearselection(); gridWidget.selectcell(rowIndex, belirtec);
 				return true
-			}*/
-			case 'f2': {
-				let {rowIndex, belirtec} = state;
-				if (!editing && rowIndex != null && belirtec) { gridWidget.begincelledit(rowIndex, belirtec) }
-				return true
-			}
+			}*/ 
 		}
 	}
 	static getHTML_groupsTotalRow(value) {

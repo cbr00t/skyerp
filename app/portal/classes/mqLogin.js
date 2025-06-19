@@ -91,7 +91,7 @@ class MQLogin extends MQKA {
 		if (md5sifre) { $.extend(hv, { md5sifre }) };
 		for (let ioAttr of yetkiSelectors) {
 			let rowAttr = `${yetkiRowAttrPrefix}${ioAttr.toLowerCase()}`
-			hv[rowAttr] = yetki[ioAttr]
+			hv[rowAttr] = yetki[ioAttr] ?? false
 		}
 	}
 	setValues({ rec }) {

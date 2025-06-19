@@ -152,12 +152,10 @@ class TSSHDDetay extends TSDetay {
 	}
 	async disKaydetOncesiIslemler(e) {
 		e = e ?? {}; await super.disKaydetOncesiIslemler(e);
-		let {fis} = e, {miktar, fiyat, brutBedel, netBedel} = this;
-		if (miktar && fiyat && !(brutBedel && netBedel)) {
-			let {ticarimi} = fis?.class ?? {}, _e = { ...e, ticarimi };
-			await this[brutBedel ? 'netBedelHesapla' : 'bedelHesapla'](_e)
-			await this.vergileriHesapla(_e)
-		}
+		let {fis} = e, {miktar, fiyat, brutBedel, netBedel, kdvKod, kdvOrani} = this;
+		let {ticarimi} = fis?.class ?? {}, _e = { ...e, ticarimi };
+		if (miktar && fiyat && !(brutBedel && netBedel)) { await this[brutBedel ? 'netBedelHesapla' : 'bedelHesapla'](_e) }
+		if (!(kdvKod && kdvOrani)) { await this.vergileriHesapla(_e) }
 	}
 	hostVars(e) {
 		for (const key of ['fiyat', 'brutBedel', 'netBedel']) { this[key] = (this[key] || 0) }

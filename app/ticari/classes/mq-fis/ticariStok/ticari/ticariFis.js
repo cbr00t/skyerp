@@ -159,7 +159,6 @@ class TicariFis extends TSOrtakFis {
 	tekilOku_detaylar_queryDuzenle(e) { super.tekilOku_detaylar_queryDuzenle(e); e.detaySinif.tekilOku_detaylar_queryDuzenle_ticari(e) }
 	async kaydetOncesiIslemler(e) { await super.kaydetOncesiIslemler(e); await this.fisBakiyeDurumuGerekirseAyarla(e) }
 	async disKaydetOncesiIslemler(e) {
-		await super.disKaydetOncesiIslemler(e);
 		let {tarih, subeKod, mustKod, detaylar} = this, kapsam = { tarih, subeKod, mustKod };
 		let kosulYapilar = new SatisKosulYapi({ kapsam }); if (!await kosulYapilar.yukle()) { kosulYapilar = null }
 		let {FY} = kosulYapilar ?? {}; if (FY) {
@@ -174,6 +173,7 @@ class TicariFis extends TSOrtakFis {
 				}
 			}
 		}
+		await super.disKaydetOncesiIslemler(e)
 	}
 	async topluYazmaKomutlariniOlusturSonrasi(e) {
 		super.topluYazmaKomutlariniOlusturSonrasi(e); const {table} = this.class, {trnId,toplu} = e;
@@ -354,6 +354,7 @@ class SevkiyatFis extends TicariFis {
 	}
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, {
+			sevkTarih: new PInstDateToday('sevktarihi'), sevkSaat: new PInstDateTimeNow('sevksaati'),
 			yerKod: new PInstStr({ rowAttr: 'yerkod', init: e => 'A' }), yerOrtakmi: new PInstTrue('yerortakdir'),
 			malKabulNo: new PInstNum('malkabulno'), kunyeNox: new PInstStr('kunyenox'), borsaTescilYapildimi: new PInstBool('borsatescilvarmi')
 		})

@@ -86,3 +86,16 @@
 .cover { background-size: cover !important }
 .contain { background-size: contain !important }
 .bg-auto { background-size: auto !important }
+
+.fs-70 { font-size: 70% !important }
+.fs-75 { font-size: 75% !important }
+.fs-80 { font-size: 80% !important }
+.fs-85 { font-size: 85% !important }
+.fs-90 { font-size: 90% !important }
+.fs-100 { font-size: 100% !important }
+.fs-110 { font-size: 110% !important }
+.fs-120 { font-size: 120% !important }
+.fs-130 { font-size: 130% !important }
+.fs-140 { font-size: 140% !important }
+.fs-150 { font-size: 150% !important }
+.fs-160 { font-size: 160% !important }

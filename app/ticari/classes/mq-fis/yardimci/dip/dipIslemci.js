@@ -27,14 +27,14 @@ class DipIslemci extends CObject {
 	}
 	ticariFisHostVarsDuzenle(e) {
 		let {dipSatirlari} = this; if (!dipSatirlari) { this.getDipGridSatirlari(); dipSatirlari = this.dipSatirlari }
-		const {fis, belirtec2DipSatir, icmalSonuclari} = this, {hv} = e;
+		let {fis, belirtec2DipSatir, icmalSonuclari} = this, {hv} = e;
 		let bv = belirtec2DipSatir.BRUT.bedelYapi; $.extend(hv, { brut: bv.tl || 0, dvbrut: bv.dv || 0 });
-		const tevBV = bv = icmalSonuclari.tevkifat; $.extend(hv, { dustevkifat: bv.tl || 0, dusdvtevkifat: bv.dv || 0 });
+		let tevBV = bv = icmalSonuclari.tevkifat; $.extend(hv, { dustevkifat: bv.tl || 0, dusdvtevkifat: bv.dv || 0 });
 		bv = icmalSonuclari.kdv; $.extend(hv, { topkdv: (bv.tl || 0) - (tevBV?.tl || 0), topdvkdv: (bv.dv || 0) - (tevBV?.dv || 0) });
 		/*bv = icmalSonuclari.digerVergi; $.extend(hv, { x: bv.tl || 0, xdv: bv.dv || 0 });*/
 		bv = icmalSonuclari.ciro; $.extend(hv, { ciro: bv.tl || 0, dvciro: bv.dv || 0, bciro: bv.tl || 0 });
 		bv = belirtec2DipSatir.SONUC.bedelYapi; $.extend(hv, { net: bv.tl || 0, dvnet: bv.dv || 0 });
-		$.extend(hv, { kdvli: '', otv2kdvmatdahildir: '', gkkp2kdvmatdahildir: '' });
+		$.extend(hv, { kdvli: '*', otv2kdvmatdahildir: '', gkkp2kdvmatdahildir: '' });
 		return this
 	}
 	getDipGridSatirlari(e) {

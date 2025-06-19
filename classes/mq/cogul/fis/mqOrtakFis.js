@@ -68,9 +68,10 @@ class MQOrtakFis extends MQDetayli {
 		this.donusumBilgileriniSil(e)
 	}
 	async disKaydetIslemi(e) {
-		e = e || {}; let {noSaha} = this.class, {numarator: num, fisNo} = this;
+		e = e || {}; let {noSaha} = this.class, {numarator: num, fisNo} = this, hedefSeri = e.seri ?? this.seri;
 		if (!num) { let {numYapi} = this; if (numYapi) { num = this.numarator = numYapi.deepCopy() } }
 		if (noSaha && !fisNo && num) {
+			if (hedefSeri) { num.seri = hedefSeri }
 			await num.yukle(e); let {seri, noYil} = num;
 			fisNo = num.sonNo; $.extend(this, { seri, noYil, fisNo })
 		}
@@ -93,7 +94,7 @@ class MQOrtakFis extends MQDetayli {
 			let errorText = await det.dataDuzgunmu?.(e); if (errorText) { throw { isError: true, rc: 'invalidArgument', errorText } }
 			await det.disKaydetOncesiIslemler?.(e)
 		}
-		let {dipIslemci} = this;
+		await this.dipOlustur(); let {dipIslemci} = this;
 		await dipIslemci?.dipSatirlariOlustur?.(e);
 		await dipIslemci?.topluHesapla?.(e)
 	}

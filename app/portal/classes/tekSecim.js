@@ -26,7 +26,8 @@ class KontorFatDurum extends TekSecim {
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments);
 		kaListe.push(...[
-			new CKodVeAdi(['', '<span class=lightgray>Açıktan</span>', 'yokmu']),
+			new CKodVeAdi(['', '<span class=lightgray>Açıktan</span>', 'aciktanmi']),
+			new CKodVeAdi(['M', '<span class=lightgray>Açıktan (<i class=bold><span class=royalblue>MD</span></i>)</span>', 'aciktanmi_md']),
 			new CKodVeAdi(['B', '<span class=orangered>Fatura Edilecek</span>', 'faturaEdilecekmi']),
 			new CKodVeAdi(['X', '<span class=green>Fatura Edildi</span>', 'faturaEdildimi'])
 		])
