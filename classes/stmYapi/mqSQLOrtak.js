@@ -5,24 +5,24 @@ class MQSQLOrtak extends CObject {
 		$.extend(this, { prefix: e.prefix, postfix: e.postfix, params: e.params || null });
 	}
 	static async topluYazVeyaDegistirIcinYap(e) {
-		const {trnId, toplu} = e, eskiWhere = e.eskiWhere ?? e.eskiHVWhere, uniqueKeys = e.uniqueKeys ?? e.attrListe, table = e.table ?? e.tablo;
-		const uniqueKeysSet = asSet(uniqueKeys) || {}, silinebilirmi = e.silinebilir ?? e.silinebilirmi ?? true;
+		let {trnId, toplu} = e, eskiWhere = e.eskiWhere ?? e.eskiHVWhere, uniqueKeys = e.uniqueKeys ?? e.attrListe, table = e.table ?? e.tablo;
+		let uniqueKeysSet = asSet(uniqueKeys) || {}, silinebilirmi = e.silinebilir ?? e.silinebilirmi ?? true;
 		let {hvListe, eskiHVListe} = e; if (!hvListe) { return } if (!$.isArray(hvListe)) { hvListe = [hvListe] }
-		const hv = hvListe[0], dateAttrSet = {}; if (hv) { for (const [key, value] of Object.entries(hv)) { if (isDate(value)) { dateAttrSet[key] = true } } }
+		let hv = hvListe[0], dateAttrSet = {}; if (hv) { for (let [key, value] of Object.entries(hv)) { if (isDate(value)) { dateAttrSet[key] = true } } }
 		if (!(eskiHVListe || $.isEmptyObject(uniqueKeys) || $.isEmptyObject(eskiWhere))) {
-			const keys = hv === undefined ? uniqueKeys : Object.keys(hv);
-			const sent = new MQSent({ from: table, where: eskiWhere, sahalar: keys }), recs = await app.sqlExecSelect({ trnId, query: sent }); eskiHVListe = recs;
-			if (eskiHVListe) { for (const hv of eskiHVListe) { for (const key in hv) { if (dateAttrSet[key]) { let value = hv[key]; if (value && typeof value == 'string') { hv[key] = value = asDate(value) } } } } }
+			let keys = hv === undefined ? uniqueKeys : Object.keys(hv);
+			let sent = new MQSent({ from: table, where: eskiWhere, sahalar: keys }), recs = await app.sqlExecSelect({ trnId, query: sent }); eskiHVListe = recs;
+			if (eskiHVListe) { for (let hv of eskiHVListe) { for (let key in hv) { if (dateAttrSet[key]) { let value = hv[key]; if (value && typeof value == 'string') { hv[key] = value = asDate(value) } } } } }
 		}
 		if ($.isEmptyObject(eskiHVListe)) {		/* sadece yazma */
-			if (uniqueKeysSet.kaysayac) { for (const hv of hvListe) { delete hv.kaysayac } }
+			if (uniqueKeysSet.kaysayac) { for (let hv of hvListe) { delete hv.kaysayac } }
 			toplu.add(new MQInsert({ table, hvListe })); return { eklenecekler: hvListe, degisecekler: [], silinecekler: [] }
 		}
 		/* ekleme, değiştirme ve silme */
-		const farkBilgi = hvListeFarkSonucu({ hv1Liste: hvListe, hv2Liste: eskiHVListe, uniqueKeys }) || {}, {eklenecekler, degisecekler, silinecekler} = farkBilgi;
-		for (const keyHV of silinecekler) { toplu.add(new MQIliskiliDelete({ from: table, where: { birlestirDict: keyHV } })) }
+		let farkBilgi = hvListeFarkSonucu({ hv1Liste: hvListe, hv2Liste: eskiHVListe, uniqueKeys }) || {}, {eklenecekler, degisecekler, silinecekler} = farkBilgi;
+		for (let keyHV of silinecekler) { toplu.add(new MQIliskiliDelete({ from: table, where: { birlestirDict: keyHV } })) }
 		if (!$.isEmptyObject(eklenecekler)) { toplu.add(new MQInsert({ table, hvListe: eklenecekler })) }
-		for (const {keyHV, farkHV} of degisecekler) { toplu.add(new MQIliskiliUpdate({ from: table, where: { birlestirDict: keyHV }, set: { birlestirDict: farkHV } })) }
+		for (let {keyHV, farkHV} of degisecekler) { toplu.add(new MQIliskiliUpdate({ from: table, where: { birlestirDict: keyHV }, set: { birlestirDict: farkHV } })) }
 		return farkBilgi
 	}
 	static sqlServerDegeri(e) {

@@ -4,7 +4,10 @@ class MQTicNumarator extends MQNumarator {
 	static get sinifAdi() { return 'Ticari Numaratör' } static get table() { return 'tnumara' } static get sayacSaha() { return 'sayac' } static get kodSaha() { return 'belirtec' }
 	get belirtec() { return this.kod } set belirtec(value) { return this.kod = value }
 
-	constructor(e) { e = e || {}; super(e) }
+	constructor(e) {
+		e = e || {}; super(e);
+		let {belirtec} = e; if (belirtec) { this.belirtec = belirtec }
+	}
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
 		$.extend(pTanim, {
@@ -52,8 +55,8 @@ class MQTicNumarator extends MQNumarator {
 	async yukle(e) {
 		e = e || {}; let {rec} = e;
 		if (!rec) {
-			const {tip} = this; if (!tip) return false
-			const {belirtec} = this, {table} = this.class
+			const {tip} = this; if (!tip) { return false }
+			const {belirtec} = this, {table} = this.class;
 			const sent = new MQSent({
 				from: table, sahalar: '*',
 				where: belirtec ? { birlestirDict: this.alternateKeyHostVars(e) } : { degerAta: this.tip, saha: 'tip' }

@@ -206,7 +206,7 @@ class MQKontor extends MQDetayliMaster {
 		let sent = new MQSent(), {where: wh, sahalar} = sent;
 		sent.fisHareket(table, detayTable).fromIliski('musteri mus', 'fis.mustkod = mus.kod');
 		wh.birlestirDict(defKeyHV, 'fis').inDizi(fisSayacListe, 'fis.kaysayac');
-		wh.add(`har.ahtipi = 'A'`, `har.fatdurum = 'B'`, 'har.kontorsayi <> 0');
+		wh.add(`har.ahtipi = 'A'`, 'har.kontorsayi > 0').inDizi(['', 'M', 'B'], 'har.fatdurum');
 		sahalar.add('fis.mustkod', 'mus.vkn', 'mus.aciklama mustunvan', 'mus.bayikod', 'har.*');    /*.addWithAlias('har', 'tarih', 'fisnox', 'kontorsayi', 'vkn', 'tcsorguterminal', 'tcsorguanahtar');*/
 		let orderBy = ['tarih', 'fisnox'], stm = new MQStm({ sent, orderBy });
 		let kRecs = await app.sqlExecSelect(stm); 
@@ -220,13 +220,14 @@ class MQKontor extends MQDetayliMaster {
 			hideProgress(); delete this._hTimer_faturalastir;
 			return false
 		}
-		let must2Recs = {}; for (let rec of kRecs) {
-			abortCheck(); let {mustkod: mustKod} = rec;
-			(must2Recs[mustKod] = must2Recs[mustKod] ?? []).push(rec);
+		let must2Tip2Recs = {}; for (let rec of kRecs) {
+			abortCheck(); let {mustkod: mustKod, fatdurum: fatDurum} = rec;
+			let tip2Recs = must2Tip2Recs[mustKod] = must2Tip2Recs[mustKod] ?? {};
+			(tip2Recs[fatDurum] = tip2Recs[fatDurum] ?? []).push(rec);
 			pm.progressStep()
 		}
 		let withFatDBDo = block => app.setCurrentDBAndDo('YI25SKYLOGFAT', '(local)\\SKYLOG', e => block(e));
-		abortCheck(); let {vioSeri: seri, vioHizmetKod: shKod} = this, hizRec = {};
+		abortCheck(); let {vioSeri: orjSeri, vioHizmetKod: shKod} = this, hizRec = {};
 		await withFatDBDo(async e => {
 			let sent = new MQSent(), {where: wh, sahalar} = sent;
 			sent.fromAdd('hizmst'); wh.degerAta(shKod, 'kod');
@@ -234,14 +235,22 @@ class MQKontor extends MQDetayliMaster {
 			hizRec = await app.sqlExecTekil(sent)
 		});
 		let fisSinif = SatisFaturaFis, detaySinif = TSHizmetDetay;
-		let fisler = []; for (let [mustKod, recs] of Object.entries(must2Recs)) {
-			for (let rec of recs) {
-				abortCheck(); let {kaysayac: sayac, vkn, mustunvan: mustUnvan, bayikod: bayiKod, tarih, fisnox: fisNox, kontorsayi: miktar} = rec;
-				let fis = new fisSinif({ tarih, seri, mustKod, baslikAciklama: `SkyPortal Kontör Satışı: [${mustKod}]` });
-				fis._kontorBilgi = { vkn, mustUnvan, bayiKod };
-				let det = new detaySinif({ shKod, miktar, ...hizRec, ekAciklama: fisNox });
-				det._kontorBilgi = { sayac, fisNox }; det.bedelHesapla()
-				fis.addDetay(det); fisler.push(fis)
+		let fisler = []; for (let [mustKod, tip2Recs] of Object.entries(must2Tip2Recs)) {
+			for (let [fatDurum, recs] of Object.entries(tip2Recs)) {
+				if (!recs?.length) { continue }
+				let {mustunvan: mustUnvan, bayikod: bayiKod} = recs[0]; if (fatDurum == 'X') { continue }
+				let tarih = today(), ozelIsaret = fatDurum == '' || fatDurum == 'M' ? '*' : '', islKod = `TF${ozelIsaret}`;
+				let seri = orjSeri; if (ozelIsaret == '*') { seri = `${seri.slice(0, 1)}X` }
+				let fis = new fisSinif({ ozelIsaret, islKod, tarih, seri, mustKod, baslikAciklama: `SkyPortal Kontör Satışı: [${mustKod}]` });
+				fis._kontorBilgi = { mustUnvan, bayiKod, fatDurum };
+				for (let rec of recs) {
+					abortCheck(); let {kaysayac: sayac /*tarih,*/} = rec;
+					let {fisnox: fisNox, kontorsayi: miktar, vkn} = rec;
+					let det = new detaySinif({ shKod, miktar, ...hizRec, ekAciklama: fisNox });
+					det._kontorBilgi = { sayac, fisNox, vkn }; det.bedelHesapla();
+					fis.addDetay(det)
+				}
+				fisler.push(fis)
 			}
 		}
 		if (!fisler?.length) {
@@ -252,22 +261,25 @@ class MQKontor extends MQDetayliMaster {
 		abortCheck(); let toplu = new MQToplu();
 		try {
 			await withFatDBDo(async e => {
-				let vknListe = Object.keys(asSet(fisler.map(({ _kontorBilgi: b }) => b.vkn)));
+				let vknListe = Object.keys(asSet(fisler.map(({ detaylar }) => detaylar[0]?._kontorBilgi.vkn)));
 				let sent = new MQSent(), {where: wh, sahalar} = sent;
 				sent.fromAdd('carmst'); wh.inDizi(vknListe, 'vkno'); sahalar.add('must', 'vkno vkn');
 				let vkn2Must = {}, must2VKN = {};
 				for (let {vkn, must} of await app.sqlExecSelect(sent)) {
 					vkn2Must[vkn] = must; must2VKN[must] = vkn }
-				let _toplu = new MQToplu(); for (let {mustKod: must, _kontorBilgi} of fisler) {
-					let {vkn, mustUnvan} = _kontorBilgi; if (vkn2Must[vkn]) { continue }
-					let sahismi = vkn.length == 11, vnumara = sahismi ? '' : vkn, tckimlikno = sahismi ? vkn : '';
+				let _toplu = new MQToplu(); for (let fis of fisler) {
+					let {mustKod: must, detaylar} = fis; if (!detaylar?.length) { continue }
+					let {vkn} = detaylar[0]._kontorBilgi; if (vkn2Must[vkn]) { continue }
+					let {mustUnvan} = fis._kontorBilgi, sahismi = vkn.length == 11;
+					let vnumara = sahismi ? '' : vkn, tckimlikno = sahismi ? vkn : '';
 					let unvan1 = `**SkyPortal Akt: ${mustUnvan}`;
 					_toplu.add(new MQInsert({ table: 'carmst', hv: { must, unvan1, sahismi: bool2FileStr(sahismi), vnumara, tckimlikno } }));
 					must2VKN[must] = vkn; vkn2Must[vkn] = must
 				}
 				if (_toplu.liste.length) { await app.sqlExecNone(_toplu) } _toplu = null;
 				for (let fis of fisler) {
-					let {mustkod, _kontorBilgi: b} = fis, {vkn} = b, refMustKod = vkn2Must[vkn]; if (!refMustKod) { continue }
+					let {mustkod, detaylar} = fis, {vkn} = detaylar[0]._kontorBilgi;
+					let refMustKod = vkn2Must[vkn]; if (!refMustKod) { continue }
 					fis.mustKod = refMustKod; await fis.disKaydetIslemi();
 					let sayacListe = fis.detaylar.map(({ _kontorBilgi: item }) => item.sayac).filter(x => !!x);
 					if (sayacListe.length) {
@@ -541,7 +553,7 @@ class MQKontorDetay_EBelge extends MQKontorDetay {
 class MQKontor_Turmob extends MQKontor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'TR' } static get detaySinif() { return MQKontorDetay_Turmob }
-	static get vioSeri() { return 'STM' } static get vioHizmetKod() { return 'H035' }
+	static get vioSeri() { return 'VKN' } static get vioHizmetKod() { return 'H035' }
 	static get faturalastirmaYapilirmi() { return true }
 	static async importRecords({ islemAdi, tarih }) {
 		await super.importRecords(...arguments);

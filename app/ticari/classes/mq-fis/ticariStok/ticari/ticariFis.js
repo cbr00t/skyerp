@@ -176,18 +176,50 @@ class TicariFis extends TSOrtakFis {
 		await super.disKaydetOncesiIslemler(e)
 	}
 	async topluYazmaKomutlariniOlusturSonrasi(e) {
-		super.topluYazmaKomutlariniOlusturSonrasi(e); const {table} = this.class, {trnId,toplu} = e;
-		const uniqueKeys = ['pifsayac', 'sipsayac', 'seq']; let hvListe = this.getDipEBilgi_hvListe(e);
-		const param_fisSayac = new MQSQLConst(e.paramName_fisSayac), sayacSaha = table == 'sipfis' ? 'sipsayac' : 'pifsayac';
-		for (const hv of hvListe) { hv[sayacSaha] = param_fisSayac }
-		const farkBilgi = await MQSQLOrtak.topluYazVeyaDegistirIcinYap({ trnId, toplu, uniqueKeys, table: 'dipebilgi', hvListe }); return farkBilgi
+		super.topluYazmaKomutlariniOlusturSonrasi(e); let _e = { ...e, degistir: false };
+		await this.dipEBilgiKomutlariniOlustur(_e);
+		await this.dipEBilgi2DipAktarKomutlariniOlustur(_e)
 	}
 	async topluDegistirmeKomutlariniOlusturSonrasi(e) {
-		super.topluDegistirmeKomutlariniOlusturSonrasi(e); const {sayac} = this, {table} = this.class, {trnId, toplu} = e;
-		const sayacSaha = table == 'sipfis' ? 'sipsayac' : 'pifsayac', uniqueKeys = ['pifsayac', 'sipsayac', 'seq'];
-		let hvListe = this.getDipEBilgi_hvListe(e); const eskiWhere = new MQWhereClause({ degerAta: sayac, saha: sayacSaha });
-		const farkBilgi = await MQSQLOrtak.topluYazVeyaDegistirIcinYap({ trnId, toplu, uniqueKeys, table: 'dipebilgi', hvListe, eskiWhere });
+		super.topluDegistirmeKomutlariniOlusturSonrasi(e); let _e = { ...e, degistir: true };
+		await this.dipEBilgiKomutlariniOlustur(_e);
+		await this.dipEBilgi2DipAktarKomutlariniOlustur(_e)
+	}
+	async dipEBilgiKomutlariniOlustur(e) {
+		let degistirmi = e.degistir ?? e.degistirmi, {trnId, toplu, paramName_fisSayac} = e;
+		let {sayac} = this, {table: fisTable} = this.class, sayacSaha = fisTable == 'sipfis' ? 'sipsayac' : 'pifsayac';
+		let eskiWhere, uniqueKeys = ['pifsayac', 'sipsayac', 'seq'], hvListe = this.getDipEBilgi_hvListe(...arguments);
+		if (degistirmi) { eskiWhere = new MQWhereClause({ degerAta: sayac, saha: sayacSaha }) }
+		else { let param_fisSayac = new MQSQLConst(paramName_fisSayac); for (let hv of hvListe) { hv[sayacSaha] = param_fisSayac } }
+		let table = 'dipebilgi', farkBilgi = await MQSQLOrtak.topluYazVeyaDegistirIcinYap({ trnId, toplu, uniqueKeys, table, hvListe, eskiWhere });
 		return farkBilgi
+	}
+	async dipEBilgi2DipAktarKomutlariniOlustur(e) {
+		let degistirmi = e.degistir ?? e.degistirmi; if (degistirmi) { return }
+		let {trnId, toplu, paramName_fisSayac} = e, {sayac} = this;
+		let {table: fisTable} = this.class, dipTable = fisTable == 'sipfis' ? 'sipdipvergi' : 'pifdipvergi';
+		toplu.add(
+			new MQSelect2Insert({
+				table: `${dipTable} (fissayac, anatip, alttip, ba, ustoran, oran, vergikod, aramatrah, matrah, bedel, dvbedel)`,
+				sent: new MQSent({
+					from: 'dipebilgi', where: [
+						{ degerAta: paramName_fisSayac.sqlConst(), saha: 'pifsayac' },
+						{ degerAta: 'V', saha: 'hvtip' },
+						{ degerAta: 'KD', saha: 'anatip' }
+					],
+					sahalar: [
+						paramName_fisSayac, 'anatip', 'alttip', `'A' ba`, 'ustoran', 'oran', 'vergikod',
+						'(case when ustoran = 0 then 0 else round(matrah * 100 / ustoran,2) end) aramatrah',
+						'matrah', 'bedel', 'dvbedel'
+					]
+				}).distinctYap()
+			})
+		)
+		/*let eskiWhere, uniqueKeys = ['kaysayac'], hvListe = this.getDipEBilgi_hvListe(...arguments);
+		if (degistirmi) { eskiWhere = new MQWhereClause({ degerAta: sayac, saha: sayacSaha }) }
+		else { let param_fisSayac = new MQSQLConst(paramName_fisSayac); for (let hv of hvListe) { hv[sayacSaha] = param_fisSayac } }
+		let farkBilgi = await MQSQLOrtak.topluYazVeyaDegistirIcinYap({ trnId, toplu, uniqueKeys, table, hvListe, eskiWhere });
+		return farkBilgi*/
 	}
 	// Stok/Hizmet/Demirbaş için Vergi bilgileri ek belirlemeler
 	async detaylariYukleSonrasi(e) { e = e || {}; await super.detaylariYukleSonrasi(e); await this.class.kdvKod2RecGlobalOlustur(e) }
@@ -202,7 +234,10 @@ class TicariFis extends TSOrtakFis {
 		super.hostVarsDuzenle(...arguments); if (!hv.ticmust) { hv.ticmust = hv.must }
 		this.dipIslemci?.ticariFisHostVarsDuzenle(...arguments)
 	}
-	detayHostVarsDuzenle(e) { super.detayHostVarsDuzenle(e); const {det} = e; e.fis = this; if (det?.ticariHostVarsDuzenle) { det.ticariHostVarsDuzenle(e) } }
+	detayHostVarsDuzenle(e) {
+		super.detayHostVarsDuzenle(e); let {det} = e; e.fis = this;
+		if (det?.ticariHostVarsDuzenle) { det.ticariHostVarsDuzenle(e) }
+	}
 	detaySetValues(e) {
 		super.detaySetValues(e); let {det} = e;
 		e.fis = this; det?.ticariSetValues?.(e)
