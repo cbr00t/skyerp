@@ -434,7 +434,7 @@ class MQKontorDetay extends MQDetay {
 		super.loadServerData_queryDuzenle(...arguments);
 		let {tableAlias: alias} = this, {sahalar, where: wh} = sent, {orderBy} = stm;
 		sahalar.add(`${alias}.ahtipi`, `${alias}.fatdurum`);
-		orderBy.liste = ['tarih DESC', 'fisnox DESC']
+		orderBy.liste = ['ahtipi', 'tarih DESC', 'fisnox DESC']
 	}
 	static rootFormBuilderDuzenle_kontor({ rfb, fbd_form: form, inst }) {
 		let {fatDurum} = inst;
