@@ -12,6 +12,10 @@ class PortalApp extends TicariApp {
 		])
 	}
 	paramsDuzenle(e) { super.paramsDuzenle(e) /*; const {params} = e; $.extend(params, { x: MQParam_X.getInstance() })*/ }
+	async paramsDuzenleSonrasi(e) {
+		await super.paramsDuzenleSonrasi(e); let {params} = this, {ticariGenel} = params;
+		if (!ticariGenel.kullanim.eFatura) { ticariGenel.kullanim.eFatura = true; ticariGenel.kaydet() }
+	}
 	async afterRun(e) {
 		let {loginTipi, user: kod} = config.session;
 		let login = MQLogin.current = MQLogin.newFor({ loginTipi, kod });

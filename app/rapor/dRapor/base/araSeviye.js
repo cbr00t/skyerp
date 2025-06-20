@@ -385,15 +385,15 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		let getTarihWh = (kontrol, bs, zorunlumu) => {
 			let wh = new MQSubWhereClause();
 			if (getFuncValue.call(this, kontrol, bs)) { wh.basiSonu(bs, tarihClause) }
-			else if (zorunlumu) { wh.add('1 = 2') }
+			else { wh.add(`1 = ${zorunlumu ? '2' : '1'}`) }
 			return wh
 		}
 		let sumDuzenlenmis = _clause => sumFlag == null ? _clause : sumFlag ? _clause.asSumDeger() : _clause.sumOlmaksizin();
 		asilClause = sumDuzenlenmis(asilClause);    /* asilClause: miktar, maliyet, bedel, ... */
 		let tarihClauses = {
-			devir: getTarihWh(donemBS.basi, { sonu: donemBS.basi?.clone()?.addDays(-1) }, true),
-			cari: getTarihWh(donemBS.bosDegilmi, donemBS, false),
-			kalan: getTarihWh(donemBS.bosDegilmi, { sonu: donemBS.sonu }, false)
+			devir: getTarihWh(donemBS?.basi, { sonu: donemBS?.basi?.clone()?.addDays(-1) }, true),
+			cari: getTarihWh(donemBS?.bosDegilmi, donemBS, false),
+			kalan: getTarihWh(donemBS?.bosDegilmi, { sonu: donemBS?.sonu }, false)
 		};
 		let gcClauses = {
 			devir: sumDuzenlenmis(`(case when ${tarihClauses.devir} then ${clause.sumOlmaksizin()} else 0 end)`),

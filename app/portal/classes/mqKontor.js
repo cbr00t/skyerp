@@ -227,26 +227,46 @@ class MQKontor extends MQDetayliMaster {
 			pm.progressStep()
 		}
 		let withFatDBDo = block => app.setCurrentDBAndDo('YI25SKYLOGFAT', '(local)\\SKYLOG', e => block(e));
-		abortCheck(); let {vioSeri: orjSeri, vioHizmetKod: shKod} = this, hizRec = {};
+		abortCheck(); let orjSeri, {vioHizmetKod: shKod} = this, hizRec = {};
+		let vknSet = {}; for (let tip2Recs of Object.values(must2Tip2Recs)) {
+			for (let [fatDurum, recs] of Object.entries(tip2Recs)) {
+				let {vkn} = recs?.[0] ?? {};
+				if (vkn) { vknSet[vkn] = true }
+			}
+		}
+		let vknListe = Object.keys(vknSet), vkn2Must = {}, must2VKN = {}, efatVKNSet = {};
 		await withFatDBDo(async e => {
-			let sent = new MQSent(), {where: wh, sahalar} = sent;
-			sent.fromAdd('hizmst'); wh.degerAta(shKod, 'kod');
-			sahalar.add('brm', 'birimfiyat fiyat', 'gelkdvhesapkod kdvKod');
-			hizRec = await app.sqlExecTekil(sent)
+			{
+				let sent = new MQSent(), {where: wh, sahalar} = sent;
+				sent.fromAdd('carmst'); wh.inDizi(vknListe, 'vkno');
+				sahalar.add('must', 'efaturakullanirmi efatmi', 'vkno vkn');
+				for (let {vkn, must, efatmi} of await app.sqlExecSelect(sent)) {
+					vkn2Must[vkn] = must; must2VKN[must] = vkn;
+					if (asBool(efatmi)) { efatVKNSet[vkn] = true }
+				}
+			}
+			{
+				let sent = new MQSent(), {where: wh, sahalar} = sent;
+				sent.fromAdd('hizmst'); wh.degerAta(shKod, 'kod');
+				sahalar.add('brm', 'birimfiyat fiyat', 'gelkdvhesapkod kdvKod');
+				hizRec = await app.sqlExecTekil(sent)
+			}
 		});
 		let fisSinif = SatisFaturaFis, detaySinif = TSHizmetDetay;
 		let fisler = []; for (let [mustKod, tip2Recs] of Object.entries(must2Tip2Recs)) {
 			for (let [fatDurum, recs] of Object.entries(tip2Recs)) {
 				if (!recs?.length) { continue }
-				let {mustunvan: mustUnvan, bayikod: bayiKod} = recs[0]; if (fatDurum == 'X') { continue }
-				let tarih = today(), ozelIsaret = fatDurum == '' || fatDurum == 'M' ? '*' : '', islKod = `TF${ozelIsaret}`;
-				let seri = orjSeri; if (ozelIsaret == '*') { seri = `${seri.slice(0, 1)}X` }
-				let fis = new fisSinif({ ozelIsaret, islKod, tarih, seri, mustKod, baslikAciklama: `SkyPortal Kontör Satışı: [${mustKod}]` });
+				let {mustunvan: mustUnvan, bayikod: bayiKod, vkn} = recs[0]; if (fatDurum == 'X') { continue }
+				let eFatmi = efatVKNSet[vkn], tarih = today();
+				let ozelIsaret = fatDurum == '' || fatDurum == 'M' ? '*' : '', islKod = `TF${ozelIsaret}`;
+				let seriSelectorPostfix = ozelIsaret == '*' ? 'yildizli' : eFatmi ? 'eFat' : 'eArsiv';
+				let seri = this[`vioSeri_${seriSelectorPostfix}`], efAyrimTipi = eFatmi ? 'E' : 'A';
+				let fis = new fisSinif({ ozelIsaret, islKod, tarih, seri, mustKod, efAyrimTipi, baslikAciklama: `SkyPortal Kontör Satışı: [${mustKod}]` });
 				fis._kontorBilgi = { mustUnvan, bayiKod, fatDurum };
 				for (let rec of recs) {
 					abortCheck(); let {kaysayac: sayac /*tarih,*/} = rec;
-					let {fisnox: fisNox, kontorsayi: miktar, vkn} = rec;
-					let det = new detaySinif({ shKod, miktar, ...hizRec, ekAciklama: fisNox });
+					let {fisnox: fisNox, kontorsayi: miktar} = rec, ekAciklama = `Ref.No: ${fisNox}`;
+					let det = new detaySinif({ shKod, miktar, ...hizRec, ekAciklama });
 					det._kontorBilgi = { sayac, fisNox, vkn }; det.bedelHesapla();
 					fis.addDetay(det)
 				}
@@ -261,18 +281,12 @@ class MQKontor extends MQDetayliMaster {
 		abortCheck(); let toplu = new MQToplu();
 		try {
 			await withFatDBDo(async e => {
-				let vknListe = Object.keys(asSet(fisler.map(({ detaylar }) => detaylar[0]?._kontorBilgi.vkn)));
-				let sent = new MQSent(), {where: wh, sahalar} = sent;
-				sent.fromAdd('carmst'); wh.inDizi(vknListe, 'vkno'); sahalar.add('must', 'vkno vkn');
-				let vkn2Must = {}, must2VKN = {};
-				for (let {vkn, must} of await app.sqlExecSelect(sent)) {
-					vkn2Must[vkn] = must; must2VKN[must] = vkn }
 				let _toplu = new MQToplu(); for (let fis of fisler) {
 					let {mustKod: must, detaylar} = fis; if (!detaylar?.length) { continue }
 					let {vkn} = detaylar[0]._kontorBilgi; if (vkn2Must[vkn]) { continue }
 					let {mustUnvan} = fis._kontorBilgi, sahismi = vkn.length == 11;
 					let vnumara = sahismi ? '' : vkn, tckimlikno = sahismi ? vkn : '';
-					let unvan1 = `**SkyPortal Akt: ${mustUnvan}`;
+					let unvan1 = `**SkyPortal Akt: ${must}`;
 					_toplu.add(new MQInsert({ table: 'carmst', hv: { must, unvan1, sahismi: bool2FileStr(sahismi), vnumara, tckimlikno } }));
 					must2VKN[must] = vkn; vkn2Must[vkn] = must
 				}
@@ -544,7 +558,8 @@ class MQKontorGridci extends GridKontrolcu {
 class MQKontor_EBelge extends MQKontor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'BL' } static get detaySinif() { return MQKontorDetay_EBelge }
-	static get vioSeri() { return 'SEB' } static get vioHizmetKod() { return 'H034' }
+	/*static get vioSeri_eFat() { return 'KSE' } vioSeri_eArsiv() { return 'KSA' }
+	static get vioSeri_yildizli() { return 'KSX' }*/ static get vioHizmetKod() { return 'H034' }
 }
 class MQKontorDetay_EBelge extends MQKontorDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -553,7 +568,8 @@ class MQKontorDetay_EBelge extends MQKontorDetay {
 class MQKontor_Turmob extends MQKontor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'TR' } static get detaySinif() { return MQKontorDetay_Turmob }
-	static get vioSeri() { return 'VKN' } static get vioHizmetKod() { return 'H035' }
+	static get vioSeri_eFat() { return 'KSE' } vioSeri_eArsiv() { return 'KSA' }
+	static get vioSeri_yildizli() { return 'KSX' } static get vioHizmetKod() { return 'H035' }
 	static get faturalastirmaYapilirmi() { return true }
 	static async importRecords({ islemAdi, tarih }) {
 		await super.importRecords(...arguments);

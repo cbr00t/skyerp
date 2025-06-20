@@ -204,7 +204,8 @@ class MQLogin_Musteri extends MQLogin {
 			refListeyeAlinmazmi: new PInstBitTrue('breferanslisteyealma'), ilKod: new PInstStr('ilkod'),
 			yore: new PInstStr('yore'), eMail: new PInstStr('email'), firmaTelefon: new PInstStr('firmatelefon'),
 			vkn: new PInstStr('vkn'), vDaire: new PInstStr('vdaire'),  yaptigiIs: new PInstStr('yaptigiis'),
-			yetkiliKisi: new PInstStr('yetkilikisi'), yetkiliTelefon: new PInstStr('yetkilitelefon')
+			yetkiliKisi: new PInstStr('yetkilikisi'), yetkiliTelefon: new PInstStr('yetkilitelefon'),
+			adres1: new PInstStr('adres1'), adres2: new PInstStr('adres2')
 		})
 	}
 	static secimlerDuzenle({ secimler: sec }) {
@@ -238,6 +239,9 @@ class MQLogin_Musteri extends MQLogin {
 			form.addTextInput('yetkiliKisi', 'Yetkili Kişi').setMaxLength(50).addStyle_wh(300);
 			form.addTextInput('yetkiliTelefon', 'Yetkili Telefon').setMaxLength(13).addStyle_wh(200);
 			form.addTextInput('yaptigiIs', 'Yaptığı İş').setMaxLength(100).addStyle_wh(450)
+		form = tabPage.addFormWithParent().yanYana();
+			form.addTextInput('adres1', 'Adres 1').addStyle_wh(800);
+			form.addTextInput('adres2', 'Adres 2').addStyle_wh(800)
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments);
@@ -257,7 +261,9 @@ class MQLogin_Musteri extends MQLogin {
 			new GridKolon({ belirtec: 'yaptigiis', text: 'Yaptığı İş', genislikCh: 80 }),
 			new GridKolon({ belirtec: 'breferanslisteyealma', text: 'Ref.AlınMAz', genislikCh: 13 }).tipBool(),
 			new GridKolon({ belirtec: 'tip', text: 'Tip', genislikCh: 8 }),
-			new GridKolon({ belirtec: 'ekbilgi', text: 'Ek Bilgi', genislikCh: 100 })
+			new GridKolon({ belirtec: 'adres1', text: 'Adres 1', genislikCh: 70 }),
+			new GridKolon({ belirtec: 'adres2', text: 'Adres 2', genislikCh: 70 }),
+			new GridKolon({ belirtec: 'ekbilgi', text: 'Ek Bilgi', genislikCh: 150 })
 		)
 	}
 	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent, basit }) {

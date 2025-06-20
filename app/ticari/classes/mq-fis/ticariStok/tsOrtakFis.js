@@ -171,8 +171,8 @@ class TSOrtakFis extends MQTicariGenelFis {
 	async degistirSonrasiIslemler(e) { await super.degistirSonrasiIslemler(e) }
 	async detaylariYukleSonrasi(e) {
 		e = e || {}; await super.detaylariYukleSonrasi(e);
-		let {detaylar} = this; this._orjDetaylar = [...detaylar];
-		let aktifUstDetay, _detaylar = [];
+		let {detaylar} = this, aktifUstDetay, _detaylar = [];
+		this._orjDetaylar = [...detaylar];
 		for (const det of detaylar) {
 			if (det.aciklamami) { if (aktifUstDetay) { if (aktifUstDetay.altAciklama) { aktifUstDetay.altAciklama += CrLf } aktifUstDetay.altAciklama += det.aciklama } }
 			else { aktifUstDetay = det; _detaylar.push(det) }
@@ -180,13 +180,13 @@ class TSOrtakFis extends MQTicariGenelFis {
 		detaylar = this.detaylar = _detaylar
 	}
 	uiKaydetOncesiIslemler(e) {
-		super.uiKaydetOncesiIslemler(e); let degistimi = false, {fis} = e; const _detaylar = [], {detaylar} = fis;
-		for (const det of detaylar) {
-			if (det.ekBilgimi) continue
-			const altAciklama = (det.altAciklama || '').trimEnd(); det.altAciklama = null; _detaylar.push(det);
+		super.uiKaydetOncesiIslemler(e); let degistimi = false, {fis} = e, _detaylar = [], {detaylar} = fis;
+		for (let det of detaylar) {
+			if (det.ekBilgimi) { continue }
+			let altAciklama = (det.altAciklama || '').trimEnd(); det.altAciklama = null; _detaylar.push(det);
 			if (altAciklama) {
-				const partsArray = uygunKelimeliParcala(altAciklama, 70);
-				for (const parts of partsArray) { for (const aciklama of parts) { _detaylar.push(new TSAciklamaDetay({ aciklama })) } }
+				let partsArray = uygunKelimeliParcala(altAciklama, 70);
+				for (let parts of partsArray) { for (const aciklama of parts) { _detaylar.push(new TSAciklamaDetay({ aciklama })) } }
 				degistimi = true
 			}
 		}
@@ -195,13 +195,15 @@ class TSOrtakFis extends MQTicariGenelFis {
 	async satisKosulYapiOlustur(e) { return this }
 	uiSatirBedelHesaplaSonrasi(e) { }
 	async cariDegisti(e) {
-		e = e || {}; const rec = e.item || e.rec || {}, eFatmi = asBoolQ(rec.efaturakullanirmi);
+		e = e || {}; let rec = e.item ?? e.rec ?? {}, eFatmi = asBoolQ(rec.efaturakullanirmi);
 		if (eFatmi != null) {
-			const efAyrimTipi = (this.class.faturami ? (eFatmi ? EIslFatura.tip : null) : null); this.efAyrimTipi.char = efAyrimTipi || 'A'
-			const builder = e.builder || {}, {layout, builder_efatGosterim} = builder.rootPart || {};
+			let {faturami} = this.class;
+			let efAyrimTipi = (faturami ? (eFatmi ? EIslFatura.tip : null) : null);
+			this.efAyrimTipi.char = efAyrimTipi || 'A';
+			let builder = e.builder || {}, {layout, builder_efatGosterim} = builder.rootPart || {};
 			// const input = layout.find(`.formBuilder-element.parent[data-builder-id="efatGosterim"] > div`);
 			if (layout?.length) layout.attr('data-efAyrimTipi', efAyrimTipi || '');
-			if (builder_efatGosterim) { const cls = EIslemOrtak.getClass(efAyrimTipi); builder_efatGosterim.layout.html(cls ? cls.sinifAdi : '') }
+			if (builder_efatGosterim) { let cls = EIslemOrtak.getClass(efAyrimTipi); builder_efatGosterim.layout.html(cls ? cls.sinifAdi : '') }
 		}
 		await this.satisKosulYapiOlustur(e)
 	}

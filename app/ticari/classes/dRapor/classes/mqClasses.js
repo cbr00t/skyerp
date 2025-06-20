@@ -110,7 +110,7 @@ class DMQSubeGrup extends DMQKA {
 }
 class DMQSube extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Şube' }
-	static get table() { return 'isyeri' } static get tableAlias() { return 'sub' }
+	static get table() { return 'isyeri' } static get tableAlias() { return 'sub' } static get bosKodAlinirmi() { return false }
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments);
 		liste.push(
@@ -118,7 +118,15 @@ class DMQSube extends DMQKA {
 			new GridKolon({ belirtec: 'isygrupadi', text: 'Şube Grup Adı', genislikCh: 20, sql: 'igrp.aciklama' })
 		)
 	}
-	static loadServerData_queryDuzenle({ sent }) { super.loadServerData_queryDuzenle(...arguments); sent.sube2GrupBagla() }
+	static loadServerData_queryDuzenle({ sent }) {
+		super.loadServerData_queryDuzenle(...arguments);
+		sent.sube2GrupBagla()
+	}
+	static async loadServerDataDogrudan(e) {
+		let recs = await super.loadServerDataDogrudan(e); if (recs == null) { return recs }
+		recs.unshift({ kod: ' ', aciklama: '-Merkez Şube-' });
+		return recs
+	}
 }
 class DMQTakipGrup extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Takip Grup' }
