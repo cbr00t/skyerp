@@ -26,7 +26,7 @@ class KontorFatDurum extends TekSecim {
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments);
 		kaListe.push(...[
-			new CKodVeAdi(['', '<span class=lightgray>Açıktan</span>', 'aciktanmi']),
+			new CKodVeAdi([' ', '<span class=lightgray>Açıktan</span>', 'aciktanmi']),
 			new CKodVeAdi(['M', '<span class=lightgray>Açıktan (<i class=bold><span class=royalblue>MD</span></i>)</span>', 'aciktanmi_md']),
 			new CKodVeAdi(['B', '<span class=orangered>Fatura Edilecek</span>', 'faturaEdilecekmi']),
 			new CKodVeAdi(['X', '<span class=green>Fatura Edildi</span>', 'faturaEdildimi'])
@@ -55,11 +55,11 @@ class VIOSurum extends TekSecim {
 }
 class AktHesapSekli extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultChar() { return '' }
+	static get defaultChar() { return ' ' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments);
 		kaListe.push(...[
-			new CKodVeAdi(['', '', 'normalmi'])
+			new CKodVeAdi([' ', '', 'normalmi'])
 			/* ... ?? daha belli değil */
 		])
 	}

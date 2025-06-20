@@ -419,7 +419,7 @@ class MQCogul extends MQYapi {
 			}
 		}
 		const keyHV = this.varsayilanKeyHostVars(e); if (keyHV) { sent.where.birlestirDict({ alias, dict: keyHV }) }
-		const {secimler: sec} = e; if (sec) { sent.where.birlestir(sec.getTBWhereClause(e)) }
+		const {secimler: sec} = e; if (sec) { sent.where.birlestir(sec.getTBWhereClause({ ...e, sent })) }
 		if ($.isEmptyObject(sent.sahalar.liste)) { sent.sahalar.add(`${aliasVeNokta}*`) }
 		/* sent.groupByOlustur(); */ let stm = new MQStm({ sent });
 		$.extend(e, { table: this.table, alias, aliasVeNokta, stm, sent }); { this.loadServerData_queryDuzenle(e) } stm = e.query || e.stm;

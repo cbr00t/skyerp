@@ -18,8 +18,24 @@ class MQKontor extends MQDetayliMaster {
 		})
 	}
 	static secimlerDuzenle({ secimler: sec }) {
-		super.secimlerDuzenle(...arguments); let {tableAlias: alias} = this;
-		sec.addKA('must', MQLogin_Musteri, `${alias}.mustkod`, 'mus.aciklama')
+		let {tableAlias: alias} = this;
+		sec.grupTopluEkle([ { kod: 'genel', etiket: 'Genel', kapali: false } ]);
+		sec
+			.secimTopluEkle({
+				fatDurumSecim: new SecimBirKismi({ etiket: 'Fat. Durum', tekSecim: new KontorFatDurum().secimYok() }).birKismi().autoBind()
+			})
+			.addKA('must', MQLogin_Musteri, `${alias}.mustkod`, 'mus.aciklama')
+			.addKA('bayi', MQLogin_Bayi, 'mus.bayikod', 'bay.aciklama')
+			.addKA('il', MQVPIl, 'mus.ilkod', 'il.aciklama')
+		sec.whereBlockEkle(({ secimler: sec, sent, where: wh }) => {
+			let {fatDurumSecim} = sec;
+			if (sent && !$.isEmptyObject(fatDurumSecim.value)) {
+				let {from} = sent, {detayTable} = this;
+				if (!from.aliasIcinTable('har')) { sent.fromIliski(`${detayTable} har`, `har.fissayac = ${alias}.kaysayac`) }
+				wh.degerAta('A', 'har.ahtipi').add('har.kontorsayi > 0');
+				wh.birKismi(fatDurumSecim, 'har.fatdurum')
+			}
+		})
 	}
 	static listeEkrani_init({ gridPart, sender }) {
 		super.listeEkrani_init(...arguments); gridPart = gridPart ?? sender
@@ -267,6 +283,7 @@ class MQKontor extends MQDetayliMaster {
 					abortCheck(); let {kaysayac: sayac /*tarih,*/} = rec;
 					let {fisnox: fisNox, kontorsayi: miktar} = rec, ekAciklama = `Ref.No: ${fisNox}`;
 					let det = new detaySinif({ shKod, miktar, ...hizRec, ekAciklama });
+					if (fis.ozelIsaret == '*') { det.kdvKod = '' }
 					det._kontorBilgi = { sayac, fisNox, vkn }; det.bedelHesapla();
 					fis.addDetay(det)
 				}
