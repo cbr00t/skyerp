@@ -83,15 +83,19 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 				kosulResult = shKod ? Object.values(await SatisKosul_Fiyat.getAltKosulYapilar([shKod], FY, mustKod))?.[0] : null;
 				let {fiyat} = kosulResult ?? {}; if (fiyat) { $.extend(det, { fiyat, ozelFiyatVarmi: true }) }
 			}
-			let {vergiBelirtecler, vergiBelirtec_kdv} = TicariFis; for (let key of vergiBelirtecler) {
-				let kdvmi = key == vergiBelirtec_kdv, colAttr = `${key}Kod`, value = rec[colAttr] || '', duzValue = isaretlimi ? '' : value;
-				det[`orj${colAttr}`] = value;
-				if (kdvmi) { det._kdvDegiskenmi = asBool(rec.kdvDegiskenmi); setCellValue({ belirtec: colAttr, value: duzValue }) }
-				else { det[colAttr] = duzValue }
-				if (!kdvmi) {
-					colAttr = `${key}Belirtec`; value = rec[colAttr] || ''; det[`orj${colAttr}`] = value; duzValue = isaretlimi ? '' : value;
-					if (kdvmi) { det[colAttr] = duzValue } else { setCellValue({ belirtec: colAttr, value: duzValue }) }
+			let {vergiBelirtecler, vergiBelirtec_kdv} = TicariFis;
+			for (let key of vergiBelirtecler) {
+				let kod2VergiBilgi = await MQVergi.getKod2VergiBilgi({ belirtec: key })
+				let kdvmi = key == vergiBelirtec_kdv, colAttr = `${key}Kod`, value = rec[colAttr] || '';
+				let duzValue = isaretlimi ? '' : value; det[`orj${colAttr}`] = value;
+				det[colAttr] = duzValue;
+				det[`${key}Orani`] = kod2VergiBilgi[det[`${key}Kod`]]?.oran;
+				if (kdvmi) { det._kdvDegiskenmi = asBool(rec.kdvDegiskenmi) }
+				else {
+					colAttr = `${key}Belirtec`; value = rec[colAttr] || '';
+					det[`orj${colAttr}`] = value
 				}
+				setCellValue({ belirtec: colAttr, value: duzValue })
 				mfSinif.ticariGrid_shKolon_degisinceEk?.({ ...e, rec });
 				delete e.rec; /* e.rec => Promise (async) */
 				e.detay = det; this.satirBedelHesapla(e)

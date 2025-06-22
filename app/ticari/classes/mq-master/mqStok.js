@@ -65,7 +65,6 @@ class MQStokGenel extends MQStokAlt {
 		for (let i = 1; i <= fiyatSayi; i++) { pTanim[`satFiyat${i}`] = new PInstNum(`satfiyat${i}`); pTanim[`dvFiyat${i}`] = new PInstNum(`dvfiyat${i}`) }
 	}
 	static ekCSSDuzenle({ rec, result }) {
-		super.ekCSSDuzenle(...arguments);
 		if (!asBool(rec.calismadurumu)) { result.push('bg-lightgray', 'iptal') }
 		else if (asBool(rec.satilamazfl)) { result.push('bg-lightred') }
 	}

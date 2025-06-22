@@ -561,6 +561,7 @@ class MQCogul extends MQYapi {
 	async yeniTanimOncesiIslemler(e) { await super.yeniTanimOncesiIslemler(e); await this.forAltYapiKeysDoAsync('yeniTanimOncesiIslemler', e) }
 	async yukleSonrasiIslemler(e) { await super.yukleSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('yukleSonrasiIslemler', e) }
 	async yeniTanimOncesiVeyaYukleSonrasiIslemler(e) { await super.yeniTanimOncesiVeyaYukleSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('yeniTanimOncesiVeyaYukleSonrasiIslemler', e) }
+	async uiGirisOncesiIslemler(e) { await this.forAltYapiKeysDoAsync('uiGirisOncesiIslemler', e) }
 	async uiKaydetOncesiIslemler(e) {
 		await this.forAltYapiKeysDoAsync('uiKaydetOncesiIslemler', e);
 		let result = await this.dataDuzgunmu(e);

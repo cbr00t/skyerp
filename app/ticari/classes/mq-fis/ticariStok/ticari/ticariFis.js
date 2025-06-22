@@ -157,6 +157,10 @@ class TicariFis extends TSOrtakFis {
 		sent.sahalar.add(`${aliasVeNokta}piftipi`, `${aliasVeNokta}almsat`, `${aliasVeNokta}iade`, `${aliasVeNokta}ayrimtipi`, `${aliasVeNokta}fisekayrim`)
 	}
 	tekilOku_detaylar_queryDuzenle(e) { super.tekilOku_detaylar_queryDuzenle(e); e.detaySinif.tekilOku_detaylar_queryDuzenle_ticari(e) }
+	async uiGirisOncesiIslemler(e) {
+		await super.uiGirisOncesiIslemler(e);
+		await MQVergiKdv.getKod2VergiBilgi()    /* cache = MQVergi.globals.belirtec2Globals.kdv.kod2VergiBilgi */
+	}
 	async kaydetOncesiIslemler(e) { await super.kaydetOncesiIslemler(e); await this.fisBakiyeDurumuGerekirseAyarla(e) }
 	async disKaydetOncesiIslemler(e) {
 		let {tarih, subeKod, mustKod, detaylar} = this, kapsam = { tarih, subeKod, mustKod };
@@ -195,31 +199,46 @@ class TicariFis extends TSOrtakFis {
 		return farkBilgi
 	}
 	async dipEBilgi2DipAktarKomutlariniOlustur(e) {
-		let degistirmi = e.degistir ?? e.degistirmi; if (degistirmi) { return }
-		let {trnId, toplu, paramName_fisSayac} = e, {sayac} = this;
-		let {table: fisTable} = this.class, dipTable = fisTable == 'sipfis' ? 'sipdipvergi' : 'pifdipvergi';
+		let degistirmi = e.degistir ?? e.degistirmi, {trnId, toplu, paramName_fisSayac} = e, {sayac} = this;
+		let {table: fisTable} = this.class, dsPrefix = fisTable == 'sipfis' ? 'sip' : 'pif';
+		let dipVergiTable = `${dsPrefix}dipvergi`, dipHizmetTable = `${dsPrefix}diphizmet`;
+		/* (xdipvergi, dipebilgi) için sahalar ortaktır */
+		let ortakSahalar = ['anatip', 'alttip', 'ba', 'bedel', 'dvbedel'];
+		/* (xdipvergi, dipebilgi) için sahalar Vergi için ortaktır */
+		let vergiSahalar = [...ortakSahalar, 'ustoran', 'oran', 'vergikod', 'matrah'];
+		/* (xdipvergi, dipebilgi) için sahalar Hizmet için ortaktır */
+		let hizmetSahalar = [...ortakSahalar, 'hizmetkod'];
+		if (degistirmi) {
+			let uniqueOrtakKeys = ['fissayac', 'anatip', 'alttip', 'ba'];
+			let ekle = async (dipTable, dipSahalar, hvTip, ekUniqueKeys) => {
+				let sent = new MQSent({
+					from: 'dipebilgi', sahalar: dipSahalar,
+					where: [{ degerAta: sayac, saha: `${dsPrefix}sayac` }, { degerAta: hvTip, saha: 'hvtip' }]
+				});
+				let hvListe = []; for (let rec of await app.sqlExecSelect(sent)) { hvListe.push(rec) }
+				let uniqueKeys = [...uniqueOrtakKeys, ...ekUniqueKeys];
+				let eskiWhere = new MQWhereClause({ degerAta: sayac, saha: 'fissayac' });
+				await MQSQLOrtak.topluYazVeyaDegistirIcinYap({ trnId, toplu, uniqueKeys, table: dipTable, hvListe, eskiWhere })
+			}
+			await Promise.all([
+				ekle(dipVergiTable, vergiSahalar, 'V', ['vergikod', 'ustoran']),
+				ekle(dipHizmetTable, hizmetSahalar, 'H', ['hizmetkod'])
+			]);
+			return
+		}
 		toplu.add(
 			new MQSelect2Insert({
-				table: `${dipTable} (fissayac, anatip, alttip, ba, ustoran, oran, vergikod, aramatrah, matrah, bedel, dvbedel)`,
+				table: `${dipVergiTable} (fissayac, ${vergiSahalar.join(', ')})`,
 				sent: new MQSent({
 					from: 'dipebilgi', where: [
 						{ degerAta: paramName_fisSayac.sqlConst(), saha: 'pifsayac' },
 						{ degerAta: 'V', saha: 'hvtip' },
 						{ degerAta: 'KD', saha: 'anatip' }
 					],
-					sahalar: [
-						paramName_fisSayac, 'anatip', 'alttip', `'A' ba`, 'ustoran', 'oran', 'vergikod',
-						'(case when ustoran = 0 then 0 else round(matrah * 100 / ustoran,2) end) aramatrah',
-						'matrah', 'bedel', 'dvbedel'
-					]
+					sahalar: [paramName_fisSayac, ...vergiSahalar]
 				}).distinctYap()
 			})
 		)
-		/*let eskiWhere, uniqueKeys = ['kaysayac'], hvListe = this.getDipEBilgi_hvListe(...arguments);
-		if (degistirmi) { eskiWhere = new MQWhereClause({ degerAta: sayac, saha: sayacSaha }) }
-		else { let param_fisSayac = new MQSQLConst(paramName_fisSayac); for (let hv of hvListe) { hv[sayacSaha] = param_fisSayac } }
-		let farkBilgi = await MQSQLOrtak.topluYazVeyaDegistirIcinYap({ trnId, toplu, uniqueKeys, table, hvListe, eskiWhere });
-		return farkBilgi*/
 	}
 	// Stok/Hizmet/Demirbaş için Vergi bilgileri ek belirlemeler
 	async detaylariYukleSonrasi(e) { e = e || {}; await super.detaylariYukleSonrasi(e); await this.class.kdvKod2RecGlobalOlustur(e) }
@@ -246,23 +265,27 @@ class TicariFis extends TSOrtakFis {
 		let {table} = this.class, {sayac, dipIslemci} = this, {belirtec2DipSatir} = dipIslemci ?? {};
 		if (!belirtec2DipSatir) { return [] }
 		let psAttr = (table == 'sipfis' ? 'sipsayac' : 'pifsayac'), hvListe = [];
-		let seq = 0, vergiDahilIcinEklenecek = new TLVeDVBedel(), odenecekIcinDusulecek = new TLVeDVBedel(), dipSatir_sonuc;
-		for (const dipSatir of Object.values(belirtec2DipSatir)) {
+		let seq = 0, vergiDahilIcinEklenecek = new TLVeDVBedel();
+		let odenecekIcinDusulecek = new TLVeDVBedel(), dipSatir_sonuc;
+		let fis = e.fis = this, {alimmi, iademi} = fis.class;
+		let fisBA = e.fisBA = alimmi == iademi ? 'A' : 'B';
+		for (let dipSatir of Object.values(belirtec2DipSatir)) {
 			if (dipSatir.sonucmu) { dipSatir_sonuc = dipSatir; continue }
-			const fis = this, hv = dipSatir.eDipHostVars(e); if (!(hv?.bedel || hv?.dvbedel)) { continue }
-			if (dipSatir.vergiDahileEklenirmi({ fis })) { vergiDahilIcinEklenecek.ekle(dipSatir) }
-			if (dipSatir.odenecektenDusulurmu({ fis })) { odenecekIcinDusulecek.cikar(dipSatir) }
+			let hv = dipSatir.eDipHostVars(e); if (!(hv?.bedel || hv?.dvbedel)) { continue }
+			if (dipSatir.vergiDahileEklenirmi(e)) { vergiDahilIcinEklenecek.ekle(dipSatir) }
+			if (dipSatir.odenecektenDusulurmu(e)) { odenecekIcinDusulecek.cikar(dipSatir) }
 			hv[psAttr] = sayac; hv.seq = ++seq; hvListe.push(hv)
 		}
 		if (dipSatir_sonuc) {
-			const sonucBedelYapi = dipSatir_sonuc.bedelYapi, hv_vergiDahil = dipSatir_sonuc.eDipBosHostVars, hv_odenecek = dipSatir_sonuc.eDipBosHostVars;
+			let {bedelYapi: sonucBedelYapi} = dipSatir_sonuc, {eDipBosHostVars: hv_vergiDahil} = dipSatir_sonuc, {eDipBosHostVars: hv_odenecek} = dipSatir_sonuc;
 			$.extend(hv_vergiDahil, {
 				anatip: 'DP', alttip: 'VD', xadi: 'Vergi Dahil Bedel',
 				bedel: roundToBedelFra(sonucBedelYapi.tl + vergiDahilIcinEklenecek.tl), dvbedel: roundToBedelFra(sonucBedelYapi.dv + vergiDahilIcinEklenecek.dv) })
 			$.extend(hv_odenecek, {
 				anatip: 'DP', alttip: 'OD', xadi: 'Ödenecek Bedel',
 				bedel: roundToBedelFra(sonucBedelYapi.tl - odenecekIcinDusulecek.tl), dvbedel: roundToBedelFra(sonucBedelYapi.dv - odenecekIcinDusulecek.dv) })
-			for (const hv of [hv_vergiDahil, hv_odenecek]) { hv[psAttr] = sayac; hv.seq = ++seq; hvListe.push(hv) }
+			for (let hv of [hv_vergiDahil, hv_odenecek]) {
+				hv[psAttr] = sayac; hv.seq = ++seq; hvListe.push(hv) }
 		}
 		return hvListe
 	}
@@ -344,7 +367,7 @@ class SiparisFis extends TicariFis {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get siparismi() { return true }
 	static get sinifAdi() { return `${super.sinifAdi}Siparis` } static get table() { return 'sipfis' }
 	static get baslikOzelAciklamaTablo() { return 'sipbasekaciklama' } static get dipSerbestAciklamaTablo() { return 'sipdipaciklama' } static get dipEkBilgiTablo() { return 'sipdipekbilgi' }
-	static get pifTipi() { return 'S' } static get ozelTip() { return '' }
+	static get pifTipi() { return 'S' } static get iade() { return '' } static get ozelTip() { return '' }
 	constructor(e) {
 		e = e || {}; super(e); this.noYil = 0;
 		this.baslikTeslimTarihi = e.teslimTarihi || this.baslikTeslimTarihi;

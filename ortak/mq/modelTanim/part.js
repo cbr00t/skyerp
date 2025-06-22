@@ -47,8 +47,8 @@ class ModelTanimPart extends Part {
 		this.title = this.title || `${mfSinif?.sinifAdi || 'Model'} Tanım`;
 		const {islem} = this; if (islem) { const islemText = islem[0].toUpperCase() + islem.slice(1); this.title += ` &nbsp;[<span class="window-title-ek">${islemText}</span>]` }
 	}
-	async init(e) { await super.init(e); this.initDevam(e); await this.initFormBuilder(e); if (this.builder) { this.initDevam(e) } }
-	initDevam(e) {
+	async init(e) { await super.init(e); this.initDevam(e); await this.initFormBuilder(e); if (this.builder) { await this.initDevam(e) } }
+	async initDevam(e) {
 		const mfSinif = this.mfSinif ?? this?.inst?.class, {rootPartName, partName} = this.class, {layout, hasTabPages, formLayoutSelector} = this;
 		if (mfSinif) { layout.addClass(mfSinif.dataKey || mfSinif.classKey) }
 		layout.addClass(`${partName} ${rootPartName}`); this.header = layout.find('.header'); let form = this.form = this.formParent = layout.find('.form');
@@ -58,6 +58,7 @@ class ModelTanimPart extends Part {
 		}
 		form.addClass(`${partName} form-layout`);
 		if (hasTabPages) { layout.addClass('with-tabs'); this.tabPanel = form.find('#tabPanel') }
+		await this.inst?.uiGirisOncesiIslemler(e)
 	}
 	runDevam(e) {
 		e = e || {}; super.runDevam(e);
@@ -74,7 +75,7 @@ class ModelTanimPart extends Part {
 	}
 	async initFormBuilder(e) {
 		try {
-			let {builder} = this; const {inst} = this; if (!builder && inst) { const _e = { sender: this }; builder = (await inst.getRootFormBuilder(_e)) ?? (await inst.getFormBuilders(_e)) } if ($.isEmptyObject(builder)) { return }
+			let {builder} = this; let {inst} = this; if (!builder && inst) { const _e = { sender: this }; builder = (await inst.getRootFormBuilder(_e)) ?? (await inst.getFormBuilders(_e)) } if ($.isEmptyObject(builder)) { return }
 			const {layout} = this, subBuilders = builder.isFormBuilder ? [builder] : builder, id2Builder = this.id2Builder = {};
 			for (const key in subBuilders) {
 				const builder = subBuilders[key]; if (!builder) { continue }
