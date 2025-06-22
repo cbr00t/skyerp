@@ -203,7 +203,7 @@ class MQLogin_Musteri extends MQLogin {
 			tanitim: new PInstStr('tanitim'), bayiKod: new PInstStr('bayikod'), tip: new PInstStr('tip'),
 			refListeyeAlinmazmi: new PInstBitTrue('breferanslisteyealma'), ilKod: new PInstStr('ilkod'),
 			yore: new PInstStr('yore'), eMail: new PInstStr('email'), firmaTelefon: new PInstStr('firmatelefon'),
-			vkn: new PInstStr('vkn'), vDaire: new PInstStr('vdaire'),  yaptigiIs: new PInstStr('yaptigiis'),
+			vkn: new PInstStr('vkn'), vergiDaire: new PInstStr('vdaire'), yaptigiIs: new PInstStr('yaptigiis'),
 			yetkiliKisi: new PInstStr('yetkilikisi'), yetkiliTelefon: new PInstStr('yetkilitelefon'),
 			adres1: new PInstStr('adres1'), adres2: new PInstStr('adres2')
 		})
@@ -233,7 +233,7 @@ class MQLogin_Musteri extends MQLogin {
 			form.addTextInput('yore', 'Yöre').setMaxLength(25).addStyle_wh(250);
 			form.addTextInput('eMail', 'e-Mail').setMaxLength(50).addStyle_wh(500);
 			form.addTextInput('vkn', 'VKN').setMaxLength(11).addStyle_wh(150).addCSS('center');
-			form.addTextInput('vDaire', 'V.Daire').setMaxLength(25).addStyle_wh(300)
+			form.addTextInput('vergiDaire', 'V.Daire').setMaxLength(25).addStyle_wh(300)
 		form = tabPage.addFormWithParent().yanYana();
 			form.addTextInput('firmaTelefon', 'Firma Telefon').setMaxLength(13).addStyle_wh(200);
 			form.addTextInput('yetkiliKisi', 'Yetkili Kişi').setMaxLength(50).addStyle_wh(300);
@@ -274,6 +274,18 @@ class MQLogin_Musteri extends MQLogin {
 			let clauses = { bayi: `${alias}.bayikod`, musteri: `${alias}.kod` };
 			MQLogin.current.yetkiClauseDuzenle({ sent, clauses })
 		}
+	}
+	async dataDuzgunmu(e) {
+		let result = await super.dataDuzgunmu(e);
+		if (result && result != true) { return result }
+		let errors = [], vknLen = this.vkn?.length ?? 0;
+		if (!this.kod) { errors.push(`<b>Kod</b> boş olamaz`) }
+		if (this.aciklama?.length <= 4) { errors.push(`<b>Ünvan</b> değeri geçersizdir`) }
+		if (!/^[A-F0-9]{4}(-[A-F0-9]{4}){7}$/.test(this.tanitim)) { errors.push(`<b>Tanıtım</b> değeri geçersizdir`) }
+		if (this.vergiDaire?.length <= 3) { errors.push(`<b>Vergi Dairesi</b> değeri geçersizdir`) }
+		if (!VergiVeyaTCKimlik.uygunmu(this.vkn)) { errors.push(`<b>VKN</b> değeri geçersizdir`) }
+		
+		return errors.length ? `<ul>${errors.map(x => `<li>${x}</li>`).join(CrLf)}</ul>` : null
 	}
 	_yetkiVarmi({ islem }) {
 		switch (islem) { case 'tanimla': case 'yeni': case 'degistir': case 'sil': case 'kopya': return false }

@@ -562,9 +562,14 @@ class MQCogul extends MQYapi {
 	async yukleSonrasiIslemler(e) { await super.yukleSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('yukleSonrasiIslemler', e) }
 	async yeniTanimOncesiVeyaYukleSonrasiIslemler(e) { await super.yeniTanimOncesiVeyaYukleSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('yeniTanimOncesiVeyaYukleSonrasiIslemler', e) }
 	async uiKaydetOncesiIslemler(e) {
-		await this.forAltYapiKeysDoAsync('uiKaydetOncesiIslemler', e)
+		await this.forAltYapiKeysDoAsync('uiKaydetOncesiIslemler', e);
 		let result = await this.dataDuzgunmu(e);
-		if (!(result == null || result == true)) { if (typeof result != 'object') result = { isError: false, rc: 'hataliBilgiGirisi', errorText: (typeof result == 'boolean' ? null : result?.toString()) }; throw result }
+		if (!(result == null || result == true)) {
+			if (typeof result != 'object') {
+				result = { isError: false, rc: 'hataliBilgiGirisi', errorText: (typeof result == 'boolean' ? null : result?.toString()) };
+				throw result
+			}
+		}
 	}
 	async dataDuzgunmu(e) {
 		let results = (await this.forAltYapiKeysDoAsync('dataDuzgunmu', e))?.filter(x => !!x);
