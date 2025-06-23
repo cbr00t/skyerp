@@ -215,7 +215,10 @@ class TicariFis extends TSOrtakFis {
 					from: 'dipebilgi', sahalar: dipSahalar,
 					where: [{ degerAta: sayac, saha: `${dsPrefix}sayac` }, { degerAta: hvTip, saha: 'hvtip' }]
 				});
-				let hvListe = []; for (let rec of await app.sqlExecSelect(sent)) { hvListe.push(rec) }
+				let hvListe = []; for (let rec of await app.sqlExecSelect(sent)) {
+					rec.fissayac = sayac;
+					hvListe.push(rec)
+				}
 				let uniqueKeys = [...uniqueOrtakKeys, ...ekUniqueKeys];
 				let eskiWhere = new MQWhereClause({ degerAta: sayac, saha: 'fissayac' });
 				await MQSQLOrtak.topluYazVeyaDegistirIcinYap({ trnId, toplu, uniqueKeys, table: dipTable, hvListe, eskiWhere })

@@ -28,7 +28,7 @@ class FisDipPart extends GridliGirisPart {
 		let {wndPart} = this; if (!wndPart || wndPart.isDestroyed) { return null }
 		wndPart.close(e); return wndPart
 	}
-	gridArgsDuzenleDevam(e) { super.gridArgsDuzenleDevam(e); $.extend(e.args, { width: '100%', height: '100%', autoRowHeight: false, columnsHeight: 18, rowsHeight: 30 }) }
+	gridArgsDuzenleDevam(e) { super.gridArgsDuzenleDevam(e); $.extend(e.args, { width: '100%', height: '100%', autoRowHeight: false, columnsHeight: 18, rowsHeight: 26 }) }
 	get defaultTabloKolonlari() {
 		let liste = [
 			new GridKolon({ belirtec: 'etiket', text: ' ', minWidth: 150, maxWidth: 300, cellClassName: (sender, rowIndex, belirtec, value, rec) => `${belirtec} readOnly` }).readOnly() ];
