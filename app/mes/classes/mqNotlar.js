@@ -7,19 +7,19 @@ class MQEkNotGrup extends MQKAOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ek Not Grup' } static get table() { return 'meseknotgrup' }
 	static get tableAlias() { return 'grp' } static get kodListeTipi() { return 'MESNOTGRUP' }
 	static get tanimUISinif() { return ModelTanimPart } static get secimSinif() { return MQCogul.secimSinif } static get tanimlanabilirmi() { return true } static get silinebilirmi() { return true }
-	static pTanimDuzenle(e) { super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, { anaGrupKod: new PInstStr('anagrupkod') }) }
+	static pTanimDuzenle(e) { super.pTanimDuzenle(e); let {pTanim} = e; $.extend(pTanim, { anaGrupKod: new PInstStr('anagrupkod') }) }
 	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e;
+		e = e || {}; super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); let {tabPage_genel} = e;
 		let form = tabPage_genel.addFormWithParent(); form.addModelKullan({ id: 'anaGrupKod', etiket: 'Ana Grup', mfSinif: MQEkNotAnaGrup }).dropDown().autoBind()
 	}
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(
+		super.orjBaslikListesiDuzenle(e); let {liste} = e; liste.push(
 			new GridKolon({ belirtec: 'anagrupkod', text: 'Ana Grup', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'anagrupadi', text: 'Ana Grup Adı', genislikCh: 30, sql: 'agrp.aciklama' })
 		)
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {tableAlias: alias} = this, {sent} = e;
+		super.loadServerData_queryDuzenle(e); let {tableAlias: alias} = this, {sent} = e;
 		sent.fromIliski('meseknotanagrup agrp', `${alias}.anagrupkod = agrp.kod`)
 	}
 }
@@ -30,7 +30,7 @@ class MQEkNotlar extends MQSayacliOrtak {
 	static get tanimlanabilirmi() { return true } static get silinebilirmi() { return true } static get urlCount() { return 3 }
 	static get urlCount() { return 3 }
 	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, {
+		super.pTanimDuzenle(e); let {pTanim} = e; $.extend(pTanim, {
 			kayitTarih: new PInstDateNow('kayittarih'), kayitZaman: new PInstStr({ rowAttr: 'kayitzaman', init: e => timeToString(now()) }),
 			grupKod: new PInstStr('grupkod'), tip: new PInstTekSecim('tip', HatTezgah), hatKod: new PInstStr('hatkod'), tezgahKod: new PInstStr('tezgahkod'),
 			perKod: new PInstStr({ rowAttr: 'perkod', init: () => this.paramGlobals.sonPerKod }), notlar: new PInstStr('notlar')
@@ -38,11 +38,11 @@ class MQEkNotlar extends MQSayacliOrtak {
 		for (let i = 1; i <= this.urlCount; i++) { pTanim[`url${i}`] = new PInstStr(`url${i}`) }
 	}
 	static rootFormBuilderDuzenle_listeEkrani(e) {
-		super.rootFormBuilderDuzenle_listeEkrani(e); const {rootBuilder: rfb} = e;
+		super.rootFormBuilderDuzenle_listeEkrani(e); let {rootBuilder: rfb} = e;
 		this.fbd_listeEkrani_addButton(rfb, { id: 'dokumanGoster', text: 'Döküman Göster', handler: e => this.dokumanGosterIstendi(e) })
 	}
 	static secimlerDuzenle(e) {
-		const {secimler: sec} = e;
+		let {secimler: sec} = e;
 		sec.grupTopluEkle([ { kod: 'grup', aciklama: 'Grup', kapali: true }, { kod: 'hatTezgah', aciklama: 'Hat/Tezgah', kapali: true } ]);
 		sec.secimTopluEkle({
 			kayitTarih: new SecimDate({ etiket: 'Kayıt Tarih' }),
@@ -54,7 +54,7 @@ class MQEkNotlar extends MQSayacliOrtak {
 			perKod: new SecimString({ etiket: 'Personel', mfSinif: MQPersonel, grupKod: 'hatTezgah' }), perIsim: new SecimOzellik({ etiket: 'Personel İsim', grupKod: 'hatTezgah' }),
 		});
 		sec.whereBlockEkle(e => {
-			const {secimler: sec, where: wh} = e, alias = e.alias ?? this.tableAlias;
+			let {secimler: sec, where: wh} = e, alias = e.alias ?? this.tableAlias;
 			wh.basiSonu(sec.kayitTarih, `${alias}.kayittarih`);
 			wh.basiSonu(sec.grupKod, `${alias}.grupkod`).ozellik(sec.grupAdi, 'grp.aciklama');
 			wh.basiSonu(sec.anaGrupKod, 'grp.anagrupkod').ozellik(sec.anaGrupAdi, 'agrp.aciklama');
@@ -64,21 +64,21 @@ class MQEkNotlar extends MQSayacliOrtak {
 			wh.basiSonu(sec.perKod, `${alias}.perkod`).ozellik(sec.perIsim, 'per.aciklama')
 		})
 	}
-	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); const {args} = e; $.extend(args, { rowsHeight: 180 /*selectionmode: 'multiplecellsextended'*/ }) }
+	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); let {args} = e; $.extend(args, { rowsHeight: 180 /*selectionmode: 'multiplecellsextended'*/ }) }
 	static ekCSSDuzenle(e) {
-		super.ekCSSDuzenle(e); const {rec, result} = e, belirtec = e.belirtec ?? e.dataField ?? e.datafield, {tip} = rec;
+		super.ekCSSDuzenle(e); let {rec, result} = e, belirtec = e.belirtec ?? e.dataField ?? e.datafield, {tip} = rec;
 		switch (belirtec) { case 'tipText': case 'hatkod': case 'hatadi': case 'tezgahkod': case 'tezgahadi': result.push('bold'); break }
 		if (belirtec == 'hatkod' || belirtec == 'hatadi') { result.push('royalblue') }
 		else if (belirtec == 'tipText') { switch (tip) { case 'HT': result.push('bg-lightgreen'); break; case 'TZ': result.push('bg-lightred'); break } }
 		else {
-			const {localData} = app.params, ekNotLastReadId = asInteger(localData.getData('ekNotLastReadId')), {kaysayac: id} = rec;
+			let {localData} = app.params, ekNotLastReadId = asInteger(localData.getData('ekNotLastReadId')), {kaysayac: id} = rec;
 			if (id && (!ekNotLastReadId || id > ekNotLastReadId)) { result.push('yeni-not') }
 		}
 		
 	}
 	static standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e); let {liste} = e, _liste = e.liste = liste.filter(colDef => !colDef?.startsWith('url')) }
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e, alias = e.alias ?? this.tableAlias, {urlCount} = this;
+		super.orjBaslikListesiDuzenle(e); let {liste} = e, alias = e.alias ?? this.tableAlias, {urlCount} = this;
 		liste.push(...[
 			new GridKolon({ belirtec: 'kayittarih', text: 'Tarih', genislikCh: 10 }).tipDate(),
 			new GridKolon({ belirtec: 'kayitzaman', text: 'Saat', genislikCh: 8 }).tipTime_noSecs(),
@@ -119,7 +119,7 @@ class MQEkNotlar extends MQSayacliOrtak {
 		)
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const alias = e.alias ?? this.tableAlias, {stm, sent} = e, {orderBy} = stm, {sahalar} = sent;
+		super.loadServerData_queryDuzenle(e); let alias = e.alias ?? this.tableAlias, {stm, sent} = e, {orderBy} = stm, {sahalar} = sent;
 		sent.fromIliski('meseknotgrup grp', `${alias}.grupkod = grp.kod`).fromIliski('meseknotanagrup agrp', 'grp.anagrupkod = agrp.kod');
 		sent.fromIliski('ismerkezi hat', `${alias}.hatkod = hat.kod`).fromIliski('tekilmakina tez', `${alias}.tezgahkod = tez.kod`);
 		sent.fromIliski('personel per', `${alias}.perkod = per.kod`);
@@ -127,7 +127,7 @@ class MQEkNotlar extends MQSayacliOrtak {
 		orderBy.add(`${alias}.kayittarih DESC`, `${alias}.kayitzaman DESC`)
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); const {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e;
+		super.rootFormBuilderDuzenle(e); let {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e;
 		rfb.addStyle(e => `$elementCSS .modelTanim.form { margin-top: -50px !important; z-index: 1000 !important }`);
 		let form = tanimForm.addFormWithParent().yanYana(2.5);
 			form.addDateInput('kayitTarih', 'Kayıt Tarihi'); form.addTimeInput('kayitZaman');
@@ -137,8 +137,8 @@ class MQEkNotlar extends MQSayacliOrtak {
 		// form = tanimForm.addFormWithParent().yanYana(3);
 			form.addModelKullan('tip', 'Tip').kodsuz().bosKodAlinmaz().bosKodEklenmez().dropDown().noMF().autoBind()
 				.addStyle_wh(130).setSource(e => HatTezgah.kaListe).degisince(e => {
-					const {builder} = e, {id2Builder} = builder.parentBuilder, value = builder.value?.char ?? builder.value;
-					for (const key of ['hatKod', 'tezgahKod']) { id2Builder[key]?.updateVisible() }
+					let {builder} = e, {id2Builder} = builder.parentBuilder, value = builder.value?.char ?? builder.value;
+					for (let key of ['hatKod', 'tezgahKod']) { id2Builder[key]?.updateVisible() }
 				});
 			form.addModelKullan('hatKod', 'Hat').setMFSinif(MQHat).comboBox().autoBind()
 				.addStyle_wh(300).setVisibleKosulu(e => { let value = e.builder.altInst.tip; value = value?.char ?? value; return value == 'HT' ? true : 'jqx-hidden' });
@@ -147,8 +147,8 @@ class MQEkNotlar extends MQSayacliOrtak {
 		form = tanimForm.addFormWithParent().yanYana().addStyle(e => `$elementCSS { margin-top: 10px }`);
 		for (let i = 1; i <= this.urlCount; i++) {
 			form.addTextInput(`url${i}`, `Doküman URL ${i}`).onAfterRun(e => {
-				const {builder} = e, {layout} = builder, label = layout.children('label');
-				const btn = $(`<button id="upload"/>`).jqxButton({ theme }); btn.prependTo(layout);
+				let {builder} = e, {layout} = builder, label = layout.children('label');
+				let btn = $(`<button id="upload"/>`).jqxButton({ theme }); btn.prependTo(layout);
 				btn.on('click', evt => this.dokumanYukleIstendi({ ...e, builder }))
 			}).addStyle(e => `
 				$elementCSS { --button-width: 45px; --button-margin-right: 10px; --button-right: calc(var(--button-width) + calc(--button-margin-right)) }
@@ -159,7 +159,7 @@ class MQEkNotlar extends MQSayacliOrtak {
 		form = tanimForm.addFormWithParent().altAlta().addStyle(e => `$elementCSS { margin-top: 10px }`)
 				.addStyle_fullWH(null, `calc(var(--full) - ${$(window).width() < 1100 ? 400: 350}px)`);
 			form.addDiv('notlar', 'Notlar').addStyle_fullWH().onAfterRun(({ builder }) => {
-				const toolbar = [
+				let toolbar = [
 					 ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
 					 ['blockquote', 'code-block'],
 					 ['link', /*'image',*/ 'video', 'formula'],
@@ -175,55 +175,63 @@ class MQEkNotlar extends MQSayacliOrtak {
 					 [{ 'align': [] }],
 					 ['clean']                                         // remove formatting button
 				];
-				const {id, altInst, input, etiket: placeholder} = builder; input.html(altInst[id]);
-				const part = builder.part = new Quill(input[0], { theme: 'snow', placeholder, modules: { toolbar } }); input.addClass('full-wh bg-white')
+				let {id, altInst, input, etiket: placeholder} = builder; input.html(altInst[id]);
+				let part = builder.part = new Quill(input[0], { theme: 'snow', placeholder, modules: { toolbar } }); input.addClass('full-wh bg-white')
 				part.on('text-change', evt => altInst[id] = part.root.innerHTML)
 			})
 	}
 	static gridVeriYuklendi(e) {
-		super.gridVeriYuklendi(e); const gridPart = e.gridPart ?? e.sender; if (!gridPart) { return }
+		super.gridVeriYuklendi(e); let gridPart = e.gridPart ?? e.sender; if (!gridPart) { return }
 		let {localData} = app.params, ekNotLastReadId = asInteger(localData.getData('ekNotLastReadId')), savedLastReadId = ekNotLastReadId;
 		let {boundRecs: recs} = gridPart; for (let {kaysayac: id} of recs) { if (id && ekNotLastReadId < id) { ekNotLastReadId = id } }
 		if (ekNotLastReadId != savedLastReadId) { setTimeout(() => { localData.setData('ekNotLastReadId', ekNotLastReadId); localData.kaydet() }, 500) }
 	}
 	static orjBaslikListesi_gridRendered(e) {
-		super.orjBaslikListesi_gridRendered(e)/*; const {type} = e;
+		super.orjBaslikListesi_gridRendered(e)/*; let {type} = e;
 		if (type == 'full') {
-			const {gridPart, gridWidget} = e; if (!gridWidget) { return }
-			const {localData} = app.params; let ekNotLastReadId = asInteger(localData.getData('ekNotLastReadId')), savedLastReadId = ekNotLastReadId;
-			for (const {kaysayac: id} of gridWidget.getvisiblerows()) { if (id && ekNotLastReadId < id) { ekNotLastReadId = id } }
+			let {gridPart, gridWidget} = e; if (!gridWidget) { return }
+			let {localData} = app.params; let ekNotLastReadId = asInteger(localData.getData('ekNotLastReadId')), savedLastReadId = ekNotLastReadId;
+			for (let {kaysayac: id} of gridWidget.getvisiblerows()) { if (id && ekNotLastReadId < id) { ekNotLastReadId = id } }
 			if (ekNotLastReadId != savedLastReadId) { localData.setData('ekNotLastReadId', ekNotLastReadId); localData.kaydetDefer() }
 		}*/
 	}
 	static orjBaslikListesi_satirTiklandi(e) {
-		e = e || {}; const gridPart = e.gridPart ?? e.sender, gridWidget = e?.event?.args?.owner ?? gridPart.gridWidget;
+		e = e || {}; let gridPart = e.gridPart ?? e.sender, gridWidget = e?.event?.args?.owner ?? gridPart.gridWidget;
 		setTimeout(() => {
-			const belirtec = e.belirtec ?? gridWidget?._clickedcolumn, rec = e.rec ?? gridPart.selectedRec; let focusURL;
+			let belirtec = e.belirtec ?? gridWidget?._clickedcolumn, rec = e.rec ?? gridPart.selectedRec; let focusURL;
 			if (rec && belirtec?.startsWith('resim') && (focusURL = rec[belirtec.replace('resim', 'url')]?.trim())) { this.dokumanGosterIstendi({ ...e, focusURL }) }
 		}, 100)
 	}
 	static dokumanGosterIstendi(e) {
-		e = e || {}; const islemAdi = 'Döküman Göster'; try {
-			const {builder, focusURL} = e, gridPart = e.gridPart ?? builder?.rootPart ?? e.sender ?? app.activeWndPart, recs = gridPart.selectedRecs, {urlCount} = this;
-			let urlListe = []; for (const rec of recs) { for (let i = 1; i <= urlCount; i++) { let value = rec[`url${i}`]; if (value) { urlListe.push(value.trim()) } } }
+		e = e || {}; let islemAdi = 'Döküman Göster'; try {
+			let {builder, focusURL} = e, gridPart = e.gridPart ?? builder?.rootPart ?? e.sender ?? app.activeWndPart, recs = gridPart.selectedRecs, {urlCount} = this;
+			let urlListe = []; for (let rec of recs) { for (let i = 1; i <= urlCount; i++) { let value = rec[`url${i}`]; if (value) { urlListe.push(value.trim()) } } }
 			if (!urlListe.length) { return } if (focusURL) { urlListe.sort((a, b) => a == focusURL ? -1 : 0) }
 			new MESDokumanWindowPart({ urlListe }).run()
 		}
 		catch (ex) { hConfirm(getErrorText(ex), islemAdi); throw ex }
 	}
 	static async dokumanYukleIstendi(e) {
-		e = e || {}; const PrefixURL = 'url', islemAdi = 'Döküman Yükle'; try {
-			const {builder} = e, gridPart = e.gridPart ?? builder?.rootPart ?? e.sender ?? app.activeWndPart;
-			const id = e.id ?? builder?.id; let i = asInteger(e.seq ?? e.index ?? id?.slice(PrefixURL.length)); const key = `${PrefixURL}${i}`;
+		e = e || {}; let PrefixURL = 'url', islemAdi = 'Döküman Yükle'; try {
+			let {builder} = e, gridPart = e.gridPart ?? builder?.rootPart ?? e.sender ?? app.activeWndPart;
+			let id = e.id ?? builder?.id; let i = asInteger(e.seq ?? e.index ?? id?.slice(PrefixURL.length)); let key = `${PrefixURL}${i}`;
 			let elm = $(`<input type="file" capture="environment" accept="image/*, application/pdf, video/*">`).appendTo('body'); elm.addClass('jqx-hidden');
 			elm.on('change', async evt => {
 				try {
-					const file = evt.target.files[0]; let fileName = file.name.replaceAll(' ', '_'), ext = fileName.split('.').slice(-1)[0] ?? '';
-					const resimId = ext ? fileName.slice(0, -(ext.length + 1)) : fileName, data = file ? new Uint8Array(await file.arrayBuffer()) : null; if (!data?.length) { return }
-					const result = await app.wsResimDataKaydet({ resimId, ext, data }); if (!result?.result) { throw { isError: true, errorText: 'Resim Kayıt Sorunu' } }
+					let file = evt.target.files[0]; let fileName = file.name.replaceAll(' ', '_'), ext = fileName.split('.').slice(-1)[0] ?? '';
+					let resimId = ext ? fileName.slice(0, -(ext.length + 1)) : fileName, data = file ? new Uint8Array(await file.arrayBuffer()) : null; if (!data?.length) { return }
+					let urlBase = app.getWSUrlBase({ ssl: false, ws: { port: 80 }, wsPath: 'vio-resim' }).replace(':80', '').replace(':443', '');
+					let url = `${urlBase}/${[resimId, ext].join('.')}`;
+					try { await ajaxPost({ url, data, contentType: 'application/octet-stream' }) }
+					catch (ex) {
+						console.error(ex);
+						let result = await app.wsResimDataKaydet({ resimId, ext, data });
+						if (!result?.result) { throw { isError: true, errorText: 'Resim Kayıt Sorunu' } }
+					}
 					if (builder) {
-						const {altInst, input} = builder;
-						const value = builder.value = altInst[id] = `${app.getWSUrlBase()}/stokResim/?id=${resimId}&ext=${ext}`; input?.focus()
+						let {altInst, input} = builder;
+						/* let url = `${urlBase}/stokResim/?id=${resimId}&ext=${ext}`; */
+						builder.value = altInst[id] = url; input?.focus()
 					}
 					gridPart?.tazeleDefer?.(e)
 				}

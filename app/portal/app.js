@@ -52,12 +52,27 @@ class PortalApp extends TicariApp {
 					})
 				)
 			}) : null),
-			...[MQLogin_Musteri, MQAktivasyon, ...MQKontor.subClasses]
-				.filter(cls => cls.uygunmu != false)
-				.map(cls => {
+			...[MQLogin_Musteri, MQAktivasyon]
+				.filter(cls => cls.uygunmu != false).map(cls => {
 					let {kodListeTipi: mne, sinifAdi: text} = cls, block = e => cls.listeEkraniAc(e);
 					return new FRMenuChoice({ mne, text, block })
 				}),
+			new FRMenuCascade({
+				mne: 'KHA', text: 'Kontör<br/><b class=royalblue>Hareketler</b>', items: (
+					MQKontorHareket.subClasses.filter(cls => cls.uygunmu != false).map(cls => {
+						let {kodListeTipi: mne, sinifAdi: text} = cls, block = e => cls.listeEkraniAc(e);
+						return new FRMenuChoice({ mne, text, block })
+					})
+				)
+			}),
+			new FRMenuCascade({
+				mne: 'KMD', text: 'Kontör<br/><b class=forestgreen>Müşteri Durumu</b>', items: (
+					MQKontor.subClasses.filter(cls => cls.uygunmu != false).map(cls => {
+						let {kodListeTipi: mne, sinifAdi: text} = cls, block = e => cls.listeEkraniAc(e);
+						return new FRMenuChoice({ mne, text, block })
+					})
+				)
+			}),
 			(config.dev && adminmi ? new FRMenuChoice({ mne: 'TURMOB_IMPORT', text: 'Turmob Kayıtlarını İçeri Al', block: e => MQKontor_Turmob.importRecordsIstendi(e) }) : null)
 		].filter(x => !!x)
 		return new FRMenu({ items })

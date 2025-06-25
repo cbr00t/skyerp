@@ -37,7 +37,9 @@ class MQAktivasyon extends MQDetayliMaster {
 			.addKA('bayi', MQLogin_Bayi, 'mus.bayikod', 'bay.aciklama')
 			.addKA('il', MQVPIl, 'mus.ilkod', 'il.aciklama')
 		sec.whereBlockEkle(({ secimler: sec, where: wh }) => {
-			let {tekSecim: aktifSecim} = sec.aktifSecim; wh.birlestir(aktifSecim.getBoolBitClause(`${alias}.baktifmi`));
+			let {tekSecim: aktifSecim} = sec.aktifSecim;
+			wh.birlestir(aktifSecim.getBoolBitClause(`${alias}.baktifmi`));
+			wh.birlestir(aktifSecim.getBoolClause('mus.aktifmi'));
 			wh
 				.birKismi(sec.surum, `${alias}.surum`)
 				.ozellik(sec.tanitim, 'mus.tanitim')
@@ -94,15 +96,19 @@ class MQAktivasyon extends MQDetayliMaster {
 			new GridKolon({ belirtec: 'ozelekbilgi', text: 'Özel Ek Bilgi', genislikCh: 50 })
 		])
 	}
-	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent }) {
+	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent, basit, tekilOku, modelKullanmi }) {
 		super.loadServerData_queryDuzenle(...arguments);
-		let {tableAlias: alias} = this, {sahalar} = sent;
+		let {tableAlias: alias} = this, {sahalar} = sent, {alias2Deger} = sent, {orderBy} = stm;
 		sent.fromIliski('musteri mus', `${alias}.mustkod = mus.kod`)
 			.fromIliski(`${MQLogin_Bayi.table} bay`, `mus.bayikod = bay.kod`)
 			.fromIliski(`${MQVPIl.table} il`, `mus.ilkod = il.kod`);
-		let clauses = { bayi: 'mus.bayikod', musteri: `${alias}.mustkod` };
-		MQLogin.current.yetkiClauseDuzenle({ sent, clauses });
 		sahalar.add(`${alias}.surum`, 'mus.tanitim')
+		if (!basit) {
+			let clauses = { bayi: 'mus.bayikod', musteri: `${alias}.mustkod` };
+			if (!alias2Deger.mustkod) { sahalar.add('fis.mustkod') }
+			MQLogin.current.yetkiClauseDuzenle({ sent, clauses });
+			if (!(tekilOku || modelKullanmi)) { orderBy.liste = ['tarih DESC', 'mustkod'] }
+		}
 	}
 	setValues({ rec }) {
 		super.setValues(...arguments); let {tanitim} = rec;

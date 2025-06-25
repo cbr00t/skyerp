@@ -81,8 +81,9 @@ class MQLogin extends MQKA {
 			liste.push(new GridKolon({ belirtec, text, genislikCh: 10 }).tipBool())
 		}
 	}
-	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent, basit }) {
-		super.loadServerData_queryDuzenle(...arguments); let {tableAlias: alias, kodSaha} = this, {where: wh, sahalar} = sent;
+	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent }) {
+		super.loadServerData_queryDuzenle(...arguments);
+		let {tableAlias: alias, kodSaha} = this, {where: wh, sahalar, alias2Deger} = sent, {orderBy} = stm;
 		sahalar.add(`${alias}.aktifmi`)
 	}
 	hostVarsDuzenle({ hv }) {

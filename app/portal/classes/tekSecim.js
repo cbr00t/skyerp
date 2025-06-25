@@ -15,7 +15,7 @@ class KontorAHTip extends TekSecim {
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments);
 		kaListe.push(...[
-			new CKodVeAdi(['A', '<span class=green>Alınan</span>', 'alinanmi']),
+			new CKodVeAdi(['A', '<span class=green>Satılan</span>', 'alinanmi']),
 			new CKodVeAdi(['H', '<span class=orangered>Harcanan</span>', 'harcananmi'])
 		])
 	}

@@ -15,7 +15,11 @@
 .flex-col:not(.jqx-hidden) { display: flex !important; flex-direction: col }
 
 .no-overflow { overflow: hidden hidden !important } .no-overflow-x { overflow-y: hidden !important } .no-overflow-y { overflow-y: hidden !important }
-.fixed { position: fixed } .absolute { position: absolute } .relative { position: relative } .sticky { position: sticky } .static { position: static }
+.fixed { position: fixed !important }
+.absolute { position: absolute !important }
+.relative { position: relative !important }
+.sticky { position: sticky !important }
+.static { position: static !important }
 
 .left,
 .left > input,

@@ -3,14 +3,14 @@ class MQHesnaStok extends MQKAOrtak {
 	static get kodListeTipi() { const {resimlimi} = this; return `STOK_${resimlimi == null ? '' : `${resimlimi ? 'RESIMLI' : 'RESIMSIZ'}`}` }
 	static get sinifAdi() { const {resimlimi} = this; return `Hesna Ürünler${resimlimi == null ? '' : ` (${resimlimi ? 'Resimli' : 'Resimsiz'})`}` }
 	static get table() { return 'stkmst' } static get tableAlias() { return 'stk' }
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {resimlimi} = this, {liste} = e;
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments); let {resimlimi} = this;
+		if (resimlimi) { liste.push(new GridKolon({ belirtec: 'resim', text: 'Resim', genislikCh: 50, filterable: false, sortable: false, groupable: false, exportable: false }).noSql()) }
 		liste.push(
 			new GridKolon({ belirtec: 'grupkod', text: 'Grup', genislikCh: 15, filterType: 'checkedlist' }), new GridKolon({ belirtec: 'grupadi', text: 'Grup Adı', genislikCh: 30, filterType: 'checkedlist', sql: 'grp.aciklama' }),
 			new GridKolon({ belirtec: 'anagrupkod', text: 'Ana Grup', genislikCh: 13, filterType: 'checkedlist', sql: 'grp.anagrupkod' }), new GridKolon({ belirtec: 'anagrupadi', text: 'Ana Grup Adı', genislikCh: 25, filterType: 'checkedlist', sql: 'agrp.aciklama' }),
 			new GridKolon({ belirtec: 'sistgrupkod', text: 'İst. Grup', genislikCh: 15, filterType: 'checkedlist' }), new GridKolon({ belirtec: 'sistgrupadi', text: 'İst. Grup Adı', genislikCh: 30, filterType: 'checkedlist', sql: 'sigrp.aciklama' })
 		);
-		if (resimlimi) { liste.push(new GridKolon({ belirtec: 'resim', text: 'Resim', genislikCh: 50, filterable: false, sortable: false, groupable: false, exportable: false }).noSql()) }
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this;

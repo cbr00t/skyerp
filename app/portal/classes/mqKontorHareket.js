@@ -1,0 +1,181 @@
+class MQKontorHareket extends MQSayacli {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sayacSaha() { return 'fissayac' }
+	static get uygunmu() { return this != MQKontorHareket } static get kontorSinif() { return MQKontor }
+	static get tip() { return this.kontorSinif.tip } static get tipAdi() { return this.kontorSinif.tipAdi }
+	static get kodListeTipi() { return `KHAR-${this.tip}` } static get sinifAdi() { return `${this.tipAdi} Kontör Hareketleri` }
+	static get table() { return this.kontorSinif.detaySinif.table } static get tableAlias() { return 'har' }
+	static get vioSeri() { return this.kontorSinif.vioSeri } static get vioHizmetKod() { return this.kontorSinif.vioHizmetKod }
+	static get tumKolonlarGosterilirmi() { return false } static get kolonFiltreKullanilirmi() { return false }
+	static get raporKullanilirmi() { return false } static get noAutoFocus() { return false }
+	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return super.silinebilirmi && MQLogin.current?.class?.adminmi }
+	static get faturalastirmaYapilirmi() { return this.kontorSinif.faturalastirmaYapilirmi }
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments);
+		$.extend(pTanim, {
+			tarih: new PInstDateToday('tarih'), mustKod: new PInstStr('mustkod'), ahTipi: new PInstTekSecim('ahtipi', KontorAHTip),
+			kontorSayi: new PInstNum('kontorsayi'), fatDurum: new PInstTekSecim('fatdurum', KontorFatDurum),
+			fisNox: new PInstStr({ rowAttr: 'fisnox', init: e => this.kontorSinif.newFisNox })
+		})
+	}
+	static secimlerDuzenle({ secimler: sec }) {
+		let {tableAlias: alias} = this;
+		sec.grupTopluEkle([ { kod: 'genel', etiket: 'Genel', kapali: false } ]);
+		sec
+			.secimTopluEkle({
+				tarih: new SecimDate({ etiket: 'Tarih' }),
+				ahTipiSecim: new SecimBirKismi({ etiket: 'Alınan/Harcanan', tekSecim: new KontorAHTip().alinanYap() }).birKismi().autoBind(),
+				fatDurumSecim: new SecimBirKismi({ etiket: 'Fat. Durum', tekSecim: new KontorFatDurum().secimYok() }).birKismi().autoBind()
+			})
+			.addKA('must', MQLogin_Musteri, 'fis.mustkod', 'mus.aciklama')
+			.addKA('bayi', MQLogin_Bayi, 'mus.bayikod', 'bay.aciklama')
+			.addKA('il', MQVPIl, 'mus.ilkod', 'il.aciklama')
+		sec.whereBlockEkle(({ secimler: sec, sent, where: wh }) => {
+			let {ahTipiSecim, fatDurumSecim} = sec;
+			wh.basiSonu(sec.tarih, `${alias}.tarih`);
+			if (!$.isEmptyObject(ahTipiSecim.value)) {
+				wh.birKismi(ahTipiSecim, `${alias}.ahtipi`) }
+			if (sent && !$.isEmptyObject(fatDurumSecim.value)) {
+				wh.degerAta('A', `${alias}.ahtipi`).add(`${alias}.kontorsayi > 0`);
+				wh.birKismi(fatDurumSecim, `${alias}.fatdurum`)
+			}
+		})
+	}
+	static rootFormBuilderDuzenle_listeEkrani(e) {
+		super.rootFormBuilderDuzenle_listeEkrani(e); let {current: login} = MQLogin;
+		let gridPart = e.gridPart ?? e.sender, {header, islemTuslariPart} = gridPart, {layout: islemTuslari, sol} = islemTuslariPart;
+		let {rootBuilder: rfb} = e; rfb.setInst(gridPart)
+			.addStyle(`$elementCSS .islemTuslari { overflow: hidden hidden !important; margin-bottom: 0 !important }`);
+		let form_ek = rfb.addFormWithParent('ekForm').setParent(islemTuslari).yanYana().addStyle(
+			`$elementCSS { position: absolute !important; width: max-content !important; left: 300px !important }
+			$elementCSS button { min-width: unset !important }`);
+		if (login.adminmi || login.bayimi) {
+			form_ek.addButton('degistir').addStyle_wh(90)
+				.addStyle(`$elementCSS { left: 0 !important }`)
+				.onClick(async _e => {
+					let {selectedRec: rec} = gridPart, parentRec = rec;
+					try { await this.kontorSinif.detaySinif.kontor_degistirIstendi({ ..._e, ...e, rec, parentRec }) }
+					catch (ex) { hConfirm(getErrorText(ex), 'Kontör Satışı'); throw ex }
+			})
+		}
+		if ((login.adminmi || login.sefmi) && this.faturalastirmaYapilirmi) {
+			form_ek.addButton('faturalastir', 'FAT').addStyle_wh(90)
+				.addStyle(`$elementCSS { left: 50px !important }`)
+				.onClick(async _e => {
+					let {selectedRecs: recs} = gridPart;
+					try { await this.kontorSinif.kontor_topluFaturalastirIstendi({ ..._e, ...e, recs }) }
+					catch (ex) { hConfirm(getErrorText(ex), 'Kontör Faturalaştır'); throw ex }
+				})
+		}
+	}
+	static rootFormBuilderDuzenle({ sender, inst, rootBuilder: rfb, tanimFormBuilder: tanimForm }) {
+		super.rootFormBuilderDuzenle(...arguments);
+		let form = tanimForm.addFormWithParent().altAlta();
+			form.addModelKullan('mustKod', 'Müşteri').comboBox().autoBind().setMFSinif(MQLogin_Musteri)
+				.ozelQueryDuzenleHandler(({ stm, aliasVeNokta, mfSinif }) => {
+					let {kodSaha} = mfSinif, clauses = { musteri: `${aliasVeNokta}${kodSaha}`, bayi: `${aliasVeNokta}bayikod` };
+					for (let sent of stm) {
+						let {where: wh} = sent;
+						wh.add(`${aliasVeNokta}aktifmi <> ''`);
+						MQLogin.current.yetkiClauseDuzenle({ sent, clauses })
+					}
+				});
+		form = tanimForm.addFormWithParent().yanYana();
+			form.addDateInput('tarih', 'Tarih').addStyle_wh(100);
+			form.addNumberInput('kontorSayi', 'Kontör Sayı').addStyle_wh(100);
+			form.addModelKullan('ahTipi', 'A/H').dropDown().noMF().kodsuz().setSource(KontorAHTip.kaListe).addStyle_wh(150);
+			form.addTextInput('fisNox', 'Seri / No').addStyle_wh(200);
+			form.addModelKullan('fatDurum', 'Fat. Durum').dropDown().noMF().kodsuz().bosKodAlinmaz().setSource(KontorFatDurum.kaListe).addStyle_wh(200)
+	}
+	static ekCSSDuzenle({ rec, result, dataField: belirtec }) {
+		super.ekCSSDuzenle(...arguments); let value = rec[belirtec];
+		switch (belirtec) {
+			case 'kontorsayi':
+				if (value) {
+					let alinanmi = rec.ahtipi == 'A';
+					let varmi = value > 0; if (!alinanmi) { value = -value }
+					if (value > 0) { result.push('kontor-var green') }
+					else { result.push('kontor-yok orangered') }
+					result.push('bold'); if (alinanmi) { result.push('fs-130') }
+				}
+				break
+		}
+	}
+	static orjBaslikListesi_argsDuzenle({ gridPart, sender, args }) {
+		super.orjBaslikListesi_argsDuzenle(...arguments); gridPart = gridPart ?? sender;
+		$.extend(args, { rowsHeight: 40, groupsExpandedByDefault: true })
+	}
+	static standartGorunumListesiDuzenle({ liste }) {
+		super.standartGorunumListesiDuzenle(...arguments);
+		liste.push('mustkod', 'mustadi', 'kontorsayi', 'ahtipitext', 'fatdurumtext', 'fisnox', 'bayikod', 'tanitim')
+	}
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments); let {tableAlias: alias} = this;
+		liste.push(...[
+			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13, filterType: 'checkedlist' }).tipDate(),
+			new GridKolon({ belirtec: 'mustkod', text: 'Müşteri', genislikCh: 15, sql: 'fis.mustkod' }),
+			new GridKolon({ belirtec: 'mustadi', text: 'Müşteri Adı', genislikCh: 50, sql: 'mus.aciklama' }),
+			new GridKolon({ belirtec: 'ahtipitext', text: 'A/H Tip', genislikCh: 13, sql: KontorAHTip.getClause(`${alias}.ahtipi`), filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'fisnox', text: 'Fiş No', genislikCh: 23 }),
+			new GridKolon({ belirtec: 'kontorsayi', text: 'Kontör', genislikCh: 10, filterType: 'checkedlist' }).tipDecimal(0),
+			new GridKolon({
+				belirtec: 'fatdurumtext', text: 'Fat.Durum', genislikCh: 15,
+				sql: KontorFatDurum.getClause(`${alias}.fatdurum`), filterType: 'checkedlist',
+				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
+					let {ahtipi: ahTipi, fatdurum: fatDurum} = rec;
+					if (!(fatDurum || ahTipi == 'A')) { html = changeTagContent(html, (value = '')) }
+					return html
+				}
+			}),
+			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 20, sql: 'mus.yore', filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 8, sql: 'mus.ilkod', filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 20, sql: 'il.aciklama', filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'tanitim', text: 'Tanıtım', genislikCh: 43, sql: 'mus.tanitim' }),
+			new GridKolon({ belirtec: 'bayikod', text: 'Bayi', genislikCh: 13, sql: 'mus.bayikod', filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'bayiadi', text: 'Bayi Adı', genislikCh: 25, sql: 'bay.aciklama', filterType: 'checkedlist' })
+		])
+	}
+	static loadServerData_queryDuzenle({ sender, stm, sent, basit, tekilOku, modelKullanmi }) {
+		super.loadServerData_queryDuzenle(...arguments);
+		let {kontorSinif, tip, tableAlias: alias} = this, {table: fisTable} = kontorSinif;
+		let {where: wh, sahalar} = sent, {alias2Deger} = sent, {orderBy} = stm;
+		let {current: login} = MQLogin, {musterimi: loginMusterimi} = login?.class;
+		let sabitMustKod = (loginMusterimi ? login.kod : qs.mustKod ?? qs.must);
+		sent
+			.fromIliski(`${fisTable} fis`, `${alias}.fissayac = fis.kaysayac`)
+			.fromIliski('musteri mus', `fis.mustkod = mus.kod`)
+			.fromIliski(`${MQLogin_Bayi.table} bay`, `mus.bayikod = bay.kod`)
+			.fromIliski(`${MQVPIl.table} il`, `mus.ilkod = il.kod`);
+		wh.degerAta(tip, 'fis.tip').add(`mus.aktifmi <> ''`);
+		if (!alias2Deger.fissayac) { sahalar.add(`${alias}.fissayac`) }
+		if (!alias2Deger.kaysayac) { sahalar.add(`${alias}.kaysayac`) }
+		if (!alias2Deger.ahtipi) { sahalar.add(`${alias}.ahtipi`) }
+		if (!alias2Deger.fatdurum) { sahalar.add(`${alias}.fatdurum`) }
+		if (!alias2Deger.bayikod) { sahalar.add('mus.bayikod') }
+		if (!alias2Deger.mustkod) { sahalar.add('fis.mustkod') }
+		if (!basit) {
+			if (sabitMustKod) { wh.degerAta(sabitMustKod, 'fis.mustkod') }
+			let clauses = { bayi: 'mus.bayikod', musteri: 'fis.mustkod' };
+			MQLogin.current.yetkiClauseDuzenle({ sent, clauses });
+			if (!(tekilOku || modelKullanmi)) { orderBy.liste = ['mustkod', 'tarih DESC', 'ahtipi DESC'] }
+		}
+	}
+	static gridVeriYuklendi({ gridPart, grid, gridWidget }) {
+		super.gridVeriYuklendi(...arguments); let grupBelirtec = 'ahtipitext';
+		if (grupBelirtec && gridPart.belirtec2Kolon[grupBelirtec]) {
+			grid.jqxGrid('groups', [grupBelirtec]);
+			gridWidget.hidecolumn(grupBelirtec)
+		}
+	}
+	static orjBaslikListesi_satirCiftTiklandi({ sender: gridPart }) {
+		super.orjBaslikListesi_satirCiftTiklandi(...arguments);
+		gridPart.islemTuslariPart.layout.find('button#degistir')?.click()
+	}
+}
+class MQKontorHareket_EBelge extends MQKontorHareket {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kontorSinif() { return MQKontor_EBelge }
+}
+class MQKontorHareket_Turmob extends MQKontorHareket {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kontorSinif() { return MQKontor_Turmob }
+}
