@@ -6,9 +6,14 @@ class MQKontorHareket extends MQSayacli {
 	static get table() { return this.kontorSinif.detaySinif.table } static get tableAlias() { return 'har' }
 	static get vioSeri() { return this.kontorSinif.vioSeri } static get vioHizmetKod() { return this.kontorSinif.vioHizmetKod }
 	static get tumKolonlarGosterilirmi() { return false } static get kolonFiltreKullanilirmi() { return false }
-	static get raporKullanilirmi() { return false } static get noAutoFocus() { return false }
-	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return super.silinebilirmi && MQLogin.current?.class?.adminmi }
+	static get raporKullanilirmi() { return false } static get noAutoFocus() { return false } static get tanimUISinif() { return true }
+	static get tanimlanabilirmi() {
+		let login = MQLogin.current?.class;
+		return super.tanimlanabilirmi && (login.adminmi || login.bayimi)
+	}
+	static get silinebilirmi() { return super.silinebilirmi && MQLogin.current?.class?.adminmi }
 	static get faturalastirmaYapilirmi() { return this.kontorSinif.faturalastirmaYapilirmi }
+	static get ozelTanimIslemi() { return (e => this.ozelTanimla(e)) }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		$.extend(pTanim, {
@@ -40,15 +45,19 @@ class MQKontorHareket extends MQSayacli {
 			}
 		})
 	}
+	static islemTuslariDuzenle_listeEkrani(e) {
+		super.islemTuslariDuzenle_listeEkrani(...arguments);
+		e.liste = e.liste.filter(item => item.id != 'kopya')
+	}
 	static rootFormBuilderDuzenle_listeEkrani(e) {
 		super.rootFormBuilderDuzenle_listeEkrani(e); let {current: login} = MQLogin;
 		let gridPart = e.gridPart ?? e.sender, {header, islemTuslariPart} = gridPart, {layout: islemTuslari, sol} = islemTuslariPart;
 		let {rootBuilder: rfb} = e; rfb.setInst(gridPart)
 			.addStyle(`$elementCSS .islemTuslari { overflow: hidden hidden !important; margin-bottom: 0 !important }`);
 		let form_ek = rfb.addFormWithParent('ekForm').setParent(islemTuslari).yanYana().addStyle(
-			`$elementCSS { position: absolute !important; width: max-content !important; left: 300px !important }
+			`$elementCSS { position: absolute !important; width: max-content !important; left: 510px !important }
 			$elementCSS button { min-width: unset !important }`);
-		if (login.adminmi || login.bayimi) {
+		/*if (login.adminmi || login.bayimi) {
 			form_ek.addButton('degistir').addStyle_wh(90)
 				.addStyle(`$elementCSS { left: 0 !important }`)
 				.onClick(async _e => {
@@ -56,7 +65,7 @@ class MQKontorHareket extends MQSayacli {
 					try { await this.kontorSinif.detaySinif.kontor_degistirIstendi({ ..._e, ...e, rec, parentRec }) }
 					catch (ex) { hConfirm(getErrorText(ex), 'Kontör Satışı'); throw ex }
 			})
-		}
+		}*/
 		if ((login.adminmi || login.sefmi) && this.faturalastirmaYapilirmi) {
 			form_ek.addButton('faturalastir', 'FAT').addStyle_wh(90)
 				.addStyle(`$elementCSS { left: 50px !important }`)
@@ -156,7 +165,7 @@ class MQKontorHareket extends MQSayacli {
 			if (sabitMustKod) { wh.degerAta(sabitMustKod, 'fis.mustkod') }
 			let clauses = { bayi: 'mus.bayikod', musteri: 'fis.mustkod' };
 			MQLogin.current.yetkiClauseDuzenle({ sent, clauses });
-			if (!(tekilOku || modelKullanmi)) { orderBy.liste = ['mustkod', 'tarih DESC', 'ahtipi DESC'] }
+			if (!(tekilOku || modelKullanmi)) { orderBy.liste = ['tarih DESC', 'mustkod', 'ahtipi DESC'] }
 		}
 	}
 	static gridVeriYuklendi({ gridPart, grid, gridWidget }) {
@@ -167,8 +176,21 @@ class MQKontorHareket extends MQSayacli {
 		}
 	}
 	static orjBaslikListesi_satirCiftTiklandi({ sender: gridPart }) {
-		super.orjBaslikListesi_satirCiftTiklandi(...arguments);
-		gridPart.islemTuslariPart.layout.find('button#degistir')?.click()
+		super.orjBaslikListesi_satirCiftTiklandi(...arguments) /*;
+		gridPart.islemTuslariPart.layout.find('button#degistir')?.click()*/
+	}
+	static async ozelTanimla({ sender: gridPart, islem, rec, recs }) {
+		let {kontorSinif} = this, {detaySinif: kontorDetaySinif} = kontorSinif;
+		if (!(islem == 'yeni' || islem == 'degistir')) { return false }
+		let degistirmi = islem == 'degistir';
+		let /* {selectedRec: rec, selectedRecs: recs} = gridPart, */ parentRec = rec;
+		let e = { ...arguments[0], parentRec, rec, recs, gridPart };
+		try {
+			if (degistirmi) { await kontorDetaySinif.kontor_degistirIstendi(e) }
+			else { await kontorSinif.kontor_yeniIstendi(e) }
+		}
+		catch (ex) { hConfirm(getErrorText(ex), 'Kontör Satışı'); throw ex }
+		return true
 	}
 }
 class MQKontorHareket_EBelge extends MQKontorHareket {

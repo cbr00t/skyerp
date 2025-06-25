@@ -10,45 +10,48 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	get silinebilirmi() { return this._silinebilirmi } set silinebilirmi(value) { this._silinebilirmi = value }
 	get panelDuzenleyici() { return this._panelDuzenleyici } set panelDuzenleyici(value) { this._panelDuzenleyici = value }
 	getOrjBaslikListesi(e) {
-		e = e || {}; let result = this.orjBaslikListesi; const {panelDuzenleyici} = this;
+		e = e || {}; let result = this.orjBaslikListesi; let {panelDuzenleyici} = this;
 		if (result && !result.prototype && $.isFunction(result)) { result = getFuncValue.call(this, result, $.extend({}, e, { mfSinif: this.getMFSinif(), panelDuzenleyici })) }
-		if (result == null) { const _e = $.extend({}, e, { liste: [] }); this.orjBaslikListesiDuzenle(e); result = _e.liste }
+		if (result == null) { let _e = $.extend({}, e, { liste: [] }); this.orjBaslikListesiDuzenle(e); result = _e.liste }
 		if ($.isEmptyObject(result)) { result = this.getMFSinif(e)?.orjBaslikListesi }
-		const ekKolonlar = panelDuzenleyici?.tabloKolonlari?.filter(colDef => colDef.ekKolonmu), colAttrSet = {}, _result = result || [];
+		let ekKolonlar = panelDuzenleyici?.tabloKolonlari?.filter(colDef => colDef.ekKolonmu), colAttrSet = {}, _result = result || [];
 		result = []; if (ekKolonlar?.length) {
-			for (const colDef of ekKolonlar) { const {belirtec} = colDef; if (!colAttrSet[belirtec]) { colAttrSet[belirtec] = true; result.push(colDef) } }
+			for (let colDef of ekKolonlar) { let {belirtec} = colDef; if (!colAttrSet[belirtec]) { colAttrSet[belirtec] = true; result.push(colDef) } }
 		}
-		for (const colDef of _result) { const {belirtec} = colDef; if (!colAttrSet[belirtec]) { result.push(colDef) } }
+		for (let colDef of _result) { let {belirtec} = colDef; if (!colAttrSet[belirtec]) { result.push(colDef) } }
 		return this._orjBaslikListesi = result
 	}
 	getListeBasliklari(e) {
-		e = e || {}; let result = this.listeBasliklari; const {panelDuzenleyici} = this;
+		e = e || {}; let result = this.listeBasliklari; let {panelDuzenleyici} = this;
 		if (result && !result.prototype && $.isFunction(result)) { result = getFuncValue.call(this, result, $.extend({}, e, { mfSinif: this.getMFSinif(), panelDuzenleyici })) }
-		if (result == null) { const _e = $.extend({}, e, { liste: [] }); this.listeBasliklariDuzenle(e); result = _e.liste }
+		if (result == null) { let _e = $.extend({}, e, { liste: [] }); this.listeBasliklariDuzenle(e); result = _e.liste }
 		if ($.isEmptyObject(result)) { result = this.getMFSinif(e)?.listeBasliklari }
-		const orjBaslikListesi = this.getOrjBaslikListesi(e); if ($.isEmptyObject(result) && !$.isEmptyObject(orjBaslikListesi)) { result = orjBaslikListesi }
-		const ekKolonlar = panelDuzenleyici?.tabloKolonlari, colAttrSet = {}, _result = result || [];
+		let orjBaslikListesi = this.getOrjBaslikListesi(e); if ($.isEmptyObject(result) && !$.isEmptyObject(orjBaslikListesi)) { result = orjBaslikListesi }
+		let ekKolonlar = panelDuzenleyici?.tabloKolonlari, colAttrSet = {}, _result = result || [];
 		result = []; if (ekKolonlar?.length) {
-			for (const colDef of ekKolonlar) { const {belirtec} = colDef; if (colDef?.ekKolonmu && !colAttrSet[belirtec]) { colAttrSet[belirtec] = true; result.push(colDef) } }
+			for (let colDef of ekKolonlar) { let {belirtec} = colDef; if (colDef?.ekKolonmu && !colAttrSet[belirtec]) { colAttrSet[belirtec] = true; result.push(colDef) } }
 		}
-		for (const colDef of _result) { const {belirtec} = colDef; if (!colAttrSet[belirtec]) { result.push(colDef) } }
+		for (let colDef of _result) { let {belirtec} = colDef; if (!colAttrSet[belirtec]) { result.push(colDef) } }
 		return this._listeBasliklari = result || []
 	}
 	getMFSinif(e) { e = e || {}; let result = this.mfSinif; if (result && isClass(result)) { result = getFuncValue.call(this, result, e) } return this._mfSinif = result }
 	getSecimler(e) { e = e || {}; let result = this.secimler; if (result && isInstance(result)) { result = getFuncValue.call(this, result, e) } return this._secimler = result }
 	getTanimUISinif(e) {
-		e = e || {}; let result = this.tanimUISinif; if (result && !result.prototype && $.isFunction(result)) result = getFuncValue.call(this, result, e)
-		if (result == null) result = this._tanimUISinif = e.mfSinif?.tanimUISinif
+		e = e || {}; let result = this.tanimUISinif;
+		if (result && !result.prototype && $.isFunction(result)) { result = getFuncValue.call(this, result, e) }
+		if (result == null) { result = this._tanimUISinif = e.mfSinif?.tanimUISinif }
 		return result
 	}
 	getTanimlanabilirmi(e) {
-		e = e || {}; let result = this.tanimlanabilirmi; if (result && !result.prototype && $.isFunction(result)) result = getFuncValue.call(this, result, e)
-		if (result == null) result = this._tanimlanabilirmi = e.mfSinif?.tanimlanabilirmi
+		e = e || {}; let result = this.tanimlanabilirmi;
+		if (result && !result.prototype && $.isFunction(result)) { result = getFuncValue.call(this, result, e) }
+		if (result == null) { result = this._tanimlanabilirmi = e.mfSinif?.tanimlanabilirmi }
 		return result
 	}
 	getSilinebilirmi(e) {
-		e = e || {}; let result = this.silinebilirmi; if (result && !result.prototype && $.isFunction(result)) result = getFuncValue.call(this, result, e)
-		if (result == null) result = this._silinebilirmi = e.mfSinif?.silinebilirmi
+		e = e || {}; let result = this.silinebilirmi;
+		if (result && !result.prototype && $.isFunction(result)) { result = getFuncValue.call(this, result, e) }
+		if (result == null) { result = this._silinebilirmi = e.mfSinif?.silinebilirmi }
 		return result
 	}
 
@@ -79,7 +82,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			let grupAttrListe = mfSinif?.orjBaslikListesi_panelGrupAttrListe || [], ustSeviyeAttrListe = mfSinif?.orjBaslikListesi_panelUstSeviyeAttrListe || [];
 			if (!grupAttrListe?.length && ustSeviyeAttrListe?.length) { grupAttrListe = [...ustSeviyeAttrListe] }
 			else if (grupAttrListe?.length && !ustSeviyeAttrListe?.length) { ustSeviyeAttrListe = [...grupAttrListe] }
-			const groups = mfSinif?.orjBaslikListesi_getGroups(e); if (groups?.length) { ustSeviyeAttrListe.push(...groups) }
+			let groups = mfSinif?.orjBaslikListesi_getGroups(e); if (groups?.length) { ustSeviyeAttrListe.push(...groups) }
 			$.extend(panelDuzenleyici, { gridPart: this, grupAttrListe, ustSeviyeAttrListe });
 			if (!panelDuzenleyici.colCount) { panelDuzenleyici.colCount = e => this.getColCount(e) }
 		}
@@ -89,17 +92,17 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		this.initBlock?.call(this, _e)
 	}
 	runDevam(e) {
-		e = e || {}; const mfSinif = this.getMFSinif(e), {layout} = this; $.extend(e, { layout, sender: this });
+		e = e || {}; let mfSinif = this.getMFSinif(e), {layout} = this; $.extend(e, { layout, sender: this });
 		if (mfSinif) {
-			const {parentMFSinif} = mfSinif; if (parentMFSinif) { layout.addClass(parentMFSinif.dataKey ?? parentMFSinif.classKey) }
+			let {parentMFSinif} = mfSinif; if (parentMFSinif) { layout.addClass(parentMFSinif.dataKey ?? parentMFSinif.classKey) }
 			layout.addClass(mfSinif.dataKey ?? mfSinif.classKey); if (mfSinif.listeEkrani_init) { mfSinif.listeEkrani_init(e) };
 		}
 		super.runDevam(e); this.initBulForm(e)
 	}
 	afterRun(e) {
-		e = e || {}; super.afterRun(e); const mfSinif = this.getMFSinif(e); const {parent, layout} = this; let {builder} = this;
+		e = e || {}; super.afterRun(e); let mfSinif = this.getMFSinif(e); let {parent, layout} = this; let {builder} = this;
 		$.extend(e, { sender: this, parent, layout });
-		if (!builder && mfSinif?.getRootFormBuilder_listeEkrani) { const _e = $.extend({}, e); builder = this.builder = mfSinif.getRootFormBuilder_listeEkrani(_e) }
+		if (!builder && mfSinif?.getRootFormBuilder_listeEkrani) { let _e = $.extend({}, e); builder = this.builder = mfSinif.getRootFormBuilder_listeEkrani(_e) }
 		if (builder && !builder._afterRun_calistimi) {
 			builder.part = this; let _parent = builder.parent, _layout = builder.layout; this.builder = builder;
 			if (!(parent?.length || layout?.length)) _layout = builder.layout = layout
@@ -109,28 +112,28 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		$.extend(e, { layout, sender: this, gridPart: this, builder }); if (mfSinif?.listeEkrani_afterRun) { mfSinif.listeEkrani_afterRun(e) }
 	}
 	destroyPart(e) {
-		const {layout, builder} = this, mfSinif = this.getMFSinif(); $.extend(e, { layout, sender: this, gridPart: this, builder });
+		let {layout, builder} = this, mfSinif = this.getMFSinif(); $.extend(e, { layout, sender: this, gridPart: this, builder });
 		if (mfSinif?.listeEkrani_destroyPart) { mfSinif.listeEkrani_destroyPart(e) }
-		const {secimlerPart} = this; if (secimlerPart) { secimlerPart.close(e); secimlerPart.destroyPart() }
+		let {secimlerPart} = this; if (secimlerPart) { secimlerPart.close(e); secimlerPart.destroyPart() }
 		super.destroyPart(e); $('body').removeClass('bg-modal')
 	}
 	activated(e) {
 		e = e || {}; super.activated(e); if (!this._activatedFlag) { this._activatedFlag = true; return }
-		const {layout, builder} = this, mfSinif = this.getMFSinif(); $.extend(e, { layout, sender: this, gridPart: this, builder });
+		let {layout, builder} = this, mfSinif = this.getMFSinif(); $.extend(e, { layout, sender: this, gridPart: this, builder });
 		if (mfSinif?.listeEkrani_activated) { mfSinif.listeEkrani_activated(e) }
 	}
 	deactivated(e) {
 		super.deactivated(e); if (!this._activatedFlag) { this._activatedFlag = true; return }
-		const {layout, builder} = this, mfSinif = this.getMFSinif(); $.extend(e, { layout, sender: this, gridPart: this, builder });
+		let {layout, builder} = this, mfSinif = this.getMFSinif(); $.extend(e, { layout, sender: this, gridPart: this, builder });
 		if (mfSinif?.listeEkrani_deactivated) { mfSinif.listeEkrani_deactivated(e) }
 	}
 	initBulForm(e) {
-		const {layout} = this; let {bulForm} = this; if (!bulForm?.length) { bulForm = layout.find('#bulForm') } if (!bulForm?.length) { bulForm = layout.find('.bulForm') }
+		let {layout} = this; let {bulForm} = this; if (!bulForm?.length) { bulForm = layout.find('#bulForm') } if (!bulForm?.length) { bulForm = layout.find('.bulForm') }
 		if (bulForm?.length) {
-			const mfSinif = this.getMFSinif(e);
+			let mfSinif = this.getMFSinif(e);
 			if (!mfSinif || mfSinif.bulFormKullanilirmi) {
 				let {bulPart} = this; if (!bulPart) {
-					bulPart = this.bulPart = new FiltreFormPart({ layout: bulForm, degisince: e => { const {tokens} = e; this.hizliBulIslemi({ sender: this, layout, tokens }) } });
+					bulPart = this.bulPart = new FiltreFormPart({ layout: bulForm, degisince: e => { let {tokens} = e; this.hizliBulIslemi({ sender: this, layout, tokens }) } });
 					bulPart.run()
 				}
 			}
@@ -138,14 +141,14 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		}
 	}
 	hizliBulIslemi(e) {
-		const mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_hizliBulIslemi) { if (mfSinif.orjBaslikListesi_hizliBulIslemi(e) === false) { return } }
+		let mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_hizliBulIslemi) { if (mfSinif.orjBaslikListesi_hizliBulIslemi(e) === false) { return } }
 		return super.hizliBulIslemi(e)
 	}
 	islemTuslariDuzenle(e) {
-		const mfSinif = this.getMFSinif(), {secimler, panelDuzenleyici} = this;
+		let mfSinif = this.getMFSinif(), {secimler, panelDuzenleyici} = this;
 		if (panelDuzenleyici?.islemTuslariDuzenle_listeEkrani_ilk) { panelDuzenleyici.islemTuslariDuzenle_listeEkrani_ilk(_e) }
 		if (mfSinif?.islemTuslariDuzenle_listeEkrani_ilk) { mfSinif.islemTuslariDuzenle_listeEkrani_ilk(e) }
-		super.islemTuslariDuzenle(e); const {liste} = e; let yListe = [];
+		super.islemTuslariDuzenle(e); let {liste} = e; let yListe = [];
 		if (!panelDuzenleyici && (!mfSinif || mfSinif?.kolonDuzenlemeYapilirmi)) { yListe.push({ id: 'basliklariDuzenle', handler: e => this.basliklariDuzenleIstendi(e) }) }
 		if (secimler && mfSinif?.raporKullanilirmi) { yListe.push({ id: 'rapor', handler: e => this.sabitBilgiRaporuIstendi(e) }) }
 		if (!panelDuzenleyici && (!mfSinif || mfSinif?.kolonFiltreKullanilirmi)) { yListe.push({ id: 'kolonFiltre', handler: e => this.kolonFiltreIstendi(e) }) }
@@ -156,7 +159,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 				{ id: 'excel', handler: _e => this.gridExport_excel({ ...e, ..._e }) }
 			)
 		}
-		const _e = $.extend({}, e, { mfSinif, secimler, orjListe: yListe }), tanimlanabilirmi = this.getTanimlanabilirmi(_e), silinebilirmi = this.getSilinebilirmi(_e);
+		let _e = $.extend({}, e, { mfSinif, secimler, orjListe: yListe }), tanimlanabilirmi = this.getTanimlanabilirmi(_e), silinebilirmi = this.getSilinebilirmi(_e);
 		if (tanimlanabilirmi) { yListe.push( { id: 'yeni', handler: e => this.yeniIstendi(e) }, { id: 'degistir', handler: e => this.degistirIstendi(e) }, { id: 'kopya', handler: e => this.kopyaIstendi(e) } ) }
 		if (silinebilirmi) { yListe.push({ id: 'sil', args: { template: 'danger' }, handler: e => this.silIstendi(e) }) }
 		if (!$.isEmptyObject(liste)) { yListe.push(...liste) } e.liste = yListe;
@@ -168,13 +171,13 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		e.liste = yListe
 	}
 	gridInit(e) {
-		super.gridInit(e); const {grid, gridWidget} = this; this.expandedIndexes = {}; const {panelDuzenleyici} = this, mfSinif = this.getMFSinif();
-		/*const animation = 'grid-open-fast'; if (!noAnimateFlag) { grid.addClass(animation); clearTimeout(this.timer_animate); this.timer_animate = setTimeout(() => { grid.removeClass(animation); delete this.timer_animate }, 2000) }*/
-		const _e = $.extend({}, e, { sender: this, mfSinif, grid, gridWidget });
+		super.gridInit(e); let {grid, gridWidget} = this; this.expandedIndexes = {}; let {panelDuzenleyici} = this, mfSinif = this.getMFSinif();
+		/*let animation = 'grid-open-fast'; if (!noAnimateFlag) { grid.addClass(animation); clearTimeout(this.timer_animate); this.timer_animate = setTimeout(() => { grid.removeClass(animation); delete this.timer_animate }, 2000) }*/
+		let _e = $.extend({}, e, { sender: this, mfSinif, grid, gridWidget });
 		if (panelDuzenleyici?.gridInit) { panelDuzenleyici.gridInit(_e) } if (mfSinif?.orjBaslikListesi_gridInit) { mfSinif.orjBaslikListesi_gridInit(_e) }
 	}
 	gridArgsDuzenleDevam(e) {
-		super.gridArgsDuzenleDevam(e); const {args} = e, mfSinif = this.getMFSinif(), {panelDuzenleyici} = this;
+		super.gridArgsDuzenleDevam(e); let {args} = e, mfSinif = this.getMFSinif(), {panelDuzenleyici} = this;
 		$.extend(args, { autoShowLoadElement: true, showGroupsHeader: true, showFilterRow: false, filterMode: 'default' /* virtualMode: true */ });
 		if (panelDuzenleyici?.gridArgsDuzenle) { panelDuzenleyici.gridArgsDuzenle(e) }
 		if (mfSinif) {
@@ -182,25 +185,25 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 				$.extend(args, {
 					selectionMode: 'checkbox', /* virtualMode: true, */ rowDetails: true,
 					rowDetailsTemplate: rowIndex => ({ rowdetails: `<div class="detay-grid-parent dock-bottom"><div class="detay-grid"/></div>`, rowdetailsheight: 350 }),
-					initRowDetails: (rowIndex, _parent, grid, parentRec) => { const parent = $(_parent).find('.detay-grid'); this.initRowDetails({ rowIndex, parent, parentRec }) }
+					initRowDetails: (rowIndex, _parent, grid, parentRec) => { let parent = $(_parent).find('.detay-grid'); this.initRowDetails({ rowIndex, parent, parentRec }) }
 				})
 			}
 			if (mfSinif.orjBaslikListesi_argsDuzenle) { mfSinif.orjBaslikListesi_argsDuzenle(e) }
-			const rowsHeight = this.getRowsHeight(e); if (rowsHeight) { $.extend(args, { rowsHeight }) }
+			let rowsHeight = this.getRowsHeight(e); if (rowsHeight) { $.extend(args, { rowsHeight }) }
 		}
 		else {
-			const yerelParam = app.params.yerel || {}, mfSinif2KolonAyarlari = yerelParam.mfSinif2KolonAyarlari = yerelParam.mfSinif2KolonAyarlari || {};
-			const ignoreAttrSet = asSet(['_rowNumber']), yerelParamBelirtec = mfSinif?.yerelParamBelirtec || this.class.classKey;
+			let yerelParam = app.params.yerel || {}, mfSinif2KolonAyarlari = yerelParam.mfSinif2KolonAyarlari = yerelParam.mfSinif2KolonAyarlari || {};
+			let ignoreAttrSet = asSet(['_rowNumber']), yerelParamBelirtec = mfSinif?.yerelParamBelirtec || this.class.classKey;
 			let kolonAyarlari = {}; if (yerelParamBelirtec) kolonAyarlari = mfSinif2KolonAyarlari[yerelParamBelirtec] || {};
-			const gorunumSet = asSet(kolonAyarlari.gorunumListesi || []);
-			if (!$.isEmptyObject(gorunumSet)) { e.tabloKolonlari = e.tabloKolonlari.filter(colDef => { const {belirtec} = colDef; return ignoreAttrSet[belirtec] || gorunumSet[belirtec] }) }
+			let gorunumSet = asSet(kolonAyarlari.gorunumListesi || []);
+			if (!$.isEmptyObject(gorunumSet)) { e.tabloKolonlari = e.tabloKolonlari.filter(colDef => { let {belirtec} = colDef; return ignoreAttrSet[belirtec] || gorunumSet[belirtec] }) }
 		}
 	}
 	initRowDetails(e) {
 		e = $.extend({}, e, { parentPart: this });
 		let {grid, gridWidget} = this, {parent, parentRec, rowIndex} = e, mfSinif = e.mfSinif = this.getMFSinif(e);
 		if (mfSinif?.orjBaslikListesi_initRowDetails) {
-			const _e = $.extend({}, e, { sender: this, mfSinif, grid, gridWidget });
+			let _e = $.extend({}, e, { sender: this, mfSinif, grid, gridWidget });
 			try { let result = mfSinif.orjBaslikListesi_initRowDetails(_e); if (result === false) { gridWidget.hiderowdetails(rowIndex); return } }
 			catch (ex) { hConfirm(getErrorText(ex), 'Detay Grid Gösterim'); throw ex }
 		}
@@ -221,13 +224,13 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 					gridPart: detGridPart, grid: detGridPart.grid, gridWidget: detGridPart.gridWidget, args
 				});
 				try { return await this.loadServerData_detaylar(_e) }
-				catch (ex) { console.error(ex); const errorText = getErrorText(ex); hConfirm(`<div style="color: firebrick;">${errorText}</div>`, 'Grid Verisi Alınamadı') }
+				catch (ex) { console.error(ex); let errorText = getErrorText(ex); hConfirm(`<div style="color: firebrick;">${errorText}</div>`, 'Grid Verisi Alınamadı') }
 			},
-			veriYuklenince: e => { const {mfSinif} = this; if (mfSinif.gridVeriYuklendi_detaylar) { return mfSinif.gridVeriYuklendi_detaylar(e) } }
+			veriYuklenince: e => { let {mfSinif} = this; if (mfSinif.gridVeriYuklendi_detaylar) { return mfSinif.gridVeriYuklendi_detaylar(e) } }
 		}).noAnimate();
 		detGridPart.run();
 		if (mfSinif?.orjBaslikListesi_initRowDetails_son) {
-			const _e = $.extend({}, e, { sender: this, mfSinif, grid, gridWidget });
+			let _e = $.extend({}, e, { sender: this, mfSinif, grid, gridWidget });
 			try {
 				let result = mfSinif.orjBaslikListesi_initRowDetails_son(_e);
 				if (result === false) { gridWidget.hiderowdetails(rowIndex); return }
@@ -236,15 +239,15 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		}
 	}
 	gridContextMenuIstendi(e) {
-		const mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_gridContextMenuIstendi) { if (mfSinif.orjBaslikListesi_gridContextMenuIstendi(e) === false) { return } }
+		let mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_gridContextMenuIstendi) { if (mfSinif.orjBaslikListesi_gridContextMenuIstendi(e) === false) { return } }
 		super.gridContextMenuIstendi(e)
 	}
-	gridRendered(e) { super.gridRendered(e); const mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_gridRendered) { mfSinif.orjBaslikListesi_gridRendered(e) } }
+	gridRendered(e) { super.gridRendered(e); let mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_gridRendered) { mfSinif.orjBaslikListesi_gridRendered(e) } }
 	gridRowExpanded(e) {
-		super.gridRowExpanded(e); const mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_rowExpanding) { if (mfSinif.orjBaslikListesi_rowExpanding(e) === false) { return } }
-		const {grid, gridWidget, expandedIndexes} = this, evt = e.event || {}, args = evt.args || {}, index = gridWidget.getrowboundindex(args.rowindex);
+		super.gridRowExpanded(e); let mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_rowExpanding) { if (mfSinif.orjBaslikListesi_rowExpanding(e) === false) { return } }
+		let {grid, gridWidget, expandedIndexes} = this, evt = e.event || {}, args = evt.args || {}, index = gridWidget.getrowboundindex(args.rowindex);
 		if (index != null && index > -1) {
-			/*const animation = 'grid-open'; grid.removeClass('grid-open grid-open-fast grid-open-slow');
+			/*let animation = 'grid-open'; grid.removeClass('grid-open grid-open-fast grid-open-slow');
 			setTimeout(() => {
 				grid.addClass(animation); clearTimeout(this.timer_animate);
 				this.timer_animate = setTimeout(() => { grid.removeClass(animation); delete this.timer_animate }, 4000)
@@ -258,27 +261,27 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		if (mfSinif?.orjBaslikListesi_rowExpanded) { mfSinif.orjBaslikListesi_rowExpanded(e) }
 	}
 	gridRowCollapsed(e) {
-		super.gridRowCollapsed(e); const mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_rowCollapsing) { if (mfSinif.orjBaslikListesi_rowCollapsing(e) === false) { return } }
-		const {gridWidget, expandedIndexes} = this, evt = e.event || {}, args = evt.args || {}, index = gridWidget.getrowboundindex(args.rowindex);
+		super.gridRowCollapsed(e); let mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_rowCollapsing) { if (mfSinif.orjBaslikListesi_rowCollapsing(e) === false) { return } }
+		let {gridWidget, expandedIndexes} = this, evt = e.event || {}, args = evt.args || {}, index = gridWidget.getrowboundindex(args.rowindex);
 		if (index != null && index > -1) { delete expandedIndexes[index] }
 		if (mfSinif?.orjBaslikListesi_rowCollapsed) { mfSinif.orjBaslikListesi_rowCollapsed(e) }
 	}
-	gridGroupExpanded(e) { super.gridGroupExpanded(e); const mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_groupExpanded) { mfSinif.orjBaslikListesi_groupExpanded(e) } }
-	gridGroupCollapsed(e) { super.gridGroupCollapsed(e); const mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_groupCollapsed) { mfSinif.orjBaslikListesi_groupCollapsed(e) } }
+	gridGroupExpanded(e) { super.gridGroupExpanded(e); let mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_groupExpanded) { mfSinif.orjBaslikListesi_groupExpanded(e) } }
+	gridGroupCollapsed(e) { super.gridGroupCollapsed(e); let mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_groupCollapsed) { mfSinif.orjBaslikListesi_groupCollapsed(e) } }
 	orjBaslikListesiDuzenle(e) { } listeBasliklariDuzenle(e) { }
 	get defaultTabloKolonlari() {
-		const e = {}; const mfSinif = e.mfSinif = this.getMFSinif(e); let tabloKolonlari = super.defaultTabloKolonlari || [], colAttrSet = asSet(tabloKolonlari.map(colDef => colDef.belirtec));
-		/* const ignoreAttrSet = asSet(['_rowNumber']); */ const listeBasliklari = this.getListeBasliklari({ mfSinif }), sayacSaha = mfSinif?.sayacSaha;
-		for (const colDef of listeBasliklari) {
-			const {belirtec} = colDef;
+		let e = {}; let mfSinif = e.mfSinif = this.getMFSinif(e); let tabloKolonlari = super.defaultTabloKolonlari || [], colAttrSet = asSet(tabloKolonlari.map(colDef => colDef.belirtec));
+		/* let ignoreAttrSet = asSet(['_rowNumber']); */ let listeBasliklari = this.getListeBasliklari({ mfSinif }), sayacSaha = mfSinif?.sayacSaha;
+		for (let colDef of listeBasliklari) {
+			let {belirtec} = colDef;
 			if (!colAttrSet[belirtec] && (belirtec == sayacSaha ? !mfSinif || mfSinif.sayacSahaGosterilirmi : true)) { tabloKolonlari.push(colDef) }
 		}
-		const {panelDuzenleyici} = this; if (panelDuzenleyici?.tabloKolonlariDuzenle) {
-			const _e = $.extend({}, e, { liste: tabloKolonlari }); panelDuzenleyici.tabloKolonlariDuzenle(_e);
+		let {panelDuzenleyici} = this; if (panelDuzenleyici?.tabloKolonlariDuzenle) {
+			let _e = $.extend({}, e, { liste: tabloKolonlari }); panelDuzenleyici.tabloKolonlariDuzenle(_e);
 			colAttrSet = {}; tabloKolonlari = []; let _tabloKolonlari = _e.liste;
 			if (_tabloKolonlari) {
-				for (const colDef of _tabloKolonlari) {
-					if (!colDef) { continue } const {belirtec} = colDef;
+				for (let colDef of _tabloKolonlari) {
+					if (!colDef) { continue } let {belirtec} = colDef;
 					if (!colAttrSet[belirtec]) { colAttrSet[belirtec] = true; tabloKolonlari.push(colDef) }
 				}
 			}
@@ -293,37 +296,37 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		return mfSinif.loadServerData(_e)
 	}
 	loadServerData_recsDuzenle_ilk(e) {
-		super.loadServerData_recsDuzenle(e); const mfSinif = e.mfSinif = this.getMFSinif(e); let {recs} = e; e.args = this.args;
-		if (mfSinif?.orjBaslikListesi_recsDuzenle) { const _recs = mfSinif.orjBaslikListesi_recsDuzenle(e); recs = e.recs; if (_recs) { recs = e.recs = _recs } }
+		super.loadServerData_recsDuzenle(e); let mfSinif = e.mfSinif = this.getMFSinif(e); let {recs} = e; e.args = this.args;
+		if (mfSinif?.orjBaslikListesi_recsDuzenle) { let _recs = mfSinif.orjBaslikListesi_recsDuzenle(e); recs = e.recs; if (_recs) { recs = e.recs = _recs } }
 		return super.loadServerData_recsDuzenle_ilk(e)
 	}
 	loadServerData_recsDuzenle(e) {
-		let recs = super.loadServerData_recsDuzenle(e); if (recs == null) { recs = e.recs } const mfSinif = this.getMFSinif(e);
-		const {panelDuzenleyici} = this; if (panelDuzenleyici?.recsDuzenle) { const _recs = panelDuzenleyici.recsDuzenle(e); if (_recs) { recs = e.recs = _recs } }
-		if (mfSinif?.orjBaslikListesi_recsDuzenleSon) { const _recs = mfSinif.orjBaslikListesi_recsDuzenleSon(e); recs = e.recs; if (_recs) { recs = e.recs = _recs } }
+		let recs = super.loadServerData_recsDuzenle(e); if (recs == null) { recs = e.recs } let mfSinif = this.getMFSinif(e);
+		let {panelDuzenleyici} = this; if (panelDuzenleyici?.recsDuzenle) { let _recs = panelDuzenleyici.recsDuzenle(e); if (_recs) { recs = e.recs = _recs } }
+		if (mfSinif?.orjBaslikListesi_recsDuzenleSon) { let _recs = mfSinif.orjBaslikListesi_recsDuzenleSon(e); recs = e.recs; if (_recs) { recs = e.recs = _recs } }
 		return recs
 	}
-	get tabloKolonlari_detaylar() { const {mfSinif} = this; return mfSinif.listeBasliklari_detaylar }
+	get tabloKolonlari_detaylar() { let {mfSinif} = this; return mfSinif.listeBasliklari_detaylar }
 	loadServerData_detaylar(e) {
-		e = e || {}; const {grid, wsArgs} = e; e.args = this.args;
+		e = e || {}; let {grid, wsArgs} = e; e.args = this.args;
 		if (wsArgs && grid?.length) {
 			if (!grid.jqxGrid('pageable')) {
-				const keys = ['recordstartindex', 'recordendindex', 'pagenum', 'pageindex', 'pagesize']; for (const key of keys) { delete wsArgs[key] } }
+				let keys = ['recordstartindex', 'recordendindex', 'pagenum', 'pageindex', 'pagesize']; for (let key of keys) { delete wsArgs[key] } }
 		}
-		const mfSinif = this.getMFSinif();
-		try { const _e = { ...e, sender: this, tabloKolonlari: this.tabloKolonlari_detaylar, fisSinif: mfSinif }; return mfSinif.loadServerData_detaylar(_e) }
-		catch (ex) { console.error(ex); const errorText = getErrorText(ex); hConfirm(`<div style="color: firebrick;">${errorText}</div>`, 'Detay Grid Verisi Alınamadı') }
+		let mfSinif = this.getMFSinif();
+		try { let _e = { ...e, sender: this, tabloKolonlari: this.tabloKolonlari_detaylar, fisSinif: mfSinif }; return mfSinif.loadServerData_detaylar(_e) }
+		catch (ex) { console.error(ex); let errorText = getErrorText(ex); hConfirm(`<div style="color: firebrick;">${errorText}</div>`, 'Detay Grid Verisi Alınamadı') }
 	}
 	 static async openContextMenu(e) {
-		const evt = e.event, gridPart = e.gridPart ?? e.sender ?? e.parentPart, gridWidget = gridPart?.gridWidget, cells = gridWidget?.getselectedcells();
-		const belirtec = gridPart?.selectedBelirtec, parentRec = e.parentRec = e.parentRec ?? gridPart?.selectedRec;
-		const recs = (e.recs ?? gridPart?.getSubRecs(e) ?? [])?.filter(rec => !!rec), rec = e.rec = (recs || [])[0]; /*if (!rec) { return null }*/
-		const title = e.title ?? 'Menü'; let wnd, wndContent = $(`<div class="full-wh"/>`);
-		const close = e => {
+		let evt = e.event, gridPart = e.gridPart ?? e.sender ?? e.parentPart, gridWidget = gridPart?.gridWidget, cells = gridWidget?.getselectedcells();
+		let belirtec = gridPart?.selectedBelirtec, parentRec = e.parentRec = e.parentRec ?? gridPart?.selectedRec;
+		let recs = (e.recs ?? gridPart?.getSubRecs(e) ?? [])?.filter(rec => !!rec), rec = e.rec = (recs || [])[0]; /*if (!rec) { return null }*/
+		let title = e.title ?? 'Menü'; let wnd, wndContent = $(`<div class="full-wh"/>`);
+		let close = e => {
 			if (!wnd?.length) { return }
 			try { wnd.jqxWindow('close'); wnd = null } catch (ex) { console.error(ex); hConfirm(getErrorText(ex), title) }
 		};
-		const rfb = new RootFormBuilder({ parentPart: gridPart, layout: wndContent }).autoInitLayout();
+		let rfb = new RootFormBuilder({ parentPart: gridPart, layout: wndContent }).autoInitLayout();
 		let form = rfb.addFormWithParent('islemTuslari').altAlta().addStyle(...[
 			e => `$elementCSS button { font-size: 120%; width: var(--full) !important; height: 50px !important; margin: 5px 0 0 5px; margin-block-end: 5px }`,
 			e => `$elementCSS button.jqx-fill-state-normal { background-color: whitesmoke !important }`,
@@ -334,8 +337,8 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			evt, sender: this, gridPart, gridWidget, cells, recs, belirtec, title, close, rfb, form,
 			wndArgs: { isModal: false, closeButtonAction: 'close', width: Math.min(700, $(window).width() - 50), height: Math.min(350, $(window).height() - 100) }
 		});
-		const {formDuzenleyici} = e; if (formDuzenleyici) { const result = await getFuncValue.call(this, formDuzenleyici, e); if (result === false) { return false } }
-		const wndArgsDuzenleyici = e.wndArgsDuzenle ?? e.wndArgsDuzenleyici ?? e.argsDuzenle; if (wndArgsDuzenleyici) { getFuncValue.call(this, wndArgsDuzenleyici, e) }
+		let {formDuzenleyici} = e; if (formDuzenleyici) { let result = await getFuncValue.call(this, formDuzenleyici, e); if (result === false) { return false } }
+		let wndArgsDuzenleyici = e.wndArgsDuzenle ?? e.wndArgsDuzenleyici ?? e.argsDuzenle; if (wndArgsDuzenleyici) { getFuncValue.call(this, wndArgsDuzenleyici, e) }
 		wnd = e.wnd = createJQXWindow({ content: wndContent, title, args: e.wndArgs }); wndContent = e.wndContent = wnd.find('div > .content > .subContent');
 		let mfSinif = e.mfSinif ?? gridPart?.getMFSinif?.() ?? gridPart?.mfSinif;
 		let wndClassNames = [mfSinif?.name, ...this.wndClassNames, 'contextMenu'].filter(x => !!x); wnd.addClass(wndClassNames.filter(x => !!x));
@@ -345,9 +348,9 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	}
 	async openContextMenu(e) { return this.class.openContextMenu(e) }
 	getColCount(e) {
-		e = e || {}; const mfSinif = this.getMFSinif(e), {paramGlobals} = mfSinif; let result = paramGlobals?.colCount;
+		e = e || {}; let mfSinif = this.getMFSinif(e), {paramGlobals} = mfSinif; let result = paramGlobals?.colCount;
 		if (!result) {
-			const maxColCount = mfSinif.orjBaslikListesi_maxColCount, part = this, {recs} = e, recCount = recs?.length, width = $(window).width();
+			let maxColCount = mfSinif.orjBaslikListesi_maxColCount, part = this, {recs} = e, recCount = recs?.length, width = $(window).width();
 			if (width <= 680) { result = 2 }
 			else if (width <= 850) { result = 3 }
 			else if (width <= 1000) { result = 4 }
@@ -360,71 +363,85 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		let mfSinif = this.getMFSinif(e), {paramGlobals} = mfSinif;
 		return paramGlobals?.rowsHeight || mfSinif?.orjBaslikListesi_defaultRowsHeight
 	}
-	getParentRecAtIndex(rowIndex, gridPart) { const {gridWidget} = this || {}; return (rowIndex == null || rowIndex < 0 ? null : gridWidget.getrowdata(rowIndex)) ?? this.selectedRec }
+	getParentRecAtIndex(rowIndex, gridPart) { let {gridWidget} = this || {}; return (rowIndex == null || rowIndex < 0 ? null : gridWidget.getrowdata(rowIndex)) ?? this.selectedRec }
 	getSubRecs(e) { return this.panelDuzenleyici?.getSubRecs(e) } getSubRec(e) { return this.panelDuzenleyici?.getSubRec(e) }
 	async tazeleIstendi(e) {
-		const mfSinif = this.getMFSinif(e); if (mfSinif?.gridTazeleIstendi) { if (await mfSinif.gridTazeleIstendi(e) === false) { return false } }
+		let mfSinif = this.getMFSinif(e); if (mfSinif?.gridTazeleIstendi) { if (await mfSinif.gridTazeleIstendi(e) === false) { return false } }
 		return await super.tazeleIstendi(e)
 	}
 	gridSatirTiklandi(e) {
-		e = e || {}; const mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_satirTiklandi) { if (mfSinif.orjBaslikListesi_satirTiklandi(e) === false) { return false } }
+		e = e || {}; let mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_satirTiklandi) { if (mfSinif.orjBaslikListesi_satirTiklandi(e) === false) { return false } }
 		return super.gridSatirTiklandi(e)
 	}
 	gridSatirCiftTiklandi(e) {
-		e = e || {}; const mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_satirCiftTiklandi) { if (mfSinif.orjBaslikListesi_satirCiftTiklandi(e) === false) { return false } }
+		e = e || {}; let mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_satirCiftTiklandi) { if (mfSinif.orjBaslikListesi_satirCiftTiklandi(e) === false) { return false } }
 		if (super.gridSatirCiftTiklandi(e) === false) return false
-		if (!this.secince && mfSinif?.tanimlanabilirmi) { const args = e.event?.args || {}; this.degistirIstendi($.extend({}, e, { rec: args.owner.getrowdata(args.rowindex), rowIndex: args.rowindex })); return false }
+		if (!this.secince && mfSinif?.tanimlanabilirmi) { let args = e.event?.args || {}; this.degistirIstendi($.extend({}, e, { rec: args.owner.getrowdata(args.rowindex), rowIndex: args.rowindex })); return false }
 		return true
 	}
 	gridHucreTiklandi(e) {
-		e = e || {}; const mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_hucreTiklandi) { if (mfSinif.orjBaslikListesi_hucreTiklandi(e) === false) { return false } }
+		e = e || {}; let mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_hucreTiklandi) { if (mfSinif.orjBaslikListesi_hucreTiklandi(e) === false) { return false } }
 		return super.gridHucreTiklandi(e)
 	}
 	gridHucreCiftTiklandi(e) {
-		e = e || {}; const mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_hucreCiftTiklandi) { if (mfSinif.orjBaslikListesi_hucreCiftTiklandi(e) === false) { return false } }
+		e = e || {}; let mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_hucreCiftTiklandi) { if (mfSinif.orjBaslikListesi_hucreCiftTiklandi(e) === false) { return false } }
 		return super.gridHucreCiftTiklandi(e)
 	}
 	gridVeriYuklendi(e) {
-		super.gridVeriYuklendi(e); const {mfSinif, panelDuzenleyici, grid, bulPart} = this;
-		if (mfSinif) { const groups = mfSinif.orjBaslikListesi_getGroups(e); if (groups?.length) { grid.jqxGrid('groups', groups) } }
+		super.gridVeriYuklendi(e); let {mfSinif, panelDuzenleyici, grid, bulPart} = this;
+		if (mfSinif) { let groups = mfSinif.orjBaslikListesi_getGroups(e); if (groups?.length) { grid.jqxGrid('groups', groups) } }
 		if (panelDuzenleyici?.gridVeriYuklendi) { panelDuzenleyici.gridVeriYuklendi(e) }
 		if (mfSinif) { mfSinif.gridVeriYuklendi(e) }
-		if ((!mfSinif || mfSinif.bulFormKullanilirmi) && bulPart?.layout?.length) { const {noAutoFocus} = mfSinif || {}; if (!noAutoFocus) { setTimeout(() => bulPart.focus(), 50) } }
+		if ((!mfSinif || mfSinif.bulFormKullanilirmi) && bulPart?.layout?.length) { let {noAutoFocus} = mfSinif || {}; if (!noAutoFocus) { setTimeout(() => bulPart.focus(), 50) } }
 		let {veriYukleninceBlock: veriYuklenince} = this; if (veriYuklenince) { getFuncValue.call(this, veriYuklenince, e) }
 	}
 	secimlerIstendi(e) {
 		let {secimlerPart} = this; if (secimlerPart) { secimlerPart.show() }
-		else { const {secimler} = this; if (secimler) { secimlerPart = this.secimlerPart = secimler.duzenlemeEkraniAc({ parentPart: this, tamamIslemi: e => this.tazele() }) } }
+		else {
+			let {secimler} = this; if (secimler) {
+				secimlerPart = this.secimlerPart =
+					secimler.duzenlemeEkraniAc({ parentPart: this, tamamIslemi: e => this.tazele() })
+			}
+		}
 	}
 	async yeniIstendi(e) {
-		const mfSinif = this.getMFSinif(e); const tanimUISinif = this.getTanimUISinif($.extend({}, e, { mfSinif })); if (!tanimUISinif) { return false }
-		const {tanimOncesiEkIslemler, gridWidget} = this, {args} = this, {ozelTanimIslemi} = mfSinif; let inst;
-		const rowIndex = e?.rowIndex ?? gridWidget.getselectedrowindex(), rec = e?.rec ?? gridWidget.getrowdata(rowIndex);
-		const _e = { sender: this, listePart: this, islem: 'yeni', mfSinif, tanimUISinif, rec, rowIndex, args };
-		if (ozelTanimIslemi) return await getFuncValue.call(this, ozelTanimIslemi, _e)
+		let mfSinif = this.getMFSinif(e), {tanimOncesiEkIslemler, gridWidget} = this;
+		let {args} = this, {ozelTanimIslemi, table, tableAlias, aliasVeNokta} = mfSinif, inst;
+		let rowIndex = e?.rowIndex ?? gridWidget.getselectedrowindex(), rec = e?.rec ?? gridWidget.getrowdata(rowIndex);
+		let _e = { sender: this, listePart: this, islem: 'yeni', mfSinif, rec, rowIndex, args, table };
+		let tanimUISinif = _e.tanimUISinif = this.getTanimUISinif(_e);
+		if (ozelTanimIslemi) {
+			let result = await getFuncValue.call(this, ozelTanimIslemi, _e);
+			if (result !== false) { return result }
+		}
+		if (!tanimUISinif) { return false }
 		try {
-			const {yeniInstOlusturucu} = this;
-			if (yeniInstOlusturucu) { inst = await getFuncValue.call(this, yeniInstOlusturucu, _e) }
+			let {yeniInstOlusturucu} = this; if (yeniInstOlusturucu) { inst = await getFuncValue.call(this, yeniInstOlusturucu, _e) }
 			if (inst === undefined && mfSinif.yeniInstOlustur) { inst = await mfSinif.yeniInstOlustur(_e) }
-			if (inst === undefined) inst = new mfSinif(_e); if (inst == null) { return false }
+			if (inst === undefined) { inst = new mfSinif(_e) } if (inst == null) { return false }
 			let {kaydedince: _kaydedince} = e ?? {}, kaydedince = e => { this.tazele(e); _kaydedince?.call(this, e) };
 			return inst.tanimla({ parentPart: this, islem: _e.islem, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince })
 		}
 		catch (ex) { hConfirm(getErrorText(ex), 'Yeni'); throw ex }
 	}
 	async degistirIstendi(e) {
-		e = e || {}; const {tanimOncesiEkIslemler, gridWidget} = this, rowIndex = e.rowIndex ?? this.selectedRowIndex, rec = e.rec ?? gridWidget.getrowdata(rowIndex), mfSinif = this.getMFSinif(e);
-		const tanimUISinif = this.getTanimUISinif($.extend({}, e, { mfSinif, rec })); if (!tanimUISinif) return false
+		e = e || {}; let {tanimOncesiEkIslemler, gridWidget} = this;
+		let rowIndex = e.rowIndex ?? this.selectedRowIndex, rec = e.rec ?? gridWidget.getrowdata(rowIndex), mfSinif = this.getMFSinif(e);
 		if (!rec) { hConfirm('Değiştirilecek satır seçilmelidir', ' '); return false }
-		const {args} = this, {ozelTanimIslemi, table, tableAlias, aliasVeNokta} = mfSinif; let eskiInst, inst;
-		const _e = { sender: this, listePart: this, islem: 'degistir', mfSinif, tanimUISinif, rec, rowIndex, args, table, alias: tableAlias, aliasVeNokta };
-		if (ozelTanimIslemi) return await getFuncValue.call(this, ozelTanimIslemi, _e)
+		let {args} = this, {ozelTanimIslemi, table, tableAlias, aliasVeNokta} = mfSinif, eskiInst, inst;
+		let _e = { sender: this, listePart: this, islem: 'degistir', mfSinif, rec, rowIndex, args, table, alias: tableAlias, aliasVeNokta };
+		let tanimUISinif = _e.tanimUISinif = this.getTanimUISinif(_e);
+		if (ozelTanimIslemi) {
+			let result = await getFuncValue.call(this, ozelTanimIslemi, _e);
+			if (result !== false) { return result }
+		}
+		if (!tanimUISinif) { return false }
 		try {
-			const {yeniInstOlusturucu} = this; if (yeniInstOlusturucu) { eskiInst = await getFuncValue.call(this, yeniInstOlusturucu, _e) }
+			let {yeniInstOlusturucu} = this; if (yeniInstOlusturucu) { eskiInst = await getFuncValue.call(this, yeniInstOlusturucu, _e) }
 			if (eskiInst === undefined && mfSinif.yeniInstOlustur) { eskiInst = await mfSinif.yeniInstOlustur(_e) }
 			if (eskiInst === undefined) eskiInst = new mfSinif(_e)
 			if (eskiInst == null) return false; eskiInst.keySetValues({ rec });
-			if (!await eskiInst.yukle($.extend({}, _e, { rec: null, _rec: rec }))) { const mesaj = 'Seçilen satır için bilgi yüklenemedi'; throw { isError: true, rc: 'instBelirle', errorText: mesaj } }
+			if (!await eskiInst.yukle($.extend({}, _e, { rec: null, _rec: rec }))) { let mesaj = 'Seçilen satır için bilgi yüklenemedi'; throw { isError: true, rc: 'instBelirle', errorText: mesaj } }
 			inst = eskiInst.deepCopy();
 			let {kaydedince: _kaydedince} = e ?? {}, kaydedince = e => { this.tazele(e); _kaydedince?.call(this, e) };
 			return inst.tanimla({ parentPart: this, islem: _e.islem, eskiInst, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince })
@@ -432,19 +449,23 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		catch (ex) { hConfirm(getErrorText(ex), 'Değiştir'); throw ex }
 	}
 	async kopyaIstendi(e) {
-		e = e || {}; const {tanimOncesiEkIslemler, table, tableAlias, aliasVeNokta, gridWidget} = this, rowIndex = e.rowIndex ?? this.selectedRowIndex;
-		const rec = e.rec ?? gridWidget.getrowdata(rowIndex), mfSinif = this.getMFSinif(e);
-		const tanimUISinif = this.getTanimUISinif({ ...e, mfSinif, rec }); if (!tanimUISinif) { return false }
+		e = e || {}; let {tanimOncesiEkIslemler, table, tableAlias, aliasVeNokta, gridWidget} = this;
+		let rowIndex = e.rowIndex ?? this.selectedRowInde, rec = e.rec ?? gridWidget.getrowdata(rowIndex), mfSinif = this.getMFSinif(e);
 		if (!rec) { hConfirm('Kopyalanacak satır seçilmelidir', ' '); return false }
-		const {args} = this, {ozelTanimIslemi} = mfSinif; let eskiInst, inst;
-		const _e = { sender: this, listePart: this, islem: 'kopya', mfSinif, tanimUISinif, rec, rowIndex, args, table, alias: tableAlias, aliasVeNokta };
-		if (ozelTanimIslemi) return await getFuncValue.call(this, ozelTanimIslemi, _e)
+		let {args} = this, {ozelTanimIslemi} = mfSinif; let eskiInst, inst;
+		let _e = { sender: this, listePart: this, islem: 'kopya', mfSinif, rec, rowIndex, args, table, alias: tableAlias, aliasVeNokta };
+		let tanimUISinif = _e.tanimUISinif = this.getTanimUISinif(_e);
+		if (ozelTanimIslemi) {
+			let result = await getFuncValue.call(this, ozelTanimIslemi, _e);
+			if (result !== false) { return result }
+		}
+		if (!tanimUISinif) { return false }
 		try {
-			const {yeniInstOlusturucu} = this; if (yeniInstOlusturucu) { eskiInst = await getFuncValue.call(this, yeniInstOlusturucu, _e) }
+			let {yeniInstOlusturucu} = this; if (yeniInstOlusturucu) { eskiInst = await getFuncValue.call(this, yeniInstOlusturucu, _e) }
 			if (eskiInst === undefined && mfSinif.yeniInstOlustur) eskiInst = await mfSinif.yeniInstOlustur(_e)
 			if (eskiInst === undefined) { eskiInst = new mfSinif(_e) }
 			if (eskiInst == null) return false; eskiInst.keySetValues({ rec });
-			if (!await eskiInst.yukle($.extend({}, _e, { rec: null, _rec: rec }))) { const mesaj = 'Seçilen satır için bilgi yüklenemedi'; throw { isError: true, rc: 'instBelirle', errorText: mesaj } }
+			if (!await eskiInst.yukle($.extend({}, _e, { rec: null, _rec: rec }))) { let mesaj = 'Seçilen satır için bilgi yüklenemedi'; throw { isError: true, rc: 'instBelirle', errorText: mesaj } }
 			inst = await eskiInst.kopyaIcinDuzenle(_e) ?? eskiInst.deepCopy();
 			let {kaydedince: _kaydedince} = e ?? {}, kaydedince = e => { this.tazele(e); _kaydedince?.call(this, e) };
 			return inst.tanimla({ parentPart: this, islem: _e.islem, eskiInst, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince })
@@ -452,49 +473,52 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		catch (ex) { hConfirm(getErrorText(ex), 'Kopyala'); throw ex }
 	}
 	async silIstendi(e) {
-		const mfSinif = this.getMFSinif(e); if (mfSinif && !mfSinif.silinebilirmi) { hConfirm(`Silme işlemi yapılamaz`, ' '); return false }
-		const {gridWidget} = this, rowIndexes = this.selectedRowIndexes, recs = rowIndexes.map(ind => gridWidget.getrowdata(ind)).filter(rec => !!rec);
+		let mfSinif = this.getMFSinif(e); if (mfSinif && !mfSinif.silinebilirmi) { hConfirm(`Silme işlemi yapılamaz`, ' '); return false }
+		let {gridWidget} = this, rowIndexes = this.selectedRowIndexes, recs = rowIndexes.map(ind => gridWidget.getrowdata(ind)).filter(rec => !!rec);
 		if ($.isEmptyObject(recs)) { hConfirm('Silinecek satırlar seçilmelidir', ' '); return false }
 		let rdlg = await ehConfirm(`Seçilen ${recs.length} satır silinsin mi?`, ' '); if (!rdlg) return false
-		try { showProgress(); const result = await this.silDevam($.extend({}, e, { mfSinif, recs, rowIndexes })); return result }
+		try { showProgress(); let result = await this.silDevam($.extend({}, e, { mfSinif, recs, rowIndexes })); return result }
 		catch (ex) { hConfirm(getErrorText(ex), 'Sil'); throw ex }
 		finally { hideProgress(); gridWidget.clearselection(); this.tazele() }
 	}
 	async silDevam(e) {
-		const {recs, rowIndexes} = e, {args} = this, mfSinif = e.mfSinif ?? this.getMFSinif(e), {ozelTanimIslemi} = mfSinif;
-		const __e = { sender: this, listePart: this, islem: 'sil', mfSinif, rowIndexes, args }, _e = { ...__e, recs };
-		if (ozelTanimIslemi) { return await getFuncValue.call(this, ozelTanimIslemi, _e2) }
-		delete _e.rowIndexes; const {sayacSaha} = mfSinif;
-		for (const rec of recs) {
-			_e.rec = rec; const {yeniInstOlusturucu} = this; let inst;
+		let {recs, rowIndexes} = e, {args} = this, mfSinif = e.mfSinif ?? this.getMFSinif(e), {ozelTanimIslemi} = mfSinif;
+		let __e = { sender: this, listePart: this, islem: 'sil', mfSinif, rowIndexes, args }, _e = { ...__e, recs };
+		if (ozelTanimIslemi) {
+			let result = await getFuncValue.call(this, ozelTanimIslemi, _e);
+			if (result !== false) { return result }
+		}
+		delete _e.rowIndexes; let {sayacSaha} = mfSinif;
+		for (let rec of recs) {
+			_e.rec = rec; let {yeniInstOlusturucu} = this; let inst;
 			if (yeniInstOlusturucu) { inst = await getFuncValue.call(this, yeniInstOlusturucu, _e) }
 			if (inst === undefined && mfSinif.yeniInstOlustur) inst = await mfSinif.yeniInstOlustur(_e)
 			if (inst === undefined) inst = new mfSinif(_e)
 			if (inst == null) return false; inst.keySetValues({ rec });
-			/*if (!await inst.yukle(_e)) { const mesaj = 'Seçilen satır için bilgi yüklenemedi'; throw { isError: true, rc: 'instBelirle', errorText: mesaj } }*/
+			/*if (!await inst.yukle(_e)) { let mesaj = 'Seçilen satır için bilgi yüklenemedi'; throw { isError: true, rc: 'instBelirle', errorText: mesaj } }*/
 			await inst.sil(__e)
 		}
 	}
 	basliklariDuzenleIstendi(e) {
-		e = e || {}; const mfSinif = this.getMFSinif(e); const _e = $.extend({}, e, { mfSinif });
+		e = e || {}; let mfSinif = this.getMFSinif(e); let _e = $.extend({}, e, { mfSinif });
 		let orjBaslikListesi = this.getOrjBaslikListesi(_e);
 		if ($.isEmptyObject(orjBaslikListesi)) {
-			const {ekTabloKolonlari, ozelKolonDuzenleBlock} = this, __e = { tabloKolonlari: [] }; 
+			let {ekTabloKolonlari, ozelKolonDuzenleBlock} = this, __e = { tabloKolonlari: [] }; 
 			orjBaslikListesi = __e.tabloKolonlari; orjBaslikListesi.push(...this.defaultTabloKolonlari);
 			if (ekTabloKolonlari) {
-				const colAttrSet = asSet(orjBaslikListesi.map(colDef => colDef.belirtec));
-				for (const colDef of ekTabloKolonlari) { if (!colAttrSet[colDef.belirtec]) orjBaslikListesi.push(colDef) }
+				let colAttrSet = asSet(orjBaslikListesi.map(colDef => colDef.belirtec));
+				for (let colDef of ekTabloKolonlari) { if (!colAttrSet[colDef.belirtec]) orjBaslikListesi.push(colDef) }
 			}
 			if (ozelKolonDuzenleBlock) { let result = getFuncValue.call(this, ozelKolonDuzenleBlock, e); if (result != null) orjBaslikListesi = __e.tabloKolonlari = result }
 		}
-		const {duzTabloKolonlari} = this,  part = new GridKolonDuzenlePart({
+		let {duzTabloKolonlari} = this,  part = new GridKolonDuzenlePart({
 			parentPart: this, mfSinif, orjBaslikListesi, gridTabloKolonlari: duzTabloKolonlari,
 			tamamIslemi: e => {
 				setTimeout(() => {
-					const {layout, grid, args, builder} = this;
+					let {layout, grid, args, builder} = this;
 					if (mfSinif) { mfSinif.listeEkraniAc({ args }); setTimeout(() => this.layout.css('opacity', .8), 200); setTimeout(() => this.close(), 350) }
 					else {
-						layout.css('opacity', .8); const _e = $.extend({}, e, { sender: this, builder, grid, args: {} }); this.gridArgsDuzenle(_e);
+						layout.css('opacity', .8); let _e = $.extend({}, e, { sender: this, builder, grid, args: {} }); this.gridArgsDuzenle(_e);
 						grid.jqxGrid('columns', _e.args.columns); setTimeout(layout => layout.css('opacity', 1), 100, layout)
 					}
 				}, 10)
@@ -502,13 +526,13 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		}); part.run()
 	}
 	sabitBilgiRaporuIstendi(e) {
-		e = e || {}; const mfSinif = this.getMFSinif(e), {secimler} = this;
-		const {sabitBilgiRaporcuSinif} = mfSinif; if (!sabitBilgiRaporcuSinif) { return }
-		const modelRapor = new sabitBilgiRaporcuSinif({ parentPart: this, mfSinif: mfSinif, secimler }); modelRapor.raporEkraniAc()
+		e = e || {}; let mfSinif = this.getMFSinif(e), {secimler} = this;
+		let {sabitBilgiRaporcuSinif} = mfSinif; if (!sabitBilgiRaporcuSinif) { return }
+		let modelRapor = new sabitBilgiRaporcuSinif({ parentPart: this, mfSinif: mfSinif, secimler }); modelRapor.raporEkraniAc()
 	}
-	boyutlandirIstendi(e) { const {panelDuzenleyici} = this; if (panelDuzenleyici?.boyutlandirIstendi) { panelDuzenleyici?.boyutlandirIstendi(e) } }
+	boyutlandirIstendi(e) { let {panelDuzenleyici} = this; if (panelDuzenleyici?.boyutlandirIstendi) { panelDuzenleyici?.boyutlandirIstendi(e) } }
 	async vazgecIstendi(e) {
-		e = e ?? {}; const mfSinif = this.getMFSinif(e)
+		e = e ?? {}; let mfSinif = this.getMFSinif(e)
 		if (await mfSinif?.listeEkrani_vazgecOncesi?.(e) === false) { return false }
 		return await super.vazgecIstendi(e)
 	}
@@ -553,8 +577,8 @@ p = new MasterListePart({
 	secince: e => {
 	},
 	acilinca: e => {
-		const part = e.sender;
-		const {header} = part
+		let part = e.sender;
+		let {header} = part
 		/-new FormBuilder({
 			part: part, layout: header, builders: []
 		}).run()-/

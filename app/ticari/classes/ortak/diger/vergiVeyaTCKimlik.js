@@ -14,7 +14,17 @@ class VergiVeyaTCKimlik extends CObject {
 class VergiNo extends VergiVeyaTCKimlik {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get haneSayisi() { return 10 }
-	static uygunmu(value) { return /^\d{10}$/.test(value) }
+	static uygunmu(value) {
+		if (!/^\d{10}$/.test(value)) { return false }
+		let digits = value.split('').map(Number);
+		let sum = 0; for (let i = 0; i < 9; i++) {
+			let tmp = (digits[i] + 9 - i) % 10;
+			let pow = tmp * Math.pow(2, 9 - i);
+			sum += (pow % 9 == 0) ? 9 : (pow % 9)
+		}
+		let checkDigit = (10 - (sum % 10)) % 10;
+		return digits[9] == checkDigit
+	}
 }
 class TCKimlik extends VergiVeyaTCKimlik {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

@@ -63,8 +63,8 @@ class MQKontor extends MQDetayliMaster {
 			 $elementCSS button { min-width: unset !important }`);
 		if (login.adminmi || login.bayimi) {
 			let form = form_ek.addFormWithParent('kontor').yanYana().addStyle_fullWH();
-			form.addNumberInput('kontorSayi', 'Kontör Satışı').etiketGosterim_yok()
-				.addStyle_wh(130).addCSS('center')
+			form.addNumberInput('kontorSayi', 'Kontör Satışı').setAltInst(gridPart)
+				.etiketGosterim_yok().addStyle_wh(130).addCSS('center')
 				.onAfterRun(({ builder: fbd }) =>
 					fbd.input.on('keyup', ({ key }) => {
 						key = key.toLowerCase();
@@ -75,21 +75,21 @@ class MQKontor extends MQDetayliMaster {
 					})
 				);
 			form.addButton('kontorEkle', '+').addStyle_wh(80)
-				.onClick(async e => {
-					try { await this.kontor_yeniIstendi(e) }
+				.onClick(async _e => {
+					try { await this.kontor_yeniIstendi(({ ..._e, ...e })) }
 					catch (ex) { hConfirm(getErrorText(ex), 'Kontör Satışı'); throw ex }
 			})
 		}
 		if ((login.adminmi || login.sefmi) && this.faturalastirmaYapilirmi) {
 			form_ek.addButton('faturalastir', 'FAT').addStyle_wh(90)
 				.addStyle(`$elementCSS { left: 50px !important }`)
-				.onClick(async e => {
-					try { await this.kontor_topluFaturalastirIstendi(e) }
+				.onClick(async _e => {
+					try { await this.kontor_topluFaturalastirIstendi({ ..._e, ...e }) }
 					catch (ex) { hConfirm(getErrorText(ex), 'Kontör Faturalaştır'); throw ex }
 				})
 		}
 		if (mustKod) {
-			rfb.addForm('must').setParent(header)
+			rfb.addForm('must').setParent(header).setAltInst(gridPart)
 				.setLayout(({ builder: fbd }) => $(`<div class="${fbd.id}">${mustKod}</div>`))
 				.addStyle(`$elementCSS { font-size: 130%; color: royalblue; margin: 15px 0 5px 0 !important; padding: 8px 10px !important }`)
 				.onAfterRun(({ builder: fbd }) => setKA(fbd, mustKod, MQLogin_Musteri.getGloKod2Adi(mustKod)))
@@ -197,8 +197,10 @@ class MQKontor extends MQDetayliMaster {
 		gridPart.islemTuslariPart.layout.find('button#degistir')?.click()
 	}
 	static kontor_yeniIstendi(e) {
-		let islemAdi = e.islemAdi = 'Kontör Satışı', {part} = e.builder.rootBuilder, {mustKod, kontorSayi} = part, {current: login} = MQLogin;
-		if (!mustKod) { hConfirm('Müşteri seçilmelidir', islemAdi); return false }
+		let islem = e.islem = 'yeni', islemAdi = e.islemAdi = 'Kontör Satışı';
+		let part = e.gridPart ?? e.sender ?? e.builder?.rootBuilder;
+		let {mustKod, kontorSayi} = part, {current: login} = MQLogin;
+		/* if (!mustKod) { hConfirm('Müşteri seçilmelidir', islemAdi); return false } */
 		if (!(login.adminmi || login.bayimi)) { hConfirm('<b>Kontör İşlemi Yapma</b> yetkiniz yok', islemAdi); return false }
 		if (!login.yetkiVarmi('degistir')) { hConfirm('Kayıt <b>Değiştirme</b> yetkiniz yok', islemAdi); return false }
 		/* if ((kontorSayi ?? 0) <= 0) { hConfirm('Kontör Sayısı geçersizdir', islemAdi); return false } */
@@ -216,9 +218,9 @@ class MQKontor extends MQDetayliMaster {
 				},
 				vazgec: _e => wnd?.jqxWindow('close')
 			});
-		let form = e.fbd_form = rfb.addFormWithParent('form').yanYana();
+		let form = e.fbd_form = rfb.addFormWithParent('form').altAlta();
 		this.rootFormBuilderDuzenle_kontor(e); rfb = e.rfb; rfb.run();
-		wnd = createJQXWindow({ title: islemAdi, content: rfb.layout, args: { width: 500, height: 200 } });
+		wnd = createJQXWindow({ title: islemAdi, content: rfb.layout, args: { isModal: false, width: 800, height: 290 } });
 		return true
 	}
 	static async kontor_topluFaturalastirIstendi(e) {
@@ -367,7 +369,9 @@ class MQKontor extends MQDetayliMaster {
 	}
 	static async kontor_ekle({ islemAdi, inst, part }) {
 		let {mustKod, kontorSayi, fatDurum} = inst;
-		if ((kontorSayi ?? 0) <= 0) {  hConfirm('<b>Kontör Sayısı</b> geçersizdir', islemAdi); return false }
+		if (!mustKod) { hConfirm('<b>Müşteri</b> belirtilmelidir', islemAdi); return false }
+		let mesaj = await MQLogin_Musteri.kodYoksaMesaj(mustKod); if (mesaj) { hConfirm(mesaj, islemAdi); return false }
+		if ((kontorSayi ?? 0) <= 0) { hConfirm('<b>Kontör Sayısı</b> geçersizdir', islemAdi); return false }
 		let {tip, table, detayTable} = this;
 		let ahtipi = 'A', tarih = today(), mustkod = mustKod;
 		let kontorsayi = kontorSayi, fatdurum = fatDurum.char ?? fatDurum;
@@ -449,8 +453,20 @@ class MQKontorDetay extends MQDetay {
 		sahalar.add(`${alias}.ahtipi`, `${alias}.fatdurum`);
 		orderBy.liste = ['ahtipi', 'tarih DESC', 'fisnox DESC']
 	}
-	static rootFormBuilderDuzenle_kontor({ rfb, fbd_form: form, inst }) {
-		let {fatDurum} = inst;
+	static rootFormBuilderDuzenle_kontor({ rfb, fbd_form: parentForm, inst, islem }) {
+		let {fatDurum} = inst, degistirmi = islem == 'degistir';
+		let form = parentForm.addFormWithParent().altAlta();
+		let fbd_must = form.addModelKullan('mustKod', 'Müşteri').comboBox().setMFSinif(MQLogin_Musteri).autoBind()
+			.ozelQueryDuzenleHandler(({ stm, aliasVeNokta, mfSinif }) => {
+				let {kodSaha} = mfSinif, clauses = { musteri: `${aliasVeNokta}${kodSaha}`, bayi: `${aliasVeNokta}bayikod` };
+				for (let sent of stm) {
+					let {where: wh} = sent;
+					wh.add(`${aliasVeNokta}aktifmi <> ''`);
+					MQLogin.current.yetkiClauseDuzenle({ sent, clauses })
+				}
+			});
+		if (degistirmi) { fbd_must.disable() }
+		form = parentForm.addFormWithParent().yanYana();
 		form.addNumberInput('kontorSayi', 'Kontör Sayı').addStyle_wh(130)
 			.degisince(({ builder: fbd }) => fbd.parentBuilder.id2Builder.fatDurum.updateVisible())
 			.onAfterRun(({ builder: fbd }) => fbd.input.focus());
@@ -465,8 +481,8 @@ class MQKontorDetay extends MQDetay {
 		})
 	}
 	static kontor_degistirIstendi(e) {
-		let islemAdi = e.islemAdi = 'Kontör Düzenle', {sender: part, parentRec, rec, inst} = e;
-		let parentPart = e.parentPart ?? part.parentPart, detaySinif = this;
+		let islem = e.islem = 'degistir', islemAdi = e.islemAdi = 'Kontör Düzenle';
+		let {sender: part, parentRec, rec, inst} = e, parentPart = e.parentPart ?? part.parentPart, detaySinif = this;
 		if (!MQLogin.current.yetkiVarmi('degistir')) { hConfirm('Kayıt <b>Değiştirme</b> yetkiniz yok', islemAdi); return false }
 		if (parentRec == null) { parentRec = e.parentRec = parentPart.selectedRec }
 		if (inst == null) {
@@ -486,13 +502,14 @@ class MQKontorDetay extends MQDetay {
 				},
 				vazgec: _e => wnd?.jqxWindow('close')
 			});
-		let form = e.fbd_form = rfb.addFormWithParent('form').yanYana();
+		let form = e.fbd_form = rfb.addFormWithParent('form').altAlta();
 		this.rootFormBuilderDuzenle_kontor(e); rfb = e.rfb; rfb.run();
-		wnd = createJQXWindow({ title: islemAdi, content: rfb.layout, args: { width: 500, height: 200 } });
+		wnd = createJQXWindow({ title: islemAdi, content: rfb.layout, args: { isModal: false, width: 800, height: 290 } });
 		return true
 	}
 	static async kontor_degistir({ islemAdi, inst, part }) {
-		let {fisSayac, okunanHarSayac: sayac, prevKontorSayi, kontorSayi, fatDurum} = inst, {tip, table} = MQKontor, {table: detayTable} = this;
+		let {fisSayac, okunanHarSayac: sayac, prevKontorSayi, kontorSayi, fatDurum} = inst;
+		let {tip, table} = MQKontor, {table: detayTable} = this;
 		let kontorFark = kontorSayi - (prevKontorSayi ?? 0); fatDurum = fatDurum?.char ?? fatDurum;
 		let query = new MQToplu([
 			new MQIliskiliUpdate({
