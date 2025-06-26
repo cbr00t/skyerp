@@ -130,6 +130,10 @@ class TicariApp extends App {
 		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
 		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'faturalar_dip', args: e }) })
 	}
+	wsStokSonSatisSip(e) {
+		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
+		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'stokSonSatisSip', args: e }) })
+	}
 	async getParamYapilar(e) {
 		e = e || {}; const kodListe = typeof e == 'string' ? [e] : $.isArray(e) ? e : (e.kodListe || e.kod);
 		const sent = new MQSent({ from: 'yflaglar', where: [`kod <> ''`, `jsonstr <> ''`], sahalar: ['kod', 'jsonstr'] });
