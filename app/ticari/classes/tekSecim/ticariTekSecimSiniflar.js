@@ -52,15 +52,33 @@ class NormalFiili extends TekSecim {
 		)
 	}
 }
+class AlimSatis extends TekSecim {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get defaultChar() { return 'T' }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(
+			new CKodVeAdi(['T', '<span class=forestgreen>Satış</span>', 'satismi']),
+			new CKodVeAdi(['A', '<span class=firebrick>Alım</span>', 'alimmi'])
+		)
+	}
+}
 class NormalIade extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultChar() { return '' } get normalmi() { return this.char == '' } get iademi() { return this.char == 'I' }
-	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+	static get defaultChar() { return ' ' }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments);
 		kaListe.push(
-			new CKodVeAdi(['', 'Normal']),
-			new CKodVeAdi(['I', `<span class="red">İade</span>`])
+			new CKodVeAdi([' ', 'Normal', 'normalmi']),
+			new CKodVeAdi(['I', `<span class=red>İADE</span>`, 'iademi'])
 		)
+	}
+}
+class NormalIadeVeBirlikte extends NormalIade {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments);
+		kaListe.push(new CKodVeAdi(['X', 'Birlikte', 'birliktemi']))
 	}
 }
 class BorcAlacak extends TekSecim {

@@ -198,7 +198,7 @@ class MQGuidVeAdi extends MQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static mqGUIDmi() { return true }
 	static get kodKullanilirmi() { return false } static get bosKodAlinirmi() { return true } static get kodSaha() { return 'id' }
 	get id() { return this.kod } set id(value) { this.kod = value } get kodUyarlanmis() { return super.kodUyarlanmis || null }
-	constructor(e) { e = e || {}; const {id} = e; if (id !== undefined) { e.kod = id; delete e.id } super(e) }
+	constructor(e) { e = e || {}; let {id} = e; if (id !== undefined) { e.kod = id; delete e.id } super(e) }
 	static standartGorunumListesiDuzenle(e) {
 		const {liste} = e, orjBaslikListesi = e.orjBaslikListesi ?? this.orjBaslikListesi;
 		const ignoreBelirtecSet = asSet([config.dev ? null : this.kodSaha].filter(x => !!x));

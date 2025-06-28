@@ -183,15 +183,15 @@ class SecimlerPart extends Part {
 	}
 	secimSaklaIstendi(e) {
 		let aciklama = prompt('Seçim Adını giriniz'); if (!aciklama) { return }
-		const {config, rootConfig, secimler, mfSinif} = this; config[aciklama] = secimler.asObject; rootConfig?.kaydetDefer();
+		let {config, rootConfig, secimler, mfSinif} = this; config[aciklama] = secimler.asObject; rootConfig?.kaydetDefer();
 		eConfirm(`Seçim içerikleri <b class="royalblue">${aciklama}</b> ismi ile web tarayıcınızda kaydedildi`, [mfSinif?.sinifAdi, 'Seçimler'].filter(x => x).join(' '))
 	}
 	secimYukleIstendi(e) {
 		const {tipBelirtec} = this; MQSecim.listeEkraniAc({
 			args: { tipBelirtec },
 			secince: e => {
-				const {aciklama, icerik} = e.rec ?? {}; if (!icerik) { return }
-				const {secimler, secim2Info} = this; for (let [key, _secim] of Object.entries(icerik)) {
+				let {aciklama, icerik} = e.rec ?? {}; if (!icerik) { return }
+				let {secimler, secim2Info} = this; for (let [key, _secim] of Object.entries(icerik)) {
 					let secim = secimler[key]; if (!secim) { continue } $.extend(secim, _secim); 
 					let {element: parent} = secim2Info[key]; if (parent) { secim.uiSetValues({ parent }) }
 				}

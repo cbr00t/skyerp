@@ -41,13 +41,13 @@ class PInst extends CObject {
 		if (value) {
 			if (value.shallowCopy) { value = value.shallowCopy(e) }
 			else if ($.isArray(value)) {
-				const _arr = value = $.extend([], value), arr = [];
-				for (let _value of _arr) {
+				let _arr = value = $.extend([], value), arr = [];
+				let i = 0; for (let _value of _arr) {
 					if (_value) {
 						if (_value.shallowCopy) { _value = _value.shallowCopy(e) } else if ($.isArray(_value)) { _value = $.extend([], _value) }
 						else if (typeof value == 'object') { _value = $.extend({}, _value) }
 					}
-					arr[i] = _value
+					arr[i++] = _value
 				}
 			}
 			else if (typeof value == 'object') { value = $.extend({}, value) }
@@ -59,13 +59,13 @@ class PInst extends CObject {
 		if (value) {
 			if (value.deepCopy) { value = value.deepCopy(e) }
 			else if ($.isArray(value)) {
-				const _arr = value, arr = value = [];
-				for (let _value of _arr) {
+				let _arr = value, arr = value = [];
+				let i = 0; for (let _value of _arr) {
 					if (_value) {
 						if (_value.deepCopy) { _value = _value.deepCopy() } else if ($.isArray(_value)) { _value = $.extend(true, [], _value) }
 						else if ($.isPlainObject(value) && !isDate(value)) { _value = $.extend(true, {}, _value) }
 					}
-					arr[i] = _value
+					arr[i++] = _value
 				}
 			}
 			else if ($.isPlainObject(value) && !isDate(value)) { value = $.extend(true, {}, value) }
@@ -160,7 +160,7 @@ class PInstClass extends PInst {
 		if (typeof e != 'object') { e = (_sinif === undefined) ? { sinif: e } : { rowAttr: e, sinif: _sinif } }
 		super(e); this.sinif = e.sinif ?? e.class
 	}
-	getValueDevam(value) { return coalesce(value, new this.sinif()) }
+	getValueDevam(value) { return value ?? new this.sinif() }
 }
 class PInstTekSecim extends PInstClass {
 	static get pInstClassmi() { return false }

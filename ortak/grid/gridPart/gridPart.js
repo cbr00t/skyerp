@@ -21,7 +21,7 @@ class GridPart extends Part {
 	}
 	get selectedRowIndex() {
 		let {selectedRowIndexes, selectedCell: cell} = this;
-		let result = cell.rowindex ?? cell.row ?? selectedRowIndexes?.[0];
+		let result = cell?.rowindex ?? cell?.row ?? selectedRowIndexes?.[0];
 		if (typeof result == 'number' && result < 0) { result = null }
 		return result
 	}

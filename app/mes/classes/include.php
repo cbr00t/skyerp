@@ -8,3 +8,4 @@
 <script src="<?=$_partRoot?>/mqDiger.js?<?=$appVersion?>"></script> <link rel="stylesheet" href="<?=$_partRoot?>/mqDiger.css?<?=$appVersion?>"/>
 <script src="<?=$_partRoot?>/mqNotlar.js?<?=$appVersion?>"></script> <link rel="stylesheet" href="<?=$_partRoot?>/mqNotlar.css?<?=$appVersion?>"/>
 <script src="<?=$_partRoot?>/parts.js?<?=$appVersion?>"></script> <link rel="stylesheet" href="<?=$_partRoot?>/parts.css?<?=$appVersion?>"/>
+<script src="<?=$_partRoot?>/mqRAdmin_raspberryPiPico.js?<?=$appVersion?>"></script>

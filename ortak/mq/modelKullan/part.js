@@ -485,7 +485,8 @@ class ModelKullanPart extends Part {
 	}
 	comboBox() { this.isDropDown = false; return this } dropDown() { this.isDropDown = true; return this }
 	noMF() { this.mfSinif = null; return this } resetMF() { this.mfSinif = undefined; return this }
-	listedenSecilemez() { this.listedenSecilemezFlag = true; return this } listedenSecilir() { this.listedenSecilemezFlag = false; return this }
+	listedenSecilmez() { return this.listedenSecilemez() } listedenSecilemez() { this.listedenSecilemezFlag = true; return this }
+	listedenSecilir() { this.listedenSecilemezFlag = false; return this }
 	autoWidth() { this.noAutoWidthFlag = false; return this } noAutoWidth() { this.noAutoWidthFlag = true; return this }
 	noAutoGetSelectedItem() { this.noAutoGetSelectedItemFlag = true; return this } autoGetSelectedItem() { this.noAutoGetSelectedItemFlag = false; return this }
 	kodGosterilsin() { this.kodGosterilsinmi = true; return this } kodGosterilmesin() { this.kodGosterilsinmi = false; return this }

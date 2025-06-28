@@ -50,7 +50,7 @@ class CIO extends CObject {
 	}
 	deepCopy(e) {
 		e = e || {}; const inst = super.deepCopy(e), {_p} = this;
-		if (_p) { inst._p = {}; for (const ioAttr in _p) { const _pInst = _p[ioAttr], pInst = _pInst ? _pInst.deepCopy(e) : _pInst;inst._p[ioAttr] = pInst } }
+		if (_p) { inst._p = {}; for (const ioAttr in _p) { const _pInst = _p[ioAttr], pInst = _pInst ? _pInst.deepCopy(e) : _pInst; inst._p[ioAttr] = pInst } }
 		return inst
 	}
 }
