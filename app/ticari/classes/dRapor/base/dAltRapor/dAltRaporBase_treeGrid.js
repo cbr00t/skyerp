@@ -1,10 +1,19 @@
 class DAltRapor_TreeGrid extends DAltRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporTanimSinif() { return DMQRapor }
 	static get dGridmi() { return true } static get dTreeGridmi() { return true } static get dGridliAltRapormu() { return true }
 	static get raporClass() { return null } static get kod() { return 'main' } static get aciklama() { return this.raporClass?.aciklama }
 	get noAutoColumns() { return false } get sabitmi() { return this.class.raporClass?.sabitmi }
 	get ozetVarmi() { return this.class.raporClass?.ozetVarmi } get chartVarmi() { return this.class.raporClass?.chartVarmi }
 	get width() { return this.ozetVarmi || this.chartVarmi ? '70%' : 'var(--full)' } get height() { return 'calc(var(--full) - 0px)' }
+		get sabitRaporTanim() {
+		let {_sabitRaporTanim: result} = this; if (result == null) {
+			let rapor = this, {raporTanimSinif} = this.class;
+			let e = { result: new raporTanimSinif({ rapor }) };
+			this.sabitRaporTanimDuzenle(e); this.sabitRaporTanimDuzenle_son(e);
+			result = this._sabitRaporTanim = e.result
+		}
+		return result
+	}
 	/*subFormBuilderDuzenle(e) { super.subFormBuilderDuzenle(e); let {rfb} = e; rfb.addCSS('no-overflow') }*/
 	onBuildEk(e) {
 		super.onBuildEk(e); if (this.secimler == null) { this.secimler = this.newSecimler(e) }
@@ -37,6 +46,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		if (this.class.mainmi) { fbd.addCSS('_main') }
 	}
 	tabloKolonlariDuzenle(e) { }
+	sabitRaporTanimDuzenle(e) { } sabitRaporTanimDuzenle_son(e) { }
 	gridArgsDuzenle({ args }) {
 		 $.extend(args, {
 			showSubAggregates: false, /*showStatusBar: true, showGroupAggregates: true , compact: true*/
@@ -46,7 +56,11 @@ class DAltRapor_TreeGrid extends DAltRapor {
 			}
 		})
 	}
-	onGridInit(e) { /*let {gridPart} = this*/ } onGridRun(e) { this.onGridRun_ozel?.(e); this.tazele(e) }
+	async onGridInit(e) {
+		let rapor = this, {sabitmi} = this, {raporTanimSinif} = this.class;
+		this.raporTanim = await (sabitmi ? this.sabitRaporTanim : raporTanimSinif?.getDefault?.({ ...e, rapor }))
+	}
+	onGridRun(e) { this.onGridRun_ozel?.(e); this.tazele(e) }
 	gridRowExpanded(e) { let {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = true }
 	gridRowCollapsed(e) { let {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = false }
 	gridSatirTiklandi(e) { }
@@ -207,25 +221,15 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		}
 		return result
 	}
-	get sabitRaporTanim() {
-		let {_sabitRaporTanim: result} = this; if (result == null) {
-			let rapor = this, e = { result: new DMQRapor({ rapor }) };
-			this.sabitRaporTanimDuzenle(e); this.sabitRaporTanimDuzenle_son(e);
-			result = this._sabitRaporTanim = e.result
-		}
-		return result
-	}
 	secimlerDuzenle(e) { super.secimlerDuzenle(e) } secimlerInitEvents(e) { super.secimlerInitEvents(e) }
 	tabloYapiDuzenle(e) { } tabloYapiDuzenle_son(e) { }
-	sabitRaporTanimDuzenle(e) { } sabitRaporTanimDuzenle_son(e) { }
 	onBuildEk({ builder: fbd }) {
 		super.onBuildEk(...arguments)
 		/*if (this.class.mainmi) { fbd.addCSS('_main') }*/
 	}
 	onGridInit(e) {
-		super.onGridInit(e); let rapor = this, {sabitmi} = this;
-		this.ozetBilgi = { colDefs: null, recs: null };
-		this.raporTanim = sabitmi ? this.sabitRaporTanim : DMQRapor.getDefault({ ...e, rapor })
+		super.onGridInit(e);
+		this.ozetBilgi = { colDefs: null, recs: null }
 	}
 	onGridRun(e) { super.onGridRun(e); this.tazeleOncesi(e) }
 	tabloKolonlariDuzenle(e) {
@@ -489,14 +493,15 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	}
 	raporTanimIstendi(e) {
 		if (this.wnd_raporTanim?.length) { return this.restartWndRaporTanim(e) }
-		let {raporTanim} = this, inst = raporTanim, title = `${raporTanim.class.sinifAdi} Tanım`, ustHeight = '50px', ustEkHeight = '33px', islemTuslariHeight = '55px';
+		let {raporTanim} = this, {class: raporTanimSinif} = raporTanim, inst = raporTanim;
+		let title = `${raporTanim.class.sinifAdi} Tanım`, ustHeight = '50px', ustEkHeight = '33px', islemTuslariHeight = '55px';
 		let wnd, wRFB = new RootFormBuilder({ id: 'raporTanim' }).setInst(inst).addCSS('part')
 			.addStyle(e => `$elementCSS { --islemTuslariHeight: ${islemTuslariHeight}; --ustHeight: ${ustHeight}; --ustEkHeight : ${ustEkHeight} }`);
 		let fbd_ust = wRFB.addFormWithParent('ust').yanYana().addStyle_fullWH(null, 'var(--ustHeight)');
 		let fbd_sablonParent = fbd_ust.addFormWithParent('sablon-parent').yanYana().addStyle_fullWH().addStyle([e =>
 			`$elementCSS { position: relative; top: 5px } $elementCSS > .button { width: 50px !important; height: 45px !important; min-width: unset !important }`]);
 		fbd_sablonParent.addModelKullan('sablonKod', 'Şablon').etiketGosterim_yok().dropDown().kodsuz().bosKodAlinir()
-			.setMFSinif(DMQRapor).setValue(inst.sayac).addStyle_fullWH('calc(var(--full) - 350px)')
+			.setMFSinif(raporTanimSinif).setValue(inst.sayac).addStyle_fullWH('calc(var(--full) - 350px)')
 			.initArgsDuzenleHandler(e => { let {args} = e; args.args = { rapor: this } })
 			.ozelQueryDuzenleHandler(e => {
 				let {stm, aliasVeNokta} = e, {raporKod} = raporTanim, {encUser} = config.session, {kodSaha} = raporTanim.class;
@@ -550,7 +555,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	}
 	raporTanim_tamamIstendi(e) {
 		let {inst} = e; inst.dataDuzgunmuDevam(e); inst.degistimi = true;
-		inst.setDefault(e); this.tazele(e); return true
+		inst.setDefault(e); this.tazele(e);
+		return true
 	}
 	async raporTanim_sablonKaydetIstendi(e) {
 		let title = 'Rapor Tanım', {wnd_raporTanim} = this; let {raporTanim} = this, {aciklama} = raporTanim; let inEventFlag = false;

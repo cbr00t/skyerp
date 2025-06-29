@@ -7,20 +7,20 @@ class DMQRapor extends DMQSayacliKA {
 	static get tanimUISinif() { return ModelTanimPart } static get secimSinif() { return Secimler }
 	static get kodKullanilirmi() { return false } static get idSaha() { return this.sayacSaha }
 	get raporKod() { let result = this._raporKod; if (result === undefined) { result = this.class.getRaporKod(this.rapor) }; return result }
-	get attrSet() { const result = {}; for (const selector of ['grup', 'icerik']) { $.extend(result, asSet(Object.keys(this[selector]))) } return result }
+	get attrSet() { let result = {}; for (let selector of ['grup', 'icerik']) { $.extend(result, asSet(Object.keys(this[selector]))) } return result }
 	get grupListe() { return Object.keys(this.grup || {}) } set grupListe(value) { return this.grup = asSet(value || []) }
 	get icerikListe() { return Object.keys(this.icerik || {}) } set icerikListe(value) { return this.icerik = asSet(value || []) }
 	get secilenVarmi() { return !!(Object.keys(this.grup).length || Object.keys(this.icerik).length) }
 	get yatayAnaliz() { return this.kullanim?.yatayAnaliz } set yatayAnaliz(value) { return (this.kullanim = this.kullanim ?? {}).yatayAnaliz = value }
 	constructor(e) {
-		e = e || {}; super(e); const {isCopy} = e, {user, encUser} = config.session; this.rapor = e.rapor?.main ?? e.rapor
+		e = e || {}; super(e); let {isCopy} = e, {user, encUser} = config.session; this.rapor = e.rapor?.main ?? e.rapor
 		$.extend(this, {
 			user: e.userkod ?? user, encUser: e.encuser ?? e.encUser ?? encUser,
 			grup: e.grupListe ?? e.grup ?? {}, icerik: e.icerikListe ?? e.icerik ?? {},
 			ozetMax: e.ozetMax ?? 5, kullanim: asSet(e.kullanim) ?? {}
 		});
 		if (!isCopy) {
-			for (const key of ['grup', 'icerik']) {
+			for (let key of ['grup', 'icerik']) {
 				let value = this[key], orjValue = value; if ($.isArray(value)) { value = asSet(value) }
 				if (value == null) { value = {} } if (value != orjValue) { this[key] = value }
 			}
@@ -33,13 +33,15 @@ class DMQRapor extends DMQSayacliKA {
 		return kod || null
 	}
 	static getDefault(e) {
-		const {yerel} = app.params, tip2SonDRaporRec = yerel.tip2SonDRaporRec || {}, {rapor} = e, raporKod = this.getRaporKod(rapor);
-		let rec = raporKod ? tip2SonDRaporRec[raporKod] : null; let inst = new DMQRapor({ rapor });
-		if (rec) { inst.setValues({ ...e, rec }) } return inst
+		let {yerel} = app.params, tip2SonDRaporRec = yerel.tip2SonDRaporRec || {}, {rapor} = e, raporKod = this.getRaporKod(rapor);
+		let rec = raporKod ? tip2SonDRaporRec[raporKod] : null, inst = new this({ rapor });
+		if (rec) { inst.setValues({ ...e, rec }) }
+		return inst
 	}
 	setDefault(e) {
-		const {yerel} = app.params, tip2SonDRaporRec = yerel.tip2SonDRaporRec = yerel.tip2SonDRaporRec || {};
-		const {raporKod} = this; let hv = raporKod ? this.hostVars(e) : null; if (hv) { tip2SonDRaporRec[raporKod] = hv; yerel.kaydetDefer(e) }
+		let {yerel} = app.params, tip2SonDRaporRec = yerel.tip2SonDRaporRec = yerel.tip2SonDRaporRec || {};
+		let {raporKod} = this, hv = raporKod ? this.hostVars(e) : null;
+		if (hv) { tip2SonDRaporRec[raporKod] = hv; yerel.kaydetDefer(e) }
 		return this
 	}
 	static rootFormBuilderDuzenle(e) {
@@ -79,8 +81,8 @@ class DMQRapor extends DMQSayacliKA {
 		let kalanlarSourceDuzenlenmis = _source => {
 			if (_source?.length) { _source = _source.filter(({ kod }) => grupVeToplam[kod] && !grupVeToplam[kod].isHidden ) }
 			_source = [..._source, ...(new Array(10).fill(null).map(x => ({ /*group: ' ',*/ disabled: true })))];
-			/*for (const item of _source) {
-				const kod = item?.kod; if (kod == null) { continue }
+			/*for (let item of _source) {
+				let kod = item?.kod; if (kod == null) { continue }
 				item.group = `${tabloYapi.grup[kod] ? '- Grup -' : tabloYapi.toplam[kod] ? '- Toplam -' : ''}`
 			}*/
 			return _source
@@ -98,7 +100,7 @@ class DMQRapor extends DMQSayacliKA {
 			input.prop('id', id); if (selector != null) { input.data('selector', selector) }
 			input.jqxListBox({ theme, width, height, valueMember, displayMember, source, allowDrag, allowDrop, autoHeight, itemHeight, scrollBarSize, filterable, filterHeight, filterPlaceHolder, searchMode });
 			let changeHandler = evt => {
-				const target = evt.currentTarget, {id} = target, args = evt.args ?? {}, {owner, type} = args, {vScrollInstance} = owner ?? {};
+				let target = evt.currentTarget, {id} = target, args = evt.args ?? {}, {owner, type} = args, {vScrollInstance} = owner ?? {};
 				if (id.startsWith('kalanlar')) {
 					if (!type || type == 'none') {
 						if (vScrollInstance?.value) { owner._lastScrollValue = vScrollInstance.value }
@@ -156,10 +158,10 @@ class DMQRapor extends DMQSayacliKA {
 	}
 	async dataDuzgunmu(e) { await super.dataDuzgunmu(e); return await this.dataDuzgunmuDevam(e) }
 	dataDuzgunmuDevam(e) {
-		const {rapor} = this, {tabloYapi} = rapor, {toplam} = tabloYapi, {grup, icerik, kullanim} = this, {yatayAnaliz} = kullanim;
+		let {rapor} = this, {tabloYapi} = rapor, {toplam} = tabloYapi, {grup, icerik, kullanim} = this, {yatayAnaliz} = kullanim;
 		let normalIcerikVarmi = false, toplanabilirVarmi = false, grupUygunmu = true;
-		for (const key in grup) { if (toplam[key]) { grupUygunmu = false; break } }
-		for (const key in icerik) {
+		for (let key in grup) { if (toplam[key]) { grupUygunmu = false; break } }
+		for (let key in icerik) {
 			if (toplam[key]) { toplanabilirVarmi = true } else { normalIcerikVarmi = true }
 			if (toplanabilirVarmi && normalIcerikVarmi) { break}
 		}
@@ -170,14 +172,14 @@ class DMQRapor extends DMQSayacliKA {
 			if (kod && grup[kod]) { throw { isError: true, errorText: `<b>${text} Çapraz Analiz</b> işaretli iken <b class="royalblue">${kod}</b> <span class="firebrick">kolonu eklenemez</span>` } }
 		}
 	}
-	async yukleSonrasiIslemler(e) { await super.yukleSonrasiIslemler(e); const {encUser} = this; this.user = encUser ? await app.xdec(encUser) : encUser }
+	async yukleSonrasiIslemler(e) { await super.yukleSonrasiIslemler(e); let {encUser} = this; this.user = encUser ? await app.xdec(encUser) : encUser }
 	alternateKeyHostVarsDuzenle(e) {
-		super.alternateKeyHostVarsDuzenle(e); const {hv} = e, {adiSaha, sayacSaha} = this.class, {encUser, raporKod, aciklama} = this;
+		super.alternateKeyHostVarsDuzenle(e); let {hv} = e, {adiSaha, sayacSaha} = this.class, {encUser, raporKod, aciklama} = this;
 		$.extend(hv, { raportip: raporKod, xuserkod: encUser }); hv[adiSaha] = aciklama; delete hv[sayacSaha]
 	}
-	keySetValues(e) { super.keySetValues(e); const {rec} = e; $.extend(this, { aciklama: rec.aciklama }) }
+	keySetValues(e) { super.keySetValues(e); let {rec} = e; $.extend(this, { aciklama: rec.aciklama }) }
 	hostVarsDuzenle(e) {
-		super.hostVarsDuzenle(e); const {hv} = e, liste2HV = value => {
+		super.hostVarsDuzenle(e); let {hv} = e, liste2HV = value => {
 			if (value && typeof value == 'object' && !$.isArray(value)) { value = Object.keys(value) };
 			return $.isArray(value) ? value.filter(x => !!x).map(x => x.trim()).join(delimWS) : (value?.trim() || '')
 		};
@@ -187,7 +189,7 @@ class DMQRapor extends DMQSayacliKA {
 		})
 	}
 	setValues(e) {
-		super.setValues(e); const {rec} = e, getListe = value => value ? asSet(value.split(delimWS).filter(x => !!x).map(x => x.trim())) : {};
+		super.setValues(e); let {rec} = e, getListe = value => value ? asSet(value.split(delimWS).filter(x => !!x).map(x => x.trim())) : {};
 		let kullanim; try { let {kullanim: value} = rec; if (value) { kullanim = JSON.parse(rec.kullanim) } } catch (ex) { console.error(ex) } kullanim = kullanim ?? {};
 		$.extend(this, {
 			encUser: rec.xuserkod || '', grup: getListe(rec.grupbelirtecler), icerik: getListe(rec.icerikbelirtecler),

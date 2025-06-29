@@ -7,8 +7,10 @@ class GridPart extends Part {
 	get asyncFlag() { return this.async == null ? this.class.defaultAsyncFlag : this.async } get cacheFlag() { return this.async == null ? this.class.defaultCacheFlag : this.cache }
 	get gridRecOzelkeys() { return ['uid', 'uniqueid', 'visibleindex', 'boundindex'] } get defaultGridIDBelirtec() { return undefined }
 	get defaultSabitFlag() { return null } get boundRecs() { let {gridWidget} = this; return gridWidget ? gridWidget.getboundrows() : null }
-	get columns() { let {grid} = this; return grid && grid.length ? grid.jqxGrid('columns') : null } set columns(jqxCols) { let {grid} = this; if (jqxCols && grid && grid.length) grid.jqxGrid('columns', jqxCols) }
-	get groups() { let {grid} = this; return grid && grid.length ? grid.jqxGrid('groups') : null } set groups(value) { let {grid} = this; if (grid && grid.length) grid.jqxGrid('groups', value || null) }
+	get columns() { let {grid} = this; return grid?.length ? grid.jqxGrid('columns') : null }
+	set columns(jqxCols) { let {grid} = this; if (jqxCols && grid?.length) { grid.jqxGrid('columns', jqxCols) } }
+	get groups() { let {grid} = this; return grid?.length ? grid.jqxGrid('groups') : null }
+	set groups(value) { let {grid} = this; if (grid?.length) { grid.jqxGrid('groups', value || null) } }
 	get recs() { let {gridWidget} = this; return gridWidget ? gridWidget.getrows() : null }
 	get dataView() { return this.gridWidget?.dataview }
 	get totalRecs() { return this.dataView?.totalrecords ?? this.boundRecs?.length }

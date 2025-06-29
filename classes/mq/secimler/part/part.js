@@ -90,7 +90,7 @@ class SecimlerPart extends Part {
 			}
 			let WaitMS_Ek = 0, waitMS = 0, focusYapildimi = false;
 			let _e = { ...e, sender: this, part: this, secim2Info }; secimler?.initHTMLElements(_e);
-			setTimeout(() => layout.blur(), 100)
+			// setTimeout(() => layout.blur(), 100)
 		}
 	}
 	formGenelEventleriBagla(e) {
@@ -149,7 +149,10 @@ class SecimlerPart extends Part {
 				if (secim) { secim.uiSetValues({ parent: element }) }
 			}
 			const {secimlerForm} = this, divGrupListe = secimlerForm.find('.secim-grup');
-			divGrupListe.jqxNavigationBar('expandAt', 0); setTimeout(() => divGrupListe.jqxNavigationBar('collapseAt', 0), 10)
+			if (divGrupListe?.length) {
+				divGrupListe.jqxNavigationBar('expandAt', 0);
+				setTimeout(() => divGrupListe.jqxNavigationBar('collapseAt', 0), 10)
+			}
 		}
 	}
 	async kolonFiltreIstendi(e) {

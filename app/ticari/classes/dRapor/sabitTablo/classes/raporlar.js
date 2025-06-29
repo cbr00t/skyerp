@@ -15,7 +15,7 @@ class SBRapor_X_Main extends SBRapor_Main {
 	}
 	loadServerDataInternal(e) {
 		let {raporTanim} = this, {detaylar} = raporTanim ?? {};
-		return detaylar.map(({ shVeriTipi }) => {
+		return detaylar?.map(({ shVeriTipi }) => {
 			let {kod, aciklama, kaDict} = shVeriTipi, question = kaDict[kod]?.question;
 			return ({ kod, aciklama, question })
 		})

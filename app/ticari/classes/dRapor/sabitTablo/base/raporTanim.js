@@ -82,6 +82,24 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 	}
 	hostVarsDuzenle({ hv }) { super.hostVarsDuzenle(...arguments) }
 	setValues({ rec }) { super.setValues(...arguments) }
+	static getRaporKod(e) {
+		e = e ?? {}; let kod = typeof e == 'object' ? 
+			(e.raporKod ?? e.raporkod ?? e.raporTip ?? e.raportip ?? e.kod ?? e.tip ??
+			e.rapor?.kod ?? e.class?.raporClass?.kod ?? e.rapor?.class?.kod ?? e.class?.kod) : e;
+		return kod || null
+	}
+	static async getDefault(e) {
+		let {yerel} = app.params, tip2SonDRaporRec = yerel.tip2SonDRaporRec || {}, {rapor} = e, raporKod = this.getRaporKod(rapor);
+		let id = raporKod ? tip2SonDRaporRec[raporKod] : null, inst = new this({ rapor, id });
+		if (id) { await inst.yukle(e) }
+		return inst
+	}
+	setDefault(e) {
+		let {yerel} = app.params, tip2SonDRaporRec = yerel.tip2SonDRaporRec = yerel.tip2SonDRaporRec || {};
+		let raporKod = this.class.getRaporKod(e.rapor), id = raporKod ? this.id : null;
+		if (id) { tip2SonDRaporRec[raporKod] = id; yerel.kaydetDefer(e) }
+		return this
+	}
 }
 class SBTabloDetay extends MQDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
