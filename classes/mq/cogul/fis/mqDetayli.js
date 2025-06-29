@@ -211,7 +211,7 @@ class MQDetayli extends MQSayacli {
 		e = e || {}; let {sayacSaha} = this.class, {rec} = e;
 		if (sayacSaha) {
 			let fisSayac = this.sayac || rec?.[sayacSaha]; if (!fisSayac) {
-				let  keyHV = this.alternateKeyHostVars(); if (keyHV) { delete keyHV[sayacSaha] }
+				let keyHV = this.alternateKeyHostVars(); if (keyHV) { delete keyHV[sayacSaha] }
 				if ($.isEmptyObject(keyHV)) { throw { isError: true, rc: 'fisSayacBelirlenemedi', errorText: 'Fiş için kaysayac bilgisi belirlenemedi' } }
 			}
 		}
@@ -473,13 +473,27 @@ class MQDetayliGUID extends MQDetayliMaster {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sayacSaha() { return 'id' } static get kami() { return true }
 	get id() { return this.sayac } set id(value) { this.sayac = value }
+	constructor(e) {
+		e = e ?? {}; super(e);
+		this.id = e.id ?? e.sayac ?? this.id
+	}
 	/*yaz(e) { this.id = this.id || newGUID(); return super.yaz(e) }*/
 	topluYazmaKomutlariniOlustur_baslikSayacBelirle(e) { }
 	topluYazmaKomutlariniOlustur_sqlParamsDuzenle(e) {
 		let {params, paramName_fisSayac} = e; params.push({ name: paramName_fisSayac, type: 'uniqueidentifier', direction: 'input', value: this.id })
 	}
 	yazSonrasi_sayacGeriYukle(e) { }
-	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); this.id = this.id || newGUID(); let {sayacSaha} = this.class, {hv} = e; hv[sayacSaha] = this.id }
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments);
+		let {sayacSaha, adiKullanilirmi, adiSaha} = this.class, id = this.id = this.id || newGUID();
+		if (sayacSaha && id) { hv[sayacSaha] = id }
+		if (adiKullanilirmi && adiSaha) { hv[adiSaha] = this.aciklama }
+	}
+	setValues({ rec }) {
+		super.setValues(...arguments);
+		let {adiKullanilirmi, adiSaha} = this.class;
+		if (adiKullanilirmi && adiSaha) { this.aciklama = rec[adiSaha] }
+	}
 	static logRecDonusturucuDuzenle({ result }) {
 		super.logRecDonusturucuDuzenle(...arguments);
 		let {sayacSaha: kodSaha} = this.class; result[kodSaha] = 'xsayac'

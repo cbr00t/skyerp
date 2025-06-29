@@ -65,11 +65,11 @@ class AlimSatis extends TekSecim {
 }
 class NormalIade extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultChar() { return ' ' }
+	static get defaultChar() { return '' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments);
 		kaListe.push(
-			new CKodVeAdi([' ', 'Normal', 'normalmi']),
+			new CKodVeAdi(['', 'Normal', 'normalmi']),
 			new CKodVeAdi(['I', `<span class=red>İADE</span>`, 'iademi'])
 		)
 	}

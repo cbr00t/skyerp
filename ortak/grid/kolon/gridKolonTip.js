@@ -130,12 +130,14 @@ class GridKolonTip extends CObject {
 class GridKolonTip_String extends GridKolonTip {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get anaTip() { return 'string' } static get stringmi() { return true }
+	get jqxCellsFormat() { return '' }
 }
 class GridKolonTip_Number extends GridKolonTip {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get anaTip() { return 'number' } static get mfbmi() { return true }
 	get jqxColumnType() { return 'custom' } /* get jqxColumnType() { return 'numberinput' } */
-	get defaultAlign() { return 'right' } get jqxCellsFormat() { return super.jqxCellsFormat } get jqxFilterType() { return 'checkedlist' } static get jqxFilterAnaTip() { return 'numericfilter' }
+	get defaultAlign() { return 'right' } get jqxCellsFormat() { return 'number' }
+	get jqxFilterType() { return 'checkedlist' } static get jqxFilterAnaTip() { return 'numericfilter' }
 	/*get jqxFilterType() { return 'input' } static get jqxFilterAnaTip() { return 'stringfilter' } get jqxFilterCondition() { return 'CONTAINS' }*/
 
 	readFrom(e) {
@@ -285,8 +287,8 @@ class GridKolonTip_Decimal extends GridKolonTip_Number {
 
 class GridKolonTip_Date extends GridKolonTip {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get anaTip() { return 'date' } /* get jqxColumnType() { return 'date' } */ get jqxColumnType() { return 'custom' } get jqxFilterType() { return 'checkedlist' }
-	static get jqxFilterAnaTip() { return 'datefilter' } get jqxFilterCondition() { return 'CONTAINS' }
+	static get anaTip() { return 'date' } /* get jqxColumnType() { return 'date' } */ get jqxColumnType() { return 'custom' }
+	get jqxFilterType() { return 'checkedlist' } static get jqxFilterAnaTip() { return 'datefilter' } get jqxFilterCondition() { return 'CONTAINS' }
 	/* get jqxCellsFormat() { return DateFormat } */ get jqxCellsFormat() { return super.jqxCellsFormat }
 
 	get cellsRenderer() {

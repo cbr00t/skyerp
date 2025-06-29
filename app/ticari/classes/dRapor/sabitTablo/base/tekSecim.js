@@ -3,7 +3,7 @@ class SBTabloHesapTipi extends TekSecim {
 	static get defaultChar() { return '' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments); kaListe.push(
-			new CKodVeAdi([' ', 'Yok', 'yokmu']),
+			new CKodVeAdi(['', 'Yok', 'yokmu']),
 			new CKodVeAdi(['AS', 'Alt Seviye Toplam', 'altSeviyemi']),
 			new CKodVeAdi(['FR', 'Formül: Satırlar Toplamı', 'formulmu']),
 			new CKodVeAdi(['SH', 'Stok/Hizmet/Demirbaş Sonucu', 'shdmi']),
@@ -26,10 +26,10 @@ class SBTabloVeriTipi extends TekSecim {
 }
 class SBTabloAyrimTipi extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultChar() { return ' ' }
+	static get defaultChar() { return '' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments); kaListe.push(
-			new CKodVeAdi([' ', 'Yurt İçi', 'yurticimi']),
+			new CKodVeAdi(['', 'Yurt İçi', 'yurticimi']),
 			new CKodVeAdi(['IH', 'İhracat', 'ihracatmi']),
 			new CKodVeAdi(['X', 'Birlikte', 'birliktemi'])
 		)

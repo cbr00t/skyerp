@@ -1,5 +1,6 @@
 class DRapor_AraSeviye extends DGrupluPanelRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get altRaporClassPrefix() { return this.name }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	/* static get altRaporClassPrefix() { return this.name } */
 	get dvKodListe() {
 		let {_dvKodListe: result} = this;
 		if (result == null) { result = this._dvKodListe = Object.keys(this.dvKod2Rec ?? {}) }
@@ -151,9 +152,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			let getDBText = db => db == buDBName ? `(<span class=forestgreen>${db}</span>)` : db;
 			return result.map(db => ({ db: getDBText(db) }))
 		}
-		return undefined
 	}
-	loadServerData_son(e) { return undefined }
+	loadServerData_son(e) { }
 	gridVeriYuklendi({ rootPart }) {
 		super.gridVeriYuklendi(...arguments);
 		let {rfb_items} = this.rapor, {main} = rfb_items.id2Builder, {layout} = main, elmLabel = layout.children('label');
@@ -283,8 +283,10 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	loadServerData_queryDuzenle_genelSon(e) {
 		this.loadServerData_queryDuzenle_genelSon_ilk_ozel?.(e);
 		let {stm, attrSet} = e, {grup} = this.tabloYapi;
-		for (let sent of stm) { sent.groupByOlustur().havingOlustur() }
+		for (let sent of stm) { sent.groupByOlustur() }
 		if (stm.sent.unionmu) { stm = e.stm = stm.asToplamStm() }
+		/* stm.sent => bu noktada #asToplamStm sonucudur */
+		for (let sent of stm) { sent.havingOlustur() }
 		let {orderBy} = stm; for (let kod in attrSet) {
 			let {orderBySaha} = grup[kod] ?? {};
 			if (orderBySaha) { orderBy.add(orderBySaha) }

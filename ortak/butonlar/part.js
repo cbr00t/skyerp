@@ -53,7 +53,12 @@ class ButonlarPart extends Part {
 				try { await getFuncValue.call(this, handler, _e) }
 				finally { setTimeout(() => setButonEnabled(btn, true), 800) }
 			};
-			if (handler || id2Handler[id]) { btn.on('click', evt => eventHandler(evt))  }
+			if (handler || id2Handler[id]) {
+				btn.on('click', async evt => {
+					try { await eventHandler(evt) }
+					catch (ex) { hConfirm(getErrorText(ex)); throw ex }
+				})
+			}
 		}
 		subParent.appendTo(layout); subParent_sag.appendTo(layout);
 		let sagButonlar = subParent_sag.children('button');

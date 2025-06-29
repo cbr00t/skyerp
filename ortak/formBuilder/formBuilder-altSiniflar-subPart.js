@@ -453,9 +453,9 @@ class FBuilder_CheckBox extends FBuilder_ToggleButton {
 			if (this.bottomFlag) { styles.push(`$elementCSS { margin-top: ${this.class.defaultHeight}px }`) }
 			styles.push(...[
 				`$elementCSS { min-width: unset !important; width: initial !important }`,
-				`$elementCSS > label { color: #888 !important; width: calc(var(--full) - 45px) !important }`,
+				`$elementCSS > label { color: #888; width: calc(var(--full) - 45px) !important }`,
 				`$elementCSS > input { width: unset !important; min-width: 24px; min-height: 24px; margin-right: 11px }`,
-				`$elementCSS > input:checked + label { font-weight: bold; color: cadetblue !important }`
+				`$elementCSS > input:checked + label { font-weight: bold; color: cadetblue }`
 			] );
 			if (elmLabel?.length) {
 				elmLabel.on('click', evt => input.click());

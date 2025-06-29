@@ -33,19 +33,25 @@ class DAltRapor extends DRapor {
 		this.onAfterRun_ozel?.(e); this.acilinca?.call(this, e)
 	}
 	onResize(e) { }
-	tazeleDiger(e) { const {id2AltRapor} = this.rapor; for (const altRapor of Object.values(id2AltRapor)) { if (altRapor != this) { altRapor.tazele(e) } } }
+	tazeleDiger(e) {
+		let {id2AltRapor} = this.rapor;
+		for (let altRapor of Object.values(id2AltRapor)) {
+			if (altRapor == this) { continue }
+			altRapor.tazele(e)
+		}
+	}
 	toggleFullScreen(e) {
-		const {builder} = e, {rootBuilder, parentBuilder, layout, part} = builder;
+		let {builder} = e, {rootBuilder, parentBuilder, layout, part} = builder;
 		let parentLayout = parentBuilder.layout, itemsLayout = rootBuilder.id2Builder.items.layout;
-		for (const _layout of [parentLayout, itemsLayout]) { _layout.toggleClass('maximized') }
+		for (let _layout of [parentLayout, itemsLayout]) { _layout.toggleClass('maximized') }
 		layout.trigger('resize'); if (part?.onResize) { part.onResize(e) }
-		const {id2AltRapor} = this.rapor; for (const altRapor of Object.values(id2AltRapor)) { altRapor.onResize(e) }
+		let {id2AltRapor} = this.rapor; for (let altRapor of Object.values(id2AltRapor)) { altRapor.onResize(e) }
 	}
 	secimlerIstendi(e) {
 		let {secimlerPart} = this; if (secimlerPart?.isDestroyed) { secimlerPart = this.secimlerPart = undefined }
 		if (secimlerPart) { secimlerPart.show() }
 		else {
-			const {secimler} = this; if (secimler) {
+			let {secimler} = this; if (secimler) {
 				secimlerPart = this.secimlerPart = secimler.duzenlemeEkraniAc({ parentPart: this.rapor.part, tamamIslemi: e => this.rapor.tazele() });
 				if (secimlerPart) { secimlerPart.acilinca(() => this.secimlerInitEvents(e)) }
 			}
@@ -53,10 +59,10 @@ class DAltRapor extends DRapor {
 	}
 	static fixKA(rec, prefix, kodsuzmu) {
 		if (rec == null) { return this }
-		const kodAttr = `${prefix}kod`, adiAttr = `${prefix}adi`;
-		const kod = kodsuzmu ? null : rec[kodAttr], adi = rec[adiAttr]; if (kod !== undefined) {
+		let kodAttr = `${prefix}kod`, adiAttr = `${prefix}adi`;
+		let kod = kodsuzmu ? null : rec[kodAttr], adi = rec[adiAttr]; if (kod !== undefined) {
 			rec[prefix] = kod ? `(${kod ?? ''}) ${adi ?? ''}` : ''
-			/* for (const key of [kodAttr, adiAttr]) { delete rec[key] } */
+			/* for (let key of [kodAttr, adiAttr]) { delete rec[key] } */
 		}
 		return this
 	}

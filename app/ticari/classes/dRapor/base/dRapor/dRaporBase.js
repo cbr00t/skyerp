@@ -1,11 +1,11 @@
 class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları için gerekli inherit desteği için DMQDetayli'dan getirildi */
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'dRapor' } get partName() { return this.class.partName }
-	static get dRapormu() { return true } get dRapormu() { return this.class.dRapormu } static get dAltRapormu() { return false } get dAltRapormu() { return this.class.dAltRapormu }
-	static get anaTip() { return null } static get araSeviyemi() { return false } static get sinifAdi() { return this.aciklama }
+	static get anaTip() { return null } static get sinifAdi() { return this.aciklama }
 	static get kategoriKod() { return null } static get kod() { return null } static get aciklama() { return null } static get detaylimi() { return false }
+	static get uygunmu() { return true } get uygunmu() { return this.class.uygunmu } static get araSeviyemi() { return false }
+	static get dRapormu() { return true } get dRapormu() { return this.class.dRapormu } static get dAltRapormu() { return false } get dAltRapormu() { return this.class.dAltRapormu }
 	static get mainClass() { return window[`${this.name}_Main`] }
 	static get tumKolonlarGosterilirmi() { return false } static get noOverflowFlag() { return false }
-	static get uygunmu() { return true } get uygunmu() { return this.class.uygunmu }
 	static get raporBilgiler() {
 		return Object.values(this.kod2Sinif)
 			.filter(({ uygunmu, araSeviyemi, dRapormu, kod }) => uygunmu && !araSeviyemi && dRapormu && kod)
@@ -109,6 +109,7 @@ class DPanelRapor extends DRaporOzel {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dPanelRapormu() { return true }
 	static get anaTip() { return 'panel' } static get sabitmi() { return false } static get yatayAnalizVarmi() { return !this.sabitmi }
 	static get ozetVarmi() { return !this.sabitmi } static get chartVarmi() { return !this.sabitmi }
+	static get altRaporClassPrefix() { return this.name } static get noOverflowFlag() { return true }
 	get main() { return this.id2AltRapor?.main }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, { id2AltRapor: e.id2AltRapor, altRapor_lastZIndex: 100 });
@@ -158,7 +159,16 @@ class DPanelRapor extends DRaporOzel {
 		const {id2AltRapor} = this; if (!id2AltRapor) { return }
 		for (const altRapor of Object.values(id2AltRapor)) { altRapor?.onResize?.(e) }
 	}
-	altRaporlarDuzenle(e) { }
+	altRaporlarDuzenle(e) {
+		let {altRaporClassPrefix: prefix, sabitmi, ozetVarmi, chartVarmi} = this.class;
+		if (prefix) {
+			let postfixes = ['_Main'/*, '_Ozet', '_Chart', '_Diagram'*/];
+			let classes = postfixes.map(postfix => window[prefix + postfix]).filter(cls => !!cls);
+			this.add(...classes)
+		}
+		if (ozetVarmi) { this.add(DAltRapor_Grid_Ozet) }
+		if (chartVarmi) { this.add(DAltRapor_Chart) }
+	}
 	tazele(e) {
 		super.super_tazele(e); let {id2AltRapor} = this, {main} = id2AltRapor, {gridPart: mainGridPart} = main ?? {};
 		for (let altRapor of Object.values(id2AltRapor)) {
@@ -190,17 +200,8 @@ class DPanelRapor extends DRaporOzel {
 	clear() { this.id2AltRapor = {}; return this }
 }
 class DGrupluPanelRapor extends DPanelRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGrupluPanelRapormu() { return true }
-	static get noOverflowFlag() { return true } static get altRaporClassPrefix() { return null }
-	altRaporlarDuzenle(e) {
-		super.altRaporlarDuzenle(e); let {altRaporClassPrefix: prefix, ozetVarmi, chartVarmi} = this.class;
-		if (prefix) {
-			let postfixes = ['_Main'/*, '_Ozet', '_Chart', '_Diagram'*/], classes = postfixes.map(postfix => window[prefix + postfix]).filter(cls => !!cls);
-			this.add(...classes)
-		}
-		if (ozetVarmi) { this.add(DAltRapor_Grid_Ozet) }
-		if (chartVarmi) { this.add(DAltRapor_Chart) }
-	}
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get dGrupluPanelRapormu() { return true }
 	islemTuslariArgsDuzenle(e) {
 		super.islemTuslariArgsDuzenle(e); let {liste} = e, {sabitmi} = this.class;
 		liste.push(...[

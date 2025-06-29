@@ -75,7 +75,7 @@ class MQAktivasyon extends MQDetayliMaster {
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments); let {tableAlias: alias} = this;
 		liste.push(...[
-			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13 }).tipDate(),
+			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 15 }).tipDate(),
 			new GridKolon({ belirtec: 'baktifmi', text: 'Aktif?', genislikCh: 8 }).tipBool(),
 			new GridKolon({ belirtec: 'mustkod', text: 'Müşteri', genislikCh: 16 }),
 			new GridKolon({ belirtec: 'mustadi', text: 'Müşteri Adı', genislikCh: 45, sql: 'mus.aciklama' }),

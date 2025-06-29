@@ -115,12 +115,12 @@ class MQKontorHareket extends MQSayacli {
 	}
 	static standartGorunumListesiDuzenle({ liste }) {
 		super.standartGorunumListesiDuzenle(...arguments);
-		liste.push('mustkod', 'mustadi', 'kontorsayi', 'ahtipitext', 'fatdurumtext', 'fisnox', 'bayikod', 'tanitim')
+		liste.push('tarih', 'mustkod', 'mustadi', 'kontorsayi', 'ahtipitext', 'fatdurumtext', 'fisnox', 'bayikod', 'tanitim')
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments); let {tableAlias: alias} = this;
 		liste.push(...[
-			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13, filterType: 'checkedlist' }).tipDate(),
+			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 15, filterType: 'checkedlist' }).tipDate(),
 			new GridKolon({ belirtec: 'mustkod', text: 'Müşteri', genislikCh: 15, sql: 'fis.mustkod' }),
 			new GridKolon({ belirtec: 'mustadi', text: 'Müşteri Adı', genislikCh: 50, sql: 'mus.aciklama' }),
 			new GridKolon({ belirtec: 'ahtipitext', text: 'A/H Tip', genislikCh: 13, sql: KontorAHTip.getClause(`${alias}.ahtipi`), filterType: 'checkedlist' }),
@@ -168,6 +168,7 @@ class MQKontorHareket extends MQSayacli {
 			if (!(tekilOku || modelKullanmi)) { orderBy.liste = ['tarih DESC', 'mustkod', 'ahtipi DESC'] }
 		}
 	}
+	static orjBaslikListesi_recsDuzenle({ recs }) { super.orjBaslikListesi_recsDuzenle(...arguments) }
 	static gridVeriYuklendi({ gridPart, grid, gridWidget }) {
 		super.gridVeriYuklendi(...arguments); let grupBelirtec = 'ahtipitext';
 		if (grupBelirtec && gridPart.belirtec2Kolon[grupBelirtec]) {
