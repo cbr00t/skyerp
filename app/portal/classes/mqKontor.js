@@ -237,7 +237,7 @@ class MQKontor extends MQDetayliMaster {
 		let sent = new MQSent(), {where: wh, sahalar} = sent;
 		sent.fisHareket(table, detayTable).fromIliski('musteri mus', 'fis.mustkod = mus.kod');
 		wh.birlestirDict(defKeyHV, 'fis').inDizi(fisSayacListe, 'fis.kaysayac');
-		wh.add(`har.ahtipi = 'A'`, 'har.kontorsayi > 0').inDizi(['', 'M', 'B'], 'har.fatdurum');
+		wh.add(`har.ahtipi = 'A'`, 'har.kontorsayi > 0').inDizi(['', 'M', /*'A',*/ 'B'], 'har.fatdurum');
 		sahalar.add('fis.mustkod', 'mus.vkn', 'mus.aciklama mustunvan', 'mus.bayikod', 'har.*');    /*.addWithAlias('har', 'tarih', 'fisnox', 'kontorsayi', 'vkn', 'tcsorguterminal', 'tcsorguanahtar');*/
 		let orderBy = ['tarih', 'fisnox'], stm = new MQStm({ sent, orderBy });
 		let kRecs = await app.sqlExecSelect(stm); 
@@ -251,21 +251,21 @@ class MQKontor extends MQDetayliMaster {
 			hideProgress(); delete this._hTimer_faturalastir;
 			return false
 		}
-		let must2Tip2Recs = {}; for (let rec of kRecs) {
+		let tip2Must2Recs = {}; for (let rec of kRecs) {
 			abortCheck(); let {mustkod: mustKod, fatdurum: fatDurum} = rec;
-			let tip2Recs = must2Tip2Recs[mustKod] = must2Tip2Recs[mustKod] ?? {};
-			(tip2Recs[fatDurum] = tip2Recs[fatDurum] ?? []).push(rec);
+			let must2Recs = tip2Must2Recs[fatDurum] = tip2Must2Recs[fatDurum] ?? {};
+			(must2Recs[mustKod] = must2Recs[mustKod] ?? []).push(rec);
 			pm.progressStep()
 		}
 		let withFatDBDo = block => app.setCurrentDBAndDo('YI25SKYLOGFAT', '(local)\\SKYLOG', e => block(e));
-		abortCheck(); let orjSeri, {vioHizmetKod: shKod} = this, hizRec = {};
-		let vknSet = {}; for (let tip2Recs of Object.values(must2Tip2Recs)) {
-			for (let [fatDurum, recs] of Object.entries(tip2Recs)) {
+		abortCheck(); let orjSeri, {vioHizmetKod: shKod} = this;
+		let vknSet = {}; for (let must2Recs of Object.values(tip2Must2Recs)) {
+			for (let recs of Object.values(must2Recs)) {
 				let {vkn} = recs?.[0] ?? {};
 				if (vkn) { vknSet[vkn] = true }
 			}
 		}
-		let vknListe = Object.keys(vknSet), vkn2Must = {}, must2VKN = {}, efatVKNSet = {};
+		let vknListe = Object.keys(vknSet), vkn2Must = {}, must2VKN = {}, efatVKNSet = {}, hizRec = {};
 		await withFatDBDo(async e => {
 			{
 				let sent = new MQSent(), {where: wh, sahalar} = sent;
@@ -284,12 +284,12 @@ class MQKontor extends MQDetayliMaster {
 			}
 		});
 		let fisSinif = SatisFaturaFis, detaySinif = TSHizmetDetay;
-		let fisler = []; for (let [mustKod, tip2Recs] of Object.entries(must2Tip2Recs)) {
-			for (let [fatDurum, recs] of Object.entries(tip2Recs)) {
+		let fisler = []; for (let [fatDurum, must2Recs] of Object.entries(tip2Must2Recs)) {
+			for (let [mustKod, recs] of Object.entries(must2Recs)) {
 				if (!recs?.length) { continue }
 				let {mustunvan: mustUnvan, bayikod: bayiKod, vkn} = recs[0]; if (fatDurum == 'X') { continue }
 				let eFatmi = efatVKNSet[vkn], tarih = today();
-				let ozelIsaret = fatDurum == '' || fatDurum == 'M' ? '*' : '', islKod = `TF${ozelIsaret}`;
+				let ozelIsaret = fatDurum == '' || fatDurum == 'M' || fatDurum == 'A' ? '*' : '', islKod = `TF${ozelIsaret}`;
 				let seriSelectorPostfix = ozelIsaret == '*' ? 'yildizli' : eFatmi ? 'eFat' : 'eArsiv';
 				let seri = this[`vioSeri_${seriSelectorPostfix}`], efAyrimTipi = eFatmi ? 'E' : 'A';
 				let fis = new fisSinif({ ozelIsaret, islKod, tarih, seri, mustKod, efAyrimTipi, baslikAciklama: `SkyPortal Kontör Satışı: [${mustKod}]` });
@@ -470,9 +470,12 @@ class MQKontorDetay extends MQDetay {
 		form.addNumberInput('kontorSayi', 'Kontör Sayı').addStyle_wh(130)
 			.degisince(({ builder: fbd }) => fbd.parentBuilder.id2Builder.fatDurum.updateVisible())
 			.onAfterRun(({ builder: fbd }) => fbd.input.focus());
-		form.addModelKullan('fatDurum', 'Fatura Durum').listedenSecilmez().addStyle_wh(250)
+		let fbd_fatDurum = form.addModelKullan('fatDurum', 'Fatura Durum').listedenSecilmez().addStyle_wh(250)
 			.dropDown().noMF().kodsuz().bosKodAlinmaz().autoBind().setSource(fatDurum.kaListe)
 			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.ahTipi.alinanmi ? true : 'jqx-hidden');
+		if (fatDurum.faturaEdildimi && !MQLogin.current.adminmi) {
+			fbd_fatDurum.veriYukleninceBlock(({ builder: fbd }) => fbd.part.disable())
+		}
 		rfb.onAfterRun(({ builder: rfb }) => {
 			rfb.layout.on('keyup', evt => {
 				let key = evt.key.toLowerCase(), {islemTuslari} = rfb.id2Builder;

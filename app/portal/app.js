@@ -46,7 +46,7 @@ class PortalApp extends TicariApp {
 		let items = [
 			(adminmi || bayimi ? new FRMenuCascade({
 				mne: 'TAN', text: 'Tanımlar', items: (
-					[MQLogin_Admin, MQLogin_Bayi].filter(cls => cls.uygunmu).map(cls => {
+					[MQLogin_Admin, MQLogin_Bayi, MQVPAnaBayi].filter(cls => cls.uygunmu).map(cls => {
 						let {kodListeTipi: mne, sinifAdi: text} = cls, block = e => cls.listeEkraniAc(e)
 						return new FRMenuChoice({ mne, text, block })
 					})

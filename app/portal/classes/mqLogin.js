@@ -142,12 +142,14 @@ class MQLogin_Bayi extends MQLogin {
 		super.pTanimDuzenle(...arguments);
 		$.extend(pTanim, {
 			kisaKod: new PInstStr('kisakod'), tip: new PInstStr('tip'), sefmi: new PInstBitBool('bsefmi'),
-			ilKod: new PInstStr('ilkod'), yore: new PInstStr('yore'), eMail: new PInstStr('email')
+			anaBayiKod: new PInstStr('anabayikod'), ilKod: new PInstStr('ilkod'),
+			yore: new PInstStr('yore'), eMail: new PInstStr('email')
 		})
 	}
 	static secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments); let {tableAlias: alias} = this;
-		sec.addKA('il', MQVPIl, `${alias}.ilkod`, 'il.aciklama')
+		sec.addKA('il', MQVPIl, `${alias}.ilkod`, 'il.aciklama');
+		sec.addKA('anaBayi', MQVPAnaBayi, `${alias}.anabayikod`, 'abay.aciklama')
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); let {tanimFormBuilder: tanimForm, tabPage_genel: tabPage} = e;
@@ -155,10 +157,11 @@ class MQLogin_Bayi extends MQLogin {
 		let form = tabPage.addFormWithParent().yanYana();
 			form.addTextInput('kisaKod', 'Kısa Kod').setMaxLength(10).addStyle_wh(110);
 			form.addTextInput('tip', 'Tip').setMaxLength(1).addStyle_wh(50)
+			form.addModelKullan('anaBayiKod', 'Ana Bayi').dropDown().setMFSinif(MQVPAnaBayi).autoBind().kodsuz().addStyle_wh(250);
 		form = tabPage.addFormWithParent().yanYana();
-			form.addModelKullan('ilkod', 'İl').dropDown().setMFSinif(MQVPIl).autoBind().kodsuz().addStyle_wh(250);
+			form.addModelKullan('ilKod', 'İl').dropDown().setMFSinif(MQVPIl).autoBind().kodsuz().addStyle_wh(250);
 			form.addTextInput('yore', 'Yöre').setMaxLength(25).addStyle_wh(250);
-			form.addTextInput('email', 'e-Mail').setMaxLength(25).addStyle_wh(250)
+			form.addTextInput('eMail', 'e-Mail').setMaxLength(50).addStyle_wh(500)
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments);
@@ -166,6 +169,8 @@ class MQLogin_Bayi extends MQLogin {
 			new GridKolon({ belirtec: 'kisakod', text: 'Kısa Kod', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'tip', text: 'Tip', genislikCh: 8 }),
 			new GridKolon({ belirtec: 'bsefmi', text: 'Sef?', genislikCh: 8 }).tipBool(),
+			new GridKolon({ belirtec: 'anabayikod', text: 'Ana Bayi', genislikCh: 8 }),
+			new GridKolon({ belirtec: 'anabayiadi', text: 'Ana Bayi Adı', genislikCh: 20, sql: 'abay.aciklama' }),
 			new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 8 }),
 			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 20, sql: 'il.aciklama' }),
 			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 15 }),
@@ -175,10 +180,14 @@ class MQLogin_Bayi extends MQLogin {
 	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent, basit }) {
 		super.loadServerData_queryDuzenle(...arguments); let {tableAlias: alias, kodSaha} = this, {where: wh, sahalar} = sent;
 		sent.fromIliski(`${MQVPIl.table} il`, `${alias}.ilkod = il.kod`);
+		sent.fromIliski(`${MQVPAnaBayi.table} abay`, `${alias}.anabayikod = abay.kod`);
 		sahalar.add(`${alias}.bsefmi`);
 		if (!basit) {
 			if (MQLogin.current.musterimi) { wh.add('1 = 2') }
-			else { let clauses = { bayi: `${alias}.${kodSaha}` }; MQLogin.current.yetkiClauseDuzenle({ sent, clauses }) }
+			else {
+				let clauses = { bayi: `${alias}.${kodSaha}` };
+				MQLogin.current.yetkiClauseDuzenle({ sent, clauses })
+			}
 		}
 	}
 	_yetkiVarmi({ islem }) {
@@ -187,9 +196,9 @@ class MQLogin_Bayi extends MQLogin {
 	}
 	_yetkiClauseDuzenle({ wh, clauses }) {
 		super._yetkiClauseDuzenle(...arguments);
-		if (!this.sefmi && this.kod) {
-			let {bayi: kodClause} = clauses;
-			if (kodClause) { wh.degerAta(this.kod, kodClause) }
+		if (!this.sefmi) {
+			if (this.kod) { let {bayi: kodClause} = clauses; if (kodClause) { wh.degerAta(this.kod, kodClause) } }
+			if (this.anaBayiKod) { let {anaBayi: kodClause} = clauses; if (kodClause) { wh.degerAta(this.anaBayiKod, kodClause) } }
 		}
 	}
 }
@@ -256,6 +265,8 @@ class MQLogin_Musteri extends MQLogin {
 			new GridKolon({ belirtec: 'email', text: 'e-Mail', genislikCh: 40 }),
 			new GridKolon({ belirtec: 'vkn', text: 'VKN', genislikCh: 13 }),
 			new GridKolon({ belirtec: 'vdaire', text: 'V.D', genislikCh: 25 }),
+			new GridKolon({ belirtec: 'anabayikod', text: 'Ana Bayi Kod', genislikCh: 10, sql: 'bay.anabayikod' }),
+			new GridKolon({ belirtec: 'anabayiadi', text: 'Ana Bayi Adı', genislikCh: 30, sql: 'abay.aciklama' }),
 			new GridKolon({ belirtec: 'firmatelefon', text: 'Firma Telefon', genislikCh: 20 }),
 			new GridKolon({ belirtec: 'yetkilikisi', text: 'Yetkili Kişi', genislikCh: 50 }),
 			new GridKolon({ belirtec: 'yetkilitelefon', text: 'Yetkili Telefon', genislikCh: 20 }),
@@ -270,6 +281,7 @@ class MQLogin_Musteri extends MQLogin {
 	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent, basit }) {
 		super.loadServerData_queryDuzenle(...arguments); let {tableAlias: alias} = this;
 		sent.fromIliski(`${MQLogin_Bayi.table} bay`, `${alias}.bayikod = bay.kod`)
+		sent.fromIliski(`${MQVPAnaBayi.table} abay`, 'bay.anabayikod = abay.kod')
 			.fromIliski(`${MQVPIl.table} il`, `${alias}.ilkod = il.kod`);
 		if (!basit) {
 			let clauses = { bayi: `${alias}.bayikod`, musteri: `${alias}.kod` };
@@ -294,8 +306,8 @@ class MQLogin_Musteri extends MQLogin {
 	}
 	_yetkiClauseDuzenle({ wh, clauses }) {
 		super._yetkiClauseDuzenle(...arguments);
-		if (this.bayiKod) { let {bayi: kodClause} = clauses; if (kodClause) { wh.degerAta(this.bayiKod, kodClause) } }
 		if (this.kod) { let {musteri: kodClause} = clauses; if (kodClause) { wh.degerAta(this.kod, kodClause) } }
+		if (this.bayiKod) { let {bayi: kodClause} = clauses; if (kodClause) { wh.degerAta(this.bayiKod, kodClause) } }
 	}
 	static kontorMenuIstendi(e) {
 		this.openContextMenu({
