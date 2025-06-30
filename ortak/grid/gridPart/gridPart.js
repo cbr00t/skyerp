@@ -43,6 +43,7 @@ class GridPart extends Part {
 	get selectedColIndex() { return this.gridWidget.getcolumnindex(this.selectedBelirtec) }
 	get editCell() { return this.gridWidget.editcell } get editing() { return !!this.editCell?.datafield }
 	get isEditable() { let {gridWidget} = this; return gridWidget ? gridWidget.editable : null }
+	set isEditable(value) { let {gridWidget} = this; if (gridWidget) { gridWidget.editable = value } }
 	get selectionMode() { let {gridWidget} = this; return gridWidget?.selectionmode }
 	get clickedColumn() { let {gridWidget} = this; return gridWidget?._clickedcolumn }
 	get mousePosition() { let {gridWidget} = this; return gridWidget?.mousecaptureposition }

@@ -5,8 +5,6 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 	static get detaySinif() { return SBTabloDetay } static get gridKontrolcuSinif() { return SBTabloGridci }
 	static get kolonFiltreKullanilirmi() { return false } static get raporKullanilirmi() { return false }
 	static get tumKolonlarGosterilirmi() { return true } static get gridHeight_bosluk() { return 90 }
-	get satirListeStr() { let {satirliste: result} = this; return result?.length ? result.filter(x => !!x).join(',') : '' }
-	set satirListeStr(value) { this.satirListe = result ? result.split(',').map(x => asInteger(x.trim())).filter(x => !!x) : [] }
 	static pTanimDuzenle({ pTanim }) {
 		$.extend(pTanim, { devreDisimi: new PInstBitBool('bdevredisi') })
 	}
@@ -34,12 +32,19 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 		super.rootFormBuilderDuzenle(e); let {kaForm} = e;
 		/*this.formBuilder_addTabPanelWithGenelTab(e); let {tabPage_genel: tabPage} = e;
 		let form = tabPage.addFormWithParent().yanYana();*/
-		kaForm.yanYana();
-		kaForm.builders = kaForm.builders.filter(fbd => fbd.id != 'kod');
-		kaForm.id2Builder.aciklama.addStyle_wh('calc(var(--full) - 300px)');
+		kaForm.yanYana(); kaForm.builders = kaForm.builders.filter(fbd => fbd.id != 'kod');
+		kaForm.id2Builder.aciklama.addStyle_wh(400);
 		kaForm.addCheckBox('devreDisimi', 'Devre Dışı?').addStyle(
-			`$elementCSS { margin-left: 10px } $elementCSS > label { color: firebrick !important } $elementCSS > input:checked + label { font-style: bold !important }`
-		)
+			`$elementCSS { margin-left: 10px } $elementCSS > label { color: firebrick !important }
+			 $elementCSS > input:checked + label { font-style: bold !important }`
+		);
+		kaForm.addButton('yeni', '').addStyle_wh(40, 50)
+			.addStyle(`$elementCSS { margin: 20px 0 0 50px }`)
+			.onClick(_e => e.fbd_grid.part.kontrolcu.yeniIstendi({ ...e, ..._e }))
+	}
+	static rootFormBuilderDuzenle_grid(e) {
+		super.rootFormBuilderDuzenle_grid(e); let {fbd_grid} = e;
+		fbd_grid.readOnly()
 	}
 	async yukleSonrasiIslemler() {
 		await super.yukleSonrasiIslemler(...arguments); let {detaylar} = this;
@@ -105,6 +110,8 @@ class SBTabloDetay extends MQDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'sbtablodetay' }
 	static get fisSayacSaha() { return 'fisid' } static get sayacSaha() { return 'id' }
+	get satirListe() { let {satirListeStr: result} = this; return result?.length ? result.split(',').filter(x => !!x).map(x => asInteger(x.trim()) - 1) : [] }
+	set satirListe(value) { this.satirListeStr = value?.length ? value.filter(x => x != null).map(x => x + 1).sort().join(', ') : '' }
 	constructor(e) {
 		e = e ?? {}; super(e); let {secimler} = this;
 		secimler.beginUpdate().secimTopluEkle({
@@ -114,7 +121,7 @@ class SBTabloDetay extends MQDetay {
 	static pTanimDuzenle({ pTanim }) {
 		$.extend(pTanim, {
 			seviyeNo: new PInstTekSecim('seviyeno', SBTabloSeviye), hesapTipi: new PInstTekSecim('hesaptipi', SBTabloHesapTipi),
-			satirListe: new PInst({ init: () => [] }), shVeriTipi: new PInstTekSecim('shveritipi', SBTabloVeriTipi),
+			satirListeStr: new PInstStr('satirlistestr'), shVeriTipi: new PInstTekSecim('shveritipi', SBTabloVeriTipi),
 			shAlmSat: new PInstTekSecim('shalmsat', AlimSatis), shIade: new PInstTekSecim('shiade', NormalIadeVeBirlikte),
 			shAyrimTipi: new PInstTekSecim('shayrimtipi', SBTabloAyrimTipi),
 			cssClassesStr: new PInstStr('cssclasses'), cssStyle: new PInstStr('cssstyle'),
@@ -124,6 +131,7 @@ class SBTabloDetay extends MQDetay {
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments); liste.push(...[
 			new GridKolon({ belirtec: 'seviyeno', text:  'Seviye', genislikCh: 15 }).noSql().tipTekSecim({ tekSecimSinif: SBTabloSeviye }).kodsuz().listedenSecilemez(),
+			new GridKolon({ belirtec: 'hesaptipi', text:  'Hesap Tipi', genislikCh: 30 }).noSql().tipTekSecim({ tekSecimSinif: HesapTipi }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'shveritipi', text:  'Veri Tipi', genislikCh: 30 }).noSql().tipTekSecim({ tekSecimSinif: SBTabloVeriTipi }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'satirlistestr', text:  'Satır Liste', genislikCh: 20 }).noSql(),
 			new GridKolon({ belirtec: 'shalmsat', text:  'S/H Alım-Satış', genislikCh: 15 }).noSql().tipTekSecim({ tekSecimSinif: AlimSatis }).kodsuz().listedenSecilemez(),
@@ -135,40 +143,186 @@ class SBTabloDetay extends MQDetay {
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments);
-		let {okunanHarSayac: id, satirListeStr: satirlistestr} = this;
-		id = id || newGUID();
-		$.extend(hv, { id, satirlistestr: satirlistestr || '' })
+		let {okunanHarSayac: id} = this;
+		id = id || newGUID(); $.extend(hv, { id })
 	}
 	setValues({ rec }) {
-		super.setValues(...arguments);
-		let {satirlistestr: satirListeStr} = rec
-		$.extend(this, { satirListeStr })
+		super.setValues(...arguments)
+		/* $.extend(this, { satirListeStr }) */
 	}
 }
 class SBTabloGridci extends GridKontrolcu {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	tabloKolonlariDuzenle_ilk({ tabloKolonlari: liste }) {
-		super.tabloKolonlariDuzenle_ilk(...arguments); liste.push(...[
-			new GridKolon({ belirtec: 'seviyeNo', text:  'Seviye', genislikCh: 15 }).tipTekSecim({ tekSecimSinif: SBTabloSeviye }).kodsuz().listedenSecilemez(),
-			new GridKolon({ belirtec: 'shVeriTipi', text:  'Veri Tipi', genislikCh: 30 }).tipTekSecim({ tekSecimSinif: SBTabloVeriTipi }).kodsuz().listedenSecilemez(),
-			new GridKolon({ belirtec: 'satirListeStr', text:  'Satır Liste', genislikCh: 20 }),
-			new GridKolon({ belirtec: 'shAlmSat', text:  'S/H Alım-Satış', genislikCh: 15 }).tipTekSecim({ tekSecimSinif: AlimSatis }).kodsuz().listedenSecilemez(),
-			new GridKolon({ belirtec: 'shIade', text:  'S/H İADE', genislikCh: 15 }).tipTekSecim({ tekSecimSinif: NormalIadeVeBirlikte }).kodsuz().listedenSecilemez(),
-			new GridKolon({ belirtec: 'shAyrimTipi', text:  'S/H Ayrım', genislikCh: 15 }).tipTekSecim({ tekSecimSinif: SBTabloAyrimTipi }).kodsuz().listedenSecilemez(),
-		])
+	gridArgsDuzenle({ args }) {
+		super.gridArgsDuzenle(...arguments);
+		$.extend(args, { selectionMode: 'checkbox', groupable: false, sortable: false, filterable: false })
 	}
-	tabloKolonlariDuzenle_son({ tabloKolonlari: liste }) {
-		super.tabloKolonlariDuzenle_son(...arguments);
+	ekCSSDuzenle({ belirtec, rec, result }) {
+		if (rec.seviyeNo.seviye1mi) { result.push('bold fs-130') }
+		else if (rec.seviyeNo.seviye2mi) { result.push('bold fs-110 i-pl-10') }
+		else { result.push('i-pl-20') }
+		return result.join(' ')
+	}
+	tabloKolonlariDuzenle_ilk(e) {
+		super.tabloKolonlariDuzenle_ilk(e); let {tabloKolonlari: liste} = e;
+		let cellClassName = (sender, rowIndex, belirtec, value, rec) => {
+			let _e = { sender, rowIndex, belirtec, value, rec, result: [] }; this.ekCSSDuzenle(_e);
+			return _e.result
+		};
 		liste.push(...[
-			new GridKolon({ belirtec: '_secimler', text:  ' ', genislikCh: 20 }).tipButton('Seçimler')
+			new GridKolon({ belirtec: 'degistir', text: ' ', genislikCh: 8 }).tipButton('D').onClick(_e => this.degistirIstendi({ ...e, ..._e })),
+			new GridKolon({ belirtec: 'sil', text: ' ', genislikCh: 8 }).tipButton('X').onClick(_e => this.silIstendi({ ...e, ..._e })),
+			new GridKolon({ belirtec: 'seviyeNo', text: 'Seviye', genislikCh: 10, cellClassName }).tipTekSecim({ tekSecimSinif: SBTabloSeviye }).kodsuz().listedenSecilemez(),
+			new GridKolon({ belirtec: 'hesapTipi', text: 'Hesap Tipi', genislikCh: 30, cellClassName }).tipTekSecim({ tekSecimSinif: SBTabloHesapTipi }).kodsuz().listedenSecilemez(),
+			new GridKolon({ belirtec: 'shVeriTipi', text: 'Veri Tipi', genislikCh: 30, cellClassName }).tipTekSecim({ tekSecimSinif: SBTabloVeriTipi }).kodsuz().listedenSecilemez(),
+			new GridKolon({ belirtec: 'satirListeStr', text: 'Satır Liste', genislikCh: 20, cellClassName }),
+			new GridKolon({ belirtec: 'shAlmSat', text: 'S/H Alım-Satış', genislikCh: 15, cellClassName }).tipTekSecim({ tekSecimSinif: AlimSatis }).kodsuz().listedenSecilemez(),
+			new GridKolon({ belirtec: 'shIade', text: 'S/H İADE', genislikCh: 15, cellClassName }).tipTekSecim({ tekSecimSinif: NormalIadeVeBirlikte }).kodsuz().listedenSecilemez(),
+			new GridKolon({ belirtec: 'shAyrimTipi', text: 'S/H Ayrım', genislikCh: 15, cellClassName }).tipTekSecim({ tekSecimSinif: SBTabloAyrimTipi }).kodsuz().listedenSecilemez(),
+			/*new GridKolon({ belirtec: '_secimler', text:  ' ', genislikCh: 20 }).tipButton('Seçimler')
 				.onClick(({ gridRec }) => {
 					let {secimler} = gridRec, {activeWndPart: parentPart} = app;
 					let part = secimler.duzenlemeEkraniAc({ parentPart: '', tamamIslemi: e => {} });
 					$.extend(part, { parentPart });
 					Object.defineProperty(part, 'canDestroy', { get: () => true })
-				}),
+				}),*/
 			new GridKolon({ belirtec: 'cssClassesStr', text:  'CSS Sınıfları', genislikCh: 50 }),
 			new GridKolon({ belirtec: 'cssStyle', text:  'CSS Verisi', genislikCh: 150 })
 		])
 	}
+	getRootFormBuilder(e) {
+		let {islem, sender: gridPart, gridRec: eskiDetay} = e, {gridWidget} = gridPart, {class: fisSinif} = this.fis;
+		e.gridWidget = e.gridWidget ?? gridWidget;
+		let detay = islem == 'yeni' || islem == 'kopya' ? new fisSinif.detaySinif() : eskiDetay.deepCopy();
+		for (let key of ['uid', 'uniqueid', '_rowNumber', 'boundindex', 'visibleindex']) { delete detay[key] };
+		let islemAdi = `${islem[0].toUpperCase()}${islem.slice(1)}`, title = e.title = islemAdi;
+		let rfb = new RootFormBuilder().asWindow(title).setInst(detay).setParentPart(gridPart).addStyle_fullWH();
+		rfb.onAfterRun(({ builder: rfb }) => {
+			let {part} = rfb;
+			part.kapaninca(() => {
+				// if (!rfb._closeTriggered) { gridPart.tazele() }
+				gridWidget.beginupdate(); gridWidget.endupdate();
+				rfb._closeTriggered = true
+			})
+		});
+		let close = e.close = _e => {
+			let {wnd} = e, {tazele} = _e ?? {}; rfb._closeTriggered = true;
+			// if (tazele) { gridPart.tazele() }
+			if (wnd?.length) { wnd.jqxWindow('close') } else { rfb.part?.close() }
+		};
+		rfb.addIslemTuslari('islemTuslari').setTip('tamamVazgec').setId2Handler({
+			tamam: async _e => { if (await this.tanimKaydet({ ..._e, ...e, detay, eskiDetay }) !== false) { close({ ..._e, ...e }) } },
+			vazgec: _e => close({ ..._e, ...e, tazele: true })
+		}).addStyle_fullWH(null, 'var(--islemTuslari-height)');
+		let fbd_content = rfb.addFormWithParent('content').altAlta()
+			.addStyle_fullWH(null, 'calc(var(--full) - (var(--islemTuslari-height) + 10px))');
+		let fbd_altForm, updateAltForm = () => {
+			for (let fbd of fbd_altForm) { fbd.updateVisible() } };
+		
+		let form = fbd_content.addFormWithParent().yanYana(3);
+		form.addModelKullan('seviyeNo', 'Seviye')
+			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz().listedenSecilmez()
+			.setSource(SBTabloSeviye.kaListe).onAfterRun(({ builder: fbd }) => fbd.input.focus());
+		form.addModelKullan('hesapTipi', 'Hesap Tipi')
+			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz().listedenSecilmez()
+			.setSource(SBTabloHesapTipi.kaListe).degisince(() => updateAltForm());
+		form = fbd_content.addFormWithParent().yanYana(2);
+		form.addTextInput('cssClassesStr', 'CSS Sınıfları').setPlaceHolder(`boşluk ( ) ile ayırınız`)
+			.addCSS('bold').addStyle(`$elementCSS > :not(label) { font-size: 95%; color: blue }`)
+			.onAfterRun(({ builder: fbd }) => fbd.input.attr('placeholder', fbd.placeHolder));
+		form.addTextArea('cssStyle', 'CSS Style').setRows(4).setCols(100)
+			.addCSS('bold').addStyle(`$elementCSS > :not(label) { font-size: 75%; color: green }`)
+			.onAfterRun(({ builder: fbd }) => fbd.input.attr('placeholder', fbd.placeHolder));
+		
+		fbd_altForm = fbd_content.addFormWithParent('altForm').altAlta().addStyle_fullWH(null, 'calc(var(--full) - 80px)');
+		
+		form = fbd_altForm.addFormWithParent('altForm_detaylarToplami').altAlta()
+			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.hesapTipi.detaylarToplamimi);
+		form.addForm().setLayout(() => $(`<div>Alt Seviyeler Toplanır</div>`)).autoAppend();
+		
+		form = fbd_altForm.addFormWithParent('altForm_satirlarToplami').altAlta()
+			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.hesapTipi.satirlarToplamimi);
+		let altForm = form.addFormWithParent().yanYana();
+		altForm.addTextInput('satirListeStr', 'Satır Liste').setPlaceHolder(`virgül (,) ile ayırınız`)
+			.readOnly().addStyle_wh(250).addCSS('center')
+			.onAfterRun(({ builder: fbd }) => fbd.input.attr('placeholder', fbd.placeHolder));
+		altForm.addForm()
+			.setLayout(() => $(`<div class="bold orangered">Satırları işaretleyiniz</div>`)).autoAppend()
+			.addStyle(`$elementCSS { margin-top: 30px }`);
+		form.addGridliGosterici(newGUID()).addStyle_fullWH()
+			.widgetArgsDuzenleIslemi(_e => this.gridArgsDuzenle(_e))
+			.setTabloKolonlari(_e => {
+				let attrSet = asSet(['seviyeNo', 'hesaptipi', 'shVeriTipi', 'shAlmSat', 'shIade', 'shAyrimTipi']);
+				return this.tabloKolonlari.filter(({ belirtec }) => attrSet[belirtec])
+			})
+			.setSource(_e => {
+				let {gridWidget} = this, recs = gridWidget.getboundrows(), buRec = e?.args?.row?.bounddata;
+				return recs.filter(rec => rec != buRec).map(rec => rec.deepCopy?.() ?? $.extend(true, {}, rec))
+			})
+			.veriYukleninceIslemi(({ builder: fbd }) => {
+				let {part: gridPart, altInst: inst} = fbd, {grid, gridWidget} = gridPart, {satirListe} = inst;
+				let {_rowXHandler: handler} = fbd;
+				if (handler) { grid.off('rowselect', handler); grid.off('rowunselect', handler) }
+				gridWidget.clearselection();
+				if (satirListe) {
+					for (let index of satirListe) {
+						gridWidget.selectrow(index) }
+				}
+				handler = fbd._rowXHandler = ({ args }) => {
+					let {selectedRowIndexes: rowIndexes} = gridPart;
+					inst.satirListe = rowIndexes
+				};
+				grid.on('rowselect', handler); grid.on('rowunselect', handler)
+			})
+		
+		form = fbd_altForm.addFormWithParent('altForm_ticariSatis').yanYana(2)
+			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.hesapTipi.ticariSatismi);
+		form.addModelKullan('shVeriTipi', 'Veri Tipi')
+			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz().listedenSecilmez()
+			.setSource(SBTabloVeriTipi.kaListe).degisince(() => updateAltForm());
+		form.addModelKullan('shAlmSat', 'Alım/Satış Durumu')
+			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz().listedenSecilmez()
+			.setSource(AlimSatis.kaListe);
+		form.addModelKullan('shIade', 'Normal/İADE Durumu')
+			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz().listedenSecilmez()
+			.setSource(NormalIadeVeBirlikte.kaListe);
+		form.addModelKullan('shAyrimTipi', 'Ayrım Tipi')
+			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz().listedenSecilmez()
+			.setSource(SBTabloAyrimTipi.kaListe);
+		
+		form = fbd_altForm.addFormWithParent('altForm_hizmet').altAlta()
+			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.hesapTipi.hizmetmi);
+		form.addForm().setLayout(() => $(`<div>Hizmet için seçimler</div>`)).autoAppend();
+		
+		altForm = form.addFormWithParent('altForm_ticariSatis_stok').altAlta()
+			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.shVeriTipi.stokmu);
+		form.addForm().setLayout(() => $(`<div>Stok için seçimler</div>`)).autoAppend();
+		altForm = form.addFormWithParent('altForm_ticariSatis_hizmet').altAlta()
+			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.shVeriTipi.hizmet);
+		form.addForm().setLayout(() => $(`<div>Hizmet için seçimler</div>`)).autoAppend();
+		return rfb
+	}
+	tanimla(e) {
+		e = e ?? {}; let rfb = this.getRootFormBuilder(e);
+		/*let {title} = e, wnd = e.wnd = createJQXWindow({
+			title, args: {
+				isModal: false, closeButtonAction: 'close',
+				width: '90%', height: Math.min(600, $(window).height() - 100)
+			}
+		});
+		wnd.on('close', evt => { rfb.destroyPart(); wnd.jqxWindow('destroy'); delete e.wnd });
+		rfb.setParent(wnd.find('.jqx-window-content > .subContent'));*/
+		rfb/*.asForm()*/.run();
+		return rfb
+	}
+	tanimKaydet({ islem, gridWidget, detay: det, eskiDetay: eDet }) {
+		switch (islem) {
+			case 'yeni': case 'kopya': { gridWidget.addrow(null, det); break }
+			case 'degistir': { gridWidget.updaterow(eDet?.uid, det); break }
+			case 'sil': { gridWidget.deleterow(eDet?.uid); break }
+		}
+	}
+	yeniIstendi(e) { return this.tanimla({ ...e, islem: 'yeni' }) }
+	degistirIstendi(e) { return this.tanimla({ ...e, islem: 'degistir' }) }
+	silIstendi({ sender: gridPart, gridRec: rec }) { gridPart.gridWidget.deleterow(rec.uid) }
 }

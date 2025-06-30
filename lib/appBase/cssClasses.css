@@ -103,3 +103,19 @@
 .fs-140 { font-size: 140% !important }
 .fs-150 { font-size: 150% !important }
 .fs-160 { font-size: 160% !important }
+
+.pl-5 { padding-left: 5px !important }
+.pl-8 { padding-left: 8px !important }
+.pl-10 { padding-left: 10px !important }
+.pl-13 { padding-left: 13px !important }
+.pl-15 { padding-left: 15px !important }
+.pl-18 { padding-left: 18px !important }
+.pl-20 { padding-left: 20px !important }
+
+.i-pl-5 > div { padding-left: 5px !important }
+.i-pl-8 > div { padding-left: 8px !important }
+.i-pl-10 > div { padding-left: 10px !important }
+.i-pl-13 > div { padding-left: 13px !important }
+.i-pl-15 > div { padding-left: 15px !important }
+.i-pl-18 > div { padding-left: 18px !important }
+.i-pl-20 > div{ padding-left: 20px !important }

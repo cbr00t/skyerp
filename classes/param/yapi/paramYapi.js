@@ -358,6 +358,7 @@ class ParamBuilder extends CObject {
 			for (const subItem of item.getItems()) { yield subItem }
 		}
 	}
+	[Symbol.iterator](e) { return this.getItems(e) }
 }
 class RootParamBuilder extends ParamBuilder {
     static { window[this.name] = this; this._key2Class[this.name] = this }

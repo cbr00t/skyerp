@@ -4,7 +4,7 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 	get input() {
 		let result = this._input;
 		if (result != null && isFunction(result)) {
-			const e = this.getBuilderBlockArgs({ result: result, commitFlag: true }); result = getFuncValue.call(this, result, e);
+			let e = this.getBuilderBlockArgs({ result: result, commitFlag: true }); result = getFuncValue.call(this, result, e);
 			if (e.commitFlag) this._input = result
 		}
 		return result
@@ -15,13 +15,13 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 		if (result === undefined) {
 			result = this._kodAttr = e => {
 				e.temp();
-				const {rootPart} = this;
+				let {rootPart} = this;
 				if (rootPart)
 					return rootPart.kodAttr || (rootPart.inst || {}).kodAttr || ((rootPart.inst || {}).class || {}).kodAttr
 			};
 		}
 		if (result != null && isFunction(result)) {
-			const e = this.getBuilderBlockArgs({ result: result, commitFlag: false });
+			let e = this.getBuilderBlockArgs({ result: result, commitFlag: false });
 			result = getFuncValue.call(this, result, e);
 			if (e.commitFlag)
 				this._kodAttr = result;
@@ -36,13 +36,13 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 		if (result === undefined) {
 			result = this._adiAttr = e => {
 				e.temp();
-				const {rootPart} = this;
+				let {rootPart} = this;
 				if (rootPart)
 					return rootPart.adiAttr || (rootPart.inst || {}).adiAttr || ((rootPart.inst || {}).class || {}).adiAttr
 			};
 		}
 		if (result != null && isFunction(result)) {
-			const e = this.getBuilderBlockArgs({ result: result, commitFlag: false });
+			let e = this.getBuilderBlockArgs({ result: result, commitFlag: false });
 			result = getFuncValue.call(this, result, e);
 			if (e.commitFlag)
 				this._adiAttr = result;
@@ -55,7 +55,7 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 	get source() {
 		let result = this._source;
 		if (result != null && isFunction(result)) {
-			const e = this.getBuilderBlockArgs({ result, commitFlag: false }); result = getFuncValue.call(this, result, e);
+			let e = this.getBuilderBlockArgs({ result, commitFlag: false }); result = getFuncValue.call(this, result, e);
 			if (e.commitFlag) { this._source = result }
 		}
 		return result
@@ -64,20 +64,20 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 	get etiket() {
 		let result = this._etiket;
 		if (result != null && isFunction(result)) {
-			const e = this.getBuilderBlockArgs({ commitFlag: false }); result = getFuncValue.call(this, result, e);
-			if (result === undefined) { const {mfSinif} = this; if (mfSinif) result = mfSinif.sinifAdi }
+			let e = this.getBuilderBlockArgs({ commitFlag: false }); result = getFuncValue.call(this, result, e);
+			if (result === undefined) { let {mfSinif} = this; if (mfSinif) result = mfSinif.sinifAdi }
 			if (e.commitFlag) this._etiket = result
 		}
-		if (result === undefined) { const {mfSinif} = this; if (mfSinif) { result = mfSinif.sinifAdi } }
+		if (result === undefined) { let {mfSinif} = this; if (mfSinif) { result = mfSinif.sinifAdi } }
 		return result
 	}
 	set etiket(val) { this._etiket = val }
 	get value() {
 		let result = this._initValueSetFlag ? this._value : undefined; this._initValueSetFlag = false;
 		let func = this._getValue ?? (e => this.defaultGetValue(e));
-		if (func != null && typeof func == 'object') { const _e = this.getBuilderBlockArgs({ get initValue() { return this._value } }); result = getFuncValue.call(this, func, _e) }
+		if (func != null && typeof func == 'object') { let _e = this.getBuilderBlockArgs({ get initValue() { return this._value } }); result = getFuncValue.call(this, func, _e) }
 		if (result != null && typeof result == 'object' && (isFunction(result) || result.run)) {
-			const _e = this.getBuilderBlockArgs({ get initValue() { return result }, commitFlag: false }); result = getFuncValue.call(this, result, _e);
+			let _e = this.getBuilderBlockArgs({ get initValue() { return result }, commitFlag: false }); result = getFuncValue.call(this, result, _e);
 			if (_e.commitFlag) this._value = result
 		}
 		return result
@@ -86,10 +86,10 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 		let func = this._setValue || (e => this.defaultSetValue(e));
 		if (func) {
 			if (val != null && !val.prototype && isFunction(val)) {
-				const e = this.getBuilderBlockArgs({ result: val }); val = val != null && typeof val == 'object' ? getFuncValue.call(this, val, e) : val;
+				let e = this.getBuilderBlockArgs({ result: val }); val = val != null && typeof val == 'object' ? getFuncValue.call(this, val, e) : val;
 				if (e.commitFlag) this._value = val
 			}
-			const _e = this.getBuilderBlockArgs({ value: val, get initValue() { return this._value } }); getFuncValue.call(this, func, _e);
+			let _e = this.getBuilderBlockArgs({ value: val, get initValue() { return this._value } }); getFuncValue.call(this, func, _e);
 			this._initValueSetFlag = true
 		}
 		return this
@@ -103,22 +103,22 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 		if (this._value !== undefined) { this._initValueSetFlag = true }
 	}
 	buildDevam(e) {
-		super.buildDevam(e); const {etiket, etiketGosterim, styles} = this;
-		const elmLabel = this.elmLabel = $(`<label>${etiket == null ? '' : (etiket || '&nbsp;')}</label>`); elmLabel.prependTo(this.layout);
+		super.buildDevam(e); let {etiket, etiketGosterim, styles} = this;
+		let elmLabel = this.elmLabel = $(`<label>${etiket == null ? '' : (etiket || '&nbsp;')}</label>`); elmLabel.prependTo(this.layout);
 		styles.push(`$elementCSS > label { color: #888; width: var(--full) }`);
 		if (etiketGosterim == 'placeholder') { elmLabel.addClass('basic-hidden') } else if (etiketGosterim == 'none') { elmLabel.addClass('jqx-hidden') }
 	}
 	afterBuild(e) {
-		super.afterBuild(e); const {input} = this;
+		super.afterBuild(e); let {input} = this;
 		if (input?.length) {
-			const {elmLabel} = this; if (elmLabel?.length) {
+			let {elmLabel} = this; if (elmLabel?.length) {
 				let id = this.getElementId(input); if (!input.attr('name')) { input.attr('name', id) }
-				const {labelCSSClass} = this; if (!$.isEmptyObject(labelCSSClass)) { elmLabel.addClass(lCSSClass) }
+				let {labelCSSClass} = this; if (!$.isEmptyObject(labelCSSClass)) { elmLabel.addClass(lCSSClass) }
 			}
-			const {inputCSSClass} = this; if (!$.isEmptyObject(inputCSSClass)) { input.addClass(inputCSSClass) }
+			let {inputCSSClass} = this; if (!$.isEmptyObject(inputCSSClass)) { input.addClass(inputCSSClass) }
 		}
 		if (this.autoInitLayoutFlag !== false) {
-			const {temps} = e; if (temps.waitMS == null) { temps.waitMS = 0 } this.initLayout(e)
+			let {temps} = e; if (temps.waitMS == null) { temps.waitMS = 0 } this.initLayout(e)
 			/*setTimeout(e => this.initLayout(e), temps.waitMS, e); temps.waitMS += 10*/
 		}
 	}
@@ -145,7 +145,7 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 	setInput(value) { this.input = value; return this }
 	getValueIslemi(handler) { this._getValue = handler; return this }
 	setValueIslemi(handler) { this._setValue = handler; return this }
-	setValue(value) { const {input} = this; if (input?.length) { this.value = value } else { this._value = value; this._initValueSetFlag = true } return this }
+	setValue(value) { let {input} = this; if (input?.length) { this.value = value } else { this._value = value; this._initValueSetFlag = true } return this }
 	setPlaceHolder(value) { this.placeHolder = value; return this }
 	setPlaceholder(value) { return this.setPlaceHolder(value) }
 }
@@ -156,49 +156,49 @@ class FBuilder_SimpleElement extends FormBuilder_SubPart {
 		$.extend(this, { inputTagName: e.tagName || e.tag || e.inputTagName || this.class.inputTagName, onChangeEvent: e.onChange || e.degisince, onKeyUpEvent: e.onKeyUp || e.tusaBasilinca })
 	}
 	buildDevam(e) {
-		super.buildDevam(e); const {input} = this;
+		super.buildDevam(e); let {input} = this;
 		if (input?.length) { if (!input.parent()?.length && this.autoAppendFlag) { input.appendTo(this.layout) } }
-		else { const {inputTagName} = this; if (inputTagName) { const input = this.input = $(`<${inputTagName}/>`); input.appendTo(this.layout) } }
+		else { let {inputTagName} = this; if (inputTagName) { let input = this.input = $(`<${inputTagName}/>`); input.appendTo(this.layout) } }
 	}
 	initLayout(e) {
-		super.initLayout(e); const {ioAttr} = this;
+		super.initLayout(e); let {ioAttr} = this;
 		if (ioAttr) {
-			const {altInst} = this;
+			let {altInst} = this;
 			if (altInst) {
-				const {value} = this;
+				let {value} = this;
 				if (this._initValueSetFlag) { this.defaultSetValue({ value }) } else { this.value = altInst[ioAttr] }
-				const {_p} = altInst, pInst = (_p || {})[ioAttr]; if (pInst) { pInst.change(e => this.value = e.value) }
+				let {_p} = altInst, pInst = (_p || {})[ioAttr]; if (pInst) { pInst.change(e => this.value = e.value) }
 			}
 		}
 	}
 	afterBuild(e) {
-		super.afterBuild(e); const {input} = this;
+		super.afterBuild(e); let {input} = this;
 		if (input?.length) {
-			// const elmLabel_width = this.elmLabel_width || 0;
+			// let elmLabel_width = this.elmLabel_width || 0;
 			if (!!this.etiketGosterim) { input.attr('placeholder', (this.placeHolder == null ? this.etiket : this.placeHolder) ?? '') }
-			const {value} = this; if (value != null && this.ioAttr && this.altInst) { this.value = value }
+			let {value} = this; if (value != null && this.ioAttr && this.altInst) { this.value = value }
 		}
 	}
 	defaultGetValue(e) {
-		const {input} = this; if (input?.length) return this.getConverted_getValue({ value: input.val() })
+		let {input} = this; if (input?.length) return this.getConverted_getValue({ value: input.val() })
 		return super.defaultGetValue(e)
 	}
 	defaultSetValue(e) {
-		const {input} = this; if (input?.length) { input.val(this.getConverted_setValue({ value: e.value })); return }
+		let {input} = this; if (input?.length) { input.val(this.getConverted_setValue({ value: e.value })); return }
 		super.defaultSetValue(e)
 	}
 	signalChange(e) {
 		let {onChangeEvent} = this; if (!onChangeEvent) return this
 		if (!$.isArray(onChangeEvent)) onChangeEvent = [onChangeEvent]
 		if ($.isEmptyObject(onChangeEvent)) return this
-		for (const handler of onChangeEvent) getFuncValue.call(this, handler, e)
+		for (let handler of onChangeEvent) getFuncValue.call(this, handler, e)
 		return this
 	}
 	signalKeyUp(e) {
 		let {onKeyUpEvent} = this; if (!onKeyUpEvent) return this
 		if (!$.isArray(onKeyUpEvent)) onKeyUpEvent = [onKeyUpEvent];
 		if ($.isEmptyObject(onKeyUpEvent)) return this
-		for (const handler of onKeyUpEvent) getFuncValue.call(this, handler, e)
+		for (let handler of onKeyUpEvent) getFuncValue.call(this, handler, e)
 		return this
 	}
 	degisince(handler) { this.onChange(handler); return this }
@@ -233,9 +233,9 @@ class FBuilder_InputOrtak extends FBuilder_DivOrtak {
 		$.extend(this, { _value: e.value, inputType: e.inputType || this.class.inputType, maxLength: e.maxLength ?? this.class.maxLength, isReadOnly: e.readOnly ?? e.readonly ?? e.isReadOnly ?? e.isReadonly })
 	}
 	buildDevam(e) {
-		const {value} = this; super.buildDevam(e); const {input} = this;
+		let {value} = this; super.buildDevam(e); let {input} = this;
 		if (input?.length) {
-			const {inputType, maxLength, isReadOnly, etiket} = this;
+			let {inputType, maxLength, isReadOnly, etiket} = this;
 			if (inputType) { input.attr('type', inputType) }
 			if (maxLength) { input.attr('maxlength', maxLength) }
 			if (isReadOnly) { input.attr('readonly', '') }
@@ -246,14 +246,14 @@ class FBuilder_InputOrtak extends FBuilder_DivOrtak {
 		}
 	}
 	postBuild(e) {
-		super.postBuild(e); const {input} = this;
+		super.postBuild(e); let {input} = this;
 		if (input?.length) {
 			input.on('focus', evt => setTimeout(() => evt.target.select(), 50));
 			if (!this.class.noAutoChangeEvent) {
 				input.on('change', evt => {
 					let value = this.getConverted_setValue({ value: evt.currentTarget.value }); if (value?.toString() != evt.target.value?.toString()) { evt.currentTarget.value = value }
-					value = this.getConverted_getValue({ value }); const {ioAttr} = this;
-					if (ioAttr) { const {altInst} = this; if (altInst) { const {_p} = altInst, pInst = (_p || {})[ioAttr]; if (pInst) { pInst.setValues({ value }) } else { altInst[ioAttr] = value } } }
+					value = this.getConverted_getValue({ value }); let {ioAttr} = this;
+					if (ioAttr) { let {altInst} = this; if (altInst) { let {_p} = altInst, pInst = (_p || {})[ioAttr]; if (pInst) { pInst.setValues({ value }) } else { altInst[ioAttr] = value } } }
 					this.signalChange({ sender: this, builder: this, event: evt, value }); this._lastValue = value
 				})
 			}
@@ -261,7 +261,7 @@ class FBuilder_InputOrtak extends FBuilder_DivOrtak {
 	}
 	getConvertedValue(e) {
 		let value = super.getConvertedValue(e);
-		const {maxLength} = this; if (value && maxLength && typeof value == 'string') { value = value.toString().slice(0, maxLength) }
+		let {maxLength} = this; if (value && maxLength && typeof value == 'string') { value = value.toString().slice(0, maxLength) }
 		return value
 	}
 	editable() { this.isReadOnly = false; return this }
@@ -278,10 +278,10 @@ class FBuilder_LabelBase extends FBuilder_DivOrtak {
 		this.altAlta()
 	}
 	buildDevam(e) {
-		super.buildDevam(e); const {input} = this;
+		super.buildDevam(e); let {input} = this;
 		if (input?.length) {
-			const {etiket} = this; if (etiket) input.html(etiket)
-			const {inputCSSClass} = this.class; if (inputCSSClass) input.addClass(inputCSSClass)
+			let {etiket} = this; if (etiket) input.html(etiket)
+			let {inputCSSClass} = this.class; if (inputCSSClass) input.addClass(inputCSSClass)
 		}
 	}
 }
@@ -293,7 +293,7 @@ class FBuilder_Label extends FBuilder_LabelBase {
 	constructor(e) { e = e || {}; super(e); this.etiket = e.etiket }
 	buildDevam(e) {
 		super.buildDevam(e)
-		/*const {inputTagName, inputCSS} = this.class, {etiket} = this;
+		/*let {inputTagName, inputCSS} = this.class, {etiket} = this;
 		this.layout = $(`<${inputTagName} class="${inputCSS} gray">${etiket || ''}</${inputTagName}>`)*/
 	}
 }
@@ -304,8 +304,8 @@ class FBuilder_Baslik extends FBuilder_LabelBase {
 
 	buildDevam(e) {
 		super.buildDevam(e);
-		const {inputTagName, inputCSSClass} = this.class;
-		const {cssClasses} = this;
+		let {inputTagName, inputCSSClass} = this.class;
+		let {cssClasses} = this;
 		cssClasses.push('cadetblue')
 	}
 }
@@ -314,9 +314,9 @@ class FBuilder_GroupBox extends FBuilder_LabelBase {
 	static get inputCSSClass() { return 'groupbox' }
 	buildDevam(e) {
 		super.buildDevam(e);
-		const {inputTagName, inputCSSClass} = this.class;
-		const {styles} = this;
-		const paddingTop = 8;
+		let {inputTagName, inputCSSClass} = this.class;
+		let {styles} = this;
+		let paddingTop = 8;
 		styles.push(
 			`$elementCSS { border: 2px solid #ccc; min-height: 10px; padding-top: 0 }`,
 			`$elementCSS > *:not(${inputTagName}.${inputCSSClass}) { padding: 0 8px }`,
@@ -336,15 +336,15 @@ class FBuilder_TextArea extends FBuilder_InputOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get inputTagName() { return 'textarea' } static get inputType() { return null }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { rows: e.rows || 1, cols: e.cols ?? e.columns, maxRows: e.maxRows }) }
 	buildDevam(e) {
-		super.buildDevam(e); const {input} = this; if (input?.length) {
-			const {rows, cols, maxRows} = this; if (rows) { input.attr('rows', rows) } if (cols) { input.attr('cols', cols) }
+		super.buildDevam(e); let {input} = this; if (input?.length) {
+			let {rows, cols, maxRows} = this; if (rows) { input.attr('rows', rows) } if (cols) { input.attr('cols', cols) }
 			if (maxRows) {
 				input.on('change', evt => {
 					let value = this.getConverted_getValue({ value: evt.target.value });
 					if (value && typeof value == 'string') {
-						const parts = value.split('\n');
+						let parts = value.split('\n');
 						if (parts.length > maxRows) {
-							const {_lastValue} = this; value = this._lastValue; if (value == null) { value = this.getConverted_setValue({ value: parts.slice(0, 1).join('\n') }) }
+							let {_lastValue} = this; value = this._lastValue; if (value == null) { value = this.getConverted_setValue({ value: parts.slice(0, 1).join('\n') }) }
 							evt.target.value = value
 						}
 					}
@@ -359,11 +359,11 @@ class FBuilder_NumberInput extends FBuilder_InputOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get inputType() { return 'number' }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { min: e.min, max: e.max, step: e.step, fra: e.fra }) }
 	buildDevam(e) {
-		super.buildDevam(e); const {input} = this;
+		super.buildDevam(e); let {input} = this;
 		if (input?.length) {
-			const {min, max, step, fra} = this; if (min != null) { input.attr('min', min) } if (max != null) { input.attr('max', max) } if (step != null) { input.attr('step', step) }
+			let {min, max, step, fra} = this; if (min != null) { input.attr('min', min) } if (max != null) { input.attr('max', max) } if (step != null) { input.attr('step', step) }
 			input.on('change', evt => {
-				const _value = evt.target.value; let value = typeof _value == 'number' ? this.getConverted_getValue({ value: _value }) : _value;
+				let _value = evt.target.value; let value = typeof _value == 'number' ? this.getConverted_getValue({ value: _value }) : _value;
 				if (value != null) {
 					if (min != null && value < min) { value = min }
 					if (max != null && value > max) { value = max }
@@ -378,31 +378,31 @@ class FBuilder_NumberInput extends FBuilder_InputOrtak {
 	setStep(value) { this.step = value; return this } setFra(value) { this.fra = value; return this }
 	getConvertedValue(e) {
 		let value = super.getConvertedValue(e); value = value == null ? value : asFloat(value);
-		const {fra} = this; if (typeof value == 'number' && fra != null) { value = roundToFra(value, fra) }
-		const {maxLength} = this; if (value && maxLength) { value = asFloat(value.toString().slice(0, maxLength)) }
+		let {fra} = this; if (typeof value == 'number' && fra != null) { value = roundToFra(value, fra) }
+		let {maxLength} = this; if (value && maxLength) { value = asFloat(value.toString().slice(0, maxLength)) }
 		return value
 	}
 }
 class FBuilder_DateInput extends FBuilder_TextInput {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get maxLength() { return 12 } static get noAutoChangeEvent() { return true }
 	buildDevam(e) {
-		super.buildDevam(e); const {input, styles} = this; input.addClass('tarih');
-		const part = this.part = new TarihUIPart({ layout: input }); part.change(e => {
-			const value = this.getConverted_getValue({ value: e.value }), {ioAttr} = this;
-			if (ioAttr) { const {altInst} = this; if (altInst) { const {_p} = altInst, pInst = (_p || {})[ioAttr]; if (pInst) { pInst.setValues({ value }) } else { altInst[ioAttr] = value } } }
+		super.buildDevam(e); let {input, styles} = this; input.addClass('tarih');
+		let part = this.part = new TarihUIPart({ layout: input }); part.change(e => {
+			let value = this.getConverted_getValue({ value: e.value }), {ioAttr} = this;
+			if (ioAttr) { let {altInst} = this; if (altInst) { let {_p} = altInst, pInst = (_p || {})[ioAttr]; if (pInst) { pInst.setValues({ value }) } else { altInst[ioAttr] = value } } }
 			this.signalChange({ sender: part, builder: this, event: e, value }); this._lastValue = value
 		});
 		part.run(); styles.push(e => `$elementCSS { width: 130px !important }`)
 	}
-	defaultGetValue(e) { const {part} = this; if (part && !part.isDestroyed) { return this.getConverted_getValue({ value: part.value }) } return super.defaultGetValue(e) }
-	defaultSetValue(e) { const {part} = this; if (part && !part.isDestroyed) { part.value = e.value; return } return super.defaultSetValue(e) }
+	defaultGetValue(e) { let {part} = this; if (part && !part.isDestroyed) { return this.getConverted_getValue({ value: part.value }) } return super.defaultGetValue(e) }
+	defaultSetValue(e) { let {part} = this; if (part && !part.isDestroyed) { part.value = e.value; return } return super.defaultSetValue(e) }
 }
 class FBuilder_TimeInput extends FBuilder_TextInput {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get inputType() { return 'time' } static get maxLength() { return null }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { saniyesizmi: e.saniyesiz ?? e.saniyesizmi ?? true }) }
 	preBuild(e) { super.preBuild(e); this.maxLength = this.maxLength || (this.saniyesizmi ? 5 : 7) }
 	buildDevam(e) {
-		super.buildDevam(e); const {input, styles, saniyesizmi} = this;
+		super.buildDevam(e); let {input, styles, saniyesizmi} = this;
 		if (input?.length) { input.addClass('zaman'); input[saniyesizmi ? 'addClass' : 'removeClass']('saniyesiz') }
 		styles.push(e => `$elementCSS { --width: calc(120px + ${saniyesizmi ? 0 : 25}px); min-width: var(--width) !important; width: var(--width) !important }`)
 	}
@@ -415,9 +415,9 @@ class FBuilder_ToggleButton extends FBuilder_DivOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) { super(e); if (this.etiketGosterim == null) { this.etiketGosterim_placeholder() } }
 	buildDevam(e) {
-		super.buildDevam(e); const {styles, layout, input} = this;
+		super.buildDevam(e); let {styles, layout, input} = this;
 		if (input?.length) { styles.push( `$elementCSS { min-width: 100px; width: 150px !important; margin-right: 13px }`, `$elementCSS > input { width: var(--full) }` ) }
-		const {elmLabel} = this; if (elmLabel?.length) { styles.push( `${this.getCSSElementSelector(elmLabel)} { width: auto !important; padding-top: 8px; margin-right: 13px }` ) }
+		let {elmLabel} = this; if (elmLabel?.length) { styles.push( `${this.getCSSElementSelector(elmLabel)} { width: auto !important; padding-top: 8px; margin-right: 13px }` ) }
 	}
 	getConvertedValue(e) { return asBoolQ(e.value) }
 }
@@ -429,27 +429,27 @@ class FBuilder_CheckBox extends FBuilder_ToggleButton {
 		this.bottomFlag = e.bottomFlag ?? e.bottom ?? true
 	}
 	buildDevam(e) {
-		const {value} = this; super.buildDevam(e); const {input} = this;
+		let {value} = this; super.buildDevam(e); let {input} = this;
 		if (input?.length) {
 			input.prop('type', 'checkbox');
-			const setter = value => {
+			let setter = value => {
 				if (value == null) { input.prop('indeterminate', true) }
 				else { input.prop('indeterminate', false); input.prop('checked', value) }
 			};
 			if (value != null) { if (value.then) { value.then(value => setter(value)) } else { setter(value) } }
 			input.on('change', evt => {
-				const {ioAttr} = this, value = this.getConverted_getValue({ value: $(evt.currentTarget).is(':checked') });
+				let {ioAttr} = this, value = this.getConverted_getValue({ value: $(evt.currentTarget).is(':checked') });
 				if (ioAttr) {
-					const {altInst} = this;
+					let {altInst} = this;
 					if (altInst) {
-						const {_p} = altInst, pInst = (_p || {})[ioAttr];
+						let {_p} = altInst, pInst = (_p || {})[ioAttr];
 						if (pInst) { pInst.setValues({ value }) } else { altInst[ioAttr] = value }
 					}
 				}
 				this.signalChange({ sender: this, builder: this, event: evt, value })
 			});
 
-			const {styles, layout, elmLabel} = this;
+			let {styles, layout, elmLabel} = this;
 			if (this.bottomFlag) { styles.push(`$elementCSS { margin-top: ${this.class.defaultHeight}px }`) }
 			styles.push(...[
 				`$elementCSS { min-width: unset !important; width: initial !important }`,
@@ -464,20 +464,20 @@ class FBuilder_CheckBox extends FBuilder_ToggleButton {
 		}
 	}
 	postBuild(e) {
-		super.postBuild(e); const {input} = this;
+		super.postBuild(e); let {input} = this;
 		if (input?.length) {
 			let layout = input.parent(); if (!layout?.length) { layout = this.layout }
 			input.detach(); input.prependTo(layout)
 		}
 	}
 	defaultGetValue(e) {
-		const {input} = this; if (input?.length) { return this.getConverted_getValue({ value: input.prop('indeterminate') ? null : input.is(':checked') }) }
+		let {input} = this; if (input?.length) { return this.getConverted_getValue({ value: input.prop('indeterminate') ? null : input.is(':checked') }) }
 		return super.defaultGetValue(e)
 	}
 	defaultSetValue(e) {
-		const {input} = this;
+		let {input} = this;
 		if (input?.length) {
-			const value = this.getConverted_setValue({ value: e.value }); input.prop('checked', value);
+			let value = this.getConverted_setValue({ value: e.value }); input.prop('checked', value);
 			if (value == null) { input.prop('indeterminate', true) }
 			return
 		}
@@ -493,28 +493,28 @@ class FBuilder_SwitchButton extends FBuilder_ToggleButton {
 		$.extend(this, { onLabel: e.onLabel, offLabel: e.offLabel })
 	}
 	buildDevam(e) {
-		const {value} = this; super.buildDevam(e); const {input} = this;
+		let {value} = this; super.buildDevam(e); let {input} = this;
 		if (input?.length) {
-			const {layout} = this; layout.addClass('flex-row');
-			const {widgetArgsDuzenle} = this; const _e = $.extend({}, e, { args: { theme, width: '100%', height: this.class.defaultHeight, value } });
-			for (const key of ['onLabel', 'offLabel']) { const _value = this[key]; if (_value != null) { _e.args[key] = _value } }
+			let {layout} = this; layout.addClass('flex-row');
+			let {widgetArgsDuzenle} = this; let _e = $.extend({}, e, { args: { theme, width: '100%', height: this.class.defaultHeight, value } });
+			for (let key of ['onLabel', 'offLabel']) { let _value = this[key]; if (_value != null) { _e.args[key] = _value } }
 			if (widgetArgsDuzenle) { getFuncValue.call(this, widgetArgsDuzenle, _e); }
 			input.jqxSwitchButton(_e.args);
 			input.on('change', evt => {
-				const {ioAttr} = this, value = this.getConverted_getValue({ value: !$(evt.currentTarget).val() });
+				let {ioAttr} = this, value = this.getConverted_getValue({ value: !$(evt.currentTarget).val() });
 				if (ioAttr) {
-					const {altInst} = this;
-					if (altInst) { const {_p} = altInst, pInst = (_p || {})[ioAttr]; if (pInst) { pInst.setValues({ value }) } else { altInst[ioAttr] = value } }
+					let {altInst} = this;
+					if (altInst) { let {_p} = altInst, pInst = (_p || {})[ioAttr]; if (pInst) { pInst.setValues({ value }) } else { altInst[ioAttr] = value } }
 				}
 				this.signalChange({ sender: this, builder: this, event: evt, value })
 			});
-			const {styles, elmLabel} = this;
+			let {styles, elmLabel} = this;
 			styles.push( `$elementCSS { margin-right: 0 !important; margin-bottom: 0 !important }` );
 			if (elmLabel?.length) { elmLabel.on('click', evt => input.click()) }
 		}
 	}
 	defaultSetValue(e) {
-		const {input} = this; if (input?.length) { input.jqxSwitchButton('checked', this.getConverted_setValue({ value: e.value })); return }
+		let {input} = this; if (input?.length) { input.jqxSwitchButton('checked', this.getConverted_setValue({ value: e.value })); return }
 		return super.defaultSetValue(e)
 	}
 }
@@ -526,7 +526,7 @@ class FBuilder_OptionBase extends FBuilder_DivOrtak {
 	}
 	set source(value) {
 		super.source = value;
-		const {layout} = this;
+		let {layout} = this;
 		if (layout && layout.length)
 			this.sourceAtandi({ sender: this, builder: this, source: value })
 	}
@@ -542,7 +542,7 @@ class FBuilder_OptionBase extends FBuilder_DivOrtak {
 	}
 	afterBuild(e) {
 		super.afterBuild(e);
-		const {layout} = this;
+		let {layout} = this;
 		if (layout && layout.length) {
 			if (!this.layoutHasParent)
 				layout.appendTo(this.parent)
@@ -551,9 +551,9 @@ class FBuilder_OptionBase extends FBuilder_DivOrtak {
 	}
 	sourceAtandi(e) {
 		e = e || {};
-		const source = e.source == null ? this.source : e.source;
+		let source = e.source == null ? this.source : e.source;
 		if (source) {
-			const _e = $.extend({}, e, { source: source });
+			let _e = $.extend({}, e, { source: source });
 			if (source.then) {
 				source.then(recs => {
 					_e.source = recs;
@@ -572,18 +572,18 @@ class FBuilder_SelectElement extends FBuilder_OptionBase {
 	
 	buildDevam(e) {
 		super.buildDevam(e);
-		const {input} = this;
+		let {input} = this;
 		if (input && input.length) {
 			input.on('change', evt => {
-				const value = $(evt.currentTarget).val();
+				let value = $(evt.currentTarget).val();
 				if (value != null) {
-					const value = this.getConverted_getValue({ value: value });
-					const {ioAttr} = this;
+					let value = this.getConverted_getValue({ value: value });
+					let {ioAttr} = this;
 					if (ioAttr) {
-						const {altInst} = this;
+						let {altInst} = this;
 						if (altInst) {
-							const {_p} = altInst;
-							const pInst = (_p || {})[ioAttr];
+							let {_p} = altInst;
+							let pInst = (_p || {})[ioAttr];
 							if (pInst)
 								pInst.setValues({ value: value });
 							else
@@ -596,14 +596,14 @@ class FBuilder_SelectElement extends FBuilder_OptionBase {
 		}
 	}
 	sourceAtandiDevam(e) {
-		const {input} = this; if (!input?.length) return
-		const {source} = e; if (!source) return
-		const {kodAttr, adiAttr} = this; if (!(kodAttr || adiAttr)) return
-		const {_value} = this;
+		let {input} = this; if (!input?.length) return
+		let {source} = e; if (!source) return
+		let {kodAttr, adiAttr} = this; if (!(kodAttr || adiAttr)) return
+		let {_value} = this;
 		input.children().remove();
-		for (const key in source) {
-			const item = source[key], kod = item[kodAttr], aciklama = item[adiAttr];
-			const optValue = coalesce(kod, aciklama), optLabel = coalesce(aciklama, kod) || '', elm = $(`<option value="${optValue}">${optLabel}</option>`);
+		for (let key in source) {
+			let item = source[key], kod = item[kodAttr], aciklama = item[adiAttr];
+			let optValue = coalesce(kod, aciklama), optLabel = coalesce(aciklama, kod) || '', elm = $(`<option value="${optValue}">${optLabel}</option>`);
 			elm.appendTo(input); if (_value != null && _value == optValue) { elm.select() }
 		}
 	}
@@ -613,7 +613,7 @@ class FBuilder_RadioButton extends FBuilder_OptionBase {
 	static get inputTagName() { return 'div' }
 	
 	buildDevam(e) {
-		super.buildDevam(e); const {input, styles} = this;
+		super.buildDevam(e); let {input, styles} = this;
 		if (input?.length) { input.addClass('options') }
 		styles.push(...[
 			e => `$elementCSS { height: 40px }`,
@@ -627,28 +627,28 @@ class FBuilder_RadioButton extends FBuilder_OptionBase {
 		])
 	}
 	sourceAtandiDevam(e) {
-		const {input} = this; if (!input?.length) { return }
-		const {source} = e; if (!source) return
-		const {kodAttr, adiAttr} = this; if (!(kodAttr || adiAttr)) return
-		this.input = null; const {value} = this; this.input = input;
+		let {input} = this; if (!input?.length) { return }
+		let {source} = e; if (!source) return
+		let {kodAttr, adiAttr} = this; if (!(kodAttr || adiAttr)) return
+		this.input = null; let {value} = this; this.input = input;
 		input.children().remove();
-		for (const key in source) {
-			const item = source[key], kod = item[kodAttr], aciklama = item[adiAttr];
-			const optValue = coalesce(kod, aciklama), optLabel = coalesce(aciklama, kod) || '';
-			const elm = $(`<button data-value="${optValue}">${optLabel}</button>`); elm.appendTo(input);
+		for (let key in source) {
+			let item = source[key], kod = item[kodAttr], aciklama = item[adiAttr];
+			let optValue = coalesce(kod, aciklama), optLabel = coalesce(aciklama, kod) || '';
+			let elm = $(`<button data-value="${optValue}">${optLabel}</button>`); elm.appendTo(input);
 			if (value != null && value == optValue) { elm.addClass('selected') }
 		}
-		const buttons = input.find('button').jqxButton({ theme });
+		let buttons = input.find('button').jqxButton({ theme });
 		buttons.on('click', evt => {
-			const elm = $(evt.currentTarget);
+			let elm = $(evt.currentTarget);
 			let value = elm.data('value'); if (value == null) { return }
 			input.find(`button:not([data-value="${value}"])`).removeClass('selected'); elm.addClass('selected');
 			value = this.getConverted_getValue({ value });
-			const {ioAttr} = this;
+			let {ioAttr} = this;
 			if (ioAttr) {
-				const {altInst} = this;
+				let {altInst} = this;
 				if (altInst) {
-					const {_p} = altInst, pInst = (_p || {})[ioAttr];
+					let {_p} = altInst, pInst = (_p || {})[ioAttr];
 					if (pInst) { pInst.setValues({ value }) } else { altInst[ioAttr] = value }
 				}
 			}
@@ -656,15 +656,15 @@ class FBuilder_RadioButton extends FBuilder_OptionBase {
 		})
 	}
 	defaultGetValue(e) {
-		const {input} = this;
+		let {input} = this;
 		if (input && input.length)
 			return this.getConverted_getValue({ value: input.find(`button.selected`).data('value') });
 		return super.defaultGetValue(e)
 	}
 	defaultSetValue(e) {
-		const {input} = this;
+		let {input} = this;
 		if (input?.length) {
-			const value = this.getConverted_setValue({ value: e.value }), filterSelector = `[data-value="${value}"]`;
+			let value = this.getConverted_setValue({ value: e.value }), filterSelector = `[data-value="${value}"]`;
 			input.find(`:not(${filterSelector})`).removeClass('selected'); input.find(filterSelector).addClass('selected');
 			return
 		}
@@ -680,12 +680,12 @@ class FBuilder_Button extends FBuilder_InputOrtak {
 		if (e.etiketGosterim == null) { this.etiketGosterim_yok() }
 	}
 	buildDevam(e) {
-		const {value} = this; super.buildDevam(e);
-		const {input, styles} = this;
+		let {value} = this; super.buildDevam(e);
+		let {input, styles} = this;
 		if (input?.length) {
 			input.prop('id', this.id); input.html(value);
-			const {widgetArgsDuzenle} = this;
-			const _e = $.extend({}, e, { args: { theme, width: '100%', height: '100%', disabled: this.disabled } }); if (widgetArgsDuzenle) { getFuncValue.call(this, widgetArgsDuzenle, _e); }
+			let {widgetArgsDuzenle} = this;
+			let _e = $.extend({}, e, { args: { theme, width: '100%', height: '100%', disabled: this.disabled } }); if (widgetArgsDuzenle) { getFuncValue.call(this, widgetArgsDuzenle, _e); }
 			input.jqxButton(_e.args); input.on('click', evt => this.signalClick($.extend({}, e, { builder: this, input: input, event: evt })))
 		}
 		styles.push(
@@ -695,21 +695,21 @@ class FBuilder_Button extends FBuilder_InputOrtak {
 	}
 	postBuild(e) {
 		super.postBuild(e);
-		const {input} = this; if (input?.length) { input.off('focus') }
+		let {input} = this; if (input?.length) { input.off('focus') }
 	}
 	defaultGetValue(e) {
-		const {input} = this; if (input?.length) { return this.getConverted_getValue({ value: input.html() }) }
+		let {input} = this; if (input?.length) { return this.getConverted_getValue({ value: input.html() }) }
 		return super.defaultGetValue(e)
 	}
 	defaultSetValue(e) {
-		const {input} = this; if (input?.length) { input.html(this.getConverted_setValue({ value: e.value })); return }
+		let {input} = this; if (input?.length) { input.html(this.getConverted_setValue({ value: e.value })); return }
 		return super.defaultSetValue(e)
 	}
 	signalClick(e) {
 		let {onClickEvent} = this; if (!onClickEvent) return this
 		if (!$.isArray(onClickEvent)) onClickEvent = [onClickEvent];
 		if ($.isEmptyObject(onClickEvent)) return this
-		for (const handler of onClickEvent) { getFuncValue.call(this, handler, e) }
+		for (let handler of onClickEvent) { getFuncValue.call(this, handler, e) }
 		return this
 	}
 	enable() { this.disabled = false; return this }
@@ -725,7 +725,7 @@ class FBuilder_Color extends FBuilder_InputOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get inputType() { return 'color' }
 	buildDevam(e) {
-		super.buildDevam(e); const {input} = this;
+		super.buildDevam(e); let {input} = this;
 		if (input?.length) {
 			input.on('change', evt => this.signalChange({ sender: input, builder: this, event: evt, id: evt.target.id, value: this.value }));
 			this.styles.push(`$elementCSS > input { font-weight: bold; font-size: 85%; min-width: 50px !important; width: auto !important }`)
@@ -756,11 +756,11 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 		})
 	}
 	buildDevam(e) {
-		super.buildDevam(e); const {input} = this;
+		super.buildDevam(e); let {input} = this;
 		if (input?.length) {
-			const {widgetArgsDuzenle, etiketGosterim} = this; let {value} = this;
-			if (value === undefined) { const {ioAttr} = this; if (ioAttr) { const {altInst} = this; if (altInst) { this.value = altInst[ioAttr]; value = this.value } } }
-			const _e = $.extend({}, e, { args: {
+			let {widgetArgsDuzenle, etiketGosterim} = this; let {value} = this;
+			if (value === undefined) { let {ioAttr} = this; if (ioAttr) { let {altInst} = this; if (altInst) { this.value = altInst[ioAttr]; value = this.value } } }
+			let _e = $.extend({}, e, { args: {
 				sender: this.sender, builder: this, autoBind: this.autoBindFlag, parentPart: this.rootPart, layout: input, listedenSecilemez: this.listedenSecilemezFlag,
 				width: false, height: this.class.defaultHeight, mfSinif: this.mfSinif, source: this.source, ekDuzenleyici: this.ekDuzenleyici, value,
 				isDropDown: this.isDropDown, coklumu: this.coklumu, noAutoWidth: this.noAutoWidthFlag, listedenSecilemez: this.listedenSecilemezFlag,
@@ -770,12 +770,12 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 				disabled: this.disabled, placeHolder: this.placeHolder ?? (() => (etiketGosterim == 'placeholder') ? this.etiket : '')
 			} });
 			if (widgetArgsDuzenle) { getFuncValue.call(this, widgetArgsDuzenle, _e) }
-			const part = this.part = new ModelKullanPart(_e.args); part.run();
+			let part = this.part = new ModelKullanPart(_e.args); part.run();
 			if (part && !part.isDestroyed) {
-				const _input = part.input; if (_input?.length) { this.input = _input }
+				let _input = part.input; if (_input?.length) { this.input = _input }
 				part.change(e => {
-					const value = this.getConverted_getValue({ value: e.value }), {ioAttr} = this;
-					if (ioAttr) { const {altInst} = this; if (altInst) { const {_p} = altInst, pInst = (_p || {})[ioAttr]; if (pInst) { pInst.setValues({ value }) } else { altInst[ioAttr] = value } } }
+					let value = this.getConverted_getValue({ value: e.value }), {ioAttr} = this;
+					if (ioAttr) { let {altInst} = this; if (altInst) { let {_p} = altInst, pInst = (_p || {})[ioAttr]; if (pInst) { pInst.setValues({ value }) } else { altInst[ioAttr] = value } } }
 					this.signalChange({ sender: part, builder: this, event: e, item: e.item, value })
 				})
 			}
@@ -783,11 +783,11 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 		}
 	}
 	initLayout(e) {
-		super.initLayout(e) /*const {part} = this;
+		super.initLayout(e) /*let {part} = this;
 		if (part && !part.isDestroyed) {
-			const {value} = this;
-			const block = value => {
-				part.kod = null; part.kodAtandimi = false; const savedHandler = part.veriYukleninceBlock;
+			let {value} = this;
+			let block = value => {
+				part.kod = null; part.kodAtandimi = false; let savedHandler = part.veriYukleninceBlock;
 				part.veriYukleninceBlock = e => {
 					part.veriYukleninceBlock = savedHandler; part.kod = value;
 					part.kodAtandimi = true; part.input.val(value)
@@ -798,7 +798,7 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 	}
 	dataBind() { this.part.dataBind(); return this }
 	defaultGetValue(e) {
-		const {part} = this; if (part && !part.isDestroyed) return this.getConverted_getValue({ value: part.value ?? this._value })
+		let {part} = this; if (part && !part.isDestroyed) return this.getConverted_getValue({ value: part.value ?? this._value })
 		return super.defaultGetValue(e)
 	}
 	defaultSetValue(e) {
@@ -826,36 +826,36 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 class FBuilder_Grid extends FBuilder_DivOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get gridSinif() {
-		let result = this._gridSinif; if (result === undefined) { result = this._gridSinif = e => { e.temp(); const {rootPart} = this; if (rootPart) return rootPart.gridSinif ?? rootPart.gridPart?.class } }
+		let result = this._gridSinif; if (result === undefined) { result = this._gridSinif = e => { e.temp(); let {rootPart} = this; if (rootPart) return rootPart.gridSinif ?? rootPart.gridPart?.class } }
 		if (result != null && !result.prototype && isFunction(result)) {
-			const e = this.getBuilderBlockArgs({ result }); result = getFuncValue.call(this, result, e);
+			let e = this.getBuilderBlockArgs({ result }); result = getFuncValue.call(this, result, e);
 			if (e.commitFlag) { this._gridSinif = result }
 		}
 		return result
 	}
 	set gridSinif(value) { this._gridSinif = value }
 	get detaySinif() {
-		let result = this._detaySinif; if (result === undefined) { result = this._detaySinif = e => { e.temp(); const {rootPart} = this; if (rootPart) return rootPart.detaySinif ?? rootPart.fis?.detaySinif ?? rootPart.inst?.detaySinif } }
+		let result = this._detaySinif; if (result === undefined) { result = this._detaySinif = e => { e.temp(); let {rootPart} = this; if (rootPart) return rootPart.detaySinif ?? rootPart.fis?.detaySinif ?? rootPart.inst?.detaySinif } }
 		if (result != null && !result.prototype && isFunction(result)) {
-			const e = this.getBuilderBlockArgs({ result }); result = getFuncValue.call(this, result, e);
+			let e = this.getBuilderBlockArgs({ result }); result = getFuncValue.call(this, result, e);
 			if (e.commitFlag) { this._detaySinif = result }
 		}
 		return result
 	}
 	set detaySinif(value) { this._detaySinif = value }
 	get kontrolcu() {
-		let result = this._kontrolcu; if (result === undefined) { result = this._kontrolcu = e => { e.temp(); const {rootPart} = this; if (rootPart) return rootPart.kontrolcu } }
+		let result = this._kontrolcu; if (result === undefined) { result = this._kontrolcu = e => { e.temp(); let {rootPart} = this; if (rootPart) return rootPart.kontrolcu } }
 		if (result != null && !result.prototype && isFunction(result)) {
-			const e = this.getBuilderBlockArgs({ result }); result = getFuncValue.call(this, result, e);
+			let e = this.getBuilderBlockArgs({ result }); result = getFuncValue.call(this, result, e);
 			if (e.commitFlag) { this._kontrolcu = result }
 		}
 		return result
 	}
 	set kontrolcu(value) { this._kontrolcu = value }
 	get kontrolcuSinif() {
-		let result = this._kontrolcuSinif; if (result === undefined) { result = this._kontrolcuSinif = e => { e.temp(); const {rootPart} = this; return rootPart?.kontrolcuSinif || this.kontrolcu?.class } }
+		let result = this._kontrolcuSinif; if (result === undefined) { result = this._kontrolcuSinif = e => { e.temp(); let {rootPart} = this; return rootPart?.kontrolcuSinif || this.kontrolcu?.class } }
 		if (result != null && !result.prototype && isFunction(result)) {
-			const e = this.getBuilderBlockArgs({ result }); result = getFuncValue.call(this, result, e);
+			let e = this.getBuilderBlockArgs({ result }); result = getFuncValue.call(this, result, e);
 			if (e.commitFlag) { this._kontrolcuSinif = result }
 		}
 		return result
@@ -863,9 +863,9 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 	set kontrolcuSinif(value) { this._kontrolcuSinif = value }
 	get tabloKolonlari() {
 		let result = this._tabloKolonlari;
-		if (result === undefined) { result = this._tabloKolonlari = e => { e.temp(); const {rootPart} = this; if (rootPart) return rootPart.tabloKolonlari ?? rootPart.gridPart?.tabloKolonlari ?? rootPart.defaultTabloKolonlari } }
+		if (result === undefined) { result = this._tabloKolonlari = e => { e.temp(); let {rootPart} = this; if (rootPart) return rootPart.tabloKolonlari ?? rootPart.gridPart?.tabloKolonlari ?? rootPart.defaultTabloKolonlari } }
 		if (result != null && !result.prototype && isFunction(result)) {
-			const e = this.getBuilderBlockArgs({ result }); result = getFuncValue.call(this, result, e);
+			let e = this.getBuilderBlockArgs({ result }); result = getFuncValue.call(this, result, e);
 			if (e.commitFlag) { this._tabloKolonlari = result }
 		}
 		return result
@@ -878,42 +878,57 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 			_kontrolcu: e.kontrolcu ?? e.gridKontrolcu, _kontrolcuSinif: e.kontrolcuSinif ?? e.gridKontrolcuSinif,
 			_tabloKolonlari: e.tabloKolonlari, tabloKolonlariDuzenle: e.tabloKolonlariDuzenle || e.tabloKolonlariDuzenleBlock,
 			ozelQueryDuzenle: e.ozelQueryDuzenle || e.ozelQueryDuzenleBlock, ozelQuerySonucu: e.ozelQuerySonucu || e.ozelQuerySonucuBlock,
-			yeniInstOlusturucu: e.yeniInstOlusturucu, sabitmi: e.sabitmi ?? e.sabit, noEmptyRowFlag: e.noEmptyRow ?? e.noEmptyRowFlag,
+			yeniInstOlusturucu: e.yeniInstOlusturucu, noEmptyRowFlag: e.noEmptyRow ?? e.noEmptyRowFlag,
+			editablemi: e.editable ?? e.editablemi ?? e.isEditable, sabitmi: e.sabitmi ?? e.sabit,
 			veriYuklenince: e.veriYuklenince || e.veriYukleninceBlock || e.bindingComplete || e.bindingCompleteBlock,
 			veriDegisince: e.veriDegisince || e.veriDegistiBlock || e.veriDegisti || e.cellValueChanged, rowNumberOlmasinFlag: e.rowNumberOlmasin ?? e.rowNumberOlmasinFlag,
 			groupsChanged: e.groupsChanged ?? e.gridGroupsChanged ?? e.gridGroupsChangedBlock, notAdaptiveFlag: e.notAdaptive ?? e.notAdaptiveFlag, noAnimateFlag: e.noAnimate ?? e.noAnimateFlag
 		});
-		const {_kontrolcu} = this; if (_kontrolcu) { this._kontrolcuSinif = _kontrolcu.class }
+		let {_kontrolcu} = this; if (_kontrolcu) { this._kontrolcuSinif = _kontrolcu.class }
 	}
 	buildDevam(e) {
-		super.buildDevam(e); const {input} = this;
+		super.buildDevam(e); let {input} = this;
 		if (input?.length) {
-			/* input.addClass('dock-bottom') */ let tabloKolonlari = this.tabloKolonlari || []; const {tabloKolonlariDuzenle, widgetArgsDuzenle} = this;
-			if (tabloKolonlariDuzenle) { const _e = { liste: tabloKolonlari }, result = getFuncValue.call(this, tabloKolonlariDuzenle, _e); if ($.isArray(result)) { tabloKolonlari = result } }
+			/* input.addClass('dock-bottom') */ let tabloKolonlari = this.tabloKolonlari || []; let {tabloKolonlariDuzenle, widgetArgsDuzenle} = this;
+			if (tabloKolonlariDuzenle) { let _e = { liste: tabloKolonlari }, result = getFuncValue.call(this, tabloKolonlariDuzenle, _e); if ($.isArray(result)) { tabloKolonlari = result } }
 			let {kontrolcu, kontrolcuSinif} = this; if (!kontrolcuSinif) { kontrolcuSinif = this.kontrolcuSinif = kontrolcu?.class }
 			if (!kontrolcu && kontrolcuSinif) { kontrolcu = this.kontrolcu = new kontrolcuSinif() }
-			const {mfSinif, yeniInstOlusturucu, detaySinif, noEmptyRowFlag, rowNumberOlmasinFlag, notAdaptiveFlag, noAnimateFlag} = this;
-			const _e = $.extend({}, e, { args: {
-				sender: this.sender, builder: this, parentPart: this.rootPart, layout: input, mfSinif, kontrolcu, tabloKolonlari,
-				ozelQueryDuzenleBlock: this.ozelQueryDuzenle, ozelQuerySonucuBlock: this.ozelQuerySonucu, yeniInstOlusturucu,
-				loadServerData: e => this.source, bindingCompleteBlock: e => this.veriYuklendi(e), gridVeriDegistiBlock: this.veriDegisince,
-				gridGroupsChangedBlock: this.groupsChanged, sabitFlag: this.sabitmi, noEmptyRowFlag, detaySinif, rowNumberOlmasinFlag, notAdaptiveFlag, noAnimateFlag
-			} });
-			if (widgetArgsDuzenle) { _e.args.argsDuzenle = e => { const _e = { sender: this.part, builder: this, ...e }; getFuncValue.call(this, widgetArgsDuzenle, _e) } }
-			this.part = new this.gridSinif(_e.args)
+			let {mfSinif, yeniInstOlusturucu, detaySinif, noEmptyRowFlag, rowNumberOlmasinFlag, notAdaptiveFlag, noAnimateFlag} = this;
+			let _e = {
+				...e,
+				args: {
+					sender: this.sender, builder: this, parentPart: this.rootPart, layout: input, mfSinif, kontrolcu, tabloKolonlari,
+					ozelQueryDuzenleBlock: this.ozelQueryDuzenle, ozelQuerySonucuBlock: this.ozelQuerySonucu, yeniInstOlusturucu,
+					loadServerData: e => this.source, bindingCompleteBlock: e => this.veriYuklendi(e), gridVeriDegistiBlock: this.veriDegisince,
+					gridGroupsChangedBlock: this.groupsChanged, sabitFlag: this.sabitmi,
+					noEmptyRowFlag, detaySinif, rowNumberOlmasinFlag, notAdaptiveFlag, noAnimateFlag
+				}
+			};
+			if (widgetArgsDuzenle) {
+				_e.args.argsDuzenle = e => {
+					let _e = { sender: this.part, builder: this, ...e };
+					getFuncValue.call(this, widgetArgsDuzenle, _e)
+				}
+			}
+			this.part = new this.gridSinif(_e.args);
 		}
 	}
 	afterBuildDevam(e) {
-		const {part, styles} = this; if (part) { part.run() }
-		if (part && !part.isDestroyed) { const {grid, gridWidget} = part; if (grid?.length) { this.input = grid; this.widget = gridWidget } }
-		styles.push(`$elementCSS > input { min-width: 150px; max-width: 99.5% }`); super.afterBuildDevam(e)
+		let {part, styles, editablemi} = this; if (part) { part.run() }
+		if (part && !part.isDestroyed) {
+			let {grid, gridWidget} = part;
+			if (grid?.length) { this.input = grid; this.widget = gridWidget }
+			if (editablemi != null) { part.isEditable = editablemi }
+		}
+		styles.push(`$elementCSS > input { min-width: 150px; max-width: 99.5% }`);
+		super.afterBuildDevam(e)
 	}
 	veriYuklendi(e) {
-		const {part} = this, {gridWidget} = part;
+		let {part} = this, {gridWidget} = part;
 		if (gridWidget.editable && !part.sabitFlag && !this.noEmptyRowFlag) {
 			if ($.isEmptyObject(gridWidget.getboundrows())) { gridWidget.addrow(null, part.newRec()) }
 		}
-		const {veriYuklenince} = this; if (veriYuklenince) { getFuncValue.call(this, veriYuklenince, e) }
+		let {veriYuklenince} = this; if (veriYuklenince) { getFuncValue.call(this, veriYuklenince, e) }
 	}
 	gridliGiris() { this.gridSinif = GridliGirisPart; return this } gridliGosterici() { this.gridSinif = GridliGostericiPart; return this }
 	masterListe() { this.gridSinif = MasterListePart; return this } fisListe() { this.gridSinif = FisListePart; return this }
@@ -921,6 +936,8 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 	adaptive() { return this.notAdaptiveFlag = false; return this } notAdaptive() { this.notAdaptiveFlag = true; return this }
 	animate() { this.noAnimateFlag = false; return this } noAnimate() { this.noAnimateFlag = true; return this }
 	setSabitmi(value) { this.sabitmi = value; return this } sabit() { return this.setSabitmi(true) }
+	setEditablemi(value) { this.editablemi = value; return this } resetEditable() { return this.setEditablemi(undefined) }
+	editable() { return this.setEditablemi(true) } readOnly() { return this.setEditablemi(false) }
 	autoGrow() { return this.setSabitmi(false) } setNoEmptyRow(value) { this.noEmptyRowFlag = value; return this }
 	noEmptyRow() { return this.setNoEmptyRow(true) } allowEmptyRow() { return this.setNoEmptyRow(false) }
 	setGridSinif(value) { this.gridSinif = value; return this } setDetaySinif(value) { this.detaySinif = value; return this }
@@ -943,22 +960,22 @@ class FBuilder_IslemTuslari extends FBuilder_DivOrtak {
 		this.etiketGosterim_yok()
 	}
 	buildDevam(e) {
-		super.buildDevam(e); const {input} = this;
+		super.buildDevam(e); let {input} = this;
 		if (input?.length) {
-			input.css('width', 'var(--full)'); input.css('height', 'var(--full)'); const {widgetArgsDuzenle} = this;
-			const _e = { ...e, args: {
+			input.css('width', 'var(--full)'); input.css('height', 'var(--full)'); let {widgetArgsDuzenle} = this;
+			let _e = { ...e, args: {
 				sender: this.sender, parentPart: this.rootPart, builder: this, layout: input, userData: this.userData,
 				tip: this.tip, id2Handler: this.id2Handler, prepend: this.prependFlag, ekButonlarIlk: this.ekButonlarIlk, ekButonlarSon: this.ekButonlarSon,
 				butonlarDuzenleyici: this.butonlarDuzenleyici, sagButonIdSet: this.sagButonlar, ekSagButonIdSet: this.ekSagButonlar
 			} };
 			if (widgetArgsDuzenle) { getFuncValue.call(this, widgetArgsDuzenle, _e) }
-			const part = this.part = new ButonlarPart(_e.args); part.run()
+			let part = this.part = new ButonlarPart(_e.args); part.run()
 		}
 	}
 	append() { this.prependFlag = false; return this } prepend() { this.prependFlag = true; return this } setPrependFlag(value) { this.prependFlag = value; return this }
 	setTip(value) { this.tip = value; return this } setButonlarIlk(value) { this.ekButonlarIlk = value; return this } setButonlarSon(value) { this.ekButonlarSon = true; return this }
 	setId2Handler(handler) { this.id2Handler = handler; return this } setButonlarDuzenleyici(handler) { this.butonlarDuzenleyici = handler; return this }
-	setSagButonlar(..._values) { const values = _values?.flat(); this.sagButonlar = values; return this }
-	setEkSagButonlar(..._values) { const values = _values?.flat(); this.ekSagButonlar = values; return this }
+	setSagButonlar(..._values) { let values = _values?.flat(); this.sagButonlar = values; return this }
+	setEkSagButonlar(..._values) { let values = _values?.flat(); this.ekSagButonlar = values; return this }
 	setUserData(value) { this.userData = value; return this }
 }
