@@ -293,12 +293,13 @@ class MQLogin_Musteri extends MQLogin {
 	async dataDuzgunmu(e) {
 		let result = await super.dataDuzgunmu(e);
 		if (result && result != true) { return result }
-		let errors = [], vknLen = this.vkn?.length ?? 0;
+		let errors = [], {vkn} = this, vknLen = vkn?.length ?? 0;
+		let fakeVKNmi = vkn == '0000000000' || vkn == '00000000000';
 		if (!this.kod) { errors.push(`<b>Kod</b> boş olamaz`) }
 		if (this.aciklama?.length <= 4) { errors.push(`<b>Ünvan</b> değeri geçersizdir`) }
 		if (!/^[A-F0-9]{4}(-[A-F0-9]{4}){7}$/.test(this.tanitim)) { errors.push(`<b>Tanıtım</b> değeri geçersizdir`) }
 		if (this.vergiDaire?.length <= 3) { errors.push(`<b>Vergi Dairesi</b> değeri geçersizdir`) }
-		if (!VergiVeyaTCKimlik.uygunmu(this.vkn)) { errors.push(`<b>VKN</b> değeri geçersizdir`) }
+		if (!(fakeVKNmi || VergiVeyaTCKimlik.uygunmu(vkn))) { errors.push(`<b>VKN</b> değeri geçersizdir`) }
 		
 		return errors.length ? `<ul>${errors.map(x => `<li>${x}</li>`).join(CrLf)}</ul>` : null
 	}

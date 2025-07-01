@@ -169,6 +169,7 @@ class Secimler extends CIO {
 		if (innerHTML?.html) { innerHTML = innerHTML.html() }
 		return innerHTML || null
 	}
+	*[Symbol.iterator](e) { for (let item of Object.entries(this.liste)) { yield item } }
 }
 class DonemselSecimler extends Secimler {
     static { window[this.name] = this; this._key2Class[this.name] = this }

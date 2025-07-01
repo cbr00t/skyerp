@@ -191,7 +191,8 @@ class SBTabloGridci extends GridKontrolcu {
 		])
 	}
 	getRootFormBuilder(e) {
-		let {islem, sender: gridPart, gridRec: eskiDetay} = e, {gridWidget} = gridPart, {class: fisSinif} = this.fis;
+		let {islem, sender: gridPart, gridRec: eskiDetay} = e, {gridWidget} = gridPart;
+		let {fis} = this, {class: fisSinif} = fis;
 		e.gridWidget = e.gridWidget ?? gridWidget;
 		let detay = islem == 'yeni' || islem == 'kopya' ? new fisSinif.detaySinif() : eskiDetay.deepCopy();
 		for (let key of ['uid', 'uniqueid', '_rowNumber', 'boundindex', 'visibleindex']) { delete detay[key] };
@@ -218,6 +219,21 @@ class SBTabloGridci extends GridKontrolcu {
 			.addStyle_fullWH(null, 'calc(var(--full) - (var(--islemTuslari-height) + 10px))');
 		let fbd_altForm, updateAltForm = () => {
 			for (let fbd of fbd_altForm) { fbd.updateVisible() } };
+		let initSecimlerForm = (form, id, etiket, secimler, height) => {
+			return form.addForm(id).setLayout(() => $('<div/>'))
+				.addStyle_fullWH(null, height ?? 'auto')
+				.addStyle(`$elementCSS { margin: 10px 0 20px 0 }`)
+				.onAfterRun(({ builder: fbd }) => {
+					if (secimler) { detay.secimler = secimler }
+					else { secimler = detay.secimler }
+					secimler = secimler?.newSecimler ?? secimler?.class?.newSecimler ?? secimler ?? new Secimler();
+					let grupKod = '_main'; secimler.grupEkle(grupKod, etiket ?? '');
+					for (let [key, sec] of secimler) { sec.grupKod = sec.grupKod ?? grupKod }
+					let {rootPart: parentPart, layout: content} = fbd;
+					let part = fbd.part = new SecimlerPart({ parentPart, content, secimler });
+					part.run()
+				})
+		}
 		
 		let form = fbd_content.addFormWithParent().yanYana(3);
 		form.addModelKullan('seviyeNo', 'Seviye')
@@ -263,43 +279,52 @@ class SBTabloGridci extends GridKontrolcu {
 				let {part: gridPart, altInst: inst} = fbd, {grid, gridWidget} = gridPart, {satirListe} = inst;
 				let {_rowXHandler: handler} = fbd;
 				if (handler) { grid.off('rowselect', handler); grid.off('rowunselect', handler) }
-				gridWidget.clearselection();
-				if (satirListe) {
-					for (let index of satirListe) {
-						gridWidget.selectrow(index) }
+				try {
+					gridWidget.clearselection();
+					if (satirListe) {
+						for (let index of satirListe) {
+							gridWidget.selectrow(index) }
+					}
 				}
+				catch (ex) { }
 				handler = fbd._rowXHandler = ({ args }) => {
 					let {selectedRowIndexes: rowIndexes} = gridPart;
 					inst.satirListe = rowIndexes
 				};
 				grid.on('rowselect', handler); grid.on('rowunselect', handler)
-			})
+			});
 		
-		form = fbd_altForm.addFormWithParent('altForm_ticariSatis').yanYana(2)
+		form = fbd_altForm.addFormWithParent('altForm_ticariSatis').altAlta()
 			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.hesapTipi.ticariSatismi);
-		form.addModelKullan('shVeriTipi', 'Veri Tipi')
+		altForm = form.addFormWithParent().yanYana(2)
+		altForm.addModelKullan('shVeriTipi', 'Veri Tipi')
 			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz().listedenSecilmez()
-			.setSource(SBTabloVeriTipi.kaListe).degisince(() => updateAltForm());
-		form.addModelKullan('shAlmSat', 'Alım/Satış Durumu')
+			.setSource(SBTabloVeriTipi.kaListe)
+			.degisince(() => updateAltForm());
+		altForm.addModelKullan('shAlmSat', 'Alım/Satış Durumu')
 			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz().listedenSecilmez()
 			.setSource(AlimSatis.kaListe);
-		form.addModelKullan('shIade', 'Normal/İADE Durumu')
+		altForm.addModelKullan('shIade', 'Normal/İADE Durumu')
 			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz().listedenSecilmez()
 			.setSource(NormalIadeVeBirlikte.kaListe);
-		form.addModelKullan('shAyrimTipi', 'Ayrım Tipi')
+		altForm.addModelKullan('shAyrimTipi', 'Ayrım Tipi')
 			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz().listedenSecilmez()
 			.setSource(SBTabloAyrimTipi.kaListe);
+		
+		altForm = form.addFormWithParent('altForm_ticariSatis_stok').altAlta()
+			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.shVeriTipi.stokmu || fbd.altInst.shVeriTipi.birliktemi);
+		altForm.addForm().setLayout(() => $(`<div>Stok için seçimler</div>`)).autoAppend();
+		initSecimlerForm(altForm, 'ticSatis_stokSecimler', 'Stok', fisSinif.newSecimler);
+		altForm = form.addFormWithParent('ticSatisSecimler_hizmet').altAlta()
+			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.shVeriTipi.hizmetmi || fbd.altInst.shVeriTipi.birliktemi);
+		altForm.addForm().setLayout(() => $(`<div>Hizmet için seçimler</div>`)).autoAppend();
+		initSecimlerForm(altForm, 'ticSatisSecimler_hizmet', 'Hizmet', fisSinif.newSecimler);
 		
 		form = fbd_altForm.addFormWithParent('altForm_hizmet').altAlta()
 			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.hesapTipi.hizmetmi);
 		form.addForm().setLayout(() => $(`<div>Hizmet için seçimler</div>`)).autoAppend();
+		initSecimlerForm(form, 'hizmetSecimler', 'Hizmet', fisSinif.newSecimler);
 		
-		altForm = form.addFormWithParent('altForm_ticariSatis_stok').altAlta()
-			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.shVeriTipi.stokmu);
-		form.addForm().setLayout(() => $(`<div>Stok için seçimler</div>`)).autoAppend();
-		altForm = form.addFormWithParent('altForm_ticariSatis_hizmet').altAlta()
-			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.shVeriTipi.hizmet);
-		form.addForm().setLayout(() => $(`<div>Hizmet için seçimler</div>`)).autoAppend();
 		return rfb
 	}
 	tanimla(e) {

@@ -26,6 +26,7 @@ class MQKontor extends MQDetayliMaster {
 			})
 			.addKA('must', MQLogin_Musteri, `${alias}.mustkod`, 'mus.aciklama')
 			.addKA('bayi', MQLogin_Bayi, 'mus.bayikod', 'bay.aciklama')
+			.addKA('anaBayi', MQVPAnaBayi, 'bay.anabayikod', 'abay.aciklama')
 			.addKA('il', MQVPIl, 'mus.ilkod', 'il.aciklama')
 		sec.whereBlockEkle(({ secimler: sec, sent, where: wh }) => {
 			let {fatDurumSecim} = sec;
@@ -150,7 +151,7 @@ class MQKontor extends MQDetayliMaster {
 	}
 	static standartGorunumListesiDuzenle({ liste }) {
 		super.standartGorunumListesiDuzenle(...arguments);
-		liste.push('mustkod', 'mustadi', 'bayikod', 'topalinan', 'topharcanan', 'topkalan')
+		liste.push('mustkod', 'mustadi', 'bayikod', 'anabayikod', 'topalinan', 'topharcanan', 'topkalan', 'tanitim')
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments); liste.push(...[
@@ -159,11 +160,13 @@ class MQKontor extends MQDetayliMaster {
 			new GridKolon({ belirtec: 'topalinan', text: 'Top.Alınan', genislikCh: 13 }).tipDecimal(0),
 			new GridKolon({ belirtec: 'topharcanan', text: 'Top.Harcanan', genislikCh: 13 }).tipDecimal(0),
 			new GridKolon({ belirtec: 'topkalan', text: 'Top.Kalan', genislikCh: 18 }).tipDecimal(0),
-			new GridKolon({ belirtec: 'bayikod', text: 'Bayi', genislikCh: 13, sql: 'mus.bayikod' }),
-			new GridKolon({ belirtec: 'bayiadi', text: 'Bayi Adı', genislikCh: 25, sql: 'bay.aciklama' }),
-			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 20, sql: 'mus.yore' }),
-			new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 8, sql: 'mus.ilkod' }),
-			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 20, sql: 'il.aciklama' }),
+			new GridKolon({ belirtec: 'bayikod', text: 'Bayi', genislikCh: 13, sql: 'mus.bayikod', filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'bayiadi', text: 'Bayi Adı', genislikCh: 25, sql: 'bay.aciklama', filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'anabayikod', text: 'Ana Bayi', genislikCh: 13, sql: 'bay.anabayikod', filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'anabayiadi', text: 'Ana Bayi Adı', genislikCh: 20, sql: 'abay.aciklama', filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 20, sql: 'mus.yore', filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 8, sql: 'mus.ilkod', filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 20, sql: 'il.aciklama', filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'tanitim', text: 'Tanıtım', genislikCh: 43, sql: 'mus.tanitim' })
 		])
 	}
@@ -172,9 +175,10 @@ class MQKontor extends MQDetayliMaster {
 		let {tableAlias: alias} = this, {mustKod} = sender ?? {}, {where: wh} = sent, {orderBy} = stm;
 		sent.fromIliski('musteri mus', `${alias}.mustkod = mus.kod`)
 			.fromIliski(`${MQLogin_Bayi.table} bay`, `mus.bayikod = bay.kod`)
+			.leftJoin('bay', `${MQVPAnaBayi.table} abay`, `bay.anabayikod = abay.kod`)
 			.fromIliski(`${MQVPIl.table} il`, `mus.ilkod = il.kod`);
 		if (!basit) {
-			let clauses = { bayi: 'mus.bayikod', musteri: `${alias}.mustkod` };
+			let clauses = { anaBayi: 'bay.anabayikod', bayi: 'mus.bayikod', musteri: `${alias}.mustkod` };
 			if (mustKod) { wh.degerAta(mustKod, `${alias}.mustkod`) }
 			MQLogin.current.yetkiClauseDuzenle({ sent, clauses });
 			//if (!(tekilOku || modelKullanmi)) { orderBy.liste = ['kaysayac DESC'] }
