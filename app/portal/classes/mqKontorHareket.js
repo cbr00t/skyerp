@@ -1,5 +1,5 @@
 class MQKontorHareket extends MQSayacli {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sayacSaha() { return 'fissayac' }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sayacSaha() { return 'kaysayac' }
 	static get uygunmu() { return this != MQKontorHareket } static get kontorSinif() { return MQKontor }
 	static get tip() { return this.kontorSinif.tip } static get tipAdi() { return this.kontorSinif.tipAdi }
 	static get kodListeTipi() { return `KHAR-${this.tip}` } static get sinifAdi() { return `${this.tipAdi} Kontör Hareketleri` }
@@ -165,7 +165,7 @@ class MQKontorHareket extends MQSayacli {
 			if (sabitMustKod) { wh.degerAta(sabitMustKod, 'fis.mustkod') }
 			let clauses = { bayi: 'mus.bayikod', musteri: 'fis.mustkod' };
 			MQLogin.current.yetkiClauseDuzenle({ sent, clauses });
-			if (!(tekilOku || modelKullanmi)) { orderBy.liste = ['tarih DESC', 'mustkod', 'ahtipi DESC'] }
+			if (!(tekilOku || modelKullanmi)) { orderBy.liste = ['ahtipi', 'tarih DESC', 'mustkod'] }
 		}
 	}
 	static orjBaslikListesi_recsDuzenle({ recs }) { super.orjBaslikListesi_recsDuzenle(...arguments) }
