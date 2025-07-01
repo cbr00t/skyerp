@@ -170,8 +170,8 @@ class MQLogin_Bayi extends MQLogin {
 			new GridKolon({ belirtec: 'kisakod', text: 'Kısa Kod', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'tip', text: 'Tip', genislikCh: 8 }),
 			new GridKolon({ belirtec: 'bsefmi', text: 'Sef?', genislikCh: 8 }).tipBool(),
-			new GridKolon({ belirtec: 'anabayikod', text: 'Ana Bayi', genislikCh: 8 }),
-			new GridKolon({ belirtec: 'anabayiadi', text: 'Ana Bayi Adı', genislikCh: 20, sql: 'abay.aciklama' }),
+			new GridKolon({ belirtec: 'anabayikod', text: 'Ana Bayi', genislikCh: 8, filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'anabayiadi', text: 'Ana Bayi Adı', genislikCh: 20, sql: 'abay.aciklama', filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 8 }),
 			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 20, sql: 'il.aciklama' }),
 			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 15 }),
@@ -186,7 +186,7 @@ class MQLogin_Bayi extends MQLogin {
 			sent.leftJoin(alias, `${MQVPAnaBayi.table} abay`, `${alias}.anabayikod = abay.kod`);
 			if (MQLogin.current.musterimi) { wh.add('1 = 2') }
 			else {
-				let clauses = { bayi: `${alias}.${kodSaha}` };
+				let clauses = { bayi: `${alias}.${kodSaha}`, anaBayi: `${alias}.anabayikod` };
 				MQLogin.current.yetkiClauseDuzenle({ sent, clauses })
 			}
 		}
@@ -197,10 +197,8 @@ class MQLogin_Bayi extends MQLogin {
 	}
 	_yetkiClauseDuzenle({ wh, clauses }) {
 		super._yetkiClauseDuzenle(...arguments);
-		if (!this.sefmi) {
-			if (this.kod) { let {bayi: kodClause} = clauses; if (kodClause) { wh.degerAta(this.kod, kodClause) } }
-			if (this.anaBayiKod) { let {anaBayi: kodClause} = clauses; if (kodClause) { wh.degerAta(this.anaBayiKod, kodClause) } }
-		}
+		if (!this.sefmi) { if (this.kod) { let {bayi: kodClause} = clauses; if (kodClause) { wh.degerAta(this.kod, kodClause) } } }
+		if (this.anaBayiKod) { let {anaBayi: kodClause} = clauses; if (kodClause) { wh.degerAta(this.anaBayiKod, kodClause) } }
 	}
 }
 class MQLogin_Musteri extends MQLogin {

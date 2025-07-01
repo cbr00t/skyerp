@@ -35,6 +35,7 @@ class MQAktivasyon extends MQDetayliMaster {
 			})
 			.addKA('must', MQLogin_Musteri, `${alias}.mustkod`, 'mus.aciklama')
 			.addKA('bayi', MQLogin_Bayi, 'mus.bayikod', 'bay.aciklama')
+			.addKA('anaBayi', MQVPAnaBayi, 'mus.anabayikod', 'abay.aciklama')
 			.addKA('il', MQVPIl, 'mus.ilkod', 'il.aciklama')
 		sec.whereBlockEkle(({ secimler: sec, where: wh }) => {
 			let {tekSecim: aktifSecim} = sec.aktifSecim;
@@ -60,7 +61,16 @@ class MQAktivasyon extends MQDetayliMaster {
 			form.addNumberInput('dokunmatikSayi', 'Tablet').setMaxLength(4).addStyle_wh(150);
 			form.addCheckBox('aktifmi', 'Aktif?').addStyle(`$elementCSS { margin: 40px 0 0 20px !important }`);
 		form = tabPage.addFormWithParent().yanYana();
-			form.addModelKullan('mustKod', 'Müşteri').comboBox().setMFSinif(MQLogin_Musteri).autoBind().addStyle_wh(800);
+			form.addModelKullan('mustKod', 'Müşteri').comboBox().setMFSinif(MQLogin_Musteri)
+				.autoBind().addStyle_wh(800)
+				.ozelQueryDuzenleHandler(({ stm, aliasVeNokta, mfSinif }) => {
+					let {kodSaha} = mfSinif, clauses = { musteri: `${aliasVeNokta}${kodSaha}`, bayi: `${aliasVeNokta}bayikod`, anaBayi: 'bay.anabayikod' };
+					for (let sent of stm) {
+						let {where: wh} = sent;
+						wh.add(`${aliasVeNokta}aktifmi <> ''`);
+						MQLogin.current.yetkiClauseDuzenle({ sent, clauses })
+					}
+				});
 			form.addNumberInput('topBedel', 'Toplam Bedel').setFra(2).setMaxLength(17).addStyle_wh(200);
 		form = tabPage.addFormWithParent().yanYana();
 			form.addTextInput('tanitim', 'Tanıtım').addStyle_wh(800).readOnly().addCSS('center');
@@ -80,8 +90,10 @@ class MQAktivasyon extends MQDetayliMaster {
 			new GridKolon({ belirtec: 'mustkod', text: 'Müşteri', genislikCh: 16 }),
 			new GridKolon({ belirtec: 'mustadi', text: 'Müşteri Adı', genislikCh: 45, sql: 'mus.aciklama' }),
 			new GridKolon({ belirtec: 'surumtext', text: 'Sürüm', genislikCh: 13, sql: VIOSurum.getClause(`${alias}.surum`) }).alignCenter(),
-			new GridKolon({ belirtec: 'bayikod', text: 'Bayi', genislikCh: 10, sql: 'mus.bayikod' }),
-			new GridKolon({ belirtec: 'bayiadi', text: 'Bayi Adı', genislikCh: 25, sql: 'bay.aciklama' }),
+			new GridKolon({ belirtec: 'bayikod', text: 'Bayi', genislikCh: 10, sql: 'mus.bayikod', filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'bayiadi', text: 'Bayi Adı', genislikCh: 25, sql: 'bay.aciklama', filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'anabayikod', text: 'Ana Bayi', genislikCh: 8, sql: 'bay.anabayikod', filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'anabayiadi', text: 'Ana Bayi Adı', genislikCh: 20, sql: 'abay.aciklama', filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 25, sql: 'mus.yore' }),
 			new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 8, sql: 'mus.ilkod' }),
 			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 25, sql: 'il.aciklama' }),
@@ -104,7 +116,8 @@ class MQAktivasyon extends MQDetayliMaster {
 			.fromIliski(`${MQVPIl.table} il`, `mus.ilkod = il.kod`);
 		sahalar.add(`${alias}.surum`, 'mus.tanitim')
 		if (!basit) {
-			let clauses = { bayi: 'mus.bayikod', musteri: `${alias}.mustkod` };
+			sent.leftJoin('bay', `${MQVPAnaBayi.table} abay`, 'bay.anabayikod = abay.kod');
+			let clauses = { anaBayi: 'bay.anabayikod', bayi: 'mus.bayikod', musteri: `${alias}.mustkod` };
 			if (!alias2Deger.mustkod) { sahalar.add('fis.mustkod') }
 			MQLogin.current.yetkiClauseDuzenle({ sent, clauses });
 			if (!(tekilOku || modelKullanmi)) { orderBy.liste = ['tarih DESC', 'mustkod'] }

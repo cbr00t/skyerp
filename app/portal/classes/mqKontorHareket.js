@@ -33,6 +33,7 @@ class MQKontorHareket extends MQSayacli {
 			})
 			.addKA('must', MQLogin_Musteri, 'fis.mustkod', 'mus.aciklama')
 			.addKA('bayi', MQLogin_Bayi, 'mus.bayikod', 'bay.aciklama')
+			.addKA('anaBayi', MQVPAnaBayi, 'mus.anabayikod', 'abay.aciklama')
 			.addKA('il', MQVPIl, 'mus.ilkod', 'il.aciklama')
 		sec.whereBlockEkle(({ secimler: sec, sent, where: wh }) => {
 			let {ahTipiSecim, fatDurumSecim} = sec;
@@ -81,7 +82,7 @@ class MQKontorHareket extends MQSayacli {
 		let form = tanimForm.addFormWithParent().altAlta();
 			form.addModelKullan('mustKod', 'Müşteri').comboBox().autoBind().setMFSinif(MQLogin_Musteri)
 				.ozelQueryDuzenleHandler(({ stm, aliasVeNokta, mfSinif }) => {
-					let {kodSaha} = mfSinif, clauses = { musteri: `${aliasVeNokta}${kodSaha}`, bayi: `${aliasVeNokta}bayikod` };
+					let {kodSaha} = mfSinif, clauses = { musteri: `${aliasVeNokta}${kodSaha}`, bayi: `${aliasVeNokta}bayikod`, anaBayi: 'bay.anabayikod' };
 					for (let sent of stm) {
 						let {where: wh} = sent;
 						wh.add(`${aliasVeNokta}aktifmi <> ''`);
@@ -155,7 +156,6 @@ class MQKontorHareket extends MQSayacli {
 			.fromIliski(`${fisTable} fis`, `${alias}.fissayac = fis.kaysayac`)
 			.fromIliski('musteri mus', `fis.mustkod = mus.kod`)
 			.fromIliski(`${MQLogin_Bayi.table} bay`, `mus.bayikod = bay.kod`)
-			.leftJoin('bay', `${MQVPAnaBayi.table} abay`, `bay.anabayikod = abay.kod`)
 			.fromIliski(`${MQVPIl.table} il`, `mus.ilkod = il.kod`);
 		wh.degerAta(tip, 'fis.tip').add(`mus.aktifmi <> ''`);
 		if (!alias2Deger.fissayac) { sahalar.add(`${alias}.fissayac`) }
@@ -166,8 +166,9 @@ class MQKontorHareket extends MQSayacli {
 		if (!alias2Deger.anabayikod) { sahalar.add('bay.anabayikod') }
 		if (!alias2Deger.mustkod) { sahalar.add('fis.mustkod') }
 		if (!basit) {
+			sent.leftJoin('bay', `${MQVPAnaBayi.table} abay`, `bay.anabayikod = abay.kod`);
 			if (sabitMustKod) { wh.degerAta(sabitMustKod, 'fis.mustkod') }
-			let clauses = { bayi: 'mus.bayikod', musteri: 'fis.mustkod' };
+			let clauses = { anaBayi: 'bay.anabayikod', bayi: 'mus.bayikod', musteri: 'fis.mustkod' };
 			MQLogin.current.yetkiClauseDuzenle({ sent, clauses });
 			if (!(tekilOku || modelKullanmi)) { orderBy.liste = ['ahtipi', 'tarih DESC', 'mustkod'] }
 		}

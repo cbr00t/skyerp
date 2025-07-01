@@ -100,7 +100,7 @@ class MQKontor extends MQDetayliMaster {
 				.autoBind().setParent(header).etiketGosterim_placeHolder()
 				.degisince(({ builder: fbd }) => fbd.rootPart.tazeleDefer(e))
 				.ozelQueryDuzenleHandler(({ stm, aliasVeNokta, mfSinif }) => {
-					let {kodSaha} = mfSinif, clauses = { musteri: `${aliasVeNokta}${kodSaha}`, bayi: `${aliasVeNokta}bayikod` };
+					let {kodSaha} = mfSinif, clauses = { musteri: `${aliasVeNokta}${kodSaha}`, bayi: `${aliasVeNokta}bayikod`, anaBayi: 'bay.anabayikod' };
 					for (let sent of stm) {
 						let {where: wh} = sent;
 						wh.add(`${aliasVeNokta}aktifmi <> ''`);
