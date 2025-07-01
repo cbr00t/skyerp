@@ -44,7 +44,8 @@ class MQLogin extends MQKA {
 			aktifSecim: new SecimTekSecim({ etiket: 'Aktiflik', tekSecim: new AktifVeDevreDisi().bu() })
 		})
 		sec.whereBlockEkle(({ secimler: sec, where: wh }) => {
-			let {tekSecim: aktifSecim} = sec.aktifSecim; wh.birlestir(aktifSecim.getBoolClause(`${alias}.aktifmi`))
+			let {tekSecim: aktifSecim} = sec.aktifSecim;
+			wh.birlestir(aktifSecim.getBoolClause(`${alias}.aktifmi`))
 		})
 	}
 	static rootFormBuilderDuzenle(e) {
@@ -178,11 +179,11 @@ class MQLogin_Bayi extends MQLogin {
 		)
 	}
 	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent, basit }) {
-		super.loadServerData_queryDuzenle(...arguments); let {tableAlias: alias, kodSaha} = this, {where: wh, sahalar} = sent;
+		super.loadServerData_queryDuzenle(...arguments); let {tableAlias: alias, kodSaha} = this, {from, where: wh, sahalar} = sent;
 		sent.fromIliski(`${MQVPIl.table} il`, `${alias}.ilkod = il.kod`);
-		sent.fromIliski(`${MQVPAnaBayi.table} abay`, `${alias}.anabayikod = abay.kod`);
 		sahalar.add(`${alias}.bsefmi`);
 		if (!basit) {
+			sent.leftJoin(alias, `${MQVPAnaBayi.table} abay`, `${alias}.anabayikod = abay.kod`);
 			if (MQLogin.current.musterimi) { wh.add('1 = 2') }
 			else {
 				let clauses = { bayi: `${alias}.${kodSaha}` };
@@ -280,10 +281,11 @@ class MQLogin_Musteri extends MQLogin {
 	}
 	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent, basit }) {
 		super.loadServerData_queryDuzenle(...arguments); let {tableAlias: alias} = this;
-		sent.fromIliski(`${MQLogin_Bayi.table} bay`, `${alias}.bayikod = bay.kod`)
-		sent.fromIliski(`${MQVPAnaBayi.table} abay`, 'bay.anabayikod = abay.kod')
-			.fromIliski(`${MQVPIl.table} il`, `${alias}.ilkod = il.kod`);
+		sent.fromIliski(`${MQLogin_Bayi.table} bay`, `${alias}.bayikod = bay.kod`);
+		/*sent.fromIliski(`${MQVPAnaBayi.table} abay`, 'bay.anabayikod = abay.kod');*/
+		sent.fromIliski(`${MQVPIl.table} il`, `${alias}.ilkod = il.kod`);
 		if (!basit) {
+			sent.leftJoin('bay', `${MQVPAnaBayi.table} abay`, 'bay.anabayikod = abay.kod');
 			let clauses = { bayi: `${alias}.bayikod`, musteri: `${alias}.kod` };
 			MQLogin.current.yetkiClauseDuzenle({ sent, clauses })
 		}
