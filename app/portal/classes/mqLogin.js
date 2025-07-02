@@ -197,8 +197,10 @@ class MQLogin_Bayi extends MQLogin {
 	}
 	_yetkiClauseDuzenle({ wh, clauses }) {
 		super._yetkiClauseDuzenle(...arguments);
-		if (!this.sefmi) { if (this.kod) { let {bayi: kodClause} = clauses; if (kodClause) { wh.degerAta(this.kod, kodClause) } } }
-		if (this.anaBayiKod) { let {anaBayi: kodClause} = clauses; if (kodClause) { wh.degerAta(this.anaBayiKod, kodClause) } }
+		if (!this.sefmi) {
+			if (this.kod) { let {bayi: kodClause} = clauses; if (kodClause) { wh.degerAta(this.kod, kodClause) } }
+			if (this.anaBayiKod) { let {anaBayi: kodClause} = clauses; if (kodClause) { wh.degerAta(this.anaBayiKod, kodClause) } }
+		}
 	}
 }
 class MQLogin_Musteri extends MQLogin {
