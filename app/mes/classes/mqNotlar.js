@@ -219,7 +219,9 @@ class MQEkNotlar extends MQSayacliOrtak {
 			elm.on('change', async evt => {
 				try {
 					let file = evt.target.files[0]; let fileName = file.name.replaceAll(' ', '_'), ext = fileName.split('.').slice(-1)[0] ?? '';
-					let resimId = ext ? fileName.slice(0, -(ext.length + 1)) : fileName, data = file ? new Uint8Array(await file.arrayBuffer()) : null; if (!data?.length) { return }
+					let resimId = ext ? fileName.slice(0, -(ext.length + 1)) : fileName, data = file ? new Uint8Array(await file.arrayBuffer()) : null;
+					if (!data?.length) { return }
+					resimId = newGUID();
 					let urlBase = app.getWSUrlBase({ ssl: false, ws: { port: 80 }, wsPath: 'vio-resim' }).replace(':80', '').replace(':443', '');
 					let url = `${urlBase}/${[resimId, ext].join('.')}`;
 					try { await ajaxPost({ url, data, contentType: 'application/octet-stream' }) }

@@ -1,3 +1,3 @@
 .MQEkNotlar.masterListe.part .jqx-grid [role = row] > .yeni-not:not(.jqx-fill-state-selected) { background-color: #5fcb694d !important }
 .MQEkNotlar.masterListe.part .jqx-grid [role = row] > .notlar > div { font-size: unset !important; line-height: 14px; overflow-y: auto }
-
+body.dark-theme .MQEkNotlar.masterListe.part .jqx-grid [role = row] > div iframe { filter: invert(1) hue-rotate(180deg) !important }
