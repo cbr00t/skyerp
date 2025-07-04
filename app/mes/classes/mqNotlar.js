@@ -222,7 +222,7 @@ class MQEkNotlar extends MQSayacliOrtak {
 					let resimId = ext ? fileName.slice(0, -(ext.length + 1)) : fileName, data = file ? new Uint8Array(await file.arrayBuffer()) : null;
 					if (!data?.length) { return }
 					resimId = newGUID();
-					let urlBase = app.getWSUrlBase({ ssl: false, ws: { port: 80 }, wsPath: 'vio-resim' }).replace(':80', '').replace(':443', '');
+					let urlBase = app.getWSUrlBase({ wsPath: 'vio-resim' }).replace('https:', 'http:').replace(':8200', '').replace(':9200', '').replace(':80', '').replace(':443', '');
 					let url = `${urlBase}/${[resimId, ext].join('.')}`;
 					try { await ajaxPost({ url, data, contentType: 'application/octet-stream' }) }
 					catch (ex) {
