@@ -59,7 +59,7 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 			new GridKolon({ belirtec: 'kdvEkText', text: 'KDV Ek', genislikCh: 12, cellClassName: 'kdvEkText grid-readOnly' }).readOnly().hidden()
 		);
 		shColDef.stmDuzenleyiciEkle(e => {
-			let {aliasVeNokta, stm, fis, mfSinif} = e, {kdvHesapKodPrefix_stok, kdvHesapKodPrefix_hizmet} = fis.class;
+			let {aliasVeNokta, stm, fis, mfSinif} = e, {kdvHesapKodPrefix_stok, kdvHesapKodPrefix_hizmet} = fis?.class ?? {};
 			for (let sent of stm.getSentListe()) {
 				let hesapSaha_almSatPrefix = ((mfSinif.stokmu || mfSinif.demirbasmi) ? kdvHesapKodPrefix_stok : mfSinif.hizmetmi ? kdvHesapKodPrefix_hizmet : null);
 				if (!hesapSaha_almSatPrefix) { return } let {vergiBelirtecler} = mfSinif;

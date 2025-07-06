@@ -18,8 +18,8 @@ class MQKontorHareket extends MQSayacli {
 		super.pTanimDuzenle(...arguments);
 		$.extend(pTanim, {
 			tarih: new PInstDateToday('tarih'), mustKod: new PInstStr('mustkod'), ahTipi: new PInstTekSecim('ahtipi', KontorAHTip),
-			kontorSayi: new PInstNum('kontorsayi'), fatDurum: new PInstTekSecim('fatdurum', KontorFatDurum),
-			fisNox: new PInstStr({ rowAttr: 'fisnox', init: e => this.kontorSinif.newFisNox })
+			fisNox: new PInstStr({ rowAttr: 'fisnox', init: e => this.kontorSinif.newFisNox }), kontorSayi: new PInstNum('kontorsayi'),
+			fatDurum: new PInstTekSecim('fatdurum', KontorFatDurum), tahSekliNo: new PInstNum('tahseklino')
 		})
 	}
 	static secimlerDuzenle({ secimler: sec }) {
@@ -35,6 +35,7 @@ class MQKontorHareket extends MQSayacli {
 			.addKA('bayi', MQLogin_Bayi, 'mus.bayikod', 'bay.aciklama')
 			.addKA('anaBayi', MQVPAnaBayi, 'mus.anabayikod', 'abay.aciklama')
 			.addKA('il', MQVPIl, 'mus.ilkod', 'il.aciklama')
+			.addKA('tahSekli', MQVPTahSekli, 'har.tahseklino', 'tsek.aciklama')
 		sec.whereBlockEkle(({ secimler: sec, sent, where: wh }) => {
 			let {ahTipiSecim, fatDurumSecim} = sec;
 			wh.basiSonu(sec.tarih, `${alias}.tarih`);
@@ -116,7 +117,7 @@ class MQKontorHareket extends MQSayacli {
 	}
 	static standartGorunumListesiDuzenle({ liste }) {
 		super.standartGorunumListesiDuzenle(...arguments);
-		liste.push('tarih', 'mustkod', 'mustadi', 'kontorsayi', 'ahtipitext', 'fatdurumtext', 'fisnox', 'bayikod', 'anabayikod', 'tanitim')
+		liste.push('tarih', 'mustkod', 'mustadi', 'kontorsayi', 'ahtipitext', 'fatdurumtext', 'fisnox', 'tahseklino', 'bayikod', 'anabayikod', 'tanitim')
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments); let {tableAlias: alias} = this;
@@ -139,12 +140,14 @@ class MQKontorHareket extends MQSayacli {
 			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 20, sql: 'mus.yore', filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 8, sql: 'mus.ilkod', filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 20, sql: 'il.aciklama', filterType: 'checkedlist' }),
+			(config.dev ? new GridKolon({ belirtec: 'tahseklino', text: 'Tah.No', genislikCh: 8 }) : null),
+			(config.dev ? new GridKolon({ belirtec: 'tahsekliadi', text: 'Tah. Şekli Adı', genislikCh: 15 }) : null),
 			new GridKolon({ belirtec: 'tanitim', text: 'Tanıtım', genislikCh: 43, sql: 'mus.tanitim' }),
 			new GridKolon({ belirtec: 'bayikod', text: 'Bayi', genislikCh: 13, sql: 'mus.bayikod', filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'bayiadi', text: 'Bayi Adı', genislikCh: 25, sql: 'bay.aciklama', filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'anabayikod', text: 'Ana Bayi', genislikCh: 13, sql: 'bay.anabayikod', filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'anabayiadi', text: 'Ana Bayi Adı', genislikCh: 20, sql: 'abay.aciklama', filterType: 'checkedlist' })
-		])
+		].filter(x => !!x))
 	}
 	static loadServerData_queryDuzenle({ sender, stm, sent, basit, tekilOku, modelKullanmi }) {
 		super.loadServerData_queryDuzenle(...arguments);
@@ -156,12 +159,14 @@ class MQKontorHareket extends MQSayacli {
 			.fromIliski(`${fisTable} fis`, `${alias}.fissayac = fis.kaysayac`)
 			.fromIliski('musteri mus', `fis.mustkod = mus.kod`)
 			.fromIliski(`${MQLogin_Bayi.table} bay`, `mus.bayikod = bay.kod`)
-			.fromIliski(`${MQVPIl.table} il`, `mus.ilkod = il.kod`);
+			.fromIliski(`${MQVPIl.table} il`, `mus.ilkod = il.kod`)
+			.har2TahSekliBagla();
 		wh.degerAta(tip, 'fis.tip').add(`mus.aktifmi <> ''`);
 		if (!alias2Deger.fissayac) { sahalar.add(`${alias}.fissayac`) }
 		if (!alias2Deger.kaysayac) { sahalar.add(`${alias}.kaysayac`) }
 		if (!alias2Deger.ahtipi) { sahalar.add(`${alias}.ahtipi`) }
 		if (!alias2Deger.fatdurum) { sahalar.add(`${alias}.fatdurum`) }
+		if (!alias2Deger.tahseklino) { sahalar.add(`${alias}.tahseklino`) }
 		if (!alias2Deger.bayikod) { sahalar.add('mus.bayikod') }
 		if (!alias2Deger.anabayikod) { sahalar.add('bay.anabayikod') }
 		if (!alias2Deger.mustkod) { sahalar.add('fis.mustkod') }

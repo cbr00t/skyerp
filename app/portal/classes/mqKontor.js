@@ -372,7 +372,7 @@ class MQKontor extends MQDetayliMaster {
 		return this
 	}
 	static async kontor_ekle({ islemAdi, inst, part }) {
-		let {mustKod, kontorSayi, fatDurum} = inst;
+		let {mustKod, kontorSayi, fatDurum} = inst, tahseklino = inst.tahSekliNo || 0;
 		if (!mustKod) { hConfirm('<b>Müşteri</b> belirtilmelidir', islemAdi); return false }
 		let mesaj = await MQLogin_Musteri.kodYoksaMesaj(mustKod); if (mesaj) { hConfirm(mesaj, islemAdi); return false }
 		if ((kontorSayi ?? 0) <= 0) { hConfirm('<b>Kontör Sayısı</b> geçersizdir', islemAdi); return false }
@@ -391,7 +391,7 @@ class MQKontor extends MQDetayliMaster {
 				sayacSent,
 			`END`,
 			new MQIliskiliUpdate({ from: table, set: `topalinan = topalinan + ${kontorSayi.sqlServerDegeri()}`, where: `kaysayac = @fisSayac` }),
-			new MQInsert({ table: detayTable, hv: { fissayac: '@fisSayac'.sqlConst(), ahtipi, tarih, fisnox, kontorsayi, fatdurum } })
+			new MQInsert({ table: detayTable, hv: { fissayac: '@fisSayac'.sqlConst(), ahtipi, tarih, fisnox, kontorsayi, tahseklino, fatdurum } })
 		]).withDefTrn();
 		let params = [{ name: '@fisSayac', type: 'int', direction: 'output' }];
 		let result = await app.sqlExecNoneWithResult({ query, params }); part?.tazele();
@@ -408,8 +408,7 @@ class MQKontorDetay extends MQDetay {
 			ahTipi: new PInstTekSecim('ahtipi', KontorAHTip), fisNox: new PInstStr('fisnox'),
 			tarih: new PInstDateToday('tarih'), kontorSayi: new PInstNum('kontorsayi'),
 			fatDurum: new PInstTekSecim('fatdurum', KontorFatDurum),
-			/* ek değerler */
-			fisSayac: new PInst(), mustKod: new PInstStr()
+			tahSekliNo: new PInstNum('tahseklino'), fisSayac: new PInst(), mustKod: new PInstStr()
 		})
 	}
 	static orjBaslikListesi_argsDuzenle({ gridPart, sender, args }) {
@@ -448,13 +447,16 @@ class MQKontorDetay extends MQDetay {
 					if (!(fatDurum || ahTipi == 'A')) { html = changeTagContent(html, (value = '')) }
 					return html
 				}
-			})
-		])
+			}),
+			(config.dev ? new GridKolon({ belirtec: 'tahseklino', text: 'Tah.No', genislikCh: 8 }) : null),
+			(config.dev ? new GridKolon({ belirtec: 'tahsekliadi', text: 'Tah. Şekli Adı', genislikCh: 15 }) : null)
+		].filter(x => !!x))
 	}
 	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent }) {
 		super.loadServerData_queryDuzenle(...arguments);
 		let {tableAlias: alias} = this, {sahalar, where: wh} = sent, {orderBy} = stm;
-		sahalar.add(`${alias}.ahtipi`, `${alias}.fatdurum`);
+		sent.har2TahSekliBagla();
+		sahalar.add(`${alias}.ahtipi`, `${alias}.fatdurum`, `${alias}.tahseklino`);
 		orderBy.liste = ['ahtipi', 'tarih DESC', 'fisnox DESC']
 	}
 	static rootFormBuilderDuzenle_kontor({ rfb, fbd_form: parentForm, inst, islem }) {
@@ -476,9 +478,15 @@ class MQKontorDetay extends MQDetay {
 			.onAfterRun(({ builder: fbd }) => fbd.input.focus());
 		let fbd_fatDurum = form.addModelKullan('fatDurum', 'Fatura Durum').listedenSecilmez().addStyle_wh(250)
 			.dropDown().noMF().kodsuz().bosKodAlinmaz().autoBind().setSource(fatDurum.kaListe)
-			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.ahTipi.alinanmi ? true : 'jqx-hidden');
+			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.ahTipi.alinanmi);
 		if (fatDurum.faturaEdildimi && !MQLogin.current.adminmi) {
 			fbd_fatDurum.veriYukleninceBlock(({ builder: fbd }) => fbd.part.disable())
+		}
+		let fbd_tahSekli = form.addModelKullan('tahSekliNo', 'Tahsilat Şekli').listedenSecilmez().addStyle_wh(250)
+			.dropDown().setMFSinif(MQVPTahSekli).kodsuz().autoBind()
+			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.ahTipi.alinanmi && config.dev);
+		if (fatDurum.faturaEdildimi && !MQLogin.current.adminmi) {
+			fbd_fatDurum.veriYukleninceBlock(({ builder: fbd }) => fbd.part.disable());
 		}
 		rfb.onAfterRun(({ builder: rfb }) => {
 			rfb.layout.on('keyup', evt => {
@@ -515,7 +523,7 @@ class MQKontorDetay extends MQDetay {
 		return true
 	}
 	static async kontor_degistir({ islemAdi, inst, part }) {
-		let {fisSayac, okunanHarSayac: sayac, prevKontorSayi, kontorSayi, fatDurum} = inst;
+		let {fisSayac, okunanHarSayac: sayac, prevKontorSayi, kontorSayi, fatDurum} = inst, tahSekliNo = inst.tahSekliNo || 0;
 		let {tip, table} = MQKontor, {table: detayTable} = this;
 		let kontorFark = kontorSayi - (prevKontorSayi ?? 0); fatDurum = fatDurum?.char ?? fatDurum;
 		let query = new MQToplu([
@@ -526,7 +534,8 @@ class MQKontorDetay extends MQDetay {
 			new MQIliskiliUpdate({
 				from: detayTable, set: [
 					{ degerAta: kontorSayi, saha: 'kontorsayi' },
-					{ degerAta: fatDurum, saha: 'fatdurum' }
+					{ degerAta: fatDurum, saha: 'fatdurum' },
+					{ degerAta: tahSekliNo, saha: 'tahseklino' }
 				],
 				where: { degerAta: sayac, saha: 'kaysayac' }
 			})

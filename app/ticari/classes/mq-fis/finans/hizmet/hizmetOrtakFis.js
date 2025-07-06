@@ -10,54 +10,47 @@ class HizmetOrtakFis extends FinansFis {
 		super.rootFormBuilderDuzenle_ilk(e); const baslikFormlar = e.builders.baslikForm.builders;
 		let form = baslikFormlar[0];
 		form.addModelKullan({ id: 'ba', etiket: 'Gelir/Gider', source: e => GelirGider.instance.kaListe })
-			.dropDown().kodsuz().bosKodAlinmaz().bosKodEklenmez().noMF()
-			.onAfterRun(e => {
-				const {builder} = e;
-				if (!builder.rootPart.yeniVeyaKopyami) {
-					const {part} = builder;
-					part.disable()
-				}
-				if (builder)
-					builder.altInst.baDegisti(e)
+			.dropDown().noMF().kodsuz().bosKodAlinmaz().bosKodEklenmez()
+			.onAfterRun(_e => {
+				let {builder: fbd} = _e;
+				if (!fbd.rootPart.yeniVeyaKopyami) { let {part} = builder; part.disable() }
+				if (builder) { builder.altInst.baDegisti({ ...e, ..._e }) }
 			})
 			.degisince(e => e.builder.altInst.baDegisti(e))
 			.addStyle_wh({ width: '130px !important' })
 	}
 	static super_rootFormBuilderDuzenle_ilk(e) { super.rootFormBuilderDuzenle_ilk(e) }
-	static standartGorunumListesiDuzenle_son(e) {
-		e.liste.push('toplambedel');
-		super.standartGorunumListesiDuzenle_son(e)
+	static standartGorunumListesiDuzenle_son({ liste }) {
+		liste.push('toplambedel');
+		super.standartGorunumListesiDuzenle_son(...arguments)
 	}
 	static super_standartGorunumListesiDuzenle_son(e) { super.standartGorunumListesiDuzenle_son(e) }
-	static orjBaslikListesiDuzenle_son(e) {
-		// this.forAltYapiClassesDo('orjBaslikListesiDuzenle_son', e);
-		const {aliasVeNokta} = this, {liste} = e;
+	static orjBaslikListesiDuzenle_son({ liste }) {
+		let {aliasVeNokta} = this;
 		liste.push(new GridKolon({ belirtec: 'toplambedel', text: 'Toplam Bedel', genislikCh: 15 }).tipDecimal_bedel());
-		super.orjBaslikListesiDuzenle_son(e)
+		super.orjBaslikListesiDuzenle_son(...arguments)
 	}
 	static super_orjBaslikListesiDuzenle_son(e) { return super.orjBaslikListesiDuzenle_son(e) }
-	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e);
-		const {aliasVeNokta} = this, {sent} = e;
-		sent.sahalar.add(`${aliasVeNokta}ba`)
+	static loadServerData_queryDuzenle({ sent }) {
+		super.loadServerData_queryDuzenle(...arguments);
+		let {aliasVeNokta} = this, {sahalar} = sent;
+		sahalar.add(`${aliasVeNokta}ba`)
 	}
 	static super_loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e) }
 	static varsayilanKeyHostVarsDuzenle(e) {
 		super.varsayilanKeyHostVarsDuzenle(e);
-		const {hv} = e, {fisTipi} = this;
-		if (fisTipi != null)
-			hv.fistipi = fisTipi
+		let {hv} = e, {fisTipi} = this;
+		if (fisTipi != null) { hv.fistipi = fisTipi }
 	}
 	static super_varsayilanKeyHostVarsDuzenle(e) { super.varsayilanKeyHostVarsDuzenle(e) }
 	alternateKeyHostVarsDuzenle(e) {
-		super.alternateKeyHostVarsDuzenle(e);
-		const {hv} = e;
+		super.alternateKeyHostVarsDuzenle(e); let {hv} = e;
 		$.extend(hv, { ba: this.ba.char })
 	}
 	super_alternateKeyHostVarsDuzenle(e) { super.alternateKeyHostVarsDuzenle(e) }
 	async cacheOlustur(e) {
 		await super.cacheOlustur(e);
-		const ba2KDVBilgileri = this._ba2KDVBilgileri = this._ba2KDVBilgileri || {};
+		let ba2KDVBilgileri = this._ba2KDVBilgileri = this._ba2KDVBilgileri || {};
 		const ba = this.ba?.char || '';
 		if (ba && ba2KDVBilgileri[ba] === undefined)
 			ba2KDVBilgileri[ba] = await MQVergi.getKdvBilgileri({ satis: ba, iade: false })

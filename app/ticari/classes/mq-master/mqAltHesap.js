@@ -45,7 +45,7 @@ class MQAltHesap extends MQKA {
 	}
 	static getGridKolonlar(e) {
 		let liste = [];
-		if (app.params.cariGenel.kullanim.altHesap) { liste.push(...super.getGridKolonlar(e)) }
+		if (app.params.cariGenel?.kullanim?.altHesap) { liste.push(...super.getGridKolonlar(e)) }
 		return liste
 	}
 }

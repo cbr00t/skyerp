@@ -157,8 +157,7 @@ class ExtFis_Plasiyer extends ExtFis {
 class ExtFis_Kasa extends ExtFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e);
-		const {pTanim} = e;
+		super.pTanimDuzenle(e); const {pTanim} = e;
 		$.extend(pTanim, { kasaKod: new PInstStr('kasakod') })
 	}
 	static rootFormBuilderDuzenle_ara(e) {

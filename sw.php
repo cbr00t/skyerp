@@ -40,5 +40,5 @@ async function handleFetchFromNetwork(req) {
 }
 async function handleFetchFromCache(req) {
 	const cache = await caches.open(CACHE_NAME), cachedResponse = await cache.match(req);
-return cachedResponse || await handleFetchFromNetwork(req)
+	return cachedResponse || await handleFetchFromNetwork(req)
 }
