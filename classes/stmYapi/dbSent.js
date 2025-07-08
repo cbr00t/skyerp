@@ -234,8 +234,31 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	}
 	fis2IslBagla(e) { let alias = e?.alias ?? 'fis'; this.fromIliski('carisl isl', `${alias}.carislkod = isl.kod`); return this }
 	fis2IslBagla_leftJoin(e) { let alias = e?.alias ?? 'fis'; this.leftJoin({ alias, from: 'carisl isl', on: `${alias}.carislkod = isl.kod` }); return this }
-	fis2StokIslemBagla(e) { let alias = e?.alias ?? 'fis'; this.fromIliski('stkisl isl', `${alias}.islkod = isl.kod`); return this }
-	fis2StokIslemBagla_leftJoin(e) { let alias = e?.alias ?? 'fis'; this.leftJoin({ alias, from: 'stkisl isl', on: `${alias}.islkod = isl.kod` }); return this }
+	fis2StokIslemBagla(e) { return this.x2StokIslemBagla({ ...e, alias: e?.alias ?? 'fis', leftJoin: false }) }
+	fis2StokIslemBagla_leftJoin(e) { return this.x2StokIslemBagla({ ...e, alias: e.alias ?? 'fis', leftJoin: true }) }
+	har2StokIslemBagla(e) { return this.x2StokIslemBagla({ ...e, alias: e?.alias ?? 'har', leftJoin: false }) }
+	har2StokIslemBagla_leftJoin(e) { return this.x2StokIslemBagla({ ...e, alias: e?.alias ?? 'har', leftJoin: true }) }
+	x2StokIslemBagla(e) {
+		e = e ?? {}; let {alias, kodClause, leftJoin} = e, aliasVeNokta = alias ? `${alias}.` : '';
+		kodClause = kodClause || `${aliasVeNokta}islkod`;
+		if (leftJoin) { this.leftJoin({ alias, from: 'stkisl isl', on: `${alias}.islkod = isl.kod` }) }
+		else { this.fromIliski('stkisl isl', `${kodClause} = isl.kod`); }
+		return this
+	}
+	fis2MuhIslBagla(e) { return this.fis2MuhIslemBagla(e) }
+	har2MuhIslBagla(e) { return this.har2MuhIslemBagla(e) }
+	x2MuhIslBagla(e) { return this.x2MuhIslemBagla(e) }
+	fis2MuhIslemBagla(e) { return this.x2MuhIslemBagla({ ...e, alias: e?.alias ?? 'fis', leftJoin: false }) }
+	fis2MuhIslemBagla_leftJoin(e) { return this.x2MuhIslemBagla({ ...e, alias: e?.alias ?? 'fis', leftJoin: true }) }
+	har2MuhIslemBagla(e) { return this.x2MuhIslemBagla({ ...e, alias: e?.alias ?? 'har', leftJoin: false }) }
+	har2MuhIslemBagla_leftJoin(e) { return this.x2MuhIslemBagla({ ...e, alias: e?.alias ?? 'har', leftJoin: true }) }
+	x2MuhIslemBagla(e) {
+		e = e ?? {}; let {alias, kodClause, leftJoin} = e, aliasVeNokta = alias ? `${alias}.` : '';
+		kodClause = kodClause || `${aliasVeNokta}islkod`;
+		if (leftJoin) { this.leftJoin({ alias, from: 'muhisl isl', on: `${alias}.islkod = isl.kod` }) }
+		else { this.fromIliski('muhisl isl', `${kodClause} = isl.kod`); }
+		return this
+	}
 	fis2UretimIslemBagla(e) { let alias = e?.alias ?? 'fis'; this.fromIliski('urtisl isl', `${alias}.islkod = isl.kod`); return this }
 	fis2TahSekliBagla(e) { return this.x2TahSekliBagla({ alias: 'fis', ...e }) }
 	har2TahSekliBagla(e) { return this.x2TahSekliBagla({ alias: 'har', ...e }) }
@@ -285,12 +308,18 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	fis2KrediBankaHesapBagla(e) { return this.x2BankaHesapBagla({ ...e, kodClause: 'fis.kredihesapkod' }) }
 	x2BankaHesapBagla(e) { let kodClause = e?.kodClause; this.fromIliski('banbizhesap bhes', `${kodClause} = bhes.kod`); return this }
 	fisAyrimBagla(e) { /* tamamlanacak */ return this }
-	har2MuhHesapBagla(e) { this.fromIliski('muhhesap mhes', 'har.hesapkod = mhes.kod'); return this }
+	fis2MuhHesapBagla(e) { return this.x2MuhHesapBagla({ alias: 'fis' }) }
+	har2MuhHesapBagla(e) { return this.x2MuhHesapBagla({ alias: 'har' }) }
+	x2MuhHesapBagla(e) {
+		e = e ?? {}, {alias, kodClause} = e, aliasVeNokta = alias ? `${alias}.` : '';
+		kodClause = kodClause || `${aliasVeNokta}muhhesap`;
+		this.fromIliski('muhhesap mhes', `${kodClause} = mhes.kod`);
+		return this
+	}
 	har2CariBagla(e) { e = e ?? {}; let mustSaha = (e.mustSaha ?? e.harMustSaha) || 'must'; this.fromIliski('carmst car', `har.${mustSaha} = car.must`); return this }
 	har2TicCariBagla(e) { e = e ?? {}; let mustSaha = (e.mustSaha ?? e.harMustSaha) || 'ticmustkod'; this.fromIliski('carmst car', `har.${mustSaha} = car.must`); return this }
 	har2PosKosulBagla(e) { let kodSaha = e?.kodSaha ?? 'poskosulkod'; this.fromIliski('poskosul pkos', `har.${kodSaha} = pkos.kod`); return this }
 	muhHesap2GrupBagla(e) { this.fromIliski('muhgrup mhgrp', 'mhes.grupkod = mhgrp.kod'); return this }
-	fis2MuhIslBagla(e) { this.fromIliski('muhisl isl', 'fis.islkod = isl.kod'); return this }
 	cariHepsiBagla(e) { this.cariYardimciBagla(e); this.cariAyrimBagla(e); return this }
 	cari2BolgeBagla(e) {
 		let alias = e?.alias ?? 'car', aliasVeNokta = alias ? `${alias}.` : '';

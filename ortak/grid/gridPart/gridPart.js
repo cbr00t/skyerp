@@ -144,9 +144,13 @@ class GridPart extends Part {
 							if (typeof result == 'object' && result.records && !result.totalrecords) { result.totalrecords = result.records.length }
 							if (typeof result != 'object') { return }
 							if (result.records?.length) {
-								let fields = source.datafields = [];
-								for (let [name, value] of Object.entries(result.records?.[0])) {
-									fields.push({ name, type: typeof value == 'object' ? 'string' : typeof value })
+								let fields = source.datafields = [], ilkRec = result.records?.[0];
+								if (ilkRec) {
+									for (let name of Reflect.ownKeys(ilkRec)) {
+										let value = ilkRec[name];
+										let type = value == null || typeof value == 'object' ? 'string' : typeof value;
+										fields.push({ name, type })
+									}
 								}
 							}
 							setTimeout(() => { try { callback(result) } catch (ex) { console.error(ex) } }, 1)

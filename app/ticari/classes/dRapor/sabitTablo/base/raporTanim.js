@@ -60,7 +60,7 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 			let det = id2Det[harID]; if (!det) { continue }
 			data = JSON.parse(Base64.decode($.isArray(data) ? data.join('') : data));
 			let {secimler} = det; for (let [key, _secim] of Object.entries(data)) {
-				let secim = secimler[key];
+				let secim = secimler?.[key];
 				if (secim) { $.extend(secim, _secim) }
 			}
 		}
@@ -112,11 +112,25 @@ class SBTabloDetay extends MQDetay {
 	static get fisSayacSaha() { return 'fisid' } static get sayacSaha() { return 'id' }
 	get satirListe() { let {satirListeStr: result} = this; return result?.length ? result.split(',').filter(x => !!x).map(x => asInteger(x.trim()) - 1) : [] }
 	set satirListe(value) { this.satirListeStr = value?.length ? value.filter(x => x != null).map(x => x + 1).sort().join(', ') : '' }
+	get secimler() { return this.tip2Secimler[this.shVeriTipi?.char] }
 	constructor(e) {
-		e = e ?? {}; super(e); let {secimler} = this;
-		secimler.beginUpdate().secimTopluEkle({
-			test: new SecimOzellik({ etiket: 'TEST' })
-		}).endUpdate()
+		e = e ?? {}; super(e); let tip2Secimler = this.tip2Secimler = e.tip2Secimler ?? {};
+		let tip2SecimMFYapi = {
+			S: { sh: DMQStok, grup: DMQStokGrup, anaGrup: DMQStokAnaGrup, istGrup: DMQStokIstGrup },
+			H: { sh: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup, istGrup: DMQHizmetIstGrup }
+		};
+		for (let [tip, yapi] of Object.entries(tip2SecimMFYapi)) {
+			let secimler = tip2Secimler[tip]; if (secimler) { continue }
+			if ($.isEmptyObject(yapi)) { continue }
+			(secimler = tip2Secimler[tip] = new Secimler()).beginUpdate();
+			for (let [key, mfSinif] of Object.entries(yapi)) {
+				let {kodListeTipi: grupKod, sinifAdi: grupAdi} = mfSinif;
+				secimler.grupEkle(grupKod, grupAdi);
+				{ let fullKey = `${key}Kod`; secimler.secimEkle(fullKey, new SecimString({ etiket: 'Kod', mfSinif, grupKod })) }
+				{ let fullKey = `${key}Adi`; secimler.secimEkle(fullKey, new SecimOzellik({ etiket: 'Adı', grupKod })) }
+			}
+			secimler.endUpdate()
+		}
 	}
 	static pTanimDuzenle({ pTanim }) {
 		$.extend(pTanim, {
@@ -124,8 +138,7 @@ class SBTabloDetay extends MQDetay {
 			satirListeStr: new PInstStr('satirlistestr'), shVeriTipi: new PInstTekSecim('shveritipi', SBTabloVeriTipi),
 			shAlmSat: new PInstTekSecim('shalmsat', AlimSatis), shIade: new PInstTekSecim('shiade', NormalIadeVeBirlikte),
 			shAyrimTipi: new PInstTekSecim('shayrimtipi', SBTabloAyrimTipi),
-			cssClassesStr: new PInstStr('cssclasses'), cssStyle: new PInstStr('cssstyle'),
-			secimler: new PInstClass(Secimler)
+			cssClassesStr: new PInstStr('cssclasses'), cssStyle: new PInstStr('cssstyle')
 		})
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
@@ -216,22 +229,25 @@ class SBTabloGridci extends GridKontrolcu {
 			vazgec: _e => close({ ..._e, ...e, tazele: true })
 		}).addStyle_fullWH(null, 'var(--islemTuslari-height)');
 		let fbd_content = rfb.addFormWithParent('content').altAlta()
-			.addStyle_fullWH(null, 'calc(var(--full) - (var(--islemTuslari-height) + 10px))');
+			.addStyle_fullWH(null, 'calc(var(--full) - (var(--islemTuslari-height) + 15px))')
+			.addStyle(`
+				$elementCSS { overflow-y: auto !important }
+				$elementCSS > div:last-child { margin-bottom: 50px !important }
+				$elementCSS .secimler.part > .header  { position: relative !important }
+			`)
+			.onAfterRun(({ builder: fbd }) => makeScrollable(fbd.layout));
 		let fbd_altForm, updateAltForm = () => {
 			for (let fbd of fbd_altForm) { fbd.updateVisible() } };
-		let initSecimlerForm = (form, id, etiket, secimler, height) => {
+		let initSecimlerForm = (form, id, etiket, height) => {
 			return form.addForm(id).setLayout(() => $('<div/>'))
 				.addStyle_fullWH(null, height ?? 'auto')
 				.addStyle(`$elementCSS { margin: 10px 0 20px 0 }`)
 				.onAfterRun(({ builder: fbd }) => {
-					if (secimler) { detay.secimler = secimler }
-					else { secimler = detay.secimler }
-					secimler = secimler?.newSecimler ?? secimler?.class?.newSecimler ?? secimler ?? new Secimler();
-					let grupKod = '_main'; secimler.grupEkle(grupKod, etiket ?? '');
-					for (let [key, sec] of secimler) { sec.grupKod = sec.grupKod ?? grupKod }
-					let {rootPart: parentPart, layout: content} = fbd;
-					let part = fbd.part = new SecimlerPart({ parentPart, content, secimler });
-					part.run()
+					let {secimler} = detay; if (secimler) {
+						let {rootPart: parentPart, layout: content} = fbd;
+						let part = fbd.part = new SecimlerPart({ parentPart, content, secimler });
+						part.run()
+					}
 				})
 		}
 		
@@ -314,16 +330,16 @@ class SBTabloGridci extends GridKontrolcu {
 		altForm = form.addFormWithParent('altForm_ticariSatis_stok').altAlta()
 			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.shVeriTipi.stokmu || fbd.altInst.shVeriTipi.birliktemi);
 		altForm.addForm().setLayout(() => $(`<div>Stok için seçimler</div>`)).autoAppend();
-		initSecimlerForm(altForm, 'ticSatis_stokSecimler', 'Stok', fisSinif.newSecimler);
+		initSecimlerForm(altForm, 'ticSatis_stokSecimler', 'Stok');
 		altForm = form.addFormWithParent('ticSatisSecimler_hizmet').altAlta()
 			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.shVeriTipi.hizmetmi || fbd.altInst.shVeriTipi.birliktemi);
 		altForm.addForm().setLayout(() => $(`<div>Hizmet için seçimler</div>`)).autoAppend();
-		initSecimlerForm(altForm, 'ticSatisSecimler_hizmet', 'Hizmet', fisSinif.newSecimler);
+		initSecimlerForm(altForm, 'ticSatisSecimler_hizmet', 'Hizmet');
 		
 		form = fbd_altForm.addFormWithParent('altForm_hizmet').altAlta()
 			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.hesapTipi.hizmetmi);
 		form.addForm().setLayout(() => $(`<div>Hizmet için seçimler</div>`)).autoAppend();
-		initSecimlerForm(form, 'hizmetSecimler', 'Hizmet', fisSinif.newSecimler);
+		initSecimlerForm(form, 'secimler_hizmet', 'Hizmet');
 		
 		return rfb
 	}

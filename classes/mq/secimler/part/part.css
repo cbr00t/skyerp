@@ -4,6 +4,7 @@
 .secimler.part #filtreForm { --top: -10px; position: relative; top: var(--top); left: 350px; height: var(--full); z-index: 11 !important }
 .secimler.part #filtreForm > input { max-width: 100px !important; border-radius: 13px }
 .secimler.part .islemTuslari { position: absolute; top: 0; right: 8px !important; overflow-y: hidden !important; z-index: 10 !important }
+.secimler.part.wnd-content #secimler.content { margin-top: 50px }
 .secimler.part .butonlar.part > .sag { --width-sag: 500px !important }
 .secimler.part .islemTuslari button { min-width: 80px !important }
 .secimler.part .islemTuslari button#kolonFiltre { margin-right: 10px /* background-size: 20px 20px !important */ }
@@ -18,6 +19,7 @@
 .secimler.part .islemTuslari button#secimYukle.jqx-fill-state-normal { background-color: green }
 .secimler.part .islemTuslari button#vazgec { }
 .secimler.part.with-tabs #tabPanel { --top: 10px; position: relative !important; top: var(--top); height: calc(var(--full) - (var(--top) + 5px)) !important }
+.secimler.part.with-tabs #tabPanel > .tabs { display: none !important }
 .secimler.part.with-tabs #tabPanel > .content { width: var(--full); height: calc(var(--full) - (var(--header-height) + var(--tabs-header-margin-bottom) * 2)) !important }
 .secimler.part .secimler-kolonFiltre-bilgi-parent {
 	font-size: 76%; width: var(--full); padding: 0 !important;

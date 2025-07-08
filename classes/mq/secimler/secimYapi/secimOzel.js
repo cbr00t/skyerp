@@ -62,11 +62,17 @@ class SecimOzellik extends SecimOzel {
 		);
 	}
 	initHTMLElements(e) {
-		super.initHTMLElements(e); const {parent} = e, {yazildigiGibimi, disindakilermi} = this;
-		const chkYazildigiGibimi = parent.find('.yazildigiGibimi'), chkDisindakilermi = parent.find('.disindakilermi');
+		super.initHTMLElements(e); let {parent} = e, {yazildigiGibimi, disindakilermi} = this;
+		let chkYazildigiGibimi = parent.find('.yazildigiGibimi'), chkDisindakilermi = parent.find('.disindakilermi');
 		parent.find('.ozellik').on('change', evt => { this.ozellik = (evt.target.value || '') });
-		chkYazildigiGibimi.jqxSwitchButton({ theme, width: 50, height: false, onLabel: 'Y', offLabel: 'Y', checked: yazildigiGibimi }); chkYazildigiGibimi.on('change', evt => setTimeout(() => this.yazildigiGibimi = $(evt.currentTarget).val(), 10));
-		chkDisindakilermi.jqxSwitchButton({ theme, width: 50, height: false, onLabel: 'D', offLabel: 'D', checked: yazildigiGibimi }); chkDisindakilermi.on('change', evt => setTimeout(() => this.disindakilermi = $(evt.currentTarget).val(), 10))
+		if (chkYazildigiGibimi?.length) {
+			chkYazildigiGibimi.jqxSwitchButton({ theme, width: 50, height: false, onLabel: 'Y', offLabel: 'Y', checked: yazildigiGibimi });
+			chkYazildigiGibimi.on('change', evt => setTimeout(() => this.yazildigiGibimi = $(evt.currentTarget).val(), 10))
+		}
+		if (chkDisindakilermi?.length) {
+			chkDisindakilermi.jqxSwitchButton({ theme, width: 50, height: false, onLabel: 'D', offLabel: 'D', checked: yazildigiGibimi });
+			chkDisindakilermi.on('change', evt => setTimeout(() => this.disindakilermi = $(evt.currentTarget).val(), 10))
+		}
 	}
 	getConvertedValue(value) { value = value?.value ?? value; return value || '' }
 }

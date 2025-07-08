@@ -69,8 +69,8 @@ class MQStokGenel extends MQStokAlt {
 		else if (asBool(rec.satilamazfl)) { result.push('bg-lightred') }
 	}
 	static rootFormBuilderDuzenle(e) {
-		e = e || {}; const {mfSinif} = this; mfSinif.formBuilder_addTabPanelWithGenelTab(e);
-		const tabPage_genel = e.tabPage_genel; tabPage_genel.setAltInst(e => e.builder.inst.genel);
+		e = e || {}; let {mfSinif} = this; mfSinif.formBuilder_addTabPanelWithGenelTab(e);
+		let {tabPage_genel} = e; tabPage_genel.setAltInst(e => e.builder.inst.genel);
 		let form = tabPage_genel.addFormWithParent().yanYana(4);
 		// form.addTextInput({ id: 'aciklama', etiket: 'Adı', maxLength: 100}).addStyle(e => `$elementCSS { max-width: 550px }`);
 		form.addTextInput({ id: 'aciklama2',	etiket: 'Adı 2', maxLength: 100}).addStyle(e => `$elementCSS { max-width: 550px }`);

@@ -201,6 +201,13 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 					(devirmi && leafSabitSet[key]) ? (cnv[key] || sqlNull) :
 					toplamSet[key] ? deger.sumOlmaksizin() : deger
 			}
+			{
+				let wrongKey = 'fis.tarih)', correctKey = 'tarih';
+				if (alias2Deger[wrongKey]) {
+					alias2Deger[correctKey] = `${alias2Deger[wrongKey]} ${wrongKey}`;
+					delete alias2Deger[wrongKey]
+				}
+			}
 			for (let aMQAliasliYapi of sahalar.liste) {
 				aMQAliasliYapi.deger = alias2Deger[aMQAliasliYapi.alias] }
 			if (tarihClause && tarihDegerClause) {

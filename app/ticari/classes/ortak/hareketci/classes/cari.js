@@ -191,7 +191,7 @@ class CariHareketci extends Hareketci {
 						.fis2PlasiyerBagla().har2HizmetBagla()
 					wh.fisSilindiEkle().add(`fis.fistipi = 'SM'`)
 				}).hvDuzenleIslemi(({ hv }) => {
-					let fisNoxClause = `(case when har.belgeno=0 then fis.fisnox else har.belgenox end)`, vadeSql = `coalesce(har.vade, har.belgetarih, fis.fisvade, fis.tarih)`;
+					let fisNoxClause = `(case when har.belgeno = 0 then fis.fisnox else har.belgenox end)`, vadeSql = `coalesce(har.vade, har.belgetarih, fis.fisvade, fis.tarih)`;
 					$.extend(hv, {
 						kaysayac: 'har.kaysayac', fisektipi: 'fis.ozeltip', oncelik: '1', unionayrim: `'Fin'`, kayittipi: `'SRBMES'`, fistipi: '(fis.fistipi + fis.ba)',
 						anaislemadi: `'Serbest Meslek'`, islemkod: 'har.hizmetkod', islemadi: 'hiz.aciklama', tarih: 'coalesce(har.belgetarih, fis.tarih)', ba: 'fis.ba',

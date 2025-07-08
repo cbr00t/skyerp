@@ -136,7 +136,7 @@ class GridKolonTip_Number extends GridKolonTip {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get anaTip() { return 'number' } static get mfbmi() { return true }
 	get jqxColumnType() { return 'custom' } /* get jqxColumnType() { return 'numberinput' } */
-	get defaultAlign() { return 'right' } get jqxCellsFormat() { return 'number' }
+	get defaultAlign() { return 'right' } get jqxCellsFormat() { return super.jqxCellsFormat }
 	get jqxFilterType() { return 'checkedlist' } static get jqxFilterAnaTip() { return 'numericfilter' }
 	/*get jqxFilterType() { return 'input' } static get jqxFilterAnaTip() { return 'stringfilter' } get jqxFilterCondition() { return 'CONTAINS' }*/
 
@@ -371,8 +371,9 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 	get source() { return this._source } set source(value) { this._source = value }
 	get kaListe() { return this.tekSecim?.kaListe } get defaultChar() { return this.tekSecim?.char }
 	readFrom(e) {
-		if (!e) return false; let {tekSecim, tekSecimSinif, kaListe} = e;
-		if (typeof tekSecimSinif == 'string') { tekSecimSinif = getFunc.call(this, tekSecimSinif, e); }
+		if (!e) { return false }
+		let {tekSecim, tekSecimSinif, kaListe} = e;
+		if (typeof tekSecimSinif == 'string') { tekSecimSinif = getFunc.call(this, tekSecimSinif, e) }
 		if (!tekSecim && tekSecimSinif) { tekSecim = new tekSecimSinif() }
 		if (tekSecim) {
 			if (typeof tekSecim == 'string') { tekSecim = getFunc.call(this, tekSecim, e) }

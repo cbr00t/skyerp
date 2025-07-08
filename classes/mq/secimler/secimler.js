@@ -80,7 +80,7 @@ class Secimler extends CIO {
 	grupEkle(e, _aciklama, _kapalimi, _renk, _zeminRenk, _css, _ekBilgi) {
 		e = e || {}; const kod = e.kod ?? e.key ?? e.belirtec ?? e, {grupListe} = this;
 		if (!grupListe[kod]) {
-			const aciklama = (e.aciklama ?? e.adi ?? _aciklama) ?? kod, kapalimi = e.kapali ?? e.kapalimi ?? _kapalimi;
+			const aciklama = (e.aciklama ?? e.adi ?? e.etiket ?? e.text ?? _aciklama) ?? kod, kapalimi = e.kapali ?? e.kapalimi ?? _kapalimi;
 			const renk = e.renk ?? _renk, zeminRenk = e.zeminRenk ?? _zeminRenk, css = e.css ?? _css, ekBilgi = e.ekBilgi ?? _ekBilgi;
 			grupListe[kod] = { kod, aciklama, kapalimi, renk, zeminRenk, css, ekBilgi }
 		}

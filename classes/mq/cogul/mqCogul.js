@@ -2,7 +2,7 @@ class MQCogul extends MQYapi {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static _altYapiDictOlustuSet = {}; static _extYapiOlustuSet = {}; static get mqCogulmu() { return true }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'parentItem'] } static get parentMFSinif() { return null }
-	static get listeSinifAdi() { return null } static get kodListeTipi() { return null } static get noAutoFocus() { return false }
+	static get listeSinifAdi() { return null } static get kodListeTipi() { return this.classKey } static get noAutoFocus() { return false }
 	static get listeUISinif() { return MasterListePart } static get tanimUISinif() { return null } static get secimSinif() { return Secimler }
 	static get sabitBilgiRaporcuSinif() { return MasterRapor } static get ozelSahaTipKod() { return null }
 	static get ayrimTipKod() { return null } static get ayrimBelirtec() { return this.tableAlias } static get ayrimTable() { return `${this.tableAlias}ayrim`} static get ayrimTableAlias() { return null } 
