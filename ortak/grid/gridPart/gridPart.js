@@ -318,7 +318,8 @@ class GridPart extends Part {
 			attrListe = mfSinif?.orjBaslikListesi_getHizliBulFiltreAttrListe({ ...e, gridPart: this, filtreTokens });
 			if (!attrListe?.length) {
 				let {duzKolonTanimlari} = this; attrListe = [];
-				for (let colDef of duzKolonTanimlari) { if (!(colDef.ekKolonmu || !colDef.text?.trim)) { attrListe.push(colDef.belirtec) } }
+				for (let colDef of duzKolonTanimlari) {
+					if (!(colDef.ekKolonmu || !colDef.text?.trim)) { attrListe.push(colDef.belirtec) } }
 			}
 			this._hizliBulFiltreAttrListe = attrListe
 		}
@@ -593,8 +594,14 @@ class GridPart extends Part {
 		e = e || {}; let {tokens} = e, {gridWidget} = this; this.filtreTokens = tokens; e.gridPart = this
 		clearTimeout(this._timer_hizliBulIslemi_ozel); this._timer_hizliBulIslemi_ozel = setTimeout(() => {
 			try {
-				let {bulPart} = this, {input} = bulPart; this.tazele({ action: 'hizliBul' });
-				for (let delayMS of [400, 1000]) { setTimeout(() => { bulPart.focus(); setTimeout(() => { input[0].selectionStart = input[0].selectionEnd = input[0].value?.length }, 205) }, delayMS) }
+				let {bulPart} = this, {input} = bulPart; 
+				this.tazele({ action: 'hizliBul' });
+				for (let delayMS of [400, 1000]) {
+					setTimeout(() => {
+						bulPart.focus();
+						setTimeout(() => { input[0].selectionStart = input[0].selectionEnd = input[0].value?.length }, 205)
+					}, delayMS)
+				}
 				setTimeout(() => FiltreFormPart.hizliBulIslemi(e), 500)
 			}
 			finally { delete this._timer_hizliBulIslemi_ozel }

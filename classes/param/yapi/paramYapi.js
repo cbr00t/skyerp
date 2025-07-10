@@ -6,7 +6,7 @@ class ParamBuilder extends CObject {
 	] }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, '_initFlag', '_id', ...this.copyOzelKeys] }
 	static get formBuilderClass() { return FormBuilder }
-	get id2Item() { let result = this._id2Item; if (result == null) { result = {}; for (const item of (this.items || [])) { result[item.id] = item } this._id2Item = result } return result }
+	get id2Item() { let result = this._id2Item; if (result == null) { result = {}; for (let item of (this.items || [])) { result[item.id] = item } this._id2Item = result } return result }
 	get defaultAltInst() { return null }
 	get id() {
 		let result = this._id; if (result === undefined) { result = this._id = this.defaultId }
@@ -27,18 +27,18 @@ class ParamBuilder extends CObject {
 			}
 		}
 		if (isFunction(result)) { result = this._altInst = getFuncValue.call(this, result, this.getBuilderArgs()) }
-		if (typeof result == 'string') { const {inst} = this; result = this._altInst = inst ? inst[result] : null }
+		if (typeof result == 'string') { let {inst} = this; result = this._altInst = inst ? inst[result] : null }
 		if (result == null) { result = this._altInst = this.defaultAltInst ?? this.inst }
 		return result
 	}
 	set altInst(value) { this._altInst = value }
 	get value() {
-		const {altInst} = this; if (altInst == null) { return this.convertedValue_hostVars(this.initValue) }
+		let {altInst} = this; if (altInst == null) { return this.convertedValue_hostVars(this.initValue) }
 		let result = altInst[this.id]; return result === undefined ? this.convertedValue_hostVars(this.initValue) : result
 	}
 	set value(value) {
-		const {altInst} = this; value = this.convertedValue_setValues(value);
-		if (altInst) { const {id} = this; if (id) { if (value === undefined) delete altInst[id]; else altInst[id] = value } } else { this.initValue = value }
+		let {altInst} = this; value = this.convertedValue_setValues(value);
+		if (altInst) { let {id} = this; if (id) { if (value === undefined) delete altInst[id]; else altInst[id] = value } } else { this.initValue = value }
 	}
 	get root() { return this._root } set root(value) { this._root = value }
 	get parent() { return this._parent } set parent(value) { this._parent = value }
@@ -66,22 +66,22 @@ class ParamBuilder extends CObject {
 		this.preBuild(e); this.build(e); this.afterBuild(e); return this
 	}
 	afterRun(e) {
-		const {root, items} = this;
+		let {root, items} = this;
 		let {value} = this, initValue; if (value === undefined) { value = initValue = this.convertedValue_setValues(this.initValue) }
-		if (initValue !== undefined) { const {altInst} = this; if (altInst) { this.value = initValue } }
-		if (!$.isEmptyObject(items)) { const {temps, altInst} = this; for (const item of items) { $.extend(item, { root, parent: this, _inst: altInst }); item.run(e) } }
+		if (initValue !== undefined) { let {altInst} = this; if (altInst) { this.value = initValue } }
+		if (!$.isEmptyObject(items)) { let {temps, altInst} = this; for (let item of items) { $.extend(item, { root, parent: this, _inst: altInst }); item.run(e) } }
 	}
 	preBuild(e) { }
 	build(e) { }
-	afterBuild(e) { const {altInst} = this; if (altInst) { const {id, value} = this; if (id && altInst[id] === undefined && value !== undefined) { this.value = value } } }
+	afterBuild(e) { let {altInst} = this; if (altInst) { let {id, value} = this; if (id && altInst[id] === undefined && value !== undefined) { this.value = value } } }
 	formBuilderDuzenle(e) {
 		e = $.extend({}, e); e.sender = this;
-		let builder = this.builder = e.builder; const $this = this;
+		let builder = this.builder = e.builder; let $this = this;
 		$.extend(e, {
 			moveTo(e) {
 				let target = e.target ?? e; if (isFunction(target)) { target = getFuncValue.call($this, target, this) } if (!target) return null
 				if (!(target.class == FormBuilder || target.class == FBuilderWithInitLayout)) { target = e.target = target.addForm() }
-				const paramci = this.sender, parentBuilder = paramci.parent.builder, {_id2Builder} = parentBuilder, {builder} = this; const {id} = builder;
+				let paramci = this.sender, parentBuilder = paramci.parent.builder, {_id2Builder} = parentBuilder, {builder} = this; let {id} = builder;
 				parentBuilder.builders = parentBuilder.builders.filter(x => x.id != id); if (_id2Builder) { delete _id2Builder[id] }
 				builder.parentBuilder = target; builder.parent = target.layout;
 				if (!target._altInst) { target.altInst = paramci.parent.altInst }
@@ -91,7 +91,7 @@ class ParamBuilder extends CObject {
 				let target = e.target ?? e;
 				if ($.isPlainObject(target)) {
 					let {id, etiket} = target; if (!id) return null
-					const {tabPanel} = this; target = tabPanel.id2Builder[id];
+					let {tabPanel} = this; target = tabPanel.id2Builder[id];
 					if (!target) {
 						if (isFunction(etiket)) { etiket = getFuncValue.call($this, etiket, this) }
 						target = tabPanel.addTab(id, etiket); tabPanel.id2Builder[id] = target
@@ -105,178 +105,178 @@ class ParamBuilder extends CObject {
 	}
 	formBuilderDuzenleInternal(e) { }
 	formBuilderDuzenleSonrasi(e) {
-		let {builder} = e; const parentBuilder = builder
+		let {builder} = e; let parentBuilder = builder
 		if (this.builder != null) { builder = e.builder = this.builder }
 		builder.sender = e.sender;
-		for (const key of ['value', 'altInst']) { const value = this[key]; if (value !== undefined) { builder[key] = value } }
+		for (let key of ['value', 'altInst']) { let value = this[key]; if (value !== undefined) { builder[key] = value } }
 		if (builder._inst === undefined && builder.altInst !== undefined) { builder.inst = builder.altInst }
-		const {fbd_ekIslemler, _formBuilderDuzenle} = this;
-		if (!$.isEmptyObject(fbd_ekIslemler)) { for (const handler of fbd_ekIslemler) { getFuncValue.call(this, handler, e) } }
+		let {fbd_ekIslemler, _formBuilderDuzenle} = this;
+		if (!$.isEmptyObject(fbd_ekIslemler)) { for (let handler of fbd_ekIslemler) { getFuncValue.call(this, handler, e) } }
 		if (_formBuilderDuzenle) { getFuncValue.call(this, _formBuilderDuzenle, e) }
-		const {_savedBuilder} = e; if (_savedBuilder) { builder = e.builder = _savedBuilder; delete e._savedBuilder } else { builder = e.builder = parentBuilder }
-		const {items} = this; if (!$.isEmptyObject(items)) { for (const item of items) { item.formBuilderDuzenle(e) } }
+		let {_savedBuilder} = e; if (_savedBuilder) { builder = e.builder = _savedBuilder; delete e._savedBuilder } else { builder = e.builder = parentBuilder }
+		let {items} = this; if (!$.isEmptyObject(items)) { for (let item of items) { item.formBuilderDuzenle(e) } }
 	}
 	paramHostVarsDuzenle(e) {
-		const {hv} = e, {rowAttr, _paramHostVarsDuzenle} = this;
-		if (rowAttr) { const value = this.convertedValue_hostVars(this.value); if (value !== undefined) { hv[rowAttr] = value } }
+		let {hv} = e, {rowAttr, _paramHostVarsDuzenle} = this;
+		if (rowAttr) { let value = this.convertedValue_hostVars(this.value); if (value !== undefined) { hv[rowAttr] = value } }
 		if (_paramHostVarsDuzenle) { getFuncValue.call(this, _paramHostVarsDuzenle, e) }
 	}
 	paramSetValues(e) {
-		const {rec} = e, {rowAttr, _paramSetValues} = this;
-		if (rowAttr) { const value = this.convertedValue_setValues(rec[rowAttr]); if (value !== undefined) { this.value = value } }
+		let {rec} = e, {rowAttr, _paramSetValues} = this;
+		if (rowAttr) { let value = this.convertedValue_setValues(rec[rowAttr]); if (value !== undefined) { this.value = value } }
 		if (_paramSetValues) { getFuncValue.call(this, _paramSetValues, e) }
 	}
-	tanimUIArgsDuzenle(e) { const {_tanimUIArgsDuzenle} = this; if (_tanimUIArgsDuzenle) getFuncValue.call(this, _tanimUIArgsDuzenle, e) }
-	kaydetOncesi(e) { const {_kaydetOncesi} = this; if (_kaydetOncesi) getFuncValue.call(this, _kaydetOncesi, e) }
-	kaydedince(e) { const {_kaydedince} = this; if (_kaydedince) getFuncValue.call(this, _kaydedince, e) }
+	tanimUIArgsDuzenle(e) { let {_tanimUIArgsDuzenle} = this; if (_tanimUIArgsDuzenle) getFuncValue.call(this, _tanimUIArgsDuzenle, e) }
+	kaydetOncesi(e) { let {_kaydetOncesi} = this; if (_kaydetOncesi) getFuncValue.call(this, _kaydetOncesi, e) }
+	kaydedince(e) { let {_kaydedince} = this; if (_kaydedince) getFuncValue.call(this, _kaydedince, e) }
 	convertedValue(value) {
 		value = this.convertedValueInternal(value);
-		const {converter} = this; if (converter) { value = getFuncValue.call(this, converter, this.getBuilderArgs({ value })) }
+		let {converter} = this; if (converter) { value = getFuncValue.call(this, converter, this.getBuilderArgs({ value })) }
 		return value
 	}
 	convertedValueInternal(value) { return value }
 	convertedValue_hostVars(value) { return this.convertedValue(value) }
 	convertedValue_setValues(value) { return this.convertedValue(value) }
-	addAll(...args) { const {items} = this; for (const item of args) { if ($.isArray(item)) this.add(...item); else items.push(item) } return this }
+	addAll(...args) { let {items} = this; for (let item of args) { if ($.isArray(item)) this.add(...item); else items.push(item) } return this }
 	add(item) { this.items.push(item); return item }
-	addUIElement(e) { e = e ?? {}; const id = typeof e == 'object' ? e.id : e; return this.add(new ParamBuilder_UIElement({ id })) }
+	addUIElement(e) { e = e ?? {}; let id = typeof e == 'object' ? e.id : e; return this.add(new ParamBuilder_UIElement({ id })) }
 	addForm(e, _layout) {
-		e = e ?? {}; const id = typeof e == 'object' ? e.id : e;
-		const layout = typeof e == 'object' ? e.layout : _layout;
+		e = e ?? {}; let id = typeof e == 'object' ? e.id : e;
+		let layout = typeof e == 'object' ? e.layout : _layout;
 		return this.add(new ParamBuilder_Form({ id, layout }))
 	}
 	addFormWithParent(e) {
-		e = e ?? {}; const id = typeof e == 'object' ? e.id : e;
+		e = e ?? {}; let id = typeof e == 'object' ? e.id : e;
 		return this.add(new ParamBuilder_FormWithParent({ id }))
 	}
 	addTabPage(e, _etiket) {
-		e = e ?? {}; const id = typeof e == 'object' ? e.id : e;
-		const etiket = typeof e == 'object' ? e.etiket : _etiket;
+		e = e ?? {}; let id = typeof e == 'object' ? e.id : e;
+		let etiket = typeof e == 'object' ? e.etiket : _etiket;
 		return this.add(new ParamBuilder_TabPage({ id, etiket }))
 	}
 	addAltInst(e, _instBuilder) {
-		e = e ?? {}; const id = typeof e == 'object' ? e.id : e;
-		const instBuilder = typeof e == 'object' ? e.id : _instBuilder;
+		e = e ?? {}; let id = typeof e == 'object' ? e.id : e;
+		let instBuilder = typeof e == 'object' ? e.id : _instBuilder;
 		return this.add(new ParamBuilder_AltInst({ id, instBuilder }))
 	}
 	addAltObject(e) {
-		e = e ?? {}; const id = typeof e == 'object' ? e.id : e;
+		e = e ?? {}; let id = typeof e == 'object' ? e.id : e;
 		return this.add(new ParamBuilder_AltObject({ id }))
 	}
 	addAltArray(e) {
-		e = e ?? {}; const id = typeof e == 'object' ? e.id : e;
+		e = e ?? {}; let id = typeof e == 'object' ? e.id : e;
 		return this.add(new ParamBuilder_AltArray({ id }))
 	}
 	addKullanim(e) {
-		e = e ?? {}; const id = typeof e == 'object' ? e.id : e;
+		e = e ?? {}; let id = typeof e == 'object' ? e.id : e;
 		return this.add(new ParamBuilder_Kullanim({ id }))
 	}
 	addGrup(e, _etiket) {
-		e = e ?? {}; const id = typeof e == 'object' ? e.id : e;
-		const etiket = typeof e == 'object' ? e.etiket : _etiket;
+		e = e ?? {}; let id = typeof e == 'object' ? e.id : e;
+		let etiket = typeof e == 'object' ? e.etiket : _etiket;
 		return this.add(new ParamBuilder_Grup({ id, etiket }))
 	}
 	addCheckBox(e, _etiket, _value) {
-		e = e ?? {}; const id = typeof e == 'object' ? e.id : e;
-		const etiket = typeof e == 'object' ? e.etiket : _etiket;
-		const value = typeof e == 'object' ? e.value : _value;
+		e = e ?? {}; let id = typeof e == 'object' ? e.id : e;
+		let etiket = typeof e == 'object' ? e.etiket : _etiket;
+		let value = typeof e == 'object' ? e.value : _value;
 		return this.add(new ParamBuilder_CheckBox({ id, etiket, value }))
 	}
 	addSwitchButton(e, _etiket, _value) {
-		e = e ?? {}; const id = typeof e == 'object' ? e.id : e;
-		const etiket = typeof e == 'object' ? e.etiket : _etiket;
-		const value = typeof e == 'object' ? e.value : _value;
+		e = e ?? {}; let id = typeof e == 'object' ? e.id : e;
+		let etiket = typeof e == 'object' ? e.etiket : _etiket;
+		let value = typeof e == 'object' ? e.value : _value;
 		return this.add(new ParamBuilder_SwitchButton({ id, etiket, value }))
 	}
 	addButton(e, _etiket, _value, _handler) {
-		e = e ?? {}; const id = typeof e == 'object' ? e.id : e;
-		const etiket = typeof e == 'object' ? e.etiket : _etiket;
-		const value = typeof e == 'object' ? e.value : _value;
-		const handler = typeof e == 'object' ? e.handler ?? e.onClick ?? e.onClickEvent : _handler;
+		e = e ?? {}; let id = typeof e == 'object' ? e.id : e;
+		let etiket = typeof e == 'object' ? e.etiket : _etiket;
+		let value = typeof e == 'object' ? e.value : _value;
+		let handler = typeof e == 'object' ? e.handler ?? e.onClick ?? e.onClickEvent : _handler;
 		return this.add(new ParamBuilder_Button({ id, etiket, value, handler }))
 	}
 	addInfo(e, _modulAdi, _handler) {
-		e = e ?? {}; const section = typeof e == 'object' ? e.section : e;
-		const modulAdi = typeof e == 'object' ? e.modulAdi ?? e.modul : _modulAdi;
+		e = e ?? {}; let section = typeof e == 'object' ? e.section : e;
+		let modulAdi = typeof e == 'object' ? e.modulAdi ?? e.modul : _modulAdi;
 		return this.add(new ParamBuilder_Info({ section, modulAdi }))
 	}
 	addTextInput(e, _etiket, _value, _maxLength) {
-		e = e ?? {}; const id = typeof e == 'object' ? e.id : e;
-		const etiket = typeof e == 'object' ? e.etiket : _etiket;
-		const value = typeof e == 'object' ? e.value : _value;
-		const maxLength = typeof e == 'object' ? e.maxLength : _maxLength;
+		e = e ?? {}; let id = typeof e == 'object' ? e.id : e;
+		let etiket = typeof e == 'object' ? e.etiket : _etiket;
+		let value = typeof e == 'object' ? e.value : _value;
+		let maxLength = typeof e == 'object' ? e.maxLength : _maxLength;
 		return this.add(new ParamBuilder_TextInput({ id, etiket, value, maxLength }))
 	}
 	addPassInput(e, _etiket, _value, _maxLength) {
-		e = e ?? {}; const id = typeof e == 'object' ? e.id : e;
-		const etiket = typeof e == 'object' ? e.etiket : _etiket;
-		const value = typeof e == 'object' ? e.value : _value;
-		const maxLength = typeof e == 'object' ? e.maxLength : _maxLength;
+		e = e ?? {}; let id = typeof e == 'object' ? e.id : e;
+		let etiket = typeof e == 'object' ? e.etiket : _etiket;
+		let value = typeof e == 'object' ? e.value : _value;
+		let maxLength = typeof e == 'object' ? e.maxLength : _maxLength;
 		return this.add(new ParamBuilder_PassInput({ id, etiket, value, maxLength }))
 	}
 	addTextArea(e, _etiket, _value, _maxLength, _rowCount) {
-		e = e ?? {}; const id = typeof e == 'object' ? e.id : e;
-		const etiket = typeof e == 'object' ? e.etiket : _etiket;
-		const value = typeof e == 'object' ? e.value : _value;
-		const maxLength = typeof e == 'object' ? e.maxLength : _maxLength;
-		const rowCount = typeof e == 'object' ? e.rowCount : _rowCount;
+		e = e ?? {}; let id = typeof e == 'object' ? e.id : e;
+		let etiket = typeof e == 'object' ? e.etiket : _etiket;
+		let value = typeof e == 'object' ? e.value : _value;
+		let maxLength = typeof e == 'object' ? e.maxLength : _maxLength;
+		let rowCount = typeof e == 'object' ? e.rowCount : _rowCount;
 		return this.add(new ParamBuilder_TextArea({ id, etiket, value, maxLength, rowCount }))
 	}
 	addNumberInput(e, _etiket, _value, _maxLength, _min, _max, _step) {
 		e = e ?? {};
-		const id = typeof e == 'object' ? e.id : e;
-		const etiket = typeof e == 'object' ? e.etiket : _etiket;
-		const value = typeof e == 'object' ? e.value : _value;
-		const maxLength = typeof e == 'object' ? e.maxLength : _maxLength;
-		const min = typeof e == 'object' ? e.min : _min;
-		const max = typeof e == 'object' ? e.max : _max;
-		const step = typeof e == 'object' ? e.step : _step;
+		let id = typeof e == 'object' ? e.id : e;
+		let etiket = typeof e == 'object' ? e.etiket : _etiket;
+		let value = typeof e == 'object' ? e.value : _value;
+		let maxLength = typeof e == 'object' ? e.maxLength : _maxLength;
+		let min = typeof e == 'object' ? e.min : _min;
+		let max = typeof e == 'object' ? e.max : _max;
+		let step = typeof e == 'object' ? e.step : _step;
 		return this.add(new ParamBuilder_NumberInput({ id, etiket, value, maxLength, min, max, step }))
 	}
 	addDateInput(e, _etiket, _value) {
-		e = e ?? {}; const id = typeof e == 'object' ? e.id : e;
-		const etiket = typeof e == 'object' ? e.etiket : _etiket;
-		const value = typeof e == 'object' ? e.value : _value;
+		e = e ?? {}; let id = typeof e == 'object' ? e.id : e;
+		let etiket = typeof e == 'object' ? e.etiket : _etiket;
+		let value = typeof e == 'object' ? e.value : _value;
 		return this.add(new ParamBuilder_DateInput({ id, etiket, value }))
 	}
 	addModelKullan(e, _etiket, _value, _mfSinif, _source, _ozelQueryDuzenle, _veriYuklenince, _kodAttr, _adiAttr) {
-		e = e ?? {}; const id = typeof e == 'object' ? e.id : e;
-		const etiket = typeof e == 'object' ? e.etiket : _etiket;
-		const value = typeof e == 'object' ? e.value : _value;
-		const mfSinif = typeof e == 'object' ? e.mfSinif : _mfSinif;
-		const source = typeof e == 'object' ? e.source : _source;
-		const ozelQueryDuzenle = typeof e == 'object' ? (e.ozelQueryDuzenle ?? e.ozelQueryDuzenleBlock) : _ozelQueryDuzenle;
-		const veriYuklenince = typeof e == 'object' ? (e.veriYuklenince ?? e.onBindingComplete) : _veriYuklenince;
-		const kodAttr = typeof e == 'object' ? e.kodAttr : _kodAttr;
-		const adiAttr = typeof e == 'object' ? e.adiAttr : _adiAttr;
+		e = e ?? {}; let id = typeof e == 'object' ? e.id : e;
+		let etiket = typeof e == 'object' ? e.etiket : _etiket;
+		let value = typeof e == 'object' ? e.value : _value;
+		let mfSinif = typeof e == 'object' ? e.mfSinif : _mfSinif;
+		let source = typeof e == 'object' ? e.source : _source;
+		let ozelQueryDuzenle = typeof e == 'object' ? (e.ozelQueryDuzenle ?? e.ozelQueryDuzenleBlock) : _ozelQueryDuzenle;
+		let veriYuklenince = typeof e == 'object' ? (e.veriYuklenince ?? e.onBindingComplete) : _veriYuklenince;
+		let kodAttr = typeof e == 'object' ? e.kodAttr : _kodAttr;
+		let adiAttr = typeof e == 'object' ? e.adiAttr : _adiAttr;
 		return this.add(new ParamBuilder_ModelKullan({ id, etiket, value, mfSinif, source, ozelQueryDuzenle, veriYuklenince, kodAttr, adiAttr }))
 	}
 	addTekSecim(e, _etiket, _value, _tekSecim, _kaListe, _source, _veriYuklenince, _kodAttr, _adiAttr) {
-		e = e ?? {}; const id = typeof e == 'object' ? e.id : e;
-		const etiket = typeof e == 'object' ? e.etiket : _etiket;
-		const value = typeof e == 'object' ? e.value : _value;
-		const tekSecim = typeof e == 'object' ? (e.tekSecim ?? e.tekSecimSinif) : _tekSecim;
-		const kaListe = typeof e == 'object' ? e.kaListe : _kaListe;
-		const source = typeof e == 'object' ? e.source : _source;
-		const veriYuklenince = typeof e == 'object' ? e.veriYuklenince ?? e.onBindingComplete : _veriYuklenince;
-		const kodAttr = typeof e == 'object' ? e.kodAttr : _kodAttr;
-		const adiAttr = typeof e == 'object' ? e.adiAttr : _adiAttr;
+		e = e ?? {}; let id = typeof e == 'object' ? e.id : e;
+		let etiket = typeof e == 'object' ? e.etiket : _etiket;
+		let value = typeof e == 'object' ? e.value : _value;
+		let tekSecim = typeof e == 'object' ? (e.tekSecim ?? e.tekSecimSinif) : _tekSecim;
+		let kaListe = typeof e == 'object' ? e.kaListe : _kaListe;
+		let source = typeof e == 'object' ? e.source : _source;
+		let veriYuklenince = typeof e == 'object' ? e.veriYuklenince ?? e.onBindingComplete : _veriYuklenince;
+		let kodAttr = typeof e == 'object' ? e.kodAttr : _kodAttr;
+		let adiAttr = typeof e == 'object' ? e.adiAttr : _adiAttr;
 		return this.add(new ParamBuilder_TekSecim({ id, etiket, value, tekSecim, kaListe, veriYuklenince, kodAttr, adiAttr }))
 	}
 	addGrid(e, _etiket, _value, _mfSinif, _source, _tabloKolonlari, _sabitmi, _kontrolcu, _ozelQueryDuzenle, _veriYuklenince, _kodAttr, _adiAttr, _veriDegisince) {
-		e = e ?? {}; const id = typeof e == 'object' ? e.id : e;
-		const etiket = typeof e == 'object' ? e.etiket : _etiket;
-		const value = typeof e == 'object' ? e.value : _value;
-		const mfSinif = typeof e == 'object' ? e.mfSinif : _mfSinif;
-		const tabloKolonlari = typeof e == 'object' ? e.tabloKolonlari : _tabloKolonlari;
-		const sabitmi = typeof e == 'object' ? e.sabitmi : _sabitmi;
-		const kontrolcu = typeof e == 'object' ? e.kontrolcu : _kontrolcu;
-		const source = typeof e == 'object' ? e.source : _source;
-		const ozelQueryDuzenle = typeof e == 'object' ? e.ozelQueryDuzenle ?? e.ozelQueryDuzenleBlock : _ozelQueryDuzenle;
-		const veriYuklenince = typeof e == 'object' ? e.veriYuklenince ?? e.onBindingComplete : _veriYuklenince;
-		const kodAttr = typeof e == 'object' ? e.kodAttr : _kodAttr;
-		const adiAttr = typeof e == 'object' ? e.adiAttr : _adiAttr;
-		const veriDegisince = typeof e == 'object' ? e.veriDegisince : _veriYuklenince;
+		e = e ?? {}; let id = typeof e == 'object' ? e.id : e;
+		let etiket = typeof e == 'object' ? e.etiket : _etiket;
+		let value = typeof e == 'object' ? e.value : _value;
+		let mfSinif = typeof e == 'object' ? e.mfSinif : _mfSinif;
+		let tabloKolonlari = typeof e == 'object' ? e.tabloKolonlari : _tabloKolonlari;
+		let sabitmi = typeof e == 'object' ? e.sabitmi : _sabitmi;
+		let kontrolcu = typeof e == 'object' ? e.kontrolcu : _kontrolcu;
+		let source = typeof e == 'object' ? e.source : _source;
+		let ozelQueryDuzenle = typeof e == 'object' ? e.ozelQueryDuzenle ?? e.ozelQueryDuzenleBlock : _ozelQueryDuzenle;
+		let veriYuklenince = typeof e == 'object' ? e.veriYuklenince ?? e.onBindingComplete : _veriYuklenince;
+		let kodAttr = typeof e == 'object' ? e.kodAttr : _kodAttr;
+		let adiAttr = typeof e == 'object' ? e.adiAttr : _adiAttr;
+		let veriDegisince = typeof e == 'object' ? e.veriDegisince : _veriYuklenince;
 		return this.add(new ParamBuilder_Grid({ id, etiket, value, mfSinif, source, tabloKolonlari, sabitmi, kontrolcu, ozelQueryDuzenle, veriYuklenince, veriDegisince, kodAttr, adiAttr }))
 	}
 	addGridGiris(e, _etiket, _value, _mfSinif, _source, _tabloKolonlari, _kodAttr, _adiAttr) {
@@ -340,22 +340,22 @@ class ParamBuilder extends CObject {
 	enable(_e) { this.fbdEkIslem(e => e.builder.enable(_e)); return this }
 	disable(_e) { this.fbdEkIslem(e => e.builder.disable(_e)); return this }
 	shallowCopy(e) {
-		const inst = super.shallowCopy(e);
-		for (const key of this.class.copyOzelKeys) { inst[key] = this[key] }
+		let inst = super.shallowCopy(e);
+		for (let key of this.class.copyOzelKeys) { inst[key] = this[key] }
 		return inst
 	}
 	deepCopy(e) {
-		const inst = super.deepCopy(e);
-		for (const key of this.class.copyOzelKeys) { inst[key] = this[key] }
+		let inst = super.deepCopy(e);
+		for (let key of this.class.copyOzelKeys) { inst[key] = this[key] }
 		return inst
 	}
 	getBuilderArgs(e) { e = e ?? {}; return $.extend({}, e, { paramci: this }) }
 	getItemsAndSelf() { return this.getItems({ withSelf: true }) }
 	*getItems(e) {
-		e = e ?? {}; const {withSelf} = e; if (withSelf) { yield this }
-		const items = this.items ?? []; for (const item of items) {
+		e = e ?? {}; let {withSelf} = e; if (withSelf) { yield this }
+		let items = this.items ?? []; for (let item of items) {
 			yield item;
-			for (const subItem of item.getItems()) { yield subItem }
+			for (let subItem of item.getItems()) { yield subItem }
 		}
 	}
 	[Symbol.iterator](e) { return this.getItems(e) }
@@ -367,8 +367,8 @@ class RootParamBuilder extends ParamBuilder {
 		e = e ?? {};
 		e = $.extend({}, e);
 		let builder = e.rootBuilder ?? e.builder;
-		for (const key of ['inst', 'layout']) {
-			const value = this[key];
+		for (let key of ['inst', 'layout']) {
+			let value = this[key];
 			if (value !== undefined)
 				builder[key] = value
 		}
@@ -385,16 +385,16 @@ class ParamBuilder_AltInst extends ParamBuilderAlt {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get altInstmi() { return true } get defaultNewInst() { return undefined }
 	get newInst() {
-		const {instBuilder} = this; let result;
-		if (instBuilder != null) { if (isFunction(instBuilder)) { const _e = { paramci: this, inst() { return this.paramci.inst } }; result = getFuncValue.call(this, instBuilder, _e) } else { result = instBuilder } }
+		let {instBuilder} = this; let result;
+		if (instBuilder != null) { if (isFunction(instBuilder)) { let _e = { paramci: this, inst() { return this.paramci.inst } }; result = getFuncValue.call(this, instBuilder, _e) } else { result = instBuilder } }
 		if (result === undefined) { result = this.defaultNewInst }
 		return result
 	}
 	get defaultAltInst() {
 		let {inst} = this, result = inst; if (inst) {
-			const {id} = this; result = inst[id];
+			let {id} = this; result = inst[id];
 			if (result == null) {
-				const {newInst} = this;
+				let {newInst} = this;
 				if (newInst != null) { result = inst[id] = newInst }
 			}
 		}
@@ -420,7 +420,7 @@ class ParamBuilder_Form extends ParamBuilder_UIElement {
 	get formmu() { return true }
 	formBuilderDuzenleInternal(e) {
 		super.formBuilderDuzenleInternal(e);
-		const {builder} = e, {layout} = this;
+		let {builder} = e, {layout} = this;
 		e.builder = this.builder = builder.addForm(this.id, layout)
 	}
 	super_formBuilderDuzenleInternal(e) { super.formBuilderDuzenleInternal(e) }
@@ -430,7 +430,7 @@ class ParamBuilder_FormWithParent extends ParamBuilder_Form {
 	get formmu() { return true }
 	formBuilderDuzenleInternal(e) {
 		super.super_formBuilderDuzenleInternal(e);
-		const {builder} = e, {etiket} = this;
+		let {builder} = e, {etiket} = this;
 		if (etiket != null)
 			builder.addLabel({ etiket })
 		e.builder = this.builder = builder.addFormWithParent(this.id).yanYana()
@@ -440,9 +440,9 @@ class ParamBuilder_TabPage extends ParamBuilder_UIElement {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get tabPagemi() { return true }
 	formBuilderDuzenleInternal(e) {
-		super.formBuilderDuzenleInternal(e); const {builder} = e, {id} = this;
+		super.formBuilderDuzenleInternal(e); let {builder} = e, {id} = this;
 		if (id) {
-			const {tabPanel} = e; const {id2Builder} = tabPanel;
+			let {tabPanel} = e; let {id2Builder} = tabPanel;
 			let target = id2Builder[id];
 			if (!target) {
 				let {etiket} = this;
@@ -470,7 +470,7 @@ class ParamBuilder_CheckBox extends ParamBuilder_UIElement {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	formBuilderDuzenleInternal(e) {
 		super.formBuilderDuzenleInternal(e);
-		const {id, etiket, value} = this;
+		let {id, etiket, value} = this;
 		this.builder = e.builder.addCheckBox({ id, etiket, value })
 	}
 	bit() { this.bitFlag = true; return this }
@@ -479,7 +479,7 @@ class ParamBuilder_CheckBox extends ParamBuilder_UIElement {
 	super_formBuilderDuzenleInternal(e) { super.formBuilderDuzenleInternal(e) }
 	convertedValue_hostVars(value) {
 		value = asBool(super.convertedValueInternal(value));
-		const {bitFlag} = this;
+		let {bitFlag} = this;
 		if (bitFlag != null)
 			value = bitFlag ? bool2Int(value) :  bool2FileStr(value)
 		return value
@@ -490,7 +490,7 @@ class ParamBuilder_SwitchButton extends ParamBuilder_CheckBox {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	formBuilderDuzenleInternal(e) {
 		super.formBuilderDuzenleInternal(e);
-		const {id, etiket, value} = this;
+		let {id, etiket, value} = this;
 		this.builder = e.builder.addSwitchButton({ id, etiket, value })
 	}
 }
@@ -502,7 +502,7 @@ class ParamBuilder_Button extends ParamBuilder_UIElement {
 	}
 	formBuilderDuzenleInternal(e) {
 		super.formBuilderDuzenleInternal(e);
-		const {id, etiket, value, handler} = this;
+		let {id, etiket, value, handler} = this;
 		this.builder = e.builder.addButton({ id, etiket, value, handler })
 	}
 	setHandler(handler) { this.handler = handler; return this }
@@ -518,9 +518,9 @@ class ParamBuilder_Info extends ParamBuilder_UIElement {
 	}
 	formBuilderDuzenleInternal(e) {
 		super.formBuilderDuzenleInternal(e);
-		const {section, modulAdi} = this;
+		let {section, modulAdi} = this;
 		this.builder = e.builder.addButton({ id: 'info', etiket: '', value: 'i', handler: e => this.infoIstendi(e) })
-			.onBuildEk(e => { const {input} = e.builder; input.attr('title', section) })
+			.onBuildEk(e => { let {input} = e.builder; input.attr('title', section) })
 			.addStyle(
 				e => `$elementCSS { width: 32px !important; height: 32px !important; min-width: unset !important; padding-top: 0 }`,
 				e => `$elementCSS > button { font-weight: bold }`,
@@ -528,10 +528,10 @@ class ParamBuilder_Info extends ParamBuilder_UIElement {
 			)
 	}
 	async infoIstendi(e) {
-		e = e ?? {}; const target = $(e.event?.currentTarget);
+		e = e ?? {}; let target = $(e.event?.currentTarget);
 		if (target?.length) setButonEnabled(target, false);
 		try {
-			const section = e.secton ?? this.section, modulAdi = (e.modulAdi ?? e.modul ?? this.modulAdi) || 'PSatis'; if (!section) { console.warn('yardım göster', '(section) belirsiz'); return }
+			let section = e.secton ?? this.section, modulAdi = (e.modulAdi ?? e.modul ?? this.modulAdi) || 'PSatis'; if (!section) { console.warn('yardım göster', '(section) belirsiz'); return }
 			let data = await app.wsYardimIcerik({ section, modulAdi }); if (!data) { console.warn('yardım göster', section, 'için yardım verisi boş geldi'); return }
 			data = `<div class="full-wh">${data}</div>`;
 			createJQXWindow({
@@ -551,7 +551,7 @@ class ParamBuilder_TextInput extends ParamBuilder_UIElement {
 	}
 	formBuilderDuzenleInternal(e) {
 		super.formBuilderDuzenleInternal(e);
-		const {id, etiket, value, maxLength} = this;
+		let {id, etiket, value, maxLength} = this;
 		this.builder = e.builder.addTextInput({ id, etiket, value, maxLength })
 	}
 	super_formBuilderDuzenleInternal(e) { super.formBuilderDuzenleInternal(e) }
@@ -566,7 +566,7 @@ class ParamBuilder_PassInput extends ParamBuilder_TextInput {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	formBuilderDuzenleInternal(e) {
 		super.super_formBuilderDuzenleInternal(e);
-		const {id, etiket, value, maxLength} = this;
+		let {id, etiket, value, maxLength} = this;
 		this.builder = e.builder.addPassInput({ id, etiket, value, maxLength })
 	}
 }
@@ -574,7 +574,7 @@ class ParamBuilder_TextArea extends ParamBuilder_TextInput {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) { e = e ?? {}; super(e); this.rowCount = e.rowCount }
 	formBuilderDuzenleInternal(e) {
-		super.super_formBuilderDuzenleInternal(e); const {id, etiket, value, maxLength, rowCount} = this;
+		super.super_formBuilderDuzenleInternal(e); let {id, etiket, value, maxLength, rowCount} = this;
 		this.builder = e.builder.addTextArea({ id, etiket, value, maxLength, rowCount })
 	}
 	convertedValueInternal(value) { return asFloat(super.convertedValueInternal(value)) }
@@ -584,23 +584,24 @@ class ParamBuilder_NumberInput extends ParamBuilder_TextInput {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {
 		e = e ?? {}; super(e);
-		$.extend(this, { min: e.min, max: e.max, step: e.step })
+		$.extend(this, { min: e.min, max: e.max, step: e.step, fra: e.fra })
 	}
 	formBuilderDuzenleInternal(e) {
 		super.super_formBuilderDuzenleInternal(e);
-		const {id, etiket, value, maxLength, min, max, step} = this;
-		this.builder = e.builder.addNumberInput({ id, etiket, value, maxLength, min, max, step })
+		let {id, etiket, value, maxLength, min, max, step, fra} = this;
+		this.builder = e.builder.addNumberInput({ id, etiket, value, maxLength, min, max, step, fra })
 	}
 	convertedValueInternal(value) { return asFloat(super.convertedValueInternal(value)) }
 	setMin(value) { this.min = value; return this }
 	setMax(value) { this.max = value; return this }
 	setStep(value) { this.step = value; return this }
+	setFra(value) { this.fra = value; return this }
 }
 class ParamBuilder_DateInput extends ParamBuilder_UIElement {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	formBuilderDuzenleInternal(e) {
-		super.formBuilderDuzenleInternal(e);
-		this.builder = e.builder.addDateInput(this.id, this.etiket, this.value)
+		super.formBuilderDuzenleInternal(e); let {id, etiket, value} = this;
+		this.builder = e.builder.addDateInput(id, etiket, value)
 	}
 	convertedValueInternal(value) { return asDate(super.convertedValueInternal(value)) }
 }
@@ -615,7 +616,7 @@ class ParamBuilder_ModelKullan extends ParamBuilder_UIElement {
 	}
 	formBuilderDuzenleInternal(e) {
 		super.formBuilderDuzenleInternal(e);
-		const {id, etiket, value, mfSinif, source, ozelQueryDuzenle, veriYuklenince, kodAttr, adiAttr} = this
+		let {id, etiket, value, mfSinif, source, ozelQueryDuzenle, veriYuklenince, kodAttr, adiAttr} = this
 		this.builder = e.builder.addModelKullan({ id, etiket, value, mfSinif, source, ozelQueryDuzenle, veriYuklenince, kodAttr, adiAttr })
 	}
 	convertedValue_hostVars(value) {
@@ -637,7 +638,7 @@ class ParamBuilder_TekSecim extends ParamBuilder_ModelKullan {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	get value() { let result = super.value; /*if (result && result.char !== undefined) result = result.char*/ return result }
 	set value(value) {
-		const {altInst, id} = this; if (altInst == null) { return }
+		let {altInst, id} = this; if (altInst == null) { return }
 		let tSec = altInst[id]; if (typeof tSec != 'object') {
 			let {source} = this; if (source != null) {
 				if ($.isArray(source)) { source = new TekSecim({ kaListe: source })} else if (source.kaListe == null) { source = null }
@@ -653,13 +654,13 @@ class ParamBuilder_TekSecim extends ParamBuilder_ModelKullan {
 		this.dropDown()
 	}
 	preBuild(e) {
-		super.preBuild(e); const {altInst} = this;
+		super.preBuild(e); let {altInst} = this;
 		if (altInst) {
-			const {id} =  this; let value = altInst[id];
-			if (!value?.tekSecimmi) { const {tekSecim} = this; if (tekSecim) { value = altInst[id] = new tekSecim.class({ char: value }) } }
+			let {id} =  this; let value = altInst[id];
+			if (!value?.tekSecimmi) { let {tekSecim} = this; if (tekSecim) { value = altInst[id] = new tekSecim.class({ char: value }) } }
 		}
 	}
-	paramSetValues(e) { const {rec} = e; super.paramSetValues(e) }
+	paramSetValues(e) { let {rec} = e; super.paramSetValues(e) }
 	setTekSecim(value) {
 		value = value?.instance ?? value; this.tekSecim = value;
 		if (value != null && this.source == null) { this.source = e => value.kaListe } return this
@@ -680,7 +681,7 @@ class ParamBuilder_Grid extends ParamBuilder_UIElement {
 	}
 	formBuilderDuzenleInternal(e) {
 		super.formBuilderDuzenleInternal(e);
-		const {id, etiket, value, gridSinif, mfSinif, source, tabloKolonlari, sabitmi, kontrolcu, ozelQueryDuzenle, veriYuklenince, veriDegisince, kodAttr, adiAttr, rowNumberOlmasinFlag} = this
+		let {id, etiket, value, gridSinif, mfSinif, source, tabloKolonlari, sabitmi, kontrolcu, ozelQueryDuzenle, veriYuklenince, veriDegisince, kodAttr, adiAttr, rowNumberOlmasinFlag} = this
 		this.builder = e.builder.addGrid({ id, etiket, value, gridSinif, mfSinif, source, tabloKolonlari, sabitmi, kontrolcu, ozelQueryDuzenle, veriYuklenince, veriDegisince, kodAttr, adiAttr, rowNumberOlmasinFlag })
 	}
 	gridliGiris() { this.fbdEkIslem(e => e.builder.gridliGiris()); return this }

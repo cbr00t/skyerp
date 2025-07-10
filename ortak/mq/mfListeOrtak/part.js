@@ -128,12 +128,17 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		if (mfSinif?.listeEkrani_deactivated) { mfSinif.listeEkrani_deactivated(e) }
 	}
 	initBulForm(e) {
-		let {layout} = this; let {bulForm} = this; if (!bulForm?.length) { bulForm = layout.find('#bulForm') } if (!bulForm?.length) { bulForm = layout.find('.bulForm') }
+		let {layout, bulForm} = this;
+		if (!bulForm?.length) { bulForm = layout.find('#bulForm') }
+		if (!bulForm?.length) { bulForm = layout.find('.bulForm') }
 		if (bulForm?.length) {
 			let mfSinif = this.getMFSinif(e);
 			if (!mfSinif || mfSinif.bulFormKullanilirmi) {
 				let {bulPart} = this; if (!bulPart) {
-					bulPart = this.bulPart = new FiltreFormPart({ layout: bulForm, degisince: e => { let {tokens} = e; this.hizliBulIslemi({ sender: this, layout, tokens }) } });
+					bulPart = this.bulPart = new FiltreFormPart({
+						layout: bulForm,
+						degisince: e => { let {tokens} = e; this.hizliBulIslemi({ sender: this, layout, tokens }) }
+					});
 					bulPart.run()
 				}
 			}
@@ -141,7 +146,8 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		}
 	}
 	hizliBulIslemi(e) {
-		let mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_hizliBulIslemi) { if (mfSinif.orjBaslikListesi_hizliBulIslemi(e) === false) { return } }
+		let mfSinif = this.getMFSinif();
+		if (mfSinif?.orjBaslikListesi_hizliBulIslemi?.(e) === false) { return }
 		return super.hizliBulIslemi(e)
 	}
 	islemTuslariDuzenle(e) {

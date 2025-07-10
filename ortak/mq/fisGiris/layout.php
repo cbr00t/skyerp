@@ -1,6 +1,7 @@
 <template id="fisGiris" class="part">
 	<div class="fisGiris part">
 		<div class="islemTuslari"></div>
+		<?php require("$webRoot/ortak/grid/gridPart/bulForm-layout.php")?>
 		<div class="main-split split dock-bottom">
 			<div>
 				<div class="headerDipOrtak split dock-bottom">

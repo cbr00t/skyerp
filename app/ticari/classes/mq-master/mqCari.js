@@ -167,7 +167,7 @@ class MQCari_Genel extends MQCariAlt {
 			new GridKolon({ belirtec: 'bolgeadi', text: 'Bölge Adı', genislikCh: 15, sql: 'carb.aciklama' }),
 			new GridKolon({ belirtec: 'anabolgeadi', text: 'Ana Bölge Adı', genislikCh: 15, sql: 'carana.aciklama' }),
 			new GridKolon({ belirtec: 'tipkod', text: 'Tip Kod', genislikCh: 5 }),
-			new GridKolon({ belirtec: 'tipadi', text: 'Cari Tip Adi', genislikCh: 15, sql: 'ctip.aciklama' }),
+			new GridKolon({ belirtec: 'tipadi', text: 'Tip Adi', genislikCh: 15, sql: 'ctip.aciklama' }),
 			new GridKolon({ belirtec: 'cistgrupkod', text: 'İstatistik Grup', genislikCh: 5 }),
 			new GridKolon({ belirtec: 'potansiyel', text: 'Potansiyelmi', genislikCh: 5 })
 		);
@@ -638,20 +638,21 @@ class MQCari_EIslem extends MQCariAlt {
 			new GridKolon({ belirtec: 'efatgibalias', text: 'e-Fat. GIB Alias', genislikCh: 30 }),
 			new GridKolon({ belirtec: 'eirsgibalias', text: 'e-İrs. GIB Alias', genislikCh: 30 }),
 			new GridKolon({ belirtec: 'efozelyontemkod', text: 'E-Fatura Özel Yöntem Kod', genislikCh: 5 }),
-			new GridKolon({ belirtec: 'efozelyontem', text: 'E-Fatura Özel Yöntem', genislikCh: 20, sql: 'efoy.aciklama' }),
+			/*new GridKolon({ belirtec: 'efozelyontem', text: 'E-Fatura Özel Yöntem', genislikCh: 20, sql: 'efoy.aciklama' }),*/
 			new GridKolon({ belirtec: 'efatdovizlidokum', text: 'E-Fat Dövizli Döküm', genislikCh: 5 }),
 			new GridKolon({ belirtec: 'efatsorguts', text: 'E-Fat Sorgu Tarih', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'eislozeldipkod', text: 'E-İşlem Özel Dip Kod', genislikCh: 5 }),
-			new GridKolon({ belirtec: 'eislozeldip', text: 'E-İşlem Özel Dip', genislikCh: 20, sql: 'eiod.aciklama' }),
+			/*new GridKolon({ belirtec: 'eislozeldip', text: 'E-İşlem Özel Dip', genislikCh: 20, sql: 'eiod.aciklama' }),*/
 			new GridKolon({ belirtec: 'earsivbelgetipi', text: 'E-Arşiv Belge Tipi', genislikCh: 5 }),
 			new GridKolon({ belirtec: 'bozelbutcelikurumdur', text: 'Özel Bütçeli Kurum mu?', genislikCh: 5 }),
 			new GridKolon({ belirtec: 'ozelbutceliunvan', text: 'Özel Bütçeli Kurum Ünvan ', genislikCh: 20 })
 		)
 	}
 	static loadServerData_queryDuzenle({ sent }) {
-		let {aliasVeNokta} = this.mfSinif;
-		sent.fromIliski(`efozelyontem efoy`, `${aliasVeNokta}efozelyontemkod = efoy.kod`)
-			.fromIliski(`eislemozeldip eiod`, `${aliasVeNokta}eislozeldipkod = eiod.kod`)
+		let {aliasVeNokta} = this.mfSinif, {sahalar} = sent;
+		/*sent.fromIliski('efozelyontem efoy', `${aliasVeNokta}efozelyontemkod = efoy.kod`)
+			.fromIliski('eislemozeldip eiod', `${aliasVeNokta}eislozeldipkod = eiod.kod`)*/
+		// sahalar.add('efoy.kod', 'eiod.kod')
 	}
 	static async ozelEntegratordenKontrolEtIstendi(e) {
 		e = e ?? {}; let {builder} = e, inst = e.inst ?? this.inst;

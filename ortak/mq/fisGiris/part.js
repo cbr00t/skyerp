@@ -88,7 +88,8 @@ class FisGirisPart extends GridliGirisWindowPart {
 				/* splitGridVeIslemTuslari.jqxSplitter('collapse', 0) */
 			}, 10)
 		}, 0);
-		this.noAnimate(); let _e = { ...e, sender, mfSinif: fis.class, fis, islem, layout, islemTuslari, subeForm, baslikFormlar, gridIslemTuslari };
+		this.noAnimate(); this.initBulForm(e);
+		let _e = { ...e, sender, mfSinif: fis.class, fis, islem, layout, islemTuslari, subeForm, baslikFormlar, gridIslemTuslari };
 		let promises = [fis.uiGirisOncesiIslemler(_e)];
 		if (this.yeniVeyaKopyami) {
 			promises.push(fis.yeniTanimOncesiIslemler(_e)); let css = 'opacity-0'; layout.addClass(css);
@@ -145,13 +146,31 @@ class FisGirisPart extends GridliGirisWindowPart {
 		}
 		e.liste = yListe
 	}
+	initBulForm(e) {
+		let {layout, bulForm, fis} = this, {class: fisSinif} = fis;
+		if (!bulForm?.length) { bulForm = layout.find('#bulForm') }
+		if (!bulForm?.length) { bulForm = layout.find('.bulForm') }
+		if (bulForm?.length) {
+			if (!fisSinif || fisSinif.bulFormKullanilirmi) {
+				let {bulPart} = this; if (!bulPart) {
+					bulPart = this.bulPart = new FiltreFormPart({
+						layout: bulForm,
+						degisince: e => { let {tokens} = e; this.hizliBulIslemi({ sender: this, layout, tokens }) }
+					});
+					bulPart.run()
+				}
+			}
+			else { bulForm.addClass('jqx-hidden') }
+		}
+	}
+	hizliBulIslemi({ tokens: filtreTokens }) { return super.hizliBulIslemi(...arguments) }
 	gridInit(e) {
 		super.gridInit(e); const {grid} = this;
 		//grid.on('cellvaluechanged', evt => this.gridVeriDegisti($.extend({}, e, { event: evt, action: 'cellValueChanged' })));
 		grid.on('filter', evt => this.gridYapiDegisti($.extend({}, e, { event: evt, action: 'filter' })));
 		grid.on('sort', evt => this.gridYapiDegisti($.extend({}, e, { event: evt, action: 'sort' })));
 		grid.on('groupschanged', evt => this.gridYapiDegisti($.extend({}, e, { event: evt, action: 'group' })));
-		grid.on('pagechanged', evt => this.gridYapiDegisti($.extend({}, e, { event: evt, action: 'page' })));
+		grid.on('pagechanged', evt => this.gridYapiDegisti($.extend({}, e, { event: evt, action: 'page' })))
 	}
 	gridArgsDuzenle(e) {
 		super.gridArgsDuzenle(e);
@@ -168,7 +187,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 	gridArgsDuzenleDevam(e) { super.gridArgsDuzenleDevam(e); $.extend(e.args, { width: '99.5%', /*editMode: 'selectedrow',*/ groupable: false, sortable: false, groupable: false }) }
 	/*get defaultTabloKolonlari() { const tabloKolonlari = super.defaultTabloKolonlari || []; return tabloKolonlari }*/
 	async defaultLoadServerData(e) {
-		const {fis, kontrolcu, sabitFlag} = this, {gridDetaySinif} = fis.class, _e = $.extend({}, e, { fis });
+		let {fis, kontrolcu, sabitFlag} = this, {gridDetaySinif} = fis.class, _e = $.extend({}, e, { fis });
 		_e.recs = []; for (let i = 0; i < fis.detaylar.length + (sabitFlag ? 0 : 1); i++) { _e.recs.push(this.newRec({ sinif: gridDetaySinif })) }
 		// if (!this.yenimi) {
 		let _result = await kontrolcu.fis2Grid(_e);
@@ -209,6 +228,11 @@ class FisGirisPart extends GridliGirisWindowPart {
 		return await this.kaydetIstendi(e)
 	}
 	async kaydetIstendi(e) {
+		if (this.filtreTokens?.length) {
+			this.filtreTokens = null;
+			let p = new $.Deferred(); this.bindingCompleteBlock = () => { delete this.bindingCompleteBlock; p.resolve() }
+			this.tazele(e); await p
+		}
 		let result; try {
 			result = await this.kaydet(e); if (!result) { return false }
 			let {kaydedince} = this; if (kaydedince) { result = await getFuncValue.call(this, kaydedince, { ...e, sender: this }) }

@@ -2,7 +2,11 @@ class SablonluSiparisFisTemplate extends CObject {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQSablonOrtak }
 	static getUISplitHeight({ islem }) { return 170 + ($(window).width() < 1300 ? 90 : 0) + (islem == 'onayla' || islem == 'sil' ? 65 : 0) }
 	static get numaratorGosterilirmi() { return false } static get dipGirisYapilirmi() { return false }
-	static constructor({ fis }) { /* fis.yerKod = app.gecerliDepolar?.[0] || fis.yerKod */ }
+	static constructor({ fis }) {
+		let {web} = app.params, {otoTeslimTarihi_gunEk} = web;
+		if (otoTeslimTarihi_gunEk) { fis.baslikTeslimTarihi = fis.tarih.clone().addDays(otoTeslimTarihi_gunEk) }
+		/* fis.yerKod = app.gecerliDepolar?.[0] || fis.yerKod */
+	}
 	static pTanimDuzenle({ fisSinif, pTanim }) {
 		$.extend(pTanim, {
 			sablonSayac: new PInstNum('sablonsayac'), onayTipi: new PInstStr({ rowAttr: 'onaytipi', init: () => 'BK' }),

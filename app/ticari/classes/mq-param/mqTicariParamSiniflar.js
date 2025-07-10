@@ -499,27 +499,34 @@ class MQWebParam extends MQTicariParamBase {
 			if (window.MQCari) { form.addModelKullan('pesinMustKod', 'Peşin Müşteri').comboBox().autoBind().setMFSinif(MQCari) }
 				else { form.addString('pesinMustKod', 'Peşin Müşteri') };
 			form.addML('ekOzellikKodlariStr', 'Ek Özellik Kodları').noRowAttr().setRowCount(5).addStyle_wh(200);
-		let grup = paramci.addGrup().setEtiket('Şablonlu Sipariş');
-		form = grup.addFormWithParent().yanYana();
-			form.addBool('stokResim', 'Stok Resim Kullanılır'); form.addBool('sablonSip_degisiklik', 'Değişiklik Yapılır');
-			form.addBool('sablonSip_eMail', 'e-Mail Gönderilir');
+		form = paramci.addFormWithParent();
+			form.addBool('stokResim', 'Stok Resim Kullanılır');
+		let tabPage = paramci.addTabPage('webSiparis', 'Web Sipariş');
+		let grup = tabPage.addGrup().setEtiket('Şablonlu Sipariş');
 		form = grup.addFormWithParent();
-			form.addString('konBuFirma_eMailListeStr', 'Bu Firma e-Mail Adresleri');
-		form = paramci.addAltObject('sablonDefKisit').addGrup().setEtiket('Def.Kısıt').addFormWithParent().yanYana();
+			form.addBool('sablonSip_eMail', 'e-Mail Gönderilir');
+		form = tabPage.addAltObject('sablonDefKisit').addGrup().setEtiket('Def.Kısıt').addFormWithParent();
+			form.addBool('sablonSip_degisiklik', 'Değişiklik');
 			form.addBool('sube', 'Şube'); form.addBool('musteri', 'Müşteri');
-		form = grup.addFormWithParent().altAlta();
-		let altForm = form.addFormWithParent().yanYana(2);
-		altForm.addBool('webSiparis_sonStokGosterilirmi', 'Son Stok Gösterilir');
-		altForm.addModelKullan('webSiparis_sonStokDB', 'Son Stok Veritabanı')
-			.comboBox().autoBind().kodsuz().noMF()
-			.setSource(async e =>
-				(await app.wsDBListe())
-					.filter(name => !dbNamePrefix || name.startsWith(dbNamePrefix))
-					.map(adi => new CKodVeAdi([adi, adi]))
-			);
-		form.addModelKullan('webSiparis_yerKodListe', 'Depolar')
-			.comboBox().autoBind().coklu().setMFSinif(MQStokYer)
-			.setPlaceHolder('(A) Merkez Ambarı')
+		form = tabPage.addFormWithParent().altAlta();
+			form.addString('konBuFirma_eMailListeStr', 'Bu Firma e-Mail Adresleri');
+		let source_dbList = async e => {
+			return (await app.wsDBListe())
+				.filter(name => !dbNamePrefix || name.startsWith(dbNamePrefix))
+				.map(adi => new CKodVeAdi([adi, adi]))
+		};
+		form = tabPage.addFormWithParent().yanYana();
+			form.addBool('webSiparis_sonStokGosterilirmi', 'Son Stok Gösterilir');
+			form.addModelKullan('webSiparis_sonStokDB', 'Son Stok Veritabanı')
+				.comboBox().autoBind().noMF().kodsuz().setSource(source_dbList);
+			form.addModelKullan('webSiparis_konDBListe', 'Kon. Ek Veritabanları')
+				.comboBox().autoBind().noMF().kodsuz().coklu().setSource(source_dbList);
+		form = tabPage.addFormWithParent();
+			form.addModelKullan('webSiparis_yerKodListe', 'Depolar')
+				.comboBox().autoBind().coklu().setMFSinif(MQStokYer)
+				.setPlaceHolder('(A) Merkez Ambarı');
+			form.addNumberInput('otoTeslimTarihi_gunEk', 'Teslim Tarihi<br/><center>(+ Gün)</center>', '(+ Gün)')
+				.setFra(0).addStyle_wh(150)
 
 	/*  at: 'ekOzellikKodlari'				put: self portalStokEkOzellikAttrListe;
 		at: 'pesinMustKod'					put: self pesinMustKod;

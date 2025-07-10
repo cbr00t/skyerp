@@ -169,8 +169,8 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		iterBlock(this.sahalar); iterBlock(this.groupBy); iterBlock(this.having);
 		let {where, zincirler, from} = this;
 		let debugBreak = false; if (config.dev) {
-			if (from.aliasIcinTable('ctip')) { debugBreak = true }
-			/*let search = `fis.ba = 'A' and tsek.tahsiltipi = 'PS'`;
+			/*if (from.aliasIcinTable('ctip')) { debugBreak = true }
+			let search = `fis.ba = 'A' and tsek.tahsiltipi = 'PS'`;
 			if (this.toString().includes(search)) { debugBreak = true }*/
 		}
 		for (let text of where.liste) {
