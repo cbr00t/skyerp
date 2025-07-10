@@ -66,7 +66,8 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 				.ozelQueryDuzenleHandler(({ builder: fbd, aliasVeNokta, stm }) => {
 					for (let sent of stm.getSentListe()) {
 						let {where: wh} = sent; if (konsinyemi) {
-							sent.fromAdd('hizlisablon sab').fromIliski('kldagitim dag', [`dag.mustkod = ${aliasVeNokta}must`, 'sab.klfirmakod = dag.klfirmakod']) }
+							sent.fromAdd('hizlisablon sab')
+								.fromIliski('kldagitim dag', [`dag.mustkod = ${aliasVeNokta}must`, 'sab.klfirmakod = dag.klfirmakod']) }
 						wh.add(`${aliasVeNokta}silindi = ''`, `${aliasVeNokta}calismadurumu <> ''`)
 						/*wh.icerikKisitDuzenle_cari({ saha: `${aliasVeNokta}kod` })*/
 						sent.distinctYap()

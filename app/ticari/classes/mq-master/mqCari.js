@@ -20,10 +20,12 @@ class MQCari extends MQKA {
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); const {aliasVeNokta, kodSaha} = this, {sender, sent} = e, {where: wh} = sent;
-		sent.fromIliski(`efozelyontem efoy`, `${aliasVeNokta}efozelyontemkod = efoy.kod`);
-		sent.fromIliski(`eislemozeldip eiod`, `${aliasVeNokta}eislozeldipkod = eiod.kod`);
 		wh.icerikKisitDuzenle_cari({ saha: `${aliasVeNokta}${kodSaha}`});
 		if (sender?.modelKullanmi) { wh.add(`${aliasVeNokta}silindi = ''`, `${aliasVeNokta}calismadurumu <> ''`) }
+		else {
+			sent.fromIliski('efozelyontem efoy', `${aliasVeNokta}efozelyontemkod = efoy.kod`);
+			sent.fromIliski('eislemozeldip eiod', `${aliasVeNokta}eislozeldipkod = eiod.kod`)
+		}
 	}
 	static varsayilanKeyHostVarsDuzenle(e) {
 		super.varsayilanKeyHostVarsDuzenle(e); const {hv} = e;
@@ -647,8 +649,9 @@ class MQCari_EIslem extends MQCariAlt {
 		)
 	}
 	static loadServerData_queryDuzenle({ sent }) {
-		const {aliasVeNokta} = this.mfSinif;
-		sent.fromIliski(`efozelyontem efoy`, `${aliasVeNokta}efozelyontemkod = efoy.kod`).fromIliski(`eislemozeldip eiod`, `${aliasVeNokta}eislozeldipkod = eiod.kod`)
+		let {aliasVeNokta} = this.mfSinif;
+		sent.fromIliski(`efozelyontem efoy`, `${aliasVeNokta}efozelyontemkod = efoy.kod`)
+			.fromIliski(`eislemozeldip eiod`, `${aliasVeNokta}eislozeldipkod = eiod.kod`)
 	}
 	static async ozelEntegratordenKontrolEtIstendi(e) {
 		e = e ?? {}; let {builder} = e, inst = e.inst ?? this.inst;
