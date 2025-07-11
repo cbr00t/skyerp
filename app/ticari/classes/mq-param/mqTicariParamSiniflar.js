@@ -512,7 +512,8 @@ class MQWebParam extends MQTicariParamBase {
 			form.addString('konBuFirma_eMailListeStr', 'Bu Firma e-Mail Adresleri');
 		let source_dbList = async e => {
 			return (await app.wsDBListe())
-				.filter(name => !dbNamePrefix || name.startsWith(dbNamePrefix))
+				.filter(name => $.isNumeric(name.substr(2, 2)))
+				// .filter(name => !dbNamePrefix || name.startsWith(dbNamePrefix))
 				.map(adi => new CKodVeAdi([adi, adi]))
 		};
 		form = tabPage.addFormWithParent().yanYana();
@@ -526,6 +527,8 @@ class MQWebParam extends MQTicariParamBase {
 				.comboBox().autoBind().coklu().setMFSinif(MQStokYer)
 				.setPlaceHolder('(A) Merkez Ambarı');
 			form.addNumberInput('otoTeslimTarihi_gunEk', 'Teslim Tarihi<br/><center>(+ Gün)</center>', '(+ Gün)')
+				.setFra(0).addStyle_wh(150);
+			form.addNumberInput('webSiparis_ayOnceSayisi', 'Örnekleme<br/>Ay Sayısı')
 				.setFra(0).addStyle_wh(150)
 
 	/*  at: 'ekOzellikKodlari'				put: self portalStokEkOzellikAttrListe;

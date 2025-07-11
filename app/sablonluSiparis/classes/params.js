@@ -28,7 +28,8 @@ class MQYerelParamConfig_App extends MQYerelParamConfig {
 			.setPlaceHolder('(A) Merkez Ambarı')
 			.setSource(async e =>
 				(await app.wsDBListe())
-					.filter(name => !dbNamePrefix || name.startsWith(dbNamePrefix))
+					// .filter(name => !dbNamePrefix || name.startsWith(dbNamePrefix))
+					.filter(name => $.isNumeric(name.substr(2, 2)))
 					.map(adi => new CKodVeAdi([adi, adi]))
 			)*/
 	}

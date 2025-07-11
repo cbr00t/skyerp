@@ -20,7 +20,8 @@ class SablonluSiparisFisTemplate extends CObject {
 		let {konsinyemi} = fisSinif, {grid, gridWidget, layout} = gridPart;
 		rfb.addStyle(e =>
 			`/*$elementCSS .islemTuslari { position: absolute !important; top: 3px !important }*/
-			 $elementCSS .grid [role = row] > .sonStokBilgi > * { font-size: 90% !important; margin-top: 3px !important; line-height: 23px !important }
+			 $elementCSS .grid [role = row] > .sonStokBilgi > *,
+				 $elementCSS .grid [role = row] > .sonStokBilgi_kendiDeposu > * { font-size: 90% !important; margin-top: 3px !important; line-height: 23px !important }
 		`);
 		/* rfb.vazgecIstendi = e => false; */
 		let updateHeader = async e => {
@@ -239,42 +240,108 @@ class SablonluSiparisFisTemplate extends CObject {
 				let i = asInteger(key.slice(prefix.length)); det[`iskOran${i}`] = value
 			}
 		}
-		let {webSiparis_sonStokGosterilirmi} = app.params.web;
-		if (webSiparis_sonStokGosterilirmi) { await this.detaylariDuzenle_sonStok({ ...e, getAnahStr, anah2Det, ekOzellikler }) }
+		let {gecerliDepolar: yerKodListe} = app;
+		let {webSiparis_sonStokGosterilirmi, webSiparis_ayOnceSayisi: ayOnceSayisi} = app.params.web;
+		let _e = { ...e, getAnahStr, anah2Det, ekOzellikler };
+		if (webSiparis_sonStokGosterilirmi && await app.sqlHasColumn('carmst', 'konsinyeyerkod')) {
+			await this.detaylariDuzenle_sonStok({ ..._e, yerKodListe });
+			await this.detaylariDuzenle_sonStok({
+				..._e, ioAttrPostfix: '_kendiDeposu',
+				yerKodListe: async () => {
+					let sent = new MQSent({ from: 'carmst', sahalar: 'konsinyeyerkod' }), {where: wh} = sent;
+					wh.degerAta(fis.mustKod, 'must');
+					return (await app.sqlExecTekilDeger(sent))?.trimEnd()
+				}
+			})
+		}
+		if (ayOnceSayisi) { await this.detaylariDuzenle_oncekiMiktar(_e) }
 	}
-	static async detaylariDuzenle_sonStok({ mfSinif: sablonSinif, fis, islem, belirtec, getAnahStr, anah2Det, ekOzellikler }) {
-		let {sonStokDB, gecerliDepolar} = app;
+	static async detaylariDuzenle_sonStok({ mfSinif: sablonSinif, fis, islem, belirtec, getAnahStr, anah2Det, ekOzellikler, yerKodListe, ioAttrPrefix, ioAttrPostfix }) {
+		let {sonStokDB} = app;
 		let yenimi = islem == 'yeni'; /*, onaylaVeyaSilmi = (islem == 'onayla' || islem == 'sil') */
 		sablonSinif = sablonSinif?.sablonSinif ?? sablonSinif;    /* detaySinif gelirse (detaySinif.sablonSinif) */
 		let {fisSiniflar} = sablonSinif, {sayac: fisSayac, class: buFisSinif, detaylar} = fis;
 		let stokKodSet = asSet(detaylar.map(det => det.shKod));
+		if (isFunction(yerKodListe)) { yerKodListe = await yerKodListe.call(this, ...arguments) }
+		yerKodListe = yerKodListe ? $.makeArray(yerKodListe) : []; ioAttrPrefix ??= ''; ioAttrPostfix ??= '';
 		let uni = new MQUnionAll();
 		{
 			let sent = new MQSent(), {where: wh, sahalar} = sent;
 			sent.fromAdd(`${sonStokDB}..sonstok`);
-			wh.add(`opno IS NULL`).inDizi(Object.keys(stokKodSet), 'stokkod').inDizi(gecerliDepolar, 'yerkod');
-			sahalar.add('stokkod', ...ekOzellikler.map(item => item.rowattr), 'SUM(sonmiktar) sonstok', 'SUM(sonmiktar) olasi');
+			wh.add(`opno IS NULL` /*, `ozelisaret <> '*'`*/)
+				.inDizi(Object.keys(stokKodSet), 'stokkod')
+				.inDizi(yerKodListe, 'yerkod');
+			sahalar.add(
+				'stokkod',
+				...ekOzellikler.filter(({ rowAttr }) => rowAttr).map(({ rowAttr }) => `NULL ${rowAttr}`),
+				'SUM(sonmiktar) sonstok', 'SUM(sonmiktar) olasi'
+			);
 			sent.groupByOlustur(); uni.add(sent)
 		}
 		for (let fisSinif of fisSiniflar) {
 			let {table, tsStokDetayTable: detayTable} = fisSinif, keyHV = fisSinif.varsayilanKeyHostVars();
 			let sent = new MQSent(), {where: wh, sahalar} = sent;
 			sent.fisHareket(table, detayTable); wh.birlestirDict({ alias: 'fis', dict: keyHV });
-			wh.fisSilindiEkle().add(`fis.kapandi = ''`);
+			wh.fisSilindiEkle().add(`fis.kapandi = ''` /*, `fis.ozelisaret <> '*'`*/);
 			wh.inDizi(Object.keys(stokKodSet), 'har.stokkod');
 			if (fisSayac && fisSinif == buFisSinif) { wh.add(`fis.kaysayac <> ${fisSayac.sqlServerDegeri()}`) }
-			sahalar.add('har.stokkod', ...ekOzellikler.map(({ rowattr }) => `har.${rowattr}`), '0 sonstok', 'SUM(0 - har.miktar) olasi');
+			sahalar.add(
+				'har.stokkod',
+				...ekOzellikler.filter(({ rowAttr }) => rowAttr).map(({ rowAttr }) => `har.${rowAttr}`),
+				'0 sonstok', 'SUM(0 - har.miktar) olasi'
+			);
 			sent.groupByOlustur(); uni.add(sent)
 		}
 		let stm = uni.asToplamStm(), recs = await app.sqlExecSelect(stm);
 		for (let rec of recs) {
 			let anahStr = getAnahStr(rec), det = anah2Det[anahStr]; if (!det) { continue }
 			let {sonstok: sonStok, olasi: olasiMiktar} = rec;
+			let cssColor = {
+				olasiMiktar: olasiMiktar > 0 ? 'forestgreen' : olasiMiktar < 0 ? 'firebrick' : 'gray',
+				sonStok: 'lightgray'
+			};
 			let sonStokBilgi = [
-				(olasiMiktar ? `<div class="item olasiMiktar"><span class="etiket gray">O:</span> <span class="veri bold forestgreen">${numberToString(olasiMiktar)}</span><div>` : null),
-				(sonStok ? `<div class="item sonStok"><span class="etiket lightgray">S:</span> <span class="veri bold lightgray">${numberToString(sonStok)}</span><div>` : null)
+				(olasiMiktar ? `<div class="item olasiMiktar"><span class="etiket gray">O:</span> <span class="veri bold ${cssColor.olasiMiktar}">${numberToString(olasiMiktar)}</span><div>` : null),
+				(sonStok ? `<div class="item sonStok"><span class="etiket lightgray">S:</span> <span class="veri bold ${cssColor.sonStok}">${numberToString(sonStok)}</span><div>` : null)
 			].filter(x => !!x).join(CrLf);
-			$.extend(det, { sonStok, olasiMiktar, sonStokBilgi })
+			let tRec = { sonStok, olasiMiktar, sonStokBilgi }, _rec = {};
+			for (let [key, value] of Object.entries(tRec)) {
+				key = `${ioAttrPrefix}${key}${ioAttrPostfix}`;
+				_rec[key] = value
+			}
+			$.extend(det, _rec)
+		}
+	}
+	static async detaylariDuzenle_oncekiMiktar({ mfSinif: sablonSinif, fis, islem, belirtec, getAnahStr, anah2Det, ekOzellikler }) {
+		let {params} = app, {webSiparis_ayOnceSayisi: ayOnceSayisi} = params.web;
+		let yenimi = islem == 'yeni'; /*, onaylaVeyaSilmi = (islem == 'onayla' || islem == 'sil') */
+		sablonSinif = sablonSinif?.sablonSinif ?? sablonSinif;    /* detaySinif gelirse (detaySinif.sablonSinif) */
+		let fisSinif = SatisFaturaFis, {fisSiniflar} = sablonSinif, {sayac: fisSayac, class: buFisSinif, tarih, mustKod, detaylar} = fis;
+		let stokKodSet = asSet(detaylar.map(det => det.shKod));
+		let onceTarih = tarih.clone().addMonths(-ayOnceSayisi);
+		let sent = new MQSent(), {where: wh, sahalar} = sent;
+		sent.fisHareket('piffis', 'pifstok')
+		/*sent.fisHareket(table, detayTable); wh.birlestirDict({ alias: 'fis', dict: keyHV });*/
+		wh.fisSilindiEkle().add(`fis.kapandi = ''` /*, `fis.ozelisaret <> '*'`*/);
+		wh.add(`fis.piftipi = 'F'`, `fis.almsat = 'T'`, `fis.iade = ''`);
+		wh.add(`fis.tarih >= ${onceTarih.sqlServerDegeri()}`);
+		wh.degerAta(mustKod, 'must');
+		wh.inDizi(Object.keys(stokKodSet), 'har.stokkod');
+		if (fisSayac && fisSinif == buFisSinif) { wh.add(`fis.kaysayac <> ${fisSayac.sqlServerDegeri()}`) }
+		sahalar.add(
+			'har.stokkod',
+			...ekOzellikler.filter(({ rowAttr }) => rowAttr).map(({ rowAttr }) => `har.${rowAttr}`),
+			'SUM(har.miktar) onceMiktar'
+		);
+		sent.groupByOlustur();
+		let stm = new MQStm({ sent }), recs = await app.sqlExecSelect(stm);
+		for (let rec of recs) {
+			let anahStr = getAnahStr(rec), det = anah2Det[anahStr]; if (!det) { continue }
+			let {onceMiktar} = rec, cssColor = { onceMiktar: onceMiktar > 0 ? 'forestgreen' : onceMiktar < 0 ? 'firebrick' : 'gray' };
+			let onceMiktarBilgi = [
+				(onceMiktar ? `<div class="item onceMiktar"><span class="veri bold ${cssColor.onceMiktar}">${numberToString(onceMiktar)}</span><div>` : null),
+			].filter(x => !!x).join(CrLf);
+			$.extend(det, { onceMiktar, onceMiktarBilgi })
 		}
 	}
 	static getYazmaIcinDetaylar({ fis }) { return fis.detaylar.filter(det => !!det.miktar) }
@@ -355,9 +422,12 @@ class SablonluSiparisGridciTemplate extends CObject {
 			tabloKolonlari.push(new GridKolon({ belirtec, text, genislikCh: 20, filterType: 'checkedlist' }).readOnly()) }
 	}
 	static tabloKolonlariDuzenle_ara({ tabloKolonlari }) {
-		let {params} = app, {sabit: iskSayi} = params.fiyatVeIsk?.iskSayi, {webSiparis_sonStokGosterilirmi} = params.web;
+		let {params} = app, {sabit: iskSayi} = params.fiyatVeIsk?.iskSayi;
+		let {webSiparis_sonStokGosterilirmi, webSiparis_ayOnceSayisi} = params.web;
 		tabloKolonlari.push(...[
 			(webSiparis_sonStokGosterilirmi ? new GridKolon({ belirtec: 'sonStokBilgi', text: 'Son Stok', genislikCh: 13, groupable: false }).readOnly() : null),
+			(webSiparis_sonStokGosterilirmi ? new GridKolon({ belirtec: 'sonStokBilgi_kendiDeposu', text: 'S. (<span class=royalblue>Bu Yer</span>)', genislikCh: 13, groupable: false }).readOnly() : null),
+			(webSiparis_ayOnceSayisi ? new GridKolon({ belirtec: 'onceMiktarBilgi', text: 'Önceki Miktarlar', genislikCh: 13, groupable: false }).readOnly() : null),
 			new GridKolon({ belirtec: 'fiyat', text: 'Fiyat', genislikCh: 13, groupable: false }).readOnly().tipDecimal_fiyat().sifirGosterme(),
 			new GridKolon({ belirtec: 'brutBedel', text: 'Brüt Bedel', genislikCh: 13, groupable: false }).readOnly().tipDecimal_bedel().sifirGosterme(),
 			(iskSayi ? new GridKolon({
