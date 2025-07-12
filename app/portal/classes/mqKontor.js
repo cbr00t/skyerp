@@ -448,7 +448,7 @@ class MQKontorDetay extends MQDetay {
 			new GridKolon({ belirtec: 'fisnox', text: 'Fiş No', genislikCh: 23 }),
 			new GridKolon({ belirtec: 'kontorsayi', text: 'Kontör', genislikCh: 10 }).tipDecimal(0),
 			new GridKolon({
-				belirtec: 'fatdurumtext', text: 'Fat.Durum', genislikCh: 15, sql: KontorFatDurum.getClause(`${alias}.fatdurum`),
+				belirtec: 'fatdurumtext', text: 'Fat.Durum', genislikCh: 18, sql: KontorFatDurum.getClause(`${alias}.fatdurum`),
 				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
 					let {ahtipi: ahTipi, fatdurum: fatDurum} = rec;
 					if (!(fatDurum || ahTipi == 'A')) { html = changeTagContent(html, (value = '')) }

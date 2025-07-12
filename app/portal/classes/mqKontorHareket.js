@@ -129,7 +129,7 @@ class MQKontorHareket extends MQSayacli {
 			new GridKolon({ belirtec: 'fisnox', text: 'Fiş No', genislikCh: 23 }),
 			new GridKolon({ belirtec: 'kontorsayi', text: 'Kontör', genislikCh: 10, filterType: 'checkedlist' }).tipDecimal(0),
 			new GridKolon({
-				belirtec: 'fatdurumtext', text: 'Fat.Durum', genislikCh: 15,
+				belirtec: 'fatdurumtext', text: 'Fat.Durum', genislikCh: 18,
 				sql: KontorFatDurum.getClause(`${alias}.fatdurum`), filterType: 'checkedlist',
 				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
 					let {ahtipi: ahTipi, fatdurum: fatDurum} = rec;

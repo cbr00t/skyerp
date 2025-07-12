@@ -86,7 +86,7 @@ class MQVPAnaBayi extends MQKA {
 		let {current: login} = MQLogin, {musterimi: loginMusterimi} = login?.class;
 		let sabitMustKod = (loginMusterimi ? login.kod : qs.mustKod ?? qs.must);
 		// sent.fromIliski('musteri mus', `${alias}.mustkod = mus.kod`);
-		if (!alias2Deger.onmuhmustkod) { sahalar.add('fis.onmuhmustkod') }
+		if (!alias2Deger.onmuhmustkod) { sahalar.add(`${alias}.onmuhmustkod`) }
 		if (!basit) {
 			// if (sabitMustKod) { wh.degerAta(sabitMustKod, `${alias}.mustkod`) }
 			let clauses = { anaBayi: `${alias}.kod` };
