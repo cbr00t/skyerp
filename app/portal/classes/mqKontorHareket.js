@@ -11,7 +11,12 @@ class MQKontorHareket extends MQSayacli {
 		let login = MQLogin.current?.class;
 		return super.tanimlanabilirmi && (login.adminmi || login.bayimi)
 	}
-	static get silinebilirmi() { return super.silinebilirmi && MQLogin.current?.class?.adminmi }
+	static get silinebilirmi() {
+		let {current: login} = MQLogin;
+		if (!super.silinebilirmi) { return false }
+		if (login?.class?.adminmi) { return true }
+		return login.yetkiVarmi('sil') || login.sefmi
+	}
 	static get faturalastirmaYapilirmi() { return this.kontorSinif.faturalastirmaYapilirmi }
 	static get ozelTanimIslemi() { return (e => this.ozelTanimla(e)) }
 	static pTanimDuzenle({ pTanim }) {
