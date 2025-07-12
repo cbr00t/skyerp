@@ -819,6 +819,7 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 	tekil() { this.coklumu = false; return this } coklu() { this.coklumu = true; return this }
 	loadServerDataHandler(handler) { this.loadServerDataBlock = handler; return this }
 	ozelQueryDuzenleHandler(handler) { this.ozelQueryDuzenle = handler; return this } ozelQueryDuzenleBlock(handler) { return this.ozelQueryDuzenleHandler(handler) }
+	ozelQueryDuzenleIslemi(handler) { return this.ozelQueryDuzenleHandler(handler) }
 	initArgsDuzenleHandler(handler) { this.initArgsDuzenle = handler; return this } initArgsDuzenleBlock(handler) { return this.initArgsDuzenleHandler(handler) }
 	listeArgsDuzenleHandler(handler) { this.listeArgsDuzenle = handler; return this } listeArgsDuzenleBlock(handler) { return this.listeArgsDuzenleHandler(handler) }
 	setEkDuzenleyici(value) { this.ekDuzenleyici = value; return this } veriYukleninceBlock(handler) { this.veriYuklenince = handler; return this }

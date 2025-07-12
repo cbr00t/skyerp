@@ -484,7 +484,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		if ($.isEmptyObject(recs)) { hConfirm('Silinecek satırlar seçilmelidir', ' '); return false }
 		let rdlg = await ehConfirm(`Seçilen ${recs.length} satır silinsin mi?`, ' '); if (!rdlg) return false
 		try { showProgress(); let result = await this.silDevam($.extend({}, e, { mfSinif, recs, rowIndexes })); return result }
-		catch (ex) { hConfirm(getErrorText(ex), 'Sil'); throw ex }
+		catch (ex) { /*hConfirm(getErrorText(ex), 'Sil');*/ throw ex }
 		finally { hideProgress(); gridWidget.clearselection(); this.tazele() }
 	}
 	async silDevam(e) {

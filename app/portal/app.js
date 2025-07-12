@@ -77,4 +77,5 @@ class PortalApp extends TicariApp {
 		].filter(x => !!x)
 		return new FRMenu({ items })
 	}
+	onMuhDBDo(block) { return this.setCurrentDBAndDo('YI25SKYLOGFAT', '(local)\\SKYLOG', block) }
 }

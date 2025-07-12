@@ -180,6 +180,9 @@ class ModelKullanPart extends Part {
 		this.input = this.widget = null
 	}
 	dataBind() {
+		if (this._inDataBind) { return }
+		this._inDataBind = true; let timerKey = '_timer_dataBind'; clearTimeout(this[timerKey]);
+		this[timerKey] = setTimeout(() => { try { this._inDataBind = false } finally { delete this[timerKey] } }, 50);
 		const {widget} = this, source = widget?.source || this.source; if (this.isDestroyed || source == null) { return }
 		if (source.dataBind) { source.dataBind() }
 		else {
@@ -429,7 +432,7 @@ class ModelKullanPart extends Part {
 		let da; if (dataAdapterBlock) { da = getFuncValue.call(this, dataAdapterBlock, $.extend({}, e)) }
 		if (!da) {
 			da = new $.jqx.dataAdapter({ dataType: wsDataType, url: 'empty.json', data: e }, {
-				cache: false, autoBind: e.autoBind ?? this.autoBind,
+				cache: false, autoBind: e.autoBind ?? false,
 				loadServerData: async (wsArgs, source, callback) => {
 					let lastError; const sender = this, {parentPart, builder, secimler, mfSinif} = this, args = parentPart?.args;		/* const _e = $.extend({}, e, { wsArgs: wsArgs, source: source, callback: callback }); */ 
 					const kodSaha = mfSinif ? ($.isArray(mfSinif.idSaha) ? mfSinif.idSaha[0] : mfSinif.idSaha) ?? mfSinif.kodSaha : MQKA.kodSaha;

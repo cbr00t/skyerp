@@ -42,6 +42,13 @@ class MQKontor extends MQDetayliMaster {
 		super.listeEkrani_init(...arguments); gridPart = gridPart ?? sender
 		/* gridPart.tarih = today(); gridPart.rowNumberOlmasin() */
 	}
+	static listeEkrani_afterRun({ gridPart, sender }) {
+		super.listeEkrani_afterRun(...arguments); gridPart = gridPart ?? sender;
+		if (gridPart.mustKod) {
+			let {bindingCompleteBlock: oldHandler} = gridPart;
+			gridPart.veriYuklenince(() => { gridPart.veriYuklenince(oldHandler); gridPart.tazele() })
+		}
+	}
 	static rootFormBuilderDuzenle_listeEkrani(e) {
 		super.rootFormBuilderDuzenle_listeEkrani(e);
 		let gridPart = e.gridPart ?? e.sender, {header, islemTuslariPart} = gridPart, {layout: islemTuslari, sol} = islemTuslariPart;
@@ -63,7 +70,7 @@ class MQKontor extends MQDetayliMaster {
 			`$elementCSS { position: absolute !important; width: max-content !important; left: 300px !important }
 			 $elementCSS button { min-width: unset !important }`);
 		if (login.adminmi || login.bayimi) {
-			let form = form_ek.addFormWithParent('kontor').yanYana().addStyle_fullWH();
+			let form = form_ek.addFormWithParent('kontor').yanYana().addStyle_fullWH('max-content');
 			form.addNumberInput('kontorSayi', 'Kontör Satışı').setAltInst(gridPart)
 				.etiketGosterim_yok().addStyle_wh(130).addCSS('center')
 				.onAfterRun(({ builder: fbd }) =>
@@ -261,7 +268,7 @@ class MQKontor extends MQDetayliMaster {
 			(must2Recs[mustKod] = must2Recs[mustKod] ?? []).push(rec);
 			pm.progressStep()
 		}
-		let withFatDBDo = block => app.setCurrentDBAndDo('YI25SKYLOGFAT', '(local)\\SKYLOG', e => block(e));
+		let withFatDBDo = block => app.onMuhDBDo(block);
 		abortCheck(); let orjSeri, {vioHizmetKod: shKod} = this;
 		let vknSet = {}; for (let must2Recs of Object.values(tip2Must2Recs)) {
 			for (let recs of Object.values(must2Recs)) {
@@ -448,8 +455,8 @@ class MQKontorDetay extends MQDetay {
 					return html
 				}
 			}),
-			(config.dev ? new GridKolon({ belirtec: 'tahseklino', text: 'Tah.No', genislikCh: 8 }) : null),
-			(config.dev ? new GridKolon({ belirtec: 'tahsekliadi', text: 'Tah. Şekli Adı', genislikCh: 15 }) : null)
+			new GridKolon({ belirtec: 'tahseklino', text: 'Tah.No', genislikCh: 8 }).tipNumerik().sifirGosterme(),
+			new GridKolon({ belirtec: 'tahsekliadi', text: 'Tah. Şekli Adı', genislikCh: 15, sql: 'tsek.aciklama' })
 		].filter(x => !!x))
 	}
 	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent }) {

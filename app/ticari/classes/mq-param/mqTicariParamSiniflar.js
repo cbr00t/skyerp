@@ -525,34 +525,20 @@ class MQWebParam extends MQTicariParamBase {
 		form = tabPage.addFormWithParent();
 			form.addModelKullan('webSiparis_yerKodListe', 'Depolar')
 				.comboBox().autoBind().coklu().setMFSinif(MQStokYer)
+				.ozelQueryDuzenleIslemi(({ builder: fbd, sent }) => {
+					let {altInst} = fbd, {webSiparis_sonStokDB: db} = altInst, {from} = sent;
+					if (db) {
+						for (let aMQTable of from.liste) {
+							let {deger} = aMQTable;
+							if (!deger.includes('..')) { deger = aMQTable.deger = `${db}..${deger}` }
+						}
+					}
+				})
 				.setPlaceHolder('(A) Merkez Ambarı');
 			form.addNumberInput('otoTeslimTarihi_gunEk', 'Teslim Tarihi<br/><center>(+ Gün)</center>', '(+ Gün)')
 				.setFra(0).addStyle_wh(150);
 			form.addNumberInput('webSiparis_ayOnceSayisi', 'Örnekleme<br/>Ay Sayısı')
 				.setFra(0).addStyle_wh(150)
-
-	/*  at: 'ekOzellikKodlari'				put: self portalStokEkOzellikAttrListe;
-		at: 'pesinMustKod'					put: self pesinMustKod;
-		at: 'stokResim'						put: self stokResimKullanilirmi;
-		at: 'stokResim_urlMask'				put: self stokResimURLMask;
-		at: 'konBuFirma_eMailListe'			put: (self buFirmaMailAdresleri bosmu
-													ifTrue: [ #() ]
-													ifFalse: [ (self buFirmaMailAdresleri subStringsWithAnyone: $;) collect: [ :x | x trimSeparators ] ]);
-		at: 'sablonDefKisit'				put: (Isimlendirici new
-			sube: self sablonHepsiKisitlimiSube;
-			musteri: self sablonHepsiKisitlimiMusteri;
-			isimlendirmeBitti);
-		at: 'sablonSip_degisiklik'			put: self subeMusteriPortal_degisiklikYapilirmi;
-		at: 'sablonSip_eMail'				put: self subeMusteriPortal_sablonMailGonderilirmi;
-		at: 'numSayacListe'					put: (Isimlendirici new
-			subePortal: self subePortalSipNumSayac;
-			musteriPortal: self musteriPortalSipNumSayac;
-			satis_teklif: self satisTeklifNumSayac;
-			satis_siparis: self satisSipNumSayac;
-			satis_irsaliye: self satisIrsaliyeNumSayac;
-			satis_eFatura: self satisEFaturaNumSayac;
-			satis_eArsiv: self satisEArsivNumSayac;
-			isimlendirmeBitti) */
 	}
 	paramHostVarsDuzenle({ hv }) {
 		super.paramHostVarsDuzenle(...arguments); let {ekOzellikKodlari} = this;

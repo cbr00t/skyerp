@@ -268,7 +268,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		{
 			let sent = new MQSent(), {where: wh, sahalar} = sent;
 			sent.fromAdd(`${sonStokDB}..sonstok`);
-			wh.add(`opno IS NULL` /*, `ozelisaret <> '*'`*/)
+			wh.add(`opno IS NULL`, `ozelisaret <> 'X'`)
 				.inDizi(Object.keys(stokKodSet), 'stokkod')
 				.inDizi(yerKodListe, 'yerkod');
 			sahalar.add(
@@ -282,7 +282,7 @@ class SablonluSiparisFisTemplate extends CObject {
 			let {table, tsStokDetayTable: detayTable} = fisSinif, keyHV = fisSinif.varsayilanKeyHostVars();
 			let sent = new MQSent(), {where: wh, sahalar} = sent;
 			sent.fisHareket(table, detayTable); wh.birlestirDict({ alias: 'fis', dict: keyHV });
-			wh.fisSilindiEkle().add(`fis.kapandi = ''` /*, `fis.ozelisaret <> '*'`*/);
+			wh.fisSilindiEkle().add(`fis.kapandi = ''`, `fis.ozelisaret <> 'X'`);
 			wh.inDizi(Object.keys(stokKodSet), 'har.stokkod');
 			if (fisSayac && fisSinif == buFisSinif) { wh.add(`fis.kaysayac <> ${fisSayac.sqlServerDegeri()}`) }
 			sahalar.add(
@@ -331,7 +331,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		sahalar.add(
 			'har.stokkod',
 			...ekOzellikler.filter(({ rowAttr }) => rowAttr).map(({ rowAttr }) => `har.${rowAttr}`),
-			'SUM(har.miktar) onceMiktar'
+			`ROUND(SUM(har.miktar) / ${ayOnceSayisi.sqlServerDegeri()}, 0) onceMiktar`
 		);
 		sent.groupByOlustur();
 		let stm = new MQStm({ sent }), recs = await app.sqlExecSelect(stm);
@@ -426,7 +426,7 @@ class SablonluSiparisGridciTemplate extends CObject {
 		let {webSiparis_sonStokGosterilirmi, webSiparis_ayOnceSayisi} = params.web;
 		tabloKolonlari.push(...[
 			(webSiparis_sonStokGosterilirmi ? new GridKolon({ belirtec: 'sonStokBilgi', text: 'Son Stok', genislikCh: 13, groupable: false }).readOnly() : null),
-			(webSiparis_sonStokGosterilirmi ? new GridKolon({ belirtec: 'sonStokBilgi_kendiDeposu', text: 'S. (<span class=royalblue>Bu Yer</span>)', genislikCh: 13, groupable: false }).readOnly() : null),
+			(webSiparis_sonStokGosterilirmi ? new GridKolon({ belirtec: 'sonStokBilgi_kendiDeposu', text: 'S. (<span class=royalblue>Müşteri</span>)', genislikCh: 13, groupable: false }).readOnly() : null),
 			(webSiparis_ayOnceSayisi ? new GridKolon({ belirtec: 'onceMiktarBilgi', text: 'Önceki Miktarlar', genislikCh: 13, groupable: false }).readOnly() : null),
 			new GridKolon({ belirtec: 'fiyat', text: 'Fiyat', genislikCh: 13, groupable: false }).readOnly().tipDecimal_fiyat().sifirGosterme(),
 			new GridKolon({ belirtec: 'brutBedel', text: 'Brüt Bedel', genislikCh: 13, groupable: false }).readOnly().tipDecimal_bedel().sifirGosterme(),

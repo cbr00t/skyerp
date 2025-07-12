@@ -67,11 +67,9 @@ class TSSHDDetay extends TSDetay {
 			}
 		}
 	}
-	get miktar() { return this._miktar }
-	set miktar(value) { this._miktar = value }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); let {pTanim} = e; $.extend(pTanim, {
-			shKod: new PInstStr(), shAdi: new PInst(), _miktar: new PInstNum('miktar'), brm: new PInstStr(), fiyat: new PInstNum('fiyat'),
+			shKod: new PInstStr(), shAdi: new PInst(), miktar: new PInstNum('miktar'), brm: new PInstStr(), fiyat: new PInstNum('fiyat'),
 			brutBedel: new PInstNum('brutbedel'), netBedel: new PInstNum('bedel'), takipNo: new PInstStr('dettakipno'), ekAciklama: new PInstStr('ekaciklama'),
 			/* Ticari sahalar */
 			iskYapi: new PInstClass(TicIskYapi), kdvKod: new PInstStr(), ekVergiYapi: new PInstClass(EkVergiYapi),

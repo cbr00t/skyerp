@@ -70,9 +70,10 @@
 .secimler.part .secimler-form .secim .etiket { font-weight: bold; font-size: 93%; width: 150px; color: #888; padding-top: 6px }
 .secimler.part .secimler-form .secim.basSon .basi, .secimler.part .secimler-form .secim.ozel :not(.jqx-widget) .input { margin-left: 5px !important }
 .secimler.part .secimler-form .secim.basSon .uiTarih.basi, .secimler.part .secimler-form .secim.basSon .basi:not(.modelKullan.part),
-.secimler.part .secimler-form .secim.ozel .veri:not(.jqx-widget).input, .secimler.part .secimler-form .secim.ozel .veri :not(.jqx-widget).input,
+	.secimler.part .secimler-form .secim.ozel .veri:not(.jqx-widget).input, .secimler.part .secimler-form .secim.ozel .veri :not(.jqx-widget).input,
 	.secimler.part .secimler-form .secim.ozel .veri.bool,
 	.secimler.part .secimler-form .secim.ozel .veri.ozellik, .secimler.part .secimler-form .secim.ozel .veri.string { margin-left: 62px !important }
+.secimler.part .secimler-form .secim .modelKullan.part { min-height: 70px !important }
 .secimler.part .secimler-form .secim:not(.date):not(.tekilDate) .veri:not(button):not(.jqx-switchbutton):not(.uiTarih) { width: 900px !important }
 .secimler.part .secimler-form .secim:not(.date):not(.tekilDate) .bs-parent .veri:not(button):not(.jqx-switchbutton):not(.uiTarih) { width: 600px !important }
 .secimler.part .secimler-form .secim:not(.jqx-widget) .ddList { min-width: 130px !important; width: 90% !important; height: var(--secim-minHeight) !important }
