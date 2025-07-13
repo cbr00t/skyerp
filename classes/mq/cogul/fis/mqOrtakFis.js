@@ -18,8 +18,13 @@ class MQOrtakFis extends MQDetayli {
 		return roundToBedelFra(toplam)
 	}
 	get fisTopNet() {
-		let toplam = 0; const {detaylar} = this; if (!detaylar) { return 0 }
-		for (const det of detaylar) { toplam += (det.netBedel || 0) }
+		let toplam = 0, {detaylar} = this; if (!detaylar) { return 0 }
+		for (let det of detaylar) { toplam += (det.netBedel || det.bedel || 0) }
+		return roundToBedelFra(toplam)
+	}
+	get fisTopDvNet() {
+		let toplam = 0, {detaylar} = this; if (!detaylar) { return 0 }
+		for (let det of detaylar) { toplam += (det.dvNetBedel || det.dvBedel || 0) }
 		return roundToBedelFra(toplam)
 	}
 	get fisBaslikOlusturucular() { const _e = { liste: [] }; this.fisBaslikOlusturucularDuzenle(_e); return _e.liste }

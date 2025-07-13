@@ -24,7 +24,7 @@ class MQKontorHareket extends MQSayacli {
 		$.extend(pTanim, {
 			tarih: new PInstDateToday('tarih'), mustKod: new PInstStr('mustkod'), ahTipi: new PInstTekSecim('ahtipi', KontorAHTip),
 			fisNox: new PInstStr({ rowAttr: 'fisnox', init: e => this.kontorSinif.newFisNox }), kontorSayi: new PInstNum('kontorsayi'),
-			fatDurum: new PInstTekSecim('fatdurum', KontorFatDurum), tahSekliNo: new PInstNum('tahseklino')
+			fatDurum: new PInstTekSecim('fatdurum', KontorFatDurum), tamamlandimi: new PInstBitBool('btamamlandi')  /*, tahSekliNo: new PInstNum('tahseklino')*/
 		})
 	}
 	static secimlerDuzenle({ secimler: sec }) {
@@ -34,22 +34,26 @@ class MQKontorHareket extends MQSayacli {
 			.secimTopluEkle({
 				tarih: new SecimDate({ etiket: 'Tarih' }),
 				ahTipiSecim: new SecimBirKismi({ etiket: 'Alınan/Harcanan', tekSecim: new KontorAHTip().alinanYap() }).birKismi().autoBind(),
-				fatDurumSecim: new SecimBirKismi({ etiket: 'Fat. Durum', tekSecim: new KontorFatDurum().secimYok() }).birKismi().autoBind()
+				fatDurumSecim: new SecimBirKismi({ etiket: 'Fat. Durum', tekSecim: new KontorFatDurum().secimYok() }).birKismi().autoBind(),
+				tamamlandiSecim: new SecimTekSecim({
+					etiket: 'ERP Durumu',
+					tekSecim: new BuDigerVeHepsi(['<span class=forestgreen>Tamamlananlar</span>', '<span class=firebrick>TamamlanMAyanlar</span>'])
+				}).autoBind()
 			})
 			.addKA('must', MQLogin_Musteri, 'fis.mustkod', 'mus.aciklama')
 			.addKA('bayi', MQLogin_Bayi, 'mus.bayikod', 'bay.aciklama')
 			.addKA('anaBayi', MQVPAnaBayi, 'mus.anabayikod', 'abay.aciklama')
 			.addKA('il', MQVPIl, 'mus.ilkod', 'il.aciklama')
-			.addKA('tahSekli', MQVPTahSekli, 'har.tahseklino', 'tsek.aciklama')
+			/*.addKA('tahSekli', MQVPTahSekli, 'har.tahseklino', 'tsek.aciklama')*/
 		sec.whereBlockEkle(({ secimler: sec, sent, where: wh }) => {
-			let {ahTipiSecim, fatDurumSecim} = sec;
+			let {ahTipiSecim, fatDurumSecim} = sec, {tekSecim: tamamlandiSecim} = sec.tamamlandiSecim;
 			wh.basiSonu(sec.tarih, `${alias}.tarih`);
-			if (!$.isEmptyObject(ahTipiSecim.value)) {
-				wh.birKismi(ahTipiSecim, `${alias}.ahtipi`) }
+			if (!$.isEmptyObject(ahTipiSecim.value)) { wh.birKismi(ahTipiSecim, `${alias}.ahtipi`) }
 			if (sent && !$.isEmptyObject(fatDurumSecim.value)) {
 				wh.degerAta('A', `${alias}.ahtipi`).add(`${alias}.kontorsayi > 0`);
 				wh.birKismi(fatDurumSecim, `${alias}.fatdurum`)
 			}
+			if (!tamamlandiSecim.hepsimi) { wh.add(tamamlandiSecim.getBoolBitClause(`${alias}.btamamlandi`)) }
 		})
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
@@ -79,7 +83,10 @@ class MQKontorHareket extends MQSayacli {
 				.onClick(async _e => {
 					let {selectedRecs: recs} = gridPart;
 					try { await this.kontorSinif.kontor_topluFaturalastirIstendi({ ..._e, ...e, recs }) }
-					catch (ex) { hConfirm(getErrorText(ex), 'Kontör Faturalaştır'); throw ex }
+					catch (ex) {
+						if (ex?.rc == 'userClose') { return }
+						hConfirm(getErrorText(ex), 'Kontör Faturalaştır'); throw ex
+					}
 				})
 		}
 	}
@@ -115,6 +122,7 @@ class MQKontorHareket extends MQSayacli {
 				}
 				break
 		}
+		if (rec.btamamlandi) { result.push('tamamlandi') }
 	}
 	static orjBaslikListesi_argsDuzenle({ gridPart, sender, args }) {
 		super.orjBaslikListesi_argsDuzenle(...arguments); gridPart = gridPart ?? sender;
@@ -122,7 +130,7 @@ class MQKontorHareket extends MQSayacli {
 	}
 	static standartGorunumListesiDuzenle({ liste }) {
 		super.standartGorunumListesiDuzenle(...arguments);
-		liste.push('tarih', 'mustkod', 'mustadi', 'kontorsayi', 'ahtipitext', 'fatdurumtext', 'fisnox', 'tahseklino', 'bayikod', 'anabayikod', 'tanitim')
+		liste.push('tarih', 'mustkod', 'mustadi', 'kontorsayi', 'ahtipitext', 'fatdurumtext', 'btamamlandi', 'fisnox', /*'tahseklino',*/ 'bayikod', 'anabayikod', 'tanitim')
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments); let {tableAlias: alias} = this;
@@ -131,6 +139,7 @@ class MQKontorHareket extends MQSayacli {
 			new GridKolon({ belirtec: 'mustkod', text: 'Müşteri', genislikCh: 15, sql: 'fis.mustkod' }),
 			new GridKolon({ belirtec: 'mustadi', text: 'Müşteri Adı', genislikCh: 50, sql: 'mus.aciklama' }),
 			new GridKolon({ belirtec: 'ahtipitext', text: 'A/H Tip', genislikCh: 13, sql: KontorAHTip.getClause(`${alias}.ahtipi`), filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'btamamlandi', text: 'Tamam?', genislikCh: 10 }).tipBool(),
 			new GridKolon({ belirtec: 'fisnox', text: 'Fiş No', genislikCh: 23 }),
 			new GridKolon({ belirtec: 'kontorsayi', text: 'Kontör', genislikCh: 10, filterType: 'checkedlist' }).tipDecimal(0),
 			new GridKolon({
@@ -145,8 +154,8 @@ class MQKontorHareket extends MQSayacli {
 			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 20, sql: 'mus.yore', filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 8, sql: 'mus.ilkod', filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 20, sql: 'il.aciklama', filterType: 'checkedlist' }),
-			new GridKolon({ belirtec: 'tahseklino', text: 'Tah.No', genislikCh: 8 }).tipNumerik().sifirGosterme(),
-			new GridKolon({ belirtec: 'tahsekliadi', text: 'Tah. Şekli Adı', genislikCh: 15, sql: 'tsek.aciklama' }),
+			/* new GridKolon({ belirtec: 'tahseklino', text: 'Tah.No', genislikCh: 8 }).tipNumerik().sifirGosterme(),
+			new GridKolon({ belirtec: 'tahsekliadi', text: 'Tah. Şekli Adı', genislikCh: 15, sql: 'tsek.aciklama' }), */
 			new GridKolon({ belirtec: 'tanitim', text: 'Tanıtım', genislikCh: 43, sql: 'mus.tanitim' }),
 			new GridKolon({ belirtec: 'bayikod', text: 'Bayi', genislikCh: 13, sql: 'mus.bayikod', filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'bayiadi', text: 'Bayi Adı', genislikCh: 25, sql: 'bay.aciklama', filterType: 'checkedlist' }),
@@ -170,8 +179,9 @@ class MQKontorHareket extends MQSayacli {
 		if (!alias2Deger.fissayac) { sahalar.add(`${alias}.fissayac`) }
 		if (!alias2Deger.kaysayac) { sahalar.add(`${alias}.kaysayac`) }
 		if (!alias2Deger.ahtipi) { sahalar.add(`${alias}.ahtipi`) }
+		if (!alias2Deger.btamamlandi) { sahalar.add(`${alias}.btamamlandi`) }
 		if (!alias2Deger.fatdurum) { sahalar.add(`${alias}.fatdurum`) }
-		if (!alias2Deger.tahseklino) { sahalar.add(`${alias}.tahseklino`) }
+		/* if (!alias2Deger.tahseklino) { sahalar.add(`${alias}.tahseklino`) } */
 		if (!alias2Deger.bayikod) { sahalar.add('mus.bayikod') }
 		if (!alias2Deger.anabayikod) { sahalar.add('bay.anabayikod') }
 		if (!alias2Deger.mustkod) { sahalar.add('fis.mustkod') }

@@ -29,8 +29,8 @@ class KontorFatDurum extends TekSecim {
 			new CKodVeAdi([' ', '<span class=lightgray>Açıktan</span>', 'aciktanmi']),
 			new CKodVeAdi(['M', '<span class=lightgray>Açıktan (<i class=bold><span class=royalblue>MD</span></i>)</span>', 'aciktanMDmi']),
 			new CKodVeAdi(['A', '<span class=lightgray>Açıktan (<i class=bold><span class=firebrick>Ana Bayi</span></i>)</span>', 'aciktanAnaBayimi']),
-			new CKodVeAdi(['B', '<span class=orangered>Fatura Edilecek</span>', 'faturaEdilecekmi']),
-			new CKodVeAdi(['X', '<span class=green>Fatura Edildi</span>', 'faturaEdildimi'])
+			new CKodVeAdi(['B', '<span class=orangered>Fatura Edilecek</span>', 'faturaEdilecekmi'])
+			/*new CKodVeAdi(['X', '<span class=green>Fatura Edildi</span>', 'faturaEdildimi'])*/
 		])
 	}
 }

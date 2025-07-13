@@ -230,7 +230,10 @@ class FBuilder_InputOrtak extends FBuilder_DivOrtak {
 	static get inputTagName() { return 'input' } static get noAutoChangeEvent() { return false }
 	constructor(e) {
 		e = e || {}; super(e);
-		$.extend(this, { _value: e.value, inputType: e.inputType || this.class.inputType, maxLength: e.maxLength ?? this.class.maxLength, isReadOnly: e.readOnly ?? e.readonly ?? e.isReadOnly ?? e.isReadonly })
+		$.extend(this, {
+			_value: e.value, inputType: e.inputType || this.class.inputType, maxLength: e.maxLength ?? this.class.maxLength,
+			isReadOnly: e.readOnly ?? e.readonly ?? e.isReadOnly ?? e.isReadonly
+		})
 	}
 	buildDevam(e) {
 		let {value} = this; super.buildDevam(e); let {input} = this;
@@ -264,8 +267,7 @@ class FBuilder_InputOrtak extends FBuilder_DivOrtak {
 		let {maxLength} = this; if (value && maxLength && typeof value == 'string') { value = value.toString().slice(0, maxLength) }
 		return value
 	}
-	editable() { this.isReadOnly = false; return this }
-	readOnly() { this.isReadOnly = true; return this }
+	editable() { this.isReadOnly = false; return this } readOnly() { this.isReadOnly = true; return this }
 }
 class FBuilder_LabelBase extends FBuilder_DivOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -413,13 +415,22 @@ class FBuilder_TimeInput extends FBuilder_TextInput {
 }
 class FBuilder_ToggleButton extends FBuilder_DivOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	constructor(e) { super(e); if (this.etiketGosterim == null) { this.etiketGosterim_placeholder() } }
+	constructor(e) {
+		e = e || {}; super(e);
+		if (this.etiketGosterim == null) { this.etiketGosterim_placeholder() }
+		$.extend(this, {
+			_value: e.value, inputType: e.inputType || this.class.inputType, maxLength: e.maxLength ?? this.class.maxLength,
+			isReadOnly: e.readOnly ?? e.readonly ?? e.isReadOnly ?? e.isReadonly
+		})
+	}
 	buildDevam(e) {
 		super.buildDevam(e); let {styles, layout, input} = this;
 		if (input?.length) { styles.push( `$elementCSS { min-width: 100px; width: 150px !important; margin-right: 13px }`, `$elementCSS > input { width: var(--full) }` ) }
 		let {elmLabel} = this; if (elmLabel?.length) { styles.push( `${this.getCSSElementSelector(elmLabel)} { width: auto !important; padding-top: 8px; margin-right: 13px }` ) }
+		
 	}
 	getConvertedValue(e) { return asBoolQ(e.value) }
+	editable() { this.isReadOnly = false; return this } readOnly() { this.isReadOnly = true; return this }
 }
 class FBuilder_CheckBox extends FBuilder_ToggleButton {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -429,9 +440,10 @@ class FBuilder_CheckBox extends FBuilder_ToggleButton {
 		this.bottomFlag = e.bottomFlag ?? e.bottom ?? true
 	}
 	buildDevam(e) {
-		let {value} = this; super.buildDevam(e); let {input} = this;
-		if (input?.length) {
+		let {value} = this; super.buildDevam(e);
+		let {input, isReadOnly} = this; if (input?.length) {
 			input.prop('type', 'checkbox');
+			if (isReadOnly) { input.prop('disabled', true) }
 			let setter = value => {
 				if (value == null) { input.prop('indeterminate', true) }
 				else { input.prop('indeterminate', false); input.prop('checked', value) }
@@ -448,7 +460,6 @@ class FBuilder_CheckBox extends FBuilder_ToggleButton {
 				}
 				this.signalChange({ sender: this, builder: this, event: evt, value })
 			});
-
 			let {styles, layout, elmLabel} = this;
 			if (this.bottomFlag) { styles.push(`$elementCSS { margin-top: ${this.class.defaultHeight}px }`) }
 			styles.push(...[
@@ -495,9 +506,10 @@ class FBuilder_SwitchButton extends FBuilder_ToggleButton {
 	buildDevam(e) {
 		let {value} = this; super.buildDevam(e); let {input} = this;
 		if (input?.length) {
-			let {layout} = this; layout.addClass('flex-row');
+			let {layout, isReadOnly} = this; layout.addClass('flex-row');
 			let {widgetArgsDuzenle} = this; let _e = $.extend({}, e, { args: { theme, width: '100%', height: this.class.defaultHeight, value } });
 			for (let key of ['onLabel', 'offLabel']) { let _value = this[key]; if (_value != null) { _e.args[key] = _value } }
+			if (isReadOnly) { _e.args.disabled = true }
 			if (widgetArgsDuzenle) { getFuncValue.call(this, widgetArgsDuzenle, _e); }
 			input.jqxSwitchButton(_e.args);
 			input.on('change', evt => {

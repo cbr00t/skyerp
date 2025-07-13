@@ -1,0 +1,2 @@
+.masterListe.part .jqx-grid [role=row]:nth-child(odd) > .tamamlandi:not(.jqx-grid-cell-selected) { background-color: #f8fff8 !important }
+.masterListe.part .jqx-grid [role=row]:nth-child(even) > .tamamlandi:not(.jqx-grid-cell-selected) { background-color: #f0fff0 !important }
