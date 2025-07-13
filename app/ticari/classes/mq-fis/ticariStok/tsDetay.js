@@ -70,7 +70,7 @@ class TSSHDDetay extends TSDetay {
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); let {pTanim} = e; $.extend(pTanim, {
 			shKod: new PInstStr(), shAdi: new PInst(), miktar: new PInstNum('miktar'), brm: new PInstStr(), fiyat: new PInstNum('fiyat'),
-			brutBedel: new PInstNum('brutbedel'), netBedel: new PInstNum('bedel'), takipNo: new PInstStr('dettakipno'), ekAciklama: new PInstStr('ekaciklama'),
+			brutBedel: new PInstNum('brutbedel'), netBedel: new PInstNum('bedel'), takipNo: new PInstStr('dettakipno'), detAciklama: new PInstStr('ekaciklama'),
 			/* Ticari sahalar */
 			iskYapi: new PInstClass(TicIskYapi), kdvKod: new PInstStr(), ekVergiYapi: new PInstClass(EkVergiYapi),
 			kkegYuzde: new PInstNum('kkegyuzde'), adiDegisirmi: new PInstBool(), kdvDegiskenmi: new PInstBitBool(), altAciklama: new PInstStr(),

@@ -45,7 +45,7 @@ class TSGridKontrolcu extends GridKontrolcu {
 				else { tabloKolonlari.push(colDefOrArray) }
 			}
 		}
-		tabloKolonlari.push(new GridKolon({ belirtec: 'ekAciklama', text: 'Açıklama', genislikCh: 30 }))
+		tabloKolonlari.push(new GridKolon({ belirtec: 'detAciklama', text: 'Açıklama', genislikCh: 40 }))
 	}
 	tabloKolonlariDuzenle_fiyat_netBedel_arasi(e) {
 		const {fis} = this;

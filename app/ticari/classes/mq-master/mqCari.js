@@ -28,8 +28,8 @@ class MQCari extends MQKA {
 		}
 	}
 	static varsayilanKeyHostVarsDuzenle(e) {
-		super.varsayilanKeyHostVarsDuzenle(e); const {hv} = e;
-		hv.kayittipi = this.kayitTipi
+		super.varsayilanKeyHostVarsDuzenle(e); let {hv} = e, {kayitTipi} = this;
+		if (kayitTipi) { hv.kayittipi = kayitTipi }    /* cari için plasiyer vs dahil hepsi */
 	}
 	static getGridKolonGrup(e) {
 		e = e || {}; let {belirtec} = e;
