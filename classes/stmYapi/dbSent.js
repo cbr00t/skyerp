@@ -241,12 +241,14 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	x2StokIslemBagla(e) {
 		e = e ?? {}; let {alias, kodClause, leftJoin} = e, aliasVeNokta = alias ? `${alias}.` : '';
 		kodClause = kodClause || `${aliasVeNokta}islkod`;
-		if (leftJoin) { this.leftJoin({ alias, from: 'stkisl isl', on: `${alias}.islkod = isl.kod` }) }
+		if (leftJoin) { this.leftJoin({ alias, from: 'stkisl isl', on: `${kodClause} = isl.kod` }) }
 		else { this.fromIliski('stkisl isl', `${kodClause} = isl.kod`); }
 		return this
 	}
 	fis2MuhIslBagla(e) { return this.fis2MuhIslemBagla(e) }
 	har2MuhIslBagla(e) { return this.har2MuhIslemBagla(e) }
+	fis2CarIslBagla(e) { return this.fis2CarIslemBagla(e) }
+	har2CarIslBagla(e) { return this.har2CarIslemBagla(e) }
 	x2MuhIslBagla(e) { return this.x2MuhIslemBagla(e) }
 	fis2MuhIslemBagla(e) { return this.x2MuhIslemBagla({ ...e, alias: e?.alias ?? 'fis', leftJoin: false }) }
 	fis2MuhIslemBagla_leftJoin(e) { return this.x2MuhIslemBagla({ ...e, alias: e?.alias ?? 'fis', leftJoin: true }) }
@@ -254,9 +256,20 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	har2MuhIslemBagla_leftJoin(e) { return this.x2MuhIslemBagla({ ...e, alias: e?.alias ?? 'har', leftJoin: true }) }
 	x2MuhIslemBagla(e) {
 		e = e ?? {}; let {alias, kodClause, leftJoin} = e, aliasVeNokta = alias ? `${alias}.` : '';
-		kodClause = kodClause || `${aliasVeNokta}islkod`;
-		if (leftJoin) { this.leftJoin({ alias, from: 'muhisl isl', on: `${alias}.islkod = isl.kod` }) }
+		kodClause = kodClause || `${aliasVeNokta}muhislkod`;
+		if (leftJoin) { this.leftJoin({ alias, from: 'muhisl isl', on: `${kodClause} = isl.kod` }) }
 		else { this.fromIliski('muhisl isl', `${kodClause} = isl.kod`); }
+		return this
+	}
+	fis2CarIslemBagla(e) { return this.x2CariIslemBagla({ ...e, alias: e?.alias ?? 'fis', leftJoin: false }) }
+	fis2CarIslemBagla_leftJoin(e) { return this.x2CariIslemBagla({ ...e, alias: e?.alias ?? 'fis', leftJoin: true }) }
+	har2CarIslemBagla(e) { return this.x2CariIslemBagla({ ...e, alias: e?.alias ?? 'har', leftJoin: false }) }
+	har2CarIslemBagla_leftJoin(e) { return this.x2CariIslemBagla({ ...e, alias: e?.alias ?? 'har', leftJoin: true }) }
+	x2CariIslemBagla(e) {
+		e = e ?? {}; let {alias, kodClause, leftJoin} = e, aliasVeNokta = alias ? `${alias}.` : '';
+		kodClause = kodClause || `${aliasVeNokta}carislkod`;
+		if (leftJoin) { this.leftJoin({ alias, from: 'carisl isl', on: `${kodClause} = isl.kod` }) }
+		else { this.fromIliski('carisl isl', `${kodClause} = isl.kod`); }
 		return this
 	}
 	fis2UretimIslemBagla(e) { let alias = e?.alias ?? 'fis'; this.fromIliski('urtisl isl', `${alias}.islkod = isl.kod`); return this }

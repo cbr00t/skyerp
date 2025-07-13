@@ -588,7 +588,7 @@ class MQCogul extends MQYapi {
 		}
 	}
 	async dataDuzgunmu(e) {
-		let results = (await this.forAltYapiKeysDoAsync('dataDuzgunmu', e))?.filter(x => !!x);
+		let results = (await this.forAltYapiKeysDoAsync('dataDuzgunmu', e))?.flat()?.filter(x => !!x);
 		return results?.length ? `<ul>${results.map(x => `<li>${x}</li>`).join(CrLf)}</ul>` : null
 	}
 	async kaydetVeyaSilmeOncesiIslemler(e) { await super.kaydetVeyaSilmeOncesiIslemler(e); await this.forAltYapiKeysDoAsync('kaydetVeyaSilmeOncesiIslemler', e) }

@@ -3,8 +3,7 @@
 <script src="<?=$_partRoot?>/mqSube.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqIsyeri.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqDoviz.js?<?=$appVersion?>"></script>
-<script src="<?=$_partRoot?>/mqStokIslem.js?<?=$appVersion?>"></script>
-<script src="<?=$_partRoot?>/mqUretimIslem.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/mqXIslem.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqStokYer.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqYerRaf.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqStokDepartman.js?<?=$appVersion?>"></script>

@@ -13,13 +13,14 @@ class SBTabloHesapTipi extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle({ kaListe }) {
-		super.kaListeDuzenle(...arguments); kaListe.push(
+		super.kaListeDuzenle(...arguments); kaListe.push(...[
 			new CKodVeAdi(['', 'Yok', 'yokmu']),
 			new CKodVeAdi(['AS', 'Detaylar Toplamı', 'detaylarToplamimi']),
 			new CKodVeAdi(['FR', 'Satırlar Toplamı', 'satirlarToplamimi']),
 			new CKodVeAdi(['SH', 'Ticari Satış', 'ticariSatismi']),
-			new CKodVeAdi(['HZ', 'Hizmet', 'hizmetmi'])
-		)
+			new CKodVeAdi(['HZ', 'Hizmet', 'hizmetmi']),
+			(config.dev ? new CKodVeAdi(['FR', 'Formül', 'formulmu']) : null)
+		].filter(x => !!x))
 	}
 }
 class SBTabloVeriTipi extends TekSecim {

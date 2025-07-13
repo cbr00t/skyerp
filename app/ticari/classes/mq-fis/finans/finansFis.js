@@ -1,7 +1,7 @@
 class FinansFis extends MQGenelFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get detaySinif() { return FinansDetay } static get gridKontrolcuSinif() { return FinansGridci }
-	static get tsnKullanilirmi() { return true } static get ticMustKullanilirmi() { return true }
+	static get table() { return 'finansfis' } static get detaySinif() { return FinansDetay } static get gridKontrolcuSinif() { return FinansGridci }
+	static get tsnKullanilirmi() { return true } static get ticMustKullanilirmi() { return true } static get mustSaha() { return 'must' }
 	static get numYapi() { let {numTipKod: kod} = this; return kod ? new MQNumarator({ kod }) : null }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
@@ -36,7 +36,7 @@ class FinansFis extends MQGenelFis {
 }
 class FinansDetay extends MQDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get ticMustKullanilirmi() { return true }
+	static get table() { return 'finanshar' } static get ticMustKullanilirmi() { return true }
 }
 class FinansGridci extends GridKontrolcu {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

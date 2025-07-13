@@ -32,8 +32,8 @@ class MQCari extends MQKA {
 		hv.kayittipi = this.kayitTipi
 	}
 	static getGridKolonGrup(e) {
-		e = e || {}; const {belirtec} = e;
-		if (!e.adiAttr) e.adiAttr = `${belirtec}Unvan`
+		e = e || {}; let {belirtec} = e;
+		if (!e.adiAttr) { e.adiAttr = `${belirtec}Unvan` }
 		return super.getGridKolonGrup(e)
 	}
 	static getGridKolonGrup_yoreli(e) {

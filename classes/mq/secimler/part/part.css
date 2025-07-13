@@ -73,7 +73,7 @@
 	.secimler.part .secimler-form .secim.ozel .veri:not(.jqx-widget).input, .secimler.part .secimler-form .secim.ozel .veri :not(.jqx-widget).input,
 	.secimler.part .secimler-form .secim.ozel .veri.bool,
 	.secimler.part .secimler-form .secim.ozel .veri.ozellik, .secimler.part .secimler-form .secim.ozel .veri.string { margin-left: 62px !important }
-.secimler.part .secimler-form .secim .modelKullan.part { min-height: 70px !important }
+.secimler.part .secimler-form .secim .modelKullan.part { min-height: 70px !important; overflow-y: auto !important }
 .secimler.part .secimler-form .secim:not(.date):not(.tekilDate) .veri:not(button):not(.jqx-switchbutton):not(.uiTarih) { width: 900px !important }
 .secimler.part .secimler-form .secim:not(.date):not(.tekilDate) .bs-parent .veri:not(button):not(.jqx-switchbutton):not(.uiTarih) { width: 600px !important }
 .secimler.part .secimler-form .secim:not(.jqx-widget) .ddList { min-width: 130px !important; width: 90% !important; height: var(--secim-minHeight) !important }

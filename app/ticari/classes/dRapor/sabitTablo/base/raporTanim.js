@@ -117,6 +117,14 @@ class SBTabloDetay extends MQDetay {
 		let tip = hesapTipi?.hizmetmi ? 'H' : shVeriTipi?.char;
 		return tip2Secimler[tip]
 	}
+	get asFormul() {
+		let {hesapTipi} = this;
+		if (hesapTipi.detaylarToplamimi) { return `topla(d => d?.bedel ?? 0, recs)` }
+		else if (hesapTipi.satirlarToplamimi) { return `topla(d => d?.bedel ?? 0, this.satirListe.map(i => recs[i]))` }
+		else if (hesapTipi.ticariSatismi) { }
+		else if (hesapTipi.hizmetmi) { }
+		return null
+	}
 	constructor(e) {
 		e = e ?? {}; super(e); let tip2Secimler = this.tip2Secimler = e.tip2Secimler ?? {};
 		let tip2SecimMFYapi = {
@@ -141,8 +149,8 @@ class SBTabloDetay extends MQDetay {
 			seviyeNo: new PInstTekSecim('seviyeno', SBTabloSeviye), hesapTipi: new PInstTekSecim('hesaptipi', SBTabloHesapTipi),
 			satirListeStr: new PInstStr('satirlistestr'), shVeriTipi: new PInstTekSecim('shveritipi', SBTabloVeriTipi),
 			shAlmSat: new PInstTekSecim('shalmsat', AlimSatis), shIade: new PInstTekSecim('shiade', NormalIadeVeBirlikte),
-			shAyrimTipi: new PInstTekSecim('shayrimtipi', SBTabloAyrimTipi),
-			cssClassesStr: new PInstStr('cssclasses'), cssStyle: new PInstStr('cssstyle')
+			shAyrimTipi: new PInstTekSecim('shayrimtipi', SBTabloAyrimTipi), cssClassesStr: new PInstStr('cssclasses'), cssStyle: new PInstStr('cssstyle'),
+			formul: new PInstStr()
 		})
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
@@ -166,6 +174,17 @@ class SBTabloDetay extends MQDetay {
 	setValues({ rec }) {
 		super.setValues(...arguments)
 		/* $.extend(this, { satirListeStr }) */
+	}
+	eval(e) {
+		e = e ?? {}; let {recs} = e;
+		let {asFormul: code} = this;
+		let s = [undefined, ...recs], satirlar = s;
+		if (code && typeof code == 'string') {
+			if (!code.includes('return ')) { code = `return ${code}` }
+			if (!(code[0] == '(' || code.startsWith('(function('))) { code = `(e => { ${code} })` }
+		}
+		let block = code; if (typeof block == 'string') { block = eval(code) }
+		return block?.call(this, e)
 	}
 }
 class SBTabloGridci extends GridKontrolcu {
@@ -370,6 +389,10 @@ class SBTabloGridci extends GridKontrolcu {
 			.setVisibleKosulu(({ builder: fbd }) => secimlerInitWithKosul(fbd, ({ hesapTipi }) => hesapTipi.hizmetmi));
 		// form.addForm().setLayout(() => $(`<div>Hizmet için seçimler</div>`)).autoAppend();
 		// initSecimlerForm(form, 'secimler_hizmet', 'Hizmet');
+
+		form = fbd_altForm.addFormWithParent('altForm_formul').altAlta()
+			.setVisibleKosulu(({ builder: fbd }) => secimlerInitWithKosul(fbd, ({ hesapTipi }) => hesapTipi.formulmu));
+		form.addTextArea('formul', 'Formül').setRows(8).addStyle_fullWH(null, 300)
 		
 		return rfb
 	}

@@ -157,7 +157,7 @@ class MQKontorHareket extends MQSayacli {
 	static loadServerData_queryDuzenle({ sender, stm, sent, basit, tekilOku, modelKullanmi }) {
 		super.loadServerData_queryDuzenle(...arguments);
 		let {kontorSinif, tip, tableAlias: alias} = this, {table: fisTable} = kontorSinif;
-		let {where: wh, sahalar} = sent, {alias2Deger} = sent, {orderBy} = stm;
+		let {where: wh, sahalar, alias2Deger} = sent, {orderBy} = stm;
 		let {current: login} = MQLogin, {musterimi: loginMusterimi} = login?.class;
 		let sabitMustKod = (loginMusterimi ? login.kod : qs.mustKod ?? qs.must);
 		sent
@@ -180,6 +180,7 @@ class MQKontorHareket extends MQSayacli {
 			if (sabitMustKod) { wh.degerAta(sabitMustKod, 'fis.mustkod') }
 			let clauses = { anaBayi: 'bay.anabayikod', bayi: 'mus.bayikod', musteri: 'fis.mustkod' };
 			MQLogin.current.yetkiClauseDuzenle({ sent, clauses });
+			if (!alias2Deger.onmuhmustkod) { sahalar.add('abay.onmuhmustkod') }
 			if (!(tekilOku || modelKullanmi)) { orderBy.liste = ['ahtipi', 'tarih DESC', 'mustkod'] }
 		}
 	}

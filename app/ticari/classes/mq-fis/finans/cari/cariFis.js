@@ -1,3 +1,60 @@
+class CariTopluIslemFis extends FinansFis {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get ba() { return null }
+	static get kodListeTipi() { return 'CARITOPLUISL' } static get sinifAdi() { return 'Cari Toplu İşlem' }
+	static get detaySinif() { return CariTopluIslemDetay } static get gridKontrolcuSinif() { return CariTopluIslemGridci }
+	static get tsnKullanilirmi() { return true } static get numTipKod() { return 'CISL' }
+	static get numYapi() { let {numTipKod: kod} = this; return kod ? new MQNumarator({ kod }) : null }
+	static extYapilarDuzenle({ liste }) { super.extYapilarDuzenle(...arguments); liste.push(ExtFis_CariIslem) }
+	async kaydetOncesiIslemler(e) {
+		await Promise.all([
+			super.kaydetOncesiIslemler(e),
+			MQCariIslem.getKod2BA()                      /* cache */
+		])
+	}
+	static varsayilanKeyHostVarsDuzenle({ hv }) {
+		super.varsayilanKeyHostVarsDuzenle(...arguments);
+		$.extend(hv, { fistipi: 'CI', ozeltip: '' })
+	}
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments); let {kod2BA} = MQCariIslem.globals;
+		hv.ba = kod2BA[this.islKod]
+	}
+}
+class CariTopluIslemDetay extends FinansDetay {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get mustSaha() { return 'must' }
+	static extYapilarDuzenle({ liste }) {
+		super.extYapilarDuzenle(...arguments);
+		liste.push(Ext_CariVeAltHesap, Ext_BelgeTarihVeNo, Ext_Bedel, /*Ext_DvKur, Ext_BedelVeDvBedel,*/ Ext_DetAciklama)
+	}
+}
+class CariTopluIslemGridci extends FinansGridci {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	tabloKolonlariDuzenle_ilk({ tabloKolonlari }) {
+		super.tabloKolonlariDuzenle_ilk(...arguments);
+		tabloKolonlari.push(...[
+			...MQCari.getGridKolonlar({ gridKolonGrupcu: 'getGridKolonGrup_yoreli', belirtec: 'must', autoBind: true }),
+			...MQAltHesap.getGridKolonlar({ belirtec: 'altHesap', autoBind: true })
+			
+		])
+	}
+	tabloKolonlariDuzenle_ara({ tabloKolonlari }) {
+		super.tabloKolonlariDuzenle_ara(...arguments);
+		tabloKolonlari.push(...[
+			new GridKolon({ belirtec: 'belgeTarih', text: 'Tarih', genislikCh: 14 }).tipDate(),
+			new GridKolon({ belirtec: 'belgeSeri', text: 'Seri', genislikCh: 5 }).tipString(3),
+			new GridKolon({ belirtec: 'belgeNoYil', text: 'No Yıl', genislikCh: 8 }).tipNumerik().setMaxLength(4),
+			new GridKolon({ belirtec: 'belgeNo', text: 'Belge No', genislikCh: 15 }).tipNumerik(),
+			/*new GridKolon({ belirtec: 'dvBedel', text: 'Dv.Bedel', genislikCh: 18 }).tipDecimal_dvBedel(),*/
+			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 18 }).tipDecimal_bedel()
+		])
+	}
+	tabloKolonlariDuzenle_son({ tabloKolonlari }) {
+		super.tabloKolonlariDuzenle_son(...arguments);
+		tabloKolonlari.push(new GridKolon({ belirtec: 'detAciklama', text: 'Açıklama', genislikCh: 50 }))
+	}
+}
+
 class CariTahsilatOdemeOrtakFis extends FinansFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get ba() { return null }
 	static get table() { return 'carifis' } static get noSaha() { return 'fisno' }

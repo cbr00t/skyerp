@@ -1,4 +1,4 @@
-.modelKullan.part { position: relative !important; overflow-y: auto !important }
+.modelKullan.part { position: relative !important }
 .modelKullan.part.beta { box-shadow: 0 0 5px 1px royalblue }
 .modelKullan.part input.jqx-widget-content { min-width: 300px !important; margin-top: 0 !important; padding: 2px 13px !important }
 .jqx-grid .modelKullan.part { position: absolute !important }

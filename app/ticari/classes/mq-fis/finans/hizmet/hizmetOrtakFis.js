@@ -1,6 +1,5 @@
 class HizmetOrtakFis extends FinansFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get table() { return 'finansfis' } static get detaySinif() { return HizmetOrtakDetay }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get detaySinif() { return HizmetOrtakDetay }
 	static get gridKontrolcuSinif() { return HizmetOrtakGridci } static get fisTipi() { return null }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
@@ -70,7 +69,6 @@ class HizmetOrtakFis extends FinansFis {
 }
 class HizmetOrtakDetay extends FinansDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get table() { return 'finanshar' }
 	getHesaplanmisSonuc(e) {
 		const fis = e.inst ?? e.fis ?? e.sender?.fis;
 		const fis_ba = fis?.ba?.char;

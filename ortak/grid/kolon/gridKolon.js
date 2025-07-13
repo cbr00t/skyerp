@@ -182,7 +182,7 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	dropDown() { let {tip} = this; if (tip?.dropDown) { tip.dropDown() } return this } comboBox() { let {tip} = this; if (tip?.comboBox) { tip.comboBox() } return this }
 	autoBind() { let {tip} = this; if (tip?.autoBind) { tip.autoBind() } return this } noAutoBind() { let {tip} = this; if (tip?.noAutoBind) { tip.noAutoBind() } return this }
 	onKeyDown(handler) { let {tip} = this; if (tip?.onKeyDown) tip.onKeyDown(handler); return this }
-	setMaxLength(value) { let {tip} = this; if (tip?.setMaxLength) tip.setMaxLength(value); return this }
+	setMaxLength(value) { let {tip} = this; if (tip?.setMaxLength) { tip.setMaxLength(value) } return this }
 	setValue(value) { this.tip?.setValue?.(value); return this }
 	click(handler) { this.tip?.click?.(handler); return this } onClick(handler) { this.tip?.onClick?.(handler); return this }
 	tipString(e) {

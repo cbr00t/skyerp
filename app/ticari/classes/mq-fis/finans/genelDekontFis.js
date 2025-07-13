@@ -4,7 +4,7 @@ class GenelDekontFis extends FinansFis {
 	static get numTipKod() { return 'GENDEK' }
 	static extYapilarDuzenle({ liste }) {
 		super.extYapilarDuzenle(...arguments);
-		liste.push(ExtFis_MuhIsl)
+		liste.push(ExtFis_MuhIslem)
 	}
 	static rootFormBuilderDuzenle_ilk(e) {
 		let {builders: baslikFormlar} = e.builders.baslikForm; baslikFormlar[0].yanYana(3);

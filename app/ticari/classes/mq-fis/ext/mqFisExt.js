@@ -61,7 +61,7 @@ class ExtFis_AltHesap extends ExtFis {
 	}
 	static rootFormBuilderDuzenle_ara({ builders }) {
 		let {builders: baslikFormlar} = builders.baslikForm;
-		let form = baslikFormlar[0]; form.addModelKullan({ id: 'altHesapKod', mfSinif: MQAltHesap }).dropDown().autoBind()
+		let form = baslikFormlar[0]; form.addModelKullan({ id: 'altHesapKod', mfSinif: MQAltHesap }).comboBox().autoBind()
 	}
 	static orjBaslikListesiDuzenle_ilk({ liste }) {
 		if (app.params.cariGenel.kullanim.altHesap) {
@@ -105,18 +105,18 @@ class ExtFis_CariVeAltHesap extends ExtFis_Cari {
 		ExtFis_AltHesap.mfSinif = this.mfSinif; ExtFis_AltHesap.loadServerData_queryDuzenle(e)
 	}
 	static super_loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e) }
-	static tekilOku_queryDuzenle(e) {
-		const {stm} = e;
-		for (const sent of stm.getSentListe()) { sahalar.add('alth.aciklama althesapadi', 'car.dvkod cardvkod', 'alth.dvkod althesapdvkod') }
+	static tekilOku_queryDuzenle({ stm }) {
+		for (let {sahalar} of stm) {
+			sahalar.add('alth.aciklama althesapadi', 'car.dvkod cardvkod', 'alth.dvkod althesapdvkod') }
 	}
 	setValues({ rec }) {
 		super.setValues(...arguments); let {inst} = this;
 		$.extend(inst, { cariUnvan: rec.birunvan, yore: rec.yore, carDvKod: rec.cardvkod, altHesapDvKod: rec.althesapdvkod })
 	}
 	dataDuzgunmu(e) {
-		return Promise.all([
+		let {inst} = this; return Promise.all([
 			super.dataDuzgunmu(e),
-			MQAltHesap.kodYoksaMesaj(this.inst.altHesapKod)
+			MQAltHesap.kodYoksaMesaj(inst.altHesapKod)
 		])
 	}
 }
@@ -434,27 +434,101 @@ class ExtFis_Ciranta extends ExtFis_Cari {
 	}
 	async dataDuzgunmu(e) { return await MQCiranta.kodYoksaMesaj(this.inst.ciranta) }
 }
-class ExtFis_MuhIsl extends ExtFis {
+class ExtFis_StokIslem extends ExtFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ liste }) {
 		super.pTanimDuzenle(...arguments);
-		$.extend(pTanim, { islKod: new PInstStr('islkod') })
+		$.extend(pTanim, { islKod: new PInstStr('islkod'), isl_tip: new PInstStr() })
 	}
 	static rootFormBuilderDuzenle_ara({ builders }) {
-		let {builders: baslikFormlar} = builders.baslikForm, form = baslikFormlar[1];
-		form.addModelKullan({ id: 'islKod', mfSinif: MQMuhIsl }).comboBox().autoBind()
+		let {builders: baslikFormlar} = builders.baslikForm, form = baslikFormlar[0];
+		form.addModelKullan({ id: 'islKod', mfSinif: MQStokIslem }).dropDown().autoBind().kodsuz().bosKodAlinmaz().addStyle_wh(300)
 	}
 	static secimlerDuzenle({ secimler: sec }) {
-		sec.secimTopluEkle({ islKod: new SecimString({ etiket: 'İşlem', mfSinif: MQMuhIsl }) });
+		sec.secimTopluEkle({ islKod: new SecimString({ etiket: 'İşlem', mfSinif: MQStokIslem }) });
 		sec.whereBlockEkle(({ secimler: sec, where: wh }) => {
 			let {aliasVeNokta} = this.mfSinif;
 			wh.basiSonu(sec.islKod, `${aliasVeNokta}islkod`)
 		})
 	}
-	static standartGorunumListesiDuzenle_ara({ liste }) { liste.push('muhhesapkod', 'muhhesapadi') }
+	static standartGorunumListesiDuzenle_ara({ liste }) { liste.push('isltiptext') }
+	static orjBaslikListesiDuzenle_ilk({ liste }) {
+		let {aliasVeNokta} = this.mfSinif;
+		liste.push(new GridKolon({ belirtec: 'isltiptext', text: 'Tip', genislikCh: 8, sql: MQStokIslemTipi.getClause('isl.isltip') }))
+	}
+	static loadServerData_queryDuzenle({ stm }) {
+		let {tableAlias: alias} = this.mfSinif;
+		for (let sent of stm) {
+			let {sahalar} = sent; sent.x2CarIslBagla({ alias });
+			sahalar.add('isl.isltip isl_tip')
+		}
+	}
+	static tekilOku_queryDuzenle({ stm }) {
+		for (let {sahalar} of stm) { sahalar.add('isl.aciklama isladi') }
+	}
+	async dataDuzgunmu(e) { return await MQStokIslem.kodYoksaMesaj(this.inst.islKod) }
+	setValues({ rec }) { let {inst} = this; inst.isl_tip = rec.isl_tip }
+}
+class ExtFis_CariIslem extends ExtFis {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments);
+		$.extend(pTanim, { islKod: new PInstStr('carislkod'), isl_ba: new PInstStr() })
+	}
+	static rootFormBuilderDuzenle_ara({ builders }) {
+		let {builders: baslikFormlar} = builders.baslikForm, form = baslikFormlar[0];
+		form.addModelKullan({ id: 'islKod', mfSinif: MQCariIslem }).dropDown().autoBind().kodsuz().bosKodAlinmaz().addStyle_wh(300)
+	}
+	static secimlerDuzenle({ secimler: sec }) {
+		sec.secimTopluEkle({ islKod: new SecimString({ etiket: 'İşlem', mfSinif: MQCariIslem }) });
+		sec.whereBlockEkle(({ secimler: sec, where: wh }) => {
+			let {aliasVeNokta} = this.mfSinif;
+			wh.basiSonu(sec.islKod, `${aliasVeNokta}carislkod`)
+		})
+	}
+	static standartGorunumListesiDuzenle_ara({ liste }) { liste.push('carislkod', 'batext') }
+	static orjBaslikListesiDuzenle_ilk({ liste }) {
+		let {aliasVeNokta} = this.mfSinif;
+		liste.push(
+			new GridKolon({ belirtec: 'carislkod', text: 'İşlem', genislikCh: 8 }),
+			new GridKolon({ belirtec: 'isladi', text: 'İşlem Adı', genislikCh: 18, sql: 'isl.aciklama' }),
+			new GridKolon({ belirtec: 'batext', text: 'B/A', genislikCh: 8, sql: BorcAlacak.getClause('isl.bafl') })
+		)
+	}
+	static loadServerData_queryDuzenle({ stm }) {
+		let {tableAlias: alias} = this.mfSinif;
+		for (let sent of stm) {
+			let {sahalar} = sent; sent.x2CariIslemBagla({ alias });
+			sahalar.add('isl.bafl isl_ba')
+		}
+	}
+	static tekilOku_queryDuzenle({ stm }) {
+		for (let {sahalar} of stm) { sahalar.add('isl.aciklama isladi') }
+	}
+	async dataDuzgunmu(e) { return await MQCariIslem.kodYoksaMesaj(this.inst.islKod) }
+	setValues({ rec }) { let {inst} = this; inst.isl_ba = rec.isl_ba }
+}
+class ExtFis_MuhIslem extends ExtFis {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static pTanimDuzenle({ liste }) {
+		super.pTanimDuzenle(...arguments);
+		$.extend(pTanim, { islKod: new PInstStr('muhislkod') })
+	}
+	static rootFormBuilderDuzenle_ara({ builders }) {
+		let {builders: baslikFormlar} = builders.baslikForm, form = baslikFormlar[0];
+		form.addModelKullan({ id: 'islKod', mfSinif: MQMuhIslem }).dropDown().autoBind().kodsuz().bosKodAlinmaz().addStyle_wh(300)
+	}
+	static secimlerDuzenle({ secimler: sec }) {
+		sec.secimTopluEkle({ islKod: new SecimString({ etiket: 'İşlem', mfSinif: MQMuhIslem }) });
+		sec.whereBlockEkle(({ secimler: sec, where: wh }) => {
+			let {aliasVeNokta} = this.mfSinif;
+			wh.basiSonu(sec.islKod, `${aliasVeNokta}muhislkod`)
+		})
+	}
+	static standartGorunumListesiDuzenle_ara({ liste }) { liste.push('muhislkod') }
 	static orjBaslikListesiDuzenle_ilk({ liste }) {
 		liste.push(
-			new GridKolon({ belirtec: 'islkod', text: 'İşlem', genislikCh: 8 }),
+			new GridKolon({ belirtec: 'muhislkod', text: 'İşlem', genislikCh: 8 }),
 			new GridKolon({ belirtec: 'isladi', text: 'İşlem Adı', genislikCh: 18, sql: 'isl.aciklama' })
 		)
 	}
@@ -465,7 +539,7 @@ class ExtFis_MuhIsl extends ExtFis {
 	static tekilOku_queryDuzenle({ stm }) {
 		for (let {sahalar} of stm) { sahalar.add('isl.aciklama isladi') }
 	}
-	async dataDuzgunmu(e) { return await MQMuhIsl.kodYoksaMesaj(this.inst.islKod) }
+	async dataDuzgunmu(e) { return await MQMuhIslem.kodYoksaMesaj(this.inst.islKod) }
 }
 class ExtFis_MuhHesap extends ExtFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -507,12 +581,12 @@ class Ext_Cari extends ExtFis_Cari {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
-		$.extend(pTanim, { cariUnvan: new PInstStr(), yore: new PInstStr() })					// MQCari kolonGrup için ${belirtec}Unvan adiAttr kullanılır
+		$.extend(pTanim, { mustUnvan: new PInstStr(), yore: new PInstStr() })					// MQCari kolonGrup için ${belirtec}Unvan adiAttr kullanılır
 	}
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); this.tekilOku_queryDuzenle(e) }
 	setValues({ rec }) {
 		let {inst} = this;
-		$.extend(inst, { cariUnvan: rec.birunvan ?? rec.mustunvan, yore: rec.yore })
+		$.extend(inst, { mustUnvan: rec.birunvan ?? rec.mustunvan, yore: rec.yore })
 	}
 }
 class Ext_AltHesap extends ExtFis_AltHesap {
@@ -529,7 +603,7 @@ class Ext_CariVeAltHesap extends ExtFis_CariVeAltHesap {
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
 		const {pTanim} = e;
-		$.extend(pTanim, { cariUnvan: new PInstStr(), yore: new PInstStr(), altHesapAdi: new PInstStr(), altHesapAdi: new PInstStr() })
+		$.extend(pTanim, { mustUnvan: new PInstStr(), yore: new PInstStr(), altHesapAdi: new PInstStr(), altHesapAdi: new PInstStr() })
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.super_loadServerData_queryDuzenle(e);
@@ -537,9 +611,8 @@ class Ext_CariVeAltHesap extends ExtFis_CariVeAltHesap {
 		this.tekilOku_queryDuzenle(e)
 	}
 	setValues(e) {
-		super.setValues(e);
-		const {inst} = this, {rec} = e;
-		$.extend(inst, { cariUnvan: rec.mustunvan ?? rec.birunvan, yore: rec.yore, altHesapAdi: rec.althesapadi })
+		super.setValues(e); let {inst} = this, {rec} = e;  /* MQCari.getGridKolonGrup - adiAttr: '...Unvan' olarak atanıyor' */
+		$.extend(inst, { mustUnvan: rec.mustunvan ?? rec.birunvan, yore: rec.yore, altHesapAdi: rec.althesapadi })
 	}
 }
 class Ext_Kasa extends ExtFis_Kasa {
@@ -562,7 +635,25 @@ class Ext_MuhHesap extends ExtFis_MuhHesap {
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); this.tekilOku_queryDuzenle(e) }
 	setValues({ rec }) { let {inst} = this; inst.muhHesapAdi = rec.muhhesapadi }
 }
-class Ext_MuhIsl extends ExtFis_MuhIsl {
+class Ext_MuhIslem extends ExtFis_MuhIslem {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments);
+		$.extend(pTanim, { islAdi: new PInstStr() })
+	}
+	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); this.tekilOku_queryDuzenle(e) }
+	setValues({ rec }) { let {inst} = this; inst.islAdi = rec.isladi }
+}
+class Ext_StokIslem extends ExtFis_StokIslem {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments);
+		$.extend(pTanim, { islAdi: new PInstStr() })
+	}
+	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); this.tekilOku_queryDuzenle(e) }
+	setValues({ rec }) { let {inst} = this; inst.islAdi = rec.isladi }
+}
+class Ext_CariIslem extends ExtFis_CariIslem {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
@@ -662,21 +753,21 @@ class Ext_KrediKartiHesap extends Ext_PosKrediOrtak {
 }
 class Ext_BelgeTarihVeNo extends MQExt {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e);
-		const {pTanim} = e;
-		$.extend(pTanim, {
-			belgeTarih: new PInstDateToday('belgetarih'),
-			belgeSeri: new PInstStr('belgeseri'),
-			belgeNoYil: new PInstNum('belgenoyil'),
-			belgeNo: new PInstNum('belgeno')
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments); $.extend(pTanim, {
+			belgeTarih: new PInstDateToday('belgetarih'), belgeSeri: new PInstStr('belgeseri'),
+			belgeNoYil: new PInstNum('belgenoyil'), belgeNo: new PInstNum('belgeno')
 		})
 	}
-	static orjBaslikListesiDuzenle_ara(e) {
-		e.liste.push(
+	static orjBaslikListesiDuzenle_ara({ liste }) {
+		liste.push(
 			new GridKolon({ belirtec: 'belgetarih', text: 'Tarih', genislikCh: 13 }).tipDate(),
-			new GridKolon({ belirtec: 'belgenox', text: 'Belge No', genislikCh: 17 })
+			new GridKolon({ belirtec: 'belgenox', text: 'Belge No', genislikCh: 20 })
 		)
+	}
+	static loadServerData_queryDuzenle({ stm }) {
+		let {tableAlias: alias} = this.mfSinif;
+		for (let {sahalar} of stm) { sahalar.add(`${alias}.belgeseri`, `${alias}.belgenoyil`, `${alias}.belgeno`) }
 	}
 }
 class Ext_Bedel extends MQExt {
@@ -685,7 +776,9 @@ class Ext_Bedel extends MQExt {
 		super.pTanimDuzenle(...arguments);
 		$.extend(pTanim, { bedel: new PInstNum('bedel') })
 	}
-	static orjBaslikListesiDuzenle_son({ liste }) { liste.push( new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 15 }).tipDecimal_bedel() ) }
+	static orjBaslikListesiDuzenle_son({ liste }) {
+		liste.push( new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 15 }).tipDecimal_bedel() )
+	}
 }
 class Ext_BedelVeDvBedel extends Ext_Bedel {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -703,13 +796,12 @@ class Ext_BedelVeDvBedel extends Ext_Bedel {
 }
 class Ext_DvKur extends MQExt {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e);
-		const {pTanim} = e;
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments);
 		$.extend(pTanim, { dvKur: new PInstNum('dvkur') })
 	}
-	static orjBaslikListesiDuzenle_son(e) {
-		e.liste.push(new GridKolon({ belirtec: 'dvkur', text: 'Dv Kur', genislikCh: 13 }).tipDecimal_dvBedel())
+	static orjBaslikListesiDuzenle_son({ liste }) {
+		liste.push(new GridKolon({ belirtec: 'dvkur', text: 'Dv Kur', genislikCh: 13 }).tipDecimal_dvBedel())
 	}
 }
 class Ext_NDVade extends MQExt {

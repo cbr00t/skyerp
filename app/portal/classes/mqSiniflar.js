@@ -9,7 +9,7 @@ class MQVPCari extends MQCari {
 	static get tumKolonlarGosterilirmi() { return true } static get raporKullanilirmi() { return false } static get kolonFiltreKullanilirmi() { return false }
 	static get tanimlanabilirmi() { return super.tanimlanabilirmi && MQLogin.current?.class?.adminmi }
 	static get silinebilirmi() { return super.silinebilirmi && MQLogin.current?.class?.adminmi }
-	static async loadServerDataDogrudan(e) { return app.onMuhDBDo(() => super.loadServerDataDogrudan(e)) }
+	static async loadServerDataDogrudan(e) { return app.onMuhDBDo_polen(() => super.loadServerDataDogrudan(e)) }
 }
 class MQVPTahSekli extends MQTahsilSekli {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
