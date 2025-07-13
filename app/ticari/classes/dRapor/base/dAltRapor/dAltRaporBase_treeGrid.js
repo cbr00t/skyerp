@@ -623,7 +623,13 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				if (icerikColsSet == null) { let {raporTanim} = this; icerikColsSet = raporTanim.icerik }
 				let kod = colDef.userData?.kod; let result = ['treeRow', belirtec]; if (rec) { result.push(rec.leaf ? 'leaf' : 'grup') }
 				if (icerikColsSet && icerikColsSet[belirtec]) { result.push('icerik') }
-				if (tabloYapi.toplam[kod]) { result.push('toplam'); if (typeof value == 'number') { result.push(!value ? 'zero' : value < 0 ? 'negative' : 'positive') } }
+				if (tabloYapi.toplam[kod]) {
+					result.push('toplam'); if (typeof value == 'number') {
+						let alacakmi = value < 0;
+						if (value && kod.startsWith('CIKIS_')) { alacakmi = !alacakmi }
+						result.push(!value ? 'zero' : alacakmi ? 'negative' : 'positive')
+					}
+				}
 				let {level} = rec; if (level != null) { result.push('level-' + level.toString()) }
 				let _e = { kod, raporTanim, icerikColsSet, colDefs, colDef, rowIndex, belirtec, value, rec, result }; this.ekCSSDuzenle(_e); result = _e.result;
 				return result.filter(x => !!x).join(' ')

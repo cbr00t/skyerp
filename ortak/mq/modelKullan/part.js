@@ -168,7 +168,11 @@ class ModelKullanPart extends Part {
 			if (!isDropDown && widget.searchString == null) { widget.searchString = '' }
 			// widget.input.select()
 		});
-		if (isDropDown || this.autoBind) { input[jqxSelector]({ source: da }) } else { widget.source = da }
+		if (isDropDown || this.autoBind) {
+			try { input[jqxSelector]({ source: da }) }
+			catch (ex) { widget.source = da }
+		}
+		else { widget.source = da }
 		if (!this.listedenSecilemezFlag) {
 			let btn = $(`<button id="listedenSec">...</button>`).jqxButton({ theme, width: 38, height: 32 });
 			btn.on('click', event => this.listedenSecIstendi({ ...e, event })); btn.appendTo(layout)
@@ -467,11 +471,15 @@ class ModelKullanPart extends Part {
 								}
 							}
 							if (!result.totalrecords) { result.totalrecords = recs.length }
-							lastError = null; callback(result);
+							lastError = null;
+							try { callback(result) } catch (ex) { }  /* ignore callback errors */
 							/* await new $.Deferred(p => setTimeout(async () => { await this.veriYuklendi(e); p.resolve() }, i * 10)) */
 							await this.veriYuklendi(e); break
 						}
-						catch (ex) { lastError = ex; await new $.Deferred(p => setTimeout(() => p.resolve(), i * 100)) }
+						catch (ex) {
+							lastError = ex; console.error('modelKullanPart', 'loadServerData', ex, getErrorText(ex));
+							await new $.Deferred(p => setTimeout(() => p.resolve(), i * 100))
+						}
 					}
 					if (lastError) { const ex = lastError; if (!(ex?.message?.includes(`undefined (reading '1')`))) { console.error(ex); displayMessage(getErrorText(ex), 'ComboBox Verisi Alınamadı') } }
 				}

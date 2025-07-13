@@ -124,7 +124,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	tabloYapiDuzenle_son(e) {
 		super.tabloYapiDuzenle_son(e); const {result} = e; this.tabloYapiDuzenle_son_ozel?.(e);
-		result.addToplam(new TabloYapiItem().setKA('KAYITSAYISI', 'Kayıt Sayısı').addColDef(new GridKolon({ belirtec: 'kayitsayisi', text: 'Kayıt Sayısı', genislikCh: 10, filterType: 'numberinput', aggregates: ['sum'] }).tipNumerik()))
+		result.addToplam(new TabloYapiItem().setKA('KAYITSAYISI', 'Kayıt Sayısı')
+			 .addColDef(new GridKolon({ belirtec: 'kayitsayisi', text: 'Kayıt Sayısı', genislikCh: 10, filterType: 'numberinput', aggregates: ['sum'] }).tipNumerik()))
 	}
 	async loadServerDataInternal(e) {
 		await super.loadServerDataInternal(e); let {raporTanim, secimler} = this, attrSet = e.attrSet ?? raporTanim.attrSet, {maxRow, donemBS} = e;
@@ -400,7 +401,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		let gcClauses = {
 			devir: sumDuzenlenmis(`(case when ${tarihClauses.devir} then ${clause.sumOlmaksizin()} else 0 end)`),
 			giris: sumDuzenlenmis(`(case when ${tarihClauses.cari} and ${gcClause} = '${gcTip[0]}' then ${clause.sumOlmaksizin()} else 0 end)`),
-			cikis: sumDuzenlenmis(`(case when ${tarihClauses.cari} and ${gcClause} = '${gcTip[1]}' then 0 - ${clause.sumOlmaksizin()} else 0 end)`),
+			cikis: sumDuzenlenmis(`(case when ${tarihClauses.cari} and ${gcClause} = '${gcTip[1]}' then ${clause.sumOlmaksizin()} else 0 end)`),
 			kalan: sumDuzenlenmis(`(${asilClause.sumOlmaksizin()} * (case when ${tarihClauses.kalan.degerAta(gcTip[0], gcClause)} then 1 else -1 end))`)
 		}
 		for (let key in attrSet) {

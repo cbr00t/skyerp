@@ -273,13 +273,14 @@ class SablonluSiparisFisTemplate extends CObject {
 				.inDizi(yerKodListe, 'yerkod');
 			sahalar.add(
 				'stokkod',
-				...ekOzellikler.filter(({ rowAttr }) => rowAttr).map(({ rowAttr }) => `NULL ${rowAttr}`),
+				...ekOzellikler.filter(({ rowAttr }) => rowAttr).map(({ rowAttr }) => `'' ${rowAttr}`),
 				'SUM(sonmiktar) sonstok', 'SUM(sonmiktar) olasi'
 			);
 			sent.groupByOlustur(); uni.add(sent)
 		}
 		for (let fisSinif of fisSiniflar) {
-			let {table, tsStokDetayTable: detayTable} = fisSinif, keyHV = fisSinif.varsayilanKeyHostVars();
+			let {table, detaySinif} = fisSinif, detayTable = detaySinif.getDetayTable({ fisSinif });
+			let keyHV = fisSinif.varsayilanKeyHostVars();
 			let sent = new MQSent(), {where: wh, sahalar} = sent;
 			sent.fisHareket(table, detayTable); wh.birlestirDict({ alias: 'fis', dict: keyHV });
 			wh.fisSilindiEkle().add(`fis.kapandi = ''`, `fis.ozelisaret <> 'X'`);
@@ -295,7 +296,8 @@ class SablonluSiparisFisTemplate extends CObject {
 		let stm = uni.asToplamStm(), recs = await app.sqlExecSelect(stm);
 		for (let rec of recs) {
 			let anahStr = getAnahStr(rec), det = anah2Det[anahStr]; if (!det) { continue }
-			let {sonstok: sonStok, olasi: olasiMiktar} = rec;
+			let {stokkod: stokKod, sonstok: sonStok, olasi: olasiMiktar} = rec;
+			// if (stokKod == '8680782524158') { debugger }
 			let cssColor = {
 				olasiMiktar: olasiMiktar > 0 ? 'forestgreen' : olasiMiktar < 0 ? 'firebrick' : 'gray',
 				sonStok: 'lightgray'
