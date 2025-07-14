@@ -313,7 +313,7 @@ class MQKontor extends MQDetayliMaster {
 				totalCount = _e.totalCount
 			}
 			if (!tumFisler?.length) {
-				hConfirm(`ERP'ye işlenecek bilgi yuok`, islemAdi);
+				hConfirm(`ERP'ye işlenecek bilgi yok`, islemAdi);
 				hideProgress(); delete this._hTimer_faturalastir;
 				return false
 			}

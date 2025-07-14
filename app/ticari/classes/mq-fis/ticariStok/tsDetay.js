@@ -34,6 +34,7 @@ class TSSHDDetay extends TSDetay {
 	static get shKodSaha() { let {shSahaPrefix} = this; return shSahaPrefix ? shSahaPrefix + 'kod' : null; }
 	static get shAdiSaha() { let {shSahaPrefix} = this; return shSahaPrefix ? shSahaPrefix + 'adi' : null; }
 	static getOrjKdvKodClause(e) { return null } static getAdiDegisirmiClause(e) { return null } static getKdvDegiskenmiClause(e) { return null }
+	static get sipDonusumTable() { return null } static get stDonusumTable() { return null }
 	get dipHesabaEsasDegerler() {
 		let result = super.dipHesabaEsasDegerler || {}; $.extend(result, { brutBedel: this.brutBedel, iskBedelYapi: this.iskBedelYapi, netBedel: this.netBedel });
 		return result
@@ -432,6 +433,7 @@ class TSStokDetayOrtak extends TSStokHizmetDetay {
 class TSStokDetay extends TSStokDetayOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get stokmu() { return true }
 	static getDetayTable(e) { let fisSinif = e.fisSinif ?? e.fis?.class; return fisSinif.tsStokDetayTable }
+	static get sipDonusumTable() { return 'sip2ifstok' } static get stDonusumTable() { return 'sip2trfstok' }
 }
 class TSHizmetDetay extends TSStokHizmetDetay {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -439,6 +441,7 @@ class TSHizmetDetay extends TSStokHizmetDetay {
 	static get tip() { return 'hizmet' } static get tipText() { return 'Hizmet' }
 	static get shSahaPrefix() { return 'hizmet' } static get table() { return 'pifhizmet' }
 	static get shTable() { return 'hizmst' } static get shAlias() { return 'hiz' } static get shEtiket() { return 'Hizmet' }
+	static get sipDonusumTable() { return 'sip2ifhizmet' }
 	static getOrjKdvKodClause(e) { let {shAlias} = this, {fis} = e; return fis.class.satismi ? `${shAlias}.gelkdvhesapkod` : `${shAlias}.gidkdvhesapkod` }
 	static getOrjStopajKodClause(e) { let {shAlias} = this, {fis} = e; return fis.class.satismi ? `${shAlias}.gelstopajhesapkod`: `${shAlias}.gidstopajhesapkod` }
 	static getKdvDegiskenmiClause(e) { let {shAlias} = this, {fis} = e; return fis.class.satismi ? `${shAlias}.gelkdvdegiskenmi` : `${shAlias}.gidkdvdegiskenmi` }

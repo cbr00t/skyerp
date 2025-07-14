@@ -11,7 +11,6 @@ class TSOrtakFis extends MQTicariGenelFis {
 	static get mustSaha() { return null } get eIslemSinif() { return EIslemOrtak.getClass({ tip: this.efAyrimTipi })}
 	get kosulYapilar() { return this._kosulYapilar } set kosulYapilar(value) { this._kosulYapilar = value }
 
-	constructor(e) { e = e || {}; super(e); }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
 		$.extend(pTanim, {
@@ -209,4 +208,9 @@ class TSOrtakFis extends MQTicariGenelFis {
 	}
 	efAyrimTipiDegisti(e) { }
 	takipNoDegisti(e) { }
+	static getDonusumYapi(e) {
+		e = e ?? {}; let {detaySinif, detay} = e;
+		detaySinif = e.detaySinif = detaySinif ?? detay?.class ?? this.detaySinif;
+		return null
+	}
 }

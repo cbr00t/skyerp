@@ -390,6 +390,10 @@ class SiparisFis extends TicariFis {
 		super.hostVarsDuzenle(...arguments); delete hv.detyerkod;
 		hv.basteslimtarihi = hv.basteslimtarihi || this.tarih
 	}
+	static getDonusumYapi(e) {
+		super.getDonusumYapi(e); let {detaySinif} = e;
+		return ({ table: detaySinif?.sipDonusumTable, baglantiSaha: 'sipharsayac' })
+	}
 }
 class SatisSiparisFis extends SiparisFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

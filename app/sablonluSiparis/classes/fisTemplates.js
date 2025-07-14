@@ -281,17 +281,36 @@ class SablonluSiparisFisTemplate extends CObject {
 		for (let fisSinif of fisSiniflar) {
 			let {table, detaySinif} = fisSinif, detayTable = detaySinif.getDetayTable({ fisSinif });
 			let keyHV = fisSinif.varsayilanKeyHostVars();
-			let sent = new MQSent(), {where: wh, sahalar} = sent;
-			sent.fisHareket(table, detayTable); wh.birlestirDict({ alias: 'fis', dict: keyHV });
-			wh.fisSilindiEkle().add(`fis.kapandi = ''`, `fis.ozelisaret <> 'X'`);
-			wh.inDizi(Object.keys(stokKodSet), 'har.stokkod');
-			if (fisSayac && fisSinif == buFisSinif) { wh.add(`fis.kaysayac <> ${fisSayac.sqlServerDegeri()}`) }
-			sahalar.add(
-				'har.stokkod',
-				...ekOzellikler.filter(({ rowAttr }) => rowAttr).map(({ rowAttr }) => `har.${rowAttr}`),
-				'0 sonstok', 'SUM(0 - har.miktar) olasi'
-			);
-			sent.groupByOlustur(); uni.add(sent)
+			let {table: donusumTable, baglantiSaha: donusumSayacSaha} = fisSinif.getDonusumYapi({ detaySinif }) ?? {};
+			{
+				let sent = new MQSent(), {where: wh, sahalar} = sent;
+				sent.fisHareket(table, detayTable);
+				wh.birlestirDict({ alias: 'fis', dict: keyHV });
+				wh.fisSilindiEkle().add(`fis.kapandi = ''`, `fis.ozelisaret <> 'X'`);
+				wh.inDizi(Object.keys(stokKodSet), 'har.stokkod');
+				if (fisSayac && fisSinif == buFisSinif) { wh.add(`fis.kaysayac <> ${fisSayac.sqlServerDegeri()}`) }
+				sahalar.add(
+					'har.stokkod',
+					...ekOzellikler.filter(({ rowAttr }) => rowAttr).map(({ rowAttr }) => `har.${rowAttr}`),
+					'0 sonstok', 'SUM(0 - har.miktar) olasi'
+				);
+				sent.groupByOlustur(); uni.add(sent)
+			}
+			if (donusumTable) {
+				let sent = new MQSent(), {where: wh, sahalar} = sent;
+				sent.fisHareket(table, detayTable)
+					.fromIliski(`${donusumTable} don`, `har.kaysayac = don.${donusumSayacSaha}`);
+				wh.birlestirDict({ alias: 'fis', dict: keyHV });
+				wh.fisSilindiEkle().add(`fis.kapandi = ''`, `fis.ozelisaret <> 'X'`);
+				wh.inDizi(Object.keys(stokKodSet), 'har.stokkod');
+				if (fisSayac && fisSinif == buFisSinif) { wh.add(`fis.kaysayac <> ${fisSayac.sqlServerDegeri()}`) }
+				sahalar.add(
+					'har.stokkod',
+					...ekOzellikler.filter(({ rowAttr }) => rowAttr).map(({ rowAttr }) => `har.${rowAttr}`),
+					'0 sonstok', 'SUM(don.busevkmiktar) olasi'
+				);
+				sent.groupByOlustur(); uni.add(sent)
+			}
 		}
 		let stm = uni.asToplamStm(), recs = await app.sqlExecSelect(stm);
 		for (let rec of recs) {

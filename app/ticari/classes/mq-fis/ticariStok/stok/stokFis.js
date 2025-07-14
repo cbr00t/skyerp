@@ -132,6 +132,10 @@ class TransferSiparisFis extends TransferSiparisOrtakFis {
 			cYerKod: new PInstStr('yerkod'), gYerKod: new PInstStr('refyerkod')
 		})
 	}
+	static getDonusumYapi(e) {
+		super.getDonusumYapi(e); let {detaySinif} = e;
+		return ({ table: detaySinif?.stDonusumTable, baglantiSaha: 'sipharsayac' })
+	}
 }
 class SubelerArasiSiparisFis extends TransferSiparisOrtakFis {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Şubeler Arası Sipariş' }
