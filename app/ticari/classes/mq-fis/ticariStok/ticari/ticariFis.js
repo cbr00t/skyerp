@@ -371,6 +371,7 @@ class SiparisFis extends TicariFis {
 	static get sinifAdi() { return `${super.sinifAdi}Siparis` } static get table() { return 'sipfis' }
 	static get baslikOzelAciklamaTablo() { return 'sipbasekaciklama' } static get dipSerbestAciklamaTablo() { return 'sipdipaciklama' } static get dipEkBilgiTablo() { return 'sipdipekbilgi' }
 	static get pifTipi() { return 'S' } static get iade() { return '' } static get ozelTip() { return '' }
+	static get onayliTipler() { return ['', 'BK', 'RV', 'OG'] }
 	constructor(e) {
 		e = e || {}; super(e); this.noYil = 0;
 		this.baslikTeslimTarihi = e.teslimTarihi || this.baslikTeslimTarihi;

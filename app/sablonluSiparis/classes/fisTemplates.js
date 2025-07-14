@@ -9,7 +9,7 @@ class SablonluSiparisFisTemplate extends CObject {
 	}
 	static pTanimDuzenle({ fisSinif, pTanim }) {
 		$.extend(pTanim, {
-			sablonSayac: new PInstNum('sablonsayac'), onayTipi: new PInstStr({ rowAttr: 'onaytipi', init: () => 'BK' }),
+			sablonSayac: new PInstNum('sablonsayac'), onayTipi: new PInstStr({ rowAttr: 'onaytipi', init: () => 'ON' }),
 			klFirmaKod: new PInstStr(), teslimOrtakdir: new PInstBitTrue('bteslimortakdir'),
 			teslimCariKod: new PInstStr()
 		})
@@ -246,7 +246,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		if (webSiparis_sonStokGosterilirmi && await app.sqlHasColumn('carmst', 'konsinyeyerkod')) {
 			await this.detaylariDuzenle_sonStok({ ..._e, yerKodListe });
 			await this.detaylariDuzenle_sonStok({
-				..._e, ioAttrPostfix: '_kendiDeposu',
+				..._e, ioAttrPostfix: '_kendiDeposu', kendisimi: true,
 				yerKodListe: async () => {
 					let sent = new MQSent({ from: 'carmst', sahalar: 'konsinyeyerkod' }), {where: wh} = sent;
 					wh.degerAta(fis.mustKod, 'must');
@@ -256,18 +256,19 @@ class SablonluSiparisFisTemplate extends CObject {
 		}
 		if (ayOnceSayisi) { await this.detaylariDuzenle_oncekiMiktar(_e) }
 	}
-	static async detaylariDuzenle_sonStok({ mfSinif: sablonSinif, fis, islem, belirtec, getAnahStr, anah2Det, ekOzellikler, yerKodListe, ioAttrPrefix, ioAttrPostfix }) {
-		let {sonStokDB} = app;
-		let yenimi = islem == 'yeni'; /*, onaylaVeyaSilmi = (islem == 'onayla' || islem == 'sil') */
+	static async detaylariDuzenle_sonStok({ mfSinif: sablonSinif, fis, islem, belirtec, getAnahStr, anah2Det, ekOzellikler, yerKodListe, ioAttrPrefix, ioAttrPostfix, kendisimi }) {
+		let {sonStokDB} = app, yenimi = islem == 'yeni'; /*, onaylaVeyaSilmi = (islem == 'onayla' || islem == 'sil') */
 		sablonSinif = sablonSinif?.sablonSinif ?? sablonSinif;    /* detaySinif gelirse (detaySinif.sablonSinif) */
-		let {fisSiniflar} = sablonSinif, {sayac: fisSayac, class: buFisSinif, detaylar} = fis;
+		let {fisSiniflar} = sablonSinif, {class: buFisSinif, sayac: fisSayac, mustKod, detaylar} = fis;
 		let stokKodSet = asSet(detaylar.map(det => det.shKod));
 		if (isFunction(yerKodListe)) { yerKodListe = await yerKodListe.call(this, ...arguments) }
 		yerKodListe = yerKodListe ? $.makeArray(yerKodListe) : []; ioAttrPrefix ??= ''; ioAttrPostfix ??= '';
+		let carpan = kendisimi ? 1 : -1, {onayliTipler} = SiparisFis;
 		let uni = new MQUnionAll();
 		{
+			let table = 'sonstok'; if (!kendisimi && sonStokDB) { table = `${sonStokDB}..${table}` }
 			let sent = new MQSent(), {where: wh, sahalar} = sent;
-			sent.fromAdd(`${sonStokDB}..sonstok`);
+			sent.fromAdd(`${table}`);
 			wh.add(`opno IS NULL`, `ozelisaret <> 'X'`)
 				.inDizi(Object.keys(stokKodSet), 'stokkod')
 				.inDizi(yerKodListe, 'yerkod');
@@ -279,20 +280,26 @@ class SablonluSiparisFisTemplate extends CObject {
 			sent.groupByOlustur(); uni.add(sent)
 		}
 		for (let fisSinif of fisSiniflar) {
-			let {table, detaySinif} = fisSinif, detayTable = detaySinif.getDetayTable({ fisSinif });
-			let keyHV = fisSinif.varsayilanKeyHostVars();
+			let {table, detaySinif, mustSaha, siparismi} = fisSinif, detayTable = detaySinif.getDetayTable({ fisSinif });
 			let {table: donusumTable, baglantiSaha: donusumSayacSaha} = fisSinif.getDonusumYapi({ detaySinif }) ?? {};
+			let keyHV = fisSinif.varsayilanKeyHostVars();
+			let satismi = fisSinif.satismi ?? false; if (satismi) { carpan = -carpan }
+			let carpanClause = carpan.sqlServerDegeri();
+			/*let atCarpanClause = siparismi ? `(case when fis.almsat = 'T' then ${carpan} else ${-carpan} end)` : '1';
+			// let atCarpanClause = siparismi ? `(case when fis.almsat = 'T' then -1 else 1 end)` : '1';*/
 			{
 				let sent = new MQSent(), {where: wh, sahalar} = sent;
 				sent.fisHareket(table, detayTable);
 				wh.birlestirDict({ alias: 'fis', dict: keyHV });
 				wh.fisSilindiEkle().add(`fis.kapandi = ''`, `fis.ozelisaret <> 'X'`);
+				wh.inDizi(onayliTipler, 'fis.onaytipi');
+				if (kendisimi && mustKod) { wh.degerAta(mustKod, mustSaha) }
 				wh.inDizi(Object.keys(stokKodSet), 'har.stokkod');
 				if (fisSayac && fisSinif == buFisSinif) { wh.add(`fis.kaysayac <> ${fisSayac.sqlServerDegeri()}`) }
 				sahalar.add(
 					'har.stokkod',
 					...ekOzellikler.filter(({ rowAttr }) => rowAttr).map(({ rowAttr }) => `har.${rowAttr}`),
-					'0 sonstok', 'SUM(0 - har.miktar) olasi'
+					'0 sonstok', `SUM(har.miktar * ${carpanClause}) olasi`
 				);
 				sent.groupByOlustur(); uni.add(sent)
 			}
@@ -302,12 +309,14 @@ class SablonluSiparisFisTemplate extends CObject {
 					.fromIliski(`${donusumTable} don`, `har.kaysayac = don.${donusumSayacSaha}`);
 				wh.birlestirDict({ alias: 'fis', dict: keyHV });
 				wh.fisSilindiEkle().add(`fis.kapandi = ''`, `fis.ozelisaret <> 'X'`);
+				wh.inDizi(onayliTipler, 'fis.onaytipi');
+				if (kendisimi && mustKod) { wh.degerAta(mustKod, mustSaha) }
 				wh.inDizi(Object.keys(stokKodSet), 'har.stokkod');
 				if (fisSayac && fisSinif == buFisSinif) { wh.add(`fis.kaysayac <> ${fisSayac.sqlServerDegeri()}`) }
 				sahalar.add(
 					'har.stokkod',
 					...ekOzellikler.filter(({ rowAttr }) => rowAttr).map(({ rowAttr }) => `har.${rowAttr}`),
-					'0 sonstok', 'SUM(don.busevkmiktar) olasi'
+					'0 sonstok', `SUM(don.busevkmiktar * (0 - ${carpanClause})) olasi`
 				);
 				sent.groupByOlustur(); uni.add(sent)
 			}

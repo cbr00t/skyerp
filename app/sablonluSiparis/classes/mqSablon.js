@@ -252,7 +252,10 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		if (!fisSayac) { throw { isError: true, errorText: 'Onaylanacak Sipariş için ID belirlenemedi' } }
 		let dokumVeEMail = musterimi => this.dokumYapVeEMailGonder({ musterimi, fis, rec });
 		await dokumVeEMail(true); await dokumVeEMail(false);
-		let upd = new MQIliskiliUpdate({ from: table, where: { degerAta: fisSayac, saha: sayacSaha }, set: `onaytipi = ''` });
+		let upd = new MQIliskiliUpdate({
+			from: table, where: { degerAta: fisSayac, saha: sayacSaha },
+			set: { degerAta: '', saha: 'onaytipi' }
+		});
 		await app.sqlExecNone(upd); listePart?.tazeleDefer(); fisGirisPart?.close()
 	}
 	static async dokumYapVeEMailGonder({ musterimi, fis, fisSayac, parentRec, rec }) {
