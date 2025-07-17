@@ -89,10 +89,12 @@ class SablonluSiparisFisTemplate extends CObject {
 		/*let {tableAlias: alias, mustSaha} = fisSinif, {sahalar} = sent;
 		sahalar.addWithAlias(alias, 'sablonsayac', mustSaha)*/
 	}
-	static async yukleSonrasiIslemler(e) { return await this.sablonYukleVeBirlestir({ ...e }) }
-	static async yeniTanimOncesiIslemler(e) { await this.yeniTanimVeyaDegistirOncesiIslemler(e) }
-	static async degistirOncesiIslemler(e) { await this.yeniTanimVeyaDegistirOncesiIslemler(e) }
-	static async yeniTanimVeyaDegistirOncesiIslemler({ fis }) { /* await this.dagitimIcinEkBilgileriBelirle({ fis }) */ }
+	static async yeniTanimOncesiIslemler(e) { /* await this.dagitimIcinEkBilgileriBelirle({ fis }) */ }
+	static async yukleSonrasiIslemler(e) {
+		let {sender: detGridPart, fis} = e, {parentPart: gridPart} = detGridPart ?? {};
+		fis.mustKod = gridPart.mustKod || fis.mustKod;
+		return await this.sablonYukleVeBirlestir({ ...e })
+	}
 	static async sablonYukleVeBirlestir(e) {
 		let {fis, islem, belirtec} = e, {sablonSayac, tarih, subeKod, mustKod} = fis;
 		if (!mustKod) { throw { isError:  true, errorText: `<b>Müşteri</b> seçilmelidir` } }
