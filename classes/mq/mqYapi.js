@@ -151,31 +151,34 @@ class MQYapi extends CIO {
 		if (!this.logKullanilirmi) { return true }
 		e = e ?? {}; let {
 			sent: _sent, where, wh, adimBelirtec, logAnaTip, islem, degisenler,
-			tableVeAlias, tabloVeAlias, table, alias,
-			logHV, logRecDonusturucu, duzenle, duzenleyici
+			tableVeAlias, tabloVeAlias, table, alias, logHV, /*logRecDonusturucu,*/
+			duzenle, duzenleyici
 		} = e, {user: loginUser} = config.session;
-		islem = islem ?? '';
-		degisenler = degisenler ?? []; adimBelirtec = adimBelirtec ?? this.kodListeTipi; logAnaTip = logAnaTip ?? this.logAnaTip;
-		degisenler = degisenler.map(x => x.replaceAll(' ', '_'));
-		where = where ?? wh ?? _sent?.where; duzenleyici = duzenleyici ?? duzenle; tableVeAlias = tableVeAlias ?? tabloVeAlias;
-		table = table ?? tableVeAlias?.table ?? this.table; let tAlias = (alias ?? tableVeAlias?.alias ?? this.tableAlias) || 't';
-		logRecDonusturucu = logRecDonusturucu ?? this.logRecDonusturucu;
-		let _e = { ...e, degisenler }, {computerName, userName, ip} = await app.sysInfo();
-		let hv = _e.hv = {
-			adimbelirtec: adimBelirtec, islem,
+		islem ??= ''; adimBelirtec ??= this.kodListeTipi; logAnaTip ??= this.logAnaTip;
+		degisenler = degisenler?.map(x => x.replaceAll(' ', '_')) ?? [];
+		where = where ?? wh ?? _sent?.where; table ??= tableVeAlias?.table ?? this.table;
+		tableVeAlias ??= tabloVeAlias; duzenleyici ??= duzenle;
+		let tAlias = (alias ?? tableVeAlias?.alias ?? this.tableAlias) || 't';
+		// logRecDonusturucu ??= this.logRecDonusturucu;
+		let {computerName, userName, ip} = await app.sysInfo();
+		let _e = { ...e, /*logRecDonusturucu,*/ degisenler }, hv = _e.hv = {
+			islem, adimbelirtec: adimBelirtec.slice(0, 10),
 			kullanici: loginUser?.slice(0, 20),
 			terminal: [ip, computerName, userName].join('_'),
 			anatip: logAnaTip, tablo: table, ...logHV,
 			xdegisenler: degisenler.join(', ').slice(0, 400)
 		};
 		duzenleyici?.call(this, _e); hv = _e.hv;
-		let ins = _e.ins = new MQInsert({ table: 'vtlog', hv }); this.logInsertDuzenle(_e); ins = _e.ins;
+		await this.logHVDuzenle(_e); hv = _e.hv;
+		let ins = _e.ins = new MQInsert({ table: 'vtlog', hv });
+		await this.logInsertDuzenle(_e); ins = _e.ins;
 		return await app.sqlExecNone(ins)
 	}
 	logKaydet(e) {
 		e = e ?? {}; let logHV = e.logHV ?? this.logHV;
 		return this.class.logKaydet({ ...e, logHV })
 	}
+	static logHVDuzenle({ hv }) { }
 	static logInsertDuzenle(e) { }
 	static logRecDonusturucuDuzenle(e) { }
 	logHVDuzenle(e) { }

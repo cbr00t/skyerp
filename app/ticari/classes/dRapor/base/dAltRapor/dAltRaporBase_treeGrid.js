@@ -279,7 +279,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				/*if (toplammi) { (colDef?.aggregates?.includes('avg') ? _avgAttrListe : _sumAttrListe).push(belirtec) } */
 			}
 		}
-		let {records: jqxCols} = gridWidget.base.columns, grupTextColAttr = jqxCols?.[0]?.datafield;
+		let {records: jqxCols} = gridWidget.base.columns;
 		let formuller = []; for (let key in attrSet) { let item = tabloYapi.grupVeToplam[key]; if (item?.formulmu) { formuller.push(item) } }
 		let {recs} = e; if (recs) {
 			let _recs = recs; recs = []; for (let _rec of _recs) {
@@ -287,36 +287,42 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				for (let item of formuller) { item.formulEval({ rec }) }
 			} e.recs = recs
 		}
-		if (recs && yatayAnaliz) {
-			let yatayBelirtec = tabloYapi.grup[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod]?.colDefs?.[0]?.belirtec;
-			if (yatayBelirtec) {
-				let {grupVeToplam} = tabloYapi, gtTip2AttrListe = { sabit: [], toplam: [] };
-				for (let colDef of Object.values(belirtec2ColDef).filter(colDef => colDef.belirtec != yatayBelirtec)) {
-					let toplammi = colDef?.userData?.tip == 'toplam', selector = toplammi ? 'toplam' : 'sabit';
-					gtTip2AttrListe[selector].push(colDef.belirtec)
+		let {grupVeToplam} = tabloYapi, gtTip2AttrListe = { sabit: [], toplam: [] };
+		if (recs) {
+			for (let colDef of Object.values(belirtec2ColDef)/*.filter(colDef => colDef.belirtec != yatayBelirtec)*/) {
+				let toplammi = colDef?.userData?.tip == 'toplam', selector = toplammi ? 'toplam' : 'sabit';
+				gtTip2AttrListe[selector].push(colDef.belirtec)
+			}
+			if (yatayAnaliz) {
+				let yatayBelirtec = tabloYapi.grup[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod]?.colDefs?.[0]?.belirtec;
+				if (yatayBelirtec) {
+					/*let orj_toplamAttrSet = asSet(gtTip2AttrListe.toplam);
+					let toplamAttrListe = jqxCols.map(({ datafield }) => datafield).filter(belirtec => orj_toplamAttrSet[belirtec.split('_')[0]]);*/
+					let item = grupVeToplam[yatayBelirtec] ?? grupVeToplam[yatayBelirtec.toUpperCase()], {kodsuzmu} = item || {};
+					for (let rec of recs) { this.fixKA(rec, yatayBelirtec, kodsuzmu) }
+					let toplamAttrListe = gtTip2AttrListe.toplam, sevRecs = seviyelendirAttrGruplari({
+						source: recs, attrGruplari: [gtTip2AttrListe.sabit],
+						getter: ({ item }) => new DAltRapor_PanelRec_Donemsel({ yatayBelirtec, toplamAttrListe, ...item })
+					});
+					let tumYatayAttrSet = e.tumYatayAttrSet ?? {}, _e = { ...e, tumYatayAttrSet }; for (let sev of sevRecs) { sev.donemselDuzenle(_e) }
+					for (let sev of sevRecs) { sev.donemselAttrFix(_e) }
+					if (!$.isEmptyObject(tumYatayAttrSet)) {
+						_sumAttrListe.push(...Object.keys(tumYatayAttrSet)/*.filter(x => !x.endsWith('_TOPLAM'))*/);
+						_sumAttrListe = Object.keys(asSet(_sumAttrListe))
+					}
+					recs = sevRecs
 				}
-				/*let orj_toplamAttrSet = asSet(gtTip2AttrListe.toplam);
-				let toplamAttrListe = jqxCols.map(({ datafield }) => datafield).filter(belirtec => orj_toplamAttrSet[belirtec.split('_')[0]]);*/
-				let item = grupVeToplam[yatayBelirtec] ?? grupVeToplam[yatayBelirtec.toUpperCase()], {kodsuzmu} = item || {};
-				for (let rec of recs) { this.fixKA(rec, yatayBelirtec, kodsuzmu) }
-				let toplamAttrListe = gtTip2AttrListe.toplam, sevRecs = seviyelendirAttrGruplari({
-					source: recs, attrGruplari: [gtTip2AttrListe.sabit],
-					getter: ({ item }) => new DAltRapor_PanelRec_Donemsel({ yatayBelirtec, toplamAttrListe, ...item })
-				});
-				let tumYatayAttrSet = e.tumYatayAttrSet ?? {}, _e = { ...e, tumYatayAttrSet }; for (let sev of sevRecs) { sev.donemselDuzenle(_e) }
-				for (let sev of sevRecs) { sev.donemselAttrFix(_e) }
-				if (!$.isEmptyObject(tumYatayAttrSet)) {
-					_sumAttrListe.push(...Object.keys(tumYatayAttrSet)/*.filter(x => !x.endsWith('_TOPLAM'))*/);
-					_sumAttrListe = Object.keys(asSet(_sumAttrListe))
-				}
-				recs = sevRecs
 			}
 		}
-		let sevListe; if (grupColAttrListe?.length) {
+		let sevListe, grupTextColAttr = jqxCols?.[0]?.datafield;
+		if (grupColAttrListe?.length) {
 			let id = 1; sevListe = seviyelendir({
 				source: recs, attrListe: grupColAttrListe, getter: e => {
-					let {item, sevAttr} = e, _rec = new DAltRapor_PanelGruplama({ id, _sumAttrListe, _avgAttrListe, ...item });
-					id++; _rec[grupTextColAttr] = _rec[sevAttr]; return _rec
+					let {item, sevAttr} = e;
+					let _rec = new DAltRapor_PanelGruplama({ id, _sumAttrListe, _avgAttrListe, ...item });
+					_rec[grupTextColAttr] = _rec[sevAttr];
+					for (let key of gtTip2AttrListe.sabit) { if (key != grupTextColAttr) { _rec[key] = '' } }
+					id++; return _rec
 				}
 			});
 			for (let sev of sevListe) {

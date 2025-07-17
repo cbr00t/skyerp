@@ -12,6 +12,8 @@ class SablonluSatisSiparisFis extends SatisSiparisFis {
 	static loadServerData_queryDuzenle(e) { e.fisSinif = this; super.loadServerData_queryDuzenle(e); this.templateSinif.loadServerData_queryDuzenle(e) }
 	sablonYukleVeBirlestir(e) { e = e ?? {}; e.fis = this; return this.templateSinif.sablonYukleVeBirlestir(e) }
 	async yukleSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.yukleSonrasiIslemler(e); return await this.templateSinif.yukleSonrasiIslemler(e) }
+	async yeniTanimOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.yeniTanimOncesiIslemler(e); return await this.templateSinif.yeniTanimOncesiIslemler(e) }
+	async degistirOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.degistirOncesiIslemler(e); return await this.templateSinif.degistirOncesiIslemler(e) }
 	async kaydetOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetOncesiIslemler(e); return await this.templateSinif.kaydetOncesiIslemler(e) }
 	hostVarsDuzenle(e) { e.det = this; super.hostVarsDuzenle(e); this.templateSinif.hostVarsDuzenle(e) }
 	setValues(e) { e.det = this; super.setValues(e); this.templateSinif.setValues(e) }
@@ -31,6 +33,8 @@ class SablonluKonsinyeAlimSiparisFis extends AlimSiparisFis {
 	static loadServerData_queryDuzenle(e) { e.fisSinif = this; super.loadServerData_queryDuzenle(e); this.templateSinif.loadServerData_queryDuzenle(e) }
 	sablonYukleVeBirlestir(e) { e = e ?? {}; e.fis = this; return this.templateSinif.sablonYukleVeBirlestir(e) }
 	async yukleSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.yukleSonrasiIslemler(e); return await this.templateSinif.yukleSonrasiIslemler(e) }
+	async yeniTanimOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.yeniTanimOncesiIslemler(e); return await this.templateSinif.yeniTanimOncesiIslemler(e) }
+	async degistirOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.degistirOncesiIslemler(e); return await this.templateSinif.degistirOncesiIslemler(e) }
 	async kaydetOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetOncesiIslemler(e); return await this.templateSinif.kaydetOncesiIslemler(e) }
 	hostVarsDuzenle(e) { e.fis = this; super.hostVarsDuzenle(e); this.templateSinif.hostVarsDuzenle(e) }
 	setValues(e) { e.fis = this; super.setValues(e); this.templateSinif.setValues(e) }
@@ -50,6 +54,8 @@ class SablonluKonsinyeTransferFis extends TransferSiparisFis {
 	static loadServerData_queryDuzenle(e) { e.fisSinif = this; super.loadServerData_queryDuzenle(e); this.templateSinif.loadServerData_queryDuzenle(e) }
 	sablonYukleVeBirlestir(e) { e = e ?? {}; e.fis = this; return this.templateSinif.sablonYukleVeBirlestir(e) }
 	async yukleSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.yukleSonrasiIslemler(e); return await this.templateSinif.yukleSonrasiIslemler(e) }
+	async yeniTanimOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.yeniTanimOncesiIslemler(e); return await this.templateSinif.yeniTanimOncesiIslemler(e) }
+	async degistirOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.degistirOncesiIslemler(e); return await this.templateSinif.degistirOncesiIslemler(e) }
 	async kaydetOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetOncesiIslemler(e); return await this.templateSinif.kaydetOncesiIslemler(e) }
 	hostVarsDuzenle(e) { e.fis = this; super.hostVarsDuzenle(e); this.templateSinif.hostVarsDuzenle(e) }
 	setValues(e) { e.fis = this; super.setValues(e); this.templateSinif.setValues(e) }

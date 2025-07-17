@@ -8,7 +8,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 	get builder() {
 		let result = this._builder;
 		if (result && $.isFunction(result)) {
-			const _e = { sender: this, commitFlag: false, commit() { this.commitFlag = true; return this }, temp() { this.commitFlag = false; return this } };
+			let _e = { sender: this, commitFlag: false, commit() { this.commitFlag = true; return this }, temp() { this.commitFlag = false; return this } };
 			result = getFuncValue.call(this, result, _e); if (_e.commitFlag) this._builder = result
 		}
 		return result
@@ -22,26 +22,26 @@ class FisGirisPart extends GridliGirisWindowPart {
 			islem: e.islem, listePart: e.listePart, eskiFis: e.eskiInst || e.eskiFis || null, fis: e.inst || e.fis,
 			kaydetIslemi: e.kaydetIslemi, kaydedince: e.kaydedince, _builder: e.builder, dipEventsDisabledFlag: false, gridIslemTusYapilari: {}
 		});
-		if (!this.kontrolcu) { const gridKontrolcuSinif = fis.gridKontrolcuSinif || GridKontrolcu; this.kontrolcu = new gridKontrolcuSinif({ parentPart: this }) }
+		if (!this.kontrolcu) { let gridKontrolcuSinif = fis.gridKontrolcuSinif || GridKontrolcu; this.kontrolcu = new gridKontrolcuSinif({ parentPart: this }) }
 		fis = this.fis; let {listePart, wndArgs, islem} = this, {sinifAdi} = fis.class;
 		this.title = e.title == null ? (( sinifAdi ? `<u style="font-size: 110%;">${sinifAdi}</u> Fiş Girişi` : null ) || 'Fiş Giriş Ekranı') : e.title || '';
-		if (islem) { const islemText = islem[0].toUpperCase() + islem.slice(1); this.title += ` &nbsp;-&nbsp; <b class="window-title-ek">${islemText}</b>` }
+		if (islem) { let islemText = islem[0].toUpperCase() + islem.slice(1); this.title += ` &nbsp;-&nbsp; <b class="window-title-ek">${islemText}</b>` }
 	}
 	runDevam(e) {
 		e = e ?? {}; let islem = e.islem = this.islem;
-		super.runDevam(e); const sender = this, {layout, fis, header, islemTuslari} = this;
-		const splitMain = this.splitMain = layout.find('.main-split');
-		const baslikFormlar = this.baslikFormlar = [header.find('.baslikForm1'), header.find('.baslikForm2'), header.find('.baslikForm3')];
+		super.runDevam(e); let sender = this, {layout, fis, header, islemTuslari} = this;
+		let splitMain = this.splitMain = layout.find('.main-split');
+		let baslikFormlar = this.baslikFormlar = [header.find('.baslikForm1'), header.find('.baslikForm2'), header.find('.baslikForm3')];
 		splitMain.jqxSplitter({
 			theme, width: '100%', height: layout.height(), orientation: 'horizontal', splitBarSize: 20,
 			panels: [ { min: 87, size: fis.class.getUISplitHeight({ ...e, fis, islem }) ?? 165 }, { min: 200 } ]
 		});
-		const subeForm = this.subeForm = header.find('.sube'), tsnForm = this.tsnForm = layout.find('.tsnForm');
-		const divHeaderDipOrtak = this.divHeaderDipOrtak = layout.find('.headerDipOrtak'), dipForm = divHeaderDipOrtak.find('.dipForm');
+		let subeForm = this.subeForm = header.find('.sube'), tsnForm = this.tsnForm = layout.find('.tsnForm');
+		let divHeaderDipOrtak = this.divHeaderDipOrtak = layout.find('.headerDipOrtak'), dipForm = divHeaderDipOrtak.find('.dipForm');
 		if (fis.class.dipKullanilirmi) {
 			setTimeout(() => {
-				dipForm.removeClass('jqx-hidden'); const fisDipPart = this.fisDipPart = new FisDipPart({ parentPart: this, layout: dipForm, islem, fis }); fisDipPart.run();
-				const dipFormWidth = 335, splitHeaderDipOrtak = this.splitHeaderDipOrtak = layout.find('.headerDipOrtak');
+				dipForm.removeClass('jqx-hidden'); let fisDipPart = this.fisDipPart = new FisDipPart({ parentPart: this, layout: dipForm, islem, fis }); fisDipPart.run();
+				let dipFormWidth = 335, splitHeaderDipOrtak = this.splitHeaderDipOrtak = layout.find('.headerDipOrtak');
 				splitHeaderDipOrtak.jqxSplitter({
 					theme, width: '100%', height: '100%', orientation: 'vertical', splitBarSize: 13,
 					panels: [
@@ -52,8 +52,8 @@ class FisGirisPart extends GridliGirisWindowPart {
 			}, 50)
 		}
 		else { dipForm.addClass('jqx-hidden') }
-		const splitGridVeIslemTuslari = this.splitGridVeIslemTuslari = layout.find('.gridVeIslemTuslari');
-		const gridIslemTuslari = this.gridIslemTuslari = splitGridVeIslemTuslari.find('.gridIslemTuslari');
+		let splitGridVeIslemTuslari = this.splitGridVeIslemTuslari = layout.find('.gridVeIslemTuslari');
+		let gridIslemTuslari = this.gridIslemTuslari = splitGridVeIslemTuslari.find('.gridIslemTuslari');
 		let gridIslemTuslariWidth = asFloat(layout.css('--grid-islemTuslari-width').slice(0, -2));
 		setTimeout(async () => {
 			let _e = { ...e, sender, parent: $(document.createDocumentFragment()), islem, fis, layout, afterInit: [] };
@@ -61,12 +61,12 @@ class FisGirisPart extends GridliGirisWindowPart {
 			_e.parent.appendTo(gridIslemTuslari); gridIslemTuslari.removeClass('jqx-hidden basic-hidden');
 			let buttons = gridIslemTuslari?.length ? gridIslemTuslari.find('button') : null; _e.buttons = buttons;
 			if (buttons?.length) { buttons.jqxButton({ theme }) } else { layout.css('--grid-islemTuslari-width', '0px') }
-			const {afterInit} = _e; if ($.isEmptyObject(afterInit)) { for (let i in afterInit) { const handler = afterInit[i]; getFuncValue.call(this, handler, _e) } }
-			const {gridIslemTusYapilari} = this; for (let i = 0; i < buttons.length; i++) {
-				const elm = buttons.eq(i), id = elm.prop('id');
-				const clsElmInfo = class ElmInfo extends CObject {
+			let {afterInit} = _e; if ($.isEmptyObject(afterInit)) { for (let i in afterInit) { let handler = afterInit[i]; getFuncValue.call(this, handler, _e) } }
+			let {gridIslemTusYapilari} = this; for (let i = 0; i < buttons.length; i++) {
+				let elm = buttons.eq(i), id = elm.prop('id');
+				let clsElmInfo = class ElmInfo extends CObject {
 					static { window[this.name] = this; this._key2Class[this.name] = this }
-					constructor(e) { e = e || {}; super(e); for (const key in e) this[key] = e[key] }
+					constructor(e) { e = e || {}; super(e); for (let key in e) this[key] = e[key] }
 					get id() { return this.elm.prop('id') } get text() { return this.elm.html() } get width() { return this.elm.width() } get height() { return this.elm.height() }
 					get position() { return this.elm.position() } get offset() { return this.elm.offset() }
 					css(key, value) { return this.elm.css(key, value) } html() { return this.elm.html() }
@@ -117,10 +117,10 @@ class FisGirisPart extends GridliGirisWindowPart {
 		catch (ex) { hConfirm(getErrorText(ex), 'Fiş Giriş Ekranı'); throw ex }
 	}
 	async initFormBuilder(e) {
-		let {builder} = this; const {fis} = this;
+		let {builder} = this; let {fis} = this;
 		if (!builder && fis) { let _e = { ...e, sender: this }; builder = (await fis.getRootFormBuilder(_e)) || (await fis.getFormBuilders(_e)) } if ($.isEmptyObject(builder)) { return }
 		let {layout} = this, subBuilders = builder.isFormBuilder ? [builder] : builder, id2Builder = this.id2Builder = {};
-		for (const builder of subBuilders) {
+		for (let builder of subBuilders) {
 			if (!builder) { continue } builder.part = this; let _parent = builder.parent;
 			if (builder.isRootFormBuilder) {
 				this.builder = builder; let _layout = builder.layout;
@@ -133,9 +133,9 @@ class FisGirisPart extends GridliGirisWindowPart {
 		}
 	}
 	islemTuslariDuzenle(e) {
-		super.islemTuslariDuzenle(e); const {liste} = e, yListe = [];
-		for (const item of liste) {
-			const {id} = item; switch (id) {
+		super.islemTuslariDuzenle(e); let {liste} = e, yListe = [];
+		for (let item of liste) {
+			let {id} = item; switch (id) {
 				case 'tamam':
 					if (this.izlemi) { continue }
 					item.handler = e => this.tamamIstendi(e);
@@ -165,7 +165,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 	}
 	hizliBulIslemi({ tokens: filtreTokens }) { return super.hizliBulIslemi(...arguments) }
 	gridInit(e) {
-		super.gridInit(e); const {grid} = this;
+		super.gridInit(e); let {grid} = this;
 		//grid.on('cellvaluechanged', evt => this.gridVeriDegisti($.extend({}, e, { event: evt, action: 'cellValueChanged' })));
 		grid.on('filter', evt => this.gridYapiDegisti($.extend({}, e, { event: evt, action: 'filter' })));
 		grid.on('sort', evt => this.gridYapiDegisti($.extend({}, e, { event: evt, action: 'sort' })));
@@ -174,18 +174,18 @@ class FisGirisPart extends GridliGirisWindowPart {
 	}
 	gridArgsDuzenle(e) {
 		super.gridArgsDuzenle(e);
-		const {args} = e, {columns} = args;
-		for (const col of columns) {
-			const savedCellsRenderer = col.cellsRenderer;
+		let {args} = e, {columns} = args;
+		for (let col of columns) {
+			let savedCellsRenderer = col.cellsRenderer;
 			col.cellsRenderer = (rowIndex, columnField, value, html, jqxCol, rec) => {
-				const isPlainObject = $.isPlainObject(rec); if (isPlainObject) { const {gridWidget} = this; if (gridWidget) { rec = gridWidget.getrowdata(rowIndex); value = rec[columnField] } }
+				let isPlainObject = $.isPlainObject(rec); if (isPlainObject) { let {gridWidget} = this; if (gridWidget) { rec = gridWidget.getrowdata(rowIndex); value = rec[columnField] } }
 				html = savedCellsRenderer ? getFuncValue.call(this, savedCellsRenderer, rowIndex, columnField, value, html, jqxCol, rec) : (isPlainObject ? changeTagContent(html, value) : html);
 				return html
 			}
 		}
 	}
 	gridArgsDuzenleDevam(e) { super.gridArgsDuzenleDevam(e); $.extend(e.args, { width: '99.5%', /*editMode: 'selectedrow',*/ groupable: false, sortable: false, groupable: false }) }
-	/*get defaultTabloKolonlari() { const tabloKolonlari = super.defaultTabloKolonlari || []; return tabloKolonlari }*/
+	/*get defaultTabloKolonlari() { let tabloKolonlari = super.defaultTabloKolonlari || []; return tabloKolonlari }*/
 	async defaultLoadServerData(e) {
 		let {fis, kontrolcu, sabitFlag} = this, {gridDetaySinif} = fis.class, _e = $.extend({}, e, { fis });
 		_e.recs = []; for (let i = 0; i < fis.detaylar.length + (sabitFlag ? 0 : 1); i++) { _e.recs.push(this.newRec({ sinif: gridDetaySinif })) }
@@ -200,30 +200,30 @@ class FisGirisPart extends GridliGirisWindowPart {
 	gridSatirGuncellendi(e) { super.gridSatirGuncellendi(e) }
 	gridSatirSilindi(e) { super.gridSatirSilindi(e) }
 	gridSatirSayisiDegisti(e) {
-		const _e = $.extend({}, e || {}), {kontrolcu, fis} = this;
+		let _e = $.extend({}, e || {}), {kontrolcu, fis} = this;
 		if (kontrolcu?.grid2FisMesajsiz) { kontrolcu.grid2FisMesajsiz(_e) }
 		fis.detaylar = _e.recs; super.gridSatirSayisiDegisti(e); this.gridYapiDegisti(e)
 	}
 	gridYapiDegisti(e) {
-		/*e = e || {}; const gridWidget = e.event?.args.owner ?? this.gridWidget, timerKey = 'timer_gridRefresh'; clearTimeout(this[timerKey]);
+		/*e = e || {}; let gridWidget = e.event?.args.owner ?? this.gridWidget, timerKey = 'timer_gridRefresh'; clearTimeout(this[timerKey]);
 		this[timerKey] = setTimeout(() => { try { if (!gridWidget.editcell) gridWidget.refresh() } finally { delete this[timerKey] } }, 1000) */
 	}
 	async gridVeriYuklendi(e) {
-		e = e || {}; const {kontrolcu, fis, splitGridVeIslemTuslari} = this; await super.gridVeriYuklendi(e);
+		e = e || {}; let {kontrolcu, fis, splitGridVeIslemTuslari} = this; await super.gridVeriYuklendi(e);
 		if (kontrolcu) { await kontrolcu.fisGiris_gridVeriYuklendi({ sender: this, fis: fis, kontrolcu: kontrolcu, grid: this.grid, gridWidget: this.gridWidget }) }
 		setTimeout(async () => {
-			const {dipIslemci} = fis;
+			let {dipIslemci} = fis;
 			if (dipIslemci) { await dipIslemci._promise_dipSatirlari; dipIslemci.detaylar = e => this.boundRecs; dipIslemci.topluHesapla($.extend({}, e, { sender: this })) }
 			this.dipTazele(e); this.onResize(e)
 		}, 100)
 	}
 	dipTazele(e) {
-		const {dipEventsDisabledFlag, fisDipPart} = this; if (dipEventsDisabledFlag) { return false }
+		let {dipEventsDisabledFlag, fisDipPart} = this; if (dipEventsDisabledFlag) { return false }
 		if (fisDipPart && !fisDipPart.isDestroyed) { fisDipPart.tazele() }
 		return true
 	}
 	async tamamIstendi(e) {
-		e = e || {}; const evt = e.event || {}, {fis, fisDipPart} = this;
+		e = e || {}; let evt = e.event || {}, {fis, fisDipPart} = this;
 		if (fis.class.dipGirisYapilirmi && !(evt.ctrlKey || evt.shiftKey) && fisDipPart && !fisDipPart.isDestroyed) { return fisDipPart.open(e) }
 		return await this.kaydetIstendi(e)
 	}
@@ -238,7 +238,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 			let {kaydedince} = this; if (kaydedince) { result = await getFuncValue.call(this, kaydedince, { ...e, sender: this }) }
 			if (result === false) { return false }
 			this.kaydetCalistimi = true; this.destroyPart()
-		} catch (ex) { const err = getErrorText(ex); hConfirm(err, 'Fiş Kayıt Sorunu'); throw ex }
+		} catch (ex) { let err = getErrorText(ex); hConfirm(err, 'Fiş Kayıt Sorunu'); throw ex }
 		return true
 	}
 	async kaydet(e) {
@@ -252,11 +252,11 @@ class FisGirisPart extends GridliGirisWindowPart {
 			}
 			return false
 		}
-		const {fis} = this; fis.detaylar = e.recs;
+		let {fis} = this; fis.detaylar = e.recs;
 		return await this.kaydetDevam(e)
 	}
 	async kaydetDevam(e) {
-		e = e || {}; const {fis} = this;
+		e = e || {}; let {fis} = this;
 		let result = await this.kaydetOncesi(e); if (result == false || result?.isError) { return result }
 		if (this.yeniVeyaKopyami) { result = await fis.yaz(e) }
 		else if (this.degistirmi) { result = await fis.degistir(e) }
@@ -267,12 +267,12 @@ class FisGirisPart extends GridliGirisWindowPart {
 		return result
 	}
 	async kaydetOncesi(e) {
-		e = e || {}; const {yeniVeyaKopyami, degistirVeyaSilmi, builder, islem, eskiFis} = this, gridPart = this, {gridWidget} = gridPart; let {fis} = this;
+		e = e || {}; let {yeniVeyaKopyami, degistirVeyaSilmi, builder, islem, eskiFis} = this, gridPart = this, {gridWidget} = gridPart; let {fis} = this;
 		if (gridWidget?.editcell) { gridWidget.endcelledit() }
-		const _e = $.extend({}, e, { sender: this, builder, gridPart, islem, fis, eskiFis, yeniVeyaKopyami });
+		let _e = $.extend({}, e, { sender: this, builder, gridPart, islem, fis, eskiFis, yeniVeyaKopyami });
 		if (degistirVeyaSilmi) { e.eskiFis = this.eskiFis }
 		if (yeniVeyaKopyami) {
-			const {numaratorPart} = this, {otoNummu, numarator} = numaratorPart || {}; $.extend(_e, { otoNummu, numaratorPart, numarator });
+			let {numaratorPart} = this, {otoNummu, numarator} = numaratorPart || {}; $.extend(_e, { otoNummu, numaratorPart, numarator });
 			if (numaratorPart?.otoNummu) {
 				while (true) {
 					fis.fisNo = (await numarator.kesinlestir(_e)).sonNo;
@@ -280,11 +280,11 @@ class FisGirisPart extends GridliGirisWindowPart {
 				}
 			}
 		}
-		let result = await fis.uiKaydetOncesiIslemler(_e) ?? true; for (const key of ['islem', 'fis', 'eskiFis']) {
-			const value = _e[key]; if (value !== undefined) { this[key] = e[key] = value } }
+		let result = await fis.uiKaydetOncesiIslemler(_e) ?? true; for (let key of ['islem', 'fis', 'eskiFis']) {
+			let value = _e[key]; if (value !== undefined) { this[key] = e[key] = value } }
 		let {kaydetIslemi} = this; if (kaydetIslemi) {
 			_e.result = result; result = await getFuncValue.call(this, kaydetIslemi, _e) ?? true;
-			for (const key of ['islem', 'fis', 'eskiFis']) { let value = _e[key]; if (value !== undefined) { this[key] = e[key] = value } }
+			for (let key of ['islem', 'fis', 'eskiFis']) { let value = _e[key]; if (value !== undefined) { this[key] = e[key] = value } }
 		}
 		fis = this.fis; return result
 	}

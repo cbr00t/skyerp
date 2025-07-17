@@ -76,8 +76,8 @@ class MQSayacli extends MQCogul {
 	}
 	static logRecDonusturucuDuzenle({ result }) {
 		super.logRecDonusturucuDuzenle(...arguments);
-		let {sayacSaha} = this.class; result[sayacSaha] = 'xsayac'
-		let {kodKullanilirmi, kodSaha} = this.class; if (kodKullanilirmi) { result[kodSaha] = 'xkod' }
+		let {sayacSaha} = this; result[sayacSaha] = 'xsayac'
+		let {kodKullanilirmi, kodSaha} = this; if (kodKullanilirmi) { result[kodSaha] = 'xkod' }
 	}
 	logHVDuzenle({ hv }) {
 		super.logHVDuzenle(...arguments);

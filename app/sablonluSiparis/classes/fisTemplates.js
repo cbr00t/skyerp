@@ -11,7 +11,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		$.extend(pTanim, {
 			sablonSayac: new PInstNum('sablonsayac'), onayTipi: new PInstStr({ rowAttr: 'onaytipi', init: () => 'ON' }),
 			klFirmaKod: new PInstStr(), teslimOrtakdir: new PInstBitTrue('bteslimortakdir'),
-			teslimCariKod: new PInstStr()
+			teslimCariKod: new PInstStr(), araciKod: new PInstStr()
 		})
 	}
 	static rootFormBuilderDuzenle({ fisSinif, builders, sender: gridPart, islem /* , inst */ }) {
@@ -26,7 +26,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		/* rfb.vazgecIstendi = e => false; */
 		let updateHeader = async e => {
 			e = e ?? {}; let fbd = e.builder ?? gridPart.fbd_baslikBilgi;
-			let {altInst: inst, layout} = fbd; await this.teslimCariKodBelirle({ fis: inst });
+			let {altInst: inst, layout} = fbd;
 			let {subeKod, mustKod, sablonSayac, klFirmaKod, teslimCariKod} = inst;
 			let setKA = async (selector, kod, aciklama) => {
 				let elm = selector ? layout.find(`.${selector}`) : null; if (!elm?.length) { return }
@@ -70,10 +70,11 @@ class SablonluSiparisFisTemplate extends CObject {
 			.addStyle_wh(500)
 			.ozelQueryDuzenleHandler(({ builder: fbd, aliasVeNokta, stm }) => {
 				let {altInst: inst} = fbd ?? {}, {mustKod} = inst ?? {}; if (!mustKod) { return }
-				for (let sent of stm.getSentListe()) { sent.where.degerAta(mustKod, `${aliasVeNokta}must`) }
+				for (let {where: wh} of stm.getSentListe()) { wh.degerAta(mustKod, `${aliasVeNokta}must`) }
 			})
 			.degisince(({ builder: fbd }) => updateHeader());
 		baslikFormlar[1].addDateInput('baslikTeslimTarihi', 'Teslim Tarihi');
+		baslikFormlar[1].addTextInput('baslikAciklama', 'Açıklama');
 		let disableWithInfo = ({ color, text }) => {
 			grid.jqxGrid('editable', false); gridPart.baslikFormlar[0].parent().css('box-shadow', `0 2px 5px 3px ${color}`);
 			baslikFormlar[2].addForm('_ekBilgi').addStyle_fullWH(null, 'unset').addStyle(() => `$elementCSS { margin-top: 5px; padding: 5px 5px 10px 20px }`)
@@ -89,6 +90,9 @@ class SablonluSiparisFisTemplate extends CObject {
 		sahalar.addWithAlias(alias, 'sablonsayac', mustSaha)*/
 	}
 	static async yukleSonrasiIslemler(e) { return await this.sablonYukleVeBirlestir({ ...e }) }
+	static async yeniTanimOncesiIslemler(e) { await this.yeniTanimVeyaDegistirOncesiIslemler(e) }
+	static async degistirOncesiIslemler(e) { await this.yeniTanimVeyaDegistirOncesiIslemler(e) }
+	static async yeniTanimVeyaDegistirOncesiIslemler({ fis }) { /* await this.dagitimIcinEkBilgileriBelirle({ fis }) */ }
 	static async sablonYukleVeBirlestir(e) {
 		let {fis, islem, belirtec} = e, {sablonSayac, tarih, subeKod, mustKod} = fis;
 		if (!mustKod) { throw { isError:  true, errorText: `<b>Müşteri</b> seçilmelidir` } }
@@ -105,7 +109,9 @@ class SablonluSiparisFisTemplate extends CObject {
 			let belirtec = await app.sqlExecTekilDeger(sent);
 			if (belirtec) { numarator.belirtec = belirtec }
 		}*/
-		let kapsam = { tarih, subeKod, mustKod }, kosulYapilar = SatisKosulYapi.yukle({ kapsam });
+		let kapsam = { tarih, subeKod, mustKod }, anah = toJSONStr(kapsam);
+		let anah2KosulYapi = this.anah2KosulYapi ??= {};
+		let kosulYapilar = anah2KosulYapi[anah] ??= await SatisKosulYapi.yukle({ kapsam });
 		let sent = new MQSent({
 			from: 'hizlisablon sab', fromIliskiler: [
 				{ from: 'hizlisablongrup grp', iliski: 'grp.fissayac = sab.kaysayac' },
@@ -144,7 +150,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		}
 		let stokKodListe = recs?.map(({ shkod }) => shkod), izinliStokKodSet = null;
 		if (stokKodListe?.length) {
-			let tables = await app.sqlGetTables();
+			let tables = this._sqlTables = this._sqlTables ?? await app.sqlGetTables();
 			if (tables.pzmusturunfis) {
 				let sent = new MQSent(), {where: wh, sahalar} = sent;
 				sent.fisHareket('pzmusturunfis', 'pzmusturundetay'); sahalar.add('har.stokkod stokKod');
@@ -222,7 +228,8 @@ class SablonluSiparisFisTemplate extends CObject {
 			(stokKod2Detaylar[det.shKod] = stokKod2Detaylar[det] ?? []).push(det)
 		}
 		stokKodListe = Object.keys(stokKod2Detaylar); kosulYapilar = await kosulYapilar;
-		let fiyatYapilar = await SatisKosul_Fiyat.getAltKosulYapilar(stokKodListe, kosulYapilar?.FY, mustKod), iskontoArastirStokSet = {};
+		let iskontoArastirStokSet = {}; anah = toJSONStr(stokKodListe);
+		let fiyatYapilar = anah2KosulYapi[anah] ??= await SatisKosul_Fiyat.getAltKosulYapilar(stokKodListe, kosulYapilar?.FY, mustKod);
 		for (let det of detaylar) {
 			if (fiyatYapilar && det.netBedel == undefined) { continue }
 			let {shKod: stokKod} = det, kosulRec = fiyatYapilar[stokKod] ?? {}, {iskontoYokmu} = kosulRec;
@@ -232,7 +239,8 @@ class SablonluSiparisFisTemplate extends CObject {
 				$.extend(det, { fiyat, netBedel })
 			}
 		}
-		let iskYapilar = await SatisKosul_Iskonto.getAltKosulYapilar(Object.keys(iskontoArastirStokSet), kosulYapilar?.SB);
+		let iskontoArastirStokKodListe = Object.keys(iskontoArastirStokSet); anah = toJSONStr(iskontoArastirStokKodListe);
+		let iskYapilar = anah2KosulYapi[anah] ??= await SatisKosul_Iskonto.getAltKosulYapilar(iskontoArastirStokKodListe, kosulYapilar?.SB);
 		let prefix = 'oran'; for (const det of detaylar) {
 			let {stokKod} = det, kosulRec = iskYapilar[stokKod] ?? {};
 			for (let [key, value] of Object.entries(iskYapilar)) {
@@ -375,22 +383,57 @@ class SablonluSiparisFisTemplate extends CObject {
 		}
 	}
 	static getYazmaIcinDetaylar({ fis }) { return fis.detaylar.filter(det => !!det.miktar) }
-	static kaydetOncesiIslemler({ fis }) { this.teslimCariKodBelirle(...arguments) }
-	static hostVarsDuzenle({ fis, hv }) { if (fis.class.ticarimi) { hv.teslimcarikod = fis.teslimCariKod } }
-	static setValues({ fis, rec }) { if (fis.class.ticarimi) { fis.teslimCariKod = rec.teslimcarikod } }
+	static async kaydetOncesiIslemler({ fis }) {
+		await this.stokIslemBelirle(...arguments);
+		await this.dagitimIcinEkBilgileriBelirle(...arguments)
+	}
+	static hostVarsDuzenle({ fis, hv }) {
+		if (fis.class.ticarimi) {
+			let {teslimCariKod: teslimcarikod, araciKod: aracikod} = fis;
+			$.extend(hv, { teslimcarikod, aracikod })
+		}
+	}
+	static setValues({ fis, rec }) {
+		if (fis.class.ticarimi) {
+			let {teslimcarikod: teslimCariKod, aracikod: araciKod} = rec;
+			$.extend(fis, { teslimCariKod, araciKod })
+		}
+	}
 	static uiDuzenle_fisGirisIslemTuslari(e) { /* super yok */ }
-	static async teslimCariKodBelirle({ fis }) {
+	static async stokIslemBelirle({ fis }) {
+		let {almSat} = fis.class; almSat ||= 'T';
+		let isl = new MQStokIslem({ kod: `${almSat}INT`, tip: `${almSat}F`, durumKod: almSat });
+		if (!await isl.varmi()) { await isl.yaz() }
+		this.islKod = isl.kod
+	}
+	static async dagitimIcinEkBilgileriBelirle({ fis }) {
 		let {konsinyemi} = fis.class, {klFirmaKod} = fis;
-		if (!(konsinyemi && klFirmaKod)) { fis.teslimCariKod = ''; return null }
+		if (!konsinyemi) {
+			fis.teslimCariKod = fis.araciKod = '';
+			return null
+		}
+		/* Sonrası Konsinye içindir */
 		let {sablonSayac, mustKod, sevkAdresKod} = fis, sent = new MQSent(), {where: wh, sahalar} = sent;
-		sent.fromAdd('kldagitim dag').fromIliski('klfirma dfir', 'dag.klfirmakod = dfir.kod');
+		sent.fromAdd('kldagitim dag')
+			.fromIliski('klfirma dfir', 'dag.klfirmakod = dfir.kod');
 		wh.degerAta(klFirmaKod, 'dag.klfirmakod').degerAta(mustKod, 'dag.mustkod')
 		wh.add(new MQOrClause([
 			`dag.sevkadreskod = ''`,
 			(sevkAdresKod ? { degerAta: sevkAdresKod, saha: 'dag.sevkadreskod' } : null)
 		].filter(x => !!x)));
-		sahalar.add(`(case dag.bkendimizteslim when 0 then '' else dag.klteslimatcikod end) teslimCariKod`);
-		return fis.teslimCariKod = await app.sqlExecTekilDeger(sent)
+		sahalar.add(
+			/*'dag.bfaturayianafirmakeser anaFirmami',*/ 'dag.bkendimizteslim kendimizTeslimmi',
+			`(case when dag.bkendimizteslim > 0 then '' else dag.klteslimatcikod end) teslimEdenCariKod`,
+			'dfir.mustkod anaFirmaMustKod'
+		);
+		let {/*anaFirmami,*/ kendimizTeslimmi, teslimEdenCariKod, anaFirmaMustKod} = await app.sqlExecTekil(sent) ?? {};
+		/* kendimizTeslimmi  { true: İrs. Trf. Sip. | false: Alım Sip. }  */
+		$.extend(fis, {
+			mustKod: kendimizTeslimmi ? mustKod : anaFirmaMustKod,
+			teslimCariKod: kendimizTeslimmi ? '' : mustKod,
+			araciKod: kendimizTeslimmi ? '' : teslimEdenCariKod
+		});
+		return this
 	}
 }
 class SablonluSiparisDetayTemplate extends CObject {
@@ -423,7 +466,7 @@ class SablonluSiparisGridciTemplate extends CObject {
 	static get fisTemplateSinif() { return SablonluSiparisFisTemplate } static get sablonSinif() { return this.fisTemplateSinif.sablonSinif }
 	static gridArgsDuzenle({ gridPart, sender, args }) {
 		gridPart = gridPart ?? sender; gridPart.sabit();
-		$.extend(args, { rowsHeight: 45, groupsExpandedByDefault: true, editMode: 'click', selectionMode: 'singlecell' })
+		$.extend(args, { rowsHeight: 45, groupsExpandedByDefault: true, editMode: 'selectedcell', selectionMode: 'singlecell' })
 	}
 	static tabloKolonlariDuzenle_ilk({ tabloKolonlari }) {
 		tabloKolonlari.push(...[

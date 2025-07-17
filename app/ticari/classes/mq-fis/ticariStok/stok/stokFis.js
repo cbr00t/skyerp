@@ -18,8 +18,8 @@ class StokFis extends TSOrtakFis {
 		await super.raporKategorileriDuzenle_baslik(e); const {kullanim} = app.params.ticariGenel;
 		const sections = ['PTBaslikFisIslem', (kullanim.takipNo ? 'TakipNo' : null)]; await e.kat.ekSahaYukle({ section: sections })
 	}
-	static varsayilanKeyHostVarsDuzenle(e) {
-		super.varsayilanKeyHostVarsDuzenle(e); const {hv} = e;
+	static varsayilanKeyHostVarsDuzenle({ hv }) {
+		super.varsayilanKeyHostVarsDuzenle(...arguments);
 		$.extend(hv, { gctipi: this.gcTipi, ozeltip: this.ozelTip, fisekayrim: this.fisEkAyrim })
 	}
 }

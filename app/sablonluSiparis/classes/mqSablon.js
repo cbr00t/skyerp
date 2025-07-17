@@ -87,14 +87,19 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			new GridKolon({ belirtec: 'yeni', text: ' ', genislikCh: 8 }).noSql().tipButton('+').onClick(_e => { this.yeniIstendi({ ...e, ..._e }) })
 		])
 	}
-	static loadServerData_queryDuzenle({ basit, basitmi, gridPart, sender, stm, sent }) {
+	static async loadServerData_queryDuzenle({ basit, basitmi, gridPart, sender, stm, sent }) {
 		super.loadServerData_queryDuzenle(...arguments);
-		basitmi = basit ?? basitmi; if (basitmi) { return }
-		gridPart = gridPart ?? sender; let {subeKod, mustKod} = gridPart, {konsinyemi, tableAlias: alias} = this;
+		gridPart ??= sender; basitmi = basit ?? basitmi;
+		if (basitmi) { return }
+		let {konsinyemi, tableAlias: alias} = this, {mustKod} = gridPart;
+		let subeKod = gridPart.subeKod ?? config.session?.subeKod;
+		/* let fisSinif = await this.fisSinifBelirle({ ...arguments[0], mustKod }); let {mustSaha} = fisSinif */
 		let {sahalar, where: wh} = sent, {orderBy} = stm;
 		sahalar.addWithAlias(alias, 'bvadegunkullanilir vadeGunKullanilirmi', 'vadegunu vadeGunu', 'emailadresler email_sablonEk');
-		if (konsinyemi && mustKod) {
-			sent.fromIliski('kldagitim dag', ['sab.klfirmakod = dag.klfirmakod', `dag.sevkadreskod = ''`, `dag.mustkod = ${mustKod.sqlServerDegeri()}`]);
+		if (konsinyemi) {
+			/*sent
+				.fromIliski('klfirma dfir', 'sab.klfirmakod = dfir.kod')
+				.fromIliski('kldagitim dag', 'dfir.kod = dag.klfirmakod');*/
 			sahalar.add(`${alias}.klfirmakod klFirmaKod`)
 		}
 		orderBy.liste = ['aciklama']
@@ -103,8 +108,8 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		super.orjBaslikListesi_recsDuzenle(e); let {recs} = e;   /* 'await' super.orjBaslikListesi_recsDuzenle(e)  yapınca  'e.recs' bozuluyor ?? */
 		let gridPart = e.gridPart = e.gridPart ?? e.sender, {sayacSaha, listeFisSinif} = this, sayac2Rec = {};
 		for (let rec of recs) { let sayac = rec[sayacSaha]; sayac2Rec[sayac] = rec }
-		let sent = new MQSent(), stm = new MQStm({ sent });
-		let sablonSayacListe = Object.keys(sayac2Rec).map(x => asInteger(x)); $.extend(e, { sablonSayacListe, sent, stm });
+		let sablonSayacListe = e.sablonSayacListe = Object.keys(sayac2Rec).map(x => asInteger(x));
+		let sent = e.sent = new MQSent(), stm = e.stm = new MQStm({ sent });
 		this.sablonEkQueryDuzenle(e); sent = e.sent; stm = e.stm;
 		for (let { sablonSayac, topSayi } of await app.sqlExecSelect(stm)) {
 			let rec = sayac2Rec[sablonSayac]; if (!rec) { continue }
@@ -117,22 +122,13 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			for (let rec of recs) { rec._parentRec = parentRec } return recs })
 	}
 	static sablonEkQueryDuzenle(e) {
-		let gridPart = e.gridPart ?? e.sender ?? {}, {tarih, mustKod} = gridPart, subeKod = gridPart.subeKod ?? config.session?.subeKod;
+		let gridPart = e.gridPart ?? e.sender ?? {}, {tarih, mustKod} = gridPart;
+		let subeKod = gridPart.subeKod ?? config.session?.subeKod;
 		let {sablonSayacListe, stm, sent} = e, uni = e.sent = stm.sent = new MQUnionAll();
 		$.extend(e, { gridPart, subeKod, tarih, mustKod });
-		this.sablonEkQueryDuzenle_ilk(e); this.sablonEkQueryDuzenle_son(e)
+		this.sablonEkQueryDuzenleDevam(e)
 	}
-	static sablonEkQueryDuzenle_ilk(e) { }
-	static sablonEkQueryDuzenle_son({ stm, sablonSayacListe, subeKod, tarih }) {
-		for (let sent of stm.getSentListe()) {
-			let {sahalar, where: wh} = sent; wh.fisSilindiEkle().add(`fis.kapandi = ''`)
-			if (sablonSayacListe?.length) { wh.inDizi(sablonSayacListe, 'fis.sablonsayac') }
-			if (subeKod) { wh.degerAta(subeKod, 'fis.bizsubekod') }
-			if (tarih) { wh.degerAta(tarih, 'fis.tarih') }
-			sahalar.add('fis.sablonsayac sablonSayac', 'COUNT(*) topSayi');
-			sent.groupByOlustur()
-		}
-	}
+	static sablonEkQueryDuzenleDevam(e) { return this.detaySinif.sablonIcinSiparislerStmDuzenle({ ...e, detaylimi: false }) }
 	static async getEMailYapi(e) {
 		let {fisSayac} = e ?? {}, {sablonSip_eMail, konBuFirma_eMailListe} = app.params.web; 
 		if (!(fisSayac && sablonSip_eMail)) { return {} }
@@ -248,7 +244,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		gridPart.tazeleDefer(e)
 	}
 	static async onaylaDevam({ gridPart: listePart, sender: fisGirisPart, fis, rec }) {
-		const {sayac: fisSayac, detaylar} = fis, {table, sayacSaha} = fis.class;
+		let {sayac: fisSayac, detaylar} = fis, {table, sayacSaha} = fis.class;
 		if (!fisSayac) { throw { isError: true, errorText: 'Onaylanacak Sipariş için ID belirlenemedi' } }
 		let dokumVeEMail = musterimi => this.dokumYapVeEMailGonder({ musterimi, fis, rec });
 		await dokumVeEMail(true); await dokumVeEMail(false);
@@ -263,7 +259,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		try { dokumcu = await HTMLDokum.FromDosyaAdi(`VioWeb.KonLojistik.Siparis.${musterimi ? 'Musteri' : 'Diger'}.htm`) }
 		catch (ex) { console.error(ex); return false } if (dokumcu == null) { return }
 		fisSayac = fisSayac || fis?.sayac; parentRec = parentRec ?? rec?._parentRec;
-		const {fiyatFra, bedelFra} = app.params.zorunlu, dvKod = fis.dvKod || 'TL';
+		let {fiyatFra, bedelFra} = app.params.zorunlu, dvKod = fis.dvKod || 'TL';
 		let to = [], cc = [], bcc = [], eMailYapi = await this.getEMailYapi({ fisSayac }) ?? {};
 		let {email_sablonEk} = parentRec; if (email_sablonEk) {
 			email_sablonEk = email_sablonEk.split(';').map(x => x.trim()).filter(x => !!x);
@@ -296,7 +292,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		let dip = { brm2Miktar: {}, TOPBEDEL: 0 }, _seq = 0, detaylar = fis.detaylar.map(det => {
 			_seq++; let SEQ = det.seq || _seq;
 			let {barkod: BARKOD, shKod: STOKKOD, shAdi: STOKADI, brm: BRM, miktar, fiyat, netBedel: bedel} = det;
-			for (const {adiAttr} of hmrBilgiler) { let value = det[adiAttr]?.trim(); if (value) { STOKADI += ` (<b style="color: royalblue">${value}</b>)` } }
+			for (let {adiAttr} of hmrBilgiler) { let value = det[adiAttr]?.trim(); if (value) { STOKADI += ` (<b style="color: royalblue">${value}</b>)` } }
 			dip.brm2Miktar[BRM] = (dip.brm2Miktar[BRM] ?? 0) + (miktar ?? 0); dip.TOPBEDEL += (bedel ?? 0);
 			let MIKTAR = numberToString(miktar ?? 0), FIYAT = `${toStringWithFra(fiyat ?? 0, fiyatFra)} ${dvKod}`, BEDEL = `${toStringWithFra(bedel ?? 0, bedelFra)} ${dvKod}`;
 			BARKOD = BARKOD ?? ''; return { SEQ, BARKOD, STOKKOD, STOKADI, MIKTAR, BRM, FIYAT, BEDEL }
@@ -330,14 +326,6 @@ class MQSablon extends MQSablonOrtak {
 	static get kodListeTipi() { return 'SSIP' } static get sinifAdi() { return 'Sipariş' }
 	static get fisSiniflar() { return [...super.fisSiniflar, SablonluSatisSiparisFis ] }
 	static get detaySinif() { return MQSablonDetay }
-	static sablonEkQueryDuzenle_ilk({ sent: uni, sablonSayacListe, mustKod, tarih }) {
-		super.sablonEkQueryDuzenle_ilk(...arguments); let fisSinif = SablonluSatisSiparisFis;
-		let {table, mustSaha} = fisSinif, sent = new MQSent({ from: `${table} fis` });
-		let {sahalar, where: wh} = sent, keyHV = fisSinif.varsayilanKeyHostVars();
-		if (!$.isEmptyObject(keyHV)) { wh.birlestirDict(keyHV) }
-		if (mustKod) { wh.degerAta(mustKod, `fis.${mustSaha}`) }
-		uni.add(sent)
-	}
 	static async fisSinifBelirleInternal(e) { return await super.fisSinifBelirleInternal(e) }
 }
 /** Şablon listesi, Home screen */
@@ -346,24 +334,18 @@ class MQKonsinyeSablon extends MQSablonOrtak {
 	static get kodListeTipi() { return 'KSSIP' } static get sinifAdi() { return 'Konsinye Sipariş' }
 	static get fisSiniflar() { return [...super.fisSiniflar, SablonluKonsinyeAlimSiparisFis, SablonluKonsinyeTransferFis ] }
 	static get detaySinif() { return MQKonsinyeSablonDetay }
-	static sablonEkQueryDuzenle_ilk({ sent: uni, sablonSayacListe, mustKod, tarih }) {
-		super.sablonEkQueryDuzenle_ilk(...arguments); let {fisSiniflar} = this;
-		for (let fisSinif of fisSiniflar) { 
-			let {table, mustSaha} = fisSinif, sent = new MQSent({ from: `${table} fis` });
-			let {sahalar, where: wh} = sent, keyHV = fisSinif.varsayilanKeyHostVars();
-			if (!$.isEmptyObject(keyHV)) { wh.birlestirDict(keyHV) }
-			if (mustKod) { wh.degerAta(mustKod, `fis.${mustSaha}`) }
-			uni.add(sent)
-		}
-	}
 	static async fisSinifBelirleInternal(e) {
-		await super.fisSinifBelirleInternal(e); let rec = await this.getSablonIcinTeslimBilgisi(e); if (!rec) { return null }
+		await super.fisSinifBelirleInternal(e);
+		let rec = await this.getSablonIcinTeslimBilgisi(e); if (!rec) { return null }
 		let {TSEK: tip} = rec, islem = e.islem || e.belirtec, {gridRec: fisRec} = e;
 		if (islem == 'yeni' || islem == 'kopya') { fisRec = e.gridRec = null }
 		let kendimizmi = tip == 'K', kayitSTmi = fisRec?.kayitTipi == 'ST';
 		return kendimizmi || kayitSTmi ? SablonluKonsinyeTransferFis : SablonluKonsinyeAlimSiparisFis
 	}
 	static getSablonIcinTeslimBilgisi({ sablonSayac, mustKod, sevkAdresKod }) {
+		let anah2DagTeslimBilgi = this._anah2DagTeslimBilgi ??= {};
+		let anah = toJSONStr({ sablonSayac, mustKod, sevkAdresKod });
+		return anah2DagTeslimBilgi[anah] ??= (() => {
 		let sent = new MQSent({
 			from: 'hizlisablon sab', fromIliskiler: [
 				{ from: 'klfirma kfrm', iliski: 'sab.klfirmakod = kfrm.kod' },
@@ -394,10 +376,11 @@ class MQKonsinyeSablon extends MQSablonOrtak {
 					`COALESCE(kdag.teslimtipi, 'A') TSEK`,
 					'kdag.kendidepokod DEP'
 				])
-		}), {sahalar} = sent;
-		sahalar.add('sab.klfirmakod SFIR', 'sab.aciklama ADI', 'kfrm.mustkod ANA');
-		/* TSEK: { K: kendimiz, A: anafirma, T: teslimatci } */
-		return app.sqlExecTekil(sent)
+			}), {sahalar} = sent;
+			sahalar.add('sab.klfirmakod SFIR', 'sab.aciklama ADI', 'kfrm.mustkod ANA');
+			/* TSEK: { K: kendimiz, A: anafirma, T: teslimatci } */
+			return app.sqlExecTekil(sent)
+		})()
 	}
 	static eMailYapiQueryDuzenle(e) {
 		super.eMailYapiQueryDuzenle(e); let {fisSayac, stm} = e, uni = stm.sent = new MQUnionAll();
@@ -446,7 +429,11 @@ class MQSablonOrtakDetay extends MQDetay {
 			new GridKolon({ belirtec: 'sil', text: ' ', genislikCh: 5 }).noSql().tipButton('X').onClick(_e => { sablonSinif.silIstendi({ ...e, ..._e }) })
 		].filter(x => !!x))
 	}
-	static loadServerDataDogrudan(e) { let stm = e.query = e.stm = new MQStm(); e.sent = stm.sent; this.loadServerData_queryDuzenle(e); return super.loadServerData_querySonucu(e) }
+	static loadServerDataDogrudan(e) {
+		let stm = e.query = e.stm = new MQStm(); e.sent = stm.sent;
+		this.loadServerData_queryDuzenle(e);
+		return super.loadServerData_querySonucu(e)
+	}
 	static loadServerData_queryDuzenle(e) { /* super yok */ }
 }
 /** Şablon'a ait Önceki Siparişler */
@@ -458,11 +445,11 @@ class MQSablonDetay extends MQSablonOrtakDetay {
 		e.fisSinif = await this.sablonSinif.fisSinifBelirle({ ...e, sablonSayac, mustKod });
 		return await super.loadServerDataDogrudan(e)
 	}
-	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); let {sender: gridPart, parentRec, fisSinif} = e;  /* gridPart: SablonOrtakFis'in liste ekranı ; parentRec: Şablon başlık kaydı */
+	static loadServerData_queryDuzenle({ sender: gridPart, parentRec, fisSinif, stm }) {
+		super.loadServerData_queryDuzenle(...arguments);    /* gridPart: SablonOrtakFis'in liste ekranı ; parentRec: Şablon başlık kaydı */
 		let {kaysayac: sablonSayac} = parentRec, {tarih, mustKod} = gridPart, subeKod = gridPart.subeKod ?? config.session.subeKod;
 		let {table, mustSaha} = fisSinif, cariYil = app.params.zorunlu?.cariYil || today().getYil();
-		let {stm} = e, sent = stm.sent = new MQSent({
+		let sent = stm.sent = new MQSent({
 			from: `${table} fis`,
 			where: [
 				{ alias: 'fis', birlestirDict: fisSinif.varsayilanKeyHostVars() }, { degerAta: sablonSayac, saha: 'fis.sablonsayac' },
@@ -473,38 +460,56 @@ class MQSablonDetay extends MQSablonOrtakDetay {
 				'fis.xadreskod sevkadreskod', 'sadr.aciklama sevkadresadi', 'fis.basteslimtarihi', `(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`
 			]
 		}).fis2SubeBagla().fis2CariBagla().fis2SevkAdresBagla().fisSilindiEkle();
-		if (subeKod) { sent.where.degerAta(subeKod, 'fis.bizsubekod') }
-		if (tarih) { sent.where.degerAta(tarih, 'fis.tarih') }
-		if (mustKod) { sent.where.degerAta(mustKod, `fis.${mustSaha}`) }
-		stm.orderBy.add('tarih DESC', 'fisnox DESC')
+		let {where: wh} = sent, {orderBy} = stm;
+		if (tarih) { wh.degerAta(tarih, 'fis.tarih') }
+		if (subeKod) { wh.degerAta(subeKod, 'fis.bizsubekod') }
+		if (mustKod) { wh.degerAta(mustKod, `fis.${mustSaha}`) }
+		orderBy.add('tarih DESC', 'fisnox DESC')
 	}
 }
 /** Şablon'a ait Önceki Siparişler */
 class MQKonsinyeSablonDetay extends MQSablonOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQKonsinyeSablon }
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); let {sender: gridPart, parentRec} = e;  /* gridPart: SablonOrtakFis'in liste ekranı ; parentRec: Şablon başlık kaydı */
-		let {kaysayac: sablonSayac} = parentRec, {tarih, mustKod} = gridPart, subeKod = gridPart.subeKod ?? config.session.subeKod;
+		super.loadServerData_queryDuzenle(e);
+		this.sablonIcinSiparislerStmDuzenle({ ...e, detaylimi: true })
+	}
+	static sablonIcinSiparislerStmDuzenle(e) {
+		/* gridPart:
+				- (detaylimi == true): SablonOrtakFis'in liste ekranı ; parentRec: nil
+				- (detaylimi == false): SablonOrtakFis'in liste ekranı ; parentRec: Şablon başlık kaydı
+		*/
+		let {konsinyemi} = this, {sender: gridPart, parentRec, sablonSayacListe, detaylimi} = e; 
+		let {kaysayac: sablonSayac} = parentRec ?? {}; sablonSayacListe ??= $.makeArray(sablonSayac);
+		let {tarih, mustKod} = gridPart, subeKod = gridPart.subeKod ?? config.session.subeKod;
 		let cariYil = app.params.zorunlu?.cariYil || today().getYil();
-		let {stm} = e, uni = stm.sent = new MQUnionAll();
+		let {stm} = e, {orderBy} = stm, uni = stm.sent = new MQUnionAll();
 		let sentEkle = (kayitTipi, fisSinif) => {
-			let {table, mustSaha} = fisSinif, sent = new MQSent({
-				from: `${table} fis`,
-				where: [
-					{ alias: 'fis', birlestirDict: fisSinif.varsayilanKeyHostVars() }, { degerAta: sablonSayac, saha: 'fis.sablonsayac' },
-					`fis.kapandi = ''`, `fis.tarih >= CAST('${cariYil}-01-01T00:00:00' AS DATETIME)`
-				],
-				sahalar: [
-					`${kayitTipi.sqlServerDegeri()} kayitTipi`,
-					'fis.kaysayac', 'fis.tarih', 'fis.fisnox', `fis.bizsubekod subekod`, 'sub.aciklama subeadi', `fis.${mustSaha} mustkod`, 'car.birunvan mustunvan',
-					'fis.xadreskod sevkadreskod', 'sadr.aciklama sevkadresadi', 'fis.basteslimtarihi', `(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`
-				]
-			}).fis2SubeBagla().fis2CariBagla({ mustSaha }).fis2SevkAdresBagla().fisSilindiEkle();
-			if (subeKod) { sent.where.degerAta(subeKod, 'fis.bizsubekod') }
-			if (tarih) { sent.where.degerAta(tarih, 'fis.tarih') } if (mustKod) { sent.where.degerAta(mustKod, `fis.${mustSaha}`) }
+			let {table, mustSaha} = fisSinif, keyHV = fisSinif.varsayilanKeyHostVars();
+			let sent = new MQSent(), {sahalar, where: wh} = sent;
+			sent.fromAdd(`${table} fis`); wh.fisSilindiEkle();
+			wh.birlestirDict(keyHV).add(`fis.kapandi = ''`, `fis.tarih >= CAST('${cariYil}-01-01T00:00:00' AS DATETIME)`);
+			if (sablonSayacListe) { wh.inDizi(sablonSayacListe, 'fis.sablonsayac') }
+			if (subeKod) { wh.degerAta(subeKod, 'fis.bizsubekod') }
+			if (tarih) { wh.degerAta(tarih, 'fis.tarih') }
+			if (mustKod) {
+				if (konsinyemi && fisSinif.siparismi) { wh.degerAta(mustKod, 'fis.teslimcarikod') }      // Alım Siparişidir
+				else { wh.degerAta(mustKod, `fis.${mustSaha}`) }                                         // Satış Siparişi veya İrsaliyeli Transfer Sipariş
+			}
+			sahalar.add('fis.sablonsayac sablonSayac');
+			if (detaylimi) {
+				sent.fis2SubeBagla().fis2CariBagla({ mustSaha }).fis2SevkAdresBagla();
+				sahalar.add(`${kayitTipi.sqlServerDegeri()} kayitTipi`,
+					'fis.kaysayac', 'fis.tarih', 'fis.fisnox', 'fis.no', 'fis.bizsubekod subekod', 'sub.aciklama subeadi',
+					`fis.${mustSaha} mustkod`, 'car.birunvan mustunvan',
+					'fis.xadreskod sevkadreskod', 'sadr.aciklama sevkadresadi', 'fis.basteslimtarihi',
+					`(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`)
+			}
+			else { sahalar.add('COUNT(*) topSayi'); sent.groupByOlustur() }
 			uni.add(sent); return sent
 		}
-		sentEkle('', SablonluKonsinyeAlimSiparisFis); sentEkle('ST', SablonluKonsinyeTransferFis);
-		stm.orderBy.add('tarih DESC', 'fisnox DESC')
+		sentEkle('', SablonluKonsinyeAlimSiparisFis);
+		sentEkle('ST', SablonluKonsinyeTransferFis);
+		if (detaylimi) { orderBy.add('tarih DESC', 'no DESC') }
 	}
 }

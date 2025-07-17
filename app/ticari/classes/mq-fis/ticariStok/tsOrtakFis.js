@@ -15,7 +15,8 @@ class TSOrtakFis extends MQTicariGenelFis {
 		super.pTanimDuzenle(e); const {pTanim} = e;
 		$.extend(pTanim, {
 			takipNo: new PInstStr('orttakipno'), takipOrtakmi: new PInstTrue('takiportakdir'),
-			islKod: new PInstStr({ rowAttr: 'islkod', init: e => this.varsayilanIslKod }), hesapSekli: new PInstTekSecim('hesapsekli', FisHesapSekli),
+			islKod: new PInstStr({ rowAttr: 'islkod', init: e => this.varsayilanIslKod }),
+			hesapSekli: new PInstTekSecim('hesapsekli', FisHesapSekli),
 			efAyrimTipi: new PInstTekSecim('efayrimtipi', EIslemTip), baslikAciklama: new PInstStr('cariaciklama')
 		})
 	}

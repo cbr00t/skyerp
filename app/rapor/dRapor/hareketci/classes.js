@@ -360,7 +360,8 @@ class DRapor_Hareketci_Stok_Main extends DRapor_Hareketci_Main {
 }
 class DRapor_Hareketci_Stok_Gercek extends DRapor_Hareketci_Stok {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get vioAdim() { return null } static get hareketciSinif() { return StokHareketci_Gercek } 
+	static get vioAdim() { return this.hareketmi ? 'ST-AH' : this.envantermi ? 'ST-LE' : 'ST-AH' }
+	static get hareketciSinif() { return StokHareketci_Gercek } 
 }
 class DRapor_Hareketci_Stok_Gercek_Main extends DRapor_Hareketci_Stok_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -368,7 +369,8 @@ class DRapor_Hareketci_Stok_Gercek_Main extends DRapor_Hareketci_Stok_Main {
 }
 class DRapor_Hareketci_Stok_Maliyetli extends DRapor_Hareketci_Stok {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get vioAdim() { return null } static get hareketciSinif() { return StokHareketci_Maliyetli } 
+	static get vioAdim() { return this.hareketmi ? 'ST-AH' : this.envantermi ? 'ML-RH' : 'ML-RE' }
+	static get hareketciSinif() { return StokHareketci_Maliyetli } 
 }
 class DRapor_Hareketci_Stok_Maliyetli_Main extends DRapor_Hareketci_Stok_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

@@ -113,8 +113,9 @@ class MQGenelFis extends MQOrtakFis {
 	}
 	alternateKeyHostVarsDuzenle({ hv }) {
 		super.alternateKeyHostVarsDuzenle(...arguments); const {subeKodSaha, seriSaha, noYilKullanilirmi} = this.class;
-		hv[subeKodSaha] = this.subeKod || ''; hv[seriSaha] = this.seri || '';
-		if (noYilKullanilirmi) { const {noYil} = this; if (noYil != null) { hv.noyil = noYil } }
+		/*hv[subeKodSaha] = this.subeKod || '';*/
+		hv[seriSaha] = this.seri || '';
+		if (noYilKullanilirmi) { let {noYil} = this; if (noYil != null) { hv.noyil = noYil } }
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments); const {tarih} = this, {ozelIsaretDesteklenirmi, tarihSaha} = this.class;

@@ -4,3 +4,4 @@
 <script src="<?=$_partRoot?>/fis/mqSayacliKA.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/fis/mqDetayli.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/detay/mqDetay.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/mqLog.js?<?=$appVersion?>"></script>

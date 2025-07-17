@@ -309,12 +309,13 @@ class MQDetayli extends MQSayacli {
 	}
 	topluYazmaKomutlariniOlustur_baslikSayacBelirle(e) {
 		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {toplu, trnId, /*keyHV,*/ paramName_fisSayac} = e, {table, sayacSaha} = this.class;
-		let query = new MQSent({ from: table /*, where: { birlestirDict: keyHV } */ });
+		let query = new MQSent({ from: table /*, where: { birlestirDict: keyHV } */ }), {sahalar} = query;
 		if (offlineMode) {
-			query.sahalar.add(`MAX(${sayacSaha}) sayac`); let sayac = this.sqlExecTekilDeger({ offlineMode, trnId, query });
+			sahalar.add(`MAX(${sayacSaha}) sayac`); let sayac = this.sqlExecTekilDeger({ offlineMode, trnId, query });
 			return (sayac || 0) + 1
 		}
-		query.sahalar.add(`${paramName_fisSayac} = MAX(${sayacSaha})`); toplu.add(query)
+		sahalar.add(`${paramName_fisSayac} = MAX(${sayacSaha})`); toplu.add(query);
+		toplu.add(`IF COALESCE(@fisSayac, 0) = 0 RAISERROR('Başlık için fisSayac bilgisi belirlenemedi', 16, 1)`)
 	}
 	topluYazmaKomutlariniOlustur_sqlParamsDuzenle(e) {
 		let {params, paramName_fisSayac} = e; params.push({ name: paramName_fisSayac, type: 'int', direction: 'inputOutput', value: 0 })

@@ -246,8 +246,10 @@ class TicariFis extends TSOrtakFis {
 	// Stok/Hizmet/Demirbaş için Vergi bilgileri ek belirlemeler
 	async detaylariYukleSonrasi(e) { e = e || {}; await super.detaylariYukleSonrasi(e); await this.class.kdvKod2RecGlobalOlustur(e) }
 	static varsayilanKeyHostVarsDuzenle({ hv }) {
-		super.varsayilanKeyHostVarsDuzenle(...arguments); let {almSat, ayrimTipi, fisEkAyrim, ozelTip} = this;
+		super.varsayilanKeyHostVarsDuzenle(...arguments);
+		let {almSat, iade, ayrimTipi, fisEkAyrim, ozelTip} = this;
 		if (almSat != null) { hv.almsat = almSat }
+		if (iade != null) { hv.iade = iade }
 		if (ayrimTipi != null) { hv.ayrimtipi = ayrimTipi }
 		if (fisEkAyrim != null) { hv.fisekayrim = fisEkAyrim }
 		if (ozelTip != null) { hv.ozeltip = ozelTip }
@@ -386,6 +388,10 @@ class SiparisFis extends TicariFis {
 	static async raporKategorileriDuzenle_detaylar_tsStokMiktarOncesi(e) {
 		await super.raporKategorileriDuzenle_detaylar_tsStokMiktarOncesi(e);
 		let section = ['FRFisTicariDetay-Teslim', 'FRSipDetay-SevkVeKalan']; await e.kat.ekSahaYukle({ section })
+	}
+	static varsayilanKeyHostVarsDuzenle({ hv }) {
+		super.varsayilanKeyHostVarsDuzenle(...arguments);
+		delete hv.iade
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments); delete hv.detyerkod;

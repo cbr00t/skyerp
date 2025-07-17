@@ -180,7 +180,7 @@ class MQOrtakFis extends MQDetayli {
 		return result
 	}
 	static logRecDonusturucuDuzenle({ result }) {
-		super.logRecDonusturucuDuzenle(...arguments); let {noSaha} = this.class;
+		super.logRecDonusturucuDuzenle(...arguments); let {noSaha} = this;
 		result[noSaha] = 'xno'
 	}
 	logHVDuzenle({ hv }) {

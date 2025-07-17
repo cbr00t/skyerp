@@ -68,7 +68,7 @@ class MQTicNumarator extends MQNumarator {
 	keyHostVarsDuzenle(e) { super.superKeyHostVarsDuzenle(e); const {hv} = e; hv.tip = this.tip; }
 	keySetValues(e) { super.superKeySetValues(e); const {rec} = e; let value = rec.tip; if (value != null) this.tip = value }
 	async kesinlestir(e) {
-		const {table} = this.class, {sayac} = this;
+		let {table} = this.class, {sayac} = this;
 		let sonNo = this.sonNo || 0; if (!sayac) { this.sonNo = ++sonNo; return this }
 		let {sayacSaha} = this.class, result = await app.sqlExecNoneWithResult({
 			query: `UPDATE ${table} SET @sonNo = sonno = sonno + 1 WHERE ${sayacSaha} = ${sayac}`,
