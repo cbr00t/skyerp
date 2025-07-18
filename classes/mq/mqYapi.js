@@ -152,7 +152,7 @@ class MQYapi extends CIO {
 		e = e ?? {}; let {
 			sent: _sent, where, wh, adimBelirtec, logAnaTip, islem, degisenler,
 			tableVeAlias, tabloVeAlias, table, alias, logHV, /*logRecDonusturucu,*/
-			duzenle, duzenleyici
+			duzenle, duzenleyici, trn
 		} = e, {user: loginUser} = config.session;
 		islem ??= ''; adimBelirtec ??= this.kodListeTipi; logAnaTip ??= this.logAnaTip;
 		degisenler = degisenler?.map(x => x.replaceAll(' ', '_')) ?? [];
@@ -160,19 +160,20 @@ class MQYapi extends CIO {
 		tableVeAlias ??= tabloVeAlias; duzenleyici ??= duzenle;
 		let tAlias = (alias ?? tableVeAlias?.alias ?? this.tableAlias) || 't';
 		// logRecDonusturucu ??= this.logRecDonusturucu;
-		let {computerName, userName, ip} = await app.sysInfo();
+		let sysInfo = app._sysInfo ??= await app.sysInfo();
+		let {computerName, userName, ip} = sysInfo ?? {};
 		let _e = { ...e, /*logRecDonusturucu,*/ degisenler }, hv = _e.hv = {
 			islem, adimbelirtec: adimBelirtec.slice(0, 10),
 			kullanici: loginUser?.slice(0, 20),
-			terminal: [ip, computerName, userName].join('_'),
+			terminal: [ip || '', computerName || '', userName || ''].join('_'),
 			anatip: logAnaTip, tablo: table, ...logHV,
-			xdegisenler: degisenler.join(', ').slice(0, 400)
+			xdegisenler: degisenler.join('_').slice(0, 400)
 		};
 		duzenleyici?.call(this, _e); hv = _e.hv;
 		await this.logHVDuzenle(_e); hv = _e.hv;
 		let ins = _e.ins = new MQInsert({ table: 'vtlog', hv });
 		await this.logInsertDuzenle(_e); ins = _e.ins;
-		return await app.sqlExecNone(ins)
+		return await app.sqlExecNone({ query: ins, trn })
 	}
 	logKaydet(e) {
 		e = e ?? {}; let logHV = e.logHV ?? this.logHV;

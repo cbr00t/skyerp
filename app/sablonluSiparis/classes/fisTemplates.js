@@ -2,6 +2,7 @@ class SablonluSiparisFisTemplate extends CObject {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQSablonOrtak }
 	static getUISplitHeight({ islem }) { return 170 + ($(window).width() < 1300 ? 90 : 0) + (islem == 'onayla' || islem == 'sil' ? 65 : 0) }
 	static get numaratorGosterilirmi() { return false } static get dipGirisYapilirmi() { return false }
+	static get aciklamaKullanilirmi() { return false }
 	static constructor({ fis }) {
 		let {web} = app.params, {otoTeslimTarihi_gunEk} = web;
 		if (otoTeslimTarihi_gunEk) { fis.baslikTeslimTarihi = fis.tarih.clone().addDays(otoTeslimTarihi_gunEk) }
@@ -404,6 +405,13 @@ class SablonluSiparisFisTemplate extends CObject {
 		await this.stokIslemBelirle(...arguments);
 		await this.dagitimIcinEkBilgileriBelirle(...arguments)
 	}
+	static async kaydetSonrasiIslemler({ islem, fis, trn }) { }
+	static async kaydetVeyaSilmeSonrasiIslemler({ islem, fis, trn }) {
+		islem = (islem ?? 'y')[0].toUpperCase();
+		let degisenler = ['Web Kon.Sip.'];
+		try { await fis.logKaydet({ islem, degisenler, trn }) }
+		catch (ex) { console.error(ex) }
+	}
 	static hostVarsDuzenle({ fis, hv }) {
 		if (fis.class.ticarimi) {
 			let {teslimCariKod: teslimcarikod, araciKod: aracikod} = fis;
@@ -430,23 +438,30 @@ class SablonluSiparisFisTemplate extends CObject {
 			return null
 		}
 		/* Sonrası Konsinye içindir */
-		let {sablonSayac, mustKod, sevkAdresKod} = fis, sent = new MQSent(), {where: wh, sahalar} = sent;
+		let {sablonSayac, mustKod, sevkAdresKod} = fis;
+		let hedefMustKodClause = (
+			`(case when dag.bkendimizteslim > 0 then ${mustKod.sqlServerDegeri()}
+					when dag.bfaturayianafirmakeser > 0 then dfir.mustkod
+					else dag.klteslimatcikod end)`
+		);
+		let sent = new MQSent(), {where: wh, sahalar} = sent;
 		sent.fromAdd('kldagitim dag')
-			.fromIliski('klfirma dfir', 'dag.klfirmakod = dfir.kod');
+			.fromIliski('klfirma dfir', 'dag.klfirmakod = dfir.kod')
+			.fromIliski('carmst car', `${hedefMustKodClause} = car.must`)
+			.cari2BolgeBagla();
 		wh.degerAta(klFirmaKod, 'dag.klfirmakod').degerAta(mustKod, 'dag.mustkod')
 		wh.add(new MQOrClause([
 			`dag.sevkadreskod = ''`,
 			(sevkAdresKod ? { degerAta: sevkAdresKod, saha: 'dag.sevkadreskod' } : null)
 		].filter(x => !!x)));
 		sahalar.add(
-			'dag.bfaturayianafirmakeser anaFirmami', 'dag.bkendimizteslim kendimizTeslimmi',
-			`(case when dag.bkendimizteslim > 0 then '' else dag.klteslimatcikod end) teslimEdenCariKod`,
-			'dfir.mustkod anaFirmaMustKod'
+			`${hedefMustKodClause} hedefMustKod`, 'bol.bizsubekod subeKod', 'dag.bkendimizteslim kendimizTeslimmi',
+			`(case when dag.bkendimizteslim > 0 then '' else dag.klteslimatcikod end) teslimEdenCariKod`
 		);
-		let {anaFirmami, kendimizTeslimmi, teslimEdenCariKod, anaFirmaMustKod} = await app.sqlExecTekil(sent) ?? {};
+		let {subeKod, hedefMustKod, kendimizTeslimmi, teslimEdenCariKod} = await app.sqlExecTekil(sent) ?? {};
 		/* kendimizTeslimmi  { true: İrs. Trf. Sip. | false: Alım Sip. }  */
 		$.extend(fis, {
-			mustKod: kendimizTeslimmi ? mustKod : (anaFirmami ? anaFirmaMustKod : teslimEdenCariKod),
+			subeKod, mustKod: hedefMustKod,
 			teslimCariKod: kendimizTeslimmi ? '' : mustKod,
 			araciKod: kendimizTeslimmi ? '' : teslimEdenCariKod
 		});

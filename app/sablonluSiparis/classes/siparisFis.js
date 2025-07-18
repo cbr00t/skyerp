@@ -3,7 +3,8 @@ class SablonluSatisSiparisFis extends SatisSiparisFis {
 	static get sablonSinif() { return MQSablonOrtak } static get templateSinif() { return SablonluSiparisFisTemplate } get templateSinif() { return this.class.templateSinif }
 	static get detaySinif() { return SablonluSatisSiparisDetay } static get gridKontrolcuSinif() { return SablonluSatisSiparisGridci }
 	static get numaratorGosterilirmi() { return this.templateSinif.numaratorGosterilirmi } static get dipGirisYapilirmi() { return this.templateSinif.dipGirisYapilirmi }
-	static get numYapi() { let result = super.numYapi; if (result) { result.seri = 'ABC' } return result }
+	/*static get numYapi() { let result = super.numYapi; if (result) { result.seri = 'ABC' } return result }*/
+	static get aciklamaKullanilirmi() { return this.templateSinif.aciklamaKullanilirmi }
 	constructor(e) { e = e ?? {}; super(e); e.fis = this; this.templateSinif.constructor(e) }
 	static detaySiniflarDuzenle(e) { /* super yok - 'this.detaySiniflar' boş ise 'this.detaySinif' kullanılır */ }
 	static getUISplitHeight(e) { e = e ?? {}; e.fisSinif = this; return this.templateSinif.getUISplitHeight(e) }
@@ -14,6 +15,8 @@ class SablonluSatisSiparisFis extends SatisSiparisFis {
 	async yukleSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.yukleSonrasiIslemler(e); return await this.templateSinif.yukleSonrasiIslemler(e) }
 	async yeniTanimOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.yeniTanimOncesiIslemler(e); return await this.templateSinif.yeniTanimOncesiIslemler(e) }
 	async kaydetOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetOncesiIslemler(e); return await this.templateSinif.kaydetOncesiIslemler(e) }
+	async kaydetSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetSonrasiIslemler(e); return await this.templateSinif.kaydetSonrasiIslemler(e) }
+	async kaydetVeyaSilmeSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetVeyaSilmeSonrasiIslemler(e); return await this.templateSinif.kaydetVeyaSilmeSonrasiIslemler(e) }
 	hostVarsDuzenle(e) { e.det = this; super.hostVarsDuzenle(e); this.templateSinif.hostVarsDuzenle(e) }
 	setValues(e) { e.det = this; super.setValues(e); this.templateSinif.setValues(e) }
 	getYazmaIcinDetaylar(e) { e = e ?? {}; e.fis = this; return this.templateSinif.getYazmaIcinDetaylar(e) }
@@ -24,6 +27,8 @@ class SablonluKonsinyeAlimSiparisFis extends AlimSiparisFis {
 	static get sablonSinif() { return MQKonsinyeSablon } static get templateSinif() { return SablonluSiparisFisTemplate } get templateSinif() { return this.class.templateSinif }
 	static get detaySinif() { return SablonluKonsinyeAlimSiparisDetay } static get gridKontrolcuSinif() { return SablonluKonsinyeAlimSiparisGridci }
 	static get numaratorGosterilirmi() { return this.templateSinif.numaratorGosterilirmi } static get dipGirisYapilirmi() { return this.templateSinif.dipGirisYapilirmi }
+	/*static get numYapi() { let result = super.numYapi; if (result) { result.seri = 'ABC' } return result }*/
+	static get aciklamaKullanilirmi() { return this.templateSinif.aciklamaKullanilirmi }
 	constructor(e) { e = e ?? {}; super(e); e.fis = this; this.templateSinif.constructor(e) }
 	static detaySiniflarDuzenle(e) { /* super yok - 'this.detaySiniflar' boş ise 'this.detaySinif' kullanılır */ }
 	static getUISplitHeight(e) { e = e ?? {}; e.fisSinif = this; return this.templateSinif.getUISplitHeight(e) }
@@ -34,6 +39,8 @@ class SablonluKonsinyeAlimSiparisFis extends AlimSiparisFis {
 	async yukleSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.yukleSonrasiIslemler(e); return await this.templateSinif.yukleSonrasiIslemler(e) }
 	async yeniTanimOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.yeniTanimOncesiIslemler(e); return await this.templateSinif.yeniTanimOncesiIslemler(e) }
 	async kaydetOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetOncesiIslemler(e); return await this.templateSinif.kaydetOncesiIslemler(e) }
+	async kaydetSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetSonrasiIslemler(e); return await this.templateSinif.kaydetSonrasiIslemler(e) }
+	async kaydetVeyaSilmeSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetVeyaSilmeSonrasiIslemler(e); return await this.templateSinif.kaydetVeyaSilmeSonrasiIslemler(e) }
 	hostVarsDuzenle(e) { e.fis = this; super.hostVarsDuzenle(e); this.templateSinif.hostVarsDuzenle(e) }
 	setValues(e) { e.fis = this; super.setValues(e); this.templateSinif.setValues(e) }
 	getYazmaIcinDetaylar(e) { e = e ?? {}; e.fis = this; return this.templateSinif.getYazmaIcinDetaylar(e) }
@@ -44,6 +51,8 @@ class SablonluKonsinyeTransferFis extends TransferSiparisFis {
 	static get sablonSinif() { return MQKonsinyeSablon } static get templateSinif() { return SablonluSiparisFisTemplate } get templateSinif() { return this.class.templateSinif }
 	static get detaySinif() { return SablonluKonsinyeTransferDetay } static get gridKontrolcuSinif() { return SablonluKonsinyeTransferGridci }
 	static get numaratorGosterilirmi() { return this.templateSinif.numaratorGosterilirmi } static get dipGirisYapilirmi() { return this.templateSinif.dipGirisYapilirmi }
+	/*static get numYapi() { let result = super.numYapi; if (result) { result.seri = 'ABC' } return result }*/
+	static get aciklamaKullanilirmi() { return this.templateSinif.aciklamaKullanilirmi }
 	static detaySiniflarDuzenle(e) { /* super yok - 'this.detaySiniflar' boş ise 'this.detaySinif' kullanılır */ }
 	static getUISplitHeight(e) { e = e ?? {}; e.fisSinif = this; return this.templateSinif.getUISplitHeight(e) }
 	constructor(e) { e = e ?? {}; super(e); e.fis = this; this.templateSinif.constructor(e) }
@@ -54,6 +63,8 @@ class SablonluKonsinyeTransferFis extends TransferSiparisFis {
 	async yukleSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.yukleSonrasiIslemler(e); return await this.templateSinif.yukleSonrasiIslemler(e) }
 	async yeniTanimOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.yeniTanimOncesiIslemler(e); return await this.templateSinif.yeniTanimOncesiIslemler(e) }
 	async kaydetOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetOncesiIslemler(e); return await this.templateSinif.kaydetOncesiIslemler(e) }
+	async kaydetSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetSonrasiIslemler(e); return await this.templateSinif.kaydetSonrasiIslemler(e) }
+	async kaydetVeyaSilmeSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetVeyaSilmeSonrasiIslemler(e); return await this.templateSinif.kaydetVeyaSilmeSonrasiIslemler(e) }
 	hostVarsDuzenle(e) { e.fis = this; super.hostVarsDuzenle(e); this.templateSinif.hostVarsDuzenle(e) }
 	setValues(e) { e.fis = this; super.setValues(e); this.templateSinif.setValues(e) }
 	getYazmaIcinDetaylar(e) { e = e ?? {}; e.fis = this; return this.templateSinif.getYazmaIcinDetaylar(e) }
