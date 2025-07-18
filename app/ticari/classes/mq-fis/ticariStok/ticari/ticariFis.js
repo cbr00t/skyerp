@@ -345,7 +345,11 @@ class TicariFis extends TSOrtakFis {
 	async satisKosulYapiOlustur(e) {
 		await super.satisKosulYapiOlustur(e);
 		let {tarih, subeKod, mustKod} = this, kapsam = { tarih, subeKod, mustKod };
-		let kosulYapilar = new SatisKosulYapi({ kapsam }); if (!await kosulYapilar.yukle()) { kosulYapilar = null }
+		let anah2KosulYapi = SatisKosulYapi._anah2KosulYapi ??= {};
+		let kosulYapilar = anah2KosulYapi[toJSONStr(kapsam)] ??= await (async () => {
+			let result = new SatisKosulYapi({ kapsam });
+			return await result.yukle() ? result : null
+		})();
 		$.extend(this, { kosulYapilar }); return this
 	}
 	async fisBakiyeDurumuGerekirseAyarla(e) {

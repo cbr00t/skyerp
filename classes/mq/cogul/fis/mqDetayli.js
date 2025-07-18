@@ -389,7 +389,9 @@ class MQDetayli extends MQSayacli {
 		}
 	}
 	topluSilmeKomutlariniOlustur(e) {
-		let {toplu, sayac} = e, {table, sayacSaha, detaySiniflar, detayTablolar} = this.class, {fisSayacSaha} = detaySiniflar[0];
+		let {toplu, sayac} = e, {table, sayacSaha} = this.class;
+		let detaySinif = this.class.detaySinifFor(e), {fisSayacSaha} = detaySinif, _detayTablo = detaySinif.getDetayTable({ fis: this });
+		let detayTablolar = _detayTablo ? $.makeArray(_detayTablo) : detaySinif.detayTablolar;
 		for (let detTable of detayTablolar) { toplu.add(new MQIliskiliDelete({ from: detTable, where: { degerAta: sayac, saha: fisSayacSaha } })) }
 		toplu.add(new MQIliskiliDelete({ from: table, where: { degerAta: sayac, saha: sayacSaha } }))
 	}
