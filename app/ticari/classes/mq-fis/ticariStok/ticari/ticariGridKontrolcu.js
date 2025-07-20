@@ -36,7 +36,7 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 				if (handler) { getFuncValue.call(this, handler, colDef, rowIndex, value, parent, cellText, pressedChar) }
 			},
 			getEditorValue: (colDef, rowIndex, value, parent) => {
-				const {gridWidget} = colDef.gridPart, detaySinif = gridWidget.getrowdata(rowIndex)?.class;
+				let {gridWidget} = colDef.gridPart, detaySinif = gridWidget.getrowdata(rowIndex)?.class;
 				if (detaySinif?.aciklamami) { return parent.children('.editor').val() }
 				let result = value, handler = savedEditorHandlers.getEditorValue;
 				if (handler) { result = getFuncValue.call(this, handler, colDef, rowIndex, value, parent) }
@@ -47,9 +47,9 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 		shColDef.tabloKolonlari.push(
 			new GridKolon({
 				belirtec: 'kdvKod', text: 'Kdv', genislikCh: 8,
-				cellBeginEdit: (colDef, rowIndex, belirtec, colType, value, result) => { const {gridWidget} = this, det = gridWidget.getrowdata(rowIndex);  !!det.kdvDegiskenmi },
+				cellBeginEdit: (colDef, rowIndex, belirtec, colType, value, result) => { let {gridWidget} = this, det = gridWidget.getrowdata(rowIndex);  !!det.kdvDegiskenmi },
 				cellValueChanged: e => {
-					const {fis, parentPart} = this, {yildizlimi} = fis.class, {args} = e, kdvKod = args.value || '';
+					let {fis, parentPart} = this, {yildizlimi} = fis.class, {args} = e, kdvKod = args.value || '';
 					let det = args.owner.getrowdata(args.rowindex); if (!fis.yildizlimi) { det.orjkdvKod = kdvKod }
 					this.gridSatirGuncellendi(e)
 				}
@@ -111,7 +111,7 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 				new GridKolon({
 					userData: { iskYapiItem: item }, belirtec: belirtec, text: etiket, genislikCh: 25,
 					cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-						const oranlar = value;
+						let oranlar = value;
 						if (oranlar) {
 							let result = []; for (let oran of oranlar) { if (oran && oran > 0) { result.push(oran) } }
 							html = changeTagContent(html, ($.isEmptyObject(result) ? '' : `%${result.map(x => x.toString()).join('+')}`))
@@ -122,7 +122,7 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 						let {gridWidget} = colDef.gridPart, rec = gridWidget?.getrowdata(rowIndex);
 						let iskYapiItem = (colDef.userData || {}).iskYapiItem || {}, iskKey = iskYapiItem.key, {maxSayi} = iskYapiItem;
 						for (let i = 0; i < maxSayi; i++) {
-							const input = $(`<input class="${iskKey} isk" style="width: 80px;" maxlength="3" data-iskkey="${iskKey}" data-iskindex="${i}"></input>`);
+							let input = $(`<input class="${iskKey} isk" style="width: 80px;" maxlength="3" data-iskkey="${iskKey}" data-iskindex="${i}"></input>`);
 							input.on('focus', evt => evt.currentTarget.select());
 							input.on('change', ({ currentTarget: target }) => target.value = roundToBedelFra(asFloat(target.value)));
 							input.appendTo(editor);
@@ -131,7 +131,7 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 					initEditor: (colDef, rowIndex, value, editor, cellText) => {
 						let {gridWidget} = colDef.gridPart, rec = gridWidget?.getrowdata(rowIndex), oranlar = value, inputs = editor.find('.isk');
 						if (inputs.length) {
-							for (let i = 0; i < inputs.length; i++) { const input = inputs.eq(i), iskIndex = asInteger(input.data('iskindex')); input.val(asFloat(oranlar[iskIndex])); }
+							for (let i = 0; i < inputs.length; i++) { let input = inputs.eq(i), iskIndex = asInteger(input.data('iskindex')); input.val(asFloat(oranlar[iskIndex])); }
 							setTimeout(() => inputs.eq(0).focus(), 100)
 						}
 					},
@@ -161,12 +161,12 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 		}
 	}
 	islKodIsaretDegisti(e) {
-		const {fis, gridWidget, parentPart} = this, {ozelIsaret} = e, isaretlimi = (ozelIsaret == '*'), {vergiBelirtecler, vergiBelirtec_kdv} = TicariFis;
+		let {fis, gridWidget, parentPart} = this, {ozelIsaret} = e, isaretlimi = (ozelIsaret == '*'), {vergiBelirtecler, vergiBelirtec_kdv} = TicariFis;
 		gridWidget.beginupdate();
-		for (const det of gridWidget.getboundrows()) {
-			const rowIndex = det.boundindex;
-			for (const key of vergiBelirtecler) {
-				const kdvmi = key == vergiBelirtec_kdv; let duzValue;
+		for (let det of gridWidget.getboundrows()) {
+			let rowIndex = det.boundindex;
+			for (let key of vergiBelirtecler) {
+				let kdvmi = key == vergiBelirtec_kdv; let duzValue;
 				let colAttr = `${key}Kod`, value = det[`orj${colAttr}`] || ''; duzValue = isaretlimi ? '' : value; if (kdvmi) { gridWidget.setcellvalue(rowIndex, colAttr, duzValue) } else { det[colAttr] = duzValue }
 				colAttr = `${key}Belirtec`; value = det[`orj${colAttr}`] || ''; duzValue = isaretlimi ? '' : value; if (kdvmi) { det[colAttr] = duzValue } else { gridWidget.setcellvalue(rowIndex, colAttr, duzValue) }
 			}
@@ -174,37 +174,40 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 		}
 		gridWidget.endupdate(false); setTimeout(() => parentPart.dipTazele(), 10)
 	}
-	efAyrimTipiDegisi(e) { /*const {fis, gridWidget, parentPart} = this; const {value} = e*/ }
+	efAyrimTipiDegisi(e) { /*let {fis, gridWidget, parentPart} = this; let {value} = e*/ }
 	gridSatirGuncellendi(e) {
 		let {args} = e; if (!args) { e.args = { uid: e.uid, rowindex: e.rowIndex }; }
-		this.satirBedelHesapla(e); const {parentPart} = this; setTimeout(() => parentPart.dipTazele(), 10)
+		this.satirBedelHesapla(e); let {parentPart} = this; setTimeout(() => parentPart.dipTazele(), 10)
 	}
 	gridSatirSilindi(e) {
-		super.gridSatirSilindi(e); const {fis, parentPart} = this;
-		const {dipIslemci} = fis; if (dipIslemci) { dipIslemci.topluHesapla(e) }
+		super.gridSatirSilindi(e); let {fis, parentPart} = this;
+		let {dipIslemci} = fis; if (dipIslemci) { dipIslemci.topluHesapla(e) }
 		setTimeout(() => parentPart.dipTazele(), 10)
 	}
-	miktarFiyatDegisti(e) { super.miktarFiyatDegisti(e); const {parentPart} = this; setTimeout(() => parentPart.dipTazele(), 10) }
+	miktarFiyatDegisti(e) {
+		super.miktarFiyatDegisti(e); let {parentPart} = this;
+		setTimeout(() => parentPart.dipTazele(), 10)
+	}
 	satirBedelHesapla(e) {
-		const args = e.args || {}, {uid} = args,  rowIndex = args.rowindex, {gridWidget, fis, parentPart} = this;
-		const det = e.detay || e.rec || (uid == null ? gridWidget.getrowdata(rowIndex) : gridWidget.getrowdatabyid(uid)), degerler = { eski: det.dipHesabaEsasDegerler };
+		let args = e.args || {}, {uid} = args,  rowIndex = args.rowindex, {gridWidget, fis, parentPart} = this;
+		let det = e.detay || e.rec || (uid == null ? gridWidget.getrowdata(rowIndex) : gridWidget.getrowdatabyid(uid)), degerler = { eski: det.dipHesabaEsasDegerler };
 		super.satirBedelHesapla(e); degerler.yeni = det.dipHesabaEsasDegerler;
-		const {dipIslemci} = fis; if (dipIslemci) { dipIslemci.satirDegisimIcinHesapla({ detay: det, degerler }) }
+		let {dipIslemci} = fis; if (dipIslemci) { dipIslemci.satirDegisimIcinHesapla({ detay: det, degerler }) }
 	}
 }
 class EIslAlimGridKontrolcu extends TicariGridKontrolcu {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle(e) {
 		super.tabloKolonlariDuzenle(e);
-		const {fis} = this, ekTabloKolonlari = [
+		let {fis} = this, ekTabloKolonlari = [
 			new GridKolon({ belirtec: 'eSHText', text: 'EF Stok', genislikCh: 40 }).readOnly(),
 			new GridKolon({ belirtec: 'eIskOranText', text: 'EF İsk%', genislikCh: 8 }).readOnly(),
 			new GridKolon({ belirtec: 'eMiktar', text: 'EF Miktar', genislikCh: 8 }).readOnly().tipDecimal(),
 			new GridKolon({ belirtec: 'eBedel', text: 'EF Bedel', genislikCh: 13 }).readOnly().tipDecimal_bedel(),
 			new GridKolon({ belirtec: 'ayirac1', text: ' ', minWidth: 1, width: 20, cellClassName: 'ayirac' }).readOnly()
 		];
-		let {tabloKolonlari} = e; for (const colDef of tabloKolonlari) { colDef.serbestBirak() }
-		const index_tipColDef = tabloKolonlari.findIndex(colDef => colDef.belirtec == 'tip');
+		let {tabloKolonlari} = e; for (let colDef of tabloKolonlari) { colDef.serbestBirak() }
+		let index_tipColDef = tabloKolonlari.findIndex(colDef => colDef.belirtec == 'tip');
 		if (index_tipColDef) { tabloKolonlari.splice(index_tipColDef, 0, ...ekTabloKolonlari) } else { tabloKolonlari.unshift(...ekTabloKolonlari) }
 	}
 }

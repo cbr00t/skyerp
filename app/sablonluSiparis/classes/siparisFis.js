@@ -5,6 +5,7 @@ class SablonluSatisSiparisFis extends SatisSiparisFis {
 	static get numaratorGosterilirmi() { return this.templateSinif.numaratorGosterilirmi } static get dipGirisYapilirmi() { return this.templateSinif.dipGirisYapilirmi }
 	/*static get numYapi() { let result = super.numYapi; if (result) { result.seri = 'ABC' } return result }*/
 	static get aciklamaKullanilirmi() { return this.templateSinif.aciklamaKullanilirmi }
+	static get teslimCariSaha() { return this.templateSinif.teslimCariSaha }
 	constructor(e) { e = e ?? {}; super(e); e.fis = this; this.templateSinif.constructor(e) }
 	static detaySiniflarDuzenle(e) { /* super yok - 'this.detaySiniflar' boş ise 'this.detaySinif' kullanılır */ }
 	static getUISplitHeight(e) { e = e ?? {}; e.fisSinif = this; return this.templateSinif.getUISplitHeight(e) }
@@ -29,6 +30,7 @@ class SablonluKonsinyeAlimSiparisFis extends AlimSiparisFis {
 	static get numaratorGosterilirmi() { return this.templateSinif.numaratorGosterilirmi } static get dipGirisYapilirmi() { return this.templateSinif.dipGirisYapilirmi }
 	/*static get numYapi() { let result = super.numYapi; if (result) { result.seri = 'ABC' } return result }*/
 	static get aciklamaKullanilirmi() { return this.templateSinif.aciklamaKullanilirmi }
+	static get teslimCariSaha() { return this.templateSinif.teslimCariSaha }
 	constructor(e) { e = e ?? {}; super(e); e.fis = this; this.templateSinif.constructor(e) }
 	static detaySiniflarDuzenle(e) { /* super yok - 'this.detaySiniflar' boş ise 'this.detaySinif' kullanılır */ }
 	static getUISplitHeight(e) { e = e ?? {}; e.fisSinif = this; return this.templateSinif.getUISplitHeight(e) }
@@ -53,6 +55,7 @@ class SablonluKonsinyeTransferFis extends TransferSiparisFis {
 	static get numaratorGosterilirmi() { return this.templateSinif.numaratorGosterilirmi } static get dipGirisYapilirmi() { return this.templateSinif.dipGirisYapilirmi }
 	/*static get numYapi() { let result = super.numYapi; if (result) { result.seri = 'ABC' } return result }*/
 	static get aciklamaKullanilirmi() { return this.templateSinif.aciklamaKullanilirmi }
+	static get teslimCariSaha() { return this.mustSaha }
 	static detaySiniflarDuzenle(e) { /* super yok - 'this.detaySiniflar' boş ise 'this.detaySinif' kullanılır */ }
 	static getUISplitHeight(e) { e = e ?? {}; e.fisSinif = this; return this.templateSinif.getUISplitHeight(e) }
 	constructor(e) { e = e ?? {}; super(e); e.fis = this; this.templateSinif.constructor(e) }

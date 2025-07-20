@@ -1,19 +1,19 @@
 class DipIslemci extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get deepCopyAlinmayacaklar() { return $.merge(super.deepCopyAlinmayacaklar, ['fis', '_detaylar', '_promise_dipSatirlari']) }
-	get detaylar() { const {fis, _detaylar} = this; return (getFuncValue.call(this, _detaylar, { sender: this, fis }) ?? fis?.detaylar) }
+	get detaylar() { let {fis, _detaylar} = this; return (getFuncValue.call(this, _detaylar, { sender: this, fis }) ?? fis?.detaylar) }
 	set detaylar(value) { this._detaylar = value }
 	get icmalSonuclari() {
-		const {dipSatirlari} = this; const result = {};
-		for (const key of ['ciro', 'kdv', 'tevkifat', 'digerVergi']) { result[key] = new TLVeDVBedel() }
-		for (const dipSatir of dipSatirlari) { dipSatir.icmalSonuclarinaEkle(result) }
+		let {dipSatirlari} = this; let result = {};
+		for (let key of ['ciro', 'kdv', 'tevkifat', 'digerVergi']) { result[key] = new TLVeDVBedel() }
+		for (let dipSatir of dipSatirlari) { dipSatir.icmalSonuclarinaEkle(result) }
 		return result
 	}
 	get belirtec2DipSatir() {
 		let result = this._belirtec2DipSatir;
 		if (result == null) {
 			let {dipSatirlari} = this; result = {};
-			for (const dipSatir of dipSatirlari) { const {belirtec} = dipSatir; result[belirtec] = dipSatir }
+			for (let dipSatir of dipSatirlari) { let {belirtec} = dipSatir; result[belirtec] = dipSatir }
 			this._belirtec2DipSatir = result
 		}
 		return result
@@ -39,27 +39,27 @@ class DipIslemci extends CObject {
 	}
 	getDipGridSatirlari(e) {
 		e = e || {}; let {dipSatirlari} = this; if (!dipSatirlari) { this.dipSatirlariOlustur(e); dipSatirlari = this.dipSatirlari }
-		const gelismisFlag = e.gelismis, _e = $.extend({}, e, { liste: [] });
+		let gelismisFlag = e.gelismis, _e = $.extend({}, e, { liste: [] });
 		if (gelismisFlag) { this.dipGridSatirlariDuzenle_gelismis(_e) } else { this.dipGridSatirlariDuzenle_basit(_e) }
 		dipSatirlari = _e.liste; if (!gelismisFlag) { dipSatirlari = dipSatirlari.filter(item => item._visible && item._basitVisible) }
 		return dipSatirlari
 	}
 	dipSatirlariOlustur(e) {
-		const {fis} = this, _e = $.extend({}, e || {}, { fis, dipIslemci: this }); delete this._belirtec2DipSatir;
-		const dipSatirlari = this.dipSatirlari = fis.getDipGridSatirlari(_e), {belirtec2DipSatir} = this;
-		for (const dipSatir of dipSatirlari) { belirtec2DipSatir[dipSatir.belirtec] = dipSatir }
+		let {fis} = this, _e = $.extend({}, e || {}, { fis, dipIslemci: this }); delete this._belirtec2DipSatir;
+		let dipSatirlari = this.dipSatirlari = fis.getDipGridSatirlari(_e), {belirtec2DipSatir} = this;
+		for (let dipSatir of dipSatirlari) { belirtec2DipSatir[dipSatir.belirtec] = dipSatir }
 		let {_promise_dipSatirlari} = this; if (_promise_dipSatirlari) { _promise_dipSatirlari.resolve(dipSatirlari) }
 		return this
 	}
 	topluHesapla(e) { this.hesapcilarOnDegerleriYukle(e); this.satirlariHesapla(e); return this }
 	satirDegisimIcinHesapla(e) {
-		const {belirtec2DipSatir} = this, {yeni, eski} = e.degerler, satirNetArtis = yeni.netBedel - eski.netBedel;
+		let {belirtec2DipSatir} = this, {yeni, eski} = e.degerler, satirNetArtis = yeni.netBedel - eski.netBedel;
 		belirtec2DipSatir.BRUT.tlBedel = roundToBedelFra(belirtec2DipSatir.BRUT.tlBedel + satirNetArtis);				// Dip BRÜT = Satır Net Toplamı
 		this.satirlariHesapla(e); return this
 	}
 	hesapcilarOnDegerleriYukle(e) {
-		const {belirtec2DipSatir, detaylar} = this; let netToplam = 0;
-		for (const det of detaylar) {
+		let {belirtec2DipSatir, detaylar} = this, netToplam = 0;
+		for (let det of detaylar) {
 			let dipHesabaEsasDegerler = det.dipHesabaEsasDegerler || {};
 			netToplam = roundToBedelFra(netToplam + dipHesabaEsasDegerler.netBedel || 0)
 		}
@@ -144,7 +144,7 @@ class DipIslemci extends CObject {
 			let dipSatir = dipSatirlari[i]; dipSatir.hesapla(e) }
 	}
 	dipGridSatirlariDuzenle_basit(e) {
-		const {belirtec2DipSatir} = this, result = e.liste;
+		let {belirtec2DipSatir} = this, result = e.liste;
 		result.push(
 			belirtec2DipSatir.BRUT,
 			new DipSatir_IskBedel({ belirtec: 'ISKNAK', etiket: 'İsk/Nak', dipIslemci: this }),
@@ -152,24 +152,24 @@ class DipIslemci extends CObject {
 			new DipSatir_Tevkifat({ belirtec: 'TOPTEV', etiket: 'Tevkifat', dipIslemci: this }),
 			belirtec2DipSatir.SONUC
 		);
-		const _belirtec2DipSatir = {};
-		for (const dipSatir of result) { dipSatir.readOnly(); _belirtec2DipSatir[dipSatir.belirtec] = dipSatir }
-		for (const dipSatir of Object.values(belirtec2DipSatir)) {
+		let _belirtec2DipSatir = {};
+		for (let dipSatir of result) { dipSatir.readOnly(); _belirtec2DipSatir[dipSatir.belirtec] = dipSatir }
+		for (let dipSatir of Object.values(belirtec2DipSatir)) {
 			if (dipSatir.iskontomu) _belirtec2DipSatir.ISKNAK.tlBedel += dipSatir.tlBedel
 			else if (dipSatir.nakliyemi) _belirtec2DipSatir.ISKNAK.tlBedel -= dipSatir.tlBedel
 			else if (dipSatir.kdvBedelmi) _belirtec2DipSatir.TOPKDV.tlBedel += dipSatir.tlBedel
 			else if (dipSatir.tevkifatmi) _belirtec2DipSatir.TOPTEV.tlBedel += dipSatir.tlBedel
 		}
-		for (const dipSatir of result) { if (!dipSatir.tlBedel) { dipSatir.hidden() } }
+		for (let dipSatir of result) { if (!dipSatir.tlBedel) { dipSatir.hidden() } }
 		for (let key of ['BRUT', 'SONUC', 'TOPKDV']) { _belirtec2DipSatir[key]?.visible() }
 	}
-	dipGridSatirlariDuzenle_gelismis(e) { const result = e.liste; result.push(...this.dipSatirlari) }
+	dipGridSatirlariDuzenle_gelismis(e) { let result = e.liste; result.push(...this.dipSatirlari) }
 	add(e, _ref) {
 		e = e || {};
 		let {dipSatirlari} = this; if (!dipSatirlari) { this.dipSatirlariOlustur(); dipSatirlari = this.dipSatirlari }
-		const item = e.item === undefined ? e : e.item, {belirtec} = item; let {belirtec2DipSatir} = this;
+		let item = e.item === undefined ? e : e.item, {belirtec} = item; let {belirtec2DipSatir} = this;
 		if (belirtec2DipSatir[belirtec]) return this
-		const ref = e.item === undefined ? _ref : e.ref, ind = ref ? dipSatirlari.indexOf(ref) : -1;
+		let ref = e.item === undefined ? _ref : e.ref, ind = ref ? dipSatirlari.indexOf(ref) : -1;
 		if (ind) { arrayInsert(dipSatirlari, ind + 1, item) } else { dipSatirlari.push(item) }
 		delete this._belirtec2DipSatir; return this
 	}

@@ -375,7 +375,8 @@ class TicariFis extends TSOrtakFis {
 class SiparisFis extends TicariFis {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get siparismi() { return true }
 	static get sinifAdi() { return `${super.sinifAdi}Siparis` } static get table() { return 'sipfis' }
-	static get baslikOzelAciklamaTablo() { return 'sipbasekaciklama' } static get dipSerbestAciklamaTablo() { return 'sipdipaciklama' } static get dipEkBilgiTablo() { return 'sipdipekbilgi' }
+	static get baslikOzelAciklamaTablo() { return 'sipbasekaciklama' } static get dipSerbestAciklamaTablo() { return 'sipdipaciklama' }
+	static get dipEkBilgiTablo() { return 'sipdipekbilgi' } static get sevkFisSinif() { return null }
 	static get pifTipi() { return 'S' } static get iade() { return '' } static get ozelTip() { return '' }
 	static get onayliTipler() { return ['', 'BK', 'RV', 'OG'] }
 	constructor(e) {
@@ -409,10 +410,12 @@ class SiparisFis extends TicariFis {
 class SatisSiparisFis extends SiparisFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PSATSIP' } static get numTipKod() { return 'TS' } static get almSat() { return 'T' }
+	static get sevkFisSinif() { return SatisIrsaliyeFis }
 }
 class AlimSiparisFis extends SiparisFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PALMSIP' } static get numTipKod() { return 'AS' } static get almSat() { return 'A' }
+	static get sevkFisSinif() { return AlimIrsaliyeFis }
 }
 
 class SevkiyatFis extends TicariFis {

@@ -142,10 +142,11 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		this.sablonEkQueryDuzenleDevam(e)
 	}
 	static sablonEkQueryDuzenleDevam(e) { return this.detaySinif.sablonIcinSiparislerStmDuzenle({ ...e, detaylimi: false }) }
-	static async getEMailYapi(e) {
-		let {fisSayac} = e ?? {}, {sablonSip_eMail, konBuFirma_eMailListe} = app.params.web; 
+	static async getEMailYapi({ musterilimi, fisSayac }) {
+		let {sablonSip_eMail, konBuFirma_eMailListe} = app.params.web;
 		if (!(fisSayac && sablonSip_eMail)) { return {} }
-		let stm = new MQStm(), _e = { ...e, stm }; stm = this.eMailYapiQueryDuzenle(_e) === false ? null : _e.stm;
+		let stm = new MQStm(), _e = { ...arguments[0], stm };
+		stm = this.eMailYapiQueryDuzenle(_e) === false ? null : _e.stm;
 		let EMailPrefix = 'email_', recs = stm ? await app.sqlExecSelect(stm) : null;
 		let result = { ...recs?.[0] }; if (recs?.length) {
 			for (let rec of recs) {
@@ -295,7 +296,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		catch (ex) { console.error(ex); return false } if (dokumcu == null) { return }
 		fisSayac = fisSayac || fis?.sayac; parentRec = parentRec ?? rec?._parentRec;
 		let {fiyatFra, bedelFra} = app.params.zorunlu, dvKod = fis.dvKod || 'TL';
-		let to = [], cc = [], bcc = [], eMailYapi = await this.getEMailYapi({ fisSayac }) ?? {};
+		let to = [], cc = [], bcc = [], eMailYapi = await this.getEMailYapi({ musterimi, fisSayac }) ?? {};
 		let {email_sablonEk} = parentRec; if (email_sablonEk) {
 			email_sablonEk = email_sablonEk.split(';').map(x => x.trim()).filter(x => !!x);
 			if (email_sablonEk?.length) { $.extend(eMailYapi, { sablonEk: email_sablonEk }) }
@@ -306,7 +307,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 				let eMails = eMailYapi[selector]?.filter(x => x?.length >= 5 && x.includes('@')) ?? [];
 				for (let eMail of eMails) {
 					eMail = eMail.trim(); if (eMailSet[eMail]) { continue }
-					eMailSet[eMail] = true; (to.length ? bcc : to).push(eMail)
+					eMailSet[eMail] = true; (to.length ? cc : to).push(eMail)
 				}
 			}
 		}
