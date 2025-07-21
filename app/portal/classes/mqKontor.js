@@ -294,9 +294,13 @@ class MQKontor extends MQDetayliMaster {
 			return false
 		}
 		clearTimeout(this._hTimer_faturalastir); delete this._hTimer_faturalastir;
-		let db2Tip2Must2Recs = {}, vknSet = e.vknSet = {};
+		let db2Tip2Must2Recs = {}, vknSet = e.vknSet = {}, errors = e.errors ??= [];
 		for (let rec of kRecs) {
-			abortCheck?.(); let {mustkod: mustKod, fatdurum: fatDurum, vkn} = rec;
+			abortCheck?.(); let {mustkod: mustKod, mustunvan: mustUnvan, fatdurum: fatDurum, vkn} = rec;
+			if (!vkn) {
+				errors.push(`<b><span class=lightgray>(${mustKod})</span> <span class=royalblue>${mustUnvan}</span></b> müşterisi için <b class=firebrick>VKN</b> değeri boş durumdadır`);
+				continue
+			}
 			let db = fatDurum == 'B' ? 'YI25SKYLOGFAT' : 'YI25POLENFAT';
 			let tip2Must2Recs = db2Tip2Must2Recs[db] = db2Tip2Must2Recs[db] ?? {};
 			let must2Recs = tip2Must2Recs[fatDurum] = tip2Must2Recs[fatDurum] ?? {};
@@ -304,7 +308,7 @@ class MQKontor extends MQDetayliMaster {
 			vknSet[vkn] = true; pm?.progressStep()
 		}
 		abortCheck?.(); e.vknListe = Object.keys(vknSet);
-
+		let ekMesaj = errors?.length ? `<p/><hr/><h5>Ek Bilgiler:</h5><ul>${errors.map(x => `<li>${x}</li>`)}</ul>` : '';
 		let tumFisler = [], totalCount = 0;
 		try {
 			for (let [db, tip2Must2Recs] of Object.entries(db2Tip2Must2Recs)) {
@@ -313,7 +317,7 @@ class MQKontor extends MQDetayliMaster {
 				totalCount = _e.totalCount
 			}
 			if (!tumFisler?.length) {
-				hConfirm(`ERP'ye işlenecek bilgi yok`, islemAdi);
+				hConfirm(`<br/><b class=red>ERP'ye işlenecek bilgi yok</b>${ekMesaj}`, islemAdi);
 				hideProgress(); delete this._hTimer_faturalastir;
 				return false
 			}
@@ -325,13 +329,13 @@ class MQKontor extends MQDetayliMaster {
 			`<br/><ul>` +
 			`<li><b class=royalblue>${totalCount}</b> adet <b class=royalblue>Kontör Alım Hareketi</b> için<p/></li>` +
 			`<li>ERP tarafında <b class=forestgreen>${tumFisler?.length ?? 0}</b> adet <b class=forestgreen>Belge</b> oluşturuldu</li>` +
-			`</ul>`
+			`</ul>${ekMesaj}`
 		), islemAdi);
 		/* this._hTimer_importRecords_progress = setTimeout(() => { hideProgress(); delete this._hTimer_importRecords_progress }, 5000); */
 		return true
 	}
 	static async kontor_topluFaturalastir(e) {
-		let {db, tip2Must2Recs, tumFisler, vknListe, pm, abortCheck} = e;
+		let {db, tip2Must2Recs, tumFisler, vknListe, pm, abortCheck, errors} = e;
 		let {vioHizmetKod: shKod, acikIslKodPrefix, detayTable} = this, vkn2Must = {}, must2VKN = {}, efatVKNSet = {}, hizRec = {};
 		let withFatDBDo = block => app.onMuhDBDo(db, block);
 		await withFatDBDo(async e => {
@@ -405,8 +409,13 @@ class MQKontor extends MQDetayliMaster {
 					if (!vkn || vkn2Must[vkn]) { continue }
 					let sahismi = vkn?.length == 11, vnumara = sahismi ? '' : vkn, tckimlikno = sahismi ? vkn : '';
 					let unvan1 = `**SkyPortal Akt: ${must}`;
-					_toplu.add(new MQInsert({ table: 'carmst', hv: { must, unvan1, sahismi: bool2FileStr(sahismi), vnumara, tckimlikno } }));
-					must2VKN[must] = vkn; vkn2Must[vkn] = must
+					let unvan2 = mustUnvan.slice(0, 50);
+					_toplu.add(new MQInsert({ table: 'carmst', hv: { must, unvan1, unvan2, sahismi: bool2FileStr(sahismi), vnumara, tckimlikno } }));
+					must2VKN[must] = vkn; vkn2Must[vkn] = must;
+					errors.push(
+						`<b><span class=lightgray>(${must})</span> <span class=royalblue>${mustUnvan}</span></b> müşterisi ` + 
+						`<b class=forestgreen>${vkn}</b> VKN ile ERP Veritabanında <u>yeni cari kaydı</u> açıldı`
+					)
 				}
 				if (_toplu.liste.length) { await app.sqlExecNone(_toplu) } _toplu = null;
 

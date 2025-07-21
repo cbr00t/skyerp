@@ -546,7 +546,8 @@ class SablonluSiparisFisTemplate extends CObject {
 			return null
 		}
 		/* Sonrası Konsinye içindir */
-		let {sablonSayac, mustKod, sevkAdresKod} = fis;
+		let {sablonSayac, mustKod, sevkAdresKod, class: fisSinif} = fis;
+		let {mustSaha, stokmu} = fisSinif, {gecerliDepolar} = app, cYerKod = gecerliDepolar?.[0] ?? '';
 		let hedefMustKodClause = (
 			`(case when dag.bkendimizteslim > 0 then ${mustKod.sqlServerDegeri()}
 					when dag.bfaturayianafirmakeser > 0 then dfir.mustkod
@@ -555,7 +556,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		let sent = new MQSent(), {where: wh, sahalar} = sent;
 		sent.fromAdd('kldagitim dag')
 			.fromIliski('klfirma dfir', 'dag.klfirmakod = dfir.kod')
-			.fromIliski('carmst car', `${hedefMustKodClause} = car.must`)
+			.fromIliski('carmst car', `car.must = ${mustKod.sqlServerDegeri()}`)
 			.cari2BolgeBagla();
 		wh.degerAta(klFirmaKod, 'dag.klfirmakod').degerAta(mustKod, 'dag.mustkod')
 		wh.add(new MQOrClause([
@@ -564,15 +565,17 @@ class SablonluSiparisFisTemplate extends CObject {
 		].filter(x => !!x)));
 		sahalar.add(
 			`${hedefMustKodClause} hedefMustKod`, 'bol.bizsubekod subeKod', 'dag.bkendimizteslim kendimizTeslimmi',
-			`(case when dag.bkendimizteslim > 0 then '' else dag.klteslimatcikod end) teslimEdenCariKod`
+			`(case when dag.bkendimizteslim > 0 then '' else dag.klteslimatcikod end) teslimEdenCariKod`,
+			'car.konsinyeyerkod gYerKod'
 		);
-		let {subeKod, hedefMustKod, kendimizTeslimmi, teslimEdenCariKod} = await app.sqlExecTekil(sent) ?? {};
+		let {subeKod, hedefMustKod, kendimizTeslimmi, teslimEdenCariKod, gYerKod} = await app.sqlExecTekil(sent) ?? {};
 		/* kendimizTeslimmi  { true: İrs. Trf. Sip. | false: Alım Sip. }  */
 		$.extend(fis, {
 			subeKod, mustKod: hedefMustKod,
 			teslimCariKod: kendimizTeslimmi ? '' : mustKod,
 			araciKod: kendimizTeslimmi ? '' : teslimEdenCariKod
 		});
+		if (stokmu) { $.extend(fis, { cYerKod, gYerKod }) }
 		return this
 	}
 }

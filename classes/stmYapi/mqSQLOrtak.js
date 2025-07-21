@@ -85,10 +85,10 @@ class MQSQLOrtak extends CObject {
 	static sqlDoluDegermi(text) { return !this.sqlBosDegermi(text) }
 	static sumOlmaksizin(text) {
 		if (!text) { return text }
-		let Prefix = 'SUM(', ind = text.toUpperCase().indexOf(Prefix); if (ind < 0) { return text }
-		let lastInd = text.lastIndexOf(')'); if (lastInd < 0) { return text }
-		text = text.substring(ind + Prefix.length, lastInd);
-		/*text = text.fastReplaceSplit(Prefix, '(').trim('()');*/
+		let Prefix = 'SUM(', ind = text.toUpperCase().indexOf(Prefix);
+		if (ind > -1) { text = text.substring(0, ind - 1) + text.substring(ind + Prefix.length - 1) }
+		/*let lastInd = text.lastIndexOf(')'); if (lastInd < 0) { return text }
+		text = text.substring(ind + Prefix.length, lastInd);*/
 		return text
 	}
 	static asSumDeger(text) {
