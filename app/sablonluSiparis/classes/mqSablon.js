@@ -76,7 +76,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 						}
 						wh.add(`${alias}.silindi = ''`, `${alias}.calismadurumu <> ''`)
 						/*wh.icerikKisitDuzenle_cari({ saha: `${alias}.kod` })*/
-						if (!konsinyemi) { sahalar.add(`${alias}.bolgekod`, 'bol.bizsubekod') }
+						if (konsinyemi) { sahalar.add(`${alias}.bolgekod`, 'bol.bizsubekod') }
 					}
 				}).degisince(async ({ builder: fbd, item: rec }) => {
 					if (konsinyemi) {
@@ -470,46 +470,7 @@ class MQSablonOrtakDetay extends MQDetay {
 		this.loadServerData_queryDuzenle(e);
 		return super.loadServerData_querySonucu(e)
 	}
-	static loadServerData_queryDuzenle(e) { /* super yok */ }
-}
-/** Şablon'a ait Önceki Siparişler */
-class MQSablonDetay extends MQSablonOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQSablon }
-	static async loadServerDataDogrudan(e) {
-		let {sender: gridPart, parentRec} = e;  /* gridPart: SablonOrtakFis'in liste ekranı ; parentRec: Şablon başlık kaydı */
-		let {kaysayac: sablonSayac} = parentRec, {tarih, mustKod} = gridPart;
-		e.fisSinif = await this.sablonSinif.fisSinifBelirle({ ...e, sablonSayac, mustKod });
-		return await super.loadServerDataDogrudan(e)
-	}
-	static loadServerData_queryDuzenle({ sender: gridPart, parentRec, fisSinif, stm }) {
-		super.loadServerData_queryDuzenle(...arguments);    /* gridPart: SablonOrtakFis'in liste ekranı ; parentRec: Şablon başlık kaydı */
-		let {kaysayac: sablonSayac} = parentRec, {tarih, mustKod} = gridPart, subeKod = gridPart.subeKod ?? config.session.subeKod;
-		let {table, mustSaha} = fisSinif, cariYil = app.params.zorunlu?.cariYil || today().getYil();
-		let sent = stm.sent = new MQSent({
-			from: `${table} fis`,
-			where: [
-				{ alias: 'fis', birlestirDict: fisSinif.varsayilanKeyHostVars() }, { degerAta: sablonSayac, saha: 'fis.sablonsayac' },
-				`fis.kapandi = ''`, `fis.tarih >= CAST('${cariYil}-01-01T00:00:00' AS DATETIME)`
-			],
-			sahalar: [
-				'fis.kaysayac', 'fis.tarih', 'fis.fisnox', `fis.bizsubekod subekod`, 'sub.aciklama subeadi', `fis.${mustSaha} mustkod`, 'car.birunvan mustunvan',
-				'fis.xadreskod sevkadreskod', 'sadr.aciklama sevkadresadi', 'fis.basteslimtarihi', `(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`
-			]
-		}).fis2SubeBagla().fis2CariBagla().fis2SevkAdresBagla().fisSilindiEkle();
-		let {where: wh} = sent, {orderBy} = stm;
-		if (tarih) { wh.degerAta(tarih, 'fis.tarih') }
-		if (subeKod) { wh.degerAta(subeKod, 'fis.bizsubekod') }
-		if (mustKod) { wh.degerAta(mustKod, `fis.${mustSaha}`) }
-		orderBy.add('tarih DESC', 'fisnox DESC')
-	}
-}
-/** Şablon'a ait Önceki Siparişler */
-class MQKonsinyeSablonDetay extends MQSablonOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQKonsinyeSablon }
-	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e);
-		this.sablonIcinSiparislerStmDuzenle({ ...e, detaylimi: true })
-	}
+	static loadServerData_queryDuzenle(e) { this.sablonIcinSiparislerStmDuzenle({ ...e, detaylimi: true }) }
 	static sablonIcinSiparislerStmDuzenle(e) {
 		/* gridPart:
 				- (detaylimi == true): SablonOrtakFis'in liste ekranı ; parentRec: nil
@@ -548,4 +509,39 @@ class MQKonsinyeSablonDetay extends MQSablonOrtakDetay {
 		sentEkle('ST', SablonluKonsinyeTransferFis);
 		if (detaylimi) { orderBy.add('tarih DESC', 'no DESC') }
 	}
+}
+/** Şablon'a ait Önceki Siparişler */
+class MQSablonDetay extends MQSablonOrtakDetay {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQSablon }
+	static async loadServerDataDogrudan(e) {
+		let {sender: gridPart, parentRec} = e;  /* gridPart: SablonOrtakFis'in liste ekranı ; parentRec: Şablon başlık kaydı */
+		let {kaysayac: sablonSayac} = parentRec, {tarih, mustKod} = gridPart;
+		e.fisSinif = await this.sablonSinif.fisSinifBelirle({ ...e, sablonSayac, mustKod });
+		return await super.loadServerDataDogrudan(e)
+	}
+	static loadServerData_queryDuzenle({ sender: gridPart, parentRec, fisSinif, stm }) {
+		super.loadServerData_queryDuzenle(...arguments);    /* gridPart: SablonOrtakFis'in liste ekranı ; parentRec: Şablon başlık kaydı */
+		let {kaysayac: sablonSayac} = parentRec, {tarih, mustKod} = gridPart, subeKod = gridPart.subeKod ?? config.session.subeKod;
+		let {table, mustSaha} = fisSinif, cariYil = app.params.zorunlu?.cariYil || today().getYil();
+		let sent = stm.sent = new MQSent({
+			from: `${table} fis`,
+			where: [
+				{ alias: 'fis', birlestirDict: fisSinif.varsayilanKeyHostVars() }, { degerAta: sablonSayac, saha: 'fis.sablonsayac' },
+				`fis.kapandi = ''`, `fis.tarih >= CAST('${cariYil}-01-01T00:00:00' AS DATETIME)`
+			],
+			sahalar: [
+				'fis.kaysayac', 'fis.tarih', 'fis.fisnox', `fis.bizsubekod subekod`, 'sub.aciklama subeadi', `fis.${mustSaha} mustkod`, 'car.birunvan mustunvan',
+				'fis.xadreskod sevkadreskod', 'sadr.aciklama sevkadresadi', 'fis.basteslimtarihi', `(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`
+			]
+		}).fis2SubeBagla().fis2CariBagla().fis2SevkAdresBagla().fisSilindiEkle();
+		let {where: wh} = sent, {orderBy} = stm;
+		if (tarih) { wh.degerAta(tarih, 'fis.tarih') }
+		if (subeKod) { wh.degerAta(subeKod, 'fis.bizsubekod') }
+		if (mustKod) { wh.degerAta(mustKod, `fis.${mustSaha}`) }
+		orderBy.add('tarih DESC', 'fisnox DESC')
+	}
+}
+/** Şablon'a ait Önceki Siparişler */
+class MQKonsinyeSablonDetay extends MQSablonOrtakDetay {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQKonsinyeSablon }
 }
