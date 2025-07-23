@@ -19,7 +19,7 @@ class SBTabloHesapTipi extends TekSecim {
 			new CKodVeAdi(['FR', 'Satırlar Toplamı', 'satirlarToplamimi']),
 			new CKodVeAdi(['SH', 'Ticari Satış', 'ticariSatismi']),
 			new CKodVeAdi(['HZ', 'Hizmet', 'hizmetmi']),
-			(config.dev ? new CKodVeAdi(['FR', 'Formül', 'formulmu']) : null)
+			(config.dev ? new CKodVeAdi(['FX', 'Formül', 'formulmu']) : null)
 		].filter(x => !!x))
 	}
 }

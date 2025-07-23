@@ -142,11 +142,14 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		this.sablonEkQueryDuzenleDevam(e)
 	}
 	static sablonEkQueryDuzenleDevam(e) { return this.detaySinif.sablonIcinSiparislerStmDuzenle({ ...e, detaylimi: false }) }
-	static async getEMailYapi({ musterilimi, fisSayac }) {
+	static async getEMailYapi({ musterilimi, fisSinif, fisSayac }) {
 		let {sablonSip_eMail, konBuFirma_eMailListe} = app.params.web;
 		if (!(fisSayac && sablonSip_eMail)) { return {} }
-		let stm = new MQStm(), _e = { ...arguments[0], stm };
-		stm = this.eMailYapiQueryDuzenle(_e) === false ? null : _e.stm;
+		let _e = { ...arguments[0] }, {eMailStm: stm} = _e;
+		if (!stm) {
+			stm = _e.stm = new MQStm();
+			stm = _e.stm = _e.eMailStm = this.eMailYapiQueryDuzenle(_e) === false ? null : _e.stm
+		}
 		let EMailPrefix = 'email_', recs = stm ? await app.sqlExecSelect(stm) : null;
 		let result = { ...recs?.[0] }; if (recs?.length) {
 			for (let rec of recs) {
@@ -159,7 +162,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 				}
 			}
 		}
-		if (konBuFirma_eMailListe) { result.buFirma = eMailStr2Array(konBuFirma_eMailListe) }
+		if (konBuFirma_eMailListe?.length) { result.buFirma = eMailStr2Array(konBuFirma_eMailListe) }
 		return result
 	}
 	static eMailYapiQueryDuzenle(e) { return false }
@@ -277,10 +280,11 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		finally { setTimeout(() => hideProgress(), 500) }
 	}
 	static async onaylaDevam({ gridPart, sender: fisGirisPart, fis, rec }) {
-		let {sayac: fisSayac, detaylar} = fis, {table, sayacSaha} = fis.class;
+		let {sayac: fisSayac, detaylar} = fis, {table, sayacSaha, stokmu} = fis.class;
 		if (!fisSayac) { throw { isError: true, errorText: 'Onaylanacak Sipariş için ID belirlenemedi' } }
 		let dokumVeEMail = musterimi => this.dokumYapVeEMailGonder({ musterimi, fis, rec });
-		await dokumVeEMail(true); await dokumVeEMail(false);
+		if (!stokmu) { await dokumVeEMail(true) }
+		await dokumVeEMail(false);
 		let upd = new MQIliskiliUpdate({
 			from: table, where: { degerAta: fisSayac, saha: sayacSaha },
 			set: { degerAta: '', saha: 'onaytipi' }
@@ -291,12 +295,12 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		gridPart?.tazeleDefer(); fisGirisPart?.close()
 	}
 	static async dokumYapVeEMailGonder({ musterimi, fis, fisSayac, parentRec, rec }) {
-		let hmrBilgiler = Array.from(HMRBilgi.hmrIter()), dokumcu;
+		let hmrBilgiler = Array.from(HMRBilgi.hmrIter()), dokumcu, {class: fisSinif} = fis;
 		try { dokumcu = await HTMLDokum.FromDosyaAdi(`VioWeb.KonLojistik.Siparis.${musterimi ? 'Musteri' : 'Diger'}.htm`) }
 		catch (ex) { console.error(ex); return false } if (dokumcu == null) { return }
 		fisSayac = fisSayac || fis?.sayac; parentRec = parentRec ?? rec?._parentRec;
 		let {fiyatFra, bedelFra} = app.params.zorunlu, dvKod = fis.dvKod || 'TL';
-		let to = [], cc = [], bcc = [], eMailYapi = await this.getEMailYapi({ musterimi, fisSayac }) ?? {};
+		let to = [], cc = [], bcc = [], eMailYapi = await this.getEMailYapi({ musterimi, fisSinif, fisSayac }) ?? {};
 		let {email_sablonEk} = parentRec; if (email_sablonEk) {
 			email_sablonEk = email_sablonEk.split(';').map(x => x.trim()).filter(x => !!x);
 			if (email_sablonEk?.length) { $.extend(eMailYapi, { sablonEk: email_sablonEk }) }
@@ -418,25 +422,28 @@ class MQKonsinyeSablon extends MQSablonOrtak {
 			return app.sqlExecTekil(sent)
 		})()
 	}
-	static eMailYapiQueryDuzenle(e) {
-		super.eMailYapiQueryDuzenle(e); let {fisSayac, stm} = e, uni = stm.sent = new MQUnionAll();
-		let sentEkle = (fisSinif, xCariKodSaha) => {
+	static eMailYapiQueryDuzenle({ fisSinif, fisSayac, stm }) {
+		super.eMailYapiQueryDuzenle(...arguments);
+		let fisSiniflar = $.makeArray(fisSinif) ?? this.fisSiniflar;
+		let uni = stm.sent = new MQUnionAll();
+		let sentEkle = fisSinif => {
+			let {teslimCariSaha: xCariKodSaha} = fisSinif;
 			let sent = this.getSablonluVeKLDagitimliOnSent({ fisSinif, fisSayac }), {sahalar} = sent;
-			let teslimCariKodClause = `kdag.bkendimizteslim > 0 AND kdag.klteslimatcikod > ''`;
+			let kendimizTeslimmiClause = `kdag.bkendimizteslim > 0 AND kdag.klteslimatcikod > ''`;
 			sent.fromIliski('carmst car', `fis.${xCariKodSaha} = car.must`)
 				.fromIliski('carsevkadres sadr', 'fis.xadreskod = sadr.kod')
 				.leftJoin('kdag', 'klfirmabolge kfbol', 'kdag.klfirmabolgekod = kfbol.kod')
 				.leftJoin('kdag', 'carmst ktes', 'kdag.klteslimatcikod = ktes.must');
 			sahalar.add(
-				'sab.emailadresler email_sablon', 'kfbol.email email_bolge',
-				`(case when ${teslimCariKodClause} then ktes.email else '' end) email_teslimatci`,
-				`(case when ${teslimCariKodClause} and kdag.bteslimatmailozeldir > 0 then kdag.ozelmaillistestr else '' end) email_ozel`,
-				`(case when sadr.email = '' then car.email else sadr.email end) email_alici`
+				`(case when ${kendimizTeslimmiClause} then '' else sab.emailadresler end) email_sablon`,
+				`(case when ${kendimizTeslimmiClause} then '' else kfbol.email end) email_bolge`,
+				`(case when ${kendimizTeslimmiClause} and kdag.bteslimatmailozeldir = 0 then ktes.email else '' end) email_teslimatci`,
+				`(case when ${kendimizTeslimmiClause} and kdag.bteslimatmailozeldir > 0 then kdag.ozelmaillistestr else '' end) email_ozel`,
+				`(case when ${kendimizTeslimmiClause} then '' when sadr.email > '' then sadr.email else car.email end) email_alici`
 			);
 			uni.add(sent); return sent
 		}
-		sentEkle(SablonluKonsinyeAlimSiparisFis, 'teslimcarikod');
-		sentEkle(SablonluKonsinyeTransferFis, 'irsmust')
+		for (let fisSinif of fisSiniflar) { sentEkle(fisSinif) }
 	}
 }
 

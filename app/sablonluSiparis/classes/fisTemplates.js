@@ -547,7 +547,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		}
 		/* Sonrası Konsinye içindir */
 		let {sablonSayac, mustKod, sevkAdresKod, class: fisSinif} = fis;
-		let {mustSaha, stokmu} = fisSinif, {gecerliDepolar} = app, cYerKod = gecerliDepolar?.[0] ?? '';
+		let {mustSaha, stokmu} = fisSinif, {gecerliDepolar} = app, sabitCikisYerKod = gecerliDepolar?.[0] ?? '';
 		let hedefMustKodClause = (
 			`(case when dag.bkendimizteslim > 0 then ${mustKod.sqlServerDegeri()}
 					when dag.bfaturayianafirmakeser > 0 then dfir.mustkod
@@ -566,9 +566,10 @@ class SablonluSiparisFisTemplate extends CObject {
 		sahalar.add(
 			`${hedefMustKodClause} hedefMustKod`, 'bol.bizsubekod subeKod', 'dag.bkendimizteslim kendimizTeslimmi',
 			`(case when dag.bkendimizteslim > 0 then '' else dag.klteslimatcikod end) teslimEdenCariKod`,
+			`(case when dag.bkendimizteslim > 0 then dag.kendidepokod else ${sabitCikisYerKod.sqlServerDegeri()} end) cYerKod`,
 			'car.konsinyeyerkod gYerKod'
 		);
-		let {subeKod, hedefMustKod, kendimizTeslimmi, teslimEdenCariKod, gYerKod} = await app.sqlExecTekil(sent) ?? {};
+		let {subeKod, hedefMustKod, kendimizTeslimmi, teslimEdenCariKod, gYerKod, cYerKod} = await app.sqlExecTekil(sent) ?? {};
 		/* kendimizTeslimmi  { true: İrs. Trf. Sip. | false: Alım Sip. }  */
 		$.extend(fis, {
 			subeKod, mustKod: hedefMustKod,

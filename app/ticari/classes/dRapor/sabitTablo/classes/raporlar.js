@@ -1,11 +1,11 @@
 
 class SBRapor_X extends SBRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kod() { return 'SBX'} static get aciklama() { return 'Sabit: X' }
+	static get kod() { return 'SBX' } static get aciklama() { return 'Sabit: X' }
 }
 class SBRapor_X_Main extends SBRapor_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return SBRapor_X }
-	tabloKolonlariDuzenle({ liste, recs }) {
+	tabloKolonlariDuzenle({ liste, recs /*, flatRecs*/ }) {
 		super.tabloKolonlariDuzenle(...arguments);
 		liste.push(...[
 			new GridKolon({ belirtec: 'kod', text: 'Kod', genislikCh: 15 }),
