@@ -56,7 +56,11 @@ class ButonlarPart extends Part {
 			if (handler || id2Handler[id]) {
 				btn.on('click', async evt => {
 					try { await eventHandler(evt) }
-					catch (ex) { hConfirm(getErrorText(ex)); throw ex }
+					catch (ex) {
+						let errText = getErrorText(ex);
+						if (errText) { hConfirm(errText) }
+						throw ex
+					}
 				})
 			}
 		}
