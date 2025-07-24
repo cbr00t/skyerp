@@ -427,7 +427,7 @@ class MQKonsinyeSablon extends MQSablonOrtak {
 		let fisSiniflar = $.makeArray(fisSinif) ?? this.fisSiniflar;
 		let uni = stm.sent = new MQUnionAll();
 		let sentEkle = fisSinif => {
-			let {teslimCariSaha: xCariKodSaha} = fisSinif;
+			let {teslimCariSaha: xCariKodSaha, stokmu} = fisSinif;
 			let sent = this.getSablonluVeKLDagitimliOnSent({ fisSinif, fisSayac }), {sahalar} = sent;
 			let kendimizTeslimmiClause = `kdag.bkendimizteslim > 0 AND kdag.klteslimatcikod > ''`;
 			sent.fromIliski('carmst car', `fis.${xCariKodSaha} = car.must`)
@@ -435,15 +435,22 @@ class MQKonsinyeSablon extends MQSablonOrtak {
 				.leftJoin('kdag', 'klfirmabolge kfbol', 'kdag.klfirmabolgekod = kfbol.kod')
 				.leftJoin('kdag', 'carmst ktes', 'kdag.klteslimatcikod = ktes.must');
 			sahalar.add(
-				`(case when ${kendimizTeslimmiClause} then '' else sab.emailadresler end) email_sablon`,
-				`(case when ${kendimizTeslimmiClause} then '' else kfbol.email end) email_bolge`,
-				`(case when ${kendimizTeslimmiClause} and kdag.bteslimatmailozeldir = 0 then ktes.email else '' end) email_teslimatci`,
-				`(case when ${kendimizTeslimmiClause} and kdag.bteslimatmailozeldir > 0 then kdag.ozelmaillistestr else '' end) email_ozel`,
-				`(case when ${kendimizTeslimmiClause} then '' when sadr.email > '' then sadr.email else car.email end) email_alici`
+				`'' email_sablon`, 'kfbol.email email_bolge',
+				`${stokmu ? 'ktes.email' : `(case when kdag.bteslimatmailozeldir = 0 then ktes.email else '' end)`} email_teslimatci`,
+				`(case when kdag.bteslimatmailozeldir > 0 then kdag.ozelmaillistestr else '' end) email_ozel`,
+				`${stokmu ? `''` : `(case when sadr.email > '' then sadr.email else car.email end)`} email_alici`
 			);
 			uni.add(sent); return sent
 		}
 		for (let fisSinif of fisSiniflar) { sentEkle(fisSinif) }
+
+		/*
+-- alım sip.
+, (case when sadr.email > '' then sadr.email else car.email end) email_alici
+-- stok fiş
+, (case when kdag.bteslimatmailozeldir > 0 then  else '' end) email_ozel
+, '' email_alici
+*/
 	}
 }
 
