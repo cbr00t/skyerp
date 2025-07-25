@@ -166,8 +166,13 @@ class FBuilder_SimpleElement extends FormBuilder_SubPart {
 			let {altInst} = this;
 			if (altInst) {
 				let {value} = this;
-				if (this._initValueSetFlag) { this.defaultSetValue({ value }) } else { this.value = altInst[ioAttr] }
-				let {_p} = altInst, pInst = (_p || {})[ioAttr]; if (pInst) { pInst.change(e => this.value = e.value) }
+				if (this._initValueSetFlag) { this.defaultSetValue({ value }) }
+				else {
+					value = altInst[ioAttr];
+					if (!isFunction(value)) { this.value = value }
+				}
+				let {_p} = altInst, pInst = _p?.[ioAttr];
+				if (pInst) { pInst.change(e => this.value = e.value) }
 			}
 		}
 	}

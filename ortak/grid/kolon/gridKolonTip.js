@@ -401,7 +401,7 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 			if (value != null) {
 				const kaDict = this.getKADict({ belirtec: columnField, rec: rec }) || {};
 				let ka = value.aciklama == null ? kaDict[value] : Object.values(kaDict).find(ka => ka.aciklama == value);
-				if (ka) value = ka.aciklama ?? value
+				if (ka) { value = ka.aciklama ?? value }
 				value = value == null || value.aciklama == null ? (value || '').toString() : (this.kodGosterilmesinmi ? value.aciklama ?? value : value.toString());
 				html = changeTagContent(html, value)
 			}

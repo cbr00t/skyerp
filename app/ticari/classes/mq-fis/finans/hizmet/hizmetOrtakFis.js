@@ -292,7 +292,7 @@ class HizmetOrtakGridci extends FinansGridci {
 	}
 	super_tabloKolonlariDuzenle_son(e) { super.tabloKolonlariDuzenle_son(e) }
 	tabloKolonlariDuzenle_vergi(e) {
-		const {tabloKolonlari} = e;
+		let {tabloKolonlari} = e;
 		tabloKolonlari.push(...[
 			new GridKolon({ belirtec: 'stopajBelirtec', text: 'Sto.', genislikCh: 6 })
 				.readOnly().hidden(),
@@ -307,7 +307,7 @@ class HizmetOrtakGridci extends FinansGridci {
 			new GridKolon({
 				belirtec: 'kdvKod', text: 'Kdv%', genislikCh: 8,
 				cellsRenderer: (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => {
-					const kod2VergiBilgi = colDef.gridPart.fis?._kod2VergiBilgi || {};
+					let kod2VergiBilgi = colDef.gridPart.fis?._kod2VergiBilgi || {};
 					return `<div class="jqx-grid-cell-right-align">${kod2VergiBilgi[value]?.belirtec || html}</div>`
 				},
 				cellValueChanged: e => this.kdvKodDegisti(e),

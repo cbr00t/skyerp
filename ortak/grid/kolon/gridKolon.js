@@ -62,7 +62,8 @@ class GridKolon extends GridKolonVeGrupOrtak {
 					this._timer_rendered = setTimeout(() => gridPart.gridRendered({ type, gridPart, mfSinif, inst, colDef, rec, rowIndex, belirtec, value, html }), delayMS)
 				}
 			}
-			if (savedCellsRenderer) { result = getFuncValue.call(this, savedCellsRenderer, colDef, rowIndex, belirtec, value, html, jqxCol, rec) } return result
+			html = result ?? html;
+			if (savedCellsRenderer) { result = getFuncValue.call(this, savedCellsRenderer, colDef, rowIndex, belirtec, value, html, jqxCol, rec, result) } return result
 		};
 		if (!this.cellClassName) {
 			this.cellClassName = (colDef, rowIndex, belirtec, value, rec) => {
