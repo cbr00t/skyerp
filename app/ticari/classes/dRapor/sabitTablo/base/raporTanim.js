@@ -44,7 +44,7 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 			kaForm.addButton('sil', '')
 		];
 		for (let fbd of buttons) {
-			fbd.addStyle_wh(40, 50).addStyle(`$elementCSS { margin-top: 20px; margin-left: 10px }`);
+			fbd.addStyle_wh(40, 50).addStyle(`$elementCSS { margin-top: 30px; margin-left: 10px }`);
 			fbd.onClick(async _e => {
 				let {id} = _e.input[0], selector = `${id}Istendi`;
 				let {part: gridPart, kontrolcu} = e.fbd_grid;                 /* doğru burası: '_e' değil 'e' */
@@ -164,18 +164,22 @@ class SBTabloDetay extends MQDetay {
 	}
 	static pTanimDuzenle({ pTanim }) {
 		$.extend(pTanim, {
+			aciklama: new PInstStr('aciklama'),
 			seviyeNo: new PInstTekSecim('seviyeno', SBTabloSeviye), hesapTipi: new PInstTekSecim('hesaptipi', SBTabloHesapTipi),
+			icerikTipi: new PInstTekSecim('iceriktipi', SBTabloIcerikTipi), formul: new PInstStr('formul'),
 			satirListeStr: new PInstStr('satirlistestr'), shVeriTipi: new PInstTekSecim('shveritipi', SBTabloVeriTipi),
 			shAlmSat: new PInstTekSecim('shalmsat', AlimSatis), shIade: new PInstTekSecim('shiade', NormalIadeVeBirlikte),
-			shAyrimTipi: new PInstTekSecim('shayrimtipi', SBTabloAyrimTipi), cssClassesStr: new PInstStr('cssclasses'), cssStyle: new PInstStr('cssstyle'),
-			formul: new PInstStr('formul')
+			shAyrimTipi: new PInstTekSecim('shayrimtipi', SBTabloAyrimTipi),
+			cssClassesStr: new PInstStr('cssclasses'), cssStyle: new PInstStr('cssstyle'),
 		})
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments); liste.push(...[
+			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', genislikCh: 30 }).noSql(),
 			new GridKolon({ belirtec: 'seviyeno', text: 'Seviye', genislikCh: 15 }).noSql().tipTekSecim({ tekSecimSinif: SBTabloSeviye }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'hesaptipi', text: 'Hesap Tipi', genislikCh: 30 }).noSql().tipTekSecim({ tekSecimSinif: HesapTipi }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'shveritipi', text: 'Veri Tipi', genislikCh: 30 }).noSql().tipTekSecim({ tekSecimSinif: SBTabloVeriTipi }).kodsuz().listedenSecilemez(),
+			new GridKolon({ belirtec: 'iceriktipi', text: 'İçerik Tipi', genislikCh: 30 }).noSql().tipTekSecim({ tekSecimSinif: SBTabloIcerikTipi }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'satirlistestr', text: 'Satır Liste', genislikCh: 20 }).noSql(),
 			new GridKolon({ belirtec: 'shalmsat', text: 'S/H Alım-Satış', genislikCh: 15 }).noSql().tipTekSecim({ tekSecimSinif: AlimSatis }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'shiade', text: 'S/H İADE', genislikCh: 15 }).noSql().tipTekSecim({ tekSecimSinif: NormalIadeVeBirlikte }).kodsuz().listedenSecilemez(),
@@ -193,6 +197,28 @@ class SBTabloDetay extends MQDetay {
 	setValues({ rec }) {
 		super.setValues(...arguments)
 		/* $.extend(this, { satirListeStr }) */
+	}
+	raporQueryDuzenle_satis({ stm, icerikClause, donemBS, subeKodlari, duzenle }) {
+		let det = this, {hesapTipi, icerikTipi, shVeriTipi, shIade, shAyrimTipi} = this;
+		let stokmu = hesapTipi.ticariSatismi && (shVeriTipi.birliktemi || shVeriTipi.stokmu);
+		let hizmetmi = hesapTipi.hizmetmi || (hesapTipi.ticariSatismi && (shVeriTipi.birliktemi || shVeriTipi.hizmetmi));
+		if (!(stokmu || hizmetmi)) { return }
+		let {sahaYapilar} = icerikTipi.secilen?.ekBilgi ?? {}; sahaYapilar ??= {};
+		let harTable = hizmetmi ? 'pifhizmet' : 'pifstok';
+		let uni = stm.sent = new MQUnionAll();
+		let sentOrtakOlustur = () => {
+			let sent = new MQSent(), {where: wh, sahalar} = sent;
+			sent.fromAdd('piffis fis').innerJoin('fis', `${harTable} har`, 'har.fissayac = fis.kaysayac');
+			wh.fisSilindiEkle().add(`fis.piftipi = 'F'`, `fis.almsat = 'T'`, `fis.ayrimtipi <> 'IN'`);
+			if (!shIade.birliktemi) { wh.degerAta(shIade.iademi ? 'I' : '', 'fis.iade') }
+			if (!shAyrimTipi.birliktemi) { wh.add(`fis.ayrimtipi ${shAyrimTipi.ihracatmi ? '=' : '<>'} 'IH'`) }
+			if (subeKodlari?.length) { wh.inDizi(subeKodlari, 'fis.bizsubekod') }
+			sahalar.add(sahaYapilar.fis ?? []);
+			let _e = { ...arguments[0], det, uni, sent, where: wh, sahalar };
+			duzenle?.call(this, _e);
+			uni.add(sent); return sent
+		};
+		sentOrtakOlustur()
 	}
 	eval(e) {
 		e = e ?? {}; let {recs} = e, {asFormul: code} = this;
@@ -228,6 +254,8 @@ class SBTabloGridci extends GridKontrolcu {
 			html = result ?? html;
 			let clear = () => html = changeTagContent(html, '');
 			switch (belirtec) {
+				case 'icerikTipi':
+					if (!(hesapTipi.ticariSatismi || hesapTipi.hizmetmi)) { clear() } break
 				case 'shVeriTipi': case 'shAlmSat':
 				case 'shIade': case 'shAyrimTipi':
 					if (!hesapTipi.ticariSatismi) { clear() } break
@@ -240,9 +268,11 @@ class SBTabloGridci extends GridKontrolcu {
 		liste.push(...[
 			/*new GridKolon({ belirtec: 'degistir', text: ' ', genislikCh: 8 }).tipButton('D').onClick(_e => this.degistirIstendi({ ...e, ..._e })),
 			new GridKolon({ belirtec: 'sil', text: ' ', genislikCh: 8 }).tipButton('X').onClick(_e => this.silIstendi({ ...e, ..._e })),*/
+			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', genislikCh: 30, cellClassName, cellsRenderer }),
 			new GridKolon({ belirtec: 'seviyeNo', text: 'Seviye', genislikCh: 10, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloSeviye }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'hesapTipi', text: 'Hesap Tipi', genislikCh: 30, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloHesapTipi }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'shVeriTipi', text: 'Veri Tipi', genislikCh: 30, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloVeriTipi }).kodsuz().listedenSecilemez(),
+			new GridKolon({ belirtec: 'icerikTipi', text: 'İçerik Tipi', genislikCh: 30, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloIcerikTipi }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'satirListeStr', text: 'Satır Liste', genislikCh: 20, cellClassName, cellsRenderer }),
 			new GridKolon({ belirtec: 'shAlmSat', text: 'S/H Alım-Satış', genislikCh: 15, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: AlimSatis }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'shIade', text: 'S/H İADE', genislikCh: 15, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: NormalIadeVeBirlikte }).kodsuz().listedenSecilemez(),
@@ -293,17 +323,32 @@ class SBTabloGridci extends GridKontrolcu {
 			`)
 			.onAfterRun(({ builder: fbd }) => makeScrollable(fbd.layout));
 		let fbd_altForm, updateAltForm = () => {
+			fbd_icerikTipi?.updateVisible()?.dataBind();
 			for (let fbd of fbd_altForm) { fbd.updateVisible() }
 		};
 		
 		let showCSSFlag = false;
-		let form = fbd_content.addFormWithParent().yanYana(3);
+		let form = fbd_content.addFormWithParent().altAlta();
+		form.addTextInput('aciklama', 'Açıklama').addStyle_wh(400);
+		
+		form = fbd_content.addFormWithParent().yanYana(3);
 		form.addModelKullan('seviyeNo', 'Seviye')
 			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz().listedenSecilmez()
 			.setSource(SBTabloSeviye.kaListe).onAfterRun(({ builder: fbd }) => fbd.input.focus());
 		form.addModelKullan('hesapTipi', 'Hesap Tipi')
 			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz().listedenSecilmez()
 			.setSource(SBTabloHesapTipi.kaListe).degisince(() => updateAltForm());
+		let fbd_icerikTipi = form.addModelKullan('icerikTipi', 'İçerik Tipi')
+			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz().listedenSecilmez()
+			.setSource(({ builder: fbd }) => {
+				let {altInst: det} = fbd, {hesapTipi} = det;
+				return SBTabloIcerikTipi.kaListe.filter(({ ekBilgi }) =>
+					ekBilgi?.uygunluk?.call(this, { ...e, det, hesapTipi }))
+			})
+			.setVisibleKosulu(({ builder: fbd }) => {
+				let {hesapTipi} = fbd.altInst;
+				return hesapTipi.ticariSatismi || hesapTipi.hizmetmi
+			});
 		form.addButton('css', 'Biçimlendirme').addStyle_wh(150, 50)
 			.addStyle(`$elementCSS { margin: 30px 0 0 20px }`)
 			.onClick(({ builder: fbd }) => {
@@ -437,7 +482,7 @@ class SBTabloGridci extends GridKontrolcu {
 	}
 	tanimla(e) {
 		e = e ?? {}; let {islem} = e; if (islem == 'sil') { return this.tanimKaydet(e) }
-		let gridRec = e.gridRec ?? e.rec; if (!gridRec) { return null }
+		let gridRec = e.gridRec ?? e.rec; if (islem == 'degistir' && !gridRec) { return null }
 		let rfb = this.getRootFormBuilder(e).run();
 		return rfb
 		/*let {title} = e, wnd = e.wnd = createJQXWindow({
@@ -468,25 +513,5 @@ class SBTabloGridci extends GridKontrolcu {
 	gridSatirCiftTiklandi(e) {
 		let {args} = e.event, {bounddata: gridRec} = args.row;
 		this.degistirIstendi({ ...e, gridRec })
-	}
-	raporQueryDuzenle_satis({ stm, icerikClause, donemBS, subeKodlari, duzenle }) {
-		let {hesapTipi, shVeriTipi, shIade, shAyrimTipi} = this;
-		let stokmu = hesapTipi.ticariSatismi && (shVeriTipi.birliktemi || shVeriTipi.stokmu);
-		let hizmetmi = hesapTipi.hizmetmi || (hesapTipi.ticariSatismi && (shVeriTipi.birliktemi || shVeriTipi.hizmetmi));
-		if (!(stokmu || hizmetmi)) { return }
-		let harTable = hizmetmi ? 'pifhizmet' : 'pifstok';
-		let uni = stm.sent = new MQUnionAll();
-		let sentOrtakOlustur = () => {
-			let sent = new MQSent(), {where: wh, sahalar} = sent;
-			sent.fromAdd('piffis fis').innerJoin('fis', `${harTable} har`, 'har.fissayac = fis.kaysayac');
-			wh.fisSilindiEkle().add(`fis.piftipi = 'F'`, `fis.almsat = 'T'`, `fis.ayrimtipi <> 'IN'`);
-			if (!shIade.birliktemi) { wh.degerAta(shIade.iademi ? 'I' : '') }
-			if (!shAyrimTipi.birliktemi) { wh.add(`fis.ayrimtipi $${shAyrimTipi.ihracatmi ? '=' : '<>'} 'IH'`) }
-			if (subeKodlari.length) { wh.inDizi(subeKodlari, 'fis.bizsubekod') }
-			let _e = { ...arguments[0], uni, sent, where: wh, sahalar };
-			duzenle?.call(this, _e);
-			uni.add(sent); return sent
-		};
-		sentOrtakOlustur()
 	}
 }

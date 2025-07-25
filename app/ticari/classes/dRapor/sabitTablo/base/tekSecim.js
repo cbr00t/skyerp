@@ -45,3 +45,25 @@ class SBTabloAyrimTipi extends TekSecim {
 		)
 	}
 }
+class SBTabloIcerikTipi extends TekSecim {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get defaultChar() { return '' }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments); kaListe.push(
+			new CKodAdiVeEkBilgi([' ', '', 'yokmu']),
+			new CKodAdiVeEkBilgi([
+				'CR', 'Ciro', 'ciromu',
+				{
+					uygunluk: ({ hesapTipi }) => hesapTipi.ticariSatismi || hesapTipi.hizmetmi,
+					sahaYapilar: { fis: ['fis.ciro'], har: ['har.bedel'] }
+				}
+			]),
+			new CKodAdiVeEkBilgi([
+				'ML', 'Maliyet', 'maliyetmi',
+				{
+					uygunluk: ({ hesapTipi }) => hesapTipi.ticariSatismi || hesapTipi.hizmetmi
+				}
+			])
+		)
+	}
+}
