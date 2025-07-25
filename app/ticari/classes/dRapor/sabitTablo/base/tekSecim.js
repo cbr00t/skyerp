@@ -55,7 +55,7 @@ class SBTabloIcerikTipi extends TekSecim {
 				'CR', 'Ciro', 'ciromu',
 				{
 					uygunluk: ({ hesapTipi }) => hesapTipi.ticariSatismi || hesapTipi.hizmetmi,
-					sahaYapilar: { fis: ['fis.ciro'], har: ['har.bedel'] }
+					sahaYapilar: { fis: ['fis.ciro bedel'], har: ['har.bedel'] }
 				}
 			]),
 			new CKodAdiVeEkBilgi([

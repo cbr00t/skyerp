@@ -53,7 +53,8 @@ class GridKolon extends GridKolonVeGrupOrtak {
 				html = `<div class="full-wh">${result}`
 			}
 			if (result === undefined) { result = html }
-			let type = 'cellsRenderer', {gridPart} = colDef, {inst} = gridPart || {}, mfSinif = gridPart?.mfSinif ?? inst?.class; clearTimeout(this._timer_rendered);
+			let type = 'cellsRenderer', {gridPart} = colDef, {inst} = gridPart || {};
+			let mfSinif = gridPart?.mfSinif ?? inst?.class; clearTimeout(this._timer_rendered);
 			if (gridPart) {
 				let delayMS = gridPart.renderDelayMS ?? mfSinif?.orjBaslik_gridRenderDelayMS ?? MQCogul.defaultOrjBaslik_gridRenderDelayMS;
 				let {_timestamp_gridRendered} = gridPart; /*if (!_timestamp_gridRendered || (now() - _timestamp_gridRendered) >= 10)*/
@@ -62,8 +63,9 @@ class GridKolon extends GridKolonVeGrupOrtak {
 					this._timer_rendered = setTimeout(() => gridPart.gridRendered({ type, gridPart, mfSinif, inst, colDef, rec, rowIndex, belirtec, value, html }), delayMS)
 				}
 			}
-			html = result ?? html;
-			if (savedCellsRenderer) { result = getFuncValue.call(this, savedCellsRenderer, colDef, rowIndex, belirtec, value, html, jqxCol, rec, result) } return result
+			html = typeof result == 'string' ? result : html;
+			if (savedCellsRenderer) { result = getFuncValue.call(this, savedCellsRenderer, colDef, rowIndex, belirtec, value, html, jqxCol, rec, result) }
+			return result
 		};
 		if (!this.cellClassName) {
 			this.cellClassName = (colDef, rowIndex, belirtec, value, rec) => {
@@ -150,6 +152,10 @@ class GridKolon extends GridKolonVeGrupOrtak {
 		for (let key of colEventNames) {
 			let func = this[key] ?? (tip ? (tip[key] || tip.class[key]) : null); if (!func) { continue }
 			let handler = (key, tip, ...args) => {
+				/*if (key == 'cellsRenderer' && typeof args?.[3] == 'object') {
+					let belirtec = args[1], rec = args[3];
+					args[3] = rec?.[belirtec]; args[5] = this; args[6] = rec
+				}*/
 				if (args) { for (let i = 0; i < args.length; i++) { let value = args[i]; if (value != null && value?.constructor.name == 'Number') { args[i] = value = asFloat(value) } } }
 				let func, result; if (tip) {
 					func = tip.class[key]; if (func) { result = getFuncValue.call(tip, func, this, ...args, result) }

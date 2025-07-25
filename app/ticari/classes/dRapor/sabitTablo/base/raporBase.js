@@ -14,7 +14,8 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			else { this.raporTanimIstendi(e) }
 			return
 		}
-		let _e = CObject.From(e); await super.tazele(_e);
+		let _e = CObject.From(e);
+		await super.tazele(_e);
 		$.extend(_e, {
 			liste: _e.tabloKolonlari ?? _e.kolonTanimlari ?? [],
 			recs: gridWidget.getRows()
@@ -29,7 +30,13 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		grid.jqxTreeGrid('columns', columns)
 	}
 	tabloKolonlariDuzenle({ liste }) { super.tabloKolonlariDuzenle(...arguments) }
-	loadServerDataInternal(e) { return super.loadServerDataInternal(e) }
+	async loadServerDataInternal(e) {
+		await super.loadServerDataInternal(e); let {raporTanim} = this, {detaylar} = raporTanim;
+		let uni = new MQUnionAll(), stm = new MQStm({ sent: uni });
+		let _e = { ...e, raporTanim, detaylar, stm, uni };
+		for (let det of detaylar) { det.raporQueryDuzenle(_e) }
+		stm = _e.stm; return await app.sqlExecSelect(stm)
+	}
 	raporTanimIstendi(e) {
 		let {rapor, raporTanim} = this, {raporTanimSinif} = this.class;
 		raporTanimSinif.listeEkraniAc({

@@ -256,7 +256,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	har2MuhIslemBagla_leftJoin(e) { return this.x2MuhIslemBagla({ ...e, alias: e?.alias ?? 'har', leftJoin: true }) }
 	x2MuhIslemBagla(e) {
 		e = e ?? {}; let {alias, kodClause, leftJoin} = e, aliasVeNokta = alias ? `${alias}.` : '';
-		kodClause = kodClause || `${aliasVeNokta}muhislkod`;
+		kodClause = kodClause || `${aliasVeNokta}islkod`;
 		if (leftJoin) { this.leftJoin({ alias, from: 'muhisl isl', on: `${kodClause} = isl.kod` }) }
 		else { this.fromIliski('muhisl isl', `${kodClause} = isl.kod`); }
 		return this

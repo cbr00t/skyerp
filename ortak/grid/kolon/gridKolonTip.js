@@ -274,7 +274,7 @@ class GridKolonTip_Decimal extends GridKolonTip_Number {
 			if (value != null) {
 				if (typeof value != 'number') value = asFloat(value)
 				value = !value && this.sifirGostermeFlag ? '' : (fra == null ? value.toLocaleString() : toStringWithFra(value, fra));
-				html = changeTagContent(html, value)
+				html = typeof html == 'object' ? value : changeTagContent(html, value)
 			}
 			return html
 		})

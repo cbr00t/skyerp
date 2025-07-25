@@ -143,6 +143,11 @@ class SBTabloDetay extends MQDetay {
 		else if (hesapTipi.formulmu) { return this.formul }
 		return null
 	}
+	get asRaporQuery() {
+		let uni = new MQUnionAll(), stm = new MQStm({ sent: uni });
+		let e = { stm, uni }; this.raporQueryDuzenle(e);
+		stm = e.stm; return stm
+	}
 	constructor(e) {
 		e = e ?? {}; super(e); let tip2Secimler = this.tip2Secimler = e.tip2Secimler ?? {};
 		let tip2SecimMFYapi = {
@@ -198,14 +203,21 @@ class SBTabloDetay extends MQDetay {
 		super.setValues(...arguments)
 		/* $.extend(this, { satirListeStr }) */
 	}
-	raporQueryDuzenle_satis({ stm, icerikClause, donemBS, subeKodlari, duzenle }) {
-		let det = this, {hesapTipi, icerikTipi, shVeriTipi, shIade, shAyrimTipi} = this;
-		let stokmu = hesapTipi.ticariSatismi && (shVeriTipi.birliktemi || shVeriTipi.stokmu);
-		let hizmetmi = hesapTipi.hizmetmi || (hesapTipi.ticariSatismi && (shVeriTipi.birliktemi || shVeriTipi.hizmetmi));
-		if (!(stokmu || hizmetmi)) { return }
-		let {sahaYapilar} = icerikTipi.secilen?.ekBilgi ?? {}; sahaYapilar ??= {};
-		let harTable = hizmetmi ? 'pifhizmet' : 'pifstok';
-		let uni = stm.sent = new MQUnionAll();
+	raporQueryDuzenle({ stm }) {
+		let det = this, e = { ...arguments[0], det }, {aciklama, hesapTipi, shVeriTipi, icerikTipi} = this;
+		let stokmu = e.stokmu = hesapTipi.ticariSatismi && (shVeriTipi.birliktemi || shVeriTipi.stokmu);
+		let hizmetmi = e.hizmetmi = hesapTipi.hizmetmi || (hesapTipi.ticariSatismi && (shVeriTipi.birliktemi || shVeriTipi.hizmetmi));
+		let sahaYapilar = e.sahaYapilar = icerikTipi.secilen?.ekBilgi?.sahaYapilar ?? {};
+		let {sent: uni} = stm;
+		if (stokmu || hizmetmi) { this.raporQueryDuzenle_satis(e) }
+		stm = e.stm; uni = stm.sent;
+		for (let sent of uni) {
+			let {sahalar} = sent;
+			sahalar.add(`${aciklama.sqlServerDegeri()} aciklama`)
+		}
+	}
+	raporQueryDuzenle_satis({ stm, uni, icerikClause, donemBS, subeKodlari, duzenle, sahaYapilar, hizmetmi }) {
+		let {shIade, shAyrimTipi} = this, harTable = hizmetmi ? 'pifhizmet' : 'pifstok';
 		let sentOrtakOlustur = () => {
 			let sent = new MQSent(), {where: wh, sahalar} = sent;
 			sent.fromAdd('piffis fis').innerJoin('fis', `${harTable} har`, 'har.fissayac = fis.kaysayac');
@@ -214,7 +226,7 @@ class SBTabloDetay extends MQDetay {
 			if (!shAyrimTipi.birliktemi) { wh.add(`fis.ayrimtipi ${shAyrimTipi.ihracatmi ? '=' : '<>'} 'IH'`) }
 			if (subeKodlari?.length) { wh.inDizi(subeKodlari, 'fis.bizsubekod') }
 			sahalar.add(sahaYapilar.fis ?? []);
-			let _e = { ...arguments[0], det, uni, sent, where: wh, sahalar };
+			let _e = { ...arguments[0], uni, sent, where: wh, sahalar };
 			duzenle?.call(this, _e);
 			uni.add(sent); return sent
 		};

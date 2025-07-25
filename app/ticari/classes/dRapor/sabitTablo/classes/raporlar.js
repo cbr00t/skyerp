@@ -8,17 +8,18 @@ class SBRapor_X_Main extends SBRapor_Main {
 	tabloKolonlariDuzenle({ liste, recs /*, flatRecs*/ }) {
 		super.tabloKolonlariDuzenle(...arguments);
 		liste.push(...[
-			new GridKolon({ belirtec: 'kod', text: 'Kod', genislikCh: 15 }),
-			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', genislikCh: 20 }),
-			new GridKolon({ belirtec: 'question', text: 'Question', genislikCh: 15 })
+			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', genislikCh: 50 }),
+			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 20 }).tipDecimal_bedel()
 		])
 	}
 	loadServerDataInternal(e) {
-		let {raporTanim} = this, {detaylar} = raporTanim ?? {};
+		return super.loadServerDataInternal(e)
+		
+		/*let {raporTanim} = this, {detaylar} = raporTanim ?? {};
 		return detaylar?.map(({ shVeriTipi }) => {
 			let {kod, aciklama, kaDict} = shVeriTipi, question = kaDict[kod]?.question;
 			return ({ kod, aciklama, question })
-		})
+		})*/
 		/*return [
 			{
 				test: 'A', test2: 'B', test3: 'x', detaylar: [
