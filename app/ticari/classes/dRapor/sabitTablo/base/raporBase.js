@@ -27,11 +27,26 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		let columns = colDefs.flatMap(colDef => colDef.jqxColumns);
 		grid.jqxTreeGrid('columns', columns)
 	}
+	ekCSSDuzenle({ raporTanim, colDefs, colDef, rowIndex, belirtec, value, rec, result }) { }
 	tabloKolonlariDuzenle({ liste }) {
-		super.tabloKolonlariDuzenle(...arguments);
+		super.tabloKolonlariDuzenle(...arguments); let {raporTanim} = this, colDefs = liste;
+		let cellClassName = (colDef, rowIndex, belirtec, value, rec) => {
+			let result = ['treeRow', belirtec];
+			if (rec) { result.push(rec.leaf ? 'leaf' : 'grup') }
+			let toplammi = (typeof value == 'number');
+			result.push(toplammi ? 'toplam' : 'icerik')
+			if (toplammi) {
+				let alacakmi = value < 0;
+				result.push(!value ? 'zero' : alacakmi ? 'negative' : 'positive')
+			}
+			let {level} = rec; if (level != null) { result.push('level-' + level.toString()) }
+			let _e = { raporTanim, colDefs, colDef, rowIndex, belirtec, value, rec, result };
+			this.ekCSSDuzenle(_e); result = _e.result;
+			return result.filter(x => !!x).join(' ')
+		}
 		liste.push(...[
-			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', genislikCh: 50 }),
-			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 20 }).tipDecimal_bedel()
+			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', genislikCh: 50, cellClassName }),
+			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 20, cellClassName }).tipDecimal_bedel()
 		])
 	}
 	async loadServerDataInternal(e) {
@@ -39,16 +54,52 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		let rapor = this, {raporTanim, secimler} = this, {detaylar} = raporTanim;
 		let {tarihBSVeyaCariDonem: donemBS} = secimler;
 		let _e = { ...e, rapor, raporTanim, secimler, donemBS, detaylar };
-		let toplu = new MQToplu();
+		let id2Promise = {}, id2Detay = e.id2Detay = {};
+		let formulYapilari = e.formulYapilari = {};
+		for (let key of ['altSeviyeToplamimi', 'satirlarToplamimi']) { formulYapilari[key] = [] }
 		for (let det of detaylar) {
-			let uni = new MQUnionAll(), stm = new MQStm({ sent: uni });
-			$.extend(_e, { stm, uni }); det.raporQueryDuzenle(_e); stm = _e.stm;
-			if (!(stm?.with?.liste?.length || stm?.sent?.liste?.length)) { continue }
-			stm = _e.stm = stm.asToplamStm();
-			toplu.add(stm)
+			let {sayac: id, hesapTipi} = det; id2Detay[id] = det;
+			let ekBilgi = hesapTipi.secilen?.ekBilgi ?? {}, {querymi} = ekBilgi;
+			if (querymi) {
+				let uni = new MQUnionAll(), stm = new MQStm({ sent: uni });
+				$.extend(_e, { stm, uni }); det.raporQueryDuzenle(_e); stm = _e.stm;
+				if (!(stm?.with?.liste?.length || stm?.sent?.liste?.length)) { continue }
+				stm = _e.stm = stm.asToplamStm();
+				id2Promise[id] = app.sqlExecSelect(stm)
+			}
+			else {
+				let selector = hesapTipi.secilen?.question;
+				if (selector) { formulYapilari[selector]?.push(det) }
+			}
 		}
-		if (!toplu.liste.lenth) { return [] }
-		return await app.sqlExecSelect(toplu)
+		let recs = [], ind2Rec = e.ind2Rec = {}, i = 0;
+		for (let [id, promise] of Object.entries(id2Promise)) {
+			let det = id2Detay[id]; if (!det) { continue }
+			let _recs = await promise; if (!_recs?.length) { continue }
+			let {aciklama} = det, bedel = topla(rec => rec.bedel, _recs);
+			let rec = { id, aciklama, bedel };
+			recs.push(rec); ind2Rec[i++] = rec
+		}
+		return recs
+		/* return [ { aciklama: 'SONUÇ', detaylar: recs } ] */
+	}
+	async loadServerData_recsDuzenle_seviyelendir({ recs, id2Detay }) {
+		await super.loadServerData_recsDuzenle_seviyelendir(...arguments);
+		let sevRecs = Object.values(id2Detay).map(det => ({ id: det.sayac, aciklama: det.aciklama, detaylar: [] }));
+		return sevRecs
+	}
+	async loadServerData(e) {
+		let sevRecs = await super.loadServerData(e); if (!sevRecs) { return sevRecs }
+		let {id2Detay, formulYapilari, recs, ind2Rec} = e, attrListe = ['bedel'];
+		for (let parentRec of sevRecs)
+			for (let formulDetaylar of Object.values(formulYapilari))
+			for (let det of formulDetaylar) {
+				for (let attr of attrListe) {
+					let value = await det.eval({ ...e, det, recs, sevRecs, parentRec, attr, ind2Rec });
+					parentRec[attr] = value
+				}
+			}
+		return sevRecs
 	}
 	raporTanimIstendi(e) {
 		let {rapor, raporTanim} = this, {raporTanimSinif} = this.class;

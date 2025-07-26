@@ -627,7 +627,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			let kod = colDef.userData?.kod; if (tabloYapi.toplam[kod]) { if (!colDef.align) { colDef.alignRight() } /*if (!colDef.cellsFormat) { colDef.cellsFormat = 'd' }*/ }
 			colDef.cellClassName = (colDef, rowIndex, belirtec, value, rec) => {
 				if (icerikColsSet == null) { let {raporTanim} = this; icerikColsSet = raporTanim.icerik }
-				let kod = colDef.userData?.kod; let result = ['treeRow', belirtec]; if (rec) { result.push(rec.leaf ? 'leaf' : 'grup') }
+				let kod = colDef.userData?.kod; let result = ['treeRow', belirtec];
+				if (rec) { result.push(rec.leaf ? 'leaf' : 'grup') }
 				if (icerikColsSet && icerikColsSet[belirtec]) { result.push('icerik') }
 				if (tabloYapi.toplam[kod]) {
 					result.push('toplam'); if (typeof value == 'number') {
@@ -637,7 +638,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 					}
 				}
 				let {level} = rec; if (level != null) { result.push('level-' + level.toString()) }
-				let _e = { kod, raporTanim, icerikColsSet, colDefs, colDef, rowIndex, belirtec, value, rec, result }; this.ekCSSDuzenle(_e); result = _e.result;
+				let _e = { kod, raporTanim, icerikColsSet, colDefs, colDef, rowIndex, belirtec, value, rec, result };
+				this.ekCSSDuzenle(_e); result = _e.result;
 				return result.filter(x => !!x).join(' ')
 			}
 		}

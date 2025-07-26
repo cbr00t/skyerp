@@ -178,8 +178,8 @@ class SecimlerPart extends Part {
 		divKolonFiltreBilgi.html(filtreText); divKolonFiltreBilgiParent[filtreBilgi_recs.length ? 'removeClass' : 'addClass']('jqx-hidden')
 	}
 	seviyeleriAcKapatIstendi(e) {
-		const {flag} = e, {secimlerForm} = this; if (this.isDestroyed || !secimlerForm?.length) { return }
-		const divGrupListe = secimlerForm.find('.secim-grup'); if (divGrupListe.length) {
+		let {flag} = e, {secimlerForm} = this; if (this.isDestroyed || !secimlerForm?.length) { return }
+		let divGrupListe = secimlerForm.find('.secim-grup'); if (divGrupListe.length) {
 			divGrupListe.jqxNavigationBar(flag ? 'expandAt' : 'collapseAt', 0);
 			if (!flag) { divGrupListe.eq(0).jqxNavigationBar('expandAt', 0) }
 		}
