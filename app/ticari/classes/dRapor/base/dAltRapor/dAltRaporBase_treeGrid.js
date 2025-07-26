@@ -82,12 +82,12 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	gridSortIstendi(e) {
 		let {tabloYapi, gridPart} = this, {base} = gridPart.gridWidget, {sortcolumn: sortBelirtec} = base; let sortTipKod;
 		if (sortBelirtec) {
-			for (let {colDefs} of Object.values(tabloYapi.grupVeToplam)) {
+			for (let {colDefs} of Object.values(tabloYapi?.grupVeToplam ?? {})) {
 				let tip = colDefs.find(colDef => colDef.belirtec == sortBelirtec)?.userData?.kod;
 				if (tip) { sortTipKod = tip; break }
 			}
 		}
-		if (tabloYapi.toplam[sortTipKod]) { this.tazele({ ...e, defUpdateOnly: true }) }
+		if (tabloYapi?.toplam?.[sortTipKod]) { this.tazele({ ...e, defUpdateOnly: true }) }
 	}
 	tabloKolonlariDuzenle(e) { }
 	async getDataAdapter(e) {
@@ -177,12 +177,12 @@ class DAltRapor_TreeGrid extends DAltRapor {
 			};
 			if (tip instanceof GridKolonTip_Number) {
 				let {fra} = tip; colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) =>
-					this.cellsRenderer({ colDef, rowIndex, belirtec, value, rec, html: `<div class="right">${toStringWithFra(value, fra)}</div>` })
+					this.cellsRenderer?.({ colDef, rowIndex, belirtec, value, rec, html: `<div class="right">${toStringWithFra(value, fra)}</div>` })
 				/*if (!colDef.aggregates &&  tip instanceof GridKolonTip_Decimal) { colDef.aggregates = [(total, value) => asFloat(total) + asFloat(value)] }*/
 			}
 			else if (tip instanceof GridKolonTip_Date) {
 				colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) =>
-					this.cellsRenderer({ 
+					this.cellsRenderer?.({ 
 						colDef, rowIndex, belirtec, value, rec,
 						html: `<div>${isDate(value)
 									? dateKisaString(value)
@@ -192,7 +192,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 			}
 			else {
 				colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) =>
-					this.cellsRenderer({ colDef, rowIndex, belirtec, value, rec, html: `<span>${value}</span>` }) }
+					this.cellsRenderer?.({ colDef, rowIndex, belirtec, value, rec, html: `<span>${value}</span>` }) }
 			delete colDef.tip; result.push(colDef)
 		}
 		return result

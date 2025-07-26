@@ -152,11 +152,17 @@ class GridKolon extends GridKolonVeGrupOrtak {
 		for (let key of colEventNames) {
 			let func = this[key] ?? (tip ? (tip[key] || tip.class[key]) : null); if (!func) { continue }
 			let handler = (key, tip, ...args) => {
-				/*if (key == 'cellsRenderer' && typeof args?.[3] == 'object') {
-					let belirtec = args[1], rec = args[3];
-					args[3] = rec?.[belirtec]; args[5] = this; args[6] = rec
-				}*/
-				if (args) { for (let i = 0; i < args.length; i++) { let value = args[i]; if (value != null && value?.constructor.name == 'Number') { args[i] = value = asFloat(value) } } }
+				if (key == 'cellsRenderer' && typeof args?.[3] == 'object') {
+					let belirtec = args[1], value = args[2], rec = args[3];
+					args[0] = this; args[3] = `<span>${value?.toString() || ''}</span>`
+					args[4] = null; args[5] = rec
+				}
+				if (args) {
+					for (let i = 0; i < args.length; i++) {
+						let value = args[i];
+						if (value != null && value?.constructor.name == 'Number') { args[i] = value = asFloat(value) }
+					}
+				}
 				let func, result; if (tip) {
 					func = tip.class[key]; if (func) { result = getFuncValue.call(tip, func, this, ...args, result) }
 					func = tip[key]; if (func) { result = getFuncValue.call(tip, func, this, ...args, result) }

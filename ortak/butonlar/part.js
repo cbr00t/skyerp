@@ -59,7 +59,7 @@ class ButonlarPart extends Part {
 					catch (ex) {
 						let errText = getErrorText(ex);
 						if (errText) { hConfirm(errText) }
-						throw ex
+						// throw ex
 					}
 				})
 			}

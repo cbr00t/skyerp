@@ -268,9 +268,9 @@ class GridKolonTip_Decimal extends GridKolonTip_Number {
 	get cellsRenderer() {
 		return ((colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
 			if (rec?.totalsrow) { return GridKolonTip.getHTML_groupsTotalRow(value) }
-			const {gridPart} = colDef, gridWidget = gridPart?.gridWidget ?? gridPart?.gridPart?.gridWidget;
+			let {gridPart} = colDef, gridWidget = gridPart?.gridWidget ?? gridPart?.gridPart?.gridWidget;
 			rec = (gridWidget?.getboundrows ? gridWidget.getboundrows()[rowIndex] : null) ?? rec; rec = rec?.originalRecord ?? rec;
-			if (rec) { value = rec[columnField] }; const fra = this.getFra({ rec });
+			if (rec) { value = rec[columnField] }; let fra = this.getFra({ rec });
 			if (value != null) {
 				if (typeof value != 'number') value = asFloat(value)
 				value = !value && this.sifirGostermeFlag ? '' : (fra == null ? value.toLocaleString() : toStringWithFra(value, fra));

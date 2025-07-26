@@ -180,7 +180,8 @@ class TSOrtakFis extends MQTicariGenelFis {
 		detaylar = this.detaylar = _detaylar
 	}
 	uiKaydetOncesiIslemler(e) {
-		super.uiKaydetOncesiIslemler(e); let degistimi = false, {fis} = e, _detaylar = [], {detaylar} = fis;
+		super.uiKaydetOncesiIslemler(e); let degistimi = false, {fis} = e, _detaylar = [];
+		fis.detaylar ??= []; let {detaylar} = fis;
 		for (let det of detaylar) {
 			if (det.ekBilgimi) { continue }
 			let altAciklama = (det.altAciklama || '').trimEnd(); det.altAciklama = null; _detaylar.push(det);

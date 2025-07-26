@@ -6,7 +6,8 @@ class SBRapor extends DGrupluPanelRapor {
 }
 class SBRapor_Main extends DAltRapor_TreeGrid {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get mainmi() { return true }
-	get tazeleYapilirmi() { return true } get noAutoColumns() { return true } static get raporTanimSinif() { return SBTablo }
+	get tazeleYapilirmi() { return true } get noAutoColumns() { return true }
+	static get raporTanimSinif() { return SBTablo } static get secimSinif() { return DonemselSecimler }
 	async tazele(e) {
 		let {gridPart, raporTanim, _tabloTanimGosterildiFlag} = this, {grid, gridWidget} = gridPart;
 		if (!raporTanim) {
@@ -16,10 +17,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		}
 		let _e = CObject.From(e);
 		await super.tazele(_e);
-		$.extend(_e, {
-			liste: _e.tabloKolonlari ?? _e.kolonTanimlari ?? [],
-			recs: gridWidget.getRows()
-		});
+		$.extend(_e, { liste: _e.tabloKolonlari ?? _e.kolonTanimlari ?? [], recs: gridWidget.getRows() });
 		Object.defineProperty(_e, 'flatRecs', {
 			get: function() { return this.recs.flatMap(rec => [rec, ...rec.detaylar]) }
 		});
@@ -29,13 +27,28 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		let columns = colDefs.flatMap(colDef => colDef.jqxColumns);
 		grid.jqxTreeGrid('columns', columns)
 	}
-	tabloKolonlariDuzenle({ liste }) { super.tabloKolonlariDuzenle(...arguments) }
+	tabloKolonlariDuzenle({ liste }) {
+		super.tabloKolonlariDuzenle(...arguments);
+		liste.push(...[
+			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', genislikCh: 50 }),
+			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 20 }).tipDecimal_bedel()
+		])
+	}
 	async loadServerDataInternal(e) {
-		await super.loadServerDataInternal(e); let {raporTanim} = this, {detaylar} = raporTanim;
-		let uni = new MQUnionAll(), stm = new MQStm({ sent: uni });
-		let _e = { ...e, raporTanim, detaylar, stm, uni };
-		for (let det of detaylar) { det.raporQueryDuzenle(_e) }
-		stm = _e.stm; return await app.sqlExecSelect(stm)
+		await super.loadServerDataInternal(e);
+		let rapor = this, {raporTanim, secimler} = this, {detaylar} = raporTanim;
+		let {tarihBSVeyaCariDonem: donemBS} = secimler;
+		let _e = { ...e, rapor, raporTanim, secimler, donemBS, detaylar };
+		let toplu = new MQToplu();
+		for (let det of detaylar) {
+			let uni = new MQUnionAll(), stm = new MQStm({ sent: uni });
+			$.extend(_e, { stm, uni }); det.raporQueryDuzenle(_e); stm = _e.stm;
+			if (!(stm?.with?.liste?.length || stm?.sent?.liste?.length)) { continue }
+			stm = _e.stm = stm.asToplamStm();
+			toplu.add(stm)
+		}
+		if (!toplu.liste.lenth) { return [] }
+		return await app.sqlExecSelect(toplu)
 	}
 	raporTanimIstendi(e) {
 		let {rapor, raporTanim} = this, {raporTanimSinif} = this.class;

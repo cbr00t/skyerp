@@ -45,12 +45,16 @@ class TekSecim extends CIO {
 		for (const ka of kaListe) { const {question} = ka; kaDict[ka.kod] = ka; if (question?.length > 2) { questionDict[question.substr(0, question.length - 2)] = ka } }
 	}
 	initProps(e) {
-		const kaListe = this._kaListe; for (const {kod, question}  of kaListe) {
+		const kaListe = this._kaListe; for (let {kod, question} of kaListe) {
 			if (!question) { continue } Object.defineProperty(this, question, {
 				configurable: true,
-				get() { return this.char == kod }
+				get() {
+					let {char} = this; char = char?.trim?.() ?? char;
+					let _kod = kod; _kod = _kod?.trim?.() ?? _kod;
+					return char == _kod
+				}
 			});
-			const setterPostfix = 'Yap', questionSetter = question.replace('mi', setterPostfix).replace('mu', setterPostfix);
+			let setterPostfix = 'Yap', questionSetter = question.replace('mi', setterPostfix).replace('mu', setterPostfix);
 			let func = this.__proto__[questionSetter] = (function() { this.char = kod; return this }) /*func.bind(this.__proto__)*/
 		}
 		this._propInitFlag = true

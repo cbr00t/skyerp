@@ -144,24 +144,27 @@ class SatisKosul extends CKodVeAdi {
 		orderBy.add('xKod');
 	}
 	static async getMust2Rec(e) {
-		e = e ?? {}; const kod = (typeof e == 'object' ? e.mustKod ?? e.mustkod ?? e.must ?? e.kod : e)?.trimEnd();
+		e = e ?? {}; let kod = (typeof e == 'object' ? e.mustKod ?? e.mustkod ?? e.must ?? e.kod : e)?.trimEnd();
 		if (!kod) { return null }
-		let sent = new MQSent(), {where: wh, sahalar} = sent;
-		sent.fromAdd('carmst car')
-			.cari2BolgeBagla().fromIliski('isyeri isy', 'bol.bizsubekod = isy.kod')
-            .leftJoin('car', 'carisatis csat', ['car.must = csat.must', `csat.satistipkod = ''`])
-            .leftJoin('car', 'carmst kon', [`car.kontipkod = 'S'`, `car.konsolidemusterikod > ''`, 'car.konsolidemusterikod = kon.must'])
-            .leftJoin('kon', 'carbolge kbol', 'kon.bolgekod = kbol.kod')
-            .leftJoin('kbol', 'isyeri kisy', 'kbol.bizsubekod = kisy.kod');
-		wh.degerAta(kod, 'car.must');
-		sahalar.add(
-			'car.must mustKod', 'car.konsolidemusterikod konMustKod', 'car.tipkod tipKod',
-			'car.bolgekod bolgeKod', 'car.kosulgrupkod kosulGrupKod', 'csat.tavsiyeplasiyerkod plasiyerKod',
-			'bol.bizsubekod subeKod', 'isy.isygrupkod subeGrupKod',
-			'car.kontipkod konTipKod', 'kon.bolgekod konBolgeKod', 'kon.kosulgrupkod konKosulGrupKod',
-			'kbol.bizsubekod konSubeKod', 'kisy.isygrupkod konSubeGrupKod'
-		)
-		return await app.sqlExecTekil(sent)
+		let mustKod2Rec = this._mustKod2Rec ??= {};
+		return mustKod2Rec[kod] ??= await (async () => {
+			let sent = new MQSent(), {where: wh, sahalar} = sent;
+			sent.fromAdd('carmst car')
+				.cari2BolgeBagla().fromIliski('isyeri isy', 'bol.bizsubekod = isy.kod')
+	            .leftJoin('car', 'carisatis csat', ['car.must = csat.must', `csat.satistipkod = ''`])
+	            .leftJoin('car', 'carmst kon', [`car.kontipkod = 'S'`, `car.konsolidemusterikod > ''`, 'car.konsolidemusterikod = kon.must'])
+	            .leftJoin('kon', 'carbolge kbol', 'kon.bolgekod = kbol.kod')
+	            .leftJoin('kbol', 'isyeri kisy', 'kbol.bizsubekod = kisy.kod');
+			wh.degerAta(kod, 'car.must');
+			sahalar.add(
+				'car.must mustKod', 'car.konsolidemusterikod konMustKod', 'car.tipkod tipKod',
+				'car.bolgekod bolgeKod', 'car.kosulgrupkod kosulGrupKod', 'csat.tavsiyeplasiyerkod plasiyerKod',
+				'bol.bizsubekod subeKod', 'isy.isygrupkod subeGrupKod',
+				'car.kontipkod konTipKod', 'kon.bolgekod konBolgeKod', 'kon.kosulgrupkod konKosulGrupKod',
+				'kbol.bizsubekod konSubeKod', 'kisy.isygrupkod konSubeGrupKod'
+			)
+			return await app.sqlExecTekil(sent)
+		});
 	}
 	uygunmu(e) {
 		e = e ?? {}; const {kapsam} = this, diger = (typeof e == 'object' ? e.kapsam : e) ?? {};

@@ -6,18 +6,14 @@ class SBRapor_X extends SBRapor {
 class SBRapor_X_Main extends SBRapor_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return SBRapor_X }
 	tabloKolonlariDuzenle({ liste, recs /*, flatRecs*/ }) {
-		super.tabloKolonlariDuzenle(...arguments);
-		liste.push(...[
-			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', genislikCh: 50 }),
-			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 20 }).tipDecimal_bedel()
-		])
+		super.tabloKolonlariDuzenle(...arguments)
 	}
 	loadServerDataInternal(e) {
 		return super.loadServerDataInternal(e)
 		
 		/*let {raporTanim} = this, {detaylar} = raporTanim ?? {};
-		return detaylar?.map(({ shVeriTipi }) => {
-			let {kod, aciklama, kaDict} = shVeriTipi, question = kaDict[kod]?.question;
+		return detaylar?.map(({ shStokHizmet }) => {
+			let {kod, aciklama, kaDict} = shStokHizmet, question = kaDict[kod]?.question;
 			return ({ kod, aciklama, question })
 		})*/
 		/*return [

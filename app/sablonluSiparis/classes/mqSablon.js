@@ -167,13 +167,13 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	}
 	static eMailYapiQueryDuzenle(e) { return false }
 	static getSablonluVeKLDagitimliOnSent({ fisSinif, fisSayac }) {
-		let {table, sayacSaha, mustSaha} = fisSinif;
+		let {table, sayacSaha, teslimCariSaha} = fisSinif;
 		let maxSent = new MQSent({
 			from: `${table} xfis`, fromIliskiler: [
 				{ from: 'hizlisablon xsab', iliski: 'xfis.sablonsayac = xsab.kaysayac' },
 				{
 					from: 'kldagitim xdag', iliski: [
-						`xfis.${mustSaha} = xdag.mustkod`, `xsab.klfirmakod = xdag.klfirmakod`,
+						`xfis.${teslimCariSaha} = xdag.mustkod`, `xsab.klfirmakod = xdag.klfirmakod`,
 						new MQOrClause([`xfis.xadreskod = xdag.sevkadreskod`, `xdag.sevkadreskod = ''`])
 					]
 				},
@@ -429,7 +429,7 @@ class MQKonsinyeSablon extends MQSablonOrtak {
 		let sentEkle = fisSinif => {
 			let {teslimCariSaha: xCariKodSaha, stokmu} = fisSinif;
 			let sent = this.getSablonluVeKLDagitimliOnSent({ fisSinif, fisSayac }), {sahalar} = sent;
-			let kendimizTeslimmiClause = `kdag.bkendimizteslim > 0 AND kdag.klteslimatcikod > ''`;
+			// let kendimizTeslimmiClause = `kdag.bkendimizteslim > 0 AND kdag.klteslimatcikod > ''`;
 			sent.fromIliski('carmst car', `fis.${xCariKodSaha} = car.must`)
 				.fromIliski('carsevkadres sadr', 'fis.xadreskod = sadr.kod')
 				.leftJoin('kdag', 'klfirmabolge kfbol', 'kdag.klfirmabolgekod = kfbol.kod')
@@ -470,7 +470,8 @@ class MQSablonOrtakDetay extends MQDetay {
 			new GridKolon({ belirtec: 'subeadi', text: 'Şube Adı', genislikCh: 30, filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13, filterType: 'checkedlist' }).tipDate(),
 			new GridKolon({ belirtec: 'fisnox', text: 'Sip. No', genislikCh: 16, filterType: 'checkedlist' }),
-			new GridKolon({ belirtec: 'mustunvan', text: 'Müşteri', filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'mustkod', text: 'Müşteri', filterType: 'checkedlist', genislikCh: 18 }),
+			new GridKolon({ belirtec: 'mustunvan', text: 'Ünvan', filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'sevkadresadi', text: 'Sevk Adres', genislikCh: 20, filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'basteslimtarihi', text: 'Tes.Tarih', genislikCh: 13, filterType: 'checkedlist' }).tipDate(),
 			new GridKolon({ belirtec: 'bonayli', text: 'Onay?', genislikCh: 8, filterType: 'checkedlist' }).tipBool(),
@@ -496,23 +497,21 @@ class MQSablonOrtakDetay extends MQDetay {
 		let cariYil = app.params.zorunlu?.cariYil || today().getYil();
 		let {stm} = e, {orderBy} = stm, uni = stm.sent = new MQUnionAll();
 		let sentEkle = (kayitTipi, fisSinif) => {
-			let {table, mustSaha} = fisSinif, keyHV = fisSinif.varsayilanKeyHostVars();
+			let {table, mustSaha, teslimCariSaha} = fisSinif, keyHV = fisSinif.varsayilanKeyHostVars();
+			let mustVeyaTeslimCariSaha = konsinyemi ? teslimCariSaha : mustSaha;
 			let sent = new MQSent(), {sahalar, where: wh} = sent;
 			sent.fromAdd(`${table} fis`); wh.fisSilindiEkle();
 			wh.birlestirDict(keyHV).add(`fis.kapandi = ''`, `fis.tarih >= CAST('${cariYil}-01-01T00:00:00' AS DATETIME)`);
 			if (sablonSayacListe) { wh.inDizi(sablonSayacListe, 'fis.sablonsayac') }
 			if (subeKod) { wh.degerAta(subeKod, 'fis.bizsubekod') }
 			if (tarih) { wh.degerAta(tarih, 'fis.tarih') }
-			if (mustKod) {
-				if (konsinyemi && fisSinif.siparismi) { wh.degerAta(mustKod, 'fis.teslimcarikod') }      // Alım Siparişidir
-				else { wh.degerAta(mustKod, `fis.${mustSaha}`) }                                         // Satış Siparişi veya İrsaliyeli Transfer Sipariş
-			}
+			if (mustKod) { wh.degerAta(mustKod, `fis.${mustVeyaTeslimCariSaha}`) }
 			sahalar.add('fis.sablonsayac sablonSayac');
 			if (detaylimi) {
-				sent.fis2SubeBagla().fis2CariBagla({ mustSaha }).fis2SevkAdresBagla();
+				sent.fis2SubeBagla().fis2CariBagla({ mustSaha: mustVeyaTeslimCariSaha }).fis2SevkAdresBagla();
 				sahalar.add(`${kayitTipi.sqlServerDegeri()} kayitTipi`,
 					'fis.kaysayac', 'fis.tarih', 'fis.fisnox', 'fis.no', 'fis.bizsubekod subekod', 'sub.aciklama subeadi',
-					`fis.${mustSaha} mustkod`, 'car.birunvan mustunvan',
+					`fis.${mustVeyaTeslimCariSaha} mustkod`, 'car.birunvan mustunvan',
 					'fis.xadreskod sevkadreskod', 'sadr.aciklama sevkadresadi', 'fis.basteslimtarihi',
 					`(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`)
 			}

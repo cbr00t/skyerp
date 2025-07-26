@@ -238,7 +238,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 			let {kaydedince} = this; if (kaydedince) { result = await getFuncValue.call(this, kaydedince, { ...e, sender: this }) }
 			if (result === false) { return false }
 			this.kaydetCalistimi = true; this.destroyPart()
-		} catch (ex) { let err = getErrorText(ex); hConfirm(err, 'Fiş Kayıt Sorunu'); throw ex }
+		} catch (ex) { let err = getErrorText(ex); hConfirm(err, 'Fiş Kayıt Sorunu'); console.error(ex) }
 		return true
 	}
 	async kaydet(e) {

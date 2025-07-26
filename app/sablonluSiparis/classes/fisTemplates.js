@@ -93,7 +93,8 @@ class SablonluSiparisFisTemplate extends CObject {
 	static async yeniTanimOncesiIslemler(e) { /* await this.dagitimIcinEkBilgileriBelirle({ fis }) */ }
 	static async yukleSonrasiIslemler(e) {
 		let {sender: detGridPart, fis} = e, {parentPart: gridPart} = detGridPart ?? {};
-		fis.mustKod = gridPart.mustKod || fis.mustKod;
+		// fis.mustKod = gridPart.mustKod || fis.mustKod;
+		fis.mustKod = fis.teslimCariKod || fis.mustKod;
 		return await this.sablonYukleVeBirlestir({ ...e })
 	}
 	static async sablonYukleVeBirlestir(e) {
@@ -239,61 +240,63 @@ class SablonluSiparisFisTemplate extends CObject {
 			(stokKod2Detaylar[det.shKod] = stokKod2Detaylar[det] ?? []).push(det)
 		}
 		stokKodListe = Object.keys(stokKod2Detaylar); kosulYapilar = await kosulYapilar;
-		let iskontoArastirStokSet = {};
-		let fiyatYapilar = anah2KosulYapi[toJSONStr(stokKodListe)] ??= await SatisKosul_Fiyat.getAltKosulYapilar(stokKodListe, kosulYapilar?.FY, mustKod);
-		for (let det of detaylar) {
-			if (fiyatYapilar && det.netBedel == undefined) { continue }
-			let {shKod: stokKod} = det, kosulRec = fiyatYapilar[stokKod] ?? {}, {iskontoYokmu} = kosulRec;
-			if (!iskontoYokmu) { iskontoArastirStokSet[stokKod] = true }
-			let fiyat = det.fiyat || kosulRec.fiyat; if (fiyat) {
-				let miktar = det.miktar || 0, netBedel = roundToBedelFra(miktar * fiyat);
-				$.extend(det, { fiyat, netBedel })
-			}
-		}
-		let iskontoArastirStokKodListe = Object.keys(iskontoArastirStokSet);
-		let iskYapilar = anah2KosulYapi[toJSONStr(iskontoArastirStokKodListe)] ??= await SatisKosul_Iskonto.getAltKosulYapilar(iskontoArastirStokKodListe, kosulYapilar?.SB);
-		let prefix = 'oran'; for (let det of detaylar) {
-			let {stokKod} = det, kosulRec = iskYapilar[stokKod] ?? {};
-			for (let [key, value] of Object.entries(iskYapilar)) {
-				if (!(value && key.startsWith(prefix))) { continue }
-				let i = asInteger(key.slice(prefix.length)); det[`iskOran${i}`] = value
-			}
-		}
-		let {gecerliDepolar: yerKodListe} = app, paramName_stokKodListe = '@stokKodListe';
-		let {webSiparis_sonStokGosterilirmi, webSiparis_ayOnceSayisi: ayOnceSayisi} = app.params.web;
-		let _e = { ...e, getAnahStr, anah2Det, ekOzellikler, paramName_stokKodListe };
-		if (webSiparis_sonStokGosterilirmi) {
-			let stokKodSet = _e.stokKodSet = asSet(detaylar.map(det => det.shKod));
-			let params = _e.params = [
-				{
-					name: paramName_stokKodListe, type: 'structured', typeName: 'type_charList',
-					value: Object.keys(stokKodSet).map(kod => ({ kod }))
+		if (stokKodListe?.length) {
+			let iskontoArastirStokSet = {};
+			let fiyatYapilar = anah2KosulYapi[toJSONStr(stokKodListe)] ??= await SatisKosul_Fiyat.getAltKosulYapilar(stokKodListe, kosulYapilar?.FY, mustKod);
+			for (let det of detaylar) {
+				if (fiyatYapilar && det.netBedel == undefined) { continue }
+				let {shKod: stokKod} = det, kosulRec = fiyatYapilar[stokKod] ?? {}, {iskontoYokmu} = kosulRec;
+				if (!iskontoYokmu) { iskontoArastirStokSet[stokKod] = true }
+				let fiyat = det.fiyat || kosulRec.fiyat; if (fiyat) {
+					let miktar = det.miktar || 0, netBedel = roundToBedelFra(miktar * fiyat);
+					$.extend(det, { fiyat, netBedel })
 				}
-			];
-			let table2Col = app._table2Col ??= {};
-			let colInfo = table2Col.carmst_konsinyeyerkod ??= Object.values(await app.sqlGetColumns('carmst', 'konsinyeyerkod'))?.[0];
-			if (colInfo) {
-				let must2KonYerKod = this._must2KonYerKod ??= {};
-				let getMust2YerKod = async mustKod => {
-					mustKod ??= fis.mustKod; if (!mustKod) { return null }
-					return must2KonYerKod[mustKod] ??= await (async () => {
-						let sent = new MQSent({ from: 'carmst', sahalar: 'konsinyeyerkod' }), {where: wh} = sent;
-						wh.degerAta(mustKod, 'must');
-						let yerKod = (await app.sqlExecTekilDeger(sent))?.trimEnd();
-						return yerKod
-					})()
-				}
-				let query = _e.query = new MQStm({ sent: new MQUnionAll() }), toplamInd = 0;
-				await this.detaylariDuzenle_sonStok_queryOlustur({ ..._e, tip: 'genel', yerKodListe, uzakSonStokmu: true });
-				if (konsinyemi) {
-					await this.detaylariDuzenle_sonStok_queryOlustur({
-						..._e, tip: 'kendiDeposu', kendisimi: true, yerKodListe: () => getMust2YerKod()
-					})
-				}
-				await this.detaylariDuzenle_sonStok(_e)
 			}
+			let iskontoArastirStokKodListe = Object.keys(iskontoArastirStokSet);
+			let iskYapilar = anah2KosulYapi[toJSONStr(iskontoArastirStokKodListe)] ??= await SatisKosul_Iskonto.getAltKosulYapilar(iskontoArastirStokKodListe, kosulYapilar?.SB);
+			let prefix = 'oran'; for (let det of detaylar) {
+				let {stokKod} = det, kosulRec = iskYapilar[stokKod] ?? {};
+				for (let [key, value] of Object.entries(iskYapilar)) {
+					if (!(value && key.startsWith(prefix))) { continue }
+					let i = asInteger(key.slice(prefix.length)); det[`iskOran${i}`] = value
+				}
+			}
+			let {gecerliDepolar: yerKodListe} = app, paramName_stokKodListe = '@stokKodListe';
+			let {webSiparis_sonStokGosterilirmi, webSiparis_ayOnceSayisi: ayOnceSayisi} = app.params.web;
+			let _e = { ...e, getAnahStr, anah2Det, ekOzellikler, paramName_stokKodListe };
+			if (webSiparis_sonStokGosterilirmi) {
+				let stokKodSet = _e.stokKodSet = asSet(detaylar.map(det => det.shKod));
+				let params = _e.params = [
+					{
+						name: paramName_stokKodListe, type: 'structured', typeName: 'type_charList',
+						value: Object.keys(stokKodSet).map(kod => ({ kod }))
+					}
+				];
+				let table2Col = app._table2Col ??= {};
+				let colInfo = table2Col.carmst_konsinyeyerkod ??= Object.values(await app.sqlGetColumns('carmst', 'konsinyeyerkod'))?.[0];
+				if (colInfo) {
+					let must2KonYerKod = this._must2KonYerKod ??= {};
+					let getMust2YerKod = async mustKod => {
+						mustKod ??= fis.mustKod; if (!mustKod) { return null }
+						return must2KonYerKod[mustKod] ??= await (async () => {
+							let sent = new MQSent({ from: 'carmst', sahalar: 'konsinyeyerkod' }), {where: wh} = sent;
+							wh.degerAta(mustKod, 'must');
+							let yerKod = (await app.sqlExecTekilDeger(sent))?.trimEnd();
+							return yerKod
+						})()
+					}
+					let query = _e.query = new MQStm({ sent: new MQUnionAll() }), toplamInd = 0;
+					await this.detaylariDuzenle_sonStok_queryOlustur({ ..._e, tip: 'genel', yerKodListe, uzakSonStokmu: true });
+					if (konsinyemi) {
+						await this.detaylariDuzenle_sonStok_queryOlustur({
+							..._e, tip: 'kendiDeposu', kendisimi: true, yerKodListe: () => getMust2YerKod()
+						})
+					}
+					await this.detaylariDuzenle_sonStok(_e)
+				}
+			}
+			if (konsinyemi && ayOnceSayisi) { await this.detaylariDuzenle_oncekiMiktar(_e) }
 		}
-		if (konsinyemi && ayOnceSayisi) { await this.detaylariDuzenle_oncekiMiktar(_e) }
 	}
 	static async detaylariDuzenle_sonStok_queryOlustur(e) {
 		let {
@@ -510,6 +513,8 @@ class SablonluSiparisFisTemplate extends CObject {
 	}
 	static getYazmaIcinDetaylar({ fis }) { return fis.detaylar.filter(det => !!det.miktar) }
 	static async kaydetOncesiIslemler({ fis }) {
+		let {detaylar} = fis;
+		if (!detaylar?.length) { throw { isError: true, rc: 'emptyRecs', errorText: 'Sipariş boş olamaz' } }
 		await this.stokIslemBelirle(...arguments);
 		await this.dagitimIcinEkBilgileriBelirle(...arguments)
 	}
