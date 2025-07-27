@@ -28,8 +28,8 @@ class SBTabloVeriTipi extends TekSecim {
 	static get defaultChar() { return '' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); let {kaListe} = e;
-		let topSahaEkle = e.topSahaEkle = ({ sent, clause, sahaAlias }) =>
-			sent.sahalar.add(`SUM(${clause}) ${sahaAlias}`);
+		let topSahaEkle = e.topSahaEkle = ({ sent, clause, sahaAlias, det }) =>
+			sent.sahalar.add(`(SUM(${clause})${det.tersIslemmi ? ' * -1' : ''}) ${sahaAlias}`);
 		kaListe.push(...[
 			new CKodAdiVeEkBilgi([' ', '', 'yokmu', {
 				gosterimUygunluk: ({ hesapTipi, shStokHizmet }) => !hesapTipi.ticarimi

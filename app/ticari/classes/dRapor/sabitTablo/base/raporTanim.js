@@ -127,6 +127,20 @@ class SBTabloDetay extends MQDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'sbtablodetay' }
 	static get fisSayacSaha() { return 'fisid' } static get sayacSaha() { return 'id' }
+	get id() { return this.sayac } set id(value) { this.sayac = value }
+	get asObject() {
+		let {pTanim} = this.class, {sayac: id, satirListe} = this, keys = Object.keys(pTanim);
+		let result = { ...this, id, satirListe };
+		for (let key of keys) {
+			let value = this[key];
+			// value = value?.char ?? value;
+			value = value?.deepCopy?.() ?? value;
+			if (typeof value == 'object' && !value?.deepCopy) { value = $.extend(true, {}, value) }
+			if (value !== undefined) { result[key] = value }
+		}
+		for (let key of ['_p', '_supers', '_temps', 'ayrimlar', 'ozelSahalar', 'okunanHarSayac', 'sayac', 'eskiSeq']) { delete result[key] }
+		return result
+	}
 	get satirListe() { let {satirListeStr: result} = this; return result?.length ? result.split(',').filter(x => !!x).map(x => asInteger(x.trim()) - 1) : [] }
 	set satirListe(value) { this.satirListeStr = value?.length ? value.filter(x => x != null).map(x => x + 1).sort().join(', ') : '' }
 	get secimler() {
@@ -136,20 +150,15 @@ class SBTabloDetay extends MQDetay {
 	}
 	get asFormul() {
 		let {hesapTipi} = this;
-		if (hesapTipi.altSeviyeToplamimi) {
-			return (({ attr, parentRec }) =>
-				roundToBedelFra(topla(rec => rec?.[attr] ?? 0, parentRec.detaylar ?? [])))
-		}
-		else if (hesapTipi.satirlarToplamimi) {
-			return (({ det, attr, recs, ind2Rec }) => {
-				let {satirListe} = det, topRecs = satirListe.map(ind => ind2Rec[ind]).filter(x => x != null);
+		/*if (hesapTipi.satirlarToplamimi) {
+			return (({ det, attr, recs, ind2Rec, parentRec }) => {
+				let {satirListe} = det, detaylar = parentRec?.detaylar ?? [];
+				let topRecs = satirListe.map(i => ind2Rec[i]).filter(x => x != null);
+				if (!topRecs.length) { return null }
 				return roundToBedelFra(topla(rec => rec?.[attr] ?? 0, topRecs))
 			})
-			// return `topla(d => d?.bedel ?? 0, this.satirListe.map(i => recs[i]))`
 		}
-		else if (hesapTipi.ticarimi) { }
-		else if (hesapTipi.hizmetmi) { }
-		else if (hesapTipi.formulmu) { return this.formul }
+		else*/ if (hesapTipi.formulmu) { return this.formul }
 		return null
 	}
 	get asRaporQuery() {
@@ -214,7 +223,7 @@ class SBTabloDetay extends MQDetay {
 		/* $.extend(this, { satirListeStr }) */
 	}
 	raporQueryDuzenle(e) {
-		let det = e.det = this, {stm, donemBS, subeKodlari, sentDuzenle} = e;
+		let det = e.det = this, {rapor, stm, donemBS, subeKodlari, sentDuzenle} = e, {tabloYapi} = rapor;
 		let {aciklama, hesapTipi, shStokHizmet, veriTipi} = this;
 		let shDurum = {
 			stokmu: hesapTipi.ticarimi && (shStokHizmet.birliktemi || shStokHizmet.stokmu),
@@ -229,7 +238,8 @@ class SBTabloDetay extends MQDetay {
 		}
 		let {sent: uni} = stm ?? {};
 		if (!uni?.liste?.length) { return this }
-		let sahaAlias = 'bedel', _e = { ...e, uni, sahaAlias };
+		let sahaAliases = Object.values(tabloYapi?.toplam).map(({ colDefs }) => colDefs.map(({ belirtec }) => belirtec)).flat();
+		let _e = { ...e, uni, sahaAlias: 'bedel' };
 		for (let sent of uni) {
 			let {where: wh, sahalar} = sent;
 			if (donemBS) { wh.basiSonu(donemBS, 'fis.tarih') }
@@ -237,7 +247,9 @@ class SBTabloDetay extends MQDetay {
 			/* sahalar.add(`${aciklama.sqlServerDegeri()} aciklama`); */
 			$.extend(_e, { sent, where: wh, sahalar });
 			icerikSentDuzenle?.call(this, _e); sentDuzenle?.call(this, _e);
-			let {alias2Deger} = sent; if (!alias2Deger[sahaAlias]) { sahalar.add(`0 ${sahaAlias}`) }
+			let {alias2Deger} = sent; for (let sahaAlias of sahaAliases) {
+				if (!alias2Deger[sahaAlias]) { sahalar.add(`0 ${sahaAlias}`) }
+			}
 			sent.groupByOlustur()
 		}
 		return this

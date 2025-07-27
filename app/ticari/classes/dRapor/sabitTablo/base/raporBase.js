@@ -8,6 +8,15 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get mainmi() { return true }
 	get tazeleYapilirmi() { return true } get noAutoColumns() { return true }
 	static get raporTanimSinif() { return SBTablo } static get secimSinif() { return DonemselSecimler }
+	get tabloYapi() {
+		let {_tabloYapi: result} = this; if (result == null) {
+			let _e = { result: new TabloYapi() }; this.tabloYapiDuzenle(_e); this.tabloYapiDuzenle_son(_e);
+			this.tabloYapiDuzenle_ozel?.(_e); result = _e.result
+		}
+		return result
+	}
+	tabloYapiDuzenle({ result }) { result.addToplamBasit_bedel('BEDEL', 'Bedel', 'bedel') }
+	tabloYapiDuzenle_son({ result }) { }
 	async tazele(e) {
 		let {gridPart, raporTanim, _tabloTanimGosterildiFlag} = this, {grid, gridWidget} = gridPart;
 		if (!raporTanim) {
@@ -29,7 +38,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 	}
 	ekCSSDuzenle({ raporTanim, colDefs, colDef, rowIndex, belirtec, value, rec, result }) { }
 	tabloKolonlariDuzenle({ liste }) {
-		super.tabloKolonlariDuzenle(...arguments); let {raporTanim} = this, colDefs = liste;
+		super.tabloKolonlariDuzenle(...arguments); let {raporTanim, tabloYapi} = this, colDefs = liste;
 		let cellClassName = (colDef, rowIndex, belirtec, value, rec) => {
 			let result = ['treeRow', belirtec];
 			if (rec) { result.push(rec.leaf ? 'leaf' : 'grup') }
@@ -45,9 +54,11 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			return result.filter(x => !!x).join(' ')
 		}
 		liste.push(...[
-			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', genislikCh: 50, cellClassName }),
-			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 20, cellClassName }).tipDecimal_bedel()
-		])
+			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', genislikCh: 50 }),
+			...Object.values(tabloYapi.grup).map(({ colDefs }) => colDefs).flat(),
+			...Object.values(tabloYapi.toplam).map(({ colDefs }) => colDefs).flat()
+		]);
+		for (let colDef of liste) { $.extend(colDef, { cellClassName }) }
 	}
 	async loadServerDataInternal(e) {
 		await super.loadServerDataInternal(e);
@@ -72,31 +83,79 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 				if (selector) { formulYapilari[selector]?.push(det) }
 			}
 		}
-		let recs = [], ind2Rec = e.ind2Rec = {}, i = 0;
+		let recs = [];
 		for (let [id, promise] of Object.entries(id2Promise)) {
 			let det = id2Detay[id]; if (!det) { continue }
 			let _recs = await promise; if (!_recs?.length) { continue }
 			let {aciklama} = det, bedel = topla(rec => rec.bedel, _recs);
 			let rec = { id, aciklama, bedel };
-			recs.push(rec); ind2Rec[i++] = rec
+			recs.push(rec)
 		}
 		return recs
 		/* return [ { aciklama: 'SONUÇ', detaylar: recs } ] */
 	}
-	async loadServerData_recsDuzenle_seviyelendir({ recs, id2Detay }) {
+	async loadServerData_recsDuzenle_seviyelendir({ recs: sqlRecs, id2Detay }) {
 		await super.loadServerData_recsDuzenle_seviyelendir(...arguments);
-		let sevRecs = Object.values(id2Detay).map(det => ({ id: det.sayac, aciklama: det.aciklama, detaylar: [] }));
+		let {tabloYapi} = this, attrListe = Object.values(tabloYapi.toplam).map(item => item.colDefs.map(({ belirtec }) => belirtec)).flat();
+		let id2GridRec = {}; for (let [id, det] of Object.entries(id2Detay)) {
+			let gridRec = id2GridRec[id] = {
+				...det.asObject, detaylar: [], hesaplandimi: false,
+				...Object.fromEntries(attrListe.map(attr => [attr, 0])),
+				toplamReset() {
+					for (let attr of attrListe) { this[attr] = 0 }
+					return this
+				},
+				toplamaEkle(digerGridRec) {
+					for (let attr of attrListe) { this[attr] += digerGridRec[attr] }
+					return this
+				},
+				toplamOlustur() {
+					let {detaylar} = this; if (!detaylar.length) { return this }
+					this.toplamReset(); for (let det of detaylar) {
+						det.toplamOlustur(); this.toplamaEkle(det) }
+					return this
+				}
+			}
+		}
+		for (let rec of sqlRecs) {
+			let {id} = rec, gridRec = id2GridRec[id];
+			for (let attr of attrListe) { gridRec[attr] = rec[attr] ?? 0 }
+			gridRec.hesaplandimi = true
+		}
+		let maxSevNo = 1, sev2Ust = {}, gridRecs = Object.values(id2GridRec);
+		for (let gridRec of gridRecs) {
+			let {seviyeNo: sevNo, sonuc, detaylar} = gridRec;
+			sevNo = asInteger(sevNo?.char ?? sevNo) || 1;
+			maxSevNo = Math.max(sevNo, maxSevNo);
+			let ustSevNo = sevNo - 1; sev2Ust[sevNo] = gridRec;
+			if (ustSevNo > 0) {
+				let ustGridRec = sev2Ust[ustSevNo], {detaylar: ustDetaylar} = ustGridRec;
+				// for (let attr of attrListe) { ustGridRec[attr] += gridRec[attr] }
+				ustDetaylar.push(gridRec)
+			}
+		}
+		let sevRecs = gridRecs.filter(rec => asInteger(rec?.seviyeNo?.char ?? rec?.seviyeNo) <= 1);
+		for (let sev of sevRecs) {
+			let {hesapTipi, satirListe, hesaplandimi} = sev; if (hesaplandimi) { continue }
+			if (hesapTipi?.altSeviyeToplamimi) { sev.toplamOlustur() }
+			else if (hesapTipi?.satirlarToplamimi && satirListe?.length) {
+				sev.toplamReset(); for (let i of satirListe) {
+					sev.toplamaEkle(gridRecs[i]) }
+			}
+			hesaplandimi = sev.hesaplandimi = true
+		}
 		return sevRecs
 	}
 	async loadServerData(e) {
 		let sevRecs = await super.loadServerData(e); if (!sevRecs) { return sevRecs }
-		let {id2Detay, formulYapilari, recs, ind2Rec} = e, attrListe = ['bedel'];
+		let {id2Detay, formulYapilari, recs, ind2Rec} = e, {tabloYapi} = this;
+		let attrListe = Object.values(tabloYapi.toplam).map(item => item.colDefs[0].belirtec);
 		for (let parentRec of sevRecs)
 			for (let formulDetaylar of Object.values(formulYapilari))
-			for (let det of formulDetaylar) {
+			for (let formul of formulDetaylar) {
 				for (let attr of attrListe) {
-					let value = await det.eval({ ...e, det, recs, sevRecs, parentRec, attr, ind2Rec });
-					parentRec[attr] = value
+					let value = await formul.eval({ ...e, det: formul, recs, sevRecs, parentRec, attr, ind2Rec });
+					if (value != null) { parentRec[attr] = value }
 				}
 			}
 		return sevRecs
