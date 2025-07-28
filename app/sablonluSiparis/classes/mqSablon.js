@@ -142,7 +142,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		this.sablonEkQueryDuzenleDevam(e)
 	}
 	static sablonEkQueryDuzenleDevam(e) { return this.detaySinif.sablonIcinSiparislerStmDuzenle({ ...e, detaylimi: false }) }
-	static async getEMailYapi({ musterilimi, fisSinif, fisSayac }) {
+	static async getEMailYapi({ musterimi, fisSayac }) {
 		let {sablonSip_eMail, konBuFirma_eMailListe} = app.params.web;
 		if (!(fisSayac && sablonSip_eMail)) { return {} }
 		let _e = { ...arguments[0] }, {eMailStm: stm} = _e;
@@ -150,19 +150,21 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			stm = _e.stm = new MQStm();
 			stm = _e.stm = _e.eMailStm = this.eMailYapiQueryDuzenle(_e) === false ? null : _e.stm
 		}
+		let uygunTipler = musterimi ? asSet(['email_alici']) : null;
 		let EMailPrefix = 'email_', recs = stm ? await app.sqlExecSelect(stm) : null;
-		let result = { ...recs?.[0] }; if (recs?.length) {
+		let result = {}; if (recs?.length) {
 			for (let rec of recs) {
 				for (let [key, value] of Object.entries(rec)) {
-					if (key.startsWith(EMailPrefix)) {
-						value = eMailStr2Array(value);
-						let newKey = key.slice(EMailPrefix.length), array = result[newKey] = result[newKey] ?? [];
-						if (value?.length) { array.push(...value) } delete result[key]
-					}
+					if (!key.startsWith(EMailPrefix)) { continue }
+					if (uygunTipler && !uygunTipler[key]) { continue }
+					let newKey = key.slice(EMailPrefix.length); value = eMailStr2Array(value);
+					let array = result[newKey] ??= []; if (value?.length) { array.push(...value) }
+					// delete result[key]
 				}
 			}
 		}
-		if (konBuFirma_eMailListe?.length) { result.buFirma = eMailStr2Array(konBuFirma_eMailListe) }
+		if (!musterimi && konBuFirma_eMailListe?.length) {
+			result.buFirma = eMailStr2Array(konBuFirma_eMailListe) }
 		return result
 	}
 	static eMailYapiQueryDuzenle(e) { return false }
@@ -422,7 +424,7 @@ class MQKonsinyeSablon extends MQSablonOrtak {
 			return app.sqlExecTekil(sent)
 		})()
 	}
-	static eMailYapiQueryDuzenle({ fisSinif, fisSayac, stm }) {
+	static eMailYapiQueryDuzenle({ musterimi, fisSinif, fisSayac, stm }) {
 		super.eMailYapiQueryDuzenle(...arguments);
 		let fisSiniflar = $.makeArray(fisSinif) ?? this.fisSiniflar;
 		let uni = stm.sent = new MQUnionAll();
@@ -435,7 +437,8 @@ class MQKonsinyeSablon extends MQSablonOrtak {
 				.leftJoin('kdag', 'klfirmabolge kfbol', 'kdag.klfirmabolgekod = kfbol.kod')
 				.leftJoin('kdag', 'carmst ktes', 'kdag.klteslimatcikod = ktes.must');
 			sahalar.add(
-				`'' email_sablon`, 'kfbol.email email_bolge',
+				`'' email_sablon`,
+				'kfbol.email email_bolge',
 				`${stokmu ? 'ktes.email' : `(case when kdag.bteslimatmailozeldir = 0 then ktes.email else '' end)`} email_teslimatci`,
 				`(case when kdag.bteslimatmailozeldir > 0 then kdag.ozelmaillistestr else '' end) email_ozel`,
 				`${stokmu ? `''` : `(case when sadr.email > '' then sadr.email else car.email end)`} email_alici`
