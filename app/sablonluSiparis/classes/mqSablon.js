@@ -318,19 +318,26 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			}
 		}
 		if (!(config.dev || to?.length)) { return }
-		let SERI = '', SEVKADRES1 = '', SEVKADRES2 = '', cro = { TEMSILCI: '', TELEFON: '' };
-		let {sayac: SABLONSAYAC, aciklama: SABLONADI} = parentRec, {fisnox: FISNO, mustkod: MUSTKOD, mustunvan: MUSTUNVAN, sevkadreskod: SEVKADRESKOD, sevkadresadi: SEVKADRESADI} = rec;
+		let SERI = '', SEVKADRES1 = '', SEVKADRES2 = '';
+		let {sayac: SABLONSAYAC, aciklama: SABLONADI} = parentRec, {fisnox: FISNO, mustkod: MUSTKOD, mustunvan: MUSTUNVAN} = rec;
+		let {sevkadreskod: SEVKADRESKOD, sevkadresadi: SEVKADRESADI, fisaciklama: EKNOTLAR} = rec;
 		let {klFirmaKod: KLFIRMAKOD} = this, KLFIRMAUNVAN = (KLFIRMAKOD ? await MQSKLFirma.getGloKod2Adi(KLFIRMAKOD) : null) ?? '', KLFIRMAADI = KLFIRMAUNVAN, KLFIRMABIRUNVAN = KLFIRMAUNVAN;
 		let MUSTBIRUNVAN = MUSTUNVAN, MUSTADI = MUSTUNVAN, TARIH = dateKisaString(asDate(rec.tarih)) ?? '', TESLIMTARIH = dateKisaString(asDate(rec.basteslimtarihi)) || TARIH;
 		let TESLIMTARIHIVARTEXT = TESLIMTARIH ? `${TESLIMTARIH} tarihinde teslim edilmek üzere ` : '', TESLIMYERIADIPARANTEZLI = new CKodVeAdi(SEVKADRESKOD, SEVKADRESADI).parantezliOzet();
 		let TESLIMYERKOD = SEVKADRESKOD, TESLIMYERADI = SEVKADRESADI, TESLIMYERIKOD = TESLIMYERKOD, TESLIMYERIADI = TESLIMYERADI;
-		let EKNOTLAR = '', EKNOT = EKNOTLAR, EKACIKLAMA = EKNOTLAR;
+		let EKNOT = EKNOTLAR, EKACIKLAMA = EKNOTLAR;
 		let baslik = {
 			SABLONSAYAC, SABLONADI, MUSTKOD, MUSTUNVAN, MUSTBIRUNVAN, MUSTADI, TARIH, SERI, FISNO, TESLIMTARIH, TESLIMTARIHIVARTEXT,
 			KLFIRMAKOD, KLFIRMAUNVAN, KLFIRMABIRUNVAN, KLFIRMAADI, SEVKADRES1, SEVKADRES2, TESLIMYERKOD, TESLIMYERADI, TESLIMYERIKOD, TESLIMYERIADI,
 			TESLIMYERIADIPARANTEZLI, SEVKADRESKOD, SEVKADRESADI, EKNOTLAR
 		};
-		for (let [key, value] of Object.entries(cro)) { baslik[`CRO-OZ${key}`] = value }
+		{
+			const Prefix = 'OZ';
+			for (let [key, value] of Object.entries(rec)) {
+				if (!key.startsWith(Prefix)) { continue }
+				baslik[`CRO-${key}`] = value || ''
+			}
+		}
 		let dip = { brm2Miktar: {}, TOPBEDEL: 0 }, _seq = 0, detaylar = fis.detaylar.map(det => {
 			_seq++; let SEQ = det.seq || _seq;
 			let {barkod: BARKOD, shKod: STOKKOD, shAdi: STOKADI, brm: BRM, miktar, fiyat, netBedel: bedel} = det;
@@ -499,6 +506,7 @@ class MQSablonOrtakDetay extends MQDetay {
 		let {tarih, mustKod} = gridPart, subeKod = gridPart.subeKod ?? config.session.subeKod;
 		let cariYil = app.params.zorunlu?.cariYil || today().getYil();
 		let {stm} = e, {orderBy} = stm, uni = stm.sent = new MQUnionAll();
+		let {carmst_ekOz} = app._table2Col;
 		let sentEkle = (kayitTipi, fisSinif) => {
 			let {table, mustSaha, teslimCariSaha} = fisSinif, keyHV = fisSinif.varsayilanKeyHostVars();
 			let mustVeyaTeslimCariSaha = konsinyemi ? teslimCariSaha : mustSaha;
@@ -516,7 +524,13 @@ class MQSablonOrtakDetay extends MQDetay {
 					'fis.kaysayac', 'fis.tarih', 'fis.fisnox', 'fis.no', 'fis.bizsubekod subekod', 'sub.aciklama subeadi',
 					`fis.${mustVeyaTeslimCariSaha} mustkod`, 'car.birunvan mustunvan',
 					'fis.xadreskod sevkadreskod', 'sadr.aciklama sevkadresadi', 'fis.basteslimtarihi',
-					`(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`)
+					`(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`,
+					'fis.cariaciklama fisaciklama'
+				)
+				for (let attr of ['OZTEMSILCI', 'OZTELEFON']) {
+					if (!carmst_ekOz[attr]) { continue }
+					sahalar.add(`car.${attr}`)
+				}
 			}
 			else { sahalar.add('COUNT(*) topSayi'); sent.groupByOlustur() }
 			uni.add(sent); return sent

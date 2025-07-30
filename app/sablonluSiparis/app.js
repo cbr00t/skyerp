@@ -8,6 +8,8 @@ class SablonluSiparisApp extends TicariApp {
 	async runDevam(e) {
 		await super.runDevam(e); let {ekOzellikKodlari} = app.params.web;
 		if (ekOzellikKodlari) { HMRBilgi.ekOzellikListe = ekOzellikKodlari }
+		let table2Col = app._table2Col ??= {};
+		table2Col.carmst_ekOz ??= await app.sqlGetColumns({ table: 'carmst', nameLike: 'OZ*' })
 	}
 	async anaMenuOlustur(e) {
 		await this.promise_ready; let {kullanim} = app.params.aktarim, eksikParamIsimleri = [];
