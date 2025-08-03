@@ -698,16 +698,15 @@ class FBuilder_Button extends FBuilder_InputOrtak {
 	}
 	buildDevam(e) {
 		let {value} = this; super.buildDevam(e);
-		let {input, styles} = this;
-		if (input?.length) {
+		let {input, styles} = this; if (input?.length) {
 			input.prop('id', this.id); input.html(value);
 			let {widgetArgsDuzenle} = this;
 			let _e = $.extend({}, e, { args: { theme, width: '100%', height: '100%', disabled: this.disabled } }); if (widgetArgsDuzenle) { getFuncValue.call(this, widgetArgsDuzenle, _e); }
 			input.jqxButton(_e.args); input.on('click', evt => this.signalClick($.extend({}, e, { builder: this, input: input, event: evt })))
 		}
 		styles.push(
-			e =>  `$elementCSS > input { font-weight: bold; font-size: 85%; min-width: 60px; padding-left: 30px; padding-right: 30px }`,
-			e => `$elementCSS > input.jqx-fill-state-normal { color: #999 }`
+			`$elementCSS > input { font-weight: bold; font-size: 85%; min-width: 60px; padding-left: 30px; padding-right: 30px }
+			 $elementCSS > input.jqx-fill-state-normal { color: #999 }`
 		)
 	}
 	postBuild(e) {

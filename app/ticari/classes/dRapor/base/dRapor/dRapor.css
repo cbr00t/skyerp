@@ -57,7 +57,8 @@ body.dark-theme #dRapor.part #items > .item._main .jqx-grid tr:nth-child(even) .
 #dRapor.part #items > .item._main .jqx-grid .jqx-grid-cell-selected { color: whitesmoke; background-color: #426aae }
 #dRapor.part #items > .item._main .jqx-grid .jqx-grid-cell-selected.icerik { font-weight: bold }
 #dRapor.part #items > .item._main .jqx-grid :not([data-role = 'summaryrow']) .jqx-grid-cell.treeRow.grup.icerik { font-size: 110%; font-weight: bold; color: forestgreen }
-#dRapor.part #items > .item._main .jqx-grid :not([data-role = 'summaryrow']) .jqx-grid-cell.treeRow.grup.icerik.jqx-fill-state-pressed { color: whitesmoke; border-bottom: 2px solid #8ee48e }
+#dRapor.part #items > .item._main .jqx-grid :not([data-role = 'summaryrow']) .jqx-grid-cell.treeRow.jqx-fill-state-pressed { color: whitesmoke !important }
+#dRapor.part #items > .item._main .jqx-grid :not([data-role = 'summaryrow']) .jqx-grid-cell.treeRow.grup.icerik.jqx-fill-state-pressed { box-shadow: 0 3px 3px 5px lightcyan }
 #dRapor.part #items > .item._main .jqx-grid [data-role = 'summaryrow'] > .jqx-grid-cell { font-size: 110%; font-weight: bold; color: forestgreen }
 #dRapor.part #items > .item .jqx-grid .jqx-grid-column-header { font-weight: bold; font-size: 130% }
 #dRapor.part #items > .item .jqx-grid .jqx-grid-column-header > div > * { margin-top: 0px !important }

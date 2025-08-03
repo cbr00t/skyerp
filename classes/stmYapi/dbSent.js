@@ -517,7 +517,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 }
 class MQCTESent extends MQSentVeIliskiliYapiOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return '' }
-	get siraliSahaVeDegerler() { let result = []; for (let sent of this.getSentListe()) { result.push(sent.alias2Deger) }; return result }
+	get siraliSahaVeDegerler() { let result = []; for (let sent of this) { result.push(sent.alias2Deger) }; return result }
 	get siraliSahalar() { return this.siraliSahaVeDegerler.map(dict => Object.keys(dict)) }
 	constructor(e) {
 		e = e || {}; super(e);

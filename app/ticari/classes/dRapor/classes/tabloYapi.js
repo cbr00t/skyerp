@@ -46,7 +46,7 @@ class TabloYapi extends CObject {
 	}
 	addItemBasit(selector, kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha) {
 		let toplammi = selector == 'addToplam';
-		let colDef = new GridKolon({ belirtec, text, minWidth: (toplammi ? 135 : 250), maxWidth: genislikCh ?? (toplammi ? 150 : 600), filterType: 'checkedlist' });
+		let colDef = new GridKolon({ belirtec, text, minWidth: (toplammi ? 135 : 250), maxWidth: genislikCh ?? (toplammi ? 200 : 600), filterType: 'checkedlist' });
 		let item = new TabloYapiItem({ mfSinif }).setKA(kod, text);
 		if (orderBySaha != null) {
 			if (orderBySaha === false) { orderBySaha = null }

@@ -179,7 +179,8 @@ class MQAliasliYapi extends MQSQLOrtak {
 	
 	constructor(e) {
 		e = e || {}; super(e); this.deger = e.deger || ''; this.alias = e.alias ?? undefined;    /* alias === undefined için getSahaDegeri ile getterda belirlenir */
-		this.aliaslimi = e.aliaslimi ?? (e.isCopy ? null : !!this.alias && this.alias != this.sql)
+		this.aliaslimi = e.aliaslimi ?? (e.isCopy ? null : !!this.alias && this.alias != this.sql);
+		if (this.alias == 'undefined') { console.warn('MQAliasliYapi', 'alias hatası', { saha: this, text, deger, alias }) }
 	}
 	static newForFromText(e) {
 		/* örnek:
@@ -205,13 +206,20 @@ class MQAliasliYapi extends MQSQLOrtak {
 				- 'kod'
 				- '(case when ... end) tipText'
 		*/
-		text = text?.toString()?.trim() ?? ''; let sonBosInd = text.lastIndexOf(' '), sonNoktaInd = text.lastIndexOf('.'); let e = {};
+		text = text?.toString()?.trim() ?? '';
+		let e = {}, sonBosInd = text.lastIndexOf(' '), sonNoktaInd = text.lastIndexOf('.');
 		if (sonBosInd < 0) {																														/* bosluk yok */
 			if (sonNoktaInd < 0) { e.deger = e.alias = text; e.aliaslimi = false }																	/* nokta yok */
 			else { e.deger = text; e.alias = text.substring(sonNoktaInd + 1).trim(); e.aliaslimi = false }											/* nokta var */
 		}
 		else {																																		/* bosluk var -- substring (from, end) => end index dahil değil */
 			let deger = e.deger = text.substring(0, sonBosInd).trim(), alias = e.alias = text.substring(sonBosInd + 1).trim();
+			for (let ch of ['.', ',', '(', ')']) {
+				if (alias.includes(ch)) {
+					console.warn('newForSahaText', 'alias hatası', { text, deger, alias });
+					break
+				}
+			}
 			if (deger && deger.split('.').slice(-1)[0] == alias) { alias = e.alias = null; e.aliaslimi = false } else { e.aliaslimi = true }
 		}
 		return new this(e)

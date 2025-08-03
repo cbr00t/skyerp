@@ -322,6 +322,7 @@ class ModelTanimPart extends Part {
 		}
 	}
 	setKaydetIslemi(value) { this.kaydetIslemi = value; return this } setKaydedince(value) { this.kaydedince = value; return this }
+	veriYuklenince(handler) { this.bindingCompleteBlock = handler; return this }
 }
 
 

@@ -192,7 +192,7 @@ class Hareketci extends CObject {
 	*getExtIter() { return this.class.getExtIter() }
 	defaultSonIslem(e) { this.uniOrtakSonIslem(e) }
 	stmOlustur(e) {
-		e = e || {}; let _e, stm = new MQStm({ orderBy: ['oncelik'] });
+		e = e || {}; let _e, stm = new MQStm({ orderBy: ['tarih', 'oncelik'] });
 		this.stmDuzenle(_e = { ...e, stm }); stm = _e.stm;
 		let {sent: uni} = stm; if (uni.unionmu) { uni.liste = uni.liste.filter(sent => !!sent?.sahalar?.liste?.length) }
 		return stm
@@ -201,7 +201,8 @@ class Hareketci extends CObject {
 	stmDuzenleDevam(e) { }
 	uniOlustur(e) {
 		e = e || {}; let _e, uni = new MQUnionAll();
-		this.uniDuzenle(_e = { ...e, uni, ...Hareketci_UniBilgi.ortakArgs }); return uni
+		this.uniDuzenle(_e = { ...e, uni, ...Hareketci_UniBilgi.ortakArgs });
+		return uni
 	}
 	uniDuzenle(e) {
 		let {uygunluk2UnionBilgiListe, attrSet} = this, {varsayilanHV: defHV, zorunluAttrSet} = this.class;

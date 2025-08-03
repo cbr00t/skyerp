@@ -14,7 +14,7 @@ class SBTabloHesapTipi extends TekSecim {
 	static get defaultChar() { return '' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments); kaListe.push(...[
-			new CKodAdiVeEkBilgi(['', 'Yok', 'yokmu', { ozelmi: true }]),
+			/*new CKodAdiVeEkBilgi(['', 'Yok', 'yokmu', { ozelmi: true }]),*/
 			new CKodAdiVeEkBilgi(['AS', 'Alt Seviye Toplamı', 'altSeviyeToplamimi', { ozelmi: true, formulmu: true }]),
 			new CKodAdiVeEkBilgi(['FR', 'Satırlar Toplamı', 'satirlarToplamimi', { ozelmi: true, formulmu: true }]),
 			new CKodAdiVeEkBilgi(['SH', 'Ticari', 'ticarimi', { querymi: true }]),
@@ -28,40 +28,39 @@ class SBTabloVeriTipi extends TekSecim {
 	static get defaultChar() { return '' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); let {kaListe} = e;
-		let topSahaEkle = e.topSahaEkle = ({ sent, clause, sahaAlias, det }) =>
-			sent.sahalar.add(`(SUM(${clause})${det.tersIslemmi ? ' * -1' : ''}) ${sahaAlias}`);
-		kaListe.push(...[
-			new CKodAdiVeEkBilgi([' ', '', 'yokmu', {
-				gosterimUygunluk: ({ hesapTipi, shStokHizmet }) => !hesapTipi.ticarimi
-			}])
-		]);
-		this.kaListeDuzenle_ticari(e)
+		let topSahaEkle = e.topSahaEkle = _e => {
+			let {sent, clause, sahaAlias, det, hv} = _e;
+			if (isFunction(clause)) { clause = clause(hv) }
+			let tersmi = det.tersIslemmi != det.shIade.iademi;
+			sent.sahalar.add(`(SUM(${clause})${tersmi ? ' * -1' : ''}) ${sahaAlias}`)
+		};
+		this.kaListeDuzenle_ticari(e).kaListeDuzenle_hizmet(e)
 	}
 	kaListeDuzenle_ticari({ kaListe, topSahaEkle }) {
-		let gosterimUygunluk = ({ hesapTipi, shStokHizmet }) => hesapTipi.ticarimi;
+		let gosterimUygunluk = ({ hesapTipi }) => hesapTipi.ticarimi, sentUygunluk = null;
 		kaListe.push(...[
 			new CKodAdiVeEkBilgi(['SBRT', 'Satır Brüt', 'satirBrutmu', {
-				gosterimUygunluk,
+				gosterimUygunluk, sentUygunluk,
 				sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.brutbedel' })
 			}]),
 			new CKodAdiVeEkBilgi(['SNET', 'Satır Net', 'satirNetmi', {
-				gosterimUygunluk,
+				gosterimUygunluk, sentUygunluk,
 				sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.bedel' })
 			}]),
 			new CKodAdiVeEkBilgi(['SISK', 'Satır İskonto', 'satirIskmi', {
-				gosterimUygunluk,
+				gosterimUygunluk, sentUygunluk,
 				sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.brutbedel - har.bedel' })
 			}]),
 			new CKodAdiVeEkBilgi(['DISK', 'Dip İskonto', 'dipIskmi', {
-				gosterimUygunluk,
+				gosterimUygunluk, sentUygunluk,
 				sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.dipiskonto' })
 			}]),
 			new CKodAdiVeEkBilgi(['TISK', 'Top. İskonto', 'topIskmi', {
-				gosterimUygunluk,
+				gosterimUygunluk, sentUygunluk,
 				sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.brutbedel - har.bedel + har.dipiskonto' })
 			}]),
 			new CKodAdiVeEkBilgi(['CIR', 'Ciro', 'ciromu', {
-				gosterimUygunluk,
+				gosterimUygunluk, sentUygunluk,
 				sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.harciro' })
 			}]),
 			new CKodAdiVeEkBilgi(['MAL', 'Maliyet', 'maliyetmi', {
@@ -76,7 +75,44 @@ class SBTabloVeriTipi extends TekSecim {
 				gosterimUygunluk, sentUygunluk: ({ stokmu, hizmetmi }) => stokmu,
 				sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.fmalhammadde + har.fmalmuh + har.topkdv' })
 			}])*/
-		])
+		]);
+		return this
+	}
+	kaListeDuzenle_hizmet({ kaListe, topSahaEkle }) {
+		let {sqlZero} = Hareketci_UniBilgi.ortakArgs;
+		let gosterimUygunluk = ({ hesapTipi }) => hesapTipi.hizmetmi, sentUygunluk = null;
+		let getBABedelClause = (ba, baClause, bedelClause) => {
+			bedelClause ??= sqlZero;
+			if (!(ba && baClause)) { return bedelClause }
+			return `(case when ${baClause} = '${ba}' then ${bedelClause} else 0 end)`
+		};
+		kaListe.push(...[
+			new CKodAdiVeEkBilgi(['BRBD', 'Borç Bedel', 'borcBedelmi', {
+				gosterimUygunluk, sentUygunluk,
+				sentDuzenle: e => topSahaEkle({ ...e, clause: hv => getBABedelClause('B', hv.ba, hv.bedel) })
+			}]),
+			new CKodAdiVeEkBilgi(['ALBD', 'Alacak Bedel', 'alacakBedelmi', {
+				gosterimUygunluk, sentUygunluk,
+				sentDuzenle: e => topSahaEkle({ ...e, clause: hv => getBABedelClause('B', hv.ba, hv.bedel) })
+			}]),
+			/*new CKodAdiVeEkBilgi(['ISBD', 'Bedel', 'bedelmi', {
+				gosterimUygunluk, sentUygunluk,
+				sentDuzenle: e => topSahaEkle({ ...e, clause: hv => getBABedelClause(null, hv.ba, hv.bedel) })
+			}]),*/
+			new CKodAdiVeEkBilgi(['BRBK', 'Borç Bakiye', 'borcBakiyemi', {
+				gosterimUygunluk, sentUygunluk,
+				sentDuzenle: e => topSahaEkle({ ...e, clause: hv => getBABedelClause('B', hv.ba, hv.bakiye) })
+			}]),
+			new CKodAdiVeEkBilgi(['ALBK', 'Alacak Bakiye', 'alacakBakiyemi', {
+				gosterimUygunluk, sentUygunluk,
+				sentDuzenle: e => topSahaEkle({ ...e, clause: hv => getBABedelClause('A', hv.ba, hv.bakiye) })
+			}])
+			/*new CKodAdiVeEkBilgi(['ISBK', 'Bakiye', 'bakiyemi', {
+				gosterimUygunluk, sentUygunluk,
+				sentDuzenle: e => topSahaEkle({ ...e, clause: hv => getBABedelClause(null, hv.ba, hv.bakiye) })
+			}]),*/
+		]);
+		return this
 	}
 }
 class SBTabloStokHizmet extends TekSecim {

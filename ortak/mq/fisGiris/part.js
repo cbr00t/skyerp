@@ -303,4 +303,5 @@ class FisGirisPart extends GridliGirisWindowPart {
 	islemKopya() { this.islem = 'kopya'; return this }
 	islemSil() { this.islem = 'sil'; return this }
 	setKaydetIslemi(value) { this.kaydetIslemi = value; return this } setKaydedince(value) { this.kaydedince = value; return this }
+	veriYuklenince(handler) { this.bindingCompleteBlock = handler; return this }
 }

@@ -423,7 +423,7 @@ class MQCogul extends MQYapi {
 		if ($.isEmptyObject(sent.sahalar.liste)) { sent.sahalar.add(`${aliasVeNokta}*`) }
 		/* sent.groupByOlustur(); */ let stm = new MQStm({ sent });
 		$.extend(e, { table: this.table, alias, aliasVeNokta, stm, sent }); { this.loadServerData_queryDuzenle(e) } stm = e.query || e.stm;
-		if (this.gereksizTablolariSilYapilirmi) { if (stm?.getSentListe) { for (let _sent of stm.getSentListe()) { _sent.gereksizTablolariSil({ disinda: alias }) } } }
+		if (this.gereksizTablolariSilYapilirmi) { if (stm?.getSentListe) { for (let _sent of stm) { _sent.gereksizTablolariSil({ disinda: alias }) } } }
 		return stm
 	}
 	static loadServerData_queryDuzenle(e) {
@@ -431,11 +431,11 @@ class MQCogul extends MQYapi {
 		let ozelQueryDuzenleBlock = e.ozelQueryDuzenleBlock ?? e.ozelQueryDuzenle ?? e.stmDuzenle ?? e.stmDuzenleyici ??
 			sender.ozelQueryDuzenleBlock ?? sender.ozelQueryDuzenle ??
 			sender.stmDuzenle ?? sender.stmDuzenleyici;
-		let {kod, value, stm, maxRow, wsArgs} = e;
+		let {kod, value, stm, maxRow, wsArgs, tekilOku, basit, modelKullanmi} = e;
 		if (wsArgs) { stm.fromGridWSArgs(wsArgs) }
 		if (offlineGonderRequest) {
 			let {gonderildiDesteklenirmi, gonderimTSSaha, tableAlias: alias} = this;
-			if (gonderildiDesteklenirmi && gonderimTSSaha) { for (let sent of stm.getSentListe()) { sent.where.add(`${alias}.${gonderimTSSaha} = ''`) } }
+			if (gonderildiDesteklenirmi && gonderimTSSaha) { for (let sent of stm) { sent.where.add(`${alias}.${gonderimTSSaha} = ''`) } }
 		}
 		/* if (value) value = value.toUpperCase() */
 		let {kodSaha, adiSaha, tableAlias, aliasVeNokta} = this;
@@ -480,14 +480,12 @@ class MQCogul extends MQYapi {
 		this.forAltYapiClassesDo('loadServerData_queryDuzenle', e);
 		{
 			let mfSinif = this, colDef = e.colDef ?? sender?.colDef ?? parentPart?.belirtec ? parentPart : null;
-			let {table, tableAlias: alias, aliasVeNokta} = this, {sent} = stm;
-			let {stmDuzenleyiciler} = parentPart ?? {};
+			let {table, tableAlias: alias, aliasVeNokta, kodKullanilirmi, adiKullanilirmi, adiSaha} = this;
+			let {sent} = stm, {orderBy} = stm, {stmDuzenleyiciler} = parentPart ?? {};
 			let _e = { ...e, sender, colDef, mfSinif, alias, aliasVeNokta, stm, sent };
+			if (!kodKullanilirmi && adiKullanilirmi && adiSaha && !(tekilOku || basit || modelKullanmi)) { orderBy.add(adiSaha) }
 			ozelQueryDuzenleBlock?.call(this, _e);
-			if (stmDuzenleyiciler) {
-				for (let handler of stmDuzenleyiciler) {
-					handler?.call(this, _e) }
-			}
+			if (stmDuzenleyiciler) { for (let handler of stmDuzenleyiciler) { handler?.call(this, _e) }  }
 		}
 	}
 	static async loadServerData_querySonucu(e) {

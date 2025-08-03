@@ -474,18 +474,28 @@ class MQDetayliMaster extends MQDetayli {
 }
 class MQDetayliGUID extends MQDetayliMaster {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sayacSaha() { return 'id' } static get kami() { return true }
+	static get sayacSaha() { return 'id' } static get kami() { return true } static get guidmi() { return true }
 	get id() { return this.sayac } set id(value) { this.sayac = value }
 	constructor(e) {
 		e = e ?? {}; super(e);
 		this.id = e.id ?? e.sayac ?? this.id
 	}
+	/*static loadServerData_queryDuzenle({ stm }) {
+		super.loadServerData_queryDuzenle(...arguments);
+		let {adiSaha} = this, {orderBy} = stm;
+		if (adiSaha) { orderBy.add(adiSaha) }
+	}*/
 	/*yaz(e) { this.id = this.id || newGUID(); return super.yaz(e) }*/
 	topluYazmaKomutlariniOlustur_baslikSayacBelirle(e) { }
 	topluYazmaKomutlariniOlustur_sqlParamsDuzenle(e) {
 		let {params, paramName_fisSayac} = e; params.push({ name: paramName_fisSayac, type: 'uniqueidentifier', direction: 'input', value: this.id })
 	}
 	yazSonrasi_sayacGeriYukle(e) { }
+	kopyaIcinDuzenle(e) {
+		super.kopyaIcinDuzenle(e); let {detaylar} = this;
+		this.id = null; for (let det of detaylar) {
+			det.okunanHarSayac = null }
+	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments);
 		let {sayacSaha, adiKullanilirmi, adiSaha} = this.class, id = this.id = this.id || newGUID();

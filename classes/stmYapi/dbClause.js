@@ -106,7 +106,15 @@ class MQSahalar extends MQClause {
 		let result = {}; for (let item of this.liste) {
 			if (!item) { continue }
 			if (typeof item != 'object') { item = MQAliasliYapi.newForSahaText(item) }
-			let {alias, deger} = item; if (alias) { result[alias] = deger }
+			let {alias, deger} = item; if (!alias) { continue }
+			if (alias == 'undefined') { debugger }
+			for (let ch of ['.', ',', '(', ')']) {
+				if (alias.includes(ch)) {
+					console.warn('alias2Deger', 'alias hatası', { saha: this, text, deger, alias });
+					break
+				}
+			}
+			result[alias] = deger
 			/* if (config.dev && alias?.includes('fis.tarih)')) { debugger } */
 		}
 		return result

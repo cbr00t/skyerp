@@ -456,7 +456,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	}
 	async kopyaIstendi(e) {
 		e = e || {}; let {tanimOncesiEkIslemler, table, tableAlias, aliasVeNokta, gridWidget} = this;
-		let rowIndex = e.rowIndex ?? this.selectedRowInde, rec = e.rec ?? gridWidget.getrowdata(rowIndex), mfSinif = this.getMFSinif(e);
+		let rowIndex = e.rowIndex ?? this.selectedRowIndex, rec = e.rec ?? gridWidget.getrowdata(rowIndex), mfSinif = this.getMFSinif(e);
 		if (!rec) { hConfirm('Kopyalanacak satır seçilmelidir', ' '); return false }
 		let {args} = this, {ozelTanimIslemi} = mfSinif; let eskiInst, inst;
 		let _e = { sender: this, listePart: this, islem: 'kopya', mfSinif, rec, rowIndex, args, table, alias: tableAlias, aliasVeNokta };

@@ -1040,6 +1040,7 @@ class GridPart extends Part {
 			catch (ex) { } finally { delete this._timer_gridResize }
 		}, 500)
 	}
+	veriYuklenince(handler) { this.bindingCompleteBlock = handler; return this }
 }
 
 /*

@@ -36,9 +36,17 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		let columns = colDefs.flatMap(colDef => colDef.jqxColumns);
 		grid.jqxTreeGrid('columns', columns)
 	}
-	ekCSSDuzenle({ raporTanim, colDefs, colDef, rowIndex, belirtec, value, rec, result }) { }
+	ekCSSDuzenle({ raporTanim, colDefs, colDef, rowIndex, belirtec, value, rec, result }) {
+		rec ??= {}; let {cssClassesStr} = rec;
+		if (cssClassesStr) { result.push(cssClassesStr) }
+	}
+	cellsRenderer({ raporTanim, colDefs, colDef, rowIndex, belirtec, value, html, jqxCol, rec }) {
+		rec ??= {}; let {cssStyle} = rec;
+		if (cssStyle) { return `<span style="${cssStyle}">${getTagContent(html)}</span>` }
+	}
 	tabloKolonlariDuzenle({ liste }) {
-		super.tabloKolonlariDuzenle(...arguments); let {raporTanim, tabloYapi} = this, colDefs = liste;
+		super.tabloKolonlariDuzenle(...arguments);
+		let {raporTanim, tabloYapi} = this, colDefs = liste;
 		let cellClassName = (colDef, rowIndex, belirtec, value, rec) => {
 			let result = ['treeRow', belirtec];
 			if (rec) { result.push(rec.leaf ? 'leaf' : 'grup') }
@@ -52,13 +60,20 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			let _e = { raporTanim, colDefs, colDef, rowIndex, belirtec, value, rec, result };
 			this.ekCSSDuzenle(_e); result = _e.result;
 			return result.filter(x => !!x).join(' ')
-		}
+		};
+		let cellsRenderer = (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => {
+			let {tip} = colDef;
+			html = tip?.cellsRenderer?.(colDef, rowIndex, belirtec, value, html, jqxCol, rec) ?? html;
+			let _e = { ...arguments[0], raporTanim, colDefs, colDef, rowIndex, belirtec, value, html, jqxCol, rec };
+			let result = this.cellsRenderer(_e); result ??= _e.html;
+			return result ?? html
+		};
 		liste.push(...[
 			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', genislikCh: 50 }),
 			...Object.values(tabloYapi.grup).map(({ colDefs }) => colDefs).flat(),
 			...Object.values(tabloYapi.toplam).map(({ colDefs }) => colDefs).flat()
 		]);
-		for (let colDef of liste) { $.extend(colDef, { cellClassName }) }
+		for (let colDef of liste) { $.extend(colDef, { cellClassName, cellsRenderer }) }
 	}
 	async loadServerDataInternal(e) {
 		await super.loadServerDataInternal(e);

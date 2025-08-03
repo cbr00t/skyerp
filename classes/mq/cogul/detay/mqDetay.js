@@ -31,7 +31,8 @@ class MQDetay extends MQSayacli {
 		const fisSayac = e.sayac || e.fisSayac || e.fissayac || e.kaySayac || e.kaysayac || parentRec[sayacSaha] || parentRec.fissayac || parentRec.kaysayac;
 		if (fisSayacSaha) {
 			if (fisSayac) { sent.where.degerAta(fisSayac, `${aliasVeNokta}${fisSayacSaha}`) }
-			sent.sahalar.add(`${aliasVeNokta}${fisSayacSaha}`); stm.orderBy.add(`${aliasVeNokta}${fisSayacSaha}`)
+			sent.sahalar.add(`${aliasVeNokta}${fisSayacSaha}`);
+			stm.orderBy.add(`${aliasVeNokta}${fisSayacSaha}`)
 		}
 		if (seqSaha) {
 			sent.sahalar.add(`${aliasVeNokta}${seqSaha}`); stm.orderBy.add(`${aliasVeNokta}${seqSaha}`);

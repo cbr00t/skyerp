@@ -5,6 +5,7 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 	static get detaySinif() { return SBTabloDetay } static get gridKontrolcuSinif() { return SBTabloGridci }
 	static get kolonFiltreKullanilirmi() { return false } static get raporKullanilirmi() { return false }
 	static get tumKolonlarGosterilirmi() { return true } static get gridHeight_bosluk() { return 90 }
+	static get _repeatButton_delayMS() { return 100 }
 	static pTanimDuzenle({ pTanim }) {
 		$.extend(pTanim, { devreDisimi: new PInstBitBool('bdevredisi') })
 	}
@@ -29,7 +30,7 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 		liste.push(new GridKolon({ belirtec: 'bdevredisi', text: 'Devre Dışı?', genislikCh: 13 }).tipBool())
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); let {kaForm} = e;
+		super.rootFormBuilderDuzenle(e); let {kaForm} = e, {_repeatButton_delayMS} = this;
 		/*this.formBuilder_addTabPanelWithGenelTab(e); let {tabPage_genel: tabPage} = e;
 		let form = tabPage.addFormWithParent().yanYana();*/
 		kaForm.yanYana(); kaForm.builders = kaForm.builders.filter(fbd => fbd.id != 'kod');
@@ -38,11 +39,21 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 			`$elementCSS { margin-left: 10px } $elementCSS > label { color: firebrick !important }
 			 $elementCSS > input:checked + label { font-style: bold !important }`
 		);
+		let btnCSS_bgBlue =
+			`$elementCSS > button.jqx-fill-state-normal { background-color: royalblue }
+			 $elementCSS > button.jqx-fill-state-hover { background-color: #4169e1a1 }`;
 		let buttons = [
 			kaForm.addButton('yeni', '').addStyle(`$elementCSS { margin-left: 30px !important }`),
-			kaForm.addButton('degistir', ''),
-			kaForm.addButton('sil', '')
+			kaForm.addButton('degistir', '').addStyle(btnCSS_bgBlue),
+			kaForm.addButton('sil', ''),
+			kaForm.addButton('kopya', '').addStyle(btnCSS_bgBlue),
+			kaForm.addButton('yukari', ''),
+			kaForm.addButton('asagi', '')
 		];
+		kaForm.addForm().setLayout($()).onAfterRun(({ builder: fbd }) => {
+			let {layout} = fbd.parentBuilder, buttons = layout.find('#yukari, #asagi');
+			if (buttons.length) { buttons.jqxRepeatButton({ theme, delay: _repeatButton_delayMS }) }
+		});
 		for (let fbd of buttons) {
 			fbd.addStyle_wh(40, 50).addStyle(`$elementCSS { margin-top: 30px; margin-left: 10px }`);
 			fbd.onClick(async _e => {
@@ -167,7 +178,22 @@ class SBTabloDetay extends MQDetay {
 		stm = e.stm; return stm
 	}
 	constructor(e) {
-		e = e ?? {}; super(e); let tip2Secimler = this.tip2Secimler = e.tip2Secimler ?? {};
+		e = e ?? {}; super(e);
+		this.secimlerOlustur(e)
+	}
+	static pTanimDuzenle({ pTanim }) {
+		$.extend(pTanim, {
+			aciklama: new PInstStr('aciklama'), tersIslemmi: new PInstBitBool('bnegated'),
+			seviyeNo: new PInstTekSecim('seviyeno', SBTabloSeviye), hesapTipi: new PInstTekSecim('hesaptipi', SBTabloHesapTipi),
+			veriTipi: new PInstTekSecim('shveritipi', SBTabloVeriTipi), shStokHizmet: new PInstTekSecim('shstokhizmet', SBTabloStokHizmet),
+			shAlmSat: new PInstTekSecim('shalmsat', AlimSatis), shIade: new PInstTekSecim('shiade', NormalIadeVeBirlikte),
+			shAyrimTipi: new PInstTekSecim('shayrimtipi', SBTabloAyrimTipi),
+			formul: new PInstStr('formul'), satirListeStr: new PInstStr('satirlistestr'),
+			cssClassesStr: new PInstStr('cssclasses'), cssStyle: new PInstStr('cssstyle')
+		})
+	}
+	secimlerOlustur(e) {
+		let tip2Secimler = this.tip2Secimler = e.tip2Secimler ?? {};
 		let tip2SecimMFYapi = {
 			S: { sh: DMQStok, grup: DMQStokGrup, anaGrup: DMQStokAnaGrup, istGrup: DMQStokIstGrup },
 			H: { sh: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup, istGrup: DMQHizmetIstGrup }
@@ -184,17 +210,6 @@ class SBTabloDetay extends MQDetay {
 			}
 			secimler.endUpdate()
 		}
-	}
-	static pTanimDuzenle({ pTanim }) {
-		$.extend(pTanim, {
-			aciklama: new PInstStr('aciklama'), tersIslemmi: new PInstBitBool('bnegated'),
-			seviyeNo: new PInstTekSecim('seviyeno', SBTabloSeviye), hesapTipi: new PInstTekSecim('hesaptipi', SBTabloHesapTipi),
-			veriTipi: new PInstTekSecim('shveritipi', SBTabloVeriTipi), shStokHizmet: new PInstTekSecim('shstokhizmet', SBTabloStokHizmet),
-			shAlmSat: new PInstTekSecim('shalmsat', AlimSatis), shIade: new PInstTekSecim('shiade', NormalIadeVeBirlikte),
-			shAyrimTipi: new PInstTekSecim('shayrimtipi', SBTabloAyrimTipi),
-			formul: new PInstStr('formul'), satirListeStr: new PInstStr('satirlistestr'),
-			cssClassesStr: new PInstStr('cssclasses'), cssStyle: new PInstStr('cssstyle')
-		})
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments); liste.push(...[
@@ -223,34 +238,74 @@ class SBTabloDetay extends MQDetay {
 		/* $.extend(this, { satirListeStr }) */
 	}
 	raporQueryDuzenle(e) {
-		let det = e.det = this, {rapor, stm, donemBS, subeKodlari, sentDuzenle} = e, {tabloYapi} = rapor;
-		let {aciklama, hesapTipi, shStokHizmet, veriTipi} = this;
-		let shDurum = {
+		let det = e.det = this, {rapor, secimler, stm, donemBS, subeKodlari, sentDuzenle} = e;
+		let {tabloYapi} = rapor, {aciklama, hesapTipi, shStokHizmet, veriTipi} = this;
+		let shDurum = e.shDurum = {
 			stokmu: hesapTipi.ticarimi && (shStokHizmet.birliktemi || shStokHizmet.stokmu),
-			hizmetmi:  hesapTipi.hizmetmi || (hesapTipi.ticarimi && (shStokHizmet.birliktemi || shStokHizmet.hizmetmi))
+			hizmetmi: hesapTipi.hizmetmi || (hesapTipi.ticarimi && (shStokHizmet.birliktemi || shStokHizmet.hizmetmi))
 		};
+		let _e = { ...e, sahaAlias: 'bedel' };
+		let {stokmu, hizmetmi} = shDurum;
+		if (stokmu || hizmetmi) {
+			secimler = secimler ?? rapor?.secimler;
+			let {secimler: detSecimler} = this;    /* detay secimler */
+			$.extend(_e, { detSecimler });
+			if (detSecimler) {
+				detSecimler.whereBlockListe = [];
+				detSecimler.whereBlockEkle(({ secimler: sec, where: wh }) => {
+					let alias = hizmetmi ? 'hiz' : 'stk', iGrpAlias = hizmetmi ? 'higrp' : 'sigrp';
+					wh.basiSonu(sec.shKod, `${alias}.kod`).ozellik(sec.shAdi, `${alias}.aciklama`);
+					wh.basiSonu(sec.grupKod, 'grp.kod').ozellik(sec.grupAdi, 'grp.aciklama');
+					wh.basiSonu(sec.anaGrupKod, 'agrp.kod').ozellik(sec.anaGrupAdi, 'agrp.aciklama');
+					wh.basiSonu(sec.istGrupKod, `${iGrpAlias}.kod`).ozellik(sec.istGrupAdi, `${iGrpAlias}.aciklama`)
+				});
+				{
+					secimler = secimler.deepCopy();
+					secimler.beginUpdate();
+					$.extend(secimler.liste, { ...detSecimler.liste });
+					let whereBlockListe = secimler.whereBlockListe ??= [], {whereBlockListe: detWhereBlockListe} = detSecimler;
+					if (detWhereBlockListe) { whereBlockListe.push(...detWhereBlockListe) }
+					secimler.endUpdate()
+				}
+			}
+			e.secimler = secimler
+		}
 		let ekBilgi = veriTipi.secilen?.ekBilgi ?? {};
 		let {sentUygunluk, sentDuzenle: icerikSentDuzenle} = ekBilgi;
+		$.extend(e, { aciklama, hesapTipi, shStokHizmet, veriTipi });
 		for (let [selector, flag] of Object.entries(shDurum)) {
-			let _e = { ...e }; _e[selector] = flag;
-			if (sentUygunluk == null || sentUygunluk?.call(this, _e)) { this.raporQueryDuzenle_satis(_e) }
-			stm = _e.stm
+			_e[selector] = flag; if (!flag) { continue }
+			if (!(sentUygunluk == null || sentUygunluk?.call(this, _e))) { continue }
+			if (hesapTipi.ticarimi) { this.raporQueryDuzenle_satis(_e) }
+			else if (hesapTipi.hizmetmi) { this.raporQueryDuzenle_hizmetHareket(_e) }
 		}
-		let {sent: uni} = stm ?? {};
+		stm = e.stm = _e.stm; let {sent: uni} = stm ?? {};
 		if (!uni?.liste?.length) { return this }
-		let sahaAliases = Object.values(tabloYapi?.toplam).map(({ colDefs }) => colDefs.map(({ belirtec }) => belirtec)).flat();
-		let _e = { ...e, uni, sahaAlias: 'bedel' };
-		for (let sent of uni) {
-			let {where: wh, sahalar} = sent;
-			if (donemBS) { wh.basiSonu(donemBS, 'fis.tarih') }
-			if (subeKodlari?.length) { wh.inDizi(subeKodlari, 'fis.bizsubekod') }
-			/* sahalar.add(`${aciklama.sqlServerDegeri()} aciklama`); */
-			$.extend(_e, { sent, where: wh, sahalar });
-			icerikSentDuzenle?.call(this, _e); sentDuzenle?.call(this, _e);
-			let {alias2Deger} = sent; for (let sahaAlias of sahaAliases) {
-				if (!alias2Deger[sahaAlias]) { sahalar.add(`0 ${sahaAlias}`) }
+		_e.uni = uni; let {detSecimler, defHV, harHVListe} = _e;
+		{
+			let sahaAliases = Object.values(tabloYapi?.toplam).map(({ colDefs }) => colDefs.map(({ belirtec }) => belirtec)).flat();
+			let mstTableAlias = hizmetmi ? 'hiz' : 'stk', iGrpAlias = hizmetmi ? 'higrp' : 'sigrp';
+			let mstBaglaSelector = hizmetmi ? 'x2HizmetBagla' : 'x2StokBagla';
+			let ekBaglaPrefix = hizmetmi ? 'hizmet' : 'stok', mstKodAlias = `${ekBaglaPrefix}kod`;
+			for (let i = 0; i < uni.liste.length; i++) {
+				let sent = uni.liste[i];
+				let {where: wh, sahalar} = sent, hv = { ...defHV, ...harHVListe?.[i] };
+				if (donemBS) { wh.basiSonu(donemBS, (hv.tarih || 'fis.tarih')) }
+				if (subeKodlari?.length) { wh.inDizi(subeKodlari, (hv.bizsubekod || 'fis.bizsubekod')) }
+				/* sahalar.add(`${aciklama.sqlServerDegeri()} aciklama`); */
+				wh.add(`${hv.ozelisaret ?? 'fis.ozelisaret'} <> 'X'`);
+				$.extend(_e, { sent, where: wh, sahalar, hv });
+				icerikSentDuzenle?.call(this, _e); sentDuzenle?.call(this, _e);
+				let {alias2Deger} = sent; for (let sahaAlias of sahaAliases) { if (!alias2Deger[sahaAlias]) { sahalar.add(`0 ${sahaAlias}`) } }
+				if (detSecimler) {
+					let {from} = sent, kodClause = hv[mstKodAlias];
+					if (!from.aliasIcinTable(mstTableAlias)) { sent[mstBaglaSelector]({ kodClause }) }
+					if (!from.aliasIcinTable('grp')) { sent[`${ekBaglaPrefix}2GrupBagla`]() }
+					if (!from.aliasIcinTable('agrp')) { sent[`${ekBaglaPrefix}Grup2AnaGrupBagla`]() }
+					if (!from.aliasIcinTable(iGrpAlias)) { sent[`${ekBaglaPrefix}2IstGrupBagla`]() }
+				}
+				sent.groupByOlustur().gereksizTablolariSil()
 			}
-			sent.groupByOlustur()
 		}
 		return this
 	}
@@ -265,6 +320,30 @@ class SBTabloDetay extends MQDetay {
 			uni.add(sent); return sent
 		};
 		sentOrtakOlustur();
+		return this
+	}
+	raporQueryDuzenle_hizmetHareket(e) {
+		let {rapor, secimler, sahaAlias: bedelAlias} = e;
+		let aliasListe = ['ba', bedelAlias], topSahaSet = asSet([bedelAlias]);
+		let har = new HizmetHareketci().withAttrs('tarih', 'bizsubekod', 'ozelisaret', 'hizmetkod', ...aliasListe);
+		let {varsayilanHV: defHV} = har.class;
+		let {uni} = e, harUni = har.uniOlustur({ ...e, rapor, secimler });
+		let harHVListe = e.harHVListe = [];
+		for (let harSent of harUni) {
+			let {alias2Deger: hv} = harSent, sent = harSent.deepCopy();
+			harHVListe.push(hv);
+			let addClause = alias => {
+				let clause = hv[alias]; if (!clause) { return null }
+				if (topSahaSet[alias]) { clause = clause.asSumDeger() }
+				let saha = `${clause} ${alias}`;
+				sent.add(saha); return saha
+			};
+			sent.sahalarReset(); let {from, sahalar} = sent;
+			// if (from.aliasIcinTable('har')?.deger == 'carihar') { debugger }
+			for (let alias of aliasListe) { addClause(alias) }
+			uni.add(sent)
+		}
+		$.extend(e, { har, defHV });
 		return this
 	}
 	eval(e) {
@@ -338,11 +417,57 @@ class SBTabloGridci extends GridKontrolcu {
 				})*/
 		])
 	}
+	tanimla(e) {
+		e = e ?? {}; let {islem} = e;
+		if (islem == 'sil') { return this.tanimKaydet(e) }
+		let gridRec = e.gridRec ?? e.rec;
+		if (!gridRec && (islem == 'degistir' || islem == 'kopya')) { return null }
+		let rfb = this.getRootFormBuilder(e).run();
+		return rfb
+		/*let {title} = e, wnd = e.wnd = createJQXWindow({
+			title, args: {
+				isModal: false, closeButtonAction: 'close',
+				width: '90%', height: Math.min(600, $(window).height() - 100)
+			}
+		});
+		wnd.on('close', evt => { rfb.destroyPart(); wnd.jqxWindow('destroy'); delete e.wnd });
+		rfb.setParent(wnd.find('.jqx-window-content > .subContent'));*/
+		rfb/*.asForm().run();
+		return rfb*/
+	}
+	async tanimKaydet({ islem, sender: gridPart, gridWidget, inst: fis, detay: det, eskiDetay: eDet }) {
+		gridPart = gridPart?.gridPart ?? gridPart;
+		try {
+			switch (islem) {
+				case 'yeni': case 'degistir': case 'kopya': {
+					try {
+						let result = await this.onKontrol(...arguments);
+						if (typeof result == 'string') { result = { isError: true, errorText: result } }
+						if (result?.isError) { throw result }
+					}
+					catch (ex) { throw ex }
+					break
+				}
+			}
+			switch (islem) {
+				case 'yeni': case 'kopya': { gridWidget.addrow(null, det, eDet?.uid); break }
+				case 'degistir': { gridWidget.updaterow(eDet?.uid, det); break }
+				case 'sil': { gridWidget.deleterow(eDet?.uid); break }
+			}
+			fis.detaylar = gridPart.boundRecs
+		}
+		catch (ex) { hConfirm(getErrorText(ex), `Satır: <b class=royalblue>${islem}</b>`); throw ex }
+	}
+	async onKontrol({ detay: det }) {
+		let {hesapTipi, veriTipi} = det;
+		if (hesapTipi.secilen == null || hesapTipi.bosmu) { return `<b class=firebrick>Hesap Tipi</b> boş olamaz` }
+		if ((hesapTipi.ticarimi || hesapTipi.hizmetmi) && (veriTipi.secilen == null || veriTipi.yokmu)) { return `<b class=firebrick>Veri Tipi</b> boş olamaz` }
+	}
 	getRootFormBuilder(e) {
 		let {islem, sender: gridPart, gridRec: eskiDetay} = e, {gridWidget} = gridPart;
 		let {fis} = this, {class: fisSinif} = fis;
 		e.gridWidget = e.gridWidget ?? gridWidget;
-		let detay = islem == 'yeni' || islem == 'kopya' ? new fisSinif.detaySinif() : eskiDetay.deepCopy();
+		let detay = islem == 'yeni' ? new fisSinif.detaySinif() : eskiDetay.deepCopy();
 		for (let key of ['uid', 'uniqueid', '_rowNumber', 'boundindex', 'visibleindex']) { delete detay[key] };
 		let islemAdi = `${islem[0].toUpperCase()}${islem.slice(1)}`, title = e.title = islemAdi;
 		let rfb = new RootFormBuilder().asWindow(title).setInst(detay).setParentPart(gridPart).addStyle_fullWH();
@@ -359,10 +484,15 @@ class SBTabloGridci extends GridKontrolcu {
 			// if (tazele) { gridPart.tazele() }
 			if (wnd?.length) { wnd.jqxWindow('close') } else { rfb.part?.close() }
 		};
-		rfb.addIslemTuslari('islemTuslari').setTip('tamamVazgec').setId2Handler({
-			tamam: async _e => { if (await this.tanimKaydet({ ..._e, ...e, detay, eskiDetay }) !== false) { close({ ..._e, ...e }) } },
-			vazgec: _e => close({ ..._e, ...e, tazele: true })
-		}).addStyle_fullWH(null, 'var(--islemTuslari-height)');
+		rfb.addIslemTuslari('islemTuslari').setTip('tamamVazgec')
+			.setId2Handler({
+				tamam: async _e => {
+					try { if (await this.tanimKaydet({ ..._e, ...e, sender: gridPart, inst: fis, fis, detay, eskiDetay }) === false) { return } }
+					catch (ex) { console.error(ex); return }
+					close({ ..._e, ...e })
+				},
+				vazgec: _e => close({ ..._e, ...e, tazele: true })
+			}).addStyle_fullWH(null, 'var(--islemTuslari-height)');
 		let fbd_content = rfb.addFormWithParent('content').altAlta()
 			.addStyle_wh(null, 'calc(var(--full) - (var(--islemTuslari-height) + 15px))')
 			.addStyle(...[`
@@ -536,28 +666,37 @@ class SBTabloGridci extends GridKontrolcu {
 		
 		return rfb
 	}
-	tanimla(e) {
-		e = e ?? {}; let {islem} = e; if (islem == 'sil') { return this.tanimKaydet(e) }
-		let gridRec = e.gridRec ?? e.rec; if (islem == 'degistir' && !gridRec) { return null }
-		let rfb = this.getRootFormBuilder(e).run();
-		return rfb
-		/*let {title} = e, wnd = e.wnd = createJQXWindow({
-			title, args: {
-				isModal: false, closeButtonAction: 'close',
-				width: '90%', height: Math.min(600, $(window).height() - 100)
-			}
-		});
-		wnd.on('close', evt => { rfb.destroyPart(); wnd.jqxWindow('destroy'); delete e.wnd });
-		rfb.setParent(wnd.find('.jqx-window-content > .subContent'));*/
-		rfb/*.asForm().run();
-		return rfb*/
+	yukariAsagi(e) {
+		let {_repeatButton_delayMS: delayMS} = SBTablo, timerKey = '_timer_yukariAsagi';
+		clearTimeout(this[timerKey]);
+		this[timerKey] = setTimeout(e => { try { this._yukariAsagi(e) } finally { delete this[timerKey] } }, delayMS - 15, e)
 	}
-	tanimKaydet({ islem, gridWidget, detay: det, eskiDetay: eDet }) {
-		switch (islem) {
-			case 'yeni': case 'kopya': { gridWidget.addrow(null, det); break }
-			case 'degistir': { gridWidget.updaterow(eDet?.uid, det); break }
-			case 'sil': { gridWidget.deleterow(eDet?.uid); break }
-		}
+	_yukariAsagi({ sender, recs: selRecs, yon }) {
+		let {gridPart, gridWidget, inst: fis} = sender, {detaylar: recs} = fis;
+		let id2Det = {}; for (let rec of recs) { id2Det[rec.uid] = rec }
+		selRecs = selRecs.map(({ uid }) => id2Det[uid]);
+		selRecs.sort((a, b) => recs.indexOf(a) - recs.indexOf(b));
+		switch (yon) {
+	        case 'yukari':
+	            for (let i = 0; i < selRecs.length; i++) {  /* Baştan sona doğru işliyoruz */
+	                let rec = selRecs[i], ind = recs.indexOf(rec); if (ind < 1) { continue }  /* En üstteki kayıt yukarı çıkamaz */
+	                [recs[ind], recs[ind - 1]] = [recs[ind - 1], recs[ind]]
+	            }
+	            break;
+	        case 'asagi':
+	            for (let i = selRecs.length - 1; i >= 0; i--) {  /* Baştan sona işlemek yerine, TERSTEN işliyoruz */
+	                let rec = selRecs[i], ind = recs.indexOf(rec); if (ind >= recs.length - 1) { continue }  /* En alttaki kayıt aşağı inemez */
+	                [recs[ind], recs[ind + 1]] = [recs[ind + 1], recs[ind]]
+	            }
+	            break;
+	    }
+	    let newRowIndexes = selRecs.map(rec => recs.indexOf(rec));  /* Swap sonrası tüm yeni indeksleri al */
+		gridPart.veriYuklenince(() => {
+			gridPart.veriYuklenince(null);
+			gridWidget.clearselection();
+			for (let ind of newRowIndexes) { gridWidget.selectrow(ind) }  /* sırası değişen yeni satırları seç */
+		});
+		gridPart.tazele()
 	}
 	yeniIstendi(e) { return this.tanimla({ ...e, islem: 'yeni' }) }
 	degistirIstendi(e) { return this.tanimla({ ...e, islem: 'degistir' }) }
@@ -566,6 +705,9 @@ class SBTabloGridci extends GridKontrolcu {
 		let uids = recs.map(rec => rec.uid).sort(reverseSortFunc);
 		for (let uid of uids) { gridWidget.deleterow(uid) }
 	}
+	kopyaIstendi(e) { return this.tanimla({ ...e, islem: 'kopya' }) }
+	yukariIstendi(e) { return this.yukariAsagi({ ...e, yon: 'yukari' })}
+	asagiIstendi(e) { return this.yukariAsagi({ ...e, yon: 'asagi' })}
 	gridSatirCiftTiklandi(e) {
 		let {args} = e.event, {bounddata: gridRec} = args.row;
 		this.degistirIstendi({ ...e, gridRec })
