@@ -253,7 +253,9 @@ class FisGirisPart extends GridliGirisWindowPart {
 			return false
 		}
 		let {fis} = this; fis.detaylar = e.recs;
-		return await this.kaydetDevam(e)
+		showProgress('Belge kaydediliyor...', null);
+		try { return await this.kaydetDevam(e) }
+		finally { setTimeout(() => hideProgress(), 500) }
 	}
 	async kaydetDevam(e) {
 		e = e || {}; let {fis} = this;
@@ -274,10 +276,15 @@ class FisGirisPart extends GridliGirisWindowPart {
 		if (yeniVeyaKopyami) {
 			let {numaratorPart} = this, {otoNummu, numarator} = numaratorPart || {}; $.extend(_e, { otoNummu, numaratorPart, numarator });
 			if (numaratorPart?.otoNummu) {
-				while (true) {
-					fis.fisNo = (await numarator.kesinlestir(_e)).sonNo;
-					let result = await fis.varmi(); if (!result) { break }
+				let {text: progressText} = window.progressManager ?? {};
+				window.progressManager?.setText(`<div>${progressText}</div><div style="margin: 5px 0 0 50px" class="royalblue">Numaratör belirleniyor...</div>`);
+				try {
+					while (true) {
+						fis.fisNo = (await numarator.kesinlestir(_e)).sonNo;
+						let result = await fis.varmi(); if (!result) { break }
+					}
 				}
+				finally { window.progressManager?.setText(progressText ?? '') }
 			}
 		}
 		let result = await fis.uiKaydetOncesiIslemler(_e) ?? true; for (let key of ['islem', 'fis', 'eskiFis']) {
@@ -292,8 +299,8 @@ class FisGirisPart extends GridliGirisWindowPart {
 		e = e || {}; let {fis} = this, {numarator} = fis;
 		if (numarator) {
 			let locals = app.getLocals('sonDegerler'), numKod2Seri = locals.numKod2Seri = locals.numKod2Seri || {};
-			numKod2Seri[numarator.kod] = fis.seri;
-			app.setLocals('sonDegerler', locals); numarator.kaydet();
+			numKod2Seri[numarator.kod] = fis.seri; app.setLocals('sonDegerler', locals);
+			numarator.kaydet()
 		}
 		return true
 	}

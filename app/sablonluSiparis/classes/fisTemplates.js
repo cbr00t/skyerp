@@ -100,6 +100,8 @@ class SablonluSiparisFisTemplate extends CObject {
 	static async sablonYukleVeBirlestir(e) {
 		let {fis, islem, belirtec} = e, {sablonSayac, tarih, subeKod, mustKod, numarator, class: fisSinif} = fis;
 		if (!mustKod) { throw { isError:  true, errorText: `<b>Müşteri</b> seçilmelidir` } }
+		let _fis = fis.deepCopy(); await this.dagitimIcinEkBilgileriBelirle({ ...e, fis: _fis });
+		let {mustKod: teslimCariVeyaMustKod} = _fis;
 		let {detaySinif, konsinyemi, numTipKod} = fisSinif; islem = islem || belirtec;
 		let yenimi = islem == 'yeni', onaylaVeyaSilmi = (islem == 'onayla' || islem == 'sil');
 		tarih = fis.tarih = tarih || today();
@@ -113,7 +115,7 @@ class SablonluSiparisFisTemplate extends CObject {
 			let belirtec = await app.sqlExecTekilDeger(sent);
 			if (belirtec) { numarator.belirtec = belirtec }
 		}*/
-		let kapsam = { tarih, subeKod, mustKod };
+		let kapsam = { tarih, subeKod, mustKod: teslimCariVeyaMustKod };
 		let anah2KosulYapi = SatisKosulYapi._anah2KosulYapi ??= {};
 		let kosulYapilar = anah2KosulYapi[toJSONStr(kapsam)] ??= await SatisKosulYapi.yukle({ kapsam });
 		let sent = new MQSent({
@@ -139,7 +141,8 @@ class SablonluSiparisFisTemplate extends CObject {
 			sent.fromIliski(`${table} ${alias}`, `har.${rowAttr} = ${alias}.kod`);
 			sahalar.add(`har.${rowAttr}`, `${alias}.aciklama ${rowAdiAttr}`)
 		}
-		let stm = new MQStm({ sent, orderBy: ['fissayac', 'grupseq', 'seq'] }), recs = await app.sqlExecSelect(stm);
+		let stm = new MQStm({ sent, orderBy: ['fissayac', 'grupseq', 'seq'] });
+		let recs = await app.sqlExecSelect(stm);
 		if (!recs?.length) {
 			let mustUnvan = mustKod ? await MQSCari.getGloKod2Adi(mustKod) : null;
 			let sablonAdi = sablonSayac ? await MQSablonOrtak.getGloKod2Adi(sablonSayac) : null;
@@ -241,19 +244,23 @@ class SablonluSiparisFisTemplate extends CObject {
 		}
 		stokKodListe = Object.keys(stokKod2Detaylar); kosulYapilar = await kosulYapilar;
 		if (stokKodListe?.length) {
-			let iskontoArastirStokSet = {};
-			let fiyatYapilar = anah2KosulYapi[toJSONStr(stokKodListe)] ??= await SatisKosul_Fiyat.getAltKosulYapilar(stokKodListe, kosulYapilar?.FY, mustKod);
+			let kosulSinif = fisSinif.alimmi ? SatisKosul_AlimAnlasma : SatisKosul_Fiyat;
+			let {tipKod: tip} = kosulSinif, iskontoArastirStokSet = {};
+			let anah = toJSONStr({ tip, kapsam, stokKodListe });
+			let fiyatYapilar = anah2KosulYapi[anah] ??= await kosulSinif.getAltKosulYapilar(stokKodListe, kosulYapilar?.FY, teslimCariVeyaMustKod);
 			for (let det of detaylar) {
 				if (fiyatYapilar && det.netBedel == undefined) { continue }
 				let {shKod: stokKod} = det, kosulRec = fiyatYapilar[stokKod] ?? {}, {iskontoYokmu} = kosulRec;
 				if (!iskontoYokmu) { iskontoArastirStokSet[stokKod] = true }
-				let fiyat = det.fiyat || kosulRec.fiyat; if (fiyat) {
+				let fiyat = det.fiyat || kosulRec.fiyat || kosulRec.alimFiyat;
+				if (fiyat) {
 					let miktar = det.miktar || 0, netBedel = roundToBedelFra(miktar * fiyat);
 					$.extend(det, { fiyat, netBedel })
 				}
 			}
 			let iskontoArastirStokKodListe = Object.keys(iskontoArastirStokSet);
-			let iskYapilar = anah2KosulYapi[toJSONStr(iskontoArastirStokKodListe)] ??= await SatisKosul_Iskonto.getAltKosulYapilar(iskontoArastirStokKodListe, kosulYapilar?.SB);
+			anah = toJSONStr({ tip: 'SB', kapsam, stokKodListe: iskontoArastirStokKodListe });
+			let iskYapilar = anah2KosulYapi[anah] ??= await SatisKosul_Iskonto.getAltKosulYapilar(iskontoArastirStokKodListe, kosulYapilar?.SB);
 			let prefix = 'oran'; for (let det of detaylar) {
 				let {stokKod} = det, kosulRec = iskYapilar[stokKod] ?? {};
 				for (let [key, value] of Object.entries(iskYapilar)) {
@@ -273,8 +280,8 @@ class SablonluSiparisFisTemplate extends CObject {
 					}
 				];
 				let table2Col = app._table2Col ??= {};
-				let colInfo = table2Col.carmst_konsinyeyerkod ??= Object.values(await app.sqlGetColumns('carmst', 'konsinyeyerkod'))?.[0];
-				if (colInfo) {
+				let colInfo = table2Col.carmst_konsinyeyerkod ??= Object.values(await app.sqlGetColumns('carmst', 'konsinyeyerkod'))?.[0] ?? {};
+				if (!$.isEmptyObject(colInfo)) {
 					let must2KonYerKod = this._must2KonYerKod ??= {};
 					let getMust2YerKod = async mustKod => {
 						mustKod ??= fis.mustKod; if (!mustKod) { return null }
@@ -350,7 +357,7 @@ class SablonluSiparisFisTemplate extends CObject {
 			let carpan = orjCarpan; if (satismi) { carpan = -carpan } if (stokmu) { carpan = -carpan }
 			// carpan = -carpan;    /* carpan gidecek durumuna göre ayarlandı */
 			let carpanClause = carpan.sqlServerDegeri(), tersCarpanClause = (-carpan).sqlServerDegeri(), tipClause = tip.sqlServerDegeri();
-			let konumStatuVarmi = table2Col[`${table}_konumstatu`] ??= Object.values(await app.sqlGetColumns(table, 'konumstatu'))?.[0];
+			let konumStatuVarmi = table2Col[`${table}_konumstatu`] ??= Object.values(await app.sqlGetColumns(table, 'konumstatu'))?.[0] ?? false;
 			{
 				/* olası sevk */
 				let sent = new MQSent(), {where: wh, sahalar} = sent;
@@ -558,23 +565,28 @@ class SablonluSiparisFisTemplate extends CObject {
 					when dag.bfaturayianafirmakeser > 0 then dfir.mustkod
 					else dag.klteslimatcikod end)`
 		);
-		let sent = new MQSent(), {where: wh, sahalar} = sent;
-		sent.fromAdd('kldagitim dag')
-			.fromIliski('klfirma dfir', 'dag.klfirmakod = dfir.kod')
-			.fromIliski('carmst car', `car.must = ${mustKod.sqlServerDegeri()}`)
-			.cari2BolgeBagla();
-		wh.degerAta(klFirmaKod, 'dag.klfirmakod').degerAta(mustKod, 'dag.mustkod')
-		wh.add(new MQOrClause([
-			`dag.sevkadreskod = ''`,
-			(sevkAdresKod ? { degerAta: sevkAdresKod, saha: 'dag.sevkadreskod' } : null)
-		].filter(x => !!x)));
-		sahalar.add(
-			`${hedefMustKodClause} hedefMustKod`, 'bol.bizsubekod subeKod', 'dag.bkendimizteslim kendimizTeslimmi',
-			`(case when dag.bkendimizteslim > 0 then '' else dag.klteslimatcikod end) teslimEdenCariKod`,
-			`(case when dag.bkendimizteslim > 0 then dag.kendidepokod else ${sabitCikisYerKod.sqlServerDegeri()} end) cYerKod`,
-			'car.konsinyeyerkod gYerKod'
-		);
-		let {subeKod, hedefMustKod, kendimizTeslimmi, teslimEdenCariKod, gYerKod, cYerKod} = await app.sqlExecTekil(sent) ?? {};
+		let anah = toJSONStr([sablonSayac, mustKod, sevkAdresKod, klFirmaKod]);
+		this._anah2DagEkBilgi ??= {}; let {_anah2DagEkBilgi} = this;
+		let rec = _anah2DagEkBilgi[anah] ??= await (async () => {
+			let sent = new MQSent(), {where: wh, sahalar} = sent;
+			sent.fromAdd('kldagitim dag')
+				.fromIliski('klfirma dfir', 'dag.klfirmakod = dfir.kod')
+				.fromIliski('carmst car', `car.must = ${mustKod.sqlServerDegeri()}`)
+				.cari2BolgeBagla();
+			wh.degerAta(klFirmaKod, 'dag.klfirmakod').degerAta(mustKod, 'dag.mustkod')
+			wh.add(new MQOrClause([
+				`dag.sevkadreskod = ''`,
+				(sevkAdresKod ? { degerAta: sevkAdresKod, saha: 'dag.sevkadreskod' } : null)
+			].filter(x => !!x)));
+			sahalar.add(
+				`${hedefMustKodClause} hedefMustKod`, 'bol.bizsubekod subeKod', 'dag.bkendimizteslim kendimizTeslimmi',
+				`(case when dag.bkendimizteslim > 0 then '' else dag.klteslimatcikod end) teslimEdenCariKod`,
+				`(case when dag.bkendimizteslim > 0 then dag.kendidepokod else ${sabitCikisYerKod.sqlServerDegeri()} end) cYerKod`,
+				'car.konsinyeyerkod gYerKod'
+			);
+			return await app.sqlExecTekil(sent)
+		})() ?? {};
+		let {subeKod, hedefMustKod, kendimizTeslimmi, teslimEdenCariKod, gYerKod, cYerKod} = rec;
 		/* kendimizTeslimmi  { true: İrs. Trf. Sip. | false: Alım Sip. }  */
 		$.extend(fis, {
 			subeKod, mustKod: hedefMustKod,

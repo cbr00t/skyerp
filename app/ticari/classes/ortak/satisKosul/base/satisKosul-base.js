@@ -1,47 +1,49 @@
 class SatisKosul extends CKodVeAdi {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get tipKod() { return null } static get aciklama() { return null }
+	static get tipKod() { return null } static get aciklama() { return null } static get alimmi() { return false }
 	static get table() { return null } static get detayTables() { return null }
 	static get detayMustTable() { return null } static get fisSayacSaha() { return 'fissayac' }
 	static get tip2Sinif() {
 		let {_tip2Sinif: result} = this;
 		if (result == null) {
 			result = this._tip2Sinif = {};
-			for (const cls of this.subClasses) {
-				const {tipKod} = cls;
+			for (let cls of this.subClasses) {
+				let {tipKod} = cls;
 				if (tipKod) { result[tipKod] = cls }
 			}
 		}
 		return result
 	}
 	constructor(e) {
-		e = e ?? {}; super(e); this.sayac = e.sayac || null;
-		for (const key of ['kod', 'aciklama', 'grupKod', 'dvKod', 'subeIcinOzeldir']) { this[key] = e[key] ?? '' }
-		for (const key of ['mustDetaydami', 'iskontoYokmu', 'promosyonYokmu']) { this[key] = asBool(e[key]) }
-		let kapsam = e.kapsam ?? {}; if ($.isPlainObject(kapsam)) { kapsam = new SatisKosulKapsam(kapsam) } this.kapsam = kapsam;
-		this.mustRec = e.mustRec
+		e = e ?? {}; super(e); let {alimmi} = this.class;
+		this.sayac = e.sayac || null;
+		for (let key of ['kod', 'aciklama', 'grupKod', 'dvKod', 'subeIcinOzeldir']) { this[key] = e[key] ?? '' }
+		for (let key of ['mustDetaydami', 'iskontoYokmu', 'promosyonYokmu']) { this[key] = asBool(e[key]) }
+		let kapsam = e.kapsam ?? {}; if ($.isPlainObject(kapsam)) { kapsam = new SatisKosulKapsam(kapsam, alimmi) }
+		let {mustRec} = e; $.extend(this, { kapsam, mustRec })
 	}
-	static newFor(e/*, _mustKod*/) {
+	static newFor(e /*, _mustKod*/) {
 		e = e ?? {}; if (typeof e != 'object') { e = { tipKod: e /*, mustKod: _mustKod*/ } }
-		const cls = this.getClassFor(e), inst = cls ? new cls(e) : null;
+		let cls = this.getClassFor(e), inst = cls ? new cls(e) : null;
 		return inst /* return await inst?.yukle(e) ? inst : null */
 	}
 	static getClassFor(e) {
-		e = e ?? {}; const tipKod = typeof e == 'object' ? e.tipKod : e;
+		e = e ?? {}; let tipKod = typeof e == 'object' ? e.tipKod : e;
 		return this.tip2Sinif[tipKod]
 	}
+	static getAltKosulYapilar() { return null }
 	getAltKosulYapilar(e, _mustKod) { return this.class.getAltKosulYapilar(e, this, _mustKod) }
 	static async yukle(e) { let inst = new this(e); return await inst.yukle(e) ? inst : null }
 	async yukle(e) {
-		e = e ?? {}; let kapsam = e.kapsam ?? this.kapsam ?? {}, mustKod, {fisSayacSaha} = this.class;
-		if ($.isPlainObject(kapsam)) { kapsam = new SatisKosulKapsam(kapsam) }
+		e = e ?? {}; let kapsam = e.kapsam ?? this.kapsam ?? {}, mustKod, {fisSayacSaha, alimmi} = this.class;
+		if ($.isPlainObject(kapsam)) { kapsam = new SatisKosulKapsam(kapsam, alimmi) }
 		{
 			let {basi, sonu} = kapsam?.must ?? {};
 			if (basi && basi == sonu) { mustKod = basi }
 		}
 		let stm = new MQStm(), {sent} = stm, _e = { ...e, stm, sent, mustKod }; this.yukle_queryDuzenle(_e);
 		stm = _e.stm; sent = _e.sent; let recs = await app.sqlExecSelect(stm), uygunmu = false;
-		for (const rec of recs) {
+		for (let rec of recs) {
 			this.setValues({ rec }); stm = sent = null;
 			uygunmu = true; if (mustKod && this.mustDetaydami) {
 				let {sayac} = this, {detayMustTable} = this.class;
@@ -53,16 +55,16 @@ class SatisKosul extends CKodVeAdi {
 			}
 			if (uygunmu && kapsam) {
 				let mustRec = this.mustRec = e.mustRec ?? await this.class.getMust2Rec(mustKod);
-				uygunmu = kapsam.uygunmu(mustRec)
+				uygunmu = kapsam.uygunmu(mustRec, alimmi)
 			}
 			if (uygunmu) { break }
 		}
 		return uygunmu
     }
 	yukle_queryDuzenle({ stm, sent, mustKod }) {  /* edt: a!cbr00t-CGP */
-		const {kapsam} = this, {table} = this.class, {where: wh, sahalar} = sent, {orderBy} = stm, alias = 'fis';
-		const {tipListe, tip2RowAttrListe} = SatisKosulKapsam, mustSqlDegeri = MQSQLOrtak.sqlServerDegeri(mustKod);
-		sent.fromAdd(`${table} ${alias}`); wh.fisSilindiEkle(); wh.add(`${alias}.devredisi = ''`);
+		let {kapsam} = this, {table} = this.class, {where: wh, sahalar} = sent, {orderBy} = stm, alias = 'fis';
+		let {tipListe, tip2RowAttrListe} = SatisKosulKapsam, mustSqlDegeri = MQSQLOrtak.sqlServerDegeri(mustKod);
+		sent.fromAdd(`${table} ${alias}`); wh.fisSilindiEkle().add(`${alias}.devredisi = ''`);
 		if (mustKod) {
 			wh.add(new MQOrClause([
 				`fis.detaylimust = ''`,
@@ -77,21 +79,22 @@ class SatisKosul extends CKodVeAdi {
 			'kaysayac sayac', 'kod', 'aciklama', 'kgrupkod grupKod', 'dvkod dvKod',
 			'detaylimust mustDetaydami', 'subeicinozeldir subeIcinOzeldir'
 		);
-		for (const tip of tipListe) {
-			const rowAttrs = tip2RowAttrListe[tip] ?? [`${tip}b`, `${tip}s`];
+		for (let tip of tipListe) {
+			let rowAttrs = tip2RowAttrListe[tip] ?? [`${tip}b`, `${tip}s`];
 			if (rowAttrs?.length) { sahalar.addWithAlias('fis', ...rowAttrs) }
 		}
 		orderBy.add('subeIcinOzeldir', 'tarihb', 'kod')
 	}
 	setValues({ rec }) {
-		this.sayac = rec.sayac || null;
-		for (const key of ['kod', 'aciklama', 'grupKod', 'dvKod', 'subeIcinOzeldir']) { this[key] = rec[key] ?? '' }
-		for (const key of ['mustDetaydami', 'iskontoYokmu', 'promosyonYokmu']) { this[key] = asBool(rec[key]) }
+		this.sayac = rec.sayac || null; let {alimmi} = this.class;
+		for (let key of ['kod', 'aciklama', 'grupKod', 'dvKod', 'subeIcinOzeldir']) { this[key] = rec[key] ?? '' }
+		for (let key of ['mustDetaydami', 'iskontoYokmu', 'promosyonYokmu']) { this[key] = asBool(rec[key]) }
 		this.konsolideSubemi = rec.konsolideSubemi = rec.konTipKod == 'S';
-		const kapsam = this.kapsam = new SatisKosulKapsam(); kapsam.setValues(...arguments)
+		let kapsam = this.kapsam = new SatisKosulKapsam(null, alimmi);
+		kapsam.setValues(arguments[0], alimmi)
 	}
 	async getAltKosullar(e) {
-		e = e ?? {}; const _satisKosul = this, {iskontoYokmu, promosyonYokmu} = this;
+		e = e ?? {}; let _satisKosul = this, {iskontoYokmu, promosyonYokmu} = this;
 		let stokKodListe = $.makeArray(typeof e == 'object' && !$.isArray(e) ? e.stokKodListe ?? e.kodListe : e);
 		let result = {}; if ($.isEmptyObject(stokKodListe)) { return result }
 		let stok2GrupKod = {}, grup2StokKodSet = {};
@@ -109,9 +112,9 @@ class SatisKosul extends CKodVeAdi {
 			let stm = new MQStm(), {sent} = stm, kodListe = Object.keys(grup2StokKodSet);
 			let _e = { ...e, kodListe, stm, sent, grupmu: true }; if (this.getAltKosullar_queryDuzenle(_e) !== false) {
 				stm = _e.stm; sent = _e.sent; let sevRecs = seviyelendir({ source: await app.sqlExecSelect(stm), attrListe: ['xKod'] });
-				const detTip = 'G'; for (const {detaylar} of sevRecs) {
-					for (const _rec of detaylar) {
-						const {xKod: grupKod} = _rec; if (!grupKod) { continue }										  /* sent.where koşulundan dolayı normalde boş grupKod gelmemesi gerekir, sadece önlem */
+				let detTip = 'G'; for (let {detaylar} of sevRecs) {
+					for (let _rec of detaylar) {
+						let {xKod: grupKod} = _rec; if (!grupKod) { continue }										  /* sent.where koşulundan dolayı normalde boş grupKod gelmemesi gerekir, sadece önlem */
 						let stokKodSet = grup2StokKodSet[grupKod]; if ($.isEmptyObject(stokKodSet)) { continue }		  /* grupKod'a ait stokKod liste boş ise işlem yapma. normalde bu dict values içeriğinin boş gelmemesi bekleniyor */
 						$.extend(_rec, { _satisKosul, detTip, iskontoYokmu, promosyonYokmu });							  /* ortak değerleri orijinal _rec içine ata */
 						for (let xKod in stokKodSet) { let rec = { ..._rec, xKod }; result[xKod] = rec }				  /* grupKod'a ait her 'stokKod' için kopya kayıt ile result'a eklenti yap */
@@ -123,9 +126,9 @@ class SatisKosul extends CKodVeAdi {
 			let stm = new MQStm(), {sent} = stm, kodListe = stokKodListe;
 			let _e = { ...e, kodListe, stm, sent, grupmu: false }; if (this.getAltKosullar_queryDuzenle(_e) !== false) {
 				stm = _e.stm; sent = _e.sent; let sevRecs = seviyelendir({ source: await app.sqlExecSelect(stm), attrListe: ['xKod'] });
-				const detTip = 'S'; for (const {detaylar} of sevRecs) {
-					for (const rec of detaylar) {
-						const {xKod} = rec; if (!xKod) { continue }														 /* stokKod boş ise işlem yapma. normalde boş gelmemesi bekleniyor */
+				let detTip = 'S'; for (let {detaylar} of sevRecs) {
+					for (let rec of detaylar) {
+						let {xKod} = rec; if (!xKod) { continue }														 /* stokKod boş ise işlem yapma. normalde boş gelmemesi bekleniyor */
 						$.extend(rec, { _satisKosul, detTip, iskontoYokmu, promosyonYokmu });							 /* ortak değerleri ata */
 						result[xKod] = rec																				 /* result'a eklenti yap */
 					}
@@ -136,7 +139,7 @@ class SatisKosul extends CKodVeAdi {
 	}
 	getAltKosullar_queryDuzenle({ stm, sent, kodListe, grupmu }) {
 		let {table, detayTables, fisSayacSaha} = this.class, {sayac, kapsam} = this, {mustKod} = kapsam;
-		const {where: wh, sahalar} = sent, {orderBy} = stm, xKodClause = grupmu ? 'grupkod' : 'stokkod';
+		let {where: wh, sahalar} = sent, {orderBy} = stm, xKodClause = grupmu ? 'grupkod' : 'stokkod';
 		let detTable = detayTables?.[grupmu ? 'grup' : 'stok']; if (!detTable) { return false }
 		sent.fromAdd(`${detTable} har`); wh.degerAta(sayac, `har.${fisSayacSaha}`);
 		if (kodListe?.length) { wh.inDizi(kodListe, `har.${xKodClause}`) }
@@ -167,13 +170,13 @@ class SatisKosul extends CKodVeAdi {
 		});
 	}
 	uygunmu(e) {
-		e = e ?? {}; const {kapsam} = this, diger = (typeof e == 'object' ? e.kapsam : e) ?? {};
+		e = e ?? {}; let {kapsam} = this, diger = (typeof e == 'object' ? e.kapsam : e) ?? {};
 		return Object.keys(kapsam).every(key => !diger[key] || kapsam[key] == diger[key])
 	}
 	kesisim(e) {
-		e = e ?? {}; const {kapsam} = this, diger = (typeof e == 'object' ? e.kapsam : e) ?? {};
-		const keys = Object.keys(kapsam).filter(key => !diger[key] || kapsam[key] == diger[key]);
-		const result = {}; for (const key of keys) { result[key] = kapsam[key] } return result
+		e = e ?? {}; let {kapsam} = this, diger = (typeof e == 'object' ? e.kapsam : e) ?? {};
+		let keys = Object.keys(kapsam).filter(key => !diger[key] || kapsam[key] == diger[key]);
+		let result = {}; for (let key of keys) { result[key] = kapsam[key] } return result
 	}
 }
 

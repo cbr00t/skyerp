@@ -1,12 +1,24 @@
-class SatisKosul_Fiyat extends SatisKosul {
+class SatisKosul_AlimAnlasma extends SatisKosul {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get tipKod() { return 'FY' } static get aciklama() { return 'Fiyat' }
-	static get table() { return 'fiyliste' } static get detayTables() { return { stok: 'fiytarife', grup: 'fiytargrup' } }
+	static get tipKod() { return 'AL' } static get aciklama() { return 'Alım Anlaşma' } static get alimmi() { return true }
+	static get table() { return 'alimanlasma' } static get detayTables() { return { stok: 'anlastarife', grup: 'anlastargrup' } }
 	static get detayMustTable() { return 'fiymust' }
-	yukle_queryDuzenle({ stm, sent, mustKod }) {
-		super.yukle_queryDuzenle(...arguments); let {where: wh, sahalar} = sent;
-		wh.add(`fis.ayrimkod = ''`).inDizi(['', 'N'], 'fis.isaretdurum');
-		sahalar.addWithAlias('fis', 'iskontoyok iskontoYokmu', 'promosyonyok promosyonYokmu')
+	yukle_queryDuzenle({ stm, sent, mustKod }) {  /* edt: a!cbr00t-CGP */
+		let {kapsam} = this, {table} = this.class;
+		let {where: wh, sahalar} = sent, {orderBy} = stm, alias = 'fis';
+		let tipListe = ['tarih'], {tip2RowAttrListe} = SatisKosulKapsam;
+		let mustSqlDegeri = MQSQLOrtak.sqlServerDegeri(mustKod);
+		sent.fromAdd(`${table} ${alias}`); wh.fisSilindiEkle().add(`${alias}.devredisi = ''`);
+		wh.add(`fis.ayrimkod = ''`, `fis.almsat = 'A'`);
+		if (mustKod) { wh.degerAta(mustKod, `${alias}.must`) }
+		kapsam?.uygunlukClauseDuzenle({ alias, where: wh, alim: true });
+		sahalar.addWithAlias(alias, 'kaysayac sayac', 'kod', 'aciklama', 'dvkod dvKod');
+		for (let tip of tipListe) {
+			let rowAttrs = tip2RowAttrListe[tip] ?? [`${tip}b`, `${tip}s`];
+			if (rowAttrs?.length) { sahalar.addWithAlias('fis', ...rowAttrs) }
+		}
+		sahalar.addWithAlias('fis', 'must mustb', 'must musts');
+		orderBy.add('tarihb', 'kod')
 	}
 	getAltKosullar_queryDuzenle({ stm, sent, stokKodListe }) {
 		super.getAltKosullar_queryDuzenle(...arguments); let {where: wh, sahalar} = sent, ekClause = 'har.ozelfiyat';
@@ -45,10 +57,11 @@ class SatisKosul_Fiyat extends SatisKosul {
 	        }
 	    }
 	    if ($.isEmptyObject(eksikKodSet)) { return result }
-		const musterisizListeFiyatiBelirle = async () => {
+		let  musterisizListeFiyatiBelirle = async () => {
+			let fiyatClause = `(case when almnetfiyat = 0 then almfiyat else almnetfiyat end)`;
 			let sent = new MQSent({
 				from: 'stkmst', where: { inDizi: Object.keys(eksikKodSet), saha: 'kod' },
-				sahalar: ['kod', 'satfiyat1 fiyat']
+				sahalar: ['kod', `${fiyatClause} fiyat`]
 			});
 			for (let {kod, fiyat} of await app.sqlExecSelect(sent)) {
 				let rec = result[kod] = result[kod] ?? {};
@@ -78,20 +91,12 @@ class SatisKosul_Fiyat extends SatisKosul {
 		}
 		if ($.isEmptyObject(eksikKodSet)) { return result }
 		/* 4) 'mustKod' belli iken: hala eksik fiyatlar varsa stok tanımından fiyatını belirle */ {
-			let fiyatSayi = app.params.fiyatVeIsk.fiyatSayi || 1, fiyatClause = 'stk.satfiyat';
-			if (fiyatSayi > 1) {
-				fiyatClause = '(CASE'; for (let i = 2; i <= fiyatSayi; i++) {
-					fiyatClause += ` WHEN car.stkfytind = ${i} THEN stk.satfiyat${i}` }
-		        fiyatClause += ' ELSE stk.satfiyat END)'
-			}
+			let fiyatClause = `(case when stk.almnetfiyat = 0 then stk.almfiyat else stk.almnetfiyat end)`;
 			let sent = new MQSent({
-				from: 'stkmst stk', where: [
-					{ degerAta: mustKod, saha: 'car.must' },
-					{ inDizi: Object.keys(eksikKodSet), saha: 'stk.kod' }
-				],
+				from: 'stkmst stk', where: { inDizi: Object.keys(eksikKodSet), saha: 'stk.kod' },
 				sahalar: ['stk.kod stokKod', `${fiyatClause} fiyat`]
-			}).fromAdd('carmst car');
-			/* const iskontoYokmu = false, promosyonYokmu = false;    -- !! don't override flags */
+			});
+			/* const iskontoYokmu = false, promosyonYokmu = false; -- !! don't override flags */
 			for (let {stokKod, fiyat} of await app.sqlExecSelect(sent)) {
 				if (!fiyat) { continue }
 				let rec = result[stokKod] ??= {}, kod = '', kayitTipi = 'S';

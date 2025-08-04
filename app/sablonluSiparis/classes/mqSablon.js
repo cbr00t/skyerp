@@ -202,14 +202,17 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	}
 	static async yeniIstendi(e) {
 		try {
-			let {sender: gridPart} = e, {tarih, mustKod} = gridPart; if (!mustKod) { throw { isError: true, errorText: `<b>Müşteri</b> seçilmelidir` } }
+			let {sender: gridPart} = e, {tarih, mustKod} = gridPart;
+			if (!mustKod) { throw { isError: true, errorText: `<b>Müşteri</b> seçilmelidir` } }
+			let {event: evt} = e, {currentTarget: target} = evt; target = $(target);
+			setButonEnabled(target, false); setTimeout(() => setButonEnabled(target, true), 2000);
 			let subeKod = gridPart.subeKod ?? config.session?.subeKod, {rec} = e, {kaysayac: sablonSayac, klFirmaKod} = rec;
 			let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod }); if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
 			let _e = { ...e}; delete _e.rec;
 			let fis = new fisSinif({ sablonSayac, tarih, subeKod, mustKod, klFirmaKod }); await fis.sablonYukleVeBirlestir(_e);
 			let islem = 'yeni', kaydedince = _e => this.tazele({ ...e, gridPart });
-			setTimeout(() => showProgress(), 10);
-			try { return fis.tanimla({ islem, kaydedince }) }
+			showProgress();
+			try { return await fis.tanimla({ islem, kaydedince }) }
 			finally { setTimeout(() => hideProgress(), 500) }
 		}
 		catch (ex) { setTimeout(() => hConfirm(getErrorText(ex), 'Yeni'), 100); throw ex }
@@ -218,12 +221,14 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		try {
 			let {sender, rec} = e, {parentPart: gridPart} = sender, {bonayli: onaylimi} = rec;
 			if (!config.dev && onaylimi) { throw { isError: true, errorText: 'Bu sipariş zaten onaylanmış' } }
+			let {event: evt} = e, {currentTarget: target} = evt; target = $(target);
+			setButonEnabled(target, false); setTimeout(() => setButonEnabled(target, true), 2000);
 			let {kaysayac: sayac, mustkod: mustKod, sevkadreskod: sevkAdresKod, _parentRec: parentRec} = rec;
 			let {kaysayac: sablonSayac, klFirmaKod} = parentRec;
 			let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod, sevkAdresKod });
 			if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
 			let fis = new fisSinif({ sayac, klFirmaKod }), _e = { ...e, parentRec }; delete _e.rec;
-			setTimeout(() => showProgress(), 10);
+			showProgress();
 			try {
 				let result = await fis.yukle(_e); if (!result) { return }
 				let islem = 'onayla', kaydedince = _e => this.tazele({ ...e, gridPart });
@@ -239,7 +244,9 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			let {sender, rec} = e, {parentPart: gridPart} = sender ?? {};
 			let {kaysayac: sayac, bonayli: onaylimi, sevkadreskod: sevkAdresKod, _parentRec: parentRec} = rec;
 			let mustKod = rec.mustkod ?? gridPart.mustKod, {kaysayac: sablonSayac, klFirmaKod} = parentRec;
-			setTimeout(() => showProgress(), 10);
+			let {event: evt} = e, {currentTarget: target} = evt; target = $(target);
+			setButonEnabled(target, false); setTimeout(() => setButonEnabled(target, true), 2000);
+			showProgress();
 			try {
 				let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod, sevkAdresKod });
 				if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
@@ -258,7 +265,9 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			if (!config.dev && onaylimi) { throw { isError: true, errorText: 'Onaylı sipariş silinemez' } }
 			let {kaysayac: sayac, sevkadreskod: sevkAdresKod, _parentRec: parentRec} = rec;
 			let mustKod = rec.mustkod ?? gridPart.mustKod, {kaysayac: sablonSayac} = parentRec;
-			setTimeout(() => showProgress(), 10);
+			let {event: evt} = e, {currentTarget: target} = evt; target = $(target);
+			setButonEnabled(target, false); setTimeout(() => setButonEnabled(target, true), 2000);
+			showProgress();
 			try {
 				let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod, sevkAdresKod });
 				if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
@@ -269,7 +278,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			}
 			finally { setTimeout(() => hideProgress(), 500) }
 		}
-		catch (ex) { setTimeout(() => hConfirm(getErrorText(ex), 'Değiştir'), 100); throw ex }
+		catch (ex) { setTimeout(() => hConfirm(getErrorText(ex), 'SİL'), 100); throw ex }
 	}
 	static tazele(e) {
 		let {parentPart} = e, gridPart = e.gridPart ?? e.sender, {expandedIndexes, bindingCompleteBlock, gridWidget} = gridPart;
@@ -476,15 +485,15 @@ class MQSablonOrtakDetay extends MQDetay {
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); let {liste} = e, {konsinyemi, sablonSinif} = this, {sablonSip_degisiklik} = app.params.web;
 		liste.push(...[
-			new GridKolon({ belirtec: 'subekod', text: 'Şube', genislikCh: 8, filterType: 'checkedlist' }),
-			new GridKolon({ belirtec: 'subeadi', text: 'Şube Adı', genislikCh: 30, filterType: 'checkedlist' }),
-			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13, filterType: 'checkedlist' }).tipDate(),
-			new GridKolon({ belirtec: 'fisnox', text: 'Sip. No', genislikCh: 16, filterType: 'checkedlist' }),
-			new GridKolon({ belirtec: 'mustkod', text: 'Müşteri', filterType: 'checkedlist', genislikCh: 18 }),
+			new GridKolon({ belirtec: 'subekod', text: 'Şube', genislikCh: 7, filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'subeadi', text: 'Şube Adı', genislikCh: 23, filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 11, filterType: 'checkedlist' }).tipDate(),
+			new GridKolon({ belirtec: 'fisnox', text: 'Sip. No', genislikCh: 20, filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'mustkod', text: 'Müşteri', filterType: 'checkedlist', genislikCh: 16 }),
 			new GridKolon({ belirtec: 'mustunvan', text: 'Ünvan', filterType: 'checkedlist' }),
-			new GridKolon({ belirtec: 'sevkadresadi', text: 'Sevk Adres', genislikCh: 20, filterType: 'checkedlist' }),
-			new GridKolon({ belirtec: 'basteslimtarihi', text: 'Tes.Tarih', genislikCh: 13, filterType: 'checkedlist' }).tipDate(),
-			new GridKolon({ belirtec: 'bonayli', text: 'Onay?', genislikCh: 8, filterType: 'checkedlist' }).tipBool(),
+			new GridKolon({ belirtec: 'sevkadresadi', text: 'Sevk Adres', genislikCh: 15, filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'basteslimtarihi', text: 'Tes.Tarih', genislikCh: 11, filterType: 'checkedlist' }).tipDate(),
+			new GridKolon({ belirtec: 'bonayli', text: 'Onay?', genislikCh: 6, filterType: 'checkedlist' }).tipBool(),
 			new GridKolon({ belirtec: 'onayla', text: ' ', genislikCh: 6 }).noSql().tipButton('O').onClick(_e => { sablonSinif.onaylaIstendi({ ...e, ..._e }) }),
 			(sablonSip_degisiklik ? new GridKolon({ belirtec: 'degistir', text: ' ', genislikCh: 5 }).noSql().tipButton('D').onClick(_e => { sablonSinif.degistirIstendi({ ...e, ..._e }) }) : null),
 			new GridKolon({ belirtec: 'sil', text: ' ', genislikCh: 5 }).noSql().tipButton('X').onClick(_e => { sablonSinif.silIstendi({ ...e, ..._e }) })
