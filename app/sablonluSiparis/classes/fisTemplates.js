@@ -103,7 +103,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		let _fis = fis.deepCopy(); await this.dagitimIcinEkBilgileriBelirle({ ...e, fis: _fis });
 		let {mustKod: teslimCariVeyaMustKod} = _fis;
 		let {detaySinif, konsinyemi, numTipKod} = fisSinif; islem = islem || belirtec;
-		let yenimi = islem == 'yeni', onaylaVeyaSilmi = (islem == 'onayla' || islem == 'sil');
+		let yenimi = islem == 'yeni', onaylaVeyaSilmi = (islem == 'onayla' || islem == 'sil' || islem == 'izle');
 		tarih = fis.tarih = tarih || today();
 		if (numarator) { numarator.belirtec = 'W' }
 		/*numSayac = app.param.web.x;
@@ -117,7 +117,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		}*/
 		let kapsam = { tarih, subeKod, mustKod: teslimCariVeyaMustKod };
 		let anah2KosulYapi = SatisKosulYapi._anah2KosulYapi ??= {};
-		let kosulYapilar = anah2KosulYapi[toJSONStr(kapsam)] ??= await SatisKosulYapi.yukle({ kapsam });
+		let kosulYapilar = anah2KosulYapi[toJSONStr(kapsam)] ??= await SatisKosulYapi.uygunKosullar({ kapsam });
 		let sent = new MQSent({
 			from: 'hizlisablon sab', fromIliskiler: [
 				{ from: 'hizlisablongrup grp', iliski: 'grp.fissayac = sab.kaysayac' },
@@ -236,10 +236,11 @@ class SablonluSiparisFisTemplate extends CObject {
 			if (!sabDet._initFlag) { $.extend(sabDet, { ...det.deepCopy() }) } else { sabDet.miktar += det.miktar }
 			sabDet._initFlag = true
 		}
-		detaylar = Object.values(anah2Det); if (onaylaVeyaSilmi) { detaylar = detaylar.filter(({ miktar }) => !!miktar) }
+		detaylar = Object.values(anah2Det);
+		if (onaylaVeyaSilmi) { detaylar = detaylar.filter(({ miktar }) => !!miktar) }
 		fis.detaylar = detaylar;
 		let stokKod2Detaylar = {}; for (let det of detaylar) {
-			if (det._initFlag) { continue }
+			// if (!onaylaVeyaSilmi && det._initFlag) { continue }
 			(stokKod2Detaylar[det.shKod] = stokKod2Detaylar[det] ?? []).push(det)
 		}
 		stokKodListe = Object.keys(stokKod2Detaylar); kosulYapilar = await kosulYapilar;

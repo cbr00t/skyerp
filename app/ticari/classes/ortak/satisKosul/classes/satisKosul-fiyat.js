@@ -27,25 +27,27 @@ class SatisKosul_Fiyat extends SatisKosul {
 		}
 		return result
 	}
-	static async _getAltKosulYapilar(e, _satisKosul, _mustKod) {
+	static async _getAltKosulYapilar(e, _satisKosullar, _mustKod) {
 	    e = e ?? {}; let isObj = typeof e == 'object' && !$.isArray(e);
 		let kodListe = $.makeArray(isObj ? e.kodListe ?? e.kod : e); if (!kodListe.length) { return {} }
-		let satisKosul = isObj ? e.satisKosul ?? e.kosul : _satisKosul;
+		let satisKosullar = $.makeArray(isObj ? e.satisKosullar ?? e.satisKosul ?? e.kosullar ?? e.kosul : _satisKosullar);
 		/* Satış koulundan belirlemede mustKod değerine ihtiyaç yok, satisKosul nesnesinin içinde zaten atanmış durumdadır.
 		       Ancak koşul yoksa satisKosul == null olacağı için, ek fiyat belirleme kısımlarında gerekli.
 			   Normalde (mustkod == satisKosul.mustKod) - aynı değer - geleceği varsayılıyor
 		*/
-		let mustKod = isObj ? e.mustKod : _mustKod, result = {}, eksikKodSet = asSet(kodListe);
+		let mustKod = isObj ? e.mustKod : _mustKod, eksikKodSet = asSet(kodListe);
 		/* 1) Satış Koşul varsa koşuldan fiyatları belirle.
 			  Eksik kalan kısımlar için araştırmaya devam et */
-	    if (satisKosul) {
-	        for (let [stokKod, rec] of Object.entries(await satisKosul.getAltKosullar(kodListe))) {
+	    let result = {}; if (!$.isEmptyObject(satisKosullar)) {
+			let altKosullar = {}; for (let kosul of satisKosullar) {
+				$.extend(altKosullar, await kosul.getAltKosullar(kodListe)) }
+	        for (let [stokKod, rec] of Object.entries(altKosullar)) {
 	            result[stokKod] = rec; rec.kayitTipi = 'K';
 	            if (rec.fiyat) { delete eksikKodSet[stokKod] }
 	        }
 	    }
 	    if ($.isEmptyObject(eksikKodSet)) { return result }
-		const musterisizListeFiyatiBelirle = async () => {
+		let musterisizListeFiyatiBelirle = async () => {
 			let sent = new MQSent({
 				from: 'stkmst', where: { inDizi: Object.keys(eksikKodSet), saha: 'kod' },
 				sahalar: ['kod', 'satfiyat1 fiyat']
@@ -69,7 +71,7 @@ class SatisKosul_Fiyat extends SatisKosul {
 				],
 				sahalar: ['car.fiyatlistekod kod', 'har.stokkod stokKod', 'har.satisfiyat fiyat']
 			});
-			const iskontoYokmu = false, promosyonYokmu = false;  /* ref: (SatisKosul::getAltKosullar) [in loop] */
+			let iskontoYokmu = false, promosyonYokmu = false;  /* ref: (SatisKosul::getAltKosullar) [in loop] */
 			for (let {kod, stokKod, fiyat} of await app.sqlExecSelect(sent)) {
 				let rec = result[stokKod] = result[stokKod] ?? {}, kayitTipi = 'L'; kod = `CR-${kod}`;
 				$.extend(rec, { kayitTipi, fiyat, kod, iskontoYokmu, promosyonYokmu });

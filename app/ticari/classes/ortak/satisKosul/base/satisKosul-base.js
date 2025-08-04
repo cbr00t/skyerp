@@ -33,6 +33,34 @@ class SatisKosul extends CKodVeAdi {
 	}
 	static getAltKosulYapilar() { return null }
 	getAltKosulYapilar(e, _mustKod) { return this.class.getAltKosulYapilar(e, this, _mustKod) }
+	static async uygunKosullar(e) {
+		e = e ?? {}; let kapsam = e.kapsam ?? this.kapsam ?? {}, mustKod, {fisSayacSaha, alimmi} = this;
+		if ($.isPlainObject(kapsam)) { kapsam = new SatisKosulKapsam(kapsam, alimmi) }
+		{
+			let {basi, sonu} = kapsam?.must ?? {};
+			if (basi && basi == sonu) { mustKod = basi }
+		}
+		let stm = new MQStm(), {sent} = stm, _e = { ...e, stm, sent, mustKod }; this.yukle_queryDuzenle(_e);
+		stm = _e.stm; sent = _e.sent; let recs = await app.sqlExecSelect(stm), uygunmu = false;
+		let result = []; for (let rec of recs) {
+			let inst = new this(e); inst.setValues({ rec });
+			stm = sent = null;
+			uygunmu = true; if (mustKod && this.mustDetaydami) {
+				let {sayac} = this, {detayMustTable} = this.class;
+				let sent = new MQSent({
+					from: detayMustTable, sahalar: 'COUNT(*) sayi',
+					where: [{ degerAta: sayac, saha: fisSayacSaha }, { degerAta: mustKod, saha: 'must' }]
+				}).distinctYap();
+				uygunmu = !!asInteger(await app.sqlExecTekilDeger(sent))
+			}
+			if (uygunmu && kapsam) {
+				let mustRec = this.mustRec = e.mustRec ?? await this.getMust2Rec(mustKod);
+				uygunmu = kapsam.uygunmu(mustRec, alimmi)
+			}
+			if (uygunmu) { result.push(inst) }
+		}
+		return result
+	}
 	static async yukle(e) { let inst = new this(e); return await inst.yukle(e) ? inst : null }
 	async yukle(e) {
 		e = e ?? {}; let kapsam = e.kapsam ?? this.kapsam ?? {}, mustKod, {fisSayacSaha, alimmi} = this.class;
@@ -61,8 +89,9 @@ class SatisKosul extends CKodVeAdi {
 		}
 		return uygunmu
     }
-	yukle_queryDuzenle({ stm, sent, mustKod }) {  /* edt: a!cbr00t-CGP */
-		let {kapsam} = this, {table} = this.class, {where: wh, sahalar} = sent, {orderBy} = stm, alias = 'fis';
+	static yukle_queryDuzenle({ stm, sent, mustKod, kapsam }) {  /* edt: a!cbr00t-CGP */
+		let {alimmi, table} = this, {where: wh, sahalar} = sent, {orderBy} = stm, alias = 'fis';
+		if ($.isPlainObject(kapsam)) { kapsam = new SatisKosulKapsam(kapsam, alimmi) }
 		let {tipListe, tip2RowAttrListe} = SatisKosulKapsam, mustSqlDegeri = MQSQLOrtak.sqlServerDegeri(mustKod);
 		sent.fromAdd(`${table} ${alias}`); wh.fisSilindiEkle().add(`${alias}.devredisi = ''`);
 		if (mustKod) {
@@ -83,7 +112,11 @@ class SatisKosul extends CKodVeAdi {
 			let rowAttrs = tip2RowAttrListe[tip] ?? [`${tip}b`, `${tip}s`];
 			if (rowAttrs?.length) { sahalar.addWithAlias('fis', ...rowAttrs) }
 		}
-		orderBy.add('subeIcinOzeldir', 'tarihb', 'kod')
+		orderBy.add('subeIcinOzeldir', 'tarihb DESC', 'mustDetaydami DESC', 'kod')
+	}
+	yukle_queryDuzenle(e) {
+		e ??= {}; e.kapsam ??= this.kapsam;
+		return this.class.yukle_queryDuzenle(e)
 	}
 	setValues({ rec }) {
 		this.sayac = rec.sayac || null; let {alimmi} = this.class;

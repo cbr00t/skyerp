@@ -17,16 +17,18 @@ class SatisKosul_IskVeKamOrtak extends SatisKosul {
 			console.table(await SatisKosul_Kampanya.getAltKosulYapilar(stokKodListe, satisKosul))
 
 	*/
-	static async getAltKosulYapilar(e, _satisKosul) {
+	static async getAltKosulYapilar(e, _satisKosullar) {
 	    e = e ?? {}; let isObj = typeof e == 'object' && !$.isArray(e);
 		let kodListe = $.makeArray(isObj ? e.kodListe ?? e.kod : e); if (!kodListe.length) { return {} }
-		let satisKosul = isObj ? e.satisKosul ?? e.kosul : _satisKosul, result = {};
+		let satisKosullar = $.makeArray(isObj ? e.satisKosullar ?? e.satisKosul ?? e.kosullar ?? e.kosul : _satisKosullar);
 		/* Satış Koşul varsa koşuldan oranları belirle */
-	    if (satisKosul) {
-	        const kayitTipi = 'K'; for (let [xKod, rec] of Object.entries(await satisKosul.getAltKosullar(kodListe))) {
+		 let result = {}; if (!$.isEmptyObject(satisKosullar)) {
+			let altKosullar = {}; for (let kosul of satisKosullar) {
+				$.extend(altKosullar, await kosul.getAltKosullar(kodListe)) }
+	        for (let [xKod, rec] of Object.entries(altKosullar)) {
 	            $.extend(rec, { xKod, kayitTipi });
 				result[xKod] = rec
-			}
+	        }
 	    }
 		return result
 	}

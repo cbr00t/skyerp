@@ -82,13 +82,13 @@ class SatisKosulKapsam extends CObject {
 			if (uygunmuKontrol && !uygunmuKontrol.sql?.[tip]) { continue }
 			let bs = this[tip] ?? {}, {basi, sonu} = bs; if (!(basi || sonu)) { continue }
 			let saha = { basi: `${aliasVeNokta}${tip}b`, sonu: `${aliasVeNokta}${tip}s` };
-			let or = new MQOrClause(), addClause = (selector, operator) => {
+			let and = new MQAndClause(), addClause = (selector, operator) => {
 				let value = bs[selector]; if (!value) { return }
 				if (dateTipSet[tip]) { value = asDate(value) }
-				or.add(`${saha[selector]} ${operator} ${MQSQLOrtak.sqlServerDegeri(value)}`)
+				and.add(`${saha[selector]} ${operator} ${MQSQLOrtak.sqlServerDegeri(value)}`)
 			};
 			addClause('basi', '<='); addClause('sonu', '>=');
-			if (or.liste.length) { wh.add(or) }
+			if (and.liste.length) { wh.add(and) }
 		}
 		return this
 	}

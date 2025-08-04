@@ -39,26 +39,28 @@ class SatisKosul_AlimAnlasma extends SatisKosul {
 		}
 		return result
 	}
-	static async _getAltKosulYapilar(e, _satisKosul, _mustKod) {
+	static async _getAltKosulYapilar(e, _satisKosullar, _mustKod) {
 	    e = e ?? {}; let isObj = typeof e == 'object' && !$.isArray(e);
 		let kodListe = $.makeArray(isObj ? e.kodListe ?? e.kod : e); if (!kodListe.length) { return {} }
-		let satisKosul = isObj ? e.satisKosul ?? e.kosul : _satisKosul;
+		let satisKosullar = $.makeArray(isObj ? e.satisKosullar ?? e.satisKosul ?? e.kosullar ?? e.kosul : _satisKosullar);
 		/* Satış koulundan belirlemede mustKod değerine ihtiyaç yok, satisKosul nesnesinin içinde zaten atanmış durumdadır.
 		       Ancak koşul yoksa satisKosul == null olacağı için, ek fiyat belirleme kısımlarında gerekli.
 			   Normalde (mustkod == satisKosul.mustKod) - aynı değer - geleceği varsayılıyor
 		*/
-		let mustKod = isObj ? e.mustKod : _mustKod, result = {}, eksikKodSet = asSet(kodListe);
+		let mustKod = isObj ? e.mustKod : _mustKod, eksikKodSet = asSet(kodListe);
 		/* 1) Satış Koşul varsa koşuldan fiyatları belirle.
 			  Eksik kalan kısımlar için araştırmaya devam et */
-	    if (satisKosul) {
-	        for (let [stokKod, rec] of Object.entries(await satisKosul.getAltKosullar(kodListe))) {
+		let result = {}; if (!$.isEmptyObject(satisKosullar)) {
+			let altKosullar = {}; for (let kosul of satisKosullar) {
+				$.extend(altKosullar, await kosul.getAltKosullar(kodListe)) }
+	        for (let [stokKod, rec] of Object.entries(altKosullar)) {
 	            result[stokKod] = rec; rec.kayitTipi = 'K';
 	            if (rec.fiyat) { delete eksikKodSet[stokKod] }
 	        }
 	    }
 	    if ($.isEmptyObject(eksikKodSet)) { return result }
-		let  musterisizListeFiyatiBelirle = async () => {
-			let fiyatClause = `(case when almnetfiyat = 0 then almfiyat else almnetfiyat end)`;
+		let musterisizListeFiyatiBelirle = async () => {
+			let fiyatClause = 'almfiyat';
 			let sent = new MQSent({
 				from: 'stkmst', where: { inDizi: Object.keys(eksikKodSet), saha: 'kod' },
 				sahalar: ['kod', `${fiyatClause} fiyat`]
@@ -70,28 +72,9 @@ class SatisKosul_AlimAnlasma extends SatisKosul {
 		};
 		/* 2) Eksik kalanlar için - mustKod belirsiz ise doğrudan stok 1. fiyatı esas al */
 		if (!mustKod) { await musterisizListeFiyatiBelirle(); return result }
-		/* 3) 'mustKod' belli iken: Cari Fiyat Listesini kontrol et */ {
-			let sent = new MQSent({
-				from: 'carmst car', fromIliskiler: [
-					{ from: 'carfiyatliste fis', iliski: 'car.fiyatlistekod = fis.kod' },
-					{ from: 'carfiyattarife har', iliski: 'fis.kaysayac = har.fissayac' }
-				], where: [
-					{ inDizi: Object.keys(eksikKodSet), saha: 'har.stokkod' },
-					{ degerAta: mustKod, saha: 'car.must' },
-					`car.fiyatlistekod > ''`, 'har.satisfiyat > 0'
-				],
-				sahalar: ['car.fiyatlistekod kod', 'har.stokkod stokKod', 'har.satisfiyat fiyat']
-			});
-			const iskontoYokmu = false, promosyonYokmu = false;  /* ref: (SatisKosul::getAltKosullar) [in loop] */
-			for (let {kod, stokKod, fiyat} of await app.sqlExecSelect(sent)) {
-				let rec = result[stokKod] = result[stokKod] ?? {}, kayitTipi = 'L'; kod = `CR-${kod}`;
-				$.extend(rec, { kayitTipi, fiyat, kod, iskontoYokmu, promosyonYokmu });
-				delete eksikKodSet[stokKod]  /* Fiyatı bulunanları eksik listesinden çıkar */ 
-			}
-		}
 		if ($.isEmptyObject(eksikKodSet)) { return result }
 		/* 4) 'mustKod' belli iken: hala eksik fiyatlar varsa stok tanımından fiyatını belirle */ {
-			let fiyatClause = `(case when stk.almnetfiyat = 0 then stk.almfiyat else stk.almnetfiyat end)`;
+			let fiyatClause = 'stk.almfiyat';
 			let sent = new MQSent({
 				from: 'stkmst stk', where: { inDizi: Object.keys(eksikKodSet), saha: 'stk.kod' },
 				sahalar: ['stk.kod stokKod', `${fiyatClause} fiyat`]
