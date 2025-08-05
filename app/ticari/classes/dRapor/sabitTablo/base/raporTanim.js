@@ -188,7 +188,7 @@ class SBTabloDetay extends MQDetay {
 			veriTipi: new PInstTekSecim('shveritipi', SBTabloVeriTipi), shStokHizmet: new PInstTekSecim('shstokhizmet', SBTabloStokHizmet),
 			shAlmSat: new PInstTekSecim('shalmsat', AlimSatis), shIade: new PInstTekSecim('shiade', NormalIadeVeBirlikte),
 			shAyrimTipi: new PInstTekSecim('shayrimtipi', SBTabloAyrimTipi),
-			formul: new PInstStr('formul'), satirListeStr: new PInstStr('satirlistestr'),
+			formul: new PInstStr(''), satirListeStr: new PInstStr('satirlistestr'),
 			cssClassesStr: new PInstStr('cssclasses'), cssStyle: new PInstStr('cssstyle')
 		})
 	}

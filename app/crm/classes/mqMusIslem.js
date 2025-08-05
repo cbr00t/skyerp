@@ -135,6 +135,7 @@ class MQMusIslemDetay extends MQDetay {
 }
 class MQMusIslemGridci extends GridKontrolcu {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	get bilgiGirisiZorunlumu() { return false }
 	tabloKolonlariDuzenle(e) {
 		super.tabloKolonlariDuzenle(e); e.tabloKolonlari.push(
 			new GridKolon({ belirtec: 'detayTarih', text: 'Tarih', genislikCh: 10 }).tipDate(), new GridKolon({ belirtec: 'detaySaat', text: 'Saat', genislikCh: 10 }).tipTime(),

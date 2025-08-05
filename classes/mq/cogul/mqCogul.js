@@ -451,7 +451,7 @@ class MQCogul extends MQYapi {
 					orClauses.push(or)
 				}
 			}
-			for (let sent of stm.getSentListe()) {
+			for (let sent of stm) {
 				if (kodSaha && kod) { sent.where.degerAta(kod, `${aliasVeNokta}${kodSaha}`) }
 				if (orClauses) { for (let or of orClauses) { sent.where.add(or) } }
 				if (maxRow) { sent.top = maxRow }
@@ -468,7 +468,7 @@ class MQCogul extends MQYapi {
 				}
 			}
 			else { ayrimIndexStrSet = asSet(Object.keys(this.ayrimIsimleri).map(x => asInteger(x) + 1)) }
-			for (let sent of stm.getSentListe()) {
+			for (let sent of stm) {
 				for (let indexStr of Object.keys(ayrimIndexStrSet)) {
 					let _ayrimTableAlias = `${ayrimTableAlias}${indexStr}`;									// 'sayr1' ...
 					let ayrimTableVeAlias = `${ayrimTable}${indexStr} ${_ayrimTableAlias}`;					// 'stkayrim1 sayr1'
@@ -481,7 +481,7 @@ class MQCogul extends MQYapi {
 		{
 			let mfSinif = this, colDef = e.colDef ?? sender?.colDef ?? parentPart?.belirtec ? parentPart : null;
 			let {table, tableAlias: alias, aliasVeNokta, kodKullanilirmi, adiKullanilirmi, adiSaha} = this;
-			let {sent} = stm, {orderBy} = stm, {stmDuzenleyiciler} = parentPart ?? {};
+			let {sent, orderBy} = stm, {stmDuzenleyiciler} = parentPart ?? {};
 			let _e = { ...e, sender, colDef, mfSinif, alias, aliasVeNokta, stm, sent };
 			if (!kodKullanilirmi && adiKullanilirmi && adiSaha && !(tekilOku || basit || modelKullanmi)) { orderBy.add(adiSaha) }
 			ozelQueryDuzenleBlock?.call(this, _e);

@@ -131,5 +131,5 @@ class MQCariEkstre_Icerik extends MQApiOrtak {
 		let promise_recs = super.loadServerData(e); if (fisSayac) { promise_recs = promise_recs?.then(recs => recs.filter(rec => rec.icerikfissayac == fisSayac)) }
 		return promise_recs
 	}
-	static loadServerDataDogrudan(e) { e = e || {}; const {mustKod} = e; let recs = app.wsTicCariEkstre_icerik({ mustKod }); return recs }
+	static loadServerDataDogrudan(e) { e = e || {}; let {mustKod} = e, recs = app.wsTicCariEkstre_icerik({ mustKod }); return recs }
 }

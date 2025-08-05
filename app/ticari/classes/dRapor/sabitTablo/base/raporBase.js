@@ -1,5 +1,5 @@
 class SBRapor extends DGrupluPanelRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get aciklama() { return 'Mali Tablolar' }
 	static get kategoriKod() { return 'SB' } static get kategoriAdi() { return 'Mali Tablolar' }
 	static get chartVarmi() { return false } static get ozetVarmi() { return false }
 	static get araSeviyemi() { return this == SBRapor }
@@ -121,7 +121,13 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 					return this
 				},
 				toplamaEkle(digerGridRec) {
-					for (let attr of attrListe) { this[attr] += digerGridRec[attr] }
+					let {shIade, tersIslemmi: tersmi} = digerGridRec;
+					if (shIade.iademi) { tersmi = !tersmi }
+					for (let attr of attrListe) {
+						let value = digerGridRec[attr];
+						if (tersmi) { value = -value }
+						this[attr] += value
+					}
 					return this
 				},
 				toplamOlustur() {

@@ -309,7 +309,7 @@ class TicariFis extends TSOrtakFis {
 	}
 	dipGridSatirlariDuzenle_mustahsil(e) { }
 	uiDuzenle_fisGirisIslemTuslari(e) {
-		super.uiDuzenle_fisGirisIslemTuslari(e); const {parent} = e, gridPart = e.gridPart ?? e.sender, sender = gridPart, fis = this;
+		super.uiDuzenle_fisGirisIslemTuslari(e); const {parent} = e, gridPart = e.gridPart ?? e.sender, {gridWidget} = gridPart, sender = gridPart, fis = this;
 		let btn = $(`<button id="kdvEk">KDV EK</button>`); btn.on('click', evt => {
 			if (this.kayitIcinOzelIsaretlimi) { hConfirm('<u>Özel İşaretli</u> fişler için <b>KDV EK</b> işlemleri kullanılamaz', 'Fiş Giriş'); return }
 			const det = gridPart.selectedRec; if (!(det?.class?.shdmi)) { hConfirm('<b>KDV EK</b> işlemleri sadece <u>Stok/Hizmet/Demirbaş</u> satırları için kullanılabilir', 'Fiş Giriş'); return }
@@ -318,7 +318,7 @@ class TicariFis extends TSOrtakFis {
 				tamamIslemi: e => {
 					console.info(e); const {ekVergiYapi} = e, colKdvEk = gridPart.belirtec2Kolon.kdvEkText; $.extend(det.ekVergiYapi, ekVergiYapi);
 					if (colKdvEk) {
-						const {belirtec} = colKdvEk; gridWidget.setcellvalue(rowIndex, belirtec, ekVergiYapi.kdvEkText || null);
+						let {rowIndex} = e, {belirtec} = colKdvEk; gridWidget.setcellvalue(rowIndex, belirtec, ekVergiYapi.kdvEkText || null);
 						const hideFlag = ekVergiYapi.bosmu; if (!hideFlag) { colKdvEk.attributes.hidden = hideFlag; gridPart[hideFlag ? 'hideColumn' : 'showColumn'](belirtec) }
 					}
 				}

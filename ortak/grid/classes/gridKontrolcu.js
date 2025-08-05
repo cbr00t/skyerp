@@ -2,6 +2,7 @@ class GridKontrolcu extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get fis() { let {parentPart} = this; return parentPart?.fis ?? parentPart.inst }
 	get grid() { return this.parentPart?.grid } get gridWidget() { return this.parentPart?.gridWidget }
+	get bilgiGirisiZorunlumu() { return true }
 	constructor(e) { super(e); e = e || {}; $.extend(this, { parentPart: e.parentPart }) }
 	gridArgsDuzenle(e) { }
 	get tabloKolonlari() {
@@ -25,7 +26,8 @@ class GridKontrolcu extends CObject {
 	}
 	grid2Fis(e) {
 		e = e || {}; let mesajsizFlag = e.mesajsiz || e.mesajsizFlag;
-		let {parentPart} = this, gridPart = parentPart?.gridPart, tabloKolonlari = parentPart.tabloKolonlari ?? gridPart?.tabloKolonlari;
+		let {parentPart, bilgiGirisiZorunlumu} = this, gridPart = parentPart?.gridPart;
+		let tabloKolonlari = parentPart.tabloKolonlari ?? gridPart?.tabloKolonlari;
 		let {gridWidget} = parentPart, zorunluBelirtecler = e.zorunluBelirtecler = {}, editBelirtecler = e.editBelirtecler = {}, {belirtec2Kolon} = gridPart ?? {};
 		for (let colDefOrGrup of tabloKolonlari) {
 			if (colDefOrGrup.kodZorunlumu) { zorunluBelirtecler[colDefOrGrup.kodBelirtec] = true }
@@ -47,7 +49,7 @@ class GridKontrolcu extends CObject {
 			}
 			recs.push(det)
 		}
-		if ($.isEmptyObject(recs)) { return { isError: true, errorText: 'Detay Bilgi girilmelidir' } }
+		if (bilgiGirisiZorunlumu && $.isEmptyObject(recs)) { return { isError: true, errorText: 'Detay Bilgi girilmelidir' } }
 		e.recs = recs; return true
 	}
 	geriYuklemeIcinUygunmu(e) {
