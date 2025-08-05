@@ -1,6 +1,6 @@
 class SBRapor extends DGrupluPanelRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kategoriKod() { return 'SB' } static get kategoriAdi() { return 'Sabit' }
+	static get kategoriKod() { return 'SB' } static get kategoriAdi() { return 'Mali Tablolar' }
 	static get chartVarmi() { return false } static get ozetVarmi() { return false }
 	static get araSeviyemi() { return this == SBRapor }
 }

@@ -54,7 +54,7 @@ class SatisKosul_AlimAnlasma extends SatisKosul {
 			let altKosullar = {}; for (let kosul of satisKosullar) {
 				$.extend(altKosullar, await kosul.getAltKosullar(kodListe)) }
 	        for (let [stokKod, rec] of Object.entries(altKosullar)) {
-	            result[stokKod] = rec; rec.kayitTipi = 'K';
+	            result[stokKod] ??= rec; rec.kayitTipi = 'K';
 	            if (rec.fiyat) { delete eksikKodSet[stokKod] }
 	        }
 	    }

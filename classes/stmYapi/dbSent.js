@@ -324,7 +324,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	fis2MuhHesapBagla(e) { return this.x2MuhHesapBagla({ alias: 'fis' }) }
 	har2MuhHesapBagla(e) { return this.x2MuhHesapBagla({ alias: 'har' }) }
 	x2MuhHesapBagla(e) {
-		e = e ?? {}, {alias, kodClause} = e, aliasVeNokta = alias ? `${alias}.` : '';
+		e = e ?? {}; let {alias, kodClause} = e, aliasVeNokta = alias ? `${alias}.` : '';
 		kodClause = kodClause || `${aliasVeNokta}muhhesap`;
 		this.fromIliski('muhhesap mhes', `${kodClause} = mhes.kod`);
 		return this

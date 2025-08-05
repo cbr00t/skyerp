@@ -1,6 +1,6 @@
 class SBTablo extends MQDetayliGUIDVeAdi {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sabitTablomu() { return true }
-	static get kodListeTipi() { return 'SBTABLO' } static get sinifAdi() { return 'Sabit Tablo' }
+	static get kodListeTipi() { return 'SBTABLO' } static get sinifAdi() { return 'Mali Tablo' }
 	static get table() { return 'sbtablo' } static get tableAlias() { return 'fis' }
 	static get detaySinif() { return SBTabloDetay } static get gridKontrolcuSinif() { return SBTabloGridci }
 	static get kolonFiltreKullanilirmi() { return false } static get raporKullanilirmi() { return false }

@@ -180,7 +180,8 @@ class MQAliasliYapi extends MQSQLOrtak {
 	constructor(e) {
 		e = e || {}; super(e); this.deger = e.deger || ''; this.alias = e.alias ?? undefined;    /* alias === undefined için getSahaDegeri ile getterda belirlenir */
 		this.aliaslimi = e.aliaslimi ?? (e.isCopy ? null : !!this.alias && this.alias != this.sql);
-		if (this.alias == 'undefined') { console.warn('MQAliasliYapi', 'alias hatası', { saha: this, text, deger, alias }) }
+		let {alias, deger} = this;
+		if (alias == 'undefined') { console.warn('MQAliasliYapi', 'alias hatası', { saha: this, alias, deger }) }
 	}
 	static newForFromText(e) {
 		/* örnek:

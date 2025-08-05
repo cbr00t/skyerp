@@ -5,7 +5,7 @@ class GridliGirisPart extends GridPart {
 	constructor(e) { super(e); e = e || {}; this.noEmptyRowFlag = asBool(e.noEmptyRow ?? e.noEmptyRowFlag) }
 	gridArgsDuzenleDevam(e) {
 		super.gridArgsDuzenleDevam(...arguments); let {args} = e;
-		$.extend(args, { editable: true, autoshowcolumnsmenubutton: true });
+		$.extend(args, { editable: args.editable ?? true, autoshowcolumnsmenubutton: true });
 		if (!this.gridInitFlag) {
 			const kontrolcu = this.getKontrolcu(...arguments), tabloKolonlari = e.tabloKolonlari = e.tabloKolonlari || [];
 			if (kontrolcu) {

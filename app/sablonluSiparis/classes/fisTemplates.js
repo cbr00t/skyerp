@@ -101,7 +101,8 @@ class SablonluSiparisFisTemplate extends CObject {
 		let {fis, islem, belirtec} = e, {sablonSayac, tarih, subeKod, mustKod, numarator, class: fisSinif} = fis;
 		if (!mustKod) { throw { isError:  true, errorText: `<b>Müşteri</b> seçilmelidir` } }
 		let _fis = fis.deepCopy(); await this.dagitimIcinEkBilgileriBelirle({ ...e, fis: _fis });
-		let {mustKod: teslimCariVeyaMustKod} = _fis;
+		let {onayliTipler} = SiparisFis, {mustKod: teslimCariVeyaMustKod, onayTipi} = _fis;
+		let onaylimi = onayliTipler.includes(onayTipi?.char ?? onayTipi);
 		let {detaySinif, konsinyemi, numTipKod} = fisSinif; islem = islem || belirtec;
 		let yenimi = islem == 'yeni', onaylaVeyaSilmi = (islem == 'onayla' || islem == 'sil' || islem == 'izle');
 		tarih = fis.tarih = tarih || today();
@@ -155,7 +156,7 @@ class SablonluSiparisFisTemplate extends CObject {
 				)
 			}
 		}
-		let stokKodListe = recs?.map(({ shkod }) => shkod), izinliStokKodSet = null;
+		let izinliStokKodSet = null, stokKodListe = recs?.map(({ shkod }) => shkod);
 		if (stokKodListe?.length) {
 			let tables = this._sqlTables = this._sqlTables ?? await app.sqlGetTables();
 			if (tables.pzmusturunfis) {
@@ -229,15 +230,16 @@ class SablonluSiparisFisTemplate extends CObject {
 				let kod = rec[rowAttr], aciklama = rec[rowAdiAttr]; if (kod === undefined) { continue }
 				det[ioAttr] = kod; det[adiAttr] = aciklama; det[belirtec] = kod ? `<b>(${kod})</b> ${aciklama}` : ''
 			}
-			let anahStr = getAnahStr(rec); anah2Det[anahStr] = anah2Det[anahStr] ?? det
+			anah2Det[getAnahStr(rec)] ??= det
 		}
 		let {detaylar} = fis; for (let det of detaylar) {
 			let anahStr = getAnahStr(det), sabDet = anah2Det[anahStr]; if (!sabDet) { continue }
-			if (!sabDet._initFlag) { $.extend(sabDet, { ...det.deepCopy() }) } else { sabDet.miktar += det.miktar }
+			if (!sabDet._initFlag) { $.extend(sabDet, { ...det.deepCopy() }) }
+			else { sabDet.miktar += det.miktar }
 			sabDet._initFlag = true
 		}
 		detaylar = Object.values(anah2Det);
-		if (onaylaVeyaSilmi) { detaylar = detaylar.filter(({ miktar }) => !!miktar) }
+		if (onaylimi || onaylaVeyaSilmi) { detaylar = detaylar.filter(({ miktar }) => !!miktar) }
 		fis.detaylar = detaylar;
 		let stokKod2Detaylar = {}; for (let det of detaylar) {
 			// if (!onaylaVeyaSilmi && det._initFlag) { continue }
@@ -245,10 +247,11 @@ class SablonluSiparisFisTemplate extends CObject {
 		}
 		stokKodListe = Object.keys(stokKod2Detaylar); kosulYapilar = await kosulYapilar;
 		if (stokKodListe?.length) {
-			let kosulSinif = fisSinif.alimmi ? SatisKosul_AlimAnlasma : SatisKosul_Fiyat;
+			// let kosulSinif = fisSinif.alimmi ? SatisKosul_AlimAnlasma : SatisKosul_Fiyat;
+			let kosulSinif = SatisKosul_Fiyat;
 			let {tipKod: tip} = kosulSinif, iskontoArastirStokSet = {};
 			let anah = toJSONStr({ tip, kapsam, stokKodListe });
-			let fiyatYapilar = anah2KosulYapi[anah] ??= await kosulSinif.getAltKosulYapilar(stokKodListe, kosulYapilar?.FY, teslimCariVeyaMustKod);
+			let fiyatYapilar = anah2KosulYapi[anah] ??= await kosulSinif.getAltKosulYapilar(stokKodListe, kosulYapilar?.FY, mustKod);
 			for (let det of detaylar) {
 				if (fiyatYapilar && det.netBedel == undefined) { continue }
 				let {shKod: stokKod} = det, kosulRec = fiyatYapilar[stokKod] ?? {}, {iskontoYokmu} = kosulRec;
@@ -626,9 +629,11 @@ class SablonluSiparisDetayTemplate extends CObject {
 class SablonluSiparisGridciTemplate extends CObject {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get fisTemplateSinif() { return SablonluSiparisFisTemplate } static get sablonSinif() { return this.fisTemplateSinif.sablonSinif }
-	static gridArgsDuzenle({ gridPart, sender, args }) {
-		gridPart = gridPart ?? sender; gridPart.sabit();
-		$.extend(args, { rowsHeight: 45, groupsExpandedByDefault: true, editMode: 'selectedcell', selectionMode: 'singlecell' })
+	static gridArgsDuzenle({ gridPart, sender, inst, args }) {
+		gridPart ??= sender; let {fis} = gridPart; gridPart.sabit();
+		let {onayliTipler} = SiparisFis, {onayTipi} = fis;
+		let onaylimi = onayliTipler.includes(onayTipi.char ?? onayTipi);
+		$.extend(args, { editable: !onaylimi, rowsHeight: 45, groupsExpandedByDefault: true, editMode: 'selectedcell', selectionMode: 'singlecell' })
 	}
 	static tabloKolonlariDuzenle_ilk({ tabloKolonlari }) {
 		tabloKolonlari.push(...[

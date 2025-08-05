@@ -27,7 +27,7 @@ class SatisKosul_IskVeKamOrtak extends SatisKosul {
 				$.extend(altKosullar, await kosul.getAltKosullar(kodListe)) }
 	        for (let [xKod, rec] of Object.entries(altKosullar)) {
 	            $.extend(rec, { xKod, kayitTipi });
-				result[xKod] = rec
+				result[xKod] ??= rec
 	        }
 	    }
 		return result

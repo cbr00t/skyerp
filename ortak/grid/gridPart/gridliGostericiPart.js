@@ -3,6 +3,6 @@ class GridliGostericiPart extends GridPart {
 	static get wndClassNames() { return ['gridliGosterici', ...super.wndClassNames] }
 	gridArgsDuzenleDevam({ args }) {
 		super.gridArgsDuzenleDevam(...arguments);
-		$.extend(args, { editable: false /* enableBrowserSelection: true */ })
+		$.extend(args, { editable: args.editable ?? false /* enableBrowserSelection: true */ })
 	}
 }

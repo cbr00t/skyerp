@@ -1,7 +1,7 @@
 
 class SBRapor_X extends SBRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kod() { return 'SBX' } static get aciklama() { return 'Sabit: X' }
+	static get kod() { return 'SBX' } static get aciklama() { return super.aciklama }
 }
 class SBRapor_X_Main extends SBRapor_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return SBRapor_X }

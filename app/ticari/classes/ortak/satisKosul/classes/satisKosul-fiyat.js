@@ -42,8 +42,8 @@ class SatisKosul_Fiyat extends SatisKosul {
 			let altKosullar = {}; for (let kosul of satisKosullar) {
 				$.extend(altKosullar, await kosul.getAltKosullar(kodListe)) }
 	        for (let [stokKod, rec] of Object.entries(altKosullar)) {
-	            result[stokKod] = rec; rec.kayitTipi = 'K';
-	            if (rec.fiyat) { delete eksikKodSet[stokKod] }
+	            result[stokKod] ??= rec; rec.kayitTipi = 'K';
+	            if (rec.fiyat) { delete eksikKodSet[stokKod]; console.log(rec) }
 	        }
 	    }
 	    if ($.isEmptyObject(eksikKodSet)) { return result }
@@ -58,7 +58,7 @@ class SatisKosul_Fiyat extends SatisKosul {
 			}
 		};
 		/* 2) Eksik kalanlar için - mustKod belirsiz ise doğrudan stok 1. fiyatı esas al */
-		if (!mustKod) { await musterisizListeFiyatiBelirle(); return result }
+			if (!mustKod) { await musterisizListeFiyatiBelirle(); return result }
 		/* 3) 'mustKod' belli iken: Cari Fiyat Listesini kontrol et */ {
 			let sent = new MQSent({
 				from: 'carmst car', fromIliskiler: [

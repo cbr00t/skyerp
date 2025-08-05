@@ -40,16 +40,16 @@ class SBTabloVeriTipi extends TekSecim {
 		let gosterimUygunluk = ({ hesapTipi }) => hesapTipi.ticarimi, sentUygunluk = null;
 		kaListe.push(...[
 			new CKodAdiVeEkBilgi(['SBRT', 'Satır Brüt', 'satirBrutmu', {
-				gosterimUygunluk, sentUygunluk,
-				sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.brutbedel' })
+				gosterimUygunluk, sentUygunluk, sentDuzenle: e =>
+					topSahaEkle({ ...e, clause: 'har.brutbedel' })
 			}]),
 			new CKodAdiVeEkBilgi(['SNET', 'Satır Net', 'satirNetmi', {
-				gosterimUygunluk, sentUygunluk,
-				sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.bedel' })
+				gosterimUygunluk, sentUygunluk, sentDuzenle: e =>
+					topSahaEkle({ ...e, clause: 'har.bedel' })
 			}]),
 			new CKodAdiVeEkBilgi(['SISK', 'Satır İskonto', 'satirIskmi', {
-				gosterimUygunluk, sentUygunluk,
-				sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.brutbedel - har.bedel' })
+				gosterimUygunluk, sentUygunluk, sentDuzenle: e =>
+					topSahaEkle({ ...e, clause: 'har.brutbedel - har.bedel' })
 			}]),
 			new CKodAdiVeEkBilgi(['DISK', 'Dip İskonto', 'dipIskmi', {
 				gosterimUygunluk, sentUygunluk,
@@ -60,16 +60,17 @@ class SBTabloVeriTipi extends TekSecim {
 				sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.brutbedel - har.bedel + har.dipiskonto' })
 			}]),
 			new CKodAdiVeEkBilgi(['CIR', 'Ciro', 'ciromu', {
-				gosterimUygunluk, sentUygunluk,
-				sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.harciro' })
+				gosterimUygunluk, sentUygunluk, sentDuzenle: e =>
+					topSahaEkle({ ...e, clause: 'har.harciro' })
 			}]),
 			new CKodAdiVeEkBilgi(['MAL', 'Maliyet', 'maliyetmi', {
 				gosterimUygunluk, sentUygunluk: ({ stokmu, hizmetmi }) => stokmu,
-				sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.fmalhammadde + har.fmalmuh' })
+				sentDuzenle: e =>
+					topSahaEkle({ ...e, clause: 'har.fmalhammadde + har.fmalmuh' })
 			}]),
 			new CKodAdiVeEkBilgi(['KCR', 'KDVli Ciro', 'kdvliCiromu', {
-				gosterimUygunluk,
-				sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.harciro + har.topkdv' })
+				gosterimUygunluk, sentDuzenle: e =>
+					topSahaEkle({ ...e, clause: 'har.harciro + har.topkdv' })
 			}]) /*,
 			new CKodAdiVeEkBilgi(['KML', 'KDVli Maliyet', 'kdvliMaliyetmi', {
 				gosterimUygunluk, sentUygunluk: ({ stokmu, hizmetmi }) => stokmu,
@@ -88,28 +89,28 @@ class SBTabloVeriTipi extends TekSecim {
 		};
 		kaListe.push(...[
 			new CKodAdiVeEkBilgi(['BRBD', 'Borç Bedel', 'borcBedelmi', {
-				gosterimUygunluk, sentUygunluk,
-				sentDuzenle: e => topSahaEkle({ ...e, clause: hv => getBABedelClause('B', hv.ba, hv.bedel) })
+				gosterimUygunluk, sentUygunluk, sentDuzenle: e =>
+					topSahaEkle({ ...e, clause: hv => getBABedelClause('B', hv.ba, hv.bedel) })
 			}]),
 			new CKodAdiVeEkBilgi(['ALBD', 'Alacak Bedel', 'alacakBedelmi', {
-				gosterimUygunluk, sentUygunluk,
-				sentDuzenle: e => topSahaEkle({ ...e, clause: hv => getBABedelClause('B', hv.ba, hv.bedel) })
+				gosterimUygunluk, sentUygunluk, sentDuzenle: e =>
+					topSahaEkle({ ...e, clause: hv => getBABedelClause('B', hv.ba, hv.bedel) })
 			}]),
 			/*new CKodAdiVeEkBilgi(['ISBD', 'Bedel', 'bedelmi', {
-				gosterimUygunluk, sentUygunluk,
-				sentDuzenle: e => topSahaEkle({ ...e, clause: hv => getBABedelClause(null, hv.ba, hv.bedel) })
+				gosterimUygunluk, sentUygunluk, sentDuzenle: e =>
+					topSahaEkle({ ...e, clause: hv => getBABedelClause(null, hv.ba, hv.bedel) })
 			}]),*/
 			new CKodAdiVeEkBilgi(['BRBK', 'Borç Bakiye', 'borcBakiyemi', {
-				gosterimUygunluk, sentUygunluk,
-				sentDuzenle: e => topSahaEkle({ ...e, clause: hv => getBABedelClause('B', hv.ba, hv.bakiye) })
+				gosterimUygunluk, sentUygunluk, sentDuzenle: e =>
+					topSahaEkle({ ...e, clause: hv => getBABedelClause('B', hv.ba, hv.bakiye) })
 			}]),
 			new CKodAdiVeEkBilgi(['ALBK', 'Alacak Bakiye', 'alacakBakiyemi', {
-				gosterimUygunluk, sentUygunluk,
-				sentDuzenle: e => topSahaEkle({ ...e, clause: hv => getBABedelClause('A', hv.ba, hv.bakiye) })
+				gosterimUygunluk, sentUygunluk, sentDuzenle: e =>
+					topSahaEkle({ ...e, clause: hv => getBABedelClause('A', hv.ba, hv.bakiye) })
 			}])
 			/*new CKodAdiVeEkBilgi(['ISBK', 'Bakiye', 'bakiyemi', {
-				gosterimUygunluk, sentUygunluk,
-				sentDuzenle: e => topSahaEkle({ ...e, clause: hv => getBABedelClause(null, hv.ba, hv.bakiye) })
+				gosterimUygunluk, sentUygunluk, sentDuzenle: e =>
+					topSahaEkle({ ...e, clause: hv => getBABedelClause(null, hv.ba, hv.bakiye) })
 			}]),*/
 		]);
 		return this
