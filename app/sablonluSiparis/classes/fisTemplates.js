@@ -116,7 +116,7 @@ class SablonluSiparisFisTemplate extends CObject {
 			let belirtec = await app.sqlExecTekilDeger(sent);
 			if (belirtec) { numarator.belirtec = belirtec }
 		}*/
-		let kapsam = { tarih, subeKod, mustKod: teslimCariVeyaMustKod };
+		let kapsam = { tarih, subeKod, mustKod };
 		let anah2KosulYapi = SatisKosulYapi._anah2KosulYapi ??= {};
 		let kosulYapilar = anah2KosulYapi[toJSONStr(kapsam)] ??= await SatisKosulYapi.uygunKosullar({ kapsam });
 		let sent = new MQSent({
