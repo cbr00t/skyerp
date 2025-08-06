@@ -633,7 +633,7 @@ class SablonluSiparisGridciTemplate extends CObject {
 		gridPart ??= sender; let {fis} = gridPart; gridPart.sabit();
 		let {onayliTipler} = SiparisFis, {onayTipi} = fis;
 		let onaylimi = onayliTipler.includes(onayTipi.char ?? onayTipi);
-		$.extend(args, { editable: !onaylimi, rowsHeight: 45, groupsExpandedByDefault: true, editMode: 'selectedcell', selectionMode: 'singlecell' })
+		$.extend(args, { editable: !onaylimi, rowsHeight: 45, groupsExpandedByDefault: true, editMode: 'click', selectionMode: 'multiplerowsextended' })
 	}
 	static tabloKolonlariDuzenle_ilk({ tabloKolonlari }) {
 		tabloKolonlari.push(...[
@@ -693,8 +693,13 @@ class SablonluSiparisGridciTemplate extends CObject {
 		}*/
 		grid.jqxGrid({ sortable: true, filterable: true, groupable: true, groups: ['grupAdi'] })
 	}
-	static miktarFiyatDegisti({ gridWidget, rowIndex, belirtec, gridRec: det, value }) {
-		det._degistimi = true
+	static miktarFiyatDegisti({ sender: gridPart, gridWidget, rowIndex, belirtec, gridRec: det, value }) {
+		let {belirtec2Kolon} = gridPart; det._degistimi = true;
+		setTimeout(() => {
+			let {selectedRowIndex, selectedBelirtec} = gridPart; selectedBelirtec ||= belirtec;
+			if (selectedRowIndex > -1 && selectedRowIndex != rowIndex && belirtec2Kolon[selectedBelirtec].isEditable) {
+				gridWidget.begincelledit(selectedRowIndex, selectedBelirtec) }
+		}, 70)
 		/* gridWidget.render(); gridWidget.ensurerowvisible(rowIndex) */
 	}
 	static bedelHesapla(e) { }
