@@ -503,7 +503,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		let {params} = app, {webSiparis_ayOnceSayisi: ayOnceSayisi} = params.web;
 		let yenimi = islem == 'yeni'; /*, onaylaVeyaSilmi = (islem == 'onayla' || islem == 'sil') */
 		sablonSinif = sablonSinif?.sablonSinif ?? sablonSinif;    /* detaySinif gelirse (detaySinif.sablonSinif) */
-		let fisSinif = SatisFaturaFis, {fisSiniflar} = sablonSinif, teslimCariSaha = 'teslimcarikod';
+		let fisSinif = SatisFaturaFis, {fisSiniflar} = sablonSinif;
 		let {sayac: fisSayac, class: buFisSinif, tarih, mustKod, detaylar} = fis;
 		let stokKodSet = asSet(detaylar.map(det => det.shKod));
 		let onceTarih = tarih?.clone()?.addMonths(-ayOnceSayisi);
@@ -513,7 +513,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		wh.fisSilindiEkle().add(`fis.kapandi = ''` /*, `fis.ozelisaret <> '*'`*/);
 		wh.add(`fis.piftipi = 'F'`, `fis.almsat = 'T'`, `fis.iade = ''`, `fis.konumstatu = ''`);
 		wh.add(`fis.tarih >= ${onceTarih.sqlServerDegeri()}`);
-		wh.degerAta(mustKod, `fis.${teslimCariSaha}`);
+		wh.degerAta(mustKod, 'fis.must');
 		wh.inDizi(Object.keys(stokKodSet), 'har.stokkod');
 		if (fisSayac && fisSinif == buFisSinif) { wh.add(`fis.kaysayac <> ${fisSayac.sqlServerDegeri()}`) }
 		sahalar.add(
@@ -687,9 +687,9 @@ class SablonluSiparisGridciTemplate extends CObject {
 		let {params} = app, {sabit: iskSayi} = params.fiyatVeIsk?.iskSayi;
 		let {webSiparis_sonStokGosterilirmi, webSiparis_ayOnceSayisi} = params.web;
 		tabloKolonlari.push(...[
-			(webSiparis_sonStokGosterilirmi ? new GridKolon({ belirtec: 'sonStokBilgi_genel', text: 'Son Stok', genislikCh: 13, groupable: false }).readOnly() : null),
-			(webSiparis_sonStokGosterilirmi ? new GridKolon({ belirtec: 'sonStokBilgi_kendiDeposu', text: 'S. (<span class=royalblue>Müşteri</span>)', genislikCh: 13, groupable: false }).readOnly() : null),
-			(webSiparis_ayOnceSayisi ? new GridKolon({ belirtec: 'onceMiktarBilgi', text: 'Önceki Miktarlar', genislikCh: 13, groupable: false }).readOnly() : null),
+			(webSiparis_sonStokGosterilirmi ? new GridKolon({ belirtec: 'sonStokBilgi_genel', text: 'Son Stok', genislikCh: 13, groupable: false }).readOnly().alignRight() : null),
+			(webSiparis_sonStokGosterilirmi ? new GridKolon({ belirtec: 'sonStokBilgi_kendiDeposu', text: 'S. (<span class=royalblue>Müşteri</span>)', genislikCh: 13, groupable: false }).readOnly().alignRight() : null),
+			(webSiparis_ayOnceSayisi ? new GridKolon({ belirtec: 'onceMiktarBilgi', text: 'Önceki', genislikCh: 13, groupable: false }).readOnly().alignRight() : null),
 			new GridKolon({ belirtec: 'fiyat', text: 'Fiyat', genislikCh: 13, groupable: false }).readOnly().tipDecimal_fiyat().sifirGosterme(),
 			new GridKolon({ belirtec: 'brutBedel', text: 'Brüt Bedel', genislikCh: 13, groupable: false }).readOnly().tipDecimal_bedel().sifirGosterme(),
 			(iskSayi ? new GridKolon({
