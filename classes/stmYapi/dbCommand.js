@@ -73,7 +73,8 @@ class MQInsertBase extends MQDbCommand {
 		super.buildString(e); let {table, hvListe} = this; if (!table || $.isEmptyObject(hvListe)) { return }
 		let {sqlitemi, offlineMode} = window?.app ?? {}, {onEk} = this.class, ilkHV = hvListe[0], keys = Object.keys(ilkHV), hvSize = hvListe.length;
 			// SQL Bulk Insert (values ?? .. ??) için SQL tarafında en fazla 1000 kayıta kadar izin veriliyor
-		let isTableInsert = hvSize > 1000 ? true : this.isTableInsert; if (isTableInsert == null) { isTableInsert = hvSize > 500 }
+		let isTableInsert = hvSize > 1000 ? true : this.isTableInsert;
+		if (isTableInsert == null) { isTableInsert = hvSize > 500 }
 		e.result += `${onEk}${table} (`; e.result += keys.join(','); e.result += ') ';
 		if (sqlitemi && offlineMode !== false) {
 			let params = e.params = [], hvParamClauses = [];

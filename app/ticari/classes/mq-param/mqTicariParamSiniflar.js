@@ -31,7 +31,8 @@ class MQOrtakMailParam extends MQOrtakParamBase {
 	paramSetValues(e) { e.inst = this; this.class.paramSetValues_ortak(e) }
 	static paramYapiDuzenle_ortak({ paramci }) {
 		paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`);
-		let form = paramci.addFormWithParent(); form.addString('smtpServer', 'SMTP Sunucusu');
+		let form = paramci.addFormWithParent();
+			form.addString('smtpServer', 'SMTP Sunucusu');
 			form.addNumber('port', 'Port').degisince(({ value, builder: fbd }) => fbd.altInst.ozelPortFlag = !!asInteger(value));
 			form.addBool('ssl', 'SSL');
 		form = paramci.addFormWithParent(); form.addString('from', 'Gönderici e-Mail');
