@@ -192,7 +192,8 @@ body #ust-parent > #parent .part.wnd-content.slow-animation,
 body > #root-parent > #ust-parent { border-top: 4px solid #9fc79f; border-left: 4px solid #6455b7; border-radius: 10px }
 body > #root-parent > #ust-parent > #parent > #windows-parent { top: var(--appTitle-bottom); height: calc(var(--full) - var(--appTitle-bottom)) }
 body > #root-parent > #ust-parent > #parent > #windows-parent > div > #windows { }
-body > #root-parent > #ust-parent > #parent > #windows-parent > div > #windows > .content { background-color: var(--s-white) }
+body > #root-parent > #ust-parent > #parent > #windows-parent > div > #windows > .content {
+	background-color: var(--s-white) }
 .part.wnd-content,
 .part.wnd-content > div:not(.formBuilder-element),
 main#content { background: var(--s-whitesmoke) }

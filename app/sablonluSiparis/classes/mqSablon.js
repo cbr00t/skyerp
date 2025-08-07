@@ -364,7 +364,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		let data = { baslik, detaylar, dip }, {result: htmlData} = dokumcu.process(data) ?? {}
 		if (config.dev) {
 			let url = URL.createObjectURL(new Blob([htmlData], { type: 'text/html' }));
-			openNewWindow(url)
+			setTimeout(url => openNewWindow(url), 0, url)
 		}
 		let html = true, subject = 'SkyERP Web Sipariş', body = htmlData;
 		if (to.length) {

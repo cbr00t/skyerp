@@ -27,8 +27,8 @@ class MQSayacli extends MQCogul {
 	}
 	static secimlerDuzenleSon(e) {
 		super.secimlerDuzenleSon(e); const sec = e.secimler;
-		sec.grupTopluEkle({ kod: 'teknik', aciklama: 'Teknik', renk: '#eee', zeminRenk: 'orangered', kapalimi: true });
-		sec.secimTopluEkle({ sayac: new SecimInteger({ etiket: 'ID' }) });
+		sec.grupTopluEkle([ { kod: 'teknik', aciklama: 'Teknik', renk: '#eee', zeminRenk: 'orangered', kapalimi: true } ]);
+		sec.secimTopluEkle({ sayac: new SecimInteger({ etiket: 'ID', grupKod: 'teknik' }) });
 		sec.whereBlockEkle(e => {
 			const {aliasVeNokta, sayacSaha} = this, {where: wh, secimler: sec} = e;
 			wh.basiSonu(sec.sayac, `${aliasVeNokta}${sayacSaha}`)

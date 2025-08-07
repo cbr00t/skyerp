@@ -74,7 +74,13 @@ class Secimler extends CIO {
 	}
 	grupTopluEkle(e) {
 		const liste = e.grupListe ?? e;
-		if (liste) { for (const key in liste) { const value = liste[key]; if (typeof value == 'object' && !value.kod) { value.kod = key } this.grupEkle(value) } }
+		if (liste) {
+			for (const key in liste) {
+				const value = liste[key];
+				if (typeof value == 'object' && !value.kod) { value.kod = key }
+				this.grupEkle(value)
+			}
+		}
 		return this
 	}
 	grupEkle(e, _aciklama, _kapalimi, _renk, _zeminRenk, _css, _ekBilgi) {

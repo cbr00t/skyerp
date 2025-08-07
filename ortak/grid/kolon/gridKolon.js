@@ -69,6 +69,10 @@ class GridKolon extends GridKolonVeGrupOrtak {
 		};
 		if (!this.cellClassName) {
 			this.cellClassName = (colDef, rowIndex, belirtec, value, rec) => {
+				if (colDef === undefined) {
+					colDef = rowIndex; rowIndex = belirtec;
+					belirtec = value; value = rec
+				}
 				let {gridWidget} = this.gridPart || {}, result = [belirtec];
 				if (gridWidget?.editable && !this.attributes.editable) { result.push('grid-readOnly') }
 				let {tip, align} = colDef;

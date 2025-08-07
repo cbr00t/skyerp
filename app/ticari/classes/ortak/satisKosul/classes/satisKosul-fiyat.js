@@ -43,7 +43,7 @@ class SatisKosul_Fiyat extends SatisKosul {
 				$.extend(altKosullar, await kosul.getAltKosullar(kodListe)) }
 	        for (let [stokKod, rec] of Object.entries(altKosullar)) {
 	            result[stokKod] ??= rec; rec.kayitTipi = 'K';
-	            if (rec.fiyat) { delete eksikKodSet[stokKod]; console.log(rec) }
+	            if (rec.fiyat) { delete eksikKodSet[stokKod] /* console.log(rec) */ }
 	        }
 	    }
 	    if ($.isEmptyObject(eksikKodSet)) { return result }

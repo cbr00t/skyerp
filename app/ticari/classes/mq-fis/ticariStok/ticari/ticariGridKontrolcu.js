@@ -47,7 +47,10 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 		shColDef.tabloKolonlari.push(
 			new GridKolon({
 				belirtec: 'kdvKod', text: 'Kdv', genislikCh: 8,
-				cellBeginEdit: (colDef, rowIndex, belirtec, colType, value, result) => { let {gridWidget} = this, det = gridWidget.getrowdata(rowIndex);  !!det.kdvDegiskenmi },
+				cellBeginEdit: (colDef, rowIndex, belirtec, colType, value, result) => {
+					let {gridWidget} = this, det = gridWidget.getrowdata(rowIndex);
+					return !!det.kdvDegiskenmi
+				},
 				cellValueChanged: e => {
 					let {fis, parentPart} = this, {yildizlimi} = fis.class, {args} = e, kdvKod = args.value || '';
 					let det = args.owner.getrowdata(args.rowindex); if (!fis.yildizlimi) { det.orjkdvKod = kdvKod }

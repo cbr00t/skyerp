@@ -1,7 +1,7 @@
 
 :root {
 	--s-white: white; --s-whitesmoke: #ececec;
-	--s-whitesmoke: linear-gradient(90deg, #ececec 15%, #fcfcfc 70%);
+	--s-whitesmoke: linear-gradient(90deg, #ececec 5%, #fcfcfc 90%);
 }
 .black { color: black !important }
 .lightblack { color: #333 !important }
