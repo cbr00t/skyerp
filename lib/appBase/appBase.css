@@ -82,18 +82,18 @@ jqx-grid .jqx-group-collapse { width: 35px }
 .jqx-grid div[role=row] .jqx-grid-cell-pinned[title = false],
 .jqx-grid div[role=row] .jqx-grid-cell-pinned[title = true] { width: 35px }
 .jqx-widget, .jqx-widget-header, .jqx-widget-content,
-.jqx-grid .jqx-grid-cell,
-.jqx-grid .jqx-grid-group-cell { font-size: unset }
-.jqx-grid .jqx-grid-cell,
-.jqx-grid .jqx-grid-group-cell { /* cursor: pointer; */ cursor: initial !important }
-.jqx-grid .jqx-grid-content .jqx-grid-cell-edit > *,
-.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit > * {/* width: var(--full) !important ; */}
-.jqx-grid .jqx-grid-content .jqx-grid-cell-edit > input[type=date],
-.jqx-grid .jqx-grid-content .jqx-grid-cell-edit > input[type=time],
-.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit > input[type=date],
-.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit > input[type=time] { height: var(--full) !important }
+	.jqx-grid .jqx-grid-cell,
+	.jqx-grid .jqx-grid-group-cell { font-size: unset }
+	.jqx-grid .jqx-grid-cell,
+	.jqx-grid .jqx-grid-group-cell { /* cursor: pointer; */ cursor: initial !important }
+	.jqx-grid .jqx-grid-content .jqx-grid-cell-edit > *,
+	.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit > * {/* width: var(--full) !important ; */}
+	.jqx-grid .jqx-grid-content .jqx-grid-cell-edit > input[type=date],
+	.jqx-grid .jqx-grid-content .jqx-grid-cell-edit > input[type=time],
+	.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit > input[type=date],
+	.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit > input[type=time] { height: var(--full) !important }
 .jqx-grid .jqx-grid-content .jqx-grid-cell-edit input[type=time],
-.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit input[type=time] { text-align: center; font-size: 85% }
+	.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit input[type=time] { text-align: center; font-size: 85% }
 .jqx-grid .jqx-grid-cell-filter-row .jqx-datetimeinput .jqx-action-button { top: 0 }
 .jqx-grid .jqx-clear >.jqx-widget-header { color: #999; background: linear-gradient(90deg, #47608d29 5%, #fdfeff2b 50%) !important }
 .jqx-grid .jqx-clear > .jqx-grid-groups-header > div > div { font-weight: bold; font-size: 100% }

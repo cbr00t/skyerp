@@ -90,12 +90,17 @@ class SablonluSiparisFisTemplate extends CObject {
 		/*let {tableAlias: alias, mustSaha} = fisSinif, {sahalar} = sent;
 		sahalar.addWithAlias(alias, 'sablonsayac', mustSaha)*/
 	}
-	static async yeniTanimOncesiIslemler(e) { /* await this.dagitimIcinEkBilgileriBelirle({ fis }) */ }
+	static async yeniTanimOncesiIslemler(e) {
+		/* await this.dagitimIcinEkBilgileriBelirle({ fis }) */
+		await this.yeniTanimOncesiIslemler_ozel?.(e)
+	}
 	static async yukleSonrasiIslemler(e) {
 		let {sender: detGridPart, fis} = e, {parentPart: gridPart} = detGridPart ?? {};
 		// fis.mustKod = gridPart.mustKod || fis.mustKod;
 		fis.mustKod = fis.teslimCariKod || fis.mustKod;
-		return await this.sablonYukleVeBirlestir({ ...e })
+		let result = await this.sablonYukleVeBirlestir({ ...e });
+		await this.yukleSonrasiIslemler_ozel?.(e);
+		return result
 	}
 	static async sablonYukleVeBirlestir(e) {
 		let {fis, islem, belirtec} = e, {sablonSayac, tarih, subeKod, mustKod, numarator, class: fisSinif} = fis;
@@ -104,7 +109,9 @@ class SablonluSiparisFisTemplate extends CObject {
 		let {onayliTipler} = SiparisFis, {mustKod: teslimCariVeyaMustKod, onayTipi} = _fis;
 		let onaylimi = onayliTipler.includes(onayTipi?.char ?? onayTipi);
 		let {detaySinif, konsinyemi, numTipKod} = fisSinif; islem = islem || belirtec;
-		let yenimi = islem == 'yeni', onaylaVeyaSilmi = (islem == 'onayla' || islem == 'sil' || islem == 'izle');
+		let yenimi = islem == 'yeni', izlemi = islem == 'izle';
+		let onaylami = islem == 'onayla', silmi = islem == 'sil';
+		let onaylaVeyaSilmi = onaylami || silmi || izlemi;
 		tarih = fis.tarih = tarih || today();
 		if (numarator) { numarator.belirtec = 'W' }
 		/*numSayac = app.param.web.x;
@@ -123,17 +130,19 @@ class SablonluSiparisFisTemplate extends CObject {
 			from: 'hizlisablon sab', fromIliskiler: [
 				{ from: 'hizlisablongrup grp', iliski: 'grp.fissayac = sab.kaysayac' },
 				{ from: 'hizlisablondetay har', iliski: 'har.grupsayac = grp.kaysayac' },
-				{ from: 'stkmst stk', iliski: 'har.stokkod = stk.kod' }
+				{ from: 'stkmst stk', iliski: 'har.stokkod = stk.kod' },
+				{ alias: 'stk', leftJoin: 'urunpaket upak', on: ['stk.kod = upak.urunkod', `upak.varsayilan <> ''`] }
 			],
 			where: [
 				{ degerAta: sablonSayac, saha: 'sab.kaysayac' },
-				'har.bdevredisi = 0', `stk.silindi = ''`, `stk.satilamazfl = ''`
+				`stk.silindi = ''`, `stk.satilamazfl = ''`
 			],
 			sahalar: [
-				'grp.kaysayac grupsayac', 'grp.seq grupseq', 'grp.grupadi', 'har.seq',
-				'har.stokkod shkod', 'stk.aciklama shadi', 'stk.brm'
+				'grp.kaysayac grupsayac', 'grp.seq grupseq', 'grp.grupadi', 'har.seq', 'har.bdevredisi',
+				'har.stokkod shkod', 'stk.aciklama shadi', 'stk.brm', 'upak.urunmiktari paketicadet'
 			]
 		}), {sahalar, where: wh} = sent;
+		if (!onaylami) { wh.add(`har.bdevredisi = 0`) }
 		wh.icerikKisitDuzenle_stok({ saha: 'har.stokkod' });
 		if (konsinyemi && yenimi) {    /* Yeni fiş için KL Dağıtım bağlantısı yoksa recs boş dönsün */
 			sent.fromIliski('kldagitim dag', [`dag.mustkod = ${mustKod.sqlServerDegeri()}`, 'sab.klfirmakod = dag.klfirmakod']) }
@@ -224,7 +233,8 @@ class SablonluSiparisFisTemplate extends CObject {
 		].join(delimWS);
 		let anah2Det = {}; for (let rec of recs) {
 			let {shkod: shKod} = rec; if (izinliStokKodSet && !izinliStokKodSet[shKod]) { continue }
-			let _e = { grupSayac: rec.grupsayac, grupSeq: rec.grupseq, grupAdi: rec.grupadi, shKod, shAdi: rec.shadi };
+			let {bdevredisi: devreDisimi, grupsayac: grupSayac, grupseq: grupSeq, grupadi: grupAdi, shadi: shAdi, paketicadet: paketIcAdet} = rec;
+			let _e = { devreDisimi, grupSayac, grupSeq, grupAdi, shKod, shAdi, paketIcAdet };
 			let det = new detaySinif(_e);
 			for (let {belirtec, ioAttr, adiAttr, rowAttr, rowAdiAttr} of ekOzellikler) {
 				let kod = rec[rowAttr], aciklama = rec[rowAdiAttr]; if (kod === undefined) { continue }
@@ -234,6 +244,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		}
 		let {detaylar} = fis; for (let det of detaylar) {
 			let anahStr = getAnahStr(det), sabDet = anah2Det[anahStr]; if (!sabDet) { continue }
+			/* det.devreDisimi = sabDet.devreDisimi; */
 			if (!sabDet._initFlag) { $.extend(sabDet, { ...det.deepCopy() }) }
 			else { sabDet.miktar += det.miktar }
 			sabDet._initFlag = true
@@ -492,18 +503,17 @@ class SablonluSiparisFisTemplate extends CObject {
 		let {params} = app, {webSiparis_ayOnceSayisi: ayOnceSayisi} = params.web;
 		let yenimi = islem == 'yeni'; /*, onaylaVeyaSilmi = (islem == 'onayla' || islem == 'sil') */
 		sablonSinif = sablonSinif?.sablonSinif ?? sablonSinif;    /* detaySinif gelirse (detaySinif.sablonSinif) */
-		let fisSinif = SatisFaturaFis, {fisSiniflar} = sablonSinif;
-		let teslimCariSaha = 'fis.teslimcarikod';
+		let fisSinif = SatisFaturaFis, {fisSiniflar} = sablonSinif, teslimCariSaha = 'teslimcarikod';
 		let {sayac: fisSayac, class: buFisSinif, tarih, mustKod, detaylar} = fis;
 		let stokKodSet = asSet(detaylar.map(det => det.shKod));
-		let onceTarih = tarih.clone().addMonths(-ayOnceSayisi);
+		let onceTarih = tarih?.clone()?.addMonths(-ayOnceSayisi);
 		let sent = new MQSent(), {where: wh, sahalar} = sent;
 		sent.fisHareket('piffis', 'pifstok')
 		/*sent.fisHareket(table, detayTable); wh.birlestirDict({ alias: 'fis', dict: keyHV });*/
 		wh.fisSilindiEkle().add(`fis.kapandi = ''` /*, `fis.ozelisaret <> '*'`*/);
 		wh.add(`fis.piftipi = 'F'`, `fis.almsat = 'T'`, `fis.iade = ''`, `fis.konumstatu = ''`);
 		wh.add(`fis.tarih >= ${onceTarih.sqlServerDegeri()}`);
-		wh.degerAta(mustKod, teslimCariSaha);
+		wh.degerAta(mustKod, `fis.${teslimCariSaha}`);
 		wh.inDizi(Object.keys(stokKodSet), 'har.stokkod');
 		if (fisSayac && fisSinif == buFisSinif) { wh.add(`fis.kaysayac <> ${fisSayac.sqlServerDegeri()}`) }
 		sahalar.add(
@@ -611,19 +621,14 @@ class SablonluSiparisDetayTemplate extends CObject {
 		let {det} = e; for (let key of ['grupSayac', 'grupSeq', 'grupAdi']) { det[key] = e[key] ?? det[key] }
 		det.stokText = this.getStokText(det)
 	}
-	static pTanimDuzenle({ fisSinif, pTanim }) { }
+	static pTanimDuzenle({ fisSinif, pTanim }) {
+		$.extend(pTanim, { devreDisimi: new PInstBitBool() })
+	}
 	static hostVarsDuzenle({ det, hv }) { }
 	static setValues({ det, rec }) {
-		let {grupsayac: grupSayac, grupadi: grupAdi} = rec; $.extend(det, { grupSayac, grupAdi });
+		let {grupsayac: grupSayac, grupadi: grupAdi, bdevredisi: devreDisimi} = rec;
+		$.extend(det, { grupSayac, grupAdi, devreDisimi });
 		det.stokText = this.getStokText(det)
-		/*for (let [key, value] of Object.entries(rec)) {
-			for (let prefix of ['isk', 'kam']) {
-				if (!(value && key.startsWith(prefix))) { continue }
-				let i = asInteger(key.slice(`${prefix}oran`.length)); if (!i) { continue }
-				this[`${prefix}Oran${i}`] = value
-			}
-		}
-		for (let {ioAttr, adiAttr} of HMRBilgi.hmrIter_ekOzellik()) { for (let key of [ioAttr, adiAttr]) { this[key] = e[key] } } */
 	}
 }
 class SablonluSiparisGridciTemplate extends CObject {
@@ -649,12 +654,29 @@ class SablonluSiparisGridciTemplate extends CObject {
 					kontrolcu.miktarFiyatDegisti(e)
 					/*gridWidget.beginupdate(); gridWidget.endupdate(false); gridWidget.ensurerowvisible(rowIndex)*/
 				},
-				cellClassName: (colDef, rowIndex, belirtec, value, _rec) => {
-					let {gridWidget} = colDef.gridPart, rec = gridWidget.getrowdata(rowIndex);
-					let result = [belirtec], {_degistimi: degistimi} = rec;
-					if (degistimi) { result.push('bg-lightgreen') }
-					return result.join(' ')
-				}
+				cellBeginEdit: (colDef, rowIndex, belirtec, colType, value, result) => {
+					let {gridWidget} = colDef.gridPart, det = gridWidget.getrowdata(rowIndex);
+					return !det.devreDisimi
+				},
+				cellsRenderer: (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => {
+					if (belirtec == 'miktar' && !value) {
+						let {paketIcAdet, devreDisimi} = rec;
+						if (paketIcAdet && !devreDisimi) {
+							let content = `<div class="full-wh lightgray">
+								<span class="etiket">Pk:</span>
+								<span class="veri bold">${numberToString(paketIcAdet)}</span>
+							</div>`;
+							html = changeTagContent(html, content)
+						}
+					}
+					return html
+				},
+				validation: (colDef, cell, value) => {
+					value = asFloat(value);
+					if (value < 0 || value >= 10000) {
+						return ({ result: false, message: `<b>Miktar</b> <u>0'dan büyük</u> ve <u>geçerli</u> bir değer olmalıdır` }) }
+					return true
+				},
 			}).tipDecimal().sifirGosterme(),
 			new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 5 }).readOnly()
 		]);
@@ -672,7 +694,7 @@ class SablonluSiparisGridciTemplate extends CObject {
 			new GridKolon({ belirtec: 'brutBedel', text: 'Brüt Bedel', genislikCh: 13, groupable: false }).readOnly().tipDecimal_bedel().sifirGosterme(),
 			(iskSayi ? new GridKolon({
 				belirtec: 'iskOranlar', text: `İsk.`, genislikCh: 13, groupable: false,
-				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
+				cellsRenderer: (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => {
 					let result = []; for (let i = 1; i <= iskSayi; i++) {
 						let value = rec[`iskOran${i}`]; if (value) { result.push(value) } }
 					return changeTagContent(html, result.length ? `%${result.join(' + ')}` : '')
@@ -681,7 +703,20 @@ class SablonluSiparisGridciTemplate extends CObject {
 			new GridKolon({ belirtec: 'netBedel', text: 'Net Bedel', genislikCh: 13, groupable: false }).readOnly().tipDecimal_bedel().sifirGosterme()
 		].filter(x => !!x))
 	}
-	static tabloKolonlariDuzenle_son({ tabloKolonlari }) { }
+	static tabloKolonlariDuzenle_son({ tabloKolonlari }) {
+		let cellClassName = (colDef, rowIndex, belirtec, value, _rec) => {
+			let {gridWidget} = colDef.gridPart, rec = gridWidget.getrowdata(rowIndex);
+			let result = [belirtec], {_degistimi: degistimi, devreDisimi} = rec;
+			if (devreDisimi) { result.push('grid-readOnly', 'bg-gray', 'lightgray', 'strikeout') }
+			else if (belirtec == 'miktar' && degistimi) { result.push('bg-lightgreen') }
+			return result
+		};
+		for (let colDef of tabloKolonlari) {
+			let {cellClassName: _cellClassName} = colDef;
+			colDef.cellClassName = (...args) =>
+				[..._cellClassName?.call(...args), ...cellClassName(...args) ].flat().join(' ')
+		}
+	}
 	static fis2Grid(e) { return true }
 	static grid2Fis(e) { return true }
 	static geriYuklemeIcinUygunmu(e) { return true }
@@ -694,7 +729,14 @@ class SablonluSiparisGridciTemplate extends CObject {
 		grid.jqxGrid({ sortable: true, filterable: true, groupable: true, groups: ['grupAdi'] })
 	}
 	static miktarFiyatDegisti({ sender: gridPart, gridWidget, rowIndex, belirtec, gridRec: det, value }) {
-		let {belirtec2Kolon} = gridPart; det._degistimi = true;
+		let {belirtec2Kolon} = gridPart, {paketIcAdet} = det;;
+		det._degistimi = true;
+		if (belirtec == 'miktar' && paketIcAdet) {
+			let {brm} = det, {fra} = belirtec2Kolon[belirtec].tip ?? {};
+			if (brm) { fra = Math.max(fra, app.params.stokBirim.brmDict[brm].fra) }
+			if (typeof value != 'number') { value = asFloat(value) }
+			value = det.miktar = roundToFra(Math.ceil(value / paketIcAdet) * paketIcAdet, fra)
+		}
 		setTimeout(() => {
 			let {selectedRowIndex, selectedBelirtec} = gridPart; selectedBelirtec ||= belirtec;
 			if (selectedRowIndex > -1 && selectedRowIndex != rowIndex && belirtec2Kolon[selectedBelirtec].isEditable) {

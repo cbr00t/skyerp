@@ -71,7 +71,8 @@ class TSSHDDetay extends TSDetay {
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); let {pTanim} = e; $.extend(pTanim, {
 			shKod: new PInstStr(), shAdi: new PInst(), miktar: new PInstNum('miktar'), brm: new PInstStr(), fiyat: new PInstNum('fiyat'),
-			brutBedel: new PInstNum('brutbedel'), netBedel: new PInstNum('bedel'), takipNo: new PInstStr('dettakipno'), detAciklama: new PInstStr('ekaciklama'),
+			paketIcAdet: new PInstNum(), brutBedel: new PInstNum('brutbedel'), netBedel: new PInstNum('bedel'),
+			takipNo: new PInstStr('dettakipno'), detAciklama: new PInstStr('ekaciklama'),
 			/* Ticari sahalar */
 			iskYapi: new PInstClass(TicIskYapi), kdvKod: new PInstStr(), ekVergiYapi: new PInstClass(EkVergiYapi),
 			kkegYuzde: new PInstNum('kkegyuzde'), adiDegisirmi: new PInstBool(), kdvDegiskenmi: new PInstBitBool(), altAciklama: new PInstStr(),
@@ -173,10 +174,11 @@ class TSSHDDetay extends TSDetay {
 		let {hmr} = this; if (hmr) { hmr.hostVarsDuzenle(e); for (let {rowAttr, ioAttr} of hmr.hmrIter()) { hv[rowAttr] = this[ioAttr] } }
 	}
 	setValues(e) {
-		e = e || {}; super.setValues(e); let {rec, fis} = e, {shKodSaha, shAdiSaha, hizmetmi} = this.class;
-		let {stokmu, siparismi} = fis?.class ?? {};
+		e = e || {}; super.setValues(e);
+		let {rec, fis} = e, {shKodSaha, shAdiSaha, hizmetmi} = this.class;
+		let {stokmu, siparismi} = fis?.class ?? {}, {paketicadet: paketIcAdet} = rec;
 		$.extend(this, {
-			shKod: rec.shKod || rec.shkod || rec[shKodSaha], shAdi: rec.shAdi || rec.shadi || rec[shAdiSaha], brm: rec.brm,
+			shKod: rec.shKod || rec.shkod || rec[shKodSaha], shAdi: rec.shAdi || rec.shadi || rec[shAdiSaha], brm: rec.brm, paketIcAdet,
 			kdvDegiskenmi: asBool(rec.kdvDegiskenmi), adiDegisirmi: asBool(rec.adiDegisirmi), takipNo: rec.dettakipno || '', takipAdi: rec.takipadi
 		});
 		if (stokmu) { this.brutBedel = rec.belgebrutbedel }

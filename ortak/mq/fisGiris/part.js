@@ -108,7 +108,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 				await this.initFormBuilder(_e);
 				let selectors = ['input[type=textarea].jqx-input-content', 'input[type=textbox]', 'input[type=text]', 'input[type=number]'];
 				for (let selector of selectors) { let elm = layout.find(selector); if (elm.length) { elm.on('focus', evt => evt.target.select()) } }
-				setTimeout(() => { if (header.height() < 10) splitMain.jqxSplitter('collapse', 0) }, 200)
+				setTimeout(() => { if (header.height() < 10) { this.splitMain.jqxSplitter('collapse', 0) } }, 200)
 				setTimeout(() => header.removeClass('jqx-hidden basic-hidden'), 500)
 			}, 10);
 			setTimeout(() => makeScrollable(header), 100);
