@@ -729,13 +729,14 @@ class SablonluSiparisGridciTemplate extends CObject {
 		grid.jqxGrid({ sortable: true, filterable: true, groupable: true, groups: ['grupAdi'] })
 	}
 	static miktarFiyatDegisti({ sender: gridPart, gridWidget, rowIndex, belirtec, gridRec: det, value }) {
-		let {belirtec2Kolon} = gridPart, {paketIcAdet} = det;;
+		let {belirtec2Kolon} = gridPart, {paketIcAdet} = det;
 		det._degistimi = true;
 		if (belirtec == 'miktar' && paketIcAdet) {
 			let {brm} = det, {fra} = belirtec2Kolon[belirtec].tip ?? {};
 			if (brm) { fra = Math.max(fra, app.params.stokBirim.brmDict[brm].fra) }
 			if (typeof value != 'number') { value = asFloat(value) }
-			value = det.miktar = roundToFra(Math.ceil(value / paketIcAdet) * paketIcAdet, fra)
+			value = det.miktar = roundToFra(Math.ceil(value / paketIcAdet) * paketIcAdet, fra);
+			det.bedelHesapla()
 		}
 		setTimeout(() => {
 			let {selectedRowIndex, selectedBelirtec} = gridPart; selectedBelirtec ||= belirtec;
