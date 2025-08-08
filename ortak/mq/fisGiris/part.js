@@ -222,10 +222,10 @@ class FisGirisPart extends GridliGirisWindowPart {
 		if (fisDipPart && !fisDipPart.isDestroyed) { fisDipPart.tazele() }
 		return true
 	}
-	async tamamIstendi(e) {
+	tamamIstendi(e) {
 		e = e || {}; let evt = e.event || {}, {fis, fisDipPart} = this;
 		if (fis.class.dipGirisYapilirmi && !(evt.ctrlKey || evt.shiftKey) && fisDipPart && !fisDipPart.isDestroyed) { return fisDipPart.open(e) }
-		return await this.kaydetIstendi(e)
+		setTimeout(() => this.kaydetIstendi(e), 100)
 	}
 	async kaydetIstendi(e) {
 		if (this.filtreTokens?.length) {

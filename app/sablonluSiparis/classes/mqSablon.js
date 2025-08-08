@@ -206,13 +206,15 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			if (!mustKod) { throw { isError: true, errorText: `<b>Müşteri</b> seçilmelidir` } }
 			let {event: evt} = e, {currentTarget: target} = evt; target = $(target);
 			setButonEnabled(target, false); setTimeout(() => setButonEnabled(target, true), 2000);
-			let subeKod = gridPart.subeKod ?? config.session?.subeKod, {rec} = e, {kaysayac: sablonSayac, klFirmaKod} = rec;
-			let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod }); if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
-			let _e = { ...e}; delete _e.rec;
-			let fis = new fisSinif({ sablonSayac, tarih, subeKod, mustKod, klFirmaKod }); await fis.sablonYukleVeBirlestir(_e);
-			let islem = 'yeni', kaydedince = _e => this.tazele({ ...e, gridPart });
 			showProgress();
-			try { return await fis.tanimla({ islem, kaydedince }) }
+			try {
+				let subeKod = gridPart.subeKod ?? config.session?.subeKod, {rec} = e, {kaysayac: sablonSayac, klFirmaKod} = rec;
+				let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod }); if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
+				let _e = { ...e}; delete _e.rec;
+				let fis = new fisSinif({ sablonSayac, tarih, subeKod, mustKod, klFirmaKod }); await fis.sablonYukleVeBirlestir(_e);
+				let islem = 'yeni', kaydedince = _e => this.tazele({ ...e, gridPart });
+				return await fis.tanimla({ islem, kaydedince })
+			}
 			finally { setTimeout(() => hideProgress(), 500) }
 		}
 		catch (ex) { setTimeout(() => hConfirm(getErrorText(ex), 'Yeni'), 100); throw ex }
@@ -223,13 +225,13 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			if (!config.dev && onaylimi) { throw { isError: true, errorText: 'Bu sipariş zaten onaylanmış' } }
 			let {event: evt} = e, {currentTarget: target} = evt; target = $(target);
 			setButonEnabled(target, false); setTimeout(() => setButonEnabled(target, true), 2000);
-			let {kaysayac: sayac, mustkod: mustKod, sevkadreskod: sevkAdresKod, _parentRec: parentRec} = rec;
-			let {kaysayac: sablonSayac, klFirmaKod} = parentRec;
-			let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod, sevkAdresKod });
-			if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
-			let fis = new fisSinif({ sayac, klFirmaKod }), _e = { ...e, parentRec }; delete _e.rec;
 			showProgress();
 			try {
+				let {kaysayac: sayac, mustkod: mustKod, sevkadreskod: sevkAdresKod, _parentRec: parentRec} = rec;
+				let {kaysayac: sablonSayac, klFirmaKod} = parentRec;
+				let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod, sevkAdresKod });
+				if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
+				let fis = new fisSinif({ sayac, klFirmaKod }), _e = { ...e, parentRec }; delete _e.rec;
 				let result = await fis.yukle(_e); if (!result) { return }
 				let islem = 'onayla', kaydedince = _e => this.tazele({ ...e, gridPart });
 				let kaydetIslemi = async _e => await this.onaylaDevam({ ...e, ..._e, gridPart });

@@ -179,7 +179,7 @@ class ModelTanimPart extends Part {
 	}
 	islemTuslariArgsDuzenle(e) {
 		const {args} = e; e.sender = this;
-		$.extend(args, { tip: this.izlemi ? 'vazgec' : 'tamamVazgec', id2Handler: { tamam: e => this.kaydetIstendi(e), vazgec: e => this.vazgecIstendi(e) } });
+		$.extend(args, { tip: this.izlemi ? 'vazgec' : 'tamamVazgec', id2Handler: { tamam: e => this.tamamIstendi(e), vazgec: e => this.vazgecIstendi(e) } });
 		for (const builder of this.getBuilders(e)) { e.builder = builder; if (builder.islemTuslariArgsDuzenle) { builder.islemTuslariArgsDuzenle(e) } }
 	}
 	islemTuslariDuzenle(e) {
@@ -238,6 +238,7 @@ class ModelTanimPart extends Part {
 		return { parts: newParts, layouts: altFormlar }
 	}
 	altFormPart_argsDuzenle(e) { }
+	tamamIstendi(e) { setTimeout(() => this.kaydetIstendi(e), 100) }
 	async kaydetIstendi(e) {
 		e = e || {}; e.sender = this; const {inst, eskiInst, mfSinif} = this; let result;
 		try {

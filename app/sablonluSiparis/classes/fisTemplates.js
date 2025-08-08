@@ -50,7 +50,7 @@ class SablonluSiparisFisTemplate extends CObject {
 				`$elementCSS { font-size: 130% } $elementCSS > ._row { gap: 10px } $elementCSS > ._row:not(:last-child) { margin-bottom: 5px }
 				$elementCSS .etiket { width: 130px !important } $elementCSS .veri { font-weight: bold; color: royalblue }`
 			 ).setLayout(({ builder: fbd }) => {
-				let {altInst: inst} = fbd, {tarih, subeKod, mustKod, sablonSayac, klFirmaKod, teslimCariKod} = inst, css = `gap: 50px`;
+				let {altInst: inst} = fbd, {tarih, subeKod, mustKod, sablonSayac, klFirmaKod, teslimCariKod, takipNo} = inst, css = `gap: 50px`;
 				return $(`<div class="full-width">
 					<div class="flex-row" style="${css}">
 						<div class="tarih _row flex-row"><div class="etiket">Tarih</div><div style="margin-right: 10px"></div><div class="veri">${dateToString(inst.tarih) || ''}</div></div>
@@ -59,6 +59,7 @@ class SablonluSiparisFisTemplate extends CObject {
 					</div>
 					<div class="flex-row" style="${css}">
 						${mustKod ? `<div class="must _row flex-row"><div class="etiket">Müşteri</div><div class="veri">${mustKod?.trim() || ''}</div></div>` : ''}
+						${takipNo ? `<div class="takipNo _row flex-row"><div class="etiket">Takip</div><div class="veri">${takipNo?.trim?.() || ''}</div></div>` : ''}
 					</div>
 					<div class="flex-row" style="${css}">
 						${subeKod ? `<div class="sube _row flex-row"><div class="etiket">Şube</div><div class="veri" style="margin-right: 10px">${subeKod?.trim() || ''}</div></div>` : ''}
