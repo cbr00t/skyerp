@@ -19,6 +19,8 @@ class TekSecim extends CIO {
 	get kodListe() { let result = this._kodListe; if (result === undefined) { result = this._kodListe = this.kaListe.map(ka => ka.kod) } return result }
 	get adiListe() { let result = this._adiListe; if (result === undefined) { result = this._adiListe = this.kaListe.map(ka => ka.aciklama) } return result }
 	get kod() { return this.char } get aciklama() { return this.secilen?.aciklama }
+	get question() { return this.secilen?.question }
+	get ekBilgi() { return this.secilen?.ekBilgi }
 	constructor(e) {
 		if (e != null && typeof e != 'object') { e = { char: e } } e = e || {}; super(e);
 		this.init(e); this.kaListeOlustur(e); const defaultChar = this.defaultChar = e.defaultChar ?? this.class.defaultChar;

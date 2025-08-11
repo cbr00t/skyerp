@@ -144,7 +144,7 @@ class SBTabloDetay extends MQDetay {
 		let result = { ...this, id, satirListe };
 		for (let key of keys) {
 			let value = this[key];
-			// value = value?.char ?? value;
+			// value = value?.kod ?? value;
 			value = value?.deepCopy?.() ?? value;
 			if (typeof value == 'object' && !value?.deepCopy) { value = $.extend(true, {}, value) }
 			if (value !== undefined) { result[key] = value }
@@ -156,7 +156,11 @@ class SBTabloDetay extends MQDetay {
 	set satirListe(value) { this.satirListeStr = value?.length ? value.filter(x => x != null).map(x => x + 1).sort().join(', ') : '' }
 	get secimler() {
 		let {hesapTipi, shStokHizmet, tip2Secimler} = this;
-		let tip = hesapTipi?.hizmetmi ? 'H' : hesapTipi?.ticarimi ? shStokHizmet?.char : null;
+		let tip = (
+			hesapTipi?.ticarimi ? shStokHizmet?.kod :
+			hesapTipi?.hizmetmi ? 'H' :
+			hesapTipi?.ekBilgi?.hareketcimi ? hesapTipi.kod : null
+		);
 		return tip2Secimler[tip]
 	}
 	get asFormul() {
@@ -196,11 +200,17 @@ class SBTabloDetay extends MQDetay {
 		let tip2Secimler = this.tip2Secimler = e.tip2Secimler ?? {};
 		let tip2SecimMFYapi = {
 			S: { sh: DMQStok, grup: DMQStokGrup, anaGrup: DMQStokAnaGrup, istGrup: DMQStokIstGrup },
-			H: { sh: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup, istGrup: DMQHizmetIstGrup }
+			H: { sh: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup, istGrup: DMQHizmetIstGrup },
+			BN: { sh: DMQBanka, hesap: DMQBanka }
+		};
+		let tip2EkWhereDuzenleyici = {
+			BN: ({ raporTanim, secimler: sec, where: wh }) => { debugger }
 		};
 		for (let [tip, yapi] of Object.entries(tip2SecimMFYapi)) {
-			let secimler = tip2Secimler[tip]; if (secimler) { continue }
 			if ($.isEmptyObject(yapi)) { continue }
+			let secimler = tip2Secimler[tip]; if (secimler) { continue }
+			let secimEkWhereDuzenle = tip2EkWhereDuzenleyici[tip];
+			$.extend(secimler, secimEkWhereDuzenle);
 			(secimler = tip2Secimler[tip] = new Secimler()).beginUpdate();
 			for (let [key, mfSinif] of Object.entries(yapi)) {
 				let {kodListeTipi: grupKod, sinifAdi: grupAdi} = mfSinif;
@@ -240,28 +250,31 @@ class SBTabloDetay extends MQDetay {
 	raporQueryDuzenle(e) {
 		let det = e.det = this, {rapor, secimler, stm, donemBS, subeKodlari, sentDuzenle} = e;
 		let {tabloYapi} = rapor, {aciklama, hesapTipi, shStokHizmet, veriTipi} = this;
-		let shDurum = e.shDurum = {
-			stokmu: hesapTipi.ticarimi && (shStokHizmet.birliktemi || shStokHizmet.stokmu),
-			hizmetmi: hesapTipi.hizmetmi || (hesapTipi.ticarimi && (shStokHizmet.birliktemi || shStokHizmet.hizmetmi))
+		let {ticarimi} = hesapTipi, {hareketcimi} = hesapTipi.ekBilgi ?? {};
+		let durum = e.durum = {
+			stokmu: ticarimi && (shStokHizmet.birliktemi || shStokHizmet.stokmu),
+			hizmetmi: hesapTipi.hizmetmi || (ticarimi && (shStokHizmet.birliktemi || shStokHizmet.hizmetmi))
 		};
+		let {stokmu, hizmetmi} = durum;
+		if (hareketcimi && !(stokmu || hizmetmi)) { durum[hesapTipi.question] = true }
 		let _e = { ...e, sahaAlias: 'bedel' };
-		let {stokmu, hizmetmi} = shDurum;
-		if (stokmu || hizmetmi) {
+		if (ticarimi || hareketcimi) {
 			secimler = secimler ?? rapor?.secimler;
-			let {secimler: detSecimler} = this;    /* detay secimler */
+			let {secimler: detSecimler} = this, raporTanim = this;    /* detay secimler */
 			$.extend(_e, { detSecimler });
 			if (detSecimler) {
+				let {hizmetmi} = durum;
 				detSecimler.whereBlockListe = [];
 				detSecimler.whereBlockEkle(({ secimler: sec, where: wh }) => {
 					let alias = hizmetmi ? 'hiz' : 'stk', iGrpAlias = hizmetmi ? 'higrp' : 'sigrp';
 					wh.basiSonu(sec.shKod, `${alias}.kod`).ozellik(sec.shAdi, `${alias}.aciklama`);
 					wh.basiSonu(sec.grupKod, 'grp.kod').ozellik(sec.grupAdi, 'grp.aciklama');
 					wh.basiSonu(sec.anaGrupKod, 'agrp.kod').ozellik(sec.anaGrupAdi, 'agrp.aciklama');
-					wh.basiSonu(sec.istGrupKod, `${iGrpAlias}.kod`).ozellik(sec.istGrupAdi, `${iGrpAlias}.aciklama`)
+					wh.basiSonu(sec.istGrupKod, `${iGrpAlias}.kod`).ozellik(sec.istGrupAdi, `${iGrpAlias}.aciklama`);
+					sec.secimEkWhereDuzenle?.({ ..._e, raporTanim, alias, secimler: sec, where: wh })
 				});
 				{
-					secimler = secimler.deepCopy();
-					secimler.beginUpdate();
+					(secimler = secimler.deepCopy()).beginUpdate();
 					$.extend(secimler.liste, { ...detSecimler.liste });
 					let whereBlockListe = secimler.whereBlockListe ??= [], {whereBlockListe: detWhereBlockListe} = detSecimler;
 					if (detWhereBlockListe) { whereBlockListe.push(...detWhereBlockListe) }
@@ -270,14 +283,14 @@ class SBTabloDetay extends MQDetay {
 			}
 			e.secimler = secimler
 		}
-		let ekBilgi = veriTipi.secilen?.ekBilgi ?? {};
+		let ekBilgi = veriTipi?.ekBilgi ?? {};
 		let {sentUygunluk, sentDuzenle: icerikSentDuzenle} = ekBilgi;
-		$.extend(e, { aciklama, hesapTipi, shStokHizmet, veriTipi });
-		for (let [selector, flag] of Object.entries(shDurum)) {
-			_e[selector] = flag; if (!flag) { continue }
+		$.extend(e, { aciklama, hesapTipi, shStokHizmet, veriTipi, ticarimi, hareketcimi });
+		for (let [selector, flag] of Object.entries(durum)) {
+			if (!flag) { continue } _e[selector] = flag;
 			if (!(sentUygunluk == null || sentUygunluk?.call(this, _e))) { continue }
-			if (hesapTipi.ticarimi) { this.raporQueryDuzenle_satis(_e) }
-			else if (hesapTipi.hizmetmi) { this.raporQueryDuzenle_hizmetHareket(_e) }
+			if (ticarimi) { this.raporQueryDuzenle_satis(_e) }
+			else if (hareketcimi) { this.raporQueryDuzenle_hareketci(_e) }
 		}
 		stm = e.stm = _e.stm; let {sent: uni} = stm ?? {};
 		if (!uni?.liste?.length) { return this }
@@ -286,7 +299,8 @@ class SBTabloDetay extends MQDetay {
 			let sahaAliases = Object.values(tabloYapi?.toplam).map(({ colDefs }) => colDefs.map(({ belirtec }) => belirtec)).flat();
 			let mstTableAlias = hizmetmi ? 'hiz' : 'stk', iGrpAlias = hizmetmi ? 'higrp' : 'sigrp';
 			let mstBaglaSelector = hizmetmi ? 'x2HizmetBagla' : 'x2StokBagla';
-			let ekBaglaPrefix = hizmetmi ? 'hizmet' : 'stok', mstKodAlias = `${ekBaglaPrefix}kod`;
+			let ekBaglaPrefix = hizmetmi ? 'hizmet' : 'stok';
+			let mstKodAlias = `${ekBaglaPrefix}kod`;
 			for (let i = 0; i < uni.liste.length; i++) {
 				let sent = uni.liste[i];
 				let {where: wh, sahalar} = sent, hv = { ...defHV, ...harHVListe?.[i] };
@@ -322,14 +336,17 @@ class SBTabloDetay extends MQDetay {
 		sentOrtakOlustur();
 		return this
 	}
-	raporQueryDuzenle_hizmetHareket(e) {
-		let {rapor, secimler, sahaAlias: bedelAlias} = e;
-		let aliasListe = ['ba', bedelAlias], topSahaSet = asSet([bedelAlias]);
-		let har = new HizmetHareketci().withAttrs('tarih', 'bizsubekod', 'ozelisaret', 'hizmetkod', ...aliasListe);
+	raporQueryDuzenle_hareketci({ hizmetmi, bankami }) {
+		if (hizmetmi) { return this.raporQueryDuzenle_hizmet(...arguments) }
+		// TO DO: ??
+	}
+	raporQueryDuzenle_hizmet({ rapor, secimler, sahaAlias: bedelAlias, uni }) {
+		let {hesapTipi} = this, {harSinif} = hesapTipi.ekBilgi ?? {}; if (!harSinif) { return this }
+		let e = arguments[0], aliasListe = ['ba', bedelAlias], topSahaSet = asSet([bedelAlias]);
+		let har = new harSinif().withAttrs('tarih', 'bizsubekod', 'ozelisaret', 'hizmetkod', ...aliasListe);
 		let {varsayilanHV: defHV} = har.class;
-		let {uni} = e, harUni = har.uniOlustur({ ...e, rapor, secimler });
-		let harHVListe = e.harHVListe = [];
-		for (let harSent of harUni) {
+		let harUni = har.uniOlustur({ ...e, rapor, secimler });
+		let harHVListe = e.harHVListe = []; for (let harSent of harUni) {
 			let {alias2Deger: hv} = harSent, sent = harSent.deepCopy();
 			harHVListe.push(hv);
 			let addClause = alias => {
@@ -382,7 +399,7 @@ class SBTabloGridci extends GridKontrolcu {
 			let clear = () => html = changeTagContent(html, '');
 			switch (belirtec) {
 				case 'veriTipi':
-					if (!(hesapTipi.ticarimi || hesapTipi.hizmetmi)) { clear() } break
+					if (!(hesapTipi.ticarimi || hesapTipi.ekBilgi?.hareketcimi)) { clear() } break
 				case 'shStokHizmet': case 'shAlmSat':
 				case 'shIade': case 'shAyrimTipi':
 					if (!hesapTipi.ticarimi) { clear() } break
@@ -461,7 +478,7 @@ class SBTabloGridci extends GridKontrolcu {
 	async onKontrol({ detay: det }) {
 		let {hesapTipi, veriTipi} = det;
 		if (hesapTipi.secilen == null || hesapTipi.bosmu) { return `<b class=firebrick>Hesap Tipi</b> boş olamaz` }
-		if ((hesapTipi.ticarimi || hesapTipi.hizmetmi) && (veriTipi.secilen == null || veriTipi.yokmu)) { return `<b class=firebrick>Veri Tipi</b> boş olamaz` }
+		if ((hesapTipi.ticarimi || hesapTipi.ekBilgi?.hareketcimi) && (veriTipi.secilen == null || veriTipi.yokmu)) { return `<b class=firebrick>Veri Tipi</b> boş olamaz` }
 	}
 	getRootFormBuilder(e) {
 		let {islem, sender: gridPart, gridRec: eskiDetay} = e, {gridWidget} = gridPart;
@@ -527,7 +544,7 @@ class SBTabloGridci extends GridKontrolcu {
 			}))
 			.setVisibleKosulu(({ builder: fbd }) => {
 				let {hesapTipi} = fbd.altInst;
-				return hesapTipi.ticarimi || hesapTipi.hizmetmi
+				return hesapTipi.ticarimi || hesapTipi.ekBilgi?.hareketcimi
 			});
 		form.addButton('css', 'Biçimlendirme').addStyle_wh(150, 50)
 			.addStyle(`$elementCSS { margin: 30px 0 0 20px }`)
@@ -613,14 +630,15 @@ class SBTabloGridci extends GridKontrolcu {
 			.setVisibleKosulu(({ builder: fbd }) => secimlerInitWithKosul(fbd, ({ hesapTipi, shStokHizmet }) => hesapTipi.ticarimi && shStokHizmet.hizmetmi));
 		// altForm.addForm().setLayout(() => $(`<div>Hizmet için seçimler</div>`)).autoAppend();
 		// initSecimlerForm(altForm, 'ticSatisSecimler_hizmet', 'Hizmet');
-		
-		form = fbd_altForm.addFormWithParent('altForm_hizmet').altAlta()
-			.setVisibleKosulu(({ builder: fbd }) => secimlerInitWithKosul(fbd, ({ hesapTipi }) => hesapTipi.hizmetmi));
-		// form.addForm().setLayout(() => $(`<div>Hizmet için seçimler</div>`)).autoAppend();
-		// initSecimlerForm(form, 'secimler_hizmet', 'Hizmet');
+
+		for (let key of ['hizmet', 'banka']) {
+			let selector = `${key}mi`;
+			form = fbd_altForm.addFormWithParent(`altForm_${key}`).altAlta()
+				.setVisibleKosulu(({ builder: fbd }) => secimlerInitWithKosul(fbd, ({ hesapTipi }) => hesapTipi[selector]))
+		}
 
 		form = fbd_altForm.addFormWithParent('altForm_formul').altAlta()
-			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.hesapTipi.formulmu);
+			.setVisibleKosulu(({ builder: fbd }) => !!fbd.altInst.hesapTipi.formulmu);
 		form.addTextArea('formul', 'Formül').setRows(4).setCols(100);
 
 		form = fbd_altForm.addFormWithParent('altForm_satirlarToplami').altAlta()

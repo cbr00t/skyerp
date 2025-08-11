@@ -534,9 +534,18 @@ class SablonluSiparisFisTemplate extends CObject {
 		}
 	}
 	static getYazmaIcinDetaylar({ fis }) { return fis.detaylar.filter(det => !!det.miktar) }
-	static async kaydetOncesiIslemler({ fis }) {
-		let {detaylar} = fis;
-		if (!detaylar.filter(det => det.miktar)?.length) { throw { isError: true, rc: 'emptyRecs', errorText: 'Sipariş boş olamaz' } }
+	static async kaydetOncesiIslemler({ islem, fis }) {
+		if (islem == 'sil') { return }
+		let {detaylar} = fis, bosmu = true;
+		for (let det of detaylar) {
+			let {miktar} = det; if (!miktar) { continue }
+			let {fiyat, netBedel: bedel} = det; bosmu = false;
+			if (fiyat && !bedel) {
+				await det.bedelHesapla?.({ fis }); bedel = det.netBedel;
+				if (!bedel) { throw { isError: true, rc: 'fiyatBedelSorunu', errorText: 'Bazı ürünlerin Fiyati var ama Bedeli belirsiz' } }
+			}
+		}
+		if (bosmu) { throw { isError: true, rc: 'emptyRecs', errorText: 'Sipariş boş olamaz' } }
 		await this.stokIslemBelirle(...arguments);
 		await this.dagitimIcinEkBilgileriBelirle(...arguments)
 	}
@@ -730,14 +739,14 @@ class SablonluSiparisGridciTemplate extends CObject {
 		grid.jqxGrid({ sortable: true, filterable: true, groupable: true, groups: ['grupAdi'] })
 	}
 	static miktarFiyatDegisti({ sender: gridPart, gridWidget, rowIndex, belirtec, gridRec: det, value }) {
-		let {belirtec2Kolon} = gridPart, {paketIcAdet} = det;
+		let {belirtec2Kolon, fis} = gridPart, {paketIcAdet} = det;
 		det._degistimi = true;
 		if (belirtec == 'miktar' && paketIcAdet) {
 			let {brm} = det, {fra} = belirtec2Kolon[belirtec].tip ?? {};
 			if (brm) { fra = Math.max(fra, app.params.stokBirim.brmDict[brm].fra) }
 			if (typeof value != 'number') { value = asFloat(value) }
 			value = det.miktar = roundToFra(Math.ceil(value / paketIcAdet) * paketIcAdet, fra);
-			det.bedelHesapla()
+			det.bedelHesapla({ fis })
 		}
 		setTimeout(() => {
 			let {selectedRowIndex, selectedBelirtec} = gridPart; selectedBelirtec ||= belirtec;
@@ -746,5 +755,4 @@ class SablonluSiparisGridciTemplate extends CObject {
 		}, 70)
 		/* gridWidget.render(); gridWidget.ensurerowvisible(rowIndex) */
 	}
-	static bedelHesapla(e) { }
 }

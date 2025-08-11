@@ -85,7 +85,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		for (let key of ['altSeviyeToplamimi', 'satirlarToplamimi']) { formulYapilari[key] = [] }
 		for (let det of detaylar) {
 			let {sayac: id, hesapTipi} = det; id2Detay[id] = det;
-			let ekBilgi = hesapTipi.secilen?.ekBilgi ?? {}, {querymi} = ekBilgi;
+			let ekBilgi = hesapTipi?.ekBilgi ?? {}, {querymi} = ekBilgi;
 			if (querymi) {
 				let uni = new MQUnionAll(), stm = new MQStm({ sent: uni });
 				$.extend(_e, { stm, uni }); det.raporQueryDuzenle(_e); stm = _e.stm;

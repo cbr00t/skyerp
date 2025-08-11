@@ -53,7 +53,7 @@ class BarkodParser_Ayrisim extends BarkodParser_Kuralli {
 						this.shKod = parser.shKod; result = true
 					}
 					break;
-				case 'K': this.miktar = asFloat(deger) || null; miktarAtandimi = true; break
+				case 'K': this.miktar = asFloat(deger.replace(',', '.')) || null; miktarAtandimi = true; break
 				case 'Z': this.zSeq = asInteger(deger) || null; break;
 				default:
 					let hmrBelirtec2Bilgi = kural.class.hmrBelirtec2Bilgi || {}, bilgi = hmrBelirtec2Bilgi[belirtec];

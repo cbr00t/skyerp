@@ -13,14 +13,22 @@ class SBTabloHesapTipi extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle({ kaListe }) {
-		super.kaListeDuzenle(...arguments); kaListe.push(...[
+		super.kaListeDuzenle(...arguments); let ekListe = [
 			/*new CKodAdiVeEkBilgi(['', 'Yok', 'yokmu', { ozelmi: true }]),*/
-			new CKodAdiVeEkBilgi(['AS', 'Alt Seviye Toplamı', 'altSeviyeToplamimi', { ozelmi: true, formulmu: true }]),
-			new CKodAdiVeEkBilgi(['FR', 'Satırlar Toplamı', 'satirlarToplamimi', { ozelmi: true, formulmu: true }]),
+			new CKodAdiVeEkBilgi(['AS', 'Alt Seviye Toplamı', 'altSeviyeToplamimi', { formulmu: true }]),
+			new CKodAdiVeEkBilgi(['FR', 'Satırlar Toplamı', 'satirlarToplamimi', { formulmu: true }]),
 			new CKodAdiVeEkBilgi(['SH', 'Ticari', 'ticarimi', { querymi: true }]),
-			new CKodAdiVeEkBilgi(['HZ', 'Hizmet Hareketleri', 'hizmetmi', { querymi: true }]),
-			(config.dev ? new CKodAdiVeEkBilgi(['FX', 'Formül', 'formulmu'], { ozelmi: true, formulmu: true }) : null)
-		].filter(x => !!x))
+			new CKodAdiVeEkBilgi(['HZ', 'Hizmet Hareketleri', 'hizmetmi', { hareketcimi: true, harSinif: HizmetHareketci }]),
+			new CKodAdiVeEkBilgi(['BN', 'Banka Hareketleri', 'bankami', { hareketcimi: true, harSinif: BankaMevduatHareketci }]),
+			(config.dev ? new CKodAdiVeEkBilgi(['FX', 'Formül', 'formulmu'], { formulmu: true }) : null)
+		].filter(x => !!x);
+		for (let {ekBilgi} of ekListe) {
+			if (!ekBilgi) { continue }
+			if (ekBilgi.formulmu) { ekBilgi.ozelmi = true }
+			else if (ekBilgi.harSinif) { ekBilgi.hareketcimi = ekBilgi.querymi = true }
+			else if (ekBilgi.hareketcimi) { ekBilgi.querymi = true }
+		}
+		if (ekListe.length) { kaListe.push(...ekListe) }
 	}
 }
 class SBTabloVeriTipi extends TekSecim {
@@ -34,7 +42,7 @@ class SBTabloVeriTipi extends TekSecim {
 			let tersmi = det.tersIslemmi != det.shIade.iademi;
 			sent.sahalar.add(`(SUM(${clause})${tersmi ? ' * -1' : ''}) ${sahaAlias}`)
 		};
-		this.kaListeDuzenle_ticari(e).kaListeDuzenle_hizmet(e)
+		this.kaListeDuzenle_ticari(e).kaListeDuzenle_hareketci(e)
 	}
 	kaListeDuzenle_ticari({ kaListe, topSahaEkle }) {
 		let gosterimUygunluk = ({ hesapTipi }) => hesapTipi.ticarimi, sentUygunluk = null;
@@ -64,7 +72,7 @@ class SBTabloVeriTipi extends TekSecim {
 					topSahaEkle({ ...e, clause: 'har.harciro' })
 			}]),
 			new CKodAdiVeEkBilgi(['MAL', 'Maliyet', 'maliyetmi', {
-				gosterimUygunluk, sentUygunluk: ({ stokmu, hizmetmi }) => stokmu,
+				gosterimUygunluk, sentUygunluk: ({ stokmu, hareketcimi }) => stokmu,
 				sentDuzenle: e =>
 					topSahaEkle({ ...e, clause: 'har.fmalhammadde + har.fmalmuh' })
 			}]),
@@ -73,15 +81,15 @@ class SBTabloVeriTipi extends TekSecim {
 					topSahaEkle({ ...e, clause: 'har.harciro + har.topkdv' })
 			}]) /*,
 			new CKodAdiVeEkBilgi(['KML', 'KDVli Maliyet', 'kdvliMaliyetmi', {
-				gosterimUygunluk, sentUygunluk: ({ stokmu, hizmetmi }) => stokmu,
+				gosterimUygunluk, sentUygunluk: ({ stokmu, hareketcimi }) => stokmu,
 				sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.fmalhammadde + har.fmalmuh + har.topkdv' })
 			}])*/
 		]);
 		return this
 	}
-	kaListeDuzenle_hizmet({ kaListe, topSahaEkle }) {
+	kaListeDuzenle_hareketci({ kaListe, topSahaEkle }) {
 		let {sqlZero} = Hareketci_UniBilgi.ortakArgs;
-		let gosterimUygunluk = ({ hesapTipi }) => hesapTipi.hizmetmi, sentUygunluk = null;
+		let sentUygunluk = null, gosterimUygunluk = ({ hesapTipi }) => hesapTipi.ekBilgi?.hareketcimi;
 		let getBABedelClause = (ba, baClause, bedelClause) => {
 			bedelClause ??= sqlZero;
 			if (!(ba && baClause)) { return bedelClause }
@@ -122,7 +130,7 @@ class SBTabloStokHizmet extends TekSecim {
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments); kaListe.push(
 			new CKodVeAdi(['S', '<span class=forestgreen>Sadece Stok</span>', 'stokmu']),
-			new CKodVeAdi(['H', '<span class=orangered>Sadece Hizmet</span>', 'hizmetmi']),
+			new CKodVeAdi(['H', '<span class=orangered>Sadece Hizmet</span>', 'hareketcimi']),
 			new CKodVeAdi([' ', '<span class=royalblue>Birlikte</span>', 'birliktemi'])
 		)
 	}
