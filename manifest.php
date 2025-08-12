@@ -9,7 +9,7 @@
 	"categories": ["business"], "display": "fullscreen", "display_override": ["fullscreen", "standalone"],
 	"launch_handler": { "client_mode": ["focus-existing", "auto"] },
 	"scope": "/skyerp", "start_url": "/skyerp<?=$startURL_postfix?>/", "orientation": "any",
-	"scope_extensions": ["*"],
+	"scope_extensions": [],
 	"prefer_related_applications": false, "related_applications": [],
 	"background_color": "#3367D6", "theme_color": "#3367D6", "lang": "tr", "dir": "ltr",
 	"protocol_handlers": [{ "protocol": "web+erp", "url": "app/%s/" }],

@@ -1,6 +1,6 @@
 class CariHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 10 }
-	static get kod() { return 'cari' } static get aciklama() { return 'Cari' }
+	static get kisaKod() { return 'CR' } static get kod() { return 'cari' } static get aciklama() { return 'Cari' }
 	/*static altTipYapilarDuzenle({ result }) {
 		$.extend(result, {
 			musteri: new DRapor_AltTipYapi(['musteri', `'Müşteriler'`]).sol()
@@ -605,5 +605,10 @@ class CariHareketci extends Hareketci {
 			]
 		});
 		return this
+	}
+
+	static maliTablo_secimlerYapiDuzenle({ result }) {
+		super.maliTablo_secimlerYapiDuzenle(...arguments);
+		$.extend(result, { mst: DMQCari, grup: DMQCariTip, istGrup: DMQCariIstGrup, bolge: DMQCariBolge })
 	}
 }

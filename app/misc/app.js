@@ -16,7 +16,8 @@ class MiscApp extends App {
 			return menuItems
 		};
 		addMenuSubItems('HESNA', 'Hesna', [...MQHesnaStok.subClasses]);
-		addMenuSubItems('AI', 'AI Training', [AITraining01Part])
+		addMenuSubItems('UTILS', 'Utils', [MQFirewall]);
+		// addMenuSubItems('AI', 'AI Training', [AITraining01Part]);
 		return new FRMenu({ items })
 	}
 	wsX(e) { let args = e || {}; delete args.data; return ajaxPost({ url: this.getWSUrl({ api: 'testBilgi', args }) }) }

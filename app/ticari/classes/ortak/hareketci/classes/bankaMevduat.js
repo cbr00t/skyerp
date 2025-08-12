@@ -1,6 +1,6 @@
 class BankaMevduatHareketci extends BankaOrtakHareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 2 }
-    static get kod() { return 'bankaMevduat' } static get aciklama() { return 'Banka Mevduat' }
+    static get kisaKod() { return 'BM' } static get kod() { return 'bankaMevduat' } static get aciklama() { return 'Banka Mevduat' }
 	static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sol() }
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
         super.hareketTipSecim_kaListeDuzenle(...arguments); kaListe.push(
@@ -427,4 +427,15 @@ class BankaMevduatHareketci extends BankaOrtakHareketci {
         });
         return this
     }
+
+	static maliTablo_secimlerYapiDuzenle({ result }) {
+		super.maliTablo_secimlerYapiDuzenle(...arguments);
+		$.extend(result, { mst: DMQBankaHesap, grup: DMQBankaHesapGrup })
+	}
+	static maliTablo_secimlerSentDuzenle({ detSecimler: detSec, sent, where: wh, hv, mstClause }) {
+		super.maliTablo_secimlerSentDuzenle(...arguments);
+		let {from} = sent; sent.bankaHesap2GrupBagla();
+		wh.basiSonu(detSec.mstKod, mstClause).ozellik(detSec.mstAdi, 'bhes.aciklama');
+		wh.basiSonu(detSec.grupKod, 'bhes.grupkod').ozellik(detSec.grupAdi, 'bhgrp.aciklama')
+	}
 }

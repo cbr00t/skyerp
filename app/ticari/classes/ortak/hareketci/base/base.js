@@ -1,5 +1,6 @@
 class Hareketci extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return true } static get oncelik() { return 99 }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return true }
+	static get oncelik() { return 99 } static get kisaKod() { return this.kod }
 	static get kod() { return null } static get aciklama() { return null } static get araSeviyemi() { return this == Hareketci }
 	static get donemselIslemlerIcinUygunmu() { return true } static get eldekiVarliklarIcinUygunmu() { return this.donemselIslemlerIcinUygunmu }
 	static get defaultYon() { return 'sol' }
@@ -121,7 +122,9 @@ class Hareketci extends CObject {
 		for (const ext of this.getExtIter()) { ext.hareketTipSecim_kaListeDuzenle(e) }
 	}
 	static ilkIslemler(e) { }
-	uniOrtakSonIslem({ sender, hv, sent, secimler, sqlNull, sqlEmpty, sqlZero }) {
+	uniOrtakSonIslem({ sender, hv, sent, secimler, det = {}, detSecimler = {}, donemTipi, sqlNull, sqlEmpty, sqlZero }) {
+		let {where: wh} = sent, tbWhere = secimler?.getTBWhereClause(...arguments);
+		if (tbWhere?.liste?.length) { wh.birlestir(tbWhere) }
 		if (sender?.finansalAnalizmi) {
 			let {finanalizkullanilmaz: finAnalizKullanimClause} = hv, {where: wh, sahalar} = sent;
 			if (finAnalizKullanimClause == sqlEmpty || finAnalizKullanimClause == sqlNull) { finAnalizKullanimClause = null }
@@ -131,11 +134,10 @@ class Hareketci extends CObject {
 			altTipOncelikClause = altTipOncelikClause || sqlZero;
 			yonClause = yonClause || (this.class.defaultYon?.sqlServerDegeri() ?? sqlEmpty);
 			sahalar.add(`${altTipAdiClause} alttipadi`, `${altTipOncelikClause} alttiponcelik`, `${yonClause} yon`)
-			/*let {from, where: wh} = sent, digerHarmi = from.aliasIcinTable('har')?.deger == 'csdigerhar';
-			wh.degerAta('', `ctip.finanaliztipi`)*/
 		}
-		let {where: wh} = sent, tbWhere = secimler?.getTBWhereClause(...arguments);
-		if (tbWhere?.liste?.length) { wh.birlestir(tbWhere) }
+		else if (donemTipi) {
+			
+		}
 	}
 	static varsayilanHVDuzenle_ortak({ hv, sqlNull, sqlEmpty }) {
 		for (const key of [
@@ -213,7 +215,7 @@ class Hareketci extends CObject {
 			let {hareketTipSecim} = this.class; uygunlukVarmi = !$.isEmptyObject(hareketTipSecim.kaListe);
 			if (uygunlukVarmi) { uygunluk = asSet(hareketTipSecim.kaListe.map(({ kod }) => kod)) }
 		}
-		let sender = this, hareketci = this, {uni} = e; $.extend(e, { uygunluk, zorunluAttrSet });
+		let sender = this, hareketci = this, {uni, maliTablomu} = e; $.extend(e, { uygunluk, zorunluAttrSet });
 		for (let [selectorStr, unionBilgiListe] of Object.entries(uygunluk2UnionBilgiListe)) {
 			let uygunmu = true; if (uygunlukVarmi) {
 				let keys = selectorStr.split('$').filter(x => !!x);
@@ -238,9 +240,9 @@ class Hareketci extends CObject {
 					hv = _e.hv
 				}
 				let hvDegeri = key => hv?.[key] || defHV?.[key];
-				$.extend(_e, { ...defHV, ...hv, rapor, secimler, hvDegeri });
+				$.extend(_e, { ...defHV, ...hv, har: this, harSinif: this.class, rapor, secimler, hvDegeri });
 				this.uniDuzenle_tumSonIslemler(_e); sent = _e.sent;
-				sent.groupByOlustur().gereksizTablolariSil();
+				if (!maliTablomu) { sent.groupByOlustur().gereksizTablolariSil() }
 				if (sent?.sahalar?.liste?.length) { uni.add(sent) }
 			}
 		}
@@ -293,6 +295,16 @@ class Hareketci extends CObject {
 	setWHD_master(value) { this.whereYapi.master = value; return this } setWHD_hareket(value) { this.whereYapi.hareket = value; return this } setUygunluk(value) { this.uygunluk = value; return this }
 	gereksizTablolariSil() { this.gereksizTablolariSilFlag = true; return this } gereksizTablolariSilme() { this.gereksizTablolariSilFlag = false; return this }
 	reset(e) { for (let key of ['_uygunluk2UnionBilgiListe', '_defaultAttrSet', '_zorunluAttrSet']) { delete this[key] } return this }
+
+	static maliTablo_secimlerYapiOlustur(e) {
+		let {tip2SecimMFYapi} = e; if (!tip2SecimMFYapi) { return this }
+		e.result = {}; this.maliTablo_secimlerYapiDuzenle(e); let {result} = e;
+		if (!$.isEmptyObject(result)) { tip2SecimMFYapi[this.kisaKod] = result }
+		return this
+	}
+	static maliTablo_secimlerYapiDuzenle({ result }) { }
+	// static maliTablo_secimlerSentDuzenle({ secimler: genSec, detSecimler: detSec, uni, sent, where: wh, hv, donemTipi, det, har, attrSet, mstYapi, mstYapi: { hvAlias } }) {
+	static maliTablo_secimlerSentDuzenle({ detSecimler: detSec, sent, where: wh, hv, mstClause }) { }
 }
 
 /*

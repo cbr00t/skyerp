@@ -78,7 +78,8 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 	async loadServerDataInternal(e) {
 		await super.loadServerDataInternal(e);
 		let rapor = this, {raporTanim, secimler} = this, {detaylar} = raporTanim;
-		let {tarihBSVeyaCariDonem: donemBS} = secimler;
+		// let {tarihBSVeyaCariDonem: donemBS} = secimler;
+		let {tarihBS: donemBS} = secimler;
 		let _e = { ...e, rapor, raporTanim, secimler, donemBS, detaylar };
 		let id2Promise = {}, id2Detay = e.id2Detay = {};
 		let formulYapilari = e.formulYapilari = {};

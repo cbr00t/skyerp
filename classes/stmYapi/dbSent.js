@@ -317,6 +317,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	fis2DegAdresBagla(e) { this.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox'); return this }
 	x2KasaBagla(e) { e = e ?? {}; let {kodClause} = e; this.fromIliski('kasmst kas', `${kodClause} = kas.kod`); return this }
 	fis2KasaBagla(e) { return this.x2KasaBagla({ ...e, kodClause: 'fis.kasakod' }) }
+	kasa2GrupBagla(e) { this.fromIliski('kasagrup kgrp', 'kas.grupkod = kgrp.kod'); return this }
 	fis2BankaHesapBagla(e) { return this.x2BankaHesapBagla({ ...e, kodClause: 'fis.banhesapkod' }) }
 	fis2KrediBankaHesapBagla(e) { return this.x2BankaHesapBagla({ ...e, kodClause: 'fis.kredihesapkod' }) }
 	x2BankaHesapBagla(e) { let kodClause = e?.kodClause; this.fromIliski('banbizhesap bhes', `${kodClause} = bhes.kod`); return this }
@@ -438,6 +439,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		this.fromIliski('hizistgrup higrp', `${aliasVeNokta}histgrupkod = higrp.kod`); return this
 	}
 	bankaHesap2BankaBagla(e) { this.fromIliski('banmst ban', 'bhes.bankakod = ban.kod'); return this }
+	bankaHesap2GrupBagla(e) { this.fromIliski('banhesapgrup bhgrp', 'bhes.grupkod = bhgrp.kod'); return this }
 	har2VarsayilanUrunPaketBagla(e) {
 		this.leftJoin({ alias: 'har', table: 'urunpaket varp', on: ['har.stokkod = varp.urunkod', `varp.varsayilan <> ''`] });
 		return this

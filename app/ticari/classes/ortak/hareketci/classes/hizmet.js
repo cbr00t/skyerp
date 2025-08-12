@@ -1,6 +1,6 @@
 class HizmetHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kod() { return 'hizmet' } static get aciklama() { return 'Hizmet' }
+	static get kisaKod() { return 'H' } static get kod() { return 'hizmet' } static get aciklama() { return 'Hizmet' }
 	static get donemselIslemlerIcinUygunmu() { return false }
 	static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sol() }
 	static mstYapiDuzenle({ result }) {
@@ -30,8 +30,11 @@ class HizmetHareketci extends Hareketci {
 			(aktarim.guleryuzOnline ? new CKodVeAdi(['goMaliyet', 'Güleryüz Maliyet']) : null)
 		].filter(x => !!x))
     }
-	uniOrtakSonIslem({ sender, sent, wh }) {
-		super.uniOrtakSonIslem(...arguments)
+	uniOrtakSonIslem({ sender, sent, wh, hvDegeri }) {
+		super.uniOrtakSonIslem(...arguments);
+		let {from} = sent, kodClause = hvDegeri('hizmetkod');
+		if (kodClause && !from.aliasIcinTable('hiz')) { sent.x2HizmetBagla({ kodClause }) }
+		if (!kodClause) { debugger }
 		/*if (sender?.finansalAnalizmi) { }*/
 	}
     /** Varsayılan değer atamaları (hostVars) */
@@ -554,6 +557,21 @@ class HizmetHareketci extends Hareketci {
         });
         return this
     }
+
+	static maliTablo_secimlerYapiDuzenle({ result }) {
+		super.maliTablo_secimlerYapiDuzenle(...arguments);
+		$.extend(result, { mst: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup, istGrup: DMQHizmetIstGrup })
+	}
+	static maliTablo_secimlerSentDuzenle({ detSecimler: detSec, sent, where: wh, hv, mstClause }) {
+		super.maliTablo_secimlerSentDuzenle(...arguments);
+		let {from} = sent; sent.hizmet2GrupBagla().hizmetGrup2AnaGrupBagla().hizmet2IstGrupBagla();
+		if (mstClause) {
+			wh.basiSonu(detSec.mstKod, mstClause).ozellik(detSec.mstAdi, 'hiz.aciklama');
+			wh.basiSonu(detSec.grupKod, 'hiz.grupkod').ozellik(detSec.grupAdi, 'grp.aciklama');
+			wh.basiSonu(detSec.anaGrupKod, 'grp.anagrupkod').ozellik(detSec.anaGrupAdi, 'agrp.aciklama');
+			wh.basiSonu(detSec.istGrupKod, 'hiz.histgrupkod').ozellik(detSec.istGrupAdi, 'higrp.aciklama')
+		}
+	}
 
 	/* TEST:
 			let har = new HizmetHareketci();

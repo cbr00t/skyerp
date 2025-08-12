@@ -180,6 +180,21 @@ class DMQPlasiyer extends DMQCari {
 class DMQKasa extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kasa' }
 	static get table() { return 'kasmst' } static get tableAlias() { return 'kas' }
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments);
+		liste.push(
+			new GridKolon({ belirtec: 'grupkod', text: 'Grup', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'grupadi', text: 'Grup Adı', genislikCh: 25, sql: 'kgrp.aciklama' })
+		)
+	}
+	static loadServerData_queryDuzenle({ sent }) {
+		super.loadServerData_queryDuzenle(...arguments); let {tableAlias: alias} = this;
+		sent.fromIliski('kasagrup kgrp', `${alias}.grupkod = kgrp.kod`)
+	}
+}
+class DMQKasaGrup extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kasa Grup' }
+	static get table() { return 'kasagrup' } static get tableAlias() { return 'kgrp' }
 }
 class DMQBanka extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Banka' }
@@ -188,11 +203,26 @@ class DMQBanka extends DMQKA {
 class DMQBankaHesap extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Banka Hesap' }
 	static get table() { return 'banbizhesap' } static get tableAlias() { return 'bhes' }
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e;
-		liste.push(new GridKolon({ belirtec: 'bankakod', text: 'Banka', genislikCh: 10 }), new GridKolon({ belirtec: 'bankaadi', text: 'Banka Adı', genislikCh: 25, sql: 'ban.aciklama' }))
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments);
+		liste.push(
+			new GridKolon({ belirtec: 'bankakod', text: 'Banka', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'bankaadi', text: 'Banka Adı', genislikCh: 25, sql: 'ban.aciklama' }),
+			new GridKolon({ belirtec: 'grupkod', text: 'Grup', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'grupadi', text: 'Grup Adı', genislikCh: 25, sql: 'bhgrp.aciklama' })
+		)
 	}
-	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.bankaHesap2BankaBagla() }
+	static loadServerData_queryDuzenle({ sent }) {
+		super.loadServerData_queryDuzenle(...arguments); let {tableAlias: alias} = this;
+		sent.bankaHesap2BankaBagla()
+			.fromIliski('banhesapgrup bhgrp', `${alias}.grupkod = bhgrp.kod`)
+	}
+	
+	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e;  }
+}
+class DMQBankaHesapGrup extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Banka Hesap Grup' }
+	static get table() { return 'banhesapgrup' } static get tableAlias() { return 'bhgrp' }
 }
 class DMQMuhHesap extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Hesap' }

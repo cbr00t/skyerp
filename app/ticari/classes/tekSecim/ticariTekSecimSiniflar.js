@@ -2,7 +2,7 @@ class AktifVeDevreDisi extends BuDigerVeHepsi {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	get aktifmi() { return this.bumu } get devreDisimi() { return this.digermi }
 	init(e) {
-		e = e || {}; super.init(e); const {_buDigerYapi} = this;
+		e = e || {}; super.init(e); let {_buDigerYapi} = this;
 		_buDigerYapi[0] = '<span class="green">Aktif</span>';
 		_buDigerYapi[1] = '<span class="red">Devre Dışı</span>';
 	}
@@ -11,7 +11,7 @@ class CalismaDurumu extends BuDigerVeHepsi {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	get calisiyormu() { return this.bumu } get calismiyormu() { return this.digermi }
 	init(e) {
-		e = e || {}; super.init(e); const {_buDigerYapi} = this;
+		e = e || {}; super.init(e); let {_buDigerYapi} = this;
 		_buDigerYapi[0] = '<span class="green">Çalışanlar</span>';
 		_buDigerYapi[1] = '<span class="red">ÇalışMAyanlar</span>';
 	}
@@ -23,7 +23,7 @@ class SatilmaDurumu extends BuDigerVeHepsi {
 	init(e) {
 		e = e || {};
 		super.init(e);
-		const {_buDigerYapi} = this;
+		let {_buDigerYapi} = this;
 		_buDigerYapi[0] = '<span class="green">Satılanlar</span>';
 		_buDigerYapi[1] = '<span class="red">SatılMAyanlar</span>';
 	}
@@ -33,7 +33,7 @@ class MQOzelIsaret extends TekSecim {
 	static get sinifAdi() { return 'Özel İşaret' } static get tableAlias() { return 'fis' } static get defaultChar() { return ' ' }
 	get yildizmi() { return this.char == '*' } get fiktifmi() { return this.char == 'X' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push(
 			new CKodVeAdi([' ', ' ']),
 			new CKodVeAdi(['*', '*']),
@@ -45,7 +45,7 @@ class NormalFiili extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Normal/Fiili' } static get defaultChar() { return 'F' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push(
 			new CKodVeAdi(['N', 'Normal', 'normalmi']),
 			new CKodVeAdi(['F', 'Fiili', 'fiilimi'])
@@ -85,7 +85,7 @@ class BorcAlacak extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'B' } get borcmu() { return this.char == 'B' } get alacakmi() { return this.char == 'A' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e; kaListe.push(
+		super.kaListeDuzenle(e); let {kaListe} = e; kaListe.push(
 			new CKodVeAdi(['B', 'Borç']),
 			new CKodVeAdi(['A', 'Alacak'])
 		)
@@ -96,8 +96,8 @@ class GelirGider extends BorcAlacak {
 	get gelirmi() { return this.borcmu }
 	get gidermi() { return this.alacakmi }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
-		for (const ka of kaListe) {
+		super.kaListeDuzenle(e); let {kaListe} = e;
+		for (let ka of kaListe) {
 			switch (ka.kod) {
 				case 'B': ka.aciklama = 'Gelir'; break;
 				case 'A': ka.aciklama = 'Gider'; break;
@@ -111,9 +111,9 @@ class TahsilatOdeme extends BorcAlacak {
 	get tahsilatmi() { return this.alacakmi }
 	get odememi() { return this.borcmu }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.reverse();
-		for (const ka of kaListe) {
+		for (let ka of kaListe) {
 			switch (ka.kod) {
 				case 'A': ka.aciklama = 'Tahsilat'; break;
 				case 'B': ka.aciklama = 'Ödeme'; break;
@@ -125,7 +125,7 @@ class FisHesapSekli extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' } get bedelmi() { return this.char == '' } get fiyatmi() { return this.char == 'F' } get miktarmi() { return this.char == 'M' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push(
 			{ kod: '', aciklama: 'Miktar * Fiyat = Bedel' },
 			{ kod: 'F', aciklama: 'Bedel / Miktar = Fiyat' },
@@ -140,7 +140,7 @@ class StokTip extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'TC' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push(
 			new CKodVeAdi(['M', 'Mamül']),
 			new CKodVeAdi(['H', 'Hammadde']),
@@ -159,7 +159,7 @@ class VergiTip extends TekSecim {
 	static get defaultChar() { return 'KDV' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e);
-		const {kaListe} = e; kaListe.push(
+		let {kaListe} = e; kaListe.push(
 			new CKodVeAdi(['KDV', 'Kdv']),
 			new CKodVeAdi(['KDI', 'İADE Kdv']),
 			new CKodVeAdi(['KMAT0', 'Kdv Matrah (%0)']),
@@ -181,7 +181,7 @@ class EkVergiTipi extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push(
 			new CKodVeAdi({ kod: ' ', aciklama: 'Yok' }),
 			new CKodVeAdi({ kod: 'TV', aciklama: 'Tevkifatlı' }),
@@ -194,7 +194,7 @@ class TahsilSekliTip extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'NK' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push(
 			new CKodVeAdi(['NK', 'Nakit', 'nakitmi']),
 			new CKodVeAdi(['PS', 'POS', 'posmu']),
@@ -209,7 +209,7 @@ class TahsilSekliAltTip extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push(
 			new CKodVeAdi(['', ' ', 'acikHesapmi']),
 			new CKodVeAdi(['C', 'Çek', 'cekmi']),
@@ -229,17 +229,17 @@ class MQSHTip extends TekSecim {
 	get demirbasmi() { return this.char == TSDemirbasDetay.tip }
 	get aciklamami() { return this.char == TSAciklamaDetay.tip }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e, classes = [TSStokDetay, TSHizmetDetay];
+		super.kaListeDuzenle(e); let {kaListe} = e, classes = [TSStokDetay, TSHizmetDetay];
 		if (app.params.ticariGenel.kullanim.demirbas) { classes.push(TSDemirbasDetay) }
-		for (const cls of classes) { kaListe.push(new CKodVeAdi({ kod: cls.tip, aciklama: cls.tipText })) }
+		for (let cls of classes) { kaListe.push(new CKodVeAdi({ kod: cls.tip, aciklama: cls.tipText })) }
 	}
 }
 class MQSHTipVeAciklama extends MQSHTip {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	get aciklamami() { return this.char == TSAciklamaDetay.tip }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e, classes = [TSAciklamaDetay];
-		for (const cls of classes) { kaListe.push(new CKodVeAdi({ kod: cls.tip, aciklama: cls.tipText })) }
+		super.kaListeDuzenle(e); let {kaListe} = e, classes = [TSAciklamaDetay];
+		for (let cls of classes) { kaListe.push(new CKodVeAdi({ kod: cls.tip, aciklama: cls.tipText })) }
 	}
 }
 class MQSHTip_Sabit extends TekSecim {
@@ -250,8 +250,8 @@ class MQSHTip_Sabit extends TekSecim {
 	get demirbasmi() { return this.char == TSDemirbasDetay.tip }
 	get aciklamami() { return this.char == TSAciklamaDetay.tip }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e, classes = [TSStokDetay, TSHizmetDetay, TSDemirbasDetay, TSAciklamaDetay];
-		for (const cls of classes) { kaListe.push(new CKodVeAdi({ kod: cls.tip, aciklama: cls.tipText })) }
+		super.kaListeDuzenle(e); let {kaListe} = e, classes = [TSStokDetay, TSHizmetDetay, TSDemirbasDetay, TSAciklamaDetay];
+		for (let cls of classes) { kaListe.push(new CKodVeAdi({ kod: cls.tip, aciklama: cls.tipText })) }
 	}
 }
 class LimitKontrol extends TekSecim {
@@ -262,7 +262,7 @@ class LimitKontrol extends TekSecim {
 	get devamIcinOnaymi() { return this.char == 'G' }
 	get sevkDurdurmu() { return this.char == 'S' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push(
 			new CKodVeAdi(['', 'Devam']),
 			new CKodVeAdi(['*', 'Uyarı ve Devam']),
@@ -282,9 +282,9 @@ class FisAyrimTipiBasit extends TekSecim {
 	get emanetmi() { return this.char == 'EM' }
 	get fasonmu() { return this.char == 'FS' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kullanim} = app.params.satis, {kaListe} = e;
-		const ekleyici = (selector, recBlock) => {
-			if (kullanim[selector]) { const ka = getFuncValue.call(this, recBlock); if (ka) { kaListe.push($.isPlainObject(ka) ? new CKodVeAdi(ka) : ka) } }
+		super.kaListeDuzenle(e); let {kullanim} = app.params.satis, {kaListe} = e;
+		let ekleyici = (selector, recBlock) => {
+			if (kullanim[selector]) { let ka = getFuncValue.call(this, recBlock); if (ka) { kaListe.push($.isPlainObject(ka) ? new CKodVeAdi(ka) : ka) } }
 			return this
 		}
 		kaListe.push(new CKodVeAdi({ kod: '', aciklama: 'Normal Fatura' }));
@@ -296,8 +296,8 @@ class FisAyrimTipiBasit extends TekSecim {
 	}
 	static gelenFisSinifFor(e) {
 		e = e || {};
-		const ayrimTipi = e.ayrimTipi?.trim();
-		const {irsaliyemi, iademi} = e;
+		let ayrimTipi = e.ayrimTipi?.trim();
+		let {irsaliyemi, iademi} = e;
 		if (!ayrimTipi) {
 			return iademi
 				? (irsaliyemi ? SatisIadeIrsaliyeFis : SatisIadeFaturaFis)
@@ -338,7 +338,7 @@ class UretimSekli extends TekSecim {
 	get onSerimi() { return this.char == 'O' }
 	get numunemi() { return this.char == 'N' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push(
 			new CKodVeAdi({ kod: '', aciklama: 'Seri' }),
 			new CKodVeAdi({ kod: 'O', aciklama: 'Ön Seri' }),
@@ -350,7 +350,7 @@ class HesapTipi extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push(
 			new CKodVeAdi(['', 'Vadesiz Mevduat']),
 			new CKodVeAdi(['KR', 'Taksitli Kredi']),
@@ -363,7 +363,7 @@ class FiyatListeNo extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push(
 			new CKodVeAdi(['1', '1']),
 			new CKodVeAdi(['2', '2']),
@@ -375,7 +375,7 @@ class KkegTipi extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push(
 			new CKodVeAdi(['', '<YOK>']),
 			new CKodVeAdi(['3', '%30 KKEG']),
@@ -387,7 +387,7 @@ class TedarikSekli extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push(
 			new CKodVeAdi(['', 'Satın Alınan']),
 			new CKodVeAdi(['UR', 'Üretim']),
@@ -399,7 +399,7 @@ class SubeGecerlilik extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push(
 			new CKodVeAdi(['', 'Sadece Şubesinde']),
 			new CKodVeAdi(['G', 'Şube Grubunda']),
@@ -411,7 +411,7 @@ class HizGelirTabloTipi extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push(
 			new CKodVeAdi(['', 'Alınmaz']),
 			new CKodVeAdi(['TP', 'Tipine (Gelir/Gider) Göre'])
@@ -421,7 +421,7 @@ class HizGelirTabloTipi extends TekSecim {
 class SenaryoTipi extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return 'T' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e; kaListe.push(
+		super.kaListeDuzenle(e); let {kaListe} = e; kaListe.push(
 			new CKodVeAdi(['M', 'Temel Fatura', 'temel']),
 			new CKodVeAdi(['T', 'Ticari Fatura', 'ticari']),
 			new CKodVeAdi(['K', 'Kamu', 'kamu'])
@@ -432,7 +432,7 @@ class KdvTipi extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push(
 			new CKodVeAdi(['', 'Kdv Dipte Uygulanır']),
 			new CKodVeAdi(['D', 'Kdvli Fiyat']),
@@ -443,12 +443,12 @@ class KdvTipi extends TekSecim {
 class SatisFisTipi extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
-	kaListeDuzenle(e) { super.kaListeDuzenle(e); const {kaListe} = e }
+	kaListeDuzenle(e) { super.kaListeDuzenle(e); let {kaListe} = e }
 }
 class AlimFisTipi extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
-	kaListeDuzenle(e) { super.kaListeDuzenle(e); const {kaListe} = e }
+	kaListeDuzenle(e) { super.kaListeDuzenle(e); let {kaListe} = e }
 }
 class CSBelgeTipi extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -461,7 +461,7 @@ class CSBelgeTipi extends TekSecim {
 	get borcCekmi() { return this.char == 'BC' }
 	get borcSenetmi() { return this.char == 'BS' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push([
 			new CKodVeAdi(['AC', 'Alacak Çek' ]),
 			new CKodVeAdi(['AS', 'Alacak Senet' ]),
@@ -489,14 +489,14 @@ class HavaleEFTTipi extends TekSecim {
 			result = this._chars = this.charsInternal
 		return result
 	}
-	static get etiketPrefixVeBosluk() { const {etiketPrefix} = this; return etiketPrefix ? etiketPrefix + ' ' : '' }
+	static get etiketPrefixVeBosluk() { let {etiketPrefix} = this; return etiketPrefix ? etiketPrefix + ' ' : '' }
 	static get charsInternal() { return { havale: 'H', eft: 'E', swift: 'S' } }
 	static get etiketPrefix() { '' }
 	get havalemi() { return this.char == this.chars.havale }
 	get eftmi() { return this.char == this.chars.eft }
 	get swiftmi() { return this.char == this.chars.swift }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e, {chars, etiketPrefixVeBosluk} = this.class;
+		super.kaListeDuzenle(e); let {kaListe} = e, {chars, etiketPrefixVeBosluk} = this.class;
 		kaListe.push(
 			new CKodVeAdi([chars.havale, `${etiketPrefixVeBosluk}Havale`]),
 			new CKodVeAdi([chars.eft, `${etiketPrefixVeBosluk}EFT`]),
@@ -510,7 +510,7 @@ class GelenHavaleEFTTipi extends TekSecim {
 	static get etiketPrefix() { 'Gelen' }
 	get posmu() { return this.char == 'BPOS' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push(new CKodVeAdi(['BPOS', 'POS']))
 	}
 }
@@ -519,7 +519,7 @@ class GelenGidenHavaleEFTTipi extends TekSecim {
 	get gelenHavalemi() { return this.char == 'BHAV' } get gelenEFTmi() { return this.char == 'BEFT' } get gelenSwiftmi() { return this.char == 'BSWF' } get gelenPOSmu() { return this.char == 'BPOS' }
 	get gidenHavalemi() { return this.char == 'AHAV' } get gidenEFTmi() { return this.char == 'AEFT' } get gidenSwiftmi() { return this.char == 'ASWF' } get gidenPOSmu() { return this.char == 'APOS' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push(
 			new CKodVeAdi(['BHAV', 'Gelen Havale']), new CKodVeAdi(['BEFT', 'Gelen EFT']), new CKodVeAdi(['BSWF', 'Gelen Swift']), new CKodVeAdi(['BPOS', 'Gelen POS']),
 			new CKodVeAdi(['AHAV', 'Gönderilen Havale']), new CKodVeAdi(['AEFT', 'Gönderilen EFT']), new CKodVeAdi(['ASWF', 'Gönderilen Swift']), new CKodVeAdi(['APOS', 'Gönderilen POS'])
@@ -528,28 +528,30 @@ class GelenGidenHavaleEFTTipi extends TekSecim {
 }
 class DonemSecim extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' }
-	get basiSonu() { const {char} = this; return $.isArray(char) ? char.map(kod => this.getBasiSonu(kod)) : this.getBasiSonu(char) }
+	get basiSonu() { let {char} = this; return $.isArray(char) ? char.map(kod => this.getBasiSonu(kod)) : this.getBasiSonu(char) }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e; kaListe.push(
+		super.kaListeDuzenle(e); let {kaListe} = e; kaListe.push(
 			new CKodVeAdi(['B', 'Bugün']), new CKodVeAdi(['D', 'Dün']), new CKodVeAdi(['HF', 'Bu Hafta']), new CKodVeAdi(['AY', 'Bu Ay']),
-			new CKodVeAdi(['GA', 'Geçen Ay']), new CKodVeAdi(['BC', 'Bu Çeyrek Dönem']), new CKodVeAdi(['OC', 'Önceki Çeyrek Dönem']), new CKodVeAdi(['YL', 'Bu Yıl'])
+			new CKodVeAdi(['GA', 'Geçen Ay']), new CKodVeAdi(['BC', 'Bu Çeyrek Dönem']),
+			new CKodVeAdi(['OC', 'Önceki Çeyrek Dönem']), new CKodVeAdi(['BY', 'Bu Yıl'])
 		)
 	}
 	bugun() { this.char = 'B'; return this } dun() { this.char = 'D'; return this } buHafta() { this.char = 'HF'; return this }
 	buAy() { this.char = 'AY'; return this } gecenAy() { this.char = 'GA'; return this }
 	buCeyrekDonem() { this.char = 'BC'; return this } oncekiCeyrekDonem() { this.char = 'OC'; return this } buYil() { this.char = 'YL'; return this }
 	getBasiSonu(kod) {
-		const _today = today(), {ay, yil} = _today; let basi; switch (kod) {
+		let _today = today(), {ay, yil} = _today, basi;
+		switch (kod) {
 			case 'B': return new CBasiSonu({ basi: _today.clone(), sonu: _today.clone() })
 			case 'D': return new CBasiSonu({ basi: _today.clone().dun(), sonu: _today.clone().dun() })
 			case 'HF': return new CBasiSonu({ basi: _today.clone().haftaBasi(), sonu: _today.clone().haftaSonu() })
 			case 'AY': return new CBasiSonu({ basi: _today.clone().ayBasi(), sonu: _today.clone().aySonu() })
 			case 'GA': return new CBasiSonu({ basi: _today.clone().ayBasi().addMonths(-1), sonu: _today.clone().ayBasi().addDays(-1) })
 			case 'BC':
-				const ceyrekNo = ((ay - 1) % 3) + 1; basi = new Date(yil, ((ceyrekNo - 1) * 3) + 1, 1);
+				let ceyrekNo = ((ay - 1) % 3) + 1; basi = new Date(yil, ((ceyrekNo - 1) * 3) + 1, 1);
 				return new CBasiSonu({ basi, sonu: basi.clone().addMonths(2).aySonu() })
 			case 'OC':
-				const oncekiCeyrekNo = (ay - 1) % 3; basi = oncekiCeyrekNo ? new Date(yil, ((oncekiCeyrekNo - 1) * 3) + 1, 1) : new Date(yil - 1, 9, 1);
+				let oncekiCeyrekNo = (ay - 1) % 3; basi = oncekiCeyrekNo ? new Date(yil, ((oncekiCeyrekNo - 1) * 3) + 1, 1) : new Date(yil - 1, 9, 1);
 				return new CBasiSonu({ basi, sonu: basi.clone().addMonths(2).aySonu() })
 			case 'BY': return new CBasiSonu({ basi: _today.clone().yilBasi(), sonu: _today.clone().yilSonu() })
 		}
@@ -558,19 +560,19 @@ class DonemSecim extends TekSecim {
 }
 class DonemVeTarihAralikSecim extends DonemSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' } get tarihAralikmi() { return this.char == 'TR' }
-	kaListeDuzenle(e) { const {kaListe} = e; kaListe.push(new CKodVeAdi(['TR', `<span class="bold forestgreen">Tarih Aralık</span>`])); super.kaListeDuzenle(e) }
+	kaListeDuzenle({ kaListe }) { kaListe.push(new CKodVeAdi(['TR', `<span class="bold forestgreen">Tarih Aralık</span>`])); super.kaListeDuzenle(...arguments) }
 	tarihAralik() { this.char = 'TR'; return this }
 }
 class DonemTarihAralikVeHepsiSecim extends DonemVeTarihAralikSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' } get tarihAralikmi() { return this.char == 'TR' }
-	kaListeDuzenle(e) { const {kaListe} = e; kaListe.push(new CKodVeAdi(['', `<span class="bold royalblue">- Hepsi -</span>`])); super.kaListeDuzenle(e) }
+	kaListeDuzenle({ kaListe }) { kaListe.push(new CKodVeAdi(['', `<span class="bold royalblue">Baştan &nbsp;<span class=orangered>--&gt;</span> &nbsp;Sona</span>`])); super.kaListeDuzenle(...arguments) }
 	tarihAralik() { this.char = 'TR'; return this }
 }
 class ResimBelirlemeKurali extends TekSecim {
 	static get defaultChar() { return 'ST' } get stokTanimdami() { return this.char == '' } get stokKodu() { return this.char == 'ST' }
 	get grupVeStokmu() { return this.char == 'GS' } get pdmmi() { return this.char == 'PD' } get grupVePDMmi() { return this.char == 'GP' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push(
 			new CKodVeAdi(['', 'Stok Tanımda Belirtilir']), new CKodVeAdi(['ST', 'Stok Kodu ile aynı (StokKodu)']), new CKodVeAdi(['GS', 'Grup altında Stok (GrupKod\Stok)']),
 			new CKodVeAdi(['PD', 'Pdm Kodu ile aynı (PdmKodu)']), new CKodVeAdi(['GP', 'Grup altında Pdm (GrupKod\PdmKodu)'])
@@ -590,7 +592,7 @@ class YerMaliyetSekli extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Yer Maliyet Şekli' } static get defaultChar() { return '' }
 	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+		super.kaListeDuzenle(e); let {kaListe} = e;
 		kaListe.push(
 			new CKodVeAdi(['', 'Normal', 'normalmi']),
 			new CKodVeAdi(['Y', 'Yer Bazında Maliyet', 'yerBazindami'])
