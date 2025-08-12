@@ -264,6 +264,7 @@ class SBTabloDetay extends MQDetay {
 		let det = e.det = this, {rapor, secimler, stm, donemBS, subeKodlari, sentDuzenle} = e;
 		let {tabloYapi} = rapor, {aciklama, hesapTipi = {}, veriTipi = {}, shStokHizmet} = this;
 		let {ticarimi} = hesapTipi, {hareketcimi, harSinif} = hesapTipi.ekBilgi ?? {};
+		let {sahaAlias} = rapor;
 		let durum = e.durum = {
 			stokmu: ticarimi && (shStokHizmet.birliktemi || shStokHizmet.stokmu),
 			hizmetmi: hesapTipi.hizmetmi || (ticarimi && (shStokHizmet.birliktemi || shStokHizmet.hizmetmi))
@@ -275,7 +276,7 @@ class SBTabloDetay extends MQDetay {
 		}
 		let {ekBilgi = {}, donemTipi} = veriTipi;
 		$.extend(e, { aciklama, hesapTipi, veriTipi, shStokHizmet, ticarimi, hareketcimi, maliTablomu: true });
-		let _e = { ...e, sahaAlias: 'bedel' };
+		let _e = { ...e, sahaAlias };
 		if ($.isPlainObject(donemBS)) { donemBS = _e.donemBS = new CBasiSonu(donemBS) }
 		if (donemTipi) { _e.donemTipi = donemTipi }
 		let {sentUygunluk, sentDuzenle: icerikSentDuzenle} = ekBilgi;
@@ -319,9 +320,10 @@ class SBTabloDetay extends MQDetay {
 		{
 			let sahaAliases = Object.values(tabloYapi?.toplam).map(({ colDefs }) => colDefs.map(({ belirtec }) => belirtec)).flat();
 			for (let i = 0; i < uni.liste.length; i++) {
-				let sent = uni.liste[i], {where: wh, sahalar} = sent;
-				let hv = { ...defHV, ...harHVListe?.[i] };
-				if (donemBS?.bosDegilmi) {
+				let sent = uni.liste[i]; sent.sahalarReset();
+				let {where: wh, sahalar} = sent, hv = { ...defHV, ...harHVListe?.[i] };
+				let donemBSVarmi = donemBS?.bosDegilmi ?? false;
+				if (donemBSVarmi) {
 					let tarihBS = donemBS.deepCopy(); if (donemTipi) {
 						tarihBS.basi = null;
 						if (donemTipi == 'B') { tarihBS.sonu = donemBS.basi.clone().addDays(-1) }
@@ -333,9 +335,10 @@ class SBTabloDetay extends MQDetay {
 				wh.add(`${hv.ozelisaret ?? 'fis.ozelisaret'} <> 'X'`);
 				$.extend(_e, { sent, where: wh, sahalar, hv });
 				icerikSentDuzenle?.call(this, _e); sentDuzenle?.call(this, _e);
-				sent = _e.sent; let {alias2Deger} = sent; $.extend(_e, alias2Deger);
+				sent = _e.sent; let {alias2Deger} = sent; $.extend(_e, { alias2Deger });
 				for (let sahaAlias of sahaAliases) {
-					if (!alias2Deger[sahaAlias]) { sahalar.add(`0 ${sahaAlias}`) } }
+					if (!alias2Deger[sahaAlias]) { sahalar.add(`0 ${sahaAlias}`) }
+				}
 				if (detSecimler) {
 					if (ticarimi) {
 						let mstTableAlias = hizmetmi ? 'hiz' : 'stk', iGrpAlias = hizmetmi ? 'higrp' : 'sigrp';
@@ -380,14 +383,13 @@ class SBTabloDetay extends MQDetay {
 		let harHVListe = e.harHVListe = [];
 		for (let harSent of harUni) {
 			let {alias2Deger: hv} = harSent, tarihClause = (hv.tarih || 'fis.tarih');
-			let sent = harSent.deepCopy(), {from, sahalar} = sent;
-			let addClause = alias => {
+			let sent = harSent.deepCopy(), addClause = alias => {
 				let clause = hv[alias]; if (alias == bedelAlias) { clause = clause.asSumDeger() }
-				let saha = `${clause} ${alias}`; sent.add(saha);
+				let saha = `${clause} ${alias}`;
+				sent.sahalar.add(saha);
 				return saha
 			};
 			harHVListe.push(hv); sent.sahalarReset();
-			// if (from.aliasIcinTable('har')?.deger == 'carihar') { debugger }
 			for (let alias of aliasListe) { addClause(alias) }
 			uni.add(sent)
 		}

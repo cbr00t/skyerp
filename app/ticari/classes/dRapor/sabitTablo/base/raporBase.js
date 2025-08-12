@@ -6,7 +6,7 @@ class SBRapor extends DGrupluPanelRapor {
 }
 class SBRapor_Main extends DAltRapor_TreeGrid {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get mainmi() { return true }
-	get tazeleYapilirmi() { return true } get noAutoColumns() { return true }
+	get sahaAlias() { return 'bedel' } get tazeleYapilirmi() { return true } get noAutoColumns() { return true }
 	static get raporTanimSinif() { return SBTablo } static get secimSinif() { return DonemselSecimler }
 	get tabloYapi() {
 		let {_tabloYapi: result} = this; if (result == null) {
@@ -15,7 +15,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		}
 		return result
 	}
-	tabloYapiDuzenle({ result }) { result.addToplamBasit_bedel('BEDEL', 'Bedel', 'bedel') }
+	tabloYapiDuzenle({ result }) { result.addToplamBasit_bedel('BEDEL', 'Bedel', this.sahaAlias) }
 	tabloYapiDuzenle_son({ result }) { }
 	async tazele(e) {
 		let {gridPart, raporTanim, _tabloTanimGosterildiFlag} = this, {grid, gridWidget} = gridPart;
@@ -77,7 +77,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 	}
 	async loadServerDataInternal(e) {
 		await super.loadServerDataInternal(e);
-		let rapor = this, {raporTanim, secimler} = this, {detaylar} = raporTanim;
+		let rapor = this, {raporTanim, secimler, sahaAlias} = this, {detaylar} = raporTanim;
 		// let {tarihBSVeyaCariDonem: donemBS} = secimler;
 		let {tarihBS: donemBS} = secimler;
 		let _e = { ...e, rapor, raporTanim, secimler, donemBS, detaylar };
@@ -85,25 +85,38 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		let formulYapilari = e.formulYapilari = {};
 		for (let key of ['altSeviyeToplamimi', 'satirlarToplamimi']) { formulYapilari[key] = [] }
 		for (let det of detaylar) {
-			let {sayac: id, hesapTipi} = det; id2Detay[id] = det;
-			let ekBilgi = hesapTipi?.ekBilgi ?? {}, {querymi} = ekBilgi;
-			if (querymi) {
+			let {sayac: id, hesapTipi = {}, veriTipi} = det; id2Detay[id] = det;
+			let {ekBilgi = {}} = hesapTipi, {ticarimi, hareketcimi, querymi} = ekBilgi, {donemTipi} = veriTipi;
+			if (!querymi) {
+				// satır toplam, formul, ... vs
+				let {question: selector} = hesapTipi;
+				if (selector) { formulYapilari[selector]?.push(det) }
+				continue
+			}
+			let promise_recs = []; if (donemBS?.basi || donemTipi != 'B') {
 				let uni = new MQUnionAll(), stm = new MQStm({ sent: uni });
 				$.extend(_e, { stm, uni }); det.raporQueryDuzenle(_e); stm = _e.stm;
 				if (!(stm?.with?.liste?.length || stm?.sent?.liste?.length)) { continue }
 				stm = _e.stm = stm.asToplamStm();
-				id2Promise[id] = app.sqlExecSelect(stm)
+				/*if (hareketcimi) {
+					let {with: _with, sent: topSent} = stm, {alias2Deger: hv} = topSent;
+					_with.add(topSent.asTmpTable('topbilgi'));
+					let sent = stm.sent = new MQSent(), {sahalar} = sent;
+					sent.fromAdd('topbilgi'); let {ba, [sahaAlias]: bedel} = hv;
+					for (let key of ['ba', sahaAlias]) { delete hv[key] }
+					for (let [alias, clause] of Object.entries(hv)) {
+						sahalar.add(`${clause} ${alias}`) }
+				}
+				_e.stm = stm;*/
+				promise_recs = app.sqlExecSelect(stm)
 			}
-			else {
-				let selector = hesapTipi.secilen?.question;
-				if (selector) { formulYapilari[selector]?.push(det) }
-			}
+			if (promise_recs != null) { id2Promise[id] = promise_recs }
 		}
 		let recs = [];
 		for (let [id, promise] of Object.entries(id2Promise)) {
 			let det = id2Detay[id]; if (!det) { continue }
 			let _recs = await promise; if (!_recs?.length) { continue }
-			let {aciklama} = det, bedel = topla(rec => rec.bedel, _recs);
+			let {aciklama} = det, bedel = topla(rec => rec[sahaAlias] || 0, _recs);
 			let rec = { id, aciklama, bedel };
 			recs.push(rec)
 		}
