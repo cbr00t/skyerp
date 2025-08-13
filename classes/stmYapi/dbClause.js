@@ -517,7 +517,8 @@ class MQTable extends MQAliasliYapi {
 	addIliski(e) { this.iliskiler.push(e); return this }
 	aliasVarmi(alias) {
 		if (this.aliasVeyaDeger == alias) { return true }
-		const liste = this.leftVeInner || []; return liste.find(item => item.aliasVarmi(alias))
+		let liste = this.leftVeInner || [];
+		return liste.find(item => item.aliasVarmi(alias))
 	}
 	disindakiXTablolariSil(e) {
 		/*let disindaSet = e.disindaSet || {}; const liste = this.leftVeInner || [];
