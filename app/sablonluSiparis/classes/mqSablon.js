@@ -150,7 +150,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			stm = _e.stm = new MQStm();
 			stm = _e.stm = _e.eMailStm = this.eMailYapiQueryDuzenle(_e) === false ? null : _e.stm
 		}
-		let uygunTipler = musterimi ? asSet(['email_alici']) : null;
+		let uygunTipler = musterimi ? asSet(['email_alici']) : asSet(['email_teslimatci', 'email_ozel', 'email_bolge']);
 		let EMailPrefix = 'email_', recs = stm ? await app.sqlExecSelect(stm) : null;
 		let result = {}; if (recs?.length) {
 			for (let rec of recs) {
@@ -165,6 +165,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		}
 		if (!musterimi && konBuFirma_eMailListe?.length) {
 			result.buFirma = eMailStr2Array(konBuFirma_eMailListe) }
+		console.log('eMail adres belirle', { musterimi, uygunTipler }, result);
 		return result
 	}
 	static eMailYapiQueryDuzenle(e) { return false }
@@ -296,8 +297,9 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		let {sayac: fisSayac, detaylar} = fis, {table, sayacSaha, stokmu} = fis.class;
 		if (!fisSayac) { throw { isError: true, errorText: 'Onaylanacak Sipariş için ID belirlenemedi' } }
 		let dokumVeEMail = musterimi => this.dokumYapVeEMailGonder({ musterimi, fis, rec });
-		if (!stokmu) { await dokumVeEMail(true) }
-		await dokumVeEMail(false);
+		for (let musterimi of [true, false]) { await dokumVeEMail(musterimi) }
+		/*if (!stokmu) { await dokumVeEMail(true) }
+		await dokumVeEMail(false);*/
 		let upd = new MQIliskiliUpdate({
 			from: table, where: { degerAta: fisSayac, saha: sayacSaha },
 			set: { degerAta: '', saha: 'onaytipi' }
@@ -319,8 +321,8 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			if (email_sablonEk?.length) { $.extend(eMailYapi, { sablonEk: email_sablonEk }) }
 		}
 		if (!$.isEmptyObject(eMailYapi)) {
-			let eMailSelectors = ['buFirma', 'sablon', 'sablonEk', 'bolge', 'ozel', (musterimi ? 'alici' : 'teslimatci')].filter(x => !!x), eMailSet = {};
-			for (let selector of eMailSelectors) {
+			let eMailSelectors = ['ozel', 'sablon', 'sablonEk', 'alici', 'teslimatci', 'bolge'];
+			let eMailSet = {}; for (let selector of eMailSelectors) {
 				let eMails = eMailYapi[selector]?.filter(x => x?.length >= 5 && x.includes('@')) ?? [];
 				for (let eMail of eMails) {
 					eMail = eMail.trim(); if (eMailSet[eMail]) { continue }
@@ -330,7 +332,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		}
 		if (!(config.dev || to?.length)) { return }
 		let BUGUN = dateToString(today()), SERI = '', SEVKADRES1 = '', SEVKADRES2 = '';
-		let {sayac: SABLONSAYAC, aciklama: SABLONADI} = parentRec, {fisnox: FISNO, mustkod: MUSTKOD, mustunvan: MUSTUNVAN} = rec;
+		let {sayac: SABLONSAYAC, aciklama: SABLONADI} = parentRec, {fisno: FISNO, mustkod: MUSTKOD, mustunvan: MUSTUNVAN} = rec;
 		let {sevkadreskod: SEVKADRESKOD, sevkadresadi: SEVKADRESADI, fisaciklama: EKNOTLAR} = rec;
 		let {klFirmaKod: KLFIRMAKOD} = this, KLFIRMAUNVAN = (KLFIRMAKOD ? await MQSKLFirma.getGloKod2Adi(KLFIRMAKOD) : null) ?? '', KLFIRMAADI = KLFIRMAUNVAN, KLFIRMABIRUNVAN = KLFIRMAUNVAN;
 		let MUSTBIRUNVAN = MUSTUNVAN, MUSTADI = MUSTUNVAN, TARIH = dateToString(asDate(rec.tarih)) ?? '', TESLIMTARIH = dateToString(asDate(rec.basteslimtarihi)) || TARIH;
@@ -364,7 +366,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		});
 		delete dip.brm2Miktar; dip.TOPBRM = dip.BRM;
 		let data = { baslik, detaylar, dip }, {result: htmlData} = dokumcu.process(data) ?? {}
-		if (config.dev) {
+		if (qs.preview || (config.dev && !qs.noPreview)) {
 			let url = URL.createObjectURL(new Blob([htmlData], { type: 'text/html' }));
 			setTimeout(url => openNewWindow(url), 0, url)
 		}
@@ -449,17 +451,17 @@ class MQKonsinyeSablon extends MQSablonOrtak {
 		let sentEkle = fisSinif => {
 			let {teslimCariSaha: xCariKodSaha, stokmu} = fisSinif;
 			let sent = this.getSablonluVeKLDagitimliOnSent({ fisSinif, fisSayac }), {sahalar} = sent;
-			// let kendimizTeslimmiClause = `kdag.bkendimizteslim > 0 AND kdag.klteslimatcikod > ''`;
+			let kendimizTeslimmiClause = `kdag.bkendimizteslim > 0 AND kdag.klteslimatcikod > ''`;
 			sent.fromIliski('carmst car', `fis.${xCariKodSaha} = car.must`)
 				.fromIliski('carsevkadres sadr', 'fis.xadreskod = sadr.kod')
 				.leftJoin('kdag', 'klfirmabolge kfbol', 'kdag.klfirmabolgekod = kfbol.kod')
 				.leftJoin('kdag', 'carmst ktes', 'kdag.klteslimatcikod = ktes.must');
 			sahalar.add(
 				`'' email_sablon`,
-				'kfbol.email email_bolge',
-				`${stokmu ? 'ktes.email' : `(case when kdag.bteslimatmailozeldir = 0 then ktes.email else '' end)`} email_teslimatci`,
-				`(case when kdag.bteslimatmailozeldir > 0 then kdag.ozelmaillistestr else '' end) email_ozel`,
-				`${stokmu ? `''` : `(case when sadr.email > '' then sadr.email else car.email end)`} email_alici`
+				`${stokmu ? `''` : `(case when sadr.email > '' then sadr.email else car.email end)`} email_alici`,
+				`(case when ${kendimizTeslimmiClause} then '' else kfbol.email end) email_bolge`,
+				'ktes.email email_teslimatci',
+				`(case when kdag.bteslimatmailozeldir > 0 then kdag.ozelmaillistestr else '' end) email_ozel`
 			);
 			uni.add(sent); return sent
 		}
@@ -532,7 +534,7 @@ class MQSablonOrtakDetay extends MQDetay {
 			if (detaylimi) {
 				sent.fis2SubeBagla().fis2CariBagla({ mustSaha: mustVeyaTeslimCariSaha }).fis2SevkAdresBagla();
 				sahalar.add(`${kayitTipi.sqlServerDegeri()} kayitTipi`,
-					'fis.kaysayac', 'fis.tarih', 'fis.fisnox', 'fis.no', 'fis.bizsubekod subekod', 'sub.aciklama subeadi',
+					'fis.kaysayac', 'fis.tarih', 'fis.seri', 'fis.no fisno', 'fis.fisnox', 'fis.bizsubekod subekod', 'sub.aciklama subeadi',
 					`fis.${mustVeyaTeslimCariSaha} mustkod`, 'car.birunvan mustunvan',
 					'fis.xadreskod sevkadreskod', 'sadr.aciklama sevkadresadi', 'fis.basteslimtarihi',
 					`(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`,
@@ -571,7 +573,7 @@ class MQSablonDetay extends MQSablonOrtakDetay {
 				`fis.kapandi = ''`, `fis.tarih >= CAST('${cariYil}-01-01T00:00:00' AS DATETIME)`
 			],
 			sahalar: [
-				'fis.kaysayac', 'fis.tarih', 'fis.fisnox', `fis.bizsubekod subekod`, 'sub.aciklama subeadi', `fis.${mustSaha} mustkod`, 'car.birunvan mustunvan',
+				'fis.kaysayac', 'fis.tarih', 'fis.fisnox', 'fis.seri', 'fis.no fisno', 'fis.bizsubekod subekod', 'sub.aciklama subeadi', `fis.${mustSaha} mustkod`, 'car.birunvan mustunvan',
 				'fis.xadreskod sevkadreskod', 'sadr.aciklama sevkadresadi', 'fis.basteslimtarihi', `(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`
 			]
 		}).fis2SubeBagla().fis2CariBagla().fis2SevkAdresBagla().fisSilindiEkle();
