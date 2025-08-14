@@ -175,8 +175,25 @@ class Secimler extends CIO {
 		if (innerHTML?.html) { innerHTML = innerHTML.html() }
 		return innerHTML || null
 	}
+	shallowCopy(e) {
+		let inst = super.deepCopy(); if (!inst) { return inst }
+		let liste = inst.liste = {}; inst.beginUpdate();
+		for (let [tip, _sec] of this) {
+			liste[tip] = _sec.shallowCopy(e) }
+		inst.endUpdate();
+		return inst
+	}
+	deepCopy(e) {
+		let inst = super.deepCopy(); if (!inst) { return inst }
+		let liste = inst.liste = {}; inst.beginUpdate();
+		for (let [tip, _sec] of this) {
+			liste[tip] = _sec.deepCopy(e) }
+		inst.endUpdate();
+		return inst
+	}
 	*[Symbol.iterator](e) { for (let item of Object.entries(this.liste)) { yield item } }
 }
+
 class DonemselSecimler extends Secimler {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get tarihBS() {

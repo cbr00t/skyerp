@@ -20,6 +20,28 @@ class CObject {
 	}
 	static get subClasses() { let result = this._subClasses; if (result === undefined) { result = this._subClasses = Object.values(this.key2SubClasses) } return result }
 	static get instance() { const {classKey, _class2SingletonInstance} = this; return _class2SingletonInstance[classKey] = _class2SingletonInstance[classKey] ?? new this() }
+	static get inExpYapilirmi() { return false } get inExpKeys() { let e = { result: [] }; this.inExpKeysDuzenle(e); return Object.keys(asSet(e.result)) }
+	get asExportData() {
+		let {inExpKeys} = this, result = {};
+		for (let key of inExpKeys) {
+			let value = this[key]; if (value === undefined) { continue }
+			if (isPlainObject(value)) {
+				let parent = value; if (isPlainObject(parent)) {
+					let isArray = Array.isArray(parent);
+					let newObj = isArray ? [] : {};
+					for (let [k, v] of Object.entries(parent)) {
+						v = v.asExportData ?? v;
+						newObj[k] = v
+					}
+					value = newObj
+				}
+			}
+			else if (value instanceof TekSecim) { value = value.char }
+			value = value.asExportData ?? value;
+			result[key] = value
+		}
+		return result
+	}
 	/*get super1() { return this.superN(1) } get super2() { return this.superN(2) } get super3() { return this.superN(3) }
 	get super4() { return this.superN(4) } get super5() { return this.superN(5) } get super6() { return this.superN(6) }*/
 	superN(n) {
@@ -40,6 +62,18 @@ class CObject {
 		e = e || {}; const inst = new this();
 		for (const [key, value] of Object.entries(e)) { inst[key] = value }
 		return inst
+	}
+	inExpKeysDuzenle({ result }) {
+		let {_p} = this, instYapi = $.extend(true, {}, this);
+		if (!$.isEmptyObject(_p)) { $.extend(instYapi, _p) }
+		let removeKeys = ['_supers', '_p', 'ayrimlar', 'ozelSahalar', 'sayac', 'okunanHarSayac'].filter(x => !!x);
+		for (let [key, value] of Object.entries(instYapi)) {
+			value = value?.value ?? value;
+			if (key[0] == '_' || key[0] == '#' || value === undefined || isClass(value) || isFunction(value)) {
+				removeKeys.push(key) }
+		}
+		for (let key of removeKeys) { delete instYapi[key] }
+		result.push(...Object.keys(instYapi))
 	}
 	static Serialize(e) {
 		if (!e) return null; if (e.serialize) return e.serialize()
