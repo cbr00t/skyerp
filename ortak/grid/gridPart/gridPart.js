@@ -4,7 +4,7 @@ class GridPart extends Part {
 	static get wndClassNames() { return [this.partName, ...super.wndClassNames] } get gridFormSelector() { return '.grid-parent .grid' }
 	get defaultLayoutSelector() { return this.class.isWindowPart ? super.defaultLayoutSelector : this.gridFormSelector }
 	static get defaultAsyncFlag() { return true } static get defaultCacheFlag() { return true }
-	get asyncFlag() { return this.async == null ? this.class.defaultAsyncFlag : this.async } get cacheFlag() { return this.async == null ? this.class.defaultCacheFlag : this.cache }
+	get asyncFlag() { return this.async == null ? this.class.defaultAsyncFlag : this.async } get cacheFlag() { return this.cache == null ? this.class.defaultCacheFlag : this.cache }
 	get gridRecOzelkeys() { return ['uid', 'uniqueid', 'visibleindex', 'boundindex'] } get defaultGridIDBelirtec() { return undefined }
 	get defaultSabitFlag() { return null } get boundRecs() { let {gridWidget} = this; return gridWidget ? gridWidget.getboundrows() : null }
 	get columns() { let {grid} = this; return grid?.length ? grid.jqxGrid('columns') : null }
