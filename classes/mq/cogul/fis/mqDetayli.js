@@ -507,6 +507,30 @@ class MQDetayliGUID extends MQDetayliMaster {
 		let {adiKullanilirmi, adiSaha} = this.class;
 		if (adiKullanilirmi && adiSaha) { this.aciklama = rec[adiSaha] }
 	}
+	inExp_hostVarsDuzenle(e) {
+		super.inExp_hostVarsDuzenle(e); let {hv} = e;
+		let {detaylar} = this, detHVListe = hv.detaylar = [];
+		for (let det of detaylar) {
+			let detHV = det.exportSelf(); if ($.isEmptyObject(detHV)) { continue }
+			let {class: { name: _cls }} = det;
+			detHVListe.push({ _cls, ...detHV })
+		}
+	}
+	inExp_setValues(e) {
+		e ??= {}; super.inExp_setValues(e);
+		let {rec} = e, {detaylar: detHVListe} = rec;
+		this.detaylarReset(); let {detaylar} = this;
+		let defDetaySinif = this.class.detaySinifFor(e) ?? this.detaySinif ?? detaylar[0]?.class;
+		if (detHVListe?.length) {
+			for (let rec of detHVListe) {
+				let {_cls: cls = detaySinif} = rec;
+				if (cls && typeof cls == 'string') { cls = window[cls] }
+				if (!cls) { continue }
+				let det = cls.importFrom({ ...e, rec });
+				if (det) { detaylar.push(det) }
+			}
+		}
+	}
 	static logRecDonusturucuDuzenle({ result }) {
 		super.logRecDonusturucuDuzenle(...arguments);
 		let {sayacSaha: kodSaha} = this.class; result[kodSaha] = 'xsayac'

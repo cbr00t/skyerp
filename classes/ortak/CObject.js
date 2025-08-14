@@ -20,7 +20,7 @@ class CObject {
 	}
 	static get subClasses() { let result = this._subClasses; if (result === undefined) { result = this._subClasses = Object.values(this.key2SubClasses) } return result }
 	static get instance() { const {classKey, _class2SingletonInstance} = this; return _class2SingletonInstance[classKey] = _class2SingletonInstance[classKey] ?? new this() }
-	static get inExpYapilirmi() { return false } get inExpKeys() { let e = { result: [] }; this.inExpKeysDuzenle(e); return Object.keys(asSet(e.result)) }
+	static get inExpYapilirmi() { return false } get inExpKeys() { let e = { result: [] }; this.inExp_keysDuzenle(e); return Object.keys(asSet(e.result)) }
 	get asExportData() {
 		let {inExpKeys} = this, result = {};
 		for (let key of inExpKeys) {
@@ -40,6 +40,7 @@ class CObject {
 			value = value.asExportData ?? value;
 			result[key] = value
 		}
+		let e = { result }; this.exportDataDuzenle(e); result = e.result;
 		return result
 	}
 	/*get super1() { return this.superN(1) } get super2() { return this.superN(2) } get super3() { return this.superN(3) }
@@ -63,7 +64,7 @@ class CObject {
 		for (const [key, value] of Object.entries(e)) { inst[key] = value }
 		return inst
 	}
-	inExpKeysDuzenle({ result }) {
+	inExp_keysDuzenle({ result }) {
 		let {_p} = this, instYapi = $.extend(true, {}, this);
 		if (!$.isEmptyObject(_p)) { $.extend(instYapi, _p) }
 		let removeKeys = ['_supers', '_p', 'ayrimlar', 'ozelSahalar', 'sayac', 'okunanHarSayac'].filter(x => !!x);
@@ -75,6 +76,49 @@ class CObject {
 		for (let key of removeKeys) { delete instYapi[key] }
 		result.push(...Object.keys(instYapi))
 	}
+	exportDataDuzenle({ result }) { }
+	static exportAll(e) {
+		e ??= {}; let {liste} = e; liste ??= $.makeArray(e.item ?? e.inst);
+		if (!liste.length) { return [] }
+		let result = []; for (let inst of liste) {
+			let hv = {}; if (inst.exportTo({ hv }) === false) { continue }
+			if (!$.isEmptyObject(hv)) { result.push(hv) }
+		}
+		return result
+	}
+	static importAll(e) {
+		e ??= {}; let recs = e.recs ?? $.makeArray(e.rec) ?? e;
+		if (!recs.length) { return [] }
+		let result = []; for (let rec of recs) {
+			let inst = this.importFrom({ ...e, rec });
+			if (inst) { result.push(inst) }
+		}
+		return result
+	}
+	static importFrom(e) {
+		e ??= {}; let rec = e.rec ?? e; if (!rec) { return [] }
+		let inst = new this();
+		return inst.importFrom({ ...e, rec }) === false ? null : inst
+	}
+	exportSelf(e) { let _e = { ...e, hv: {} }; this.exportTo(_e); return _e.hv }
+	exportTo(e) {
+		let _hv = this.inExp_hostVars(e);
+		if (!_hv) { return false }
+		$.extend(e.hv, _hv); return true
+	}
+	importFrom(e) {
+		if (!e?.rec) { e = { rec: e } }
+		let {rec} = e; if (!rec) { return false }
+		this.inExp_setValues(e);
+		return true
+	}
+	inExp_hostVars(e){
+		e ??= {}; let _e = { ...e, hv: {} };
+		this.inExp_hostVarsDuzenle(_e);
+		return _e.hv
+	}
+	inExp_hostVarsDuzenle({ hv }) { $.extend(hv, this.asExportData) }
+	inExp_setValues({ rec }) { $.extend(this, rec) }
 	static Serialize(e) {
 		if (!e) return null; if (e.serialize) return e.serialize()
 		if (e.reduce && !$.isArray(e)) e = e.reduce()

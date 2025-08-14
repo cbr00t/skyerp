@@ -62,6 +62,10 @@ class MQDetay extends MQSayacli {
 		if (seqSaha) { this.seq = this.eskiSeq = seq }
 		e.det = this; if (fis) { fis.detaySetValues(e) }
 	}
+	inExp_setValues({ rec }) {
+		super.inExp_setValues(...arguments);
+		this.okunanHarSayac = null
+	}
 	eBilgiSetValues(e) { this.eBilgiSetValues_ilk(e); this.eBilgiSetValues_son(e) }
 	eBilgiSetValues_ilk(e) { } eBilgiSetValues_son(e) { }
 	tempsReset() { this._temps = {}; return this }

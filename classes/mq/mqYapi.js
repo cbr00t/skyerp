@@ -199,6 +199,8 @@ class MQYapi extends CIO {
 	hostVarsDuzenle(e) { /* this.keyHostVarsDuzenle(e); */ this.alternateKeyHostVarsDuzenle(e) }
 	keySetValues(e) { }
 	setValues(e) { this.keySetValues(e); super.setValues(e) }
+	inExp_hostVarsDuzenle(e) { $.extend(e.hv, this.hostVars(e)) }
+	inExp_setValues(e) { this.setValues(e) }
 	static sqlExecNone(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNone' }) }
 	static sqlExecNoneWithResult(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNoneWithResult' }) }
 	static sqlExecSelect(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecSelect' }) }

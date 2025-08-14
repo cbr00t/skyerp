@@ -89,7 +89,7 @@ class MQSayacli extends MQCogul {
 		if (sayacSaha && sayac) { hv[sayacSaha] = sayac }
 	}
 	keySetValues(e) {
-		super.keySetValues(e); const {rec} = e, {sayacSaha, kodKullanilirmi, kodSaha} = this.class;
+		super.keySetValues(e); let {rec} = e, {sayacSaha, kodKullanilirmi, kodSaha} = this.class;
 		if (sayacSaha) { let value = rec[sayacSaha]; if (value != null) { this.sayac = value } }
 		if (kodKullanilirmi && kodSaha) { let value = rec[kodSaha]; if (value != null) { this.kod = value } }
 	}
@@ -105,6 +105,11 @@ class MQSayacli extends MQCogul {
 	setValues(e) {
 		e = e || {}; super.setValues(e); const {rec} = e;
 		if (this.class.zeminRenkDesteklermi) { const {oscolor} = rec; this.zeminRenk = oscolor ? os2HTMLColor(oscolor) : '' }
+	}
+	inExp_setValues({ rec }) {
+		super.inExp_setValues(...arguments);
+		/*let {guidmi} = this.class; if (!guidmi) { this.sayac = null } */
+		this.sayac = null
 	}
 	static sayacVarmi(e, _zorunlumu) {
 		e = e || {}; let sayac = typeof e == 'object' ? e.sayac : e;
