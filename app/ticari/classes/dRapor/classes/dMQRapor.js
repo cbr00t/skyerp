@@ -3,7 +3,7 @@ class DMQRapor extends DMQSayacliKA {
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'rapor'] }
 	static get kodListeTipi() { return 'DMQRAPOR' } static get sinifAdi() { return 'Rapor' }
 	static get table() { return 'wgruprapor' } static get tableAlias() { return 'rap' }
-	static get tanimlanabilirmi() { return true } static get silinebilirmi() { return true }
+	static get tanimlanabilirmi() { return true } static get silinebilirmi() { return true } static get inExpKullanilirmi() { return true }
 	static get tanimUISinif() { return ModelTanimPart } static get secimSinif() { return Secimler }
 	static get kodKullanilirmi() { return false } static get idSaha() { return this.sayacSaha }
 	get raporKod() { let result = this._raporKod; if (result === undefined) { result = this.class.getRaporKod(this.rapor) }; return result }
@@ -174,8 +174,13 @@ class DMQRapor extends DMQSayacliKA {
 	}
 	async yukleSonrasiIslemler(e) { await super.yukleSonrasiIslemler(e); let {encUser} = this; this.user = encUser ? await app.xdec(encUser) : encUser }
 	alternateKeyHostVarsDuzenle(e) {
-		super.alternateKeyHostVarsDuzenle(e); let {hv} = e, {adiSaha, sayacSaha} = this.class, {encUser, raporKod, aciklama} = this;
-		$.extend(hv, { raportip: raporKod, xuserkod: encUser }); hv[adiSaha] = aciklama; delete hv[sayacSaha]
+		super.alternateKeyHostVarsDuzenle(e);
+		let {hv, parentPart = app.activeWndPart} = e, {adiSaha, sayacSaha} = this.class;
+		let {encUser, raporKod, aciklama} = this, {rapor = {}} = parentPart;
+		raporKod ||= rapor.rapor?.class?.kod ?? rapor.class?.kod;
+		// if (!raporKod) { debugger }
+		$.extend(hv, { raportip: raporKod, xuserkod: encUser });
+		hv[adiSaha] = aciklama; delete hv[sayacSaha]
 	}
 	keySetValues(e) { super.keySetValues(e); let {rec} = e; $.extend(this, { aciklama: rec.aciklama }) }
 	hostVarsDuzenle(e) {
@@ -184,7 +189,8 @@ class DMQRapor extends DMQSayacliKA {
 			return $.isArray(value) ? value.filter(x => !!x).map(x => x.trim()).join(delimWS) : (value?.trim() || '')
 		};
 		$.extend(hv, {
-			raportip: this.raporKod, xuserkod: this.encUser || '', grupbelirtecler: liste2HV(this.grup), icerikbelirtecler: liste2HV(this.icerik),
+			/*raportip: this.raporKod, xuserkod: this.encUser || '',*/
+			grupbelirtecler: liste2HV(this.grup), icerikbelirtecler: liste2HV(this.icerik),
 			ilkxsayi: this.ozetMax, kullanim: toJSONStr(this.kullanim ?? {})
 		})
 	}

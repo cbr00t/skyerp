@@ -4,8 +4,8 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 	static get table() { return 'sbtablo' } static get tableAlias() { return 'fis' }
 	static get detaySinif() { return SBTabloDetay } static get gridKontrolcuSinif() { return SBTabloGridci }
 	static get kolonFiltreKullanilirmi() { return false } static get raporKullanilirmi() { return false }
-	static get tumKolonlarGosterilirmi() { return true } static get gridHeight_bosluk() { return 90 }
-	static get _repeatButton_delayMS() { return 100 }
+	static get tumKolonlarGosterilirmi() { return true } static get inExpKullanilirmi() { return true }
+	static get gridHeight_bosluk() { return 90 } static get _repeatButton_delayMS() { return 100 }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		$.extend(pTanim, { devreDisimi: new PInstBitBool('bdevredisi') })

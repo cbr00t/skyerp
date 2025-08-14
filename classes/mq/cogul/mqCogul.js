@@ -665,8 +665,6 @@ class MQCogul extends MQYapi {
 		}
 		catch (ex) { hConfirm(getErrorText(ex)); throw ex }
 	}
-	static importIstendi(e) { }
-	static exportIstendi(e) { }
 	tanimla(e) { e = e || {}; e.inst = e.inst || this; return this.class.tanimla(e) }
 	cacheOlustur(e) { }
 	static async getGloAdi2KodListe(e) {

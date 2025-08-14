@@ -77,3 +77,6 @@ button#siralama.jqx-fill-state-pressed, button#yukari.jqx-fill-state-pressed, bu
 button#siralama { background-image: url(../../images/a_z.png) !important }
 button#yukari { background-image: url(../../images/yukari.png) !important }
 button#asagi { background-image: url(../../images/asagi.png) !important }
+button#export { background-image: url(../../images/export.png) !important }
+button#import { background-image: url(../../images/download.png) !important }
+.islemTuslari > div > button#import { margin-left: 30px }

@@ -20,7 +20,8 @@ class CObject {
 	}
 	static get subClasses() { let result = this._subClasses; if (result === undefined) { result = this._subClasses = Object.values(this.key2SubClasses) } return result }
 	static get instance() { const {classKey, _class2SingletonInstance} = this; return _class2SingletonInstance[classKey] = _class2SingletonInstance[classKey] ?? new this() }
-	static get inExpYapilirmi() { return false } get inExpKeys() { let e = { result: [] }; this.inExp_keysDuzenle(e); return Object.keys(asSet(e.result)) }
+	static get inExpKullanilirmi() { return false }
+	get inExpKeys() { let e = { result: [] }; this.inExp_keysDuzenle(e); return Object.keys(asSet(e.result)) }
 	get asExportData() {
 		let {inExpKeys} = this, result = {};
 		for (let key of inExpKeys) {
@@ -81,7 +82,7 @@ class CObject {
 		e ??= {}; let {liste} = e; liste ??= $.makeArray(e.item ?? e.inst);
 		if (!liste.length) { return [] }
 		let result = []; for (let inst of liste) {
-			let hv = {}; if (inst.exportTo({ hv }) === false) { continue }
+			let hv = {}; if (inst.exportTo({ ...e, hv }) === false) { continue }
 			if (!$.isEmptyObject(hv)) { result.push(hv) }
 		}
 		return result

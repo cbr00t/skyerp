@@ -523,7 +523,7 @@ class MQDetayliGUID extends MQDetayliMaster {
 		let defDetaySinif = this.class.detaySinifFor(e) ?? this.detaySinif ?? detaylar[0]?.class;
 		if (detHVListe?.length) {
 			for (let rec of detHVListe) {
-				let {_cls: cls = detaySinif} = rec;
+				let {_cls: cls = defDetaySinif} = rec;
 				if (cls && typeof cls == 'string') { cls = window[cls] }
 				if (!cls) { continue }
 				let det = cls.importFrom({ ...e, rec });
