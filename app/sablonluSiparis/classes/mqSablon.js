@@ -331,7 +331,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			}
 		}
 		if (!(config.dev || to?.length)) { return }
-		let BUGUN = dateToString(today()), SERI = '', SEVKADRES1 = '', SEVKADRES2 = '';
+		let BUGUN = dateToString(today()), SERI = '', {sevkadres1: SEVKADRES1 = '', sevkadres2: SEVKADRES2 = ''} = rec;
 		let {sayac: SABLONSAYAC, aciklama: SABLONADI} = parentRec, {fisno: FISNO, mustkod: MUSTKOD, mustunvan: MUSTUNVAN} = rec;
 		let {sevkadreskod: SEVKADRESKOD, sevkadresadi: SEVKADRESADI, fisaciklama: EKNOTLAR} = rec;
 		let {klFirmaKod: KLFIRMAKOD} = this, KLFIRMAUNVAN = (KLFIRMAKOD ? await MQSKLFirma.getGloKod2Adi(KLFIRMAKOD) : null) ?? '', KLFIRMAADI = KLFIRMAUNVAN, KLFIRMABIRUNVAN = KLFIRMAUNVAN;
@@ -536,8 +536,8 @@ class MQSablonOrtakDetay extends MQDetay {
 				sahalar.add(`${kayitTipi.sqlServerDegeri()} kayitTipi`,
 					'fis.kaysayac', 'fis.tarih', 'fis.seri', 'fis.no fisno', 'fis.fisnox', 'fis.bizsubekod subekod', 'sub.aciklama subeadi',
 					`fis.${mustVeyaTeslimCariSaha} mustkod`, 'car.birunvan mustunvan',
-					'fis.xadreskod sevkadreskod', 'sadr.aciklama sevkadresadi', 'fis.basteslimtarihi',
-					`(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`,
+					'fis.xadreskod sevkadreskod', 'sadr.aciklama sevkadresadi', 'sadr.adres1 sevkadres1', 'sadr.adres2 sevkadres2',
+					'fis.basteslimtarihi', `(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`,
 					'fis.cariaciklama fisaciklama'
 				)
 				for (let attr of ['OZTEMSILCI', 'OZTELEFON']) {
@@ -574,7 +574,8 @@ class MQSablonDetay extends MQSablonOrtakDetay {
 			],
 			sahalar: [
 				'fis.kaysayac', 'fis.tarih', 'fis.fisnox', 'fis.seri', 'fis.no fisno', 'fis.bizsubekod subekod', 'sub.aciklama subeadi', `fis.${mustSaha} mustkod`, 'car.birunvan mustunvan',
-				'fis.xadreskod sevkadreskod', 'sadr.aciklama sevkadresadi', 'fis.basteslimtarihi', `(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`
+				'fis.xadreskod sevkadreskod', 'sadr.aciklama sevkadresadi', 'sadr.adres1 sevkadres1', 'sadr.adres2 sevkadres2',
+				'fis.basteslimtarihi', `(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`
 			]
 		}).fis2SubeBagla().fis2CariBagla().fis2SevkAdresBagla().fisSilindiEkle();
 		let {where: wh} = sent, {orderBy} = stm;
