@@ -1,13 +1,14 @@
 class MQFirewall extends MQKA {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporKullanilirmi() { return false }
 	static get kodListeTipi() { return 'FIREWALL' } static get sinifAdi() { return 'Firewall' }
-	static get kodKullanilirmi() { return false } static get adiSaha() { return 'name' } static get adiEtiket() { return 'Kural Adı' }
+	static get kodKullanilirmi() { return false } static get kodSaha() { return 'name' } static get adiSaha() { return 'name' }
+	static get adiEtiket() { return 'Kural Adı' }
 	static get tumKolonlarGosterilirmi() { return true } static get defaultDirection() { return 'in' }
 	get name() { return this.aciklama } set name(value) { this.aciklama = value }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments); delete pTanim.kod;
 		$.extend(pTanim, {
-			direction: new PInstStr('direction', MQFirewall_Direction),
+			direction: new PInstTekSecim('direction', MQFirewall_Direction),
 			action: new PInstTekSecim('action', MQFirewall_Action),
 			enabled: new PInstTrue('enabled'), ip: new PInstStr('ip')
 		})
@@ -16,16 +17,28 @@ class MQFirewall extends MQKA {
 		super.secimlerDuzenle(...arguments)
 		// sec.secimTopluEkle({ ruleName: new SecimOzellik({ etiket: 'Kural Adı' }) })
 	}
-	static rootFormBuilderDuzenle({ sender, inst, rootBuilder: rfb, tanimFormBuilder: tanimForm }) {
-		super.rootFormBuilderDuzenle(...arguments);
-		let form = tanimForm.addFormWithParent();
-		form.addCheckBox('enabled', 'Aktif?'); form.addTextInput('ip', 'IP');
-		form.addModelKullan('direction', 'Yön').dropDown().noMF().kodsuz().listedenSecilmez().setSource(MQFirewall_Direction.kaListe);
-		form.addModelKullan('action', 'Eylem').dropDown().noMF().kodsuz().listedenSecilmez().setSource(MQFirewall_Action.kaListe)
+	static rootFormBuilderDuzenle(e) {
+		super.rootFormBuilderDuzenle(e); let {adiEtiket} = this;
+		let {sender, inst, rootBuilder: rfb, tanimFormBuilder: tanimForm, kaForm} = e;
+		$.extend(kaForm, {
+			builders: kaForm.builders.filter(({ id }) => id != 'aciklama'),
+			id2Builder: null
+		});
+		kaForm.yanYana();
+		kaForm.addModelKullan('aciklama', adiEtiket).dropDown().noMF().kodsuz().bosKodEklenmez()
+			.addStyle(`$elementCSS { max-width: 600px !important }`)
+			.setSource(({ builder: { rootPart: { parentPart: gridPart } } }) =>
+				Object.keys(asSet(gridPart.boundRecs.map(rec => rec.name))).sort()
+					.map(aciklama => ({ kod: aciklama, aciklama }))
+			);
+		kaForm.addCheckBox('enabled', 'Aktif?').readOnly().addStyle(`$elementCSS { margin: 35px 0 0 20px !important }`);
+		let form = tanimForm.addFormWithParent(); form.addTextInput('ip', 'IP');
+			form.addModelKullan('direction', 'Yön').disable().dropDown().noMF().kodsuz().bosKodEklenmez().listedenSecilmez().setSource(MQFirewall_Direction.kaListe);
+			form.addModelKullan('action', 'Eylem').disable().dropDown().noMF().kodsuz().bosKodEklenmez().listedenSecilmez().setSource(MQFirewall_Action.kaListe)
 	}
 	static ekCSSDuzenle({ dataField: belirtec, value, rec, result }) {
 		value = value?.toLowerCase?.();
-		if (rec.enabled === false) { result.add('bg-lightgray', 'iptal') }
+		if (rec.enabled === false) { result.push('bg-lightgray', 'iptal') }
 		switch (belirtec) {
 			case 'action': {
 				result.push('bold');
@@ -42,16 +55,17 @@ class MQFirewall extends MQKA {
 		}
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
-		super.orjBaslikListesiDuzenle(...arguments); let {adiSaha} = this;
+		super.orjBaslikListesiDuzenle(...arguments); let {kodSaha} = this;
 		{
-			let colDef = liste.find(colDef => colDef.belirtec == adiSaha);
-			if (colDef) { colDef.hidden() }
+			let colDefs = liste.filter(colDef => colDef.belirtec == kodSaha);
+			if (colDefs) { colDefs.forEach(colDef => colDef.hidden()) }
 		}
 		liste.push(
+			new GridKolon({ belirtec: 'name', text: 'Kural Adı', genislikCh: 50, filterType: 'checkedlist' }).hidden(),
 			new GridKolon({ belirtec: 'ip', text: 'IP', genislikCh: 50 }),
-			new GridKolon({ belirtec: 'direction', text: 'Yön', genislikCh: 13 }).tipTekSecim(MQFirewall_Direction).kodsuz().alignCenter(),
-			new GridKolon({ belirtec: 'action', text: 'Eylem', genislikCh: 13 }).tipTekSecim(MQFirewall_Action).kodsuz().alignCenter(),
-			new GridKolon({ belirtec: 'enabled', text: 'Aktif?', genislikCh: 10 }).tipBool()
+			new GridKolon({ belirtec: 'direction', text: 'Yön', genislikCh: 13, filterType: 'checkedlist' }).tipTekSecim(MQFirewall_Direction).kodsuz().alignCenter(),
+			new GridKolon({ belirtec: 'action', text: 'Eylem', genislikCh: 13, filterType: 'checkedlist' }).tipTekSecim(MQFirewall_Action).kodsuz().alignCenter(),
+			new GridKolon({ belirtec: 'enabled', text: 'Aktif?', genislikCh: 10, filterType: 'checkedlist' }).tipBool()
 		)
 	}
 	static async loadServerDataDogrudan({ secimler }) {
@@ -71,15 +85,36 @@ class MQFirewall extends MQKA {
 		super.gridVeriYuklendi(...arguments); let {grid} = gridPart;
 		grid.jqxGrid('groups', ['name'])
 	}
+	async degistir(eskiInst) {
+		await eskiInst.sil();
+		return await this.yaz()
+	}
+	yaz(e) {
+		let {aciklama: name, enabled, direction, action, ip} = this;
+		direction = direction?.char ?? direction; action = action?.char ?? action;
+		let data = { name, enabled, direction, action, add: [ip] };
+		showProgress(); return this.class.wsFirewall_update({ data })
+			.finally(() => hideProgress())
+	}
+	sil(e) {
+		let {aciklama: name, enabled, direction, action, ip} = this;
+		direction = direction?.char ?? direction; action = action?.char ?? action;
+		let data = { name, enabled, direction, action, remove: [ip] };
+		showProgress(); return this.class.wsFirewall_update({ data })
+			.finally(() => hideProgress())
+	}
 	tekilOku({ _rec: rec }) { return rec }
-	setValues({ rec }) { super.setValues(...arguments) }
+	keySetValues({ rec }) {
+		super.keySetValues(...arguments); let {name: aciklama, ip} = rec;
+		$.extend(this, { aciklama, ip })
+	}
 
 	static wsFirewall_update(e) { return this.wsFirewall_x({ ...e, api: 'update' }) }
 	static wsFirewall_show(e) { return this.wsFirewall_x({ ...e, api: 'show' }) }
 	static async wsFirewall_x(e) {
 		e = e || {}; let data = e.data ?? e.args ?? {}, {api} = e;
 		for (let key of ['api', 'data', 'args']) { delete e[key] }
-		data ||= null; if (typeof data == 'object') { data = toJSONStr(data) }
+		data = typeof data == 'object' && !$.isEmptyObject(data) ? toJSONStr(data) : null;
 		let timeout = 13_000, ajaxContentType = wsContentTypeVeCharSet, processData = false;
 		let wsPath = 'ws/firewall', args = e;
 		return ajaxPost({
@@ -91,7 +126,7 @@ class MQFirewall extends MQKA {
 
 class MQFirewall_Direction extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultChar() { return 'in' }
+	static get defaultChar() { return 'inbound' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments); kaListe.push(
 			new CKodVeAdi(['inbound', '<span class=forestgreen>Gelen</span>', 'gelenmi']),

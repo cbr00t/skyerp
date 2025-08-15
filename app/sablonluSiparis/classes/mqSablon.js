@@ -331,7 +331,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			}
 		}
 		if (!(config.dev || to?.length)) { return }
-		let BUGUN = dateToString(today()), SERI = '', {sevkadres1: SEVKADRES1 = '', sevkadres2: SEVKADRES2 = ''} = rec;
+		let BUGUN = dateToString(today()), SERI = '', {sevkadres1: SEVKADRES1, sevkadres2: SEVKADRES2} = rec;
 		let {sayac: SABLONSAYAC, aciklama: SABLONADI} = parentRec, {fisno: FISNO, mustkod: MUSTKOD, mustunvan: MUSTUNVAN} = rec;
 		let {sevkadreskod: SEVKADRESKOD, sevkadresadi: SEVKADRESADI, fisaciklama: EKNOTLAR} = rec;
 		let {klFirmaKod: KLFIRMAKOD} = this, KLFIRMAUNVAN = (KLFIRMAKOD ? await MQSKLFirma.getGloKod2Adi(KLFIRMAKOD) : null) ?? '', KLFIRMAADI = KLFIRMAUNVAN, KLFIRMABIRUNVAN = KLFIRMAUNVAN;
@@ -532,11 +532,13 @@ class MQSablonOrtakDetay extends MQDetay {
 			if (mustKod) { wh.degerAta(mustKod, `fis.${mustVeyaTeslimCariSaha}`) }
 			sahalar.add('fis.sablonsayac sablonSayac');
 			if (detaylimi) {
+				let getSevkAdresClause = n => `(case when COALESCE(sadr.adres${n}, '') = '' then car.adres${n} else sadr.adres${n} end)`;
 				sent.fis2SubeBagla().fis2CariBagla({ mustSaha: mustVeyaTeslimCariSaha }).fis2SevkAdresBagla();
 				sahalar.add(`${kayitTipi.sqlServerDegeri()} kayitTipi`,
 					'fis.kaysayac', 'fis.tarih', 'fis.seri', 'fis.no fisno', 'fis.fisnox', 'fis.bizsubekod subekod', 'sub.aciklama subeadi',
 					`fis.${mustVeyaTeslimCariSaha} mustkod`, 'car.birunvan mustunvan',
-					'fis.xadreskod sevkadreskod', 'sadr.aciklama sevkadresadi', 'sadr.adres1 sevkadres1', 'sadr.adres2 sevkadres2',
+					'fis.xadreskod sevkadreskod', 'sadr.aciklama sevkadresadi',
+					`${getSevkAdresClause(1)} sevkadres1`, `${getSevkAdresClause(2)} sevkadres2`,
 					'fis.basteslimtarihi', `(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`,
 					'fis.cariaciklama fisaciklama'
 				)
@@ -566,6 +568,7 @@ class MQSablonDetay extends MQSablonOrtakDetay {
 		super.loadServerData_queryDuzenle(...arguments);    /* gridPart: SablonOrtakFis'in liste ekranı ; parentRec: Şablon başlık kaydı */
 		let {kaysayac: sablonSayac} = parentRec, {tarih, mustKod} = gridPart, subeKod = gridPart.subeKod ?? config.session.subeKod;
 		let {table, mustSaha} = fisSinif, cariYil = app.params.zorunlu?.cariYil || today().getYil();
+		let getSevkAdresClause = n => `(case when COALESCE(sadr.adres${n}, '') = '' then car.adres${n} else sadr.adres${n} end)`;
 		let sent = stm.sent = new MQSent({
 			from: `${table} fis`,
 			where: [
@@ -573,8 +576,10 @@ class MQSablonDetay extends MQSablonOrtakDetay {
 				`fis.kapandi = ''`, `fis.tarih >= CAST('${cariYil}-01-01T00:00:00' AS DATETIME)`
 			],
 			sahalar: [
-				'fis.kaysayac', 'fis.tarih', 'fis.fisnox', 'fis.seri', 'fis.no fisno', 'fis.bizsubekod subekod', 'sub.aciklama subeadi', `fis.${mustSaha} mustkod`, 'car.birunvan mustunvan',
-				'fis.xadreskod sevkadreskod', 'sadr.aciklama sevkadresadi', 'sadr.adres1 sevkadres1', 'sadr.adres2 sevkadres2',
+				'fis.kaysayac', 'fis.tarih', 'fis.fisnox', 'fis.seri', 'fis.no fisno',
+				'fis.bizsubekod subekod', 'sub.aciklama subeadi', `fis.${mustSaha} mustkod`, 'car.birunvan mustunvan',
+				'fis.xadreskod sevkadreskod', 'sadr.aciklama sevkadresadi',
+				`${getSevkAdresClause(1)} sevkadres1`, `${getSevkAdresClause(2)} sevkadres2`,
 				'fis.basteslimtarihi', `(case when fis.onaytipi = 'BK' or fis.onaytipi = 'ON' then 0 else 1 end) bonayli`
 			]
 		}).fis2SubeBagla().fis2CariBagla().fis2SevkAdresBagla().fisSilindiEkle();
