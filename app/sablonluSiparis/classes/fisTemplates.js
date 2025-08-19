@@ -683,7 +683,7 @@ class SablonluSiparisGridciTemplate extends CObject {
 				},
 				validation: (colDef, cell, value) => {
 					value = asFloat(value);
-					if (value < 0 || value >= 10000) {
+					if (value < 0 || value >= 1_000_000) {
 						return ({ result: false, message: `<b>Miktar</b> <u>0'dan büyük</u> ve <u>geçerli</u> bir değer olmalıdır` }) }
 					return true
 				},
