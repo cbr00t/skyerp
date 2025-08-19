@@ -6,17 +6,18 @@ class MQRAdmin_RaspberryPiPico extends MQMasterOrtak {
 	get actionTekilmi() {
 		let {action} = this;
 		if (action) { action = action.kod ?? action.char ?? action.value ?? action }
-		return action == 'exec'
+		return action == 'exec' || action == 'reboot' || action == 'updateSelf'
 	}
 	get argsStr() {
 		let {args: result} = this;
+		if (result?.length && !$.isArray(result)) { result = $.makeArray(result) }
 		return result?.length
-			? this.actionTekilmi ? result[0] : result.map(x => x.trim('\r', '\t', ' ')).join('\n').filter(x => !!x)
+			? this.actionTekilmi ? result[0] : result.map(x => x.trim('\r', '\t', ' ')).filter(x => !!x).join('\n').trim()
 			: []
 	}
 	set argsStr(value) {
 		this.args = value
-			? this.actionTekilmi ? value : value.split('\n').map(x => x.trim('\r', '\t', ' ')).filter(x => !!x)
+			? this.actionTekilmi || !$.isArray(value) ? value : value.split('\n').map(x => x.trim('\r', '\t', ' ')).filter(x => !!x)
 			: ''
 	}
 	static pTanimDuzenle({ pTanim }) {
@@ -81,13 +82,17 @@ class MQRAdmin_RaspberryPiPico extends MQMasterOrtak {
 		let form = fbd_content.addFormWithParent().altAlta();
 		form.addModelKullan('action', 'API').comboBox().noMF().autoBind().addStyle_wh(600)
 			.setSource(() => [
+				new CKodVeAdi(['', '']),
 				new CKodVeAdi(['ping', 'Ping']),
 				new CKodVeAdi(['exec', 'Python Script Çalıştır']),
 				new CKodVeAdi(['reboot', 'Cihazı Yeniden Başlat']),
 				new CKodVeAdi(['updateSelf', 'Uzak Güncelleme Başlat']),
 				new CKodVeAdi(['lcdWrite', 'Ekrana Metin Yaz']),
-				new CKodVeAdi(['lcdWriteLine', 'Ekrana Metin Yaz (<span class=gray>Satır silerek</span>)']),
-				new CKodVeAdi(['lcdClear', 'Ekranaı Temizle'])
+				new CKodVeAdi(['lcdWriteLine', 'Ekrana Metin Yaz (Satır silerek)']),
+				new CKodVeAdi(['lcdClear', 'Ekranı Temizle']),
+				new CKodVeAdi(['ledWrite', 'LED Ata']),
+				new CKodVeAdi(['ledClear', 'LED Kapat']),
+				new CKodVeAdi(['', ''])
 			])
 			.onAfterRun(({ builder: fbd }) => { tanimPart.fbd_action = fbd; fbd.input.click() });
 		form.addTextArea('argsStr', 'Parametreler').setRows(5);
@@ -121,13 +126,13 @@ class MQRAdmin_RaspberryPiPico extends MQMasterOrtak {
 		return true
 	}
 	static async execActionIstendi({ sender: tanimPart, rfb, inst }) {
-		let {sinifAdi: islemAdi} = this, {ipList, action, args: _args} = inst;
+		let {sinifAdi: islemAdi} = this, {ipList, action, argsStr: _args} = inst;
 		action = action.kod ?? action.char ?? action.value ?? action;
 		if (!ipList?.length) { throw { errorText: '<b>IP Listesi</b> boş olamaz' } }
 		if (!action) { throw { errorText: '<b>API</b> belirtilmelidir' } }
 		let args = $.isArray(_args)
 			? _args.map(arg => $.isNumeric(arg) ? asFloat(arg) : ['true', 'false'].includes(arg?.toLowerCase()) ? asBool(arg) : arg.toString())
-			: $.makeArray(_args);
+			: _args ? $.makeArray(_args) : [];
 		showProgress(`<b>${ipList.length} adet</b> Cihaz ile iletişim kuruluyor...`, islemAdi, true);
 		let pm = progressManager; pm.setProgressMax(ipList.length); pm.setProgressValue(0);
 		let promises = [], errorsSet = {}, successCount = 0, failCount = 0;
