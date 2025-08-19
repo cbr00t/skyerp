@@ -209,9 +209,10 @@ class FBuilder_SimpleElement extends FormBuilder_SubPart {
 	degisince(handler) { this.onChange(handler); return this }
 	onChange(handler) {
 		let {onChangeEvent} = this;
-		if (!onChangeEvent) onChangeEvent = this.onChangeEvent = [];
-		else if (!$.isArray(onChangeEvent)) onChangeEvent = this.onChangeEvent = [onChangeEvent]
-		onChangeEvent.push(handler); return this
+		if (!onChangeEvent) { onChangeEvent = this.onChangeEvent = [] }
+		else if (!$.isArray(onChangeEvent)) { onChangeEvent = this.onChangeEvent = [onChangeEvent] }
+		onChangeEvent.push(handler);
+		return this
 	}
 	clearChangeEvents() { this.onChangeEvent = null; return this }
 	onKeyUp(handler) {

@@ -430,12 +430,13 @@ class BankaMevduatHareketci extends BankaOrtakHareketci {
 
 	static maliTablo_secimlerYapiDuzenle({ result }) {
 		super.maliTablo_secimlerYapiDuzenle(...arguments);
-		$.extend(result, { mst: DMQBankaHesap, grup: DMQBankaHesapGrup })
+		$.extend(result, { mst: DMQBankaHesap, grup: DMQBankaHesapGrup, muhHesap: DMQMuhHesap })
 	}
 	static maliTablo_secimlerSentDuzenle({ detSecimler: detSec, sent, where: wh, hv, mstClause }) {
 		super.maliTablo_secimlerSentDuzenle(...arguments);
-		let {from} = sent; sent.bankaHesap2GrupBagla();
+		let {from} = sent; sent.bankaHesap2GrupBagla().x2MuhHesapBagla({ alias: 'bhes' });
 		wh.basiSonu(detSec.mstKod, mstClause).ozellik(detSec.mstAdi, 'bhes.aciklama');
-		wh.basiSonu(detSec.grupKod, 'bhes.grupkod').ozellik(detSec.grupAdi, 'bhgrp.aciklama')
+		wh.basiSonu(detSec.grupKod, 'bhes.grupkod').ozellik(detSec.grupAdi, 'bhgrp.aciklama');
+		wh.basiSonu(detSec.muhHesapKod, 'bhes.muhhesap').ozellik(detSec.muhHesapAdi, 'mhes.aciklama')
 	}
 }

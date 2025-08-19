@@ -19,7 +19,7 @@ class MQFirewall extends MQKA {
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); let {adiEtiket} = this;
-		let {sender, inst, rootBuilder: rfb, tanimFormBuilder: tanimForm, kaForm} = e;
+		let {sender, islem, inst, rootBuilder: rfb, tanimFormBuilder: tanimForm, kaForm} = e;
 		$.extend(kaForm, {
 			builders: kaForm.builders.filter(({ id }) => id != 'aciklama'),
 			id2Builder: null
@@ -28,9 +28,17 @@ class MQFirewall extends MQKA {
 		kaForm.addModelKullan('aciklama', adiEtiket).dropDown().noMF().kodsuz().bosKodEklenmez()
 			.addStyle(`$elementCSS { max-width: 600px !important }`)
 			.setSource(({ builder: { rootPart: { parentPart: gridPart } } }) =>
-				Object.keys(asSet(gridPart.boundRecs.map(rec => rec.name))).sort()
+				Object.keys(asSet(gridPart.boundRecs.map(rec => rec.name)))
 					.map(aciklama => ({ kod: aciklama, aciklama }))
-			);
+			).degisince(({ builder: { altInst: inst, rootPart: { parentPart, parentPart: { gridPart } }} }) => {
+				gridPart ??= parentPart;
+				let {name} = inst, {boundRecs: recs} = gridPart;
+				let rec = recs.find(rec => rec.name == name);
+				if (rec) {
+					let {enabled, direction, action} = rec;
+					$.extend(inst, { enabled, direction, action })
+				}
+			});
 		kaForm.addCheckBox('enabled', 'Aktif?').readOnly().addStyle(`$elementCSS { margin: 35px 0 0 20px !important }`);
 		let form = tanimForm.addFormWithParent(); form.addTextInput('ip', 'IP');
 			form.addModelKullan('direction', 'Yön').disable().dropDown().noMF().kodsuz().bosKodEklenmez().listedenSecilmez().setSource(MQFirewall_Direction.kaListe);
@@ -72,9 +80,41 @@ class MQFirewall extends MQKA {
 		let {value: name} = secimler.instAdi, {defaultDirection: direction} = this;
 		let name2Rule = await this.wsFirewall_show({ direction, name }); if (name2Rule == null) { return [] }
 		let recs = []; for (let [name, rule] of Object.entries(name2Rule)) {
-			let {ipList} = rule; if (!ipList?.length) { continue }
+			let {enabled, ipList} = rule;
+			if (!(enabled && ipList?.length)) { continue }
 			for (let ip of ipList) { recs.push({ name, ...rule, ip }) }
 		}
+		recs.sort((a, b) => {
+			const Prefix_My = '@_', Prefix_Public = `${Prefix_My}public`, Prefix_RDPGuard = 'rdpguard_';
+			const Direction = 'inbound', Action = 'allow', Enabled = false;
+			let name1 = a.name.toLowerCase(), name2 = b.name.toLowerCase();
+			let cmpName = prefix => {
+				let {length: len} = prefix;
+				let t1 = name1.substr(0, len), t2 = name2.substr(0, len);
+				return (
+					( t1 == prefix && t2 != prefix ) ? -1 :
+					( t2 == prefix && t1 != prefix ) ? 1 :
+					0
+				)
+			};
+			let cmpValue = (key, match) => {
+				let t1 = a[key], t2 = b[key];
+				return (
+					( t1 == match && t2 != match ) ? 1 :
+					( t2 == match && t1 != match ) ? -1 :
+					0
+				)
+			};
+			return (
+				cmpValue('enabled', Enabled) ||
+				cmpName(Prefix_Public) ||
+				cmpName(Prefix_My) ||
+				cmpValue('direction', Direction) ||
+				cmpValue('action', Action) ||
+				name1.localeCompare(name2) ||   /* name order */
+				cmpName(Prefix_RDPGuard)
+			)
+		});
 		return recs
 	}
 	static orjBaslikListesi_argsDuzenle({ args }) {
@@ -84,6 +124,13 @@ class MQFirewall extends MQKA {
 	static gridVeriYuklendi({ sender: gridPart }) {
 		super.gridVeriYuklendi(...arguments); let {grid} = gridPart;
 		grid.jqxGrid('groups', ['name'])
+	}
+	yeniTanimOncesiIslemler({ sender: { parentPart: gridPart } }) {
+		super.yeniTanimOncesiIslemler(...arguments);
+		if (!this.name) {
+			let {selectedRec: rec} = gridPart;
+			this.name = rec?.name
+		}
 	}
 	async degistir(eskiInst) {
 		await eskiInst.sil();

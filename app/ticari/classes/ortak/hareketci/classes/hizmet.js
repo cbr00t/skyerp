@@ -560,16 +560,17 @@ class HizmetHareketci extends Hareketci {
 
 	static maliTablo_secimlerYapiDuzenle({ result }) {
 		super.maliTablo_secimlerYapiDuzenle(...arguments);
-		$.extend(result, { mst: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup, istGrup: DMQHizmetIstGrup })
+		$.extend(result, { mst: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup, istGrup: DMQHizmetIstGrup, muhHesap: DMQMuhHesap })
 	}
 	static maliTablo_secimlerSentDuzenle({ detSecimler: detSec, sent, where: wh, hv, mstClause }) {
 		super.maliTablo_secimlerSentDuzenle(...arguments);
-		let {from} = sent; sent.hizmet2GrupBagla().hizmetGrup2AnaGrupBagla().hizmet2IstGrupBagla();
+		let {from} = sent; sent.hizmet2GrupBagla().hizmetGrup2AnaGrupBagla().hizmet2IstGrupBagla().x2MuhHesapBagla({ alias: 'hiz' });
 		if (mstClause) {
 			wh.basiSonu(detSec.mstKod, mstClause).ozellik(detSec.mstAdi, 'hiz.aciklama');
 			wh.basiSonu(detSec.grupKod, 'hiz.grupkod').ozellik(detSec.grupAdi, 'grp.aciklama');
 			wh.basiSonu(detSec.anaGrupKod, 'grp.anagrupkod').ozellik(detSec.anaGrupAdi, 'agrp.aciklama');
-			wh.basiSonu(detSec.istGrupKod, 'hiz.histgrupkod').ozellik(detSec.istGrupAdi, 'higrp.aciklama')
+			wh.basiSonu(detSec.istGrupKod, 'hiz.histgrupkod').ozellik(detSec.istGrupAdi, 'higrp.aciklama');
+			wh.basiSonu(detSec.muhHesapKod, 'hiz.muhhesap').ozellik(detSec.muhHesapAdi, 'mhes.aciklama')
 		}
 	}
 

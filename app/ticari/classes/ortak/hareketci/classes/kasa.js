@@ -210,12 +210,13 @@ class KasaHareketci extends Hareketci {
 
 	static maliTablo_secimlerYapiDuzenle({ result }) {
 		super.maliTablo_secimlerYapiDuzenle(...arguments);
-		$.extend(result, { mst: DMQKasa, grup: DMQKasaGrup })
+		$.extend(result, { mst: DMQKasa, grup: DMQKasaGrup, muhHesap: DMQMuhHesap })
 	}
 	static maliTablo_secimlerSentDuzenle({ detSecimler: detSec, sent, where: wh, hv, mstClause }) {
 		super.maliTablo_secimlerSentDuzenle(...arguments);
-		let {from} = sent; sent.kasa2GrupBagla();
+		let {from} = sent; sent.kasa2GrupBagla().x2MuhHesapBagla({ alias: 'kas' });
 		wh.basiSonu(detSec.mstKod, mstClause).ozellik(detSec.mstAdi, 'kas.aciklama');
-		wh.basiSonu(detSec.grupKod, 'kas.grupkod').ozellik(detSec.grupAdi, 'kgrp.aciklama')
+		wh.basiSonu(detSec.grupKod, 'kas.grupkod').ozellik(detSec.grupAdi, 'kgrp.aciklama');
+		wh.basiSonu(detSec.muhHesapKod, 'kas.muhhesap').ozellik(detSec.muhHesapAdi, 'mhes.aciklama')
 	}
 }

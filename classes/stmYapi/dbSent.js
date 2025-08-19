@@ -323,10 +323,10 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	x2BankaHesapBagla(e) { let kodClause = e?.kodClause; this.fromIliski('banbizhesap bhes', `${kodClause} = bhes.kod`); return this }
 	fisAyrimBagla(e) { /* tamamlanacak */ return this }
 	fis2MuhHesapBagla(e) { return this.x2MuhHesapBagla({ alias: 'fis' }) }
-	har2MuhHesapBagla(e) { return this.x2MuhHesapBagla({ alias: 'har' }) }
+	har2MuhHesapBagla(e) { return this.x2MuhHesapBagla({ alias: 'har', kodSaha: 'hesapkod' }) }
 	x2MuhHesapBagla(e) {
-		e = e ?? {}; let {alias, kodClause} = e, aliasVeNokta = alias ? `${alias}.` : '';
-		kodClause = kodClause || `${aliasVeNokta}muhhesap`;
+		e = e ?? {}; let {alias, kodSaha, kodClause} = e, aliasVeNokta = alias ? `${alias}.` : '';
+		kodClause = kodClause || `${aliasVeNokta}${kodSaha || 'muhhesap'}`;
 		this.fromIliski('muhhesap mhes', `${kodClause} = mhes.kod`);
 		return this
 	}

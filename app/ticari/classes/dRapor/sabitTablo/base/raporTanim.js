@@ -223,7 +223,7 @@ class SBTabloDetay extends MQDetay {
 		let tip2Secimler = this.tip2Secimler = e.tip2Secimler ?? {};
 		let tip2SecimMFYapi = {
 			S: { mst: DMQStok, grup: DMQStokGrup, anaGrup: DMQStokAnaGrup, istGrup: DMQStokIstGrup },
-			H: { mst: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup, istGrup: DMQHizmetIstGrup },
+			H: { mst: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup, istGrup: DMQHizmetIstGrup, muhHesap: DMQMuhHesap },
 			/*[KasaHareketci.kisaKod]: { mst: DMQKasa, grup: DMQKasaGrup },
 			[BankaMevduatHareketci.kisaKod]: { mst: DMQBankaHesap, grup: DMQBankaHesapGrup }*/
 		};
@@ -321,6 +321,7 @@ class SBTabloDetay extends MQDetay {
 						wh.basiSonu(sec.grupKod, 'grp.kod').ozellik(sec.grupAdi, 'grp.aciklama');
 						wh.basiSonu(sec.anaGrupKod, 'agrp.kod').ozellik(sec.anaGrupAdi, 'agrp.aciklama');
 						wh.basiSonu(sec.istGrupKod, `${iGrpAlias}.kod`).ozellik(sec.istGrupAdi, `${iGrpAlias}.aciklama`);
+						if (hizmetmi) { wh.basiSonu(sec.muhHesapKod, `${alias}.muhhesap`).ozellik(sec.muhHesapAdi, 'mhes.aciklama') }
 					}
 					// else if (hareketcimi && harSinif) { harSinif.maliTablo_secimlerSentDuzenle(args) }
 					sec.secimEkWhereDuzenle?.(args)
@@ -388,6 +389,7 @@ class SBTabloDetay extends MQDetay {
 							if (!from.aliasIcinTable('grp')) { sent[`${ekBaglaPrefix}2GrupBagla`]() }
 							if (!from.aliasIcinTable('agrp')) { sent[`${ekBaglaPrefix}Grup2AnaGrupBagla`]() }
 							if (!from.aliasIcinTable(iGrpAlias)) { sent[`${ekBaglaPrefix}2IstGrupBagla`]() }
+							if (!from.aliasIcinTable('mhes')) { sent.x2MuhHesapBagla({ alias: mstTableAlias }) }
 							wh.birlestir(detSecimler.getTBWhereClause(_e))
 						}
 						else if (hareketcimi && harSinif) {
