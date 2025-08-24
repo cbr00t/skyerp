@@ -25,4 +25,30 @@ class MiscApp extends App {
 		let args = e || {}, {data} = args; if (typeof data == 'object') { data = toJSONStr(data) } delete args.data;
 		return ajaxPost({ timeout: 13 * 1000, processData: false, ajaxContentType: wsContentType, url: this.getWSUrl({ api: 'testSonucKaydet', args }), data })
 	}
+
+	/*// --- Performance Estimator (cbr00t sürümü) ---
+	const cfg = { base: 200, kdWeight: 15, kpmWeight: 20, idlePenaltyPer10pct: 7.5 }    // katsayılar
+	// kills, deaths, minutes, idlePct(%) alır → KD, KPM, Perf döner
+	function calcPerf({ kills, deaths, minutes, idlePct = 0 }) {
+	  // safety      if (!minutes || minutes <= 0) { minutes = 1 }
+	  // KD          const kd  = deaths > 0 ? kills / deaths : kills
+	  // KPM         const kpm = kills / minutes
+	  // ham puan    const raw = cfg.base + cfg.kdWeight * kd + cfg.kpmWeight * kpm
+	  // idle cezası (isteğe bağlı)  const penalty = cfg.idlePenaltyPer10pct * (idlePct / 10)
+	  // sonuç        const perf = raw - penalty
+	  return { kd, kpm, perf }
+	}
+	// Örnek kullanım (dakika sürelerini sen gir):
+	//   - Dün 114/3  → minutes=? (Az‑Orta tempo)
+	//   - Bugün 103/21 → minutes=? (Çok tempo)
+	//   - Bugün 36/5   → minutes=? (Çok tempo)
+	// console.log(calcPerf({ kills: 114, deaths: 3,  minutes:  ? , idlePct: 0 }))  // ≈ 316–320 hedef bandı
+	// console.log(calcPerf({ kills: 103, deaths: 21, minutes:  ? , idlePct: 0 }))  // ≈ 321–323 hedef bandı
+	// console.log(calcPerf({ kills: 36,  deaths: 5,  minutes:  ? , idlePct: 0 }))  // ≈ 338–342 hedef bandı
+	
+	// İnce ayar rehberi:
+	//   - Perf düşük çıkıyorsa ama tempolu oynuyorsan → kpmWeight ↑ (örn. 22–24)
+	//   - Perf fazla KD’yi ödüllüyorsa → kdWeight ↓ (örn. 12–14)
+	//   - Idle yüzdesi belirgin ise → idlePenaltyPer10pct ↑ (örn. 10)
+	*/
 }
