@@ -31,7 +31,7 @@ class CObject {
 					let isArray = Array.isArray(parent);
 					let newObj = isArray ? [] : {};
 					for (let [k, v] of Object.entries(parent)) {
-						v = v.asExportData ?? v;
+						v = v === this ? v : (v.asExportData ?? v);
 						newObj[k] = v
 					}
 					value = newObj

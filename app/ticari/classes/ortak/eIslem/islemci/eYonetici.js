@@ -672,17 +672,19 @@ class EYonetici extends CObject {
 	}
 	static getPS2Table(e) { e = e || {}; const psTip = typeof e == 'object' ? (e.psTip || e.tip || e.ps) : e; return (psTip == 'S' ? 'sipfis' : 'piffis') }
 	static getEYoneticiListe(e) {
-		const {eYoneticiler, recs} = e; if (eYoneticiler) { return eYoneticiler } if (!recs) { return null } if ($.isEmptyObject(recs)) { return [] }
-		const eIslAnaTip2PS2SayacListe = {};
-		for (const rec of recs) {
+		let {eYoneticiler, recs} = e;
+		if (eYoneticiler) { return eYoneticiler }
+		if (!recs) { return null } if ($.isEmptyObject(recs)) { return [] }
+		let eIslAnaTip2PS2SayacListe = {};
+		for (let rec of recs) {
 			if (!rec) { continue }
-			const psTip = rec.pstip ?? 'P', efAyrimTipi = rec.efayrimtipi ?? rec.efbelge, {anaTip} = EIslemOrtak.getClass({ tip: efAyrimTipi }) || {}; if (!anaTip) { continue }
-			const ps2SayacListe = eIslAnaTip2PS2SayacListe[anaTip] = eIslAnaTip2PS2SayacListe[anaTip] || {};
+			let psTip = rec.pstip ?? 'P', efAyrimTipi = rec.efayrimtipi ?? rec.efbelge, {anaTip} = EIslemOrtak.getClass({ tip: efAyrimTipi }) || {}; if (!anaTip) { continue }
+			let ps2SayacListe = eIslAnaTip2PS2SayacListe[anaTip] = eIslAnaTip2PS2SayacListe[anaTip] || {};
 			(ps2SayacListe[psTip] = ps2SayacListe[psTip] || []).push(rec.kaysayac ?? rec.fissayac)
 		}
-		const {eConf} = e, result = [];
-		for (const anaTip in eIslAnaTip2PS2SayacListe) {
-			const eIslSinif = EIslemOrtak.getAnaClass({ anaTip }), ps2SayacListe = eIslAnaTip2PS2SayacListe[anaTip];
+		let {eConf} = e, result = [];
+		for (let anaTip in eIslAnaTip2PS2SayacListe) {
+			let eIslSinif = EIslemOrtak.getAnaClass({ anaTip }), ps2SayacListe = eIslAnaTip2PS2SayacListe[anaTip];
 			result.push(new EYonetici({ eConf, eIslSinif, ps2SayacListe }))
 		}
 		return result
@@ -705,6 +707,38 @@ class EYonetici extends CObject {
 		const value = typeof e == 'object' ? e.value ?? e.token : _value, {eIslTip2Token} = this; eIslTip2Token[eIslTip] = value;
 		const eIslTip2TokenResetTimer = this._eIslTip2TokenResetTimer = this._eIslTip2TokenResetTimer || {}; clearTimeout(eIslTip2TokenResetTimer[eIslTip]);
 		eIslTip2TokenResetTimer[eIslTip] = setTimeout(() => { try { delete eIslTip2Token[eIslTip] } finally { delete eIslTip2TokenResetTimer[eIslTip] } } , 10 * 60 * 1000); return this
+	}
+
+	static async testShow(efayrimtipi = 'E', pstip = 'P', kaysayac) {
+		let recs = [{ pstip, efayrimtipi, kaysayac }];
+		let internal = true, eYonetici = (await EYonetici.getEYoneticiListe({ recs }))?.[0];
+		// let callback = new EIslemAkibet_Callback({ source: [{ a: 1 }] });
+		// callback.ekIslem(e => { debugger });
+		let uuid2Result = {};
+		await eYonetici?.xmlKaldir({ internal });
+		await eYonetici?.eIslemXMLOlustur({ internal, uuid2Result });
+		let uuid = Object.keys(uuid2Result)[0];
+		let {eConf, eIslSinif} = eYonetici;
+		let rootDir = eConf.getAnaBolumFor({ eIslSinif });
+		let xmlDosya = `${rootDir}\\IMZALI\\${uuid}.xml`;
+		/*let data = await app.wsDownloadAsStream({ remoteFile: xmlDosya });
+		let blob = new Blob([data], { type: 'text/xml' });
+		let url = URL.createObjectURL(blob);
+		openNewWindow(url);
+		setTimeout(() => URL.revokeObjectURL(url));*/
+		return { ...arguments[0], xmlDosya }		
+	}
+	static async __ipcTest() {
+		let key = 'a', result;
+		try {
+			await app.wsBrowserIPC({ key });
+			await app.wsWebSocket_write({ key, data: `e.callback(await ehConfirm(app.ipcKey))` });
+			await new Promise(done => setTimeout(done(), 100));
+			result = await app.wsWebSocket_read({ key });
+			result = result?.result ?? result;
+			console.table(result)
+		}
+		catch (ex) { console.error(getErrorText(ex)) }
 	}
 }
 

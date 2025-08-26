@@ -495,7 +495,7 @@ class MQWebParam extends MQTicariParamBase {
 		$.extend(this, { sablonSip_degisiklik: sablonSip_degisiklik ?? true, sablonSip_eMail: sablonSip_eMail ?? true, ekOzellikKodlari: ekOzellikKodlari ?? [], yerKodListe: yerKodListe ?? [] })
 	}
 	static paramYapiDuzenle({ paramci }) {
-		super.paramYapiDuzenle(...arguments); let {dbName} = config.session, dbNamePrefix = dbName?.slice(0, 4);
+		super.paramYapiDuzenle(...arguments); let {dbName} = config.session ?? {}, dbNamePrefix = dbName?.slice(0, 4);
 		let form = paramci.addFormWithParent().yanYana(1.4);
 			if (window.MQCari) { form.addModelKullan('pesinMustKod', 'Peşin Müşteri').comboBox().autoBind().setMFSinif(MQCari) }
 				else { form.addString('pesinMustKod', 'Peşin Müşteri') };

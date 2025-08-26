@@ -10,11 +10,11 @@ class EIslemAkibet_Callback extends CObject {
 	}
 	run(e) {
 		e = e || {};
-		if (progressManager && !progressManager.ekBilgiHandler) {
+		if (window.progressManager && !progressManager.ekBilgiHandler) {
 			progressManager.ekBilgiHandler = _e => { progressManager._ekBilgiIstendimi = true; $.extend(e, _e); this.ekBilgiGoster(e) };
 			progressManager.showEkBilgi()
 		}
-		else if (!progressManager || progressManager._ekBilgiIstendimi) { this.ekBilgiGoster(e) }
+		else if (!window.progressManager || progressManager._ekBilgiIstendimi) { this.ekBilgiGoster(e) }
 		const {ekIslemler} = this; if (ekIslemler) { return new $.Deferred(async p => { try { for (const ekIslem of ekIslemler) { await getFuncValue.call(this, ekIslem, e) } p.resolve() } catch (ex) { p.reject(ex) } }) }
 	}
 	ekBilgiGoster(e) {
