@@ -406,12 +406,41 @@ class SBTabloDetay extends MQDetay {
 		return this
 	}
 	raporQueryDuzenle_satis({ stm, uni, stokmu, hizmetmi }) {
-		let {shIade, shAyrimTipi} = this, harTable = hizmetmi ? 'pifhizmet' : 'pifstok';
+		let {dRapor: { ihracatIntacdanmi } = {}} = app.params;
+		let {shIade, shAyrimTipi} = this, {ihracatmi} = shAyrimTipi;
+		let harTable = hizmetmi ? 'pifhizmet' : 'pifstok';
 		let sent = new MQSent(), {where: wh} = sent;
 		sent.fromAdd('piffis fis').innerJoin('fis', `${harTable} har`, 'har.fissayac = fis.kaysayac');
-		wh.fisSilindiEkle().add(`fis.piftipi = 'F'`, `fis.almsat = 'T'`, `fis.ayrimtipi <> 'IN'`);
+		wh.fisSilindiEkle().add(`fis.piftipi = 'F'`, `fis.almsat = 'T'`);
 		if (!shIade.birliktemi) { wh.degerAta(shIade.iademi ? 'I' : '', 'fis.iade') }
-		if (!shAyrimTipi.birliktemi) { wh.add(`fis.ayrimtipi ${shAyrimTipi.ihracatmi ? '=' : '<>'} 'IH'`) }
+		let ayrimYapi = {
+			in: { },
+			notIn: { [ihracatIntacdanmi ? 'IH' : 'IN']: true }
+		}
+		if (!shAyrimTipi.birliktemi) {
+			/*
+				ihracatIntacdanmi=true
+						ise İhracat verisi için fis.ayrimtipi in ('IN', 'MI')     // ihracat için 'MI' ortak, 'IN' farklı
+						iç piyasa için fis.ayrimtipi not in ('IN', 'MI', 'IH')    // iç piyasa için her iki koşulda da aynı
+					hepsi için fis.ayrimtipi <> 'IH'
+				
+				ihracatIntacdanmi=false
+						ise İhracat verisi için fis.ayrimtipi in ('IH', 'MI')     // ihracat için 'MI' ortak, 'IH' farklı
+						iç piyasa için fis.ayrimtipi not in ('IN', 'MI', 'IH')    // iç piyasa için her iki koşulda da aynı
+					hepsi için fis.ayrimtipi <> 'IN'
+			*/
+			if (ihracatmi) {
+				let inEk = ihracatIntacdanmi ? 'IN' : 'IH';
+				for (let key of [inEk, 'MI']) { ayrimYapi.in[key] = true }
+			}
+			else { for (let key of ['IN', 'MI', 'IH']) { ayrimYapi.notIn[key] = true } }
+			ayrimYapi.notIn[ihracatIntacdanmi ? 'IH': 'IN'] = true;
+			let addAyrimTipiKosul = key => {
+				let set = ayrimYapi[key]; if ($.isEmptyObject(set)) { return }
+				let selector = `${key}Dizi`; wh[selector](Object.keys(set), 'fis.ayrimtipi')
+			};
+			addAyrimTipiKosul('in'); addAyrimTipiKosul('notIn')
+		}
 		let {sahalar: _sahalar} = sent; sent.sahalarReset();
 		let {sahalar} = sent; sahalar.add(`'${stokmu ? 'S' : hizmetmi ? 'H' : ''}' shTipi`);
 		uni.add(sent);
