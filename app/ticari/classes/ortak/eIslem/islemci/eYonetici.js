@@ -721,7 +721,9 @@ class EYonetici extends CObject {
 		let recs = [{ pstip, efayrimtipi, kaysayac }];
 		let internal = true, eYonetici = (await EYonetici.getEYoneticiListe({ recs }))?.[0];
 		let { eConf, eIslSinif } = eYonetici, uuid_old;
-	
+
+		await app.shell(`where diff2html || npm install -g diff2html-cli`);
+		
 		// 1) paths
 		let rootDir = `${eConf.getAnaBolumFor({ eIslSinif })}\\IMZALI`;
 		{
@@ -765,7 +767,7 @@ class EYonetici extends CObject {
 			app.wsUpload(oldFiltFile, oldData),
 			app.wsUpload(newFiltFile, newData)
 		]);
-
+		
 		// 5) git diff -w (whitespace ignore) → diff2html (stdout) → HTML string
 		// diff2html: -i stdin -s line -o stdout  (HTML’i stdout’a basar)
 		let diffHtmlLines = await app.shell_lines(
