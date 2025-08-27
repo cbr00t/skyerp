@@ -708,8 +708,16 @@ class EYonetici extends CObject {
 		let eIslTip2TokenResetTimer = this._eIslTip2TokenResetTimer = this._eIslTip2TokenResetTimer || {}; clearTimeout(eIslTip2TokenResetTimer[eIslTip]);
 		eIslTip2TokenResetTimer[eIslTip] = setTimeout(() => { try { delete eIslTip2Token[eIslTip] } finally { delete eIslTip2TokenResetTimer[eIslTip] } } , 10 * 60 * 1000); return this
 	}
-	static async testShow(efayrimtipi = 'E', pstip = 'P', kaysayac) {
+	static async testShow(efayrimtipi = 'E', pstip = 'P', kaysayac = null, seri = null, fisno = null) {
 		// 0) bağlam
+		if (!kaysayac && fisno) {
+			seri ??= '';
+			let sent = new MQSent(), { where: wh, sahalar } = sent;
+			sent.fromAdd(EYonetici.getPS2Table(pstip));
+			wh.degerAta(seri, 'seri').degerAta(fisno, 'no');
+			sahalar.add('kaysayac');
+			kaysayac = asInteger(await app.sqlExecTekilDeger(sent)) ?? null;
+		}
 		let recs = [{ pstip, efayrimtipi, kaysayac }];
 		let internal = true, eYonetici = (await EYonetici.getEYoneticiListe({ recs }))?.[0];
 		let { eConf, eIslSinif } = eYonetici, uuid_old;
@@ -726,7 +734,7 @@ class EYonetici extends CObject {
 		// 2) normalize (C14N) → server-side iki çıktı üret (old.c14n.xml / new.c14n.xml)
 		let xmlDosya_old = `${rootDir}\\${uuid_old}.xml`;
 		let oldC14N = `${rootDir}\\old.c14n.xml`;
-		await app.shell(`xmllint --c14n "${xmlDosya_old}" > "${oldC14N}"`);
+		await app.shell(`DEL "${oldC14N}" & xmllint --c14n "${xmlDosya_old}" > "${oldC14N}"`);
 		let oldText = await app.wsDownloadAsStream(oldC14N);
 		
 		await eYonetici?.xmlKaldir({ internal });
@@ -735,7 +743,7 @@ class EYonetici extends CObject {
 		let xmlDosya_new = `${rootDir}\\${uuid_new}.xml`;
 		// 2) normalize (C14N) → server-side iki çıktı üret (old.c14n.xml / new.c14n.xml)
 		let newC14N = `${rootDir}\\new.c14n.xml`;
-		await app.shell(`xmllint --c14n "${xmlDosya_new}" > "${newC14N}"`);
+		await app.shell(`DEL "${newC14N}" & xmllint --c14n "${xmlDosya_new}" > "${newC14N}"`);
 		// 3) normalize edilmiş xml’leri indir → JS tarafında satır bazlı filtre uygula
 		let newText = await app.wsDownloadAsStream(newC14N);
 	
@@ -753,9 +761,10 @@ class EYonetici extends CObject {
 		// 4) filtrelenmiş metni server’a yaz (temp dosyalar)
 		let oldFiltFile = `${rootDir}\\old.filtered.xml`;
 		let newFiltFile = `${rootDir}\\new.filtered.xml`;
-		let writeFile = (path, content) => app.wsUpload(path, content);
-		await app.wsUpload(oldFiltFile, oldData);
-		await app.wsUpload(newFiltFile, newData);
+		await Promise.all([
+			app.wsUpload(oldFiltFile, oldData),
+			app.wsUpload(newFiltFile, newData)
+		]);
 
 		// 5) git diff -w (whitespace ignore) → diff2html (stdout) → HTML string
 		// diff2html: -i stdin -s line -o stdout  (HTML’i stdout’a basar)
@@ -763,16 +772,19 @@ class EYonetici extends CObject {
 			`git diff --no-index -w "${oldFiltFile}" "${newFiltFile}" | ` +
 			`diff2html -i stdin -s line -o stdout`
 		);
-		let diffHtml = diffHtmlLines.filter(x => !(x.toLowerCase().startsWith('warning:') || x.toLowerCase().startsWith('the file '))).join(CrLf);
+		let diffHtml = diffHtmlLines.filter(x => !(x.startsWith('arning:') || x.startsWith('he file '))).join(CrLf);
 		if (diffHtml.toUpperCase().includes('<!DOCTYPE')) {
 			// font değiştirmek istersen aç
 			diffHtml = diffHtml.replace('</head>', `<style>body *:not(h1) { font-family: monospace !important; font-size: 11pt !important }</style></head>`)
 		}
 		else {
+			let text = oldData && oldData == newData ? '<div class="warn">Dosya içeriği tümüyle aynı</span>' : '<div class="error">Fark Dosyaları oluşturulamadı!</span>';
 			diffHtml = (
-				`<html><head><meta charset="utf-8"><style>body { font-size: 28pt; margin: 80 20px; background-color: #eee }
-				.warn { font-weight: bold; color: firebrick; background-color: whitesmoke; padding: 20px 0; border: 1px solid #ccc; box-shadow: 0 0 5px 0 #ccc }</style></head>` +
-				`<body><div align="center" class="warn">Dosya içeriği tümüyle aynı</div></body></html>`
+				`<html><head><meta charset="utf-8"><style>body { font-size: 28pt; margin: 80 20px; background-color: #eee }` +
+				`.warn, .error { font-weight: bold; background-color: whitesmoke; text-align: center; padding: 20px 0; border: 1px solid #ccc; box-shadow: 0 0 5px 0 #ccc }` +
+				`.warn { color: orangered } .error { color: firebrick }` +
+				`</style></head>` +
+				`<body>${text}</body></html>`
 			)
 		}
 		// 6) HTML’i yeni pencerede aç
