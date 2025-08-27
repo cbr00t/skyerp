@@ -721,8 +721,6 @@ class EYonetici extends CObject {
 		let recs = [{ pstip, efayrimtipi, kaysayac }];
 		let internal = true, eYonetici = (await EYonetici.getEYoneticiListe({ recs }))?.[0];
 		let { eConf, eIslSinif } = eYonetici, uuid_old;
-
-		await app.shell(`where diff2html || npm install -g diff2html-cli`);
 		
 		// 1) paths
 		let rootDir = `${eConf.getAnaBolumFor({ eIslSinif })}\\IMZALI`;
@@ -736,20 +734,26 @@ class EYonetici extends CObject {
 		// 2) normalize (C14N) → server-side iki çıktı üret (old.c14n.xml / new.c14n.xml)
 		let xmlDosya_old = `${rootDir}\\${uuid_old}.xml`;
 		let oldC14N = `${rootDir}\\old.c14n.xml`;
-		await app.shell(`DEL "${oldC14N}" & xmllint --c14n "${xmlDosya_old}" > "${oldC14N}"`);
+		await app.shell(`DEL "${oldC14N}"`);
+		await app.shell(`xmllint --c14n "${xmlDosya_old}" > "${oldC14N}"`);
 		let oldText = await app.wsDownloadAsStream(oldC14N);
-		
+
+		// 3) XML Kaldır & Oluştur + Yeni Dosyayı belirle
 		await eYonetici?.xmlKaldir({ internal });
 		let uuid2Result = {}; await eYonetici?.eIslemXMLOlustur({ internal, uuid2Result });
+		await new Promise(c => setTimeout(() => c(), 500));
 		let uuid_new = Object.keys(uuid2Result)[0];
 		let xmlDosya_new = `${rootDir}\\${uuid_new}.xml`;
-		// 2) normalize (C14N) → server-side iki çıktı üret (old.c14n.xml / new.c14n.xml)
+		
+		// 4) normalize (C14N) → server-side iki çıktı üret (old.c14n.xml / new.c14n.xml)
 		let newC14N = `${rootDir}\\new.c14n.xml`;
-		await app.shell(`DEL "${newC14N}" & xmllint --c14n "${xmlDosya_new}" > "${newC14N}"`);
-		// 3) normalize edilmiş xml’leri indir → JS tarafında satır bazlı filtre uygula
+		await app.shell(`DEL "${newC14N}"`);
+		await app.shell(`xmllint --c14n "${xmlDosya_new}" > "${newC14N}"`);
+		
+		// 5) normalize edilmiş xml’leri indir → JS tarafında satır bazlı filtre uygula
 		let newText = await app.wsDownloadAsStream(newC14N);
 	
-		// C14N tek satır olabilir → satırlaştır: '><' → '>\n<'
+		// 6) C14N tek satır olabilir → satırlaştır: '><' → '>\n<'
 		let asLines = s => s.replace(/></g, '>\n<').split(/\r?\n/);
 		let dropPatterns = [
 		  /^<cbc:(UUID|ID)>[0-9a-f-]+<\/cbc:(UUID|ID)>$/i,
@@ -759,37 +763,11 @@ class EYonetici extends CObject {
 		let shouldDrop = line => dropPatterns.some(r => r.test(line.trimStart()));
 		let oldData = asLines(oldText).filter(l => !shouldDrop(l)).join('\n');
 		let newData = asLines(newText).filter(l => !shouldDrop(l)).join('\n');
-	
-		// 4) filtrelenmiş metni server’a yaz (temp dosyalar)
-		let oldFiltFile = `${rootDir}\\old.filtered.xml`;
-		let newFiltFile = `${rootDir}\\new.filtered.xml`;
-		await Promise.all([
-			app.wsUpload(oldFiltFile, oldData),
-			app.wsUpload(newFiltFile, newData)
-		]);
+
+		// 7) Diff HTML oluştur
+		let diffHtml = await app.diff_html({ data1: oldData, data2: newData });
 		
-		// 5) git diff -w (whitespace ignore) → diff2html (stdout) → HTML string
-		// diff2html: -i stdin -s line -o stdout  (HTML’i stdout’a basar)
-		let diffHtmlLines = await app.shell_lines(
-			`git diff --no-index -w "${oldFiltFile}" "${newFiltFile}" | ` +
-			`diff2html -i stdin -s line -o stdout`
-		);
-		let diffHtml = diffHtmlLines.filter(x => !(x.startsWith('arning:') || x.startsWith('he file '))).join(CrLf);
-		if (diffHtml.toUpperCase().includes('<!DOCTYPE')) {
-			// font değiştirmek istersen aç
-			diffHtml = diffHtml.replace('</head>', `<style>body *:not(h1) { font-family: monospace !important; font-size: 11pt !important }</style></head>`)
-		}
-		else {
-			let text = oldData && oldData == newData ? '<div class="warn">Dosya içeriği tümüyle aynı</span>' : '<div class="error">Fark Dosyaları oluşturulamadı!</span>';
-			diffHtml = (
-				`<html><head><meta charset="utf-8"><style>body { font-size: 28pt; margin: 80 20px; background-color: #eee }` +
-				`.warn, .error { font-weight: bold; background-color: whitesmoke; text-align: center; padding: 20px 0; border: 1px solid #ccc; box-shadow: 0 0 5px 0 #ccc }` +
-				`.warn { color: orangered } .error { color: firebrick }` +
-				`</style></head>` +
-				`<body>${text}</body></html>`
-			)
-		}
-		// 6) HTML’i yeni pencerede aç
+		// 8) HTML’i yeni pencerede aç
 		let blob = new Blob([diffHtml], { type: 'text/html;charset=utf-8' });
 		let url = URL.createObjectURL(blob);
 		openNewWindow(url);
@@ -798,9 +776,7 @@ class EYonetici extends CObject {
 		return {
 			efayrimtipi, pstip, kaysayac,
 			xmlDosya_old, xmlDosya_new,
-			oldC14N, newC14N,
-			oldFiltFile, newFiltFile,
-			diffHtml, url
+			oldText, newText, diffHtml, url
 		}
 	}
 	static async __ipcTest() {
