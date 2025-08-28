@@ -768,15 +768,15 @@ class EYonetici extends CObject {
 		let diffHtml = await app.diff_html({ data1: oldData, data2: newData });
 		
 		// 8) HTML’i yeni pencerede aç
-		let blob = new Blob([diffHtml], { type: 'text/html;charset=utf-8' });
-		let url = URL.createObjectURL(blob);
-		openNewWindow(url);
-		setTimeout(() => URL.revokeObjectURL(url), 60_000); // 1 dk sonra serbest bırak
+		let blob = new Blob([diffHtml], { type: 'text/html; charset=utf-8' });
+		let url = URL.createObjectURL(blob); openNewWindow(url);
+		setTimeout(() => URL.revokeObjectURL(url), 500_000);
 	
 		return {
 			efayrimtipi, pstip, kaysayac,
 			xmlDosya_old, xmlDosya_new,
-			oldText, newText, diffHtml, url
+			/* oldText, newText, */
+			diffHtml, url
 		}
 	}
 	static async __ipcTest() {
