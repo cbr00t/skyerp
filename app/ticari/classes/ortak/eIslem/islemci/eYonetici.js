@@ -424,7 +424,8 @@ class EYonetici extends CObject {
 								/*if (config.dev) { let url = URL.createObjectURL(new Blob([xmlStr], { type: 'application/xml' })); openNewWindow(url) }*/
 							} catch (ex) {
 								uuid = baslik.uuid || uuid; let rec = uuid2Result[uuid] = uuid2Result[uuid] ?? { islemZamani: now(), eFis, baslik, efAyrimTipi };
-								$.extend(rec, { isError: true, message: getErrorText(ex) })
+								$.extend(rec, { isError: true, message: getErrorText(ex) });
+								console.error(ex)
 							}
 							p.resolve()
 						}));
