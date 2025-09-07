@@ -189,6 +189,16 @@ class MQFromClause extends MQClause {
 			if (disindaSet[alias]) { anMQTable.disindakiXTablolariSil(e) } else { liste.splice(i, 1) } }
 		return this
 	}
+	*iter() {
+		let {liste = []} = this;
+		for (let aMQTable of liste) {
+			if (typeof aMQTable == 'string') { aMQTable = MQTable.newForFromText(aMQTable) }
+			if (!aMQTable) { continue }
+			let {leftVeInner = []} = aMQTable; yield aMQTable;
+			for (let anMQXJoinTable of leftVeInner) { yield anMQXJoinTable }
+		}
+	}
+	[Symbol.iterator](e) { return this.iter(e) }
 }
 class MQSubWhereClause extends MQClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return `${CrLf}	  AND	 ` }

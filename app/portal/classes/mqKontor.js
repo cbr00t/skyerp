@@ -23,7 +23,7 @@ class MQKontor extends MQDetayliMaster {
 		sec.grupTopluEkle([ { kod: 'genel', etiket: 'Genel', kapali: false } ]);
 		sec
 			.secimTopluEkle({
-				ahTipiSecim: new SecimBirKismi({ etiket: 'Alınan/Harcanan', tekSecim: new KontorAHTip().alinanYap() }).birKismi().autoBind(),
+				// ahTipiSecim: new SecimBirKismi({ etiket: 'Alınan/Harcanan', tekSecim: new KontorAHTip().alinanYap() }).birKismi().autoBind(),
 				fatDurumSecim: new SecimBirKismi({ etiket: 'Fat. Durum', tekSecim: new KontorFatDurum().secimYok() }).birKismi().autoBind(),
 				tamamlandiSecim: new SecimTekSecim({
 					etiket: 'ERP Durumu',
@@ -37,22 +37,14 @@ class MQKontor extends MQDetayliMaster {
 		sec.whereBlockEkle(({ secimler: sec, sent, where: wh }) => {
 			let {ahTipiSecim, fatDurumSecim} = sec, {tekSecim: tamamlandiSecim} = sec.tamamlandiSecim;
 			if (sent) {
-				if (!$.isEmptyObject(ahTipiSecim.value)) {
-					let {from} = sent, {detayTable} = this;
-					if (!from.aliasIcinTable('har')) { sent.fromIliski(`${detayTable} har`, `har.fissayac = ${alias}.kaysayac`) }
-					wh.birKismi(ahTipiSecim, 'har.ahtipi')
-				}
+				/*if (!$.isEmptyObject(ahTipiSecim.value)) { wh.birKismi(ahTipiSecim, 'har.ahtipi') }*/
 				if (!$.isEmptyObject(fatDurumSecim.value)) {
-					let {from} = sent, {detayTable} = this;
-					if (!from.aliasIcinTable('har')) { sent.fromIliski(`${detayTable} har`, `har.fissayac = ${alias}.kaysayac`) }
-					wh.degerAta('A', 'har.ahtipi').add('har.kontorsayi > 0');
+					// wh.degerAta('A', 'har.ahtipi');
+					wh.add('har.kontorsayi > 0');
 					wh.birKismi(fatDurumSecim, 'har.fatdurum')
 				}
 				if (!tamamlandiSecim.hepsimi) {
-					let {from} = sent, {detayTable} = this;
-					if (!from.aliasIcinTable('har')) { sent.fromIliski(`${detayTable} har`, `har.fissayac = ${alias}.kaysayac`) }
-					wh.add(tamamlandiSecim.getBoolBitClause('har.btamamlandi'))
-				}
+					wh.add(tamamlandiSecim.getBoolBitClause('har.btamamlandi')) }
 			}
 		})
 	}
@@ -182,9 +174,18 @@ class MQKontor extends MQDetayliMaster {
 		super.orjBaslikListesiDuzenle(...arguments); liste.push(...[
 			new GridKolon({ belirtec: 'mustkod', text: 'Müşteri', genislikCh: 15 }),
 			new GridKolon({ belirtec: 'mustadi', text: 'Müşteri Adı', genislikCh: 50, sql: 'mus.aciklama' }),
-			new GridKolon({ belirtec: 'topalinan', text: 'Top.Alınan', genislikCh: 13 }).tipDecimal(0),
-			new GridKolon({ belirtec: 'topharcanan', text: 'Top.Harcanan', genislikCh: 13 }).tipDecimal(0),
-			new GridKolon({ belirtec: 'topkalan', text: 'Top.Kalan', genislikCh: 18 }).tipDecimal(0),
+			new GridKolon({
+				belirtec: 'topalinan', text: 'Top.Alınan', genislikCh: 13,
+				sql: `SUM(case when har.ahtipi = 'A' then har.kontorsayi else 0 end)`
+			}).tipDecimal(0),
+			new GridKolon({
+				belirtec: 'topharcanan', text: 'Top.Harcanan', genislikCh: 13,
+				sql: `SUM(case when har.ahtipi <> 'A' then har.kontorsayi else 0 end)`
+			}).tipDecimal(0),
+			new GridKolon({
+				belirtec: 'topkalan', text: 'Top.Kalan', genislikCh: 15,
+				sql: `SUM(case when har.ahtipi = 'A' then har.kontorsayi else 0 - har.kontorsayi end)`
+			}).tipDecimal(0),
 			new GridKolon({ belirtec: 'bayikod', text: 'Bayi', genislikCh: 13, sql: 'mus.bayikod', filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'bayiadi', text: 'Bayi Adı', genislikCh: 25, sql: 'bay.aciklama', filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'anabayikod', text: 'Ana Bayi', genislikCh: 13, sql: 'bay.anabayikod', filterType: 'checkedlist' }),
@@ -197,9 +198,11 @@ class MQKontor extends MQDetayliMaster {
 	}
 	static loadServerData_queryDuzenle({ sender, stm, sent, basit, tekilOku, modelKullanmi }) {
 		super.loadServerData_queryDuzenle(...arguments);
-		let {tableAlias: alias} = this, {mustKod} = sender ?? {};
+		let {tableAlias: alias, detayTable} = this, {mustKod} = sender ?? {};
 		let {where: wh, sahalar, alias2Deger} = sent, {orderBy} = stm;
-		sent.fromIliski('musteri mus', `${alias}.mustkod = mus.kod`)
+		sent
+			.fromIliski(`${detayTable} har`, `har.fissayac = ${alias}.kaysayac`)
+			.fromIliski('musteri mus', `${alias}.mustkod = mus.kod`)
 			.fromIliski(`${MQLogin_Bayi.table} bay`, `mus.bayikod = bay.kod`)
 			.leftJoin('bay', `${MQVPAnaBayi.table} abay`, `bay.anabayikod = abay.kod`)
 			.fromIliski(`${MQVPIl.table} il`, `mus.ilkod = il.kod`);
@@ -214,6 +217,7 @@ class MQKontor extends MQDetayliMaster {
 			if (!alias2Deger.onmuhmustkod) { sahalar.add('abay.onmuhmustkod') }
 			//if (!(tekilOku || modelKullanmi)) { orderBy.liste = ['kaysayac DESC'] }
 		}
+		sent.groupByOlustur()
 	}
 	static varsayilanKeyHostVarsDuzenle({ hv }) {
 		super.varsayilanKeyHostVarsDuzenle(...arguments);
@@ -570,12 +574,16 @@ class MQKontorDetay extends MQDetay {
 			liste.push(new GridKolon({ belirtec: 'sil', text: ' ', genislikCh: 5 }).noSql().tipButton('X').onClick(e => this.kontor_silIstendi(e))) }
 		liste.push(...[
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 15 }).tipDate(),
-			new GridKolon({ belirtec: 'ahtipitext', text: 'A/H Tip', genislikCh: 13, sql: KontorAHTip.getClause(`${alias}.ahtipi`) }),
+			new GridKolon({
+				belirtec: 'ahtipitext', text: 'A/H Tip', genislikCh: 13, filterType: 'checkedlist',
+				sql: KontorAHTip.getClause(`${alias}.ahtipi`)
+			}),
 			new GridKolon({ belirtec: 'fisnox', text: 'Fiş No', genislikCh: 23 }),
 			new GridKolon({ belirtec: 'kontorsayi', text: 'Kontör', genislikCh: 10 }).tipDecimal(0),
 			new GridKolon({ belirtec: 'btamamlandi', text: 'Tamam?', genislikCh: 10 }).tipBool(),
 			new GridKolon({
-				belirtec: 'fatdurumtext', text: 'Fat.Durum', genislikCh: 18, sql: KontorFatDurum.getClause(`${alias}.fatdurum`),
+				belirtec: 'fatdurumtext', text: 'Fat.Durum', genislikCh: 18, filterType: 'checkedlist',
+				sql: KontorFatDurum.getClause(`${alias}.fatdurum`),
 				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
 					let {ahtipi: ahTipi, fatdurum: fatDurum} = rec;
 					if (!(fatDurum || ahTipi == 'A')) { html = changeTagContent(html, (value = '')) }
@@ -735,7 +743,7 @@ class MQKontorGridci extends GridKontrolcu {
 		super.tabloKolonlariDuzenle_ilk(...arguments);
 		tabloKolonlari.push(...[
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 11 }).tipDate().zorunlu(),
-			new GridKolon({ belirtec: 'ahTipi', text: 'A/H Tip', genislikCh: 18 }).tipTekSecim({ tekSecimSinif: KontorAHTip }).kodsuz().autoBind().zorunlu(),
+			new GridKolon({ belirtec: 'ahTipi', text: 'A/H Tip', genislikCh: 18, filterType: 'checkedlist' }).tipTekSecim({ tekSecimSinif: KontorAHTip }).kodsuz().autoBind().zorunlu(),
 			new GridKolon({ belirtec: 'fisNox', text: 'Fiş No', genislikCh: 25 }).zorunlu(),
 			new GridKolon({ belirtec: 'kontorSayi', text: 'Kontör', genislikCh: 9 }).tipDecimal(0).zorunlu(),
 			new GridKolon({ belirtec: 'fatDurum', text: 'Fat.Durum', genislikCh: 20 }).tipTekSecim({ tekSecimSinif: KontorFatDurum }).kodsuz().autoBind().zorunlu(),

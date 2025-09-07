@@ -1,3 +1,79 @@
+class SBTabloYatayAnaliz_EkBilgi extends CObject {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	hvKA; ekKodAttrListe = [];
+	get kodAttr() { return this.hvKA?.kod }
+	get adiAttr() { return this.hvKA?.aciklama }
+	get zorunluKodAttrListe() { return [...this.ekKodAttrListe, ...this.kodAttr].filter(x => !!x) }
+	get zorunluKodAttr() { return this.zorunluKodAttrListe?.[0] }
+	sentDuzenle() { }
+}
+class SBTabloYatayAnaliz extends TekSecim {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get defaultChar() { return ' ' }
+	kaListeDuzenle({ kaListe }) {
+		let takipNo_ortakClause = `(case when fis.takiportakdir > '' then fis.orttakipno else har.dettakipno end)`;
+		super.kaListeDuzenle(...arguments); kaListe.push(
+			new CKodAdiVeEkBilgi(['DB', 'Veritabanı', 'dbmi', {}]),
+			new CKodAdiVeEkBilgi(['SUBE', 'Şube', 'subemi', new class extends SBTabloYatayAnaliz_EkBilgi {
+				hvKA = new CKodVeAdi(['bizsubekod', 'subeadi']);
+				sentDuzenle({ kodClause, hv, sent, sent: { from, sahalar, where: wh } }) {
+					super.sentDuzenle(...arguments);
+					/* kodAttr için sent'e clause eklenmiş olarak gelecek */
+					let {kodAttr} = this, yatayAlias = 'sub';
+					kodClause ||= `fis.${kodAttr}`;
+					if (!from.aliasIcinTable(yatayAlias)) { sent.x2SubeBagla({ kodClause }) }
+					sahalar.add('sub.aciklama yatay')
+				}
+			}]),
+			new CKodAdiVeEkBilgi(['SGRP', 'Şube Grup', 'subeGrupmu', new class extends SBTabloYatayAnaliz_EkBilgi {
+				hvKA = new CKodVeAdi(['subegrupkod', 'subegrupadi']);
+				zorunluKodAttrListe = ['bizsubekod'];
+				sentDuzenle({ hv, sent, sent: { from, sahalar, where: wh } }) {
+					super.sentDuzenle(...arguments);
+					{
+						let {zorunluKodAttr} = this, yatayAlias = 'sub';
+						let kodClause = hv[zorunluKodAttr] || `fis.${zorunluKodAttr}`;
+						if (!from.aliasIcinTable(yatayAlias)) { sent.x2SubeBagla({ kodClause: hv.bizsubekod }) }
+					}
+					{
+						let yatayAlias = 'igrp';
+						if (!from.aliasIcinTable(yatayAlias)) { sent.sube2GrupBagla() }
+						sahalar.add('igrp.aciklama yatay')
+					}
+				}
+			}]),
+			new CKodAdiVeEkBilgi(['TKP', 'Takip', 'takipmi', new class extends SBTabloYatayAnaliz_EkBilgi {
+				hvKA = new CKodVeAdi(['takipno', 'takipadi']);
+				sentDuzenle({ kodClause, hv, sent, sent: { from, sahalar, where: wh } }) {
+					super.sentDuzenle(...arguments);
+					/* kodAttr için sent'e clause eklenmiş olarak gelecek */
+					let {kodAttr} = this, yatayAlias = 'tak';
+					kodClause ||= takipNo_ortakClause;
+					if (!from.aliasIcinTable(yatayAlias)) { sent.fromIliski('takipmst tak', `${kodClause} = tak.kod`) }
+					sahalar.add('tak.aciklama yatay')
+				}
+			}]),
+			new CKodAdiVeEkBilgi(['TGRP', 'Takip Grup', 'takipgrupmu', new class extends SBTabloYatayAnaliz_EkBilgi {
+				hvKA = new CKodVeAdi(['takgrupkod', 'takgrupadi']);
+				zorunluKodAttrListe = ['takipno'];
+				sentDuzenle({ hv, sent, sent: { from, sahalar, where: wh } }) {
+					super.sentDuzenle(...arguments);
+					{
+						let {zorunluKodAttr} = this, yatayAlias = 'tak';
+						let kodClause = hv[zorunluKodAttr] || takipNo_ortakClause;
+						if (!from.aliasIcinTable(yatayAlias)) { sent.fromIliski('takipmst tak', `${kodClause} = tak.kod`) }
+					}
+					{
+						let yatayAlias = 'tgrp';
+						if (!from.aliasIcinTable(yatayAlias)) { sent.fromIliski('takipgrup tgrp', 'tak.grupkod = tgrp.kod') }
+						sahalar.add('tgrp.aciklama yatay')
+					}
+				}
+			}]),
+		)
+	}
+}
+
 class SBTabloSeviye extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '1' }
@@ -22,7 +98,7 @@ class SBTabloHesapTipi extends TekSecim {
 		let harSiniflar = [KasaHareketci, HizmetHareketci, BankaMevduatHareketci];
 		for (let harSinif of harSiniflar) {
 			let {kisaKod, kod, aciklama} = harSinif;
-			let question = `${kod}mi`; aciklama += ` Hareketleri`;
+			let question = `${kod}mi`; aciklama += ' Hareketleri';
 			ekListe.push(new CKodAdiVeEkBilgi([kisaKod, aciklama, question, { harSinif }]))
 		}
 		if (config.dev) { ekListe.push(new CKodAdiVeEkBilgi(['FX', 'Formül', 'formulmu'], { formulmu: true })) }
@@ -50,7 +126,8 @@ class SBTabloVeriTipi extends TekSecim {
 		this.kaListeDuzenle_ticari(e).kaListeDuzenle_hareketci(e)
 	}
 	kaListeDuzenle_ticari({ kaListe, topSahaEkle }) {
-		let gosterimUygunluk = ({ hesapTipi }) => hesapTipi.ticarimi, sentUygunluk = null;
+		let gosterimUygunluk = ({ hesapTipi: { ekBilgi: { querymi, hareketcimi } = {} } }) => querymi && !hareketcimi;
+		let sentUygunluk = null;
 		kaListe.push(...[
 			new CKodAdiVeEkBilgi(['SBRT', 'Satır Brüt', 'satirBrutmu', {
 				gosterimUygunluk, sentUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.brutbedel' })

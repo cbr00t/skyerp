@@ -25,7 +25,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			return
 		}
 		let _e = CObject.From(e);
-		await super.tazele(_e);
+		await super.tazele(_e);    /* super.tazele() ==> this.loadServerData() işlemini çağıracak */
 		$.extend(_e, { liste: _e.tabloKolonlari ?? _e.kolonTanimlari ?? [], recs: gridWidget.getRows() });
 		Object.defineProperty(_e, 'flatRecs', {
 			get: function() { return this.recs.flatMap(rec => [rec, ...rec.detaylar]) }
@@ -36,17 +36,16 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		let columns = colDefs.flatMap(colDef => colDef.jqxColumns);
 		grid.jqxTreeGrid('columns', columns)
 	}
-	ekCSSDuzenle({ raporTanim, colDefs, colDef, rowIndex, belirtec, value, rec, result }) {
-		rec ??= {}; let {cssClassesStr} = rec;
+	ekCSSDuzenle({ raporTanim, colDefs, colDef, rowIndex, belirtec, value, rec: { cssClassesStr } = {}, result }) {
 		if (cssClassesStr) { result.push(cssClassesStr) }
 	}
-	cellsRenderer({ raporTanim, colDefs, colDef, rowIndex, belirtec, value, html, jqxCol, rec }) {
-		rec ??= {}; let {cssStyle} = rec;
+	cellsRenderer({ raporTanim, colDefs, colDef, rowIndex, belirtec, value, html, jqxCol, rec: { cssStyle } = {} }) {
 		if (cssStyle) { return `<span style="${cssStyle}">${getTagContent(html)}</span>` }
+		return html
 	}
-	tabloKolonlariDuzenle({ liste }) {
-		super.tabloKolonlariDuzenle(...arguments);
-		let {raporTanim, tabloYapi} = this, colDefs = liste;
+	tabloKolonlariDuzenle({ liste: colDefs, recs, flatRecs, yatayDegerSet }) {
+		super.tabloKolonlariDuzenle(...arguments); yatayDegerSet ??= {};
+		let {raporTanim, raporTanim: { yatayAnalizVarmi, yatayAnaliz }, tabloYapi} = this;
 		let cellClassName = (colDef, rowIndex, belirtec, value, rec) => {
 			let result = ['treeRow', belirtec];
 			if (rec) { result.push(rec.leaf ? 'leaf' : 'grup') }
@@ -57,6 +56,10 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 				result.push(!value ? 'zero' : alacakmi ? 'negative' : 'positive')
 			}
 			let {level} = rec; if (level != null) { result.push('level-' + level.toString()) }
+			if (toplammi && yatayAnalizVarmi) {
+				let {userData: { yatayToplammi } = {}} = colDef;
+				if (yatayToplammi) { result.push('yatayToplam') }
+			}
 			let _e = { raporTanim, colDefs, colDef, rowIndex, belirtec, value, rec, result };
 			this.ekCSSDuzenle(_e); result = _e.result;
 			return result.filter(x => !!x).join(' ')
@@ -68,64 +71,156 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			let result = this.cellsRenderer(_e); result ??= _e.html;
 			return result ?? html
 		};
-		liste.push(...[
+		colDefs.push(
 			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', genislikCh: 50 }),
-			...Object.values(tabloYapi.grup).map(({ colDefs }) => colDefs).flat(),
-			...Object.values(tabloYapi.toplam).map(({ colDefs }) => colDefs).flat()
-		]);
-		for (let colDef of liste) { $.extend(colDef, { cellClassName, cellsRenderer }) }
+			...Object.values(tabloYapi.grup).map(e => e.colDefs).flat()
+		);
+		for (let {colDefs: [orjColDef]} of Object.values(tabloYapi.toplam)) {
+			let colDef = orjColDef.deepCopy();
+			colDef.userData = { toplammi: true };
+			{
+				let {text} = colDef;
+				text = colDef.text = `<div class="forestgreen" style="border: 1px solid forestgreen; padding: 10px">Top.${text}</div>`;
+			}
+			colDefs.push(colDef);
+			if (yatayAnalizVarmi) {
+				colDef.userData.yatayToplammi = true;
+				for (let yatay in yatayDegerSet) {
+					let _colDef = orjColDef.deepCopy();
+					_colDef.userData = { yatayDegermi: true };
+					_colDef.belirtec += `_${yatay}`;
+					_colDef.text = `<span class=royalblue>${yatay || '<i>&lt;BOŞ&gt;</i>'}</span>`;
+					colDefs.push(_colDef)
+				}
+			}
+		}
+		for (let colDef of colDefs) { $.extend(colDef, { cellClassName, cellsRenderer }) }
+	}
+	async loadServerData(e) {
+		let {session: { dbName: aktifDB } = {}} = config;
+		let {dRapor: { konsolideCikti, ekDBListe } = {}} = app.params;
+		if (konsolideCikti && aktifDB && ekDBListe?.length) { ekDBListe = ekDBListe.filter(x => x != aktifDB) }
+		else { ekDBListe = null }
+		$.extend(e, { konsolideCikti, ekDBListe, aktifDB })
+		let sevRecs = await this.loadServerDataDevam(e);
+		/*if (konsolideCikti) {
+			sevRecs = e.sevRecs = [{
+				seviyeNo: 0, aciklama: `<span class="forestgreen bold">(${aktifDB})</span>`,
+				detaylar: sevRecs
+			}];
+			ekDBListe ??= []; for (let db of ekDBListe) {
+				$.extend(_e, { db });
+				let _sevRecs = await this.loadServerDataDevam(_e); if (!_sevRecs) { continue }
+				if (_sevRecs?.length) {
+					sevRecs.push({
+						seviyeNo: 0, aciklama: `<span class="royalblue">${db}</span>`,
+						detaylar: _sevRecs
+					})
+				}
+			}
+		}*/
+		return sevRecs
+	}
+	async loadServerDataDevam(e) {
+		let sevRecs = await super.loadServerData(e); if (!sevRecs) { return sevRecs }
+		let {id2Detay, formulYapilari, recs, ind2Rec} = e, {tabloYapi: { toplam }} = this;
+		let attrListe = Object.values(toplam).map(item => item.colDefs[0].belirtec);
+		for (let parentRec of sevRecs)
+			for (let formulDetaylar of Object.values(formulYapilari))
+			for (let formul of formulDetaylar) {
+				for (let attr of attrListe) {
+					let value = await formul.eval({ ...e, det: formul, recs, sevRecs, parentRec, attr, ind2Rec });
+					if (value != null) { parentRec[attr] = value }
+				}
+			}
+		return sevRecs
 	}
 	async loadServerDataInternal(e) {
 		await super.loadServerDataInternal(e);
-		let rapor = this, {raporTanim, secimler, sahaAlias} = this, {detaylar} = raporTanim;
-		// let {tarihBSVeyaCariDonem: donemBS} = secimler;
-		let {tarihBS: donemBS} = secimler;
-		let _e = { ...e, rapor, raporTanim, secimler, donemBS, detaylar };
-		let id2Promise = {}, id2Detay = e.id2Detay = {};
-		let formulYapilari = e.formulYapilari = {};
+		let {ekDBListe, aktifDB} = e, yatayDegerSet = e.yatayDegerSet = {};
+		let rapor = this, {raporTanim = {}, secimler, secimler: { tarihBS: donemBS }, sahaAlias} = this;
+		let { raporTanim: { yatayAnalizVarmi, yatayAnaliz, detaylar } = {} } = this;
+		let yatayDBmi = yatayAnalizVarmi && yatayAnaliz.dbmi;
+		let id2Promise = {}, id2Detay = e.id2Detay = {}, formulYapilari = e.formulYapilari = {};
+		let _e = { ...e, rapor, raporTanim, secimler, donemBS, detaylar, yatayAnalizVarmi, yatayAnaliz };
 		for (let key of ['altSeviyeToplamimi', 'satirlarToplamimi']) { formulYapilari[key] = [] }
 		for (let det of detaylar) {
-			let {sayac: id, hesapTipi = {}, veriTipi} = det; id2Detay[id] = det;
-			let {ekBilgi = {}} = hesapTipi, {ticarimi, hareketcimi, querymi} = ekBilgi, {donemTipi} = veriTipi;
-			if (!querymi) {
-				// satır toplam, formul, ... vs
-				let {question: selector} = hesapTipi;
+			let {sayac: id, hesapTipi = {}, veriTipi: { donemTipi }} = det; id2Detay[id] = det;
+			let {question: selector, ekBilgi: { ticarimi, hareketcimi, querymi } = {}} = hesapTipi;
+			if (!querymi) {    /* satır toplam, formul, ... vs */
 				if (selector) { formulYapilari[selector]?.push(det) }
 				continue
 			}
-			let promise_recs = []; if (donemBS?.basi || donemTipi != 'B') {
-				let uni = new MQUnionAll(), stm = new MQStm({ sent: uni });
-				$.extend(_e, { stm, uni }); det.raporQueryDuzenle(_e); stm = _e.stm;
-				if (!(stm?.with?.liste?.length || stm?.sent?.liste?.length)) { continue }
-				stm = _e.stm = stm.asToplamStm();
-				/*if (hareketcimi) {
-					let {with: _with, sent: topSent} = stm, {alias2Deger: hv} = topSent;
-					_with.add(topSent.asTmpTable('topbilgi'));
-					let sent = stm.sent = new MQSent(), {sahalar} = sent;
-					sent.fromAdd('topbilgi'); let {ba, [sahaAlias]: bedel} = hv;
-					for (let key of ['ba', sahaAlias]) { delete hv[key] }
-					for (let [alias, clause] of Object.entries(hv)) {
-						sahalar.add(`${clause} ${alias}`) }
+			if (donemTipi == 'B' && !donemBS?.basi) { continue }
+			let promise_recs, sonucUni = new MQUnionAll(), stm = new MQStm({ sent: sonucUni });
+			$.extend(_e, { stm, uni: sonucUni }); det.raporQueryDuzenle(_e);
+			stm = _e.stm ?? {}; sonucUni = stm.sent;
+			let {with: _with = {}, sent = {}} = stm;
+			if (!(_with.liste?.length || sent.liste?.length)) { continue }
+			if (yatayDBmi || ekDBListe?.length) {
+				let orjUni = sonucUni, alias = 'yatay';
+				{
+					sonucUni = _e.uni = stm.sent = new MQUnionAll();
+					let uni = orjUni.deepCopy();
+					if (yatayDBmi) {
+						let clause = aktifDB.sqlServerDegeri();
+						for (let {sahalar} of uni) { sahalar.add(`${clause} ${alias}`) }
+					}
+					sonucUni.addAll(uni)
 				}
-				_e.stm = stm;*/
-				promise_recs = app.sqlExecSelect(stm)
+				for (let db of ekDBListe ?? []) {
+					let clause = db.sqlServerDegeri();
+					let uni = orjUni.deepCopy();
+					for (let {from, sahalar} of uni) {
+						for (let aMQAliasliYapi of from) {
+							let {deger: table} = aMQAliasliYapi;
+							if (!table || table.includes('.')) { continue }
+							table = aMQAliasliYapi.deger = `${db}..${table}`
+						}
+						if (yatayAnalizVarmi && yatayAnaliz.dbmi) { sahalar.add(`${clause} ${alias}`) }
+					}
+					sonucUni.addAll(uni)
+				}
 			}
+			stm = _e.stm = stm.asToplamStm();
+			promise_recs = app.sqlExecSelect(stm)
 			if (promise_recs != null) { id2Promise[id] = promise_recs }
 		}
-		let recs = [];
-		for (let [id, promise] of Object.entries(id2Promise)) {
+		let yatayDegerler;     /* ekDBListe içinden (aktifDB) değeri ayıklanmış olarak gelir */
+		if (yatayDBmi) { yatayDegerler = [aktifDB, ...(ekDBListe ?? [])] }
+		let recs = []; for (let [id, promise] of Object.entries(id2Promise)) {
 			let det = id2Detay[id]; if (!det) { continue }
 			let _recs = await promise; if (!_recs?.length) { continue }
-			let {aciklama} = det, bedel = topla(rec => rec[sahaAlias] || 0, _recs);
-			let rec = { id, aciklama, bedel };
+			let yatay2Bedel = {}; if (yatayAnalizVarmi) {
+				for (let {yatay, bedel} of _recs) {
+					if (!yatayDBmi) { yatayDegerSet[yatay] = true }
+					yatay2Bedel[yatay] = (yatay2Bedel[yatay] || 0) + bedel
+				}
+			}
+			let {aciklama} = det, topBedel = topla(rec => rec[sahaAlias] || 0, _recs);
+			let rec = { id, aciklama, bedel: topBedel };
+			if (yatayAnalizVarmi) {
+				for (let [yatay, bedel] of Object.entries(yatay2Bedel)) {
+					rec[`bedel_${yatay}`] = bedel }
+			}
 			recs.push(rec)
 		}
+		if (yatayAnalizVarmi && !yatayDBmi && !$.isEmptyObject(yatayDegerSet)) { yatayDegerler = Object.keys(yatayDegerSet).sort() }
+		yatayDegerSet = e.yatayDegerSet = yatayDegerler ? asSet(yatayDegerler) : {};
 		return recs
 		/* return [ { aciklama: 'SONUÇ', detaylar: recs } ] */
 	}
-	async loadServerData_recsDuzenle_seviyelendir({ recs: sqlRecs, id2Detay }) {
+	async loadServerData_recsDuzenle_seviyelendir({ recs: sqlRecs, id2Detay, yatayDegerSet }) {
 		await super.loadServerData_recsDuzenle_seviyelendir(...arguments);
-		let {tabloYapi} = this, attrListe = Object.values(tabloYapi.toplam).map(item => item.colDefs.map(({ belirtec }) => belirtec)).flat();
+		let {tabloYapi, raporTanim = {}} = this, {yatayAnalizVarmi, yatayAnaliz} = raporTanim;
+		let attrListe = Object.values(tabloYapi.toplam).map(item => item.colDefs.map(_ => _.belirtec)).flat();
+		if (yatayAnalizVarmi && !$.isEmptyObject(yatayDegerSet)) {
+			let topBelirtecListe = attrListe;
+			attrListe = []; for (let belirtec of topBelirtecListe) {
+				attrListe.push(belirtec);
+				attrListe.push(...Object.keys(yatayDegerSet).map(yatay => `${belirtec}_${yatay}`))
+			}
+		}
 		let id2GridRec = {}; for (let [id, det] of Object.entries(id2Detay)) {
 			let gridRec = id2GridRec[id] = {
 				...det.asObject, detaylar: [], hesaplandimi: false,
@@ -159,7 +254,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		}
 		let maxSevNo = 1, sev2Ust = {}, gridRecs = Object.values(id2GridRec);
 		for (let gridRec of gridRecs) {
-			let {seviyeNo: sevNo, sonuc, detaylar} = gridRec;
+			let {seviyeNo: sevNo, detaylar} = gridRec;
 			sevNo = asInteger(sevNo?.char ?? sevNo) || 1;
 			maxSevNo = Math.max(sevNo, maxSevNo);
 			let ustSevNo = sevNo - 1; sev2Ust[sevNo] = gridRec;
@@ -179,20 +274,6 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			}
 			hesaplandimi = sev.hesaplandimi = true
 		}
-		return sevRecs
-	}
-	async loadServerData(e) {
-		let sevRecs = await super.loadServerData(e); if (!sevRecs) { return sevRecs }
-		let {id2Detay, formulYapilari, recs, ind2Rec} = e, {tabloYapi} = this;
-		let attrListe = Object.values(tabloYapi.toplam).map(item => item.colDefs[0].belirtec);
-		for (let parentRec of sevRecs)
-			for (let formulDetaylar of Object.values(formulYapilari))
-			for (let formul of formulDetaylar) {
-				for (let attr of attrListe) {
-					let value = await formul.eval({ ...e, det: formul, recs, sevRecs, parentRec, attr, ind2Rec });
-					if (value != null) { parentRec[attr] = value }
-				}
-			}
 		return sevRecs
 	}
 	raporTanimIstendi(e) {
