@@ -167,11 +167,13 @@ class SBTabloVeriTipi extends TekSecim {
 		let getBABedelClause = (ba, baClause, bedelClause) => {
 			bedelClause ??= sqlZero;
 			if (!(ba && baClause)) { return bedelClause }
+			bedelClause = bedelClause.sumOlmaksizin();
 			return `(case when ${baClause} = '${ba}' then ${bedelClause} else 0 end)`
 		};
 		let getBABakiyeClause = (ba, baClause, bedelClause) => {
 			bedelClause ??= sqlZero;
 			if (!(ba && baClause)) { return bedelClause }
+			bedelClause = bedelClause.sumOlmaksizin();
 			return `(case when ${baClause} = '${ba}' then ${bedelClause} else 0 - ${bedelClause} end)`
 		};
 		kaListe.push(...[
