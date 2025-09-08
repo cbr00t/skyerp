@@ -182,7 +182,7 @@ class TakipHareketci extends Hareketci {
 				/* havale/eft masrafi */
                 new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent; 
-					sent.fisHareket('hefis', 'hehar').x2HizmetBagla({ kodClause: 'has.masrafhizkod' }).fis2BankaHesapBagla()
+					sent.fisHareket('hefis', 'hehar').x2HizmetBagla({ kodClause: 'har.masrafhizkod' }).fis2BankaHesapBagla()
 					wh.fisSilindiEkle().add(new MQOrClause([
 						new MQAndClause([{ degerAta: 'TP', saha: 'fis.fistipi' }, { degerAta: 'A', saha: 'har.hba' }]),
 						new MQAndClause({ inDizi: ['SH', 'SE', 'SS'], saha: 'fis.fistipi' })

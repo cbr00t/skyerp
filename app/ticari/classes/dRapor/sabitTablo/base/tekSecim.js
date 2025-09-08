@@ -33,7 +33,7 @@ class SBTabloYatayAnaliz extends TekSecim {
 					{
 						let {zorunluKodAttr} = this, yatayAlias = 'sub';
 						let kodClause = hv[zorunluKodAttr] || `fis.${zorunluKodAttr}`;
-						if (!from.aliasIcinTable(yatayAlias)) { sent.x2SubeBagla({ kodClause: hv.bizsubekod }) }
+						if (!from.aliasIcinTable(yatayAlias)) { sent.x2SubeBagla({ kodClause }) }
 					}
 					{
 						let yatayAlias = 'igrp';
