@@ -104,8 +104,9 @@ class Hareketci extends CObject {
 			_attrSet: e.attrListe ?? e.attrSet, _uygunluk: e.uygunluk, whereYapi: e.whereYapi ?? {}, ekDuzenleyiciler: e.ekDuzenleyiciler ?? e.ekDuzenleyici ?? {},
 			sonIslem: e.sonIslem ?? (e => this.defaultSonIslem(e)), gereksizTablolariSilFlag: e.gereksizTablolariSil ?? e.gereksizTablolariSilFlag ?? false
 		});
-		let {whereYapi} = this; for (const key of ['master', 'hareket']) {
-			let value = e[key]; if (value !== undefined) { whereYapi[key] = value } }
+		let {ekDuzenleyiciler, whereYapi} = this;
+		this.ekDuzenleyiciler = e.ekDuzenleyiciler ?? [];
+		for (const key of ['master', 'hareket']) { let value = e[key]; if (value !== undefined) { whereYapi[key] = value } }
 	}
 	static getClass(e) { const kod = typeof e == 'object' ? (e.kod ?? e.tip) : e; return this.kod2Sinif[kod] }
 	/*static altTipYapilarDuzenle(e) {
@@ -292,8 +293,11 @@ class Hareketci extends CObject {
 	clearEkDuzenleyiciler() { this.ekDuzenleyiciler = {}; return this }
 	setSonIslem(value) { this.sonIslem = sonIslem; return this }
 	clearSonIslem(value) { this.sonIslem = null; return this }
-	setWHD_master(value) { this.whereYapi.master = value; return this } setWHD_hareket(value) { this.whereYapi.hareket = value; return this } setUygunluk(value) { this.uygunluk = value; return this }
-	gereksizTablolariSil() { this.gereksizTablolariSilFlag = true; return this } gereksizTablolariSilme() { this.gereksizTablolariSilFlag = false; return this }
+	setWHD_master(value) { this.whereYapi.master = value; return this }
+	setWHD_hareket(value) { this.whereYapi.hareket = value; return this }
+	setUygunluk(value) { this.uygunluk = value; return this }
+	gereksizTablolariSil() { this.gereksizTablolariSilFlag = true; return this }
+	gereksizTablolariSilme() { this.gereksizTablolariSilFlag = false; return this }
 	reset(e) { for (let key of ['_uygunluk2UnionBilgiListe', '_defaultAttrSet', '_zorunluAttrSet']) { delete this[key] } return this }
 
 	static maliTablo_secimlerYapiOlustur(e) {

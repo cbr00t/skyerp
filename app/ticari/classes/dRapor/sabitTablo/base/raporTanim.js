@@ -187,10 +187,10 @@ class SBTabloDetay extends MQDetay {
 	get secimler() {
 		let {hesapTipi} = this; if (hesapTipi?.secilen == null) { return null }
 		let {shStokHizmet, tip2Secimler} = this;
-		let {hizmetmi, ekBilgi: { querymi, hareketcimi } = {}} = hesapTipi;
+		let {hizmetmi, ekBilgi: { querymi, hareketcimi, harSinif } = {}} = hesapTipi;
 		let tip = (
 			querymi
-				? hareketcimi ? hesapTipi.kod
+				? hareketcimi && !harSinif?.ticarimi ? hesapTipi.kod
 				: shStokHizmet?.kod : hizmetmi ? 'H'
 			: null
 		);
@@ -242,7 +242,7 @@ class SBTabloDetay extends MQDetay {
 			aciklama: new PInstStr('aciklama'), tersIslemmi: new PInstBitBool('bnegated'),
 			seviyeNo: new PInstTekSecim('seviyeno', SBTabloSeviye), hesapTipi: new PInstTekSecim('hesaptipi', SBTabloHesapTipi),
 			veriTipi: new PInstTekSecim('shveritipi', SBTabloVeriTipi), shStokHizmet: new PInstTekSecim('shstokhizmet', SBTabloStokHizmet),
-			shAlmSat: new PInstTekSecim('shalmsat', AlimSatis), shIade: new PInstTekSecim('shiade', NormalIadeVeBirlikte),
+			/* shAlmSat: new PInstTekSecim('shalmsat', AlimSatis),*/ shIade: new PInstTekSecim('shiade', NormalIadeVeBirlikte),
 			shAyrimTipi: new PInstTekSecim('shayrimtipi', SBTabloAyrimTipi),
 			formul: new PInstStr(''), satirListeStr: new PInstStr('satirlistestr'),
 			cssClassesStr: new PInstStr('cssclasses'), cssStyle: new PInstStr('cssstyle')
@@ -269,8 +269,9 @@ class SBTabloDetay extends MQDetay {
 			if ($.isEmptyObject(yapi)) { continue }
 			let secimler = tip2Secimler[tip]; if (secimler) { continue }
 			let secimEkWhereDuzenle = tip2EkWhereDuzenleyici[tip];
-			$.extend(secimler, secimEkWhereDuzenle);
-			(secimler = tip2Secimler[tip] = new Secimler()).beginUpdate();
+			secimler = tip2Secimler[tip] = new Secimler();
+			$.extend(secimler, { secimEkWhereDuzenle });
+			secimler.beginUpdate();
 			for (let [key, mfSinif] of Object.entries(yapi)) {
 				let {kodListeTipi: grupKod, sinifAdi: grupAdi} = mfSinif;
 				secimler.grupEkle(grupKod, grupAdi);
@@ -288,7 +289,7 @@ class SBTabloDetay extends MQDetay {
 			new GridKolon({ belirtec: 'hesaptipi', text: 'Hesap Tipi', genislikCh: 30 }).noSql().tipTekSecim({ tekSecimSinif: SBTabloHesapTipi }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'shveritipi', text: 'Veri Tipi', genislikCh: 30 }).noSql().tipTekSecim({ tekSecimSinif: SBTabloVeriTipi }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'shstokhizmet', text: 'Stok/Hizmet', genislikCh: 15 }).noSql().tipTekSecim({ tekSecimSinif: SBTabloStokHizmet }).kodsuz().listedenSecilemez(),
-			new GridKolon({ belirtec: 'shalmsat', text: 'S/H Alım-Satış', genislikCh: 15 }).noSql().tipTekSecim({ tekSecimSinif: AlimSatis }).kodsuz().listedenSecilemez(),
+			/*new GridKolon({ belirtec: 'shalmsat', text: 'S/H Alım-Satış', genislikCh: 15 }).noSql().tipTekSecim({ tekSecimSinif: AlimSatis }).kodsuz().listedenSecilemez(),*/
 			new GridKolon({ belirtec: 'shiade', text: 'S/H İADE', genislikCh: 15 }).noSql().tipTekSecim({ tekSecimSinif: NormalIadeVeBirlikte }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'shayrimtipi', text: 'S/H Ayrım', genislikCh: 15 }).noSql().tipTekSecim({ tekSecimSinif: SBTabloAyrimTipi }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'satirlistestr', text: 'Satır Liste', genislikCh: 20 }).noSql(),
@@ -343,7 +344,7 @@ class SBTabloDetay extends MQDetay {
 			detSecimler.whereBlockListe = [];
 			detSecimler.whereBlockEkle(({ secimler: sec, where: wh,  stokmu, hizmetmi, querymi, hareketcimi, harSinif }) => {
 				let args = { ..._e, raporTanim, secimler: sec, where: wh, donemTipi, harSinif };
-				if (!hareketcimi) {
+				if (!hareketcimi || harSinif?.ticarimi) {
 					let alias = args.alias = hizmetmi ? 'hiz' : 'stk', iGrpAlias = hizmetmi ? 'higrp' : 'sigrp';
 					wh.basiSonu(sec.mstKod, `${alias}.kod`).ozellik(sec.mstAdi, `${alias}.aciklama`);
 					wh.basiSonu(sec.grupKod, 'grp.kod').ozellik(sec.grupAdi, 'grp.aciklama');
@@ -485,19 +486,24 @@ class SBTabloDetay extends MQDetay {
 		uni.add(sent);
 		return this
 	}
-	raporQueryDuzenle_hareketci({ rapor, secimler, sahaAlias: bedelAlias, uni, donemTipi, yatayAnalizVarmi, yatayAnaliz }) {
-		let {hesapTipi: { ekBilgi: { harSinif } = {} }} = this;
-		if (!harSinif) { return this }
-		let e = arguments[0], aliasListe = ['ba', bedelAlias];
-		let sabitAttrListe = ['tarih', 'bizsubekod', 'ozelisaret'];
-		let {mstYapi: { hvAlias } = {}} = harSinif; if (hvAlias) { sabitAttrListe.push(hvAlias) }
+	raporQueryDuzenle_hareketci(e) {
+		let {raporTanim, rapor, secimler, sahaAlias: bedelAlias, uni, donemTipi, yatayAnalizVarmi, yatayAnaliz} = e;
+		let det = this, {hesapTipi = {}, veriTipi = {}, shStokHizmet/*, shAlmSat = {}*/} = e;
+		let {ekBilgi: { harSinif, harEkDuzenle } = {}} = hesapTipi; if (!harSinif) { return this }
+		let {mstYapi: { hvAlias } = {}} = harSinif;
+		let aliasListe = ['ba', bedelAlias], sabitAttrListe = ['tarih', 'bizsubekod', 'ozelisaret'];
+		if (hvAlias) { sabitAttrListe.push(hvAlias) }
 		if (yatayAnalizVarmi && !yatayAnaliz.dbmi) {
 			let {ekBilgi: { zorunluKodAttrListe } = {}} = yatayAnaliz;
 			if (zorunluKodAttrListe?.length) { sabitAttrListe.push(...zorunluKodAttrListe) }
 		}
-		let har = new harSinif().withAttrs([...sabitAttrListe, ...aliasListe]), {attrSet} = har;
-		let {varsayilanHV: defHV} = har.class, harUni = har.uniOlustur({ ...e, rapor, secimler });
 		let harHVListe = e.harHVListe = [];
+		let har = new harSinif().withAttrs([...sabitAttrListe, ...aliasListe]);
+		e.maliTablo = har.maliTablo = { raporTanim, det, rapor, secimler, sahaAlias: bedelAlias, yatayAnalizVarmi, yatayAnaliz };
+		let {ekBilgi: { harEkDuzenle: harEkDuzenle2 } = {}} = veriTipi;
+		if (harEkDuzenle) { har.addEkDuzenleyici(args => harEkDuzenle.call(this, ...args)) }
+		if (harEkDuzenle2) { har.addEkDuzenleyici(args => harEkDuzenle2.call(this, ...args)) }
+		let {attrSet} = har, {varsayilanHV: defHV} = har.class, harUni = har.uniOlustur({ ...e, rapor, secimler });
 		for (let harSent of harUni) {
 			let {alias2Deger: hv} = harSent, {tarih: tarihClause = 'fis.tarih'} = hv;
 			let sent = harSent.deepCopy(), addClause = alias => {
@@ -569,15 +575,16 @@ class SBTabloGridci extends GridKontrolcu {
 			return this.ekCSSDuzenle(_e)
 		};
 		let cellsRenderer = (colDef, rowIndex, belirtec, value, html, jqxCol, rec, result) => {
-			let {hesapTipi: { querymi, hareketcimi, formulmu } = {}, shStokHizmet: { birliktemi: shBirliktemi } = {}} = rec ?? {};
-			html = result ?? html;
+			html = result ?? html; rec ??= {};
+			let {shStokHizmet: { birliktemi: shBirliktemi } = {}} = rec;
+			let {hesapTipi: { ekBilgi: { querymi, hareketcimi, formulmu } = {} } = {}} = rec;
 			let clear = () => html = changeTagContent(html, '');
 			switch (belirtec) {
 				case 'veriTipi':
 					if (!querymi) { clear() }
 					break
 				// case 'tersIslemmi': html = ''; break
-				case 'shStokHizmet': case 'shAlmSat':
+				case 'shStokHizmet': /*case 'shAlmSat':*/
 				case 'shIade': case 'shAyrimTipi':
 					if (!(querymi && hareketcimi)) { clear() }
 					break
@@ -598,7 +605,7 @@ class SBTabloGridci extends GridKontrolcu {
 			new GridKolon({ belirtec: 'hesapTipi', text: 'Hesap Tipi', genislikCh: 30, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloHesapTipi }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'veriTipi', text: 'Veri Tipi', genislikCh: 30, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloVeriTipi }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'shStokHizmet', text: 'Stok/Hizmet', genislikCh: 20, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloStokHizmet }).kodsuz().listedenSecilemez(),
-			new GridKolon({ belirtec: 'shAlmSat', text: 'S/H Alım-Satış', genislikCh: 15, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: AlimSatis }).kodsuz().listedenSecilemez(),
+			/*new GridKolon({ belirtec: 'shAlmSat', text: 'S/H Alım-Satış', genislikCh: 15, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: AlimSatis }).kodsuz().listedenSecilemez(),*/
 			new GridKolon({ belirtec: 'shIade', text: 'S/H İADE', genislikCh: 15, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: NormalIadeVeBirlikte }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'shAyrimTipi', text: 'S/H Ayrım', genislikCh: 15, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloAyrimTipi }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'satirListeStr', text: 'Satır Liste', genislikCh: 20, cellClassName, cellsRenderer }),
@@ -760,19 +767,20 @@ class SBTabloGridci extends GridKontrolcu {
 		fbd_altForm = fbd_content.addFormWithParent('altForm').altAlta().addStyle_fullWH(null, 'calc(var(--full) - 80px)');
 		
 		form = fbd_altForm.addFormWithParent('altForm_detaylarToplami').altAlta()
-			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.hesapTipi.detaylarToplamimi);
+			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.hesapTipi.altSeviyeToplamimi ? true : 'jqx-hidden');
 		form.addForm().setLayout(() => $(`<h5 class=forestgreen style="padding: 10px">Alt Seviyeler Toplanır</h5>`)).autoAppend();
 		
 		form = fbd_altForm.addFormWithParent('altForm_ticariSatis').altAlta()
-			.setVisibleKosulu(({ builder: { altInst: { hesapTipi: { ekBilgi: { querymi, hareketcimi } = {} } } } }) => querymi && !hareketcimi);
+			.setVisibleKosulu(({ builder: { altInst: { hesapTipi: { ekBilgi: { querymi, hareketcimi, harSinif } = {} } } } }) =>
+				querymi && (!hareketcimi || harSinif?.ticarimi));
 		altForm = form.addFormWithParent().yanYana()
 		altForm.addModelKullan('shStokHizmet', 'Stok/Hizmet')
 			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz().listedenSecilmez()
 			.setSource(SBTabloStokHizmet.kaListe)
 			.degisince(() => updateAltForm());
-		altForm.addModelKullan('shAlmSat', 'Alım/Satış')
+		/*altForm.addModelKullan('shAlmSat', 'Alım/Satış')
 			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz().listedenSecilmez()
-			.setSource(AlimSatis.kaListe);
+			.setSource(AlimSatis.kaListe);*/
 		altForm.addModelKullan('shIade', 'Normal/İADE')
 			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz().listedenSecilmez()
 			.setSource(NormalIadeVeBirlikte.kaListe);

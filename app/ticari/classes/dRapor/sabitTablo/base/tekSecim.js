@@ -92,12 +92,13 @@ class SBTabloHesapTipi extends TekSecim {
 		super.kaListeDuzenle(...arguments); let ekListe = [
 			/*new CKodAdiVeEkBilgi(['', 'Yok', 'yokmu', { ozelmi: true }]),*/
 			new CKodAdiVeEkBilgi(['AS', 'Alt Seviye Toplamı', 'altSeviyeToplamimi', { formulmu: true }]),
-			new CKodAdiVeEkBilgi(['FR', 'Satırlar Toplamı', 'satirlarToplamimi', { formulmu: true }]),
-			new CKodAdiVeEkBilgi(['SH', 'Ticari', 'ticarimi', { querymi: true }])
-		];
-		let harSiniflar = [KasaHareketci, HizmetHareketci, BankaMevduatHareketci];
+			new CKodAdiVeEkBilgi(['FR', 'Satırlar Toplamı', 'satirlarToplamimi', { formulmu: true }])
+			/* (config.dev ? null : new CKodAdiVeEkBilgi(['SH', 'Ticari', 'ticarimi', { querymi: true }])) */
+		].filter(x => !!x);
+		let harSiniflar = [SatisHareketci, AlimHareketci, KasaHareketci, HizmetHareketci, BankaMevduatHareketci];
 		for (let harSinif of harSiniflar) {
-			let {kisaKod, kod, aciklama} = harSinif;
+			let {kisaKod, kod, aciklama, uygunmu} = harSinif;
+			if (!uygunmu) { continue }
 			let question = `${kod}mi`; aciklama += ' Hareketleri';
 			ekListe.push(new CKodAdiVeEkBilgi([kisaKod, aciklama, question, { harSinif }]))
 		}
@@ -118,52 +119,52 @@ class SBTabloVeriTipi extends TekSecim {
 	get donemTipi() { return this.donemBasimi ? 'B' : this.donemSonumu ? 'S' : null }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); let {kaListe} = e;
-		let topSahaEkle = e.topSahaEkle = ({ sent, clause, sahaAlias, det: { tersIslemmi, shIade }, hv }) => {
+		let topSahaEkle = e.topSahaEkle = ({ sent, clause, sahaAlias, det: { tersIslemmi, shIade = {} }, hv }) => {
 			if (isFunction(clause)) { clause = clause(hv) }
 			let tersmi = tersIslemmi != shIade.iademi, {sahalar} = sent;
-			sahalar.add(`(SUM(${clause})${tersmi ? ' * -1' : ''}) ${sahaAlias}`)
+			sahalar.add(`(SUM(${clause.sumOlmaksizin()})${tersmi ? ' * -1' : ''}) ${sahaAlias}`)
 		};
 		this.kaListeDuzenle_ticari(e).kaListeDuzenle_hareketci(e)
 	}
 	kaListeDuzenle_ticari({ kaListe, topSahaEkle }) {
-		let gosterimUygunluk = ({ hesapTipi: { ekBilgi: { querymi, hareketcimi } = {} } }) => querymi && !hareketcimi;
-		let sentUygunluk = null;
+		let sentUygunluk = ({ hesapTipi: { ekBilgi: { querymi, hareketcimi, harSinif } = {} } = {} }) => querymi && (!hareketcimi || harSinif.ticarimi);
+		let gosterimUygunluk = sentUygunluk;
 		kaListe.push(...[
 			new CKodAdiVeEkBilgi(['SBRT', 'Satır Brüt', 'satirBrutmu', {
-				gosterimUygunluk, sentUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.brutbedel' })
+				gosterimUygunluk, sentUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: hv => hv?.brutbedel || 'har.brutbedel' })
 			}]),
 			new CKodAdiVeEkBilgi(['SNET', 'Satır Net', 'satirNetmi', {
-				gosterimUygunluk, sentUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.bedel' })
+				gosterimUygunluk, sentUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: hv => hv?.bedel || 'har.bedel' })
 			}]),
 			new CKodAdiVeEkBilgi(['SISK', 'Satır İskonto', 'satirIskmi', {
-				gosterimUygunluk, sentUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.brutbedel - har.bedel' })
+				gosterimUygunluk, sentUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: hv => hv?.satiriskonto || 'har.satiriskonto' })
 			}]),
 			new CKodAdiVeEkBilgi(['DISK', 'Dip İskonto', 'dipIskmi', {
-				gosterimUygunluk, sentUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.dipiskonto' })
+				gosterimUygunluk, sentUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: hv => hv?.dipiskonto || 'har.dipiskonto' })
 			}]),
 			new CKodAdiVeEkBilgi(['TISK', 'Top. İskonto', 'topIskmi', {
-				gosterimUygunluk, sentUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.brutbedel - har.bedel + har.dipiskonto' })
+				gosterimUygunluk, sentUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: ({ satiriskonto: sisk, dipiskonto: disk } = {}) =>
+					sisk && disk ? `${sisk} - ${disk}` : 'har.satiriskonto + har.dipiskonto' })
 			}]),
 			new CKodAdiVeEkBilgi(['CIR', 'Ciro', 'ciromu', {
-				gosterimUygunluk, sentUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.harciro' })
+				gosterimUygunluk, sentUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: hv => hv?.harciro && 'har.harciro' })
 			}]),
 			new CKodAdiVeEkBilgi(['MAL', 'Maliyet', 'maliyetmi', {
 				gosterimUygunluk, sentUygunluk: ({ stokmu, hareketcimi }) => stokmu,
-				sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.fmalhammadde + har.fmalmuh' })
+				sentDuzenle: e => topSahaEkle({ ...e, clause: ({ hv: { fmalhammadde: hamm, fmalmuh: mmuh } = {} }) =>
+					hamm && mmuh ? `${hamm} + ${mmuh}` : 'har.fmalhammadde + har.fmalmuh' })
 			}]),
 			new CKodAdiVeEkBilgi(['KCR', 'KDVli Ciro', 'kdvliCiromu', {
-				gosterimUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.harciro + har.topkdv' })
-			}]) /*,
-			new CKodAdiVeEkBilgi(['KML', 'KDVli Maliyet', 'kdvliMaliyetmi', {
-				gosterimUygunluk, sentUygunluk: ({ stokmu, hareketcimi }) => stokmu,
-				sentDuzenle: e => topSahaEkle({ ...e, clause: 'har.fmalhammadde + har.fmalmuh + har.topkdv' })
-			}])*/
+				gosterimUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: ({ hv: { harciro: ciro, topkdv: kdv } = {} }) =>
+					ciro && kdv ? `${ciro} + ${kdv}` : 'har.harciro + har.tumkdv' })
+			}])
 		]);
 		return this
 	}
 	kaListeDuzenle_hareketci({ kaListe, topSahaEkle }) {
 		let {sqlZero} = Hareketci_UniBilgi.ortakArgs;
-		let sentUygunluk = null, gosterimUygunluk = ({ hesapTipi }) => hesapTipi.ekBilgi?.hareketcimi;
+		let sentUygunluk = ({ hesapTipi: { ekBilgi: { querymi, hareketcimi, harSinif } = {} } = {} }) => querymi && (hareketcimi && !harSinif.ticarimi);
+		let gosterimUygunluk = sentUygunluk;
 		let getBABedelClause = (ba, baClause, bedelClause) => {
 			bedelClause ??= sqlZero;
 			if (!(ba && baClause)) { return bedelClause }
@@ -221,7 +222,7 @@ class SBTabloStokHizmet extends TekSecim {
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments); kaListe.push(
 			new CKodVeAdi(['S', '<span class=forestgreen>Sadece Stok</span>', 'stokmu']),
-			new CKodVeAdi(['H', '<span class=orangered>Sadece Hizmet</span>', 'hareketcimi']),
+			new CKodVeAdi(['H', '<span class=orangered>Sadece Hizmet</span>', 'hizmetmi']),
 			new CKodVeAdi([' ', '<span class=royalblue>Birlikte</span>', 'birliktemi'])
 		)
 	}

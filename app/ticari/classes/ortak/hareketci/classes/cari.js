@@ -154,7 +154,7 @@ class CariHareketci extends Hareketci {
 						.fis2KasaBagla().har2HizmetBagla();
 					let tipListe = [];
 					if (uygunluk.topluIslem) { tipListe.push('CI') }
-					if (uygunluk. kasa) { tipListe.push('KC') }
+					if (uygunluk.kasa) { tipListe.push('KC') }
 					if (uygunluk.hizmet) { tipListe.push('CH') }
 					wh.fisSilindiEkle().inDizi(tipListe, 'fis.fistipi')
 				}).hvDuzenleIslemi(({ hv }) => {
