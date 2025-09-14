@@ -117,10 +117,11 @@ class DPanelRapor extends DRaporOzel {
 	}
 	rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); const {rfb} = e, {id2AltRapor} = this, {noOverflowFlag, kod} = this.class;
-		let form = e.rfb_items = this.rfb_items = rfb.addForm('items').setLayout(e => $(`<div id="${e.builder.id}" class="${kod ? `${kod} ` : ''}full-wh"></div>`));
+		let form = e.rfb_items = this.rfb_items = rfb.addForm('items')
+			.setLayout(e => $(`<div id="${e.builder.id}" class="${kod ? `${kod} ` : ''}full-wh"></div>`));
 		if (noOverflowFlag) { form.addCSS('no-overflow') }
 		for (const [id, altRapor] of Object.entries(id2AltRapor)) {
-			const raporAdi = altRapor.class.aciklama ?? '';
+			let raporAdi = altRapor.class.etiket ?? '';
 			let fbd = altRapor.parentBuilder = form.addForm(id).addCSS('item').addStyle_fullWH()
 				.setLayout(e => $(`<div class="${id}"><label>${raporAdi || ''}</label></div>`))
 				.addStyle(e => `$elementCSS { overflow: hidden !important; z-index: ${this.altRapor_lastZIndex++} !important }`);

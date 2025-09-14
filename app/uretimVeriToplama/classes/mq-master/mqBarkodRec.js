@@ -27,8 +27,9 @@ class MQBarkodRec extends MQMasterOrtak {
 	get bitSaat() { return timeToString(this.bitTS) } set bitSaat(value) { const {bitTS} = this; if (value) { setTime(bitTS, asDate(value).getTime()) } }
 
 	constructor(e) {
-		e = e || {}; super(e); const sabit_hatKod = app.params.config.hatKod || null, resetFlag = e.reset;
-		if (e.rec) { e = e.rec } if (resetFlag) { this.reset(e) } this.resetOEMIDFromBarkodFlag();
+		e = e || {}; super(e); let sabit_hatKod = app.params.config.hatKod || null, resetFlag = e.reset;
+		if (e.rec) { e = e.rec }
+		if (resetFlag) { this.reset(e) } { this.resetOEMIDFromBarkodFlag() }
 				/* if (config.dev) { e.oemID = 1 } */
 		$.extend(this, {
 			_durum: e._durum ?? e.durum ?? this.durum ?? 'new', id: e.id || this.id || newGUID(), serbestmi: e.serbestmi ?? this.serbestmi ?? false, noCheckFlag: e.noCheck ?? e.noCheckFlag ?? false,
@@ -38,6 +39,8 @@ class MQBarkodRec extends MQMasterOrtak {
 			emirNox: e.emirNox ?? e.emirnox ?? this.emirNox, emirTarih: e.emirTarih || e.emirtarih || this.emirTarih,
 			opNo: e.opNo || e.opno || this.opNo, opAdi: e.opAdi || e.opadi || this.opAdi,
 			stokKod: e.stokKod || e.shKod || e.stokkod || this.stokKod, stokAdi: e.stokAdi || e.shAdi || e.stokadi || this.stokAdi,
+			emirMiktar: e.emirMiktar ?? e.emirmiktar,
+			onceUretMiktar: e.onceUretMiktar ?? e.onceuretmiktar ?? e.germiktar ?? this.onceUretMiktar,
 			islenebilirMiktar: e.islenebilirMiktar ?? e.islenebilirmiktar, miktar: e.miktar /*?? e.islenebilirmiktar ?? e.islenebilirmiktar */ ?? this.miktar,
 			subeKod: e.subeKod ?? e.bizsubekod ?? config.session?.subeKod,
 			hatKod: e.hatKod ?? e.hatkod ?? e.ismrkkod ?? this.hatKod ?? sabit_hatKod, hatAdi: e.hatAdi ?? e.hatadi ?? this.hatAdi,
@@ -163,10 +166,10 @@ class MQBarkodRec extends MQMasterOrtak {
 			.setVisibleKosulu(e => { const {altInst} = e.builder; return altInst.gorevmi ? 'jqx-hidden' : true })
 			.degisince(e => { const {value, item, builder} = e, {altInst} = builder; altInst.perAdi = item?.aciklama })
 			.onAfterRun(e => { const {id, altInst, part} = e.builder; if (!altInst.serbestmi && altInst[id]) part.disable() });
-		const {belirtec2Bilgi} = HMRBilgi; if (!$.isEmptyObject(belirtec2Bilgi)) {
+		let {belirtec2Bilgi} = HMRBilgi; if (!$.isEmptyObject(belirtec2Bilgi)) {
 			/*parentForm.addBaslik({ etiket: 'HMR' }).addStyle(e => `$elementCSS { margin-top: 10px }`);*/
 			form = parentForm.addFormWithParent('hmr').yanYana(1.3); /*.setVisibleKosulu(e => !e.builder.altInst.gorevmi);*/
-			const {belirtec2Bilgi} = HMRBilgi, hmrEtiketDict = app.params.stokGenel?.hmrEtiket || {};
+			let hmrEtiketDict = app.params.stokGenel?.hmrEtiket || {};
 			for (const [belirtec, rec] of Object.entries(belirtec2Bilgi)) {
 				const {ioAttr, numerikmi, kami, mfSinif} = rec, etiket = hmrEtiketDict.etiket || rec.etiket; let fbd;
 				if (kami && mfSinif) { fbd = form.addModelKullan(ioAttr, etiket).comboBox().autoBind().setMFSinif(mfSinif).addStyle_wh(400) }
@@ -174,7 +177,7 @@ class MQBarkodRec extends MQMasterOrtak {
 				if (fbd) { fbd.setAltInst(e => e.builder.inst.ekOzellikler) }
 			}
 		}
-		const form_seriNo = parentForm.addFormWithParent().yanYana(1.1)
+		let form_seriNo = parentForm.addFormWithParent().yanYana(1.1)
 			.setVisibleKosulu(e => {
 				const formulSeriDurumu = e.builder.altInst._formulSeriDurumu;
 				if (formulSeriDurumu) { if (!$.isEmptyObject(formulSeriDurumu.hammadde)) { return true } else if (formulSeriDurumu.formul?.serikurali) { return true } }
@@ -297,12 +300,22 @@ class MQBarkodRec extends MQMasterOrtak {
 				})
 			})
 	}
-	uiKaydetOncesiIslemler(e) {
-		super.uiKaydetOncesiIslemler(e); const {inst} = e, {noCheckFlag} = inst;
+	async uiKaydetOncesiIslemler({ inst, inst: { noCheckFlag, isKapansinmi, hatKod, emirMiktar = 0, onceUretMiktar = 0, miktar = 0, islenebilirMiktar = 0 } }) {
+		await super.uiKaydetOncesiIslemler(...arguments); let {sinifAdi} = this.class;
 		if (!noCheckFlag) {
-			if ((inst.miktar || 0) <= 0) throw { isError: true, rc: 'hataliDeger', errorText: `<b>Miktar</b> 0'dan büyük bir sayı olmalıdır` }
-			if ((inst.islenebilirMiktar || 0) > 0 && (inst.miktar || 0) > inst.islenebilirMiktar) throw { isError: true, rc: 'hataliDeger', errorText: `<b>Miktar</b> değeri <u>${inst.islenebilirMiktar}</u>'dan büyük olamaz` }
-			if (!inst.hatKod) throw { isError: true, rc: 'hataliDeger', errorText: `<b>Hat</b> belirtilmelidir` }
+			if (miktar <= 0) { throw { isError: true, rc: 'hataliDeger', errorText: `<b>Miktar</b> 0'dan büyük bir sayı olmalıdır` } }
+			if (islenebilirMiktar > 0 && miktar > islenebilirMiktar) {
+				throw { isError: true, rc: 'hataliDeger', errorText: `<b>Miktar</b> değeri <u>${inst.islenebilirMiktar}</u>'dan büyük olamaz` } }
+			if (!hatKod) { throw { isError: true, rc: 'hataliDeger', errorText: `<b>Hat</b> belirtilmelidir` } }
+			if (onceUretMiktar + miktar >= emirMiktar && !isKapansinmi) {
+				let {tabletUygunMiktarIcinOperKapansin} = app.params.operGenel?.kullanim ?? {};
+				if (tabletUygunMiktarIcinOperKapansin) { isKapansinmi = inst.isKapansinmi = true }    /* Oper. Kapansın */
+				else {
+					let rdlg = await ehvConfirm(`Üretilecek Miktar tamamlandı, <b class=firebrick>operasyon kapatılsın mı?</b>`, sinifAdi);
+					if (rdlg == null) { throw { isError: true } }
+					isKapansinmi = inst.isKapansinmi = (rdlg == true)    /* true / false */
+				}
+			}
 		}
 	}
 	oemHTMLDuzenle(e) { e = e || {}; e.rec = this; return MQOEM.oemHTMLDuzenle(e) }
@@ -311,11 +324,11 @@ class MQBarkodRec extends MQMasterOrtak {
 			_durum: this._durum ?? '', id: this.id || newGUID(), serbestmi: this.serbestmi, isId: this.isId || null,
 			barkod: this.barkod, carpan: this.carpan, gerSayac: this.gerSayac || null, oemSayac: this.oemSayac || null,
 			emirNox: this.emirNox, emirTarih: this.emirTarih, opNo: this.opNo || null, opAdi: this.opAdi, stokKod: this.stokKod, stokAdi: this.stokAdi,
-			miktar: this.miktar, subeKod: this.subeKod, hatKod: this.hatKod, hatAdi: this.hatAdi,
+			miktar: this.miktar, emirMiktar: this.emirMiktar, onceUretMiktar: this.onceUretMiktar, subeKod: this.subeKod, hatKod: this.hatKod, hatAdi: this.hatAdi,
 			tezgahKod: this.tezgahKod, tezgahAdi: this.tezgahAdi, perKod: this.perKod, perAdi: this.perAdi,
 			basTS: inverseCoalesce(this.basTS, value => dateTimeToString(value)), bitTS: inverseCoalesce(this.bitTS, value => dateTimeToString(value)),
 			paketKod: this.paketKod, paketIcAdet: this.paketIcAdet, vardiyaNo: this.vardiyaNo, sonAsamami: this.sonAsamami ?? null,
-			ekOzellikler: this.ekOzellikler, iskartalar: this.iskartalar, kaliteYapi: this.kaliteYapi,
+			ekOzellikler: this.ekOzellikler, iskartalar: this.iskartalar, kaliteYapi: this.kaliteYapi
 		}
 	}
 	async getQueryYapi(e) {
@@ -495,7 +508,10 @@ class MQBarkodRec extends MQMasterOrtak {
 	reset(e) { this.reset_asil(e); this.reset_diger(e); return this }
 	reset_asil(e) {
 		$.extend(this, { _durum: 'new', id: newGUID() });
-		let keys = ['barkod', 'carpan', 'gerSayac', 'oemSayac', 'isId', 'subeKod', 'formulSayac', 'onceOpNo', 'emirNox', 'opNo', 'stokKod', 'paketKod', 'paketIcAdet', 'sonAsamami'];
+		let keys = [
+			'barkod', 'carpan', 'gerSayac', 'oemSayac', 'isId', 'subeKod', 'formulSayac', 'onceOpNo',
+			'onceUretMiktar', 'emirMiktar', 'emirNox', 'opNo', 'stokKod', 'paketKod', 'paketIcAdet', 'sonAsamami'
+		];
 		for (const key of keys) { this[key] = null }
 		for (const key of ['emirTarih', 'opAdi', 'stokAdi']) { delete this[key] }
 		for (const key of ['basTS', 'bitTS']) { let value = this[key]; if (isInvalidDate(value)) value = this[key] = now() }

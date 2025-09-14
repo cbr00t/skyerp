@@ -234,23 +234,14 @@ class MQAliasliYapi extends MQSQLOrtak {
 		let noktaInd = text.lastIndexOf('.'); if (noktaInd < 0 || text[0] == '(') { return new this({ deger: text }) }
 		return new this({ deger: text, alias: text.substring(0, noktaInd), aliaslimi: true })		/* to dahil degil substring'de */
 	}
-	static getDegerAlias(deger) {
-		// fis.rowid   		gibi ==> 'fis'
-		//		aksinde			 ==> null
-		deger = deger?.toString().trim(); if (!deger) { return null }
-		if (deger[0] >= '0' && deger[0] <= '9') { return null }
-		if (deger[0] == '(') { return null }
-		let parts = deger.split('.'); if (parts.length != 2) { return null }
-		return parts[0]
-	}
 	static getDegerAliasListe(deger) {
-		let result = this.getDegerAlias(deger); if (result != null) { return [result] }
-		result = {}; deger = deger?.toString().trim(); const parts = deger.split('.');
+		let result = {}; deger = deger?.toString().trim();
+		let tokens = deger.split('.');
 		// aslinda nokta oncesi full digit ise bu parca sonrasi ile birlesmeli
-		for (let i = 0; i < parts.length; i++) {
-			let temp = ''; let part = parts[i]; if (part != null) { part = part.trim() } if (!part) { continue }
-			for (let j = part.length - 1; j >= 0; j--) {
-				const ch = part[j]; if (!sqlAliasmi(ch)) { break }
+		for (let i = 0; i < tokens.length; i++) {
+			let token = tokens[i]?.trim(); if (!token) { continue }
+			let temp = ''; for (let j = token.length - 1; j >= 0; j--) {
+				let ch = token[j]; if (!sqlAliasmi(ch)) { break }
 				temp = ch + temp
 			}
 			if (hepsiUygunmu(temp, ch => isDigit(ch))) { continue }
@@ -258,15 +249,16 @@ class MQAliasliYapi extends MQSQLOrtak {
 		}
 		return Object.keys(result)
 	}
+	static getDegerAlias(deger) { return this.getDegerAliasListe(deger)?.[0] ?? [] }
 	static getSahaDegeri(text) {
 		// har.kasakod   		gibi ==> 'kasakod'
 		// har.kasakod xkod		gibi ==> 'xkod'
 		//		aksinde			 ==> null
 		text = text?.toString().trim(); if (!text) { return null }
-		let parts = text.split(' '); if (parts.length > 1) { return parts[parts.length - 1] }
+		let tokens = text.split(' '); if (tokens.length > 1) { return tokens[tokens.length - 1] }
 		let ilk = text[0]; if (ilk >= '0' && ilk <= '9') { return null }
 		if (ilk == '(' || ilk == `'` || text.toUpperCase() == 'NULL') { return null }
-		parts = text.split('.'); return parts.length == 2 ? parts[parts.length - 1] : null;
+		tokens = text.split('.'); return tokens.length == 2 ? tokens[tokens.length - 1] : null;
 	}
 	buildString(e) {
 		super.buildString(e); e.result += this.deger || '';

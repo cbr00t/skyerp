@@ -104,14 +104,15 @@ class AlimSatisOrtakHareketci extends Hareketci {
 		super.maliTablo_secimlerSentDuzenle(...arguments);
 		let {det: { shStokHizmet = {} } = {}} = maliTablo ?? {}, {hizmetmi} = shStokHizmet;
 		let mstAlias = hizmetmi ? 'hiz' : 'stk', prefix = hizmetmi ? 'h' : 's';
+		let grpClause = hv.grupkod || `${mstAlias}.grupkod`;
 		let iGrpClause = hv.istgrupkod || `${mstAlias}.${prefix}istgrupkod`, iGrpAlias = `${prefix}igrp`;
 		mstClause ||= hv.shkod || `har.${hizmetmi ? 'hizmet' : 'stok'}kod`;
 		if (sec && shStokHizmet.secilen && !shStokHizmet.birliktemi) {
 			let harHizmetmi = from.aliasIcinTable('har')?.deger == 'pifhizmet';
 			if (hizmetmi != harHizmetmi) { wh.add('1 = 2'); return }
 			wh.basiSonu(sec.mstKod, mstClause).ozellik(sec.mstAdi, `${mstAlias}.aciklama`);
-			wh.basiSonu(sec.grupKod, `${mstAlias}.grupkod`).ozellik(sec.grupAdi, 'grp.aciklama');
-			wh.basiSonu(sec.istGrupKod, `${iGrpClause}`).ozellik(sec.istGrupAdi, `${iGrpAlias}.aciklama`)
+			wh.basiSonu(sec.grupKod, grpClause).ozellik(sec.grupAdi, 'grp.aciklama');
+			wh.basiSonu(sec.istGrupKod, iGrpClause).ozellik(sec.istGrupAdi, `${iGrpAlias}.aciklama`)
 		}
 	}
 }

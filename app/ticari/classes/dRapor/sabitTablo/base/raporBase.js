@@ -7,6 +7,7 @@ class SBRapor extends DGrupluPanelRapor {
 class SBRapor_Main extends DAltRapor_TreeGrid {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get mainmi() { return true }
 	get sahaAlias() { return 'bedel' } get tazeleYapilirmi() { return true } get noAutoColumns() { return true }
+	static get etiket() { return this.raporTanim?.aciklama ?? super.etiket }
 	static get raporTanimSinif() { return SBTablo } static get secimSinif() { return DonemselSecimler }
 	get tabloYapi() {
 		let {_tabloYapi: result} = this; if (result == null) {
@@ -18,7 +19,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 	tabloYapiDuzenle({ result }) { result.addToplamBasit_bedel('BEDEL', 'Bedel', this.sahaAlias) }
 	tabloYapiDuzenle_son({ result }) { }
 	async tazele(e) {
-		let {gridPart, raporTanim, _tabloTanimGosterildiFlag} = this, {grid, gridWidget} = gridPart;
+		let {gridPart, raporTanim, _tabloTanimGosterildiFlag, fbd_grid: { parent: layout }} = this, {grid, gridWidget} = gridPart;
 		if (!raporTanim) {
 			if (_tabloTanimGosterildiFlag) { hConfirm('<b>Rapor Tanımı</b> seçilmelidir') }
 			else { this.raporTanimIstendi(e) }
@@ -34,7 +35,12 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		this.tabloKolonlariDuzenle(_e); this.tabloKolonlariDuzenle_ozel?.(_e);
 		let colDefs = this.tabloKolonlari = _e.liste || [];
 		let columns = colDefs.flatMap(colDef => colDef.jqxColumns);
-		grid.jqxTreeGrid('columns', columns)
+		grid.jqxTreeGrid('columns', columns);
+		let {aciklama: raporAdi} = raporTanim;
+		if (raporAdi) {
+			// x
+			layout.children('label').html(raporAdi)
+		}
 	}
 	ekCSSDuzenle({ raporTanim, colDefs, colDef, rowIndex, belirtec, value, rec: { cssClassesStr } = {}, result }) {
 		if (cssClassesStr) { result.push(cssClassesStr) }

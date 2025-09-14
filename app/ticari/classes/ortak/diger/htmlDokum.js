@@ -21,7 +21,8 @@ class HTMLDokum extends CObject {
 	static async FromTip(e) { let inst = new this(); await inst.fromTip(e); return inst }
     async fromTip(e) {
 		if (typeof e != 'object') { e = { tip: e } }
-		let {tip} = e, tanim = await this.getTanim({ ...e, tip }); if (!tanim) { throw new Error(`<b class=red>${tip}</b> tipi için tanım belirlenemedi`) }
+		let {tip} = e, tanim = await this.getTanim({ ...e, tip });
+		if (!tanim) { throw new Error(`<b class=red>${tip}</b> tipi için tanım belirlenemedi`) }
 		return await this.fromDosyaAdi({ ...tanim, ...e })
 		/*let {tabloNo, dosyaAdi} = tanim; if (!dosyaAdi) { throw new Error(`<b>${tip}</b> tip'ine ait Word Dokuman Tanımı'nda <b class=red>Dosya Adı</b> belirtilmelidir`) }
 		let {wordGenelBolum: rootDir} = app.params.ticariGenel, sablonDosya = `${rootDir?.trimEnd_slashes()}/${dosyaAdi}`;

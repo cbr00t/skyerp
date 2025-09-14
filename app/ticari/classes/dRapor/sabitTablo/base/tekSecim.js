@@ -95,10 +95,9 @@ class SBTabloHesapTipi extends TekSecim {
 			new CKodAdiVeEkBilgi(['FR', 'Satırlar Toplamı', 'satirlarToplamimi', { formulmu: true }])
 			/* (config.dev ? null : new CKodAdiVeEkBilgi(['SH', 'Ticari', 'ticarimi', { querymi: true }])) */
 		].filter(x => !!x);
-		let harSiniflar = [SatisHareketci, AlimHareketci, KasaHareketci, HizmetHareketci, BankaMevduatHareketci];
+		let harSiniflar = [StokCikisBasitHareketci, SatisHareketci, AlimHareketci, KasaHareketci, HizmetHareketci, BankaMevduatHareketci];
 		for (let harSinif of harSiniflar) {
-			let {kisaKod, kod, aciklama, uygunmu} = harSinif;
-			if (!uygunmu) { continue }
+			let {kisaKod, kod, aciklama} = harSinif;
 			let question = `${kod}mi`; aciklama += ' Hareketleri';
 			ekListe.push(new CKodAdiVeEkBilgi([kisaKod, aciklama, question, { harSinif }]))
 		}
@@ -124,7 +123,7 @@ class SBTabloVeriTipi extends TekSecim {
 			let tersmi = tersIslemmi != shIade.iademi, {sahalar} = sent;
 			sahalar.add(`(SUM(${clause.sumOlmaksizin()})${tersmi ? ' * -1' : ''}) ${sahaAlias}`)
 		};
-		this.kaListeDuzenle_ticari(e).kaListeDuzenle_hareketci(e)
+		this.kaListeDuzenle_ticari(e).kaListeDuzenle_stokCikisHareketciBasit(e).kaListeDuzenle_hareketci(e)
 	}
 	kaListeDuzenle_ticari({ kaListe, topSahaEkle }) {
 		let sentUygunluk = ({ hesapTipi: { ekBilgi: { querymi, hareketcimi, harSinif } = {} } = {} }) => querymi && (!hareketcimi || harSinif.ticarimi);
@@ -161,9 +160,29 @@ class SBTabloVeriTipi extends TekSecim {
 		]);
 		return this
 	}
+	kaListeDuzenle_stokCikisHareketciBasit({ kaListe, topSahaEkle }) {
+		let sentUygunluk = e => {
+			let { hesapTipi: { ekBilgi: { querymi, hareketcimi, harSinif } = {} } = {} } = e;
+			if (!(hareketcimi && harSinif.stokCikisBasitmi)) { return false }
+			return harSinif.maliTablo_sentUygunluk?.call(this, e) ?? true
+		}
+		let gosterimUygunluk = sentUygunluk;
+		kaListe.push(
+			new CKodAdiVeEkBilgi(['MAL', 'Maliyet', 'maliyetmi', {
+				gosterimUygunluk, sentUygunluk: ({ hareketcimi }) => true,
+				sentDuzenle: e => topSahaEkle({ ...e, clause: ({ hv: { bedel: maliyet } = {} }) => maliyet || 'har.fmalhammadde + har.fmalmuh' })
+			}])
+		);
+		return this
+	}
 	kaListeDuzenle_hareketci({ kaListe, topSahaEkle }) {
 		let {sqlZero} = Hareketci_UniBilgi.ortakArgs;
-		let sentUygunluk = ({ hesapTipi: { ekBilgi: { querymi, hareketcimi, harSinif } = {} } = {} }) => querymi && (hareketcimi && !harSinif.ticarimi);
+		let sentUygunluk = e => {
+			let { hesapTipi: { ekBilgi: { querymi, hareketcimi, harSinif } = {} } = {} } = e;
+			if (!hareketcimi) { return false }
+			if (harSinif.ticarimi || harSinif.stokCikisBasitmi) { return false }
+			return harSinif.maliTablo_sentUygunluk?.call(this, e) ?? true
+		}
 		let gosterimUygunluk = sentUygunluk;
 		let getBABedelClause = (ba, baClause, bedelClause) => {
 			bedelClause ??= sqlZero;

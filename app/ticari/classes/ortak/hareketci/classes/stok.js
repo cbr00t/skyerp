@@ -82,7 +82,7 @@ class StokHareketci extends Hareketci {
 					...this.getHV_hmr_normal({ hv }), opno: 'har.opno', iskorantext: 'har.iskorantext',
 					belgefiyat: 'har.belgefiyat', belgebedel: 'har.belgebedel', belgedipisk: '(har.dipiskonto - har.satirfisdagitim)',
 					belgedipnak: 'har.dipnakliye', belgedipotvvegekap: 'har.dipotvvegekap', bedel: 'har.bedel',
-					maliyet: this.clausecu.irsDisiMaliyet(maliyetsizmi ? sqlZero : '(har.fmalhammadde + har.fmalmuh)'),
+					maliyet: this.clausecu.irsDisiMaliyet(maliyetsizmi ? sqlZero : '(har.malhammadde + har.malmuh)'),
 					fmaliyet: this.clausecu.irsDisiMaliyet(maliyetsizmi ? sqlZero : '(har.fmalhammadde + har.fmalmuh)')
 				}),
 				hmrKumas: hv =>
@@ -217,7 +217,7 @@ class StokHareketci extends Hareketci {
 						fiyat: 'har.fiyat', dvkod: 'fis.dvkod', dvfiyat: 'har.dvfiyat', dvbedel: 'har.dvbedel',
 						althesapkod: 'fis.irscariitn', ...this.class.getHV_hmr_normal({ hv }), opno: 'har.opno',
 						iskorantext: 'har.iskorantext', belgefiyat: 'har.belgefiyat', belgebedel: 'har.belgebedel', bedel: '(har.bedel + har.maldevmuh)',
-						maliyet: 'dbo.gcnum(fis.gctipi, (har.bedel + har.maldevmuh), (har.fmalhammadde + har.fmalmuh))',
+						maliyet: 'dbo.gcnum(fis.gctipi, (har.bedel + har.maldevmuh), (har.malhammadde + har.malmuh))',
 						fmaliyet: 'dbo.gcnum(fis.gctipi, (har.bedel + har.maldevmuh), (har.fmalhammadde + har.fmalmuh))'
 					})
 				})
@@ -251,7 +251,7 @@ class StokHareketci extends Hareketci {
 						malbrm: 'dbo.malbrmtext(stk.smalduzbirimtipi, stk.brm2, stk.brm)', fiyat: 'har.fiyat', althesapkod: 'fis.irscariitn',
 						...this.class.getHV_hmr_normal({ hv }), opno: 'har.opno', iskorantext: 'har.iskorantext',
 						belgefiyat: 'har.belgefiyat', belgebedel: 'har.belgebedel', bedel: '(har.bedel + har.maldevmuh)',
-						maliyet: 'dbo.gcnum(fis.gctipi, (har.bedel + har.maldevmuh), (har.fmalhammadde + har.fmalmuh))',
+						maliyet: 'dbo.gcnum(fis.gctipi, (har.bedel + har.maldevmuh), (har.malhammadde + har.malmuh))',
 						fmaliyet: 'dbo.gcnum(fis.gctipi, (har.bedel + har.maldevmuh), (har.fmalhammadde + har.fmalmuh))'
 					})
 				})
@@ -359,7 +359,7 @@ class StokHareketci extends Hareketci {
 						refkod: `(case when fis.ayrimtipi in ('GP', 'GS') then fis.degiskenvknox else fis.must end)`,
 						refadi: `(case when fis.ayrimtipi in ('GP', 'GS') then dadr.birunvan else car.birunvan end)`,
 					/* perakende ve gider pusulasinda  -  vio'da miktar/bedel sum() verilirken burada sum() olmadan verildi */
-						maliyet: clausecu.tumMaliyet('(har.fmalhammadde + har.fmalmuh)'),
+						maliyet: clausecu.tumMaliyet('(har.malhammadde + har.malmuh)'),
 						fmaliyet: clausecu.tumMaliyet('(har.fmalhammadde + har.fmalmuh)')
 					})
 				})
@@ -389,7 +389,7 @@ class StokHareketci extends Hareketci {
 						refkod: `(case when fis.must <> '' then fis.must else '' end)`,
 						refadi: `(case when fis.must <> '' then car.birunvan else '' end)`,
 					/* miktar/bedel sahalari sum() hale gelir */
-						maliyet: clausecu.tumMaliyet('(har.fmalhammadde + har.fmalmuh)'),
+						maliyet: clausecu.tumMaliyet('(har.malhammadde + har.malmuh)'),
 						fmaliyet: clausecu.tumMaliyet('(har.fmalhammadde + har.fmalmuh)')
 					});
 					let _hv = hvci.basitToplanabilir('har.miktar');
@@ -462,7 +462,7 @@ class StokHareketci extends Hareketci {
     uniDuzenle_uretim({ uygunluk, liste }) {
 		let {gercekmi, maliyetlimi, hvci, clausecu} = this.class;
 		let miktarClause = 'dbo.uhnum(har.udurum, har.miktar - har.firemiktar - har.hurdamiktar, har.miktar)';
-		let nMaliyetClause = '(har.fmalhammadde + har.fmalmuh + har.fmalaktmuh)';
+		let nMaliyetClause = '(har.malhammadde + har.malmuh + har.malaktmuh)';
 		$.extend(liste, {
 			uretim: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
@@ -513,7 +513,7 @@ class StokHareketci extends Hareketci {
 						malmiktar: 'dbo.malbrmnum(stk.smalduzbirimtipi, har.miktar2,har.miktar)',
 						malbrm: 'dbo.malbrmtext(stk.smalduzbirimtipi, stk.brm2, stk.brm)',
 						...this.class.getHV_hmr_normal({ hv }), opno: 'har.opno', bedel: 'har.bedel',
-						maliyet: `dbo.banum(har.ba, (case when har.kayittipi in ('ST', 'SH') then har.bedel else 0 end), (har.fmalhammadde + har.fmalmuh))`,
+						maliyet: `dbo.banum(har.ba, (case when har.kayittipi in ('ST', 'SH') then har.bedel else 0 end), (har.malhammadde + har.malmuh))`,
 						fmaliyet: `dbo.banum(har.ba, (case when har.kayittipi in ('ST', 'SH') then har.bedel else 0 end), (har.fmalhammadde + har.fmalmuh))`
 	                })
 	            })

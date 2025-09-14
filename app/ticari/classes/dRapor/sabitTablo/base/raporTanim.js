@@ -735,9 +735,9 @@ class SBTabloGridci extends GridKontrolcu {
 		fbd_veriTipi = form.addModelKullan('veriTipi', 'Veri Tipi')
 			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz()
 			.setSource(() => (({ builder: fbd }) => {
-				let {altInst: det} = fbd, {hesapTipi} = det;
+				let {altInst: det} = fbd, {hesapTipi, veriTipi} = det;
 				return SBTabloVeriTipi.kaListe.filter(({ ekBilgi }) =>
-					ekBilgi?.gosterimUygunluk?.call(this, { ...e, det, hesapTipi }))
+					ekBilgi?.gosterimUygunluk?.call(this, { ...e, det, hesapTipi, veriTipi }))
 			}))
 			.setVisibleKosulu(({ builder: fbd }) => {
 				let {hesapTipi: { ekBilgi: { querymi } = {} } = {}} = fbd.altInst;
@@ -772,7 +772,7 @@ class SBTabloGridci extends GridKontrolcu {
 		
 		form = fbd_altForm.addFormWithParent('altForm_ticariSatis').altAlta()
 			.setVisibleKosulu(({ builder: { altInst: { hesapTipi: { ekBilgi: { querymi, hareketcimi, harSinif } = {} } } } }) =>
-				querymi && (!hareketcimi || harSinif?.ticarimi));
+				querymi && (!hareketcimi || harSinif?.ticarimi) ? true : 'jqx-hidden');
 		altForm = form.addFormWithParent().yanYana()
 		altForm.addModelKullan('shStokHizmet', 'Stok/Hizmet')
 			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz().listedenSecilmez()
