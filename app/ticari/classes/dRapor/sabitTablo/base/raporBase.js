@@ -19,7 +19,8 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 	tabloYapiDuzenle({ result }) { result.addToplamBasit_bedel('BEDEL', 'Bedel', this.sahaAlias) }
 	tabloYapiDuzenle_son({ result }) { }
 	async tazele(e) {
-		let {gridPart, raporTanim, _tabloTanimGosterildiFlag, fbd_grid: { parent: layout }} = this, {grid, gridWidget} = gridPart;
+		await this.tazeleOncesi(e);
+		let {gridPart, raporTanim, _tabloTanimGosterildiFlag} = this, {grid, gridWidget} = gridPart;
 		if (!raporTanim) {
 			if (_tabloTanimGosterildiFlag) { hConfirm('<b>Rapor Tanımı</b> seçilmelidir') }
 			else { this.raporTanimIstendi(e) }
@@ -36,11 +37,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		let colDefs = this.tabloKolonlari = _e.liste || [];
 		let columns = colDefs.flatMap(colDef => colDef.jqxColumns);
 		grid.jqxTreeGrid('columns', columns);
-		let {aciklama: raporAdi} = raporTanim;
-		if (raporAdi) {
-			// x
-			layout.children('label').html(raporAdi)
-		}
+		await this.tazeleSonrasi(e)
 	}
 	ekCSSDuzenle({ raporTanim, colDefs, colDef, rowIndex, belirtec, value, rec: { cssClassesStr } = {}, result }) {
 		if (cssClassesStr) { result.push(cssClassesStr) }

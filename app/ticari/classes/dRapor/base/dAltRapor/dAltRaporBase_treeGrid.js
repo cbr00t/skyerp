@@ -60,7 +60,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		let rapor = this, {sabitmi} = this, {raporTanimSinif} = this.class;
 		this.raporTanim = await (sabitmi ? this.sabitRaporTanim : raporTanimSinif?.getDefault?.({ ...e, rapor }))
 	}
-	onGridRun(e) { this.onGridRun_ozel?.(e); this.tazele(e) }
+	onGridRun(e) { this.tazeleOncesi(e); this.onGridRun_ozel?.(e); this.tazele(e) }
 	gridRowExpanded(e) { let {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = true }
 	gridRowCollapsed(e) { let {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = false }
 	gridSatirTiklandi(e) { }
@@ -74,6 +74,11 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		if (da) { grid.jqxTreeGrid('source', da) }
 	}
 	super_tazele(e) { super.tazele(e) }
+	tazeleOncesi(e) { }
+	tazeleSonrasi(e) {
+		let {raporTanim: { aciklama: raporAdi } = {}, fbd_grid: { parent: layout } = {}} = this;
+		if (raporAdi && layout?.length) { layout.children('label').html(raporAdi) }
+	}
 	hizliBulIslemi(e) { let {gridPart} = this; gridPart.filtreTokens = e.tokens; this.tazele(e) }
 	gridVeriYuklendi(e) {
 		let {gridPart} = this, {grid, gridWidget} = gridPart, {boundRecs, recs} = e; gridPart.expandedRowsSet = {}
@@ -231,7 +236,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		super.onGridInit(e);
 		this.ozetBilgi = { colDefs: null, recs: null }
 	}
-	onGridRun(e) { super.onGridRun(e); this.tazeleOncesi(e) }
+	onGridRun(e) { super.onGridRun(e) /*; this.tazeleOncesi(e)*/ }
 	tabloKolonlariDuzenle(e) {
 		super.tabloKolonlariDuzenle(e); let {liste} = e, {tabloYapi} = this, {grup, toplam} = tabloYapi;
 		for (let item of [grup, toplam]) { for (let {colDefs} of Object.values(item)) { if (colDefs?.length) { liste.push(...colDefs) } } }
@@ -371,11 +376,12 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		window.progressManager?.progressStep(2);
 	}
 	tazeleOncesi(e) {
+		super.tazeleOncesi(e);
 		let {fbd_grid, tabloYapi, raporTanim} = this, {rootBuilder} = this.parentBuilder, {secilenVarmi} = raporTanim;
 		rootBuilder.layout.find('.islemTuslari > div button#tabloTanimlari')[secilenVarmi ? 'removeClass' : 'addClass']('anim-tabloTanimlari-highlight');
 		if (!secilenVarmi) { if (!this._tabloTanimGosterildiFlag) { this.raporTanimIstendi(e) } return }
 	}
-	tazeleSonrasi(e) { }
+	tazeleSonrasi(e) { return super.tazeleSonrasi(e) }
 	async tazele(e) {
 		e = e ?? {}; await new $.Deferred(p => setTimeout(() => p.resolve(), 300));
 		let {part} = this.rapor; if (part?.isDestroyed) { return }
@@ -488,7 +494,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			if (defUpdateOnly) { delete e.recs; await this.gridVeriYuklendi(e); await this.ozetBilgiRecsOlustur(e) } else { await super.tazele(e) }
 			window.progressManager?.progressStep(2);
 			await this.tazeleDiger(e); window.progressManager?.progressStep(1);
-			this.tazeleSonrasi(e)
+			await this.tazeleSonrasi(e)
 			setTimeout(() => window.progressManager?.progressEnd(), 0);
 		}
 		catch (ex) { hideProgress(); hConfirm(getErrorText(ex), this.class.aciklama); throw ex }

@@ -305,3 +305,7 @@ class DMQOzelIsaret extends MQOzelIsaret {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ['', '*'] }
 }
+class DMQStokIslem extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok İşlem' }
+	static get table() { return 'stkisl' } static get tableAlias() { return 'isl' }
+}

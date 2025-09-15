@@ -1,8 +1,8 @@
 class AlimSatisOrtakHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 1 }
 	static get araSeviyemi() { return this == AlimSatisOrtakHareketci } static get ticarimi() { return true }
-	static get almSat() { return null } /*static get uygunmu() { return !!config.dev }*/
-	static get kod() { return 'ticari' } static get aciklama() { return 'Ticari' }
+	static get almSat() { return null } /*static get uygunmu() { return !!config.dev }*/ static get aciklama() { return 'Ticari' }
+	static get donemselIslemlerIcinUygunmu() { return false } static get eldekiVarliklarIcinUygunmu() { return this.donemselIslemlerIcinUygunmu }
 	static getAltTipAdiVeOncelikClause({ hv }) {
 		return super.getAltTipAdiVeOncelikClause(...arguments)
 		/*return {
@@ -119,9 +119,11 @@ class AlimSatisOrtakHareketci extends Hareketci {
 
 class AlimHareketci extends AlimSatisOrtakHareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kisaKod() { return 'SA' } static get almSat() { return 'A' } static get aciklama() { return 'Alım' }
+	static get kisaKod() { return 'SA' } static get aciklama() { return 'Alım' }
+	static get almSat() { return 'A' } 
 }
 class SatisHareketci extends AlimSatisOrtakHareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kisaKod() { return 'ST' } static get almSat() { return 'T' } static get aciklama() { return 'Satış' }
+	static get kisaKod() { return 'ST' } static get aciklama() { return 'Satış' }
+	static get almSat() { return 'T' }
 }
