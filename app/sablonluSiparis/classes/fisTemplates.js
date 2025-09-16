@@ -3,7 +3,8 @@ class SablonluSiparisFisTemplate extends CObject {
 	static getUISplitHeight({ islem }) { return 170 + ($(window).width() < 1300 ? 90 : 0) + (islem == 'onayla' || islem == 'sil' ? 65 : 0) }
 	static get numaratorGosterilirmi() { return false } static get dipGirisYapilirmi() { return false }
 	static get aciklamaKullanilirmi() { return false } static get teslimCariSaha() { return 'teslimcarikod' }
-	static constructor({ fis }) {
+	static get kodListeTipi() { return 'KONSIP' } static get sinifAdi() { return 'Web Konsinye Sipariş' }
+	static constructor({ fis } = {}) {
 		let {web} = app.params, {otoTeslimTarihi_gunEk} = web;
 		if (otoTeslimTarihi_gunEk) { fis.baslikTeslimTarihi = fis.tarih.clone().addDays(otoTeslimTarihi_gunEk) }
 		/* fis.yerKod = app.gecerliDepolar?.[0] || fis.yerKod */
@@ -550,11 +551,10 @@ class SablonluSiparisFisTemplate extends CObject {
 		await this.dagitimIcinEkBilgileriBelirle(...arguments)
 	}
 	static async kaydetSonrasiIslemler({ islem, fis, trn }) { }
-	static async kaydetVeyaSilmeSonrasiIslemler({ islem, fis, trn }) {
-		islem = (islem ?? 'y')[0].toUpperCase();
+	static async kaydetVeyaSilmeSonrasiIslemler({ islem, fis, trn } = {}) {
+		/*islem = (islem ?? 'y')[0].toUpperCase();
 		let degisenler = ['Web Kon.Sip.'];
-		try { await fis.logKaydet({ islem, degisenler, trn }) }
-		catch (ex) { console.error(ex) }
+		fis.logKaydet({ islem, degisenler })*/
 	}
 	static hostVarsDuzenle({ fis, hv }) {
 		if (fis.class.ticarimi) {

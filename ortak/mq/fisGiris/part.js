@@ -299,8 +299,10 @@ class FisGirisPart extends GridliGirisWindowPart {
 		e = e || {}; let {fis} = this, {numarator} = fis;
 		if (numarator) {
 			let locals = app.getLocals('sonDegerler'), numKod2Seri = locals.numKod2Seri = locals.numKod2Seri || {};
-			numKod2Seri[numarator.kod] = fis.seri; app.setLocals('sonDegerler', locals);
-			numarator.kaydet()
+			if (numKod2Seri[numarator.kod] != fis.seri) {
+				numKod2Seri[numarator.kod] = fis.seri; app.setLocals('sonDegerler', locals);
+				numarator.kaydet()
+			}
 		}
 		return true
 	}

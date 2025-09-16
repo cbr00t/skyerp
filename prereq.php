@@ -19,6 +19,7 @@
 	require_once("$webRoot/classes/mq/yerelParam/ui/yerelParam-config/include.php");
 	require_once("$webRoot/classes/mq/yerelParam/ui/yerelParam-config/layout.php");
 	require_once("$webRoot/ortak/grafik/include.php");
-	require_once("$webRoot/classes/worker/include.php");	
+	require_once("$webRoot/classes/worker/include.php");
+	require_once("$webRoot/classes/offline/include.php");
 	require_once("$webRoot/ortak/test/include.php")
 ?>	

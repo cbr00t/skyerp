@@ -487,7 +487,7 @@ class MQBarkodRec extends MQMasterOrtak {
 		const {oemSayac, emirNox, opNo, stokKod, tezgahKod, perKod} = this;
 		if (forceFlag || !oemSayac) {
 			if (emirNox && opNo && stokKod) {
-				const idListe = [emirNox, opNo, stokKod], anah = idListe.join(MQLocalData.DelimAnah), {promise} = app.getMQRecs({ mfSinif: MQOEM, idListe: [idListe] }) || {};
+				const idListe = [emirNox, opNo, stokKod], anah = idListe.join(MQLocalData_App.DelimAnah), {promise} = app.getMQRecs({ mfSinif: MQOEM, idListe: [idListe] }) || {};
 				if (promise) {
 					promises.push(promise); promise.then(recs => {
 						let rec = (recs || [])[0], oemSayac = rec ? rec[MQOEM.sayacSaha] : null; if (!this._oemIDFromBarkodFlag) { this.oemSayac = oemSayac }

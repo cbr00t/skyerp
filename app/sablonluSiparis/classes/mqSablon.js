@@ -210,9 +210,11 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			showProgress();
 			try {
 				let subeKod = gridPart.subeKod ?? config.session?.subeKod, {rec} = e, {kaysayac: sablonSayac, klFirmaKod} = rec;
-				let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod }); if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
+				let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod });
+				if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
 				let _e = { ...e}; delete _e.rec;
-				let fis = new fisSinif({ sablonSayac, tarih, subeKod, mustKod, klFirmaKod }); await fis.sablonYukleVeBirlestir(_e);
+				let fis = new fisSinif({ sablonSayac, tarih, subeKod, mustKod, klFirmaKod });
+				await fis.sablonYukleVeBirlestir(_e);
 				let islem = 'yeni', kaydedince = _e => this.tazele({ ...e, gridPart });
 				return await fis.tanimla({ islem, kaydedince })
 			}
@@ -306,7 +308,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		});
 		await app.sqlExecNone(upd);
 		let islem = 'D', degisenler = ['Web Kon.Sip.', 'Onay'];
-		fis.logKaydet({ islem, degisenler });
+		fis.logKaydet({ islem, degisenler }); await delay(10);
 		gridPart?.tazeleDefer(); fisGirisPart?.close()
 	}
 	static async dokumYapVeEMailGonder({ musterimi, fis, fisSayac, parentRec, rec }) {
@@ -594,3 +596,78 @@ class MQSablonDetay extends MQSablonOrtakDetay {
 class MQKonsinyeSablonDetay extends MQSablonOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQKonsinyeSablon }
 }
+
+
+
+
+/*
+	// !! sqlExec sonuçlarını saklayan bir düzeneğe ihtiyaç olabilir (cache)
+	let {activePart: part} = app, {subeKod, tarih, mustKod, boundRecs: sablonRecs} = part;
+	subeKod ??= config.session.subeKod;
+	let sablon2Bilgi = {}, promises = [];
+	for (let sablon of sablonRecs) {
+		let {kaysayac: sablonSayac, klFirmaKod} = sablon;
+		let fisSinif = await MQSablon.fisSinifBelirle({ sablonSayac, mustKod });
+		if (!fisSinif) { continue }
+		let fis = new fisSinif({ sablonSayac, subeKod, tarih, mustKod, klFirmaKod });
+		let e = { ...sablon, sablonSayac, subeKod, tarih, mustKod, fis };
+		let promise =
+			fis.sablonYukleVeBirlestir(e).then(() =>
+			SablonluSiparisFisTemplate.stokIslemBelirle(e).then(() =>
+			SablonluSiparisFisTemplate.dagitimIcinEkBilgileriBelirle(e)
+		));
+		promises.push(promise);
+		if (promises.length == 1) {
+			try { await promise } catch (ex) { continue }
+			promises = []
+		}
+		promise.then(() => sablon2Bilgi[sablonSayac] = e)
+	}
+	if (promises.length) { await Promise.allSettled(promises) }
+	for (let [sablon, item] of Object.entries(sablon2Bilgi)) {
+		let {fis: fisInst} = item, {name: _cls} = fisInst.class;
+		let fis = { _cls };
+		for (let key of [
+				'islKod', 'sablonSayac', 'subeKod', 'tarih', 'seri', 'noYil', 'fisNo', 'mustKod', 'sevkAdresKod',
+				'teslimCariKod', 'araciKod', 'cYerKod', 'gYerKod'
+				]) {
+			let value = fisInst[key];
+			if (isDate(value)) { value = dateToString(value) }
+			if (value != null) { fis[key] = value }
+		}
+		let detaylar = fis.detaylar = [];
+		for (let detInst of fisInst.detaylar) {
+			let {name: _cls} = detInst.class;
+			let det = { _cls };
+			for (let key of ['shKod', 'shAdi', 'shText', 'grupKod', 'grupAdi', 'grupText', 'miktar', 'fiyat', 'netBedel']) {
+				let value = detInst[key];
+				if (value != null) { det[key] = value }
+			}
+			detaylar.push(det)
+		}
+		item.fis = fis
+	}
+	let cls2Bilgi = { };
+	for (let cls of [app, MQSablonOrtak, MQSCari, SablonluSiparisFisTemplate, HMRBilgi, SatisKosulYapi, Object.values(SatisKosul.tip2Sinif)]) {
+		let {name: _cls, globals} = cls, item = {};
+		if (globals) {
+			let tGlobals = {}; for (let key of ['kod2Adi']) {
+				{ let value = globals[key]; if (!$.isEmptyObject(value)) { tGlobals[key] = value } }
+			}
+			if (!$.isEmptyObject(tGlobals)) { item.globals = tGlobals }
+			if (!$.isEmptyObject(tGlobals)) { item.globals = tGlobals }
+		}
+		if (!_cls) { _cls = 'app' }
+		for (let key of [
+			'_sqlTables', '_table2Col', '_anah2KosulYapi', '_belirtec2Bilgi', '_belirtecListe', '_belirtecSet', '_ekOzellikListe', '_hmrEtiketDict',
+			'_mustKod2Rec', '_must2KonYerKod', 'gecerliDepolar', '_must2UrunKisit', '_key2IzinliStokKodSet'
+		]) {
+			let value = cls[key];
+			if (!$.isEmptyObject(value)) { item[key] = value }
+		}
+		if (!$.isEmptyObject(item)) { cls2Bilgi[_cls] = item }
+	}
+	let data = { sablon2Bilgi, cls2Bilgi };
+	console.table(data);
+	JSON.parse(toJSONStr(data))
+*/

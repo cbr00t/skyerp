@@ -22,7 +22,9 @@ class MQYerelParamBase extends CIO {
 	getInstance_yukleIslemi(e) { return this.yukle(e) }
 	async yukle(e) {
 		e = { ...e }; this.resetCache(e); this.yukleOncesi(e);
-		let rec = await this.yukleIslemi(e); if (typeof rec == 'string') { rec = rec ? JSON.parse(rec) : {} } if (!$.isEmptyObject(rec)) { e.rec = rec; this.setValues(e) }
+		let rec = await this.yukleIslemi(e);
+		if (typeof rec == 'string') { rec = rec ? JSON.parse(rec) : {} }
+		if (!$.isEmptyObject(rec)) { e.rec = rec; this.setValues(e) }
 		await await this.yukleSonrasi(e);
 		return this
 	}

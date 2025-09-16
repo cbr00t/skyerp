@@ -1,7 +1,8 @@
 class MQNumarator extends MQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get numaratorPartSinif() { return NumaratorPart } static get fisGirisLayoutSelector() { return '.numarator' }
-	static get sinifAdi() { return 'Numaratör' } static get sayacSaha() { return 'sayac' } static get table() { return 'numarator' } static get tableAlias() { return 'num' }
+	static get kodListeTipi() { return 'NUMARATOR' } static get sinifAdi() { return 'Numaratör' }
+	static get sayacSaha() { return 'sayac' } static get table() { return 'numarator' } static get tableAlias() { return 'num' }
 
 	constructor(e) {
 		e = e || {}; super(e);

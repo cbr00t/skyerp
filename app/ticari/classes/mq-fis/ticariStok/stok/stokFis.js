@@ -137,7 +137,7 @@ class TransferSiparisOrtakFis extends StokFis {
 }
 class TransferSiparisFis extends TransferSiparisOrtakFis {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() { return 'İrsaliyeli Transfer Sipariş' }
+	static get kodListeTipi() { return 'PIRSIP' } static get sinifAdi() { return 'İrsaliyeli Transfer Sipariş' }
 	static get numTipKod() { return 'XI' } static get ozelTip() { return 'IR' }
 	static get sevkFisSinif() { return IrsaliyeliTransferFis }
 	static pTanimDuzenle({ pTanim }) {

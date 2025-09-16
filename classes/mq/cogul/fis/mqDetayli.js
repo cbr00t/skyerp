@@ -241,7 +241,9 @@ class MQDetayli extends MQSayacli {
 		e.proc = async e => {
 			e = e ?? {}; let paramName_fisSayac = '@fisSayac'; await this.yeniOncesiIslemler(e); let _e = { ...e, toplu: new MQToplu(), paramName_fisSayac };
 			await this.topluYazmaKomutlariniOlustur(_e); await this.topluYazmaKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) { return true }
-			let {toplu: query, sayac} = _e; _e = { offlineMode, trnId, query, sayac }; let result = await this.sqlExecNoneWithResult(_e); if ($.isArray(result)) { result = result[0] ?? true }
+			let {toplu: query, sayac} = _e; _e = { offlineMode, trnId, query, sayac };
+			await delay(asInteger(100 + Math.random() * 400));
+			let result = await this.sqlExecNoneWithResult(_e); if ($.isArray(result)) { result = result[0] ?? true }
 			_e.sqlParam = result = result?.params?.[paramName_fisSayac] ?? result;
 			await this.yazSonrasi_sayacGeriYukle(_e); await this.yeniSonrasiIslemler(e); return result
 		};
@@ -258,7 +260,8 @@ class MQDetayli extends MQSayacli {
 		e.proc = async e => {
 			e = e ?? {}; await this.degistirOncesiIslemler(e); let _e = { ...e, toplu: new MQToplu() };
 			await this.topluDegistirmeKomutlariniOlustur(_e); await this.topluDegistirmeKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) { return true }
-			_e = { offlineMode, trnId, query: _e.toplu }; let result = await this.sqlExecNoneWithResult(_e); result = result?.[0] ?? result;
+			_e = { offlineMode, trnId, query: _e.toplu };
+			await delay(asInteger(100 + Math.random() * 300)); let result = await this.sqlExecNoneWithResult(_e); result = result?.[0] ?? result;
 			await this.degistirSonrasiIslemler(e); return result
 		};
 		return offlineMode ? await e.proc(e) : (await app.sqlTrnDo(e)).result
