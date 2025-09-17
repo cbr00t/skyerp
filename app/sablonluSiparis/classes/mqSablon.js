@@ -506,10 +506,10 @@ class MQSablonOrtakDetay extends MQDetay {
 		].filter(x => !!x))
 	}
 	static async loadServerDataDogrudan(e) {
-		let stm = e.query = e.stm = new MQStm(); e.sent = stm.sent;
-		this.loadServerData_queryDuzenle(e);
-		let recs = await super.loadServerData_querySonucu(e);
-		recs.push({ subeadi: 'x' });
+		let stm = e.query = e.stm = new MQStm(); e.sent = stm.sent
+		this.loadServerData_queryDuzenle(e)
+		let recs = await super.loadServerData_querySonucu(e)
+		// recs.push({ subeadi: 'x' })
 		return recs
 	}
 	static loadServerData_queryDuzenle(e) { this.sablonIcinSiparislerStmDuzenle({ ...e, detaylimi: true }) }
