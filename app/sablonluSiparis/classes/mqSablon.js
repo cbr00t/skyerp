@@ -406,45 +406,45 @@ class MQKonsinyeSablon extends MQSablonOrtak {
 		let kendimizmi = tip == 'K', kayitSTmi = fisRec?.kayitTipi == 'ST';
 		return kendimizmi || kayitSTmi ? SablonluKonsinyeTransferFis : SablonluKonsinyeAlimSiparisFis
 	}
-	static getSablonIcinTeslimBilgisi({ sablonSayac, mustKod, sevkAdresKod }) {
+	static async getSablonIcinTeslimBilgisi({ sablonSayac, mustKod, sevkAdresKod }) {
 		let anah2DagTeslimBilgi = this._anah2DagTeslimBilgi ??= {};
 		let anah = toJSONStr({ sablonSayac, mustKod, sevkAdresKod });
-		return anah2DagTeslimBilgi[anah] ??= (() => {
-		let sent = new MQSent({
-			from: 'hizlisablon sab', fromIliskiler: [
-				{ from: 'klfirma kfrm', iliski: 'sab.klfirmakod = kfrm.kod' },
-				{
-					alias: 'sab', leftJoin: 'kldagitim kdag', on: [
-						`kdag.mustkod = ${MQSQLOrtak.sqlServerDegeri(mustKod)}`,
-						'sab.klfirmakod = kdag.klfirmakod',
-						`kdag.sevkadreskod = ''`
+		return anah2DagTeslimBilgi[anah] ??= await (() => {
+			let sent = new MQSent({
+				from: 'hizlisablon sab', fromIliskiler: [
+					{ from: 'klfirma kfrm', iliski: 'sab.klfirmakod = kfrm.kod' },
+					{
+						alias: 'sab', leftJoin: 'kldagitim kdag', on: [
+							`kdag.mustkod = ${MQSQLOrtak.sqlServerDegeri(mustKod)}`,
+							'sab.klfirmakod = kdag.klfirmakod',
+							`kdag.sevkadreskod = ''`
+						]
+					},
+					(sevkAdresKod ? {
+						alias: 'sab', leftJoin: 'kldagitim kdagsevk', on: [
+							`kdagsevk.mustkod = ${MQSQLOrtak.sqlServerDegeri(mustKod)}`,
+							'sab.klfirmakod = kdagsevk.klfirmakod',
+							`kdagsevk.sevkadreskod = ${MQSQLOrtak.sqlServerDegeri(sevkAdresKod)}`
+						]
+					} : null)
+				].filter(x => !!x),
+				where: { degerAta: sablonSayac, saha: 'sab.kaysayac' },
+				sahalar: (sevkAdresKod
+					? [
+						`COALESCE(kdagsevk.klteslimatcikod, kdag.klteslimatcikod, '') TES`,
+						`COALESCE(kdagsevk.teslimtipi, kdag.teslimtipi, 'A') TSEK`,
+						'COALESCE(kdagsevk.kendidepokod, kdag.kendidepokod) DEP'
 					]
-				},
-				(sevkAdresKod ? {
-					alias: 'sab', leftJoin: 'kldagitim kdagsevk', on: [
-						`kdagsevk.mustkod = ${MQSQLOrtak.sqlServerDegeri(mustKod)}`,
-						'sab.klfirmakod = kdagsevk.klfirmakod',
-						`kdagsevk.sevkadreskod = ${MQSQLOrtak.sqlServerDegeri(sevkAdresKod)}`
-					]
-				} : null)
-			].filter(x => !!x),
-			where: { degerAta: sablonSayac, saha: 'sab.kaysayac' },
-			sahalar: (sevkAdresKod
-				? [
-					`COALESCE(kdagsevk.klteslimatcikod, kdag.klteslimatcikod, '') TES`,
-					`COALESCE(kdagsevk.teslimtipi, kdag.teslimtipi, 'A') TSEK`,
-					'COALESCE(kdagsevk.kendidepokod, kdag.kendidepokod) DEP'
-				]
-				: [
-					`COALESCE(kdag.klteslimatcikod, '') TES`,
-					`COALESCE(kdag.teslimtipi, 'A') TSEK`,
-					'kdag.kendidepokod DEP'
-				])
-			}), {sahalar} = sent;
-			sahalar.add('sab.klfirmakod SFIR', 'sab.aciklama ADI', 'kfrm.mustkod ANA');
-			/* TSEK: { K: kendimiz, A: anafirma, T: teslimatci } */
-			return app.sqlExecTekil(sent)
-		})()
+					: [
+						`COALESCE(kdag.klteslimatcikod, '') TES`,
+						`COALESCE(kdag.teslimtipi, 'A') TSEK`,
+						'kdag.kendidepokod DEP'
+					])
+				}), {sahalar} = sent;
+				sahalar.add('sab.klfirmakod SFIR', 'sab.aciklama ADI', 'kfrm.mustkod ANA');
+				/* TSEK: { K: kendimiz, A: anafirma, T: teslimatci } */
+				return app.sqlExecTekil(sent)
+			})()
 	}
 	static eMailYapiQueryDuzenle({ musterimi, fisSinif, fisSayac, stm }) {
 		super.eMailYapiQueryDuzenle(...arguments);
@@ -505,10 +505,12 @@ class MQSablonOrtakDetay extends MQDetay {
 			new GridKolon({ belirtec: 'sil', text: ' ', genislikCh: 5 }).noSql().tipButton('X').onClick(_e => { sablonSinif.silIstendi({ ...e, ..._e }) })
 		].filter(x => !!x))
 	}
-	static loadServerDataDogrudan(e) {
+	static async loadServerDataDogrudan(e) {
 		let stm = e.query = e.stm = new MQStm(); e.sent = stm.sent;
 		this.loadServerData_queryDuzenle(e);
-		return super.loadServerData_querySonucu(e)
+		let recs = await super.loadServerData_querySonucu(e);
+		recs.push({ subeadi: 'x' });
+		return recs
 	}
 	static loadServerData_queryDuzenle(e) { this.sablonIcinSiparislerStmDuzenle({ ...e, detaylimi: true }) }
 	static sablonIcinSiparislerStmDuzenle(e) {
@@ -602,7 +604,7 @@ class MQKonsinyeSablonDetay extends MQSablonOrtakDetay {
 
 /*
 	// !! sqlExec sonuçlarını saklayan bir düzeneğe ihtiyaç olabilir (cache)
-	let {activePart: part} = app, {subeKod, tarih, mustKod, boundRecs: sablonRecs} = part;
+	let {activeWndPart: part} = app, {subeKod, tarih, mustKod, boundRecs: sablonRecs} = part;
 	subeKod ??= config.session.subeKod;
 	let sablon2Bilgi = {}, promises = [];
 	for (let sablon of sablonRecs) {

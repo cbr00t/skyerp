@@ -273,22 +273,45 @@ class FisGirisPart extends GridliGirisWindowPart {
 		if (gridWidget?.editcell) { gridWidget.endcelledit() }
 		let _e = $.extend({}, e, { sender: this, builder, gridPart, islem, fis, eskiFis, yeniVeyaKopyami });
 		if (degistirVeyaSilmi) { e.eskiFis = this.eskiFis }
+		let result = await fis.uiKaydetOncesiIslemler(_e) ?? true;
+		for (let key of ['islem', 'fis', 'eskiFis']) {
+			let value = _e[key];
+			if (value !== undefined) { this[key] = e[key] = value }
+		}
 		if (yeniVeyaKopyami) {
-			let {numaratorPart} = this, {otoNummu, numarator} = numaratorPart || {}; $.extend(_e, { otoNummu, numaratorPart, numarator });
+			let {numaratorPart} = this, {otoNummu, numarator} = numaratorPart || {};
+			$.extend(_e, { otoNummu, numaratorPart, numarator });
 			if (numaratorPart?.otoNummu) {
-				let {text: progressText} = window.progressManager ?? {};
+				let MaxTry = 5, {text: progressText} = window.progressManager ?? {};
 				window.progressManager?.setText(`<div>${progressText}</div><div style="margin: 5px 0 0 50px" class="royalblue">Numaratör belirleniyor...</div>`);
 				try {
+					_e.tryCount = 0;
 					while (true) {
-						fis.fisNo = (await numarator.kesinlestir(_e)).sonNo;
-						let result = await fis.varmi(); if (!result) { break }
+						_e.tryCount++;
+						if (MaxTry > 0 && _e.tryCount > MaxTry) {
+							let keyHV = fis.alternateKeyHostVars(), {seri, fisNo: prevFisNo, class: fisSinif} = fis;
+							let {table, sayacSaha, seriSaha, noYilSaha, noSaha} = fisSinif;
+							if ($.isEmptyObject(keyHV)) { keyHV = fis.keyHostVars() }
+							if (!$.isEmptyObject(keyHV)) {
+								for (let key of [sayacSaha, seriSaha, 'noyil', noSaha]) { delete keyHV[key] } }
+							if (!$.isEmptyObject(keyHV)) {
+								let sent = new MQSent(), {where: wh, sahalar} = sent;
+								sent.fromAdd(table); wh.birlestirDict(keyHV);
+								if (seriSaha && seri != null) { wh.degerAta(seri, seriSaha) }
+								sahalar.add(`(MAX(${noSaha}) + 1) yeniNo`);
+								fis.fisNo = numarator.sonNo = asInteger(await fisSinif.sqlExecTekilDeger(sent));
+								if (numarator.sonNo != prevFisNo) { numarator.kaydet() }
+								let result = await fis.varmi(); if (!result) { break }
+							}
+						}
+						{ fis.fisNo = (await numarator.kesinlestir(_e)).sonNo;
+						  let result = await fis.varmi(); if (!result) { break }
+						}
 					}
 				}
 				finally { window.progressManager?.setText(progressText ?? '') }
 			}
 		}
-		let result = await fis.uiKaydetOncesiIslemler(_e) ?? true; for (let key of ['islem', 'fis', 'eskiFis']) {
-			let value = _e[key]; if (value !== undefined) { this[key] = e[key] = value } }
 		let {kaydetIslemi} = this; if (kaydetIslemi) {
 			_e.result = result; result = await getFuncValue.call(this, kaydetIslemi, _e) ?? true;
 			for (let key of ['islem', 'fis', 'eskiFis']) { let value = _e[key]; if (value !== undefined) { this[key] = e[key] = value } }

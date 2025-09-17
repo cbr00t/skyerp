@@ -660,8 +660,12 @@ class MQCogul extends MQYapi {
 		e.islem = e.islem || 'yeni'; e.mfSinif = e.mfSinif || this;
 		try {
 			let part = e.tanimPart = new tanimUISinif(e);
-			if (tanimOncesiEkIslemler) { let _result = await getFuncValue.call(this, tanimOncesiEkIslemler, e); if (_result === false) { return ({ part, result: false }) } }
-			let result = await part.run(); return { part, result }
+			if (tanimOncesiEkIslemler) {
+				let _result = await getFuncValue.call(this, tanimOncesiEkIslemler, e);
+				if (_result === false) { return ({ part, result: false }) }
+			}
+			let result = await part.run();
+			return { part, result }
 		}
 		catch (ex) { hConfirm(getErrorText(ex)); throw ex }
 	}

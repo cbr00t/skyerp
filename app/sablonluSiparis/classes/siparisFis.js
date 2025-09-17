@@ -13,10 +13,42 @@ class SablonluSatisSiparisFis extends SatisSiparisFis {
 	static rootFormBuilderDuzenle(e) { e = e ?? {}; e.fisSinif = this; /* super.rootFormBuilderDuzenle(e) */ this.templateSinif.rootFormBuilderDuzenle(e) }
 	static loadServerData_queryDuzenle(e) { e.fisSinif = this; super.loadServerData_queryDuzenle(e); this.templateSinif.loadServerData_queryDuzenle(e) }
 	sablonYukleVeBirlestir(e) { e = e ?? {}; e.fis = this; return this.templateSinif.sablonYukleVeBirlestir(e) }
+	async yukle(e) {
+		e??= {}; $.extend(e, { fis: this, islem: e.islem || 'degistir' });
+		let result = await this.templateSinif.ozelYukleIslemi(e);
+		return result ?? await super.yukle(e)
+	}
+	async yaz(e) {
+		e??= {}; $.extend(e, { fis: this, islem: e.islem || 'yeni' });
+		let result = await this.templateSinif.ozelKaydetIslemi(e);
+		if (result != null) { await this.kaydetSonrasiIslemler(e) }
+		return result ?? await super.yaz(e)
+	}
+	async degistir(e) {
+		let _e = e ?? {}; if (_e && !$.isPlainObject(_e)) { _e = { eskiFis: _e } }
+		$.extend(_e, { fis: this, islem: e.islem || 'degistir' });
+		let result = await this.templateSinif.ozelKaydetIslemi(_e);
+		if (result != null) { await this.kaydetSonrasiIslemler(e) }
+		return result ?? await super.degistir(e)
+	}
+	async sil(e) {
+		e??= {}; $.extend(e, { fis: this, islem: e.islem || 'sil' });
+		let result = await this.templateSinif.ozelKaydetIslemi(e);
+		if (result != null) { await this.kaydetSonrasiIslemler(e) }
+		return result ?? await super.sil(e)
+	}
 	async yukleSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.yukleSonrasiIslemler(e); return await this.templateSinif.yukleSonrasiIslemler(e) }
 	async yeniTanimOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.yeniTanimOncesiIslemler(e); return await this.templateSinif.yeniTanimOncesiIslemler(e) }
-	async kaydetOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetOncesiIslemler(e); return await this.templateSinif.kaydetOncesiIslemler(e) }
-	async kaydetSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetSonrasiIslemler(e); return await this.templateSinif.kaydetSonrasiIslemler(e) }
+	async kaydetOncesiIslemler(e) {
+		e??= {}; $.extend(e, { fis: this });
+		let result = await this.templateSinif.kaydetOncesiIslemler(e);
+		return result ?? await super.kaydetOncesiIslemler(e)
+	}
+	async kaydetSonrasiIslemler(e) {
+		e??= {}; $.extend(e, { fis: this });
+		let result = await this.templateSinif.kaydetSonrasiIslemler(e);
+		return result ?? await super.kaydetSonrasiIslemler(e)
+	}
 	async kaydetVeyaSilmeSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetVeyaSilmeSonrasiIslemler(e); return await this.templateSinif.kaydetVeyaSilmeSonrasiIslemler(e) }
 	hostVarsDuzenle(e) { e.det = this; super.hostVarsDuzenle(e); this.templateSinif.hostVarsDuzenle(e) }
 	setValues(e) { e.det = this; super.setValues(e); this.templateSinif.setValues(e) }
@@ -38,10 +70,42 @@ class SablonluKonsinyeAlimSiparisFis extends AlimSiparisFis {
 	static rootFormBuilderDuzenle(e) { e = e ?? {}; e.fisSinif = this; /* super.rootFormBuilderDuzenle(e) */ this.templateSinif.rootFormBuilderDuzenle(e) }
 	static loadServerData_queryDuzenle(e) { e.fisSinif = this; super.loadServerData_queryDuzenle(e); this.templateSinif.loadServerData_queryDuzenle(e) }
 	sablonYukleVeBirlestir(e) { e = e ?? {}; e.fis = this; return this.templateSinif.sablonYukleVeBirlestir(e) }
+	async yukle(e) {
+		e??= {}; $.extend(e, { fis: this, islem: e.islem || 'degistir' });
+		let result = await this.templateSinif.ozelYukleIslemi(e);
+		return result ?? await super.yukle(e)
+	}
+	async yaz(e) {
+		e??= {}; $.extend(e, { fis: this, islem: e.islem || 'yeni' });
+		let result = await this.templateSinif.ozelKaydetIslemi(e);
+		if (result != null) { await this.kaydetSonrasiIslemler(e) }
+		return result ?? await super.yaz(e)
+	}
+	async degistir(e) {
+		let _e = e ?? {}; if (_e && !$.isPlainObject(_e)) { _e = { eskiFis: _e } }
+		$.extend(_e, { fis: this, islem: e.islem || 'degistir' });
+		let result = await this.templateSinif.ozelKaydetIslemi(_e);
+		if (result != null) { await this.kaydetSonrasiIslemler(e) }
+		return result ?? await super.degistir(e)
+	}
+	async sil(e) {
+		e??= {}; $.extend(e, { fis: this, islem: e.islem || 'sil' });
+		let result = await this.templateSinif.ozelKaydetIslemi(e);
+		if (result != null) { await this.kaydetSonrasiIslemler(e) }
+		return result ?? await super.sil(e)
+	}
 	async yukleSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.yukleSonrasiIslemler(e); return await this.templateSinif.yukleSonrasiIslemler(e) }
 	async yeniTanimOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.yeniTanimOncesiIslemler(e); return await this.templateSinif.yeniTanimOncesiIslemler(e) }
-	async kaydetOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetOncesiIslemler(e); return await this.templateSinif.kaydetOncesiIslemler(e) }
-	async kaydetSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetSonrasiIslemler(e); return await this.templateSinif.kaydetSonrasiIslemler(e) }
+	async kaydetOncesiIslemler(e) {
+		e??= {}; $.extend(e, { fis: this });
+		let result = await this.templateSinif.kaydetOncesiIslemler(e);
+		return result ?? await super.kaydetOncesiIslemler(e)
+	}
+	async kaydetSonrasiIslemler(e) {
+		e??= {}; $.extend(e, { fis: this });
+		let result = await this.templateSinif.kaydetSonrasiIslemler(e);
+		return result ?? await super.kaydetSonrasiIslemler(e)
+	}
 	async kaydetVeyaSilmeSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetVeyaSilmeSonrasiIslemler(e); return await this.templateSinif.kaydetVeyaSilmeSonrasiIslemler(e) }
 	hostVarsDuzenle(e) { e.fis = this; super.hostVarsDuzenle(e); this.templateSinif.hostVarsDuzenle(e) }
 	setValues(e) { e.fis = this; super.setValues(e); this.templateSinif.setValues(e) }
@@ -63,10 +127,42 @@ class SablonluKonsinyeTransferFis extends TransferSiparisFis {
 	static rootFormBuilderDuzenle(e) { e = e ?? {}; e.fisSinif = this; /* super.rootFormBuilderDuzenle(e) */ this.templateSinif.rootFormBuilderDuzenle(e) }
 	static loadServerData_queryDuzenle(e) { e.fisSinif = this; super.loadServerData_queryDuzenle(e); this.templateSinif.loadServerData_queryDuzenle(e) }
 	sablonYukleVeBirlestir(e) { e = e ?? {}; e.fis = this; return this.templateSinif.sablonYukleVeBirlestir(e) }
+	async yukle(e) {
+		e??= {}; $.extend(e, { fis: this, islem: e.islem || 'degistir' });
+		let result = await this.templateSinif.ozelYukleIslemi(e);
+		return result ?? await super.yukle(e)
+	}
+	async yaz(e) {
+		e??= {}; $.extend(e, { fis: this, islem: e.islem || 'yeni' });
+		let result = await this.templateSinif.ozelKaydetIslemi(e);
+		if (result != null) { await this.kaydetSonrasiIslemler(e) }
+		return result ?? await super.yaz(e)
+	}
+	async degistir(e) {
+		let _e = e ?? {}; if (_e && !$.isPlainObject(_e)) { _e = { eskiFis: _e } }
+		$.extend(_e, { fis: this, islem: e.islem || 'degistir' });
+		let result = await this.templateSinif.ozelKaydetIslemi(_e);
+		if (result != null) { await this.kaydetSonrasiIslemler(e) }
+		return result ?? await super.degistir(e)
+	}
+	async sil(e) {
+		e??= {}; $.extend(e, { fis: this, islem: e.islem || 'sil' });
+		let result = await this.templateSinif.ozelKaydetIslemi(e);
+		if (result != null) { await this.kaydetSonrasiIslemler(e) }
+		return result ?? await super.sil(e)
+	}
 	async yukleSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.yukleSonrasiIslemler(e); return await this.templateSinif.yukleSonrasiIslemler(e) }
 	async yeniTanimOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.yeniTanimOncesiIslemler(e); return await this.templateSinif.yeniTanimOncesiIslemler(e) }
-	async kaydetOncesiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetOncesiIslemler(e); return await this.templateSinif.kaydetOncesiIslemler(e) }
-	async kaydetSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetSonrasiIslemler(e); return await this.templateSinif.kaydetSonrasiIslemler(e) }
+	async kaydetOncesiIslemler(e) {
+		e??= {}; $.extend(e, { fis: this });
+		let result = await this.templateSinif.kaydetOncesiIslemler(e);
+		return result ?? await super.kaydetOncesiIslemler(e)
+	}
+	async kaydetSonrasiIslemler(e) {
+		e??= {}; $.extend(e, { fis: this });
+		let result = await this.templateSinif.kaydetSonrasiIslemler(e);
+		return result ?? await super.kaydetSonrasiIslemler(e)
+	}
 	async kaydetVeyaSilmeSonrasiIslemler(e) { e = e ?? {}; e.fis = this; await super.kaydetVeyaSilmeSonrasiIslemler(e); return await this.templateSinif.kaydetVeyaSilmeSonrasiIslemler(e) }
 	hostVarsDuzenle(e) { e.fis = this; super.hostVarsDuzenle(e); this.templateSinif.hostVarsDuzenle(e) }
 	setValues(e) { e.fis = this; super.setValues(e); this.templateSinif.setValues(e) }

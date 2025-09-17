@@ -313,7 +313,8 @@ class SablonluSiparisFisTemplate extends CObject {
 					await this.detaylariDuzenle_sonStok_queryOlustur({ ..._e, tip: 'genel', yerKodListe, uzakSonStokmu: true });
 					if (konsinyemi) {
 						await this.detaylariDuzenle_sonStok_queryOlustur({
-							..._e, tip: 'kendiDeposu', kendisimi: true, yerKodListe: () => getMust2YerKod()
+							..._e, tip: 'kendiDeposu', kendisimi: true,
+							yerKodListe: () => getMust2YerKod()
 						})
 					}
 					await this.detaylariDuzenle_sonStok(_e)
@@ -550,11 +551,49 @@ class SablonluSiparisFisTemplate extends CObject {
 		await this.stokIslemBelirle(...arguments);
 		await this.dagitimIcinEkBilgileriBelirle(...arguments)
 	}
-	static async kaydetSonrasiIslemler({ islem, fis, trn }) { }
 	static async kaydetVeyaSilmeSonrasiIslemler({ islem, fis, trn } = {}) {
 		/*islem = (islem ?? 'y')[0].toUpperCase();
 		let degisenler = ['Web Kon.Sip.'];
 		fis.logKaydet({ islem, degisenler })*/
+	}
+	static async ozelKaydetIslemi({ islem, fis, eskiFis }) {
+		if (!app.offlineMode) { return null }
+		await this.kaydetOncesiIslemler(...arguments)
+		let {offlineFisCache} = app; if (!offlineFisCache) { return null }
+		await offlineFisCache._promise; let {name: table} = fis.class
+		let cache = offlineFisCache.get(table)
+		if (!cache) { cache = offlineFisCache.add(table) }
+		let id = fis.sayac = fis.sayac || newGUID()
+		let fisHV = fis.hostVars(), detHVArg = { fis: fis.shallowCopy() }
+		let {detaylar} = fis, detHVListe = detaylar.map(det => det.hostVars(detHVArg))
+		let converted = obj => isDate(obj) ? dateToString(obj) : obj
+		let reduced = obj => {
+			if (!obj) { return obj }
+			if ($.isArray(obj)) { return obj.map(_ => reduced(_)) }
+			else if (typeof obj == 'object') {
+				let _ = obj?.asExportData; if (_ != null) { return _ }
+				return Object.fromEntries(
+					Object.entries(obj)
+						.filter(_ => _[1]?.trim?.() ?? _[1])
+						.map(([k, v]) => [k, converted(v)])
+				)
+			}
+			let result = converted(obj);
+			for (let key of ['fissayac', this.sayacSaha]) { delete result[key] }
+			return result
+		}
+		let data = { ...reduced(fisHV), detaylar: reduced(detHVListe) }
+		cache.set(id, data)
+		offlineFisCache.kaydetDefer()
+		return true
+	}
+	static kaydetSonrasiIslemler({ islem, fis }) { return app.offlineMode ? true : null }
+	static async ozelYukleIslemi({ islem, fis }) {
+		if (!app.offlineMode) { return null }
+		let {offlineFisCache} = app; if (!offlineFisCache) { return null }
+		await offlineFisCache._promise; let {name: table} = fis.class
+		let cache = offlineFisCache.get(table); if (!cache) { return null }
+		return true
 	}
 	static hostVarsDuzenle({ fis, hv }) {
 		if (fis.class.ticarimi) {
@@ -572,7 +611,7 @@ class SablonluSiparisFisTemplate extends CObject {
 	static async stokIslemBelirle({ fis }) {
 		let {almSat} = fis.class; almSat ||= 'T';
 		let isl = new MQStokIslem({ kod: `${almSat}INT`, tip: `${almSat}F`, durumKod: almSat });
-		if (!await isl.varmi()) { await isl.yaz() }
+		if (!app.offlineMode) { if (!await isl.varmi()) { await isl.yaz() } }
 		fis.islKod = isl.kod
 	}
 	static async dagitimIcinEkBilgileriBelirle({ fis }) {
@@ -589,27 +628,35 @@ class SablonluSiparisFisTemplate extends CObject {
 					when dag.bfaturayianafirmakeser > 0 then dfir.mustkod
 					else dag.klteslimatcikod end)`
 		);
-		let anah = toJSONStr([sablonSayac, mustKod, sevkAdresKod, klFirmaKod]);
 		this._anah2DagEkBilgi ??= {}; let {_anah2DagEkBilgi} = this;
-		let rec = _anah2DagEkBilgi[anah] ??= await (async () => {
-			let sent = new MQSent(), {where: wh, sahalar} = sent;
-			sent.fromAdd('kldagitim dag')
-				.fromIliski('klfirma dfir', 'dag.klfirmakod = dfir.kod')
-				.fromIliski('carmst car', `car.must = ${mustKod.sqlServerDegeri()}`)
-				.cari2BolgeBagla();
-			wh.degerAta(klFirmaKod, 'dag.klfirmakod').degerAta(mustKod, 'dag.mustkod')
-			wh.add(new MQOrClause([
-				`dag.sevkadreskod = ''`,
-				(sevkAdresKod ? { degerAta: sevkAdresKod, saha: 'dag.sevkadreskod' } : null)
-			].filter(x => !!x)));
-			sahalar.add(
-				`${hedefMustKodClause} hedefMustKod`, 'bol.bizsubekod subeKod', 'dag.bkendimizteslim kendimizTeslimmi',
-				`(case when dag.bkendimizteslim > 0 then '' else dag.klteslimatcikod end) teslimEdenCariKod`,
-				`(case when dag.bkendimizteslim > 0 then dag.kendidepokod else ${sabitCikisYerKod.sqlServerDegeri()} end) cYerKod`,
-				'car.konsinyeyerkod gYerKod'
-			);
-			return await app.sqlExecTekil(sent)
-		})() ?? {};
+		let anah = toJSONStr([sablonSayac, mustKod, sevkAdresKod, klFirmaKod]);
+		let rec = _anah2DagEkBilgi[anah];
+		if (!rec && sevkAdresKod && app.offlineMode) {
+			sevkAdresKod = '';
+			anah = toJSONStr([sablonSayac, mustKod, sevkAdresKod, klFirmaKod]);
+			rec = _anah2DagEkBilgi[anah]
+		}
+		if (!rec) {
+			rec = _anah2DagEkBilgi[anah] = await (async () => {
+				let sent = new MQSent(), {where: wh, sahalar} = sent;
+				sent.fromAdd('kldagitim dag')
+					.fromIliski('klfirma dfir', 'dag.klfirmakod = dfir.kod')
+					.fromIliski('carmst car', `car.must = ${mustKod.sqlServerDegeri()}`)
+					.cari2BolgeBagla();
+				wh.degerAta(klFirmaKod, 'dag.klfirmakod').degerAta(mustKod, 'dag.mustkod')
+				wh.add(new MQOrClause([
+					`dag.sevkadreskod = ''`,
+					(sevkAdresKod ? { degerAta: sevkAdresKod, saha: 'dag.sevkadreskod' } : null)
+				].filter(x => !!x)));
+				sahalar.add(
+					`${hedefMustKodClause} hedefMustKod`, 'bol.bizsubekod subeKod', 'dag.bkendimizteslim kendimizTeslimmi',
+					`(case when dag.bkendimizteslim > 0 then '' else dag.klteslimatcikod end) teslimEdenCariKod`,
+					`(case when dag.bkendimizteslim > 0 then dag.kendidepokod else ${sabitCikisYerKod.sqlServerDegeri()} end) cYerKod`,
+					'car.konsinyeyerkod gYerKod'
+				);
+				return await app.sqlExecTekil(sent)
+			})() ?? {}
+		}
 		let {subeKod, hedefMustKod, kendimizTeslimmi, teslimEdenCariKod, gYerKod, cYerKod} = rec;
 		/* kendimizTeslimmi  { true: İrs. Trf. Sip. | false: Alım Sip. }  */
 		$.extend(fis, {

@@ -4,6 +4,14 @@ class SablonluSiparisApp extends TicariApp {
 	get autoExecMenuId() { return null /* MQKonsinyeSablon.kodListeTipi */ }
 	get sonStokDB() { let {webSiparis_sonStokDB: sonStokDB} = app.params.web, {dbName} = config.session; return sonStokDB || dbName }
 	get gecerliDepolar() { let {webSiparis_yerKodListe: yerKodListe} = app.params.web; return $.makeArray(yerKodListe?.length ? yerKodListe : ['A']) }
+	get offlineFisCache() {
+		let {_offlineFisCache: result} = this;
+		if (result == null) {
+			result = this._offlineFisCache = new MQLocalDB('fis');
+			result._promise = result.yukle()
+		}
+		return result
+	}
 	paramsDuzenle(e) { super.paramsDuzenle(e) /*; const {params} = e; $.extend(params, { x: MQParam_X.getInstance() })*/ }
 	async runDevam(e) {
 		await super.runDevam(e); let {ekOzellikKodlari} = app.params.web;

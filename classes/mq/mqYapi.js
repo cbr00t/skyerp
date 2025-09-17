@@ -332,9 +332,11 @@ class MQYapi extends CIO {
 	static offlineSaveToRemoteTableWithClear(e) { e = e ?? {}; return this.offlineSaveToRemoteTable({ ...e, clear: true }) }
 	static _sqlExec(e, params) {
 		e = $.isPlainObject(e) ? e ?? {} : { query: e, params }; e = { ...e };
-		let {selector} = e, offlineMode = e.isOfflineMode ?? e.offlineMode ?? e.isOffline ?? e.offline ?? this.isOfflineMode, db = e.db ?? app.dbMgr?.default;
+		let {selector} = e, offlineMode = e.isOfflineMode ?? e.offlineMode ?? e.isOffline ?? e.offline ?? this.isOfflineMode;
+		let db = e.db ?? app.dbMgr?.default; if (!db?.internalDB) { db = null }
 		for (let key of ['selector', 'db', 'isOfflineMode', 'offlineMode', 'isOffline', 'offline']) { delete e[key] }
-		let result = offlineMode && db ? db.execute(e) : app[selector](e); if (offlineMode) {
+		let result = offlineMode && db ? db.execute(e) : app[selector](e);
+		if (offlineMode && db) {
 			switch (selector) {
 				case 'sqlExecNone': result = { lastRowsAffected: db.internalDB.getRowsModified() }; break
 				case 'sqlExecTekil': result = result?.[0]; break
