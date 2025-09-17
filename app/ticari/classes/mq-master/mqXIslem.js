@@ -101,11 +101,11 @@ class MQStokIslem extends MQIslem {
 	static secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments);
 		sec.secimTopluEkle({ tip: new SecimBirKismi({ etiket: 'Tip', tekSecimSinif: MQStokIslemTipi }) });
-		sec.whereBlockEkle(({ secimler: sec, where: wh }) => { wh.birKismi(secimler.tip.value, `${this.aliasVeNokta}isltip`) })
+		sec.whereBlockEkle(({ secimler: sec, where: wh }) => { wh.birKismi(sec.tip.value, `${this.aliasVeNokta}isltip`) })
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments);
-		liste.push(new GridKolon({ belirtec: 'isltip', text: 'Tip', genislikCh: 20, sql: MQStokIslemTipi.getClause(`${aliasVeNokta}.edeftertipi`) }))
+		liste.push(new GridKolon({ belirtec: 'isltip', text: 'Tip', genislikCh: 20, sql: MQStokIslemTipi.getClause(`${this.aliasVeNokta}isltip`) }))
 	}
 	static loadServerData_queryDuzenle({ sent }) {
 		super.loadServerData_queryDuzenle(...arguments);
@@ -114,7 +114,7 @@ class MQStokIslem extends MQIslem {
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments);
-		hv['durum'] = this.durumKod
+		hv['durum'] = this.durumKod ?? ''
 	}
 }
 class MQStokIslemTipi extends TekSecim {

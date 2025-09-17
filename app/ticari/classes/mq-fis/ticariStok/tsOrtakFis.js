@@ -53,8 +53,8 @@ class TSOrtakFis extends MQTicariGenelFis {
 			.addStyle(e => `$elementCSS { min-width: auto !important; max-width: 100px !important; width: max-content !important; height: max-content !important; margin-top: 28px; padding: 8px 15px !important; border-radius: 8px }`)
 		tsnForm.addModelKullan('islKod').setMFSinif(MQStokIslem).dropDown().etiketGosterim_normal().addStyle_wh(200)
 				.ozelQueryDuzenleBlock(({ builder: fbd, alias, stm }) => {
-					let {islTipKod} = fbd.altInst;
-					for (let {where: wh} of stm) { wh.degerAta(islTipKod, `${alias}.isltip`) }
+					let {altInst} = fbd, islTipKod = altInst?.islTipKod ?? altInst?.class?.islTipKod
+					if (islTipKod) { for (let {where: wh} of stm) { wh.degerAta(islTipKod, `${alias}.isltip`) } }
 				})
 				.onBuildEk(({ builder: fbd }) => { let {altInst} = fbd; fbd.oldValue = fbd.value = altInst.islKod })
 				.degisince(async ({ builder: fbd, value }) => {

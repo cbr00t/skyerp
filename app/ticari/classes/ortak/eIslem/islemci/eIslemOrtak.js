@@ -212,7 +212,8 @@ class EIslemOrtak extends CObject {
 		// await this.xmlDuzenleInternal_docRefBaslikEkSaha({ xw, name: 'Tapdk No', value: '' });
 		await this.xmlDuzenle_docRefs_qrCode(e);    /* !! mutlaka  xmlDuzenle_docRefs_xslt()  den önce çağırılmalıdır */
 		await this.xmlDuzenle_docRefs_xslt(e);
-		await this.xmlDuzenle_docRefs_vioFisBilgi(e); await this.xmlDuzenle_docRefs_yalnizYazisi(e)
+		/* await this.xmlDuzenle_docRefs_vioFisBilgi(e); */
+		await this.xmlDuzenle_docRefs_yalnizYazisi(e)
 	}
 	async xmlDuzenle_docRefs_son(e) { }
 	xmlDuzenle_docRefs_sgk(e) { }
@@ -292,7 +293,9 @@ class EIslemOrtak extends CObject {
 		this.xmlDuzenleInternal_docRefParam({ xw, name: 'MUSTERI_KOD', value: must })
 	}
 	xmlDuzenle_docRefs_vioFisBilgi({ xw }) {
-		let {baslik, baslik: { uuid }, detaylar} = this, rec = { baslik, detaylar };
+		let {baslik: { _: baslik }, detaylar, baslik: { uuid }} = this;
+		detaylar = detaylar.map(det => det._);
+		let rec = { baslik, detaylar };
 		let value = Base64.encode(toJSONStr(rec)), mimeType = 'text/plain';
 		let id = 4, type = 'VIO_FISBILGI', fileName = `${type}.json`;
 		this.xmlDuzenleInternal_docRef({
