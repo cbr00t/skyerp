@@ -137,8 +137,9 @@ class MQLocalData extends MQYerelParamApp {
 		let {key, ifAbsent, ifAbsentPut, ifPresent} = e
 		let value = await data[key]
 		if (value === undefined && ifAbsentPut) {
-			value = await ifAbsentPut.call(this, { ...e, value })
-			if (value !== undefined) { data[key] = value }
+			value = await ifAbsentPut.call(this, { ...e })
+			value = await value
+			if (value !== undefined) { data[key] = value; this.changed() }
 		}
 		if (value === undefined) { return await ifAbsent?.call(this, { ...e }) }
 		return ifPresent ? await getFuncValue.call(this, ifPresent, { ...e, value }) : value
@@ -149,7 +150,7 @@ class MQLocalData extends MQYerelParamApp {
 		let {key, value = e.ifAbsentPut} = e
 		value = await value
 		if (value === undefined) { delete data[key] }
-		else { data[key] = value.call ? value.call(this, key) : value }
+		else { data[key] = value.call ? await value.call(this, key) : value }
 		this.changed()
 		return this
 	}
