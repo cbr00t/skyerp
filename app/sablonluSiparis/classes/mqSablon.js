@@ -234,7 +234,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 				let {kaysayac: sablonSayac, klFirmaKod} = parentRec;
 				let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod, sevkAdresKod });
 				if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
-				let fis = new fisSinif({ sayac, klFirmaKod }), _e = { ...e, parentRec }; delete _e.rec;
+				let fis = new fisSinif({ sayac, klFirmaKod }), _e = { ...e, parentRec, islem: 'onayla' }; delete _e.rec;
 				let result = await fis.yukle(_e); if (!result) { return }
 				let islem = 'onayla', kaydedince = _e => this.tazele({ ...e, gridPart });
 				let kaydetIslemi = async _e => await this.onaylaDevam({ ...e, ..._e, gridPart });
@@ -255,9 +255,10 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			try {
 				let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod, sevkAdresKod });
 				if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
-				let fis = new fisSinif({ sayac, klFirmaKod }), _e = { ...e, parentRec }; delete _e.rec;
+				let islem = onaylimi ? 'izle' : 'degistir';
+				let fis = new fisSinif({ sayac, klFirmaKod }), _e = { ...e, parentRec, islem }; delete _e.rec;
 				let result = await fis.yukle(_e); if (!result) { return }
-				let islem = onaylimi ? 'izle' : 'degistir', kaydedince = _e => this.tazele({ ...e, ..._e, gridPart });
+				let kaydedince = _e => this.tazele({ ...e, ..._e, gridPart });
 				return await fis.tanimla({ islem, kaydedince })
 			}
 			finally { setTimeout(() => hideProgress(), 500) }
@@ -276,7 +277,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			try {
 				let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod, sevkAdresKod });
 				if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
-				let fis = new fisSinif({ sayac }), _e = { ...e, parentRec }; delete _e.rec;
+				let fis = new fisSinif({ sayac }), _e = { ...e, parentRec, islem: 'sil' }; delete _e.rec;
 				let result = await fis.yukle(_e); if (!result) { return }
 				let islem = 'sil', kaydedince = _e => this.tazele({ ...e, ..._e, gridPart });
 				return await fis.tanimla({ islem, kaydedince })
