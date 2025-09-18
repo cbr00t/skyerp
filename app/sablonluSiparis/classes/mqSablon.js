@@ -118,21 +118,34 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		orderBy.liste = ['aciklama']
 	}
 	static async orjBaslikListesi_recsDuzenle(e) {
-		super.orjBaslikListesi_recsDuzenle(e); let {recs} = e;   /* 'await' super.orjBaslikListesi_recsDuzenle(e)  yapınca  'e.recs' bozuluyor ?? */
-		let gridPart = e.gridPart = e.gridPart ?? e.sender, {sayacSaha, listeFisSinif} = this, sayac2Rec = {};
-		for (let rec of recs) { let sayac = rec[sayacSaha]; sayac2Rec[sayac] = rec }
-		let sablonSayacListe = e.sablonSayacListe = Object.keys(sayac2Rec).map(x => asInteger(x));
-		let sent = e.sent = new MQSent(), stm = e.stm = new MQStm({ sent });
-		this.sablonEkQueryDuzenle(e); sent = e.sent; stm = e.stm;
-		for (let { sablonSayac, topSayi } of await app.sqlExecSelect(stm)) {
-			let rec = sayac2Rec[sablonSayac]; if (!rec) { continue }
-			rec.topSayi = (rec.topSayi || 0) + topSayi
+		super.orjBaslikListesi_recsDuzenle(e)
+		let {offlineMode} = app, {recs} = e   /* 'await' super.orjBaslikListesi_recsDuzenle(e)  yapınca  'e.recs' bozuluyor ?? */
+		let gridPart = e.gridPart = e.gridPart ?? e.sender, {sayacSaha, listeFisSinif} = this, sayac2Rec = {}
+		for (let rec of recs) {
+			let sayac = rec[sayacSaha]; sayac2Rec[sayac] = rec }
+		if (offlineMode) {
+			let {detaySinif} = this
+			for (let [sayac, parentRec] of Object.entries(sayac2Rec)) {
+				let _recs = await detaySinif.loadServerData({ ...e, parentRec })
+				parentRec.topSayi = _recs.length
+			}
+		}
+		else {
+			e.sablonSayacListe = Object.keys(sayac2Rec).map(x => asInteger(x))
+			let sent = e.sent = new MQSent(), stm = e.stm = new MQStm({ sent })
+			this.sablonEkQueryDuzenle(e); sent = e.sent; stm = e.stm
+			for (let { sablonSayac, topSayi } of await app.sqlExecSelect(stm)) {
+				let rec = sayac2Rec[sablonSayac]; if (!rec) { continue }
+				rec.topSayi = (rec.topSayi || 0) + topSayi
+			}
 		}
 		return recs
 	}
 	static loadServerData_detaylar({ parentRec }) {
 		return this.detaySinif.loadServerData(...arguments).then(recs => {
-			for (let rec of recs) { rec._parentRec = parentRec } return recs })
+			for (let rec of recs) { rec._parentRec = parentRec }
+			return recs
+		})
 	}
 	static sablonEkQueryDuzenle(e) {
 		let gridPart = e.gridPart ?? e.sender ?? {}, {tarih, mustKod} = gridPart;
@@ -220,7 +233,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			}
 			finally { setTimeout(() => hideProgress(), 500) }
 		}
-		catch (ex) { setTimeout(() => hConfirm(getErrorText(ex), 'Yeni'), 100); throw ex }
+		catch (ex) { setTimeout(() => hConfirm(getErrorText(ex), 'Yeni'), 550); throw ex }
 	}
 	static async onaylaIstendi(e) {
 		try {
@@ -400,16 +413,24 @@ class MQKonsinyeSablon extends MQSablonOrtak {
 	static get fisSiniflar() { return [...super.fisSiniflar, SablonluKonsinyeAlimSiparisFis, SablonluKonsinyeTransferFis ] }
 	static get detaySinif() { return MQKonsinyeSablonDetay }
 	static async fisSinifBelirleInternal(e) {
-		await super.fisSinifBelirleInternal(e);
-		let rec = await this.getSablonIcinTeslimBilgisi(e); if (!rec) { return null }
-		let {TSEK: tip} = rec, islem = e.islem || e.belirtec, {gridRec: fisRec} = e;
-		if (islem == 'yeni' || islem == 'kopya') { fisRec = e.gridRec = null }
-		let kendimizmi = tip == 'K', kayitSTmi = fisRec?.kayitTipi == 'ST';
-		return kendimizmi || kayitSTmi ? SablonluKonsinyeTransferFis : SablonluKonsinyeAlimSiparisFis
+		e ??= {}; await super.fisSinifBelirleInternal(e)
+		let {offlineMode} = app
+		if (offlineMode) {
+			let {rec} = e, {_cls = e._cls} = rec
+			let cls = window[_cls]; if (cls) { return cls }
+		}
+		{
+			let rec = await this.getSablonIcinTeslimBilgisi(e); if (!rec) { return null }
+			let {TSEK: tip} = rec, islem = e.islem || e.belirtec, {gridRec: fisRec} = e;
+			if (islem == 'yeni' || islem == 'kopya') { fisRec = e.gridRec = null }
+			let kendimizmi = tip == 'K', kayitSTmi = fisRec?.kayitTipi == 'ST';
+			return kendimizmi || kayitSTmi ? SablonluKonsinyeTransferFis : SablonluKonsinyeAlimSiparisFis
+		}
 	}
 	static async getSablonIcinTeslimBilgisi({ sablonSayac, mustKod, sevkAdresKod }) {
-		let anah2DagTeslimBilgi = this._anah2DagTeslimBilgi ??= {};
-		let anah = toJSONStr({ sablonSayac, mustKod, sevkAdresKod });
+		sevkAdresKod ??= ''
+		let anah2DagTeslimBilgi = this._anah2DagTeslimBilgi ??= {}
+		let anah = toJSONStr({ sablonSayac, mustKod, sevkAdresKod })
 		return anah2DagTeslimBilgi[anah] ??= await (() => {
 			let sent = new MQSent({
 				from: 'hizlisablon sab', fromIliskiler: [
@@ -486,31 +507,99 @@ class MQSablonOrtakDetay extends MQDetay {
 	static get sablonSinif() { return MQSablonOrtak } static get fisSinif() { return this.sablonSinif.fisSinif }
 	static get konsinyemi() { return this.sablonSinif.konsinyemi }
 	static orjBaslikListesi_argsDuzenle(e) {
-		super.orjBaslikListesi_argsDuzenle(e); $.extend(e.args, {
-			rowsHeight: 50, groupable: true, filterable: true, showGroupsHeader: true, adaptive: false })
+		super.orjBaslikListesi_argsDuzenle(e)
+		$.extend(e.args, { rowsHeight: 50, groupable: true, filterable: true, showGroupsHeader: true, adaptive: false })
+	}
+	static ekCSSDuzenle({ sender, rowIndex, dataField: belirtec, rec, result }) {
+		super.ekCSSDuzenle(...arguments)
+		if (rec._offline === true) { result.push('offline') }
+		else if (rec?._offline === false) { result.push('online', 'bg-lightcyan') }
 	}
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); let {liste} = e, {konsinyemi, sablonSinif} = this, {sablonSip_degisiklik} = app.params.web;
+		super.orjBaslikListesiDuzenle(e); let {liste} = e, {offlineMode: offline} = app
+		let {konsinyemi, sablonSinif} = this, {sablonSip_degisiklik} = app.params.web
 		liste.push(...[
 			new GridKolon({ belirtec: 'subekod', text: 'Şube', genislikCh: 7, filterType: 'checkedlist' }),
-			new GridKolon({ belirtec: 'subeadi', text: 'Şube Adı', genislikCh: 23, filterType: 'checkedlist' }),
+			(offline ? null : new GridKolon({ belirtec: 'subeadi', text: 'Şube Adı', genislikCh: 23, filterType: 'checkedlist' })),
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 11, filterType: 'checkedlist' }).tipDate(),
 			new GridKolon({ belirtec: 'fisnox', text: 'Sip. No', genislikCh: 20, filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'mustkod', text: 'Müşteri', filterType: 'checkedlist', genislikCh: 16 }),
-			new GridKolon({ belirtec: 'mustunvan', text: 'Ünvan', filterType: 'checkedlist' }),
+			(offline ? null : new GridKolon({ belirtec: 'mustunvan', text: 'Ünvan', filterType: 'checkedlist' })),
 			new GridKolon({ belirtec: 'sevkadresadi', text: 'Sevk Adres', genislikCh: 15, filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'basteslimtarihi', text: 'Tes.Tarih', genislikCh: 11, filterType: 'checkedlist' }).tipDate(),
 			new GridKolon({ belirtec: 'bonayli', text: 'Onay?', genislikCh: 6, filterType: 'checkedlist' }).tipBool(),
-			new GridKolon({ belirtec: 'onayla', text: ' ', genislikCh: 6 }).noSql().tipButton('O').onClick(_e => { sablonSinif.onaylaIstendi({ ...e, ..._e }) }),
+			(offline ? null : new GridKolon({ belirtec: 'onayla', text: ' ', genislikCh: 6 }).noSql().tipButton('O').onClick(_e => { sablonSinif.onaylaIstendi({ ...e, ..._e }) })),
 			(sablonSip_degisiklik ? new GridKolon({ belirtec: 'degistir', text: ' ', genislikCh: 5 }).noSql().tipButton('D').onClick(_e => { sablonSinif.degistirIstendi({ ...e, ..._e }) }) : null),
 			new GridKolon({ belirtec: 'sil', text: ' ', genislikCh: 5 }).noSql().tipButton('X').onClick(_e => { sablonSinif.silIstendi({ ...e, ..._e }) })
 		].filter(x => !!x))
 	}
 	static async loadServerDataDogrudan(e) {
-		let stm = e.query = e.stm = new MQStm(); e.sent = stm.sent
-		this.loadServerData_queryDuzenle(e)
+		let {offlineMode: offline} = app, {parentRec} = e
+		let stm = e.query = e.stm = new MQStm()
+		e.sent = stm.sent; this.loadServerData_queryDuzenle(e)
 		let recs = await super.loadServerData_querySonucu(e)
-		// recs.push({ subeadi: 'x' })
+		if (offline) {
+			await (async () => {
+				for (let rec of recs) { rec._offline ??= false }
+				let {offlineFisCache} = app; if (!offlineFisCache) { return }
+				await offlineFisCache._promise;
+				/*let {name: table} = fis.class
+				let cache = offlineFisCache.get(table); if (!cache) { return }*/
+				let donusum = {
+					key: {
+						bizsubekod: 'subekod', must: 'mustkod', mustunvan: 'mustunvan',
+						no: 'fisnox', sevkadreskod: 'sevkadresadi', onaytipi: 'bonayli',
+						subeKod: 'subekod', mustKod: 'mustkod', mustAdi: 'mustunvan',
+						fisNo: 'fisnox', sevkAdresKod: 'sevkadresadi', baslikTeslimTarihi: 'basteslimtarihi'
+						
+					},
+					value: {
+						no: ({ seri = '', no = 0 }) => `${seri} ${no}`,
+						onaytipi: ({ _offline, onaytipi }) => _offline ? false : onaytipi != 'ON'
+					}
+				}
+				let onlineRecsVarmi = !!recs?.length, offlineRecsVarmi = false
+				let {kaysayac: sablonSayac} = parentRec ?? {}
+				recs = [...recs]
+				for (let cache of offlineFisCache.values())
+				for (let [id, rec] of cache) {
+					if ((rec.sablonsayac || rec.sablonSayac) != sablonSayac) { continue }
+					let newRec = { kaysayac: id }
+					for (let [key, value] of Object.entries(rec)) {
+						if (value === undefined) { continue }
+						let newKey = donusum?.key?.[key] ?? key
+						let newValue = donusum?.value?.[key] ?? value
+						if (newValue?.call) { newValue = newValue.call(this, rec) }
+						if (value !== undefined) { newRec[newKey] = newValue; offlineRecsVarmi = true }
+					}
+					let {seri} = rec
+					if (seri) { newRec.fisnox = `${seri} ${newRec.fisnox}`}
+					recs.push({ _offline: true, ...newRec })
+					/*let fisSinif = window[rec._cls]; if (!fisSinif) { continue }
+					let fis = new fisSinif(); await fis.setValues({ rec })
+					for (let detRec of rec.detaylar) {
+						let detSinif = window[detRec._cls]; if (!detSinif) { continue }
+						let det = new detSinif(); await det.setValues({ fis, rec: detRec })
+						fis.addDetay(det)
+					}*/
+				}
+				if (onlineRecsVarmi || offlineRecsVarmi) {
+					let converted = (key, value) => key == 'tarih' ? asDate(value) : value
+					let comparer = (key, a, b, reverse) => {
+						a = converted(key, a[key]); b = converted(key, b[key])
+						return reverse
+							? ( a < b ? 1 : a > b ? -1 : 0 )
+							: ( b < a ? -1 : b > a ? 1 : 0 )
+					}
+					recs.sort((a, b) =>
+						comparer('_offline', a, b) ||
+						comparer('tarih', a, b) ||
+						comparer('seri', a, b, false) ||
+						comparer('fisnox', a, b)
+					)
+				}
+			})()
+		}
 		return recs
 	}
 	static loadServerData_queryDuzenle(e) { this.sablonIcinSiparislerStmDuzenle({ ...e, detaylimi: true }) }

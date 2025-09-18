@@ -72,7 +72,7 @@ class TSGridKontrolcu extends GridKontrolcu {
 	satirBedelHesapla(e) {			/* Ticari seviyede farklı hesap yapılır */
 		let args = e.args || {}, {uid} = args, rowIndex = args.rowindex, {gridWidget, fis} = this;
 		let det = e.detay || e.rec || (uid == null ? gridWidget.getrowdata(rowIndex) : gridWidget.getrowdatabyid(uid));
-		let _e = { ...e, fis, gridWidget, uid, rowIndex, belirtec: args.datafield }; det.uiSatirBedelHesapla(_e)
+		let _e = { ...e, fis, gridWidget, uid, rowIndex, belirtec: args.datafield }; det?.uiSatirBedelHesapla(_e)
 	}
 	yerOrtakmiDegisti(e) { let grupBelirtec = 'yer'; return this.xOrtakmiDegisti({ ...e, grupBelirtec }) }
 	takipOrtakmiDegisti(e) { let grupBelirtec = 'takip'; return this.xOrtakmiDegisti({ ...e, grupBelirtec }) }

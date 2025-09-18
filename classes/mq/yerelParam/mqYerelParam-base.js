@@ -28,7 +28,13 @@ class MQYerelParamBase extends CIO {
 		await await this.yukleSonrasi(e);
 		return this
 	}
-	kaydetDefer(e) { clearTimeout(this._timer_kaydetDefer); this._timer_kaydetDefer = setTimeout(e => { try { this.kaydet(e) } finally { delete this._timer_kaydetDefer } }, 500) }
+	kaydetDefer(e) {
+		clearTimeout(this._timer_kaydetDefer)
+			this._timer_kaydetDefer = setTimeout(async e => {
+				try { await this.kaydet(e) }
+				finally { delete this._timer_kaydetDefer }
+			}, 700)
+	}
 	async kaydet(e) {
 		e = $.extend({}, e || {}); this.resetCache(e); this.kaydetOncesi(e); let rec = this.hostVars(e); if (!rec) { return this }
 		if (typeof rec == 'object') {

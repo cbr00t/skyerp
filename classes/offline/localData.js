@@ -165,6 +165,7 @@ class MQLocalData extends MQYerelParamApp {
 	delete(e) {
 		let {data} = this; if (data == null) { return false }
 		if (typeof e != 'object') { e = { key: e } }
+		let {key} = e
 		if (!this.has(key)) { return false }
 		delete data[key]; this.changed()
 		return true

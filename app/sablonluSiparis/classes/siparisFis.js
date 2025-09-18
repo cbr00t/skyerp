@@ -175,6 +175,11 @@ class SablonluSiparisDetayOrtak extends TSStokDetay {
 	static get templateSinif() { return SablonluSiparisDetayTemplate } get templateSinif() { return this.class.templateSinif }
 	constructor(e) { e = e ?? {}; super(e); e.det = this; this.templateSinif.constructor(e) }
 	static pTanimDuzenle(e) { e.detSinif = this; super.pTanimDuzenle(e); this.templateSinif.pTanimDuzenle(e) }
+	async yukle(e) {
+		e??= {}; $.extend(e, { det: this, islem: e.islem || 'degistir' });
+		let result = await this.templateSinif.ozelYukleIslemi(e);
+		return result ?? await super.yukle(e)
+	}
 	hostVarsDuzenle(e) { e.det = this; super.hostVarsDuzenle(e); this.templateSinif.hostVarsDuzenle(e) }
 	setValues(e) { e.det = this; super.setValues(e); this.templateSinif.setValues(e) }
 }

@@ -17,7 +17,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		})
 	}
 	static rootFormBuilderDuzenle({ fisSinif, builders, sender: gridPart, islem /* , inst */ }) {
-		fisSinif.rootFormBuilderDuzenle_numarator(...arguments);
+		fisSinif.rootFormBuilderDuzenle_numarator(...arguments); let {offlineMode: offline} = app
 		let {root: rfb, baslikForm: fbd_baslikForm} = builders, {builders: baslikFormlar} = fbd_baslikForm;
 		let {konsinyemi} = fisSinif, {grid, gridWidget, layout} = gridPart;
 		rfb.addStyle(e =>
@@ -72,6 +72,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		baslikFormlar[1].addModelKullan('sevkAdresKod', 'Sevk Adres').comboBox().autoBind().setMFSinif(MQSSevkAdres)
 			.addStyle_wh(500)
 			.ozelQueryDuzenleHandler(({ builder: fbd, aliasVeNokta, stm }) => {
+				if (offline) { return }
 				let {altInst: inst} = fbd ?? {}, {mustKod} = inst ?? {}; if (!mustKod) { return }
 				for (let {where: wh} of stm.getSentListe()) { wh.degerAta(mustKod, `${aliasVeNokta}must`) }
 			})
@@ -107,6 +108,7 @@ class SablonluSiparisFisTemplate extends CObject {
 	static async sablonYukleVeBirlestir(e) {
 		let {fis, islem, belirtec} = e, {sablonSayac, tarih, subeKod, mustKod, numarator, class: fisSinif} = fis;
 		if (!mustKod) { throw { isError:  true, errorText: `<b>Müşteri</b> seçilmelidir` } }
+		let {offlineMode: offline} = app
 		let _fis = fis.deepCopy(); await this.dagitimIcinEkBilgileriBelirle({ ...e, fis: _fis });
 		let {onayliTipler} = SiparisFis, {mustKod: teslimCariVeyaMustKod, onayTipi} = _fis;
 		let onaylimi = onayliTipler.includes(onayTipi?.char ?? onayTipi);
@@ -155,7 +157,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		}
 		let stm = new MQStm({ sent, orderBy: ['fissayac', 'grupseq', 'seq'] });
 		let recs = await app.sqlExecSelect(stm);
-		if (!recs?.length) {
+		if (!(offline || recs?.length)) {
 			let mustUnvan = mustKod ? await MQSCari.getGloKod2Adi(mustKod) : null;
 			let sablonAdi = sablonSayac ? await MQSablonOrtak.getGloKod2Adi(sablonSayac) : null;
 			throw {
@@ -538,17 +540,17 @@ class SablonluSiparisFisTemplate extends CObject {
 	static getYazmaIcinDetaylar({ fis }) { return fis.detaylar.filter(det => !!det.miktar) }
 	static async kaydetOncesiIslemler({ islem, fis }) {
 		if (islem == 'sil') { return }
-		let {detaylar} = fis, bosmu = true;
+		let {detaylar} = fis, bosmu = true
 		for (let det of detaylar) {
 			let {miktar} = det; if (!miktar) { continue }
-			let {fiyat, netBedel: bedel} = det; bosmu = false;
+			let {fiyat, netBedel: bedel} = det; bosmu = false
 			if (fiyat && !bedel) {
-				await det.bedelHesapla?.({ fis }); bedel = det.netBedel;
+				await det.bedelHesapla?.({ fis }); bedel = det.netBedel
 				if (!bedel) { throw { isError: true, rc: 'fiyatBedelSorunu', errorText: 'Bazı ürünlerin Fiyati var ama Bedeli belirsiz' } }
 			}
 		}
 		if (bosmu) { throw { isError: true, rc: 'emptyRecs', errorText: 'Sipariş boş olamaz' } }
-		await this.stokIslemBelirle(...arguments);
+		await this.stokIslemBelirle(...arguments)
 		await this.dagitimIcinEkBilgileriBelirle(...arguments)
 	}
 	static async kaydetVeyaSilmeSonrasiIslemler({ islem, fis, trn } = {}) {
@@ -556,6 +558,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		let degisenler = ['Web Kon.Sip.'];
 		fis.logKaydet({ islem, degisenler })*/
 	}
+	static kaydetSonrasiIslemler({ islem, fis }) { return app.offlineMode ? true : null }
 	static async ozelKaydetIslemi({ islem, fis, eskiFis }) {
 		if (!app.offlineMode) { return null }
 		await this.kaydetOncesiIslemler(...arguments)
@@ -564,8 +567,17 @@ class SablonluSiparisFisTemplate extends CObject {
 		let cache = offlineFisCache.get(table)
 		if (!cache) { cache = offlineFisCache.add(table) }
 		let id = fis.sayac = fis.sayac || newGUID()
-		let fisHV = fis.hostVars(), detHVArg = { fis: fis.shallowCopy() }
-		let {detaylar} = fis, detHVListe = detaylar.map(det => det.hostVars(detHVArg))
+		if (islem == 'sil') {
+			if (cache.has(id)) {
+				cache.delete(id); offlineFisCache.kaydetDefer()
+				return true
+			}
+		}
+		if (islem == 'yeni' || islem == 'kopya') {
+			fis.seri = 'OFF'
+			fis.fisNo = cache.length + 1
+		}
+		let hv = { _cls: fis.class.name, _offline: true, kaysayac: id, ...fis.asExportData }
 		let converted = obj => isDate(obj) ? dateToString(obj) : obj
 		let reduced = obj => {
 			if (!obj) { return obj }
@@ -579,20 +591,37 @@ class SablonluSiparisFisTemplate extends CObject {
 				)
 			}
 			let result = converted(obj);
-			for (let key of ['fissayac', this.sayacSaha]) { delete result[key] }
+			// for (let key of ['fissayac', this.sayacSaha]) { delete result[key] }
 			return result
 		}
-		let data = { ...reduced(fisHV), detaylar: reduced(detHVListe) }
-		cache.set(id, data)
-		offlineFisCache.kaydetDefer()
+		let data = { ...reduced(hv) }
+		cache.set(id, data); offlineFisCache.kaydetDefer()
 		return true
 	}
-	static kaydetSonrasiIslemler({ islem, fis }) { return app.offlineMode ? true : null }
 	static async ozelYukleIslemi({ islem, fis }) {
 		if (!app.offlineMode) { return null }
+		let {sayac: id} = fis; if (!id) { return null }
 		let {offlineFisCache} = app; if (!offlineFisCache) { return null }
 		await offlineFisCache._promise; let {name: table} = fis.class
 		let cache = offlineFisCache.get(table); if (!cache) { return null }
+		let rec = cache.get(id)
+		let yenimi = islem == 'yeni', izlemi = islem == 'izle'
+		let onaylami = islem == 'onayla', silmi = islem == 'sil'
+		let onaylaVeyaSilmi = onaylami || silmi
+		let onlineBelgemi = rec?._offline !== true || typeof id == 'number'
+		if (onlineBelgemi && onaylaVeyaSilmi) {
+			throw {
+				isError: true, rc: 'accessDenied',
+				errorText: `Online iken kaydedilen belgeler üzerinde <b class=firebrick>${islem[0].toUpperCase()}${islem.substr(1)}</b> işlemi yapılamaz`
+			}
+		}
+		if (!rec) { throw { isError: true, rc: 'fetchError', errorText: 'Belge içeriği offline önbellekten belirlenemedi' } }
+		for (let [k, v] of Object.entries(rec)) {
+			if (v == null) { continue }
+			let _v = fis[k]
+			if (isInstance(_v) && !isDate(_v)) { continue }
+			fis[k] = v
+		}
 		return true
 	}
 	static hostVarsDuzenle({ fis, hv }) {
@@ -670,10 +699,6 @@ class SablonluSiparisFisTemplate extends CObject {
 }
 class SablonluSiparisDetayTemplate extends CObject {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static getStokText(det) {
-		let {shKod: stokKod, shAdi: stokAdi} = det;
-		return stokKod || stokAdi ? new CKodVeAdi([stokKod, stokAdi]).parantezliOzet({ styled: true }) : ''
-	}
 	static constructor(e) {
 		let {det} = e; for (let key of ['grupSayac', 'grupSeq', 'grupAdi']) { det[key] = e[key] ?? det[key] }
 		det.stokText = this.getStokText(det)
@@ -681,11 +706,30 @@ class SablonluSiparisDetayTemplate extends CObject {
 	static pTanimDuzenle({ fisSinif, pTanim }) {
 		$.extend(pTanim, { devreDisimi: new PInstBitBool() })
 	}
-	static hostVarsDuzenle({ det, hv }) { }
+	static hostVarsDuzenle({ det, hv }) {
+		let {grupAdi: grupadi} = det
+		$.extend(hv, { grupadi })
+		let {offlineMode: offline} = app
+		if (offline) {
+			for (let k of ['shAdi', 'brm']) { hv[k] = det[k] }
+			for (let [k, v] of Object.entries(det))
+				if (k.startsWith('sonStok')) { hv[k] = v }
+		}
+	}
 	static setValues({ det, rec }) {
-		let {grupsayac: grupSayac, grupadi: grupAdi, bdevredisi: devreDisimi} = rec;
-		$.extend(det, { grupSayac, grupAdi, devreDisimi });
+		let {grupsayac: grupSayac, grupadi: grupAdi, bdevredisi: devreDisimi} = rec
+		$.extend(det, { grupSayac, grupAdi, devreDisimi })
+		let {offlineMode: offline} = app
+		if (offline) {
+			for (let k of ['shAdi', 'brm']) { det[k] = rec[k] ?? det[k] }
+			for (let [k, v] of Object.entries(det))
+				if (k.startsWith('sonStok')) { det[k] = rec[k] ?? det[k] }
+		}
 		det.stokText = this.getStokText(det)
+	}
+	static getStokText(det) {
+		let {shKod: stokKod, shAdi: stokAdi} = det;
+		return stokKod || stokAdi ? new CKodVeAdi([stokKod, stokAdi]).parantezliOzet({ styled: true }) : ''
 	}
 }
 class SablonluSiparisGridciTemplate extends CObject {
