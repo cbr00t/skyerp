@@ -2,8 +2,9 @@ class RotaliSutIslemApp extends App {
     static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return super.autoExecMenuId }
 	get configParamSinif() { return MQYerelParamConfig_App } get yerelParamSinif() { return MQYerelParam }
 	get gonderilmemisVeriler() {
-		const {localData} = this.params, {dataKey} = MQRotaliFis; let recs = localData.getData(dataKey) || [];
-		recs = recs.filter(rec => !(rec.devredisi || rec.gonderimTS || $.isEmptyObject(rec.detaylar?.filter(det => !!det.toplam)))); return recs
+		let {localData} = this.params, {dataKey} = MQRotaliFis, recs = localData.get(dataKey) || [];
+		recs = recs.filter(rec => !(rec.devredisi || rec.gonderimTS || $.isEmptyObject(rec.detaylar?.filter(det => !!det.toplam))));
+		return recs
 	}
 	constructor(e) { e = e || {}; super(e) }
 	async runDevam(e) {
@@ -109,7 +110,7 @@ class RotaliSutIslemApp extends App {
 			let recs = await (typeof block == 'string' ? mfSinif[block]() : getFuncValue.call(this, block, $.extend({}, e, { mfSinif })));
 			if (recs != null) {
 				/*if (mfSinif == MQSutSira || MQSutSira.isPrototypeOf(mfSinif)) { }*/
-				localData.setData(mfSinif.dataKey, recs)
+				localData.set(mfSinif.dataKey, recs)
 			}
 			progressManager?.progressStep(); if (e.abortFlag) { localData.kaydet(); throw { code: 'userAbort' } }
 			return recs
@@ -132,11 +133,15 @@ class RotaliSutIslemApp extends App {
 	async bilgiGonder(e) {
 		e = e || {}; if (!navigator.onLine) { throw { isError: true, rc: 'noInternet', errorText: 'Bu işlem için İnternet Bağlantısı gereklidir' } } if (e.abortFlag) return false
 		if (progressManager) progressManager.text = `SkyWS Erişimi kontrol ediliyor...`; try { await this.wsGetSessionInfo() } catch (ex) { console.error(ex); return false } progressManager?.progressStep()
-		await new $.Deferred(p => setTimeout(() => { progressManager?.progressReset(); p.resolve() }, 50)); const recs = e.recs ?? this.gonderilmemisVeriler; if (progressManager) progressManager.progressMax = recs?.length ?? 0
-		const {PrefixSut} = MQRotaliFis, {params} = this, postaKod = params.config.postaKod || null, {localData} = params, {maxSayi} = MQSutSira, sutKodlari = localData.getData(MQSutSira.dataKey).map(_rec => _rec.stokkod).slice(0, maxSayi); let degistimi = false;
+		await new $.Deferred(p => setTimeout(() => { progressManager?.progressReset(); p.resolve() }, 50));
+		let recs = e.recs ?? this.gonderilmemisVeriler; if (progressManager) progressManager.progressMax = recs?.length ?? 0
+		let {PrefixSut} = MQRotaliFis, {params} = this, postaKod = params.config.postaKod || null, {localData} = params, {maxSayi} = MQSutSira;
+		let degistimi = false, sutKodlari = localData.get(MQSutSira.dataKey).map(_rec => _rec.stokkod).slice(0, maxSayi);
 		for (const rec of recs) {
-			const detaylar = (rec.detaylar || []).filter(det => !!det.toplam); if (!detaylar?.length) { continue } const {sayac, rotaTipi} = rec, argSutKodlari = sutKodlari.map(kod => ({ kod }));
-			const argDetaylar = detaylar.map(det => {
+			let detaylar = (rec.detaylar || []).filter(det => !!det.toplam);
+			if (!detaylar?.length) { continue }
+			let {sayac, rotaTipi} = rec, argSutKodlari = sutKodlari.map(kod => ({ kod }));
+			let argDetaylar = detaylar.map(det => {
 				const {mustKod} = det, _rec = { kayitTipi: '', mustKod, toplayiciRotaSayac: null };		/* dict sırası önemli */
 				for (let i = 0; i < maxSayi; i++) { const seq = i + 1, key = `${PrefixSut}${seq}`, value = roundToFra(asFloat(det[key]), 1); _rec[`${key}Miktar`] = value }
 				return _rec

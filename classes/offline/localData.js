@@ -131,26 +131,24 @@ class MQLocalData extends MQYerelParamApp {
 		let {key} = e
 		return data[key] !== undefined
 	}
-	async get(e, _ifAbsent, _ifAbsentPut, _ifPresent) {
+	get(e, _ifAbsent, _ifAbsentPut, _ifPresent) {
 		let {data} = this; if (data == null) { return undefined }
 		if (typeof e != 'object') { e = { key: e, ifAbsent: _ifAbsent, ifAbsentPut: _ifAbsentPut, ifPresent: _ifPresent } }
 		let {key, ifAbsent, ifAbsentPut, ifPresent} = e
-		let value = await data[key]
+		let value = data[key]
 		if (value === undefined && ifAbsentPut) {
-			value = await ifAbsentPut.call(this, { ...e })
-			value = await value
+			value = ifAbsentPut.call(this, { ...e })
 			if (value !== undefined) { data[key] = value; this.changed() }
 		}
-		if (value === undefined) { return await ifAbsent?.call(this, { ...e }) }
-		return ifPresent ? await getFuncValue.call(this, ifPresent, { ...e, value }) : value
+		if (value === undefined) { return ifAbsent?.call(this, { ...e }) }
+		return ifPresent ? getFuncValue.call(this, ifPresent, { ...e, value }) : value
 	}
-	async set(e, _value) {
+	set(e, _value) {
 		let {data} = this; if (data == null) { return this }
 		if (typeof e != 'object') { e = { key: e, value: _value } }
 		let {key, value = e.ifAbsentPut} = e
-		value = await value
 		if (value === undefined) { delete data[key] }
-		else { data[key] = value.call ? await value.call(this, key) : value }
+		else { data[key] = value.call ? value.call(this, key) : value }
 		this.changed()
 		return this
 	}
@@ -306,11 +304,11 @@ class MQLocalDB extends CObject {
 	}
 	async setData(e, _key) {
 		e ??= {}; let name = typeof e == 'object' ? e.name : e, key = typeof e == 'object' ? e.key : _key, {tables} = this;
-		await tables[name]?.setData(key); return this
+		await tables[name]?.set(key); return this
 	}
 	async clearData(e, _key) {
 		e ??= {}; let name = typeof e == 'object' ? e.name : e, key = typeof e == 'object' ? e.key : _key, {tables} = this;
-		await tables[name]?.clearData(key); return this
+		await tables[name]?.clear(key); return this
 	}
 	get(e) {
 		e ??= {}; let name = typeof e == 'object' ? e.name : e;
@@ -354,15 +352,15 @@ class MQLocalDB extends CObject {
 
 /*
 let db = new MQLocalDB(); await db.yukle();
-let tbl = db.add('a'); tbl.setData('item', { x: 1, y: 2 });
-tbl = db.add('b'); tbl.setData('item', { x: 3, y: 4 });
+let tbl = db.add('a'); tbl.set('item', { x: 1, y: 2 });
+tbl = db.add('b'); tbl.set('item', { x: 3, y: 4 });
 await db.kaydet();
 
 db = new MQLocalDB(); await db.yukle();
-tbl = db.getTable('a'); tbl.getData('item')
+tbl = db.getTable('a'); tbl.get('item')
 
-l = new MQLocalTable({ table: 'b' }); l.setData('a', {x:1,y:2}); await l.kaydet(); 
-l = new MQLocalTable({ table: 'b' }); try { await l.yukle().then(() => console.info(l.getData('a'))) } catch (ex) { }
+l = new MQLocalTable({ table: 'b' }); l.set('a', {x:1,y:2}); await l.kaydet(); 
+l = new MQLocalTable({ table: 'b' }); try { await l.yukle().then(() => console.info(l.get('a'))) } catch (ex) { }
 let dh = l.fs; for (let name of l.fullTableName.split('.').slice(0, -1)) { if (dh) { dh = await dh.getDirectoryHandle(name) } }
 let enm = await dh?.values(); if (enm) { while (true) { let {done, value} = await enm.next(); if (done) { break } console.info(value) } }
 // await l.sil()

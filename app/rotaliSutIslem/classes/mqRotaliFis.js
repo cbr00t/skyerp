@@ -4,7 +4,7 @@ class MQRotaliFis extends MQDetayliOrtak {
 	static get gridIslemTuslariKullanilirmi() { return false } static get tanimlanabilirmi() { return true }
 	get detaylarUyarlanmis() {
 		let {detaylar} = this; if ($.isEmptyObject(detaylar)) {
-			const {localData} = app.params, recs = localData.getData(MQSutRota.dataKey) || [], {detaySinif, PrefixSut} = this.class, sutSiraRecs = localData.getData(MQSutSira.dataKey);
+			const {localData} = app.params, recs = localData.get(MQSutRota.dataKey) || [], {detaySinif, PrefixSut} = this.class, sutSiraRecs = localData.get(MQSutSira.dataKey);
 			detaylar = []; for (const rec of recs) {
 				const {seq} = rec, mustKod = rec.mustkod, mustAdi = rec.mustadi, toplam = 0, det = new detaySinif({ seq, mustKod, mustAdi, toplam });
 				if (sutSiraRecs) { for (let i = 0; i < Math.min(sutSiraRecs.length, MQSutSira.maxSayi); i++) { const seq = i + 1; det[`${PrefixSut}${seq}`] = 0 } }
@@ -59,7 +59,7 @@ class MQRotaliFis extends MQDetayliOrtak {
 			new GridKolon({ belirtec: 'rotaAdi', text: 'Rota Adı', genislikCh: 30, cellsRenderer })
 			/* sut1, sut2 ... için detay toplamı kolonları */
 		);
-		const {localData} = app.params, sutSiraRecs = localData.getData(MQSutSira.dataKey); if (sutSiraRecs) {
+		const {localData} = app.params, sutSiraRecs = localData.get(MQSutSira.dataKey); if (sutSiraRecs) {
 			for (let i = 0; i < Math.min(sutSiraRecs.length, MQSutSira.maxSayi); i++) {
 				const seq = i + 1, rec = sutSiraRecs[i], stokAdi = rec.kisaadi || rec.stokadi;
 				liste.push(new GridKolon({ belirtec: `${PrefixSut}${seq}`, text: stokAdi, genislikCh: 16, cellsRenderer, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal(1))
@@ -79,7 +79,7 @@ class MQRotaliFis extends MQDetayliOrtak {
 			for (const rec of recs) {
 				const {detaylar} = rec; let toplam;
 				rec.toplam = rec.toplam ?? 0; if (!$.isEmptyObject(detaylar)) {
-					const {localData} = app.params, sutSiraRecs = localData.getData(MQSutSira.dataKey);
+					const {localData} = app.params, sutSiraRecs = localData.get(MQSutSira.dataKey);
 					if (!$.isEmptyObject(sutSiraRecs)) {
 						let genelToplam = 0;
 						for (let i = 0; i < Math.min(sutSiraRecs.length, MQSutSira.maxSayi); i++) {
@@ -177,7 +177,7 @@ class MQRotaliFis extends MQDetayliOrtak {
 			}
 			return html
 		};
-		let sutSiraRecs = app.params.localData.getData(MQSutSira.dataKey); const sutParam = app.params.sut, sutColCount = Math.min(sutSiraRecs.length, MQSutSira.maxSayi);
+		let sutSiraRecs = app.params.localData.get(MQSutSira.dataKey); const sutParam = app.params.sut, sutColCount = Math.min(sutSiraRecs.length, MQSutSira.maxSayi);
 		const tabloKolonlari = [new GridKolon({ belirtec: 'mustAdi', text: 'Müstahsil', genislikCh: 30, cellClassName, cellsRenderer }).readOnly()];
 		if (sutSiraRecs) {
 			for (let i = 0; i < sutColCount; i++) {
@@ -231,7 +231,7 @@ class MQRotaliFis extends MQDetayliOrtak {
 		return await super.uiKaydetOncesiIslemler(e)
 	}
 	degistir(eskiInst) {
-		const {localData} = app.params, {sayac} = this, recs = localData.getData(this.class.dataKey), ind = recs.findIndex(rec => rec.sayac == sayac);
+		const {localData} = app.params, {sayac} = this, recs = localData.get(this.class.dataKey), ind = recs.findIndex(rec => rec.sayac == sayac);
 		if (ind == null || ind < 0) { throw { isError: true, rc: 'noRecordMatch', errorText: `Yerel Veritabanında (<b>sayac = ${sayac ?? '??'}</b>) için kayıt belirlenemedi` }}
 		if (!!this.gonderimTS && !config.dev) { throw { isError: true, rc: 'gonderilmisBelge', errorText: `<div class="darkred">Bu belge <b>${dateTimeAsKisaString(asDate(this.gonderimTS))}</b> tarihinde merkeze gönderilmiş ve değiştirilemez!</div>` } }
 		this.gonderimTS = null; recs[ind] = this; localData.kaydetDefer(); return true

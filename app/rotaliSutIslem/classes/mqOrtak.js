@@ -15,8 +15,8 @@ class MQMasterOrtak extends MQCogul {
 	}
 	static gridVeriYuklendi(e) { super.gridVeriYuklendi(e) }
 	static async loadServerData(e) {
-		e = e || {}; const {localData} = app.params, dataKey = e.dataKey ?? this.dataKey; let recs = localData.getData(dataKey);
-		if (recs === undefined) { recs = await this.loadServerDataDogrudan(e); if (recs !== undefined) { localData.setData(dataKey, recs); localData.kaydetDefer() } }
+		e = e || {}; const {localData} = app.params, dataKey = e.dataKey ?? this.dataKey; let recs = localData.get(dataKey);
+		if (recs === undefined) { recs = await this.loadServerDataDogrudan(e); if (recs !== undefined) { localData.set(dataKey, recs); localData.kaydetDefer() } }
 		return recs
 	}
 	static loadServerDataDogrudan(e) { return null }
@@ -34,8 +34,8 @@ class MQKAOrtak extends MQKA {
 	}
 	static gridVeriYuklendi(e) { MQMasterOrtak.gridVeriYuklendi(e) }
 	static async loadServerData(e) {
-		e = e || {}; const {localData} = app.params, dataKey = e.dataKey ?? this.dataKey; let recs = localData.getData(dataKey);
-		if (recs === undefined) { recs = await this.loadServerDataDogrudan(e); if (recs !== undefined) { localData.setData(dataKey, recs); localData.kaydetDefer() } }
+		e = e || {}; const {localData} = app.params, dataKey = e.dataKey ?? this.dataKey; let recs = localData.get(dataKey);
+		if (recs === undefined) { recs = await this.loadServerDataDogrudan(e); if (recs !== undefined) { localData.set(dataKey, recs); localData.kaydetDefer() } }
 		return recs
 	}
 	static loadServerDataDogrudan(e) { e = e || {}; e.dataKey = this.dataKey; MQMasterOrtak.loadServerDataDogrudan(e) }
@@ -54,8 +54,8 @@ class MQDetayliOrtak extends MQCogul {
 	}
 	static gridVeriYuklendi(e) { MQMasterOrtak.gridVeriYuklendi(e) }
 	static async loadServerData(e) {
-		e = e || {}; const {localData} = app.params, dataKey = e.dataKey ?? this.dataKey; let recs = localData.getData(dataKey);
-		if (recs === undefined) { recs = await this.loadServerDataDogrudan(e); if (recs !== undefined) { localData.setData(dataKey, recs); localData.kaydetDefer() } }
+		e = e || {}; const {localData} = app.params, dataKey = e.dataKey ?? this.dataKey; let recs = localData.get(dataKey);
+		if (recs === undefined) { recs = await this.loadServerDataDogrudan(e); if (recs !== undefined) { localData.set(dataKey, recs); localData.kaydetDefer() } }
 		return recs
 	}
 	static loadServerDataDogrudan(e) { e = e || {}; e.dataKey = this.dataKey; MQMasterOrtak.loadServerDataDogrudan(e) }

@@ -102,7 +102,7 @@ class MQMasterOrtak extends MQCogul {
 	}
 	static loadServerDataFromMustBilgi(e) {
 		e = e || {}; let {localData} = app.params, dataKey = e.dataKey ?? this.dataKey, {mustKod} = e;
-		let mustBilgiDict = localData.getData(MQMustBilgi.dataKey) || {}, mustBilgi = mustBilgiDict[mustKod] || {};
+		let mustBilgiDict = localData.get(MQMustBilgi.dataKey) || {}, mustBilgi = mustBilgiDict[mustKod] || {};
 		let recs = mustBilgi[dataKey] || []; return recs
 	}
 }
@@ -117,8 +117,13 @@ class MQKAOrtak extends MQKA {
 	static orjBaslikListesi_gridInit(e) { MQMasterOrtak.orjBaslikListesi_gridInit(e) }
 	static gridVeriYuklendi(e) { MQMasterOrtak.gridVeriYuklendi(e) }
 	static async loadServerData(e) {
-		e = e || {}; const {localData} = app.params, dataKey = e.dataKey ?? this.dataKey; let recs = localData.getData(dataKey);
-		if (recs === undefined) { recs = await this.loadServerDataDogrudan(e); localData.setData(dataKey, recs); localData.kaydetDefer() }
+		e = e || {}; let {localData} = app.params, dataKey = e.dataKey ?? this.dataKey;
+		let recs = await localData.get(dataKey);
+		if (recs === undefined) {
+			recs = await this.loadServerDataDogrudan(e);
+			await localData.set(dataKey, recs);
+			localData.kaydetDefer()
+		}
 		return recs
 	}
 	static loadServerDataDogrudan(e) { e = e || {}; e.dataKey = this.dataKey; MQMasterOrtak.loadServerDataDogrudan(e) }

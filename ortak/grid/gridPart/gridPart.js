@@ -241,8 +241,10 @@ class GridPart extends Part {
 					belirtec: '_rowNumber', text: '#', width: 55, groupable: false, filterable: false, draggable: false, exportable: false,
 					filterType: 'input', cellClassName: '_rowNumber grid-readOnly',
 					cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-						if (rec) { rec._rowNumber = rowIndex + 1 }
-						value = (rec?.boundIndex ?? rowIndex) + 1; html = changeTagContent(html, value.toString())
+						if (rec && rowIndex != null) { rec._rowNumber = rowIndex + 1 }
+						value = (rec?.boundIndex ?? rowIndex) + 1
+						if (isNaN(value)) { return value = '' }
+						html = changeTagContent(html, value.toString())
 						return html
 					}
 			}).tipNumerik().noSql().readOnly().sabitle())

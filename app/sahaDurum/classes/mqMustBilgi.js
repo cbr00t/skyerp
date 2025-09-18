@@ -46,9 +46,12 @@ class MQMustBilgi extends MQKAOrtak {
 	}
 	static async loadServerData(e) {
 		e = e || {}; await super.loadServerData(e); let {localData} = app.params, dataKey = this.dataKey, {wsArgs} = e;
-		let result = localData.getData(dataKey); if (result == null) {
+		let result = await localData.get(dataKey); if (result == null) {
 			let recs = await MQCari.loadServerDataDogrudan(e), classes = [MQKapanmayanHesaplar, MQKapanmayanHesaplar_Dip, MQCariEkstre, MQCariEkstre_Detay];
-			result = {}; for (const rec of recs) { let {kod} = rec; if (kod) { result[kod] = new MustBilgi(rec) } }
+			result = {}; for (let rec of recs) {
+				let {kod} = rec;
+				if (kod) { result[kod] = new MustBilgi(rec) }
+			}
 			let cariEkstre_fisSayac2Rec = {}; for (let cls of classes) {
 				let subDataKey = cls.dataKey; if (!subDataKey) { continue }
 				let recs = await cls.loadServerDataDogrudan(e) ?? []; for (let rec of recs) {
@@ -61,7 +64,8 @@ class MQMustBilgi extends MQKAOrtak {
 									(parentRec?.mustkod ?? parentRec?.mustKod ?? parentRec?.must ?? parentRec?.kod);
 					if (!kod) { continue }
 					let mustBilgi = result[kod]; if (!mustBilgi) { continue }
-					let subRecs = mustBilgi[subDataKey] = mustBilgi[subDataKey] || []; subRecs.push(rec)
+					let subRecs = mustBilgi[subDataKey] = mustBilgi[subDataKey] || [];
+					subRecs.push(rec)
 				}
 			}
 			let AsyncMax = 5, promises = []; for (let mustBilgi of Object.values(result)) {
@@ -69,17 +73,23 @@ class MQMustBilgi extends MQKAOrtak {
 				if (promises.length >= AsyncMax) { await Promise.all(promises); promises = [] }
 			}
 			if (promises.length) { await Promise.all(promises) }
-			localData.setData(dataKey, result); localData.kaydetDefer()
+			await localData.set(dataKey, result); localData.kaydetDefer()
 		}
-		if (result) { for (let kod in result) { let rec = result[kod]; if ($.isPlainObject(rec)) { result[kod] = rec = new MustBilgi(rec) } } }
-		let recs = Object.values(result); return recs
+		if (result) {
+			for (let kod in result) {
+				let rec = result[kod];
+				if ($.isPlainObject(rec)) { result[kod] = rec = new MustBilgi(rec) }
+			}
+		}
+		let recs = Object.values(result);
+		return recs
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e);
 		let {rootBuilder: rfb, tanimFormBuilder: tanimForm, sender: rootPart, mfSinif, inst, kaForm} = e, {layout} = rootPart;
 		rfb.addCSS('no-scroll').addStyle(e => `$elementCSS .form-layout > [data-builder-id = "kaForm"] { margin-top: -80px }`)
 		rfb.setAltInst(e => {
-			const {localData} = app.params, dataKey = this.dataKey, mustBilgiDict = localData.getData(dataKey);
+			const {localData} = app.params, dataKey = this.dataKey, mustBilgiDict = localData.get(dataKey);
 			const {builder} = e, {part} = builder, {kod} = part.inst, mustBilgi = mustBilgiDict[kod]; return mustBilgi
 		});
 		const tanimPart = e.sender; tanimPart.islem = 'izle'; tanimPart.title = tanimPart.title = `<b>${inst.kod}</b><span class="gray"> - Müşteri Detayları</span>`;

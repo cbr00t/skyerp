@@ -4,5 +4,4 @@
 	require_once("$webRoot_ticari/include/ortak-03.php"); require_once("$webRoot_ticari/classes/dRapor/include.php");*/
 	require_once("$webRoot/../ext/etc/skyResim/layouts.php"); @include_once("$webRoot/../ext/etc/skyResim/include.php")
 ?>
-<script src="<?=$webRoot?>/classes/offline/localData.js?<?=$appVersion?>"></script>
 <?php require_once("$webRoot/classes/ortak/masterOrtak/include.php"); require_once("$webRoot_misc/classes/include.php") ?>
