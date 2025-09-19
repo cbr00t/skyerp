@@ -744,7 +744,7 @@ class SablonluSiparisGridciTemplate extends CObject {
 	}
 	static tabloKolonlariDuzenle_ilk({ tabloKolonlari }) {
 		tabloKolonlari.push(...[
-			new GridKolon({ belirtec: 'grupAdi', text: 'Grup Adı', genislikCh: 20 }).hidden(),
+			new GridKolon({ belirtec: 'grupAdi', text: 'Grup', genislikCh: 20 }).hidden(),
 			new GridKolon({ belirtec: 'stokText', text: 'Ürün/Hizmet', genislikCh: 60, filterable: false }).readOnly(),
 			new GridKolon({
 				belirtec: 'miktar', text: 'Miktar', genislikCh: 13, groupable: false,

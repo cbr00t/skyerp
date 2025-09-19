@@ -45,9 +45,10 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		sol.addClass('flex-row')
 		rfb.addDateInput('tarih', 'İşlem Tarihi').setParent(sol).etiketGosterim_yok()
 			.degisince(({ builder: fbd }) => fbd.rootPart.tazeleDefer(e))
-			.addStyle(e => `$elementCSS { margin-left: 30px } $elementCSS > input { width: 130px !important }`)
-		rfb.addButton('snapshot', 'SNP').setParent(sol).addStyle_wh(150, 50)
+			.addStyle(`$elementCSS { margin-left: 30px } $elementCSS > input { width: 130px !important }`)
+		rfb.addButton('snapshot', 'SNP').setParent(sol).addStyle_wh(100, 50)
 			.onClick(_e => this.snapshotIstendi({ ...e, ..._e }))
+			.addStyle(`$elementCSS { margin-left: 50px }`)
 		if (!konsinyemi && subeKod == null) {
 			rfb.addModelKullan('subeKod', 'Şube').dropDown().setMFSinif(MQSube).autoBind().etiketGosterim_yok().setParent(sol)
 				.ozelQueryDuzenleHandler(({ builder: fbd, aliasVeNokta, stm }) => {
@@ -259,10 +260,23 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		if (!mustKod) { hConfirm(`<b>Müşteri</b> belirtilmelidir`, islemAdi); return }
 		let {prefetchData} = this; if (!prefetchData) { return }
 		let anah = toJSONStr({ tarih: dateToString(tarih), mustKod })
+		let hasHTML = value => value?.includes?.('<') && value?.includes?.('>')
 		showProgress('Önbellek verisi bekleniyor...', islemAdi)
 		try {
 			let data = await prefetchData?.[anah]; if (!data) { return }
+			let groups = ['aciklama', 'grupAdi'];
+			let colDefs = [...new SablonluSiparisGridciOrtak().tabloKolonlari]
+			for (let _ of colDefs) {
+				let {text} = _
+				if (text && hasHTML(text)) { text = _.text = getTagContent(text) }
+			}
+			let belirtecSet = asSet(colDefs.map(_ => _.belirtec))
+			for (let belirtec of groups) {
+				if (belirtecSet[belirtec]) { continue }
+				colDefs.push(new GridKolon({ belirtec, text: ' ', genislikCh: 50 }).hidden())
+			}
 			let ignoreKeys = asSet(['uid', 'uniqueid', 'boundindex', 'visibleindex', '_rowNumber'])
+			let notNullKeys = asSet(colDefs.map(_ => _.belirtec))
 			let reduced = (obj, root) => {
 				if (isDate(obj)) { obj = dateToString(obj) }
 				else if (!root && (obj == null || typeof obj == 'object')) { return undefined }
@@ -273,6 +287,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 						if (ignoreKeys[k]) { delete obj[k]; continue }
 						let nv = reduced(v, false)
 						if (nv === undefined) { delete obj[k]; continue }
+						if (nv == null && notNullKeys[k]) { nv = '' }
 						if (nv !== v) { obj[k] = nv }
 					}
 				}
@@ -281,37 +296,47 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			data = data.filter(_ => _.status == 'fulfilled')
 			   .flatMap(({ value: { rec, fis: { detaylar } } }) =>
 				   detaylar.map(det => reduced({ ...rec, ...det.asExportData }, true)))
+			notNullKeys = Object.keys(notNullKeys)
+			for (let det of data)
+				for (let key of notNullKeys) {
+					let value = det[key] ??= ''
+					if (hasHTML(value)) {
+						value = getTagContent(value)
+						if (hasHTML(value)) { value = $(value).text() }
+						det[key] = value
+					}
+				}
 			// let dumpData = toJSONStr(data)
 			{
 				let wRFB = new RootFormBuilder('snapshot').asWindow('Önizleme').addCSS('part');
-				wRFB.addIslemTuslari('islemTuslari')
-					.setTip('tazeleVazgec')
+				let headerHeight = 70, gridPart
+				wRFB.addIslemTuslari('islemTuslari').addStyle_fullWH(null, headerHeight)
+					.setTip('tazeleVazgec').setEkSagButonlar('yazdir', 'html', 'excel')
+					.setButonlarIlk([
+						{ id: 'html', handler: e => gridPart?.gridExport_html(e) },
+						{ id: 'excel', handler: e => gridPart?.gridExport_excel(e) }
+					])
 					.setId2Handler({
-						tazele: ({ builder: { rootPart } }) => rootPart.tazele(),
+						tazele: ({ builder: { rootPart } }) => gridPart?.tazele(),
 						vazgec: ({ builder: { rootPart } }) => rootPart.close()
 					})
-					.addStyle(e => `$elementCSS .butonlar.part > .sol { z-index: -1; background-color: unset !important; background: transparent !important }`)
-				let fbd_content = wRFB.addFormWithParent('content').altAlta()
-					.addStyle_fullWH(null, 'calc(var(--full) - 80px)')
 					.addStyle(
-						`$elementCSS { position: relative; top: 10px; z-index: 100 } $elementCSS > button { margin: 0 0 10px 10px }
-						 $elementCSS > button.jqx-fill-state-normal { background-color: whitesmoke !important }
-						 $elementCSS > button.jqx-fill-state-pressed { background-color: royalblue !important }`
+						`$elementCSS .butonlar.part { position: relative; top: 10px; z-index: 100 }
+						 $elementCSS .butonlar.part  button { margin: 0 0 0 10px }
+						 $elementCSS .butonlar.part .sol { z-index: -1; background-color: unset !important; background: transparent !important }
+						 $elementCSS .butonlar.part #excel { margin-right: 30px }
+						 $elementCSS .butonlar.part button.jqx-fill-state-normal { background-color: whitesmoke !important }
+						 $elementCSS .butonlar.part button.jqx-fill-state-pressed { background-color: royalblue !important }`
 					)
-				let groups = ['aciklama', 'grupAdi']
-				let colDefs = [...new SablonluSiparisGridciOrtak().tabloKolonlari]
-				let belirtecSet = asSet(colDefs.map(_ => _.belirtec))
-				for (let belirtec of groups) {
-					if (belirtecSet[belirtec]) { continue }
-					colDefs.push(new GridKolon({ belirtec }).hidden())
-				}
+				let fbd_content = wRFB.addFormWithParent('content').altAlta()
+					.addStyle_fullWH(null, `calc(var(--full) - ${headerHeight}px)`)
 				fbd_content.addGridliGosterici('grid').addStyle_fullWH()
 					.setSource(data).setTabloKolonlari(colDefs)
 					.widgetArgsDuzenleIslemi(({ args }) => $.extend(args, { groupsExpandedByDefault: true }))
 					.veriYukleninceIslemi(({ builder: { input: grid } }) => grid.jqxGrid('groups', groups))
+					.onAfterRun(({ builder: { part } }) => gridPart = part)
 				wRFB.run()
 			}
-			// debugger
 		}
 		finally { hideProgress() }
 	}

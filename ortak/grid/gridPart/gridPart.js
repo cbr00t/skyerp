@@ -674,11 +674,12 @@ class GridPart extends Part {
 				let islemTuslariPart = rootPart.islemTuslariPart = new ButonlarPart(_e); islemTuslariPart.run()
 			},
 			styles: [
-				e => `$elementCSS, $elementCSS .wnd-content { width: var(--full) !important; height: var(--full) !important; margin: 0 !important; padding: 0 !important; padding-inline-end: 0 !important; background-color: transparent }`,
+				e => `$elementCSS, $elementCSS .wnd-content { width: var(--full) !important; height: var(--full) !important;
+						margin: 0 !important; padding: 0 !important; padding-inline-end: 0 !important; background-color: transparent }`,
 				e => `$elementCSS .grid-toolbar { width: var(--full) !important; margin: 0 !important; padding: 0 !important }`,
 				e => `$elementCSS .grid-toolbar #grid-islemTuslari { text-align: center; height: var(--full) important }`,
 				e => `$elementCSS .grid-toolbar #grid-islemTuslari > .sol { width: var(--full) important }`,
-				e => `$elementCSS .grid-toolbar #grid-islemTuslari button { width: 60px; margin: 0 1px }`,
+				e => `$elementCSS .grid-toolbar #grid-islemTuslari button { width: 75px; margin: 0 1px }`,
 				e => `$elementCSS .grid-toolbar #grid-islemTuslari button#html.jqx-fill-state-normal,
 						$elementCSS .grid-toolbar #grid-islemTuslari button#yazdir.jqx-fill-state-normal { background-color: #c1c8dd !important }`,
 				e => `$elementCSS .grid-toolbar #grid-islemTuslari button.jqx-fill-state-hover { background-color: cadetblue !important }
@@ -686,14 +687,16 @@ class GridPart extends Part {
 			]
 		}).addStyle_fullWH();
 		let rfb = new RootFormBuilder({
-			parentPart: this, inst: e => e.builder.parentPart.inst, formDeferMS: 0, noFullHeight: true,
+			parentPart: this, inst: e => e.builder.parentPart.inst,
+			formDeferMS: 0, noFullHeight: true,
 			afterRun: e => {
 				setTimeout(() => {
 					let {part} = e, {layout} = part;
 					let wnd = part.wnd = createJQXWindow({
 						content: rfb.layout, title: null,
 						args: {
-							isModal: false, showCollapseButton: false, closeButtonAction: 'close', /* width: 200, */ width: 134, height: 45, minWidth: 1, minHeight: 1,
+							isModal: false, showCollapseButton: false, closeButtonAction: 'close',
+							/* width: 200, */ width: 200, height: 45, minWidth: 1, minHeight: 1,
 							position: { left: Math.min(mousePos.x, $(window).width() - 200), top: Math.min(mousePos.y, $(window).height() - 100) }
 						}
 					});
@@ -702,9 +705,17 @@ class GridPart extends Part {
 					let wndContent = wnd.find('.content');
 					for (let elm of [wndContent, wndContent.children('.subContent')]) { elm.css('height', 'var(--full)', true); elm.css('width', 'var(--full)', true) }
 					setTimeout(() => {
-						let blurHandler = evt => { if (part._timer_close) { clearTimeout(part._timer_close) } part._timer_close = setTimeout(() => wnd.jqxWindow('close'), 10) }; wnd.on('blur', blurHandler);
-						wnd.on('close', evt => { if (part && !part.isDestroyed) { part.destroyPart() } if (wnd?.length) { wnd.jqxWindow('destroy'); wnd.remove() } });
-						let allElms = layout.find('*'); allElms.on('blur', blurHandler); allElms.on('focus', evt => { if (part._timer_close) { clearTimeout(part._timer_close); delete part._timer_close } })
+						let blurHandler = evt => {
+							if (part._timer_close) { clearTimeout(part._timer_close) }
+							part._timer_close = setTimeout(() => wnd.jqxWindow('close'), 10)
+						};
+						wnd.on('blur', blurHandler);
+						wnd.on('close', evt => {
+							if (part && !part.isDestroyed) { part.destroyPart() }
+							if (wnd?.length) { wnd.jqxWindow('destroy'); wnd.remove() }
+						});
+						let allElms = layout.find('*'); allElms.on('blur', blurHandler);
+						allElms.on('focus', evt => { if (part._timer_close) { clearTimeout(part._timer_close); delete part._timer_close } })
 					}, 1)
 					setTimeout(() => {
 						wnd.css('z-index', 10000); layout.removeClass('jqx-hidden basic-hidden'); wnd.removeClass('jqx-hidden basic-hidden');
@@ -719,54 +730,69 @@ class GridPart extends Part {
 			.add(fbd_islemTuslari).addStyle_fullWH()
 		); rfb.run()
 	}
-	gridExport_excel(e) {
-		e = e || {}; let {gridWidget} = this; let _data = gridWidget.exportdata('html');
-		let data = ''; for (let ch of _data) { data += tr2En[ch] || ch }
-		downloadData(new Blob([data]), 'Grid.xls', 'application/vnd.ms-excel')
-		/*e = e || {}; let {gridWidget} = this; let _data = gridWidget.exportdata('tsv'); if (!_data) { return _data }*/
-		let {rootPart} = e, _wnd = rootPart?.wnd; if (_wnd?.length) { _wnd.jqxWindow('close') }
+	gridExport_excel(e = {}) {
+		try { this.grid.jqxGrid('exportview', 'xlsx', 'jqxGrid') }
+		catch (ex) {
+			console.error(ex)
+			let {gridWidget} = this, _data = gridWidget.exportdata('html');
+			let data = ''; for (let ch of _data) { data += tr2En[ch] || ch }
+			downloadData(new Blob([data]), 'Grid.xls', 'application/vnd.ms-excel')
+			/*e = e || {}; let {gridWidget} = this; let _data = gridWidget.exportdata('tsv'); if (!_data) { return _data }*/
+			let {rootPart} = e, _wnd = rootPart?.wnd; if (_wnd?.length) { _wnd.jqxWindow('close') }
+		}
 	}
-	gridExport_html(e) {
-		e = e || {}; let {gridWidget} = this, data = gridWidget.exportdata('html');
-		let {rootPart} = e, _wnd = rootPart?.wnd; if (_wnd?.length) { _wnd.jqxWindow('close') }
-		let wnd = openNewWindow(); if (!wnd) { return } let doc = wnd.document;
-		doc.writeln(`<html><head><title>Grid Çıktısı</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes">`);
-		let preReqList = [
-			`<link rel="stylesheet" href="${webRoot}/lib_external/jqx/css/jquery-ui.min.css" />`,
-			`<link class="theme-base" rel="stylesheet" href="${webRoot}/lib_external/jqx/css/jqx.base.min.css" />`,
-			`<link rel="stylesheet" href="${webRoot}/lib/appBase/cssClasses.css?${appVersion}" />`,
-			`<link rel="stylesheet" href="${webRoot}/lib/appBase/colors.css?${appVersion}" />`,
-			`<link rel="stylesheet" href="${webRoot}/lib/appBase/appBase.css?${appVersion}" />`,
-			`<link rel="stylesheet" href="${webRoot}/lib/appBase/appLayout.css?${appVersion}" />`,
-			`<link rel="stylesheet" href="./app.css?${appVersion}" />`
-		];
-		doc.writeln(`<style>@media only screen { body { overflow-y: auto !important } } button, input { visibility: hidden }</style>`);
-		for (let item of preReqList) { doc.writeln(item) } doc.writeln(`</head><body>${data}</body></html>`)
+	gridExport_html(e = {}) {
+		try { this.grid.jqxGrid('exportview', 'html', 'jqxGrid') }
+		catch (ex) {
+			console.error(ex)
+			let {gridWidget} = this, data = gridWidget.exportdata('html');
+			let {rootPart} = e, _wnd = rootPart?.wnd; if (_wnd?.length) { _wnd.jqxWindow('close') }
+			let wnd = openNewWindow(); if (!wnd) { return }
+			let doc = wnd.document; doc.writeln(
+				`<html><head><title>Grid Çıktısı</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes">`);
+			let preReqList = [
+				`<link rel="stylesheet" href="${webRoot}/lib_external/jqx/css/jquery-ui.min.css" />`,
+				`<link class="theme-base" rel="stylesheet" href="${webRoot}/lib_external/jqx/css/jqx.base.min.css" />`,
+				`<link rel="stylesheet" href="${webRoot}/lib/appBase/cssClasses.css?${appVersion}" />`,
+				`<link rel="stylesheet" href="${webRoot}/lib/appBase/colors.css?${appVersion}" />`,
+				`<link rel="stylesheet" href="${webRoot}/lib/appBase/appBase.css?${appVersion}" />`,
+				`<link rel="stylesheet" href="${webRoot}/lib/appBase/appLayout.css?${appVersion}" />`,
+				`<link rel="stylesheet" href="./app.css?${appVersion}" />`
+			];
+			doc.writeln(`<style>@media only screen { body { overflow-y: auto !important } } button, input { visibility: hidden }</style>`);
+			for (let item of preReqList) { doc.writeln(item) } doc.writeln(`</head><body>${data}</body></html>`)
+		}
 	}
-	gridYazdir(e) {
-		e = e || {}; let {gridWidget} = this, data = gridWidget.exportdata('html');
-		let {rootPart} = e, _wnd = rootPart?.wnd; if (_wnd?.length) { _wnd.jqxWindow('close') } let wnd = openNewWindow(); if (!wnd) { return }
-		let doc = wnd.document; doc.writeln(`<html><head><title>Grid Çıktısı</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes">`);
-		let preReqList = [
-			`<link rel="stylesheet" href="${webRoot}/lib_external/jqx/css/jquery-ui.min.css" />`,
-			`<link class="theme-base" rel="stylesheet" href="${webRoot}/lib_external/jqx/css/jqx.base.min.css" />`,
-			`<link rel="stylesheet" href="${webRoot}/lib/appBase/cssClasses.css?${appVersion}" />`,
-			`<link rel="stylesheet" href="${webRoot}/lib/appBase/colors.css?${appVersion}" />`,
-			`<link rel="stylesheet" href="${webRoot}/lib/appBase/appBase.css?${appVersion}" />`,
-			`<link rel="stylesheet" href="${webRoot}/lib/appBase/appLayout.css?${appVersion}" />`,
-			`<link rel="stylesheet" href="./app.css?${appVersion}" />`
-		];
-		doc.writeln(`<style>@media only screen { body { overflow-y: auto !important } } button, input { visibility: hidden }</style>`);
-		for (let item of preReqList) { doc.writeln(item) }
-		doc.write(
-			`<script>
-			function loaded() {
-				document.body.offsetHeight;
-				window.addEventListener('beforeprint', evt => clearTimeout(this.timer_printDialogWait)); window.addEventListener('afterprint', evt => window.close());
-				setTimeout(() => { this.timer_printDialogWait = setTimeout(() => alert("Yazdırma ekranı için lütfen TAMAM butonuna ve sonra CTRL+P tuşlarına basınız"), 2000); window.print() }, 1000)
-			}
-			</script>`);
-		doc.writeln(`</head><body>${data}<script>loaded()</script></body></html>`);
+	gridYazdir(e = {}) {
+		try { this.grid.jqxGrid('exportview', 'html', 'jqxGrid') }
+		catch (ex) {
+			console.error(ex)
+			let {gridWidget} = this, data = gridWidget.exportdata('html');
+			let {rootPart} = e, _wnd = rootPart?.wnd; if (_wnd?.length) { _wnd.jqxWindow('close') }
+			let wnd = openNewWindow(); if (!wnd) { return }
+			let doc = wnd.document; doc.writeln(
+				`<html><head><title>Grid Çıktısı</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes">`);
+			let preReqList = [
+				`<link rel="stylesheet" href="${webRoot}/lib_external/jqx/css/jquery-ui.min.css" />`,
+				`<link class="theme-base" rel="stylesheet" href="${webRoot}/lib_external/jqx/css/jqx.base.min.css" />`,
+				`<link rel="stylesheet" href="${webRoot}/lib/appBase/cssClasses.css?${appVersion}" />`,
+				`<link rel="stylesheet" href="${webRoot}/lib/appBase/colors.css?${appVersion}" />`,
+				`<link rel="stylesheet" href="${webRoot}/lib/appBase/appBase.css?${appVersion}" />`,
+				`<link rel="stylesheet" href="${webRoot}/lib/appBase/appLayout.css?${appVersion}" />`,
+				`<link rel="stylesheet" href="./app.css?${appVersion}" />`
+			];
+			doc.writeln(`<style>@media only screen { body { overflow-y: auto !important } } button, input { visibility: hidden }</style>`);
+			for (let item of preReqList) { doc.writeln(item) }
+			doc.write(
+				`<script>
+				function loaded() {
+					document.body.offsetHeight;
+					window.addEventListener('beforeprint', evt => clearTimeout(this.timer_printDialogWait)); window.addEventListener('afterprint', evt => window.close());
+					setTimeout(() => { this.timer_printDialogWait = setTimeout(() => alert("Yazdırma ekranı için lütfen TAMAM butonuna ve sonra CTRL+P tuşlarına basınız"), 2000); window.print() }, 1000)
+				}
+				</script>`);
+			doc.writeln(`</head><body>${data}<script>loaded()</script></body></html>`)
+		}
 	}
 	gridSortIstendi(e) { this.getKontrolcu(e)?.gridSortIstendi?.(e) }
 	gridRowExpanded(e) { this.getKontrolcu(e)?.gridRowExpanded?.(e) }
