@@ -707,11 +707,9 @@ class SablonluSiparisDetayTemplate extends CObject {
 		$.extend(pTanim, { devreDisimi: new PInstBitBool() })
 	}
 	static hostVarsDuzenle({ det, hv }) {
-		let {grupAdi: grupadi} = det
-		$.extend(hv, { grupadi })
 		let {offlineMode: offline} = app
 		if (offline) {
-			for (let k of ['shAdi', 'brm']) { hv[k] = det[k] }
+			for (let k of ['grupadi', 'shAdi', 'brm']) { hv[k] = det[k] }
 			for (let [k, v] of Object.entries(det))
 				if (k.startsWith('sonStok')) { hv[k] = v }
 		}
