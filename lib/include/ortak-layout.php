@@ -10,6 +10,9 @@
 <div class="bg-image-wrapper"></div>
 <div class="bg-image"></div>
 <div class="header-image"></div>
+<div class="indicators">
+	<div class="ajax"></div>
+</div>
 <!--<button id="cacheReset" class="app-header-button"></button> <button id="fullScreen" class="app-header-button"></button> <button id="logout" class="app-header-button"></button>-->
 <div class="app-titlebar">
 	<div class="flex-row">

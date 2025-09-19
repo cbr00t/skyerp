@@ -19,7 +19,10 @@ class SatisKosul_Fiyat extends SatisKosul {
 			console.table(await SatisKosul_Fiyat.getAltKosulYapilar(stokKodListe, satisKosul, mustKod))
 	*/
 	static async getAltKosulYapilar(e, _satisKosul, _mustKod) {
-		let result = await this._getAltKosulYapilar(e, _satisKosul, _mustKod); if (result) {
+		let cache = this._cache ??= {}
+		let anah = toJSONStr({ ...e, _satisKosul, _mustKod })
+		let result = cache[anah] ??= await this._getAltKosulYapilar(e, _satisKosul, _mustKod)
+		if (result) {
 			for (const [xKod, rec] of Object.entries(result)) {
 				if (rec.detTip == null) { rec.detTip = 'S' }
 				if (rec.xKod == null) { rec.xKod = xKod }

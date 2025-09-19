@@ -40,7 +40,8 @@ class MQYerelParamBase extends CIO {
 		if (typeof rec == 'object') {
 			let _rec = rec; const keys = Object.keys(rec), _keys = keys.filter(key => key[0] != '_');
 			if (keys.length != _keys.length) { _rec = {}; for (const key of _keys) _rec[key] = rec[key]; rec = _rec }
-			rec = toJSONStr(rec)
+			try { rec = toJSONStr(rec) }
+			catch (ex) { debugger; throw ex }
 		}
 		e.rec = rec; await this.kaydetIslemi(e); this.kaydetSonrasi(e); return this
 	}

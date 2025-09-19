@@ -100,12 +100,34 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			new GridKolon({ belirtec: 'yeni', text: ' ', genislikCh: 8 }).noSql().tipButton('+').onClick(_e => { this.yeniIstendi({ ...e, ..._e }) })
 		])
 	}
+	static async loadServerData(e = {}) {
+		let recs = await super.loadServerData(e); let {offlineMode: offline} = app
+		let {sender: gridPart = {}} = e, {tarih, subeKod, mustKod} = gridPart
+		if (!offline && recs && mustKod) {
+			subeKod ??= config.session?.subeKod
+			let promises = []
+			for (let parentRec of recs) {
+				let {kaysayac: sablonSayac, klFirmaKod} = parentRec;
+				promises.push((async () => {
+					await this.loadServerData_detaylar({ ...e, parentRec })
+					let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod })
+					if (!fisSinif) { return }
+					let _e = { ...e }; delete _e.rec
+					let fis = new fisSinif({ sablonSayac, tarih, subeKod, mustKod, klFirmaKod })
+					await fis.sablonYukleVeBirlestir(_e)
+					await fis.yeniTanimOncesiIslemler(_e)
+				})())
+				if (promises.length == 1) { await promises[0] }
+			}
+		}
+		return recs
+	}
 	static async loadServerData_queryDuzenle({ basit, basitmi, gridPart, sender, stm, sent }) {
 		super.loadServerData_queryDuzenle(...arguments);
 		gridPart ??= sender; basitmi = basit ?? basitmi;
 		if (basitmi) { return }
-		let {konsinyemi, tableAlias: alias} = this, {mustKod} = gridPart;
-		let subeKod = gridPart.subeKod ?? config.session?.subeKod;
+		let {konsinyemi, tableAlias: alias} = this, {subeKod, mustKod} = gridPart;
+		subeKod ??= config.session?.subeKod ?? ''
 		/* let fisSinif = await this.fisSinifBelirle({ ...arguments[0], mustKod }); let {mustSaha} = fisSinif */
 		let {sahalar, where: wh} = sent, {orderBy} = stm;
 		sahalar.addWithAlias(alias, 'bvadegunkullanilir vadeGunKullanilirmi', 'vadegunu vadeGunu', 'emailadresler email_sablonEk');
@@ -216,19 +238,20 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	}
 	static async yeniIstendi(e) {
 		try {
-			let {sender: gridPart} = e, {tarih, mustKod} = gridPart;
+			let {sender: gridPart, rec} = e, {tarih, mustKod, subeKod} = gridPart;
 			if (!mustKod) { throw { isError: true, errorText: `<b>Müşteri</b> seçilmelidir` } }
 			let {event: evt} = e, {currentTarget: target} = evt; target = $(target);
 			setButonEnabled(target, false); setTimeout(() => setButonEnabled(target, true), 2000);
 			showProgress();
 			try {
-				let subeKod = gridPart.subeKod ?? config.session?.subeKod, {rec} = e, {kaysayac: sablonSayac, klFirmaKod} = rec;
-				let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod });
+				subeKod ??= config.session?.subeKod ?? ''
+				let {kaysayac: sablonSayac, klFirmaKod} = rec
+				let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod })
 				if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
-				let _e = { ...e}; delete _e.rec;
-				let fis = new fisSinif({ sablonSayac, tarih, subeKod, mustKod, klFirmaKod });
-				await fis.sablonYukleVeBirlestir(_e);
-				let islem = 'yeni', kaydedince = _e => this.tazele({ ...e, gridPart });
+				let _e = { ...e}; delete _e.rec
+				let fis = new fisSinif({ sablonSayac, tarih, subeKod, mustKod, klFirmaKod })
+				await fis.sablonYukleVeBirlestir(_e)
+				let islem = 'yeni', kaydedince = _e => this.tazele({ ...e, gridPart })
 				return await fis.tanimla({ islem, kaydedince })
 			}
 			finally { setTimeout(() => hideProgress(), 500) }

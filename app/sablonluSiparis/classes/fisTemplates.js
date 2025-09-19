@@ -128,35 +128,38 @@ class SablonluSiparisFisTemplate extends CObject {
 			if (belirtec) { numarator.belirtec = belirtec }
 		}*/
 		let kapsam = { tarih, subeKod, mustKod };
-		let anah2KosulYapi = SatisKosulYapi._anah2KosulYapi ??= {};
+		let anah2KosulYapi = SatisKosulYapi._anah2KosulYapi ??= {}
 		let kosulYapilar = anah2KosulYapi[toJSONStr(kapsam)] ??= await SatisKosulYapi.uygunKosullar({ kapsam });
-		let sent = new MQSent({
-			from: 'hizlisablon sab', fromIliskiler: [
-				{ from: 'hizlisablongrup grp', iliski: 'grp.fissayac = sab.kaysayac' },
-				{ from: 'hizlisablondetay har', iliski: 'har.grupsayac = grp.kaysayac' },
-				{ from: 'stkmst stk', iliski: 'har.stokkod = stk.kod' },
-				{ alias: 'stk', leftJoin: 'urunpaket upak', on: ['stk.kod = upak.urunkod', `upak.varsayilan <> ''`] }
-			],
-			where: [
-				{ degerAta: sablonSayac, saha: 'sab.kaysayac' },
-				`stk.silindi = ''`, `stk.satilamazfl = ''`
-			],
-			sahalar: [
-				'grp.kaysayac grupsayac', 'grp.seq grupseq', 'grp.grupadi', 'har.seq', 'har.bdevredisi',
-				'har.stokkod shkod', 'stk.aciklama shadi', 'stk.brm', 'upak.urunmiktari paketicadet'
-			]
-		}), {sahalar, where: wh} = sent;
-		if (!onaylami) { wh.add(`har.bdevredisi = 0`) }
-		wh.icerikKisitDuzenle_stok({ saha: 'har.stokkod' });
-		if (konsinyemi && yenimi) {    /* Yeni fiş için KL Dağıtım bağlantısı yoksa recs boş dönsün */
-			sent.fromIliski('kldagitim dag', [`dag.mustkod = ${mustKod.sqlServerDegeri()}`, 'sab.klfirmakod = dag.klfirmakod']) }
-		let ekOzellikler = Array.from(HMRBilgi.hmrIter_ekOzellik());
-		for (let {table, tableAlias: alias, rowAttr, rowAdiAttr} of ekOzellikler) {
-			sent.fromIliski(`${table} ${alias}`, `har.${rowAttr} = ${alias}.kod`);
-			sahalar.add(`har.${rowAttr}`, `${alias}.aciklama ${rowAdiAttr}`)
-		}
-		let stm = new MQStm({ sent, orderBy: ['fissayac', 'grupseq', 'seq'] });
-		let recs = await app.sqlExecSelect(stm);
+		let ekOzellikler = Array.from(HMRBilgi.hmrIter_ekOzellik())
+		let cache_urunler = this._cache_urunler ??= {}
+		let recs = cache_urunler[toJSONStr({ konsinyemi, sablonSayac, mustKod })] ??= await (async () => {
+			let sent = new MQSent({
+				from: 'hizlisablon sab', fromIliskiler: [
+					{ from: 'hizlisablongrup grp', iliski: 'grp.fissayac = sab.kaysayac' },
+					{ from: 'hizlisablondetay har', iliski: 'har.grupsayac = grp.kaysayac' },
+					{ from: 'stkmst stk', iliski: 'har.stokkod = stk.kod' },
+					{ alias: 'stk', leftJoin: 'urunpaket upak', on: ['stk.kod = upak.urunkod', `upak.varsayilan <> ''`] }
+				],
+				where: [
+					{ degerAta: sablonSayac, saha: 'sab.kaysayac' },
+					`stk.silindi = ''`, `stk.satilamazfl = ''`
+				],
+				sahalar: [
+					'grp.kaysayac grupsayac', 'grp.seq grupseq', 'grp.grupadi', 'har.seq', 'har.bdevredisi',
+					'har.stokkod shkod', 'stk.aciklama shadi', 'stk.brm', 'upak.urunmiktari paketicadet'
+				]
+			}), {sahalar, where: wh} = sent;
+			if (!onaylami) { wh.add(`har.bdevredisi = 0`) }
+			wh.icerikKisitDuzenle_stok({ saha: 'har.stokkod' });
+			if (konsinyemi && yenimi) {    /* Yeni fiş için KL Dağıtım bağlantısı yoksa recs boş dönsün */
+				sent.fromIliski('kldagitim dag', [`dag.mustkod = ${mustKod.sqlServerDegeri()}`, 'sab.klfirmakod = dag.klfirmakod']) }
+			for (let {table, tableAlias: alias, rowAttr, rowAdiAttr} of ekOzellikler) {
+				sent.fromIliski(`${table} ${alias}`, `har.${rowAttr} = ${alias}.kod`);
+				sahalar.add(`har.${rowAttr}`, `${alias}.aciklama ${rowAdiAttr}`)
+			}
+			let stm = new MQStm({ sent, orderBy: ['fissayac', 'grupseq', 'seq'] });
+			return await app.sqlExecSelect(stm)
+		})()
 		if (!(offline || recs?.length)) {
 			let mustUnvan = mustKod ? await MQSCari.getGloKod2Adi(mustKod) : null;
 			let sablonAdi = sablonSayac ? await MQSablonOrtak.getGloKod2Adi(sablonSayac) : null;
@@ -577,7 +580,7 @@ class SablonluSiparisFisTemplate extends CObject {
 			fis.seri = 'OFF'
 			fis.fisNo = cache.length + 1
 		}
-		let hv = { _cls: fis.class.name, _offline: true, kaysayac: id, ...fis.asExportData }
+		let fisObj = { _cls: fis.class.name, _offline: true, kaysayac: id, ...fis.asExportData }
 		let converted = obj => isDate(obj) ? dateToString(obj) : obj
 		let reduced = obj => {
 			if (!obj) { return obj }
@@ -594,7 +597,7 @@ class SablonluSiparisFisTemplate extends CObject {
 			// for (let key of ['fissayac', this.sayacSaha]) { delete result[key] }
 			return result
 		}
-		let data = { ...reduced(hv) }
+		let data = { ...reduced(fisObj) }
 		cache.set(id, data); offlineFisCache.kaydetDefer()
 		return true
 	}

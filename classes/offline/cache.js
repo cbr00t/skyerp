@@ -42,7 +42,10 @@ class LocalCache extends MQLocalTable {
 	}
 	record() { this.recording = true; return this } stop() { this.recording = false; return this }
 	fixKey(key) {
-		if (typeof key == 'object') { key = toJSONStr(key) }
+		if (typeof key == 'object') {
+			try { key = toJSONStr(key) }
+			catch (ex) { debugger; throw ex }
+		}
 		if (key) {
 			key = key.replaceAll('\\r', '').replaceAll('\\n', ' ').replaceAll('\\t', ' ')
 					   .replaceAll('\r', '').replaceAll('\n', ' ').replaceAll('\t', ' ').trim()

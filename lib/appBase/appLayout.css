@@ -237,3 +237,15 @@ body.kiosk > .app-titlebar .db-name,
 	body.kiosk #root-parent > #ust-parent > #parent > #windows-parent #windows > ul,
 	body.kiosk #root-parent > #ust-parent > #parent > main #anaMenu { display: none !important }
 body.kiosk { --tabs-tabPage-height: 0px }
+
+body > .indicators { position: fixed; bottom: 40px; right: 5px; width: 40px; height: 15px; z-index: 1300 !important; padding: 0 10px; user-select: none !important; opacity: .5 }
+body > .indicators > * { position: relative; width: 15px; height: var(--full); border: 1px solid #f0f0f0; border-radius: 40px }
+body > .indicators > *:not(:first-child) { margin-left: 20px }
+/*body > .indicators > .ajax:not(.running):not(.error) { visibility: hidden }*/
+body > .indicators > .ajax { animation: 50ms ease-out 0ms infinite normal animation--ajax }
+body > .indicators > .ajax:not(.running):not(.error) { animation: unset }
+body > .indicators > .ajax.running { background: forestgreen }
+body > .indicators > .ajax.error { background: firebrick }
+@keyframes animation--ajax {
+	50% { opacity: .7 }
+}

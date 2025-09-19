@@ -127,48 +127,59 @@ class SatisKosul extends CKodVeAdi {
 		kapsam.setValues(arguments[0], alimmi)
 	}
 	async getAltKosullar(e) {
-		e = e ?? {}; let _satisKosul = this, {iskontoYokmu, promosyonYokmu} = this;
-		let stokKodListe = $.makeArray(typeof e == 'object' && !$.isArray(e) ? e.stokKodListe ?? e.kodListe : e);
-		let result = {}; if ($.isEmptyObject(stokKodListe)) { return result }
-		let stok2GrupKod = {}, grup2StokKodSet = {};
-		{	/* Stoklar için Grup Kodlarını belirle */
-			let sent = new MQSent({
-				from: 'stkmst stk', sahalar: ['stk.kod stokKod', 'stk.grupkod grupKod'],
-				where: [{ inDizi: stokKodListe, saha: 'stk.kod' }, `stk.grupkod > ''`]
-			});
-			for (let {stokKod, grupKod} of await app.sqlExecSelect(sent)) {
-				if (!grupKod) { continue } stok2GrupKod[stokKod] = grupKod;
-				(grup2StokKodSet[grupKod] = grup2StokKodSet[grupKod] ?? {})[stokKod] = true
-			}
-		}
-		{	/* Stok Gruplar için Alt Koşulları belirle (init values - öncelik #2) */
-			let stm = new MQStm(), {sent} = stm, kodListe = Object.keys(grup2StokKodSet);
-			let _e = { ...e, kodListe, stm, sent, grupmu: true }; if (this.getAltKosullar_queryDuzenle(_e) !== false) {
-				stm = _e.stm; sent = _e.sent; let sevRecs = seviyelendir({ source: await app.sqlExecSelect(stm), attrListe: ['xKod'] });
-				let detTip = 'G'; for (let {detaylar} of sevRecs) {
-					for (let _rec of detaylar) {
-						let {xKod: grupKod} = _rec; if (!grupKod) { continue }										  /* sent.where koşulundan dolayı normalde boş grupKod gelmemesi gerekir, sadece önlem */
-						let stokKodSet = grup2StokKodSet[grupKod]; if ($.isEmptyObject(stokKodSet)) { continue }		  /* grupKod'a ait stokKod liste boş ise işlem yapma. normalde bu dict values içeriğinin boş gelmemesi bekleniyor */
-						$.extend(_rec, { _satisKosul, detTip, iskontoYokmu, promosyonYokmu });							  /* ortak değerleri orijinal _rec içine ata */
-						for (let xKod in stokKodSet) { let rec = { ..._rec, xKod }; result[xKod] = rec }				  /* grupKod'a ait her 'stokKod' için kopya kayıt ile result'a eklenti yap */
+		e ??= {}; let _satisKosul = this, {iskontoYokmu, promosyonYokmu} = this;
+		//let stokKodListe = $.makeArray(typeof e == 'object' && !$.isArray(e) ? e.stokKodListe ?? e.kodListe : e);
+		//if ($.isEmptyObject(stokKodListe)) { return {} }
+		let anah = '_', cache = _satisKosul._altKosullar ??= {};
+		return cache[anah] ??= await (async () => {
+			let _ = cache['_stokGrupTablo'] ??= await (async () => {
+				let result = { grup2StokKodSet: {}, stok2GrupKod: {} }
+				{	/* Stoklar için Grup Kodlarını belirle */
+					let sent = new MQSent({
+						from: 'stkmst stk', sahalar: ['stk.kod stokKod', 'stk.grupkod grupKod'],
+						where: [/*{ inDizi: stokKodListe, saha: 'stk.kod' },*/ `stk.grupkod > ''`]
+					});
+					for (let {stokKod, grupKod} of await app.sqlExecSelect(sent)) {
+						if (!grupKod) { continue }
+						result.stok2GrupKod[stokKod] = grupKod;
+						(result.grup2StokKodSet[grupKod] = result.grup2StokKodSet[grupKod] ?? {})[stokKod] = true
+					}
+				}
+				return result
+			})()
+			let {stok2GrupKod, grup2StokKodSet} = _, result = {}
+			{	/* Stok Gruplar için Alt Koşulları belirle (init values - öncelik #2) */
+				let stm = new MQStm(), {sent} = stm, kodListe = Object.keys(grup2StokKodSet);
+				let _e = { ...e, kodListe, stm, sent, grupmu: true };
+				if (this.getAltKosullar_queryDuzenle(_e) !== false) {
+					stm = _e.stm; sent = _e.sent;
+					let sevRecs = seviyelendir({ source: await app.sqlExecSelect(stm), attrListe: ['xKod'] });
+					let detTip = 'G'; for (let {detaylar} of sevRecs) {
+						for (let _rec of detaylar) {
+							let {xKod: grupKod} = _rec; if (!grupKod) { continue }										  /* sent.where koşulundan dolayı normalde boş grupKod gelmemesi gerekir, sadece önlem */
+							let stokKodSet = grup2StokKodSet[grupKod]; if ($.isEmptyObject(stokKodSet)) { continue }		  /* grupKod'a ait stokKod liste boş ise işlem yapma. normalde bu dict values içeriğinin boş gelmemesi bekleniyor */
+							$.extend(_rec, { _satisKosul, detTip, iskontoYokmu, promosyonYokmu });							  /* ortak değerleri orijinal _rec içine ata */
+							for (let xKod in stokKodSet) { let rec = { ..._rec, xKod }; result[xKod] = rec }				  /* grupKod'a ait her 'stokKod' için kopya kayıt ile result'a eklenti yap */
+						}
 					}
 				}
 			}
-		}
-		{	/* Stoklar için Alt Koşulları belirle (with override - öncelik #1) */
-			let stm = new MQStm(), {sent} = stm, kodListe = stokKodListe;
-			let _e = { ...e, kodListe, stm, sent, grupmu: false }; if (this.getAltKosullar_queryDuzenle(_e) !== false) {
-				stm = _e.stm; sent = _e.sent; let sevRecs = seviyelendir({ source: await app.sqlExecSelect(stm), attrListe: ['xKod'] });
-				let detTip = 'S'; for (let {detaylar} of sevRecs) {
-					for (let rec of detaylar) {
-						let {xKod} = rec; if (!xKod) { continue }														 /* stokKod boş ise işlem yapma. normalde boş gelmemesi bekleniyor */
-						$.extend(rec, { _satisKosul, detTip, iskontoYokmu, promosyonYokmu });							 /* ortak değerleri ata */
-						result[xKod] = rec																				 /* result'a eklenti yap */
+			{	/* Stoklar için Alt Koşulları belirle (with override - öncelik #1) */
+				let stm = new MQStm(), {sent} = stm  /*, kodListe = stokKodListe;*/
+				let _e = { ...e, /*kodListe,*/ stm, sent, grupmu: false }; if (this.getAltKosullar_queryDuzenle(_e) !== false) {
+					stm = _e.stm; sent = _e.sent
+					let sevRecs = seviyelendir({ source: await app.sqlExecSelect(stm), attrListe: ['xKod'] });
+					let detTip = 'S'; for (let {detaylar} of sevRecs) {
+						for (let rec of detaylar) {
+							let {xKod} = rec; if (!xKod) { continue }														 /* stokKod boş ise işlem yapma. normalde boş gelmemesi bekleniyor */
+							$.extend(rec, { _satisKosul, detTip, iskontoYokmu, promosyonYokmu })							 /* ortak değerleri ata */
+							result[xKod] = rec																				 /* result'a eklenti yap */
+						}
 					}
 				}
 			}
-		}
-		return result
+			return result
+		})()
 	}
 	getAltKosullar_queryDuzenle({ stm, sent, kodListe, grupmu }) {
 		let {table, detayTables, fisSayacSaha} = this.class, {sayac, kapsam} = this, {mustKod} = kapsam;
