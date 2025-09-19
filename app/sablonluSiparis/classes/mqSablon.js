@@ -18,37 +18,40 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		})
 	}
 	static listeEkrani_init({ gridPart, sender }) {
-		super.listeEkrani_init(...arguments); gridPart = gridPart ?? sender;
+		super.listeEkrani_init(...arguments); gridPart = gridPart ?? sender
 		gridPart.tarih = today(); gridPart.rowNumberOlmasin()
 	}
 	static rootFormBuilderDuzenle_listeEkrani(e) {
-		super.rootFormBuilderDuzenle_listeEkrani(e); let {konsinyemi} = this, session = config.session ?? {};
-		let gridPart = e.gridPart ?? e.sender, {header, islemTuslariPart} = gridPart, {layout, sol} = islemTuslariPart;
-		let loginTipi = session.loginTipi || 'login', loginSubemi = loginTipi == 'login' && session.subeKod != null, loginMusterimi = loginTipi == 'musteri';
-		let subeKod = gridPart.subeKod = loginSubemi ? session.subeKod : qs.subeKod ?? qs.sube;
-		let mustKod = gridPart.mustKod = loginMusterimi ? session.kod : qs.mustKod ?? qs.must;
-		let {rootBuilder: rfb} = e; rfb.setInst(gridPart).addStyle(
-			`$elementCSS { --header-height: 160px !important } $elementCSS .islemTuslari { overflow: hidden !important }`);
+		super.rootFormBuilderDuzenle_listeEkrani(e)
+		let {konsinyemi} = this, session = config.session ?? {}
+		let {gridPart = e.sender, rootBuilder: rfb} = e
+		let {header, islemTuslariPart} = gridPart, {layout, sol} = islemTuslariPart
+		let loginTipi = session.loginTipi || 'login', loginSubemi = loginTipi == 'login' && session.subeKod != null, loginMusterimi = loginTipi == 'musteri'
+		let subeKod = gridPart.subeKod = loginSubemi ? session.subeKod : qs.subeKod ?? qs.sube
+		let mustKod = gridPart.mustKod = loginMusterimi ? session.kod : qs.mustKod ?? qs.must
+		rfb.setInst(gridPart).addStyle(
+			`$elementCSS { --header-height: 160px !important } $elementCSS .islemTuslari { overflow: hidden !important }`)
 		let setKA = async (fbdOrLayout, kod, aciklama) => {
 			let elm = fbdOrLayout?.layout ?? fbdOrLayout; if (!elm?.length) { return }
 			if (kod) {
 				aciklama = await aciklama; if (!aciklama) { return }
-				let text = aciklama?.trim(); if (kod && typeof kod == 'string') {
-					text = `<span class="kod bold gray">${kod}</b> <span class="aciklama royalblue normal">${aciklama}</span>` }
-				elm.html(text.trim()); elm.removeClass('jqx-hidden basic-hidden')
+				let text = aciklama?.trim()
+				if (kod && typeof kod == 'string') { text = `<span class="kod bold gray">${kod}</b> <span class="aciklama royalblue normal">${aciklama}</span>` }
+				elm.html(text.trim())
+				elm.removeClass('jqx-hidden basic-hidden')
 			}
 			else { elm.addClass('jqx-hidden') }
 		};
-		sol.addClass('flex-row'); rfb.addDateInput('tarih', 'İşlem Tarihi').setParent(sol).etiketGosterim_yok()
+		sol.addClass('flex-row')
+		rfb.addDateInput('tarih', 'İşlem Tarihi').setParent(sol).etiketGosterim_yok()
 			.degisince(({ builder: fbd }) => fbd.rootPart.tazeleDefer(e))
-			.addStyle(e => `$elementCSS { margin-left: 30px } $elementCSS > input { width: 130px !important }`);
+			.addStyle(e => `$elementCSS { margin-left: 30px } $elementCSS > input { width: 130px !important }`)
+		rfb.addButton('snapshot', 'SNP').setParent(sol).addStyle_wh(150, 50)
+			.onClick(_e => this.snapshotIstendi({ ...e, ..._e }))
 		if (!konsinyemi && subeKod == null) {
 			rfb.addModelKullan('subeKod', 'Şube').dropDown().setMFSinif(MQSube).autoBind().etiketGosterim_yok().setParent(sol)
 				.ozelQueryDuzenleHandler(({ builder: fbd, aliasVeNokta, stm }) => {
-					for (let {where: wh} of stm.getSentListe()) {
-						wh.add(`${aliasVeNokta}silindi = ''`)
-						/*wh.icerikKisitDuzenle_sube({ saha: `${aliasVeNokta}kod` })*/
-					}
+					for (let {where: wh} of stm) { wh.add(`${aliasVeNokta}silindi = ''`) }
 				}).degisince(({ builder: fbd }) => fbd.rootPart.tazeleDefer(e))
 				.onAfterRun(({ builder: fbd }) => gridPart.fbd_sube = fbd)
 				.addStyle(e => `$elementCSS { width: 450px !important; margin: 5px 0 0 30px }`)
@@ -79,23 +82,25 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 						if (konsinyemi) { sahalar.add(`${alias}.bolgekod`, 'bol.bizsubekod') }
 					}
 				}).degisince(async ({ builder: fbd, item: rec }) => {
-					if (konsinyemi) {
-						gridPart.tazeleDefer(e) }
+					if (konsinyemi)
+						gridPart.tazeleDefer(e)
 					else {
-						let {bizsubekod: subeKod} = rec, {fbd_sube} = gridPart;
+						let {bizsubekod: subeKod} = rec, {fbd_sube} = gridPart
 						if (subeKod == null) { gridPart.tazeleDefer(e) }
 						else { gridPart.subeKod = subeKod; fbd_sube?.part?.val(subeKod) }
 					}
 				})
-				.onAfterRun(({ builder: fbd }) => gridPart.fbd_must = fbd)
+				.onAfterRun(({ builder: fbd }) =>
+					gridPart.fbd_must = fbd)
 		}
 	}
 	static orjBaslikListesi_argsDuzenle({ args }) {
-		super.orjBaslikListesi_argsDuzenle(...arguments);
+		super.orjBaslikListesi_argsDuzenle(...arguments)
 		$.extend(args, { rowsHeight: 60, groupable: false, selectionMode: 'none' })
 	}
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); e.liste.push(...[
+	static orjBaslikListesiDuzenle({ liste }) {
+		let e = arguments[0]; super.orjBaslikListesiDuzenle(e)
+		liste.push(...[
 			new GridKolon({ belirtec: 'topSayi', text: 'Sip.Sayı', genislikCh: 10 }).noSql().tipNumerik(),
 			new GridKolon({ belirtec: 'yeni', text: ' ', genislikCh: 8 }).noSql().tipButton('+').onClick(_e => { this.yeniIstendi({ ...e, ..._e }) })
 		])
@@ -103,22 +108,34 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	static async loadServerData(e = {}) {
 		let recs = await super.loadServerData(e); let {offlineMode: offline} = app
 		let {sender: gridPart = {}} = e, {tarih, subeKod, mustKod} = gridPart
-		if (!offline && recs && mustKod) {
+		if (!offline && recs && tarih && mustKod) {
 			subeKod ??= config.session?.subeKod
-			let promises = []
-			for (let parentRec of recs) {
-				let {kaysayac: sablonSayac, klFirmaKod} = parentRec;
-				promises.push((async () => {
-					await this.loadServerData_detaylar({ ...e, parentRec })
-					let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod })
-					if (!fisSinif) { return }
-					let _e = { ...e }; delete _e.rec
-					let fis = new fisSinif({ sablonSayac, tarih, subeKod, mustKod, klFirmaKod })
-					await fis.sablonYukleVeBirlestir(_e)
-					await fis.yeniTanimOncesiIslemler(_e)
-				})())
-				if (promises.length == 1) { await promises[0] }
-			}
+			let prefetchData = this.prefetchData ??= {}
+			let anah = toJSONStr({ tarih: dateToString(tarih), mustKod })
+			prefetchData[anah] ??= (async () => {
+				let MinCalcCount = 2, calculated = 0
+				let promises = [], curPromise
+				for (let parentRec of recs) {
+					let {kaysayac: sablonSayac, klFirmaKod} = parentRec;
+					curPromise = (async () => {
+						await this.loadServerData_detaylar({ ...e, parentRec })
+						let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod })
+						if (!fisSinif) { return }
+						let _e = { ...e }; delete _e.rec
+						let fis = new fisSinif({ sablonSayac, tarih, subeKod, mustKod, klFirmaKod })
+						await fis.sablonYukleVeBirlestir(_e)
+						await fis.yeniTanimOncesiIslemler(_e)
+						calculated++
+						return ({ rec: parentRec, fisSinif, fis })
+					})()
+					promises.push(curPromise)
+					if (calculated < MinCalcCount && curPromise) {
+						try { await curPromise }
+						catch (ex) { console.error('prefetch', ex) }
+					}
+				}
+				return Promise.allSettled(promises)
+			})()
 		}
 		return recs
 	}
@@ -235,6 +252,68 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 				{ from: 'hizlisablon sab', iliski: 'kmax.sablonsayac = sab.kaysayac' }
 			]
 		})
+	}
+	static async snapshotIstendi({ sender: gridPart }) {
+		let islemAdi = 'Snapshot', {tarih, mustKod} = gridPart
+		if (!tarih) { hConfirm(`<b>Tarih</b> belirtilmelidir`, islemAdi); return }
+		if (!mustKod) { hConfirm(`<b>Müşteri</b> belirtilmelidir`, islemAdi); return }
+		let {prefetchData} = this; if (!prefetchData) { return }
+		let anah = toJSONStr({ tarih: dateToString(tarih), mustKod })
+		showProgress('Önbellek verisi bekleniyor...', islemAdi)
+		try {
+			let data = await prefetchData?.[anah]; if (!data) { return }
+			let ignoreKeys = asSet(['uid', 'uniqueid', 'boundindex', 'visibleindex', '_rowNumber'])
+			let reduced = (obj, root) => {
+				if (isDate(obj)) { obj = dateToString(obj) }
+				else if (!root && (obj == null || typeof obj == 'object')) { return undefined }
+				else if (typeof obj == 'string' && !obj) { return undefined }
+				else if (obj?.length != null && $.isEmptyObject(obj)) { return undefined }
+				if (typeof obj == 'object') {
+					for (let [k, v] of Object.entries(obj)) {
+						if (ignoreKeys[k]) { delete obj[k]; continue }
+						let nv = reduced(v, false)
+						if (nv === undefined) { delete obj[k]; continue }
+						if (nv !== v) { obj[k] = nv }
+					}
+				}
+				return obj
+			}
+			data = data.filter(_ => _.status == 'fulfilled')
+			   .flatMap(({ value: { rec, fis: { detaylar } } }) =>
+				   detaylar.map(det => reduced({ ...rec, ...det.asExportData }, true)))
+			// let dumpData = toJSONStr(data)
+			{
+				let wRFB = new RootFormBuilder('snapshot').asWindow('Önizleme').addCSS('part');
+				wRFB.addIslemTuslari('islemTuslari')
+					.setTip('tazeleVazgec')
+					.setId2Handler({
+						tazele: ({ builder: { rootPart } }) => rootPart.tazele(),
+						vazgec: ({ builder: { rootPart } }) => rootPart.close()
+					})
+					.addStyle(e => `$elementCSS .butonlar.part > .sol { z-index: -1; background-color: unset !important; background: transparent !important }`)
+				let fbd_content = wRFB.addFormWithParent('content').altAlta()
+					.addStyle_fullWH(null, 'calc(var(--full) - 80px)')
+					.addStyle(
+						`$elementCSS { position: relative; top: 10px; z-index: 100 } $elementCSS > button { margin: 0 0 10px 10px }
+						 $elementCSS > button.jqx-fill-state-normal { background-color: whitesmoke !important }
+						 $elementCSS > button.jqx-fill-state-pressed { background-color: royalblue !important }`
+					)
+				let groups = ['aciklama', 'grupAdi']
+				let colDefs = [...new SablonluSiparisGridciOrtak().tabloKolonlari]
+				let belirtecSet = asSet(colDefs.map(_ => _.belirtec))
+				for (let belirtec of groups) {
+					if (belirtecSet[belirtec]) { continue }
+					colDefs.push(new GridKolon({ belirtec }).hidden())
+				}
+				fbd_content.addGridliGosterici('grid').addStyle_fullWH()
+					.setSource(data).setTabloKolonlari(colDefs)
+					.widgetArgsDuzenleIslemi(({ args }) => $.extend(args, { groupsExpandedByDefault: true }))
+					.veriYukleninceIslemi(({ builder: { input: grid } }) => grid.jqxGrid('groups', groups))
+				wRFB.run()
+			}
+			// debugger
+		}
+		finally { hideProgress() }
 	}
 	static async yeniIstendi(e) {
 		try {
@@ -711,8 +790,6 @@ class MQSablonDetay extends MQSablonOrtakDetay {
 class MQKonsinyeSablonDetay extends MQSablonOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQKonsinyeSablon }
 }
-
-
 
 
 /*

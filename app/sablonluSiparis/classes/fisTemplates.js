@@ -737,9 +737,9 @@ class SablonluSiparisGridciTemplate extends CObject {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get fisTemplateSinif() { return SablonluSiparisFisTemplate } static get sablonSinif() { return this.fisTemplateSinif.sablonSinif }
 	static gridArgsDuzenle({ gridPart, sender, inst, args }) {
-		gridPart ??= sender; let {fis} = gridPart; gridPart.sabit();
-		let {onayliTipler} = SiparisFis, {onayTipi} = fis;
-		let onaylimi = onayliTipler.includes(onayTipi.char ?? onayTipi);
+		gridPart ??= sender; let {fis = {}} = gridPart; gridPart.sabit()
+		let {onayliTipler} = SiparisFis, {onayTipi} = fis
+		let onaylimi = onayliTipler.includes(onayTipi?.char ?? onayTipi);
 		$.extend(args, { editable: !onaylimi, rowsHeight: 45, groupsExpandedByDefault: true, editMode: 'click', selectionMode: 'multiplerowsextended' })
 	}
 	static tabloKolonlariDuzenle_ilk({ tabloKolonlari }) {

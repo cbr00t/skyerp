@@ -75,7 +75,7 @@ class DAltRapor_GridGruplu extends DAltRapor_Grid {
 		if (groups.length) { grid.jqxGrid('groups', groups) } /*if (groups.length) { for (const belirtec of groups) { gridWidget.hidecolumn(belirtec) } }*/
 	}
 	gruplamalarIstendi(e) {
-		const {gridPart, gruplamalar} = this, {gruplamaKAListe} = this.class;
+		let {gridPart, gruplamalar} = this, {gruplamaKAListe} = this.class;
 		let wRFB = new RootFormBuilder('gruplamalar').addCSS('part');
 		wRFB.addIslemTuslari('islemTuslari').setTip('tamam').setId2Handler({ tamam: e => wnd.jqxWindow('close') })
 			.addStyle(e => `$elementCSS .butonlar.part > .sol { z-index: -1; background-color: unset !important; background: transparent !important }`);
