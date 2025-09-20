@@ -264,16 +264,20 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		showProgress('Önbellek verisi bekleniyor...', islemAdi)
 		try {
 			let data = await prefetchData?.[anah]; if (!data) { return }
-			let groups = ['aciklama', 'grupAdi'];
+			let groups = ['_sablonAdi', '_grupAdi'], groupsSet = asSet(groups)
+			let removeBelirtecSet = asSet(['aciklama', 'grupAdi', 'brm', 'fiyat', 'iskOranlar', 'brutBedel', 'netBedel', 'bedel'])
 			let colDefs = [...new SablonluSiparisGridciOrtak().tabloKolonlari]
+				.filter(_ => !(groupsSet[_.belirtec] || removeBelirtecSet[_.belirtec]))
 			for (let _ of colDefs) {
-				let {text} = _
+				let {belirtec, text} = _
 				if (text && hasHTML(text)) { text = _.text = getTagContent(text) }
+				if (belirtec == 'miktar') { _.text = 'Paket İçi' }
 			}
 			let belirtecSet = asSet(colDefs.map(_ => _.belirtec))
+			// colDefs.push(new GridKolon({ belirtec: '_sep1', text: ' ' }).hidden())
 			for (let belirtec of groups) {
 				if (belirtecSet[belirtec]) { continue }
-				colDefs.push(new GridKolon({ belirtec, text: ' ', genislikCh: 50 }).hidden())
+				colDefs.push(new GridKolon({ belirtec, text: ' ' }).hidden())
 			}
 			let ignoreKeys = asSet(['uid', 'uniqueid', 'boundindex', 'visibleindex', '_rowNumber'])
 			let notNullKeys = asSet(colDefs.map(_ => _.belirtec))
@@ -297,14 +301,25 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			   .flatMap(({ value: { rec, fis: { detaylar } } }) =>
 				   detaylar.map(det => reduced({ ...rec, ...det.asExportData }, true)))
 			notNullKeys = Object.keys(notNullKeys)
+			let space = count => ' '.repeat(count)
+			let converted = (det, key) => {
+				switch (key) {
+					case '_sablonAdi': return `${det.aciklama || ''}`
+					case '_grupAdi': return `${space(4)}${det.grupAdi || ''}`
+					case 'stokText': return `_${space(6)}(${det.shKod}) ${det.shAdi}`
+					case 'miktar': return det.paketIcAdet || ''
+					// default: if (key.startsWith('_sep')) { return '.' } break
+				}
+				return det[key] ?? ''
+			}
 			for (let det of data)
 				for (let key of notNullKeys) {
-					let value = det[key] ??= ''
+					let _value = det[key], value = converted(det, key)
 					if (hasHTML(value)) {
 						value = getTagContent(value)
 						if (hasHTML(value)) { value = $(value).text() }
-						det[key] = value
 					}
+					if (value !== _value) { det[key] = value }
 				}
 			// let dumpData = toJSONStr(data)
 			{
