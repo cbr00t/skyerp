@@ -17,7 +17,8 @@ class MQCari extends MQKAOrtak {
 		let recs = await app.wsPlasiyerIcinCariler(wsArgs); if (recs && selector && user) { recs = recs.filter(rec => rec[selector] == user) }
 		for (const rec of recs) {
 			const {plasiyerKod, plasiyerAdi} = rec; let plasiyerText = plasiyerKod;
-			if (plasiyerAdi) { plasiyerText += ` <b>${plasiyerAdi}</b>` } rec.plasiyerText = plasiyerText
+			if (plasiyerAdi) { plasiyerText += ` - ${plasiyerAdi}` }
+			rec.plasiyerText = plasiyerText
 		}
 		return recs
 	}

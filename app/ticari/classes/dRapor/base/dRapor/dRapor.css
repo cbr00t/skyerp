@@ -30,15 +30,41 @@
 /*.dRapor.part #items > .item > :not(label) { max-height: calc(var(--full) - 50px) }*/
 .dRapor.part #items > .item > * { }
 .dRapor.part #items > .item.hasFocus { z-index: 1001 }
-.dRapor.part #items:has(.jqx-grid:focus), .dRapor.part #items:has(.jqx-grid  *:focus) { overflow: hidden !important }
+.dRapor.part #items:has(.jqx-grid:focus),
+	.dRapor.part #items:has(.jqx-grid  *:focus) { overflow: hidden !important }
 @media (max-height: 1000px) { .dRapor.part #items > .item { height: 350px } }
 @media (max-height: 800px) { .dRapor.part #items > .item { width: 25%; height: 300px } }
-.dRapor.part #items.maximized > .item.maximized { width: var(--full) !important; height: var(--full) !important }
-.dRapor.part #items.maximized > .item:not(.maximized) { display: none }
-.dRapor.part #items > .item > [data-builder-id = 'fullScreen'] { position: absolute; width: 32px !important; height: 32px !important; top: 3px !important; right: -10px !important; z-index: 1100 !important; box-sizing: border-box !important }
-.dRapor.part #items > .item > [data-builder-id = 'fullScreen'] button { width: var(--full) !important; height: var(--full) !important; background-color: transparent !important; background-size: contain !important }
-.dRapor.part #items > .item > [data-builder-id = 'fullScreen'] button.jqx-fill-state-normal { opacity: .5 }
-.dRapor.part #items > .main.item > [data-builder-id = 'fullScreen'] { top: 8px !important; right: 0 !important }
+.dRapor.part #items.maximized > .item.maximized,
+	.dPanel.part .items.maximized :has(.item.maximized) { width: var(--full) !important; height: var(--full) !important }
+.dRapor.part #items.maximized > .item:not(.maximized),
+	.dPanel.part .items.maximized > :not(:has(.maximized)) { display: none }
+.dRapor.part #items > .item > [data-builder-id = 'fullScreen'],
+	.dRapor.part #items > .item > [data-builder-id = 'close']
+{
+	position: absolute; width: 32px !important; height: 32px !important;
+	top: 3px !important; z-index: 1100 !important; box-sizing: border-box !important;
+	background-color: transparent !important; background-size: contain !important;
+	background-position: center !important; background-repeat: no-repeat !important
+}
+.dPanel .dRapor.part #items > .item > [data-builder-id = 'fullScreen'],
+	.dPanel .dRapor.part #items > .item > [data-builder-id = 'close'] { width: 24px !important; height: 24px !important }
+.dRapor.part #items > .item > [data-builder-id = 'fullScreen'] button,
+	.dRapor.part #items > .item > [data-builder-id = 'close'] button
+{
+	width: var(--full) !important; height: var(--full) !important; margin-top: -3px !important;
+	z-index: 1101 !important
+}
+.dRapor.part #items > .item > [data-builder-id = 'fullScreen'] button.jqx-fill-state-normal,
+	.dRapor.part #items > .item > [data-builder-id = 'close'] button.jqx-fill-state-normal { opacity: .5 }
+.dRapor.part #items > .main.item > [data-builder-id = 'fullScreen'],
+	.dRapor.part #items > .main.item > [data-builder-id = 'close'] { top: 8px !important; right: 0 !important }
+.dRapor.part #items > .item > [data-builder-id = 'fullScreen'] { right: -10px !important }
+.dPanel .dRapor.part #items > .item > [data-builder-id = 'fullScreen'] { right: 40px !important }
+.dPanel .dRapor.part #items > .item > [data-builder-id = 'close'] {
+	top: 1px !important; right: -10px !important; background-size: 50px !important;
+	background-image: url('../../../../../../images/x.png') !important;
+	
+}
 .dRapor.part #items > .item > label {
 	position: relative !important; overflow-y: auto !important;
 	font-weight: bold; font-size: 135%; color: #888; background-color: #eee;

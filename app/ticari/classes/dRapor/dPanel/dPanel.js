@@ -36,6 +36,84 @@ class DPanel extends Part {
 		let kod = typeof e == 'object' ? (e.kod ?? e.tip) : e
 		return this.kod2Sinif[kod]
 	}
+	async raporlarDuzenle(e) {
+		this.add(
+			new DRapor_Hareketci_Cari().setWH('50%', '35%'),
+			new SBRapor_Default().setWH('50%', '35%'),
+			new DRapor_DonemselIslemler().setWH('100%', '65%')
+		)
+	}
+	async panelleriOlustur(e) {
+		let panel = this, {builder: rfb, id2Rapor, items, layout} = this
+		if (id2Rapor == null) {
+			this.clear(); await this.raporlarDuzenle(e)
+			id2Rapor = this.id2Rapor
+		}
+		let itemSelector = 'div > .item', focusSelector = 'hasFocus'
+		let _rfb = new RootFormBuilder(), promises = [], loadCount = 0, completeCount = 0
+		let itemsChildren = items.children()
+		if (!$.isEmptyObject(id2Rapor)) { layout.addClass('_loading') }
+		for (let i = 0; i < itemsChildren.length; i++) {
+			let item = itemsChildren.eq(i)
+			let part = item.data('part'), rapor = item.data('rapor')
+			part?.destroyPart?.(); part?.rootBuilder?.destroyPart()
+			item.remove()
+			if (rapor) { for (let key of ['rootBuilder', 'layout']) { delete rapor[key] } }
+		}
+		for (let [id, rapor] of Object.entries(id2Rapor)) {
+			let {width = '50%', height = '50%'} = rapor
+			let item = _rfb.addFormWithParent(id).altAlta()
+				.addCSS('_loading')
+				.setInst(this).setPart(rapor)
+				.setParent(items).setRootBuilder(rfb)
+			// item.onInit(({ builder: { layout } }) => $.extend(rapor, { layout }))
+			await rapor.goster({ ...e, rfb: item })
+			let {layout: itemLayout} = item, part = rapor.part = item.part
+			itemLayout.data('rapor', rapor); itemLayout.data('part', part)
+			rapor.gridVeriYuklendiIslemi?.(({ builder: { parentBuilder } = {} } = {}) => {
+				let {id} = parentBuilder?.parentBuilder?.parentBuilder ?? {}
+				let {layout} = _rfb.id2Builder[id] ?? {}
+				if (layout?.length) {
+					layout.removeClass('_loading')
+					layout.css({ width, height })
+				}
+				completeCount++
+				if (completeCount >= loadCount - 1) { this.layout.removeClass('_loading') }
+			})
+			// promises.push(promise)
+			loadCount++
+		}
+		if (promises.length) { await Promise.allSettled(promises) }
+		let subItems = items.find(itemSelector)
+		subItems.eq(0).addClass(focusSelector)
+		subItems.on('click', ({ currentTarget: target }) => {
+			let item = $(target)
+			item.parents('.items').find(itemSelector).removeClass(focusSelector)
+			item.addClass(focusSelector)
+		})
+		/*setTimeout(() =>
+			items.jqxSortable({ theme, items: '.item' }),
+			10)*/
+		this._rendered = true
+	}
+	async ilkIslemler(e) {
+		let {id2Rapor} = this
+		for (let rapor of Object.values(id2Rapor)) { await rapor.ilkIslemler?.(e) }
+	}
+	async ilkIslemler_ek(e) {
+		let {id2Rapor} = this
+		for (let rapor of Object.values(id2Rapor)) { await rapor.ilkIslemler_ek?.(e) }
+		this.ilkIslemler_ozel?.(e)
+	}
+	async sonIslemler(e) {
+		let {id2Rapor} = this
+		for (let rapor of Object.values(id2Rapor)) { await rapor.sonIslemler?.(e) }
+	}
+	async sonIslemler_ek(e) {
+		let {id2Rapor} = this
+		for (let rapor of Object.values(id2Rapor)) { await rapor.sonIslemler_ek?.(e) }
+		this.sonIslemler_ozel?.(e)
+	}
 	static async goster(e) {
 		let inst = new this(e), result = await inst.goster()
 		return result ?? null
@@ -112,102 +190,34 @@ class DPanel extends Part {
 			rapor?.tazele(e)
 	}
 	super_tazele(e) { super.tazele(e) }
-	async raporlarDuzenle(e) {
-		this.add(
-			new DRapor_Hareketci_Cari().setWH('50%', '35%'),
-			new SBRapor_Default().setWH('50%', '35%'),
-			new DRapor_DonemselIslemler().setWH('100%', '65%')
-		)
-	}
-	async panelleriOlustur(e) {
-		let panel = this, {builder: rfb, id2Rapor, items, layout} = this
-		if (id2Rapor == null) {
-			this.clear(); await this.raporlarDuzenle(e)
-			id2Rapor = this.id2Rapor
-		}
-		let itemSelector = 'div > .item', focusSelector = 'hasFocus'
-		let _rfb = new RootFormBuilder(), promises = [], loadCount = 0, completeCount = 0
-		layout.addClass('_loading'); let itemsChildren = items.children()
-		for (let i = 0; i < itemsChildren.length; i++) {
-			let item = itemsChildren.eq(i), {part} = item
-			part?.destroyPart(); item.remove()
-		}
-		for (let [id, rapor] of Object.entries(id2Rapor)) {
-			let {width = '50%', height = '50%'} = rapor
-			let item = _rfb.addFormWithParent(id).altAlta()
-				.addCSS('_loading')
-				.setInst(this).setPart(rapor)
-				.setParent(items).setRootBuilder(rfb)
-			// item.onInit(({ builder: { layout } }) => $.extend(rapor, { layout }))
-			await rapor.goster({ ...e, rfb: item })
-			let {layout: itemLayout} = item, part = rapor.part = item.part
-			itemLayout.data('rapor', rapor); itemLayout.data('part', part)
-			rapor.gridVeriYuklendiIslemi?.(({ builder: { parentBuilder } = {} } = {}) => {
-				let {id} = parentBuilder?.parentBuilder?.parentBuilder ?? {}
-				let {layout} = _rfb.id2Builder[id] ?? {}
-				if (layout?.length) {
-					layout.removeClass('_loading')
-					layout.css({ width, height })
-				}
-				completeCount++
-				if (completeCount >= loadCount - 1) { this.layout.removeClass('_loading') }
-			})
-			// promises.push(promise)
-			loadCount++
-		}
-		if (promises.length) { await Promise.allSettled(promises) }
-		let subItems = items.find(itemSelector)
-		subItems.eq(0).addClass(focusSelector)
-		subItems.on('click', ({ currentTarget: target }) => {
-			let item = $(target)
-			item.parents('.items').find(itemSelector).removeClass(focusSelector)
-			item.addClass(focusSelector)
-		})
-		/*setTimeout(() =>
-			items.jqxSortable({ theme, items: '.item' }),
-			10)*/
-	}
-	add(...items) {
-		let {id2Rapor} = this
-		for (let item of items) {
+	add(...coll) {
+		let {id2Rapor, _rendered} = this
+		for (let item of coll) {
 			if (item == null) { continue }
 			if ($.isArray(item)) { this.add(...item); continue } 
 			let {id = newGUID(), rapor} = item
 			rapor = item?.rapor ?? item
 			if (isClass(rapor)) { rapor = new rapor() }
 			if (rapor == null) { continue }
-			$.extend(rapor, { panel: this })
+			if (rapor.dRapormu && $.isEmptyObject(rapor.ozelIDListe)) { rapor.ozelID_main?.() }
+			$.extend(rapor, { id, panel: this })
 			id2Rapor[id] = rapor
 		}
+		if (_rendered) { this.panelleriOlustur() }
 		return this
 	}
-	clear() { this.id2Rapor = {}; return this }
-	async ilkIslemler(e) {
-		let {id2Rapor} = this
-		for (let rapor of Object.values(id2Rapor)) { await rapor.ilkIslemler?.(e) }
-	}
-	async ilkIslemler_ek(e) {
-		let {id2Rapor} = this
-		for (let rapor of Object.values(id2Rapor)) { await rapor.ilkIslemler_ek?.(e) }
-		this.ilkIslemler_ozel?.(e)
-	}
-	async sonIslemler(e) {
-		let {id2Rapor} = this
-		for (let rapor of Object.values(id2Rapor)) { await rapor.sonIslemler?.(e) }
-	}
-	async sonIslemler_ek(e) {
-		let {id2Rapor} = this
-		for (let rapor of Object.values(id2Rapor)) { await rapor.sonIslemler_ek?.(e) }
-		this.sonIslemler_ozel?.(e)
-	}
-	onResize(e) {
-		super.onResize(e); let {layout} = this
-		if (layout.hasClass('_loading')) { return }
-		let {id2Rapor} = this; if (id2Rapor) {
-			for (let rapor of Object.values(id2Rapor))
-				rapor?.onResize?.(e)
+	remove(...coll) {
+		let {id2Rapor, items, _rendered} = this
+		for (let item of coll) {
+			if (item == null) { continue }
+			if ($.isArray(item)) { this.add(...item); continue } 
+			let {rapor} = item; rapor = item?.rapor ?? item
+			let {id = rapor?.id} = item
+			delete id2Rapor[id]
 		}
+		if (_rendered) { this.panelleriOlustur() }
 	}
+	clear() { this.id2Rapor = {}; return this }
 	hizliBulIslemi(e) {
 		let {bulPart} = e; clearTimeout(this._timer_hizliBulIslemi_ozel); this._timer_hizliBulIslemi_ozel = setTimeout(() => {
 			try {
@@ -235,6 +245,14 @@ class DPanel extends Part {
 	exportExcelIstendi(e) { this.rapor?.exportExcelIstendi?.(e); return this }
 	exportPDFIstendi(e) { this.rapor?.exportPDFIstendi?.(e); return this }
 	exportHTMLIstendi(e) { this.rapor?.exportHTMLIstendi?.(e); return this }
+	onResize(e) {
+		super.onResize(e); let {layout} = this
+		if (layout.hasClass('_loading')) { return }
+		let {id2Rapor} = this; if (id2Rapor) {
+			for (let rapor of Object.values(id2Rapor))
+				rapor?.onResize?.(e)
+		}
+	}
 	getLayoutInternal(e) {
 		super.getLayoutInternal(e)
 		return $(`<div></div>`)

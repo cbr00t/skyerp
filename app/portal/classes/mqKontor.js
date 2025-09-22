@@ -404,7 +404,7 @@ class MQKontor extends MQDetayliMaster {
 				let tRec = recs[0], {vkn} = tRec;
 				let {mustunvan: mustUnvan, bayikod: bayiKod, anabayikod: anaBayiKod, onmuhmustkod: onMuhMustKod} = tRec;
 				let eFatmi = efatVKNSet[vkn] ?? false, tarih = today();
-				let ozelIsaret = fatDurum == 'B' ? '' : '*', islKod = aciktanmi ? `BK${acikIslKodPrefix}` : `TF${ozelIsaret}`;
+				let ozelIsaret = aciktanmi ? '*' : '', islKod = aciktanmi ? `BK${acikIslKodPrefix}` : `TF${ozelIsaret}`;
 				let seriSelectorPostfix = ozelIsaret == '*' ? 'yildizli' : eFatmi ? 'eFat' : 'eArsiv';
 				let efAyrimTipi = eFatmi ? 'E' : 'A', seri = this[`vioSeri_${seriSelectorPostfix}`];
 				seri = this.getConvertedVIOSeri(seri, db);

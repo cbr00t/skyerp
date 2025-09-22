@@ -12,9 +12,10 @@ class DAltRapor extends DRapor {
 	}
 	rootFormBuilderDuzenle(e) { }
 	subFormBuilderDuzenle(e) {
-		let {rapor: { isPanelItem }, parentBuilder: fbd} = this
+		let {rapor: { isPanelItem, panel }, parentBuilder: fbd} = this
 		fbd.onInit(e => this.onInit(e)).onBuildEk(e => this.onBuildEk(e));
-		if (!isPanelItem) { fbd.addButton('fullScreen').onClick(_e => { this.toggleFullScreen({ ...e, ..._e }) }) }
+		fbd.addButton('fullScreen').onClick(_e => { this.toggleFullScreen({ ...e, ..._e }) })
+		if (isPanelItem) { fbd.addButton('close').onClick(_e => { panel.remove(this) }) }
 		fbd.onAfterRun(e => this.onAfterRun(e));
 	}
 	newSecimler(e) {
@@ -29,8 +30,8 @@ class DAltRapor extends DRapor {
 	onInit(e) { this.onInit_ozel?.(e) }
 	onBuildEk(e) { this.onBuildEk_ozel?.(e) }
 	onAfterRun(e) {
-		let {fullScreen: builder} = this.parentBuilder.id2Builder, {id2AltRapor} = this.rapor;
-		/* if (Object.keys(id2AltRapor).length < 2) { setTimeout(() => this.toggleFullScreen({ builder }), 1) } */
+		/*let {fullScreen: builder} = this.parentBuilder.id2Builder, {id2AltRapor} = this.rapor;
+		 if (Object.keys(id2AltRapor).length < 2) { setTimeout(() => this.toggleFullScreen({ builder }), 1) } */
 		this.onAfterRun_ozel?.(e); this.acilinca?.call(this, e)
 	}
 	onResize(e) { }
