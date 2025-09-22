@@ -46,9 +46,60 @@ class FRMenu extends CObject {
 		parent.children().remove(); ul.appendTo(parent)
 	}
 	navLayoutOlustur_araIslem(e) { if (app.navLayoutOlustur_araIslem) { app.navLayoutOlustur_araIslem(e) } }
+	getMenuSource(e) { this.menuSourceDuzenle(e); return this }
 	menuSourceDuzenle(e) {
 		e = e || {}; const {items} = this; if ($.isEmptyObject(items)) { return }
 		e.frMenu = this; for (const item of items) { item.menuSourceDuzenle(e) }
 	}
-	getMenuSource(e) { this.menuSourceDuzenle(e); return this }
+	static listeEkraniAc({ headerBuilder } = {}) {
+		// let secince = e => console.info(e)
+		let cls = class extends MQCogul {
+			static get classKey() { return 'menu' } static get kodListeTipi() { return this.classKey }
+			static get sinifAdi() { return 'Ana Menü' } static get tumKolonlarGosterilirmi() { return true }
+			static orjBaslikListesi_gridInit({ sender: gridPart }) {
+				super.orjBaslikListesi_gridInit(...arguments)
+				gridPart.converter = ({ rec }) => app.frMenu.id2Item[rec.id]
+			}
+			static rootFormBuilderDuzenle_listeEkrani(e) {
+				super.rootFormBuilderDuzenle_listeEkrani(e)
+				headerBuilder?.call(this, e)
+			}
+			static orjBaslikListesi_argsDuzenle({ args }) {
+				super.orjBaslikListesi_argsDuzenle(...arguments)
+				$.extend(args, { showGroupsHeader: true, groupsExpandedByDefault: true })
+			}
+			static orjBaslikListesiDuzenle({ liste }) {
+				super.orjBaslikListesiDuzenle(...arguments)
+				liste.push(...[
+					new GridKolon({ belirtec: 'id', text: 'Adım', genislikCh: 30 }),
+					new GridKolon({ belirtec: 'label', text: 'Adı' }),
+					new GridKolon({ belirtec: '_group', text: 'Üst', genislikCh: 30 })
+				])
+			}
+			static loadServerDataDogrudan({ sender: { args } = {} }) {
+				let {frMenu = app.frMenu} = args
+				let { part: { hizliBulPart: { widget } } } = frMenu
+				return widget.getItems()
+					.filter(({ originalItem }) => originalItem?.choicemi)
+					.map(({ originalItem: _, id, label, group: _group }) => ({ id: _?.id || _?.mne || id, label, _group }))
+			}
+			static gridVeriYuklendi({ sender: { grid, gridWidget } }) {
+				grid.jqxGrid('groups', ['_group']); gridWidget.hidecolumn('_group')
+			}
+		}
+		return cls.listeEkraniAc(...arguments)
+	}
+	listeEkraniAc(e) {
+		let args = { frMenu: this }
+		return this.class.listeEkraniAc({ ...e, args })
+	}
+	static listedenSec(e) { return new $.Deferred(p => this.listeEkraniAc({ ...e, secince: p.resolve })) }
+	listedenSec(e) { return new $.Deferred(p => this.listeEkraniAc({ ...e, secince: p.resolve })) }
+	*[Symbol.iterator]() {
+		this.getMenuSource(); let {items} = this
+		for (let item of items) {
+			yield item
+			for (let subItem of item) { yield subItem }
+		}
+	}
 }

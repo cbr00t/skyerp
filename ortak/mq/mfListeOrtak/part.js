@@ -102,8 +102,8 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	runDevam(e) {
 		e ??= {}; let mfSinif = this.getMFSinif(e), {layout} = this; $.extend(e, { layout, sender: this });
 		if (mfSinif) {
-			let {parentMFSinif} = mfSinif; if (parentMFSinif) { layout.addClass(parentMFSinif.dataKey ?? parentMFSinif.classKey) }
-			layout.addClass(mfSinif.dataKey ?? mfSinif.classKey); if (mfSinif.listeEkrani_init) { mfSinif.listeEkrani_init(e) };
+			let {parentMFSinif} = mfSinif; if (parentMFSinif) { layout.addClass(parentMFSinif.dataKey ?? parentMFSinif.classKey ?? mfSinif.name) }
+			layout.addClass(mfSinif.dataKey ?? mfSinif.classKey ?? mfSinif.name); if (mfSinif.listeEkrani_init) { mfSinif.listeEkrani_init(e) };
 		}
 		super.runDevam(e); this.initBulForm(e)
 	}

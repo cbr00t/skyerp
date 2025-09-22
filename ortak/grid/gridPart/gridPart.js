@@ -295,7 +295,7 @@ class GridPart extends Part {
 				_recs = await this.loadServerData_recsDuzenle_son(e); recs = e.recs; if (_recs != null) { recs = _recs }
 				result = e.recs = recs
 			}
-			if (result && !$.isArray(result)) { let _recs = result.records = (recs?.records ?? recs); if (result.totalrecords == null) { result.totalrecords = _recs.length } }
+			if (result && !$.isArray(result)) { let _recs = result.records = (recs?.records ?? recs); if (result.totalrecords == null) { result.totalrecords = _recs?.length } }
 			/*let t = recs[0]; recs[0] = recs[1]; recs[1] = t;*/
 			this.kolonFiltreDuzenleyici?.degismedi(); return result
 		}

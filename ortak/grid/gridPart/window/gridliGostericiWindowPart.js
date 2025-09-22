@@ -44,9 +44,9 @@ class GridliGostericiWindowPart extends GridliGostericiPart {
 		for (const item of liste) {
 			const {id} = item;
 			switch (id) {
-				case 'tazele': item.handler = e => this.tazeleIstendi($.extend({}, e, { action: 'button' })); break;
-				case 'sec': item.handler = e => this.secIstendi(e); if (!this.secince) { continue } break;
-				case 'vazgec': item.handler = e => this.vazgecIstendi(e); break;
+				case 'tazele': item.handler = e => this.tazeleIstendi($.extend({}, e, { action: 'button' })); break
+				case 'sec': item.handler = e => this.secIstendi(e); if (!this.secince) { continue } break
+				case 'vazgec': item.handler = e => this.vazgecIstendi(e); break
 			}
 			yListe.push(item)
 		}

@@ -51,7 +51,7 @@ class MenuPart extends Part {
 						for (const item of result) { if (item.group == null) { item.group = item.parentItem ? item.parentItem.text : ' ' } }
 						const _e = { filter, kosul: e => e.item.choicemi }; result = result.filter(item => item.uygunmu(_e))
 					}
-					if (sender?.isGridPart) { result = result.map(menuItem => { return { mneText: menuItem.mnemonic, aciklama: menuItem.text, disabled: menuItem.isDisabled } }) }
+					if (sender?.isGridPart) { result = result.map(menuItem => { return { kod: menuItem.id, aciklama: menuItem.text, disabled: menuItem.isDisabled } }) }
 					return result
 				},
 				degisince: e => {
@@ -150,5 +150,8 @@ class MenuPart extends Part {
 	getFilter() {
 		const {hizliBulPart} = this; if (!hizliBulPart?.widget || hizliBulPart.isDestroyed) { return null }
 		const text = hizliBulPart.input.value; return text ? text.split(' ').filter(x => !!x) : null
+	}
+	*[Symbol.iterator]() {
+		for (let item of this.getVisibleItems()) { yield item }
 	}
 }

@@ -37,64 +37,11 @@ class DPanel extends Part {
 		return this.kod2Sinif[kod]
 	}
 	async raporlarDuzenle(e) {
-		this.add(
+		/*this.add(
 			new DRapor_Hareketci_Cari().setWH('50%', '35%'),
 			new SBRapor_Default().setWH('50%', '35%'),
 			new DRapor_DonemselIslemler().setWH('100%', '65%')
-		)
-	}
-	async panelleriOlustur(e) {
-		let panel = this, {builder: rfb, id2Rapor, items, layout} = this
-		if (id2Rapor == null) {
-			this.clear(); await this.raporlarDuzenle(e)
-			id2Rapor = this.id2Rapor
-		}
-		let itemSelector = 'div > .item', focusSelector = 'hasFocus'
-		let _rfb = new RootFormBuilder(), promises = [], loadCount = 0, completeCount = 0
-		let itemsChildren = items.children()
-		if (!$.isEmptyObject(id2Rapor)) { layout.addClass('_loading') }
-		for (let i = 0; i < itemsChildren.length; i++) {
-			let item = itemsChildren.eq(i)
-			let part = item.data('part'), rapor = item.data('rapor')
-			part?.destroyPart?.(); part?.rootBuilder?.destroyPart()
-			item.remove()
-			if (rapor) { for (let key of ['rootBuilder', 'layout']) { delete rapor[key] } }
-		}
-		for (let [id, rapor] of Object.entries(id2Rapor)) {
-			let {width = '50%', height = '50%'} = rapor
-			let item = _rfb.addFormWithParent(id).altAlta()
-				.addCSS('_loading')
-				.setInst(this).setPart(rapor)
-				.setParent(items).setRootBuilder(rfb)
-			// item.onInit(({ builder: { layout } }) => $.extend(rapor, { layout }))
-			await rapor.goster({ ...e, rfb: item })
-			let {layout: itemLayout} = item, part = rapor.part = item.part
-			itemLayout.data('rapor', rapor); itemLayout.data('part', part)
-			rapor.gridVeriYuklendiIslemi?.(({ builder: { parentBuilder } = {} } = {}) => {
-				let {id} = parentBuilder?.parentBuilder?.parentBuilder ?? {}
-				let {layout} = _rfb.id2Builder[id] ?? {}
-				if (layout?.length) {
-					layout.removeClass('_loading')
-					layout.css({ width, height })
-				}
-				completeCount++
-				if (completeCount >= loadCount - 1) { this.layout.removeClass('_loading') }
-			})
-			// promises.push(promise)
-			loadCount++
-		}
-		if (promises.length) { await Promise.allSettled(promises) }
-		let subItems = items.find(itemSelector)
-		subItems.eq(0).addClass(focusSelector)
-		subItems.on('click', ({ currentTarget: target }) => {
-			let item = $(target)
-			item.parents('.items').find(itemSelector).removeClass(focusSelector)
-			item.addClass(focusSelector)
-		})
-		/*setTimeout(() =>
-			items.jqxSortable({ theme, items: '.item' }),
-			10)*/
-		this._rendered = true
+		)*/
 	}
 	async ilkIslemler(e) {
 		let {id2Rapor} = this
@@ -134,7 +81,7 @@ class DPanel extends Part {
 	}
 	afterRun(e) {
 		super.afterRun(e)
-		this.panelleriOlustur(e)
+		this.panelleriOlustur({ ...e, batch: true })
 	}
 	destroyPart(e) {
 		let children = this.items?.children()
@@ -175,7 +122,8 @@ class DPanel extends Part {
 			{ id: 'seviyeKapat', text: 'Seviye Kapat', handler: _e => this.seviyeKapatIstendi({ ...e, ..._e }) },
 			{ id: 'excel', text: '', handler: _e => this.exportExcelIstendi({ ...e, ..._e }) },
 			/*{ id: 'pdf', text: '', handler: _e => this.exportPDFIstendi({ ...e, ..._e }) },*/
-			{ id: 'html', text: '', handler: _e => this.exportHTMLIstendi({ ...e, ..._e }) }
+			{ id: 'html', text: '', handler: _e => this.exportHTMLIstendi({ ...e, ..._e }) },
+			{ id: 'yeni', text: '', handler: _e => this.yeniIstendi({ ...e, ..._e }) },
 		].filter(x => !!x))
 	}
 	islemTuslariGetId2Handler(e) {
@@ -203,7 +151,7 @@ class DPanel extends Part {
 			$.extend(rapor, { id, panel: this })
 			id2Rapor[id] = rapor
 		}
-		if (_rendered) { this.panelleriOlustur() }
+		if (_rendered) { this.panelleriOlustur({ batch: false }) }
 		return this
 	}
 	remove(...coll) {
@@ -215,9 +163,65 @@ class DPanel extends Part {
 			let {id = rapor?.id} = item
 			delete id2Rapor[id]
 		}
-		if (_rendered) { this.panelleriOlustur() }
+		if (_rendered) { this.panelleriOlustur({ batch: false }) }
 	}
 	clear() { this.id2Rapor = {}; return this }
+	async panelleriOlustur({ batch } = {}) {
+		let e = arguments[0], panel = this
+		let {builder: rfb, id2Rapor, items, layout} = this
+		if (id2Rapor == null) {
+			this.clear(); await this.raporlarDuzenle(e)
+			id2Rapor = this.id2Rapor
+		}
+		if (batch && !$.isEmptyObject(id2Rapor)) { layout.addClass('_loading') }
+		let itemSelector = 'div > .item', focusSelector = 'hasFocus'
+		let itemsChildren = items.children(), id2Item = {}
+		for (let i = 0; i < itemsChildren.length; i++) {
+			let item = itemsChildren.eq(i)
+			let part = item.data('part'), rapor = item.data('rapor'), {id} = rapor ?? {}
+			if (!(batch || !id2Rapor[id])) { id2Item[id] = item; continue }
+			part?.destroyPart?.(); part?.rootBuilder?.destroyPart()
+			item.remove()
+			if (rapor) { for (let key of ['rootBuilder', 'layout']) { delete rapor[key] } }
+		}
+		let _rfb = new RootFormBuilder(), promises = [], loadCount = 0, completeCount = 0
+		for (let [id, rapor] of Object.entries(id2Rapor)) {
+			if (id2Item[id]) { continue }
+			let {width = '50%', height = '50%'} = rapor
+			let item = _rfb.addFormWithParent(id).altAlta()
+				.addCSS('item _loading')
+				.setInst(this).setPart(rapor)
+				.setParent(items).setRootBuilder(rfb)
+			// item.onInit(({ builder: { layout } }) => $.extend(rapor, { layout }))
+			await rapor.goster({ ...e, rfb: item })
+			let {layout: itemLayout} = item, part = rapor.part = item.part
+			itemLayout.data('rapor', rapor); itemLayout.data('part', part)
+			rapor.gridVeriYuklendiIslemi?.(({ builder: { parentBuilder } = {} } = {}) => {
+				let {id} = parentBuilder?.parentBuilder?.parentBuilder ?? {}
+				let {layout} = _rfb.id2Builder[id] ?? {}
+				if (layout?.length) {
+					layout.removeClass('_loading')
+					layout.css({ width, height })
+				}
+				completeCount++
+				if (completeCount >= loadCount - 1) { this.layout.removeClass('_loading') }
+			})
+			// promises.push(promise)
+			loadCount++
+		}
+		if (promises.length) { await Promise.allSettled(promises) }
+		let subItems = items.find(itemSelector)
+		subItems.eq(0).addClass(focusSelector)
+		subItems.on('click', ({ currentTarget: target }) => {
+			let item = $(target)
+			item.parents('.items').find(itemSelector).removeClass(focusSelector)
+			item.addClass(focusSelector)
+		})
+		/*setTimeout(() =>
+			items.jqxSortable({ theme, items: '.item' }),
+			10)*/
+		this._rendered = true
+	}
 	hizliBulIslemi(e) {
 		let {bulPart} = e; clearTimeout(this._timer_hizliBulIslemi_ozel); this._timer_hizliBulIslemi_ozel = setTimeout(() => {
 			try {
@@ -245,6 +249,22 @@ class DPanel extends Part {
 	exportExcelIstendi(e) { this.rapor?.exportExcelIstendi?.(e); return this }
 	exportPDFIstendi(e) { this.rapor?.exportPDFIstendi?.(e); return this }
 	exportHTMLIstendi(e) { this.rapor?.exportHTMLIstendi?.(e); return this }
+	async yeniIstendi(e) {
+		let {values: menuItems} = await app.frMenu.listedenSec() ?? {}
+		menuItems = menuItems?.filter(_ => _.choicemi)
+		let items = menuItems?.map(({ id }) => DRapor.getClass(id))?.filter(x => !!x)
+		items = items.map(cls => new cls().setWH('50%', '50%'))
+		if (!items?.length) { return }
+		this.add(...items)
+		return items
+		
+		/* let headerBuilder = ({ sender: part, rootBuilder: rfb }) => {
+			let {header} = part
+			let form = rfb.addForm('header').setLayout(header)
+			form.addTextInput('raporAdi', 'Rapor Adı')
+		}
+		await app.frMenu.listedenSec({ headerBuilder })*/
+	}
 	onResize(e) {
 		super.onResize(e); let {layout} = this
 		if (layout.hasClass('_loading')) { return }

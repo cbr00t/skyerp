@@ -12,6 +12,7 @@
 	color: #3d4c7c; background-color: #b2c7b2;
 	border: 1px solid #95989f !important; box-shadow: 1px 1px 5px 3px #c7cde7
 }
+.dPanel.part > .islemTuslari #yeni { margin-left: 30px }
 .dRapor.part > .wnd-content > *:not(.bulForm):not(.islemTuslari) { background: white !important }
 .dPanel.part > .content { }
 .dPanel.part > .items {
@@ -19,5 +20,6 @@
 	overflow-y: overlay !important; /*flex-wrap: nowrap !important*/
 }
 .dPanel.part._loading { opacity: .5 !important; filter: blur(5px) !important }
-.dPanel.part .items > div { box-sizing: border-box }
+.dPanel.part .items > .item { box-sizing: border-box }
 .dPanel.part .items ._loading { height: 5000px !important }
+.dPanel.part .items > .item #close.jqx-fill-state-normal { background-color: lightpink !important }

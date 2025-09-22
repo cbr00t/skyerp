@@ -389,9 +389,12 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	}
 	tazeleOncesi(e) {
 		super.tazeleOncesi(e);
-		let {fbd_grid, tabloYapi, raporTanim} = this, {rootBuilder} = this.parentBuilder, {secilenVarmi} = raporTanim;
-		rootBuilder.layout.find('.islemTuslari > div button#tabloTanimlari')[secilenVarmi ? 'removeClass' : 'addClass']('anim-tabloTanimlari-highlight');
-		if (!secilenVarmi) { if (!this._tabloTanimGosterildiFlag) { this.raporTanimIstendi(e) } return }
+		let {rapor: { isPanelItem }, parentBuilder: { rootBuilder }, fbd_grid, tabloYapi, raporTanim, raporTanim: { secilenVarmi }} = this
+		rootBuilder.layout.find('.islemTuslari > div button#tabloTanimlari')[secilenVarmi ? 'removeClass' : 'addClass']('anim-tabloTanimlari-highlight')
+		if (!(isPanelItem || secilenVarmi)) {
+			if (!this._tabloTanimGosterildiFlag) { this.raporTanimIstendi(e) }
+			return
+		}
 	}
 	tazeleSonrasi(e) { return super.tazeleSonrasi(e) }
 	async tazele(e) {

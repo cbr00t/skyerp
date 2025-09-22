@@ -1,7 +1,7 @@
 .jqx-window.secimler.part.with-tabs .jqx-window-content { /* overflow-y: hidden !important */ }
 .secimler.part { --header-height: 50px; --secim-minHeight: 40px }
 .secimler.part > .header { position: absolute !important; min-height: 0 !important; height: var(--header-height) }
-.secimler.part #filtreForm { --top: -10px; position: relative; top: var(--top); left: 350px; height: var(--full); z-index: 11 !important }
+.secimler.part #filtreForm { --top: -10px; position: relative; top: var(--top); left: 450px; height: var(--full); z-index: 11 !important }
 .secimler.part #filtreForm > input { max-width: 100px !important; border-radius: 13px }
 .secimler.part .islemTuslari { position: absolute; top: 0; right: 8px !important; overflow-y: hidden !important; z-index: 10 !important }
 .secimler.part.wnd-content #secimler.content { margin-top: 50px }

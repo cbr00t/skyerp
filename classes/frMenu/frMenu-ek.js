@@ -27,7 +27,11 @@ class FRMenuItem extends CObject {
 	run(e) { let id = this.mnemonic || this.id; if (id && id[0] != '_') { app.lastMenuId = this.mneText } }
 	menuSourceDuzenle(e) {
 		const {frMenu} = e; frMenu.id2Item[this.id] = this; let mneListe = [], item = this;
-		do { const mne = item.mnemonic; if (mne) { mneListe.unshift(mne.toLocaleUpperCase(culture)) } item = item.parentItem } while (item != null);
+		do {
+			const mne = item.mnemonic;
+			if (mne) { mneListe.unshift(mne.toLocaleUpperCase(culture)) }
+			item = item.parentItem
+		} while (item != null)
 		const {mne2Item} = frMenu, mneText = mneListe.length ? mneListe.join('-') : null;
 		if (mneText) { this.mneText = mneText; mne2Item[mneText] = this }
 	}
@@ -71,6 +75,9 @@ class FRMenuItem extends CObject {
 		if (vioAdim) { const rolYapi = e.rolYapi ?? config.session?.rol; if (rolYapi) { return rolYapi.menuAdimUygunmu(this) } }
 		return true
 	}
+	*[Symbol.iterator]() {
+		yield this
+	}
 }
 class FRMenuCascade extends FRMenuItem {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -111,6 +118,10 @@ class FRMenuCascade extends FRMenuItem {
 			const parentIDListe = item.parentIDListe = []; const _parentIDListe = this.parentIDListe; if (_parentIDListe && _parentIDListe.length) { parentIDListe.push(..._parentIDListe) }
 			const {id} = this; parentIDListe.push(id); item.menuSourceDuzenle(e); id2Item[id] = item
 		}
+	}
+	*[Symbol.iterator]() {
+		super[Symbol.iterator](); let {items} = this
+		for (let item of items) { for (let subItem of item) { yield subItem } }
 	}
 }
 class FRMenuChoice extends FRMenuItem {

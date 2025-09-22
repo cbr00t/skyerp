@@ -422,16 +422,21 @@ class MQKontor extends MQDetayliMaster {
 						fisKontorBilgiDuzenle()
 					}
 				}
-				else { fis = new fisSinif({ ozelIsaret, islKod, tarih, seri, efAyrimTipi, baslikAciklama }); fisKontorBilgiDuzenle() }
+				else {
+					fis = new fisSinif({ ozelIsaret, islKod, tarih, seri, efAyrimTipi, baslikAciklama })
+					fisKontorBilgiDuzenle()
+				}
 				for (let rec of recs) {
 					abortCheck?.();
 					let {kaysayac: sayac} = rec, {fisnox: fisNox, kontorsayi: miktar} = rec;
 					let {fiyat} = hizRec, bedel = aciktanmi ? roundToBedelFra(miktar * fiyat) : null;
-					let detAciklama = aciktanmi ? `${ackPrefix}: ${`${mustKod}-${mustUnvan}`.slice(0, ackInnerMaxLength)}` : `Ref.No: ${fisNox}`;
+					let detAciklama = aciktanmi
+						? `${ackPrefix}: ${`${mustKod}-${mustUnvan}`.slice(0, ackInnerMaxLength)}`
+						: `Ref.No: ${fisNox}`
 					let det = aciktanmi
 						? new detaySinif({ bedel, detAciklama })
-						: new detaySinif({ shKod, miktar, ...hizRec, detAciklama });
-					det._kontorBilgi = { ...fis._kontorBilgi, sayac, fisNox }; 
+						: new detaySinif({ shKod, miktar, ...hizRec, detAciklama })
+					det._kontorBilgi = { ...fis._kontorBilgi, sayac, fisNox }
 					if (!aciktanmi) {
 						if (fis.ozelIsaret == '*') { det.kdvKod = '' }
 						det.bedelHesapla?.()
@@ -441,34 +446,39 @@ class MQKontor extends MQDetayliMaster {
 				fisler.push(fis); tumFisler?.push(fis)
 			}
 		}
-		abortCheck?.(); let toplu = e.toplu = new MQToplu();
+		abortCheck?.(); let toplu = e.toplu = new MQToplu()
 		try {
 			await withFatDBDo(async () => {
 				let _toplu = new MQToplu(); for (let fis of fisler) {
-					let {fatDurum, mustKod: must, mustUnvan, vkn} = fis._kontorBilgi;
+					let {fatDurum, mustKod: must, mustUnvan, vkn} = fis._kontorBilgi
 					if (fatDurum == 'X' || fatDurum == 'A' || !fis?.detaylar?.length) { continue }
 					if (!vkn || vkn2Must[vkn]) { continue }
-					let sahismi = vkn?.length == 11, vnumara = sahismi ? '' : vkn, tckimlikno = sahismi ? vkn : '';
-					let unvan1 = `**SkyPortal Akt: ${must}`;
-					let unvan2 = mustUnvan.slice(0, 50);
-					_toplu.add(new MQInsert({ table: 'carmst', hv: { must, unvan1, unvan2, sahismi: bool2FileStr(sahismi), vnumara, tckimlikno } }));
-					must2VKN[must] = vkn; vkn2Must[vkn] = must;
+					let sahismi = vkn?.length == 11, vnumara = sahismi ? '' : vkn, tckimlikno = sahismi ? vkn : ''
+					let unvan1 = `**SkyPortal Akt: ${must}`
+					let unvan2 = mustUnvan.slice(0, 50)
+					_toplu.add(new MQInsert({
+						table: 'carmst',
+						hv: { must, unvan1, unvan2, sahismi: bool2FileStr(sahismi), vnumara, tckimlikno }
+					}))
+					must2VKN[must] = vkn; vkn2Must[vkn] = must
 					errors.push(
 						`<b><span class=lightgray>(${must})</span> <span class=royalblue>${mustUnvan}</span></b> müşterisi ` + 
 						`<b class=forestgreen>${vkn}</b> VKN ile ERP Veritabanında <u>yeni cari kaydı</u> açıldı`
 					)
 				}
-				if (_toplu.liste.length) { await app.sqlExecNone(_toplu) } _toplu = null;
+				if (_toplu.liste.length) { await app.sqlExecNone(_toplu) }
+				_toplu = null
 
 				for (let fis of fisler) {
 					let {detaylar} = fis; if (!detaylar?.length) { continue }
-					let {aciktanmi, fatDurum, mustKod, onMuhMustKod, vkn} = fis._kontorBilgi;
+					let {aciktanmi, fatDurum, mustKod, onMuhMustKod, vkn} = fis._kontorBilgi
 					if (fatDurum == 'X') { continue }
 					let refMustKod = fatDurum == 'A' ? onMuhMustKod : vkn2Must[vkn]; if (!refMustKod) { continue }
-					if (aciktanmi) { for (let det of fis.detaylar) { det.mustKod = refMustKod } }
+					if (aciktanmi)
+						for (let det of fis.detaylar) { det.mustKod = refMustKod }
 					else { fis.mustKod = refMustKod }
-					await fis.disKaydetIslemi();
-					let sayacListe = fis.detaylar.map(({ _kontorBilgi: item }) => item.sayac).filter(x => !!x);
+					await fis.disKaydetIslemi()
+					let sayacListe = fis.detaylar.map(({ _kontorBilgi: _ }) => _.sayac).filter(x => !!x)
 					if (sayacListe.length) {
 						toplu.add(new MQIliskiliUpdate({
 							from: detayTable, set: `btamamlandi = 1`,
@@ -481,10 +491,10 @@ class MQKontor extends MQDetayliMaster {
 			})
 		}
 		finally {
-			pm?.hideAbortButton();
-			let size = toplu?.liste?.length ?? 0;
+			pm?.hideAbortButton()
+			let size = toplu?.liste?.length ?? 0
 			if (size) {
-				await app.sqlExecNone(toplu);
+				await app.sqlExecNone(toplu)
 				pm?.progressStep(size); toplu.liste = []
 			}
 		}
