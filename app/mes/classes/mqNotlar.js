@@ -71,7 +71,7 @@ class MQEkNotlar extends MQSayacliOrtak {
 		if (belirtec == 'hatkod' || belirtec == 'hatadi') { result.push('royalblue') }
 		else if (belirtec == 'tipText') { switch (tip) { case 'HT': result.push('bg-lightgreen'); break; case 'TZ': result.push('bg-lightred'); break } }
 		else {
-			let {localData} = app.params, ekNotLastReadId = asInteger(localData.getData('ekNotLastReadId')), {kaysayac: id} = rec;
+			let {localData} = app.params, ekNotLastReadId = asInteger(localData.get('ekNotLastReadId')), {kaysayac: id} = rec;
 			if (id && (!ekNotLastReadId || id > ekNotLastReadId)) { result.push('yeni-not') }
 		}
 		
@@ -182,17 +182,17 @@ class MQEkNotlar extends MQSayacliOrtak {
 	}
 	static gridVeriYuklendi(e) {
 		super.gridVeriYuklendi(e); let gridPart = e.gridPart ?? e.sender; if (!gridPart) { return }
-		let {localData} = app.params, ekNotLastReadId = asInteger(localData.getData('ekNotLastReadId')), savedLastReadId = ekNotLastReadId;
+		let {localData} = app.params, ekNotLastReadId = asInteger(localData.get('ekNotLastReadId')), savedLastReadId = ekNotLastReadId;
 		let {boundRecs: recs} = gridPart; for (let {kaysayac: id} of recs) { if (id && ekNotLastReadId < id) { ekNotLastReadId = id } }
-		if (ekNotLastReadId != savedLastReadId) { setTimeout(() => { localData.setData('ekNotLastReadId', ekNotLastReadId); localData.kaydet() }, 500) }
+		if (ekNotLastReadId != savedLastReadId) { setTimeout(() => { localData.set('ekNotLastReadId', ekNotLastReadId); localData.kaydet() }, 500) }
 	}
 	static orjBaslikListesi_gridRendered(e) {
 		super.orjBaslikListesi_gridRendered(e)/*; let {type} = e;
 		if (type == 'full') {
 			let {gridPart, gridWidget} = e; if (!gridWidget) { return }
-			let {localData} = app.params; let ekNotLastReadId = asInteger(localData.getData('ekNotLastReadId')), savedLastReadId = ekNotLastReadId;
+			let {localData} = app.params; let ekNotLastReadId = asInteger(localData.get('ekNotLastReadId')), savedLastReadId = ekNotLastReadId;
 			for (let {kaysayac: id} of gridWidget.getvisiblerows()) { if (id && ekNotLastReadId < id) { ekNotLastReadId = id } }
-			if (ekNotLastReadId != savedLastReadId) { localData.setData('ekNotLastReadId', ekNotLastReadId); localData.kaydetDefer() }
+			if (ekNotLastReadId != savedLastReadId) { localData.set('ekNotLastReadId', ekNotLastReadId); localData.kaydetDefer() }
 		}*/
 	}
 	static orjBaslikListesi_satirTiklandi(e) {

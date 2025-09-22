@@ -70,11 +70,20 @@
 	font-weight: bold; font-size: 135%; color: #888; background-color: #eee;
 	width: calc(var(--full) - 10px); margin: 0; padding: 0 0 0 10px; border-radius: 10px
 }
-.dRapor.part #items > .item.hasFocus > label { box-shadow: 0 0 5px 1px; color: #333; background-color: #c9cdd9; user-select: none }
+.dPanel .dRapor.part #items > .item:not(.hasFocus) > label,
+	.dPanel .dRapor.part #items > .item > label > * { background-color: unset !important }
+.dRapor.part #items > .item.hasFocus > div > div > div > div {
+	box-shadow: 0 0 5px 5px cyan !important
+}
+.dRapor.part #items > .item.hasFocus > label {
+	font-size: 145%; color: white; background-color: #1f5f47;
+	box-shadow: 0 0 5px 1px whitesmoke; user-select: none
+}
+body.dark-theme .dRapor.part #items > .item.hasFocus > label { color: whitesmoke; background-color: #00ff9f }
 .dRapor.part #items > ._main.item > label { height: 65px !important }
 .dRapor.part #items > ._main.item > :not(label) { max-height: calc(var(--full) - 80px) }
 .dPanel .dRapor.part #items > ._main.item > :not(label) { max-height: calc(var(--full) - 38px) }
-.dPanel .dRapor.part #items > ._main.item > label { height: 33px !important; margin-bottom: -3px !important }
+.dPanel .dRapor.part #items > ._main.item > label { height: 36px !important; margin-bottom: -3px !important }
 .dRapor .anim-raporTanim-highlight, .dRapor .anim-raporTanim-highlight { border: 3px solid forestgreen !important; animation: 850ms infinite cubic-bezier(0.46, 0.03, 0.52, 0.96) anim-raporTanim-hightlight }
 @keyframes anim-raporTanim-hightlight { 50% { background-color: #c9e0c9 } }
 .dRapor.masterListe.part .jqx-grid [role = row], .dRapor.part #items > .item .jqx-grid .jqx-grid-cell.toplam { font-weight: bold }

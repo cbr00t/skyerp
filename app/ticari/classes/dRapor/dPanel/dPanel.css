@@ -22,4 +22,5 @@
 .dPanel.part._loading { opacity: .5 !important; filter: blur(5px) !important }
 .dPanel.part .items > .item { box-sizing: border-box }
 .dPanel.part .items ._loading { height: 5000px !important }
-.dPanel.part .items > .item #close.jqx-fill-state-normal { background-color: lightpink !important }
+.dPanel.part .items > .item #close { margin-left: 20px }
+/*.dPanel.part .items > .item #close.jqx-fill-state-normal { background-color: lightpink !important }*/

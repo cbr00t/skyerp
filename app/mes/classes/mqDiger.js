@@ -97,7 +97,7 @@ class MQBekleyenIsEmirleri extends MQMasterOrtak {
 			new GridKolon({ belirtec: 'kalanmiktar', text: 'Kal.Mik', genislikCh: 8, cellClassName: 'bold red', aggregates: [{'TOPLAM': gridDipIslem_sum}] }).tipDecimal()
 		])
 	}
-	static loadServerData(e) { const {hatKod} = e.args; return app.wsBekleyenIsEmirleri({ hatKod }) }
+	static loadServerData({ args: { hatKod } = {} }) { return app.wsBekleyenIsEmirleri({ hatKod }) }
 	static orjBaslikListesiDuzenle_detaylar(e) {
 		super.orjBaslikListesiDuzenle_detaylar(e); const {liste} = e;
 		liste.push(...[
