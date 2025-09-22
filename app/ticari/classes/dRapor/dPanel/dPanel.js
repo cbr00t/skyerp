@@ -292,7 +292,7 @@ class DPanel extends Part {
 			let children = items.children('.item')
 			children.resizable({
 				handles: 'all', /*containment: 'parent',*/
-				ghost: true, helper: 'ui-resizable-helper',
+				/*ghost: true, helper: 'ui-resizable-helper',*/
 				classes: { '.ui-resizable': 'highlight' },
 				start: (evt, info) => {
 					let {element: item} = info
@@ -306,11 +306,9 @@ class DPanel extends Part {
 					//items.children().removeClass('basic-hidden jqx-hidden')
 					let id = item.prop('id'), det = id2Detay[id]
 					if (det) {
-						let { scrollWidth: maxWidth, scrollHeight: maxHeight } = document.body
-						$.extend(det, {
-							width: `${Math.round(width * 100 / maxWidth, 1)}%`,
-							height: `${Math.round(height * 100 / maxHeight, 1)}%`
-						})
+						let contW = items.width(), contH = items.height()
+						det.width  = `${(width  / contW * 100).toFixed(1)}%`
+						det.height = `${(height / contH * 100).toFixed(1)}%`
 						this.saveLayout()
 					}
 				}
