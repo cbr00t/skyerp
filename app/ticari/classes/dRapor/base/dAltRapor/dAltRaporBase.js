@@ -12,10 +12,10 @@ class DAltRapor extends DRapor {
 	}
 	rootFormBuilderDuzenle(e) { }
 	subFormBuilderDuzenle(e) {
-		let {parentBuilder} = this;
-		parentBuilder.onInit(e => this.onInit(e)).onBuildEk(e => this.onBuildEk(e));
-		parentBuilder.addButton('fullScreen').onClick(_e => { this.toggleFullScreen({ ...e, ..._e }) })
-		parentBuilder.onAfterRun(e => this.onAfterRun(e));
+		let {rapor: { isPanelItem }, parentBuilder: fbd} = this
+		fbd.onInit(e => this.onInit(e)).onBuildEk(e => this.onBuildEk(e));
+		if (!isPanelItem) { fbd.addButton('fullScreen').onClick(_e => { this.toggleFullScreen({ ...e, ..._e }) }) }
+		fbd.onAfterRun(e => this.onAfterRun(e));
 	}
 	newSecimler(e) {
 		let {secimSinif} = this.class; if (secimSinif == null) { return null }

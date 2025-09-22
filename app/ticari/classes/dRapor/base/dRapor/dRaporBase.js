@@ -4,8 +4,8 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 	static get kategoriKod() { return null } static get kod() { return null } static get aciklama() { return null } static get detaylimi() { return false }
 	static get uygunmu() { return true } get uygunmu() { return this.class.uygunmu } static get araSeviyemi() { return false }
 	static get dRapormu() { return true } get dRapormu() { return this.class.dRapormu } static get dAltRapormu() { return false } get dAltRapormu() { return this.class.dAltRapormu }
-	static get mainClass() { return window[`${this.name}_Main`] }
-	static get tumKolonlarGosterilirmi() { return false } static get noOverflowFlag() { return false }
+	static get mainClass() { return window[`${this.name}_Main`] } static get tumKolonlarGosterilirmi() { return false }
+	static get noOverflowFlag() { return false } get isPanelItem() { return !!this.panel || qs.panelItem }
 	static get raporBilgiler() {
 		return Object.values(this.kod2Sinif)
 			.filter(({ uygunmu, araSeviyemi, dRapormu, kod }) => uygunmu && !araSeviyemi && dRapormu && kod)
@@ -13,31 +13,52 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 	}
 	static get kod2Sinif() {
 		let result = this._kod2Sinif; if (result == null) {
-			result = {}; const {subClasses} = this; for (const cls of subClasses) {
-				const {araSeviyemi, uygunmu, kod} = cls;
+			result = {}; let {subClasses} = this
+			for (let cls of subClasses) {
+				let {araSeviyemi, uygunmu, kod} = cls;
 				if (!araSeviyemi && uygunmu && kod) { result[kod] = cls }
 			}
 			this._kod2Sinif = result
 		}
 		return result
    }
-	static getClass(e) { const kod = typeof e == 'object' ? (e.kod ?? e.tip) : e; return this.kod2Sinif[kod] }
+	constructor({ width, height } = e) {
+		super(...arguments)
+		$.extend(this, { width, height })
+		
+	}
+	static getClass(e) {
+		let kod = typeof e == 'object' ? (e.kod ?? e.tip) : e
+		return this.kod2Sinif[kod]
+	}
 	static async goster(e) {
-		let inst = new this(e); const result = await inst.goster(); if (result == null) { return null }
-		const {part} = result, {builder} = part; return { inst, part, builder }
+		let inst = new this(e)
+		let result = await inst.goster(); if (result == null) { return null }
+		let {part} = result, {builder} = part
+		return { inst, part, builder }
 	}
 	static autoGenerateSubClasses(e) { }
 	goster(e) { return null } tazele(e) { }
 	onInit(e) { }
 	onBuildEk(e) { }
 	onAfterRun({ rfb }) { /* let {layout} = rfb; layout.addClass('slow-animation') */ }
+	setWidth(value) { this.width = value; return this }
+	setHeight(value) { this.height = value; return this }
+	setWH(width, height) {
+		if (width != null) { this.setWidth(width) }
+		if (height != null) { this.setHeight(height) }
+		return this
+	}
 }
 class DRaporMQ extends DRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'mq' } static get dMQRapormu() { return true }
-	goster(e) {
-		e = e || {}; const args = e.args = e.args || {}; args.inst = this, result = this.class.listeEkraniAc(e); if (result == null) { return null }
-		const {part} = result, {anaTip} = this.class, {partName} = this; part.layout.addClass(`${anaTip} ${partName}`);
-		const {builder} = part; $.extend(this, { part, builder }); return result
+	goster(e = {}) {
+		let args = e.args = e.args || {}; args.inst = this
+		let result = this.class.listeEkraniAc(e); if (result == null) { return null }
+		let {part} = result, {anaTip} = this.class, {partName} = this
+		part.layout.addClass(`${anaTip} ${partName}`);
+		let {builder} = part; $.extend(this, { part, builder })
+		return result
 	}
 	tazele(e) { super.tazele(e) }
 	static listeEkrani_init(e) { return e.sender.inst.onInit(e) }
@@ -45,49 +66,83 @@ class DRaporMQ extends DRapor {
 }
 class DRaporOzel extends DRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'ozel' } static get dOzelRapormu() { return true }
-	async goster(e) {
-		e = e || {}; const inst = this, {partName} = this, {aciklama} = this.class, title = e.title ?? `<b class="royalblue">${aciklama}</b> Raporu`
-		let rfb = new RootFormBuilder({ id: partName }).noDestroy().setInst(this).asWindow(title).addCSS('slow-animation');
+	async goster(e = {}) {
+		let inst = this, {partName, isPanelItem} = this, {aciklama} = this.class
+		let title = e.title ?? `<b class="royalblue">${aciklama}</b> Raporu`
+		let rfb = e.rfb ?? new RootFormBuilder({ id: partName }).noDestroy()
+			.setInst(this).addCSS('slow-animation')
+		if (!isPanelItem) { rfb = rfb.asWindow(title) }
 		let _e = { ...e, rfb }; this.rootFormBuilderDuzenle(_e); rfb = _e.rfb;
-		await this.ilkIslemler(e); await this.ilkIslemler_ek(e);
-		rfb.onInit(e => this.onInit({ ...e, rfb: e.builder }));
-		rfb.onBuildEk(e => this.onBuildEk({ ...e, rfb: e.builder }));
-		rfb.onAfterRun(e => this.onAfterRun({ ...e, rfb: e.builder }));
-		await rfb.run();
-		let builder = rfb, {part} = builder, {anaTip} = this.class; part.layout.addClass(anaTip);
-		$.extend(this, { part, builder }); await this.sonIslemler(e); await this.sonIslemler_ek(e);
-		return ({ inst, part, builder });
+		await this.ilkIslemler(e); await this.ilkIslemler_ek(e)
+		rfb.onInit(e => this.onInit({ ...e, rfb: e.builder }))
+		rfb.onBuildEk(e => this.onBuildEk({ ...e, rfb: e.builder }))
+		rfb.onAfterRun(e => this.onAfterRun({ ...e, rfb: e.builder }))
+		await rfb.run()
+		let builder = rfb, {part} = builder, {anaTip} = this.class
+		let {layout} = part; //layout.prop('id', partName)
+		layout.addClass(`${anaTip} ${partName} part`)
+		$.extend(this, { part, builder })
+		await this.sonIslemler(e); await this.sonIslemler_ek(e)
+		return ({ inst, part, builder })
 	}
-	async ilkIslemler(e) { } async ilkIslemler_ek(e) { this.ilkIslemler_ozel?.(e) } async sonIslemler(e) { } async sonIslemler_ek(e) { }
-	rootFormBuilderDuzenle(e) {
-		const {rfb} = e; this.rootBuilder = rfb;
+	async ilkIslemler(e) { }
+	async ilkIslemler_ek(e) { this.ilkIslemler_ozel?.(e) }
+	async sonIslemler(e) { } async sonIslemler_ek(e) { }
+	rootFormBuilderDuzenle({ rfb }) {
+		let e = arguments[0], {isPanelItem} = this
+		this.rootBuilder = rfb
 		/* rfb.addStyle(e => `$elementCSS { overflow: hidden !important }`); */
-		rfb.addIslemTuslari('islemTuslari').addCSS('islemTuslari').setTip('tazeleVazgec')
-			.setButonlarDuzenleyici(e => this.islemTuslariArgsDuzenle(e)).setId2Handler(this.islemTuslariGetId2Handler(e))
-		rfb.addForm('bulForm')
-			.setLayout(e => $(`<div class="${e.builder.id} part"><input class="input full-wh" type="textbox" maxlength="100"></input></div>`))
-			.onAfterRun(e => {
-				let {builder} = e, {layout} = builder;
-				let bulPart = builder.part = new FiltreFormPart({ layout, degisince: e => { const {tokens} = e; this.hizliBulIslemi({ ...e, builder, bulPart, sender: this, layout, tokens }) } });
-				bulPart.run()
-			})
+		if (!isPanelItem) {
+			rfb.addIslemTuslari('islemTuslari').addCSS('islemTuslari').setTip('tazeleVazgec')
+				.setButonlarDuzenleyici(e => this.islemTuslariArgsDuzenle(e)).setId2Handler(this.islemTuslariGetId2Handler(e))
+			rfb.addForm('bulForm')
+				.setLayout(e => $(`<div class="${e.builder.id} part"><input class="input full-wh" type="textbox" maxlength="100"></input></div>`))
+				.onAfterRun(e => {
+					let {builder} = e, {layout} = builder;
+					let bulPart = builder.part = new FiltreFormPart({
+						layout,
+						degisince: e => {
+							let {tokens} = e
+							this.hizliBulIslemi({ ...e, builder, bulPart, sender: this, layout, tokens })
+						}
+					})
+					bulPart.run()
+				})
+		}
 	}
 	onAfterRun(e) {
-		super.onAfterRun(e); let {rfb} = e, {part: rootPart} = rfb;
-		$.extend(rootPart, { builder: rfb, inst: this });
+		super.onAfterRun(e); let {rfb} = e, {part, part: { layout }} = rfb, {isPanelItem} = this;
 		let resizeHandler = this._resizeHandler = event => this.onResize({ ...e, event });
-		rootPart.builder = rfb; rootPart.layout.prop('id', rfb.id); window.addEventListener('resize', resizeHandler)
+		$.extend(part, { builder: rfb, inst: this });
+		part.builder = rfb
+		if (!layout) { layout = part.layout = rfb.layout }
+		layout.prop('id', rfb.id)
+		if (!isPanelItem) {
+			/* !! f..ks the grid */
+			$(window).on('resize', resizeHandler)
+		}
 	}
-	onResize(e) { if (this.part?.isDestroyed) { window.removeEventListener('resize', this._resizeHandler); return false } }
+	onResize(e) {
+		if (this.part?.isDestroyed) {
+			$(window).off('resize', this._resizeHandler)
+			return false
+		}
+	}
 	islemTuslariArgsDuzenle(e) { }
-	islemTuslariGetId2Handler(e) { return ({ tazele: e => e.builder.inst.tazele(e), vazgec: e => e.builder.rootPart.close(e) }) }
+	islemTuslariGetId2Handler(e) {
+		return ({
+			tazele: _e => _e.builder.inst.tazele({ ...e, ..._e }),
+			vazgec: _e => _e.builder.rootPart.close({ ...e, ..._e })
+		})
+	}
 	hizliBulIslemi(e) {
-		let {bulPart} = e; clearTimeout(this._timer_hizliBulIslemi_ozel); this._timer_hizliBulIslemi_ozel = setTimeout(() => {
+		let {bulPart} = e; clearTimeout(this._timer_hizliBulIslemi_ozel)
+		this._timer_hizliBulIslemi_ozel = setTimeout(() => {
 			try {
 				let {input} = bulPart; this.hizliBulIslemi_ara(e);
 				for (let  delayMS of [400, 1000]) {
 					setTimeout(() => {
-						bulPart.focus();
+						bulPart.focus()
 						setTimeout(() => { input[0].selectionStart = input[0].selectionEnd = input[0].value?.length }, 205)
 					}, delayMS)
 				}
@@ -98,9 +153,11 @@ class DRaporOzel extends DRapor {
 	}
 	hizliBulIslemi_ara(e) { }
 	tazele(e) {
-		super.tazele(e); let {rootBuilder: rfb} = e.builder, parentBuilder = rfb.id2Builder.items ?? rfb;
+		super.tazele(e); let {builder: { rootBuilder: rfb }} = e
+		let parentBuilder = rfb.id2Builder.items ?? rfb
 		for (let {part} of parentBuilder.getBuilders()) {
-			if (part) { part.tazele?.(e); part.dataBind?.(e) }
+			if (!part) { continue }
+			part.tazele?.(e); part.dataBind?.(e)
 		}
 	}
 	super_tazele(e) { super.tazele(e) }
@@ -111,64 +168,79 @@ class DPanelRapor extends DRaporOzel {
 	static get ozetVarmi() { return !this.sabitmi } static get chartVarmi() { return !this.sabitmi }
 	static get altRaporClassPrefix() { return this.name } static get noOverflowFlag() { return true }
 	get main() { return this.id2AltRapor?.main }
-	constructor(e) {
-		e = e || {}; super(e); $.extend(this, { id2AltRapor: e.id2AltRapor, altRapor_lastZIndex: 100 });
-		if (this.id2AltRapor == null) { this.clear(); this.altRaporlarDuzenle(e) }
+	constructor(e = {}) {
+		super(e); let {ozelIDListe, id2AltRapor, altRapor_lastZIndex} = e
+		$.extend(this, { ozelIDListe, id2AltRapor, altRapor_lastZIndex })
 	}
 	rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); const {rfb} = e, {id2AltRapor} = this, {noOverflowFlag, kod} = this.class;
+		if (this.id2AltRapor == null) { this.clear(); this.altRaporlarDuzenle(e) }
+		super.rootFormBuilderDuzenle(e); let {rfb} = e, {id2AltRapor, isPanelItem} = this, {noOverflowFlag, kod} = this.class
 		let form = e.rfb_items = this.rfb_items = rfb.addForm('items')
 			.setLayout(e => $(`<div id="${e.builder.id}" class="${kod ? `${kod} ` : ''}full-wh"></div>`));
 		if (noOverflowFlag) { form.addCSS('no-overflow') }
-		for (const [id, altRapor] of Object.entries(id2AltRapor)) {
-			let raporAdi = altRapor.class.etiket ?? '';
+		for (let [id, altRapor] of Object.entries(id2AltRapor)) {
+			let raporAdi = altRapor.class.etiket ?? ''
 			let fbd = altRapor.parentBuilder = form.addForm(id).addCSS('item').addStyle_fullWH()
 				.setLayout(e => $(`<div class="${id}"><label>${raporAdi || ''}</label></div>`))
-				.addStyle(e => `$elementCSS { overflow: hidden !important; z-index: ${this.altRapor_lastZIndex++} !important }`);
-			let _e = { ...e, id, builder: fbd }; altRapor.subFormBuilderDuzenle(_e);
-			let {width, height} = altRapor; if (width || height) { fbd.addStyle_wh(width, height) }
+				.addStyle(e => `$elementCSS { overflow: hidden !important; z-index: ${this.altRapor_lastZIndex++} !important }`)
+			let _e = { ...e, id, builder: fbd }; altRapor.subFormBuilderDuzenle(_e)
+			let {width, height} = altRapor
+			if (isPanelItem) { fbd.addStyle_fullWH(null, height) }
+			else if (width || height) { fbd.addStyle_wh(width, height) }
 			altRapor.rootFormBuilderDuzenle(e)
 		}
 	}
 	async ilkIslemler(e) {
-		await super.ilkIslemler(e); let {id2AltRapor} = this;
+		await super.ilkIslemler(e); let {id2AltRapor} = this
 		for (let altRapor of Object.values(id2AltRapor)) { await altRapor.ilkIslemler?.(e) }
 	}
 	async ilkIslemler_ek(e) {
-		await super.ilkIslemler_ek(e); let {id2AltRapor} = this;
+		await super.ilkIslemler_ek(e); let {id2AltRapor} = this
 		for (let altRapor of Object.values(id2AltRapor)) { await altRapor.ilkIslemler_ek?.(e) }
 	}
 	async sonIslemler(e) {
-		await super.sonIslemler(e); let {id2AltRapor} = this;
+		await super.sonIslemler(e); let {id2AltRapor} = this
 		for (let altRapor of Object.values(id2AltRapor)) { await altRapor.sonIslemler?.(e) }
 	}
 	async sonIslemler_ek(e) {
-		await super.sonIslemler_ek(e); let {id2AltRapor} = this;
+		await super.sonIslemler_ek(e); let {id2AltRapor} = this
 		for (let altRapor of Object.values(id2AltRapor)) { await altRapor.sonIslemler_ek?.(e) }
 	}
 	onAfterRun(e) {
-		super.onAfterRun(e); const {rfb} = e, {layout: itemsLayout} = rfb.id2Builder.items, itemSelector = '.item', focusSelector = 'hasFocus';
-		const elmSubItems = itemsLayout.children(itemSelector); elmSubItems.eq(0).addClass(focusSelector);
+		super.onAfterRun(e); let {rfb} = e
+		let {items: { layout: itemsLayout }} = rfb.id2Builder
+		let itemSelector = '.item', focusSelector = 'hasFocus'
+		let elmSubItems = itemsLayout.children(itemSelector)
+		elmSubItems.eq(0).addClass(focusSelector);
 		elmSubItems.on('click', evt => {
-			const itemLayout = $(evt.currentTarget);
+			let itemLayout = $(evt.currentTarget);
 			itemLayout.parent().children(itemSelector).removeClass(focusSelector);
 			itemLayout.addClass(focusSelector)
 		})
 	}
 	onResize(e) {
 		if (super.onResize(e) === false) { return false }
-		const {id2AltRapor} = this; if (!id2AltRapor) { return }
-		for (const altRapor of Object.values(id2AltRapor)) { altRapor?.onResize?.(e) }
+		let {id2AltRapor} = this; if (!id2AltRapor) { return }
+		for (let altRapor of Object.values(id2AltRapor)) { altRapor?.onResize?.(e) }
 	}
 	altRaporlarDuzenle(e) {
-		let {altRaporClassPrefix: prefix, sabitmi, ozetVarmi, chartVarmi} = this.class;
-		if (prefix) {
-			let postfixes = ['_Main'/*, '_Ozet', '_Chart', '_Diagram'*/];
-			let classes = postfixes.map(postfix => window[prefix + postfix]).filter(cls => !!cls);
-			this.add(...classes)
+		let {ozelIDListe, class: { altRaporClassPrefix: prefix = '', sabitmi, ozetVarmi, chartVarmi }} = this
+		let clsMain = window[`${prefix}_Main`]
+		if ($.isEmptyObject(ozelIDListe)) {
+			if (clsMain) { this.add(clsMain) }
+			if (ozetVarmi) { this.add(DAltRapor_Grid_Ozet) }
+			if (chartVarmi) { this.add(DAltRapor_Chart) }
 		}
-		if (ozetVarmi) { this.add(DAltRapor_Grid_Ozet) }
-		if (chartVarmi) { this.add(DAltRapor_Chart) }
+		else {
+			let id2Cls = {
+				main: clsMain,
+				ozet: DAltRapor_Grid_Ozet,
+				chart: DAltRapor_Chart
+			}
+			if (!$.isArray(ozelIDListe)) { ozelIDListe = typeof ozelIDListe == 'object' ? Object.keys(ozelIDListe) : $.makeArray(ozelIDListe) }
+			let classes = ozelIDListe.map(id => id2Cls[id]).filter(x => !!x)
+			if (classes.length) { this.add(...classes) }
+		}
 	}
 	tazele(e) {
 		super.super_tazele(e); let {id2AltRapor} = this, {main} = id2AltRapor, {gridPart: mainGridPart} = main ?? {};
@@ -182,23 +254,34 @@ class DPanelRapor extends DRaporOzel {
 		}
 	}
 	hizliBulIslemi_ara(e) {
-		super.hizliBulIslemi_ara(e); const {tokens} = e, {main} = this;
-		for (const altRapor of [main]) {
+		super.hizliBulIslemi_ara(e); let {tokens} = e, {main} = this;
+		for (let altRapor of [main]) {
 			if (!altRapor.fbd_grid) { continue }
 			let {part: gridPart} = altRapor.fbd_grid; gridPart.filtreTokens = tokens;
 			this.tazele({ action: 'hizliBul' })
 		}
 	}
 	add(...items) {
-		const {id2AltRapor} = this; for (const item of items) {
-			if (item == null) { continue } if ($.isArray(item)) { this.add(...item); continue } 
-			let id, altRapor; if ($.isPlainObject(item)) { id = item.id; altRapor = item.altRapor ?? item.rapor } else { altRapor = item }
+		let {id2AltRapor} = this
+		for (let item of items) {
+			if (item == null) { continue }
+			if ($.isArray(item)) { this.add(...item); continue } 
+			let id, altRapor
+			if ($.isPlainObject(item)) { id = item.id; altRapor = item.altRapor ?? item.rapor }
+			else { altRapor = item }
 			if (isClass(altRapor)) { altRapor = new altRapor({ rapor: this }) }
-			if (altRapor == null) { continue } if (!id) { id = altRapor.class.kod || newGUID() }
+			if (altRapor == null) { continue }
+			id ||= altRapor.class.kod || newGUID()
 			altRapor.rapor = this; id2AltRapor[id] = altRapor
-		} return this
+		}
+		return this
 	}
 	clear() { this.id2AltRapor = {}; return this }
+	setOzelIDListe(value) { this.ozelIDListe = value; return this }
+	clearOzelIDListe() { this.ozelIDListe = null; return this }
+	ozelID_main() { return this.setOzelIDListe('main') }
+	ozelID_ozet() { return this.setOzelIDListe('ozet') }
+	ozelID_chart() { return this.setOzelIDListe('chart') }
 }
 class DGrupluPanelRapor extends DPanelRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -215,9 +298,12 @@ class DGrupluPanelRapor extends DPanelRapor {
 			{ id: 'html', text: '', handler: _e => this.exportHTMLIstendi({ ...e, ..._e }) }
 		].filter(x => !!x))
 	}
+	raporTanimIstendi(e) { for (let altRapor of Object.values(this.id2AltRapor)) { this.main?.raporTanimIstendi?.(e) }; return this }
+	secimlerIstendi(e) { for (let altRapor of Object.values(this.id2AltRapor)) { this.main?.secimlerIstendi?.(e) }; return this }
 	seviyeAcIstendi(e) { for (let altRapor of Object.values(this.id2AltRapor)) { altRapor?.seviyeAcIstendi?.(e) }; return this }
 	seviyeKapatIstendi(e) { for (let altRapor of Object.values(this.id2AltRapor)) { altRapor?.seviyeKapatIstendi?.(e) }; return this }
 	exportExcelIstendi(e) { for (let altRapor of Object.values(this.id2AltRapor)) { altRapor?.exportExcelIstendi?.(e) }; return this }
 	exportPDFIstendi(e) { for (let altRapor of Object.values(this.id2AltRapor)) { altRapor?.exportPDFIstendi?.(e) }; return this }
 	exportHTMLIstendi(e) { for (let altRapor of Object.values(this.id2AltRapor)) { altRapor?.exportHTMLIstendi?.(e) }; return this }
+	gridVeriYuklendiIslemi(e) { for (let altRapor of Object.values(this.id2AltRapor)) { altRapor?.gridVeriYuklendiIslemi?.(e) }; return this }
 }

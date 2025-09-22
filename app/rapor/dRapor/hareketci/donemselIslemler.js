@@ -50,8 +50,8 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 			.addIcerik('MST', 'DEVIR', 'BORC', 'ALACAK', 'BAKIYE')
 	}
 	tazele(e) {
-		let {secimler: sec, rapor, raporTanim, konsolideVarmi} = this, {tarihBS} = sec;
-		if (!(tarihBS?.basi || this.secimlerIstendimi)) { this.secimlerIstendi(); this.secimlerIstendimi = true; return }
+		let {secimler: sec, rapor, raporTanim, konsolideVarmi} = this, {isPanelItem} = rapor, {tarihBS} = sec;
+		if (!(isPanelItem || tarihBS?.basi || this.secimlerIstendimi)) { this.secimlerIstendi(); this.secimlerIstendimi = true; return }
 		let {kullanim} = raporTanim; kullanim.yatayAnaliz = konsolideVarmi ? 'DB' : null;
 		return super.tazele(e)
 	}

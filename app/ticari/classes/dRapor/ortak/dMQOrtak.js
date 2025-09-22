@@ -6,7 +6,11 @@ class DMQCogul extends MQCogul {
 		super.orjBaslikListesi_argsDuzenle(e); const {args, sender} = e;
 		$.extend(args, { showFilterRow: false, groupsExpandedByDefault: true, rowsHeight: 40, groupIndentWidth: 30 })
 	}
-	static listeEkrani_init(e) { super.listeEkrani_init(e); const gridPart = e.gridPart ?? e.sender, {args} = gridPart; if (args) { $.extend(gridPart, args) } }
+	static listeEkrani_init(e) {
+		super.listeEkrani_init(e);
+		let gridPart = e.gridPart ?? e.sender, {args} = gridPart
+		if (args) { $.extend(gridPart, args) }
+	}
 	static listeEkrani_activated(e) { }
 }
 class DMQKA extends MQKA {

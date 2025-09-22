@@ -20,10 +20,12 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 	tabloYapiDuzenle_son({ result }) { }
 	async tazele(e) {
 		await this.tazeleOncesi(e);
-		let {gridPart, raporTanim, _tabloTanimGosterildiFlag} = this, {grid, gridWidget} = gridPart;
+		let {gridPart, gridPart: { grid, gridWidget }, rapor: { isPanelItem }, raporTanim, _tabloTanimGosterildiFlag} = this
 		if (!raporTanim) {
-			if (_tabloTanimGosterildiFlag) { hConfirm('<b>Rapor Tanımı</b> seçilmelidir') }
-			else { this.raporTanimIstendi(e) }
+			if (!isPanelItem) {
+				if (_tabloTanimGosterildiFlag) { hConfirm('<b>Rapor Tanımı</b> seçilmelidir') }
+				else { this.raporTanimIstendi(e) }
+			}
 			return
 		}
 		let _e = CObject.From(e);

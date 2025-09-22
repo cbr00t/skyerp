@@ -606,14 +606,17 @@ class FormBuilderBase extends CObject {
 	setParentPart(value) { this.parentPart = value; return this }
 	setParent(value) { this.parent = value; return this }
 	setLayout(value) { this.layout = value; return this }
+	setRootBuilder(value) { this.rootBuilder = value; return this }
+	setParentBuilder(value) { this.parentBuilder = value; return this }
 	destroyable() { this.canDestroy = true; return this }
 	noDestroy() { this.canDestroy = false; return this }
 	addStyle_wh(e, _height) {
 		if (e == null || typeof e != 'object') e = { width: e, height: _height }
 		let withImportant = value => {
-			if (value != null && value != '') value = value.toString()
-			if ($.isNumeric(value)) value += 'px'
-			let Postfix_Important = ' !important'; if (typeof value == 'string' && !value.endsWith(Postfix_Important)) value += Postfix_Important
+			if (value != null && value != '') { value = value.toString() }
+			if ($.isNumeric(value)) { value += 'px' }
+			let Postfix_Important = ' !important';
+			if (typeof value == 'string' && !value.endsWith(Postfix_Important)) { value += Postfix_Important }
 			return value
 		}
 		let _styles = [], width = withImportant(e.width), height = withImportant(e.height);

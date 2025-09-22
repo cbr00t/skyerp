@@ -1,0 +1,23 @@
+.dPanel.part {
+	--islemTuslari-height: 53px;
+	width: var(--full) !important; height: var(--full) !important;
+	margin: 0 !important; padding: 1px !important; box-sizing: border-box !important
+}
+.dPanel.part .butonlar.part { --button-width: 90px }
+.dPanel.part > .islemTuslari { width: var(--full); height: var(--islemTuslari-height) }
+.dPanel.part > .islemTuslari #secimler.jqx-fill-state-normal { background-color: #7f8cb0 }
+.dPanel.part > .islemTuslari #secimler.jqx-fill-state-hover { background-color: #c0cced }
+.dPanel.part > .islemTuslari #secimler.jqx-fill-state-pressed { background-color: #4860a2 }
+.dPanel.part > .islemTuslari #raporTanim.jqx-fill-state-normal {
+	color: #3d4c7c; background-color: #b2c7b2;
+	border: 1px solid #95989f !important; box-shadow: 1px 1px 5px 3px #c7cde7
+}
+.dRapor.part > .wnd-content > *:not(.bulForm):not(.islemTuslari) { background: white !important }
+.dPanel.part > .content { }
+.dPanel.part > .items {
+	width: calc(var(--full) - 3px); height: calc(var(--full) - var(--islemTuslari-height) - 8px);
+	overflow-y: overlay !important; /*flex-wrap: nowrap !important*/
+}
+.dPanel.part._loading { opacity: .5 !important; filter: blur(5px) !important }
+.dPanel.part .items > div { box-sizing: border-box }
+.dPanel.part .items ._loading { height: 5000px !important }

@@ -58,7 +58,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		if (hareketciSinif) { this.hareketci = new hareketciSinif() }
 	}
 	tazele(e) {
-		let {totalmi} = this.class, {secimler: sec} = this, {tarihBS} = sec;
+		let {totalmi} = this.class, {secimler: sec = {}} = this, {tarihBS} = sec;
 		if (!(totalmi || tarihBS?.basi || this.secimlerIstendimi)) { this.secimlerIstendi(); this.secimlerIstendimi = true; return }
 		return super.tazele(e)
 	}

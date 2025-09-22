@@ -43,20 +43,38 @@ class SkyRaporApp extends TicariApp {
 		}
 	}
 	async anaMenuOlustur(e) {
-		let {kullanim} = app.params.aktarim, eksikParamIsimleri = []; this.sqlTables = await app.sqlGetTables();
-		if (!kullanim.webOzetRapor) { eksikParamIsimleri.push('Web Özet Rapor') }
+		let {moduller, params: { aktarim: { kullanim: aktarim } }} = app;
+		this.sqlTables = await app.sqlGetTables()
+		if (!aktarim.webOzetRapor) { eksikParamIsimleri.push('Web Özet Rapor') }
+		let eksikParamIsimleri = [], eksikModulIsimleri = []
+		if (moduller && !moduller[Modul_WebOzetRapor.kod]) { eksikModulIsimleri.push(Modul_WebOzetRapor.aciklama) }
 		if (eksikParamIsimleri.length) {
-			this.noMenuFlag = true; const paramIsimleriGosterim = eksikParamIsimleri.map(x => `<span class="bold firebrick">${x}</span>`).join(' VE ');
-			const wnd = createJQXWindow({
+			this.noMenuFlag = true
+			let gosterim = eksikParamIsimleri.map(x => `<span class="bold firebrick">${x}</span>`).join(' VE ')
+			let wnd = createJQXWindow({
 				content: (
-					`<div>${paramIsimleriGosterim} parametreleri</div>
+					`<div>${gosterim} parametreleri</div>
 					<div>Vio Ticari Program &gt; <span class="bold royalblue">Ticari Aktarım Parametreleri</span> kısmından açılmalıdır.</div><p/>
 					<div class="gray">Eğer bu parametreler işaretli ise <b class="royalblue">Güncel Ticari Sürümün</b> yüklü olduğundan emin olunuz ve <u>ilgili parametre adımına girip</u> <b>Kaydet</b> butonuna tıklayınız</div>`
 				),
 				title: `<span class="bold">!! UYARI !!</span><span class="gray"> - ${appName}</span>`,
 				args: { isModal: true, width: Math.min(830, $(window).width() / 1.5), height: 330, showCloseButton: true, showCollapseButton: false, closeButtonAction: 'destroy' }
 				// buttons: { TAMAM: e => e.close() }
-			});
+			})
+			wnd.css('font-size', '130%'); wnd.find('div > .jqx-window-header').addClass('bg-darkred') /* wnd.find('div > .buttons > button:eq(0)').jqxButton('template', 'danger') */
+		}
+		if (eksikModulIsimleri.length) {
+			this.noMenuFlag = true
+			let gosterim = eksikModulIsimleri.map(x => `<span class="bold firebrick">${x}</span>`).join(' VE ');
+			let wnd = createJQXWindow({
+				content: (
+					`<div><b class=royalblue>${gosterim}</b> modülü için lisanslama yapılmalıdır</div>` +
+					`<div>Eğer zaten lisansınız varsa, VIO Ticari Program'a girip, <b>Dosya > Program > Anahtarın Girilmesi</b> menü adımına tıklayınız ve <b>Tamam</b> butonuna basınız</div>`
+				),
+				title: `<span class="bold">!! UYARI !!</span><span class="gray"> - ${appName}</span>`,
+				args: { isModal: true, width: Math.min(830, $(window).width() / 1.5), height: 330, showCloseButton: true, showCollapseButton: false, closeButtonAction: 'destroy' }
+				// buttons: { TAMAM: e => e.close() }
+			})
 			wnd.css('font-size', '130%'); wnd.find('div > .jqx-window-header').addClass('bg-darkred') /* wnd.find('div > .buttons > button:eq(0)').jqxButton('template', 'danger') */
 		}
 		await super.anaMenuOlustur(e)
@@ -64,6 +82,7 @@ class SkyRaporApp extends TicariApp {
 	getAnaMenu(e) {
 		const {noMenuFlag} = this; if (noMenuFlag) { return new FRMenu() }
 		const {isAdmin} = config.session ?? {}, {kod2Sinif} = DRapor, kategoriKod2MenuItems = {};
+		$.extend(kod2Sinif, { ...DPanel.kod2Sinif })
 		for (const [mne, sinif] of Object.entries(kod2Sinif)) {
 			if (sinif.dAltRapormu || !sinif.uygunmu) { continue }
 			let {vioAdim} = sinif, kategoriKod = sinif.kategoriKod ?? '';

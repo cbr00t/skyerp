@@ -7,42 +7,51 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	get width() { return this.ozetVarmi || this.chartVarmi ? '70%' : 'var(--full)' } get height() { return 'calc(var(--full) - 0px)' }
 		get sabitRaporTanim() {
 		let {_sabitRaporTanim: result} = this; if (result == null) {
-			let rapor = this, {raporTanimSinif} = this.class;
-			let e = { result: new raporTanimSinif({ rapor }) };
-			this.sabitRaporTanimDuzenle(e); this.sabitRaporTanimDuzenle_son(e);
+			let rapor = this, {raporTanimSinif} = this.class
+			let e = { result: new raporTanimSinif({ rapor }) }
+			this.sabitRaporTanimDuzenle(e); this.sabitRaporTanimDuzenle_son(e)
 			result = this._sabitRaporTanim = e.result
 		}
 		return result
 	}
+	constructor(e = {}) {
+		super(e); let {gridVeriYuklendi_ek} = e
+		$.extend(this, { gridVeriYuklendi_ek })
+	}
 	/*subFormBuilderDuzenle(e) { super.subFormBuilderDuzenle(e); let {rfb} = e; rfb.addCSS('no-overflow') }*/
 	onBuildEk(e) {
-		super.onBuildEk(e); if (this.secimler == null) { this.secimler = this.newSecimler(e) }
-		let {parentBuilder, noAutoColumns} = this, {layout} = parentBuilder, {builder: fbd} = e;
-		this.fbd_grid = parentBuilder.addForm('grid').setLayout(e => $(`<div class="${e.builder.id} part full-wh"/>`))
+		super.onBuildEk(e)
+		if (this.secimler == null) { this.secimler = this.newSecimler(e) }
+		let {rapor: { isPanelItem }, parentBuilder, noAutoColumns} = this, {layout} = parentBuilder, {builder: fbd} = e
+		this.fbd_grid = parentBuilder.addForm('grid')
+			.setLayout(({ builder: { id }}) => $(`<div class="${id} part"/>`))
 			.onAfterRun(async e => {
-				let {builder: fbd_grid} = e, gridPart = this.gridPart = fbd_grid.part = {}, grid = gridPart.grid = fbd_grid.layout;
-				$.extend(gridPart, { tazele: e => this.tazele(e), hizliBulIslemi: e => this.hizliBulIslemi(e) });
-				await this.onGridInit(e); let _e = { ...e, liste: [] }; this.tabloKolonlariDuzenle(_e); this.tabloKolonlariDuzenle_ozel?.(_e);
-				let colDefs = this.tabloKolonlari = _e.liste || [], columns = noAutoColumns ? [] : colDefs.flatMap(colDef => colDef.jqxColumns), source = [];
-				let localization = localizationObj, width = '99.7%', height = 'calc(var(--full) - 10px)', autoRowHeight = true, autoShowLoadElement = true, altRows = true;
-				let filterMode = 'advanced';	/* default | simple | advanced */
-				let showAggregates = true, showSubAggregates = false, columnsHeight = 60, aggregatesHeight = 30, columnsResize = true, columnsReorder = false, sortable = true, filterable = false;
+				let {builder: fbd_grid, builder: { layout }} = e, gridPart = this.gridPart = fbd_grid.part = {}, grid = gridPart.grid = layout
+				$.extend(gridPart, { tazele: e => this.tazele(e), hizliBulIslemi: e => this.hizliBulIslemi(e) })
+				await this.onGridInit(e); let _e = { ...e, liste: [] }; this.tabloKolonlariDuzenle(_e); this.tabloKolonlariDuzenle_ozel?.(_e)
+				let colDefs = this.tabloKolonlari = _e.liste || [], columns = noAutoColumns ? [] : colDefs.flatMap(colDef => colDef.jqxColumns), source = []
+				let localization = localizationObj, width = '99.7%', height = `calc(var(--full) - ${isPanelItem ? 0 : 10}px)`
+				let autoRowHeight = true, autoShowLoadElement = true, altRows = true
+				let filterMode = 'advanced'		/* default | simple | advanced */
+				let showAggregates = true, showSubAggregates = false
+				let columnsResize = true, columnsReorder = false, sortable = true, filterable = false
+				let columnsHeight = isPanelItem ? 25 : 60, aggregatesHeight = isPanelItem ? 20 : 30
 				let args = {
 					theme, localization, width, height, autoRowHeight, autoShowLoadElement, altRows, filterMode, showAggregates, showSubAggregates,
 					columnsHeight, aggregatesHeight, columnsResize, columnsReorder, sortable, filterable, columns, source
-				};
-				_e = { ...e, args }; this.gridArgsDuzenle(_e); this.gridArgsDuzenle_ozel?.(_e);
-				args = _e.args; grid.jqxTreeGrid(args); gridPart.gridWidget = grid.jqxTreeGrid('getInstance');
-				grid.on('rowExpand', event => this.gridRowExpanded({ ...e, event }));
-				grid.on('rowCollapse', event => this.gridRowCollapsed({ ...e, event }));
+				}
+				_e = { ...e, args }; this.gridArgsDuzenle(_e); this.gridArgsDuzenle_ozel?.(_e)
+				args = _e.args; grid.jqxTreeGrid(args); gridPart.gridWidget = grid.jqxTreeGrid('getInstance')
+				grid.on('rowExpand', event => this.gridRowExpanded({ ...e, event }))
+				grid.on('rowCollapse', event => this.gridRowCollapsed({ ...e, event }))
 				grid.on('rowSelect', event => {
 					let timerKey = '_timer_rowSelect'; clearTimeout(this[timerKey]);
 					this[timerKey] = setTimeout(() => { try { this.gridSatirTiklandi({ ...e, event }) } finally { delete this[timerKey] } }, 200)
 				});
-				grid.on('rowDoubleClick', event => this.gridSatirCiftTiklandi({ ...e, event }));
-				grid.on('sort', event => this.gridSortIstendi({ ...e, event }));
+				grid.on('rowDoubleClick', event => this.gridSatirCiftTiklandi({ ...e, event }))
+				grid.on('sort', event => this.gridSortIstendi({ ...e, event }))
 				this.onGridRun(e)
-			});
+			})
 		if (this.class.mainmi) { fbd.addCSS('_main') }
 	}
 	tabloKolonlariDuzenle(e) { }
@@ -68,8 +77,9 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		let {gridPart} = this, {gridWidget, expandedRowsSet} = gridPart, {args} = e.event, {level, uid} = args.row || {};
 		if (uid != null) { gridWidget[expandedRowsSet[`${level}-${uid}`] ? 'collapseRow' : 'expandRow'](uid) }
 	}
-	async tazele(e) {
-		e = e || {}; await super.tazele(e); let {grid} = this.gridPart || {}; if (!grid) { return }
+	async tazele(e = {}) {
+		await super.tazele(e)
+		let {grid} = this.gridPart || {}; if (!grid) { return }
 		let da = this.tazele_ozel?.(e); if (!da) { da = await this.getDataAdapter(e) }
 		if (da) { grid.jqxTreeGrid('source', da) }
 	}
@@ -82,6 +92,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	hizliBulIslemi(e) { let {gridPart} = this; gridPart.filtreTokens = e.tokens; this.tazele(e) }
 	gridVeriYuklendi(e) {
 		let {gridPart} = this, {grid, gridWidget} = gridPart, {boundRecs, recs} = e; gridPart.expandedRowsSet = {}
+		this.gridVeriYuklendi_ek?.(e)
 		/* if (boundRecs?.length) { gridWidget.expandRow(0) } */
 	}
 	gridSortIstendi(e) {
@@ -202,6 +213,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		}
 		return result
 	}
+	gridVeriYuklendiIslemi(value) { this.gridVeriYuklendi_ek = value; return this }
 }
 class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
