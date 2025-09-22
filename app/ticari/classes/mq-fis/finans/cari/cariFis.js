@@ -16,9 +16,10 @@ class CariTopluIslemFis extends FinansFis {
 		$.extend(hv, { fistipi: 'CI', ozeltip: '' })
 	}
 	hostVarsDuzenle({ hv }) {
-		super.hostVarsDuzenle(...arguments);
-		let {kod2BA} = MQCariIslem.globals, {fisTopNet: toplambedel, fisTopDvNet: toplamdvbedel} = this;
-		$.extend(hv, { ba: kod2BA[this.islKod], toplambedel, toplamdvbedel })
+		super.hostVarsDuzenle(...arguments)
+		let {kod2BA = {}} = MQCariIslem.globals, {islKod, fisTopNet: toplambedel, fisTopDvNet: toplamdvbedel} = this
+		let ba = kod2BA[islKod] ?? (islKod[0] == 'A' ? 'A' : 'B')
+		$.extend(hv, { ba, toplambedel, toplamdvbedel })
 	}
 }
 class CariTopluIslemDetay extends FinansDetay {

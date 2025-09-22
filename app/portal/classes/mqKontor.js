@@ -417,7 +417,10 @@ class MQKontor extends MQDetayliMaster {
 				abortCheck?.();
 				if (aciktanmi) {
 					/* !! Açıktan için Tüm Müşteriler aynı fiş içindedir */
-					if (fis == null) { fis = new fisSinif({ islKod, tarih, baslikAciklama }); fisKontorBilgiDuzenle() }
+					if (fis == null) {
+						fis = new fisSinif({ ozelIsaret, islKod, tarih, baslikAciklama })
+						fisKontorBilgiDuzenle()
+					}
 				}
 				else { fis = new fisSinif({ ozelIsaret, islKod, tarih, seri, efAyrimTipi, baslikAciklama }); fisKontorBilgiDuzenle() }
 				for (let rec of recs) {
