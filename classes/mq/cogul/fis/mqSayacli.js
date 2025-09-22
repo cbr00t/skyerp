@@ -90,8 +90,8 @@ class MQSayacli extends MQCogul {
 	}
 	keySetValues(e) {
 		super.keySetValues(e); let {rec} = e, {sayacSaha, kodKullanilirmi, kodSaha} = this.class;
-		if (sayacSaha) { let value = rec[sayacSaha]; if (value != null) { this.sayac = value } }
-		if (kodKullanilirmi && kodSaha) { let value = rec[kodSaha]; if (value != null) { this.kod = value } }
+		if (sayacSaha) { let value = rec?.[sayacSaha]; if (value != null) { this.sayac = value } }
+		if (kodKullanilirmi && kodSaha) { let value = rec?.[kodSaha]; if (value != null) { this.kod = value } }
 	}
 	alternateKeyHostVarsDuzenle(e) {
 		super.alternateKeyHostVarsDuzenle(e); const {hv} = e, {kodKullanilirmi, kodSaha} = this.class;

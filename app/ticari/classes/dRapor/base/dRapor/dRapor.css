@@ -72,9 +72,7 @@
 }
 .dPanel .dRapor.part #items > .item:not(.hasFocus) > label,
 	.dPanel .dRapor.part #items > .item > label > * { background-color: unset !important }
-.dRapor.part #items > .item.hasFocus > div > div > div > div {
-	box-shadow: 0 0 5px 5px cyan !important
-}
+.dRapor.part #items > .item.hasFocus { box-shadow: 0 0 15px 5px forestgreen !important }
 .dRapor.part #items > .item.hasFocus > label {
 	font-size: 145%; color: white; background-color: #1f5f47;
 	box-shadow: 0 0 5px 1px whitesmoke; user-select: none

@@ -131,8 +131,8 @@ class SablonluSiparisFisTemplate extends CObject {
 		let anah2KosulYapi = SatisKosulYapi._anah2KosulYapi ??= {}
 		let kosulYapilar = anah2KosulYapi[toJSONStr(kapsam)] ??= await SatisKosulYapi.uygunKosullar({ kapsam });
 		let ekOzellikler = Array.from(HMRBilgi.hmrIter_ekOzellik())
-		let cache_urunler = this._cache_urunler ??= {}
-		let recs = cache_urunler[toJSONStr({ konsinyemi, sablonSayac, mustKod })] ??= await (async () => {
+		let cache_urunler = this._cache_urunler ??= {}, anah = toJSONStr({ konsinyemi, sablonSayac, onaylaVeyaSilmi, mustKod })
+		let recs = cache_urunler[anah] ?? await (async () => {
 			let sent = new MQSent({
 				from: 'hizlisablon sab', fromIliskiler: [
 					{ from: 'hizlisablongrup grp', iliski: 'grp.fissayac = sab.kaysayac' },
@@ -140,17 +140,14 @@ class SablonluSiparisFisTemplate extends CObject {
 					{ from: 'stkmst stk', iliski: 'har.stokkod = stk.kod' },
 					{ alias: 'stk', leftJoin: 'urunpaket upak', on: ['stk.kod = upak.urunkod', `upak.varsayilan <> ''`] }
 				],
-				where: [
-					{ degerAta: sablonSayac, saha: 'sab.kaysayac' },
-					`stk.silindi = ''`, `stk.satilamazfl = ''`
-				],
+				where: [{ degerAta: sablonSayac, saha: 'sab.kaysayac' }],
 				sahalar: [
 					'grp.kaysayac grupsayac', 'grp.seq grupseq', 'grp.grupadi', 'har.seq', 'har.bdevredisi',
 					'har.stokkod shkod', 'stk.aciklama shadi', 'stk.brm', 'upak.urunmiktari paketicadet'
 				]
 			}), {sahalar, where: wh} = sent;
-			if (!onaylami) { wh.add(`har.bdevredisi = 0`) }
-			wh.icerikKisitDuzenle_stok({ saha: 'har.stokkod' });
+			if (!onaylaVeyaSilmi) { wh.add(`har.bdevredisi = 0`, `stk.silindi = ''`, `stk.satilamazfl = ''`) }
+			wh.icerikKisitDuzenle_stok({ saha: 'har.stokkod' })
 			if (konsinyemi && yenimi) {    /* Yeni fiş için KL Dağıtım bağlantısı yoksa recs boş dönsün */
 				sent.fromIliski('kldagitim dag', [`dag.mustkod = ${mustKod.sqlServerDegeri()}`, 'sab.klfirmakod = dag.klfirmakod']) }
 			for (let {table, tableAlias: alias, rowAttr, rowAdiAttr} of ekOzellikler) {
@@ -160,6 +157,7 @@ class SablonluSiparisFisTemplate extends CObject {
 			let stm = new MQStm({ sent, orderBy: ['fissayac', 'grupseq', 'seq'] });
 			return await app.sqlExecSelect(stm)
 		})()
+		if (!onaylaVeyaSilmi) { cache_urunler[anah] = recs }
 		if (!(offline || recs?.length)) {
 			let mustUnvan = mustKod ? await MQSCari.getGloKod2Adi(mustKod) : null;
 			let sablonAdi = sablonSayac ? await MQSablonOrtak.getGloKod2Adi(sablonSayac) : null;

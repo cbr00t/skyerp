@@ -71,7 +71,7 @@ class DRaporOzel extends DRapor {
 		let title = e.title ?? `<b class="royalblue">${aciklama}</b> Raporu`
 		let rfb = e.rfb ?? new RootFormBuilder({ id: partName }).noDestroy()
 			.setInst(this).addCSS('slow-animation')
-		if (!isPanelItem) { rfb = rfb.asWindow(title) }
+		if (!isPanelItem) { rfb = rfb.asWindow?.(title) }
 		let _e = { ...e, rfb }; this.rootFormBuilderDuzenle(_e); rfb = _e.rfb;
 		await this.ilkIslemler(e); await this.ilkIslemler_ek(e)
 		rfb.onInit(e => this.onInit({ ...e, rfb: e.builder }))
@@ -212,11 +212,13 @@ class DPanelRapor extends DRaporOzel {
 		let itemSelector = '.item', focusSelector = 'hasFocus'
 		let elmSubItems = itemsLayout.children(itemSelector)
 		elmSubItems.eq(0).addClass(focusSelector);
-		elmSubItems.on('click', evt => {
+		let handler = evt => {
 			let itemLayout = $(evt.currentTarget);
 			itemLayout.parent().children(itemSelector).removeClass(focusSelector);
 			itemLayout.addClass(focusSelector)
-		})
+		}
+		for (let key of ['mousedown', 'touchstart', 'click']) 
+			elmSubItems.on(key, handler)
 	}
 	onResize(e) {
 		if (super.onResize(e) === false) { return false }

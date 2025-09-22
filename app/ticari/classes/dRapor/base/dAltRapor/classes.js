@@ -54,3 +54,25 @@ class DAltRapor_PanelGruplama extends DAltRapor_PanelRec {
 		return this
 	}
 }
+
+class DAltRaporTip extends TekSecim {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sinifAdi() { return 'Rapor Tip' } static get defaultChar() { return ' ' }
+	get altRaporTip() {
+		let kod = this.char?.trim() ?? ''
+		switch (kod) {
+			case '': return 'main'
+			case 'OZ': return 'ozet'
+			case 'CH': return 'chart'
+		}
+		return null
+	}
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(
+			new CKodVeAdi([' ', 'Asıl Rapor', 'mainmi']),
+			new CKodVeAdi(['OZ', 'Özet', 'ozetmi']),
+			new CKodVeAdi(['CH', 'Grafik', 'chartmi'])
+		)
+	}
+}

@@ -40,7 +40,7 @@ class CIO extends CObject {
 	pIO_setValues(e) {
 		e = e || {}; const {rec} = e, {_p} = this; for (const ioAttr in _p) {
 			const pInst = _p[ioAttr], {rowAttr} = pInst;
-			if (rowAttr) { const value = rec[rowAttr]; if (value !== undefined) { pInst.setValues({ value, rec }) } }
+			if (rowAttr) { const value = rec?.[rowAttr]; if (value !== undefined) { pInst.setValues({ value, rec }) } }
 		}
 	}
 	shallowCopy(e) {
