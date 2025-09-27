@@ -144,7 +144,7 @@ class DPanel extends Part {
 	islemTuslariArgsDuzenle({ liste }) {
 		let e = arguments[0], {sabitmi} = this.class;
 		liste.push(...[
-			(sabitmi ? null : { id: 'raporTanim', text: 'Rapor Tanım', handler: _e => this.detayTanimIstendi({ ...e, ..._e }) }),
+			(sabitmi ? null : { id: 'raporTanim', text: 'Rapor Tanım', handler: _e => this.raporTanimIstendi({ ...e, ..._e }) }),
 			{ id: 'secimler', text: '', handler: _e => this.secimlerIstendi({ ...e, ..._e }) },
 			{ id: 'seviyeAc', text: 'Seviye Aç', handler: _e => this.seviyeAcIstendi({ ...e, ..._e }) },
 			{ id: 'seviyeKapat', text: 'Seviye Kapat', handler: _e => this.seviyeKapatIstendi({ ...e, ..._e }) },
@@ -291,9 +291,9 @@ class DPanel extends Part {
 			for (let key of ['overflow', 'overflow-x', 'overflow-y']) { itemsCSS[key] = items.css(key) }
 			let children = items.children('.item')
 			children.resizable({
-				handles: 'all', /*containment: 'parent',*/
-				/*ghost: true, helper: 'ui-resizable-helper',*/
-				classes: { '.ui-resizable': 'highlight' },
+				/*handles: 'all', containment: 'parent', ghost: true, helper: 'ui-resizable-helper',*/
+				// classes: { '.ui-resizable': 'highlight' },
+				handles: 'all', grid: [20, 20],
 				start: (evt, info) => {
 					let {element: item} = info
 					for (let key in itemsCSS) { items.css(key, 'hidden') }
@@ -315,8 +315,9 @@ class DPanel extends Part {
 			})
 			items.sortable({
 				connectWith: '> .item:not(.maximized)', handle: '.item label',
-				placeholder: '_sorting', zIndex: 3000, opacity: .8, delay: 1000,
+				placeholder: '_sorting', zIndex: 3000, opacity: .8, delay: 100,
 				/*tolerance: 'intersect'*/ tolerance: 'pointer',
+				cancel: '.maximized',
 				update: (evt, info) => {
 					let {item} = info, det = item.data('detay'); if (!det) { return }
 					let {id} = det; if (!id) { return }

@@ -72,7 +72,7 @@
 }
 .dPanel .dRapor.part #items > .item:not(.hasFocus) > label,
 	.dPanel .dRapor.part #items > .item > label > * { background-color: unset !important }
-.dRapor.part #items > .item.hasFocus { box-shadow: 0 0 15px 5px forestgreen !important }
+.dRapor.part #items > .item.hasFocus  { box-shadow: 0 0 3px 5px forestgreen !important }
 .dRapor.part #items > .item.hasFocus > label {
 	font-size: 145%; color: white; background-color: #1f5f47;
 	box-shadow: 0 0 5px 1px whitesmoke; user-select: none
@@ -124,3 +124,4 @@ body.dark-theme .dRapor.part #items > .item._main .jqx-grid tr:nth-child(even) .
 .dRapor.part #items > .item.main .secimBilgi { width: calc(var(--full) - 150px) }
 .dRapor.part #items > .item.main .secimBilgi .ozetBilgi-item { font-size: 90% !important; color: royalblue; padding: 2px 8px !important }
 .dRapor.part #items > .item.main .secimBilgi .ozetBilgi-item:not(:first-child) { margin-left: 3px !important }
+
