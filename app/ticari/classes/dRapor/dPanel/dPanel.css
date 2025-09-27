@@ -28,6 +28,7 @@
 .dPanel.part .items > .item:has(.hasFocus) { border: 3px solid forestgreen !important }
 .dPanel.part .items ._loading { height: 5000px !important }
 .dPanel.part .items > .item #close { margin-left: 20px }
-.dPanel.part .items ._sorting { width: 49%; height: 49%; background: #4169e166 }
+.dPanel.part .items ._sorting { width: 49%; height: 49%; background: #4169e166; z-index: 1000 !important }
+.dPanel.part .items:where(:has(._sorting)) { display: flex !important }
 /*.dPanel.part .items > .item #close.jqx-fill-state-normal { background-color: lightpink !important }*/
-.dPanel.part .items .ui-resizable-handle { width: 50px !important; height: 50px !important }
+.dPanel.part .items .ui-resizable-handle { width: 10px !important; height: 10px !important }

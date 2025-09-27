@@ -6,6 +6,7 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 	static get dRapormu() { return true } get dRapormu() { return this.class.dRapormu } static get dAltRapormu() { return false } get dAltRapormu() { return this.class.dAltRapormu }
 	static get mainClass() { return window[`${this.name}_Main`] } static get tumKolonlarGosterilirmi() { return false }
 	static get noOverflowFlag() { return false } get isPanelItem() { return !!this.panel || qs.panelItem }
+	get raporVarmi() { return this.raporTanim?.secilenVarmi }
 	static get raporBilgiler() {
 		return Object.values(this.kod2Sinif)
 			.filter(({ uygunmu, araSeviyemi, dRapormu, kod }) => uygunmu && !araSeviyemi && dRapormu && kod)

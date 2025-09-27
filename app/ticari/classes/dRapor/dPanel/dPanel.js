@@ -265,14 +265,21 @@ class DPanel extends Part {
 			result = await result
 			let {layout: itemLayout} = item, part = det.part = item.part
 			itemLayout.data('detay', det); itemLayout.data('part', part); itemLayout.data('inst', inst)
-			inst.gridVeriYuklendiIslemi?.(({ builder: { id: _id, parentBuilder } = {} } = {}) => {
-				let {id} = parentBuilder?.parentBuilder?.parentBuilder ?? {}
-				let {layout} = _rfb.id2Builder[id] ?? {}
-				if (layout?.length) { layout.removeClass('_loading'); layout.css({ width, height }) }
-				if (++completeCount >= loadCount - 1) { this.layout.removeClass('_loading') }
-			})
-			// promises.push(promise)
 			loadCount++
+			if (inst.raporVarmi) {
+				inst.gridVeriYuklendiIslemi?.(({ builder: { id: _id, parentBuilder } = {} } = {}) => {
+					let {id} = parentBuilder?.parentBuilder?.parentBuilder ?? {}
+					let {layout} = _rfb.id2Builder[id] ?? {}
+					if (layout?.length) { layout.removeClass('_loading'); layout.css({ width, height }) }
+					if (++completeCount >= loadCount - 1) { this.layout.removeClass('_loading') }
+				})
+			}
+			else {
+				itemLayout.removeClass('_loading')
+				itemLayout.css({ width, height })
+				if (++completeCount >= loadCount - 1) { this.layout.removeClass('_loading') }
+			}
+			// promises.push(promise)
 		}
 		if (promises.length) { await Promise.allSettled(promises) }
 		let subItems = items.find(itemSelector)

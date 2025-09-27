@@ -74,8 +74,8 @@
 	.dPanel .dRapor.part #items > .item > label > * { background-color: unset !important }
 .dRapor.part #items > .item.hasFocus  { box-shadow: 0 0 3px 5px forestgreen !important }
 .dRapor.part #items > .item.hasFocus > label {
-	font-size: 145%; color: white; background-color: #1f5f47;
-	box-shadow: 0 0 5px 1px whitesmoke; user-select: none
+	font-size: 145%; color: #333; background-color: #78b3de;
+	box-shadow: 0 2px 8px #333; user-select: none
 }
 body.dark-theme .dRapor.part #items > .item.hasFocus > label { color: whitesmoke; background-color: #00ff9f }
 .dRapor.part #items > ._main.item > label { height: 65px !important }

@@ -261,7 +261,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		return result
 	}
 	async loadServerData(e) {
-		let recs = e.recs = this.raporTanim.secilenVarmi ? await super.loadServerData(e) : [];
+		let recs = e.recs = this.raporTanim?.secilenVarmi ? await super.loadServerData(e) : [];
 		if (recs) { await this.ozetBilgiRecsOlustur(e) }
 		return recs
 	}
@@ -389,7 +389,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	}
 	tazeleOncesi(e) {
 		super.tazeleOncesi(e);
-		let {rapor: { isPanelItem }, parentBuilder: { rootBuilder }, fbd_grid, tabloYapi, raporTanim, raporTanim: { secilenVarmi }} = this
+		let {rapor: { isPanelItem }, parentBuilder: { rootBuilder }, fbd_grid, tabloYapi, raporTanim, raporTanim: { secilenVarmi } = {}} = this
 		rootBuilder.layout.find('.islemTuslari > div button#tabloTanimlari')[secilenVarmi ? 'removeClass' : 'addClass']('anim-tabloTanimlari-highlight')
 		if (!(isPanelItem || secilenVarmi)) {
 			if (!this._tabloTanimGosterildiFlag) { this.raporTanimIstendi(e) }
@@ -408,7 +408,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				window.progressManager?.setProgressValue(0)
 			}, 1500);
 			await this.tazeleOncesi(e); window.progressManager?.progressStep(1);
-			let {gridPart, raporTanim} = this, {degistimi, kullanim} = raporTanim, {yatayAnaliz} = kullanim ?? {};
+			let {gridPart, raporTanim = {}} = this, {degistimi, kullanim} = raporTanim, {yatayAnaliz} = kullanim ?? {};
 			let {grid, gridWidget} = gridPart, {base} = gridWidget, {defUpdateOnly} = e;
 			let {tabloKolonlari, tabloYapi, ozetBilgi} = this, {secilenVarmi, attrSet, grup, icerik} = raporTanim;
 			let tip2ColDefs = {}, belirtec2Tip = {}; for (let colDef of tabloKolonlari) {
