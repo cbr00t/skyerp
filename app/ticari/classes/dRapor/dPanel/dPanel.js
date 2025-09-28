@@ -1,5 +1,6 @@
 class DPanel extends Part {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get isWindowPart() { return true }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get isWindowPart() { return true } static get asyncRunFlag() { return true }
 	static get partName() { return 'dPanel' } get partName() { return this.class.partName }
 	static get anaTip() { return 'panel' } static get kategoriKod() { return null } static get araSeviyemi() { return false }
 	static get kod() { return this.anaTip } static get aciklama() { return 'Panel Rapor' }
@@ -15,6 +16,7 @@ class DPanel extends Part {
 		let {items} = this
 		let subItem = items.find('.item:where(.hasFocus)'); if (!subItem?.length) { return null }
 		let inst = subItem.parents('#items').parent().data('inst')
+		if (inst == null) { inst = subItem.parents('.item').data('inst') }
 		return inst ?? this.detay?.inst
 	}
 	static get raporBilgiler() {
@@ -36,7 +38,8 @@ class DPanel extends Part {
 
 	constructor(e = {}) {
 		super(e); let {id2Detay} = e, {raporTanim, class: { aciklama }} = this
-		raporTanim ??= this.raporTanim = new DPanelTanim().setId(null)
+		raporTanim ??= this.raporTanim = new DPanelTanim().noId()
+		raporTanim._promise = raporTanim.getDefault(e).then(inst => raporTanim = this.raporTanim = inst)
 		let {title = `<b class="royalblue">${aciklama}</b>`} = this
 		$.extend(this, { title, raporTanim, id2Detay })
 	}
@@ -44,29 +47,40 @@ class DPanel extends Part {
 		let kod = typeof e == 'object' ? (e.kod ?? e.tip) : e
 		return this.kod2Sinif[kod]
 	}
-	async detaylariDuzenle(e) {
-		await this.loadLayout()
-		/*this.add(
-			new DRapor_Hareketci_Cari().setWH('50%', '35%'),
-			new SBRapor_Default().setWH('50%', '35%'),
-			new DRapor_DonemselIslemler().setWH('100%', '65%')
-		)*/
+	async runDevam(e = {}) {
+		await super.runDevam(e); await this.raporTanim?._promise
+		let {layout, raporTanim} = this
+		let rfb = e.rfb = new RootFormBuilder()
+		rfb.setLayout(layout).setPart(this).setInst(this)
+		this.rootFormBuilderDuzenle(e)
+		let inst = this, part = this, {rfb: builder} = e
+		$.extend(this, { builder }); builder.run(e)
+		// makeScrollable(this.items)
+		return { inst, part, builder }
 	}
-	async loadLayout(e) {
-		await this.raporTanim?._promise
-		let {raporTanim: { detaylar } = {}} = this
-		if (detaylar?.length) { this.add(detaylar) }
+	async afterRun(e = {}) {
+		await super.afterRun(e); let {raporTanim: { _promise } = {}} = this
+		let block = result => this.panelleriOlustur({ ...e, batch: true, result })
+		if (_promise) { _promise.then(block) }
+		else { block() }
 	}
-	async saveLayout(e) {
-		let {raporTanim, id2Detay, items} = this; if (!raporTanim) { return }
-		await raporTanim?._promise
-		if (raporTanim && id2Detay) {
-			raporTanim.detaylarReset()
-			for (let det of Object.values(id2Detay)) {
-				if (det) { raporTanim.addDetay(det) }
+	destroyPart(e) {
+		let children = this.items?.children()
+		if (children?.length) {
+			for (let i = 0; i < children.length; i++) {
+				let item = children.eq(i), part = item.data('builder')
+				part?.destroyPart(); item.remove()
 			}
-			raporTanim?.kaydet()
 		}
+		return super.destroyPart(e)
+	}
+	static async goster(e) {
+		let inst = new this(e), result = await inst.goster()
+		return result ?? null
+	}
+	async goster(e = {}) {
+		let inst = this, {partName, title, class: { aciklama, anaTip }} = this
+		return await this.run(e)
 	}
 	async ilkIslemler(e) {
 		let {id2Detay} = this
@@ -85,41 +99,6 @@ class DPanel extends Part {
 		let {id2Detay} = this
 		for (let rapor of Object.values(id2Detay)) { await rapor.sonIslemler_ek?.(e) }
 		this.sonIslemler_ozel?.(e)
-	}
-	static async goster(e) {
-		let inst = new this(e), result = await inst.goster()
-		return result ?? null
-	}
-	async goster(e = {}) {
-		let inst = this, {partName, title, class: { aciklama, anaTip }} = this
-		return await this.run(e)
-	}
-	runDevam(e) {
-		super.runDevam(e); let {raporTanim, layout} = this
-		if (raporTanim) { raporTanim._promise = raporTanim.yukle?.() }
-		let rfb = e.rfb = new RootFormBuilder()
-		rfb.setLayout(layout).setPart(this).setInst(this)
-		this.rootFormBuilderDuzenle(e)
-		let inst = this, part = this, {rfb: builder} = e
-		$.extend(this, { builder }); builder.run(e)
-		// makeScrollable(this.items)
-		return { inst, part, builder }
-	}
-	afterRun(e) {
-		super.afterRun(e); let {raporTanim: { _promise } = {}} = this
-		let block = result => this.panelleriOlustur({ ...e, batch: true, result })
-		if (_promise) { _promise.then(block) }
-		else { block() }
-	}
-	destroyPart(e) {
-		let children = this.items?.children()
-		if (children?.length) {
-			for (let i = 0; i < children.length; i++) {
-				let item = children.eq(i), part = item.data('builder')
-				part?.destroyPart(); item.remove()
-			}
-		}
-		return super.destroyPart(e)
 	}
 	rootFormBuilderDuzenle({ rfb }) {
 		let e = arguments[0];
@@ -177,8 +156,8 @@ class DPanel extends Part {
 				let inst = value
 				if (typeof inst == 'string') { inst = kod2Sinif[inst] ?? window[inst] }
 				if (isClass(inst)) { inst = new inst() }
-				if (altRaporTip != null) { inst.setOzelID?.(altRaporTip) }
-				if (inst.dRapormu && $.isEmptyObject(inst.ozelIDListe)) { inst.ozelID_main?.() }
+				if (altRaporTip != null) { inst?.setOzelID?.(altRaporTip) }
+				if (inst?.dRapormu && $.isEmptyObject(inst?.ozelIDListe)) { inst?.ozelID_main?.() }
 				if (inst) { det.inst = inst }
 			}
 			$.extend(det, { id, panel: this })
@@ -204,6 +183,29 @@ class DPanel extends Part {
 		if (this._rendered) { this.panelleriOlustur({ batch: false }) }
 		return this
 	}
+	async detaylariDuzenle(e) {
+		await this.loadLayout()
+		/*this.add(
+			new DRapor_Hareketci_Cari().setWH('50%', '35%'),
+			new SBRapor_Default().setWH('50%', '35%'),
+			new DRapor_DonemselIslemler().setWH('100%', '65%')
+		)*/
+	}
+	async loadLayout(e) {
+		await this.raporTanim?._promise
+		let {raporTanim: { detaylar } = {}} = this
+		if (detaylar?.length) { this.add(detaylar) }
+	}
+	async saveLayout(e) {
+		let {raporTanim, id2Detay, items} = this; if (!raporTanim) { return }
+		await raporTanim._promise
+		if (raporTanim && id2Detay) {
+			raporTanim.detaylarReset()
+			for (let det of Object.values(id2Detay))
+				if (det) { raporTanim.addDetay(det) }
+			await raporTanim?.setDefault()
+		}
+	}
 	async panelleriOlustur({ batch } = {}) {
 		let e = arguments[0], panel = this
 		let {builder: rfb, id2Detay, items, layout} = this
@@ -228,46 +230,83 @@ class DPanel extends Part {
 			width ||= '49%'; height ||= '49%'
 			let item = _rfb.addFormWithParent(id).altAlta()
 				.addCSS('item _loading')
-				.setInst(this).setPart(inst)
 				.setParent(items).setRootBuilder(rfb)
 			// item.onInit(({ builder: { layout } }) => $.extend(inst, { layout }))
 			let _e = { ...e, rfb: item }, result
 			$.extend(inst, { panel: this, detay: det })
-			if (tip.rapormu)
-				result = inst.goster(_e)
-			else if (tip.webmi) {
-				item.setPart(det)
-				item.setLayout(({ builder: { id, part: { value: url } } }) =>
-					$(`<iframe id="${id}" class="full-wh" border="0" src="${url}"></iframe>`))
+			if (tip.rapormu) {
+				item.setInst(this).setPart(inst)
+				result = inst?.goster?.(_e)
 			}
-			else if (tip.evalmi) {
-				let {value: code} = det
-				if (typeof code == 'string') {
-					code = code.trim()
-					{
-						for (let i = 0; i < 2; i++) {
-							let last = code.at(-1)
-							if (last == '\r' || last == '\n') { code = code.slice(0, -1) }
+			else if (tip.webmi || tip.evalmi) {
+				let {value: url} = det;
+				item.setInst(det.inst = inst)
+				$.extend(inst, {
+					tazele: e => item.layout.find('iframe').prop('src', url)
+				})
+				item.noAutoAppend().setLayout(({ builder: { parent } }) => {
+					let layout =
+						$(`<div id="${id}" class="parent item item-ozel full-wh">
+							<div class="item item-sortable full-width">
+								<label>${url || ' '}</label>
+								<button id="close"></button>
+							</div>
+						</div>`)
+					layout.appendTo(parent)
+					return layout
+				})
+				let {layout: itemLayout} = item
+				if (tip.webmi) {
+					$(`<iframe class="full-wh" border="0" src="${url}"></iframe>`)
+						.appendTo(itemLayout)
+				}
+				if (tip.evalmi) {
+					content = $(`<div class="content full-wh"></div>`)
+					content.appendTo(itemLayout)
+					let {value: code} = det
+					if (typeof code == 'string') {
+						code = code.trim()
+						{
+							for (let i = 0; i < 2; i++) {
+								let last = code.at(-1)
+								if (last == '\r' || last == '\n') { code = code.slice(0, -1) }
+							}
 						}
+						if (code[0] != '(') {
+							code += `(e => `
+							if (code.at(-1) != ')') { code += ')' }
+						}
+						code = eval(code)
 					}
-					if (code[0] != '(') {
-						code += `(e => `
-						if (code.at(-1) != ')') { code += ')' }
+					if (code) {
+						$.extend(_e, { panel: this, detay: det, layout, items, item, itemLayout, content })
+						result = await getFuncValue.call(this, code, _e)
 					}
-					code = eval(code)
 				}
-				item.setPart(det)
-				if (code) {
-					$.extend(_e, { panel: this, detay: det, layout, items })
-					result = await getFuncValue.call(this, code, _e)
-				}
+				itemLayout?.find('#close')?.on('click', ({ currentTarget: target }) => {
+					target = $(target)
+					let id = target.parents('.item.parent').prop('id')
+					let det = this.id2Detay[id]
+					if (det) { this.remove(det) }
+				})
+				itemLayout?.on('click', ({ currentTarget: target }) => {
+					target = $(target)
+					target.parents('.items').children('.item').removeClass('hasFocus')
+					target.addClass('hasFocus')
+				});
+				itemLayout?.find('iframe')?.on('load', ({ currentTarget: target }) => {
+					setTimeout(() => {
+						let {title} = target.contentDocument?.head ?? {}
+						if (title) { $(target).parents('.item').children('label').html(title || ' ') }
+					}, 1000)
+				})
 			}
 			result = await result
 			let {layout: itemLayout} = item, part = det.part = item.part
-			itemLayout.data('detay', det); itemLayout.data('part', part); itemLayout.data('inst', inst)
+			itemLayout?.data('detay', det); itemLayout?.data('part', part); itemLayout?.data('inst', inst)
 			loadCount++
-			if (inst.raporVarmi) {
-				inst.gridVeriYuklendiIslemi?.(({ builder: { id: _id, parentBuilder } = {} } = {}) => {
+			if (tip.rapormu && inst?.raporVarmi) {
+				inst?.gridVeriYuklendiIslemi?.(({ builder: { id: _id, parentBuilder } = {} } = {}) => {
 					let {id} = parentBuilder?.parentBuilder?.parentBuilder ?? {}
 					let {layout} = _rfb.id2Builder[id] ?? {}
 					if (layout?.length) { layout.removeClass('_loading'); layout.css({ width, height }) }
@@ -275,8 +314,8 @@ class DPanel extends Part {
 				})
 			}
 			else {
-				itemLayout.removeClass('_loading')
-				itemLayout.css({ width, height })
+				itemLayout?.removeClass('_loading')
+				itemLayout?.css({ width, height })
 				if (++completeCount >= loadCount - 1) { this.layout.removeClass('_loading') }
 			}
 			// promises.push(promise)
@@ -287,7 +326,7 @@ class DPanel extends Part {
 		{
 			let handler = ({ currentTarget: target }) => {
 				let item = $(target)
-				item.parents('.items').find(itemSelector).removeClass(focusSelector)
+				item.parents('.items').find('.item').removeClass(focusSelector)
 				item.addClass(focusSelector)
 			}
 			for (let key of ['mousedown', 'touchstart', 'click'])
@@ -302,13 +341,14 @@ class DPanel extends Part {
 				// classes: { '.ui-resizable': 'highlight' },
 				handles: 'all', grid: [20, 20],
 				start: (evt, info) => {
-					let {element: item} = info
+					let {element: item} = info; item.addClass('_resizing')
 					for (let key in itemsCSS) { items.css(key, 'hidden') }
 					/*items.children().addClass('basic-hidden')
 					item.removeClass('basic-hidden jqx-hidden')*/
 				},
 				stop: (evt, info) => {
 					let {id2Detay} = this, {element: item, size: { width, height }} = info
+					item.removeClass('_resizing')
 					for (let [k, v] of Object.entries(itemsCSS)) { items.css(k, v) }
 					//items.children().removeClass('basic-hidden jqx-hidden')
 					let id = item.prop('id'), det = id2Detay[id]
@@ -321,7 +361,7 @@ class DPanel extends Part {
 				}
 			})
 			items.sortable({
-				connectWith: '> .item:not(.maximized)', handle: '.item label',
+				connectWith: '> .item:not(.maximized)', handle: '.item-sortable',
 				placeholder: '_sorting', zIndex: 3000, opacity: .8, delay: 100,
 				/*tolerance: 'intersect'*/ tolerance: 'pointer',
 				cancel: '.maximized',
@@ -338,7 +378,7 @@ class DPanel extends Part {
 				}
 			})
 		}, 10)
-		this.saveLayout(e)
+		if (!batch) { this.saveLayout(e) }
 		this._rendered = true
 	}
 	hizliBulIslemi(e) {

@@ -2,17 +2,19 @@ class MQDetay extends MQSayacli {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get fisSayacSaha() { return 'fissayac' } static get seqSaha() { return 'seq' }
 	/* static get table() { return null } */ static get tableAlias() { return 'har' } /* static get sinifAdi() { return null } */
 	static get detaymi() { return true } get detaymi() { return this.class.detaymi } get dipHesabaEsasDegerler() { return {} }
+	get kod() { return this.sayac } set kod(value) { this.sayac = value }
 
 	constructor(e) {
 		e = e || {}; super(e); if (e.isCopy) { return }
 		const {args} = e; if (args) { for (const key in args) { const value = args[key]; if (value !== undefined) { this[key] = value } } }
 		this.tempsReset()
 	}
-	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); const {pTanim} = e;
+	static getDetayTable(e) { return this.table }
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
 		$.extend(pTanim, { /* fisSayac: new PInst(this.fisSayacSaha), */ okunanHarSayac: new PInst(), eskiSeq: new PInst(), seq: new PInst(this.seqSaha) })
 	}
-	static getDetayTable(e) { return this.table } static orjBaslikListesi_argsDuzenle(e) { }
+	static orjBaslikListesi_argsDuzenle(e) { }
 	static standartGorunumListesiDuzenle(e) {
 		const {liste} = e, orjBaslikListesi = e.orjBaslikListesi ?? this.orjBaslikListesi;
 		const ignoreBelirtecSet = asSet([config.dev ? null : this.sayacSaha].filter(x => !!x));
@@ -71,6 +73,21 @@ class MQDetay extends MQSayacli {
 	tempsReset() { this._temps = {}; return this }
 }
 class MQDetayGUID extends MQDetay {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sayacSaha() { return 'id' } static get fisSayacSaha() { return 'fisid' }
-	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); this.id = this.id || newGUID(); const {sayacSaha} = this.class, {hv} = e; hv[sayacSaha] = this.id }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get idKullanilirmi() { return true }
+	static get sayacSaha() { return 'id' } static get fisSayacSaha() { return 'fisid' }
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments)
+		let id = this.id ??= newGUID(), {class: { idKullanilirmi, idSaha }} = this
+		if (idKullanilirmi && idSaha) { hv[idSaha] = id }
+	}
+	static logRecDonusturucuDuzenle({ result }) {
+		super.logRecDonusturucuDuzenle(...arguments)
+		let {sayacSaha, kodKullanilirmi, kodSaha} = this
+		result[sayacSaha] = 'xkod'
+		if (kodSaha == sayacSaha) { delete result[kodSaha] }
+	}
+	logHVDuzenle({ hv }) {
+		super.logHVDuzenle(...arguments);
+		hv.xkod = this.sayac || ''; delete hv.xsayac
+	}
 }

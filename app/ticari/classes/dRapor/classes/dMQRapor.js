@@ -172,17 +172,23 @@ class DMQRapor extends DMQSayacliKA {
 			if (kod && grup[kod]) { throw { isError: true, errorText: `<b>${text} Çapraz Analiz</b> işaretli iken <b class="royalblue">${kod}</b> <span class="firebrick">kolonu eklenemez</span>` } }
 		}
 	}
-	async yukleSonrasiIslemler(e) { await super.yukleSonrasiIslemler(e); let {encUser} = this; this.user = encUser ? await app.xdec(encUser) : encUser }
+	async yukleSonrasiIslemler(e) {
+		await super.yukleSonrasiIslemler(e); let {encUser} = this;
+		this.user = encUser ? await app.xdec(encUser) : encUser
+	}
 	alternateKeyHostVarsDuzenle(e) {
 		super.alternateKeyHostVarsDuzenle(e);
-		let {hv, parentPart = app.activeWndPart} = e, {adiSaha, sayacSaha} = this.class;
-		let {encUser, raporKod, aciklama} = this, {rapor = {}} = parentPart;
-		raporKod ||= rapor.rapor?.class?.kod ?? rapor.class?.kod;
+		let {hv, parentPart = app.activeWndPart} = e
+		let {encUser, raporKod, aciklama, class: { sayacSaha, adiSaha }} = this, {rapor = {}} = parentPart
+		raporKod ||= rapor.rapor?.class?.kod ?? rapor.class?.kod
 		// if (!raporKod) { debugger }
-		$.extend(hv, { raportip: raporKod, xuserkod: encUser });
+		$.extend(hv, { raportip: raporKod, xuserkod: encUser })
 		hv[adiSaha] = aciklama; delete hv[sayacSaha]
 	}
-	keySetValues(e) { super.keySetValues(e); let {rec} = e; $.extend(this, { aciklama: rec.aciklama }) }
+	keySetValues({ rec }) {
+		super.keySetValues(...arguments); let {class: { adiSaha }} = this
+		$.extend(this, { aciklama: rec[adiSaha] })
+	}
 	hostVarsDuzenle(e) {
 		super.hostVarsDuzenle(e); let {hv} = e, liste2HV = value => {
 			if (value && typeof value == 'object' && !$.isArray(value)) { value = Object.keys(value) };

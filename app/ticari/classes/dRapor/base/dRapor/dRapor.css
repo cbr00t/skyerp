@@ -35,7 +35,7 @@
 @media (max-height: 1000px) { .dRapor.part #items > .item { height: 350px } }
 @media (max-height: 800px) { .dRapor.part #items > .item { width: 25%; height: 300px } }
 .dRapor.part #items.maximized > .item.maximized,
-	.dPanel.part .items.maximized :has(.item.maximized) { width: var(--full) !important; height: var(--full) !important }
+	.dPanel.part .items.maximized :has(.item.maximized) { width: calc(var(--full) - 10px) !important; height: calc(var(--full) - 10px) !important }
 .dRapor.part #items.maximized > .item:not(.maximized),
 	.dPanel.part .items.maximized > :not(:has(.maximized)) { display: none }
 .dRapor.part #items > .item > [data-builder-id = 'fullScreen'],
@@ -78,6 +78,7 @@
 	box-shadow: 0 2px 8px #333; user-select: none
 }
 body.dark-theme .dRapor.part #items > .item.hasFocus > label { color: whitesmoke; background-color: #00ff9f }
+body.dark-theme .dRapor.part #items > .item.hasFocus .secimBilgi { background-color: ghostwhite !important }
 .dRapor.part #items > ._main.item > label { height: 65px !important }
 .dRapor.part #items > ._main.item > :not(label) { max-height: calc(var(--full) - 80px) }
 .dPanel .dRapor.part #items > ._main.item > :not(label) { max-height: calc(var(--full) - 38px) }

@@ -108,13 +108,13 @@ class SkyRaporApp extends TicariApp {
 			target.push(..._items)
 		} items.push(...items_raporlar.filter(x => !!x))
 		if (isAdmin) { items.push(new FRMenuChoice({ mne: 'DRAPOR_PARAM', text: 'Rapor Parametreleri', block: e => this.params.dRapor.tanimla(e) })) }
-		/*const menu_test = (dev ? new FRMenuCascade({ mne: 'TEST', text: 'TEST', items: items_raporlar }) : null);*/
+		/*const menu_test = (dev ? new FRMenuCascade({ mne: 'TEST', text: 'TEST', items: items_raporlar }) : null);
 		if (config.dev) {
 			items.push(
 				...[SBTablo].map(cls =>
 					new FRMenuChoice({ mne: cls.kodListeTipi, text: cls.sinifAdi, block: e => cls.listeEkraniAc(e) }))
 			)
-		}
+		}*/
 		return new FRMenu({ items })
 	}
 }

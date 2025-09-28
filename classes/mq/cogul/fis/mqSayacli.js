@@ -119,4 +119,5 @@ class MQSayacli extends MQCogul {
 	}
 	cizgiliOzet(e) { return new CKodVeAdi(this).cizgiliOzet(e) } parantezliOzet(e) { return new CKodVeAdi(this).parantezliOzet(e) } toString(e) { return this.parantezliOzet(e) }
 	static getGridKolonGrup(e) { e = e || {}; e.mfSinif = e.mfSinif ?? this; return MQKA.getGridKolonGrup(e) }
+	setId(value) { this.sayac = value; return this }
 }

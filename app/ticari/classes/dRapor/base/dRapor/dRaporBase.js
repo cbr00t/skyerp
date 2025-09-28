@@ -182,7 +182,7 @@ class DPanelRapor extends DRaporOzel {
 		for (let [id, altRapor] of Object.entries(id2AltRapor)) {
 			let raporAdi = altRapor.class.etiket ?? ''
 			let fbd = altRapor.parentBuilder = form.addForm(id).addCSS('item').addStyle_fullWH()
-				.setLayout(e => $(`<div class="${id}"><label>${raporAdi || ''}</label></div>`))
+				.setLayout(e => $(`<div class="${id}"><label class="item-sortable">${raporAdi || ''}</label></div>`))
 				.addStyle(e => `$elementCSS { overflow: hidden !important; z-index: ${this.altRapor_lastZIndex++} !important }`)
 			let _e = { ...e, id, builder: fbd }; altRapor.subFormBuilderDuzenle(_e)
 			let {width, height} = altRapor

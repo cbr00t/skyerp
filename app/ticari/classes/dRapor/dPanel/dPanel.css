@@ -22,13 +22,57 @@
 	display: block !important
 }
 .dPanel.part .items > .item {
+	--label-height: 30px;
 	border: 3px solid #aaa; border-radius: 5px !important; box-sizing: content-box !important;
 	float: left !important
 }
+.dPanel.part .items .item > .item-sortable {
+	position: relative !important; width: var(--full) !important; height: var(--label-height) !important
+}
+.dPanel.part .items .item > .item-sortable > label { }
+.dPanel.part .items .item > .item-sortable + * {
+	position: rela !important; width: var(--full) !important;
+	width: calc(var(--full) - 1px) !important;
+	height: calc(var(--full) - var(--label-height) - 1px) !important
+}
+.dPanel.part #items .item .formBuilder-element:has(#fullScreen) {
+	min-width: unset !important; width: 70px !important; height: 35px !important;
+	top: 3px !important; right: 80px !important; filter: brightness(0) !important
+}
+body.dark-theme .dPanel.part #items .item .formBuilder-element:has(#fullScreen) { filter: invert(1) !important }
+.dPanel.part .items .item > .item-sortable button#close,
+		.dPanel.part #items .item .formBuilder-element:has(#close) {
+	background-color: red !important; right: 13px !important
+}
+.dPanel.part #items .item .formBuilder-element:has(#close) {
+	min-width: unset !important; width: 45px !important; height: 30px !important; padding: 10px !important;
+	border-radius: 80px !important; z-index: 1000 !important
+}
+.dPanel.part #items .item .formBuilder-element #close { width: 250% !important; height: 250% !important; background-color: transparent !important }
+.dPanel.part .items .item > .item-sortable button#close,
+.dPanel.part #items .item .formBuilder-element:has(#close) {
+	position: absolute !important; top: 2px !important; right: 13px; padding: 13px;
+	background-size: 10px !important; opacity: .63 !important;
+	background-image: url(../../../../../images/close.png) !important
+}
+.dPanel.part #items .item .formBuilder-element:has(#close:hover),
+	.dPanel.part .items .item-sortable > button#close:hover { opacity: .8 !important }
+.dPanel.part #items .item .formBuilder-element:has(#close:active),
+	.dPanel.part .items .item-sortable > button#close:active { opacity: 1 !important; box-shadow: 0 0 3px 2px red !important }
+body.dark-theme .dPanel.part .items .item-sortable > button#close { filter: invert(1) hue-rotate(180deg) !important  }
 .dPanel.part .items > .item:has(.hasFocus) { border: 3px solid forestgreen !important }
 .dPanel.part .items ._loading { height: 5000px !important }
-.dPanel.part .items > .item #close { margin-left: 20px }
 .dPanel.part .items ._sorting { width: 49%; height: 49%; background: #4169e166; z-index: 1000 !important }
 .dPanel.part .items:where(:has(._sorting)) { display: flex !important }
 /*.dPanel.part .items > .item #close.jqx-fill-state-normal { background-color: lightpink !important }*/
 .dPanel.part .items .ui-resizable-handle { width: 10px !important; height: 10px !important }
+.dPanel.part .items ._resizing { pointer-events: none !important }
+
+.dPanel.part .items > .item > div label { width: var(--full) !important; box-shadow: 0 2px 8px #333; z-index: 0 !important }
+.dPanel.part .items > .item.hasFocus  { box-shadow: 0 0 3px 5px forestgreen !important }
+.dPanel.part .items > .item.hasFocus > div label {
+	font-size: 105%; color: #333; background-color: #78b3de;
+	user-select: none
+}
+body.dark-theme .dPanel.part .items > .item.hasFocus > div > label { color: whitesmoke; background-color: #00ff9f }
+

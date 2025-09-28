@@ -89,6 +89,7 @@ class MQKod extends MQCogul {
 		if (this.class.zeminRenkDesteklermi) { let {oscolor} = rec; this.zeminRenk = oscolor ? os2HTMLColor(oscolor) : '' }
 	}
 	cizgiliOzet(e) { return this.kod || '' } parantezliOzet(e) { return this.kod || '' } toString(e) { return this.parantezliOzet(e) }
+	setId(value) { this.kod = value; return this }
 }
 class MQKA extends MQKod {
     static { window[this.name] = this; this._key2Class[this.name] = this }

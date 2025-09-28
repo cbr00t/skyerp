@@ -331,11 +331,18 @@ class MQDetayli extends MQSayacli {
 		let detTable2HVListe = e.detTable2HVListe = {}, detHVArg = e.detHVArg = { fis: this };
 		let detaylar = this.getYazmaIcinDetaylar(e); for (let det of detaylar) {
 			let detaySinif = det?.class ?? thisDetaySinif; if (detaySinif && $.isPlainObject(det)) { det = new detaySinif(det) }
-			if (!harSayacSaha) { harSayacSaha = detaySinif.sayacSaha } if (!fisSayacSaha) { fisSayacSaha = detaySinif.fisSayacSaha } if (!seqSaha) { seqSaha = det.class.seqSaha }
+			if (!harSayacSaha) { harSayacSaha = detaySinif.sayacSaha ?? detaySinif.idSaha }
+			if (!fisSayacSaha) { fisSayacSaha = detaySinif.fisSayacSaha }
+			if (!seqSaha) { seqSaha = det.class.seqSaha }
 			let hv = det.hostVars(detHVArg); if (!hv) { return false } hv._harsayac = det.okunanHarSayac;  /* yeni kayıt için null aksinde okunan harsayac */
 			let detTable = det.class.getDetayTable(detHVArg), hvListe = detTable2HVListe[detTable] = detTable2HVListe[detTable] || [];
 			hvListe.push(hv)
 		}
+		harSayacSaha ||= thisDetaySinif.sayacSaha ?? thisDetaySinif.idSaha
+		fisSayacSaha ||= thisDetaySinif.fisSayacSaha
+		seqSaha ||= thisDetaySinif.seqSaha
+		if ($.isEmptyObject(detTable2HVListe)) {
+			detTable2HVListe[thisDetaySinif.getDetayTable(detHVArg)] = [] }
 		let fisHV = this.hostVars(e), keyHV = this.keyHostVars({ ...e, varsayilanAlma: true });
 		let sent = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: ['*'] });
 		let basRec = await this.sqlExecTekil({ offlineMode, trnId, query: sent }), degisenHV = degisimHV(fisHV, basRec);
@@ -537,13 +544,13 @@ class MQDetayliGUID extends MQDetayliMaster {
 		}
 	}
 	static logRecDonusturucuDuzenle({ result }) {
-		super.logRecDonusturucuDuzenle(...arguments);
-		let {sayacSaha: kodSaha} = this.class; result[kodSaha] = 'xsayac'
+		super.logRecDonusturucuDuzenle(...arguments); let {sayacSaha: kodSaha} = this.class;
+		result[kodSaha] = 'xkod'
 	}
 	logHVDuzenle({ hv }) {
-		super.logHVDuzenle(...arguments);
-		hv.xkod = this.id || 0;
-		let {kodKullanilirmi} = this.class; if (kodKullanilirmi) { hv.xkod = this.kod || '' }
+		super.logHVDuzenle(...arguments)
+		hv.xkod = this.sayac || ''
+		delete hv.xsayac
 	}
 }
 class MQDetayliVeAdi extends MQDetayliMaster { static { window[this.name] = this; this._key2Class[this.name] = this } static get adiKullanilirmi() { return true } }
