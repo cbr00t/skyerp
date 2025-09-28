@@ -239,16 +239,18 @@ class DPanel extends Part {
 				result = inst?.goster?.(_e)
 			}
 			else if (tip.webmi || tip.evalmi) {
-				let {value: url} = det;
+				let {baslik, value: url} = det;
 				item.setInst(det.inst = inst)
 				$.extend(inst, {
-					tazele: e => item.layout.find('iframe').prop('src', url)
+					tazele: e => item.layout.find('iframe').prop('src', url),
+					exportHTMLIstendi: e => openNewWindow(url),
 				})
 				item.noAutoAppend().setLayout(({ builder: { parent } }) => {
 					let layout =
 						$(`<div id="${id}" class="parent item item-ozel full-wh">
 							<div class="item item-sortable full-width">
-								<label>${url || ' '}</label>
+								<label>${baslik || url || ' '}</label>
+								<button id="fullScreen"></button>
 								<button id="close"></button>
 							</div>
 						</div>`)
@@ -283,6 +285,12 @@ class DPanel extends Part {
 						result = await getFuncValue.call(this, code, _e)
 					}
 				}
+				itemLayout?.find('#fullScreen')?.on('click', ({ currentTarget: target }) => {
+					target = $(target)
+					let id = target.parents('.item.parent').prop('id')
+					let det = this.id2Detay[id] ?? {}, {value: url} = det
+					if (url) { openNewWindow(url) }
+				})
 				itemLayout?.find('#close')?.on('click', ({ currentTarget: target }) => {
 					target = $(target)
 					let id = target.parents('.item.parent').prop('id')
@@ -293,13 +301,15 @@ class DPanel extends Part {
 					target = $(target)
 					target.parents('.items').children('.item').removeClass('hasFocus')
 					target.addClass('hasFocus')
-				});
-				itemLayout?.find('iframe')?.on('load', ({ currentTarget: target }) => {
-					setTimeout(() => {
-						let {title} = target.contentDocument?.head ?? {}
-						if (title) { $(target).parents('.item').children('label').html(title || ' ') }
-					}, 1000)
 				})
+				if (!baslik) {
+					itemLayout?.find('iframe')?.on('load', ({ currentTarget: target }) => {
+						setTimeout(() => {
+							let {title} = target.contentDocument?.head ?? {}
+							if (title) { $(target).parents('.item').children('label').html(title || ' ') }
+						}, 1000)
+					})
+				}
 			}
 			result = await result
 			let {layout: itemLayout} = item, part = det.part = item.part
@@ -413,7 +423,7 @@ class DPanel extends Part {
 			let {values: menuItems} = await app.frMenu.listedenSec() ?? {}
 			menuItems = menuItems?.filter(_ => _.choicemi)
 			let items = menuItems?.map(({ id }) => DRapor.getClass(id))?.filter(x => !!x)
-			items = items.map(({ kod }) => new DPanelDetay().tipRapor().setValue(kod) )
+			items = items.map(({ kod }) => new DPanelDetay().tipRapor()/*.raporChart()*/.setValue(kod) )
 			if (!items?.length) { return }
 			await this.add(...items)
 			return items

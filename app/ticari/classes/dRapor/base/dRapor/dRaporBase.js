@@ -175,12 +175,14 @@ class DPanelRapor extends DRaporOzel {
 	}
 	rootFormBuilderDuzenle(e) {
 		if (this.id2AltRapor == null) { this.clear(); this.altRaporlarDuzenle(e) }
-		super.rootFormBuilderDuzenle(e); let {rfb} = e, {id2AltRapor, isPanelItem} = this, {noOverflowFlag, kod} = this.class
+		super.rootFormBuilderDuzenle(e); let {rfb} = e, {id2AltRapor, isPanelItem, ozelIDListe: ozelIDSet, class: { noOverflowFlag, kod }} = this
 		let form = e.rfb_items = this.rfb_items = rfb.addForm('items')
 			.setLayout(e => $(`<div id="${e.builder.id}" class="${kod ? `${kod} ` : ''}full-wh"></div>`));
 		if (noOverflowFlag) { form.addCSS('no-overflow') }
+		if (typeof ozelIDSet == 'string') { ozelIDSet = [ozelIDSet] }
+		if ($.isArray(ozelIDSet)) { ozelIDSet = asSet(ozelIDSet) }
 		for (let [id, altRapor] of Object.entries(id2AltRapor)) {
-			let raporAdi = altRapor.class.etiket ?? ''
+			let raporAdi = altRapor.etiket ?? ''
 			let fbd = altRapor.parentBuilder = form.addForm(id).addCSS('item').addStyle_fullWH()
 				.setLayout(e => $(`<div class="${id}"><label class="item-sortable">${raporAdi || ''}</label></div>`))
 				.addStyle(e => `$elementCSS { overflow: hidden !important; z-index: ${this.altRapor_lastZIndex++} !important }`)
@@ -189,6 +191,7 @@ class DPanelRapor extends DRaporOzel {
 			if (isPanelItem) { fbd.addStyle_fullWH(null, height) }
 			else if (width || height) { fbd.addStyle_wh(width, height) }
 			altRapor.rootFormBuilderDuzenle(e)
+			fbd.setVisibleKosulu(({ builder: { id }}) => $.isEmptyObject(ozelIDSet) || ozelIDSet[id] ? true : 'jqx-hidden')
 		}
 	}
 	async ilkIslemler(e) {
@@ -241,6 +244,7 @@ class DPanelRapor extends DRaporOzel {
 				chart: DAltRapor_Chart
 			}
 			if (!$.isArray(ozelIDListe)) { ozelIDListe = typeof ozelIDListe == 'object' ? Object.keys(ozelIDListe) : $.makeArray(ozelIDListe) }
+			if (!ozelIDListe.includes('main')) { ozelIDListe.unshift('main') }
 			let classes = ozelIDListe.map(id => id2Cls[id]).filter(x => !!x)
 			if (classes.length) { this.add(...classes) }
 		}
@@ -280,8 +284,8 @@ class DPanelRapor extends DRaporOzel {
 		return this
 	}
 	clear() { this.id2AltRapor = {}; return this }
-	setOzelIDListe(value) { this.ozelIDListe = value; return this }
-	clearOzelIDListe() { this.ozelIDListe = null; return this }
+	setOzelID(value) { this.ozelIDListe = value; return this }
+	clearOzelID() { this.ozelIDListe = null; return this }
 	ozelID_main() { return this.setOzelIDListe('main') }
 	ozelID_ozet() { return this.setOzelIDListe('ozet') }
 	ozelID_chart() { return this.setOzelIDListe('chart') }

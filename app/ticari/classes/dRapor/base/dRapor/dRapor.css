@@ -49,10 +49,9 @@
 .dPanel .dRapor.part #items > .item > [data-builder-id = 'fullScreen'],
 	.dPanel .dRapor.part #items > .item > [data-builder-id = 'close'] { width: 24px !important; height: 24px !important }
 .dRapor.part #items > .item > [data-builder-id = 'fullScreen'] button,
-	.dRapor.part #items > .item > [data-builder-id = 'close'] button
-{
-	width: var(--full) !important; height: var(--full) !important; margin-top: -3px !important;
-	z-index: 1101 !important
+	.dRapor.part #items > .item > [data-builder-id = 'close'] button {
+	width: var(--full) !important; height: var(--full) !important;
+	margin-top: -3px !important; z-index: 1101 !important
 }
 .dRapor.part #items > .item > [data-builder-id = 'fullScreen'] button.jqx-fill-state-normal,
 	.dRapor.part #items > .item > [data-builder-id = 'close'] button.jqx-fill-state-normal { opacity: .5 }
@@ -62,8 +61,7 @@
 .dPanel .dRapor.part #items > .item > [data-builder-id = 'fullScreen'] { right: 40px !important }
 .dPanel .dRapor.part #items > .item > [data-builder-id = 'close'] {
 	top: 1px !important; right: -10px !important; background-size: 50px !important;
-	background-image: url('../../../../../../images/x.png') !important;
-	
+	background-image: url('../../../../../../images/x.png') !important
 }
 .dRapor.part #items > .item > label {
 	position: relative !important; overflow-y: auto !important;

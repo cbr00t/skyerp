@@ -63,14 +63,27 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 	async kaydetOncesiIslemler() {
 		await super.kaydetOncesiIslemler(...arguments)
 		let {detaylar, class: { detayTable }} = this
-		let maxLen_value = detaylar?.length ? Math.max(...detaylar.map(det => det?.value?.length ?? 0)) : 0
-		if (maxLen_value) {
-			let newLen = maxLen_value > 2000 ? 'MAX' : maxLen_value
-			let colName = 'value', query = [
-				`IF COL_LENGTH('${detayTable}', '${colName}') < ${newLen == 'MAX' ? 0 : newLen}`,
-				`    ALTER TABLE ${detayTable} ALTER COLUMN ${colName} VARCHAR(${newLen}) NOT NULL`
-			].join(CrLf)
-			await this.sqlExecNone(query)
+		{
+			let maxLen = detaylar?.length ? Math.max(...detaylar.map(det => det?.baslik?.length ?? 0)) : 0
+			if (maxLen) {
+				let newLen = maxLen > 2000 ? 'MAX' : maxLen
+				let colName = 'baslik', query = [
+					`IF COL_LENGTH('${detayTable}', '${colName}') < ${newLen == 'MAX' ? 0 : newLen}`,
+					`    ALTER TABLE ${detayTable} ALTER COLUMN ${colName} VARCHAR(${newLen}) NOT NULL`
+				].join(CrLf)
+				await this.sqlExecNone(query)
+			}
+		}
+		{
+			let maxLen = detaylar?.length ? Math.max(...detaylar.map(det => det?.value?.length ?? 0)) : 0
+			if (maxLen) {
+				let newLen = maxLen > 2000 ? 'MAX' : maxLen
+				let colName = 'value', query = [
+					`IF COL_LENGTH('${detayTable}', '${colName}') < ${newLen == 'MAX' ? 0 : newLen}`,
+					`    ALTER TABLE ${detayTable} ALTER COLUMN ${colName} VARCHAR(${newLen}) NOT NULL`
+				].join(CrLf)
+				await this.sqlExecNone(query)
+			}
 		}
 	}
 	async yukleSonrasiIslemler() {
@@ -190,8 +203,8 @@ class DPanelDetay extends MQDetayGUID {
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments); let {adiSaha} = this
 		$.extend(pTanim, {
-			tip: new PInstTekSecim('tip', DPanelTip), value: new PInstStr(adiSaha),
-			raporTip: new PInstTekSecim('raportip', DAltRaporTip),
+			tip: new PInstTekSecim('tip', DPanelTip), raporTip: new PInstTekSecim('raportip', DAltRaporTip),
+			baslik: new PInstStr('baslik'), value: new PInstStr(adiSaha),
 			width: new PInstStr('width'), height: new PInstStr('height')
 		})
 	}
@@ -202,6 +215,7 @@ class DPanelDetay extends MQDetayGUID {
 			new GridKolon({ belirtec: idSaha, text: 'ID', genislikCh: 45 }),
 			new GridKolon({ belirtec: 'tiptext', text: 'Panel Tipi', genislikCh: 20 }).noSql(),
 			new GridKolon({ belirtec: adiSaha, text: 'Belirteç / Değer', genislikCh: 50 }),
+			new GridKolon({ belirtec: 'baslik', text: 'Başlık', genislikCh: 50 }),
 			new GridKolon({ belirtec: 'raportiptext', text: 'Rapor Tipi', genislikCh: 13 }).noSql(),
 			new GridKolon({ belirtec: 'width', text: 'Genişlik', genislikCh: 13 }).tipDecimal(),
 			new GridKolon({ belirtec: 'height', text: 'Yükseklik', genislikCh: 13 }).tipDecimal()
@@ -221,6 +235,7 @@ class DPanelDetay extends MQDetayGUID {
 		}
 	}
 	setTip(value) { this.tip = value; return this }
+	setBaslik(value) { this.baslik = value; return this } setTitle(value) { return this.setBaslik(value) }
 	setValue(value) { this.value = value; return this }
 	setRaporTip(value) { this.raporTip = value; return this }
 	tipRapor() { return this.setTip('') } tipWeb() { return this.setTip('WB') } tipEval() { return this.setTip('JS') }

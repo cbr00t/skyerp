@@ -1,10 +1,12 @@
 class DAltRapor_Chart extends DAltRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return null }
-	static get uygunmu() { return false } static get kod() { return 'chart' } static get aciklama() { return 'Grafik' }
-	get width() { return `calc(var(--full) - ${this.rapor.id2AltRapor.main?.width} - 15px)` } get height() { return '50%' }
+	static get uygunmu() { return false } static get kod() { return 'chart' }
+	static get aciklama() { return 'Grafik' }
+	get width() { return this.isPanelItem ? 'var(--full)' : `calc(var(--full) - ${this.rapor.id2AltRapor.main?.width} - 15px)` }
+	get height() { return this.isPanelItem ? 'var(--full)' : '50%' }
 	onBuildEk(e) {
 		super.onBuildEk(e); const {parentBuilder, noAutoColumns} = this, {layout} = parentBuilder;
-		const width = '99.8%', height = 'calc(var(--full) - 5px)';
+		let width = '99.8%', height = 'calc(var(--full) - 5px)';
 		this.fbd_chart = parentBuilder.addForm('chart').setLayout(e => $(`<div class="${e.builder.id} part full-wh"/>`))
 			.addStyle_wh(width, height).onAfterRun(async e => {
 				const fbd_chart = e.builder, chartPart = this.chartPart = fbd_chart.part = { tazele: e => this.tazele(e) }, input = chartPart.input = fbd_chart.layout; this.onChartInit(e);
@@ -70,5 +72,8 @@ class DAltRapor_Chart extends DAltRapor {
 		}
 		return result
 	}
-	getChartOffsetY(e) { const {fbd_chart} = this, {layout} = fbd_chart; return (layout?.height() || 0) * 0.56 }
+	getChartOffsetY(e) {
+		let {fbd_chart} = this, {layout} = fbd_chart
+		return (layout?.height() || 0) * 0.56
+	}
 }

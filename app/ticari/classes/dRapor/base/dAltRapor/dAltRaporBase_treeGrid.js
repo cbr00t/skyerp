@@ -389,8 +389,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	}
 	tazeleOncesi(e) {
 		super.tazeleOncesi(e);
-		let {rapor: { isPanelItem }, parentBuilder: { rootBuilder }, fbd_grid, tabloYapi, raporTanim, raporTanim: { secilenVarmi } = {}} = this
-		rootBuilder.layout.find('.islemTuslari > div button#tabloTanimlari')[secilenVarmi ? 'removeClass' : 'addClass']('anim-tabloTanimlari-highlight')
+		let {rapor: { isPanelItem }, parentBuilder: { rootBuilder } = {}, fbd_grid, tabloYapi, raporTanim, raporTanim: { secilenVarmi } = {}} = this
+		rootBuilder?.layout?.find('.islemTuslari > div button#tabloTanimlari')[secilenVarmi ? 'removeClass' : 'addClass']('anim-tabloTanimlari-highlight')
 		if (!(isPanelItem || secilenVarmi)) {
 			if (!this._tabloTanimGosterildiFlag) { this.raporTanimIstendi(e) }
 			return
@@ -647,7 +647,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		let {gridPart, tabloYapi} = this; let icerikColsSet; for (let colDef of colDefs) {
 			let kod = colDef.userData?.kod; if (tabloYapi.toplam[kod]) { if (!colDef.align) { colDef.alignRight() } /*if (!colDef.cellsFormat) { colDef.cellsFormat = 'd' }*/ }
 			colDef.cellClassName = (colDef, rowIndex, belirtec, value, rec) => {
-				if (icerikColsSet == null) { let {raporTanim} = this; icerikColsSet = raporTanim.icerik }
+				let {raporTanim = {}} = this
+				if (icerikColsSet == null) {icerikColsSet = raporTanim.icerik }
 				let kod = colDef.userData?.kod; let result = ['treeRow', belirtec];
 				if (rec) { result.push(rec.leaf ? 'leaf' : 'grup') }
 				if (icerikColsSet && icerikColsSet[belirtec]) { result.push('icerik') }
