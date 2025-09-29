@@ -42,7 +42,7 @@
 .dPanel.part .items ._sorting { width: 49%; height: 49%; background: #4169e166; z-index: 1000 !important }
 .dPanel.part .items:where(:has(._sorting)) { display: flex !important }
 /*.dPanel.part .items > .item #close.jqx-fill-state-normal { background-color: lightpink !important }*/
-.dPanel.part .items .ui-resizable-handle { width: 10px !important; height: 10px !important }
+/*.dPanel.part .items .ui-resizable-handle { width: 10px !important; height: 10px !important }*/
 .dPanel.part .items ._resizing { pointer-events: none !important }
 
 .dPanel.part .items > .item > div { overflow: hidden !important }
@@ -58,7 +58,7 @@
 	font-size: 105%; color: #333; background-color: #78b3de;
 	user-select: none
 }
-.dpanel.part .items .item button { z-index: 1005 !important }
+.dPanel.part .items .item button { z-index: 1005 !important }
 body.dark-theme .dPanel.part .items > .item.hasFocus > div > label { color: whitesmoke; background-color: #00ff9f }
 .dPanel.part #items .item .formBuilder-element #fullScreen { background-color: unset !important }
 body.dark-theme .dPanel.part #items .item.hasFocus .formBuilder-element:has(#fullScreen) { filter: invert(1) !important }
