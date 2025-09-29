@@ -23,6 +23,14 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 		}
 		return result
    }
+	static get uygunRaporlar() {
+		return Object.values(DRapor.kod2Sinif)
+			.filter(cls => cls.uygunmu && cls.dRapormu && !(cls.araSeviyemi || cls.dAltRapormu || cls.dPanelmi))
+	}
+	static get uygunRaporlarKAListe() {
+		return this.uygunRaporlar
+			.map(cls => ({ kod: cls.kod, aciklama: cls.aciklama, sinif: cls }))
+	}
 	constructor({ width, height } = e) {
 		super(...arguments)
 		$.extend(this, { width, height })
@@ -50,6 +58,7 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 		if (height != null) { this.setHeight(height) }
 		return this
 	}
+	setBaslik(value) { this._baslik = value; return this }
 }
 class DRaporMQ extends DRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'mq' } static get dMQRapormu() { return true }
@@ -68,7 +77,7 @@ class DRaporMQ extends DRapor {
 class DRaporOzel extends DRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'ozel' } static get dOzelRapormu() { return true }
 	async goster(e = {}) {
-		let inst = this, {partName, isPanelItem} = this, {aciklama} = this.class
+		let inst = this, {partName, isPanelItem, class: { aciklama }} = this
 		let title = e.title ?? `<b class="royalblue">${aciklama}</b> Raporu`
 		let rfb = e.rfb ?? new RootFormBuilder({ id: partName }).noDestroy()
 			.setInst(this).addCSS('slow-animation')

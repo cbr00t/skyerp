@@ -60,6 +60,7 @@
 	font-size: 105%; color: #333; background-color: #78b3de;
 	user-select: none
 }
+.dpanel.part .items .item button { z-index: 1005 !important }
 body.dark-theme .dPanel.part .items > .item.hasFocus > div > label { color: whitesmoke; background-color: #00ff9f }
 
 body.dark-theme .dPanel.part #items .item .formBuilder-element:has(#fullScreen) { filter: invert(1) !important }

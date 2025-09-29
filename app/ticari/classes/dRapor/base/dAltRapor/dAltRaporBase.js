@@ -3,7 +3,8 @@ class DAltRapor extends DRapor {
 	static get dRapormu() { return false } static get dAltRapormu() { return true } static get mainmi() { return false }
 	static get secimSinif() { return MQCogul.secimSinif } static get etiket() { return this.aciklama }
 	get etiket() {
-		let {rapor: { main: { class: { aciklama: raporAdi } = {} } = {} } = {}, isPanelItem, class: { mainmi, etiket: result }} = this
+		let {rapor: { _baslik, main: { class: { aciklama: raporAdi } = {} } = {} } = {}, isPanelItem, class: { mainmi, etiket: result }} = this
+		if (_baslik) { return _baslik }
 		if (!mainmi && isPanelItem) { result = `${raporAdi} &nbsp;[<b class="bold royalblue">${result}</b>]` }
 		return result
 	}
@@ -75,4 +76,5 @@ class DAltRapor extends DRapor {
 	}
 	fixKA(rec, prefix, kodsuzmu) { return this.class.fixKA(rec, prefix, kodsuzmu) }
 	secimlerDuzenleyici(handler) { this.secimlerDuzenleBlock = handler; return this }
+	setBaslik(value) { this.rapor?.setBaslik(value); return this }
 }

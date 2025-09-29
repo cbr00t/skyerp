@@ -1,7 +1,10 @@
 class DPanelTanim extends MQDetayliGUIDVeAdi {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get detaySinif() { return DPanelDetay }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'panel', 'rapor', 'inst', 'part'] }
 	static get table() { return 'wpanelrapor' } static get tableAlias() { return 'pnl' }
 	static get kodListeTipi() { return 'DPANEL' } static get sinifAdi() { return 'Panel Rapor' }
+	static get detaySinif() { return DPanelDetay }
+	static get emptyAciklama() { return '_Boş Dizayn' } static get defaultAciklama() { return '_Güncel Dizayn' }
 	static get localData() {
 		let {_localData: result} = this
 		if (result == null) {
@@ -24,20 +27,31 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 		return await inst.getDefault(e) ? inst : null
 	}
 	async getDefault(e) {
-		let {class: { localData: d }} = this; await d._promise
-		let {id} = await d.get('_current') ?? {}, aciklama = ''
+		let {class: cls, class: { localData: d }} = this; await d?._promise
+		let {id} = await d?.get('_current') ?? {}, aciklama = ''
 		$.extend(this, { id, aciklama })
 		if (id) { await this.yukle(e) }
+		await cls.createEmptyIfNot(e)
 		return this    /* yükleyemezsen de mevcut olanı dön */
 	}
 	async setDefault(e) {
-		let {class: { localData: d }} = this; await d._promise
-		let cur = await d.get('_current') ?? {}
+		let {class: cls, class: { localData: d }} = this; await d?._promise
+		let cur = await d?.get('_current') ?? {}
 		let id = this.id = cur.id || newGUID()
-		let aciklama = this.aciklama ||= '_Varsayılan'
-		$.extend(cur, { id, aciklama })
-		await d.set('_current', cur)
-		d.kaydetDefer(); this.kaydet(e)
+		if (!this.aciklama) { this.setAciklamaDefault() }
+		let {aciklama} = this; $.extend(cur, { id, aciklama })
+		await d?.set('_current', cur); d?.kaydetDefer()
+		this.kaydet(e)
+		return this
+	}
+	static async createEmptyIfNot(e) {
+		let inst = new this().setAciklamaEmpty()
+		if (await inst.varmi()) { return inst }
+		let {localData: d} = this; await d?._promise
+		let {id, aciklama} = inst
+		await d?.set('_empty', { id, aciklama }); d?.kaydetDefer()
+		inst.yaz(e)
+		return inst
 	}
 	static getOzelSahaYapilari() { return null }
 	static orjBaslikListesiDuzenle({ liste }) {
@@ -103,9 +117,15 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 		super.setValues(...arguments); let {xuserkod: encUser = ''} = rec
 		$.extend(this, { encUser })
 	}
+	static ozelRaporAdimi(value) {
+		let {emptyAciklama: empty, defaultAciklama: def} =  this
+		return [empty, def].some(_ => _ == value)
+	}
 	setId(value) { this.id = value; return this }
 	noId() { return this.setId(null) } resetId() { return this.setId(undefined) }
 	setAciklama(value) { this.aciklama = value; return this }
+	setAciklamaEmpty() { return this.setAciklama(this.class.emptyAciklama) }
+	setAciklamaDefault() { return this.setAciklama(this.class.defaultAciklama) }
 }
 class DPanelTanim_Local extends DPanelTanim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -197,6 +217,7 @@ class DPanelTanim_Local extends DPanelTanim {
 }
 class DPanelDetay extends MQDetayGUID {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'panel', 'rapor', 'inst', 'part'] }
 	static get table() { return 'wpaneldetay' } static get adiSaha() { return 'value' }
 	get id() { return this.sayac } set id(value) { this.sayac = value }
 	get aciklama() { return this.value } set aciklama(value) { this.value = value }

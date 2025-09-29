@@ -101,9 +101,9 @@ class DPanel extends Part {
 		this.sonIslemler_ozel?.(e)
 	}
 	rootFormBuilderDuzenle({ rfb }) {
-		let e = arguments[0];
-		let fbd_islemTuslari = rfb.addIslemTuslari('islemTuslari')
-			.addCSS('islemTuslari').setTip('tazeleVazgec')
+		let e = arguments[0]
+		let fbd_islemTuslari = rfb.addIslemTuslari('islemTuslari').addCSS('islemTuslari')
+			.setTip('tazeleVazgec')
 			.setButonlarDuzenleyici(e => this.islemTuslariArgsDuzenle(e))
 			.setId2Handler(this.islemTuslariGetId2Handler(e))
 			.onAfterRun(({ builder: fbd_islemTuslari, builder: { part: islemTuslariPart } }) => $.extend(this, { fbd_islemTuslari, islemTuslariPart }))
@@ -120,8 +120,8 @@ class DPanel extends Part {
 				bulPart.run()
 			})
 	}
-	islemTuslariArgsDuzenle({ liste }) {
-		let e = arguments[0], {sabitmi} = this.class;
+	islemTuslariArgsDuzenle({ liste, part: { sagButonIdSet } }) {
+		let e = arguments[0], {sabitmi} = this.class
 		liste.push(...[
 			(sabitmi ? null : { id: 'raporTanim', text: 'Rapor Tanım', handler: _e => this.raporTanimIstendi({ ...e, ..._e }) }),
 			{ id: 'secimler', text: '', handler: _e => this.secimlerIstendi({ ...e, ..._e }) },
@@ -131,7 +131,11 @@ class DPanel extends Part {
 			/*{ id: 'pdf', text: '', handler: _e => this.exportPDFIstendi({ ...e, ..._e }) },*/
 			{ id: 'html', text: '', handler: _e => this.exportHTMLIstendi({ ...e, ..._e }) },
 			{ id: 'yeni', text: '', handler: _e => this.yeniIstendi({ ...e, ..._e }) },
+			{ id: 'yukle', text: '', handler: _e => this.yukleIstendi({ ...e, ..._e }) },
+			{ id: 'kaydet', text: '', handler: _e => { this.kaydetIstendi({ ...e, ..._e }) } }
 		].filter(x => !!x))
+		if (sagButonIdSet)
+			for (let key of ['yukle', 'kaydet']) { delete sagButonIdSet[key] }
 	}
 	islemTuslariGetId2Handler(e) {
 		return ({
@@ -193,8 +197,12 @@ class DPanel extends Part {
 	}
 	async loadLayout(e) {
 		await this.raporTanim?._promise
-		let {raporTanim: { detaylar } = {}} = this
+		let {title, raporTanim: { class: raporSinif, aciklama: raporAdi, detaylar } = {}} = this
 		if (detaylar?.length) { this.add(detaylar) }
+		if (raporAdi) {
+			if (!raporSinif.ozelRaporAdimi(raporAdi)) { this._sonRaporAdi = raporAdi }
+			this.updateWndTitle(`${title} &nbsp;[<span class="bold forestgreen">${raporAdi}</span>]`)
+		}
 	}
 	async saveLayout(e) {
 		let {raporTanim, id2Detay, items} = this; if (!raporTanim) { return }
@@ -226,23 +234,23 @@ class DPanel extends Part {
 		let _rfb = new RootFormBuilder(), promises = [], loadCount = 0, completeCount = 0
 		for (let [id, det] of Object.entries(id2Detay)) {
 			if (id2Item[id]) { continue }
-			let {width, height, inst = {}, tip} = det
+			let {baslik, width, height, inst = {}, tip} = det
 			width ||= '49%'; height ||= '49%'
 			let item = _rfb.addFormWithParent(id).altAlta()
 				.addCSS('item _loading')
 				.setParent(items).setRootBuilder(rfb)
 			// item.onInit(({ builder: { layout } }) => $.extend(inst, { layout }))
 			let _e = { ...e, rfb: item }, result
-			$.extend(inst, { panel: this, detay: det })
+			$.extend(inst, { _baslik: baslik, panel: this, detay: det })
 			if (tip.rapormu) {
 				item.setInst(this).setPart(inst)
 				result = inst?.goster?.(_e)
 			}
 			else if (tip.webmi || tip.evalmi) {
-				let {baslik, value: url} = det;
+				let {value: url} = det;
 				item.setInst(det.inst = inst)
 				$.extend(inst, {
-					tazele: e => item.layout.find('iframe').prop('src', url),
+					tazele: e => { item.layout.find('iframe').prop('src', url) },
 					exportHTMLIstendi: e => openNewWindow(url),
 				})
 				item.noAutoAppend().setLayout(({ builder: { parent } }) => {
@@ -263,33 +271,57 @@ class DPanel extends Part {
 						.appendTo(itemLayout)
 				}
 				if (tip.evalmi) {
-					content = $(`<div class="content full-wh"></div>`)
-					content.appendTo(itemLayout)
-					let {value: code} = det
-					if (typeof code == 'string') {
-						code = code.trim()
-						{
-							for (let i = 0; i < 2; i++) {
-								let last = code.at(-1)
-								if (last == '\r' || last == '\n') { code = code.slice(0, -1) }
+					let tazele = inst.tazele = async () => {
+						let content = itemLayout.find('.content')
+						if (content?.length) {
+							content = $(`<div class="content full-wh"></div>`)
+							content.appendTo(itemLayout)
+						}
+						else { content.children().remove() }
+						let {value: code} = det
+						if (typeof code == 'string') {
+							code = code.trim()
+							{
+								for (let i = 0; i < 2; i++) {
+									let last = code.at(-1)
+									if (last == '\r' || last == '\n') { code = code.slice(0, -1) }
+								}
 							}
+							/*if (code[0] != '(') {
+								code += `(e => `
+								if (code.at(-1) != ')') { code += ')' }
+							}*/
+							try { code = await eval(code) }
+							catch (ex) { code = null; console.error('code eval', code, e, ex, getErrorText(ex)) }
 						}
-						if (code[0] != '(') {
-							code += `(e => `
-							if (code.at(-1) != ')') { code += ')' }
+						if (code) {
+							$.extend(_e, { panel: this, detay: det, layout, items, item, itemLayout, content });
+							(async () => {
+								try { await getFuncValue.call(this, code, _e) }
+								catch (ex) { console.error('code eval #2', code, result, _e, ex, getErrorText(ex)) }
+							})()
 						}
-						code = eval(code)
+						if (!code) {
+							delete id2Detay[id]; itemLayout.remove()
+							let {detaylar} = this.raporTanim, ind = detaylar.findIndex(det => det.id == id)
+							if (ind > -1) { detaylar.splice(ind, 1); this.saveLayout() }
+						}
 					}
-					if (code) {
-						$.extend(_e, { panel: this, detay: det, layout, items, item, itemLayout, content })
-						result = await getFuncValue.call(this, code, _e)
-					}
+					tazele()
 				}
 				itemLayout?.find('#fullScreen')?.on('click', ({ currentTarget: target }) => {
 					target = $(target)
 					let id = target.parents('.item.parent').prop('id')
-					let det = this.id2Detay[id] ?? {}, {value: url} = det
-					if (url) { openNewWindow(url) }
+					let det = this.id2Detay[id] ?? {}, {tip: { evalmi }, value: url} = det
+					if (url) {
+						if (evalmi) {
+							let {outerHTML: data} = target.parents('.item.parent').find('.content')[0]
+							url = URL.createObjectURL(new Blob([data], { type: 'text/html' }))
+						}
+						let wnd = openNewWindow(url)
+						if (evalmi)
+							setTimeout(() => URL.revokeObjectURL(url), 5_000)
+					}
 				})
 				itemLayout?.find('#close')?.on('click', ({ currentTarget: target }) => {
 					target = $(target)
@@ -315,7 +347,7 @@ class DPanel extends Part {
 			let {layout: itemLayout} = item, part = det.part = item.part
 			itemLayout?.data('detay', det); itemLayout?.data('part', part); itemLayout?.data('inst', inst)
 			loadCount++
-			if (tip.rapormu && inst?.raporVarmi) {
+			if (tip.rapormu && inst?.main?.raporVarmi) {
 				inst?.gridVeriYuklendiIslemi?.(({ builder: { id: _id, parentBuilder } = {} } = {}) => {
 					let {id} = parentBuilder?.parentBuilder?.parentBuilder ?? {}
 					let {layout} = _rfb.id2Builder[id] ?? {}
@@ -419,22 +451,132 @@ class DPanel extends Part {
 	exportPDFIstendi(e) { this._inst?.exportPDFIstendi?.(e); return this }
 	exportHTMLIstendi(e) { this._inst?.exportHTMLIstendi?.(e); return this }
 	async yeniIstendi(e) {
-		try { 
-			let {values: menuItems} = await app.frMenu.listedenSec() ?? {}
-			menuItems = menuItems?.filter(_ => _.choicemi)
-			let items = menuItems?.map(({ id }) => DRapor.getClass(id))?.filter(x => !!x)
-			items = items.map(({ kod }) => new DPanelDetay().tipRapor()/*.raporChart()*/.setValue(kod) )
-			if (!items?.length) { return }
-			await this.add(...items)
-			return items
+		let islemAdi = 'Ekle'
+		try {
+			let det = new DPanelDetay()
+			let rfb = new RootFormBuilder().setInst(det)
+			let promise_wait = new $.Deferred()
+			{
+				rfb.addStyle_fullWH().addStyle(`$elementCSS { --islemTuslari-height: 50px }`)
+				let fbd_islemTuslari = rfb.addIslemTuslari('islemTuslari').addCSS('islemTuslari')
+					.setTip('tamamVazgec').addStyle_fullWH(null, 'var(--islemTuslari-height)')
+					.setId2Handler({
+						tamam: ({ builder: { rootPart: part } }) => { promise_wait?.resolve(true); part?.jqxWindow('close') },
+						vazgec: ({ builder: { rootPart: part } }) => { promise_wait?.resolve(false); part?.jqxWindow('close') }
+					})
+					.onAfterRun(({ builder: fbd_islemTuslari, builder: { part: islemTuslariPart } }) => $.extend(this, { fbd_islemTuslari, islemTuslariPart }))
+				let content = rfb.addFormWithParent('content').addCSS('content').altAlta()
+				let form = content.addFormWithParent()
+				form.addTextInput('baslik', 'Başlık')
+				form = content.addFormWithParent()
+				form.addModelKullan('tip', 'Tip').dropDown().kodsuz().noMF().autoBind()
+					.bosKodAlinmaz().bosKodEklenmez().listedenSecilmez()
+					.setSource(DPanelTip.kaListe).addStyle_wh(350)
+					.degisince(({ builder: { parentBuilder: { id2Builder } } }) =>
+						id2Builder._ekTanimlar.builders.forEach(_ => _.updateVisible()))
+				form.addModelKullan('raporTip', 'Rapor Tip').dropDown().kodsuz().noMF().autoBind()
+					.bosKodAlinmaz().bosKodEklenmez().listedenSecilmez()
+					.setSource(DAltRaporTip.kaListe).addStyle_wh(300)
+					.setVisibleKosulu(({ builder: { inst } }) => inst.tip.rapormu ? true : 'jqx-hidden')
+				let altForm = form.addFormWithParent('_ekTanimlar').altAlta().addStyle_fullWH()
+				altForm.addModelKullan('_raporId', 'Rapor').dropDown().noMF().autoBind()
+					.addStyle_wh('var(--full)')
+					.setSource(e => DRapor.uygunRaporlarKAListe)
+					.setVisibleKosulu(({ builder: { inst } }) => inst.tip.rapormu ? true : 'jqx-hidden')
+				altForm.addTextInput('_url', 'Web Adresi (URL)').addStyle_wh('var(--full)')
+					.setVisibleKosulu(({ builder: { inst } }) => inst.tip.webmi ? true : 'jqx-hidden')
+				altForm.addTextArea('_code', 'JavaScript Kodu')
+					.addStyle_wh('var(--full)').setRows(10).setCols(1000)
+					.setVisibleKosulu(({ builder: { inst } }) => inst.tip.evalmi ? true : 'jqx-hidden')
+			}
+			{
+				let wnd = createJQXWindow({
+					title: 'Panel Ekle',
+					args: {
+						isModal: false, closeButtonAction: 'close',
+						width: Math.min($(window).width() - 50, 800),
+						height: Math.min($(window).height() - 50, 420)
+					}
+				})
+				wnd.on('close', evt => { promise_wait?.resolve(false); wnd.jqxWindow('destroy') })
+				rfb.setPart(wnd).setLayout(wnd.find('.jqx-window-content .subContent'))
+				rfb.run()
+			}
+			if (!await promise_wait) { return }
+			showProgress()
+			let {tip} = det
+			det.value = (
+				tip.rapormu ? det._raporId :
+				tip.webmi ? det._url :
+				tip.evalmi ? det._code : null
+			)
+			if (!det?.value) { return }
+			await this.add(det)
+			return det
 		}
-		catch (ex) { console.error(ex); throw ex }
+		catch (ex) { hConfirm(getErrorText(ex), islemAdi); throw ex }
+		finally { hideProgress() }
 		/* let headerBuilder = ({ sender: part, rootBuilder: rfb }) => {
 			let {header} = part
 			let form = rfb.addForm('header').setLayout(header)
 			form.addTextInput('raporAdi', 'Rapor Adı')
 		}
 		await app.frMenu.listedenSec({ headerBuilder })*/
+	}
+	async kaydetIstendi(e) {
+		let islemAdi = 'Dizayn Kaydet'
+		let {title, _sonRaporAdi, raporTanim, raporTanim: { class: raporSinif }} = this
+		try {
+			let raporAdi = await jqxPrompt({
+				etiket: 'Panel Tanım Adı',
+				value: _sonRaporAdi,
+				validate: ({ value }) => {
+					if (!value) { hConfirm(`<b class="firebrick bold">Panel Tanım Adı</b> belirtilmelidir`); return false }
+					if (raporSinif.ozelRaporAdimi(value)) { hConfirm(`<b class="firebrick bold">${value}</b> ismi özel bir anlama gelmektedir ve kullanılamaz`); return false }
+					return true
+				}
+			})
+			if (!raporAdi) { return }
+			showProgress()
+			let yRaporTanim = raporTanim.deepCopy().noId()
+			yRaporTanim.aciklama = raporAdi
+			{
+				let {table: from, adiSaha} = raporSinif
+				let del = new MQIliskiliDelete({ from, where: { degerAta: raporAdi, saha: adiSaha } })
+				await app.sqlExecNone(del)
+			}
+			await yRaporTanim.yaz(); this._sonRaporAdi = raporAdi
+			this.updateWndTitle(`${title} &nbsp;[<span class="bold forestgreen">${raporAdi}</span>]`)
+			eConfirm(`Panel Tanımı <b class="bold royalblue">${raporAdi}</b> ismi ile kaydedildi`, islemAdi)
+		}
+		catch (ex) { hConfirm(getErrorText(ex), islemAdi); throw ex }
+		finally { hideProgress() }
+	}
+	yukleIstendi(e) {
+		let islemAdi = 'Dizayn Yükle'
+		try {
+			let {raporTanim: defRaporTanim, raporTanim: { class: raporSinif }} = this
+			let saved = { id: defRaporTanim.id }
+			let secince = async ({ rec: { id, aciklama: raporAdi } }) => {
+				let {raporTanim: { class: raporSinif, class: { defaultAciklama: defRaporAdi } }} = this
+				try {
+					showProgress()
+					let raporTanim = new raporSinif().setId(id)
+					if (await raporTanim.yukle() === false)
+						throw { isError: true, errorText: 'Yükleme başarısız' }
+					$.extend(defRaporTanim, raporTanim, saved)
+					this._rendered = false; this.id2Detay = null
+					await this.panelleriOlustur({ batch: true })
+					if (raporTanim.aciklama != defRaporAdi)
+						defRaporTanim.setAciklamaDefault().kaydet()
+					// eConfirm(`<b class="royalblue bold">${raporAdi}</b> isimli Panel Tanımı yüklendi`, islemAdi)
+				}
+				catch (ex) { hConfirm(getErrorText(ex), 'Panel Tanımı YÜKLENEMEDİ', islemAdi); throw ex }
+				finally { hideProgress() }
+			}
+			raporSinif.listeEkraniAc({ tekil: true, secince })
+		}
+		catch (ex) { hConfirm(getErrorText(ex), islemAdi); throw ex }
 	}
 	onResize(e) {
 		super.onResize(e); let {layout} = this

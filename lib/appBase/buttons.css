@@ -37,6 +37,7 @@ body.dark-theme #fullScreen { background-image: url(../../images/tamEkranAcBeyaz
 	#sec.jqx-fill-state-hover, #tamam.jqx-fill-state-hover, #tazele.jqx-fill-state-hover { background-color: #529d52 !important }
 #tamam.jqx-fill-state-normal {  }
 button#kaydet { background-image: url(../../images/kaydet.png) !important; background-size: 32px !important }
+button#yukle { background-image: url(../../images/download.png) !important; background-size: 32px !important }
 button#temizle { background-image: url(../../images/temizle.png) !important }
 #tazele {background-image: url(../../images/tazele.png) }
 #vazgec { background-image: url(../../images/close.png) !important }

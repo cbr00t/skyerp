@@ -86,8 +86,11 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	super_tazele(e) { super.tazele(e) }
 	tazeleOncesi(e) { }
 	tazeleSonrasi(e) {
-		let {raporTanim: { aciklama: raporAdi } = {}, fbd_grid: { parent: layout } = {}} = this;
-		if (raporAdi && layout?.length) { layout.children('label').html(raporAdi) }
+		let {isPanelItem, etiket: raporAdi, raporTanim: { aciklama: raporTanimAdi } = {}, fbd_grid: { parent: layout } = {}} = this
+		if (!isPanelItem) {
+			raporAdi ||= raporTanimAdi
+			if (raporAdi && layout?.length) { layout.children('label').html(raporAdi) }
+		}
 	}
 	hizliBulIslemi(e) { let {gridPart} = this; gridPart.filtreTokens = e.tokens; this.tazele(e) }
 	gridVeriYuklendi(e) {

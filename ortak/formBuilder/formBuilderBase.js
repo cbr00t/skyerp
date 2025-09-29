@@ -78,9 +78,11 @@ class FormBuilderBase extends CObject {
 			builders: e.builders || [], args: e.args, init: e.init, buildEk: e.buildEk, afterRun: e.afterRun, id2Builder: null, styles: e.styles || [], cssClasses: e.cssClasses || [],
 			canDestroy: e.canDestroy ?? true, userData: e.userData
 		});
-		if (!this.autoAppendIslemi) { this.autoAppendMode_append() }
 		let {sabitDegerler} = e; if (sabitDegerler) { for (let key in sabitDegerler) { let value = sabitDegerler[key]; if (value !== undefined) { this[key] = value } } }
-		let {_layout, autoAppendFlag} = this; if (_layout && autoAppendFlag == null) { this.autoAppendFlag = true }
+		if (!e.isCopy) {
+			if (!this.autoAppendIslemi) { this.autoAppendMode_append() }
+			let {_layout, autoAppendFlag} = this; if (_layout && autoAppendFlag == null) { this.autoAppendFlag = true }
+		}
 	}
 	run(e) {
 		e = e || {}; this.preRun(e); if (e.abortFlag) return

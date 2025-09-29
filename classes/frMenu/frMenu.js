@@ -78,7 +78,7 @@ class FRMenu extends CObject {
 			}
 			static loadServerDataDogrudan({ sender: { args } = {} }) {
 				let {frMenu = app.frMenu} = args
-				let { part: { hizliBulPart: { widget } } } = frMenu
+				let {part: { hizliBulPart: { widget } }} = frMenu
 				return widget.getItems()
 					.filter(({ originalItem }) => originalItem?.choicemi)
 					.map(({ originalItem: _, id, label, group: _group }) => ({ id: _?.id || _?.mne || id, label, _group }))
