@@ -26,18 +26,16 @@
 	border: 3px solid #aaa; border-radius: 5px !important; box-sizing: content-box !important;
 	float: left !important
 }
-.dPanel.part .items .item > .item-sortable {
-	position: relative !important; width: var(--full) !important; height: var(--label-height) !important
-}
+.dPanel.part .items .item > .item-sortable { position: relative !important; width: var(--full) !important; height: var(--label-height) !important }
 .dPanel.part .items .item > .item-sortable > label { }
 .dPanel.part .items .item > .item-sortable + * {
-	position: rela !important; width: var(--full) !important;
+	position: absolute !important; width: var(--full) !important;
 	width: calc(var(--full) - 1px) !important;
 	height: calc(var(--full) - var(--label-height) - 1px) !important
 }
 .dPanel.part #items .item .formBuilder-element:has(#fullScreen) {
 	min-width: unset !important; width: 70px !important; height: 35px !important;
-	top: 3px !important; right: 80px !important; filter: brightness(0) !important
+	top: 1px !important; right: 80px !important; filter: brightness(0) !important
 }
 .dPanel.part .items > .item:has(.hasFocus) { border: 3px solid forestgreen !important }
 .dPanel.part .items ._loading { height: 5000px !important }
@@ -97,4 +95,8 @@ body.dark-theme .dPanel.part .items .item-sortable > button#close { filter: inve
 .dPanel.part .items .item > .item-sortable button#fullScreen:active { opacity: 1 !important; box-shadow: 0 0 3px 2px forestgreen !important }
 body.dark-theme .dPanel.part .items .chart.part *,
 	body.dark-theme .dPanel.part .items .item iframe { filter: invert(1) hue-rotate(180deg) !important }
+
+.dPanel .ui-resizable-e, .dPanel .ui-resizable-w { width: 20px !important; height: var(--full) !important; top: 0 }
+.dPanel .ui-resizable-e { right: -6px !important }
+.dPanel .ui-resizable-w { left: -6px !important }
 

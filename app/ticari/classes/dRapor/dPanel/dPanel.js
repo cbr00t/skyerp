@@ -6,6 +6,7 @@ class DPanel extends Part {
 	static get kod() { return this.anaTip } static get aciklama() { return 'Panel Rapor' }
 	static get uygunmu() { return true } get uygunmu() { return this.class.uygunmu }
 	static get dPanelmi() { return true } get dPanelmi() { return this.class.dPanelmi }
+	// static get slowAnimationFlag() { return true }
 	get detay() {
 		let {items} = this
 		let subItem = items.find('.item:where(.hasFocus)'); if (!subItem?.length) { return null }
@@ -232,6 +233,7 @@ class DPanel extends Part {
 			if (det) { for (let key of ['rootBuilder', 'layout']) { delete det[key] } }
 		}
 		let _rfb = new RootFormBuilder(), promises = [], loadCount = 0, completeCount = 0
+		let LoadingLockWaitMS = 500, {length: totalCount} = Object.values(id2Detay)
 		for (let [id, det] of Object.entries(id2Detay)) {
 			if (id2Item[id]) { continue }
 			let {baslik, width, height, inst = {}, tip} = det
@@ -304,11 +306,12 @@ class DPanel extends Part {
 				if (tip.evalmi) {
 					let tazele = inst.tazele = async () => {
 						let content = itemLayout.find('.content')
-						if (content?.length) {
+						if (content?.length)
+							content.children().remove()
+						else {
 							content = $(`<div class="content full-wh"></div>`)
 							content.appendTo(itemLayout)
 						}
-						else { content.children().remove() }
 						let {value: code} = det
 						if (typeof code == 'string') {
 							code = code.trim()
@@ -386,7 +389,8 @@ class DPanel extends Part {
 						let {layout} = _rfb.id2Builder[id] ?? {}
 						if (!promise) { return }
 						if (layout?.length) { layout.removeClass('_loading'); layout.css({ width, height }) }
-						if (++completeCount >= loadCount - 1) { this.layout.removeClass('_loading') }
+						if (++completeCount >= totalCount)
+							setTimeout(() => this.layout.removeClass('_loading'), LoadingLockWaitMS)
 					}
 					finally { promise?.resolve(); clearTimeout(timer) }
 				})
@@ -394,7 +398,8 @@ class DPanel extends Part {
 					if (!promise) { return }
 					try {
 						if (layout?.length) { layout.removeClass('_loading'); layout.css({ width, height }) }
-						if (++completeCount >= loadCount - 1) { this.layout.removeClass('_loading') }
+						if (++completeCount >= totalCount)
+							setTimeout(() => this.layout.removeClass('_loading'), LoadingLockWaitMS)
 					}
 					finally { promise?.resolve() }
 				}, 10_000, { itemLayout })
@@ -403,7 +408,8 @@ class DPanel extends Part {
 			else {
 				itemLayout?.removeClass('_loading')
 				itemLayout?.css({ width, height })
-				if (++completeCount >= loadCount - 1) { this.layout.removeClass('_loading') }
+				if (++completeCount >= totalCount)
+					setTimeout(() => this.layout.removeClass('_loading'), LoadingLockWaitMS)
 			}
 			// promises.push(promise)
 		}
@@ -426,7 +432,9 @@ class DPanel extends Part {
 			children.resizable({
 				/*handles: 'all', containment: 'parent', ghost: true, helper: 'ui-resizable-helper',*/
 				// classes: { '.ui-resizable': 'highlight' },
-				handles: 'all', grid: [20, 20],
+				handles: 'all', grid: [20, 20], 
+				minWidth: Math.min($(window).width() - 100, 300),
+				minHeight: 70,
 				start: (evt, info) => {
 					let {element: item} = info; item.addClass('_resizing')
 					for (let key in itemsCSS) { items.css(key, 'hidden') }
@@ -449,9 +457,9 @@ class DPanel extends Part {
 			})
 			items.sortable({
 				connectWith: '> .item:not(.maximized)', handle: '.item-sortable',
-				placeholder: '_sorting', zIndex: 3000, opacity: .8, delay: 100,
+				placeholder: '_sorting', zIndex: 3000, opacity: .8,
+				delay: 100, distance: 48, cancel: '.maximized',
 				/*tolerance: 'intersect'*/ tolerance: 'pointer',
-				cancel: '.maximized',
 				update: (evt, info) => {
 					let {item} = info, det = item.data('detay'); if (!det) { return }
 					let {id} = det; if (!id) { return }
@@ -661,14 +669,22 @@ class DPanel extends Part {
 					if (await raporTanim.yukle() === false)
 						throw { isError: true, errorText: 'Yükleme başarısız' }
 					$.extend(defRaporTanim, raporTanim, saved)
-					this._rendered = false; this.id2Detay = null
-					await this.panelleriOlustur({ batch: true })
-					if (raporTanim.aciklama != defRaporAdi)
-						defRaporTanim.setAciklamaDefault().kaydet()
+					this._rendered = false; this.id2Detay = null;
+					(async () => {
+						try {
+							await this.panelleriOlustur({ batch: true })
+							if (raporTanim.aciklama != defRaporAdi)
+								defRaporTanim.setAciklamaDefault().kaydet()
+						}
+						finally { hideProgress() }
+					})()
 					// eConfirm(`<b class="royalblue bold">${raporAdi}</b> isimli Panel Tanımı yüklendi`, islemAdi)
 				}
-				catch (ex) { hConfirm(getErrorText(ex), 'Panel Tanımı YÜKLENEMEDİ', islemAdi); throw ex }
-				finally { hideProgress() }
+				catch (ex) {
+					hideProgress()
+					hConfirm(getErrorText(ex), 'Panel Tanımı YÜKLENEMEDİ', islemAdi);
+					throw ex
+				}
 			}
 			raporSinif.listeEkraniAc({ tekil: true, secince })
 		}
