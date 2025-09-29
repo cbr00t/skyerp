@@ -5,7 +5,7 @@ class DPanelTip extends TekSecim {
 		super.kaListeDuzenle(...arguments)
 		kaListe.push(
 			new CKodVeAdi([' ', 'Rapor', 'rapormu']),
-			new CKodVeAdi(['WB', 'Web Adresi', 'webmi']),
+			new CKodVeAdi(['WB', 'Web Sitesi (URL)', 'webmi']),
 			new CKodVeAdi(['JS', 'JavaScript Kodu', 'evalmi'])
 		)
 	}

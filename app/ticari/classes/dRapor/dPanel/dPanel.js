@@ -4,7 +4,7 @@ class DPanel extends Part {
 	static get partName() { return 'dPanel' } get partName() { return this.class.partName }
 	static get anaTip() { return 'panel' } static get kategoriKod() { return null } static get araSeviyemi() { return false }
 	static get kod() { return this.anaTip } static get aciklama() { return 'Panel Rapor' }
-	static get uygunmu() { return !!config.dev } get uygunmu() { return this.class.uygunmu }
+	static get uygunmu() { return true } get uygunmu() { return this.class.uygunmu }
 	static get dPanelmi() { return true } get dPanelmi() { return this.class.dPanelmi }
 	get detay() {
 		let {items} = this
@@ -244,7 +244,7 @@ class DPanel extends Part {
 			$.extend(inst, { _baslik: baslik, panel: this, detay: det })
 			if (tip.rapormu) {
 				item.setInst(this).setPart(inst)
-				result = inst?.goster?.(_e)
+				result = await inst?.goster?.(_e)
 			}
 			else if (tip.webmi || tip.evalmi) {
 				let {value: url} = det;
@@ -267,8 +267,39 @@ class DPanel extends Part {
 				})
 				let {layout: itemLayout} = item
 				if (tip.webmi) {
-					$(`<iframe class="full-wh" border="0" src="${url}"></iframe>`)
-						.appendTo(itemLayout)
+					let tazele = inst.tazele = async () => {
+						let content = itemLayout.find('.content')
+						if (!content?.length) {
+							content = $(`<iframe class="content full-wh" border="0" scrolling="auto" allowtransparency="true" crossorigin></iframe>`)
+							content.appendTo(itemLayout)
+						}
+						let {value: url} = det, {contentDocument: doc} = content[0]
+						doc?.close(); doc?.writeln(
+							`<html>
+								<head></head>
+								<body><img width="200" height="200" src="../../images/loading.gif"></img></body>
+							</html>`
+						)
+						doc?.close()
+						content.attr('src', url)
+						/*app.webRequestAsStream({ url, type: null })
+							.then(result => {
+								let {origin: newOrigin} = new URL(url)
+								// let proxyURL = app.getWSUrl({ api: 'webRequest' })
+								result = result
+									.replaceAll(`"/`, `"${newOrigin}/`)
+									.replaceAll(`'/`, `'${newOrigin}/`)
+								doc.close(); doc.writeln(result)
+								let {head} = doc
+								// if (head && config.colorScheme == 'dark')
+								//	$(`<style>body { filter: invert(1) hue-rotate(180deg) !important }</style>`).appendTo($(head))
+							})
+							.catch(ex => {
+								doc.close()
+								doc.writeln(`<h2 style="font-weight: bold; color: firebrick">${getErrorText(ex)}</h2>`)
+							})*/
+					}
+					tazele()
 				}
 				if (tip.evalmi) {
 					let tazele = inst.tazele = async () => {
@@ -347,13 +378,27 @@ class DPanel extends Part {
 			let {layout: itemLayout} = item, part = det.part = item.part
 			itemLayout?.data('detay', det); itemLayout?.data('part', part); itemLayout?.data('inst', inst)
 			loadCount++
-			if (tip.rapormu && inst?.main?.raporVarmi) {
-				inst?.gridVeriYuklendiIslemi?.(({ builder: { id: _id, parentBuilder } = {} } = {}) => {
-					let {id} = parentBuilder?.parentBuilder?.parentBuilder ?? {}
-					let {layout} = _rfb.id2Builder[id] ?? {}
-					if (layout?.length) { layout.removeClass('_loading'); layout.css({ width, height }) }
-					if (++completeCount >= loadCount - 1) { this.layout.removeClass('_loading') }
+			if (tip.rapormu && inst?.main?.raporVarmi && inst?.gridVeriYuklendiIslemi) {
+				let promise = new $.Deferred(), timer
+				inst.gridVeriYuklendiIslemi(async ({ builder: { id: _id, parentBuilder } = {} } = {}) => {
+					try {
+						let {id} = parentBuilder?.parentBuilder?.parentBuilder ?? {}
+						let {layout} = _rfb.id2Builder[id] ?? {}
+						if (!promise) { return }
+						if (layout?.length) { layout.removeClass('_loading'); layout.css({ width, height }) }
+						if (++completeCount >= loadCount - 1) { this.layout.removeClass('_loading') }
+					}
+					finally { promise?.resolve(); clearTimeout(timer) }
 				})
+				timer = setTimeout(({ itemLayout: layout }) => {
+					if (!promise) { return }
+					try {
+						if (layout?.length) { layout.removeClass('_loading'); layout.css({ width, height }) }
+						if (++completeCount >= loadCount - 1) { this.layout.removeClass('_loading') }
+					}
+					finally { promise?.resolve() }
+				}, 10_000, { itemLayout })
+				promises.push(promise)
 			}
 			else {
 				itemLayout?.removeClass('_loading')
@@ -420,8 +465,14 @@ class DPanel extends Part {
 				}
 			})
 		}, 10)
-		if (!batch) { this.saveLayout(e) }
-		this._rendered = true
+		if (batch) {
+			if (this._previouslyRendered) {    /* MaliTablo gibi bazı Rapor TreeGrid'leri için bug-fix */
+				setTimeout(() => this.tazele(e), 10)
+				setTimeout(() => { this.tazele(e); hideProgress() }, 50)
+			}
+		}
+		else { this.saveLayout(e) }
+		this._rendered = this._previouslyRendered = true
 	}
 	hizliBulIslemi(e) {
 		let {bulPart} = e; clearTimeout(this._timer_hizliBulIslemi_ozel); this._timer_hizliBulIslemi_ozel = setTimeout(() => {
@@ -441,7 +492,7 @@ class DPanel extends Part {
 	hizliBulIslemi_ara({ tokens }) {
 		let e = { ...arguments[0] }; let {id2Detay} = this
 		for (let { inst } of Object.values(id2Detay))
-			_inst?.hizliBulIslemi_ara?.(e)
+			inst?.hizliBulIslemi_ara?.(e)
 	}
 	raporTanimIstendi(e) { this._inst?.raporTanimIstendi?.(e); return this }
 	secimlerIstendi(e) { this._inst?.secimlerIstendi?.(e); return this }
@@ -454,6 +505,13 @@ class DPanel extends Part {
 		let islemAdi = 'Ekle'
 		try {
 			let det = new DPanelDetay()
+			let validate = () => {
+				let {tip, _raporId, _url, _code} = det
+				if (tip.rapormu && !_raporId) { hConfirm(`<b class="firebrick bold">Rapor</b> seçilmelidir`, islemAdi); return false }
+				if (tip.webmi && !_url) { hConfirm(`<b class="firebrick bold">Web Adresi (URL)</b> belirtilmelidir`, islemAdi); return false }
+				if (tip.evalmi && !_code) { hConfirm(`<b class="firebrick bold">JS Kodu</b> belirtilmelidir`, islemAdi); return false }
+				return true
+			}
 			let rfb = new RootFormBuilder().setInst(det)
 			let promise_wait = new $.Deferred()
 			{
@@ -461,23 +519,61 @@ class DPanel extends Part {
 				let fbd_islemTuslari = rfb.addIslemTuslari('islemTuslari').addCSS('islemTuslari')
 					.setTip('tamamVazgec').addStyle_fullWH(null, 'var(--islemTuslari-height)')
 					.setId2Handler({
-						tamam: ({ builder: { rootPart: part } }) => { promise_wait?.resolve(true); part?.jqxWindow('close') },
+						tamam: async ({ builder, builder: { rootPart: part } }) => {
+							if (!await validate({ ...e, builder, part })) { return false }
+							promise_wait?.resolve(true); part?.jqxWindow('close')
+						},
 						vazgec: ({ builder: { rootPart: part } }) => { promise_wait?.resolve(false); part?.jqxWindow('close') }
 					})
 					.onAfterRun(({ builder: fbd_islemTuslari, builder: { part: islemTuslariPart } }) => $.extend(this, { fbd_islemTuslari, islemTuslariPart }))
 				let content = rfb.addFormWithParent('content').addCSS('content').altAlta()
+				content.onAfterRun(({ builder: { rootBuilder: { id2Builder: { islemTuslari } }, layout }}) => {
+					layout.on('keyup', ({ key }) => {
+						key = key?.toLowerCase()
+						if (key == 'enter' || key == 'linefeed')
+							islemTuslari.layout.find('#tamam').click()
+					})
+				})
 				let form = content.addFormWithParent()
 				form.addTextInput('baslik', 'Başlık')
 				form = content.addFormWithParent()
 				form.addModelKullan('tip', 'Tip').dropDown().kodsuz().noMF().autoBind()
 					.bosKodAlinmaz().bosKodEklenmez().listedenSecilmez()
 					.setSource(DPanelTip.kaListe).addStyle_wh(350)
-					.degisince(({ builder: { parentBuilder: { id2Builder } } }) =>
-						id2Builder._ekTanimlar.builders.forEach(_ => _.updateVisible()))
+					.degisince(({ builder: { parentBuilder } }) => {
+						for (let _ of parentBuilder)
+							_.updateVisible()
+					})
 				form.addModelKullan('raporTip', 'Rapor Tip').dropDown().kodsuz().noMF().autoBind()
 					.bosKodAlinmaz().bosKodEklenmez().listedenSecilmez()
 					.setSource(DAltRaporTip.kaListe).addStyle_wh(300)
 					.setVisibleKosulu(({ builder: { inst } }) => inst.tip.rapormu ? true : 'jqx-hidden')
+				form.addModelKullan('_urlTemplate', 'Şablonlar').dropDown().kodsuz().noMF()
+					.bosKodAlinir().bosKodEklenir().listedenSecilmez()
+					.setSource(() => {
+						let {colorScheme} = config, dark = colorScheme == 'dark'
+						let {DefaultWSHostName_SkyServer: skyHost} = config.class
+						return [
+							new CKodVeAdi([
+								`https://tr.widgets.investing.com/live-currency-cross-rates?theme=${dark ? 'dark' : 'light'}Theme&roundedCorners=true&pairs=1,3,2,4,7,5,8,6,997698,68`,
+								'Canlı Döviz Kurları'
+							]),
+							new CKodVeAdi([
+								`https://${skyHost}:2095/Vio/Pdf/`,
+								'VIO Doküman'
+							])
+						]
+					})
+					.degisince( ({ builder: fbd, builder: { part, parentBuilder, rootBuilder: { id2Builder: { content }} } }) => {
+						let {_ekTanimlar: { id2Builder: { _url: fbd_url } }} = parentBuilder.id2Builder
+						let {baslik: fbd_baslik} = content.builders[0].id2Builder
+						let {value: url, label: baslik} = part.widget.getSelectedItem()
+						part.val('')
+						det._url = fbd_url.value = url
+						det.baslik = fbd_baslik.value = baslik
+					})
+					.addStyle_wh(400)
+					.setVisibleKosulu(({ builder: { inst } }) => inst.tip.webmi ? true : 'jqx-hidden')
 				let altForm = form.addFormWithParent('_ekTanimlar').altAlta().addStyle_fullWH()
 				altForm.addModelKullan('_raporId', 'Rapor').dropDown().noMF().autoBind()
 					.addStyle_wh('var(--full)')
@@ -486,7 +582,7 @@ class DPanel extends Part {
 				altForm.addTextInput('_url', 'Web Adresi (URL)').addStyle_wh('var(--full)')
 					.setVisibleKosulu(({ builder: { inst } }) => inst.tip.webmi ? true : 'jqx-hidden')
 				altForm.addTextArea('_code', 'JavaScript Kodu')
-					.addStyle_wh('var(--full)').setRows(10).setCols(1000)
+					.addStyle_wh('var(--full)').setRows(8).setCols(1000)
 					.setVisibleKosulu(({ builder: { inst } }) => inst.tip.evalmi ? true : 'jqx-hidden')
 			}
 			{
@@ -494,8 +590,8 @@ class DPanel extends Part {
 					title: 'Panel Ekle',
 					args: {
 						isModal: false, closeButtonAction: 'close',
-						width: Math.min($(window).width() - 50, 800),
-						height: Math.min($(window).height() - 50, 420)
+						width: Math.min($(window).width() - 50, 1000),
+						height: Math.min($(window).height() - 50, 500)
 					}
 				})
 				wnd.on('close', evt => { promise_wait?.resolve(false); wnd.jqxWindow('destroy') })

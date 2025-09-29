@@ -195,7 +195,12 @@ class SecimlerPart extends Part {
 			secince: e => {
 				let {aciklama, icerik} = e.rec ?? {}; if (!icerik) { return }
 				let {secimler, secim2Info} = this; for (let [key, _secim] of Object.entries(icerik)) {
-					let secim = secimler[key]; if (!secim) { continue } $.extend(secim, _secim); 
+					let secim = secimler[key]; if (!secim) { continue }
+					if (_secim.birKismimi !== undefined) {
+						_secim.hepsimi = !_secim.birKismimi
+						delete _secim.birKismimi
+					}
+					$.extend(secim, _secim);
 					let {element: parent} = secim2Info[key]; if (parent) { secim.uiSetValues({ parent }) }
 				}
 				this.seviyeleriAcKapatIstendi({ flag: true }) /* eConfirm(`<b>${aciklama}</b> seçim içerikleri yüklendi`, [this.mfSinif?.sinifAdi, 'Seçimler'].filter(x => x).join(' ')) */

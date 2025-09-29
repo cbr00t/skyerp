@@ -81,7 +81,15 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		await super.tazele(e)
 		let {grid} = this.gridPart || {}; if (!grid) { return }
 		let da = this.tazele_ozel?.(e); if (!da) { da = await this.getDataAdapter(e) }
-		if (da) { grid.jqxTreeGrid('source', da) }
+		if (da) {
+			let lastError
+			for (let i = 1; i <= 5; i++) {
+				try { grid.jqxTreeGrid('source', da); lastError = null; break }
+				catch (ex) { lastError = ex; await delay(100 * i) }
+			}
+			if (lastError)
+				throw lastError
+		}
 	}
 	super_tazele(e) { super.tazele(e) }
 	tazeleOncesi(e) { }
@@ -402,15 +410,18 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	tazeleSonrasi(e) { return super.tazeleSonrasi(e) }
 	async tazele(e) {
 		e = e ?? {}; await new $.Deferred(p => setTimeout(() => p.resolve(), 300));
-		let {part} = this.rapor; if (part?.isDestroyed) { return }
+		let {isPanelItem, part} = this.rapor
+		if (part?.isDestroyed) { return }
 		try {
-			this._timer_progress = setTimeout(async () => {
-				showProgress('Rapor oluşturuluyor...', null, true);
-				await new $.Deferred(p => setTimeout(() => p.resolve(), 10));
-				window.progressManager?.setProgressMax(10);
-				window.progressManager?.setProgressValue(0)
-			}, 1500);
-			await this.tazeleOncesi(e); window.progressManager?.progressStep(1);
+			if (!isPanelItem) {
+				this._timer_progress = setTimeout(async () => {
+					showProgress('Rapor oluşturuluyor...', null, true);
+					await new $.Deferred(p => setTimeout(() => p.resolve(), 10));
+					window.progressManager?.setProgressMax(10);
+					window.progressManager?.setProgressValue(0)
+				}, 1500)
+			}
+			await this.tazeleOncesi(e); window.progressManager?.progressStep(1)
 			let {gridPart, raporTanim = {}} = this, {degistimi, kullanim} = raporTanim, {yatayAnaliz} = kullanim ?? {};
 			let {grid, gridWidget} = gridPart, {base} = gridWidget, {defUpdateOnly} = e;
 			let {tabloKolonlari, tabloYapi, ozetBilgi} = this, {secilenVarmi, attrSet, grup, icerik} = raporTanim;
