@@ -9,8 +9,14 @@ class DPanel extends Part {
 	// static get slowAnimationFlag() { return true }
 	get detay() {
 		let {items} = this
-		let subItem = items.find('.item:where(.hasFocus)'); if (!subItem?.length) { return null }
-		let detay = subItem.parents('#items').parent().data('detay'); if (!detay) { return null }
+		let subItem = items.find('.item:where(.hasFocus)').last()
+		if (!subItem?.length) { return null }
+		let detay = (
+			subItem.data('detay') ??
+			subItem.parents('.item').data('detay') ??
+			subItem.parents('#items').parent().data('detay')
+		)
+		if (!detay) { return null }
 		return detay
 	}
 	get _inst() {
@@ -61,7 +67,7 @@ class DPanel extends Part {
 	}
 	async afterRun(e = {}) {
 		await super.afterRun(e); let {raporTanim: { _promise } = {}} = this
-		let block = result => this.panelleriOlustur({ ...e, batch: true, result })
+		let block = result => this.panelleriOlustur_batch({ ...e, result })
 		if (_promise) { _promise.then(block) }
 		else { block() }
 	}
@@ -132,6 +138,7 @@ class DPanel extends Part {
 			/*{ id: 'pdf', text: '', handler: _e => this.exportPDFIstendi({ ...e, ..._e }) },*/
 			{ id: 'html', text: '', handler: _e => this.exportHTMLIstendi({ ...e, ..._e }) },
 			{ id: 'yeni', text: '', handler: _e => this.yeniIstendi({ ...e, ..._e }) },
+			{ id: 'degistir', text: '', handler: _e => this.degistirIstendi({ ...e, ..._e }) },
 			{ id: 'yukle', text: '', handler: _e => this.yukleIstendi({ ...e, ..._e }) },
 			{ id: 'kaydet', text: '', handler: _e => { this.kaydetIstendi({ ...e, ..._e }) } }
 		].filter(x => !!x))
@@ -168,7 +175,7 @@ class DPanel extends Part {
 			$.extend(det, { id, panel: this })
 			id2Detay[id] = det
 		}
-		if (_rendered) { this.panelleriOlustur({ batch: false }) }
+		if (_rendered) { this.panelleriOlustur() }
 		return this
 	}
 	remove(...coll) {
@@ -181,26 +188,30 @@ class DPanel extends Part {
 			if (det == null) { continue }
 			delete id2Detay[det.id]
 		}
-		if (_rendered) { this.panelleriOlustur({ batch: false }) }
+		if (_rendered) { this.panelleriOlustur() }
 	}
 	clear() {
 		this.id2Detay = {}
-		if (this._rendered) { this.panelleriOlustur({ batch: false }) }
+		if (this._rendered) { this.panelleriOlustur() }
 		return this
 	}
 	async detaylariDuzenle(e) {
-		await this.loadLayout()
+		await this.loadLayout(e)
 		/*this.add(
 			new DRapor_Hareketci_Cari().setWH('50%', '35%'),
 			new SBRapor_Default().setWH('50%', '35%'),
 			new DRapor_DonemselIslemler().setWH('100%', '65%')
 		)*/
 	}
-	async loadLayout(e) {
+	render(e) {
+		this.id2Detay = this._rendered = null
+		return this.panelleriOlustur_batch(e)
+	}
+	async loadLayout({ noTitleUpdate } = {}) {
 		await this.raporTanim?._promise
 		let {title, raporTanim: { class: raporSinif, aciklama: raporAdi, detaylar } = {}} = this
 		if (detaylar?.length) { this.add(detaylar) }
-		if (raporAdi) {
+		if (!noTitleUpdate && raporAdi) {
 			if (!raporSinif.ozelRaporAdimi(raporAdi)) { this._sonRaporAdi = raporAdi }
 			this.updateWndTitle(`${title} &nbsp;[<span class="bold forestgreen">${raporAdi}</span>]`)
 		}
@@ -251,10 +262,7 @@ class DPanel extends Part {
 			else if (tip.webmi || tip.evalmi) {
 				let {value: url} = det;
 				item.setInst(det.inst = inst)
-				$.extend(inst, {
-					tazele: e => { item.layout.find('iframe').prop('src', url) },
-					exportHTMLIstendi: e => openNewWindow(url),
-				})
+				$.extend(inst, { exportHTMLIstendi: e => openNewWindow(url) })
 				item.noAutoAppend().setLayout(({ builder: { parent } }) => {
 					let layout =
 						$(`<div id="${id}" class="parent item item-ozel full-wh">
@@ -272,7 +280,11 @@ class DPanel extends Part {
 					let tazele = inst.tazele = async () => {
 						let content = itemLayout.find('.content')
 						if (!content?.length) {
-							content = $(`<iframe class="content full-wh" border="0" scrolling="auto" allowtransparency="true" crossorigin></iframe>`)
+							content =
+								$(`<iframe class="content full-wh" border="0"` +
+										` scrolling="auto" allowtransparency="true" crossorigin="anonymous"` +
+										` credentialless="true" loading="lazy" referrerpolicy="no-referrer">` +
+								  `</iframe>`)
 							content.appendTo(itemLayout)
 						}
 						let {value: url} = det, {contentDocument: doc} = content[0]
@@ -473,15 +485,23 @@ class DPanel extends Part {
 				}
 			})
 		}, 10)
-		if (batch) {
-			if (this._previouslyRendered) {    /* MaliTablo gibi bazı Rapor TreeGrid'leri için bug-fix */
-				setTimeout(() => this.tazele(e), 10)
-				setTimeout(() => { this.tazele(e); hideProgress() }, 50)
+		// if (this._previouslyRendered) {
+		{																// Rapor yapıları için bug-fix
+			let detaylar = Object.values(this.id2Detay)
+			let repeat = 1, wait = 10, inc = 40
+			for (let i = 0; i < repeat; i++) {
+				await delay(wait); wait += inc
+				for (let {tip: { rapormu } = {}, raporTip: { chartmi }, inst} of detaylar) {
+					if (rapormu && chartmi && inst)
+						await inst.tazele?.(e)
+				}
 			}
 		}
-		else { this.saveLayout(e) }
+		if (!batch) { this.saveLayout(e) }
 		this._rendered = this._previouslyRendered = true
+		hideProgress()
 	}
+	panelleriOlustur_batch(e) { return this.panelleriOlustur(({ ...e, batch: true })) }
 	hizliBulIslemi(e) {
 		let {bulPart} = e; clearTimeout(this._timer_hizliBulIslemi_ozel); this._timer_hizliBulIslemi_ozel = setTimeout(() => {
 			try {
@@ -509,15 +529,39 @@ class DPanel extends Part {
 	exportExcelIstendi(e) { this._inst?.exportExcelIstendi?.(e); return this }
 	exportPDFIstendi(e) { this._inst?.exportPDFIstendi?.(e); return this }
 	exportHTMLIstendi(e) { this._inst?.exportHTMLIstendi?.(e); return this }
-	async yeniIstendi(e) {
-		let islemAdi = 'Ekle'
+	yeniIstendi(e) { return this.tanimla({ ...e, islem: 'yeni' }) }
+	degistirIstendi(e) { return this.tanimla({ ...e, islem: 'degistir' }) }
+	async tanimla(e) {
+		let {islem, detay: eDet = e.det} = e
+		let yenimi = islem == 'yeni', degistirmi = islem == 'degistir'
+		let islemAdi = (
+			islem == 'yeni' ? 'Ekle' :
+			islem == 'degistir' ? 'Değiştir' :
+			islem == 'kopya' ? 'Kopya' : islem
+		)
 		try {
 			let det = new DPanelDetay()
+			if (!yenimi) {
+				eDet ??= this.detay
+				if (!eDet) { hConfirm('Bir panel seçilmelidir', islemAdi); return false }
+				$.extend(det, eDet)
+				for (let key of ['panel', 'inst', 'part', 'sinif', '_raporId', '_url', '_code', ...Object.keys(CObject.prototype)])
+					delete det[key]
+				if (!degistirmi)
+					for (let key of ['okunanHarSayac', 'sayac', 'eskiSeq', 'seq']) { det = undefined }
+				det = det.deepCopy(); let {value} = det
+				if (value) {
+					let {tip: { rapormu, webmi, evalmi }} = det
+					let selector = rapormu ? '_raporId' : webmi ? '_url' : evalmi ? '_code' : null
+					if (selector) { det[selector] = value }
+					det.value = null
+				}
+			}
 			let validate = () => {
-				let {tip, _raporId, _url, _code} = det
-				if (tip.rapormu && !_raporId) { hConfirm(`<b class="firebrick bold">Rapor</b> seçilmelidir`, islemAdi); return false }
-				if (tip.webmi && !_url) { hConfirm(`<b class="firebrick bold">Web Adresi (URL)</b> belirtilmelidir`, islemAdi); return false }
-				if (tip.evalmi && !_code) { hConfirm(`<b class="firebrick bold">JS Kodu</b> belirtilmelidir`, islemAdi); return false }
+				let {tip: { rapormu, webmi, evalmi }, _raporId, _url, _code} = det
+				if (rapormu && !_raporId) { hConfirm(`<b class="firebrick bold">Rapor</b> seçilmelidir`, islemAdi); return false }
+				if (webmi && !_url) { hConfirm(`<b class="firebrick bold">Web Adresi (URL)</b> belirtilmelidir`, islemAdi); return false }
+				if (evalmi && !_code) { hConfirm(`<b class="firebrick bold">JS Kodu</b> belirtilmelidir`, islemAdi); return false }
 				return true
 			}
 			let rfb = new RootFormBuilder().setInst(det)
@@ -563,7 +607,7 @@ class DPanel extends Part {
 						let {DefaultWSHostName_SkyServer: skyHost} = config.class
 						return [
 							new CKodVeAdi([
-								`https://tr.widgets.investing.com/live-currency-cross-rates?theme=${dark ? 'dark' : 'light'}Theme&roundedCorners=true&pairs=1,3,2,4,7,5,8,6,997698,68`,
+								`https://tr.widgets.investing.com/live-currency-cross-rates?theme=${dark ? 'dark' : 'light'}Theme&roundedCorners=true&pairs=1,66,18,1222032`,
 								'Canlı Döviz Kurları'
 							]),
 							new CKodVeAdi([
@@ -607,15 +651,25 @@ class DPanel extends Part {
 				rfb.run()
 			}
 			if (!await promise_wait) { return }
-			showProgress()
-			let {tip} = det
+			let {tip: { rapormu, webmi, evalmi }} = det
 			det.value = (
-				tip.rapormu ? det._raporId :
-				tip.webmi ? det._url :
-				tip.evalmi ? det._code : null
+				rapormu ? det._raporId :
+				webmi ? det._url :
+				evalmi ? det._code : null
 			)
 			if (!det?.value) { return }
-			await this.add(det)
+			showProgress()
+			switch (islem) {
+				case 'yeni':
+				case 'kopya':
+					await this.add(det)
+					break
+				case 'degistir':
+					$.extend(eDet, det)
+					await this.render({ ...e, noTitleUpdate: true })
+					this.saveLayout(e)
+					break
+			}
 			return det
 		}
 		catch (ex) { hConfirm(getErrorText(ex), islemAdi); throw ex }
@@ -659,8 +713,8 @@ class DPanel extends Part {
 	yukleIstendi(e) {
 		let islemAdi = 'Dizayn Yükle'
 		try {
-			let {raporTanim: defRaporTanim, raporTanim: { class: raporSinif }} = this
-			let saved = { id: defRaporTanim.id }
+			let {title, raporTanim: defRaporTanim, raporTanim: { id, aciklama, class: raporSinif }} = this
+			let saved = { id, aciklama }
 			let secince = async ({ rec: { id, aciklama: raporAdi } }) => {
 				let {raporTanim: { class: raporSinif, class: { defaultAciklama: defRaporAdi } }} = this
 				try {
@@ -668,13 +722,15 @@ class DPanel extends Part {
 					let raporTanim = new raporSinif().setId(id)
 					if (await raporTanim.yukle() === false)
 						throw { isError: true, errorText: 'Yükleme başarısız' }
-					$.extend(defRaporTanim, raporTanim, saved)
-					this._rendered = false; this.id2Detay = null;
+					$.extend(defRaporTanim, raporTanim, saved);
 					(async () => {
 						try {
-							await this.panelleriOlustur({ batch: true })
 							if (raporTanim.aciklama != defRaporAdi)
-								defRaporTanim.setAciklamaDefault().kaydet()
+								defRaporTanim.setAciklamaDefault()
+							raporTanim.kaydet()
+							this._sonRaporAdi = raporAdi
+							await this.render(e); this._sonRaporAdi = raporAdi
+							this.updateWndTitle(`${title} &nbsp;[<span class="bold forestgreen">${raporAdi}</span>]`)
 						}
 						finally { hideProgress() }
 					})()
@@ -686,7 +742,21 @@ class DPanel extends Part {
 					throw ex
 				}
 			}
-			raporSinif.listeEkraniAc({ tekil: true, secince })
+			let veriYuklenince = ({ gridWidget, recs, source }) => {
+				gridWidget.clearselection()
+				let {_sonRaporAdi: adi} = this ?? {}; if (!adi) { return }
+				recs ??= source?.records; if (!recs?.length) { return }
+				for (let i = 0; i < recs.length; i++) {
+					let rec = recs[i]
+					rec = rec.originalItem ?? rec.originalRecord ?? rec
+					let {aciklama: _adi} = rec
+					if (adi == _adi && !DPanelTanim.ozelRaporAdimi(_adi)) {
+						gridWidget.selectrow(i); gridWidget.ensurerowvisible(i)
+						break
+					}
+				}
+			}
+			raporSinif.listeEkraniAc({ tekil: true, veriYuklenince, secince })
 		}
 		catch (ex) { hConfirm(getErrorText(ex), islemAdi); throw ex }
 	}
@@ -695,7 +765,7 @@ class DPanel extends Part {
 		if (layout.hasClass('_loading')) { return }
 		let {id2Detay} = this; if (id2Detay) {
 			for (let det of Object.values(id2Detay))
-				det?.onResize?.(e)
+				(async () => det?.onResize?.(e))()
 		}
 	}
 	getLayoutInternal(e) {

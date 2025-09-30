@@ -2,7 +2,7 @@ class CObject {
 	static _class2SingletonInstance = {}; static _key2Class = {};
 	static { window[this.name] = this; this._key2Class[this.name] = this; if (window.boot) { window.boot.step() } }
 	static get classKey() { return this.name || this }
-	static get deepCopyAlinmayacaklar() { return ['_supers', '_promise'] }
+	static get deepCopyAlinmayacaklar() { return ['_supers', '_promise', ...Object.keys(CObject.prototype)] }
 	static get metaClass() { return this.prototype } static get superClass() { return this.__proto__ }
 	get class() { return this.constructor || this.__proto__.constructor }
 	get bosmu() { return false } get bosDegilmi() { return !this.bosmu }

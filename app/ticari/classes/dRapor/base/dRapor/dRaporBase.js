@@ -266,7 +266,7 @@ class DPanelRapor extends DRaporOzel {
 				let {mainmi} = altRapor.class, {gridPart} = altRapor;
 				if (mainmi && gridPart) { gridPart.filtreTokens = mainGridPart.filtreTokens }
 			}
-			altRapor.tazele?.(e)
+			return altRapor.tazele?.(e)
 		}
 	}
 	hizliBulIslemi_ara(e) {
