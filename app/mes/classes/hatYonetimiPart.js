@@ -213,8 +213,8 @@ class HatYonetimiPart extends Part {
 			setTimeout(() => {
 				MQEkNotlar.loadServerData().then(recs => {
 					let {islemTuslari} = this, btnTumEkNotlar = islemTuslari?.find('button#tumEkNotlar'); if (btnTumEkNotlar?.length) { btnTumEkNotlar.removeClass('yeni-not') }
-					let maxId = 0; for (const {kaysayac: sayac} of recs) { maxId = Math.max(maxId, sayac) } if (!maxId) { return }
-					const {localData} = app.params; let ekNotLastReadId = asInteger(localData.getData('ekNotLastReadId'));
+					let maxId = 0; for (let {kaysayac: sayac} of recs) { maxId = Math.max(maxId, sayac) } if (!maxId) { return }
+					let {localData} = app.params, ekNotLastReadId = asInteger(localData.get('ekNotLastReadId'));
 					if (ekNotLastReadId < maxId && btnTumEkNotlar?.length) { btnTumEkNotlar.addClass('yeni-not') }
 				})
 			}, 500)

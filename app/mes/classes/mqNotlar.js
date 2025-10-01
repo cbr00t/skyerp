@@ -25,7 +25,8 @@ class MQEkNotGrup extends MQKAOrtak {
 }
 class MQEkNotlar extends MQSayacliOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ek Notlar' }
-	static get table() { return 'meseknotlar' } static get tableAlias() { return 'eknot' } static get sayacSaha() { return 'kaysayac' }
+	static get table() { return 'meseknotlar' } static get tableAlias() { return 'eknot' }
+	static get sayacSaha() { return 'kaysayac' } static get adiKullanilirmi() { return false }
 	static get tanimUISinif() { return ModelTanimPart } static get secimSinif() { return MQCogul.secimSinif } static get noAutoFocus() { return true }
 	static get tanimlanabilirmi() { return true } static get silinebilirmi() { return true } static get urlCount() { return 3 }
 	static get urlCount() { return 3 }
@@ -127,7 +128,8 @@ class MQEkNotlar extends MQSayacliOrtak {
 		orderBy.add(`${alias}.kayittarih DESC`, `${alias}.kayitzaman DESC`)
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); let {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e;
+		super.rootFormBuilderDuzenle(e); let {rootBuilder: rfb, kaForm, tanimFormBuilder: tanimForm} = e;
+		kaForm.id2Builder.aciklama?.setVisibleKosulu('jqx-hidden')
 		rfb.addStyle(e => `$elementCSS .modelTanim.form { margin-top: -50px !important; z-index: 1000 !important }`);
 		let form = tanimForm.addFormWithParent().yanYana(2.5);
 			form.addDateInput('kayitTarih', 'Kayıt Tarihi'); form.addTimeInput('kayitZaman');
@@ -157,7 +159,7 @@ class MQEkNotlar extends MQSayacliOrtak {
 		   )
 		}
 		form = tanimForm.addFormWithParent().altAlta().addStyle(e => `$elementCSS { margin-top: 10px }`)
-				.addStyle_fullWH(null, `calc(var(--full) - ${$(window).width() < 1100 ? 400: 350}px)`);
+				.addStyle_fullWH(null, `calc(var(--full) - ${$(window).width() < 1000 ? 350 : 250}px)`);
 			form.addDiv('notlar', 'Notlar').addStyle_fullWH().onAfterRun(({ builder }) => {
 				let toolbar = [
 					 ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
@@ -184,7 +186,7 @@ class MQEkNotlar extends MQSayacliOrtak {
 		super.gridVeriYuklendi(e); let gridPart = e.gridPart ?? e.sender; if (!gridPart) { return }
 		let {localData} = app.params, ekNotLastReadId = asInteger(localData.get('ekNotLastReadId')), savedLastReadId = ekNotLastReadId;
 		let {boundRecs: recs} = gridPart; for (let {kaysayac: id} of recs) { if (id && ekNotLastReadId < id) { ekNotLastReadId = id } }
-		if (ekNotLastReadId != savedLastReadId) { setTimeout(() => { localData.set('ekNotLastReadId', ekNotLastReadId); localData.kaydet() }, 500) }
+		if (ekNotLastReadId != savedLastReadId) { setTimeout(() => { localData.set('ekNotLastReadId', ekNotLastReadId); localData.kaydetDefer() }, 500) }
 	}
 	static orjBaslikListesi_gridRendered(e) {
 		super.orjBaslikListesi_gridRendered(e)/*; let {type} = e;
