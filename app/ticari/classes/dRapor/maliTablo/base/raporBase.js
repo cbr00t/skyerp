@@ -158,9 +158,10 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			}
 			if (donemTipi == 'B' && !donemBS?.basi) { continue }
 			let promise_recs, sonucUni = new MQUnionAll(), stm = new MQStm({ sent: sonucUni });
-			$.extend(_e, { stm, uni: sonucUni }); det.raporQueryDuzenle(_e);
-			stm = _e.stm ?? {}; sonucUni = stm.sent;
-			let {with: _with = {}, sent = {}} = stm;
+			$.extend(_e, { stm, uni: sonucUni })
+			det.raporQueryDuzenle(_e)
+			stm = _e.stm ?? {}; sonucUni = stm.sent
+			let {with: _with = {}, sent = {}} = stm
 			if (!(_with.liste?.length || sent.liste?.length)) { continue }
 			if (yatayDBmi || ekDBListe?.length) {
 				let orjUni = sonucUni, alias = 'yatay';
@@ -187,7 +188,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 					sonucUni.addAll(uni)
 				}
 			}
-			stm = _e.stm = stm.asToplamStm();
+			stm = _e.stm = stm.asToplamStm()
 			promise_recs = app.sqlExecSelect(stm)
 			if (promise_recs != null) { id2Promise[id] = promise_recs }
 		}

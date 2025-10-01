@@ -126,7 +126,8 @@ class SBTabloVeriTipi extends TekSecim {
 		this.kaListeDuzenle_ticari(e).kaListeDuzenle_stokCikisHareketciBasit(e).kaListeDuzenle_hareketci(e)
 	}
 	kaListeDuzenle_ticari({ kaListe, topSahaEkle }) {
-		let sentUygunluk = ({ hesapTipi: { ekBilgi: { querymi, hareketcimi, harSinif } = {} } = {} }) => querymi && (!hareketcimi || harSinif.ticarimi);
+		let sentUygunluk = ({ hesapTipi: { ekBilgi: { querymi, hareketcimi, harSinif } = {} } = {} }) =>
+			querymi && (!hareketcimi || harSinif.ticarimi);
 		let gosterimUygunluk = sentUygunluk;
 		kaListe.push(...[
 			new CKodAdiVeEkBilgi(['SBRT', 'Satır Brüt', 'satirBrutmu', {
@@ -149,7 +150,7 @@ class SBTabloVeriTipi extends TekSecim {
 				gosterimUygunluk, sentUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: hv => hv?.harciro && 'har.harciro' })
 			}]),
 			new CKodAdiVeEkBilgi(['MAL', 'Maliyet', 'maliyetmi', {
-				gosterimUygunluk, sentUygunluk: ({ stokmu, hareketcimi }) => stokmu,
+				gosterimUygunluk, sentUygunluk: e => e.stokmu && sentUygunluk(e),
 				sentDuzenle: e => topSahaEkle({ ...e, clause: ({ hv: { fmalhammadde: hamm, fmalmuh: mmuh } = {} }) =>
 					hamm && mmuh ? `${hamm} + ${mmuh}` : 'har.fmalhammadde + har.fmalmuh' })
 			}]),
@@ -169,7 +170,7 @@ class SBTabloVeriTipi extends TekSecim {
 		let gosterimUygunluk = sentUygunluk;
 		kaListe.push(
 			new CKodAdiVeEkBilgi(['MAL', 'Maliyet', 'maliyetmi', {
-				gosterimUygunluk, sentUygunluk: ({ hareketcimi }) => true,
+				gosterimUygunluk, sentUygunluk: e => e.stokmu && sentUygunluk(e),
 				sentDuzenle: e => topSahaEkle({ ...e, clause: ({ hv: { bedel: maliyet } = {} }) => maliyet || 'har.fmalhammadde + har.fmalmuh' })
 			}])
 		);

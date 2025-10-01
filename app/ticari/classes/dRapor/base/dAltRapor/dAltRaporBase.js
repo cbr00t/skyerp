@@ -3,9 +3,13 @@ class DAltRapor extends DRapor {
 	static get dRapormu() { return false } static get dAltRapormu() { return true } static get mainmi() { return false }
 	static get secimSinif() { return MQCogul.secimSinif } static get etiket() { return this.aciklama }
 	get etiket() {
-		let {rapor: { _baslik, main: { class: { aciklama: raporAdi } = {} } = {} } = {}, isPanelItem, class: { mainmi, etiket: result }} = this
+		let {isPanelItem, rapor, raporTanim, class: { mainmi, etiket: result }} = this
+		let {_baslik, main: { class: mainClass } = {}} = rapor ?? {}
+		let {aciklama: raporAdi} = raporTanim ?? {}
+		raporAdi ||= mainClass?.aciklama
 		if (_baslik) { return _baslik }
-		if (!mainmi && isPanelItem) { result = `${raporAdi} &nbsp;[<b class="bold royalblue">${result}</b>]` }
+		if (raporAdi) { result = raporAdi }
+		if (!mainmi) { result = `${result} &nbsp;[<b class="bold royalblue">${result}</b>]` }
 		return result
 	}
 	get isPanelItem() { return this.rapor?.isPanelItem } get width() { return null } get height() { return null }
