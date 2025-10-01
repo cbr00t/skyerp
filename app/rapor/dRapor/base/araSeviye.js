@@ -335,7 +335,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		if (!(empty(brmsizMiktarSet) || icerik.BRM)) {
 			icerik.BRM = true
-			notify('Rapor Tanımı', `<b class=royalblue>MİKTAR</b> sahası nedeniyle <b class=firebrick>BRM</b> kolonu tanıma otomatik eklendi`, 'warning')
+			notify(`<b class=royalblue>MİKTAR</b> sahası nedeniyle <b class=firebrick>BRM</b> kolonu tanıma otomatik eklendi`, 'Rapor Tanımı', 'warning')
 		}
 	}
 	

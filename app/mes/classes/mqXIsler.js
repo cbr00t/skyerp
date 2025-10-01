@@ -71,10 +71,10 @@ class MQXIsler extends MQMasterOrtak {
 			const ekSagButonIdSet = butonlarPart.ekSagButonIdSet = butonlarPart.ekSagButonIdSet || {}, _liste = _e.liste;
 			liste.splice(liste.findIndex(item => item.id == 'vazgec'), 0, ..._liste)
 			$.extend(ekSagButonIdSet, asSet(_liste.map(rec => rec.id)))
-		};
+		}
 	}
 	static islemTuslariDuzenleInternal_listeEkrani(e) {
-		const {liste} = e, gridPart = e.gridPart ?? e.sender ?? e.parentPart; /*, {noSwitchFlag} = gridPart; */
+		const {liste} = e, gridPart = e.gridPart ?? e.sender ?? e.parentPart /*, {noSwitchFlag} = gridPart; */
 		/* if (!noSwitchFlag && this.switchPartClass) { liste.push({ id: 'switch', text: 'S', handler: e => this.switchIstendi(e) }) }*/
 	}
 	static rootFormBuilderDuzenle_listeEkrani(e) {

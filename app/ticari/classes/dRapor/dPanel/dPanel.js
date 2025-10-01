@@ -497,7 +497,10 @@ class DPanel extends Part {
 				}
 			}
 		}
-		if (!batch) { this.saveLayout(e) }
+		if (!batch) {
+			this.saveLayout(e)
+			this.updateWndTitle(`${title} &nbsp;[<span class="bold forestgreen">${DPanelTanim.defaultAciklama}</span>]`)
+		}
 		this._rendered = this._previouslyRendered = true
 		hideProgress()
 	}

@@ -3,7 +3,11 @@ class DRapor_DonemselIslemler extends DRapor_Donemsel {
 	static get uygunmu() { return true } static get araSeviyemi() { return false } static get kategoriKod() { return 'FINANLZ' }
 	static get sabitmi() { return true } static get vioAdim() { return 'FN-RD' } static get konsolideKullanilirmi() { return true }
 	static get kod() { return 'DONISL' } static get aciklama() { return 'Dönemsel İşlemler' }
-	altRaporlarDuzenle(e) { super.altRaporlarDuzenle(e); this.add(DRapor_DonemselIslemler_Detaylar) }
+	static get mstEtiket() { return this.aciklama }
+	altRaporlarDuzenle(e) {
+		super.altRaporlarDuzenle(e)
+		this.addWithZorunluOzelID(DRapor_DonemselIslemler_Detaylar)
+	}
 }
 class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get donemselIslemlermi() { return true }
@@ -219,7 +223,8 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 }
 
 class DRapor_DonemselIslemler_DetaylarVeDip extends DAltRapor_Grid {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_DonemselIslemler }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get raporClass() { return DRapor_DonemselIslemler } static get mstEtiket() { return this.aciklama }
 	get height() { return `calc(var(--full) - ${this.rapor.id2AltRapor.main.height})` }
 	gridArgsDuzenle({ args }) { $.extend(args, { showStatusBar: false, showAggregates: true, showGroupAggregates: false, showGroupsHeader: true, rowsHeight: 30, columnsHeight: 25 }) }
 	tabloKolonlariDuzenle(e) { super.tabloKolonlariDuzenle(e) }

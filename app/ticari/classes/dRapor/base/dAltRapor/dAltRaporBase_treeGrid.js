@@ -95,10 +95,10 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	tazeleOncesi(e) { }
 	tazeleSonrasi(e) {
 		let {isPanelItem, etiket: raporAdi, raporTanim: { aciklama: raporTanimAdi } = {}, fbd_grid: { parent: layout } = {}} = this
-		if (!isPanelItem) {
-			raporAdi ||= raporTanimAdi
-			if (raporAdi && layout?.length) { layout.children('label').html(raporAdi) }
-		}
+		//if (!isPanelItem) {
+		raporAdi ||= raporTanimAdi
+		if (raporAdi && layout?.length) { layout.children('label').html(raporAdi) }
+		//}
 	}
 	hizliBulIslemi(e) { let {gridPart} = this; gridPart.filtreTokens = e.tokens; this.tazele(e) }
 	gridVeriYuklendi(e) {
@@ -521,7 +521,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			] : [];
 			window.progressManager?.progressStep(1);
 			raporTanim.degistimi = false; await gridPart._promise_kaFix;
-			if (defUpdateOnly) { delete e.recs; await this.gridVeriYuklendi(e); await this.ozetBilgiRecsOlustur(e) } else { await super.tazele(e) }
+			if (defUpdateOnly) { delete e.recs; await this.gridVeriYuklendi(e); await this.ozetBilgiRecsOlustur(e) }
+			else { await super.tazele(e) }
 			window.progressManager?.progressStep(2);
 			await this.tazeleDiger(e); window.progressManager?.progressStep(1);
 			await this.tazeleSonrasi(e)

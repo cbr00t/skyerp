@@ -44,6 +44,7 @@ class MQDetay extends MQSayacli {
 	static tekilOku_queryDuzenle(e) { this.loadServerData_queryDuzenle(e) }
 	async disKaydetOncesiIslemler(e) { }
 	async disKaydetSonrasiIslemler(e) { }
+	kaydetVeyaSilmeSonrasiIslemler(e) { /* do nothing */ }
 	kopyaIcinDuzenle(e) {
 		super.kopyaIcinDuzenle(e);
 		if (this.okunanHarSayac) { this.okunanHarSayac = null }

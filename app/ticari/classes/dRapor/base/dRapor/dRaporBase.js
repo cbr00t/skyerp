@@ -175,21 +175,24 @@ class DRaporOzel extends DRapor {
 class DPanelRapor extends DRaporOzel {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dPanelRapormu() { return true }
 	static get anaTip() { return 'panel' } static get sabitmi() { return false } static get yatayAnalizVarmi() { return !this.sabitmi }
-	static get ozetVarmi() { return !this.sabitmi } static get chartVarmi() { return !this.sabitmi }
+	static get ozetVarmi() { return !this.sabitmi } static get chartVarmi() { return !this.sabitmi } static get yataymi() { return false }
 	static get altRaporClassPrefix() { return this.name } static get noOverflowFlag() { return true }
 	get main() { return this.id2AltRapor?.main }
 	constructor(e = {}) {
-		super(e); let {ozelIDListe, id2AltRapor, altRapor_lastZIndex} = e
-		$.extend(this, { ozelIDListe, id2AltRapor, altRapor_lastZIndex })
+		super(e); let {ozelIDListe, zorunluOzelIDSet, id2AltRapor, altRapor_lastZIndex} = e
+		zorunluOzelIDSet ??= {}
+		$.extend(this, { ozelIDListe, zorunluOzelIDSet, id2AltRapor, altRapor_lastZIndex })
 	}
 	rootFormBuilderDuzenle(e) {
 		if (this.id2AltRapor == null) { this.clear(); this.altRaporlarDuzenle(e) }
-		super.rootFormBuilderDuzenle(e); let {rfb} = e, {id2AltRapor, isPanelItem, ozelIDListe: ozelIDSet, class: { noOverflowFlag, kod }} = this
+		super.rootFormBuilderDuzenle(e)
+		let {rfb} = e, {id2AltRapor, isPanelItem, ozelIDListe: ozelIDSet, zorunluOzelIDSet, class: { noOverflowFlag, kod, yataymi }} = this
 		let form = e.rfb_items = this.rfb_items = rfb.addForm('items')
 			.setLayout(e => $(`<div id="${e.builder.id}" class="${kod ? `${kod} ` : ''}full-wh"></div>`));
 		if (noOverflowFlag) { form.addCSS('no-overflow') }
 		if (typeof ozelIDSet == 'string') { ozelIDSet = [ozelIDSet] }
 		if ($.isArray(ozelIDSet)) { ozelIDSet = asSet(ozelIDSet) }
+		if (!empty(zorunluOzelIDSet)) { ozelIDSet = { ...ozelIDSet, ...zorunluOzelIDSet } }
 		for (let [id, altRapor] of Object.entries(id2AltRapor)) {
 			let raporAdi = altRapor.etiket ?? ''
 			let fbd = altRapor.parentBuilder = form.addForm(id).addCSS('item').addStyle_fullWH()
@@ -197,10 +200,11 @@ class DPanelRapor extends DRaporOzel {
 				.addStyle(e => `$elementCSS { overflow: hidden !important; z-index: ${this.altRapor_lastZIndex++} !important }`)
 			let _e = { ...e, id, builder: fbd }; altRapor.subFormBuilderDuzenle(_e)
 			let {width, height} = altRapor
-			if (isPanelItem) { fbd.addStyle_fullWH(null, height) }
+			if (isPanelItem) { fbd.addStyle_fullWH(yataymi ? width : null, yataymi ? null : height) }
 			else if (width || height) { fbd.addStyle_wh(width, height) }
 			altRapor.rootFormBuilderDuzenle(e)
-			fbd.setVisibleKosulu(({ builder: { id }}) => $.isEmptyObject(ozelIDSet) || ozelIDSet[id] ? true : 'jqx-hidden')
+			fbd.setVisibleKosulu(({ builder: { id }}) =>
+				$.isEmptyObject(ozelIDSet) || ozelIDSet[id] || zorunluOzelIDSet[id] ? true : 'jqx-hidden')
 		}
 	}
 	async ilkIslemler(e) {
@@ -287,7 +291,7 @@ class DPanelRapor extends DRaporOzel {
 			else { altRapor = item }
 			if (isClass(altRapor)) { altRapor = new altRapor({ rapor: this }) }
 			if (altRapor == null) { continue }
-			id ||= altRapor.class.kod || newGUID()
+			id ||= altRapor?.class?.kod || newGUID()
 			altRapor.rapor = this; id2AltRapor[id] = altRapor
 		}
 		return this
@@ -295,6 +299,20 @@ class DPanelRapor extends DRaporOzel {
 	clear() { this.id2AltRapor = {}; return this }
 	setOzelID(value) { this.ozelIDListe = value; return this }
 	clearOzelID() { this.ozelIDListe = null; return this }
+	addZorunluOzelID(...keys) {
+		let {zorunluOzelIDSet} = this
+		if (!zorunluOzelIDSet) { zorunluOzelIDSet = this.zorunluOzelIDSet = {} }
+		for (let key of keys) {
+			key = key?.kod ?? key?.class?.kod ?? key
+			zorunluOzelIDSet[key] = true
+		}
+		return this
+	}
+	addWithZorunluOzelID(...keys) {
+		this.addZorunluOzelID(...keys)
+		return this.add(...keys)
+	}
+	clearZorunluOzelID(value) { this.zorunluOzelIDSet = {}; return this }
 	ozelID_main() { return this.setOzelIDListe('main') }
 	ozelID_ozet() { return this.setOzelIDListe('ozet') }
 	ozelID_chart() { return this.setOzelIDListe('chart') }

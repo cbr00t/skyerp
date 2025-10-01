@@ -54,6 +54,13 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 		return inst
 	}
 	static getOzelSahaYapilari() { return null }
+	static islemTuslariDuzenle_listeEkrani({ liste, part: butonlarPart, part: { ekSagButonIdSet, sagIdSet }, sender: gridPart }) {
+		let e = arguments[0]
+		liste.push(
+			{ id: 'import', handler: _e => this.importIstendi({ ...e, ..._e })},
+			{ id: 'export', handler: _e => this.exportIstendi({ ...e, ..._e })}
+		)
+	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
 		liste.push(new GridKolon({ belirtec: 'xuserkod', text: 'Kullanıcı', genislikCh: 10 }))
@@ -116,6 +123,48 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 	setValues({ rec }) {
 		super.setValues(...arguments); let {xuserkod: encUser = ''} = rec
 		$.extend(this, { encUser })
+	}
+	static async importIstendi({ sender: gridPart }) {
+		try {
+			let {data: recs} = await openFile({ coklu: false, capture: false, type: wsDataType, accept: wsContentType })
+			recs ??= []; let count = 0, {length: total} = recs
+			showProgress(`<b>${total}</b> kayıt içeri alınıyor...`, null, true)
+			window?.progressManager?.setProgressMax((count * 2) + 10)?.progressReset()
+			for (let rec of recs) {
+				if (empty(rec)) { continue }
+				let inst = new this(rec)
+				if (await inst.varmi()) { await inst.sil() }
+				window?.progressManager?.progressStep()
+				await inst.yaz(); count++
+				window?.progressManager?.progressStep()
+			}
+			window?.progressManager?.progressEnd()
+			setTimeout(() => hideProgress(), 1000)
+			if (count) { gridPart.tazele(); notify(`<b>${count}</b> tanım içeri alındı`, 'İçeri Al') }
+			else { hConfirm('Dosyada yüklenebilecek veri bulunamadı', 'İçeri Al') }
+		}
+		catch (ex) { hideProgress(); hConfirm(getErrorText(ex), 'İçeri Alma Sorunu'); throw ex }
+	}
+	static async exportIstendi({ sender: gridPart, sender: { selectedRecs: recs } }) {
+		if (empty(recs)) { hConfirm('Dışarı aktarılacak tanımlar seçilmelidir', 'Dışa Aktar'); return }
+		let {length: total} = recs
+		showProgress(`<b>${total}</b> kayıt dışa aktarılıyor...`, null, true)
+		try {
+			window?.progressManager?.setProgressMax(total + 10)?.progressReset()
+			let data = [];
+			for (let {id} of recs) {
+				let inst = new this(); inst.id = id
+				if (!await inst.yukle()) { continue }
+				let rec = { id, ...inst.asExportData }
+				data.push(rec)
+				window?.progressManager?.progressStep()
+			}
+			data = toJSONStr(data) + CrLf
+			await downloadData(data, 'export.json', wsContentType)
+			window?.progressManager?.progressEnd()
+			setTimeout(() => hideProgress(), 1000)
+		}
+		catch (ex) { hideProgress(); hConfirm(getErrorText(ex), 'Dışa Aktar'); throw ex }
 	}
 	static ozelRaporAdimi(value) {
 		let {emptyAciklama: empty, defaultAciklama: def} =  this

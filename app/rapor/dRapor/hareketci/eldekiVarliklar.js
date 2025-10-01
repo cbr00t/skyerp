@@ -2,8 +2,11 @@ class DRapor_EldekiVarliklar extends DRapor_AraSeviye {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return true } static get araSeviyemi() { return false } static get kategoriKod() { return 'FINANLZ' }
 	static get sabitmi() { return true } static get vioAdim() { return 'FN-RE' } static get konsolideKullanilirmi() { return true }
-	static get kod() { return 'ELDVAR' } static get aciklama() { return 'Eldeki Varlıklar' }
-	altRaporlarDuzenle(e) { this.add(DRapor_EldekiVarliklar_Sol, DRapor_EldekiVarliklar_Sag) }
+	static get kod() { return 'ELDVAR' } static get aciklama() { return 'Eldeki Varlıklar' } static get yataymi() { return true }
+	altRaporlarDuzenle(e) {
+		super.altRaporlarDuzenle(e)
+		this.addWithZorunluOzelID(DRapor_EldekiVarliklar_Sol, DRapor_EldekiVarliklar_Sag)
+	}
 	rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); let {rfb_items} = e;
 		rfb_items.addStyle(e =>
