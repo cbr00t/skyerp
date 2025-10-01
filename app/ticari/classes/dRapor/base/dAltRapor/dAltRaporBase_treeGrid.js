@@ -328,8 +328,9 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 					let toplamAttrListe = jqxCols.map(({ datafield }) => datafield).filter(belirtec => orj_toplamAttrSet[belirtec.split('_')[0]]);*/
 					let item = grupVeToplam[yatayBelirtec] ?? grupVeToplam[yatayBelirtec.toUpperCase()], {kodsuzmu} = item || {};
 					for (let rec of recs) { this.fixKA(rec, yatayBelirtec, kodsuzmu) }
+					let source = recs, attrGruplari = [gtTip2AttrListe.sabit.filter(x => x != yatayBelirtec)]
 					let toplamAttrListe = gtTip2AttrListe.toplam, sevRecs = seviyelendirAttrGruplari({
-						source: recs, attrGruplari: [gtTip2AttrListe.sabit],
+						source, attrGruplari,
 						getter: ({ item }) => new DAltRapor_PanelRec_Donemsel({ yatayBelirtec, toplamAttrListe, ...item })
 					});
 					let tumYatayAttrSet = e.tumYatayAttrSet ?? {}, _e = { ...e, tumYatayAttrSet }; for (let sev of sevRecs) { sev.donemselDuzenle(_e) }
@@ -594,11 +595,14 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		})
 		this._tabloTanimGosterildiFlag = true; return wRFB
 	}
-	raporTanim_tamamIstendi(e) {
-		let {inst} = e; inst.dataDuzgunmuDevam(e); inst.degistimi = true;
-		inst.setDefault(e); this.tazele(e);
+	async raporTanim_tamamIstendi(e) {
+		let {inst} = e; await inst.dataDuzgunmuDevam(e)
+		await inst.tamamSonrasiIslemlar(e)
+		inst.degistimi = true; inst.setDefault(e)
+		this.tazele(e)
 		return true
 	}
+	raporTanim_tamamSonrasiIslemler(e) { }
 	async raporTanim_sablonKaydetIstendi(e) {
 		let title = 'Rapor Tanım', {wnd_raporTanim} = this; let {raporTanim} = this, {aciklama} = raporTanim; let inEventFlag = false;
 		try {

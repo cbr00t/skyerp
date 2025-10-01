@@ -171,6 +171,12 @@ class DMQRapor extends DMQSayacliKA {
 			let {grup} = this, {kod, text} = DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz] ?? {};
 			if (kod && grup[kod]) { throw { isError: true, errorText: `<b>${text} Çapraz Analiz</b> işaretli iken <b class="royalblue">${kod}</b> <span class="firebrick">kolonu eklenemez</span>` } }
 		}
+		return this
+	}
+	async tamamSonrasiIslemlar(e = {}) {
+		e.raporTanim = this
+		await this.rapor?.raporTanim_tamamSonrasiIslemler(e)
+		return this
 	}
 	async yukleSonrasiIslemler(e) {
 		await super.yukleSonrasiIslemler(e); let {encUser} = this;

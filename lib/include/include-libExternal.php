@@ -6,6 +6,8 @@
 <!--<<link rel="stylesheet" href="<?=$_partRoot?>/bootstrap/css/bootstrap.css" />--> <!--<script src="<?=$_partRoot?>/bootstrap/js/bootstrap.min.js?<?=$appVersion?>"></script>-->
 <script src="<?=$_partRoot?>/etc/base64.js"></script> <script src="<?=$_partRoot?>/xml/xmlWriter.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/etc/jszip.min.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/etc/pdfmake.min.js?<?=$appVersion?>"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-notify/dist/simple-notify.css" />
+<script src="https://cdn.jsdelivr.net/npm/simple-notify/dist/simple-notify.min.js"></script>
 <!--<script src="<?=$_partRoot?>/etc/crypto-js.min.js"></script> <script src="<?=$_partRoot?>/webSQL/sql-asm-debug.js"></script>-->
 <!--<script src="<?=$_partRoot?>/jqx/jquery-3.3.1.min.js"></script> <script src="<?=$_partRoot?>/jqx/jquery.ajax-cross-origin.min.js"></script>
 <link rel="stylesheet" href="<?=$_partRoot?>/jqx/css/jquery-ui.min.css" /> <script src="<?=$_partRoot?>/jqx/jquery-ui.min.js"></script>

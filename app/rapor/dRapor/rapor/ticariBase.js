@@ -46,35 +46,44 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 	loadServerData_queryDuzenle_ek(e) { super.loadServerData_queryDuzenle_ek(e) }
 	loadServerData_recsDuzenle(e) { return super.loadServerData_recsDuzenle(e) /*; let {recs} = e; for (let rec of recs) { } return recs */ }
 	fisVeHareketBagla(e) { }
-	tabloYapiDuzenle_shd(e) { const {shd} = this; if (shd) { this[`tabloYapiDuzenle_${shd}`](e) } return this }
-	loadServerData_queryDuzenle_shd(e) { const {shd} = this; if (shd) { this[`loadServerData_queryDuzenle_${shd}`](e) } return this }
+	tabloYapiDuzenle_shd(e) {
+		let {shd} = this
+		if (shd) { this[`tabloYapiDuzenle_${shd}`](e) }
+		return this
+	}
+	loadServerData_queryDuzenle_shd(e) {
+		let {shd} = this
+		if (shd) { this[`loadServerData_queryDuzenle_${shd}`](e) }
+		return this
+	}
 	tabloYapiDuzenle_stok({ result }) {
-		result
+		/*result
 			.addKAPrefix('anagrup', 'grup', 'sistgrup', 'stok', 'stokmarka')
 			.addGrupBasit('STANAGRP', 'Stok Ana Grup', 'anagrup', DMQStokAnaGrup)
 			.addGrupBasit('STGRP', 'Stok Grup', 'grup', DMQStokGrup)
 			.addGrupBasit('STISTGRP', 'Stok İst. Grup', 'sistgrup', DMQStokIstGrup)
 			.addGrupBasit('STOK', 'Stok', 'stok', DMQStok)
 			.addGrupBasit('STOKMARKA', 'Stok Marka', 'stokmarka', DMQStokMarka)
-			.addGrupBasit('STOKRESIM', 'Stok Resim', 'stokresim');
-		for (let {attr, aciklama} of MQStok.getOzelSahaYapilari().flatMap(grup => grup.detaylar)) {
+			.addGrupBasit('STOKRESIM', 'Stok Resim', 'stokresim');*/
+		super.tabloYapiDuzenle_stok(...arguments)
+		for (let {attr, aciklama} of MQStok.getOzelSahaYapilari().flatMap(grup => grup.detaylar))
 			if (attr) { result.addGrupBasit(attr, aciklama, attr) }
-		}
 		return this
 	}
 	loadServerData_queryDuzenle_stok(e) {
-		let {attrSet, stm} = e; for (let sent of stm) {
+		let {attrSet, stm} = e
+		for (let sent of stm) {
 			let {where: wh, sahalar} = sent;
 			if (attrSet.STANAGRP || attrSet.STGRP || attrSet.STISTGRP || attrSet.STOK || attrSet.STOKMARKA) { sent.har2StokBagla() }
 			if (attrSet.STANAGRP) { sent.stok2GrupBagla() } if (attrSet.STOKMARKA) { sent.stok2MarkaBagla() }
 			for (const key in attrSet) {
 				switch (key) {
-					case 'STANAGRP': sent.stokGrup2AnaGrupBagla(); sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi'); wh.icerikKisitDuzenle_stokAnaGrup({ ...e, saha: 'grp.anagrupkod' }); break
+					/*case 'STANAGRP': sent.stokGrup2AnaGrupBagla(); sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi'); wh.icerikKisitDuzenle_stokAnaGrup({ ...e, saha: 'grp.anagrupkod' }); break
 					case 'STGRP': sent.stok2GrupBagla(); sahalar.add('stk.grupkod', 'grp.aciklama grupadi'); wh.icerikKisitDuzenle_stokGrup({ ...e, saha: 'stk.grupkod' }); break
 					case 'STISTGRP': sent.stok2IstGrupBagla(); sahalar.add('stk.sistgrupkod', 'sigrp.aciklama sistgrupadi'); wh.icerikKisitDuzenle_stokIstGrup({ ...e, saha: 'grp.sistgrupkod' }); break
 					case 'STOK': sahalar.add('har.stokkod', 'stk.aciklama stokadi'); wh.icerikKisitDuzenle_stok({ ...e, saha: 'har.stokkod' }); break
 					case 'STOKRESIM': sahalar.add('har.stokkod resimid', 'NULL stokresim'); break
-					case 'STOKMARKA': sahalar.add('stk.smarkakod stokmarkakod', 'smar.aciklama stokmarkaadi'); break
+					case 'STOKMARKA': sahalar.add('stk.smarkakod stokmarkakod', 'smar.aciklama stokmarkaadi'); break*/
 					default:
 						for (let {attr, aciklama} of MQStok.getOzelSahaYapilari().flatMap(grup => grup.detaylar)) {
 							if (!(attr && attrSet[attr] )) { continue }
@@ -83,6 +92,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 				}
 			}
 		}
+		super.loadServerData_queryDuzenle_stok({ ...e, kodClause: 'har.stokkod' })
 		return this
 	}
 	tabloYapiDuzenle_hizmet(e) {
@@ -124,7 +134,10 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 	}
 	tabloYapiDuzenle_miktar(e) {
 		const {result} = e, {stokmu} = this, toplamPrefix = e.toplamPrefix ?? this.class.toplamPrefix;
-		result.addToplam(new TabloYapiItem().setKA('MIKTAR', `${toplamPrefix}Miktar`).addColDef(new GridKolon({ belirtec: 'miktar', text: `${toplamPrefix}Miktar`, genislikCh: 15, filterType: 'numberinput' }).tipDecimal()));
+		result.addToplam(
+			new TabloYapiItem().setKA('MIKTAR', `${toplamPrefix}Miktar`)
+				.addColDef(new GridKolon({ belirtec: 'miktar', text: `${toplamPrefix}Miktar`, genislikCh: 15, filterType: 'numberinput' }).tipDecimal())
+		);
 		if (stokmu) {
 			for (let tip of Object.keys(MQStokGenelParam.tip2BrmListe) ?? []) {
 				result.addToplam(new TabloYapiItem().setKA(`MIKTAR${tip}`, `${toplamPrefix}Miktar (${tip})`)
@@ -135,10 +148,11 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 	}
 	loadServerData_queryDuzenle_miktar(e) {
 		let {attrSet, stm} = e, PrefixMiktar = 'MIKTAR';
-		for (let sent of stm.getSentListe()) {
-			const {sahalar} = sent;
-			if (attrSet.STOK || Object.keys(attrSet).find(x => x.startsWith(PrefixMiktar))) { sahalar.add('brm') }
-			for (const key in attrSet) {
+		for (let sent of stm) {
+			let {sahalar} = sent;
+			/*if (attrSet.STOK || Object.keys(attrSet).find(x => x.startsWith(PrefixMiktar)))
+				sahalar.add('brm') */
+			for (let key in attrSet) {
 				switch (key) {
 					case PrefixMiktar: sahalar.add('SUM(har.miktar) miktar'); break
 					default:

@@ -180,7 +180,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		if (secimler) {
 			for (const [key, secim] of Object.entries(secimler.liste)) {
 				if (secim.isHidden || secim.isDisabled) { continue } const kod = secim.userData?.kod; if (!kod) { continue }
-				const uygunmu = typeof secim.value == 'object' ? !$.isEmptyObject(secim.value) : !!secim.value;
+				const uygunmu = typeof secim.value == 'object' ? !empty(secim.value) : !!secim.value;
 				if (uygunmu) { attrSet[kod] = true }
 			}
 		}
@@ -311,7 +311,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			if (!toplam[key]) { continue } let avgColDefs = toplam[key]?.colDefs?.filter(colDef => colDef?.aggregates?.includes('avg')); if (!avgColDefs?.length) { continue }
 			for (const colDef of avgColDefs) { avgBelirtec2ColDef[colDef.belirtec] = colDef }
 		}
-		let {recs} = e; if (!$.isEmptyObject(avgBelirtec2ColDef)) {
+		let {recs} = e; if (!empty(avgBelirtec2ColDef)) {
 			for (const rec of recs) {
 				let {kayitsayisi: count} = rec; if (!count) { continue }
 				for (const key in avgBelirtec2ColDef) {
@@ -323,6 +323,22 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		return recs*/
 	}
+	async raporTanim_tamamSonrasiIslemler({ raporTanim, raporTanim: { icerik } }) {
+		await super.raporTanim_tamamSonrasiIslemler(...arguments)
+		let PrefixMiktar = 'MIKTAR', miktarSet = {}, brmsizMiktarSet = {}
+		for (let key in icerik) {
+			if (key.startsWith(PrefixMiktar) || key.slice(2).startsWith(PrefixMiktar)) {
+				miktarSet[key] = true
+				let postfix = key.slice(key.indexOf(PrefixMiktar) + PrefixMiktar.length).trim()
+				if (!postfix) { brmsizMiktarSet[key] = true }
+			}
+		}
+		if (!(empty(brmsizMiktarSet) || icerik.BRM)) {
+			icerik.BRM = true
+			notify('Rapor Tanımı', `<b class=royalblue>MİKTAR</b> sahası nedeniyle <b class=firebrick>BRM</b> kolonu tanıma otomatik eklendi`, 'warning')
+		}
+	}
+	
 	donemBagla({ donemBS, tarihSaha, sent }) {
 		if (donemBS) {
 			let {where: wh} = sent, {basi, sonu} = donemBS;
