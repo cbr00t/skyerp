@@ -180,30 +180,31 @@ class KasaHareketci extends Hareketci {
 		return this
 	}
 	uniDuzenle_ticari({ uygunluk, liste }) {
-		$.extend(liste, {
-			faturaTahsilatOdeme$perakende: [
-				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-					const {perakende: perakendemi} = uygunluk;
-					const {where: wh} = sent; sent.fisHareket('piffis', 'piftaksit')
-						.fromIliski('tahsilsekli tsek', 'har.taktahsilsekli = tsek.kodno')
-						.fis2CariBagla().fis2YerBagla().fis2PlasiyerBagla();
-					wh.fisSilindiEkle().degerAta('NK', 'tsek.tahsiltipi')
-						.degerAta(perakendemi ? 'P' : 'F', 'fis.piftipi').degerAta('A', 'fis.almsat');
-				}).hvDuzenleIslemi(({ hv }) => {
-					$.extend(hv, {
-						kasakod: 'tsek.kasakod', kayittipi: `'PIFA'`, plasiyerkod: 'fis.plasiyerkod', plasiyeradi: 'pls.birunvan',
-						takipno: 'fis.orttakipno', althesapkod: 'fis.cariitn', oncelik: `(case when fis.almsat = 'T' then 20 else 55 end)`, 
-						ba: `(case when har.btersmi = 0 then dbo.ticaricarba(fis.almsat, fis.iade) else dbo.tersba(dbo.ticaricarba(fis.almsat, fis.iade)) end)`,
-						islemadi: `(case when fis.piftipi = 'P' then
-										(case fis.ayrimtipi when 'PR' then 'Mağaza Satış' when 'GP' then 'Gider Pusula'
-										    else dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Perakende Alım', 'Perakende Satış')) end)
-									  else dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Alım Ödeme', 'Satış Tahsilat')) end)`,
-						refkod: `(case when fis.must = '' then fis.yerkod else fis.must end)`, refadi: `(case when fis.must = '' then yer.aciklama else car.birunvan end)`,
-						dvkur: `(case when har.karsidvvar = '' then fis.dvkur else har.karsidvkur end)`, dvbedel: `(case when har.karsidvvar = '' then har.dvbedel else har.karsidvbedel end)`,
-						bedel: 'har.bedel', detaciklama: 'yer.aciklama'
-					})
+		let getUniBilgi = perakendemi => {
+			return new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent, sent: { where: wh} }) => {
+				sent.fisHareket('piffis', 'piftaksit')
+					.fromIliski('tahsilsekli tsek', 'har.taktahsilsekli = tsek.kodno')
+					.fis2CariBagla().fis2YerBagla().fis2PlasiyerBagla();
+				wh.fisSilindiEkle().degerAta('NK', 'tsek.tahsiltipi')
+					.degerAta(perakendemi ? 'P' : 'F', 'fis.piftipi')
+					// .degerAta('A', 'fis.almsat')
+			}).hvDuzenleIslemi(({ hv }) => {
+				$.extend(hv, {
+					kasakod: 'tsek.kasakod', kayittipi: `'PIFA'`, plasiyerkod: 'fis.plasiyerkod', plasiyeradi: 'pls.birunvan',
+					takipno: 'fis.orttakipno', althesapkod: 'fis.cariitn', oncelik: `(case when fis.almsat = 'T' then 20 else 55 end)`, 
+					ba: `(case when har.btersmi = 0 then dbo.ticaricarba(fis.almsat, fis.iade) else dbo.tersba(dbo.ticaricarba(fis.almsat, fis.iade)) end)`,
+					islemadi: `(case when fis.piftipi = 'P' then
+									(case fis.ayrimtipi when 'PR' then 'Mağaza Satış' when 'GP' then 'Gider Pusula'
+										else dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Perakende Alım', 'Perakende Satış')) end)
+										else dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Alım Ödeme', 'Satış Tahsilat')) end)`,
+					refkod: `(case when fis.must = '' then fis.yerkod else fis.must end)`, refadi: `(case when fis.must = '' then yer.aciklama else car.birunvan end)`,
+					dvkur: `(case when har.karsidvvar = '' then fis.dvkur else har.karsidvkur end)`, dvbedel: `(case when har.karsidvvar = '' then har.dvbedel else har.karsidvbedel end)`,
+					bedel: 'har.bedel', detaciklama: 'yer.aciklama'
 				})
-			]
+			})
+		}
+		$.extend(liste, {
+			faturaTahsilatOdeme$perakende: [ getUniBilgi(false), getUniBilgi(true) ]
 		});
 		return this
 	}

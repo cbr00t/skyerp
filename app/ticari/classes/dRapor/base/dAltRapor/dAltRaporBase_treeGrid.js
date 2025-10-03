@@ -379,16 +379,29 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	}
 	ozetBilgiRecsOlustur(e) {
 		let {raporTanim, ozetBilgi} = this, {grupAttr, icerikAttr, icerikColDef} = ozetBilgi; if (!grupAttr) { return }
-		let {secilenVarmi, ozetMax} = raporTanim; if (!(secilenVarmi && ozetMax)) { ozetBilgi.recs = []; return }
-		let {gridWidget} = this.gridPart, sevRecs = e.recs ?? gridWidget.getRows(), deger2Bilgiler = {}; for (let sev of sevRecs) {
-			let value = sev[icerikAttr]; if (value) { (deger2Bilgiler[value] = deger2Bilgiler[value] || []).push(sev) } }
+		let {secilenVarmi, ozetMax} = raporTanim
+		if (!(secilenVarmi && ozetMax)) { ozetBilgi.recs = []; return }
+		let {gridWidget} = this.gridPart, sevRecs = e.recs ?? gridWidget.getRows(), deger2Bilgiler = {};
+		for (let sev of sevRecs) {
+			let value = sev[icerikAttr]
+			if (value) { (deger2Bilgiler[value] = deger2Bilgiler[value] || []).push(sev) }
+		}
 		let tersSiraliDegerler = Object.keys(deger2Bilgiler).map(x => asFloat(x)).sort((a, b) => a < b ? 1 : -1);
-		let sortDir = gridWidget.base.sortdirection; if (sortDir?.ascending) { tersSiraliDegerler.reverse() }
+		let sortDir = gridWidget.base.sortdirection
+		if (sortDir?.ascending) { tersSiraliDegerler.reverse() }
 		let digerRec = {}; digerRec[grupAttr] = `<b class="royalblue">Diğer</b>`; digerRec[icerikAttr] = 0
-		let result = [], digerSayi = 0; for (let deger of tersSiraliDegerler) {
-			let subRecs = deger2Bilgiler[deger]; for (let subRec of subRecs) {
-				if (result.length < ozetMax) { let _rec = {}; _rec[grupAttr] = subRec[grupAttr]; _rec[icerikAttr] = deger; result.push(_rec); continue }
-				digerRec[icerikAttr] = (digerRec[icerikAttr] || 0) + deger; digerSayi++
+		let result = [], digerSayi = 0
+		for (let deger of tersSiraliDegerler) {
+			let subRecs = deger2Bilgiler[deger]
+			for (let subRec of subRecs) {
+				if (result.length < ozetMax) {
+					this.fixKA(subRec, grupAttr, false)
+					let _rec = { [grupAttr]: subRec[grupAttr] }
+					_rec[icerikAttr] = deger
+					result.push(_rec)
+				}
+				digerRec[icerikAttr] = (digerRec[icerikAttr] || 0) + deger
+				digerSayi++
 			}
 		}
 		if (digerRec[icerikAttr]) {

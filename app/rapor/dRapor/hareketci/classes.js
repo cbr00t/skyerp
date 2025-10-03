@@ -330,7 +330,7 @@ class DRapor_Hareketci_Stok_Main extends DRapor_Hareketci_Main {
 		this.loadServerData_queryDuzenle_takip({ ...e, kodClause: hvDegeri('takipno') });
 		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MIKTAR', clause: hvDegeri('miktar'), gcClause, tarihClause });
 		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MIKTAR2', clause: hvDegeri('miktar2'), gcClause, tarihClause });
-		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MALIYET', clause: hvDegeri('maliyet'), gcClause, tarihClause })
+		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MALIYET', clause: hvDegeri('fmaliyet'), gcClause, tarihClause })
 		for (let key in attrSet) {
 			switch (key) {
 				/*case 'GC': sahalar.add(`${hvDegeri('gc')} gc`); break
