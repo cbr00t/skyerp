@@ -9,11 +9,11 @@ class TicIskYapi extends CObject {
 	}
 	
 	static *getIskYapiIter() {
-		const param = app.params.fiyatVeIsk;
-		const {iskSayi, iskOranMax} = param;
+		const {fiyatVeIsk: param} = app.params ?? {};
+		const {iskSayi, iskOranMax} = param ?? {};
 		for (const item of [
-			{ key: 'sabit', selector: 'iskOranlar', belirtec: 'isk', etiket: 'İsk', maxSayi: iskSayi.sabit || 0, maxOran: iskOranMax.sabit },
-			{ key: 'kampanya', selector: 'kamOranlar', belirtec: 'kam', etiket: 'Kam', maxSayi: iskSayi.kampanya || 0, maxOran: iskOranMax.kampanya }
+			{ key: 'sabit', selector: 'iskOranlar', belirtec: 'isk', etiket: 'İsk', maxSayi: iskSayi?.sabit || 0, maxOran: iskOranMax?.sabit },
+			{ key: 'kampanya', selector: 'kamOranlar', belirtec: 'kam', etiket: 'Kam', maxSayi: iskSayi?.kampanya || 0, maxOran: iskOranMax?.kampanya }
 		]) { yield item }
 	}
 

@@ -2,7 +2,7 @@ class HMRBilgi extends CIO {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get ekOzellikListe() {
 		let {_ekOzellikListe: result} = this; if (result == null) {
-			result = this._ekOzellikListe = []; let {ekOzellikBilgileri} = app.params.stokGenel;
+			result = this._ekOzellikListe = []; let {ekOzellikBilgileri} = app.params?.stokGenel ?? {};
 			if (ekOzellikBilgileri) { result.push(...ekOzellikBilgileri.filter(x => !!x).map(x => x.adi)) }
 		}
 		return result
@@ -13,8 +13,8 @@ class HMRBilgi extends CIO {
 	}
 	static get belirtecListe() {
 		let {_belirtecListe: result} = this; if (result == null) {
-			result = this._belirtecListe = []; let {hmr} = app.params.stokGenel, {ekOzellikListe} = this;
-			if (hmr) { for (let key in hmr) { if (hmr[key]) { result.push(key) } } }
+			result = this._belirtecListe = []; let {hmr} = app.params?.stokGenel ?? {}, {ekOzellikListe} = this;
+			if (hmr) { for (let key in (hmr ?? {})) { if (hmr[key]) { result.push(key) } } }
 			result.push(...ekOzellikListe.map(kod => `ekOz${asInteger(string2Numeric(kod))}`))
 		}
 		return result
@@ -30,9 +30,9 @@ class HMRBilgi extends CIO {
 	}
 	static get hmrEtiketDict() {
 		let {_hmrEtiketDict: result} = this; if (result == null) {
-			let {hmrEtiket, ekOzellikBilgileri} = app.params.stokGenel, {ekOzellikListe} = this;
+			let {hmrEtiket, ekOzellikBilgileri} = app.params?.stokGenel ?? {}, {ekOzellikListe} = this;
 			result = this._hmrEtiketDict = { ...(hmrEtiket ?? {}) };
-			for (let kod of ekOzellikListe) {
+			for (let kod of ekOzellikListe ?? []) {
 				let seq = asInteger(string2Numeric(kod));
 				let key = `ekOz${seq}`, adi = hmrEtiket[key] || ekOzellikBilgileri[seq - 1]?.adi;
 				if (adi) { result[key] = adi }
@@ -62,11 +62,11 @@ class HMRBilgi extends CIO {
 				en: { ioAttr: 'en', rowAttr: 'en', etiket: 'En', numerikmi: true }, boy: { ioAttr: 'boy', rowAttr: 'boy', etiket: 'Boy', numerikmi: true },
 				yukseklik: { ioAttr: 'yukseklik', rowAttr: 'yukseklik', etiket: 'Yükseklik', numerikmi: true }
 			};
-			let {ekOzellikBilgileri} = app.params.stokGenel, {ekOzellikListe} = this;
+			let {ekOzellikBilgileri} = app.params?.stokGenel ?? {}, {ekOzellikListe} = this;
 			let ekOzSeq2Adi = {}; for (let kod of ekOzellikListe) {
 				let seq = asInteger(string2Numeric(kod)); ekOzSeq2Adi[seq] = kod }
 			/* let adi2EkOzSeq = {}; ekOzellikBilgileri?.filter(x => !!x)?.forEach(({ adi }, i) => adi2EkOzSeq[adi] = i + 1); */
-			for (let i = 0; i < ekOzellikBilgileri.length; i++) {
+			for (let i = 0; i < ekOzellikBilgileri?.length ?? 0; i++) {
 				let item = ekOzellikBilgileri[i] ?? {}; if (!item) { continue }
 				let seq = i + 1, adi = ekOzSeq2Adi[seq]; if (!adi) { continue }
 				adi = ekOzellikBilgileri[i]?.adi || adi;

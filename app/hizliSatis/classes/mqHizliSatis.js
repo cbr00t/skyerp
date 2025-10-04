@@ -42,8 +42,12 @@ class MQHizliSatis extends MQCogul {
 		try {
 			await this.onKontrol(e)
 			this._lastNotify?.close(); delete this._lastNotify
-			if (await this.kaydet(e))
-				tanimPart?.close()
+			await this.kaydet(e)
+			{
+				let {input} = tanimPart.fbd_vkn
+				input.val('').focus()
+			}
+			// tanimPart?.close()
 		}
 		catch (ex) {
 			this._lastNotify = notify(getErrorText(ex), islemAdi, 'error')
@@ -52,9 +56,35 @@ class MQHizliSatis extends MQCogul {
 		// tanimPart.vazgecIstendi()
 	}
 	async kaydet(e) {
-		let {class: { sinifAdi: islemAdi }} = this
-		notify(`Kaydet işlemi yapılacak ... henüz hazırlanmadı`, islemAdi, 'warning')
-		return false
+		let {class: { sinifAdi: islemAdi }, vkn, bedel} = this, sahismi = vkn.length == 11, rec
+		{
+			let sent = new MQSent({ from: 'carmst' }), {where: wh, sahalar} = sent
+			wh.degerAta(vkn, 'vkno')
+			sahalar.add('must kod', 'birunvan unvan', 'sahismi', 'vkno vkn', 'vnumara vergiNo')
+			rec = await app.sqlExecTekil(sent)
+		}
+		if (!rec) {
+			let _ = await app.wsTurmobSorgu({ vkn }) ?? {};
+			if (empty(_))
+				throw { isError: true, rc: 'turmobSorgu', errorText: `<b class=royalblue>${vkn}</b> için Kimlik bilgileri belirlenemedi` }
+			let kod = `WA${asReverseDateTimeString(now()).replace(' ', '').replace('T', '').replaceAll('-', '').replaceAll(':', '')}`
+			let {Adi: adi, Soyadi: soyadi, Unvan: unvan, VKN: vergiNo, AdresBilgileri: adresBilgileri = {}} = _
+			let [adresBilgi] = Object.values(adresBilgileri) ?? []
+			adi ||= ''; soyadi ||= ''; vergiNo ||= vkn
+			unvan ||= `${adi} ${soyadi}`
+			rec = { kod, unvan, sahismi, vkn, vergiNo }
+			let hv = { must: kod, unvan1: unvan, sahismi, tckimlikno: sahismi ? vkn : '', vnumara: vergiNo }
+			if (!await app.sqlExecNone(new MQInsert({ table: 'carmst', hv })))
+				throw { isError: true, rc: 'cariKayit', errorText: `<b class=royalblue>${vkn}</b> için Cari kaydı BAŞARISIZ` }
+		}
+		let {kod} = rec ?? {}
+		if (!kod)
+			throw { isError: true, rc: 'cariBelirle', errorText: `<b class=royalblue>${vkn}</b> için Cari belirlenemedi` }
+		let fis = new SatisFaturaFis({ mustKod: kod })
+		fis.addDetay(new TSHizmetDetay({ shKod: '', miktar: 1, fiyat: bedel, aciklama: '' }))
+		await fis.disKaydetIslemi(e)
+		notify(`<b class=royalblue>${vkn} - ${rec.unvan}</b> için fatura oluşturuldu`, islemAdi, 'success')
+		return true
 	}
 	async onKontrol({ sender: tanimPart }) {
 		let {vkn, bedel} = this; bedel ??= 0

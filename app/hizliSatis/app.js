@@ -1,13 +1,13 @@
-class HizliSatisApp extends App {
+class HizliSatisApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this } get isLoginRequired() { return true }
 	static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_App }
 	get autoExecMenuId() { return MQHizliSatis.kodListeTipi }
 	async runDevam(e) {
 		await super.runDevam(e)
-		await this.anaMenuOlustur(e)
+		// await this.anaMenuOlustur(e)
 	}
 	paramsDuzenle({ params }) {
-		super.paramsDuzenle(...arguments);
+		super.paramsDuzenle(...arguments)
 		$.extend(params, { localData: MQLocalData.getInstance() })
 	}
 	async getAnaMenu(e) {
