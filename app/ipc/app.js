@@ -159,4 +159,66 @@ class IPCApp extends TicariApp {
 		}
 
 
+		# WebAPI Call
+		let ws = new WebSocket(`ws://localhost:8200/ws/genel/webSocket/?key=mes`)
+		ws.onmessage = ({ data }) => {
+			try { data = JSON.parse(data) } catch (ex) { }
+			console.info(data)
+		}
+		ws.onerror = evt => console.error(evt)
+		let payload = { ws: 'ws/genel', api: 'ping' }
+		await delay(200)
+		ws.send(toJSONStr(payload))
+
+
+
+		let code = `import app; thread(lambda: app.updateSelf())`
+		let actions = [{ cmd: 'exec', args: [code] }]
+		let data = toJSONStr({ actions })
+		await ajaxPost({ ajaxContentType: 'text', url: `https://localhost:9200/ws/skyMES/makineDurum/setExecCode/?ip=192.168.1.123`, data });
+		/*let ws = new WebSocket(`ws://localhost:8200/ws/skyMES/makineDurum/webSocket/?key=mes&.ip=192.168.1.123&`)
+		ws.onmessage = ({ data }) => {
+			try { data = JSON.parse(data) } catch (ex) { }
+			console.table(data)
+		}
+		ws.onerror = evt => console.error(evt)
+		await delay(50)
+		{ let payload = { api: 'fnIslemi', id: 'primary' }; ws.send(toJSONStr(payload)) }
+		{ let payload = { api: 'fnIslemi', id: 'primary' }; ws.send(toJSONStr(payload)) }
+		
+		
+		let ws = new WebSocket(`ws://localhost:8200/ws/skyMES/makineDurum/webSocket/?key=mes&.ip=192.168.1.123&`)
+		ws.onmessage = ({ data }) => {
+			try { data = JSON.parse(data) } catch (ex) { }
+			console.table(data)
+		}
+		ws.onerror = evt => console.error(evt)
+		await delay(50)
+		{ let payload = { api: 'fnIslemi', id: 'primary' }; ws.send(toJSONStr(payload)) }
+		{ let payload = { api: 'fnIslemi', id: 'primary' }; ws.send(toJSONStr(payload)) }
+
+
+		let code = `# !! indent önemli !! #
+import app
+async def proc():
+	await app.onKeyPressed('enter')
+	await app.onKeyPressed('enter')
+	await app.onKeyPressed('enter')
+	await app.onKeyPressed('enter')
+thread(proc)`
+		let actions = [{ cmd: 'exec', args: [code] }]
+		let data = toJSONStr({ actions })
+		await ajaxPost({ ajaxContentType: 'text', url: `https://localhost:9200/ws/skyMES/makineDurum/setExecCode/?ip=192.168.1.123`, data });
+		/-*let ws = new WebSocket(`ws://localhost:8200/ws/skyMES/makineDurum/webSocket/?key=mes&.ip=192.168.1.123&`)
+		ws.onmessage = ({ data }) => {
+			try { data = JSON.parse(data) } catch (ex) { }
+			console.table(data)
+		}
+		ws.onerror = evt => console.error(evt)
+		await delay(50)
+		{ let payload = { api: 'fnIslemi', id: 'primary' }; ws.send(toJSONStr(payload)) }
+		{ let payload = { api: 'fnIslemi', id: 'primary' }; ws.send(toJSONStr(payload)) }*-/
+		
+		*/
+
 */
