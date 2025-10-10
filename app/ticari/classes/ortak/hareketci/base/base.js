@@ -123,21 +123,25 @@ class Hareketci extends CObject {
 		for (const ext of this.getExtIter()) { ext.hareketTipSecim_kaListeDuzenle(e) }
 	}
 	static ilkIslemler(e) { }
-	uniOrtakSonIslem({ sender, hv, sent, secimler, det = {}, detSecimler = {}, donemTipi, sqlNull, sqlEmpty, sqlZero }) {
-		let {where: wh} = sent, tbWhere = secimler?.getTBWhereClause(...arguments);
+	uniOrtakSonIslem({ sender, hv, sent, sent: { from, where: wh, sahalar }, secimler, det = {}, detSecimler = {}, donemTipi, sqlNull, sqlEmpty, sqlZero }) {
+		let tbWhere = secimler?.getTBWhereClause(...arguments)
+		{
+			let {takipno: kodClause} = hv 
+			if (kodClause && ![sqlNull, sqlEmpty].includes(kodClause)) {
+				if (!from.aliasIcinTable('tak')) { sent.fromIliski('takipmst tak', `${kodClause} = tak.kod`) }
+				if (!from.aliasIcinTable('tgrp')) { sent.takip2GrupBagla() }
+			}
+		}
 		if (tbWhere?.liste?.length) { wh.birlestir(tbWhere) }
 		if (sender?.finansalAnalizmi) {
-			let {finanalizkullanilmaz: finAnalizKullanimClause} = hv, {where: wh, sahalar} = sent;
+			let {finanalizkullanilmaz: finAnalizKullanimClause} = hv
 			if (finAnalizKullanimClause == sqlEmpty || finAnalizKullanimClause == sqlNull) { finAnalizKullanimClause = null }
 			if (finAnalizKullanimClause) { wh.degerAta('', finAnalizKullanimClause) }    /* ''(false) = kullanılır,  '*'(true) = kullanılMAZ */
-			let {adi: altTipAdiClause, oncelik: altTipOncelikClause, yon: yonClause} = this.class.getAltTipAdiVeOncelikClause({ hv }) ?? {};
-			altTipAdiClause = altTipAdiClause || (this.class.aciklama?.sqlServerDegeri() ?? sqlEmpty);
-			altTipOncelikClause = altTipOncelikClause || sqlZero;
-			yonClause = yonClause || (this.class.defaultYon?.sqlServerDegeri() ?? sqlEmpty);
+			let {adi: altTipAdiClause, oncelik: altTipOncelikClause, yon: yonClause} = this.class.getAltTipAdiVeOncelikClause({ hv }) ?? {}
+			altTipAdiClause = altTipAdiClause || (this.class.aciklama?.sqlServerDegeri() ?? sqlEmpty)
+			altTipOncelikClause = altTipOncelikClause || sqlZero
+			yonClause = yonClause || (this.class.defaultYon?.sqlServerDegeri() ?? sqlEmpty)
 			sahalar.add(`${altTipAdiClause} alttipadi`, `${altTipOncelikClause} alttiponcelik`, `${yonClause} yon`)
-		}
-		else if (donemTipi) {
-			
 		}
 	}
 	static varsayilanHVDuzenle_ortak({ hv, sqlNull, sqlEmpty }) {
@@ -171,7 +175,7 @@ class Hareketci extends CObject {
 		})
 	}
 	uygunluk2UnionBilgiListeDuzenle(e) { if (this.class.uygunmu) { this.uygunluk2UnionBilgiListeDuzenleDevam(e) } }
-	uygunluk2UnionBilgiListeDuzenleDevam(e) { e.hareketci = this; for (const ext of this.getExtIter()) { ext.uygunluk2UnionBilgiListeDuzenle(e) } }
+	uygunluk2UnionBilgiListeDuzenleDevam(e) { e.hareketci = this; for (let ext of this.getExtIter()) { ext.uygunluk2UnionBilgiListeDuzenle(e) } }
 	uniBilgiAllHVFix(e) {
 		let liste = e.liste ?? e.uygunluk2UnionBilgiListe ?? this.uygunluk2UnionBilgiListe ?? [], {varsayilanHV: defHV} = this.class;
 		if (!$.isArray(liste)) { liste = Object.values(liste) }
@@ -253,7 +257,8 @@ class Hareketci extends CObject {
 	}
 	uniDuzenle_whereYapi(e) {
 		let {whereYapi: handlers} = this; if (handlers) {
-			let _e = { ...e, hareketci: this }, {sent} = e; if (sent) { _e.where = sent.where }
+			let _e = { ...e, hareketci: this }, {sent} = e
+			if (sent) { _e.where = sent.where }
 			for (let key in handlers) {
 				let handler = handlers[key];
 				if (handler) { getFuncValue.call(this, handler, _e) }
@@ -263,7 +268,8 @@ class Hareketci extends CObject {
 	}
 	uniDuzenle_ekDuzenleyiciler(e) {
 		let {ekDuzenleyiciler: handlers} = this; if (handlers) {
-			let _e = { ...e, hareketci: this }, {sent} = e; if (sent) { _e.where = sent.where }
+			let _e = { ...e, hareketci: this }, {sent} = e
+			if (sent) { _e.where = sent.where }
 			for (let key in handlers) {
 				let handler = handlers[key];
 				if (handler) { getFuncValue.call(this, handler, _e) }
@@ -273,7 +279,8 @@ class Hareketci extends CObject {
 	}
 	uniDuzenle_sonIslem(e) {
 		let {sonIslem: handler} = this; if (handler) {
-			let _e = { ...e, hareketci: this }, {sent} = e; if (sent) { _e.where = sent.where }
+			let _e = { ...e, hareketci: this }, {sent} = e
+			if (sent) { _e.where = sent.where }
 			getFuncValue.call(this, handler, _e)
 		}
 		return this
@@ -308,7 +315,22 @@ class Hareketci extends CObject {
 	}
 	static maliTablo_secimlerYapiDuzenle({ result }) { }
 	// static maliTablo_secimlerSentDuzenle({ secimler: genSec, detSecimler: detSec, uni, sent, where: wh, hv, donemTipi, det, har, attrSet, mstYapi, mstYapi: { hvAlias } }) {
-	static maliTablo_secimlerSentDuzenle({ detSecimler: detSec, sent, where: wh, hv, mstClause }) { }
+	static maliTablo_secimlerSentDuzenle({ secimler: sec, detSecimler: detSec, sent: { from }, where: wh, hv, mstClause }) {
+		let {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs
+		{
+			let {takipno: kodClause} = hv
+			if (kodClause && ![sqlNull, sqlEmpty].includes(kodClause)) {
+				if (sec.takipKod && from.aliasIcinTable('tak')) {
+					wh.basiSonu(sec.takipKod, kodClause)
+					wh.ozellik(sec.takipAdi, 'tak.aciklama')
+				}
+				if (sec.takipGrupKod && from.aliasIcinTable('tgrp')) {
+					wh.basiSonu(sec.takipGrupKod, 'tak.grupkod')
+					wh.ozellik(sec.takipGrupAdi, 'tgrp.aciklama')
+				}
+			}
+		}
+	}
 }
 
 /*

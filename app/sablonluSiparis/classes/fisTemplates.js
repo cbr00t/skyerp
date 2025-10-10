@@ -13,7 +13,8 @@ class SablonluSiparisFisTemplate extends CObject {
 		$.extend(pTanim, {
 			sablonSayac: new PInstNum('sablonsayac'), onayTipi: new PInstStr({ rowAttr: 'onaytipi', init: () => 'ON' }),
 			klFirmaKod: new PInstStr(), teslimOrtakdir: new PInstBitTrue('bteslimortakdir'),
-			teslimCariKod: new PInstStr(), araciKod: new PInstStr()
+			teslimCariKod: new PInstStr(), araciKod: new PInstStr(),
+			koliYuvarlanirmi: new PInstBitBool()
 		})
 	}
 	static rootFormBuilderDuzenle({ fisSinif, builders, sender: gridPart, islem /* , inst */ }) {
@@ -248,9 +249,14 @@ class SablonluSiparisFisTemplate extends CObject {
 			anah2Det[getAnahStr(rec)] ??= det
 		}
 		let {detaylar} = fis; for (let det of detaylar) {
-			let anahStr = getAnahStr(det), sabDet = anah2Det[anahStr]; if (!sabDet) { continue }
+			let anahStr = getAnahStr(det), sabDet = anah2Det[anahStr]
+			if (!sabDet) { continue }
 			/* det.devreDisimi = sabDet.devreDisimi; */
-			if (!sabDet._initFlag) { $.extend(sabDet, { ...det.deepCopy() }) }
+			if (!sabDet._initFlag) {
+				let ignoreKeySet = asSet(['paketIcAdet']), saklaKeys = ['paketIcAdet']
+				let saved = Object.fromEntries(saklaKeys.map(k => [k, sabDet[k]]))
+				$.extend(sabDet, det.deepCopy(), saved)
+			}
 			else { sabDet.miktar += det.miktar }
 			sabDet._initFlag = true
 		}
@@ -829,13 +835,15 @@ class SablonluSiparisGridciTemplate extends CObject {
 		grid.jqxGrid({ sortable: true, filterable: true, groupable: true, groups: ['grupAdi'] })
 	}
 	static miktarFiyatDegisti({ sender: gridPart, gridWidget, rowIndex, belirtec, gridRec: det, value }) {
-		let {belirtec2Kolon, fis} = gridPart, {paketIcAdet} = det;
-		det._degistimi = true;
-		if (belirtec == 'miktar' && paketIcAdet) {
-			let {brm} = det, {fra} = belirtec2Kolon[belirtec].tip ?? {};
+		let {belirtec2Kolon, fis, fis: { koliYuvarlanirmi }} = gridPart, {paketIcAdet} = det
+		det._degistimi = true
+		if (paketIcAdet && belirtec == 'miktar') {
+			let {brm} = det, {fra} = belirtec2Kolon[belirtec].tip ?? {}
 			if (brm) { fra = Math.max(fra, app.params.stokBirim.brmDict[brm].fra) }
 			if (typeof value != 'number') { value = asFloat(value) }
-			value = det.miktar = roundToFra(Math.ceil(value / paketIcAdet) * paketIcAdet, fra);
+			if (koliYuvarlanirmi)
+				value = Math.ceil(value / paketIcAdet) * paketIcAdet
+			det.miktar = value = roundToFra(value, fra)
 			det.bedelHesapla({ fis })
 		}
 		setTimeout(() => {

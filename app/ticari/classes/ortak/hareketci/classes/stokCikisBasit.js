@@ -1,6 +1,7 @@
 class StokCikisBasitHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 1 }
-	static get uygunmu() { return true } static get kisaKod() { return 'SC' } static get aciklama() { return 'Stok Çıkış' }
+	static get kod() { return 'stokCikisBasit' } static get aciklama() { return 'Stok Çıkış' }
+	static get uygunmu() { return true } static get kisaKod() { return 'SC' }
 	static get donemselIslemlerIcinUygunmu() { return false } static get eldekiVarliklarIcinUygunmu() { return this.donemselIslemlerIcinUygunmu }
 	static get stokCikisBasitmi() { return true }
 	static getAltTipAdiVeOncelikClause({ hv }) { return { } }

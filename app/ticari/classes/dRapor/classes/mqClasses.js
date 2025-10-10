@@ -90,11 +90,17 @@ class DMQCariAnaBolge extends DMQKA {
 class DMQCariBolge extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Bölge' }
 	static get table() { return 'carbolge' } static get tableAlias() { return 'bol' }
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e;
-		liste.push(new GridKolon({ belirtec: 'anabolgekod', text: 'Ana Bölge', genislikCh: 10 }), new GridKolon({ belirtec: 'anabolgeadi', text: 'Ana Bölge Adı', genislikCh: 20, sql: 'abol.aciklama' }))
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(
+			new GridKolon({ belirtec: 'anabolgekod', text: 'Ana Bölge', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'anabolgeadi', text: 'Ana Bölge Adı', genislikCh: 20, sql: 'abol.aciklama' })
+		)
 	}
-	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.bolge2AnaBolgeBagla() }
+	static loadServerData_queryDuzenle({ sent }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		sent.bolge2AnaBolgeBagla()
+	}
 }
 class DMQIl extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İl' }
@@ -137,14 +143,15 @@ class DMQTakipNo extends DMQKA {
 	static get table() { return 'takipmst' } static get tableAlias() { return 'tak' }
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
-		/*liste.push(
-			new GridKolon({ belirtec: 'takipgrupkod', text: 'Takip Grup', genislikCh: 10 }),
-			new GridKolon({ belirtec: 'takipgrupadi', text: 'Takip Grup Adı', genislikCh: 20, sql: 'tgrp.aciklama' })
-		)*/
+		liste.push(
+			new GridKolon({ belirtec: 'grupkod', text: 'Takip Grup', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'grupadi', text: 'Takip Grup Adı', genislikCh: 20, sql: 'tgrp.aciklama' })
+		)
 	}
-	static loadServerData_queryDuzenle({ sent }) {
+	static loadServerData_queryDuzenle({ sent, sent: { from } }) {
 		super.loadServerData_queryDuzenle(...arguments)
-		/*sent.takip2GrupBagla()*/
+		if (!from.aliasIcinTable('tgrp'))
+			sent.takip2GrupBagla()
 	}
 }
 class DMQCari extends DMQKA {

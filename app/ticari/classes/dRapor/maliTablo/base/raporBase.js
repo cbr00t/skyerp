@@ -18,6 +18,14 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 	}
 	tabloYapiDuzenle({ result }) { result.addToplamBasit_bedel('BEDEL', 'Bedel', this.sahaAlias) }
 	tabloYapiDuzenle_son({ result }) { }
+	secimlerDuzenle({ secimler: sec }) {
+		super.secimlerDuzenle(...arguments)
+		let {takipNo} = app.params.ticariGenel.kullanim
+		if (takipNo) {
+			sec.addKA('takip', DMQTakipNo)
+			sec.addKA('takipGrup', DMQTakipGrup)
+		}
+	}
 	async tazele(e) {
 		await this.tazeleOncesi(e);
 		let {gridPart, gridPart: { grid, gridWidget }, rapor: { isPanelItem }, raporTanim, _tabloTanimGosterildiFlag} = this
@@ -38,7 +46,11 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		this.tabloKolonlariDuzenle(_e); this.tabloKolonlariDuzenle_ozel?.(_e);
 		let colDefs = this.tabloKolonlari = _e.liste || [];
 		let columns = colDefs.flatMap(colDef => colDef.jqxColumns);
-		grid.jqxTreeGrid('columns', columns);
+		try { grid.jqxTreeGrid('columns', columns) }
+		catch (ex) {
+			console.error(ex)
+			return
+		}
 		await this.tazeleSonrasi(e)
 	}
 	ekCSSDuzenle({ raporTanim, colDefs, colDef, rowIndex, belirtec, value, rec: { cssClassesStr } = {}, result }) {

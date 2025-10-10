@@ -93,15 +93,19 @@ class Secimler extends CIO {
 		return this
 	}
 	addKA(e, _mfSinif, _kodClause, _adiClause, _kapalimi) {
-		e = typeof e == 'object' ? e : { grupKod: e, mfSinif: _mfSinif, kodClause: _kodClause, adiClause: _adiClause, kapali: _kapalimi };
-		let {grupKod, mfSinif, kodClause, adiClause} = e, {sinifAdi: etiket} = mfSinif, kapalimi = e.kapali ?? e.kapalimi ?? true;
-		this.grupEkle(grupKod, etiket, kapalimi);
-		this.secimEkle(`${grupKod}Kod`, new SecimBasSon({ etiket, mfSinif, grupKod }));
-		this.secimEkle(`${grupKod}Adi`, new SecimOzellik({ etiket: `${etiket} Adı`, grupKod }));
-		this.whereBlockEkle(({ secimler: sec, where: wh }) => {
-			wh.basiSonu(sec[`${grupKod}Kod`], kodClause);
-			wh.ozellik(sec[`${grupKod}Adi`], adiClause)
-		});
+		e = typeof e == 'object' ? e : { grupKod: e, mfSinif: _mfSinif, kodClause: _kodClause, adiClause: _adiClause, kapali: _kapalimi }
+		let {grupKod, mfSinif, kodClause, adiClause} = e, {sinifAdi: etiket} = mfSinif, kapalimi = e.kapali ?? e.kapalimi ?? true
+		this.grupEkle(grupKod, etiket, kapalimi)
+		this.secimEkle(`${grupKod}Kod`, new SecimBasSon({ etiket, mfSinif, grupKod }))
+		this.secimEkle(`${grupKod}Adi`, new SecimOzellik({ etiket: `${etiket} Adı`, grupKod }))
+		this.whereBlockEkle(_e => {
+			let {secimler: sec, where: wh} = _e
+			_e = { ...e, ..._e, sec, wh }
+			if (isFunction(kodClause)) { kodClause = kodClause.call(this, _e) }
+			if (kodClause) { wh.basiSonu(sec[`${grupKod}Kod`], kodClause) }
+			if (isFunction(adiClause)) { adiClause = adiClause.call(this, _e) }
+			if (adiClause) { wh.ozellik(sec[`${grupKod}Adi`], adiClause) }
+		})
 		return this
 	}
 	secimleriTemizle(e) { this.liste = {}; this.gruplariTemizle(e); return this }
@@ -120,10 +124,15 @@ class Secimler extends CIO {
 		block = getFunc(block); if (block) { whereBlockListe.push(block) } return this
 	}
 	get tbWhereClause() { return this.getTBWhereClause() }
-	getTBWhereClause(e) {
-		e = e || {}; let {alias} = e, aliasVeNokta = alias ? alias + '.' : '', _e = $.extend({}, e, { alias, aliasVeNokta, secimler: this, where: new MQWhereClause() });
-		let {whereBlockListe} = this; if (whereBlockListe) { for (let block of whereBlockListe) { getFuncValue.call(this, block, _e) } }
-		this.tbWhereClauseDuzenle(_e); return _e.where
+	getTBWhereClause(e = {}) {
+		let secimler = this, {whereBlockListe} = this, {alias} = e, aliasVeNokta = alias ? `${alias}.` : ''
+		let _e = { ...e, alias, aliasVeNokta, secimler, where: new MQWhereClause() }
+		if (whereBlockListe) {
+			for (let block of whereBlockListe)
+				block.call(this, _e)
+		}
+		this.tbWhereClauseDuzenle(_e)
+		return _e.where
 	}
 	tbWhereClauseDuzenle(e) { }
 	get asHTMLElements() { let _e = { grup2Info: {} }; this.buildHTMLElementsInto(_e); return _e.grup2Info }

@@ -208,12 +208,20 @@ class SecimlerPart extends Part {
 		})
 	}
 	async tamamIstendi(e) {
-		const {mfSinif, secimler} = this; let result;
+		let {mfSinif, secimler, tamamIslemi} = this, result
 		try {
-			await this.tamamOncesiIslemler(e); const {tamamIslemi} = this;
-			if (tamamIslemi) { const _e = $.extend({}, e, { sender: this, mfSinif, secimler }); await getFuncValue.call(this, tamamIslemi, _e) }
+			await this.tamamOncesiIslemler(e)
+			if (tamamIslemi) {
+				let _e = { ...e, sender: this, mfSinif, secimler }
+				await tamamIslemi.call(this, _e)
+			}
 		}
-		catch (ex) { const error = getErrorText(ex); if (error) { hConfirm(error, mfSinif?.sinifAdi || 'Filtre') } return false }
+		catch (ex) {
+			let error = getErrorText(ex)
+			if (error) { hConfirm(error, mfSinif?.sinifAdi || 'Filtre') }
+			// throw ex
+			return false
+		}
 		this[this.canDestroy ? 'close' : 'hide']()
 	}
 	tamamOncesiIslemler(e) { }

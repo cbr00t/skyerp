@@ -117,13 +117,14 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 				let MinCalcCount = 2, calculated = 0
 				let promises = [], curPromise
 				for (let parentRec of recs) {
-					let {kaysayac: sablonSayac, klFirmaKod} = parentRec;
+					let {kaysayac: sablonSayac, klFirmaKod, koliYuvarlanirmi} = parentRec;
+					koliYuvarlanirmi = asBool(koliYuvarlanirmi)
 					curPromise = (async () => {
 						await this.loadServerData_detaylar({ ...e, parentRec })
 						let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod })
 						if (!fisSinif) { return }
 						let _e = { ...e }; delete _e.rec
-						let fis = new fisSinif({ sablonSayac, tarih, subeKod, mustKod, klFirmaKod })
+						let fis = new fisSinif({ sablonSayac, tarih, subeKod, mustKod, klFirmaKod, koliYuvarlanirmi })
 						await fis.sablonYukleVeBirlestir(_e)
 						await fis.yeniTanimOncesiIslemler(_e)
 						calculated++
@@ -142,13 +143,21 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	}
 	static async loadServerData_queryDuzenle({ basit, basitmi, gridPart, sender, stm, sent }) {
 		super.loadServerData_queryDuzenle(...arguments);
-		gridPart ??= sender; basitmi = basit ?? basitmi;
+		gridPart ??= sender; basitmi = basit ?? basitmi
 		if (basitmi) { return }
-		let {konsinyemi, tableAlias: alias} = this, {subeKod, mustKod} = gridPart;
+		let table2Col = app._table2Col ??= {}
+		let {konsinyemi, table, tableAlias: alias} = this, {subeKod, mustKod} = gridPart
 		subeKod ??= config.session?.subeKod ?? ''
 		/* let fisSinif = await this.fisSinifBelirle({ ...arguments[0], mustKod }); let {mustSaha} = fisSinif */
-		let {sahalar, where: wh} = sent, {orderBy} = stm;
-		sahalar.addWithAlias(alias, 'bvadegunkullanilir vadeGunKullanilirmi', 'vadegunu vadeGunu', 'emailadresler email_sablonEk');
+		let {sahalar, where: wh} = sent, {orderBy} = stm
+		sahalar.addWithAlias(alias, 'bvadegunkullanilir vadeGunKullanilirmi', 'vadegunu vadeGunu', 'emailadresler email_sablonEk')
+		{
+			let saha = 'bmiktarkoliyeyuvarla'
+			let colInfo = table2Col[`${table}_${saha}`] ??=
+				Object.values(await app.sqlGetColumns(table, saha))?.[0] ?? {}
+			let varmi = !empty(colInfo)
+			sahalar.add(`${varmi ? `${alias}.${saha}` : '1'} koliYuvarlanirmi`)
+		}
 		if (konsinyemi) {
 			/*sent
 				.fromIliski('klfirma dfir', 'sab.klfirmakod = dfir.kod')
@@ -223,7 +232,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	}
 	static eMailYapiQueryDuzenle(e) { return false }
 	static getSablonluVeKLDagitimliOnSent({ fisSinif, fisSayac }) {
-		let {table, sayacSaha, teslimCariSaha} = fisSinif;
+		let {table, sayacSaha, teslimCariSaha} = fisSinif
 		let maxSent = new MQSent({
 			from: `${table} xfis`, fromIliskiler: [
 				{ from: 'hizlisablon xsab', iliski: 'xfis.sablonsayac = xsab.kaysayac' },
@@ -364,11 +373,12 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			showProgress();
 			try {
 				subeKod ??= config.session?.subeKod ?? ''
-				let {kaysayac: sablonSayac, klFirmaKod} = rec
+				let {kaysayac: sablonSayac, klFirmaKod, koliYuvarlanirmi} = rec
+				koliYuvarlanirmi = asBool(koliYuvarlanirmi)
 				let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod })
 				if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
 				let _e = { ...e}; delete _e.rec
-				let fis = new fisSinif({ sablonSayac, tarih, subeKod, mustKod, klFirmaKod })
+				let fis = new fisSinif({ sablonSayac, tarih, subeKod, mustKod, klFirmaKod, koliYuvarlanirmi })
 				await fis.sablonYukleVeBirlestir(_e)
 				let islem = 'yeni', kaydedince = _e => this.tazele({ ...e, gridPart })
 				return await fis.tanimla({ islem, kaydedince })
@@ -402,8 +412,9 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	static async degistirIstendi(e) {
 		try {
 			let {sender, rec} = e, {parentPart: gridPart} = sender ?? {};
-			let {kaysayac: sayac, bonayli: onaylimi, sevkadreskod: sevkAdresKod, _parentRec: parentRec} = rec;
-			let mustKod = rec.mustkod ?? gridPart.mustKod, {kaysayac: sablonSayac, klFirmaKod} = parentRec;
+			let {kaysayac: sayac, bonayli: onaylimi, sevkadreskod: sevkAdresKod, _parentRec: parentRec} = rec
+			let mustKod = rec.mustkod ?? gridPart.mustKod, {kaysayac: sablonSayac, klFirmaKod, koliYuvarlanirmi} = parentRec
+			koliYuvarlanirmi = asBool(koliYuvarlanirmi)
 			let {event: evt} = e, {currentTarget: target} = evt; target = $(target);
 			setButonEnabled(target, false); setTimeout(() => setButonEnabled(target, true), 2000);
 			showProgress();
@@ -411,7 +422,8 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 				let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod, sevkAdresKod });
 				if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
 				let islem = onaylimi ? 'izle' : 'degistir';
-				let fis = new fisSinif({ sayac, klFirmaKod }), _e = { ...e, parentRec, islem }; delete _e.rec;
+				let fis = new fisSinif({ sayac, klFirmaKod, koliYuvarlanirmi })
+				let _e = { ...e, parentRec, islem }; delete _e.rec;
 				let result = await fis.yukle(_e); if (!result) { return }
 				let kaydedince = _e => this.tazele({ ...e, ..._e, gridPart });
 				return await fis.tanimla({ islem, kaydedince })
@@ -430,11 +442,11 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			setButonEnabled(target, false); setTimeout(() => setButonEnabled(target, true), 2000);
 			showProgress();
 			try {
-				let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod, sevkAdresKod });
+				let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod, sevkAdresKod })
 				if (!fisSinif) { throw { isError: true, errorText: 'Fiş Sınıfı belirlenemedi' } }
-				let fis = new fisSinif({ sayac }), _e = { ...e, parentRec, islem: 'sil' }; delete _e.rec;
+				let fis = new fisSinif({ sayac }), _e = { ...e, parentRec, islem: 'sil' }; delete _e.rec
 				let result = await fis.yukle(_e); if (!result) { return }
-				let islem = 'sil', kaydedince = _e => this.tazele({ ...e, ..._e, gridPart });
+				let islem = 'sil', kaydedince = _e => this.tazele({ ...e, ..._e, gridPart })
 				return await fis.tanimla({ islem, kaydedince })
 			}
 			finally { setTimeout(() => hideProgress(), 500) }

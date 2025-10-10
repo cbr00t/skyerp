@@ -1,8 +1,7 @@
 class SBTabloYatayAnaliz_EkBilgi extends CObject {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	hvKA; ekKodAttrListe = [];
-	get kodAttr() { return this.hvKA?.kod }
-	get adiAttr() { return this.hvKA?.aciklama }
+	get kodAttr() { return this.hvKA?.kod } get adiAttr() { return this.hvKA?.aciklama }
 	get zorunluKodAttrListe() { return [...this.ekKodAttrListe, ...this.kodAttr].filter(x => !!x) }
 	get zorunluKodAttr() { return this.zorunluKodAttrListe?.[0] }
 	sentDuzenle() { }
@@ -15,61 +14,70 @@ class SBTabloYatayAnaliz extends TekSecim {
 		super.kaListeDuzenle(...arguments); kaListe.push(
 			new CKodAdiVeEkBilgi(['DB', 'Veritabanı', 'dbmi', {}]),
 			new CKodAdiVeEkBilgi(['SUBE', 'Şube', 'subemi', new class extends SBTabloYatayAnaliz_EkBilgi {
-				hvKA = new CKodVeAdi(['bizsubekod', 'subeadi']);
+				hvKA = new CKodVeAdi(['bizsubekod', 'subeadi'])
 				sentDuzenle({ kodClause, hv, sent, sent: { from, sahalar, where: wh } }) {
-					super.sentDuzenle(...arguments);
+					super.sentDuzenle(...arguments)
 					/* kodAttr için sent'e clause eklenmiş olarak gelecek */
-					let {kodAttr} = this, yatayAlias = 'sub';
-					kodClause ||= `fis.${kodAttr}`;
+					let {kodAttr} = this, yatayAlias = 'sub'
+					kodClause ||= `fis.${kodAttr}`
 					if (!from.aliasIcinTable(yatayAlias)) { sent.x2SubeBagla({ kodClause }) }
 					sahalar.add('sub.aciklama yatay')
 				}
 			}]),
 			new CKodAdiVeEkBilgi(['SGRP', 'Şube Grup', 'subeGrupmu', new class extends SBTabloYatayAnaliz_EkBilgi {
 				hvKA = new CKodVeAdi(['subegrupkod', 'subegrupadi']);
-				zorunluKodAttrListe = ['bizsubekod'];
+				zorunluKodAttrListe = ['bizsubekod']
 				sentDuzenle({ hv, sent, sent: { from, sahalar, where: wh } }) {
-					super.sentDuzenle(...arguments);
+					super.sentDuzenle(...arguments)
 					{
-						let {zorunluKodAttr} = this, yatayAlias = 'sub';
-						let kodClause = hv[zorunluKodAttr] || `fis.${zorunluKodAttr}`;
+						let {zorunluKodAttr} = this, yatayAlias = 'sub'
+						let kodClause = hv[zorunluKodAttr] || `fis.${zorunluKodAttr}`
 						if (!from.aliasIcinTable(yatayAlias)) { sent.x2SubeBagla({ kodClause }) }
 					}
 					{
-						let yatayAlias = 'igrp';
+						let yatayAlias = 'igrp'
 						if (!from.aliasIcinTable(yatayAlias)) { sent.sube2GrupBagla() }
 						sahalar.add('igrp.aciklama yatay')
 					}
 				}
 			}]),
 			new CKodAdiVeEkBilgi(['TKP', 'Takip', 'takipmi', new class extends SBTabloYatayAnaliz_EkBilgi {
-				hvKA = new CKodVeAdi(['takipno', 'takipadi']);
+				hvKA = new CKodVeAdi(['takipno', 'takipadi'])
 				sentDuzenle({ kodClause, hv, sent, sent: { from, sahalar, where: wh } }) {
-					super.sentDuzenle(...arguments);
+					super.sentDuzenle(...arguments)
 					/* kodAttr için sent'e clause eklenmiş olarak gelecek */
-					let {kodAttr} = this, yatayAlias = 'tak';
-					kodClause ||= takipNo_ortakClause;
+					let {kodAttr} = this, yatayAlias = 'tak'
+					kodClause ||= takipNo_ortakClause
 					if (!from.aliasIcinTable(yatayAlias)) { sent.fromIliski('takipmst tak', `${kodClause} = tak.kod`) }
 					sahalar.add('tak.aciklama yatay')
 				}
 			}]),
 			new CKodAdiVeEkBilgi(['TGRP', 'Takip Grup', 'takipgrupmu', new class extends SBTabloYatayAnaliz_EkBilgi {
-				hvKA = new CKodVeAdi(['takgrupkod', 'takgrupadi']);
-				zorunluKodAttrListe = ['takipno'];
+				hvKA = new CKodVeAdi(['takgrupkod', 'takgrupadi'])
+				zorunluKodAttrListe = ['takipno']
 				sentDuzenle({ hv, sent, sent: { from, sahalar, where: wh } }) {
-					super.sentDuzenle(...arguments);
+					super.sentDuzenle(...arguments)
 					{
-						let {zorunluKodAttr} = this, yatayAlias = 'tak';
-						let kodClause = hv[zorunluKodAttr] || takipNo_ortakClause;
+						let {zorunluKodAttr} = this, yatayAlias = 'tak'
+						let kodClause = hv[zorunluKodAttr] || takipNo_ortakClause
 						if (!from.aliasIcinTable(yatayAlias)) { sent.fromIliski('takipmst tak', `${kodClause} = tak.kod`) }
 					}
 					{
-						let yatayAlias = 'tgrp';
+						let yatayAlias = 'tgrp'
 						if (!from.aliasIcinTable(yatayAlias)) { sent.fromIliski('takipgrup tgrp', 'tak.grupkod = tgrp.kod') }
 						sahalar.add('tgrp.aciklama yatay')
 					}
 				}
 			}]),
+			new CKodAdiVeEkBilgi(['AY', 'Ay', 'aymi', new class extends SBTabloYatayAnaliz_EkBilgi {
+				zorunluKodAttrListe = ['tarih']
+				sentDuzenle({ kodClause, hv, sent, sent: { from, sahalar, where: wh } }) {
+					super.sentDuzenle(...arguments)   /* kodAttr için sent'e clause eklenmiş olarak gelecek */
+					kodClause ||= hv[this.zorunluKodAttr] || 'tarih'
+					kodClause = `FORMAT(${kodClause}, 'MM-MMMM', 'tr-TR')`
+					sahalar.add(`${kodClause} yatay`)
+				}
+			}])
 		)
 	}
 }
@@ -151,7 +159,7 @@ class SBTabloVeriTipi extends TekSecim {
 			}]),
 			new CKodAdiVeEkBilgi(['MAL', 'Maliyet', 'maliyetmi', {
 				gosterimUygunluk, sentUygunluk: e => e.stokmu && sentUygunluk(e),
-				sentDuzenle: e => topSahaEkle({ ...e, clause: ({ hv: { fmalhammadde: hamm, fmalmuh: mmuh } = {} }) =>
+				sentDuzenle: e => topSahaEkle({ ...e, clause: ({ fmalhammadde: hamm, fmalmuh: mmuh } = {}) =>
 					hamm && mmuh ? `${hamm} + ${mmuh}` : 'har.fmalhammadde + har.fmalmuh' })
 			}]),
 			new CKodAdiVeEkBilgi(['KCR', 'KDVli Ciro', 'kdvliCiromu', {
@@ -164,14 +172,15 @@ class SBTabloVeriTipi extends TekSecim {
 	kaListeDuzenle_stokCikisHareketciBasit({ kaListe, topSahaEkle }) {
 		let sentUygunluk = e => {
 			let { hesapTipi: { ekBilgi: { querymi, hareketcimi, harSinif } = {} } = {} } = e;
-			if (!(hareketcimi && harSinif.stokCikisBasitmi)) { return false }
+			if (!(hareketcimi && harSinif?.stokCikisBasitmi)) { return false }
 			return harSinif.maliTablo_sentUygunluk?.call(this, e) ?? true
 		}
 		let gosterimUygunluk = sentUygunluk;
 		kaListe.push(
-			new CKodAdiVeEkBilgi(['MAL', 'Maliyet', 'maliyetmi', {
-				gosterimUygunluk, sentUygunluk: e => e.stokmu && sentUygunluk(e),
-				sentDuzenle: e => topSahaEkle({ ...e, clause: ({ hv: { bedel: maliyet } = {} }) => maliyet || 'har.fmalhammadde + har.fmalmuh' })
+			new CKodAdiVeEkBilgi(['MAL2', 'Maliyet', 'stokCikis_maliyetmi', {
+				gosterimUygunluk, sentUygunluk,
+				sentDuzenle: e =>
+					topSahaEkle({ ...e, clause: ({ hv: { bedel: maliyet } = {} }) => maliyet || 'har.fmalhammadde + har.fmalmuh' })
 			}])
 		);
 		return this

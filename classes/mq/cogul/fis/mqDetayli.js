@@ -205,7 +205,7 @@ class MQDetayli extends MQSayacli {
 	async yukle(e) {
 		e = e || {}; let result = await this.baslikYukle(e); if (result === false) { return result }
 		await this.detaylariYukle(e); await this.detaylariYukleSonrasi(e)
-		try { this.yukleSonrasiIslemler(e) }
+		try { await this.yukleSonrasiIslemler(e) }
 		catch (ex) { console.error(ex) }
 		return true
 	}
