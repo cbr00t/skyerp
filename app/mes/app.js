@@ -168,3 +168,30 @@ class MESApp extends App {
 	wsGetLEDDurum(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/getLEDDurum', args: e }) }) }
 	wsSetLEDDurum(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/setLEDDurum', args: e }) }) }
 }
+
+
+
+/*
+let code = `
+import app
+async def proc():
+	app.keyQueue_push(( 'enter', None, 0, ticks_ms(), None, False )); await asleep(.05)
+	app.keyQueue_push(( 'enter', None, 0, ticks_ms(), None, False )); await asleep(.05)
+	app.keyQueue_push(( 'enter', None, 0, ticks_ms(), None, False )); await asleep(.3)
+	app.keyQueue_push(( '1', None, 0, ticks_ms(), None, False ))
+async_task(proc)`
+let actions = [{ cmd: 'exec', args: [code] }]
+let data = toJSONStr({ actions })
+await ajaxPost({ ajaxContentType: 'text', url: `https://localhost:9200/ws/skyMES/makineDurum/setExecCode/?ip=192.168.1.123`, data });
+/-let ws = new WebSocket(`ws://localhost:8200/ws/skyMES/makineDurum/webSocket/?key=mes&.ip=192.168.1.123&`)
+ws.onmessage = ({ data }) => {
+	try { data = JSON.parse(data) } catch (ex) { }
+	console.table(data)
+}
+ws.onerror = evt => console.error(evt)
+await delay(50)
+{ let payload = { api: 'fnIslemi', id: 'primary' }; ws.send(toJSONStr(payload)) }
+{ let payload = { api: 'fnIslemi', id: 'primary' }; ws.send(toJSONStr(payload)) }-/
+*/
+
+
