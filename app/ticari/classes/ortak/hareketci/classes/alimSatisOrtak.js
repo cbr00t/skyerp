@@ -114,25 +114,30 @@ class AlimSatisOrtakHareketci extends Hareketci {
 		});
         return this
     }
-	static maliTablo_secimlerYapiDuzenle({ result }) {
+	static maliTablo_secimlerYapiDuzenle({ tip2SecimMFYapi, result }) {
 		super.maliTablo_secimlerYapiDuzenle(...arguments)
-		/* ** bu seviye için seçimler  SBTabloDetay.secimlerOlustur()  kısmında sabit olarak oluşuyor */
+		$.extend(tip2SecimMFYapi, {
+			S: { mst: DMQStok, grup: DMQStokGrup, anaGrup: DMQStokAnaGrup, istGrup: DMQStokIstGrup, tip: DMQStokTip },
+			H: { mst: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup, istGrup: DMQHizmetIstGrup, muhHesap: DMQMuhHesap }
+		})
 	}
 	static maliTablo_secimlerSentDuzenle({ detSecimler: sec, sent, sent: { from }, where: wh, hv, mstClause, maliTablo }) {
 		super.maliTablo_secimlerSentDuzenle(...arguments)
-		let {det: { shStokHizmet = {} } = {}} = maliTablo ?? {}, {hizmetmi} = shStokHizmet
+		let {det: { shStokHizmet = {} } = {}} = maliTablo ?? {}, {stokmu, hizmetmi} = shStokHizmet
 		let mstAlias = hizmetmi ? 'hiz' : 'stk', prefix = hizmetmi ? 'h' : 's'
 		let grpClause = hv.grupkod || `${mstAlias}.grupkod`
 		let aGrpClause = hv.anaGrupkod || 'grp.anagrupkod'
 		let iGrpClause = hv.istgrupkod || `${mstAlias}.${prefix}istgrupkod`, iGrpAlias = `${prefix}igrp`
 		mstClause ||= hv.shkod || `har.${hizmetmi ? 'hizmet' : 'stok'}kod`;
 		if (sec && shStokHizmet.secilen && !shStokHizmet.birliktemi) {
-			let harHizmetmi = from.aliasIcinTable('har')?.deger == 'pifhizmet';
-			if (hizmetmi != harHizmetmi) { wh.add('1 = 2'); return }
+			let harStokmu = from.aliasIcinTable('har')?.deger == 'pifstok'
+			let harHizmetmi = from.aliasIcinTable('har')?.deger == 'pifhizmet'
+			if (!(stokmu == harStokmu && hizmetmi == harHizmetmi)) { wh.add('1 = 2'); return }
 			wh.basiSonu(sec.mstKod, mstClause).ozellik(sec.mstAdi, `${mstAlias}.aciklama`)
 			wh.basiSonu(sec.grupKod, grpClause).ozellik(sec.grupAdi, 'grp.aciklama')
 			wh.basiSonu(sec.anaGrupKod, aGrpClause).ozellik(sec.anaGrupAdi, 'agrp.aciklama')
 			wh.basiSonu(sec.istGrupKod, iGrpClause).ozellik(sec.istGrupAdi, `${iGrpAlias}.aciklama`)
+			if (harStokmu) { wh.basiSonu(sec.tipKod, `${mstAlias}.tipi`) }
 		}
 	}
 }

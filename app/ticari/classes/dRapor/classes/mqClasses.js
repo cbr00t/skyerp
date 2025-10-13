@@ -15,6 +15,9 @@ class DMQStokIstGrup extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok İst. Grup' }
 	static get table() { return 'stkistgrup' } static get tableAlias() { return 'sigrp' }
 }
+class DMQStokTip extends StokTip {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+}
 class DMQYerGrup extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok Depo Grup' }
 	static get table() { return 'stkyergrup' } static get tableAlias() { return 'ygrp' }

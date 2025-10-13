@@ -124,8 +124,8 @@ class TahsilatOdeme extends BorcAlacak {
 class FisHesapSekli extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' } get bedelmi() { return this.char == '' } get fiyatmi() { return this.char == 'F' } get miktarmi() { return this.char == 'M' }
-	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); let {kaListe} = e;
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
 		kaListe.push(
 			{ kod: '', aciklama: 'Miktar * Fiyat = Bedel' },
 			{ kod: 'F', aciklama: 'Bedel / Miktar = Fiyat' },
@@ -137,20 +137,14 @@ class FisHesapSekli extends TekSecim {
 	miktarYap() { this.char = 'M'; return this }
 }
 class StokTip extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultChar() { return 'TC' }
-	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); let {kaListe} = e;
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return 'TC' }
+	static get kodListeTipi() { return 'STKTIP' } static get sinifAdi() { return 'Stok Tipi' }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
 		kaListe.push(
-			new CKodVeAdi(['M', 'Mamül']),
-			new CKodVeAdi(['H', 'Hammadde']),
-			new CKodVeAdi(['Y', 'Yarı Mamul']),
-			new CKodVeAdi(['A', 'Ambalaj']),
-			new CKodVeAdi(['U', 'Hurda']),
-			new CKodVeAdi(['SR', 'Sarj Malzemesi']),
-			new CKodVeAdi(['YM', 'Yardımcı Malzeme']),
-			new CKodVeAdi(['TC', 'Ticari Mal']),
-			new CKodVeAdi([' ', 'Diğer'])
+			new CKodVeAdi(['M', 'Mamül']), new CKodVeAdi(['H', 'Hammadde']), new CKodVeAdi(['Y', 'Yarı Mamul']),
+			new CKodVeAdi(['A', 'Ambalaj']), new CKodVeAdi(['U', 'Hurda']), new CKodVeAdi(['SR', 'Sarj Malzemesi']),
+			new CKodVeAdi(['YM', 'Yardımcı Malzeme']), new CKodVeAdi(['TC', 'Ticari Mal']), new CKodVeAdi([' ', 'Diğer'])
 		)
 	}
 }

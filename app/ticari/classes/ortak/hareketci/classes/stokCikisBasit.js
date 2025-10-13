@@ -52,18 +52,18 @@ class StokCikisBasitHareketci extends Hareketci {
     }
 	static maliTablo_secimlerYapiDuzenle({ result }) {
 		super.maliTablo_secimlerYapiDuzenle(...arguments)
-		$.extend(result, { mst: DMQStok, grup: DMQStokGrup, istGrup: DMQStokIstGrup, isl: DMQStokIslem })
+		$.extend(result, { mst: DMQStok, grup: DMQStokGrup, istGrup: DMQStokIstGrup, tip: DMQStokTip, isl: DMQStokIslem })
 	}
 	static maliTablo_secimlerSentDuzenle({ detSecimler: sec, sent, sent: { from }, where: wh, hv, mstClause, maliTablo }) {
 		super.maliTablo_secimlerSentDuzenle(...arguments);
-		let grpClause = hv.grupkod || 'stk.grupkod'
-		let iGrpClause = hv.istgrupkod || 'stk.istgrupkod';
-		let islClause = hv.islkod || 'fis.islkod';
-		mstClause ||= hv.shkod || 'har.stokkod';
+		mstClause ||= hv.shkod || 'har.stokkod'
+		let grpClause = hv.grupkod || 'stk.grupkod', iGrpClause = hv.istgrupkod || 'stk.istgrupkod'
+		let tipClause = hv.tipkod || 'stk.stoktipi', islClause = hv.islkod || 'fis.islkod'
 		if (sec) {
 			wh.basiSonu(sec.mstKod, mstClause).ozellik(sec.mstAdi, 'stk.aciklama');
 			wh.basiSonu(sec.grupKod, grpClause).ozellik(sec.grupAdi, 'grp.aciklama');
 			wh.basiSonu(sec.istGrupKod, iGrpClause).ozellik(sec.istGrupAdi, 'sigrp.aciklama');
+			wh.basiSonu(sec.tipKod, tipClause)
 			wh.basiSonu(sec.islKod, islClause).ozellik(sec.islAdi, 'isl.aciklama')
 		}
 	}

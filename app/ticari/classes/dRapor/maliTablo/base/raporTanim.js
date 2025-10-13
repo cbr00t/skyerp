@@ -185,9 +185,9 @@ class SBTabloDetay extends MQDetay {
 			value.filter(x => x != null).map(x => x + 1).sort().join(', ') : ''
 	}
 	get secimler() {
-		let {hesapTipi} = this; if (hesapTipi?.secilen == null) { return null }
-		let {shStokHizmet, tip2Secimler} = this;
-		let {hizmetmi, ekBilgi: { querymi, hareketcimi, harSinif } = {}} = hesapTipi;
+		let {hesapTipi, shStokHizmet, tip2Secimler} = this
+		if (hesapTipi?.secilen == null) { return null }
+		let {hizmetmi, ekBilgi: { querymi, hareketcimi, harSinif } = {}} = hesapTipi
 		let tip = (
 			querymi
 				? hareketcimi && !harSinif?.ticarimi ? hesapTipi.kod
@@ -251,15 +251,16 @@ class SBTabloDetay extends MQDetay {
 	secimlerOlustur(e) {
 		let tip2Secimler = this.tip2Secimler = e.tip2Secimler ?? {};
 		let tip2SecimMFYapi = {
-			S: { mst: DMQStok, grup: DMQStokGrup, anaGrup: DMQStokAnaGrup, istGrup: DMQStokIstGrup },
+			/*S: { mst: DMQStok, grup: DMQStokGrup, anaGrup: DMQStokAnaGrup, istGrup: DMQStokIstGrup, tip: DMQStokTip },
 			H: { mst: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup, istGrup: DMQHizmetIstGrup, muhHesap: DMQMuhHesap },
-			/*[KasaHareketci.kisaKod]: { mst: DMQKasa, grup: DMQKasaGrup },
+			[KasaHareketci.kisaKod]: { mst: DMQKasa, grup: DMQKasaGrup },
 			[BankaMevduatHareketci.kisaKod]: { mst: DMQBankaHesap, grup: DMQBankaHesapGrup }*/
 		}
 		{
 			let harSiniflar = SBTabloHesapTipi.kaListe.map( ({ ekBilgi }) => ekBilgi?.harSinif ).filter(x => x)
 			let _e = { ...e, tip2Secimler, tip2SecimMFYapi }
-			for (let harSinif of harSiniflar) { harSinif.maliTablo_secimlerYapiOlustur(_e) }
+			for (let harSinif of harSiniflar)
+				harSinif.maliTablo_secimlerYapiOlustur(_e) 
 		}
 		let tip2EkWhereDuzenleyici = {
 			/*[KasaHareketci.kisaKod]: ({ raporTanim, secimler: sec, where: wh }) => { debugger },
@@ -273,10 +274,11 @@ class SBTabloDetay extends MQDetay {
 			$.extend(secimler, { secimEkWhereDuzenle })
 			secimler.beginUpdate()
 			for (let [key, mfSinif] of Object.entries(yapi)) {
-				let {kodListeTipi: grupKod, sinifAdi: grupAdi} = mfSinif
+				let {kodListeTipi: grupKod, sinifAdi: grupAdi, adiKullanilirmi} = mfSinif
 				secimler.grupEkle(grupKod, grupAdi);
-				{ let fullKey = `${key}Kod`; secimler.secimEkle(fullKey, new SecimString({ etiket: 'Kod', mfSinif, grupKod })) }
-				{ let fullKey = `${key}Adi`; secimler.secimEkle(fullKey, new SecimOzellik({ etiket: 'Adı', grupKod })) }
+				secimler.secimEkle(`${key}Kod`, new SecimString({ etiket: 'Kod', mfSinif, grupKod }))
+				if (adiKullanilirmi)
+					secimler.secimEkle(`${key}Adi`, new SecimOzellik({ etiket: 'Adı', grupKod }))
 			}
 			secimler.endUpdate()
 		}
@@ -344,23 +346,24 @@ class SBTabloDetay extends MQDetay {
 		secimler ??= rapor?.secimler; $.extend(_e, { detSecimler });
 		if (detSecimler) {
 			detSecimler.whereBlockListe = []
-			detSecimler.whereBlockEkle(({ secimler: sec, where: wh,  stokmu, hizmetmi, querymi, hareketcimi, harSinif }) => {
+			detSecimler.whereBlockEkle(({ secimler: sec, where: wh, stokmu, hizmetmi, querymi, hareketcimi, harSinif }) => {
 				let args = { ..._e, raporTanim, secimler: sec, where: wh, donemTipi, harSinif };
-				if (!hareketcimi) {
+				/*if (!hareketcimi) {
 					let alias = args.alias = hizmetmi ? 'hiz' : 'stk', iGrpAlias = hizmetmi ? 'higrp' : 'sigrp'
 					wh.basiSonu(sec.mstKod, `${alias}.kod`).ozellik(sec.mstAdi, `${alias}.aciklama`)
 					wh.basiSonu(sec.grupKod, 'grp.kod').ozellik(sec.grupAdi, 'grp.aciklama')
 					wh.basiSonu(sec.anaGrupKod, 'agrp.kod').ozellik(sec.anaGrupAdi, 'agrp.aciklama')
 					wh.basiSonu(sec.istGrupKod, `${iGrpAlias}.kod`).ozellik(sec.istGrupAdi, `${iGrpAlias}.aciklama`)
+					if (stokmu) { wh.basiSonu(sec.tipKod, `${alias}.tipi`) }
 					if (hizmetmi) { wh.basiSonu(sec.muhHesapKod, `${alias}.muhhesap`).ozellik(sec.muhHesapAdi, 'mhes.aciklama') }
-				}
-				// else if (hareketcimi && harSinif) { harSinif.maliTablo_secimlerSentDuzenle(args) }
+				}*/
 				sec.secimEkWhereDuzenle?.(args)
 			});
 			{
 				(secimler = secimler.deepCopy()).beginUpdate()
 				$.extend(secimler.liste, { ...detSecimler.liste })
-				let whereBlockListe = secimler.whereBlockListe ??= [], {whereBlockListe: detWhereBlockListe} = detSecimler
+				let whereBlockListe = secimler.whereBlockListe ??= []
+				let {whereBlockListe: detWhereBlockListe} = detSecimler
 				if (detWhereBlockListe) { whereBlockListe.push(...detWhereBlockListe) }
 				secimler.endUpdate()
 			}
