@@ -248,19 +248,35 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 					return this
 				},
 				toplamaEkle(digerGridRec) {
-					/*let {shIade, tersIslemmi: tersmi} = digerGridRec;
-					if (shIade.iademi) { tersmi = !tersmi }*/
+					let {tersIslemmi} = digerGridRec
 					for (let attr of attrListe) {
-						let value = digerGridRec[attr];
-						/* if (tersmi) { value = -value } */
+						let value = digerGridRec[attr]
 						this[attr] += value
+						// if (tersIslemmi) { this[attr] -= value }
+						// else { this[attr] += value }
 					}
 					return this
 				},
 				toplamOlustur() {
-					let {detaylar} = this; if (!detaylar.length) { return this }
-					this.toplamReset(); for (let det of detaylar) {
-						det.toplamOlustur(); this.toplamaEkle(det) }
+					let {detaylar} = this
+					if (detaylar.length) {
+						this.toplamReset()
+						for (let det of detaylar) {
+							det.toplamOlustur()
+							this.toplamaEkle(det)
+							if (det.tersIslemmi) {
+								if (det.satirlarToplamimi || det.altSeviyeToplamimi)
+									det.negated()
+							}
+						}
+					}
+					return this
+				},
+				negated() {
+					for (let attr of attrListe) {
+						let value = this[attr]
+						this[attr] = -value
+					}
 					return this
 				}
 			}

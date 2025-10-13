@@ -579,7 +579,8 @@ class SBTabloGridci extends GridKontrolcu {
 		if (rec.seviyeNo.seviye1mi) { result.push('bold fs-130') }
 		else if (rec.seviyeNo.seviye2mi) { result.push('bold fs-110 i-pl-10') }
 		else { result.push('i-pl-20') }
-		if (rec.tersIslemmi) { result.push(belirtec == 'tersIslemmi' ? 'bg-lightred' : 'orangered') }
+		if (rec.tersIslemmi)
+			result.push(belirtec == 'tersIslemmi' ? 'bg-lightred' : 'orangered')
 		switch (belirtec) {
 			case 'secimlerStr': result.push('flex-row'); break
 		}
@@ -738,7 +739,7 @@ class SBTabloGridci extends GridKontrolcu {
 		fbd_tersIslemmi = form.addCheckBox('tersIslemmi', 'Ters İşlem?')
 			.addStyle(`$elementCSS { margin: -5px 0 0 30px }`)
 			.setVisibleKosulu(({ builder: fbd }) => {
-				let {hesapTipi: { formulmu, ekBilgi: { querymi } = {} } = {}} = fbd.altInst;
+				let {hesapTipi: { altSeviyeToplamimi, satirlarToplamimi, formulmu, ekBilgi: { querymi } = {} } = {}} = fbd.altInst
 				return querymi || formulmu ? true : 'jqx-hidden'
 			});
 
