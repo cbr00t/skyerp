@@ -1,5 +1,6 @@
 class TicariApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get testBaseClass() { return Ticari_TestBase } get yerelParamSinif() { return MQYerelParamTicari }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	get testBaseClass() { return Ticari_TestBase } get yerelParamSinif() { return MQYerelParamTicari }
 	constructor(e) { e = e ?? {}; super(e); $.extend(this, { satisTipleri: e.satisTipleri }) }
 	paramsDuzenle(e) {
 		super.paramsDuzenle(e); const {params} = e;

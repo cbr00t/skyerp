@@ -20,8 +20,8 @@ body.dark-theme .part .dokumanForm, .part .skyResim.part #resim > .widget,
 	body.dark-theme .part .skyResim.part #resim > .widget .item > .content { filter: invert(1) hue-rotate(180deg) }
 .part .skyResim.part { height: calc(var(--full) - 50px) !important }
 .modelTanim.part > .form { margin-top: -55px } .modelTanim.part > .form [data-builder-id = kaForm] [data-builder-id = aciklama] { width: 500px !important }
-.MQSablonCPT.modelTanim.part > .form [data-builder-id = grid-parent] { height: calc(var(--full) - 25px) !important }
-.MQSablonAnket.modelTanim.part > .form [data-builder-id = grid-parent] { height: calc(var(--full) - 10px) !important }
+.MQSablonCPT.modelTanim.part > .form [data-builder-id = grid-parent] { height: calc(var(--full) - 15px) !important }
+.MQSablonAnket.modelTanim.part > .form [data-builder-id = grid-parent] { height: calc(var(--full) - 15px) !important }
 body.dark-theme .MQSablonCPT.modelTanim.part > .form [data-builder-id = grid-parent] div[role = row] > .resim > *,
 	body.dark-theme .MQSablonAnket.modelTanim.part > .form [data-builder-id = grid-parent] div[role = row] > .resim > * {
 		filter: invert(1) hue-rotate(180deg) !important

@@ -19,16 +19,22 @@ class MQParam_ESE extends MQParam {
 		super.paramYapiDuzenle(e); const {paramci} = e; paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 0px !important }`);
 		let form = paramci.addFormWithParent(); form.addGrup({ etiket: 'Varsayılan Şablon' });
 		let formSablon = form.addFormWithParent().yanYana().addStyle_fullWH();
-		for (const [tip, cls] of Object.entries(MQSablon.tip2Sinif)) {
-			let {maxSayi} = cls; formSablon.addGridGiris_sabit(tip).addStyle_fullWH('49.5%')
+		for (let [tip, cls] of Object.entries(MQSablon.tip2Sinif)) {
+			let {maxSayi} = cls
+			formSablon.addGridGiris_sabit(tip).addStyle_fullWH('49.5%')
 				.setTabloKolonlari(_e => [
 					new GridKolon({ belirtec: 'kisaEtiket', text: 'Kısa Etiket', genislikCh: 10 }),
 					new GridKolon({ belirtec: 'etiket', text: 'Etiket', genislikCh: 20 }),
 					...cls.getGridKolonlar({ belirtec: 'sablonId', kodAttr: 'sablonId', adiAttr: 'sablonAdi', genislikCh: 35 }).map(colDef => colDef.kodsuz())
-				]).setSource(_e => [..._e.builder.inst.sablon[tip]])
-				.veriDegisinceIslemi(e => {
-					const {action, rowIndex, belirtec, builder, newValue: value} = e, {altInst, id} = builder;
-					if (action == 'cellValueChanged') { altInst.sablon[id][rowIndex][belirtec] = value }
+				])
+				.setSource(_e => [..._e.builder.inst.sablon[tip]])
+				.veriDegisinceIslemi(({ action, rowIndex, belirtec, builder, builder: { altInst, id }, newValue: value }) => {
+					if (action == 'cellValueChanged')
+						altInst.sablon[id][rowIndex][belirtec] = value
+				})
+				.widgetArgsDuzenleIslemi(({ args, sender: gridPart, sender: { tabloKolonlari: colDefs } }) => {
+					for (let c of colDefs)
+						c.dropDown().autoBind()
 				})
 		}
 	}

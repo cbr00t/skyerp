@@ -147,6 +147,20 @@ class MQSQLOrtak extends CObject {
 			`${ekCSS ? `; ${ekCSS}` : ''}"/>`
 		)
 	}
+	static resimClause_x(e) {
+		e = e ?? {}; let ekCSS = e.ekCSS ?? e.cssEk;
+		return (
+			`<div style="height: 64px; margin-left: 27%; background-image: url(../../images/x.png); background-repeat: no-repeat; background-size: contain` +
+			`${ekCSS ? `; ${ekCSS}` : ''}"/>`
+		)
+	}
+	static resimClause_bos(e) {
+		e = e ?? {}; let ekCSS = e.ekCSS ?? e.cssEk;
+		return (
+			`<div style="height: 32px; margin-left: 30%; background-repeat: no-repeat; background-size: contain` +
+			`${ekCSS ? `; ${ekCSS}` : ''}"/>`
+		)
+	}
 	getQueryYapi(e) { let query = this.toString(e); return { query, params: this.params } }
 	toString(e) {
 		e = e || {}; e.result = e.result || ''; e.params = this.params || [];

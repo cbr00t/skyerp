@@ -106,7 +106,8 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 				case 'CINSIYET': sahalar.add(`${Cinsiyet.getClause(`${alias}.cinsiyet`)} cinsiyet`); break
 				case 'AKTIFYAS': sahalar.add(`${alias}.aktifyas`); break
 				case 'YASGRUP': sahalar.add('ygrp.id yasgrupkod', 'ygrp.aciklama yasgrupadi'); break
-				case 'DEHBVARMI': sahalar.add(`(case when fis.bdehbvarmi = 0 then '' else '${MQSQLOrtak.resimClause_ok({ ekCSS: `filter: hue-rotate(130deg)` })}' end) dehbvarmi`); break
+				// case 'DEHBVARMI': sahalar.add(`(case when fis.bdehbvarmi = 0 then '${MQSQLOrtak.resimClause_x()}'else '${MQSQLOrtak.resimClause_ok({ ekCSS: `filter: hue-rotate(130deg)` })}' end) dehbvarmi`); break
+				case 'DEHBVARMI': sahalar.add(`(case when fis.bdehbvarmi = 0 then '<b class="forestgreen fs-150">-</b>' else '<b class="firebrick fs-120">Var</b>' end) dehbvarmi`); break
 				case 'DEHBVARSAYI': sahalar.add(`SUM(case when fis.bdehbvarmi = 0 then 0 else 1 end) dehbvarsayi`); break
 				case 'DEHBYOKSAYI': sahalar.add(`SUM(case when fis.bdehbvarmi = 0 then 1 else 0 end) dehbyoksayi`); break
 				case 'DOGRUSAYI': sahalar.add('SUM(fis.dogrusayi) dogrusayi'); break; case 'YANLISSAYI': sahalar.add('SUM(fis.yanlissayi) yanlissayi'); break

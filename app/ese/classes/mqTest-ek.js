@@ -1,6 +1,11 @@
 class MQTestUygulanmaYeri extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' }
-	kaListeDuzenle(e) { super.kaListeDuzenle(e); e.kaListe.push(new CKodVeAdi(['', 'Muayenehane', 'muayenehanemi']), new CKodVeAdi(['IN', 'İnternet', 'internetmi'])) }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(
+			new CKodVeAdi(['', 'Muayenehane', 'muayenehanemi']),
+			new CKodVeAdi(['IN', 'İnternet', 'internetmi']))
+	}
 }
 
 class TestSonuc extends CObject {

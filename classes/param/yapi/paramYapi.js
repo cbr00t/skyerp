@@ -414,6 +414,7 @@ class ParamBuilder_UIElement extends ParamBuilderAlt {
 	get uiElementmi() { return true }
 	degisince(handler) { this.fbdEkIslem(e => e.builder.degisince(handler)); return this }
 	onChange(handler) { this.fbdEkIslem(e => e.builder.onChange(handler)); return this }
+	widgetArgsDuzenleIslemi(handler) { this.fbdEkIslem(e => e.builder.widgetArgsDuzenleIslemi(handler)); return this }
 }
 class ParamBuilder_Form extends ParamBuilder_UIElement {
     static { window[this.name] = this; this._key2Class[this.name] = this }

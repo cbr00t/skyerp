@@ -30,13 +30,15 @@ class MQYerelParamBase extends CIO {
 	}
 	kaydetDefer(e) {
 		clearTimeout(this._timer_kaydetDefer)
-			this._timer_kaydetDefer = setTimeout(async e => {
-				try { await this.kaydet(e) }
-				finally { delete this._timer_kaydetDefer }
-			}, 700)
+		this._timer_kaydetDefer = setTimeout(async e => {
+			try { await this.kaydet(e) }
+			finally { delete this._timer_kaydetDefer }
+		}, 700)
 	}
 	async kaydet(e) {
-		e = $.extend({}, e || {}); this.resetCache(e); this.kaydetOncesi(e); let rec = this.hostVars(e); if (!rec) { return this }
+		e = { ...e }; this.resetCache(e)
+		this.kaydetOncesi(e)
+		let rec = this.hostVars(e); if (!rec) { return this }
 		if (typeof rec == 'object') {
 			let _rec = rec; const keys = Object.keys(rec), _keys = keys.filter(key => key[0] != '_');
 			if (keys.length != _keys.length) { _rec = {}; for (const key of _keys) _rec[key] = rec[key]; rec = _rec }
@@ -60,18 +62,26 @@ class MQYerelParamBase extends CIO {
 		if (rec) { this.paramSetValues({ ...e, rec }) }
 	}
 	paramHostVars(e) { const hv = {}; this.paramHostVarsDuzenle({ ...e, hv }); return hv }
-	paramHostVarsDuzenle(e) {
-		e = e || {}; const {paramAttrListe} = this.class; const {hv} = e;
-		for (const key of paramAttrListe) { let value = this[key]; if (value !== undefined && !isFunction(value)) { hv[key] = value } }
-	}
-	paramSetValues(e) {
-		e = e || {}; const {rec} = e; const {paramAttrListe} = this.class;
-		for (const key of paramAttrListe) {
-			if (key == '_p' && key[0] == '_') { continue }
-			let value = rec[key]; if (value !== undefined && !isFunction(value)) { this[key] = value }
+	paramHostVarsDuzenle({ hv }) {
+		let {paramAttrListe} = this.class
+		for (let key of paramAttrListe) {
+			let value = this[key]
+			if (value !== undefined && !isFunction(value))
+				hv[key] = value
 		}
 	}
-	static rootFormBuilderDuzenle(e) { /*e.rootBuilder.onPartInit(e => { const {wndArgs} = e.part; wndArgs.width = 1000 })*/ }
+	paramSetValues({ rec }) {
+		let {paramAttrListe} = this.class
+		for (let key of paramAttrListe) {
+			if (key == '_p' && key[0] == '_') { continue }
+			let value = rec[key]
+			if (value !== undefined && !isFunction(value))
+				this[key] = value
+		}
+	}
+	static rootFormBuilderDuzenle(e) {
+		/*e.rootBuilder.onPartInit(e => { const {wndArgs} = e.part; wndArgs.width = 1000 })*/
+	}
 	static rootFormBuilderDuzenleSonrasi(e) { }
 	static getFormBuilders(e) { const _e = $.extend(e, { liste: [] }); this.formBuildersDuzenle(_e); return e.liste }
 	static formBuildersDuzenle(e) { }
