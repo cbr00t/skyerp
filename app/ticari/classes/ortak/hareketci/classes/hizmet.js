@@ -4,15 +4,16 @@ class HizmetHareketci extends Hareketci {
 	static get donemselIslemlerIcinUygunmu() { return false }
 	static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sol() }
 	static mstYapiDuzenle({ result }) {
-		super.mstYapiDuzenle(...arguments);
+		super.mstYapiDuzenle(...arguments)
 		result.set('hizmetkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
-			sent.fromIliski(`hizmst ${mstAlias}`, `${kodClause} = ${mstAlias}.kod`).add(`${mstAlias}.aciklama ${mstAdiAlias}`))
+			sent.fromIliski(`hizmst ${mstAlias}`, `${kodClause} = ${mstAlias}.kod`)
+				.add(`${mstAlias}.aciklama ${mstAdiAlias}`))
 	}
     /* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
-        super.hareketTipSecim_kaListeDuzenle(...arguments);
-		let {params} = app, {kullanim: ticGenel} = params.ticariGenel, {kullanim: muhasebe} = params.muhasebe, {kullanim: banka} = params.bankaGenel;
-		let {kullanim: alim} = params.alim, {kullanim: satis} = params.satis, {kullanim: aktarim} = params.aktarim;
+        super.hareketTipSecim_kaListeDuzenle(...arguments)
+		let {params} = app, {kullanim: ticGenel} = params.ticariGenel, {kullanim: muhasebe} = params.muhasebe, {kullanim: banka} = params.bankaGenel
+		let {kullanim: alim} = params.alim, {kullanim: satis} = params.satis, {kullanim: aktarim} = params.aktarim
 		kaListe.push(...[
 			new CKodVeAdi(['hizmetDevir', 'Devir']), new CKodVeAdi(['kasa', 'Kasa Hizmet']),
 			new CKodVeAdi(['banka', 'Banka Hizmet']), new CKodVeAdi(['cari', 'Cari Hizmet']),
@@ -30,16 +31,19 @@ class HizmetHareketci extends Hareketci {
 			(aktarim.guleryuzOnline ? new CKodVeAdi(['goMaliyet', 'Güleryüz Maliyet']) : null)
 		].filter(x => !!x))
     }
-	uniOrtakSonIslem({ sender, sent, wh, hvDegeri }) {
-		super.uniOrtakSonIslem(...arguments);
-		let {from} = sent, kodClause = hvDegeri('hizmetkod');
-		if (kodClause && !from.aliasIcinTable('hiz')) { sent.x2HizmetBagla({ kodClause }) }
-		if (!kodClause) { debugger }
-		/*if (sender?.finansalAnalizmi) { }*/
+	uniOrtakSonIslem({ hvDegeri, sent, sent: { from } }) {
+		super.uniOrtakSonIslem(...arguments)
+		let kodClause = hvDegeri('hizmetkod') || 'har.hizmetkod'
+		/*if (!from.aliasIcinTable('sub')) { sent.fis2SubeBagla() }
+		if (!from.aliasIcinTable('igrp')) { sent.sube2GrupBagla() }*/
+		if (!from.aliasIcinTable('hiz')) { sent.fromIliski('hizmst hiz', `${kodClause} = hiz.kod`) }
+		if (!from.aliasIcinTable('grp')) { sent.hizmet2GrupBagla() }
+		if (!from.aliasIcinTable('sigrp')) { sent.hizmet2IstGrupBagla() }
+		if (!from.aliasIcinTable('isl')) { sent.fis2StokIslemBagla() }
 	}
     /** Varsayılan değer atamaları (hostVars) */
     static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
-        /* super.varsayilanHVDuzenle(...arguments); */
+        /* super.varsayilanHVDuzenle(...arguments) */
 		for (let key of ['tarih', 'kdetaysayac']) { hv[key] = sqlNull }
 		for (let key of [
 			'alttip', 'ozelisaret', 'fisnox', 'mustkod', 'refkod', 'refadi', 'plasiyerkod', 'althesapkod',
@@ -557,20 +561,29 @@ class HizmetHareketci extends Hareketci {
         });
         return this
     }
-
-	static maliTablo_secimlerYapiDuzenle({ result }) {
-		super.maliTablo_secimlerYapiDuzenle(...arguments);
-		$.extend(result, { mst: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup, istGrup: DMQHizmetIstGrup, muhHesap: DMQMuhHesap })
+	static maliTablo_secimlerYapiDuzenle({ tip2SecimMFYapi, result }) {
+		super.maliTablo_secimlerYapiDuzenle(...arguments)
+		$.extend(result, {
+			sube: DMQSube, subeGrup: DMQSubeGrup, mst: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup,
+			istGrup: DMQHizmetIstGrup, isl: DMQStokIslem, muhHesap: DMQMuhHesap
+		})
 	}
-	static maliTablo_secimlerSentDuzenle({ detSecimler: detSec, sent, where: wh, hv, mstClause }) {
-		super.maliTablo_secimlerSentDuzenle(...arguments);
-		let {from} = sent; sent.hizmet2GrupBagla().hizmetGrup2AnaGrupBagla().hizmet2IstGrupBagla().x2MuhHesapBagla({ alias: 'hiz' });
-		if (mstClause) {
-			wh.basiSonu(detSec.mstKod, mstClause).ozellik(detSec.mstAdi, 'hiz.aciklama');
-			wh.basiSonu(detSec.grupKod, 'hiz.grupkod').ozellik(detSec.grupAdi, 'grp.aciklama');
-			wh.basiSonu(detSec.anaGrupKod, 'grp.anagrupkod').ozellik(detSec.anaGrupAdi, 'agrp.aciklama');
-			wh.basiSonu(detSec.istGrupKod, 'hiz.histgrupkod').ozellik(detSec.istGrupAdi, 'higrp.aciklama');
-			wh.basiSonu(detSec.muhHesapKod, 'hiz.muhhesap').ozellik(detSec.muhHesapAdi, 'mhes.aciklama')
+	static maliTablo_secimlerSentDuzenle({ detSecimler: sec, sent, sent: { from }, where: wh, hv, mstClause, maliTablo }) {
+		super.maliTablo_secimlerSentDuzenle(...arguments)
+		// let {det: { shStokHizmet = {} } = {}} = maliTablo ?? {}, {hizmetmi} = shStokHizmet
+		mstClause ||= hv.shkod || 'har.hizmetkod'
+		let grpClause = hv.grupkod || 'hiz.grupkod', aGrpClause = hv.anaGrupkod || 'grp.anagrupkod'
+		let iGrpClause = hv.istgrupkod || 'hiz.histgrupkod', islClause = hv.islkod || 'fis.islkod'
+		let muhHesapClause = hv.muhhesapkod || 'hiz.muhhesapkod'
+		if (sec) {
+			/*wh.basiSonu(sec.subeKod, 'fis.bizsubekod').ozellik(sec.subeAdi, 'sub.aciklama')*/
+			wh.basiSonu(sec.subeGrupKod, 'sub.isygrupkod').ozellik(sec.subeGrupAdi, 'igrp.aciklama')
+			wh.basiSonu(sec.mstKod, mstClause).ozellik(sec.mstAdi, 'hiz.aciklama')
+			wh.basiSonu(sec.grupKod, grpClause).ozellik(sec.grupAdi, 'grp.aciklama')
+			wh.basiSonu(sec.anaGrupKod, aGrpClause).ozellik(sec.anaGrupAdi, 'agrp.aciklama')
+			wh.basiSonu(sec.istGrupKod, iGrpClause).ozellik(sec.istGrupAdi, `higrp.aciklama`)
+			wh.basiSonu(sec.islKod, islClause).ozellik(sec.islAdi, 'isl.aciklama')
+			wh.basiSonu(sec.muhHesap, muhHesapClause)
 		}
 	}
 

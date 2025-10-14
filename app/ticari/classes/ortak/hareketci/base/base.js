@@ -15,7 +15,10 @@ class Hareketci extends CObject {
 		}
 		return result
 	}
-	static get anaTipTekSecim() { let {anaTipKAListe: kaListe} = this; return new TekSecim({ kaListe }) }
+	static get anaTipTekSecim() {
+		let {anaTipKAListe: kaListe} = this
+		return new TekSecim({ kaListe })
+	}
 	static get anaTipKAListe() {
 		let cacheSelector = '_anaTipKAListe', result = this[cacheSelector];
 		if (result == null) {
@@ -125,13 +128,6 @@ class Hareketci extends CObject {
 	static ilkIslemler(e) { }
 	uniOrtakSonIslem({ sender, hv, sent, sent: { from, where: wh, sahalar }, secimler, det = {}, detSecimler = {}, donemTipi, sqlNull, sqlEmpty, sqlZero }) {
 		let tbWhere = secimler?.getTBWhereClause(...arguments)
-		{
-			let {takipno: kodClause} = hv 
-			if (kodClause && ![sqlNull, sqlEmpty].includes(kodClause)) {
-				if (!from.aliasIcinTable('tak')) { sent.fromIliski('takipmst tak', `${kodClause} = tak.kod`) }
-				if (!from.aliasIcinTable('tgrp')) { sent.takip2GrupBagla() }
-			}
-		}
 		if (tbWhere?.liste?.length) { wh.birlestir(tbWhere) }
 		if (sender?.finansalAnalizmi) {
 			let {finanalizkullanilmaz: finAnalizKullanimClause} = hv
@@ -315,21 +311,42 @@ class Hareketci extends CObject {
 	}
 	static maliTablo_secimlerYapiDuzenle({ result }) { }
 	// static maliTablo_secimlerSentDuzenle({ secimler: genSec, detSecimler: detSec, uni, sent, where: wh, hv, donemTipi, det, har, attrSet, mstYapi, mstYapi: { hvAlias } }) {
-	static maliTablo_secimlerSentDuzenle({ secimler: sec, detSecimler: detSec, sent: { from }, where: wh, hv, mstClause }) {
+	static maliTablo_secimlerSentDuzenle({ secimler: sec, detSecimler: detSec, sent, sent: { from, where: wh }, hv, mstClause }) {
 		let {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs
-		{
-			let {takipno: kodClause} = hv
-			if (kodClause && ![sqlNull, sqlEmpty].includes(kodClause)) {
-				if (sec.takipKod && from.aliasIcinTable('tak')) {
-					wh.basiSonu(sec.takipKod, kodClause)
-					wh.ozellik(sec.takipAdi, 'tak.aciklama')
-				}
-				if (sec.takipGrupKod && from.aliasIcinTable('tgrp')) {
-					wh.basiSonu(sec.takipGrupKod, 'tak.grupkod')
-					wh.ozellik(sec.takipGrupAdi, 'tgrp.aciklama')
-				}
+		let varmi = kodClause => kodClause && ![sqlNull, sqlEmpty].includes(kodClause)
+		let varsaYap = (kodClause, block) => {
+			if (!varmi(kodClause))
+				return false
+			for (let secimler of [detSec, sec]) {
+				if (secimler)
+					block?.call(this, { kodClause, secimler })
 			}
+			return true
 		}
+		varsaYap(hv.takipno, ({ kodClause, secimler: _sec }) => {
+			if (_sec.takipKod) {
+				if (!from.aliasIcinTable('tak'))
+					sent.fromIliski('takipmst tak', `${kodClause} = tak.kod`)
+				wh.basiSonu(_sec.takipKod, kodClause).ozellik(_sec.takipAdi, 'tak.aciklama')
+			}
+			if (_sec.takipGrupKod) {
+				if (!from.aliasIcinTable('tgrp'))
+					sent.takip2GrupBagla()
+				wh.basiSonu(_sec.takipGrupKod, 'tak.grupkod').ozellik(_sec.takipGrupAdi, 'tgrp.aciklama')
+			}
+		})				
+		varsaYap(hv.bizsubekod, ({ kodClause, secimler: _sec }) => {
+			if (_sec.subeKod) {
+				if (!from.aliasIcinTable('sub'))
+					sent.fromIliski('isyeri sub', `${kodClause} = sub.kod`)
+				wh.basiSonu(_sec.subeKod, kodClause).ozellik(_sec.subeAdi, 'sub.aciklama')
+			}
+			if (_sec.subeGrupKod) {
+				if (!from.aliasIcinTable('igrp'))
+					sent.sube2GrupBagla()
+				wh.basiSonu(_sec.subeGrupKod, 'sub.isygrupkod').ozellik(_sec.subeGrupAdi, 'igrp.aciklama')
+			}
+		})
 	}
 }
 

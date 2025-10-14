@@ -2,22 +2,25 @@ class StokCikisBasitHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 1 }
 	static get kod() { return 'stokCikisBasit' } static get aciklama() { return 'Stok Çıkış' }
 	static get uygunmu() { return true } static get kisaKod() { return 'SC' }
-	static get donemselIslemlerIcinUygunmu() { return false } static get eldekiVarliklarIcinUygunmu() { return this.donemselIslemlerIcinUygunmu }
+	static get donemselIslemlerIcinUygunmu() { return false }
+	static get eldekiVarliklarIcinUygunmu() { return this.donemselIslemlerIcinUygunmu }
 	static get stokCikisBasitmi() { return true }
 	static getAltTipAdiVeOncelikClause({ hv }) { return { } }
 	static mstYapiDuzenle({ result }) {
-		super.mstYapiDuzenle(...arguments);
+		super.mstYapiDuzenle(...arguments)
 		result.set('stokkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
 			sent.fromIliski(`stkmst ${mstAlias}`, `${kodClause} = ${mstAlias}.kod`).add(`${mstAlias}.aciklama ${mstAdiAlias}`))
 	}
 	/* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
-        super.hareketTipSecim_kaListeDuzenle(arguments); kaListe.push(...[
-			new CKodVeAdi(['stokCikis', 'Stok Çıkış'])
-		])
+        super.hareketTipSecim_kaListeDuzenle(arguments)
+		kaListe.push(new CKodVeAdi(['stokCikis', 'Stok Çıkış']))
     }
 	uniOrtakSonIslem({ hvDegeri, sent, sent: { from } }) {
-		super.uniOrtakSonIslem(...arguments); let kodClause = hvDegeri('shkod') || 'har.stokkod';
+		super.uniOrtakSonIslem(...arguments)
+		let kodClause = hvDegeri('shkod') || 'har.stokkod'
+		/*if (!from.aliasIcinTable('sub')) { sent.fis2SubeBagla() }
+		if (!from.aliasIcinTable('igrp')) { sent.sube2GrupBagla() }*/
 		if (!from.aliasIcinTable('stk')) { sent.fromIliski('stkmst stk', `${kodClause} = stk.kod`) }
 		if (!from.aliasIcinTable('grp')) { sent.stok2GrupBagla() }
 		if (!from.aliasIcinTable('sigrp')) { sent.stok2IstGrupBagla() }
@@ -28,7 +31,7 @@ class StokCikisBasitHareketci extends Hareketci {
     static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) { }
     /** UNION sorgusu hazırlama – hareket tipleri için */
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
-        super.uygunluk2UnionBilgiListeDuzenleDevam(e);
+        super.uygunluk2UnionBilgiListeDuzenleDevam(e)
         this.uniDuzenle_stokCikis(e)
     }
     /** (Ticari Stok/Hizmet) için UNION */
@@ -52,17 +55,24 @@ class StokCikisBasitHareketci extends Hareketci {
     }
 	static maliTablo_secimlerYapiDuzenle({ result }) {
 		super.maliTablo_secimlerYapiDuzenle(...arguments)
-		$.extend(result, { mst: DMQStok, grup: DMQStokGrup, istGrup: DMQStokIstGrup, tip: DMQStokTip, isl: DMQStokIslem })
+		$.extend(result, {
+			sube: DMQSube, subeGrup: DMQSubeGrup, mst: DMQStok, grup: DMQStokGrup, anaGrup: DMQStokAnaGrup,
+			istGrup: DMQStokIstGrup, tip: DMQStokTip, isl: DMQStokIslem
+		})
 	}
 	static maliTablo_secimlerSentDuzenle({ detSecimler: sec, sent, sent: { from }, where: wh, hv, mstClause, maliTablo }) {
 		super.maliTablo_secimlerSentDuzenle(...arguments);
 		mstClause ||= hv.shkod || 'har.stokkod'
-		let grpClause = hv.grupkod || 'stk.grupkod', iGrpClause = hv.istgrupkod || 'stk.istgrupkod'
+		let grpClause = hv.grupkod || 'stk.grupkod',  aGrpClause = hv.anaGrupkod || 'grp.anagrupkod'
+		iGrpClause = hv.istgrupkod || 'stk.istgrupkod'
 		let tipClause = hv.tipkod || 'stk.stoktipi', islClause = hv.islkod || 'fis.islkod'
 		if (sec) {
-			wh.basiSonu(sec.mstKod, mstClause).ozellik(sec.mstAdi, 'stk.aciklama');
-			wh.basiSonu(sec.grupKod, grpClause).ozellik(sec.grupAdi, 'grp.aciklama');
-			wh.basiSonu(sec.istGrupKod, iGrpClause).ozellik(sec.istGrupAdi, 'sigrp.aciklama');
+			wh.basiSonu(sec.subeKod, 'fis.bizsubekod').ozellik(sec.subeAdi, 'sub.aciklama')
+			wh.basiSonu(sec.subeGrupKod, 'sub.isygrupkod').ozellik(sec.subeGrupAdi, 'igrp.aciklama')
+			wh.basiSonu(sec.mstKod, mstClause).ozellik(sec.mstAdi, 'stk.aciklama')
+			wh.basiSonu(sec.grupKod, grpClause).ozellik(sec.grupAdi, 'grp.aciklama')
+			wh.basiSonu(sec.anaGrupKod, aGrpClause).ozellik(sec.anaGrupAdi, 'agrp.aciklama');
+			wh.basiSonu(sec.istGrupKod, iGrpClause).ozellik(sec.istGrupAdi, 'sigrp.aciklama')
 			wh.basiSonu(sec.tipKod, tipClause)
 			wh.basiSonu(sec.islKod, islClause).ozellik(sec.islAdi, 'isl.aciklama')
 		}

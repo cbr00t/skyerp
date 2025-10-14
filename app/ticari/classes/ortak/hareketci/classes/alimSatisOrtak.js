@@ -14,7 +14,8 @@ class AlimSatisOrtakHareketci extends Hareketci {
 	}
     /* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
-        super.hareketTipSecim_kaListeDuzenle(arguments); kaListe.push(...[
+        super.hareketTipSecim_kaListeDuzenle(arguments)
+		kaListe.push(...[
 			new CKodVeAdi(['stok', 'Stok']),
 			new CKodVeAdi(['hizmet', 'Hizmet'])
 		])
@@ -35,10 +36,12 @@ class AlimSatisOrtakHareketci extends Hareketci {
             }
 		})
     }
-	uniOrtakSonIslem({ sender, hv, sent, sent: { where: wh }, secimler, det = {}, detSecimler = {}, donemTipi, sqlNull, sqlEmpty, sqlZero }) {
-		/*let {det: {veriTipi, shIade, shAyrimTipi} = {}} = this.maliTablo ?? {};
-		if (shIade?.secilen) { wh.add(``) }*/
+	uniOrtakSonIslem({ sender, hv, sent, sent: { from, where: wh }, secimler, det = {}, detSecimler = {}, donemTipi, sqlNull, sqlEmpty, sqlZero }) {
 		super.uniOrtakSonIslem(...arguments)
+		/*if (!from.aliasIcinTable('sub')) { sent.fis2SubeBagla() }
+		if (!from.aliasIcinTable('igrp')) { sent.sube2GrupBagla() }*/
+		// ... diğerleri stok/hizmet durumuna göre 'uniDuzenle_stokHizmet()' kısmında bağlanıyor
+		if (!from.aliasIcinTable('isl')) { sent.fis2StokIslemBagla() }
 	}
     /** UNION sorgusu hazırlama – hareket tipleri için */
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
@@ -85,9 +88,9 @@ class AlimSatisOrtakHareketci extends Hareketci {
 					};
 					addAyrimTipiKosul('in'); addAyrimTipiKosul('notIn')
 				}
-				sent[`har2${hizmetmi ? 'Hizmet' : 'Stok'}Bagla`]();
-				sent[`${hizmetmi ? 'hizmet' : 'stok'}2GrupBagla`]();
-				sent[`${hizmetmi ? 'hizmet' : 'stok'}2IstGrupBagla`]();
+				sent[`har2${hizmetmi ? 'Hizmet' : 'Stok'}Bagla`]()
+				sent[`${hizmetmi ? 'hizmet' : 'stok'}2GrupBagla`]()
+				sent[`${hizmetmi ? 'hizmet' : 'stok'}2IstGrupBagla`]()
 			}).hvDuzenleIslemi(({ hv, sqlZero }) => {
 				$.extend(hv, {
 					oncelik: '1', ba: `'B'`, fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac', kayittipi: `'AS'`,
@@ -116,19 +119,21 @@ class AlimSatisOrtakHareketci extends Hareketci {
     }
 	static maliTablo_secimlerYapiDuzenle({ tip2SecimMFYapi, result }) {
 		super.maliTablo_secimlerYapiDuzenle(...arguments)
+		let ortakSecimMFYapi = { sube: DMQSube, subeGrup: DMQSubeGrup }
 		$.extend(tip2SecimMFYapi, {
-			S: { mst: DMQStok, grup: DMQStokGrup, anaGrup: DMQStokAnaGrup, istGrup: DMQStokIstGrup, tip: DMQStokTip },
-			H: { mst: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup, istGrup: DMQHizmetIstGrup, muhHesap: DMQMuhHesap }
+			S: { ...ortakSecimMFYapi, mst: DMQStok, grup: DMQStokGrup, anaGrup: DMQStokAnaGrup, istGrup: DMQStokIstGrup, tip: DMQStokTip, isl: DMQStokIslem },
+			H: { ...ortakSecimMFYapi, mst: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup, istGrup: DMQHizmetIstGrup, isl: DMQStokIslem, muhHesap: DMQMuhHesap }
 		})
 	}
 	static maliTablo_secimlerSentDuzenle({ detSecimler: sec, sent, sent: { from }, where: wh, hv, mstClause, maliTablo }) {
 		super.maliTablo_secimlerSentDuzenle(...arguments)
 		let {det: { shStokHizmet = {} } = {}} = maliTablo ?? {}, {stokmu, hizmetmi} = shStokHizmet
 		let mstAlias = hizmetmi ? 'hiz' : 'stk', prefix = hizmetmi ? 'h' : 's'
-		let grpClause = hv.grupkod || `${mstAlias}.grupkod`
-		let aGrpClause = hv.anaGrupkod || 'grp.anagrupkod'
+		let grpClause = hv.grupkod || `${mstAlias}.grupkod`, aGrpClause = hv.anaGrupkod || 'grp.anagrupkod'
 		let iGrpClause = hv.istgrupkod || `${mstAlias}.${prefix}istgrupkod`, iGrpAlias = `${prefix}igrp`
-		mstClause ||= hv.shkod || `har.${hizmetmi ? 'hizmet' : 'stok'}kod`;
+		mstClause ||= hv.shkod || `har.${hizmetmi ? 'hizmet' : 'stok'}kod`
+		let tipClause = hv.tipkod || `${mstAlias}.tipi`, islClause = hv.islkod || 'fis.islkod'
+		let muhHesapClause = hv.muhhesapkod || `${mstAlias}.muhhesapkod`
 		if (sec && shStokHizmet.secilen && !shStokHizmet.birliktemi) {
 			let harStokmu = from.aliasIcinTable('har')?.deger == 'pifstok'
 			let harHizmetmi = from.aliasIcinTable('har')?.deger == 'pifhizmet'
@@ -137,7 +142,9 @@ class AlimSatisOrtakHareketci extends Hareketci {
 			wh.basiSonu(sec.grupKod, grpClause).ozellik(sec.grupAdi, 'grp.aciklama')
 			wh.basiSonu(sec.anaGrupKod, aGrpClause).ozellik(sec.anaGrupAdi, 'agrp.aciklama')
 			wh.basiSonu(sec.istGrupKod, iGrpClause).ozellik(sec.istGrupAdi, `${iGrpAlias}.aciklama`)
-			if (harStokmu) { wh.basiSonu(sec.tipKod, `${mstAlias}.tipi`) }
+			if (harStokmu) { wh.basiSonu(sec.tipKod, tipClause) }
+			wh.basiSonu(sec.islKod, islClause).ozellik(sec.islAdi, 'isl.aciklama')
+			if (harHizmetmi) { wh.basiSonu(sec.muhHesap, muhHesapClause) }
 		}
 	}
 }

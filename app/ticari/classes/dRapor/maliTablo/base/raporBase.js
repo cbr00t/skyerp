@@ -20,11 +20,12 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 	tabloYapiDuzenle_son({ result }) { }
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
+		this.class.maliTablo_basSecimlerDuzenle(...arguments)
+	}
+	static maliTablo_basSecimlerDuzenle({ secimler: sec }) {
 		let {takipNo} = app.params.ticariGenel.kullanim
-		if (takipNo) {
-			sec.addKA('takip', DMQTakipNo)
-			sec.addKA('takipGrup', DMQTakipGrup)
-		}
+		if (takipNo) { sec.addKA('takip', DMQTakipNo).addKA('takipGrup', DMQTakipGrup) }
+		sec.addKA('sube', DMQSube).addKA('subeGrup', DMQSubeGrup)
 	}
 	async tazele(e) {
 		await this.tazeleOncesi(e);

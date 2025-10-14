@@ -269,10 +269,10 @@ class SBTabloDetay extends MQDetay {
 		for (let [tip, yapi] of Object.entries(tip2SecimMFYapi)) {
 			if ($.isEmptyObject(yapi)) { continue }
 			let secimler = tip2Secimler[tip]; if (secimler) { continue }
-			let secimEkWhereDuzenle = tip2EkWhereDuzenleyici[tip]
 			secimler = tip2Secimler[tip] = new Secimler()
-			$.extend(secimler, { secimEkWhereDuzenle })
+			$.extend(secimler, { secimEkWhereDuzenle: tip2EkWhereDuzenleyici[tip] })
 			secimler.beginUpdate()
+			SBRapor_Main.maliTablo_basSecimlerDuzenle({ ...e, secimler })
 			for (let [key, mfSinif] of Object.entries(yapi)) {
 				let {kodListeTipi: grupKod, sinifAdi: grupAdi, adiKullanilirmi} = mfSinif
 				secimler.grupEkle(grupKod, grupAdi);
@@ -427,7 +427,7 @@ class SBTabloDetay extends MQDetay {
 						harSinif.maliTablo_secimlerSentDuzenle(_e)
 						/* harSinif.maliTablo_secimlerFromEkBagla(_e) */
 					}
-					else {
+					/*else {
 						let mstTableAlias = hizmetmi ? 'hiz' : 'stk', iGrpAlias = hizmetmi ? 'higrp' : 'sigrp'
 						let mstBaglaSelector = hizmetmi ? 'x2HizmetBagla' : 'x2StokBagla'
 						let ekBaglaPrefix = hizmetmi ? 'hizmet' : 'stok', mstKodAlias = `${ekBaglaPrefix}kod`
@@ -438,7 +438,7 @@ class SBTabloDetay extends MQDetay {
 						if (!from.aliasIcinTable(iGrpAlias)) { sent[`${ekBaglaPrefix}2IstGrupBagla`]() }
 						if (!stokmu && !from.aliasIcinTable('mhes')) { sent.x2MuhHesapBagla({ alias: mstTableAlias }) }
 						wh.birlestir(detSecimler.getTBWhereClause(_e))
-					}
+					}*/
 				}
 				if (yatayAnalizVarmi && !yatayAnaliz.dbmi) {
 					let {ekBilgi = {}} = yatayAnaliz, { zorunluKodAttr: kodAttr } = ekBilgi
