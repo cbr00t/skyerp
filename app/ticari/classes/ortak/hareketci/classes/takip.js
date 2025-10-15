@@ -1,6 +1,8 @@
 class TakipHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 30 }
-	static get kod() { return 'takip' } static get aciklama() { return 'Takip No' }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get oncelik() { return 30 } static get kod() { return 'takip' } static get aciklama() { return 'Takip No' }
+	static get kisaKod() { return 'TK' } static get maliTabloIcinUygunmu() { return true }
+
 	static get uygunmu() { return app?.params?.ticariGenel?.kullanim?.takipNo }
 	static get donemselIslemlerIcinUygunmu() { return false } static get eldekiVarliklarIcinUygunmu() { return false }
 	static getAltTipAdiVeOncelikClause({ hv }) { return { } }

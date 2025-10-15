@@ -229,12 +229,10 @@ class DMQBankaHesap extends DMQKA {
 		)
 	}
 	static loadServerData_queryDuzenle({ sent }) {
-		super.loadServerData_queryDuzenle(...arguments); let {tableAlias: alias} = this;
+		super.loadServerData_queryDuzenle(...arguments); let {tableAlias: alias} = this
 		sent.bankaHesap2BankaBagla()
 			.fromIliski('banhesapgrup bhgrp', `${alias}.grupkod = bhgrp.kod`)
 	}
-	
-	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e;  }
 }
 class DMQBankaHesapGrup extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Banka Hesap Grup' }

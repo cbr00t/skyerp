@@ -103,6 +103,7 @@ class ESEApp extends App {
 	    // Calculate if DEHB criteria are met
 	    return d.de.skor >= t.deMin || d.hi.skor >= t.hiMin
 	}
+	// tercih edilen
 	dehbmi_x1(e) {
 	    let t = {
 			deSkor: 11.92,        // Ortalama üzerinden ayarlanan eşik
@@ -259,7 +260,8 @@ class ESEApp extends App {
 	}
 	async testlerIcinOzelDEHBmiBelirle(e) {
 		e = e ?? {}; let recs = e.recs ?? await MQTest.loadServerData(), dehb2IdListe = {}; if (!recs?.length) { return null }
-		let selector = e.selector ?? 'dehbmi'; for (let rec of recs) {
+		let selector = e.selector ?? 'dehbmi_x1'
+		for (let rec of recs) {
 			let {id} = rec, dehbmi = this[selector](rec); if (dehbmi == null) { continue }
 			(dehb2IdListe[dehbmi] = dehb2IdListe[dehbmi] ?? []).push(id)
 		}

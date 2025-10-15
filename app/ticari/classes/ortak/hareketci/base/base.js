@@ -3,6 +3,7 @@ class Hareketci extends CObject {
 	static get oncelik() { return 99 } static get kisaKod() { return this.kod }
 	static get kod() { return null } static get aciklama() { return null } static get araSeviyemi() { return this == Hareketci }
 	static get donemselIslemlerIcinUygunmu() { return true } static get eldekiVarliklarIcinUygunmu() { return this.donemselIslemlerIcinUygunmu }
+	static get maliTabloIcinUygunmu() { return true }
 	static get defaultYon() { return 'sol' }
 	static get kod2Sinif() {
 		let {_kod2Sinif: result} = this; if (result == null) {
@@ -20,10 +21,11 @@ class Hareketci extends CObject {
 		return new TekSecim({ kaListe })
 	}
 	static get anaTipKAListe() {
-		let cacheSelector = '_anaTipKAListe', result = this[cacheSelector];
+		let cacheSelector = '_anaTipKAListe', result = this[cacheSelector]
 		if (result == null) {
-			let {kod2Sinif} = this; result = this[cacheSelector] = [];
-			for (let [kod, cls] of Object.entries(kod2Sinif)) { result.push(new CKodAdiVeEkBilgi({ kod, aciklama: cls.aciklama, ekBilgi: cls })) }
+			let {kod2Sinif} = this; result = this[cacheSelector] = []
+			for (let [kod, cls] of Object.entries(kod2Sinif))
+				result.push(new CKodAdiVeEkBilgi({ kod, aciklama: cls.aciklama, ekBilgi: cls }))
 		}
 		return result
 	}
@@ -31,12 +33,17 @@ class Hareketci extends CObject {
 		let cacheSelector = '_hareketTipSecim', result = this[cacheSelector];
 		if (result === undefined) { result = this[cacheSelector] = this.hareketTipSecimInternal } return result
 	}
-	static get hareketTipSecimInternal() { let cls = this.hareketTipSecimSinif; return cls ? new cls() : null }
+	static get hareketTipSecimInternal() {
+		let cls = this.hareketTipSecimSinif
+		return cls ? new cls() : null
+	}
 	static get hareketTipSecimSinif() {
 		const $this = this; return class extends TekSecim {
 			kaListeDuzenle(e) {
-				super.kaListeDuzenle(e); let _e = { ...e, kaListe: [] }; $this.hareketTipSecim_kaListeDuzenle(_e);
-				let {kaListe} = _e; if (kaListe) { this.kaListe = kaListe = kaListe.filter(ka => !!ka) }
+				super.kaListeDuzenle(e); let _e = { ...e, kaListe: [] }
+				$this.hareketTipSecim_kaListeDuzenle(_e); let {kaListe} = _e
+				if (kaListe)
+					this.kaListe = kaListe = kaListe.filter(ka => !!ka)
 			}
 		}
 	}

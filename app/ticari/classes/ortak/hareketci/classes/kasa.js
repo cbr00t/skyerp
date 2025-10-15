@@ -1,6 +1,8 @@
 class KasaHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 1 }
 	static get kisaKod() { return 'KS' } static get kod() { return 'kasa' } static get aciklama() { return 'Kasa' }
+	static get maliTabloIcinUygunmu() { return true }
+
 	static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sol() }
 	static mstYapiDuzenle({ result }) {
 		super.mstYapiDuzenle(...arguments);
@@ -210,14 +212,14 @@ class KasaHareketci extends Hareketci {
 	}
 
 	static maliTablo_secimlerYapiDuzenle({ result }) {
-		super.maliTablo_secimlerYapiDuzenle(...arguments);
+		super.maliTablo_secimlerYapiDuzenle(...arguments)
 		$.extend(result, { mst: DMQKasa, grup: DMQKasaGrup, muhHesap: DMQMuhHesap })
 	}
-	static maliTablo_secimlerSentDuzenle({ detSecimler: detSec, sent, where: wh, hv, mstClause }) {
-		super.maliTablo_secimlerSentDuzenle(...arguments);
-		let {from} = sent; sent.kasa2GrupBagla().x2MuhHesapBagla({ alias: 'kas' });
-		wh.basiSonu(detSec.mstKod, mstClause).ozellik(detSec.mstAdi, 'kas.aciklama');
-		wh.basiSonu(detSec.grupKod, 'kas.grupkod').ozellik(detSec.grupAdi, 'kgrp.aciklama');
+	static maliTablo_secimlerSentDuzenle({ detSecimler: detSec, sent, sent: { from, where: wh }, hv, mstClause }) {
+		super.maliTablo_secimlerSentDuzenle(...arguments)
+		sent.kasa2GrupBagla().x2MuhHesapBagla({ alias: 'kas' })
+		wh.basiSonu(detSec.mstKod, mstClause).ozellik(detSec.mstAdi, 'kas.aciklama')
+		wh.basiSonu(detSec.grupKod, 'kas.grupkod').ozellik(detSec.grupAdi, 'kgrp.aciklama')
 		wh.basiSonu(detSec.muhHesapKod, 'kas.muhhesap').ozellik(detSec.muhHesapAdi, 'mhes.aciklama')
 	}
 }

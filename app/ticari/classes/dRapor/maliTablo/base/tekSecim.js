@@ -77,6 +77,62 @@ class SBTabloYatayAnaliz extends TekSecim {
 					kodClause = `FORMAT(${kodClause}, 'MM-MMMM', 'tr-TR')`
 					sahalar.add(`${kodClause} yatay`)
 				}
+			}]),
+			new CKodAdiVeEkBilgi(['BANKA', 'Banka', 'bankami', new class extends SBTabloYatayAnaliz_EkBilgi {
+				hvKA = new CKodVeAdi(['bankakod', 'bankaadi'])
+				zorunluKodAttrListe = ['banhesapkod']
+				sentDuzenle({ hv, sent, sent: { from, sahalar, where: wh } }) {
+					super.sentDuzenle(...arguments)
+					{
+						let {zorunluKodAttr} = this, yatayAlias = 'bhes'
+						let kodClause = hv[zorunluKodAttr] || `fis.${zorunluKodAttr}`
+						if (!from.aliasIcinTable(yatayAlias)) { sent.x2BankaHesapBagla({ kodClause }) }
+					}
+					{
+						let yatayAlias = 'ban'
+						if (!from.aliasIcinTable(yatayAlias)) { sent.bankaHesap2BankaBagla() }
+						sahalar.add('ban.aciklama yatay')
+					}
+				}
+			}]),
+			new CKodAdiVeEkBilgi(['KASA', 'Kasa', 'kasami', new class extends SBTabloYatayAnaliz_EkBilgi {
+				hvKA = new CKodVeAdi(['kasakod', 'kasaadi'])
+				sentDuzenle({ kodClause, hv, sent, sent: { from, sahalar, where: wh } }) {
+					super.sentDuzenle(...arguments)
+					/* kodAttr için sent'e clause eklenmiş olarak gelecek */
+					let {kodAttr} = this, yatayAlias = 'kas'
+					kodClause ||= `fis.${kodAttr}`
+					if (!from.aliasIcinTable(yatayAlias)) { sent.x2KasaBagla({ kodClause }) }
+					sahalar.add('kas.aciklama yatay')
+				}
+			}]),
+			new CKodAdiVeEkBilgi(['BANKA', 'Banka', 'bankami', new class extends SBTabloYatayAnaliz_EkBilgi {
+				hvKA = new CKodVeAdi(['bankakod', 'bankaadi'])
+				zorunluKodAttrListe = ['banhesapkod']
+				sentDuzenle({ hv, sent, sent: { from, sahalar, where: wh } }) {
+					super.sentDuzenle(...arguments)
+					{
+						let {zorunluKodAttr} = this, yatayAlias = 'bhes'
+						let kodClause = hv[zorunluKodAttr] || `fis.${zorunluKodAttr}`
+						if (!from.aliasIcinTable(yatayAlias)) { sent.x2BankaHesapBagla({ kodClause }) }
+					}
+					{
+						let yatayAlias = 'ban'
+						if (!from.aliasIcinTable(yatayAlias)) { sent.bankaHesap2BankaBagla() }
+						sahalar.add('ban.aciklama yatay')
+					}
+				}
+			}]),
+			new CKodAdiVeEkBilgi(['BANHES', 'Banka Hesap', 'bankaHesapmi', new class extends SBTabloYatayAnaliz_EkBilgi {
+				hvKA = new CKodVeAdi(['bankakod', 'bankaadi'])
+				sentDuzenle({ kodClause, hv, sent, sent: { from, sahalar, where: wh } }) {
+					super.sentDuzenle(...arguments)
+					/* kodAttr için sent'e clause eklenmiş olarak gelecek */
+					let {kodAttr} = this, yatayAlias = 'bhes'
+					kodClause ||= `fis.${kodAttr}`
+					if (!from.aliasIcinTable(yatayAlias)) { sent.x2BankaHesapBagla({ kodClause }) }
+					sahalar.add('bhes.aciklama yatay')
+				}
 			}])
 		)
 	}
@@ -97,19 +153,22 @@ class SBTabloHesapTipi extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle({ kaListe }) {
-		super.kaListeDuzenle(...arguments); let ekListe = [
+		super.kaListeDuzenle(...arguments)
+		let ekListe = [
 			/*new CKodAdiVeEkBilgi(['', 'Yok', 'yokmu', { ozelmi: true }]),*/
 			new CKodAdiVeEkBilgi(['AS', 'Alt Seviye Toplamı', 'altSeviyeToplamimi', { formulmu: true }]),
 			new CKodAdiVeEkBilgi(['FR', 'Satırlar Toplamı', 'satirlarToplamimi', { formulmu: true }])
 			/* (config.dev ? null : new CKodAdiVeEkBilgi(['SH', 'Ticari', 'ticarimi', { querymi: true }])) */
 		].filter(x => !!x);
-		let harSiniflar = [StokCikisBasitHareketci, SatisHareketci, AlimHareketci, KasaHareketci, HizmetHareketci, BankaMevduatHareketci];
+		// let harSiniflar = [StokCikisBasitHareketci, SatisHareketci, AlimHareketci, KasaHareketci, HizmetHareketci, BankaMevduatHareketci]
+		let harSiniflar = Object.values(Hareketci.kod2Sinif).filter(cls => cls.maliTabloIcinUygunmu)
 		for (let harSinif of harSiniflar) {
 			let {kisaKod, kod, aciklama} = harSinif;
 			let question = `${kod}mi`; aciklama += ' Hareketleri';
 			ekListe.push(new CKodAdiVeEkBilgi([kisaKod, aciklama, question, { harSinif }]))
 		}
-		if (config.dev) { ekListe.push(new CKodAdiVeEkBilgi(['FX', 'Formül', 'formulmu'], { formulmu: true })) }
+		if (config.dev)
+			ekListe.push(new CKodAdiVeEkBilgi(['FX', 'Formül', 'formulmu'], { formulmu: true }))
 		
 		for (let {ekBilgi} of ekListe) {
 			if (!ekBilgi) { continue }

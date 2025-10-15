@@ -1,6 +1,7 @@
 class BankaMevduatHareketci extends BankaOrtakHareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 2 }
-    static get kisaKod() { return 'BM' } static get kod() { return 'bankaMevduat' } static get aciklama() { return 'Banka Mevduat' }
+    static get kod() { return 'bankaMevduat' } static get aciklama() { return 'Banka Mevduat' }
+	static get kisaKod() { return 'BM' } static get maliTabloIcinUygunmu() { return true }
 	static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sol() }
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
         super.hareketTipSecim_kaListeDuzenle(...arguments); kaListe.push(
