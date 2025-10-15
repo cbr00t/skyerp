@@ -21,7 +21,7 @@ class BankaOrtakHareketci extends Hareketci {
 	}
 	static maliTablo_secimlerYapiDuzenle({ result }) {
 		super.maliTablo_secimlerYapiDuzenle(...arguments)
-		$.extend(result, { mst: DMQBankaHesap, grup: DMQBankaHesapGrup, banka: DMQBanka })
+		$.extend(result, { sube: DMQSube, subeGrup: DMQSubeGrup, mst: DMQBankaHesap, grup: DMQBankaHesapGrup, banka: DMQBanka })
 	}
 	static maliTablo_secimlerSentDuzenle({ detSecimler: detSec, sent, sent: { from, where: wh }, hv, mstClause }) {
 		super.maliTablo_secimlerSentDuzenle(...arguments)

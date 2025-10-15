@@ -132,7 +132,7 @@ class AlimSatisOrtakHareketci extends Hareketci {
 		let grpClause = hv.grupkod || `${mstAlias}.grupkod`, aGrpClause = hv.anaGrupkod || 'grp.anagrupkod'
 		let iGrpClause = hv.istgrupkod || `${mstAlias}.${prefix}istgrupkod`, iGrpAlias = `${prefix}igrp`
 		mstClause ||= hv.shkod || `har.${hizmetmi ? 'hizmet' : 'stok'}kod`
-		let tipClause = hv.tipkod || `${mstAlias}.tipi`, islClause = hv.islkod || 'fis.islkod'
+		let tipClause = hv.tipkod || `${mstAlias}.tipi`, islClause = hv.islkod || hv.islemkod || 'fis.islkod'
 		let muhHesapClause = hv.muhhesapkod || `${mstAlias}.muhhesapkod`
 		if (sec && shStokHizmet.secilen && !shStokHizmet.birliktemi) {
 			let harStokmu = from.aliasIcinTable('har')?.deger == 'pifstok'

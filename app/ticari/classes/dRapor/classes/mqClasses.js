@@ -325,3 +325,7 @@ class DMQStokIslem extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok İşlem' }
 	static get kodListeTipi() { return 'STKISL' } static get table() { return 'stkisl' } static get tableAlias() { return 'isl' }
 }
+class DMQMuhIslem extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe İşlem' }
+	static get kodListeTipi() { return 'MUHISL' } static get table() { return 'muhisl' } static get tableAlias() { return 'isl' }
+}

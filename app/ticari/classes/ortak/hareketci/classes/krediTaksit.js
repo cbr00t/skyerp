@@ -1,7 +1,15 @@
 class KrediTaksitHareketci extends BankaOrtakHareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 5 }
 	static get kod() { return 'krediTaksit' } static get aciklama() { return 'Kredi Taksit' }
-	static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sag() }
+	// static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sag() }
+	static getAltTipAdiVeOncelikClause({ hv }) {
+		return {
+			...super.getAltTipAdiVeOncelikClause(...arguments),
+			/*adi: `(case ctip.satmustip when 'S' then 'Satıcılar' else 'Müşteriler' end)`,
+			oncelik: `(case ctip.satmustip when 'S' then 1 else 0 end)`,*/
+			yon: `'sag'`
+		}
+	}
 	/* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
         super.hareketTipSecim_kaListeDuzenle(...arguments);

@@ -39,12 +39,12 @@ class CariHareketci extends Hareketci {
 		if (akt.konsinyeLojistik || satis.kamuIhale) { kaListe.push(new CKodVeAdi(['konsinyeLojistik', 'Konsinye Resmi Kurum'])) }
 		if (ticGenel.siteYonetimi) { kaListe.push(new CKodVeAdi(['siteYonetimTahakkuk', 'Site Yönetim Tahakkuk'])) }
 	}
-	uniOrtakSonIslem({ sender, hv, sent }) {
-		super.uniOrtakSonIslem(...arguments); let {from, where: wh} = sent;
+	uniOrtakSonIslem({ sender, hv, sent, sent: { from, where: wh } }) {
+		super.uniOrtakSonIslem(...arguments)
 		if (!from.aliasIcinTable('car')) { sent.x2CariBagla({ kodClause: hv.must }) }
 		if (!from.aliasIcinTable('alth')) { sent.fromIliski('althesap alth', `${hv.althesapkod} = alth.kod`) }
 		if (!from.aliasIcinTable('ctip')) { sent.cari2TipBagla() }
-		wh.add(`car.silindi = ''`, `car.calismadurumu <> ''`)
+		// wh.add(`car.silindi = ''`)
 	}
 	static varsayilanHVDuzenle_ortak({ hv, sqlNull, sqlEmpty }) {
 		super.varsayilanHVDuzenle_ortak(...arguments);
@@ -610,6 +610,15 @@ class CariHareketci extends Hareketci {
 
 	static maliTablo_secimlerYapiDuzenle({ result }) {
 		super.maliTablo_secimlerYapiDuzenle(...arguments);
-		$.extend(result, { mst: DMQCari, grup: DMQCariTip, istGrup: DMQCariIstGrup, bolge: DMQCariBolge })
+		$.extend(result, { sube: DMQSube, subeGrup: DMQSubeGrup, mst: DMQCari, grup: DMQCariTip, bolge: DMQCariBolge })
+	}
+	static maliTablo_secimlerSentDuzenle({ detSecimler: detSec, sent, sent: { from, where: wh }, hv, mstClause }) {
+		super.maliTablo_secimlerSentDuzenle(...arguments)
+		sent.cari2TipBagla().cari2BolgeBagla()
+		if (mstClause) {
+			wh.basiSonu(detSec.mstKod, mstClause).ozellik(detSec.mstAdi, 'car.aciklama')
+			wh.basiSonu(detSec.grupKod, 'car.tipkod').ozellik(detSec.grupAdi, 'ctip.aciklama')
+			wh.basiSonu(detSec.bolgeKod, 'car.bolgekod').ozellik(detSec.bolgeAdi, 'bol.aciklama')
+		}
 	}
 }

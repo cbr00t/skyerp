@@ -213,7 +213,7 @@ class KasaHareketci extends Hareketci {
 
 	static maliTablo_secimlerYapiDuzenle({ result }) {
 		super.maliTablo_secimlerYapiDuzenle(...arguments)
-		$.extend(result, { mst: DMQKasa, grup: DMQKasaGrup, muhHesap: DMQMuhHesap })
+		$.extend(result, { sube: DMQSube, subeGrup: DMQSubeGrup, mst: DMQKasa, grup: DMQKasaGrup, muhHesap: DMQMuhHesap })
 	}
 	static maliTablo_secimlerSentDuzenle({ detSecimler: detSec, sent, sent: { from, where: wh }, hv, mstClause }) {
 		super.maliTablo_secimlerSentDuzenle(...arguments)

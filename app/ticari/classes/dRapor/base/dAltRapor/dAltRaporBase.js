@@ -6,7 +6,7 @@ class DAltRapor extends DRapor {
 		let {isPanelItem, rapor, raporTanim, class: { mainmi, etiket: result, mstEtiket }} = this
 		let {_baslik, main: { class: mainClass } = {}} = rapor ?? {}
 		let {aciklama: raporAdi} = raporTanim ?? {}
-		raporAdi ||= mstEtiket || mainClass?.aciklama
+		result = raporAdi || mstEtiket || mainClass?.aciklama || result
 		if (_baslik) { return _baslik }
 		if (!mainmi && result != raporAdi) { result = `${result} &nbsp;[<b class="bold royalblue">${result}</b>]` }
 		return result

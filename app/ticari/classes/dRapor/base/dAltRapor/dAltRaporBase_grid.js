@@ -102,6 +102,7 @@ class DAltRapor_GridGruplu extends DAltRapor_Grid {
 class DAltRapor_Grid_Ozet extends DAltRapor_Grid {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return null }
 	static get kod() { return 'ozet' } static get aciklama() { return 'Özet Bilgi' } static get uygunmu() { return false }
+	static get tazeleYapilirmi() { return false }
 	get width() { return this.isPanelItem ? 'var(--full)' : `calc(var(--full) - ${this.rapor.id2AltRapor.main.width} - 15px)` }
 	get height() { return this.isPanelItem ? 'var(--full)' : '50%' }
 	gridArgsDuzenle(e) { const {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: false, showGroupsHeader: false, columnsHeight: 30 }) }

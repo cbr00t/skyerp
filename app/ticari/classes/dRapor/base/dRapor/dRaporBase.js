@@ -263,14 +263,14 @@ class DPanelRapor extends DRaporOzel {
 		}
 	}
 	tazele(e) {
-		super.super_tazele(e); let {id2AltRapor} = this, {main} = id2AltRapor, {gridPart: mainGridPart} = main ?? {};
+		super.super_tazele(e); let {id2AltRapor} = this, {main} = id2AltRapor, {gridPart: mainGridPart} = main ?? {}
 		for (let altRapor of Object.values(id2AltRapor)) {
 			if (!altRapor?.tazeleYapilirmi) { continue }
 			if (mainGridPart && altRapor != main) {
 				let {mainmi} = altRapor.class, {gridPart} = altRapor;
 				if (mainmi && gridPart) { gridPart.filtreTokens = mainGridPart.filtreTokens }
 			}
-			return altRapor.tazele?.(e)
+			altRapor.tazele?.(e)
 		}
 	}
 	hizliBulIslemi_ara(e) {

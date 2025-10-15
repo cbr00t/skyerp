@@ -172,7 +172,13 @@ class FormBuilderBase extends CObject {
 		if (!this._afterBuild_calistimi) { this._afterBuild_calistimi = true; this.afterBuildDevam(e) } /* this.applyStyles(e) */
 		
 	}
-	afterBuildDevam(e) { if (!this.isRootFormBuilder && !this._afterRun_calistimi) { let {afterRun} = this; if (afterRun) { getFuncValue.call(this, afterRun, e) } } this._afterRun_calistimi = true }
+	afterBuildDevam(e) {
+		if (!this.isRootFormBuilder && !this._afterRun_calistimi) {
+			let {afterRun} = this
+			if (afterRun) { getFuncValue.call(this, afterRun, e) }
+		}
+		this._afterRun_calistimi = true
+	}
 	applyStyles(e) { this.applyStylesOncesi(e); this.applyStylesDevam(e); this.applyStylesSonrasi(e) }
 	applyStylesOncesi(e) { } applyStylesDevam(e) { }
 	applyStylesSonrasi(e) {

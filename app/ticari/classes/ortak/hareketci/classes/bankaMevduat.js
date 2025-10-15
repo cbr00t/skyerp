@@ -1,8 +1,10 @@
-class BankaMevduatHareketci extends BankaOrtakHareketci {
+class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 2 }
-    static get kod() { return 'bankaMevduat' } static get aciklama() { return 'Banka Mevduat' }
-	static get kisaKod() { return 'BM' } static get maliTabloIcinUygunmu() { return true }
-	static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sol() }
+    static get maliTabloIcinUygunmu() { return this.uygunmu }
+	static get araSeviyemi() { return this == BankaMevduatKrediOrtakHareketci }
+	static get gecerliBankaHesapTipleri() { return [] }
+	
+	// static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sol() }
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
         super.hareketTipSecim_kaListeDuzenle(...arguments); kaListe.push(
             new CKodVeAdi(['devir', 'Devir']), new CKodVeAdi(['kasa', 'Kasa Yatan/Çekilen']),
@@ -16,6 +18,13 @@ class BankaMevduatHareketci extends BankaOrtakHareketci {
 			new CKodVeAdi(['teminatMektup', 'Teminat Mektubu']), new CKodVeAdi(['krediAlim', 'Kredi Alımı'])
         )
     }
+	uniOrtakSonIslem({ sender, hv, sent, sent: { from, where: wh } }) {
+		super.uniOrtakSonIslem(...arguments)
+		let {banhesapkod: kodClause} = hv
+		let {class: { gecerliBankaHesapTipleri: tipListe }} = this
+		if (!from.aliasIcinTable('bhes')) { sent.x2BankaHesapBagla({ kodClause }) }
+		wh.inDizi(tipListe, 'bhes.tipi')
+	}
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
         super.uygunluk2UnionBilgiListeDuzenleDevam(e);
         this.uniDuzenle_devir(e).uniDuzenle_kasaYatirimHizmet(e).uniDuzenle_havaleEFT(e).uniDuzenle_tahsilSekli(e)
@@ -439,5 +448,30 @@ class BankaMevduatHareketci extends BankaOrtakHareketci {
 		wh.basiSonu(detSec.mstKod, mstClause).ozellik(detSec.mstAdi, 'bhes.aciklama');
 		wh.basiSonu(detSec.grupKod, 'bhes.grupkod').ozellik(detSec.grupAdi, 'bhgrp.aciklama');
 		wh.basiSonu(detSec.muhHesapKod, 'bhes.muhhesap').ozellik(detSec.muhHesapAdi, 'mhes.aciklama')
+	}
+}
+class BankaMevduatHareketci extends BankaMevduatKrediOrtakHareketci {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get kisaKod() { return 'BM' }
+    static get kod() { return 'bankaMevduat' } static get aciklama() { return 'Banka Mevduat' }
+	static get gecerliBankaHesapTipleri() { return [...super.gecerliBankaHesapTipleri, ''] }
+	static getAltTipAdiVeOncelikClause({ hv }) {
+		return {
+			...super.getAltTipAdiVeOncelikClause(...arguments),
+			yon: `'sol'`
+		}
+	}
+}
+class BankaKrediHareketci extends BankaMevduatKrediOrtakHareketci {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get kisaKod() { return 'KR' }
+    static get kod() { return 'bankaKredi' } static get aciklama() { return 'Banka Kredi' }
+	static get gecerliBankaHesapTipleri() {
+		// IP: İpotek Karşılığı | TM: Çek/Senet Teminat | RK: Rotatif Kredi
+		return [...super.gecerliBankaHesapTipleri, 'IP', 'TM', 'RK']
+	}
+	static getAltTipAdiVeOncelikClause({ hv }) {
+		return {
+			...super.getAltTipAdiVeOncelikClause(...arguments),
+			yon: `'sag'`
+		}
 	}
 }

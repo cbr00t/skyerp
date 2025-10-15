@@ -5,7 +5,8 @@ class DRapor_DonemselIslemler extends DRapor_Donemsel {
 	static get kod() { return 'DONISL' } static get aciklama() { return 'Dönemsel İşlemler' }
 	static get mstEtiket() { return this.aciklama }
 	altRaporlarDuzenle(e) {
-		super.altRaporlarDuzenle(e)
+		super.altRaporlarDuzenle(e); let {mainClass} = this.class
+		this.addZorunluOzelID(mainClass)
 		this.addWithZorunluOzelID(DRapor_DonemselIslemler_Detaylar)
 	}
 }

@@ -94,13 +94,27 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	super_tazele(e) { super.tazele(e) }
 	tazeleOncesi(e) { }
 	tazeleSonrasi(e) {
-		let {isPanelItem, etiket: raporAdi, raporTanim: { aciklama: raporTanimAdi } = {}, fbd_grid: { parent: layout } = {}} = this
+		let {etiket: raporAdi, raporTanim: { aciklama: raporTanimAdi } = {}} = this
+		let {rapor, rapor: { part: parentPart, isPanelItem }, fbd_grid: { parent: layout } = {}} = this
 		//if (!isPanelItem) {
-		raporAdi ||= raporTanimAdi
-		if (raporAdi && layout?.length) { layout.children('label').html(raporAdi) }
-		//}
+		let orjRaporAdi = raporAdi
+		if (raporTanimAdi)
+			raporAdi ||= raporTanimAdi
+		if (raporAdi && layout?.length) {
+			layout.children('label').html(raporAdi)
+			if (parentPart && !isPanelItem) {
+				let {title: _savedTitle} = parentPart
+				parentPart._savedTitle ??= _savedTitle
+				if (raporTanimAdi)
+					parentPart?.updateWndTitle(`${_savedTitle}  <span class="forestgreen" style="margin-left: 10px">[ ${raporAdi} ]</span>`)
+			}
+		}
 	}
-	hizliBulIslemi(e) { let {gridPart} = this; gridPart.filtreTokens = e.tokens; this.tazele(e) }
+	hizliBulIslemi(e) {
+		let {gridPart} = this;
+		gridPart.filtreTokens = e.tokens
+		this.tazele(e)
+	}
 	gridVeriYuklendi(e) {
 		let {gridPart} = this, {grid, gridWidget} = gridPart, {boundRecs, recs} = e; gridPart.expandedRowsSet = {}
 		this.gridVeriYuklendi_ek?.(e)

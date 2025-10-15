@@ -498,6 +498,7 @@ class DPanel extends Part {
 			}
 		}
 		if (!batch) {
+			let {title} = this
 			this.saveLayout(e)
 			this.updateWndTitle(`${title} &nbsp;[<span class="bold forestgreen">${DPanelTanim.defaultAciklama}</span>]`)
 		}

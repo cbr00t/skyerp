@@ -1,7 +1,7 @@
 class PsKrOrtakHareketci extends BankaOrtakHareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get posmu() { return null }
+	static get maliTabloIcinUygunmu() { return true } static get araSeviyemi() { return this == PsKrOrtakHareketci }
     static get almSat() { return this.posmu ? 'T' : 'A' } static get almSatClause() { return `fis.almsat = '${this.almSat}'` }
-	static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sag() }
 	/* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
         super.hareketTipSecim_kaListeDuzenle(...arguments); const {posmu} = this;
@@ -199,8 +199,14 @@ class PsKrOrtakHareketci extends BankaOrtakHareketci {
 }
 class POSHareketci extends PsKrOrtakHareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 3 }
-    static get kod() { return 'pos' } static get aciklama() { return 'POS İşlemleri' } static get maliTabloIcinUygunmu() { return true }
+    static get kod() { return 'pos' } static get aciklama() { return 'POS İşlemleri' }
 	static get kisaKod() { return 'PS' } static get posmu() { return true }
+	static getAltTipAdiVeOncelikClause({ hv }) {
+		return {
+			...super.getAltTipAdiVeOncelikClause(...arguments),
+			yon: `'sol'`
+		}
+	}
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
 		super.uygunluk2UnionBilgiListeDuzenleDevam(e);
 		this.uniDuzenle_nakdeDonusum(e)
@@ -237,9 +243,15 @@ class POSHareketci extends PsKrOrtakHareketci {
     }
 }
 class KrediKartiHareketci extends PsKrOrtakHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 4 }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 6 }
     static get kod() { return 'krediKart' } static get aciklama() { return 'Kredi Kartı İşlemleri' }
 	static get kisaKod() { return 'KR' } static get krediKartimi() { return true }
+	static getAltTipAdiVeOncelikClause({ hv }) {
+		return {
+			...super.getAltTipAdiVeOncelikClause(...arguments),
+			yon: `'sag'`
+		}
+	}
     /** Hareket tipleri seçimine ek olarak masraf ödeme tipini ekle */
     static hareketTipSecim_kaListeDuzenle(e) {
         super.hareketTipSecim_kaListeDuzenle(e);

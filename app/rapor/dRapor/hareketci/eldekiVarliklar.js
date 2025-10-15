@@ -20,7 +20,8 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get eldekiVarliklarmi() { return true } 
 	static get mstEtiket() { return '' } static get borderColor() { return '' }
 	static get aciklama() { return `<div class="full-wh" style="background-color: ${this.borderColor}">${this.mstEtiket}</div>` }
-	static get raporClass() { return DRapor_EldekiVarliklar } get width() { return '49.5%' } static get yon() { return 'sol' }
+	static get raporClass() { return DRapor_EldekiVarliklar } get width() { return '49.5%' }
+	static get yon() { return 'sol' } static get solmu() { return true }
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments);
 		let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => cls.eldekiVarliklarIcinUygunmu);
@@ -107,10 +108,19 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		/* self.uni = withSent */
 	}
 	loadServerData_recsDuzenleIlk({ recs }) {
-		let recsDvKodSet = this.recsDvKodSet = {}; for (let rec of recs) {
-			let {dvkod: dvKod, bedel, mstadi: mstAdi, mstadi2: mstAdi2} = rec;
-			if (this.getDovizmi(dvKod)) { rec[`bedel_${dvKod}`] = bedel; rec.bedel = 0; recsDvKodSet[dvKod] = true }
+		let {class: { sagmi }} = this
+		let recsDvKodSet = this.recsDvKodSet = {}
+		for (let rec of recs) {
+			let {dvkod: dvKod, bedel, dvbedel, mstadi: mstAdi, mstadi2: mstAdi2} = rec;
+			if (this.getDovizmi(dvKod)) {
+				rec[`bedel_${dvKod}`] = bedel; rec.bedel = 0;
+				recsDvKodSet[dvKod] = true
+			}
 			if (!mstAdi && mstAdi2) { mstAdi = rec.mstadi = mstAdi2 }
+			if (sagmi) {
+				if (bedel) { bedel = rec.bedel = -bedel }
+				if (dvbedel) { dvbedel = rec.dvbedel = -dvbedel }
+			}
 		}
 		return super.loadServerData_recsDuzenleIlk(...arguments)
 	}
@@ -154,7 +164,8 @@ class DRapor_EldekiVarliklar_Sol extends DAltRapor_EldekiVarliklar_Ortak {
 }
 class DRapor_EldekiVarliklar_Sag extends DAltRapor_EldekiVarliklar_Ortak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get kod() { return 'sag' }
-	static get mstEtiket() { return 'BORÇLARIMIZ' } static get borderColor() { return '#bc9d9d' } static get yon() { return 'sag' }
+	static get mstEtiket() { return 'BORÇLARIMIZ' } static get borderColor() { return '#bc9d9d' }
+	static get yon() { return 'sag' } static get sagmi() { return true }
 	/*async loadServerDataInternal(e) {
 		let recs = await super.loadServerDataInternal(e) ?? [];
 		recs.push(...[
