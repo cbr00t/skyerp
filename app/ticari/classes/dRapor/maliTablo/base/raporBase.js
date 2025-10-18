@@ -219,10 +219,11 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 					for (let {from, sahalar} of uni) {
 						for (let aMQAliasliYapi of from) {
 							let {deger: table} = aMQAliasliYapi;
-							if (!table || table.includes('.')) { continue }
-							table = aMQAliasliYapi.deger = `${db}..${table}`
+							if (table && !table.includes('.'))
+								table = aMQAliasliYapi.deger = `${db}..${table}`
 						}
-						if (yatayAnalizVarmi && yatayAnaliz.dbmi) { sahalar.add(`${clause} ${alias}`) }
+						if (yatayAnalizVarmi && yatayAnaliz.dbmi)
+							sahalar.add(`${clause} ${alias}`)
 					}
 					sonucUni.addAll(uni)
 				}
@@ -238,15 +239,17 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		if (yatayDBmi) { yatayDegerler = [aktifDB, ...(ekDBListe ?? [])] }
 		let recs
 		for (let [id, promise] of Object.entries(id2Promise)) {
-			let det = id2Detay[id]; if (!det) { continue }
+			let det = id2Detay[id]
+			if (!det)
+				continue
 			let _recs = await promise ?? []
-			if (!(detayli || _recs?.length)) { continue }
-			let yatay2Bedel = {}; if (yatayAnalizVarmi) {
-				for (let {yatay, bedel} of _recs) {
-					if (!yatayDBmi)
-						yatayDegerSet[yatay] = true
-					if (!detayli)
-						yatay2Bedel[yatay] = (yatay2Bedel[yatay] || 0) + bedel
+			// if (!(detayli || _recs?.length)) { continue }
+			let yatay2Bedel = {}
+			if (yatayAnalizVarmi) {
+				for (let rec of _recs) {
+					let {yatay, bedel} = rec
+					if (!yatayDBmi) { yatayDegerSet[yatay] = true }
+					if (!detayli) { yatay2Bedel[yatay] = (yatay2Bedel[yatay] || 0) + bedel }
 				}
 			}
 			if (detayli) {
@@ -277,12 +280,14 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		let attrListe = Object.values(tabloYapi.toplam).map(item => item.colDefs.map(_ => _.belirtec)).flat()
 		if (yatayAnalizVarmi && !empty(yatayDegerSet)) {
 			let topBelirtecListe = attrListe
-			attrListe = []; for (let belirtec of topBelirtecListe) {
+			attrListe = []
+			for (let belirtec of topBelirtecListe) {
 				attrListe.push(belirtec)
 				attrListe.push(...Object.keys(yatayDegerSet).map(yatay => `${belirtec}_${yatay}`))
 			}
 		}
-		let id2GridRec = {}; for (let [id, det] of Object.entries(id2Detay)) {
+		let id2GridRec = {}
+		for (let [id, det] of Object.entries(id2Detay)) {
 			let gridRec = id2GridRec[id] = {
 				...det.asObject, detaylar: [], hesaplandimi: false,
 				...Object.fromEntries(attrListe.map(attr => [attr, 0])),
@@ -317,6 +322,11 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 						this[attr] = -this[attr]
 					return this
 				}
+			}
+			let {hesapTipi: { ekBilgi: { hareketcimi, harSinif } = {} } = {}} = det
+			if (hareketcimi && harSinif) {
+				let handlerCode = 'app.activeWndPart.inst.main.hareketKartiGoster()';
+				gridRec.aciklama += `<button id="izle" class="float-right" style="width: 30px; height: 22px; margin-right: 5px" onclick="${handlerCode}"></button>`
 			}
 		}
 		for (let rec of sqlRecs) {

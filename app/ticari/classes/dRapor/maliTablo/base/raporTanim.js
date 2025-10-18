@@ -513,7 +513,8 @@ class SBTabloDetay extends MQDetay {
 		return this
 	}
 	async hareketKartiGoster(e = {}) {
-		e = { ...e }; let {rapor, rapor: { sahaAlias: bedelAlias }} = e
+		e = { ...e }; let {rapor, raporTanim} = e
+		let {sahaAlias: bedelAlias} = rapor, {yatayAnaliz, yatayAnaliz: { ekBilgi: { zorunluKodAttrListe } = {} } = {}} = raporTanim
 		let {hesapTipi: { ekBilgi: { hareketcimi, harSinif } = {} }} = this
 		if (!(rapor && hareketcimi && harSinif)) { return }
 		let {dRapor: { konsolideCikti: konsolide, ekDBListe} = {}} = app.params
@@ -544,20 +545,21 @@ class SBTabloDetay extends MQDetay {
 				liste.push(...[
 					new GridKolon({ belirtec: 'bizsubekod', text: 'Şube', genislikCh: 8, filterType: 'checkedlist' }),
 					new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13 }).tipTarih(),
-					new GridKolon({ belirtec: 'fisnox', text: 'Belge No', genislikCh: 20 }),
-					new GridKolon({ belirtec: 'islemadi', text: 'İşlem Adı', genislikCh: 15, filterType: 'checkedlist' }),
+					new GridKolon({ belirtec: 'fisnox', text: 'Belge No', genislikCh: 13 }),
 					new GridKolon({ belirtec: 'refkod', text: 'Ref. Kod', genislikCh: 20 }),
-					new GridKolon({ belirtec: 'refadi', text: 'Ref. Adı' }),
+					new GridKolon({ belirtec: 'refadi', text: 'Ref. Adı', genislikCh: 40 }),
+					...zorunluKodAttrListe?.map(belirtec =>  new GridKolon({ belirtec, text: belirtec, genislikCh: 25 }) ) ?? [],
 					new GridKolon({ belirtec: bedelAlias, text: 'Bedel', genislikCh: 20, aggregates: ['sum'] }).tipDecimal_bedel(),
-					new GridKolon({ belirtec: 'ba', text: 'B/A', genislikCh: 8, filterType: 'checkedlist' }),
-					new GridKolon({ belirtec: 'anaislemadi', text: 'Ana İşlem', genislikCh: 15, filterType: 'checkedlist' }),
-					(konsolide ? new GridKolon({ belirtec: 'db', text: 'Veritabanı', genislikCh: 20, filterType: 'checkedlist' }) : null)
+					new GridKolon({ belirtec: 'ba', text: 'B/A', genislikCh: 5, filterType: 'checkedlist' }),
+					(konsolide ? new GridKolon({ belirtec: 'db', text: 'Veritabanı', genislikCh: 20, filterType: 'checkedlist' }) : null),
+					new GridKolon({ belirtec: 'islemadi', text: 'İşlem Adı', genislikCh: 25, filterType: 'checkedlist' }),
+					new GridKolon({ belirtec: 'anaislemadi', text: 'Ana İşlem', genislikCh: 15, filterType: 'checkedlist' })
 				].filter(x => !!x))
 			}
 			static async loadServerDataDogrudan() {
 				let _e = { ...arguments[0], ...e }
 				try { return await rapor.loadServerData(_e) }
-				catch (ex) { hConfirm(getErrorText(ex), 'Hareket Kartı'); console.error(ex); return [] }
+				catch (ex) { console.error(ex); return [] }
 			}
 		}
 		let result = cls.listeEkraniAc()
