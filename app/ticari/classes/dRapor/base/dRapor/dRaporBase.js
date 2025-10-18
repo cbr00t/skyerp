@@ -320,8 +320,8 @@ class DPanelRapor extends DRaporOzel {
 class DGrupluPanelRapor extends DPanelRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get dGrupluPanelRapormu() { return true }
-	islemTuslariArgsDuzenle(e) {
-		super.islemTuslariArgsDuzenle(e); let {liste} = e, {sabitmi} = this.class;
+	islemTuslariArgsDuzenle({ liste }) {
+		super.islemTuslariArgsDuzenle(...arguments); let {sabitmi} = this.class
 		liste.push(...[
 			(sabitmi ? null : { id: 'raporTanim', text: 'Rapor Tanım', handler: _e => this.main.raporTanimIstendi({ ...e, ..._e }) }),
 			{ id: 'secimler', text: '', handler: _e => this.main.secimlerIstendi({ ...e, ..._e }) },

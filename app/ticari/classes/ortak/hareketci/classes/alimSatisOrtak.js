@@ -41,6 +41,7 @@ class AlimSatisOrtakHareketci extends Hareketci {
 		/*if (!from.aliasIcinTable('sub')) { sent.fis2SubeBagla() }
 		if (!from.aliasIcinTable('igrp')) { sent.sube2GrupBagla() }*/
 		// ... diğerleri stok/hizmet durumuna göre 'uniDuzenle_stokHizmet()' kısmında bağlanıyor
+		if (!from.aliasIcinTable('car')) { sent.fis2CariBagla() }
 		if (!from.aliasIcinTable('isl')) { sent.fis2StokIslemBagla() }
 	}
     /** UNION sorgusu hazırlama – hareket tipleri için */
@@ -95,7 +96,7 @@ class AlimSatisOrtakHareketci extends Hareketci {
 				$.extend(hv, {
 					oncelik: '1', ba: `'B'`, fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac', kayittipi: `'AS'`,
 					islemadi: `'Alım/Satış'`, shTipi: `'${hizmetmi ? 'H' : 'S'}'`,
-					bizsubekod: 'fis.bizsubekod', ozelisaret: 'fis.ozelisaret', tarih: 'fis.tarih', fisnox: 'fis.aknox',
+					bizsubekod: 'fis.bizsubekod', ozelisaret: 'fis.ozelisaret', tarih: 'fis.tarih', fisnox: 'fis.fisnox',
 					refkod: 'fis.must', refadi: 'car.birunvan', dvkod: 'fis.dvkod', dvkur: 'fis.dvkur',
 					fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', miktar: 'har.miktar',
 					brutbedel: 'har.brutbedel', bedel: 'har.bedel', dvbedel: 'har.dvbedel',

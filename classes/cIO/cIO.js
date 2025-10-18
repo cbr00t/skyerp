@@ -15,14 +15,23 @@ class CIO extends CObject {
 	static pTanimIcinInit(e) { const {pTanim} = e; for (const ioAttr in pTanim) { const pInst = pTanim[ioAttr]; pInst.ioAttr = ioAttr /* Object.freeze(pInst) */ } }
 	pTanim2Inst(e) {
 		e = e || {}; const {pTanim} = this.class, _p = this._p = {}, inst = this;
-		for (const ioAttr in pTanim) {
-			if (ioAttr in this) { continue } let pInst = _p[ioAttr] = pTanim[ioAttr].deepCopy(), _value = e[ioAttr];
-			if (_value === undefined) { _value = pInst.initValue } pInst.value = pInst.getValue(_value);
+		for (let ioAttr in pTanim) {
+			if (ioAttr in this)
+				continue
+			let pInst = _p[ioAttr] = pTanim[ioAttr].deepCopy()
+			let _value = e[ioAttr]
+			if (_value === undefined)
+				_value = pInst.initValue
+			pInst.value = pInst.getValue(_value)
 			Object.defineProperty(inst, ioAttr, {
-				get: () => { const pInst = inst._p[ioAttr]; return pInst.value },
+				get: () => inst._p[ioAttr].value,
 				set: value => {
-					const pInst = inst._p[ioAttr], oldValue = inst[ioAttr]; value = pInst.getValue(value);
-					if (oldValue !== value) { pInst.value = value; pInst.trigger('change', { pInst, ioAttr, oldValue, value }) }
+					let pInst = inst._p[ioAttr], oldValue = inst[ioAttr]
+					value = pInst.getValue(value)
+					if (oldValue !== value) {
+						pInst.value = value
+						pInst.trigger('change', { pInst, ioAttr, oldValue, value })
+					}
 				}
 			}); /* Object.seal(pInst) */
 			pInst.pTanim2Inst_ek?.({ ...e, inst })

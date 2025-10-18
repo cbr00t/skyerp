@@ -185,10 +185,15 @@ class SBTabloVeriTipi extends TekSecim {
 	get donemTipi() { return this.donemBasimi ? 'B' : this.donemSonumu ? 'S' : null }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); let {kaListe} = e;
-		let topSahaEkle = e.topSahaEkle = ({ sent, clause, sahaAlias, det: { tersIslemmi, shIade = {} }, hv }) => {
+		let topSahaEkle = e.topSahaEkle = ({ detayli, sent, sent: { sahalar }, clause, sahaAlias, det: { tersIslemmi, shIade = {} }, hv }) => {
 			if (isFunction(clause)) { clause = clause(hv) }
-			let tersmi = tersIslemmi != shIade.iademi, {sahalar} = sent;
-			sahalar.add(`(SUM(${clause.sumOlmaksizin()})${tersmi ? ' * -1' : ''}) ${sahaAlias}`)
+			let tersmi = tersIslemmi != shIade.iademi
+			clause = clause.sumOlmaksizin()
+			if (!detayli)
+				clause = clause.asSumDeger()
+			if (tersmi)
+				clause = clause += ' * -1'
+			sahalar.add(`(${clause}) ${sahaAlias}`)
 		};
 		this.kaListeDuzenle_ticari(e).kaListeDuzenle_stokCikisHareketciBasit(e).kaListeDuzenle_hareketci(e)
 	}

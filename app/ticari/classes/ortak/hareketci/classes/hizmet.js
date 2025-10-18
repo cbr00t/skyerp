@@ -39,7 +39,7 @@ class HizmetHareketci extends Hareketci {
 		if (!from.aliasIcinTable('hiz')) { sent.fromIliski('hizmst hiz', `${kodClause} = hiz.kod`) }
 		if (!from.aliasIcinTable('grp')) { sent.hizmet2GrupBagla() }
 		if (!from.aliasIcinTable('sigrp')) { sent.hizmet2IstGrupBagla() }
-		if (!from.aliasIcinTable('isl')) { sent.fis2StokIslemBagla() }
+		// if (!from.aliasIcinTable('isl')) { sent.fis2StokIslemBagla() }
 	}
     /** Varsayılan değer atamaları (hostVars) */
     static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
@@ -582,6 +582,7 @@ class HizmetHareketci extends Hareketci {
 			wh.basiSonu(sec.grupKod, grpClause).ozellik(sec.grupAdi, 'grp.aciklama')
 			wh.basiSonu(sec.anaGrupKod, aGrpClause).ozellik(sec.anaGrupAdi, 'agrp.aciklama')
 			wh.basiSonu(sec.istGrupKod, iGrpClause).ozellik(sec.istGrupAdi, `higrp.aciklama`)
+			if (sec.islKod.value && !from.aliasIcinTable('isl')) { sent.fis2StokIslemBagla() }
 			wh.basiSonu(sec.islKod, islClause).ozellik(sec.islAdi, 'isl.aciklama')
 			wh.basiSonu(sec.muhHesap, muhHesapClause)
 		}

@@ -150,7 +150,7 @@ class CariHareketci extends Hareketci {
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent;
 					sent.fisHareket('finansfis', 'finanshar')
-						.fis2IslBagla_leftJoin().har2KatDetayBagla()
+						.har2KatDetayBagla()
 						.har2CariBagla({ mustSaha: 'ticmustkod' }).fis2PlasiyerBagla()
 						.fis2KasaBagla().har2HizmetBagla();
 					let tipListe = [];
@@ -187,7 +187,7 @@ class CariHareketci extends Hareketci {
 			serbestMeslek: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent; sent.fisHareket('finansfis', 'finanshar')
-						.fis2IslBagla_leftJoin().har2KatDetayBagla().fis2KasaBagla()
+						.har2KatDetayBagla().fis2KasaBagla()
 						.fis2CariBagla({ mustSaha: 'fisticmustkod' })
 						.fis2PlasiyerBagla().har2HizmetBagla()
 					wh.fisSilindiEkle().add(`fis.fistipi = 'SM'`)

@@ -217,10 +217,10 @@ class Hareketci extends CObject {
 	uniDuzenle(e) {
 		let {uygunluk2UnionBilgiListe, attrSet} = this, {varsayilanHV: defHV, zorunluAttrSet} = this.class;
 		let rapor = e.rapor ?? e.sender, secimler = e.secimler ?? rapor?.secimler;
-		if ($.isEmptyObject(attrSet)) { attrSet = null }
-		let {uygunluk} = this, uygunlukVarmi = !$.isEmptyObject(uygunluk);
+		if (empty(attrSet)) { attrSet = null }
+		let {uygunluk} = this, uygunlukVarmi = !empty(uygunluk);
 		if (!uygunlukVarmi) {
-			let {hareketTipSecim} = this.class; uygunlukVarmi = !$.isEmptyObject(hareketTipSecim.kaListe);
+			let {hareketTipSecim} = this.class; uygunlukVarmi = !empty(hareketTipSecim.kaListe);
 			if (uygunlukVarmi) { uygunluk = asSet(hareketTipSecim.kaListe.map(({ kod }) => kod)) }
 		}
 		let sender = this, hareketci = this, {uni, maliTablomu} = e; $.extend(e, { uygunluk, zorunluAttrSet });
@@ -230,7 +230,7 @@ class Hareketci extends CObject {
 				uygunmu = !!keys.find(key => uygunluk[key]); if (!uygunmu) { continue }
 			}
 			unionBilgiListe = unionBilgiListe.map(item =>
-				getFuncValue.call(this, item, e)).filter(({ sent, hv }) => sent && !$.isEmptyObject(hv));
+				getFuncValue.call(this, item, e)).filter(({ sent, hv }) => sent && !empty(hv));
 			let tumHVKeys = { ...zorunluAttrSet, ...defHV };
 			for (let {hv} of unionBilgiListe) { $.extend(tumHVKeys, hv) }
 			for (let uniBilgi of unionBilgiListe) {
@@ -313,7 +313,7 @@ class Hareketci extends CObject {
 	static maliTablo_secimlerYapiOlustur(e) {
 		let {tip2SecimMFYapi} = e; if (!tip2SecimMFYapi) { return this }
 		e.result = {}; this.maliTablo_secimlerYapiDuzenle(e)
-		if (!$.isEmptyObject(e.result)) { tip2SecimMFYapi[this.kisaKod] = e.result }
+		if (!empty(e.result)) { tip2SecimMFYapi[this.kisaKod] = e.result }
 		return this
 	}
 	static maliTablo_secimlerYapiDuzenle({ result }) { }

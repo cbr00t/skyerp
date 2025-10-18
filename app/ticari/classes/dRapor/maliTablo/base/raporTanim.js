@@ -76,7 +76,7 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 			fbd.addStyle_wh(40, 50).addStyle(`$elementCSS { margin-top: 30px; margin-left: 10px }`);
 			fbd.onClick(async _e => {
 				let {id} = _e.input[0], selector = `${id}Istendi`;
-				let {part: gridPart, kontrolcu} = e.fbd_grid;                 /* doğru burası: '_e' değil 'e' */
+				let {part: gridPart, kontrolcu} = e.fbd_grid                                                /* !! burası doğru: '_e' değil 'e' olacak */
 				let {selectedRecs: recs, selectedRec: gridRec, selectedRowIndex: rowIndex} = gridPart;
 				// if (!gridRec) { return }
 				let args = { ...e, ..._e, gridPart, recs, gridRec, rowIndex };
@@ -86,15 +86,15 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 		}
 	}
 	static rootFormBuilderDuzenle_grid(e) {
-		super.rootFormBuilderDuzenle_grid(e); let {fbd_grid} = e;
+		super.rootFormBuilderDuzenle_grid(e); let {fbd_grid} = e
 		fbd_grid.readOnly()
 	}
 	async yukleSonrasiIslemler() {
-		await super.yukleSonrasiIslemler(...arguments); let {detaylar} = this;
-		let id2Det = Object.fromEntries(detaylar.filter(det => det.okunanHarSayac).map(det => [det.okunanHarSayac, det]));
-		let sent = new MQSent(), {where: wh, sahalar} = sent;
-		sent.fromAdd('sbtablodetayjson sec');
-		wh.inDizi(Object.keys(id2Det), 'sec.harid'); sahalar.add('sec.harid', 'sec.seq', 'sec.xdata');
+		await super.yukleSonrasiIslemler(...arguments); let {detaylar} = this
+		let id2Det = Object.fromEntries(detaylar.filter(det => det.okunanHarSayac).map(det => [det.okunanHarSayac, det]))
+		let sent = new MQSent(), {where: wh, sahalar} = sent
+		sent.fromAdd('sbtablodetayjson sec')
+		wh.inDizi(Object.keys(id2Det), 'sec.harid'); sahalar.add('sec.harid', 'sec.seq', 'sec.xdata')
 		let orderBy = ['harid', 'seq'], stm = new MQStm({ sent, orderBy });
 		let id2Data = {}; for (let {harid: harID, xdata: data} of await app.sqlExecSelect(stm)) {
 			(id2Data[harID] = id2Data[harID] ?? []).push(data) }
@@ -103,8 +103,9 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 			let det = id2Det[harID]; if (!det) { continue }
 			try {
 				data = JSON.parse(Base64.decode($.isArray(data) ? data.join('') : data))
-				let {secimler} = det; for (let [key, _secim] of Object.entries(data)) {
-					let secim = secimler?.[key];
+				let {secimler} = det
+				for (let [key, _secim] of Object.entries(data)) {
+					let secim = secimler?.[key]
 					if (secim) { $.extend(secim, _secim) }
 				}
 			}
@@ -112,21 +113,22 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 		}
 	}
 	async kaydetSonrasiIslemler({ trnId }) {
-		await super.kaydetSonrasiIslemler(...arguments); let yDetaylar = [...this.detaylar];
-		await this.detaylariYukle(...arguments); let {detaylar} = this;    /* detayların 'okunanHarSayac' bilgilerine ihtiyaç var, yazma sonrası detaylara atanmaz */
+		await super.kaydetSonrasiIslemler(...arguments); let yDetaylar = [...this.detaylar]
+		await this.detaylariYukle(...arguments); let {detaylar} = this
+		// detayların 'okunanHarSayac' bilgilerine ihtiyaç var, yazma sonrası detaylara atanmaz
 		detaylar.forEach((det, i) =>
-			yDetaylar[i].okunanHarSayac = det.okunanHarSayac);
+			yDetaylar[i].okunanHarSayac = det.okunanHarSayac)
 		let harID2SecimData = {};
 		for (let {okunanHarSayac: harid, secimler} of yDetaylar) {
 			secimler ??= {}; let {asObject: data} = secimler;
-			harID2SecimData[harid] = $.isEmptyObject(data) ? null : Base64.encode(toJSONStr(data))
+			harID2SecimData[harid] = empty(data) ? null : Base64.encode(toJSONStr(data))
 		}
 		let hvListe = []; for (let [harid, data] of Object.entries(harID2SecimData)) {
 			if (!data) { continue }
 			arrayIterChunks(data, 50).forEach((xdata, seq) =>
 				hvListe.push({ harid, seq, xdata }))
 		}
-		let from = 'sbtablodetayjson', harIDListe = Object.keys(harID2SecimData);
+		let from = 'sbtablodetayjson', harIDListe = Object.keys(harID2SecimData)
 		let query = new MQToplu([
 			new MQIliskiliDelete({ from, where: { inDizi: harIDListe, saha: 'harid' } }),
 			new MQInsert({ from, hvListe })
@@ -134,25 +136,25 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 		await app.sqlExecNone({ trnId, query })
 	}
 	hostVarsDuzenle({ hv }) {
-		super.hostVarsDuzenle(...arguments);
+		super.hostVarsDuzenle(...arguments)
 		hv.aciklama = hv.aciklama ?? ''
 	}
 	setValues({ rec }) { super.setValues(...arguments) }
 	static getRaporKod(e) {
 		e = e ?? {}; let kod = typeof e == 'object' ? 
 			(e.raporKod ?? e.raporkod ?? e.raporTip ?? e.raportip ?? e.kod ?? e.tip ??
-			e.rapor?.kod ?? e.class?.raporClass?.kod ?? e.rapor?.class?.kod ?? e.class?.kod) : e;
+			e.rapor?.kod ?? e.class?.raporClass?.kod ?? e.rapor?.class?.kod ?? e.class?.kod) : e
 		return kod || null
 	}
 	static async getDefault(e) {
-		let {yerel} = app.params, tip2SonDRaporRec = yerel.tip2SonDRaporRec || {}, {rapor} = e, raporKod = this.getRaporKod(rapor);
-		let id = raporKod ? tip2SonDRaporRec[raporKod] : null, inst = new this({ rapor, id });
+		let {yerel} = app.params, tip2SonDRaporRec = yerel.tip2SonDRaporRec || {}, {rapor} = e, raporKod = this.getRaporKod(rapor)
+		let id = raporKod ? tip2SonDRaporRec[raporKod] : null, inst = new this({ rapor, id })
 		if (id) { await inst.yukle(e) }
 		return inst
 	}
 	setDefault(e) {
-		let {yerel} = app.params, tip2SonDRaporRec = yerel.tip2SonDRaporRec = yerel.tip2SonDRaporRec || {};
-		let raporKod = this.class.getRaporKod(e.rapor), id = raporKod ? this.id : null;
+		let {yerel} = app.params, tip2SonDRaporRec = yerel.tip2SonDRaporRec = yerel.tip2SonDRaporRec || {}
+		let raporKod = this.class.getRaporKod(e.rapor), id = raporKod ? this.id : null
 		if (id) { tip2SonDRaporRec[raporKod] = id; yerel.kaydetDefer(e) }
 		return this
 	}
@@ -166,9 +168,9 @@ class SBTabloDetay extends MQDetay {
 		let {pTanim} = this.class, {sayac: id, satirListe} = this;
 		let result = { ...this, id, satirListe };
 		let keys = Object.keys(pTanim); for (let key of keys) {
-			let value = this[key];
-			// value = value?.kod ?? value;
-			value = value?.deepCopy?.() ?? value;
+			let value = this[key]
+			// value = value?.kod ?? value
+			value = value?.deepCopy?.() ?? value
 			if (typeof value == 'object' && !value?.deepCopy) { value = $.extend(true, {}, value) }
 			if (value !== undefined) { result[key] = value }
 		}
@@ -197,13 +199,13 @@ class SBTabloDetay extends MQDetay {
 		return tip2Secimler[tip]
 	}
 	get secimlerStr() {
-		let result = [], {secimler} = this;
+		let result = [], {secimler} = this
 		if (secimler) {
-			let {grupListe} = secimler;
+			let {grupListe} = secimler
 			for (let [tip, sec] of secimler) {
-				let e = { liste: [] }; sec.ozetBilgiHTMLOlustur?.(e);
+				let e = { liste: [] }; sec.ozetBilgiHTMLOlustur?.(e)
 				let {liste} = e; if (!liste.length) { continue }
-				let {etiket, grupKod} = sec, html = '';
+				let {etiket, grupKod} = sec, html = ''
 				if (grupKod) { etiket = grupListe[grupKod].aciklama || etiket }
 				html = liste.join('');  // .replace('float-left', '');
 				if (etiket) {
@@ -216,7 +218,7 @@ class SBTabloDetay extends MQDetay {
 		return result.length ? `<div class="secimBilgi flex-row">${result.join('')}</div>` : ''
 	}
 	get asFormul() {
-		let {hesapTipi} = this;
+		let {hesapTipi} = this
 		/*if (hesapTipi.satirlarToplamimi) {
 			return (({ det, attr, recs, ind2Rec, parentRec }) => {
 				let {satirListe} = det, detaylar = parentRec?.detaylar ?? [];
@@ -225,14 +227,16 @@ class SBTabloDetay extends MQDetay {
 				return roundToBedelFra(topla(rec => rec?.[attr] ?? 0, topRecs))
 			})
 		}
-		else*/ if (hesapTipi?.formulmu) { return this.formul }
+		else*/
+		if (hesapTipi?.formulmu) { return this.formul }
 		return null
 	}
 	get asRaporQuery() {
-		let uni = new MQUnionAll(), stm = new MQStm({ sent: uni });
-		let e = { stm, uni }; this.raporQueryDuzenle(e);
-		stm = e.stm; return stm
+		let uni = new MQUnionAll(), stm = new MQStm({ sent: uni })
+		let e = { stm, uni }; this.raporQueryDuzenle(e)
+		return e.stm
 	}
+
 	constructor(e) {
 		e = e ?? {}; super(e);
 		this.secimlerOlustur(e)
@@ -249,26 +253,31 @@ class SBTabloDetay extends MQDetay {
 		})
 	}
 	secimlerOlustur(e) {
-		let tip2Secimler = this.tip2Secimler = e.tip2Secimler ?? {};
+		let tip2Secimler = this.tip2Secimler = e.tip2Secimler ?? {}
 		let tip2SecimMFYapi = {
 			/*S: { mst: DMQStok, grup: DMQStokGrup, anaGrup: DMQStokAnaGrup, istGrup: DMQStokIstGrup, tip: DMQStokTip },
 			H: { mst: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup, istGrup: DMQHizmetIstGrup, muhHesap: DMQMuhHesap },
 			[KasaHareketci.kisaKod]: { mst: DMQKasa, grup: DMQKasaGrup },
 			[BankaMevduatHareketci.kisaKod]: { mst: DMQBankaHesap, grup: DMQBankaHesapGrup }*/
 		}
+		$.extend(e, { tip2Secimler, tip2SecimMFYapi })
 		{
 			let harSiniflar = SBTabloHesapTipi.kaListe.map( ({ ekBilgi }) => ekBilgi?.harSinif ).filter(x => x)
-			let _e = { ...e, tip2Secimler, tip2SecimMFYapi }
 			for (let harSinif of harSiniflar)
-				harSinif.maliTablo_secimlerYapiOlustur(_e) 
+				harSinif.maliTablo_secimlerYapiOlustur(e)
+			tip2Secimler = e.tip2Secimler
+			tip2SecimMFYapi = e.tip2SecimMFYapi
 		}
 		let tip2EkWhereDuzenleyici = {
 			/*[KasaHareketci.kisaKod]: ({ raporTanim, secimler: sec, where: wh }) => { debugger },
 			[BankaMevduatHareketci.kisaKod]: ({ raporTanim, secimler: sec, where: wh }) => { debugger }*/
 		};
 		for (let [tip, yapi] of Object.entries(tip2SecimMFYapi)) {
-			if ($.isEmptyObject(yapi)) { continue }
-			let secimler = tip2Secimler[tip]; if (secimler) { continue }
+			if (empty(yapi))
+				continue
+			let secimler = tip2Secimler[tip]
+			if (secimler)
+				continue
 			secimler = tip2Secimler[tip] = new Secimler()
 			$.extend(secimler, { secimEkWhereDuzenle: tip2EkWhereDuzenleyici[tip] })
 			secimler.beginUpdate()
@@ -314,7 +323,7 @@ class SBTabloDetay extends MQDetay {
 	inExp_hostVarsDuzenle(e) {
 		super.inExp_hostVarsDuzenle(e); let {hv} = e
 		let {asObject: secimlerData} = this.secimler ?? {}
-		if (!$.isEmptyObject(secimlerData)) { hv.secimler = secimlerData }
+		if (!empty(secimlerData)) { hv.secimler = secimlerData }
 	}
 	inExp_setValues({ rec, rec: { secimler: secimlerData } }) {
 		super.inExp_setValues(...arguments); let {secimler} = this
@@ -322,9 +331,14 @@ class SBTabloDetay extends MQDetay {
 	}
 	raporQueryDuzenle(e) {
 		let det = e.det = this, {aciklama, hesapTipi = {}, veriTipi = {}, shStokHizmet, secimler: detSecimler} = this
-		let {raporTanim, secimler, stm, donemBS, subeKodlari, sentDuzenle: genelSentDuzenle, yatayAnalizVarmi, yatayAnaliz} = e
-		let {rapor, rapor: { tabloYapi, sahaAlias } = {}} = e
 		let {ekBilgi: { querymi, hareketcimi, harSinif, harSinif: { ticarimi } } = {}} = hesapTipi
+		if (!querymi)
+			return
+		
+		let {detayli, raporTanim, subeKodlari, sentDuzenle: genelSentDuzenle, yatayAnalizVarmi, yatayAnaliz} = e
+		let {rapor, rapor: { tabloYapi, sahaAlias } = {}, secimler = rapor?.secimler, donemBS = rapor.tarihBS} = e
+		if ($.isPlainObject(donemBS))
+			donemBS = new CBasiSonu(donemBS)
 		let durum = e.durum = {
 			stokmu: querymi && (!hareketcimi || ticarimi) && (shStokHizmet.birliktemi || shStokHizmet.stokmu),
 			hizmetmi: hesapTipi.hizmetmi || (querymi && (!hareketcimi || ticarimi) && (shStokHizmet.birliktemi || shStokHizmet.hizmetmi))
@@ -337,66 +351,56 @@ class SBTabloDetay extends MQDetay {
 		else if (ticarimi && shStokHizmet.birliktemi)
 			durum.stokmu = durum.hizmetmi = true
 		let {ekBilgi = {}, donemTipi} = veriTipi
-		$.extend(e, { aciklama, hesapTipi, veriTipi, shStokHizmet, hareketcimi, maliTablomu: true })
-		let _e = { ...e, sahaAlias };
-		if ($.isPlainObject(donemBS)) { donemBS = _e.donemBS = new CBasiSonu(donemBS) }
-		if (donemTipi) { _e.donemTipi = donemTipi }
-		let {sentUygunluk, sentDuzenle: icerikSentDuzenle} = ekBilgi;
-		if (!querymi) { return }
-		secimler ??= rapor?.secimler; $.extend(_e, { detSecimler });
+		let {sentUygunluk, sentDuzenle: icerikSentDuzenle} = ekBilgi
+		$.extend(e, {
+			rapor, raporTanim, aciklama, hesapTipi, veriTipi, shStokHizmet, hareketcimi, maliTablomu: true,
+			sahaAlias, donemTipi, donemBS, secimler, detSecimler
+		})
 		if (detSecimler) {
 			detSecimler.whereBlockListe = []
-			detSecimler.whereBlockEkle(({ secimler: sec, where: wh, stokmu, hizmetmi, querymi, hareketcimi, harSinif }) => {
-				let args = { ..._e, raporTanim, secimler: sec, where: wh, donemTipi, harSinif };
-				/*if (!hareketcimi) {
-					let alias = args.alias = hizmetmi ? 'hiz' : 'stk', iGrpAlias = hizmetmi ? 'higrp' : 'sigrp'
-					wh.basiSonu(sec.mstKod, `${alias}.kod`).ozellik(sec.mstAdi, `${alias}.aciklama`)
-					wh.basiSonu(sec.grupKod, 'grp.kod').ozellik(sec.grupAdi, 'grp.aciklama')
-					wh.basiSonu(sec.anaGrupKod, 'agrp.kod').ozellik(sec.anaGrupAdi, 'agrp.aciklama')
-					wh.basiSonu(sec.istGrupKod, `${iGrpAlias}.kod`).ozellik(sec.istGrupAdi, `${iGrpAlias}.aciklama`)
-					if (stokmu) { wh.basiSonu(sec.tipKod, `${alias}.tipi`) }
-					if (hizmetmi) { wh.basiSonu(sec.muhHesapKod, `${alias}.muhhesap`).ozellik(sec.muhHesapAdi, 'mhes.aciklama') }
-				}*/
-				sec.secimEkWhereDuzenle?.(args)
-			});
-			{
+			detSecimler.whereBlockEkle(({ secimler: sec, where: wh, stokmu, hizmetmi, querymi, hareketcimi, harSinif }) =>
+				sec.secimEkWhereDuzenle?.({ ...e, secimler: sec, where: wh, harSinif }))
+			; {
 				(secimler = secimler.deepCopy()).beginUpdate()
 				$.extend(secimler.liste, { ...detSecimler.liste })
 				let whereBlockListe = secimler.whereBlockListe ??= []
 				let {whereBlockListe: detWhereBlockListe} = detSecimler
-				if (detWhereBlockListe) { whereBlockListe.push(...detWhereBlockListe) }
+				if (detWhereBlockListe)
+					whereBlockListe.push(...detWhereBlockListe)
 				secimler.endUpdate()
 			}
 		}
-		e.secimler = secimler;
 		for (let [selector, flag] of Object.entries(durum)) {
-			if (!flag) { continue } 
+			if (!flag)
+				continue
 			for (let _selector of Object.keys(durum))
-				delete _e[_selector]
-			_e[selector] = flag
-			if (!(sentUygunluk == null || sentUygunluk?.call(this, _e))) { continue }
+				delete e[_selector]
+			e[selector] = flag
+			if (!(sentUygunluk == null || sentUygunluk?.call(this, e)))
+				continue
 			if (hareketcimi)
-				this.raporQueryDuzenle_hareketci(_e)
-			// else if (querymi) { this.__raporQueryDuzenle_satis(_e) }
+				this.raporQueryDuzenle_hareketci(e)
 		}
-		stm = e.stm = _e.stm; let {sent: uni} = stm ?? {}
+		let {stm, uni} = e
 		if (!uni?.liste?.length)
 			return this
-		_e.uni = uni; let {defHV, harHVListe} = _e
+		let {defHV, harHVListe} = e    // raporQueryDuzenle_hareketci() tarafından oluşturulması bekleniyor
 		{
 			let sahaAliases = Object.values(tabloYapi?.toplam).map(({ colDefs = [] }) =>
 				colDefs.map(_ => _.belirtec)).flat()
 			for (let i = 0; i < uni.liste.length; i++) {
-				let hv = { ...defHV, ...harHVListe?.[i] }, sent = uni.liste[i]
+				let sent = uni.liste[i], hv = { ...defHV, ...harHVListe?.[i] }
 				{
 					let {alias2Deger} = sent, {shTipi: shTipiClause} = alias2Deger
 					if (shTipiClause) {
 						let shTipiStr = shTipiClause.replaceAll(`'`, '')
-						$.extend(_e, { stokmu: shTipiStr == 'S', hizmetmi: shTipiStr == 'H' })
+						$.extend(e, { stokmu: shTipiStr == 'S', hizmetmi: shTipiStr == 'H' })
 					}
 					$.extend(hv, { ...alias2Deger })
 				}
-				sent.sahalarReset(); let {where: wh, sahalar} = sent
+				if (!detayli)
+					sent.sahalarReset()
+				let {where: wh, sahalar} = sent
 				let donemBSVarmi = donemBS?.bosDegilmi ?? false
 				if (donemBSVarmi) {
 					let tarihBS = donemBS.deepCopy(); if (donemTipi) {
@@ -408,133 +412,156 @@ class SBTabloDetay extends MQDetay {
 				}
 				if (subeKodlari?.length)
 					wh.inDizi(subeKodlari, (hv.bizsubekod || 'fis.bizsubekod'))
-				/* sahalar.add(`${aciklama.sqlServerDegeri()} aciklama`) */
-				wh.add(`${hv.ozelisaret ?? 'fis.ozelisaret'} <> 'X'`);
-				$.extend(_e, { sent, where: wh, sahalar, hv })
-				icerikSentDuzenle?.call(this, _e)
-				sent = _e.sent; wh = sent.where
+				wh.add(`${hv.ozelisaret ?? 'fis.ozelisaret'} <> 'X'`)
+				$.extend(e, { sent, where: wh, sahalar, hv })
+				icerikSentDuzenle?.call(this, e)
+				sent = e.sent; wh = sent.where
 				{
-					let {alias2Deger} = sent; $.extend(_e, { alias2Deger })
+					let alias2Deger = e.alias2Deger = sent.alias2Deger
 					$.extend(hv, { ...alias2Deger })
 					for (let sahaAlias of sahaAliases)
-						if (!alias2Deger[sahaAlias])
+						// detaylı ise orj hv değerini override yap, toplam ise sadece yoksa ekle
+						if (detayli || !alias2Deger[sahaAlias])
 							sahalar.add(`0 ${sahaAlias}`)
 				}
 				if (detSecimler) {
 					if (hareketcimi && harSinif) {
-						let mstYapi = _e.mstYapi = harSinif.mstYapi
-						let mstClause = _e.mstClause = hv[mstYapi.hvAlias]
-						harSinif.maliTablo_secimlerSentDuzenle(_e)
-						/* harSinif.maliTablo_secimlerFromEkBagla(_e) */
+						let mstYapi = e.mstYapi = harSinif.mstYapi
+						let mstClause = e.mstClause = hv[mstYapi.hvAlias]
+						harSinif.maliTablo_secimlerSentDuzenle(e)
 					}
-					/*else {
-						let mstTableAlias = hizmetmi ? 'hiz' : 'stk', iGrpAlias = hizmetmi ? 'higrp' : 'sigrp'
-						let mstBaglaSelector = hizmetmi ? 'x2HizmetBagla' : 'x2StokBagla'
-						let ekBaglaPrefix = hizmetmi ? 'hizmet' : 'stok', mstKodAlias = `${ekBaglaPrefix}kod`
-						let {from} = sent, kodClause = `har.${mstKodAlias}`
-						if (!from.aliasIcinTable(mstTableAlias)) { sent[mstBaglaSelector]({ kodClause }) }
-						if (!from.aliasIcinTable('grp')) { sent[`${ekBaglaPrefix}2GrupBagla`]() }
-						if (!from.aliasIcinTable('agrp')) { sent[`${ekBaglaPrefix}Grup2AnaGrupBagla`]() }
-						if (!from.aliasIcinTable(iGrpAlias)) { sent[`${ekBaglaPrefix}2IstGrupBagla`]() }
-						if (!stokmu && !from.aliasIcinTable('mhes')) { sent.x2MuhHesapBagla({ alias: mstTableAlias }) }
-						wh.birlestir(detSecimler.getTBWhereClause(_e))
-					}*/
 				}
 				if (yatayAnalizVarmi && !yatayAnaliz.dbmi) {
-					let {ekBilgi = {}} = yatayAnaliz, { zorunluKodAttr: kodAttr } = ekBilgi
+					let {ekBilgi = {}} = yatayAnaliz, {zorunluKodAttr: kodAttr} = ekBilgi
 					/*let kodClause = hv[kodAttr]
-					_e.yatayAlias = hareketcimi && kodClause ? MQAliasliYapi.getDegerAlias(kodClause) : null*/
-					_e.kodClause = hv[kodAttr]; ekBilgi.sentDuzenle?.(_e)
+					e.yatayAlias = hareketcimi && kodClause ? MQAliasliYapi.getDegerAlias(kodClause) : null*/
+					e.kodClause = hv[kodAttr]; ekBilgi.sentDuzenle?.(e)
 				}
-				genelSentDuzenle?.call(this, _e)
+				genelSentDuzenle?.call(this, e)
 				sent.groupByOlustur().gereksizTablolariSil()
 			}
 		}
 		return this
 	}
-	__raporQueryDuzenle_satis({ stm, uni, stokmu, hizmetmi, yatayAnalizVarmi, yatayAnaliz }) {
-		let {dRapor: { ihracatIntacdanmi } = {}} = app.params;
-		let {shIade, shAyrimTipi} = this, {ihracatmi} = shAyrimTipi;
-		let harTable = hizmetmi ? 'pifhizmet' : 'pifstok';
-		let sent = new MQSent(), {where: wh} = sent;
-		sent.fromAdd('piffis fis').innerJoin('fis', `${harTable} har`, 'har.fissayac = fis.kaysayac');
-		wh.fisSilindiEkle().add(`fis.piftipi = 'F'`, `fis.almsat = 'T'`);
-		if (!shIade.birliktemi) { wh.degerAta(shIade.iademi ? 'I' : '', 'fis.iade') }
-		let ayrimYapi = {
-			in: { },
-			notIn: { [ihracatIntacdanmi ? 'IH' : 'IN']: true }
-		}
-		if (!shAyrimTipi.birliktemi) {
-			/*
-				ihracatIntacdanmi=true
-						ise İhracat verisi için fis.ayrimtipi in ('IN', 'MI')     // ihracat için 'MI' ortak, 'IN' farklı
-						iç piyasa için fis.ayrimtipi not in ('IN', 'MI', 'IH')    // iç piyasa için her iki koşulda da aynı
-					hepsi için fis.ayrimtipi <> 'IH'
-				
-				ihracatIntacdanmi=false
-						ise İhracat verisi için fis.ayrimtipi in ('IH', 'MI')     // ihracat için 'MI' ortak, 'IH' farklı
-						iç piyasa için fis.ayrimtipi not in ('IN', 'MI', 'IH')    // iç piyasa için her iki koşulda da aynı
-					hepsi için fis.ayrimtipi <> 'IN'
-			*/
-			if (ihracatmi) {
-				let inEk = ihracatIntacdanmi ? 'IN' : 'IH';
-				for (let key of [inEk, 'MI']) { ayrimYapi.in[key] = true }
-			}
-			else { for (let key of ['IN', 'MI', 'IH']) { ayrimYapi.notIn[key] = true } }
-			ayrimYapi.notIn[ihracatIntacdanmi ? 'IH': 'IN'] = true;
-			let addAyrimTipiKosul = key => {
-				let set = ayrimYapi[key]; if ($.isEmptyObject(set)) { return }
-				let selector = `${key}Dizi`; wh[selector](Object.keys(set), 'fis.ayrimtipi')
-			};
-			addAyrimTipiKosul('in'); addAyrimTipiKosul('notIn')
-		}
-		sent.sahalarReset(); let {sahalar} = sent;
-		sahalar.add(`'${stokmu ? 'S' : hizmetmi ? 'H' : ''}' shTipi`);
-		/*if (yatayAnalizVarmi && !yatayAnaliz.dbmi) {
-			let {ekBilgi = {}} = yatayAnaliz, { hvKA: { kod: kodAttr } } = ekBilgi;
-			if (kodAttr) { sahalar.add(`fis.${kodAttr}`) }
-		}*/
-		uni.add(sent);
-		return this
-	}
 	raporQueryDuzenle_hareketci(e) {
+		// detayli için attr ve sum düzenlemesi
 		let det = this, {raporTanim, rapor, secimler, sahaAlias: bedelAlias} = e
-		let {uni, donemTipi, yatayAnalizVarmi, yatayAnaliz, stokmu, hizmetmi} = e
-		let {hesapTipi = {}, veriTipi = {}, shStokHizmet/*, shAlmSat = {}*/} = e
-		let {ekBilgi: { harSinif, harEkDuzenle } = {}} = hesapTipi; if (!harSinif) { return this }
+		let {donemTipi, detayli, yatayAnalizVarmi, yatayAnaliz, stokmu, hizmetmi} = e
+		let {hesapTipi = {}, veriTipi = {}, shStokHizmet, ozelAttrListe, ekAttrListe = []} = e
+		let {ekBilgi: { harSinif, harEkDuzenle } = {}} = hesapTipi
+		if (!harSinif)
+			return this
 		let {mstYapi: { hvAlias } = {}} = harSinif
-		let sabitAttrListe = [
-			'tarih', 'bizsubekod', 'ozelisaret', 'shTipi', 'takipno',
-			'fmalhammadde', 'fmalmuh', 'malhammadde', 'malmuh'
-		]
-		let aliasListe = ['ba', bedelAlias]
-		if (hvAlias) { sabitAttrListe.push(hvAlias) }
+		let sabitAttrListe = [], aliasListe = []
+		if (ozelAttrListe)
+			aliasListe.push(...ozelAttrListe)
+		else {
+			sabitAttrListe.push(
+				'tarih', 'bizsubekod', 'ozelisaret', 'shTipi', 'takipno',
+				'fmalhammadde', 'fmalmuh', 'malhammadde', 'malmuh'
+			)
+			aliasListe.push('ba', bedelAlias, ...ekAttrListe)
+		}
+		if (hvAlias)
+			sabitAttrListe.push(hvAlias)
+		let sumSahalar = asSet([bedelAlias, 'fmalhammadde', 'fmalmuh', 'malhammadde', 'malmuh'])
 		if (yatayAnalizVarmi && !yatayAnaliz.dbmi) {
-			let {ekBilgi: { zorunluKodAttrListe } = {}} = yatayAnaliz;
-			if (zorunluKodAttrListe?.length) { sabitAttrListe.push(...zorunluKodAttrListe) }
+			let {ekBilgi: { zorunluKodAttrListe } = {}} = yatayAnaliz
+			if (zorunluKodAttrListe?.length)
+				sabitAttrListe.push(...zorunluKodAttrListe)
 		}
 		let harHVListe = e.harHVListe = []
 		let har = new harSinif().withAttrs([...sabitAttrListe, ...aliasListe])
-		e.maliTablo = har.maliTablo = { raporTanim, det, rapor, secimler, sahaAlias: bedelAlias, yatayAnalizVarmi, yatayAnaliz }
+		e.maliTablo = har.maliTablo = {
+			raporTanim, det, rapor, secimler, sahaAlias: bedelAlias,
+			yatayAnalizVarmi, yatayAnaliz
+		}
 		let {ekBilgi: { harEkDuzenle: harEkDuzenle2 } = {}} = veriTipi
-		if (harEkDuzenle) { har.addEkDuzenleyici(args => harEkDuzenle.call(this, ...args)) }
-		if (harEkDuzenle2) { har.addEkDuzenleyici(args => harEkDuzenle2.call(this, ...args)) }
+		if (harEkDuzenle)
+			har.addEkDuzenleyici(args => harEkDuzenle.call(this, ...args))
+		if (harEkDuzenle2)
+			har.addEkDuzenleyici(args => harEkDuzenle2.call(this, ...args))
 		let {attrSet} = har, {varsayilanHV: defHV} = har.class
+		e.stm ??= new MQStm({ sent: new MQUnionAll() })
+		let {stm} = e, uni = e.uni = stm.sent
 		let harUni = har.uniOlustur({ ...e, rapor, secimler })
 		for (let harSent of harUni) {
 			let {alias2Deger: hv} = harSent, {tarih: tarihClause = 'fis.tarih'} = hv
-			let sent = harSent.deepCopy(), addClause = alias => {
-				let clause = hv[alias]; if (alias == bedelAlias) { clause = clause.asSumDeger() }
-				let saha = `${clause} ${alias}`
-				sent.sahalar.add(saha)
-				return saha
-			};
-			harHVListe.push(hv); sent.sahalarReset()
-			for (let alias of aliasListe) { addClause(alias) }
-			uni.add(sent)
+			let sent = harSent.deepCopy()
+			let addClause = (...aliases) => {
+				for (let alias of aliases) {
+					if ($.isArray(alias)) {
+						addClause(...alias)
+						continue
+					}
+					let clause = hv[alias]
+					if (!detayli && sumSahalar[alias])
+						clause = clause.asSumDeger()
+					let saha = `${clause} ${alias}`
+					sent.sahalar.add(saha)
+				}
+			}
+			harHVListe.push(hv)
+			if (!detayli) {
+				sent.sahalarReset()
+				addClause(...aliasListe)
+			}
+			if (sent.sahalar.liste.length)
+				uni.add(sent)
 		}
 		$.extend(e, { har, defHV, attrSet })
 		return this
+	}
+	async hareketKartiGoster(e = {}) {
+		e = { ...e }; let {rapor, rapor: { sahaAlias: bedelAlias }} = e
+		let {hesapTipi: { ekBilgi: { hareketcimi, harSinif } = {} }} = this
+		if (!(rapor && hareketcimi && harSinif)) { return }
+		let {dRapor: { konsolideCikti: konsolide, ekDBListe} = {}} = app.params
+		konsolide &&= ekDBListe?.length > 0
+		let ekAttrListe = ['tarih', 'fisnox', 'anaislemadi', 'islemadi', 'refkod', 'refadi']
+		$.extend(e, { konsolide, detayli: true, detay: this, ekAttrListe })
+		let cls = class extends MQCogul {
+			static get kodListeTipi() { return harSinif.kod } static get sinifAdi() { return `${harSinif.aciklama} Hareket Kartı` }
+			static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false } static get secimSinif() { return null }
+			static get raporKullanilirmi() { return false } static get tumKolonlarGosterilirmi() { return true }
+			static orjBaslikListesi_argsDuzenle({ args }) {
+				super.orjBaslikListesi_argsDuzenle(...arguments)
+				$.extend(args, { showGroupsHeader: true, showStatusBar: true, showAggregates: true, showGroupAggregates: true })
+			}
+			static ekCSSDuzenle({ rec, dataField: belirtec, value, result }) {
+				super.ekCSSDuzenle(...arguments);
+				if (asBool(rec.bdevredisi)) { result.push('bg-lightgray', 'iptal', 'firebrick') }
+				if (value && typeof value == 'number') {
+					let negative = value < 0; if (rec.ba == 'A') { negative = !negative }
+					result.push('bold', negative ? 'firebrick' : 'forestgreen')
+				}
+				else if (belirtec == 'ba') {
+					result.push('bold', 'center', value == 'A' ? 'bg-lightred' : 'bg-lightgreen')
+				}
+			}
+			static orjBaslikListesiDuzenle({ liste }) {
+				super.orjBaslikListesiDuzenle(...arguments)
+				liste.push(...[
+					new GridKolon({ belirtec: 'bizsubekod', text: 'Şube', genislikCh: 8, filterType: 'checkedlist' }),
+					new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13 }).tipTarih(),
+					new GridKolon({ belirtec: 'fisnox', text: 'Belge No', genislikCh: 20 }),
+					new GridKolon({ belirtec: 'islemadi', text: 'İşlem Adı', genislikCh: 15, filterType: 'checkedlist' }),
+					new GridKolon({ belirtec: 'refkod', text: 'Ref. Kod', genislikCh: 20 }),
+					new GridKolon({ belirtec: 'refadi', text: 'Ref. Adı' }),
+					new GridKolon({ belirtec: bedelAlias, text: 'Bedel', genislikCh: 20, aggregates: ['sum'] }).tipDecimal_bedel(),
+					new GridKolon({ belirtec: 'ba', text: 'B/A', genislikCh: 8, filterType: 'checkedlist' }),
+					new GridKolon({ belirtec: 'anaislemadi', text: 'Ana İşlem', genislikCh: 15, filterType: 'checkedlist' }),
+					(konsolide ? new GridKolon({ belirtec: 'db', text: 'Veritabanı', genislikCh: 20, filterType: 'checkedlist' }) : null)
+				].filter(x => !!x))
+			}
+			static async loadServerDataDogrudan() {
+				let _e = { ...arguments[0], ...e }
+				try { return await rapor.loadServerData(_e) }
+				catch (ex) { hConfirm(getErrorText(ex), 'Hareket Kartı'); console.error(ex); return [] }
+			}
+		}
+		let result = cls.listeEkraniAc()
+		return { harSinif, rapor, detay: this, ...result }
 	}
 	eval(e) {
 		e = e ?? {}; let {recs} = e, {asFormul: code} = this;
@@ -587,7 +614,7 @@ class SBTabloGridci extends GridKontrolcu {
 		return result.join(' ')
 	}
 	tabloKolonlariDuzenle_ilk(e) {
-		super.tabloKolonlariDuzenle_ilk(e); let {tabloKolonlari: liste} = e;
+		super.tabloKolonlariDuzenle_ilk(e); let {tabloKolonlari: liste} = e
 		let cellClassName = (sender, rowIndex, belirtec, value, rec) => {
 			let _e = { sender, rowIndex, belirtec, value, rec, result: [] };
 			return this.ekCSSDuzenle(_e)
