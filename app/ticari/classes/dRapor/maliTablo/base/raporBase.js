@@ -292,7 +292,8 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 				...det.asObject, detaylar: [], hesaplandimi: false,
 				...Object.fromEntries(attrListe.map(attr => [attr, 0])),
 				toplamReset() {
-					for (let attr of attrListe) { this[attr] = 0 }
+					for (let attr of attrListe)
+						this[attr] = 0
 					return this
 				},
 				toplamaEkle(digerGridRec) {
@@ -300,8 +301,9 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 					for (let attr of attrListe) {
 						let value = digerGridRec[attr]
 						this[attr] += value
-						// if (tersIslemmi) { this[attr] -= value }
-						// else { this[attr] += value }
+						/*  if (tersIslemmi) { this[attr] -= value }
+							else { this[attr] += value }
+						*/
 					}
 					return this
 				},

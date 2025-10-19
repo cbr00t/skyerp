@@ -518,9 +518,22 @@ class SBTabloDetay extends MQDetay {
 		let {hesapTipi: { ekBilgi: { hareketcimi, harSinif } = {} }} = this
 		if (!(rapor && hareketcimi && harSinif)) { return }
 		let {dRapor: { konsolideCikti: konsolide, ekDBListe} = {}} = app.params
+		let {mstYapi} = harSinif, {hvAlias: mstAlias} = mstYapi ?? {}
+		let sentDuzenle = ({ sent, sent: { sahalar }, alias2Deger: hv }) => {
+			if (mstAlias) {
+				let kodClause = hv[mstAlias]
+				if (kodClause) {
+					sahalar.add(`${kodClause} mstkod`)
+					mstYapi.duzenle({ sent })
+				}
+			}
+		}
 		konsolide &&= ekDBListe?.length > 0
-		let ekAttrListe = ['tarih', 'fisnox', 'anaislemadi', 'islemadi', 'refkod', 'refadi']
-		$.extend(e, { konsolide, detayli: true, detay: this, ekAttrListe })
+		let ekAttrListe = [
+			'tarih', 'fisnox', 'anaislemadi', 'islemadi', 
+			mstAlias, 'mstadi', 'refkod', 'refadi'
+		].filter(x => !!x)
+		$.extend(e, { konsolide, detayli: true, detay: this, ekAttrListe, sentDuzenle })
 		let cls = class extends MQCogul {
 			static get kodListeTipi() { return harSinif.kod } static get sinifAdi() { return `${harSinif.aciklama} Hareket Kartı` }
 			static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false } static get secimSinif() { return null }
@@ -543,12 +556,14 @@ class SBTabloDetay extends MQDetay {
 			static orjBaslikListesiDuzenle({ liste }) {
 				super.orjBaslikListesiDuzenle(...arguments)
 				liste.push(...[
-					new GridKolon({ belirtec: 'bizsubekod', text: 'Şube', genislikCh: 8, filterType: 'checkedlist' }),
+					new GridKolon({ belirtec: 'bizsubekod', text: 'Şube', genislikCh: 7, filterType: 'checkedlist' }),
 					new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13 }).tipTarih(),
-					new GridKolon({ belirtec: 'fisnox', text: 'Belge No', genislikCh: 13 }),
-					new GridKolon({ belirtec: 'refkod', text: 'Ref. Kod', genislikCh: 20 }),
+					new GridKolon({ belirtec: 'fisnox', text: 'Belge No', genislikCh: 10 }),
+					new GridKolon({ belirtec: 'mstkod', text: 'Kod', genislikCh: 17 }),
+					new GridKolon({ belirtec: 'mstadi', text: 'Açıklama', genislikCh: 40 }),
+					new GridKolon({ belirtec: 'refkod', text: 'Ref. Kod', genislikCh: 17 }),
 					new GridKolon({ belirtec: 'refadi', text: 'Ref. Adı', genislikCh: 40 }),
-					...zorunluKodAttrListe?.map(belirtec =>  new GridKolon({ belirtec, text: belirtec, genislikCh: 25 }) ) ?? [],
+					// ...zorunluKodAttrListe?.map(belirtec =>  new GridKolon({ belirtec, text: belirtec, genislikCh: 25 }) ) ?? [],
 					new GridKolon({ belirtec: bedelAlias, text: 'Bedel', genislikCh: 20, aggregates: ['sum'] }).tipDecimal_bedel(),
 					new GridKolon({ belirtec: 'ba', text: 'B/A', genislikCh: 5, filterType: 'checkedlist' }),
 					(konsolide ? new GridKolon({ belirtec: 'db', text: 'Veritabanı', genislikCh: 20, filterType: 'checkedlist' }) : null),
