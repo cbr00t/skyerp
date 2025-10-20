@@ -524,13 +524,13 @@ class SBTabloDetay extends MQDetay {
 				let kodClause = hv[mstAlias]
 				if (kodClause) {
 					sahalar.add(`${kodClause} mstkod`)
-					mstYapi.duzenle({ sent })
+					mstYapi.duzenle({ kodClause, sent })
 				}
 			}
 		}
 		konsolide &&= ekDBListe?.length > 0
 		let ekAttrListe = [
-			'tarih', 'fisnox', 'anaislemadi', 'islemadi', 
+			'tarih', 'fisnox', 'anaislemadi', 'islkod', 'islemadi',
 			mstAlias, 'mstadi', 'refkod', 'refadi'
 		].filter(x => !!x)
 		$.extend(e, { konsolide, detayli: true, detay: this, ekAttrListe, sentDuzenle })
@@ -546,7 +546,8 @@ class SBTabloDetay extends MQDetay {
 				super.ekCSSDuzenle(...arguments);
 				if (asBool(rec.bdevredisi)) { result.push('bg-lightgray', 'iptal', 'firebrick') }
 				if (value && typeof value == 'number') {
-					let negative = value < 0; if (rec.ba == 'A') { negative = !negative }
+					let negative = value < 0
+					// if (rec.ba == 'A') { negative = !negative }
 					result.push('bold', negative ? 'firebrick' : 'forestgreen')
 				}
 				else if (belirtec == 'ba') {
@@ -574,7 +575,15 @@ class SBTabloDetay extends MQDetay {
 			static async loadServerDataDogrudan() {
 				let _e = { ...arguments[0], ...e }
 				try { return await rapor.loadServerData(_e) }
-				catch (ex) { console.error(ex); return [] }
+				catch (ex) { console.error(ex); hConfirm(getErrorText(ex)); return [] }
+			}
+			static orjBaslikListesi_recsDuzenle({ recs }) {
+				super.orjBaslikListesi_recsDuzenle(...arguments)
+				for (let rec of recs) {
+					let {bedel, ba} = rec
+					if (bedel && ba == 'A')
+						bedel = rec.bedel = -bedel
+				}
 			}
 		}
 		let result = cls.listeEkraniAc()

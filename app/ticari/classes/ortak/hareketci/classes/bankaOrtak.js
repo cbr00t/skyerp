@@ -28,6 +28,6 @@ class BankaOrtakHareketci extends Hareketci {
 		sent.bankaHesap2BankaBagla().bankaHesap2GrupBagla()
 		wh.basiSonu(detSec.mstKod, mstClause).ozellik(detSec.mstAdi, 'bhes.aciklama')
 		wh.basiSonu(detSec.grupKod, 'bhes.grupkod').ozellik(detSec.grupAdi, 'bhgrp.aciklama')
-		wh.basiSonu(detSec.bankaKOd, 'bhes.bankakod').ozellik(detSec.bankaAdi, 'ban.aciklama')
+		wh.basiSonu(detSec.bankaKod, 'bhes.bankakod').ozellik(detSec.bankaAdi, 'ban.aciklama')
 	}
 }

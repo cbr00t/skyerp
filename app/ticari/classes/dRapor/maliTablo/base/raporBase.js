@@ -135,7 +135,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		let {session: { dbName: aktifDB } = {}} = config
 		let {dRapor: { konsolideCikti, ekDBListe} = {}} = app.params
 		ekDBListe = konsolideCikti && aktifDB && ekDBListe?.length
-				? ekDBListe.filter(x => x != aktifDB) : nulls
+				? ekDBListe.filter(x => x != aktifDB) : null
 		$.extend(e, { konsolideCikti, ekDBListe, aktifDB })
 		let sevRecs = await this.loadServerDataDevam(e)
 		/*if (konsolideCikti) {
@@ -344,9 +344,10 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			maxSevNo = Math.max(sevNo, maxSevNo)
 			let ustSevNo = sevNo - 1; sev2Ust[sevNo] = gridRec
 			if (ustSevNo > 0) {
-				let ustGridRec = sev2Ust[ustSevNo], {detaylar: ustDetaylar} = ustGridRec;
+				let ustGridRec = sev2Ust[ustSevNo] ?? {}
+				let {detaylar: ustDetaylar} = ustGridRec
 				// for (let attr of attrListe) { ustGridRec[attr] += gridRec[attr] }
-				ustDetaylar.push(gridRec)
+				ustDetaylar?.push(gridRec)
 			}
 		}
 		let sevRecs = gridRecs.filter(rec => asInteger(rec?.seviyeNo?.char ?? rec?.seviyeNo) <= 1);

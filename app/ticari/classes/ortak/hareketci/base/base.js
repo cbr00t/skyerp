@@ -78,9 +78,10 @@ class Hareketci extends CObject {
 	static get extListe() { let result = this._extListe; if (result == null) { let e = { liste: [] }; this.extListeDuzenle(e); result = this._extListe = e.liste } return result }
 	static set extListe(value) { this._extListe = value }
 	static get mstYapi() {
-		let {_mstYapi: result} = this;
+		let {_mstYapi: result} = this
 		if (result == null) {
-			let e = { result: new Hareketci_MstYapi() }; this.mstYapiDuzenle(e);
+			let e = { result: new Hareketci_MstYapi() }
+			this.mstYapiDuzenle(e)
 			result = this._mstYapi = e.result
 		}
 		return result

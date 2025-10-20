@@ -83,8 +83,10 @@ class HizmetHareketci extends Hareketci {
             hizmetDevir: [
                 new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent }) => {
-						sent.fisHareket('findevirfis', 'findevirhar').har2HizmetBagla().har2KatDetayBagla();
-	                    let {where: wh} = sent; wh.fisSilindiEkle().degerAta('HZ', 'fis.fistipi')
+						sent.fisHareket('findevirfis', 'findevirhar')
+							.har2HizmetBagla().har2KatDetayBagla()
+	                    let {where: wh} = sent
+						wh.fisSilindiEkle().degerAta('HZ', 'fis.fistipi')
 	                })
 					.hvDuzenleIslemi(({ hv }) => {
 	                    $.extend(hv, { kayittipi: `'HZDEV'`, ba: 'har.detba', islemadi: `'Hizmet Devir'` })
@@ -227,8 +229,8 @@ class HizmetHareketci extends Hareketci {
                 new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent }) => {
 						sent.fisHareket('geneldekontfis', 'geneldekonthar')
+							.fis2MuhIslBagla()
 							.har2HizmetBagla().har2KatDetayBagla()
-							.fromIliski('muhisl isl', 'fis.islkod = isl.kod');
 	                    let {where: wh} = sent; wh.fisSilindiEkle();
 						wh.degerAta('HZ', 'har.kayittipi').inDizi(['', 'HD', 'KS'], 'fis.ozeltip')
 	                })
@@ -349,6 +351,7 @@ class HizmetHareketci extends Hareketci {
 						/* dbSent.js: yeni method:
 								fis2DegAdresBagla(e) { this.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox'); return this } */
 						sent.fisHareket('piffis', 'pifhizmet').fis2CariBagla()
+							.fis2MuhIslBagla()
 							.har2KatDetayBagla().fis2DegAdresBagla();
 						let {where: wh} = sent; wh.fisSilindiEkle();
 						wh.inDizi(pifTipleri, 'fis.piftipi');
@@ -571,10 +574,10 @@ class HizmetHareketci extends Hareketci {
 	static maliTablo_secimlerSentDuzenle({ detSecimler: sec, sent, sent: { from }, where: wh, hv, mstClause, maliTablo }) {
 		super.maliTablo_secimlerSentDuzenle(...arguments)
 		// let {det: { shStokHizmet = {} } = {}} = maliTablo ?? {}, {hizmetmi} = shStokHizmet
-		mstClause ||= hv.shkod || 'har.hizmetkod'
+		mstClause ||= hv.hizmetkod || 'har.hizmetkod'
 		let grpClause = hv.grupkod || 'hiz.grupkod', aGrpClause = hv.anaGrupkod || 'grp.anagrupkod'
 		let iGrpClause = hv.istgrupkod || 'hiz.histgrupkod', islClause = hv.islkod || 'fis.islkod'
-		let muhHesapClause = hv.muhhesapkod || 'hiz.muhhesapkod'
+		let muhHesapClause = hv.muhhesapkod || 'hiz.muhhesap'
 		if (sec) {
 			/*wh.basiSonu(sec.subeKod, 'fis.bizsubekod').ozellik(sec.subeAdi, 'sub.aciklama')*/
 			wh.basiSonu(sec.subeGrupKod, 'sub.isygrupkod').ozellik(sec.subeGrupAdi, 'igrp.aciklama')
@@ -582,9 +585,10 @@ class HizmetHareketci extends Hareketci {
 			wh.basiSonu(sec.grupKod, grpClause).ozellik(sec.grupAdi, 'grp.aciklama')
 			wh.basiSonu(sec.anaGrupKod, aGrpClause).ozellik(sec.anaGrupAdi, 'agrp.aciklama')
 			wh.basiSonu(sec.istGrupKod, iGrpClause).ozellik(sec.istGrupAdi, `higrp.aciklama`)
-			if (sec.islKod.value && !from.aliasIcinTable('isl')) { sent.fis2StokIslemBagla() }
-			wh.basiSonu(sec.islKod, islClause).ozellik(sec.islAdi, 'isl.aciklama')
-			wh.basiSonu(sec.muhHesap, muhHesapClause)
+			// if (sec.islKod.value && !from.aliasIcinTable('isl')) { sent.fis2StokIslemBagla() }
+			if (sec.islKod.value && from.aliasIcinTable('isl'))
+				wh.basiSonu(sec.islKod, islClause).ozellik(sec.islAdi, 'isl.aciklama')
+			wh.basiSonu(sec.muhHesapKod, muhHesapClause)
 		}
 	}
 
