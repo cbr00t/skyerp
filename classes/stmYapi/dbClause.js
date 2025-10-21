@@ -5,21 +5,21 @@ class MQClause extends MQSQLOrtak {
 		e = e || {}; super(e);
 		if ($.isArray(e)) { e = { liste: e } } else if (typeof e != 'object') { e = { liste: [e] } }
 		this.parantezlimi = asBool(e.parantezlimi || e.parantezli);
-		const liste = this.liste = [], _liste = e.liste;
-		if (!$.isEmptyObject(_liste)) { const {addDogrudanKullanilirmi} = this.class; for (const item of _liste) { if (addDogrudanKullanilirmi) { this.addDogrudan(item) } else { this.add(item) } } }
+		let liste = this.liste = [], _liste = e.liste;
+		if (!$.isEmptyObject(_liste)) { let {addDogrudanKullanilirmi} = this.class; for (let item of _liste) { if (addDogrudanKullanilirmi) { this.addDogrudan(item) } else { this.add(item) } } }
 		let value = e.birlestir; if (value) { this.birlestir(value) }
 	}
 	add(...sahalar) {
-		const {liste} = this; for (const saha of sahalar) {
+		let {liste} = this; for (let saha of sahalar) {
 			if (saha == null) { continue } if ($.isArray(saha)) { this.add(...saha); continue }
 			let value = this.donusmusDeger(saha); if (this.addIcinUygunmu(value)) { liste.push(value) }
 		}
 		return this
 	}
 	addDogrudan(...sahalar) {
-		const {liste} = this; for (const saha of sahalar) {
+		let {liste} = this; for (let saha of sahalar) {
 			if (saha == null) { continue } if ($.isArray(saha)) { this.add(...saha); continue }
-			const value = this.donusmusDeger(saha); liste.push(value)
+			let value = this.donusmusDeger(saha); liste.push(value)
 		}
 		return this
 	}
@@ -30,9 +30,9 @@ class MQClause extends MQSQLOrtak {
 		this.add(...coll); return this
 	}
 	birlestir(anMQClause) {
-		const liste = typeof anMQClause == 'string' ? [anMQClause] : anMQClause?.liste;
+		let liste = typeof anMQClause == 'string' ? [anMQClause] : anMQClause?.liste;
 		if (!$.isEmptyObject(liste)) { this.addAll(liste) }
-		const _params = anMQClause?.params; if (!$.isEmptyObject(_params)) { const params = this.params = this.params || []; params.push(..._params) }
+		let _params = anMQClause?.params; if (!$.isEmptyObject(_params)) { let params = this.params = this.params || []; params.push(..._params) }
 		return this
 	}
 	donusmusDeger(item) {
@@ -42,27 +42,27 @@ class MQClause extends MQSQLOrtak {
 	addIcinUygunmu(item) { return !(item == null || item == '' || (typeof item == 'string' && item.trimEnd() == '')) }
 	buildString(e) {
 		super.buildString(e);
-		const clause = this.toString_baslangicsiz(e);
-		if (clause) { const onEk = this.class.onEk; e.result += `${onEk ? onEk + ' ' : ''}${clause}`; }
+		let clause = this.toString_baslangicsiz(e);
+		if (clause) { let onEk = this.class.onEk; e.result += `${onEk ? onEk + ' ' : ''}${clause}`; }
 		return this
 	}
-	getQueryYapi_baslangicsiz(e) { e = e || {}; const query = this.toString_baslangicsiz(e), {params} = this; return { query, params } }
+	getQueryYapi_baslangicsiz(e) { e = e || {}; let query = this.toString_baslangicsiz(e), {params} = this; return { query, params } }
 	toString_baslangicsiz(e) { e = $.extend({}, e, { result: '' }); this.buildString_baslangicsiz(e); return e.result }
 	buildString_baslangicsiz(e) {
-		const doluListe = this.liste.filter(item => typeof item != 'string' || item.trim()), Baglac = this.class.baglac, {parantezlimi} = this;
+		let doluListe = this.liste.filter(item => typeof item != 'string' || item.trim()), Baglac = this.class.baglac, {parantezlimi} = this;
 		if (!$.isEmptyObject(doluListe)) {
 			if (doluListe.length && parantezlimi) { e.result += '(' }
 			for (let ind in doluListe) {
-				ind = asInteger(ind); const item = doluListe[ind];
+				ind = asInteger(ind); let item = doluListe[ind];
 				let text = item.toString(); if (ind && item && !item.class?.baglacsizmi) { e.result += Baglac } e.result += text;
 				let _params = item && item.params ? item.params : null; if (_params) { e.params?.push(..._params) }
 			}
 			if (doluListe.length && parantezlimi) { e.result += ')' }
 		}
 		let {params: _params} = this; if (_params) {
-			_params = _params.filter(x => !!x); const resultParams = e.params || [], keySet = asSet(resultParams.filter(x => !!x).map(_param => _param.name || _param.key));
-			for (const i in _params) {
-				const _param = _params[i], name = _param.name || _param.key;
+			_params = _params.filter(x => !!x); let resultParams = e.params || [], keySet = asSet(resultParams.filter(x => !!x).map(_param => _param.name || _param.key));
+			for (let i in _params) {
+				let _param = _params[i], name = _param.name || _param.key;
 				if (!keySet[name]) { keySet[name] = true; resultParams.push(_param) }
 			}
 		}
@@ -75,7 +75,7 @@ class MQToplu extends MQClause {
 	static get baglac() { return `${MQCogul.isOfflineMode ? ';' : ''}${CrLf}${CrLf}` }
 	constructor(e) { e = e || {}; super(e); this.trnFlag = asBool(e.trnFlag) }
 	buildString_baslangicsiz(e) {
-		const {trnFlag} = this; if (trnFlag) {
+		let {trnFlag} = this; if (trnFlag) {
 			// e.result += 'DECLARE @tranCount INT = @@TRANCOUNT' + CrLf;
 			e.result += `DECLARE @trnUsed BIT = (case @@TRANCOUNT when 0 then 1 else 0 end)`
 			if (typeof trnFlag == 'string' && trnFlag.toLowerCase() == 'deftrn') {
@@ -132,8 +132,8 @@ class MQSahalar extends MQClause {
 		return true
 	}
 	addWithAlias(alias, ...sahalar) { return this.addAllWithAlias({ alias: alias, sahalar: sahalar }) }
-	addAllWithAlias(e) { const {alias, sahalar} = e;
-		if (!$.isEmptyObject(sahalar)) { for (const saha of sahalar) this.add(`${alias}.${saha}`) }
+	addAllWithAlias(e) { let {alias, sahalar} = e;
+		if (!$.isEmptyObject(sahalar)) { for (let saha of sahalar) this.add(`${alias}.${saha}`) }
 		return this
 	}
 }
@@ -141,9 +141,9 @@ class MQZincirler extends MQClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	optimize(e) {
 		/* liste: [ ["fis", "har"], ["har", "stk"], ["fis", "car"], ["car", "bol"] ] */
-		const {liste} = this;
+		let {liste} = this;
 		for (let i = liste.length - 1; i > 0; i--) {			// (i > 0) ==> ilk elemana bakılmaz
-			const altDizi = liste[i]; let ilk = altDizi[0];
+			let altDizi = liste[i]; let ilk = altDizi[0];
 			for (let j = i - 1; j >= 0; j--) { let ustDizi = liste[j]; if (ustDizi[ustDizi.length - 1] == ilk) { ustDizi.push(...(altDizi.slice(1))); liste.splice(i, 1); break } }
 		}
 		return this
@@ -177,15 +177,17 @@ class MQFromClause extends MQClause {
 	}
 	aliasIcinTable(alias) { return this.liste.find(anMQTable => anMQTable.aliasVarmi(alias)) }
 	iliskiler2Where(e) {
-		const birlesikWhere = e.where;
-		for (const anMQTable of this.liste) { for (const anMQIliskiYapisi of anMQTable.iliskiler) { birlesikWhere.add(anMQIliskiYapisi.toString()) } }
+		let {liste} = this, {where: birlesikWhere} = e
+		for (let anMQTable of liste)
+			for (let  anMQIliskiYapisi of anMQTable.iliskiler)
+				birlesikWhere.add(anMQIliskiYapisi.toString())
 		return this
 	}
 	/* kullanılmayan tablolar içerdiği ilişkiler ile silinecek. table içindeki (left, inner) için de aynı kural geçerli */
 	disindakiTablolariSil(e) {
-		const disindaSet = e.disindaSet ?? {}, {liste} = this;
+		let disindaSet = e.disindaSet ?? {}, {liste} = this;
 		for (let i = liste.length - 1; i >= 0; i--) {
-			const anMQTable = liste[i], {alias} = anMQTable;
+			let anMQTable = liste[i], {alias} = anMQTable;
 			if (disindaSet[alias]) { anMQTable.disindakiXTablolariSil(e) } else { liste.splice(i, 1) } }
 		return this
 	}
@@ -203,9 +205,9 @@ class MQFromClause extends MQClause {
 class MQSubWhereClause extends MQClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return `${CrLf}	  AND	 ` }
 	constructor(e) {
-		e = e || {}; const initBlock = e => {
+		e = e || {}; let initBlock = e => {
 			if (!$.isPlainObject(e)) { this.add(e); return true }
-			let value = e.inDizi; if (value !== undefined) { this.inDizi({ liste: value, saha: e.saha, not: e.not }); return true }
+			let value = e.inDizi; if (value !== undefined) { this.inDizi({ liste: value, saha: e.saha, not: e.not ?? e.disindakilermi ?? e.disindakiler }); return true }
 			value = e.notInDizi; if (value !== undefined) { this.notInDizi({ liste: value, saha: e.saha }); return true; }
 			value = e.degerAta; if (value !== undefined) { this.degerAta({ deger: value, saha: e.saha, not: e.not }); return true }
 			value = e.notDegerAta; if (value !== undefined) { this.notDegerAta({ deger: value, saha: e.saha }); return true }
@@ -217,9 +219,9 @@ class MQSubWhereClause extends MQClause {
 			value = e.notBasiSonu; if (value !== undefined) { this.notBasiSonu({ deger: value, saha: e.saha }); return true }
 			value = e.ozellik; if (value !== undefined) { this.ozellik({ deger: value, saha: e.saha, not: e.not }); return true }
 			value = e.notOzellik; if (value !== undefined) { this.notOzellik({ deger: value, saha: e.saha }); return true }
-			value = e.tekSecim; if (value !== undefined) { this.tekSecim({ deger: value, saha: e.saha, not: e.not }); return true }
+			value = e.tekSecim; if (value !== undefined) { this.tekSecim({ deger: value, saha: e.saha, not: e.not ?? e.disindakilermi ?? e.disindakiler }); return true }
 			value = e.notTekSecim; if (value !== undefined) { this.notTekSecim({ deger: value, saha: e.saha }); return true }
-			value = e.birKismi; if (value !== undefined) { this.birKismi({ deger: value, saha: e.saha, not: e.not }); return true }
+			value = e.birKismi; if (value !== undefined) { this.birKismi({ deger: value, saha: e.saha, not: e.not ?? e.disindakilermi ?? e.disindakiler }); return true }
 			value = e.notTekSecim; if (value !== undefined) { this.notBirKismi({ deger: value, saha: e.saha }); return true }
 			value = e.birlestirDict; if (value !== undefined) { this.birlestirDict({ alias: e.alias, dict: value, not: e.not }); return true }
 			value = e.birlestir; if (value !== undefined) { this.birlestir(value); return true }
@@ -230,7 +232,7 @@ class MQSubWhereClause extends MQClause {
 			return false
 		};
 		super({ liste: e.liste, params: e.params, parantezlimi: e.parantezlimi, parantezli: e.parantezli });
-		if ($.isArray(e)) { if (!$.isEmptyObject(e)) { for (const item of e) { initBlock(item) } } } else { initBlock(e) }
+		if ($.isArray(e)) { if (!$.isEmptyObject(e)) { for (let item of e) { initBlock(item) } } } else { initBlock(e) }
 	}
 	addIcinUygunmu(item) {
 		if (item == {}.toString()) { debugger }
@@ -252,26 +254,28 @@ class MQSubWhereClause extends MQClause {
 		return this.birlestirDict(e, _alias, true)
 	}
 	degerAta(e, _saha) {
-		e = e?.saha ? e : { deger: e, saha: _saha }; const isSetClause = e.isSetClause ?? this.class.isSetClause; 
-		const isNot = typeof e == 'object' && asBool(e.not), {saha, deger} = e;
-		/*if (deger != null) { const operand = '='; return this.operand({ saha, operand, deger, not: isNot }) }*/
-		const clause = deger == null && !isSetClause ? `${saha} IS${isNot ? ' NOT' : ''} NULL` : `${saha} ${isNot ? '<>' : '='} ${MQSQLOrtak.sqlServerDegeri(deger)}`
+		e = e?.saha ? e : { deger: e, saha: _saha }; let isSetClause = e.isSetClause ?? this.class.isSetClause; 
+		let isNot = typeof e == 'object' && asBool(e.not), {saha, deger} = e;
+		/*if (deger != null) { let operand = '='; return this.operand({ saha, operand, deger, not: isNot }) }*/
+		let clause = deger == null && !isSetClause ? `${saha} IS${isNot ? ' NOT' : ''} NULL` : `${saha} ${isNot ? '<>' : '='} ${MQSQLOrtak.sqlServerDegeri(deger)}`
 		return this.addDogrudan(clause)
 	}
 	notDegerAta(e, _saha) { e = e.saha ? $.extend({}, e) : { deger: e, saha: _saha }; e.not = true; return this.degerAta(e) }
 	inDizi(e, _saha) {
-		e = e.saha ? e : { liste: e, saha: _saha }; let liste = e.liste = e.liste || e.deger || []; delete e.deger;
-		let inClause = liste.liste ? liste : new MQInClause({ liste: liste, saha: e.saha });
-		inClause.isNot = typeof e == 'object' && asBool(e.not); return this.addDogrudan(inClause)
+		e = e.saha ? e : { liste: e, saha: _saha }
+		let liste = e.liste = e.liste || e.deger || []; delete e.deger
+		let inClause = liste.liste ? liste : new MQInClause({ liste: liste, saha: e.saha })
+		inClause.isNot = typeof e == 'object' && asBool(e.not ?? e.disindakilermi ?? e.disindakiler)
+		return this.addDogrudan(inClause)
 	}
 	notInDizi(e, _saha) { e = e.saha ? $.extend({}, e) : { liste: e, saha: _saha }; e.not = true; return this.inDizi(e) }
 	like(e, _saha, _aynenAlinsinmi, _yazildigiGibimi) {
 		e = e.saha ? e : { deger: e, saha: _saha }; let isNot = typeof e == 'object' && asBool(e.not);		
-		const aynenAlinsinmi = e.aynenAlinsinmi ?? e.aynenAlinsin ?? _aynenAlinsinmi,  yazildigiGibimi = e.yazildigiGibimi ?? e.yazildigiGibi ?? _yazildigiGibimi;
+		let aynenAlinsinmi = e.aynenAlinsinmi ?? e.aynenAlinsin ?? _aynenAlinsinmi,  yazildigiGibimi = e.yazildigiGibimi ?? e.yazildigiGibi ?? _yazildigiGibimi;
 		let deger = (e.deger || '').toString().replaceAll('*', '%');
 		if (!aynenAlinsinmi) { if (deger && deger.slice(-1) != '%') { deger += '%' } if (deger[0] != '%') { deger = '%' + deger } }
 		if (yazildigiGibimi) { return this.addDogrudan(`${e.saha} ${isNot ? 'NOT ' : ''}LIKE '${deger}'`) }
-		const degerENUpper = deger.toUpperCase(), degerTRUpper = deger.toLocaleUpperCase(culture);
+		let degerENUpper = deger.toUpperCase(), degerTRUpper = deger.toLocaleUpperCase(culture);
 		return this.addDogrudan(new MQOrClause([
 			`UPPER(${e.saha}) ${isNot ? 'NOT ' : ''}LIKE '${degerENUpper}'`,
 			`UPPER(${e.saha}) ${isNot ? 'NOT ' : ''}LIKE '${degerTRUpper}'`
@@ -279,20 +283,24 @@ class MQSubWhereClause extends MQClause {
 	}
 	notLike(e, _saha, _yazildigiGibimi) { e = e.saha ? $.extend({}, e) : { deger: e, saha: _saha }; e.not = true; return this.like(e) }
 	operand(e, _operand, _deger) {
-		e = e.saha ? e : { saha: e, operand: _operand, deger: _deger }; const {saha, operand, deger} = e;
+		e = e.saha ? e : { saha: e, operand: _operand, deger: _deger }; let {saha, operand, deger} = e;
 		let isNot = typeof e == 'object' && asBool(e.not); if (!operand) {
-			const result = MQOperandClause.newForText(e); if (isNot) { result.asNot() }
+			let result = MQOperandClause.newForText(e); if (isNot) { result.asNot() }
 			this.addDogrudan(result); return this
 		}
-		const {saha: sol} = e, sag = MQSQLOrtak.sqlServerDegeri(deger);
+		let {saha: sol} = e, sag = MQSQLOrtak.sqlServerDegeri(deger);
 		this.addDogrudan(new MQOperandClause({ sol, operand, sag, not: isNot })); return this
 	}
 	notOperand() { return this.operand(...arguments).asNot() }
 	basiSonu(e, _saha) {
 		e = e?.saha ? e : { deger: e, saha: _saha };
-		const isNot = typeof e == 'object' && asBool(e.not), {saha} = e, bs = e.deger, birKismimi = bs?.birKismimi;
-		if (birKismimi) { this.birKismi({ liste: bs.kodListe, saha, not: isNot }) }
-		const sub = new MQAndClause();
+		let {saha, deger: bs, deger: { birKismimi, disindakilermi = e.disindakiler } = {}} = e
+		birKismimi = bs?.birKismimi ?? birKismimi
+		disindakilermi = bs?.disindakilermi ?? bs.disindakiler ?? disindakilermi
+		let isNot = typeof e == 'object' && asBool(e.not ?? disindakilermi)
+		if (birKismimi)
+			this.birKismi({ liste: bs.value ?? bs.kodListe, saha, not: isNot })
+		let sub = new MQAndClause();
 		if (bs) {
 			let {basi, sonu} = bs ?? {}, eqOp = { sonu: '=' };
 			if (basi) {
@@ -302,18 +310,22 @@ class MQSubWhereClause extends MQClause {
 				sub.addDogrudan(`${saha} <${eqOp.sonu} ${MQSQLOrtak.sqlServerDegeri(sonu)}`)
 			}
 		}
-		let text = sub.toString_baslangicsiz(); if (isNot) { text = text ? `NOT(${text})` : '1 = 2' }
-		if (text) { this.addDogrudan(text) } return this
+		let text = sub.toString_baslangicsiz()
+		if (isNot && text)
+			text = `NOT(${text})`
+		if (text)
+			this.addDogrudan(text)
+		return this
 	}
 	notBasiSonu(e, _saha) { e = e.saha ? $.extend({}, e) : { deger: e, saha: _saha }; e.not = true; return this.basiSonu(e) }
 	ozellik(e, _saha) {
 		e = e?.saha ? e : { deger: e, saha: _saha };
-		const isNot = typeof e == 'object' && asBool(e.not); let deger = e.deger || '';
-		const {disindakilermi, yazildigiGibimi} = deger || {};
+		let isNot = typeof e == 'object' && asBool(e.not); let deger = e.deger || '';
+		let {disindakilermi, yazildigiGibimi} = deger || {};
 		if (disindakilermi) { isNot = true }
 		if (deger?.value !== undefined) deger = deger.value
 		if (deger?.ozellik !== undefined) deger = deger.ozellik
-		const {saha} = e, or = new MQOrClause(), parts = deger ? deger.split(' ') : null;
+		let {saha} = e, or = new MQOrClause(), parts = deger ? deger.split(' ') : null;
 		if (parts) { for (let part of parts) { part = part.trim(); if (part) { or.like({ deger: part, saha, yazildigiGibimi }) } } }
 		let text = or.toString(); if (isNot) { text = text ? `NOT(${text})` : '1 = 2' }
 		if (text) { this.addDogrudan(text) }
@@ -321,16 +333,20 @@ class MQSubWhereClause extends MQClause {
 	}
 	notOzellik(e, _saha) { e = e.saha ? $.extend({}, e) : { deger: e, saha: _saha }; e.not = true; return this.ozellik(e) }
 	tekSecim(e, _saha) {
-		e = e?.saha? e : { deger: e, saha: _saha }; let isNot = typeof e == 'object' && asBool(e.not);
-		let deger = coalesce(e.deger, e.value); if (deger?.value !== undefined) { deger = deger.value }
+		e = e?.saha? e : { deger: e, saha: _saha }
+		let isNot = typeof e == 'object' && asBool(e.not ?? e.disindakilermi ?? e.disindakiler)
+		let deger = e.deger ?? e.value
+		if (deger?.value !== undefined) { deger = deger.value }
 		if (deger?.tekSecim !== undefined) { deger = deger.tekSecim } if (deger) { deger = deger.char ?? deger }
 		if (deger != null && !(deger instanceof TekSecim)) { return this.degerAta({ saha: e.saha, deger, not: isNot }) }
 		return this
 	}
 	notTekSecim(e, _saha) { e = e.saha ? $.extend({}, e) : { deger: e, saha: _saha }; e.not = true; return this.tekSecim(e) }
 	birKismi(e, _saha) {
-		e = e?.saha? e : { liste: e, saha: _saha }; const isNot = typeof e == 'object' && asBool(e.not);
-		let liste = e.liste ?? e.deger ?? e.value; delete e.deger; if (liste?.value !== undefined) { liste = liste.value }
+		e = e?.saha? e : { liste: e, saha: _saha }
+		let isNot = typeof e == 'object' && asBool(e.not ?? e.disindakilermi ?? e.disindakiler)
+		let liste = e.liste ?? e.deger ?? e.value; delete e.deger
+		if (liste?.value !== undefined) { liste = liste.value }
 		if (liste && typeof liste != 'object') { liste = $.makeArray(liste) }
 		if (liste && !$.isArray(liste)) { liste = Object.values(liste) }
 		if (liste) { liste = liste.map(x => x?.char === undefined ? x : x.char).filter(x => !(x && x instanceof TekSecim)) }
@@ -340,9 +356,9 @@ class MQSubWhereClause extends MQClause {
 	notBirKismi(e, _saha) { e = e.saha ? $.extend({}, e) : { liste: e, saha: _saha }; e.not = true; return this.birKismi(e) }
 	ticariGC(e, _fisAlias, _notFlag) {
 		e = e || {};
-		const alimmi = (e.alimmi ?? e.alim ?? e.girismi ?? e.giris ?? (e == true)) ?? false;
-		const fisAlias = ( e.fisAlias ?? e.alias ?? _fisAlias ) ?? 'fis';
-		const notFlag = e.not ?? _notFlag, aliasVeNokta = fisAlias ? `${fisAlias}.` : '';
+		let alimmi = (e.alimmi ?? e.alim ?? e.girismi ?? e.giris ?? (e == true)) ?? false;
+		let fisAlias = ( e.fisAlias ?? e.alias ?? _fisAlias ) ?? 'fis';
+		let notFlag = e.not ?? _notFlag, aliasVeNokta = fisAlias ? `${fisAlias}.` : '';
 		this.add(new MQOrClause({
 			not: notFlag,
 			liste: [
@@ -359,48 +375,48 @@ class MQSubWhereClause extends MQClause {
 		return this
 	}
 	notTicariGC(e, _fisAlias) {
-		e = e || {}; const args = ( typeof e == 'object' ? [$.extend({}, e, { not: true })] : [e, _fisAlias, true] );
+		e = e || {}; let args = ( typeof e == 'object' ? [$.extend({}, e, { not: true })] : [e, _fisAlias, true] );
 		return this.ticariGC(...args)
 	}
 	ticariTSN(e, _fisAlias, _noSahaAdi, _notFlag) {
 		e = e || {};
-		const tsn = ( e.deger ?? e.tsn ?? e ), fisAlias = ( e.fisAlias ?? e.alias ?? _fisAlias ) ?? 'fis';
-		const noSahaAdi = ( e.noSahaAdi ?? e.noSaha ?? _noSahaAdi ) || 'no', notFlag = e.not ?? _notFlag, aliasVeNokta = fisAlias ? `${fisAlias}.` : '';
+		let tsn = ( e.deger ?? e.tsn ?? e ), fisAlias = ( e.fisAlias ?? e.alias ?? _fisAlias ) ?? 'fis';
+		let noSahaAdi = ( e.noSahaAdi ?? e.noSaha ?? _noSahaAdi ) || 'no', notFlag = e.not ?? _notFlag, aliasVeNokta = fisAlias ? `${fisAlias}.` : '';
 		if (tsn.seri != null) this.degerAta(tsn.seri, `${aliasVeNokta}seri`)
 		if (tsn.noYil != null) this.degerAta(tsn.noYil, `${aliasVeNokta}noyil`)
 		this.degerAta(tsn.no, `${aliasVeNokta}${noSahaAdi}`); return this
 	}
 	notTicariTSN(e, _fisAlias, _noSahaAdi) {
-		e = e || {}; const args = typeof e == 'object' ? [$.extend({}, e, { not: true })] : [e, _fisAlias, _noSahaAdi, true];
+		e = e || {}; let args = typeof e == 'object' ? [$.extend({}, e, { not: true })] : [e, _fisAlias, _noSahaAdi, true];
 		return this.ticariTSN(...args)
 	}
 	fromGridWSArgs(e) {
-		e = e || {}; const {alias} = e; let {filters} = e;
+		e = e || {}; let {alias} = e; let {filters} = e;
 		if (!filters) {
-			const {filterGroups} = e;
-			if (filterGroups) { filters = e.filters = []; for (const filterGroup of filterGroups) { const _filters = filterGroup.filters; if (_filters?.length) { filters.push(..._filters) } } }
+			let {filterGroups} = e;
+			if (filterGroups) { filters = e.filters = []; for (let filterGroup of filterGroups) { let _filters = filterGroup.filters; if (_filters?.length) { filters.push(..._filters) } } }
 		}
-		if (filters) { for (const filter of filters) { this.fromGridFilter({ filter, alias }) } }
+		if (filters) { for (let filter of filters) { this.fromGridFilter({ filter, alias }) } }
 		return this
 	}
 	fromGridFilter(e) {
 		e = e || {}; let filter = e.filter || e; if ($.isEmptyObject(filter)) { return this }
 		let saha = filter.field; if (!saha) { return this }
-		const _e = { saha, filter }, alias = $.isFunction(e.alias) ? e.alias.call(this, _e) : e.alias;
+		let _e = { saha, filter }, alias = $.isFunction(e.alias) ? e.alias.call(this, _e) : e.alias;
 		if (_e.saha) { saha = _e.saha }
 		if (alias) { saha = `${alias}.${saha}` }
-		const filterType = (filter.type || '').toLowerCase();
-		// const operator = filter.operator.toUpperCase();
-		const condition = (filter.comparisonoperator || filter.condition || '').toUpperCase(), isBooleanFilter = filterType == 'booleanfilter';
-		// const isNumericFilter = filterType == 'numericfilter';
-		const isStringFilter = !filterType || filterType == 'stringfilter';
-		const addValueClause = e => {
-			let {value} = e; const not = true;
+		let filterType = (filter.type || '').toLowerCase();
+		// let operator = filter.operator.toUpperCase();
+		let condition = (filter.comparisonoperator || filter.condition || '').toUpperCase(), isBooleanFilter = filterType == 'booleanfilter';
+		// let isNumericFilter = filterType == 'numericfilter';
+		let isStringFilter = !filterType || filterType == 'stringfilter';
+		let addValueClause = e => {
+			let {value} = e; let not = true;
 			switch (condition) {
 				case 'EMPTY': case 'NOTEMPTY': case 'NOT_EMPTY':
 					value = isStringFilter ? '' : 0; break
 				case 'IN': case 'NOTIN': case 'NOT_IN':
-					const InSeparator = '|';
+					let InSeparator = '|';
 					value = $.isArray(value) ? value.join(InSeparator) : value; value = value.split(InSeparator).filter(x => !!x);
 					if (isStringFilter) { value = value.map(x => MQSQLOrtak.sqlServerDegeri(x)) }
 					break
@@ -431,19 +447,19 @@ class MQSubWhereClause extends MQClause {
 				case 'NOTIN': case 'NOT_IN': this.notInDizi(deger, saha); break
 			}
 		};
-		const {value} = filter; if ($.isArray(value)) { for (const subValue of value) { addValueClause({ value: subValue }) } } else { addValueClause({ value }) }
+		let {value} = filter; if ($.isArray(value)) { for (let subValue of value) { addValueClause({ value: subValue }) } } else { addValueClause({ value }) }
 		return this
 	}
 	//ext
 	fisSilindiEkle(e) {
-		e = e || {}; const alias = (typeof e == 'object' ? e.alias : e) ?? 'fis', aliasVeNokta = alias ? `${alias}.` : '';
+		e = e || {}; let alias = (typeof e == 'object' ? e.alias : e) ?? 'fis', aliasVeNokta = alias ? `${alias}.` : '';
 		this.add(`${aliasVeNokta}silindi = ''`); return this
 	}
 	subeGecerlilikWhereEkle(e) {
-		e = e || {}; const subeKodSql = e.subeKodSql || 'fis.bizsubekod', subeGrupSql = e.subeGrupSql || 'sub.isygrupkod';
-		const subeYapi = e.subeYapi ?? config.session?.subeYapi ?? {}, {subeGecerlilik} = subeYapi; if (subeGecerlilik == null) return this
+		e = e || {}; let subeKodSql = e.subeKodSql || 'fis.bizsubekod', subeGrupSql = e.subeGrupSql || 'sub.isygrupkod';
+		let subeYapi = e.subeYapi ?? config.session?.subeYapi ?? {}, {subeGecerlilik} = subeYapi; if (subeGecerlilik == null) return this
 		if (subeGecerlilik == 'T') return this
-		const {subeGrupKod, subeKod} = subeYapi; this.add(subeGecerlilik == 'G' ? `${subeGrupSql} = '${subeGrupKod}'` : `${subeKodSql} = '${subeKod}'`);
+		let {subeGrupKod, subeKod} = subeYapi; this.add(subeGecerlilik == 'G' ? `${subeGrupSql} = '${subeGrupKod}'` : `${subeKodSql} = '${subeKod}'`);
 		return this
 	}
 	icerikKisitDuzenle_x(e) { config.session?.rol?.icerikselClauseDuzenle?.({ ...e, /* saha: ... */ where: this }); return this }
@@ -531,19 +547,19 @@ class MQTable extends MQAliasliYapi {
 		return liste.find(item => item.aliasVarmi(alias))
 	}
 	disindakiXTablolariSil(e) {
-		/*let disindaSet = e.disindaSet || {}; const liste = this.leftVeInner || [];
-		for (let i = liste.length - 1; i >= 0; i--) { const anMQXJoinTable = liste[i]; if (!disindaSet[anMQXJoinTable.alias]) { liste.splice(i, 1) } }*/
+		/*let disindaSet = e.disindaSet || {}; let liste = this.leftVeInner || [];
+		for (let i = liste.length - 1; i >= 0; i--) { let anMQXJoinTable = liste[i]; if (!disindaSet[anMQXJoinTable.alias]) { liste.splice(i, 1) } }*/
 		let liste = this.leftVeInner || [], disindaSet = e.disindaSet ?? {}, {aliasSet} = e;
 		if (!aliasSet && e.alias) { aliasSet = asSet([e.alias]) }
 		for (let i = liste.length - 1; i >= 0; i--) {
-			const anMQXJoinTable = liste[i], {alias} = anMQXJoinTable;
+			let anMQXJoinTable = liste[i], {alias} = anMQXJoinTable;
 			if (aliasSet ? aliasSet[alias] : !disindaSet[alias]) { liste.splice(i, 1) }
 		}
 		return this
 	}
 	buildString(e) {
-		super.buildString(e); const liste = this.leftVeInner || [];
-		for (const item of liste) {
+		super.buildString(e); let liste = this.leftVeInner || [];
+		for (let item of liste) {
 			e.result += CrLf; e.result += item.class.onEk;
 			e.result += item.toString()
 		}
@@ -619,7 +635,7 @@ class MQOperandClause extends MQIliskiYapisi {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get addDogrudanKullanilirmi() { return true }
 	constructor(e) { e = e || {}; super(e); this.isNot = asBool(e.not); this.operand = e.operand || '' }
 	buildString(e) {
-		const {sol, sag, isNot} = this; let {operand} = this, notPrefix = isNot;
+		let {sol, sag, isNot} = this; let {operand} = this, notPrefix = isNot;
 		if (operand == '!=') { operand = '<>' } if ((sag?.deger ?? 'NULL').toUpperCase() == 'NULL') { operand = 'IS'}
 		if (isNot) {
 			switch (operand) {
@@ -649,8 +665,8 @@ class MQOrderByClause extends MQClause {
 		return true
 	}
 	fromGridWSArgs(e) {
-		e = e || {}; const alias = e.alias;
-		const sahaConverter = alias ? (e => { let _alias = alias; if ($.isFunction(alias)) { _alias = alias.call(this, e) } return _alias ? `${_alias}.${e.saha}` : _alias }) : null;
+		e = e || {}; let alias = e.alias;
+		let sahaConverter = alias ? (e => { let _alias = alias; if ($.isFunction(alias)) { _alias = alias.call(this, e) } return _alias ? `${_alias}.${e.saha}` : _alias }) : null;
 		let sortDataField = e.sortdatafield || e.sortDataField;
 		if (sortDataField && !asBool(e.rowCountOnly)) {
 			if (sortDataField && !$.isArray(sortDataField)) sortDataField = [sortDataField];

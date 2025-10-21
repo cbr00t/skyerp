@@ -27,8 +27,18 @@ class Secimler extends CIO {
 		}
 	}
 	get asObject() {
-		let _e = { _reduce: true }; this.writeTo(_e); delete _e._reduce;
-		for (let key of Object.keys(_e)) { if (key[0] == '_') { delete _e[key]; continue } let item = _e[key]; if ($.isEmptyObject(item)) { delete _e[key]; continue } }
+		let _e = { _reduce: true }
+		this.writeTo(_e)
+		delete _e._reduce
+		for (let key of Object.keys(_e)) {
+			if (key[0] == '_') {
+				delete _e[key]
+				continue
+			}
+			let item = _e[key]
+			if (empty(item))
+				delete _e[key]
+		}
 		return _e
 	}
 	readFrom(e) {
@@ -49,11 +59,14 @@ class Secimler extends CIO {
 		return true
 	}
 	writeTo(e) {
-		if (!e) { return false } let {liste} = this;
+		let {liste} = this
 		for (let [key, secim] of Object.entries(liste)) {
 			if (!secim) { continue }
-			let item = e[key] || {}; item._reduce = e._reduce; secim.writeTo(item); delete item._reduce;
-			if ($.isEmptyObject(item)) { delete e[key] } else { e[key] = item }
+			let item = e[key] || {}; item._reduce = e._reduce
+			secim.writeTo(item)
+			delete item._reduce
+			if (empty(item)) { delete e[key] }
+			else { e[key] = item }
 		}
 		return true
 	}
@@ -155,10 +168,11 @@ class Secimler extends CIO {
 		}
 	}
 	initHTMLElements({ secim2Info }) {
-		let secimler = this; this.initHTMLElements_ilk({ ...arguments[0], secimler });
+		let secimler = this
+		this.initHTMLElements_ilk({ ...arguments[0], secimler });
 		for (let {secim, element: parent} of Object.values(secim2Info)) {
 			if (!secim) { continue }
-			secim.initHTMLElements({ ...arguments[0], secimler, parent });
+			secim.initHTMLElements({ ...arguments[0], secimler, parent })
 			/*setTimeout(async () => await secim.initHTMLElements({ secimler, parent }), waitMS); waitMS += WaitMS_Ek*/
 		}
 		this.initHTMLElements_ara({ ...arguments[0], secimler });

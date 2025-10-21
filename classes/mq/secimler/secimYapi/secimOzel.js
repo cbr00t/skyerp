@@ -8,9 +8,14 @@ class SecimOzel extends Secim {
 		this.defaultValue = e.defaultValue ?? e.default; this.value = this.getConvertedValue(e[this.class.attr] || e.value); return true
 	}
 	writeTo(e) {
-		e = e || {}; if (!super.writeTo(e)) { return false }
-		let {defaultValue, value} = this; if (!e._reduce && defaultValue != null) { e.defaultValue = defaultValue }
-		if (!(value == null || value == '')) { e[this.class.attr] = value } return true
+		if (!super.writeTo(e))
+			return false
+		let {defaultValue, value} = this
+		if (defaultValue != null)
+			e.defaultValue = defaultValue
+		if (!(value == null || value == ''))
+			e[this.class.attr] = value
+		return true
 	}
 	temizle(e) { super.temizle(e); this.value = this.getConvertedValue(null); return this }
 }
@@ -46,10 +51,12 @@ class SecimOzellik extends SecimOzel {
 		return true
 	}
 	temizle(e) { super.temizle(e); this.yazildigiGibimi = this.disindakilermi = false; return this }
-	uiSetValues(e) {
-		super.uiSetValues(e); let {parent} = e;
-		if (!parent?.length) { return false }
-		parent.find('.yazildigiGibimi').val(this.yazildigiGibimi); parent.find('.disindakilermi').val(this.disindakilermi);
+	uiSetValues({ parent }) {
+		super.uiSetValues(...arguments)
+		if (!parent?.length)
+			return false
+		parent.find('.yazildigiGibimi').val(this.yazildigiGibimi)
+		parent.find('.disindakilermi').val(this.disindakilermi)
 		parent.find('.ozellik').val(this.getConvertedValue(this.value) ?? '')
 	}
 	buildHTMLElementStringInto(e) {
@@ -62,7 +69,8 @@ class SecimOzellik extends SecimOzel {
 		);
 	}
 	initHTMLElements(e) {
-		super.initHTMLElements(e); let {parent} = e, {yazildigiGibimi, disindakilermi} = this;
+		super.initHTMLElements(e)
+		let {parent} = e, {yazildigiGibimi, disindakilermi} = this
 		let chkYazildigiGibimi = parent.find('.yazildigiGibimi'), chkDisindakilermi = parent.find('.disindakilermi');
 		parent.find('.ozellik').on('change', evt => { this.ozellik = (evt.target.value || '') });
 		if (chkYazildigiGibimi?.length) {
@@ -74,7 +82,10 @@ class SecimOzellik extends SecimOzel {
 			chkDisindakilermi.on('change', evt => setTimeout(() => this.disindakilermi = $(evt.currentTarget).val(), 10))
 		}
 	}
-	getConvertedValue(value) { value = value?.value ?? value; return value || '' }
+	getConvertedValue(value) {
+		value = value?.value ?? value
+		return value || ''
+	}
 }
 class SecimTekilInteger extends SecimOzel {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'tekilInteger' }
@@ -159,111 +170,202 @@ class SecimBoolTrue extends SecimBool {
 class SecimTekSecim extends SecimOzel {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'tekSecim' }
 	static get birKismimi() { return false } get birKismimi() { return this.class.birKismimi }
-	get value() { return this.getConvertedValue(this.tekSecim?.char) } set value(value) { let {tekSecim} = this; if (tekSecim) { tekSecim.char = this.getConvertedValue(value) } }
+	get value() { return this.getConvertedValue(this.tekSecim?.char) }
+	set value(value) {
+		let {tekSecim} = this
+		if (tekSecim) { tekSecim.char = this.getConvertedValue(value) }
+	}
 	get ozetBilgiValue() {
-		let {value} = this; if (value == null) { return value }
-		if (!$.isArray(value)) { value = [value] } value = value.filter(x => !!x);
-		let {kaDict} = this.tekSecim; value = value.map(kod => kaDict[kod] ?? kod);
+		let {value} = this
+		if (value == null)
+			return value
+		if (!$.isArray(value))
+			value = [value]
+		value = value.filter(x => !!x)
+		let {kaDict} = this.tekSecim; value = value.map(kod => kaDict[kod] ?? kod)
 		return this.birKismimi ? value.filter(x => !!x).map(x => x?.aciklama ?? x) : value[0]
 	}
 	get secilen() {
-		let {coklumu, tekSecim} = this; let secilen = tekSecim.secilen;
-		if (secilen != null && coklumu && !$.isArray(secilen)) { secilen = [secilen] }
+		let {coklumu, tekSecim: { secilen }} = this
+		if (secilen != null && coklumu && !$.isArray(secilen))
+			secilen = [secilen]
 		return secilen
 	}
 	get kaListe() { return this.tekSecim?.kaListe }
+	
 	readFrom(e) {
-		if (!super.readFrom(e)) { return false }
-		let {tekSecim, tekSecimSinif, kaListe} = e; if (typeof tekSecimSinif == 'string') { tekSecimSinif = getFunc.call(this, tekSecimSinif, e) }
-		if (!tekSecim && tekSecimSinif) { tekSecim = new tekSecimSinif() }
+		if (!super.readFrom(e))
+			return false
+		let {tekSecim, tekSecimSinif, kaListe} = e
+		if (typeof tekSecimSinif == 'string')
+			tekSecimSinif = getFunc.call(this, tekSecimSinif, e)
+		if (!tekSecim && tekSecimSinif)
+			tekSecim = new tekSecimSinif()
 		if (tekSecim) {
 			if (typeof tekSecim == 'string') { tekSecim = getFunc.call(this, tekSecim, e) }
-			if ($.isPlainObject(tekSecim)) { tekSecim = tekSecimSinif ? new tekSecimSinif(tekSecim) : null }
+			if ($.isPlainObject(tekSecim))
+				tekSecim = tekSecimSinif ? new tekSecimSinif(tekSecim) : null
 		}
-		if (!tekSecim) { tekSecim = new TekSecim() }
-		if (kaListe) { if (typeof kaListe == 'string') { kaListe = getFunc.call(this, kaListe, e) } if (kaListe) { tekSecim.kaListe = kaListe } }
-		this.tekSecim = tekSecim; let {value, defaultValue} = this;
+		if (!tekSecim) 
+			tekSecim = new TekSecim()
+		if (kaListe) {
+			if (typeof kaListe == 'string')
+				kaListe = getFunc.call(this, kaListe, e)
+			if (kaListe)
+				tekSecim.kaListe = kaListe
+		}
+		this.tekSecim = tekSecim
+		let {value, defaultValue} = this
 		if (value == null && defaultValue != null) { value = defaultValue }
 		if (value != null) { tekSecim.char = value }
-		this.autoBindFlag = e.autoBind ?? e.autoBindFlag ?? false;
+		this.autoBindFlag = e.autoBind ?? e.autoBindFlag ?? false
+		this.disindakilermi = e.disindakilermi ?? e.disindakiler ?? false
 		return true
 	}
-	writeTo(e) {
-		e ??= {}; if (!super.writeTo(e)) { return false }
-		e.birKismimi = true;
-		let {kaListe} = this; if (!e._reduce && kaListe != null) { e.kaListe = kaListe }
+	writeTo(e = {}) {
+		if (!super.writeTo(e))
+			return false
+		let {_reduce: reduce} = e, {disindakilermi, kaListe} = this
+		e.birKismimi = true
+		if (disindakilermi)
+			e.disindakilermi = true
+		if (!reduce && kaListe != null)
+			e.kaListe = kaListe
 		return true
+	}
+	temizle(e) { 
+		super.temizle(e)
+		this.disindakilermi = false
+		return this
 	}
 	uygunmu(e) {
-		let kod = typeof e == 'object' ? e.char ?? e.kod ?? e.value : e; if (kod === undefined) { return false }
+		let kod = typeof e == 'object' ? e.char ?? e.kod ?? e.value : e
+		if (kod === undefined) { return false }
 		return this.uygunmuDevam(kod)
 	}
 	uygunmuDevam(kod) { return this.value == kod }
-	uiSetValues(e) { super.uiSetValues(e); let {parent} = e; if (!parent?.length) { return false } parent.find('.ddList').val(this.getConvertedValue(this.value) ?? '') }
+	uiSetValues({ parent }) {
+		super.uiSetValues(...arguments)
+		if (!parent?.length)
+			return false
+		parent.find('.disindakilermi').val(this.disindakilermi)
+		parent.find('.ddList').val(this.getConvertedValue(this.value) ?? '')
+	}
 	buildHTMLElementStringInto(e) {
-		super.buildHTMLElementStringInto(e);
-		let {kaListe, char, isHidden} = this, {tip, birKismimi} = this.class;
+		super.buildHTMLElementStringInto(e)
+		let {kaListe, char, isHidden, class: { tip, birKismimi }} = this
 		e.tip = tip;
 		e.target += `<div class="flex-row${isHidden ? ' jqx-hidden' : ''}">`;
-		if (birKismimi) { e.target += `<div class="hepsimi"></div>` }
-		this.class.buildHTMLElementStringInto_birKismi(e);
+		if (birKismimi)
+			e.target += `<div class="hepsimi bool ozel"></div>`
+		e.target += `<div class="disindakilermi bool ozel"></div>`
+		this.class.buildHTMLElementStringInto_birKismi(e)
 		e.target += `</div>`
 	}
-	initHTMLElements(e) {
-		super.initHTMLElements(e); let {mfSinif} = this, autoBind = this.autoBindFlag, {tip, birKismimi} = this.class, coklumu = birKismimi;
-		$.extend(e, { tip, coklumu, autoBind, getValue: this.value, setValue: e => this.value = e.value, mfSinif, source: mfSinif ? null : (e => this.kaListe) });
-		let {parent} = e, btnListedenSec = parent.find('.listedenSec'); if (btnListedenSec?.length) {
-			btnListedenSec.jqxButton({ theme });
-			btnListedenSec.on('click', evt => { let part = this._ddListPart; if (part && !part.isDestroyed) { part.listedenSecIstendi({ sender: this, event: evt }) } });
-		}
-		this.class.initHTMLElements_birKismi(e); this._ddListPart = e.part
-	}
 	static buildHTMLElementStringInto_birKismi(e) {
-		let {tip} = e, isHidden = e.hidden ?? e.isHidden;
-		e.target += `<div class="birKismi-parent flex-row${isHidden ? ' jqx-hidden' : ''}">`;
-		e.target += 	`<button class="listedenSec">L</button>`;
-		e.target += 	`<div class="veri ddList ${tip} ozel"></div>`;
-		e.target += `</div>`;
-		if (this.birkismimi) {
-			e.target += `<div class="birKismi-bos-parent flex-row${isHidden ? ' jqx-hidden' : ''}">`;
-			e.target += 	`<div class="veri-etiket ${tip} ozel">HEPSİ</div>`;
+		let {tip, hidden = e.isHidden} = e, {birkismimi} = this
+		e.target += `<div class="birKismi-parent flex-row${hidden ? ' jqx-hidden' : ''}">`
+		e.target += 	`<button class="listedenSec" style="margin-left: 5px">L</button>`
+		e.target += 	`<div class="veri ddList ${tip} ozel"></div>`
+		e.target += `</div>`
+		if (birkismimi) {
+			e.target += `<div class="birKismi-bos-parent flex-row${hidden ? ' jqx-hidden' : ''}">`
+			e.target += 	`<div class="veri-etiket ${tip} ozel">HEPSİ</div>`
 			e.target += `</div>`
 		}
 	}
+	initHTMLElements(e) {
+		super.initHTMLElements(e);
+		let secim = this, {value, parent} = e
+		let {mfSinif, autoBindFlag: autoBind, class: { tip, birKismimi: coklumu }} = this
+		$.extend(e, {
+			secim, tip, coklumu, autoBind, mfSinif,
+			getValue: this.value,
+			setValue: ({ value }) => this.value = value,
+			source: mfSinif ? null : (e => this.kaListe)
+		})
+		let btnListedenSec = parent.find('.listedenSec')
+		if (btnListedenSec?.length) {
+			btnListedenSec.jqxButton({ theme })
+			btnListedenSec.on('click', evt => {
+				let {_ddListPart: part} = this
+				if (part && !part.isDestroyed)
+					part.listedenSecIstendi({ sender: this, event: evt })
+			})
+		}
+		this.class.initHTMLElements_birKismi(e)
+		this._ddListPart = e.part
+	}
 	static initHTMLElements_birKismi(e) {
-		let {parent, mfSinif, autoBind, coklumu, getValue, setValue} = e, {placeHolder} = this;
-		let source = e.source ?? e.loadServerDataBlock ?? e.loadServerData, editor = parent.find('.ddList');
-		let focusWidget; let part = e.part = new ModelKullanPart({
+		let {placeHolder} = this, {parent, mfSinif, autoBind, coklumu, getValue, setValue } = e
+		let {secim: sec, secim: { disindakilermi } = {}} = e
+		let source = e.source ?? e.loadServerDataBlock ?? e.loadServerData
+		let editor = parent.find('.ddList')
+		let focusWidget, part = e.part = new ModelKullanPart({
 			layout: editor, dropDown: !coklumu, autoBind, coklumu, maxRow: e.maxRow, mfSinif, value: getFuncValue.call(this, getValue, e), /*placeHolder: this.etiket,*/
 			placeHolder, source, kodGosterilsinmi: !source, argsDuzenle: e => { /*$.extend(e.args, { itemHeight: 40, dropDownHeight: 410 })*/ }
-		});
-		if (part.autoBind) { part.dataBindYapildiFlag = true }
-		editor.data('part', part); part.run(); let {widget} = part;
+		})
+		let chkDisindakilermi = parent.find('.disindakilermi')
+		if (chkDisindakilermi?.length) {
+			chkDisindakilermi.jqxSwitchButton({ theme, width: 50, height: false, onLabel: 'D', offLabel: 'D', checked: disindakilermi });
+			chkDisindakilermi.on('change', ({ currentTarget: target }) =>
+				setTimeout(() => sec.disindakilermi = $(target).val(), 10))
+		}
+		if (part.autoBind)
+			part.dataBindYapildiFlag = true
+		editor.data('part', part); part.run()
+		let {widget} = part
 		part.change(_e => {
-			let value = _e.value ?? _e.kod, {item} = _e;
-			if (value !== undefined) { getFuncValue.call(this, setValue, $.extend({}, e, _e)) }
-		});
+			let value = _e.value ?? _e.kod, {item} = _e
+			if (value !== undefined)
+				setValue.call(this, { ...e, ..._e })
+		})
 		widget.input.on('focus', evt => {
-			let {source} = widget; if (!part.dataBindYapildiFlag && source?.dataBind) { source.dataBind(); part.dataBindYapildiFlag = true }
-			if (focusWidget != widget) { setTimeout(() => evt.target.select(), 150); focusWidget = widget }
-		});
+			let {source} = widget
+			if (!part.dataBindYapildiFlag && source?.dataBind) {
+				source.dataBind()
+				part.dataBindYapildiFlag = true
+			}
+			if (focusWidget != widget) {
+				setTimeout(() => evt.target.select(), 150)
+				focusWidget = widget
+			}
+		})
 		widget.input.on('keyup', evt => {
 			let key = evt.key?.toLowerCase();
 			if (key == 'enter' || key == 'linefeed' || key == 'tab') {
-				if (widget.isOpened()) widget.close() }
+				if (widget.isOpened())
+					widget.close()
+			}
 		})
 	}
 	autoBind() { this.autoBindFlag = true; return this } noAutoBind() { this.autoBindFlag = false; return this }
+	disindakiler() { this.disindakilermi = true; return this } secilenler() { this.disindakilermi = false; return this }
 }
 class SecimBirKismi extends SecimTekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'birKismi' } static get birKismimi() { return true }
-	get value() { return this.hepsimi ? null : super.value } set value(value) { super.value = value }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get tip() { return 'birKismi' } static get birKismimi() { return true }
+	get value() { return this.hepsimi ? null : super.value }
+	set value(value) { super.value = value }
 	readFrom(e) {
-		if (!super.readFrom(e)) { return false }
-		this.hepsimi = e.hepsimi ?? true; return true
+		if (!super.readFrom(e))
+			return false
+		this.hepsimi = e.hepsimi ?? true
+		return true
 	}
-	writeTo(e) { if (!super.writeTo(e)) { return false } if (!this.hepsimi) { e.hepsimi = false } return true }
-	temizle(e) { super.temizle(e); this.hepsimi = true; return this }
+	writeTo(e) {
+		if (!super.writeTo(e))
+			return false
+		let {hepsimi} = this
+		if (!hepsimi)
+			e.hepsimi = false
+		return true
+	}
+	temizle(e) { 
+		super.temizle(e)
+		this.hepsimi = true
+		return this
+	}
 	uygunmuDevam(kod) {
 		if (this.hepsimi) { return true } let values = $.makeArray(this.value);
 		for (let value of values) { if (value == kod) { return true } }
@@ -302,5 +404,4 @@ class SecimBirKismi extends SecimTekSecim {
 		SecimTekSecim, SecimBirKismi
 	];
 	for (let cls of subClasses) { let {tip} = cls; if (tip) tip2Sinif[tip] = cls }
-})();
-
+})()

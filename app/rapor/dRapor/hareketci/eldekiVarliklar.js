@@ -23,10 +23,13 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 	static get raporClass() { return DRapor_EldekiVarliklar } get width() { return '49.5%' }
 	static get yon() { return 'sol' } static get solmu() { return true }
 	secimlerDuzenle({ secimler: sec }) {
-		super.secimlerDuzenle(...arguments);
-		let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => cls.eldekiVarliklarIcinUygunmu);
-		let anaTip_kaListe = []; for (let {kod, aciklama} of harClasses) { anaTip_kaListe.push(new CKodVeAdi([kod, aciklama])) }
-		let grupKod = 'donemVeTarih'; sec.grupEkle(grupKod, 'Tarih ve Bilgiler');
+		super.secimlerDuzenle(...arguments)
+		let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => cls.eldekiVarliklarIcinUygunmu)
+		let anaTip_kaListe = []
+		for (let {kod, aciklama} of harClasses)
+			anaTip_kaListe.push(new CKodVeAdi([kod, aciklama]))
+		let grupKod = 'donemVeTarih'
+		sec.grupEkle(grupKod, 'Tarih ve Bilgiler')
 		sec.secimTopluEkle({
 			tarih: new SecimTekilDate({ grupKod, etiket: '... Tarihdeki Durum', placeHolder: 'Bugünkü Durum' }),
 			anaTip: new SecimBirKismi({ grupKod, etiket: 'Gösterilecek Bilgiler', kaListe: anaTip_kaListe }).birKismi().autoBind()
@@ -55,13 +58,20 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 	}
 	tazeleDiger(e) { /* do nothing */ }
 	loadServerData_queryDuzenle(e) {
-		e.alias = ''; super.loadServerData_queryDuzenle(e); let {attrSet} = e, {length: attrSetSize} = Object.keys(attrSet);
+		e.alias = ''; super.loadServerData_queryDuzenle(e)
+		let {attrSet} = e, {length: attrSetSize} = Object.keys(attrSet)
 		/* if (attrSetSize == 1 && attrSet.DB) { return } */
 		let /*{ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu; */ ozelIsaretVarmi = true;
-		let {stm} = e, {secimler: sec} = this, {grupVeToplam} = this.tabloYapi, {yon} = this.class;
+		let {stm} = e, {tabloYapi: { grupVeToplam }, rapor: { main: { secimler: sec } }, class: { yon }} = this
 		let {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
-		let anaTipSet = asSet(sec.anaTip?.value); if ($.isEmptyObject(anaTipSet)) { anaTipSet = null }
-		let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => !!cls.eldekiVarliklarIcinUygunmu && (!anaTipSet || anaTipSet[cls.kod]));
+		let {value: anaTipListe, disindakilermi: anaTip_haricmi} = sec.anaTip ?? {}
+		let anaTipSet = asSet(anaTipListe)
+		if (!anaTip_haricmi && empty(anaTipSet))
+			anaTipSet = null
+		let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls =>
+			!!cls.eldekiVarliklarIcinUygunmu &&
+			( !anaTipSet || !!anaTipSet[cls.kod] != anaTip_haricmi )
+		)
 		let sabitBelirtecler = [
 			'alttiponcelik', 'alttipadi', 'yon', 'finanalizkullanilmaz',
 			'tarih', 'ba', 'bedel', 'dvbedel', 'dvkod', 'belgetipi'

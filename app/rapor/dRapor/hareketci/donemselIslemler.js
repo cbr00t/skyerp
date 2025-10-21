@@ -61,12 +61,18 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		return super.tazele(e)
 	}
 	async loadServerDataInternal(e) {
-		let {secimler: sec} = this, anaTipSet = e.anaTipSet = asSet(sec.anaTip?.value);
-		let {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu;
-		if ($.isEmptyObject(anaTipSet)) { anaTipSet = null }
-		let sabitBelirtecler = e.sabitBelirtecler = ['alttiponcelik', 'alttipadi', 'tarih', 'ba', 'bedel', 'dvbedel', 'dvkod', 'belgetipi', 'finanalizkullanilmaz'];
+		let {rapor: { main: { secimler: sec } }} = this
+		let {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu
+		let {value: anaTipListe, disindakilermi: anaTip_haricmi} = sec.anaTip ?? {}
+		let anaTipSet = e.anaTipSet = asSet(anaTipListe)
+		if (!anaTip_haricmi && $.isEmptyObject(anaTipSet))
+			anaTipSet = null
+		let sabitBelirtecler = e.sabitBelirtecler = ['alttiponcelik', 'alttipadi', 'tarih', 'ba', 'bedel', 'dvbedel', 'dvkod', 'belgetipi', 'finanalizkullanilmaz']
 		if (ozelIsaretVarmi) { sabitBelirtecler.push('ozelisaret') }
-		let harClasses = e.harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => !!cls.donemselIslemlerIcinUygunmu && (!anaTipSet || anaTipSet[cls.kod]));
+		let harClasses = e.harClasses = Object.values(Hareketci.kod2Sinif)
+			.filter(cls => !!cls.donemselIslemlerIcinUygunmu &&
+				( !anaTipSet || !!anaTipSet[cls.kod] != anaTip_haricmi )
+			)
 		let harListe = e.harListe = [], promises = [];
 		for (let cls of harClasses) {
 			let {mstYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi;

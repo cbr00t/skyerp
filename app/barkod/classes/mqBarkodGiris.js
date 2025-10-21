@@ -72,7 +72,7 @@ class MQBarkodGiris extends MQCogul {
 		if (!barkod)
 			return false
 		let {recs, localData} = this
-		recs.push({ barkod })
+		recs.push({ status: 'success', barkod })
 		localData.kaydetDefer()
 		gridPart?.tazele()
 		return true

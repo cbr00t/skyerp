@@ -22,7 +22,7 @@ class Secim extends CIO {
 		const result = new cls(e); return result.readFrom(e) ? result : null
 	}
 	get asObject() {
-		const _e = { _reduce: true }; this.writeTo(_e); delete _e._reduce;
+		const _e = { _reduce: true }; this.writeTo(_e); delete _e._reduce
 		for (const key of Object.keys(_e)) {
 			if (key[0] == '_') { delete _e[key]; continue }
 			const item = _e[key]; if ($.isEmptyObject(item)) { delete _e[key]; continue }
@@ -39,7 +39,11 @@ class Secim extends CIO {
 		this.ozetBilgiValueGetter = e.ozetBilgiValueGetter;
 		return true
 	}
-	writeTo(e) { e = e || {}; if (this.isHidden) { e.isHidden = true } if (this.isDisabled) { e.isDisabled = true } return true }
+	writeTo(e) {
+		if (this.isHidden) { e.isHidden = true }
+		if (this.isDisabled) { e.isDisabled = true }
+		return true
+	}
 	temizle(e) { return this }
 	uiSetValues(e) { }
 	get asHTMLElementString() { const _e = { target: '' }; this.buildHTMLElementStringInto(_e); return _e.target }

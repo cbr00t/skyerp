@@ -4,13 +4,17 @@ class SecimBasSon extends Secim {
 	get value() { return this.birKismimi ? this.kodListe : { basi: this.basi, sonu: this.sonu } }
 	set value(value) { if (this.birKismimi) { this.kodListe = this.getConvertedValue(value) } else super.value = value }
 	get ozetBilgiValue() {
-		let value = super.ozetBilgiValue; if (!value) { return value } if ($.isArray(value)) { return value.join(', ') }
-		if ($.isPlainObject(value)) { value = new CBasiSonu(value) } return value?.bosmu ? null : value.toString()
+		let value = super.ozetBilgiValue
+		if (!value) { return value }
+		if ($.isArray(value)) { return value.join(', ') }
+		if ($.isPlainObject(value)) { value = new CBasiSonu(value) }
+		return value?.bosmu ? null : value.toString()
 	}
 	set basiSonu(value) { this.basi = value; this.sonu = value }
 	readFrom(e) {
 		if (!super.readFrom(e)) { return false }
-		let birKismimi = this.birKismimi = e.birKismi ?? e.birKismimi ?? this.defaultBirKismimi;
+		let birKismimi = this.birKismimi = e.birKismi ?? e.birKismimi ?? this.defaultBirKismimi
+		this.disindakilermi = e.disindakilermi ?? e.disindakiler ?? false
 		if (birKismimi) {
 			let {kodListe} = e; if (typeof kodListe == 'string') { kodListe = getFunc.call(this, e) }
 			if (kodListe) { if (typeof kodListe == 'string') { kodListe = getFunc.call(this, e) } }
@@ -24,7 +28,8 @@ class SecimBasSon extends Secim {
 	}
 	writeTo(e) {
 		if (!super.writeTo(e)) { return false }
-		let {birKismimi} = this; e.birKismimi = birKismimi;
+		let {birKismimi, disindakilermi} = this
+		$.extend(e, { birKismimi, disindakilermi })
 		if (birKismimi) {
 			let {kodListe} = this; if (kodListe != null) { e.kodListe = kodListe } }
 		else {
@@ -35,25 +40,32 @@ class SecimBasSon extends Secim {
 		return true
 	}
 	temizle(e) {
-		super.temizle(e); $.extend(this, { birKismimi: this.defaultBirKismimi, kodListe: [] }); this.basi = this.sonu = this.getConvertedValue(null);
-		let part = this._ddListPart; if (part) { part.clear() }
+		super.temizle(e)
+		$.extend(this, { birKismimi: this.defaultBirKismimi, disindakilermi: false, kodListe: [] })
+		this.basi = this.sonu = this.getConvertedValue(null)
+		this._ddListPart?.clear()
 		return this
 	}
 	uiSetValues(e) {
 		super.uiSetValues(e); let {parent} = e; if (!parent?.length) { return false }
-		let {birKismimi} = this, bsParent = parent.find('.bs-parent'), birKismiParent = parent.find('.birKismi-parent');
+		let {birKismimi, disindakilermi} = this, bsParent = parent.find('.bs-parent')
+		let birKismiParent = parent.find('.birKismi-parent')
 		for (let key of ['basi', 'sonu']) { bsParent.find(`.${key}.bs`).val(this.getConvertedUIValue(this[key]) ?? '') }
 		let {value} = this; if (value?.basi != null) {
 			let bs = value; for (let [_key, _value] of Object.entries(bs)) {
 				this[_key] = bs[_key] = this.getConvertedValue(_value) }
 		}
-		e.value = this.getConvertedValue(value);
-		SecimBirKismi.uiSetValues_birKismi(e); parent.find('.birKismiToggle').val(birKismimi); this.birKismiToggleDegisti(e)
+		e.value = this.getConvertedValue(value)
+		SecimBirKismi.uiSetValues_birKismi(e)
+		parent.find('.birKismiToggle').val(birKismimi)
+		parent.find('.disindakilermi').val(disindakilermi)
+		this.birKismiToggleDegisti(e)
 	}
 	buildHTMLElementStringInto(e) {
 		super.buildHTMLElementStringInto(e); let {mfSinif, birKismimi, isHidden, placeHolder} = this;
 		e.target += `<div class="flex-row${isHidden ? ' jqx-hidden' : ''}">`;
-		if (mfSinif) { e.target += `<div class="birKismiToggle"></div>`; }
+		if (mfSinif) { e.target += `<div class="birKismiToggle bool ozel"></div>`; }
+		e.target += `<div class="disindakilermi bool ozel"></div>`
 		e.target += 	`<div class="bs-parent flex-row${birKismimi ? ' jqx-hidden' : ''}">`;
 		if (mfSinif) { e.target += 	`<div class="veri basi bs" placeholder="${placeHolder}"></div>` }
 		else { e.target += 	`<input class="veri basi bs" type="textbox" value="${this.getConvertedUIValue(this.basi) || ''}"></input>` }
@@ -93,7 +105,7 @@ class SecimBasSon extends Secim {
 				widget.input.on('keyup', evt => { let key = evt.key?.toLowerCase(); if (key == 'enter' || key == 'linefeed' || key == 'tab') { if (widget.isOpened()) { widget.close() } } });
 			};
 			modelKullanOlustur({ selector: 'basi', etiket: 'Başı', editor: parent.find('.basi.bs') }); modelKullanOlustur({ selector: 'sonu', etiket: 'Sonu', editor: parent.find('.sonu.bs') });
-			$.extend(e, { tip, mfSinif, coklumu: true, autoBind, maxRow, getValue: this.value, setValue: e => this.value = this.getConvertedValue(e.value ?? e.kod) });
+			$.extend(e, { secim: this, tip, mfSinif, coklumu: true, autoBind, maxRow, getValue: this.value, setValue: e => this.value = this.getConvertedValue(e.value ?? e.kod) });
 			SecimBirKismi.initHTMLElements_birKismi(e); this._ddListPart = e.part;
 
 			let chkBirKismiToggle = parent.find('.birKismiToggle');
@@ -118,8 +130,11 @@ class SecimBasSon extends Secim {
 		let {birKismimi} = this; bsParent[birKismimi ? 'addClass' : 'removeClass']('jqx-hidden'); birKismiParent[birKismimi ? 'removeClass' : 'addClass']('jqx-hidden')
 	}
 	getConvertedValue(value) {
-		if (this.birKismimi) { let arr = value == null ? [] : $.isArray(value) ? value : $.makeArray(value); if ($.isArray(arr) && !arr.length) { arr = null } return arr }
-		return super.getConvertedValue(value)
+		if (!this.birKismimi)
+			return super.getConvertedValue(value)
+		let arr = value == null ? [] : $.isArray(value) ? value : $.makeArray(value)
+		if ($.isArray(arr) && !arr.length) { arr = null }
+		return arr
 	}
 	birKismi() { this.birKismimi = true; return this }
 	hepsi() { this.birKismimi = false; return this }

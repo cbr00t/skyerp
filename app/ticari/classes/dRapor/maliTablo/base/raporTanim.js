@@ -486,7 +486,7 @@ class SBTabloDetay extends MQDetay {
 		let {stm} = e, uni = e.uni = stm.sent
 		let harUni = har.uniOlustur({ ...e, rapor, secimler })
 		for (let harSent of harUni) {
-			let {alias2Deger: hv} = harSent, {tarih: tarihClause = 'fis.tarih'} = hv
+			let {alias2Deger: hv} = harSent
 			let sent = harSent.deepCopy()
 			let addClause = (...aliases) => {
 				for (let alias of aliases) {

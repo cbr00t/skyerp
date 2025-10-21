@@ -1,52 +1,52 @@
 class SecimlerPart extends Part {
     static { window[this.name] = this; this._key2Class[this.name] = this } /*static get isSubPart() { return true }*/ static get isWindowPart() { return false }
 	static get canDestroy() { return false } static get partName() { return 'secimler' }
-	get tipBelirtec() { const {secimler, mfSinif} = this; return [secimler.class.classKey, mfSinif?.classKey].filter(x => x).join('|') }
+	get tipBelirtec() { let {secimler, mfSinif} = this; return [secimler.class.classKey, mfSinif?.classKey].filter(x => x).join('|') }
 	get rootConfig() { return app?.params?.yerel }
 	get config() {
 		let result = this._config; if (result === undefined) {
 			let rootConfig = this.rootConfig ?? {}, baseConfig = rootConfig.secimler = rootConfig.secimler ?? {};
-			const key = this.tipBelirtec ?? ''; result = this._config = baseConfig[key] = baseConfig[key] ?? {}
+			let key = this.tipBelirtec ?? ''; result = this._config = baseConfig[key] = baseConfig[key] ?? {}
 		}
 		return result
 	}
 	constructor(e) {
-		e = e || {}; super(e); const secimler = this.secimler = e.secimler; $.extend(this, {
+		e = e || {}; super(e); let secimler = this.secimler = e.secimler; $.extend(this, {
 			parentPart: e.parentPart ?? app.activeWndPart, layout: e.secimlerParent ?? this.layout, wnd: e.wnd,
 			secimlerForm: e.secimlerForm || this.secimlerForm, islemTuslariPart: e.islemTuslariPart || this.islemTuslariPart, islemTuslari: e.islemTuslari || this.islemTuslari,
 			mfSinif: e.mfSinif || secimler?.mfSinif, tamamIslemi: e.tamamIslemi,
 			kolonFiltreDuzenleyici: e.kolonFiltreDuzenleyici || {}
 		});
-		const {mfSinif} = this, {sinifAdi} = mfSinif || {};
+		let {mfSinif} = this, {sinifAdi} = mfSinif || {};
 		this.title = e.title == null ? (( sinifAdi ? `<u style="font-size: 110%;">${sinifAdi}</u> ` : '' ) || 'Filtre Ekranı') : e.title || '';
 	}
 	runDevam(e) {
-		e = e || {}; super.runDevam(e); const {layout} = this;
+		e = e || {}; super.runDevam(e); let {layout} = this;
 		this.header = layout.find('.header'); this.initIslemTuslari(e); this.initFiltreForm(e)
 	}
 	afterRun(e) {
-		e = e || {}; super.afterRun(e); const {partName} = this.class, parentPartName = this.parentPart?.partName;
-		const elms = [this.wnd, this.layout]; for (const elm of elms) {
+		e = e || {}; super.afterRun(e); let {partName} = this.class, parentPartName = this.parentPart?.partName;
+		let elms = [this.wnd, this.layout]; for (let elm of elms) {
 			if (!elm?.length) { continue }
 			elm.addClass(`${partName} with-tabs`);
 			if (parentPartName) { elm.addClass(parentPartName) }
 		}
 		this.initTabPages(e); this.formGenelEventleriBagla(e)
 	}
-	initTabLayout(e) { const tabID = e.tabPage.id; switch (tabID) { case 'secimler': this.initTabLayout_secimler(e); break } }
+	initTabLayout(e) { let tabID = e.tabPage.id; switch (tabID) { case 'secimler': this.initTabLayout_secimler(e); break } }
 	initTabLayout_secimler(e) {
-		e = e || {}; const layout = e.secimlerParent || e.tabPage?.content || this.layout; makeScrollable(layout, evt => !(document.activeElement && document.activeElement.classList.contains('jqx-widget-content')));
-		const divKolonFiltreBilgiParent = this.divKolonFiltreBilgiParent = layout.find('.secimler-kolonFiltre-bilgi-parent');
-		const btnKolonFiltreTemizle = this.btnKolonFiltreTemizle = divKolonFiltreBilgiParent && divKolonFiltreBilgiParent.length ? divKolonFiltreBilgiParent.find('.kolonFiltre-temizle') : null;
+		e = e || {}; let layout = e.secimlerParent || e.tabPage?.content || this.layout; makeScrollable(layout, evt => !(document.activeElement && document.activeElement.classList.contains('jqx-widget-content')));
+		let divKolonFiltreBilgiParent = this.divKolonFiltreBilgiParent = layout.find('.secimler-kolonFiltre-bilgi-parent');
+		let btnKolonFiltreTemizle = this.btnKolonFiltreTemizle = divKolonFiltreBilgiParent && divKolonFiltreBilgiParent.length ? divKolonFiltreBilgiParent.find('.kolonFiltre-temizle') : null;
 		if (btnKolonFiltreTemizle?.length) { btnKolonFiltreTemizle.jqxButton({ theme }); btnKolonFiltreTemizle.on('click', evt => this.kolonFiltreTemizleIstendi($.extend({}, e, { event: evt }))) }
-		const divKolonFiltreBilgi = this.divKolonFiltreBilgi = divKolonFiltreBilgiParent && divKolonFiltreBilgiParent.length ? divKolonFiltreBilgiParent.find('.kolonFiltre-bilgi') : null;
+		let divKolonFiltreBilgi = this.divKolonFiltreBilgi = divKolonFiltreBilgiParent && divKolonFiltreBilgiParent.length ? divKolonFiltreBilgiParent.find('.kolonFiltre-bilgi') : null;
 		let {secimlerForm} = e; if (!(secimlerForm && secimlerForm.length)) { secimlerForm = this.secimlerForm }
 		if (!secimlerForm?.length) { secimlerForm = layout.find('.secimler-form') }
 		if (!secimlerForm?.length) { secimlerForm = layout }
 		this.secimlerForm = secimlerForm;
 		let {secimler} = this, {asHTMLElements: grup2Info} = secimler, secim2Info = this.secim2Info = {};
 		if (grup2Info) {
-			secimlerForm.children().remove(); const docFrg = $(document.createDocumentFragment());
+			secimlerForm.children().remove(); let docFrg = $(document.createDocumentFragment());
 			for (let [grupKod, grupBilgi] of Object.entries(grup2Info)) {
 				grupKod = grupKod ?? '';
 				let grup = grupBilgi.grup || {}, key2Info = grupBilgi.key2Info || {};
@@ -79,7 +79,7 @@ class SecimlerPart extends Part {
 				};
 				navBar.find(`.jqx-expander-header-content`).off('click, mouseup, touchend')
 					.on('click, mouseup, touchend', evt => {
-						const {target} = evt, tagName = target.tagName.toUpperCase();
+						let {target} = evt, tagName = target.tagName.toUpperCase();
 						if (!(tagName == 'INPUT' || tagName == 'TEXTAREA' ||
 							  tagName == 'BUTTON' || target.classList.contains(`jqx-input-icon`))) {
 							navBarArrowClickHandler(evt)
@@ -94,10 +94,10 @@ class SecimlerPart extends Part {
 		}
 	}
 	formGenelEventleriBagla(e) {
-		const {layout} = this; let inputs = layout.find('input[type=textbox], input[type=text], input[type=number]'); if (inputs.length) { inputs.on('focus', evt => evt.target.select()) }
+		let {layout} = this; let inputs = layout.find('input[type=textbox], input[type=text], input[type=number]'); if (inputs.length) { inputs.on('focus', evt => evt.target.select()) }
 		/*inputs = layout.find('input'); if (inputs.length) {
 			inputs.on('keyup', evt => {
-				const key = (evt.key || '').toLowerCase(); if (key == 'enter' || key == 'linefeed') {
+				let key = (evt.key || '').toLowerCase(); if (key == 'enter' || key == 'linefeed') {
 					let elm = document.activeElement;
 					if (!(elm && $(elm).parents('.filtreForm.part')?.length)) { this.tamamIstendi(e) }
 				}
@@ -117,7 +117,7 @@ class SecimlerPart extends Part {
 		return islemTuslariPart
 	}
 	islemTuslariArgsDuzenle(e) {
-		const ekButonlar = [ { id: 'temizle', handler: e => this.temizleIstendi(e) } ];
+		let ekButonlar = [ { id: 'temizle', handler: e => this.temizleIstendi(e) } ];
 		/*if (this.kolonFiltreDuzenleyici) { ekButonlar.push({ id: 'kolonFiltre', handler: e => this.kolonFiltreIstendi(e) }) }*/
 		ekButonlar.push(
 			{ id: 'seviyeleriAc', handler: e => this.seviyeleriAcKapatIstendi($.extend({}, e, { flag: true })) },
@@ -125,55 +125,55 @@ class SecimlerPart extends Part {
 			{ id: 'secimSakla', text: 'Kaydet', handler: e => this.secimSaklaIstendi(e) },
 			{ id: 'secimYukle', text: 'Yükle', handler: e => this.secimYukleIstendi(e) }
 		);
-		const {args} = e; $.extend(args, { ekButonlarIlk: ekButonlar, ekSagButonIdSet: ['temizle'] })
+		let {args} = e; $.extend(args, { ekButonlarIlk: ekButonlar, ekSagButonIdSet: ['temizle'] })
 	}
 	initFiltreForm(e) {
-		e = e || {}; const {header} = this;
-		const filtreFormPart = this.filtreFormPart = new FiltreFormPart({ layout: header.find(`#filtreForm`), degisince: e => this.filtreDegisti(e) });
+		e = e || {}; let {header} = this;
+		let filtreFormPart = this.filtreFormPart = new FiltreFormPart({ layout: header.find(`#filtreForm`), degisince: e => this.filtreDegisti(e) });
 		filtreFormPart.run()
 	}
 	initTabPages(e) {
-		const tabPanel = this.tabPanel = this.layout.find('#tabPanel');
-		const _e = { args: { parentPart: this, builder: this.builder, layout: tabPanel } };
+		let tabPanel = this.tabPanel = this.layout.find('#tabPanel');
+		let _e = { args: { parentPart: this, builder: this.builder, layout: tabPanel } };
 		this.initTabPagesArgsDuzenle(_e); (this.tabPanelPart = new TabsPart(_e.args)).run()
 	}
 	initTabPagesArgsDuzenle(e) {
-		const {args} = e;
+		let {args} = e;
 		$.extend(args, { theme, position: 'top', /* width: 1, */ height: false, initContent: e => { this.initTabLayout(e) } })
 	}
 	temizleIstendi(e) {
-		e = e || {}; const {secimler, secim2Info} = this; if (!secimler) { return }
+		e = e || {}; let {secimler, secim2Info} = this; if (!secimler) { return }
 		secimler.temizle(e); if (secim2Info) {
-			for (const key in secim2Info) {
-				const secimBilgi = secim2Info[key], {secim, element} = secimBilgi;
+			for (let key in secim2Info) {
+				let secimBilgi = secim2Info[key], {secim, element} = secimBilgi;
 				if (secim) { secim.uiSetValues({ parent: element }) }
 			}
-			const {secimlerForm} = this, divGrupListe = secimlerForm.find('.secim-grup');
+			let {secimlerForm} = this, divGrupListe = secimlerForm.find('.secim-grup')
 			if (divGrupListe?.length) {
-				divGrupListe.jqxNavigationBar('expandAt', 0);
+				divGrupListe.jqxNavigationBar('expandAt', 0)
 				setTimeout(() => divGrupListe.jqxNavigationBar('collapseAt', 0), 10)
 			}
 		}
 	}
 	async kolonFiltreIstendi(e) {
-		e = e || {}; const promise = new $.Deferred();
-		const {kolonFiltreDuzenleyici} = this; if (!kolonFiltreDuzenleyici || getFuncValue.call(this, kolonFiltreDuzenleyici.uygunmu, e) === false) { return false }
-		const kolonFiltrePart = new GridliKolonFiltrePart({
+		e = e || {}; let promise = new $.Deferred();
+		let {kolonFiltreDuzenleyici} = this; if (!kolonFiltreDuzenleyici || getFuncValue.call(this, kolonFiltreDuzenleyici.uygunmu, e) === false) { return false }
+		let kolonFiltrePart = new GridliKolonFiltrePart({
 			duzenleyici: kolonFiltreDuzenleyici,
 			tamamIslemi: e => { if (promise) { promise.resolve(e) } },
 			kapaninca: e => { if (promise) { promise.reject(e) } }
 		});
 		kolonFiltrePart.run();
-		const result = await promise, filtreBilgi = kolonFiltreDuzenleyici._filtreBilgi = kolonFiltreDuzenleyici._filtreBilgi || {};
+		let result = await promise, filtreBilgi = kolonFiltreDuzenleyici._filtreBilgi = kolonFiltreDuzenleyici._filtreBilgi || {};
 		filtreBilgi.recs = result.recs; this.kolonFiltreDegisti(e)
 	}
 	kolonFiltreTemizleIstendi(e) {
-		const {kolonFiltreDuzenleyici} = this, filtreBilgi = kolonFiltreDuzenleyici._filtreBilgi = kolonFiltreDuzenleyici._filtreBilgi || {};
+		let {kolonFiltreDuzenleyici} = this, filtreBilgi = kolonFiltreDuzenleyici._filtreBilgi = kolonFiltreDuzenleyici._filtreBilgi || {};
 		filtreBilgi.recs = []; this.kolonFiltreDegisti(e)
 	}
 	kolonFiltreDegisti(e) {
-		e = e || {}; const {kolonFiltreDuzenleyici, divKolonFiltreBilgi, divKolonFiltreBilgiParent} = this;
-		const filtreBilgi_recs = (kolonFiltreDuzenleyici._filtreBilgi || {}).recs || []; let {filtreText} = e;
+		e = e || {}; let {kolonFiltreDuzenleyici, divKolonFiltreBilgi, divKolonFiltreBilgiParent} = this;
+		let filtreBilgi_recs = (kolonFiltreDuzenleyici._filtreBilgi || {}).recs || []; let {filtreText} = e;
 		if (filtreText == null) { filtreText = GridliKolonFiltrePart.getFiltreText(filtreBilgi_recs) }
 		divKolonFiltreBilgi.html(filtreText); divKolonFiltreBilgiParent[filtreBilgi_recs.length ? 'removeClass' : 'addClass']('jqx-hidden')
 	}
@@ -185,23 +185,34 @@ class SecimlerPart extends Part {
 		}
 	}
 	secimSaklaIstendi(e) {
-		let aciklama = prompt('Seçim Adını giriniz'); if (!aciklama) { return }
-		let {config, rootConfig, secimler, mfSinif} = this; config[aciklama] = secimler.asObject; rootConfig?.kaydetDefer();
+		let aciklama = prompt('Seçim Adını giriniz')
+		if (!aciklama) { return }
+		let {config, rootConfig, secimler, mfSinif} = this
+		config[aciklama] = secimler.asObject
+		rootConfig?.kaydetDefer()
 		eConfirm(`Seçim içerikleri <b class="royalblue">${aciklama}</b> ismi ile web tarayıcınızda kaydedildi`, [mfSinif?.sinifAdi, 'Seçimler'].filter(x => x).join(' '))
 	}
 	secimYukleIstendi(e) {
-		const {tipBelirtec} = this; MQSecim.listeEkraniAc({
+		let {tipBelirtec} = this
+		MQSecim.listeEkraniAc({
 			args: { tipBelirtec },
 			secince: e => {
-				let {aciklama, icerik} = e.rec ?? {}; if (!icerik) { return }
-				let {secimler, secim2Info} = this; for (let [key, _secim] of Object.entries(icerik)) {
-					let secim = secimler[key]; if (!secim) { continue }
+				let {aciklama, icerik} = e.rec ?? {}
+				if (!icerik) { return }
+				let {secimler, secim2Info} = this
+				for (let [key, _secim] of Object.entries(icerik)) {
+					let secim = secimler[key]
+					if (!secim)
+						continue
+					secim.temizle()
 					if (_secim.birKismimi !== undefined) {
 						_secim.hepsimi = !_secim.birKismimi
 						delete _secim.birKismimi
 					}
-					$.extend(secim, _secim);
-					let {element: parent} = secim2Info[key]; if (parent) { secim.uiSetValues({ parent }) }
+					$.extend(secim, _secim)
+					let {element: parent} = secim2Info[key]
+					if (parent)
+						secim.uiSetValues({ parent })
 				}
 				this.seviyeleriAcKapatIstendi({ flag: true }) /* eConfirm(`<b>${aciklama}</b> seçim içerikleri yüklendi`, [this.mfSinif?.sinifAdi, 'Seçimler'].filter(x => x).join(' ')) */
 			}
@@ -226,15 +237,15 @@ class SecimlerPart extends Part {
 	}
 	tamamOncesiIslemler(e) { }
 	filtreDegisti(e) {
-		e = e || {}; const {secimlerForm, filtreFormPart} = this; if (this.isDestroyed || !secimlerForm?.length) { return }
-		const value = coalesce(e.value, () => filtreFormPart?.value); if (value == null) { return }
-		const divGrupListe = secimlerForm.find('.secim-grup');
-		const parts = value ? value.split(' ').filter(x => !!x).map(x => x.trim()) : null, {secimler} = this, divSecimListe = secimlerForm.find('.secim');
-		const hasParts = !$.isEmptyObject(parts);
+		e = e || {}; let {secimlerForm, filtreFormPart} = this; if (this.isDestroyed || !secimlerForm?.length) { return }
+		let value = coalesce(e.value, () => filtreFormPart?.value); if (value == null) { return }
+		let divGrupListe = secimlerForm.find('.secim-grup');
+		let parts = value ? value.split(' ').filter(x => !!x).map(x => x.trim()) : null, {secimler} = this, divSecimListe = secimlerForm.find('.secim');
+		let hasParts = !$.isEmptyObject(parts);
 		if (hasParts) {
 			for (let i = 0; i < divSecimListe.length; i++) {
-				const divSecim = divSecimListe.eq(i), secim = secimler[divSecim.prop('id')]; if (!secim) { continue }
-				const {mfSinif} = secim; let etiket = secim.etiket || mfSinif?.sinifAdi, uygunmu = !etiket;
+				let divSecim = divSecimListe.eq(i), secim = secimler[divSecim.prop('id')]; if (!secim) { continue }
+				let {mfSinif} = secim; let etiket = secim.etiket || mfSinif?.sinifAdi, uygunmu = !etiket;
 				let divGrup = divSecim.parent('.content').prev('.header'), grupEtiket = divGrup?.children('.jqx-expander-header-content')?.text();
 				if (!uygunmu) {
 					uygunmu = true; for (let part of parts) {
@@ -253,8 +264,8 @@ class SecimlerPart extends Part {
 		}
 	}
 	onNavBarExpanded(e) {
-		const evt = e.event, elmGrup = $(evt.currentTarget), secimElms = elmGrup.find('.content > .secim'), {secimler} = this;
-		const _e = { ...e, liste: [], elmGrup }; secimler.grupOzetBilgiDuzenle(_e); this.onNavBarToggled(e)
+		let evt = e.event, elmGrup = $(evt.currentTarget), secimElms = elmGrup.find('.content > .secim'), {secimler} = this;
+		let _e = { ...e, liste: [], elmGrup }; secimler.grupOzetBilgiDuzenle(_e); this.onNavBarToggled(e)
 	}
 	onNavBarCollapsed(e) {
 		let {event: evt} = e, elmGrup = $(evt.currentTarget), secimElms = elmGrup.find('.content > .secim');
