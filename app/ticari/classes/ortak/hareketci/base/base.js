@@ -246,10 +246,10 @@ class Hareketci extends CObject {
 						let saha = deger; if (alias) { saha += ` ${alias}` }
 						sent.add(saha)
 					}
-					hv = _e.hv
+					hv = { ...defHV, ..._e.hv }
 				}
 				let hvDegeri = key => hv?.[key] || defHV?.[key];
-				$.extend(_e, { ...defHV, ...hv, har: this, harSinif: this.class, rapor, secimler, hvDegeri });
+				$.extend(_e, { defHV, hv, har: this, harSinif: this.class, rapor, secimler, hvDegeri });
 				this.uniDuzenle_tumSonIslemler(_e); sent = _e.sent;
 				if (!maliTablomu) { sent.groupByOlustur().gereksizTablolariSil() }
 				if (sent?.sahalar?.liste?.length) { uni.add(sent) }

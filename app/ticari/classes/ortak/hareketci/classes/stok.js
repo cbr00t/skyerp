@@ -659,17 +659,21 @@ class StokHareketci extends Hareketci {
     }
 
 	static maliTablo_secimlerYapiDuzenle({ result }) {
-		super.maliTablo_secimlerYapiDuzenle(...arguments);
-		$.extend(result, { mst: DMQStok, grup: DMQStokGrup, anaGrup: DMQStokAnaGrup, istGrup: DMQStokIstGrup, muhHesap: DMQMuhHesap })
+		super.maliTablo_secimlerYapiDuzenle(...arguments)
+		$.extend(result, {
+			sube: DMQSube, subeGrup: DMQSubeGrup, mst: DMQStok, grup: DMQStokGrup,
+			anaGrup: DMQStokAnaGrup, istGrup: DMQStokIstGrup, tip: DMQStokTip, isl: DMQStokIslem
+		})
 	}
-	static maliTablo_secimlerSentDuzenle({ detSecimler: detSec, sent, sent: { from, where: wh }, hv, mstClause }) {
+	static maliTablo_secimlerSentDuzenle({ detSecimler: sec, sent, sent: { from, where: wh }, hv, mstClause }) {
 		super.maliTablo_secimlerSentDuzenle(...arguments)
 		sent.stok2GrupBagla().hizmetGrup2AnaGrupBagla().stok2IstGrupBagla()
 		if (mstClause) {
-			wh.basiSonu(detSec.mstKod, mstClause).ozellik(detSec.mstAdi, 'stk.aciklama')
-			wh.basiSonu(detSec.grupKod, 'stk.grupkod').ozellik(detSec.grupAdi, 'grp.aciklama')
-			wh.basiSonu(detSec.anaGrupKod, 'grp.anagrupkod').ozellik(detSec.anaGrupAdi, 'agrp.aciklama')
-			wh.basiSonu(detSec.istGrupKod, 'stk.histgrupkod').ozellik(detSec.istGrupAdi, 'higrp.aciklama')
+			wh.basiSonu(sec.mstKod, mstClause).ozellik(sec.mstAdi, 'stk.aciklama')
+			wh.basiSonu(sec.grupKod, 'stk.grupkod').ozellik(sec.grupAdi, 'grp.aciklama')
+			wh.basiSonu(sec.anaGrupKod, 'grp.anagrupkod').ozellik(sec.anaGrupAdi, 'agrp.aciklama')
+			wh.basiSonu(sec.istGrupKod, 'stk.histgrupkod').ozellik(sec.istGrupAdi, 'higrp.aciklama')
+			wh.basiSonu(sec.tipKod, tipClause).ozellik(sec.tipAdi, 'tip.aciklama')
 		}
 	}
 }

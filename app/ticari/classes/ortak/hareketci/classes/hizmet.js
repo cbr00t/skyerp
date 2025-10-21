@@ -588,7 +588,7 @@ class HizmetHareketci extends Hareketci {
 			// if (sec.islKod.value && !from.aliasIcinTable('isl')) { sent.fis2StokIslemBagla() }
 			if (sec.islKod.value && from.aliasIcinTable('isl'))
 				wh.basiSonu(sec.islKod, islClause).ozellik(sec.islAdi, 'isl.aciklama')
-			wh.basiSonu(sec.muhHesapKod, muhHesapClause)
+			wh.basiSonu(sec.muhHesapKod, muhHesapClause).ozellik(sec.muhHesapAdi, 'mhes.aciklama')
 		}
 	}
 

@@ -522,11 +522,13 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		}
 		delete _e.rowIndexes; let {sayacSaha} = mfSinif;
 		for (let rec of recs) {
-			_e.rec = rec; let {yeniInstOlusturucu} = this; let inst;
+			_e.rec = rec
+			let {yeniInstOlusturucu} = this, inst
 			if (yeniInstOlusturucu) { inst = await getFuncValue.call(this, yeniInstOlusturucu, _e) }
-			if (inst === undefined && mfSinif.yeniInstOlustur) inst = await mfSinif.yeniInstOlustur(_e)
-			if (inst === undefined) inst = new mfSinif(_e)
-			if (inst == null) return false; inst.keySetValues({ rec });
+			if (inst === undefined && mfSinif.yeniInstOlustur) { inst = await mfSinif.yeniInstOlustur(_e) }
+			if (inst === undefined) { inst = new mfSinif(_e) }
+			if (inst == null) { return false }
+			inst.keySetValues({ rec })
 			/*if (!await inst.yukle(_e)) { let mesaj = 'Seçilen satır için bilgi yüklenemedi'; throw { isError: true, rc: 'instBelirle', errorText: mesaj } }*/
 			await inst.sil(__e)
 		}

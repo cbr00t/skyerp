@@ -25,7 +25,7 @@ class KasaHareketci extends Hareketci {
 		wh.add(`kas.calismadurumu <> ''`)
 	}
 	static varsayilanHVDuzenle_ortak({ hv, sqlNull, sqlEmpty }) {
-		super.varsayilanHVDuzenle_ortak(...arguments);
+		super.varsayilanHVDuzenle_ortak(...arguments)
 		$.extend(hv, { finanalizkullanilmaz: 'kas.finanalizkullanilmaz' })
 	}
 	static varsayilanHVDuzenle({ hv, sqlZero }) {

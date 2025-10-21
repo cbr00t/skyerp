@@ -120,11 +120,16 @@ class AlimSatisOrtakHareketci extends Hareketci {
     }
 	static maliTablo_secimlerYapiDuzenle({ tip2SecimMFYapi, result }) {
 		super.maliTablo_secimlerYapiDuzenle(...arguments)
-		let ortakSecimMFYapi = { sube: DMQSube, subeGrup: DMQSubeGrup }
-		$.extend(tip2SecimMFYapi, {
+		for (let cls of [StokHareketci, HizmetHareketci]) {
+			let {kisaKod: tip} = cls
+			let e = { ...arguments[0], result: [] }
+			cls.maliTablo_secimlerYapiDuzenle(e)
+			tip2SecimMFYapi[tip] = e.result
+		}
+		/*$.extend(tip2SecimMFYapi, {
 			S: { ...ortakSecimMFYapi, mst: DMQStok, grup: DMQStokGrup, anaGrup: DMQStokAnaGrup, istGrup: DMQStokIstGrup, tip: DMQStokTip, isl: DMQStokIslem },
-			H: { ...ortakSecimMFYapi, mst: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup, istGrup: DMQHizmetIstGrup, isl: DMQStokIslem, muhHesap: DMQMuhHesap }
-		})
+			H: { ...ortakSecimMFYapi, mst: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup, istGrup: DMQHizmetIstGrup, isl: DMQMuhIslem, muhHesap: DMQMuhHesap }
+		})*/
 	}
 	static maliTablo_secimlerSentDuzenle({ detSecimler: sec, sent, sent: { from }, where: wh, hv, mstClause, maliTablo }) {
 		super.maliTablo_secimlerSentDuzenle(...arguments)
@@ -143,9 +148,11 @@ class AlimSatisOrtakHareketci extends Hareketci {
 			wh.basiSonu(sec.grupKod, grpClause).ozellik(sec.grupAdi, 'grp.aciklama')
 			wh.basiSonu(sec.anaGrupKod, aGrpClause).ozellik(sec.anaGrupAdi, 'agrp.aciklama')
 			wh.basiSonu(sec.istGrupKod, iGrpClause).ozellik(sec.istGrupAdi, `${iGrpAlias}.aciklama`)
-			if (harStokmu) { wh.basiSonu(sec.tipKod, tipClause) }
+			if (harStokmu)
+				wh.basiSonu(sec.tipKod, tipClause).ozellik(sec.tipAdi, 'tip.aciklama')
 			wh.basiSonu(sec.islKod, islClause).ozellik(sec.islAdi, 'isl.aciklama')
-			if (harHizmetmi) { wh.basiSonu(sec.muhHesap, muhHesapClause) }
+			if (harHizmetmi)
+				wh.basiSonu(sec.muhHesapKod, muhHesapClause).ozellik(sec.muhHesapAdi, 'mhes.aciklama')
 		}
 	}
 }
