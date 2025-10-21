@@ -35,6 +35,7 @@ class MQBarkodGiris extends MQCogul {
 			.onAfterRun(({ builder: { input } }) => {
 				gridPart.txtBarkod = input
 				input.on('keyup', ({ key, currentTarget: target, currentTarget: { value: barkod } }) => {
+					clearTimeout(this._timer_gridTazele)
 					key = key?.toLowerCase()
 					if (key == 'enter' || key == 'linefeed')
 						this.ekleIstendi({ ...e, input: $(target), barkod })
@@ -103,6 +104,8 @@ class MQBarkodGiris extends MQCogul {
 	static gridVeriYuklendi({ sender: { txtBarkod } }) {
 		super.gridVeriYuklendi(...arguments)
 		txtBarkod?.focus()
+		for (let timeout of [0, 100, 250])
+			setTimeout(() => txtBarkod?.focus(), timeout)
 		this.localData?.kaydetDefer()
 	}
 	static async kaydetIstendi({ sender: gridPart }) {
@@ -135,7 +138,9 @@ class MQBarkodGiris extends MQCogul {
 				})
 			}),
 		]).withTrn()
-		await app.sqlExecNone(toplu)
+		showProgress()
+		try { await app.sqlExecNone(toplu) }
+		finally { setTimeout(() => hideProgress(), 100) }
 		gridPart?.txtAciklama?.val(null)
 		await this.reset()
 		gridPart?.tazele()
@@ -148,10 +153,16 @@ class MQBarkodGiris extends MQCogul {
 			if (txtBarkod?.length) { txtBarkod.val(''); txtBarkod.focus() }
 			await this.onKontrol(e)
 			this._lastNotify?.close(); delete this._lastNotify
-			let result = await this.ekle(e)
-			if (!result)
-				return result
-			gridPart?.tazele()
+			let added = await this.ekle(e)
+			if (!added?.length)
+				return added
+			clearTimeout(this._timer_gridTazele)
+			let {gridWidget} = gridPart ?? {}
+			gridWidget.beginupdate()
+			gridWidget?.addrow(null, added.reverse(), 'first')
+			gridWidget.endupdate()
+			// gridPart?.tazele()
+			return added
 		}
 		catch (ex) {
 			let errText = getErrorText(ex)
@@ -161,17 +172,29 @@ class MQBarkodGiris extends MQCogul {
 		}
 	}
 	static ekle({ sender: gridPart, barkod }) {
-		barkod = barkod?.trim()
+		let adet = 1; barkod = barkod?.trim()
+		if (barkod) {
+			let tokens = barkod.split('x')
+			if (tokens.length < 2)
+				tokens = barkod.split('*')
+			if (tokens.length > 1) {
+				adet = asInteger(tokens[0])
+				barkod = arguments[0].barkod = tokens[1]?.trim()
+			}
+		}
 		if (!barkod)
-			return false
-		let e = arguments[0], id = newGUID(), status = null
-		let rec = { id, status, barkod, shKod: '', shAdi: '' }
-		let {recs, localData} = this
-		recs.push(rec)
-		localData.changed()
-		this.ekleSonrasi({ ...e, rec }).then(() =>
-			gridPart?.tazele())
-		return true
+			return null
+		let e = arguments[0], status = null
+		let {recs, localData} = this, added = []
+		for (let i = 0; i < adet; i++) {
+			let id = newGUID()
+			let rec = { id, status, barkod, shKod: '', shAdi: '' }
+			recs.push(rec)
+			added.push(rec)
+			this.ekleSonrasi({ ...e, rec })
+		}
+		localData.changed(); localData.kaydetDefer()
+		return added
 	}
 	static async ekleSonrasi({ sender: gridPart, rec, rec: { status: oldStatus } = {} }) {
 		if (oldStatus != null)
@@ -182,7 +205,8 @@ class MQBarkodGiris extends MQCogul {
 			gridPart?.tazele()*/
 	}
 	static async ekleSonrasi_internal({ sender: gridPart, barkod, rec: gridRec }) {
-		let barkodBilgi = await app.barkodBilgiBelirle({ barkod })
+		let cache = this._barkodCache ??= {}
+		let barkodBilgi = cache[barkod] ??= await app.barkodBilgiBelirle({ barkod })
 		let rec = this.recs.find(({ id }) => id == gridRec.id)
 		if (!rec)
 			return
@@ -192,7 +216,11 @@ class MQBarkodGiris extends MQCogul {
 		rec.status = !!shKod
 		if (gridRec != rec)
 			$.extend(gridRec, rec)
-		this.localData.changed()
+		let {gridWidget} = gridPart, {localData} = this
+		clearTimeout(this._timer_gridTazele)
+		gridWidget.updaterow(gridRec.uid, gridRec)
+		localData.changed(); localData.kaydetDefer()
+		this._timer_gridTazele = setTimeout(() => gridPart?.tazele(), 1_500)
 	}
 	static async ozelTanimYap({ islem }) {
 		if (islem == 'sil') {
