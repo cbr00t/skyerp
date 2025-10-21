@@ -15,15 +15,15 @@ class GridKolonTip extends CObject {
 	get createEditor() { return null } get initEditor() { return null } get getEditorValue() { return null }
 	get initEditor() {
 		return ((colDef, rowIndex, value, editor, cellText, pressedChar) => {
-			const isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template'), {maxLength} = this;
-			const _editor = editor.children('.editor'); editor = _editor.length ? _editor : editor;
+			let isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template'), {maxLength} = this;
+			let _editor = editor.children('.editor'); editor = _editor.length ? _editor : editor;
 			if (maxLength && isCustomEditor) { editor.prop('maxlength', maxLength) }
 			if (_editor?.length && _editor.select) setTimeout(() => { editor.focus(); editor.select() }, 50)
 		})
 	}
 	get validation() {
 		return ((colDef, info, value) => {
-			const {maxLength} = this;
+			let {maxLength} = this;
 			if (maxLength != null && value != null && (typeof value == 'string' || typeof value == 'number') && value.toString().length > maxLength)
 				return ({ result: false, message: `Değer <b>${maxLength}</b> karakterden fazla olamaz` })
 			return true
@@ -31,18 +31,18 @@ class GridKolonTip extends CObject {
 	}
 	
 	constructor(e) { super(e); e = e || {}; this.readFrom(e) }
-	static getClass(e) { e = e || {}; const tip = typeof e == 'object' ? e.tip : e; return this._tip2Sinif[tip] || this; }
+	static getClass(e) { e = e || {}; let tip = typeof e == 'object' ? e.tip : e; return this._tip2Sinif[tip] || this; }
 	static from(e) {
 		if (!e) return null
-		const cls = this.getClass(e); if (!cls) return null
-		const result = new cls(e); return result.readFrom(e) ? result : null
+		let cls = this.getClass(e); if (!cls) return null
+		let result = new cls(e); return result.readFrom(e) ? result : null
 	}
 	readFrom(e) {
 		if (!e) { return false }
-		const isEditable = e.editable ?? e.isEditable; this.isEditable = isEditable ?? this.class.isEditable; this.maxLength = e.maxLength;
-		const {colEventNames, globalEventNames} = this.class;
-		for (const key of colEventNames) { const func = getFunc(e[key]); if (func) { this[key] = func } }
-		for (const key of globalEventNames) { const func = getFunc(e[key]); if (func) { this[key] = func } }
+		let isEditable = e.editable ?? e.isEditable; this.isEditable = isEditable ?? this.class.isEditable; this.maxLength = e.maxLength;
+		let {colEventNames, globalEventNames} = this.class;
+		for (let key of colEventNames) { let func = getFunc(e[key]); if (func) { this[key] = func } }
+		for (let key of globalEventNames) { let func = getFunc(e[key]); if (func) { this[key] = func } }
 		this.kodGosterilmesinmi = e.kodGosterilmesin ?? e.kodGosterilmesinmi ?? e.kodsuzmu ?? e.kodsuz;
 		this.listedenSecilemezFlag = e.listedenSecilemez ?? e.listedenSecilemezmi ?? e.listedenSecilemezFlag;
 		return true
@@ -106,7 +106,7 @@ class GridKolonTip extends CObject {
 	}
 	static getHTML_groupsTotalRow(value) {
 		if (typeof value == 'number') { value = numberToString(value) }
-		const text = numberToString(asFloat(value.replace(':', '').replace('Sum', '').replace('Avg', '').replace('TOPLAM', '').replace('ORT', '')));
+		let text = numberToString(asFloat(value.replace(':', '').replace('Sum', '').replace('Avg', '').replace('TOPLAM', '').replace('ORT', '')));
 		return `<div class="bold royalblue right" style="border-top: 3px solid royalblue">${text}</div>`
 	}
 	static getHTML_totalRow(value) {
@@ -114,8 +114,8 @@ class GridKolonTip extends CObject {
 		return `<div class="bold forestgreen right" style="border-top: 3px solid forestgreen">${value}</div>`
 	}
 	jqxColumnDuzenle(e) {
-		const {column} = e, colDef = e.colDef || {}, {genislikCh} = colDef;
-		const {jqxColumnType, jqxFilterType, jqxFilterAnaTip, jqxFilterCondition, jqxCellsFormat, isEditable} = this;
+		let {column} = e, colDef = e.colDef || {}, {genislikCh} = colDef;
+		let {jqxColumnType, jqxFilterType, jqxFilterAnaTip, jqxFilterCondition, jqxCellsFormat, isEditable} = this;
 		if (jqxColumnType) { column.columnType = jqxColumnType }
 		if (jqxFilterAnaTip) { column.filterComparasion = jqxFilterAnaTip }
 		if (jqxFilterType) { column.filterType = jqxFilterType } /*this.class.stringmi && (jqxFilterType == 'textbox' || jqxFilterType == 'input') && (genislikCh && genislikCh <= 25) ? 'checkedlist' : jqxFilterType*/
@@ -152,7 +152,7 @@ class GridKolonTip_Number extends GridKolonTip {
 							( toplamYapi?.avg ?? toplamYapi.ort ?? toplamYapi.ORT ?? toplamYapi.ortalama ?? toplamYapi.ORTALAMA );*/
 			let toplam = toplamYapi ? Object.values(toplamYapi)[0] : null;
 			if (toplam != null) {
-				/* const tip = ( toplamYapi.avg ?? toplamYapi.ort ?? toplamYapi.ORT ?? toplamYapi.ortalama ?? toplamYapi.ORTALAMA ) != null ? 'avg' : 'sum';
+				/* let tip = ( toplamYapi.avg ?? toplamYapi.ort ?? toplamYapi.ORT ?? toplamYapi.ortalama ?? toplamYapi.ORTALAMA ) != null ? 'avg' : 'sum';
 				if (toplam && tip == 'avg') toplam = toplam */
 				return GridKolonTip.getHTML_totalRow(numberToString(toplam))
 			}
@@ -172,34 +172,34 @@ class GridKolonTip_Number extends GridKolonTip {
 	}
 	get createEditor() {
 		return ((colDef, rowIndex, value, editor, cellText, cellWidth, cellHeight) => {
-			const {maxLength} = this, isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
+			let {maxLength} = this, isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
 			if (isCustomEditor && !editor.hasClass('editor')) {
-				const parent = editor; parent.addClass('full-wh');
+				let parent = editor; parent.addClass('full-wh');
 				parent.css('margin', 0); parent.css('padding', 0);
 				editor = $(`<input type="number" class="editor" style="width: ${cellWidth}px; height: ${cellHeight}px"/>`);
 				editor.appendTo(parent)
 			}
-			const rec = colDef.gridPart.gridWidget.getboundrows()[rowIndex], fra = this.getFra({ rec });
+			let rec = colDef.gridPart.gridWidget.getboundrows()[rowIndex], fra = this.getFra({ rec });
 			if (value && fra && typeof value != 'string') value = roundToFra(value, fra)
 			if (isCustomEditor) {
 				editor.on('keydown', evt => {
 					let handler = this.keyDownHandler;
-					if (handler) { const {key} = evt; getFuncValue.call(this, handler, { sender: this, event: evt, key }) }
+					if (handler) { let {key} = evt; getFuncValue.call(this, handler, { sender: this, event: evt, key }) }
 				});
 				/*editor.on('keyup', evt => {
-					const {key} = evt;
+					let {key} = evt;
 					if (key == '+' || key == '-') {
 						editor.html(`<input type="textbox" class="editor formul" style="width: 100%; height: 100%;" value="${editor.val()}"></input>`);
-						const input = editor; input.off('keyup'); input.focus(); input.select()
+						let input = editor; input.off('keyup'); input.focus(); input.select()
 					}
 				});*/
-				editor.on('change', evt => { const target = evt.currentTarget; if (fra != null) { target.value = asFloat(target.value?.replaceAll(',', '.'), fra) } })
+				editor.on('change', evt => { let target = evt.currentTarget; if (fra != null) { target.value = asFloat(target.value?.replaceAll(',', '.'), fra) } })
 			}
 			else {
 				let input = editor.find('input');
-				input.on('keydown', evt => { const {key} = evt; let handler = this.keyDownHandler; if (handler) getFuncValue.call(this, handler, { sender: this, event: evt, key }) });
+				input.on('keydown', evt => { let {key} = evt; let handler = this.keyDownHandler; if (handler) getFuncValue.call(this, handler, { sender: this, event: evt, key }) });
 				input.on('keyup', evt => {
-					const {key} = evt;
+					let {key} = evt;
 					if (key == '+' || key == '-') {
 						editor.html(`<input type="textbox" class="editor formul full-wh" value="${editor.val()}"></input>`);
 						let input = editor.find('input'); /* input.on('keyup', handler); */ input.off('keyup'); input.focus(); input.select()
@@ -210,10 +210,10 @@ class GridKolonTip_Number extends GridKolonTip {
 	}
 	get initEditor() {
 		return ((colDef, rowIndex, value, editor, cellText, pressedChar) => {
-			const {maxLength} = this, isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
-			const rec = colDef.gridPart.gridWidget.getboundrows()[rowIndex], fra = this.getFra({ rec });
+			let {maxLength} = this, isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
+			let rec = colDef.gridPart.gridWidget.getboundrows()[rowIndex], fra = this.getFra({ rec });
 			if (true || isCustomEditor) {
-				const _editor = editor.children('.editor'); if (_editor.length) { editor = _editor }
+				let _editor = editor.children('.editor'); if (_editor.length) { editor = _editor }
 				editor.prop('type', 'number'); editor.prop('value', value || null);
 				if (maxLength != null) { editor.prop('maxlength', maxLength) }
 				/*editor.css('text-align', 'right'); editor.css('margin-left', '10px');
@@ -225,21 +225,21 @@ class GridKolonTip_Number extends GridKolonTip {
 	}
 	get getEditorValue() {
 		return ((colDef, rowIndex, value, editor) => {
-			const isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
-			if (true || isCustomEditor) { const _editor = editor.children('.editor'); if (_editor.length) editor = _editor }
-			const input = editor.hasClass('formul') ? editor : editor.find('input.formul');
+			let isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
+			if (true || isCustomEditor) { let _editor = editor.children('.editor'); if (_editor.length) editor = _editor }
+			let input = editor.hasClass('formul') ? editor : editor.find('input.formul');
 			value = input?.length ? asFloat(eval((input.val() ?? 0).replaceAll(',', '.'))) : asFloat(editor.val());
 			if (value?.constructor?.name == 'Number') { value = asFloat(value) }
-			const rec = colDef.gridPart.gridWidget.getboundrows()[rowIndex], fra = this.getFra({ rec });
+			let rec = colDef.gridPart.gridWidget.getboundrows()[rowIndex], fra = this.getFra({ rec });
 			if (fra != null) { value = roundToFra(value, fra) }
 			return value
 		})
 	}
 	getFra(e) {
 		let {fra} = this; if (fra == null || typeof fra == 'number') return fra	
-		e = e || {}; const {rec} = e; if (!rec) return null
-		const {brmDict} = app.params?.stokBirim || {}; if (!brmDict) return null
-		const brm = (typeof fra == 'string' ? rec[fra] : getFuncValue.call(this, fra, e)) ?? null;
+		e = e || {}; let {rec} = e; if (!rec) return null
+		let {brmDict} = app.params?.stokBirim || {}; if (!brmDict) return null
+		let brm = (typeof fra == 'string' ? rec[fra] : getFuncValue.call(this, fra, e)) ?? null;
 		return brm == null ? null : (brmDict[brm]?.fra ?? null)
 	}
 	sifirGoster() { this.sifirGostermeFlag = false; return this }
@@ -279,10 +279,10 @@ class GridKolonTip_Decimal extends GridKolonTip_Number {
 			return html
 		})
 	}
-	fraFiyat() { const fra = app.params.zorunlu?.fiyatFra; this.fra = fra == null ? 6 : fra; return this }
-	fraDvFiyat() { const fra = app.params.zorunlu?.dvFiyatFra; this.fra = fra == null ? 2 : fra; return this }
-	fraBedel() { const fra = app.params.zorunlu?.bedelFra; this.fra = fra == null ? 2 : fra; return this }
-	fraDvBedel() { const fra = app.params.zorunlu?.dvBedelFra; this.fra = fra == null ? 2 : fra; return this }
+	fraFiyat() { let fra = app.params.zorunlu?.fiyatFra; this.fra = fra == null ? 6 : fra; return this }
+	fraDvFiyat() { let fra = app.params.zorunlu?.dvFiyatFra; this.fra = fra == null ? 2 : fra; return this }
+	fraBedel() { let fra = app.params.zorunlu?.bedelFra; this.fra = fra == null ? 2 : fra; return this }
+	fraDvBedel() { let fra = app.params.zorunlu?.dvBedelFra; this.fra = fra == null ? 2 : fra; return this }
 }
 
 class GridKolonTip_Date extends GridKolonTip {
@@ -292,13 +292,13 @@ class GridKolonTip_Date extends GridKolonTip {
 	/* get jqxCellsFormat() { return DateFormat } */ get jqxCellsFormat() { return super.jqxCellsFormat }
 
 	get cellsRenderer() {
-		const buYil = today().getFullYear();
+		let buYil = today().getFullYear();
 		return ((colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
 			if (value != null) {
 				if (rec?.totalsrow) { return GridKolonTip.getHTML_groupsTotalRow(value) }
-				const {gridWidget} = colDef?.gridPart;
+				let {gridWidget} = colDef?.gridPart;
 				rec = (gridWidget?.getboundrows ? gridWidget.getboundrows()[rowIndex] : null) ?? rec; rec = rec?.originalRecord ?? rec;
-				const _value = value; value = typeof value == 'number' || value?.constructor?.name == 'Number' ? new Date(asFloat(value)) : asDate(value);
+				let _value = value; value = typeof value == 'number' || value?.constructor?.name == 'Number' ? new Date(asFloat(value)) : asDate(value);
 				if (value?.getFullYear) { value = (value.getFullYear() == buYil && value.getMonth() == today().getMonth() ? dateKisaString(value) : dateToString(value)) }
 				if (value != _value) { html = changeTagContent(html, value) }
 			}
@@ -315,11 +315,11 @@ class GridKolonTip_Date extends GridKolonTip {
 	}*/
 	get createEditor() {
 		return ((colDef, rowIndex, value, parent, cellText, cellWidth, cellHeight) => {
-			const isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
+			let isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
 			let editor = parent.children('.editor');
 			if (!editor.length) {
 				editor = $(`<input type="textbox" class="editor full-wh" style="margin: 0; padding: 0"></input>`); editor.appendTo(parent);
-				const part = new TarihUIPart({ layout: editor }); editor.data('part', part); part.run()
+				let part = new TarihUIPart({ layout: editor }); editor.data('part', part); part.run()
 			}
 		})
 	}
@@ -328,9 +328,9 @@ class GridKolonTip_Date extends GridKolonTip {
 			let editor = parent.children('.editor');
 			if (editor.length) {
 				value = typeof value == 'number' || value?.constructor?.name == 'Number' ? new Date(asFloat(value)) : asDate(value);
-				const {gridPart} = colDef, gridWidget = gridPart?.gridWidget ?? gridPart?.gridPart?.gridWidget, isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
-				const rec = (gridWidget?.getboundrows ? gridWidget.getboundrows()[rowIndex] : null) ?? rec;
-				const part = editor.data('part'); part.val(value || ''); if (gridWidget.editmode != 'selectedrow') { setTimeout(() => part.focus(), 0) }
+				let {gridPart} = colDef, gridWidget = gridPart?.gridWidget ?? gridPart?.gridPart?.gridWidget, isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
+				let rec = (gridWidget?.getboundrows ? gridWidget.getboundrows()[rowIndex] : null) ?? rec;
+				let part = editor.data('part'); part.val(value || ''); if (gridWidget.editmode != 'selectedrow') { setTimeout(() => part.focus(), 0) }
 			}
 		})
 	}
@@ -338,7 +338,7 @@ class GridKolonTip_Date extends GridKolonTip {
 		return ((colDef, rowIndex, value, parent) => {
 			let editor = parent.children('.editor');
 			if (editor.length) {
-				const isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template'), part = editor.data('part');
+				let isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template'), part = editor.data('part');
 				return asDate(part.val())
 			}
 		})
@@ -357,8 +357,8 @@ class GridKolonTip_Time extends GridKolonTip_String {
 		return ((colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
 			if (value != null) {
 				if (rec?.totalsrow) { return GridKolonTip.getHTML_groupsTotalRow(value) }
-				const {gridWidget} = colDef?.gridPart || {}; rec = (gridWidget?.getboundrows ? gridWidget.getboundrows()[rowIndex] : null) ?? rec; rec = rec?.originalRecord ?? rec;
-				const _value = value; value = asDate(value); html = isInvalidDate(value) ? null : timeToString(asDate(value), this.noSecsFlag)
+				let {gridWidget} = colDef?.gridPart || {}; rec = (gridWidget?.getboundrows ? gridWidget.getboundrows()[rowIndex] : null) ?? rec; rec = rec?.originalRecord ?? rec;
+				let _value = value; value = asDate(value); html = isInvalidDate(value) ? null : timeToString(asDate(value), this.noSecsFlag)
 			}
 			return html
 		})
@@ -386,7 +386,7 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 			if (kaListe) { kaListe = getFuncValue.call(this, kaListe, e) }
 			if (kaListe) { tekSecim.kaListe = kaListe }
 		}
-		const {defaultValue} = e; if (defaultValue != null) { tekSecim.defaultChar = defaultValue }
+		let {defaultValue} = e; if (defaultValue != null) { tekSecim.defaultChar = defaultValue }
 		let {value} = e; if (value != null) tekSecim.char = value;
 		this.tekSecim = tekSecim; this.source = e.source || (() => this.kaListe); this.comboBoxmi = e.comboBoxmi ?? e.comboBox;
 		this.kodAttr = e.kodAttr || 'kod'; this.adiAttr = e.adiAttr || 'aciklama'; this.recKodAttr = e.recKodAttr; this.recAdiAttr = e.recAdiAttr;
@@ -396,10 +396,10 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 	get cellsRenderer() {
 		return ((colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
 			if (rec?.totalsrow) { return GridKolonTip.getHTML_groupsTotalRow(value) }
-			const {gridPart} = colDef, gridWidget = gridPart?.gridWidget ?? gridPart?.gridPart?.gridWidget;
+			let {gridPart} = colDef, gridWidget = gridPart?.gridWidget ?? gridPart?.gridPart?.gridWidget;
 			rec = (gridWidget?.getboundrows ? gridWidget.getboundrows()[rowIndex] : null) ?? rec; rec = rec?.originalRecord ?? rec;
 			if (value != null) {
-				const kaDict = this.getKADict({ belirtec: columnField, rec: rec }) || {};
+				let kaDict = this.getKADict({ belirtec: columnField, rec: rec }) || {};
 				let ka = value.aciklama == null ? kaDict[value] : Object.values(kaDict).find(ka => ka.aciklama == value);
 				if (ka) { value = ka.aciklama ?? value }
 				value = value == null || value.aciklama == null ? (value || '').toString() : (this.kodGosterilmesinmi ? value.aciklama ?? value : value.toString());
@@ -410,8 +410,8 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 	}
 	get createEditor() {
 		return ((colDef, rowIndex, value, editor, cellText, cellWidth, cellHeight) => {
-			const {comboBoxmi, kodAttr, adiAttr} = this;
-			const part = new ModelKullanPart({
+			let {comboBoxmi, kodAttr, adiAttr} = this;
+			let part = new ModelKullanPart({
 				parentPart: app.activePart, layout: editor, sender: colDef, coklumu: this.class.birKismimi, autoBind: true, value,
 				/*selectionRendererBlock: e => { if (!e.coklumu) { return e.wItem.label || '' } },*/ argsDuzenle: e => {
 					$.extend(e.args, {
@@ -421,21 +421,21 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 					})
 				},
 				veriYuklenince: e => {
-					const {gridPart} = colDef, gridWidget = gridPart?.gridWidget ?? gridPart?.gridPart?.gridWidget, gridRec = (gridWidget?.getboundrows ? gridWidget.getboundrows()[rowIndex] : null), recs = e.recs ?? e.source;
-					if (recs) { const {belirtec} = colDef, source = recs; this.kaDictYapiOlustur({ belirtec, rec: gridRec, source }) }
+					let {gridPart} = colDef, gridWidget = gridPart?.gridWidget ?? gridPart?.gridPart?.gridWidget, gridRec = (gridWidget?.getboundrows ? gridWidget.getboundrows()[rowIndex] : null), recs = e.recs ?? e.source;
+					if (recs) { let {belirtec} = colDef, source = recs; this.kaDictYapiOlustur({ belirtec, rec: gridRec, source }) }
 				}
 			})[comboBoxmi ? 'comboBox' : 'dropDown']().noMF()/*.kodGosterilmesin()*/;
 			if (this.kodGosterilmesinmi) { part.kodGosterilmesin() }
 			if (this.listedenSecilemezFlag) { part.listedenSecilemez() }
 			editor.data('part', part); part.run();
-			const {comboBox, widget} = part; setTimeout(() => {
-				const {input} = widget || {};
+			let {comboBox, widget} = part; setTimeout(() => {
+				let {input} = widget || {};
 				if (input?.length) {
 					input.on('keyup', evt => {
-						const key = (evt.key || '').toLowerCase();
+						let key = (evt.key || '').toLowerCase();
 						if (key == 'enter' || key == 'linefeed') {
 							widget.close();
-							const {gridPart} = colDef, gridWidget = gridPart?.gridWidget || gridPart?.gridPart?.gridWidget;
+							let {gridPart} = colDef, gridWidget = gridPart?.gridWidget || gridPart?.gridPart?.gridWidget;
 							if (gridWidget && gridWidget.editmode != 'selectedrow') { if (gridWidget.editcell) { setTimeout(() => gridWidget.endcelledit(false), 0) } }
 						}
 					})
@@ -445,34 +445,34 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 	}
 	get initEditor() {
 		return ((colDef, rowIndex, value, editor, cellText, pressedChar) => {
-			const part = editor.data('part'), {jqxSelector} = part;
+			let part = editor.data('part'), {jqxSelector} = part;
 			if (part.input != editor) { part.input = editor; part.widget = editor[jqxSelector]('getInstance') }
 			editor[jqxSelector]({ width: editor.width() });
-			const {gridPart} = colDef, gridWidget = gridPart?.gridWidget ?? gridPart?.gridPart?.gridWidget;
+			let {gridPart} = colDef, gridWidget = gridPart?.gridWidget ?? gridPart?.gridPart?.gridWidget;
 			let gridRec = (gridWidget?.getboundrows ? gridWidget.getboundrows()[rowIndex] : null), source = this.getSource({ belirtec: colDef.belirtec, rec: gridRec });
 			if (part) { part.source = source; part.dataBind() }
-			const _value = value || ''; part.val(_value); part.input.val(_value);
+			let _value = value || ''; part.val(_value); part.input.val(_value);
 			setTimeout(() => {
 				editor[jqxSelector]('focus'); editor.select();
-				const {gridPart} = colDef, gridWidget = gridPart?.gridWidget ?? gridPart?.gridPart?.gridWidget;
+				let {gridPart} = colDef, gridWidget = gridPart?.gridWidget ?? gridPart?.gridPart?.gridWidget;
 				if (!gridWidget || gridWidget.editmode != 'selectedrow') { part.focus() }
 			}, 100)
 		})
 	}
 	get getEditorValue() {
 		return ((colDef, rowIndex, value, editor) => {
-			const part = editor.data('part');
+			let part = editor.data('part');
 			return part /*&& part.kodGecerlimi*/ ? part.val() : editor.val()
 		})
 	}
 	get cellValueChanging() {
 		return ((colDef, rowIndex, dataField, columnType, oldValue, newValue) => {
-			const {recAdiAttr, _cellValueChanging} = this;
-			const {gridWidget} = colDef.gridPart;
-			const rec = (rowIndex != null && rowIndex > -1) ? gridWidget.getboundrows()[rowIndex] : null;
+			let {recAdiAttr, _cellValueChanging} = this;
+			let {gridWidget} = colDef.gridPart;
+			let rec = (rowIndex != null && rowIndex > -1) ? gridWidget.getboundrows()[rowIndex] : null;
 			if (recAdiAttr && rec != null) {
-				const kod = newValue;
-				const adi = kod == null ? null : this.getKodIcinAdi({ kod: kod, rec: rec });
+				let kod = newValue;
+				let adi = kod == null ? null : this.getKodIcinAdi({ kod: kod, rec: rec });
 				if (adi != null)
 					rec[recAdiAttr] = adi
 			}
@@ -482,21 +482,21 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 	}
 	get cellValueChanged() {
 		return ((colDef, rowIndex, dataField, columnType, oldValue, newValue) => {
-			const {_cellValueChanged} = this;
+			let {_cellValueChanged} = this;
 			if (_cellValueChanged)
 				getFuncValue.call(this, _cellValueChanged, e)
 		})
 	}
 	getKodIcinAdi(e) {
-		const {kod, belirtec, rec} = e;
+		let {kod, belirtec, rec} = e;
 		return kod == null ? null : (this.getKADict({ belirtec: belirtec, rec: rec }) || {})[kod]?.aciklama
 	}
 	getSource(e) {
 		e = e || {}
-		const {rec, belirtec} = e;
+		let {rec, belirtec} = e;
 		let result = this.source;
 		if (rec) {
-			const {_sourceYapi} = rec;
+			let {_sourceYapi} = rec;
 			let _source = _sourceYapi == null ? _sourceYapi : _sourceYapi[belirtec];
 			if (_source !== undefined)
 				result = _source
@@ -505,11 +505,11 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 	}
 	setSource(e) {
 		e = e || {}
-		const {rec, belirtec, source} = e;
+		let {rec, belirtec, source} = e;
 		let sourceSetFlag = false;
 		if (rec) {
 			let _sourceYapi = rec._sourceYapi = rec._sourceYapi || {};
-			const {_kaDictYapi} = rec;
+			let {_kaDictYapi} = rec;
 			if (_sourceYapi && belirtec) {
 				_sourceYapi[belirtec] = source;
 				sourceSetFlag = true
@@ -530,10 +530,10 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 	resetSourceCache(e) {
 		e = e || {};
 		let sourceSetFlag = false;
-		const {rec} = e;
+		let {rec} = e;
 		if (rec) {
 			let _sourceYapi = rec._sourceYapi = rec._sourceYapi || {};
-			const {_kaDictYapi} = rec;
+			let {_kaDictYapi} = rec;
 			if (_kaDictYapi)
 				belirtec ? delete _kaDictYapi[belirtec] : delete rec._kaDictYapi
 		}
@@ -541,13 +541,13 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 	}
 	getKADict(e) {
 		e = e || {};
-		const {rec, belirtec} = e;
-		const {_kaDictYapi} =  rec || {};
+		let {rec, belirtec} = e;
+		let {_kaDictYapi} =  rec || {};
 		let _kaDict = _kaDictYapi ? _kaDictYapi[belirtec] : null;
 		return _kaDict || this.tekSecim?.kaDict
 	}
 	kaDictYapiOlustur(e) {
-		const {belirtec, rec, source} = e;
+		let {belirtec, rec, source} = e;
 		if (!(belirtec && rec))
 			return
 		let kaDictYapi = rec._kaDictYapi = rec._kaDictYapi || {};
@@ -556,10 +556,10 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 			return
 		}
 		let kaDict = kaDictYapi[belirtec] = {};
-		const {kodAttr, adiAttr} = this;
+		let {kodAttr, adiAttr} = this;
 		let _source = $.isArray(source) ? source : source ? Object.values(source) : _source;
 		if (_source) {
-			for (const ka of _source) {
+			for (let ka of _source) {
 				let kod = ka[kodAttr];
 				let adi = kod == null ? null :ka[adiAttr];
 				if (kod != null)
@@ -581,7 +581,7 @@ class GridKolonTip_Ozel extends GridKolonTip {
 	get cellClassName() { return 'ozel' } get defaultAlign() { return 'center' }
 	readFrom(e) {
 		if (!super.readFrom(e)) { return false } let {value} = e;
-		try { if (value && typeof value == 'string') { const _value = getFunc.call(this, value, e); if (_value != null) { value = _value } } } catch (ex) { }
+		try { if (value && typeof value == 'string') { let _value = getFunc.call(this, value, e); if (_value != null) { value = _value } } } catch (ex) { }
 		this.value = value; return true
 	}
 	setValue(value) { this.value = value; return this }
@@ -599,15 +599,15 @@ class GridKolonTip_Button extends GridKolonTip_Ozel {
 			if (rec?.totalsrow) { return GridKolonTip.getHTML_groupsTotalRow(value) }
 			rec = colDef.gridPart.gridWidget.getboundrows()[rowIndex] ?? rec; rec = rec?.originalRecord || rec;
 			let _value = this.value; if (_value && (isFunction(_value) || _value.run)) {
-				const _e = { colDef, rowIndex, columnField, value, html, jqxCol, rec }; _value = getFuncValue.call(this, _value, _e) }
+				let _e = { colDef, rowIndex, columnField, value, html, jqxCol, rec }; _value = getFuncValue.call(this, _value, _e) }
 			return _value ?? value
 		})
 	}
 	get cellClick() {
 		return (e => {
-			const {clickEvent} = this; if (!$.isEmptyObject(clickEvent)) {
-				const {args} = e; let rec = args.row; rec = rec.bounddata || rec;
-				const _e = { ...e, tip: this, gridWidget: args.owner, rec, uid: rec.uid }; for (const handler of clickEvent) { getFuncValue.call(this, handler, _e) }
+			let {clickEvent} = this; if (!$.isEmptyObject(clickEvent)) {
+				let {args} = e; let rec = args.row; rec = rec.bounddata || rec;
+				let _e = { ...e, tip: this, gridWidget: args.owner, rec, uid: rec.uid }; for (let handler of clickEvent) { getFuncValue.call(this, handler, _e) }
 			}
 		})
 	}
@@ -616,7 +616,7 @@ class GridKolonTip_Button extends GridKolonTip_Ozel {
 		if (handler == null) { this.clickEvent = [] }
 		else {
 			let {clickEvent} = this; if (clickEvent == null) { this.clickEvent = clickEvent = [] }
-			if (typeof handler == 'string') { const _value = getFunc.call(this, value, e); if (_value != null) { handler = _value } }
+			if (typeof handler == 'string') { let _value = getFunc.call(this, value, e); if (_value != null) { handler = _value } }
 			if (handler) { clickEvent.push(handler) }
 		}
 		return this
@@ -629,11 +629,24 @@ class GridKolonTip_Image extends GridKolonTip_Button {
 	static get butonmu() { return false } get jqxColumnType() { return 'image' }
 	get cellsRenderer() {
 		return ((colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-			if (rec?.totalsrow) { return GridKolonTip.getHTML_groupsTotalRow(value) }
-			rec = colDef.gridPart.gridWidget.getboundrows()[rowIndex] ?? rec; rec = rec?.originalRecord || rec;
-			let _value = this.value; if (_value && (isFunction(_value) || _value.run)) {
-				const _e = { colDef, rowIndex, columnField, value, html, jqxCol, rec }; _value = getFuncValue.call(this, _value, _e) }
-			if (_value) { html = `<div style="background-repeat: no-repeat; background-position: center; background-size: auto; background-image: ${_value}"></div>` }
+			if (rec?.totalsrow)
+				return GridKolonTip.getHTML_groupsTotalRow(value)
+			let {gridPart} = colDef ?? {}
+			rec = gridPart.boundRecs?.[rowIndex] ?? rec
+			rec = rec?.originalRecord ?? rec
+			let {value: _value} = this
+			if (_value && (isFunction(_value) || _value.run)) {
+				let _e = { colDef, rowIndex, columnField, value, html, jqxCol, rec }
+				_value = getFuncValue.call(this, _value, _e)
+			}
+			_value ??= value
+			if (_value)
+				html = `<div class="full-wh" style="
+							background-repeat: no-repeat !important;
+							background-position: center !important;
+							background-size: contain !important;
+							background-image: url(${_value})
+				"></div>`
 			return html
 		})
 	}
@@ -666,8 +679,8 @@ class GridKolonTip_Bool extends GridKolonTip_Ozel {
 	}
 	get getEditorValue() {
 		return ((colDef, rowIndex, value, editor) => {
-			const isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template'); if (isCustomEditor) {
-				const _editor = editor.children('.editor'); if (_editor.length) { editor = _editor }
+			let isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template'); if (isCustomEditor) {
+				let _editor = editor.children('.editor'); if (_editor.length) { editor = _editor }
 												return editor.is(':checked')
 			}
 			return value
@@ -710,11 +723,11 @@ class GridKolonTip_Bool extends GridKolonTip_Ozel {
 
 
 (function() {
-	const subClasses = [
+	let subClasses = [
 		GridKolonTip_String, GridKolonTip_Number, GridKolonTip_Decimal, GridKolonTip_Date, GridKolonTip_Time,
 		GridKolonTip_TekSecim, GridKolonTip_BirKismi, GridKolonTip_Ozel, GridKolonTip_Button, GridKolonTip_Image, GridKolonTip_Bool
 	];
-	const tip2Sinif = GridKolonTip.prototype.constructor._tip2Sinif = {};
-	for (const cls of subClasses) { const {tip} = cls; if (tip) tip2Sinif[tip] = cls }
+	let tip2Sinif = GridKolonTip.prototype.constructor._tip2Sinif = {};
+	for (let cls of subClasses) { let {tip} = cls; if (tip) tip2Sinif[tip] = cls }
 })()
 

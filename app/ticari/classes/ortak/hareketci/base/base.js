@@ -136,7 +136,13 @@ class Hareketci extends CObject {
 	static ilkIslemler(e) { }
 	uniOrtakSonIslem({ sender, hv, sent, sent: { from, where: wh, sahalar }, secimler, det = {}, detSecimler = {}, donemTipi, sqlNull, sqlEmpty, sqlZero }) {
 		let tbWhere = secimler?.getTBWhereClause(...arguments)
-		if (tbWhere?.liste?.length) { wh.birlestir(tbWhere) }
+		if (tbWhere?.liste?.length)
+			wh.birlestir(tbWhere)
+		if (hv.bizsubekod && !from.aliasIcinTable('sub')) {
+			sent.x2SubeBagla({ kodClause: hv.bizsubekod })
+			if (!from.aliasIcinTable('igrp'))
+				sent.sube2GrupBagla()
+		}
 		if (sender?.finansalAnalizmi) {
 			let {finanalizkullanilmaz: finAnalizKullanimClause} = hv
 			if (finAnalizKullanimClause == sqlEmpty || finAnalizKullanimClause == sqlNull) { finAnalizKullanimClause = null }
@@ -221,8 +227,9 @@ class Hareketci extends CObject {
 		if (empty(attrSet)) { attrSet = null }
 		let {uygunluk} = this, uygunlukVarmi = !empty(uygunluk);
 		if (!uygunlukVarmi) {
-			let {hareketTipSecim} = this.class; uygunlukVarmi = !empty(hareketTipSecim.kaListe);
-			if (uygunlukVarmi) { uygunluk = asSet(hareketTipSecim.kaListe.map(({ kod }) => kod)) }
+			let {hareketTipSecim} = this.class; uygunlukVarmi = !empty(hareketTipSecim.kaListe)
+			if (uygunlukVarmi)
+				uygunluk = asSet(hareketTipSecim.kaListe.map(({ kod }) => kod))
 		}
 		let sender = this, hareketci = this, {uni, maliTablomu} = e; $.extend(e, { uygunluk, zorunluAttrSet });
 		for (let [selectorStr, unionBilgiListe] of Object.entries(uygunluk2UnionBilgiListe)) {

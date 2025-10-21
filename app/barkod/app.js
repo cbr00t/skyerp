@@ -1,5 +1,5 @@
 class BarkodApp extends TicariApp {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get isLoginRequired() { return false }
+    static { window[this.name] = this; this._key2Class[this.name] = this } get isLoginRequired() { return true }
 	static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_App }
 	get autoExecMenuId() { return MQBarkodGiris.kodListeTipi }
 	async runDevam(e) {

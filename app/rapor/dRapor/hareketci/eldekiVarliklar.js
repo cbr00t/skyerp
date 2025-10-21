@@ -34,6 +34,8 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 			tarih: new SecimTekilDate({ grupKod, etiket: '... Tarihdeki Durum', placeHolder: 'Bugünkü Durum' }),
 			anaTip: new SecimBirKismi({ grupKod, etiket: 'Gösterilecek Bilgiler', kaListe: anaTip_kaListe }).birKismi().autoBind()
 		})
+		sec.addKA('sube', DMQSube, ({ hv }) => hv.bizsubekod, 'sub.aciklama')
+		sec.addKA('subeGrup', DMQSubeGrup, 'sub.isygrupkod', 'igrp.aciklama')
 	}
 	tabloYapiDuzenle({ result }) {
 		result.addKAPrefix('hartip', 'mst')
@@ -74,7 +76,8 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		)
 		let sabitBelirtecler = [
 			'alttiponcelik', 'alttipadi', 'yon', 'finanalizkullanilmaz',
-			'tarih', 'ba', 'bedel', 'dvbedel', 'dvkod', 'belgetipi'
+			'tarih', 'ba', 'bedel', 'dvbedel', 'dvkod', 'belgetipi',
+			'bizsubekod'
 		];
 		if (ozelIsaretVarmi) { sabitBelirtecler.push('ozelisaret') }
 		let harListe = []; for (let cls of harClasses) {
@@ -83,21 +86,26 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 			let har = new cls(); har.withAttrs(belirtecler); harListe.push(har)
 		}
 		let sonTarih = sec.tarih.value || null, buYonClause = yon.sqlServerDegeri();
-		let uni = new MQUnionAll(); for (let har of harListe) {
+		let uni = new MQUnionAll()
+		for (let har of harListe) {
 			let {oncelik, mstYapi, kod: harTipKod} = har.class;
 			let {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi;
-			let harUni = har.uniOlustur({ sender: this }); for (let harSent of harUni.getSentListe()) {
-				if (!harSent) { continue } let {from, where: wh, sahalar, alias2Deger} = harSent;
+			let harUni = har.uniOlustur({ sender: this })
+			for (let harSent of harUni) {
+				if (!harSent)
+					continue
+				let {from, where: wh, sahalar, alias2Deger} = harSent
 				let {yon: yonClause} = alias2Deger, yonLiteralmi = yonClause?.[0] == `'`; if (yonLiteralmi && yonClause != buYonClause) { continue }
 				let {alttiponcelik: grupOncelikClause, alttipadi: grupAdiClause, ozelisaret: ozelIsaretClause,
 					 tarih: tarihClause, ba: baClause, bedel: tlBedelClause, dvbedel: dvBedelClause, dvkod: dvKodClause
-				} = alias2Deger;
-				dvKodClause = dvKodClause || sqlEmpty; let dvBosmuClause = this.getDvBosmuClause(dvKodClause);
+				} = alias2Deger
+				dvKodClause = dvKodClause || sqlEmpty
+				let dvBosmuClause = this.getDvBosmuClause(dvKodClause)
 				let bedelClause = this.getDovizliBedelClause({ dvKodClause, tlBedelClause, dvBedelClause, sumOlmaksizin: true });
 				let kodClause = alias2Deger[mstKodAlias], adiClause = alias2Deger[mstAdiAlias], adiClause2 = alias2Deger[mstAdiAlias2];
-				sahalar.liste = []; sahalar.add(`'${harTipKod}' anatip`);
+				sahalar.liste = []; sahalar.add(`'${harTipKod}' anatip`)
 				if (adiClause) { sahalar.add(`${adiClause} mstadi`) } else { mstYapi.duzenle({ sent: harSent, wh, kodClause }) }
-				sahalar.add(`${adiClause2 || sqlEmpty} mstadi2`);
+				sahalar.add(`${adiClause2 || sqlEmpty} mstadi2`)
 				sahalar.add(
 					`${kodClause} mstkod`, `${oncelik} oncelik`, `${grupAdiClause} grup`, `${grupOncelikClause} gruponcelik`,
 					`${this.getRevizeDvKodClause(dvKodClause)} dvkod`,
@@ -106,17 +114,22 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 				if (!yonLiteralmi) { wh.degerAta(yon, yonClause) }
 				if (ozelIsaretVarmi && ozelIsaretClause) { wh.notDegerAta('X', ozelIsaretClause) }
 				if (sonTarih) { wh.basiSonu({ sonu: sonTarih }, tarihClause) }
-				harSent.groupByOlustur().gereksizTablolariSil();
+				harSent.groupByOlustur().gereksizTablolariSil()
 				uni.add(harSent)
 			}
 		}
 		/* console.table(uni.siraliSahalar) */
-		let topStm = uni.asToplamStm(); stm.with.birlestir(topStm.with); stm.sent = topStm.sent;
+		if (!uni?.liste?.length)
+			return false
+		stm.sent = uni
+		/*let topStm = uni.asToplamStm()
+		stm.with.birlestir(topStm.with); stm.sent = topStm.sent
 		stm.orderBy.add('oncelik', 'anatip', 'gruponcelik', 'grup', 'dvkod', 'mstkod')
-		let withSent = topStm.with.liste[0]?.sent;
-		if (!withSent?.liste?.length) { return false }
-		/* self.uni = withSent */
+		let withSent = topStm.with.liste[0]?.sent
+		if (!withSent?.liste?.length)
+			return false*/
 	}
+	
 	loadServerData_recsDuzenleIlk({ recs }) {
 		let {class: { sagmi }} = this
 		let recsDvKodSet = this.recsDvKodSet = {}

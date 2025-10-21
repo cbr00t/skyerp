@@ -62,6 +62,10 @@ body #nav-toggle {
 	top: .5%; right: 10px; z-index: 1011; opacity: .7
 }
 body #ust-parent > #parent > #windows-parent > div > #windows > .content > div { /* mix-blend-mode: difference */ }
+.notification { cursor: pointer }
+.notification:hover { filter: contrast(.95); box-shadow: 0 0 3px 2px #111 }
+.notification:active { opacity: .9; ; box-shadow: 0 0 5px 2px firebrick }
+.notification:pressed { opacity: .7 }
 .jqx-button { }
 .jqx-responsive-panel-button { background-color: transparent; border: 2px solid transparent; outline: none !important }
 .jqx-responsive-panel-button.jqx-fill-state-normal { }

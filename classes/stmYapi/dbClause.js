@@ -296,7 +296,7 @@ class MQSubWhereClause extends MQClause {
 		e = e?.saha ? e : { deger: e, saha: _saha };
 		let {saha, deger: bs, deger: { birKismimi, disindakilermi = e.disindakiler } = {}} = e
 		birKismimi = bs?.birKismimi ?? birKismimi
-		disindakilermi = bs?.disindakilermi ?? bs.disindakiler ?? disindakilermi
+		disindakilermi = bs?.disindakilermi ?? bs?.disindakiler ?? disindakilermi
 		let isNot = typeof e == 'object' && asBool(e.not ?? disindakilermi)
 		if (birKismimi)
 			this.birKismi({ liste: bs.value ?? bs.kodListe, saha, not: isNot })

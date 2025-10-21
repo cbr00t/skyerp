@@ -455,7 +455,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	async degistirIstendi(e) {
 		e ??= {}; let {tanimOncesiEkIslemler, gridWidget} = this;
 		let rowIndex = e.rowIndex ?? this.selectedRowIndex, rec = e.rec ?? gridWidget.getrowdata(rowIndex), mfSinif = this.getMFSinif(e);
-		if (!rec) { hConfirm('Değiştirilecek satır seçilmelidir', ' '); return false }
+		if (!rec) { wConfirm('Değiştirilecek satır seçilmelidir', ' '); return false }
 		let {args} = this, {ozelTanimIslemi, table, tableAlias, aliasVeNokta} = mfSinif, eskiInst, inst;
 		let _e = { sender: this, listePart: this, islem: 'degistir', mfSinif, rec, rowIndex, args, table, alias: tableAlias, aliasVeNokta };
 		let tanimUISinif = _e.tanimUISinif = this.getTanimUISinif(_e);
@@ -483,7 +483,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	async kopyaIstendi(e) {
 		e ??= {}; let {tanimOncesiEkIslemler, table, tableAlias, aliasVeNokta, gridWidget} = this;
 		let rowIndex = e.rowIndex ?? this.selectedRowIndex, rec = e.rec ?? gridWidget.getrowdata(rowIndex), mfSinif = this.getMFSinif(e);
-		if (!rec) { hConfirm('Kopyalanacak satır seçilmelidir', ' '); return false }
+		if (!rec) { wConfirm('Kopyalanacak satır seçilmelidir', ' '); return false }
 		let {args} = this, {ozelTanimIslemi} = mfSinif; let eskiInst, inst;
 		let _e = { sender: this, listePart: this, islem: 'kopya', mfSinif, rec, rowIndex, args, table, alias: tableAlias, aliasVeNokta };
 		let tanimUISinif = _e.tanimUISinif = this.getTanimUISinif(_e);
@@ -497,7 +497,10 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			if (eskiInst === undefined && mfSinif.yeniInstOlustur) eskiInst = await mfSinif.yeniInstOlustur(_e)
 			if (eskiInst === undefined) { eskiInst = new mfSinif(_e) }
 			if (eskiInst == null) return false; eskiInst.keySetValues({ rec });
-			if (!await eskiInst.yukle($.extend({}, _e, { rec: null, _rec: rec }))) { let mesaj = 'Seçilen satır için bilgi yüklenemedi'; throw { isError: true, rc: 'instBelirle', errorText: mesaj } }
+			if (!await eskiInst.yukle($.extend({}, _e, { rec: null, _rec: rec }))) {
+				let mesaj = 'Seçilen satır için bilgi yüklenemedi'
+				throw { isError: true, rc: 'instBelirle', errorText: mesaj }
+			}
 			inst = await eskiInst.kopyaIcinDuzenle(_e) ?? eskiInst.deepCopy();
 			let {kaydedince: _kaydedince} = e ?? {}, kaydedince = e => { this.tazele(e); _kaydedince?.call(this, e) };
 			return inst.tanimla({ parentPart: this, islem: _e.islem, eskiInst, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince })
@@ -507,7 +510,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	async silIstendi(e) {
 		let mfSinif = this.getMFSinif(e); if (mfSinif && !mfSinif.silinebilirmi) { hConfirm(`Silme işlemi yapılamaz`, ' '); return false }
 		let {gridWidget} = this, rowIndexes = this.selectedRowIndexes, recs = rowIndexes.map(ind => gridWidget.getrowdata(ind)).filter(rec => !!rec);
-		if ($.isEmptyObject(recs)) { hConfirm('Silinecek satırlar seçilmelidir', ' '); return false }
+		if ($.isEmptyObject(recs)) { wConfirm('Silinecek satırlar seçilmelidir', ' '); return false }
 		let rdlg = await ehConfirm(`Seçilen ${recs.length} satır silinsin mi?`, ' '); if (!rdlg) return false
 		try { showProgress(); let result = await this.silDevam($.extend({}, e, { mfSinif, recs, rowIndexes })); return result }
 		catch (ex) { /*hConfirm(getErrorText(ex), 'Sil');*/ throw ex }
@@ -520,7 +523,8 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			let result = await getFuncValue.call(this, ozelTanimIslemi, _e);
 			if (result !== false) { return result }
 		}
-		delete _e.rowIndexes; let {sayacSaha} = mfSinif;
+		delete _e.rowIndexes; let {sayacSaha} = mfSinif
+		let promises = []
 		for (let rec of recs) {
 			_e.rec = rec
 			let {yeniInstOlusturucu} = this, inst
@@ -530,12 +534,16 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			if (inst == null) { return false }
 			inst.keySetValues({ rec })
 			/*if (!await inst.yukle(_e)) { let mesaj = 'Seçilen satır için bilgi yüklenemedi'; throw { isError: true, rc: 'instBelirle', errorText: mesaj } }*/
-			await inst.sil(__e)
+			promises.push(await inst.sil(__e))
+		}
+		if (promises.length) {
+			await Promise.allSettled(promises)
+			promises = []
 		}
 	}
 	async exportIstendi(e) {
 		e ??= {}; let {gridWidget, selectedRecs} = this;
-		if (!selectedRecs?.length) { hConfirm('Dışa aktarılacak satırlar seçilmelidir', ' '); return false }
+		if (!selectedRecs?.length) { wConfirm('Dışa aktarılacak satırlar seçilmelidir', ' '); return false }
 		let mfSinif = this.getMFSinif(e), {yeniInstOlusturucu} = this;
 		let liste = await Promise.all(selectedRecs.map(async rec => {
 			let inst = yeniInstOlusturucu ? await getFuncValue.call(this, yeniInstOlusturucu, e) : undefined;
@@ -550,10 +558,10 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			return inst
 		}));
 		liste = liste.filter(x => x);
-		if (!liste?.length) { hConfirm('Dışa aktarılacak uygun satır belirlenemedi', ' '); return false }
+		if (!liste?.length) { wConfirm('Dışa aktarılacak uygun satır belirlenemedi', ' '); return false }
 		mfSinif = liste[0].class;
 		let exportRecs = await mfSinif.exportAll({ ...e, liste });
-		if (!exportRecs?.length) { hConfirm('Dışa aktarılacak uygun veri belirlenemedi', ' '); return false }
+		if (!exportRecs?.length) { wConfirm('Dışa aktarılacak uygun veri belirlenemedi', ' '); return false }
 		let exportName = await jqxPrompt({ title: `Dışa Aktar: (<span class="royalblue">${exportRecs.length} kayıt)`, etiket: 'İsim giriniz' });
 		if (exportName == null) { return false }
 		let data = toJSONStr(exportRecs);
@@ -562,7 +570,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	}
 	async exportIstendi(e) {
 		e ??= {}; let {gridWidget, selectedRecs} = this, islemAdi = 'Dışarıya Aktar';
-		if (!selectedRecs?.length) { hConfirm('Dışa aktarılacak satırlar seçilmelidir', islemAdi); return false }
+		if (!selectedRecs?.length) { wConfirm('Dışa aktarılacak satırlar seçilmelidir', islemAdi); return false }
 		let mfSinif = this.getMFSinif(e), {yeniInstOlusturucu} = this;
 		let liste = await Promise.all(selectedRecs.map(async rec => {
 			let inst = yeniInstOlusturucu ? await getFuncValue.call(this, yeniInstOlusturucu, e) : undefined;
@@ -577,10 +585,10 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			return inst
 		}));
 		liste = liste.filter(x => x);
-		if (!liste?.length) { hConfirm('Dışa aktarılacak uygun satır belirlenemedi', islemAdi); return false }
+		if (!liste?.length) { wConfirm('Dışa aktarılacak uygun satır belirlenemedi', islemAdi); return false }
 		mfSinif = liste[0].class;
 		let exportRecs = await mfSinif.exportAll({ ...e, liste });
-		if (!exportRecs?.length) { hConfirm('Dışa aktarılacak uygun veri belirlenemedi', islemAdi); return false }
+		if (!exportRecs?.length) { wConfirm('Dışa aktarılacak uygun veri belirlenemedi', islemAdi); return false }
 		let exportName = await jqxPrompt({ title: `${islemAdi}: (<span class="royalblue">${exportRecs.length} kayıt)`, etiket: 'İsim giriniz' });
 		if (exportName == null) { return false }
 		let data = toJSONStr(exportRecs);
