@@ -154,8 +154,8 @@ class RaporGosterPart extends Part {
 		finally { setTimeout(() => hideProgress(), 1000) }
 	}
 	raporGoster_grid(e) {
-		const {inst} = this, {raporcu, rRapor} = inst, {dataSource, filtreRecs} = e, islemeAlinamayanFiltreRecs = e._islemeAlinamayanFiltreRecs;
-		const fbd_islemTuslari = new FormBuilder({
+		let {inst} = this, {raporcu, rRapor} = inst, {dataSource, filtreRecs} = e, islemeAlinamayanFiltreRecs = e._islemeAlinamayanFiltreRecs;
+		let fbd_islemTuslari = new FormBuilder({
 			id: 'islemTuslari',
 			buildEk: e => {
 				const {builder} = e, {rootPart, parentBuilder} = builder, {layout} = parentBuilder;
@@ -172,9 +172,8 @@ class RaporGosterPart extends Part {
 				e => `${e.builder.getCSSElementSelector(e.builder.parentBuilder.layout)} .header #islemTuslari { text-align: right; height: 60px }`,
 				e => `${e.builder.getCSSElementSelector(e.builder.parentBuilder.layout)} .header #islemTuslari button { width: 80px; margin: 0 1px }`
 			]
-		}).addStyle_fullWH();
-		
-		const fbd_grid = new FBuilder_Grid({
+		}).addStyle_fullWH()
+		let fbd_grid = new FBuilder_Grid({
 			id: 'grid', widgetArgsDuzenle: e => {
 				const {builder} = e;
 				$.extend(e.args, {

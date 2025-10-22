@@ -30,6 +30,7 @@ class MQBarkodGiris extends MQCogul {
 		super.rootFormBuilderDuzenle_listeEkrani(e); let {localData} = this
 		let {rootBuilder: rfb, sender: gridPart, sender: { layout, header }} = e
 		let fbd_header = rfb.addForm('header').setLayout(header)
+			.addStyle(`$elementCSS { box-sizing: content-box !important }`)
 		fbd_header.addTextInput('barkod', 'Barkod').etiketGosterim_yok()
 			.setPlaceHolder('Barkod okutunuz')
 			.onAfterRun(({ builder: { input } }) => {
@@ -42,7 +43,7 @@ class MQBarkodGiris extends MQCogul {
 				})
 				input.focus()
 			})
-			.addStyle(`$elementCSS > input { font-size: 120%; font-weight: bold; color: forestgreen; text-align: center; padding: 0 30px }`)
+			.addStyle(`$elementCSS > input { font-size: 120%; font-weight: bold; color: forestgreen; text-align: center; margin: 5px 0; padding: 0px 30px; box-shadow: 2px 2px 3px 2px cyan }`)
 		fbd_header.addTextInput('aciklama', 'Açıklama').etiketGosterim_yok()
 			.setPlaceHolder('Açıklama (opsiyonel)')
 			.setValue(localData.get('aciklama'))
@@ -58,6 +59,8 @@ class MQBarkodGiris extends MQCogul {
 				input.on('change', ({ currentTarget: { value } }) =>
 					localData.set('aciklama', value || null))
 			})
+			.addStyle_wh(Math.min($(window).width() - 30, 500))
+			.addStyle(`$elementCSS > input { font-weight: bold; text-align: center; padding: 0 50px }`)
 	}
 	static ekCSSDuzenle({ dataField: belirtec, value, rec: { status } = {}, result }) {
 		if (belirtec == 'statusImg') {
@@ -104,8 +107,6 @@ class MQBarkodGiris extends MQCogul {
 	static gridVeriYuklendi({ sender: { txtBarkod } }) {
 		super.gridVeriYuklendi(...arguments)
 		txtBarkod?.focus()
-		for (let timeout of [0, 100, 250])
-			setTimeout(() => txtBarkod?.focus(), timeout)
 		this.localData?.kaydetDefer()
 	}
 	static async kaydetIstendi({ sender: gridPart }) {
@@ -132,9 +133,9 @@ class MQBarkodGiris extends MQCogul {
 			}),
 			new MQInsert({
 				table: 'rafetiketdetay',
-				hvListe: recs.map(({ barkod }) => {
+				hvListe: recs.map(({ id = newGUID(), barkod }) => {
 					seq++
-					return { fisid, seq, barkod }
+					return { fisid, id, seq, barkod }
 				})
 			}),
 		]).withTrn()
@@ -142,9 +143,10 @@ class MQBarkodGiris extends MQCogul {
 		try { await app.sqlExecNone(toplu) }
 		finally { setTimeout(() => hideProgress(), 100) }
 		gridPart?.txtAciklama?.val(null)
-		await this.reset()
+		await this.reset(...arguments)
+		clearTimeout(this._timer_gridTazele)
 		gridPart?.tazele()
-		eConfirm(`<b class=royalblue>${recs.length}</b> adet barkod merkeze kaydedildi`, islemAdi)
+		eConfirm(`<b class=royalblue>${recs.length}</b> adet barkod merkeze gönderildi`, islemAdi)
 		return true
 	}
 	static async ekleIstendi({ sender: gridPart, sender: { txtBarkod } = {}, barkod }) {
@@ -161,7 +163,7 @@ class MQBarkodGiris extends MQCogul {
 			gridWidget.beginupdate()
 			gridWidget?.addrow(null, added.reverse(), 'first')
 			gridWidget.endupdate()
-			// gridPart?.tazele()
+			this._timer_gridTazele = setTimeout(() => gridPart?.tazele(), 1_500)
 			return added
 		}
 		catch (ex) {
@@ -245,9 +247,9 @@ class MQBarkodGiris extends MQCogul {
 		if (!barkod)
 			fail('barkod')
 	}
-	static async reset({ sender: gridPart }) {
+	static reset({ sender: gridPart }) {
 		let {localData, recs} = this
-		localData.remove('aciklama')
+		localData.delete('aciklama')
 		recs.splice(0)
 	}
 	alternateKeyHostVarsDuzenle({ hv }) {

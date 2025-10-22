@@ -138,22 +138,6 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 				? ekDBListe.filter(x => x != aktifDB) : null
 		$.extend(e, { konsolideCikti, ekDBListe, aktifDB })
 		let sevRecs = await this.loadServerDataDevam(e)
-		/*if (konsolideCikti) {
-			sevRecs = e.sevRecs = [{
-				seviyeNo: 0, aciklama: `<span class="forestgreen bold">(${aktifDB})</span>`,
-				detaylar: sevRecs
-			}];
-			ekDBListe ??= []; for (let db of ekDBListe) {
-				$.extend(_e, { db });
-				let _sevRecs = await this.loadServerDataDevam(_e); if (!_sevRecs) { continue }
-				if (_sevRecs?.length) {
-					sevRecs.push({
-						seviyeNo: 0, aciklama: `<span class="royalblue">${db}</span>`,
-						detaylar: _sevRecs
-					})
-				}
-			}
-		}*/
 		return sevRecs
 	}
 	async loadServerDataDevam(e) {
@@ -175,7 +159,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 	async loadServerDataInternal(e) {
 		await super.loadServerDataInternal(e)
 		let {detayli, ekDBListe, aktifDB, detaylar, detay: _det} = e, yatayDegerSet = e.yatayDegerSet = {}
-		let rapor = this, {raporTanim = {}, secimler, secimler: {tarihBS: donemBS}, sahaAlias} = this
+		let rapor = this, {raporTanim = {}, secimler, secimler: {tarihBS: donemBS}, sahaAlias: bedelAlias} = this
 		let {raporTanim: { yatayAnalizVarmi, yatayAnaliz } = {}} = this
 		detaylar ??= _det ? [_det] : raporTanim.detaylar
 		let yatayDBmi = yatayAnalizVarmi && yatayAnaliz.dbmi
@@ -209,7 +193,8 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 					let uni = orjUni.deepCopy()
 					if (yatayDBmi) {
 						let clause = aktifDB.sqlServerDegeri()
-						for (let {sahalar} of uni) { sahalar.add(`${clause} ${alias}`) }
+						for (let {sahalar} of uni)
+							sahalar.add(`${clause} ${alias}`)
 					}
 					sonucUni.addAll(uni)
 				}
@@ -222,7 +207,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 							if (table && !table.includes('.'))
 								table = aMQAliasliYapi.deger = `${db}..${table}`
 						}
-						if (yatayAnalizVarmi && yatayAnaliz.dbmi)
+						if (yatayDBmi)
 							sahalar.add(`${clause} ${alias}`)
 					}
 					sonucUni.addAll(uni)
@@ -236,7 +221,8 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 				id2Promise[id] = promise_recs
 		}
 		let yatayDegerler;     /* ekDBListe içinden (aktifDB) değeri ayıklanmış olarak gelir */
-		if (yatayDBmi) { yatayDegerler = [aktifDB, ...(ekDBListe ?? [])] }
+		if (yatayDBmi)
+			yatayDegerler = [aktifDB, ...(ekDBListe ?? [])]
 		let recs
 		for (let [id, promise] of Object.entries(id2Promise)) {
 			let det = id2Detay[id]
@@ -257,18 +243,20 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 				else { recs = _recs }                          /* large data performance optimization */
 				continue
 			}
-			let {aciklama} = det, topBedel = topla(rec => rec[sahaAlias] || 0, _recs)
+			let {aciklama} = det, topBedel = topla(rec => rec[bedelAlias] || 0, _recs)
 			let rec = { id, aciklama, bedel: topBedel }
 			if (yatayAnalizVarmi) {
 				for (let [yatay, bedel] of Object.entries(yatay2Bedel))
 					rec[`bedel_${yatay}`] = bedel
 			}
-			if (!recs) { recs = [] }
+			recs ??= []
 			recs.push(rec)
 		}
 		if (yatayAnalizVarmi && !yatayDBmi && !empty(yatayDegerSet))
 			yatayDegerler = Object.keys(yatayDegerSet).sort()
-		yatayDegerSet = e.yatayDegerSet = yatayDegerler ? asSet(yatayDegerler) : {}
+		yatayDegerSet = yatayDegerler ? asSet(yatayDegerler) : {}
+		$.extend(e, { yatayDegerler, yatayDegerSet })
+		$.extend(this, { yatayDegerler, yatayDegerSet })
 		return recs
 		/* return [ { aciklama: 'SONUÇ', detaylar: recs } ] */
 	}
@@ -297,6 +285,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 					return this
 				},
 				toplamaEkle(digerGridRec) {
+					digerGridRec ??= {}
 					let {tersIslemmi} = digerGridRec
 					for (let attr of attrListe) {
 						let value = digerGridRec[attr]

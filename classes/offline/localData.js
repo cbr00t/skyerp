@@ -148,7 +148,7 @@ class MQLocalData extends MQYerelParamApp {
 		if (typeof e != 'object') { e = { key: e, value: _value } }
 		let {key, value = e.ifAbsentPut} = e
 		if (value === undefined) { delete data[key] }
-		else { data[key] = value.call ? value.call(this, key) : value }
+		else { data[key] = value?.call ? value.call(this, key) : value }
 		this.changed()
 		return this
 	}

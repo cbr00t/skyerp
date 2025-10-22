@@ -336,7 +336,7 @@ class SBTabloDetay extends MQDetay {
 			return
 		
 		let {detayli, raporTanim, subeKodlari, sentDuzenle: genelSentDuzenle, yatayAnalizVarmi, yatayAnaliz} = e
-		let {rapor, rapor: { tabloYapi, sahaAlias } = {}, secimler = rapor?.secimler, donemBS = rapor.tarihBS} = e
+		let {rapor, rapor: { tabloYapi, sahaAlias: bedelAlias } = {}, secimler = rapor?.secimler, donemBS = rapor.tarihBS} = e
 		if ($.isPlainObject(donemBS))
 			donemBS = new CBasiSonu(donemBS)
 		let durum = e.durum = {
@@ -352,9 +352,10 @@ class SBTabloDetay extends MQDetay {
 			durum.stokmu = durum.hizmetmi = true
 		let {ekBilgi = {}, donemTipi} = veriTipi
 		let {sentUygunluk, sentDuzenle: icerikSentDuzenle} = ekBilgi
+		let sumSahalar = asSet([bedelAlias, 'fmalhammadde', 'fmalmuh', 'malhammadde', 'malmuh'])
 		$.extend(e, {
 			rapor, raporTanim, aciklama, hesapTipi, veriTipi, shStokHizmet, hareketcimi, maliTablomu: true,
-			sahaAlias, donemTipi, donemBS, secimler, detSecimler
+			bedelAlias, donemTipi, donemBS, secimler, detSecimler, sumSahalar
 		})
 		if (detSecimler) {
 			detSecimler.whereBlockListe = []
@@ -389,17 +390,16 @@ class SBTabloDetay extends MQDetay {
 			let sahaAliases = Object.values(tabloYapi?.toplam).map(({ colDefs = [] }) =>
 				colDefs.map(_ => _.belirtec)).flat()
 			for (let i = 0; i < uni.liste.length; i++) {
-				let sent = uni.liste[i], hv = { ...defHV, ...harHVListe?.[i] }
+				let sent = uni.liste[i], hv = { ...defHV, ...harHVListe?.[i] }, basitHV
 				{
 					let {alias2Deger} = sent, {shTipi: shTipiClause} = alias2Deger
 					if (shTipiClause) {
 						let shTipiStr = shTipiClause.replaceAll(`'`, '')
 						$.extend(e, { stokmu: shTipiStr == 'S', hizmetmi: shTipiStr == 'H' })
 					}
-					$.extend(hv, { ...alias2Deger })
+					basitHV = alias2Deger
+					$.extend(hv, { ...basitHV })
 				}
-				if (!detayli)
-					sent.sahalarReset()
 				let {where: wh, sahalar} = sent
 				let donemBSVarmi = donemBS?.bosDegilmi ?? false
 				if (donemBSVarmi) {
@@ -413,7 +413,15 @@ class SBTabloDetay extends MQDetay {
 				if (subeKodlari?.length)
 					wh.inDizi(subeKodlari, (hv.bizsubekod || 'fis.bizsubekod'))
 				wh.add(`${hv.ozelisaret ?? 'fis.ozelisaret'} <> 'X'`)
+				sent.sahalarReset()
 				$.extend(e, { sent, where: wh, sahalar, hv })
+				if (detayli) {
+					let {sahalar} = sent
+					for (let [alias, deger] of Object.entries(basitHV)) {
+						if (!sumSahalar[alias])
+							sahalar.add(`${deger} ${alias}`)
+					}
+				}
 				icerikSentDuzenle?.call(this, e)
 				sent = e.sent; wh = sent.where
 				{
@@ -421,7 +429,7 @@ class SBTabloDetay extends MQDetay {
 					$.extend(hv, { ...alias2Deger })
 					for (let sahaAlias of sahaAliases)
 						// detaylı ise orj hv değerini override yap, toplam ise sadece yoksa ekle
-						if (detayli || !alias2Deger[sahaAlias])
+						if (!alias2Deger[sahaAlias])
 							sahalar.add(`0 ${sahaAlias}`)
 				}
 				if (detSecimler) {
@@ -435,7 +443,8 @@ class SBTabloDetay extends MQDetay {
 					let {ekBilgi = {}} = yatayAnaliz, {zorunluKodAttr: kodAttr} = ekBilgi
 					/*let kodClause = hv[kodAttr]
 					e.yatayAlias = hareketcimi && kodClause ? MQAliasliYapi.getDegerAlias(kodClause) : null*/
-					e.kodClause = hv[kodAttr]; ekBilgi.sentDuzenle?.(e)
+					e.kodClause = hv[kodAttr]
+					ekBilgi.sentDuzenle?.(e)
 				}
 				genelSentDuzenle?.call(this, e)
 				sent.groupByOlustur().gereksizTablolariSil()
@@ -445,7 +454,7 @@ class SBTabloDetay extends MQDetay {
 	}
 	raporQueryDuzenle_hareketci(e) {
 		// detayli için attr ve sum düzenlemesi
-		let det = this, {raporTanim, rapor, secimler, sahaAlias: bedelAlias} = e
+		let det = this, {raporTanim, rapor, secimler, bedelAlias, sumSahalar} = e
 		let {donemTipi, detayli, yatayAnalizVarmi, yatayAnaliz, stokmu, hizmetmi} = e
 		let {hesapTipi = {}, veriTipi = {}, shStokHizmet, ozelAttrListe, ekAttrListe = []} = e
 		let {ekBilgi: { harSinif, harEkDuzenle } = {}} = hesapTipi
@@ -464,7 +473,6 @@ class SBTabloDetay extends MQDetay {
 		}
 		if (hvAlias)
 			sabitAttrListe.push(hvAlias)
-		let sumSahalar = asSet([bedelAlias, 'fmalhammadde', 'fmalmuh', 'malhammadde', 'malmuh'])
 		if (yatayAnalizVarmi && !yatayAnaliz.dbmi) {
 			let {ekBilgi: { zorunluKodAttrListe } = {}} = yatayAnaliz
 			if (zorunluKodAttrListe?.length)
@@ -473,7 +481,7 @@ class SBTabloDetay extends MQDetay {
 		let harHVListe = e.harHVListe = []
 		let har = new harSinif().withAttrs([...sabitAttrListe, ...aliasListe])
 		e.maliTablo = har.maliTablo = {
-			raporTanim, det, rapor, secimler, sahaAlias: bedelAlias,
+			raporTanim, det, rapor, secimler, bedelAlias,
 			yatayAnalizVarmi, yatayAnaliz
 		}
 		let {ekBilgi: { harEkDuzenle: harEkDuzenle2 } = {}} = veriTipi
@@ -495,6 +503,8 @@ class SBTabloDetay extends MQDetay {
 						continue
 					}
 					let clause = hv[alias]
+					if (!clause)
+						continue
 					if (!detayli && sumSahalar[alias])
 						clause = clause.asSumDeger()
 					let saha = `${clause} ${alias}`
@@ -502,10 +512,10 @@ class SBTabloDetay extends MQDetay {
 				}
 			}
 			harHVListe.push(hv)
-			if (!detayli) {
-				sent.sahalarReset()
-				addClause(...aliasListe)
-			}
+			// if (!detayli) {
+			sent.sahalarReset()
+			addClause(...aliasListe)
+			//}
 			if (sent.sahalar.liste.length)
 				uni.add(sent)
 		}
@@ -514,11 +524,100 @@ class SBTabloDetay extends MQDetay {
 	}
 	async hareketKartiGoster(e = {}) {
 		e = { ...e }; let {rapor, raporTanim} = e
-		let {sahaAlias: bedelAlias} = rapor, {yatayAnaliz, yatayAnaliz: { ekBilgi: { zorunluKodAttrListe } = {} } = {}} = raporTanim
+		let {sahaAlias: bedelAlias, yatayDegerler, yatayDegerSet} = rapor
+		let {yatayAnalizVarmi, yatayAnaliz, yatayAnaliz: { aciklama: yatayEtiket, ekBilgi: { zorunluKodAttrListe: yatayAttrListe } = {} } = {}} = raporTanim
 		let {hesapTipi: { ekBilgi: { hareketcimi, harSinif } = {} }} = this
-		if (!(rapor && hareketcimi && harSinif)) { return }
+		if (!(rapor && hareketcimi && harSinif))
+			return
 		let {dRapor: { konsolideCikti: konsolide, ekDBListe} = {}} = app.params
 		let {mstYapi} = harSinif, {hvAlias: mstAlias} = mstYapi ?? {}
+		konsolide &&= ekDBListe?.length > 0
+		let filtreYatayDegerSet
+		if (yatayAnalizVarmi && !empty(yatayDegerler)) {
+			let cls = DMQKA, {kodSaha, adiSaha} = cls
+			let colDefs = cls.orjBaslikListesi.filter(_ => _.belirtec != kodSaha)
+			{
+				let _ = colDefs.find(_ => _.belirtec == adiSaha)
+				$.extend(_, { text: yatayEtiket, genislikCh: 35 })
+			}
+			let recs = yatayDegerler.map(_ => new CKodVeAdi([_, _]))
+			let promise = new $.Deferred()
+			let rfb = new RootFormBuilder().addCSS('yataySecim masterListe part')
+			let headerHeight = 70, gridPart
+			rfb.addIslemTuslari('islemTuslari')
+				.addCSS('absolute')
+				.addStyle_fullWH(null, headerHeight)
+				.addStyle(
+					`$elementCSS .butonlar.part { background: transparent !important; pointer-events: none }
+					 $elementCSS .butonlar.part > .sag { pointer-events: auto }`
+				)
+				.setTip('tamamVazgec')
+				/*.setEkSagButonlar('yazdir', 'html', 'excel')
+				.setButonlarIlk([
+					{ id: 'sec', handler: () => {
+						let {selectedRecs: recs} = gridPart, values = recs?.map(_ => _.kod) ?? []
+						promise?.resolve({ sender: gridPart, recs, values })
+						wnd.jqxWindow('close')
+					} }
+				])*/
+				.setId2Handler({
+					// tazele: ({ builder: { rootPart } }) => gridPart?.tazele(),
+					tamam: () => {
+						let {selectedRecs: recs} = gridPart, values = recs?.map(_ => _.kod) ?? []
+						promise?.resolve({ sender: gridPart, recs, values })
+						wnd.jqxWindow('close')
+					},
+					vazgec: () => wnd.jqxWindow('close')
+				})
+				/*.addStyle(
+					`$elementCSS .butonlar.part { position: relative; top: 10px; z-index: 100 }
+					 $elementCSS .butonlar.part  button { margin: 0 0 0 10px }
+					 $elementCSS .butonlar.part .sol { z-index: -1; background-color: unset !important; background: transparent !important }
+					 $elementCSS .butonlar.part #excel { margin-right: 30px }
+					 $elementCSS .butonlar.part button.jqx-fill-state-normal { background-color: whitesmoke !important }
+					 $elementCSS .butonlar.part button.jqx-fill-state-pressed { background-color: royalblue !important }`
+				)*/
+			let fbd_content = rfb.addFormWithParent('content').altAlta()
+				.addStyle_fullWH()
+				.addStyle(`$elementCSS { margin-top: 0 }`)
+				// .addStyle_fullWH(null, `calc(var(--full) - ${headerHeight}px + 5px)`)
+			fbd_content.addGridliGosterici('grid').addStyle_fullWH()
+				.rowNumberOlmasin().notAdaptive()
+				.setTabloKolonlari(colDefs).setSource(recs)
+				.widgetArgsDuzenleIslemi(({ args }) => $.extend(args, { selectionMode: 'checkbox', columnsHeight: 20 }))
+				.veriYukleninceIslemi(() => {
+					let {recs, gridWidget: w} = gridPart
+					for (let i = 0; i < recs.length; i++)
+						w.selectrow(i)
+					// grid.jqxGrid('groups', groups))
+				})
+				.onAfterRun(({ builder: { part } }) => gridPart = part)
+			let wnd = createJQXWindow({
+				isModal: true, autoOpen: false,
+				content: rfb.layout, title: 'Yatay Seçim',
+				args: {
+					isModal: true, closeButtonAction: 'close',
+					width: Math.min($(window).width() - 100, 600),
+					height: Math.min($(window).height() - 30, 800),
+				}
+			})
+			wnd.on('close', evt => {
+				rfb?.destroyPart()
+				wnd?.jqxWindow('destroy')
+				promise?.resolve(null)
+			})
+			wnd.jqxWindow('open')
+			rfb.setLayout(wnd.find('.jqx-window-content .subContent'))
+			rfb.run()
+			let {values} = await promise ?? {}
+			if (!values)
+				return
+			filtreYatayDegerSet = asSet(values)
+		}
+		let ekAttrListe = [
+			'tarih', 'fisnox', 'anaislemadi', 'islkod', 'islemadi',
+			mstAlias, 'mstadi', 'refkod', 'refadi'
+		].filter(x => !!x)
 		let sentDuzenle = ({ sent, sent: { sahalar }, alias2Deger: hv }) => {
 			if (mstAlias) {
 				let kodClause = hv[mstAlias]
@@ -527,12 +626,11 @@ class SBTabloDetay extends MQDetay {
 					mstYapi.duzenle({ kodClause, sent })
 				}
 			}
+			/*if (filtreYatayDegerSet) {
+				yatayDegerler; yatayAttrListe
+				debugger
+			}*/
 		}
-		konsolide &&= ekDBListe?.length > 0
-		let ekAttrListe = [
-			'tarih', 'fisnox', 'anaislemadi', 'islkod', 'islemadi',
-			mstAlias, 'mstadi', 'refkod', 'refadi'
-		].filter(x => !!x)
 		$.extend(e, { konsolide, detayli: true, detay: this, ekAttrListe, sentDuzenle })
 		let cls = class extends MQCogul {
 			static get kodListeTipi() { return harSinif.kod } static get sinifAdi() { return `${harSinif.aciklama} Hareket Kartı` }
@@ -557,33 +655,48 @@ class SBTabloDetay extends MQDetay {
 			static orjBaslikListesiDuzenle({ liste }) {
 				super.orjBaslikListesiDuzenle(...arguments)
 				liste.push(...[
-					new GridKolon({ belirtec: 'bizsubekod', text: 'Şube', genislikCh: 7, filterType: 'checkedlist' }),
+					new GridKolon({ belirtec: 'bizsubekod', text: 'Şube', filterType: 'checkedlist' }),
 					new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13 }).tipTarih(),
-					new GridKolon({ belirtec: 'fisnox', text: 'Belge No', genislikCh: 10 }),
-					new GridKolon({ belirtec: 'mstkod', text: 'Kod', genislikCh: 17 }),
-					new GridKolon({ belirtec: 'mstadi', text: 'Açıklama', genislikCh: 40 }),
-					new GridKolon({ belirtec: 'refkod', text: 'Ref. Kod', genislikCh: 17 }),
-					new GridKolon({ belirtec: 'refadi', text: 'Ref. Adı', genislikCh: 40 }),
-					// ...zorunluKodAttrListe?.map(belirtec =>  new GridKolon({ belirtec, text: belirtec, genislikCh: 25 }) ) ?? [],
+					new GridKolon({ belirtec: 'fisnox', text: 'Belge No', genislikCh: 10 }).alignRight(),
+					(yatayAnalizVarmi ? new GridKolon({ belirtec: 'yatay', text: yatayEtiket || 'Çapraz', genislikCh: 15, filterType: 'checkedlist' }) : null),
 					new GridKolon({ belirtec: bedelAlias, text: 'Bedel', genislikCh: 20, aggregates: ['sum'] }).tipDecimal_bedel(),
 					new GridKolon({ belirtec: 'ba', text: 'B/A', genislikCh: 5, filterType: 'checkedlist' }),
-					(konsolide ? new GridKolon({ belirtec: 'db', text: 'Veritabanı', genislikCh: 20, filterType: 'checkedlist' }) : null),
-					new GridKolon({ belirtec: 'islemadi', text: 'İşlem Adı', genislikCh: 25, filterType: 'checkedlist' }),
+					new GridKolon({ belirtec: 'mstkod', text: 'Kod', genislikCh: 18 }),
+					new GridKolon({ belirtec: 'mstadi', text: 'Açıklama' }),
+					new GridKolon({ belirtec: 'refkod', text: 'Ref. Kod', genislikCh: 18 }),
+					new GridKolon({ belirtec: 'refadi', text: 'Ref. Adı' }),
+					// ...yatayAttrListe?.map(belirtec =>  new GridKolon({ belirtec, text: belirtec, genislikCh: 25 }) ) ?? [],
+					new GridKolon({ belirtec: 'islemadi', text: 'İşlem Adı', filterType: 'checkedlist' }),
 					new GridKolon({ belirtec: 'anaislemadi', text: 'Ana İşlem', genislikCh: 15, filterType: 'checkedlist' })
 				].filter(x => !!x))
 			}
-			static async loadServerDataDogrudan() {
+			static async loadServerDataDogrudan({ sender: { grid }}) {
 				let _e = { ...arguments[0], ...e }
 				try { return await rapor.loadServerData(_e) }
 				catch (ex) { console.error(ex); hConfirm(getErrorText(ex)); return [] }
 			}
 			static orjBaslikListesi_recsDuzenle({ recs }) {
 				super.orjBaslikListesi_recsDuzenle(...arguments)
+				let newRecs = []
 				for (let rec of recs) {
-					let {bedel, ba} = rec
-					if (bedel && ba == 'A')
+					let {bedel, ba, yatay} = rec
+					if (!bedel)
+						continue
+					if (yatayAnalizVarmi && yatay != null && filtreYatayDegerSet && !filtreYatayDegerSet[yatay])
+						continue
+					if (ba == 'A')
 						bedel = rec.bedel = -bedel
+					newRecs.push(rec)
 				}
+				return newRecs
+			}
+			static gridVeriYuklendi({ sender: { grid } }) {
+				super.gridVeriYuklendi(...arguments)
+				let {lastGroups: groups} = this
+				if (!groups && yatayAnalizVarmi)
+					groups = ['yatay']
+				grid.jqxGrid('groups', groups)
+				this.lastGroups = groups
 			}
 		}
 		let result = cls.listeEkraniAc()

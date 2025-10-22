@@ -185,7 +185,7 @@ class SBTabloVeriTipi extends TekSecim {
 	get donemTipi() { return this.donemBasimi ? 'B' : this.donemSonumu ? 'S' : null }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); let {kaListe} = e;
-		let topSahaEkle = e.topSahaEkle = ({ detayli, sent, sent: { sahalar }, clause, sahaAlias, det: { tersIslemmi, shIade = {} }, hv }) => {
+		let topSahaEkle = e.topSahaEkle = ({ detayli, sent, sent: { sahalar }, clause, bedelAlias, det: { tersIslemmi, shIade = {} }, hv }) => {
 			if (isFunction(clause)) { clause = clause(hv) }
 			let tersmi = tersIslemmi != shIade.iademi
 			clause = clause.sumOlmaksizin()
@@ -193,7 +193,7 @@ class SBTabloVeriTipi extends TekSecim {
 				clause = clause.asSumDeger()
 			if (tersmi)
 				clause = clause += ' * -1'
-			sahalar.add(`(${clause}) ${sahaAlias}`)
+			sahalar.add(`(${clause}) ${bedelAlias}`)
 		};
 		this.kaListeDuzenle_ticari(e).kaListeDuzenle_stokCikisHareketciBasit(e).kaListeDuzenle_hareketci(e)
 	}
