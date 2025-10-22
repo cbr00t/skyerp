@@ -169,6 +169,7 @@ class CSHareketci extends Hareketci {
 			'refportftipi', 'refportfkod', 'refportfadi', 'refportfkisatiptext'
 		]) { hv[key] = sqlEmpty }
 		$.extend(hv, {
+			fisno: ({ hv }) => hv.belgeno,
 			isaretlibedel: ({ hv }) => hv.bedel
 			/* portfVeyaRefPortfAdi: ({ hv }) => { return `dbo.emptycoalesce(${hv.portfadi}, ${hv.refportfadi})` } */
 		})

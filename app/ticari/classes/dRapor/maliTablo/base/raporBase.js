@@ -45,6 +45,10 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		let {takipNo} = app.params.ticariGenel.kullanim
 		if (takipNo) { sec.addKA('takip', DMQTakipNo).addKA('takipGrup', DMQTakipGrup) }
 		sec.addKA('sube', DMQSube).addKA('subeGrup', DMQSubeGrup)
+		
+		let harSiniflar = SBTabloHesapTipi.kaListe.map( ({ ekBilgi }) => ekBilgi?.harSinif ).filter(x => x)
+		for (let harSinif of harSiniflar)
+			harSinif.maliTablo_secimlerEkDuzenle(...arguments)
 	}
 	async tazele(e) {
 		await this.tazeleOncesi(e);
@@ -59,15 +63,27 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		let _e = CObject.From(e); await super.tazele(_e)    /* super.tazele() ==> this.loadServerData() işlemini çağıracak */
 		$.extend(_e, { liste: _e.tabloKolonlari ?? _e.kolonTanimlari ?? [], recs: gridWidget.getRows() })
 		Object.defineProperty(_e, 'flatRecs', {
-			get: function() { return this.recs.flatMap(rec => [rec, ...rec.detaylar]) }
+			get: function() {
+				return this.recs.flatMap(rec =>
+					[rec, ...(rec.detaylar ?? [])])
+			}
 		})
 		for (let key of ['tabloKolonlari', 'kolonTanimlari']) { delete _e[key] }
 		this.tabloKolonlariDuzenle(_e)
 		this.tabloKolonlariDuzenle_ozel?.(_e)
 		let colDefs = this.tabloKolonlari = _e.liste || []
 		let columns = colDefs.flatMap(colDef => colDef.jqxColumns)
-		try { grid.jqxTreeGrid('columns', columns) }
-		catch (ex) { console.error(ex); return }
+		for (let i = 1; i <= 3; i++) {
+			try {
+				grid.jqxTreeGrid('columns', columns)
+				break
+			}
+			catch (ex) {
+				await delay(i * 200)
+				console.error(ex)
+			}
+			return
+		}
 		await this.tazeleSonrasi(e)
 	}
 	ekCSSDuzenle({ raporTanim, colDefs, colDef, rowIndex, belirtec, value, rec: { cssClassesStr } = {}, result }) {
@@ -167,8 +183,9 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		let _e = { ...e, rapor, raporTanim, secimler, donemBS, detaylar, yatayAnalizVarmi, yatayAnaliz }
 		for (let key of ['altSeviyeToplamimi', 'satirlarToplamimi']) { formulYapilari[key] = [] }
 		for (let det of detaylar) {
-			let {sayac: id, hesapTipi = {}, veriTipi: { donemTipi }} = det; id2Detay[id] = det
+			let {sayac: id, hesapTipi = {}, veriTipi: { donemTipi }} = det
 			let {question: selector, ekBilgi: { ticarimi, hareketcimi, querymi } = {}} = hesapTipi
+			id2Detay[id] = det
 			if (!querymi) {    /* satır toplam, formul, ... vs */
 				if (selector) { formulYapilari[selector]?.push(det) }
 				continue
@@ -229,6 +246,11 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			if (!det)
 				continue
 			let _recs = await promise ?? []
+			donemBS;
+			let {bakiyemi, borcmu, alacakmi}  = det.veriTipi?.ekBilgi
+			if (bakiyemi) {
+				// recs: bakiye duzenle
+			}
 			// if (!(detayli || _recs?.length)) { continue }
 			let yatay2Bedel = {}
 			if (yatayAnalizVarmi) {
@@ -259,6 +281,9 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		$.extend(this, { yatayDegerler, yatayDegerSet })
 		return recs
 		/* return [ { aciklama: 'SONUÇ', detaylar: recs } ] */
+	}
+	loadServerData_recsDuzenleIlk(e) {
+		/* do nothing */
 	}
 	async loadServerData_recsDuzenle_seviyelendir({ detayli, recs: sqlRecs, id2Detay, yatayDegerSet }) {
 		if (detayli)
@@ -352,6 +377,14 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			hesaplandimi = sev.hesaplandimi = true
 		}
 		return sevRecs
+	}
+	loadServerData_recsDuzenleSon(e) {
+		let {recs} = e, {gridPart: { filtreTokens }} = this
+		if (filtreTokens?.length) {
+			let _recs = this.loadServerData_recsDuzenle_hizliBulIslemi(e)
+			recs = _recs == null ? e.recs : _recs
+		}
+		return recs
 	}
 	raporTanimIstendi(e) {
 		let {rapor, raporTanim} = this, {raporTanimSinif} = this.class;

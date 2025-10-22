@@ -157,7 +157,7 @@ class Hareketci extends CObject {
 	static varsayilanHVDuzenle_ortak({ hv, sqlNull, sqlEmpty }) {
 		for (const key of [
 			'finanalizkullanilmaz', 'ayadi', 'saat', 'unionayrim',
-			'iceriktipi', 'islemkod', 'anaislemadi', 'dvkod']
+			'iceriktipi', 'islkod', 'isladi', 'anaislemadi', 'dvkod']
 		) { hv[key] = sqlEmpty }
 	}
 	static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
@@ -173,7 +173,7 @@ class Hareketci extends CObject {
 			fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac', ozelisaret: 'fis.ozelisaret', bizsubekod: 'fis.bizsubekod', tarih: 'fis.tarih',
 			seri: 'fis.seri', fisno: 'fis.no', fisnox: 'fis.fisnox', disfisnox: 'fis.fisnox', ba: 'fis.ba', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
 			fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', muhfissayac: 'fis.muhfissayac', sonzamants: 'fis.sonzamants',
-			islemadi: ({ hv }) => hv.anaislemadi, fistarih: ({ hv }) => hv.tarih,
+			isladi: ({ hv }) => hv.anaislemadi, fistarih: ({ hv }) => hv.tarih,
 			karsiodemetarihi: ({ hv }) => hv.vade, isaretlibedel: ({ hv }) => hv.bedel,
 			aciklama: ({ hv }) => {
                 let withCoalesce = clause => (clause?.sqlDoluDegermi ?? false) ? `COALESCE(${clause}, '')` : sqlEmpty;
@@ -325,6 +325,16 @@ class Hareketci extends CObject {
 		return this
 	}
 	static maliTablo_secimlerYapiDuzenle({ result }) { }
+	static maliTablo_secimlerEkDuzenle({ secimler: sec }) {
+		if (config.dev) {
+			let grupKod = 'ek', grup = { kod: grupKod, aciklama: 'Ek', kapali: true }
+			sec.grupEkle(grup)
+			sec.secimTopluEkle({
+				fisNo: new SecimNumber({ etiket: 'Fiş No', grupKod }),
+				seri: new SecimString({ etiket: 'Seri', grupKod })
+			})
+		}
+	}
 	// static maliTablo_secimlerSentDuzenle({ secimler: genSec, detSecimler: detSec, uni, sent, where: wh, hv, donemTipi, det, har, attrSet, mstYapi, mstYapi: { hvAlias } }) {
 	static maliTablo_secimlerSentDuzenle({ secimler: sec, detSecimler: detSec, sent, sent: { from, where: wh }, hv, mstClause }) {
 		let {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs
@@ -361,6 +371,16 @@ class Hareketci extends CObject {
 					sent.sube2GrupBagla()
 				wh.basiSonu(_sec.subeGrupKod, 'sub.isygrupkod').ozellik(_sec.subeGrupAdi, 'igrp.aciklama')
 			}
+		})
+		varsaYap(hv.fisno, ({ kodClause, secimler: _sec }) => {
+			if (from.aliasIcinTable('fis')?.deger == 'carifis' && kodClause == 'fis.no')
+				debugger
+			if (_sec.fisNo)
+				wh.basiSonu(_sec.fisNo, kodClause)
+		})
+		varsaYap(hv.seri, ({ kodClause, secimler: _sec }) => {
+			if (_sec.seri)
+				wh.basiSonu(_sec.seri, kodClause)
 		})
 	}
 }

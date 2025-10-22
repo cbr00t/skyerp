@@ -158,8 +158,11 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		let _value = qs.maxRow ?? qs.maxrow; if (_value != null) { e.maxRow = asInteger(_value) }
 	}
 	loadServerData_recsDuzenleIlk(e) {
-		let {recs} = e; let {gridPart} = this, {filtreTokens} = gridPart;
-		if (filtreTokens?.length) { let _recs = this.loadServerData_recsDuzenle_hizliBulIslemi(e); recs = _recs == null ? e.recs : _recs }
+		let {recs} = e, {gridPart: { filtreTokens }} = this
+		if (filtreTokens?.length) {
+			let _recs = this.loadServerData_recsDuzenle_hizliBulIslemi(e)
+			recs = _recs == null ? e.recs : _recs
+		}
 		e.recs = recs
 	}
 	loadServerData_recsDuzenle_hizliBulIslemi(e) {

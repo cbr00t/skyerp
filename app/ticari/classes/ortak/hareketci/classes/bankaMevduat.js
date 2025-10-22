@@ -193,7 +193,7 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
                         oncelik: `(case when fis.ba = 'B' then 140 else 20 end))`, ba: `dbo.tersba(fis.ba)`,
 						islemadi: `(case when fis.ba = 'B' then 'Cari.Gön.Havale' else 'Cari Gelen Havale' end)`,
                         detaciklama: 'har.aciklama', dvkur: 'har.dvkur', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
-                        takipno: 'fis.takipno', refkod: 'fis.ticmustkod', refadi: 'car.birunvan'
+                        fisno: 'fis.fisno', takipno: 'fis.takipno', refkod: 'fis.ticmustkod', refadi: 'car.birunvan'
                     })
                 })
             ]

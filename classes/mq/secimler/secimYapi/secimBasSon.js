@@ -1,7 +1,7 @@
 class SecimBasSon extends Secim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get anaTip() { return 'basSon' } static get tip() { return this.anaTip } get defaultBirKismimi() { return !!this.mfSinif }
-	get value() { return this.birKismimi ? this.kodListe : { basi: this.basi, sonu: this.sonu } }
+	get value() { return this.birKismimi ? this.getConvertedValue(this.kodListe) : { basi: this.basi, sonu: this.sonu } }
 	set value(value) { if (this.birKismimi) { this.kodListe = this.getConvertedValue(value) } else super.value = value }
 	get ozetBilgiValue() {
 		let value = super.ozetBilgiValue

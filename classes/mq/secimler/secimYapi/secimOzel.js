@@ -345,7 +345,10 @@ class SecimTekSecim extends SecimOzel {
 class SecimBirKismi extends SecimTekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'birKismi' } static get birKismimi() { return true }
-	get value() { return this.hepsimi ? null : super.value }
+	get value() {
+		let result = this.hepsimi ? null : super.value
+		return empty(result) ? null : result
+	}
 	set value(value) { super.value = value }
 	readFrom(e) {
 		if (!super.readFrom(e))

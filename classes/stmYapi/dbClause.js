@@ -262,9 +262,12 @@ class MQSubWhereClause extends MQClause {
 	}
 	notDegerAta(e, _saha) { e = e.saha ? $.extend({}, e) : { deger: e, saha: _saha }; e.not = true; return this.degerAta(e) }
 	inDizi(e, _saha) {
-		e = e.saha ? e : { liste: e, saha: _saha }
-		let liste = e.liste = e.liste || e.deger || []; delete e.deger
-		let inClause = liste.liste ? liste : new MQInClause({ liste: liste, saha: e.saha })
+		e = e?.saha ? e : { liste: e, saha: _saha }
+		let liste = e.liste = e.liste || e.deger
+		delete e.deger
+		if (!liste)
+			return this
+		let inClause = liste.liste ? liste : new MQInClause({ liste, saha: e.saha })
 		inClause.isNot = typeof e == 'object' && asBool(e.not ?? e.disindakilermi ?? e.disindakiler)
 		return this.addDogrudan(inClause)
 	}
@@ -299,7 +302,7 @@ class MQSubWhereClause extends MQClause {
 		disindakilermi = bs?.disindakilermi ?? bs?.disindakiler ?? disindakilermi
 		let isNot = typeof e == 'object' && asBool(e.not ?? disindakilermi)
 		if (birKismimi)
-			this.birKismi({ liste: bs.value ?? bs.kodListe, saha, not: isNot })
+			this.birKismi({ liste: bs.value, saha, not: isNot })
 		let sub = new MQAndClause();
 		if (bs) {
 			let {basi, sonu} = bs ?? {}, eqOp = { sonu: '=' };
@@ -350,7 +353,8 @@ class MQSubWhereClause extends MQClause {
 		if (liste && typeof liste != 'object') { liste = $.makeArray(liste) }
 		if (liste && !$.isArray(liste)) { liste = Object.values(liste) }
 		if (liste) { liste = liste.map(x => x?.char === undefined ? x : x.char).filter(x => !(x && x instanceof TekSecim)) }
-		if (liste?.length) { return this.inDizi({ saha: e.saha, liste, not: isNot }) }
+		if (liste?.length)
+			return this.inDizi({ saha: e.saha, liste, not: isNot })
 		return this
 	}
 	notBirKismi(e, _saha) { e = e.saha ? $.extend({}, e) : { liste: e, saha: _saha }; e.not = true; return this.birKismi(e) }

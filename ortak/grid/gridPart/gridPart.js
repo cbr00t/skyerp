@@ -238,7 +238,7 @@ class GridPart extends Part {
 	get defaultTabloKolonlari() {
 		let liste = []; if (!this.rowNumberOlmasinFlag) {
 			liste.push(new GridKolon({
-					belirtec: '_rowNumber', text: '#', width: 55, groupable: false, filterable: false, draggable: false, exportable: false,
+					belirtec: '_rowNumber', text: '#', width: 45, groupable: false, filterable: false, draggable: false, exportable: false,
 					filterType: 'input', cellClassName: '_rowNumber grid-readOnly',
 					cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
 						if (rec && rowIndex != null) { rec._rowNumber = rowIndex + 1 }

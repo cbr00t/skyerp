@@ -568,7 +568,7 @@ class HizmetHareketci extends Hareketci {
 		super.maliTablo_secimlerYapiDuzenle(...arguments)
 		$.extend(result, {
 			sube: DMQSube, subeGrup: DMQSubeGrup, mst: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup,
-			istGrup: DMQHizmetIstGrup, isl: DMQMuhIslem, muhHesap: DMQMuhHesap
+			istGrup: DMQHizmetIstGrup, isl: DMQStokVeMuhIslem, muhHesap: DMQMuhHesap
 		})
 	}
 	static maliTablo_secimlerSentDuzenle({ detSecimler: sec, sent, sent: { from }, where: wh, hv, mstClause, maliTablo }) {
@@ -584,10 +584,12 @@ class HizmetHareketci extends Hareketci {
 			wh.basiSonu(sec.mstKod, mstClause).ozellik(sec.mstAdi, 'hiz.aciklama')
 			wh.basiSonu(sec.grupKod, grpClause).ozellik(sec.grupAdi, 'grp.aciklama')
 			wh.basiSonu(sec.anaGrupKod, aGrpClause).ozellik(sec.anaGrupAdi, 'agrp.aciklama')
-			wh.basiSonu(sec.istGrupKod, iGrpClause).ozellik(sec.istGrupAdi, `higrp.aciklama`)
+			wh.basiSonu(sec.istGrupKod, iGrpClause).ozellik(sec.istGrupAdi, 'higrp.aciklama')
 			// if (sec.islKod.value && !from.aliasIcinTable('isl')) { sent.fis2StokIslemBagla() }
-			if (sec.islKod.value && from.aliasIcinTable('isl'))
-				wh.basiSonu(sec.islKod, islClause).ozellik(sec.islAdi, 'isl.aciklama')
+			if (sec.islKod.value)
+				wh.basiSonu(sec.islKod, islClause)
+			if (sec.islAdi.value && from.aliasIcinTable('isl'))
+				wh.ozellik(sec.islAdi, 'isl.aciklama')
 			wh.basiSonu(sec.muhHesapKod, muhHesapClause).ozellik(sec.muhHesapAdi, 'mhes.aciklama')
 		}
 	}

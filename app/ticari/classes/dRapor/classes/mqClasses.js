@@ -307,7 +307,7 @@ class PDKSAnaTip extends TekSecim {
 class DMQPDKSAnaTip extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Ana Tip' } static get kodListeTipi() { return 'PDKSANATIP' }
-	static loadServerData_dogrudan(e) { return PDKSAnaTip.kaListe }
+	static loadServerDataDogrudan(e) { return PDKSAnaTip.kaListe }
 }
 class DMQKategori extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kategori' }
@@ -329,3 +329,15 @@ class DMQMuhIslem extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe İşlem' }
 	static get kodListeTipi() { return 'MUHISL' } static get table() { return 'muhisl' } static get tableAlias() { return 'isl' }
 }
+class DMQStokVeMuhIslem extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok/Muh. İşlem' }
+	static get kodListeTipi() { return 'STMHISL' } static get tableAlias() { return 'isl' }
+	static async loadServerDataDogrudan(e = {}) {
+		delete e.mfSinif
+		return [
+			...await DMQStokIslem.loadServerData({ ...e }),
+			...await DMQMuhIslem.loadServerData({ ...e })
+		]
+	}
+}
+

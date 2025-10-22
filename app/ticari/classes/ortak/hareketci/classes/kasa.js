@@ -31,7 +31,7 @@ class KasaHareketci extends Hareketci {
 	static varsayilanHVDuzenle({ hv, sqlZero }) {
 		super.varsayilanHVDuzenle(...arguments);
 		for (const key of ['makbuzno']) { hv[key] = sqlZero }
-		$.extend(hv, { bastarih: 'fis.tarih', basseri: 'fis.seri', basno: 'fis.no', dvkod: 'kas.dvtipi' })
+		$.extend(hv, { bastarih: 'fis.tarih', basseri: 'fis.seri', basno: hv => hv.fisno, dvkod: 'kas.dvtipi' })
 	}
 	uygunluk2UnionBilgiListeDuzenleDevam(e) {
 		super.uygunluk2UnionBilgiListeDuzenleDevam(e);
@@ -67,7 +67,9 @@ class KasaHareketci extends Hareketci {
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					const {where: wh} = sent; sent.fisHareket('findevirfis', 'findevirhar')
 					wh.fisSilindiEkle().degerAta('KS', 'fis.fistipi')
-				}).hvDuzenleIslemi(({ hv }) => { $.extend(hv, { kasakod: 'har.kasakod', kayittipi: `'KSDEV'`, islemadi: `'Kasa Devir'` }) })
+				}).hvDuzenleIslemi(({ hv }) => {
+					$.extend(hv, { kasakod: 'har.kasakod', kayittipi: `'KSDEV'`, islemadi: `'Kasa Devir'` })
+				})
 			],
 			banka: getUniBilgiler_banka('KB'), kasaCari: getUniBilgiler_banka('KC'), hizmet: getUniBilgiler_banka('KH'),
 			cariTahsilatOdeme: [new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
@@ -79,7 +81,7 @@ class KasaHareketci extends Hareketci {
 			}).hvDuzenleIslemi(({ hv }) => {
 				$.extend(hv, {
 					kasakod: 'har.tahkasakod', ba: `dbo.tersba(fis.ba)`, kayittipi: `'CRHAR'`, makbuzno: 'har.belgeno',
-					takipno: 'fis.takipno', althesapkod: 'har.detalthesapkod',
+					takipno: 'fis.takipno', althesapkod: 'har.detalthesapkod', fisno: 'fis.fisno',
 					refkod: 'fis.mustkod', refadi: 'car.birunvan', oncelik: `(case when fis.ba = 'A' then 5 else 60 end)`,
 					islemadi: `(case when fis.ba = 'B' then 'Cari Ödeme' else 'Cari Tahsilat' end)`,
 					detaciklama: `dbo.hizmetack(cast(NULL as datetime), har.belgeseri, har.belgeno, har.aciklama)`,
