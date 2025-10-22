@@ -538,7 +538,7 @@ class SBTabloDetay extends MQDetay {
 			let colDefs = cls.orjBaslikListesi.filter(_ => _.belirtec != kodSaha)
 			{
 				let _ = colDefs.find(_ => _.belirtec == adiSaha)
-				$.extend(_, { text: yatayEtiket, genislikCh: 35 })
+				$.extend(_, { text: yatayEtiket, genislikCh: null })
 			}
 			let recs = yatayDegerler.map(_ => new CKodVeAdi([_, _]))
 			let promise = new $.Deferred()
@@ -584,7 +584,7 @@ class SBTabloDetay extends MQDetay {
 			fbd_content.addGridliGosterici('grid').addStyle_fullWH()
 				.rowNumberOlmasin().notAdaptive()
 				.setTabloKolonlari(colDefs).setSource(recs)
-				.widgetArgsDuzenleIslemi(({ args }) => $.extend(args, { selectionMode: 'checkbox', columnsHeight: 20 }))
+				.widgetArgsDuzenleIslemi(({ args }) => $.extend(args, { columnsResize: false, showFilterRow: true, selectionMode: 'checkbox', columnsHeight: 18 }))
 				.veriYukleninceIslemi(() => {
 					let {recs, gridWidget: w} = gridPart
 					for (let i = 0; i < recs.length; i++)
@@ -598,7 +598,7 @@ class SBTabloDetay extends MQDetay {
 				args: {
 					isModal: true, closeButtonAction: 'close',
 					width: Math.min($(window).width() - 100, 600),
-					height: Math.min($(window).height() - 30, 800),
+					height: Math.min($(window).height() - 30, 600),
 				}
 			})
 			wnd.on('close', evt => {
