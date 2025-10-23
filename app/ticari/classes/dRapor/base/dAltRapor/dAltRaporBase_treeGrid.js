@@ -630,7 +630,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		let {inst} = e; await inst.dataDuzgunmuDevam(e)
 		await inst.tamamSonrasiIslemlar(e)
 		inst.degistimi = true; inst.setDefault(e)
-		this.tazele(e)
+		this.tazele()
 		return true
 	}
 	raporTanim_tamamSonrasiIslemler(e) { }

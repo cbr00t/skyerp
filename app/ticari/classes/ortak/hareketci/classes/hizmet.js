@@ -89,7 +89,10 @@ class HizmetHareketci extends Hareketci {
 						wh.fisSilindiEkle().degerAta('HZ', 'fis.fistipi')
 	                })
 					.hvDuzenleIslemi(({ hv }) => {
-	                    $.extend(hv, { kayittipi: `'HZDEV'`, ba: 'har.detba', islemadi: `'Hizmet Devir'` })
+	                    $.extend(hv, {
+							kayittipi: `'HZDEV'`, ba: 'har.detba',
+							isladi: `'Hizmet Devir'`
+						})
 	                })
             ]
         });
@@ -118,7 +121,8 @@ class HizmetHareketci extends Hareketci {
 							tarih: 'coalesce(har.belgetarih, fis.tarih)', vade: 'har.vade',
 							fisnox: '(case when har.belgeno = 0 then fis.fisnox else har.belgenox end)',
 							ba: '(case when har.btersmi = 0 then dbo.tersba(fis.ba) else fis.ba end)',
-							islemadi: (
+							islkod: 'fis.muhislkod',
+							isladi: (
 								`(case fis.fistipi when 'KH' then dbo.batext(fis.ba, 'Kasa Gelir', 'Kasa Gider')` +
 								` when 'HH' then dbo.batext(fis.ba, 'Banka Hesap Gelir', 'Banka Hesap Gider')` +
 								` when 'CH' then dbo.batext(fis.ba, 'Cari Hes.Gelir', 'Cari Hes.Gider')` +
@@ -152,7 +156,7 @@ class HizmetHareketci extends Hareketci {
 					.hvDuzenleIslemi(({ hv }) => {
 	                    $.extend(hv, {
 							kayittipi: `'CRHAR'`, hizmetkod: 'har.tahhizmetkod', plasiyerkod: 'fis.plasiyerkod',
-							ba: 'dbo.tersba(fis.ba)', islemadi: `dbo.batext(fis.ba, 'Cari Ödeme', 'Cari Tahsilat')`,
+							ba: 'dbo.tersba(fis.ba)', isladi: `dbo.batext(fis.ba, 'Cari Ödeme', 'Cari Tahsilat')`,
 							althesapkod: 'har.detalthesapkod', takipno: 'fis.takipno', mustkod: 'fis.mustkod',
 							refkod: 'fis.mustkod', refadi: 'car.birunvan', dvkur: 'har.dvkur', dvbedel: 'har.dvbedel',
 							detaciklama: 'dbo.hizmetack(cast(null as datetime), har.belgeseri, har.belgeno, har.aciklama)'
@@ -177,7 +181,7 @@ class HizmetHareketci extends Hareketci {
 	                    $.extend(hv, {
 							kayittipi: `'PSHIZ'`, tarih: 'coalesce(har.belgetarih, fis.tarih)', vade: 'har.vade',
 							ba: `(case when fis.iade = 'I' then 'A' else 'B' end)`,
-							islemadi: `'Pos Masraf'`, takipno: 'har.takipno', refkod: 'har.banhesapkod', refadi: 'bhes.aciklama',
+							isladi: `'Pos Masraf'`, takipno: 'har.takipno', refkod: 'har.banhesapkod', refadi: 'bhes.aciklama',
 							detaciklama: 'dbo.hizmetack(har.belgetarih, har.belgeseri, har.belgeno, har.aciklama)',
 							miktar: 'har.miktar', bedel: 'har.brutbedel', dvkur: 'har.dvkur', dvbedel: 'har.dvbedel'
 						})
@@ -195,7 +199,7 @@ class HizmetHareketci extends Hareketci {
 							kayittipi: `'PSHIZ'`, hizmetkod: 'har.masrafkomhizkod',
 							ba: `'B'`, bedel: 'har.olasikomisyon',
 							tarih: 'coalesce(har.belgetarih, fis.tarih)', vade: 'har.vade',
-							islemadi: `'Nakde Dönüş. Komisyon'`, takipno: 'har.takipno',
+							isladi: `'Nakde Dönüş. Komisyon'`, takipno: 'har.takipno',
 							refkod: 'har.banhesapkod', refadi: 'bhes.aciklama',
 							detaciklama: 'dbo.hizmetack(har.belgetarih, har.belgeseri, har.belgeno, har.aciklama)'
 						})
@@ -213,7 +217,7 @@ class HizmetHareketci extends Hareketci {
 							kayittipi: `'PSHIZ'`, hizmetkod: 'har.masrafkathizkod',
 							ba: `'B'`, bedel: 'har.olasikatkipayi',
 							tarih: 'coalesce(har.belgetarih, fis.tarih)', vade: 'har.vade',
-							islemadi: `'Nakde Dönüş. Katkı'`, takipno: 'har.takipno',
+							isladi: `'Nakde Dönüş. Katkı'`, takipno: 'har.takipno',
 							refkod: 'har.banhesapkod', refadi: 'bhes.aciklama',
 							detaciklama: 'dbo.hizmetack(har.belgetarih, har.belgeseri, har.belgeno, har.aciklama)'
 						})
@@ -229,15 +233,15 @@ class HizmetHareketci extends Hareketci {
                 new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent }) => {
 						sent.fisHareket('geneldekontfis', 'geneldekonthar')
-							.fis2MuhIslBagla()
-							.har2HizmetBagla().har2KatDetayBagla()
+							.fis2MuhIslBagla().har2HizmetBagla().har2KatDetayBagla()
 	                    let {where: wh} = sent; wh.fisSilindiEkle();
 						wh.degerAta('HZ', 'har.kayittipi').inDizi(['', 'HD', 'KS'], 'fis.ozeltip')
 	                })
 					.hvDuzenleIslemi(({ hv }) => {
 	                    $.extend(hv, {
-							kayittipi: `'GDEK'`, depkod: 'har.depkod', masrafkod: 'har.masrafkod',
-							vade: 'har.vade', ba: 'har.ba', islemadi: `('Dekont (' + RTRIM(isl.aciklama) + ')')`,
+							kayittipi: `'GDEK'`, depkod: 'har.depkod',
+							masrafkod: 'har.masrafkod', vade: 'har.vade', ba: 'har.ba',
+							islkod: 'fis.islkod', isladi: `('Dekont (' + RTRIM(isl.aciklama) + ')')`,
 							althesapkod: 'har.cariitn', takipno: 'har.takipno',
 							detaciklama: 'har.aciklama', miktar: 'har.miktar', dvbedel: 'har.dvbedel'
 						})
@@ -271,7 +275,7 @@ class HizmetHareketci extends Hareketci {
 							kayittipi: `'BNHE'`, hizmetkod: 'har.masrafhizkod', kdetaysayac: sqlNull, kdetay: sqlEmpty,
 							tarih: 'coalesce(har.belgetarih, fis.tarih)', ba: `'B'`, bedel: 'har.masraf',
 							fisnox: '(case when har.belgeno > 0 then har.belgenox else fis.fisnox end)',
-							islemadi: (
+							isladi: (
 								`(case when fis.fistipi = 'BH' then 'Kendimize Havale' when fis.fistipi = 'BE' then 'Kendimize EFT'` +
 								` when fis.fistipi = 'BS' then 'Kendimize Swift'` +
 								` when (fis.fistipi = 'SH' or (fis.fistipi = 'TP' and har.hisl = 'AHAV')) then 'Satıcıya Havale'` +
@@ -296,7 +300,7 @@ class HizmetHareketci extends Hareketci {
 					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
 	                    $.extend(hv, {
 							kayittipi: `'CSDIG'`, hizmetkod: 'har.masrafhizkod', kdetaysayac: sqlNull, kdetay: sqlEmpty,
-							ba: `'B'`, bedel: 'har.masraf', islemadi: `'Protesto Masrafı'`, takipno: 'fis.takipno',
+							ba: `'B'`, bedel: 'har.masraf', isladi: `'Protesto Masrafı'`, takipno: 'fis.takipno',
 							refkod: `(case fis.fistipi when 'KR' then fis.banhesapkod when 'EK' then fis.portfkod when '3K' then fis.fisciranta else '' end)`,
 							refadi: `(case fis.fistipi when 'KR' then bhes.aciklama when 'EK' then prt.aciklama when '3K' then ciran.birunvan else '' end)`
 						})
@@ -326,7 +330,7 @@ class HizmetHareketci extends Hareketci {
 						bizsubekod: sqlEmpty, detaciklama: sqlEmpty,
 						kayittipi: `'GOML'`, hizmetkod: 'fhdon.hizmetkod', tarih: 'ghak.tarih', fisnox: 'ghak.fisnox',
                         takipno: 'ghak.takipno', fisaciklama: 'gcaln.aciklama',
-						islemadi: `('GO-${tahakkukmu ? 'Hakediş' : 'Gider'}: ' + RTRIM(ghiz.aciklama))`,
+						isladi: `('GO-${tahakkukmu ? 'Hakediş' : 'Gider'}: ' + RTRIM(ghiz.aciklama))`,
 						refadi: 'gfrm.aciklama', ba: `'${tahakkukmu ? 'A' : 'B'}'`, bedel: 'ekhiz.ekhizmetbedeli'
 					})
 				})
@@ -350,11 +354,9 @@ class HizmetHareketci extends Hareketci {
 						}
 						/* dbSent.js: yeni method:
 								fis2DegAdresBagla(e) { this.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox'); return this } */
-						sent.fisHareket('piffis', 'pifhizmet').fis2CariBagla()
-							.fis2MuhIslBagla()
-							.har2KatDetayBagla().fis2DegAdresBagla();
-						let {where: wh} = sent; wh.fisSilindiEkle();
-						wh.inDizi(pifTipleri, 'fis.piftipi');
+						sent.fisHareket('piffis', 'pifhizmet').fis2CariBagla().har2KatDetayBagla().fis2DegAdresBagla()
+						let {where: wh} = sent; wh.fisSilindiEkle()
+						wh.inDizi(pifTipleri, 'fis.piftipi')
 						if (ayrimTipEkClauses.length) { wh.add(...ayrimTipEkClauses) }
 					})
 					.hvDuzenleIslemi(({ hv }) => {
@@ -365,7 +367,8 @@ class HizmetHareketci extends Hareketci {
 							ba: `(case when har.btersmi = 0 then dbo.almsattext(fis.almsat, 'B', 'A') else dbo.almsattext(fis.almsat, 'A', 'B') end)`,
 							bedel: '(case when har.btersmi = 0 then (har.bedel - har.dipiskonto) else 0 - (har.bedel - har.dipiskonto) end)',
 							dvbedel: '(case when har.btersmi = 0 then har.dvbedel else 0 - har.dvbedel end)',
-							islemadi: (
+							islkod: 'fis.islkod',
+							isladi: (
 								`(case when fis.piftipi = 'F' then dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Alım Fatura', 'Satış Fatura'))` +
 								` else (case when fis.ayrimtipi = 'GP' then 'Gider Pusulası' else dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Perakende Alım', 'Perakende Satış')) end)` +
 								` end)`
@@ -394,7 +397,8 @@ class HizmetHareketci extends Hareketci {
 							refkod: 'fis.must', refadi: 'car.birunvan', althesapkod: 'fis.cariitn', mustkod: 'fis.must',
 							vade: 'har.vade', ba: `dbo.almsattext(fis.almsat, 'B', 'A')`, dvkur: 'fis.dvkur', dvbedel: 'har.dvbedel',
 							kdetaysayac: sqlNull, kdetay: sqlEmpty, fisaciklama: 'fis.cariaciklama',
-							islemadi: (
+							islkod: 'fis.islkod',
+							isladi: (
 								`(case when fis.piftipi = 'F' then dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Alım Fatura', 'Satış Fatura'))` +
 								` else dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Perakende Alım', 'Perakende Satış')) end)`
 							)
@@ -419,7 +423,8 @@ class HizmetHareketci extends Hareketci {
 							althesapkod: 'fis.cariitn', takipno: 'fis.orttakipno', mustkod: 'fis.must',
 							ba: 'har.ba', bedel: 'har.bedel', dvkur: 'fis.dvkur', dvbedel: 'har.dvbedel',
 							kdetaysayac: sqlNull, kdetay: sqlEmpty, fisaciklama: 'fis.cariaciklama',
-							islemadi: (
+							islkod: 'fis.islkod',
+							isladi: (
 								`(case when fis.piftipi = 'F' then dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Alım Fatura', 'Satış Fatura'))` +
 								` else dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Perakende Alım', 'Perakende Satış')) end)`
 							)
@@ -448,7 +453,7 @@ class HizmetHareketci extends Hareketci {
 						refkod: 'fis.must', refadi: 'car.birunvan',
 						vade: 'fis.ortalamavade', ba: `dbo.almsattext(fis.almsat, ${baArgs.join(', ')})`,
 						miktar: 'har.miktar', dvkur: 'fis.dvkur', bedel: '(har.bedel - har.dipiskonto)', dvbedel: 'har.dvbedel',
-						islemadi: `${islemAdiClause}${karsimi ? ` + 'Karşılık'` : ''}`,
+						islkod: 'fis.islkod', isladi: `${islemAdiClause}${karsimi ? ` + 'Karşılık'` : ''}`,
 						fisaciklama: 'fis.cariaciklama', detaciklama: 'har.ekaciklama'
 					})
 				})
@@ -474,7 +479,7 @@ class HizmetHareketci extends Hareketci {
 					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
 	                    $.extend(hv, {
 							kaysayac: 'fis.kaysayac', kayittipi: `'KRE'`, hizmetkod: 'fis.hizmetkod',
-							islemadi: `'Kredi Alımı'`, refkod: 'fis.kredihesapkod', refadi: 'bhes.aciklama',
+							isladi: `'Kredi Alımı'`, refkod: 'fis.kredihesapkod', refadi: 'bhes.aciklama',
 							ba: `'B'`, bedel: 'fis.topbrutbedel',
 							kdetaysayac: sqlNull, kdetay: sqlEmpty, detaciklama: sqlEmpty
 						})
@@ -499,7 +504,7 @@ class HizmetHareketci extends Hareketci {
 	                    $.extend(hv, {
 							kaysayac: 'fis.kaysayac', kayittipi: `'KRFZ'`, refkod: 'fis.kredihesapkod', refadi: 'bhes.aciklama',
 							hizmetkod: `(case when year(coalesce(har.vade, fis.tarih)) <= ${cariYil} then fis.bufaizhizmetkod else fis.gelfaizhizmetkod end)`,
-							islemadi: `(case when fis.fistipi = 'D' then 'Kredi Devir' else 'Kredi Alımı' end)`,
+							isladi: `(case when fis.fistipi = 'D' then 'Kredi Devir' else 'Kredi Alımı' end)`,
 							vade: 'har.vade', ba: `'B'`, bedel: 'har.faiz', dvbedel: 'har.dvfaiz',
 							kdetaysayac: sqlNull, kdetay: sqlEmpty, detaciklama: sqlEmpty
 						})
@@ -516,7 +521,7 @@ class HizmetHareketci extends Hareketci {
 					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
 						$.extend(hv, {
 							kaysayac: 'fis.kaysayac', kayittipi: `'KRHV'`, hizmetkod: 'har.faizkrehizkod',
-							islemadi: `'Kendimize Havale'`, refkod: 'fis.banhesapkod', refadi: 'bhes.aciklama',
+							isladi: `'Kendimize Havale'`, refkod: 'fis.banhesapkod', refadi: 'bhes.aciklama',
 							vade: 'khar.vade', ba: `'A'`, bedel: 'har.kredifaiz', dvbedel: 'har.kredidvfaiz',
 							kdetaysayac: sqlNull, kdetay: sqlEmpty, detaciklama: sqlEmpty
 						})
@@ -534,7 +539,7 @@ class HizmetHareketci extends Hareketci {
 					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
 						$.extend(hv, {
 							kaysayac: 'fis.kaysayac',kayittipi: `'KRYT'`, hizmetkod: 'har.faizkrehizkod',
-							islemadi: `'Kendimize Havale'`, refkod: 'fis.kasakod', refadi: 'kas.aciklama',
+							islkod: 'fis.muhislkod', isladi: `'Kendimize Havale'`, refkod: 'fis.kasakod', refadi: 'kas.aciklama',
 							vade: 'khar.vade', ba: `'A'`, bedel: 'har.kredifaiz', dvbedel: 'har.kredidvfaiz',
 							kdetaysayac: sqlNull, kdetay: sqlEmpty, detaciklama: sqlEmpty
 						})
@@ -555,7 +560,7 @@ class HizmetHareketci extends Hareketci {
 					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
 	                    $.extend(hv, {
 							kaysayac: 'fis.kaysayac', kayittipi: `'YAT'`,
-							islemadi: `'Yatırım Geliri'`, refkod: 'har.banhesapkod', refadi: 'bhes.aciklama',
+							islkod: 'fis.muhislkod', isladi: `'Yatırım Geliri'`, refkod: 'har.banhesapkod', refadi: 'bhes.aciklama',
 							ba: `'A'`, bedel: 'har.brutbedel', dvbedel: 'har.dvbrutbedel',
 							kdetaysayac: sqlNull, kdetay: sqlEmpty
 						})

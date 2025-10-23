@@ -4,7 +4,15 @@ class Secim extends CIO {
 	get parentPart() { return this._parentPart ?? app.activePart } set parentPart(value) { this._parentPart = value }
 	get builder() { return this._builder ?? this.parentPart?.builder } set builder(value) { this._builder = value }
 	get bosmu() { const {value} = this; return !value || $.isEmptyObject(value) } get bosDegilmi() { return !this.bosmu }
-	get ozetBilgiValue() { return this.bosmu ? null : this.value } get super_ozetBilgiValue() { return super.ozetBilgiValue } 
+	get ozetBilgiValue() {
+		if (this.bosmu)
+			return null
+		let {disindakilermi, value: result} = this
+		if (disindakilermi)
+			result = `<b class=firebrick>HARİÇ:</b> ${result}`
+		return result
+	}
+	get super_ozetBilgiValue() { return super.ozetBilgiValue }
 	get ozetBilgiValueDuzenlenmis() {
 		let {ozetBilgiValueGetter} = this, {ozetBilgiValue: value} = this;
 		if (ozetBilgiValueGetter) { value = getFuncValue.call(this, ozetBilgiValueGetter, { secim: this, value }) }

@@ -51,7 +51,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			harSinif.maliTablo_secimlerEkDuzenle(...arguments)
 	}
 	async tazele(e) {
-		await this.tazeleOncesi(e);
+		await this.tazeleOncesi(e)
 		let {gridPart, gridPart: { grid, gridWidget }, rapor: { isPanelItem }, raporTanim, _tabloTanimGosterildiFlag} = this
 		if (!raporTanim) {
 			if (!isPanelItem) {
@@ -73,17 +73,18 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		this.tabloKolonlariDuzenle_ozel?.(_e)
 		let colDefs = this.tabloKolonlari = _e.liste || []
 		let columns = colDefs.flatMap(colDef => colDef.jqxColumns)
+		let lastError
 		for (let i = 1; i <= 3; i++) {
 			try {
 				grid.jqxTreeGrid('columns', columns)
+				lastError = null
 				break
 			}
-			catch (ex) {
-				await delay(i * 200)
-				console.error(ex)
-			}
+			catch (ex) { await delay(i * 200); lastError = ex }
 			return
 		}
+		if (lastError)
+			console.error(lastError)
 		await this.tazeleSonrasi(e)
 	}
 	ekCSSDuzenle({ raporTanim, colDefs, colDef, rowIndex, belirtec, value, rec: { cssClassesStr } = {}, result }) {
@@ -174,7 +175,8 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 	}
 	async loadServerDataInternal(e) {
 		await super.loadServerDataInternal(e)
-		let {detayli, ekDBListe, aktifDB, detaylar, detay: _det} = e, yatayDegerSet = e.yatayDegerSet = {}
+		let {detayli, ekDBListe, aktifDB, detaylar, detay: _det} = e
+		let yatayDegerSet = e.yatayDegerSet = {}
 		let rapor = this, {raporTanim = {}, secimler, secimler: {tarihBS: donemBS}, sahaAlias: bedelAlias} = this
 		let {raporTanim: { yatayAnalizVarmi, yatayAnaliz } = {}} = this
 		detaylar ??= _det ? [_det] : raporTanim.detaylar
@@ -397,7 +399,8 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 				let ind = recs.findIndex(({ id }) => id == raporTanim?.id)
 				if (ind > -1) { gridWidget.selectrow(ind) }
 			},
-			secince: _e => this.raporTanimSecildi({ ...e, ..._e })
+			secince: _e => 
+				setTimeout(() => this.raporTanimSecildi({ ...e, ..._e }), 1)
 		});
 		this._tabloTanimGosterildiFlag = true
 	}
@@ -405,7 +408,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		let {rec, value} = e, rapor = e.rapor = this.rapor
 		let inst = this.raporTanim = await value
 		inst?.setDefault?.(e)
-		this.tazele(e)
+		await this.tazele()
 	}
 	async hareketKartiGoster({ id } = {}) {
 		let e = arguments[0], {gridPart: { grid }} = this

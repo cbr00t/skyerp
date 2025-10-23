@@ -44,6 +44,7 @@ class StokCikisBasitHareketci extends Hareketci {
 				}).hvDuzenleIslemi(({ hv }) => {
 					$.extend(hv, {
 						oncelik: '1', ba: `'A'`, kayittipi: `'SC'`,
+						takipno: `(case when fis.takiportakdir = '' then har.dettakipno else fis.orttakipno end)`,
 						islkod: 'fis.islkod', islemadi: `'Stok Çıkış'`, shTipi: `'S'`,
 						shkod: 'har.stokkod', shadi: 'stk.aciklama', grupkod: 'stk.grupkod', istgrupkod: 'stk.sistgrupkod',
 						bedel: 'har.fmalhammadde + har.fmalmuh'
@@ -61,7 +62,7 @@ class StokCikisBasitHareketci extends Hareketci {
 		})
 	}
 	static maliTablo_secimlerSentDuzenle({ detSecimler: sec, sent, sent: { from }, where: wh, hv, mstClause, maliTablo }) {
-		super.maliTablo_secimlerSentDuzenle(...arguments);
+		super.maliTablo_secimlerSentDuzenle(...arguments)
 		mstClause ||= hv.shkod || 'har.stokkod'
 		let grpClause = hv.grupkod || 'stk.grupkod',  aGrpClause = hv.anaGrupkod || 'grp.anagrupkod'
 		let iGrpClause = hv.istgrupkod || 'stk.istgrupkod'

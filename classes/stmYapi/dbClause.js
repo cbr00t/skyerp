@@ -303,7 +303,7 @@ class MQSubWhereClause extends MQClause {
 		let isNot = typeof e == 'object' && asBool(e.not ?? disindakilermi)
 		if (birKismimi)
 			this.birKismi({ liste: bs.value, saha, not: isNot })
-		let sub = new MQAndClause();
+		let sub = new MQAndClause()
 		if (bs) {
 			let {basi, sonu} = bs ?? {}, eqOp = { sonu: '=' };
 			if (basi) {

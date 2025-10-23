@@ -8,7 +8,8 @@ class DAltRapor extends DRapor {
 		let {aciklama: raporAdi} = raporTanim ?? {}
 		result = raporAdi || mstEtiket || mainClass?.aciklama || result
 		if (_baslik) { return _baslik }
-		if (!mainmi && result != raporAdi) { result = `${result} &nbsp;[<b class="bold royalblue">${result}</b>]` }
+		if (!mainmi && raporAdi && raporAdi != result)
+			result = `${result} &nbsp;[<b class="bold royalblue">${raporAdi}</b>]`
 		return result
 	}
 	get isPanelItem() { return this.rapor?.isPanelItem } get width() { return null } get height() { return null }

@@ -41,16 +41,20 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		result.addKAPrefix('hartip', 'mst')
 			.addGrupBasit('DB', 'Veritabanı', 'db', null, null, null, false)
 			.addGrupBasit_numerik('ONCELIK', 'Öncelik', 'oncelik', null, null, null, false)
+			.addGrupBasit_numerik('GRUPONCELIK', 'Grup Öncelik', 'gruponcelik', null, null, null, false)
 			.addGrupBasit('GRUP', '', 'grup', null, null, null, false)
 			.addGrupBasit('MST', this.class.mstEtiket, 'mst', null, 550, null, false);
-		for (let {kod, aciklama} of this.dovizKAListe) {
-			result.addToplamBasit_bedel(`BEDEL_${kod}`, `${aciklama} Bedel`, `bedel_${kod}`, null, 110, ({ colDef }) => colDef?.hidden(), false) }
+		for (let {kod, aciklama} of this.dovizKAListe)
+			result.addToplamBasit_bedel(`BEDEL_${kod}`, `${aciklama} Bedel`, `bedel_${kod}`, null, 110, ({ colDef }) => colDef?.hidden(), false)
 		result.addToplamBasit_bedel('BEDEL', 'TL Bedel', 'bedel', null, 140, null, false)
 	}
 	sabitRaporTanimDuzenle({ result }) {
-		super.sabitRaporTanimDuzenle(...arguments);
-		result.resetSahalar().addGrup('GRUP').addIcerik('MST');
-		for (let kod of this.dvKodListe) { result.addIcerik(`BEDEL_${kod}`) }
+		super.sabitRaporTanimDuzenle(...arguments)
+		result.resetSahalar()
+			// .addGrup('ONCELIK').addGrup('GRUPONCELIK')
+			.addGrup('GRUP').addIcerik('MST')
+		for (let kod of this.dvKodListe)
+			result.addIcerik(`BEDEL_${kod}`)
 		result.addIcerik('BEDEL')
 	}
 	tazele(e) {
@@ -88,7 +92,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		let sonTarih = sec.tarih.value || null, buYonClause = yon.sqlServerDegeri();
 		let uni = new MQUnionAll()
 		for (let har of harListe) {
-			let {oncelik, mstYapi, kod: harTipKod} = har.class;
+			let {oncelik, mstYapi, kod: harTipKod} = har.class
 			let {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi;
 			let harUni = har.uniOlustur({ sender: this })
 			for (let harSent of harUni) {
@@ -104,7 +108,8 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 				let bedelClause = this.getDovizliBedelClause({ dvKodClause, tlBedelClause, dvBedelClause, sumOlmaksizin: true });
 				let kodClause = alias2Deger[mstKodAlias], adiClause = alias2Deger[mstAdiAlias], adiClause2 = alias2Deger[mstAdiAlias2];
 				sahalar.liste = []; sahalar.add(`'${harTipKod}' anatip`)
-				if (adiClause) { sahalar.add(`${adiClause} mstadi`) } else { mstYapi.duzenle({ sent: harSent, wh, kodClause }) }
+				if (adiClause) { sahalar.add(`${adiClause} mstadi`) }
+				else { mstYapi.duzenle({ sent: harSent, wh, kodClause }) }
 				sahalar.add(`${adiClause2 || sqlEmpty} mstadi2`)
 				sahalar.add(
 					`${kodClause} mstkod`, `${oncelik} oncelik`, `${grupAdiClause} grup`, `${grupOncelikClause} gruponcelik`,
@@ -129,7 +134,11 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		if (!withSent?.liste?.length)
 			return false*/
 	}
-	
+	loadServerData_queryDuzenle_genelSon(e) {
+		super.loadServerData_queryDuzenle_genelSon(e)
+		let {stm: { orderBy }} = e
+		orderBy.liste = ['oncelik', 'gruponcelik', 'grup', 'mstkod']
+	}
 	loadServerData_recsDuzenleIlk({ recs }) {
 		let {class: { sagmi }} = this
 		let recsDvKodSet = this.recsDvKodSet = {}

@@ -466,8 +466,8 @@ class SBTabloDetay extends MQDetay {
 			aliasListe.push(...ozelAttrListe)
 		else {
 			sabitAttrListe.push(
-				'tarih', 'seri', 'fisno', 'fisnox',
-				'bizsubekod', 'ozelisaret', 'shTipi', 'takipno',
+				'tarih', 'seri', 'fisno', 'fisnox', 'islkod',
+				'bizsubekod', 'ozelisaret', 'shTipi',
 				'fmalhammadde', 'fmalmuh', 'malhammadde', 'malmuh'
 			)
 			aliasListe.push('ba', bedelAlias, ...ekAttrListe)
@@ -527,8 +527,9 @@ class SBTabloDetay extends MQDetay {
 		e = { ...arguments[0] }
 		let {sahaAlias: bedelAlias, yatayDegerler, yatayDegerSet, secimler, secimler: { tarihBS: donemBS }} = rapor
 		let {yatayAnalizVarmi, yatayAnaliz, yatayAnaliz: { aciklama: yatayEtiket, ekBilgi: { zorunluKodAttrListe: yatayAttrListe } = {} } = {}} = raporTanim
+		let yatayDBmi = e.yatayDBmi = yatayAnalizVarmi && yatayAnaliz.dbmi
 		let {hesapTipi: { ekBilgi: { hareketcimi, harSinif } = {} }} = this
-		let {veriTipi: { ekBilgi: { bakiyemi, borcmu, alacakmi } }} = this
+		let {veriTipi: { ekBilgi: { bakiyemi, borcmu, alacakmi } = {} }} = this
 		if (!(rapor && hareketcimi && harSinif))
 			return
 		let {dRapor: { konsolideCikti: konsolide, ekDBListe} = {}} = app.params
@@ -582,7 +583,7 @@ class SBTabloDetay extends MQDetay {
 				)*/
 			let fbd_content = rfb.addFormWithParent('content').altAlta()
 				.addStyle_fullWH()
-				.addStyle(`$elementCSS { margin-top: 0 }`)
+				.addStyle(`$elementCSS { margin-top: 5px }`)
 				// .addStyle_fullWH(null, `calc(var(--full) - ${headerHeight}px + 5px)`)
 			fbd_content.addGridliGosterici('grid').addStyle_fullWH()
 				.rowNumberOlmasin().notAdaptive()
@@ -618,9 +619,10 @@ class SBTabloDetay extends MQDetay {
 		}
 		let ekAttrListe = [
 			'tarih', 'fisnox', 'anaislemadi', 'islkod', 'islemadi',
-			mstAlias, 'mstadi', 'refkod', 'refadi'
+			mstAlias, 'mstadi', 'refkod', 'refadi', 'takipno'
 		].filter(x => !!x)
-		let sentDuzenle = ({ alias2Deger: hv, sent, sent: { where: wh, sahalar, alias2Deger } }) => {
+		let {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs
+		let sentDuzenle = ({ alias2Deger: hv, sent, sent: { from, where: wh, sahalar, alias2Deger } }) => {
 			if (mstAlias) {
 				let kodClause = hv[mstAlias]
 				if (kodClause) {
@@ -628,9 +630,23 @@ class SBTabloDetay extends MQDetay {
 					mstYapi.duzenle({ kodClause, sent })
 				}
 			}
-			if (filtreYatayDegerSet) {
+			if (filtreYatayDegerSet && !yatayDBmi) {
 				// yatayDegerler; yatayAttrListe
 				wh.inDizi(Object.keys(filtreYatayDegerSet), alias2Deger.yatay)
+			}
+			{
+				let {takipno: clause} = alias2Deger
+				if (MQSQLOrtak.sqlBosDegermi(clause)) {
+					for (let alias of ['takipadi', 'takipgrupkod', 'takipgrupadi'])
+						sahalar.add(`${sqlEmpty} ${alias}`)
+				}
+				else {
+					if (!from.aliasIcinTable('tak'))
+						sent.fromIliski('takipmst tak', `${clause} = tak.kod`)
+					if (!from.aliasIcinTable('tgrp'))
+						sent.fromIliski('takipgrup tgrp', 'tak.grupkod = tgrp.kod')
+					sahalar.add('tak.aciklama takipadi', 'tak.grupkod takipgrupkod', 'tgrp.aciklama takipgrupadi')
+				}
 			}
 		}
 		$.extend(e, { konsolide, detayli: true, detay: this, ekAttrListe, sentDuzenle })
@@ -675,7 +691,11 @@ class SBTabloDetay extends MQDetay {
 					new GridKolon({ belirtec: 'refadi', text: 'Ref. Adı' }),
 					// ...yatayAttrListe?.map(belirtec =>  new GridKolon({ belirtec, text: belirtec, genislikCh: 25 }) ) ?? [],
 					new GridKolon({ belirtec: 'islemadi', text: 'İşlem Adı', filterType: 'checkedlist' }),
-					new GridKolon({ belirtec: 'anaislemadi', text: 'Ana İşlem', filterType: 'checkedlist' })
+					new GridKolon({ belirtec: 'anaislemadi', text: 'Ana İşlem', filterType: 'checkedlist' }),
+					new GridKolon({ belirtec: 'takipgrupkod', text: 'Takip Grup', filterType: 'checkedlist' }),
+					new GridKolon({ belirtec: 'takipgrupadi', text: 'T.Grup Adı', filterType: 'checkedlist' }),
+					new GridKolon({ belirtec: 'takipno', text: 'Takip No', filterType: 'checkedlist' }),
+					new GridKolon({ belirtec: 'takipadi', text: 'Takip Adı', filterType: 'checkedlist' })
 				].filter(x => !!x))
 			}
 			static async loadServerDataDogrudan({ sender: { grid }}) {
@@ -693,6 +713,8 @@ class SBTabloDetay extends MQDetay {
 				for (let rec of recs) {
 					let {bedel, ba, yatay} = rec
 					if (!bedel)
+						continue
+					if (yatayDBmi && filtreYatayDegerSet && !filtreYatayDegerSet[yatay])
 						continue
 					//if (ba == 'A')
 					//	bedel = rec.bedel = -bedel
