@@ -39,9 +39,11 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 			.addGrupBasit('AKTIFYAS', 'Aktif Yaş', 'aktifyas', null, null, ({ colDef }) => colDef.tipNumerik())
 			.addGrupBasit('YASGRUP', 'Yaş Grubu', 'yasgrup', MQYasGrup, null, ({ item }) => item.kodsuz(), 'yasgrupadi')
 			.addGrupBasit('DEHBVARMI', 'DEHB?', 'dehbvarmi', null, null, ({ colDef }) => colDef.tipBool(), false)
-		result
 			.addToplamBasit('DEHBVARSAYI', 'DEHB Var Sayı', 'dehbvarsayi')
 			.addToplamBasit('DEHBYOKSAYI', 'DEHB Yok Sayı', 'dehbyoksayi')
+			.addGrupBasit('DEHBVARMIKLINIK', 'Kli: DEHB?', 'dehbvarmiklinik', null, null, ({ colDef }) => colDef.tipBool(), false)
+			.addToplamBasit('DEHBVARSAYIKLINIK', 'Kli: DEHB Var Sayı', 'dehbvarsayiklinik')
+			.addToplamBasit('DEHBYOKSAYIKLINIK', 'Kli: DEHB Yok Sayı', 'dehbyoksayiklinik')
 			.addToplamBasit('DOGRUSAYI', 'Doğru Sayı', 'dogrusayi', null, ({ colDef, item }) => { colDef.tipDecimal(1); item.hidden() })
 			.addToplamBasit('ORTDOGRUSAYI', 'Ort. Doğru Sayı', 'ortdogrusayi', null, ({ colDef, item }) => {
 				colDef.tipDecimal(1).dipAvg();
@@ -110,6 +112,9 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 				case 'DEHBVARMI': sahalar.add(`(case when fis.bdehbvarmi = 0 then '<b class="forestgreen fs-150">-</b>' else '<b class="firebrick fs-120">Var</b>' end) dehbvarmi`); break
 				case 'DEHBVARSAYI': sahalar.add(`SUM(case when fis.bdehbvarmi = 0 then 0 else 1 end) dehbvarsayi`); break
 				case 'DEHBYOKSAYI': sahalar.add(`SUM(case when fis.bdehbvarmi = 0 then 1 else 0 end) dehbyoksayi`); break
+				case 'DEHBVARMIKLINIK': sahalar.add(`(case when fis.bdehbvarmiklinik = 0 then '<b class="forestgreen fs-150">-</b>' else '<b class="firebrick fs-120">Var</b>' end) dehbvarmiklinik`); break
+				case 'DEHBVARSAYIKLINIK': sahalar.add(`SUM(case when fis.bdehbvarmiklinik = 0 then 0 else 1 end) dehbvarsayiklinik`); break
+				case 'DEHBYOKSAYIKLINIK': sahalar.add(`SUM(case when fis.bdehbvarmiklinik = 0 then 1 else 0 end) dehbyoksayiklinik`); break
 				case 'DOGRUSAYI': sahalar.add('SUM(fis.dogrusayi) dogrusayi'); break; case 'YANLISSAYI': sahalar.add('SUM(fis.yanlissayi) yanlissayi'); break
 				case 'SECILMEYENDOGRUSAYI': sahalar.add('SUM(fis.secilmeyendogrusayi) secilmeyendogrusayi'); break
 				case 'ORTDOGRUSECIMSUREMS': sahalar.add('SUM(fis.dogrusecimsurems) dogrusecimsurems'); break

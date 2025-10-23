@@ -10,7 +10,7 @@ class MQTest extends MQGuidOrtak {
 	}
 	static get tip2Sinif() {
 		let result = this._tip2Sinif; if (result == null) {
-			result = {}; const {subClasses} = this; for (const cls of subClasses) { const {araSeviyemi, tip} = cls; if (!araSeviyemi && tip) { result[tip] = cls } }
+			result = {}; let {subClasses} = this; for (let cls of subClasses) { let {araSeviyemi, tip} = cls; if (!araSeviyemi && tip) { result[tip] = cls } }
 			this._tip2Sinif = result
 		}
 		return result
@@ -19,61 +19,71 @@ class MQTest extends MQGuidOrtak {
 	static get uiStates() { let {_uiStates: result} = this; if (result == null) { result = this._uiStates = Object.keys(this.uiState2Adi) } return result }
 
 	constructor(e) {
-		e = e || {}; super(e); const {tip} = this.class, {belirtec, sablonId} = e; $.extend(this, { belirtec, sablonId });
-		if (tip && !this.sablonId) { const {sablon} = app.params.ese || {}; this.sablonId = sablon?.[tip]?.[0]?.sablonId }
+		e = e || {}; super(e); let {tip} = this.class, {belirtec, sablonId} = e; $.extend(this, { belirtec, sablonId });
+		if (tip && !this.sablonId) { let {sablon} = app.params.ese || {}; this.sablonId = sablon?.[tip]?.[0]?.sablonId }
 	}
-	static getClass(e) { const tip = typeof e == 'object' ? e.tip : e; return this.tip2Sinif[tip] }
-	static newFor(e) { if (typeof e != 'object') { e = { tip: e } } const cls = this.getClass(e); return cls ? new cls(e) : null }
+	static getClass(e) { let tip = typeof e == 'object' ? e.tip : e; return this.tip2Sinif[tip] }
+	static newFor(e) { if (typeof e != 'object') { e = { tip: e } } let cls = this.getClass(e); return cls ? new cls(e) : null }
 	static pTanimDuzenle(e) {
-		const {tip} = this, {maxSecenekSayisi} = MQSablonAnketYanit; super.pTanimDuzenle(e); const {pTanim} = e;
+		let {tip} = this, {maxSecenekSayisi} = MQSablonAnketYanit; super.pTanimDuzenle(e); let {pTanim} = e;
 		$.extend(pTanim, {
-			muayeneId: new PInstGuid('muayeneid'), hastaId: new PInstGuid('hastaid'), ts: new PInstDate('tarihsaat'), dehbVarmi: new PInstBitBool('bdehbvarmi'),
-			uygulanmaYeri: new PInstTekSecim('uygulanmayeri', MQTestUygulanmaYeri), onayKodu: new PInstNum('onaykodu'), aktifYas: new PInstNum('aktifyas'), cinsiyet: new PInstTekSecim('cinsiyet', Cinsiyet)
+			muayeneId: new PInstGuid('muayeneid'), hastaId: new PInstGuid('hastaid'), ts: new PInstDate('tarihsaat'),
+			dehbVarmi: new PInstBitBool('bdehbvarmi'), dehbVarmi_klinik: new PInstBitBool('bdehbvarmiklinik'), 
+			uygulanmaYeri: new PInstTekSecim('uygulanmayeri', MQTestUygulanmaYeri), onayKodu: new PInstNum('onaykodu'),
+			aktifYas: new PInstNum('aktifyas'), cinsiyet: new PInstTekSecim('cinsiyet', Cinsiyet),
+			notlar: new PInstStr('notlar')
 			/*deSkor: new PInstNum('deskor'), hiSkor: new PInstNum('hiskor'), deBelirtiSayi: new PInstNum('debelirtisayi'), hiBelirtiSayi: new PInstNum('hibelirtisayi')*/
 		});
-		for (const {tip, belirtec, prefix, etiket} of app.params.ese) {
-			if (tip == 'anket') { for (const key of ['Skor', 'BelirtiSayi']) { const prefix = belirtec + key; pTanim[prefix] = new PInstNum(prefix.toLowerCase()) } }
+		for (let {tip, belirtec, prefix, etiket} of app.params.ese) {
+			if (tip == 'anket') { for (let key of ['Skor', 'BelirtiSayi']) { let prefix = belirtec + key; pTanim[prefix] = new PInstNum(prefix.toLowerCase()) } }
 			pTanim[`${prefix}Yapildimi`] = new PInstBitBool(`b${prefix}yapildi`)
 		}
 	}
 	static secimlerDuzenle(e) {
-		const {secimler: sec} = e, {idSaha} = this; sec.grupTopluEkle([ { kod: 'teknik', aciklama: 'Teknik Bilgiler', kapali: true, zeminRenk: 'darkgray' } ]);
+		let {secimler: sec} = e, {idSaha} = this; sec.grupTopluEkle([ { kod: 'teknik', aciklama: 'Teknik Bilgiler', kapali: true, zeminRenk: 'darkgray' } ]);
 		sec.secimTopluEkle({
 			/*tamamlandiDurumu: new SecimTekSecim({ etiket: 'Tamamlanma Durumu', tekSecim: new BuDigerVeHepsi([`<span class="forestgreen">Tamamlananlar</span>`, `<span class="darkred">TamamlanMAyanlar</span>`]) }),*/
 			tarih: new SecimDate({ etiket: 'Tarih/Saat' }), aktifYas: new SecimInteger({ etiket: 'Aktif Yaş' }),
 			sablonAdi: new SecimOzellik({ etiket: 'Şablon Adı' }), hastaAdi: new SecimOzellik({ etiket: 'Hasta İsim' }), doktorIsim: new SecimOzellik({ etiket: 'Doktor İsim' }),
 			dehbTutarsizFlag: new SecimBool({ etiket: 'Sadece DEHB Tutarsız olanlar?' }),
+			dehbTutarsizKlinikFlag: new SecimBool({ etiket: 'Sadece DEHB Tutarsız olanlar (Klinik Tanı)?' }),
 			hastaId: new SecimBasSon({ etiket: 'Hasta', mfSinif: MQHasta, grupKod: 'teknik' }), muayeneId: new SecimBasSon({ etiket: 'Muayene', mfSinif: MQMuayene, grupKod: 'teknik' }),
+			notlar: new SecimOzellik({ etiket: 'Notlar' }),
 			id: new SecimBasSon({ etiket: 'Test ID', mfSinif: this, grupKod: 'teknik' })
 		}).whereBlockEkle(({ secimler: sec, where: wh }) => {
-			const {tableAlias: alias} = this;
+			let {tableAlias: alias} = this;
 			/*let tSec = sec.tamamlandiDurumu.tekSecim; if (!tSec.hepsimi) { wh.add(tSec.getBoolBitClause(`${alias}.btamamlandi`)) }*/
-			wh.basiSonu({ basi: sec.tarih.basi, sonu: sec.tarih.sonu?.yarin().clone().clearTime() }, `${alias}.tarihsaat`);
+			wh.basiSonu({ basi: sec.tarih.basi, sonu: sec.tarih.sonu?.yarin().clone().clearTime() }, `${alias}.tarihsaat`)
 			if (sec.dehbTutarsizFlag.value) { wh.add(`${alias}.bdehbvarmi <> ${alias}.bdehbmiozel`) }
-			wh.ozellik(sec.sablonAdi, 'sab.aciklama').basiSonu(sec.aktifYas, `${alias}.aktifyas`).ozellik(sec.hastaAdi, 'has.aciklama').ozellik(sec.doktorAdi, 'dok.aciklama');
+			if (sec.dehbTutarsizKlinikFlag.value) { wh.add(`${alias}.bdehbvarmiklinik <> ${alias}.bdehbmiozel`) }
+			wh.ozellik(sec.sablonAdi, 'sab.aciklama').basiSonu(sec.aktifYas, `${alias}.aktifyas`).ozellik(sec.hastaAdi, 'has.aciklama').ozellik(sec.doktorAdi, 'dok.aciklama')
+			wh.ozellik(sec.notlar, `${alias}.notlar`)
 			wh.basiSonu(sec.muayeneId, `${alias}.muayeneid`).basiSonu(sec.hastaId, `${alias}.hastaid`).basiSonu(sec.id, `${alias}.${idSaha}`)
 		})
 	}
 	static ekCSSDuzenle(e) {
-		super.ekCSSDuzenle(e); const {dataField: belirtec, rec, result} = e;
+		super.ekCSSDuzenle(e); let {dataField: belirtec, rec, result} = e;
 		if (belirtec == 'onaykodu') { result.push('center bold royalblue') }
-		if ((belirtec == 'bdehbvarmi' && asBool(rec.bdehbvarmi)) || belirtec == 'bdehbmiozel' && asBool(rec.bdehbmiozel)) { result.push('dehb') }
-		for (const key of ['dogrusayi', 'yanlissayi', 'secilmeyendogrusayi', 'dogrusecimsurems', 'yanlissecimsurems', 'ortdogrusecimsurems', 'ortyanlissecimsurems']) {
+		if ((belirtec == 'bdehbvarmi' || belirtec == 'bdehbvarmiklinik') && asBool(rec.bdehbvarmi) || (belirtec == 'bdehbmiozel') && asBool(rec.bdehbmiozel))
+			result.push('dehb')
+		for (let key of ['dogrusayi', 'yanlissayi', 'secilmeyendogrusayi', 'dogrusecimsurems', 'yanlissecimsurems', 'ortdogrusecimsurems', 'ortyanlissecimsurems']) {
 			if (belirtec == key) { result.push('cpt') } }
-		for (const key of ['deskor', 'debelirtisayi']) { if (belirtec == key) { result.push('anket', 'anket-de') } }
-		for (const key of ['hiskor', 'hibelirtisayi']) { if (belirtec == key) { result.push('anket', 'anket-hi') } }
+		for (let key of ['deskor', 'debelirtisayi']) { if (belirtec == key) { result.push('anket', 'anket-de') } }
+		for (let key of ['hiskor', 'hibelirtisayi']) { if (belirtec == key) { result.push('anket', 'anket-hi') } }
 	}
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {tableAlias: alias} = this, {dev} = config;
-		const {liste} = e; liste.push(...[
+		super.orjBaslikListesiDuzenle(e); let {tableAlias: alias} = this, {dev} = config;
+		let {liste} = e; liste.push(...[
 			(dev ? new GridKolon({ belirtec: 'muayeneid', text: 'Muayene ID', genislikCh: 40 }) : null),
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 10, sql: `${alias}.tarihsaat` }).tipDate(),
 			new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 9, sql: `${alias}.tarihsaat` }).tipTime()
 		].filter(x => !!x));
-		for (const {prefix, kisaEtiket, sablonId} of app.params.ese) {
+		for (let {prefix, kisaEtiket, sablonId} of app.params.ese) {
 			liste.push(new GridKolon({ belirtec: `b${prefix}yapildi`, text: `${kisaEtiket}?`, genislikCh: 10, filterType: 'checkedlist' }).tipBool()) }
 		liste.push(...[
-			new GridKolon({ belirtec: 'bdehbvarmi', text: 'DEHB?', genislikCh: 8 }).tipBool(), new GridKolon({ belirtec: 'bdehbmiozel', text: 'Hes.DEHB?', genislikCh: 8 }).tipBool(),
+			new GridKolon({ belirtec: 'bdehbvarmi', text: 'DEHB?', genislikCh: 8 }).tipBool(),
+			new GridKolon({ belirtec: 'bdehbvarmiklinik', text: 'Kln.DEHB?', genislikCh: 8 }).tipBool(),
+			new GridKolon({ belirtec: 'bdehbmiozel', text: 'Hes.DEHB?', genislikCh: 8 }).tipBool(),
 			new GridKolon({ belirtec: 'onaykodu', text: 'Onay Kodu', genislikCh: 10 }).tipNumerik().sifirGosterme(),
 			new GridKolon({ belirtec: 'aktifyas', text: 'Aktif Yaş', genislikCh: 9 }).tipNumerik(),
 			new GridKolon({ belirtec: 'cinsiyettext', text: 'Cinsiyet', genislikCh: 8, sql: Cinsiyet.getClause(`${alias}.cinsiyet`) }),
@@ -90,7 +100,8 @@ class MQTest extends MQGuidOrtak {
 			new GridKolon({ belirtec: 'doktoradi', text: 'Doktor Adı', genislikCh: 40, sql: 'dok.aciklama' }),
 			new GridKolon({ belirtec: 'seri', text: 'Seri', genislikCh: 5, sql: 'mua.seri' }),
 			new GridKolon({ belirtec: 'fisno', text: 'No', genislikCh: 17, sql: 'mua.fisno' }).tipNumerik(),
-			new GridKolon({ belirtec: 'uygulanmayeritext', text: 'Uygulanma Yeri', genislikCh: 15, sql: MQTestUygulanmaYeri.getClause(`${alias}.uygulanmayeri`) })
+			new GridKolon({ belirtec: 'uygulanmayeritext', text: 'Uygulanma Yeri', genislikCh: 15, sql: MQTestUygulanmaYeri.getClause(`${alias}.uygulanmayeri`) }),
+			new GridKolon({ belirtec: 'notlar', text: 'Notlar', genislikCh: 100 })
 		].filter(x => !!x))
 	}
 	static loadServerData_queryDuzenle(e) {
@@ -102,12 +113,12 @@ class MQTest extends MQGuidOrtak {
 			`${alias}.muayeneid`, `${alias}.hastaid`, 'has.aciklama hastaadi', `${alias}.uygulanmayeri`, `${alias}.onaykodu`, `${alias}.cinsiyet`, 'has.email',
 			'mua.doktorid', 'dok.aciklama doktoradi'
 		);
-		for (const {prefix} of app.params.ese) { sahalar.add(`b${prefix}yapildi`) }
+		for (let {prefix} of app.params.ese) { sahalar.add(`b${prefix}yapildi`) }
 		if (e.tekilOku) { sahalar.liste = sahalar.liste.filter(({ deger }) => !deger.includes('SUM(')) }
 		else { sent.groupByOlustur() }
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
-		super.islemTuslariDuzenle_listeEkrani(e); const removeIdSet = asSet(['yeni', 'kopya']);
+		super.islemTuslariDuzenle_listeEkrani(e); let removeIdSet = asSet(['yeni', 'kopya']);
 		let {liste} = e; liste = e.liste = liste.filter(item => !removeIdSet[item.id]);
 		liste.push(
 			{ id: 'testIslemleri', text: 'TEST', handler: _e => this.testIslemleriIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) },
@@ -116,60 +127,105 @@ class MQTest extends MQGuidOrtak {
 	}
 	static async rootFormBuilderDuzenle(e) {
 		await super.rootFormBuilderDuzenle(e); let {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e, {dev} = config;
-		let form = tanimForm.addFormWithParent().altAlta().addStyle(() => `$elementCSS { margin-top: 40px !important }`);
 		/*if (dev) { form.addModelKullan('sablonId', 'Şablon').dropDown().kodsuz().setMFSinif(this.sablonSinif) }*/
-		let altForm = form.addFormWithParent().yanYana(); for (const {prefix, etiket} of app.params.ese) {
-			altForm.addCheckBox(`${prefix}Yapildimi`, `${etiket} Yapıldı?`).addCSS('testTip-flag testTip').addStyle(e => `$elementCSS { margin-top: 10px !important }`) }
-		tanimForm.addDiv('ozetBilgi').etiketGosterim_yok().addCSS('bold gray')
-			.addStyle_fullWH(null, 130)
-			.addStyle(...[e =>
-				`$elementCSS { font-size: 120%; padding: 10px 20px }
-				 $elementCSS .onayKodu.veri { text-decoration: unset; margin-left: 10px }
-				 $elementCSS .onayKodu.veri:hover, $elementCSS .onayKodu.veri:active { text-decoration: underline !important; cursor: pointer !important }
-				 $elementCSS .onayKodu.veri:hover { color: steelblue !important } $elementCSS .onayKodu.veri:active { color: slateblue !important }
-				 @media print { $elementCSS .onayKodu-parent { display: none !important } }
-			`])
-			.onAfterRun(async ({ builder: fbd }) => {
-				const {altInst: inst, input} = fbd, {ts, muayeneId, hastaId, sablonId} = inst, {tip} = inst.class;
+		{
+			let form = tanimForm.addFormWithParent().altAlta().addStyle(() => `$elementCSS { margin-top: 40px !important }`)
+			let altForm = form.addFormWithParent().yanYana()
+			for (let {prefix, etiket} of app.params.ese) {
+				altForm.addCheckBox(`${prefix}Yapildimi`, `${etiket} Yapıldı?`)
+					.addCSS('testTip-flag testTip')
+					.addStyle(`$elementCSS { margin-top: 10px !important }`)
+			}
+		}
+		{
+			let ustForm = tanimForm.addFormWithParent().yanYana()
+			{
+				let form = ustForm.addFormWithParent().altAlta()
+				form.addCheckBox(`dehbVarmi_klinik`, `Tanı: DEHB?`)
+					.onBuildEk(({ builder: { input }}) => {
+						input.prop('multiple', true)
+						input.on('click', ({ currentTarget: target }) => {
+							if ( target._indeterminate)
+								target.checked =  target._indeterminate = false
+							else if (!target.checked)
+								target.indeterminate = target._indeterminate = true
+						})
+					})
+					.addCSS('testTip-flag testTip').addStyle(
+						`$elementCSS { font-size: 150%; margin: 30px 0 13px 27px !important }
+						 $elementCSS > input:not(:checked) + label { color: orangered !important }
+						 $elementCSS > input:checked + label { color: firebrick !important }`
+					)
+				form.addDiv('ozetBilgi').etiketGosterim_yok().addCSS('bold gray')
+					.addStyle_fullWH(null, 130)
+					.addStyle(...[e =>
+						`$elementCSS { font-size: 120%; padding: 10px 20px }
+						 $elementCSS .onayKodu.veri { text-decoration: unset; margin-left: 10px }
+						 $elementCSS .onayKodu.veri:hover, $elementCSS .onayKodu.veri:active { text-decoration: underline !important; cursor: pointer !important }
+						 $elementCSS .onayKodu.veri:hover { color: steelblue !important } $elementCSS .onayKodu.veri:active { color: slateblue !important }
+						 @media print { $elementCSS .onayKodu-parent { display: none !important } }
+					`])
+					.onAfterRun(async ({ builder: fbd }) => {
+				let {altInst: inst, input} = fbd, {ts, muayeneId, hastaId, sablonId} = inst, {tip} = inst.class;
 				let {uygulanmaYeri, onayKodu, aktifYas, dehbVarmi} = inst, cinsiyet = inst.cinsiyet?.char ?? inst.cinsiyet;
 				let cinsiyetText = (cinsiyet == 'E' ? 'Erkek' : cinsiyet == 'K' ? 'Kadın' : null);
 				let hastaAdi = hastaId ? await MQHasta.getGloKod2Adi(hastaId) : null;
 				/*let sablonAdi; if (tip && sablonId) { sablonAdi = (await MQSablon.getClass(tip)?.getGloKod2Adi(sablonId)) || '' }*/
 				let muayeneRec; if (muayeneId) { muayeneRec = await new MQMuayene({ id: muayeneId }).tekilOku() }
 				uygulanmaYeri = uygulanmaYeri?.char ?? uygulanmaYeri;
-				const addItem = (elm, css, style) => {
+				let addItem = (elm, css, style) => {
 					if (elm && !elm.html) { elm = $(`<div class="full-width">${elm}</div>`) } if (!elm?.length) { return }
 					let parent = $(`<div class="full-width"${style ? ` style="${style}"` : ''}/>`); if (css) { parent.addClass(css) }
 					elm.appendTo(parent); parent.appendTo(input)
 				};
 				/*if (!dev && sablonAdi) { addItem(`<span class="gray etiket">Şablon:</span> <b class="veri forestgreen">${sablonAdi}</b>`, 'flex-row'), `font-size: 130%` }*/
 				/*addItem(`${ts ? `<span class="gray etiket">Tarih/Saat:</span> <b class="veri royalblue">${dateTimeAsKisaString(ts)}</b>` : ''} <span style="onayKodu-parent"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="gray etiket">Onay Kodu:</span> <u class="onayKodu veri bold royalblue">${onayKodu}</u></span>`, null, `margin-top: 30px; cursor: pointer`, 'flex-row');*/
-				if ((muayeneRec?.fisnox || '0') != '0') { addItem(`<span class="gray etiket">Muayene:</span> <b class="veri">${muayeneRec.fisnox}</b>`, 'flex-row') }
+				if ((muayeneRec?.fisnox || '0') != '0')
+					addItem(`<span class="gray etiket">Muayene:</span> <b class="veri">${muayeneRec.fisnox}</b>`, 'flex-row')
 				/*addItem((
 					`<span class="gray">Hasta: <b class="royalblue">${hastaAdi || ''}</b></span>` + (aktifYas ? ` ${hastaAdi ? '- ' : ''}(Yaş: <b class="royalblue">${aktifYas}</b>)` : '') +
 					(cinsiyetText ? ` - <b class="royalblue">${cinsiyetText}</b>` : '') + (dehbVarmi ? ` <b class="orangered" style="margin-left: 30px">DEHB</b>` : '')
 				), 'flex-row');
 				if (uygulanmaYeri) { addItem(`<span class="darkgray etiket">Uygulanma Yeri:</span> <b>${MQTestUygulanmaYeri.kaDict[uygulanmaYeri]?.aciklama || ''}</b> - <b class="gray">${muayeneRec.hastaadi}</b>`, 'flex-row') }*/
-				if (onayKodu) { addItem(`<span class="onayKodu-parent"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="gray etiket">Onay Kodu:</span> <u class="onayKodu veri bold royalblue">${onayKodu}</u></span>`) }
-				let elm = input.find('.onayKodu.veri'); if (elm?.length) {
-					elm.on('click', evt => { navigator.clipboard.writeText(onayKodu).then(() => eConfirm('Onay Kodu panoya kopyalandı!', this.sinifAdi)) }) }
-			});
+				if (onayKodu)
+					addItem(`<span class="onayKodu-parent"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="gray etiket">Onay Kodu:</span> <u class="onayKodu veri bold royalblue">${onayKodu}</u></span>`)
+				let elm = input.find('.onayKodu.veri')
+				if (elm?.length)
+					elm.on('click', evt => { navigator.clipboard.writeText(onayKodu).then(() => eConfirm('Onay Kodu panoya kopyalandı!', this.sinifAdi)) })
+			})
+			}
+			{
+				let form = ustForm.addFormWithParent().altAlta()
+				form.addTextArea('notlar', 'Notlar').setRows(5).setMaxLength(300)
+					.addStyle(`$elementCSS > textarea { color: forestgreen; padding: 8px }`)
+			}
+		}
 		{
-			let {inst} = e, {id} = inst, {aliasVeNokta, idSaha} = this;
-			let rec = (await this.loadServerData({ ozelQueryDuzenle: ({ sent }) => sent.where.degerAta(id, `${aliasVeNokta}${idSaha}`) }))?.[0];
-			tanimForm.addDiv('testSonuc').etiketGosterim_yok()
-				.addStyle_fullWH(null, `calc(var(--full) - 75px)`)
+			let {inst} = e, {id} = inst, {aliasVeNokta, idSaha} = this
+			let rec = (await this.loadServerData({ ozelQueryDuzenle: ({ sent }) => sent.where.degerAta(id, `${aliasVeNokta}${idSaha}`) }))?.[0]
+			tanimForm.addForm('testSonuc').autoAppend()
+				.addStyle_fullWH(null, 'calc(var(--full) - 650px)')
 				.addStyle(e => `$elementCSS { margin-top: -90px; padding: 5px; overflow-y: auto !important; user-select: text !important; cursor: all !important }`)
-				.onAfterRun(async ({ builder: fbd, rootPart }) => {
-					let {layout, input} = fbd;
-					let html; try { html = await this.getHTML_testSonuc({ rec }) }
-					catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Test Bilgisi Gösterimi') }
-					input.html(html); makeScrollable(layout)
-				});
+				.setLayout(({ builder: fbd }) => {
+					let iframe = $(`<iframe class="full-wh" src="about:blank" border="0" scroll="yes""></iframe>`)
+					; (async () => {
+						let html; try { html = await this.getHTML_testSonuc({ rec }) }
+						catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Test Bilgisi Gösterimi') }
+						if (!html)
+							return
+						let {contentDocument: doc} = iframe[0]
+						doc.open(); doc.writeln(html); doc.close()
+					})()
+					return iframe
+				})
+				.onAfterRun(({ builder: { parent } }) =>
+					makeScrollable(parent))
 			rfb.islemTuslariArgsDuzenle = ({ args }) => {
 				$.extend(args, {
-					ekButonlarIlk: [ { id: 'yazdir', handler: _e => this.testSonuc_preview({ ...e, ..._e, rec }) } ],
-					ekSagButonIdSet: asSet(['yazdir'])
+					ekSagButonIdSet: asSet(['yazdir']),
+					ekButonlarIlk: [
+						{ id: 'yazdir', handler: _e => this.testSonuc_preview({ ...e, ..._e, rec }) }
+					]
 				})
 			}
 		}
@@ -215,31 +271,53 @@ class MQTest extends MQGuidOrtak {
 		let gridPart = e.gridPart ?? e.parentPart ?? e.sender ?? {};
 		(gridPart ?? app.activeWndPart)?.openContextMenu({
 			gridPart, title, forcedRecs,
-			argsDuzenle: _e => $.extend(_e.wndArgs, { width: Math.min(1100, $(window).width() - 50), height: 230 }),
+			argsDuzenle: _e => $.extend(_e.wndArgs, { width: Math.min(1000, $(window).width() - 50), height: 270 }),
 			formDuzenleyici: async _e => {
-				delete _e.recs; let {form, close, gridPart} = _e, recs = _e.forcedRecs ?? e.recs ?? gridPart.selectedRecs;
+				delete _e.recs
+				let {form: ustForm, close, gridPart} = _e
+				let recs = _e.forcedRecs ?? e.recs ?? gridPart.selectedRecs
 				let idListe = recs.map(rec => rec.id), testId = idListe[0];
-				if (!idListe?.length) { return } if (idListe?.length > 1) { hConfirm('Sadece bir tane Test seçilmelidir', title); return false }
-				let bitenTestKeySet = {}; for (let rec of recs) {
+				if (!idListe?.length) { return }
+				if (idListe?.length > 1) {
+					wConfirm('Sadece bir tane Test seçilmelidir', title)
+					return false
+				}
+				let bitenTestKeySet = {}
+				for (let rec of recs) {
 					for (let {prefix: key} of ese) {
 						let value = rec[`b${key}yapildi`];
-						if (value) { bitenTestKeySet[key] = true }
+						if (value)
+							bitenTestKeySet[key] = true
 					}
 				}
-				form.yanYana().addStyle(e => `$elementCSS { padding-top: 40px }`);
-				/* let sent = new MQSent({ from, where: { degerAta: testId, saha: idSaha }, sahalar: '*' }) */
-				for (let {tip, belirtec, prefix, seq, etiket, sablonId} of ese) {
-					let altForm = form.addFormWithParent(prefix).altAlta();
-					altForm.addForm().setLayout(e => $(
-						`<h5 class="bold center royalblue" style="padding-bottom: 13px; margin-right: 10px; border-bottom: 1px solid royalblue">${etiket || ''}</h5>`));
-					let handler = __e => {
-						let {id} = __e.builder, parts = id.split('_'), [tip, belirtec, selector] = parts, seq = asInteger(parts[2]);
-						let args = { ...e, ..._e, ...__e, tip, belirtec, seq, testId, sablonId }; delete args.id;
-						close(); this[`${selector}Istendi`](args)
-					};
-					let bittimi = bitenTestKeySet[prefix], text = bittimi ? `<span class="orangered">[ TAMAMLANDI ]</span>` : 'Test Başlat';
-					let fbd_btn = altForm.addButton(`${tip}_${belirtec}_testBaslat_${seq}`, text).onClick(handler)
-					if (bittimi) { fbd_btn.disable() }
+				{
+					let form = ustForm.addFormWithParent().yanYana(2.85)
+						.addStyle_wh('var(--full)')
+						.addStyle(e => `$elementCSS { padding-top: 40px }`)
+					/* let sent = new MQSent({ from, where: { degerAta: testId, saha: idSaha }, sahalar: '*' }) */
+					for (let {tip, belirtec, prefix, seq, etiket, sablonId} of ese) {
+						let altForm = form.addFormWithParent(prefix).altAlta()
+						altForm.addForm().setLayout(e => $(
+							`<h5 class="bold center royalblue" style="padding-bottom: 13px; margin-right: 10px; border-bottom: 1px solid royalblue">${etiket || ''}</h5>`))
+						let handler = __e => {
+							let {id} = __e.builder, parts = id.split('_')
+							let [tip, belirtec, selector] = parts, seq = asInteger(parts[2])
+							let args = { ...e, ..._e, ...__e, tip, belirtec, seq, testId, sablonId }
+							delete args.id; close()
+							this[`${selector}Istendi`](args)
+						};
+						let bittimi = bitenTestKeySet[prefix], text = bittimi ? `<span class="orangered">[ TAMAMLANDI ]</span>` : 'Test Başlat'
+						let fbd_btn = altForm.addButton(`${tip}_${belirtec}_testBaslat_${seq}`, text).onClick(handler)
+						if (bittimi)
+							fbd_btn.disable()
+					}
+				}
+				{
+					let form = ustForm.addFormWithParent().altAlta()
+						.addStyle_wh(`calc(var(--full) - 27px)`)
+					form.addButton('testSonucGoster', 'TEST SONUÇ GÖSTER')
+						.addStyle_fullWH()
+						.onClick(__e => this.testSonucGosterIstendi({ ...e, ..._e, ...__e }))
 				}
 			}
 		})
@@ -269,6 +347,12 @@ class MQTest extends MQGuidOrtak {
 			return result
 		}
 		finally { window.progressManager?.progressEnd(); setTimeout(() => hideProgress(), 100) }
+	}
+	static testSonucGosterIstendi({ gridPart, wnd }) {
+		if (wnd?.length)
+			wnd.jqxWindow('close')
+		// let {selectedRec: rec} = gridPart
+		gridPart.degistirIstendi(...arguments)
 	}
 	static async eMailGonder(e) {
 		let recs = e.recs || [], {pAborted} = e, TopluSayi = 2;
@@ -349,14 +433,14 @@ class MQTest extends MQGuidOrtak {
 			}
 			catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Test Bilgisi') }
 		}
-		let {bcptyapildi, banketdeyapildi, bankethiyapildi} = rec;
-		let cptYapildimi = asBool(bcptyapildi), anketDEYapildimi = asBool(banketdeyapildi), anketHIYapildimi = asBool(bankethiyapildi);
-		let anketYapildimi = banketdeyapildi || bankethiyapildi;
-		let {tarih, hastaadi: HASTAADI, cinsiyet, aktifyas: YAS, doktoradi: DOKTORADI, uygulanmayeri: UYGTURU} = rec;
+		let {bcptyapildi, banketdeyapildi, bankethiyapildi, notlar} = rec
+		let cptYapildimi = asBool(bcptyapildi), anketDEYapildimi = asBool(banketdeyapildi), anketHIYapildimi = asBool(bankethiyapildi)
+		let anketYapildimi = banketdeyapildi || bankethiyapildi
+		let {tarih, hastaadi: HASTAADI, cinsiyet, aktifyas: YAS, doktoradi: DOKTORADI, uygulanmayeri: UYGTURU} = rec
 		let TARIH = dateToString(tarih), KURUMADI = 'ESE', CINSIYET = Cinsiyet.kaDict[cinsiyet]?.aciklama;
-		let {dogrusayi, yanlissayi, secilmeyendogrusayi, dogrusecimsurems, yanlissecimsurems} = rec;
+		let {dogrusayi, yanlissayi, secilmeyendogrusayi, dogrusecimsurems, yanlissecimsurems} = rec
 		if (!cptYapildimi) { dogrusayi = yanlissayi = secilmeyendogrusayi = dogrusecimsurems = yanlissecimsurems = 0 }
-		let {debelirtisayi, deskor, hibelirtisayi, hiskor} = rec;
+		let {debelirtisayi, deskor, hibelirtisayi, hiskor, bdehbvarmi, bdehbvarmiklinik} = rec
 		if (!anketDEYapildimi) { debelirtisayi = deskor = 0 }
 		if (!anketHIYapildimi) { hibelirtisayi = hiskor = 0 }
 		let cpt = testTip2Bilgi.cpt ?? {}, de = testTip2Bilgi.anketde ?? {}, hi = testTip2Bilgi.ankethi ?? {};
@@ -367,19 +451,22 @@ class MQTest extends MQGuidOrtak {
 		let baslik = {
 			TARIH, HASTAADI, YAS, CINSIYET, DOKTORADI, KURUMADI, UYGTURU,
 			CPT_SIKLIK: toplamTekrarSayi, CPT_ORTSURE: sureDk,
-			DUY_SAYI: duySayi, DUY_DEGER: dogrusayi, DUY_YUZDE: duySayi ? roundToFra1(dogrusayi * 100 / duySayi) : 0, DUY_ORT_SECIM: dogrusecimsurems,
+			DOGRU_SAYI: duySayi, DOGRU_DEGER: dogrusayi, DOGRU_YUZDE: duySayi ? roundToFra1(dogrusayi * 100 / duySayi) : 0, DOGRU_ORT_SECIM: dogrusecimsurems,
+			SECILMEYEN_DOGRU_SAYI: secilmeyendogrusayi,
 			YANLIS_SAYI: yanlisSayi, YANLIS_DEGER: yanlissayi, YANLIS_YUZDE: yanlisSayi ? roundToFra1(yanlissayi * 100 / yanlisSayi) : 0, YANLIS_ORT_SECIM: yanlissecimsurems,
 			ANKETDE_ADI: de.etiket, ANKETDE_SORUSAYI: de.soruSayi, ANKETDE_BELIRTISAYI: debelirtisayi, ANKETDE_SKOR: deskor,
 			ANKETHI_ADI: hi.etiket, ANKETHI_SORUSAYI: hi.soruSayi, ANKETHI_BELIRTISAYI: hibelirtisayi, ANKETHI_SKOR: hiskor,
 			CSS_CPT: cptYapildimi ? '' : ' hidden', CSS_CPT_ERROR: cptYapildimi ? ' hidden' : '',
+			STYLE_CPT: '', CSS_CPT_ROW: '',
 			CSS_ANKET: anketYapildimi ? '' : ' hidden', CSS_ANKET_ERROR: anketYapildimi ? ' hidden' : '',
-			CSS_ANKET_DE: anketDEYapildimi ? '' : ' hidden', CSS_ANKET_HI: anketHIYapildimi ? '' : ' hidden'
+			STYLE_ANKET: '', CSS_ANKET_DE: anketDEYapildimi ? '' : ' hidden', CSS_ANKET_HI: anketHIYapildimi ? '' : ' hidden',
+			NOTLAR: notlar
 		};
 		$.extend(baslik, {
 			TOPLAM_SORUSAYI: de.soruSayi + hi.soruSayi,
 			TOPLAM_BELIRTISAYI: baslik.ANKETDE_BELIRTISAYI + baslik.ANKETHI_BELIRTISAYI,
 			TOPLAM_SKOR: baslik.ANKETDE_SKOR + baslik.ANKETHI_SKOR,
-			DEHB_SONUC: rec.bdehbvarmi ? `<div class="var">VAR</div>` : `<div class="yok">YOK</div>`
+			DEHB_SONUC: bdehbvarmiklinik ?? bdehbvarmi ? `<div class="var">VAR</div>` : `<div class="yok">YOK</div>`
 		});
 		let {result: html} = dokumcu.process({ baslik }) ?? {};
 		/*if (config.dev) { let url = URL.createObjectURL(new Blob([html], { type: 'text/html' })); openNewWindow(url) }*/
@@ -390,7 +477,7 @@ class MQTest extends MQGuidOrtak {
 		return inst.baslat(e)
 	}
 	async baslat(e) {
-		const inst = this, {tip} = this.class, {id: testId, sablonId, belirtec} = this;
+		let inst = this, {tip} = this.class, {id: testId, sablonId, belirtec} = this;
 		clearTimeout(this._timerProgress); this._timerProgress = setTimeout(() => showProgress(), 500);
 		try {
 			let rec = (await app.wsTestBilgi({ tip, testId, sablonId, belirtec })) || {}; await this.testUI_setValues({ rec });
@@ -400,9 +487,9 @@ class MQTest extends MQGuidOrtak {
 		finally { clearTimeout(this._timerProgress); setTimeout(() => hideProgress(), 10) }
 	}
 	testUI_setValues(e) {
-		const {rec} = e; if (!rec) { return }
+		let {rec} = e; if (!rec) { return }
 		let keys = ['sablonID', 'sablonAdi', 'hastaID', 'doktorID', 'hastaAdi', 'doktorAdi'];
-		for (const key of keys) { let value = rec[key]; if (value !== undefined) { this[key.replace('ID', 'Id')] = value } }
+		for (let key of keys) { let value = rec[key]; if (value !== undefined) { this[key.replace('ID', 'Id')] = value } }
 		$.extend(this, { ts: now(), detaylar: rec.detaylar || [] })
 	}
 	static uiState2AdiDuzenle({ liste }) {
@@ -417,10 +504,10 @@ class MQTest extends MQGuidOrtak {
 
 	}
 	async testUI_initLayout(e) {
-		const {parentPart} = e, {header, content} = parentPart; content.children().remove();
-		const {ts: tarih, hastaAdi} = this; $.extend(parentPart, { tarih, hastaAdi });
-		const {tip, aciklama: tipAdi, uiState2Adi} = this.class, {id: testId, belirtec, sablonAdi} = this;
-		const getAdimText = () => { let result = uiState2Adi[state] ?? 'state'; if (sablonAdi /*&& state == 'home'*/) { result = `${tipAdi} <b class="royalblue">${sablonAdi}</b> Testi` } return result }
+		let {parentPart} = e, {header, content} = parentPart; content.children().remove();
+		let {ts: tarih, hastaAdi} = this; $.extend(parentPart, { tarih, hastaAdi });
+		let {tip, aciklama: tipAdi, uiState2Adi} = this.class, {id: testId, belirtec, sablonAdi} = this;
+		let getAdimText = () => { let result = uiState2Adi[state] ?? 'state'; if (sablonAdi /*&& state == 'home'*/) { result = `${tipAdi} <b class="royalblue">${sablonAdi}</b> Testi` } return result }
 		let {state} = parentPart; if (state == 'test') { this.genelSonuc = new this.class.testGenelSonucSinif({ tip, testId, belirtec }) }
 		$.extend(parentPart, { adimText: getAdimText(), headerText: '' });
 		await this.testUI_initLayout_ara(e); state = parentPart.state; parentPart.adimText = getAdimText();
@@ -430,7 +517,7 @@ class MQTest extends MQGuidOrtak {
 				btn.on('click', evt => { requestFullScreen(); parentPart.nextPage({ ...e, evt }) }); btn.appendTo(content);
 				break
 			case 'end':
-				const {genelSonuc} = this; if (genelSonuc) {
+				let {genelSonuc} = this; if (genelSonuc) {
 					console.table(genelSonuc); try { await genelSonuc.kaydet(e) } catch (ex) {
 						$(`<div class="resultText error">Test sonuçları kaydedilirken bir hata oluştu.</div><p/>`).appendTo(content);
 						$(`<div class="resultText">Kayıt işlemini tekrar denemek için <button id="retry" class="bold royalblue">buraya tıklayınız</b></button>.</div>`).appendTo(content);
@@ -454,8 +541,8 @@ class MQTestCPT extends MQTest {
 	static get kodListeTipi() { return 'TSTCPT' } static get sablonSinif() { return MQSablonCPT }
 	static get testUyariText() { return `Bu testi <span class="orangered">Çocuk</span> uygulayacaktır` }
 	testUI_setValues(e) {
-		super.testUI_setValues(e); const {rec} = e; if (!rec) { return }
-		for (const key of ['gecerliResimSeq', /*'grupTekrarSayisi',*/ 'baslamaOncesiBostaMS', 'resimGosterimMS', 'resimBostaMS']) {
+		super.testUI_setValues(e); let {rec} = e; if (!rec) { return }
+		for (let key of ['gecerliResimSeq', /*'grupTekrarSayisi',*/ 'baslamaOncesiBostaMS', 'resimGosterimMS', 'resimBostaMS']) {
 			let value = rec[key]; if (value !== undefined) { this[key] = value } }
 		this.baslamaOncesiBostaMS = rec.baslamaOncesiMS
 	}
@@ -555,7 +642,7 @@ class MQTestCPT extends MQTest {
 			case 'end':
 				$('body').off('keydown', keyDownHandler);
 				if (genelSonuc) {
-					for (const testSonuc of Object.values(genelSonuc.grupNo2Bilgi)) { genelSonuc.totalEkle(testSonuc); testSonuc.ortalamaOlustur() }
+					for (let testSonuc of Object.values(genelSonuc.grupNo2Bilgi)) { genelSonuc.totalEkle(testSonuc); testSonuc.ortalamaOlustur() }
 					genelSonuc.ortalamaOlustur()
 				} break
 			/*case 'end':
@@ -571,24 +658,24 @@ class MQTestAnket extends MQTest {
 	static get kodListeTipi() { return 'TSTANKET' } static get sablonSinif() { return MQSablonAnket }
 	static get testUyariText() { return `Bu testi <span class="orangered">Ebeveyn</span> uygulayacaktır` }
 	testUI_setValues(e) {
-		super.testUI_setValues(e); const {rec} = e; if (!rec) { return }
-		const keys = ['sureDk', 'yanitID'], PrefixSecenek = 'secenek', PrefixYanit = 'yanit';
-		for (const key of keys) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
-		for (const [key, value] of Object.entries(rec)) {
+		super.testUI_setValues(e); let {rec} = e; if (!rec) { return }
+		let keys = ['sureDk', 'yanitID'], PrefixSecenek = 'secenek', PrefixYanit = 'yanit';
+		for (let key of keys) { let value = rec[key]; if (value !== undefined) { this[key] = value } }
+		for (let [key, value] of Object.entries(rec)) {
 			if (key.startsWith(PrefixSecenek) || key.startsWith(PrefixYanit)) {
 				let value = rec[key]; if (value !== undefined) { this[key] = value } }
 		}
 	}
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
-		await super.testUI_initLayout_ara(e); const {parentPart} = e, {state, header, content, islemTuslari} = parentPart;
+		await super.testUI_initLayout_ara(e); let {parentPart} = e, {state, header, content, islemTuslari} = parentPart;
 		let {detaylar} = this, PrefixSecenek = 'secenek', PrefixYanit = 'yanit';
-		let rec = detaylar[0], secenekler = []; for (const key of Object.keys({ ...this, ...rec })) {
+		let rec = detaylar[0], secenekler = []; for (let key of Object.keys({ ...this, ...rec })) {
 			if (key.startsWith(PrefixSecenek) || key.startsWith(PrefixYanit)) {
 				let value = (rec[key] ?? this[key])?.trimEnd?.();
 				if (value) { secenekler[asInteger(key.slice(PrefixSecenek.length)) - 1] = value }
 			}
 		} 
-		let id2Soru = {}; for (const det of detaylar) { let {id, soru} = det; if (soru == null) { continue } soru = soru.trimEnd(); id2Soru[id] = soru }
+		let id2Soru = {}; for (let det of detaylar) { let {id, soru} = det; if (soru == null) { continue } soru = soru.trimEnd(); id2Soru[id] = soru }
 		let {genelSonuc, testId, sureDk} = this, {tip, testSonucSinif, testUyariText} = this.class;
 		let soruSayi = Object.values(id2Soru).filter(x => x && x[0] != '#').length;
 		let htmlList = [], countdown;
@@ -636,7 +723,7 @@ class MQTestAnket extends MQTest {
 				htmlList.push(`</div>`);
 				$(htmlList.join('')).appendTo(content); makeScrollable(content.find('.anket'));
 				content.find('.anket .item > .secenekler').jqxButtonGroup({ theme, mode: 'radio' }).on('buttonclick', evt => {
-					let {index} = evt.args; if (index == null) { return } index = asInteger(index); const seq = index + 1;
+					let {index} = evt.args; if (index == null) { return } index = asInteger(index); let seq = index + 1;
 					let soruId = $(evt.currentTarget).parents('.item').data('id'); if (!soruId) { return }
 					genelSonuc.soruId2Cevap[soruId] = { soru: id2Soru[soruId], index, puan: this[`yanit${seq}Puan`] }
 				});
