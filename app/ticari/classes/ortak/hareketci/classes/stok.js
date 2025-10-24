@@ -4,7 +4,8 @@ class StokHareketci extends Hareketci {
 	static get kodEk() { return '' } static get adiEk() { return '' } static get sablonsalVarmi() { return this._sablonsalVarmi }
 	static get uygunmu() { return true } static get maliTabloIcinUygunmu() { return true }
 	static get araSeviyemi() { return this == StokHareketci } static get maliTabloIcinUygunmu() { return true }
-	static get donemselIslemlerIcinUygunmu() { return false } static get eldekiVarliklarIcinUygunmu() { return false }
+	static get donemselIslemlerIcinUygunmu() { return false }
+	static get eldekiVarliklarIcinUygunmu() { return this.gercekmi && app.params?.finans?.eldekiVarlikStokDegerlemesiYapilir }
 	static get gercekmi() { return false } static get maliyetlimi() { return false }
 	static get clausecu() {
 		let {_clausecu: result} = this;
@@ -106,11 +107,27 @@ class StokHareketci extends Hareketci {
 		}
 		return result
 	}
-	static getAltTipAdiVeOncelikClause({ hv }) { return { } }
+	static getAltTipAdiVeOncelikClause({ hv }) {
+		return super.getAltTipAdiVeOncelikClause(...arguments)
+		/*return {
+			...super.getAltTipAdiVeOncelikClause(...arguments)
+			yon: `'${this.maliyetlimi ? 'sag' : 'sol'}'`
+		}*/
+	}
 	static mstYapiDuzenle({ result }) {
-		super.mstYapiDuzenle(...arguments);
-		result.set('stokkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
-			sent.fromIliski(`stkmst ${mstAlias}`, `${kodClause} = ${mstAlias}.kod`).add(`${mstAlias}.aciklama ${mstAdiAlias}`))
+		super.mstYapiDuzenle(...arguments); let defHVAlias = 'stokkod'
+		result.set(defHVAlias, ({ mstYapi, secimler: { stokTipi = {} } = {}, sent: { sahalar }, kodClause, mstAlias, mstAdiAlias }) => {
+			let hvAlias, adiClause
+			stokTipi = stokTipi?.tekSecim ?? stokTipi
+			if (stokTipi.grupmu) { hvAlias = 'grupkod'; adiClause = 'grp.aciklama' }
+			else if (stokTipi.anaGrupmu) { hvAlias = 'anagrupkod'; adiClause = 'agrp.aciklama' }
+			else if (stokTipi.istGrupmu) { hvAlias = 'sistgrupkod'; adiClause = 'sigrp.aciklama' }
+			else if (stokTipi.markami) { hvAlias = 'smarkakod'; adiClause = 'smar.aciklama' }
+			else { hvAlias = defHVAlias; adiClause = 'stk.aciklama' }
+			if (hvAlias)
+				mstYapi.hvAlias = hvAlias
+			sahalar.add(`${adiClause} ${mstAdiAlias}`)
+		})
 	}
     /* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
@@ -128,29 +145,58 @@ class StokHareketci extends Hareketci {
 		].filter(x => !!x))
     }
 	static async ilkIslemler(e) {
-		await super.ilkIslemler(e);
+		await super.ilkIslemler(e)
 		if (this._sablonsalVarmi == null) { this._sablonsalVarmi = await app.sqlHasTable('ozellikbirlesim') }
 	}
-	uniOrtakSonIslem({ sender, secimler, hvDegeri, hv, sent, attrSet }) {
-		super.uniOrtakSonIslem(...arguments); let {from, where: wh, sahalar} = sent;
-		let {sqlNull} = Hareketci_UniBilgi.ortakArgs, {sablonsalVarmi} = this.class;
-		let kodClause = hvDegeri('stokkod'), fiilimi = (secimler?.ISARET?.value || 'F') == 'F';
+	uniDuzenleOncesi({ sender: { finansalAnalizmi } = {} }) {
+		super.uniDuzenleOncesi(...arguments); let {attrSet} = this
+		if (finansalAnalizmi && attrSet) {
+			$.extend(attrSet, asSet(['miktar', 'miktar2']))
+			for (let key of ['bedel', 'brutbedel', 'malmuh', 'malhammadde', 'fmalmuh', 'fmalhammadde'])
+				delete attrSet[key]
+		}
+	}
+	uniOrtakSonIslem({ sender: { finansalAnalizmi } = true, secimler: sec, hvDegeri, hv, sent, sent: { from, where: wh, sahalar }, attrSet }) {
+		super.uniOrtakSonIslem(...arguments)
+		let {sqlNull} = Hareketci_UniBilgi.ortakArgs, {sablonsalVarmi} = this.class
+		let yerKodClause = hvDegeri('yerkod'), mustClause = hvDegeri('must')
+		let kodClause = hvDegeri('stokkod'), fiilimi = (sec?.ISARET?.value || 'F') == 'F';
 		if (!from.aliasIcinTable('stk')) { sent.fromIliski('stkmst stk', `${kodClause} = stk.kod`) }
-		if (!from.aliasIcinTable('yer')) { sent.x2YerBagla({ kodClause: hvDegeri('yerkod') }) }
-		if (!from.aliasIcinTable('car')) { sent.x2CariBagla({ kodClause: hvDegeri('must') }) }
-		let obirguidClause = hvDegeri('hvDegeri');
-		if (sablonsalVarmi && obirguidClause && obirguidClause != sqlNull && !from.aliasIcinTable('obir')) {
-			sent.leftJoin('har', 'ozellikbirlesim obir', 'har.obirguid = obir.guid');
-			hv.birozellikadi = 'obir.ozellikadi'
+		if (!from.aliasIcinTable('grp')) { sent.stok2GrupBagla() }
+		if (!from.aliasIcinTable('agrp')) { sent.stokGrup2AnaGrupBagla() }
+		if (!from.aliasIcinTable('sigrp')) { sent.stok2IstGrupBagla() }
+		if (!from.aliasIcinTable('smar')) { sent.stok2MarkaBagla() }
+		if (!from.aliasIcinTable('yer') && yerKodClause) { sent.x2YerBagla({ kodClause: yerKodClause }) }
+		if (!from.aliasIcinTable('car') && mustClause) { sent.x2CariBagla({ kodClause: mustClause }) }
+		{
+			let obirguidClause = hvDegeri('hvDegeri')
+			if (sablonsalVarmi && obirguidClause && obirguidClause != sqlNull && !from.aliasIcinTable('obir')) {
+				sent.leftJoin('har', 'ozellikbirlesim obir', 'har.obirguid = obir.guid');
+				hv.birozellikadi = 'obir.ozellikadi'
+			}
 		}
 		/*let istenmeyenIsaret = fiilimi ? 'X' : '*';
 		wh.notDegerAta(istenmeyenIsaret, hvDegeri('ozelisaret'))*/
 		wh.add(`${kodClause} > ''`)
+		if (finansalAnalizmi) {
+			//let {}
+			if (yerKodClause) {
+				wh.notInDizi(['H', 'IS', 'EM'], 'yer.aum')
+				wh.add(`yer.finanaliztipi = ''`)
+			}
+			let {eldekiVarlikStokDegerlemeTipi: degTipi = {}} = app?.params?.finans
+			degTipi = degTipi?.char ?? ''
+			let miktarClause = hvDegeri('miktar').sumOlmaksizin(), miktar2Clause = hvDegeri('miktar2').sumOlmaksizin()
+			let xMiktarClause = `(case when stk.almfiyatmiktartipi = '2' then ${miktar2Clause} else ${miktarClause} end)`
+			let fiyatClause = `(case '${degTipi}' when 'R' then stk.revizerayicalimfiyati when 'M' then stk.ortmalfiyat else stk.revizefiilialimfiyat end)`
+			let bedelClause = `ROUND(${xMiktarClause} * ${fiyatClause}, 2)`
+			sahalar.add(`${bedelClause} bedel`)
+		}
 	}
     /** Varsayılan değer atamaları (host vars) – temel sınıfa eklemeler.
 		Hareketci.varsayilanHVDuzenle değerleri aynen alınır, sadece eksikler eklenir */
     static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
-        super.varsayilanHVDuzenle(...arguments);
+        super.varsayilanHVDuzenle(...arguments)
 		for (let key of ['belgetarih', 'obirguid']) { hv[key] = sqlNull }
 		for (let key of ['dosyatipi', 'iadetip', 'must', 'refyerkod', 'masrafkod', 'takipno', 'birozellikadi']) { hv[key] = sqlEmpty }
 		for (let key of [
@@ -160,20 +206,24 @@ class StokHareketci extends Hareketci {
 		for (let key of ['mustkod', 'ticmust', 'fisaciklama', 'detaciklama']) { delete hv[key] }
 		$.extend(hv, {
 			seq: 'har.seq', stokkod: 'har.stokkod', koli: 'har.koli', miktar: 'har.miktar', miktar2: 'har.miktar2',
-			brm: 'stk.brm', malbrm: 'stk.brm', ba: sqlEmpty, ...this.getHV_hmr_bos({ hv })
+			brm: 'stk.brm', malbrm: 'stk.brm', ba: sqlEmpty,
+			grupkod: 'stk.grupkod', anagrupkod: 'grp.anagrupkod',
+			sistgrupkod: 'stk.sistgrupkod', smarkakod: 'stk.smarkakod',
+			...this.getHV_hmr_bos({ hv })
 		});
 		let altDonusum = {
 			unionayrim: 'kayittipi', brutbedel: 'bedel', sevktarihi: 'tarih', asilmiktar: 'miktar', revizemiktar: 'miktar', malmiktar: 'miktar',
 			belgefiyat: 'fiyat', belgebedel: 'bedel', fbedel: 'bedel', maliyet: 'bedel', fmaliyet: 'maliyet'
 		}
-		for (let [dest, src] of Object.entries(altDonusum)) { hv[dest] = hv => hv[src] }
+		for (let [dest, src] of Object.entries(altDonusum))
+			hv[dest] = hv => hv[src]
     }
     /** UNION sorgusu hazırlama – hareket tipleri için */
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
-        super.uygunluk2UnionBilgiListeDuzenleDevam(e);
-        this.uniDuzenle_stokGirisCikisTransfer(e).uniDuzenle_ticari(e);
-		this.uniDuzenle_perakendeVeGiderPusulasi(e).uniDuzenle_magaza(e);
-		this.uniDuzenle_fason(e).uniDuzenle_uretim(e).uniDuzenle_genelDekont(e);
+        super.uygunluk2UnionBilgiListeDuzenleDevam(e)
+        this.uniDuzenle_stokGirisCikisTransfer(e).uniDuzenle_ticari(e)
+		this.uniDuzenle_perakendeVeGiderPusulasi(e).uniDuzenle_magaza(e)
+		this.uniDuzenle_fason(e).uniDuzenle_uretim(e).uniDuzenle_genelDekont(e)
 		this.uniDuzenle_topluAlimMakbuz(e).uniDuzenle_kesimIslemi(e)
     }
 	static getHV_hmr_normal(e) { return this.getHV_hmr({ ...e, empty: false }) }

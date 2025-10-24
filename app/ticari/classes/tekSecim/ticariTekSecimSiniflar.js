@@ -593,3 +593,15 @@ class YerMaliyetSekli extends TekSecim {
 		)
 	}
 }
+class StokDegerleme extends TekSecim {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sinifAdi() { return 'Stok Değerleme' } static get defaultChar() { return '' }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(
+			new CKodVeAdi(['', 'Net Alım Fiyat', 'netAlimmi']),
+			new CKodVeAdi(['M', 'Ortalama Maliyet', 'ortMaliyetmi']),
+			new CKodVeAdi(['R', 'Rayiç Alım Fiyatı', 'rayicmi'])
+		)
+	}
+}

@@ -18,9 +18,19 @@ class CariHareketci extends Hareketci {
 		}
 	}
 	static mstYapiDuzenle({ result }) {
-		super.mstYapiDuzenle(...arguments);
-		result.set('must', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
-			sent.sahalar.add(`car.birunvan ${mstAdiAlias}`))
+		super.mstYapiDuzenle(...arguments); let defHVAlias = 'must'
+		result.set(defHVAlias, ({ mstYapi, secimler: { cariGosterim = {} } = {}, sent: { sahalar }, kodClause, mstAlias, mstAdiAlias }) => {
+			let hvAlias, adiClause
+			cariGosterim = cariGosterim?.tekSecim ?? cariGosterim
+			if (cariGosterim.bolgemi) { hvAlias = 'bolgekod'; adiClause = 'bol.aciklama' }
+			else if (cariGosterim.bolgemi) { hvAlias = 'anabolgekod'; adiClause = 'abol.aciklama' }
+			else if (cariGosterim.tipmi) { hvAlias = 'tipkod'; adiClause = 'ctip.aciklama' }
+			else if (cariGosterim.ilmi) { hvAlias = 'ilkod'; adiClause = 'il.aciklama' }
+			else { hvAlias = defHVAlias; adiClause = 'car.birunvan' }
+			if (hvAlias)
+				mstYapi.hvAlias = hvAlias
+			sahalar.add(`${adiClause} ${mstAdiAlias}`)
+		})
 	}
 	static hareketTipSecim_kaListeDuzenle({ kaListe }) {
 		super.hareketTipSecim_kaListeDuzenle(...arguments); let {params} = app;
@@ -43,14 +53,18 @@ class CariHareketci extends Hareketci {
 		super.uniOrtakSonIslem(...arguments)
 		if (!from.aliasIcinTable('car')) { sent.x2CariBagla({ kodClause: hv.must }) }
 		if (!from.aliasIcinTable('alth')) { sent.fromIliski('althesap alth', `${hv.althesapkod} = alth.kod`) }
+		if (!from.aliasIcinTable('bol')) { sent.cari2BolgeBagla() }
+		if (!from.aliasIcinTable('abol')) { sent.bolge2AnaBolgeBagla() }
 		if (!from.aliasIcinTable('ctip')) { sent.cari2TipBagla() }
+		if (!from.aliasIcinTable('il')) { sent.cari2IlBagla() }
 		// wh.add(`car.silindi = ''`)
 	}
 	static varsayilanHVDuzenle_ortak({ hv, sqlNull, sqlEmpty }) {
 		super.varsayilanHVDuzenle_ortak(...arguments);
 		$.extend(hv, {
 			no: 'fis.no', althesapadi: 'alth.aciklama',
-			finanalizkullanilmaz: 'ctip.finanaliztipi', dvkod: `dbo.emptycoalesce(alth.dvkod, car.dvkod)`
+			finanalizkullanilmaz: 'ctip.finanaliztipi', dvkod: `dbo.emptycoalesce(alth.dvkod, car.dvkod)`,
+			bolgekod: 'car.bolgekod', anabolgekod: 'bol.anabolgekod', tipkod: 'car.tipkod', ilkod: 'car.ilkod'
 		})
 	}
 	static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
@@ -610,15 +624,17 @@ class CariHareketci extends Hareketci {
 
 	static maliTablo_secimlerYapiDuzenle({ result }) {
 		super.maliTablo_secimlerYapiDuzenle(...arguments);
-		$.extend(result, { sube: DMQSube, subeGrup: DMQSubeGrup, mst: DMQCari, grup: DMQCariTip, bolge: DMQCariBolge })
+		$.extend(result, { sube: DMQSube, subeGrup: DMQSubeGrup, mst: DMQCari, bolge: DMQCariBolge, tip: DMQCariTip  })
 	}
 	static maliTablo_secimlerSentDuzenle({ detSecimler: detSec, sent, sent: { from, where: wh }, hv, mstClause }) {
 		super.maliTablo_secimlerSentDuzenle(...arguments)
-		sent.cari2TipBagla().cari2BolgeBagla()
+		if (!from.aliasIcinTable('bol')) { sent.cari2BolgeBagla() }
+		if (!from.aliasIcinTable('ctip')) { sent.cari2TipBagla() }
+		if (!from.aliasIcinTable('il')) { sent.cari2IlBagla() }
 		if (mstClause) {
 			wh.basiSonu(detSec.mstKod, mstClause).ozellik(detSec.mstAdi, 'car.aciklama')
-			wh.basiSonu(detSec.grupKod, 'car.tipkod').ozellik(detSec.grupAdi, 'ctip.aciklama')
 			wh.basiSonu(detSec.bolgeKod, 'car.bolgekod').ozellik(detSec.bolgeAdi, 'bol.aciklama')
+			wh.basiSonu(detSec.tipKod, 'car.tipkod').ozellik(detSec.tipAdi, 'ctip.aciklama')
 		}
 	}
 }

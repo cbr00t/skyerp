@@ -24,16 +24,44 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 	static get yon() { return 'sol' } static get solmu() { return true }
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
-		let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => cls.eldekiVarliklarIcinUygunmu)
-		let anaTip_kaListe = []
-		for (let {kod, aciklama} of harClasses)
-			anaTip_kaListe.push(new CKodVeAdi([kod, aciklama]))
-		let grupKod = 'donemVeTarih'
-		sec.grupEkle(grupKod, 'Tarih ve Bilgiler')
-		sec.secimTopluEkle({
-			tarih: new SecimTekilDate({ grupKod, etiket: '... Tarihdeki Durum', placeHolder: 'Bugünkü Durum' }),
-			anaTip: new SecimBirKismi({ grupKod, etiket: 'Gösterilecek Bilgiler', kaListe: anaTip_kaListe }).birKismi().autoBind()
-		})
+		{
+			let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => cls.eldekiVarliklarIcinUygunmu)
+			let anaTip_kaListe = []
+			for (let {kod, aciklama} of harClasses)
+				anaTip_kaListe.push(new CKodVeAdi([kod, aciklama]))
+			let grupKod = 'donemVeTarih'
+			sec.grupEkle(grupKod, 'Tarih ve Bilgiler')
+			sec.secimTopluEkle({
+				tarih: new SecimTekilDate({ grupKod, etiket: '... Tarihdeki Durum', placeHolder: 'Bugünkü Durum' }),
+				anaTip: new SecimBirKismi({ grupKod, etiket: 'Gösterilecek Bilgiler', kaListe: anaTip_kaListe }).birKismi().autoBind(),
+			})
+		}
+		{
+			let cariGosterim_tSec = new TekSecim({
+				char: '',
+				kaListe: [	new CKodVeAdi(['', 'Cari Hesap', 'carimi']),
+					new CKodVeAdi(['BL', 'Bölge', 'bolgemi']),
+					new CKodVeAdi(['AB', 'Ana Bölge', 'anaBolgemi']),
+					new CKodVeAdi(['TP', 'Tip', 'tipmi']),
+					new CKodVeAdi(['IL', 'İl', 'ilmi'])
+				]
+			})
+			let stokTipi_tSec = new TekSecim({
+				char: '',
+				kaListe: [	new CKodVeAdi(['', 'Stok', 'stokmu']),
+					new CKodVeAdi(['GR', 'Grup', 'grupmu']),
+					new CKodVeAdi(['AG', 'Ana Grup', 'anaGrupmu']),
+					new CKodVeAdi(['IG', 'İst. Grup', 'istGrupmu']),
+					new CKodVeAdi(['MR', 'Marka', 'markami'])
+				]
+			})
+			let grupKod = 'gosterim'
+			sec.grupEkle(grupKod, 'Gösterim')
+			sec.secimTopluEkle({
+				cariGosterim: new SecimTekSecim({ grupKod, etiket: 'Cari Gösterim', tekSecim: cariGosterim_tSec }).autoBind(),
+				stokTipi: new SecimTekSecim({ grupKod, etiket: 'Stok Tipi', tekSecim: stokTipi_tSec }).autoBind()
+			})
+		}
 		sec.addKA('sube', DMQSube, ({ hv }) => hv.bizsubekod, 'sub.aciklama')
 		sec.addKA('subeGrup', DMQSubeGrup, 'sub.isygrupkod', 'igrp.aciklama')
 	}
@@ -81,19 +109,20 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		let sabitBelirtecler = [
 			'alttiponcelik', 'alttipadi', 'yon', 'finanalizkullanilmaz',
 			'tarih', 'ba', 'bedel', 'dvbedel', 'dvkod', 'belgetipi',
-			'bizsubekod'
+			'bizsubekod', 'bolgekod', 'tipkod', 'ilkod',
+			'stokkod', 'grupkod', 'anagrupkod', 'sistgrupkod', 'smarkakod'
 		];
 		if (ozelIsaretVarmi) { sabitBelirtecler.push('ozelisaret') }
 		let harListe = []; for (let cls of harClasses) {
-			let {kod: anaTip, mstYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi;
-			let belirtecler = [...sabitBelirtecler, mstKodAlias, mstAdiAlias, mstAdiAlias2].filter(x => !!x);
+			let {kod: anaTip, mstYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi
+			let belirtecler = [...sabitBelirtecler, mstKodAlias, mstAdiAlias, mstAdiAlias2].filter(x => !!x)
 			let har = new cls(); har.withAttrs(belirtecler); harListe.push(har)
 		}
 		let sonTarih = sec.tarih.value || null, buYonClause = yon.sqlServerDegeri();
 		let uni = new MQUnionAll()
 		for (let har of harListe) {
 			let {oncelik, mstYapi, kod: harTipKod} = har.class
-			let {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi;
+			let {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi
 			let harUni = har.uniOlustur({ sender: this })
 			for (let harSent of harUni) {
 				if (!harSent)
@@ -105,14 +134,22 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 				} = alias2Deger
 				dvKodClause = dvKodClause || sqlEmpty
 				let dvBosmuClause = this.getDvBosmuClause(dvKodClause)
-				let bedelClause = this.getDovizliBedelClause({ dvKodClause, tlBedelClause, dvBedelClause, sumOlmaksizin: true });
-				let kodClause = alias2Deger[mstKodAlias], adiClause = alias2Deger[mstAdiAlias], adiClause2 = alias2Deger[mstAdiAlias2];
-				sahalar.liste = []; sahalar.add(`'${harTipKod}' anatip`)
-				if (adiClause) { sahalar.add(`${adiClause} mstadi`) }
-				else { mstYapi.duzenle({ sent: harSent, wh, kodClause }) }
-				sahalar.add(`${adiClause2 || sqlEmpty} mstadi2`)
+				let bedelClause = this.getDovizliBedelClause({ dvKodClause, tlBedelClause, dvBedelClause, sumOlmaksizin: true })
+				let mstKodClause = alias2Deger[mstKodAlias], mstAdiClause = alias2Deger[mstAdiAlias], mstAdiClause2 = alias2Deger[mstAdiAlias2]
+				sahalar.liste = []
+				sahalar.add(`'${harTipKod}' anatip`)
+				if (mstAdiClause)
+					sahalar.add(`${mstAdiClause} ${mstAdiAlias}`)
+				else {
+					mstYapi.duzenle({ sender: this, secimler: sec, sent: harSent, wh, kodClause: mstKodClause })
+					$.extend(alias2Deger, { ...harSent.alias2Deger })
+					mstKodAlias = mstYapi.hvAlias; mstAdiAlias = mstYapi.hvAdiAlias || mstAdiAlias; mstAdiAlias2 = mstYapi.hvAdiAlias2 || mstAdiAlias2
+					mstKodClause = alias2Deger[mstKodAlias]; mstAdiClause = alias2Deger[mstAdiAlias]; mstAdiClause2 = alias2Deger[mstAdiAlias2]
+				}
+				sahalar.add(`${mstAdiClause2 || sqlEmpty} ${mstAdiAlias2}`)
+				mstKodClause ||= sqlEmpty
 				sahalar.add(
-					`${kodClause} mstkod`, `${oncelik} oncelik`, `${grupAdiClause} grup`, `${grupOncelikClause} gruponcelik`,
+					`${mstKodClause} mstkod`, `${oncelik} oncelik`, `${grupAdiClause} grup`, `${grupOncelikClause} gruponcelik`,
 					`${this.getRevizeDvKodClause(dvKodClause)} dvkod`,
 					`SUM(case when ${baClause} = 'B' then ${bedelClause} else 0 - ${bedelClause} end) bedel`
 				);
@@ -143,15 +180,16 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		let {class: { sagmi }} = this
 		let recsDvKodSet = this.recsDvKodSet = {}
 		for (let rec of recs) {
-			let {dvkod: dvKod, bedel, dvbedel, mstadi: mstAdi, mstadi2: mstAdi2} = rec;
-			if (this.getDovizmi(dvKod)) {
-				rec[`bedel_${dvKod}`] = bedel; rec.bedel = 0;
+			let {dvkod: dvKod, bedel, dvbedel, mstadi: mstAdi, mstadi2: mstAdi2} = rec
+			if (this.getDovizmi(dvKod))
 				recsDvKodSet[dvKod] = true
-			}
-			if (!mstAdi && mstAdi2) { mstAdi = rec.mstadi = mstAdi2 }
+			if (!mstAdi && mstAdi2)
+				mstAdi = rec.mstadi = mstAdi2
 			if (sagmi) {
-				if (bedel) { bedel = rec.bedel = -bedel }
-				if (dvbedel) { dvbedel = rec.dvbedel = -dvbedel }
+				if (bedel)
+					bedel = rec.bedel = -bedel
+				if (dvbedel)
+					dvbedel = rec.dvbedel = -dvbedel
 			}
 		}
 		return super.loadServerData_recsDuzenleIlk(...arguments)
@@ -164,11 +202,28 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 				(onc1 - onc2) || (grup1 - grup2) || (mst1 - mst2)
 		)
 	}*/
+	loadServerData_recsDuzenleSon({ recs }) {
+		let {recsDvKodSet} = this
+		if (!empty(recsDvKodSet)) {
+			for (let sev of recs) {                // sev: anatip
+				let mst2Detay = sev.mst2Detay = {}
+				for (let rec of sev.detaylar) {
+					let {mstkod: mst = '', dvkod: dvKod, bedel} = rec
+					if (!this.getDovizmi(dvKod))
+						dvKod = ''
+					let newRec = mst2Detay[mst] ??= { ...rec, bedel: 0 }
+					newRec[dvKod ? `bedel_${dvKod}` : 'bedel'] = bedel
+				}
+				sev.detaylar = Object.values(mst2Detay)
+			}
+		}
+		return super.loadServerData_recsDuzenleSon({ ...arguments[0], recs })
+	}
 	gridVeriYuklendi(e) {
 		super.gridVeriYuklendi(e);
 		let {gridPart, recsDvKodSet} = this, {gridWidget} = gridPart, {base} = gridWidget;
 		for (let dvKod of this.dvKodListe) {
-			let dvKodVarmi = recsDvKodSet[dvKod];
+			let dvKodVarmi = recsDvKodSet[dvKod]
 			base[dvKodVarmi ? 'showColumn' : 'hideColumn'](`bedel_${dvKod}`)
 		}
 		let {boundRecs: recs} = e; gridPart.expandedRowsSet = {};

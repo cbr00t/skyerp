@@ -88,9 +88,9 @@ class Hareketci extends CObject {
 		return result
 	}
 	get uygunluk2UnionBilgiListe() {
-		let {uygunluk} = this, {zorunluAttrSet} = this.class, e;
-		this.uygunluk2UnionBilgiListeDuzenle(e = { uygunluk, zorunluAttrSet, liste: {} });
-		let {liste} = e; this.uniBilgiAllHVFix({ liste });
+		let {uygunluk} = this, {zorunluAttrSet} = this.class, e
+		this.uygunluk2UnionBilgiListeDuzenle(e = { uygunluk, zorunluAttrSet, liste: {} })
+		let {liste} = e; this.uniBilgiAllHVFix({ liste })
 		return liste
 	}
 	/*get uygunluk2UnionBilgiListe() {
@@ -118,7 +118,10 @@ class Hareketci extends CObject {
 		});
 		let {ekDuzenleyiciler, whereYapi} = this;
 		this.ekDuzenleyiciler = e.ekDuzenleyiciler ?? [];
-		for (let key of ['master', 'hareket']) { let value = e[key]; if (value !== undefined) { whereYapi[key] = value } }
+		for (let key of ['master', 'hareket']) {
+			let value = e[key]
+			if (value !== undefined) { whereYapi[key] = value }
+		}
 	}
 	static getClass(e) { let kod = typeof e == 'object' ? (e.kod ?? e.tip) : e; return this.kod2Sinif[kod] }
 	/*static altTipYapilarDuzenle(e) {
@@ -225,7 +228,8 @@ class Hareketci extends CObject {
 		return uni
 	}
 	uniDuzenle(e) {
-		let {uygunluk2UnionBilgiListe, attrSet} = this, {varsayilanHV: defHV, zorunluAttrSet} = this.class;
+		this.uniDuzenleOncesi(e)
+		let {uygunluk2UnionBilgiListe, attrSet} = this, {varsayilanHV: defHV, zorunluAttrSet} = this.class
 		let rapor = e.rapor ?? e.sender, secimler = e.secimler ?? rapor?.secimler;
 		if (empty(attrSet)) { attrSet = null }
 		let {uygunluk} = this, uygunlukVarmi = !empty(uygunluk);
@@ -234,7 +238,8 @@ class Hareketci extends CObject {
 			if (uygunlukVarmi)
 				uygunluk = asSet(hareketTipSecim.kaListe.map(({ kod }) => kod))
 		}
-		let sender = this, hareketci = this, {uni, maliTablomu} = e; $.extend(e, { uygunluk, zorunluAttrSet });
+		let sender = this, hareketci = this, {uni, maliTablomu, sender: { finansalAnalizmi } = {}} = e
+		$.extend(e, { uygunluk, zorunluAttrSet })
 		for (let [selectorStr, unionBilgiListe] of Object.entries(uygunluk2UnionBilgiListe)) {
 			let uygunmu = true; if (uygunlukVarmi) {
 				let keys = selectorStr.split('$').filter(x => !!x);
@@ -261,11 +266,12 @@ class Hareketci extends CObject {
 				let hvDegeri = key => hv?.[key] || defHV?.[key];
 				$.extend(_e, { defHV, hv, har: this, harSinif: this.class, rapor, secimler, hvDegeri });
 				this.uniDuzenle_tumSonIslemler(_e); sent = _e.sent;
-				if (!maliTablomu) { sent.groupByOlustur().gereksizTablolariSil() }
+				if (!(maliTablomu || finansalAnalizmi)) { sent.groupByOlustur().gereksizTablolariSil() }
 				if (sent?.sahalar?.liste?.length) { uni.add(sent) }
 			}
 		}
 	}
+	uniDuzenleOncesi(e) { }
 	uniDuzenle_tumSonIslemler(e) {    /* degerci bosGcbEkle value: sent. degerci koopDonemEkle value: sent. degerci sonIslem value: sent */
 		return this.uniDuzenle_whereYapi(e).uniDuzenle_ekDuzenleyiciler(e).uniDuzenle_sonIslem(e)
 	}

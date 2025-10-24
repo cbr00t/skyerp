@@ -294,86 +294,135 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		return recs
 	}
 	loadServerData_recsDuzenleIlk(e) {
-		let {recs} = e; let {tabloYapi} = this, {kaPrefixes, sortAttr, grupVeToplam} = tabloYapi, fixKA = (rec, prefix) => {
-			if (rec == null) { return } let item = grupVeToplam[prefix] ?? grupVeToplam[prefix.toUpperCase()], {kodsuzmu} = item || {};
-			let kod = kodsuzmu ? null : rec[prefix + 'kod'], adi = rec[prefix + 'adi'];
-			if (!kod || adi == null) { rec[prefix] = adi || kod; /* for (let postfix of ['kod', 'adi']) { delete rec[prefix + postfix] } */ }
+		let {recs} = e; let {tabloYapi, tabloYapi: { kaPrefixes, sortAttr, grupVeToplam }} = this
+		let fixKA = (rec, prefix) => {
+			if (rec == null) { return } let item = grupVeToplam[prefix] ?? grupVeToplam[prefix.toUpperCase()], {kodsuzmu} = item || {}
+			let kod = kodsuzmu ? null : rec[prefix + 'kod'], adi = rec[prefix + 'adi']
+			if (!kod || adi == null) { rec[prefix] = adi || kod /* for (let postfix of ['kod', 'adi']) { delete rec[prefix + postfix] } */ }
 			else { this.fixKA(rec, prefix, kodsuzmu) }
 			/* if (rec.xmuhhesap == null) { debugger } */
 		};
-		let id = 1; for (let rec of recs) { for (let prefix of kaPrefixes) { fixKA(rec, prefix) } rec.id = id++ }
-		if (sortAttr) { recs.sort((a, b) => { a = a[sortAttr] || 0; b = b[sortAttr] || 0; return a > b ? -1 : a < b ? 1 : 0 }) }
+		let id = 1; for (let rec of recs) {
+			for (let prefix of kaPrefixes)
+				fixKA(rec, prefix)
+			rec.id = id++
+		}
+		if (sortAttr)
+			recs.sort((a, b) => { a = a[sortAttr] || 0; b = b[sortAttr] || 0; return a > b ? -1 : a < b ? 1 : 0 })
 		e.recs = recs; return super.loadServerData_recsDuzenleIlk(e)
 	}
 	loadServerData_recsDuzenle_seviyelendir(e) {
-		super.loadServerData_recsDuzenle_seviyelendir(e); let {gridPart, tabloYapi, raporTanim} = this, {gridWidget} = gridPart;
-		let {grup, icerik} = raporTanim, {kullanim} = raporTanim, {yatayAnaliz} = kullanim;
-		let attrSet = raporTanim._ozelAttrSet ?? raporTanim.attrSet;
-		let belirtec2ColDef = [], grupColAttrListe = [], _sumAttrListe = [], _avgAttrListe = [];
+		super.loadServerData_recsDuzenle_seviyelendir(e)
+		let {gridPart, tabloYapi, raporTanim /*, recsDvKodSet*/} = this, {gridWidget} = gridPart
+		let {grup, icerik} = raporTanim, {kullanim} = raporTanim, {yatayAnaliz} = kullanim
+		let attrSet = raporTanim._ozelAttrSet ?? raporTanim.attrSet
+		let belirtec2ColDef = [], grupColAttrListe = [], _sumAttrListe = [], _avgAttrListe = []
 		for (let kod in grup) {
-			let item = tabloYapi.grup[kod]; if (!item) { continue }
-			let {colDefs} = item; if (!colDefs) { continue }
-			for (let colDef of colDefs) { let {belirtec} = colDef; belirtec2ColDef[belirtec] = colDef; grupColAttrListe.push(belirtec) }
-		}
-		for (let kod in attrSet) {
-			if (grup[kod]) { continue } let toplammi = false, item = tabloYapi.grup[kod]; if (!item && (item = tabloYapi.toplam[kod])) { toplammi = true }
-			if (!item) { continue }
-			let {colDefs} = item; if (!colDefs) { continue }
+			let item = tabloYapi.grup[kod];
+			let {colDefs} = item ?? {}
+			if (!colDefs)
+				continue
 			for (let colDef of colDefs) {
-				let {belirtec} = colDef; belirtec2ColDef[belirtec] = colDef; if (toplammi) { _sumAttrListe.push(belirtec) }
-				/*if (toplammi) { (colDef?.aggregates?.includes('avg') ? _avgAttrListe : _sumAttrListe).push(belirtec) } */
+				let {belirtec} = colDef
+				belirtec2ColDef[belirtec] = colDef
+				grupColAttrListe.push(belirtec)
 			}
 		}
-		let {records: jqxCols} = gridWidget.base.columns;
-		let formuller = []; for (let key in attrSet) { let item = tabloYapi.grupVeToplam[key]; if (item?.formulmu) { formuller.push(item) } }
-		let {recs} = e; if (recs) {
-			let _recs = recs; recs = []; for (let _rec of _recs) {
-				if (!_rec) { continue } let rec = new DAltRapor_PanelRec({ ..._rec }); recs.push(rec);
-				for (let item of formuller) { item.formulEval({ rec }) }
-			} e.recs = recs
+		/*if (!empty(recsDvKodSet))
+			grupColAttrListe.push(...Object.keys(recsDvKodSet))*/
+		for (let kod in attrSet) {
+			if (grup[kod])
+				continue
+			let toplammi = false, item = tabloYapi.grup[kod]
+			if (!item && (item = tabloYapi.toplam[kod]))
+				toplammi = true
+			let {colDefs} = item ?? {}
+			if (!colDefs)
+				continue
+			for (let colDef of colDefs) {
+				let {belirtec} = colDef
+				belirtec2ColDef[belirtec] = colDef
+				if (toplammi)
+					_sumAttrListe.push(belirtec)
+				/*if (toplammi)
+					(colDef?.aggregates?.includes('avg') ? _avgAttrListe : _sumAttrListe).push(belirtec) */
+			}
 		}
-		let {grupVeToplam} = tabloYapi, gtTip2AttrListe = { sabit: [], toplam: [] };
+		let {grupVeToplam} = tabloYapi
+		let {records: jqxCols} = gridWidget.base.columns
+		let formuller = []; for (let key in attrSet) {
+			let item = grupVeToplam[key]
+			if (item?.formulmu)
+				formuller.push(item)
+		}
+		let {recs} = e
 		if (recs) {
-			for (let colDef of Object.values(belirtec2ColDef)/*.filter(colDef => colDef.belirtec != yatayBelirtec)*/) {
-				let toplammi = colDef?.userData?.tip == 'toplam', selector = toplammi ? 'toplam' : 'sabit';
+			let _recs = recs; recs = []
+			for (let _rec of _recs) {
+				if (!_rec)
+					continue
+				let rec = new DAltRapor_PanelRec({ ..._rec })
+				recs.push(rec)
+				for (let item of formuller)
+					item.formulEval({ rec })
+			}
+			e.recs = recs
+		}
+		let gtTip2AttrListe = { sabit: [], toplam: [] }
+		if (recs) {
+			for (let colDef of Object.values(belirtec2ColDef) /*.filter(colDef => colDef.belirtec != yatayBelirtec)*/) {
+				let toplammi = colDef?.userData?.tip == 'toplam', selector = toplammi ? 'toplam' : 'sabit'
 				gtTip2AttrListe[selector].push(colDef.belirtec)
 			}
-			if (yatayAnaliz) {
-				let yatayBelirtec = tabloYapi.grup[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod]?.colDefs?.[0]?.belirtec;
-				if (yatayBelirtec) {
-					/*let orj_toplamAttrSet = asSet(gtTip2AttrListe.toplam);
-					let toplamAttrListe = jqxCols.map(({ datafield }) => datafield).filter(belirtec => orj_toplamAttrSet[belirtec.split('_')[0]]);*/
-					let item = grupVeToplam[yatayBelirtec] ?? grupVeToplam[yatayBelirtec.toUpperCase()], {kodsuzmu} = item || {};
-					for (let rec of recs) { this.fixKA(rec, yatayBelirtec, kodsuzmu) }
-					let source = recs, attrGruplari = [gtTip2AttrListe.sabit.filter(x => x != yatayBelirtec)]
-					let toplamAttrListe = gtTip2AttrListe.toplam, sevRecs = seviyelendirAttrGruplari({
-						source, attrGruplari,
-						getter: ({ item }) => new DAltRapor_PanelRec_Donemsel({ yatayBelirtec, toplamAttrListe, ...item })
-					});
-					let tumYatayAttrSet = e.tumYatayAttrSet ?? {}, _e = { ...e, tumYatayAttrSet }; for (let sev of sevRecs) { sev.donemselDuzenle(_e) }
-					for (let sev of sevRecs) { sev.donemselAttrFix(_e) }
-					if (!$.isEmptyObject(tumYatayAttrSet)) {
-						_sumAttrListe.push(...Object.keys(tumYatayAttrSet)/*.filter(x => !x.endsWith('_TOPLAM'))*/);
-						_sumAttrListe = Object.keys(asSet(_sumAttrListe))
-					}
-					recs = sevRecs
+		}
+		if (recs && yatayAnaliz) {
+			let yatayBelirtec = tabloYapi.grup[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod]?.colDefs?.[0]?.belirtec
+			if (yatayBelirtec) {
+				/*let orj_toplamAttrSet = asSet(gtTip2AttrListe.toplam);
+				let toplamAttrListe = jqxCols.map(({ datafield }) => datafield).filter(belirtec => orj_toplamAttrSet[belirtec.split('_')[0]]);*/
+				let item = grupVeToplam[yatayBelirtec] ?? grupVeToplam[yatayBelirtec.toUpperCase()]
+				let {kodsuzmu} = item || {}
+				for (let rec of recs)
+					this.fixKA(rec, yatayBelirtec, kodsuzmu)
+				let source = recs, attrGruplari = [gtTip2AttrListe.sabit.filter(x => x != yatayBelirtec)]
+				let {toplam: toplamAttrListe} = gtTip2AttrListe
+				let sevRecs = seviyelendirAttrGruplari({
+					source, attrGruplari,
+					getter: ({ item }) =>
+						new DAltRapor_PanelRec_Donemsel({ yatayBelirtec, toplamAttrListe, ...item })
+				});
+				let tumYatayAttrSet = e.tumYatayAttrSet ?? {}, _e = { ...e, tumYatayAttrSet }
+				for (let sev of sevRecs)
+					sev.donemselDuzenle(_e)
+				for (let sev of sevRecs)
+					sev.donemselAttrFix(_e)
+				if (!empty(tumYatayAttrSet)) {
+					_sumAttrListe.push(...Object.keys(tumYatayAttrSet)/*.filter(x => !x.endsWith('_TOPLAM'))*/)
+					_sumAttrListe = Object.keys(asSet(_sumAttrListe))
 				}
+				recs = sevRecs
 			}
 		}
-		let sevListe, grupTextColAttr = jqxCols?.[0]?.datafield;
+		let sevListe, {datafield: grupTextColAttr} = jqxCols?.[0] ?? {}
 		if (grupColAttrListe?.length) {
-			let id = 1; sevListe = seviyelendir({
-				source: recs, attrListe: grupColAttrListe, getter: e => {
-					let {item, sevAttr} = e;
-					let _rec = new DAltRapor_PanelGruplama({ id, _sumAttrListe, _avgAttrListe, ...item });
-					_rec[grupTextColAttr] = _rec[sevAttr];
-					for (let key of gtTip2AttrListe.sabit) { if (key != grupTextColAttr) { _rec[key] = '' } }
-					id++; return _rec
+			let id = 1
+			sevListe = seviyelendir({
+				source: recs, attrListe: grupColAttrListe,
+				getter: ({ item, sevAttr }) => {
+					let _rec = new DAltRapor_PanelGruplama({ id, _sumAttrListe, _avgAttrListe, ...item })
+					_rec[grupTextColAttr] = _rec[sevAttr]
+					for (let key of gtTip2AttrListe.sabit) {
+						if (key != grupTextColAttr)
+							_rec[key] = ''
+					}
+					id++
+					return _rec
 				}
-			});
+			})
 			for (let sev of sevListe) {
-				sev.toplamYapiOlustur?.();
-				for (let item of formuller) { item.formulEval({ rec: sev }) }
+				sev.toplamYapiOlustur?.()
+				for (let item of formuller)
+					item.formulEval({ ...e, rec: sev })
 			}
 		}
 		/*let avgBelirtec2ColDef = {}; for (let key in attrSet) {
@@ -401,7 +450,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		let {gridWidget} = this.gridPart, sevRecs = e.recs ?? gridWidget.getRows(), deger2Bilgiler = {};
 		for (let sev of sevRecs) {
 			let value = sev[icerikAttr]
-			if (value) { (deger2Bilgiler[value] = deger2Bilgiler[value] || []).push(sev) }
+			if (value) 
+				(deger2Bilgiler[value] = deger2Bilgiler[value] || []).push(sev)
 		}
 		let tersSiraliDegerler = Object.keys(deger2Bilgiler).map(x => asFloat(x)).sort((a, b) => a < b ? 1 : -1);
 		let sortDir = gridWidget.base.sortdirection

@@ -44,25 +44,28 @@ class Hareketci_MstYapi extends CObject {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tableAlias() { return 'mst' } static get aliasVeNokta() { return [this.tableAlias, ''].join('.') }
 	constructor(e) {
-		e = e ?? {}; super(e);
+		e ??= {}; super(e)
 		$.extend(this, { hvAlias: e.hvAlias, hvAdiAlias: e.hvAdiAlias, hvAdiAlias2: e.hvAdiAlias2, duzenleyici: e.duzenleyici })
+		this.hvAdiAlias ||= 'mstadi'; this.hvAdiAlias2 ||= 'mstadi2'
 	}
 	duzenle(e) {  /* e: { sent, wh } */
 		let {duzenleyici: handler} = this; if (!handler) { return this }
 		let {sent, where: wh} = e; wh = wh ?? e.wh ?? sent?.where;
 		let {tableAlias: mstAlias, aliasVeNokta: mstAliasVeNokta} = this.class;
 		let {kod, hvAlias} = this, mstAdiAlias = 'mstadi';
-		let _e = { ...e, sent, wh, kod, hvAlias, mstAlias, mstAdiAlias, mstAliasVeNokta }; delete _e.where;
+		let _e = { ...e, mstYapi: this, sent, wh, kod, hvAlias, mstAlias, mstAdiAlias, mstAliasVeNokta }
+		delete _e.where
 		if (_e.mstKodClause && !_e.kodClause) { _e.kodClause = _e.mstKodClause; delete _e.mstKodClause }
 		if (_e.mstAdiClause && !_e.adiClause) { _e.adiClause = _e.mstAdiClause; delete _e.mstAdiClause }
 		getFuncValue.call(this, handler, _e);
-		sent = _e.sent; wh = _e.where ?? sent?.where; $.extend(e, { sent, wh });
+		sent = _e.sent; wh = _e.where ?? sent?.where; $.extend(e, { sent, wh })
 		return this
 	}
 	set(e, _duzenleyici) {
+		e ??= {}
 		e = typeof e == 'object' ? e : { hvAlias: e, duzenleyici: _duzenleyici };
 		for (let key of ['hvAlias', 'hvAdiAlias', 'hvAdiAlias2', 'duzenleyici']) {
-			let value = e[key];
+			let value = e[key]
 			if (value !== undefined) { this[key] = e[key] }
 		}
 		return this

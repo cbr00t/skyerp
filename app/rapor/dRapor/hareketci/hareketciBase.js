@@ -93,7 +93,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		this.tabloYapiDuzenle_odemeGun(e);
 		result.addGrupBasit('REF', 'Referans', 'ref', null, null, ({ item }) => item.setOrderBy('refadi'));
 		result.addGrupBasit('ANAISLEM', 'Ana İşlem', 'anaislemadi');
-		result.addGrupBasit('ISLEM', 'İşlem', 'islemadi');
+		result.addGrupBasit('ISLEM', 'İşlem', 'isladi');
 		this.tabloYapiDuzenle_plasiyer(e);
 		this.tabloYapiDuzenle_takip(e);
 		result.addGrupBasit('DVKOD', 'Dv.Kod', 'dvkod');
@@ -158,7 +158,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		this.donemBagla({ ...e, tarihSaha }); for (let key in attrSet) {
 			switch (key) {
 				case 'FISNOX': sentHVEkle('fisnox'); break; case 'REF': sentHVEkle('refkod', 'refadi'); break
-				case 'ANAISLEM': sentHVEkle('anaislemadi'); break; case 'ISLEM': sentHVEkle('islemadi'); break
+				case 'ANAISLEM': sentHVEkle('anaislemadi'); break; case 'ISLEM': sentHVEkle('isladi'); break
 				case 'ALTHESAP': sentHVEkle('althesapkod', 'althesapadi'); break
 				case 'DVKOD': sentHVEkle('dvkod'); break
 			}

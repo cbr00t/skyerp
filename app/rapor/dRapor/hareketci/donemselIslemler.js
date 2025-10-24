@@ -27,7 +27,36 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 			devirAlinmasin: new SecimBool({ grupKod, etiket: `Devir <b class=firebrick>AlınMAsın</b>` })
 		});
 		let {donem, tarihAralik} = sec; donem?.tekSecim?.tarihAralik?.();
-		if (tarihAralik) { tarihAralik.visible(); tarihAralik.sonu = tarihAralik.sonu || today() }
+		if (tarihAralik) {
+			tarihAralik.visible()
+			tarihAralik.sonu = tarihAralik.sonu || today()
+		}
+		/*{
+			let cariGosterim_tSec = new TekSecim({
+				char: '',
+				kaListe: [	new CKodVeAdi(['', 'Cari Hesap', 'carimi']),
+					new CKodVeAdi(['BL', 'Bölge', 'bolgemi']),
+					new CKodVeAdi(['AB', 'Ana Bölge', 'anaBolgemi']),
+					new CKodVeAdi(['TP', 'Tip', 'tipmi']),
+					new CKodVeAdi(['IL', 'İl', 'ilmi'])
+				]
+			})
+			let stokTipi_tSec = new TekSecim({
+				char: '',
+				kaListe: [	new CKodVeAdi(['', 'Stok', 'stokmu']),
+					new CKodVeAdi(['GR', 'Grup', 'grupmu']),
+					new CKodVeAdi(['AG', 'Ana Grup', 'anaGrupmu']),
+					new CKodVeAdi(['IG', 'İst. Grup', 'istGrupmu']),
+						  new CKodVeAdi(['MR', 'Marka', 'markami'])
+				]
+			})
+			let grupKod = 'gosterim'
+			sec.grupEkle(grupKod, 'Gösterim')
+			sec.secimTopluEkle({
+				cariGosterim: new SecimTekSecim({ grupKod, etiket: 'Cari Gösterim', tekSecim: cariGosterim_tSec }).autoBind(),
+				stokTipi: new SecimTekSecim({ grupKod, etiket: 'Stok Tipi', tekSecim: stokTipi_tSec }).autoBind()
+			})
+		}*/
 	}
 	tabloYapiDuzenle({ result }) {
 		// super.tabloYapiDuzenle(...arguments);
@@ -108,11 +137,18 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 				*/
 				let {ozelisaret: ozelIsaretClause, tarih: tarihClause, ba: baClause,
 					 bedel: tlBedelClause, dvbedel: dvBedelClause, dvkod: dvKodClause,
-					 alttipadi: grupClause, alttiponcelik: grupOncelikClause} = alias2Deger;
-				dvKodClause = dvKodClause || sqlEmpty;
-				let mstKodClause = alias2Deger[mstKodAlias], mstAdiClause = alias2Deger[mstAdiAlias], mstAdiClause2 = alias2Deger[mstAdiAlias2];
-				let bedelClause = this.getDovizliBedelClause({ dvKodClause, tlBedelClause, dvBedelClause, sumOlmaksizin: true });
-				if (mstAdiClause) { sahalar.add(`${mstAdiClause} mstadi`) } else { mstYapi.duzenle({ sent: harSent, wh, mstKodClause }) }
+					 alttipadi: grupClause, alttiponcelik: grupOncelikClause} = alias2Deger
+				dvKodClause = dvKodClause || sqlEmpty
+				let mstKodClause = alias2Deger[mstKodAlias], mstAdiClause = alias2Deger[mstAdiAlias], mstAdiClause2 = alias2Deger[mstAdiAlias2]
+				let bedelClause = this.getDovizliBedelClause({ dvKodClause, tlBedelClause, dvBedelClause, sumOlmaksizin: true })
+				if (mstAdiClause)
+					sahalar.add(`${mstAdiClause} mstadi`)
+				else {
+					mstYapi.duzenle({ sender: this, secimler: sec, sent: harSent, wh, kodClause: mstKodClause })
+					mstKodAlias = mstYapi.hvAlias; mstAdiAlias = mstYapi.hvAdiAlias; mstAdiAlias2 = mstYapi.hvAdiAlias2
+					mstKodClause = alias2Deger[mstKodAlias]; mstAdiClause = alias2Deger[mstAdiAlias]; mstAdiClause2 = alias2Deger[mstAdiAlias2]
+				}
+				mstKodClause ||= sqlEmpty
 				sahalar.add(
 					/* mstadi, */ `${mstAdiClause2 || sqlEmpty} mstadi2`, `${mstKodClause} mstkod`, `'${harTipKod}' anatip`, /* `${altTipClause} alttip`, */
 					`${grupClause} grup`, `${oncelik} oncelik`, `${grupOncelikClause} gruponcelik`, `${this.getRevizeDvKodClause(dvKodClause)} dvkod`
@@ -138,7 +174,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 				let logZamaniClause = fisAliasVarmi ? 'fis.sonzamants' : sqlNull;
 				/* sahalar.add(`${logZamaniClause} logTS`); */
 				if (fisAliasVarmi) { wh.basiSonu(sec.logTS, logZamaniClause) }
-				harSent.groupByOlustur().gereksizTablolariSil();
+				harSent.groupByOlustur().gereksizTablolariSil()
 				uni.add(harSent)
 			}
 		}
@@ -162,7 +198,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		let harSinif = Hareketci.kod2Sinif[harTip]; if (!(level && harSinif && kod != null)) { return false }
 		let tlDvKodSet = asSet(['', 'TL', 'TRY', 'TRL']);
 		let sabitBelirtecler = [
-			'mstkod', 'mstadi', 'tarih', 'fisnox', 'islemadi', 'refkod', 'refadi',
+			'mstkod', 'mstadi', 'tarih', 'fisnox', 'isladi', 'refkod', 'refadi',
 			'ba', 'bedel', 'dvbedel', 'dvkod', 'aciklama', 'finanalizkullanilmaz'
 		];
 		if (ozelIsaretVarmi) { sabitBelirtecler.push('ozelisaret') }
@@ -174,8 +210,9 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 				sent.sahalar.add(`${oncelik} _oncelik`, `'${tipKod}' _hartipkod`);
 				wh.degerAta(kod, hv[mstAlias])
 			});
-		let uni = har.uniOlustur({ sender: this }), orderBy = ['_oncelik', '_hartipkod', 'tarih DESC', 'fisnox DESC', 'islemadi'];
-		for (let sent of uni.getSentListe()) {
+		let uni = har.uniOlustur({ sender: this })
+		let orderBy = ['_oncelik', '_hartipkod', 'tarih DESC', 'fisnox DESC', 'isladi']
+		for (let sent of uni) {
 			let {from, sahalar, where: wh, alias2Deger} = sent;
 			let {ozelisaret: ozelIsaretClause, tarih: tarihClause, dvkod: dvKodClause} = alias2Deger;
 			if (dvKodClause) { wh.degerAta(dvKod, this.getRevizeDvKodClause({ dvKodClause })) }
