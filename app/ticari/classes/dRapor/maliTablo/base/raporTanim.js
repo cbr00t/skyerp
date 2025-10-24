@@ -461,26 +461,28 @@ class SBTabloDetay extends MQDetay {
 		if (!harSinif)
 			return this
 		let {mstYapi: { hvAlias } = {}} = harSinif
-		let sabitAttrListe = [], aliasListe = []
+		let aliasListe = []
+		// let sabitAttrListe = []
 		if (ozelAttrListe)
 			aliasListe.push(...ozelAttrListe)
 		else {
-			sabitAttrListe.push(
+			/*sabitAttrListe.push(
 				'tarih', 'seri', 'fisno', 'fisnox', 'islkod',
-				'bizsubekod', 'ozelisaret', 'shTipi',
+				'bizsubekod', 'ozelisaret', 'shTipi', 'takipno',
 				'fmalhammadde', 'fmalmuh', 'malhammadde', 'malmuh'
-			)
+			)*/
 			aliasListe.push('ba', bedelAlias, ...ekAttrListe)
 		}
-		if (hvAlias)
+		/*if (hvAlias)
 			sabitAttrListe.push(hvAlias)
 		if (yatayAnalizVarmi && !yatayAnaliz.dbmi) {
 			let {ekBilgi: { zorunluKodAttrListe } = {}} = yatayAnaliz
 			if (zorunluKodAttrListe?.length)
 				sabitAttrListe.push(...zorunluKodAttrListe)
-		}
+		}*/
 		let harHVListe = e.harHVListe = []
-		let har = new harSinif().withAttrs([...sabitAttrListe, ...aliasListe])
+		let har = new harSinif()
+		// let har = new harSinif().withAttrs([...sabitAttrListe, ...aliasListe])
 		e.maliTablo = har.maliTablo = {
 			raporTanim, det, rapor, secimler, bedelAlias,
 			yatayAnalizVarmi, yatayAnaliz

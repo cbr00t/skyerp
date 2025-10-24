@@ -49,7 +49,8 @@ class Hareketci extends CObject {
 	}
 	get defaultAttrSet() {
 		let result = this._defaultAttrSet; if (result === undefined) {
-			let {varsayilanHV, uygunluk2UnionBilgiListe} = this; result = asSet(Object.keys(varsayilanHV));
+			let {class: { varsayilanHV }, uygunluk2UnionBilgiListe} = this
+			result = asSet(Object.keys(varsayilanHV));
 			for (const uniBilgi of Object.values(uygunluk2UnionBilgiListe)) {
 				const hv = uniBilgi?.hv; if (hv) {
 					for (const key in hv) { if (!result[key]) { result[key] = true } } }
