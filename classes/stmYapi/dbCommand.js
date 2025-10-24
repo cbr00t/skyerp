@@ -77,7 +77,7 @@ class MQInsertBase extends MQDbCommand {
 		if (isTableInsert == null) { isTableInsert = hvSize > 500 }
 		e.result += `${onEk}${table} (`; e.result += keys.join(','); e.result += ') ';
 		if (sqlitemi && offlineMode !== false) {
-			let params = e.params = [], hvParamClauses = [];
+			let params = e.params ??= [], hvParamClauses = [];
 			for (let hv of hvListe) {
 				let hvParam = []; for (let key of keys) {
 					let value = hv[key] ?? null;
@@ -92,7 +92,11 @@ class MQInsertBase extends MQDbCommand {
 		}
 		else {
 			if (isTableInsert) {
-				e.result += ' SELECT * FROM @dt'; e.params = [ { name: '@dt', type: 'structured', value: hvListe } ] }
+				let params = e.params ??= []
+				let udtName = `dt_${newGUID().replaceAll('-', '')}`
+				e.result += ` SELECT * FROM @${udtName}`
+				params.push({ name: udtName, type: 'structured', value: hvListe })
+			}
 			else {
 				e.result += ' VALUES ';
 				for (let i = 0; i < hvSize; i++) {

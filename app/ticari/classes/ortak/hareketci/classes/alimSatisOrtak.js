@@ -23,7 +23,7 @@ class AlimSatisOrtakHareketci extends Hareketci {
     /** Varsayılan değer atamaları (host vars) – temel sınıfa eklemeler.
 		Hareketci.varsayilanHVDuzenle değerleri aynen alınır, sadece eksikler eklenir */
     static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
-       //  super.varsayilanHVDuzenle(...arguments);
+        super.varsayilanHVDuzenle(...arguments)
 		for (let key of ['fisaciklama', 'detaciklama']) { hv[key] = sqlEmpty }
 		// for (let key of ['dvbedel']) { hv[key] = sqlZero }
 		$.extend(hv, {

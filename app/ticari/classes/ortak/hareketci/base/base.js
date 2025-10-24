@@ -7,8 +7,8 @@ class Hareketci extends CObject {
 	static get defaultYon() { return 'sol' }
 	static get kod2Sinif() {
 		let {_kod2Sinif: result} = this; if (result == null) {
-			result = {}; const {subClasses} = this;
-			for (const cls of subClasses) {
+			result = {}; let {subClasses} = this;
+			for (let cls of subClasses) {
 				let {uygunmu, araSeviyemi, kod} = cls;
 				if (uygunmu && !araSeviyemi && kod) { result[kod] = cls }
 			}
@@ -38,7 +38,7 @@ class Hareketci extends CObject {
 		return cls ? new cls() : null
 	}
 	static get hareketTipSecimSinif() {
-		const $this = this; return class extends TekSecim {
+		let $this = this; return class extends TekSecim {
 			kaListeDuzenle(e) {
 				super.kaListeDuzenle(e); let _e = { ...e, kaListe: [] }
 				$this.hareketTipSecim_kaListeDuzenle(_e); let {kaListe} = _e
@@ -51,9 +51,9 @@ class Hareketci extends CObject {
 		let result = this._defaultAttrSet; if (result === undefined) {
 			let {class: { varsayilanHV }, uygunluk2UnionBilgiListe} = this
 			result = asSet(Object.keys(varsayilanHV));
-			for (const uniBilgi of Object.values(uygunluk2UnionBilgiListe)) {
-				const hv = uniBilgi?.hv; if (hv) {
-					for (const key in hv) { if (!result[key]) { result[key] = true } } }
+			for (let uniBilgi of Object.values(uygunluk2UnionBilgiListe)) {
+				let hv = uniBilgi?.hv; if (hv) {
+					for (let key in hv) { if (!result[key]) { result[key] = true } } }
 			}
 			this._defaultAttrSet = result
 		}
@@ -96,7 +96,7 @@ class Hareketci extends CObject {
 	/*get uygunluk2UnionBilgiListe() {
 		let {_uygunluk2UnionBilgiListe: result} = this, e;
 		if (result == null) {
-			const {uygunluk} = this, {zorunluAttrSet} = this.class;
+			let {uygunluk} = this, {zorunluAttrSet} = this.class;
 			this.uygunluk2UnionBilgiListeDuzenle(e = { uygunluk, zorunluAttrSet, liste: {} });
 			let {liste} = e; this.uniBilgiAllHVFix({ liste }); result = this._uygunluk2UnionBilgiListe = liste
 		}
@@ -118,9 +118,9 @@ class Hareketci extends CObject {
 		});
 		let {ekDuzenleyiciler, whereYapi} = this;
 		this.ekDuzenleyiciler = e.ekDuzenleyiciler ?? [];
-		for (const key of ['master', 'hareket']) { let value = e[key]; if (value !== undefined) { whereYapi[key] = value } }
+		for (let key of ['master', 'hareket']) { let value = e[key]; if (value !== undefined) { whereYapi[key] = value } }
 	}
-	static getClass(e) { const kod = typeof e == 'object' ? (e.kod ?? e.tip) : e; return this.kod2Sinif[kod] }
+	static getClass(e) { let kod = typeof e == 'object' ? (e.kod ?? e.tip) : e; return this.kod2Sinif[kod] }
 	/*static altTipYapilarDuzenle(e) {
 		let {result} = e;
 		e.def = result[''] = new DRapor_AltTipYapi()
@@ -132,7 +132,7 @@ class Hareketci extends CObject {
 	static mstYapiDuzenle(e) { }
 	static hareketTipSecim_kaListeDuzenle(e) {
 		e.hareketci = this; if (!this.uygunmu) { return }
-		for (const ext of this.getExtIter()) { ext.hareketTipSecim_kaListeDuzenle(e) }
+		for (let ext of this.getExtIter()) { ext.hareketTipSecim_kaListeDuzenle(e) }
 	}
 	static ilkIslemler(e) { }
 	uniOrtakSonIslem({ sender, hv, sent, sent: { from, where: wh, sahalar }, secimler, det = {}, detSecimler = {}, donemTipi, sqlNull, sqlEmpty, sqlZero }) {
@@ -155,21 +155,23 @@ class Hareketci extends CObject {
 			sahalar.add(`${altTipAdiClause} alttipadi`, `${altTipOncelikClause} alttiponcelik`, `${yonClause} yon`)
 		}
 	}
-	static varsayilanHVDuzenle_ortak({ hv, sqlNull, sqlEmpty }) {
-		for (const key of [
+	static varsayilanHVDuzenle_ortak({ hv, sqlNull, sqlEmpty, sqlZero }) {
+		for (let key of [
 			'finanalizkullanilmaz', 'ayadi', 'saat', 'unionayrim',
-			'iceriktipi', 'islkod', 'isladi', 'anaislemadi', 'dvkod']
-		) { hv[key] = sqlEmpty }
+			'iceriktipi', 'islkod', 'isladi', 'anaislemadi', 'dvkod', 'ba'
+		]) { hv[key] = sqlEmpty }
+		for (let key of ['bedel'])
+			hv[key] = sqlZero
 	}
 	static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
 		/* cast(null as ??) değerlerini sadece NULL olarak tutabiliriz, CAST işlemine gerek yok */
-		for (const key of ['vade', 'reftarih']) { hv[key] = sqlNull }
-		for (const key of [
+		for (let key of ['vade', 'reftarih']) { hv[key] = sqlNull }
+		for (let key of [
 			'refsubekod', 'refkod', 'refadi', 'plasiyerkod', 'plasiyeradi', 'fistipi', 'fisektipi', 'must', 'ticmust', 'asilmust', 'althesapkod', 'althesapadi',
 			'kdetay', 'takipno', 'aciklama', 'ekaciklama', 'odgunkod', 'iade', 'dovizsanalmi', 'belgetipi',
 			'portftipi', 'portfkod', 'portfadi', 'portfkisatiptext', 'refportftipi', 'refportfkod', 'refportfadi', 'refportfkisatiptext'
 		]) { hv[key] = sqlEmpty }
-		for (const key of [ 'yilay', 'yilhafta', 'haftano', 'oncelik', 'seq', 'belgeno', 'noyil', 'dvkur' ]) { hv[key] = sqlZero }
+		for (let key of [ 'yilay', 'yilhafta', 'haftano', 'oncelik', 'seq', 'belgeno', 'noyil', 'dvkur' ]) { hv[key] = sqlZero }
 		$.extend(hv, {
 			fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac', ozelisaret: 'fis.ozelisaret', bizsubekod: 'fis.bizsubekod', tarih: 'fis.tarih',
 			seri: 'fis.seri', fisno: 'fis.no', fisnox: 'fis.fisnox', disfisnox: 'fis.fisnox', ba: 'fis.ba', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
@@ -201,12 +203,12 @@ class Hareketci extends CObject {
 		}
 	}
 	static extListeDuzenle(e) {
-		const {liste} = e, {kod} = this; for (const modul of app.getModulIter()) {
-			const extSinif = modul[`extSinif_hareketci_${kod}`];
+		let {liste} = e, {kod} = this; for (let modul of app.getModulIter()) {
+			let extSinif = modul[`extSinif_hareketci_${kod}`];
 			if (extSinif && extSinif.uygunmu !== false) { liste.push(extSinif) }
 		}
 	}
-	static *getExtIter() { const {extListe} = this; if (extListe) { for (const ext of extListe) { yield ext } } }
+	static *getExtIter() { let {extListe} = this; if (extListe) { for (let ext of extListe) { yield ext } } }
 	*getExtIter() { return this.class.getExtIter() }
 	defaultSonIslem(e) { this.uniOrtakSonIslem(e) }
 	stmOlustur(e) {
@@ -215,7 +217,7 @@ class Hareketci extends CObject {
 		let {sent: uni} = stm; if (uni.unionmu) { uni.liste = uni.liste.filter(sent => !!sent?.sahalar?.liste?.length) }
 		return stm
 	}
-	stmDuzenle(e) { const uni = e.stm.sent = this.uniOlustur(e); return this.stmDuzenleDevam(e) }
+	stmDuzenle(e) { let uni = e.stm.sent = this.uniOlustur(e); return this.stmDuzenleDevam(e) }
 	stmDuzenleDevam(e) { }
 	uniOlustur(e) {
 		e = e || {}; let _e, uni = new MQUnionAll();
@@ -298,7 +300,7 @@ class Hareketci extends CObject {
 		return this
 	}
 	sentSahaEkleyici(e) {
-		const {sent, sql, alias, attr2Deger} = e, {attrSet} = this;
+		let {sent, sql, alias, attr2Deger} = e, {attrSet} = this;
 		let saha = alias ? new MQAliasliYapi({ alias, deger: sql }) : MQAliasliYapi.newForSahaText(sql);
 		let {alias: sahaAlias} = saha; if (!attrSet || attrSet[sahaAlias]) { sent.add(saha) }
 		attr2Deger[sahaAlias] = saha.deger; return this
@@ -389,8 +391,8 @@ class Hareketci extends CObject {
 /*
 		== ORNEK CAGIRIM ==
 	let queryYapi = new CariHareketci().gereksizTablolariSil().withAttrs('kaysayac', 'fisno', 'fistipi', 'must', 'althesapadi', 'tarih', 'vade', 'seri', 'noyil', 'no', 'bedel')
-		.setWHD_master(e => { const {wh, attr2Deger} = e; wh.degerAta('C1', attr2Deger.asilmust) })
-		.setWHD_hareket(e => { const {wh, attr2Deger} = e; wh.basiSonu({ basi: today().yilBasi(), sonu: today() }, attr2Deger.tarih) })
+		.setWHD_master(e => { let {wh, attr2Deger} = e; wh.degerAta('C1', attr2Deger.asilmust) })
+		.setWHD_hareket(e => { let {wh, attr2Deger} = e; wh.basiSonu({ basi: today().yilBasi(), sonu: today() }, attr2Deger.tarih) })
 		.uniOlustur().getQueryYapi();
 	let recs; try { recs = queryYapi?.query ? await app.sqlExecSelect(queryYapi) : [] } catch (ex) { console.error(getErrorText(ex)) }
 	if (recs) {

@@ -131,8 +131,9 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 		let from = 'sbtablodetayjson', harIDListe = Object.keys(harID2SecimData)
 		let query = new MQToplu([
 			new MQIliskiliDelete({ from, where: { inDizi: harIDListe, saha: 'harid' } }),
-			new MQInsert({ from, hvListe })
-		]);
+			new MQInsert({ from, hvListe }).queryInsert()
+			// new MQInsert({ from, hvListe })
+		]).withTrn()
 		await app.sqlExecNone({ trnId, query })
 	}
 	hostVarsDuzenle({ hv }) {

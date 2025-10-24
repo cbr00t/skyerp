@@ -51,6 +51,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			harSinif.maliTablo_secimlerEkDuzenle(...arguments)
 	}
 	async tazele(e) {
+		clearTimeout(this._timer_progress)
 		await this.tazeleOncesi(e)
 		let {gridPart, gridPart: { grid, gridWidget }, rapor: { isPanelItem }, raporTanim, _tabloTanimGosterildiFlag} = this
 		if (!raporTanim) {
@@ -60,32 +61,41 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			}
 			return
 		}
-		let _e = CObject.From(e); await super.tazele(_e)    /* super.tazele() ==> this.loadServerData() işlemini çağıracak */
-		$.extend(_e, { liste: _e.tabloKolonlari ?? _e.kolonTanimlari ?? [], recs: gridWidget.getRows() })
-		Object.defineProperty(_e, 'flatRecs', {
-			get: function() {
-				return this.recs.flatMap(rec =>
-					[rec, ...(rec.detaylar ?? [])])
+		let _e = CObject.From(e)
+		if (!isPanelItem)
+			this._timer_progress = setTimeout(() => showProgress(), 1_000)
+		try {
+			await super.tazele(_e)    /* super.tazele() ==> this.loadServerData() işlemini çağıracak */
+			$.extend(_e, { liste: _e.tabloKolonlari ?? _e.kolonTanimlari ?? [], recs: gridWidget.getRows() })
+			Object.defineProperty(_e, 'flatRecs', {
+				get: function() {
+					return this.recs.flatMap(rec =>
+						[rec, ...(rec.detaylar ?? [])])
+				}
+			})
+			for (let key of ['tabloKolonlari', 'kolonTanimlari']) { delete _e[key] }
+			this.tabloKolonlariDuzenle(_e)
+			this.tabloKolonlariDuzenle_ozel?.(_e)
+			let colDefs = this.tabloKolonlari = _e.liste || []
+			let columns = colDefs.flatMap(colDef => colDef.jqxColumns)
+			let lastError
+			for (let i = 1; i <= 3; i++) {
+				try {
+					grid.jqxTreeGrid('columns', columns)
+					lastError = null
+					break
+				}
+				catch (ex) { await delay(i * 200); lastError = ex }
+				return
 			}
-		})
-		for (let key of ['tabloKolonlari', 'kolonTanimlari']) { delete _e[key] }
-		this.tabloKolonlariDuzenle(_e)
-		this.tabloKolonlariDuzenle_ozel?.(_e)
-		let colDefs = this.tabloKolonlari = _e.liste || []
-		let columns = colDefs.flatMap(colDef => colDef.jqxColumns)
-		let lastError
-		for (let i = 1; i <= 3; i++) {
-			try {
-				grid.jqxTreeGrid('columns', columns)
-				lastError = null
-				break
-			}
-			catch (ex) { await delay(i * 200); lastError = ex }
-			return
+			if (lastError)
+				console.error(lastError)
+			await this.tazeleSonrasi(e)
 		}
-		if (lastError)
-			console.error(lastError)
-		await this.tazeleSonrasi(e)
+		finally {
+			clearTimeout(this._timer_progress)
+			this._timer_progress = setTimeout(() => hideProgress(), 50)
+		}
 	}
 	ekCSSDuzenle({ raporTanim, colDefs, colDef, rowIndex, belirtec, value, rec: { cssClassesStr } = {}, result }) {
 		if (cssClassesStr)
