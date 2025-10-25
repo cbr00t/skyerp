@@ -254,7 +254,8 @@ class Hareketci extends CObject {
 				if (hv) {
 					sent = _e.sent = sent.deepCopy();
 					for (let alias in tumHVKeys) {
-						if (attrSet && !attrSet[alias]) { continue }
+						if (attrSet && !attrSet[alias])
+							continue
 						let deger = hv[alias] || defHV[alias];
 						if (isFunction(deger)) { deger = deger?.call(this, { ...e, sender, hareketci, uniBilgi, key: alias, sent, hv, defHV }) }
 						deger = deger ?? 'NULL';
@@ -306,10 +307,12 @@ class Hareketci extends CObject {
 		return this
 	}
 	sentSahaEkleyici(e) {
-		let {sent, sql, alias, attr2Deger} = e, {attrSet} = this;
-		let saha = alias ? new MQAliasliYapi({ alias, deger: sql }) : MQAliasliYapi.newForSahaText(sql);
-		let {alias: sahaAlias} = saha; if (!attrSet || attrSet[sahaAlias]) { sent.add(saha) }
-		attr2Deger[sahaAlias] = saha.deger; return this
+		let {sent, sql, alias, attr2Deger} = e, {attrSet} = this
+		let saha = alias ? new MQAliasliYapi({ alias, deger: sql }) : MQAliasliYapi.newForSahaText(sql)
+		let {alias: sahaAlias} = saha
+		if (!attrSet || attrSet[sahaAlias]) { sent.add(saha) }
+		attr2Deger[sahaAlias] = saha.deger
+		return this
 	}
 	withAttrs(...items) { this.attrSet = asSet(items.flat()); return this }
 	setWhereDuzenleyiciler(value) { this.whereYapi = value; return this }

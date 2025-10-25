@@ -49,7 +49,7 @@ class CariHareketci extends Hareketci {
 		if (akt.konsinyeLojistik || satis.kamuIhale) { kaListe.push(new CKodVeAdi(['konsinyeLojistik', 'Konsinye Resmi Kurum'])) }
 		if (ticGenel.siteYonetimi) { kaListe.push(new CKodVeAdi(['siteYonetimTahakkuk', 'Site Yönetim Tahakkuk'])) }
 	}
-	uniOrtakSonIslem({ sender, hv, sent, sent: { from, where: wh } }) {
+	uniOrtakSonIslem({ sender, sender: { finansalAnalizmi, secimler: sec } = {}, hv, sent, sent: { from, where: wh } }) {
 		super.uniOrtakSonIslem(...arguments)
 		if (!from.aliasIcinTable('car')) { sent.x2CariBagla({ kodClause: hv.must }) }
 		if (!from.aliasIcinTable('alth')) { sent.fromIliski('althesap alth', `${hv.althesapkod} = alth.kod`) }
@@ -257,8 +257,10 @@ class CariHareketci extends Hareketci {
 					let {where: wh} = sent;
 					sent.fisHareket('carifis', 'carihar')
 						.fis2CariBagla({ mustSaha: 'ticmustkod' }).fis2PlasiyerBagla()
+						// .fromIliski('kasmst kas', 'har.tahkasakod = kas.kod')
 						.fromIliski('tahsilsekli tsek', 'har.tahseklino = tsek.kodno')
-					wh.fisSilindiEkle().add(`tsek.tahsiltipi > ''`)
+					wh.fisSilindiEkle()
+						// .add(`tsek.tahsiltipi > ''`, `kas.finanalizkullanilmaz = ''`)
 				}).hvDuzenleIslemi(({ hv }) => {
 					$.extend(hv, {
 						kaysayac: 'har.kaysayac', oncelik: `(case when fis.ba = 'A' then 240 else 210 end)`,

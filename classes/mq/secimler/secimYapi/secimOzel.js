@@ -162,6 +162,8 @@ class SecimBool extends SecimOzel {
 		divBool.on('change', evt => { setTimeout(() => this.value = $(evt.target).val(), 10) })
 	}
 	getConvertedValue(value) { value = value?.value ?? value; return value == null ? this.defaultValue : asBool(value) }
+	setTrue() { this.value = true; return this }
+	setFalse() { this.value = false; return this }
 }
 class SecimBoolTrue extends SecimBool {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

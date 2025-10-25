@@ -146,12 +146,13 @@ class StokHareketci extends Hareketci {
     }
 	static async ilkIslemler(e) {
 		await super.ilkIslemler(e)
-		if (this._sablonsalVarmi == null) { this._sablonsalVarmi = await app.sqlHasTable('ozellikbirlesim') }
+		if (this._sablonsalVarmi == null)
+			this._sablonsalVarmi = await app.sqlHasTable('ozellikbirlesim')
 	}
 	uniDuzenleOncesi({ sender: { finansalAnalizmi } = {} }) {
 		super.uniDuzenleOncesi(...arguments); let {attrSet} = this
 		if (finansalAnalizmi && attrSet) {
-			$.extend(attrSet, asSet(['miktar', 'miktar2']))
+			// $.extend(attrSet, asSet(['miktar', 'miktar2']))
 			for (let key of ['bedel', 'brutbedel', 'malmuh', 'malhammadde', 'fmalmuh', 'fmalhammadde'])
 				delete attrSet[key]
 		}
@@ -186,11 +187,12 @@ class StokHareketci extends Hareketci {
 			}
 			let {eldekiVarlikStokDegerlemeTipi: degTipi = {}} = app?.params?.finans
 			degTipi = degTipi?.char ?? ''
-			let miktarClause = hvDegeri('miktar').sumOlmaksizin(), miktar2Clause = hvDegeri('miktar2').sumOlmaksizin()
-			let xMiktarClause = `(case when stk.almfiyatmiktartipi = '2' then ${miktar2Clause} else ${miktarClause} end)`
+			let gcClause = hvDegeri('gc'), miktarClause = hvDegeri('miktar').sumOlmaksizin(), miktar2Clause = hvDegeri('miktar2').sumOlmaksizin()
+			let gcCarpanClause = `(case when ${gcClause} = 'G' then 1 else -1 end)`
+			let xMiktarClause = `((case when stk.almfiyatmiktartipi = '2' then ${miktar2Clause} else ${miktarClause} end) * ${gcCarpanClause})`
 			let fiyatClause = `(case '${degTipi}' when 'R' then stk.revizerayicalimfiyati when 'M' then stk.ortmalfiyat else stk.revizefiilialimfiyat end)`
 			let bedelClause = `ROUND(${xMiktarClause} * ${fiyatClause}, 2)`
-			sahalar.add(`${bedelClause} bedel`)
+			sahalar.add(`SUM(${xMiktarClause}) miktar`, `SUM(${bedelClause}) bedel`)
 		}
 	}
     /** Varsayılan değer atamaları (host vars) – temel sınıfa eklemeler.
