@@ -47,8 +47,8 @@ class SkyRaporApp extends TicariApp {
 		try {
 			let {moduller, params: { aktarim: { kullanim: aktarim } }} = app;
 			this.sqlTables = await app.sqlGetTables()
-			if (!aktarim.webOzetRapor) { eksikParamIsimleri.push('Web Özet Rapor') }
 			let eksikParamIsimleri = [], eksikModulIsimleri = []
+			if (!aktarim.webOzetRapor) { eksikParamIsimleri.push('Web Özet Rapor') }
 			if (moduller && !moduller[Modul_WebOzetRapor.kod]) { eksikModulIsimleri.push(Modul_WebOzetRapor.aciklama) }
 			if (eksikParamIsimleri.length) {
 				this.noMenuFlag = true

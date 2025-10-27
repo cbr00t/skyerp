@@ -128,7 +128,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		let sonTarih = sec.tarih.value || null, buYonClause = yon.sqlServerDegeri();
 		let uni = new MQUnionAll()
 		for (let har of harListe) {
-			let {oncelik, mstYapi, kod: harTipKod} = har.class
+			let {oncelik, mstYapi, kod: harTipKod, finAnaliz_baIcinTersIslemYapilirmi: baTersIslem} = har.class
 			let {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi
 			let harUni = har.uniOlustur({ sender: this })
 			for (let harSent of harUni) {
@@ -139,7 +139,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 				let {alttiponcelik: grupOncelikClause, alttipadi: grupAdiClause, ozelisaret: ozelIsaretClause,
 					 tarih: tarihClause, miktar: miktarClause, ba: baClause, bedel: tlBedelClause, dvbedel: dvBedelClause, dvkod: dvKodClause
 				} = alias2Deger
-				miktarClause ||= sqlZero
+				miktarClause = miktarClause ? miktarClause.sumOlmaksizin() : sqlZero
 				dvKodClause = dvKodClause || sqlEmpty
 				let dvBosmuClause = this.getDvBosmuClause(dvKodClause)
 				let bedelClause = this.getDovizliBedelClause({ dvKodClause, tlBedelClause, dvBedelClause, sumOlmaksizin: true })
@@ -156,10 +156,16 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 				}
 				sahalar.add(`${mstAdiClause2 || sqlEmpty} ${mstAdiAlias2}`)
 				mstKodClause ||= sqlEmpty
+				let getMiktarBedelClause = clause => {
+					if (baTersIslem)
+						clause = clause.sqlBosDegermi() ? sqlZero : `case when ${baClause} = 'B' then ${clause} else 0 - ${clause} end`
+					return clause
+				}
 				sahalar.add(
 					`${mstKodClause} mstkod`, `${oncelik} oncelik`, `${grupAdiClause} grup`, `${grupOncelikClause} gruponcelik`,
-					`${this.getRevizeDvKodClause(dvKodClause)} dvkod`, `${miktarClause} miktar`,
-					`SUM(case when ${baClause} = 'B' then ${bedelClause} else 0 - ${bedelClause} end) bedel`
+					`${this.getRevizeDvKodClause(dvKodClause)} dvkod`,
+					`SUM(${getMiktarBedelClause(miktarClause)}) miktar`,
+					`SUM(${getMiktarBedelClause(bedelClause)}) bedel`
 				)
 				if (!yonLiteralmi) { wh.degerAta(yon, yonClause) }
 				if (ozelIsaretVarmi && ozelIsaretClause) { wh.notDegerAta('X', ozelIsaretClause) }
@@ -191,16 +197,15 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		let {class: { sagmi }} = this
 		let recsDvKodSet = this.recsDvKodSet = {}
 		for (let rec of recs) {
-			let {dvkod: dvKod, bedel, dvbedel, mstadi: mstAdi, mstadi2: mstAdi2} = rec
+			let {miktar, dvkod: dvKod, bedel, dvbedel, mstadi: mstAdi, mstadi2: mstAdi2} = rec
 			if (this.getDovizmi(dvKod))
 				recsDvKodSet[dvKod] = true
 			if (!mstAdi && mstAdi2)
 				mstAdi = rec.mstadi = mstAdi2
 			if (sagmi) {
-				if (bedel)
-					bedel = rec.bedel = -bedel
-				if (dvbedel)
-					dvbedel = rec.dvbedel = -dvbedel
+				if (miktar) { miktar = rec.miktar = -miktar }
+				if (bedel) { bedel = rec.bedel = -bedel }
+				if (dvbedel) { dvbedel = rec.dvbedel = -dvbedel }
 			}
 		}
 		return super.loadServerData_recsDuzenleIlk(...arguments)

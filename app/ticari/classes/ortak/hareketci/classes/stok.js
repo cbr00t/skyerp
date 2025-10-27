@@ -4,9 +4,10 @@ class StokHareketci extends Hareketci {
 	static get kodEk() { return '' } static get adiEk() { return '' } static get sablonsalVarmi() { return this._sablonsalVarmi }
 	static get uygunmu() { return true } static get maliTabloIcinUygunmu() { return true }
 	static get araSeviyemi() { return this == StokHareketci } static get maliTabloIcinUygunmu() { return true }
+	static get gercekmi() { return false } static get maliyetlimi() { return false }
 	static get donemselIslemlerIcinUygunmu() { return false }
 	static get eldekiVarliklarIcinUygunmu() { return this.gercekmi && app.params?.finans?.eldekiVarlikStokDegerlemesiYapilir }
-	static get gercekmi() { return false } static get maliyetlimi() { return false }
+	static get finAnaliz_baIcinTersIslemYapilirmi() { return false }
 	static get clausecu() {
 		let {_clausecu: result} = this;
 		if (result == null) {
@@ -108,11 +109,10 @@ class StokHareketci extends Hareketci {
 		return result
 	}
 	static getAltTipAdiVeOncelikClause({ hv }) {
-		return super.getAltTipAdiVeOncelikClause(...arguments)
-		/*return {
-			...super.getAltTipAdiVeOncelikClause(...arguments)
+		return {
+			...super.getAltTipAdiVeOncelikClause(...arguments),
 			yon: `'${this.maliyetlimi ? 'sag' : 'sol'}'`
-		}*/
+		}
 	}
 	static mstYapiDuzenle({ result }) {
 		super.mstYapiDuzenle(...arguments); let defHVAlias = 'stokkod'

@@ -26,6 +26,7 @@ class BankaOrtakHareketci extends Hareketci {
 	static maliTablo_secimlerSentDuzenle({ detSecimler: detSec, sent, sent: { from, where: wh }, hv, mstClause }) {
 		super.maliTablo_secimlerSentDuzenle(...arguments)
 		sent.bankaHesap2BankaBagla().bankaHesap2GrupBagla()
+		mstClause ||= 'bhes.kod'
 		wh.basiSonu(detSec.mstKod, mstClause).ozellik(detSec.mstAdi, 'bhes.aciklama')
 		wh.basiSonu(detSec.grupKod, 'bhes.grupkod').ozellik(detSec.grupAdi, 'bhgrp.aciklama')
 		wh.basiSonu(detSec.bankaKod, 'bhes.bankakod').ozellik(detSec.bankaAdi, 'ban.aciklama')
