@@ -8,7 +8,8 @@ class MQYapi extends CIO {
 	static get silinebilirmi() { return false } static get tekilOku_querySonucu_returnValueGereklimi() { return false }
 	static get tekilOku_sqlBatchFlag() { return true } static get tekilOkuYapilazmi() { return false }
 	static get gonderildiDesteklenirmi() { return false } static get gonderimTSSaha() { return 'gonderimts' }
-	static get offlineSahaListe() { return new this().offlineSahaListe } get offlineSahaListe() { return Object.keys(this.hostVars() ?? {}) }
+	static get offlineSahaListe() { return new this().offlineSahaListe }
+	get offlineSahaListe() { return Object.keys(this.hostVars() ?? {}) }
 	static get logKullanilirmi() { return true } static get logAnaTip() { return 'K' }
 	static get logRecDonusturucu() { let e = { result: {} }; this.logRecDonusturucuDuzenle(e); return e.result }
 	get logHV() { let e = { hv: {} }; this.logHVDuzenle(e); return e.hv }
@@ -235,8 +236,9 @@ class MQYapi extends CIO {
 	}
 	gonderildiIsaretiKoy(e) { e = e ?? {}; return this.gonderildiIsaretiKoyKaldir({ ...e, flag: true }) }
 	gonderildiIsaretiKaldir(e) { e = e ?? {}; return this.gonderildiIsaretiKoyKaldir({ ...e, flag: false }) }
-	gonderildiIsaretiKoyKaldir(e) {
-		e = e ?? {}; let keyHV = e.keyHV ?? this.alternateKeyHostVars(e); if ($.isEmptyObject(keyHV)) { keyHV = this.keyHostVars(e) }
+	gonderildiIsaretiKoyKaldir(e = {}) {
+		let keyHV = e.keyHV ?? this.alternateKeyHostVars(e)
+		if (empty(keyHV)) { keyHV = this.keyHostVars(e) }
 		return this.class.gonderildiIsaretiKoyKaldir({ ...e, keyHV })
 	}
 	static async offlineDropTable(e) {
@@ -248,35 +250,68 @@ class MQYapi extends CIO {
 		let {trnId} = e, offlineMode = e.offline ?? e.offlineMode ?? true;
 		let query = new MQIliskiliDelete({ from: offlineTable }); return this.sqlExecNone({ ...e, offlineMode, trnId, query })
 	}
-	static async offlineSaveToLocalTable(e) {
-		e = e ?? {}; if (!this.dbMgr_db) { return false } let offlineTable = e.table ?? e.offlineTable ?? this.table; if (!offlineTable) { return this }
-		let {idSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this, clear = e.clear ?? e.clearFlag;
-		let offlineMode = true, {trnId} = e; let recs = await this.loadServerData({ ...e, trnId, offlineMode: !offlineMode, offlineYukleRequest: true });
-		let {offlineSahaListe: attrListe, kodKullanilirmi, kodSaha} = this; let inLocalTrn = false, directFlag = true, okIdList = [];
-		try { await this.sqlExecNone({ ...e, offlineMode, query: 'BEGIN TRANSACTION' }); inLocalTrn = true } catch (ex) { }
+	static async offlineSaveToLocalTable(e = {}) {
+		if (!this.dbMgr_db)
+			return false
+		let offlineTable = e.table ?? e.offlineTable ?? this.table
+		if (!offlineTable)
+			return this
+		let {idSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this, clear = e.clear ?? e.clearFlag
+		let {trnId} = e, offlineMode = true, offlineRequest = true, offlineYukleRequest = true
+		let recs = await this.loadServerData({ ...e, trnId, offlineMode: !offlineMode, offlineRequest, offlineYukleRequest })
+		let {offlineSahaListe: attrListe, kodKullanilirmi, kodSaha} = this
+		let inLocalTrn = false, directFlag = true, okIdList = []
 		try {
-			let templateInst = new this(), keyHV;
-			if (!templateInst.detaymi) { keyHV = templateInst.alternateKeyHostVars(e); if ($.isEmptyObject(keyHV)) { keyHV = templateInst.keyHostVars(e) } }
-			if (clear) { this.offlineClearTable({ ...e, offlineMode }) }; 
-			if (kodKullanilirmi && kodSaha) { let hv = {}; hv[kodSaha] = ''; await this.sqlExecNone({ ...e, offlineMode, query: new MQInsert({ table: offlineTable, hv }) }) }
+			await this.sqlExecNone({ ...e, offlineMode, query: 'BEGIN TRANSACTION' })
+			inLocalTrn = true
+		}
+		catch (ex) { }
+		try {
+			let templateInst = new this()
+			if (!templateInst.detaymi) {
+				let keyHV = templateInst.alternateKeyHostVars(e)
+				if (empty(keyHV))
+					keyHV = templateInst.keyHostVars(e)
+			}
+			if (clear)
+				this.offlineClearTable({ ...e, offlineMode })
+			if (kodKullanilirmi && kodSaha) {
+				let hv = { [kodSaha]: '' }
+				let query = new MQInsert({ table: offlineTable, hv })
+				await this.sqlExecNone({ ...e, offlineMode, query })
+			}
 			if (attrListe?.length && recs?.length) {
 				for (let _recs of arrayIterChunks(recs, 500)) {
 					if (directFlag) {
 						let attrSet = asSet(attrListe), hvListe = []; for (let rec of _recs) {
-							let hv = {}; let empty = true; for (let key in rec) {
-								if (!attrSet[key]) { continue } let value = rec[key]; if (typeof value == 'string') { value = value.trimEnd() }
-								hv[key] = value; empty = false
+							let hv = {}, empty = true
+							for (let key in rec) {
+								if (!attrSet[key])
+									continue
+								let value = rec[key]
+								if (typeof value == 'string')
+									value = value.trimEnd()
+								hv[key] = value
+								empty = false
 							}
-							if (!empty) { hvListe.push(hv) }
+							if (!empty)
+								hvListe.push(hv)
 						}
-						let query = new MQInsert({ table: offlineTable, hvListe }); if (!await this.sqlExecNone({ ...e, offlineMode, query })) { return this }
-						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha) { okIdList.push(_recs.map(rec => rec[idSaha])) }
+						let query = new MQInsert({ table: offlineTable, hvListe })
+						if (!await this.sqlExecNone({ ...e, offlineMode, query }))
+							return this
+						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
+							okIdList.push(_recs.map(rec => rec[idSaha]))
 					}
 					else {
 						for (let rec of recs) {
-							let inst = new this(); if (!await inst.yukle({ offlineMode: !offlineMode, rec })) { continue }
-							if (!await inst.yaz({ offlineMode })) { continue }
-							if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha) { okIdList.push(rec[idSaha]) }
+							let inst = new this()
+							if (!await inst.yukle({ offlineMode: !offlineMode, rec, offlineRequest, offlineYukleRequest }))
+								continue
+							if (!await inst.yaz({ offlineMode, offlineRequest, offlineYukleRequest }))
+								continue
+							if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
+								okIdList.push(rec[idSaha])
 						}
 					}
 				}
@@ -284,36 +319,52 @@ class MQYapi extends CIO {
 		}
 		finally {
 			if (okIdList?.length) {
-				let query = new MQIliskiliUpdate({ from: offlineTable, where: { inDizi: okIdList, saha: idSaha }, set: { degerAta: asReverseDateTimeString(now()), saha: gonderimTSSaha } });
+				let query = new MQIliskiliUpdate({
+					from: offlineTable,
+					where: { inDizi: okIdList, saha: idSaha },
+					set: { degerAta: asReverseDateTimeString(now()), saha: gonderimTSSaha }
+				})
 				await this.sqlExecNone({ trnId, offlineMode, query })
 			}
-			if (inLocalTrn) { await this.sqlExecNone({ ...e, offlineMode, query: 'COMMIT' }) } 
+			if (inLocalTrn)
+				await this.sqlExecNone({ ...e, offlineMode, query: 'COMMIT' }) 
 		}
 		return this
 	}
-	static async offlineSaveToRemoteTable(e) {
-		e = e ?? {}; if (!this.dbMgr_db) { return false } let offlineTable = e.table ?? e.offlineTable ?? this.table; if (!offlineTable) { return this }
-		let {offlineSahaListe: attrListe, idSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this;
-		let offlineMode = false, offlineGonderRequest = true, {trnId} = e; let recs = await this.loadServerData({ ...e, offlineMode: !offlineMode, offlineGonderRequest });
+	static async offlineSaveToRemoteTable(e = {}) {
+		if (!this.dbMgr_db)
+			return false
+		let offlineTable = e.table ?? e.offlineTable ?? this.table
+		if (!offlineTable)
+			return this
+		let {offlineSahaListe: attrListe, idSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this
+		let offlineMode = false, offlineRequest = true, offlineGonderRequest = true, {trnId} = e
+		let recs = await this.loadServerData({ ...e, offlineMode: !offlineMode, offlineRequest, offlineGonderRequest })
 		if (attrListe?.length) {
-			let directFlag = !idSaha, okIdList = []; app.online();
+			let directFlag = !idSaha, okIdList = []
+			app.online()
 			try {
-				if (directFlag) { if (recs?.length) {
-					let attrSet = asSet(attrListe), hvListe = []; for (let rec of recs) {
-						let hv = {}; let empty = true; for (let key in rec) {
-							if (!attrSet[key]) { continue } let value = rec[key]; if (typeof value == 'string') { value = value.trimEnd() }
-							hv[key] = value; empty = false
-						} if (!empty) { hvListe.push(hv) }
+				if (directFlag) {
+					if (recs?.length) {
+						let attrSet = asSet(attrListe), hvListe = []
+						for (let rec of recs) {
+							let hv = {}; let empty = true; for (let key in rec) {
+								if (!attrSet[key]) { continue } let value = rec[key]; if (typeof value == 'string') { value = value.trimEnd() }
+								hv[key] = value; empty = false
+							}
+							if (!empty) { hvListe.push(hv) }
+						}
+						let query = new MQInsert({ table: offlineTable, hvListe }); if (!await this.sqlExecNone({ ...e, trnId, offlineMode, query })) { return this }
+						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha) { okIdList.push(recs.map(rec => rec[idSaha])) }
 					}
-					let query = new MQInsert({ table: offlineTable, hvListe }); if (!await this.sqlExecNone({ ...e, trnId, offlineMode, query })) { return this }
-					if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha) { okIdList.push(recs.map(rec => rec[idSaha])) }
-				} }
+				}
 				else { if (recs?.length) {
 					for (let rec of recs) {
-						let inst = new this(); if (!await inst.yukle({ offlineMode: !offlineMode, rec, offlineGonderRequest })) { continue }
+						let inst = new this()
+						if (!await inst.yukle({ offlineMode: !offlineMode, rec, offlineRequest, offlineGonderRequest })) { continue }
 						if (inst.sayac) { inst.sayac = null }
-						if (await inst.varmi({ trnId, offlineMode, offlineGonderRequest })) { continue }
-						if (!await inst.yaz({ trnId, offlineMode, offlineGonderRequest })) { continue }
+						if (await inst.varmi({ trnId, offlineMode, offlineRequest, offlineGonderRequest })) { continue }
+						if (!await inst.yaz({ trnId, offlineMode, offlineRequest, offlineGonderRequest })) { continue }
 						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha) { okIdList.push(rec[idSaha]) }
 					}
 				} }
@@ -331,9 +382,10 @@ class MQYapi extends CIO {
 	static offlineSaveToLocalTableWithClear(e) { e = e ?? {}; return this.offlineSaveToLocalTable({ ...e, clear: true }) }
 	static offlineSaveToRemoteTableWithClear(e) { e = e ?? {}; return this.offlineSaveToRemoteTable({ ...e, clear: true }) }
 	static _sqlExec(e, params) {
-		e = $.isPlainObject(e) ? e ?? {} : { query: e, params }; e = { ...e };
-		let {selector} = e, offlineMode = e.isOfflineMode ?? e.offlineMode ?? e.isOffline ?? e.offline ?? this.isOfflineMode;
-		let db = e.db ?? app.dbMgr?.default; if (!db?.internalDB) { db = null }
+		e = { ...($.isPlainObject(e) ? e ?? {} : { query: e, params }) }
+		let {selector} = e, offlineMode = e.isOfflineMode ?? e.offlineMode ?? e.isOffline ?? e.offline ?? this.isOfflineMode
+		let db = e.db ?? app.dbMgr?.default
+		if (db?.internalDB === null) { db = null }
 		for (let key of ['selector', 'db', 'isOfflineMode', 'offlineMode', 'isOffline', 'offline']) { delete e[key] }
 		let result = offlineMode && db ? db.execute(e) : app[selector](e);
 		if (offlineMode && db) {

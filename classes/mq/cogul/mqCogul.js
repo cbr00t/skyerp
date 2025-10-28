@@ -414,7 +414,8 @@ class MQCogul extends MQYapi {
 		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? e.offline ?? this.isOfflineMode, {gonderildiDesteklenirmi, gonderimTSSaha} = this;
 		let sent = new MQSent({ from: tableAndAlias }); if (!sahalarAlinmasinFlag) {
 			for (let colDef of tabloKolonlari) {
-				if (!colDef.sqlIcinUygunmu) { continue } let {belirtec, sql} = colDef;
+				if (!colDef.sqlIcinUygunmu) { continue }
+				let {belirtec, sql} = colDef
 				if (!offlineMode && gonderildiDesteklenirmi && gonderimTSSaha && (sql || belirtec)?.endsWith(gonderimTSSaha)) { continue }
 				if (sql || belirtec) { sent.add(sql ? `${sql} ${belirtec}` : `${aliasVeNokta}${belirtec}`) }
 			}

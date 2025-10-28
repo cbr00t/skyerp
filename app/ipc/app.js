@@ -30,19 +30,25 @@ class IPCApp extends TicariApp {
 			},
             onclose: ({ reason }) => {
 				content.html(`<div class="info error">IPC WebSocket kapandı</div>`);
-				if (++this.closeCount >= this.class.MaxCloseCount || reason == 'ClosedByServer') {
-					clearInterval(this.timerTest); delete this.timerTest;
-					self.close()
+				if (qs.internal) {
+					if (++this.closeCount >= this.class.MaxCloseCount || reason == 'ClosedByServer') {
+						clearInterval(this.timerTest); delete this.timerTest
+						self.close()
+						return
+					}
 				}
+				this.initTimerTest({ ...e, content, ipcKey })
 			}
         })
     }
     /** WebSocket IPC bağlantısı için keep-alive mekanizması */
-    initTimerTest(e) {
-        if (this.timerTest) { return; } e = e ?? {};
-        let ipcKey = e.ipcKey ?? this.ipcKey;
+    initTimerTest(e = {}) {
+        if (this.timerTest)
+			return
+		let ipcKey = e.ipcKey ?? this.ipcKey;
         this.timerTest = setInterval(async () => {
-			const {ws} = this; switch (ws?.readyState) {
+			let {ws} = this
+			switch (ws?.readyState) {
 				case WebSocket.OPEN: break
 				case WebSocket.CLOSED: await this.initIPC(e); return
 				default: return
@@ -218,7 +224,4 @@ thread(proc)`
 		await delay(50)
 		{ let payload = { api: 'fnIslemi', id: 'primary' }; ws.send(toJSONStr(payload)) }
 		{ let payload = { api: 'fnIslemi', id: 'primary' }; ws.send(toJSONStr(payload)) }*-/
-		
-		*/
-
 */

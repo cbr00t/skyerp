@@ -10,14 +10,21 @@ class SqlJS_DBMgrBase extends CObject {
 		})
 	}
 	async yukle(e) {
-		await this.open(e); let {fh} = this;
-		if (!fh) { try { fh = this.fh = await this.getFSHandle(false) } catch (ex) { return false } }
-		const result = await this.yukleDevam(e); this.notChanged(e); return result
+		await this.open(e); let {fh} = this
+		if (!fh) {
+			try { fh = this.fh = await this.getFSHandle(false) }
+			catch (ex) { return false }
+		}
+		let result = await this.yukleDevam(e)
+		this.notChanged(e)
+		return result
 	}
 	yukleDevam() { return true }
 	async kaydet(e) {
 		let {fh} = this; if (!fh) { fh = this.fh = await this.getFSHandle(true) }
-		const result = await this.kaydetDevam(e); this.notChanged(e); return result
+		let result = await this.kaydetDevam(e)
+		this.notChanged(e)
+		return result
 	}
 	kaydetDevam() { return true }
 	kaydetDefer(e) {
@@ -29,17 +36,21 @@ class SqlJS_DBMgrBase extends CObject {
 		try { await this.close(e); await (fh.kind == 'file' ? fh.remove() : fh.remove({ recursive: true })); this.open(e); return true }
 		catch (ex) { return false }
 	}
-	open(e) { return this } close(e) { clearTimeout(this._timer_kaydetDefer); this.fh = null; return this }
+	open(e) { return this }
+	close(e) { clearTimeout(this._timer_kaydetDefer); this.fh = null; return this }
 	forEach() { return this.iterEntries() }
 	onChange(e) { this.changed(e); this.kaydetDefer(e) }
-	getFSHandle(e) { const createFlag = typeof e == 'boolean' ? e : e?.create ?? e.createFlag; return getFSDirHandle(this.fsRootDir, createFlag) }
+	getFSHandle(e) {
+		let createFlag = typeof e == 'boolean' ? e : e?.create ?? e.createFlag
+		return getFSDirHandle(this.fsRootDir, createFlag)
+	}
 	setName(value) { return this.name = value } setFH(value) { return this.fh = value }
 	changed() { this.changedFlag = true; return this } notChanged() { this.changedFlag = false; return this }
 	static isDBWrite(e) {
-		const query = e?.query ?? e; if (query) {
-			const query = e.query ?? e; if (query.isDBWriteClause) { return true }
+		let query = e?.query ?? e; if (query) {
+			let query = e.query ?? e; if (query.isDBWriteClause) { return true }
 			if (typeof query == 'string') {
-				const queryUpper = query.toUpperCase(), {DBWriteClauses} = this;
+				let queryUpper = query.toUpperCase(), {DBWriteClauses} = this;
 				return DBWriteClauses.some(clause => queryUpper.includes(clause))
 			}
 		}
