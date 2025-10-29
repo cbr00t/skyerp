@@ -46,9 +46,9 @@ class MQTabStok extends MQKA {
 		for (let i = 1; i <= this.satFiyatSayi; i++)
 			form.addNumberInput(`satFiyat${i}`, `Satış Fiyat ${i}`)
 	}
-	static ekCSSDuzenle({ dataField: belirtec, value, rec: { calismadurumu, satilamazfl } = {}, result }) {
+	static ekCSSDuzenle({ dataField: belirtec, value, rec: { silindi, satilamazfl } = {}, result }) {
 		super.ekCSSDuzenle(...arguments)
-		if (calismadurumu)
+		if (silindi)
 			result.push('bg-lightgray', 'iptal')
 		else if (satilamazfl)
 			result.push('bg-lightred')
@@ -102,7 +102,7 @@ class MQTabStok extends MQKA {
 			}
 			if (!offlineMode) {
 				wh.add(
-					`${alias}.silindi <> ''`, `${alias}.calismadurumu <> ''`,
+					`${alias}.silindi = ''`, `${alias}.calismadurumu <> ''`, `${alias}.satilamazfl = ''`,
 					new MQOrClause([
 						`stk.grupkod = ''`,
 						`grp.elterkullan <> ''`
@@ -128,7 +128,7 @@ class MQTabStok extends MQKA {
 class MQTabStokAnaGrup extends MQKA {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'STOKANAGRUP' } static get sinifAdi() { return 'Stok Ana Grup' }
-	static get table() { return 'stokmarka' } static get tableAlias() { return 'agrp' }
+	static get table() { return 'stkanagrup' } static get tableAlias() { return 'agrp' }
 	static get raporKullanilirmi() { return false } static get kolonFiltreKullanilirmi() { return false }
 	static get tumKolonlarGosterilirmi() { return true }
 }

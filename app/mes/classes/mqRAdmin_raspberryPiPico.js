@@ -96,10 +96,10 @@ class MQRAdmin_RaspberryPiPico extends MQMasterOrtak {
 		return true
 	}
 	static async execActionIstendi({ sender: tanimPart, rfb, inst }) {
-		let {sinifAdi: islemAdi} = this, {ipList, code: data} = inst
+		let {sinifAdi: islemAdi} = this, {ipList, code} = inst
 		if (!ipList?.length)
 			throw { errorText: '<b>IP Listesi</b> boş olamaz' }
-		if (!data)
+		if (!code)
 			throw { errorText: '<b>Python Code</b> belirtilmelidir' }
 		showProgress(`<b>${ipList.length} adet</b> Cihaz ile iletişim kuruluyor...`, islemAdi, true)
 		let pm = progressManager; pm.setProgressMax(ipList.length); pm.setProgressValue(0);
@@ -107,7 +107,11 @@ class MQRAdmin_RaspberryPiPico extends MQMasterOrtak {
 		for (let ip of ipList) {
 			promises.push(new $.Deferred(async p => {
 				try {
-					let result = await app.wsSetExecCode({ ip, data })
+					let data = { actions: [ { action: 'exec', args: [code]} ] }
+					for (let i = 0; i < 2; i++) {
+						await app.wsSetExecCode({ ip, data })
+						await delay(150)
+					}
 					successCount++
 				}
 				catch (ex) {

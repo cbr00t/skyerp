@@ -283,7 +283,9 @@ class MQYapi extends CIO {
 			if (attrListe?.length && recs?.length) {
 				for (let _recs of arrayIterChunks(recs, 500)) {
 					if (directFlag) {
-						let attrSet = asSet(attrListe), hvListe = []; for (let rec of _recs) {
+						let attrSet = asSet(attrListe)
+						let hvListe = []
+						for (let rec of _recs) {
 							let hv = {}, empty = true
 							for (let key in rec) {
 								if (!attrSet[key])
