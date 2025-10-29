@@ -3,28 +3,12 @@ class MQRAdmin_RaspberryPiPico extends MQMasterOrtak {
 	static get kodListeTipi() { return 'RADMIN_RASP' } static get sinifAdi() { return 'Cihaz Yönetimi: Raspberry Pi Pico' }
 	static get tanimlanabilirmi() { return true } static get silinebilirmi() { return true }
 	static get tanimUISinif() { return ModelTanimPart } static get ozelTanimIslemi() { return (e => this.ozelTanimla(e)) }
-	get actionTekilmi() {
-		let {action} = this;
-		if (action) { action = action.kod ?? action.char ?? action.value ?? action }
-		return action == 'exec' || action == 'reboot' || action == 'updateSelf'
-	}
-	get argsStr() {
-		let {args: result} = this;
-		if (result?.length && !$.isArray(result)) { result = $.makeArray(result) }
-		return result?.length
-			? this.actionTekilmi ? result[0] : result.map(x => x.trim('\r', '\t', ' ')).filter(x => !!x).join('\n').trim()
-			: []
-	}
-	set argsStr(value) {
-		this.args = value
-			? this.actionTekilmi || !$.isArray(value) ? value : value.split('\n').map(x => x.trim('\r', '\t', ' ')).filter(x => !!x)
-			: ''
-	}
+
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments); $.extend(pTanim, {
 			ipList: new PInst({ init: () => [] }), tezgahKod: new PInstStr(), tezgahAdi: new PInstStr(),
 			hatKod: new PInstStr(), hatAdi: new PInstStr(), durumKod: new PInstStr(),
-			action: new PInstStr(), args: new PInst({ init: () => [] })
+			code: new PInstStr()
 		})
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
@@ -74,30 +58,16 @@ class MQRAdmin_RaspberryPiPico extends MQMasterOrtak {
 		}).addStyle_fullWH(null, 'max-content')
 			.addStyle(...[
 				`$elementCSS { line-height: 30px; margin-bottom: 20px }
-				$elementCSS .item { gap: 100px } $elementCSS .item .etiket { width: 70px }
+				 $elementCSS .item { gap: 100px } $elementCSS .item .etiket { width: 70px }
 				 $elementCSS .etiket { color: gray } $elementCSS .veri { font-weight: bold; color: royalblue }
 				 $elementCSS .kod { color: lightgray }`
 			]);
-		let fbd_content = formBuilder.addFormWithParent('content').altAlta();
-		let form = fbd_content.addFormWithParent().altAlta();
-		form.addModelKullan('action', 'API').comboBox().noMF().autoBind().addStyle_wh(600)
-			.setSource(() => [
-				new CKodVeAdi(['', '']),
-				new CKodVeAdi(['ping', 'Ping']),
-				new CKodVeAdi(['exec', 'Python Script Çalıştır']),
-				new CKodVeAdi(['reboot', 'Cihazı Yeniden Başlat']),
-				new CKodVeAdi(['updateSelf', 'Uzak Güncelleme Başlat']),
-				new CKodVeAdi(['lcdWrite', 'Ekrana Metin Yaz']),
-				new CKodVeAdi(['lcdWriteLine', 'Ekrana Metin Yaz (Satır silerek)']),
-				new CKodVeAdi(['lcdClear', 'Ekranı Temizle']),
-				new CKodVeAdi(['ledWrite', 'LED Ata']),
-				new CKodVeAdi(['ledClear', 'LED Kapat']),
-				new CKodVeAdi(['', ''])
-			])
-			.onAfterRun(({ builder: fbd }) => { tanimPart.fbd_action = fbd; fbd.input.click() });
-		form.addTextArea('argsStr', 'Parametreler').setRows(5);
+		let fbd_content = formBuilder.addFormWithParent('content').altAlta()
+		let form = fbd_content.addFormWithParent().altAlta()
+		form.addTextArea('code', 'Python Code').setRows(8)
+			.onAfterRun(({ builder: fbd }) => fbd.rootPart.fbd_code = fbd)
 		form = fbd_content.addFormWithParent().altAlta().addStyle_wh('var(--full)')
-			.addStyle(`$elementCSS { margin-top: 50px }`);
+			.addStyle(`$elementCSS { margin-top: 50px }`)
 		form.addButton('run', 'ÇALIŞTIR').addCSS('center').addStyle_wh('70%', 80)
 			.onClick(_e => this.execActionIstendi({ ..._e, ...arguments[0] }))
 	}
@@ -113,8 +83,8 @@ class MQRAdmin_RaspberryPiPico extends MQMasterOrtak {
 		])
 	}
 	static async loadServerDataDogrudan({ wsArgs }) {
-		let ip2Rec = await app.getTezgahIP2Rec();
-		let ipList = (await app.wsRawSocket_conns())?.map(rec => rec.ip);
+		let ip2Rec = await app.getTezgahIP2Rec()
+		let ipList = (await app.wsWebSocket_conns())?.map(rec => rec.ip)
 		return ipList.map(ip => ip2Rec[ip] ?? ({ ip }))
 	}
 	static async ozelTanimla({ sender: parentPart, islem, mfSinif }) {
@@ -126,36 +96,30 @@ class MQRAdmin_RaspberryPiPico extends MQMasterOrtak {
 		return true
 	}
 	static async execActionIstendi({ sender: tanimPart, rfb, inst }) {
-		let {sinifAdi: islemAdi} = this, {ipList, action, argsStr: _args} = inst;
-		action = action.kod ?? action.char ?? action.value ?? action;
-		if (!ipList?.length) { throw { errorText: '<b>IP Listesi</b> boş olamaz' } }
-		if (!action) { throw { errorText: '<b>API</b> belirtilmelidir' } }
-		let args = $.isArray(_args)
-			? _args.map(arg => $.isNumeric(arg) ? asFloat(arg) : ['true', 'false'].includes(arg?.toLowerCase()) ? asBool(arg) : arg.toString())
-			: _args ? $.makeArray(_args) : [];
-		showProgress(`<b>${ipList.length} adet</b> Cihaz ile iletişim kuruluyor...`, islemAdi, true);
+		let {sinifAdi: islemAdi} = this, {ipList, code: data} = inst
+		if (!ipList?.length)
+			throw { errorText: '<b>IP Listesi</b> boş olamaz' }
+		if (!data)
+			throw { errorText: '<b>Python Code</b> belirtilmelidir' }
+		showProgress(`<b>${ipList.length} adet</b> Cihaz ile iletişim kuruluyor...`, islemAdi, true)
 		let pm = progressManager; pm.setProgressMax(ipList.length); pm.setProgressValue(0);
-		let promises = [], errorsSet = {}, successCount = 0, failCount = 0;
+		let promises = [], errorsSet = {}, successCount = 0, failCount = 0
 		for (let ip of ipList) {
 			promises.push(new $.Deferred(async p => {
-				let data = { ip, actions: [{ action, args }] };
 				try {
-					let result;
-					for (let i = 0; i < 1; i++) {
-						result = await app.wsRawSocket_write({ ip, data });
-						await new $.Deferred(p => setTimeout(() => p.resolve(), 100))
-					}
-					await app.wsRawSocket_read({ ip }); successCount++
+					let result = await app.wsSetExecCode({ ip, data })
+					successCount++
 				}
 				catch (ex) {
-					let errorText = getErrorText(ex) || 'Cihaz ile iletişim kurulamadı';
-					errorsSet[errorText] = true; failCount++
+					let errorText = getErrorText(ex) || 'Cihaz ile iletişim kurulamadı'
+					errorsSet[errorText] = true
+					failCount++
 				}
 				finally { p.resolve() }
 			}))
 		}
 		await Promise.allSettled(promises);
-		hideProgress(); tanimPart?.fbd_action?.input?.click();
+		hideProgress(); tanimPart?.fbd_code?.input?.click()
 		let result = [];
 		if (successCount) { result.push(`<li class=green><b>${successCount} adet</b> Cihaza komut gönderildi</li>`) }
 		if (failCount) { result.push(`<li class=red><b>${failCount} adet</b> Cihazda iletişiminde sorun oluştu</li>`) }

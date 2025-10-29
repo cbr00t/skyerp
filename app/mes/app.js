@@ -167,6 +167,11 @@ class MESApp extends App {
 	wsGetLEDDurumAll(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/getLEDDurumAll', args: e }) }) }
 	wsGetLEDDurum(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/getLEDDurum', args: e }) }) }
 	wsSetLEDDurum(e) { return ajaxPost({ url: this.getWSUrl({ api: 'hatIzleme/setLEDDurum', args: e }) }) }
+	wsSetExecCode(e) {
+		let args = e, {data} = e; delete e.data
+		let processData = false, ajaxContentType = 'text/plain'
+		return ajaxPost({ processData, ajaxContentType, url: this.getWSUrl({ api: 'hatIzleme/setExecCode', args }), data })
+	}
 }
 
 
