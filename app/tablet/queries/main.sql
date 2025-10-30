@@ -65,4 +65,55 @@ CREATE TABLE IF NOT EXISTS stkmemo (
 	stokkod TEXT NOT NULL,
 	memo TEXT NOT NULL DEFAULT '',
 	PRIMARY KEY (stokkod, memo)
-)
+);
+
+CREATE TABLE IF NOT EXISTS carbolge (
+	kod TEXT NOT NULL PRIMARY KEY,
+	aciklama TEXT NOT NULL DEFAULT ''
+);
+INSERT OR IGNORE INTO carbolge (kod) VALUES ('');
+
+CREATE TABLE IF NOT EXISTS caril (
+	kod TEXT NOT NULL PRIMARY KEY,
+	aciklama TEXT NOT NULL DEFAULT ''
+);
+INSERT OR IGNORE INTO caril (kod) VALUES ('');
+
+CREATE TABLE IF NOT EXISTS ulke (
+	kod TEXT NOT NULL PRIMARY KEY,
+	aciklama TEXT NOT NULL DEFAULT ''
+);
+INSERT OR IGNORE INTO ulke (kod) VALUES ('');
+
+CREATE TABLE IF NOT EXISTS carmst (
+	kod TEXT NOT NULL PRIMARY KEY,
+	aciklama TEXT NOT NULL DEFAULT '',
+	silindi TEXT NOT NULL DEFAULT '',
+	calismadurumu TEXT NOT NULL DEFAULT '*',
+	satilamazfl TEXT NOT NULL DEFAULT '',
+	oscolor INTEGER,
+	efaturakullanirmi TEXT NOT NULL DEFAULT '',
+	kontipkod TEXT NOT NULL DEFAULT '',
+	yore TEXT NOT NULL DEFAULT '',
+	posta TEXT NOT NULL DEFAULT '',
+	bolgekod TEXT NOT NULL DEFAULT '',
+	ilkod TEXT NOT NULL DEFAULT '',
+	ulkekod TEXT NOT NULL DEFAULT '',
+	sahismi TEXT NOT NULL DEFAULT '',
+	vdaire TEXT NOT NULL DEFAULT '',
+	vnumara TEXT NOT NULL DEFAULT '',
+	tckimlikno TEXT NOT NULL DEFAULT '',
+	email TEXT NOT NULL DEFAULT '',
+	tel1 TEXT NOT NULL DEFAULT '',
+	tel2 TEXT NOT NULL DEFAULT '',
+	tel3 TEXT NOT NULL DEFAULT '',
+	adres TEXT NOT NULL DEFAULT '',
+	gpsenlem REAL NOT NULL DEFAULT 0,
+	gpsboylam REAL NOT NULL DEFAULT 0,
+	ekstremustkod TEXT NOT NULL DEFAULT '',
+	tavsiyeplasiyerkod TEXT NOT NULL DEFAULT '',
+	odemegunkodu TEXT NOT NULL DEFAULT '',
+	standartiskonto REAL NOT NULL DEFAULT 0
+);
+INSERT OR IGNORE INTO carmst (kod) VALUES ('');
+

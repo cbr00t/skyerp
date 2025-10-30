@@ -2,7 +2,13 @@ class TabletApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this } get isLoginRequired() { return true }
 	static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_App }
 	get offlineMode() { return super.offlineMode ?? true } get dbMgrClass() { return SqlJS_DBMgr }
-	get offlineAktarimSiniflar() { return [MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka, MQTabStok] }
+	get offlineAktarimSiniflar() {
+		return [
+			MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
+			MQTabBolge, MQTabIl, MQTabUlke,
+			MQTabStok, MQTabCari
+		]
+	}
 	// get autoExecMenuId() { return MQTest.kodListeTipi }
 	paramsDuzenle({ params }) {
 		super.paramsDuzenle(...arguments)
@@ -33,7 +39,8 @@ class TabletApp extends TicariApp {
 		};
 		items.push(new FRMenuChoice({ mne: 'BILGIYUKLE', text: 'Bilgi Yükle', block: e => this.bilgiYukleIstendi(e) }))
 		addMenuSubItems('TANIM', 'Tanımlar', [
-			MQTabStok, MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka
+			MQTabStok, MQTabCari,
+			MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka
 		])
 		items.push(new FRMenuChoice({ mne: 'BILGIGONDER', text: 'Bilgi Gönder', block: e => this.bilgiGonderIstendi(e) }))
 		// addMenuSubItems(null, null, [MQTest])
@@ -51,36 +58,72 @@ class TabletApp extends TicariApp {
 	}
 	async bilgiYukleIstendi(e) {
 		let {offlineAktarimSiniflar: classes} = this
-		let pm = showProgress(`Veriler yükleniyor...`, null, true)
+		if (!classes?.length)
+			return
+		let withClear = true
+		{
+			let args = { noClear: false }
+			let {wnd, result} = displayMessage('Merkezden veriler yüklensin mi?', appName, 'eh')
+			let parent = wnd.find('.jqx-window-content > .subContent')
+			let rfb = new RootFormBuilder().setLayout(parent).setInst(args)
+			rfb.addCheckBox('noClear', 'Veriler SilinMEsin').addStyle(`
+				$elementCSS { margin: 30px 0 0 30px !important }
+				$elementCSS > input:not(:checked) + label { font-weight: bold; color: firebrick !important }
+			`)
+			wnd.jqxWindow('height', wnd.jqxWindow('height') + 30)
+			rfb.run()
+			let {index: rdlg} = await result ?? {}
+			if (rdlg !== 0)
+				return
+			withClear = !args.noClear
+		}
+		let pm = showProgress('Veriler yükleniyor...', null, true)
 		pm.setProgressMax(classes.length).progressReset()
+		{
+			let clearClasses = withClear ? classes : classes.filter(cls => !cls.detaylimi)
+			if (clearClasses?.length) {
+				let offlineMode = true, internal = true
+				await MQCogul.sqlExecNone({ offlineMode, query: 'BEGIN TRANSACTION' })
+				await Promise.all( clearClasses.map(cls => cls.offlineDropTable({ ...e, offlineMode, internal })) )
+				await app.dbMgr_tablolariOlustur({ ...e, offlineMode, internal })
+				await MQCogul.sqlExecNone({ offlineMode, query: 'COMMIT' })
+			}
+		}
 		for (let cls of classes) {
-			try { await cls.offlineSaveToLocalTableWithClear() }
+			try {
+				let clear = withClear || !cls.detaylimi
+				await cls.offlineSaveToLocalTable()
+			}
 			catch (ex) {
 				let errText = getErrorText(ex)
 				console.error(errText, ex)
-				hConfirm(errText, 'Bilgi Yükle')
+				hConfirm(errText, 'Veri Yükle')
 			}
 			finally { pm.progressStep() }
 		}
 		pm.progressEnd()
-		eConfirm('Bilgi Yükleme tamamlandı')
+		eConfirm('Veri Yükleme tamamlandı')
 		setTimeout(() => hideProgress(), 1000)
 	}
 	async bilgiGonderIstendi(e) {
 		let {offlineAktarimSiniflar: classes} = this
-		let pm = showProgress(`Veriler gönderiliyor...`, null, true)
+		if (!classes?.length)
+			return
+		if (!await ehConfirm('Tabletteki veriler merkeze gönderilsin mi?', appName))
+			return
+		let pm = showProgress('Veriler gönderiliyor...', null, true)
 		pm.setProgressMax(classes.length).progressReset()
 		for (let cls of classes) {
 			try { await cls.offlineSaveToRemoteTable() }
 			catch (ex) {
 				let errText = getErrorText(ex)
 				console.error(errText, ex)
-				hConfirm(errText, 'Bilgi Gönder')
+				hConfirm(errText, 'Veri Gönder')
 			}
 			finally { pm.progressStep() }
 		}
 		pm.progressEnd()
-		eConfirm('Bilgi Gönderimi tamamlandı')
+		eConfirm('Veri Gönderimi tamamlandı')
 		setTimeout(() => hideProgress(), 1000)
 	}
 }

@@ -59,38 +59,63 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		return true
 	}
 	async kaydetDevam(e) {
-		let {internalDB} = this; if (!internalDB) { return false }
-		if (!await super.kaydetDevam(e)) { return false } let {fh} = this; if (fh?.kind != 'file') { return false }
-		let create = true, data = internalDB.export(), wr = await fh.createWritable(); try { await wr.write(data) } finally { try { wr.close() } catch (ex) { } }
+		let {internalDB} = this
+		if (!internalDB) { return false }
+		if (!await super.kaydetDevam(e))
+			return false
+		let {fh} = this
+		if (fh?.kind != 'file')
+			return false
+		let data = internalDB.export()
+		let wr = await fh.createWritable()
+		try { await wr.write(data) }
+		finally { try { wr.close() } catch (ex) { } }
 		return true
 	}
-	async dosyadanYukle(e) {
-		e = e || {}; let {data, fh} = e; await this.open(e);
+	async dosyadanYukle(e = {}) {
+		let {data, fh} = e
+		await this.open(e)
 		if (!data) {
 			if (!fh) {
-				let {file} = e; if (!file) {
-					let files = await showOpenFilePicker({ multiple: false, excludeAcceptAllOption: true, types: [{ accept: { 'application/x-db': ['.db'] }, description: 'SQLite DB Dosyaları' }] });
+				let {file} = e
+				if (!file) {
+					let files = await showOpenFilePicker({
+						multiple: false, excludeAcceptAllOption: true,
+						types: [{ accept: { 'application/x-db': ['.db'] }, description: 'SQLite DB Dosyaları' }]
+					})
 					file = files?.[0]
-				} fh = await file.getFile()
+				}
+				fh = await file.getFile()
 			}
-			data = new Uint8Array(await fh.arrayBuffer()); if (!data?.length) { data = undefined }
+			data = new Uint8Array(await fh.arrayBuffer())
+			if (!data?.length)
+				data = undefined
 		}
 		if (data) {
-			fh = this.fh = this.fh ?? await this.getFSHandle(true);
+			fh = this.fh = this.fh ?? await this.getFSHandle(true)
 			if (fh) {
-				let wr = fh.createWritable(); try { await wr.write(data) } finally { try { wr.close() } catch (ex) { } }
-				if (!await this.yukle(e)) { return false }
+				let wr = fh.createWritable()
+				try { await wr.write(data) }
+				finally { try { wr.close() } catch (ex) { } }
+				if (!await this.yukle(e))
+					return false
 			}
 		}
 		let db = this; return {db, fsRootDir, fh, data}
 	}
 	dbInit(e) {
 		this.execute([
-			`PRAGMA page_size = ${32 * 1024}`, 'PRAGMA journal_mode = WAL',
-			`PRAGMA synchronous = NORMAL`, `PRAGMA cache_size=-${4 * 1024}`,
-			`PRAGMA temp_store = MEMORY`, 'VACUUM'
-		].join(`; ${CrLf}`));
-		if (window?.app) { return app.dbMgr_tablolariOlustur?.(e) }
+			`PRAGMA page_size = ${64 * 1024}`,
+			`PRAGMA synchronous = OFF`,
+			`PRAGMA cache_size=-${32 * 1024}`,
+			// 'PRAGMA synchronous = NORMAL',
+			// 'PRAGMA journal_mode = WAL',
+			'PRAGMA journal_mode = MEMORY',
+			`PRAGMA temp_store = MEMORY`,
+			'VACUUM',
+		].join(`; ${CrLf}`))
+		if (window?.app)
+			return app.dbMgr_tablolariOlustur?.(e)
 	}
 	async executeAsync(e, params, isRetry) { await this.execute(e, params, isRetry) }
 	execute(e, params, isRetry, noAutoTrim) {

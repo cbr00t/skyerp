@@ -2,14 +2,17 @@ class MQYapi extends CIO {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get mqYapimi() { return true }
 	static get isOfflineMode() { return app.offlineMode } get isOfflineMode() { return this.class.isOfflineMode }
 	static get dbMgr_db() { return app?.dbMgr?.default } get dbMgr_db() { return this.class.dbMgr_db }
-	static get sinifAdi() { return null } static get table() { return null } static get tableAlias() { return null } static get idSaha() { return this.sayacSaha ?? this.kodSaha }
+	static get sinifAdi() { return null } static get table() { return null } static get tableAlias() { return null }
+	static get idSaha() { return this.sayacSaha ?? this.kodSaha } static get onlineIdSaha() { return this.idSaha }
 	static get tableAndAlias() { let {table, tableAlias} = this; if (tableAlias) { return `${table} ${tableAlias}` } return table }
 	static get aliasVeNokta() { let {tableAlias} = this; if (tableAlias) { return `${tableAlias}.` } return '' }
 	static get silinebilirmi() { return false } static get tekilOku_querySonucu_returnValueGereklimi() { return false }
 	static get tekilOku_sqlBatchFlag() { return true } static get tekilOkuYapilazmi() { return false }
 	static get gonderildiDesteklenirmi() { return false } static get gonderimTSSaha() { return 'gonderimts' }
 	static get offlineSahaListe() { return new this().offlineSahaListe }
-	get offlineSahaListe() { return Object.keys(this.hostVars() ?? {}) }
+	get offlineSahaListe() { return Object.keys(this.hostVars({ offlineRequest: true, offlineMode: false }) ?? {}) }
+	static get offline2OnlineSaha() { return {} }
+	static get online2OfflineSaha() { return asReverseDict(this.offline2OnlineSaha) }
 	static get logKullanilirmi() { return true } static get logAnaTip() { return 'K' }
 	static get logRecDonusturucu() { let e = { result: {} }; this.logRecDonusturucuDuzenle(e); return e.result }
 	get logHV() { let e = { hv: {} }; this.logHVDuzenle(e); return e.hv }
@@ -219,20 +222,27 @@ class MQYapi extends CIO {
 	static sqlExecNoneWithResult(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNoneWithResult' }) }
 	static sqlExecSelect(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecSelect' }) }
 	static sqlExecTekil(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekil' }) }
-	static sqlExecTekilDeger(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekilDeger' }) }
-	sqlExecNone(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNone' }) }
-	sqlExecNoneWithResult(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNoneWithResult' }) }
-	sqlExecSelect(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecSelect' }) }
-	sqlExecTekil(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekil' }) }
-	sqlExecTekilDeger(e, params) {  e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekilDeger' }) }
-	static gonderildiIsaretiKoy(e) { e = e ?? {}; return this.gonderildiIsaretiKoyKaldir({ ...e, flag: true }) }
-	static gonderildiIsaretiKaldir(e) { e = e ?? {}; return this.gonderildiIsaretiKoyKaldir({ ...e, flag: false }) }
-	static async gonderildiIsaretiKoyKaldir(e) {
-		e = e ?? {}; let {gonderildiDesteklenirmi, gonderimTSSaha} = this, {keyHV, flag} = e;
-		if (!(flag != null && gonderildiDesteklenirmi && gonderimTSSaha && !$.isEmptyObject(keyHV))) { return false }
-		let {table} = this; let query = new MQIliskiliUpdate({
-			from: table, where: { birlestirDict: keyHV }, set: { degerAta: flag ? asReverseDateTimeString(now()) : '', saha: gonderimTSSaha } });
-		let _e = { ...e, isOfflineMode: true, query }; await this.sqlExecNone(_e); return true
+	static sqlExecTekilDeger(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekilDeger' }) }
+	sqlExecNone(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNone' }) }
+	sqlExecNoneWithResult(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNoneWithResult' }) }
+	sqlExecSelect(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecSelect' }) }
+	sqlExecTekil(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekil' }) }
+	sqlExecTekilDeger(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekilDeger' }) }
+	static gonderildiIsaretiKoy(e = {}) { return this.gonderildiIsaretiKoyKaldir({ ...e, flag: true }) }
+	static gonderildiIsaretiKaldir(e = {}) { return this.gonderildiIsaretiKoyKaldir({ ...e, flag: false }) }
+	static async gonderildiIsaretiKoyKaldir(e = {}) {
+		let {gonderildiDesteklenirmi, gonderimTSSaha} = this, {keyHV, flag} = e
+		if (!(flag != null && gonderildiDesteklenirmi && gonderimTSSaha && !$.isEmptyObject(keyHV)))
+			return false
+		let {table} = this
+		let query = new MQIliskiliUpdate({
+			from: table,
+			where: { birlestirDict: keyHV },
+			set: { degerAta: flag ? asReverseDateTimeString(now()) : '', saha: gonderimTSSaha }
+		})
+		let _e = { ...e, isOfflineMode: true, query }
+		await this.sqlExecNone(_e)
+		return true
 	}
 	gonderildiIsaretiKoy(e) { e = e ?? {}; return this.gonderildiIsaretiKoyKaldir({ ...e, flag: true }) }
 	gonderildiIsaretiKaldir(e) { e = e ?? {}; return this.gonderildiIsaretiKoyKaldir({ ...e, flag: false }) }
@@ -241,14 +251,23 @@ class MQYapi extends CIO {
 		if (empty(keyHV)) { keyHV = this.keyHostVars(e) }
 		return this.class.gonderildiIsaretiKoyKaldir({ ...e, keyHV })
 	}
-	static async offlineDropTable(e) {
-		e = e ?? {}; if (!this.dbMgr_db) { return false } let offlineTable = e.table ?? e.offlineTable ?? this.table; if (!offlineTable) { return false }
-		let offlineMode = true; let query = `DROP TABLE IF EXISTS ${offlineTable}`; return this.sqlExecNone({ ...e, offlineMode, query })
+	static offlineDropTable(e = {}) {
+		if (!this.dbMgr_db)
+			return false
+		let offlineTable = e.table ?? e.offlineTable ?? this.table
+		if (!offlineTable)
+			return false
+		let offlineMode = true
+		let query = `DROP TABLE IF EXISTS ${offlineTable}`
+		return this.sqlExecNone({ ...e, offlineMode, query })
 	}
-	static async offlineClearTable(e) {
-		e = e ?? {}; if (!this.dbMgr_db) { return false } let offlineTable = e.table ?? e.offlineTable ?? this.table; if (!offlineTable) { return false }
-		let {trnId} = e, offlineMode = e.offline ?? e.offlineMode ?? true;
-		let query = new MQIliskiliDelete({ from: offlineTable }); return this.sqlExecNone({ ...e, offlineMode, trnId, query })
+	static offlineClearTable(e = {}) {
+		if (!this.dbMgr_db) { return false }
+		let offlineTable = e.table ?? e.offlineTable ?? this.table
+		if (!offlineTable) { return false }
+		let {trnId} = e, offlineMode = e.offline ?? e.offlineMode ?? true
+		let query = new MQIliskiliDelete({ from: offlineTable })
+		return this.sqlExecNone({ ...e, offlineMode, trnId, query })
 	}
 	static async offlineSaveToLocalTable(e = {}) {
 		if (!this.dbMgr_db)
@@ -257,7 +276,7 @@ class MQYapi extends CIO {
 		if (!offlineTable)
 			return this
 		let {idSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this, clear = e.clear ?? e.clearFlag
-		let {trnId} = e, offlineMode = true, offlineRequest = true, offlineYukleRequest = true
+		let {trnId} = e, offlineMode = true, offlineRequest = true, offlineYukleRequest = true, internal = true
 		let recs = await this.loadServerData({ ...e, trnId, offlineMode: !offlineMode, offlineRequest, offlineYukleRequest })
 		let {offlineSahaListe: attrListe, kodKullanilirmi, kodSaha} = this
 		let inLocalTrn = false, directFlag = true, okIdList = []
@@ -267,33 +286,31 @@ class MQYapi extends CIO {
 		}
 		catch (ex) { }
 		try {
-			let templateInst = new this()
-			if (!templateInst.detaymi) {
-				let keyHV = templateInst.alternateKeyHostVars(e)
-				if (empty(keyHV))
-					keyHV = templateInst.keyHostVars(e)
-			}
 			if (clear)
-				this.offlineClearTable({ ...e, offlineMode })
+				await this.offlineClearTable({ ...e, offlineMode })
 			if (kodKullanilirmi && kodSaha) {
 				let hv = { [kodSaha]: '' }
 				let query = new MQInsert({ table: offlineTable, hv })
 				await this.sqlExecNone({ ...e, offlineMode, query })
 			}
-			if (attrListe?.length && recs?.length) {
-				for (let _recs of arrayIterChunks(recs, 500)) {
-					if (directFlag) {
-						let attrSet = asSet(attrListe)
+			if (attrListe?.length) {
+				if (directFlag && recs?.length) {
+					let attrSet = asSet(attrListe)
+					let {online2OfflineSaha} = this
+					for (let _recs of arrayIterChunks(recs, 500)) {
 						let hvListe = []
 						for (let rec of _recs) {
 							let hv = {}, empty = true
-							for (let key in rec) {
-								if (!attrSet[key])
+							for (let lKey in rec) {
+								if (!attrSet[lKey])
 									continue
-								let value = rec[key]
+								let rKey = online2OfflineSaha[lKey] ?? lKey
+								if (!rKey)
+									continue
+								let value = rec[rKey]
 								if (typeof value == 'string')
 									value = value.trimEnd()
-								hv[key] = value
+								hv[lKey] = value
 								empty = false
 							}
 							if (!empty)
@@ -305,16 +322,16 @@ class MQYapi extends CIO {
 						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
 							okIdList.push(_recs.map(rec => rec[idSaha]))
 					}
-					else {
-						for (let rec of recs) {
-							let inst = new this()
-							if (!await inst.yukle({ offlineMode: !offlineMode, rec, offlineRequest, offlineYukleRequest }))
-								continue
-							if (!await inst.yaz({ offlineMode, offlineRequest, offlineYukleRequest }))
-								continue
-							if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
-								okIdList.push(rec[idSaha])
-						}
+				}
+				else if (recs?.length) {
+					for (let rec of recs) {
+						let inst = new this()
+						if (!await inst.yukle({ offlineMode: !offlineMode, rec, offlineRequest, offlineYukleRequest }))
+							continue
+						if (!await inst.yaz({ offlineMode, offlineRequest, offlineYukleRequest }))
+							continue
+						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
+							okIdList.push(rec[idSaha])
 					}
 				}
 			}
@@ -339,28 +356,62 @@ class MQYapi extends CIO {
 		let offlineTable = e.table ?? e.offlineTable ?? this.table
 		if (!offlineTable)
 			return this
-		let {offlineSahaListe: attrListe, idSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this
+		let {offlineSahaListe: attrListe, idSaha, onlineIdSaha, sayacSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this
 		let offlineMode = false, offlineRequest = true, offlineGonderRequest = true, {trnId} = e
 		let recs = await this.loadServerData({ ...e, offlineMode: !offlineMode, offlineRequest, offlineGonderRequest })
+			if (attrListe && onlineIdSaha && onlineIdSaha != idSaha && !attrListe.includes(onlineIdSaha))
+			attrListe.push(onlineIdSaha)
 		if (attrListe?.length) {
-			let directFlag = !idSaha, okIdList = []
+			let directFlag = !sayacSaha    // sayac olanlar grupInsert ile yazılamaz
+			let okIdList = []
 			app.online()
 			try {
 				if (directFlag) {
+					let mevcutIdSet = {}
 					if (recs?.length) {
-						let attrSet = asSet(attrListe), hvListe = []
-						for (let rec of recs) {
-							let hv = {}; let empty = true; for (let key in rec) {
-								if (!attrSet[key]) { continue } let value = rec[key]; if (typeof value == 'string') { value = value.trimEnd() }
-								hv[key] = value; empty = false
-							}
-							if (!empty) { hvListe.push(hv) }
+						if (idSaha && onlineIdSaha && !empty(recs)) {
+							let idList = keys(asSet(recs.map(rec => rec[onlineIdSaha] ?? rec[idSaha])))
+							let sent = new MQSent(), {where: wh, sahalar} = sent
+							sent.fromAdd(offlineTable)
+							wh.inDizi(idList, onlineIdSaha)
+							sahalar.add(onlineIdSaha)
+							sent.distinctYap()
+							let _recs = await this.sqlExecSelect({ ...e, trnId, offlineMode, query: sent })
+							mevcutIdSet = asSet(_recs.map(rec => rec[onlineIdSaha]))
 						}
-						let query = new MQInsert({ table: offlineTable, hvListe }); if (!await this.sqlExecNone({ ...e, trnId, offlineMode, query })) { return this }
-						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha) { okIdList.push(recs.map(rec => rec[idSaha])) }
+						let attrSet = asSet(attrListe), {online2OfflineSaha} = this
+						let hvListe = []
+						for (let rec of recs) {
+							let hv = {}, _empty = true
+							for (let lKey in rec) {
+								if (mevcutIdSet[rec[idSaha] ?? rec[onlineIdSaha]])
+									break    // skip this rec
+								if (!attrSet[lKey])
+									continue
+								let value = rec[lKey]
+								if (typeof value == 'string')
+									value = value.trimEnd()
+								let rKey = online2OfflineSaha[lKey] ?? lKey
+								if (!rKey)
+									continue
+								hv[rKey] = value
+								_empty = false
+							}
+							if (!_empty)
+								hvListe.push(hv)
+						}
+						if (!empty(hvListe)) {
+							for (let _hvListe of arrayIterChunks(hvListe, 500)) {
+								let query = new MQInsert({ table: offlineTable, hvListe: _hvListe })
+								if (!await this.sqlExecNone({ ...e, trnId, offlineMode, query }))
+									return this
+								if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
+									okIdList.push(recs.map(rec => rec[idSaha]))
+							}
+						}
 					}
 				}
-				else { if (recs?.length) {
+				else if (recs?.length) {
 					for (let rec of recs) {
 						let inst = new this()
 						if (!await inst.yukle({ offlineMode: !offlineMode, rec, offlineRequest, offlineGonderRequest })) { continue }
@@ -369,11 +420,15 @@ class MQYapi extends CIO {
 						if (!await inst.yaz({ trnId, offlineMode, offlineRequest, offlineGonderRequest })) { continue }
 						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha) { okIdList.push(rec[idSaha]) }
 					}
-				} }
+				}
 			}
 			finally {
 				if (okIdList?.length) {
-					let query = new MQIliskiliUpdate({ from: offlineTable, where: { inDizi: okIdList, saha: idSaha }, set: { degerAta: asReverseDateTimeString(now()), saha: gonderimTSSaha } });
+					let query = new MQIliskiliUpdate({
+						from: offlineTable,
+						where: { inDizi: okIdList, saha: idSaha },
+						set: { degerAta: asReverseDateTimeString(now()), saha: gonderimTSSaha }
+					})
 					await this.sqlExecNone({ trnId, offlineMode: !offlineMode, query })
 				}
 				app.resetOfflineStatus()

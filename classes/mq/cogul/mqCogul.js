@@ -407,97 +407,170 @@ class MQCogul extends MQYapi {
 	static raporQueryDuzenle(e) { this.forAltYapiClassesDo('raporQueryDuzenle', e) }
 	static raporQueryDuzenle_detaylar(e) { this.forAltYapiClassesDo('raporQueryDuzenle_detaylar', e) }
 	static loadServerData(e) { return this.loadServerDataDogrudan(e) }
-	static async loadServerDataDogrudan(e) { e = e || {}; e.query = await this.loadServerData_queryOlustur(e); return await this.loadServerData_querySonucu(e) }
-	static loadServerData_queryOlustur(e) {
-		e = e || {}; let tabloKolonlari = e.tabloKolonlari = e.tabloKolonlari || this.listeBasliklari, sahalarAlinmasinFlag = e.sahalarAlinmasinFlag ?? e.sahalarAlinmasin;
-		let {table} = this, alias = e.alias || this.tableAlias, tableAndAlias = alias ? `${table} ${alias}` : table, aliasVeNokta = alias ? `${alias}.` : '';
-		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? e.offline ?? this.isOfflineMode, {gonderildiDesteklenirmi, gonderimTSSaha} = this;
-		let sent = new MQSent({ from: tableAndAlias }); if (!sahalarAlinmasinFlag) {
+	static async loadServerDataDogrudan(e) {
+		e ??= {}; let {offlineRequest, offlineMode} = e
+		if (offlineRequest)
+			this._online_sqlColDefs ??= await app.sqlGetColumns(this.table)
+		e.query = await this.loadServerData_queryOlustur(e)
+		return await this.loadServerData_querySonucu(e)
+	}
+	static loadServerData_queryOlustur(e = {}) {
+		let {offlineRequest, secimler: sec} = e
+		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? e.offline ?? this.isOfflineMode
+		let {gonderildiDesteklenirmi, gonderimTSSaha, gereksizTablolariSilYapilirmi} = this
+		let tabloKolonlari = e.tabloKolonlari ??= offlineRequest ? this.orjBaslikListesi : this.listeBasliklari
+		let sahalarAlinmasinFlag = e.sahalarAlinmasinFlag ?? e.sahalarAlinmasin
+		let {table} = this, alias = e.alias || this.tableAlias
+		let tableAndAlias = alias ? `${table} ${alias}` : table, aliasVeNokta = alias ? `${alias}.` : ''
+		let sent = new MQSent({ from: tableAndAlias }), {where: wh, sahalar} = sent
+		if (!sahalarAlinmasinFlag) {
 			for (let colDef of tabloKolonlari) {
-				if (!colDef.sqlIcinUygunmu) { continue }
+				if (!colDef.sqlIcinUygunmu)
+					continue
 				let {belirtec, sql} = colDef
-				if (!offlineMode && gonderildiDesteklenirmi && gonderimTSSaha && (sql || belirtec)?.endsWith(gonderimTSSaha)) { continue }
-				if (sql || belirtec) { sent.add(sql ? `${sql} ${belirtec}` : `${aliasVeNokta}${belirtec}`) }
+				if (!offlineMode && gonderildiDesteklenirmi && gonderimTSSaha && (sql || belirtec)?.endsWith(gonderimTSSaha))
+					continue
+				// bilgi yükle-gönder için kolon tanım özel sql içeren bilgiler alınmaz (adı, teksecim clause ...)
+				if (offlineRequest && !!sql)
+					continue
+				if (sql || belirtec)
+					sahalar.add(sql ? `${sql} ${belirtec}` : `${aliasVeNokta}${belirtec}`)
 			}
 		}
-		let keyHV = this.varsayilanKeyHostVars(e); if (keyHV) { sent.where.birlestirDict({ alias, dict: keyHV }) }
-		let {secimler: sec} = e; if (sec) { sent.where.birlestir(sec.getTBWhereClause({ ...e, sent })) }
-		if ($.isEmptyObject(sent.sahalar.liste)) { sent.sahalar.add(`${aliasVeNokta}*`) }
-		/* sent.groupByOlustur(); */ let stm = new MQStm({ sent });
-		$.extend(e, { table: this.table, alias, aliasVeNokta, stm, sent }); { this.loadServerData_queryDuzenle(e) } stm = e.query || e.stm;
-		if (this.gereksizTablolariSilYapilirmi) { if (stm?.getSentListe) { for (let _sent of stm) { _sent.gereksizTablolariSil({ disinda: alias }) } } }
+		let keyHV = this.varsayilanKeyHostVars(e)
+		if (keyHV)
+			wh.birlestirDict({ alias, dict: keyHV })
+		if (sec)
+			wh.birlestir(sec.getTBWhereClause({ ...e, sent }))
+		if (empty(sahalar.liste))
+			sahalar.add(`${aliasVeNokta}*`)
+		/* sent.groupByOlustur(); */
+		let stm = new MQStm({ sent })
+		$.extend(e, { table, alias, aliasVeNokta, stm, sent })
+		this.loadServerData_queryDuzenle(e)
+		stm = e.query ?? e.stm
+		if (offlineRequest) {
+			let {_online_sqlColDefs: cd} = this
+			for (let {where: wh, sahalar, alias2Deger} of stm) {
+				/* offlineMode == true : bilgi aktar  |  offlineMode == false : bilgi yükle */
+				if (offlineMode && gonderildiDesteklenirmi && gonderimTSSaha)  // offline - gonderimTSSaha (sadece gönderilmeyenler gönderilir)
+					wh.add(`${alias}.${gonderimTSSaha} = ''`)
+				for (let key of keys(alias2Deger)) {
+					if (!cd[key])
+						delete alias2Deger[key]
+				}
+				if (sahalar.liste.length != keys(alias2Deger).length) {
+					sahalar.liste = []
+					for (let [alias, deger] of entries(alias2Deger))
+						sahalar.add(new MQAliasliYapi({ alias, deger }))
+				}
+			}
+		}
+		this.loadServerData_queryDuzenle_son(e)
+		if (gereksizTablolariSilYapilirmi) {
+			if (stm?.getSentListe) {
+				let disinda = alias
+				for (let _sent of stm)
+					_sent.gereksizTablolariSil({ disinda })
+			}
+		}
 		return stm
 	}
-	static loadServerData_queryDuzenle(e) {
-		e = e || {}; let sender = e.sender ?? e, {offlineGonderRequest, parentPart} = e;
+	static loadServerData_queryDuzenle(e = {}) {
+		let sender = e.sender ?? e, {offlineRequest, offlineMode, parentPart} = e
 		let ozelQueryDuzenleBlock = e.ozelQueryDuzenleBlock ?? e.ozelQueryDuzenle ?? e.stmDuzenle ?? e.stmDuzenleyici ??
 			sender.ozelQueryDuzenleBlock ?? sender.ozelQueryDuzenle ??
-			sender.stmDuzenle ?? sender.stmDuzenleyici;
-		let {kod, value, stm, maxRow, wsArgs, tekilOku, basit, modelKullanmi} = e;
-		if (wsArgs) { stm.fromGridWSArgs(wsArgs) }
-		if (offlineGonderRequest) {
-			let {gonderildiDesteklenirmi, gonderimTSSaha, tableAlias: alias} = this;
-			if (gonderildiDesteklenirmi && gonderimTSSaha) { for (let sent of stm) { sent.where.add(`${alias}.${gonderimTSSaha} = ''`) } }
-		}
+			sender.stmDuzenle ?? sender.stmDuzenleyici
+		let mfSinif = this, {kod, value, stm, stm: { sent, orderBy }, maxRow, wsArgs, tekilOku, basit, modelKullanmi} = e
+		let {gonderildiDesteklenirmi, gonderimTSSaha, table, tableAlias: alias, aliasVeNokta} = this
+		let {kodKullanilirmi, adiKullanilirmi, kodSaha, adiSaha} = this
+		if (wsArgs)
+			stm.fromGridWSArgs(wsArgs)
 		/* if (value) value = value.toUpperCase() */
-		let {kodSaha, adiSaha, tableAlias, aliasVeNokta} = this;
 		if (kodSaha && (kod || value || maxRow)) {
 			let orClauses = [];
 			if (value) {
-				let parts = value.split(' '); for (let _part of parts) {
-					let part = _part?.trim(); if (!part) { continue }
-					let or = new MQOrClause(); or.like(`%${part}%`, `${aliasVeNokta}${kodSaha}`); if (adiSaha) {
-						or.like(`%${part.toUpperCase()}%`, `${aliasVeNokta}${adiSaha}`);
+				let parts = value.split(' ')
+				for (let _part of parts) {
+					let part = _part?.trim()
+					if (!part)
+						continue
+					let or = new MQOrClause()
+					or.like(`%${part}%`, `${aliasVeNokta}${kodSaha}`)
+					if (adiSaha) {
+						or.like(`%${part.toUpperCase()}%`, `${aliasVeNokta}${adiSaha}`)
 						or.like(`%${part.asTRUpper()}%`, `${aliasVeNokta}${adiSaha}`)
 					}
 					orClauses.push(or)
 				}
 			}
 			for (let sent of stm) {
-				if (kodSaha && kod) { sent.where.degerAta(kod, `${aliasVeNokta}${kodSaha}`) }
-				if (orClauses) { for (let or of orClauses) { sent.where.add(or) } }
-				if (maxRow) { sent.top = maxRow }
+				let {where: wh} = sent
+				if (kodSaha && kod)
+					wh.degerAta(kod, `${aliasVeNokta}${kodSaha}`)
+				if (orClauses) {
+					for (let or of orClauses)
+						wh.add(or)
+				}
+				if (maxRow)
+					sent.top = sent.limit = maxRow
 			}
 		}
-		let {ayrimIsimleri, ayrimBelirtec, ayrimTable, ayrimTableAlias} = this;
-		if (!$.isEmptyObject(ayrimIsimleri)) {
-			let Prefix = `${ayrimBelirtec}ayradi`, {tabloKolonlari} = e, ayrimIndexStrSet;
+		if (!offlineRequest) {
+			let {ayrimIsimleri, ayrimBelirtec, ayrimTable, ayrimTableAlias} = this
+			if (!empty(ayrimIsimleri)) {
+			let Prefix = `${ayrimBelirtec}ayradi`, {tabloKolonlari} = e, ayrimIndexStrSet
 			if (tabloKolonlari) {
-				ayrimIndexStrSet = {};
-				for (let colDef of tabloKolonlari) {
-					let {belirtec} = colDef; if (belirtec.startsWith(Prefix)) {
-						let key = belirtec.substring(Prefix.length); ayrimIndexStrSet[key] = true }
+				ayrimIndexStrSet = {}
+				for (let {belirtec} of tabloKolonlari) {
+					if (belirtec.startsWith(Prefix)) {
+						let key = belirtec.substring(Prefix.length)
+						ayrimIndexStrSet[key] = true
+					}
 				}
 			}
-			else { ayrimIndexStrSet = asSet(Object.keys(this.ayrimIsimleri).map(x => asInteger(x) + 1)) }
+			else
+				ayrimIndexStrSet = asSet(keys(ayrimIsimleri).map(x => asInteger(x) + 1))
 			for (let sent of stm) {
-				for (let indexStr of Object.keys(ayrimIndexStrSet)) {
-					let _ayrimTableAlias = `${ayrimTableAlias}${indexStr}`;									// 'sayr1' ...
-					let ayrimTableVeAlias = `${ayrimTable}${indexStr} ${_ayrimTableAlias}`;					// 'stkayrim1 sayr1'
-					let iliski = `${tableAlias}.ayrim${indexStr} = ${_ayrimTableAlias}.sayac`;				// 'stk.ayrim1 = sayr1.sayac'
-					sent.leftJoin({ alias: tableAlias, table: ayrimTableVeAlias, on: iliski })
+				for (let indexStr of keys(ayrimIndexStrSet)) {
+					let _ayrimTableAlias = `${ayrimTableAlias}${indexStr}`									// 'sayr1' ...
+					let ayrimTableVeAlias = `${ayrimTable}${indexStr} ${_ayrimTableAlias}`					// 'stkayrim1 sayr1'
+					let iliski = `${tableAlias}.ayrim${indexStr} = ${_ayrimTableAlias}.sayac`				// 'stk.ayrim1 = sayr1.sayac'
+					sent.leftJoin(tableAlias, ayrimTableVeAlias, iliski)
 				}
 			}
 		}
-		this.forAltYapiClassesDo('loadServerData_queryDuzenle', e);
-		{
-			let mfSinif = this, colDef = e.colDef ?? sender?.colDef ?? parentPart?.belirtec ? parentPart : null;
-			let {table, tableAlias: alias, aliasVeNokta, kodKullanilirmi, adiKullanilirmi, adiSaha} = this;
-			let {sent, orderBy} = stm, {stmDuzenleyiciler} = parentPart ?? {};
-			let _e = { ...e, sender, colDef, mfSinif, alias, aliasVeNokta, stm, sent };
-			if (!kodKullanilirmi && adiKullanilirmi && adiSaha && !(tekilOku || basit || modelKullanmi)) { orderBy.add(adiSaha) }
-			ozelQueryDuzenleBlock?.call(this, _e);
-			if (stmDuzenleyiciler) { for (let handler of stmDuzenleyiciler) { handler?.call(this, _e) }  }
+		this.forAltYapiClassesDo('loadServerData_queryDuzenle', e)
+		; {
+			let colDef = e.colDef ?? sender?.colDef ?? parentPart?.belirtec ? parentPart : null
+			let {stmDuzenleyiciler} = parentPart ?? {}
+			let _e = { ...e, sender, colDef, mfSinif, alias, aliasVeNokta, stm, sent }
+			if (!kodKullanilirmi && adiKullanilirmi && adiSaha && !(tekilOku || basit || modelKullanmi))
+				orderBy.add(adiSaha)
+			ozelQueryDuzenleBlock?.call(this, _e)
+			if (stmDuzenleyiciler) {
+				for (let handler of stmDuzenleyiciler)
+					handler?.call(this, _e)
+			}
 		}
 	}
-	static async loadServerData_querySonucu(e) {
-		e = e || {}; let sender = e.sender ?? e;
-		let ozelQuerySonucuBlock = e.ozelQuerySonucuBlock ?? e.ozelQuerySonucu ?? sender.ozelQuerySonucuBlock ?? sender.ozelQuerySonucu;
-		let {trnId, wsArgs, query} = e, defer = e.defer = e.defer ?? e.deferFlag ?? false; delete e.defer; delete e.deferFlag;
-		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? e.offline ?? this.isOfflineMode, _e = { offlineMode, defer, trnId, wsArgs, query };
-		if (ozelQuerySonucuBlock) { return getFuncValue.call(this, ozelQuerySonucuBlock, _e); }
-		let result = await this.forAltYapiClassesDoAsync('loadServerData_querySonucu', e); result = result ? result[result.length - 1] : undefined; if (result !== undefined) { return result }
-		result = await this.sqlExecSelect(_e); return result
+	}
+	static loadServerData_queryDuzenle_son(e = {}) { }
+	static async loadServerData_querySonucu(e = {}) {
+		let sender = e.sender ?? e
+		let ozelQuerySonucuBlock = e.ozelQuerySonucuBlock ?? e.ozelQuerySonucu ?? sender.ozelQuerySonucuBlock ?? sender.ozelQuerySonucu
+		let {trnId, wsArgs, query} = e, defer = e.defer = e.defer ?? e.deferFlag ?? false
+		delete e.defer; delete e.deferFlag
+		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? e.offline ?? this.isOfflineMode
+		let _e = { offlineMode, defer, trnId, wsArgs, query }
+		if (ozelQuerySonucuBlock)
+			return getFuncValue.call(this, ozelQuerySonucuBlock, _e)
+		let result = await this.forAltYapiClassesDoAsync('loadServerData_querySonucu', e)
+		result = result ? result[result.length - 1] : undefined
+		if (result !== undefined)
+			return result
+		result = await this.sqlExecSelect(_e)
+		return result
 	}
 	tekilOku_queryOlustur(e) {
 		e = e || {}; let tabloKolonlari = e.tabloKolonlari = e.tabloKolonlari ?? this.class.listeBasliklari;
@@ -512,11 +585,19 @@ class MQCogul extends MQYapi {
 		let keyHV = this.keyHostVars(e); if ($.isEmptyObject(keyHV)) { keyHV = this.alternateKeyHostVars(e) }
 		if (keyHV) { sent.where.birlestirDict({ alias, dict: keyHV }) }
 		/* if ($.isEmptyObject(sent.sahalar.liste)) { sent.sahalar.add(`${aliasVeNokta}*`) } */
-		let stm = new MQStm({ sent }); $.extend(e, { stm, sent }); this.tekilOku_queryDuzenle(e); stm = e.query || e.stm;
-		if (this.class.gereksizTablolariSilYapilirmi) { sent.gereksizTablolariSil({ disinda: alias }) }
+		let stm = new MQStm({ sent })
+		$.extend(e, { stm, sent })
+		this.tekilOku_queryDuzenle(e)
+		stm = e.query || e.stm
+		if (this.class.gereksizTablolariSilYapilirmi)
+			sent.gereksizTablolariSil({ disinda: alias })
 		return stm
 	}
-	tekilOku_queryDuzenle(e) { this.class.loadServerData_queryDuzenle({ ...e, tekilOku: true }); this.forAltYapiKeysDo('tekilOku_queryDuzenle', e) }
+	tekilOku_queryDuzenle(e) {
+		this.class.loadServerData_queryDuzenle({ ...e, tekilOku: true })
+		this.forAltYapiKeysDo('tekilOku_queryDuzenle', e)
+		this.class.loadServerData_queryDuzenle_son({ ...e, tekilOku: true })
+	}
 	static async tekilOku_querySonucu(e) {
 		e = e || {}; let sender = e.sender ?? e, ozelQuerySonucuBlock = e.ozelQuerySonucuBlock ?? e.ozelQuerySonucu ?? sender.ozelQuerySonucuBlock ?? sender.ozelQuerySonucu;
 		let {trnId, wsArgs, query} = e, offlineMode = e.offlineMode ?? e.isOfflineMode ?? e.offline ?? this.isOfflineMode, _e = { offlineMode, trnId, wsArgs, query };
