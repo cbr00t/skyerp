@@ -251,22 +251,25 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			if (!filtreDBSet || filtreDBSet[buDBName]) {
 				if (!asilUni.liste.length) { asilUni.add(new MQSent()) }
 				for (let {sahalar} of asilUni) {
-					if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db)) {
-						sahalar.add(`${`(<span class=forestgreen>${buDBName}</span>)`.sqlServerDegeri() ?? '- Aktif VT -'} ${alias_db}`) }
+					if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db))
+						sahalar.add(`${`(<span class=forestgreen>${buDBName}</span>)`.sqlServerDegeri() ?? '- Aktif VT -'} ${alias_db}`)
 				}
 				asilUniDuzenlendimi = true
 			}
 			if (ekDBListe?.length && asilUni.liste.length) {
-				let ekSentListe = []; for (let db of ekDBListe) {
+				let ekSentListe = []
+				for (let db of ekDBListe) {
 					if (filtreDBSet && !filtreDBSet[db]) { continue }
-					let {liste} = asilUni.deepCopy(); for (let sent of liste) {
-						let {from, sahalar} = sent; for (let item of from.liste) {
+					let {liste} = asilUni.deepCopy()
+					for (let {from, sahalar} of liste) {
+						for (let item of from.liste) {
 							let {deger} = item, hasDB = deger.includes('.');
-							if (!hasDB) { item.deger = deger = `${db}..${deger}` }
+							if (!hasDB)
+								item.deger = deger = `${db}..${deger}`
 						}
 						{
 							let saha = sahalar.liste.find(x => x.alias == alias_db);
-							if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db)) {
+							if (attrSet.DB && !saha) {
 								sahalar.add(`'NULL' ${alias_db}`);
 								saha = sahalar.liste.find(x => x.alias == alias_db);
 							}

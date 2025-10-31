@@ -185,7 +185,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 	}
 	async loadServerDataInternal(e) {
 		await super.loadServerDataInternal(e)
-		let {detayli, ekDBListe, aktifDB, detaylar, detay: _det} = e
+		let {detayli, konsolideCikti, ekDBListe, aktifDB, detaylar, detay: _det} = e
 		let yatayDegerSet = e.yatayDegerSet = {}
 		let rapor = this, {raporTanim = {}, secimler, secimler: {tarihBS: donemBS}, sahaAlias: bedelAlias} = this
 		let {raporTanim: { yatayAnalizVarmi, yatayAnaliz } = {}} = this
@@ -215,20 +215,20 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 				id2Promise[id] = null
 				continue
 			}
-			if (yatayDBmi || ekDBListe?.length) {
-				let orjUni = sonucUni, alias = 'yatay';
+			if (konsolideCikti) {
+				let orjUni = sonucUni, yatayAlias = yatayDBmi ? 'yatay' : null;
 				{
 					sonucUni = _e.uni = stm.sent = new MQUnionAll()
 					let uni = orjUni.deepCopy()
-					if (yatayDBmi) {
-						let clause = aktifDB.sqlServerDegeri()
-						for (let {sahalar} of uni)
-							sahalar.add(`${clause} ${alias}`)
+					for (let {sahalar} of uni) {
+						if (yatayAlias)
+							sahalar.add(`'${aktifDB}' ${yatayAlias}`)
+						if (detayli && yatayAlias != 'db')
+							sahalar.add(`'<b class=forestgreen>[ ${aktifDB} ]</b>' db`)
 					}
 					sonucUni.addAll(uni)
 				}
 				for (let db of ekDBListe ?? []) {
-					let clause = db.sqlServerDegeri()
 					let uni = orjUni.deepCopy()
 					for (let {from, sahalar} of uni) {
 						for (let aMQAliasliYapi of from) {
@@ -236,8 +236,10 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 							if (table && !table.includes('.'))
 								table = aMQAliasliYapi.deger = `${db}..${table}`
 						}
-						if (yatayDBmi)
-							sahalar.add(`${clause} ${alias}`)
+						if (yatayAlias)
+							sahalar.add(`'${db}' ${yatayAlias}`)
+						if (detayli && yatayAlias != 'db')
+							sahalar.add(`'<span class=royalblue>${db}</span>' db`)
 					}
 					sonucUni.addAll(uni)
 				}

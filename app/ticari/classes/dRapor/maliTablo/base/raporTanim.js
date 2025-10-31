@@ -461,6 +461,8 @@ class SBTabloDetay extends MQDetay {
 		let {ekBilgi: { harSinif, harEkDuzenle } = {}} = hesapTipi
 		if (!harSinif)
 			return this
+		let {session} = config, {dbName: buDBName} = session
+		let {dRapor: { konsolideCikti: konsolide, ekDBListe} = {}} = app.params
 		let {mstYapi: { hvAlias } = {}} = harSinif
 		let aliasListe = []
 		// let sabitAttrListe = []
@@ -528,6 +530,7 @@ class SBTabloDetay extends MQDetay {
 	}
 	async hareketKartiGoster({ rapor, raporTanim }) {
 		e = { ...arguments[0] }
+		let {session} = config, {dbName: buDBName} = session
 		let {sahaAlias: bedelAlias, yatayDegerler, yatayDegerSet, secimler, secimler: { tarihBS: donemBS }} = rapor
 		let {yatayAnalizVarmi, yatayAnaliz, yatayAnaliz: { aciklama: yatayEtiket, ekBilgi: { zorunluKodAttrListe: yatayAttrListe } = {} } = {}} = raporTanim
 		let yatayDBmi = e.yatayDBmi = yatayAnalizVarmi && yatayAnaliz.dbmi
@@ -621,7 +624,7 @@ class SBTabloDetay extends MQDetay {
 			filtreYatayDegerSet = values?.length ? asSet(values) : null
 		}
 		let ekAttrListe = [
-			'tarih', 'fisnox', 'anaislemadi', 'islkod', 'islemadi',
+			'db', 'tarih', 'fisnox', 'anaislemadi', 'islkod', 'islemadi',
 			mstAlias, 'mstadi', 'refkod', 'refadi', 'takipno'
 		].filter(x => !!x)
 		let {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs
@@ -651,6 +654,12 @@ class SBTabloDetay extends MQDetay {
 					sahalar.add('tak.aciklama takipadi', 'tak.grupkod takipgrupkod', 'tgrp.aciklama takipgrupadi')
 				}
 			}
+			/*if (konsolide && !alias2Deger.db) {
+				let {deger: table} = from.liste[0] ?? {}
+				let tokens = table.split('.')
+				let db = alias2Deger.db = tokens.length < 2 ? `<span class=royalblue>[ ${buDBName} ]</span>` : tokens[0].trim()
+				sahalar.add(`'${db}' db`)
+			}*/
 		}
 		$.extend(e, { konsolide, detayli: true, detay: this, ekAttrListe, sentDuzenle })
 		let cls = class extends MQCogul {
@@ -686,6 +695,7 @@ class SBTabloDetay extends MQDetay {
 					new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12 }).tipTarih(),
 					new GridKolon({ belirtec: 'fisnox', text: 'Belge No', genislikCh: 19 }).alignRight(),
 					(yatayAnalizVarmi ? new GridKolon({ belirtec: 'yatay', text: yatayEtiket || 'Çapraz', genislikCh: 13, filterType: 'checkedlist' }) : null),
+					(konsolide && !(yatayAnalizVarmi && yatayDBmi) ? new GridKolon({ belirtec: 'db', text: 'Veritabanı', genislikCh: 15, filterType: 'checkedlist' }) : null),
 					new GridKolon({ belirtec: bedelAlias, text: 'Bedel', genislikCh: 17, aggregates: ['sum'] }).tipDecimal_bedel(),
 					new GridKolon({ belirtec: 'ba', text: 'B/A', genislikCh: 5, filterType: 'checkedlist' }),
 					new GridKolon({ belirtec: 'mstkod', text: 'Kod', genislikCh: 15 }),
@@ -728,8 +738,13 @@ class SBTabloDetay extends MQDetay {
 			static gridVeriYuklendi({ sender: { grid } }) {
 				super.gridVeriYuklendi(...arguments)
 				let {lastGroups: groups} = this
-				if (!groups && yatayAnalizVarmi)
-					groups = ['yatay']
+				if (!groups) {
+					groups = []
+					if (yatayAnalizVarmi)
+						groups.push('yatay')
+					if (konsolide && !yatayDBmi)
+						groups.push('db')
+				}
 				grid.jqxGrid('groups', groups ?? [])
 				this.lastGroups = groups
 			}
