@@ -157,7 +157,7 @@ class StokHareketci extends Hareketci {
 				delete attrSet[key]
 		}
 	}
-	uniOrtakSonIslem({ sender: { finansalAnalizmi } = true, secimler: sec, hvDegeri, hv, sent, sent: { from, where: wh, sahalar }, attrSet }) {
+	uniOrtakSonIslem({ sender: { finansalAnalizmi, eldekiVarliklarmi } = true, secimler: sec, hvDegeri, hv, sent, sent: { from, where: wh, sahalar }, attrSet }) {
 		super.uniOrtakSonIslem(...arguments)
 		let {sqlNull} = Hareketci_UniBilgi.ortakArgs, {sablonsalVarmi} = this.class
 		let yerKodClause = hvDegeri('yerkod'), mustClause = hvDegeri('must')
@@ -179,19 +179,21 @@ class StokHareketci extends Hareketci {
 		/*let istenmeyenIsaret = fiilimi ? 'X' : '*';
 		wh.notDegerAta(istenmeyenIsaret, hvDegeri('ozelisaret'))*/
 		wh.add(`${kodClause} > ''`)
-		if (finansalAnalizmi) {
-			//let {}
+		if (eldekiVarliklarmi) {
+			let {eldekiVarlikStokDegerlemeTipi: degTipi = {}, eldekiVarlikStokDegerlemesiKDVlidir: degKDVlimi} = app?.params?.finans
+			degTipi = degTipi?.char ?? ''
+			if (degKDVlimi)
+				sent.fromIliski('vergihesap skdv', 'stk.satkdvhesapkod = skdv.kod')
 			if (yerKodClause) {
 				wh.notInDizi(['H', 'IS', 'EM'], 'yer.aum')
 				wh.add(`yer.finanaliztipi = ''`)
 			}
-			let {eldekiVarlikStokDegerlemeTipi: degTipi = {}} = app?.params?.finans
-			degTipi = degTipi?.char ?? ''
 			let gcClause = hvDegeri('gc'), miktarClause = hvDegeri('miktar').sumOlmaksizin(), miktar2Clause = hvDegeri('miktar2').sumOlmaksizin()
 			let gcCarpanClause = `(case when ${gcClause} = 'G' then 1 else -1 end)`
 			let xMiktarClause = `((case when stk.almfiyatmiktartipi = '2' then ${miktar2Clause} else ${miktarClause} end) * ${gcCarpanClause})`
 			let fiyatClause = `(case '${degTipi}' when 'R' then stk.revizerayicalimfiyati when 'M' then stk.ortmalfiyat else stk.revizefiilialimfiyat end)`
-			let bedelClause = `ROUND(${xMiktarClause} * ${fiyatClause}, 2)`
+			let ekClause = degKDVlimi ? ` * (100 + skdv.kdvorani) / 100` : ''
+			let bedelClause = `ROUND(${xMiktarClause} * ${fiyatClause}${ekClause}, 2)`
 			sahalar.add(`SUM(${xMiktarClause}) miktar`, `SUM(${bedelClause}) bedel`)
 		}
 	}

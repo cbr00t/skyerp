@@ -121,7 +121,7 @@ body.dark-theme .dRapor.part #items > .item._main .jqx-grid tr:nth-child(even) .
 .secimler.dRapor.part .secimler-form .modelKullan.part { padding: 5px 5px }
 .secimler.dRapor.part .secimler-form .modelKullan.part:has(.jqx-combobox-multi-item) { min-height: 100px !important }
 .secimler.dRapor.part .secimler-form .modelKullan.part .jqx-combobox-multi-item { margin-top: 5px; padding: 4px 8px }
-.dRapor.part #items > .item.main .secimBilgi { width: calc(var(--full) - 150px) }
-.dRapor.part #items > .item.main .secimBilgi .ozetBilgi-item { font-size: 90% !important; color: royalblue; padding: 2px 8px !important }
+.dRapor.part #items > .item.main .secimBilgi { width: calc(var(--full) - 150px); margin-top: -5px }
+.dRapor.part #items > .item.main .secimBilgi .ozetBilgi-item { font-size: 80% !important; color: royalblue; padding: 2px 10px !important }
 .dRapor.part #items > .item.main .secimBilgi .ozetBilgi-item:not(:first-child) { margin-left: 3px !important }
 

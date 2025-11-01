@@ -11,7 +11,7 @@ class MQYapi extends CIO {
 	static get gonderildiDesteklenirmi() { return false } static get gonderimTSSaha() { return 'gonderimts' }
 	static get offlineSahaListe() { return new this().offlineSahaListe }
 	get offlineSahaListe() { return Object.keys(this.hostVars({ offlineRequest: true, offlineMode: false }) ?? {}) }
-	static get offlineTempmi() { return !this.offlineFismi } static get offlineFismi() { return false }
+	static get offlineTemp() { return !this.offlineFis } static get offlineFis() { return false }
 	static get offlineDirect() { return true }
 	static get offline2OnlineSaha() { return {} }
 	static get online2OfflineSaha() { return asReverseDict(this.offline2OnlineSaha) }
@@ -277,11 +277,11 @@ class MQYapi extends CIO {
 		let offlineTable = e.table ?? e.offlineTable ?? this.table
 		if (!offlineTable)
 			return this
-		let {idSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this, clear = e.clear ?? e.clearFlag
+		let {offlineDirect: directFlag, idSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this, clear = e.clear ?? e.clearFlag
 		let {trnId} = e, offlineMode = true, offlineRequest = true, offlineYukleRequest = true, internal = true
 		let recs = await this.loadServerData({ ...e, trnId, offlineMode: !offlineMode, offlineRequest, offlineYukleRequest })
 		let {offlineSahaListe: attrListe, kodKullanilirmi, kodSaha} = this
-		let inLocalTrn = false, directFlag = true, okIdList = []
+		let inLocalTrn = false, okIdList = []
 		try {
 			await this.sqlExecNone({ ...e, offlineMode, query: 'BEGIN TRANSACTION' })
 			inLocalTrn = true
@@ -358,13 +358,13 @@ class MQYapi extends CIO {
 		let offlineTable = e.table ?? e.offlineTable ?? this.table
 		if (!offlineTable)
 			return this
-		let {offlineSahaListe: attrListe, idSaha, onlineIdSaha, sayacSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this
+		let {offlineDirect: directFlag, offlineSahaListe: attrListe, idSaha, onlineIdSaha, sayacSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this
 		let offlineMode = false, offlineRequest = true, offlineGonderRequest = true, {trnId} = e
 		let recs = await this.loadServerData({ ...e, offlineMode: !offlineMode, offlineRequest, offlineGonderRequest })
 			if (attrListe && onlineIdSaha && onlineIdSaha != idSaha && !attrListe.includes(onlineIdSaha))
 			attrListe.push(onlineIdSaha)
 		if (attrListe?.length) {
-			let directFlag = !sayacSaha    // sayac olanlar grupInsert ile yazılamaz
+			// let directFlag = !sayacSaha    // sayac olanlar grupInsert ile yazılamaz
 			let okIdList = []
 			app.online()
 			try {

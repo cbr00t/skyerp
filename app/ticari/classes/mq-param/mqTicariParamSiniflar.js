@@ -496,6 +496,7 @@ class MQFinansParam extends MQTicariParamBase {
 		let form = paramci.addFormWithParent()
 			form.addBool('karZararTabloMaliyettenBulunsun', 'Kar/Zarar Tablo Maliyetten Bulunsun')
 			form.addBool('eldekiVarlikStokDegerlemesiYapilir', 'Eldeki Varlık Stok Değerlemesi Yapılır')
+			form.addBool('eldekiVarlikStokDegerlemesiKDVlidir', 'Eldeki Varlık Stok Değerlemesi KDVlidir')
 			form.addTekSecim('eldekiVarlikStokDegerlemeTipi', 'Eldeki Varlık Stok Değ. Tipi')
 				.dropDown().noMF().kodsuz().setTekSecim(StokDegerleme).addStyle_wh(300)
 			form.addBool('finansIslemTipi', 'Finans İşlem Tipi')	

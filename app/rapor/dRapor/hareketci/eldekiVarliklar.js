@@ -24,6 +24,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 	static get yon() { return 'sol' } static get solmu() { return true }
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
+		let {eldekiVarlikStokDegerlemesiKDVlidir: degKDVlimi} = app?.params?.finans
 		{
 			let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => cls.eldekiVarliklarIcinUygunmu)
 			let anaTip_kaListe = []
@@ -63,6 +64,10 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 				cariGosterim: new SecimTekSecim({ grupKod, etiket: 'Cari Gösterim', tekSecim: cariGosterim_tSec }).autoBind(),
 				stokTipi: new SecimTekSecim({ grupKod, etiket: 'Stok Tipi', tekSecim: stokTipi_tSec }).autoBind()
 			})
+			if (degKDVlimi) {
+				sec.secimEkle('degKDVliUyari',
+					new SecimText({ grupKod, etiket: ' ', value: `<span class=fs-120>Stok Değerlemesi <b class=firebrick>KDV'li</b>dir</span>` }))
+			}
 		}
 		sec.addKA('sube', DMQSube, ({ hv }) => hv.bizsubekod, 'sub.aciklama')
 		sec.addKA('subeGrup', DMQSubeGrup, 'sub.isygrupkod', 'igrp.aciklama')
