@@ -84,7 +84,8 @@ class TabbedWindowPart extends Part {
 		elmTabHeader.removeClass('jqx-hidden'); mainWindowsPart.activePageId = wndId; mainWindowsPart.refresh();
 		const closeableTabPages = Object.values(id2TabPage).filter(tabPage => tabPage?.header?.data('part')?.asilPart?.isCloseable);
 		const noWndFlag = !closeableTabPages.length; app.content[noWndFlag ? 'removeClass' : 'addClass']('jqx-hidden');
-		$('body')[noWndFlag ? 'addClass' : 'removeClass']('no-wnd'); return this
+		$('body')[noWndFlag ? 'addClass' : 'removeClass']('no-wnd')
+		return this
 	}
 	hide(e) {
 		const {wndId} = this, {mainWindowsPart} = app, {id2TabPage} = mainWindowsPart;

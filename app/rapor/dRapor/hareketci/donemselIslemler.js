@@ -104,8 +104,8 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 			)
 		let harListe = e.harListe = [], promises = [];
 		for (let cls of harClasses) {
-			let {mstYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi;
-			let belirtecler = [...sabitBelirtecler, mstKodAlias, mstAdiAlias, mstAdiAlias2].filter(x => !!x);
+			let {mstYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi
+			let belirtecler = [...sabitBelirtecler, mstKodAlias, mstAdiAlias, mstAdiAlias2].filter(x => !!x)
 			promises.push(cls.ilkIslemler())
 			let har = new cls(); har.withAttrs(belirtecler); harListe.push(har)
 		}
@@ -144,7 +144,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 				if (mstAdiClause)
 					sahalar.add(`${mstAdiClause} mstadi`)
 				else {
-					mstYapi.duzenle({ sender: this, secimler: sec, sent: harSent, wh, kodClause: mstKodClause })
+					mstYapi.duzenle({ sender: this, secimler: sec, sent: harSent, wh, kodClause: mstKodClause, hv: alias2Deger })
 					mstKodAlias = mstYapi.hvAlias; mstAdiAlias = mstYapi.hvAdiAlias; mstAdiAlias2 = mstYapi.hvAdiAlias2
 					mstKodClause = alias2Deger[mstKodAlias]; mstAdiClause = alias2Deger[mstAdiAlias]; mstAdiClause2 = alias2Deger[mstAdiAlias2]
 				}

@@ -35,8 +35,11 @@ class CSHareketci extends Hareketci {
 		}
 	}
 	static mstYapiDuzenle({ result }) {
-		super.mstYapiDuzenle(...arguments);
-		result.setHVAlias('portfkod').setHVAdiAlias('portfadi').setHVAdiAlias2('refportfadi')
+		super.mstYapiDuzenle(...arguments)
+		let {sqlEmpty} = Hareketci_UniBilgi.ortakArgs
+		let defHVAlias = 'portfkod'
+		result.set(defHVAlias, ({ sent, kodClause, mstAlias, mstAdiAlias, hv = {} }) =>
+			sent.sahalar.add(`${hv.portfadi || sqlEmpty} ${mstAdiAlias}`))
 	}
 	static ortakHVYapilarDuzenle({ result }) {
 		let {sqlEmpty} = Hareketci_UniBilgi.ortakArgs; $.extend(result, {
@@ -154,6 +157,12 @@ class CSHareketci extends Hareketci {
 		let {from, where: wh} = sent, digerHarmi = from.aliasIcinTable('har')?.deger == 'csdigerhar';
 		/*if (digerHarmi) {*/ wh.notInDizi(['XI', 'XK', 'XT', 'X3', 'XZ'], hv.portftipi) /*}*/
 	}
+	
+	uniDuzenleOncesi({ sender: { finansalAnalizmi } = {} }) {
+		super.uniDuzenleOncesi(...arguments); let {attrSet} = this
+		if (attrSet)
+			attrSet.portfadi = true
+	}
 	uniOrtakSonIslem({ sender, sent, wh }) {
 		super.uniOrtakSonIslem(...arguments);
 		if (sender?.finansalAnalizmi) { this.ortakSentDuzenle_isiBitenlerHaric(...arguments) }
@@ -174,6 +183,7 @@ class CSHareketci extends Hareketci {
 			/* portfVeyaRefPortfAdi: ({ hv }) => { return `dbo.emptycoalesce(${hv.portfadi}, ${hv.refportfadi})` } */
 		})
     }
+	
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
 		let {trfCikismi} = this; $.extend(e, { trfCikismi }); super.uygunluk2UnionBilgiListeDuzenleDevam(e);
 		this.uniDuzenle_ilkHareket(e).uniDuzenle_transfer(e).uniDuzenle_sahis3(e).uniDuzenle_genelDekont(e)
@@ -189,7 +199,8 @@ class CSHareketci extends Hareketci {
 						let {where: wh} = sent; wh.fisSilindiEkle()
 					}).hvDuzenleIslemi(({ hv, sqlEmpty }) => {
 						/* finanalizkullanilmaz: 'bhes.finanalizkullanilmaz'  */
-						let csIslemler = this.newCSIslemler(), refDict = csIslemler.getPortfoyVeReferansTanimlari({ cikismi: false });
+						let csIslemler = this.newCSIslemler()
+						let refDict = csIslemler.getPortfoyVeReferansTanimlari({ cikismi: false })
 						$.extend(hv, {
 							alttip: `(case fis.fistipi when 'TC' then 'alcek' when 'TS' then 'alsenet' when 'BC' then 'brcek' when 'PT' then prt.cstip else '??' end)`,
 							bizsubekod: 'fis.bizsubekod', fisnox: 'fis.fisnox', fissayac: 'fis.kaysayac', harsayac: 'har.kaysayac',

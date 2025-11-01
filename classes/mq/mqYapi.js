@@ -11,6 +11,8 @@ class MQYapi extends CIO {
 	static get gonderildiDesteklenirmi() { return false } static get gonderimTSSaha() { return 'gonderimts' }
 	static get offlineSahaListe() { return new this().offlineSahaListe }
 	get offlineSahaListe() { return Object.keys(this.hostVars({ offlineRequest: true, offlineMode: false }) ?? {}) }
+	static get offlineTempmi() { return !this.offlineFismi } static get offlineFismi() { return false }
+	static get offlineDirect() { return true }
 	static get offline2OnlineSaha() { return {} }
 	static get online2OfflineSaha() { return asReverseDict(this.offline2OnlineSaha) }
 	static get logKullanilirmi() { return true } static get logAnaTip() { return 'K' }
@@ -171,7 +173,7 @@ class MQYapi extends CIO {
 			tableVeAlias, tabloVeAlias, table, alias, logHV, /*logRecDonusturucu,*/
 			duzenle, duzenleyici, trn
 		} = e, {user: loginUser} = config.session;
-		islem ??= ''; adimBelirtec ??= this.kodListeTipi; logAnaTip ??= this.logAnaTip;
+		islem ??= ''; adimBelirtec ??= this.kodListeTipi ?? ''; logAnaTip ??= this.logAnaTip ?? ''
 		degisenler = degisenler?.map(x => x.replaceAll(' ', '_')) ?? [];
 		where = where ?? wh ?? _sent?.where; table ??= tableVeAlias?.table ?? this.table;
 		tableVeAlias ??= tabloVeAlias; duzenleyici ??= duzenle;
@@ -180,7 +182,7 @@ class MQYapi extends CIO {
 		let sysInfo = app._sysInfo ??= await app.sysInfo();
 		let {computerName, userName, ip} = sysInfo ?? {};
 		let _e = { ...e, /*logRecDonusturucu,*/ degisenler }, hv = _e.hv = {
-			islem, adimbelirtec: adimBelirtec.slice(0, 10),
+			islem, adimbelirtec: adimBelirtec?.slice(0, 10),
 			kullanici: loginUser?.slice(0, 20),
 			terminal: [ip || '', computerName || '', userName || ''].join('_'),
 			anatip: logAnaTip, tablo: table, ...logHV,

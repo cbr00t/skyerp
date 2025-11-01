@@ -4,7 +4,7 @@ class MQSayacli extends MQCogul {
 	static get sayacSaha() { return 'kaysayac' } static get kodSaha() { return this.kodKullanilirmi ? MQKA.kodSaha : this.sayacSaha } static get bosKodAlinirmi() { return false }
 	static get adiSaha() { return this.adiKullanilirmi ? MQKA.adiSaha : null } static get kodEtiket() { return MQKA.kodEtiket } static get adiEtiket() { return MQKA.adiEtiket }
 	static get offlineSahaListe() { return [...super.offlineSahaListe, this.sayacSaha, this.kodKullanilirmi ? this.kodSaha : null, this.adiKullanilirmi ? this.adiSaha : null].filter(x => !!x) }
-	static get zeminRenkDesteklermi() { return MQKA.zeminRenkDesteklermi }
+	static get zeminRenkDesteklermi() { return MQKA.zeminRenkDesteklermi } static get offlineDirect() { return this.kodKullanilirmi }
 	
 	constructor(e) { e = e || {}; super(e); /* this.sayac = this.sayac || 0 */ }
 	static pTanimDuzenle(e) {

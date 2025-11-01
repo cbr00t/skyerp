@@ -44,7 +44,7 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 					case 'YILHAFTA': sahalar.add(`(CAST(DATEPART(YEAR, ${tarihClause}) AS CHAR(4)) + ' - ' + CAST(DATEPART(WEEK, ${tarihClause}) AS VARCHAR(2))) yilhafta`); break
 					case 'AYADI': sahalar.add(`dbo.ayadi(${tarihClause}) ayadi`); break
 					case 'HAFTA': sahalar.add(`DATEPART(week, ${tarihClause}) haftano`); break
-					case 'TARIH': sahalar.add(tarihClause); break
+					case 'TARIH': sahalar.add(`${tarihClause} tarih`); break
 					case 'SAAT': sahalar.add(`CONVERT(VARCHAR(10), ${tarihClause}, 108) saat`); break
 				}
 			}

@@ -22,50 +22,12 @@ class MQTabCari extends MQKA {
 			konTipKod: new PInstTekSecim('kontipkod', TabKonsolideTip),
 			riskCariKod: new PInstStr('ekstremustkod'), plasiyerKod: new PInstStr('tavsiyeplasiyerkod'),
 			odemeGunKodu: new PInstStr('odemegunkodu'), stdDipIskOran: new PInstNum('standartiskonto')
-			/*
-			orjBakiye: new PInstNum('orjbakiye'), bakiye: new PInstNum('bakiye'),
-			riskLimit: new PInstNum('risklimit'), kalanRisk: new PInstNum('kalanrisk'),
-			orjTakipBorc: new PInstNum('orjtakipborclimiti'), takipBorc: new PInstNum('takipborclimiti')*/
+			/* orjBakiye: new PInstNum('orjbakiye'), bakiye: new PInstNum('bakiye'),
+				riskLimit: new PInstNum('risklimit'), kalanRisk: new PInstNum('kalanrisk'),
+				orjTakipBorc: new PInstNum('orjtakipborclimiti'), takipBorc: new PInstNum('takipborclimiti')
+			*/
 		})
 	}
-	/*
-		offline2OnlineDonusum:
-			car.kod                        : car.must
-			car.aciklama                   : (
-				uygunKelimeliParcalaBirlesik(this.aciklama)
-				  - [:50] => car.unvan1
-				  - [50:] => car.unvan2
-			)
-			car.adres                   : (
-				uygunKelimeliParcalaBirlesik(this.adres)
-				  - [:60] => car.adres1
-				  - [60:] => car.adres2
-			)
-			car.orjtakipborclimiti          : car.takipborclimiti
-			car.standartiskonto             : csat.standartiskonto
-			car.odemegunkodu                : csat.odemegunkodu
-
-		'csat':
-			- left join carisatis csat on (car.must = csat.must and csat.satistipkod = '')  -- key_where
-			- insert if not exists (key_where)
-		 
-		
-		select car.must kod, car.birunvan unvan, car.biradres adres, car.yore, car.posta
-			, car.tel1, car.tel2, car.tel3, car.email
-			, car.tipkod, car.efaturakullanirmi efatmi, car.stkfytind, car.kdvfl kdvDurumu, car.kosulgrupkod
-			, car.bolgekod, bol.aciklama bolgeadi, car.ilkod, il.aciklama iladi, car.ulkekod, ulk.aciklama ulkeadi
-			, car.vdaire vergidaire, car.vkno		-- vkno: tc veya vnumara anlamindadir
-			, car.kontipkod, car.ekstremustkod riskCariKod, car.konsubeadi
-			, coalesce(csat.tavsiyeplasiyerkod,'') palsiyerkod, coalesce(csat.standartiskonto,0) stdDipIskOran
-			, coalesce(csat.odemegunkodu, '') odemegunkodu
-			, car.gpsenlem, car.gpsboylam
-			. car.risklimit, car.takipborclimiti
-		from carmst car
-			left join carisatis csat on car.must=csat.must and csat.satistipkod=''
-			inner join carbolge bol on car.bolgekod=bol.kod
-			inner join caril il on car.ilkod=il.kod
-			inner join ulke ulk on car.ulkekod=ulk.kod
-	*/
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e)
 		let {rootBuilder: rfb, tabPage_genel: tabPage} = e

@@ -149,7 +149,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 				if (mstAdiClause)
 					sahalar.add(`${mstAdiClause} ${mstAdiAlias}`)
 				else {
-					mstYapi.duzenle({ sender: this, secimler: sec, sent: harSent, wh, kodClause: mstKodClause })
+					mstYapi.duzenle({ sender: this, secimler: sec, sent: harSent, wh, kodClause: mstKodClause, hv: alias2Deger })
 					$.extend(alias2Deger, { ...harSent.alias2Deger })
 					mstKodAlias = mstYapi.hvAlias; mstAdiAlias = mstYapi.hvAdiAlias || mstAdiAlias; mstAdiAlias2 = mstYapi.hvAdiAlias2 || mstAdiAlias2
 					mstKodClause = alias2Deger[mstKodAlias]; mstAdiClause = alias2Deger[mstAdiAlias]; mstAdiClause2 = alias2Deger[mstAdiAlias2]

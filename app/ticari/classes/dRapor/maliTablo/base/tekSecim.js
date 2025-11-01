@@ -216,7 +216,7 @@ class SBTabloVeriTipi extends TekSecim {
 			}]),
 			new CKodAdiVeEkBilgi(['TISK', 'Top. İskonto', 'topIskmi', {
 				gosterimUygunluk, sentUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: ({ satiriskonto: sisk, dipiskonto: disk } = {}) =>
-					sisk && disk ? `${sisk} - ${disk}` : 'har.satiriskonto + har.dipiskonto' })
+					sisk && disk ? `(${sisk} + ${disk})` : '(har.satiriskonto + har.dipiskonto)' })
 			}]),
 			new CKodAdiVeEkBilgi(['CIR', 'Ciro', 'ciromu', {
 				gosterimUygunluk, sentUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: hv => hv?.harciro && 'har.harciro' })
@@ -224,11 +224,11 @@ class SBTabloVeriTipi extends TekSecim {
 			new CKodAdiVeEkBilgi(['MAL', 'Maliyet', 'maliyetmi', {
 				gosterimUygunluk, sentUygunluk: e => e.stokmu && sentUygunluk(e),
 				sentDuzenle: e => topSahaEkle({ ...e, clause: ({ fmalhammadde: hamm, fmalmuh: mmuh } = {}) =>
-					hamm && mmuh ? `${hamm} + ${mmuh}` : 'har.fmalhammadde + har.fmalmuh' })
+					hamm && mmuh ? `(${hamm} + ${mmuh})` : '(har.fmalhammadde + har.fmalmuh)' })
 			}]),
 			new CKodAdiVeEkBilgi(['KCR', 'KDVli Ciro', 'kdvliCiromu', {
 				gosterimUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: ({ hv: { harciro: ciro, topkdv: kdv } = {} }) =>
-					ciro && kdv ? `${ciro} + ${kdv}` : 'har.harciro + har.tumkdv' })
+					ciro && kdv ? `(${ciro} + ${kdv})` : '(har.harciro + har.tumkdv)' })
 			}])
 		]);
 		return this

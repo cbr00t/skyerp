@@ -6,7 +6,7 @@ class MQSayacliKA extends MQSayacli {
 		let {kodSaha} = this.class; result[kodSaha] = 'xkod'
 	}
 	logHVDuzenle({ hv }) {
-		super.logHVDuzenle(...arguments);
+		super.logHVDuzenle(...arguments)
 		hv.xkod = this.kod || ''
 	}
 }

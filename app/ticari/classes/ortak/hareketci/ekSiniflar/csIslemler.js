@@ -59,7 +59,7 @@ class CSIslemler extends CObject {
 			portfoy: {
 				giris: (aCSTekilIslem) => (
 					aCSTekilIslem.portfoyTipi == null ? null :
-						['portfoyTipi', 'portfoyKod', 'dvKod', 'refDvKod']
+						['portfoyTipi', 'portfoyKod', 'portfoyAdi', 'dvKod']
 							.map(key => aCSTekilIslem[key]).join(this.delim)
 				),
 				cikis: (aCSTekilIslem, sadeceGercekOlanmi) => (
@@ -148,8 +148,11 @@ class CSIslemler extends CObject {
 			let tokens = anah.split(delim), [portfTip, kodClause, adiClause, dvKodClause] = tokens;
 			let inStr = new MQInClause({ liste: tipler, saha: tipVeIadeClause }).toString();
 			let getWhenClause = value => ` when ${inStr} then ${value || sqlEmpty}`;
-			let donusum = { kod: kodClause, adi: adiClause, doviz: dvKodClause }; for (let [key, value] of Object.entries(donusum)) {
-				if (value != null) { (result[key] = result[key] ?? []).push(getWhenClause(value)) } }
+			let donusum = { kod: kodClause, adi: adiClause, doviz: dvKodClause }
+			for (let [key, value] of Object.entries(donusum)) {
+				if (value != null)
+					(result[key] ??= []).push(getWhenClause(value))
+			}
 		}
 		return result
 	}
@@ -179,7 +182,7 @@ class CSIslemler extends CObject {
 		return result    /* hv */
 	}
 	getXTipVePortfoyDict({ selector2Anahtarci, sadeceGercekOlanmi }) {
-		let {csHareketBilgiler: harBilgiler} = this, {anahtarcilar} = this.class;
+		let {csHareketBilgiler: harBilgiler} = this, {anahtarcilar} = this.class
 		let result = { tip: {}, portfoy: {} }, ekleyici = (selector, aCSTekilIslem) => {
 			let anahtarci = selector2Anahtarci[selector];
 			if (typeof anahtarci == 'string') { anahtarci = anahtarcilar[selector]?.[anahtarci] ?? this[`anahtarci_${anahtarci}`] ?? this[anahtarci] }
@@ -187,9 +190,11 @@ class CSIslemler extends CObject {
 			let target = result[selector]; if (!target) { throw { isError: true, errorText: `selector değeri (<b>${selector}</b>) hatalıdır` } }
 			(target[anah] = target[anah] ?? []).push(aCSTekilIslem.tipVeIade); return target
 		}
-		let selectors = Object.keys(result);
+		let selectors = Object.keys(result)
 		for (let selector of selectors) {
-			for (let aCSTekilIslem of harBilgiler) { ekleyici(selector, aCSTekilIslem) } }
+			for (let aCSTekilIslem of harBilgiler)
+				ekleyici(selector, aCSTekilIslem)
+		}
 		return result
 	}
 	xportfSahalariDuzenle({ result, prefix, selector2Anah2Tipler }) {
@@ -202,7 +207,8 @@ class CSIslemler extends CObject {
 			let whenler = this[`getWhenler_${selector}`]?.({ tipVeIadeClause, anah2Tipler });
 			for (let [key, whenClauses] of Object.entries(whenler)) {
 				let caseClause = `(case${whenClauses.join('')} else '' end)`;
-				let attr = getAttr(key2AttrPostfix[key]); result[attr] = caseClause
+				let attr = getAttr(key2AttrPostfix[key])
+				result[attr] = caseClause
 			}
 		}
 	}

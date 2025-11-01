@@ -2,6 +2,7 @@ class MQDetayli extends MQSayacli {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get detaylimi() { return true } static get detayliMastermi() { return false }
 	static get gridKontrolcuSinif() { return null } get gridKontrolcuSinif() { return this.class.gridKontrolcuSinif }
+	static get offlineDirect() { return !(this.detayliMastermi || this.guidmi) }
 	static get detaySiniflar() {
 		let _e = { liste: [] }; this.detaySiniflarDuzenle(_e); let {liste} = _e;
 		if ($.isEmptyObject(liste)) { let {detaySinif} = this; if (detaySinif) { liste.push(detaySinif) } }
@@ -426,7 +427,8 @@ class MQDetayli extends MQSayacli {
 	}
 }
 class MQDetayliMaster extends MQDetayli {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get hasTabs() { return false } static get tanimUISinif() { return MQKA.tanimUISinif }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get hasTabs() { return false } static get tanimUISinif() { return MQKA.tanimUISinif }
 	static get detayliMastermi() { return true } static get sabitBilgiRaporcuSinif() { return MQCogul.sabitBilgiRaporcuSinif }
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); /*let tanimForm = e.tanimFormBuilder; e.mfSinif = e.mfSinif ?? this;
@@ -486,7 +488,8 @@ class MQDetayliMaster extends MQDetayli {
 }
 class MQDetayliGUID extends MQDetayliMaster {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sayacSaha() { return 'id' } static get kami() { return true } static get guidmi() { return true }
+	static get sayacSaha() { return 'id' } static get kami() { return true }
+	static get guidmi() { return true }
 	get id() { return this.sayac } set id(value) { this.sayac = value }
 	constructor(e) {
 		e = e ?? {}; super(e);
@@ -544,7 +547,8 @@ class MQDetayliGUID extends MQDetayliMaster {
 		}
 	}
 	static logRecDonusturucuDuzenle({ result }) {
-		super.logRecDonusturucuDuzenle(...arguments); let {sayacSaha: kodSaha} = this.class;
+		super.logRecDonusturucuDuzenle(...arguments)
+		let {sayacSaha: kodSaha} = this.class
 		result[kodSaha] = 'xkod'
 	}
 	logHVDuzenle({ hv }) {
@@ -553,5 +557,11 @@ class MQDetayliGUID extends MQDetayliMaster {
 		delete hv.xsayac
 	}
 }
-class MQDetayliVeAdi extends MQDetayliMaster { static { window[this.name] = this; this._key2Class[this.name] = this } static get adiKullanilirmi() { return true } }
-class MQDetayliGUIDVeAdi extends MQDetayliGUID { static { window[this.name] = this; this._key2Class[this.name] = this } static get adiKullanilirmi() { return true } }
+class MQDetayliVeAdi extends MQDetayliMaster {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get adiKullanilirmi() { return true }
+}
+class MQDetayliGUIDVeAdi extends MQDetayliGUID {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get adiKullanilirmi() { return true }
+}

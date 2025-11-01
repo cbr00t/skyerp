@@ -266,7 +266,7 @@ class CariHareketci extends Hareketci {
 						kaysayac: 'har.kaysayac', oncelik: `(case when fis.ba = 'A' then 240 else 210 end)`,
 						unionayrim: `'Cari'`, kayittipi: `'CRHAR'`, must: 'fis.ticmustkod', asilmust: 'fis.must',
 						anaislemadi: `'Cari Tahsilat/Ödeme'`, isladi: `(case when fis.ba = 'B' then 'Cari Ödeme' else 'Cari Tahsilat' end)`,
-						ba: `dbo.tersba(fis.ba)`, bedel: 'har.bedel', dvbedel: 'har.dvbedel',
+						ba: 'fis.ba', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
 						althesapkod: 'har.detalthesapkod', refkod: 'LTRIM(str(har.tahseklino))', refadi: 'tsek.aciklama',
 						fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama'
 					})

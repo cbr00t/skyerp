@@ -48,15 +48,18 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	}
 	distinctYap() { this.distinct = true; return this }
 	groupByOlustur(e) {
-		let groupBy = this.groupBy = new MQGroupByClause();
-		let {aggregateFunctions} = this.class, sahaListe = this.sahalar.liste;
-		let ekleneceklerSet = {}; let aggregateVarmi = false;
+		let groupBy = this.groupBy = new MQGroupByClause()
+		let {aggregateFunctions} = this.class, sahaListe = this.sahalar.liste
+		let ekleneceklerSet = {}, aggregateVarmi = false
 		for (let i = 0; i < sahaListe.length; i++) {
-			let saha = sahaListe[i]; let deger = saha.deger?.toString();
+			let saha = sahaListe[i], deger = saha.deger?.toString()
 			if (!deger || deger == '' ||
-				deger == `''` || deger == '0' ||
-				isDigit(deger[0]) || deger[0] == `'` || deger.endsWith('*')) { continue }
-			let degerUpper = deger.toUpperCase();
+					deger == `''` || deger == '0' ||
+					isDigit(deger[0]) || deger[0] == `'` || deger.endsWith('*'))
+				continue
+			let degerUpper = deger.toUpperCase()
+			/*if (deger.toLowerCase().startsWith(`coalesce(har.belgetarih`))
+				debugger*/
 			if (degerUpper.startsWith('CAST(0') || degerUpper.startsWith("CAST(''") ||
 				degerUpper.startsWith('CAST(NULL') || degerUpper.startsWith('NULL')) { continue }
 			let toplammi = this.class.hasAggregateFunctions(degerUpper);

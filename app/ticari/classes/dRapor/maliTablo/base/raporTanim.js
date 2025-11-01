@@ -695,20 +695,20 @@ class SBTabloDetay extends MQDetay {
 					new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12 }).tipTarih(),
 					new GridKolon({ belirtec: 'fisnox', text: 'Belge No', genislikCh: 19 }).alignRight(),
 					(yatayAnalizVarmi ? new GridKolon({ belirtec: 'yatay', text: yatayEtiket || 'Çapraz', genislikCh: 13, filterType: 'checkedlist' }) : null),
-					(konsolide && !(yatayAnalizVarmi && yatayDBmi) ? new GridKolon({ belirtec: 'db', text: 'Veritabanı', genislikCh: 15, filterType: 'checkedlist' }) : null),
+					(konsolide && !(yatayAnalizVarmi && yatayDBmi) ? new GridKolon({ belirtec: 'db', text: 'Veritabanı', genislikCh: 18, filterType: 'checkedlist' }) : null),
 					new GridKolon({ belirtec: bedelAlias, text: 'Bedel', genislikCh: 17, aggregates: ['sum'] }).tipDecimal_bedel(),
 					new GridKolon({ belirtec: 'ba', text: 'B/A', genislikCh: 5, filterType: 'checkedlist' }),
-					new GridKolon({ belirtec: 'mstkod', text: 'Kod', genislikCh: 15 }),
-					new GridKolon({ belirtec: 'mstadi', text: 'Açıklama' }),
 					new GridKolon({ belirtec: 'refkod', text: 'Ref. Kod', genislikCh: 15 }),
-					new GridKolon({ belirtec: 'refadi', text: 'Ref. Adı' }),
+					new GridKolon({ belirtec: 'refadi', text: 'Ref. Adı', genislikCh: 40 }),
 					// ...yatayAttrListe?.map(belirtec =>  new GridKolon({ belirtec, text: belirtec, genislikCh: 25 }) ) ?? [],
 					new GridKolon({ belirtec: 'islemadi', text: 'İşlem Adı', filterType: 'checkedlist' }),
 					new GridKolon({ belirtec: 'anaislemadi', text: 'Ana İşlem', filterType: 'checkedlist' }),
-					new GridKolon({ belirtec: 'takipgrupkod', text: 'Takip Grup', filterType: 'checkedlist' }),
-					new GridKolon({ belirtec: 'takipgrupadi', text: 'T.Grup Adı', filterType: 'checkedlist' }),
-					new GridKolon({ belirtec: 'takipno', text: 'Takip No', filterType: 'checkedlist' }),
-					new GridKolon({ belirtec: 'takipadi', text: 'Takip Adı', filterType: 'checkedlist' })
+					new GridKolon({ belirtec: 'takipgrupkod', text: 'Takip Grup', genislikCh: 15, filterType: 'checkedlist' }),
+					new GridKolon({ belirtec: 'takipgrupadi', text: 'T.Grup Adı', genislikCh: 25, filterType: 'checkedlist' }),
+					new GridKolon({ belirtec: 'takipno', text: 'Takip No', genislikCh: 15, filterType: 'checkedlist' }),
+					new GridKolon({ belirtec: 'takipadi', text: 'Takip Adı', genislikCh: 25, filterType: 'checkedlist' }),
+					new GridKolon({ belirtec: 'mstkod', text: 'Kod', genislikCh: 15 }),
+					new GridKolon({ belirtec: 'mstadi', text: 'Açıklama', genislikCh: 30 })
 				].filter(x => !!x))
 			}
 			static async loadServerDataDogrudan({ sender: { grid }}) {

@@ -3,6 +3,17 @@ class MiscApp extends App {
 	static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_App }
 	constructor(e) { e = e || {}; super(e) } async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e) }
 	paramsDuzenle(e) { super.paramsDuzenle(e); $.extend(e.params, { localData: MQLocalData.getInstance(), misc: MQParam_Misc.getInstance() }) }
+	async afterRun(e) {
+		await super.afterRun(e)
+		if (!config.dev)
+			this.divMenu?.hide()
+	}
+	navBarDuzenle(e) {
+		if (config.dev)
+			return super.navBarDuzenle(e)
+		let {mainNav} = this
+		new FRMenu().navLayoutOlustur({ parent: mainNav })
+	}
 	async getAnaMenu(e) {
 		const {noMenuFlag, params} = this; if (noMenuFlag) { return new FRMenu() } let items = [];
 		const addMenuSubItems = (mne, text, ...classes) => {
