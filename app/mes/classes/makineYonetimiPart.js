@@ -53,8 +53,17 @@ class MakineYonetimiPart extends Part {
 					setTimeout(() => {
 						let {subContent} = this; if (!subContent.length) { return } let elm = subContent.find('.ledDurum-parent'); if (!elm?.length) { return }
 						elm.attr('data-led', 'progress'); app.wsGetLEDDurum({ tezgahKod })
-							.then(({ result, ledDurum }) => { if (!result || ledDurum == null) { ledDurum = 'error' } elm.attr('data-led', ledDurum); this.sonLEDDurum = ledDurum })
-							.catch(ex => { let ledDurum = 'error'; elm.attr('data-led', ledDurum); this.sonLEDDurum = ledDurum })
+							.then(({ result, ledDurum }) => {
+								if (!result || ledDurum == null)
+									ledDurum = 'error'
+								elm.attr('data-led', ledDurum)
+								this.sonLEDDurum = ledDurum
+							})
+							.catch(ex => {
+								let ledDurum = 'error'
+								elm.attr('data-led', ledDurum)
+								this.sonLEDDurum = ledDurum
+							})
 					}, 200)
 				}
 				if (!basitmi) {

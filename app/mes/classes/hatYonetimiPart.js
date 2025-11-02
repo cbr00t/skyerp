@@ -102,10 +102,16 @@ class HatYonetimiPart extends Part {
 						let elm = divListe.find(`.hat.item > .tezgahlar > .tezgah.item[data-id = ${tezgahKod}]`); if (!elm.length) { continue }
 						elm.attr('data-led', 'progress'); promises.push(new $.Deferred(async p => {
 							try {
-								let {result, ledDurum} = await app.wsGetLEDDurum({ tezgahKod }); if (!result || ledDurum == null) { throw { isError: true, rc: 'invalidData' } }
-								elm.attr('data-led', ledDurum); p.resolve(result)
+								let {result, ledDurum} = await app.wsGetLEDDurum({ tezgahKod })
+								if (!result || ledDurum == null)
+									throw { isError: true, rc: 'invalidData' }
+								elm.attr('data-led', ledDurum)
+								p.resolve(result)
 							}
-							catch (ex) { elm.attr('data-led', 'error'); p.resolve(ex) }
+							catch (ex) {
+								elm.attr('data-led', 'error')
+								p.resolve(ex)
+							}
 						}));
 						if (promises.length >= 4) {
 							try { await Promise.all(promises) } catch (ex) { }
