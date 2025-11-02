@@ -2,17 +2,36 @@ class TabletApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this } get isLoginRequired() { return true }
 	static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_App }
 	get offlineMode() { return super.offlineMode ?? true } get dbMgrClass() { return SqlJS_DBMgr }
+	get sicakVeyaSogukmu() { return this.sicakmi || this.sogukmu }
+	get rotaKullanilirmi() { return this.sicakVeyaSogukmu }
+	get defaultLoginTipi() { return this.sicakVeyaSogukmu ? 'plasiyerLogin' : super.defaultLoginTipi }
+	get plasiyerKod() {
+		let {session: { loginTipi, user: plasiyerKod } = {}} = config
+		return loginTipi == 'plasiyerLogin' ? plasiyerKod : null
+	}
 	get offlineAktarimSiniflar() {
 		return [
 			MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
-			MQTabBolge, MQTabIl, MQTabUlke,
+			MQTabBolge, MQTabIl, MQTabUlke, MQTabCariTip,
 			MQTabStok, MQTabCari
 		]
 	}
 	// get autoExecMenuId() { return MQTest.kodListeTipi }
+
+	constructor(e) {
+		window.appRoot = '../tablet'
+		super(e)
+	}
+	loginTipleriDuzenle({ loginTipleri }) {
+		let {sicakVeyaSogukmu} = this
+		loginTipleri.push(...[
+			(sicakVeyaSogukmu ? null : { kod: 'login', aciklama: 'VIO Kullanıcısı' }),
+			{ kod: 'plasiyerLogin', aciklama: 'Plasiyer' }
+		].filter(x => !!x))
+	}
 	paramsDuzenle({ params }) {
 		super.paramsDuzenle(...arguments)
-		$.extend(params, { localData: MQLocalData.getInstance() })
+		$.extend(params, { localData: MQLocalData.getInstance(), tablet: MQTabletParam.getInstance() })
 	}
 	async getAnaMenu(e) {
 		let {noMenuFlag, params} = this
@@ -51,15 +70,19 @@ class TabletApp extends TicariApp {
 	}
 	dbMgr_tablolariOlustur_urlDuzenle({ name, urls }) {
 		super.dbMgr_tablolariOlustur_urlDuzenle(...arguments)
-		urls.push(`queries/${name}.sql?${appVersion}`)
+		urls.push(`${appRoot}/queries/${name}.sql?${appVersion}`)
 	}
 	dbMgr_tabloEksikleriTamamla({ name }) {
 		super.dbMgr_tabloEksikleriTamamla(...arguments)
 	}
 	async bilgiYukleIstendi(e) {
-		let {offlineAktarimSiniflar: classes} = this
+		let {offlineAktarimSiniflar: classes, params} = this
 		if (!classes?.length)
 			return
+		/*classes = [
+			...values(params).map(_ => _.class).filter(x => !!x),
+			...classes
+		]*/
 		let withClear = true
 		{
 			let args = { noClear: false }
@@ -84,7 +107,7 @@ class TabletApp extends TicariApp {
 			if (clearClasses?.length) {
 				let offlineMode = true, internal = true
 				await MQCogul.sqlExecNone({ offlineMode, query: 'BEGIN TRANSACTION' })
-				await Promise.all( clearClasses.map(cls => cls.offlineDropTable({ ...e, offlineMode, internal })) )
+				await Promise.all( clearClasses.map(cls => cls.offlineDropTable?.({ ...e, offlineMode, internal })) )
 				await app.dbMgr_tablolariOlustur({ ...e, offlineMode, internal })
 				await MQCogul.sqlExecNone({ offlineMode, query: 'COMMIT' })
 			}

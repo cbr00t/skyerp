@@ -79,6 +79,12 @@ CREATE TABLE IF NOT EXISTS caril (
 );
 INSERT OR IGNORE INTO caril (kod) VALUES ('');
 
+CREATE TABLE IF NOT EXISTS cartip (
+	kod TEXT NOT NULL PRIMARY KEY,
+	aciklama TEXT NOT NULL DEFAULT ''
+);
+INSERT OR IGNORE INTO cartip (kod) VALUES ('');
+
 CREATE TABLE IF NOT EXISTS ulke (
 	kod TEXT NOT NULL PRIMARY KEY,
 	aciklama TEXT NOT NULL DEFAULT ''
@@ -92,6 +98,7 @@ CREATE TABLE IF NOT EXISTS carmst (
 	calismadurumu TEXT NOT NULL DEFAULT '*',
 	satilamazfl TEXT NOT NULL DEFAULT '',
 	oscolor INTEGER,
+	seq INT NOT NULL DEFAULT 0,
 	efaturakullanirmi TEXT NOT NULL DEFAULT '',
 	kontipkod TEXT NOT NULL DEFAULT '',
 	yore TEXT NOT NULL DEFAULT '',
@@ -113,7 +120,10 @@ CREATE TABLE IF NOT EXISTS carmst (
 	ekstremustkod TEXT NOT NULL DEFAULT '',
 	tavsiyeplasiyerkod TEXT NOT NULL DEFAULT '',
 	odemegunkodu TEXT NOT NULL DEFAULT '',
-	standartiskonto REAL NOT NULL DEFAULT 0
+	standartiskonto REAL NOT NULL DEFAULT 0,
+	hermi INTEGER NOT NULL DEFAULT 0,
+	rotadisimi INTEGER NOT NULL DEFAULT 0,
+	rotadevredisimi INTEGER NOT NULL DEFAULT 0
 );
 INSERT OR IGNORE INTO carmst (kod) VALUES ('');
 

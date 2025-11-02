@@ -52,6 +52,12 @@ class MQTabIl extends MQKA {
 	static get table() { return 'caril' } static get tableAlias() { return 'il' }
 	static get raporKullanilirmi() { return false } static get kolonFiltreKullanilirmi() { return false } static get tumKolonlarGosterilirmi() { return true }
 }
+class MQTabCariTip extends MQKA {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'CTIP' } static get sinifAdi() { return 'Cari Tip' }
+	static get table() { return 'cartip' } static get tableAlias() { return 'ctip' }
+	static get raporKullanilirmi() { return false } static get kolonFiltreKullanilirmi() { return false } static get tumKolonlarGosterilirmi() { return true }
+}
 class MQTabUlke extends MQKA {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'ULKE' } static get sinifAdi() { return 'Ülke' }

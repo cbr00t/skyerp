@@ -107,12 +107,11 @@ class MQTabCari extends MQKA {
 			// new GridKolon({ belirtec: 'tavsiyeplasiyerkod', text: 'Plasiyer', genislikCh: 15 }).hidden()
 		)
 	}
-	static loadServerData_queryDuzenle_son({ sent, sent: { where: wh, sahalar }, offlineRequest, offlineMode } = {}) {
-		super.loadServerData_queryDuzenle_son(...arguments)
-		let {tableAlias: alias, kodSaha, adiSaha, onlineIdSaha} = this
-		sent.cari2BolgeBagla({ alias })
-			.cari2IlBagla({ alias })
-			.cari2UlkeBagla({ alias })
+	static loadServerData_queryDuzenle_son(e = {}) {
+		super.loadServerData_queryDuzenle_son(e)
+		let {tableAlias, kodSaha, adiSaha, onlineIdSaha} = this
+		let {alias = tableAlias} = e
+		let {stm, sent, sent: { where: wh, sahalar }, offlineRequest, offlineMode} = e
 		if (offlineRequest) {
 			if (offlineMode) {
 				// Bilgi Gönder
@@ -126,26 +125,92 @@ class MQTabCari extends MQKA {
 			}
 			else {
 				// Bilgi Yükle
-				{
-					let match = `${alias}.${kodSaha}`
-					let replace = `${alias}.${onlineIdSaha}`
-					let {liste} = wh
-					liste.forEach((clause, i) => {
-						if (clause.includes(match))
-							liste[i] = clause = clause.replaceAll(match, replace)
-					})
-				}
-				sent.leftJoin(alias, 'carisatis csat', `${alias}.${onlineIdSaha} = csat.must`)
-				wh.add(`${alias}.silindi = ''`, `${alias}.calismadurumu <> ''`, `${alias}.satilamazfl = ''`)
-				sahalar.add(
-					`${alias}.${onlineIdSaha} ${kodSaha}`,
-					`RTRIM(LTRIM(${alias}.unvan1 + ' ' + ${alias}.unvan2)) ${adiSaha}`,
-					`RTRIM(LTRIM(${alias}.adres1 + ' ' + ${alias}.adres2)) adres`,
-				)
-				sahalar.addWithAlias(alias, 'kontipkod')
-				sahalar.addWithAlias('csat',
-					'ekstremustkod', 'tavsiyeplasiyerkod', 'odemegunkodu', 'standartiskonto')
+				this.loadServerData_queryDuzenle_son_bilgiYukle(e)
 			}
+		}
+		stm = e.stm
+		sent = wh = sahalar = null
+		for (let _sent of stm) {
+			_sent.cari2BolgeBagla({ alias })
+				.cari2IlBagla({ alias })
+				.cari2UlkeBagla({ alias })
+				.cari2TipBagla({ alias })
+		}
+	}
+	static loadServerData_queryDuzenle_son_bilgiYukle({ stm, sent, sent: { where: wh, sahalar } }) {
+		let e = arguments[0], {rotaKullanilirmi} = app
+		let {tableAlias: alias, kodSaha, adiSaha, onlineIdSaha} = this
+		let ortakSentDuzenle = e.ortakSentDuzenle = sent => {
+			wh.add(
+				`${alias}.silindi = ''`, `${alias}.calismadurumu <> ''`,
+				`${alias}.satilamazfl = ''`
+				// 'ctip.btabletkullanilir > 0'
+			)
+		}
+		if (rotaKullanilirmi)
+			this.loadServerData_queryDuzenle_son_bilgiYukle_rotaIcinDuzenle(...arguments)
+		
+		{
+			let match = `${alias}.${kodSaha}`
+			let replace = `${alias}.${onlineIdSaha}`
+			let {liste} = wh
+			liste.forEach((clause, i) => {
+				if (clause.includes(match))
+					liste[i] = clause = clause.replaceAll(match, replace)
+			})
+		}
+		ortakSentDuzenle()
+		sent.leftJoin(alias, 'carisatis csat', `${alias}.${onlineIdSaha} = csat.must`)
+		sahalar.add(
+			`${alias}.${onlineIdSaha} ${kodSaha}`,
+			`RTRIM(LTRIM(${alias}.unvan1 + ' ' + ${alias}.unvan2)) ${adiSaha}`,
+			`RTRIM(LTRIM(${alias}.adres1 + ' ' + ${alias}.adres2)) adres`,
+		)
+		sahalar.addWithAlias(alias, 'kontipkod')
+		sahalar.addWithAlias('csat',
+			'ekstremustkod', 'tavsiyeplasiyerkod', 'odemegunkodu', 'standartiskonto')
+	}
+	static loadServerData_queryDuzenle_son_bilgiYukle_rotaIcinDuzenle({ stm, ortakSentDuzenle }) {
+		let {plasiyerKod, params: { tablet: { rotaDisiMusteriAlinirmi } = {} }} = app
+		if (!plasiyerKod)
+			return
+		let e = arguments[0]
+		{
+			let plasBuyuk = plasiyerKod.toUpperCase(), {gunKisaAdi: gunKod} = today()
+			let prefix = `${plasBuyuk}-`
+			let uygunKodlar = [`${prefix}${gunKod}`, `${prefix}HER`]
+			let sent = new MQSent(), {where: wh, sahalar} = sent
+			sent.fisHareket('rota', 'rotadetay')
+				.fromIliski('carmst car', 'har.must = car.must')
+				.cari2TipBagla()
+			ortakSentDuzenle?.call(this, { ...e, sent })
+			wh.add(`har.devredisi = ''`)
+			sahalar.add('har.must mustkod')
+			if (rotaDisiMusteriAlinirmi) {
+				wh.add(`UPPER(fis.kod) LIKE '${baslangic}%'`)
+				let inClause = new MQInClause().inDizi(uygunKodlar, 'fis.kod').toString()
+				sahalar.add(
+					`MAX(case when ${inClause} then har.seq else 0 end) seq`,
+					`MAX(case when ${inClause} then 0 else 1 end) rotadisimi`
+					/*`MAX(case when ${inClause} then 1 else 0 end) rotaicisayi`*/
+				)
+			}
+			else {
+				wh.inDizi(uygunKodlar, 'UPPER(fis.kod)')
+				sahalar.add('MIN(har.seq) seq', `0 rotadisimi` /*, `1 rotaicisayi`*/)
+			}
+			sahalar.add(
+				`(case when har.devredisi <> '' OR car.calismadurumu = '' OR NOT (car.kontipkod = 'M' OR car.satilamazfl = '') then 1 else 0 end) rotadevredisimi`,
+				`MIN(case when fis.kod like '%-HER' then 1 else 0 end) hermi`
+			)
+			sent.groupByOlustur()
+			stm.with.add(sent.asTmpTable('rotabilgi'))
+		}
+		{
+			// asil sent'e geçtik
+			let {sent, sent: { sahalar }} = stm
+			sent.fromIliski('rotabilgi rbil', 'rbil.mustkod = car.must')
+			sahalar.addWithAlias('rbil', 'seq', 'rotadisimi', /*'rotaicisayi',*/ 'rotadevredisimi', 'hermi')
 		}
 	}
 	hostVarsDuzenle({ hv, offlineRequest, offlineMode }) {

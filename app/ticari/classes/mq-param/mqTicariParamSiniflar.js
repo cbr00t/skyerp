@@ -580,6 +580,7 @@ class MQTabletParam extends MQTicariParamBase {
 		super.paramYapiDuzenle(e); let {paramci} = e;
 		let form = paramci.addFormWithParent(); form.addBool('yaslandirmaTarihmi', `Yaşlandırma Tarih'e göredir`);
 			form.addBool('cariHareketTakipNo', 'Cari Hareket Takip No Bazında Gruplanır')
+			form.addBool('rotaDisiMusteriAlinirmi', 'Rota Dışı Müşteri Alınır')
 	}
 	paramSetValues(e) { e = e || {}; super.paramSetValues(e) /*; let {rec} = e*/ }
 }
