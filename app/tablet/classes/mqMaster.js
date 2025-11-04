@@ -16,7 +16,7 @@ class MQTabStokGrup extends MQKAOrtak {
 		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e)
 		let {rootBuilder: rfb, tabPage_genel: tabPage} = e
 		let form = tabPage.addFormWithParent().yanYana(5)
-		form.addModelKullan('anaGrupKod', 'Ana Grup').dropDown().setMFSinif(MQTabStokAnaGrup).autoBind
+		form.addModelKullan('anaGrupKod', 'Ana Grup').dropDown().setMFSinif(MQTabStokAnaGrup).autoBind()
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
@@ -68,6 +68,14 @@ class MQTabTahsilSekli extends MQKAOrtak {
 			altTip: new PInstTekSecim('ahalttipi', TahsilSekliAltTip),
 			gunKodu: new PInstStr('ahgunkodu')
 		})
+	}
+	static rootFormBuilderDuzenle(e) {
+		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e)
+		let {rootBuilder: rfb, tabPage_genel: tabPage} = e
+		let form = tabPage.addFormWithParent().yanYana(5)
+		form.addModelKullan('tip', 'Tip').dropDown().noMF().kodsuz().setSource(TahsilSekliTip.kaListe).autoBind()
+		form.addModelKullan('altTip', 'Alt Tip').dropDown().noMF().kodsuz().setSource(TahsilSekliAltTip.kaListe).autoBind()
+		form.addTextInput('gunKodu', 'Gün Kodu').addStyle_wh(150)
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)

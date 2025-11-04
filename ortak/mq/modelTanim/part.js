@@ -47,9 +47,22 @@ class ModelTanimPart extends Part {
 		this.title = this.title || `${mfSinif?.sinifAdi || 'Model'} Tanım`;
 		const {islem} = this; if (islem) { const islemText = islem[0].toUpperCase() + islem.slice(1); this.title += ` &nbsp;[<span class="window-title-ek">${islemText}</span>]` }
 	}
-	async init(e) { await super.init(e); this.initDevam(e); await this.initFormBuilder(e); if (this.builder) { await this.initDevam(e) } }
-	async initDevam(e) {
-		const mfSinif = this.mfSinif ?? this?.inst?.class, {rootPartName, partName} = this.class, {layout, hasTabPages, formLayoutSelector} = this;
+	async init(e = {}) {
+		await super.init(e); let {builder, inst, islem} = this
+		e.sender ??= this; e.rfb ??= builder
+		e.inst ??= inst; e.islem ??= islem
+		if (!builder) {
+			try { await this.initDevam(e) }
+			catch (ex) { setTimeout(() => this.close(), 1); throw ex }
+		}
+		await this.initFormBuilder(e)
+		if (builder) {
+			try { await this.initDevam(e) }
+			catch (ex) { setTimeout(() => this.close(), 1); throw ex }
+		}
+	}
+	async initDevam(e = {}) {
+		let mfSinif = this.mfSinif ?? this?.inst?.class, {rootPartName, partName} = this.class, {layout, hasTabPages, formLayoutSelector} = this;
 		if (mfSinif) { layout.addClass(mfSinif.dataKey || mfSinif.classKey) }
 		layout.addClass(`${partName} ${rootPartName}`); this.header = layout.find('.header'); let form = this.form = this.formParent = layout.find('.form');
 		if (formLayoutSelector) {

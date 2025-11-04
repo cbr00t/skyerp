@@ -44,19 +44,25 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		return result
 	}
 	getTanimlanabilirmi(e) {
-		e ??= {}; let result = this.tanimlanabilirmi;
+		e ??= {}; let result = this._tanimlanabilirmi;
 		if (result && !result.prototype && $.isFunction(result)) { result = getFuncValue.call(this, result, e) }
 		if (result == null) { result = this._tanimlanabilirmi = e.mfSinif?.tanimlanabilirmi }
 		return result
 	}
+	getDegistirilebilirmi(e) {
+		e ??= {}; let result = this.degistirilebilirmi;
+		if (result && !result.prototype && $.isFunction(result)) { result = getFuncValue.call(this, result, e) }
+		if (result == null) { result = this._degistirilebilirmi = e.mfSinif?.degistirilebilirmi }
+		return result
+	}
 	getSilinebilirmi(e) {
-		e ??= {}; let result = this.silinebilirmi;
+		e ??= {}; let result = this._silinebilirmi;
 		if (result && !result.prototype && $.isFunction(result)) { result = getFuncValue.call(this, result, e) }
 		if (result == null) { result = this._silinebilirmi = e.mfSinif?.silinebilirmi }
 		return result
 	}
 	getInExpKullanilirmi(e) {
-		e ??= {}; let {inExpKullanilirmi: result} = this;
+		e ??= {}; let {_inExpKullanilirmi: result} = this;
 		if (isFunction(result)) { result = result.call(this, e) }
 		if (result == null) { result = this._inExpKullanilirmi = e.mfSinif?.inExpKullanilirmi }
 		return result
@@ -159,14 +165,18 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		return super.hizliBulIslemi(e)
 	}
 	islemTuslariDuzenle(e) {
-		let mfSinif = this.getMFSinif(), {secimler, panelDuzenleyici} = this;
-		if (panelDuzenleyici?.islemTuslariDuzenle_listeEkrani_ilk) { panelDuzenleyici.islemTuslariDuzenle_listeEkrani_ilk(_e) }
-		if (mfSinif?.islemTuslariDuzenle_listeEkrani_ilk) { mfSinif.islemTuslariDuzenle_listeEkrani_ilk(e) }
+		let mfSinif = this.getMFSinif(), {secimler, panelDuzenleyici} = this
+		panelDuzenleyici?.islemTuslariDuzenle_listeEkrani_ilk?.(_e)
+		mfSinif?.islemTuslariDuzenle_listeEkrani_ilk?.(e)
 		super.islemTuslariDuzenle(e); let {liste} = e; let yListe = [];
-		if (!panelDuzenleyici && (!mfSinif || mfSinif?.kolonDuzenlemeYapilirmi)) { yListe.push({ id: 'basliklariDuzenle', handler: e => this.basliklariDuzenleIstendi(e) }) }
-		if (secimler && mfSinif?.raporKullanilirmi) { yListe.push({ id: 'rapor', handler: e => this.sabitBilgiRaporuIstendi(e) }) }
-		if (!panelDuzenleyici && (!mfSinif || mfSinif?.kolonFiltreKullanilirmi)) { yListe.push({ id: 'kolonFiltre', handler: e => this.kolonFiltreIstendi(e) }) }
-		if (secimler) { yListe.push({ id: 'secimler', handler: e => this.secimlerIstendi(e) }) }
+		if (!panelDuzenleyici && (!mfSinif || mfSinif?.kolonDuzenlemeYapilirmi))
+			yListe.push({ id: 'basliklariDuzenle', handler: e => this.basliklariDuzenleIstendi(e) })
+		if (secimler && mfSinif?.raporKullanilirmi)
+			yListe.push({ id: 'rapor', handler: e => this.sabitBilgiRaporuIstendi(e) })
+		if (!panelDuzenleyici && (!mfSinif || mfSinif?.kolonFiltreKullanilirmi))
+			yListe.push({ id: 'kolonFiltre', handler: e => this.kolonFiltreIstendi(e) })
+		if (secimler)
+			yListe.push({ id: 'secimler', handler: e => this.secimlerIstendi(e) })
 		if (!panelDuzenleyici && (!mfSinif || mfSinif?.gridIslemTuslariKullanilirmi)) {
 			yListe.push(
 				{ id: 'yazdir', handler: _e => this.gridYazdir({ ...e, ..._e }) },
@@ -174,28 +184,30 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			)
 		}
 		let _e = $.extend({}, e, { mfSinif, secimler, orjListe: yListe });
-		let tanimlanabilirmi = this.getTanimlanabilirmi(_e), silinebilirmi = this.getSilinebilirmi(_e);
-		let inExpKullanilirmi = this.getInExpKullanilirmi(_e);
-		if (tanimlanabilirmi) {
-			yListe.push(...[
-				{ id: 'yeni', handler: e => this.yeniIstendi(e) },
-				{ id: 'degistir', handler: e => this.degistirIstendi(e) },
-				{ id: 'kopya', handler: e => this.kopyaIstendi(e) }
-			]);
-			if (inExpKullanilirmi) {
-				yListe.push(...[
-					{ id: 'import', handler: e => this.importIstendi(e) },
-					{ id: 'export', handler: e => this.exportIstendi(e) }
-				])
-			}
+		let tanimlanabilirmi = this.getTanimlanabilirmi(_e), degistirilebilirmi = this.getDegistirilebilirmi(_e)
+		let silinebilirmi = this.getSilinebilirmi(_e), inExpKullanilirmi = this.getInExpKullanilirmi(_e)
+		if (tanimlanabilirmi)
+			yListe.push({ id: 'yeni', handler: e => this.yeniIstendi(e) })
+		if (degistirilebilirmi)
+			yListe.push({ id: 'degistir', handler: e => this.degistirIstendi(e) })
+		if (tanimlanabilirmi)
+			yListe.push({ id: 'kopya', handler: e => this.kopyaIstendi(e) })
+		if (inExpKullanilirmi) {
+			if (tanimlanabilirmi)
+				yListe.push({ id: 'import', handler: e => this.importIstendi(e) })
+			yListe.push({ id: 'export', handler: e => this.exportIstendi(e) })
 		}
-		if (silinebilirmi) { yListe.push({ id: 'sil', args: { template: 'danger' }, handler: e => this.silIstendi(e) }) }
-		if (!$.isEmptyObject(liste)) { yListe.push(...liste) } e.liste = yListe;
-		if (panelDuzenleyici?.islemTuslariDuzenle_listeEkrani) { panelDuzenleyici.islemTuslariDuzenle_listeEkrani(_e) }
-		if (mfSinif?.islemTuslariDuzenle_listeEkrani) { mfSinif.islemTuslariDuzenle_listeEkrani(e) }
+		if (silinebilirmi)
+			yListe.push({ id: 'sil', args: { template: 'danger' }, handler: e => this.silIstendi(e) })
+		if (!$.isEmptyObject(liste))
+			yListe.push(...liste)
+		e.liste = yListe
+		panelDuzenleyici?.islemTuslariDuzenle_listeEkrani?.(_e)
+		mfSinif?.islemTuslariDuzenle_listeEkrani?.(e)
 		yListe = e.liste;
-		let ozelIdSet = asSet(['tazele', 'vazgec']), items = yListe.filter(item => ozelIdSet[item.id]);
-		if (items?.length) { yListe = [...yListe.filter(item => !ozelIdSet[item.id]), ...items] }
+		let ozelIdSet = asSet(['tazele', 'vazgec']), items = yListe.filter(item => ozelIdSet[item.id])
+		if (items?.length)
+			yListe = [...yListe.filter(item => !ozelIdSet[item.id]), ...items]
 		e.liste = yListe
 	}
 	gridInit(e) {

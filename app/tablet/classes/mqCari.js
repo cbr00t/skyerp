@@ -3,7 +3,7 @@ class MQTabCari extends MQKAOrtak {
 	static get kodListeTipi() { return 'CARI' } static get sinifAdi() { return 'Cari' }
 	static get table() { return 'carmst' } static get tableAlias() { return 'car' }
 	static get zeminRenkDesteklermi() { return true } static get adiEtiket() { return 'Ünvan' }
-	static get onlineIdSaha() { return 'must' }
+	static get onlineIdSaha() { return 'must' } static get tanimlanabilirmi() { return true }
 	get vkn() { return this.sahismi ? this.tcKimlikNo : this.vergiNo }
 	set vkn(value) { this[this.sahismi ? 'tcKimlikNo' : 'vergiNo'] = value }
 
@@ -256,6 +256,7 @@ class MQTabPlasiyer extends MQKAOrtak {
 			}
 			else {
 				// Bilgi Yükle
+				let {session: { loginTipi, user } = {}} = config
 				{
 					let match = `${alias}.${kodSaha}`
 					let replace = `${alias}.${onlineIdSaha}`
@@ -269,6 +270,8 @@ class MQTabPlasiyer extends MQKAOrtak {
 					`${alias}.silindi = ''`, `${alias}.calismadurumu <> ''`,
 					`${alias}.satilamazfl = ''`
 				)
+				if (loginTipi == 'plasiyerLogin' && user)
+					wh.degerAta(user, `${alias}.${onlineIdSaha}`)
 				sahalar.add(
 					`${alias}.${onlineIdSaha} ${kodSaha}`,
 					`RTRIM(LTRIM(${alias}.unvan1 + ' ' + ${alias}.unvan2)) ${adiSaha}`
@@ -277,11 +280,5 @@ class MQTabPlasiyer extends MQKAOrtak {
 		}
 		stm = e.stm
 		sent = wh = sahalar = null
-		for (let _sent of stm) {
-			_sent.cari2BolgeBagla({ alias })
-				.cari2IlBagla({ alias })
-				.cari2UlkeBagla({ alias })
-				.cari2TipBagla({ alias })
-		}
 	}
 }
