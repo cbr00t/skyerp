@@ -4,11 +4,13 @@ class DRapor_Donemsel extends DRapor_AraSeviye {
 class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get secimSinif() { return DonemselSecimler }
-	tabloYapiDuzenle({ result }) {
+	tabloYapiDuzenle({ result, tarihClause }) {
 		super.tabloYapiDuzenle(...arguments)
 		result
+			.addKAPrefix('ceyrek')
 			.addGrup(new TabloYapiItem().setKA('YILAY', 'Yıl-Ay').addColDef(new GridKolon({ belirtec: 'yilay', text: 'Yıl-Ay', genislikCh: 20, filterType: 'checkedlist' })))
 			.addGrupBasit_numerik('YIL', 'Yıl', 'yil')
+			.addGrupBasit('CEYREK', 'Çeyrek Dönem', 'ceyrek', null, null, null, null)
 			.addGrup(new TabloYapiItem().setKA('YILHAFTA', 'Yıl-Hafta').addColDef(new GridKolon({ belirtec: 'yilhafta', text: 'Yıl-Hafta', genislikCh: 20, filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('AYADI', 'Ay').addColDef(new GridKolon({ belirtec: 'ayadi', text: 'Ay', genislikCh: 20, filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('HAFTA', 'Hafta').addColDef(new GridKolon({ belirtec: 'haftano', text: 'Hafta', genislikCh: 20, filterType: 'checkedlist' })))
@@ -16,7 +18,7 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 			.addGrup(new TabloYapiItem().setKA('SAAT', 'Saat').addColDef(new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 20, filterType: 'checkedlist' }).tipTime()))
 	}
 	secimlerDuzenle({ secimler: sec }) {
-		super.secimlerDuzenle(...arguments);
+		super.secimlerDuzenle(...arguments)
 		/*if (config.dev) {
 			let {tekSecim: donem} = sec.donem, {tarihAralik: tarih} = sec;
 			donem.tarihAralik(); tarih.basi = today().addDays(-10)
@@ -45,9 +47,23 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 				switch (key) {
 					case 'YILAY': sahalar.add(`(CAST(DATEPART(YEAR, ${tarihClause}) AS CHAR(4)) + ' - ' + dbo.ayadi(${tarihClause})) yilay`); break
 					case 'YIL': sahalar.add(`DATEPART(YEAR, ${tarihClause}) yil`); break
+					case 'CEYREK': {
+						let _ = `DATEPART(MONTH, ${tarihClause})`
+						let clause = (
+							'(case' +
+								` when ${_} <= 3 then 'Oca->Mar'` +
+								` when ${_} <= 6 then 'Nis->Haz'` +
+								` when ${_} <= 9 then 'Tem->Eyl'` +
+								` when ${_} <= 12 then 'Eki->Ara'` +
+								` else '??'` +
+							' end )'
+						)
+						sahalar.add(`${_} ceyrekkod`, `${clause} ceyrekadi`)
+					}
+					break
 					case 'YILHAFTA': sahalar.add(`(CAST(DATEPART(YEAR, ${tarihClause}) AS CHAR(4)) + ' - ' + CAST(DATEPART(WEEK, ${tarihClause}) AS VARCHAR(2))) yilhafta`); break
 					case 'AYADI': sahalar.add(`dbo.ayadi(${tarihClause}) ayadi`); break
-					case 'HAFTA': sahalar.add(`DATEPART(week, ${tarihClause}) haftano`); break
+					case 'HAFTA': sahalar.add(`DATEPART(WEEK, ${tarihClause}) haftano`); break
 					case 'TARIH': sahalar.add(`${tarihClause} tarih`); break
 					case 'SAAT': sahalar.add(`CONVERT(VARCHAR(10), ${tarihClause}, 108) saat`); break
 				}

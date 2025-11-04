@@ -39,6 +39,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			result = this._yatayTip2Bilgi = {
 				YA: { kod: 'YILAY', belirtec: 'yilay', text: 'Yıl/Ay' },
 				YL: { kod: 'YIL', belirtec: 'yil', text: 'Yıl' },
+				CD: { kod: 'CEYREK', belirtec: 'ceyrek', text: 'Çeyrek Dönem' },
 				AY: { kod: 'AYADI', belirtec: 'ayadi', text: 'Aylık' },
 				HF: { kod: 'HAFTA', belirtec: 'haftano', text: 'Haftalık' },
 				SG: { kod: 'SUBEGRUP', belirtec: 'subegrup', text: 'Şube Grup' },

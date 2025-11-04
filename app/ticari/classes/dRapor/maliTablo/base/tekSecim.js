@@ -74,7 +74,25 @@ class SBTabloYatayAnaliz extends TekSecim {
 				sentDuzenle({ kodClause, hv, sent, sent: { from, sahalar, where: wh } }) {
 					super.sentDuzenle(...arguments)   /* kodAttr için sent'e clause eklenmiş olarak gelecek */
 					kodClause ||= hv[this.zorunluKodAttr] || 'tarih'
-					kodClause = `FORMAT(${kodClause}, 'YYYY', 'tr-TR')`
+					kodClause = `DATEPART(YEAR, ${kodClause})`
+					sahalar.add(`${kodClause} yatay`)
+				}
+			}]),
+			new CKodAdiVeEkBilgi(['CEYR', 'Çeyrek', 'ceyrekmi', new class extends SBTabloYatayAnaliz_EkBilgi {
+				zorunluKodAttrListe = ['tarih']
+				sentDuzenle({ kodClause, hv, sent, sent: { from, sahalar, where: wh } }) {
+					super.sentDuzenle(...arguments)   /* kodAttr için sent'e clause eklenmiş olarak gelecek */
+					kodClause ||= hv[this.zorunluKodAttr] || 'tarih'
+					let _ = `DATEPART(MONTH, ${kodClause})`
+					kodClause = (
+						'(case' +
+							` when ${_} <= 3 then 'Oca->Mar'` +
+							` when ${_} <= 6 then 'Nis->Haz'` +
+							` when ${_} <= 9 then 'Tem->Eyl'` +
+							` when ${_} <= 12 then 'Eki->Ara'` +
+							` else '??'` +
+						' end )'
+					)
 					sahalar.add(`${kodClause} yatay`)
 				}
 			}]),
