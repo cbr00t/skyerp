@@ -56,6 +56,67 @@ class MQTabUlke extends MQKAOrtak {
 	static get kodListeTipi() { return 'ULKE' } static get sinifAdi() { return 'Ülke' }
 	static get table() { return 'ulke' } static get tableAlias() { return 'ulk' }
 }
+
+class MQTabSube extends MQKAOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'SUBE' } static get sinifAdi() { return 'Şube' }
+	static get table() { return 'isyeri' } static get tableAlias() { return 'sub' }
+	static get bosKodAlinirmi() { return true }
+	static loadServerData_queryDuzenle_son({ sent, sent: { sahalar, where: wh }, offlineRequest, offlineMode, alias = this.tableAlias }) {
+		let e = arguments[0]; super.loadServerData_queryDuzenle_son(e)
+		if (offlineRequest && !offlineMode) {
+			// Bilgi Yükle
+			let {adminmi, sefmi, session: { subeKod } = {}} = config
+			if (!(adminmi || sefmi) && subeKod)
+				wh.degerAta(subeKod, `${alias}.kod`)
+		}
+	}
+}
+class MQTabYer extends MQKAOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'YER' } static get sinifAdi() { return 'Yer (Depo)' }
+	static get table() { return 'stkyer' } static get tableAlias() { return 'yer' }
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		$.extend(pTanim, {
+			aum: new PInstStr('aum'),
+			subeKod: new PInstStr('bizsubekod')
+		})
+	}
+	static rootFormBuilderDuzenle(e) {
+		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e)
+		let {rootBuilder: rfb, tabPage_genel: tabPage} = e
+		let form = tabPage.addFormWithParent().yanYana(5)
+		form.addTextInput('aum', 'AUM').addStyle_wh(150)
+		form.addModelKullan('subeKod', 'Şube').dropDown().setMFSinif(MQTabSube)
+	}
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		let {tableAlias: alias} = this
+		liste.push(
+			new GridKolon({ belirtec: 'aum', text: 'AUM', genislikCh: 8 }),
+			new GridKolon({ belirtec: 'bizsubekod', text: 'Şube', genislikCh: 8 }),
+			new GridKolon({ belirtec: 'bizsubeadi', text: 'Şube Adı', genislikCh: 15, sql: 'sub.aciklama' })
+		)
+	}
+	static loadServerData_queryDuzenle_son({ sent, sent: { sahalar, where: wh }, offlineRequest, offlineMode, alias = this.tableAlias }) {
+		let e = arguments[0]; super.loadServerData_queryDuzenle_son(e)
+		sent.x2SubeBagla({ alias })
+		sahalar.addWithAlias(alias, 'aum')
+		if (offlineRequest && !offlineMode) {
+			// Bilgi Yükle
+			let {adminmi, sefmi, session: { subeKod } = {}} = config
+			if (!(adminmi || sefmi) && subeKod)
+				wh.degerAta(subeKod, `${alias}.bizsubekod`)
+		}
+	}
+}
+
+class MQTabNakliyeSekli extends MQKAOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'NAKLIYE' } static get sinifAdi() { return 'Nakliye Şekli' }
+	static get table() { return 'naksekli' } static get tableAlias() { return 'nak' }
+}
 class MQTabTahsilSekli extends MQKAOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TAHSEKLI' } static get sinifAdi() { return 'Tahsilat Şekli' }
@@ -89,13 +150,10 @@ class MQTabTahsilSekli extends MQKAOrtak {
 	static loadServerData_queryDuzenle_son({ sent, sent: { sahalar, where: wh }, offlineRequest, offlineMode, alias = this.tableAlias }) {
 		let e = arguments[0]; super.loadServerData_queryDuzenle_son(e)
 		sahalar.addWithAlias(alias, 'tahsiltipi', 'ahalttipi')
-		if (offlineRequest) {
-			if (!offlineMode) {
-				// Bilgi Yükle
-				wh.add(`${alias}.elterkullan <> ''`)
-			}
+		if (offlineRequest && !offlineMode) {
+			// Bilgi Yükle
+			wh.add(`${alias}.elterkullan <> ''`)
 		}
-		
 	}
 }
 

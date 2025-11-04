@@ -76,7 +76,7 @@ class GridPart extends Part {
 			gridHucreTiklandiBlock: e.gridHucreTiklandiBlock || e.gridHucreTiklandi, gridHucreCiftTiklandiBlock: e.gridHucreCiftTiklandiBlock || e.gridHucreCiftTiklandi,
 			gridContextMenuIstendiBlock: e.gridContextMenuIstendiBlock || e.gridContextMenuIstendi, gridIDBelirtec: e.gridIDBelirtec || this.defaultGridIDBelirtec,
 			kolonFiltreDuzenleyici: e.kolonFiltreDuzenleyici ?? new GridKolonFiltreDuzenleyici(), sabitFlag: e.sabit ?? e.sabitmi ?? e.sabitFlag ?? this.defaultSabitFlag ?? false, detaySinif: e.detaySinif,
-			_kontrolcu: e.kontrolcu, rowNumberOlmasinFlag: e.rowNumberOlmasin ?? e.rowNumberOlmasinFlag ?? ($(window).width() < 800 ? true : undefined),
+			_kontrolcu: e.kontrolcu, rowNumberOlmasinFlag: e.rowNumberOlmasin ?? e.rowNumberOlmasinFlag ?? ($(window).width() < 900 ? true : undefined),
 			notAdaptiveFlag: e.notAdaptive ?? e.notAdaptiveFlag, noAnimateFlag: e.noAnimate ?? e.noAnimateFlag
 		});
 		let {kolonFiltreDuzenleyici} = this; if ($.isPlainObject(kolonFiltreDuzenleyici)) {
@@ -163,8 +163,10 @@ class GridPart extends Part {
 		if (args.autoRowHeight) { args.autoRowHeight = args.pageable || args.autoHeight }
 		if (args.virtualMode && args.groupable && !args.pageable) args.groupable = false
 		if (args.pageable && !args.pagesizeoptions) args.pageSizeOptions = [5, 7, 8, 9, 10, 11, 13, 14, 15, 18, 20, 25, 50, 80, 100, 200, 300, 500]
-		args.pageSize = 100; args.enableOptimization = true; if (args.adaptive == null) { args.adaptive = !(notAdaptiveFlag || args.editable) }
-		let firstCol = (args.columns || [])[0], secondCol = (args.columns || [])[1];
+		args.pageSize = 100; args.enableOptimization = true
+		if (args.adaptive == null)
+			args.adaptive = !(notAdaptiveFlag || args.editable || $(window).width() <= 900)
+		let firstCol = (args.columns || [])[0], secondCol = (args.columns || [])[1]
 		if (firstCol && args.scrollMode == 'deferred' && $.isEmptyObject(args.deferredDataFields)) {
 			/* args.scrollMode = 'deferred'; */ let deferredDataFields = args.deferredDataFields = [firstCol.dataField || firstCol.datafield];
 			if (secondCol) { deferredDataFields.push(secondCol.dataField ?? secondCol.datafield) }

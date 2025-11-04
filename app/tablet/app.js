@@ -13,7 +13,8 @@ class TabletApp extends TicariApp {
 		return [
 			MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
 			MQTabBolge, MQTabIl, MQTabUlke, MQTabCariTip,
-			MQTabPlasiyer, MQTabTahsilSekli, MQTabStok, MQTabCari
+			MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
+			MQTabPlasiyer, MQTabStok, MQTabCari
 		]
 	}
 	// get autoExecMenuId() { return MQTest.kodListeTipi }
@@ -58,8 +59,9 @@ class TabletApp extends TicariApp {
 		};
 		items.push(new FRMenuChoice({ mne: 'BILGIYUKLE', text: 'Bilgi Yükle', block: e => this.bilgiYukleIstendi(e) }))
 		addMenuSubItems('TANIM', 'Tanımlar', [
-			MQTabStok, MQTabCari, MQTabPlasiyer, MQTabTahsilSekli,
-			MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka
+			MQTabStok, MQTabCari, MQTabPlasiyer, MQTabSube, MQTabYer,
+			MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka, MQTabNakliyeSekli,
+			MQTabTahsilSekli
 		])
 		items.push(new FRMenuChoice({ mne: 'BILGIGONDER', text: 'Bilgi Gönder', block: e => this.bilgiGonderIstendi(e) }))
 		// addMenuSubItems(null, null, [MQTest])

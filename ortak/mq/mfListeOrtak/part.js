@@ -400,23 +400,39 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		return result
 	}
 	getRowsHeight(e) {
-		let mfSinif = this.getMFSinif(e), {paramGlobals} = mfSinif;
+		let mfSinif = this.getMFSinif(e), {paramGlobals} = mfSinif
 		return paramGlobals?.rowsHeight || mfSinif?.orjBaslikListesi_defaultRowsHeight
 	}
-	getParentRecAtIndex(rowIndex, gridPart) { let {gridWidget} = this || {}; return (rowIndex == null || rowIndex < 0 ? null : gridWidget.getrowdata(rowIndex)) ?? this.selectedRec }
+	getParentRecAtIndex(rowIndex, gridPart) {
+		let {gridWidget} = this ?? {}
+		rowIndex ??= -1
+		return (rowIndex < 0 ? null : gridWidget.getrowdata(rowIndex)) ?? this.selectedRec
+	}
 	getSubRecs(e) { return this.panelDuzenleyici?.getSubRecs(e) } getSubRec(e) { return this.panelDuzenleyici?.getSubRec(e) }
 	async tazeleIstendi(e) {
-		let mfSinif = this.getMFSinif(e); if (mfSinif?.gridTazeleIstendi) { if (await mfSinif.gridTazeleIstendi(e) === false) { return false } }
+		let mfSinif = this.getMFSinif(e)
+		if (await mfSinif?.gridTazeleIstendi?.(e) === false)
+			return false
 		return await super.tazeleIstendi(e)
 	}
 	gridSatirTiklandi(e) {
-		e ??= {}; let mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_satirTiklandi) { if (mfSinif.orjBaslikListesi_satirTiklandi(e) === false) { return false } }
+		e ??= {}; let mfSinif = this.getMFSinif()
+		if (mfSinif?.orjBaslikListesi_satirTiklandi?.(e) === false)
+			return false
 		return super.gridSatirTiklandi(e)
 	}
-	gridSatirCiftTiklandi(e) {
-		e ??= {}; let mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_satirCiftTiklandi) { if (mfSinif.orjBaslikListesi_satirCiftTiklandi(e) === false) { return false } }
-		if (super.gridSatirCiftTiklandi(e) === false) return false
-		if (!this.secince && mfSinif?.tanimlanabilirmi) { let args = e.event?.args || {}; this.degistirIstendi($.extend({}, e, { rec: args.owner.getrowdata(args.rowindex), rowIndex: args.rowindex })); return false }
+	gridSatirCiftTiklandi(e = {}) {
+		let {secince} = this, mfSinif = this.getMFSinif()
+		if (mfSinif?.orjBaslikListesi_satirCiftTiklandi?.(e) === false)
+			return false
+		if (super.gridSatirCiftTiklandi(e) === false)
+			return false
+		let degistirilebilirmi = this.getDegistirilebilirmi({ ...e, mfSinif })
+		if (!secince && degistirilebilirmi) {
+			let args = e.event?.args ?? {}
+			this.degistirIstendi({ ...e, mfSinif, rec: args.owner.getrowdata(args.rowindex), rowIndex: args.rowindex })
+			return false
+		}
 		return true
 	}
 	gridHucreTiklandi(e) {
