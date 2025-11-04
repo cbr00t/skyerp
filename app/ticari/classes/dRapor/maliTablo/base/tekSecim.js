@@ -69,6 +69,15 @@ class SBTabloYatayAnaliz extends TekSecim {
 					}
 				}
 			}]),
+			new CKodAdiVeEkBilgi(['YIL', 'Yıl', 'yilmi', new class extends SBTabloYatayAnaliz_EkBilgi {
+				zorunluKodAttrListe = ['tarih']
+				sentDuzenle({ kodClause, hv, sent, sent: { from, sahalar, where: wh } }) {
+					super.sentDuzenle(...arguments)   /* kodAttr için sent'e clause eklenmiş olarak gelecek */
+					kodClause ||= hv[this.zorunluKodAttr] || 'tarih'
+					kodClause = `FORMAT(${kodClause}, 'YYYY', 'tr-TR')`
+					sahalar.add(`${kodClause} yatay`)
+				}
+			}]),
 			new CKodAdiVeEkBilgi(['AY', 'Ay', 'aymi', new class extends SBTabloYatayAnaliz_EkBilgi {
 				zorunluKodAttrListe = ['tarih']
 				sentDuzenle({ kodClause, hv, sent, sent: { from, sahalar, where: wh } }) {

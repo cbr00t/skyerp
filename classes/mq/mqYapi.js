@@ -280,7 +280,7 @@ class MQYapi extends CIO {
 		let {offlineDirect: directFlag, idSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this, clear = e.clear ?? e.clearFlag
 		let {trnId} = e, offlineMode = true, offlineRequest = true, offlineYukleRequest = true, internal = true
 		let recs = await this.loadServerData({ ...e, trnId, offlineMode: !offlineMode, offlineRequest, offlineYukleRequest })
-		let {offlineSahaListe: attrListe, kodKullanilirmi, kodSaha} = this
+		let {offlineSahaListe: attrListe, kodKullanilirmi, kodSaha, emptyKodValue = ''} = this
 		let inLocalTrn = false, okIdList = []
 		try {
 			await this.sqlExecNone({ ...e, offlineMode, query: 'BEGIN TRANSACTION' })
@@ -291,7 +291,7 @@ class MQYapi extends CIO {
 			if (clear)
 				await this.offlineClearTable({ ...e, offlineMode })
 			if (kodKullanilirmi && kodSaha) {
-				let hv = { [kodSaha]: '' }
+				let hv = { [kodSaha]: emptyKodValue }
 				let query = new MQInsert({ table: offlineTable, hv })
 				await this.sqlExecNone({ ...e, offlineMode, query })
 			}

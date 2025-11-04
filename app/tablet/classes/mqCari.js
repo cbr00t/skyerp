@@ -1,10 +1,9 @@
-class MQTabCari extends MQKA {
+class MQTabCari extends MQKAOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'CARI' } static get sinifAdi() { return 'Cari' }
 	static get table() { return 'carmst' } static get tableAlias() { return 'car' }
-	static get raporKullanilirmi() { return false } static get kolonFiltreKullanilirmi() { return false }
-	static get tumKolonlarGosterilirmi() { return true } static get zeminRenkDesteklermi() { return true }
-	static get onlineIdSaha() { return 'must' } static get adiEtiket() { return 'Ünvan' }
+	static get zeminRenkDesteklermi() { return true } static get adiEtiket() { return 'Ünvan' }
+	static get onlineIdSaha() { return 'must' }
 	get vkn() { return this.sahismi ? this.tcKimlikNo : this.vergiNo }
 	set vkn(value) { this[this.sahismi ? 'tcKimlikNo' : 'vergiNo'] = value }
 
@@ -107,11 +106,9 @@ class MQTabCari extends MQKA {
 			// new GridKolon({ belirtec: 'tavsiyeplasiyerkod', text: 'Plasiyer', genislikCh: 15 }).hidden()
 		)
 	}
-	static loadServerData_queryDuzenle_son(e = {}) {
-		super.loadServerData_queryDuzenle_son(e)
-		let {tableAlias, kodSaha, adiSaha, onlineIdSaha} = this
-		let {alias = tableAlias} = e
-		let {stm, sent, sent: { where: wh, sahalar }, offlineRequest, offlineMode} = e
+	static loadServerData_queryDuzenle_son({ alias = this.tableAlias, offlineRequest, offlineMode, stm, sent, sent: { where: wh, sahalar } }) {
+		let e = arguments[0]; super.loadServerData_queryDuzenle_son(e)
+		let {kodSaha, adiSaha, onlineIdSaha} = this
 		if (offlineRequest) {
 			if (offlineMode) {
 				// Bilgi Gönder
@@ -137,9 +134,9 @@ class MQTabCari extends MQKA {
 				.cari2TipBagla({ alias })
 		}
 	}
-	static loadServerData_queryDuzenle_son_bilgiYukle({ stm, sent, sent: { where: wh, sahalar } }) {
+	static loadServerData_queryDuzenle_son_bilgiYukle({ alias = this.tableAlias, stm, sent, sent: { where: wh, sahalar } }) {
 		let e = arguments[0], {rotaKullanilirmi} = app
-		let {tableAlias: alias, kodSaha, adiSaha, onlineIdSaha} = this
+		let {kodSaha, adiSaha, onlineIdSaha} = this
 		let ortakSentDuzenle = e.ortakSentDuzenle = sent => {
 			wh.add(
 				`${alias}.silindi = ''`, `${alias}.calismadurumu <> ''`,
@@ -149,13 +146,14 @@ class MQTabCari extends MQKA {
 		}
 		if (rotaKullanilirmi)
 			this.loadServerData_queryDuzenle_son_bilgiYukle_rotaIcinDuzenle(...arguments)
-		
+		else
+			wh.add(`${alias}.kayittipi <> 'X'`)
 		{
 			let match = `${alias}.${kodSaha}`
 			let replace = `${alias}.${onlineIdSaha}`
 			let {liste} = wh
 			liste.forEach((clause, i) => {
-				if (clause.includes(match))
+				if (clause?.includes?.(match))
 					liste[i] = clause = clause.replaceAll(match, replace)
 			})
 		}
@@ -228,5 +226,62 @@ class MQTabCari extends MQKA {
 		super.setValues(...arguments)
 //		if (offlineRequest)
 //			debugger
+	}
+}
+
+class MQTabPlasiyer extends MQKAOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'PLASIYER' } static get sinifAdi() { return 'Plasiyer' }
+	static get table() { return MQTabCari.table } static get tableAlias() { return 'pls' }
+	static get onlineIdSaha() { return MQTabCari.onlineIdSaha } static get kayitTipi() { return 'X' }
+	static get offlineSahaListe() { return [...super.offlineSahaListe, ...this.offlineEkSahaListe] }
+	static get offlineEkSahaListe() { return ['kayittipi'] }
+	static varsayilanKeyHostVarsDuzenle({ hv }) {
+		super.varsayilanKeyHostVarsDuzenle(...arguments)
+		let {kayitTipi: kayittipi} = this
+		$.extend(hv, { kayittipi })
+	}
+	static loadServerData_queryDuzenle_son({ alias = this.tableAlias, offlineRequest, offlineMode, stm, sent, sent: { where: wh, sahalar } }) {
+		let e = arguments[0]; super.loadServerData_queryDuzenle_son(e)
+		let {kodSaha, adiSaha, onlineIdSaha, offlineEkSahaListe} = this
+		sahalar.add(offlineEkSahaListe.map(saha => `${alias}.${saha}`))
+		if (offlineRequest) {
+			if (offlineMode) {
+				// Bilgi Gönder
+				sahalar.add(
+					`${alias}.${kodSaha} ${onlineIdSaha}`,
+					`SUBSTRING(${alias}.${adiSaha}, 50) unvan1`,
+					`SUBSTRING(${alias}.${adiSaha}, 51, 100) unvan2`
+				)
+			}
+			else {
+				// Bilgi Yükle
+				{
+					let match = `${alias}.${kodSaha}`
+					let replace = `${alias}.${onlineIdSaha}`
+					let {liste} = wh
+					liste.forEach((clause, i) => {
+						if (clause?.includes?.(match))
+							liste[i] = clause = clause.replaceAll(match, replace)
+					})
+				}
+				wh.add(
+					`${alias}.silindi = ''`, `${alias}.calismadurumu <> ''`,
+					`${alias}.satilamazfl = ''`
+				)
+				sahalar.add(
+					`${alias}.${onlineIdSaha} ${kodSaha}`,
+					`RTRIM(LTRIM(${alias}.unvan1 + ' ' + ${alias}.unvan2)) ${adiSaha}`
+				)
+			}
+		}
+		stm = e.stm
+		sent = wh = sahalar = null
+		for (let _sent of stm) {
+			_sent.cari2BolgeBagla({ alias })
+				.cari2IlBagla({ alias })
+				.cari2UlkeBagla({ alias })
+				.cari2TipBagla({ alias })
+		}
 	}
 }

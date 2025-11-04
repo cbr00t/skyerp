@@ -527,9 +527,17 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 					let recs = await this.loadServerDataInternal({ yatayAnaliz: true, internal: true, attrSet: _attrSet });
 					window.progressManager?.progressStep(3);
 					let liste = []; for (let rec of recs) {
-						let value = rec[belirtec]?.trimEnd?.(); if (value === undefined) {
-							let kod = rec[`${belirtec}kod`]?.trimEnd?.(), aciklama = rec[`${belirtec}adi`]?.trimEnd?.();
-							if (!(kod == null && aciklama == null)) { this.fixKA(rec, belirtec); value = rec[belirtec] }
+						let value = rec[belirtec]?.trimEnd?.()
+						if (value === undefined) {
+							let kod = (rec[`${belirtec}kod`] ?? rec[belirtec]), aciklama = rec[`${belirtec}adi`]
+							if (typeof kod == 'string')
+								kod = kod.trimEnd()
+							if (typeof adi == 'string')
+								adi = adi.trimEnd()
+							if (!(kod == null && aciklama == null)) {
+								this.fixKA(rec, belirtec)
+								value = rec[belirtec]
+							}
 						}
 						if (value) { liste.push(value) }
 					} 
@@ -542,8 +550,11 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 					for (let _colDef of gtTip2ColDefs.toplam) {
 						for (let yatayText of liste) {
 							let colDef = _colDef.deepCopy(); colDefs.push(colDef); colDef.belirtec += `_${yatayText}`;
-							let colText = yatayText, tokens = colText.split(') '); if (tokens.length > 1) { colText = tokens[1] || colText }
-							colDef.text += `<br/>[ <span class=royalblue>${colText}</span> ]`; tumYatayAttrSet[colDef.belirtec] = true
+							let colText = yatayText?.toString(), tokens = colText.split?.(') ')
+							if (tokens?.length > 1)
+								colText = tokens[1] || colText
+							colDef.text += `<br/>[ <span class=royalblue>${colText}</span> ]`
+							tumYatayAttrSet[colDef.belirtec] = true
 						}
 					}
 				}

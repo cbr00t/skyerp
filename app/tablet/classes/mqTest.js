@@ -1,9 +1,8 @@
-class MQTest extends MQCogul {
+class MQTest extends MQMasterOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TEST' } static get sinifAdi() { return 'TEST' }
 	static get tanimUISinif() { return null } static get secimSinif() { return null }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return true }
-	static get raporKullanilirmi() { return false } static get kolonFiltreKullanilirmi() { return false }
 	static get tanimmi() { return false } static get noAutoFocus() { return true }
 	static get ozelTanimIslemi() { return e => this.ozelTanimYap(e) }
 	static get localData() { return app.params.localData }

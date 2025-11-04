@@ -91,10 +91,20 @@ CREATE TABLE IF NOT EXISTS ulke (
 );
 INSERT OR IGNORE INTO ulke (kod) VALUES ('');
 
+CREATE TABLE IF NOT EXISTS tahsilsekli (
+	kodno INTEGER NOT NULL PRIMARY KEY,
+	aciklama TEXT NOT NULL DEFAULT '',
+	tahsiltipi TEXT NOT NULL DEFAULT '',
+	ahalttipi NOT NULL DEFAULT '',
+	ahgunkodu NOT NULL DEFAULT ''
+);
+INSERT OR IGNORE INTO tahsilsekli (kodno) VALUES (0);
+
 CREATE TABLE IF NOT EXISTS carmst (
 	kod TEXT NOT NULL PRIMARY KEY,
 	aciklama TEXT NOT NULL DEFAULT '',
 	silindi TEXT NOT NULL DEFAULT '',
+	kayittipi TEXT NOT NULL DEFAULT '',
 	calismadurumu TEXT NOT NULL DEFAULT '*',
 	satilamazfl TEXT NOT NULL DEFAULT '',
 	oscolor INTEGER,

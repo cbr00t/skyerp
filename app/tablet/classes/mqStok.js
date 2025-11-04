@@ -1,10 +1,8 @@
-class MQTabStok extends MQKA {
+class MQTabStok extends MQKAOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'STOK' } static get sinifAdi() { return 'Stok' }
 	static get table() { return 'stkmst' } static get tableAlias() { return 'stk' }
-	static get raporKullanilirmi() { return false } static get kolonFiltreKullanilirmi() { return false }
-	static get tumKolonlarGosterilirmi() { return true } static get zeminRenkDesteklermi() { return true }
-	static get satFiyatSayi() { return 9 }
+	static get zeminRenkDesteklermi() { return true } static get satFiyatSayi() { return 9 }
 	/*static get offlineSahaListe() {
 		return super.offlineSahaListe.filter(_ =>
 			!(_.endsWith('kdvorani') || _.startsWith('satfiyat')))

@@ -64,8 +64,8 @@ class MQKod extends MQCogul {
 		liste.push(new GridKolon({ belirtec: mfSinif.kodSaha, text: kodEtiket, minWidth: 100, width: mqGUIDmi ? 320 : 250, cellsRenderer, hidden: !(kodKullanilirmi || mqGUIDmi), sql: kodKullanilirmi ? undefined : false }))
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); let {sent} = e, {aliasVeNokta, kodSaha} = this;
-		if (!this.bosKodAlinirmi) { sent.where.add(`${aliasVeNokta}${kodSaha} <> ''`) }
+		super.loadServerData_queryDuzenle(e); let {sent} = e, {aliasVeNokta, kodSaha, emptyKodValue = ''} = this
+		if (!this.bosKodAlinirmi) { sent.where.add(`${aliasVeNokta}${kodSaha} <> ${MQSQLOrtak.sqlDegeri(emptyKodValue)}`) }
 		if (!sent.sahalar.liste.find(saha => saha.alias == kodSaha)) { sent.sahalar.add(`${aliasVeNokta}${kodSaha}`) }
 		if (this.zeminRenkDesteklermi) sent.sahalar.add(`${aliasVeNokta}oscolor`)
 	}
@@ -167,9 +167,9 @@ class MQKA extends MQKod {
 				let {kod} = e; if (kod != null && !kod) { return [] }
 				let {sender, gridPart, value, maxRow} = e, colDef = sender ?? {}, mfSinif = colDef.mfSinif ?? this;
 				let belirtec = colDef.belirtec, kodAttr = colDef.kodAttr || e.kodAttr || `${belirtec}Kod`, adiAttr = colDef.adiAttr || e.adiAttr || `${belirtec}Adi`;
-				let {tableAndAlias, aliasVeNokta, kodSaha, adiSaha} = mfSinif;
+				let {tableAndAlias, aliasVeNokta, kodSaha, adiSaha, emptyKodValue = ''} = mfSinif
 				let sent = new MQSent({
-					from: tableAndAlias, where: [`${aliasVeNokta}${kodSaha} <> ''`],
+					from: tableAndAlias, where: [`${aliasVeNokta}${kodSaha} <> ${MQSQLOrtak.sqlDegeri(emptyKodValue)}`],
 					sahalar: [`${aliasVeNokta}${kodSaha} ${kodAttr}`, `${aliasVeNokta}${adiSaha} ${adiAttr}` ]
 				});
 				if (kod) { sent.where.degerAta(kod, `${aliasVeNokta}${kodSaha}`) }
