@@ -101,13 +101,14 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 					return false
 			}
 		}
-		let db = this; return {db, fsRootDir, fh, data}
+		let db = this
+		return {db, fsRootDir, fh, data}
 	}
 	dbInit(e) {
 		this.execute([
-			`PRAGMA page_size = ${64 * 1024}`,
+			`PRAGMA page_size = ${64 * 1024}`,    // Page size in Bytes
+			`PRAGMA cache_size=-${256 * 1024}`,   // (-): Memory Size in KB | (+): n Page Count
 			`PRAGMA synchronous = OFF`,
-			`PRAGMA cache_size=-${32 * 1024}`,
 			// 'PRAGMA synchronous = NORMAL',
 			// 'PRAGMA journal_mode = WAL',
 			'PRAGMA journal_mode = MEMORY',

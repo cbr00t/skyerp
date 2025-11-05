@@ -2,6 +2,7 @@ class TabletApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this } get isLoginRequired() { return true }
 	static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_App }
 	get offlineMode() { return super.offlineMode ?? true } get dbMgrClass() { return SqlJS_DBMgr }
+	get defaultOfflineRequestChunkSize() { return 8 }
 	get sicakVeyaSogukmu() { return this.sicakmi || this.sogukmu }
 	get rotaKullanilirmi() { return this.sicakVeyaSogukmu }
 	get defaultLoginTipi() { return this.sicakVeyaSogukmu ? 'plasiyerLogin' : super.defaultLoginTipi }
@@ -78,7 +79,7 @@ class TabletApp extends TicariApp {
 		super.dbMgr_tabloEksikleriTamamla(...arguments)
 	}
 	async bilgiYukleIstendi(e) {
-		let {offlineAktarimSiniflar: classes, params} = this
+		let {offlineAktarimSiniflar: classes, params, defaultOfflineRequestChunkSize: chunkSize} = this
 		if (!classes?.length)
 			return
 		/*classes = [
@@ -114,9 +115,21 @@ class TabletApp extends TicariApp {
 				await MQCogul.sqlExecNone({ offlineMode, query: 'COMMIT' })
 			}
 		}
-		for (let cls of classes) {
+		try {
+			for (let _classes of arrayIterChunks(classes, chunkSize)) {
+				await Promise.all(_classes.map(cls =>
+					cls.offlineSaveToLocalTable().finally(() =>
+						pm.progressStep())
+				))
+			}
+		}
+		catch (ex) {
+			let errText = getErrorText(ex)
+			console.error(errText, ex)
+			hConfirm(errText, 'Veri Yükle')
+		}
+		/*for (let cls of classes) {
 			try {
-				let clear = withClear || !cls.detaylimi
 				await cls.offlineSaveToLocalTable()
 			}
 			catch (ex) {
@@ -125,20 +138,33 @@ class TabletApp extends TicariApp {
 				hConfirm(errText, 'Veri Yükle')
 			}
 			finally { pm.progressStep() }
-		}
+		}*/
 		pm.progressEnd()
 		eConfirm('Veri Yükleme tamamlandı')
-		setTimeout(() => hideProgress(), 1000)
+		setTimeout(() => hideProgress(), 500)
 	}
 	async bilgiGonderIstendi(e) {
-		let {offlineAktarimSiniflar: classes} = this
+		let {offlineAktarimSiniflar: classes, defaultOfflineRequestChunkSize: chunkSize} = this
 		if (!classes?.length)
 			return
 		if (!await ehConfirm('Tabletteki veriler merkeze gönderilsin mi?', appName))
 			return
 		let pm = showProgress('Veriler gönderiliyor...', null, true)
 		pm.setProgressMax(classes.length).progressReset()
-		for (let cls of classes) {
+		try {
+			for (let _classes of arrayIterChunks(classes, chunkSize)) {
+				await Promise.all(_classes.map(cls =>
+					cls.offlineSaveToRemoteTable().finally(() =>
+						pm.progressStep())
+				))
+			}
+		}
+		catch (ex) {
+			let errText = getErrorText(ex)
+			console.error(errText, ex)
+			hConfirm(errText, 'Veri Gönder')
+		}
+		/*for (let cls of classes) {
 			try { await cls.offlineSaveToRemoteTable() }
 			catch (ex) {
 				let errText = getErrorText(ex)
@@ -146,9 +172,9 @@ class TabletApp extends TicariApp {
 				hConfirm(errText, 'Veri Gönder')
 			}
 			finally { pm.progressStep() }
-		}
+		}*/
 		pm.progressEnd()
 		eConfirm('Veri Gönderimi tamamlandı')
-		setTimeout(() => hideProgress(), 1000)
+		setTimeout(() => hideProgress(), 500)
 	}
 }
