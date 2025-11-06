@@ -249,6 +249,7 @@ body > .indicators > *:not(:first-child) { margin-left: 20px }
 body > .indicators > .ajax { animation: 50ms ease-out 0ms infinite normal animation--ajax }
 body > .indicators > .ajax:not(.running):not(.error) { animation: unset }
 body > .indicators > .ajax.running { background: forestgreen }
+body > .indicators > .ajax.local { background: #ffbf00 }
 body > .indicators > .ajax.error { background: firebrick }
 @keyframes animation--ajax {
 	50% { opacity: .7 }

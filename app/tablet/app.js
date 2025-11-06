@@ -11,7 +11,7 @@ class TabletApp extends TicariApp {
 	}
 	get offlineAktarimSiniflar() {
 		return [
-			MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
+			MQParam, MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
 			MQTabBolge, MQTabIl, MQTabUlke, MQTabCariTip,
 			MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
 			MQTabPlasiyer, MQTabStok, MQTabCari

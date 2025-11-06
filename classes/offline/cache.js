@@ -2,7 +2,8 @@ class LocalCache extends MQLocalTable {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultName() { return 'local-cache' }
 
-	get recording() { return this._recording } set recording(value) { this._recording = value }
+	get recording() { return this._recording }
+	set recording(value) { this._recording = value }
 	constructor(e) {
 		super(...arguments); if (typeof e != 'object') { e = {} }
 		let {recording = false} = e;
@@ -28,7 +29,7 @@ class LocalCache extends MQLocalTable {
 	delete(e) {
 		let {data} = this; if (data == null) { return false }
 		if (e?.key == null) { e = { key: e } }
-		let newKey = this.fixKey(key);
+		let {key} = e, newKey = this.fixKey(key)
 		if (newKey != key) { e.key = newKey }
 		return super.delete(e)
 	}
@@ -73,7 +74,8 @@ class ReqCache extends LocalCache {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultName() { return 'req-cache' }
 	async onExec({ result }) {
-		if (await super.onExec(...arguments) === false) { return false }
+		if (await super.onExec(...arguments) === false)
+			return false 
 		let key = arguments[0]
 		await this.set(key, result)
 		this.kaydetDefer()

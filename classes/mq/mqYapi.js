@@ -278,9 +278,9 @@ class MQYapi extends CIO {
 		if (!offlineTable)
 			return this
 		let {offlineDirect: directFlag, idSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this, clear = e.clear ?? e.clearFlag
+		let {offlineSahaListe: attrListe, kodKullanilirmi, kodSaha, emptyKodValue = ''} = this
 		let {trnId} = e, offlineMode = true, offlineRequest = true, offlineYukleRequest = true, internal = true
 		let recs = await this.loadServerData({ ...e, trnId, offlineMode: !offlineMode, offlineRequest, offlineYukleRequest })
-		let {offlineSahaListe: attrListe, kodKullanilirmi, kodSaha, emptyKodValue = ''} = this
 		let inLocalTrn = false, okIdList = []
 		try {
 			await this.sqlExecNone({ ...e, offlineMode, query: 'BEGIN TRANSACTION' })
@@ -500,8 +500,9 @@ class MQYapi extends CIO {
 		let {selector} = e, offlineMode = e.isOfflineMode ?? e.offlineMode ?? e.isOffline ?? e.offline ?? this.isOfflineMode
 		let db = e.db ?? app.dbMgr?.default
 		if (db?.internalDB === null) { db = null }
-		for (let key of ['selector', 'db', 'isOfflineMode', 'offlineMode', 'isOffline', 'offline']) { delete e[key] }
-		let result = offlineMode && db ? db.execute(e) : app[selector](e);
+		for (let key of ['selector', 'db', 'isOfflineMode', 'offlineMode', 'isOffline', 'offline'])
+			delete e[key]
+		let result = offlineMode && db ? db.execute(e) : app[selector](e)
 		if (offlineMode && db) {
 			switch (selector) {
 				case 'sqlExecNone': result = { lastRowsAffected: db.internalDB.getRowsModified() }; break
@@ -512,8 +513,8 @@ class MQYapi extends CIO {
 		return result
 	}
 	_sqlExec(e, _params) {
-		e = $.isPlainObject(e) ? e : { query: e, params: _params }; let offlineMode = e.offlineMode ?? e.isOfflineMode ?? e.isOffline ?? e.offline ?? this.isOfflineMode;
-		let {selector, db, trnId, query, params, deferFlag, batch} = e;
+		e = $.isPlainObject(e) ? e : { query: e, params: _params }; let offlineMode = e.offlineMode ?? e.isOfflineMode ?? e.isOffline ?? e.offline ?? this.isOfflineMode
+		let {selector, db, trnId, query, params, deferFlag, batch} = e
 		return this.class._sqlExec({ selector, db, offlineMode, trnId, query, params, deferFlag, batch })
 	}
 }

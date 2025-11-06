@@ -123,8 +123,9 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		if (this.internalDB) { return this._execute(e, params, isRetry, noAutoTrim) }
 		return this.open(e).then(() => this._execute(e, params, isRetry, noAutoTrim))
 	}
-	_execute(e, _params, isRetry, _noAutoTrim) {
-		e = e || {}; if (window?.app) { app.sqlType = 'sqlite' }
+	_execute(e = {}, _params, isRetry, _noAutoTrim) {
+		if (window?.app)
+			app.sqlType = 'sqlite'
 		if (typeof e == 'object' && !$.isPlainObject(e)) {
 			let queryObj = e; e = { query: queryObj.toString() };
 			e.params = queryObj.params
@@ -134,59 +135,83 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		e.noAutoTrim = e.noAutoTrim ?? _noAutoTrim;
 		if (e.query?.toplumu) {
 			let {liste} = e.query, result; for (let subQuery of liste) {
-				let queryYapi = subQuery.getQueryYapi(); if ($.isEmptyObject(queryYapi)) { continue }
-				result = this._execute({ ...e, ...queryYapi })
+				let queryYapi = subQuery.getQueryYapi()
+				if ($.isEmptyObject(queryYapi))
+					continue
+				app?.onAjaxStart?.(true)
+				try { 
+					result = this._execute({ ...e, ...queryYapi })
+					app?.onAjaxEnd?.(false)
+				}
+				catch (ex) {
+					app?.onAjaxEnd?.(true)
+					throw ex
+				}
 			}
 			return result
 		}
-		let savedParams = e.params, _query = e.query, isDBWrite = this.isDBWrite(_query);
+		let savedParams = e.params, _query = e.query, isDBWrite = this.isDBWrite(_query)
 		e = { ...e };
 		if (_query?.getQueryYapi) { $.extend(e, _query.getQueryYapi()) }
 		else if (_query?.query) { $.extend(e, _query) }
 		else { e.query = _query?.toString() ?? '' }
 		if (!e.query) { return null }
 		if (!$.isEmptyObject(savedParams)) {
-			let {params} = e;
+			let {params} = e
 			if ($.isEmptyObject(params)) { params = e.params = savedParams }
 			else if (params != savedParams) {
 				if ($.isArray(params)) { params.push(...savedParams) }
 				else { $.extend(params, savedParams) }
 			}
+			e.params = params
 		}
 		if (typeof e.query == 'string') {
 			if (e.query.toUpperCase().includes('NOT NULL AUTO')) { e.query = e.query.replaceAll('rowid\t', '--rowid\t').replaceAll('rowid ', '--rowid ') }
 			e.query = e.query.replaceAll('ORTAK..', '')
 		}
 		/*let {dbOpCallback} = this; if (!$.isFunction(dbOpCallback)) { dbOpCallback = null } if (dbOpCallback) { await dbOpCallback.call(this, { operation: 'executeSql', state: true }, e) }*/
-		let _result; this.dbLastExec = e; try { console.debug('db exec', e) } catch (ex) { }
-		try { _result = this.internalDB[isDBWrite ? 'run' : 'exec'](e.query, e.params) }
+		let _result; this.dbLastExec = e
+		app?.onAjaxStart?.(true)
+		try {
+			_result = this.internalDB[isDBWrite ? 'run' : 'exec'](e.query, e.params)
+			try { console.debug('db exec', { ...e, db: this, isDBWrite, result: _result }) }
+			catch (ex) { }
+		}
 		catch (ex) {
 			if (!isRetry) {
 				let message = ex.message || ''
 				if (message.includes('no such column') && window?.app?.dbMgr_tabloEksikleriTamamla) {
 					app.dbMgr_tabloEksikleriTamamla({ ...e, db: this, noCacheReset: true })
+					app?.onAjaxEnd?.(true)
 					return this.execute(e, _params, true)
 				}
 			}
 			/*if (dbOpCallback) { await dbOpCallback.call(this, { operation: 'executeSql', state: null, error: ex }, e) }*/
-			console.error('sqlite exec', { ...e, db: this, isDBWrite, ex });
+			app?.onAjaxEnd?.(true)
+			console.error('sqlite exec', { ...e, db: this, isDBWrite, ex })
 			throw ex
 		}
-		if (!_result) { return _result }
+		if (!_result) {
+			app?.onAjaxEnd?.(false)
+			return _result
+		}
 		_result = $.isArray(_result) ? _result[0] : null;
-		if ($.isEmptyObject(_result) && (isDBWrite || (typeof _result == 'number' && result) )) { this.onChange(e) }
+		if (empty(_result) && (isDBWrite || (typeof _result == 'number' && result)))
+			this.onChange(e)
 		let result = { rows: [] }, {columns, values} = _result || {};
 		if (values) {
 			let {noAutoTrim} = e; for (let _rec of values) {
 				let rec = {}; for (let i = 0; i < columns.length; i++) {
-					let value = _rec[i];
-					if (!noAutoTrim && typeof value == "string") { value = value.trimEnd() }
+					let value = _rec[i]
+					if (!noAutoTrim && typeof value == 'string')
+						value = value.trimEnd()
 					rec[columns[i]] = value
 				}
 				result.rows.push(rec)
 			}
 		}
-		result = result.rows ?? result; /*if (dbOpCallback) { setTimeout(() => dbOpCallback.call(this, { operation: 'executeSql', state: false }, e), 20) }*/
+		result = result.rows ?? result /*if (dbOpCallback) { setTimeout(() => dbOpCallback.call(this, { operation: 'executeSql', state: false }, e), 20) }*/
+		app?.onAjaxEnd?.(false)
 		return result
 	}
 	getTables(...names) {
