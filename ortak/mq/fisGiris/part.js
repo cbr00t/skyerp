@@ -84,7 +84,8 @@ class FisGirisPart extends GridliGirisWindowPart {
 						{ min: gridIslemTuslariWidth, size: gridIslemTuslariWidth, collapsible: true, collapsed: false },
 						{ min: layout.width() - gridIslemTuslariWidth, collapsible: false }
 					]
-				});
+				})
+				splitGridVeIslemTuslari.jqxSplitter('collapse')
 				/* splitGridVeIslemTuslari.jqxSplitter('collapse', 0) */
 			}, 10)
 		}, 0);

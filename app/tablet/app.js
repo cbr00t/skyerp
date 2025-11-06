@@ -2,9 +2,8 @@ class TabletApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this } get isLoginRequired() { return true }
 	static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_App }
 	get offlineMode() { return super.offlineMode ?? true } get dbMgrClass() { return SqlJS_DBMgr }
-	get defaultOfflineRequestChunkSize() { return 8 }
-	get sicakVeyaSogukmu() { return this.sicakmi || this.sogukmu }
-	get rotaKullanilirmi() { return this.sicakVeyaSogukmu }
+	get defaultOfflineRequestChunkSize() { return 8 } // get autoExecMenuId() { return MQTest.kodListeTipi }
+	get sicakVeyaSogukmu() { return this.sicakmi || this.sogukmu } get rotaKullanilirmi() { return this.sicakVeyaSogukmu }
 	get defaultLoginTipi() { return this.sicakVeyaSogukmu ? 'plasiyerLogin' : super.defaultLoginTipi }
 	get plasiyerKod() {
 		let {session: { loginTipi, user: plasiyerKod } = {}} = config
@@ -18,7 +17,10 @@ class TabletApp extends TicariApp {
 			MQTabPlasiyer, MQTabStok, MQTabCari
 		]
 	}
-	// get autoExecMenuId() { return MQTest.kodListeTipi }
+	get offlineCreateTableSiniflar() {
+		return this.offlineAktarimSiniflar.filter(_ =>
+			_ != MQTabPlasiyer)
+	}
 
 	constructor(e) {
 		window.appRoot = '../tablet'
@@ -75,8 +77,19 @@ class TabletApp extends TicariApp {
 		super.dbMgr_tablolariOlustur_urlDuzenle(...arguments)
 		urls.push(`${appRoot}/queries/${name}.sql?${appVersion}`)
 	}
-	dbMgr_tabloEksikleriTamamla({ name }) {
+	dbMgr_tabloEksikleriTamamla({ name, db }) {
 		super.dbMgr_tabloEksikleriTamamla(...arguments)
+		let {main} = app.dbMgr ?? {}
+		if (db == main) {
+			let {offlineCreateTableSiniflar: classes} = this
+			for (let cls of classes) {
+				let query = cls.offlineGetSQLiteQuery()
+				if (query) {
+					try { db.execute(query, null, true) }
+					catch (ex) { console.error(ex, getErrorText(ex), cls, query) }
+				}
+			}
+		}
 	}
 	async bilgiYukleIstendi(e) {
 		let {offlineAktarimSiniflar: classes, params, defaultOfflineRequestChunkSize: chunkSize} = this

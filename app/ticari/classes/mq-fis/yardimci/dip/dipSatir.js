@@ -139,9 +139,10 @@ class DipSatir_Kdv extends DipSatir_KdvOrtak {
 	get matrahSatir() { let {belirtec2DipSatir} = this._dipIslemci, vergikod = this.ekKod; return belirtec2DipSatir[`KMAT${vergikod}`] }
 	odenecektenDusulurmu({ fis }) { return fis.class.ihracKaydiylami }
 	hesaplaDevam(e) {
-		super.hesaplaDevam(e); let {_temps, kdvKod2Yapi} = this._dipIslemci;
-		let bedel = kdvKod2Yapi[this.ekKod]?.bedel ?? 0;
-		_temps.araDeger = roundToBedelFra(_temps.araDeger + bedel)
+		super.hesaplaDevam(e); let {_temps, kdvKod2Yapi} = this._dipIslemci
+		let matrahVeKdv = kdvKod2Yapi[this.ekKod] ??= { matrah: 0, bedel: 0 }
+		_temps.araDeger = roundToBedelFra(_temps.araDeger + matrahVeKdv.bedel)
+		//matrahVeKdv.bedel = roundToBedelFra(matrahVeKdv.bedel + this.tlBedel)
 	}
 	icmalSonuclarinaEkle(icmalSonuclari) { super.icmalSonuclarinaEkle(icmalSonuclari); icmalSonuclari.kdv.ekle(this.bedelYapi); return this }
 	eDipHostVarsDuzenle({ hv, fisBA }) {

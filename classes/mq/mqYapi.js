@@ -440,6 +440,61 @@ class MQYapi extends CIO {
 	}
 	static offlineSaveToLocalTableWithClear(e) { e = e ?? {}; return this.offlineSaveToLocalTable({ ...e, clear: true }) }
 	static offlineSaveToRemoteTableWithClear(e) { e = e ?? {}; return this.offlineSaveToRemoteTable({ ...e, clear: true }) }
+	static offlineGetSQLiteQuery(e = {}) {
+		e.result ??= []
+		this.offlineBuildSQLiteQuery(e)
+		return e.result.join(CrLf) + ';'
+	}
+	offlineGetSQLiteQuery(e = {}) {
+		e.result ??= []
+		this.offlineBuildSQLiteQuery(e)
+		return e.result.join(CrLf) + ';'
+	}
+	static offlineBuildSQLiteQuery({ result = [] }) {
+		let e = arguments[0]
+		let inst = new this(e)
+		inst.offlineBuildSQLiteQuery(e)
+	}
+	offlineBuildSQLiteQuery({ result: r = [] }) {
+		let {class: { table }} = this
+		let e = { ...arguments[0], offlineRequest: true, offlineMode: true, queryBuild: true }
+		let keyHV = this.keyHostVars(e)
+		if (empty(keyHV))
+			keyHV = this.alternateKeyHostVars(e)
+		let hv = this.hostVars(e)
+		for (let [k, v] of entries(keyHV)) {
+			if (v !== undefined)
+				hv[k] = v
+		}
+		let hasMultiPK = keys(keyHV).length > 1
+		let atFirst = true, i = 0, c = keys(hv).length
+		r.push(`CREATE TABLE IF NOT EXISTS ${table} (`)
+		// if (this instanceof MQTabPlasiyer)
+		// 	debugger
+		for (let [k, v] of entries(hv)) {
+			let isPK = k in keyHV, atLast = i + 1 == c
+			let t = (
+				typeof v == 'boolean' ? 'INTEGER' :
+				typeof v == 'string' ? 'TEXT' :
+				typeof v == 'number' ? (isPK ? 'INTEGER' : 'REAL') :
+				'NONE'
+			)
+			let isNull = v == null
+			let pre = '\t'
+			let post = isNull ? '' : ' NOT NULL'
+			if (!(isNull || isPK))
+				post += ` DEFAULT ${MQSQLOrtak.sqlDegeri(v)}`
+			if (isPK && !hasMultiPK)
+				post += ' PRIMARY KEY'
+			if (!atLast || hasMultiPK)
+				post += ','
+			r.push(`${pre}${k} ${t}${post}`)
+			atFirst = false; i++
+		}
+		if (!atFirst && hasMultiPK)
+			r.push(`\tPRIMARY KEY (${keys(keyHV).join(', ')})`)
+		r.push(')')
+	}
 	static _sqlExec(e, params) {
 		e = { ...($.isPlainObject(e) ? e ?? {} : { query: e, params }) }
 		let {selector} = e, offlineMode = e.isOfflineMode ?? e.offlineMode ?? e.isOffline ?? e.offline ?? this.isOfflineMode

@@ -4,6 +4,7 @@ class MQTabCari extends MQKAOrtak {
 	static get table() { return 'carmst' } static get tableAlias() { return 'car' }
 	static get zeminRenkDesteklermi() { return true } static get adiEtiket() { return 'Ünvan' }
 	static get onlineIdSaha() { return 'must' } static get tanimlanabilirmi() { return true }
+	static get kayitTipi() { return '' }
 	get vkn() { return this.sahismi ? this.tcKimlikNo : this.vergiNo }
 	set vkn(value) { this[this.sahismi ? 'tcKimlikNo' : 'vergiNo'] = value }
 
@@ -211,13 +212,16 @@ class MQTabCari extends MQKAOrtak {
 			sahalar.addWithAlias('rbil', 'seq', 'rotadisimi', /*'rotaicisayi',*/ 'rotadevredisimi', 'hermi')
 		}
 	}
-	hostVarsDuzenle({ hv, offlineRequest, offlineMode }) {
+	static varsayilanKeyHostVarsDuzenle({ hv }) {
+		super.varsayilanKeyHostVarsDuzenle(...arguments)
+		let {kayitTipi: kayittipi} = this
+		$.extend(hv, { kayittipi })
+	}
+	hostVarsDuzenle({ hv, offlineRequest, offlineMode, queryBuild }) {
 		super.hostVarsDuzenle(...arguments)
-		if (offlineRequest) {
-			let removeKeys = [
-				'ekstremustkod', 'tavsiyeplasiyerkod', 'odemegunkodu', 'standartiskonto'
-				// 'risklimit', 'takipborclimiti'
-			]
+		if (offlineRequest && !queryBuild) {
+			// Bilgi Yükle
+			let removeKeys = ['ekstremustkod', 'tavsiyeplasiyerkod', 'odemegunkodu', 'standartiskonto']
 			for (let key of removeKeys)
 				delete hv[key]
 		}

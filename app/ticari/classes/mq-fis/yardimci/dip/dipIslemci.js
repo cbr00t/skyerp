@@ -102,13 +102,13 @@ class DipIslemci extends CObject {
 					kdvOrani = det.kdvOrani = kod2VergiBilgi?.[kdvKod]?.oran
 				}
 				if (!kdvOrani) { continue }
-				let vergiYapi = new TicVergiYapi({ kod: kdvKod, oran: kdvOrani });
+				let vergiYapi = kdvKod2Yapi[kdvKod] ??= new TicVergiYapi({ kod: kdvKod, oran: kdvOrani })
 				let kdv = det.kdv = roundToBedelFra(vergiMatrah * kdvOrani / 100);
 				/* !! MD - çoklu kdv ve dip isk - detaylar bitiminde hesap yapılır */
-				vergiYapi.matrah += vergiMatrah; vergiYapi.bedel += kdv;
+				vergiYapi.matrah += vergiMatrah
+				vergiYapi.bedel += kdv
 				if (dipSatir_nakliye && kdvKod == kdvKod_nakliye) {
 					vergiYapi.ekMatrah += dipSatir_nakliye.tlBedel }
-				kdvKod2Yapi[kdvKod] = vergiYapi
 			}
 		}
 		dipSatirlari = this.dipSatirlari = this.dipSatirlari.filter(dipSatir => !dipSatir.kdvMatrahVeyaBedelmi);
@@ -132,13 +132,13 @@ class DipIslemci extends CObject {
 					let dipSatir = kdvSatir.kdv = new DipSatir_Kdv({ dipIslemci: this, ekKod: kdvKod, oran: vergiYapi.oran, visible: !!vergiYapi.oran })/*.basitHidden()*/;
 					this.add(dipSatir, offsetRef_kdv); offsetRef_kdv = dipSatir
 				}
-				kdvSatir.matrah.tlBedel = vergiYapi.topMatrah;
-				kdvSatir.kdv.tlBedel = vergiYapi.bedel;
-				for (let dipSatir of Object.values(kdvSatir)) {
-					dipSatir.hesapla(e) }
+				kdvSatir.matrah.tlBedel = vergiYapi.topMatrah
+				kdvSatir.kdv.tlBedel = vergiYapi.bedel
+				for (let dipSatir of Object.values(kdvSatir))
+					dipSatir.hesapla(e)
 			}
 		}
-		i = dipSatirlari.indexOf(offsetRef_kdv);
+		i = dipSatirlari.indexOf(offsetRef_kdv)
 		// kdv sonrasi
 		for (i = i + 1; i < dipSatirlari.length; i++) {
 			let dipSatir = dipSatirlari[i]; dipSatir.hesapla(e) }

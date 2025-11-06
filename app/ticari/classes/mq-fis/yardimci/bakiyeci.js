@@ -20,7 +20,7 @@ class Bakiyeci extends CObject {
 		let stm = await this.getBakiyeSql(e), recs = stm ? await app.sqlExecSelect({ trnId, query: stm }) : [];
 		for (let rec of recs) {
 			let degerler = sumSahalar.map(key => rec[key] ?? 0);
-			let sabitler = []; for (let key of anahtarSahalar) { let value = rec[key]?.trimEnd() ?? rec[key]; sabitler.push(value) }
+			let sabitler = []; for (let key of anahtarSahalar) { let value = rec[key]?.trimEnd?.() ?? rec[key]; sabitler.push(value) }
 			let anahStr = sabitler.join(delim), eskiDegerler = _result[anahStr];
 			if (eskiDegerler) { for (let i = 0; i < degerler.length; i++) { eskiDegerler[i] += degerler[i] || 0 } } else { _result[anahStr] = degerler }
 		}

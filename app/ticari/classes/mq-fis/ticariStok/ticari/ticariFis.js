@@ -76,7 +76,8 @@ class TicariFis extends TSOrtakFis {
 		super.rootFormBuilderDuzenle(...arguments); let {builders} = allBuilders.baslikForm;
 		builders[0].addModelKullan('mustKod').autoBind().setMFSinif(MQCari).etiketGosterim_normal()
 			.ozelQueryDuzenleBlock(({ alias, stm }) => { for (let {sahalar} of stm) { sahalar.add(`${alias}.efaturakullanirmi`) } })
-			.degisince(({ builder: fbd }) => fbd.altInst.cariDegisti(...arguments)).addStyle(e => `$elementCSS { min-width: 70% !important }`)
+			.degisince(e => e.builder.altInst.cariDegisti(e))
+			.addStyle(e => `$elementCSS { min-width: 70% !important }`)
 	}
 	static orjBaslikListesiDuzenle_ara(e) {
 		super.orjBaslikListesiDuzenle_ara(e); const {liste} = e;
