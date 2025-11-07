@@ -45,10 +45,11 @@ class SkyRaporApp extends TicariApp {
 	}
 	async anaMenuOlustur(e) {
 		try {
-			let {moduller, params: { aktarim: { kullanim: aktarim } }} = app;
+			let {moduller, params: { aktarim: { kullanim: aktarim } }} = app
 			this.sqlTables = await app.sqlGetTables()
 			let eksikParamIsimleri = [], eksikModulIsimleri = []
-			if (!aktarim.webOzetRapor) { eksikParamIsimleri.push('Web Özet Rapor') }
+			if (!aktarim.webOzetRapor)
+				eksikParamIsimleri.push('Web Özet Rapor')
 			if (moduller && !moduller[Modul_WebOzetRapor.kod]) { eksikModulIsimleri.push(Modul_WebOzetRapor.aciklama) }
 			if (eksikParamIsimleri.length) {
 				this.noMenuFlag = true
@@ -84,20 +85,25 @@ class SkyRaporApp extends TicariApp {
 	}
 	getAnaMenu(e) {
 		const {noMenuFlag} = this; if (noMenuFlag) { return new FRMenu() }
-		const {isAdmin} = config.session ?? {}, {kod2Sinif} = DRapor, kategoriKod2MenuItems = {};
+		const {isAdmin} = config.session ?? {}, {kod2Sinif} = DRapor, kategoriKod2MenuItems = {}
 		$.extend(kod2Sinif, { ...DPanel.kod2Sinif })
 		for (const [mne, sinif] of Object.entries(kod2Sinif)) {
-			if (sinif.dAltRapormu || !sinif.uygunmu) { continue }
-			let {vioAdim} = sinif, kategoriKod = sinif.kategoriKod ?? '';
-			let subItems = (kategoriKod2MenuItems[kategoriKod] = kategoriKod2MenuItems[kategoriKod] || []);
+			if (sinif.dAltRapormu || !sinif.uygunmu)
+				continue
+			let {vioAdim} = sinif, kategoriKod = sinif.kategoriKod ?? ''
+			let subItems = (kategoriKod2MenuItems[kategoriKod] = kategoriKod2MenuItems[kategoriKod] || [])
 			subItems.push(new FRMenuChoice({
 				mne, vioAdim, text: sinif.aciklama, block: async e => {
-					let {menuItemElement: item, event: evt} = e ?? {}, {ctrlKey: ctrl, shiftKey: shift} = evt ?? {};
-					let newWindow = (ctrl || shift) || !($('body').hasClass('no-wnd') || asBool(qs.sameWindow));
-					let menuId = newWindow ? item?.mneText : null;
-					if (menuId) { this.openNewWindow({ menuId, qs: { sameWindow: true } }); return }
-					let result = (await sinif.goster(e)) || {}, part = result.part ?? result;
-					if (qs.inNewWindow && part?.kapaninca) { part.kapaninca(e => window.close()) }
+					let {menuItemElement: item, event: evt} = e ?? {}, {ctrlKey: ctrl, shiftKey: shift} = evt ?? {}
+					let newWindow = (ctrl || shift) || !($('body').hasClass('no-wnd') || asBool(qs.sameWindow))
+					let menuId = newWindow ? item?.mneText : null
+					if (menuId) {
+						this.openNewWindow({ menuId, qs: { sameWindow: true } })
+						return
+					}
+					let result = (await sinif.goster(e)) || {}, part = result.part ?? result
+					if (qs.inNewWindow && part?.kapaninca)
+						part.kapaninca(e => window.close())
 				}
 			}))
 		}
@@ -105,12 +111,16 @@ class SkyRaporApp extends TicariApp {
 		for (let [kategoriKod, _items] of Object.entries(kategoriKod2MenuItems)) {
 			let kategoriAdi = kategoriKod2Adi[kategoriKod] ?? kategoriKod, target = items_raporlar;
 			if (kategoriAdi) {
-				let parentItem = kategoriKod2Cascade[kategoriKod] = kategoriKod2Cascade[kategoriKod] ?? new FRMenuCascade({ mne: kategoriKod, text: kategoriAdi });
-				target.push(parentItem); target = parentItem.items
+				let parentItem = kategoriKod2Cascade[kategoriKod] = kategoriKod2Cascade[kategoriKod] ??
+					new FRMenuCascade({ mne: kategoriKod, text: kategoriAdi })
+				target.push(parentItem)
+				target = parentItem.items
 			}
 			target.push(..._items)
-		} items.push(...items_raporlar.filter(x => !!x))
-		if (isAdmin) { items.push(new FRMenuChoice({ mne: 'DRAPOR_PARAM', text: 'Rapor Parametreleri', block: e => this.params.dRapor.tanimla(e) })) }
+		}
+		items.push(...items_raporlar.filter(x => !!x))
+		if (isAdmin)
+			items.push(new FRMenuChoice({ mne: 'DRAPOR_PARAM', text: 'Rapor Parametreleri', block: e => this.params.dRapor.tanimla(e) }))
 		/*const menu_test = (dev ? new FRMenuCascade({ mne: 'TEST', text: 'TEST', items: items_raporlar }) : null);
 		if (config.dev) {
 			items.push(

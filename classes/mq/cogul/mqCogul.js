@@ -17,8 +17,20 @@ class MQCogul extends MQYapi {
 	static get orjBaslikListesi_panelUstSeviyeAttrListe() { let _e = { liste: [] }; this.orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(_e); return _e.liste }
 	static get orjBaslikListesi_defaultRowsHeight() { return null } static get orjBaslikListesi_maxColCount() { return 5 } static get orjBaslikListesi_defaultColCount() { return null }
 	static get yerelParam() { return app.params.yerel } static get mqGlobals() { return app.mqGlobals = app.mqGlobals || {} } static get mqTemps() { return app.mqTemps = app.mqTemps || {} }
-	static get globals() { let {classKey, mqGlobals} = this; return mqGlobals[classKey] = mqGlobals[classKey] || {} } static get temps() { let {classKey, mqTemps} = this; return mqTemps[classKey] = mqTemps[classKey] || {} }
-	static get paramGlobals() { let dataKey = this.dataKey || this.classKey, {yerelParam} = this, mfSinif2Globals = yerelParam?.mfSinif2Globals || {}, result = mfSinif2Globals[dataKey] = mfSinif2Globals[dataKey] || {}; return result }
+	static get globals() {
+		let {classKey, mqGlobals} = this
+		return mqGlobals[classKey] = mqGlobals[classKey] || {}
+	}
+	static get temps() {
+		let {classKey, mqTemps} = this
+		return mqTemps[classKey] = mqTemps[classKey] || {}
+	}
+	static get paramGlobals() {
+		let dataKey = this.dataKey || this.classKey, {yerelParam} = this
+		let mfSinif2Globals = yerelParam?.mfSinif2Globals || {}
+		let result = mfSinif2Globals[dataKey] = mfSinif2Globals[dataKey] || {}
+		return result
+	}
 	static get emptyKodValue() { return '' }
 	
 	static get altYapiDict() {

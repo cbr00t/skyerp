@@ -126,6 +126,15 @@ class DRapor_Hareketci_BankaMevduat_Main extends DRapor_Hareketci_BankaOrtak_Mai
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_BankaMevduat }
 }
+class DRapor_Hareketci_BankaYatirim extends DRapor_Hareketci_BankaOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get vioAdim() { return 'BN-YO' }
+	static get hareketciSinif() { return BankaYatirimHareketci }
+}
+class DRapor_Hareketci_BankaYatirim_Main extends DRapor_Hareketci_BankaOrtak_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get raporClass() { return DRapor_Hareketci_BankaYatirim }
+}
 
 class DRapor_Hareketci_POSKrOrtak extends DRapor_Hareketci_BankaOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

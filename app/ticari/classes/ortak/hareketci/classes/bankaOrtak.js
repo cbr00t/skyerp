@@ -16,7 +16,7 @@ class BankaOrtakHareketci extends Hareketci {
 		$.extend(hv, { finanalizkullanilmaz: 'bhes.finanalizkullanilmaz' })
 	}
 	static varsayilanHVDuzenle({ hv }) {
-		super.varsayilanHVDuzenle(...arguments);
+		super.varsayilanHVDuzenle(...arguments)
 		$.extend(hv, { dvkod: 'bhes.dvtipi' })
 	}
 	static maliTablo_secimlerYapiDuzenle({ result }) {

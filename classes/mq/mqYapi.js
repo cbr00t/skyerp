@@ -10,7 +10,11 @@ class MQYapi extends CIO {
 	static get tekilOku_sqlBatchFlag() { return true } static get tekilOkuYapilazmi() { return false }
 	static get gonderildiDesteklenirmi() { return false } static get gonderimTSSaha() { return 'gonderimts' }
 	static get offlineSahaListe() { return new this().offlineSahaListe }
-	get offlineSahaListe() { return Object.keys(this.hostVars({ offlineRequest: true, offlineMode: false }) ?? {}) }
+	get offlineSahaListe() {
+		let e = { offlineRequest: true, offlineMode: false }
+		let result = [...keys(this.hostVars(e) ?? {}), ...keys(this.keyHostVars(e) ?? {})]
+		return result
+	}
 	static get offlineTemp() { return !this.offlineFis } static get offlineFis() { return false }
 	static get offlineDirect() { return true }
 	static get offline2OnlineSaha() { return {} }
@@ -44,7 +48,7 @@ class MQYapi extends CIO {
 		let result = await this.sqlExecNone(_e); await this.yeniSonrasiIslemler({ ...e, ..._e }); return result
 	}
 	async degistir(e) {
-		e = e || {}; e = e || {}; if (!$.isPlainObject(e)) { e = { islem: 'degistir', eskiInst: e } } await this.degistirOncesiIslemler(e);
+		e = e || {}; if (!$.isPlainObject(e)) { e = { islem: 'degistir', eskiInst: e } } await this.degistirOncesiIslemler(e);
 		let {table} = this.class; let keyHV = this.keyHostVars({ ...e, varsayilanAlma: true }) ?? {};
 		let altKeyHV = this.alternateKeyHostVars({ ...e, varsayilanAlma: true }); if (!$.isEmptyObject(altKeyHV)) { $.extend(keyHV, altKeyHV) }
 		let sent = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: '*' });
@@ -299,7 +303,7 @@ class MQYapi extends CIO {
 				if (directFlag && recs?.length) {
 					let attrSet = asSet(attrListe)
 					let {online2OfflineSaha} = this
-					for (let _recs of arrayIterChunks(recs, 500)) {
+					for (let _recs of arrayIterChunks(recs, 800)) {
 						let hvListe = []
 						for (let rec of _recs) {
 							let hv = {}, empty = true
@@ -456,7 +460,7 @@ class MQYapi extends CIO {
 		inst.offlineBuildSQLiteQuery(e)
 	}
 	offlineBuildSQLiteQuery({ result: r = [] }) {
-		let {class: { table }} = this
+		let {class: { table, primaryKeys }} = this
 		let e = { ...arguments[0], offlineRequest: true, offlineMode: true, queryBuild: true }
 		let keyHV = this.keyHostVars(e)
 		if (empty(keyHV))
@@ -466,13 +470,17 @@ class MQYapi extends CIO {
 			if (v !== undefined)
 				hv[k] = v
 		}
+		if (primaryKeys && $.isArray(primaryKeys))
+			primaryKeys = asSet(primaryKeys)
+		if (!primaryKeys)
+			primaryKeys = asSet(keys(keyHV))
 		let hasMultiPK = keys(keyHV).length > 1
 		let atFirst = true, i = 0, c = keys(hv).length
 		r.push(`CREATE TABLE IF NOT EXISTS ${table} (`)
 		// if (this instanceof MQTabPlasiyer)
 		// 	debugger
 		for (let [k, v] of entries(hv)) {
-			let isPK = k in keyHV, atLast = i + 1 == c
+			let isPK = primaryKeys[k], atLast = i + 1 == c
 			let t = (
 				typeof v == 'boolean' ? 'INTEGER' :
 				typeof v == 'string' ? 'TEXT' :
@@ -492,7 +500,7 @@ class MQYapi extends CIO {
 			atFirst = false; i++
 		}
 		if (!atFirst && hasMultiPK)
-			r.push(`\tPRIMARY KEY (${keys(keyHV).join(', ')})`)
+			r.push(`\tPRIMARY KEY (${keys(primaryKeys).join(', ')})`)
 		r.push(')')
 	}
 	static _sqlExec(e, params) {

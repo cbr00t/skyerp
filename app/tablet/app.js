@@ -14,7 +14,8 @@ class TabletApp extends TicariApp {
 			MQParam, MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
 			MQTabBolge, MQTabIl, MQTabUlke, MQTabCariTip,
 			MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
-			MQTabPlasiyer, MQTabStok, MQTabCari
+			MQTabPlasiyer, MQTabStok, MQTabCari,
+			MQTabBarkodReferans
 		]
 	}
 	get offlineCreateTableSiniflar() {
@@ -64,7 +65,7 @@ class TabletApp extends TicariApp {
 		addMenuSubItems('TANIM', 'Tanımlar', [
 			MQTabStok, MQTabCari, MQTabPlasiyer, MQTabSube, MQTabYer,
 			MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka, MQTabNakliyeSekli,
-			MQTabTahsilSekli
+			MQTabTahsilSekli, MQTabBarkodReferans
 		])
 		items.push(new FRMenuChoice({ mne: 'BILGIGONDER', text: 'Bilgi Gönder', block: e => this.bilgiGonderIstendi(e) }))
 		// addMenuSubItems(null, null, [MQTest])

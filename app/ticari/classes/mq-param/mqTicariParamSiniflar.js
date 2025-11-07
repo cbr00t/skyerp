@@ -376,17 +376,18 @@ class MQSatisParam extends MQAlimSatisParamOrtak {
 }
 class MQBankaGenelParam extends MQTicariParamBase {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get paramKod() { return 'BANGP' } static get sinifAdi() { return 'Banka Genel Parametreleri' }
-	static paramYapiDuzenle(e) {
-		super.paramYapiDuzenle(e); let {paramci} = e;
-		let form = paramci.addKullanim().addFormWithParent();
-			form.addBool('taksitliKredi', 'Taksitli Kredi'); form.addBool('yatirimGeliri', 'Yatırım');
-			form.addBool('akreditif', 'Akreditif'); form.addBool('teminatMektubu', 'Teminat Mektubu');
+	static paramYapiDuzenle({ paramci }) {
+		super.paramYapiDuzenle(...arguments)
+		let form = paramci.addKullanim().addFormWithParent()
+			form.addBool('taksitliKredi', 'Taksitli Kredi')
+			form.addBool('yatirim', 'Yatırım'); form.addBool('arbitraj', 'Arbitraj')
+			form.addBool('akreditif', 'Akreditif'); form.addBool('teminatMektubu', 'Teminat Mektubu')
 			form.addBool('zorunluTaksit', 'Zorunlu Taksit'); form.addBool('eskiNakdeDonusum', 'Eski Nakde Dönüşüm')
 	}
-	paramSetValues({ rec }) {
-		super.paramSetValues(...arguments);
+	/*paramSetValues({ rec }) {
+		super.paramSetValues(...arguments)
 		this.yatirimGeliri = rec.yatirimGeliri ?? rec.yatirim ?? this.yatirimGeliri
-	}
+	}*/
 }
 class MQUretimParam extends MQTicariParamBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -459,7 +460,7 @@ class MQAktarimParam extends MQTicariParamBase {
 			form.addBool('pdks', 'PDKS Veri Aktarımı'); form.addBool('guleryuzOnline', 'Güleryüz Online')
 	}
 	paramSetValues({ rec }) {
-		super.paramSetValues(...arguments);
+		super.paramSetValues(...arguments)
 		this.yazarKasa = rec.yazarKasa ?? rec.yazarkasa ?? this.yazarKasa
 	}
 }

@@ -82,12 +82,12 @@ class MQParam extends MQTekil {
 		let recs = await this.sqlExecSelect({ ...e, query: stm })
 		let kod2Rec = this._topluYukle_kod2Rec = {}
 		for (let rec of recs) { let {kod} = rec; kod2Rec[kod] = rec }
-		return this
+		return kod2Rec
 	}
 	async getInstance_yukleIslemi(e) { return await this.topluYukle(e) }
 	topluYukle(e) {
 		e = { ...e }; let {_topluYukle_kod2Rec, paramKod: kod} = this.class
-		e.rec = _topluYukle_kod2Rec?.[kod]
+		e.rec = empty(_topluYukle_kod2Rec) ? undefined : (_topluYukle_kod2Rec[kod] ?? {})
 		return this.yukle(e)
 	}
 	async kaydetOncesiIslemler(e) {
@@ -123,15 +123,15 @@ class MQParam extends MQTekil {
 	hostVarsDuzenle(e) {
 		let {class: { paramKod: kod }} = this
 		kod ??= ''; super.hostVarsDuzenle(e)
-		let _hv = this.paramHostVars(e)
+		let _hv = this.paramHostVars({ ... e })
 		if (!_hv)
 			return
-		let {hv} = e, jsonstr = toJSONStr(hv)
+		let {hv} = e, jsonstr = toJSONStr(_hv)
 		$.extend(hv, { kod, jsonstr })
 	}
 	setValues(e) {
 		super.setValues(e)
-		let {result} = e.rec
+		let {rec} = e, {result = rec.jsonstr} = rec
 		if (result && typeof result != 'object')
 			result = JSON.parse(result)
 		if (!result)
@@ -170,7 +170,7 @@ class MQParam extends MQTekil {
 		}
 		if (paramci) {
 			for (let item of paramci.getItemsAndSelf())
-				item?.paramSetValues?.(e)
+				item?.paramSetValues?.(...arguments)
 		}
 	}
 	static async tanimla(e) {

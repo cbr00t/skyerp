@@ -6,23 +6,38 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
 	
 	// static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sol() }
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
-        super.hareketTipSecim_kaListeDuzenle(...arguments); kaListe.push(
-            new CKodVeAdi(['devir', 'Devir']), new CKodVeAdi(['kasa', 'Kasa Yatan/Çekilen']),
-            new CKodVeAdi(['yatirim', 'Yatırım']), new CKodVeAdi(['hizmet', 'Banka Hizmet']),
-            new CKodVeAdi(['havaleEFT', 'Havale/EFT']), new CKodVeAdi(['tahsilSekli', 'Fatura ve Cari Tahsil']),
-            new CKodVeAdi(['pos', 'POS Nakde Dönüşüm']), new CKodVeAdi(['posKomisyon', 'POS Komisyon']),
-            new CKodVeAdi(['krediKartOdeme', 'Kredi Kart Ödeme']), new CKodVeAdi(['csEldenTahsil', 'Elden Tahsil/Ödeme']),
-            new CKodVeAdi(['borcCekCekilen', 'Borç Çek ile Çekilen']), new CKodVeAdi(['csTahsilEdilen', 'Çek/Senet Tahsil']),
-            new CKodVeAdi(['karsiliksiz', 'Karşılıksız/Protesto']), new CKodVeAdi(['genelDekont', 'Genel Dekont']),
-            new CKodVeAdi(['virman', 'Banka Hesap Virman']), new CKodVeAdi(['alimSatis', 'Fatura Nakit']), new CKodVeAdi(['akreditif', 'Akreditif']),
-			new CKodVeAdi(['teminatMektup', 'Teminat Mektubu']), new CKodVeAdi(['krediAlim', 'Kredi Alımı'])
-        )
+        super.hareketTipSecim_kaListeDuzenle(...arguments)
+		let {bankaGenel: { kullanim: { yatirim, arbitraj, teminatMektubu, akreditif, taksitliKredi } = {} } = {}} = app.params ?? {}
+		kaListe.push(...[
+            new CKodVeAdi(['devir', 'Devir']),
+			new CKodVeAdi(['kasa', 'Kasa Yatan/Çekilen']),
+            (yatirim ? new CKodVeAdi(['yatirim', 'Yatırım']) : null),
+			(arbitraj ? new CKodVeAdi(['arbitraj', 'Arbitraj']) : null),
+			new CKodVeAdi(['hizmet', 'Banka Hizmet']),
+            new CKodVeAdi(['havaleEFT', 'Havale/EFT']),
+			new CKodVeAdi(['tahsilSekli', 'Fatura ve Cari Tahsil']),
+            new CKodVeAdi(['pos', 'POS Nakde Dönüşüm']),
+			new CKodVeAdi(['posKomisyon', 'POS Komisyon']),
+            new CKodVeAdi(['krediKartOdeme', 'Kredi Kart Ödeme']),
+			new CKodVeAdi(['csEldenTahsil', 'Elden Tahsil/Ödeme']),
+            new CKodVeAdi(['borcCekCekilen', 'Borç Çek ile Çekilen']),
+			new CKodVeAdi(['csTahsilEdilen', 'Çek/Senet Tahsil']),
+            new CKodVeAdi(['karsiliksiz', 'Karşılıksız/Protesto']),
+			new CKodVeAdi(['genelDekont', 'Genel Dekont']),
+            new CKodVeAdi(['virman', 'Banka Hesap Virman']),
+			new CKodVeAdi(['alimSatis', 'Fatura Nakit']),
+			new CKodVeAdi(['akreditif', 'Akreditif']),
+			(teminatMektubu ? new CKodVeAdi(['teminatMektup', 'Teminat Mektubu']) : null),
+			// (akreditif ? new CKodVeAdi(['akreditif', 'Akreditif']) : null),
+			(taksitliKredi ? new CKodVeAdi(['krediAlim', 'Kredi Alımı']) : null)
+        ].filter(x => !!x))
     }
 	uniOrtakSonIslem({ sender, hv, sent, sent: { from, where: wh } }) {
 		super.uniOrtakSonIslem(...arguments)
 		let {banhesapkod: kodClause} = hv
 		let {class: { gecerliBankaHesapTipleri: tipListe }} = this
-		if (!from.aliasIcinTable('bhes')) { sent.x2BankaHesapBagla({ kodClause }) }
+		if (!from.aliasIcinTable('bhes'))
+			sent.x2BankaHesapBagla({ kodClause })
 		wh.inDizi(tipListe, 'bhes.tipi')
 	}
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
@@ -51,39 +66,66 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
     uniDuzenle_kasaYatirimHizmet({ uygunluk, liste }) {
         $.extend(liste, {
             kasa$yatirim$hizmet: [
-                new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-                    const tipListe = [], tipEkle = (selector, kod) => { if (uygunluk[selector]) { tipListe.push(kod) } };
-					tipEkle('kasa', 'KB'); tipEkle('yatirim', 'HY'); tipEkle('hizmet', 'HH');
-					let {where: wh} = sent; sent.fisHareket('finansfis', 'finanshar')
-                      .fis2KasaBagla().har2HizmetBagla().har2KatDetayBagla();                                                                                          /* ref = https://raw.githubusercontent.com/cbr00t/skyerp/refs/heads/main/classes/stmYapi/dbSent.js */
-                    wh.fisSilindiEkle().inDizi(tipListe, 'fis.fistipi')                                                                                                /* bu bir sql clause ancak içinde ' (tek tırnak olmadığı için) `` (string template) kullanmaya gerek duymadık. 2) inDizi, add, fis2...Bagla, har2...Bagla gibi methodlar 'return this' yaptığı için, cascaded message syntax kullanabiliyoruz */
-                      .add('har.krediharsayac is null')                                      /* kredi bağlantısı olmamalı */                                           /* bu bir sql clause ancak içinde ' (tek tırnak olmadığı için) `` (string template) kullanmaya gerek duymadık */
-                }).hvDuzenleIslemi(({ hv }) => {
-                    $.extend(hv, {
-					  kaysayac: 'har.kaysayac',                                                                                                                        /* bu bir sql clause ancak içinde ' (tek tırnak olmadığı için) `` (string template) kullanmaya gerek duymadık */
-                      kayittipi: `(case when fis.fistipi = 'KB' then 'KBNAK' when fis.fistipi = 'HY' then 'BNYAT' when fis.fistipi = 'HH' then 'BNHIZ' else '' end)`,  /* bu bir sql clause ancak içinde ' (tek tırnak VAR). Bu sebeple tamamını `` (string template) içine aldık */
-                      oncelik: `(case when fis.fistipi = 'KB' then dbo.banum(dbo.tersba(fis.ba), 50, 15) when fis.fistipi = 'HY' then 40 when fis.fistipi = 'HH' then dbo.banum(fis.ba, 70, 30) else 0 end)`,
-                      ba: `(case when fis.fistipi = 'KB' then dbo.tersba(fis.ba) when fis.fistipi = 'HY' then 'B' when fis.fistipi = 'HH' then fis.ba else fis.ba end)`,
-                      islemadi: `(case when fis.fistipi = 'KB' then dbo.batext(fis.ba,'Bankadan Çekilen','Bankaya Yatan') when fis.fistipi = 'HY' then 'Yatırım' when fis.fistipi = 'HH' then hiz.aciklama else '' end)`,
-                      anaislemadi: `(case when fis.fistipi = 'KB' then 'Yatan/Çekilen' when fis.fistipi = 'HY' then 'Yatırım' when fis.fistipi = 'HH' then 'Banka Hizmet' else '' end)`,
-                      detaciklama: `(case when fis.fistipi in ('KB', 'HY') then har.aciklama when fis.fistipi = 'HH' then dbo.hizmetack(har.belgetarih, har.belgeseri, har.belgeno, har.aciklama) else '' end)`,
-                      dvkur: 'har.dvkur', bedel: `(case when fis.fistipi = 'HY' then har.brutbedel else (har.bedel - har.kredifaiz) end)`,
-                      dvbedel: `(case when fis.fistipi = 'HY' then har.dvbrutbedel else (har.dvbedel - har.kredidvfaiz) end)`,
-                      kdetay: 'kdet.kdetay', takipno: 'har.takipno', tarih: 'coalesce(har.belgetarih, fis.tarih)',
-                      fisnox: '(case when har.belgeno = 0 then fis.fisnox else har.belgenox end)', banhesapkod: 'har.banhesapkod',                                     /* fazla satır kullanmayalım, justified olarak kısa ifadeleri tek satırda birleştir */
-                      refkod: `(case when fis.fistipi = 'KB' then fis.kasakod else '' end)`, refadi: `(case when fis.fistipi = 'KB' then kas.aciklama else '' end)`
-                    })
-                }),
-              (uygunluk.yatirim ? new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-                  let {where: wh} = sent; sent.fisHareket('finansfis', 'finanshar');
-                  wh.fisSilindiEkle().add(`fis.fistipi = 'HY'`, 'har.stopaj <> 0')
-                }).hvDuzenleIslemi(({ hv }) => {
+				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent, sent: { where: wh } }) => {
+					let tipListe = [], tipEkle = (selector, ...kodlar) => {
+						if (uygunluk[selector])
+							tipListe.push(...kodlar)
+					}
+					tipEkle('kasa', 'KB')
+					tipEkle('yatirim', 'YT', 'YG')
+					tipEkle('hizmet', 'HH')
+					sent.fisHareket('finansfis', 'finanshar')
+					sent.fis2KasaBagla().har2HizmetBagla().har2KatDetayBagla()
+					sent.fromIliski('yatirimtipi ytip', 'har.yatirimtipkod = ytip.kod')
+					wh.fisSilindiEkle()
+					wh.inDizi(tipListe, 'fis.fistipi')
+					wh.add('har.krediharsayac is null')
+				}).hvDuzenleIslemi(({ hv }) => {
 					$.extend(hv, {
-						kaysayac: 'har.kaysayac', kayittipi: `'BNYAT'`, banhesapkod: 'har.banhesapkod', oncelik: '10', ba: `'A'`,
-						anaislemadi: `'Yatırım'`, islemadi: `'Yatırım-Stopaj'`, detaciklama: 'har.aciklama', bedel: 'har.stopaj'
+						kaysayac: 'har.kaysayac',
+						kayittipi: `(case fis.fistipi when 'KB' then 'KBNAK' when 'YT' then 'BNYAT' when 'YG' then 'BNYGDON' when 'HH' then 'BNHIZ' else '' end)`,
+						oncelik: `(case fis.fistipi when 'KB' then dbo.banum(dbo.tersba(fis.ba), 50, 15) when 'YT' then 120 when 'YG' then 20 when 'HH' then dbo.banum(fis.ba, 70, 30) else 0 end)`,
+						ba: `(case fis.fistipi when 'KB' then dbo.tersba(fis.ba) when 'YT' then 'A' when 'YG' then 'B' when 'HH' then fis.ba else fis.ba end)`,
+						islemadi: `(case fis.fistipi when 'KB' then dbo.batext(fis.ba, 'Bankadan Çekilen', 'Bankaya Yatan') when 'YT' then 'Yatırım' when 'YG' then 'Yatırım Geri Dönüş' when 'HH' then hiz.aciklama else '' end)`,
+						anaislemadi: `(case fis.fistipi when 'KB' then 'Yatan/Çekilen' when 'YT' then 'Yatırım' when 'YG' then 'Yatırım Geri Dönüş' when 'HH' then 'Banka Hizmet' else '' end)`,
+						detaciklama: `(case when fis.fistipi in ('KB', 'YT', 'YG') then har.aciklama when fis.fistipi = 'HH' then dbo.hizmetack(har.belgetarih, har.belgeseri, har.belgeno, har.aciklama) else '' end)`,
+						dvkur: 'har.dvkur',
+						bedel: `(case when fis.fistipi IN ('YT', 'YG') then har.brutbedel else (har.bedel - har.kredifaiz) end)`,
+						dvbedel: `(case when fis.fistipi IN ('YT', 'YG') then har.dvbrutbedel else (har.dvbedel - har.kredidvfaiz) end)`,
+						kdetay: 'kdet.kdetay', takipno: 'har.takipno', tarih: 'coalesce(har.belgetarih, fis.tarih)',
+						fisnox: '(case when har.belgeno = 0 then fis.fisnox else har.belgenox end)', banhesapkod: 'har.banhesapkod',                                     /* fazla satır kullanmayalım, justified olarak kısa ifadeleri tek satırda birleştir */
+						refkod: `(case when fis.fistipi = 'KB' then fis.kasakod when fis.fistipi in ('YT', 'YG') then har.yatirimtipkod else '' end)`,
+						refadi: `(case when fis.fistipi = 'KB' then kas.aciklama when fis.fistipi in ('YT', 'YG') then ytip.aciklama else '' end)`
 					})
-                })
-              : null)
+				}),
+				(uygunluk.yatirim ? new Hareketci_UniBilgi()
+				   .sentDuzenleIslemi(({ sent, sent: { where: wh } }) => {
+						sent.fisHareket('finansfis', 'finanshar')
+						sent.fromIliski('yatirimtipi ytip', 'har.yatirimtipkod = ytip.kod')
+						wh.fisSilindiEkle()
+						wh.add(`fis.fistipi = 'YG'`, 'har.kredifaiz <> 0')
+					}).hvDuzenleIslemi(({ hv }) => {
+						$.extend(hv, {
+							kaysayac: 'har.kaysayac', kayittipi: `'BNYGDON'`, banhesapkod: 'har.banhesapkod', oncelik: '21', ba: `'B'`,
+							anaislemadi: `'Yatırım'`, islemadi: `'Yatırım-Faiz'`, detaciklama: 'har.aciklama', bedel: 'har.kredifaiz',
+							refkod: 'har.yatirimtipkod', refadi: 'ytip.aciklama'
+						})
+					})
+				: null),
+				(uygunluk.yatirim ? new Hareketci_UniBilgi()
+				   .sentDuzenleIslemi(({ sent, sent: { where: wh } }) => {
+						sent.fisHareket('finansfis', 'finanshar')
+						sent.fromIliski('yatirimtipi ytip', 'har.yatirimtipkod = ytip.kod')
+						wh.fisSilindiEkle()
+						wh.add(`fis.fistipi = 'YG'`, 'har.stopaj <> 0')
+					}).hvDuzenleIslemi(({ hv }) => {
+						$.extend(hv, {
+							kaysayac: 'har.kaysayac', kayittipi: `'BNYGDON'`, banhesapkod: 'har.banhesapkod', oncelik: '22', ba: `'A'`,
+							anaislemadi: `'Yatırım'`, islemadi: `'Yatırım-Fon Kesinti'`, detaciklama: 'har.aciklama', bedel: 'har.stopaj',
+							refkod: 'har.yatirimtipkod', refadi: 'ytip.aciklama'
+						})
+					})
+				: null)
             ].filter(x => !!x)
         });
         return this
@@ -202,20 +244,30 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
     }
 	uniDuzenle_genelDekont({ uygunluk, liste }) {
         $.extend(liste, {
-            genelDekont: [
-                new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-                    let {where: wh} = sent; sent.fisHareket('geneldekontfis', 'geneldekonthar').fis2MuhIslBagla();
-                    wh.fisSilindiEkle().add(`fis.ozeltip = ''`, `har.kayittipi = 'MV'`);
-                }).hvDuzenleIslemi(({ hv }) => {
-                    $.extend(hv, {
-                        kaysayac: 'har.kaysayac', kayittipi: `'GDEK'`, banhesapkod: 'har.banhesapkod',
-                        oncelik: '60', ba: 'har.ba', islemadi: `'Genel Dekont'`,
-                        detaciklama: 'har.aciklama', dvkur: 'har.dvkur', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
-                        takipno: 'har.takipno', refkod: 'fis.islkod', refadi: 'isl.aciklama'
-                    })
-                })
+            genelDekont$arbitraj: [
+                new Hareketci_UniBilgi()
+					.sentDuzenleIslemi(({ sent, sent: { where: wh } }) => {
+						let tipListe = [], tipEkle = (selector, ...kodlar) => {
+							if (uygunluk[selector])
+								tipListe.push(...kodlar)
+						}
+						tipEkle('genelDekont', '')
+						tipEkle('arbitraj', 'AR')
+	                    sent.fisHareket('geneldekontfis', 'geneldekonthar').fis2MuhIslBagla()
+	                    wh.fisSilindiEkle()
+						wh.inDizi(tipListe, 'fis.ozeltip')
+						wh.add(`har.kayittipi = 'MV'`)
+	                }).hvDuzenleIslemi(({ hv }) => {
+	                    $.extend(hv, {
+	                        kaysayac: 'har.kaysayac', kayittipi: `'GDEK'`, banhesapkod: 'har.banhesapkod',
+	                        oncelik: '60', ba: 'har.ba',
+							islemadi: `(case fis.ozeltip when 'AR' then 'Arbitraj' else 'Genel Dekont' end)`,
+	                        detaciklama: 'har.aciklama', dvkur: 'har.dvkur', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
+	                        takipno: 'har.takipno', refkod: 'fis.islkod', refadi: 'isl.aciklama'
+	                    })
+	                })
             ]
-        });
+        })
         return this
     }
     uniDuzenle_virman({ uygunluk, liste }) {
@@ -243,7 +295,7 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
 					let {where: wh} = sent;
                     sent.fisHareket('geneldekontfis', 'geneldekonthar')
                         .fromIliski('geneldekonthar cik', 'har.fissayac = cik.fissayac')
-						.fromIliski('banbizhesap ches', 'cik.banhesapkod = ches.kod');
+						.fromIliski('banbizhesap ches', 'cik.banhesapkod = ches.kod')
 						/*.fromIliski('banbizhesap bhes', 'har.banhesapkod = bhes.kod')*/
 					wh.degerAta('H', 'fis.ozeltip').degerAta('MV', 'har.kayittipi')
 						.add('har.seq % 2 = 0', 'cik.seq = (har.seq - 1)')
@@ -257,7 +309,7 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
                     })
                 })
             ]
-        });
+        })
         return this
     }
 	uniDuzenle_krediKartOdeme({ uygunluk, liste }) {

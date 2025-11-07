@@ -3,7 +3,7 @@ class MQKod extends MQCogul {
 	static get kodSaha() { return 'kod' } static get tanimUISinif() { return ModelTanimPart }
 	static get kodKullanilirmi() { return true } static get bosKodAlinirmi() { return false }
 	static get zeminRenkDesteklermi() { return false } static get kodEtiket() { this.kodKullanilirmi ? super.kodEtiket : 'ID' }
-	get kodUyarlanmis() { return this.kod }
+	static get primaryKeys() { return [this.idSaha] } get kodUyarlanmis() { return this.kod }
 
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); let {pTanim} = e;

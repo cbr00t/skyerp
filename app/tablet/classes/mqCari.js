@@ -125,6 +125,7 @@ class MQTabCari extends MQKAOrtak {
 				// Bilgi Yükle
 				this.loadServerData_queryDuzenle_son_bilgiYukle(e)
 			}
+			sahalar.add(`${alias}.kayittipi`)
 		}
 		stm = e.stm
 		sent = wh = sahalar = null
