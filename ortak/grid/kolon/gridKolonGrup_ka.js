@@ -16,6 +16,7 @@ class GridKolonGrup_KA extends GridKolonGrup {
 	constructor(e = {}, text, genislikCh, sql, userData) {
 		if (typeof e != 'object')
 			e = { belirtec: e, text, genislikCh, sql, userData }
+		super(e)
 		this.ozelStmDuzenleyiciTriggerFlag = e.ozelStmDuzenleyiciTriggerFlag ?? e.ozelStmDuzenleyiciTrigger
 	}
 	readFrom_ara(e) {
