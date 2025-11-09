@@ -2,8 +2,10 @@ class MQTabCari extends MQKAOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'CARI' } static get sinifAdi() { return 'Cari' }
 	static get table() { return 'carmst' } static get tableAlias() { return 'car' }
-	static get zeminRenkDesteklermi() { return true } static get adiEtiket() { return 'Ünvan' }
-	static get onlineIdSaha() { return 'must' } static get tanimlanabilirmi() { return true }
+	static get onlineIdSaha() { return 'must' } static get adiEtiket() { return 'Ünvan' }
+	static get zeminRenkDesteklermi() { return true } static get tanimlanabilirmi() { return true }
+	static get gonderildiDesteklenirmi() { return true }
+	
 	static get kayitTipi() { return '' }
 	get vkn() { return this.sahismi ? this.tcKimlikNo : this.vergiNo }
 	set vkn(value) { this[this.sahismi ? 'tcKimlikNo' : 'vergiNo'] = value }
@@ -83,28 +85,28 @@ class MQTabCari extends MQKAOrtak {
 			new GridKolon({ belirtec: 'bolgeadi', text: 'Bölge Adı', genislikCh: 25, sql: 'bol.aciklama' }),
 			new GridKolon({ belirtec: 'ilkod', text: 'İl Kod', genislikCh: 8 }),
 			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 25, sql: 'il.aciklama' }),
-			new GridKolon({ belirtec: 'ulkekod', text: 'Ülke Kod', genislikCh: 8 }),
-			new GridKolon({ belirtec: 'ulkeadi', text: 'Ülke Adı', genislikCh: 25, sql: 'ulk.aciklama' }),
+			/*new GridKolon({ belirtec: 'ulkekod', text: 'Ülke Kod', genislikCh: 8 }),
+			new GridKolon({ belirtec: 'ulkeadi', text: 'Ülke Adı', genislikCh: 25, sql: 'ulk.aciklama' }),*/
 			new GridKolon({ belirtec: 'posta', text: 'Posta', genislikCh: 8 }),
 			new GridKolon({ belirtec: 'efaturakullanirmi', text: 'e-Fat?', genislikCh: 8 }).tipBool(),
 			new GridKolon({ belirtec: 'sahismi', text: 'Şahıs?', genislikCh: 8 }).tipBool(),
 			new GridKolon({ belirtec: 'vdaire', text: 'Vergi Dairesi', genislikCh: 25 }),
 			new GridKolon({ belirtec: 'vnumara', text: 'Vergi No', genislikCh: 13 }),
 			new GridKolon({ belirtec: 'tckimlikno', text: 'TC Kimlik No', genislikCh: 13 }),
-			new GridKolon({ belirtec: 'email', text: 'E-posta', genislikCh: 45 }),
+			new GridKolon({ belirtec: 'email', text: 'e-Posta', genislikCh: 45 }),
 			new GridKolon({ belirtec: 'tel1', text: 'Tel 1', genislikCh: 15 }),
-			new GridKolon({ belirtec: 'tel2', text: 'Tel 2', genislikCh: 15 }),
-			new GridKolon({ belirtec: 'tel3', text: 'Tel 3', genislikCh: 15 }),
+			// new GridKolon({ belirtec: 'tel2', text: 'Tel 2', genislikCh: 15 }),
+			new GridKolon({ belirtec: 'tel3', text: 'Cep Tel.', genislikCh: 15 }),
 			new GridKolon({ belirtec: 'gpsenlem', text: 'GPS Enlem', genislikCh: 13 }).tipNumerik(),
 			new GridKolon({ belirtec: 'gpsboylam', text: 'GPS Boylam', genislikCh: 13 }).tipNumerik(),
 			new GridKolon({ belirtec: 'calismadurumu', text: 'Aktif?', genislikCh: 8, filterType: 'checkedlist' }).tipBool(),
 			new GridKolon({ belirtec: 'satilamazfl', text: 'SatılaMAz?', genislikCh: 10, filterType: 'checkedlist' }).tipBool(),
 			new GridKolon({ belirtec: 'adres', text: 'Adres', genislikCh: 80 }),
 			new GridKolon({ belirtec: 'kontiptext', text: 'K.Tip', genislikCh: 13, sql: TabKonsolideTip.getClause(`${alias}.kontipkod`), filterType: 'checkedlist' }),
-			new GridKolon({ belirtec: 'ekstremustkod', text: 'Risk Cari', genislikCh: 18 }),
+			/*new GridKolon({ belirtec: 'ekstremustkod', text: 'Risk Cari', genislikCh: 18 }),
 			new GridKolon({ belirtec: 'odemegunkodu', text: 'Ödeme Gün Kodu', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'standartiskonto', text: 'Std.İsk%', genislikCh: 15 }).tipNumerik()
-			// new GridKolon({ belirtec: 'tavsiyeplasiyerkod', text: 'Plasiyer', genislikCh: 15 }).hidden()
+			new GridKolon({ belirtec: 'tavsiyeplasiyerkod', text: 'Plasiyer', genislikCh: 15 }).hidden()*/
 		)
 	}
 	static loadServerData_queryDuzenle_son({ alias = this.tableAlias, offlineRequest, offlineMode, stm, sent, sent: { where: wh, sahalar } }) {
@@ -166,9 +168,8 @@ class MQTabCari extends MQKAOrtak {
 			`RTRIM(LTRIM(${alias}.unvan1 + ' ' + ${alias}.unvan2)) ${adiSaha}`,
 			`RTRIM(LTRIM(${alias}.adres1 + ' ' + ${alias}.adres2)) adres`,
 		)
-		sahalar.addWithAlias(alias, 'kontipkod')
-		sahalar.addWithAlias('csat',
-			'ekstremustkod', 'tavsiyeplasiyerkod', 'odemegunkodu', 'standartiskonto')
+		sahalar.addWithAlias(alias, 'kontipkod', 'ekstremustkod')
+		sahalar.addWithAlias('csat', 'tavsiyeplasiyerkod', 'odemegunkodu', 'standartiskonto')
 	}
 	static loadServerData_queryDuzenle_son_bilgiYukle_rotaIcinDuzenle({ stm, ortakSentDuzenle }) {
 		let {plasiyerKod, params: { tablet: { rotaDisiMusteriAlinirmi } = {} }} = app

@@ -16,11 +16,13 @@ class GridKolon extends GridKolonVeGrupOrtak {
 		let {maxLength} = e, genislik = e.genislik ?? e.width ?? null, tipOrDef = e.tip ?? null;
 		/* this.belirtec = e.belirtec || e.attr || e.dataField || e.datafield; */
 		this.text = e.text ?? '';
-		if (genislik) { this.genislik = genislik } else if (e.genislikCh != null) { this.genislikCh = e.genislikCh }
-		this.minWidth = e.minWidth ?? 0; this.maxWidth = e.maxWidth; this.sql = e.sql ?? (e.noSql ? false : null);
-		this.columnType = e.columnType ?? null; this.cellsFormat = e.cellsFormat ?? null; this.aggregates = e.aggregates ?? null;
-		this.filterType = e.filterType ?? null; this.filterCondition = e.filterCondition ?? null;
-		this.setAttributes(e); let {colEventNames, globalEventNames} = this.class;
+		if (genislik) { this.genislik = genislik }
+		else if (e.genislikCh != null) { this.genislikCh = e.genislikCh }
+		this.minWidth = e.minWidth ?? 0; this.maxWidth = e.maxWidth; this.sql = e.sql ?? (e.noSql ? false : null)
+		this.columnType = e.columnType ?? null; this.cellsFormat = e.cellsFormat ?? null; this.aggregates = e.aggregates ?? null
+		this.filterType = e.filterType ?? null; this.filterCondition = e.filterCondition ?? null
+		this.setAttributes(e)
+		let {colEventNames, globalEventNames} = this.class
 		for (let key of colEventNames) {
 			if (key == 'cellClassName') { this[key] = e[key] }
 			else { let func = getFunc(e[key]); if (func) { this[key] = func } }
@@ -28,69 +30,94 @@ class GridKolon extends GridKolonVeGrupOrtak {
 		for (let key of globalEventNames) { let func = getFunc(e[key]); if (func) { this[key] = func } }
 		let tip = null; if (tipOrDef) {
 			if (typeof tipOrDef == 'object') { tip = $.isPlainObject(tipOrDef) ? GridKolonTip.from(tipOrDef) : tipOrDef }
-			else if (typeof tipOrDef == 'string') { tip = GridKolonTip.from($.extend({}, e, { tip: tipOrDef })) }
+			else if (typeof tipOrDef == 'string') { tip = GridKolonTip.from({ ...e, tip: tipOrDef }) }
 		}
 		if (!tip) { tip = this.tip = new GridKolonTip_String() }
 		if (maxLength) { tip.maxLength = maxLength }
-		let savedCellValueChanging = this.cellValueChanging; this.cellValueChanging = (colDef, rowIndex, dataField, columnType, oldValue, newValue) => {
-			if (colDef && !colDef.isEditable) { return oldValue }
-			let result; if (savedCellValueChanging) { result = getFuncValue.call(this, savedCellValueChanging, colDef, rowIndex, dataField, columnType, oldValue, newValue) }
-			if (result === false) { result = oldValue } return result
+		let {cellValueChanging: savedCellValueChanging, renderer: savedRenderer, cellsRenderer: savedCellsRenderer} = this
+		this.cellValueChanging = (colDef, rowIndex, dataField, columnType, oldValue, newValue) => {
+			if (colDef && !colDef.isEditable)
+				return oldValue
+			let result
+			if (savedCellValueChanging)
+				result = savedCellValueChanging.call(this, colDef, rowIndex, dataField, columnType, oldValue, newValue)
+			if (result === false)
+				result = oldValue
+			return result
 		};
-		let savedRenderer = this.renderer; if (savedRenderer) {
+		if (savedRenderer) {
 			this.renderer = (colDef, text, align, width) => {
-				let {gridPart, rendererEk} = this, {gridWidget} = gridPart;
+				let {gridPart, rendererEk} = this, {gridWidget} = gridPart
 				let renderBlock = value => gridWidget._rendercolumnheader(value, align, width, gridWidget)
-				let result = savedRenderer ? getFuncValue.call(this, savedRenderer, text, align, width, result, gridPart, renderBlock) : null;
-				if (rendererEk) { result = getFuncValue.call(this, rendererEk, this, text, align, width, result, gridPart, renderBlock) }
+				let result = savedRenderer ? savedRenderer.call(text, align, width, result, gridPart, renderBlock) : null;
+				if (rendererEk) { result = rendererEk.call(rendererEk, this, text, align, width, result, gridPart, renderBlock) }
 				if (result == null) { result = gridWidget._rendercolumnheader(text, align, width, gridWidget) }
 				return result
 			}
 		}
-		let savedCellsRenderer = this.cellsRenderer; this.cellsRenderer = (colDef, rowIndex, belirtec, value, html, jqxCol, rec, result) => {
+		this.cellsRenderer = (colDef, rowIndex, belirtec, value, html, jqxCol, rec, result) => {
 			if (typeof html == 'object' && 'expanded' in html && 'level' in html) {    /* treeGrid callback */
 				result = jqxCol; jqxCol = null;
 				html = `<div class="full-wh">${result}`
 			}
 			if (result === undefined) { result = html }
-			let type = 'cellsRenderer', {gridPart} = colDef, {inst} = gridPart || {};
-			let mfSinif = gridPart?.mfSinif ?? inst?.class; clearTimeout(this._timer_rendered);
+			let type = 'cellsRenderer', {gridPart} = colDef, {inst} = gridPart || {}
+			let mfSinif = gridPart?.mfSinif ?? inst?.class
+			clearTimeout(this._timer_rendered)
 			if (gridPart) {
 				let delayMS = gridPart.renderDelayMS ?? mfSinif?.orjBaslik_gridRenderDelayMS ?? MQCogul.defaultOrjBaslik_gridRenderDelayMS;
 				let {_timestamp_gridRendered} = gridPart; /*if (!_timestamp_gridRendered || (now() - _timestamp_gridRendered) >= 10)*/
 				if (gridPart?.gridRendered) {
 					_timestamp_gridRendered = gridPart._timestamp_gridRendered = now();
-					this._timer_rendered = setTimeout(() => gridPart.gridRendered({ type, gridPart, mfSinif, inst, colDef, rec, rowIndex, belirtec, value, html }), delayMS)
+					this._timer_rendered = setTimeout(() =>
+						gridPart.gridRendered({ type, gridPart, mfSinif, inst, colDef, rec, rowIndex, belirtec, value, html }),
+						delayMS)
 				}
 			}
-			html = typeof result == 'string' ? result : html;
-			if (savedCellsRenderer) { result = getFuncValue.call(this, savedCellsRenderer, colDef, rowIndex, belirtec, value, html, jqxCol, rec, result) }
+			html = typeof result == 'string' ? result : html
+			if (savedCellsRenderer)
+				result = savedCellsRenderer.call(this, colDef, rowIndex, belirtec, value, html, jqxCol, rec, result)
 			return result
 		};
 		if (!this.cellClassName) {
 			this.cellClassName = (colDef, rowIndex, belirtec, value, rec) => {
 				if (colDef === undefined) {
-					colDef = rowIndex; rowIndex = belirtec;
+					colDef = rowIndex; rowIndex = belirtec
 					belirtec = value; value = rec
 				}
-				let {gridWidget} = this.gridPart || {}, result = [belirtec];
-				if (gridWidget?.editable && !this.attributes.editable) { result.push('grid-readOnly') }
-				let {tip, align} = colDef;
-				if (tip) { let _value = tip.class.cellClassName; if (_value) { result.push(_value) } }
-				if (align) { result.push(align) }
-				let {level, expanded, leaf} = rec ?? {};
-				if (level != null) { result.push(`level-${level}`) }
-				if (expanded != null) { result.push(expanded ? 'expanded' : 'collapsed') }
-				if (leaf) { result.push('leaf') }
+				let {gridWidget} = this.gridPart || {}, result = [belirtec]
+				if (gridWidget?.editable && !this.attributes.editable)
+					result.push('grid-readOnly')
+				let {tip, align} = colDef
+				if (tip) {
+					let {cellClassName: _value} = tip.class
+					if (_value)
+						result.push(_value)
+				}
+				if (align)
+					result.push(align)
+				let {level, expanded, leaf} = rec ?? {}
+				if (level != null)
+					result.push(`level-${level}`)
+				if (expanded != null)
+					result.push(expanded ? 'expanded' : 'collapsed')
+				if (leaf)
+					result.push('leaf')
 				return result.join(' ')
 			}
 		}
-		let align = this.align = e.align || e.align || null;
-		if (tip && !align) { let {defaultAlign} = tip.class; if (defaultAlign) { align = this.align = defaultAlign } }
+		let align = this.align = e.align || e.align || null
+		if (tip && !align) {
+			let {defaultAlign} = tip.class
+			if (defaultAlign)
+				align = this.align = defaultAlign
+		}
 		return true
 	}
 	handleKeyboardNavigation_ortak(e) {
-		let result = super.handleKeyboardNavigation_ortak(e); if (result != null) { return result }
+		let result = super.handleKeyboardNavigation_ortak(e)
+		if (result != null)
+			return result
 		return this.tip?.handleKeyboardNavigation_ortak(e)
 	}
 	setAttributes(e) {

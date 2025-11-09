@@ -163,13 +163,21 @@ class MQStokGenelParam extends MQTicariParamBase {
 	get hmrYapi() { return this.class.hmrYapi } get hmr2Belirtec() { return this.class.hmr2Belirtec }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, { hmr: e.hmr || {}, hmrEtiket: e.hmrEtiket || {}, ekOzellikBilgileri: e.ekOzellikBilgileri ?? [] });
-		let {hmr, hmrEtiket} = this; for (let key in this.hmrYapi) { for (let altInst of [hmr, hmrEtiket]) { if (hmr[key] === undefined) { altInst[key] = null } } }
+		let {hmr, hmrEtiket} = this
+		for (let key in this.hmrYapi) {
+			for (let altInst of [hmr, hmrEtiket]) {
+				if (hmr[key] === undefined)
+					altInst[key] = null
+			}
+		}
 	}
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); let {paramci} = e, {hmrYapi} = this;
 		let form = paramci.addKullanim().addGrup({ etiket: 'İşlem Kullanımı' }).addFormWithParent();
-			form.addBool('miktar2', 'Miktar 2'); form.addBool('stokKontrol', 'Stok Kontrol'); form.addBool('depoKismiStokKontrol', 'Depo Kısmi Stok Kontrol'); form.addBool('konumStatu', 'Konum Statü'); 
-			form.addBool('malFazlasi', 'Mal Fazlası'); form.addBool('marka', 'Stok Marka'); form.addBool('hacim', 'Hacim'); form.addBool('paket', 'Paket'); form.addBool('rbk', 'RBK Kısıtlaması');
+			form.addBool('miktar2', 'Miktar 2'); form.addBool('stokKontrol', 'Stok Kontrol')
+			form.addBool('depoKismiStokKontrol', 'Depo Kısmi Stok Kontrol'); form.addBool('konumStatu', 'Konum Statü'); 
+			form.addBool('malFazlasi', 'Mal Fazlası'); form.addBool('marka', 'Stok Marka'); form.addBool('hacim', 'Hacim');
+		form.addBool('paket', 'Paket'); form.addBool('rbk', 'RBK Kısıtlaması');
 			form.addBool('seriNo', 'Seri No'); form.addBool('seriMiktarli', 'Seri İçin Miktar Kullanılır'); form.addBool('dayaniksizGaranti', 'Dayanıksız Mal Garanti Takibi');
 			form.addBool('transferSiparisi', 'Transfer Siparişi')
 		let tabPage_form = paramci.addTabPage('hmr', 'HMR').addFormWithParent();
@@ -247,8 +255,8 @@ class MQStokGenelParam extends MQTicariParamBase {
 		}
 	}
 	paramSetValues({ rec }) {
-		super.paramSetValues(...arguments); let {hmrYapi} = this;
-		let ekOzellikBilgileri = [];
+		super.paramSetValues(...arguments)
+		let {hmrYapi} = this, ekOzellikBilgileri = []
 		for (let item of this.ekOzellikBilgileri) {
 			if (typeof item == 'string') { try { item = JSON.parse(item) } catch (ex) { console.error(ex); item = null } }
 			if (item?.adi) { ekOzellikBilgileri.push(item) }

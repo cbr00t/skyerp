@@ -32,6 +32,7 @@ class MQCogul extends MQYapi {
 		return result
 	}
 	static get emptyKodValue() { return '' }
+	static get offlineGonderYapilirmi() { return true }
 	
 	static get altYapiDict() {
 		let {_altYapiDictOlustuSet} = MQCogul, {classKey} = this;
@@ -711,7 +712,9 @@ class MQCogul extends MQYapi {
 	hostVars(e) { let hv = super.hostVars(e), _results = []; for (let _hv of _results) { if (!$.isEmptyObject(_hv)) { $.extend(hv, _hv) } } return hv }
 	pIO_hostVarsDuzenle(e) { super.pIO_hostVarsDuzenle(e); this.forAltYapiKeysDo('pIO_hostVarsDuzenle', e) }
 	hostVarsDuzenle(e) {
-		super.hostVarsDuzenle(e); let {hv, ozelSahaYapilari} = e, {ayrimlar, ozelSahalar} = this, {ayrimIsimleri} = this.class;
+		super.hostVarsDuzenle(e)
+		let {hv, ozelSahaYapilari, offlineRequest, offlineMode, queryBuild} = e
+		let {ayrimlar, ozelSahalar} = this, {ayrimIsimleri} = this.class
 		if (!$.isEmptyObject(ayrimIsimleri)) { for (let i = 0; i < ayrimIsimleri.length; i++) { let seq = i + 1, value = ayrimlar[seq] || null; hv[`ayrim${seq}`] = value } }
 		if (window.MQOzelSahaDetay && !$.isEmptyObject(ozelSahaYapilari)) {
 			let {prefix} = MQOzelSahaDetay;
@@ -723,6 +726,11 @@ class MQCogul extends MQYapi {
 			}
 		}
 		this.forAltYapiKeysDo('hostVarsDuzenle', e)
+		if (offlineRequest && queryBuild) {
+			let {gonderildiDesteklenirmi, gonderimTSSaha} = this.class
+			if (gonderildiDesteklenirmi && gonderimTSSaha)
+				hv[gonderimTSSaha] = ''
+		}
 	}
 	setValues(e) {
 		super.setValues(e); let {rec} = e, ayrimlar = this.ayrimlar = {}, ozelSahalar = this.ozelSahalar = {}, {ayrimIsimleri} = this.class;

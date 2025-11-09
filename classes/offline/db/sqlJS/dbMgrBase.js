@@ -11,42 +11,68 @@ class SqlJS_DBMgrBase extends CObject {
 		})
 	}
 	async yukle(e) {
-		await this.open(e); let {fh} = this
+		await this.open(e)
+		let {fh} = this
 		if (!fh) {
 			try { fh = this.fh = await this.getFSHandle(false) }
-			catch (ex) { return false }
+			catch { return false }
 		}
 		let result = await this.yukleDevam(e)
 		this.notChanged(e)
 		return result
 	}
 	yukleDevam() { return true }
-	async kaydet(e) {
-		let {fh} = this; if (!fh) { fh = this.fh = await this.getFSHandle(true) }
+	async kaydet({ onlyIfChanged } = {}) {
+		let {fh, changedFlag} = this
+		if (onlyIfChanged && !changedFlag)
+			return false
+		if (!fh)
+			fh = this.fh = await this.getFSHandle(true)
 		let result = await this.kaydetDevam(e)
 		this.notChanged(e)
 		return result
 	}
 	kaydetDevam() { return true }
 	kaydetDefer(e) {
-		clearTimeout(this._timer_kaydetDefer); this._timer_kaydetDefer = setTimeout(e => {
-			try { this.kaydet(e) } finally { delete this._timer_kaydetDefer } }, this.deferSaveMS); return this
+		clearTimeout(this._timer_kaydetDefer)
+		this._timer_kaydetDefer = setTimeout(async e => {
+			try { await this.kaydet(e) }
+			catch (ex) { console.error(ex) }
+			finally { delete this._timer_kaydetDefer }
+		}, this.deferSaveMS)
+		return this
 	}
 	async sil(e) {
-		clearTimeout(this._timer_kaydetDefer); let {fh} = this; if (!fh) { try { fh = this.fh = await this.getFSHandle(false) } catch (ex) { } } if (!fh) { return false }
-		try { await this.close(e); await (fh.kind == 'file' ? fh.remove() : fh.remove({ recursive: true })); this.open(e); return true }
+		clearTimeout(this._timer_kaydetDefer)
+		let {fh} = this
+		if (!fh) {
+			try { fh = this.fh = await this.getFSHandle(false) }
+			catch (ex) { }
+		}
+		if (!fh)
+			return false
+		try {
+			await this.close(e)
+			await (fh.kind == 'file' ? fh.remove() : fh.remove({ recursive: true }))
+			this.open(e)
+			return true
+		}
 		catch (ex) { return false }
 	}
 	open(e) { return this }
 	close(e) { clearTimeout(this._timer_kaydetDefer); this.fh = null; return this }
 	forEach() { return this.iterEntries() }
-	onChange(e) { this.changed(e); this.kaydetDefer(e) }
+	onChange(e) {
+		this.changed(e)
+		this.kaydetDefer(e)
+	}
 	getFSHandle(e) {
 		let createFlag = typeof e == 'boolean' ? e : e?.create ?? e.createFlag
 		return getFSDirHandle(this.fsRootDir, createFlag)
 	}
 	setName(value) { return this.name = value } setFH(value) { return this.fh = value }
-	changed() { this.changedFlag = true; return this } notChanged() { this.changedFlag = false; return this }
+	changed() { this.changedFlag = true; return this }
+	notChanged() { this.changedFlag = false; return this }
 	static isDBWrite(e) {
 		let query = e?.query ?? e; if (query) {
 			let query = e.query ?? e; if (query.isDBWriteClause) { return true }

@@ -235,7 +235,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			let yerelParam = app.params.yerel || {}, mfSinif2KolonAyarlari = yerelParam.mfSinif2KolonAyarlari = yerelParam.mfSinif2KolonAyarlari || {};
 			let ignoreAttrSet = asSet(['_rowNumber']), yerelParamBelirtec = mfSinif?.yerelParamBelirtec || this.class.classKey;
 			let kolonAyarlari = {}; if (yerelParamBelirtec) kolonAyarlari = mfSinif2KolonAyarlari[yerelParamBelirtec] || {};
-			let gorunumSet = asSet(kolonAyarlari.gorunumListesi || []);
+			let gorunumSet = asSet(kolonAyarlari.gorunumListesi || [])
 			if (!$.isEmptyObject(gorunumSet)) { e.tabloKolonlari = e.tabloKolonlari.filter(colDef => { let {belirtec} = colDef; return ignoreAttrSet[belirtec] || gorunumSet[belirtec] }) }
 		}
 	}

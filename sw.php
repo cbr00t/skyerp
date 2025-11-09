@@ -34,7 +34,8 @@ async function handleFetchFromNetwork(req) {
 		return resp
 	}
 	catch (ex) {
-		const cachedResponse = await cache.match(req); if (!cachedResponse) { throw ex }
+		const cachedResponse = await cache.match(req);
+		if (!cachedResponse) { throw ex }
 		return cachedResponse
 	}
 }

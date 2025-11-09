@@ -1,59 +1,93 @@
-class MQTabBarkodReferans extends MQMasterOrtak {
+class MQTabBarkodReferans extends MQKAOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'BARREF' } static get sinifAdi() { return 'Barkod Referans' }
 	static get table() { return 'sbarref' } static get tableAlias() { return 'bref' }
+	static get kodSaha() { return 'refkod' } static get kodEtiket() { return 'Barkod' }
+	static get adiKullanilirmi() { return false } static get offlineGonderYapilirmi() { return false }
+	get refKod() { return this.kod }
+	set refKod(value) { this.kod = value }
+
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		$.extend(pTanim, {
-			refKod: new PInstStr('refkod'),
 			stokKod: new PInstStr('stokkod'),
-			varsayilanmi: new PInstBool('varsayilan')
+			varsayilanmi: new PInstBool('varsayilan'),
+			kolimi: new PInstBitBool('bkolibarkodmu'),
+			icAdet: new PInstNum('koliicadet'),
+			paketSayac: new PInst('paketsayac'),
+			paketKod: new PInstStr('paketkod')
 		})
+		for (let {ioAttr, rowAttr, numerikmi} of HMRBilgi) {
+			let cls = numerikmi ? PInstNum : PInstStr
+			pTanim[ioAttr] = new cls(rowAttr)
+		}
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
-		liste.push(
-			new GridKolon({ belirtec: 'refkod', text: 'Barkod', genislikCh: 25 }),
-			new GridKolon({ belirtec: 'stokkod', text: 'Stok', genislikCh: 25 }),
-			new GridKolon({ belirtec: 'stokadi', text: 'Stok Adı', genislikCh: 40, sql: 'stk.aciklama' }),
-			new GridKolon({ belirtec: 'varsayilan', text: 'Varsayılan?', genislikCh: 10 }).tipBool()
-		)
+		liste.push(...[
+			new GridKolon('stokkod', 'Stok', 25),
+			new GridKolon('stokadi', 'Stok Adı', 40, 'stk.aciklama'),
+			new GridKolon('varsayilan', 'Varsayılan?', 10).tipBool(),
+			new GridKolon('bkolibarkodmu', 'Koli?', 8).tipBool(),
+			new GridKolon('koliicadet', 'İç Adet', 10).tipNumerik()
+		])
+		for (let {rowAttr, rowAdiAttr, kami, etiket, mfSinif: { tableAlias: alias, adiSaha } = {}, numerikmi} of HMRBilgi) {
+			{
+				let colDef = new GridKolon(rowAttr, etiket, 10)
+				if (numerikmi)
+					colDef.tipNumerik()
+				liste.push(colDef)
+			}
+			if (kami && alias && adiSaha)
+				liste.push(new GridKolon(rowAdiAttr, `${etiket} Adı`, 25, `${alias}.${adiSaha}`))
+		}
 	}
-	static loadServerData_queryDuzenle_son({ stm: { orderBy }, sent }) {
+	static loadServerData_queryDuzenle_son({ stm: { orderBy }, sent, sent: { sahalar, where: wh }, offlineRequest, offlineMode }) {
 		super.loadServerData_queryDuzenle_son(...arguments)
-		let {tableAlias: alias} = this
+		let {tableAlias: alias, kodSaha} = this
 		sent.fromIliski('stkmst stk', `${alias}.stokkod = stk.kod`)
-		orderBy.liste = []
-		orderBy.add('refkod', 'varsayilan DESC', 'stokkod')
+		for (let {rowAttr, kami, mfSinif: { table: hmrTable, tableAlias: hmrAlias, kodSaha } = {}} of HMRBilgi) {
+			if (kami && hmrAlias && kodSaha)
+				sent.fromIliski(`${hmrTable} ${hmrAlias}`, `${alias}.${rowAttr} = ${hmrAlias}.${kodSaha}`)
+		}
+		if (offlineRequest && !offlineMode) {
+			// Bilgi Yükle
+			sent.leftJoin(alias, 'paket pak', `${alias}.paketsayac = pak.kaysayac`)
+		}
+		sahalar.add(`${alias}.paketsayac`)
+		orderBy.liste = [kodSaha, 'varsayilan DESC', 'stokkod']
 	}
 }
+
 class MQTabBarkodAyrisim extends MQKAOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'BARAYR' } static get sinifAdi() { return 'Ayrışım Barkod' }
 	static get table() { return 'barayrim' } static get tableAlias() { return 'ayr' }
+	static get onlineIdSaha() { return null }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		$.extend(pTanim, {
-			refKod: new PInstStr('refkod'),
 			stokKod: new PInstStr('stokkod'),
-			varsayilanmi: new PInstBool('varsayilan')
+			varsayilanmi: new PInstBool('varsayilan'),
+			kolimi: new PInstBitBool('bkolibarkodmu'),
+			icAdet: new PInstNum('koliicadet')
 		})
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
 		liste.push(
-			new GridKolon({ belirtec: 'refkod', text: 'Barkod', genislikCh: 25 }),
-			new GridKolon({ belirtec: 'stokkod', text: 'Stok', genislikCh: 25 }),
-			new GridKolon({ belirtec: 'stokadi', text: 'Stok Adı', genislikCh: 40, sql: 'stk.aciklama' }),
-			new GridKolon({ belirtec: 'varsayilan', text: 'Varsayılan?', genislikCh: 10 }).tipBool()
+			new GridKolon('stokkod', 'Stok', 25),
+			new GridKolon('stokadi', 'Stok Adı', 40, 'stk.aciklama'),
+			new GridKolon('varsayilan', 'Varsayılan?', 10).tipBool(),
+			new GridKolon('bkolibarkodmu', 'Koli?', 8).tipBool(),
+			new GridKolon('koliicadet', 'İç Adet', 10).tipNumerik()
 		)
 	}
 	static loadServerData_queryDuzenle_son({ stm: { orderBy }, sent }) {
 		super.loadServerData_queryDuzenle_son(...arguments)
-		let {tableAlias: alias} = this
+		let {tableAlias: alias, kodSaha} = this
 		sent.fromIliski('stkmst stk', `${alias}.stokkod = stk.kod`)
-		orderBy.liste = []
-		orderBy.add('refkod', 'varsayilan DESC', 'stokkod')
+		orderBy.liste = [kodSaha, 'varsayilan DESC', 'stokkod']
 	}
 }
 

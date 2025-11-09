@@ -16,7 +16,7 @@ class MQYapi extends CIO {
 		return result
 	}
 	static get offlineTemp() { return !this.offlineFis } static get offlineFis() { return false }
-	static get offlineDirect() { return true }
+	static get offlineDirect() { return true } static get offlineGonderYapilirmi() { return false }
 	static get offline2OnlineSaha() { return {} }
 	static get online2OfflineSaha() { return asReverseDict(this.offline2OnlineSaha) }
 	static get logKullanilirmi() { return true } static get logAnaTip() { return 'K' }
@@ -358,14 +358,17 @@ class MQYapi extends CIO {
 	}
 	static async offlineSaveToRemoteTable(e = {}) {
 		if (!this.dbMgr_db)
-			return false
+			return this
+		let {offlineGonderYapilirmi} = this
+		if (!offlineGonderYapilirmi)
+			return this
 		let offlineTable = e.table ?? e.offlineTable ?? this.table
 		if (!offlineTable)
 			return this
-		let {offlineDirect: directFlag, offlineSahaListe: attrListe, idSaha, onlineIdSaha, sayacSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this
+		let {offlineDirect: directFlag, offlineSahaListe: attrListe, idSaha, onlineIdSaha = idSaha, sayacSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this
 		let offlineMode = false, offlineRequest = true, offlineGonderRequest = true, {trnId} = e
 		let recs = await this.loadServerData({ ...e, offlineMode: !offlineMode, offlineRequest, offlineGonderRequest })
-			if (attrListe && onlineIdSaha && onlineIdSaha != idSaha && !attrListe.includes(onlineIdSaha))
+		if (attrListe && onlineIdSaha && onlineIdSaha != idSaha && !attrListe.includes(onlineIdSaha))
 			attrListe.push(onlineIdSaha)
 		if (attrListe?.length) {
 			// let directFlag = !sayacSaha    // sayac olanlar grupInsert ile yazılamaz
@@ -375,13 +378,33 @@ class MQYapi extends CIO {
 				if (directFlag) {
 					let mevcutIdSet = {}
 					if (recs?.length) {
-						if (idSaha && onlineIdSaha && !empty(recs)) {
+						// let priKeys = idSaha ? null : keys(new this().keyHostVars({ offlineRequest, offlineMode: true }))
+						if (onlineIdSaha && !empty(recs)) {
 							let idList = keys(asSet(recs.map(rec => rec[onlineIdSaha] ?? rec[idSaha])))
 							let sent = new MQSent(), {where: wh, sahalar} = sent
 							sent.fromAdd(offlineTable)
 							wh.inDizi(idList, onlineIdSaha)
 							sahalar.add(onlineIdSaha)
 							sent.distinctYap()
+							/*if (priKeys) {
+								let or = new MQOrClause()
+								for (let rec of recs) {
+									let values = priKeys.map(k => rec[k] ?? null)
+									let and = new MQSubWhereClause()
+									priKeys.forEach((key, i) => and.degerAta(values[i], key))
+									or.add(and)
+								}
+								if (or.liste.length)
+									wh.add(or)
+							}
+							else {
+								let idList = keys(asSet(recs.map(rec => rec[onlineIdSaha] ?? rec[idSaha])))
+								wh.inDizi(idList, onlineIdSaha)
+							}
+							if (onlineIdSaha)
+								sahalar.add(onlineIdSaha)
+							else
+								sahalar.add(...priKeys)*/
 							let _recs = await this.sqlExecSelect({ ...e, trnId, offlineMode, query: sent })
 							mevcutIdSet = asSet(_recs.map(rec => rec[onlineIdSaha]))
 						}
@@ -424,7 +447,8 @@ class MQYapi extends CIO {
 						if (inst.sayac) { inst.sayac = null }
 						if (await inst.varmi({ trnId, offlineMode, offlineRequest, offlineGonderRequest })) { continue }
 						if (!await inst.yaz({ trnId, offlineMode, offlineRequest, offlineGonderRequest })) { continue }
-						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha) { okIdList.push(rec[idSaha]) }
+						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
+							okIdList.push(rec[idSaha])
 					}
 				}
 			}
@@ -474,7 +498,7 @@ class MQYapi extends CIO {
 			primaryKeys = asSet(primaryKeys)
 		if (!primaryKeys)
 			primaryKeys = asSet(keys(keyHV))
-		let hasMultiPK = keys(keyHV).length > 1
+		let hasMultiPK = keys(primaryKeys).length > 1
 		let atFirst = true, i = 0, c = keys(hv).length
 		r.push(`CREATE TABLE IF NOT EXISTS ${table} (`)
 		// if (this instanceof MQTabPlasiyer)

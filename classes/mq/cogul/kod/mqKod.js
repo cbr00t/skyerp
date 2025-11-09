@@ -56,7 +56,7 @@ class MQKod extends MQCogul {
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); let mfSinif = e.mfSinif ?? this;
 		let cellsRenderer = e.cellsRenderer = (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-			let _osColor = rec.oscolor, htmlColor = _osColor ? os2HTMLColor(_osColor) : null;
+			let _osColor = rec?.oscolor, htmlColor = _osColor ? os2HTMLColor(_osColor) : null;
 			if (htmlColor) { let textColor = getContrastedColor(htmlColor); html = html.replace('style="', `style="background-color: ${htmlColor}; color: ${textColor} `) }
 			return html
 		};
@@ -122,15 +122,20 @@ class MQKA extends MQKod {
 		if (this.adiKullanilirmi) { liste.push(this.adiSaha) }
 	}
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); let mfSinif = e.mfSinif ?? this, {cellsRenderer, liste} = e, {adiKullanilirmi, adiSaha} = mfSinif;
+		super.orjBaslikListesiDuzenle(e)
+		let mfSinif = e.mfSinif ?? this
+		let {cellsRenderer, liste} = e, {adiKullanilirmi, adiSaha} = mfSinif
+		let mini = isMiniDevice()
 		if (adiKullanilirmi) {
 			let colDef_adi = liste.find(colDef => colDef.belirtec == adiSaha);
 			if (!colDef_adi) {
-				let adiEtiket = mfSinif.adiEtiket ?? 'Açıklama';
-				liste.push(new GridKolon({
+				let adiEtiket = mfSinif.adiEtiket ?? 'Açıklama'
+				let colDef = new GridKolon({
 					belirtec: adiSaha, text: adiEtiket, cellsRenderer,
-					minWidth: Math.min(200, asInteger($(window).width() / 4)), width: Math.min(700, asInteger($(window).width() / 2)),
-				}))
+					minWidth: Math.min(200, asInteger($(window).width() / 4)),
+					width: Math.min(700, asInteger($(window).width() / (mini ? 1.5 : 2)))
+				})
+				liste[mini ? 'unshift' : 'push'](colDef)
 			}
 		}
 	}

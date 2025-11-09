@@ -2,8 +2,15 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	get dbmi() { return true } get dbMgrClass() { return this.class } static get dbMgrClass() { return SqlJS_DBMgr } static get defaultName() { return 'main' }
 	get fsRootDirPaths() { return [...super.fsRootDirPaths, this.fsFileName] } get fsFileName() { return `${this.name || 'main'}.db` }
-	constructor(e) { e = e ?? {}; super(e); $.extend(this, { autoSaveFlag: e.autoSave ?? e.autoSaveFlag ?? true, internalDB: e.internalDB }) }
-	async open(e) { await super.open(e); await this.openDB(e); return this }
+	constructor(e = {}) {
+		super(e)
+		$.extend(this, { dbMgr: e.dbMgr, autoSaveFlag: e.autoSave ?? e.autoSaveFlag ?? true, internalDB: e.internalDB })
+	}
+	async open(e) {
+		await super.open(e)
+		await this.openDB(e)
+		return this
+	}
 	async openDB(e) {
 		if (!this._sql) {
 			await initSqlJsPromise
@@ -49,7 +56,11 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 			// await this.openDB(e)
 			return false
 		}
-		let {fh} = this; let data; if (fh?.kind == 'file') { let file = await fh.getFile(); data = await file?.arrayBuffer() }
+		let {fh} = this, data
+		if (fh?.kind == 'file') {
+			let file = await fh.getFile()
+			data = await file?.arrayBuffer()
+		}
 		let {_sql: sql} = this
 		data = data ? new Uint8Array(data) : undefined
 		if (!data?.length)
@@ -60,16 +71,30 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 	}
 	async kaydetDevam(e) {
 		let {internalDB} = this
-		if (!internalDB) { return false }
+		if (!internalDB)
+			return false
 		if (!await super.kaydetDevam(e))
 			return false
 		let {fh} = this
 		if (fh?.kind != 'file')
 			return false
+		let writeFile = async (fh, data) => {
+			let wr = await fh.createWritable()
+			try { return await wr.write(data) }
+			finally { try { wr.close() } catch {} }
+		}
 		let data = internalDB.export()
-		let wr = await fh.createWritable()
-		try { await wr.write(data) }
-		finally { try { wr.close() } catch (ex) { } }
+		let {fsRootDir: filePath} = this, {name} = fh
+		let bckName = `${name}.bck`
+		try {
+			let file = await fh.getFile()
+			if (file.size > 64 * 1024) {
+				await fh.move(bckName)
+				fh = this.fh = await this.getFSHandle(true)
+			}
+		}
+		catch (ex) { console.error(ex) }
+		await writeFile(fh, data)
 		return true
 	}
 	async dosyadanYukle(e = {}) {
@@ -113,10 +138,19 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 			// 'PRAGMA journal_mode = WAL',
 			'PRAGMA journal_mode = MEMORY',
 			`PRAGMA temp_store = MEMORY`,
-			'VACUUM',
+			'VACUUM'
 		].join(`; ${CrLf}`))
-		if (window?.app)
-			return app.dbMgr_tablolariOlustur?.(e)
+		let {autoSaveFlag: wasAutoSave} = this
+		try {
+			if (wasAutoSave)
+				this.noAutoSave()
+			if (window?.app)
+				return app.dbMgr_tablolariOlustur?.(e)
+		}
+		finally {
+			if (wasAutoSave)
+				this.autoSave()
+		}
 	}
 	async executeAsync(e, params, isRetry) { await this.execute(e, params, isRetry) }
 	execute(e, params, isRetry, noAutoTrim) {
@@ -182,17 +216,18 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 				let message = ex.message || ''
 				if (message.includes('no such column') && window?.app?.dbMgr_tabloEksikleriTamamla) {
 					app.dbMgr_tabloEksikleriTamamla({ ...e, db: this, noCacheReset: true })
-					app?.onAjaxEnd?.(true)
 					return this.execute(e, _params, true)
 				}
 			}
 			/*if (dbOpCallback) { await dbOpCallback.call(this, { operation: 'executeSql', state: null, error: ex }, e) }*/
-			app?.onAjaxEnd?.(true)
+			clearTimeout(this._timer_dbIndicatorReset)
+			this._timer_dbIndicatorReset = setTimeout(() => app?.onAjaxEnd?.(true), 10)
 			console.error('sqlite exec', { ...e, db: this, isDBWrite, ex })
 			throw ex
 		}
 		if (!_result) {
-			app?.onAjaxEnd?.(false)
+			clearTimeout(this._timer_dbIndicatorReset)
+			this._timer_dbIndicatorReset = setTimeout(() => app?.onAjaxEnd?.(false), 1)
 			return _result
 		}
 		_result = $.isArray(_result) ? _result[0] : null;
@@ -211,7 +246,8 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 			}
 		}
 		result = result.rows ?? result /*if (dbOpCallback) { setTimeout(() => dbOpCallback.call(this, { operation: 'executeSql', state: false }, e), 20) }*/
-		app?.onAjaxEnd?.(false)
+		clearTimeout(this._timer_dbIndicatorReset)
+		this._timer_dbIndicatorReset = setTimeout(() => app?.onAjaxEnd?.(false), 1)
 		return result
 	}
 	getTables(...names) {
@@ -222,5 +258,19 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 	hasTables(...names) { names = Object.keys(asSet(names ?? [])); let size = names?.length; return size ? Object.keys(this.getTables(...names)).length == size : false }
 	hasTable(...names) { return this.hasTables(...names) }
 	getFSHandle(e) { let createFlag = typeof e == 'boolean' ? e : e?.create ?? e.createFlag; return getFSFileHandle(this.fsRootDir, null, createFlag) }
-	onBeforeUnload(e) { if (this.changedFlag) { clearTimeout(this._timer_kaydetDefer); this.kaydet(e) } }
+	onChange(e = {}) {
+		this.changed(e)
+		if (this.autoSaveFlag) {
+			let target = this.dbMgr ?? this
+			target.kaydetDefer({ ...e, onlyIfChanged: true })
+		}
+	}
+	onBeforeUnload(e) {
+		if (!this.changedFlag)
+			return
+		clearTimeout(this._timer_kaydetDefer)
+		this.kaydet(e)
+	}
+	autoSave() { this.autoSaveFlag = true; return this }
+	noAutoSave() { this.autoSaveFlag = false; return this }
 }

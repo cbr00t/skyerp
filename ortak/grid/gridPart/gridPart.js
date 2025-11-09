@@ -76,7 +76,7 @@ class GridPart extends Part {
 			gridHucreTiklandiBlock: e.gridHucreTiklandiBlock || e.gridHucreTiklandi, gridHucreCiftTiklandiBlock: e.gridHucreCiftTiklandiBlock || e.gridHucreCiftTiklandi,
 			gridContextMenuIstendiBlock: e.gridContextMenuIstendiBlock || e.gridContextMenuIstendi, gridIDBelirtec: e.gridIDBelirtec || this.defaultGridIDBelirtec,
 			kolonFiltreDuzenleyici: e.kolonFiltreDuzenleyici ?? new GridKolonFiltreDuzenleyici(), sabitFlag: e.sabit ?? e.sabitmi ?? e.sabitFlag ?? this.defaultSabitFlag ?? false, detaySinif: e.detaySinif,
-			_kontrolcu: e.kontrolcu, rowNumberOlmasinFlag: e.rowNumberOlmasin ?? e.rowNumberOlmasinFlag ?? ($(window).width() < 900 ? true : undefined),
+			_kontrolcu: e.kontrolcu, rowNumberOlmasinFlag: e.rowNumberOlmasin ?? e.rowNumberOlmasinFlag ?? ($(window).width() <= 900 ? true : undefined),
 			notAdaptiveFlag: e.notAdaptive ?? e.notAdaptiveFlag, noAnimateFlag: e.noAnimate ?? e.noAnimateFlag
 		});
 		let {kolonFiltreDuzenleyici} = this; if ($.isPlainObject(kolonFiltreDuzenleyici)) {
@@ -103,15 +103,23 @@ class GridPart extends Part {
 		}
 		this.grid = this.gridWidget = null
 	}
-	gridInit(e) {
-		e = e || {}; let grid = this.grid ?? this.layout;
-		if (grid.hasClass('wnd-content')) { grid = grid.find(this.gridFormSelector) } this.grid = grid;
-		let {builder, tabloKolonlari, argsDuzenleBlock, gridRenderedBlock, cacheFlag, asyncFlag, notAdaptiveFlag} = this;
+	gridInit(e = {}) {
+		let grid = this.grid ?? this.layout
+		if (grid.hasClass('wnd-content')) { grid = grid.find(this.gridFormSelector) }
+		this.grid = grid
+		let {builder, tabloKolonlari, argsDuzenleBlock, gridRenderedBlock, cacheFlag, asyncFlag, notAdaptiveFlag} = this
+		let mini = isMiniDevice()
 		let cache = cacheFlag, async = asyncFlag, _theme = theme;	/*let _theme = theme == 'metro' ? 'material' : theme;*/
 		let args = {
-			theme: _theme, localization: localizationObj, width: '99.9%', height: '99.6%', editMode: 'selectedcell', sortMode: 'many', autoHeight: false, autoRowHeight: false, rowsHeight: 35, autoShowLoadElement: true,
-			altRows: true, enableTooltips: true, columnsHeight: 25, columnsMenuWidth: 50, columnsResize: true, columnsReorder: true, columnsMenu: true, autoShowColumnsMenuButton: true, sortable: true, /* compact: false, */
-			filterable: true, filterRowHeight: 40, filterMode: 'default', showFilterRow: false, groupable: true, showGroupsHeader: false, groupIndentWidth: 30, groupsHeaderHeight: 33, groupsExpandedByDefault: false,
+			theme: _theme, localization: localizationObj, width: '99.9%', height: '99.6%', editMode: 'selectedcell', sortMode: 'many', autoHeight: false,
+			autoRowHeight: false, rowsHeight: mini ? 50 : 35,
+			autoShowLoadElement: true, altRows: true, enableTooltips: true,
+			columnsHeight: mini ? 20 : 25,
+			columnsMenuWidth: 50, columnsResize: true,
+			columnsReorder: !mini, columnsMenu: true,
+			autoShowColumnsMenuButton: true, sortable: true, /* compact: false, */ filterable: true,
+			filterRowHeight: 40, filterMode: 'default', showFilterRow: false, groupable: true, columnsresize: true,
+			showGroupsHeader: false, groupIndentWidth: 30, groupsHeaderHeight: 33, groupsExpandedByDefault: false,
 			enableBrowserSelection: false, selectionMode: 'multiplecellsextended', pageable: false, pagermode: 'advanced', adaptive: undefined, virtualMode: false, updatedelay: 0,
 			scrollbarsize: 13, scrollMode: 'logical',		/* default | logical | deferred */
 			renderGridRows: e => { let recs = e.data?.records || e.data; return recs  /* return recs.slice(e.startindex, e.startindex + e.endindex) */ },
@@ -165,16 +173,39 @@ class GridPart extends Part {
 		if (args.pageable && !args.pagesizeoptions) args.pageSizeOptions = [5, 7, 8, 9, 10, 11, 13, 14, 15, 18, 20, 25, 50, 80, 100, 200, 300, 500]
 		args.pageSize = 100; args.enableOptimization = true
 		if (args.adaptive == null)
-			args.adaptive = !(notAdaptiveFlag || args.editable || $(window).width() <= 900)
+			args.adaptive = !(notAdaptiveFlag || args.editable || mini)
 		let firstCol = (args.columns || [])[0], secondCol = (args.columns || [])[1]
-		if (firstCol && args.scrollMode == 'deferred' && $.isEmptyObject(args.deferredDataFields)) {
-			/* args.scrollMode = 'deferred'; */ let deferredDataFields = args.deferredDataFields = [firstCol.dataField || firstCol.datafield];
-			if (secondCol) { deferredDataFields.push(secondCol.dataField ?? secondCol.datafield) }
+		if (firstCol && args.scrollMode == 'deferred' && empty(args.deferredDataFields)) {
+			/* args.scrollMode = 'deferred'; */ let deferredDataFields = args.deferredDataFields = [firstCol.dataField || firstCol.datafield]
+			if (secondCol)
+				deferredDataFields.push(secondCol.dataField ?? secondCol.datafield)
 		}
-		let initGridHeight = this.initGridHeight = args.height; if (!initGridHeight) { args.height = 1 }
-		grid.data('part', this); grid.jqxGrid(args); let gridWidget = this.gridWidget = grid.jqxGrid('getInstance'); gridWidget.gridPart = this;
-		this.orjSelectionMode = gridWidget.selectionmode; /* setTimeout(() => this.onResize(), 0); */
-		setTimeout(() => grid.find(`span:contains("www.jqwidgets.com")`).addClass('basic-hidden'), 50); this.gridInitFlag = true;
+		{
+			if (!this.rowNumberOlmasinFlag && firstCol)
+				firstCol.pinned = true
+		}
+		/*if (mini) {
+			$.extend(args, {
+				cardview: true, cardsize: 1, selectionmode: 'singlerow'
+				cardviewcolumns: [
+					{
+						width: 'auto',
+						datafield: firstCol?.dataField
+					}
+				]
+			})
+		}*/
+		let initGridHeight = this.initGridHeight = args.height
+		if (!initGridHeight)
+			args.height = 1
+		grid.data('part', this)
+		grid.jqxGrid(args)
+		let gridWidget = this.gridWidget = grid.jqxGrid('getInstance')
+		gridWidget.gridPart = this
+		this.orjSelectionMode = gridWidget.selectionmode /* setTimeout(() => this.onResize(), 0); */
+		setTimeout(() =>
+			grid.find(`span:contains("www.jqwidgets.com")`).addClass('basic-hidden'), 50)
+		this.gridInitFlag = true
 		grid.on('rowclick', evt => setTimeout(() => this.gridSatirTiklandi({ sender: this, builder, type: 'row', event: evt }), 10));
 		grid.on('rowdoubleclick', evt => setTimeout(() => this.gridSatirCiftTiklandi({ sender: this, type: 'row', builder, event: evt }), 10));
 		grid.on('cellclick', evt => setTimeout(() => this.gridHucreTiklandi({ sender: this, type: 'cell', builder, event: evt }), 10));
@@ -222,23 +253,44 @@ class GridPart extends Part {
 		return grid
 	}
 	gridArgsDuzenle(e) {
-		let {args} = e, {grid, ozelKolonDuzenleBlock, argsDuzenleBlock} = this;
-		let tabloKolonlari = e.tabloKolonlari = []; tabloKolonlari.push(...this.defaultTabloKolonlari);
-		let {ekTabloKolonlari} = this; if (ekTabloKolonlari) { ekTabloKolonlari = getFuncValue.call(this, ekTabloKolonlari, e) }
+		let {args} = e, {grid, ozelKolonDuzenleBlock, argsDuzenleBlock} = this
+		let tabloKolonlari = e.tabloKolonlari = [...this.defaultTabloKolonlari]
+		let {ekTabloKolonlari} = this
+		if (ekTabloKolonlari)
+			ekTabloKolonlari = getFuncValue.call(this, ekTabloKolonlari, e)
 		if (ekTabloKolonlari) {
-			let colAttrSet = asSet(tabloKolonlari.map(colDef => colDef.belirtec));
-			for (let colDef of ekTabloKolonlari) { if (!colAttrSet[colDef.belirtec]) { tabloKolonlari.push(colDef) } }
+			let colAttrSet = asSet(tabloKolonlari.map(colDef => colDef.belirtec))
+			for (let colDef of ekTabloKolonlari) {
+				if (!colAttrSet[colDef.belirtec])
+					tabloKolonlari.push(colDef)
+			}
 		}
-		this.gridArgsDuzenleDevam(e);
-		if (ozelKolonDuzenleBlock) { let result = getFuncValue.call(this, ozelKolonDuzenleBlock, e); if (result != null) { e.tabloKolonlari = result } }
-		tabloKolonlari = this.tabloKolonlari = e.tabloKolonlari;
-		let belirtec2Kolon = this.belirtec2Kolon = e.belirtec2Kolon = {}, duzKolonTanimlari = this.duzKolonTanimlari = e.duzKolonTanimlari = [], jqxCols = [];
-		for (let colDef of tabloKolonlari) { colDef.gridPart = this; jqxCols.push(...(colDef.jqxColumns || [])); colDef.belirtec2KolonDuzenle(e) }
-		args.columns = jqxCols; if (argsDuzenleBlock) { getFuncValue.call(this, argsDuzenleBlock, e) }
+		this.gridArgsDuzenleDevam(e)
+		if (ozelKolonDuzenleBlock) {
+			let result = getFuncValue.call(this, ozelKolonDuzenleBlock, e)
+			if (result != null)
+				e.tabloKolonlari = result
+		}
+		tabloKolonlari = this.tabloKolonlari = e.tabloKolonlari
+		let belirtec2Kolon = this.belirtec2Kolon = e.belirtec2Kolon = {}
+		let duzKolonTanimlari = this.duzKolonTanimlari = e.duzKolonTanimlari = []
+		let jqxCols = []
+		for (let colDef of tabloKolonlari) {
+			colDef.gridPart = this
+			jqxCols.push(...(colDef.jqxColumns || []))
+			colDef.belirtec2KolonDuzenle(e)
+		}
+		args.columns = jqxCols
+		if (argsDuzenleBlock)
+			getFuncValue.call(this, argsDuzenleBlock, e)
 	}
-	gridArgsDuzenleDevam(e) { let kontrolcu = this.getKontrolcu(e); if (kontrolcu) { kontrolcu.gridArgsDuzenle(e) } }
+	gridArgsDuzenleDevam(e) {
+		let kontrolcu = this.getKontrolcu(e)
+		kontrolcu?.gridArgsDuzenle(e)
+	}
 	get defaultTabloKolonlari() {
-		let liste = []; if (!this.rowNumberOlmasinFlag) {
+		let liste = []
+		if (!this.rowNumberOlmasinFlag) {
 			liste.push(new GridKolon({
 					belirtec: '_rowNumber', text: '#', width: 45, groupable: false, filterable: false, draggable: false, exportable: false,
 					filterType: 'input', cellClassName: '_rowNumber grid-readOnly',

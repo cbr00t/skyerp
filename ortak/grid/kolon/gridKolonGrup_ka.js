@@ -13,9 +13,9 @@ class GridKolonGrup_KA extends GridKolonGrup {
 	get kodAttr() { const {kaKolonu} = this; return kaKolonu ? kaKolonu.belirtec : null } set kodAttr(value) { const {kaKolonu} = this; if (kaKolonu) kaKolonu.belirtec = value }
 	get isEditable() { return this.kaKolonu.isEditable } set isEditable(value) { this.kaKolonu.isEditable = value }
 
-	static getClass(e) { return super.getClass(e) }
-	constructor(e) {
-		e = e || {}; super(e);
+	constructor(e = {}, text, genislikCh, sql, userData) {
+		if (typeof e != 'object')
+			e = { belirtec: e, text, genislikCh, sql, userData }
 		this.ozelStmDuzenleyiciTriggerFlag = e.ozelStmDuzenleyiciTriggerFlag ?? e.ozelStmDuzenleyiciTrigger
 	}
 	readFrom_ara(e) {

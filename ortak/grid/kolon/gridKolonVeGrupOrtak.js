@@ -6,13 +6,23 @@ class GridKolonVeGrupOrtak extends CObject {
 	get isReadOnly() { return !this.isEditable }
 	get jqxColumns() { const e = { columns: [] }; this.jqxColumnsDuzenle(e); return e.columns } jqxColumnsDuzenle(e) { }
 
-	constructor(e) { super(e); e = e || {}; this._builder = e.builder; this.readFrom(e) }
+	constructor(e = {}, text, genislikCh, sql, userData) {
+		if (typeof e != 'object')
+			e = { belirtec: e, text, genislikCh, sql, userData }
+		super(e)
+		this._builder = e.builder
+		this.readFrom(e)
+	}
 	static getClass(e) { let cls = GridKolon; if (e) { const {anaTip} = e; if (anaTip) { cls = this._anaTip2Sinif[anaTip] ?? cls } } return cls }
 	static from(e) {
 		if (!e) { return null } const cls = this.getClass(e); if (!cls) { return null }
 		const result = new cls(e); return result.readFrom(e) ? result : null
 	}
-	readFrom(e) { if (!e) return false; return this.readFrom_ilk(e) && this.readFrom_ara(e) && this.readFrom_son(e) }
+	readFrom(e = {}, text, genislikCh, sql, userData) {
+		if (typeof e != 'object')
+			e = { belirtec: e, text, genislikCh, sql, userData }
+		return this.readFrom_ilk(e) && this.readFrom_ara(e) && this.readFrom_son(e)
+	}
 	readFrom_ilk(e) {
 		if (e.userData != null) { this.userData = e.userData }
 		if (e.kisitDuzenleyici != null) { this.kisitDuzenleyici = e.kisitDuzenleyici }
@@ -20,13 +30,21 @@ class GridKolonVeGrupOrtak extends CObject {
 		this._belirtec = e.belirtec ?? e.attr ?? e.dataField ?? e.datafield;
 		return true
 	}
-	readFrom_ara(e) { return true } readFrom_son(e) { return true }
+	readFrom_ara(e) { return true }
+	readFrom_son(e) { return true }
 	parseColDef(value) { let result = value; if (result && $.isPlainObject(result)) result = GridKolonVeGrupOrtak.from(result); return result }
 	belirtec2KolonDuzenle(e) { let {belirtec2Kolon} = e; belirtec2Kolon[this.belirtec] = this; }
 	handleKeyboardNavigation_ortak(e) { }
 	readOnly() { this.isEditable = false; return this } editable() { this.isEditable = true; return this } 
 	kodZorunlu() { this.kodZorunlumu = true; return this } zorunlu() { this.kodZorunlu(); return this }
 	kodZorunluOlmasin() { this.kodZorunlumu = false; return this } zorunluDegil() { return this.kodZorunluOlmasin() } kodZorunluDegil() { return this.kodZorunluOlmasin() }
+	setBelirtec(value) { this.belirtec = value; return this }
+	setText(value) { this.text = value; return this }
+	setGenislikCh(value) { this.genislikCh = value; return this }
+	setWidth(value) { this.width = value; return this }
+	setMinWidth(value) { this.minWidth = value; return this }
+	setMaxWidth(value) { this.maxWidth = value; return this }
+	setSQL(value) { this.sql = value; return this } setSql(value) { return this.setSQL(value) }
 	setUserData(value) { this.userData = value; return this }
 	setKisitDuzenleyici(value) { this.kisitDuzenleyici = value; return this }
 	static getTemplate(e) { const {key} = e; delete e.key; return getFuncValue(this._templates[key], e) }

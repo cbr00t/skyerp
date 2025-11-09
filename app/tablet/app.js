@@ -10,17 +10,27 @@ class TabletApp extends TicariApp {
 		return loginTipi == 'plasiyerLogin' ? plasiyerKod : null
 	}
 	get offlineAktarimSiniflar() {
-		return [
-			MQParam, MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
-			MQTabBolge, MQTabIl, MQTabUlke, MQTabCariTip,
-			MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
-			MQTabPlasiyer, MQTabStok, MQTabCari,
-			MQTabBarkodReferans
-		]
+		let {_offlineAktarimSiniflar: result} = this
+		if (!result) {
+			result = this._offlineAktarimSiniflar = [
+				MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
+				MQTabBolge, MQTabIl, MQTabUlke, MQTabCariTip,
+				MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
+				MQTabPlasiyer, MQTabStok, MQTabCari, MQTabBarkodReferans
+			]
+			for (let {kami, mfSinif} of HMRBilgi) {
+				if (kami && mfSinif)
+					result.push(mfSinif)
+			}
+		}
+		return result
 	}
 	get offlineCreateTableSiniflar() {
-		return this.offlineAktarimSiniflar.filter(_ =>
-			_ != MQTabPlasiyer)
+		return [
+			MQParam,
+			...this.offlineAktarimSiniflar.filter(_ => _ != MQTabPlasiyer)
+		]
+	
 	}
 
 	constructor(e) {
@@ -78,11 +88,11 @@ class TabletApp extends TicariApp {
 		super.dbMgr_tablolariOlustur_urlDuzenle(...arguments)
 		urls.push(`${appRoot}/queries/${name}.sql?${appVersion}`)
 	}
-	dbMgr_tabloEksikleriTamamla({ name, db }) {
+	dbMgr_tabloEksikleriTamamla({ name, db, classes }) {
 		super.dbMgr_tabloEksikleriTamamla(...arguments)
 		let {main} = app.dbMgr ?? {}
 		if (db == main) {
-			let {offlineCreateTableSiniflar: classes} = this
+			classes ??= this.offlineCreateTableSiniflar
 			for (let cls of classes) {
 				let query = cls.offlineGetSQLiteQuery()
 				if (query) {
@@ -96,10 +106,7 @@ class TabletApp extends TicariApp {
 		let {offlineAktarimSiniflar: classes, params, defaultOfflineRequestChunkSize: chunkSize} = this
 		if (!classes?.length)
 			return
-		/*classes = [
-			...values(params).map(_ => _.class).filter(x => !!x),
-			...classes
-		]*/
+		classes = [MQParam, ...classes]
 		let withClear = true
 		{
 			let args = { noClear: false }
@@ -117,24 +124,58 @@ class TabletApp extends TicariApp {
 				return
 			withClear = !args.noClear
 		}
+		let getArrayKey = arr => arr.join('|')
+		let offlineMode = true, internal = true
 		let pm = showProgress('Veriler yükleniyor...', null, true)
-		pm.setProgressMax(classes.length).progressReset()
-		{
+		pm.setProgressMax(classes.length + 7).progressReset()
+		try {
+			let {belirtecListe: hmrBelirtecler_eski} = HMRBilgi
 			let clearClasses = withClear ? classes : classes.filter(cls => !cls.detaylimi)
-			if (clearClasses?.length) {
-				let offlineMode = true, internal = true
+			{
+				let {_cls2PTanim} = CIO
+				for (let key in _cls2PTanim)
+					delete _cls2PTanim[key]
+			}
+			{
+				if (clearClasses?.length) {
+					await MQCogul.sqlExecNone({ offlineMode, query: 'BEGIN TRANSACTION' })
+					await Promise.all( clearClasses.map(cls => cls.offlineDropTable?.({ ...e, offlineMode, internal })) )
+					await app.dbMgr_tablolariOlustur({ ...e, offlineMode, internal, classes: [MQParam] })
+					await MQCogul.sqlExecNone({ offlineMode, query: 'COMMIT' })
+					pm.progressStep(1)
+				}
+			}
+			{
 				await MQCogul.sqlExecNone({ offlineMode, query: 'BEGIN TRANSACTION' })
-				await Promise.all( clearClasses.map(cls => cls.offlineDropTable?.({ ...e, offlineMode, internal })) )
+				delete MQParam._topluYukle_kod2Rec; delete this._offlineAktarimSiniflar
+				await MQParam.offlineSaveToLocalTable().finally(() => pm.progressStep())
+				await MQCogul.sqlExecNone({ offlineMode, query: 'COMMIT' })
+				pm.progressStep(1)
+				// let params = this.params = {}
+				let {params} = this
+				for (let {class: cls} of values(params))
+					delete cls._instance
+				await this.paramsDuzenle({ ...e, offlineMode, params })
+				await this.paramsDuzenleSonrasi({ ...e, offlineMode })
+				HMRBilgi.cacheReset()
+				pm.progressStep(2)
+			}
+			{
+				/*let {belirtecListe: hmrBelirtecler_yeni} = HMRBilgi
+				if (getArrayKey(hmrBelirtecler_eski) != getArrayKey(hmrBelirtecler_yeni))*/
+				await MQCogul.sqlExecNone({ offlineMode, query: 'BEGIN TRANSACTION' })
+				await Promise.all( clearClasses.filter(cls => cls != MQParam).map(cls => cls.offlineDropTable?.({ ...e, offlineMode, internal })) )
 				await app.dbMgr_tablolariOlustur({ ...e, offlineMode, internal })
 				await MQCogul.sqlExecNone({ offlineMode, query: 'COMMIT' })
+				pm.progressStep(1)
 			}
-		}
-		try {
-			for (let _classes of arrayIterChunks(classes, chunkSize)) {
-				await Promise.all(_classes.map(cls =>
-					cls.offlineSaveToLocalTable().finally(() =>
-						pm.progressStep())
-				))
+			{	
+				classes = this.offlineAktarimSiniflar.filter(cls => cls != MQParam)             // parametrelere göre YENİ OLUŞAN 'offlineAktarimSiniflar'
+				for (let _classes of arrayIterChunks(classes, chunkSize)) {
+					await Promise.all(_classes.map(cls =>
+						cls.offlineSaveToLocalTable().finally(() => pm.progressStep())
+					))
+				}
 			}
 		}
 		catch (ex) {
@@ -155,7 +196,7 @@ class TabletApp extends TicariApp {
 		}*/
 		pm.progressEnd()
 		eConfirm('Veri Yükleme tamamlandı')
-		setTimeout(() => hideProgress(), 500)
+		setTimeout(() => hideProgress(), 200)
 	}
 	async bilgiGonderIstendi(e) {
 		let {offlineAktarimSiniflar: classes, defaultOfflineRequestChunkSize: chunkSize} = this

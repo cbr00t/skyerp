@@ -2,8 +2,9 @@ class MQTabStok extends MQKAOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'STOK' } static get sinifAdi() { return 'Stok' }
 	static get table() { return 'stkmst' } static get tableAlias() { return 'stk' }
-	static get tanimlanabilirmi() { return true }
-	static get zeminRenkDesteklermi() { return true } static get satFiyatSayi() { return 9 }
+	static get tanimlanabilirmi() { return true } static get zeminRenkDesteklermi() { return true }
+	static get gonderildiDesteklenirmi() { return true }
+	static get satFiyatSayi() { return 9 }
 	/*static get offlineSahaListe() {
 		return super.offlineSahaListe.filter(_ =>
 			!(_.endsWith('kdvorani') || _.startsWith('satfiyat')))
@@ -75,13 +76,13 @@ class MQTabStok extends MQKAOrtak {
 			new GridKolon({ belirtec: 'smarkakod', text: 'Marka', genislikCh: 15 }),
 			new GridKolon({ belirtec: 'smarkaadi', text: 'Marka Adı', genislikCh: 25, sql: 'smar.aciklama' }),
 			new GridKolon({ belirtec: 'tartilabilir', text: 'Tartılabilir?', genislikCh: 10 }).tipBool(),
-			new GridKolon({ belirtec: 'tartireferans', text: 'Tartı Ref.', genislikCh: 15 }),
-			new GridKolon({ belirtec: 'calismadurumu', text: 'Aktif?', genislikCh: 10, filterType: 'checkedlist' }).tipBool(),
-			new GridKolon({ belirtec: 'satilamazfl', text: 'SatılaMAz?', genislikCh: 10, filterType: 'checkedlist' }).tipBool()
+			new GridKolon({ belirtec: 'tartireferans', text: 'Tartı Ref.', genislikCh: 15 })
+			/*new GridKolon({ belirtec: 'calismadurumu', text: 'Aktif?', genislikCh: 10, filterType: 'checkedlist' }).tipBool(),
+			new GridKolon({ belirtec: 'satilamazfl', text: 'SatılaMAz?', genislikCh: 10, filterType: 'checkedlist' }).tipBool()*/
 		)
 		for (let i = 1; i <= this.satFiyatSayi; i++)
-			liste.push(new GridKolon({ belirtec: `satfiyat${i}`, text: `S.Fiyat${i}`, genislikCh: 8 }).tipDecimal_fiyat())
-		liste.push(new GridKolon({ belirtec: 'almfiyat', text: 'A.Fiyat', genislikCh: 8 }).tipDecimal_fiyat())
+			liste.push(new GridKolon({ belirtec: `satfiyat${i}`, text: `S.Fiyat${i}`, genislikCh: 11 }).tipDecimal_fiyat())
+		liste.push(new GridKolon({ belirtec: 'almfiyat', text: 'Alm.Fiyat', genislikCh: 11 }).tipDecimal_fiyat())
 	}
 	static async loadServerDataDogrudan({ offlineMode, offlineRequest } = {}) {
 		if (offlineRequest) {
