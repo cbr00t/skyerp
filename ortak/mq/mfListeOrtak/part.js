@@ -78,8 +78,12 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		});
 		let mfSinif = this._mfSinif = this.getMFSinif(e); $.extend(e, { sender: this, gridPart: this, mfSinif });
 		let {eConf} = e; if (eConf != null) { this.eConf = eConf }
-		let secimler = e.secimler = this.getSecimler(e); let {sinifAdi} = e;
-		if (mfSinif) { if (!secimler) { secimler = mfSinif.newSecimler } if (sinifAdi == null) { sinifAdi = mfSinif.listeSinifAdi ?? mfSinif.sinifAdi } }
+		let secimler = e.secimler = this.getSecimler(e);
+		let {sinifAdi} = e
+		if (mfSinif) {
+			if (!secimler) { secimler = this.secimler = mfSinif.newSecimler }
+			if (sinifAdi == null) { sinifAdi = mfSinif.listeSinifAdi ?? mfSinif.sinifAdi }
+		}
 		let _e = { ...e, sender: this, builder: this.builder, mfSinif, sinifAdi, secimler };
 		if (secimler) {
 			let {secimlerDuzenleBlock} = this;

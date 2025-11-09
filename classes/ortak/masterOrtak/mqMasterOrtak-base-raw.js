@@ -1,8 +1,8 @@
 class MQMasterOrtakBase extends MQCogul {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimUISinif() { return super.tanimUISinif ?? ModelTanimPart }
-	static get secimSinif() { return super.secimSinif } static get ozelSecimSinif() { return null }
-	static get secimSinif() { let {ozelSecimSinif} = this; return ozelSecimSinif === undefined ? super.secimSinif : ozelSecimSinif }
+	static get secimSinif() { return super.secimSinif } static get ozelSecimSinif() { return undefined }
+	static get secimSinif() { let {ozelSecimSinif} = this; return ozelSecimSinif === undefined ? super.secimSinif ?? undefined : ozelSecimSinif }
 	static get gonderildiDesteklenirmi() { return false } static get raporKullanilirmi() { return false }
 	static get kolonFiltreKullanilirmi() { return true } static get raporKullanilirmi() { return false }
 	static get tanimlanabilirmi() { return super.tanimlanabilirmi } static get degistirilebilirmi() { return super.degistirilebilirmi }
