@@ -76,7 +76,7 @@ class TabletApp extends TicariApp {
 		addMenuSubItems('TANIM', 'Tanımlar', [
 			MQTabStok, MQTabCari, MQTabPlasiyer, MQTabSube, MQTabYer,
 			MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka, MQTabNakliyeSekli,
-			MQTabTahsilSekli, MQPaket, MQUrunPaket, MQTabBarkodReferans, MQTabBarkodAyrisim
+			MQTabTahsilSekli, MQTabBarkodReferans, MQTabBarkodAyrisim
 		])
 		items.push(new FRMenuChoice({ mne: 'BILGIGONDER', text: 'Bilgi Gönder', block: e => this.bilgiGonderIstendi(e) }))
 		// addMenuSubItems(null, null, [MQTest])
