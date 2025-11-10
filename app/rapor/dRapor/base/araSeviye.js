@@ -69,16 +69,18 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	static set yatayTip2Bilgi(value) { this._yatayTip2Bilgi = value }
 	secimlerDuzenle(e) {
-		super.secimlerDuzenle(e); let {secimler} = e, {grupVeToplam} = this.tabloYapi;
+		super.secimlerDuzenle(e)
+		let {secimler} = e, {grupVeToplam} = this.tabloYapi
 		if (this.konsolideVarmi) {
-			let {session} = config, {dbName: buDBName} = session, {ekDBListe} = app.params?.dRapor ?? {};
-			let tumDBNameSet = asSet([ buDBName, ...(ekDBListe ?? []) ]);
-			let grupKod = 'DB'; secimler.grupEkle(grupKod, 'Veritabanı');
+			let {session} = config, {dbName: buDBName} = session, {ekDBListe} = app.params?.dRapor ?? {}
+			let tumDBNameSet = asSet([ buDBName, ...(ekDBListe ?? []) ])
+			let grupKod = 'DB'
+			secimler.grupEkle(grupKod, 'Veritabanı')
 			let sec = new SecimBirKismi({ etiket: 'Veritabanı', grupKod }).birKismi().autoBind();
 			app.wsDBListe()
 				.then(arr => arr.filter(x => tumDBNameSet[x]).map(x => new CKodVeAdi([x, x])))
 				.then(kaListe => sec.tekSecim = new TekSecim({ kaListe }));
-			secimler.secimTopluEkle({ db: sec });
+			secimler.secimTopluEkle({ db: sec })
 			// result.addGrupBasit('DB', 'Veritabanı', 'db')
 		}
 		let islemYap = (keys, callSelector, args) => {
@@ -249,7 +251,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				ekDBListe = filtreDBListe.filter(name => name != buDBName)
 				/* if (!filtreDBSet[buDBName]) { filtreDBSet[buDBName] = true } */
 			}
-			let asilUniDuzenlendimi = false, asilUni = stm.sent = stm.sent.asUnionAll();
+			let asilUniDuzenlendimi = false, asilUni = stm.sent = stm.sent.asUnionAll()
 			if (!filtreDBSet || filtreDBSet[buDBName]) {
 				if (!asilUni.liste.length) { asilUni.add(new MQSent()) }
 				for (let {sahalar} of asilUni) {

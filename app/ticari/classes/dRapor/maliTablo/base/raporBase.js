@@ -37,15 +37,25 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		result.addToplamBasit_bedel('BEDEL', 'Bedel', this.sahaAlias)
 	}
 	tabloYapiDuzenle_son({ result }) { }
-	secimlerDuzenle({ secimler: sec }) {
+	secimlerDuzenle({ secimler }) {
 		super.secimlerDuzenle(...arguments)
 		this.class.maliTablo_basSecimlerDuzenle(...arguments)
+		let {session} = config, {dbName: buDBName} = session, {konsolideCikti, ekDBListe} = app.params?.dRapor ?? {}
+		if (konsolideCikti) {
+			let tumDBNameSet = asSet([ buDBName, ...(ekDBListe ?? []) ])
+			let grupKod = 'donemVeTarih'; secimler.grupEkle(grupKod, 'Veritabanı')
+			let sec = new SecimBirKismi({ etiket: 'Veritabanı', grupKod }).birKismi().autoBind();
+			app.wsDBListe()
+				.then(arr => arr.filter(x => tumDBNameSet[x]).map(x => new CKodVeAdi([x, x])))
+				.then(kaListe => sec.tekSecim = new TekSecim({ kaListe }));
+			secimler.secimTopluEkle({ db: sec })
+		}
 	}
-	static maliTablo_basSecimlerDuzenle({ secimler: sec }) {
+	static maliTablo_basSecimlerDuzenle({ secimler }) {
 		let {takipNo} = app.params.ticariGenel.kullanim
-		if (takipNo) { sec.addKA('takip', DMQTakipNo).addKA('takipGrup', DMQTakipGrup) }
-		sec.addKA('sube', DMQSube).addKA('subeGrup', DMQSubeGrup)
-		
+		if (takipNo)
+			secimler.addKA('takip', DMQTakipNo).addKA('takipGrup', DMQTakipGrup)
+		secimler.addKA('sube', DMQSube).addKA('subeGrup', DMQSubeGrup)
 		let harSiniflar = SBTabloHesapTipi.kaListe.map( ({ ekBilgi }) => ekBilgi?.harSinif ).filter(x => x)
 		for (let harSinif of harSiniflar)
 			harSinif.maliTablo_secimlerEkDuzenle(...arguments)
@@ -186,13 +196,18 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 	async loadServerDataInternal(e) {
 		await super.loadServerDataInternal(e)
 		let {detayli, konsolideCikti, ekDBListe, aktifDB, detaylar, detay: _det} = e
-		let yatayDegerSet = e.yatayDegerSet = {}
-		let rapor = this, {raporTanim = {}, secimler, secimler: {tarihBS: donemBS}, sahaAlias: bedelAlias} = this
+		let rapor = this, {raporTanim = {}, secimler, secimler: { tarihBS: donemBS, db: { value: filtreDBListe = [] } = {} }, sahaAlias: bedelAlias} = this
 		let {raporTanim: { yatayAnalizVarmi, yatayAnaliz } = {}} = this
 		detaylar ??= _det ? [_det] : raporTanim.detaylar
 		let yatayDBmi = yatayAnalizVarmi && yatayAnaliz.dbmi
+		let yatayDegerSet = e.yatayDegerSet = {}
 		let id2Promise = {}, id2Detay = e.id2Detay = {}, formulYapilari = e.formulYapilari = {}
-		let _e = { ...e, rapor, raporTanim, secimler, donemBS, detaylar, yatayAnalizVarmi, yatayAnaliz }
+		let filtreDBSet = null
+		if (konsolideCikti && filtreDBListe?.length) {
+			let tumDBNameSet = asSet([ aktifDB, ...(ekDBListe ?? []) ])
+			filtreDBSet = asSet(filtreDBListe.filter(_ => tumDBNameSet[_]))
+		}
+		let _e = { ...e, rapor, raporTanim, secimler, donemBS, detaylar, yatayAnalizVarmi, yatayAnaliz, filtreDBListe }
 		for (let key of ['altSeviyeToplamimi', 'satirlarToplamimi']) { formulYapilari[key] = [] }
 		for (let det of detaylar) {
 			let {sayac: id, hesapTipi = {}, veriTipi: { donemTipi }} = det
@@ -217,10 +232,11 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			}
 			if (konsolideCikti) {
 				let orjUni = sonucUni, yatayAlias = yatayDBmi ? 'yatay' : null;
-				{
-					sonucUni = _e.uni = stm.sent = new MQUnionAll()
+				sonucUni = _e.uni = stm.sent = new MQUnionAll()
+				if (!filtreDBSet || filtreDBSet[aktifDB]) {
 					let uni = orjUni.deepCopy()
 					for (let {sahalar} of uni) {
+						sahalar.add(`'${aktifDB}' _db`)
 						if (yatayAlias)
 							sahalar.add(`'${aktifDB}' ${yatayAlias}`)
 						if (detayli && yatayAlias != 'db')
@@ -229,6 +245,8 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 					sonucUni.addAll(uni)
 				}
 				for (let db of ekDBListe ?? []) {
+					if (filtreDBSet && !filtreDBSet[db])
+						continue
 					let uni = orjUni.deepCopy()
 					for (let {from, sahalar} of uni) {
 						for (let aMQAliasliYapi of from) {
@@ -236,6 +254,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 							if (table && !table.includes('.'))
 								table = aMQAliasliYapi.deger = `${db}..${table}`
 						}
+						sahalar.add(`'${db}' _db`)
 						if (yatayAlias)
 							sahalar.add(`'${db}' ${yatayAlias}`)
 						if (detayli && yatayAlias != 'db')
@@ -260,7 +279,6 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			if (!det)
 				continue
 			let _recs = await promise ?? []
-			donemBS;
 			let {bakiyemi, borcmu, alacakmi}  = det.veriTipi?.ekBilgi
 			if (bakiyemi) {
 				// recs: bakiye duzenle
