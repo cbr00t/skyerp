@@ -7,11 +7,14 @@ class BarkodParser extends CObject {
 	parseSonrasi(e) { let {carpan} = this; if (carpan && carpan != 1) this.miktar = (this.miktar || 1) * carpan; return true }
 	setGlobals(e) {
 		e = e || {}; let barkod = e.barkod || this.barkod || this.okunanBarkod;
-		if (barkod) { const carpan = e.carpan || 1; $.extend(this, { okunanBarkod: barkod, barkod, carpan }) }
+		if (barkod) { let carpan = e.carpan || 1; $.extend(this, { okunanBarkod: barkod, barkod, carpan }) }
 	}
-	async shEkBilgileriBelirle(e) {
-		e = e || {}; let shKod = this.shKod = e.shKod || this.shKod; if (!shKod) { return false } if (e.basitmi) { return true }
-		const {fis} = e, brmFiyatSaha = 'satfiyat1';
+	async shEkBilgileriBelirle(e = {}) {
+		let shKod = this.shKod = e.shKod || this.shKod
+		if (!shKod)
+			return false
+		if (e.basitmi) { return true }
+		let brmFiyatSaha = 'satfiyat1'
 		let sent = new MQSent({
 			from: 'stkmst stk', where: [
 				new MQOrClause([
@@ -23,9 +26,15 @@ class BarkodParser extends CObject {
 				])
 			],
 			sahalar: [ 'stk.kod shKod', 'stk.aciklama shAdi', 'stk.brm', `stk.${brmFiyatSaha} fiyat` ]
-		});
-		const stm = new MQStm({ sent }), rec = e.shRec = await app.sqlExecTekil(stm); if (!rec) { return false }
-		for (const key in rec) { const value = rec[key]; if (value != null) { this[key] = value } }
+		})
+		let stm = new MQStm({ sent })
+		let rec = e.shRec = await MQCogul.sqlExecTekil(stm)
+		if (!rec) { return false }
+		for (let key in rec) {
+			let value = rec[key]
+			if (value != null)
+				this[key] = value
+		}
 		return true
 	}
 }

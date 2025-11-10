@@ -16,7 +16,8 @@ class TabletApp extends TicariApp {
 				MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
 				MQTabBolge, MQTabIl, MQTabUlke, MQTabCariTip,
 				MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
-				MQTabPlasiyer, MQTabStok, MQTabCari, MQTabBarkodReferans
+				MQTabPlasiyer, MQTabStok, MQTabCari, MQPaket, MQUrunPaket,
+				MQTabBarkodReferans, MQTabBarkodAyrisim
 			]
 			for (let {kami, mfSinif} of HMRBilgi) {
 				if (kami && mfSinif)
@@ -75,7 +76,7 @@ class TabletApp extends TicariApp {
 		addMenuSubItems('TANIM', 'Tanımlar', [
 			MQTabStok, MQTabCari, MQTabPlasiyer, MQTabSube, MQTabYer,
 			MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka, MQTabNakliyeSekli,
-			MQTabTahsilSekli, MQTabBarkodReferans
+			MQTabTahsilSekli, MQPaket, MQUrunPaket, MQTabBarkodReferans, MQTabBarkodAyrisim
 		])
 		items.push(new FRMenuChoice({ mne: 'BILGIGONDER', text: 'Bilgi Gönder', block: e => this.bilgiGonderIstendi(e) }))
 		// addMenuSubItems(null, null, [MQTest])

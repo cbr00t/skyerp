@@ -85,30 +85,51 @@ class MQSayacli extends MQCogul {
 		hv.xsayac = this.sayac || 0;
 		let {kodKullanilirmi} = this.class; if (kodKullanilirmi) { hv.xkod = this.kod || '' }
 	}
-	keyHostVarsDuzenle(e) {
-		super.keyHostVarsDuzenle(e); const {hv} = e, {sayacSaha, kodKullanilirmi, kodSaha} = this.class, {sayac, kod} = this;
-		if (sayacSaha && sayac) { hv[sayacSaha] = sayac }
+	keyHostVarsDuzenle({ hv, queryBuild, offlineRequest, offlineMode }) {
+		super.keyHostVarsDuzenle(...arguments)
+		let {sayac, kod, class: { sayacSaha, kodKullanilirmi, kodSaha }} = this
+		if (sayacSaha && sayac)
+			hv[sayacSaha] = sayac
 	}
-	keySetValues(e) {
-		super.keySetValues(e); let {rec} = e, {sayacSaha, kodKullanilirmi, kodSaha} = this.class;
-		if (sayacSaha) { let value = rec?.[sayacSaha]; if (value != null) { this.sayac = value } }
-		if (kodKullanilirmi && kodSaha) { let value = rec?.[kodSaha]; if (value != null) { this.kod = value } }
+	keySetValues({ rec }) {
+		super.keySetValues(...arguments)
+		let {sayacSaha, kodKullanilirmi, kodSaha} = this.class
+		if (sayacSaha) {
+			let value = rec?.[sayacSaha]
+			if (value != null)
+				this.sayac = value
+		}
+		if (kodKullanilirmi && kodSaha) {
+			let value = rec?.[kodSaha]
+			if (value != null)
+				this.kod = value
+		}
 	}
 	alternateKeyHostVarsDuzenle(e) {
 		super.alternateKeyHostVarsDuzenle(e); const {hv} = e, {kodKullanilirmi, kodSaha} = this.class;
 		if (kodKullanilirmi) { hv[kodSaha] = this.kod } else { delete hv[kodSaha] }
 	}
-	hostVarsDuzenle(e) {
-		super.hostVarsDuzenle(e); const {sayacSaha} = this.class;
-		const {hv} = e; $.extend(e.hv, this.alternateKeyHostVars(e)); if (sayacSaha) { delete hv[sayacSaha] }
-		if (this.class.zeminRenkDesteklermi) { hv.oscolor = html2OSColor(this.zeminRenk) || 0 }
+	hostVarsDuzenle({ hv, queryBuild, offlineRequest, offlineMode }) {
+		super.hostVarsDuzenle(...arguments)
+		let {sayacSaha} = this.class
+		$.extend(hv, this.alternateKeyHostVars(e))
+		if (sayacSaha) {
+			if ((queryBuild || (offlineRequest && !offlineMode)))
+				hv[sayacSaha] = this.sayac ?? null
+			else
+				delete hv[sayacSaha]
+		}
+		if (this.class.zeminRenkDesteklermi)
+			hv.oscolor = html2OSColor(this.zeminRenk) || 0
 	}
-	setValues(e) {
-		e = e || {}; super.setValues(e); const {rec} = e;
-		if (this.class.zeminRenkDesteklermi) { const {oscolor} = rec; this.zeminRenk = oscolor ? os2HTMLColor(oscolor) : '' }
+	setValues({ rec: oscolor } = {}) {
+		super.setValues(...arguments)
+		let {zeminRenkDesteklermi} = this.class
+		if (zeminRenkDesteklermi)
+			this.zeminRenk = oscolor ? os2HTMLColor(oscolor) : ''
 	}
 	inExp_setValues({ rec }) {
-		super.inExp_setValues(...arguments);
+		super.inExp_setValues(...arguments)
 		/*let {guidmi} = this.class; if (!guidmi) { this.sayac = null } */
 		this.sayac = null
 	}

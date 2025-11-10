@@ -63,45 +63,46 @@ class MQTabBarkodAyrisim extends MQKAOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'BARAYR' } static get sinifAdi() { return 'Ayrışım Barkod' }
 	static get table() { return 'barayrim' } static get tableAlias() { return 'ayr' }
-	static get onlineIdSaha() { return null }
+	static get offlineGonderYapilirmi() { return false }
+
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
+		let bhEkle = (prefix) => {
+			let prefixLower = prefix.toLowerCase()
+			$.extend(pTanim, {
+				[`${prefix}Bas`]: new PInstNum(`${prefixLower}bas`),
+				[`${prefix}Hane`]: new PInstNum(`${prefixLower}hane`)
+			 })
+		}
 		$.extend(pTanim, {
-			stokKod: new PInstStr('stokkod'),
-			varsayilanmi: new PInstBool('varsayilan'),
-			kolimi: new PInstBitBool('bkolibarkodmu'),
-			icAdet: new PInstNum('koliicadet')
+			ayiracSayi: new PInstNum('ayiracsayi'),
+			ayiracStr: new PInstStr('ayiracstr'),
+			bosFormat: new PInstStr('bosformat'),
+			formatTipi: new PInstStr('formattipi')
 		})
+		for (let key of ['barkod'])
+			bhEkle(key)
+		for (let {belirtec, numerikmi} of HMRBilgi)
+			bhEkle(belirtec)
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
-		liste.push(
-			new GridKolon('stokkod', 'Stok', 25),
-			new GridKolon('stokadi', 'Stok Adı', 40, 'stk.aciklama'),
-			new GridKolon('varsayilan', 'Varsayılan?', 10).tipBool(),
-			new GridKolon('bkolibarkodmu', 'Koli?', 8).tipBool(),
-			new GridKolon('koliicadet', 'İç Adet', 10).tipNumerik()
-		)
+		liste.push(...[
+			new GridKolon('ayiracsayi', 'A.Sayı', 8).tipNumerik(),
+			new GridKolon('ayiracstr', 'Ayıraç', 8),
+			new GridKolon('bosformat', 'Boş Format', 10),
+			new GridKolon('formattipi', 'Tip', 8)
+		])
 	}
-	static loadServerData_queryDuzenle_son({ stm: { orderBy }, sent }) {
+	static loadServerData_queryDuzenle_son({ stm: { orderBy }, sent, sent: { sahalar, where: wh }, offlineRequest, offlineMode }) {
 		super.loadServerData_queryDuzenle_son(...arguments)
-		let {tableAlias: alias, kodSaha} = this
-		sent.fromIliski('stkmst stk', `${alias}.stokkod = stk.kod`)
-		orderBy.liste = [kodSaha, 'varsayilan DESC', 'stokkod']
+		let {tableAlias: alias, pTanim} = this
+		for (let {rowAttr} of values(pTanim))
+			sahalar.add(`${alias}.${rowAttr}`)
 	}
 }
 
-/*aciklama
-: 
-{name: 'aciklama', xtype: 175, length: 30}
-ayiracsayi
-: 
-{name: 'ayiracsayi', xtype: 48, length: 1}
-ayiracstr
-: 
-{name: 'ayiracstr', xtype: 175, length: 1}
-barkodbas
-: 
+/*
 {name: 'barkodbas', xtype: 52, length: 2}
 barkodhane
 : 
@@ -236,11 +237,6 @@ kavalabas
 : 
 {name: 'kavalabas', xtype: 52, length: 2}
 kavalahane
-: 
-{name: 'kavalahane', xtype: 52, length: 2}
-kod
-: 
-{name: 'kod', xtype: 175, length: 10}
 lotnobas
 : 
 {name: 'lotnobas', xtype: 52, length: 2}

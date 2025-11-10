@@ -486,18 +486,27 @@ class MQYapi extends CIO {
 	offlineBuildSQLiteQuery({ result: r = [] }) {
 		let {class: { table, primaryKeys }} = this
 		let e = { ...arguments[0], offlineRequest: true, offlineMode: true, queryBuild: true }
-		let keyHV = this.keyHostVars(e)
-		if (empty(keyHV))
-			keyHV = this.alternateKeyHostVars(e)
 		let hv = this.hostVars(e)
-		for (let [k, v] of entries(keyHV)) {
+		let altKeyHV = this.alternateKeyHostVars(e)
+		let keyHV = this.keyHostVars(e)
+		let priHV, tumKeyHV = {}
+		if (!empty(altKeyHV)) {
+			Object.assign(tumKeyHV, altKeyHV)
+			priHV = altKeyHV
+		}
+		if (!empty(keyHV)) {
+			Object.assign(tumKeyHV, keyHV)
+			if (empty(priHV))
+				priHV = keyHV
+		}
+		for (let [k, v] of entries(tumKeyHV)) {
 			if (v !== undefined)
 				hv[k] = v
 		}
 		if (primaryKeys && $.isArray(primaryKeys))
 			primaryKeys = asSet(primaryKeys)
 		if (!primaryKeys)
-			primaryKeys = asSet(keys(keyHV))
+			primaryKeys = asSet(keys(priHV))
 		let hasMultiPK = keys(primaryKeys).length > 1
 		let atFirst = true, i = 0, c = keys(hv).length
 		r.push(`CREATE TABLE IF NOT EXISTS ${table} (`)

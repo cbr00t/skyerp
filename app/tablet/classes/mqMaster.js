@@ -157,3 +157,33 @@ class MQTabTahsilSekli extends MQKAOrtak {
 	}
 }
 
+class MQPaket extends MQSayacliKAOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'PAKET' } static get sinifAdi() { return 'Paket' }
+	static get table() { return 'paket' } static get tableAlias() { return 'pak' }
+	static get zeminRenkDesteklermi() { return true }
+	static get offlineGonderYapilirmi() { return false }
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		$.extend(pTanim, {
+			anaCins: new PInstStr('anacins'),
+			refSayac: new PInst('refsayac')
+		})
+	}
+}
+class MQUrunPaket extends MQSayacliOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'UPAK' } static get sinifAdi() { return 'Ürün Paket' }
+	static get table() { return 'urunpaket' } static get tableAlias() { return 'upak' }
+	static get offlineGonderYapilirmi() { return false }
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		$.extend(pTanim, {
+			urunKod: new PInstStr('urunkod'),
+			miktar: new PInstNum('urunmiktari'),
+			varsayilanmi: new PInstBool('varsayilan'),
+			paketSayac: new PInstNum('paketsayac'),
+			refSayac: new PInst('refsayac')
+		})
+	}
+}
