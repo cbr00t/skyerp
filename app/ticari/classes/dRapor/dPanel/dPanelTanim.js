@@ -349,7 +349,7 @@ class DPanelDetay extends MQDetayGUID {
 			raporTanim.id = value
 	}
 	get rapor_adi() { return this.raporTanim?.aciklama }
-	set rapor_id(value) {
+	set rapor_adi(value) {
 		let {raporTanim} = this
 		if (raporTanim)
 			raporTanim.aciklama = value

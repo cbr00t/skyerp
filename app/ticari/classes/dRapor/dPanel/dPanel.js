@@ -345,8 +345,14 @@ class DPanel extends Part {
 		if (raporTanim && id2Detay) {
 			raporTanim.detaylarReset()
 			for (let det of values(id2Detay)) {
-				if (det)
-					raporTanim.addDetay(det)
+				if (!det)
+					continue
+				let {rapor_id, rapor_adi} = det
+				if (rapor_id)
+					det.raporId = rapor_id
+				if (rapor_adi)
+					det.raporAdi = rapor_adi
+				raporTanim.addDetay(det)
 			}
 			await raporTanim?.setDefault()
 		}
