@@ -62,6 +62,11 @@ class CIO extends CObject {
 		if (_p) { inst._p = {}; for (const ioAttr in _p) { const _pInst = _p[ioAttr], pInst = _pInst ? _pInst.deepCopy(e) : _pInst; inst._p[ioAttr] = pInst } }
 		return inst
 	}
+	static cacheReset() {
+		let {_cls2PTanim = {}} = CIO
+		if (_cls2PTanim)
+			CIO._cls2PTanim = {}
+	}
 }
 /*class CIO_Test extends CIO {
     static { window[this.name] = this; this._key2Class[this.name] = this }

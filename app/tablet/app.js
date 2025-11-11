@@ -31,7 +31,6 @@ class TabletApp extends TicariApp {
 			MQParam,
 			...this.offlineAktarimSiniflar.filter(_ => _ != MQTabPlasiyer)
 		]
-	
 	}
 
 	constructor(e) {

@@ -67,7 +67,7 @@ class MQTabBarkodAyrisim extends MQKAOrtak {
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		let bhEkle = (prefix) => {
+		let bhEkle = prefix => {
 			let prefixLower = prefix.toLowerCase()
 			$.extend(pTanim, {
 				[`${prefix}Bas`]: new PInstNum(`${prefixLower}bas`),
@@ -82,7 +82,7 @@ class MQTabBarkodAyrisim extends MQKAOrtak {
 		})
 		for (let key of ['barkod'])
 			bhEkle(key)
-		for (let {belirtec, numerikmi} of HMRBilgi)
+		for (let {belirtec} of HMRBilgi)
 			bhEkle(belirtec)
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
