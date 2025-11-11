@@ -231,9 +231,10 @@ class Hareketci extends CObject {
 	uniDuzenle(e) {
 		this.uniDuzenleOncesi(e)
 		let {uygunluk2UnionBilgiListe, attrSet} = this, {varsayilanHV: defHV, zorunluAttrSet} = this.class
-		let rapor = e.rapor ?? e.sender, secimler = e.secimler ?? rapor?.secimler;
-		if (empty(attrSet)) { attrSet = null }
-		let {uygunluk} = this, uygunlukVarmi = !empty(uygunluk);
+		let rapor = e.rapor ?? e.sender, secimler = e.secimler ?? rapor?.secimler
+		if (empty(attrSet))
+			attrSet = null
+		let {uygunluk} = this, uygunlukVarmi = !empty(uygunluk)
 		if (!uygunlukVarmi) {
 			let {hareketTipSecim} = this.class; uygunlukVarmi = !empty(hareketTipSecim.kaListe)
 			if (uygunlukVarmi)
@@ -241,77 +242,95 @@ class Hareketci extends CObject {
 		}
 		let sender = this, hareketci = this, {uni, maliTablomu, sender: { finansalAnalizmi } = {}} = e
 		$.extend(e, { uygunluk, zorunluAttrSet })
-		for (let [selectorStr, unionBilgiListe] of Object.entries(uygunluk2UnionBilgiListe)) {
-			let uygunmu = true; if (uygunlukVarmi) {
-				let keys = selectorStr.split('$').filter(x => !!x);
-				uygunmu = !!keys.find(key => uygunluk[key]); if (!uygunmu) { continue }
+		for (let [selectorStr, unionBilgiListe] of entries(uygunluk2UnionBilgiListe)) {
+			let uygunmu = true
+			if (uygunlukVarmi) {
+				let _keys = selectorStr.split('$').filter(x => !!x)
+				uygunmu = !!_keys.find(key => uygunluk[key])
+				if (!uygunmu)
+					continue
 			}
 			unionBilgiListe = unionBilgiListe.map(item =>
-				getFuncValue.call(this, item, e)).filter(({ sent, hv }) => sent && !empty(hv));
-			let tumHVKeys = { ...zorunluAttrSet, ...defHV };
-			for (let {hv} of unionBilgiListe) { $.extend(tumHVKeys, hv) }
+				getFuncValue.call(this, item, e)).filter(({ sent, hv }) => sent && !empty(hv))
+			let tumHVKeys = { ...zorunluAttrSet, ...defHV }
+			for (let {hv} of unionBilgiListe)
+				$.extend(tumHVKeys, hv)
 			for (let uniBilgi of unionBilgiListe) {
 				let {sent, hv} = uniBilgi, _e = { ...e, sent, hv };
 				if (hv) {
-					sent = _e.sent = sent.deepCopy();
+					sent = _e.sent = sent.deepCopy()
 					for (let alias in tumHVKeys) {
 						if (attrSet && !attrSet[alias])
 							continue
 						let deger = hv[alias] || defHV[alias];
-						if (isFunction(deger)) { deger = deger?.call(this, { ...e, sender, hareketci, uniBilgi, key: alias, sent, hv, defHV }) }
+						if (isFunction(deger))
+							deger = deger.call(this, { ...e, sender, hareketci, uniBilgi, key: alias, sent, hv, defHV })
 						deger = deger ?? 'NULL';
-						let saha = deger; if (alias) { saha += ` ${alias}` }
+						let saha = deger
+						if (alias)
+							saha += ` ${alias}`
 						sent.add(saha)
 					}
 					hv = { ...defHV, ..._e.hv }
 				}
-				let hvDegeri = key => hv?.[key] || defHV?.[key];
-				$.extend(_e, { defHV, hv, har: this, harSinif: this.class, rapor, secimler, hvDegeri });
-				this.uniDuzenle_tumSonIslemler(_e); sent = _e.sent;
-				if (!(maliTablomu || finansalAnalizmi)) { sent.groupByOlustur().gereksizTablolariSil() }
-				if (sent?.sahalar?.liste?.length) { uni.add(sent) }
+				let hvDegeri = key => hv?.[key] || defHV?.[key]
+				$.extend(_e, { defHV, hv, har: this, harSinif: this.class, rapor, secimler, hvDegeri })
+				this.uniDuzenle_tumSonIslemler(_e); sent = _e.sent
+				if (!(maliTablomu || finansalAnalizmi))
+					sent.groupByOlustur().gereksizTablolariSil()
+				if (sent?.sahalar?.liste?.length)
+					uni.add(sent)
 			}
 		}
 	}
 	uniDuzenleOncesi(e) { }
 	uniDuzenle_tumSonIslemler(e) {    /* degerci bosGcbEkle value: sent. degerci koopDonemEkle value: sent. degerci sonIslem value: sent */
-		return this.uniDuzenle_whereYapi(e).uniDuzenle_ekDuzenleyiciler(e).uniDuzenle_sonIslem(e)
+		return this.uniDuzenle_whereYapi(e).uniDuzenle_ekDuzenleyiciler(e)
+					.uniDuzenle_sonIslem(e)
 	}
 	uniDuzenle_whereYapi(e) {
-		let {whereYapi: handlers} = this; if (handlers) {
-			let _e = { ...e, hareketci: this }, {sent} = e
-			if (sent) { _e.where = sent.where }
+		let {whereYapi: handlers} = this
+		if (handlers) {
+			let {sent} = e, _e = { ...e, hareketci: this }
+			if (sent)
+				_e.where = sent.where
 			for (let key in handlers) {
-				let handler = handlers[key];
-				if (handler) { getFuncValue.call(this, handler, _e) }
+				let handler = handlers[key]
+				if (handler)
+					handler.call(this, _e)
 			}
 		}
 		return this
 	}
 	uniDuzenle_ekDuzenleyiciler(e) {
-		let {ekDuzenleyiciler: handlers} = this; if (handlers) {
-			let _e = { ...e, hareketci: this }, {sent} = e
+		let {ekDuzenleyiciler: handlers} = this
+		if (handlers) {
+			let {sent} = e, _e = { ...e, hareketci: this }
 			if (sent) { _e.where = sent.where }
 			for (let key in handlers) {
-				let handler = handlers[key];
-				if (handler) { getFuncValue.call(this, handler, _e) }
+				let handler = handlers[key]
+				if (handler)
+					handler.call(this, _e)
 			}
 		}
 		return this
 	}
 	uniDuzenle_sonIslem(e) {
-		let {sonIslem: handler} = this; if (handler) {
-			let _e = { ...e, hareketci: this }, {sent} = e
-			if (sent) { _e.where = sent.where }
-			getFuncValue.call(this, handler, _e)
+		let {sonIslem: handler} = this
+		if (handler) {
+			let {sent} = e, _e = { ...e, hareketci: this }
+			if (sent)
+				_e.where = sent.where
+			handler.call(this, _e)
 		}
 		return this
 	}
 	sentSahaEkleyici(e) {
-		let {sent, sql, alias, attr2Deger} = e, {attrSet} = this
+		let {attrSet} = this, {sent, sql, alias, attr2Deger} = e
 		let saha = alias ? new MQAliasliYapi({ alias, deger: sql }) : MQAliasliYapi.newForSahaText(sql)
 		let {alias: sahaAlias} = saha
-		if (!attrSet || attrSet[sahaAlias]) { sent.add(saha) }
+		if (!attrSet || attrSet[sahaAlias])
+			sent.add(saha)
 		attr2Deger[sahaAlias] = saha.deger
 		return this
 	}

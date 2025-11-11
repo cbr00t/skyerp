@@ -36,6 +36,12 @@ class AlimSatisOrtakHareketci extends Hareketci {
             }
 		})
     }
+	uniDuzenleOncesi({ stokmu, hizmetmi } = {}) {
+		super.uniDuzenleOncesi(...arguments)
+		this.ekUygunluk = (stokmu || hizmetmi)
+			? { stokmu, hizmetmi }
+			: undefined
+	}
 	uniOrtakSonIslem({ sender, hv, sent, sent: { from, where: wh }, secimler, det = {}, detSecimler = {}, donemTipi, sqlNull, sqlEmpty, sqlZero }) {
 		super.uniOrtakSonIslem(...arguments)
 		/*if (!from.aliasIcinTable('sub')) { sent.fis2SubeBagla() }
@@ -54,7 +60,7 @@ class AlimSatisOrtakHareketci extends Hareketci {
 		let {uygunluk, liste} = e, {maliTablo = {}, class: { almSat }} = this
 		let {dRapor: { ihracatIntacdanmi } = {}} = app.params
 		let {det, det: { hesapTipi, veriTipi, shStokHizmet = {}, shIade, shAyrimTipi, shAyrimTipi: { ihracatmi } = {} } = {}} = maliTablo
-		let ekUygunluk = {
+		let ekUygunluk = this.ekUygunluk ?? {
 			stokmu: e.stokmu ?? (shStokHizmet?.stokmu || shStokHizmet?.birliktemi) ?? true,
 			hizmetmi: e.hizmetmi ?? (shStokHizmet?.hizmetmi || shStokHizmet?.birliktemi) ?? true
 		}
@@ -62,60 +68,74 @@ class AlimSatisOrtakHareketci extends Hareketci {
 		let getUniBilgi = hizmetmi => {
 			let stokmu = !hizmetmi
 			if (ekUygunluk) {
-				if (stokmu && !ekUygunluk.stokmu) { return null }
-				else if (hizmetmi && !ekUygunluk.hizmetmi) { return null }
+				if (stokmu && !ekUygunluk.stokmu)
+					return null
+				else if (hizmetmi && !ekUygunluk.hizmetmi)
+					return null
 			}
 			let mstAlias = hizmetmi ? 'hiz' : 'stk'
-			return new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent, sent: { where: wh, sahalar } }) => {
-				let harTable = hizmetmi ? 'pifhizmet' : 'pifstok';
-				sent.fisHareket('piffis', harTable);
-				wh.fisSilindiEkle().add(`fis.piftipi = 'F'`);
-				if (almSat) { wh.degerAta(almSat, 'fis.almsat') }
-				if (shIade?.secilen && !shIade.birliktemi) { wh.degerAta(shIade.iademi ? 'I' : '', 'fis.iade') }
-				let ayrimYapi = {
-					in: { },
-					notIn: { [ihracatIntacdanmi ? 'IH' : 'IN']: true }
-				};
-				if (shAyrimTipi?.secilen && !shAyrimTipi.birliktemi) {
-					if (ihracatmi) {
-						let inEk = ihracatIntacdanmi ? 'IN' : 'IH';
-						for (let key of [inEk, 'MI']) { ayrimYapi.in[key] = true }
-					}
-					else { for (let key of ['IN', 'MI', 'IH']) { ayrimYapi.notIn[key] = true } }
-					ayrimYapi.notIn[ihracatIntacdanmi ? 'IH': 'IN'] = true;
-					let addAyrimTipiKosul = key => {
-						let set = ayrimYapi[key]; if ($.isEmptyObject(set)) { return }
-						let selector = `${key}Dizi`; wh[selector](Object.keys(set), 'fis.ayrimtipi')
+			return new Hareketci_UniBilgi()
+				.sentDuzenleIslemi(({ sent, sent: { where: wh, sahalar } }) => {
+					let harTable = hizmetmi ? 'pifhizmet' : 'pifstok'
+					sent.fisHareket('piffis', harTable)
+					wh.fisSilindiEkle().add(`fis.piftipi = 'F'`)
+					if (almSat)
+						wh.degerAta(almSat, 'fis.almsat')
+					if (shIade?.secilen && !shIade.birliktemi)
+						wh.degerAta(shIade.iademi ? 'I' : '', 'fis.iade')
+					let ayrimYapi = {
+						in: {},
+						notIn: { [ihracatIntacdanmi ? 'IH' : 'IN']: true }
 					};
-					addAyrimTipiKosul('in'); addAyrimTipiKosul('notIn')
-				}
-				sent[`har2${hizmetmi ? 'Hizmet' : 'Stok'}Bagla`]()
-				sent[`${hizmetmi ? 'hizmet' : 'stok'}2GrupBagla`]()
-				sent[`${hizmetmi ? 'hizmet' : 'stok'}2IstGrupBagla`]()
-			}).hvDuzenleIslemi(({ hv, sqlZero }) => {
-				$.extend(hv, {
-					oncelik: '1', ba: `'B'`, fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac', kayittipi: `'AS'`,
-					islemadi: `'Alım/Satış'`, shTipi: `'${hizmetmi ? 'H' : 'S'}'`,
-					bizsubekod: 'fis.bizsubekod', ozelisaret: 'fis.ozelisaret', tarih: 'fis.tarih', fisnox: 'fis.fisnox',
-					refkod: 'fis.must', refadi: 'car.birunvan', dvkod: 'fis.dvkod', dvkur: 'fis.dvkur',
-					fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', miktar: 'har.miktar',
-					brutbedel: 'har.brutbedel', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
-					satiriskonto: 'har.satiriskonto', dipiskonto: 'har.dipiskonto',
-					harciro: 'har.harciro', topkdv: 'har.tumkdv',
-					fmalhammadde: hizmetmi ? sqlZero : 'har.fmalhammadde',
-					fmalmuh: hizmetmi ? sqlZero : 'har.fmalmuh',
-					shkod: `har.${hizmetmi} ? 'hizmetkod' : 'stokkod'`, shadi: `${mstAlias}.aciklama`,
-					grupkod: `${mstAlias}.grupkod`, istgrupkod: `${mstAlias}.${hizmetmi ? 'h' : 's'}istgrupkod`,
-					takipno: `(case when fis.takiportakdir = '' then har.dettakipno else fis.orttakipno end)`
+					if (shAyrimTipi?.secilen && !shAyrimTipi.birliktemi) {
+						if (ihracatmi) {
+							let inEk = ihracatIntacdanmi ? 'IN' : 'IH'
+							for (let key of [inEk, 'MI'])
+								ayrimYapi.in[key] = true
+						}
+						else {
+							for (let key of ['IN', 'MI', 'IH'])
+								ayrimYapi.notIn[key] = true
+						}
+						ayrimYapi.notIn[ihracatIntacdanmi ? 'IH': 'IN'] = true
+						let addAyrimTipiKosul = key => {
+							let set = ayrimYapi[key]
+							if (empty(set))
+								return
+							let selector = `${key}Dizi`
+							wh[selector](keys(set), 'fis.ayrimtipi')
+						};
+						addAyrimTipiKosul('in')
+						addAyrimTipiKosul('notIn')
+					}
+					sent[`har2${hizmetmi ? 'Hizmet' : 'Stok'}Bagla`]()
+					sent[`${hizmetmi ? 'hizmet' : 'stok'}2GrupBagla`]()
+					sent[`${hizmetmi ? 'hizmet' : 'stok'}2IstGrupBagla`]()
+				}).hvDuzenleIslemi(({ hv, sqlZero }) => {
+					$.extend(hv, {
+						oncelik: '1', ba: `'B'`, fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac',
+						kayittipi: `'AS'`, islemadi: `'Alım/Satış'`, bizsubekod: 'fis.bizsubekod',
+						ozelisaret: 'fis.ozelisaret', tarih: 'fis.tarih', fisnox: 'fis.fisnox',
+						refkod: 'fis.must', refadi: 'car.birunvan', dvkod: 'fis.dvkod', dvkur: 'fis.dvkur',
+						fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', miktar: 'har.miktar',
+						brutbedel: 'har.brutbedel', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
+						satiriskonto: 'har.satiriskonto', dipiskonto: 'har.dipiskonto',
+						harciro: 'har.harciro', topkdv: 'har.tumkdv',
+						fmalhammadde: hizmetmi ? sqlZero : 'har.fmalhammadde',
+						fmalmuh: hizmetmi ? sqlZero : 'har.fmalmuh',
+						shTipi: `'${hizmetmi ? 'H' : 'S'}'`,
+						shkod: `har.${hizmetmi} ? 'hizmetkod' : 'stokkod'`, shadi: `${mstAlias}.aciklama`,
+						grupkod: `${mstAlias}.grupkod`, istgrupkod: `${mstAlias}.${hizmetmi ? 'h' : 's'}istgrupkod`,
+						takipno: `(case when fis.takiportakdir = '' then har.dettakipno else fis.orttakipno end)`
+					})
 				})
-			})
-		};
+		}
 		$.extend(liste, {
 			stok$hizmet: [
-				getUniBilgi(false),    // stok
-				getUniBilgi(true)      // hizmet
+				getUniBilgi(false),         // stok
+				getUniBilgi(true)           // hizmet
 			].filter(x => !!x)
-		});
+		})
         return this
     }
 	static maliTablo_secimlerYapiDuzenle({ tip2SecimMFYapi, result }) {
@@ -139,7 +159,7 @@ class AlimSatisOrtakHareketci extends Hareketci {
 		let iGrpClause = hv.istgrupkod || `${mstAlias}.${prefix}istgrupkod`, iGrpAlias = `${prefix}igrp`
 		mstClause ||= hv.shkod || `har.${hizmetmi ? 'hizmet' : 'stok'}kod`
 		let tipClause = hv.tipkod || `${mstAlias}.tipi`, islClause = hv.islkod || hv.islemkod || 'fis.islkod'
-		let muhHesapClause = hv.muhhesapkod || `${mstAlias}.muhhesapkod`
+		let muhHesapClause = hv.muhhesapkod || `${mstAlias}.muhhesap`
 		if (sec && shStokHizmet.secilen && !shStokHizmet.birliktemi) {
 			let harStokmu = from.aliasIcinTable('har')?.deger == 'pifstok'
 			let harHizmetmi = from.aliasIcinTable('har')?.deger == 'pifhizmet'

@@ -226,8 +226,8 @@ class SBTabloVeriTipi extends TekSecim {
 	}
 	kaListeDuzenle_ticari({ kaListe, topSahaEkle }) {
 		let sentUygunluk = ({ hesapTipi: { ekBilgi: { querymi, hareketcimi, harSinif } = {} } = {} }) =>
-			querymi && (!hareketcimi || harSinif.ticarimi);
-		let gosterimUygunluk = sentUygunluk;
+			querymi && (!hareketcimi || harSinif.ticarimi)
+		let gosterimUygunluk = sentUygunluk
 		kaListe.push(...[
 			new CKodAdiVeEkBilgi(['SBRT', 'Satır Brüt', 'satirBrutmu', {
 				gosterimUygunluk, sentUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: hv => hv?.brutbedel || 'har.brutbedel' })
