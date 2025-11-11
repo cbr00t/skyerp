@@ -29,6 +29,10 @@ class SkyRaporApp extends TicariApp {
 		$.extend(params, { dRapor: MQParam_DRapor.getInstance() })
 	}
 	async ilkIslemler(e) {
+		if (empty(await app.sqlGetColumns('wpaneldetay', 'raporadi'))) {
+			try { await app.sqlExecNone(`alter table wpaneldetay add raporadi varchar(50) not null default ''`) }
+			catch (ex) { console.error(getErrorText(ex)) }
+		}
 		try {
 			let maxLen = 25, table = 'wgruprapor', field = 'raportip';
 			let len = Object.values(await app.sqlGetColumns(table, field))[0]?.length;

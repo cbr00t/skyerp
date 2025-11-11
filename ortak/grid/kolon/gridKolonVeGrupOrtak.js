@@ -47,6 +47,9 @@ class GridKolonVeGrupOrtak extends CObject {
 	setSQL(value) { this.sql = value; return this } setSql(value) { return this.setSQL(value) }
 	setUserData(value) { this.userData = value; return this }
 	setKisitDuzenleyici(value) { this.kisitDuzenleyici = value; return this }
+	setTip(value) { this.tip = value; return this }
+	setCellClassName(value) { this.cellClassName = value; return this }
+	setCellsRenderer(value) { this.cellsRenderer = value; return this }
 	static getTemplate(e) { const {key} = e; delete e.key; return getFuncValue(this._templates[key], e) }
 	static test() {
 		const cls = this, rfb = new RootFormBuilder().asWindow('Grid Kolon/Grup Test');

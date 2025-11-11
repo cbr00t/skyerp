@@ -419,7 +419,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		return recs
 	}
 	raporTanimIstendi(e) {
-		let {rapor, raporTanim} = this, {raporTanimSinif} = this.class;
+		let {rapor, raporTanim} = this, {raporTanimSinif} = this.class
 		raporTanimSinif.listeEkraniAc({
 			args: { rapor },
 			converter: ({ rec }) =>
@@ -435,10 +435,12 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		this._tabloTanimGosterildiFlag = true
 	}
 	async raporTanimSecildi(e) {
-		let {rec, value} = e, rapor = e.rapor = this.rapor
+		let {rec, value, tamamIslemi} = e
+		let rapor = e.rapor = this.rapor
 		let inst = this.raporTanim = await value
 		inst?.setDefault?.(e)
 		await this.tazele()
+		await tamamIslemi?.call(this, e)
 	}
 	async hareketKartiGoster({ id } = {}) {
 		let e = arguments[0], {gridPart: { grid }} = this

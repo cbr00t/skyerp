@@ -14,11 +14,14 @@ class Secimler extends CIO {
 		let result = new cls(e); if (!result.readFrom(e)) { return null }
 		return result
 	}
-	duzenlemeEkraniAc(e) {
-		e = e || {}; let uiSinif = e.uiSinif || this.duzenlemeUISinif; if (!uiSinif) { return null }
-		let {parentPart, mfSinif, tamamIslemi} = e;
-		let secimler = this, part = new uiSinif($.extend({}, e, { parentPart, secimler, mfSinif, tamamIslemi }));
-		part.run(); return part
+	duzenlemeEkraniAc(e = {}) {
+		let uiSinif = e.uiSinif || this.duzenlemeUISinif
+		if (!uiSinif) 
+			return null
+		let secimler = this, {parentPart, mfSinif, tamamIslemi} = e
+		let part = new uiSinif({ ...e, parentPart, secimler, mfSinif, tamamIslemi })
+		part.run()
+		return part
 	}
 	listeOlustur(e) { }
 	initProps(e) {

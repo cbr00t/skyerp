@@ -23,7 +23,9 @@ button:not(hover):not(:focus):not(:active), .jqx-button.jqx-fill-state-normal { 
 :not(.islemTuslari) > button:hover, :not(.islemTuslari) > .jqx-button.jqx-fill-state-hover { /*background-color: #edf2f4*/ }
 button:active .jqx-button:focus, .jqx-button.jqx-fill-state-pressed { color: #eee; background-color: #6f9cec !important }
 body > button#logout { right: 13px }
-button#sil { margin-left: 10px; margin-right: 20px } button#secimler { margin-right: 5px } button#sec, button#tamam { margin-left: 8px }
+button#sil { margin-left: 10px; margin-right: 20px }
+button#secimler, button#genelSecimler { margin-left: 5px; margin-right: 5px }
+button#sec, button#tamam { margin-left: 8px }
 #logout { background-image: url(../../images/logout.png); background-size: cover !important }
 #logout.jqx-fill-state-normal { background-color: #a05d45 }
 #fullScreen { background-image: url(../../images/tamEkranAc.png) }
@@ -58,8 +60,9 @@ button#temizle { background-image: url(../../images/temizle.png) !important }
 #basliklariDuzenle.jqx-fill-state-normal { background-color: #727272 }
 button#rapor { background-image: url(../../images/rapor_ekrana.png) !important }
 #kolonFiltre { background-image: url(../../images/hizli_bul.png) !important }
-button#secimler {background-image: url(../../images/filtre.png) !important;}
-#basliklariDuzenle, #rapor, #kolonFiltre, #secimler { }
+button#genelSecimler { background-image: url(../../images/filtre.png) !important; box-shadow: 0 0 3px 2px royalblue !important }
+button#secimler { background-image: url(../../images/filtre.png) !important }
+#basliklariDuzenle, #rapor, #kolonFiltre, #genelSecimler, #secimler { }
 #yazdir { background-image: url(../../images/yazdir.png) !important }
 #excel { background-image: url(../../images/excel.png) !important }
 #pdf { background-image: url(../../images/pdf.png) !important }

@@ -26,22 +26,30 @@ class DMQRapor extends DMQSayacliKA {
 			}
 		}
 	}
-	static getRaporKod(e) {
-		e = e ?? {}; let kod = typeof e == 'object' ? 
+	static getRaporKod(e = {}) {
+		let kod = typeof e == 'object' ? 
 			(e.raporKod ?? e.raporkod ?? e.raporTip ?? e.raportip ?? e.kod ?? e.tip ??
 			e.rapor?.kod ?? e.class?.raporClass?.kod ?? e.rapor?.class?.kod ?? e.class?.kod) : e;
 		return kod || null
 	}
 	static getDefault(e) {
-		let {yerel} = app.params, tip2SonDRaporRec = yerel.tip2SonDRaporRec || {}, {rapor} = e, raporKod = this.getRaporKod(rapor);
-		let rec = raporKod ? tip2SonDRaporRec[raporKod] : null, inst = new this({ rapor });
-		if (rec) { inst.setValues({ ...e, rec }) }
+		let {yerel} = app.params, tip2SonDRaporRec = yerel.tip2SonDRaporRec || {}
+		let {rapor} = e, raporKod = this.getRaporKod(rapor)
+		let rec = raporKod ? tip2SonDRaporRec[raporKod] : null
+		let inst = new this({ rapor })
+		if (rec)
+			inst.setValues({ ...e, rec })
 		return inst
 	}
-	setDefault(e) {
-		let {yerel} = app.params, tip2SonDRaporRec = yerel.tip2SonDRaporRec = yerel.tip2SonDRaporRec || {};
-		let {raporKod} = this, hv = raporKod ? this.hostVars(e) : null;
-		if (hv) { tip2SonDRaporRec[raporKod] = hv; yerel.kaydetDefer(e) }
+	setDefault(e = {}) {
+		let {yerel} = app.params ?? {}
+		let tip2SonDRaporRec = yerel.tip2SonDRaporRec = yerel.tip2SonDRaporRec || {}
+		let {rapor} = e, raporKod = this.class.getRaporKod(rapor)
+		let hv = raporKod ? this.hostVars(e) : null
+		if (hv) {
+			tip2SonDRaporRec[raporKod] = hv
+			yerel.kaydetDefer(e)
+		}
 		return this
 	}
 	static rootFormBuilderDuzenle(e) {
@@ -168,8 +176,9 @@ class DMQRapor extends DMQSayacliKA {
 		if (!grupUygunmu) { throw { isError: true, errorText: 'Toplanabilir Sahalar, Gruplama kısmına eklenemez' } }
 		if (!(toplanabilirVarmi && normalIcerikVarmi)) { throw { isError: true, errorText: 'En az birer Toplanabilir ve Normal saha olmalıdır' } }
 		if (yatayAnaliz) {
-			let {grup} = this, {kod, text} = DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz] ?? {};
-			if (kod && grup[kod]) { throw { isError: true, errorText: `<b>${text} Çapraz Analiz</b> işaretli iken <b class="royalblue">${kod}</b> <span class="firebrick">kolonu eklenemez</span>` } }
+			let {grup} = this, {kod, text} = DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz] ?? {}
+			if (kod && grup[kod])
+				throw { isError: true, errorText: `<b>${text} Çapraz Analiz</b> işaretli iken <b class="royalblue">${kod}</b> <span class="firebrick">kolonu eklenemez</span>` }
 		}
 		return this
 	}

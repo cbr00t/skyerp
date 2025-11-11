@@ -155,7 +155,7 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 	}
 	setDefault(e) {
 		let {yerel} = app.params, tip2SonDRaporRec = yerel.tip2SonDRaporRec = yerel.tip2SonDRaporRec || {}
-		let raporKod = this.class.getRaporKod(e.rapor), id = raporKod ? this.id : null
+		let raporKod = this.class.getRaporKod(e.rapor ?? e), id = raporKod ? this.id : null
 		if (id) { tip2SonDRaporRec[raporKod] = id; yerel.kaydetDefer(e) }
 		return this
 	}

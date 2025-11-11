@@ -5,17 +5,18 @@
 }
 .dPanel.part .butonlar.part { --button-width: 90px }
 .dPanel.part > .islemTuslari { width: var(--full); height: var(--islemTuslari-height) }
-.dPanel.part > .islemTuslari #secimler.jqx-fill-state-normal { background-color: #7f8cb0 }
-.dPanel.part > .islemTuslari #secimler.jqx-fill-state-hover { background-color: #c0cced }
-.dPanel.part > .islemTuslari #secimler.jqx-fill-state-pressed { background-color: #4860a2 }
 .dPanel.part > .islemTuslari #raporTanim.jqx-fill-state-normal {
 	color: #3d4c7c; background-color: #b2c7b2;
 	border: 1px solid #95989f !important; box-shadow: 1px 1px 5px 3px #c7cde7
 }
+.dPanel.part > .islemTuslari #genelSecimler.jqx-fill-state-normal { background-color: #9482d9 }
+.dPanel.part > .islemTuslari #secimler.jqx-fill-state-normal { background-color: #7f8cb0 }
+.dPanel.part > .islemTuslari #genelSecimler.jqx-fill-state-hover, .dPanel.part > .islemTuslari #secimler.jqx-fill-state-hover { background-color: #c0cced }
+.dPanel.part > .islemTuslari #genelSecimler.jqx-fill-state-pressed, .dPanel.part > .islemTuslari #secimler.jqx-fill-state-pressed { background-color: #4860a2 }
+.dPanel.part > .wnd-content > *:not(.bulForm):not(.islemTuslari) { background: white !important }
 .dPanel.part > .islemTuslari #yeni { margin-left: 30px }
 .dPanel.part > .islemTuslari #yukle { margin-left: 10px }
-
-.dRapor.part > .wnd-content > *:not(.bulForm):not(.islemTuslari) { background: white !important }
+.dPanel.part > .wnd-content > *:not(.bulForm):not(.islemTuslari) { background: white !important }
 .dPanel.part > .content { }
 .dPanel.part._loading { opacity: .5 !important; filter: blur(5px) !important }
 .dPanel.part > .items {
@@ -40,7 +41,7 @@
 	top: 1px !important; right: 80px !important; filter: brightness(0) !important
 }
 .dPanel.part .items > .item:has(.hasFocus) { border: 3px solid forestgreen !important }
-.dPanel.part .items ._loading { height: 5000px !important }
+.dPanel.part .items ._loading { opacity: .01 !important; height: 5000px !important }
 .dPanel.part .items ._sorting { width: 49%; height: 49%; background: #4169e166; z-index: 1000 !important }
 .dPanel.part .items:where(:has(._sorting)) { display: flex !important }
 /*.dPanel.part .items > .item #close.jqx-fill-state-normal { background-color: lightpink !important }*/

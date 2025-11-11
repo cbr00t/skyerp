@@ -6,13 +6,13 @@
 .dPanel .dRapor.part { --islemTuslari-height: 0px }
 .dRapor.part .butonlar.part { --button-width: 90px }
 .dRapor.part > .islemTuslari { width: var(--full); height: var(--islemTuslari-height) }
-.dRapor.part > .islemTuslari #secimler.jqx-fill-state-normal { background-color: #7f8cb0 }
-.dRapor.part > .islemTuslari #secimler.jqx-fill-state-hover { background-color: #c0cced }
-.dRapor.part > .islemTuslari #secimler.jqx-fill-state-pressed { background-color: #4860a2 }
 .dRapor.part > .islemTuslari #raporTanim.jqx-fill-state-normal {
 	color: #3d4c7c; background-color: #b2c7b2;
 	border: 1px solid #95989f !important; box-shadow: 1px 1px 5px 3px #c7cde7
 }
+.dRapor.part > .islemTuslari #genelSecimler, .dRapor.part > .islemTuslari #secimler.jqx-fill-state-normal { background-color: #7f8cb0 }
+.dRapor.part > .islemTuslari #genelSecimler.jqx-fill-state-hover, .dRapor.part > .islemTuslari #secimler.jqx-fill-state-hover { background-color: #c0cced }
+.dRapor.part > .islemTuslari #genelSecimler.jqx-fill-state-pressed, .dRapor.part > .islemTuslari #secimler.jqx-fill-state-pressed { background-color: #4860a2 }
 .dRapor.part > .wnd-content > *:not(.bulForm):not(.islemTuslari) { background: white !important }
 .dRapor.part #items {
 	width: calc(var(--full) - 5px) !important; height: calc(var(--full) - var(--islemTuslari-height) - 5px) !important;
@@ -80,7 +80,8 @@ body.dark-theme .dRapor.part #items > .item.hasFocus .secimBilgi { background-co
 .dRapor.part #items > ._main.item > label { height: 65px !important }
 .dRapor.part #items > ._main.item > :not(label) { max-height: calc(var(--full) - 80px) }
 .dPanel .dRapor.part #items > ._main.item > :not(label) { max-height: calc(var(--full) - 38px) }
-.dPanel .dRapor.part #items > ._main.item > label { height: 36px !important; margin-bottom: -3px !important }
+.dPanel .dRapor.part #items > ._main.item > label { line-height: 30px; height: auto !important; max-height: 63px !important; margin-bottom: -5px !important }
+.dPanel .dRapor.part #items > ._main.item > label .secimBilgi { filter: opacity(.8) !important; margin-top: 0 !important; z-index: 0 !important }
 .dPanel .dRapor.part #items > ._main.item > :not(label) { max-height: calc(var(--full) - 63px) }
 .dRapor .anim-raporTanim-highlight, .dRapor .anim-raporTanim-highlight { border: 3px solid forestgreen !important; animation: 850ms infinite cubic-bezier(0.46, 0.03, 0.52, 0.96) anim-raporTanim-hightlight }
 @keyframes anim-raporTanim-hightlight { 50% { background-color: #c9e0c9 } }
