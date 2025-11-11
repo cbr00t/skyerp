@@ -124,7 +124,13 @@ class DPanel extends Part {
 		this.sonIslemler_ozel?.(e)
 	}
 	secimlerDuzenle(e) {
-		e.secimler = new DonemselSecimler()
+		let secimler = e.secimler = new DonemselSecimler()
+		/*{
+			let grupKod = 'donemVeTarih'
+			secimler.secimTopluEkle({
+				_otoTazele: new SecimTekilNumber({ etiket: 'Oto Tazele (dk)' })
+			})
+		}*/
 	}
 	rootFormBuilderDuzenle({ rfb }) {
 		let e = arguments[0]
@@ -134,6 +140,11 @@ class DPanel extends Part {
 			.setId2Handler(this.islemTuslariGetId2Handler(e))
 			.onAfterRun(({ builder: fbd_islemTuslari, builder: { part: islemTuslariPart } }) =>
 				$.extend(this, { fbd_islemTuslari, islemTuslariPart }))
+		fbd_islemTuslari.addNumberInput('_otoTazeleDk', null, null, 'Tazele (dk)').etiketGosterim_yok().setAltInst(this)
+			.setValue(this._otoTazeleDk || null)
+			.degisince(e => this.otoTazele_startTimer({ ...arguments[0], ...e }))
+			.addStyle_wh(100)
+			.addStyle(`$elementCSS { position: absolute !important; right: 230px !important; z-index: 1001 !important }`)
 		let fbd_items = rfb.addFormWithParent('items').addCSS('items')
 			.onAfterRun(({ builder: fbd_items, builder: { layout: items } }) => $.extend(this, { fbd_items, items }))
 		rfb.addForm('bulForm')
@@ -174,16 +185,51 @@ class DPanel extends Part {
 		})
 	}
 	tazele(e) {
+		let result = this.tazeleDogrudan(e)
+		this.otoTazele_startTimer(e)
+		return result
+	}
+	tazeleDogrudan(e) {
 		let {id2Detay, secimler: genelSecimler} = this
 		for (let { inst, inst: { main: { secimler } = {} } = {} } of Object.values(id2Detay)) {
 			if (genelSecimler && secimler) {
-				for (let [k, v] of entries(genelSecimler.liste))
-					$.extend(secimler[k], v)
+				for (let [k, v] of entries(genelSecimler.liste)) {
+					if (k[0] != '_')
+						$.extend(secimler[k], v)
+				}
 			}
 			inst?.tazele(e)
 		}
 	}
 	super_tazele(e) { super.tazele(e) }
+	otoTazele_startTimer(e) {
+		// let {_timer_otoTazele: timer, secimler: { _otoTazele: { value: otoTazeleDk } = {} } = {}} = this
+		let {_timer_otoTazele: timer, _otoTazeleDk: otoTazeleDk} = this
+		if (otoTazeleDk)
+			otoTazeleDk = Math.max(otoTazeleDk, .05)
+		if (!otoTazeleDk) {
+			this.otoTazele_stopTimer(e)
+			return null
+		}
+		/*if (timer)
+			return timer*/
+		this.otoTazele_stopTimer(e)
+		return this._timer_otoTazele = setInterval(
+			e => this.otoTazele_timerProc(e),
+			otoTazeleDk * 60_000
+		)
+	}
+	otoTazele_stopTimer(e) {
+		let {_timer_otoTazele: timer} = this
+		if (timer) {
+			clearInterval(timer)
+			delete this._timer_otoTazele
+		}
+		return timer
+	}
+	otoTazele_timerProc(e) {
+		this.tazeleDogrudan()
+	}
 	add(...coll) {
 		let {id2Detay, _rendered} = this, {kod2Sinif} = DRapor
 		for (let det of coll) {
