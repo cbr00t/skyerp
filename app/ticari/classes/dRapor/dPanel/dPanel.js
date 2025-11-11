@@ -142,7 +142,12 @@ class DPanel extends Part {
 				$.extend(this, { fbd_islemTuslari, islemTuslariPart }))
 		fbd_islemTuslari.addNumberInput('_otoTazeleDk', null, null, 'Tazele (dk)').etiketGosterim_yok().setAltInst(this)
 			.setValue(this._otoTazeleDk || null)
-			.degisince(e => this.otoTazele_startTimer({ ...arguments[0], ...e }))
+			.degisince(e => {
+				let {builder: { input }, value} = e
+				if (!value)
+					input.val(null)
+				this.otoTazele_startTimer({ ...arguments[0], ...e })
+			})
 			.addStyle_wh(100)
 			.addStyle(`$elementCSS { position: absolute !important; right: 230px !important; z-index: 1001 !important }`)
 		let fbd_items = rfb.addFormWithParent('items').addCSS('items')
