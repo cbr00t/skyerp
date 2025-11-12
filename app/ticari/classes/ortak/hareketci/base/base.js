@@ -260,15 +260,14 @@ class Hareketci extends CObject {
 				if (hv) {
 					sent = _e.sent = sent.deepCopy()
 					for (let alias in tumHVKeys) {
+						/* tumHVKeys üzerinden gitmeyince bazı sahalar eksik geliyor ?? */
 						if (attrSet && !attrSet[alias])
 							continue
-						let deger = hv[alias] || defHV[alias];
+						let deger = hv[alias] || defHV[alias]
 						if (isFunction(deger))
 							deger = deger.call(this, { ...e, sender, hareketci, uniBilgi, key: alias, sent, hv, defHV })
 						deger = deger ?? 'NULL';
-						let saha = deger
-						if (alias)
-							saha += ` ${alias}`
+						let saha = alias ? `${deger} ${alias}` : deger
 						sent.add(saha)
 					}
 					hv = { ...defHV, ..._e.hv }

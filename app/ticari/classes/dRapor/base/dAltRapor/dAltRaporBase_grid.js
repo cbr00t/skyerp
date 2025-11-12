@@ -110,7 +110,7 @@ class DAltRapor_Grid_Ozet extends DAltRapor_Grid {
 		super.tazele(e); let {gridPart, gridPart: { gridWidget }} = this
 		let {main} = this.rapor.id2AltRapor, colDefs = main.ozetBilgi?.colDefs || []
 		setTimeout(() => {
-			if (gridWidget.isbindingcompleted()) {
+			if (gridWidget?.isbindingcompleted()) {
 				gridWidget?.beginupdate()
 				gridPart?.updateColumns(colDefs)
 				gridWidget?.endupdate(false)

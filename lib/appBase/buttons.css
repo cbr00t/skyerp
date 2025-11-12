@@ -60,7 +60,7 @@ button#temizle { background-image: url(../../images/temizle.png) !important }
 #basliklariDuzenle.jqx-fill-state-normal { background-color: #727272 }
 button#rapor { background-image: url(../../images/rapor_ekrana.png) !important }
 #kolonFiltre { background-image: url(../../images/hizli_bul.png) !important }
-button#genelSecimler { background-image: url(../../images/filtre.png) !important; box-shadow: 0 0 3px 2px royalblue !important }
+button#genelSecimler { background-image: url(../../images/filtre.png) !important; box-shadow: 0 0 3px 2px purple !important }
 button#secimler { background-image: url(../../images/filtre.png) !important }
 #basliklariDuzenle, #rapor, #kolonFiltre, #genelSecimler, #secimler { }
 #yazdir { background-image: url(../../images/yazdir.png) !important }

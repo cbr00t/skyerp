@@ -246,9 +246,13 @@ class SecimNumber extends SecimInteger {
 class SecimDate extends SecimBasSon {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'date' } get hasTime() { return false }
 	get ozetBilgiValue() {
-		let {value} = this; if (value == null) { return value }
-		if ($.isPlainObject(value)) { value = new CBasiSonu(value) }
-		return value?.bosmu ? null : new CBasiSonu({ basi: dateToString(value.basi), sonu: dateToString(value.sonu) }).toString()
+		let {value} = this
+		if (value == null)
+			return value
+		if ($.isPlainObject(value))
+			value = new CBasiSonu(value)
+		return value?.bosmu ? null : new CBasiSonu({ basi: value.basi, sonu: value.sonu }).toString()
+		// return value?.bosmu ? null : new CBasiSonu({ basi: dateToString(value.basi), sonu: dateToString(value.sonu) }).toString()
 	}
 	initHTMLElements(e) {
 		super.initHTMLElements(e); let {parent} = e, inputs = parent.find('.bs-parent input.bs');

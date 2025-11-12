@@ -160,16 +160,25 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	loadServerData_son(e) { }
 	gridVeriYuklendi({ rootPart }) {
-		super.gridVeriYuklendi(...arguments);
-		let {rfb_items} = this.rapor, {main} = rfb_items.id2Builder, {layout} = main, elmLabel = layout.children('label');
-		let elmEkBilgi = elmLabel.children('.secimBilgi'); if (!elmEkBilgi?.length) { elmEkBilgi = $(`<div class="secimBilgi float-right"></div>`); elmEkBilgi.appendTo(elmLabel) }
-		let {secimler} = this, _e = { liste: [] };
-		for (let [key, sec] of Object.entries(secimler.liste)) {
-			if (sec.isHidden || sec.isDisabled || key == 'tarihAralik') { continue }
+		super.gridVeriYuklendi(...arguments)
+		let {rfb_items} = this.rapor, {main} = rfb_items.id2Builder
+		let {layout} = main, elmLabel = layout.children('label')
+		let elmEkBilgi = elmLabel.children('.secimBilgi')
+		if (!elmEkBilgi?.length) {
+			elmEkBilgi = $(`<div class="secimBilgi float-right"></div>`)
+			elmEkBilgi.appendTo(elmLabel)
+		}
+		let {secimler} = this, _e = { liste: [] }
+		for (let [key, sec] of entries(secimler.liste)) {
+			/*if (sec.isHidden || sec.isDisabled)
+				continue*/
+			if (key == 'tarihAralik')        // 'donem' ozetBilgi gösteriminde zaten gerekirse tarihAralık bilgisi de var
+				continue
 			sec.ozetBilgiHTMLOlustur(_e)
 		}
-		let ozetBilgiHTML = _e.liste?.filter(x => !!x).join(' ');
-		if (ozetBilgiHTML) { elmEkBilgi.html(ozetBilgiHTML) }
+		let ozetBilgiHTML = _e.liste?.filter(x => !!x).join(' ')
+		if (ozetBilgiHTML)
+			elmEkBilgi.html(ozetBilgiHTML)
 	}
 	loadServerData_queryDuzenle_tekil(e) {
 		e = e ?? {}; let {internal} = e;

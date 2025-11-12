@@ -1,7 +1,8 @@
 class DRapor_EldekiVarliklar extends DRapor_AraSeviye {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get uygunmu() { return true } static get araSeviyemi() { return false } static get kategoriKod() { return 'FINANLZ' }
+	static get oncelik() { return 6 } static get uygunmu() { return true } static get araSeviyemi() { return false }
 	static get sabitmi() { return true } static get vioAdim() { return 'FN-RE' } static get konsolideKullanilirmi() { return true }
+	// static get kategoriKod() { return 'FINANLZ' }
 	static get kod() { return 'ELDVAR' } static get aciklama() { return 'Eldeki Varlıklar' } static get yataymi() { return true }
 	altRaporlarDuzenle(e) {
 		super.altRaporlarDuzenle(e)
@@ -22,6 +23,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 	static get aciklama() { return `<div class="full-wh" style="background-color: ${this.borderColor}">${this.mstEtiket}</div>` }
 	static get raporClass() { return DRapor_EldekiVarliklar } get width() { return '49.5%' }
 	static get yon() { return 'sol' } static get solmu() { return true }
+	get tazeleHideProgress_minCount() { return 2 }
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
 		let {eldekiVarlikStokDegerlemesiKDVlidir: degKDVlimi} = app?.params?.finans
@@ -95,14 +97,16 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		result.addIcerik('BEDEL')
 	}
 	tazele(e) {
-		let {raporTanim, konsolideVarmi} = this, {kullanim} = raporTanim;
-		kullanim.yatayAnaliz = konsolideVarmi ? 'DB' : null;
+		let {raporTanim, konsolideVarmi} = this, {kullanim} = raporTanim ?? {}
+		if (!kullanim)
+			debugger
+		kullanim.yatayAnaliz = konsolideVarmi ? 'DB' : null
 		return super.tazele(e)
 	}
 	tazeleDiger(e) { /* do nothing */ }
 	loadServerData_queryDuzenle(e) {
 		e.alias = ''; super.loadServerData_queryDuzenle(e)
-		let {attrSet} = e, {length: attrSetSize} = Object.keys(attrSet)
+		let {attrSet} = e, {length: attrSetSize} = keys(attrSet)
 		/* if (attrSetSize == 1 && attrSet.DB) { return } */
 		let /*{ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu; */ ozelIsaretVarmi = true;
 		let {stm} = e, {tabloYapi: { grupVeToplam }, rapor: { main: { secimler: sec } }, class: { yon }} = this
@@ -111,7 +115,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		let anaTipSet = asSet(anaTipListe)
 		if (!anaTip_haricmi && empty(anaTipSet))
 			anaTipSet = null
-		let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls =>
+		let harClasses = values(Hareketci.kod2Sinif).filter(cls =>
 			!!cls.eldekiVarliklarIcinUygunmu &&
 			( !anaTipSet || !!anaTipSet[cls.kod] != anaTip_haricmi )
 		)
@@ -140,7 +144,9 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 				if (!harSent)
 					continue
 				let {from, where: wh, sahalar, alias2Deger} = harSent
-				let {yon: yonClause} = alias2Deger, yonLiteralmi = yonClause?.[0] == `'`; if (yonLiteralmi && yonClause != buYonClause) { continue }
+				let {yon: yonClause} = alias2Deger, yonLiteralmi = yonClause?.[0] == `'`
+				if (yonLiteralmi && yonClause != buYonClause)
+					continue
 				let {alttiponcelik: grupOncelikClause, alttipadi: grupAdiClause, ozelisaret: ozelIsaretClause,
 					 tarih: tarihClause, miktar: miktarClause, ba: baClause, bedel: tlBedelClause, dvbedel: dvBedelClause, dvkod: dvKodClause
 				} = alias2Deger

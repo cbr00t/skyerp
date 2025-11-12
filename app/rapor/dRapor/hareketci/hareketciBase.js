@@ -1,24 +1,38 @@
 class DRapor_Hareketci extends DRapor_Donemsel {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return this == DRapor_Hareketci } 
-	static get uygunmu() { return this.mainClass?.hareketciSinif?.uygunmu ?? true } static get hareketciSinif() { return null }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get araSeviyemi() { return this == DRapor_Hareketci }
+	static get oncelik() { return 20 } static get uygunmu() { return this.mainClass?.hareketciSinif?.uygunmu ?? true }
+	static get hareketciSinif() { return null }
 	static get yatayAnalizVarmi() { return this.totalmi } static get ozetVarmi() { return this.totalmi } static get chartVarmi() { return this.totalmi }
 	static get totalmi() { return !(this.hareketmi || this.envantermi) } static get hareketmi() { return false } static get envantermi() { return false }
-	static get kategoriKod() { return `FIN${this.totalmi ? '' : `-${this.kodEk}`}` }
-	static get kategoriAdi() { return `Finansal (${this.aciklamaEk})` }
 	static get kod() {
-		let {_kod: result, kodEk: ek} = this;
-		if (ek && result) { result = `${ek}_${result.replace('TOTAL', '')}` }
+		let {_kod: result, kodEk: ek} = this
+		if (ek && result)
+			result = `${ek}_${result.replace('TOTAL', '')}`
 		return result
 	}
 	static get aciklama() {
-		let {_aciklama: result, aciklamaEk: ek} = this;
-		if (ek && result) { result = `${result.replace('Total', '')} ${ek}` }
+		let {_aciklama: result, aciklamaEk: ek} = this
+		if (ek && result)
+			result = `${result.replace('Total', '')} ${ek}`
 		return result
 	}
 	static get _kod() { return `${this.hareketciSinif?.kod?.toUpperCase()}HAR` }
 	static get _aciklama() { return this.hareketciSinif?.aciklama || super.aciklama }
-	static get kodEk() { let {hareketmi, envantermi} = this; return hareketmi ? 'HAR' : envantermi ? 'ENV' : '' }
-	static get aciklamaEk() { let {hareketmi, envantermi} = this; return hareketmi ? 'Hareket' : envantermi ? 'Envanter' : 'Total' }
+	static get kategoriKod() {
+		return `FIN${this.totalmi ? '' : `-${this.kodEk}`}`
+	}
+	static get kategoriAdi() {
+		return `Finansal<br/><b class=royalblue>${this.aciklamaEk}</b>`
+	}
+	static get kodEk() {
+		let {hareketmi, envantermi} = this
+		return hareketmi ? 'HAR' : envantermi ? 'ENV' : ''
+	}
+	static get aciklamaEk() {
+		let {hareketmi, envantermi} = this
+		return hareketmi ? 'Hareket' : envantermi ? 'Envanter' : 'Total'
+	}
 	static autoGenerateSubClasses(e) {
 		let subNames = ['Hareket', 'Envanter'];
 		let {raporBilgiler} = this, evalList = [];

@@ -5,7 +5,7 @@ class Secimler extends CIO {
 		e = e || {}; super(e); let {eConf} = e; if (eConf != null) { this.eConf = eConf }
 		if ($.isArray(e)) { e = { liste: e } } else { this.uiSinif = e.uiSinif; this.duzenlemeUISinif = e.duzenlemeUISinif || this.uiSinif }
 		this.uiSinif = this.uiSinif || this.class.uiSinif; this.duzenlemeUISinif = this.duzenlemeUISinif || this.class.duzenlemeUISinif;
-		this.secimleriTemizle(); let {liste} = this; this.listeOlustur({ liste }); this.readFrom(e);
+		this.secimleriTemizle(); let {liste} = this; this.listeOlustur({ liste }); this.readFrom(e)
 		if (this.afterRun) { this.afterRun(e) }
 	}
 	static getClass(e) { return this }	
@@ -223,11 +223,14 @@ class Secimler extends CIO {
 class DonemselSecimler extends Secimler {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get tarihBS() {
-		let {donem, tarihAralik} = this, {tarihAralikmi, basiSonu: bs} = donem?.tekSecim ?? {};
-		if (tarihAralikmi) { bs = new CBasiSonu(tarihAralik) }
+		let {donem, tarihAralik} = this, {tarihAralikmi, basiSonu: bs} = donem?.tekSecim ?? {}
+		if (tarihAralikmi)
+			bs = new CBasiSonu(tarihAralik)
 		if (bs) {
 			for (let [key, value] of Object.entries(bs)) {
-				if (value && typeof value == 'string') { bs[key] = value = asDate(value) } }
+				if (value && typeof value == 'string')
+					bs[key] = value = asDate(value)
+			}
 		}
 		return bs
 	}
@@ -245,11 +248,19 @@ class DonemselSecimler extends Secimler {
 	listeOlustur({ liste }) {
 		let grupKod = 'donemVeTarih'; this.grupEkle(grupKod, 'Dönem Ve Tarih');
 		$.extend(liste, {
-			donem: new SecimTekSecim({ etiket: 'Dönem', tekSecimSinif: DonemTarihAralikVeHepsiSecim, grupKod }).autoBind().setOzetBilgiValueGetter(e => {
-				let kod = e.value?.kod ?? e.value, result = [e.value?.aciklama ?? kod];
-				if (kod == 'TR') { let {ozetBilgiValueDuzenlenmis: value} = this.tarihAralik; if (value) { result.push(value) } }
-				return result
-			}),
+			donem: new SecimTekSecim({ etiket: 'Dönem', tekSecimSinif: DonemTarihAralikVeHepsiSecim, grupKod }).autoBind()
+				.setOzetBilgiValueGetter(e => {
+					let kod = e.value?.kod ?? e.value
+					let result = []
+					if (kod == 'TR') {
+						let {tarihAralik: { ozetBilgiValueDuzenlenmis: value }} = this
+						if (value)
+							result.push(value)
+					}
+					else
+						result.push(e.value?.aciklama ?? kod)
+					return result
+				}),
 			tarihAralik: new SecimDate({ etiket: 'Tarih', grupKod }).hidden()
 		});
 		super.listeOlustur(...arguments)

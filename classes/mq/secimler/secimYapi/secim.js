@@ -14,8 +14,9 @@ class Secim extends CIO {
 	}
 	get super_ozetBilgiValue() { return super.ozetBilgiValue }
 	get ozetBilgiValueDuzenlenmis() {
-		let {ozetBilgiValueGetter} = this, {ozetBilgiValue: value} = this;
-		if (ozetBilgiValueGetter) { value = getFuncValue.call(this, ozetBilgiValueGetter, { secim: this, value }) }
+		let {ozetBilgiValueGetter, ozetBilgiValue: value} = this
+		if (ozetBilgiValueGetter)
+			value = getFuncValue.call(this, ozetBilgiValueGetter, { secim: this, value })
 		return value
 	}
 
@@ -58,11 +59,15 @@ class Secim extends CIO {
 	buildHTMLElementStringInto(e) { }
 	initHTMLElements(e) { }
 	ozetBilgiHTMLOlustur({ liste }) {
-		if (this.isHidden) { return this }
-		let {ozetBilgiValueDuzenlenmis: result} = this; if (result?.bosmu == true) { result = null }
-		if (result && !$.isArray(result)) { result = [result] }
+		/*if (this.isHidden)
+			return this*/
+		let {ozetBilgiValueDuzenlenmis: result} = this
+		if (result?.bosmu == true)
+			result = null
+		if (result && !$.isArray(result))
+			result = [result]
 		if (result) {
-			result = result.filter(value => !!value).map(value => `<div class="float-left ozetBilgi-item">${value}</div>`);
+			result = result.filter(value => !!value).map(value => `<div class="float-left ozetBilgi-item">${value}</div>`)
 			liste.push(...result)
 		}
 		return this

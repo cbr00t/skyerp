@@ -1,7 +1,8 @@
 class DRapor_DonemselIslemler extends DRapor_Donemsel {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get uygunmu() { return true } static get araSeviyemi() { return false } static get kategoriKod() { return 'FINANLZ' }
+	static get oncelik() { return 5 } static get uygunmu() { return true } static get araSeviyemi() { return false }
 	static get sabitmi() { return true } static get vioAdim() { return 'FN-RD' } static get konsolideKullanilirmi() { return true }
+	// static get kategoriKod() { return 'FINANLZ' }
 	static get kod() { return 'DONISL' } static get aciklama() { return 'Dönemsel İşlemler' }
 	static get mstEtiket() { return this.aciklama }
 	altRaporlarDuzenle(e) {
@@ -17,8 +18,8 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 	get dip() { return this.ekBilgi?.dip } set dip(value) { let ekBilgi = this.ekBilgi = this.ekBilgi ?? {}; ekBilgi.dip = value }
 	onGridInit(e) { super.onGridInit(e); this.ekBilgi = {} }
 	secimlerDuzenle({ secimler: sec }) {
-		super.secimlerDuzenle(...arguments);
-		let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => cls.donemselIslemlerIcinUygunmu);
+		super.secimlerDuzenle(...arguments)
+		let harClasses = values(Hareketci.kod2Sinif).filter(cls => cls.donemselIslemlerIcinUygunmu)
 		let anaTip_kaListe = []; for (let {kod, aciklama} of harClasses) { anaTip_kaListe.push(new CKodVeAdi([kod, aciklama])) }
 		let grupKod = 'donemVeTarih'; sec.grupEkle(grupKod, 'Tarih ve Bilgiler');
 		sec.secimTopluEkle({
@@ -107,7 +108,8 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 			let {mstYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi
 			let belirtecler = [...sabitBelirtecler, mstKodAlias, mstAdiAlias, mstAdiAlias2].filter(x => !!x)
 			promises.push(cls.ilkIslemler())
-			let har = new cls(); har.withAttrs(belirtecler); harListe.push(har)
+			let har = new cls(); har.withAttrs(belirtecler)
+			harListe.push(har)
 		}
 		if (promises?.length) { await Promise.allSettled(promises) }
 		return await super.loadServerDataInternal(e)
@@ -226,21 +228,22 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		}
 		let stm = new MQStm({ sent: uni, orderBy }), _recs = (await app.sqlExecSelect(stm)) ?? []
 		let bakiye = 0; for (let rec of _recs) {
-			let {ba, dvkod: dvKod, bedel: tlBedel, dvbedel: dvBedel, islemadi: islemAdi, refkod: refKod, refadi: refAdi, logTS} = rec;
+			let {ba, dvkod: dvKod, bedel: tlBedel, dvbedel: dvBedel, isladi: islemAdi, refkod: refKod, refadi: refAdi, logTS} = rec
 			let ref = refKod ? `(<b class=gray>${refKod ?? ''})  ${refAdi || ''}</b>` : '';
 			let dovizmi = !tlDvKodSet[dvKod || ''], bedel = rec[dovizmi ? 'dvbedel' : 'bedel'];
 			if (ba == 'A') { bedel = -bedel } let alacakmi = bedel < 0;
 			bakiye += bedel; bedel = Math.abs(bedel);
 			$.extend(rec, {
-				islemadi: islemAdi || '', ref,
+				isladi: islemAdi || '', ref,
 				borc: alacakmi ? 0 : bedel, alacak: alacakmi ? bedel : 0, bakiye,
 				logTS: logTS ? dateTimeAsKisaString(asDate(logTS)) : ''
 			})
 		}
-		let recs = _recs; if (devir) {
+		let recs = _recs
+		if (devir) {
 			let alacakmi = devir < 0, dBedel = Math.abs(devir);
 			let dRec = {
-				islemadi: `<div class="bold orangered full-wh" style="font-size: 120%">DEVİR</div>`,
+				isladi: `<div class="bold orangered full-wh" style="font-size: 120%">DEVİR</div>`,
 				borc: alacakmi ? 0 : dBedel, alacak: alacakmi ? dBedel : 0,
 				bakiye: devir
 			};
@@ -295,7 +298,7 @@ class DRapor_DonemselIslemler_Detaylar extends DRapor_DonemselIslemler_DetaylarV
 		super.tabloKolonlariDuzenle(...arguments); liste.push(...[
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12, cellClassName }).tipTarih(),
 			new GridKolon({ belirtec: 'fisnox', text: 'Fiş No', cellClassName, genislikCh: 20 }),
-			new GridKolon({ belirtec: 'islemadi', text: 'İşlem', cellClassName, genislikCh: 40, filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'isladi', text: 'İşlem', cellClassName, genislikCh: 40, filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'ref', text: 'Referans', cellClassName }),
 			new GridKolon({ belirtec: 'borc', text: 'Borç', genislikCh: 17, cellClassName }).tipDecimal_bedel(),
 			new GridKolon({ belirtec: 'alacak', text: 'Alacak', genislikCh: 17, cellClassName }).tipDecimal_bedel(),

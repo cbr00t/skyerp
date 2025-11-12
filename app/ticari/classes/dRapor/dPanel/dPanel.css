@@ -9,8 +9,16 @@
 	color: #3d4c7c; background-color: #b2c7b2;
 	border: 1px solid #95989f !important; box-shadow: 1px 1px 5px 3px #c7cde7
 }
-.dPanel.part > .islemTuslari #genelSecimler.jqx-fill-state-normal { background-color: #9482d9 }
 .dPanel.part > .islemTuslari #secimler.jqx-fill-state-normal { background-color: #7f8cb0 }
+.dPanel.part > .islemTuslari #secimler:after,
+	.dPanel.part > .islemTuslari #genelSecimler:after {
+		font-size: 170%; color: #222;
+		position: relative !important; top: -5px; left: -27px
+	}
+.dPanel.part > .islemTuslari #genelSecimler:after { content: 'G' }
+.dPanel.part > .islemTuslari #secimler:after { content: 'P' }
+.dPanel.part > .islemTuslari #genelSecimler.jqx-fill-state-normal { background-color: #6140df }
+body.dark-theme .dPanel.part > .islemTuslari #genelSecimler.jqx-fill-state-normal { background-color: firebrick; filter: invert(1) hue-rotate(180deg) }
 .dPanel.part > .islemTuslari #genelSecimler.jqx-fill-state-hover, .dPanel.part > .islemTuslari #secimler.jqx-fill-state-hover { background-color: #c0cced }
 .dPanel.part > .islemTuslari #genelSecimler.jqx-fill-state-pressed, .dPanel.part > .islemTuslari #secimler.jqx-fill-state-pressed { background-color: #4860a2 }
 .dPanel.part > .wnd-content > *:not(.bulForm):not(.islemTuslari) { background: white !important }
@@ -53,7 +61,7 @@
 		.dPanel.part .items .item > div label {
 	width: var(--full) !important; box-shadow: 0 2px 8px #333; z-index: 0 !important;
 	overflow-x: auto !important; overflow-y: hidden !important;
-	text-overflow: ellipsis !important; direction: rtl !important; text-align: left !important
+	text-overflow: ellipsis !important; text-align: left !important
 }
 .dPanel.part .items > .item > div label { }
 .dPanel.part .items > .item.hasFocus  { box-shadow: 0 0 3px 5px forestgreen !important }

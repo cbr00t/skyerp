@@ -8,17 +8,22 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 	static get noOverflowFlag() { return false } get isPanelItem() { return !!this.panel || qs.panelItem }
 	get raporVarmi() { return this.raporTanim?.secilenVarmi }
 	static get raporBilgiler() {
-		return Object.values(this.kod2Sinif)
+		return values(this.kod2Sinif)
 			.filter(({ uygunmu, araSeviyemi, dRapormu, kod }) => uygunmu && !araSeviyemi && dRapormu && kod)
 			.map(cls => ({ kod: cls.kod, aciklama: cls.aciklama, vioAdim: cls.vioAdim, cls }))
 	}
 	static get kod2Sinif() {
-		let result = this._kod2Sinif; if (result == null) {
-			result = {}; let {subClasses} = this
-			for (let cls of subClasses) {
-				let {araSeviyemi, uygunmu, kod} = cls;
-				if (!araSeviyemi && uygunmu && kod) { result[kod] = cls }
-			}
+		let {_kod2Sinif: result} = this
+		if (result == null) {
+			result = {}
+			let subClasses = this.subClasses.filter(({ araSeviyemi, dAltRapormu, uygunmu, kod }) =>
+				!(araSeviyemi || dAltRapormu) && uygunmu && kod)
+			subClasses = [...subClasses].sort((a, b) => {
+				console.info('menu sort', a.name, a.oncelik ?? null, b.name, b.oncelik ?? null)
+				return (a.oncelik ?? 10000) - (b.oncelik ?? 10000)
+			})
+			for (let cls of subClasses)
+				result[cls.kod] = cls
 			this._kod2Sinif = result
 		}
 		return result
@@ -31,10 +36,15 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 		return this.uygunRaporlar
 			.map(cls => ({ kod: cls.kod, aciklama: cls.aciklama, sinif: cls }))
 	}
-	constructor({ width, height } = e) {
-		super(...arguments)
-		$.extend(this, { width, height })
-		
+	constructor(e) {
+		super(e); let { width, height, events } = e
+		events ??= {}
+		for (let k of ['init', 'tazeleOncesi', 'tazeleSonrasi']) {
+			let v = e[k]
+			if (v !== undefined)
+				events[k] = v
+		}
+		$.extend(this, { width, height, events })
 	}
 	static getClass(e) {
 		let kod = typeof e == 'object' ? (e.kod ?? e.tip) : e
@@ -95,7 +105,7 @@ class DRaporOzel extends DRapor {
 		await this.sonIslemler(e); await this.sonIslemler_ek(e)
 		return ({ inst, part, builder })
 	}
-	async ilkIslemler(e) { }
+	async ilkIslemler(e) { this.tazeleCount = 0 }
 	async ilkIslemler_ek(e) { this.ilkIslemler_ozel?.(e) }
 	async sonIslemler(e) { } async sonIslemler_ek(e) { }
 	rootFormBuilderDuzenle({ rfb }) {
@@ -171,6 +181,14 @@ class DRaporOzel extends DRapor {
 		}
 	}
 	super_tazele(e) { super.tazele(e) }
+	on(key, handler) { this.events[key] = handler; return this }
+	off(key, handler) { delete this.events[key]; return this }
+	async signal(key, ...args) {
+		let value = this.events[key]
+		if (value && isFunction(value))
+			value = await value.call(this, ...args)
+		return value
+	}
 }
 class DPanelRapor extends DRaporOzel {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dPanelRapormu() { return true }
@@ -263,8 +281,10 @@ class DPanelRapor extends DRaporOzel {
 		}
 	}
 	tazele(e) {
-		super.super_tazele(e); let {id2AltRapor} = this, {main} = id2AltRapor, {gridPart: mainGridPart} = main ?? {}
-		for (let altRapor of Object.values(id2AltRapor)) {
+		super.super_tazele(e)
+		let {id2AltRapor} = this, {main} = id2AltRapor, {gridPart: mainGridPart} = main ?? {}
+		this.tazeleCount = 0
+		for (let altRapor of values(id2AltRapor)) {
 			if (!altRapor?.tazeleYapilirmi)
 				continue
 			if (mainGridPart && altRapor != main) {

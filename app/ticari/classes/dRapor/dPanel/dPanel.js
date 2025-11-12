@@ -2,7 +2,8 @@ class DPanel extends Part {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get isWindowPart() { return true } static get asyncRunFlag() { return true }
 	static get partName() { return 'dPanel' } get partName() { return this.class.partName }
-	static get anaTip() { return 'panel' } static get kategoriKod() { return null } static get araSeviyemi() { return false }
+	static get oncelik() { return 2 } static get anaTip() { return 'panel' }
+	static get kategoriKod() { return null } static get araSeviyemi() { return false }
 	static get kod() { return this.anaTip } static get aciklama() { return 'Panel Rapor' }
 	static get uygunmu() { return true } get uygunmu() { return this.class.uygunmu }
 	static get dPanelmi() { return true } get dPanelmi() { return this.class.dPanelmi }
@@ -84,6 +85,7 @@ class DPanel extends Part {
 		else { block() }
 	}
 	destroyPart(e) {
+		this.otoTazele_stopTimer()
 		let children = this.items?.children()
 		if (children?.length) {
 			for (let i = 0; i < children.length; i++) {
@@ -143,13 +145,29 @@ class DPanel extends Part {
 		fbd_islemTuslari.addNumberInput('_otoTazeleDk', null, null, 'Tazele (dk)').etiketGosterim_yok().setAltInst(this)
 			.setValue(this._otoTazeleDk || null)
 			.degisince(e => {
-				let {builder: { input }, value} = e
+				let {builder: { layout, input }, value} = e
 				if (!value)
 					input.val(null)
+				layout[value ? 'addClass' : 'removeClass']('active')
 				this.otoTazele_startTimer({ ...arguments[0], ...e })
 			})
 			.addStyle_wh(100)
-			.addStyle(`$elementCSS { position: absolute !important; right: 230px !important; z-index: 1001 !important }`)
+			.addStyle(
+				`$elementCSS { position: absolute !important; right: 230px !important; border-radius: 13px; z-index: 1001 !important }
+				 $elementCSS.active { animation: 3000ms infinite anim-dPanel-otoTazele }
+				 .dPanel.part.refreshing $elementCSS > input {
+					background-color: lightcyan !important;
+					background-image: url(../../images/loading.gif) !important;
+					background-position: center center !important;
+					background-size: 32px 32px !important;
+					background-repeat: no-repeat !important
+				 }
+				 @keyframes anim-dPanel-otoTazele {
+					   0% { box-shadow: 0 0 13px 3px forestgreen }
+					  70% { box-shadow: 0 0 13px 8px forestgreen }
+					 100% { box-shadow: 0 0 13px 3px forestgreen }
+				 }`
+			)
 		let fbd_items = rfb.addFormWithParent('items').addCSS('items')
 			.onAfterRun(({ builder: fbd_items, builder: { layout: items } }) => $.extend(this, { fbd_items, items }))
 		rfb.addForm('bulForm')
@@ -195,18 +213,39 @@ class DPanel extends Part {
 		return result
 	}
 	tazeleDogrudan(e) {
-		let {id2Detay, secimler: genelSecimler} = this
-		for (let { inst, inst: { main: { secimler } = {} } = {} } of Object.values(id2Detay)) {
-			if (genelSecimler && secimler) {
-				for (let [k, v] of entries(genelSecimler.liste)) {
-					if (k[0] != '_')
-						$.extend(secimler[k], v)
-				}
-			}
+		let {layout, id2Detay, secimler: genelSecimler} = this
+		this.tazeleOncesi(e)
+		layout.addClass('refreshing')
+		for (let {inst} of values(id2Detay))
 			inst?.tazele(e)
-		}
+		setTimeout(() => layout.removeClass('refreshing'), 2_000)
 	}
 	super_tazele(e) { super.tazele(e) }
+	tazeleOncesi({ main: { secimler: secimlerListe } = {} } = {}) {
+		let {id2Detay, secimler: genelSecimler} = this
+		if (!secimlerListe) {
+			secimlerListe = values(id2Detay)
+				.map(({ inst: { main: { secimler } = {} } = {} }) => secimler)
+				.filter(x => !!x)
+		}
+		if (secimlerListe)
+			secimlerListe = $.makeArray(secimlerListe)
+		if (genelSecimler) {
+			for (let secimler of secimlerListe) {
+				if (!secimler)
+					continue
+				for (let [k, v] of entries(genelSecimler.liste)) {
+					if (k[0] == '_')
+						continue
+					let sec = secimler[k]
+					if (!sec)
+						continue
+					$.extend(sec, v)
+					sec.hidden()
+				}
+			}
+		}
+	}
 	otoTazele_startTimer(e) {
 		// let {_timer_otoTazele: timer, secimler: { _otoTazele: { value: otoTazeleDk } = {} } = {}} = this
 		let {_timer_otoTazele: timer, _otoTazeleDk: otoTazeleDk} = this
@@ -233,7 +272,14 @@ class DPanel extends Part {
 		return timer
 	}
 	otoTazele_timerProc(e) {
+		let {_otoTazeleDk: otoTazeleDk, _inTazeleProc} = this, {appActivatedFlag} = window
+		if (!otoTazeleDk)
+			otoTazeleDk = Math.max(otoTazeleDk, .05)
+		if (!(otoTazeleDk && window.appActivatedFlag) || _inTazeleProc)
+			return
+		this._inTazeleProc = true
 		this.tazeleDogrudan()
+		setTimeout(() => this._inTazeleProc = false, 1_000)
 	}
 	add(...coll) {
 		let {id2Detay, _rendered} = this, {kod2Sinif} = DRapor
@@ -244,11 +290,12 @@ class DPanel extends Part {
 				this.add(...det)
 				continue 
 			}
-			let {id, tip, value, raporTip: { altRaporTip } = {}} = det
+			let {id, tip, inst, value, raporTip: { altRaporTip } = {}} = det
 			if (!id)
 				id = det.id = newGUID()
 			if (tip.rapormu) {
-				let inst = value, {raporId} = det
+				let {raporId} = det
+				inst ??= value
 				if (typeof inst == 'string')
 					inst = kod2Sinif[inst] ?? window[inst]
 				if (isClass(inst))
@@ -318,7 +365,7 @@ class DPanel extends Part {
 			}
 			let {kod2Sinif} = DRapor
 			for (let det of detaylar) {
-				let {tip: { rapormu }, value: raporKod, raporAdi, inst} = det
+				let {tip: { rapormu }, value: raporKod, raporAdi, inst: rapor} = det
 				if (!(rapormu && raporKod && raporAdi))
 					continue
 				let raporId = raporAdi2Id[raporAdi]
@@ -330,7 +377,15 @@ class DPanel extends Part {
 						continue
 					if (raporTanimSinif) {
 						let raporTanim = await new raporTanimSinif({ sayac: raporId }).oku()
-						raporTanim?.setDefault({ rapor: { raporKod } })
+						rapor ??= raporKod
+						if (typeof rapor == 'string')
+							rapor = kod2Sinif[raporKod] ?? window[raporKod]
+						if (isClass(rapor))
+							rapor = new rapor()
+						det.inst = rapor
+						if (raporTanim)
+							rapor.on('raporTanim', () => raporTanim)
+						// raporTanim?.setDefault({ rapor: { raporKod } })
 					}
 				}
 			}
@@ -407,6 +462,8 @@ class DPanel extends Part {
 			$.extend(inst, { _baslik: baslik, panel: this, detay: det })
 			if (tip.rapormu) {
 				item.setInst(this).setPart(inst)
+				inst.on('init', ({ rapor: main }) =>
+					this.tazeleOncesi({ ..._e, main }))
 				result = await inst?.goster?.(_e)
 			}
 			else if (tip.webmi || tip.evalmi) {
@@ -867,13 +924,48 @@ class DPanel extends Part {
 	async kaydetIstendi(e) {
 		let islemAdi = 'Dizayn Kaydet'
 		let {title, _sonRaporAdi, raporTanim, raporTanim: { class: raporSinif }} = this
+		let mevcutRaporAdiSet = asSet((await raporSinif.loadServerData()).map(rec => rec.aciklama))
+		let inst = { ortakmi: true }
 		try {
 			let raporAdi = await jqxPrompt({
-				etiket: 'Panel Tanım Adı',
-				value: _sonRaporAdi,
+				etiket: 'Panel Tanım Adı', inst,
+				value: _sonRaporAdi, args: { height: 260 },
+				duzenle: (({ rfb }) => {
+					rfb.addDiv('_bilgi').etiketGosterim_yok()
+						.onAfterRun(({ builder: { rootPart: part, input } }) =>
+							part.divBilgi = input)
+						.addStyle_wh('auto', 50)
+						.addStyle(`$elementCSS { margin: 70px 0 0 30px !important }`)
+					rfb.addCheckBox('ortakmi', 'Tüm kullanıcılar için geçerlidir')
+						.addStyle(
+							`$elementCSS { margin: -10px 0 30px 0 !important }`,
+							`$elementCSS > input:is(:checked) + label { font-weight: bold; color: forestgreen !important }`
+						)
+				}),
+				afterRun: ({ part: { divBilgi }, fbd_value: { input: txtValue } }) => {
+					let changeHandler = (({ currentTarget: target } = {}) => {
+						let raporAdi = txtValue.val()?.trim()
+						if (divBilgi?.length) {
+							let html = (
+								mevcutRaporAdiSet[raporAdi]
+									? `<div class="warning orangered">** Mevcut rapor <u class=bold>DEĞİŞTİRİLECEK</u></div>`
+									: `<div class="info royalblue">Yeni rapor eklenecek</div>`
+							)
+							divBilgi.html(html)
+						}
+					})
+					changeHandler()
+					txtValue.on('keyup', evt => changeHandler(evt))
+				},
 				validate: ({ value }) => {
-					if (!value) { hConfirm(`<b class="firebrick bold">Panel Tanım Adı</b> belirtilmelidir`); return false }
-					if (raporSinif.ozelRaporAdimi(value)) { hConfirm(`<b class="firebrick bold">${value}</b> ismi özel bir anlama gelmektedir ve kullanılamaz`); return false }
+					if (!value) {
+						hConfirm(`<b class="firebrick bold">Panel Tanım Adı</b> belirtilmelidir`)
+						return false
+					}
+					if (raporSinif.ozelRaporAdimi(value)) {
+						hConfirm(`<b class="firebrick bold">${value}</b> ismi özel bir anlama gelmektedir ve kullanılamaz`)
+						return false
+					}
 					return true
 				}
 			})
@@ -881,10 +973,21 @@ class DPanel extends Part {
 				return
 			showProgress()
 			let yRaporTanim = raporTanim.deepCopy().noId()
+			yRaporTanim.ortakmi = inst.ortakmi
 			yRaporTanim.aciklama = raporAdi
 			{
 				let {table: from, adiSaha} = raporSinif
-				let del = new MQIliskiliDelete({ from, where: { degerAta: raporAdi, saha: adiSaha } })
+				let whDuzenle = wh => {
+					if (yRaporTanim.ortakmi || !yRaporTanim.encUser)
+						wh.add(`COALESCE(xuserkod, '') = ''`)
+					else
+						wh.degerAta(yRaporTanim.encUser, 'xuserkod')
+				}
+				let del = new MQIliskiliDelete({
+					from,
+					where: [ { degerAta: raporAdi, saha: adiSaha } ]
+				})
+				whDuzenle(del.where)
 				await app.sqlExecNone(del)
 			}
 			await yRaporTanim.yaz()

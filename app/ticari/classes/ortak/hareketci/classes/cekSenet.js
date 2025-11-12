@@ -22,7 +22,8 @@ class CSHareketci extends Hareketci {
 		})
 	}*/
 	static getAltTipAdiVeOncelikClause({ hv }) {
-		let {belgetipi: clause} = hv; return {
+		let {belgetipi: clause} = hv
+		return {
 			adi: (
 				`(case ${clause} when 'AC' then 'Alacak Çekleri' when 'AS' then 'Alacak Senetleri' ` +
 				`when 'BC' then 'Borç Çekleri' when 'BS' then 'Borç Senetleri' else '??' end)`
@@ -42,7 +43,8 @@ class CSHareketci extends Hareketci {
 			sent.sahalar.add(`${hv.portfadi || sqlEmpty} ${mstAdiAlias}`))
 	}
 	static ortakHVYapilarDuzenle({ result }) {
-		let {sqlEmpty} = Hareketci_UniBilgi.ortakArgs; $.extend(result, {
+		let {sqlEmpty} = Hareketci_UniBilgi.ortakArgs
+		$.extend(result, {
 			isaretlibedel: ({ hv }) => hv.bedel,
 			belgeOrtak: () => ({
 				belsayac: 'bel.kaysayac', belgeyil: 'bel.belgeyil', bankakod: 'bel.bankakod',
@@ -52,16 +54,20 @@ class CSHareketci extends Hareketci {
 				bizsubekod: 'fis.bizsubekod', tarih: 'fis.tarih', fisnox: 'fis.fisnox', ozelisaret: 'fis.ozelisaret',
 				dvkur: 'fis.dvkur', belgetipi: 'fis.belgetipi', fisaciklama: 'fis.aciklama', takipno: 'fis.takipno'
 			}),
-			sahis3DevirGirisIcinPortfoyBilgileri: () => ({ portfkod: 'bel.devirciranta', portfadi: 'devcir.birunvan', portdvkod: 'devcir.dvkod' }),
-			sahis3DevirCikisIcinPortfoyBilgileri: () => ({ portfkod: sqlEmpty, portfadi: sqlEmpty, portdvkod: sqlEmpty }),
+			sahis3DevirGirisIcinPortfoyBilgileri: () =>
+				({ portfkod: 'bel.devirciranta', portfadi: 'devcir.birunvan', portdvkod: 'devcir.dvkod' }),
+			sahis3DevirCikisIcinPortfoyBilgileri: () =>
+				({ portfkod: sqlEmpty, portfadi: sqlEmpty, portdvkod: sqlEmpty }),
 			sahis3IsiBittiCikisIcinPortfoyVeAnalizTipi: () => ({
-				portftipi: `'C'`, portftiptext: (CSIslemler.getPortfoyTipAdi('C') ?? '').sqlServerDegeri(), portfkisatiptext: (CSIslemler.getPortfoyTipKisaAdi('C') ?? '').sqlServerDegeri(),
+				portftipi: `'C'`, portftiptext: (CSIslemler.getPortfoyTipAdi('C') ?? '').sqlServerDegeri(),
+				portfkisatiptext: (CSIslemler.getPortfoyTipKisaAdi('C') ?? '').sqlServerDegeri(),
 				portfkod: 'fis.fisciranta', portfadi: 'fiscar.birunvan', portdvkod: 'fiscar.dvkod', refportftipi: `'X3'`,
-				refportftiptext: (CSIslemler.getPortfoyTipAdi('X3') ?? '').sqlServerDegeri(), refportfkisatiptext: (CSIslemler.getPortfoyTipKisaAdi('X3') ?? '').sqlServerDegeri(),
+				refportftiptext: (CSIslemler.getPortfoyTipAdi('X3') ?? '').sqlServerDegeri(),
+				refportfkisatiptext: (CSIslemler.getPortfoyTipKisaAdi('X3') ?? '').sqlServerDegeri(),
 				refportfkod: sqlEmpty, refportfadi: `'3. Şahıs İşi Bitti'`, refportdvkod: sqlEmpty, finanalizkullanilmaz: sqlEmpty
 			}),
 			sahis3IsiBittiGirisIcinPortfoyVeAnalizTipi: ({ portfoyAnalizDict }) => {
-				let keys = ['portftipi', 'portftiptext', 'portfkisatiptext', 'portfkod', 'portfadi', 'portdvkod'];
+				let keys = ['portftipi', 'portftiptext', 'portfkisatiptext', 'portfkod', 'portfadi', 'portdvkod']
 				let result = []; for (let key of keys) {
 					let refKey = `ref${key}`;
 					result[refKey] = portfoyAnalizDict?.[key];
@@ -76,31 +82,33 @@ class CSHareketci extends Hareketci {
 		$.extend(result, {
 			transfer: ({ cikismi }) => {
 				return new Hareketci_UniBilgi()
-					.sentDuzenleIslemi(({ sent }) => {
+					.sentDuzenleIslemi(({ sent, sent: { where: wh } }) => {
 						sent.fisHareket('csfis', 'csdigerhar')
 							.fromIliski('csilkhar bel', 'har.ilksayac = bel.kaysayac')
-							.pcsPortfoy2DigerBagla();
-						let {where: wh} = sent; wh.fisSilindiEkle()
+							.pcsPortfoy2DigerBagla()
+						wh.fisSilindiEkle()
 					}).hvDuzenleIslemi(({ hv, sqlEmpty }) => {
-						let csIslemler = this.newCSIslemler(); $.extend(hv, {
+						let csIslemler = this.newCSIslemler()
+						$.extend(hv, {
 							fissayac: 'fis.kaysayac', harsayac: 'har.kaysayac', ilk: sqlEmpty,
 							ba: (cikismi ? 'A' : 'B').sqlServerDegeri(), bedel: 'har.bedel', dvbedel: 'har.dvbedel',
 							detaciklama: 'har.aciklama', bankadekontnox: 'har.bankadekontnox',
 							...csIslemler.getPortfoyVeReferansTanimlari(cikismi),
-							islemadi: csIslemler.getFisTipiClauseIlkHareket(),
+							isladi: csIslemler.getFisTipiClause(),
 							...this.getOrtakHV('belgeOrtak'), ...this.getOrtakHV('fisOrtak')
 						})
 					})
 			},
 			sahis3_isiBitti: ({ cikismi, portfoyAnalizDict }) => {
 				return new Hareketci_UniBilgi()
-					.sentDuzenleIslemi(({ sent }) => {
+					.sentDuzenleIslemi(({ sent, sent: { where: wh } }) => {
 						sent.fisHareket('csfis', 'csdigerhar')
 							.fromIliski('csilkhar bel', 'har.ilksayac = bel.kaysayac')
 							.pcsPortfoy2DigerBagla();
-						let {where: wh} = sent; wh.fisSilindiEkle();
-						wh.inDizi(['AC', 'AS'], 'fis.belgetipi').degerAta('3S', 'fis.fistipi')
-							.add(`fis.iade = ''`, 'bel.belgesonharseq = har.belgeharseq', 'bel.vade < getdate()')
+						wh.fisSilindiEkle()
+						wh.inDizi(['AC', 'AS'], 'fis.belgetipi')
+						wh.degerAta('3S', 'fis.fistipi')
+						wh.add(`fis.iade = ''`, 'bel.belgesonharseq = har.belgeharseq', 'bel.vade < getdate()')
 					}).hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
 						let refHV = cikismi ? portfoyAnalizDict : this.getOrtakHV('sahis3IsiBittiGirisIcinPortfoyVeAnalizTipi', { portfoyAnalizDict });
 						$.extend(hv, {
@@ -108,7 +116,7 @@ class CSHareketci extends Hareketci {
 							detaciklama: 'har.aciklama', bankadekontnox: sqlEmpty, bizsubekod: 'fis.bizsubekod',
 							tarih: '(bel.vade + 1)', fisnox: sqlEmpty, belgetipi: 'fis.belgetipi',
 							ba: (cikismi ? 'A' : 'B').sqlServerDegeri(), bedel: 'har.bedel', dvbedel: 'har.dvbedel',
-							...refHV, islemadi: `'3. Şahıs İşi Bitti'`,
+							...refHV, isladi: `'3. Şahıs İşi Bitti'`,
 							...this.getOrtakHV('belgeOrtak'), ...this.getOrtakHV('fisOrtak')
 						})
 					})
@@ -134,7 +142,7 @@ class CSHareketci extends Hareketci {
 							detaciklama: 'bel.aciklama', bankadekontnox: sqlEmpty, bizsubekod: 'fis.bizsubekod',
 							tarih: '(bel.vade + 1)', fisnox: sqlEmpty, belgetipi: 'fis.belgetipi',
 							ba: (cikismi ? 'A' : 'B').sqlServerDegeri(), bedel: 'bel.bedel', dvbedel: 'bel.dvbedel',
-							...refHV, islemadi: `'3. Şahıs İşi Bitti'`,
+							...refHV, isladi: `'3. Şahıs İşi Bitti'`,
 							...this.getOrtakHV('belgeOrtak'), ...this.getOrtakHV('fisOrtak')
 						})
 					})
@@ -171,15 +179,17 @@ class CSHareketci extends Hareketci {
 		Hareketci.varsayilanHVDuzenle değerleri aynen alınır, sadece eksikler eklenir */
     static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
         /* super.varsayilanHVDuzenle(...arguments); */
-		for (const key of [
-			'ayadi', 'saat', 'bizsubekod', 'fisnox', 'bedel', 'ba', 'bankadekontnox',
-			'anaislemadi', 'islemkod', 'islemadi', 'refkod', 'refadi',
+		for (let key of [
+			'ozelisaret', 'ayadi', 'saat', 'bizsubekod', 'fisnox', 'bedel', 'ba', 'bankadekontnox',
+			'anaisladi', 'islkod', 'isladi', 'refkod', 'refadi',
 			'portftipi', 'portfkod', 'portfadi', 'portfkisatiptext',
 			'refportftipi', 'refportfkod', 'refportfadi', 'refportfkisatiptext'
 		]) { hv[key] = sqlEmpty }
 		$.extend(hv, {
 			fisno: ({ hv }) => hv.belgeno,
-			isaretlibedel: ({ hv }) => hv.bedel
+			isaretlibedel: ({ hv }) => hv.bedel,
+			refkod: ({ hv }) => hv.refportfkod,
+			refadi: ({ hv }) => hv.refportfadi
 			/* portfVeyaRefPortfAdi: ({ hv }) => { return `dbo.emptycoalesce(${hv.portfadi}, ${hv.refportfadi})` } */
 		})
     }
@@ -206,8 +216,8 @@ class CSHareketci extends Hareketci {
 							bizsubekod: 'fis.bizsubekod', fisnox: 'fis.fisnox', fissayac: 'fis.kaysayac', harsayac: 'har.kaysayac',
 							ilk: `'X'`, ba: `'B'`, bedel: 'bel.bedel', dvbedel: 'bel.dvbedel', dvkur: 'fis.dvkur',
 							fisaciklama: 'fis.aciklama', detaciklama: 'bel.aciklama',
-							islemadi: csIslemler.getFisTipiClauseIlkHareket(), ...refDict,
-							...this.getOrtakHV('belgeOrtak'), ...this.getOrtakHV('fisOrtak')
+							isladi: csIslemler.getFisTipiClauseIlkHareket(),
+							...refDict, ...this.getOrtakHV('belgeOrtak'), ...this.getOrtakHV('fisOrtak')
 						})
 					})
 			]
@@ -234,7 +244,7 @@ class CSHareketci extends Hareketci {
 		let getUniBilgi = (selector, cikismi) => {
 			return new Hareketci_UniBilgi()
 				.sentDuzenleIslemi(({ sent }) => this.ortakUniDuzenle_sent(selector, { sent, portfoyAnalizDict, cikismi }))
-				.hvDuzenleIslemi(({ hv, sqlEmpty }) => this.ortakUniDuzenle_hv(selector, { hv, portfoyAnalizDict, cikismi }))
+				.hvDuzenleIslemi(({ hv }) => this.ortakUniDuzenle_hv(selector, { hv, portfoyAnalizDict, cikismi }))
 		};
 		$.extend(liste, {
 			sahis3: ortakSelectors.map(selector => [
@@ -261,16 +271,17 @@ class CSHareketci extends Hareketci {
 						$.extend(hv, {
 							bizsubekod: 'fis.bizsubekod', fisnox: 'fis.fisnox', fissayac: 'fis.kaysayac', harsayac: 'har.kaysayac',
 							ilk: sqlEmpty, ba: 'har.ba', bedel: 'har.bedel', dvbedel: 'har.dvbedel', dvkur: 'fis.dvkur',
-							fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', islemadi: `'Genel Dekont'`,
+							fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', isladi: `'Genel Dekont'`,
 							...this.getOrtakHV('belgeOrtak'), ...this.getOrtakHV('fisOrtak'),
 							belgetipi: `(case fis.ozeltip when 'TC' then 'AC' when 'TS' then 'AS' when 'BC' then 'BC' when 'PT' then prt.cstip else '' end)`
 						});
 						for (let key in refDict) {
-							let value = sqlEmpty; switch (key) {
+							let value = sqlEmpty
+							switch (key) {
 								case 'portftipi': value = `(case when har.kayittipi = 'PT' then 'P' else 'H' end)`; break
 								case 'portftiptext': value = (
 									`(case har.kayittipi when 'PT' then 'Portföy' when 'TC' then 'Takas Çek' when 'TS' then 'Takas Senet'` +
-									 `when 'BC' then 'Borç Çek' else '' end)`
+									 ` when 'BC' then 'Borç Çek' else '' end)`
 								); break
 								case 'portfkod': value = `(case when har.kayittipi = 'PT' then har.portfkod else har.banhesapkod end)`; break
 								case 'portfadi': value = `(case when har.kayittipi = 'PT' then prt.aciklama else bhes.aciklama end)`; break

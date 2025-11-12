@@ -138,7 +138,9 @@ class CSIslemler extends CObject {
 			let inStr = new MQInClause({ liste: tipler, saha: tipVeIadeClause }).toString();
 			let getWhenClause = value => ` when ${inStr} then ${MQSQLOrtak.sqlServerDegeri(value)}`;
 			let donusum = { tip: portfTip, adi, tipAdi }; for (let [key, value] of Object.entries(donusum)) {
-				if (value != null) { (result[key] = result[key] ?? []).push(getWhenClause(value)) } }
+				if (value != null)
+					(result[key] = result[key] ?? []).push(getWhenClause(value))
+			}
 		}
 		return result
 	}
@@ -184,10 +186,14 @@ class CSIslemler extends CObject {
 	getXTipVePortfoyDict({ selector2Anahtarci, sadeceGercekOlanmi }) {
 		let {csHareketBilgiler: harBilgiler} = this, {anahtarcilar} = this.class
 		let result = { tip: {}, portfoy: {} }, ekleyici = (selector, aCSTekilIslem) => {
-			let anahtarci = selector2Anahtarci[selector];
-			if (typeof anahtarci == 'string') { anahtarci = anahtarcilar[selector]?.[anahtarci] ?? this[`anahtarci_${anahtarci}`] ?? this[anahtarci] }
+			let anahtarci = selector2Anahtarci[selector]
+			if (typeof anahtarci == 'string') {
+				anahtarci = anahtarcilar[selector]?.[anahtarci] ??
+				this[`anahtarci_${anahtarci}`] ?? this[anahtarci]
+			}
 			let anah = anahtarci?.call(this, aCSTekilIslem, sadeceGercekOlanmi); if (!anah) { return null }
-			let target = result[selector]; if (!target) { throw { isError: true, errorText: `selector değeri (<b>${selector}</b>) hatalıdır` } }
+			let target = result[selector]
+			if (!target) { throw { isError: true, errorText: `selector değeri (<b>${selector}</b>) hatalıdır` } }
 			(target[anah] = target[anah] ?? []).push(aCSTekilIslem.tipVeIade); return target
 		}
 		let selectors = Object.keys(result)
@@ -217,12 +223,13 @@ class CSIslemler extends CObject {
 		let kosulcu = ({ tipVeIade }) => !!tipSet[tipVeIade];
 		return this.getFisTipiClause({ kosulcu })
 	}
-	getFisTipiClause({ kosulcu }) {
+	getFisTipiClause({ kosulcu } = {}) {
 		let {csHareketBilgiler: harBilgiler} = this;
 		let sqlDegeri = value => MQSQLOrtak.sqlServerDegeri(value);
-		let tiClause = 'RTRIM(fis.fistipi + fis.iade)', caseClause = `(case ${tiClause}`;
+		let tiClause = 'RTRIM(fis.fistipi + fis.iade)', caseClause = `(case ${tiClause}`
 		for (let aCSTekilIslem of harBilgiler) {
-			if (kosulcu && !kosulcu(aCSTekilIslem)) { continue } let {tipVeIade, islemAdi} = aCSTekilIslem;
+			if (kosulcu && !kosulcu(aCSTekilIslem)) { continue }
+			let {tipVeIade, islemAdi} = aCSTekilIslem
 			caseClause += ` when ${sqlDegeri(tipVeIade)} then ${sqlDegeri(islemAdi)}`
 		}
 		caseClause += ` else '' end)`;

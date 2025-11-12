@@ -43,11 +43,12 @@ class SecimlerPart extends Part {
 		let {secimlerForm} = e; if (!(secimlerForm && secimlerForm.length)) { secimlerForm = this.secimlerForm }
 		if (!secimlerForm?.length) { secimlerForm = layout.find('.secimler-form') }
 		if (!secimlerForm?.length) { secimlerForm = layout }
-		this.secimlerForm = secimlerForm;
-		let {secimler} = this, {asHTMLElements: grup2Info} = secimler, secim2Info = this.secim2Info = {};
+		this.secimlerForm = secimlerForm
+		let {secimler} = this, {asHTMLElements: grup2Info} = secimler, secim2Info = this.secim2Info = {}
 		if (grup2Info) {
-			secimlerForm.children().remove(); let docFrg = $(document.createDocumentFragment());
-			for (let [grupKod, grupBilgi] of Object.entries(grup2Info)) {
+			secimlerForm.children().remove()
+			let docFrg = $(document.createDocumentFragment());
+			for (let [grupKod, grupBilgi] of entries(grup2Info)) {
 				grupKod = grupKod ?? '';
 				let grup = grupBilgi.grup || {}, key2Info = grupBilgi.key2Info || {};
 				let _e = { ...e, liste: [], grupKod }; for (let {secim} of Object.values(key2Info)) { secim.ozetBilgiHTMLOlustur(_e) }
@@ -56,18 +57,22 @@ class SecimlerPart extends Part {
 						`<div class="header" style="color:${grup.renk || ''};background-color:${grup.zeminRenk || ''};${grup.css}">${grupHeaderHTML}</div>` +
 						`<div class="content"></div>` +
 					`</div>`
-				);
-				let divGrupContent = divGrup.find('.content');
-				for (let [key, secimBilgi] of Object.entries(key2Info)) {
-					let {secim, element} = secimBilgi; if (element?.length) { element.appendTo(divGrupContent) }
+				)
+				let divGrupContent = divGrup.find('.content')
+				for (let [key, secimBilgi] of entries(key2Info)) {
+					let {secim, element} = secimBilgi
+					if (element?.length)
+						element.appendTo(divGrupContent)
 					secim2Info[key] = secimBilgi
 				}
 				divGrup.appendTo(docFrg)
 			}
 			docFrg.appendTo(secimlerForm);
-			for (let [grupKod, grupBilgi] of Object.entries(grup2Info)) {
-				let {element} = grupBilgi; if (!element?.length) { continue }
-				let {grup} = grupBilgi, {kapalimi} = grup;
+			for (let [grupKod, grupBilgi] of entries(grup2Info)) {
+				let {element} = grupBilgi
+				if (!element?.length)
+					continue
+				let {grup} = grupBilgi, {kapalimi} = grup
 				let navBar = element.jqxNavigationBar({
 					theme, animationType, expandMode: 'toggle', width: false, /*toggleMode: 'none',*/
 					expandAnimationDuration: 10, collapseAnimationDuration: 10, expandedIndexes: kapalimi ? [] : [0]
@@ -88,8 +93,9 @@ class SecimlerPart extends Part {
 				navBar.on('expandedItem', event => this.onNavBarExpanded({ event, ...e }));
 				navBar.on('collapsedItem', event => { this.onNavBarCollapsed({ event, ...e }) })
 			}
-			let WaitMS_Ek = 0, waitMS = 0, focusYapildimi = false;
-			let _e = { ...e, sender: this, part: this, secim2Info }; secimler?.initHTMLElements(_e);
+			let WaitMS_Ek = 0, waitMS = 0, focusYapildimi = false
+			let _e = { ...e, sender: this, part: this, secim2Info };
+			secimler?.initHTMLElements(_e)
 			// setTimeout(() => layout.blur(), 100)
 		}
 	}
@@ -272,7 +278,8 @@ class SecimlerPart extends Part {
 		let {secim2Info, secimler} = this, _e = { ...e, liste: [], elmGrup };
 		for (let i = 0; i < secimElms.length; i++) {
 			let id = secimElms.eq(i).prop('id'), item = secim2Info[id]; if (!item) { continue }
-			let elm = item.element, {secim} = item; if (secim.isHidden || secim.isDisabled) { continue }
+			let elm = item.element, {secim} = item
+			if (secim.isHidden || secim.isDisabled) { continue }
 			secim.ozetBilgiHTMLOlustur(_e)
 		}
 		secimler.grupOzetBilgiDuzenle(_e); this.onNavBarToggled(e)

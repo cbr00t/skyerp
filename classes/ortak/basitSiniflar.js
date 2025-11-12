@@ -33,19 +33,22 @@ class CBasiSonu extends CObject {
 	get bosmu() { return !(this.basi || this.sonu) } get bosDegilmi() { return !this.bosmu }
 	static get empty() { return new this({ basi: '', sonu: '' }) } static get zero() { return new this({ basi: 0, sonu: 0 }) }
 	get kisaText() {
-	    const {basi, sonu} = this, {namesAbbr: kisaAy} = localizationObj.months;
+	    let {basi, sonu} = this, {namesAbbr: kisaAy} = localizationObj.months
 	    if (!(isDate(basi) || isDate(sonu))) {
 			return (
-				basi && sonu ? `${basi} -> ${sonu}` :
+				basi && sonu ? `${basi} - ${sonu}` :
 				basi ? `${basi} -> '...'` :
 				sonu ? `'...' -> ${sonu}` : ''
 			)
 		}
-	    if (!(basi && sonu)) { return `${basi ? gA(basi) : '...'} -> ${sonu ? gA(sonu) : '...'}` }
-	    let b = { gun: basi.gun.sifirlaDoldur(2), ay: basi.ay, yil: basi.yil };
-		let s = { gun: sonu.gun.sifirlaDoldur(2), ay: sonu.ay, yil: sonu.yil };
-	    if (b.yil === s.yil && b.ay === s.ay) { return `${b.gun}->${s.gun} ${kisaAy[b.ay - 1]} ${b.yil}` }
-	    if (b.yil === s.yil) { return `${b.gun}.${kisaAy[b.ay - 1]} -> ${s.gun}.${kisaAy[s.ay - 1]} ${b.yil}` }
+	    if (!(basi && sonu))
+			return `${basi ? gA(basi) : '...'} -> ${sonu ? gA(sonu) : '...'}`
+	    let b = { gun: basi.gun.sifirlaDoldur(2), ay: basi.ay, yil: basi.yil }
+		let s = { gun: sonu.gun.sifirlaDoldur(2), ay: sonu.ay, yil: sonu.yil }
+	    if (b.yil === s.yil && b.ay === s.ay)
+			return `${b.gun} -> ${s.gun} ${kisaAy[b.ay - 1]} ${b.yil}`
+	    if (b.yil === s.yil)
+			return `${b.gun}.${kisaAy[b.ay - 1]} -> ${s.gun}.${kisaAy[s.ay - 1]} ${b.yil}`
 	    return `${b.gun}.${kisaAy[b.ay - 1]}.${(b.yil % 100).sifirlaDoldur(2)} -> ${s.gun}.${kisaAy[s.ay - 1]}.${(s.yil % 100).sifirlaDoldur(2)}`
 	}
 	

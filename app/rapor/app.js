@@ -2,16 +2,18 @@ class SkyRaporApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get yerelParamSinif() { return MQYerelParam } get autoExecMenuId() { return null /* 'TICARI-STSATIS' */ }
 	static get kategoriKod2Adi() {
-		let result = this._kategoriKod2Adi; if (result == null) {
+		let {_kategoriKod2Adi: result} = this
+		if (result == null) {
 			result = {
 				TICARI: '',
-				'TICARI-STOK': 'Ticari (<b class="royalblue">Stok</b>)',
-				'TICARI-HIZMET': 'Ticari (<b class="orangered">Hizmet</b>)',
+				'TICARI-STOK': 'Ticari<br/><b class="royalblue">Stok</b>',
+				'TICARI-HIZMET': 'Ticari<br/><b class="orangered">Hizmet</b>)',
 				FINANSAL: 'Finansal', FINANLZ: 'Finansal Analiz'
 			};
-			let {kod2Sinif} = DRapor, e = { liste: result }; for (const [mne, cls] of Object.entries(kod2Sinif)) {
+			let {kod2Sinif} = DRapor, e = { liste: result }
+			for (let [mne, cls] of entries(kod2Sinif)) {
 				if (cls.dAltRapormu || !cls.uygunmu) { continue }
-				const {kategoriKod: kod} = cls; if (!kod) { continue }
+				let {kategoriKod: kod} = cls; if (!kod) { continue }
 				let {kategoriAdi: adi} = cls;
 				if (adi == null) { result[kod] = result[kod] ?? (adi ?? kod) } else { result[kod] = adi }
 			}
@@ -88,10 +90,10 @@ class SkyRaporApp extends TicariApp {
 		finally { await super.anaMenuOlustur(e) }
 	}
 	getAnaMenu(e) {
-		const {noMenuFlag} = this; if (noMenuFlag) { return new FRMenu() }
-		const {isAdmin} = config.session ?? {}, {kod2Sinif} = DRapor, kategoriKod2MenuItems = {}
-		$.extend(kod2Sinif, { ...DPanel.kod2Sinif })
-		for (const [mne, sinif] of Object.entries(kod2Sinif)) {
+		let {noMenuFlag} = this; if (noMenuFlag) { return new FRMenu() }
+		let {isAdmin} = config.session ?? {}, {kod2Sinif} = DRapor, kategoriKod2MenuItems = {}
+		kod2Sinif = { ...DPanel.kod2Sinif, ...kod2Sinif }
+		for (let [mne, sinif] of entries(kod2Sinif)) {
 			if (sinif.dAltRapormu || !sinif.uygunmu)
 				continue
 			let {vioAdim} = sinif, kategoriKod = sinif.kategoriKod ?? ''
@@ -111,12 +113,11 @@ class SkyRaporApp extends TicariApp {
 				}
 			}))
 		}
-		let items = [], items_raporlar = [], {kategoriKod2Adi} = this.class, kategoriKod2Cascade = {};
+		let items = [], items_raporlar = [], {kategoriKod2Adi} = this.class, kategoriKod2Cascade = {}
 		for (let [kategoriKod, _items] of Object.entries(kategoriKod2MenuItems)) {
-			let kategoriAdi = kategoriKod2Adi[kategoriKod] ?? kategoriKod, target = items_raporlar;
+			let kategoriAdi = kategoriKod2Adi[kategoriKod] ?? kategoriKod, target = items_raporlar
 			if (kategoriAdi) {
-				let parentItem = kategoriKod2Cascade[kategoriKod] = kategoriKod2Cascade[kategoriKod] ??
-					new FRMenuCascade({ mne: kategoriKod, text: kategoriAdi })
+				let parentItem = kategoriKod2Cascade[kategoriKod] ??= new FRMenuCascade({ mne: kategoriKod, text: kategoriAdi })
 				target.push(parentItem)
 				target = parentItem.items
 			}
@@ -125,7 +126,7 @@ class SkyRaporApp extends TicariApp {
 		items.push(...items_raporlar.filter(x => !!x))
 		if (isAdmin)
 			items.push(new FRMenuChoice({ mne: 'DRAPOR_PARAM', text: 'Rapor Parametreleri', block: e => this.params.dRapor.tanimla(e) }))
-		/*const menu_test = (dev ? new FRMenuCascade({ mne: 'TEST', text: 'TEST', items: items_raporlar }) : null);
+		/*let menu_test = (dev ? new FRMenuCascade({ mne: 'TEST', text: 'TEST', items: items_raporlar }) : null);
 		if (config.dev) {
 			items.push(
 				...[SBTablo].map(cls =>
