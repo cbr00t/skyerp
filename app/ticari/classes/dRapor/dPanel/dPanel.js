@@ -955,7 +955,125 @@ class DPanel extends Part {
 										html.appendTo(content)
 									}
 								})
+							]),
+							new CKodAdiVeEkBilgi([
+							    'IPRESS', 'Interpress Haberleri', 'interpressmi',
+							    (async ({ content }) => {
+							        try {
+							            let output = 'string'
+							            let url = 'https://basindabiz.interpress.com/1653_BASIN/2025/1.xml'
+							            // XML isteği
+							            let { data: { string: xmlText } = {} } = await app.wsWebRequest({ output, url }) ?? {}
+							            if (!xmlText)
+							                return
+							            // XML parse
+							            let xml = $.parseXML(xmlText)
+							            let $xml = $(xml)
+							            let haberler = Array.from($xml.find('Haber'))
+							            let items = haberler.map(haber => {
+							                haber = $(haber)
+							                let id = haber.find('HaberId').text().trim()
+							                let baslik = haber.find('Baslik').text().trim()
+							                let yayin = haber.find('YayinAdi').text().trim()
+							                let tarih = haber.find('YayinTarihi').text().trim()
+							                let link = haber.find('Url').text().trim()
+							                // Hedefi dış pencere yap
+							                link = link.replace(location.origin, new URL(url).origin)
+							                return `
+							                    <li style="margin-bottom: 6px; width: 100%">
+							                        <a href="${link}" target="_blank"
+							                           style="font-weight: bold; color: royalblue">
+							                           ${baslik}
+							                        </a>
+							                        <div style="font-size: 11px; opacity: .7">
+							                            ${yayin} — ${tarih}
+							                        </div>
+							                    </li>
+							                `
+							            }).join(CrLf)
+							            // HTML paketle
+							            let html = $(`
+							                <div class="full-wh">
+							                    <ul style="padding-left: 10px">${items}</ul>
+							                </div>
+							            `)
+							            content.children().remove()
+							            html.appendTo(content)
+							        }
+							        catch (ex) {
+							            let html = $(`
+							                <div class="full-wh" style="padding: 10px; color: firebrick">
+							                    XML okunurken hata oluştu:<br>
+							                    <b>${getErrorText(ex)}</b>
+							                </div>
+							            `)
+							            content.children().remove()
+							            html.appendTo(content)
+							            console.error('Interpress XML Error', ex)
+							        }
+							    })
+							]),
+							new CKodAdiVeEkBilgi([
+							    'IPRESS2', 'Interpress Haberleri (2 Kolonlu)', 'interpress2mi',
+							    (async ({ content }) => {
+							        try {
+							            let output = 'string'
+							            let url = 'https://basindabiz.interpress.com/1653_BASIN/2025/1.xml'
+							            // XML isteği
+							            let { data: { string: xmlText } = {} } = await app.wsWebRequest({ output, url }) ?? {}
+							            if (!xmlText)
+							                return
+							            // XML parse
+							            let xml = $.parseXML(xmlText)
+							            let $xml = $(xml)
+							            let haberler = Array.from($xml.find('Haber'))
+							            let items = haberler.map(haber => {
+							                haber = $(haber)
+							                let id = haber.find('HaberId').text().trim()
+							                let baslik = haber.find('Baslik').text().trim()
+							                let yayin = haber.find('YayinAdi').text().trim()
+							                let tarih = haber.find('YayinTarihi').text().trim()
+							                let link = haber.find('Url').text().trim()
+							                // Hedefi dış pencere yap
+							                link = link.replace(location.origin, new URL(url).origin)
+							                return `
+							                    <li style="margin-bottom: 6px; width: 49.5%">
+							                        <a href="${link}" target="_blank"
+							                           style="font-weight: bold; color: royalblue">
+							                           ${baslik}
+							                        </a>
+							                        <div style="font-size: 11px; opacity: .7">
+							                            ${yayin} — ${tarih}
+							                        </div>
+							                    </li>
+							                `
+							            }).join(CrLf)
+							            // HTML paketle
+							            let html = $(`
+							                <div class="full-wh">
+							                    <ul class="flex-row" style="padding-left: 10px">${items}</ul>
+							                </div>
+							            `)
+							            content.children().remove()
+							            html.appendTo(content)
+							        }
+							        catch (ex) {
+							            let html = $(`
+							                <div class="full-wh" style="padding: 10px; color: firebrick">
+							                    XML okunurken hata oluştu:<br>
+							                    <b>${getErrorText(ex)}</b>
+							                </div>
+							            `)
+							            content.children().remove()
+							            html.appendTo(content)
+							            console.error('Interpress XML Error', ex)
+							        }
+							    })
 							])
+
+							/* https://basindabiz.interpress.com/1653_BASIN/2025/1.xml
+							   https://basindabiz.interpress.com/1653_BASIN/2025/2.xml
+							*/
 						]
 					})
 					.degisince( ({ builder: fbd, builder: { part, parentBuilder, rootBuilder: { id2Builder: { content }} } }) => {
