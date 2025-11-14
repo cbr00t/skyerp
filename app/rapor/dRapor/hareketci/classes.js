@@ -44,10 +44,11 @@ class DRapor_Hareketci_Hizmet_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_Hizmet }
 	secimlerDuzenle({ secimler: sec }) {
-		super.secimlerDuzenle(...arguments);
+		super.secimlerDuzenle(...arguments)
 		sec.secimTopluEkle({
 			hizmetTipi: new SecimBirKismi({ etiket: 'Hizmet Tipi', tekSecimSinif: HizmetTipi, grupKod: 'HIZMET' }).birKismi()
-		}).whereBlockEkle(({ secimler: sec, where: wh }) => { wh.birKismi(sec.hizmetTipi, 'hiz.tip') })
+		})
+		sec.whereBlockEkle(({ secimler: sec, where: wh }) => { wh.birKismi(sec.hizmetTipi, 'hiz.tip') })
 	}
 	tabloYapiDuzenle({ result }) {
 		result
@@ -135,7 +136,15 @@ class DRapor_Hareketci_BankaYatirim_Main extends DRapor_Hareketci_BankaOrtak_Mai
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_BankaYatirim }
 }
-
+class DRapor_Hareketci_BankaYatirimKalan extends DRapor_Hareketci_BankaOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get vioAdim() { return 'BN-YH' }
+	static get hareketciSinif() { return BankaYatirimKalanHareketci }
+}
+class DRapor_Hareketci_BankaYatirimKalan_Main extends DRapor_Hareketci_BankaOrtak_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get raporClass() { return DRapor_Hareketci_BankaYatirimKalan }
+}
 class DRapor_Hareketci_POSKrOrtak extends DRapor_Hareketci_BankaOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get araSeviyemi() { return this == DRapor_Hareketci_POSKrOrtak }
@@ -144,6 +153,27 @@ class DRapor_Hareketci_POSKrOrtak extends DRapor_Hareketci_BankaOrtak {
 class DRapor_Hareketci_POSKrOrtak_Main extends DRapor_Hareketci_BankaOrtak_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_POSKrOrtak }
+	static get posKosulMQSinif() { return DMQPosKrHesap }
+	tabloYapiDuzenle({ result }) {
+		super.tabloYapiDuzenle(...arguments)
+		let {posKosulMQSinif} = this.class
+		result.addKAPrefix('poskosul')
+		result.addGrupBasit('POSKOSUL', posKosulMQSinif.sinifAdi, 'poskosul', posKosulMQSinif)
+	}
+	loadServerData_queryDuzenle_hrkSent({ attrSet, hv, hvDegeri, sent, sent: { where: wh, sahalar } }) {
+		let e = arguments[0]; super.loadServerData_queryDuzenle_hrkSent(e)
+		let clause_posKosul = hvDegeri('poskosulkod')
+		if (attrSet.POSKOSUL)
+			sent.fromIliski('poskosul kos', `${clause_posKosul} = kos.kod`)
+		for (let key in attrSet) {
+			switch (key) {
+				case 'POSKOSUL':
+					sahalar.add(`${clause_posKosul} poskosulkod`, 'kos.aciklama poskosuladi')
+					wh.icerikKisitDuzenle_posKosul({ ...e, saha: clause_posKosul})
+					break
+			}
+		}
+	}
 }
 class DRapor_Hareketci_POS extends DRapor_Hareketci_POSKrOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -152,6 +182,7 @@ class DRapor_Hareketci_POS extends DRapor_Hareketci_POSKrOrtak {
 class DRapor_Hareketci_POS_Main extends DRapor_Hareketci_POSKrOrtak_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_POS }
+	static get posKosulMQSinif() { return DMQPosHesap }
 }
 class DRapor_Hareketci_KrediKarti extends DRapor_Hareketci_POSKrOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -160,6 +191,7 @@ class DRapor_Hareketci_KrediKarti extends DRapor_Hareketci_POSKrOrtak {
 class DRapor_Hareketci_KrediKarti_Main extends DRapor_Hareketci_POSKrOrtak_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_KrediKarti }
+	static get posKosulMQSinif() { return DMQKrediKarti }
 }
 
 class DRapor_Hareketci_KrediTaksit extends DRapor_Hareketci_BankaOrtak {
@@ -194,17 +226,53 @@ class DRapor_Hareketci_CekSenet extends DRapor_Hareketci {
 class DRapor_Hareketci_CekSenet_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_CekSenet }
+	secimlerDuzenle({ secimler: sec }) {
+		super.secimlerDuzenle(...arguments)
+		let grupKod = 'donemVeTarih'
+		sec.secimTopluEkle({
+			belgeTipi: new SecimBirKismi({ grupKod, etiket: 'Belge Tipi', tekSecimSinif: CSBelgeTipi, default: null }).birKismi(),
+			portfTipi: new SecimBirKismi({ grupKod, etiket: 'Portf. Tipi', tekSecimSinif: CSPortfTipi, default: null }).birKismi(),
+			portfoydeOlanlar: new SecimBoolTrue({ grupKod, etiket: 'Portfoyde Olanlar' })
+		})
+		sec.whereBlockEkle(({ secimler: sec, where: wh, alias, hvDegeri, hv }) => {
+			let {raporClass: { hareketciSinif: harSinif }} = this.class
+			{
+				let clause = hvDegeri('belgetipi')
+				if (clause)
+					wh.birKismi(sec.belgeTipi, clause)
+			}
+			{
+				let clause = hvDegeri('portftipi')
+				if (clause)
+					wh.birKismi(sec.portfTipi, clause)
+			}
+			if (sec.portfoydeOlanlar.value)
+				harSinif.ortakSentDuzenle_isiBitenlerHaric({ sender: this, hv, where: wh })
+		})
+	}
 	tabloYapiDuzenle({ result }) {
 		super.tabloYapiDuzenle(...arguments)
-		/* result.addKAPrefix('kasa').addGrupBasit('KASA', 'Kasa', 'kasa', DMQKasa) */
+		// result.addKAPrefix('portftipi')
+		result
+			.addGrupBasit('PORTFTIPIADI', 'Portföy Tipi', 'portftipiadi', null, null, ({ item }) => item.noOrderBy())
 	}
-	loadServerData_queryDuzenle_hrkSent(e) {
-		super.loadServerData_queryDuzenle_hrkSent(e)
-		/*let {attrSet, sent, hvDegeri} = e, {where: wh, sahalar} = sent, kodClause = hvDegeri('kasakod');
-		if (attrSet.KASA) { sent.fromIliski('kasmst kas', `${kodClause} = kas.kod`) }
+	loadServerData_queryDuzenle_hrkSent({ attrSet, hvDegeri, sent, sent: { where: wh, sahalar } }) {
+		super.loadServerData_queryDuzenle_hrkSent(...arguments)
+		// if (attrSet.KASA) { sent.fromIliski('kasmst kas', `${kodClause} = kas.kod`) }
 		for (let key in attrSet) {
-			switch (key) { case 'KASA': sahalar.add(`${kodClause} kasakod`, 'kas.aciklama kasaadi'); wh.icerikKisitDuzenle_kasa({ ...e, saha: kodClause }); break }
-		}*/
+			switch (key) {
+				case 'PORTFTIPI': {
+					let alias = 'portftipi', clause = hvDegeri(alias)
+					sahalar.add(`${clause} ${alias}`)
+					break
+				}
+				case 'PORTFTIPIADI': {
+					let clause = CSPortfTipi.getClause(hvDegeri('portftipi'))
+					sahalar.add(`${clause} portftipiadi`)
+					break
+				}
+			}
+		}
 	}
 	tabloYapiDuzenle_takip(e) { /* do nothing */ }
 }

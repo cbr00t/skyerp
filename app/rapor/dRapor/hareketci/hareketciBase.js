@@ -156,11 +156,11 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 					sent, hrkHV, hv: hrkHV, hvDegeri: key => this.hrkHVDegeri({ ..._e, key }),
 					sentHVEkle: (...keys) => { for (let key of keys) { this.hrkSentHVEkle({ ..._e, key }) } }
 				});
-				this.loadServerData_queryDuzenle_hrkSent(_e); hareketci.uniDuzenle_tumSonIslemler(_e);
+				this.loadServerData_queryDuzenle_hrkSent(_e); hareketci.uniDuzenle_tumSonIslemler(_e)
 				this.loadServerData_queryDuzenle_hkrSent_son(_e); sent = _e.sent;
 				// let sahaSayisi = sent?.sahalar?.liste?.length ?? 0; if (!sahaSayisi) { continue }
 				// if (config.dev && selectorStr.includes('perakende') /* && sahaSayisi != 30 */) { debugger }
-				sent.groupByOlustur().gereksizTablolariSil();
+				sent.groupByOlustur().gereksizTablolariSil()
 				uni.add(sent)
 			}
 		}

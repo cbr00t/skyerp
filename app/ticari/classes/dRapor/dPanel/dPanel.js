@@ -421,7 +421,8 @@ class DPanel extends Part {
 		let e = arguments[0], panel = this
 		let {builder: rfb, id2Detay, items, layout} = this
 		if (id2Detay == null) {
-			this.clear(); await this.detaylariDuzenle(e)
+			this.clear()
+			await this.detaylariDuzenle(e)
 			id2Detay = this.id2Detay
 		}
 		if (batch && !$.isEmptyObject(id2Detay))
@@ -458,8 +459,9 @@ class DPanel extends Part {
 				.addCSS('item _loading')
 				.setParent(items).setRootBuilder(rfb)
 			// item.onInit(({ builder: { layout } }) => $.extend(inst, { layout }))
-			let _e = { ...e, rfb: item }, result
+			let _e = { ...e, rfb: item }
 			$.extend(inst, { _baslik: baslik, panel: this, detay: det })
+			let result
 			if (tip.rapormu) {
 				item.setInst(this).setPart(inst)
 				inst.on('init', ({ rapor: main }) =>
@@ -495,7 +497,18 @@ class DPanel extends Part {
 							content.appendTo(itemLayout)
 						}
 						let {value: url} = det, {contentDocument: doc} = content[0]
-						doc?.close(); doc?.writeln(
+						let wsURLBase = `${app.getWSUrlBase({ wsPath: '' }).trim_slashes()}/ws`
+						let {session} = config, sessionStr = ''
+						{
+							let args = {}
+							config.session.buildAjaxArgs({ args })
+							sessionStr = $.param(args)
+						}
+						url = url
+							.replaceAll('{ws}', wsURLBase)
+							.replaceAll('{session}', sessionStr)
+						doc?.close()
+						doc?.writeln(
 							`<html>
 								<head></head>
 								<body><img width="200" height="200" src="../../images/loading.gif"></img></body>
@@ -518,7 +531,8 @@ class DPanel extends Part {
 							.catch(ex => {
 								doc.close()
 								doc.writeln(`<h2 style="font-weight: bold; color: firebrick">${getErrorText(ex)}</h2>`)
-							})*/
+							})
+						*/
 					}
 					tazele()
 				}
@@ -537,7 +551,8 @@ class DPanel extends Part {
 							{
 								for (let i = 0; i < 2; i++) {
 									let last = code.at(-1)
-									if (last == '\r' || last == '\n') { code = code.slice(0, -1) }
+									if (last == '\r' || last == '\n')
+										code = code.slice(0, -1)
 								}
 							}
 							/*if (code[0] != '(') {
@@ -555,9 +570,14 @@ class DPanel extends Part {
 							})()
 						}
 						if (!code) {
-							delete id2Detay[id]; itemLayout.remove()
-							let {detaylar} = this.raporTanim, ind = detaylar.findIndex(det => det.id == id)
-							if (ind > -1) { detaylar.splice(ind, 1); this.saveLayout() }
+							delete id2Detay[id]
+							itemLayout.remove()
+							let {raporTanim: { detaylar }} = this
+							let ind = detaylar.findIndex(det => det.id == id)
+							if (ind > -1) {
+								detaylar.splice(ind, 1)
+								this.saveLayout()
+							}
 						}
 					}
 					tazele()
@@ -580,7 +600,8 @@ class DPanel extends Part {
 					target = $(target)
 					let id = target.parents('.item.parent').prop('id')
 					let det = this.id2Detay[id]
-					if (det) { this.remove(det) }
+					if (det)
+						this.remove(det)
 				})
 				itemLayout?.on('click', ({ currentTarget: target }) => {
 					target = $(target)
@@ -591,8 +612,9 @@ class DPanel extends Part {
 					itemLayout?.find('iframe')?.on('load', ({ currentTarget: target }) => {
 						setTimeout(() => {
 							let {title} = target.contentDocument?.head ?? {}
-							if (title) { $(target).parents('.item').children('label').html(title || ' ') }
-						}, 1000)
+							if (title)
+								$(target).parents('.item').children('label').html(title || ' ')
+						}, 1_000)
 					})
 				}
 			}
@@ -626,7 +648,8 @@ class DPanel extends Part {
 					}
 				})
 				timer = setTimeout(({ itemLayout: layout }) => {
-					if (!promise) { return }
+					if (!promise)
+						return
 					try {
 						if (layout?.length) {
 							layout.removeClass('_loading')
@@ -661,7 +684,8 @@ class DPanel extends Part {
 		}
 		setTimeout(() => {
 			let itemsCSS = {}
-			for (let key of ['overflow', 'overflow-x', 'overflow-y']) { itemsCSS[key] = items.css(key) }
+			for (let key of ['overflow', 'overflow-x', 'overflow-y'])
+				itemsCSS[key] = items.css(key)
 			let children = items.children('.item')
 			children.resizable({
 				/*handles: 'all', containment: 'parent', ghost: true, helper: 'ui-resizable-helper',*/
@@ -709,7 +733,7 @@ class DPanel extends Part {
 		}, 10)
 		// if (this._previouslyRendered) {
 		{																// Rapor yapıları için bug-fix
-			let detaylar = Object.values(this.id2Detay)
+			let detaylar = values(this.id2Detay)
 			let repeat = 1, wait = 10, inc = 40
 			for (let i = 0; i < repeat; i++) {
 				await delay(wait); wait += inc
@@ -858,14 +882,98 @@ class DPanel extends Part {
 					})
 					.degisince( ({ builder: fbd, builder: { part, parentBuilder, rootBuilder: { id2Builder: { content }} } }) => {
 						let {_ekTanimlar: { id2Builder: { _url: fbd_url } }} = parentBuilder.id2Builder
-						let {baslik: fbd_baslik} = content.builders[0].id2Builder
+						let {id2Builder: { baslik: fbd_baslik }} = content.builders[0]
 						let {value: url, label: baslik} = part.widget.getSelectedItem()
 						part.val('')
 						det._url = fbd_url.value = url
 						det.baslik = fbd_baslik.value = baslik
 					})
 					.addStyle_wh(400)
-					.setVisibleKosulu(({ builder: { inst } }) => inst.tip.webmi ? true : 'jqx-hidden')
+					.setVisibleKosulu(({ builder: { inst: { tip } = {} } }) => tip.webmi ? true : 'jqx-hidden')
+				form.addModelKullan('_evalTemplate', 'Şablonlar').dropDown().kodsuz().noMF()
+					.bosKodAlinir().bosKodEklenir().listedenSecilmez()
+					.setSource(() => {
+						/*let {colorScheme} = config, dark = colorScheme == 'dark'
+						let {DefaultWSHostName_SkyServer: skyHost} = config.class*/
+						return [
+							new CKodAdiVeEkBilgi([
+								'TURMOB', 'TÜRMOB Haberler', 'turmobmu',
+								(async ({ content }) => {
+									let output = 'string', url = 'https://www.turmob.org.tr/Haberler'
+									let {data: { string: result } = {}} = await app.wsWebRequest({ output, url }) ?? {}
+									if (result) {
+										result = $(result)
+										let inner =
+											Array.from(result.find('div > a'))
+												.filter(a => $(a).children('p')?.length)
+												.map(a => {
+													a = $(a)
+													a.prop('target', '_blank')
+													let relUrl = a.prop('href')
+													relUrl = relUrl.replace(location.origin, new URL(url).origin)
+													a.prop('href', relUrl)
+													return `<li>${a[0].outerHTML}</li>`
+													// return `${a.children('p').text()?.trim()} ${a.children('span').html().trim()}`
+												})
+												.join(CrLf)
+										let html = $(`
+											<div class="full-wh">
+												<ul>${inner}</ul>
+											</div>
+										`)
+										content.children().remove()
+										html.appendTo(content)
+									}
+								})
+							]),
+							new CKodAdiVeEkBilgi([
+								'TURMOB2', 'TÜRMOB Haberler (2 Kolonlu)', 'turmob2mi',
+								(async ({ content }) => {
+									let output = 'string', url = 'https://www.turmob.org.tr/Haberler'
+									let {data: { string: result } = {}} = await app.wsWebRequest({ output, url }) ?? {}
+									if (result) {
+										result = $(result)
+										let inner =
+											Array.from(result.find('div > a'))
+												.filter(a => $(a).children('p')?.length)
+												.map(a => {
+													a = $(a)
+													a.prop('target', '_blank')
+													let relUrl = a.prop('href')
+													relUrl = relUrl.replace(location.origin, new URL(url).origin)
+													a.prop('href', relUrl)
+													return `<li style="width: 49.5%">${a[0].outerHTML}</li>`
+													// return `${a.children('p').text()?.trim()} ${a.children('span').html().trim()}`
+												})
+												.join(CrLf)
+										let html = $(`
+											<div class="full-wh">
+												<ul class="flex-row">${inner}</ul>
+											</div>
+										`)
+										content.children().remove()
+										html.appendTo(content)
+									}
+								})
+							])
+						]
+					})
+					.degisince( ({ builder: fbd, builder: { part, parentBuilder, rootBuilder: { id2Builder: { content }} } }) => {
+						let {_ekTanimlar: { id2Builder: { _code: fbd_code } }} = parentBuilder.id2Builder
+						let {id2Builder: { baslik: fbd_baslik }} = content.builders[0]
+						let {label: baslik, originalItem: { ekBilgi: code = '' } = {}} = part.widget.getSelectedItem()
+						if (isFunction(code)) {
+							code = code.toString()
+								.replaceAll('\t\t\t\t\t\t\t\t\t', '\t')
+								.replaceAll('\t\t\t\t\t\t\t\t', '')
+							code = `(${code})`
+						}
+						part.val('')
+						det._code = fbd_code.value = code
+						det.baslik = fbd_baslik.value = baslik
+					})
+					.addStyle_wh(500)
+					.setVisibleKosulu(({ builder: { inst: { tip } = {} } }) => tip.evalmi ? true : 'jqx-hidden')
 				let altForm = form.addFormWithParent('_ekTanimlar').altAlta().addStyle_fullWH()
 				altForm.addModelKullan('_raporId', 'Rapor').dropDown().noMF().autoBind()
 					.addStyle_wh('var(--full)')
@@ -890,14 +998,16 @@ class DPanel extends Part {
 				rfb.setPart(wnd).setLayout(wnd.find('.jqx-window-content .subContent'))
 				rfb.run()
 			}
-			if (!await promise_wait) { return }
+			if (!await promise_wait)
+				return
 			let {tip: { rapormu, webmi, evalmi }} = det
 			det.value = (
 				rapormu ? det._raporId :
 				webmi ? det._url :
 				evalmi ? det._code : null
 			)
-			if (!det?.value) { return }
+			if (!det?.value)
+				return
 			showProgress()
 			switch (islem) {
 				case 'yeni':
@@ -1062,3 +1172,21 @@ class DPanel extends Part {
 		return $(`<div></div>`)
 	}
 }
+
+
+/*
+let output = 'string', url = 'https://www.turmob.org.tr/Haberler'
+let {data: { string: result } = {}} = await app.wsWebRequest({ output, url }) ?? {}
+if (result) {
+	result = $(result)
+	console.table(
+		Array.from(result.find('div > a'))
+			.filter(a => $(a).children('p')?.length)
+			.map(a => {
+				a = $(a)
+				return a[0].outerHTML
+				// return `${a.children('p').text()?.trim()} ${a.children('span').html().trim()}`
+			})
+	)
+}
+*/

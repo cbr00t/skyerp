@@ -150,16 +150,17 @@ class StokHareketci extends Hareketci {
 			this._sablonsalVarmi = await app.sqlHasTable('ozellikbirlesim')
 	}
 	uniDuzenleOncesi({ sender: { finansalAnalizmi } = {} }) {
-		super.uniDuzenleOncesi(...arguments); let {attrSet} = this
+		super.uniDuzenleOncesi(...arguments)
+		let {attrSet} = this
 		if (finansalAnalizmi && attrSet) {
 			// $.extend(attrSet, asSet(['miktar', 'miktar2']))
 			for (let key of ['bedel', 'brutbedel', 'malmuh', 'malhammadde', 'fmalmuh', 'fmalhammadde'])
 				delete attrSet[key]
 		}
 	}
-	uniOrtakSonIslem({ sender: { finansalAnalizmi, eldekiVarliklarmi } = true, secimler: sec, hvDegeri, hv, sent, sent: { from, where: wh, sahalar }, attrSet }) {
+	uniOrtakSonIslem({ sender: { finansalAnalizmi, eldekiVarliklarmi } = {}, secimler: sec, hvDegeri, hv, sent, sent: { from, where: wh, sahalar } }) {
 		super.uniOrtakSonIslem(...arguments)
-		let {sqlNull} = Hareketci_UniBilgi.ortakArgs, {sablonsalVarmi} = this.class
+		let {sqlNull} = Hareketci_UniBilgi.ortakArgs, {attrSet, class: { sablonsalVarmi }} = this
 		let yerKodClause = hvDegeri('yerkod'), mustClause = hvDegeri('must')
 		let kodClause = hvDegeri('stokkod'), fiilimi = (sec?.ISARET?.value || 'F') == 'F';
 		if (!from.aliasIcinTable('stk')) { sent.fromIliski('stkmst stk', `${kodClause} = stk.kod`) }

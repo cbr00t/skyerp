@@ -49,24 +49,34 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	distinctYap() { this.distinct = true; return this }
 	groupByOlustur(e) {
 		let groupBy = this.groupBy = new MQGroupByClause()
-		let {aggregateFunctions} = this.class, sahaListe = this.sahalar.liste
+		let {class: { aggregateFunctions }, sahalar: { liste: sahaListe }} = this
 		let ekleneceklerSet = {}, aggregateVarmi = false
 		for (let i = 0; i < sahaListe.length; i++) {
 			let saha = sahaListe[i], deger = saha.deger?.toString()
 			if (!deger || deger == '' ||
 					deger == `''` || deger == '0' ||
-					isDigit(deger[0]) || deger[0] == `'` || deger.endsWith('*'))
+					isDigit(deger[0]) || deger[0] == `'` || deger.endsWith('*')) {
+				continue
+			}
+			let aliasListe = MQAliasliYapi.getDegerAliasListe(deger)
+			if (!aliasListe?.length)
 				continue
 			let degerUpper = deger.toUpperCase()
 			/*if (deger.toLowerCase().startsWith(`coalesce(har.belgetarih`))
 				debugger*/
-			if (degerUpper.startsWith('CAST(0') || degerUpper.startsWith("CAST(''") ||
-				degerUpper.startsWith('CAST(NULL') || degerUpper.startsWith('NULL')) { continue }
-			let toplammi = this.class.hasAggregateFunctions(degerUpper);
-			if (toplammi) { aggregateVarmi = true; continue }
+			/*if (degerUpper.startsWith('CAST(0') || degerUpper.startsWith("CAST(''") ||
+					degerUpper.startsWith('CAST(NULL') || degerUpper.startsWith('NULL')) {
+				continue
+			}*/
+			let toplammi = this.class.hasAggregateFunctions(degerUpper)
+			if (toplammi) {
+				aggregateVarmi = true
+				continue
+			}
 			ekleneceklerSet[deger] = true
 		}
-		if (aggregateVarmi) { groupBy.addAll(Object.keys(ekleneceklerSet)) }
+		if (aggregateVarmi)
+			groupBy.addAll(keys(ekleneceklerSet))
 		return this
 	}
 	havingOlustur(e) {
@@ -152,54 +162,74 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		return this
 	}
 	gereksizTablolariSil(e) {
-		e = typeof e == 'object' && !$.isArray(e) ? e : { disinda: e };
+		e = typeof e == 'object' && !$.isArray(e) ? e : { disinda: e }
 		let {disinda} = e; if (disinda != null && typeof disinda == 'string') { disinda = [disinda] }
-		let disindaSet = e.disinda = (disinda && $.isArray(disinda) ? asSet(disinda) : disinda) || {};
-		for (let alias of ['har', 'fis']) { disindaSet[alias] = true }
+		let disindaSet = e.disinda = (disinda && $.isArray(disinda) ? asSet(disinda) : disinda) || {}
+		for (let alias of ['har', 'fis'])
+			disindaSet[alias] = true
 		return this.gereksizTablolariSilDogrudan(e)
 	}
 	gereksizTablolariSilDogrudan(e) {
-		e = typeof e == 'object' && !$.isArray(e) ? e : { disinda: e };
-		let {disinda} = e; if (disinda && typeof disinda == 'string') { disinda = [disinda] }
-		let disindaSet = disinda && $.isArray(disinda) ? asSet(disinda) : disinda;
-		this.zincirleriDuzenle({ ...e, disindaSet });
+		e = typeof e == 'object' && !$.isArray(e) ? e : { disinda: e }
+		let {disinda} = e
+		if (disinda && typeof disinda == 'string')
+			disinda = [disinda]
+		let disindaSet = disinda && $.isArray(disinda) ? asSet(disinda) : disinda
+		this.zincirleriDuzenle({ ...e, disindaSet })
 		let iterBlock = item => {
-			let coll = item.liste || item; for (let anMQAliasliYapi of coll) {
-				let degerAliasListe = anMQAliasliYapi.degerAliasListe || [];
-				for (let degerAlias of degerAliasListe) { disindaSet[degerAlias] = true }
+			let coll = item.liste || item
+			for (let anMQAliasliYapi of coll) {
+				let degerAliasListe = anMQAliasliYapi.degerAliasListe || []
+				for (let degerAlias of degerAliasListe)
+					disindaSet[degerAlias] = true
 			}
 		};
-		iterBlock(this.sahalar); iterBlock(this.groupBy); iterBlock(this.having);
-		let {where, zincirler, from} = this;
-		let debugBreak = false; if (config.dev) {
-			/*if (from.aliasIcinTable('ctip')) { debugBreak = true }
+		iterBlock(this.sahalar)
+		iterBlock(this.groupBy)
+		iterBlock(this.having)
+		let {where, zincirler, from} = this
+		let debugBreak = false
+		/*if (config.dev) {
+			if (from.aliasIcinTable('ctip')) { debugBreak = true }
 			let search = `fis.ba = 'A' and tsek.tahsiltipi = 'PS'`;
-			if (this.toString().includes(search)) { debugBreak = true }*/
-		}
+			if (this.toString().includes(search)) { debugBreak = true }
+		}*/
 		for (let text of where.liste) {
 			try {
-				let clauseObjmi = text instanceof MQClause;
+				let clauseObjmi = text instanceof MQClause
 				/*if (debugBreak && clauseObjmi) { debugger }*/
-				if (clauseObjmi) { text = text.toString() }
-				let iliskiYapisi = MQIliskiYapisi.newForText(text); if (iliskiYapisi.isError) { throw iliskiYapisi }
-				let aliasYapilar = [iliskiYapisi.sol, iliskiYapisi.sag].filter(x => !!x);
-				if (iliskiYapisi.saha) { aliasYapilar.push(MQAliasliYapi.newForSahaText(iliskiYapisi.saha)) }
+				if (clauseObjmi)
+					text = text.toString()
+				let iliskiYapisi = MQIliskiYapisi.newForText(text)
+				if (iliskiYapisi.isError)
+					throw iliskiYapisi
+				let aliasYapilar = [iliskiYapisi.sol, iliskiYapisi.sag].filter(x => !!x)
+				if (iliskiYapisi.saha)
+					aliasYapilar.push(MQAliasliYapi.newForSahaText(iliskiYapisi.saha))
 				for (let {degerAliasListe} of aliasYapilar) {
 					/* if (debugBreak) { debugger } */
 					for (let degerAlias of degerAliasListe){
-						if (degerAlias) { disindaSet[degerAlias] = true } }
+						if (degerAlias)
+							disindaSet[degerAlias] = true
+					}
 				}
 			}
-			catch (ex) { if (!(ex && ex.rc == 'queryBuilderError')) { throw ex } }
+			catch (ex) {
+				if (!(ex && ex.rc == 'queryBuilderError'))
+					throw ex
+			}
 		}
-		let tumAliasSet = {}; for (let zincir of zincirler.liste) {
+		let tumAliasSet = {}
+		for (let zincir of zincirler.liste) {
 			/* if (debugBreak && zincir.includes('ctip')) { debugger } */
-			let zincirAlias = zincir.at(-1); tumAliasSet[zincirAlias] = true;
-			if (disindaSet[zincirAlias]) { $.extend(disindaSet, asSet(zincir.slice(0, -1))) }
+			let zincirAlias = zincir.at(-1)
+			tumAliasSet[zincirAlias] = true
+			if (disindaSet[zincirAlias])
+				$.extend(disindaSet, asSet(zincir.slice(0, -1)))
 		}
 		/*let zincirler = this.zincirler?.liste; if (zincirler?.length) { $.extend(disindaSet, asSet(zincirler)) }*/
 		//if (config.dev && tumAliasSet.tsek) { debugger }
-		from.disindakiTablolariSil({ disindaSet });
+		from.disindakiTablolariSil({ disindaSet })
 		return this
 	}
 	asUnion(e) { let inst = new MQUnion(e); inst.add(this); return inst }

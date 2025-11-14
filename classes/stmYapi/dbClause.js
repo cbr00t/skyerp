@@ -185,10 +185,15 @@ class MQFromClause extends MQClause {
 	}
 	/* kullanılmayan tablolar içerdiği ilişkiler ile silinecek. table içindeki (left, inner) için de aynı kural geçerli */
 	disindakiTablolariSil(e) {
-		let disindaSet = e.disindaSet ?? {}, {liste} = this;
+		let disindaSet = e.disindaSet ?? {}
+		let {liste} = this
 		for (let i = liste.length - 1; i >= 0; i--) {
-			let anMQTable = liste[i], {alias} = anMQTable;
-			if (disindaSet[alias]) { anMQTable.disindakiXTablolariSil(e) } else { liste.splice(i, 1) } }
+			let anMQTable = liste[i], {alias} = anMQTable
+			if (disindaSet[alias])
+				anMQTable.disindakiXTablolariSil(e)
+			else
+				liste.splice(i, 1)
+		}
 		return this
 	}
 	*iter() {
@@ -491,6 +496,7 @@ class MQSubWhereClause extends MQClause {
 	icerikKisitDuzenle_kasa(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'kasa' }) }
 	icerikKisitDuzenle_banka(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'banka' }) }
 	icerikKisitDuzenle_bankaHesap(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'bankaHesap' }) }
+	icerikKisitDuzenle_posKosul(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'posKosul' }) }
 	icerikKisitDuzenle_personel(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'personel' }) }
 	icerikKisitDuzenle_muhHesap(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'muhHesap' }) }
 	icerikKisitDuzenle_takipNo(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'takipNo' }) }
@@ -553,11 +559,14 @@ class MQTable extends MQAliasliYapi {
 	disindakiXTablolariSil(e) {
 		/*let disindaSet = e.disindaSet || {}; let liste = this.leftVeInner || [];
 		for (let i = liste.length - 1; i >= 0; i--) { let anMQXJoinTable = liste[i]; if (!disindaSet[anMQXJoinTable.alias]) { liste.splice(i, 1) } }*/
-		let liste = this.leftVeInner || [], disindaSet = e.disindaSet ?? {}, {aliasSet} = e;
-		if (!aliasSet && e.alias) { aliasSet = asSet([e.alias]) }
+		let {aliasSet} = e
+		if (!aliasSet && e.alias)
+			aliasSet = asSet([e.alias])
+		let liste = this.leftVeInner || [], disindaSet = e.disindaSet ?? {}
 		for (let i = liste.length - 1; i >= 0; i--) {
-			let anMQXJoinTable = liste[i], {alias} = anMQXJoinTable;
-			if (aliasSet ? aliasSet[alias] : !disindaSet[alias]) { liste.splice(i, 1) }
+			let anMQXJoinTable = liste[i], {alias} = anMQXJoinTable
+			if (aliasSet ? aliasSet[alias] : !disindaSet[alias])
+				liste.splice(i, 1)
 		}
 		return this
 	}

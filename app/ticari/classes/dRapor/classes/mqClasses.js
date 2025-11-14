@@ -238,6 +238,43 @@ class DMQBankaHesapGrup extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Banka Hesap Grup' }
 	static get kodListeTipi() { return 'BANHESGRP' } static get table() { return 'banhesapgrup' } static get tableAlias() { return 'bhgrp' }
 }
+
+class DMQPosKrKosul extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get tableAlias() { return 'kos' } static get table() { return 'poskosul' }
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(
+			new GridKolon({ belirtec: 'mevduathesapkod', text: 'Ban. Hesap', genislikCh: 15 }),
+			new GridKolon({ belirtec: 'mevduathesapadi', text: 'Hesap Adı', genislikCh: 40, sql: 'bhes.aciklama' })
+		)
+	}
+	static varsayilanKeyHostVarsDuzenle({ hv }) {
+		super.varsayilanKeyHostVarsDuzenle(...arguments)
+		let {almSat} = this
+		if (almSat != null)
+			hv.almsat = almSat
+	}
+	static loadServerData_queryDuzenle({ sent, sent: { sahalar } }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		let {tableAlias: alias} = this
+		sent.fromIliski('banbizhesap bhes', `${alias}.mevduathesapkod = bhes.kod`)
+		sahalar.add('baktifmi')
+	}
+}
+class DMQPosHesap extends DMQPosKrKosul {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sinifAdi() { return 'POS Hesap' } static get kodListeTipi() { return '' }
+	static get almSat() { return 'T' }
+}
+class DMQKrediKarti extends DMQPosKrKosul {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sinifAdi() { return 'Kredi Kartı' } static get kodListeTipi() { return  '' }
+	static get almSat() { return 'A' }
+}
+
+
+
 class DMQMuhHesap extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Hesap' }
 	static get kodListeTipi() { return 'MUHHESAP' } static get table() { return 'muhhesap' } static get tableAlias() { return 'mhes' }

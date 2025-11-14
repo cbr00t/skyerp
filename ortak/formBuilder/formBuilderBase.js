@@ -6,11 +6,16 @@ class FormBuilderBase extends CObject {
 	get defaultAutoAppendFlag() { return this.class.defaultAutoAppendFlag }
 	get id() { let result = this._id; if (result == null) { result = this._id = this.newElementId() } return result } set id(value) { this._id = value }
 	get id2Builder() {
-		let result = this._id2Builder;
+		let {_id2Builder: result} = this
 		if (result == null) {
-			result = {}; let {builders} = this;
+			result = {}
+			let {builders} = this
 			for (let key in builders) {
-				let builder = builders[key]; if (!builder.parentBuilder) { builder.parentBuilder = this } if (!builder.rootBuilder) { builder.rootBuilder = this.rootBuilder }
+				let builder = builders[key]
+				if (!builder.parentBuilder)
+					builder.parentBuilder = this
+				if (!builder.rootBuilder)
+					builder.rootBuilder = this.rootBuilder
 				result[builder.id] = builder
 			}
 			this._id2Builder = result
@@ -48,10 +53,12 @@ class FormBuilderBase extends CObject {
 	}
 	set parentPart(value) { this._parentPart = value }
 	get part() {
-		let result = this._part;
+		let {_part: result} = this
 		if (result && $.isFunction(result)) {
-			let _e = this.getBuilderBlockArgs({ result }); result = getFuncValue.call(this, result, _e);
-			if (_e.commitFlag) this._part = result
+			let _e = this.getBuilderBlockArgs({ result })
+			result = getFuncValue.call(this, result, _e)
+			if (_e.commitFlag)
+				this._part = result
 		}
 		return result
 	}

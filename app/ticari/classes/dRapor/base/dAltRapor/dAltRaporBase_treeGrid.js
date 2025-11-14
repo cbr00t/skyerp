@@ -79,7 +79,11 @@ class DAltRapor_TreeGrid extends DAltRapor {
 			raporTanim.rapor = this
 		await this.rapor?.signal('init', _e)
 	}
-	onGridRun(e) { this.tazeleOncesi(e); this.onGridRun_ozel?.(e); this.tazele(e) }
+	async onGridRun(e) {
+		await this.tazeleOncesi(e)
+		await this.onGridRun_ozel?.(e)
+		await this.tazele(e)
+	}
 	gridRowExpanded(e) { let {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = true }
 	gridRowCollapsed(e) { let {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = false }
 	gridSatirTiklandi(e) { }
@@ -287,14 +291,22 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		super.onBuildEk(...arguments)
 		/*if (this.class.mainmi) { fbd.addCSS('_main') }*/
 	}
-	onGridInit(e) {
-		super.onGridInit(e);
+	async onGridInit(e) {
+		await super.onGridInit(e)
 		this.ozetBilgi = { colDefs: null, recs: null }
 	}
-	onGridRun(e) { super.onGridRun(e) /*; this.tazeleOncesi(e)*/ }
+	async onGridRun(e) {
+		await super.onGridRun(e)
+		/*this.tazeleOncesi(e)*/
+	}
 	tabloKolonlariDuzenle(e) {
-		super.tabloKolonlariDuzenle(e); let {liste} = e, {tabloYapi} = this, {grup, toplam} = tabloYapi;
-		for (let item of [grup, toplam]) { for (let {colDefs} of Object.values(item)) { if (colDefs?.length) { liste.push(...colDefs) } } }
+		super.tabloKolonlariDuzenle(e); let {liste} = e, {tabloYapi} = this, {grup, toplam} = tabloYapi
+		for (let item of [grup, toplam]) {
+			for (let {colDefs} of values(item)) {
+				if (colDefs?.length)
+					liste.push(...colDefs)
+			}
+		}
 	}
 	gridArgsDuzenle({ args }) { super.gridArgsDuzenle(...arguments) }
 	ekCSSDuzenle(e) { this.ekCSSDuzenle_ozel?.(e) }
@@ -487,15 +499,16 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			}
 		}
 		if (digerRec[icerikAttr]) {
-			let {aggregates} = icerikColDef ?? {}; if (aggregates?.includes('avg')) {
+			let {aggregates} = icerikColDef ?? {}
+			if (aggregates?.includes('avg')) {
 				digerRec[icerikAttr] = digerSayi ? roundToFra((digerRec[icerikAttr] || 0) / digerSayi, icerikColDef.tip?.fra ?? 0) : 0 }
 			result.push(digerRec)
 		}
-		ozetBilgi.recs = result;
-		window.progressManager?.progressStep(2);
+		ozetBilgi.recs = result
+		window.progressManager?.progressStep(2)
 	}
 	tazeleOncesi(e) {
-		super.tazeleOncesi(e);
+		super.tazeleOncesi(e)
 		let {rapor: { isPanelItem }, parentBuilder: { rootBuilder } = {}, fbd_grid, tabloYapi, raporTanim, raporTanim: { secilenVarmi } = {}} = this
 		rootBuilder?.layout?.find('.islemTuslari > div button#tabloTanimlari')[secilenVarmi ? 'removeClass' : 'addClass']('anim-tabloTanimlari-highlight')
 		if (!(isPanelItem || secilenVarmi)) {
@@ -727,8 +740,9 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		})
 		this._tabloTanimGosterildiFlag = true; return wRFB
 	}
-	async raporTanim_tamamIstendi(e) {
+	async raporTanim_tamamIstendi(e = {}) {
 		let {inst, tamamIslemi} = e
+		e.rapor ??= this
 		await inst.dataDuzgunmuDevam(e)
 		await inst.tamamSonrasiIslemlar(e)
 		inst.degistimi = true

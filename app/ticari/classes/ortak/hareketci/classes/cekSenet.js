@@ -161,9 +161,14 @@ class CSHareketci extends Hareketci {
 	getOrtakHV(selector, e) { return this.class.getOrtakHV(selector, e) }
 	ortakUniDuzenle_sent(selector, e) { return this.class.ortakUniDuzenle_sent(selector, e) }
 	ortakUniDuzenle_hv(selector, e) { return this.class.ortakUniDuzenle_hv(selector, e) }
-	ortakSentDuzenle_isiBitenlerHaric({ hv, sent }) {
-		let {from, where: wh} = sent, digerHarmi = from.aliasIcinTable('har')?.deger == 'csdigerhar';
-		/*if (digerHarmi) {*/ wh.notInDizi(['XI', 'XK', 'XT', 'X3', 'XZ'], hv.portftipi) /*}*/
+	static ortakSentDuzenle_isiBitenlerHaric({ sender, hv, sent, sent: { from } = {}, where: wh }) {
+		// let digerHarmi = from.aliasIcinTable('har')?.deger == 'csdigerhar'
+		wh ??= sent?.where
+		{
+			let {portftipi: clause} = hv
+			if (clause)
+				wh.notInDizi(['XI', 'XK', 'XT', 'X3', 'XZ'], clause)
+		}
 	}
 	
 	uniDuzenleOncesi({ sender: { finansalAnalizmi } = {} }) {
@@ -171,9 +176,13 @@ class CSHareketci extends Hareketci {
 		if (attrSet)
 			attrSet.portfadi = true
 	}
-	uniOrtakSonIslem({ sender, sent, wh }) {
-		super.uniOrtakSonIslem(...arguments);
-		if (sender?.finansalAnalizmi) { this.ortakSentDuzenle_isiBitenlerHaric(...arguments) }
+	uniOrtakSonIslem({ sender, hv, sent, sent: { where: wh } }) {
+		super.uniOrtakSonIslem(...arguments)
+		if (sender?.eldekiVarliklarmi) {
+			let {portftipi: clause} = hv
+			if (clause)
+				wh.notInDizi(['XI', 'XK', 'XT', 'X3', 'XZ', 'C'], clause)
+		}
 	}
 	/** Varsayılan değer atamaları (host vars) – temel sınıfa eklemeler.
 		Hareketci.varsayilanHVDuzenle değerleri aynen alınır, sadece eksikler eklenir */
@@ -181,13 +190,14 @@ class CSHareketci extends Hareketci {
         /* super.varsayilanHVDuzenle(...arguments); */
 		for (let key of [
 			'ozelisaret', 'ayadi', 'saat', 'bizsubekod', 'fisnox', 'bedel', 'ba', 'bankadekontnox',
-			'anaisladi', 'islkod', 'isladi', 'refkod', 'refadi',
+			'anaislemadi', 'islkod', 'isladi', 'refkod', 'refadi',
 			'portftipi', 'portfkod', 'portfadi', 'portfkisatiptext',
 			'refportftipi', 'refportfkod', 'refportfadi', 'refportfkisatiptext'
 		]) { hv[key] = sqlEmpty }
 		$.extend(hv, {
 			fisno: ({ hv }) => hv.belgeno,
 			isaretlibedel: ({ hv }) => hv.bedel,
+			anaislemadi: ({ hv }) => CSBelgeTipi.getClause(hv.belgetipi),
 			refkod: ({ hv }) => hv.refportfkod,
 			refadi: ({ hv }) => hv.refportfadi
 			/* portfVeyaRefPortfAdi: ({ hv }) => { return `dbo.emptycoalesce(${hv.portfadi}, ${hv.refportfadi})` } */
@@ -195,7 +205,8 @@ class CSHareketci extends Hareketci {
     }
 	
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
-		let {trfCikismi} = this; $.extend(e, { trfCikismi }); super.uygunluk2UnionBilgiListeDuzenleDevam(e);
+		let {trfCikismi} = this; $.extend(e, { trfCikismi })
+		super.uygunluk2UnionBilgiListeDuzenleDevam(e)
 		this.uniDuzenle_ilkHareket(e).uniDuzenle_transfer(e).uniDuzenle_sahis3(e).uniDuzenle_genelDekont(e)
 	}
 	uniDuzenle_ilkHareket({ liste }) {

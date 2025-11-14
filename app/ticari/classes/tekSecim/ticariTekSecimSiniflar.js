@@ -446,21 +446,44 @@ class AlimFisTipi extends TekSecim {
 }
 class CSBelgeTipi extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultChar() { return '' }
+	static get defaultChar() { return null }
 	get ba() { return (this.char || '')[0] }
-	get alacakmi() { return this.ba == 'A' }
 	get borcmu() { return this.ba == 'B' }
-	get alacakCekmi() { return this.char == 'AC' }
-	get alacakSenetmi() { return this.char == 'AS' }
-	get borcCekmi() { return this.char == 'BC' }
-	get borcSenetmi() { return this.char == 'BS' }
-	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); let {kaListe} = e;
-		kaListe.push([
-			new CKodVeAdi(['AC', 'Alacak Çek' ]),
-			new CKodVeAdi(['AS', 'Alacak Senet' ]),
-			new CKodVeAdi(['BC', 'Borç Çek' ]),
-			new CKodVeAdi(['BS', 'Borç Senet'])
+	get alacakmi() { return this.ba == 'A' }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(...[
+			new CKodVeAdi(['AC', 'Alacak Çek', 'alacakCekmi']),
+			new CKodVeAdi(['AS', 'Alacak Senet', 'alacakSenetmi']),
+			new CKodVeAdi(['BC', 'Borç Çek', 'borcCekmi']),
+			new CKodVeAdi(['BS', 'Borç Senet', 'borcSenetmi'])
+		])
+	}
+}
+class CSGercekPortfTipi extends TekSecim {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get defaultChar() { return null }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(...[
+			new CKodVeAdi(['P', 'Portföy', 'portfoymu']),
+			new CKodVeAdi(['H', 'Banka Hesap', 'bankaHesapmi']),
+			new CKodVeAdi(['C', '3. Şahıs', 'sahis3mi'])
+		])
+	}
+}
+class CSPortfTipi extends CSGercekPortfTipi {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get defaultChar() { return null }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(...[
+			new CKodVeAdi(['X3', '3. Şahıs İşi Bitti', 'sahis3IsiBitti']),
+			new CKodVeAdi(['XH', 'Bankadan Karşılıksız', 'bankaKarsiliksizmi']),
+			new CKodVeAdi(['XE', 'Elden Karşılıksız', 'eldenKarsiliksizmi']),
+			new CKodVeAdi(['XT', 'Tahsil Edildi', 'tahsilEdildimi']),
+			new CKodVeAdi(['XK', 'Karşılıksız', 'karsiliksizmi']),
+			new CKodVeAdi(['XI', 'İADE Edildi', 'iademi'])
 		])
 	}
 }

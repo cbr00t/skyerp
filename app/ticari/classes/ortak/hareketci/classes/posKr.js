@@ -67,7 +67,7 @@ class PsKrOrtakHareketci extends BankaOrtakHareketci {
 						fisnox: `(case when har.belgeno = 0 then fis.fisnox else har.belgenox end)`,
 						oncelik: `(case when fis.fistipi = 'DV' then 0 when fis.fistipi = 'ND' then 9 else 1 end)`,
 						ba: `(case when fis.almsat = 'T' then (case when fis.fistipi = 'ND' then 'A' when fis.iade = 'I' then 'A' else 'B' end) else (case when fis.fistipi = 'ND' then 'B' when fis.iade = 'I' then 'B' else 'A' end) end)`,
-						islemadi: `(case when fis.fistipi = 'DV' then 'Devir' when fis.fistipi = 'ND' then (case when fis.almsat = 'T' then 'Nakde Dönü?üm' else 'Kr.Kart Ödeme' end) when fis.fistipi in ('AL', 'AK') then (case when fis.almsat = 'T' then 'Pos Tahsil' else 'Kr.Kart ile Ödeme' end) else '??' end)`,
+						islemadi: `(case when fis.fistipi = 'DV' then 'Devir' when fis.fistipi = 'ND' then (case when fis.almsat = 'T' then 'Nakde Dönüşüm' else 'Kr.Kart Ödeme' end) when fis.fistipi in ('AL', 'AK') then (case when fis.almsat = 'T' then 'Pos Tahsil' else 'Kr.Kart ile Ödeme' end) else '??' end)`,
 						detaciklama: 'har.aciklama', takipno: 'har.takipno',
 						dvkur: 'har.dvkur', bedel: `(case when fis.fistipi = 'ND' then har.brutbedel else har.bedel end)`, dvbedel: 'har.dvbedel',
 						ndvade: 'har.nakdedonusumvade', vade: 'har.vade', plasiyerkod: `(case when fis.fistipi = 'AL' then fis.plasiyerkod else '' end)`,
@@ -96,7 +96,7 @@ class PsKrOrtakHareketci extends BankaOrtakHareketci {
                         islemadi: (
 							`((case fis.piftipi when 'P' then 'Perakende Fiş' when 'I' then 'İrsaliye' else ` +
 								`(case fis.ayrimtipi when 'PR' then 'Mağaza Fiş' else 'Fatura' end) ` +
-							`end) + ' ' + (case fis.almsat when 'T' then ' POS Tahsil' else ' Kr.Kart Ödeme' end))`
+							`end) + ' ' + (case fis.almsat when 'T' then 'POS Tahsil' else 'Kr.Kart Ödeme' end))`
 						),     /* ^--  STRING CONCAT için talimatlarda `+ ' ' +` ile boşluk vermek gerekirdi, muhtemelen unutulmuş */
                         fisaciklama: 'fis.cariaciklama', bedel: 'har.bedel',
                         dvkur: `(case when har.karsidvvar = '' then fis.dvkur else har.karsidvkur end)`,

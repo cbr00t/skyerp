@@ -183,30 +183,40 @@ class MQSQLConst extends CObject {
 class MQAliasliYapi extends MQSQLOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } get aliasliYapimi() { return true }
 	get alias() {
-		let {_alias: result} = this;
-		if (result == undefined) { result = this._alias = this.class.getSahaDegeri(this.deger) }
+		let {_alias: result} = this
+		if (result == undefined)
+			result = this._alias = this.class.getSahaDegeri(this.deger)
 		return result
 	}
 	set alias(value) { this._alias = value }
-	get aliasVeyaDeger() { return this.alias || this.deger } get degerAlias() { return this.class.getDegerAlias(this.deger) }
+	get aliasVeyaDeger() { return this.alias || this.deger }
+	get degerAlias() { return this.class.getDegerAlias(this.deger) }
 	get degerAliasListe() { return this.class.getDegerAliasListe(this.deger) }
 	
 	constructor(e) {
-		e = e || {}; super(e); this.deger = e.deger || ''; this.alias = e.alias ?? undefined;    /* alias === undefined için getSahaDegeri ile getterda belirlenir */
-		this.aliaslimi = e.aliaslimi ?? (e.isCopy ? null : !!this.alias && this.alias != this.sql);
-		let {alias, deger} = this;
-		if (alias == 'undefined') { console.warn('MQAliasliYapi', 'alias hatası', { saha: this, alias, deger }) }
+		e = e || {}; super(e); this.deger = e.deger || ''; this.alias = e.alias ?? undefined     /* alias === undefined için getSahaDegeri ile getterda belirlenir */
+		this.aliaslimi = e.aliaslimi ?? (e.isCopy ? null : !!this.alias && this.alias != this.sql)
+		let {alias, deger} = this
+		if (alias == 'undefined') {
+			console.warn('MQAliasliYapi', 'alias hatası', { saha: this, alias, deger })
+		}
 	}
-	static newForFromText(e) {
+	static newForFromText(e = {}) {
 		/* örnek:
 				- 'piffis'
 				- 'piffis fis'
 				- 'piffis AS fis'
 				- '(SELECT ... ) AS tbl'
 		*/
-		e = e || {}; if (!$.isPlainObject(e)) { e = { text: e } }
-		let text = (e.text || e.fromText || '').toString().trim(), sonBosInd = text.lastIndexOf(' '); delete e.text;
-		if (sonBosInd < 0) { e.deger = e.alias = text; e.aliaslimi = false }								/* bosluk yok */
+		if (!$.isPlainObject(e))
+			e = { text: e }
+		let text = (e.text || e.fromText || '').toString().trim()
+		let sonBosInd = text.lastIndexOf(' ')
+		delete e.text
+		if (sonBosInd < 0) {
+			e.deger = e.alias = text
+			e.aliaslimi = false
+		}
 		else {																								/* bosluk var -- substring (from, end) => end index dahil değil */
 			let asLiteralSet = { ' AS': true, ' as': true, ' As': true, ' aS': true };
 			let tabloAdi = text.substring(0, sonBosInd).trim(); if (tabloAdi[0] != '(' && asLiteralSet[tabloAdi.slice(-3)]) { tabloAdi = tabloAdi.slice(0, -3) }
@@ -221,21 +231,23 @@ class MQAliasliYapi extends MQSQLOrtak {
 				- 'kod'
 				- '(case when ... end) tipText'
 		*/
-		text = text?.toString()?.trim() ?? '';
-		let e = {}, sonBosInd = text.lastIndexOf(' '), sonNoktaInd = text.lastIndexOf('.');
+		text = text?.toString()?.trim() ?? ''
+		let e = {}, sonBosInd = text.lastIndexOf(' '), sonNoktaInd = text.lastIndexOf('.')
 		if (sonBosInd < 0) {																														/* bosluk yok */
 			if (sonNoktaInd < 0) { e.deger = e.alias = text; e.aliaslimi = false }																	/* nokta yok */
 			else { e.deger = text; e.alias = text.substring(sonNoktaInd + 1).trim(); e.aliaslimi = false }											/* nokta var */
 		}
 		else {																																		/* bosluk var -- substring (from, end) => end index dahil değil */
-			let deger = e.deger = text.substring(0, sonBosInd).trim(), alias = e.alias = text.substring(sonBosInd + 1).trim();
+			let deger = e.deger = text.substring(0, sonBosInd).trim()
+			let alias = e.alias = text.substring(sonBosInd + 1).trim()
 			for (let ch of ['.', ',', '(', ')']) {
 				if (alias.includes(ch)) {
 					console.warn('newForSahaText', 'alias hatası', { text, deger, alias });
 					break
 				}
 			}
-			if (deger && deger.split('.').slice(-1)[0] == alias) { alias = e.alias = null; e.aliaslimi = false } else { e.aliaslimi = true }
+			if (deger && deger.split('.').slice(-1)[0] == alias) { alias = e.alias = null; e.aliaslimi = false }
+			else { e.aliaslimi = true }
 		}
 		return new this(e)
 	}
@@ -244,35 +256,88 @@ class MQAliasliYapi extends MQSQLOrtak {
 				- 'har.fissayac'
 				- '(case when fis.silindi='' then ... else .. end)'
 		*/
-		text = text?.toString()?.trim(); if (!text) { return new this() }
-		let noktaInd = text.lastIndexOf('.'); if (noktaInd < 0 || text[0] == '(') { return new this({ deger: text }) }
-		return new this({ deger: text, alias: text.substring(0, noktaInd), aliaslimi: true })		/* to dahil degil substring'de */
+		text = text?.toString()?.trim()
+		if (!text)
+			return new this()
+		let noktaInd = text.lastIndexOf('.')
+		let result = noktaInd < 0 || (text.includes('(') || text.includes(')'))
+			? new this({ deger: text, alias: '', aliaslimi: false })
+			: new this({ deger: text, alias: text.substring(0, noktaInd), aliaslimi: true })		/* to dahil degil substring'de  -  fis.islkod = ''  */
+		{
+			let {deger, alias} = result
+			for (let ch of ['.', ',', '(', ')']) {
+				if (alias?.includes(ch)) {
+					console.warn('newForIliskiText', 'alias hatası', { text, deger, alias })
+					break
+				}
+			}
+		}
+		return result
 	}
 	static getDegerAliasListe(deger) {
-		let result = {}; deger = deger?.toString().trim();
-		let tokens = deger.split('.');
+		deger = deger?.toString().trim()
+		let tokens = deger.split('.')
+		if (tokens.length)
+			tokens = tokens.slice(0, -1)    // sonuncu hariç
 		// aslinda nokta oncesi full digit ise bu parca sonrasi ile birlesmeli
+		let result = {}
 		for (let i = 0; i < tokens.length; i++) {
-			let token = tokens[i]?.trim(); if (!token) { continue }
-			let temp = ''; for (let j = token.length - 1; j >= 0; j--) {
-				let ch = token[j]; if (!sqlAliasmi(ch)) { break }
-				temp = ch + temp
-			}
-			if (hepsiUygunmu(temp, ch => isDigit(ch))) { continue }
-			result[temp] = true
+			let token = tokens[i].split(' ').at(-1)?.trim()
+			if (!token)
+				continue
+			/*let temp = ''
+			for (let j = token.length - 1; j >= 0; j--) {
+				let ch = token[j]
+				if (sqlAliasmi(ch))
+					temp = ch + temp
+			}*/
+			let alias = this.sondakiAlias(token)
+			if (alias)
+				result[alias] = true
 		}
-		return Object.keys(result)
+		return keys(result)
 	}
-	static getDegerAlias(deger) { return this.getDegerAliasListe(deger)?.[0] ?? [] }
+	static getDegerAlias(deger) {
+		return this.getDegerAliasListe(deger)?.[0] ?? []
+	}
+	/** '.' ile ayıştırılmış bilgilerde solda kalan alias araştırılır
+		- 'coalesce(har' => 'har'
+		- 'stk' => 'stk'
+	*/
+	static sondakiAlias(text) {
+		let token = text?.split(' ')?.at(-1)
+		if (!token)
+			return null
+		let ind = token.length - 1
+		for (; ind >= 0; ind--) {
+			let ch = token[ind]
+			if (!sqlAliasmiCh(ch))
+				break
+		}
+		let olasiAlias = token.slice(ind + 1).trim()
+		if (!olasiAlias || isDigit(olasiAlias[0]))
+			return null
+		return olasiAlias
+	}
 	static getSahaDegeri(text) {
 		// har.kasakod   		gibi ==> 'kasakod'
 		// har.kasakod xkod		gibi ==> 'xkod'
 		//		aksinde			 ==> null
-		text = text?.toString().trim(); if (!text) { return null }
-		let tokens = text.split(' '); if (tokens.length > 1) { return tokens[tokens.length - 1] }
-		let ilk = text[0]; if (ilk >= '0' && ilk <= '9') { return null }
-		if (ilk == '(' || ilk == `'` || text.toUpperCase() == 'NULL') { return null }
-		tokens = text.split('.'); return tokens.length == 2 ? tokens[tokens.length - 1] : null;
+		text = text?.toString()?.trim()
+		if (!text)
+			return null
+		let tokens = text.split(' ')
+		if (tokens.length > 1) {
+			console.warn('getSahaDegeri', 'muhtemel hatalı alias belirlemesi', text)
+			return tokens[tokens.length - 1]
+		}
+		let ilk = text[0]
+		if (ilk >= '0' && ilk <= '9')
+			return null
+		if (ilk == '(' || ilk == `'` || text.toUpperCase() == 'NULL')
+			return null
+		tokens = text.split('.')
+		return tokens.length == 2 ? tokens[tokens.length - 1] : null
 	}
 	buildString(e) {
 		super.buildString(e); e.result += this.deger || '';
@@ -282,10 +347,17 @@ class MQAliasliYapi extends MQSQLOrtak {
 class MQIliskiYapisi extends MQSQLOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	get varsaZincir() { const {sol, sag} = this; return sol.aliaslimi && sag.aliaslimi ? [sol.alias, sag.alias] : null }
-	constructor(e) {
-		e = e || {}; super(e); if (typeof e == 'string') { return $.extend(this, this.class.newForText(e)) }
-		this.sol = e.sol || new MQAliasliYapi(); this.sag = e.sag || new MQAliasliYapi()
-		for (const key of ['sol', 'sag']) { let value = this[key]; if (!value?.aliasliYapimi) { this[key] = value = MQAliasliYapi.newForIliskiText(value) } }
+	constructor(e = {}) {
+		super(e)
+		if (typeof e == 'string')
+			return $.extend(this, this.class.newForText(e))
+		this.sol = e.sol || new MQAliasliYapi()
+		this.sag = e.sag || new MQAliasliYapi()
+		for (let key of ['sol', 'sag']) {
+			let value = this[key]
+			if (!value?.aliasliYapimi)
+				this[key] = value = MQAliasliYapi.newForIliskiText(value)
+		}
 	}
 	static newForText(text) {
 		if (typeof text == 'object') { return $.isPlainObject(text) ? new this(text) : text }

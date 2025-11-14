@@ -131,10 +131,12 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		for (let cls of harClasses) {
 			let {kod: anaTip, mstYapi} = cls, {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi
 			let belirtecler = [...sabitBelirtecler, mstKodAlias, mstAdiAlias, mstAdiAlias2].filter(x => !!x)
-			let har = new cls(); har.withAttrs(belirtecler)
+			let har = new cls()
+			har.withAttrs(belirtecler)
 			harListe.push(har)
 		}
-		let sonTarih = sec.tarih.value || null, buYonClause = yon.sqlServerDegeri();
+		let sonTarih = sec.tarih.value || null
+		let buYonClause = yon.sqlServerDegeri()
 		let uni = new MQUnionAll()
 		for (let har of harListe) {
 			let {oncelik, mstYapi, kod: harTipKod, finAnaliz_baIcinTersIslemYapilirmi: baTersIslem} = har.class
@@ -205,18 +207,23 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		orderBy.liste = ['oncelik', 'gruponcelik', 'grup', 'mstkod']
 	}
 	loadServerData_recsDuzenleIlk({ recs }) {
-		let {class: { sagmi }} = this
+		let {class: { sagmi, sagDuzenlenmeyecekGrupAdlariSet }} = this
 		let recsDvKodSet = this.recsDvKodSet = {}
 		for (let rec of recs) {
-			let {miktar, dvkod: dvKod, bedel, dvbedel, mstadi: mstAdi, mstadi2: mstAdi2} = rec
+			let {miktar, dvkod: dvKod, bedel, dvbedel, grup: grupAdi, mstadi: mstAdi, mstadi2: mstAdi2} = rec
 			if (this.getDovizmi(dvKod))
 				recsDvKodSet[dvKod] = true
 			if (!mstAdi && mstAdi2)
 				mstAdi = rec.mstadi = mstAdi2
-			if (sagmi) {
-				if (miktar) { miktar = rec.miktar = -miktar }
-				if (bedel) { bedel = rec.bedel = -bedel }
-				if (dvbedel) { dvbedel = rec.dvbedel = -dvbedel }
+			/*if (sagmi && sagDuzenlenmeyecekGrupAdlariSet?.[grupAdi])
+				debugger*/
+			if (sagmi && !(sagDuzenlenmeyecekGrupAdlariSet?.[grupAdi])) {
+				if (miktar)
+					miktar = rec.miktar = -miktar
+				if (bedel)
+					bedel = rec.bedel = -bedel
+				if (dvbedel)
+					dvbedel = rec.dvbedel = -dvbedel
 			}
 		}
 		return super.loadServerData_recsDuzenleIlk(...arguments)
@@ -280,6 +287,12 @@ class DRapor_EldekiVarliklar_Sag extends DAltRapor_EldekiVarliklar_Ortak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get kod() { return 'sag' }
 	static get mstEtiket() { return 'BORÇLARIMIZ' } static get borderColor() { return '#bc9d9d' }
 	static get yon() { return 'sag' } static get sagmi() { return true }
+	static get sagDuzenlenmeyecekGrupAdlariSet() {
+		return asSet([
+			/*'Borç Çekleri',
+			'Borç Senetleri'*/
+		])
+	}
 	/*async loadServerDataInternal(e) {
 		let recs = await super.loadServerDataInternal(e) ?? [];
 		recs.push(...[

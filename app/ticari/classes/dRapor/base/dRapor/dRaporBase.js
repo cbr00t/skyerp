@@ -18,10 +18,14 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 			result = {}
 			let subClasses = this.subClasses.filter(({ araSeviyemi, dAltRapormu, uygunmu, kod }) =>
 				!(araSeviyemi || dAltRapormu) && uygunmu && kod)
+			console.group('menu sort')
 			subClasses = [...subClasses].sort((a, b) => {
-				console.info('menu sort', a.name, a.oncelik ?? null, b.name, b.oncelik ?? null)
-				return (a.oncelik ?? 10000) - (b.oncelik ?? 10000)
+				let oncelik_a = (a.oncelik ?? 10000), oncelik_b = (b.oncelik ?? 10000)
+				let compare = oncelik_a - oncelik_b, oncelikText = compare < 0 ? 'a' : compare > 0 ? 'b' : '-'
+				console.debug('... sort', ['a', a.name, oncelik_a], ['b', b.name, oncelik_b], ['oncelik', compare, oncelikText])
+				return compare
 			})
+			console.groupEnd()
 			for (let cls of subClasses)
 				result[cls.kod] = cls
 			this._kod2Sinif = result

@@ -209,10 +209,10 @@ class CSIslemler extends CObject {
 			tip: 'portftipi', tipAdi: 'portftiptext', tipKisaAdi: 'portfkisatiptext',
 			kod: 'portfkod', adi: 'portfadi', doviz: 'portdvkod'
 		};
-		for (let [selector, anah2Tipler] of Object.entries(selector2Anah2Tipler)) {
+		for (let [selector, anah2Tipler] of entries(selector2Anah2Tipler)) {
 			let whenler = this[`getWhenler_${selector}`]?.({ tipVeIadeClause, anah2Tipler });
-			for (let [key, whenClauses] of Object.entries(whenler)) {
-				let caseClause = `(case${whenClauses.join('')} else '' end)`;
+			for (let [key, whenClauses] of entries(whenler)) {
+				let caseClause = `(case${whenClauses.join('')} else '' end)`
 				let attr = getAttr(key2AttrPostfix[key])
 				result[attr] = caseClause
 			}

@@ -193,46 +193,52 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		return super.loadServerData_recsDuzenleIlk(...arguments)
 	}
 	async detaylariOlustur(e) {
-		let {event: evt} = e, /*{ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu*/ ozelIsaretVarmi = true, {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
-		let {secimler: sec} = this, {tarihBS: donemBS} = sec;
-		let {id2AltRapor} = this.rapor, {row: parentRec} = evt.args;
-		let {anatip: harTip, mstkod: kod, dvkod: dvKod, level, ozelisaret: ozelIsaret, devir} = parentRec ?? {};
-		let harSinif = Hareketci.kod2Sinif[harTip]; if (!(level && harSinif && kod != null)) { return false }
-		let tlDvKodSet = asSet(['', 'TL', 'TRY', 'TRL']);
+		let {event: evt} = e /*{ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu*/
+		let ozelIsaretVarmi = true, {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs
+		let {secimler: sec} = this, {tarihBS: donemBS} = sec
+		let {id2AltRapor} = this.rapor, {row: parentRec} = evt.args
+		let {anatip: harTip, mstkod: kod, dvkod: dvKod, level, ozelisaret: ozelIsaret, devir} = parentRec ?? {}
+		let harSinif = Hareketci.kod2Sinif[harTip]; if (!(level && harSinif && kod != null))
+			return false
+		let tlDvKodSet = asSet(['', 'TL', 'TRY', 'TRL'])
 		let sabitBelirtecler = [
-			'mstkod', 'mstadi', 'tarih', 'fisnox', 'isladi', 'refkod', 'refadi',
+			'mstkod', 'mstadi', 'tarih', 'fisnox', 'isladi', 'refkod', 'refadi', 'miktar',
 			'ba', 'bedel', 'dvbedel', 'dvkod', 'aciklama', 'finanalizkullanilmaz'
-		];
-		if (ozelIsaretVarmi) { sabitBelirtecler.push('ozelisaret') }
-		let {oncelik, kod: tipKod, mstYapi} = harSinif, {hvAlias: mstAlias, hvAdiAlias: mstAdiAlias} = mstYapi;
-		mstAlias = mstAlias || 'mstkod'; mstAdiAlias = mstAdiAlias || 'mstadi';
-		// let dvKodClausecu = hv => `(case when COALESCE(${hv.dvkod || ''}, '') IN ('', 'TL', 'TRY', 'TRL') then '' else ${hv.dvkod || ''} end)`;
+		]
+		if (ozelIsaretVarmi)
+			sabitBelirtecler.push('ozelisaret')
+		let {oncelik, kod: tipKod, mstYapi} = harSinif
+		let {hvAlias: mstAlias, hvAdiAlias: mstAdiAlias} = mstYapi
+		mstAlias = mstAlias || 'mstkod'; mstAdiAlias = mstAdiAlias || 'mstadi'
+		// let dvKodClausecu = hv => `(case when COALESCE(${hv.dvkod || ''}, '') IN ('', 'TL', 'TRY', 'TRL') then '' else ${hv.dvkod || ''} end)`
 		let har = new harSinif().withAttrs(sabitBelirtecler)
 			.addEkDuzenleyici('mst', ({ hv, sent, where: wh }) => {
-				sent.sahalar.add(`${oncelik} _oncelik`, `'${tipKod}' _hartipkod`);
+				sent.sahalar.add(`${oncelik} _oncelik`, `'${tipKod}' _hartipkod`)
 				wh.degerAta(kod, hv[mstAlias])
 			});
 		let uni = har.uniOlustur({ sender: this })
 		let orderBy = ['_oncelik', '_hartipkod', 'tarih DESC', 'fisnox DESC', 'isladi']
 		for (let sent of uni) {
-			let {from, sahalar, where: wh, alias2Deger} = sent;
-			let {ozelisaret: ozelIsaretClause, tarih: tarihClause, dvkod: dvKodClause} = alias2Deger;
+			let {from, sahalar, where: wh, alias2Deger} = sent
+			let {ozelisaret: ozelIsaretClause, tarih: tarihClause, dvkod: dvKodClause} = alias2Deger
 			if (dvKodClause) { wh.degerAta(dvKod, this.getRevizeDvKodClause({ dvKodClause })) }
 			if (ozelIsaretVarmi && ozelIsaretClause) { wh.notDegerAta('X', ozelIsaretClause) }
 			if (tarihClause && donemBS) { this.donemBagla({ donemBS, tarihSaha: tarihClause, sent }) }
 			let fisAliasVarmi = !!from.liste.find(({ alias }) => alias == 'fis');
-			let logZamaniClause = fisAliasVarmi ? 'fis.sonzamants' : sqlNull;
-			sahalar.add(`${logZamaniClause} logTS`);
+			let logZamaniClause = fisAliasVarmi ? 'fis.sonzamants' : sqlNull
+			sahalar.add(`${logZamaniClause} logTS`)
 			if (fisAliasVarmi) { wh.basiSonu(sec.logTS, logZamaniClause) }
-			sent.groupByOlustur().gereksizTablolariSil();
+			sent.groupByOlustur().gereksizTablolariSil()
 		}
-		let stm = new MQStm({ sent: uni, orderBy }), _recs = (await app.sqlExecSelect(stm)) ?? []
-		let bakiye = 0; for (let rec of _recs) {
+		let stm = new MQStm({ sent: uni, orderBy })
+		let _recs = (await app.sqlExecSelect(stm)) ?? []
+		let bakiye = 0
+		for (let rec of _recs) {
 			let {ba, dvkod: dvKod, bedel: tlBedel, dvbedel: dvBedel, isladi: islemAdi, refkod: refKod, refadi: refAdi, logTS} = rec
-			let ref = refKod ? `(<b class=gray>${refKod ?? ''})  ${refAdi || ''}</b>` : '';
-			let dovizmi = !tlDvKodSet[dvKod || ''], bedel = rec[dovizmi ? 'dvbedel' : 'bedel'];
-			if (ba == 'A') { bedel = -bedel } let alacakmi = bedel < 0;
-			bakiye += bedel; bedel = Math.abs(bedel);
+			let ref = refKod ? `(<b class=gray>${refKod ?? ''})  ${refAdi || ''}</b>` : ''
+			let dovizmi = !tlDvKodSet[dvKod || ''], bedel = rec[dovizmi ? 'dvbedel' : 'bedel']
+			if (ba == 'A') { bedel = -bedel } let alacakmi = bedel < 0
+			bakiye += bedel; bedel = Math.abs(bedel)
 			$.extend(rec, {
 				isladi: islemAdi || '', ref,
 				borc: alacakmi ? 0 : bedel, alacak: alacakmi ? bedel : 0, bakiye,
@@ -241,7 +247,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		}
 		let recs = _recs
 		if (devir) {
-			let alacakmi = devir < 0, dBedel = Math.abs(devir);
+			let alacakmi = devir < 0, dBedel = Math.abs(devir)
 			let dRec = {
 				isladi: `<div class="bold orangered full-wh" style="font-size: 120%">DEVİR</div>`,
 				borc: alacakmi ? 0 : dBedel, alacak: alacakmi ? dBedel : 0,
@@ -249,7 +255,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 			};
 			recs = [..._recs, dRec]
 		}
-		this.detaylar = recs;
+		this.detaylar = recs
 		return true
 	}
 	ozetBilgiRecsOlustur(e) { }
@@ -273,10 +279,17 @@ class DRapor_DonemselIslemler_DetaylarVeDip extends DAltRapor_Grid {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_DonemselIslemler } static get mstEtiket() { return this.aciklama }
 	get height() { return `calc(var(--full) - ${this.rapor.id2AltRapor.main.height})` }
-	gridArgsDuzenle({ args }) { $.extend(args, { showStatusBar: false, showAggregates: true, showGroupAggregates: false, showGroupsHeader: true, rowsHeight: 30, columnsHeight: 25 }) }
+	gridArgsDuzenle({ args }) {
+		super.gridArgsDuzenle(...arguments)
+		$.extend(args, {
+			showStatusBar: false, showAggregates: true, showGroupAggregates: false,
+			showGroupsHeader: true, rowsHeight: 30, columnsHeight: 25
+		})
+	}
 	tabloKolonlariDuzenle(e) { super.tabloKolonlariDuzenle(e) }
 	loadServerData(e) {
-		super.loadServerData(e); let {kod} = this.class, {main} = this.rapor;
+		super.loadServerData(e)
+		let {class: { kod }, rapor: { main }} = this
 		return main[kod] || []
 	}
 }
@@ -296,13 +309,14 @@ class DRapor_DonemselIslemler_Detaylar extends DRapor_DonemselIslemler_DetaylarV
 			return result.join(' ')
 		};
 		super.tabloKolonlariDuzenle(...arguments); liste.push(...[
-			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12, cellClassName }).tipTarih(),
-			new GridKolon({ belirtec: 'fisnox', text: 'Fiş No', cellClassName, genislikCh: 20 }),
-			new GridKolon({ belirtec: 'isladi', text: 'İşlem', cellClassName, genislikCh: 40, filterType: 'checkedlist' }),
-			new GridKolon({ belirtec: 'ref', text: 'Referans', cellClassName }),
+			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12, cellClassName, filterType: 'checkedlist' }).tipTarih(),
+			new GridKolon({ belirtec: 'fisnox', text: 'Fiş No', cellClassName }).alignRight(),
+			new GridKolon({ belirtec: 'isladi', text: 'İşlem', cellClassName, genislikCh: 35, filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'ref', text: 'Referans', cellClassName, genislikCh: 40, filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'borc', text: 'Borç', genislikCh: 17, cellClassName }).tipDecimal_bedel(),
 			new GridKolon({ belirtec: 'alacak', text: 'Alacak', genislikCh: 17, cellClassName }).tipDecimal_bedel(),
 			new GridKolon({ belirtec: 'bakiye', text: 'Bakiye', genislikCh: 17, cellClassName }).tipDecimal_bedel(),
+			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 13, cellClassName }).tipDecimal(),
 			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', cellClassName, genislikCh: 40 }),
 			new GridKolon({ belirtec: 'logTS', text: 'Log Zamanı', cellClassName, genislikCh: 16 })
 		])

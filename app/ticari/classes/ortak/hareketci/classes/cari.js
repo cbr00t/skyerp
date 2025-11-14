@@ -33,21 +33,40 @@ class CariHareketci extends Hareketci {
 		})
 	}
 	static hareketTipSecim_kaListeDuzenle({ kaListe }) {
-		super.hareketTipSecim_kaListeDuzenle(...arguments); let {params} = app;
-		let {kullanim: ticGenel} = params.ticariGenel ?? {}, {kullanim: akt} = params.aktarim ?? {}, {kullanim: satis} = params.satis ?? {};
+		super.hareketTipSecim_kaListeDuzenle(...arguments)
+		let {params} = app
+		let {kullanim: ticGenel} = params.ticariGenel ?? {}
+		let {kullanim: akt} = params.aktarim ?? {}
+		let {kullanim: alim} = params.alim ?? {}, {kullanim: satis} = params.satis ?? {}
 		kaListe.push(
-			new CKodVeAdi(['kasa', 'Kasa Tahsilat/Ödeme']), new CKodVeAdi(['hizmet', 'Hizmet Gelir/Gider']), new CKodVeAdi(['havaleEFT', 'Havale/EFT']),
-			new CKodVeAdi(['cariTahsilatOdeme', 'Cari Tahsilat/Ödeme']), new CKodVeAdi(['virman', 'Cari Virman', 'virmanmi']), new CKodVeAdi(['genelDekont', 'Genel Dekont']),
-			new CKodVeAdi(['topluIslem', 'Toplu İşlem/Devir']), new CKodVeAdi(['cekSenet', 'Çek/Senet']),
-			new CKodVeAdi(['kredi', 'Banka Kredi']), new CKodVeAdi(['pos', 'POS İşlemi']), new CKodVeAdi(['fatura', 'Fatura']), new CKodVeAdi(['masraf', 'Faiz/Masraf'])
-		);
-		if (ticGenel.sutAlim) { kaListe.push(new CKodVeAdi(['sutAlimMakbuz', 'Süt Alım Makbuz'])) }
+			new CKodVeAdi(['kasa', 'Kasa Tahsilat/Ödeme']),
+			new CKodVeAdi(['hizmet', 'Hizmet Gelir/Gider']),
+			new CKodVeAdi(['havaleEFT', 'Havale/EFT']),
+			new CKodVeAdi(['cariTahsilatOdeme', 'Cari Tahsilat/Ödeme']),
+			new CKodVeAdi(['virman', 'Cari Virman', 'virmanmi']),
+			new CKodVeAdi(['genelDekont', 'Genel Dekont']),
+			new CKodVeAdi(['topluIslem', 'Toplu İşlem/Devir']),
+			new CKodVeAdi(['cekSenet', 'Çek/Senet']),
+			new CKodVeAdi(['kredi', 'Banka Kredi']),
+			new CKodVeAdi(['pos', 'POS İşlemi'])
+		)
+		if (alim.serbestMeslekMakbuzu || satis.serbestMeslekMakbuzu)
+			kaListe.push(new CKodVeAdi(['serbestMeslek', 'Serbest Meslek Makbuzu']))
+		kaListe.push(
+			new CKodVeAdi(['fatura', 'Fatura']),
+			new CKodVeAdi(['masraf', 'Faiz/Masraf'])
+		)
+		if (ticGenel.sutAlim)
+			kaListe.push(new CKodVeAdi(['sutAlimMakbuz', 'Süt Alım Makbuz']))
 		if (akt.yazarKasa || akt.pratikSatis) {
-			if (akt.yazarKasa) { kaListe.push(new CKodVeAdi(['ykZRapor', 'Yazar Kasa Z Raporu'])) }
+			if (akt.yazarKasa)
+				kaListe.push(new CKodVeAdi(['ykZRapor', 'Yazar Kasa Z Raporu']))
 			kaListe.push(new CKodVeAdi(['kasiyerIslem', 'Kasiyer İşlem']))
 		}
-		if (akt.konsinyeLojistik || satis.kamuIhale) { kaListe.push(new CKodVeAdi(['konsinyeLojistik', 'Konsinye Resmi Kurum'])) }
-		if (ticGenel.siteYonetimi) { kaListe.push(new CKodVeAdi(['siteYonetimTahakkuk', 'Site Yönetim Tahakkuk'])) }
+		if (akt.konsinyeLojistik || satis.kamuIhale)
+			kaListe.push(new CKodVeAdi(['konsinyeLojistik', 'Konsinye Resmi Kurum']))
+		if (ticGenel.siteYonetimi)
+			kaListe.push(new CKodVeAdi(['siteYonetimTahakkuk', 'Site Yönetim Tahakkuk']))
 	}
 	uniOrtakSonIslem({ sender, sender: { finansalAnalizmi, secimler: sec } = {}, hv, sent, sent: { from, where: wh } }) {
 		super.uniOrtakSonIslem(...arguments)
@@ -158,7 +177,7 @@ class CariHareketci extends Hareketci {
 					})
 			   })
 			]
-		});
+		})
 		return this
 	}
 	uniDuzenle_finans({ uygunluk, liste }) {
@@ -202,14 +221,15 @@ class CariHareketci extends Hareketci {
 				})
 			],
 			serbestMeslek: [
-				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-					let {where: wh} = sent; sent.fisHareket('finansfis', 'finanshar')
+				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent, sent: { where: wh } }) => {
+					sent.fisHareket('finansfis', 'finanshar')
 						.har2KatDetayBagla().fis2KasaBagla()
 						.fis2CariBagla({ mustSaha: 'fisticmustkod' })
 						.fis2PlasiyerBagla().har2HizmetBagla()
 					wh.fisSilindiEkle().add(`fis.fistipi = 'SM'`)
 				}).hvDuzenleIslemi(({ hv }) => {
-					let fisNoxClause = `(case when har.belgeno = 0 then fis.fisnox else har.belgenox end)`, vadeSql = `coalesce(har.vade, har.belgetarih, fis.fisvade, fis.tarih)`;
+					let fisNoxClause = `(case when har.belgeno = 0 then fis.fisnox else har.belgenox end)`
+					let vadeSql = `coalesce(har.vade, har.belgetarih, fis.fisvade, fis.tarih)`
 					$.extend(hv, {
 						kaysayac: 'har.kaysayac', fisektipi: 'fis.ozeltip', oncelik: '1', unionayrim: `'Fin'`, kayittipi: `'SRBMES'`, fistipi: '(fis.fistipi + fis.ba)',
 						anaislemadi: `'Serbest Meslek'`, islkod: 'har.hizmetkod', isladi: 'hiz.aciklama', tarih: 'coalesce(har.belgetarih, fis.tarih)', ba: 'fis.ba',
@@ -223,7 +243,7 @@ class CariHareketci extends Hareketci {
 					})
 				})
 			]
-		});
+		})
 		return this
 	}
 	uniDuzenle_genelDekont({ uygunluk, liste }) {

@@ -22,12 +22,12 @@ class SkyRaporApp extends TicariApp {
 		return result
 	}
 	async runDevam(e) {
-		await super.runDevam(e);
-		await this.ilkIslemler(e);
+		await super.runDevam(e)
+		await this.ilkIslemler(e)
 		await window.DRapor_Hareketci?.autoGenerateSubClasses(e)
 	}
 	paramsDuzenle({ params }) {
-		super.paramsDuzenle(...arguments);
+		super.paramsDuzenle(...arguments)
 		$.extend(params, { dRapor: MQParam_DRapor.getInstance() })
 	}
 	async ilkIslemler(e) {
@@ -48,10 +48,11 @@ class SkyRaporApp extends TicariApp {
 			}
 		}
 		catch (ex) { console.error(getErrorText(ex)) }
+		return await super.ilkIslemler(e)
 	}
 	async anaMenuOlustur(e) {
 		try {
-			let {moduller, params: { aktarim: { kullanim: aktarim } }} = app
+			let {moduller, params: { aktarim: { kullanim: aktarim = {} } = {} }} = app
 			this.sqlTables = await app.sqlGetTables()
 			let eksikParamIsimleri = [], eksikModulIsimleri = []
 			if (!aktarim.webOzetRapor)

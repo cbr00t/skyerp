@@ -391,19 +391,20 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
 	uniDuzenle_borcCekCekilen({ uygunluk, liste }) {
         $.extend(liste, {
             borcCekCekilen: [
-                new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-					let {where: wh, sahalar} = sent;
-					sent.fromAdd('csfis fis').fis2KasaBagla()
-						.fromIliski('csilkhar bel', 'bel.fissayac = fis.kaysayac')
-					wh.fisSilindiEkle().degerAta('BN', 'fis.fistipi').degerAta('BC', 'fis.belgetipi')
-                }).hvDuzenleIslemi(({ hv }) => {
-                    $.extend(hv, {
-                        kaysayac: 'bel.kaysayac', kayittipi: `(fis.belgetipi + 'CSILK')`, banhesapkod: 'bel.banhesapkod', oncelik: '80',
-						islemadi: `'Borç Çek İle Çekilen'`, detaciklama: `('Çek:' + LTRIM(STR(bel.belgeno)))`,
-						ba: `'A'`, dvkur: 'fis.dvkur', bedel: 'bel.bedel', dvbedel: 'bel.dvbedel',
-						takipno: 'fis.takipno', refkod: 'fis.kasakod', refadi: 'kas.aciklama'
-                    })
-                })
+                new Hareketci_UniBilgi()
+					.sentDuzenleIslemi(({ sent }) => {
+						let {where: wh, sahalar} = sent;
+						sent.fromAdd('csfis fis').fis2KasaBagla()
+							.fromIliski('csilkhar bel', 'bel.fissayac = fis.kaysayac')
+						wh.fisSilindiEkle().degerAta('BN', 'fis.fistipi').degerAta('BC', 'fis.belgetipi')
+	                }).hvDuzenleIslemi(({ hv }) => {
+	                    $.extend(hv, {
+	                        kaysayac: 'bel.kaysayac', kayittipi: `(fis.belgetipi + 'CSILK')`, banhesapkod: 'bel.banhesapkod', oncelik: '80',
+							islemadi: `'Borç Çek İle Çekilen'`, detaciklama: `('Çek:' + LTRIM(STR(bel.belgeno)))`,
+							ba: `'A'`, dvkur: 'fis.dvkur', bedel: 'bel.bedel', dvbedel: 'bel.dvbedel',
+							takipno: 'fis.takipno', refkod: 'fis.kasakod', refadi: 'kas.aciklama'
+	                    })
+	                })
             ]
         });
         return this
@@ -411,32 +412,33 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
 	uniDuzenle_csTahsilEdilen({ uygunluk, liste }) {
         $.extend(liste, {
             csTahsilEdilen: [
-                new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-					let {where: wh, sahalar} = sent;
-					sent.fisHareket('csfis', 'csdigerhar')
-						.fromIliski('csilkhar bel', 'har.ilksayac = bel.kaysayac')
-						.fromIliski('carmst car', 'bel.ciranta = car.must')
-					wh.fisSilindiEkle()
-						.inDizi(['TE', 'BE'], 'fis.fistipi')
-						.inDizi(['AC', 'AS', 'BC', 'BS'], 'fis.belgetipi')
-                }).hvDuzenleIslemi(({ hv }) => {
-                    $.extend(hv, {
-                        kaysayac: 'har.kaysayac', kayittipi: `fis.belgetipi + 'CSDIGER'`,
-				        banhesapkod: `(case when fis.belgetipi = 'BC' then bel.banhesapkod else fis.banhesapkod end)`,
-				        oncelik: '50', ba: `(case when fis.belgetipi IN ('BC', 'BS') then 'A' else 'B' end)`,
-				        islemadi: `(case when fis.belgetipi IN ('BC', 'BS') then 'Çek/Senet Ödenen' else 'Çek/Senet Nakde Dönüşen' end)`,
-				        detaciklama: `(
-				            (case fis.belgetipi when 'AC' then (LTRIM(STR(bel.belgeyil)) + '-' + bel.bankakod + LTRIM(STR(bel.belgeno)))
-				                when 'AS' then (LTRIM(STR(bel.belgeyil)) + '-' + LTRIM(STR(bel.belgeno)))
-				                when 'BC' then (bel.banhesapkod + '-' + LTRIM(STR(bel.belgeno))) 
-				                when 'BS' then (LTRIM(STR(bel.belgeyil)) + '-' + LTRIM(STR(bel.belgeno)))
-				                else '' end)
-				            + ' ' + RTRIM(har.aciklama))`,
-				        dvkur: 'fis.dvkur', bedel: '(case when har.bedel = 0 then bel.bedel else har.bedel end)',
-				        dvbedel: `(case when har.bedel = 0 then bel.dvbedel else har.dvbedel end)`,
-				        takipno: 'fis.takipno', refkod: 'car.must', refadi: 'car.birunvan'
-                    })
-                })
+                new Hareketci_UniBilgi()
+					.sentDuzenleIslemi(({ sent }) => {
+						let {where: wh, sahalar} = sent;
+						sent.fisHareket('csfis', 'csdigerhar')
+							.fromIliski('csilkhar bel', 'har.ilksayac = bel.kaysayac')
+							.fromIliski('carmst car', 'bel.ciranta = car.must')
+						wh.fisSilindiEkle()
+							.inDizi(['TE', 'BE'], 'fis.fistipi')
+							.inDizi(['AC', 'AS', 'BC', 'BS'], 'fis.belgetipi')
+	                }).hvDuzenleIslemi(({ hv }) => {
+	                    $.extend(hv, {
+	                        kaysayac: 'har.kaysayac', kayittipi: `fis.belgetipi + 'CSDIGER'`,
+					        banhesapkod: `(case when fis.belgetipi = 'BC' then bel.banhesapkod else fis.banhesapkod end)`,
+					        oncelik: '50', ba: `(case when fis.belgetipi IN ('BC', 'BS') then 'A' else 'B' end)`,
+					        islemadi: `(case when fis.belgetipi IN ('BC', 'BS') then 'Çek/Senet Ödenen' else 'Çek/Senet Nakde Dönüşen' end)`,
+					        detaciklama: `(
+					            (case fis.belgetipi when 'AC' then (LTRIM(STR(bel.belgeyil)) + '-' + bel.bankakod + LTRIM(STR(bel.belgeno)))
+					                when 'AS' then (LTRIM(STR(bel.belgeyil)) + '-' + LTRIM(STR(bel.belgeno)))
+					                when 'BC' then (bel.banhesapkod + '-' + LTRIM(STR(bel.belgeno))) 
+					                when 'BS' then (LTRIM(STR(bel.belgeyil)) + '-' + LTRIM(STR(bel.belgeno)))
+					                else '' end)
+					            + ' ' + RTRIM(har.aciklama))`,
+					        dvkur: 'fis.dvkur', bedel: '(case when har.bedel = 0 then bel.bedel else har.bedel end)',
+					        dvbedel: `(case when har.bedel = 0 then bel.dvbedel else har.dvbedel end)`,
+					        takipno: 'fis.takipno', refkod: 'car.must', refadi: 'car.birunvan'
+	                    })
+	                })
             ]
         });
         return this
