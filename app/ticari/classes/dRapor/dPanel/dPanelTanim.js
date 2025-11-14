@@ -125,7 +125,7 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 			if (maxLen) {
 				let newLen = maxLen > 2000 ? 'MAX' : maxLen
 				let colName = 'baslik', query = [
-					`IF COL_LENGTH('${detayTable}', '${colName}') < ${newLen == 'MAX' ? 0 : newLen}`,
+					`IF COL_LENGTH('${detayTable}', '${colName}') BETWEEN 0 AND ${maxLen - 1}`,
 					`    ALTER TABLE ${detayTable} ALTER COLUMN ${colName} VARCHAR(${newLen}) NOT NULL`
 				].join(CrLf)
 				await this.sqlExecNone(query)
@@ -136,7 +136,7 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 			if (maxLen) {
 				let newLen = maxLen > 2000 ? 'MAX' : maxLen
 				let colName = 'value', query = [
-					`IF COL_LENGTH('${detayTable}', '${colName}') < ${newLen == 'MAX' ? 0 : newLen}`,
+					`IF COL_LENGTH('${detayTable}', '${colName}') BETWEEN 0 AND ${maxLen - 1}`,
 					`    ALTER TABLE ${detayTable} ALTER COLUMN ${colName} VARCHAR(${newLen}) NOT NULL`
 				].join(CrLf)
 				await this.sqlExecNone(query)
