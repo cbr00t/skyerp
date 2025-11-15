@@ -1,6 +1,6 @@
 class BankaYatirimKalanHareketci extends BankaOrtakHareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get oncelik() { return 3 } static get kisaKod() { return 'BY' }
+	static get oncelik() { return 3 } static get kisaKod() { return 'YK' }
 	static get kod() { return 'bankaYatirimKalan' } static get aciklama() { return 'Banka Yatırım' }
 	static get uygunmu() { return app.params?.bankaGenel?.kullanim?.yatirim }
 	static get gecerliBankaHesapTipleri() { return ['YT', 'VD'] }

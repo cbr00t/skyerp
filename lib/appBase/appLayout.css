@@ -254,3 +254,6 @@ body > .indicators > .ajax.error { background: firebrick }
 @keyframes animation--ajax {
 	50% { opacity: .7 }
 }
+
+.ui-autocomplete { z-index: 999999 !important }
+

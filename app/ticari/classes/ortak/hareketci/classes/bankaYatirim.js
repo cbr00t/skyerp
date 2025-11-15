@@ -69,6 +69,7 @@ class BankaYatirimHareketci extends BankaOrtakHareketci {
 						sent.fromIliski('yatirimtipi ytip', 'har.yatirimtipkod = ytip.kod')
 						wh.fisSilindiEkle().inDizi(tipListe, 'fis.fistipi')
 					}).hvDuzenleIslemi(({ hv }) => {
+						let degerlemeSql = `ROUND(har.revizeyatirimmiktar * har.revizedegerlemexfiyat, 2)`
 						$.extend(hv, {
 							kaysayac: 'har.kaysayac', banhesapkod: 'har.yatirimhesapkod',
 							kayittipi: `(case fis.fistipi when 'YG' then 'YATG' else 'YAT' end)`,
@@ -78,9 +79,26 @@ class BankaYatirimHareketci extends BankaOrtakHareketci {
 							anaislemadi: `(case fis.fistipi when 'YG' then 'Yatırım Dönüş' else 'Yatırım' end)`,
 							refkod: 'har.yatirimtipkod', refadi: 'ytip.aciklama', dvkur: 'har.dvkur',
 							miktar: 'har.miktar',
-							bedel: `(case fis.fistipi when 'YG' then har.bedel + har.kredifaiz - har.stopaj else har.bedel end)`,
-							dvbedel: `(case fis.fistipi when 'YG' then har.dvbedel + har.kredidvfaiz else har.dvbedel end)`,
-							faiz: 'har.kredifaiz', dvfaiz: 'har.kredidvfaiz', stopaj: 'har.stopaj'                                                                // gerekirse kullanılır
+							/*bedel: `(case fis.fistipi when 'YG' then har.bedel + har.kredifaiz - har.stopaj else har.bedel end)`,
+							dvbedel: `(case fis.fistipi when 'YG' then har.dvbedel + har.kredidvfaiz else har.dvbedel end)`,*/
+							bedel: (
+								`(case` +
+								`    when fis.fistipi = 'YT' then har.bedel` +
+								`    when fis.bvadeli > 0 then har.bedel + har.kredifaiz - har.stopaj` +
+								`    else (${degerlemeSql} * (case when yhes.dvtipi > '' then har.revizedegerlemedvkur else 1 end))` +
+								` end)`
+							),
+							dvbedel: (
+								`(case when yhes.dvtipi > ''` +
+								`    then (case` +
+								`             when fis.fistipi = 'YT' then  har.dvbedel` +
+								`             when fis.bvadeli > 0 then har.dvbedel + har.kredidvfaiz` +
+								`             else ${degerlemeSql}` +
+								`          end)` +
+								`    else 0` +
+								` end)`
+							),
+							faiz: 'har.kredifaiz', dvfaiz: 'har.kredidvfaiz', stopaj: 'har.stopaj'                                             // gerekirse kullanılır
 						})
 					})
             ]

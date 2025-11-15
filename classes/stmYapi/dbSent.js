@@ -30,7 +30,8 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 				else { this.fromIliski(fromIliskiOrLeftJoin) }
 			}
 		}
-		if (birlestir) { this.birlestir(birlestir) } if (groupByOlustur) { this.groupByOlustur() }
+		if (birlestir) { this.birlestir(birlestir) }
+		if (groupByOlustur) { this.groupByOlustur() }
 	}
 	static hasAggregateFunctions(e, _aggregateFunctions) {
 		if (typeof e != 'object') e = { sql: e, aggregateFunctions: _aggregateFunctions };
@@ -49,7 +50,10 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	distinctYap() { this.distinct = true; return this }
 	groupByOlustur(e) {
 		let groupBy = this.groupBy = new MQGroupByClause()
-		let {class: { aggregateFunctions }, sahalar: { liste: sahaListe }} = this
+		let {class: { aggregateFunctions }, from: { liste: fromListe }, sahalar: { liste: sahaListe }} = this
+		if (!(fromListe.length || sahaListe.length))
+			return this
+		let basitmi = fromListe.length == 1 && !fromListe[0].farkliAliasVarmi
 		let ekleneceklerSet = {}, aggregateVarmi = false
 		for (let i = 0; i < sahaListe.length; i++) {
 			let saha = sahaListe[i], deger = saha.deger?.toString()
@@ -64,15 +68,21 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 				aggregateVarmi = true
 				continue
 			}
-			let aliasListe = MQAliasliYapi.getDegerAliasListe(deger)
-			if (!aliasListe?.length)
-				continue
+			if (basitmi) {
+				// olası değerler
+				if (degerUpper.startsWith('CAST(0') || degerUpper.startsWith("CAST(''") ||
+						degerUpper.startsWith('CAST(NULL') || degerUpper.startsWith('NULL')) {
+					continue
+				}
+			}
+			else {
+				// değer içinde alias var mı
+				let aliasListe = MQAliasliYapi.getDegerAliasListe(deger)
+				if (!aliasListe?.length)
+					continue
+			}
 			/*if (deger.toLowerCase().startsWith(`coalesce(har.belgetarih`))
 				debugger*/
-			/*if (degerUpper.startsWith('CAST(0') || degerUpper.startsWith("CAST(''") ||
-					degerUpper.startsWith('CAST(NULL') || degerUpper.startsWith('NULL')) {
-				continue
-			}*/
 			ekleneceklerSet[deger] = true
 		}
 		if (aggregateVarmi)

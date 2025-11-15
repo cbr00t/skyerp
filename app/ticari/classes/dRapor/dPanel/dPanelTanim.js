@@ -2,8 +2,11 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'panel', 'rapor', 'inst', 'part'] }
 	static get kodListeTipi() { return 'DPANEL' } static get sinifAdi() { return 'Panel Rapor' }
-	static get table() { return 'wpanelrapor' } static get tableAlias() { return 'pnl' } static get detaySinif() { return DPanelDetay }
-	static get tanimlanabilirmi() { return false } static get kolonFiltreKullanilirmi() { return false }
+	static get table() { return 'wpanelrapor' } static get tableAlias() { return 'pnl' }
+	static get detaySinif() { return DPanelDetay } static get gridKontrolcuSinif() { return DPanelGridci }
+	static get tanimlanabilirmi() { return false } static get degistirilebilirmi() { return false }
+	static get tanimUISinif() { return ModelTanimPart }
+	static get kolonFiltreKullanilirmi() { return false }
 	static get emptyAciklama() { return '_Boş Dizayn' } static get defaultAciklama() { return '_Güncel Dizayn' }
 	static get localData() {
 		let {_localData: result} = this
@@ -420,3 +423,10 @@ class DPanelDetay extends MQDetayGUID {
 		return this
 	}
 }
+class DPanelGridci extends GridKontrolcu {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	tabloKolonlariDuzenle_ara({ liste }) {
+		super.tabloKolonlariDuzenle_ara(...arguments)
+	}
+}
+

@@ -302,7 +302,7 @@ class DPanel extends Part {
 					inst = new inst()
 				if (altRaporTip != null)
 					inst?.setOzelID?.(altRaporTip)
-				if (inst?.dRapormu && $.isEmptyObject(inst?.ozelIDListe))
+				if (inst?.dRapormu && empty(inst?.ozelIDListe))
 					inst?.ozelID_main?.()
 				if (inst)
 					det.inst = inst
@@ -319,7 +319,7 @@ class DPanel extends Part {
 			if (det == null) { continue }
 			if ($.isArray(det)) { this.remove(...det); continue } 
 			if (!id2Detay[det.id])
-				det = Object.values(id2Detay).find(_det => det.detay == _det || det.rapor?.detay == _det)
+				det = values(id2Detay).find(_det => det.detay == _det || det.rapor?.detay == _det)
 			if (det == null) { continue }
 			delete id2Detay[det.id]
 		}
@@ -425,7 +425,7 @@ class DPanel extends Part {
 			await this.detaylariDuzenle(e)
 			id2Detay = this.id2Detay
 		}
-		if (batch && !$.isEmptyObject(id2Detay))
+		if (batch && !empty(id2Detay))
 			layout.addClass('_loading')
 		let itemSelector = 'div > .item', focusSelector = 'hasFocus'
 		let itemsChildren = items.children(), id2Item = {}
@@ -447,10 +447,10 @@ class DPanel extends Part {
 			}
 		}
 		let _rfb = new RootFormBuilder(), promises = [], loadCount = 0, completeCount = 0
-		let LoadingLockWaitMS = 200
+		let LoadingLockWaitMS = 200, AutoShowWaitMS = 3_000
 		let {length: totalCount} = values(id2Detay)
 		let maxWaitCount = Math.min(5, totalCount)
-		for (let [id, det] of Object.entries(id2Detay)) {
+		for (let [id, det] of entries(id2Detay)) {
 			if (id2Item[id])
 				continue
 			let {baslik, width, height, inst = {}, tip} = det
@@ -464,6 +464,14 @@ class DPanel extends Part {
 			let result
 			if (tip.rapormu) {
 				item.setInst(this).setPart(inst)
+				if (inst && $.isPlainObject(inst))
+					inst = null
+				if (!inst) {
+					delete id2Detay[id]
+					console.warn('panel inst yok, muhtemelen class değişti')
+					this.saveLayout()
+					continue
+				}
 				inst.on('init', ({ rapor: main }) =>
 					this.tazeleOncesi({ ..._e, main }))
 				result = await inst?.goster?.(_e)
@@ -629,27 +637,7 @@ class DPanel extends Part {
 			loadCount++
 			if (tip.rapormu && inst?.main?.raporVarmi && inst?.gridVeriYuklendiIslemi) {
 				let timer, promise = new $.Deferred()
-				inst.gridVeriYuklendiIslemi(async ({ builder: { id: _id, parentBuilder } = {} } = {}) => {
-					try {
-						let {id} = parentBuilder?.parentBuilder?.parentBuilder ?? {}
-						let {layout} = _rfb.id2Builder[id] ?? {}
-						if (!promise)
-							return
-						if (layout?.length) { 
-							layout.css({ width, height })
-							layout.removeClass('_loading')
-						}
-						if (++completeCount >= maxWaitCount)
-							setTimeout(() => this.layout.removeClass('_loading'), LoadingLockWaitMS)
-					}
-					finally {
-						promise?.resolve()
-						clearTimeout(timer)
-					}
-				})
 				timer = setTimeout(({ itemLayout: layout }) => {
-					if (!promise)
-						return
 					try {
 						if (layout?.length) {
 							layout.removeClass('_loading')
@@ -659,7 +647,23 @@ class DPanel extends Part {
 							setTimeout(() => this.layout.removeClass('_loading'), LoadingLockWaitMS)
 					}
 					finally { promise?.resolve() }
-				}, 10_000, { itemLayout })
+				}, AutoShowWaitMS, { itemLayout })
+				inst.gridVeriYuklendiIslemi(async ({ builder: { id: _id, parentBuilder } = {} } = {}) => {
+					try {
+						let {id} = parentBuilder?.parentBuilder?.parentBuilder ?? {}
+						let {layout} = _rfb.id2Builder[id] ?? {}
+						if (promise && layout?.length) {
+							layout.css({ width, height })
+							layout.removeClass('_loading')
+							clearTimeout(timer)
+						}
+					}
+					finally {
+						if (++completeCount >= maxWaitCount)
+							setTimeout(() => this.layout.removeClass('_loading'), LoadingLockWaitMS)
+						promise?.resolve()
+					}
+				})
 				promises.push(promise)
 			}
 			else {
@@ -670,7 +674,10 @@ class DPanel extends Part {
 			}
 			// promises.push(promise)
 		}
-		if (promises.length) { await Promise.allSettled(promises) }
+		if (promises.length) {
+			await Promise.allSettled(promises)
+			promises = []
+		}
 		let subItems = items.find(itemSelector)
 		subItems.eq(0).addClass(focusSelector)
 		{
@@ -702,7 +709,7 @@ class DPanel extends Part {
 				stop: (evt, info) => {
 					let {id2Detay} = this, {element: item, size: { width, height }} = info
 					item.removeClass('_resizing')
-					for (let [k, v] of Object.entries(itemsCSS)) { items.css(k, v) }
+					for (let [k, v] of entries(itemsCSS)) { items.css(k, v) }
 					//items.children().removeClass('basic-hidden jqx-hidden')
 					let id = item.prop('id'), det = id2Detay[id]
 					if (det) {
@@ -721,7 +728,7 @@ class DPanel extends Part {
 				update: (evt, info) => {
 					let {item} = info, det = item.data('detay'); if (!det) { return }
 					let {id} = det; if (!id) { return }
-					let {id2Detay} = this, detaylar = Object.values(id2Detay)
+					let {id2Detay} = this, detaylar = values(id2Detay)
 					let ind = detaylar.indexOf(det); if (ind  < 0) { return }
 					let newInd = item.index(); if (newInd < 0) { return }
 					let moved = detaylar.splice(ind, 1)[0]
@@ -769,7 +776,7 @@ class DPanel extends Part {
 	}
 	hizliBulIslemi_ara({ tokens }) {
 		let e = { ...arguments[0] }; let {id2Detay} = this
-		for (let { inst } of Object.values(id2Detay))
+		for (let { inst } of values(id2Detay))
 			inst?.hizliBulIslemi_ara?.(e)
 	}
 	raporTanimIstendi(e) {
@@ -809,7 +816,7 @@ class DPanel extends Part {
 				eDet ??= this.detay
 				if (!eDet) { hConfirm('Bir panel seçilmelidir', islemAdi); return false }
 				$.extend(det, eDet)
-				for (let key of ['panel', 'inst', 'part', 'sinif', '_raporId', '_url', '_code', ...Object.keys(CObject.prototype)])
+				for (let key of ['panel', 'inst', 'part', 'sinif', '_raporId', '_url', '_code', ...keys(CObject.prototype)])
 					delete det[key]
 				if (!degistirmi)
 					for (let key of ['okunanHarSayac', 'sayac', 'eskiSeq', 'seq']) { det = undefined }
@@ -1183,7 +1190,27 @@ class DPanel extends Part {
 						}
 					})
 					changeHandler()
-					txtValue.on('keyup', evt => changeHandler(evt))
+					txtValue.autocomplete({
+						zIndex: 10000,
+						select: (evt, { item: { value }}) =>
+					        setTimeout(() => changeHandler(evt), 10),
+						source: ({ term } = {}, callback) => {
+							let result = keys(mevcutRaporAdiSet)
+							if (term) {
+								let tokens = term.split(' ')
+								result = result.filter(adi =>
+									adi[0] != '_' &&
+									tokens.every(token =>
+										adi.toLocaleUpperCase().includes(token.toLocaleUpperCase()) ||
+										adi.toUpperCase().includes(token.toUpperCase())
+									)
+								)
+							}
+							callback(result)
+						}
+					})
+					txtValue.on('keyup', evt =>
+						setTimeout(() => changeHandler(evt), 10))
 				},
 				validate: ({ value }) => {
 					if (!value) {
@@ -1255,7 +1282,7 @@ class DPanel extends Part {
 				}
 				catch (ex) {
 					hideProgress()
-					hConfirm(getErrorText(ex), 'Panel Tanımı YÜKLENEMEDİ', islemAdi);
+					hConfirm(getErrorText(ex), 'Panel Tanımı YÜKLENEMEDİ', islemAdi)
 					throw ex
 				}
 			}
@@ -1281,7 +1308,7 @@ class DPanel extends Part {
 		super.onResize(e); let {layout} = this
 		if (layout.hasClass('_loading')) { return }
 		let {id2Detay} = this; if (id2Detay) {
-			for (let det of Object.values(id2Detay))
+			for (let det of values(id2Detay))
 				(async () => det?.onResize?.(e))()
 		}
 	}

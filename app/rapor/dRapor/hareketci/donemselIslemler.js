@@ -99,7 +99,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 			anaTipSet = null
 		let sabitBelirtecler = e.sabitBelirtecler = ['alttiponcelik', 'alttipadi', 'tarih', 'ba', 'bedel', 'dvbedel', 'dvkod', 'belgetipi', 'finanalizkullanilmaz']
 		if (ozelIsaretVarmi) { sabitBelirtecler.push('ozelisaret') }
-		let harClasses = e.harClasses = Object.values(Hareketci.kod2Sinif)
+		let harClasses = e.harClasses = values(Hareketci.kod2Sinif)
 			.filter(cls => !!cls.donemselIslemlerIcinUygunmu &&
 				( !anaTipSet || !!anaTipSet[cls.kod] != anaTip_haricmi )
 			)
@@ -115,7 +115,8 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		return await super.loadServerDataInternal(e)
 	}
 	loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); let {attrSet} = e, {length: attrSetSize} = Object.keys(attrSet);
+		super.loadServerData_queryDuzenle(e)
+		let {attrSet} = e, {length: attrSetSize} = keys(attrSet)
 		/* if (attrSetSize == 1 && attrSet.DB) { return } */
 		let {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu, {stm, sabitBelirtecler, harListe} = e, {grupVeToplam} = this.tabloYapi;
 		let {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs;
@@ -124,7 +125,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		/*if (!(tBasi && tSonu)) { throw { isError: true, errorText: `Seçimlerden <b>Dönem</b> seçilmeli veya <b>Tarih Aralık</b> belirtilmelidir` } }*/
 		let tBasiClause = MQSQLOrtak.sqlServerDegeri(tBasi), tSonuClause = MQSQLOrtak.sqlServerDegeri(tSonu);
 		/* let devirTBasi = tBasi ? tBasi.clone().addDays(1) : null, devir_tBasiClause = MQSQLOrtak.sqlServerDegeri(devirTBasi); */
-		/*let belirtecler = Object.keys(attrSet).map(kod => grupVeToplam[kod]?.colDefs?.[0]?.belirtec).filter(x => !!x);*/
+		/*let belirtecler = keys(attrSet).map(kod => grupVeToplam[kod]?.colDefs?.[0]?.belirtec).filter(x => !!x);*/
 		let uni = new MQUnionAll(); for (let har of harListe) {
 			let {kod: harTipKod, aciklama: harTipAdi, oncelik, mstYapi} = har.class;
 			let {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi;
@@ -133,7 +134,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 				let {from, where: wh, sahalar, alias2Deger} = harSent; sahalar.liste = [];
 				/*   DEBUG  
 				if (!harSent.alias2Deger.mstadi) {
-					console.info(har, Object.keys(har.attrSet), harSent, harSent.getQueryYapi());
+					console.info(har, keys(har.attrSet), harSent, harSent.getQueryYapi());
 					console.table(harSent.alias2Deger); debugger
 				}
 				*/
@@ -266,11 +267,15 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		if (recs?.length) { gridWidget.collapseAll() }
 	}
 	async gridSatirTiklandi(e) {
-		let result; try { result = await this.detaylariOlustur(...arguments) }
+		let result
+		try { result = await this.detaylariOlustur(...arguments) }
 		catch (ex) { hConfirm(getErrorText(ex), 'Detay Bilgi Yükleme Sorunu'); throw ex }
 		if (result) {
-			let {id2AltRapor} = this.rapor;
-			for (let altRapor of Object.values(id2AltRapor)) { if (altRapor != this) { altRapor.tazele?.() } }
+			let {id2AltRapor} = this.rapor
+			for (let altRapor of values(id2AltRapor)) {
+				if (altRapor != this)
+					altRapor.tazele?.()
+			}
 		}
 	}
 }

@@ -46,10 +46,10 @@ class DAltRapor extends DRapor {
 	}
 	onResize(e) { }
 	tazeleDiger(e) {
-		let {id2AltRapor} = this.rapor;
-		for (let altRapor of Object.values(id2AltRapor)) {
-			if (altRapor == this) { continue }
-			altRapor.tazele(e)
+		let {id2AltRapor} = this.rapor
+		for (let altRapor of values(id2AltRapor)) {
+			if (altRapor != this)
+				altRapor.tazele(e)
 		}
 	}
 	toggleFullScreen(e) {
@@ -57,7 +57,9 @@ class DAltRapor extends DRapor {
 		let parentLayout = parentBuilder.layout, itemsLayout = rootBuilder.id2Builder.items.layout;
 		for (let _layout of [parentLayout, itemsLayout]) { _layout.toggleClass('maximized') }
 		layout.trigger('resize'); if (part?.onResize) { part.onResize(e) }
-		let {id2AltRapor} = this.rapor; for (let altRapor of Object.values(id2AltRapor)) { altRapor.onResize(e) }
+		let {id2AltRapor} = this.rapor
+		for (let altRapor of values(id2AltRapor))
+			altRapor.onResize(e)
 	}
 	secimlerIstendi(e) {
 		let {secimlerPart} = this; if (secimlerPart?.isDestroyed) { secimlerPart = this.secimlerPart = undefined }

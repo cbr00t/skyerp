@@ -33,7 +33,7 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 		return result
    }
 	static get uygunRaporlar() {
-		return Object.values(DRapor.kod2Sinif)
+		return values(DRapor.kod2Sinif)
 			.filter(cls => cls.uygunmu && cls.dRapormu && !(cls.araSeviyemi || cls.dAltRapormu || cls.dPanelmi))
 	}
 	static get uygunRaporlarKAListe() {
@@ -206,7 +206,10 @@ class DPanelRapor extends DRaporOzel {
 		$.extend(this, { ozelIDListe, zorunluOzelIDSet, id2AltRapor, altRapor_lastZIndex })
 	}
 	rootFormBuilderDuzenle(e) {
-		if (this.id2AltRapor == null) { this.clear(); this.altRaporlarDuzenle(e) }
+		if (this.id2AltRapor == null) {
+			this.clear()
+			this.altRaporlarDuzenle(e)
+		}
 		super.rootFormBuilderDuzenle(e)
 		let {rfb} = e, {id2AltRapor, isPanelItem, ozelIDListe: ozelIDSet, zorunluOzelIDSet, class: { noOverflowFlag, kod, yataymi }} = this
 		let form = e.rfb_items = this.rfb_items = rfb.addForm('items')
@@ -215,7 +218,7 @@ class DPanelRapor extends DRaporOzel {
 		if (typeof ozelIDSet == 'string') { ozelIDSet = [ozelIDSet] }
 		if ($.isArray(ozelIDSet)) { ozelIDSet = asSet(ozelIDSet) }
 		if (!empty(zorunluOzelIDSet)) { ozelIDSet = { ...ozelIDSet, ...zorunluOzelIDSet } }
-		for (let [id, altRapor] of Object.entries(id2AltRapor)) {
+		for (let [id, altRapor] of entries(id2AltRapor)) {
 			let raporAdi = altRapor.etiket ?? ''
 			let fbd = altRapor.parentBuilder = form.addForm(id).addCSS('item').addStyle_fullWH()
 				.setLayout(e => $(`<div class="${id}"><label class="item-sortable">${raporAdi || ''}</label></div>`))
@@ -226,24 +229,24 @@ class DPanelRapor extends DRaporOzel {
 			else if (width || height) { fbd.addStyle_wh(width, height) }
 			altRapor.rootFormBuilderDuzenle(e)
 			fbd.setVisibleKosulu(({ builder: { id }}) =>
-				$.isEmptyObject(ozelIDSet) || ozelIDSet[id] || zorunluOzelIDSet[id] ? true : 'jqx-hidden')
+				empty(ozelIDSet) || ozelIDSet[id] || zorunluOzelIDSet[id] ? true : 'jqx-hidden')
 		}
 	}
 	async ilkIslemler(e) {
 		await super.ilkIslemler(e); let {id2AltRapor} = this
-		for (let altRapor of Object.values(id2AltRapor)) { await altRapor.ilkIslemler?.(e) }
+		for (let altRapor of values(id2AltRapor)) { await altRapor.ilkIslemler?.(e) }
 	}
 	async ilkIslemler_ek(e) {
 		await super.ilkIslemler_ek(e); let {id2AltRapor} = this
-		for (let altRapor of Object.values(id2AltRapor)) { await altRapor.ilkIslemler_ek?.(e) }
+		for (let altRapor of values(id2AltRapor)) { await altRapor.ilkIslemler_ek?.(e) }
 	}
 	async sonIslemler(e) {
 		await super.sonIslemler(e); let {id2AltRapor} = this
-		for (let altRapor of Object.values(id2AltRapor)) { await altRapor.sonIslemler?.(e) }
+		for (let altRapor of values(id2AltRapor)) { await altRapor.sonIslemler?.(e) }
 	}
 	async sonIslemler_ek(e) {
 		await super.sonIslemler_ek(e); let {id2AltRapor} = this
-		for (let altRapor of Object.values(id2AltRapor)) { await altRapor.sonIslemler_ek?.(e) }
+		for (let altRapor of values(id2AltRapor)) { await altRapor.sonIslemler_ek?.(e) }
 	}
 	onAfterRun(e) {
 		super.onAfterRun(e); let {rfb} = e
@@ -262,15 +265,18 @@ class DPanelRapor extends DRaporOzel {
 	onResize(e) {
 		if (super.onResize(e) === false) { return false }
 		let {id2AltRapor} = this; if (!id2AltRapor) { return }
-		for (let altRapor of Object.values(id2AltRapor)) { altRapor?.onResize?.(e) }
+		for (let altRapor of values(id2AltRapor)) { altRapor?.onResize?.(e) }
 	}
 	altRaporlarDuzenle(e) {
 		let {ozelIDListe, class: { altRaporClassPrefix: prefix = '', sabitmi, ozetVarmi, chartVarmi }} = this
 		let clsMain = window[`${prefix}_Main`]
-		if ($.isEmptyObject(ozelIDListe)) {
-			if (clsMain) { this.add(clsMain) }
-			if (ozetVarmi) { this.add(DAltRapor_Grid_Ozet) }
-			if (chartVarmi) { this.add(DAltRapor_Chart) }
+		if (empty(ozelIDListe)) {
+			if (clsMain)
+				this.add(clsMain)
+			if (ozetVarmi)
+				this.add(DAltRapor_Grid_Ozet)
+			if (chartVarmi)
+				this.add(DAltRapor_Chart)
 		}
 		else {
 			let id2Cls = {
@@ -278,15 +284,23 @@ class DPanelRapor extends DRaporOzel {
 				ozet: DAltRapor_Grid_Ozet,
 				chart: DAltRapor_Chart
 			}
-			if (!$.isArray(ozelIDListe)) { ozelIDListe = typeof ozelIDListe == 'object' ? Object.keys(ozelIDListe) : $.makeArray(ozelIDListe) }
-			if (!ozelIDListe.includes('main')) { ozelIDListe.unshift('main') }
+			if (!$.isArray(ozelIDListe))
+				ozelIDListe = typeof ozelIDListe == 'object' ? keys(ozelIDListe) : $.makeArray(ozelIDListe)
+			if (!ozelIDListe.includes('main'))
+				ozelIDListe.unshift('main')
 			let classes = ozelIDListe.map(id => id2Cls[id]).filter(x => !!x)
-			if (classes.length) { this.add(...classes) }
+			if (classes.length)
+				this.add(...classes)
 		}
 	}
 	tazele(e) {
 		super.super_tazele(e)
-		let {id2AltRapor} = this, {main} = id2AltRapor, {gridPart: mainGridPart} = main ?? {}
+		let {id2AltRapor} = this, {main} = id2AltRapor ?? {}
+		let {gridPart: mainGridPart} = main ?? {}
+		if (!id2AltRapor) {
+			console.warn('id2AltRapor = null')
+			return
+		}
 		this.tazeleCount = 0
 		for (let altRapor of values(id2AltRapor)) {
 			if (!altRapor?.tazeleYapilirmi)
@@ -358,12 +372,12 @@ class DGrupluPanelRapor extends DPanelRapor {
 			{ id: 'html', text: '', handler: _e => this.exportHTMLIstendi({ ...e, ..._e }) }
 		].filter(x => !!x))
 	}
-	raporTanimIstendi(e) { for (let altRapor of Object.values(this.id2AltRapor)) { this.main?.raporTanimIstendi?.(e) }; return this }
-	secimlerIstendi(e) { for (let altRapor of Object.values(this.id2AltRapor)) { this.main?.secimlerIstendi?.(e) }; return this }
-	seviyeAcIstendi(e) { for (let altRapor of Object.values(this.id2AltRapor)) { altRapor?.seviyeAcIstendi?.(e) }; return this }
-	seviyeKapatIstendi(e) { for (let altRapor of Object.values(this.id2AltRapor)) { altRapor?.seviyeKapatIstendi?.(e) }; return this }
-	exportExcelIstendi(e) { for (let altRapor of Object.values(this.id2AltRapor)) { altRapor?.exportExcelIstendi?.(e) }; return this }
-	exportPDFIstendi(e) { for (let altRapor of Object.values(this.id2AltRapor)) { altRapor?.exportPDFIstendi?.(e) }; return this }
-	exportHTMLIstendi(e) { for (let altRapor of Object.values(this.id2AltRapor)) { altRapor?.exportHTMLIstendi?.(e) }; return this }
-	gridVeriYuklendiIslemi(e) { for (let altRapor of Object.values(this.id2AltRapor)) { altRapor?.gridVeriYuklendiIslemi?.(e) }; return this }
+	raporTanimIstendi(e) { for (let altRapor of values(this.id2AltRapor)) { this.main?.raporTanimIstendi?.(e) }; return this }
+	secimlerIstendi(e) { for (let altRapor of values(this.id2AltRapor)) { this.main?.secimlerIstendi?.(e) }; return this }
+	seviyeAcIstendi(e) { for (let altRapor of values(this.id2AltRapor)) { altRapor?.seviyeAcIstendi?.(e) }; return this }
+	seviyeKapatIstendi(e) { for (let altRapor of values(this.id2AltRapor)) { altRapor?.seviyeKapatIstendi?.(e) }; return this }
+	exportExcelIstendi(e) { for (let altRapor of values(this.id2AltRapor)) { altRapor?.exportExcelIstendi?.(e) }; return this }
+	exportPDFIstendi(e) { for (let altRapor of values(this.id2AltRapor)) { altRapor?.exportPDFIstendi?.(e) }; return this }
+	exportHTMLIstendi(e) { for (let altRapor of values(this.id2AltRapor)) { altRapor?.exportHTMLIstendi?.(e) }; return this }
+	gridVeriYuklendiIslemi(e) { for (let altRapor of values(this.id2AltRapor)) { altRapor?.gridVeriYuklendiIslemi?.(e) }; return this }
 }

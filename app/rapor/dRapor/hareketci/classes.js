@@ -130,20 +130,12 @@ class DRapor_Hareketci_BankaMevduat_Main extends DRapor_Hareketci_BankaOrtak_Mai
 class DRapor_Hareketci_BankaYatirim extends DRapor_Hareketci_BankaOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get vioAdim() { return 'BN-YO' }
-	static get hareketciSinif() { return BankaYatirimHareketci }
+	static get uygunmu() { return super.uygunmu }
+	static get hareketciSinif() { return this.totalmi ? BankaYatirimKalanHareketci : BankaYatirimHareketci }
 }
 class DRapor_Hareketci_BankaYatirim_Main extends DRapor_Hareketci_BankaOrtak_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_BankaYatirim }
-}
-class DRapor_Hareketci_BankaYatirimKalan extends DRapor_Hareketci_BankaOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get vioAdim() { return 'BN-YH' }
-	static get hareketciSinif() { return BankaYatirimKalanHareketci }
-}
-class DRapor_Hareketci_BankaYatirimKalan_Main extends DRapor_Hareketci_BankaOrtak_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get raporClass() { return DRapor_Hareketci_BankaYatirimKalan }
 }
 class DRapor_Hareketci_POSKrOrtak extends DRapor_Hareketci_BankaOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -357,11 +349,12 @@ class DRapor_Hareketci_Stok_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_Stok }
 	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e); let {result} = e, {tip2BrmListe} = MQStokGenelParam;
-		let {isAdmin, rol} = config.session ?? {}, maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT');
-		let {toplam} = result, brmListe = Object.keys(tip2BrmListe);
-		this.tabloYapiDuzenle_cari(e).tabloYapiDuzenle_stok(e);
-		this.tabloYapiDuzenle_gc({ ...e, tip: 'MIKTAR', etiket: 'Miktar' });
+		super.tabloYapiDuzenle(e)
+		let {result} = e, {tip2BrmListe} = MQStokGenelParam
+		let {isAdmin, rol} = config.session ?? {}, maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT')
+		let {toplam} = result, brmListe = keys(tip2BrmListe)
+		this.tabloYapiDuzenle_cari(e).tabloYapiDuzenle_stok(e)
+		this.tabloYapiDuzenle_gc({ ...e, tip: 'MIKTAR', etiket: 'Miktar' })
 		this.tabloYapiDuzenle_gc({ ...e, tip: 'MIKTAR2', etiket: 'Miktar2' })
 		
 		/* for (let tip of brmListe) { result.addToplamBasit(`MIKTAR${tip}`, `Miktar(${tip})`, `miktar${tip}`) } */

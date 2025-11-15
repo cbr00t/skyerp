@@ -181,7 +181,8 @@ class MQSQLConst extends CObject {
 	toString(e) { return this.sqlServerDegeri }
 }
 class MQAliasliYapi extends MQSQLOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get aliasliYapimi() { return true }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	get aliasliYapimi() { return true }
 	get alias() {
 		let {_alias: result} = this
 		if (result == undefined)
@@ -192,14 +193,19 @@ class MQAliasliYapi extends MQSQLOrtak {
 	get aliasVeyaDeger() { return this.alias || this.deger }
 	get degerAlias() { return this.class.getDegerAlias(this.deger) }
 	get degerAliasListe() { return this.class.getDegerAliasListe(this.deger) }
+	get farkliAliasVarmi() {
+		let {deger, alias} = this
+		return alias && deger != alias
+	}
 	
-	constructor(e) {
-		e = e || {}; super(e); this.deger = e.deger || ''; this.alias = e.alias ?? undefined     /* alias === undefined için getSahaDegeri ile getterda belirlenir */
+	constructor(e = {}) {
+		super(e)
+		this.deger = e.deger || ''
+		this.alias = e.alias ?? undefined     /* alias === undefined için getSahaDegeri ile getterda belirlenir */
 		this.aliaslimi = e.aliaslimi ?? (e.isCopy ? null : !!this.alias && this.alias != this.sql)
 		let {alias, deger} = this
-		if (alias == 'undefined') {
+		if (alias == 'undefined')
 			console.warn('MQAliasliYapi', 'alias hatası', { saha: this, alias, deger })
-		}
 	}
 	static newForFromText(e = {}) {
 		/* örnek:
@@ -219,8 +225,12 @@ class MQAliasliYapi extends MQSQLOrtak {
 		}
 		else {																								/* bosluk var -- substring (from, end) => end index dahil değil */
 			let asLiteralSet = { ' AS': true, ' as': true, ' As': true, ' aS': true };
-			let tabloAdi = text.substring(0, sonBosInd).trim(); if (tabloAdi[0] != '(' && asLiteralSet[tabloAdi.slice(-3)]) { tabloAdi = tabloAdi.slice(0, -3) }
-			e.deger = tabloAdi; e.alias = text.substring(sonBosInd + 1).trim(); e.aliaslimi = true
+			let tabloAdi = text.substring(0, sonBosInd).trim()
+			if (tabloAdi[0] != '(' && asLiteralSet[tabloAdi.slice(-3)])
+				tabloAdi = tabloAdi.slice(0, -3)
+			e.deger = tabloAdi
+			e.alias = text.substring(sonBosInd + 1).trim()
+			e.aliaslimi = true
 		}
 		return new this(e)
 	}

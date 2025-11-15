@@ -755,8 +755,14 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	async raporTanim_sablonKaydetIstendi(e) {
 		let title = 'Rapor Tanım', {wnd_raporTanim} = this; let {raporTanim} = this, {aciklama} = raporTanim; let inEventFlag = false;
 		try {
-			if (!aciklama) { wnd_raporTanim.jqxWindow('collapse'); await hConfirm(`<b class="firebrick">Rapor Adı</b> belirtilmelidir`, title); wnd_raporTanim.jqxWindow('expand'); return }
-			let sayac = null, {encUser} = config.session; raporTanim = raporTanim.deepCopy(); $.extend(raporTanim, { sayac, encUser });
+			if (!aciklama) {
+				wnd_raporTanim.jqxWindow('collapse')
+				await hConfirm(`<b class="firebrick">Rapor Adı</b> belirtilmelidir`, title); wnd_raporTanim.jqxWindow('expand')
+				return
+			}
+			let sayac = null, {encUser} = config.session
+			raporTanim = raporTanim.deepCopy()
+			$.extend(raporTanim, { sayac, encUser })
 			let degistirmi = await raporTanim.varmi(), islem = degistirmi ? 'degistir' : 'kopya';
 			let _e = { islem }; await raporTanim.dataDuzgunmu(_e);
 			if (degistirmi) {
@@ -766,7 +772,13 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			else { await raporTanim.yaz(_e); this.raporTanim = raporTanim }
 			this.restartWndRaporTanim(e)
 			
-		} catch (ex) { wnd_raporTanim.jqxWindow('collapse'); await hConfirm(getErrorText(ex), title); wnd_raporTanim.jqxWindow('expand'); throw ex }
+		}
+		catch (ex) {
+			wnd_raporTanim.jqxWindow('collapse')
+			await hConfirm(getErrorText(ex), title)
+			wnd_raporTanim.jqxWindow('expand')
+			throw ex
+		}
 		/*if (wnd_raporTanim?.length) { wnd_raporTanim.jqxWindow('collapse') } try {
 			if (degistimi)
 			raporTanim.tanimla({

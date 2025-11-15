@@ -404,8 +404,8 @@ class Hareketci extends CObject {
 			}
 		})
 		varsaYap(hv.fisno, ({ kodClause, secimler: _sec }) => {
-			if (from.aliasIcinTable('fis')?.deger == 'carifis' && kodClause == 'fis.no')
-				debugger
+			/*if (from.aliasIcinTable('fis')?.deger == 'carifis' && kodClause == 'fis.no')
+				debugger*/
 			if (_sec.fisNo)
 				wh.basiSonu(_sec.fisNo, kodClause)
 		})

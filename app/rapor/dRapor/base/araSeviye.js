@@ -132,19 +132,26 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			 .addColDef(new GridKolon({ belirtec: 'kayitsayisi', text: 'Kayıt Sayısı', genislikCh: 10, filterType: 'numberinput', aggregates: ['sum'] }).tipNumerik()))
 	}
 	async loadServerDataInternal(e) {
-		await super.loadServerDataInternal(e); let {raporTanim, secimler} = this, attrSet = e.attrSet ?? raporTanim.attrSet, {maxRow, donemBS} = e;
-		let _e = { ...e, stm: new MQStm(), attrSet, donemBS, raporTanim, secimler, maxRow, donemBS };
+		await super.loadServerDataInternal(e)
+		let {raporTanim, secimler} = this, attrSet = e.attrSet ?? raporTanim.attrSet
+		let {maxRow, donemBS} = e
+		let _e = { ...e, stm: new MQStm(), attrSet, donemBS, raporTanim, secimler, maxRow, donemBS }
 		let recs = await this.loadServerData_ilk(_e); if (recs !== undefined) { return recs }
 		if (this.loadServerData_queryDuzenle_tekil(_e) === false) { return null }
 		if (this.loadServerData_queryDuzenle_tekilSonrasi(_e) === false) { return null }
 		if (this.loadServerData_queryDuzenle_genelSon(_e) === false) { return null }
-		let {stm: query} = _e;
+		let {stm: query} = _e
 		try {
-			recs = e.recs = query ? await app.sqlExecSelect({ query, maxRow }) : null;
-			let _recs = await this.loadServerData_son(e); if (_recs !== undefined) { recs = _recs }
+			recs = e.recs = query ? await app.sqlExecSelect({ query, maxRow }) : null
+			let _recs = await this.loadServerData_son(e)
+			if (_recs !== undefined)
+				recs = _recs
 			console.info({ sender: this, query, recs }, query?.getQueryYapi() ?? query.toString())
 		}
-		catch (ex) { console.warn({ sender: this, query, ex, errorText: getErrorText(ex) }, query?.getQueryYapi() ?? query.toString()); throw ex }
+		catch (ex) {
+			console.warn({ sender: this, query, ex, errorText: getErrorText(ex) }, query?.getQueryYapi() ?? query.toString())
+			throw ex
+		}
 		return recs
 	}
 	super_loadServerDataInternal(e) { return super.loadServerDataInternal(e) }

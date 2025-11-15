@@ -103,14 +103,20 @@ class MQToplu extends MQClause {
 class MQSahalar extends MQClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	get alias2Deger() {
-		let result = {}; for (let item of this.liste) {
-			if (!item) { continue }
-			if (typeof item != 'object') { item = MQAliasliYapi.newForSahaText(item) }
-			let {alias, deger} = item; if (!alias) { continue }
-			if (alias == 'undefined') { debugger }
+		let result = {}
+		for (let item of this.liste) {
+			if (!item)
+				continue
+			if (typeof item != 'object')
+				item = MQAliasliYapi.newForSahaText(item)
+			let {alias, deger} = item
+			if (!alias)
+				continue
+			if (alias == 'undefined')                                        // bir sorun var
+				debugger
 			for (let ch of ['.', ',', '(', ')']) {
 				if (alias.includes(ch)) {
-					console.warn('alias2Deger', 'alias hatası', { saha: this, text, deger, alias });
+					console.warn('alias2Deger', 'alias hatası', { saha: this, text, deger, alias })
 					break
 				}
 			}
@@ -120,11 +126,14 @@ class MQSahalar extends MQClause {
 		return result
 	}
 	donusmusDeger(item) {
-		item = super.donusmusDeger(item); if (item == null) { return item }
+		item = super.donusmusDeger(item)
+		if (item == null)
+			return item
 		return typeof item == 'object' ? item : MQAliasliYapi.newForSahaText(item)
 	}
 	addIcinUygunmu(item) {
-		if (!super.addIcinUygunmu(item)) { return false }
+		if (!super.addIcinUygunmu(item))
+			return false
 		if (this.liste.find(x => ((x?.aliasVeyaDeger && item?.aliasVeyaDeger) && x.aliasVeyaDeger == item.aliasVeyaDeger))) {
 			/* console.warn('MQSahalar::addIcinUygunmu', item, 'duplicate alias'); */
 			return false
@@ -141,10 +150,18 @@ class MQZincirler extends MQClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	optimize(e) {
 		/* liste: [ ["fis", "har"], ["har", "stk"], ["fis", "car"], ["car", "bol"] ] */
-		let {liste} = this;
+		let {liste} = this
 		for (let i = liste.length - 1; i > 0; i--) {			// (i > 0) ==> ilk elemana bakılmaz
-			let altDizi = liste[i]; let ilk = altDizi[0];
-			for (let j = i - 1; j >= 0; j--) { let ustDizi = liste[j]; if (ustDizi[ustDizi.length - 1] == ilk) { ustDizi.push(...(altDizi.slice(1))); liste.splice(i, 1); break } }
+			let altDizi = liste[i]
+			let ilk = altDizi[0]
+			for (let j = i - 1; j >= 0; j--) {
+				let ustDizi = liste[j]
+				if (ustDizi[ustDizi.length - 1] == ilk) {
+					ustDizi.push(...(altDizi.slice(1)))
+					liste.splice(i, 1)
+					break
+				}
+			}
 		}
 		return this
 	}
