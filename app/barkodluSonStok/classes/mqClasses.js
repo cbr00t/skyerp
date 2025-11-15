@@ -60,7 +60,7 @@ class MQBarkodluSonStok extends MQDetayliMasterOrtak {
 			fromIliskiler: [{ from: 'stkmst stk', iliski: `${alias}.stokkod = stk.kod` }],
 			sahalar: ['stk.brm', `${alias}.yerkod yerKod`]
 		}), {where: wh, sahalar} = sent;
-		sahalar.add(`SUM(${alias}.sonmiktar) miktar`); sent.groupByOlustur();
+		sahalar.add(`SUM(${alias}.sonmiktar) miktar`); sent.groupByOlustur()
 		let styled = true, recs = [ { stokKod, stokAdi, etiket: 'ÜRÜN', veri: new CKodVeAdi([stokKod, stokAdi]).parantezliOzet({ styled }) } ];
 		for (const rec of await app.sqlExecSelect(sent)) {
 			let {yerKod, miktar} = rec; $.extend(rec, { stokKod, stokAdi, etiket: `<span class=gray>Yer:</span> <b>${yerKod}</b>`, veri: numberToString(miktar) });
@@ -110,7 +110,7 @@ class MQBarkodluSonStok extends MQDetayliMasterOrtak {
 			hmrCount++
 		}
 		if (!hmrCount) { return [] }
-		sahalar.add(`SUM(${alias}.sonmiktar) miktar`); sent.groupByOlustur();
+		sahalar.add(`SUM(${alias}.sonmiktar) miktar`); sent.groupByOlustur()
 		let {Delim_HMR: delim} = this, anahStr2Item = {}, darkCSS = config.colorScheme == 'dark' ? `filter: invert(1) hue-rotate(180deg); ` : '';
 		for (let rec of await app.sqlExecSelect(sent)) {
 			let {oscolor1, oscolor2, imagesayac, miktar} = rec; if (!miktar) { continue }

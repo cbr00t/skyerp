@@ -1,7 +1,7 @@
 class MQOEM extends MQMasterOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Operasyon Emirleri' }
 	static oemHTMLDuzenle(e) {
-		e = e || {}; const {parent, rec} = e; if (!rec) { return }
+		e = e || {}; let {parent, rec} = e; if (!rec) { return }
 		return $(`<table class="oemBilgi full-wh">
 				<thead><tr>
 					<th class="emir item">Emir</th>
@@ -24,10 +24,10 @@ class MQHat extends MQKAOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Hat' }
 	static get table() { return 'ismerkezi' } static get tableAlias() { return 'hat' }
 	static rootFormBuilderDuzenle_listeEkrani(e) {
-		super.rootFormBuilderDuzenle_listeEkrani(e); const {rootBuilder: rfb} = e, {config} = app.params;
+		super.rootFormBuilderDuzenle_listeEkrani(e); let {rootBuilder: rfb} = e, {config} = app.params;
 		if (!config.hatKod) {
 			this.fbd_listeEkrani_addCheckBox(rfb, 'tumHatlariGoster', 'Tüm Hatları Göster').onAfterRun(e => {
-				const {builder} = e, {rootPart, layout} = builder, input = layout.children('input'), {grid, gridWidget} = rootPart, args = rootPart.args = rootPart.args || {};
+				let {builder} = e, {rootPart, layout} = builder, input = layout.children('input'), {grid, gridWidget} = rootPart, args = rootPart.args = rootPart.args || {};
 				input.prop('checked', args.tumHatlariGosterFlag);
 				input.on('change', evt => { args.tumHatlariGosterFlag = $(evt.currentTarget).is(':checked'); rootPart.tazeleDefer() })
 			})
@@ -35,7 +35,7 @@ class MQHat extends MQKAOrtak {
 	}
 	static async loadServerData_queryOlustur(e) { await super.loadServerData_queryOlustur(e); await this.loadServerData_queryDuzenle_ek(e); return e.query || e.stm }
 	static async loadServerData_queryDuzenle_ek(e) {
-		await super.loadServerData_queryDuzenle(e); const {sent} = e, alias = e.alias ?? this.tableAlias, {kodSaha} = this, args = e.args || {}, {tumHatlariGosterFlag, exclude_hatKod} = args;
+		await super.loadServerData_queryDuzenle(e); let {sent} = e, alias = e.alias ?? this.tableAlias, {kodSaha} = this, args = e.args || {}, {tumHatlariGosterFlag, exclude_hatKod} = args;
 		let {hatKodListe} = args; if (!(tumHatlariGosterFlag || hatKodListe)) {
 			try { hatKodListe = (await app.wsTezgahBilgileri()).map(rec => rec.hatKod ?? rec.hatID ?? rec.hatId) }
 			catch (ex) { console.error(ex) }
@@ -53,14 +53,14 @@ class MQOperasyon extends MQKAOrtak {
 	static get table() { return 'operasyon' } static get tableAlias() { return 'op' }
 	static get kodSaha() { return 'opno' } static get adiSaha() { return 'aciklama' }  static get kodEtiket() { return 'Op. No' } static get adiEtiket() { return 'Op. Adı' }
 	static rootFormBuilderDuzenle_listeEkrani(e) {
-		super.rootFormBuilderDuzenle_listeEkrani(e); const rfb = e.rootBuilder;
+		super.rootFormBuilderDuzenle_listeEkrani(e); let rfb = e.rootBuilder;
 		this.fbd_listeEkrani_addCheckBox(rfb, 'urunAgacineEkleFlag', 'Ürün Ağacına Ekle').onAfterRun(e => {
-			const {builder} = e, {rootPart, layout} = builder, input = layout.children('input'), {grid, gridWidget} = rootPart;
+			let {builder} = e, {rootPart, layout} = builder, input = layout.children('input'), {grid, gridWidget} = rootPart;
 			input.on('change', evt => { rootPart.urunAgacineEkleFlag = $(evt.currentTarget).is(':checked') })
 		})
 	}
 	/*static loadServerData(e) {
-		const {oemSayac} = e.args, toplu = new MQToplu([
+		let {oemSayac} = e.args, toplu = new MQToplu([
 			`DECLARE @emirDetaySayac	BIGINT`,
 			new MQSent({
 				from: 'operemri', where: { degerAta: oemSayac, saha: 'kaysayac' },
@@ -68,8 +68,9 @@ class MQOperasyon extends MQKAOrtak {
 			}),
 			new MQStm({
 				sent: new MQSent({
-					from: 'operasyon', where: `opno NOT IN (select opno from operemri where emirdetaysayac = @emirDetaySayac)`,
-					sahalar: ['opno opNo', 'aciklama opAdi']
+					from: 'operasyon op',
+					where: `op.opno NOT IN (select opno from operemri where emirdetaysayac = @emirDetaySayac)`,
+					sahalar: ['op.opno opNo', 'op.aciklama opAdi']
 				}),
 				orderBy: ['opNo']
 			})
@@ -84,10 +85,10 @@ class MQDurNeden extends MQKAOrtak {
 class MQBekleyenIsEmirleri extends MQMasterOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Bekleyen İş Emirleri' } static get detaySinif() { return MQOperasyon } static get gridDetaylimi() { return true }
-	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); const {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: true }) }
-	static orjBaslikListesi_argsDuzenle_detaylar(e) { super.orjBaslikListesi_argsDuzenle_detaylar(e); const {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: true }) }
+	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); let {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: true }) }
+	static orjBaslikListesi_argsDuzenle_detaylar(e) { super.orjBaslikListesi_argsDuzenle_detaylar(e); let {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: true }) }
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(...[
+		super.orjBaslikListesiDuzenle(e); let {liste} = e; liste.push(...[
 			new GridKolon({ belirtec: 'emirtarih', text: 'Tarih', genislikCh: 9 }).tipDate(),
 			new GridKolon({ belirtec: 'emirnox', text: 'Emir No', genislikCh: 9 }),
 			new GridKolon({ belirtec: 'urunkod', text: 'Ürün Kod', genislikCh: 20 }),
@@ -99,7 +100,7 @@ class MQBekleyenIsEmirleri extends MQMasterOrtak {
 	}
 	static loadServerData({ args: { hatKod } = {} }) { return app.wsBekleyenIsEmirleri({ hatKod }) }
 	static orjBaslikListesiDuzenle_detaylar(e) {
-		super.orjBaslikListesiDuzenle_detaylar(e); const {liste} = e;
+		super.orjBaslikListesiDuzenle_detaylar(e); let {liste} = e;
 		liste.push(...[
 			new GridKolon({ belirtec: 'opno', text: 'Oper. No', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'opadi', text: 'Oper. Adı' }),
@@ -114,29 +115,29 @@ class MQBekleyenIsEmirleri extends MQMasterOrtak {
 		])
 	}
 	static loadServerData_detaylar(e) {
-		const {parentRec} = e, emirUrunSayac = parentRec.emirurunsayac;
-		return app.wsBekleyenOperasyonlar({ emirUrunSayac }).then(recs =>{ for (const rec of recs) { rec.uretMiktar = (rec.uretbrutmiktar || 0) + (rec.digeruretmiktar || 0) } return recs })
+		let {parentRec} = e, emirUrunSayac = parentRec.emirurunsayac;
+		return app.wsBekleyenOperasyonlar({ emirUrunSayac }).then(recs =>{ for (let rec of recs) { rec.uretMiktar = (rec.uretbrutmiktar || 0) + (rec.digeruretmiktar || 0) } return recs })
 	}
 	static orjBaslikListesi_satirCiftTiklandi(e) {
-		super.orjBaslikListesi_satirCiftTiklandi(e); const args = e.event?.args, rowIndex = args?.rowindex;
-		const gridPart = e.gridPart ?? e.sender, gridWidget = e?.event?.args?.owner ?? gridPart.gridWidget, {expandedIndexes} = gridPart;
+		super.orjBaslikListesi_satirCiftTiklandi(e); let args = e.event?.args, rowIndex = args?.rowindex;
+		let gridPart = e.gridPart ?? e.sender, gridWidget = e?.event?.args?.owner ?? gridPart.gridWidget, {expandedIndexes} = gridPart;
 		if (expandedIndexes && rowIndex != null) { gridWidget[expandedIndexes[rowIndex] ? 'hiderowdetails' : 'showrowdetails'](rowIndex) }
 	}
 }
 class MQSureSayi extends MQMasterOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Süre/Sayı Düzenle' } static get tanimUISinif() { return ModelTanimPart }
 	constructor(e) {
-		e = e || {}; super(e); const rec = this.rec = e.rec;
+		e = e || {}; super(e); let rec = this.rec = e.rec;
 		if (rec) {
-			const donusum = { sinyalSayisi: rec.sinyalsayisi, sinyalTekilSure: rec.sinyaltekilsure, sinyalToplamSure: rec.sinyaltoplamsure };
-			for (const [ioAttr, value] of Object.entries(donusum)) { if (value != undefined && this[ioAttr] == null) { this[ioAttr] = value || null } }
+			let donusum = { sinyalSayisi: rec.sinyalsayisi, sinyalTekilSure: rec.sinyaltekilsure, sinyalToplamSure: rec.sinyaltoplamsure };
+			for (let [ioAttr, value] of Object.entries(donusum)) { if (value != undefined && this[ioAttr] == null) { this[ioAttr] = value || null } }
 		}
 	}
 	static rootFormBuilderDuzenle(e) {
-		const {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e;
-		rfb.onAfterRun(e => { const {part} = e.builder; part.title = this.sinifAdi });
+		let {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e;
+		rfb.onAfterRun(e => { let {part} = e.builder; part.title = this.sinifAdi });
 		tanimForm.addForm({ id: 'oemBilgi' })
-			.setLayout(e => { const {builder} = e, {id, rootPart} = builder, inst = builder.altInst, {rec} = inst, layout = $(`<div id="${id}"/>`); MQOEM.oemHTMLDuzenle({ parent: layout, rec }); return layout })
+			.setLayout(e => { let {builder} = e, {id, rootPart} = builder, inst = builder.altInst, {rec} = inst, layout = $(`<div id="${id}"/>`); MQOEM.oemHTMLDuzenle({ parent: layout, rec }); return layout })
 			.addStyle_fullWH(undefined, 'unset').addStyle(e => `$elementCSS { position: relative; z-index: 1001; pointer-events: none; margin-bottom: 10px }`);
 		let width = 200, form = tanimForm.addFormWithParent().yanYana();
 		form.addNumberInput('sinyalSayisi', 'Sinyal Sayısı').addStyle_wh(width); form.addNumberInput('sinyalTekilSure', 'Sinyal Tekil Süre').addStyle_wh(width); form.addNumberInput('sinyalToplamSure', 'Sinyal Toplam Süre').addStyle_wh(width)
@@ -145,16 +146,16 @@ class MQSureSayi extends MQMasterOrtak {
 class MQZamanEtudu extends MQMasterOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Zaman Etüdü' } static get tanimUISinif() { return ModelTanimPart }
 	constructor(e) {
-		e = e || {}; super(e); const rec = this.rec = e.rec, zamanEtuduRec = this.zamanEtuduRec = e.zamanEtuduRec;
+		e = e || {}; super(e); let rec = this.rec = e.rec, zamanEtuduRec = this.zamanEtuduRec = e.zamanEtuduRec;
 		if (zamanEtuduRec) {
 			$.extend(this, { degistirmi: asBool(zamanEtuduRec.bzamanetudu) });
-			const donusum = { 
+			let donusum = { 
 				sinyalSayisi: zamanEtuduRec.urunagacsinyalsayisi, cevrimMinSn: zamanEtuduRec.sinirminsn, cevrimMaxSn: zamanEtuduRec.sinirmaxsn,
 				sinyalArasiMinSn: zamanEtuduRec.enkisasinyalsn, sinyalArasiMaxSn: zamanEtuduRec.enuzunsinyalsn,
 				urunAgacCevrimEnKisaSn: zamanEtuduRec.urunagaccevrimenkisasn, urunAgacSinyalEnKisaSn: zamanEtuduRec.urunagacsinyalenkisasn,
 				ornekSayisi: zamanEtuduRec.orneksayisi, ornekCevrimEnKisa: zamanEtuduRec.cevrimenkisasn, ornekCevrimEnUzun: zamanEtuduRec.cevrimenuzunsn, ornekCevrimOrtalama: zamanEtuduRec.cevrimagirlikliortalamasn
 			};
-			for (const [ioAttr, value] of Object.entries(donusum)) { if (value != undefined && this[ioAttr] == null) { this[ioAttr] = value || null } }
+			for (let [ioAttr, value] of Object.entries(donusum)) { if (value != undefined && this[ioAttr] == null) { this[ioAttr] = value || null } }
 			/* placeholder: urunagaccevrimenkisasn urunagacsinyalenkisasn
 				örnekleme:
 					divOrneklemeContainer.find('#ornekSayisi').val(asFloat(rec.orneksayisi) || 0); divOrneklemeContainer.find('#cevrimEnKisa').val(asFloat(rec.cevrimenkisasn) || 0);
@@ -163,27 +164,27 @@ class MQZamanEtudu extends MQMasterOrtak {
 		}
 	}
 	static rootFormBuilderDuzenle(e) {
-		const {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e;
+		let {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e;
 		rfb.onAfterRun(e => {
-			const {builder} = e, {part, altInst} = builder, {urunAgacCevrimEnKisaSn, urunAgacSinyalEnKisaSn, degistirmi} = altInst;
+			let {builder} = e, {part, altInst} = builder, {urunAgacCevrimEnKisaSn, urunAgacSinyalEnKisaSn, degistirmi} = altInst;
 			if (urunAgacCevrimEnKisaSn != null) { part.fbd_cevrimMinSn?.input?.attr('placeholder', urunAgacCevrimEnKisaSn) }
 			if (urunAgacSinyalEnKisaSn != null) { part.fbd_sinyalArasiMinSn?.input?.attr('placeholder', urunAgacSinyalEnKisaSn) }
 			part.title = `${this.sinifAdi} [<span class="ek-bilgi">${degistirmi ? 'Çalışıyor' : 'YOK'}</span>]`
 		});
 		rfb.islemTuslariArgsDuzenle = e => {
-			const {args} = e, {id2Handler} = args; $.extend(args, { ekButonlarIlk: ['tazele'], ekSagButonIdSet: ['tazele'] });
+			let {args} = e, {id2Handler} = args; $.extend(args, { ekButonlarIlk: ['tazele'], ekSagButonIdSet: ['tazele'] });
 			$.extend(id2Handler, { tazele: e => this.etudButonTiklandi($.extend(e, { islem: 'tazele' })) })
 		};
 		tanimForm.addForm('oemBilgi')
-			.setLayout(e => { const {builder} = e, {id, rootPart} = builder, inst = builder.altInst, {rec} = inst, layout = $(`<div id="${id}"/>`); MQOEM.oemHTMLDuzenle({ parent: layout, rec }); return layout })
+			.setLayout(e => { let {builder} = e, {id, rootPart} = builder, inst = builder.altInst, {rec} = inst, layout = $(`<div id="${id}"/>`); MQOEM.oemHTMLDuzenle({ parent: layout, rec }); return layout })
 			.addStyle_fullWH(undefined, 'unset').addStyle(e => `$elementCSS { position: relative; z-index: 1001; pointer-events: none; margin-bottom: 10px }`);
 		let width = 200;
 		let form = tanimForm.addBaslik({ etiket: 'Çevrim' }).addFormWithParent().yanYana();
 			form.addNumberInput('sinyalSayisi', 'Sinyal Sayısı').addStyle_wh(width);
-			form.addNumberInput('cevrimMinSn', 'En Kısa (sn)').addStyle_wh(width).onAfterRun(e => { const {builder} = e; builder.rootPart.fbd_cevrimMinSn = builder });
+			form.addNumberInput('cevrimMinSn', 'En Kısa (sn)').addStyle_wh(width).onAfterRun(e => { let {builder} = e; builder.rootPart.fbd_cevrimMinSn = builder });
 			form.addNumberInput('cevrimMaxSn', 'En Uzun (sn)').addStyle_wh(width);
 		form = tanimForm.addBaslik({ etiket: 'İki Sinyal Arası' }).addFormWithParent().yanYana();
-			form.addNumberInput('sinyalArasiMinSn', 'En Kısa (sn)').addStyle_wh(width).onAfterRun(e => { const {builder} = e; builder.rootPart.fbd_sinyalArasiMinSn = builder });
+			form.addNumberInput('sinyalArasiMinSn', 'En Kısa (sn)').addStyle_wh(width).onAfterRun(e => { let {builder} = e; builder.rootPart.fbd_sinyalArasiMinSn = builder });
 			form.addNumberInput('sinyalArasiMaxSn', 'En Uzun (sn)').addStyle_wh(width);
 			form.addForm().setLayout(e => $(`<div class="royalblue bold uyari">** Ürün Ağacına eklenir **</div>`))
 				.addStyle(e => `$elementCSS { margin-top: 38px !important; margin-left: 15px }`)
@@ -191,8 +192,8 @@ class MQZamanEtudu extends MQMasterOrtak {
 		form = tanimForm.addFormWithParent().yanYana().addStyle(e => `$elementCSS { margin-top: 20px }`).addStyle_wh(undefined, 50);
 			form.addButton('baslatVeyaDegistir', e => e.builder?.altInst?.degistirmi ? 'DEĞİŞTİR' : 'BAŞLAT').onClick(e => this.etudButonTiklandi($.extend(e, { islem: 'baslatVeyaDegistir' }))).addStyle_wh(width * 3);
 		let parentForm = tanimForm.addFormWithParent('ornekleme').altAlta()
-			.onAfterRun(e => { const {builder} = e; builder.rootPart.fbd_ornekleme = builder })
-			.setVisibleKosulu(e => { const {builder} = e, {altInst} = builder; return altInst.degistirmi || 'jqx-hidden' });
+			.onAfterRun(e => { let {builder} = e; builder.rootPart.fbd_ornekleme = builder })
+			.setVisibleKosulu(e => { let {builder} = e, {altInst} = builder; return altInst.degistirmi || 'jqx-hidden' });
 		form = parentForm.addBaslik('Çevrim Ortalama').addFormWithParent();
 			form.addNumberInput('ornekCevrimEnKisa', 'En Kısa (sn)').readOnly().addStyle_wh(width).addCSS('center');
 			form.addNumberInput('ornekCevrimEnUzun', 'En Uzun (sn)').readOnly().addStyle_wh(width).addCSS('center');
@@ -204,8 +205,8 @@ class MQZamanEtudu extends MQMasterOrtak {
 			form.addButton('sureGuncelleVeKapat', 'Süre Güncelle & Kapat').onClick(e => this.etudButonTiklandi($.extend(e, { islem: 'sureGuncelleVeKapat' }))).addStyle_wh(width)
 	}
 	static async etudButonTiklandi(e) {
-		const {islem, builder} = e, part = builder?.rootPart ?? e.parentPart, altInst = builder?.altInst ?? part?.inst;
-		const {rec, degistirmi} = altInst, isId = rec.issayac ?? rec.isId ?? rec.isID, oemSayac = rec.oemsayac ?? rec.oemID, tezgahKod = rec.tezgahkod ?? rec.tezgahKod;
+		let {islem, builder} = e, part = builder?.rootPart ?? e.parentPart, altInst = builder?.altInst ?? part?.inst;
+		let {rec, degistirmi} = altInst, isId = rec.issayac ?? rec.isId ?? rec.isID, oemSayac = rec.oemsayac ?? rec.oemID, tezgahKod = rec.tezgahkod ?? rec.tezgahKod;
 		try { 
 			let durum, sureGuncelleVeKapatmi = false; switch (islem) {
 				case 'tazele': await this.uiReload(e); return
@@ -215,10 +216,10 @@ class MQZamanEtudu extends MQMasterOrtak {
 				case 'reset': if (degistirmi) { durum = 'R' } break
 			}
 			if (durum === undefined) { throw { isError: true, rc: 'hataliDurum', errorText: 'Geçersiz işlem' } }
-			const wsArgs = { isId, oemSayac, tezgahKod }; if (durum != null) { $.extend(wsArgs, { durum }) }
+			let wsArgs = { isId, oemSayac, tezgahKod }; if (durum != null) { $.extend(wsArgs, { durum }) }
 			if (!sureGuncelleVeKapatmi) {
 				let keys = ['sinyalSayisi', 'cevrimMinSn', 'cevrimMaxSn', 'sinyalArasiMinSn', 'sinyalArasiMaxSn'];
-				for (const key of keys) { const value = altInst[key]; if (value != null) { wsArgs[key] = value } }
+				for (let key of keys) { let value = altInst[key]; if (value != null) { wsArgs[key] = value } }
 				if (wsArgs.sinyalArasiMaxSn < wsArgs.sinyalArasiMinSn) throw { isError: true, rc: 'invalidValue', errorText: `Sinyal Max Süre, Sinyal Min Süre'den küçük olamaz` }
 				if (wsArgs.enUzunSinyalSn < wsArgs.enKisaSinyalSn) throw { isError: true, rc: 'invalidValue', errorText: `Sinyal En Uzun Süre, Sinyal En Kısa Süre'den küçük olamaz` }
 				if (wsArgs.cevrimMaxSn < wsArgs.cevrimMinSn) throw { isError: true, rc: 'invalidValue', errorText: `Çevrim En Uzun Süre, Çevrim En Kısa Süre'den küçük olamaz` }
@@ -228,8 +229,8 @@ class MQZamanEtudu extends MQMasterOrtak {
 		catch (ex) { hConfirm(getErrorText(ex), part.title) }
 	}
 	static async uiReload(e) {
-		const {builder} = e, rootBuilder = builder?.rootBuilder, part = rootBuilder?.part ?? e.parentPart, altInst = builder?.altInst ?? part?.inst;
-		const {parentPart, islem, events} = part, {rec} = altInst, isId = rec.issayac ?? rec.isId ?? rec.isID, oemSayac = rec.oemsayac ?? rec.oemID, tezgahKod = rec.tezgahkod ?? rec.tezgahKod;
+		let {builder} = e, rootBuilder = builder?.rootBuilder, part = rootBuilder?.part ?? e.parentPart, altInst = builder?.altInst ?? part?.inst;
+		let {parentPart, islem, events} = part, {rec} = altInst, isId = rec.issayac ?? rec.isId ?? rec.isID, oemSayac = rec.oemsayac ?? rec.oemID, tezgahKod = rec.tezgahkod ?? rec.tezgahKod;
 		let zamanEtuduRec = altInst.zamanEtuduRec = await app.wsGorevZamanEtuduVeriGetir({ isId, oemSayac, tezgahKod });
 		new this({ rec, zamanEtuduRec, parentPart, events: $.extend({}, events) }).tanimla({ islem }); part.close()
 	}
@@ -240,18 +241,18 @@ class MQSinyal extends MQMasterOrtak {
 	static get sinifAdi() { return 'MES Sinyal' } static get table() { return 'messinyal' } static get tableAlias() { return 'sny' }
 	static get tanimlanabilirmi() { return !!config.dev } static get silinebilirmi() { return !!config.dev }
 	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); const {pTanim} = e;
+		super.pTanimDuzenle(e); let {pTanim} = e;
 		$.extend(pTanim, { tezgahKod: new PInstStr('tezgahkod'), ts: new PInstDateTimeNow('ts') })
 	}
 	static secimlerDuzenle(e) {
-		super.secimlerDuzenle(e); const {secimler: sec} = e;
+		super.secimlerDuzenle(e); let {secimler: sec} = e;
 		sec.secimTopluEkle({
 			tezgahKod: new SecimString({ etiket: 'Tezgah', mfSinif: MQTezgah }), tezgahAdi: new SecimOzellik({ etiket: 'Tezgah Adı' }),
 			ts: new SecimDateTime({ etiket: 'Tarih/Saat' }), ip: new SecimOzellik({ etiket: 'IP Adresi' }),
 			sanalSecim: new SecimTekSecim({ etiket: 'Cihaz Tipi', tekSecim: new BuDigerVeHepsi(['Gerçek', 'Sanal']) })
 		});
 		sec.whereBlockEkle(e => {
-			const {secimler: sec, where: wh} = e, {tableAlias: alias} = this;
+			let {secimler: sec, where: wh} = e, {tableAlias: alias} = this;
 			wh.basiSonu(sec.tezgahKod, `${alias}.tezgahkod`).ozellik(sec.tezgahAdi, 'tez.aciklama');
 			wh.basiSonu(sec.ts, `${alias}.ts`).ozellik(sec.ip, `${alias}.ip`);
 			let tSec = sec.sanalSecim.tekSecim; if (!tSec.hepsimi) { tSec.getTersBoolBitClause(`${alias}.bsanal`) }
@@ -267,7 +268,7 @@ class MQSinyal extends MQMasterOrtak {
 		}
 	}
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e, {aliasVeNokta} = this;
+		super.orjBaslikListesiDuzenle(e); let {liste} = e, {aliasVeNokta} = this;
 		liste.push(...[
 			new GridKolon({ belirtec: 'tezgahkod', text: 'Tezgah', genislikCh: 15, filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'tezgahadi', text: 'Tezgah Adı', genislikCh: 35, sql: 'tez.aciklama', filterType: 'checkedlist' }),
@@ -284,18 +285,20 @@ class MQSinyal extends MQMasterOrtak {
 		])
 	}
 	static orjBaslikListesi_groupsDuzenle(e) {
-		super.orjBaslikListesi_groupsDuzenle(e); const {listeBasliklari} = this, {liste, gridWidget} = e;
-		const detaylimi = !!listeBasliklari.find(({ belirtec }) => belirtec == 'ts');
+		super.orjBaslikListesi_groupsDuzenle(e); let {listeBasliklari} = this, {liste, gridWidget} = e;
+		let detaylimi = !!listeBasliklari.find(({ belirtec }) => belirtec == 'ts');
 		if (detaylimi) { let belirtec = 'tezgahadi'; liste.push(belirtec); gridWidget.hidecolumn(belirtec) }
 	}
 	static async loadServerData_queryOlustur(e) {
-		await super.loadServerData_queryOlustur(e); const {stm} = e;
-		for (const sent of stm.getSentListe()) { sent.groupByOlustur() }
+		await super.loadServerData_queryOlustur(...arguments)
+		let {stm} = e
+		for (let sent of stm)
+			sent.groupByOlustur()
 		return stm
 	}
 	static async loadServerData_queryDuzenle(e) {
-		await super.loadServerData_queryDuzenle(e); const {stm, sent} = e, {orderBy} = stm, {sahalar} = sent;
-		const alias = e.alias ?? this.tableAlias, aliasVeNokta = alias ? `${alias}.` : '';
+		await super.loadServerData_queryDuzenle(e); let {stm, sent} = e, {orderBy} = stm, {sahalar} = sent;
+		let alias = e.alias ?? this.tableAlias, aliasVeNokta = alias ? `${alias}.` : '';
 		sent.fromIliski('tekilmakina tez', `${aliasVeNokta}tezgahkod = tez.kod`);
 		if (!orderBy.liste.length) {
 			let mevcutSet = {}; for (let {alias} of sahalar.liste) { mevcutSet[alias] = true }
@@ -321,12 +324,12 @@ class MQSinyal extends MQMasterOrtak {
 		console.log(`orjBaslikListesi_recsDuzenle time = ${(now() - ts) / 1000}ms`)
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); const {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e;
+		super.rootFormBuilderDuzenle(e); let {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e;
 		let form = tanimForm.addFormWithParent().yanYana();
 			form.addModelKullan('tezgahKod', 'Tezgah').comboBox().autoBind().setMFSinif(MQTezgah); form.addDateInput('tarih', 'Tarih'); form.addTimeInput('saat', 'Saat')
 	}
-	keyHostVarsDuzenle(e) { super.keyHostVarsDuzenle(e); const {hv} = e, {tezgahKod: tezgahkod, ts} = this; $.extend(hv, { tezgahkod, ts }) }
-	keySetValues(e) { super.keySetValues(e); const {rec} = e, {tezgahkod: tezgahKod, ts} = rec; $.extend(this, { tezgahKod, ts }) }
+	keyHostVarsDuzenle(e) { super.keyHostVarsDuzenle(e); let {hv} = e, {tezgahKod: tezgahkod, ts} = this; $.extend(hv, { tezgahkod, ts }) }
+	keySetValues(e) { super.keySetValues(e); let {rec} = e, {tezgahkod: tezgahKod, ts} = rec; $.extend(this, { tezgahKod, ts }) }
 }
 class MQLEDDurum extends MQCogul {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get menuyeAlinmazmi() { return false }
@@ -354,7 +357,7 @@ class MQLEDDurum extends MQCogul {
 		}
 	}
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(...[
+		super.orjBaslikListesiDuzenle(e); let {liste} = e; liste.push(...[
 			new GridKolon({ belirtec: 'ip', text: 'IP', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'tezgahKod', text: 'Tezgah', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'tezgahAdi', text: 'Tezgah Adı', genislikCh: 30 }),

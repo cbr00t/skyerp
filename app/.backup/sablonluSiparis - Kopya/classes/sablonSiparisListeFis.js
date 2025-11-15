@@ -262,7 +262,7 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 				'MAX(xdag.sevkadreskod) sevkadreskod', 'xfis.kaysayac fissayac',
 				'xfis.sablonsayac sablonsayac', 'xsab.klfirmakod klfirmakod', 'xdag.mustkod teslimcarikod'
 			]
-		}).groupByOlustur();
+		}).groupByOlustur()
 		return new MQSent({
 			from: `(${maxSent.toString()}) kmax`,
 			fromIliskiler: [

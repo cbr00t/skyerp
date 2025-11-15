@@ -41,11 +41,20 @@ class MakineYonetimiPart extends Part {
 					}
 				}
 				try {
-					let sent = new MQSent({ from: 'messinyal', where: { degerAta: tezgahKod, saha: 'tezgahkod' }, sahalar: ['bsanal', 'SUM(1) sayi'] });
-					sent.groupByOlustur(); let sinyalRecs = await app.sqlExecSelect(sent), sinyalSayilar = inst.sinyalSayilar = {};
+					let sent = new MQSent({
+						from: 'messinyal sny',
+						where: { degerAta: tezgahKod, saha: 'sny.tezgahkod' },
+						sahalar: ['sny.bsanal', 'SUM(1) sayi']
+					})
+					sent.groupByOlustur()
+					// sent.groupBy.add('sny.tezgahkod', 'sny.bsanal')
+					let sinyalRecs = await app.sqlExecSelect(sent)
+					let sinyalSayilar = inst.sinyalSayilar = {}
 					if (sinyalRecs?.length) {
 						for (let {tezgahkod: tezgahKod, bsanal: sanalmi, sayi} of sinyalRecs) {
-							let key = sanalmi ? 'sanal' : 'cihaz'; sinyalSayilar[key] = (sinyalSayilar[key] || 0) + (sayi || 0) }
+							let key = sanalmi ? 'sanal' : 'cihaz'
+							sinyalSayilar[key] = (sinyalSayilar[key] || 0) + (sayi || 0)
+						}
 					}
 				}
 				catch (ex) { console.error(ex) }

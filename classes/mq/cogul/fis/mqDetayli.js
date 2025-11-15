@@ -315,9 +315,10 @@ class MQDetayli extends MQSayacli {
 	}
 	topluYazmaKomutlariniOlustur_baslikSayacBelirle(e) {
 		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {toplu, trnId, /*keyHV,*/ paramName_fisSayac} = e, {table, sayacSaha} = this.class;
-		let query = new MQSent({ from: table /*, where: { birlestirDict: keyHV } */ }), {sahalar} = query;
+		let query = new MQSent({ from: table /*, where: { birlestirDict: keyHV } */ }), {sahalar} = query
 		if (offlineMode) {
-			sahalar.add(`MAX(${sayacSaha}) sayac`); let sayac = this.sqlExecTekilDeger({ offlineMode, trnId, query });
+			sahalar.add(`MAX(${sayacSaha}) sayac`)
+			let sayac = this.sqlExecTekilDeger({ offlineMode, trnId, query })
 			return (sayac || 0) + 1
 		}
 		sahalar.add(`${paramName_fisSayac} = MAX(${sayacSaha})`); toplu.add(query);

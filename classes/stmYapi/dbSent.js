@@ -58,21 +58,21 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 					isDigit(deger[0]) || deger[0] == `'` || deger.endsWith('*')) {
 				continue
 			}
+			let degerUpper = deger.toUpperCase()
+			let toplammi = this.class.hasAggregateFunctions(degerUpper)
+			if (toplammi) {
+				aggregateVarmi = true
+				continue
+			}
 			let aliasListe = MQAliasliYapi.getDegerAliasListe(deger)
 			if (!aliasListe?.length)
 				continue
-			let degerUpper = deger.toUpperCase()
 			/*if (deger.toLowerCase().startsWith(`coalesce(har.belgetarih`))
 				debugger*/
 			/*if (degerUpper.startsWith('CAST(0') || degerUpper.startsWith("CAST(''") ||
 					degerUpper.startsWith('CAST(NULL') || degerUpper.startsWith('NULL')) {
 				continue
 			}*/
-			let toplammi = this.class.hasAggregateFunctions(degerUpper)
-			if (toplammi) {
-				aggregateVarmi = true
-				continue
-			}
 			ekleneceklerSet[deger] = true
 		}
 		if (aggregateVarmi)

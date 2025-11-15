@@ -46,15 +46,15 @@ class SatisKosul extends CKodVeAdi {
 			let inst = new this(e); inst.setValues({ rec });
 			stm = sent = null;
 			uygunmu = true; if (mustKod && this.mustDetaydami) {
-				let {sayac} = this, {detayMustTable} = this.class;
+				let {sayac} = this, {detayMustTable} = this.class
 				let sent = new MQSent({
-					from: detayMustTable, sahalar: 'COUNT(*) sayi',
-					where: [{ degerAta: sayac, saha: fisSayacSaha }, { degerAta: mustKod, saha: 'must' }]
-				}).distinctYap();
+					from: `${detayMustTable} mus`, sahalar: 'COUNT(*) sayi',
+					where: [{ degerAta: sayac, saha: fisSayacSaha }, { degerAta: mustKod, saha: 'mus.must' }]
+				}).distinctYap()
 				uygunmu = !!asInteger(await app.sqlExecTekilDeger(sent))
 			}
 			if (uygunmu && kapsam) {
-				let mustRec = this.mustRec = e.mustRec ?? await this.getMust2Rec(mustKod);
+				let mustRec = this.mustRec = e.mustRec ?? await this.getMust2Rec(mustKod)
 				uygunmu = kapsam.uygunmu(mustRec, alimmi)
 			}
 			if (uygunmu) { result.push(inst) }
@@ -76,8 +76,8 @@ class SatisKosul extends CKodVeAdi {
 			uygunmu = true; if (mustKod && this.mustDetaydami) {
 				let {sayac} = this, {detayMustTable} = this.class;
 				let sent = new MQSent({
-					from: detayMustTable, sahalar: 'COUNT(*) sayi',
-					where: [{ degerAta: sayac, saha: fisSayacSaha }, { degerAta: mustKod, saha: 'must' }]
+					from: `${detayMustTable} mus`, sahalar: 'COUNT(*) sayi',
+					where: [{ degerAta: sayac, saha: fisSayacSaha }, { degerAta: mustKod, saha: 'mus.must' }]
 				}).distinctYap();
 				uygunmu = !!asInteger(await app.sqlExecTekilDeger(sent))
 			}

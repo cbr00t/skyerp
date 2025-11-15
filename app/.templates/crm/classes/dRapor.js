@@ -32,7 +32,8 @@ class DRapor_X_Main extends DRapor_Donemsel_Main {
 				case 'AKTIFYAS': case 'YASGRUP': sahalar.add('fis.aktifyas'); break
 			}
 		}
-		this.loadServerData_queryDuzenle_tarih({ ...e, alias: 'fis', tarihSaha: 'tarihsaat' });*/ this.loadServerData_queryDuzenle_ek(e); sent.groupByOlustur()
+		this.loadServerData_queryDuzenle_tarih({ ...e, alias: 'fis', tarihSaha: 'tarihsaat' });*/
+		this.loadServerData_queryDuzenle_ek(e); sent.groupByOlustur()
 	}
 	loadServerData_queryDuzenle_ek(e) { super.loadServerData_queryDuzenle_ek(e) }
 	loadServerData_queryDuzenle_son(e) { const {stm, attrSet} = e, {orderBy} = stm; super.loadServerData_queryDuzenle_son(e) }

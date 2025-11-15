@@ -52,8 +52,8 @@ class SatisKosul_Fiyat extends SatisKosul {
 	    if ($.isEmptyObject(eksikKodSet)) { return result }
 		let musterisizListeFiyatiBelirle = async () => {
 			let sent = new MQSent({
-				from: 'stkmst', where: { inDizi: Object.keys(eksikKodSet), saha: 'kod' },
-				sahalar: ['kod', 'satfiyat1 fiyat']
+				from: 'stkmst stk', where: { inDizi: keys(eksikKodSet), saha: 'stk.kod' },
+				sahalar: ['stk.kod', 'stk.satfiyat1 fiyat']
 			});
 			for (let {kod, fiyat} of await app.sqlExecSelect(sent)) {
 				let rec = result[kod] = result[kod] ?? {};

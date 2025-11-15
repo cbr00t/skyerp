@@ -60,10 +60,11 @@ class SatisKosul_AlimAnlasma extends SatisKosul {
 	    }
 	    if ($.isEmptyObject(eksikKodSet)) { return result }
 		let musterisizListeFiyatiBelirle = async () => {
-			let fiyatClause = 'almfiyat';
+			let fiyatClause = 'stk.almfiyat';
 			let sent = new MQSent({
-				from: 'stkmst', where: { inDizi: Object.keys(eksikKodSet), saha: 'kod' },
-				sahalar: ['kod', `${fiyatClause} fiyat`]
+				from: 'stkmst stk',
+				where: { inDizi: keys(eksikKodSet), saha: 'stk.kod' },
+				sahalar: ['stk.kod', `${fiyatClause} fiyat`]
 			});
 			for (let {kod, fiyat} of await app.sqlExecSelect(sent)) {
 				let rec = result[kod] = result[kod] ?? {};
@@ -76,7 +77,7 @@ class SatisKosul_AlimAnlasma extends SatisKosul {
 		/* 4) 'mustKod' belli iken: hala eksik fiyatlar varsa stok tanımından fiyatını belirle */ {
 			let fiyatClause = 'stk.almfiyat';
 			let sent = new MQSent({
-				from: 'stkmst stk', where: { inDizi: Object.keys(eksikKodSet), saha: 'stk.kod' },
+				from: 'stkmst stk', where: { inDizi: keys(eksikKodSet), saha: 'stk.kod' },
 				sahalar: ['stk.kod stokKod', `${fiyatClause} fiyat`]
 			});
 			/* const iskontoYokmu = false, promosyonYokmu = false; -- !! don't override flags */

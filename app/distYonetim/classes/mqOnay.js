@@ -80,7 +80,8 @@ class MQOnay extends MQCogul {
 			'car.birunvan', 'il.aciklama iladi', 'har.stokkod', 'stk.aciklama stokadi', 'stk.brm', 'grp.aciklama grupadi', 'har.miktar', 'har.fiyat',
 			/*'har.sonuciskoran',*/ `(har.sonuciskoran - har.distsonuciskdusulecek) sonuciskoran`, 'har.bdistonayistendi', 'har.iskozelsinir onayliisksinir', 'sum(don.busevkmiktar) sevkmiktar'
 		);
-		sent.groupByOlustur(); stm.orderBy.add('tarih', 'fisnox', 'stokadi')
+		sent.groupByOlustur()
+		stm.orderBy.add('tarih', 'fisnox', 'stokadi')
 	}
 	static async loadServerData(e) {
 		e = e || {}; const {globals} = this; let subeVeStok2Sinirlar = globals.subeVeStok2Sinirlar;

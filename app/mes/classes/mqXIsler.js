@@ -299,11 +299,14 @@ class MQSiradakiIsler extends MQXIsler {
 		/*try {
 			let {tezgahKod, urunKod, opNoListe} = e, hatBazinda = false, hatBazindami;
 			let sent = new MQSent({
-				from: 'operemri', where: [{ degerAta: urunKod, saha: 'formul' }, { inDizi: opNoListe, saha: 'opno' }],
-				sahalar: ['opno opno', 'MAX(kaysayac) oemsayac']
-			}); sent.groupByOlustur();
-			let recs = (await app.sqlExecSelect(sent)).map(({ oemsayac }) => oemsayac);
-			await MQBekleyenIsler.sirayaAlIstendi({ ...e, tezgahKod, hatBazinda, hatBazindami, recs });
+				from: 'operemri emr',
+				where: [{ degerAta: urunKod, saha: 'emr.formul' },
+				{ inDizi: opNoListe, saha: emr.'opno' }],
+				sahalar: ['emr.opno opno', 'MAX(kaysayac) oemsayac']
+			})
+			sent.groupByOlustur()
+			let recs = (await app.sqlExecSelect(sent)).map(({ oemsayac }) => oemsayac)
+			await MQBekleyenIsler.sirayaAlIstendi({ ...e, tezgahKod, hatBazinda, hatBazindami, recs })
 		} catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Yeni Operasyon: Sıraya Al') }*/
 	}
 	static async listeEkrani_vazgecOncesi(e) {

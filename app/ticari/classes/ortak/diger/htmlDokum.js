@@ -53,16 +53,18 @@ class HTMLDokum extends CObject {
 		if (!rootDir) { throw new Error(`<b>Ticari Genel Parametreler</b> adımındaki <b class=royalblue>Word Ana Bölüm</b> belirtilmelidir`) }
 		if (typeof e != 'object') { e = { tip: e } }
 		let tip = $.makeArray(e.tip ?? e.tipListe), sent  = new MQSent({
-			from: 'whdokbilgi',
-			sahalar: ['kaysayac id', 'RTRIM(tipkod) tip', 'aciklama', 'dosyaadi dosyaAdi', 'wordtablono tabloNo', 'refsayac refId']
-		}), {where: wh} = sent;
-		if (tip) { wh.inDizi(tip, 'tipkod') }
-		let result = {}; for (const rec of await app.sqlExecSelect(sent)) { result[rec.tip] = rec }
+			from: 'whdokbilgi dok',
+			sahalar: ['dok.kaysayac id', 'RTRIM(dok.tipkod) tip', 'dok.aciklama', 'dok.dosyaadi dosyaAdi', 'dok.wordtablono tabloNo', 'dok.refsayac refId']
+		}), {where: wh} = sent
+		if (tip) { wh.inDizi(tip, 'dok.tipkod') }
+		let result = {}
+		for (let rec of await app.sqlExecSelect(sent))
+			result[rec.tip] = rec
 		return result
 	}
 	static getTanim(e) { return this.getTanimlar(e).then(d => Object.values(d)[0]) }
-	getTanimlar(e) { const tip = e?.tip ?? this.tip; return this.class.getTanimlar({ ...e, tip }) }
-	getTanim(e) { const tip = e?.tip ?? this.tip; return this.class.getTanim(({ ...e, tip })) }
+	getTanimlar(e) { let tip = e?.tip ?? this.tip; return this.class.getTanimlar({ ...e, tip }) }
+	getTanim(e) { let tip = e?.tip ?? this.tip; return this.class.getTanim(({ ...e, tip })) }
 	/** HTML içerisinde geçen tüm köşeli parantez içindeki ifadeleri tarar. Bunları bir liste halinde döndürür */
     extractKeys() {
 		let doc = this.getDocWithError(), htmlText = this.doc.documentElement.outerHTML;
