@@ -344,9 +344,10 @@ class DPanel extends Part {
 		this.id2Detay = this._rendered = null
 		return this.panelleriOlustur_batch(e)
 	}
-	async loadLayout({ noTitleUpdate } = {}) {
+	async loadLayout({ noTitleUpdate, detaylar } = {}) {
 		await this.raporTanim?._promise
-		let {title, raporTanim: { class: raporSinif, aciklama: raporAdi, detaylar } = {}} = this
+		let {title, raporTanim: { class: raporSinif, aciklama: raporAdi, detaylar: _detaylar } = {}} = this
+		detaylar ??= _detaylar
 		if (detaylar?.length) {
 			let raporAdiSet = asSet(
 				detaylar.filter(det => det.tip?.rapormu && det.value && det.raporAdi)
@@ -360,7 +361,8 @@ class DPanel extends Part {
 						/*let ozelQueryDuzenle = ({ sent: { where: wh } }) =>
 							wh.inDizi(keys(raporAdiSet), `${raporAlias}.aciklama`)*/
 						let recs = await raporSinif.loadServerData({ /*ozelQueryDuzenle*/ }) ?? []
-						$.extend(raporAdi2Id, Object.fromEntries(recs.map(({ id, kaysayac, aciklama }) => [aciklama, id ?? kaysayac])))
+						$.extend(raporAdi2Id,
+							Object.fromEntries(recs.map(({ id, kaysayac, aciklama }) => [aciklama, id ?? kaysayac])))
 					})
 				)
 			}
@@ -429,7 +431,7 @@ class DPanel extends Part {
 		if (batch && !empty(id2Detay))
 			layout.addClass('_loading')
 		let itemSelector = 'div > .item', focusSelector = 'hasFocus'
-		let itemsChildren = items.children(), id2Item = {}
+		let id2Item = {}, itemsChildren = items.children()
 		for (let i = 0; i < itemsChildren.length; i++) {
 			let item = itemsChildren.eq(i)
 			let part = item.data('part')
@@ -822,7 +824,8 @@ class DPanel extends Part {
 					delete det[key]
 				if (!degistirmi)
 					for (let key of ['okunanHarSayac', 'sayac', 'eskiSeq', 'seq']) { det = undefined }
-				det = det.deepCopy(); let {value} = det
+				det = det.deepCopy()
+				let {value} = det
 				if (value) {
 					let {tip: { rapormu, webmi, evalmi }} = det
 					let selector = rapormu ? '_raporId' : webmi ? '_url' : evalmi ? '_code' : null
@@ -1141,14 +1144,25 @@ class DPanel extends Part {
 				case 'kopya':
 					await this.add(det)
 					break
-				case 'degistir':
+				case 'degistir': {
+					let {id2Detay} = this
 					$.extend(eDet, det)
+					await this.saveLayout(e)
 					setTimeout(async () => {
-						this.items.children().remove()
-						await this.render({ ...e, noTitleUpdate: true })
-						this.saveLayout(e)
+						for (let _det of values(id2Detay)) {
+							if (!_det)
+								continue
+							let {inst: { layout, builder } = {}} = _det
+							builder?.destroyPart()
+							layout?.remove()
+							_det.inst = _det.part = undefined
+						}
+						await this.render({ ...e, batch: true, noTitleUpdate: true })
 					}, 10)
+					/*this.class.goster(e)
+					this.close()*/
 					break
+				}
 			}
 			return det
 		}
@@ -1182,9 +1196,12 @@ class DPanel extends Part {
 							`$elementCSS > input:is(:checked) + label { font-weight: bold; color: forestgreen !important }`
 						)
 				}),
-				afterRun: ({ part: { divBilgi }, fbd_value: { input: txtValue } }) => {
+				afterRun: ({ part: { divBilgi }, fbd_value: { altInst: inst, input: txtValue } }) => {
 					let changeHandler = (({ currentTarget: target } = {}) => {
-						let raporAdi = txtValue.val()?.trim()
+						let value = txtValue.val()?.trim()
+						if (inst)
+							inst.value = value
+						let raporAdi = value
 						if (divBilgi?.length) {
 							let html = (
 								mevcutRaporAdiSet[raporAdi]
@@ -1196,7 +1213,7 @@ class DPanel extends Part {
 					})
 					changeHandler()
 					txtValue.autocomplete({
-						zIndex: 10000,
+						delay: 100, minLength: 0,
 						select: (evt, { item: { value }}) =>
 					        setTimeout(() => changeHandler(evt), 10),
 						source: ({ term } = {}, callback) => {
@@ -1214,6 +1231,10 @@ class DPanel extends Part {
 							callback(result)
 						}
 					})
+					setTimeout(() => {
+						if (txtValue?.length && !txtValue.autocomplete('search'))
+							txtValue.autocomplete('search', '')
+					}, 2_000)
 					txtValue.on('keyup', evt =>
 						setTimeout(() => changeHandler(evt), 10))
 				},
@@ -1270,8 +1291,8 @@ class DPanel extends Part {
 					let raporTanim = new raporSinif().setId(id)
 					if (await raporTanim.yukle() === false)
 						throw { isError: true, errorText: 'Yükleme başarısız' }
-					$.extend(defRaporTanim, raporTanim, saved);
-					(async () => {
+					$.extend(defRaporTanim, raporTanim, saved)
+					; (async () => {
 						try {
 							if (raporTanim.aciklama != defRaporAdi)
 								defRaporTanim.setAciklamaDefault()
