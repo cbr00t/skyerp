@@ -7,7 +7,9 @@ class DAltRapor_Grid extends DAltRapor {
 	subFormBuilderDuzenle(e) {
 		super.subFormBuilderDuzenle(e); let {parentBuilder} = this;
 		let fbd = this.fbd_grid = parentBuilder.addGridliGosterici('grid').rowNumberOlmasin().notAdaptive()
-			.addStyle_fullWH(null, 'calc(var(--full) - 30px)').widgetArgsDuzenleIslemi(e => this.gridArgsDuzenle(e) ).onBuildEk(e => this.onGridInit(e))
+			.addStyle_fullWH(null, 'calc(var(--full) - 30px)')
+			.widgetArgsDuzenleIslemi(e => this.gridArgsDuzenle(e))
+			.onBuildEk(e => this.onGridInit(e))
 			.veriYukleninceIslemi(e => this.gridVeriYuklendi(e)).setSource(e => this.loadServerData(e))
 			.setTabloKolonlari(e => { let _e = { ...e, liste: [] }; this.tabloKolonlariDuzenle(_e); return _e.liste })
 			.onAfterRun(e => this.onGridRun(e));
@@ -16,7 +18,13 @@ class DAltRapor_Grid extends DAltRapor {
 	super_subFormBuilderDuzenle(e) { super.subFormBuilderDuzenle(e) }
 	gridBuilderDuzenle(e) { }
 	onGridInit(e) { this.gridPart = e.builder.part } onGridRun(e) { let {gridPart} = this, {grid, gridWidget} = gridPart; $.extend(this, { grid, gridWidget }) }
-	gridArgsDuzenle(e) { let {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: true, showGroupsHeader: true, groupsExpandedByDefault: false }) }
+	gridArgsDuzenle({ args }) {
+		$.extend(args, {
+			showStatusBar: true, showAggregates: true, showGroupAggregates: true,
+			showGroupsHeader: true, groupsExpandedByDefault: false,
+			rowsHeight: 30, columnsHeight: 23
+		})
+	}
 	tabloKolonlariDuzenle(e) { } gridVeriYuklendi(e) { } loadServerData(e) { this.loadServerData_wsArgsDuzenle(e) }
 	tazele(e) { super.tazele(e); this.gridPart?.tazele(e) }
 	super_tazele(e) { super.tazele(e) }
@@ -30,7 +38,7 @@ class DAltRapor_GridGruplu extends DAltRapor_Grid {
 	static get gruplama2IcerikCols() { return {} }
 	/*subFormBuilderDuzenle(e) { super.subFormBuilderDuzenle(e); let {rfb} = e; rfb.addCSS('no-overflow') }*/
 	onGridInit(e) { super.onGridInit(e); let {gridPart} = this; gridPart.gruplamalar = {} }
-	gridArgsDuzenle(e) { super.gridArgsDuzenle(e); let {args} = e; $.extend(args, { /* showStatusBar: true, showGroupAggregates: true , compact: true */ }) }
+	gridArgsDuzenle({ args }) { super.gridArgsDuzenle(...arguments) }
 	async tazele(e) { await super.tazele(e); await this.tazeleDiger(e) }
 	async loadServerData(e) {
 		super.loadServerData(e); let {gridPart} = this; let {gruplamalar} = gridPart;
@@ -105,11 +113,20 @@ class DAltRapor_Grid_Ozet extends DAltRapor_Grid {
 	static get tazeleYapilirmi() { return false } get etiket() { return `${super.etiket}: ${this.class.aciklama}` }
 	get width() { return this.isPanelItem ? 'var(--full)' : `calc(var(--full) - ${this.rapor.id2AltRapor.main.width} - 15px)` }
 	get height() { return this.isPanelItem ? 'var(--full)' : '50%' }
-	gridArgsDuzenle(e) { let {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: false, showGroupsHeader: false, columnsHeight: 30 }) }
+	gridArgsDuzenle({ args }) {
+		super.gridArgsDuzenle(...arguments)
+		$.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: false, showGroupsHeader: false })
+	}
 	tazele(e) {
-		super.tazele(e); let {gridPart, gridPart: { gridWidget }} = this
-		let {main} = this.rapor.id2AltRapor, colDefs = main.ozetBilgi?.colDefs || []
+		super.tazele(e)
+		let {gridPart, gridPart: { gridWidget }, rapor: { id2AltRapor = {} } = {}} = this
+		let {main} = id2AltRapor, colDefs = main?.ozetBilgi?.colDefs || []
 		setTimeout(() => {
+			if (colDefs?.length == 2) {
+				for (let _ of colDefs)
+					_.genislikCh = _.width = _.minWidth = _.maxWidth = undefined
+				colDefs[1].genislikCh = 13
+			}
 			if (gridWidget?.isbindingcompleted()) {
 				gridWidget?.beginupdate()
 				gridPart?.updateColumns(colDefs)
@@ -118,5 +135,9 @@ class DAltRapor_Grid_Ozet extends DAltRapor_Grid {
 		}, 100)
 	}
 	tabloKolonlariDuzenle(e) { super.tabloKolonlariDuzenle(e) }
-	loadServerData(e) { super.loadServerData(e); let {main} = this.rapor; return main.ozetBilgi?.recs || [] }
+	loadServerData(e) {
+		super.loadServerData(e)
+		let {rapor: { main } = {}} = this
+		return main?.ozetBilgi?.recs || []
+	}
 }

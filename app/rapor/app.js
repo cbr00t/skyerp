@@ -26,6 +26,11 @@ class SkyRaporApp extends TicariApp {
 		await this.ilkIslemler(e)
 		await window.DRapor_Hareketci?.autoGenerateSubClasses(e)
 	}
+	async afterRun(e) {
+		if (!(qs.tamEkranYok || qs.noFullScreen))
+			requestFullScreen()
+		await super.afterRun(e)
+	}
 	paramsDuzenle({ params }) {
 		super.paramsDuzenle(...arguments)
 		$.extend(params, { dRapor: MQParam_DRapor.getInstance() })

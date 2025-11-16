@@ -4,7 +4,12 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	static get raporClass() { return null } static get kod() { return 'main' } static get aciklama() { return this.raporClass?.aciklama }
 	get noAutoColumns() { return false } get sabitmi() { return this.class.raporClass?.sabitmi }
 	get ozetVarmi() { return this.class.raporClass?.ozetVarmi } get chartVarmi() { return this.class.raporClass?.chartVarmi }
-	get width() { return this.ozetVarmi || this.chartVarmi ? '70%' : 'var(--full)' } get height() { return 'calc(var(--full) - 0px)' }
+	get width() {
+		if (!(this.ozetVarmi || this.chartVarmi))
+			return'var(--full)'
+		return isMiniDevice() ?  '55%' : '70%'
+	}
+	get height() { return 'var(--full)' }
 	get tazeleHideProgress_waitMS() { return 50 } get tazeleHideProgress_minCount() { return 1 }
 	get sabitRaporTanim() {
 		let {_sabitRaporTanim: result} = this
@@ -38,7 +43,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 				let filterMode = 'advanced'		/* default | simple | advanced */
 				let showAggregates = true, showSubAggregates = false
 				let columnsResize = true, columnsReorder = false, sortable = true, filterable = false
-				let columnsHeight = isPanelItem ? 25 : 60, aggregatesHeight = isPanelItem ? 20 : 30
+				let columnsHeight = isPanelItem ? 23 : 45, aggregatesHeight = isPanelItem ? 18 : 30
 				let args = {
 					theme, localization, width, height, autoRowHeight, autoShowLoadElement, altRows, filterMode, showAggregates, showSubAggregates,
 					columnsHeight, aggregatesHeight, columnsResize, columnsReorder, sortable, filterable, columns, source
@@ -725,20 +730,35 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		fbd_islemTuslari.addButton('vazgec').onClick(e => wnd.jqxWindow('close'));
 		let _e = { ...e, rootBuilder: wRFB, tanimFormBuilder: wRFB, inst }; raporTanim.class.rootFormBuilderDuzenle(_e);
 		wRFB.id2Builder.content.addStyle_fullWH(null, `calc(var(--full) - (var(--islemTuslariHeight) + var(--ustHeight) + var(--ustEkHeight)))`);
-		this.wnd_raporTanim = wnd = createJQXWindow({ title, args: { isModal: false, closeButtonAction: 'close', width: Math.max(800, Math.min(630, $(window).width() - 100)), height: Math.min(1000, $(window).height() - 50) } });
-		wnd.on('close', evt => { wnd.jqxWindow('destroy'); $('body').removeClass('bg-modal'); delete this.wnd_raporTanim });
-		wnd.prop('id', wRFB.id); wnd.addClass('dRapor part'); setTimeout(() => $('body').addClass('bg-modal'), 10);
-		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run();
+		this.wnd_raporTanim = wnd = createJQXWindow({
+			title, args: {
+				isModal: false, closeButtonAction: 'close',
+				width: Math.max(800, Math.min(630, $(window).width() - 100)),
+				height: Math.min(1000, $(window).height() - 50) }
+		})
+		wnd.on('close', evt => {
+			wnd.jqxWindow('destroy')
+			$('body').removeClass('bg-modal')
+			delete this.wnd_raporTanim
+		})
+		wnd.prop('id', wRFB.id); wnd.addClass('dRapor part')
+		setTimeout(() => $('body').addClass('bg-modal'), 10)
+		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run()
 		wnd.on('resize', evt => {
 			clearTimeout(this._timer_wndResize); this._timer_wndResize = setTimeout(() => {
 				try {
-					let wnd = this.wnd_raporTanim; if (!wnd?.length) { return }
-					let elms = wnd.find('div > .content .jqx-listbox'); if (elms?.length) { elms.jqxListBox('refresh') }
+					let {wnd_raporTanim: wnd} = this
+					if (!wnd?.length)
+						return
+					let elms = wnd.find('div > .content .jqx-listbox')
+					if (elms?.length)
+						elms.jqxListBox('refresh')
 				}
 				finally { delete this._timer_wndResize }
 			}, 50)
 		})
-		this._tabloTanimGosterildiFlag = true; return wRFB
+		this._tabloTanimGosterildiFlag = true
+		return wRFB
 	}
 	async raporTanim_tamamIstendi(e = {}) {
 		let {inst, tamamIslemi} = e
@@ -766,10 +786,18 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			let degistirmi = await raporTanim.varmi(), islem = degistirmi ? 'degistir' : 'kopya';
 			let _e = { islem }; await raporTanim.dataDuzgunmu(_e);
 			if (degistirmi) {
-				wnd_raporTanim.jqxWindow('collapse'); let rdlg = await ehConfirm(`<b class="royalblue">${aciklama}</b> isimli rapor güncellensin mi?`, title); wnd_raporTanim.jqxWindow('expand');
-				if (!rdlg) { return } await raporTanim.degistir(_e); this.raporTanim = raporTanim
+				wnd_raporTanim.jqxWindow('collapse')
+				let rdlg = await ehConfirm(`<b class="royalblue">${aciklama}</b> isimli rapor güncellensin mi?`, title)
+				wnd_raporTanim.jqxWindow('expand')
+				if (!rdlg)
+					return
+				await raporTanim.degistir(_e)
+				this.raporTanim = raporTanim
 			}
-			else { await raporTanim.yaz(_e); this.raporTanim = raporTanim }
+			else {
+				await raporTanim.yaz(_e)
+				this.raporTanim = raporTanim
+			}
 			this.restartWndRaporTanim(e)
 			
 		}

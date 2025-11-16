@@ -310,7 +310,8 @@ class DPanel extends Part {
 			$.extend(det, { id, panel: this })
 			id2Detay[id] = det
 		}
-		if (_rendered) { this.panelleriOlustur() }
+		if (_rendered)
+			this.panelleriOlustur()
 		return this
 	}
 	remove(...coll) {
@@ -434,7 +435,7 @@ class DPanel extends Part {
 			let part = item.data('part')
 			let det = item.data('detay')
 			let {id} = det ?? {}
-			if (!(batch || !id2Detay[id])) {
+			if (!((batch && id2Detay[id]))) {
 				id2Item[id] = item
 				continue
 			}
@@ -446,6 +447,7 @@ class DPanel extends Part {
 					delete det[key]
 			}
 		}
+		// itemsChildren?.remove()
 		let _rfb = new RootFormBuilder(), promises = [], loadCount = 0, completeCount = 0
 		let LoadingLockWaitMS = 200, AutoShowWaitMS = 3_000
 		let {length: totalCount} = values(id2Detay)
@@ -1141,8 +1143,11 @@ class DPanel extends Part {
 					break
 				case 'degistir':
 					$.extend(eDet, det)
-					await this.render({ ...e, noTitleUpdate: true })
-					this.saveLayout(e)
+					setTimeout(async () => {
+						this.items.children().remove()
+						await this.render({ ...e, noTitleUpdate: true })
+						this.saveLayout(e)
+					}, 10)
 					break
 			}
 			return det
