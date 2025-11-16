@@ -233,8 +233,8 @@ class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 		const tip2Bilgi = { BR: { miktarPrefix: 'br', etiketPrefix: 'Brüt' }, IA: { miktarPrefix: 'ia', etiketPrefix: 'İADE' } };
 		result.addToplam(new TabloYapiItem().setKA('BRMIKTAR', 'Brüt Miktar').addColDef(new GridKolon({ belirtec: 'brmiktar', text: 'Brüt Miktar', genislikCh: 15, filterType: 'numberinput' }).tipDecimal()));
 		result.addToplam(new TabloYapiItem().setKA('IAMIKTAR', 'İADE Miktar').addColDef(new GridKolon({ belirtec: 'iamiktar', text: 'İADE Miktar', genislikCh: 15, filterType: 'numberinput' }).tipDecimal()));
-		for (const [tip, {miktarPrefix, etiketPrefix}] of Object.entries(tip2Bilgi)) {
-			for (const brmTip of Object.keys(MQStokGenelParam.tip2BrmListe) ?? []) {
+		for (const [tip, {miktarPrefix, etiketPrefix}] of entries(tip2Bilgi)) {
+			for (const brmTip of keys(MQStokGenelParam.tip2BrmListe) ?? []) {
 				const fra = brmDict[brmTip]; result.addToplam(new TabloYapiItem().setKA(`${tip}MIKTAR${brmTip}`, `${etiketPrefix} Miktar (${brmTip})`)
 					 .addColDef(new GridKolon({ belirtec: `${miktarPrefix}miktar${brmTip}`, text: `${etiketPrefix} ${brmTip}`, genislikCh: 15, filterType: 'numberinput' }).tipDecimal(fra)))
 			}
@@ -244,7 +244,8 @@ class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 	loadServerData_queryDuzenle_miktar(e) {
 		super.loadServerData_queryDuzenle_miktar(e); const {attrSet, stm} = e, PrefixMiktar = 'MIKTAR';
 		for (const {where: wh, sahalar} of stm.getSentListe()) {
-			if (attrSet.STOK || Object.keys(attrSet).find(x => x.startsWith(PrefixMiktar))) { sahalar.add('brm') }
+			if (attrSet.STOK && keys(attrSet).find(x => x.startsWith(PrefixMiktar)))
+				sahalar.add('stk.brm')
 			for (const key in attrSet) {
 				if (key == `BR${PrefixMiktar}`) { sahalar.add(`SUM(case when fis.iade = '' then har.miktar else 0 end) brmiktar`) }
 				else if (key == `IA${PrefixMiktar}`) { sahalar.add(`SUM(case when fis.iade = '' then 0 else har.miktar end) iamiktar`) }

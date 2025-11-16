@@ -257,7 +257,8 @@ class MQSubWhereClause extends MQClause {
 		if ($.isArray(e)) { if (!$.isEmptyObject(e)) { for (let item of e) { initBlock(item) } } } else { initBlock(e) }
 	}
 	addIcinUygunmu(item) {
-		//if (item == ({}).toString()) { debugger }
+		if (item == ({}).toString())
+			debugger
 		return super.addIcinUygunmu(item) && !this.liste.includes(item)
 	}
 	birlestirDict(e, _alias, _not) {

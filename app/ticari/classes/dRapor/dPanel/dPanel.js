@@ -48,7 +48,7 @@ class DPanel extends Part {
 		return result
    }
 
-	constructor({ secimler } = {}) {
+	constructor({ id2Detay, secimler } = {}) {
 		let e = arguments[0]; super(e)
 		let {raporTanim, class: { aciklama }} = this
 		raporTanim ??= this.raporTanim = new DPanelTanim().noId()
@@ -60,7 +60,7 @@ class DPanel extends Part {
 			secimler = _e.secimler
 		}
 		let {title = `<b class="royalblue">${aciklama}</b>`} = this
-		$.extend(this, { title, raporTanim, secimler })
+		$.extend(this, { title, raporTanim, id2Detay, secimler })
 	}
 	static getClass(e) {
 		let kod = typeof e == 'object' ? (e.kod ?? e.tip) : e
@@ -74,18 +74,13 @@ class DPanel extends Part {
 		rfb.setLayout(layout).setPart(this).setInst(this)
 		this.rootFormBuilderDuzenle(e)
 		let inst = this, part = this, {rfb: builder} = e
-		this.builder = builder
-		this._promise_wait = new $.Deferred()
-		builder.onAfterRun(() =>
-			this._promise_wait?.resolve())
-		builder.run(e)
+		$.extend(this, { builder }); builder.run(e)
 		// makeScrollable(this.items)
 		return { inst, part, builder }
 	}
 	async afterRun(e = {}) {
-		await super.afterRun(e)
-		let {raporTanim: { _promise } = {}} = this
-		let block = result => this.loadLayout()
+		await super.afterRun(e); let {raporTanim: { _promise } = {}} = this
+		let block = result => this.panelleriOlustur_batch({ ...e, result })
 		if (_promise) { _promise.then(block) }
 		else { block() }
 	}
@@ -109,25 +104,25 @@ class DPanel extends Part {
 		return await this.run(e)
 	}
 	async ilkIslemler(e) {
-		let {raporTanim: { detaylar = [] } = {}} = this
-		for (let det of detaylar)
-			await det.ilkIslemler?.(e)
+		let {id2Detay} = this
+		for (let rapor of values(id2Detay))
+			await rapor.ilkIslemler?.(e)
 	}
 	async ilkIslemler_ek(e) {
-		let {raporTanim: { detaylar = [] } = {}} = this
-		for (let det of detaylar)
-			await det.ilkIslemler_ek?.(e)
+		let {id2Detay} = this
+		for (let rapor of values(id2Detay))
+			await rapor.ilkIslemler_ek?.(e)
 		this.ilkIslemler_ozel?.(e)
 	}
 	async sonIslemler(e) {
-		let {raporTanim: { detaylar = [] } = {}} = this
-		for (let det of detaylar)
-			await det.sonIslemler?.(e)
+		let {id2Detay} = this
+		for (let rapor of values(id2Detay))
+			await rapor.sonIslemler?.(e)
 	}
 	async sonIslemler_ek(e) {
-		let {raporTanim: { detaylar = [] } = {}} = this
-		for (let det of detaylar)
-			await det.sonIslemler_ek?.(e)
+		let {id2Detay} = this
+		for (let rapor of values(id2Detay))
+			await rapor.sonIslemler_ek?.(e)
 		this.sonIslemler_ozel?.(e)
 	}
 	secimlerDuzenle(e) {
@@ -174,8 +169,7 @@ class DPanel extends Part {
 				 }`
 			)
 		let fbd_items = rfb.addFormWithParent('items').addCSS('items')
-			.onAfterRun(({ builder: fbd_items, builder: { layout: items } }) =>
-				$.extend(this, { fbd_items, items }))
+			.onAfterRun(({ builder: fbd_items, builder: { layout: items } }) => $.extend(this, { fbd_items, items }))
 		rfb.addForm('bulForm')
 			.setLayout(({ builder: { id }}) =>
 				$(`<div class="${id} part"><input class="input full-wh" type="textbox" maxlength="100"></input></div>`))
@@ -219,19 +213,19 @@ class DPanel extends Part {
 		return result
 	}
 	tazeleDogrudan(e) {
-		let {layout, raporTanim: { detaylar = [] } = {}} = this
+		let {layout, id2Detay, secimler: genelSecimler} = this
 		this.tazeleOncesi(e)
 		layout.addClass('refreshing')
-		for (let {inst} of detaylar)
+		for (let {inst} of values(id2Detay))
 			inst?.tazele(e)
 		setTimeout(() => layout.removeClass('refreshing'), 2_000)
 	}
 	super_tazele(e) { super.tazele(e) }
 	tazeleOncesi({ main: { secimler: secimlerListe } = {} } = {}) {
-		let {raporTanim: { detaylar = [] } = {}, secimler: genelSecimler} = this
+		let {id2Detay, secimler: genelSecimler} = this
 		if (!secimlerListe) {
-			secimlerListe = detaylar
-				.map(({ inst: { main: { secimler: x } = {} } = {} }) => x)
+			secimlerListe = values(id2Detay)
+				.map(({ inst: { main: { secimler } = {} } = {} }) => secimler)
 				.filter(x => !!x)
 		}
 		if (secimlerListe)
@@ -288,12 +282,14 @@ class DPanel extends Part {
 		setTimeout(() => this._inTazeleProc = false, 1_000)
 	}
 	add(...coll) {
-		let {raporTanim = {}} = this, { detaylar = [] } = raporTanim
-		let {kod2Sinif} = DRapor
-		coll = coll.flat()
+		let {id2Detay, _rendered} = this, {kod2Sinif} = DRapor
 		for (let det of coll) {
-			if (!det)
+			if (det == null)
 				continue
+			if ($.isArray(det)) {
+				this.add(...det)
+				continue 
+			}
 			let {id, tip, inst, value, raporTip: { altRaporTip } = {}} = det
 			if (!id)
 				id = det.id = newGUID()
@@ -306,46 +302,55 @@ class DPanel extends Part {
 					inst = new inst()
 				if (altRaporTip != null)
 					inst?.setOzelID?.(altRaporTip)
-				if (inst?.dRapormu && empty(inst?.ozelIDListe))
+				if (inst?.dRapormu && $.isEmptyObject(inst?.ozelIDListe))
 					inst?.ozelID_main?.()
 				if (inst)
 					det.inst = inst
 			}
-			det.panel = this
-			detaylar.push(det)
+			$.extend(det, { id, panel: this })
+			id2Detay[id] = det
 		}
-		this.saveLayout()
-		this.panelleriOlustur()
+		if (_rendered)
+			this.panelleriOlustur()
 		return this
 	}
 	remove(...coll) {
-		let {raporTanim = {}} = this, { detaylar = [] } = raporTanim
-		let removeIdSet = asSet(coll.flat().map(_ => _.id ?? _))
-		detaylar = raporTanim.detaylar = detaylar.filter(det => !removeIdSet[det.id])
-		this.saveLayout()
-		this.panelleriOlustur()
-		return this
+		let {id2Detay, _rendered} = this
+		for (let det of coll) {
+			if (det == null) { continue }
+			if ($.isArray(det)) { this.remove(...det); continue } 
+			if (!id2Detay[det.id])
+				det = values(id2Detay).find(_det => det.detay == _det || det.rapor?.detay == _det)
+			if (det == null) { continue }
+			delete id2Detay[det.id]
+		}
+		if (_rendered) { this.panelleriOlustur() }
 	}
 	clear() {
-		let {raporTanim = {}} = this
-		raporTanim.detaylar = []
-		this.saveLayout()
-		this.panelleriOlustur()
+		this.id2Detay = {}
+		if (this._rendered)
+			this.panelleriOlustur()
 		return this
 	}
+	async detaylariDuzenle(e) {
+		await this.loadLayout(e)
+		/*this.add(
+			new DRapor_Hareketci_Cari().setWH('50%', '35%'),
+			new SBRapor_Default().setWH('50%', '35%'),
+			new DRapor_DonemselIslemler().setWH('100%', '65%')
+		)*/
+	}
 	render(e) {
-		this._rendered = false
+		this.id2Detay = this._rendered = null
 		return this.panelleriOlustur_batch(e)
 	}
 	async loadLayout({ noTitleUpdate } = {}) {
-		let {title, raporTanim = {}} = this
-		await raporTanim._promise
-		let {class: raporSinif, aciklama: raporAdi, detaylar = []} = raporTanim
-		if (detaylar.length) {
+		await this.raporTanim?._promise
+		let {title, raporTanim: { class: raporSinif, aciklama: raporAdi, detaylar } = {}} = this
+		if (detaylar?.length) {
 			let raporAdiSet = asSet(
-				detaylar
-					.filter(det => det && det.tip?.rapormu && det.value && det.raporAdi)
-					.map(det => det.raporAdi)
+				detaylar.filter(det => det.tip?.rapormu && det.value && det.raporAdi)
+						.map(det => det.raporAdi)
 			)
 			let raporAdi2Id = {}
 			if (!empty(raporAdiSet)) {
@@ -355,8 +360,7 @@ class DPanel extends Part {
 						/*let ozelQueryDuzenle = ({ sent: { where: wh } }) =>
 							wh.inDizi(keys(raporAdiSet), `${raporAlias}.aciklama`)*/
 						let recs = await raporSinif.loadServerData({ /*ozelQueryDuzenle*/ }) ?? []
-						$.extend(raporAdi2Id,
-							fromEntries(recs.map(({ id, kaysayac, aciklama }) => [aciklama, id ?? kaysayac])))
+						$.extend(raporAdi2Id, fromEntries(recs.map(({ id, kaysayac, aciklama }) => [aciklama, id ?? kaysayac])))
 					})
 				)
 			}
@@ -366,26 +370,27 @@ class DPanel extends Part {
 				if (!(rapormu && raporKod && raporAdi))
 					continue
 				let raporId = raporAdi2Id[raporAdi]
-				if (raporId)
+				if (raporId) {
 					det.raporId = raporId
-				let raporSinif = kod2Sinif[raporKod] ?? {}
-				let {mainClass: { raporTanimSinif } = {}} = raporSinif
-				if (!raporTanimSinif)
-					continue
-				if (raporTanimSinif) {
-					let detRaporTanim = new raporTanimSinif({ sayac: raporId })
-					detRaporTanim = await detRaporTanim.oku() ?? detRaporTanim
-					rapor ??= raporKod
-					if (typeof rapor == 'string')
-						rapor = kod2Sinif[raporKod] ?? window[raporKod]
-					if (isClass(rapor))
-						rapor = new rapor()
-					det.inst = rapor
-					if (detRaporTanim)
-						rapor.on('raporTanim', () => detRaporTanim)
-					// detRaporTanim?.setDefault({ rapor: { raporKod } })
+					let raporSinif = kod2Sinif[raporKod]
+					let {mainClass: { raporTanimSinif } = {}} = raporSinif ?? {}
+					if (!raporTanimSinif)
+						continue
+					if (raporTanimSinif) {
+						let raporTanim = await new raporTanimSinif({ sayac: raporId }).oku()
+						rapor ??= raporKod
+						if (typeof rapor == 'string')
+							rapor = kod2Sinif[raporKod] ?? window[raporKod]
+						if (isClass(rapor))
+							rapor = new rapor()
+						det.inst = rapor
+						if (raporTanim)
+							rapor.on('raporTanim', () => raporTanim)
+						// raporTanim?.setDefault({ rapor: { raporKod } })
+					}
 				}
 			}
+			this.add(detaylar)
 		}
 		if (!noTitleUpdate && raporAdi) {
 			if (!raporSinif.ozelRaporAdimi(raporAdi))
@@ -394,87 +399,89 @@ class DPanel extends Part {
 		}
 	}
 	async saveLayout(e) {
-		let {raporTanim = {}} = this, {detaylar = []} = raporTanim
+		let {raporTanim, id2Detay, items} = this
+		if (!raporTanim)
+			return
 		await raporTanim._promise
-		raporTanim?.detaylarReset()
-		for (let det of detaylar) {
-			if (!det)
-				continue
-			let {rapor_id, rapor_adi} = det
-			if (rapor_id)
-				det.raporId = rapor_id
-			if (rapor_adi)
-				det.raporAdi = rapor_adi
-			raporTanim?.addDetay(det)
+		if (raporTanim && id2Detay) {
+			raporTanim.detaylarReset()
+			for (let det of values(id2Detay)) {
+				if (!det)
+					continue
+				let {rapor_id, rapor_adi} = det
+				if (rapor_id)
+					det.raporId = rapor_id
+				if (rapor_adi)
+					det.raporAdi = rapor_adi
+				raporTanim.addDetay(det)
+			}
+			await raporTanim?.setDefault()
 		}
-		await raporTanim?.setDefault()
 	}
 	async panelleriOlustur({ batch } = {}) {
-		await this._promise_wait
 		let e = arguments[0], panel = this
-		let {builder: panelBuilder, items, layout, raporTanim = {}} = this
-		let {detaylar = []} = raporTanim
-		if (batch && detaylar.length)
+		let {builder: rfb, id2Detay, items, layout} = this
+		if (id2Detay == null) {
+			this.clear()
+			await this.detaylariDuzenle(e)
+			id2Detay = this.id2Detay
+		}
+		if (batch && !$.isEmptyObject(id2Detay))
 			layout.addClass('_loading')
 		let itemSelector = 'div > .item', focusSelector = 'hasFocus'
-		let itemsChildren = items.children()
+		let itemsChildren = items.children(), id2Item = {}
 		for (let i = 0; i < itemsChildren.length; i++) {
 			let item = itemsChildren.eq(i)
-			let id = item.data('id'), det = item.data('detay')
-			let {part} = det, {rootBuilder: detBuilder = part?.builder} = part ?? {}
+			let part = item.data('part')
+			let det = item.data('detay')
+			let {id} = det ?? {}
+			if (!(batch || !id2Detay[id])) {
+				id2Item[id] = item
+				continue
+			}
 			part?.destroyPart?.()
-			detBuilder?.destroyPart()
+			part?.rootBuilder?.destroyPart()
 			item.remove()
 			if (det) {
-				for (let key of ['rootBuilder', 'builder', 'layout'])
+				for (let key of ['rootBuilder', 'layout'])
 					delete det[key]
 			}
 		}
 		let _rfb = new RootFormBuilder(), promises = [], loadCount = 0, completeCount = 0
-		let LoadingLockWaitMS = 200, AutoShowWaitMS = 3_000
-		let {length: totalCount} = detaylar
+		let LoadingLockWaitMS = 200, AutoShowWaitMS = 5_000
+		let {length: totalCount} = values(id2Detay)
 		let maxWaitCount = Math.min(5, totalCount)
-		let id2Detay = fromEntries(detaylar.map(det => [det.id, det]))
-		for (let det of [...detaylar]) {
-			if (!det)
+		for (let [id, det] of entries(id2Detay)) {
+			if (id2Item[id])
 				continue
-			let {id, baslik, width, height, tip = {}, inst} = det
-			if (!id)
-				id = det.id = newGUID()
+			let {baslik, width, height, inst = {}, tip} = det
 			width ||= '49%'; height ||= '49%'
-			let detBuilder = _rfb.addFormWithParent(id).altAlta()
+			let item = _rfb.addFormWithParent(id).altAlta()
 				.addCSS('item _loading')
-				.setParent(items).setRootBuilder(panelBuilder)
-			let {layout: itemLayout} = detBuilder
-			// detBuilder.onInit(({ builder: { layout } }) => $.extend(inst, { layout }))
-			let _e = { ...e, rfb: detBuilder }
-			$.extend(inst, { _baslik: baslik, panel: this })
+				.setParent(items).setRootBuilder(rfb)
+			// item.onInit(({ builder: { layout } }) => $.extend(inst, { layout }))
+			let _e = { ...e, rfb: item }
+			$.extend(inst, { _baslik: baslik, panel: this, detay: det })
 			let result
 			if (tip.rapormu) {
-				detBuilder.setInst(this).setPart(inst)
 				if (inst && $.isPlainObject(inst))
 					inst = null
 				if (!inst) {
 					console.warn('panel inst yok, muhtemelen class değişti')
-					let ind = detaylar.findIndex(_ => _?.id == id)
-					if (ind > -1) {
-						detaylar.splice(ind, 1)
-						det = null
-					}
+					delete id2Detay[id]
 					this.saveLayout()
 					continue
 				}
+				item.setInst(this).setPart(inst)
 				inst.on('init', ({ rapor: main }) =>
 					this.tazeleOncesi({ ..._e, main }))
 				result = await inst?.goster?.(_e)
 			}
 			else if (tip.webmi || tip.evalmi) {
-				if (!inst)
-					inst = det.inst = {}
-				let {value: url} = det
-				detBuilder.setInst(inst)
+				let {value: url} = det;
+				item.setInst(det.inst = inst)
 				$.extend(inst, { exportHTMLIstendi: e => openNewWindow(url) })
-				detBuilder.noAutoAppend().setLayout(({ builder: { parent } }) => {
+				item.noAutoAppend().setLayout(({ builder: { parent } }) => {
 					let layout =
 						$(`<div id="${id}" class="parent item item-ozel full-wh">
 							<div class="item item-sortable full-width">
@@ -484,9 +491,9 @@ class DPanel extends Part {
 							</div>
 						</div>`)
 					layout.appendTo(parent)
-					inst.layout = layout
 					return layout
 				})
+				let {layout: itemLayout} = item
 				if (tip.webmi) {
 					let tazele = inst.tazele = async () => {
 						let content = itemLayout.find('.content')
@@ -574,12 +581,12 @@ class DPanel extends Part {
 						if (!code) {
 							delete id2Detay[id]
 							itemLayout.remove()
-							let ind = detaylar.findIndex(_ => _.id == id)
+							let {raporTanim: { detaylar }} = this
+							let ind = detaylar.findIndex(det => det.id == id)
 							if (ind > -1) {
 								detaylar.splice(ind, 1)
 								this.saveLayout()
 							}
-							this.saveLayout()
 						}
 					}
 					tazele()
@@ -587,7 +594,7 @@ class DPanel extends Part {
 				itemLayout?.find('#fullScreen')?.on('click', ({ currentTarget: target }) => {
 					target = $(target)
 					let id = target.parents('.item.parent').prop('id')
-					let det = id2Detay[id] ?? {}, {tip: { evalmi }, value: url} = det
+					let det = this.id2Detay[id] ?? {}, {tip: { evalmi }, value: url} = det
 					if (url) {
 						if (evalmi) {
 							let {outerHTML: data} = target.parents('.item.parent').find('.content')[0]
@@ -601,7 +608,7 @@ class DPanel extends Part {
 				itemLayout?.find('#close')?.on('click', ({ currentTarget: target }) => {
 					target = $(target)
 					let id = target.parents('.item.parent').prop('id')
-					let det = id2Detay[id]
+					let det = this.id2Detay[id]
 					if (det)
 						this.remove(det)
 				})
@@ -621,18 +628,37 @@ class DPanel extends Part {
 				}
 			}
 			result = await result
-			let {layout: detLayout, part} = detBuilder
+			let {layout: itemLayout, part} = item
 			det.part = part
-			if (detLayout) {
-				detLayout.data('id', det.id)
-				detLayout.data('detay', det)
-				detLayout.data('part', part)
-				detLayout.data('inst', inst)
+			if (itemLayout) {
+				itemLayout.data('detay', det)
+				itemLayout.data('part', part)
+				itemLayout.data('inst', inst)
 			}
 			loadCount++
 			if (tip.rapormu && inst?.main?.raporVarmi && inst?.gridVeriYuklendiIslemi) {
 				let timer, promise = new $.Deferred()
+				inst.gridVeriYuklendiIslemi(async ({ builder: { id: _id, parentBuilder } = {} } = {}) => {
+					try {
+						let {id} = parentBuilder?.parentBuilder?.parentBuilder ?? {}
+						let {layout} = _rfb.id2Builder[id] ?? {}
+						if (!promise)
+							return
+						if (layout?.length) { 
+							layout.css({ width, height })
+							layout.removeClass('_loading')
+						}
+						if (++completeCount >= maxWaitCount)
+							setTimeout(() => this.layout.removeClass('_loading'), LoadingLockWaitMS)
+					}
+					finally {
+						promise?.resolve()
+						clearTimeout(timer)
+					}
+				})
 				timer = setTimeout(({ itemLayout: layout }) => {
+					if (!promise)
+						return
 					try {
 						if (layout?.length) {
 							layout.removeClass('_loading')
@@ -643,36 +669,17 @@ class DPanel extends Part {
 					}
 					finally { promise?.resolve() }
 				}, AutoShowWaitMS, { itemLayout })
-				inst.gridVeriYuklendiIslemi(async ({ builder: { id: _id, parentBuilder } = {} } = {}) => {
-					try {
-						let {id} = parentBuilder?.parentBuilder?.parentBuilder ?? {}
-						let {layout} = _rfb.id2Builder[id] ?? {}
-						if (promise && layout?.length) {
-							layout.css({ width, height })
-							layout.removeClass('_loading')
-							clearTimeout(timer)
-						}
-					}
-					finally {
-						if (++completeCount >= maxWaitCount)
-							setTimeout(() => this.layout.removeClass('_loading'), LoadingLockWaitMS)
-						promise?.resolve()
-					}
-				})
 				promises.push(promise)
 			}
 			else {
-				detLayout?.removeClass('_loading')
-				detLayout?.css({ width, height })
+				itemLayout?.removeClass('_loading')
+				itemLayout?.css({ width, height })
 				if (++completeCount >= totalCount)
 					setTimeout(() => this.layout.removeClass('_loading'), LoadingLockWaitMS)
 			}
 			// promises.push(promise)
 		}
-		if (promises.length) {
-			await Promise.allSettled(promises)
-			promises = []
-		}
+		if (promises.length) { await Promise.allSettled(promises) }
 		let subItems = items.find(itemSelector)
 		subItems.eq(0).addClass(focusSelector)
 		{
@@ -728,13 +735,14 @@ class DPanel extends Part {
 					let newInd = item.index(); if (newInd < 0) { return }
 					let moved = detaylar.splice(ind, 1)[0]
 				    detaylar.splice(newInd, 0, moved)
-					id2Detay = this.id2Detay = Object.fromEntries(detaylar.map(det => [det.id, det]))
+					id2Detay = this.id2Detay = fromEntries(detaylar.map(det => [det.id, det]))
 					this.saveLayout()
 				}
 			})
 		}, 10)
 		// if (this._previouslyRendered) {
 		{																// Rapor yapıları için bug-fix
+			let detaylar = values(this.id2Detay)
 			let repeat = 1, wait = 10, inc = 40
 			for (let i = 0; i < repeat; i++) {
 				await delay(wait); wait += inc
@@ -752,9 +760,7 @@ class DPanel extends Part {
 		this._rendered = this._previouslyRendered = true
 		hideProgress()
 	}
-	panelleriOlustur_batch(e) {
-		return this.panelleriOlustur(({ ...e, batch: true }))
-	}
+	panelleriOlustur_batch(e) { return this.panelleriOlustur(({ ...e, batch: true })) }
 	hizliBulIslemi(e) {
 		let {bulPart} = e; clearTimeout(this._timer_hizliBulIslemi_ozel); this._timer_hizliBulIslemi_ozel = setTimeout(() => {
 			try {
@@ -771,9 +777,8 @@ class DPanel extends Part {
 		}, 100)
 	}
 	hizliBulIslemi_ara({ tokens }) {
-		let e = { ...arguments[0] }
-		let {raporTanim: { detaylar = [] } = {}} = this
-		for (let { inst } of detaylar)
+		let e = { ...arguments[0] }; let {id2Detay} = this
+		for (let { inst } of values(id2Detay))
 			inst?.hizliBulIslemi_ara?.(e)
 	}
 	raporTanimIstendi(e) {
@@ -811,10 +816,7 @@ class DPanel extends Part {
 			let det = new DPanelDetay()
 			if (!yenimi) {
 				eDet ??= this.detay
-				if (!eDet) {
-					hConfirm('Bir panel seçilmelidir', islemAdi)
-					return false
-				}
+				if (!eDet) { hConfirm('Bir panel seçilmelidir', islemAdi); return false }
 				$.extend(det, eDet)
 				for (let key of ['panel', 'inst', 'part', 'sinif', '_raporId', '_url', '_code', ...keys(CObject.prototype)])
 					delete det[key]
@@ -825,8 +827,7 @@ class DPanel extends Part {
 				if (value) {
 					let {tip: { rapormu, webmi, evalmi }} = det
 					let selector = rapormu ? '_raporId' : webmi ? '_url' : evalmi ? '_code' : null
-					if (selector)
-						det[selector] = value
+					if (selector) { det[selector] = value }
 					det.value = null
 				}
 			}
@@ -845,15 +846,10 @@ class DPanel extends Part {
 					.setTip('tamamVazgec').addStyle_fullWH(null, 'var(--islemTuslari-height)')
 					.setId2Handler({
 						tamam: async ({ builder, builder: { rootPart: part } }) => {
-							if (!await validate({ ...e, builder, part }))
-								return false
-							promise_wait?.resolve(true)
-							part?.jqxWindow('close')
+							if (!await validate({ ...e, builder, part })) { return false }
+							promise_wait?.resolve(true); part?.jqxWindow('close')
 						},
-						vazgec: ({ builder: { rootPart: part } }) => {
-							promise_wait?.resolve(false)
-							part?.jqxWindow('close')
-						}
+						vazgec: ({ builder: { rootPart: part } }) => { promise_wait?.resolve(false); part?.jqxWindow('close') }
 					})
 					.onAfterRun(({ builder: fbd_islemTuslari, builder: { part: islemTuslariPart } }) => $.extend(this, { fbd_islemTuslari, islemTuslariPart }))
 				let content = rfb.addFormWithParent('content').addCSS('content').altAlta()
@@ -1096,7 +1092,7 @@ class DPanel extends Part {
 						let {label: baslik, originalItem: { ekBilgi: code = '' } = {}} = part.widget.getSelectedItem()
 						if (isFunction(code)) {
 							code = code.toString()
-								.replaceAll('\t\t\t\t\t\t\t\t\t', '\t')
+								.replaceAll('\t\t\t\t\t\t\t\t\t', '')
 								.replaceAll('\t\t\t\t\t\t\t\t', '')
 							code = `(${code})`
 						}
@@ -1144,14 +1140,16 @@ class DPanel extends Part {
 			switch (islem) {
 				case 'yeni':
 				case 'kopya':
-					this.add(det)
+					await this.add(det)
 					break
-				case 'degistir': {
+				case 'degistir':
 					$.extend(eDet, det)
-					this.saveLayout()
-					this.panelleriOlustur_batch()
+					let {id} = eDet, {raporTanim} = this
+					// await this.render({ ...e, noTitleUpdate: true })
+					await this.saveLayout(e)
+					if (await raporTanim.yukle())
+						await this.render(e)
 					break
-				}
 			}
 			return det
 		}
@@ -1167,12 +1165,15 @@ class DPanel extends Part {
 	async kaydetIstendi(e) {
 		let islemAdi = 'Dizayn Kaydet'
 		let {title, _sonRaporAdi, raporTanim, raporTanim: { class: raporSinif }} = this
+		if (_sonRaporAdi && DPanelTanim.ozelRaporAdimi(_sonRaporAdi))
+			_sonRaporAdi = null
 		let mevcutRaporAdiSet = asSet((await raporSinif.loadServerData()).map(rec => rec.aciklama))
 		let inst = { ortakmi: true }
 		try {
 			let raporAdi = await jqxPrompt({
 				etiket: 'Panel Tanım Adı', inst,
-				value: _sonRaporAdi, args: { height: 260 },
+				value: _sonRaporAdi,
+				args: { height: 260 },
 				duzenle: (({ rfb }) => {
 					rfb.addDiv('_bilgi').etiketGosterim_yok()
 						.onAfterRun(({ builder: { rootPart: part, input } }) =>
@@ -1185,12 +1186,11 @@ class DPanel extends Part {
 							`$elementCSS > input:is(:checked) + label { font-weight: bold; color: forestgreen !important }`
 						)
 				}),
-				afterRun: ({ part: { divBilgi }, fbd_value: { altInst: inst, input: txtValue } }) => {
+				afterRun: ({ part: { divBilgi }, fbd_value: { input: txtValue } }) => {
 					let changeHandler = (({ currentTarget: target } = {}) => {
-						let value = txtValue.val()?.trim()
+						let raporAdi = txtValue.val()?.trim()
 						if (inst)
-							inst.value = value
-						let raporAdi = value
+							inst.value = raporAdi
 						if (divBilgi?.length) {
 							let html = (
 								mevcutRaporAdiSet[raporAdi]
@@ -1207,16 +1207,17 @@ class DPanel extends Part {
 					        setTimeout(() => changeHandler(evt), 10),
 						source: ({ term } = {}, callback) => {
 							let result = keys(mevcutRaporAdiSet)
-							if (term) {
-								let tokens = term.split(' ')
-								result = result.filter(adi =>
-									adi[0] != '_' &&
-									tokens.every(token =>
-										adi.toLocaleUpperCase().includes(token.toLocaleUpperCase()) ||
-										adi.toUpperCase().includes(token.toUpperCase())
-									)
+							let tokens = term?.split(' ')
+							result = result.filter(adi => {
+								if (adi[0] == '_')
+									return false
+								if (!tokens?.length)
+									return true
+								return tokens?.every(token =>
+									adi.toLocaleUpperCase().includes(token.toLocaleUpperCase()) ||
+									adi.toUpperCase().includes(token.toUpperCase())
 								)
-							}
+							})
 							callback(result)
 						}
 					})
@@ -1287,7 +1288,6 @@ class DPanel extends Part {
 								defRaporTanim.setAciklamaDefault()
 							raporTanim.kaydet()
 							this._sonRaporAdi = raporAdi
-							await this.loadLayout(e)
 							await this.render(e)
 							this._sonRaporAdi = raporAdi
 							this.updateWndTitle(`${title} &nbsp;[<span class="bold forestgreen">${raporAdi}</span>]`)
@@ -1304,14 +1304,16 @@ class DPanel extends Part {
 			}
 			let veriYuklenince = ({ gridWidget, recs, source }) => {
 				gridWidget.clearselection()
-				let {_sonRaporAdi: adi} = this ?? {}; if (!adi) { return }
+				let {_sonRaporAdi: adi} = this ?? {}
+				if (!adi) { return }
 				recs ??= source?.records; if (!recs?.length) { return }
 				for (let i = 0; i < recs.length; i++) {
 					let rec = recs[i]
 					rec = rec.originalItem ?? rec.originalRecord ?? rec
 					let {aciklama: _adi} = rec
 					if (adi == _adi && !DPanelTanim.ozelRaporAdimi(_adi)) {
-						gridWidget.selectrow(i); gridWidget.ensurerowvisible(i)
+						gridWidget.selectrow(i)
+						gridWidget.ensurerowvisible(i)
 						break
 					}
 				}
