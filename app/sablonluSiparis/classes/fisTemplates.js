@@ -346,7 +346,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		yerKodListe = yerKodListe ? $.makeArray(yerKodListe) : [];
 		let sentOrtakSahalarEkle = ({ sent }) => {
 			sent.sahalar.add(
-				`${tip.sqlServerDegeri()} tip`, 'stokkod',
+				`${tip.sqlServerDegeri()} tip`, 'har.stokkod',
 				...ekOzellikler.filter(({ rowAttr }) => rowAttr).map(({ rowAttr }) => `'' ${rowAttr}`)
 			)
 		};
