@@ -72,7 +72,6 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 		inst.yaz(e)
 		return inst
 	}
-	static getOzelSahaYapilari() { return null }
 	static islemTuslariDuzenle_listeEkrani({ liste, part: butonlarPart, part: { ekSagButonIdSet, sagIdSet }, sender: gridPart }) {
 		let e = arguments[0]
 		liste.push(
@@ -86,14 +85,14 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 	}
 	static loadServerData_queryDuzenle({ sent, sent: { where: wh, sahalar } }) {
 		super.loadServerData_queryDuzenle(...arguments)
-		let {isAdmin, encUser} = config.session, {tableAlias: alias} = this
+		let {isAdmin, encUser} = config.session, {tableAlias: alias, adiSaha} = this
 		if (!isAdmin && encUser) {
 			wh.add(new MQOrClause([
 				`${alias}.xuserkod = ''`,
 				{ degerAta: encUser, saha: `${alias}.xuserkod` }
 			]))
 		}
-		sahalar.addWithAlias(alias, 'xuserkod')
+		sahalar.addWithAlias(alias, adiSaha, 'xuserkod')
 	}
 	static async loadServerDataDogrudan(e) {
 		let recs = await super.loadServerDataDogrudan(e)
@@ -119,6 +118,15 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 		if (inst && rapor)
 			inst.rapor = rapor
 		return inst
+	}
+	async kaydet(e) {
+		try {
+			return await super.kaydet(e)
+		}
+		catch (ex) {
+			await this.sil(e)
+			return await this.yaz(e)
+		}
 	}
 	async kaydetOncesiIslemler() {
 		await super.kaydetOncesiIslemler(...arguments)
@@ -229,6 +237,7 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 			throw ex
 		}
 	}
+	static getOzelSahaYapilari() { return null }
 	static ozelRaporAdimi(value) {
 		let {emptyAciklama: empty, defaultAciklama: def} =  this
 		return [empty, def].some(_ => _ == value)

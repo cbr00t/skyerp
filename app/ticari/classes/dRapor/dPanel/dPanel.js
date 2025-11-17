@@ -52,7 +52,7 @@ class DPanel extends Part {
 		let e = arguments[0]; super(e)
 		let {raporTanim, class: { aciklama }} = this
 		raporTanim ??= this.raporTanim = new DPanelTanim().noId()
-		raporTanim._promise = raporTanim.getDefault(e)
+		raporTanim._promise = raporTanim.getDefault()
 			.then(inst => raporTanim = this.raporTanim = inst)
 		if (!secimler) {
 			let _e = { ...e }
@@ -302,7 +302,7 @@ class DPanel extends Part {
 					inst = new inst()
 				if (altRaporTip != null)
 					inst?.setOzelID?.(altRaporTip)
-				if (inst?.dRapormu && $.isEmptyObject(inst?.ozelIDListe))
+				if (inst?.dRapormu && empty(inst?.ozelIDListe))
 					inst?.ozelID_main?.()
 				if (inst)
 					det.inst = inst
@@ -332,14 +332,6 @@ class DPanel extends Part {
 			this.panelleriOlustur()
 		return this
 	}
-	async detaylariDuzenle(e) {
-		await this.loadLayout(e)
-		/*this.add(
-			new DRapor_Hareketci_Cari().setWH('50%', '35%'),
-			new SBRapor_Default().setWH('50%', '35%'),
-			new DRapor_DonemselIslemler().setWH('100%', '65%')
-		)*/
-	}
 	render(e) {
 		this.id2Detay = this._rendered = null
 		return this.panelleriOlustur_batch(e)
@@ -352,15 +344,21 @@ class DPanel extends Part {
 				detaylar.filter(det => det.tip?.rapormu && det.value && det.raporAdi)
 						.map(det => det.raporAdi)
 			)
-			let raporAdi2Id = {}
+			let raporTip2Adi2Id = {}
 			if (!empty(raporAdiSet)) {
 				await Promise.allSettled(
 					[DMQRapor, SBTablo].map(async raporSinif => {
 						let {tableAlias: raporAlias} = raporSinif
 						/*let ozelQueryDuzenle = ({ sent: { where: wh } }) =>
 							wh.inDizi(keys(raporAdiSet), `${raporAlias}.aciklama`)*/
+						let defTip = raporSinif == SBTablo ? SBRapor_Default.kod : ''
 						let recs = await raporSinif.loadServerData({ /*ozelQueryDuzenle*/ }) ?? []
-						$.extend(raporAdi2Id, fromEntries(recs.map(({ id, kaysayac, aciklama }) => [aciklama, id ?? kaysayac])))
+						for (let rec of recs) {
+							let {raportip: tip, aciklama: adi, id = rec.kaysayac} = rec
+							tip ||= defTip
+							let adi2Id = raporTip2Adi2Id[tip] ??= {}
+							adi2Id[adi] ??= id
+						}
 					})
 				)
 			}
@@ -369,7 +367,7 @@ class DPanel extends Part {
 				let {tip: { rapormu }, value: raporKod, raporAdi, inst: rapor} = det
 				if (!(rapormu && raporKod && raporAdi))
 					continue
-				let raporId = raporAdi2Id[raporAdi]
+				let raporId = raporTip2Adi2Id[raporKod]?.[raporAdi]
 				if (raporId) {
 					det.raporId = raporId
 					let raporSinif = kod2Sinif[raporKod]
@@ -423,15 +421,17 @@ class DPanel extends Part {
 		let {builder: rfb, id2Detay, items, layout} = this
 		if (id2Detay == null) {
 			this.clear()
-			await this.detaylariDuzenle(e)
+			await this.loadLayout(e)
 			id2Detay = this.id2Detay
 		}
-		if (batch && !$.isEmptyObject(id2Detay))
+		if (batch && !empty(id2Detay))
 			layout.addClass('_loading')
 		let itemSelector = 'div > .item', focusSelector = 'hasFocus'
 		let itemsChildren = items.children(), id2Item = {}
 		for (let i = 0; i < itemsChildren.length; i++) {
 			let item = itemsChildren.eq(i)
+			if (item.hasClass('maximized') || item.find('.item').hasClass('maximized'))
+				item.find('#fullScreen').click()
 			let part = item.data('part')
 			let det = item.data('detay')
 			let {id} = det ?? {}
@@ -447,10 +447,11 @@ class DPanel extends Part {
 					delete det[key]
 			}
 		}
-		let _rfb = new RootFormBuilder(), promises = [], loadCount = 0, completeCount = 0
-		let LoadingLockWaitMS = 200, AutoShowWaitMS = 5_000
+		let _rfb = new RootFormBuilder(), promises = []
+		let LoadingLockWaitMS = 1_000, AutoShowWaitMS = 8_000
+		let loadCount = 0, completeCount = 0
 		let {length: totalCount} = values(id2Detay)
-		let maxWaitCount = Math.min(5, totalCount)
+		let maxWaitCount = Math.min(8, totalCount)
 		for (let [id, det] of entries(id2Detay)) {
 			if (id2Item[id])
 				continue
@@ -645,8 +646,10 @@ class DPanel extends Part {
 						if (!promise)
 							return
 						if (layout?.length) { 
-							layout.css({ width, height })
-							layout.removeClass('_loading')
+							setTimeout(({ layout, width, height }) => {
+								layout.css({ width, height })
+								layout.removeClass('_loading')
+							}, LoadingLockWaitMS, { layout, width, height })
 						}
 						if (++completeCount >= maxWaitCount)
 							setTimeout(() => this.layout.removeClass('_loading'), LoadingLockWaitMS)
@@ -742,15 +745,28 @@ class DPanel extends Part {
 		}, 10)
 		// if (this._previouslyRendered) {
 		{																// Rapor yapıları için bug-fix
-			let detaylar = values(this.id2Detay)
-			let repeat = 1, wait = 10, inc = 40
-			for (let i = 0; i < repeat; i++) {
-				await delay(wait); wait += inc
-				for (let {tip: { rapormu } = {}, raporTip: { chartmi }, inst} of detaylar) {
-					if (rapormu && chartmi && inst)
-						await inst.tazele?.(e)
-				}
+			let detaylar = values(this.id2Detay), promises = []
+			for (let {tip: { rapormu } = {}, raporTip: { chartmi }, inst} of detaylar) {
+				if (!inst)
+					continue
+				if (!(chartmi || inst instanceof SBRapor))
+					continue
+				promises.push(new $.Deferred(async p => {
+					try {
+						let wait = 100, inc = 200
+						let repeat = inst instanceof SBRapor ? 4 : 1
+						for (let i = 0; i < repeat; i++) {
+							await delay(wait)
+							wait += inc
+							try { await inst.tazele?.(e) }
+							catch { }
+						}
+					}
+					finally { p.resolve() }
+				}))
 			}
+			if (promises.length)
+				await Promise.allSettled(promises)
 		}
 		if (!batch) {
 			let {title} = this
@@ -1324,8 +1340,10 @@ class DPanel extends Part {
 	}
 	onResize(e) {
 		super.onResize(e); let {layout} = this
-		if (layout.hasClass('_loading')) { return }
-		let {id2Detay} = this; if (id2Detay) {
+		if (layout.hasClass('_loading'))
+			return
+		let {id2Detay} = this
+		if (id2Detay) {
 			for (let det of values(id2Detay))
 				(async () => det?.onResize?.(e))()
 		}

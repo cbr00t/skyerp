@@ -49,7 +49,7 @@ body.dark-theme .dPanel.part > .islemTuslari #genelSecimler.jqx-fill-state-norma
 	top: 1px !important; right: 80px !important; filter: brightness(0) !important
 }
 .dPanel.part .items > .item:has(.hasFocus) { border: 3px solid forestgreen !important }
-.dPanel.part .items ._loading { opacity: .01 !important; height: 5000px !important }
+.dPanel.part .items ._loading { opacity: .01 !important; width: 5000px !important; height: 5000px !important }
 .dPanel.part .items ._sorting { width: 49%; height: 49%; background: #4169e166; z-index: 1000 !important }
 .dPanel.part .items:where(:has(._sorting)) { display: flex !important }
 /*.dPanel.part .items > .item #close.jqx-fill-state-normal { background-color: lightpink !important }*/
