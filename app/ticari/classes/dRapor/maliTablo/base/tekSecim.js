@@ -73,7 +73,7 @@ class SBTabloYatayAnaliz extends TekSecim {
 				zorunluKodAttrListe = ['tarih']
 				sentDuzenle({ kodClause, hv, sent, sent: { from, sahalar, where: wh } }) {
 					super.sentDuzenle(...arguments)   /* kodAttr için sent'e clause eklenmiş olarak gelecek */
-					kodClause ||= hv[this.zorunluKodAttr] || 'tarih'
+					kodClause ||= hv[this.zorunluKodAttr] || 'fis.tarih'
 					kodClause = `DATEPART(YEAR, ${kodClause})`
 					sahalar.add(`${kodClause} yatay`)
 				}
@@ -82,7 +82,7 @@ class SBTabloYatayAnaliz extends TekSecim {
 				zorunluKodAttrListe = ['tarih']
 				sentDuzenle({ kodClause, hv, sent, sent: { from, sahalar, where: wh } }) {
 					super.sentDuzenle(...arguments)   /* kodAttr için sent'e clause eklenmiş olarak gelecek */
-					kodClause ||= hv[this.zorunluKodAttr] || 'tarih'
+					kodClause ||= hv[this.zorunluKodAttr] || 'fis.tarih'
 					let _ = `DATEPART(MONTH, ${kodClause})`
 					kodClause = (
 						'(case' +
@@ -100,7 +100,7 @@ class SBTabloYatayAnaliz extends TekSecim {
 				zorunluKodAttrListe = ['tarih']
 				sentDuzenle({ kodClause, hv, sent, sent: { from, sahalar, where: wh } }) {
 					super.sentDuzenle(...arguments)   /* kodAttr için sent'e clause eklenmiş olarak gelecek */
-					kodClause ||= hv[this.zorunluKodAttr] || 'tarih'
+					kodClause ||= hv[this.zorunluKodAttr] || 'fis.tarih'
 					kodClause = `FORMAT(${kodClause}, 'MM-MMMM', 'tr-TR')`
 					sahalar.add(`${kodClause} yatay`)
 				}

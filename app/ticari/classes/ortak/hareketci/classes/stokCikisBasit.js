@@ -28,7 +28,9 @@ class StokCikisBasitHareketci extends Hareketci {
 	}
     /** Varsayılan değer atamaları (host vars) – temel sınıfa eklemeler.
 		Hareketci.varsayilanHVDuzenle değerleri aynen alınır, sadece eksikler eklenir */
-    static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) { }
+    static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
+		super.varsayilanHVDuzenle(...arguments)
+	}
     /** UNION sorgusu hazırlama – hareket tipleri için */
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
         super.uygunluk2UnionBilgiListeDuzenleDevam(e)
