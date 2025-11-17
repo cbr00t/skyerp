@@ -318,8 +318,8 @@ class SablonluSiparisFisTemplate extends CObject {
 							return yerKod
 						})()
 					}
-					let query = _e.query = new MQStm({ sent: new MQUnionAll() }), toplamInd = 0;
-					await this.detaylariDuzenle_sonStok_queryOlustur({ ..._e, tip: 'genel', yerKodListe, uzakSonStokmu: true });
+					let query = _e.query = new MQStm({ sent: new MQUnionAll() }), toplamInd = 0
+					await this.detaylariDuzenle_sonStok_queryOlustur({ ..._e, tip: 'genel', yerKodListe, uzakSonStokmu: true })
 					if (konsinyemi) {
 						await this.detaylariDuzenle_sonStok_queryOlustur({
 							..._e, tip: 'kendiDeposu', kendisimi: true,

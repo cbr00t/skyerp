@@ -783,19 +783,20 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			let sayac = null, {encUser} = config.session
 			raporTanim = raporTanim.deepCopy()
 			$.extend(raporTanim, { sayac, encUser })
-			let degistirmi = await raporTanim.varmi(), islem = degistirmi ? 'degistir' : 'kopya';
-			let _e = { islem }; await raporTanim.dataDuzgunmu(_e);
+			let degistirmi = await raporTanim.varmi(), islem = degistirmi ? 'degistir' : 'kopya'
+			let _e = { islem }
+			await raporTanim.dataDuzgunmu(_e)
 			if (degistirmi) {
 				wnd_raporTanim.jqxWindow('collapse')
 				let rdlg = await ehConfirm(`<b class="royalblue">${aciklama}</b> isimli rapor güncellensin mi?`, title)
 				wnd_raporTanim.jqxWindow('expand')
 				if (!rdlg)
 					return
-				await raporTanim.degistir(_e)
+				await raporTanim.kaydet(_e)
 				this.raporTanim = raporTanim
 			}
 			else {
-				await raporTanim.yaz(_e)
+				await raporTanim.kaydet(_e)
 				this.raporTanim = raporTanim
 			}
 			this.restartWndRaporTanim(e)

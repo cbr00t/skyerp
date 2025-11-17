@@ -352,12 +352,12 @@ class DPanel extends Part {
 						/*let ozelQueryDuzenle = ({ sent: { where: wh } }) =>
 							wh.inDizi(keys(raporAdiSet), `${raporAlias}.aciklama`)*/
 						let defTip = raporSinif == SBTablo ? SBRapor_Default.kod : ''
-						let recs = await raporSinif.loadServerData({ /*ozelQueryDuzenle*/ }) ?? []
+						let recs = await raporSinif.loadServerData({ noUserCheck: true /*ozelQueryDuzenle*/ }) ?? []
 						for (let rec of recs) {
 							let {raportip: tip, aciklama: adi, id = rec.kaysayac} = rec
 							tip ||= defTip
 							let adi2Id = raporTip2Adi2Id[tip] ??= {}
-							adi2Id[adi] ??= id
+							adi2Id[adi] = id    // override last
 						}
 					})
 				)

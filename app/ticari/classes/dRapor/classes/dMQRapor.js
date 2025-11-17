@@ -154,11 +154,18 @@ class DMQRapor extends DMQSayacliKA {
 		)
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); let {aliasVeNokta} = this, {sent} = e, args = e.args || {};
-		let {encUser, isAdmin} = config.session, {rapor} = args, raporKod = this.getRaporKod(rapor);
-		if (raporKod) { sent.where.degerAta(raporKod, `${aliasVeNokta}raportip`) }
-		if (!isAdmin && encUser) { sent.where.add(new MQOrClause([`${aliasVeNokta}xuserkod = ''`, { degerAta: encUser, saha: `${aliasVeNokta}xuserkod` }])) }
-		sent.sahalar.add(`${aliasVeNokta}raportip`, `${aliasVeNokta}xuserkod`)
+		super.loadServerData_queryDuzenle(e)
+		let {aliasVeNokta} = this, {noUserCheck, sent, sent: { where: wh, sahalar }} = e, args = e.args || {}
+		let {encUser, isAdmin} = config.session, {rapor} = args, raporKod = this.getRaporKod(rapor)
+		if (raporKod)
+			wh.degerAta(raporKod, `${aliasVeNokta}raportip`)
+		if (!(noUserCheck || isAdmin) && encUser) {
+			wh.add(new MQOrClause([
+				`${aliasVeNokta}xuserkod = ''`,
+				{ degerAta: encUser, saha: `${aliasVeNokta}xuserkod` }]
+			))
+		}
+		sahalar.add(`${aliasVeNokta}raportip`, `${aliasVeNokta}xuserkod`)
 	}
 	static yeniInstOlustur(e) {
 		let inst = super.yeniInstOlustur(e), args = e.args || {}, {rapor} = args;
@@ -190,6 +197,11 @@ class DMQRapor extends DMQSayacliKA {
 	async yukleSonrasiIslemler(e) {
 		await super.yukleSonrasiIslemler(e); let {encUser} = this;
 		this.user = encUser ? await app.xdec(encUser) : encUser
+	}
+	async kaydet(e) {
+		return await super.kaydet(e)
+		/*await super.sil(e)
+		return await super.yaz(e)*/
 	}
 	alternateKeyHostVarsDuzenle(e) {
 		super.alternateKeyHostVarsDuzenle(e);
