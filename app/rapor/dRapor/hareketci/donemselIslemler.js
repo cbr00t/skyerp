@@ -13,9 +13,16 @@ class DRapor_DonemselIslemler extends DRapor_Donemsel {
 }
 class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get donemselIslemlermi() { return true }
-	static get raporClass() { return DRapor_DonemselIslemler } get width() { return 'var(--full)' } get height() { return `calc(var(--full) - 328px)` }
-	get detaylar() { return this.ekBilgi?.detaylar } set detaylar(value) { let ekBilgi = this.ekBilgi = this.ekBilgi ?? {}; ekBilgi.detaylar = value }
-	get dip() { return this.ekBilgi?.dip } set dip(value) { let ekBilgi = this.ekBilgi = this.ekBilgi ?? {}; ekBilgi.dip = value }
+	static get raporClass() { return DRapor_DonemselIslemler }
+	get width() { return 'var(--full)' }
+	get height() {
+		let {isPanelItem} = this.rapor
+		return isPanelItem ? '60%' : `calc(var(--full) - 328px)`
+	}
+	get detaylar() { return this.ekBilgi?.detaylar }
+	set detaylar(value) { let ekBilgi = this.ekBilgi ??= {}; ekBilgi.detaylar = value }
+	get dip() { return this.ekBilgi?.dip }
+	set dip(value) { let ekBilgi = this.ekBilgi ??= {}; ekBilgi.dip = value }
 	onGridInit(e) { super.onGridInit(e); this.ekBilgi = {} }
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
@@ -234,12 +241,17 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		let stm = new MQStm({ sent: uni, orderBy })
 		let _recs = (await app.sqlExecSelect(stm)) ?? []
 		let bakiye = 0
-		for (let rec of _recs) {
+		// for (let rec of _recs) {
+		for (let i = _recs.length - 1; i >= 0; i--) {
+			let rec = _recs[i]
 			let {ba, dvkod: dvKod, bedel: tlBedel, dvbedel: dvBedel, isladi: islemAdi, refkod: refKod, refadi: refAdi, logTS} = rec
 			let ref = refKod ? `(<b class=gray>${refKod ?? ''})  ${refAdi || ''}</b>` : ''
 			let dovizmi = !tlDvKodSet[dvKod || ''], bedel = rec[dovizmi ? 'dvbedel' : 'bedel']
-			if (ba == 'A') { bedel = -bedel } let alacakmi = bedel < 0
-			bakiye += bedel; bedel = Math.abs(bedel)
+			if (ba == 'A')
+				bedel = -bedel
+			let alacakmi = bedel < 0
+			bakiye += bedel
+			bedel = Math.abs(bedel)
 			$.extend(rec, {
 				isladi: islemAdi || '', ref,
 				borc: alacakmi ? 0 : bedel, alacak: alacakmi ? bedel : 0, bakiye,

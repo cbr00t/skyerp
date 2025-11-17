@@ -142,7 +142,10 @@ class DPanel extends Part {
 			.setId2Handler(this.islemTuslariGetId2Handler(e))
 			.onAfterRun(({ builder: fbd_islemTuslari, builder: { part: islemTuslariPart } }) =>
 				$.extend(this, { fbd_islemTuslari, islemTuslariPart }))
-		fbd_islemTuslari.addNumberInput('_otoTazeleDk', null, null, 'Tazele (dk)').etiketGosterim_yok().setAltInst(this)
+		fbd_islemTuslari.addNumberInput('_otoTazeleDk', null, null, 'Tazele (dk)')
+			.etiketGosterim_yok()
+			.setAltInst(this)
+			.setMin(0).setMax(24 * 60)
 			.setValue(this._otoTazeleDk || null)
 			.degisince(e => {
 				let {builder: { layout, input }, value} = e
@@ -500,12 +503,13 @@ class DPanel extends Part {
 						let content = itemLayout.find('.content')
 						if (!content?.length) {
 							content =
-								$(`<iframe class="content full-wh" border="0"` +
+								$(`<iframe class="content" border="0"` +
 										` scrolling="auto" allowtransparency="true" crossorigin="anonymous"` +
 										` credentialless="true" loading="lazy" referrerpolicy="no-referrer">` +
 								  `</iframe>`)
 							content.appendTo(itemLayout)
 						}
+						// itemLayout.css('overflow-y', 'auto')
 						let {value: url} = det, {contentDocument: doc} = content[0]
 						let wsURLBase = `${app.getWSUrlBase({ wsPath: '' }).trim_slashes()}/ws`
 						let {session} = config, sessionStr = ''
@@ -555,6 +559,7 @@ class DPanel extends Part {
 							content = $(`<div class="content full-wh"></div>`)
 							content.appendTo(itemLayout)
 						}
+						//itemLayout.css('overflow', 'auto')
 						let {value: code} = det
 						if (typeof code == 'string') {
 							code = code.trim()
@@ -682,7 +687,32 @@ class DPanel extends Part {
 			}
 			// promises.push(promise)
 		}
-		if (promises.length) { await Promise.allSettled(promises) }
+		if (promises.length)
+			await Promise.allSettled(promises)
+		setTimeout(async () => {																// Rapor yapıları için bug-fix
+			let detaylar = values(this.id2Detay), promises = []
+			for (let {tip: { rapormu } = {}, raporTip: { chartmi }, inst} of detaylar) {
+				if (!inst)
+					continue
+				if (!(chartmi || inst instanceof SBRapor))
+					continue
+				promises.push(new $.Deferred(async p => {
+					try {
+						let wait = 100, inc = 200
+						let repeat = inst instanceof SBRapor ? 2 : 1
+						for (let i = 0; i < repeat; i++) {
+							await delay(wait)
+							wait += inc
+							try { await inst.tazele?.(e) }
+							catch { }
+						}
+					}
+					finally { p.resolve() }
+				}))
+			}
+			if (promises.length)
+				await Promise.allSettled(promises)
+		}, LoadingLockWaitMS)
 		let subItems = items.find(itemSelector)
 		subItems.eq(0).addClass(focusSelector)
 		{
@@ -702,12 +732,13 @@ class DPanel extends Part {
 			children.resizable({
 				/*handles: 'all', containment: 'parent', ghost: true, helper: 'ui-resizable-helper',*/
 				// classes: { '.ui-resizable': 'highlight' },
-				handles: 'all', grid: [20, 20], 
+				handles: 'all', grid: [8, 8], 
 				minWidth: Math.min($(window).width() - 100, 300),
 				minHeight: 70,
 				start: (evt, info) => {
 					let {element: item} = info; item.addClass('_resizing')
-					for (let key in itemsCSS) { items.css(key, 'hidden') }
+					for (let key in itemsCSS)
+						items.css(key, 'hidden')
 					/*items.children().addClass('basic-hidden')
 					item.removeClass('basic-hidden jqx-hidden')*/
 				},
@@ -719,8 +750,8 @@ class DPanel extends Part {
 					let id = item.prop('id'), det = id2Detay[id]
 					if (det) {
 						let contW = items.width(), contH = items.height()
-						det.width  = `${(width  / contW * 100).toFixed(1)}%`
-						det.height = `${(height / contH * 100).toFixed(1)}%`
+						det.width  = `${(width  / contW * 100).toFixed(2)}%`
+						det.height = `${(height / contH * 100).toFixed(2)}%`
 						this.saveLayout()
 					}
 				}
@@ -743,31 +774,6 @@ class DPanel extends Part {
 				}
 			})
 		}, 10)
-		// if (this._previouslyRendered) {
-		{																// Rapor yapıları için bug-fix
-			let detaylar = values(this.id2Detay), promises = []
-			for (let {tip: { rapormu } = {}, raporTip: { chartmi }, inst} of detaylar) {
-				if (!inst)
-					continue
-				if (!(chartmi || inst instanceof SBRapor))
-					continue
-				promises.push(new $.Deferred(async p => {
-					try {
-						let wait = 100, inc = 200
-						let repeat = inst instanceof SBRapor ? 4 : 1
-						for (let i = 0; i < repeat; i++) {
-							await delay(wait)
-							wait += inc
-							try { await inst.tazele?.(e) }
-							catch { }
-						}
-					}
-					finally { p.resolve() }
-				}))
-			}
-			if (promises.length)
-				await Promise.allSettled(promises)
-		}
 		if (!batch) {
 			let {title} = this
 			this.saveLayout(e)
@@ -1240,7 +1246,7 @@ class DPanel extends Part {
 					setTimeout(() => {
 						if (txtValue?.length && !txtValue.autocomplete('search'))
 							txtValue.autocomplete('search', '')
-					}, 2_000)
+					}, 1_000)
 					txtValue.on('keyup', evt =>
 						setTimeout(() => changeHandler(evt), 10))
 				},
@@ -1263,20 +1269,21 @@ class DPanel extends Part {
 			yRaporTanim.ortakmi = inst.ortakmi
 			yRaporTanim.aciklama = raporAdi
 			{
-				let {table: from, adiSaha} = raporSinif
-				let whDuzenle = wh => {
-					if (yRaporTanim.ortakmi || !yRaporTanim.encUser)
-						wh.add(`COALESCE(xuserkod, '') = ''`)
-					else
-						wh.degerAta(yRaporTanim.encUser, 'xuserkod')
-				}
-				let del = new MQIliskiliDelete({
-					from,
-					where: [ { degerAta: raporAdi, saha: adiSaha } ]
-				})
-				whDuzenle(del.where)
-				await app.sqlExecNone(del)
+				let {table: from, idSaha, adiSaha, detaySinif: { table: detayTable, fisSayacSaha }} = raporSinif
+				let whDuzenle = wh => wh.degerAta(raporAdi, adiSaha)
+				let wh = new MQWhereClause()
+				whDuzenle(wh)
+				let params = [ { name: '@fisID', type: 'uniqueidentifier', direction: 'output' } ]
+				let query = new MQToplu([
+					new MQSent({ from, where: wh, sahalar: `@fisID = ${idSaha}` }),
+					new MQIliskiliDelete({ from, where: { degerAta: '@fisID'.sqlConst(), saha: idSaha } }),
+					new MQIliskiliDelete({ from: detayTable, where: { degerAta: '@fisID'.sqlConst(), saha: fisSayacSaha } })
+				])
+				await app.sqlExecNone({ query, params })
 			}
+			yRaporTanim.sayac = null
+			for (let det of yRaporTanim.detaylar)
+				det.sayac = null
 			await yRaporTanim.yaz()
 			this._sonRaporAdi = raporAdi
 			this.updateWndTitle(`${title} &nbsp;[<span class="bold forestgreen">${raporAdi}</span>]`)
@@ -1302,9 +1309,12 @@ class DPanel extends Part {
 						try {
 							if (raporTanim.aciklama != defRaporAdi)
 								defRaporTanim.setAciklamaDefault()
-							raporTanim.kaydet()
+							{
+								let {detaylar, class: { table, adiSaha }} = raporTanim
+								await raporTanim.setDefault()
+							}
 							this._sonRaporAdi = raporAdi
-							await this.render(e)
+							await this.render({ ...e, noTitleUpdate: true })
 							this._sonRaporAdi = raporAdi
 							this.updateWndTitle(`${title} &nbsp;[<span class="bold forestgreen">${raporAdi}</span>]`)
 						}

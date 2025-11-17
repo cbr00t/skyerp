@@ -40,7 +40,8 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 		return await inst.getDefault(e) ? inst : null
 	}
 	async getDefault(e) {
-		let {class: cls, class: { localData: d }} = this; await d?._promise
+		let {class: cls, class: { localData: d }} = this
+		await d?._promise
 		let aciklama = '', {id} = await d?.get('_current') ?? {}
 		$.extend(this, { id, aciklama })
 		if (id)
@@ -49,16 +50,22 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 		return this                                                       /* yükleyemezsen de mevcut olanı dön */
 	}
 	async setDefault(e) {
-		let {class: cls, class: { localData: d }} = this; await d?._promise
+		await this.kaydet(e)
+		await this.setDefaultBasit(e)
+		return this
+	}
+	async setDefaultBasit(e) {
+		let {class: cls, class: { localData: d }} = this
+		await d?._promise
 		let cur = await d?.get('_current') ?? {}
-		let id = this.id = cur.id || newGUID()
+		let id = this.id ||= (cur.id || newGUID())
 		this.user = this.encUser = ''
 		if (!this.aciklama)
 			this.setAciklamaDefault()
 		let {aciklama} = this
 		$.extend(cur, { id, aciklama })
-		await d?.set('_current', cur); d?.kaydetDefer()
-		await this.kaydet(e)
+		await d?.set('_current', cur)
+		d?.kaydetDefer()
 		return this
 	}
 	static async createEmptyIfNot(e) {
@@ -120,13 +127,28 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 		return inst
 	}
 	async kaydet(e) {
-		try {
-			return await super.kaydet(e)
+		let {detaylar} = this
+		await this.sil(e)
+		this.sayac = null
+		for (let det of detaylar)
+			det.sayac = null
+		await this.yaz(e)
+	}
+	async sil(e = {}) {
+		let {aciklama, class: { table, idSaha, adiSaha, detaySinif: { table: detayTable, fisSayacSaha } }} = this
+		if (aciklama) {
+			let toplu = new MQToplu([
+				`DECLARE @fisID uniqueidentifier`,
+				new MQSent({
+					from: table, sahalar: `@fisID = ${idSaha}`,
+					where: { degerAta: aciklama, saha: adiSaha }
+				}),
+				new MQIliskiliDelete({ from: detayTable, where: `${fisSayacSaha} = @fisID` }),
+				new MQIliskiliDelete({ from: table, where: `${idSaha} = @fisID` })
+			]).withDefTrn()
+			return await this.class.sqlExecNone(toplu)
 		}
-		catch (ex) {
-			await this.sil(e)
-			return await this.yaz(e)
-		}
+		return await super.sil(e)
 	}
 	async kaydetOncesiIslemler() {
 		await super.kaydetOncesiIslemler(...arguments)

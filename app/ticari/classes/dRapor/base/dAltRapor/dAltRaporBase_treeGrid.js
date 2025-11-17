@@ -43,7 +43,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 				let filterMode = 'advanced'		/* default | simple | advanced */
 				let showAggregates = true, showSubAggregates = false
 				let columnsResize = true, columnsReorder = false, sortable = true, filterable = false
-				let columnsHeight = isPanelItem ? 23 : 45, aggregatesHeight = isPanelItem ? 18 : 30
+				let columnsHeight = isPanelItem ? 38 : 45, aggregatesHeight = isPanelItem ? 18 : 30
 				let args = {
 					theme, localization, width, height, autoRowHeight, autoShowLoadElement, altRows, filterMode, showAggregates, showSubAggregates,
 					columnsHeight, aggregatesHeight, columnsResize, columnsReorder, sortable, filterable, columns, source
@@ -595,12 +595,22 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			}
 			else { window.progressManager?.progressStep(3) }
 			_colDefs = colDefs; colDefs = []; let belirtecSet = {}; for (let colDef of _colDefs) {
-				let {belirtec} = colDef; if (belirtecSet[belirtec]) { continue }
-				belirtecSet[belirtec] = true; colDefs.push(colDef)
+				let {belirtec} = colDef
+				if (belirtecSet[belirtec])
+					continue
+				belirtecSet[belirtec] = true
+				colDefs.push(colDef)
 			}
-			let ilkColDef = colDefs[0]; if (tabloYapi.grup[ilkColDef?.userData?.kod]) {
-				let colDef = ilkColDef.deepCopy(); colDefs[0] = colDef; colDef.minWidth = Math.max(colDef.minWidth ?? 0, 300);
-				colDef.text = [...(Object.keys(grup).map(kod => `<span class="royalblue">${tabloYapi.grup[kod]?.colDefs[0]?.text || ''}</span>`) || []), colDef.text].join(' + ')
+			let ilkColDef = colDefs[0]
+			if (tabloYapi.grup[ilkColDef?.userData?.kod]) {
+				let colDef = ilkColDef.deepCopy()
+				colDefs[0] = colDef
+				colDef.minWidth = Math.max(colDef.minWidth ?? 0, 300)
+				colDef.text = [
+					...(Object.keys(grup).map(kod =>
+						`<span class="royalblue">${tabloYapi.grup[kod]?.colDefs[0]?.text || ''}</span>`) || []),
+					colDef.text
+				].join(' + ')
 			}
 			if (!defUpdateOnly) { grid.jqxTreeGrid('clear') } colDefs = this.getColumns(colDefs);
 			let {sortcolumn: sortBelirtec, sortdirection: sortDir} = base;
@@ -641,7 +651,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				...ozetBilgi_getColumns(
 					tabloYapi.toplam, ozetBilgi.icerikTipKod,
 					colDef => $.extend(colDef, {
-						minWidth: null, maxWidth: null, genislikCh: 19, aggregates: ozetBilgi.icerikColDef?.aggregates || ['sum']
+						minWidth: null, maxWidth: null, genislikCh: 17, aggregates: ozetBilgi.icerikColDef?.aggregates || ['sum']
 					}).tipDecimal_bedel() )
 			] : [];
 			window.progressManager?.progressStep(1)

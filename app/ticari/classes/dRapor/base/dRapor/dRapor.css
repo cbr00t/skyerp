@@ -116,10 +116,11 @@ body.dark-theme .dRapor.part #items > .item._main .jqx-grid tr:nth-child(even) .
 .dRapor.part #items > .item._main .jqx-grid [data-role = 'summaryrow'] > .jqx-grid-cell { font-size: 110%; font-weight: bold; color: forestgreen }
 .dRapor.part #items > .item._main .jqx-grid .yatayToplam.jqx-grid-cell:not(.jqx-grid-cell-selected) { border-right: 5px solid cornflowerblue !important }
 .dRapor.part #items > .item .jqx-grid .jqx-grid-column-header { font-weight: bold; font-size: 130% }
+.dPanel.part .dRapor.part #items > .item .jqx-grid .jqx-grid-column-header { font-size: 120% }
 .dRapor.part #items > .item .jqx-grid .jqx-grid-column-header > div > * { margin-top: 0 !important }
 .dRapor.part #items > .item .jqx-grid .jqx-grid-statusbar > div > .jqx-grid-cell { font-weight: bold; color: royalblue }
 .dRapor.part #items > .item._main .jqx-grid .jqx-grid-statusbar > div > .jqx-grid-cell { font-size: 80% !important }
-.dRapor.part #items > .item[data-builder-id = 'ozet'] .jqx-grid .jqx-grid-statusbar > div > .jqx-grid-cell { font-size: 105% !important }
+.dRapor.part #items > .item[data-builder-id = 'ozet'] .jqx-grid .jqx-grid-statusbar > div > .jqx-grid-cell { font-size: 103% !important }
 .dRapor.part #items > .item[data-builder-id = 'ozet'] .jqx-grid .jqx-grid-cell { font-size: 80% }
 .dRapor.part #items > .item[data-builder-id = 'ozet'] .jqx-grid .jqx-grid-cell > div { padding-right: 13px }
 .secimler.dRapor.part .secimler-form > div { padding-top: 5px }
