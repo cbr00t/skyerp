@@ -16,7 +16,7 @@ class DRapor_StokSiparisler_Main extends DRapor_Donemsel_Main {
 					tekSecim: new BuDigerVeHepsi([
 						`<span class=forestgreen>Bekleyenler</span>`,
 						`<span class=firebrick>KAPANMIŞ</span>`
-					]).hepsiYap()
+					]).buYap()
 				})
 			})
 			/*sec.whereBlockEkle(({ secimler: sec, where: wh }) => {
@@ -28,10 +28,15 @@ class DRapor_StokSiparisler_Main extends DRapor_Donemsel_Main {
 	}
 	tabloYapiDuzenle({ result }) {
 		let e = arguments[0]; super.tabloYapiDuzenle(e)
+		this.tabloYapiDuzenle_sube(e)
 		this.tabloYapiDuzenle_ozelIsaret(e)
 		this.tabloYapiDuzenle_cari(e)
+		this.tabloYapiDuzenle_plasiyer(e)
 		this.tabloYapiDuzenle_stok(e)
+		this.tabloYapiDuzenle_takip(e)
 		result
+			.addGrupBasit('SEVKTARIHX', 'Sevk Tarih', 'sevktarihx')
+			.addGrupBasit('SEVKNOX', 'Sevk No', 'sevknox', null, null, ({ colDef }) => colDef.alignRight())
 			.addToplamBasit('MIKTAR', 'Miktar', 'miktar')
 			.addToplamBasit('MIKTAR2', 'Miktar 2', 'miktar2')
 			.addToplamBasit('SEVKMIKTAR', 'Sevk Miktar', 'sevkmiktar')
@@ -64,12 +69,18 @@ class DRapor_StokSiparisler_Main extends DRapor_Donemsel_Main {
 			this.donemBagla({ ...e, sent, tarihSaha: 'fis.tarih' })
 			if (almSat)
 				wh.degerAta(almSat, 'fis.almsat')
-			if (!(beklemeDurumu.hepsimi ?? true))
-				wh.add(beklemeDurumu.getTersBoolBitClause('fis.kapandi'))
 			sahalar.add('har.kaysayac harsayac', 'SUM(don.busevkmiktar) sevkmiktar')
+			if (attrSet.SEVKTARIHX || attrSet.SEVKNOX) {
+				sent
+					.leftJoin('don', 'pifstok dhar', 'don.ifharsayac = dhar.kaysayac')
+					.leftJoin('dhar', 'piffis dfis', 'dhar.fissayac = dfis.kaysayac')
+				sahalar.add(
+					`STRING_AGG(CONVERT(VARCHAR(10), dfis.tarih, 104), '\n') sevktarihx`,
+					`STRING_AGG(dfis.fisnox, '\n') sevknox`
+				)
+			}
 			sent.groupByOlustur()
 			stm.with.add(sent.asTmpTable('sipvedonusum'))
-			
 		}
 		let mc = {
 			miktar: 'har.miktar', miktar2: 'har.miktar2',
@@ -79,18 +90,28 @@ class DRapor_StokSiparisler_Main extends DRapor_Donemsel_Main {
 		mc.kalan = `${mc.miktar} - ${mc.sevk}`
 		; {
 			// asıl sent
-			let sent = stm.sent = new MQSent(), {where: wh, sahalar} = sent
+			let sent = stm.sent = new MQSent(), {where: wh, sahalar, having} = sent
 			sent 
 				.fromAdd('sipvedonusum sdon')
 				.fromIliski('sipstok har', 'sdon.harsayac = har.kaysayac')
 				.fromIliski('sipfis fis', 'har.fissayac = fis.kaysayac')
 				.fis2CariBagla().har2StokBagla()
+			if (beklemeDurumu?.bumu)            // Bekleyenler
+				wh.add(`fis.kapandi = ''`, `har.kapandi = ''`, `${mc.kalan} > 0`)
+			else if (beklemeDurumu?.digermi)    // Kapanmışlar
+				wh.add(new MQOrClause([`fis.kapandi <> ''`, `har.kapandi <> ''`, `${mc.kalan} <= 0`]))
 			this.loadServerData_queryDuzenle_tarih({ ...e, sent, tarihClause: 'fis.tarih' })
 			this.loadServerData_queryDuzenle_ozelIsaret({ ...e, sent, kodClause: 'fis.ozelisaret' })
+			this.loadServerData_queryDuzenle_sube({ ...e, sent, kodClause: 'fis.bizsubekod' })
 			this.loadServerData_queryDuzenle_cari({ ...e, sent, kodClause: 'fis.must' })
+			this.loadServerData_queryDuzenle_plasiyer({ ...e, sent, kodClause: 'fis.plasiyerkod' })
 			this.loadServerData_queryDuzenle_stok({ ...e, sent, kodClause: 'har.stokkod' })
+			this.loadServerData_queryDuzenle_takip({ ...e, sent, kodClause: `(case when fis.takiportakdir = '' then har.dettakipno else fis.orttakipno end)` })
 			for (let key in attrSet) {
 				switch (key) {
+					case 'SEVKTARIHX': sahalar.add(`sdon.sevktarihx`); break
+					case 'SEVKNOX': sahalar.add(`sdon.sevknox`); break
+					case 'SEVKNOX': sahalar.add(`SUM(${mc.bedel}) bedel`); break
 					case 'MIKTAR': sahalar.add(`SUM(${mc.miktar}) miktar`); break
 					case 'MIKTAR2': sahalar.add(`SUM(${mc.miktar2}) miktar2`); break
 					case 'FIYAT': sahalar.add(`SUM(${mc.fiyat}) fiyat`); break
@@ -104,7 +125,7 @@ class DRapor_StokSiparisler_Main extends DRapor_Donemsel_Main {
 					case 'KALANBEDEL': sahalar.add(`SUM(ROUND(${mc.bedel} * ${mc.kalan} / ${mc.miktar}, 2)) kalanbedel`); break
 				}
 			}
-			sent.groupByOlustur()
+			// sent.groupByOlustur() -- son kısımda yapılacak
 		}
 	}
 }

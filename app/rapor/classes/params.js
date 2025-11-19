@@ -13,11 +13,33 @@ class MQParam_DRapor extends MQParam {
 		paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`);
 		let form = paramci.addFormWithParent();
 		form.addCheckBox('ihracatIntacdanmi', 'İhracat İntaçtanmı')
-		form.addCheckBox('konsolideCikti', 'Konsolide Çıktı').degisince(({ builder: fbd }) => fbd.parentBuilder.id2Builder._ekDBListe.updateVisible());
+		form.addCheckBox('konsolideCikti', 'Konsolide Çıktı')
+			.degisince(({ builder: fbd }) => {
+				fbd.inst._kritikDegisiklikVarmi = true
+				fbd.parentBuilder.id2Builder._ekDBListe.updateVisible()
+			})
 		form.addModelKullan('_ekDBListe', 'Ek Veritabanları').comboBox().autoBind().noMF().kodsuz().coklu()
 			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.konsolideCikti ? true : 'jqx-hidden')
 			.setSource(e => app.wsDBListe().then(arr => arr.filter(x => x != 'ORTAK').map(x => new CKodVeAdi([x, x]))))
+		paramci.onAfterRun(({ builder: fbd }) =>
+			fbd.inst._kritikDegisiklikVarmi = false)
 	}
-	paramSetValues(e) { super.paramSetValues(e); let {rec} = e /* let kritikDurNedenKodSet = this.kritikDurNedenKodSet = asSet(rec.kritikDurNedenKodlari) || {} */ }
-	/*async tekilOku(e) { return { jsonstr: await app.wsParams() } }*/
+	async kaydetSonrasiIslemler(e) {
+		await super.kaydetSonrasiIslemler(e)
+		let {_kritikDegisiklikVarmi} = this
+		if (_kritikDegisiklikVarmi) {
+			setTimeout(() => {
+				ehConfirm(`<p>Yapılan değişikliklerin geçerli olması için programa yeniden giriş yapılmalıdır</p><p class="bold firebrick">Devam edilsin mi?</p>`, appName)
+					.then(rdlg => {
+						if (rdlg)
+							app.logoutIstendi()
+					})
+				let wnd = $('.jqx-window:last')
+				if (wnd?.length) {
+					wnd.find('div > .jqx-window-header').addClass('bg-lightred')
+					wnd.find(`div > .content > .buttons > button:eq(0)`).addClass('bg-lightgreen')
+				}
+			}, 100)
+		}
+	}
 }

@@ -10,7 +10,7 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 			.addKAPrefix('ceyrek')
 			.addGrup(new TabloYapiItem().setKA('YILAY', 'Yıl-Ay').addColDef(new GridKolon({ belirtec: 'yilay', text: 'Yıl-Ay', genislikCh: 20, filterType: 'checkedlist' })))
 			.addGrupBasit_numerik('YIL', 'Yıl', 'yil')
-			.addGrupBasit('CEYREK', 'Çeyrek Dönem', 'ceyrek', null, null, null, null)
+			.addGrupBasit('CEYREK', 'Çeyrek Dönem', 'ceyrek', null, null, null, 'ceyrekadi')
 			.addGrup(new TabloYapiItem().setKA('YILHAFTA', 'Yıl-Hafta').addColDef(new GridKolon({ belirtec: 'yilhafta', text: 'Yıl-Hafta', genislikCh: 20, filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('AYADI', 'Ay').addColDef(new GridKolon({ belirtec: 'ayadi', text: 'Ay', genislikCh: 20, filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('HAFTA', 'Hafta').addColDef(new GridKolon({ belirtec: 'haftano', text: 'Hafta', genislikCh: 20, filterType: 'checkedlist' })))
@@ -66,6 +66,7 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 					case 'AYADI': sahalar.add(`dbo.ayadi(${tarihClause}) ayadi`); break
 					case 'HAFTA': sahalar.add(`DATEPART(WEEK, ${tarihClause}) haftano`); break
 					case 'TARIH': sahalar.add(`${tarihClause} tarih`); break
+					                      // `CONVERT(VARCHAR(10), ${tarihClause}, 104) tarihstr`)
 					case 'SAAT': sahalar.add(`CONVERT(VARCHAR(10), ${tarihClause}, 108) saat`); break
 				}
 			}

@@ -103,7 +103,8 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 			if (alias == 'kayitsayisi' || alias == 'kayitSayisi') { having.add(convertedClause) }
 			else { or.add(convertedClause) }
 		}
-		if (or.liste.length) { having.add(or) }
+		if (or.liste.length)
+			having.add(or)
 		return this
 	}
 	sahalarVeGroupByVeHavingReset() { return this.sahalarReset().groupByVeHavingReset() }

@@ -261,9 +261,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	loadServerData_queryDuzenle_tekilSonrasi(e) {
 		this.loadServerData_queryDuzenle_tekilSonrasi_ilk_ozel?.(e);
-		let {stm, attrSet} = e, {with: _with} = stm, {konsolideVarmi, secimler: sec} = this;
+		let {stm, attrSet} = e, {with: _with} = stm, {konsolideVarmi, secimler: sec} = this
 		if (konsolideVarmi && !_with.toplamVarmi) {
-			let {session} = config, {dbName: buDBName} = session, {ekDBListe} = app.params?.dRapor ?? {}, alias_db = 'db';
+			let {session} = config, {dbName: buDBName} = session, {ekDBListe} = app.params?.dRapor ?? {}, alias_db = 'db'
 			let {value: filtreDBListe} = sec.db, filtreDBSet = filtreDBListe?.length ? asSet(filtreDBListe) : null;
 			if (filtreDBListe?.length) {
 				ekDBListe = filtreDBListe.filter(name => name != buDBName)
@@ -279,15 +279,30 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				asilUniDuzenlendimi = true
 			}
 			if (ekDBListe?.length && asilUni.liste.length) {
+				let tmpName2Yapi = fromEntries(_with.liste.map(_ => [_.table, _]))
 				let ekSentListe = []
 				for (let db of ekDBListe) {
-					if (filtreDBSet && !filtreDBSet[db]) { continue }
+					if (filtreDBSet && !filtreDBSet[db])
+						continue
+					for (let [table, { sent: tmpSent }] of entries(tmpName2Yapi)) {
+						let yTmpSent = tmpSent.deepCopy()
+						// for (let item of yTmpSent.from.liste)
+						for (let item of yTmpSent.from)                                                                   // from.liste değil from sadece. from kendisi ve altındaki joinler için iterasyon
+							item.deger = tmpName2Yapi[item.deger] ? `${db}_${item.deger}` : `${db}..${item.deger}`
+						let yTable = `${db}_${table}`
+						_with.add(yTmpSent.asTmpTable(yTable))
+					}
+					let tmpTableSet = asSet(keys(tmpName2Yapi))
 					let {liste} = asilUni.deepCopy()
 					for (let {from, sahalar} of liste) {
-						for (let item of from.liste) {
-							let {deger} = item, hasDB = deger.includes('.');
-							if (!hasDB)
-								item.deger = deger = `${db}..${deger}`
+						// for (let item of from.liste) {
+						for (let item of from) {                                                                          // from.liste değil from sadece. from kendisi ve altındaki joinler için iterasyon
+							let {deger: table} = item
+							let hasDB = table.includes('.')
+							if (hasDB || table.includes('('))                                                             // table doğrudan select cümlesi olabilir
+								continue
+							table = tmpTableSet[table] ? `${db}_${table}` : `${db}..${table}`
+							item.deger = table
 						}
 						{
 							let saha = sahalar.liste.find(x => x.alias == alias_db);
@@ -295,13 +310,16 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 								sahalar.add(`'NULL' ${alias_db}`);
 								saha = sahalar.liste.find(x => x.alias == alias_db);
 							}
-							if (saha) { saha.deger = db.sqlServerDegeri() }
+							if (saha)
+								saha.deger = db.sqlServerDegeri()
 						}
 					}
 					ekSentListe.push(...liste)
 				}
-				if (!asilUniDuzenlendimi) { asilUni.liste = [] }
-				if (ekSentListe.length) { asilUni.addAll(ekSentListe) }
+				if (!asilUniDuzenlendimi)
+					asilUni.liste = []
+				if (ekSentListe.length)
+					asilUni.addAll(ekSentListe)
 			}
 		}
 		this.loadServerData_queryDuzenle_tekilSonrasi_son_ozel?.(e)
@@ -309,13 +327,18 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	loadServerData_queryDuzenle_genelSon(e) {
 		this.loadServerData_queryDuzenle_genelSon_ilk_ozel?.(e);
 		let {stm, attrSet} = e, {grup} = this.tabloYapi;
-		for (let sent of stm) { sent.groupByOlustur() }
-		if (stm.sent.unionmu) { stm = e.stm = stm.asToplamStm() }
+		for (let sent of stm)
+			sent.groupByOlustur()
+		if (stm.sent.unionmu)
+			stm = e.stm = stm.asToplamStm()
 		/* stm.sent => bu noktada #asToplamStm sonucudur */
-		for (let sent of stm) { sent.havingOlustur() }
-		let {orderBy} = stm; for (let kod in attrSet) {
-			let {orderBySaha} = grup[kod] ?? {};
-			if (orderBySaha) { orderBy.add(orderBySaha) }
+		for (let sent of stm)
+			sent.havingOlustur()
+		let {orderBy} = stm
+		for (let kod in attrSet) {
+			let {orderBySaha} = grup[kod] ?? {}
+			if (orderBySaha)
+				orderBy.add(orderBySaha)
 		}
 		this.loadServerData_queryDuzenle_genelSon_son_ozel?.(e)
 	}
@@ -629,6 +652,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				case 'STOKMARKA': sahalar.add('stk.smarkakod stokmarkakod', 'smar.aciklama stokmarkaadi'); break;
 				case 'BRM': sahalar.add('stk.brm'); break
 				case 'BRM2': sahalar.add('stk.brm2'); break
+				case 'BRMORANI': sahalar.add('stk.brmorani'); break
 				case 'STOKRESIM': sahalar.add(`${kodClause} resimid`, 'NULL stokresim'); break
 			}
 		}
