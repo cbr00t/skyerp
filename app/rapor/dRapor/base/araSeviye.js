@@ -488,28 +488,36 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		} return this
 	}
 	tabloYapiDuzenle_ozelIsaret({ result }) {
-		let tekSecimSinif = NormalFiili;
+		let tekSecimSinif = NormalFiili
 		result.addGrupBasit('ISARET', 'İşaret', 'ozelisaret', tekSecimSinif, null, ({ item }) => {
 			item
 				.setOrderBy('ozelisaret').ozelWhereClause()
 				.setSecimlerDuzenleyici(({ secimler, kod, item }) => {
-					let {grupListe, liste} = secimler;
-					let grupKod = kod; grupListe[grupKod].kapalimi = false;
+					let {grupListe, liste} = secimler
+					let grupKod = kod; grupListe[grupKod].kapalimi = false
 					let sec = liste[kod] = new SecimTekSecim({ etiket: 'İşaret', tekSecimSinif, grupKod }).autoBind()
 				}).setTBWhereClauseDuzenleyici(({ kod, secimler, where: wh, kodClause }) => {
-					let sec = secimler.liste[kod], {tekSecim: tSec} = sec;
-					if (!kodClause) { kodClause = item.colDefs[0].belirtec }
-					let values = tSec.fiilimi ? ['', '*'] : ['', 'X'];
-					if (values?.length) { wh.inDizi(values, kodClause) }
+					let {tekSecim: tSec} = secimler.liste[kod]
+					if (!kodClause)
+						kodClause = item.colDefs[0].belirtec
+					let values = tSec.fiilimi ? ['', '*'] : ['', 'X']
+					if (values?.length)
+						wh.inDizi(values, kodClause)
 				})
 		});
 		return this
 	}
 	loadServerData_queryDuzenle_ozelIsaret({ stm, sent, attrSet, kodClause }) {
-		if (!kodClause) { return this }
-		sent = sent ?? stm.sent; let {where: wh, sahalar} = sent;
+		if (!kodClause)
+			return this
+		sent ??= stm.sent
+		let {where: wh, sahalar} = sent
 		for (let key in attrSet) {
-			switch (key) { case 'ISARET': sahalar.add(kodClause); break }
+			switch (key) {
+				case 'ISARET':
+					sahalar.add(kodClause)
+					break
+			}
 		}
 		return this
 	}
@@ -537,7 +545,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			.addGrupBasit('CRTIP', 'Cari Tip', 'tip', DMQCariTip)
 			.addGrupBasit('CRANABOL', 'Ana Bölge', 'anabolge', DMQCariAnaBolge).addGrupBasit('CRBOL', 'Bölge', 'bolge', DMQCariBolge)
 			.addGrupBasit('CRISTGRP', 'Cari İst. Grup', 'cistgrup', DMQCariIstGrup).addGrupBasit('CARI', 'Cari', 'cari', DMQCari)
-			.addGrupBasit('CRIL', 'Cari İl', 'il', DMQIl).addGrupBasit('CRULKE', 'Ülke', 'ulke', DMQUlke);
+			.addGrupBasit('CRIL', 'Cari İl', 'il', DMQIl).addGrupBasit('CRULKE', 'Ülke', 'ulke', DMQUlke)
 		return this
 	}
 	loadServerData_queryDuzenle_cari(e) {
@@ -678,7 +686,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		result
 			.addToplamBasit_bedel('BORCBEDEL', 'Borç Bedel', 'borcbedel')
 			.addToplamBasit_bedel('ALACAKBEDEL', 'Alacak Bedel', 'alacakbedel')
-			.addToplamBasit_bedel('ISARETLIBEDEL', 'B-A Bakiye', 'isaretlibedel');
+			.addToplamBasit_bedel('ISARETLIBEDEL', 'B-A Bakiye', 'isaretlibedel')
 		return this
 	}
 	loadServerData_queryDuzenle_baBedel({ stm, sent, attrSet, baClause, bedelClause }) {

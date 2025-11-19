@@ -1,9 +1,11 @@
 class DRapor_PDKS_Izin extends DRapor_PDKS {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get vioAdim() { return null }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return 'PDKSIZIN' } static get aciklama() { return 'PDKS İzin' }
+	static get vioAdim() { return null }
 }
 class DRapor_PDKS_Izin_Main extends DRapor_PDKS_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_PDKS_Izin }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get raporClass() { return DRapor_PDKS_Izin }
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); const {result} = e; result
 			.addKAPrefix('per', 'gorev', 'gorevTip', 'dep', 'neden', 'anaTip')

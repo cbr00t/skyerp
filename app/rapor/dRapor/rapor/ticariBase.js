@@ -19,7 +19,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); const {result} = e, {toplamPrefix} = this.class;
 		this.tabloYapiDuzenle_shd(e).tabloYapiDuzenle_cari(e).tabloYapiDuzenle_sube(e);
-		this.tabloYapiDuzenle_takip(e).tabloYapiDuzenle_plasiyer(e);
+		this.tabloYapiDuzenle_takip(e).tabloYapiDuzenle_plasiyer(e)
 		/*result
 			.addKAPrefix('takip', 'takipgrup')
 			.addGrup(new TabloYapiItem().setKA('TAKIPNO', 'Takip No').secimKullanilir().setMFSinif(DMQTakipNo).addColDef(new GridKolon({ belirtec: 'takip', text: 'Takip No', maxWidth: 450, filterType: 'checkedlist' })))

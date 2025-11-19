@@ -31,7 +31,7 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 	}
 	super_loadServerDataInternal(e) { super.loadServerDataInternal(e) } superSuper_loadServerDataInternal(e) { super.super_loadServerDataInternal(e) }
 	donemBagla({ donemBS, tarihSaha, sent }) {
-		let {hareketmi, envantermi} = this.class, {where: wh} = sent;
+		let {hareketmi, envantermi} = this.class, {where: wh} = sent
 		if (donemBS) {
 			if (hareketmi || envantermi) { wh.basiSonu({ sonu: donemBS.sonu }, tarihSaha) }
 			else { wh.basiSonu(donemBS, tarihSaha) }
@@ -41,7 +41,8 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 	loadServerData_queryDuzenle_tarih({ attrSet, stm, sent, alias = 'fis', tarihSaha, tarihClause }) {
 		let sentOrUni = sent ?? stm?.sent
 		let aliasVeNokta = alias ? `${alias}.` : ''
-		tarihSaha = tarihSaha ?? 'tarih'; tarihClause = tarihClause ?? `${aliasVeNokta}${tarihSaha}`
+		tarihSaha = tarihSaha ?? 'tarih'
+		tarihClause = tarihClause ?? `${aliasVeNokta}${tarihSaha}`
 		for (let {sahalar} of sentOrUni) {
 			for (let key in attrSet) {
 				switch (key) {
