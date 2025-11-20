@@ -1,8 +1,7 @@
 class DRapor_Hareketci extends DRapor_Donemsel {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get araSeviyemi() { return this == DRapor_Hareketci }
+	static get araSeviyemi() { return this == DRapor_Hareketci } static get hareketciSinif() { return null }
 	static get oncelik() { return 20 } static get uygunmu() { return this.mainClass?.hareketciSinif?.uygunmu ?? true }
-	static get hareketciSinif() { return null }
 	static get yatayAnalizVarmi() { return this.totalmi } static get ozetVarmi() { return this.totalmi } static get chartVarmi() { return this.totalmi }
 	static get totalmi() { return !(this.hareketmi || this.envantermi) } static get hareketmi() { return false } static get envantermi() { return false }
 	static get kod() {
