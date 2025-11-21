@@ -117,7 +117,7 @@ body.dark-theme .jqx-window-header { color: #111; background-color: #99b1e4; fil
 .jqx-grid .jqx-adaptive-table tr:nth-child(1) > td:nth-child(1) { display: none }
 .jqx-dropdownlist, .jqx-combobox { border-radius: 8px; box-sizing: border-box }
 .chart-label {
-	font-size: 75% !important; color: whitesmoke !important
+	font-weight: bold; font-size: 80% !important; color: whitesmoke !important;
 	/*backdrop-filter: contrast(1) !important;*/
 }
 .skyResim.part > button {

@@ -6,40 +6,54 @@ class DRapor_Ticari extends DRapor_Donemsel {
 	async ilkIslemler(e) { await super.ilkIslemler(e); await MQStok.getOzelSahaYapilari()}
 	stok() { this.shd = 'stok'; return this } hizmet() { this.shd = 'hizmet'; return this }
 }
-class DRapor_TicariStok extends DRapor_Ticari {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get shd() { return 'stok' } static get kategoriKod() { return `${super.kategoriKod}-STOK` }
-}
-class DRapor_TicariHizmet extends DRapor_Ticari {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get shd() { return 'hizmet' } static get kategoriKod() { return `${super.kategoriKod}-HIZMET` }
-}
-
 class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get toplamPrefix() { return '' } get shd() { return this.rapor?.shd }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get toplamPrefix() { return '' } get shd() { return this.rapor?.shd }
 	get stokmu() { return this.rapor?.stokmu } get hizmetmi() { return this.rapor?.hizmetmi }
-	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e); const {result} = e, {toplamPrefix} = this.class;
-		this.tabloYapiDuzenle_shd(e).tabloYapiDuzenle_cari(e).tabloYapiDuzenle_sube(e);
-		this.tabloYapiDuzenle_takip(e).tabloYapiDuzenle_plasiyer(e)
-		/*result
-			.addKAPrefix('takip', 'takipgrup')
-			.addGrup(new TabloYapiItem().setKA('TAKIPNO', 'Takip No').secimKullanilir().setMFSinif(DMQTakipNo).addColDef(new GridKolon({ belirtec: 'takip', text: 'Takip No', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('TAKIPGRUP', 'Takip Grup').secimKullanilir().setMFSinif(DMQTakipGrup).addColDef(new GridKolon({ belirtec: 'takipgrup', text: 'Takip Grup', maxWidth: 450, filterType: 'checkedlist' })))*/
-		this.tabloYapiDuzenle_hmr(e).tabloYapiDuzenle_miktar(e).tabloYapiDuzenle_ciro(e)
+	tabloYapiDuzenle({ result }) {
+		let e = arguments[0]; super.tabloYapiDuzenle(e)
+		result.addKAPrefix('althesap')
+		this.tabloYapiDuzenle_sube(e)
+		result.addGrupBasit('FISNOX', 'Fis No', 'fisnox', null, null, ({ item }) => item.secimKullanilir().noOrderBy())
+		this.tabloYapiDuzenle_cari(e)
+		result.addGrupBasit('ALTHESAP', 'Alt Hesap', 'althesap', DMQAltHesap)
+		this.tabloYapiDuzenle_plasiyer(e)
+		this.tabloYapiDuzenle_takip(e)
+		this.tabloYapiDuzenle_shd(e)
+		this.tabloYapiDuzenle_hmr(e)
+		this.tabloYapiDuzenle_miktar(e)
+		result.addGrupBasit_fiyat('FIYAT', 'Fiyat', 'fiyat')
+		result.addGrupBasit_fiyat('DVFIYAT', 'Dv. Fiyat', 'dvfiyat')
+		result.addGrupBasit('DVKOD', 'Dv.Kod', 'dvkod')
+		result.addGrupBasit('DVKUR', 'Dv.Kur', 'dvkur', null, null, ({ item, colDef }) => { item.noOrderBy(); colDef.tipDecimal() })
+		this.tabloYapiDuzenle_ciro(e)
 	}
-	loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); let {stm, attrSet, trfSipmi} = e, {sent} = stm, {where: wh} = sent, fisMustSaha = trfSipmi ? 'irsmust' : 'must';
-		$.extend(e, { sent }); this.fisVeHareketBagla(e); this.donemBagla({ ...e, tarihSaha: 'fis.tarih' });
-		wh.fisSilindiEkle(); wh.add(`fis.ozelisaret <> 'X'`);
-		this.loadServerData_queryDuzenle_cari({ ...e, kodClause: `fis.${fisMustSaha}` }).loadServerData_queryDuzenle_sube({ ...e, kodClause: 'fis.bizsubekod' });
+	loadServerData_queryDuzenle({ stm, attrSet, trfSipmi }) {
+		let {sent, sent: { where: wh, sahalar }} = stm
+		let e = arguments[0]; e.sent = sent
+		super.loadServerData_queryDuzenle(e)
+		let fisMustSaha = trfSipmi ? 'irsmust' : 'must'
+		this.fisVeHareketBagla(e)
+		this.donemBagla({ ...e, tarihSaha: 'fis.tarih' })
+		wh.fisSilindiEkle().add(`fis.ozelisaret <> 'X'`)
+		this.loadServerData_queryDuzenle_cari({ ...e, kodClause: `fis.${fisMustSaha}` })
+		this.loadServerData_queryDuzenle_sube({ ...e, kodClause: 'fis.bizsubekod' });
 		this.loadServerData_queryDuzenle_takip({ ...e, kodClause: `(case when fis.takiportakdir = '' then har.dettakipno else fis.orttakipno end)` });
 		this.loadServerData_queryDuzenle_plasiyer({ ...e, kodClause: 'fis.plasiyerkod' });
-		if (Object.keys(attrSet).find(x => x?.includes('MIKTAR'))) { sent.har2StokBagla() }
-		/*for (const key in attrSet) {
+		if (attrSet.ALTHESAP)
+			sent.fis2AltHesapBagla_eski()
+		if (keys(attrSet).find(x => x?.includes('MIKTAR')))
+			sent.har2StokBagla()
+		for (let key in attrSet) {
 			switch (key) {
-				case 'TAKIPNO': sahalar.add('tak.kod takipkod', 'tak.aciklama takipadi'); wh.icerikKisitDuzenle_takipNo({ ...e, saha: 'tak.kod' }); break
-				case 'TAKIPGRUP': sahalar.add('tgrp.kod takipgrupkod', 'tgrp.aciklama takipgrupadi'); break
+				case 'FISNOX': sahalar.add('fis.fisnox'); break
+				case 'ALTHESAP': sahalar.add('fis.cariitn', 'alth.aciklama althesapadi'); break
+				case 'FIYAT': sahalar.add(`har.fiyat`); break
+				case 'DVFIYAT': sahalar.add(`har.dvfiyat`); break
+				case 'DVKOD': sahalar.add(this.getRevizeDvKodClause('fis.dvkod')); break
+				case 'DVKUR': sahalar.add('fis.dvkur'); break
 			}
-		}*/
+		}
 		this.loadServerData_queryDuzenle_tarih({ ...e, alias: 'fis', tarihSaha: 'tarih' }).loadServerData_queryDuzenle_shd(e);
 		this.loadServerData_queryDuzenle_hmr(e).loadServerData_queryDuzenle_miktar(e).loadServerData_queryDuzenle_ciro(e);
 		this.loadServerData_queryDuzenle_ek(e)
@@ -77,7 +91,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 			let {where: wh, sahalar} = sent;
 			if (attrSet.STANAGRP || attrSet.STGRP || attrSet.STISTGRP || attrSet.STOK || attrSet.STOKMARKA) { sent.har2StokBagla() }
 			if (attrSet.STANAGRP) { sent.stok2GrupBagla() } if (attrSet.STOKMARKA) { sent.stok2MarkaBagla() }
-			for (const key in attrSet) {
+			for (let key in attrSet) {
 				switch (key) {
 					/*case 'STANAGRP': sent.stokGrup2AnaGrupBagla(); sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi'); wh.icerikKisitDuzenle_stokAnaGrup({ ...e, saha: 'grp.anagrupkod' }); break
 					case 'STGRP': sent.stok2GrupBagla(); sahalar.add('stk.grupkod', 'grp.aciklama grupadi'); wh.icerikKisitDuzenle_stokGrup({ ...e, saha: 'stk.grupkod' }); break
@@ -97,7 +111,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		return this
 	}
 	tabloYapiDuzenle_hizmet(e) {
-		const {result} = e; result
+		let {result} = e; result
 			.addKAPrefix('anagrup', 'grup', 'histgrup', 'hizmet', 'kategori')
 			.addGrup(new TabloYapiItem().setKA('HZANAGRP', 'Hizmet Ana Grup').secimKullanilir().setMFSinif(DMQHizmetAnaGrup)
 				.addColDef(new GridKolon({ belirtec: 'anagrup', text: 'Hizmet Ana Grup', maxWidth: 450, filterType: 'checkedlist' })))
@@ -120,7 +134,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 			if (attrSet.HZANAGRP) { sent.hizmet2GrupBagla() }
 			if (attrSet.HZANAGRP || attrSet.HZGRP || attrSet.HZISTGRP || attrSet.HIZMET) { sent.har2HizmetBagla() }
 			if (attrSet.KATEGORI || attrSet.KATDETAY) { sent.har2KatDetayBagla() }
-			for (const key in attrSet) {
+			for (let key in attrSet) {
 				switch (key) {
 					case 'HZANAGRP': sent.hizmetGrup2AnaGrupBagla(); sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi'); wh.icerikKisitDuzenle_hizmetAnaGrup({ ...e, saha: 'grp.anagrupkod' }); break
 					case 'HZGRP': sent.hizmet2GrupBagla(); sahalar.add('hiz.grupkod', 'grp.aciklama grupadi'); wh.icerikKisitDuzenle_hizmetGrup({ ...e, saha: 'hiz.grupkod' }); break
@@ -134,13 +148,13 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		return this
 	}
 	tabloYapiDuzenle_miktar(e) {
-		const {result} = e, {stokmu} = this, toplamPrefix = e.toplamPrefix ?? this.class.toplamPrefix;
+		let {result} = e, {stokmu} = this, toplamPrefix = e.toplamPrefix ?? this.class.toplamPrefix;
 		result.addToplam(
 			new TabloYapiItem().setKA('MIKTAR', `${toplamPrefix}Miktar`)
 				.addColDef(new GridKolon({ belirtec: 'miktar', text: `${toplamPrefix}Miktar`, genislikCh: 15, filterType: 'numberinput' }).tipDecimal())
 		);
 		if (stokmu) {
-			for (let tip of Object.keys(MQStokGenelParam.tip2BrmListe) ?? []) {
+			for (let tip of keys(MQStokGenelParam.tip2BrmListe) ?? []) {
 				result.addToplam(new TabloYapiItem().setKA(`MIKTAR${tip}`, `${toplamPrefix}Miktar (${tip})`)
 					 .addColDef(new GridKolon({ belirtec: `miktar${tip}`, text: `${toplamPrefix}${tip}`, genislikCh: 15, filterType: 'numberinput' }).tipDecimal()))
 			}
@@ -151,7 +165,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		let {attrSet, stm} = e, PrefixMiktar = 'MIKTAR';
 		for (let sent of stm) {
 			let {sahalar} = sent;
-			/*if (attrSet.STOK || Object.keys(attrSet).find(x => x.startsWith(PrefixMiktar)))
+			/*if (attrSet.STOK || keys(attrSet).find(x => x.startsWith(PrefixMiktar)))
 				sahalar.add('brm') */
 			for (let key in attrSet) {
 				switch (key) {
@@ -179,7 +193,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 			.addToplam(new TabloYapiItem().setKA('CIROFIYAT', `${toplamPrefix}Ciro Fiyat`)
 				.setFormul(['CIRO', 'MIKTAR'], ({ rec }) => roundToFiyatFra(rec.miktar ? rec.ciro / rec.miktar : 0))
 				.addColDef(new GridKolon({ belirtec: 'cirofiyat', text: `${toplamPrefix}Ciro Fiyat`, genislikCh: 30, filterType: 'numberinput' }).tipDecimal_fiyat()));
-		for (const dvKod of this.dvKodListe) {
+		for (let dvKod of this.dvKodListe) {
 			result.addToplam(new TabloYapiItem().setKA(`CIRO_${dvKod}`, `${toplamPrefix}Ciro (<b>${dvKod}</b>)`)
 				.addColDef(new GridKolon({ belirtec: `ciro_${dvKod}`, text: `${toplamPrefix}Ciro (<b>${dvKod}</b>)`, genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
 			result.addToplam(new TabloYapiItem().setKA(`CIROORTKUR_${dvKod}`, `${toplamPrefix}Ciro Ort. Kur (<b>${dvKod}</b>)`)
@@ -189,9 +203,9 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		return this
 	}
 	loadServerData_queryDuzenle_ciro(e) {
-		const {attrSet, stm} = e, dvBedelFra = app.params?.zorunlu?.dvBedelFra || 2;
-		for (const {sahalar} of stm.getSentListe()) {
-			for (const key in attrSet) {
+		let {attrSet, stm} = e, dvBedelFra = app.params?.zorunlu?.dvBedelFra || 2;
+		for (let {sahalar} of stm.getSentListe()) {
+			for (let key in attrSet) {
 				switch (key) {
 					case 'STBRCIRO': sahalar.add('SUM(har.brutbedel) stbrciro'); break
 					case 'CIRO': sahalar.add('SUM(har.bedel - har.dipiskonto) ciro'); break
@@ -201,7 +215,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 					case 'MALMUH': sahalar.add('SUM(har.fmalmuh) malmuh'); break;
 					case 'BRUTKAR': sahalar.add('SUM(har.bedel - har.dipiskonto - (har.fmalhammadde + har.fmalmuh)) brutkar'); break;
 					default:
-						for (const dvKod of this.dvKodListe) {
+						for (let dvKod of this.dvKodListe) {
 							if (key == `BRCIRO_${dvKod}`) {
 								sahalar.add(
 									`SUM(case` +
@@ -224,34 +238,39 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		return this
 	}
 }
+
 class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get toplamPrefix() { return 'Net ' }
-	fisVeHareketBagla(e) { super.fisVeHareketBagla(e); const {sent} = e, {shd} = this; sent.fisHareket('piffis', `pif${shd}`) }
-	loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); for (const {where: wh} of e.stm.getSentListe()) { wh.add(`fis.piftipi = 'F'`) } }
+	fisVeHareketBagla(e) { super.fisVeHareketBagla(e); let {sent} = e, {shd} = this; sent.fisHareket('piffis', `pif${shd}`) }
+	loadServerData_queryDuzenle(e) {
+		super.loadServerData_queryDuzenle(e)
+		for (let {where: wh} of e.stm)
+			wh.add(`fis.piftipi = 'F'`)
+	}
 	tabloYapiDuzenle_miktar(e) {
-		super.tabloYapiDuzenle_miktar(e); const {result} = e, {stokmu} = this, brmDict = app.params?.stokBirim?.brmDict ?? {};
-		const tip2Bilgi = { BR: { miktarPrefix: 'br', etiketPrefix: 'Brüt' }, IA: { miktarPrefix: 'ia', etiketPrefix: 'İADE' } };
+		super.tabloYapiDuzenle_miktar(e); let {result} = e, {stokmu} = this, brmDict = app.params?.stokBirim?.brmDict ?? {};
+		let tip2Bilgi = { BR: { miktarPrefix: 'br', etiketPrefix: 'Brüt' }, IA: { miktarPrefix: 'ia', etiketPrefix: 'İADE' } };
 		result.addToplam(new TabloYapiItem().setKA('BRMIKTAR', 'Brüt Miktar').addColDef(new GridKolon({ belirtec: 'brmiktar', text: 'Brüt Miktar', genislikCh: 15, filterType: 'numberinput' }).tipDecimal()));
 		result.addToplam(new TabloYapiItem().setKA('IAMIKTAR', 'İADE Miktar').addColDef(new GridKolon({ belirtec: 'iamiktar', text: 'İADE Miktar', genislikCh: 15, filterType: 'numberinput' }).tipDecimal()));
-		for (const [tip, {miktarPrefix, etiketPrefix}] of entries(tip2Bilgi)) {
-			for (const brmTip of keys(MQStokGenelParam.tip2BrmListe) ?? []) {
-				const fra = brmDict[brmTip]; result.addToplam(new TabloYapiItem().setKA(`${tip}MIKTAR${brmTip}`, `${etiketPrefix} Miktar (${brmTip})`)
+		for (let [tip, {miktarPrefix, etiketPrefix}] of entries(tip2Bilgi)) {
+			for (let brmTip of keys(MQStokGenelParam.tip2BrmListe) ?? []) {
+				let fra = brmDict[brmTip]; result.addToplam(new TabloYapiItem().setKA(`${tip}MIKTAR${brmTip}`, `${etiketPrefix} Miktar (${brmTip})`)
 					 .addColDef(new GridKolon({ belirtec: `${miktarPrefix}miktar${brmTip}`, text: `${etiketPrefix} ${brmTip}`, genislikCh: 15, filterType: 'numberinput' }).tipDecimal(fra)))
 			}
 		}
 		return this
 	}
 	loadServerData_queryDuzenle_miktar(e) {
-		super.loadServerData_queryDuzenle_miktar(e); const {attrSet, stm} = e, PrefixMiktar = 'MIKTAR';
-		for (const {where: wh, sahalar} of stm.getSentListe()) {
+		super.loadServerData_queryDuzenle_miktar(e); let {attrSet, stm} = e, PrefixMiktar = 'MIKTAR';
+		for (let {where: wh, sahalar} of stm.getSentListe()) {
 			if (attrSet.STOK && keys(attrSet).find(x => x.startsWith(PrefixMiktar)))
 				sahalar.add('stk.brm')
-			for (const key in attrSet) {
+			for (let key in attrSet) {
 				if (key == `BR${PrefixMiktar}`) { sahalar.add(`SUM(case when fis.iade = '' then har.miktar else 0 end) brmiktar`) }
 				else if (key == `IA${PrefixMiktar}`) { sahalar.add(`SUM(case when fis.iade = '' then 0 else har.miktar end) iamiktar`) }
 				else if (key != PrefixMiktar && key.endsWith(PrefixMiktar)) {
-					const tipPrefix = key.slice(0, 2), brmTip = key.slice(2 + PrefixMiktar.length)?.toUpperCase();
-					const getMiktarClause = miktarClause =>
+					let tipPrefix = key.slice(0, 2), brmTip = key.slice(2 + PrefixMiktar.length)?.toUpperCase();
+					let getMiktarClause = miktarClause =>
 						tipPrefix == 'BR' ? `(case when fis.iade = '' then ${miktarClause} else 0 end)` :
 						tipPrefix == 'IA' ? `(case when fis.iade = '' then 0 else ${miktarClause} end)` : miktarClause;
 					sahalar.add(`${this.getBrmliMiktarClause({ brmTip, mstAlias: 'stk', harAlias: 'har', getMiktarClause })} brmiktar${brmTip}`)
@@ -294,18 +313,18 @@ class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 		return this
 	}
 	loadServerData_queryDuzenle_ciro(e) {
-		super.loadServerData_queryDuzenle_ciro(e); const {attrSet, stm} = e, {dvKodListe} = this;
-		const getCiroClause = {
+		super.loadServerData_queryDuzenle_ciro(e); let {attrSet, stm} = e, {dvKodListe} = this;
+		let getCiroClause = {
 			BR: dvmi => `case when fis.iade = '' then har.${dvmi ? 'dv' : ''}bedel else 0 end`,
 			IA: dvmi => `case when fis.iade = 'I' then 0 - har.${dvmi ? 'dv' : ''}bedel else 0 end`
 		}, sahaAliasPrefix = { BR: 'brut', IA: 'iade' }, PrefixCiro = 'CIRO';
-		for (const {where: wh, sahalar} of stm.getSentListe()) {
-			for (const key in attrSet) {
+		for (let {where: wh, sahalar} of stm.getSentListe()) {
+			for (let key in attrSet) {
 				if (key == `BR${PrefixCiro}`) { sahalar.add(`SUM(case when fis.iade = '' then har.bedel else 0 end) brciro`) }
 				else if (key == `IA${PrefixCiro}`) { sahalar.add(`SUM(case when fis.iade = '' then 0 else har.bedel end) iaciro`) }
 				else {
-					for (const dvKod of dvKodListe) {
-						for (const prefix of ['BR', 'IA']) {
+					for (let dvKod of dvKodListe) {
+						for (let prefix of ['BR', 'IA']) {
 							if (key == `${prefix}CIRO_${dvKod}`) { sahalar.add(`SUM(${getCiroClause[prefix](false)}) ${sahaAliasPrefix[prefix]}ciro`) }
 							else if (key == `${prefix}CIRO_${dvKod}`) {
 								sahalar.add(
@@ -318,10 +337,17 @@ class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 					}
 				}
 			}
-			/*for (const key in attrSet) {
+			/*for (let key in attrSet) {
 				switch (key) { default: break }
 			}*/
 		}
 		return this
 	}
+}
+
+class DRapor_TicariStok extends DRapor_Ticari {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get shd() { return 'stok' } static get kategoriKod() { return `${super.kategoriKod}-STOK` }
+}
+class DRapor_TicariHizmet extends DRapor_Ticari {
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get shd() { return 'hizmet' } static get kategoriKod() { return `${super.kategoriKod}-HIZMET` }
 }

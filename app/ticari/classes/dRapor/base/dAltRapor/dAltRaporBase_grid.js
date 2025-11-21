@@ -125,7 +125,7 @@ class DAltRapor_Grid_Ozet extends DAltRapor_Grid {
 			if (colDefs?.length == 2) {
 				for (let _ of colDefs)
 					_.genislikCh = _.width = _.minWidth = _.maxWidth = undefined
-				colDefs[1].genislikCh = 13
+				colDefs[1].genislikCh = 15
 			}
 			if (gridWidget?.isbindingcompleted()) {
 				gridWidget?.beginupdate()

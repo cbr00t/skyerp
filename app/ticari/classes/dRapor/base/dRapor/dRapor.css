@@ -121,8 +121,10 @@ body.dark-theme .dRapor.part #items > .item._main .jqx-grid tr:nth-child(even) .
 .dRapor.part #items > .item .jqx-grid .jqx-grid-statusbar > div > .jqx-grid-cell { font-weight: bold; color: royalblue }
 .dRapor.part #items > .item._main .jqx-grid .jqx-grid-statusbar > div > .jqx-grid-cell { font-size: 80% !important }
 .dRapor.part #items > .item[data-builder-id = 'ozet'] .jqx-grid .jqx-grid-statusbar > div > .jqx-grid-cell { font-size: 103% !important }
-.dRapor.part #items > .item[data-builder-id = 'ozet'] .jqx-grid .jqx-grid-cell { font-size: 80% }
-.dRapor.part #items > .item[data-builder-id = 'ozet'] .jqx-grid .jqx-grid-cell > div { padding-right: 13px }
+.dRapor.part #items > .item[data-builder-id = 'ozet'] .jqx-grid .jqx-grid-cell,
+	.dRapor.part #items > .item[data-builder-id = 'ozet'] .jqx-grid .jqx-grid-cell > div { font-size: 85% }
+.dRapor.part #items > .item[data-builder-id = 'ozet'] .jqx-grid .jqx-grid-cell { padding: 0 3px 0 6px }
+.dRapor.part #items > .item[data-builder-id = 'ozet'] .jqx-grid .jqx-grid-cell > div { margin-right: 16px }
 .secimler.dRapor.part .secimler-form > div { padding-top: 5px }
 .secimler.dRapor.part .secimler-form .secim { padding: 5px }
 .secimler.dRapor.part .secimler-form .modelKullan.part { padding: 5px 5px }

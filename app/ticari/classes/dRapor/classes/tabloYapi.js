@@ -29,19 +29,33 @@ class TabloYapi extends CObject {
 		return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha)
 	}
 	addGrupBasit_numerik(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha) {
-		let _duzenleyici = duzenleyici; duzenleyici = e => { e.colDef.tipNumerik(); _duzenleyici?.call(this, e) };
+		let _duzenleyici = duzenleyici
+		duzenleyici = e => { e.colDef.tipNumerik(); _duzenleyici?.call(this, e) }
+		return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha)
+	}
+	addGrupBasit_fiyat(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha) {
+		let _duzenleyici = duzenleyici
+		duzenleyici = e => { e.colDef.tipDecimal_fiyat(); _duzenleyici?.call(this, e) }
+		return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha)
+	}
+	addGrupBasit_bedel(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha) {
+		let _duzenleyici = duzenleyici
+		duzenleyici = e => { e.colDef.tipDecimal_bedel(); _duzenleyici?.call(this, e) }
 		return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha)
 	}
 	addToplamBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, fra, orderBySaha) {
-		let _duzenleyici = duzenleyici; duzenleyici = e => { e.colDef.tipDecimal(fra); _duzenleyici?.call(this, e) };
+		let _duzenleyici = duzenleyici
+		duzenleyici = e => { e.colDef.tipDecimal(fra); _duzenleyici?.call(this, e) }
 		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha)
 	}
 	addToplamBasit_fiyat(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha) {
-		let _duzenleyici = duzenleyici; duzenleyici = e => { e.colDef.tipDecimal_fiyat(); _duzenleyici?.call(this, e) };
+		let _duzenleyici = duzenleyici
+		duzenleyici = e => { e.colDef.tipDecimal_fiyat(); _duzenleyici?.call(this, e) }
 		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha)
 	}
 	addToplamBasit_bedel(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha) {
-		let _duzenleyici = duzenleyici; duzenleyici = e => { e.colDef.tipDecimal_bedel(); _duzenleyici?.call(this, e) };
+		let _duzenleyici = duzenleyici
+		duzenleyici = e => { e.colDef.tipDecimal_bedel(); _duzenleyici?.call(this, e) }
 		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha)
 	}
 	addItemBasit(selector, kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha) {
@@ -103,7 +117,8 @@ class TabloYapiItem extends CObject {
 		e = e || {}; super(e); $.extend(this, {
 			tip: e.tip == 'string' ? null : e.tip, mfSinif: e.mfSinif, secimKullanilirFlag: e.secimKullanilirFlag,
 			ozelWhereClauseFlag: e.ozelWhereClauseFlag, orderBySaha: e.orderBySaha,
-			hrkAttr: e.hrkAttr, colDefs: e.colDefs ?? [], secimlerDuzenleyici: e.secimlerDuzenleyici, tbWhereClauseDuzenleyici: e.tbWhereClauseDuzenleyici,
+			hrkAttr: e.hrkAttr, colDefs: e.colDefs ?? [],
+			secimlerDuzenleyici: e.secimlerDuzenleyici, tbWhereClauseDuzenleyici: e.tbWhereClauseDuzenleyici,
 			kodsuzmu: e.kodsuzmu, isHidden: e.hidden ?? e.isHidden
 		});
 		this.setKA(e.ka).setFormul(e.formul)

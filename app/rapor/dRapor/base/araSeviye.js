@@ -104,16 +104,16 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return super.tazele(e)
 	}
 	cellsRenderer(e) {
-		e.html = super.cellsRenderer(e); const {belirtec, rec} = e;
+		e.html = super.cellsRenderer(e); let {belirtec, rec} = e;
 		switch (belirtec) {
 			case 'renk': {
-				const {oscolor1, oscolor2} = rec; if (oscolor1) {
+				let {oscolor1, oscolor2} = rec; if (oscolor1) {
 					let color = { start: os2HTMLColor(oscolor1), end: os2HTMLColor(oscolor2) };
 					e.html = `<div class="full-wh" style="font-weight: bold; color: ${getContrastedColor(color.start ?? '')}; background-repeat: no-repeat !important; background: linear-gradient(180deg, ${color.end} 20%, ${color.start} 80%) !important">${e.html}</div>`
 				}
 			} break
 			case 'desen': {
-				const {imagesayac} = rec; if (imagesayac) {
+				let {imagesayac} = rec; if (imagesayac) {
 					let url = `${app.getWSUrlBase({ wsPath: 'ws/genel' })}/dbResimData/?id=${imagesayac}`;
 					e.html = `<div class="grid-resim full-wh" style="font-weight: bold; background-repeat: no-repeat !important; background-size: cover; background-image: url(${url}) !important">${e.html}</div>`
 				}
@@ -122,12 +122,12 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return e.html
 	}
 	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e); const {result} = e;
+		super.tabloYapiDuzenle(e); let {result} = e;
 		if (this.konsolideVarmi) { result.addGrupBasit('DB', 'Veritabanı', 'db', null, null, null) }
 		this.tabloYapiDuzenle_ozel?.(e)
 	}
 	tabloYapiDuzenle_son(e) {
-		super.tabloYapiDuzenle_son(e); const {result} = e; this.tabloYapiDuzenle_son_ozel?.(e);
+		super.tabloYapiDuzenle_son(e); let {result} = e; this.tabloYapiDuzenle_son_ozel?.(e);
 		result.addToplam(new TabloYapiItem().setKA('KAYITSAYISI', 'Kayıt Sayısı')
 			 .addColDef(new GridKolon({ belirtec: 'kayitsayisi', text: 'Kayıt Sayısı', genislikCh: 10, filterType: 'numberinput', aggregates: ['sum'] }).tipNumerik()))
 	}
@@ -194,18 +194,24 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		if (this.loadServerData_queryDuzenle_son(e) === false) { return false }
 	}
 	loadServerData_queryDuzenle(e) {
-		let alias = e.alias = e.alias ?? 'fis'; const {secimler, raporTanim, tabloYapi} = this, {yatayAnaliz} = raporTanim.kullanim, {stm} = e;
+		let alias = e.alias = e.alias ?? 'fis'; let {secimler, raporTanim, tabloYapi} = this, {yatayAnaliz} = raporTanim.kullanim, {stm} = e;
 		let {attrSet: _attrSet} = e, attrSet = e.attrSet = raporTanim._ozelAttrSet = { ..._attrSet };
-		for (const sent of stm) { sent.sahalar.add(`COUNT(*) kayitsayisi`) }
-		if (secimler) {
-			for (const [key, secim] of Object.entries(secimler.liste)) {
-				if (secim.isHidden || secim.isDisabled) { continue } const kod = secim.userData?.kod; if (!kod) { continue }
-				const uygunmu = typeof secim.value == 'object' ? !empty(secim.value) : !!secim.value;
-				if (uygunmu) { attrSet[kod] = true }
+		for (let sent of stm)
+			sent.sahalar.add(`COUNT(*) kayitsayisi`)
+		/*if (secimler) {
+			for (let [key, secim] of Object.entries(secimler.liste)) {
+				if (secim.isHidden || secim.isDisabled) { continue }
+				let kod = secim.userData?.kod; if (!kod) { continue }
+				let {value} = secim, uygunmu = !empty(value)
+				if (uygunmu && typeof value == 'object')
+					uygunmu = !(empty(value.basi) && empty(value.sonu))
+				if (uygunmu)
+					attrSet[kod] = true
 			}
-		}
-		let {toplam} = tabloYapi; for (let key in attrSet) {
-			const formul = toplam[key]?.formul; if (!formul) { continue }
+		}*/
+		let {toplam} = tabloYapi
+		for (let key in attrSet) {
+			let formul = toplam[key]?.formul; if (!formul) { continue }
 			let {attrListe} = formul; if (attrListe?.length) { $.extend(attrSet, asSet(attrListe)) }
 		}
 		if (yatayAnaliz) { attrSet[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod] = true }
@@ -221,7 +227,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		if (alias) {
 			let {dvKod2Rec: dvKodSet} = this, gecerliDvKodSet = {}, dvKodVarmi = false;
 			for (let key in attrSet) {
-				const dvKod = key.split('_').slice(-1)[0]
+				let dvKod = key.split('_').slice(-1)[0]
 				if (dvKodSet[dvKod]) { gecerliDvKodSet[dvKod] = dvKodVarmi = true }
 			}
 			for (let sent of stm) {
@@ -236,7 +242,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		if (this.class.secimWhereBaglanirmi) {
 			let tbWhere = secimler?.getTBWhereClause(e);
 			for (let {where: wh, sahalar} of stm) { if (tbWhere?.liste?.length) { wh.birlestir(tbWhere) } }
-			/*for (const sent of stm) { sent.gereksizTablolariSil({ disinda: [alias] }) }*/
+			/*for (let sent of stm) { sent.gereksizTablolariSil({ disinda: [alias] }) }*/
 		}
 		this.loadServerData_queryDuzenle_son_son_ozel?.(e)
 	}
@@ -354,15 +360,15 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return await super.loadServerData_recsDuzenle({ ...arguments })
 	}
 	loadServerData_recsDuzenleSon(e) {
-		return super.loadServerData_recsDuzenleSon(e) /* const {attrSet} = this.raporTanim, {toplam} = this.tabloYapi, avgBelirtec2ColDef = {};
+		return super.loadServerData_recsDuzenleSon(e) /* let {attrSet} = this.raporTanim, {toplam} = this.tabloYapi, avgBelirtec2ColDef = {};
 		for (let key in attrSet) {
 			if (!toplam[key]) { continue } let avgColDefs = toplam[key]?.colDefs?.filter(colDef => colDef?.aggregates?.includes('avg')); if (!avgColDefs?.length) { continue }
-			for (const colDef of avgColDefs) { avgBelirtec2ColDef[colDef.belirtec] = colDef }
+			for (let colDef of avgColDefs) { avgBelirtec2ColDef[colDef.belirtec] = colDef }
 		}
 		let {recs} = e; if (!empty(avgBelirtec2ColDef)) {
-			for (const rec of recs) {
+			for (let rec of recs) {
 				let {kayitsayisi: count} = rec; if (!count) { continue }
-				for (const key in avgBelirtec2ColDef) {
+				for (let key in avgBelirtec2ColDef) {
 					let value = rec[key]; if (!(value && typeof value == 'number')) { continue }
 					let fra = avgBelirtec2ColDef[key]?.tip?.fra ?? 0;
 					rec[key] = value = roundToFra(value / count, fra)
@@ -378,7 +384,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			if (key.startsWith(PrefixMiktar) || key.slice(2).startsWith(PrefixMiktar)) {
 				miktarSet[key] = true
 				let postfix = key.slice(key.indexOf(PrefixMiktar) + PrefixMiktar.length).trim()
-				if (!postfix) { brmsizMiktarSet[key] = true }
+				if (!postfix || postfix == '2')   // '2' => 'MIKTAR2'
+					brmsizMiktarSet[key] = true
 			}
 		}
 		if (!(empty(brmsizMiktarSet) || icerik.BRM)) {
@@ -493,9 +500,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	loadServerData_queryDuzenle_hmr(e) {
 		let {stm, attrSet} = e, alias = e.alias == 'fis' ? 'har' : e.alias, aliasVeNokta = alias ? `${alias}.` : '';
 		for (let sent of stm) {
-			const {where: wh, sahalar} = sent; for (const {belirtec, rowAttr, kami, mfSinif} of HMRBilgi.hmrIter()) {
-				const tip = belirtec.toUpperCase(); if (!attrSet[tip]) { continue }
-				const hmrTable = kami && kami ? mfSinif?.table : null;
+			let {where: wh, sahalar} = sent; for (let {belirtec, rowAttr, kami, mfSinif} of HMRBilgi.hmrIter()) {
+				let tip = belirtec.toUpperCase(); if (!attrSet[tip]) { continue }
+				let hmrTable = kami && kami ? mfSinif?.table : null;
 				if (hmrTable) {
 					let {tableAlias: hmrTableAlias, idSaha, adiSaha} = mfSinif;
 					sent.fromIliski(`${hmrTable} ${hmrTableAlias}`, `${alias}.${rowAttr} = ${hmrTableAlias}.${idSaha}`);
@@ -730,8 +737,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		let {tip2BrmListe} = MQStokGenelParam, brmListe = tip2BrmListe?.[brmTip]; if (!brmListe?.length) { return '0' }
 		let {mstAlias, harAlias, miktarPrefix, getMiktarClause} = e; mstAlias = mstAlias ?? 'stk'; harAlias = harAlias ?? 'har'; miktarPrefix = miktarPrefix ?? '';
 		getMiktarClause = getMiktarClause ?? (miktarClause => miktarClause);
-		const mstAliasVeNokta = mstAlias ? `${mstAlias}.` : '', harAliasVeNokta = harAlias ? `${harAlias}.` : '';
-		const getWhereClause = brmSaha => new MQSubWhereClause({ inDizi: brmListe ?? [], saha: `${mstAliasVeNokta}brm` }).toString();
+		let mstAliasVeNokta = mstAlias ? `${mstAlias}.` : '', harAliasVeNokta = harAlias ? `${harAlias}.` : '';
+		let getWhereClause = brmSaha => new MQSubWhereClause({ inDizi: brmListe ?? [], saha: `${mstAliasVeNokta}brm` }).toString();
 		return `SUM(case when ${getWhereClause('brm')} then ${getMiktarClause(`${harAliasVeNokta}${miktarPrefix}miktar`)}` +
 						` when ${getWhereClause('brm2')} then ${getMiktarClause(`${harAliasVeNokta}${miktarPrefix}miktar2`)}` +
 						` else 0 end)`
@@ -746,23 +753,26 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return true
 	}
 	getDvBosmuClause(e) {
-		let dvKodClause = typeof e == 'object' ? e.dvKodClause : e;
-		if ((dvKodClause || `''`) == `''`) { return '1 = 1' }
+		let dvKodClause = typeof e == 'object' ? e.dvKodClause : e
+		if ((dvKodClause || `''`) == `''`)
+			return '1 = 1'
 		return `COALESCE(${dvKodClause}, '') IN ('', 'TL', 'TRY', 'TRL')`
 	}
 	getRevizeDvKodClause(e) {
-		let dvKodClause = typeof e == 'object' ? e.dvKodClause : e;
-		if ((dvKodClause || `''`) == `''`) { return dvKodClause }
-		let dvBosmuClause = this.getDvBosmuClause(dvKodClause);
+		let dvKodClause = typeof e == 'object' ? e.dvKodClause : e
+		if ((dvKodClause || `''`) == `''`)
+			return dvKodClause
+		let dvBosmuClause = this.getDvBosmuClause(dvKodClause)
 		return `(case when ${dvBosmuClause} then '' else ${dvKodClause} end)`
 	}
 	getDovizliBedelClause(e, _tlBedelClause, _dvBedelClause, _sumOlmaksizinmi) {
-		let objmi = typeof e == 'object', sumOlmaksizinmi = objmi ? e.sumOlmaksizin ?? e.sumOlmaksizinmi : _sumOlmaksizinmi;
-		let dvKodClause = objmi ? e.dvKodClause : e, dvBosmuClause = this.getDvBosmuClause(dvKodClause);
-		let tlBedelClause = objmi ? e.tlBedelClause ?? e.bedelClause : _tlBedelClause;
+		let objmi = typeof e == 'object', sumOlmaksizinmi = objmi ? e.sumOlmaksizin ?? e.sumOlmaksizinmi : _sumOlmaksizinmi
+		let dvKodClause = objmi ? e.dvKodClause : e, dvBosmuClause = this.getDvBosmuClause(dvKodClause)
+		let tlBedelClause = objmi ? e.tlBedelClause ?? e.bedelClause : _tlBedelClause
 		let dvBedelClause = objmi ? e.dvBedelClause : _dvBedelClause;
 		if (sumOlmaksizinmi) { tlBedelClause = tlBedelClause?.sumOlmaksizin(); dvBedelClause = dvBedelClause?.sumOlmaksizin() }
-		if ((dvKodClause || `''`) == `''`) { return tlBedelClause }
-		return `(case when ${dvBosmuClause} then ${tlBedelClause} else ${dvBedelClause} end)`;
+		if ((dvKodClause || `''`) == `''`)
+			return tlBedelClause
+		return `(case when ${dvBosmuClause} then ${tlBedelClause} else ${dvBedelClause} end)`
 	}
 }

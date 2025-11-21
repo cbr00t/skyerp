@@ -98,19 +98,20 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 			hareketci.uygunluk = $.isEmptyObject(value) ? null : asSet(value)
 		})
 	}
-	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e); let {result} = e; result.addKAPrefix('ref', 'althesap');
-		this.tabloYapiDuzenle_ozelIsaret(e).tabloYapiDuzenle_sube(e);
-		result.addGrupBasit('FISNOX', 'Fis No', 'fisnox', null, null, ({ item }) => item.secimKullanilir());
-		result.addGrupBasit('ALTHESAP', 'Alt Hesap', 'althesap', DMQAltHesap);
-		this.tabloYapiDuzenle_odemeGun(e);
-		result.addGrupBasit('REF', 'Referans', 'ref', null, null, ({ item }) => item.setOrderBy('refadi'));
-		result.addGrupBasit('ANAISLEM', 'Ana İşlem', 'anaislemadi');
-		result.addGrupBasit('ISLEM', 'İşlem', 'isladi');
-		this.tabloYapiDuzenle_plasiyer(e);
-		this.tabloYapiDuzenle_takip(e);
-		result.addGrupBasit('DVKOD', 'Dv.Kod', 'dvkod');
-		result.addGrupBasit('DVKUR', 'Dv.Kur', 'dvkur', null, null, ({ item }) => item.noOrderBy());
+	tabloYapiDuzenle({ result }) {
+		let e = arguments[0]; super.tabloYapiDuzenle(e)
+		result.addKAPrefix('ref', 'althesap')
+		this.tabloYapiDuzenle_ozelIsaret(e).tabloYapiDuzenle_sube(e)
+		result.addGrupBasit('FISNOX', 'Fis No', 'fisnox', null, null, ({ item }) => item.secimKullanilir())
+		result.addGrupBasit('ALTHESAP', 'Alt Hesap', 'althesap', DMQAltHesap)
+		this.tabloYapiDuzenle_odemeGun(e)
+		result.addGrupBasit('REF', 'Referans', 'ref', null, null, ({ item }) => item.setOrderBy('refadi'))
+		result.addGrupBasit('ANAISLEM', 'Ana İşlem', 'anaislemadi')
+		result.addGrupBasit('ISLEM', 'İşlem', 'isladi')
+		this.tabloYapiDuzenle_plasiyer(e)
+		this.tabloYapiDuzenle_takip(e)
+		result.addGrupBasit('DVKOD', 'Dv.Kod', 'dvkod')
+		result.addGrupBasit('DVKUR', 'Dv.Kur', 'dvkur', null, null, ({ item, colDef }) => { item.noOrderBy(); colDef.tipDecimal() })
 		this.tabloYapiDuzenle_baBedel(e)
 	}
 	tabloYapiDuzenle_odemeGun(e) { /* do nothing */ }

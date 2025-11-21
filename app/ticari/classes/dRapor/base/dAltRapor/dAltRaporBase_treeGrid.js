@@ -495,9 +495,11 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			for (let subRec of subRecs) {
 				if (result.length < ozetMax) {
 					this.fixKA(subRec, grupAttr, false)
-					let _rec = { [grupAttr]: subRec[grupAttr] }
+					let value = subRec[grupAttr] || subRec?.detaylar?.[0]?.[grupAttr]
+					let _rec = { [grupAttr]: value }
 					_rec[icerikAttr] = deger
 					result.push(_rec)
+					continue
 				}
 				digerRec[icerikAttr] = (digerRec[icerikAttr] || 0) + deger
 				digerSayi++
