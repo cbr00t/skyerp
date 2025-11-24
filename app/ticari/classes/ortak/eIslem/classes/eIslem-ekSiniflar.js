@@ -1,10 +1,13 @@
 class EIslBaslikVeDetayOrtak extends RowluYapi {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	get temps() { return this._temps }
+	get shared() { return this._shared }
 	onKontrol(e) { }
 }
 class EIslBaslik extends EIslBaslikVeDetayOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	get eIslTip() { return this.rec.efayrimtipi } get eFaturami() { return this.eIslTip == 'E' } get eArsivmi() { return (this.eIslTip || 'A') == 'A' }
+	get eIslTip() { return this.rec.efayrimtipi }
+	get eFaturami() { return this.eIslTip == 'E' } get eArsivmi() { return (this.eIslTip || 'A') == 'A' }
 	get eIrsaliyemi() { return this.eIslTip == 'IR' } get eMustahsilmi() { return this.eIslTip == 'MS' }
 	get alimIademi() { return asBool(this.rec.alimiademi) } get subeKod() { return this.rec.bizsubekod }
 	get dvKod() {
@@ -30,8 +33,9 @@ class EIslBaslik extends EIslBaslikVeDetayOrtak {
 		return result
 	}
 	get aliciBilgi() {
-		let result = this._aliciBilgi;
-		if (result === undefined) result = this._aliciBilgi = $.extend(new EIslBaslik_AliciBilgi(), this)
+		let {_aliciBilgi: result} = this
+		if (result === undefined)
+			result = this._aliciBilgi = $.extend(new EIslBaslik_AliciBilgi(), this)
 		return result
 	}
 	get genelYontemKod() { return this.rec.genelyontem } get ozelYontemKod() { return this.rec.ozelyontem }
@@ -162,7 +166,7 @@ class EIcmal extends CObject {
 		if (result === undefined) {
 			let altTip2Satirlar = ((this.belirtec2AnaTip2AltTip2Satirlar.H || {}).IS || []);
 			result = new TLVeDVBedel();
-			for (let eSatir of Object.values(altTip2Satirlar)) { result.ekle(eSatir.bedelYapi) }
+			for (let eSatir of values(altTip2Satirlar)) { result.ekle(eSatir.bedelYapi) }
 			this._topIskBedelYapi = result
 		}
 		return this._topIskBedelYapi
@@ -172,22 +176,27 @@ class EIcmal extends CObject {
 		if (result === undefined) {
 			result = new TLVeDVBedel();
 			let anaTip2AltTip2Satirlar = this.belirtec2AnaTip2AltTip2Satirlar.H || {};
-			for (let altTip2Satirlar of Object.values(anaTip2AltTip2Satirlar))
-			for (let eSatir of Object.values(altTip2Satirlar)) { result.ekle(eSatir) }
+			for (let altTip2Satirlar of values(anaTip2AltTip2Satirlar))
+			for (let eSatir of values(altTip2Satirlar)) { result.ekle(eSatir) }
 			this._hizmetler = result
 		}
 		return this._hizmetler
 	}
-	getVergiEklenenYapi(e) {
-		e = e || {}; let sadeceEkleneceklermi = e.sadeceEklenecekler || e.sadeceEkleneceklermi;
-		let result = (this._vergiEklenenYapi = this._vergiEklenenYapi || {}), subResult = result[sadeceEklenecekler];
+	getVergiEklenenYapi(e = {}) {
+		let sadeceEkleneceklermi = e.sadeceEklenecekler ?? e.sadeceEkleneceklermi
+		let result = (this._vergiEklenenYapi = this._vergiEklenenYapi || {})
+		let subResult = result[sadeceEklenecekler]
 		if (subResult === undefined) {
-			subResult = new TLVeDVBedel();
-			let anaTip2AltTip2Satirlar = this.belirtec2AnaTip2AltTip2Satirlar.V || {};
-			for (let altTip2Satirlar of Object.values(anaTip2AltTip2Satirlar)) {
-				for (let eSatir of Object.values(altTip2Satirlar)) {
-					let {bedelYapi} = eSatir;
-					if (eSatir.dusulecekmi) { if (!sadeceEkleneceklermi) { continue } bedelYapi = bedelYapi.negated }
+			subResult = new TLVeDVBedel()
+			let anaTip2AltTip2Satirlar = this.belirtec2AnaTip2AltTip2Satirlar.V || {}
+			for (let altTip2Satirlar of values(anaTip2AltTip2Satirlar)) {
+				for (let eSatir of values(altTip2Satirlar)) {
+					let {bedelYapi} = eSatir
+					if (eSatir.dusulecekmi) {
+						if (!sadeceEkleneceklermi)
+							continue
+						bedelYapi = bedelYapi.negated
+					}
 					subResult.ekle(bedelYapi)
 				}
 			}
@@ -196,24 +205,26 @@ class EIcmal extends CObject {
 		return this._vergiEklenenYapi
 	}
 	get vergiHaricToplamYapi() {
-		let result = this._vergiHaricToplamYapi;
+		let {_vergiHaricToplamYapi: result, belirtec2AnaTip2AltTip2Satirlar, sonucBedelYapi} = this
 		if (result === undefined) {
-			let {sonucBedelYapi} = this;
-			this._vergiHaricToplamYapi = result = sonucBedelYapi && sonucBedelYapi.cikar ? sonucBedelYapi.cikar(this.dipVergiEklenenYapi) : {}
+			let kdvYapilar = values(this.vergiTip2Oran2EVergiRecs_tevkifatsiz).map(_ => values(_).flat()).flat()
+			let topKdv = topla(_ => _.bedel, kdvYapilar)
+			result = this._vergiHaricToplamYapi = { tl: sonucBedelYapi.tl - topKdv }
 		}
 		return this._vergiHaricToplamYapi
 	}
 	get vergiDahilToplamYapi() {
-		let result = this._vergiDahilToplamYapi;
-		if (result === undefined) { this._vergiDahilToplamYapi = result = ((((this.belirtec2AnaTip2AltTip2Satirlar[''] || {}).DP || {}).VD || [])[0] || {}).bedelYapi || {} }
+		let {_vergiDahilToplamYapi: result, belirtec2AnaTip2AltTip2Satirlar} = this
+		if (result === undefined)
+			result = this._vergiDahilToplamYapi = belirtec2AnaTip2AltTip2Satirlar['']?.DP?.VD?.[0]?.bedelYapi ?? {}
 		return this._vergiDahilToplamYapi
 	}
 	get vergiTip2Oran2EVergiRecs_tevkifatsiz() {
 		let result = this._vergiTip2Oran2EVergiRecs_tevkifatsiz;
 		if (result === undefined) {
 			result = {}; let anaTip2AltTip2Satirlar = this.belirtec2AnaTip2AltTip2Satirlar.V || {};
-			for (let altTip2Satirlar of Object.values(anaTip2AltTip2Satirlar)) {
-				for (let eSatirlar of Object.values(altTip2Satirlar)) {
+			for (let altTip2Satirlar of values(anaTip2AltTip2Satirlar)) {
+				for (let eSatirlar of values(altTip2Satirlar)) {
 					for (let eSatir of eSatirlar) {
 						if (eSatir.anaTip == 'KD' && eSatir.altTip == 'TV') { continue }
 						let {kod, oran} = eSatir, oran2Recs = result[kod] = result[kod] || {};
@@ -273,7 +284,10 @@ class EIcmalSatirOrtak extends RowluYapi {
 	static get tip2Sinif() {
 		let result = this._tip2Sinif;
 		if (result === undefined) {
-			result = {}; for (let cls of this.subClasses) { let {tip} = cls; if (tip != null) { result[tip] = cls } }
+			result = {}; for (let cls of this.subClasses) {
+				let {tip} = cls;
+				if (tip != null) { result[tip] = cls }
+			}
 			this._tip2Sinif = result
 		}
 		return result

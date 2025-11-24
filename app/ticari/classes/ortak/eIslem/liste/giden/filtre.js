@@ -1,8 +1,8 @@
 class GidenEIslemFiltre extends EIslemFiltre {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static getBelgeTipText(e) {
-		let rec = e.rec || e; const psTip = (rec.pstip || rec.psTip || rec.psTipStr || '').trim(), pifTipi = (rec.piftipi || rec.pifTipi || '').trim();
-		const almSat = (rec.almsat || rec.almSat || '').trim(), iade = (rec.iade || '').trim(), ayrimTipi = (rec.ayrimTipi || rec.ayrimTipi || '').trim();
+		let rec = e.rec || e; let psTip = (rec.pstip || rec.psTip || rec.psTipStr || '').trim(), pifTipi = (rec.piftipi || rec.pifTipi || '').trim();
+		let almSat = (rec.almsat || rec.almSat || '').trim(), iade = (rec.iade || '').trim(), ayrimTipi = (rec.ayrimTipi || rec.ayrimTipi || '').trim();
 		if (psTip == 'S') {												/* S: sipfis */
 			if (almSat == 'T') { switch (ayrimTipi) { case 'IH': return 'İhracat Fatura'; case 'EM': return 'Emanet Fatura'; } }
 			return null
@@ -22,7 +22,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 			return 'Mağaza Satış'
 
 		// Normal Satış veya Alım İADE
-		const alimmi = almSat == 'A', iademi = iade == 'I', atText = alimmi ? 'Alım' : 'Satış', iadePrefix = iademi ? ' İADE' : '', ifText = (pifTipi == 'I' ? 'İrsaliye' : 'Fatura');
+		let alimmi = almSat == 'A', iademi = iade == 'I', atText = alimmi ? 'Alım' : 'Satış', iadePrefix = iademi ? ' İADE' : '', ifText = (pifTipi == 'I' ? 'İrsaliye' : 'Fatura');
 		switch (ayrimTipi) {
 			case '': return `${atText}${iadePrefix} ${ifText}`
 			case 'IK': return `${atText} İhraç Kaydıyla${iadePrefix} ${ifText}`
@@ -33,14 +33,22 @@ class GidenEIslemFiltre extends EIslemFiltre {
 		}
 		return `${atText}${iadePrefix} ${ifText}`
 	}
-	getQueryStm(e) { e = e || {}; const uni = new MQUnionAll(), stm = new MQStm({ sent: uni }), _e = $.extend({}, e, { stm, uni }); this.queryStmDuzenle(_e); return _e.stm }
-	queryStmDuzenle(e) {
-		e = e || {}; super.queryStmDuzenle(e); const {eConf} = this, {stm, uni} = e;
-		const sentEkle = __e => {
-			const _e = $.extend({}, e, __e), wh = this.getTBWhereClause(_e); if (!wh) { return null }
+	getQueryStm(e = {}) {
+		let uni = new MQUnionAll()
+		let stm = new MQStm({ sent: uni })
+		let _e = { ...e, stm, uni }
+		this.queryStmDuzenle(_e)
+		return _e.stm
+	}
+	queryStmDuzenle(e = {}) {
+		super.queryStmDuzenle(e)
+		let {eConf} = this, {stm, uni} = e
+		let sentEkle = args => {
+			let _e = { ...e, ...args }
+			let wh = this.getTBWhereClause(_e); if (!wh) { return null }
 				/* e: { fisTablo psTipStr ifSql efAyrimTipiClause } */
-			const {fisTablo, alias, psTip, ifSql, efAyrimTipiClause} = _e;
-			const sent = new MQSent({
+			let {fisTablo, alias, psTip, ifSql, efAyrimTipiClause} = _e;
+			let sent = new MQSent({
 				from: `${fisTablo} fis`,
 				where: { birlestir: wh },
 				sahalar: [
@@ -51,14 +59,15 @@ class GidenEIslemFiltre extends EIslemFiltre {
 			});
 			sent.fis2TicCariBagla();
 			if (eConf) { eConf.eIslListeSentDuzenle($.extend({}, e, { sent })) }
-			uni.add(sent); return sent
+			uni.add(sent)
+			return sent
 		};
-		const fisGenelAyrimTipiClause = `(case when fis.ayrimtipi = 'IH' then 'IH' when fis.efayrimtipi = '' then 'A' else fis.efayrimtipi end)`;
+		let fisGenelAyrimTipiClause = `(case when fis.ayrimtipi = 'IH' then 'IH' when fis.efayrimtipi = '' then 'A' else fis.efayrimtipi end)`;
 		sentEkle({ fisTablo: 'piffis', psTip: 'P', ifSql: 'fis.piftipi', efAyrimTipiClause: `(case when fis.piftipi = 'I' then 'IR' when fis.almsat = 'M' then 'MS' else ${fisGenelAyrimTipiClause} end)` });
 		sentEkle({ fisTablo: 'sipfis', psTip: 'S', ifSql: `'F'`, efAyrimTipiClause: fisGenelAyrimTipiClause });
 		(() => {
-			const wh = this.getTBWhereClause($.extend({}, e, { psTip: 'ST' })); if (!wh) { return }
-			const alias = 'fis', sent = new MQSent({
+			let wh = this.getTBWhereClause($.extend({}, e, { psTip: 'ST' })); if (!wh) { return }
+			let alias = 'fis', sent = new MQSent({
 				from: `stfis fis`,
 				fromIliskiler: [{ from: 'carmst car', iliski: 'fis.irsmust = car.must' }],
 				where: [ { birlestir: wh } ],
@@ -72,8 +81,8 @@ class GidenEIslemFiltre extends EIslemFiltre {
 			uni.add(sent)
 		})();
 		(() => {
-			const wh = this.getTBWhereClause($.extend({}, e, { psTip: 'SM' })); if (!wh) { return }
-			const sent = new MQSent({
+			let wh = this.getTBWhereClause($.extend({}, e, { psTip: 'SM' })); if (!wh) { return }
+			let sent = new MQSent({
 				from: `topmakbuzara fis`,
 				fromIliskiler: [
 					{ from: `topmakbuzfis ust`, iliski: `fis.fissayac = ust.kaysayac` },
@@ -87,23 +96,23 @@ class GidenEIslemFiltre extends EIslemFiltre {
 			});
 			uni.add(sent)
 		})();
-		sentEkle({ fisTablo: 'piffis', psTip: 'SR', ifSql: `fis.piftipi`, efAyrimTipiClause: `'MS'` });
-		stm.orderBy.liste = ['tarih DESC', 'pstip', 'fisnox DESC']
+		sentEkle({ fisTablo: 'piffis', psTip: 'SR', ifSql: `fis.piftipi`, efAyrimTipiClause: `'MS'` })
+		stm.orderBy.add('tarih DESC', 'efayrimtipi', 'pstip', 'fisnox DESC')
 	}
 	listeOlustur(e) {
-		super.listeOlustur(e); const tarihBasi = null; /*today().addMonths(-5); tarihBasi.setDate(1);*/
+		super.listeOlustur(e); let tarihBasi = null; /*today().addMonths(-5); tarihBasi.setDate(1);*/
 		this.grupTopluEkle([ { kod: 'PRG', aciklama: 'Yazılımsal', renk: '#111', zeminRenk: '#eee', kapali: true } ])
-		let sec_eIslem, sec_faturaAyrim; const eConf = this.eConf ?? MQEConf.instance, kisit = eConf.kisitUyarlanmis;
-		const {liste} = e; $.extend(liste, {
+		let sec_eIslem, sec_faturaAyrim; let eConf = this.eConf ?? MQEConf.instance, kisit = eConf.kisitUyarlanmis;
+		let {liste} = e; $.extend(liste, {
 			uygunOlmayanlarGosterilirmiFlag: new SecimBool({ etiket: 'Seri-No Yıl Uygun OLMAYANLAR da gösterilsin' }),
 			eIslemBirKismi: (sec_eIslem = new SecimBirKismi({ etiket: 'e-İşlem', tekSecim: new EIslemTip({ hepsi: true }) })),
 			faturaAyrimSecim: (sec_faturaAyrim = new SecimTekSecim({ etiket: 'Fatura Ayrım', tekSecim: new BuDigerVeHepsi(['Mağaza Fişi', 'Normal Fatura']) }))
 		});
 		if (kisit.kullanilirmi) {
-			const magazami = kisit.magaza, eIslKodlar = [];
+			let magazami = kisit.magaza, eIslKodlar = [];
 				if (kisit.fatura) { eIslKodlar.push('E', 'IH'); if (magazami) { eIslKodlar.push('A') } }
 				if (kisit.irsaliye) { eIslKodlar.push('IR') }; if (kisit.musMakbuz) { eIslKodlar.push('MS') };
-			if (eIslKodlar.length) { const {kaDict} = EIslemTip; liste.uyari_kisitEIslTip = new SecimText({ etiket: `Kısıtlanacak e-İşlem Tipleri:`, value: `[ <b class="indianred">${eIslKodlar.map(eIslTip => kaDict[eIslTip] || eIslTip)}</b> ]` }) }
+			if (eIslKodlar.length) { let {kaDict} = EIslemTip; liste.uyari_kisitEIslTip = new SecimText({ etiket: `Kısıtlanacak e-İşlem Tipleri:`, value: `[ <b class="indianred">${eIslKodlar.map(eIslTip => kaDict[eIslTip] || eIslTip)}</b> ]` }) }
 			liste.uyari_kisitAyrim = new SecimText({ etiket: `Kısıtlanacak Ayrımlar`, value: `[ <b class="indianred">${magazami ? 'Mağaza' : 'Normal Faturalar'}</b> ]` });
 		}
 		$.extend(liste, {
@@ -124,18 +133,18 @@ class GidenEIslemFiltre extends EIslemFiltre {
 	tbWhereClauseDuzenle(e) {
 		e = e || {}; super.tbWhereClauseDuzenle(e); this.tbWhereClauseDuzenle_kisit(e);
 		this.tbWhereClauseDuzenle_basit(e); this.tbWhereClauseDuzenle_eIslem(e)
-		const psTip = e.psTip || e.psTipStr || e.psTipKod; let wh = e.where, result;
+		let psTip = e.psTip || e.psTipStr || e.psTipKod; let wh = e.where, result;
 		switch (psTip) {
 			case 'P': this.tbWhereClauseDuzenle_pifFis(e); break; case 'S': this.tbWhereClauseDuzenle_sipFis(e); break; case 'ST': this.tbWhereClauseDuzenle_stFis(e); break
 			case 'SM': this.tbWhereClauseDuzenle_sutMakbuzFis(e); break; case 'SR': this.tbWhereClauseDuzenle_srMustahsilMakbuzFis(e); break
 		}
 		wh = e.where; if (!wh) { return }
-		const _e = $.extend({}, e, { where: new MQWhereClause() }); this.tbWhereClauseDuzenle_cari(_e); const cariWh = _e.where;
+		let _e = $.extend({}, e, { where: new MQWhereClause() }); this.tbWhereClauseDuzenle_cari(_e); let cariWh = _e.where;
 		if (cariWh && !$.isEmptyObject(cariWh.liste)) { if (psTip == 'ST') { e.where = null; return } wh.birlestir(cariWh) }
 	}
 	tbWhereClauseDuzenle_kisit(e) {
-		e = e || {}; const eConf = this.eConf ?? MQEConf.instance, kisit = eConf.kisitUyarlanmis; if (!kisit?.kullanilirmi) { return }
-		const {alias, aliasVeNokta} = e, psTip = e.psTip || e.psTipStr || e.psTipKod, wh = e.where, magazami = kisit.magaza, alinmazPSTipSet = {};
+		e = e || {}; let eConf = this.eConf ?? MQEConf.instance, kisit = eConf.kisitUyarlanmis; if (!kisit?.kullanilirmi) { return }
+		let {alias, aliasVeNokta} = e, psTip = e.psTip || e.psTipStr || e.psTipKod, wh = e.where, magazami = kisit.magaza, alinmazPSTipSet = {};
 		switch (psTip) {
 			case 'P':
 				if (kisit.fatura) { wh.add(`not (fis.piftipi = 'F' and fis.almsat <> 'M')`); alinmazPSTipSet.S = true }
@@ -147,47 +156,47 @@ class GidenEIslemFiltre extends EIslemFiltre {
 		if (alinmazPSTipSet[psTip]) { wh.add('1 = 2') }
 	}
 	tbWhereClauseDuzenle_basit(e) {
-		e = e || {}; const psTip = e.psTip || e.psTipStr || e.psTipKod, wh = e.where;
+		e = e || {}; let psTip = e.psTip || e.psTipStr || e.psTipKod, wh = e.where;
 		if (psTip == 'SM') { this.tbWhereClauseDuzenle_sutMakbuz(e) } else { this.tbWhereClauseDuzenle_ortak(e) }
 	}
 	tbWhereClauseDuzenle_ortak(e) {
-		e = e || {}; const {alias, aliasVeNokta} = e, wh = e.where;
+		e = e || {}; let {alias, aliasVeNokta} = e, wh = e.where;
 		wh.add(`${aliasVeNokta}silindi = ''`, `${aliasVeNokta}ozelisaret <> '*'`);
 		if (!this.uygunOlmayanlarGosterilirmiFlag.value) { wh.add(`LEN(${aliasVeNokta}seri) = 3`, `${aliasVeNokta}noyil > 0`) }
 		wh.birKismi(this.sube, `${aliasVeNokta}bizsubekod`); wh.basiSonu(this.tarih, `${aliasVeNokta}tarih`);
 		wh.basiSonu(this.seri, `${aliasVeNokta}seri`); wh.basiSonu(this.fisNo, `${aliasVeNokta}no`)
 	}
 	tbWhereClauseDuzenle_sutMakbuz(e) {
-		e = e || {}; const {alias, aliasVeNokta} = e, ustAliasVeNokta = 'ust.', wh = e.where;
+		e = e || {}; let {alias, aliasVeNokta} = e, ustAliasVeNokta = 'ust.', wh = e.where;
 		wh.add(`${ustAliasVeNokta}silindi = ''`, `${ustAliasVeNokta}ozelisaret <> '*'`);
 		if (this.uygunOlmayanlarGosterilirmiFlag.value) { wh.add(`LEN(${aliasVeNokta}makbuzseri) = 3`, `${aliasVeNokta}makbuznoyil > 0`) }
 		wh.birKismi(this.sube, `${ustAliasVeNokta}bizsubekod`); wh.basiSonu(this.tarih, `${ustAliasVeNokta}tarih`);
 		wh.basiSonu(this.seri, `${aliasVeNokta}makbuzseri`); wh.basiSonu(this.no, `${aliasVeNokta}makbuzno`)
 	}
 	tbWhereClauseDuzenle_cari(e) {
-		e = e || {}; const {alias, aliasVeNokta} = e, wh = e.where;
+		e = e || {}; let {alias, aliasVeNokta} = e, wh = e.where;
 		wh.basiSonu(this.must, 'car.must'); wh.ozellik(this.mustUnvan1, 'car.birunvan')
 	}
 	tbWhereClauseDuzenle_eIslem(e) {
-		e = e || {}; const {alias, aliasVeNokta} = e, wh = e.where, {eIslemTipSet} = e; if (eIslemTipSet && (eIslemTipSet.E || eIslemTipSet.A)) { eIslemTipSet[''] = true }
+		e = e || {}; let {alias, aliasVeNokta} = e, wh = e.where, {eIslemTipSet} = e; if (eIslemTipSet && (eIslemTipSet.E || eIslemTipSet.A)) { eIslemTipSet[''] = true }
 		wh.add(`${aliasVeNokta}efayrimtipi <> 'BL'`); wh.basiSonu(this.gonderimTarihi, `${aliasVeNokta}efgonderimts`);
 		if (!$.isEmptyObject(eIslemTipSet)) { wh.birKismi(Object.keys(eIslemTipSet), `${aliasVeNokta}efayrimtipi`) }
 		wh.birKismi(this.eIslemBirKismi, `${aliasVeNokta}efayrimtipi`); wh.birKismi(this.akibetDurumBirKismi, `${aliasVeNokta}efatonaydurumu`); wh.ozellik(this.uuid, `${aliasVeNokta}efatuuid`);
-		const xmlDurum = this.xmlDurumSecim.tekSecim; if (!xmlDurum.hepsimi) { wh.add(`${aliasVeNokta}efatuuid ${xmlDurum.bumu ? '<>' : '='} ''`) }
-		const gonderimDurum = this.gonderimDurumSecim.tekSecim; if (!gonderimDurum.hepsimi) { wh.add(`${aliasVeNokta}efgonderimts IS${gonderimDurum.digermi ? ' NOT' : ''} NULL`) }
+		let xmlDurum = this.xmlDurumSecim.tekSecim; if (!xmlDurum.hepsimi) { wh.add(`${aliasVeNokta}efatuuid ${xmlDurum.bumu ? '<>' : '='} ''`) }
+		let gonderimDurum = this.gonderimDurumSecim.tekSecim; if (!gonderimDurum.hepsimi) { wh.add(`${aliasVeNokta}efgonderimts IS${gonderimDurum.digermi ? ' NOT' : ''} NULL`) }
 	}
 	tbWhereClauseDuzenle_pifFis(e) {
-		e = e || {}; const pifGenelAyrimlar = [], faturaAyrim = this.faturaAyrimSecim.tekSecim, fatTipHepsimi = faturaAyrim.hepsimi, magazami = faturaAyrim.bumu, faturami = faturaAyrim.digermi;
+		e = e || {}; let pifGenelAyrimlar = [], faturaAyrim = this.faturaAyrimSecim.tekSecim, fatTipHepsimi = faturaAyrim.hepsimi, magazami = faturaAyrim.bumu, faturami = faturaAyrim.digermi;
 		if (fatTipHepsimi || faturami) { pifGenelAyrimlar.push('', 'IK', 'KN', 'FS') }
 		if (fatTipHepsimi || magazami) { pifGenelAyrimlar.push('PR') }
-		const pifGenelAyrimlarVeIhracat = magazami ? pifGenelAyrimlar : [...pifGenelAyrimlar, 'IH'], pifTipi2AlimSat2Iade2Ayrimlar = {};
-		const dizici = e => {
-			const {pifTipi, almSat, iade, ayrimlar} = e, almSat2Iade2Ayrimlar = pifTipi2AlimSat2Iade2Ayrimlar[pifTipi] = pifTipi2AlimSat2Iade2Ayrimlar[pifTipi] || {};
-			const iade2Ayrimlar = almSat2Iade2Ayrimlar[almSat] = almSat2Iade2Ayrimlar[almSat] || {}, _ayrimlar = iade2Ayrimlar[iade] = iade2Ayrimlar[iade] || {};
+		let pifGenelAyrimlarVeIhracat = magazami ? pifGenelAyrimlar : [...pifGenelAyrimlar, 'IH'], pifTipi2AlimSat2Iade2Ayrimlar = {};
+		let dizici = e => {
+			let {pifTipi, almSat, iade, ayrimlar} = e, almSat2Iade2Ayrimlar = pifTipi2AlimSat2Iade2Ayrimlar[pifTipi] = pifTipi2AlimSat2Iade2Ayrimlar[pifTipi] || {};
+			let iade2Ayrimlar = almSat2Iade2Ayrimlar[almSat] = almSat2Iade2Ayrimlar[almSat] || {}, _ayrimlar = iade2Ayrimlar[iade] = iade2Ayrimlar[iade] || {};
 			if (!$.isEmptyObject(ayrimlar)) { $.extend(_ayrimlar, ($.isArray(ayrimlar) ? asSet(ayrimlar) : ayrimlar)) }
 		};
-		const {eIslemTipSet} = e; if (!eIslemTipSet || (eIslemTipSet.A || eIslemTipSet.E)) {
-			const ayrimlar = pifGenelAyrimlar; dizici({ pifTipi: 'F', almSat: 'T', iade: '', ayrimlar });
+		let {eIslemTipSet} = e; if (!eIslemTipSet || (eIslemTipSet.A || eIslemTipSet.E)) {
+			let ayrimlar = pifGenelAyrimlar; dizici({ pifTipi: 'F', almSat: 'T', iade: '', ayrimlar });
 			dizici({ pifTipi: 'F', almSat: 'A', iade: 'I', ayrimlar })
 		}
 		if (!eIslemTipSet || eIslemTipSet.IH) { dizici({ pifTipi: 'F', almSat: 'T', iade: '', ayrimlar: ['MI', 'IH'] }) }
@@ -197,13 +206,13 @@ class GidenEIslemFiltre extends EIslemFiltre {
 			dizici({ pifTipi: 'F', almSat: 'T', iade: '', ayrimlar: ['EM'] })										/* emanet ve (piftipi = F) ise irsaliyedir */
 		}
 		if (!eIslemTipSet || eIslemTipSet.MS) { dizici({ pifTipi: 'F', almSat: 'M', iade: '', ayrimlar: [''] }) }
-		const {alias, aliasVeNokta} = e, wh = e.where, or = new MQOrClause();
-		for (const pifTipi in pifTipi2AlimSat2Iade2Ayrimlar) {
-			const almSat2Iade2Ayrimlar = pifTipi2AlimSat2Iade2Ayrimlar[pifTipi];
-			for (const almSat in almSat2Iade2Ayrimlar) {
-				const iade2Ayrimlar = almSat2Iade2Ayrimlar[almSat];
-				for (const iade in iade2Ayrimlar) {
-					const ayrimlar = Object.keys(iade2Ayrimlar[iade] || {});
+		let {alias, aliasVeNokta} = e, wh = e.where, or = new MQOrClause();
+		for (let pifTipi in pifTipi2AlimSat2Iade2Ayrimlar) {
+			let almSat2Iade2Ayrimlar = pifTipi2AlimSat2Iade2Ayrimlar[pifTipi];
+			for (let almSat in almSat2Iade2Ayrimlar) {
+				let iade2Ayrimlar = almSat2Iade2Ayrimlar[almSat];
+				for (let iade in iade2Ayrimlar) {
+					let ayrimlar = Object.keys(iade2Ayrimlar[iade] || {});
 					or.add(new MQAndClause([
 						(pifTipi == 'F' ?
 							new MQOrClause([
@@ -219,18 +228,18 @@ class GidenEIslemFiltre extends EIslemFiltre {
 		if (!$.isEmptyObject(or.liste)) { wh.add(or) }
 	}
 	tbWhereClauseDuzenle_sipFis(e) {
-		e = e || {}; const ozelTip2AlimSat2Ayrimlar = {}, dizici = e => {
-			const {ozelTip, almSat, ayrimlar} = e, almSat2Ayrimlar = ozelTip2AlimSat2Ayrimlar[ozelTip] = ozelTip2AlimSat2Ayrimlar[ozelTip] || {};
-			const _ayrimlar = almSat2Ayrimlar[almSat] = almSat2Ayrimlar[almSat] || {};
+		e = e || {}; let ozelTip2AlimSat2Ayrimlar = {}, dizici = e => {
+			let {ozelTip, almSat, ayrimlar} = e, almSat2Ayrimlar = ozelTip2AlimSat2Ayrimlar[ozelTip] = ozelTip2AlimSat2Ayrimlar[ozelTip] || {};
+			let _ayrimlar = almSat2Ayrimlar[almSat] = almSat2Ayrimlar[almSat] || {};
 			if (!$.isEmptyObject(ayrimlar)) { $.extend(_ayrimlar, ($.isArray(ayrimlar) ? asSet(ayrimlar) : ayrimlar)) }
 		};
-		const {eIslemTipSet, alias, aliasVeNokta} = e, wh = e.where, or = new MQOrClause();
+		let {eIslemTipSet, alias, aliasVeNokta} = e, wh = e.where, or = new MQOrClause();
 		if (!eIslemTipSet || (eIslemTipSet.A || eIslemTipSet.E)) { dizici({ ozelTip: 'E', almSat: 'T', ayrimlar: ['EM'] }) }
 		if (!eIslemTipSet || eIslemTipSet.IH) { dizici({ ozelTip: 'V', almSat: 'T', ayrimlar: ['IH'] }) }
-		for (const ozelTip in ozelTip2AlimSat2Ayrimlar) {
-			const almSat2Ayrimlar = ozelTip2AlimSat2Ayrimlar[ozelTip];
-			for (const almSat in almSat2Ayrimlar) {
-				const ayrimlar = Object.keys(almSat2Ayrimlar[almSat] || {});
+		for (let ozelTip in ozelTip2AlimSat2Ayrimlar) {
+			let almSat2Ayrimlar = ozelTip2AlimSat2Ayrimlar[ozelTip];
+			for (let almSat in almSat2Ayrimlar) {
+				let ayrimlar = Object.keys(almSat2Ayrimlar[almSat] || {});
 				or.add(new MQAndClause([
 					{ degerAta: ozelTip, saha: `${aliasVeNokta}ozeltip` },
 					{ degerAta: almSat, saha: `${aliasVeNokta}almsat` },
@@ -241,22 +250,22 @@ class GidenEIslemFiltre extends EIslemFiltre {
 		if (!$.isEmptyObject(or.liste)) { wh.add(or) }
 	}
 	tbWhereClauseDuzenle_stFis(e) {
-		e = e || {}; const ozelTip2GC2Ayrimlar = {}, dizici = e => {
-			const {ozelTip, gcTipi, ayrimlar} = e, gc2Ayrimlar = ozelTip2GC2Ayrimlar[ozelTip] = ozelTip2GC2Ayrimlar[ozelTip] || {};
-			const _ayrimlar = gc2Ayrimlar[gcTipi] = gc2Ayrimlar[gcTipi] || {};
+		e = e || {}; let ozelTip2GC2Ayrimlar = {}, dizici = e => {
+			let {ozelTip, gcTipi, ayrimlar} = e, gc2Ayrimlar = ozelTip2GC2Ayrimlar[ozelTip] = ozelTip2GC2Ayrimlar[ozelTip] || {};
+			let _ayrimlar = gc2Ayrimlar[gcTipi] = gc2Ayrimlar[gcTipi] || {};
 			if (!$.isEmptyObject(ayrimlar)) { $.extend(_ayrimlar, ($.isArray(ayrimlar) ? asSet(ayrimlar) : ayrimlar)) }
 		};
-		const {eIslemTipSet, alias, aliasVeNokta} = e, wh = e.where, or = new MQOrClause();
+		let {eIslemTipSet, alias, aliasVeNokta} = e, wh = e.where, or = new MQOrClause();
 		if (!eIslemTipSet || eIslemTipSet.IR) {
 			dizici({ ozelTip: 'SB', gcTipi: 'T', ayrimlar: [''] });											/* subeler arasi trf */
 			dizici({ ozelTip: '', gcTipi: 'T', ayrimlar: ['SC'] });											/* plas,yer teslim */
 			dizici({ ozelTip: 'FS', gcTipi: 'T', ayrimlar: [''] });											/* fasona gonderim */
 			dizici({ ozelTip: 'IR', gcTipi: 'T', ayrimlar: [''] })											/* irsaliyeli trf */
 		}
-		for (const ozelTip in ozelTip2GC2Ayrimlar) {
-			const gc2Ayrimlar = ozelTip2GC2Ayrimlar[ozelTip];
-			for (const gcTipi in gc2Ayrimlar) {
-				const ayrimlar = Object.keys(gcTipi[gcTipi] || {});
+		for (let ozelTip in ozelTip2GC2Ayrimlar) {
+			let gc2Ayrimlar = ozelTip2GC2Ayrimlar[ozelTip];
+			for (let gcTipi in gc2Ayrimlar) {
+				let ayrimlar = Object.keys(gcTipi[gcTipi] || {});
 				or.add(new MQAndClause([
 					{ degerAta: ozelTip, saha: `${aliasVeNokta}ozeltip` },
 					{ degerAta: gcTipi, saha: `${aliasVeNokta}gctipi` },
@@ -266,9 +275,9 @@ class GidenEIslemFiltre extends EIslemFiltre {
 		}
 		if (!$.isEmptyObject(or.liste)) { wh.add(or) }
 	}
-	tbWhereClauseDuzenle_sutMakbuzFis(e) { e = e || {}; const wh = e.where; wh.add(`ust.fistipi = 'M'`) }
+	tbWhereClauseDuzenle_sutMakbuzFis(e) { e = e || {}; let wh = e.where; wh.add(`ust.fistipi = 'M'`) }
 	tbWhereClauseDuzenle_srMustahsilMakbuzFis(e) {
-		e = e || {}; const {alias, aliasVeNokta} = e, wh = e.where;
+		e = e || {}; let {alias, aliasVeNokta} = e, wh = e.where;
 		wh.add(`${aliasVeNokta}piftipi = 'F'`, `${aliasVeNokta}almsat = 'M'`, `${aliasVeNokta}iade = ''`, `${aliasVeNokta}ayrimtipi = 'SM'`)
 	}
 }

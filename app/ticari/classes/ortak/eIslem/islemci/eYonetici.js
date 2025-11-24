@@ -1,26 +1,37 @@
 class EYonetici extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get eIslTip2Token() { let result = this._eIslTip2Token; if (result === undefined) { result = this._eIslTip2Token = {} } return result }
+	static get eIslTip2Token() {
+		let {_eIslTip2Token: result} = this
+		if (result === undefined)
+			result = this._eIslTip2Token = {}
+		return result
+	}
 	static set eIslTip2Token(value) { this._eIslTip2Token = value }
-	constructor(e) {
-		e = e || {}; super(e);
-		$.extend(this, { eConf: e.eConf ?? MQEConf.instance, eIslSinif: e.eIslSinif, ps2SayacListe: e.ps2SayacListe, whereDuzenleyici: e.whereDuzenleyici })
+	constructor({ eConf = MQEConf.instance, eIslSinif, ps2SayacListe, whereDuzenleyici } = {}) {
+		super(e)
+		$.extend(this, { eConf, eIslSinif, ps2SayacListe, whereDuzenleyici })
 	}
 	/* api: mukellefDurumu */
-	static async mukellefSorgula(e) {
-		let eYoneticiler = await this.getEYoneticiListe(e); delete e.eYoneticiler; let uuid2Result = {};
-		for (let eYonetici of eYoneticiler) {
-			await eYonetici.mukellefSorgula(e);
-			let _uuid2Result = e.uuid2Result; if (!$.isEmptyObject(_uuid2Result)) { $.extend(uuid2Result, _uuid2Result) }
+	static async mukellefSorgula(e = {}) {
+		let eYoneticiler = await this.getEYoneticiListe(e); delete e.eYoneticiler
+		let uuid2Result = {}
+		for (let eYonetici of eYoneticiler ?? []) {
+			await eYonetici.mukellefSorgula(e)
+			let {uuid2Result: _uuid2Result} = e
+			if (!empty(_uuid2Result))
+				$.extend(uuid2Result, _uuid2Result)
 		}
 		e.uuid2Result = uuid2Result
 	}
 	async mukellefSorgula(e) {
-		let vknListe = $.makeArray(e.vknListe ?? e.vkn); for (let key of ['psTip2SayacListe', 'whereDuzenleyici']) { delete e[key] }
-		if (!vknListe?.length) { throw { isError: true, rc: 'emptyArgument', errorText: 'VKN Liste(vknListe) belirtilmelidir' } }
-		let {sender, callback, internal} = e, eConf = e.eConf ?? this.eConf, {eIslEkArgs} = eConf;
-		let {eIslSinif} = this, {sinifAdi: eIslAdi, tip: efAyrimTipi} = eIslSinif, oe = eConf.getValue('ozelEntegrator')?.char || '';
-		let eIslemci = efAyrimTipi, eLogin = toJSONStr(eConf.eLogin), ekArgs = toJSONStr(eIslEkArgs), eIslemAPI = 'mukellefDurumu';
+		let vknListe = $.makeArray(e.vknListe ?? e.vkn)
+		for (let key of ['psTip2SayacListe', 'whereDuzenleyici'])
+			delete e[key]
+		if (!vknListe?.length)
+			throw { isError: true, rc: 'emptyArgument', errorText: 'VKN Liste(vknListe) belirtilmelidir' }
+		let {sender, callback, internal, eConf = this.eConf} = e, {eIslEkArgs} = eConf
+		let {eIslSinif} = this, {sinifAdi: eIslAdi, tip: efAyrimTipi} = eIslSinif, oe = eConf.getValue('ozelEntegrator')?.char || ''
+		let eIslemci = efAyrimTipi, eLogin = toJSONStr(eConf.eLogin), ekArgs = toJSONStr(eIslEkArgs), eIslemAPI = 'mukellefDurumu'
 		let BlockSize = 8, vkn2Result = {}, promises = [], error, savedToken = this.class.getTempToken(efAyrimTipi);
 		try {
 			vkn2Result = (await app.wsEIslemYap({ eIslemci, oe, eIslemAPI, eLogin, eToken: savedToken || '', ekArgs, args: { vknTckn: vknListe } }))?.[0];
@@ -29,7 +40,7 @@ class EYonetici extends CObject {
 		}
 		catch (ex) { console.error(ex); error = ex }
 		for (let vkn of vknListe) {
-			let result = vkn2Result[vkn]; if ($.isEmptyObject(result)) { result = null }
+			let result = vkn2Result[vkn]; if (empty(result)) { result = null }
 			if (!(error || result)) { result = { isError: true, rc: 'mukellefYok', errorText: `${eIslAdi} mükellefi değil` } }
 			let subResult = vkn2Result[vkn] = {
 				islemZamani: now(), isError: error || (result?.isError ?? false), vkn,
@@ -44,9 +55,9 @@ class EYonetici extends CObject {
 	}
 	static async eIslemGonder(e) {
 		let eYoneticiler = await this.getEYoneticiListe(e); delete e.eYoneticiler; let uuid2Result = {};
-		for (let eYonetici of eYoneticiler) {
+		for (let eYonetici of eYoneticiler ?? []) {
 			await eYonetici.eIslemGonder(e);
-			let _uuid2Result = e.uuid2Result; if (!$.isEmptyObject(_uuid2Result)) { $.extend(uuid2Result, _uuid2Result) }
+			let _uuid2Result = e.uuid2Result; if (!empty(_uuid2Result)) { $.extend(uuid2Result, _uuid2Result) }
 		}
 		e.uuid2Result = uuid2Result
 	}
@@ -66,7 +77,7 @@ class EYonetici extends CObject {
 		let {sender, callback} = e, param_eIslem = app.params.eIslem, {eConf} = this, {eIslEkArgs} = eConf, BlockSize = 20;
 		let senderGIBAlias = eConf.getValue('gibAlias') ?? '', senderEIrsGIBAlias = eConf.getValue('eIrsGIBAlias') ?? '';
 		let recs = await app.sqlExecSelect(stm), ps2Recs = this.class.getPS2Recs({ recs }), uuid2Result = e.uuid2Result = e.uuid2Result || {};
-		if (!$.isEmptyObject(ps2Recs)) {
+		if (!empty(ps2Recs)) {
 			let eConf = e.eConf ?? this.eConf;
 			for (let psTip in ps2Recs) {
 				let _recs = ps2Recs[psTip], eIslTip2Recs = {}, duzgunUUIDListe = [];
@@ -110,9 +121,9 @@ class EYonetici extends CObject {
 	}
 	static async eIslemIzle(e) {
 		let eYoneticiler = await this.getEYoneticiListe(e); delete e.eYoneticiler; let uuid2Result = {};
-		for (let eYonetici of eYoneticiler) {
+		for (let eYonetici of eYoneticiler ?? []) {
 			await eYonetici.eIslemIzle(e);
-			let _uuid2Result = e.uuid2Result; if (!$.isEmptyObject(_uuid2Result)) { $.extend(uuid2Result, _uuid2Result) }
+			let _uuid2Result = e.uuid2Result; if (!empty(_uuid2Result)) { $.extend(uuid2Result, _uuid2Result) }
 		}
 		e.uuid2Result = uuid2Result
 	}
@@ -124,7 +135,7 @@ class EYonetici extends CObject {
 		let {sender, callback} = e, {eConf} = this, ps2Recs = {}, recs = await app.sqlExecSelect(stm);
 		for (let rec of recs) { let {pstip, uuid} = rec; if (uuid) { (ps2Recs[pstip] = ps2Recs[pstip] || []).push(rec) } }
 		let uuid2Result = e.uuid2Result = e.uuid2Result || {};
-		if (!$.isEmptyObject(ps2Recs)) {
+		if (!empty(ps2Recs)) {
 			let divContainer = $(`<div/>`)[0]; let eDocCount = 0;
 			for (let psTip in ps2Recs) {
 				let _recs = ps2Recs[psTip];
@@ -150,7 +161,7 @@ class EYonetici extends CObject {
 						}
 						else { divContainer.append(eDoc) }
 						eDocCount++; $.extend(result, { xmlData, xml, xsltData, xslt, xsltProcessor, eDoc, divContainer });
-						if (window.progressManager) { window.progressManager.progressStep() } if (Object.keys(uuid2Result).length % 201 == 200) { if (callback) { getFuncValue.call(this, callback, e) } }
+						if (window.progressManager) { window.progressManager.progressStep() } if (keys(uuid2Result).length % 201 == 200) { if (callback) { getFuncValue.call(this, callback, e) } }
 					}
 					catch (ex) {
 						if (!ex.responseJSON && ex.responseText) { try { ex = JSON.parse(ex.responseText) } catch (_ex) { } }
@@ -167,7 +178,7 @@ class EYonetici extends CObject {
 	}
 	static async eIslemSorgula(e) {
 		let eYoneticiler = await this.getEYoneticiListe(e); delete e.eYoneticiler;
-		let promises = []; for (let eYonetici of eYoneticiler) { promises.push(eYonetici.eIslemSorgula(e)) } await Promise.all(promises)
+		let promises = []; for (let eYonetici of eYoneticiler ?? []) { promises.push(eYonetici.eIslemSorgula(e)) } await Promise.all(promises)
 	}
 	async eIslemSorgula(e) {
 		let eIslAnaSinif = this.eIslSinif;
@@ -176,7 +187,7 @@ class EYonetici extends CObject {
 		if (!stm) { throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' } }
 		let {sender, callback} = e, {eConf} = this, {eIslEkArgs} = eConf, recs = await app.sqlExecSelect(stm);
 		let BlockSize = 50, ps2Recs = this.class.getPS2Recs({ recs }), uuid2Result = e.uuid2Result = e.uuid2Result || {}; let subUUID2Result = e.subUUID2Result = [], seq = 0;
-		if (!$.isEmptyObject(ps2Recs)) {
+		if (!empty(ps2Recs)) {
 			let eConf = e.eConf ?? this.eConf;
 			for (let psTip in ps2Recs) {
 				let _recs = ps2Recs[psTip], eIslTip2Recs = {};
@@ -197,22 +208,22 @@ class EYonetici extends CObject {
 								$.extend(result, { islemZamani: now(), isError: result.isError ?? !result.result, psTip, sayac, uuid, rec, efAyrimTipi });
 								uuid2Result[uuid] = subUUID2Result[uuid] = result
 							}
-							if (!$.isEmptyObject(subUUID2Result)) { this.eIslemSorgula_sonucIsle(e); subUUID2Result = e.subUUID2Result = [] }
+							if (!empty(subUUID2Result)) { this.eIslemSorgula_sonucIsle(e); subUUID2Result = e.subUUID2Result = [] }
 							if (window.progressManager) { window.progressManager.progressStep(results.length) } if (callback) { getFuncValue.call(this, callback, e) }
 						}
 					}
 				}
 			}
 			if (window.progressManager) { window.progressManager.progressStep() } if (callback) { getFuncValue.call(this, callback, e) }
-			if (!$.isEmptyObject(subUUID2Result)) { this.eIslemSorgula_sonucIsle(e) }
+			if (!empty(subUUID2Result)) { this.eIslemSorgula_sonucIsle(e) }
 			subUUID2Result = []; delete e.subUUID2Result
 		}
 		if (!e.internal) { if (sender && !sender.isDestroyed && sender.tazele) { sender.tazele() } }
 	}
 	async eIslemSorgula_sonucIsle(e) {
-		let uuid2Result = e.subUUID2Result ?? e.uuid2Result; if ($.isEmptyObject(uuid2Result)) { return }
+		let uuid2Result = e.subUUID2Result ?? e.uuid2Result; if (empty(uuid2Result)) { return }
 		let gelenmi = e.gelen ?? e.gelenmi ?? false, toplu = new MQToplu().withDefTrn();
-		for (let subResult of Object.values(uuid2Result)) {
+		for (let subResult of values(uuid2Result)) {
 			let {psTip, uuid} = subResult, from = gelenmi ? 'efgecicialfatfis' : psTip == 'S' ? 'sipfis' : 'piffis';
 			let uuidSaha = gelenmi ? 'efuuid' : 'efatuuid', onaySaha = gelenmi ? 'onaydurumu' : 'efatonaydurumu';
 			let value = subResult.isError ? 'X' : subResult.onayDurumChar;
@@ -222,9 +233,9 @@ class EYonetici extends CObject {
 	}
 	static async eIslemIptal(e) {
 		let eYoneticiler = await this.getEYoneticiListe(e); delete e.eYoneticiler; let uuid2Result = {};
-		for (let eYonetici of eYoneticiler) {
+		for (let eYonetici of eYoneticiler ?? []) {
 			await eYonetici.eIslemIptal(e);
-			let _uuid2Result = e.uuid2Result; if (!$.isEmptyObject(_uuid2Result)) { $.extend(uuid2Result, _uuid2Result) }
+			let _uuid2Result = e.uuid2Result; if (!empty(_uuid2Result)) { $.extend(uuid2Result, _uuid2Result) }
 		}
 		e.uuid2Result = uuid2Result
 	}
@@ -235,7 +246,7 @@ class EYonetici extends CObject {
 		if (!stm) { throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' } }
 		let recs = await app.sqlExecSelect(stm), ps2Recs = this.class.getPS2Recs({ recs });
 		let {callback} = e, uuid2Result = e.uuid2Result = e.uuid2Result || {};
-		if (!$.isEmptyObject(ps2Recs)) {
+		if (!empty(ps2Recs)) {
 			let eConf = e.eConf ?? this.eConf;
 			for (let psTip in ps2Recs) {
 				let _recs = ps2Recs[psTip], eIslTip2Recs = {}, duzgunUUIDListe = [], block_duzgunUUIDListe = [];
@@ -263,7 +274,7 @@ class EYonetici extends CObject {
 								if (!savedToken) { let {token} = result; if (token != null && savedToken != token) { savedToken = token; this.class.setTempToken(efAyrimTipi, token) } }
 								if (!result.isError) { duzgunUUIDListe.push(uuid); block_duzgunUUIDListe.push(uuid) }
 								if (window.progressManager) { window.progressManager.progressStep() }
-								if (Object.keys(uuid2Result).length % 201 == 200) { await updateIslemi(); if (callback) { getFuncValue.call(this, callback, e) } }
+								if (keys(uuid2Result).length % 201 == 200) { await updateIslemi(); if (callback) { getFuncValue.call(this, callback, e) } }
 							}
 						}
 					}
@@ -282,9 +293,9 @@ class EYonetici extends CObject {
 	}
 	static async xmlKaldir(e) {
 		let eYoneticiler = await this.getEYoneticiListe(e); delete e.eYoneticiler; let uuid2Result = {};
-		for (let eYonetici of eYoneticiler) {
+		for (let eYonetici of eYoneticiler ?? []) {
 			await eYonetici.xmlKaldir(e);
-			let _uuid2Result = e.uuid2Result; if (!$.isEmptyObject(_uuid2Result)) { $.extend(uuid2Result, _uuid2Result) }
+			let _uuid2Result = e.uuid2Result; if (!empty(_uuid2Result)) { $.extend(uuid2Result, _uuid2Result) }
 		}
 		e.uuid2Result = uuid2Result
 	}
@@ -295,7 +306,7 @@ class EYonetici extends CObject {
 		if (!stm) { throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' } }
 		let {sender, callback} = e, {eConf} = this, {eIslEkArgs} = eConf, recs = await app.sqlExecSelect(stm), ps2Recs = this.class.getPS2Recs({ recs });
 		let uuid2Result = e.uuid2Result = e.uuid2Result || {};
-		if (!$.isEmptyObject(ps2Recs)) {
+		if (!empty(ps2Recs)) {
 			let eConf = e.eConf ?? this.eConf; let duzgunUUIDListe = [], block_duzgunUUIDListe = [];
 			for (let psTip in ps2Recs) {
 				let _recs = ps2Recs[psTip], eIslTip2Recs = {};
@@ -326,7 +337,7 @@ class EYonetici extends CObject {
 							}
 						}
 						if (window.progressManager) { window.progressManager.progressStep() };
-						if (Object.keys(uuid2Result).length % 201 == 200) { await updateIslemi(); if (callback) { getFuncValue.call(this, callback, e) } }
+						if (keys(uuid2Result).length % 201 == 200) { await updateIslemi(); if (callback) { getFuncValue.call(this, callback, e) } }
 					}
 					catch (ex) {
 						if (!ex.responseJSON && ex.responseText) { try { ex = JSON.parse(ex.responseText) } catch (_ex) { } }
@@ -344,64 +355,105 @@ class EYonetici extends CObject {
 	}
 	static async eIslemXMLOlustur(e) {
 		let eYoneticiler = await this.getEYoneticiListe(e); delete e.eYoneticiler; let uuid2Result = {};
-		for (let eYonetici of eYoneticiler) {
+		for (let eYonetici of eYoneticiler ?? []) {
 			await eYonetici.eIslemXMLOlustur(e);
-			let _uuid2Result = e.uuid2Result; if (!$.isEmptyObject(_uuid2Result)) { $.extend(uuid2Result, _uuid2Result) }
+			let _uuid2Result = e.uuid2Result; if (!empty(_uuid2Result)) { $.extend(uuid2Result, _uuid2Result) }
 		}
 		e.uuid2Result = uuid2Result
 	}
-	async eIslemXMLOlustur(e) {
-		let {sender, callback} = e, {eConf} = this, eIslAnaSinif = this.eIslSinif;
-		$.extend(e, { ps2SayacListe: this.ps2SayacListe ?? this.class.getPS2SayacListe(e) });
-		let stm = eIslAnaSinif.getUUIDStm(e); for (let key of ['psTip2SayacListe', 'whereDuzenleyici']) { delete e[key] }
-		if (!stm) { throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' } }
-		let efAyrimTipi2Arastirilacaklar = {}, olusacakPS2Sayaclar = {}; let recs = await app.sqlExecSelect(stm);
-		if (window.progressManager) { window.progressManager.progressMax = (window.progressManager.progressMax || 0) + recs.length }
+	async eIslemXMLOlustur(e = {}) {
+		let {sender, callback, eConf = this.eConf} = e, {eIslSinif: eIslAnaSinif} = this
+		$.extend(e, { ps2SayacListe: this.ps2SayacListe ?? this.class.getPS2SayacListe(e) })
+		let stm = eIslAnaSinif.getUUIDStm(e)
+		for (let key of ['psTip2SayacListe', 'whereDuzenleyici'])
+			delete e[key]
+		if (!stm)
+			throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' }
+		let efAyrimTipi2Arastirilacaklar = {}, olusacakPS2Sayaclar = {}
+		let recs = await app.sqlExecSelect(stm)
+		window.progressManager?.setProgressMax((window.progressManager?.progressMax || 0) + recs.length)
 		for (let rec of recs) {
-			let {pstip, fissayac, uuid} = rec;
-			if (!uuid) { (olusacakPS2Sayaclar[pstip] = olusacakPS2Sayaclar[pstip] || []).push(fissayac); continue }
-			let efAyrimTipi = rec.efayrimtipi = rec.efayrimtipi || 'A'; (efAyrimTipi2Arastirilacaklar[efAyrimTipi] = efAyrimTipi2Arastirilacaklar[efAyrimTipi] || []).push(rec)
+			let {pstip, fissayac, uuid} = rec
+			if (!uuid) {
+				(olusacakPS2Sayaclar[pstip] ??= []).push(fissayac)
+				continue
+			}
+			let efAyrimTipi = rec.efayrimtipi ||= 'A'
+			(efAyrimTipi2Arastirilacaklar[efAyrimTipi] ??= []).push(rec)
 		}
-		if (!$.isEmptyObject(efAyrimTipi2Arastirilacaklar)) {
+		if (!empty(efAyrimTipi2Arastirilacaklar)) {
 			for (let efAyrimTipi in efAyrimTipi2Arastirilacaklar) {
-				let arastirilacaklar = efAyrimTipi2Arastirilacaklar[efAyrimTipi], eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi }), anaBolum = eConf.getAnaBolumFor({ eIslSinif });
-				if (!anaBolum) { throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: `e-İşlem için Ana Bölüm belirsizdir` } }
-				let eksikUUID2Dosya = {}, dosyaAdiSet = {};
+				let arastirilacaklar = efAyrimTipi2Arastirilacaklar[efAyrimTipi]
+				let eIslSinif = EIslemOrtak.getClass(efAyrimTipi), anaBolum = eConf.getAnaBolumFor(eIslSinif)
+				if (!anaBolum)
+					throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: `e-İşlem için Ana Bölüm belirsizdir` }
+				let eksikUUID2Dosya = {}, dosyaAdiSet = {}
 				for (let {uuid} of arastirilacaklar) {
-					let dosyaAdi = `${uuid}.xml`, dosya = `${anaBolum}\\IMZALI\\${dosyaAdi}`;
-					eksikUUID2Dosya[uuid] = dosya; dosyaAdiSet[dosyaAdi] = true
+					let dosyaAdi = `${uuid}.xml`
+					eksikUUID2Dosya[uuid] = dosya = `${anaBolum}\\IMZALI\\${dosyaAdi}`
+					dosyaAdiSet[dosyaAdi] = true
 				}
-				if (!$.isEmptyObject(dosyaAdiSet)) {
+				if (!empty(dosyaAdiSet)) {
 					// toplu uuid2Dosya xml dosya kontrol
-					let fileNames = Object.keys(dosyaAdiSet);
-					let {recs} = await app.wsDosyaListe({ args: { dir: anaBolum, recursive: true, includeDirs: false, pattern: `${'?'.repeat(newGUID().length)}.xml`, fileNames } }) || {};
-					for (let rec of recs) { let dosyaAdi = rec.name, uuid = dosyaAdi.split('.')[0].trim(); delete eksikUUID2Dosya[uuid]; delete dosyaAdiSet[dosyaAdi] }
+					let fileNames = keys(dosyaAdiSet)
+					let pattern = `${'?'.repeat(newGUID().length)}.xml`
+					let {recs} = await app.wsDosyaListe({ args: { dir: anaBolum, recursive: true, includeDirs: false, fileNames, pattern } }) || {}
+					for (let rec of recs) {
+						let {name: dosyaAdi} = rec
+						let uuid = dosyaAdi.split('.')[0].trim()
+						delete eksikUUID2Dosya[uuid]
+						delete dosyaAdiSet[dosyaAdi]
+					}
 				}
-				for (let [efAyrimTipi, recs] of Object.entries(efAyrimTipi2Arastirilacaklar)) {
+				for (let [efAyrimTipi, recs] of entries(efAyrimTipi2Arastirilacaklar))
 					for (let {uuid, pstip: psTip, fissayac: fisSayac} of recs) {
-						if (eksikUUID2Dosya[uuid]) { (olusacakPS2Sayaclar[psTip] = olusacakPS2Sayaclar[psTip] || []).push(fisSayac) } }
-				}
+						if (eksikUUID2Dosya[uuid])
+							(olusacakPS2Sayaclar[psTip] ??= []).push(fisSayac)
+					}
 			}
 		}
-		let kalanSayi = recs.length, eFisListe = [], uuid2Result = e.uuid2Result = e.uuid2Result || {};
-		if (!$.isEmptyObject(olusacakPS2Sayaclar)) {
-			for (let {length: sayi} of Object.values(olusacakPS2Sayaclar)) {
-				kalanSayi -= sayi; if (window.progressManager) { window.progressManager.progressStep(sayi) } }
+		let {length: kalanSayi} = recs, eFisListe = []
+		let uuid2Result = e.uuid2Result ??= {}
+		if (!empty(olusacakPS2Sayaclar)) {
+			for (let {length: sayi} of values(olusacakPS2Sayaclar)) {
+				kalanSayi -= sayi
+				window.progressManager?.progressStep(sayi)
+			}
 		}
-		if (!$.isEmptyObject(olusacakPS2Sayaclar)) {
-			let _e = { ...e, ...this , ps2SayacListe: olusacakPS2Sayaclar, temps: {} };
-			let stm = eIslAnaSinif.getEFisBaslikVeDetayStm(_e); if (!stm) { return }
-			let recs = await app.sqlExecSelect(stm), sevRecs = seviyelendirAttrGruplari({ source: recs, attrGruplari: [['pstip', 'fissayac']] }), ps2Sayac2EFis = _e.ps2Sayac2EFis = {};
+		if (!empty(olusacakPS2Sayaclar)) {
+			let _e = { ...e, ...this, ps2SayacListe: olusacakPS2Sayaclar, temps: {}, shared: {} }
+			let stm = eIslAnaSinif.getEFisBaslikVeDetayStm(_e)
+			if (!stm)
+				return
+			let recs = await app.sqlExecSelect(stm)
+			let sevRecs = seviyelendirAttrGruplari({ source: recs, attrGruplari: [['pstip', 'fissayac']] })
+			let ps2Sayac2EFis = _e.ps2Sayac2EFis = {}
+			let {temps, shared} = _e
 			for (let sev of sevRecs) {
-				let {orjBilgi: rec} = sev, {pstip: psTip, fissayac: fisSayac} = rec, efAyrimTipi = rec.efayrimtipi = rec.efayrimtipi || 'A';
-				$.extend(rec, { tarihStr: asReverseDateString(rec.tarih), sevkTarihStr: timeToString(rec.sevktarih || now()) });
-				$.extend(sev, { orjBilgi: new EIslBaslik(sev.orjBilgi), detaylar: sev.detaylar.map(det => new EIslDetay(det)) });
-				let eFis = EIslemOrtak.newFor({ tip: efAyrimTipi, eConf }); await eFis.baslikVeDetaylariYukle({ ..._e, baslik: sev.orjBilgi, detaylar: sev.detaylar });
-				let sayac2EFis = ps2Sayac2EFis[psTip] = ps2Sayac2EFis[psTip] || {}; sayac2EFis[fisSayac] = eFis
+				let {orjBilgi: rec} = sev
+				if (rec.sevktarih === undefined) {
+					rec.sevktarih = rec.sevktarihi
+					delete rec.sevktarihi
+				}
+				let {pstip: psTip, fissayac: fisSayac, sevktarih} = rec
+				let efAyrimTipi = rec.efayrimtipi ||= 'A'
+				$.extend(rec, {
+					tarihStr: asReverseDateString(rec.tarih),
+					sevkTarihStr: timeToString(sevktarih || now())
+				})
+				$.extend(sev, {
+					orjBilgi: new EIslBaslik(sev.orjBilgi),
+					detaylar: sev.detaylar.map(det => new EIslDetay(det))
+				})
+				let eFis = EIslemOrtak.newFor({ tip: efAyrimTipi, eConf })
+				await eFis.baslikVeDetaylariYukle({ ..._e, baslik: sev.orjBilgi, detaylar: sev.detaylar, temps, shared })
+				let sayac2EFis = ps2Sayac2EFis[psTip] ??= {}
+				sayac2EFis[fisSayac] = eFis
 			}
-			await eIslAnaSinif.tipIcinFislerEkDuzenlemeYap(_e); let temps = _e.temps = {}, BlockSize = 100;
+			await eIslAnaSinif.tipIcinFislerEkDuzenlemeYap(_e)
+			let BlockSize = 100
 			for (let psTip in ps2Sayac2EFis) {
-				let sayac2EFis = ps2Sayac2EFis[psTip], fisSayacListe = Object.keys(sayac2EFis);
+				let sayac2EFis = ps2Sayac2EFis[psTip], fisSayacListe = keys(sayac2EFis);
 				while (fisSayacListe.length) {
 					let subFisSayacListe = fisSayacListe.splice(0, BlockSize), uuid2SubResult = {};
 					let toplu = new MQToplu(), updCallback = _e.updCallback = ({ query }) => { if (query) { toplu.add(query) } };
@@ -431,16 +483,25 @@ class EYonetici extends CObject {
 						}));
 						if (promises.length == 1) { await commit() }
 					}
-					await commit(); try { if (window.progressManager) { window.progressManager.progressStep(subFisSayacListe.length) } } catch (ex) { }
-					try { if (callback) { getFuncValue.call(this, callback, e) } } catch (ex) { }
+					await commit()
+					window.progressManager?.progressStep(subFisSayacListe?.length ?? 0)
+					try {
+						if (callback)
+							getFuncValue.call(this, callback, e)
+					}
+					catch (ex) { }
 				}
 			}
 			if (!e.internal) { if (sender && !sender.isDestroyed && sender.tazele) { sender.tazele() } }
 		}
 	}
 	static async alimEIslemSil(e) {
-		let eYoneticiler = await this.getEYoneticiListe(e); delete e.eYoneticiler;
-		let promises = []; for (let eYonetici of eYoneticiler) { promises.push(eYonetici.alimEIslemSil(e)) } await Promise.all(promises)
+		let eYoneticiler = await this.getEYoneticiListe(e)
+		delete e.eYoneticiler
+		let promises = []
+		for (let eYonetici of eYoneticiler)
+			promises.push(eYonetici.alimEIslemSil(e))
+		await Promise.all(promises)
 	}
 	async alimEIslemSil(e) {
 		let {sender, callback, recs} = e, fisSayacListe = recs.map(rec=>rec.fissayac), uuid2Result = e.uuid2Result = e.uuid2Result || {};
@@ -460,9 +521,9 @@ class EYonetici extends CObject {
 	static async eIslemBekleyenleriGetir(e) {
 		e = e || {}; let eConf = e.eConf ?? MQEConf.instance, eIslSiniflar = [EIslFatura, EIslIrsaliye];
 		let eYoneticiler = e.eYoneticiler = eIslSiniflar.map(eIslSinif=>new EYonetici({ eConf, eIslSinif })), uuid2Result = {};
-		for (let eYonetici of eYoneticiler) {
+		for (let eYonetici of eYoneticiler ?? []) {
 			await eYonetici.eIslemBekleyenleriGetir(e);
-			let _uuid2Result = e.uuid2Result; if (!$.isEmptyObject(_uuid2Result)) { $.extend(uuid2Result, _uuid2Result) }
+			let _uuid2Result = e.uuid2Result; if (!empty(_uuid2Result)) { $.extend(uuid2Result, _uuid2Result) }
 		}
 		e.uuid2Result = uuid2Result
 	}
@@ -525,9 +586,9 @@ class EYonetici extends CObject {
 			}
 		}
 		let {eConf} = e, eIslSiniflar = [], eYoneticiler = e.eYoneticiler = [ new EYonetici({ eConf }) ], uuid2Result = {};
-		for (let eYonetici of eYoneticiler) {
+		for (let eYonetici of eYoneticiler ?? []) {
 			await eYonetici.eIslemAlimXMLYukle(e);
-			let _uuid2Result = e.uuid2Result; if (!$.isEmptyObject(_uuid2Result)) { $.extend(uuid2Result, _uuid2Result) }
+			let _uuid2Result = e.uuid2Result; if (!empty(_uuid2Result)) { $.extend(uuid2Result, _uuid2Result) }
 		}
 		e.uuid2Result = uuid2Result
 	}
@@ -555,7 +616,7 @@ class EYonetici extends CObject {
 	}
 	static async eIslemAlimTicariFiseDonustur(e) {
 		e = e || {}; let {eConf} = e, eYoneticiler = e.eYoneticiler = [new EYonetici({ eConf })];
-		for (let eYonetici of eYoneticiler) { await eYonetici.eIslemAlimTicariFiseDonustur(e) }
+		for (let eYonetici of eYoneticiler ?? []) { await eYonetici.eIslemAlimTicariFiseDonustur(e) }
 	}
 	async eIslemAlimTicariFiseDonustur(e) {
 		e.eYonetici = this; let {eConf} = this, {eIslEkArgs} = eConf;
@@ -587,7 +648,7 @@ class EYonetici extends CObject {
 	}
 	async bekleyenleriGetir_veriIsle(e) {
 		let {eConf} = this; console.debug('bekleyenleriGetir_veriIsle', e)
-		let results = e.subResults || e.results; if (!results) { let {subUUID2Results} = e; result = Object.values(subUUID2Results) }
+		let results = e.subResults || e.results; if (!results) { let {subUUID2Results} = e; result = values(subUUID2Results) }
 		for (let result of results) {
 			let {eFis} = result;
 			if (!eFis) {
@@ -633,7 +694,7 @@ class EYonetici extends CObject {
 			]
 		})]);
 		let stm = new MQStm({ sent: uni }), recs = await app.sqlExecSelect({ query: stm });
-		if (!$.isEmptyObject(recs)) {
+		if (!empty(recs)) {
 			let rec = recs[0], gecicimi = asBool(rec.gecicimi);
 			$.extend(result, { isError: true, message: `${rec.fisnox} numaralı belge ${gecicimi ? 'Geçici Listede ' : ''}tekrarlanıyor` });;
 			console.debug('X.', eFis); return false
@@ -673,19 +734,27 @@ class EYonetici extends CObject {
 	}
 	static getPS2Table(e) { e = e || {}; let psTip = typeof e == 'object' ? (e.psTip || e.tip || e.ps) : e; return (psTip == 'S' ? 'sipfis' : 'piffis') }
 	static getEYoneticiListe(e) {
-		let {eYoneticiler, recs} = e;
-		if (eYoneticiler) { return eYoneticiler }
-		if (!recs) { return null } if ($.isEmptyObject(recs)) { return [] }
+		let {eYoneticiler, recs} = e
+		if (eYoneticiler)
+			return eYoneticiler
+		if (!recs)
+			return null
+		if (empty(recs))
+			return []
 		let eIslAnaTip2PS2SayacListe = {};
 		for (let rec of recs) {
-			if (!rec) { continue }
-			let psTip = rec.pstip ?? 'P', efAyrimTipi = rec.efayrimtipi ?? rec.efbelge, {anaTip} = EIslemOrtak.getClass({ tip: efAyrimTipi }) || {}; if (!anaTip) { continue }
+			if (!rec)
+				continue
+			let psTip = rec.pstip ?? 'P', efAyrimTipi = rec.efayrimtipi ?? rec.efbelge
+			let {anaTip} = EIslemOrtak.getClass({ tip: efAyrimTipi }) || {}
+			if (!anaTip)
+				continue
 			let ps2SayacListe = eIslAnaTip2PS2SayacListe[anaTip] = eIslAnaTip2PS2SayacListe[anaTip] || {};
 			(ps2SayacListe[psTip] = ps2SayacListe[psTip] || []).push(rec.kaysayac ?? rec.fissayac)
 		}
-		let {eConf} = e, result = [];
-		for (let anaTip in eIslAnaTip2PS2SayacListe) {
-			let eIslSinif = EIslemOrtak.getAnaClass({ anaTip }), ps2SayacListe = eIslAnaTip2PS2SayacListe[anaTip];
+		let {eConf} = e, result = []
+		for (let [anaTip, ps2SayacListe] of entries(eIslAnaTip2PS2SayacListe)) {
+			let eIslSinif = EIslemOrtak.getAnaClass({ anaTip })
 			result.push(new EYonetici({ eConf, eIslSinif, ps2SayacListe }))
 		}
 		return result
@@ -743,7 +812,7 @@ class EYonetici extends CObject {
 		await eYonetici?.xmlKaldir({ internal });
 		let uuid2Result = {}; await eYonetici?.eIslemXMLOlustur({ internal, uuid2Result });
 		await new Promise(c => setTimeout(() => c(), 500));
-		let uuid_new = Object.keys(uuid2Result)[0];
+		let uuid_new = keys(uuid2Result)[0];
 		let xmlDosya_new = `${rootDir}\\${uuid_new}.xml`;
 		
 		// 4) normalize (C14N) → server-side iki çıktı üret (old.c14n.xml / new.c14n.xml)

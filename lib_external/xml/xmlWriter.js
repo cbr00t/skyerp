@@ -63,15 +63,25 @@ var proto = XMLWriter.prototype = {
 		if (this.active) { this.active.a[name] = value }
 	},
 	//add a text node to the active node
-	writeString: function( text ){
+	writeString: function( text, noEscape ){
 		if (text == null) { return }
-		if (window.escapeXML) { text = escapeXML(text.toString()) }
+		if (!noEscape && window.escapeXML) { text = escapeXML(text.toString()) }
 		if (this.active) { this.active.c.push(text.toString()) }
 	},
 	//add plain xml content to the active node without any further checks and escaping
 	writeXML:function( text ){
 		if( this.active )
 			this.active.c.push(text);
+	},
+	//add a text node wrapped with CDATA
+	writeCDATA:function( text, escape ){
+		// keep nested CDATA
+		text = text.replace(/>>]/g, "]]><![CDATA[>");
+		this.writeString( '<![CDATA[' + text + ']]>', !escape );
+	},
+	//add a text node wrapped in a comment
+	writeComment:function( text ){
+		this.writeString('<!-- ' + text + ' -->');
 	},
 	//shortcut, open an element, write the text and close
 	writeElementString:function( name, text, ns, attributes ){
@@ -81,15 +91,13 @@ var proto = XMLWriter.prototype = {
 		this.writeString( text );
 		this.writeEndElement();
 	},
-	//add a text node wrapped with CDATA
-	writeCDATA:function( text ){
-		// keep nested CDATA
-		text = text.replace(/>>]/g, "]]><![CDATA[>");
-		this.writeString( '<![CDATA[' + text + ']]>' );
-	},
-	//add a text node wrapped in a comment
-	writeComment:function( text ){
-		this.writeString('<!-- ' + text + ' -->');
+	//shortcut, open an element, write the CDATA and close
+	writeElementCDATA:function( name, text, ns, attributes, escape ){
+		this.writeStartElement( name, ns );
+		if (attributes)
+			this.writeAttributes(attributes)
+		this.writeCDATA( text, escape );
+		this.writeEndElement();
 	},
 	writeEmptyElement:function( name, ns, attributes ){
 		this.writeStartElement( name, ns );

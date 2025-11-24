@@ -90,7 +90,8 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		for (let sent of stm) {
 			let {where: wh, sahalar} = sent;
 			if (attrSet.STANAGRP || attrSet.STGRP || attrSet.STISTGRP || attrSet.STOK || attrSet.STOKMARKA) { sent.har2StokBagla() }
-			if (attrSet.STANAGRP) { sent.stok2GrupBagla() } if (attrSet.STOKMARKA) { sent.stok2MarkaBagla() }
+			if (attrSet.STANAGRP) { sent.stok2GrupBagla() }
+			if (attrSet.STOKMARKA) { sent.stok2MarkaBagla() }
 			for (let key in attrSet) {
 				switch (key) {
 					/*case 'STANAGRP': sent.stokGrup2AnaGrupBagla(); sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi'); wh.icerikKisitDuzenle_stokAnaGrup({ ...e, saha: 'grp.anagrupkod' }); break

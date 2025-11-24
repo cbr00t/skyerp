@@ -1,14 +1,14 @@
 class GidenEIslemListePart extends EIslemListeBasePart {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'gidenEIslemListe' } static get filtreSinif() { return GidenEIslemFiltre }
-	constructor(e) { e = e || {}; super(e); this.title = e.title == null ? ( 'Giden e-İşlem Listesi' ) : e.title || '' }
+	constructor(e) { e ??= {}; super(e); this.title = e.title == null ? ( 'Giden e-İşlem Listesi' ) : e.title || '' }
 	runDevam(e) {
-		e = e || {}; super.runDevam(e);
-		const {dbName} = config.session, {kural} = app.params.eIslem, {sadeceAdi2mi} = kural?.shAdi ?? {};
+		e ??= {}; super.runDevam(e);
+		let {dbName} = config.session, {kural} = app.params.eIslem, {sadeceAdi2mi} = kural?.shAdi ?? {};
 		if (!sadeceAdi2mi && dbName?.toUpperCase().includes('BAKERMAN')) { setTimeout(() => hConfirm(`<b>BAKERMAN</b> veritabanı için e-İşlem Parametresi <b class="red">Stok Adı Gösterim</b> kuralı <u class="bold royalblue">2. Adı</u> olarak işaretlenmelidir`, 'UYARI'), 1000) }
 	}
 	islemTuslariDuzenle(e) {
-		super.islemTuslariDuzenle(e); const {liste, part} = e;
+		super.islemTuslariDuzenle(e); let {liste, part} = e;
 		liste.unshift(
 			{ id: 'eIslemGonder', handler: e => this.eIslemGonderIstendi(e) },
 			{ id: 'eIslemIzle', handler: e => this.eIslemIzleIstendi(e) },
@@ -20,17 +20,17 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		$.extend(part.sagButonIdSet, asSet(['eIslemGonder', 'eIslemIzle', 'eIslemSorgu', 'eIslemXMLOlustur', 'eIslemIptal', 'xmlKaldir']))
 	}
 	get defaultTabloKolonlari() {
-		const getCSSDuzenleyici = e => {
-			e = e || {}; const {ekCSS, duzenleyici} = e;
+		let getCSSDuzenleyici = e => {
+			e ??= {}; let {ekCSS, duzenleyici} = e;
 			return ((sender, rowIndex, belirtec, value, rec) => {
-				let result = [belirtec]; const {efayrimtipi, efatonaydurumu, efatuuid, efimzats, efgonderimts} = rec;
-				if (!$.isEmptyObject(ekCSS)) { const _liste = $.isArray(ekCSS) ? ekCSS : [ekCSS]; result.push(..._liste) }
+				let result = [belirtec]; let {efayrimtipi, efatonaydurumu, efatuuid, efimzats, efgonderimts} = rec;
+				if (!$.isEmptyObject(ekCSS)) { let _liste = $.isArray(ekCSS) ? ekCSS : [ekCSS]; result.push(..._liste) }
 				if (efayrimtipi != null) { result.push(`eIslTip-${efayrimtipi}`) }
 				if (efatonaydurumu != null) { result.push(`akibet-${efatonaydurumu}`) }
 				if (efimzats) { result.push('imzali') }
 				if (efgonderimts) { result.push('gonderildi') }
 				if (efatuuid) { result.push('hasUUID') }
-				if (duzenleyici) { const _e = $.extend({}, e, { sender, rowIndex, belirtec, value, rec, result }); getFuncValue.call(this, duzenleyici, _e); result = _e.result }
+				if (duzenleyici) { let _e = $.extend({}, e, { sender, rowIndex, belirtec, value, rec, result }); getFuncValue.call(this, duzenleyici, _e); result = _e.result }
 				return result.join(' ')
 			})
 		};
@@ -48,9 +48,9 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		])
 	}
 	loadServerData_veriDuzenle(e) {
-		super.loadServerData_veriDuzenle(e); const tSec_eIslTip = new EIslemTip(),  tSec_akibet = new EIslemOnayDurum(), {secimler: sec} = this, {recs} = e;
-		for (const rec of recs) {
-			const efAyrimTipi = rec.efayrimtipi = rec.efayrimtipi || 'A',  efOnayDurumu = rec.efatonaydurumu;
+		super.loadServerData_veriDuzenle(e); let tSec_eIslTip = new EIslemTip(),  tSec_akibet = new EIslemOnayDurum(), {secimler: sec} = this, {recs} = e;
+		for (let rec of recs) {
+			let efAyrimTipi = rec.efayrimtipi = rec.efayrimtipi || 'A',  efOnayDurumu = rec.efatonaydurumu;
 			$.extend(rec, {
 				eIslTipText: tSec_eIslTip.kaDict[efAyrimTipi]?.aciklama || efAyrimTipi, belgeTipText: sec.class.getBelgeTipText({ rec }),
 				akibetText: tSec_akibet.kaDict[efOnayDurumu]?.aciklama || efOnayDurumu, mustText: `(<b>${rec.mustkod}</b>) ${rec.birunvan}`,
@@ -58,35 +58,132 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 			})
 		}
 	}
-	async eIslemGonderIstendi(e) {
-		e = e || {}; const {eConf} = this, islemAdi = 'e-İşlem Gönder';
-		const _e = await this.getSecilenSatirlar_mesajli({ islemAdi }) || {}; if (!_e.recs) return
-		try { $.extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) }); this.showProgress(_e); await EYonetici.eIslemGonder(_e) } catch (ex) { _e.error = ex; displayMessage(getErrorText(ex), islemAdi); throw ex } finally { this.uiIslemiSonrasi(_e) }
+	async eIslemGonderIstendi(e = {}) {
+		let {eConf} = this, islemAdi = 'e-İşlem Gönder'
+		let _e = await this.getSecilenSatirlar_mesajli({ islemAdi }) || {}
+		let {recs} = _e
+		if (!recs)
+			return
+		let {event: { ctrlKey: ctrl } = {}} = e
+		if (ctrl)
+			await this.xmlKaldirIstendi({ ...e, recs })
+		try {
+			$.extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
+			this.showProgress(_e)
+			await EYonetici.eIslemGonder(_e)
+		}
+		catch (ex) {
+			_e.error = ex
+			hConfirm(getErrorText(ex), islemAdi)
+			throw ex
+		}
+		finally { this.uiIslemiSonrasi(_e) }
 	}
-	async eIslemIzleIstendi(e) {
-		e = e || {}; const {eConf} = this, islemAdi = 'e-İşlem İZLE';
-		const _e = await this.getSecilenSatirlar_mesajli({ islemAdi }) || {}; if (!_e.recs) return
-		try { $.extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) }); this.showProgress(_e); await EYonetici.eIslemIzle(_e) } catch (ex) { _e.error = ex; displayMessage(getErrorText(ex), islemAdi); throw ex } finally { this.uiIslemiSonrasi(_e) }
+	async eIslemIzleIstendi(e = {}) {
+		let {eConf} = this, islemAdi = 'e-İşlem İZLE'
+		let _e = await this.getSecilenSatirlar_mesajli({ islemAdi }) || {}
+		let {recs} = _e
+		if (!recs)
+			return
+		let {event: { ctrlKey: ctrl } = {}} = e
+		if (ctrl)
+			await this.xmlKaldirIstendi({ ...e, silent: true, recs })
+		try {
+			$.extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
+			this.showProgress(_e)
+			await EYonetici.eIslemIzle(_e)
+		}
+		catch (ex) {
+			_e.error = ex
+			hConfirm(getErrorText(ex), islemAdi)
+			throw ex
+		}
+		finally { this.uiIslemiSonrasi({ ..._e, silent: true }) }
 	}
-	async eIslemSorguIstendi(e) {
-		e = e || {}; const {eConf} = this, islemAdi = 'e-İşlem Sorgu';
-		const _e = await this.getSecilenSatirlar_mesajli({ islemAdi }) || {}; if (!_e.recs) return
-		try { $.extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) }); this.showProgress(_e); await EYonetici.eIslemSorgula(_e) } catch (ex) { _e.error = ex; displayMessage(getErrorText(ex), islemAdi); throw ex } finally { this.uiIslemiSonrasi(_e) }
+	async eIslemSorguIstendi(e = {}) {
+		let {eConf} = this, islemAdi = 'e-İşlem Sorgu'
+		let _e = await this.getSecilenSatirlar_mesajli({ islemAdi }) || {}
+		let {recs} = _e
+		if (!recs)
+			return
+		let {event: { ctrlKey: ctrl } = {}} = e
+		if (ctrl)
+			await this.eIslemSorgula({ ...e, recs })
+		try {
+			$.extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
+			this.showProgress(_e)
+			await EYonetici.eIslemGonder(_e)
+		}
+		catch (ex) {
+			_e.error = ex
+			hConfirm(getErrorText(ex), islemAdi)
+			throw ex
+		}
+		finally { this.uiIslemiSonrasi(_e) }
 	}
-	async eIslemXMLOlusturIstendi(e) {
-		e = e || {}; const {eConf} = this, islemAdi = 'e-İşlem XML Oluştur';
-		const _e = await this.getSecilenSatirlar_mesajli({ islemAdi }) || {}; if (!_e.recs) return
-		try { $.extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) }); this.showProgress(_e); await EYonetici.eIslemXMLOlustur(_e) } catch (ex) { _e.error = ex; displayMessage(getErrorText(ex), islemAdi); throw ex } finally { this.uiIslemiSonrasi(_e) }
+	async eIslemXMLOlusturIstendi(e = {}) {
+		let {eConf} = this, islemAdi = 'e-İşlem XML Oluştur'
+		let _e = await this.getSecilenSatirlar_mesajli({ islemAdi }) || {}
+		let {recs} = _e
+		if (!recs)
+			return
+		let {event: { ctrlKey: ctrl } = {}} = e
+		if (ctrl)
+			await this.xmlKaldirIstendi({ ...e, silent: true, recs })
+		try {
+			$.extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
+			this.showProgress(_e)
+			await EYonetici.eIslemXMLOlustur(_e)
+		}
+		catch (ex) {
+			_e.error = ex
+			hConfirm(getErrorText(ex), islemAdi)
+			throw ex
+		}
+		finally { this.uiIslemiSonrasi(_e) }
 	}
-	async eIslemIptalIstendi(e) {
-		e = e || {}; const {eConf} = this, islemAdi = 'e-İşlem İPTAL';
-		const _e = await this.getSecilenSatirlar_mesajli({ islemAdi }) || {}; if (!_e.recs) return
-		try { $.extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) }); this.showProgress(_e); await EYonetici.eIslemIptal(_e) } catch (ex) { _e.error = ex; displayMessage(getErrorText(ex), islemAdi); throw ex } finally { this.uiIslemiSonrasi(_e) }
+	async eIslemIptalIstendi(e = {}) {
+		let {eConf} = this, islemAdi = 'e-İşlem İPTAL'
+		let _e = await this.getSecilenSatirlar_mesajli({ islemAdi }) || {}
+		let {recs} = _e
+		if (!recs)
+			return
+		let {event: { ctrlKey: ctrl } = {}} = e
+		if (ctrl)
+			await this.eIslemIptal({ ...e, recs })
+		try {
+			$.extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
+			this.showProgress(_e)
+			await EYonetici.eIslemGonder(_e)
+		}
+		catch (ex) {
+			_e.error = ex
+			hConfirm(getErrorText(ex), islemAdi)
+			throw ex
+		}
+		finally { this.uiIslemiSonrasi(_e) }
 	}
-	async xmlKaldirIstendi(e) {
-		e = e || {}; const {eConf} = this, islemAdi = 'e-İşlem XML Kaldır';
-		const _e = await this.getSecilenSatirlar_mesajli({ islemAdi }) || {}; if (!_e.recs) return
-		try { $.extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) }); this.showProgress(_e); await EYonetici.xmlKaldir(_e) } catch (ex) { _e.error = ex; displayMessage(getErrorText(ex), islemAdi); throw ex } finally { this.uiIslemiSonrasi(_e) }
+	async xmlKaldirIstendi(e = {}) {
+		let islemAdi = 'e-İşlem XML Kaldır'
+		let {eConf} = this, {silent, recs} = e, _e = { ...e, sender: this }
+		if (!recs) {
+			$.extend(_e, await this.getSecilenSatirlar({ islemAdi, mesajli: !silent }) || {})
+			recs = _e.recs
+		}
+		try {
+			let callback = silent ? null : new EIslemAkibet_Callback({ islemAdi })
+			$.extend(_e, { eConf, callback })
+			this.showProgress(_e)
+			await EYonetici.xmlKaldir(_e)
+		}
+		catch (ex) {
+			_e.error = ex
+			if (!silent) {
+				hConfirm(getErrorText(ex), islemAdi)
+				throw ex
+			}
+		}
+		finally { this.uiIslemiSonrasi(_e) }
 	}
 }
 

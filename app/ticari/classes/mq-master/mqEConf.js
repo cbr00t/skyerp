@@ -68,11 +68,19 @@ class MQEConf extends MQKA {
 		return super.yeniInstOlustur(e)
 	}
 	eIslListeSentDuzenle(e) { }
-	getAnaBolumFor(e) {
-		e = e || {}; let {eIslTip} = e; if (eIslTip == '') { eIslTip = 'A' }
-		let {eIslSinif} = e; if (!eIslSinif && eIslTip != null) { eIslSinif = EIslemOrtak.getClass({ tip: eIslTip }) }
-		let result = this.getValue('anaBolum'); if (!result) { return result }
-		let {altBolum} = eIslSinif || {}; if (altBolum) altBolum = altBolum.trim('\\').trim('/'); if (altBolum) { result += `\\${altBolum}` }
+	getAnaBolumFor(e = {}) {
+		e = typeof e == 'string' ? { eIslTip: e } : isClass(e) ? { eIslSinif: e } : e
+		let {eIslTip, eIslSinif} = e
+		eIslTip ||= 'A'
+		if (!eIslSinif && eIslTip != null)
+			eIslSinif = EIslemOrtak.getClass(eIslTip)
+		let result = this.getValue('anaBolum')
+		if (!result)
+			return result
+		let {altBolum} = eIslSinif || {}
+		altBolum = altBolum?.trim('\\')?.trim('/')
+		if (altBolum)
+			result += `\\${altBolum}`
 		return result
 	}
 	getValue(e) {

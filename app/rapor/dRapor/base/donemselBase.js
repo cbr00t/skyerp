@@ -24,17 +24,20 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 			donem.tarihAralik(); tarih.basi = today().addDays(-10)
 		}*/
 	}
-	loadServerData(e) {
-		e = e ?? {}; let {secimler: sec} = this, {tarihBS: donemBS} = sec;
-		$.extend(e, { donemBS }); /* e.donemBS = sec.tarihBSVeyaCariDonem; */
+	loadServerData(e = {}) {
+		let {secimler: sec, secimler: { tarihBS: donemBS }} = this
+		$.extend(e, { donemBS }) /* e.donemBS = sec.tarihBSVeyaCariDonem; */
 		return super.loadServerData(e)
 	}
-	super_loadServerDataInternal(e) { super.loadServerDataInternal(e) } superSuper_loadServerDataInternal(e) { super.super_loadServerDataInternal(e) }
+	super_loadServerDataInternal(e) { super.loadServerDataInternal(e) }
+	superSuper_loadServerDataInternal(e) { super.super_loadServerDataInternal(e) }
 	donemBagla({ donemBS, tarihSaha, sent }) {
 		let {hareketmi, envantermi} = this.class, {where: wh} = sent
 		if (donemBS) {
-			if (hareketmi || envantermi) { wh.basiSonu({ sonu: donemBS.sonu }, tarihSaha) }
-			else { wh.basiSonu(donemBS, tarihSaha) }
+			if (hareketmi || envantermi)
+				wh.basiSonu({ sonu: donemBS.sonu }, tarihSaha)
+			else
+				wh.basiSonu(donemBS, tarihSaha)
 		}
 		return this
 	}

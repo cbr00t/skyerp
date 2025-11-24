@@ -34,10 +34,16 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		if (groupByOlustur) { this.groupByOlustur() }
 	}
 	static hasAggregateFunctions(e, _aggregateFunctions) {
-		if (typeof e != 'object') e = { sql: e, aggregateFunctions: _aggregateFunctions };
-		let {sql} = e; if (!sql) { return false }
+		if (typeof e != 'object')
+			e = { sql: e, aggregateFunctions: _aggregateFunctions }
+		let {sql} = e;
+		if (!sql)
+			return false
 		let aggregateFunctions = e.aggregateFunctions ?? this.aggregateFunctions;
-		for (let prefix of aggregateFunctions) { if (sql.includes(`${prefix}(`) || sql.includes(`${prefix.toLowerCase()}(`)) { return true } }
+		for (let prefix of aggregateFunctions) {
+			if (sql.includes(`${prefix}(`) || sql.includes(`${prefix.toLowerCase()}(`))
+				return true
+		}
 		return false
 	}
 	fromGridWSArgs(e) { e = e || {}; this.where.fromGridWSArgs(e) }
@@ -68,6 +74,13 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 				aggregateVarmi = true
 				continue
 			}
+			if (degerUpper.includes('DATEPART(') || degerUpper.includes('DATENAME(') ||
+						degerUpper.includes('DAY,') || degerUpper.includes('MONTH,') ||
+						degerUpper.includes('WEEK,') || degerUpper.includes('YEAR,')) {
+				ekleneceklerSet[deger] = true
+				continue
+			}
+				
 			if (basitmi) {
 				// olası değerler
 				if (degerUpper.startsWith('CAST(0') || degerUpper.startsWith("CAST(''") ||
@@ -89,12 +102,13 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 			groupBy.addAll(keys(ekleneceklerSet))
 		return this
 	}
-	havingOlustur(e) {
-		e = e ?? {}; let {sahalar, having, class: cls} = this;
-		let converter = e.converter ?? (clause => `${clause} <> 0`);
-		let aggregateFunctionsSet = { ...cls.aggregateFunctionsSet };
-		for (let key of ['COUNT', 'STRING_AGG']) { delete aggregateFunctionsSet[key] }
-		let aggregateFunctions = Object.keys(aggregateFunctionsSet);
+	havingOlustur(e = {}) {
+		let {sahalar, having, class: cls} = this;
+		let converter = e.converter ?? (clause => `${clause} <> 0`)
+		let aggregateFunctionsSet = { ...cls.aggregateFunctionsSet }
+		for (let key of ['COUNT', 'STRING_AGG'])
+			delete aggregateFunctionsSet[key]
+		let aggregateFunctions = keys(aggregateFunctionsSet)
 		let or = new MQOrClause(); for (let {alias, deger: clause} of sahalar.liste) {
 			if (clause?.toUpperCase == null) { debugger }
 			let clauseUpper = clause?.toUpperCase?.(); if (!clauseUpper) { continue }
@@ -159,13 +173,19 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	zincirEkle(item) { this.zincirler.liste.push(item); return this }
 	zincirleriDuzenle(e) {
 		let {zincirler} = this, alias2Oncelik = {}, result = [];
-		for (let zincir of zincirler.liste) { if (zincir?.length) { alias2Oncelik[zincir.at(-1)] = zincir.slice(0, -1)} }
+		for (let zincir of zincirler.liste) {
+			if (zincir?.length)
+				alias2Oncelik[zincir.at(-1)] = zincir.slice(0, -1)
+		}
 		let recursiveOncelikDoldur = (alias, oncelikDizi) => {
-			if (!oncelikDizi.includes(alias)) { oncelikDizi.push(alias) }
-			let buOncelikler = alias2Oncelik[alias] ?? [], altOncelikler = arrayFark(buOncelikler, oncelikDizi);
-			for (let altAlias of altOncelikler) { recursiveOncelikDoldur(altAlias, oncelikDizi) }
+			if (!oncelikDizi.includes(alias))
+				oncelikDizi.push(alias)
+			let buOncelikler = alias2Oncelik[alias] ?? []
+			let altOncelikler = arrayFark(buOncelikler, oncelikDizi)
+			for (let altAlias of altOncelikler)
+				recursiveOncelikDoldur(altAlias, oncelikDizi)
 		};
-		let sortedAliases = Object.keys(alias2Oncelik).sort(); for (let alias of sortedAliases) {
+		let sortedAliases = keys(alias2Oncelik).sort(); for (let alias of sortedAliases) {
 			let oncelikDizi = []; recursiveOncelikDoldur(alias, oncelikDizi);
 			if (oncelikDizi.length > 1) { result.push(oncelikDizi.reverse()) }
 		}
@@ -546,7 +566,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 						else { priAliasVeDeger2Iliski[deger].push(iliski) }
 					}
 				} whereListe = whereKalanlar;
-				for (let [priAliasVeDeger, iliskiler] of Object.entries(priAliasVeDeger2Iliski)) {
+				for (let [priAliasVeDeger, iliskiler] of entries(priAliasVeDeger2Iliski)) {
 					for (let {sol, sag} of iliskiler) {
 						if (sol.deger != priAliasVeDeger) { continue }
 						let indexKeys = sag.deger?.sqlDegeri_unescaped()?.toString() ?? CDBTable.NullKey;
@@ -564,7 +584,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 class MQCTESent extends MQSentVeIliskiliYapiOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return '' }
 	get siraliSahaVeDegerler() { let result = []; for (let sent of this) { result.push(sent.alias2Deger) }; return result }
-	get siraliSahalar() { return this.siraliSahaVeDegerler.map(dict => Object.keys(dict)) }
+	get siraliSahalar() { return this.siraliSahaVeDegerler.map(dict => keys(dict)) }
 	constructor(e) {
 		e = e || {}; super(e);
 		if ($.isArray(e)) e = { liste: e }
