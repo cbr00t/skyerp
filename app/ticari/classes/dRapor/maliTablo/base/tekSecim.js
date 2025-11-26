@@ -102,7 +102,7 @@ class SBTabloYatayAnaliz extends TekSecim {
 					super.sentDuzenle(...arguments)   /* kodAttr için sent'e clause eklenmiş olarak gelecek */
 					kodClause ||= hv[this.zorunluKodAttr] || 'fis.tarih'
 					// kodClause = `FORMAT(${kodClause}, 'MM-MMMM', 'tr-TR')`
-					kodClause = `RIGHT('0' + CAST(MONTH(tarih) AS varchar(2)), 2) + '-' + DATENAME(MONTH, tarih)`
+					kodClause = `dbo.ayadi(tarih)`
 					sahalar.add(`${kodClause} yatay`)
 				}
 			}]),
