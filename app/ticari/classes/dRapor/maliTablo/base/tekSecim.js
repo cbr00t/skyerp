@@ -102,7 +102,7 @@ class SBTabloYatayAnaliz extends TekSecim {
 					super.sentDuzenle(...arguments)   /* kodAttr için sent'e clause eklenmiş olarak gelecek */
 					kodClause ||= hv[this.zorunluKodAttr] || 'fis.tarih'
 					// kodClause = `FORMAT(${kodClause}, 'MM-MMMM', 'tr-TR')`
-					kodClause = `dbo.ayadi(tarih)`
+					kodClause = `dbo.ayadi(${kodClause})`
 					sahalar.add(`${kodClause} yatay`)
 				}
 			}]),
@@ -130,7 +130,8 @@ class SBTabloYatayAnaliz extends TekSecim {
 					/* kodAttr için sent'e clause eklenmiş olarak gelecek */
 					let {kodAttr} = this, yatayAlias = 'kas'
 					kodClause ||= `fis.${kodAttr}`
-					if (!from.aliasIcinTable(yatayAlias)) { sent.x2KasaBagla({ kodClause }) }
+					if (!from.aliasIcinTable(yatayAlias))
+						sent.x2KasaBagla({ kodClause })
 					sahalar.add('kas.aciklama yatay')
 				}
 			}]),

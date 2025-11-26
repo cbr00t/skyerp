@@ -91,20 +91,20 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 	}
 	async yukleSonrasiIslemler() {
 		await super.yukleSonrasiIslemler(...arguments); let {detaylar} = this
-		let id2Det = Object.fromEntries(detaylar.filter(det => det.okunanHarSayac).map(det => [det.okunanHarSayac, det]))
+		let id2Det = fromEntries(detaylar.filter(det => det.okunanHarSayac).map(det => [det.okunanHarSayac, det]))
 		let sent = new MQSent(), {where: wh, sahalar} = sent
 		sent.fromAdd('sbtablodetayjson sec')
-		wh.inDizi(Object.keys(id2Det), 'sec.harid'); sahalar.add('sec.harid', 'sec.seq', 'sec.xdata')
+		wh.inDizi(keys(id2Det), 'sec.harid'); sahalar.add('sec.harid', 'sec.seq', 'sec.xdata')
 		let orderBy = ['harid', 'seq'], stm = new MQStm({ sent, orderBy });
 		let id2Data = {}; for (let {harid: harID, xdata: data} of await app.sqlExecSelect(stm)) {
 			(id2Data[harID] = id2Data[harID] ?? []).push(data) }
-		for (let [harID, data] of Object.entries(id2Data)) {
+		for (let [harID, data] of entries(id2Data)) {
 			if (!data?.length) { continue }
 			let det = id2Det[harID]; if (!det) { continue }
 			try {
 				data = JSON.parse(Base64.decode($.isArray(data) ? data.join('') : data))
 				let {secimler} = det
-				for (let [key, _secim] of Object.entries(data)) {
+				for (let [key, _secim] of entries(data)) {
 					let secim = secimler?.[key]
 					if (secim) { $.extend(secim, _secim) }
 				}
@@ -123,12 +123,12 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 			secimler ??= {}; let {asObject: data} = secimler;
 			harID2SecimData[harid] = empty(data) ? null : Base64.encode(toJSONStr(data))
 		}
-		let hvListe = []; for (let [harid, data] of Object.entries(harID2SecimData)) {
+		let hvListe = []; for (let [harid, data] of entries(harID2SecimData)) {
 			if (!data) { continue }
 			arrayIterChunks(data, 50).forEach((xdata, seq) =>
 				hvListe.push({ harid, seq, xdata }))
 		}
-		let from = 'sbtablodetayjson', harIDListe = Object.keys(harID2SecimData)
+		let from = 'sbtablodetayjson', harIDListe = keys(harID2SecimData)
 		let query = new MQToplu([
 			new MQIliskiliDelete({ from, where: { inDizi: harIDListe, saha: 'harid' } }),
 			new MQInsert({ from, hvListe }).queryInsert()
@@ -166,37 +166,42 @@ class SBTabloDetay extends MQDetay {
 	static get fisSayacSaha() { return 'fisid' } static get sayacSaha() { return 'id' }
 	get id() { return this.sayac } set id(value) { this.sayac = value }
 	get asObject() {
-		let {pTanim} = this.class, {sayac: id, satirListe} = this;
-		let result = { ...this, id, satirListe };
-		let keys = Object.keys(pTanim); for (let key of keys) {
+		let {pTanim} = this.class, {sayac: id, satirListe} = this
+		let result = { ...this, id, satirListe }
+		let _keys = keys(pTanim)
+		for (let key of _keys) {
 			let value = this[key]
 			// value = value?.kod ?? value
-			value = value?.deepCopy?.() ?? value
-			if (typeof value == 'object' && !value?.deepCopy) { value = $.extend(true, {}, value) }
-			if (value !== undefined) { result[key] = value }
+			if (typeof value == 'object')
+				value = value?.deepCopy?.() ?? $.extend(true, {}, value) ?? value
+			if (value !== undefined)
+				result[key] = value
 		}
-		let removeKeys = ['_p', '_supers', '_temps', 'ayrimlar', 'ozelSahalar', 'okunanHarSayac', 'sayac', 'eskiSeq'];
-		for (let key of removeKeys) { delete result[key] }
+		let removeKeys = ['_p', '_supers', '_temps', 'ayrimlar', 'ozelSahalar', 'okunanHarSayac', 'sayac', 'eskiSeq']
+		for (let key of removeKeys)
+			delete result[key]
 		return result
 	}
 	get satirListe() {
-		let {satirListeStr: result} = this;
+		let {satirListeStr: result} = this
 		return result?.length ? result.split(',').filter(x => !!x).map(x => asInteger(x.trim()) - 1) : []
 	}
 	set satirListe(value) {
-		this.satirListeStr = value?.length ?
-			value.filter(x => x != null).map(x => x + 1).sort().join(', ') : ''
+		this.satirListeStr = value?.length
+			? value.filter(x => x != null).map(x => x + 1).sort().join(', ')
+			: ''
 	}
 	get secimler() {
 		let {hesapTipi, shStokHizmet, tip2Secimler} = this
-		if (hesapTipi?.secilen == null) { return null }
+		if (hesapTipi?.secilen == null)
+			return null
 		let {hizmetmi, ekBilgi: { querymi, hareketcimi, harSinif } = {}} = hesapTipi
 		let tip = (
 			querymi
 				? hareketcimi && !harSinif?.ticarimi ? hesapTipi.kod
 				: shStokHizmet?.kod : hizmetmi ? 'H'
 			: null
-		);
+		)
 		return tip2Secimler[tip]
 	}
 	get secimlerStr() {
@@ -204,11 +209,14 @@ class SBTabloDetay extends MQDetay {
 		if (secimler) {
 			let {grupListe} = secimler
 			for (let [tip, sec] of secimler) {
-				let e = { liste: [] }; sec.ozetBilgiHTMLOlustur?.(e)
-				let {liste} = e; if (!liste.length) { continue }
+				let liste = [], e = { liste }
+				sec.ozetBilgiHTMLOlustur?.(e)
+				if (!liste.length)
+					continue
 				let {etiket, grupKod} = sec, html = ''
-				if (grupKod) { etiket = grupListe[grupKod].aciklama || etiket }
-				html = liste.join('');  // .replace('float-left', '');
+				if (grupKod)
+					etiket = grupListe[grupKod].aciklama || etiket
+				html = liste.join('')  // .replace('float-left', '')
 				if (etiket) {
 					html = changeTagContent(html,
 						`<span class="bold gray etiket">${etiket}:</span> <span class="veri">${getTagContent(html)}</span>`)
@@ -273,7 +281,7 @@ class SBTabloDetay extends MQDetay {
 			/*[KasaHareketci.kisaKod]: ({ raporTanim, secimler: sec, where: wh }) => { debugger },
 			[BankaMevduatHareketci.kisaKod]: ({ raporTanim, secimler: sec, where: wh }) => { debugger }*/
 		};
-		for (let [tip, yapi] of Object.entries(tip2SecimMFYapi)) {
+		for (let [tip, yapi] of entries(tip2SecimMFYapi)) {
 			if (empty(yapi))
 				continue
 			let secimler = tip2Secimler[tip]
@@ -283,7 +291,7 @@ class SBTabloDetay extends MQDetay {
 			$.extend(secimler, { secimEkWhereDuzenle: tip2EkWhereDuzenleyici[tip] })
 			secimler.beginUpdate()
 			SBRapor_Main.maliTablo_basSecimlerDuzenle({ ...e, secimler })
-			for (let [key, mfSinif] of Object.entries(yapi)) {
+			for (let [key, mfSinif] of entries(yapi)) {
 				let {kodListeTipi: grupKod, sinifAdi: grupAdi, adiKullanilirmi} = mfSinif
 				secimler.grupEkle(grupKod, grupAdi);
 				secimler.secimEkle(`${key}Kod`, new SecimString({ etiket: 'Kod', mfSinif, grupKod }))
@@ -335,7 +343,6 @@ class SBTabloDetay extends MQDetay {
 		let {ekBilgi: { querymi, hareketcimi, harSinif, harSinif: { ticarimi } } = {}} = hesapTipi
 		if (!querymi)
 			return
-		
 		let {detayli, raporTanim, subeKodlari, sentDuzenle: genelSentDuzenle, yatayAnalizVarmi, yatayAnaliz} = e
 		let {rapor, rapor: { tabloYapi, sahaAlias: bedelAlias } = {}, secimler = rapor?.secimler, donemBS = rapor.tarihBS} = e
 		if ($.isPlainObject(donemBS))
@@ -372,10 +379,10 @@ class SBTabloDetay extends MQDetay {
 				secimler.endUpdate()
 			}
 		}
-		for (let [selector, flag] of Object.entries(durum)) {
+		for (let [selector, flag] of entries(durum)) {
 			if (!flag)
 				continue
-			for (let _selector of Object.keys(durum))
+			for (let _selector of keys(durum))
 				delete e[_selector]
 			e[selector] = flag
 			if (!(sentUygunluk == null || sentUygunluk?.call(this, e)))
@@ -388,7 +395,7 @@ class SBTabloDetay extends MQDetay {
 			return this
 		let {defHV, harHVListe} = e    // raporQueryDuzenle_hareketci() tarafından oluşturulması bekleniyor
 		{
-			let sahaAliases = Object.values(tabloYapi?.toplam).map(({ colDefs = [] }) =>
+			let sahaAliases = values(tabloYapi?.toplam).map(({ colDefs = [] }) =>
 				colDefs.map(_ => _.belirtec)).flat()
 			for (let i = 0; i < uni.liste.length; i++) {
 				let sent = uni.liste[i], hv = { ...defHV, ...harHVListe?.[i] }, basitHV
@@ -418,7 +425,7 @@ class SBTabloDetay extends MQDetay {
 				$.extend(e, { sent, where: wh, sahalar, hv })
 				if (detayli) {
 					let {sahalar} = sent
-					for (let [alias, deger] of Object.entries(basitHV)) {
+					for (let [alias, deger] of entries(basitHV)) {
 						if (!sumSahalar[alias])
 							sahalar.add(`${deger} ${alias}`)
 					}
@@ -638,7 +645,7 @@ class SBTabloDetay extends MQDetay {
 			}
 			if (filtreYatayDegerSet && !yatayDBmi) {
 				// yatayDegerler; yatayAttrListe
-				wh.inDizi(Object.keys(filtreYatayDegerSet), alias2Deger.yatay)
+				wh.inDizi(keys(filtreYatayDegerSet), alias2Deger.yatay)
 			}
 			{
 				let {takipno: clause} = alias2Deger
@@ -766,7 +773,7 @@ class SBTabloDetay extends MQDetay {
 		let inst = super.deepCopy(); if (!inst) { return inst }
 		let {tip2Secimler} = this; if (tip2Secimler) {
 			tip2Secimler = inst.tip2Secimler = {};
-			for (let [tip, _secimler] of Object.entries(tip2Secimler)) {
+			for (let [tip, _secimler] of entries(tip2Secimler)) {
 				let secimler = _secimler.map(sec => sec.shallowCopy());
 				tip2Secimler[tip] = secimler
 			}
@@ -777,7 +784,7 @@ class SBTabloDetay extends MQDetay {
 		let inst = super.deepCopy(); if (!inst) { return inst }
 		if (this.tip2Secimler) {
 			let tip2Secimler = inst.tip2Secimler = {};
-			for (let [tip, _secimler] of Object.entries(this.tip2Secimler)) {
+			for (let [tip, _secimler] of entries(this.tip2Secimler)) {
 				let secimler = _secimler.deepCopy();
 				tip2Secimler[tip] = secimler
 			}
@@ -852,7 +859,7 @@ class SBTabloGridci extends GridKontrolcu {
 					let {secimler} = gridRec, {activeWndPart: parentPart} = app;
 					let part = secimler.duzenlemeEkraniAc({ parentPart: '', tamamIslemi: e => {} });
 					$.extend(part, { parentPart });
-					Object.defineProperty(part, 'canDestroy', { get: () => true })
+					defineProperty(part, 'canDestroy', { get: () => true })
 				})*/
 		].filter(x => !!x))
 	}
