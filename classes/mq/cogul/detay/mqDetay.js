@@ -26,6 +26,7 @@ class MQDetay extends MQSayacli {
 	static orjBaslikListesiDuzenle_son(e) { this.forAltYapiClassesDo('orjBaslikListesiDuzenle_son', e) }
 	static gridVeriYuklendi(e) { }
 	static raporQueryDuzenle(e) { }
+	static loadServerData_recsDuzenle(e) { }
 	static loadServerData_queryDuzenle(e) {
 		e = $.extend({}, e || {}); for (const key of ['ozelQueryDuzenleBlock', 'ozelQueryDuzenle', 'ozelQueryDuzenleBlock', 'ozelQueryDuzenle']) { delete e[key] }
 		e.ozelQueryDuzenle = e => {}, super.loadServerData_queryDuzenle(e);

@@ -35,6 +35,8 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 		let {hareketmi, envantermi} = this.class, {where: wh} = sent
 		let aliasVeNokta = alias ? `${alias}.` : ''
 		tarihSaha = tarihSaha ?? 'tarih'
+		if (tarihSaha.includes('.'))
+			alias = aliasVeNokta = ''
 		tarihClause = tarihClause ?? `${aliasVeNokta}${tarihSaha}`
 		if (donemBS) {
 			if (hareketmi || envantermi) {
@@ -50,6 +52,8 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 		let sentOrUni = sent ?? stm?.sent
 		let aliasVeNokta = alias ? `${alias}.` : ''
 		tarihSaha = tarihSaha ?? 'tarih'
+		if (tarihSaha.includes('.'))
+			alias = aliasVeNokta = ''
 		tarihClause = tarihClause ?? `${aliasVeNokta}${tarihSaha}`
 		for (let {sahalar} of sentOrUni) {
 			for (let key in attrSet) {

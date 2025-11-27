@@ -15,7 +15,7 @@ class MQEIslemParam extends MQTicariParamBase {
 			'musBaslikBabaVeDogum', 'dipNetBrutKilo', 'miktarToplamiKilosuz',  'dipMiktarToplami', 'dipTekstilRBK',
 			'subeFislerdeGondericiSubeOlsun', 'ozelConf', 'dipOncekiBakiye', 'dipSonBakiye', 'dipInternetSatis',
 			'eFaturaYerineEArsivGoruntuleyici', 'logoKullanilir', 'eFatIcinIslakImza', 'eMusIcinKaseImza',
-			'gondericiAliciYanYana', 'koyuCikti', 'firmaLogoUstte',
+			'gondericiAliciYanYana', 'koyuCikti', 'firmaLogoUstte', 'kdv0DipteGosterilir',
 			'ihracatEskiCizgiliGorunum', '_goruntuOzelPunto', 'kodYerineSiraNo', 'bakiyeDovizliIseAyricaTLBakiye'
 		]
 	}
@@ -34,9 +34,9 @@ class MQEIslemParam extends MQTicariParamBase {
 		paramci.addString('anaBolum', 'e-İşlem Ana Bölüm')
 		paramci.addModelKullan('ozelEntegrator', 'Özel Entegratör').dropDown().autoBind().noMF().kodsuz()
 			.setSource(e => EOzelEntegrator.instance.kaListe)
-			.degisince(({ builder: fbd, builder: { parentBuilder } }) => {
+			.degisince(({ builder: fbd = {}, builder: { parentBuilder = {} } = {} }) => {
 				let {id2Builder} = parentBuilder.id2Builder.oeParam
-				let {id, altInst} = builder, value = altInst[id]
+				let {id, altInst} = builder, value = altInst?.[id]
 				if (typeof value != 'object')
 					value = altInst[id] = new EOzelEntegrator(value)
 				for (let id of ['wsUser', 'wsPass', 'firmaKodu', 'subeKodu']) {
@@ -110,7 +110,7 @@ class MQEIslemParam extends MQTicariParamBase {
 		let {rec, rec: { efatAnaBolum: anaBolum, ozelEntegrator: _oe }} = e
 		this.kural = rec.kural ?? this.kural ?? {}
 		super.paramSetValues(e)
-		let {kullanim, oeParam, class: { kullanimKeys }} = this
+		let {kullanim, class: { kullanimKeys }} = this
 		for (let key of kullanimKeys)
 			kullanim[key] = rec[key]
 		let ozelEntegrator = new EOzelEntegrator({ char: _oe || ' ' })
@@ -126,17 +126,18 @@ class MQEIslemParam extends MQTicariParamBase {
 			originatorUserId: 'firmaKodu', institutionId: 'firmaKodu',
 			erpKodu: 'firmaKodu', token: 'wsPass'
 		}
-		for (let [k, p] of entries(oe)) {
+		for (let p of values(oe)) {
 			if (!p)
 				continue
-			for (let [key, newKey] of entries(oeKeyDonusum)) {
+			for (let [k, nk] of entries(oeKeyDonusum)) {
 				let value = p ? p[k] : undefined
 				if (value !== undefined) {
-					p[newKey] = value
-					delete p[key]
+					p[nk] = value
+					delete p[k]
 				}
 			}
 		}
+		let {oeParam} = this
 		if (oeParam) {
 			for (let rowAttr of ['kullaniciAdi', 'sifre', 'eArsivKullaniciAdi', 'eArsivSifre']) {
 				let value = rec[rowAttr]

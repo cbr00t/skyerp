@@ -111,3 +111,11 @@ body.dark-theme .dPanel.part .items .chart.part *,
 .dPanel .ui-resizable-e { right: -6px !important }
 .dPanel .ui-resizable-w { left: -6px !important }
 
+
+.DPanelTanim.masterListe.part .detay-grid [role = row] > .baslik > div { font-size: 85% }
+.DPanelTanim.masterListe.part .detay-grid [role = row] > .value > div {
+	font-family: Courier New; font-size: 70%; font-weight: bold;
+	color: forestgreen; background: linear-gradient(270deg, #fff 5%, #f3f3f3 90%) !important;
+	margin: 0 !important; padding: 3px 5px 50px 5px !important; line-height: 11px
+}
+

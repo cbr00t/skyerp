@@ -74,7 +74,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		}
 		catch (ex) {
 			_e.error = ex
-			hConfirm(getErrorText(ex), islemAdi)
+			// hConfirm(getErrorText(ex), islemAdi)
 			throw ex
 		}
 		finally { this.uiIslemiSonrasi(_e) }
@@ -95,28 +95,53 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		}
 		catch (ex) {
 			_e.error = ex
-			hConfirm(getErrorText(ex), islemAdi)
+			// hConfirm(getErrorText(ex), islemAdi)
 			throw ex
 		}
 		finally { this.uiIslemiSonrasi({ ..._e, silent: true }) }
 	}
 	async eIslemSorguIstendi(e = {}) {
 		let {eConf} = this, islemAdi = 'e-İşlem Sorgu'
-		let _e = await this.getSecilenSatirlar_mesajli({ islemAdi }) || {}
+		let {silent, event: { ctrlKey: ctrl } = {}} = e
+		let mesajli = !(silent || ctrl)
+		let _e = await this.getSecilenSatirlar({ islemAdi, mesajli }) || {}
 		let {recs} = _e
 		if (!recs)
 			return
-		let {event: { ctrlKey: ctrl } = {}} = e
-		if (ctrl)
-			await this.eIslemSorgula({ ...e, recs })
 		try {
 			$.extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
+			if (ctrl) {
+				islemAdi = _e.islemAdi = 'e-İşlem UUID Değiştir'
+				_e.araMesaj = `<span class="bold royalblue">${islemAdi}</span> işlemi`
+				if (recs.length != 1)
+					throw { isError: true, errorText: 'UUID değişimi için tek satır seçilmelidir' }
+				let rec = recs[0], {efatuuid: uuid, pstip: psTip, kaysayac: sayac} = rec
+				uuid = uuid?.toLowerCase() ?? ''
+				let newUUID = (await jqxPrompt({ etiket: 'Yeni UUID değerini giriniz', title: 'UUID Değiştir', value: uuid }))?.trim()?.toLowerCase()
+				if (!newUUID)
+					return
+				if (uuid == newUUID)
+					return
+				if (!isGUID(newUUID))
+					throw { isError: true, errorText: `<b class=firebrick>${newUUID}</b> değeri geçerli bir UUID değildir` }
+				this.showProgress(_e)
+				let table = EYonetici.getPS2Table(psTip)
+				let upd = new MQIliskiliUpdate(), {set, where: wh} = upd
+				upd.fromAdd(table)
+				wh.degerAta(sayac, 'kaysayac')
+				set.degerAta(newUUID, 'efatuuid')
+				set.add(`efimzats = NULL`, `efgonderimts = NULL`, `efatonaydurumu = ''`, `zorunluguidstr = ''`)
+				await app.sqlExecNone(upd)
+				EYonetici.eIslemSorgula(_e).finally(() =>
+					this.tazele())
+				return
+			}
 			this.showProgress(_e)
-			await EYonetici.eIslemGonder(_e)
+			await EYonetici.eIslemSorgula(_e)
 		}
 		catch (ex) {
 			_e.error = ex
-			hConfirm(getErrorText(ex), islemAdi)
+			// hConfirm(getErrorText(ex), islemAdi)
 			throw ex
 		}
 		finally { this.uiIslemiSonrasi(_e) }
@@ -137,7 +162,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		}
 		catch (ex) {
 			_e.error = ex
-			hConfirm(getErrorText(ex), islemAdi)
+			// hConfirm(getErrorText(ex), islemAdi)
 			throw ex
 		}
 		finally { this.uiIslemiSonrasi(_e) }
@@ -158,7 +183,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		}
 		catch (ex) {
 			_e.error = ex
-			hConfirm(getErrorText(ex), islemAdi)
+			// hConfirm(getErrorText(ex), islemAdi)
 			throw ex
 		}
 		finally { this.uiIslemiSonrasi(_e) }
@@ -179,7 +204,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		catch (ex) {
 			_e.error = ex
 			if (!silent) {
-				hConfirm(getErrorText(ex), islemAdi)
+				// hConfirm(getErrorText(ex), islemAdi)
 				throw ex
 			}
 		}

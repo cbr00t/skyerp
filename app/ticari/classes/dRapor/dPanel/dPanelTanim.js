@@ -401,22 +401,25 @@ class DPanelDetay extends MQDetayGUID {
 		$.extend(pTanim, {
 			tip: new PInstTekSecim('tip', DPanelTip), raporTip: new PInstTekSecim('raportip', DAltRaporTip),
 			baslik: new PInstStr('baslik'), value: new PInstStr(adiSaha),
-			raporAdi: new PInstStr('raporadi'),
-			width: new PInstStr('width'), height: new PInstStr('height')
+			raporAdi: new PInstStr('raporadi'), width: new PInstStr('width'), height: new PInstStr('height')
 		})
+	}
+	static orjBaslikListesi_argsDuzenle({ args }) {
+		super.orjBaslikListesi_argsDuzenle(...arguments)
+		$.extend(args, { rowsHeight: 120 })
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
 		let {tableAlias: alias, idSaha, adiSaha} = this
 		liste.push(...[
-			new GridKolon({ belirtec: idSaha, text: 'ID', genislikCh: 45 }),
-			new GridKolon({ belirtec: 'tiptext', text: 'Panel Tipi', genislikCh: 20 }).noSql(),
-			new GridKolon({ belirtec: adiSaha, text: 'Belirteç / Değer', genislikCh: 50 }),
+			new GridKolon({ belirtec: 'tiptext', text: 'Panel Tipi', genislikCh: 15 }).noSql(),
+			new GridKolon({ belirtec: 'raportiptext', text: 'Rapor Tipi', genislikCh: 15 }).noSql(),
 			new GridKolon({ belirtec: 'raporadi', text: 'Rapor Adı', genislikCh: 40 }),
-			new GridKolon({ belirtec: 'baslik', text: 'Başlık', genislikCh: 50 }),
-			new GridKolon({ belirtec: 'raportiptext', text: 'Rapor Tipi', genislikCh: 13 }).noSql(),
-			new GridKolon({ belirtec: 'width', text: 'Genişlik', genislikCh: 13 }).tipDecimal(),
-			new GridKolon({ belirtec: 'height', text: 'Yükseklik', genislikCh: 13 }).tipDecimal()
+			new GridKolon({ belirtec: 'baslik', text: 'Başlık', genislikCh: 25 }),
+			new GridKolon({ belirtec: 'width', text: 'Genişlik', genislikCh: 11 }).alignCenter(),
+			new GridKolon({ belirtec: 'height', text: 'Yükseklik', genislikCh: 11 }).alignCenter(),
+			new GridKolon({ belirtec: adiSaha, text: 'Belirteç / Değer', genislikCh: 250 }),
+			new GridKolon({ belirtec: idSaha, text: 'ID', genislikCh: 45 }).hidden()
 		])
 	}
 	static loadServerData_queryDuzenle({ sent: { sahalar } }) {
@@ -424,13 +427,16 @@ class DPanelDetay extends MQDetayGUID {
 		let {tableAlias: alias} = this
 		sahalar.addWithAlias(alias, 'tip', 'raportip')
 	}
-	static orjBaslikListesi_recsDuzenle({ recs }) {
-		super.orjBaslikListesi_recsDuzenle(...arguments)
+	static loadServerData_recsDuzenle({ recs }) {
+		super.loadServerData_recsDuzenle(...arguments)
 		let {kaDict: panelTipDict} = DPanelTip, {kaDict: altTipDict} = DAltRaporTip
 		for (let rec of recs) {
-			let {tip: panelTip, raportip: altTip} = rec
-			rec.tiptext = panelTipDict[panelTip] ?? panelTip
-			rec.raportiptext = altTipDict[altTip] ?? altTip
+			let {tip: panelTip, raportip: altTip, value} = rec
+			panelTip ||= ' '; altTip ||= ' '
+			rec.tiptext = panelTipDict[panelTip]?.aciklama ?? panelTip
+			rec.raportiptext = altTipDict[altTip]?.aciklama ?? altTip
+			if (value)
+				value = rec.value = value.replaceAll('\r', '').replaceAll('\n', '<br/>\n').replaceAll('\t', '&nbsp;&nbsp;')
 		}
 	}
 	kaydetOncesiIslemler(e) {
@@ -460,4 +466,3 @@ class DPanelGridci extends GridKontrolcu {
 		super.tabloKolonlariDuzenle_ara(...arguments)
 	}
 }
-

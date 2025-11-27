@@ -141,14 +141,32 @@ class MQDetayli extends MQSayacli {
 		if (!detaySiniflar) { detaySiniflar = this.detaySiniflar }
 		if (!$.isEmptyObject(detaySiniflar)) {
 			for (let detaySinif of detaySiniflar) {
-				delete e.detaySiniflar; e.detaySinif = detaySinif; e.query = this.loadServerData_detaylar_queryOlustur(e);
-				let _recs = await this.loadServerData_detaylar_querySonucu(e); if (!_recs) { return _recs }
+				delete e.detaySiniflar; e.detaySinif = detaySinif
+				e.query = this.loadServerData_detaylar_queryOlustur(e);
+				let _recs = await this.loadServerData_detaylar_querySonucu(e)
+				if (!_recs)
+					return _recs
+				let _e = { ...e, recs: _recs }
+				{
+					let result = await detaySinif.loadServerData_recsDuzenle?.(_e)
+					_recs = typeof result == 'object' ? result : _e.recs
+				}
 				recs.push(..._recs)
 			}
 		}
-		if (!$.isEmptyObject(recs)) { let ilkRec = recs[0]; if (ilkRec.seq != null) { recs.sort((a, b) => a.seq < b.seq ? -1 : 1) } }
+		{
+			let _e = { ...e, recs }
+			let result = await this.loadServerData_recsDuzenle_detaylar(_e)
+			recs = typeof result == 'object' ? result : _e.recs
+		}
+		if (!empty(recs)) {
+			let ilkRec = recs[0]
+			if (ilkRec.seq != null)
+				recs.sort((a, b) => a.seq < b.seq ? -1 : 1)
+		}
 		return recs
 	}
+	static loadServerData_recsDuzenle_detaylar(e) { }
 	static loadServerData_detaylar_queryOlustur(e) {
 		e.fisSinif = e.fisSinif ?? this; let {detaySiniflar} = e;
 		if (!detaySiniflar && e.detaySinif) { detaySiniflar = [e.detaySinif] }
