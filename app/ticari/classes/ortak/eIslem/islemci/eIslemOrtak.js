@@ -1,25 +1,47 @@
 class EIslemOrtak extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get anaTip() { return this.tip } static get tip() { return null } static get ortakSinif() { return this } static get altBolum() { return null }
-	static get paramSelector() { return null } static get sinifAdi() { return null } static get kisaAdi() { return this.sinifAdi }
-	static get question() { let result = this.paramSelector; if (result) { result += 'mi' } return result }
-	static get kullanilirmi() { return (app.params.ticariGenel?.kullanim || {})[this.paramSelector] } static get xmlciSinif() { return EXMLOrtak }
+	static get anaTip() { return this.tip } static get tip() { return null }
+	static get ortakSinif() { return this } static get altBolum() { return null }
+	static get paramSelector() { return null } static get sinifAdi() { return null }
+	static get kisaAdi() { return this.sinifAdi }
+	static get question() { return `${this.paramSelector}mi` }
+	static get kullanilirmi() { return app.params.ticariGenel?.kullanim?.[this.paramSelector] }
+	static get xmlciSinif() { return EXMLOrtak }
 	static get anaTip2Sinif() {
-		let result = this._anaTip2Sinif;
-		if (result === undefined) { result = {}; for (let cls of this.subClasses) { let {anaTip} = cls; if (anaTip != null) { result[anaTip] = cls } } this._anaTip2Sinif = result }
+		let {_anaTip2Sinif: result} = this
+		if (result === undefined) {
+			result = {}
+			for (let cls of this.subClasses) {
+				let {anaTip} = cls
+				if (anaTip != null)
+					result[anaTip] = cls
+			}
+			this._anaTip2Sinif = result
+		}
 		return result
 	}
 	static get tip2Sinif() {
-		let result = this._tip2Sinif;
-		if (result === undefined) { result = {}; for (let cls of this.subClasses) { let {tip} = cls; if (tip != null) { result[tip] = cls } } this._tip2Sinif = result }
+		let {_tip2Sinif: result} = this
+		if (result === undefined) {
+			result = {}
+			for (let cls of this.subClasses) {
+				let {tip} = cls
+				if (tip != null)
+					result[tip] = cls
+			}
+			this._tip2Sinif = result
+		}
 		return result
 	}
-	get temps() { return this._temps }
-	get shared() { return this._shared }
-	static get currCode_tl() { return 'TRY' } /* get xsltBelirtec() { return 'EIslemOrtak' } */ get xsltBelirtec() { return 'EIslemOrtak' } get xsltDosyaAdi() { return `${this.xsltBelirtec}Gosterim.xslt` }
-	static get xmlRootTag() { return null } static get xmlDetayTag() { return null } static get xml_ublVersionID() { return '2.1' } static get xml_customizationID() { return 'TR1.2' }
+	get temps() { return this._temps } get shared() { return this._shared }
+	static get currCode_tl() { return 'TRY' } /* get xsltBelirtec() { return 'EIslemOrtak' } */
+	get xsltBelirtec() { return 'EIslemOrtak' } get xsltDosyaAdi() { return `${this.xsltBelirtec}Gosterim.xslt` }
+	static get xmlRootTag() { return null } static get xmlDetayTag() { return null }
+	static get xml_ublVersionID() { return '2.1' } static get xml_customizationID() { return 'TR1.2' }
 	get dovizlimi() { return this.baslik.dovizlimi } get dvKod() { return this.baslik.dvKod } get dvKur() { return this.baslik.dvkur }
-	get bedelSelector() { return this.dovizlimi ? 'dv' : 'tl' } get currencyID() { return this.dvKod } get xattrYapi_bedel() { return ({ currencyID: this.currencyID }) }
+	get bedelSelector() { return this.dovizlimi ? 'dv' : 'tl' } 
+	get currencyID() { return this.dvKod }
+	get xattrYapi_bedel() { return ({ currencyID: this.currencyID }) }
 	get gondericiBilgi() {
 		let {baslik: { bizsubekod: subeKod }, temps, temps: { subeKod2Rec }} = this
 		let {isyeri: inst} = app.params
@@ -39,20 +61,25 @@ class EIslemOrtak extends CObject {
 	static get innovami() { return app.params.eIslem.ozelEntegrator.innovami }
 	get innovami() { return this.class.innovami }
 	
-	constructor(e) {
-		e = e || {}; super(e); let _icmal = e.icmal; if (_icmal && $.isPlainObject(_icmal)) { _icmal = e.icmal = new EIcmal(_icmal) }
+	constructor(e = {}) {
+		super(e); let {icmal: _icmal} = e
+		if (_icmal && isPlainObject(_icmal))
+			_icmal = e.icmal = new EIcmal(_icmal)
 		$.extend(this, {
-			eConf: e.eConf ?? MQEConf.instance, baslik: e.baslik, detaylar: e.detaylar || [], dipNotlar: e.dipNotlar || [], icmal: _icmal,
+			eConf: e.eConf ?? MQEConf.instance, baslik: e.baslik,
+			detaylar: e.detaylar || [], dipNotlar: e.dipNotlar || [], icmal: _icmal,
 			xsltDuzenleyiciler: e.xsltDuzenleyiciler || [], _temps: e._temps ?? e.temps
 		})
 	}
-	static getAnaClass(e) {
-		e = e || {}; let anaTip = typeof e == 'object' ? e.anaTip : e;
-		let cls = EIslemOrtak; if (anaTip) { cls = this.anaTip2Sinif[anaTip] ?? cls } return cls
+	static getAnaClass(e = {}) {
+		let anaTip = typeof e == 'object' ? e.anaTip : e
+		let cls = anaTip ? this.anaTip2Sinif[anaTip] ?? cls : EIslemOrtak
+		return cls
 	}
-	static getClass(e) {
-		e = e || {}; let tip = typeof e == 'object' ? e.tip : e;
-		let cls; if (tip) { cls = this.tip2Sinif[tip] ?? cls } return cls
+	static getClass(e = {}) {
+		let tip = typeof e == 'object' ? e.tip : e
+		let cls = this.tip2Sinif[tip] ?? cls
+		return cls
 	}
 	static newFor(e) {
 		if (!e)
@@ -244,13 +271,22 @@ class EIslemOrtak extends CObject {
 	}
 	xmlDuzenle_belgeTipKodu(e) { }
 	xmlDuzenle_notes({ xw }) {
-		let {dipNotlar} = this; if (!empty(dipNotlar)) {
-			for (let value of dipNotlar) { xw.writeElementString('cbc:Note', escapeXML(value)) } }
+		let {dipNotlar} = this
+		if (!empty(dipNotlar)) {
+			for (let value of dipNotlar) {
+				if (value && value.startsWith('<span class="') && value.includes('bakiye"'))
+					continue
+				xw.writeElementString('cbc:Note', value)
+			}
+		}
 	}
 	xmlDuzenle_doviz(e) { }
-	xmlDuzenleInternal_doviz(e) {
-		let {xw} = e, {dvKod} = this;
-		xw.writeElementString('cbc:DocumentCurrencyCode', dvKod, null, { 'listAgencyName': 'United Nations Economic Commission for Europe', 'listID': 'ISO 4217 Alpha', 'listName': 'Currency', 'listVersionID': '2001' })
+	xmlDuzenleInternal_doviz({ xw }) {
+		let {dvKod} = this
+		xw.writeElementString('cbc:DocumentCurrencyCode', dvKod, null, {
+			'listAgencyName': 'United Nations Economic Commission for Europe',
+			'listID': 'ISO 4217 Alpha', 'listName': 'Currency', 'listVersionID': '2001'
+		})
 	}
 	async xmlDuzenle_detaylarOncesi(e) {
 		await this.xmlDuzenle_lineCountNumeric(e); await this.xmlDuzenle_docRefs(e); await this.xmlDuzenle_docRefs_son(e); await this.xmlDuzenle_signatureParty(e);
@@ -261,7 +297,8 @@ class EIslemOrtak extends CObject {
 	xmlDuzenle_lineCountNumeric(e) { e.xw.writeElementString('cbc:LineCountNumeric', this.detaylar.length) }
 	async xmlDuzenle_docRefs({ xw }) {
 		let e = arguments[0]
-		let {params, params: { zorunlu, isyeri, stokGenel: stok, eIslem, eIslem: { kullanim, kural } }} = app
+		let {params, params: { zorunlu, isyeri, stokGenel: stok, eIslem }} = app
+		let {kullanim, kural} = eIslem
 		let {baslik, baslik: { eYontem }, dvKod, dvKur} = this
 		await this.xmlDuzenle_docRefs_sgk(e)
 		// await this.xmlDuzenleInternal_docRefParam({ xw, name: 'MUKELLEF_KODU', value: '' })
@@ -296,6 +333,7 @@ class EIslemOrtak extends CObject {
 		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'KOYU_DIZAYN', value: kullanim.koyuCikti })
 		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'FIRMA_LOGO_USTTE', value: kullanim.firmaLogoUstte })
 		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'ALICI_SAGDA', value: kullanim.gondericiAliciYanYana })
+		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'KDV_SIFIR_GOSTERILIR', value: kullanim.kdv0DipteGosterilir })
 		await this.xmlDuzenle_docRefs_eIslemEkBilgi(e)
 		if (kullanim.baslikMusteriKod)
 			await this.xmlDuzenle_docRefs_mustKod(e)

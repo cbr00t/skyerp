@@ -369,7 +369,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 	async xmlDuzenleInternal_logoBilgileri(e) {
 		let {xw} = e, {params} = app, param_eIslem = params.eIslem, logocu = await param_eIslem.getLogoData();
 		let kod2Tip = { RLOGO: 'FIRMALOGO_IMG', EFIM: 'ISLAKIMZA_IMG', EFKI: 'KASE_IMG' };
-		for (let [kod, type] of Object.entries(kod2Tip)) {
+		for (let [kod, type] of entries(kod2Tip)) {
 			let logo = logocu[kod] || {}, {ext} = logo, imgData = logo.data; if (!imgData) { continue }
 			let {mimeType} = logo; if (!mimeType) { mimeType = ext == 'png' ? 'image/png' : ext == 'gif' ? 'image/gif' : 'image/jpeg' }
 			await this.xsltDuzenleyiciEkle({ args: { type, imgData }, handler: e => e.result.replaceAll(`[${e.args.type}]`, `data:${mimeType};base64,${imgData}`) });
@@ -377,59 +377,92 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 			/* this.xmlDuzenleInternal_docRef({ xw, id: '0', type, attachment: { mimeType, imgData } }) */
 		}
 	}
-	xmlDuzenle_notes(e) { this.xmlDuzenle_notes_eArsiv(e); this.xmlDuzenle_notes_bakiye(e); super.xmlDuzenle_notes(e) }
+	xmlDuzenle_notes(e) {
+		this.xmlDuzenle_notes_eArsiv(e)
+		this.xmlDuzenle_notes_bakiye(e)
+		super.xmlDuzenle_notes(e)
+	}
 	xmlDuzenle_notes_eArsiv({ xw }) {
-		let {eArsivBelgeTipBelirtec} = this.baslik;
-		if (eArsivBelgeTipBelirtec) { let value = `Gönderim Şekli: ${eArsivBelgeTipBelirtec}`; xw.writeElementString('cbc:Note', escapeXML(value)) }
+		let {eArsivBelgeTipBelirtec} = this.baslik
+		if (eArsivBelgeTipBelirtec) {
+			let value = `Gönderim Şekli: ${eArsivBelgeTipBelirtec}`
+			xw.writeElementString('cbc:Note', value)
+		}
 	}
 	xmlDuzenle_notes_bakiye({ xw }) {
-		let {baslik} = this, {oncekiXBakiye, sonrakiXBakiye, dovizlimi, dvKodUyarlanmis} = baslik;
-		let {dipOncekiBakiye, dipSonBakiye, bakiyeDovizliIseAyricaTLBakiye} = app.params.eIslem.kullanim;
-		let bakiyeTextEkle = e => {
-			let {cssPrefix, etiket, bakiye, tlBakiye} = e, araTextListe = [`${toStringWithFra(bakiye, 2)} ${dvKodUyarlanmis}`];
-			if (dovizlimi && bakiyeDovizliIseAyricaTLBakiye) { araTextListe.push(`${toStringWithFra(tlBakiye, 2)} TL`) }
-			let text = `<span class="${cssPrefix}Bakiye bakiye" style="font-weight: bold; font-size: 120%%;">Bu Fatura ${etiket} Bakiye: ${araTextListe.join(', ')}</span>`;
-			xw.writeElementString('cbc:Note', escapeXML(text))
-		};
-		if (dipOncekiBakiye && oncekiXBakiye) { bakiyeTextEkle({ cssPrefix: 'onceki', etiket: 'Öncesi', bakiye: oncekiXBakiye, tlBakiye: baslik.oncekiTLBakiye }) }
-		if (dipSonBakiye && sonrakiXBakiye) { bakiyeTextEkle({ cssPrefix: 'sonraki', etiket: 'Son', bakiye: sonrakiXBakiye, tlBakiye: baslik.sonrakiTLBakiye }) }
+		let {baslik, baslik: { oncekiXBakiye, sonrakiXBakiye, dovizlimi, dvKodUyarlanmis }} = this
+		let {dipOncekiBakiye, dipSonBakiye, bakiyeDovizliIseAyricaTLBakiye} = app.params.eIslem.kullanim
+		let bakiyeTextEkle = args => {
+			let {prefix, bakiye, tlBakiye} = args
+			let textListe = [`${toStringWithFra(bakiye, 2)} ${dvKodUyarlanmis}`]
+			if (dovizlimi && bakiyeDovizliIseAyricaTLBakiye) {
+				if (isFunction(tlBakiye))
+					tlBakiye = tlBakiye(args)
+				textListe.push(`${toStringWithFra(tlBakiye, 2)} TL`)
+			}
+			let typeCode = [prefix, 'BAKIYE'].join('_')
+			for (let desc of textListe)
+				this.xmlDuzenleInternal_docRef({ xw, id: '0', typeCode, desc })
+		}
+		if (dipOncekiBakiye && oncekiXBakiye)
+			bakiyeTextEkle({ prefix: 'ONCEKI', bakiye: oncekiXBakiye, tlBakiye: baslik.oncekiTLBakiye })
+		if (dipSonBakiye && sonrakiXBakiye)
+			bakiyeTextEkle({ prefix: 'SONRAKI', bakiye: sonrakiXBakiye, tlBakiye: baslik.sonrakiTLBakiye })
 	}
-	xmlDuzenle_belgeTipKodu({ xw }) { let value = this.baslik._belgeTipKod = this.xmlGetBelgeTipKodu(...arguments); xw.writeElementString('cbc:InvoiceTypeCode', value) }
-	xmlDuzenle_doviz(e) { super.xmlDuzenle_doviz(e); this.xmlDuzenleInternal_doviz(e) }
-	xmlDuzenle_dvKur(e) { super.xmlDuzenle_dvKur(e); if (this.dovizlimi) this.xmlDuzenleInternal_dvKur(e) }
+	xmlDuzenle_belgeTipKodu({ xw }) {
+		let value = this.baslik._belgeTipKod = this.xmlGetBelgeTipKodu(...arguments)
+		xw.writeElementString('cbc:InvoiceTypeCode', value)
+	}
+	xmlDuzenle_doviz(e) {
+		super.xmlDuzenle_doviz(e)
+		this.xmlDuzenleInternal_doviz(e)
+	}
+	xmlDuzenle_dvKur(e) {
+		super.xmlDuzenle_dvKur(e)
+		if (this.dovizlimi)
+			this.xmlDuzenleInternal_dvKur(e)
+	}
 	xmlDuzenle_docRefs_yalnizYazisi({ xw }) {
-		super.xmlDuzenle_docRefs_yalnizYazisi(...arguments);
-		let icmal = this.icmalYoksaOlustur(), sonucBedel = icmal.sonucBedelYapi[this.bedelSelector];
-		let type = 'YALNIZYAZISI', desc = `#${yalnizYazisi(sonucBedel)}#`; this.xmlDuzenleInternal_docRef({ xw, id: '0', type, desc })
+		super.xmlDuzenle_docRefs_yalnizYazisi(...arguments)
+		let icmal = this.icmalYoksaOlustur(), sonucBedel = icmal.sonucBedelYapi[this.bedelSelector]
+		let type = 'YALNIZYAZISI', desc = `#${yalnizYazisi(sonucBedel)}#`
+		this.xmlDuzenleInternal_docRef({ xw, id: '0', type, desc })
 	}
-	xmlDuzenle_signatureParty(e) {
-		super.xmlDuzenle_signatureParty(e)
-		let {xw} = e, {gondericiBilgi: source} = this
+	xmlDuzenle_signatureParty({ xw }) {
+		let e = arguments[0]; super.xmlDuzenle_signatureParty(e)
+		let {gondericiBilgi: source} = this
 		e.source = source
 		xw.writeElementBlock('cac:Signature', null, () => {
-			let {vknTckn} = source; if (vknTckn) { xw.writeElementString('cbc:ID', vknTckn, null, { schemeID: 'VKN_TCKN' }) }
-			xw.writeElementBlock('cac:SignatoryParty', null, () => this.xmlDuzenle_partyOrtak({ ...e, sahismiKontrolsuz: true }));
+			let {vknTckn} = source
+			if (vknTckn)
+				xw.writeElementString('cbc:ID', vknTckn, null, { schemeID: 'VKN_TCKN' })
+			xw.writeElementBlock('cac:SignatoryParty', null, () => this.xmlDuzenle_partyOrtak({ ...e, sahismiKontrolsuz: true }))
 			this.xmlDuzenle_digitalSignatureAttachment(e)
 		});
 		delete e.source
 	}
-	xmlDuzenle_supplierParty(e) {
-		super.xmlDuzenle_supplierParty(e)
-		let {xw} = e, {gondericiBilgi: source} = this
-		e.source = source; xw.writeElementBlock('cac:AccountingSupplierParty', null, () =>
-			xw.writeElementBlock('cac:Party', null, () => this.xmlDuzenle_partyOrtak(e)));
+	xmlDuzenle_supplierParty({ xw }) {
+		let e = arguments[0]; super.xmlDuzenle_supplierParty(e)
+		let {gondericiBilgi: source} = this
+		e.source = source
+		xw.writeElementBlock('cac:AccountingSupplierParty', null, () =>
+			xw.writeElementBlock('cac:Party', null, () => this.xmlDuzenle_partyOrtak(e)))
 		delete e.source
 	}
-	xmlDuzenle_customerParty(e) {
-		super.xmlDuzenle_customerParty(e); let {xw} = e, {aliciBilgi: source} = this;
-		e.source = source; xw.writeElementBlock('cac:AccountingCustomerParty', null, () =>
-			xw.writeElementBlock('cac:Party', null, () => this.xmlDuzenle_partyOrtak(e)));
+	xmlDuzenle_customerParty({ xw }) {
+		let e = arguments[0]; super.xmlDuzenle_customerParty(e)
+		let {aliciBilgi: source} = this;
+		e.source = source
+		xw.writeElementBlock('cac:AccountingCustomerParty', null, () =>
+			xw.writeElementBlock('cac:Party', null, () => this.xmlDuzenle_partyOrtak(e)))
 		delete e.source
 	}
 	xmlDuzenle_allowanceCharge({ xw }) {
-		super.xmlDuzenle_allowanceCharge(...arguments); let {icmal} = this, {hizmetler} = icmal;
+		super.xmlDuzenle_allowanceCharge(...arguments)
+		let {icmal, icmal: { hizmetler }} = this
 		if (!empty(hizmetler)) {
-			let {bedelSelector, xattrYapi_bedel} = this, dipSonucBedel = icmal.dipSonucBedelYapi[bedelSelector];
+			let {bedelSelector, xattrYapi_bedel} = this
+			let dipSonucBedel = icmal.dipSonucBedelYapi[bedelSelector]
 			for (let {nakliyemi, oran, bedelYapi} of hizmetler) {
 				xw.writeElementBlock('cac:AllowanceCharge', null, () =>
 					xw.writeElementString('cbc:ChargeIndicator', nakliyemi)
@@ -441,18 +474,19 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		}
 	}
 	xmlDuzenle_taxTotal({ xw }) {
-		super.xmlDuzenle_taxTotal(...arguments); let {icmal, bedelSelector, xattrYapi_bedel, dovizlimi} = this;
-		let {vergiTip2Oran2EVergiRecs_tevkifatsiz} = icmal, toplamBedel = 0;
-		for (let oran2Recs of Object.values(vergiTip2Oran2EVergiRecs_tevkifatsiz))
-		for (let eSatirlar of Object.values(oran2Recs))
+		super.xmlDuzenle_taxTotal(...arguments)
+		let {icmal, icmal: { vergiTip2Oran2EVergiRecs_tevkifatsiz }, bedelSelector, xattrYapi_bedel, dovizlimi} = this
+		let toplamBedel = 0
+		for (let oran2Recs of values(vergiTip2Oran2EVergiRecs_tevkifatsiz))
+		for (let eSatirlar of values(oran2Recs))
 		for (let eRec of eSatirlar) { toplamBedel += eRec.bedelYapi[bedelSelector] }
 		if (!toplamBedel) { return }
 		xw.writeElementBlock('cac:TaxTotal', null, () => {
-			xw.writeElementString('cbc:TaxAmount', toFileStringWithFra(toplamBedel, 2), null, xattrYapi_bedel);
-			for (let oran2VergiRecs of Object.values(vergiTip2Oran2EVergiRecs_tevkifatsiz))
-			for (let [oran, vergiRecs] of Object.entries(oran2VergiRecs))
+			xw.writeElementString('cbc:TaxAmount', toFileStringWithFra(toplamBedel, 2), null, xattrYapi_bedel)
+			for (let oran2VergiRecs of values(vergiTip2Oran2EVergiRecs_tevkifatsiz))
+			for (let [oran, vergiRecs] of entries(oran2VergiRecs))
 			for (let eRec of vergiRecs) {
-				let etiket = ((eRec.etiket || '').split('%')[0] || '').trim();		/* KDV % 20  ==>  KDV */
+				let etiket = ((eRec.etiket || '').split('%')[0] || '').trim()		/* KDV % 20  ==>  KDV */
 				if (etiket?.endsWith('(')) { etiket = etiket.substring(0, etiket.length - 1).trim() }
 				xw.writeElementBlock('cac:TaxSubtotal', null, () => {
 					xw.writeElementString('cbc:TaxableAmount', toFileStringWithFra(eRec.getMatrahYapi({ dovizlimi })[bedelSelector], 2), null, xattrYapi_bedel)
@@ -465,11 +499,13 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		})
 	}
 	xmlDuzenle_tevkifatli_taxTotal({ xw }) {
-		super.xmlDuzenle_tevkifatli_taxTotal(...arguments); let {vergiRecs_tevkifatlar} = this.icmal;
-		if (empty(vergiRecs_tevkifatlar)) { return }
-		let {bedelSelector, xattrYapi_bedel, dovizlimi} = this, toplamBedel = 0;
-		for (let eRec of vergiRecs_tevkifatlar) { toplamBedel += eRec.bedelYapi[bedelSelector] }
-		if (!toplamBedel) { return }
+		super.xmlDuzenle_tevkifatli_taxTotal(...arguments)
+		let {icmal, icmal: { vergiRecs_tevkifatlar }, bedelSelector, xattrYapi_bedel, dovizlimi} = this
+		if (empty(vergiRecs_tevkifatlar))
+			return
+		let toplamBedel = topla(rec > rec.bedelYapi[bedelSelector], vergiRecs_tevkifatlar)
+		if (!toplamBedel)
+			return
 		xw.writeElementBlock('cac:WithholdingTaxTotal', null, () => {
 			xw.writeElementString('cbc:TaxAmount', toFileStringWithFra(toplamBedel, 2), null, xattrYapi_bedel);
 			for (let eRec of vergiRecs_tevkifatlar) {
@@ -478,8 +514,13 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 					  .writeElementString('cbc:TaxAmount', toFileStringWithFra(eRec.bedelYapi[bedelSelector], 2), null, xattrYapi_bedel)
 					  .writeElementString('cbc:CalculationSequenceNumeric', '2.0')
 					  .writeElementString('cbc:Percent', eRec.oran)
-					  .writeElementBlock('cac:TaxCategory', null, () =>
-						  xw.writeElementBlock('cac:TaxScheme', null, () => { xw.writeElementString('cbc:Name', eRec.etiket).writeElementString('cbc:TaxTypeCode', eRec.kod) }))
+					  .writeElementBlock('cac:TaxCategory', null, () => {
+							xw.writeElementBlock('cac:TaxScheme', null, () => {
+								xw
+									.writeElementString('cbc:Name', eRec.etiket)
+									.writeElementString('cbc:TaxTypeCode', eRec.kod)
+							})
+					  })
 				})
 			}
 		})
@@ -516,7 +557,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		};
 		xw.writeElementBlock('cac:TaxTotal', null, () => {
 			xw.writeElementString('cbc:TaxAmount', toFileStringWithFra(toplamBedel, 2), null, xattrYapi_bedel);
-			for (let [tip, rec] of Object.entries(tip2VergiYapi)) {
+			for (let [tip, rec] of entries(tip2VergiYapi)) {
 				if (!rec) { continue } let {bedel, istisnaKod} = rec;
 				xw.writeElementBlock('cac:TaxSubtotal', null, () =>
 					xw.writeElementString('cbc:TaxableAmount', toFileStringWithFra(matrah, 2), null, xattrYapi_bedel)
