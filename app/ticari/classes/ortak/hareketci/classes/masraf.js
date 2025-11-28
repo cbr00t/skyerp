@@ -115,7 +115,7 @@ class MasrafHareketci extends Hareketci {
 						bedel: '(case when mdag.masrafkod IS NULL then har.brutbedel else mdag.masrafbedeli end)',
 						islemadi: (
 							`(case fis.fistipi when 'CH' then 'Cari Hizmet' when 'KH' then 'Kasa Hizmet' when 'BH' then 'Banka Hizmet' ` +
-							`when 'MS' then 'Kredi Kart Masraf Ödeme' else '?? Hizmet' end)`
+							`when 'MS' then 'Kredi Kart Masraf Ödeme' else 'Hizmet' end)`
 						)
                     })
                 })
