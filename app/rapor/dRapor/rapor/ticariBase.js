@@ -242,11 +242,14 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 
 class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get toplamPrefix() { return 'Net ' }
-	fisVeHareketBagla(e) { super.fisVeHareketBagla(e); let {sent} = e, {shd} = this; sent.fisHareket('piffis', `pif${shd}`) }
-	loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e)
-		for (let {where: wh} of e.stm)
-			wh.add(`fis.piftipi = 'F'`)
+	fisVeHareketBagla({ sent }) {
+		super.fisVeHareketBagla(...arguments); let {shd} = this
+		sent.fisHareket('piffis', `pif${shd}`)
+	}
+	loadServerData_queryDuzenle({ stm }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		for (let {where: wh} of stm)
+			wh.add(`fis.piftipi = 'F'`, `fis.ayrimtipi <> 'IN'`)
 	}
 	tabloYapiDuzenle_miktar(e) {
 		super.tabloYapiDuzenle_miktar(e); let {result} = e, {stokmu} = this, brmDict = app.params?.stokBirim?.brmDict ?? {};
