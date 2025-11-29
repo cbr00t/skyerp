@@ -72,19 +72,23 @@ class ModelTanimPart extends Part {
 		form.addClass(`${partName} form-layout`);
 		if (hasTabPages) { layout.addClass('with-tabs'); this.tabPanel = form.find('#tabPanel') }
 		await this.inst?.uiGirisOncesiIslemler(e)
+		if (this.yeniVeyaKopyami)
+			await this.yeniTanimOncesiIslemler(e)
 	}
 	runDevam(e) {
-		e = e || {}; super.runDevam(e);
-		this.initBulForm(e); this.initIslemTuslari(e); this.initLayoutOncesi(e);
-		this.initLayout(e); this.initLayoutSonrasi(e);
+		super.runDevam(e)
+		this.initBulForm(e)
+		this.initIslemTuslari(e)
+		this.initLayoutOncesi(e)
+		this.initLayout(e)
+		this.initLayoutSonrasi(e)
 	}
 	afterRun(e) {
-		e = e || {}; super.afterRun(e);
+		super.afterRun(e)
 		if (this.hasTabPages) {
 			let {rootPartName} = this.class; let elms = [this.wnd, this.wndContent];
 			for (let elm of elms) { elm?.addClass(`${rootPartName} with-tabs`) } this.initTabPages(e)
 		}
-		if (this.yeniVeyaKopyami) { this.yeniTanimOncesiIslemler(e) } /* setTimeout(() => this.wnd?.trigger('resize'), 0) */
 	}
 	async initFormBuilder(e) {
 		try {

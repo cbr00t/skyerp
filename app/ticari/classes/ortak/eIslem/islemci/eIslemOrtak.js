@@ -78,7 +78,7 @@ class EIslemOrtak extends CObject {
 	}
 	static getClass(e = {}) {
 		let tip = typeof e == 'object' ? e.tip : e
-		let cls = this.tip2Sinif[tip] ?? cls
+		let cls = this.tip2Sinif[tip]
 		return cls
 	}
 	static newFor(e) {
@@ -274,9 +274,8 @@ class EIslemOrtak extends CObject {
 		let {dipNotlar} = this
 		if (!empty(dipNotlar)) {
 			for (let value of dipNotlar) {
-				if (value && value.startsWith('<span class="') && value.includes('bakiye"'))
-					continue
-				xw.writeElementString('cbc:Note', value)
+				if (!(value && value.startsWith('<span class="') && value.includes('bakiye"')))
+					xw.writeElementString('cbc:Note', value)
 			}
 		}
 	}
@@ -537,20 +536,35 @@ class EIslemOrtak extends CObject {
 	xmlDuzenle_tevkifatli_taxTotal(e) { }
 	xmlDuzenle_legalMonetaryTotal(e) { }
 	xmlDuzenle_detaylar(e) {
-		let {detaylar} = this, {xw} = e;
+		let {detaylar} = this
 		for (let i = 0; i < detaylar.length; i++) {
-			e.seq = i + 1; e.detay = detaylar[i];
+			e.seq = i + 1; e.detay = detaylar[i]
 			this.xmlDuzenle_detay(e)
 		}
-		for (let key of ['seq', 'detay']) { delete e[key] }
+		deleteKeys(e, 'seq', 'detay')
 	}
-	xmlDuzenle_detay(e) { let det = e.detay, {xw} = e; xw.writeStartElement(this.class.xmlDetayTag); this.xmlDuzenle_detayDevam(e); xw.writeEndElement() }
+	xmlDuzenle_detay({ xw }) {
+		let {xmlDetayTag} = this.class
+		xw.writeStartElement(xmlDetayTag)
+		this.xmlDuzenle_detayDevam(...arguments)
+		xw.writeEndElement()
+	}
 	xmlDuzenle_detayDevam(e) {
-		this.xmlDuzenle_detayDevam_id(e); this.xmlDuzenle_detayDevam_notes(e); this.xmlDuzenle_detayDevam_miktar(e); this.xmlDuzenle_detayDevam_bedel(e);
-		this.xmlDuzenle_detayDevam_taxTotal(e); this.xmlDuzenle_detayDevam_tevkifatli_taxTotal(e); this.xmlDuzenle_detayDevam_siparisSatirBaglantisi(e);
-		this.xmlDuzenle_detayDevam_item(e); this.xmlDuzenle_detayDevam_fiyat(e)
+		this.xmlDuzenle_detayDevam_id(e)
+		this.xmlDuzenle_detayDevam_notes(e)
+		this.xmlDuzenle_detayDevam_item_additionalItemIds(e)
+		this.xmlDuzenle_detayDevam_miktar(e)
+		this.xmlDuzenle_detayDevam_bedel(e)
+		this.xmlDuzenle_detayDevam_allowanceCharge(e)
+		this.xmlDuzenle_detayDevam_taxTotal(e)
+		this.xmlDuzenle_detayDevam_tevkifatli_taxTotal(e)
+		this.xmlDuzenle_detayDevam_siparisSatirBaglantisi(e)
+		this.xmlDuzenle_detayDevam_item(e)
+		this.xmlDuzenle_detayDevam_fiyat(e)
 	}
-	xmlDuzenle_detayDevam_id(e) { let {xw} = e; xw.writeElementString('cbc:ID', e.seq) }
+	xmlDuzenle_detayDevam_id({ xw, seq }) {
+		xw.writeElementString('cbc:ID', seq)
+	}
 	xmlDuzenle_detayDevam_notes({ xw }) {
 		let {kural, kural: { aciklama: kuralAciklama, aciklamaKapsam: kapsam }} = app.params.eIslem
 		if ((kapsam.sadeceAciklamami || kapsam.hepsimi) && !kuralAciklama.hepsiDiptemi) {
@@ -566,18 +580,23 @@ class EIslemOrtak extends CObject {
 		}
 	}
 	xmlDuzenle_detayDevam_miktar(e) { }
-	xmlDuzenle_detayDevam_bedel(e) {
-		let det = e.detay, {dovizlimi, xattrYapi_bedel} = this, value = det.getSonucBedel({ dovizlimi }), {xw} = e;
+	xmlDuzenle_detayDevam_bedel({ xw, detay: det }) {
+		let {dovizlimi, xattrYapi_bedel} = this
+		let value = det.getSonucBedel({ dovizlimi })
 		xw.writeElementString('cbc:LineExtensionAmount', toFileStringWithFra(value, 2), null, xattrYapi_bedel)
 	}
+	xmlDuzenle_detayDevam_allowanceCharge(e) { }
 	xmlDuzenle_detayDevam_taxTotal(e) { }
 	xmlDuzenle_detayDevam_tevkifatli_taxTotal(e) { }
 	xmlDuzenle_detayDevam_siparisSatirBaglantisi(e) { }
 	xmlDuzenle_detayDevam_item({ detay: det, xw }) {
-		let e = arguments[0];
+		let e = arguments[0]
 		xw.writeStartElement('cac:Item');
-			this.xmlDuzenle_detayDevam_item_description(e); this.xmlDuzenle_detayDevam_item_name(e); this.xmlDuzenle_detayDevam_item_buyersItemId(e);
-			this.xmlDuzenle_detayDevam_item_sellersItemId(e); this.xmlDuzenle_detayDevam_item_manfacturersItemId(e); this.xmlDuzenle_detayDevam_item_additionalItemIds(e);
+		this.xmlDuzenle_detayDevam_item_description(e)
+		this.xmlDuzenle_detayDevam_item_name(e)
+		this.xmlDuzenle_detayDevam_item_buyersItemId(e)
+		this.xmlDuzenle_detayDevam_item_sellersItemId(e)
+		this.xmlDuzenle_detayDevam_item_manfacturersItemId(e)
 		xw.writeEndElement()
 	}
 	xmlDuzenle_detayDevam_item_description({ detay: det, xw }) {
@@ -600,13 +619,16 @@ class EIslemOrtak extends CObject {
 		this.xmlDuzenleInternal_detXIdent({ xw, tagName: 'cac:ManufacturersItemIdentification', id: escapeXML(det.barkodGosterim) })
 	}
 	xmlDuzenle_detayDevam_item_additionalItemIds({ detay: det, xw }) {
-		let e = arguments[0];
-		this.xmlDuzenleInternal_detAdditionalIdent({ xw, id: det.shkod, schemeID: 'VIO_SHKOD' });
-		this.xmlDuzenleInternal_detAdditionalIdent({ xw, id: escapeXML(det.adiGosterim), schemeID: 'VIO_SHADI' });
-		this.xmlDuzenle_detayDevam_item_additionalItemIds_miktar2(e); this.xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat(e)
+		let e = arguments[0]
+		this.xmlDuzenleInternal_detAdditionalIdent({ xw, id: det.shkod, schemeID: 'VIO_SHKOD' })
+		this.xmlDuzenleInternal_detAdditionalIdent({ xw, id: det.adiGosterim, schemeID: 'VIO_SHADI' })
+		this.xmlDuzenle_detayDevam_item_additionalItemIds_miktar2(e)
+		this.xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat(e)
+		this.xmlDuzenle_detayDevam_item_additionalItemIds_ikGosterim(e)
 	}
 	xmlDuzenle_detayDevam_item_additionalItemIds_miktar2(e) { }
 	xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat(e) { }
+	xmlDuzenle_detayDevam_item_additionalItemIds_ikGosterim(e) { }
 	xmlDuzenle_detayDevam_fiyat(e) { }
 	xmlDuzenleInternal_docRef(e) {
 		let {id, xw, type, ekIslem, noEscape, cdata} = e
@@ -622,7 +644,7 @@ class EIslemOrtak extends CObject {
 		aciklama ||= '.'
 		let tarih = e.tarih ?? e.date ?? e.issueDate
 		let tarihStr = tarih ? dateToString(tarih) : baslik.tarihStr
-		xw.writeStartElement('cac:AdditionalDocumentReference');
+		xw.writeStartElement('cac:AdditionalDocumentReference')
 			xw.writeElementString('cbc:ID', id || '0')
 			xw.writeElementString('cbc:IssueDate', tarihStr)
 			if (typeCode)
@@ -649,22 +671,27 @@ class EIslemOrtak extends CObject {
 			this.xmlDuzenleInternal_docRef({ xw, typeCode: name, id: value, type: 'BASLIK_EKSAHA' })
 		return this
 	}
-	xmlDuzenleInternal_detAdditionalIdent(e) {
-		e.tagName = 'cac:AdditionalItemIdentification';
-		let result = this.xmlDuzenleInternal_detXIdent(e); delete e.tagName;
-		return result
+	/** !! burası artık cbc:Note bitimindedir ve cbc:Note olarak eklenecektir */
+	xmlDuzenleInternal_detAdditionalIdent({ xw, schemeID: key, id: value }) {
+		let text = `!#${key}=${value}`
+		xw.writeElementString('cbc:Note', text)
+		return this
+		/*e.tagName = 'cac:AdditionalItemIdentification';
+		let result = this.xmlDuzenleInternal_detXIdent(e)
+		delete e.tagName
+		return result*/
 	}
 	xmlDuzenleInternal_detXIdent({ xw, tagName, id, schemeID }) {
-		let attrYapi = schemeID ? { schemeID } : null;
-		xw.writeStartElement(tagName);
-		xw.writeElementString('cbc:ID', id, null, attrYapi);
-		xw.writeEndElement();
+		let attrYapi = schemeID ? { schemeID } : null
+		xw.writeStartElement(tagName)
+		xw.writeElementString('cbc:ID', id, null, attrYapi)
+		xw.writeEndElement()
 		return this
 	}
 	xmlGetProfileID(e) { return null }
 	xmlGetBelgeTipKodu(e) { return null }
 	async getXsltBase64(e) {
-		e ??= {}; let result = await this.getXslt(e);
+		e ??= {}; let result = await this.getXslt(e)
 		if (result) { result = Base64.encode(result) }
 		return result
 	}

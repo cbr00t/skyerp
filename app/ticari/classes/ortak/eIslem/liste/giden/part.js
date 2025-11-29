@@ -75,6 +75,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		catch (ex) {
 			_e.error = ex
 			// hConfirm(getErrorText(ex), islemAdi)
+			console.error(ex)
 			throw ex
 		}
 		finally { this.uiIslemiSonrasi(_e) }
@@ -96,6 +97,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		catch (ex) {
 			_e.error = ex
 			// hConfirm(getErrorText(ex), islemAdi)
+			console.error(ex)
 			throw ex
 		}
 		finally { this.uiIslemiSonrasi({ ..._e, silent: true }) }
@@ -142,6 +144,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		catch (ex) {
 			_e.error = ex
 			// hConfirm(getErrorText(ex), islemAdi)
+			console.error(ex)
 			throw ex
 		}
 		finally { this.uiIslemiSonrasi(_e) }
@@ -163,6 +166,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		catch (ex) {
 			_e.error = ex
 			// hConfirm(getErrorText(ex), islemAdi)
+			console.error(ex)
 			throw ex
 		}
 		finally { this.uiIslemiSonrasi(_e) }
@@ -184,6 +188,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		catch (ex) {
 			_e.error = ex
 			// hConfirm(getErrorText(ex), islemAdi)
+			console.error(ex)
 			throw ex
 		}
 		finally { this.uiIslemiSonrasi(_e) }
@@ -205,6 +210,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 			_e.error = ex
 			if (!silent) {
 				// hConfirm(getErrorText(ex), islemAdi)
+				console.error(ex)
 				throw ex
 			}
 		}

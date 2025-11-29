@@ -9,76 +9,76 @@ class TicIskYapi extends CObject {
 	}
 	
 	static *getIskYapiIter() {
-		const {fiyatVeIsk: param} = app.params ?? {};
-		const {iskSayi, iskOranMax} = param ?? {};
-		for (const item of [
+		let {fiyatVeIsk: param} = app.params ?? {};
+		let {iskSayi, iskOranMax} = param ?? {};
+		for (let item of [
 			{ key: 'sabit', selector: 'iskOranlar', belirtec: 'isk', etiket: 'İsk', maxSayi: iskSayi?.sabit || 0, maxOran: iskOranMax?.sabit },
 			{ key: 'kampanya', selector: 'kamOranlar', belirtec: 'kam', etiket: 'Kam', maxSayi: iskSayi?.kampanya || 0, maxOran: iskOranMax?.kampanya }
 		]) { yield item }
 	}
 
 	static *getIskKeysIter() {
-		for (const item of this.getIskYapiIter())
+		for (let item of this.getIskYapiIter())
 			yield item.key
 	}
 
 	static *getIskIter() {
-		const iskEtiketDict = this.iskEtiketDict || {};
-		for (const item of this.getIskYapiIter()) {
-			const {key, belirtec, maxSayi} = item;
-			const _iskEtiketDict = iskEtiketDict[key];
+		let iskEtiketDict = this.iskEtiketDict || {}
+		for (let item of this.getIskYapiIter()) {
+			let {key, belirtec, maxSayi} = item
+			let _iskEtiketDict = iskEtiketDict[key]
 			for (let i = 1; i <= maxSayi; i++) {
+				let bedelPrefix = key == 'sabit' ? 'iskonto' : `${belirtec}bedel`
 				yield {
-					tip: key, belirtec: belirtec, index: i,
+					tip: key, belirtec, index: i, seq: i,
 					etiket: _iskEtiketDict[i] || `${item.etiket}-${i}`,
 					get rowAttr() { return `${belirtec}oran${i}` },
-					get ioAttr() { return `${belirtec}Oran${i}` }
+					get ioAttr() { return `${belirtec}Oran${i}` },
+					get rowAttr_bedel() { return `${bedelPrefix}${i}` },
+					get ioAttr_bedel() { return `${bedelPrefix}{i}` }
 				}
 			}
 		}
 	}
 	
 	static get iskYapi() {
-		const result = [];
-		for (const item of this.getIskYapiIter())
+		let result = [];
+		for (let item of this.getIskYapiIter())
 			result.push(item);
 		return result
 	}
 	
 	static get iskKeys() {
-		const result = [];
-		for (const item of this.getIskKeysIter())
+		let result = [];
+		for (let item of this.getIskKeysIter())
 			result.push(item);
 		return result
 	}
 
 	static get iskListe() {
-		const result = [];
-		for (const item of this.getIskIter())
+		let result = [];
+		for (let item of this.getIskIter())
 			result.push(item);
 		return result
 	}
 	
 	
-	constructor(e) {
-		e = e || {};
-		super(e);
-
-		for (const key of this.class.iskKeys)
+	constructor(e = {}) {
+		for (let key of this.class.iskKeys)
 			this[key] = e[key] || [];
 	}
 
 	getHesaplanmisIskontolarVeToplam(e) {
-		const {brutBedel} = e;
+		let {brutBedel} = e;
 		let kalan = brutBedel;
 		
-		const result = new this.class();
+		let result = new this.class();
 		let toplam = 0;
-		for (const key of this.class.iskKeys) {
-			const oranlar = this[key];
-			const bedeller = result[key] = [];
+		for (let key of this.class.iskKeys) {
+			let oranlar = this[key];
+			let bedeller = result[key] = [];
 			for (let i = 0; i < oranlar.length; i++) {
-				const oran = oranlar[i];
+				let oran = oranlar[i];
 				let iskBedel = oran ? roundToBedelFra(kalan * oran / 100) : 0;
 				bedeller[i] = iskBedel;
 				kalan -= iskBedel;
@@ -100,16 +100,16 @@ class TicIskYapi extends CObject {
 	// bedelsel toplam içindir
 	kendineEkle(diger) {
 		if (diger) {
-			const {iskKeys} = this.class;
-			for (const key of iskKeys) {
-				const buBedeller = this[key] = this[key] || [];
-				const digerBedeller = diger[key];
+			let {iskKeys} = this.class;
+			for (let key of iskKeys) {
+				let buBedeller = this[key] = this[key] || [];
+				let digerBedeller = diger[key];
 				for (let i = 0; i < digerBedeller.length; i++) {
-					const bedel = digerBedeller[i];
+					let bedel = digerBedeller[i];
 					buBedeller[i] = (buBedeller[i] || 0) + bedel;
 				}
 			}
 		}
-		return this;
+		return this
 	}
 }

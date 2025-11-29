@@ -51,33 +51,48 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		}
 		return stm
 	}
-	static getEFisBaslikVeDetayStm(e) {
-		e = e || {}; let ps2SayacListe = getFuncValue.call(this, e.ps2SayacListe || e.psTip2SayacListe, e) || {};
-		let genelWhereDuzenleyici = e.whereDuzenleyici, uni = new MQUnionAll(); let sent, psTip, sayacListe;
-		let fhBagla = _e => {
-			let {psTip, fisTable, harTable} = _e, mustIlClause = `(case when fis.degiskenvknox <> '' then dadr.ilkod else car.ilkod end)`;
-			sent = new MQSent(); uni.add(sent); sent.fisHareket({ fisTable: fisTable, harTable: harTable, innerJoin: true });
-			sent.fis2TicCariBagla(); sent.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox');
-			sent.fromIliski('naksekli nak', 'fis.nakseklikod = nak.kod'); sent.fromIliski('carmst pls', 'fis.plasiyerkod = pls.must');
-			sent.fromIliski('caril cil', `${mustIlClause} = cil.kod`); sent.fromIliski('ulke culk', 'car.ulkekod = culk.kod');
-			sent.leftJoin({ alias: 'fis', table: 'tahsilsekli tsek', iliski: [`fis.tahtipi = 'T'`, 'fis.martahsil = tsek.kodno'] });
-			sent.leftJoin({ alias: 'fis', table: 'pifbasekaciklama basack', iliski: 'fis.kaysayac = basack.fissayac' });
-			sent.leftJoin({ alias: 'fis', table: 'pifdipaciklama dipack', iliski: 'fis.kaysayac = dipack.fissayac' });
-			sent.fromIliski('vergihesap kver', 'har.kdvhesapkod = kver.kod'); sent.fromIliski('vergihesap tevver', 'har.dettevhesapkod = tevver.kod');
-			sent.fromIliski('vergihesap sver', 'har.stopajhesapkod = sver.kod');
-			sent.fisSilindiEkle();
-			sent.where.add(`fis.ozelisaret <> '*'`, `fis.efayrimtipi in ('E', 'A', '')`, new MQOrClause([`(fis.almsat = 'T' and fis.iade = '')`, `(fis.almsat = 'A' and fis.iade = 'I')`]));
-			sent.where.inDizi(sayacListe, 'fis.kaysayac');
-			sent.sahalar.addAll([
-				`${MQSQLOrtak.sqlServerDegeri(psTip)} pstip`, `${MQSQLOrtak.sqlServerDegeri(fisTable)} fisTable`, `${MQSQLOrtak.sqlServerDegeri(harTable)} harTable`,
-				`fis.bizsubekod`, 'fis.kaysayac fissayac', 'fis.iade', 'fis.ayrimtipi', 'fis.fistipi', 'fis.efayrimtipi', 'fis.tarih', 'fis.fisnox', 'fis.ortalamavade', 'car.earsivbelgetipi',
+	static getEFisBaslikVeDetayStm({ whereDuzenleyici: genelWhereDuzenleyici, ps2SayacListe, psTip2SayacListe } = {}) {
+		let e = arguments[0]; ps2SayacListe ??= psTip2SayacListe
+		ps2SayacListe = getFuncValue.call(this, ps2SayacListe, e) || {}
+		let uni = new MQUnionAll()
+		let fhBagla = ({ psTip, sayacListe, fisTable, harTable }) => {
+			let mustIlClause = `(case when fis.degiskenvknox <> '' then dadr.ilkod else car.ilkod end)`
+			let sent = new MQSent(), {where: wh, sahalar} = sent
+			sent.fisHareket({ fisTable: fisTable, harTable: harTable, innerJoin: true })
+			sent.fis2TicCariBagla(); sent.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox')
+			sent.fromIliski('naksekli nak', 'fis.nakseklikod = nak.kod')
+			sent.fromIliski('carmst pls', 'fis.plasiyerkod = pls.must')
+			sent.fromIliski('caril cil', `${mustIlClause} = cil.kod`)
+			sent.fromIliski('ulke culk', 'car.ulkekod = culk.kod')
+			sent.leftJoin({ alias: 'fis', table: 'tahsilsekli tsek', iliski: [`fis.tahtipi = 'T'`, 'fis.martahsil = tsek.kodno'] })
+			sent.leftJoin({ alias: 'fis', table: 'pifbasekaciklama basack', iliski: 'fis.kaysayac = basack.fissayac' })
+			sent.leftJoin({ alias: 'fis', table: 'pifdipaciklama dipack', iliski: 'fis.kaysayac = dipack.fissayac' })
+			sent.fromIliski('vergihesap kver', 'har.kdvhesapkod = kver.kod')
+			sent.fromIliski('vergihesap tevver', 'har.dettevhesapkod = tevver.kod')
+			sent.fromIliski('vergihesap sver', 'har.stopajhesapkod = sver.kod')
+			sent.fisSilindiEkle()
+			wh.add(
+				`fis.ozelisaret <> '*'`, `fis.efayrimtipi in ('E', 'A', '')`,
+				new MQOrClause([
+					`(fis.almsat = 'T' and fis.iade = '')`,
+					`(fis.almsat = 'A' and fis.iade = 'I')`
+				])
+			)
+			wh.inDizi(sayacListe, 'fis.kaysayac')
+			sahalar.addAll([
+				`${psTip.sqlServerDegeri()} pstip`,
+				`${fisTable.sqlServerDegeri()} fisTable`,
+				`${harTable.sqlServerDegeri()} harTable`,
+				`fis.bizsubekod`, 'fis.kaysayac fissayac', 'fis.iade', 'fis.ayrimtipi', 'fis.fistipi', 'fis.efayrimtipi',
+				'fis.tarih', 'fis.fisnox', 'fis.ortalamavade', 'car.earsivbelgetipi',
 				`(case fis.ayrimtipi when 'IH' then 'IHRACAT' when 'IK' then 'IHRACKAYITLI' when 'FS' then 'FASON' when 'EM' then 'EMANET' when 'KN' then 'KONSINYE' else '' end) faturaozeltip`,
 				`(case when fis.almsat = 'A' and fis.iade = 'I' then '*' else '' end) alimiademi`,
-									/* M: TEMEL ; T: TİCARİ ; K: KAMU */
+																						/* M: TEMEL ; T: TİCARİ ; K: KAMU */
 				`(case when fis.degiskenvknox <> '' then 'M' else dbo.emptycoalesce(car.efatsenaryotipi, 'M') end) carsenaryo`,
 				`car.efatyontem genelyontem`, `car.efozelyontemkod ozelyontem`, 'fis.tahtipi', 'fis.martahsil tahseklino',
 				`(case when fis.tahtipi = 'K' then 'Karma Tahsil' else tsek.aciklama end) tahsekliadi`,
-				'fis.plasiyerkod', 'fis.nakseklikod', 'fis.zorunluguidstr', 'fis.efatuuid uuid', 'fis.dvkod', 'fis.dvkur', 'fis.net sonucbedel',
+				'fis.plasiyerkod', 'fis.nakseklikod', 'fis.zorunluguidstr', 'fis.efatuuid uuid',
+				'fis.dvkod', 'fis.dvkur', 'fis.net sonucbedel',
 				`(case when fis.degiskenvknox <> '' then fis.degiskenvknox else fis.ticmust end) mustkod`,
 				`(case when fis.degiskenvknox <> '' then dadr.birunvan when fis.must = '' and fis.ayrimtipi = 'PR' then 'Muhtelif Müşteri' else car.birunvan end) unvan`,
 				`(case when fis.degiskenvknox <> '' then dadr.biradres else car.biradres end) adres`,
@@ -88,7 +103,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 						when fis.must = '' and fis.ayrimtipi = 'PR' then ''
 						else car.vnumara end) vkn`,
 				`(case when fis.degiskenvknox <> '' then (case when dadr.sahismi <> '' then fis.degiskenvknox else '' end)
-						when fis.must = '' and fis.ayrimtipi = 'PR' then ${MQSQLOrtak.sqlServerDegeri(TCKimlik.perakendeVKN)}
+						when fis.must = '' and fis.ayrimtipi = 'PR' then ${TCKimlik.perakendeVKN.sqlServerDegeri()}
 						else car.tckimlikno end) tckn`,
 				`(case when fis.degiskenvknox <> '' then dadr.sahismi
 						when fis.must = '' and fis.ayrimtipi = 'PR' then '*' else car.sahismi
@@ -103,77 +118,82 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 				'fis.refstrnox refnox', /*'fis.borsatescilvarmi', 'fis.kunyenox',*/ 'basack.basaciklama', 'dipack.aciklama dipaciklama',
 				'har.seq', 'har.miktar', 'har.fiyat', 'har.dvfiyat', 'har.brutbedel', 'har.dvbrutbedel', 'har.bedel', 'har.dvbedel',
 				'har.ekaciklama', 'har.detkdvekvergitipi', 'har.detistisnakod', 'har.perkdv', 'kver.kdvorani', 'har.perstopaj', 'sver.stopajorani',
-				'tevver.kdvtevoranx', 'tevver.kdvtevoranpay', 'tevver.tevislemturu', 'har.pertevkifat'
-			]);
+				'tevver.kdvtevoranx', 'tevver.kdvtevoranpay', 'tevver.tevislemturu', 'har.pertevkifat', 'har.satiriskonto', 'har.sonuciskoran'
+			])
 			if (genelWhereDuzenleyici) {
-				let __e = $.extend({}, _e, { psTip, fisTable, harTable, uni, sent, where: sent.where });
-				getFuncValue.call(this, genelWhereDuzenleyici, _e)
+				let __e = { ..._e, psTip, fisTable, harTable, uni, sent, where: wh }
+				if (getFuncValue.call(this, genelWhereDuzenleyici, _e) === false)
+					return null
 			}
-			return this
-		};
-		let stokBagla = () => {
-			sent.har2StokBagla();
-			sent.stok2BarkodBagla();
-			sent.fromIliski('vergihesap otver', 'har.otvhesapkod = otver.kod');
-			sent.leftJoin({ alias: 'har', from: 'pzmusturunfis mref', on: 'fis.ticmust = mref.mustkod' });
-			sent.leftJoin({ alias: 'mref', from: 'pzmusturundetay mdet', on: ['mref.kaysayac = mdet.fissayac', 'har.stokkod = mdet.stokkod'] });
-			sent.sahalar.addAll(
+			uni.add(sent)
+			return sent
+		}
+		let stokBagla = ({ sent, sent: { sahalar, where: wh } }) => {
+			sent.har2StokBagla()
+			sent.stok2BarkodBagla()
+			sent.fromIliski('vergihesap otver', 'har.otvhesapkod = otver.kod')
+			sent.leftJoin('har', 'pzmusturunfis mref', 'fis.ticmust = mref.mustkod')
+			sent.leftJoin('mref', 'pzmusturundetay mdet', ['mref.kaysayac = mdet.fissayac', 'har.stokkod = mdet.stokkod'])
+			sahalar.add(
 				`'S' kayittipi`, 'sbar.refkod barkod', 'har.stokkod shkod', 'stk.aciklama shadi', 'stk.aciklama2 shadi2',
 				'stk.brm', 'stk.brm2', 'stk.gtipkod', 'har.miktar2', 'har.koli', 'har.fiyatveritipi',
 				'mdet.refkod stokrefkod', 'mdet.refadi stokrefadi', 'otver.otvorani', 'har.perotv'
-			);
-			for (let item of HMRBilgi.hmrIter()) {
-				let {rowAttr} = item;
-				sent.sahalar.add(`har.${rowAttr}`)
-			}
-			for (let item of TicIskYapi.getIskIter()) {
-				let {rowAttr} = item;
-				sent.sahalar.add(`har.${rowAttr}`)
-			}
+			)
+			for (let {rowAttr} of HMRBilgi)
+				sahalar.add(`har.${rowAttr}`)
+			for (let {belirtec, rowAttr, rowAttr_bedel} of TicIskYapi.getIskIter())
+				sahalar.add(`har.${rowAttr}`, `har.${rowAttr_bedel}`)
 			return this
-		};
-		let hizmetBagla = () => {
-			sent.har2HizmetBagla();
-			sent.sahalar.addAll(
+		}
+		let hizmetBagla = ({ sent, sent: { sahalar, where: wh } }) => {
+			sent.har2HizmetBagla()
+			sahalar.add(
 				`'H' kayittipi`, `NULL barkod`, 'har.hizmetkod shkod', 'hiz.aciklama shadi', 'hiz.aciklama2 shadi2',
 				'hiz.brm', `'' brm2`, `'' gtipkod`, `0 miktar2`, `0 koli`, `'' fiyatveritipi`,
-				'NULL stokrefkod', 'NULL stokrefadi', '0 otvorani', '0 perotv',
-			);
-			for (let item of HMRBilgi.hmrIter()) {
-				let {numerikmi, rowAttr} = item;
-				sent.sahalar.add(`${numerikmi ? '0' : `''`} ${rowAttr}`)
-			}
-			for (let item of TicIskYapi.getIskIter()) {
-				let {rowAttr} = item;
-				sent.sahalar.add(`har.${rowAttr}`)
-			}
+				'NULL stokrefkod', 'NULL stokrefadi', '0 otvorani', '0 perotv'
+			)
+			for (let {numerikmi, rowAttr} of HMRBilgi)
+				sahalar.add(`${numerikmi ? '0' : `''`} ${rowAttr}`)
+			for (let {belirtec, rowAttr, rowAttr_bedel} of TicIskYapi.getIskIter())
+				sahalar.add(`har.${rowAttr}`, `har.${rowAttr_bedel}`)
 			return this
-		};
-
-		psTip = 'P';
-		sayacListe = ps2SayacListe[psTip];
-		if (sayacListe) {
-			fhBagla({ psTip: psTip, fisTable: 'piffis', harTable: 'pifstok' });
-			sent.where.add(`fis.ayrimtipi NOT IN ('FS', 'IN')`);				// PR -magaza da alinir
-			stokBagla();
-
-			fhBagla({ psTip: psTip, fisTable: 'piffis', harTable: 'pifhizmet' });
-			sent.where.add(`fis.ayrimtipi NOT IN ('FS', 'IN', 'PR')`);
-			hizmetBagla();
-
-			fhBagla({ psTip: psTip, fisTable: 'piffis', harTable: 'piffsstok' });				// sadece fason olanlar
-			sent.where.add(`fis.ayrimtipi = 'FS'`);
-			hizmetBagla()
 		}
-		psTip = 'S';
-		sayacListe = ps2SayacListe[psTip];
-		if (sayacListe) {
-			fhBagla({ psTip: psTip, fisTable: 'sipfis', harTable: 'sipstok' });
-			sent.where.addAll(`fis.ayrimtipi = 'EM'`, `fis.ozeltip = 'E'`);
-			stokBagla();
+		
+		{
+			let psTip = 'P', sayacListe = ps2SayacListe[psTip]
+			if (sayacListe) {
+				let sent = fhBagla({ psTip, sayacListe, fisTable: 'piffis', harTable: 'pifstok' })
+				if (sent) {
+					sent.where.add(`fis.ayrimtipi NOT IN ('FS', 'IN')`)				// PR -magaza da alinir
+					stokBagla({ sent })
+				}
+				sent = fhBagla({ psTip, sayacListe, fisTable: 'piffis', harTable: 'pifhizmet' })
+				if (sent) {
+					sent.where.add(`fis.ayrimtipi NOT IN ('FS', 'IN', 'PR')`)
+					hizmetBagla({ sent })
+				}
+				sent = fhBagla({ psTip, sayacListe, fisTable: 'piffis', harTable: 'piffsstok' })				// sadece fason olanlar
+				if (sent) {
+					sent.where.add(`fis.ayrimtipi = 'FS'`)
+					hizmetBagla({ sent })
+				}
+			}
 		}
+		{
+			let psTip = 'S', sayacListe = ps2SayacListe[psTip]
+			if (sayacListe) {
+				let sent = fhBagla({ psTip, sayacListe, fisTable: 'sipfis', harTable: 'sipstok' })
+				if (sent) {
+					sent.where.addAll(`fis.ayrimtipi = 'EM'`, `fis.ozeltip = 'E'`)
+					stokBagla({ sent })
+				}
+			}
+		}
+		
 		let orderBy = ['tarih', 'pstip', 'fisnox', 'fissayac', 'seq']
-		return empty(uni.liste) ? null : new MQStm({ sent: uni, orderBy })
+		if (empty(uni.liste))
+			return null
+		return new MQStm({ sent: uni, orderBy })
 	}
 	static tipIcinFislerEkDuzenlemeYapDevam({ yukleIslemi, promises }) {
 		super.tipIcinFislerEkDuzenlemeYapDevam(...arguments)
@@ -605,9 +625,12 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		})
 	}
 	xmlDuzenle_detayDevam_item_additionalItemIds_miktar2({ xw, detay: det }) {
-		super.xmlDuzenle_detayDevam_item_additionalItemIds_miktar2(...arguments); let {eMiktarYapi: result} = det;
-		let {miktar2} = result || {}; if (!miktar2) { return }
-		let  brm2 = result.brm || det.brm2;
+		super.xmlDuzenle_detayDevam_item_additionalItemIds_miktar2(...arguments)
+		let {eMiktarYapi: result} = det
+		let {miktar2} = result || {}
+		if (!miktar2)
+			return
+		let  brm2 = result.brm || det.brm2
 		this.xmlDuzenleInternal_detAdditionalIdent({ xw, schemeID: 'MIKTAR2GORUNUM', id: miktar2 })
 		this.xmlDuzenleInternal_detAdditionalIdent({ xw, schemeID: 'BRM2GORUNUM', id: brm2 })
 	}
@@ -619,10 +642,50 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 			this.xmlDuzenleInternal_detAdditionalIdent({ xw, schemeID: 'NET_FIYAT', id: toFileStringWithFra(netFiyat, fiyatFra) })
 		}
 	}
+	xmlDuzenle_detayDevam_item_additionalItemIds_ikGosterim({ xw, detay: det, detay: { rec, topIskBedel } }) {
+		let {dovizlimi, dvKodUyarlanmis: dvKod, xattrYapi_bedel} = this
+		if (!dovizlimi)
+			dvKod = 'TL'
+		let brut = det.getBrutBedel({ dovizlimi })
+		let prefix2Values = []
+		for (let {belirtec, rowAttr, rowAttr_bedel} of TicIskYapi.getIskIter()) {
+			let prefix = (
+				belirtec == 'isk' ? 'ISK' :
+				belirtec == 'kam' ? 'KAM' :
+				belirtec == 'art' ? 'ART' :
+				belirtec.slice(0, 3).toUpperCase()
+			)
+			let oran = rec[rowAttr]
+			if (!oran)
+				continue
+			{
+				let liste = prefix2Values[`${prefix}ORANLARGORUNUM`] ??= []
+				let text = numberToString(oran)
+				if (!liste.length)
+					text = `%${text}`
+				liste.push(text)
+			}
+			{
+				let liste = prefix2Values[`${prefix}ORANLAR`] ??= []
+				liste.push(oran)
+			}
+		}
+		if (topIskBedel) {
+			(prefix2Values.ISKTOPBEDELGORUNUM ??= []).push(toStringWithFra(topIskBedel, 2))
+			; (prefix2Values.ISKTOPBEDEL ??= []).push(roundToFra(topIskBedel, 2))
+		}
+		for (let [schemeID, values] of entries(prefix2Values)) {
+			let id = values.map(x => toFileStringWithFra(x, 2)).join('+')
+			this.xmlDuzenleInternal_detAdditionalIdent({ xw, schemeID, id })
+		}
+	}
 	xmlDuzenle_detayDevam_miktar({ xw, detay: det }) {
-		super.xmlDuzenle_detayDevam_miktar(...arguments); let {eMiktarYapi: result} = det;
-		let brm = result.brm || det.brm, ulsBrm = app.params.stokBirim.brmDict[brm]?.intKod || 'NIU';			/* NIU = AD */
-		if (!ulsBrm) { throw { isError: true, rc: 'brmUls', errorText: `<b class="royalblue">${brm}</b> Stok Birim kodu için <u class="bold royalblue">Uls. Kod Karşılığı</u>, Stok Birim Parametrelerinden tanımlanmalıdır` } }
+		super.xmlDuzenle_detayDevam_miktar(...arguments)
+		let {eMiktarYapi: result} = det
+		let brm = result.brm || det.brm
+		let ulsBrm = app.params.stokBirim.brmDict[brm]?.intKod || 'NIU'			/* NIU = AD */
+		if (!ulsBrm)
+			throw { isError: true, rc: 'brmUls', errorText: `<b class="royalblue">${brm}</b> Stok Birim kodu için <u class="bold royalblue">Uls. Kod Karşılığı</u>, Stok Birim Parametrelerinden tanımlanmalıdır` }
 		xw.writeElementString('cbc:InvoicedQuantity', result.asilMiktar || 0, null, { unitCode: ulsBrm })
 	}
 	xmlDuzenle_detayDevam_fiyat({ xw, detay: det }) {
@@ -630,6 +693,21 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		if (!result) { return }
 		xw.writeElementBlock('cac:Price', null, () =>
 			xw.writeElementString('cbc:PriceAmount', toFileStringWithFra(result.asilFiyat || 0, app.params.zorunlu.fiyatFra || 6), null, this.xattrYapi_bedel))
+	}
+	xmlDuzenle_detayDevam_allowanceCharge({ xw, detay: det, detay: { rec } }) {
+		let {dovizlimi, xattrYapi_bedel} = this
+		let brut = det.getBrutBedel({ dovizlimi })
+		for (let {belirtec, rowAttr, rowAttr_bedel} of TicIskYapi.getIskIter()) {
+			let oran = rec[rowAttr], ikBedel = rec[rowAttr_bedel]
+			if (!oran)
+				continue
+			xw.writeElementBlock('cac:AllowanceCharge', null, () =>
+				xw.writeElementString('cbc:ChargeIndicator', false)
+				  .writeElementString('cbc:MultiplierFactorNumeric', toFileStringWithFra(oran / 100, 4))
+				  .writeElementString('cbc:Amount', toFileStringWithFra(ikBedel, 2), null, xattrYapi_bedel)
+				  .writeElementString('cbc:BaseAmount', toFileStringWithFra(brut, 2), null, xattrYapi_bedel)
+			)
+		}
 	}
 	xmlGetProfileID(e) {
 		let {baslik, class: cls} = this; return (
@@ -658,6 +736,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		return 'SATIS'
 	}
 }
+
 class EIslFatura extends EIslFaturaArsivOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get eFaturami() { return true } static get ortakSinif() { return EIslFaturaArsivOrtak }

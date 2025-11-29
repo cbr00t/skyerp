@@ -101,20 +101,77 @@ class EIslDetay extends EIslBaslikVeDetayOrtak {
 		let result = this._adiGosterim;
 		if (result == null) {
 			let {kural} = app.params.eIslem, kural_shAdi = kural.shAdi, kural_aciklama = kural.aciklama, kural_aciklamaKapsam = kural.aciklamaKapsam, {rec} = this;
-			result = kural_shAdi.sadeceAdi1mi ? rec.shadi : kural_shAdi.sadeceAdi2mi ? rec.shadi2 : `${rec.shadi} ${rec.shadi2}`;
-			if (!(kural_aciklamaKapsam.sadeceNotlarmi || kural_aciklamaKapsam.hepsimi) && kural_aciklama.satirIciUrunAdindami) { result += ` (${rec.ekaciklama || ''})` }
+			result = kural_shAdi.sadeceAdi1mi ? rec.shadi : kural_shAdi.sadeceAdi2mi ? rec.shadi2 : `${rec.shadi} ${rec.shadi2}`
+			if (!(kural_aciklamaKapsam.sadeceNotlarmi || kural_aciklamaKapsam.hepsimi) && kural_aciklama.satirIciUrunAdindami)
+				result += ` (${rec.ekaciklama || ''})`
 			this._adiGosterim = result = result.trimEnd()
 		}
 		return result
 	}
 	get barkodGosterim() {
-		let result = this._barkodGosterim;
-		if (result == null) { this._barkodGosterim = result = this.rec.barkod || this.kodGosterim }
+		let {_barkodGosterim: result} = this
+		if (result == null)
+			this._barkodGosterim = result = this.rec.barkod || this.kodGosterim
 		return result
 	}
+	get ikOranlar() {
+		let {rec} = this, ikYapilar = Array.from(TicIskYapi.getIskIter())
+		let ikKeys = ikYapilar.map(_ => _.rowAttr)
+		return ikKeys.map(k => rec[k]).filter(v => !!v)
+	}
+	get ikBedeller() {
+		let {rec} = this, ikYapilar = Array.from(TicIskYapi.getIskIter())
+		let ikKeys = ikYapilar.map(_ => _.rowAttr_bedel)
+		return ikKeys.map(k => rec[k]).filter(v => !!v)
+	}
+	get sonucIskOran() { return this.rec.sonuciskoran }
+	get topIskBedel() {
+		let {rec, ikBedeller} = this
+		// ikBedeller.reduce((bu, sonuc) => sonuc + bu)
+		return topla(null, ...ikBedeller)
+	}
 	get revizeRefKod() { return this.rec.stokrefkod || this.kodGosterim }
-	get sonucBedelYapi() { let {rec} = this; return new TLVeDVBedel({ tl: rec.bedel, dv: rec.dvbedel }) }
-	getSonucBedel(e) { let {dovizlimi} = e, {sonucBedelYapi} = this; return sonucBedelYapi[dovizlimi ? 'dv' : 'tl'] }
+	get brutBedelYapi() {
+		let {brutbedel: tl, brutdvbedel: dv} = this.rec
+		return new TLVeDVBedel({ tl, dv })
+	}
+	get sonucBedelYapi() {
+		let {bedel: tl, dvbedel: dv} = this.rec
+		return new TLVeDVBedel({ tl, dv })
+	}
+	get eMiktarYapi() {
+		let {_eMiktarYapi: result, rec} = this
+		if (result == null) {
+			let {kural: { miktar: { fiyataEsasmi, birliktemi } = {} }} = app.params.eIslem
+			let {miktar: asilMiktar} = rec, miktar2, brm
+			if (birliktemi)
+				miktar2 = rec.miktar2
+			else if (fiyataEsasmi) {
+				let {fiyatveritipi: fiyatVeriTipi} = rec
+				asilMiktar = rec[fiyatVeriTipi == '2' ? 'miktar2' : fiyatVeriTipi == 'K' ? 'koli' : 'miktar']
+				// paket için 'ulsKod' karşılığı yok
+				let brmAttr = rec[fiyatVeriTipi == '2' ? 'brm2' : null]
+				brm = brmAttr ? rec[brmAttr] : null
+			}
+			// brm == null için 'brm' kullanılır 
+			result = { asilMiktar, miktar2: (birliktemi ? miktar2 : null), brm }
+			this._eMiktarYapi = result
+		}
+		return result
+	}
+
+	constructor({ aciklamalar }) {
+		super(...arguments)
+		this.aciklamalar = aciklamalar || []
+	}
+	getBrutBedel({ dovizlimi }) {
+		let {brutBedelYapi} = this
+		return brutBedelYapi[dovizlimi ? 'dv' : 'tl']
+	}
+	getSonucBedel({ dovizlimi }) {
+		let {sonucBedelYapi} = this
+		return sonucBedelYapi[dovizlimi ? 'dv' : 'tl']
+	}
 	getEFiyatYapi(e) {
 		let result = this._eFiyatYapi;
 		if (result == null) {
@@ -129,25 +186,10 @@ class EIslDetay extends EIslBaslikVeDetayOrtak {
 		}
 		return result
 	}
-	get eMiktarYapi() {
-		let result = this._eMiktarYapi;
-		if (result == null) {
-			let {kural} = app.params.eIslem, {fiyataEsasmi, birliktemi} = kural.miktar, {rec} = this;
-			let asilMiktar = rec.miktar, miktar2, brm;
-			if (birliktemi) { miktar2 = rec.miktar2 }
-			else if (fiyataEsasmi) {
-				let fiyatVeriTipi = rec.fiyatveritipi; asilMiktar = rec[fiyatVeriTipi == '2' ? 'miktar2' : fiyatVeriTipi == 'K' ? 'koli' : 'miktar'];
-					/* paket için ulsKod karşılığı yok */
-				let brmAttr = rec[fiyatVeriTipi == '2' ? 'brm2' : null]; brm = brmAttr ? rec[brmAttr] : null
-			}
-				/* brm == null için 'brm' kullanılır */
-			result = { asilMiktar, miktar2: (birliktemi ? miktar2 : null), brm }; this._eMiktarYapi = result
-		}
-		return result
+	aciklamaEkle({ aciklama, value }) {
+		this.aciklamalar.push(aciklama ?? value)
+		return this
 	}
-	constructor(e) { super(e); this.aciklamalar = e.aciklamalar || [] }
-
-	aciklamaEkle(e) { this.aciklamalar.push(e.aciklama); return this }
 }
 
 class EIcmal extends CObject {
@@ -242,8 +284,11 @@ class EIcmal extends CObject {
 		return this._vergiRecs_tevkifatlar
 	}
 	get sonucBedelYapi() {
-		let result = this._sonucBedelYapi;
-		if (result === undefined) { let {belirtec2AnaTip2AltTip2Satirlar} = this; this._sonucBedelYapi = result = (belirtec2AnaTip2AltTip2Satirlar['']?.DP?.OD || [])[0]?.bedelYapi || {} }
+		let {_sonucBedelYapi: result} = this
+		if (result === undefined) {
+			let {belirtec2AnaTip2AltTip2Satirlar} = this
+			this._sonucBedelYapi = result = (belirtec2AnaTip2AltTip2Satirlar['']?.DP?.OD || [])[0]?.bedelYapi || {}
+		}
 		return this._sonucBedelYapi
 	}
 
