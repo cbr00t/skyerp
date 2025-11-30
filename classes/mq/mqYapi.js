@@ -156,19 +156,21 @@ class MQYapi extends CIO {
 	degistirSonrasiIslemler(e) { e ??= {}; e.islem ||= 'degistir'; return this.kaydetSonrasiIslemler(e) }
 	kaydetSonrasiIslemler(e) { e ??= {}; return this.kaydetVeyaSilmeSonrasiIslemler(e) }
 	silmeSonrasiIslemler(e) { e ??= {}; e.islem ||= 'sil'; return this.kaydetVeyaSilmeSonrasiIslemler(e) }
-	kaydetVeyaSilmeSonrasiIslemler({ islem, fis, trn } = {}) {
-		fis ??= this; let {class: fisSinif} = fis;
-		let {sinifAdi, kodListeTipi, name: className} = fisSinif;
-		sinifAdi ||= kodListeTipi || className;
-		islem = (islem ?? 'd')[0].toUpperCase();
-		let degisenler = [`SkyERP:${sinifAdi}`];
-		let keyTimer = '_timer_logKaydet';
-		clearTimeout(fisSinif[keyTimer]);
-		fisSinif[keyTimer] = setTimeout(async () => {
-			try { await fis.logKaydet({ islem, degisenler }) }
-			finally { delete fisSinif[keyTimer] }
-		}, 10);
-		return delay(20)
+	kaydetVeyaSilmeSonrasiIslemler({ islem, fis, trn, offlineRequest, offlineMode } = {}) {
+		fis ??= this
+		if (!(offlineRequest && offlineMode)) {
+			let {class: fisSinif, class: { sinifAdi, kodListeTipi, name: className }} = fis
+			sinifAdi ||= kodListeTipi || className
+			islem = (islem ?? 'd')[0].toUpperCase()
+			let degisenler = [`SkyERP:${sinifAdi}`]
+			let keyTimer = '_timer_logKaydet'
+			clearTimeout(fisSinif[keyTimer])
+			fisSinif[keyTimer] = setTimeout(async () => {
+				try { await fis.logKaydet({ islem, degisenler }) }
+				finally { delete fisSinif[keyTimer] }
+			}, 10)
+			return delay(20)
+		}
 	}
 	static async logKaydet(e) {
 		if (!this.logKullanilirmi) { return true }

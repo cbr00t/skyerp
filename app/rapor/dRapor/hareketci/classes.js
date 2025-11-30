@@ -1,5 +1,7 @@
 class DRapor_Hareketci_Cari extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	/* static get oncelik() { return 10 } */
+	static get kategoriKod() { return 'CARI' } static get kategoriAdi() { return 'Cari' }
 	static get vioAdim() { return 'CR-TT' } static get hareketciSinif() { return CariHareketci }
 }
 class DRapor_Hareketci_Cari_Main extends DRapor_Hareketci_Main {
@@ -18,6 +20,7 @@ class DRapor_Hareketci_Cari_Main extends DRapor_Hareketci_Main {
 }
 class DRapor_Hareketci_Kasa extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get oncelik() { return 11 } static get kategoriKod() { return 'KASA' } static get kategoriAdi() { return 'Kasa' }
 	static get vioAdim() { return 'KS-RT' } static get hareketciSinif() { return KasaHareketci }
 }
 class DRapor_Hareketci_Kasa_Main extends DRapor_Hareketci_Main {
@@ -38,6 +41,7 @@ class DRapor_Hareketci_Kasa_Main extends DRapor_Hareketci_Main {
 }
 class DRapor_Hareketci_Hizmet extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kategoriKod() { return 'Hizmet' } static get kategoriAdi() { return 'Hizmet' }
 	static get vioAdim() { return 'HZ-TT' } static get hareketciSinif() { return HizmetHareketci }
 }
 class DRapor_Hareketci_Hizmet_Main extends DRapor_Hareketci_Main {
@@ -97,7 +101,8 @@ class DRapor_Hareketci_Hizmet_Main extends DRapor_Hareketci_Main {
 
 class DRapor_Hareketci_BankaOrtak extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get araSeviyemi() { return this == DRapor_Hareketci_BankaOrtak } 
+	static get araSeviyemi() { return this == DRapor_Hareketci_BankaOrtak }
+	static get kategoriKod() { return 'BANKA' } static get kategoriAdi() { return 'Banka' }
 }
 class DRapor_Hareketci_BankaOrtak_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -213,6 +218,7 @@ class DRapor_Hareketci_TeminatMektup_Main extends DRapor_Hareketci_BankaOrtak_Ma
 
 class DRapor_Hareketci_CekSenet extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kategoriKod() { return 'CS' } static get kategoriAdi() { return 'Çek/Senet' }
 	static get vioAdim() { return 'CS-TP' } static get hareketciSinif() { return CSHareketci }
 }
 class DRapor_Hareketci_CekSenet_Main extends DRapor_Hareketci_Main {
@@ -271,6 +277,7 @@ class DRapor_Hareketci_CekSenet_Main extends DRapor_Hareketci_Main {
 
 class DRapor_Hareketci_Masraf extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kategoriKod() { return 'MASRAF' } static get kategoriAdi() { return 'Masraf' }
 	static get vioAdim() { return null } static get hareketciSinif() { return MasrafHareketci }
 }
 class DRapor_Hareketci_Masraf_Main extends DRapor_Hareketci_Main {
@@ -306,6 +313,7 @@ class DRapor_Hareketci_Masraf_Main extends DRapor_Hareketci_Main {
 
 class DRapor_Hareketci_Takip extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kategoriKod() { return 'TAKIP' } static get kategoriAdi() { return 'Takip' }
 	static get vioAdim() { return null } static get hareketciSinif() { return TakipHareketci } 
 }
 class DRapor_Hareketci_Takip_Main extends DRapor_Hareketci_Main {
@@ -343,6 +351,7 @@ class DRapor_Hareketci_Takip_Main extends DRapor_Hareketci_Main {
 
 class DRapor_Hareketci_Stok extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kategoriKod() { return 'STOK' } static get kategoriAdi() { return 'Stok' }
 	static get vioAdim() { return null } static get araSeviyemi() { return this == DRapor_Hareketci_Stok }
 }
 class DRapor_Hareketci_Stok_Main extends DRapor_Hareketci_Main {

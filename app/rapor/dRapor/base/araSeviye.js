@@ -530,9 +530,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 					let {tekSecim: tSec} = secimler.liste[kod]
 					if (!kodClause)
 						kodClause = item.colDefs[0].belirtec
-					let values = tSec.fiilimi ? ['', '*'] : ['', 'X']
-					if (values?.length)
-						wh.inDizi(values, kodClause)
+					let notValue = tSec.normalmi ? '*' : 'X'    // seçilmemiş olabilir ama iki seçenek var
+					if (notValue)
+						wh.notDegerAta(notValue, kodClause)
 				})
 		});
 		return this

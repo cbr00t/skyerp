@@ -1,6 +1,6 @@
 class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 2 }
-    static get maliTabloIcinUygunmu() { return this.uygunmu }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get oncelik() { return 25 } static get maliTabloIcinUygunmu() { return this.uygunmu }
 	static get araSeviyemi() { return this == BankaMevduatKrediOrtakHareketci }
 	static get gecerliBankaHesapTipleri() { return [] }
 	

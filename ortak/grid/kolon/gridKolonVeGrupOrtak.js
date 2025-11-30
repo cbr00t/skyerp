@@ -4,7 +4,7 @@ class GridKolonVeGrupOrtak extends CObject {
 	get builder() { return this._builder || this.gridPart?.builder } get kodBelirtec() { return this.belirtec } get adiBelirtec() { return null }
 	get belirtec() { return getFuncValue.call(this, this._belirtec, { sender: this.sender, colDef: this }) } set belirtec(value) { this._belirtec = value }
 	get isReadOnly() { return !this.isEditable }
-	get jqxColumns() { const e = { columns: [] }; this.jqxColumnsDuzenle(e); return e.columns } jqxColumnsDuzenle(e) { }
+	get jqxColumns() { let e = { columns: [] }; this.jqxColumnsDuzenle(e); return e.columns } jqxColumnsDuzenle(e) { }
 
 	constructor(e = {}, text, genislikCh, sql, userData) {
 		if (typeof e != 'object')
@@ -13,10 +13,17 @@ class GridKolonVeGrupOrtak extends CObject {
 		this._builder = e.builder
 		this.readFrom(e)
 	}
-	static getClass(e) { let cls = GridKolon; if (e) { const {anaTip} = e; if (anaTip) { cls = this._anaTip2Sinif[anaTip] ?? cls } } return cls }
+	static getClass({ anaTip } = {}) {
+		return anaTip ? this._anaTip2Sinif[anaTip] ?? cls : GridKolon
+	}
 	static from(e) {
-		if (!e) { return null } const cls = this.getClass(e); if (!cls) { return null }
-		const result = new cls(e); return result.readFrom(e) ? result : null
+		if (!e)
+			return null
+		let cls = this.getClass(e)
+		if (!cls)
+			return null
+		let result = new cls(e)
+		return result.readFrom(e) ? result : null
 	}
 	readFrom(e = {}, text, genislikCh, sql, userData) {
 		if (typeof e != 'object')
@@ -50,14 +57,14 @@ class GridKolonVeGrupOrtak extends CObject {
 	setTip(value) { this.tip = value; return this }
 	setCellClassName(value) { this.cellClassName = value; return this }
 	setCellsRenderer(value) { this.cellsRenderer = value; return this }
-	static getTemplate(e) { const {key} = e; delete e.key; return getFuncValue(this._templates[key], e) }
+	static getTemplate(e) { let {key} = e; delete e.key; return getFuncValue(this._templates[key], e) }
 	static test() {
-		const cls = this, rfb = new RootFormBuilder().asWindow('Grid Kolon/Grup Test');
+		let cls = this, rfb = new RootFormBuilder().asWindow('Grid Kolon/Grup Test');
 		rfb.addIslemTuslari({ id: 'islemTuslari', tip: 'vazgec', id2Handler: { vazgec: e => e.sender.close() } });
-		const grid = rfb.addGridliGiris({
-			id: 'grid', source: e => { const recs = []; for (let i = 1; i <= 20; i++) recs.push({ seq: i }); return recs },
+		let grid = rfb.addGridliGiris({
+			id: 'grid', source: e => { let recs = []; for (let i = 1; i <= 20; i++) recs.push({ seq: i }); return recs },
 			kontrolcu: new class extends GridKontrolcu {
-				tabloKolonlariDuzenle(e) { super.tabloKolonlariDuzenle(e); const {tabloKolonlari} = e; tabloKolonlari.push( new cls() ) }
+				tabloKolonlariDuzenle(e) { super.tabloKolonlariDuzenle(e); let {tabloKolonlari} = e; tabloKolonlari.push( new cls() ) }
 			}
 		}).addCSS('dock-bottom').addStyle_fullWH(); rfb.run();
 		return rfb

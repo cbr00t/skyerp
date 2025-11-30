@@ -12,12 +12,15 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	static deferredEventNames = asSet(['cellValueChanged']);
 
 	readFrom_ara(e) {
-		if (!super.readFrom_ara(e)) { return false }
-		let {maxLength} = e, genislik = e.genislik ?? e.width ?? null, tipOrDef = e.tip ?? null;
+		if (!super.readFrom_ara(e))
+			return false
+		let {maxLength} = e, genislik = e.genislik ?? e.width ?? null, tipOrDef = e.tip ?? null
 		/* this.belirtec = e.belirtec || e.attr || e.dataField || e.datafield; */
-		this.text = e.text ?? '';
-		if (genislik) { this.genislik = genislik }
-		else if (e.genislikCh != null) { this.genislikCh = e.genislikCh }
+		this.text = e.text ?? ''
+		if (genislik)
+			this.genislik = genislik
+		else if (e.genislikCh != null)
+			this.genislikCh = e.genislikCh
 		this.minWidth = e.minWidth ?? 0; this.maxWidth = e.maxWidth; this.sql = e.sql ?? (e.noSql ? false : null)
 		this.columnType = e.columnType ?? null; this.cellsFormat = e.cellsFormat ?? null; this.aggregates = e.aggregates ?? null
 		this.filterType = e.filterType ?? null; this.filterCondition = e.filterCondition ?? null

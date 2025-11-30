@@ -1,5 +1,5 @@
 class CSHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 15 }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 48 }
 	/* portftipi NOT IN ('XI' 'XK' 'XT' 'X3' 'XZ') */
 	static get kod() { return 'cekSenet' } static get aciklama() { return 'Çek/Senet' }
 	constructor(e) { e = e ?? {}; super(e); $.extend(this, { trfCikismi: e.trfCikis ?? e.trfCikismi ?? true }) }

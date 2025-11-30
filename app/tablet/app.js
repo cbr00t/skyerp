@@ -9,10 +9,20 @@ class TabletApp extends TicariApp {
 		let {session: { loginTipi, user: plasiyerKod } = {}} = config
 		return loginTipi == 'plasiyerLogin' ? plasiyerKod : null
 	}
-	get offlineAktarimSiniflar() {
-		let {_offlineAktarimSiniflar: result} = this
+	get offlineBilgiYukleSiniflar() {
+		let {_offlineBilgiYukleSiniflar: result} = this
 		if (!result) {
-			result = this._offlineAktarimSiniflar = [
+			result = this._offlineBilgiYukleSiniflar = [
+				MQParam,
+				...this.offlineBilgiGonderSiniflar
+			]
+		}
+		return result
+	}
+	get offlineBilgiGonderSiniflar() {
+		let {_offlineBilgiGonderSiniflar: result} = this
+		if (!result) {
+			result = this._offlineBilgiGonderSiniflar = [
 				MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
 				MQTabBolge, MQTabIl, MQTabUlke, MQTabCariTip,
 				MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
@@ -27,10 +37,7 @@ class TabletApp extends TicariApp {
 		return result
 	}
 	get offlineCreateTableSiniflar() {
-		return [
-			MQParam,
-			...this.offlineAktarimSiniflar.filter(_ => _ != MQTabPlasiyer)
-		]
+		return this.offlineBilgiYukleSiniflar.filter(_ => _ != MQTabPlasiyer)
 	}
 
 	constructor(e) {
@@ -103,10 +110,9 @@ class TabletApp extends TicariApp {
 		}
 	}
 	async bilgiYukleIstendi(e) {
-		let {offlineAktarimSiniflar: classes, params, defaultOfflineRequestChunkSize: chunkSize} = this
+		let {offlineBilgiYukleSiniflar: classes, params, defaultOfflineRequestChunkSize: chunkSize} = this
 		if (!classes?.length)
 			return
-		classes = [MQParam, ...classes]
 		let withClear = true
 		{
 			let args = { noClear: false }
@@ -147,7 +153,7 @@ class TabletApp extends TicariApp {
 			}
 			{
 				await MQCogul.sqlExecNone({ offlineMode, query: 'BEGIN TRANSACTION' })
-				delete MQParam._topluYukle_kod2Rec; delete this._offlineAktarimSiniflar
+				this.cacheReset()
 				await MQParam.offlineSaveToLocalTable().finally(() => pm.progressStep())
 				await MQCogul.sqlExecNone({ offlineMode, query: 'COMMIT' })
 				pm.progressStep(1)
@@ -170,7 +176,7 @@ class TabletApp extends TicariApp {
 				pm.progressStep(1)
 			}
 			{	
-				classes = this.offlineAktarimSiniflar.filter(cls => cls != MQParam)             // parametrelere göre YENİ OLUŞAN 'offlineAktarimSiniflar'
+				classes = this.offlineBilgiYukleSiniflar.filter(cls => cls != MQParam)             // parametrelere göre YENİ OLUŞAN 'offlineBilgiYukleSiniflar'
 				for (let _classes of arrayIterChunks(classes, chunkSize)) {
 					await Promise.all(_classes.map(cls =>
 						cls.offlineSaveToLocalTable().finally(() => pm.progressStep())
@@ -199,7 +205,7 @@ class TabletApp extends TicariApp {
 		setTimeout(() => hideProgress(), 200)
 	}
 	async bilgiGonderIstendi(e) {
-		let {offlineAktarimSiniflar: classes, defaultOfflineRequestChunkSize: chunkSize} = this
+		let {offlineBilgiGonderSiniflar: classes, defaultOfflineRequestChunkSize: chunkSize} = this
 		if (!classes?.length)
 			return
 		if (!await ehConfirm('Tabletteki veriler merkeze gönderilsin mi?', appName))
@@ -232,4 +238,105 @@ class TabletApp extends TicariApp {
 		eConfirm('Veri Gönderimi tamamlandı')
 		setTimeout(() => hideProgress(), 500)
 	}
+	cacheReset() {
+		delete MQParam._topluYukle_kod2Rec
+		deleteKeys(this, ['_offlineBilgiYukleSiniflar', '_offlineBilgiGonderSiniflar'])
+		return this
+	}
 }
+
+
+
+/*
+; let detCls = (class extends MQDetay {
+	static get table() { return 'testhar' }
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		$.extend(pTanim, {
+			stokKod: new PInstStr('shkod'),
+			stokAdi: new PInstStr(),
+			bedel: new PInstNum('bedel')
+		})
+	}
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(
+			new GridKolon({ belirtec: '_urunText', text: 'Ürün', genislikCh: 60 }).noSql()
+				.setCellsRenderer((colDef, rowIndex, belirtec, value, html, jqxCol, rec) => {
+					let result = [
+						`<span class="bold gray ek-bilgi">${rec.shkod}</span>`,
+						`<span class="asil">${rec.shadi}</span>`
+					].join(CrLf)
+					return changeTagContent(html, result)
+				}),
+			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 15 }).tipDecimal_bedel()
+		)
+	}
+	static loadServerData_queryDuzenle({ alias, sent, sent: { where: wh, sahalar } }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		alias ||= this.tableAlias
+		sent.har2StokBagla({ alias })
+		sahalar.addWithAlias('stk', 'aciklama stokadi', 'brm', 'satfiyat1')
+	}
+})
+; let gridciCls = (class extends GridKontrolcu {
+	tabloKolonlariDuzenle({ tabloKolonlari: liste }) {
+		super.tabloKolonlariDuzenle(...arguments)
+		liste.push(
+			...MQTabStok.getGridKolonlar({ belirtec: 'stok' }),
+			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 15 }).tipDecimal_bedel(),
+			new GridKolon({ belirtec: '_serbestBilgi', text: 'Serbest Gösterim', genislikCh: 200 }).readOnly()
+				.setCellsRenderer((colDef, rowIndex, belirtec, value, html, jqxCol, det) => {
+					let result = `<b>${det.stokAdi || ''}</b> ürünü için <span class=royalblue>${numberToString(det.bedel || 0)} TL'lik</span> satış kalemi`
+					return changeTagContent(html, result)
+				})
+		)
+	}
+})
+let fisCls = (class extends MQGenelFis {
+	static get kodListeTipi() { return 'TST1' }
+	static get sinifAdi() { return 'Fiş Yapısı - Test 1' }
+	static get table() { return 'testfis' }
+	static get detaySinif() { return detCls }
+	static get gridKontrolcuSinif() { return gridciCls }
+	static pTanimDuzenle({ pTanim }) {
+		$.extend(pTanim, {
+			mustKod: new PInstStr('must'),
+			aciklama: new PInstStr('aciklama')
+		})
+	}
+	static rootFormBuilderDuzenle(e) {
+		let { sender: tanimUI, layout, gridIslemTuslari, builders, islem, fis: inst } = e
+		let { tsnForm, baslikForm: { builders: frm } } = builders
+		{
+			let mfSinif = MQTabCari, {sinifAdi: etiket} = mfSinif
+			frm[0].addModelKullan('mustKod', etiket)
+				.comboBox().setMFSinif(mfSinif)
+				.etiketGosterim_yok().setPlaceHolder('Müşteri')
+				.addStyle_wh('calc(var(--full) - 180px)')
+				.degisince(({ item: rec, value, builder: { inst } }) =>
+					inst.musteriDegisti({ ...e, rec, value }))
+			frm[2].addTextInput('aciklama', 'Açıklama')
+				.etiketGosterim_yok().setPlaceHolder('Belge açıklaması')
+		}
+	}
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(
+			new GridKolon({ belirtec: 'mustKod', text: 'Müşteri', genislikCh: 16 }),
+			new GridKolon({ belirtec: 'mustAdi', text: 'Müşteri Ünvan', genislikCh: 40, sql: 'car.aciklama' }),
+			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', genislikCh: 50 })
+		)
+	}
+	static loadServerData_queryDuzenle({ alias, sent, sent: { where: wh, sahalar } }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		alias ||= this.tableAlias
+		sent.fis2CariBagla({ alias })
+	}
+	async musteriDegisti({ rec, value }) {
+		debugger
+	}
+})
+fis = new fisCls()
+await fis.tanimla({ islem: 'yeni' })
+*/

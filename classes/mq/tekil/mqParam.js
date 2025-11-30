@@ -75,9 +75,11 @@ class MQParam extends MQTekil {
 	static async topluYukleVerisiOlustur(e) {
 		let {table, kodSaha} = this, sahalar = [kodSaha, /*'tanim',*/ 'jsonstr']
 		let uni = new MQUnionAll([
-			new MQSent({ from: `ORTAK..${table}`, where: `kod <> ''`, sahalar }),
-			new MQSent({ from: table, where: `kod <> ''`, sahalar })
+			new MQSent({ from: `ORTAK..${table}`, sahalar }),
+			new MQSent({ from: table, sahalar })
 		])
+		for (let {where: wh} of uni)
+			wh.add(`kod <> ''`, `jsonstr <> ''`)
 		let stm = new MQStm({ sent: uni })
 		let recs = await this.sqlExecSelect({ ...e, query: stm })
 		let kod2Rec = this._topluYukle_kod2Rec = {}

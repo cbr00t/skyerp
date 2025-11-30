@@ -198,7 +198,7 @@ class PsKrOrtakHareketci extends BankaOrtakHareketci {
     }
 }
 class POSHareketci extends PsKrOrtakHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 3 }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 22 }
     static get kod() { return 'pos' } static get aciklama() { return 'POS İşlemleri' }
 	static get kisaKod() { return 'PS' } static get posmu() { return true }
 	static getAltTipAdiVeOncelikClause({ hv }) {
@@ -243,7 +243,7 @@ class POSHareketci extends PsKrOrtakHareketci {
     }
 }
 class KrediKartiHareketci extends PsKrOrtakHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 6 }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 23 }
     static get kod() { return 'krediKart' } static get aciklama() { return 'Kredi Kartı İşlemleri' }
 	static get kisaKod() { return 'KR' } static get krediKartimi() { return true }
 	static getAltTipAdiVeOncelikClause({ hv }) {

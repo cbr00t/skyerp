@@ -1,5 +1,5 @@
 class KrediTaksitHareketci extends BankaOrtakHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 5 }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 24 }
 	static get kod() { return 'krediTaksit' } static get aciklama() { return 'Kredi Taksit' }
 	// static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sag() }
 	static getAltTipAdiVeOncelikClause({ hv }) {

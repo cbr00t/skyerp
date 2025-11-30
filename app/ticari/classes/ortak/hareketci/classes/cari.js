@@ -1,5 +1,5 @@
 class CariHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 10 }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 33 }
 	static get kod() { return 'cari' } static get aciklama() { return 'Cari' }
 	static get kisaKod() { return 'CR' } static get maliTabloIcinUygunmu() { return true }
 	/*static altTipYapilarDuzenle({ result }) {

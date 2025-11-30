@@ -1,5 +1,5 @@
 class HizmetHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 35 }
 	static get kisaKod() { return 'H' } static get kod() { return 'hizmet' } static get aciklama() { return 'Hizmet' }
 	static get donemselIslemlerIcinUygunmu() { return false }
 	static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sol() }
