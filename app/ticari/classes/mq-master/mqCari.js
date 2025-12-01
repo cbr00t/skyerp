@@ -465,16 +465,26 @@ class MQCari_Ticari extends MQCariAlt {
 			.setSource(({ builder: { id, altInst } }) =>
 				values(altInst[id]) ?? [])
 	}
-	async yeniTanimOncesiIslemler(e) { await this.satisTipBilgileriOlustur(e) }
+	async yeniTanimOncesiIslemler(e) {
+		await this.satisTipBilgileriOlustur(e)
+	}
 	async satisTipBilgileriOlustur(e) {
-		try { await app.satisTipleriBelirle(e) } catch (ex) { console.error(ex) } 
+		try { await app.satisTipleriBelirle(e) }
+		catch (ex) { console.error(ex) } 
 		let tip2SatisBilgileri = this.tip2SatisBilgileri = {}
 		for (let rec of app.satisTipleri ?? []) {
 			let kod = rec.kod?.trimEnd()
 			tip2SatisBilgileri[kod] = rec
 		}
-		if (empty(tip2SatisBilgileri))
-			tip2SatisBilgileri = this.tip2SatisBilgileri = { kod: '' }
+		if (empty(tip2SatisBilgileri)) {
+			let {gunKodlari} = MQSatisRota
+			tip2SatisBilgileri = this.tip2SatisBilgileri = {
+				kod: '', aciklama: '',
+				plasiyerKod: '', plasiyerAdi: '',
+				odemeGunKod: '', tahSekli: '',
+				...fromEntries(gunKodlari.map(gun => [gun, false]))
+			}
+		}
 		return this
 	}
 	async yukleSonrasiIslemler(e) { await this.satisTipBilgileriOlustur(e); await this.yukleSonrasiIslemler_rotaYukle(e) }

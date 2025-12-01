@@ -126,7 +126,28 @@ class MQTest extends MQGuidOrtak {
 		)
 	}
 	static async rootFormBuilderDuzenle(e) {
-		await super.rootFormBuilderDuzenle(e); let {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e, {dev} = config;
+		await super.rootFormBuilderDuzenle(e)
+		let {aliasVeNokta, idSaha} = this
+		let {rootBuilder: rfb, tanimFormBuilder: tanimForm, inst, inst: { id }} = e
+		let {dev} = config, fbd_testSonuc
+		let rec = (await this.loadServerData({ ozelQueryDuzenle: ({ sent }) =>
+			sent.where.degerAta(id, `${aliasVeNokta}${idSaha}`) }))?.[0]
+		let getLayout_testSonuc = () => {
+			let fbd = fbd_testSonuc
+			let {_layout: iframe} = fbd ?? {}
+			if (!iframe || isFunction(iframe))
+				iframe = $(`<iframe class="full-wh" src="about:blank" border="0" scroll="yes""></iframe>`)
+			; (async () => {
+				let html, gosterimmi = true
+				try { html = await this.getHTML_testSonuc({ rec, gosterimmi }) }
+				catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Test Bilgisi Gösterimi') }
+				if (!html)
+					return
+				let {contentDocument: doc} = iframe[0]
+				doc.open(); doc.writeln(html); doc.close()
+			})()
+			return iframe
+		}
 		/*if (dev) { form.addModelKullan('sablonId', 'Şablon').dropDown().kodsuz().setMFSinif(this.sablonSinif) }*/
 		{
 			let form = tanimForm.addFormWithParent().altAlta().addStyle(() => `$elementCSS { margin-top: 40px !important }`)
@@ -145,10 +166,29 @@ class MQTest extends MQGuidOrtak {
 					.onBuildEk(({ builder: { input }}) => {
 						input.prop('multiple', true)
 						input.on('click', ({ currentTarget: target }) => {
-							if ( target._indeterminate)
-								target.checked =  target._indeterminate = false
-							else if (!target.checked)
-								target.indeterminate = target._indeterminate = true
+							if (this._eventsDisabled)
+								return
+							this._eventsDisabled = true
+							let value = undefined
+							try {
+								if (target._indeterminate) {
+									target.checked =  target._indeterminate = false
+									value = false
+								}
+								else if (!target.checked) {
+									target.indeterminate = target._indeterminate = true
+									value = null
+								}
+								else
+									value = true
+								rec.bdehbvarmiklinik = value
+								if (value !== undefined && fbd_testSonuc)
+									fbd_testSonuc.setLayout(getLayout_testSonuc())
+							}
+							finally {
+								this._timer_eventsDisabled_reset =
+									setTimeout(() => this._eventsDisabled = false, 100)
+							}
 						})
 					})
 					.addCSS('testTip-flag testTip').addStyle(
@@ -201,23 +241,10 @@ class MQTest extends MQGuidOrtak {
 			}
 		}
 		{
-			let {inst} = e, {id} = inst, {aliasVeNokta, idSaha} = this
-			let rec = (await this.loadServerData({ ozelQueryDuzenle: ({ sent }) => sent.where.degerAta(id, `${aliasVeNokta}${idSaha}`) }))?.[0]
-			tanimForm.addForm('testSonuc').autoAppend()
+			fbd_testSonuc = tanimForm.addForm('testSonuc').autoAppend()
 				.addStyle_fullWH(null, 'calc(var(--full) - 650px)')
 				.addStyle(e => `$elementCSS { margin-top: -90px; padding: 5px; overflow-y: auto !important; user-select: text !important; cursor: all !important }`)
-				.setLayout(({ builder: fbd }) => {
-					let iframe = $(`<iframe class="full-wh" src="about:blank" border="0" scroll="yes""></iframe>`)
-					; (async () => {
-						let html; try { html = await this.getHTML_testSonuc({ rec }) }
-						catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Test Bilgisi Gösterimi') }
-						if (!html)
-							return
-						let {contentDocument: doc} = iframe[0]
-						doc.open(); doc.writeln(html); doc.close()
-					})()
-					return iframe
-				})
+				.setLayout(e => getLayout_testSonuc({ ...e }))
 				.onAfterRun(({ builder: { parent } }) =>
 					makeScrollable(parent))
 			rfb.islemTuslariArgsDuzenle = ({ args }) => {
@@ -391,11 +418,13 @@ class MQTest extends MQGuidOrtak {
 		/* if (config.dev) { let url = URL.createObjectURL(new Blob([html], { type: 'text/html' })); openNewWindow(url) } */
 		return html
 	}
-	static async getHTML_testSonuc({ rec }) {
-		let {ese} = app.params, sablonDosya = ese.eMailSablonDosya_testGiris || '/VioData/ESE/ESE.TestSonuc.Sablon.htm';
-		let dokumcu = await HTMLDokum.FromDosya(sablonDosya);
-		let {gecerliTekrarSayi, digerTekrarSayi, toplamTekrarSayi} = MQSablonCPT;
-		let testTip2Bilgi = {}, uni = new MQUnionAll(); for (let item of ese) {
+	static async getHTML_testSonuc({ rec, gosterimmi }) {
+		let {isAdmin, params: { ese }} = app
+		let sablonDosya = ese.eMailSablonDosya_testGiris || '/VioData/ESE/ESE.TestSonuc.Sablon.htm'
+		let dokumcu = await HTMLDokum.FromDosya(sablonDosya)
+		let {gecerliTekrarSayi, digerTekrarSayi, toplamTekrarSayi} = MQSablonCPT
+		let testTip2Bilgi = {}, uni = new MQUnionAll()
+		for (let item of ese) {
 			let {tip, prefix, sablonTable, sablonId} = item;
 			testTip2Bilgi[prefix] = { ...item };
 			switch (tip) {
@@ -461,13 +490,21 @@ class MQTest extends MQGuidOrtak {
 			CSS_ANKET: anketYapildimi ? '' : ' hidden', CSS_ANKET_ERROR: anketYapildimi ? ' hidden' : '',
 			STYLE_ANKET: '', CSS_ANKET_DE: anketDEYapildimi ? '' : ' hidden', CSS_ANKET_HI: anketHIYapildimi ? '' : ' hidden',
 			NOTLAR: notlar
-		};
+		}
 		$.extend(baslik, {
 			TOPLAM_SORUSAYI: de.soruSayi + hi.soruSayi,
 			TOPLAM_BELIRTISAYI: baslik.ANKETDE_BELIRTISAYI + baslik.ANKETHI_BELIRTISAYI,
 			TOPLAM_SKOR: baslik.ANKETDE_SKOR + baslik.ANKETHI_SKOR,
-			DEHB_SONUC: bdehbvarmiklinik ?? bdehbvarmi ? `<div class="var">VAR</div>` : `<div class="yok">YOK</div>`
-		});
+			DEHB_SONUC: bdehbvarmiklinik ?? bdehbvarmi ? `<div class="var">VAR</div>` : `<div class="yok">YOK</div>`,
+			ASIL_DEHB_SONUC: '', CSS_ASIL_DEHB_SONUC: 'hidden'
+		})
+		if (gosterimmi && isAdmin) {
+			$.extend(baslik, {
+				ASIL_DEHB_SONUC: (bdehbvarmi ? `<div class="var">VAR</div>` : `<div class="yok">YOK</div>`),
+				CSS_ASIL_DEHB_SONUC: ''
+			})
+			baslik.DEHB_SONUC = (bdehbvarmiklinik == null ? baslik.ASIL_DEHB_SONUC : (bdehbvarmiklinik ? `<div class="var">VAR</div>` : `<div class="yok">YOK</div>`))
+		}
 		let {result: html} = dokumcu.process({ baslik }) ?? {};
 		/*if (config.dev) { let url = URL.createObjectURL(new Blob([html], { type: 'text/html' })); openNewWindow(url) }*/
 		return html

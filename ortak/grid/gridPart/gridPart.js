@@ -166,23 +166,30 @@ class GridPart extends Part {
 					}
 				})
 		};
-		let _e = $.extend({}, e, { sender: this, builder, grid, args }); this.gridArgsDuzenle(_e); let handler = this.gridArgsDuzenle_ek; if (handler) { getFuncValue.call(this, handler, _e) }
+		let _e = { ...e, sender: this, builder, grid, args }
+		this.gridArgsDuzenle(_e)
+		this.gridArgsDuzenle_ek?.call(this, _e)
 		args = _e.args; args.autoHeight = !args.height;
-		if (args.autoRowHeight) { args.autoRowHeight = args.pageable || args.autoHeight }
-		if (args.virtualMode && args.groupable && !args.pageable) args.groupable = false
-		if (args.pageable && !args.pagesizeoptions) args.pageSizeOptions = [5, 7, 8, 9, 10, 11, 13, 14, 15, 18, 20, 25, 50, 80, 100, 200, 300, 500]
+		if (args.autoRowHeight)
+			args.autoRowHeight = args.pageable || args.autoHeight
+		if (args.virtualMode && args.groupable && !args.pageable)
+			args.groupable = false
+		if (args.pageable && !args.pagesizeoptions)
+			args.pageSizeOptions = [5, 7, 8, 9, 10, 11, 13, 14, 15, 18, 20, 25, 50, 80, 100, 200, 300, 500]
 		args.pageSize = 100; args.enableOptimization = true
 		if (args.adaptive == null)
 			args.adaptive = !(notAdaptiveFlag || args.editable || mini)
-		let firstCol = (args.columns || [])[0], secondCol = (args.columns || [])[1]
+		let firstCol = args.columns?.[0], secondCol = args.columns?.[1]
 		if (firstCol && args.scrollMode == 'deferred' && empty(args.deferredDataFields)) {
 			/* args.scrollMode = 'deferred'; */ let deferredDataFields = args.deferredDataFields = [firstCol.dataField || firstCol.datafield]
 			if (secondCol)
 				deferredDataFields.push(secondCol.dataField ?? secondCol.datafield)
 		}
 		{
-			if (!this.rowNumberOlmasinFlag && firstCol)
+			if (firstCol)
 				firstCol.pinned = true
+			if (!this.rowNumberOlmasinFlag && secondCol)
+				secondCol.pinned = true
 		}
 		/*if (mini) {
 			$.extend(args, {
@@ -896,53 +903,76 @@ class GridPart extends Part {
 		this.getKontrolcu(e)?.gridSatirSayisiDegisti?.(e);
 		this.signalColumnEvents('satirSayisiDegisti', null, e)
 	}
-	gridSatirTiklandi(e) {
-		e = e || {}; let {gridWidget, isClickedColumn_checkBox, isClickedColumn_rowNumber} = this, {type} = e;
-		let evt = e.event || {}, {args} = evt, belirtec = args.datafield ?? this.clickedColumn;
-		let rowIndex = args.rowindex; if (rowIndex == null || rowIndex < 0) { rowIndex = gridWidget.selectedrowindex }
+	gridSatirTiklandi(e = {}) {
+		let {type, event: evt = {}, event: { args = {} } = {}} = e
+		let {gridWidget, isClickedColumn_checkBox, isClickedColumn_rowNumber} = this
+		let {rowindex: rowIndex} = args
+		let belirtec = args.datafield ?? this.clickedColumn
+		if (rowIndex == null || rowIndex < 0)
+			rowIndex = gridWidget.selectedrowindex
 		if (type == 'row') {
 			if (isClickedColumn_rowNumber && this.isSelectionMode_cells) {
-				gridWidget.beginupdate(); gridWidget.selectionmode = 'multiplerowsextended';
-				gridWidget.clearselection(); gridWidget.selectrow(rowIndex); gridWidget.endupdate(true);
+				gridWidget.beginupdate()
+				gridWidget.selectionmode = 'multiplerowsextended'
+				gridWidget.clearselection()
+				gridWidget.selectrow(rowIndex)
+				gridWidget.endupdate(true)
 				this.selectionModeChangedFlag = true
 			}
 			else {
 				if (!isClickedColumn_rowNumber && this.selectionModeChangedFlag) {
-					gridWidget.selectionmode = this.orjSelectionMode;
-					delete this.selectionModeChangedFlag; gridWidget.clearselection();
-					if (this.isSelectionMode_cells) { gridWidget.selectcell(rowIndex, belirtec) }
-					else gridWidget.selectrow(rowIndex)
+					gridWidget.selectionmode = this.orjSelectionMode
+					delete this.selectionModeChangedFlag
+					gridWidget.clearselection()
+					if (this.isSelectionMode_cells)
+						gridWidget.selectcell(rowIndex, belirtec)
+					else
+						gridWidget.selectrow(rowIndex)
 				}
 				if (this.isSelectionMode_checkBox) {
-					if (!args.rightclick) { setTimeout(() => {
-						if (this.disableClickEventsFlag) { return }
-						if (rowIndex != null && rowIndex > -1) {
-							if (!isClickedColumn_checkBox) { gridWidget.clearselection() }
-							gridWidget.selectrow(rowIndex)
-						}
-					}, 50) }
+					if (!args.rightclick) {
+						setTimeout(() => {
+							if (this.disableClickEventsFlag)
+								return
+							if (rowIndex != null && rowIndex > -1) {
+								if (!isClickedColumn_checkBox)
+									gridWidget.clearselection()
+								gridWidget.selectrow(rowIndex)
+							}
+						}, 50)
+					}
 				}
 			}
 		}
-		let gridPart = this, {inst} = gridPart, mfSinif = gridPart.mfSinif ?? inst?.class; clearTimeout(this._timer_rendered);
-		let colDef = gridPart.belirtec2Kolon[belirtec], rec = gridWidget.getrowdata(rowIndex);
-		let delayMS = (gridPart.renderDelayMS ?? mfSinif?.orjBaslik_gridRenderDelayMS ?? MQCogul.defaultOrjBaslik_gridRenderDelayMS) / 2;
-		this._timer_rendered = setTimeout(() => gridPart.gridRendered({ type, gridPart, mfSinif, inst, colDef, rec, rowIndex, belirtec }), delayMS);
-		if (this.gridSatirTiklandiBlock?.(e) === false) { return false }
-		let result = this.getKontrolcu(e)?.gridSatirTiklandi?.(e);
-		result = this.signalColumnEvents('gridSatirTiklandi', e, e) ?? result;
+		let gridPart = this, {inst} = gridPart
+		let mfSinif = gridPart.mfSinif ?? inst?.class
+		clearTimeout(this._timer_rendered)
+		let colDef = gridPart.belirtec2Kolon[belirtec], rec = gridWidget.getrowdata(rowIndex)
+		let delayMS = (gridPart.renderDelayMS ?? mfSinif?.orjBaslik_gridRenderDelayMS ?? MQCogul.defaultOrjBaslik_gridRenderDelayMS) / 2
+		this._timer_rendered = setTimeout(() => gridPart.gridRendered({ type, gridPart, mfSinif, inst, colDef, rec, rowIndex, belirtec }), delayMS)
+		if (this.gridSatirTiklandiBlock?.(e) === false)
+			return false
+		let result = this.getKontrolcu(e)?.gridSatirTiklandi?.(e)
+		result = this.signalColumnEvents('gridSatirTiklandi', e, e) ?? result
 		return result ?? true
 	}
 	gridSatirCiftTiklandi(e) {
 		let {gridWidget, isClickedColumn_checkBox} = this;
 		if (isClickedColumn_checkBox) {
-			let selRows = gridWidget?.selectedrowindexes; setTimeout(selRows => {
-				if (gridWidget && gridWidget.selectedrowindexes != selRows) { gridWidget.beginupdate(); gridWidget.selectedrowindexes = selRows; gridWidget.endupdate(true) }
-			}, 10, selRows); return false
+			let selRows = gridWidget?.selectedrowindexes
+			setTimeout(selRows => {
+				if (gridWidget && gridWidget.selectedrowindexes == selRows)
+					return
+				gridWidget.beginupdate()
+				gridWidget.selectedrowindexes = selRows
+				gridWidget.endupdate(true)
+			}, 10, selRows)
+			return false
 		}
-		if (this.gridSatirCiftTiklandiBlock?.(e) === false) { return false }
-		let result = this.getKontrolcu(e)?.gridSatirCiftTiklandi?.(e);
-		result = this.signalColumnEvents('gridSatirCiftTiklandi', e, e) ?? result;
+		if (this.gridSatirCiftTiklandiBlock?.(e) === false)
+			return false
+		let result = this.getKontrolcu(e)?.gridSatirCiftTiklandi?.(e)
+		result = this.signalColumnEvents('gridSatirCiftTiklandi', e, e) ?? result
 		return result ?? true
 	}
 	gridHucreTiklandi(e) {

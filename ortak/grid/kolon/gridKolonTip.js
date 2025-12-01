@@ -604,11 +604,16 @@ class GridKolonTip_Button extends GridKolonTip_Ozel {
 		})
 	}
 	get cellClick() {
-		return (e => {
-			let {clickEvent} = this; if (!$.isEmptyObject(clickEvent)) {
-				let {args} = e; let rec = args.row; rec = rec.bounddata || rec;
-				let _e = { ...e, tip: this, gridWidget: args.owner, rec, uid: rec.uid }; for (let handler of clickEvent) { getFuncValue.call(this, handler, _e) }
-			}
+		return (async e => {
+			let {clickEvent} = this
+			if (empty(clickEvent))
+				return
+			let {args, args: { owner: gridWidget, row: rec } = {}} = e
+			rec = rec.bounddata ?? rec
+			let {uid} = rec
+			let _e = { ...e, tip: this, gridWidget, rec, uid }
+			for (let handler of clickEvent)
+				await handler?.call(this, _e)
 		})
 	}
 	onClick(handler) {
@@ -656,23 +661,28 @@ class GridKolonTip_Bool extends GridKolonTip_Ozel {
 	get jqxColumnType() { return 'checkbox' } get jqxFilterType() { return 'checkedlist' }
 	get createEditor_ozel() {
 		return ((colDef, rowIndex, value, editor, cellText, cellWidth, cellHeight) => {
-			let isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
+			let isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template')
 			if (isCustomEditor && !editor.hasClass('editor')) {
-				let parent = editor; parent.addClass('full-wh');
-				editor = $(`<input type="checkbox" class="editor" style="width: ${cellWidth}px; height: ${cellHeight - 5}px"/>`);
+				let parent = editor; parent.addClass('full-wh')
+				editor = $(`<input type="checkbox" class="editor" style="width: ${cellWidth}px; height: ${cellHeight - 5}px"/>`)
 				editor.appendTo(parent)
 			}
 		})
 	}
 	get initEditor_ozel() {
 		return ((colDef, rowIndex, value, editor, cellText, pressedChar) => {
-			if (!(typeof value == 'boolean' || typeof value == 'number')) { value = this.value }
-			value = !asBool(value);
-			let isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
+			if (!(typeof value == 'boolean' || typeof value == 'number'))
+				value = this.value
+			value = !asBool(value)
+			let isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template')
 			if (isCustomEditor) {
-				let _editor = editor.children('.editor'); if (_editor.length) { editor = _editor }
-				editor.attr('type', 'checkbox');
-				editor.prop('checked', asBool(value)); /*editor.css('text-align', 'center'); editor.css('margin', '5px 0 0 5px'); editor.addClass('full-wh');*/
+				let _editor = editor.children('.editor')
+				if (_editor.length)
+					editor = _editor
+				editor.attr('type', 'checkbox')
+				editor.prop('checked', asBool(value))
+				/*editor.css('text-align', 'center'); editor.css('margin', '5px 0 0 5px')
+				editor.addClass('full-wh')*/
 				setTimeout(() => editor.focus(), 50)
 			}
 		})
@@ -704,15 +714,23 @@ class GridKolonTip_Bool extends GridKolonTip_Ozel {
 			return html
 		})
 	}
+	get cellClick() {
+		return (async ({ args, args: { owner: gridWidget, row: rec, rowindex: rowIndex, datafield: belirtec } = {} }) => {
+			// rec = rec.bounddata ?? rec
+			if (!gridWidget.editcell)
+				gridWidget.begincelledit(rowIndex, belirtec)
+		})
+	}
 	get cellBeginEdit() {
 		return ((colDef, rowIndex, belirtec, colType, value) => {
-			let {gridWidget} = colDef.gridPart;
-			if (!(gridWidget.editable && colDef.isEditable)) { return false }
+			let {gridWidget} = colDef.gridPart
+			if (!(gridWidget.editable && colDef.isEditable))
+				return false
 			if ((colDef.columnType == 'checkbox' || colDef.columnType == 'custom' || colDef.columnType == 'template')) {
-				gridWidget.setcellvalue(rowIndex, belirtec, !value);
+				gridWidget.setcellvalue(rowIndex, belirtec, !value)
 				setTimeout(() => {
-					gridWidget.beginupdate();
-					gridWidget.endcelledit(rowIndex, belirtec, false);
+					gridWidget.beginupdate()
+					gridWidget.endcelledit(rowIndex, belirtec, false)
 					gridWidget.endupdate()
 				}, 100);
 				return false

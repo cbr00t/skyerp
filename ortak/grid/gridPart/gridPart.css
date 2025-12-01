@@ -47,3 +47,23 @@ body.dark-theme .jqx-grid [role = row] .grid-cell-group { color: #ccc; backgroun
 	  0% { opacity: .7; filter: blur(2px) }
 	100% { opacity: 1; filter: blur(0px) }
 }
+
+/* jqxGrid - Mobil Smooth Scroll Optimizasyonu */
+.jqx-grid-content,
+		.jqx-grid-content-wrapper,
+		.jqx-widget-content.jqx-grid-content {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important; /* momentum scroll */
+    scroll-behavior: smooth !important;           /* daha yumuşak kaydırma */
+    touch-action: pan-y !important;               /* dikey kaydırma kontrolü */
+    overscroll-behavior: contain !important       /* Android bounce/geri tepme fix */
+}
+/* Nested scroll katmanlarını sadeleştir */
+.jqx-grid-content-wrapper { height: auto !important; overflow-y: visible !important }
+/* İçerikte parmakla kaydırmayı bloklayan şeyler varsa */
+.jqx-grid-content * { touch-action: pan-y !important }
+/* Daha akıcı GPU optimizasyonu */
+.jqx-grid-content { will-change: scroll-position }
+/* Mobilde scrollbar gizleme (isteğe bağlı) */
+/*.jqx-grid-content::-webkit-scrollbar { display: none }*/
+
