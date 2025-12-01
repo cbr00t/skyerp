@@ -64,6 +64,7 @@ class TicIskYapi extends CObject {
 	
 	
 	constructor(e = {}) {
+		super(e)
 		for (let key of this.class.iskKeys)
 			this[key] = e[key] || [];
 	}
