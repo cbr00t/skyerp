@@ -8,6 +8,7 @@
 <script src="<?=$webRoot?>/classes/frMenu/frMenu.js?<?=$appVersion?>"></script>
 <script src="<?=$webRoot?>/classes/frMenu/frMenu-ek.js?<?=$appVersion?>"></script>
 <?php
+	require_once("$webRoot/ortak/accordion/include.php");
 	require_once("$webRoot/ortak/tabs/include.php");
 	require_once("$webRoot/ortak/tabbedWindow/include.php");
 	require_once("$webRoot/ortak/butonlar/include.php");

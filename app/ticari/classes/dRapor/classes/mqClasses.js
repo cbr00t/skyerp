@@ -311,6 +311,20 @@ class DMQDurNeden extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Duraksama Nedeni' }
 	static get kodListeTipi() { return 'DURNEDEN' } static get table() { return 'makdurneden' } static get tableAlias() { return 'dned' }
 }
+class DurNeden extends TekSecim {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'DNED' } static get sinifAdi() { return 'Duraksama Nedeni' }
+	static get table() { return 'makdurneden' } static get tableAlias() { 'dned' }
+	static get defaultChar() { return ' ' }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(
+			new CKodVeAdi(['S', 'Sabit', 'sabitmi']),
+			new CKodVeAdi(['K', 'Kritik', 'kritikmi']),
+			new CKodVeAdi([' ', 'Normal', 'normalmi'])
+		)
+	}
+}
 class DMQIskNeden extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Iskarta Nedeni' }
 	static get kodListeTipi() { return 'ISKNEDEN' } static get table() { return 'opiskartanedeni' } static get tableAlias() { return 'ined' }
@@ -328,9 +342,10 @@ class DMQPDKSNeden extends DMQKA {
 	static get kodListeTipi() { return 'PDKSIZINNDN' } static get table() { return 'pdksizinneden' } static get tableAlias() { return 'ned' }
 }
 class PDKSAnaTip extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' }
-	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get defaultChar() { return '' }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
 		kaListe.push(
 			new CKodVeAdi(['YL', 'Yıllık', 'yillikmi']),
 			new CKodVeAdi(['UC', 'Ücretli Diğer', 'ucretliDigermi']),

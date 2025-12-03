@@ -4,14 +4,26 @@
 	--button-right: calc(var(--button-width) + var(--button-margin-x) * var(--button-right-katsayi) + var(--button-form-margin-x));
 	--width-sag: calc((var(--button-right) + 10px) * 2); --width-sag-ek: 55px; width: var(--full) !important; height: var(--button-height); /*background-color: whitesmoke;*/
 	position: relative;  margin: 0; padding: 0; /*box-shadow: 0px var(--islemTuslari-box-shadow-height) 30px 0px #edeef2;*/
-	background: linear-gradient(90deg, transparent 30%, #f2f2f2 100%) !important; overflow-x: hidden !important; overflow-y: overlay !important; z-index: 1000
+	/*background: linear-gradient(90deg, transparent 30%, #f2f2f2 100%) !important;*/
+	background: transparent !important;
+	overflow-x: hidden !important; overflow-y: overlay !important;
+	z-index: 1000
 }
-body.kiosk .butonlar.part { background: linear-gradient(90deg, transparent 80%, #f2f2f2 100%) !important; z-index: 1001 }
+body.kiosk .butonlar.part { z-index: 1001; user-select: none !important }
 @media (max-width: 1200px) { .butonlar.part { --button-width: 55px; --button-right-katsayi: 2 } }
-@media (max-width: 850px) { .butonlar.part { --button-width: 50px; --button-right-katsayi: 1; --width-sag-ek: 25px } }
-.butonlar.part > div { position: relative; /* width: var(--full) !important; */ height: calc(var(--full) - 5px) !important; margin: 0; padding: 0 calc(var(--button-form-margin-x) / 2) }
-.butonlar.part > .sol { width: calc(var(--full) - (var(--width-sag) + 3px + var(--button-form-margin-x))) }
-.butonlar.part > .sag { position: absolute; right: 0; width: var(--width-sag); text-align: right; z-index: 1 }
+@media (max-width: 850px) { .butonlar.part { --button-width: 45px; --button-right-katsayi: 3; --width-sag-ek: 30px } }
+.butonlar.part > div {
+	position: relative; /* width: var(--full) !important; */
+	height: calc(var(--full) - 5px) !important;
+	margin: 0; padding: 0 calc(var(--button-form-margin-x) / 2)
+}
+.butonlar.part > .sol { width: calc(var(--full) - (var(--width-sag) + 3px + var(--button-form-margin-x))); background: transparent }
+.butonlar.part > .sag {
+	position: absolute; right: 0; width: var(--width-sag); text-align: right;
+	background: linear-gradient(90deg, transparent 30%, #f2f2f2 100%) !important;
+	z-index: 1
+}
+body.kiosk .butonlar.part > .sag { background: linear-gradient(90deg, transparent 80%, #f2f2f2 100%) !important }
 .butonlar.part > .sag > button:nth-last-child(2) { margin-left: 10px; margin-right: 15px !important }
 .butonlar.part button { vertical-align: top; width: var(--button-width); height: var(--button-height); border: 0; margin-inline-end: var(--button-margin-x); line-height: 100% }
 button, .jqx-button {

@@ -62,7 +62,8 @@ class SkyRaporApp extends TicariApp {
 			let eksikParamIsimleri = [], eksikModulIsimleri = []
 			if (!aktarim.webOzetRapor)
 				eksikParamIsimleri.push('Web Özet Rapor')
-			if (moduller && !moduller[Modul_WebOzetRapor.kod]) { eksikModulIsimleri.push(Modul_WebOzetRapor.aciklama) }
+			if (moduller && !(moduller[Modul_WebRapor.kod] || moduller[Modul_WebOzetRapor.kod]))
+				eksikModulIsimleri.push(Modul_WebOzetRapor.aciklama)
 			if (eksikParamIsimleri.length) {
 				this.noMenuFlag = true
 				let gosterim = eksikParamIsimleri.map(x => `<span class="bold firebrick">${x}</span>`).join(' VE ')

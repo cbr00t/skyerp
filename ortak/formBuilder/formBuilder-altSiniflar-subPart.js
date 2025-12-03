@@ -969,31 +969,87 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 }
 
 class FBuilder_IslemTuslari extends FBuilder_DivOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get islemTuslarimi() { return true }
-	constructor(e) {
-		e = e || {}; super(e); $.extend(this, {
-			tip: e.tip, id2Handler: e.id2Handler, prependFlag: asBool(e.prepend ?? e.prependFlag), ekButonlarIlk: e.ekButonlarIlk || [], ekButonlarSon: e.ekButonlarSon || [],
-			butonlarDuzenleyici: e.butonlarDuzenleyici, sagButonlar: e.sagButonlar ?? e.sagButonIdSet, ekSagButonlar: e.ekSagButonIdSet ?? e.ekSagButonIdSet, userData: e.userData
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	get islemTuslarimi() { return true }
+	constructor(e = {}) {
+		super(e)
+		$.extend(this, {
+			tip: e.tip, id2Handler: e.id2Handler,
+			prependFlag: asBool(e.prepend ?? e.prependFlag), ekButonlarIlk: e.ekButonlarIlk || [],
+			ekButonlarSon: e.ekButonlarSon || [],
+			butonlarDuzenleyici: e.butonlarDuzenleyici,
+			sagButonlar: e.sagButonlar ?? e.sagButonIdSet,
+			ekSagButonlar: e.ekSagButonIdSet ?? e.ekSagButonIdSet,
+			userData: e.userData
 		})
 		this.etiketGosterim_yok()
 	}
 	buildDevam(e) {
-		super.buildDevam(e); let {input} = this;
+		super.buildDevam(e); let {input} = this
 		if (input?.length) {
-			input.css('width', 'var(--full)'); input.css('height', 'var(--full)'); let {widgetArgsDuzenle} = this;
+			input.css('width', 'var(--full)')
+			input.css('height', 'var(--full)')
+			let {widgetArgsDuzenle} = this
 			let _e = { ...e, args: {
 				sender: this.sender, parentPart: this.rootPart, builder: this, layout: input, userData: this.userData,
 				tip: this.tip, id2Handler: this.id2Handler, prepend: this.prependFlag, ekButonlarIlk: this.ekButonlarIlk, ekButonlarSon: this.ekButonlarSon,
 				butonlarDuzenleyici: this.butonlarDuzenleyici, sagButonIdSet: this.sagButonlar, ekSagButonIdSet: this.ekSagButonlar
 			} };
-			if (widgetArgsDuzenle) { getFuncValue.call(this, widgetArgsDuzenle, _e) }
-			let part = this.part = new ButonlarPart(_e.args); part.run()
+			widgetArgsDuzenle?.call(this, _e)
+			let part = this.part = new ButonlarPart(_e.args)
+			part.run()
 		}
 	}
-	append() { this.prependFlag = false; return this } prepend() { this.prependFlag = true; return this } setPrependFlag(value) { this.prependFlag = value; return this }
-	setTip(value) { this.tip = value; return this } setButonlarIlk(value) { this.ekButonlarIlk = value; return this } setButonlarSon(value) { this.ekButonlarSon = true; return this }
-	setId2Handler(handler) { this.id2Handler = handler; return this } setButonlarDuzenleyici(handler) { this.butonlarDuzenleyici = handler; return this }
+	append() { this.prependFlag = false; return this }
+	prepend() { this.prependFlag = true; return this } setPrependFlag(value) { this.prependFlag = value; return this }
+	setTip(value) { this.tip = value; return this }
+	setButonlarIlk(value) { this.ekButonlarIlk = value; return this }
+	setButonlarSon(value) { this.ekButonlarSon = true; return this }
+	setId2Handler(handler) { this.id2Handler = handler; return this }
+	setButonlarDuzenleyici(handler) { this.butonlarDuzenleyici = handler; return this }
 	setSagButonlar(..._values) { let values = _values?.flat(); this.sagButonlar = values; return this }
 	setEkSagButonlar(..._values) { let values = _values?.flat(); this.ekSagButonlar = values; return this }
 	setUserData(value) { this.userData = value; return this }
 }
+// formBuilder-altSiniflar-subPart
+class FBuilder_AccordionPart extends FBuilder_DivOrtak {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+    constructor({ panels, coklu, coklumu, defaultCollapsed, events, userData, ...e } = {}) {
+        super(e); coklu ??= coklumu
+		$.extend(this, { panels, coklu, defaultCollapsed, events, userData })
+		this.etiketGosterim_yok()
+    }
+	// PANEL EKLEME
+    addPanel(item) {
+        let {panels, part} = this
+        panels.push(item)
+        // Forward to runtime Part if already built
+        if (part && !part.isDestroyed)
+            part.add(item)
+        return this
+    }
+    // DSL setters
+    coklu(value = true) { this.coklumu = !!value; return this }
+    tekli(value = true) { this.coklumu = !value; return this }
+    defaultCollapsed(value = true) { this.isDefaultCollapsed = !!value; return this }
+    defaultExpanded(value) { this.isDefaultCollapsed = !value; return this }
+    setEvents(value) { this.events = value; return this }
+    setUserData(value) { this.userData = value; return this }
+	buildDevam(e) {
+        super.buildDevam(e); let {input} = this
+        if (input?.length) {
+			let sender = this, builder = this, layout = input
+			let {rootPart: parentPart, panels, coklumu, isDefaultCollapsed: defaultCollapsed, events, userData} = this
+            // AccordionPart kendi layout’unu input olarak kullanacak
+            input.addClass('full-wh')
+            let _e = {
+                ...e,
+                args: { sender, parentPart, builder, layout, panels, coklu, defaultCollapsed, events, userData }
+			}
+            this.widgetArgsDuzenle?.call(this, _e)
+            let part = this.part = new AccordionPart(_e.args)
+            part.run()
+        }
+    }
+}
+

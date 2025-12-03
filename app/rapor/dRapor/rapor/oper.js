@@ -209,11 +209,17 @@ class DRapor_Oper_Duraksama extends DRapor_OperBase {
 	static get kod() { return 'DURAKSAMA' } static get aciklama() { return 'Duraksama Analizi' } static get vioAdim() { return null }
 }
 class DRapor_Oper_Duraksama_Main extends DRapor_OperBase_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Oper_Duraksama }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get raporClass() { return DRapor_Oper_Duraksama }
+	secimlerDuzenle({ secimler: sec }) {
+		super.secimlerDuzenle(...arguments)
+		sec.addKA('tip', DurNeden, 'dned.duraksamatipi', DurNeden.getClause('dned.duraksamatipi'), false)
+	}
 	tabloYapiDuzenle({ result }) {
-		super.tabloYapiDuzenle(...arguments);
-		result.addKAPrefix('neden')
+		super.tabloYapiDuzenle(...arguments)
+		result.addKAPrefix('neden', 'tip')
 			.addGrupBasit('NEDEN', 'Neden', 'neden', DMQDurNeden)
+			.addGrupBasit('TIP', 'Tip', 'tip', DurNeden, null, ({ item }) => item.secimKullanilmaz())
 			.addToplamBasit('SURESN', 'Dur. Süre (sn)', 'suresn')
 			.addToplamBasit('SUREDK', 'Dur. Süre (dk)', 'suredk')
 	}
@@ -226,7 +232,14 @@ class DRapor_Oper_Duraksama_Main extends DRapor_OperBase_Main {
 			this.loadServerData_queryDuzenle_duraksamaBagla(e).donemBagla({ ...e, tarihSaha: 'mdur.duraksamabasts' });
 			for (let key in attrSet) {
 				switch (key) {
-					case 'NEDEN': sent.fromIliski('makdurneden dned', `mdur.durnedenkod = dned.kod`); wh.add('dned.bkritikmi <> 0'); sahalar.add('dned.kod nedenkod', 'dned.aciklama nedenadi'); break
+					case 'NEDEN':
+						sent.fromIliski('makdurneden dned', `mdur.durnedenkod = dned.kod`)
+						// wh.add('dned.bkritikmi <> 0')
+						sahalar.add('dned.kod nedenkod', 'dned.aciklama nedenadi')
+						break
+					case 'TIP':
+						sent.fromIliski('makdurneden dned', `mdur.durnedenkod = dned.kod`)
+						sahalar.add('dned.duraksamatipi tipkod', `${DurNeden.getClause('dned.duraksamatipi')} tipadi`)
 					case 'SURESN': sahalar.add(`SUM(mdur.dursuresn) suresn`); break;
 					case 'SUREDK': sahalar.add(`SUM(ROUND(mdur.dursuresn / 60, 1)) suredk`); break
 				}

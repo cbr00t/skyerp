@@ -100,7 +100,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			let grupAttrListe = mfSinif?.orjBaslikListesi_panelGrupAttrListe || [], ustSeviyeAttrListe = mfSinif?.orjBaslikListesi_panelUstSeviyeAttrListe || [];
 			if (!grupAttrListe?.length && ustSeviyeAttrListe?.length) { grupAttrListe = [...ustSeviyeAttrListe] }
 			else if (grupAttrListe?.length && !ustSeviyeAttrListe?.length) { ustSeviyeAttrListe = [...grupAttrListe] }
-			let groups = mfSinif?.orjBaslikListesi_getGroups(e); if (groups?.length) { ustSeviyeAttrListe.push(...groups) }
+			let groups = mfSinif?.orjBaslikListesi_getGroups?.(e); if (groups?.length) { ustSeviyeAttrListe.push(...groups) }
 			$.extend(panelDuzenleyici, { gridPart: this, grupAttrListe, ustSeviyeAttrListe });
 			if (!panelDuzenleyici.colCount) { panelDuzenleyici.colCount = e => this.getColCount(e) }
 		}

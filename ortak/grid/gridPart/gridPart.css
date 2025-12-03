@@ -14,7 +14,9 @@
 	.jqx-grid [role = row] > :nth-child(2) { width: 50px !important }
 }*/
 .jqx-grid [role = row] > *,
-.jqx-grid [role = row] > * > .jqx-grid-cell-left-align, .jqx-grid [role = row] > * > .jqx-grid-cell-center-align, .jqx-grid [role = row] > * > .jqx-grid-cell-right-align { height: var(--full) }
+		.jqx-grid [role = row] > * > .jqx-grid-cell-left-align, .jqx-grid [role = row] > * > .jqx-grid-cell-center-align, .jqx-grid [role = row] > * > .jqx-grid-cell-right-align {
+	height: var(--full)
+}
 .gridKolonVeGrupOrtak.list-item { line-height: 150% }
 .gridKolonVeGrupOrtak.list-item .kod { font-weight: bold; width: 23% }
 .jqx-grid [role = row]  * { cursor: default }

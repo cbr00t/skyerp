@@ -78,7 +78,7 @@ class FormBuilderBase extends CObject {
 	set visibleKosulu(value) { this._visibleKosulu = value }
 	
 	constructor(e) {
-		e = e || {}; super(e);
+		e = e || {}; super(e)
 		$.extend(this, {
 			_id: e.id, _parent: e.parent, _layout: e.layout, _part: e.part, _parentPart: e.parentPart, _visibleKosulu: e.visibleKosulu == null ? e.visibleBlock : e.visibleKosulu,
 			autoAppendFlag: e.autoAppend ?? e.autoAppendFlag ?? this.defaultAutoAppendFlag, autoAppendIslemi: e.autoAppendIslemi, autoInitLayoutFlag: e.autoInitLayout ?? e.autoInitLayoutFlag,
@@ -134,9 +134,12 @@ class FormBuilderBase extends CObject {
 		if (!this._afterBuild_calistimi) { this._afterBuild_calistimi = true; this.afterBuildDevam(e) }
 	}
 	preInit(e) { }
-	beforeBuild(e) { e = e || {}; let {init} = this; if (init) { getFuncValue.call(this, init, e) } }
-	build(e) {
-		e = e || {};
+	beforeBuild(e = {}) {
+		let {init} = this
+		if (init)
+			getFuncValue.call(this, init, e)
+	}
+	build(e = {}) {
 		this.preBuild(e); if (e.abortFlag) return
 		this.buildDevam(e); if (e.abortFlag) return
 		this.postBuild(e)
@@ -534,20 +537,49 @@ class FormBuilderBase extends CObject {
 		return this.addGrid(e, _mfSinif, _source, _tabloKolonlari, _kontrolcu, _ozelQueryDuzenleBlock, _veriYukleninceBlock, _kodAttr, _adiAttr).fisListe()
 	}*/
 	addIslemTuslari(e, _tip, _id2Handler, _ekButonlarIlk, _ekButonlarSon, _butonlarDuzenleyici, _sagButonlar, _prependFlag) {
-		e = e || {}; let id = (typeof e == 'object' ? e.id : e) ?? 'islemTuslari';
-		let tip = typeof e == 'object' ? e.tip : _tip, id2Handler = typeof e == 'object' ? e.id2Handler : _id2Handler;
-		let ekButonlarIlk = typeof e == 'object' ? e.ekButonlarIlk : _ekButonlarIlk, ekButonlarSon = typeof e == 'object' ? e.ekButonlarSon : _ekButonlarSon;
-		let butonlarDuzenleyici = typeof e == 'object' ? e.butonlarDuzenleyici : _butonlarDuzenleyici, sagButonlar = typeof e == 'object' ? e.sagButonlar : _sagButonlar;
-		let prependFlag = typeof e == 'object' ? e.prependFlag : _prependFlag;
-		let builder = new FBuilder_IslemTuslari({ id, tip, id2Handler,  ekButonlarIlk, ekButonlarSon, butonlarDuzenleyici, sagButonlar, prependFlag }); this.add(builder); return builder
+		e ??= {}
+		let id = (typeof e == 'object' ? e.id : e) ?? 'islemTuslari'
+		let tip = typeof e == 'object' ? e.tip : _tip
+		let id2Handler = typeof e == 'object' ? e.id2Handler : _id2Handler
+		let ekButonlarIlk = typeof e == 'object' ? e.ekButonlarIlk : _ekButonlarIlk
+		let ekButonlarSon = typeof e == 'object' ? e.ekButonlarSon : _ekButonlarSon
+		let butonlarDuzenleyici = typeof e == 'object' ? e.butonlarDuzenleyici : _butonlarDuzenleyici
+		let sagButonlar = typeof e == 'object' ? e.sagButonlar : _sagButonlar
+		let prependFlag = typeof e == 'object' ? e.prependFlag : _prependFlag
+		let builder = new FBuilder_IslemTuslari({
+			id, tip, id2Handler,  ekButonlarIlk, ekButonlarSon,
+			butonlarDuzenleyici, sagButonlar, prependFlag
+		})
+		this.add(builder)
+		return builder
+	}
+	addAccordion(e, _panels, _coklu, _defaultCollapsed, _events, _userData) {
+	    e ??= {}
+	    let id = (typeof e == 'object' ? e.id : e) ?? 'accordion'
+	    let panels = typeof e == 'object' ? e.panels : _panels
+	    let coklu = typeof e == 'object' ? e.coklu ?? e.coklumu : _coklu
+	    let defaultCollapsed = typeof e == 'object' ? e.defaultCollapsed : _defaultCollapsed
+	    let events = typeof e == 'object' ? e.events : _events
+		let userData = typeof e == 'object' ? e.userData : _userData
+	    let builder = new FBuilder_AccordionPart({ id, panels, coklu, defaultCollapsed, events, userData })
+	    this.add(builder)
+	    return builder
 	}
 	add(...aCollection) {
-		if (!aCollection) return this; let {builders} = this;
+		if (!aCollection)
+			return this
+		let {builders} = this
 		for (let key in aCollection) {
-			let builderOrArray = aCollection[key];
+			let builderOrArray = aCollection[key]
 			if (builderOrArray) {
-				if ($.isArray(builderOrArray)) { for (let _key in builderOrArray) { let subBuilder = builderOrArray[_key]; if (subBuilder) builders.push(subBuilder) } }
-				else { builders.push(builderOrArray) }
+				if (isArray(builderOrArray)) {
+					for (let _key in builderOrArray) {
+						let subBuilder = builderOrArray[_key]
+						if (subBuilder) builders.push(subBuilder)
+					}
+				}
+				else
+					builders.push(builderOrArray)
 			}
 		}
 		return this
@@ -555,11 +587,19 @@ class FormBuilderBase extends CObject {
 	addAll(aCollection) { this.add(...aCollection); return this }
 	clear() { this.builders = [] }
 	addStyle(...aCollection) {
-		if (!aCollection) return this; let {styles} = this;
+		if (!aCollection)
+			return this
+		let {styles} = this
 		for (let valueOrArray of aCollection) {
 			if (valueOrArray) {
-				if ($.isArray(valueOrArray)) { for (let subValue of valueOrArray) { if (subValue) styles.push(subValue) } }
-				else { styles.push(valueOrArray) }
+				if (isArray(valueOrArray)) {
+					for (let subValue of valueOrArray) {
+						if (subValue)
+							styles.push(subValue)
+					}
+				}
+				else
+					styles.push(valueOrArray)
 			}
 		}
 		return this

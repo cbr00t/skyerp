@@ -18,13 +18,14 @@ class MQFirewall extends MQKA {
 		// sec.secimTopluEkle({ ruleName: new SecimOzellik({ etiket: 'Kural Adı' }) })
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); let {adiEtiket} = this;
-		let {sender, islem, inst, rootBuilder: rfb, tanimFormBuilder: tanimForm, kaForm} = e;
+		super.rootFormBuilderDuzenle(e)
+		let {sender, islem, inst, rootBuilder: rfb, tanimFormBuilder: tanimForm, kaForm} = e
 		$.extend(kaForm, {
 			builders: kaForm.builders.filter(({ id }) => id != 'aciklama'),
 			id2Builder: null
-		});
-		kaForm.yanYana();
+		})
+		let {adiEtiket} = this
+		kaForm.yanYana()
 		kaForm.addModelKullan('aciklama', adiEtiket).dropDown().noMF().kodsuz().bosKodEklenmez()
 			.addStyle(`$elementCSS { max-width: 600px !important }`)
 			.setSource(({ builder: { rootPart: { parentPart: gridPart } } }) =>

@@ -60,7 +60,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				PL: { kod: 'PLASIYER', belirtec: 'plasiyer', text: 'Plasiyer' },
 				PR: { kod: 'PER', belirtec: 'per', text: 'Personel' },
 				DG: { kod: 'DEPOGRUP', belirtec: 'yergrup', text: 'Yer Grup' },
-				DP: { kod: 'DEPO', belirtec: 'yer', text: 'Yer' }
+				DP: { kod: 'DEPO', belirtec: 'yer', text: 'Yer' },
+				ND: { kod: 'NEDEN', belirtec: 'neden', text: 'Neden' }
 				/*HG: { kod: 'GRUP', belirtec: 'grup', text: 'Har. Ana Tip' }*/
 			}
 		}

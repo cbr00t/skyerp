@@ -125,7 +125,7 @@ body.dark-theme .jqx-window-header { color: #111; background-color: #99b1e4; fil
 	width: 34px !important; height: 32px !important; margin-inline-start: 40px !important; 
 	float: right !important; z-index: 5000 !important
 }
-@media (max-width: 850px) {
-	.jqx-grid .jqx-grid-column-header { font-size: 120% !important }
-	.jqx-grid [role = row] > * { font-size: 90% !important }
+@media (max-width: 900px) {
+	.jqx-grid .jqx-grid-column-header > div { font-size: 140% !important }
+	.jqx-grid [role = row] > * { font-size: 83% !important }
 }

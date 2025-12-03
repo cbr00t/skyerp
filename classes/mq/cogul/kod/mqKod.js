@@ -2,44 +2,60 @@ class MQKod extends MQCogul {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get kami() { return true }
 	static get kodSaha() { return 'kod' } static get tanimUISinif() { return ModelTanimPart }
 	static get kodKullanilirmi() { return true } static get bosKodAlinirmi() { return false }
-	static get zeminRenkDesteklermi() { return false } static get kodEtiket() { this.kodKullanilirmi ? super.kodEtiket : 'ID' }
+	static get kodEtiket() { this.kodKullanilirmi ? super.kodEtiket : 'ID' }
 	static get primaryKeys() { return [this.idSaha] } get kodUyarlanmis() { return this.kod }
+	static get zeminRenkDesteklermi() { return false }
 
-	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); let {pTanim} = e;
-		$.extend(pTanim, { kod: new PInstStr(this.kodSaha) });
-		if (this.zeminRenkDesteklermi) { pTanim.zeminRenk = new PInstStr() }
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		let {kodSaha, zeminRenkDesteklermi} = this
+		$.extend(pTanim, { kod: new PInstStr(kodSaha) })
+		if (zeminRenkDesteklermi)
+			pTanim.zeminRenk = new PInstStr()
 	}
-	static ekCSSDuzenle(e) {
-		super.ekCSSDuzenle(e); let {rec, result} = e;
-		if (rec.silindi) { result.push('bg-lightgray', 'iptal') }
+	static ekCSSDuzenle({ rec, result }) {
+		super.ekCSSDuzenle(...arguments)
+		if (rec.silindi)
+			result.push('bg-lightgray', 'iptal')
 	}
-	static secimlerDuzenle(e) {
-		super.secimlerDuzenle(e); let {secimler: sec} = e;
-		sec.secimEkle('instKod', new SecimString({ mfSinif: this, hidden: !this.kodKullanilirmi }));
-		sec.whereBlockEkle(e => {
-			let {aliasVeNokta, kodSaha} = this, {where: wh, secimler: sec} = e;
-			wh.basiSonu(sec.instKod, `${aliasVeNokta}${kodSaha}`)
+	static secimlerDuzenle({ secimler: sec }) {
+		super.secimlerDuzenle(...arguments)
+		let {kodKullanilirmi} = this
+		sec.secimEkle('instKod', new SecimString({ mfSinif: this, hidden: !kodKullanilirmi }))
+		sec.whereBlockEkle(({ where: wh, secimler: sec }) => {
+			let {aliasVeNokta, kodSaha} = this
+			wh.basiSonu(sec.instKod, aliasVeNokta + kodSaha)
 		})
 	}
 	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e); let {kodKullanilirmi, adiKullanilirmi} = this;
-		if (kodKullanilirmi || adiKullanilirmi) {
-			let {tanimFormBuilder: tanimForm} = e;
-			if (tanimForm) { tanimForm.add(this.getFormBuilders_ka(e)) }
-		}
+		super.rootFormBuilderDuzenle(e)
+		let {tanimFormBuilder: tanimForm} = e
+		let {kodKullanilirmi, adiKullanilirmi} = this
+		if (tanimForm && (kodKullanilirmi || adiKullanilirmi))
+			tanimForm.add(this.getFormBuilders_ka(e))
 	}
-	static getFormBuilders_ka(e) { let _e = $.extend(e, { liste: [] }); this.formBuildersDuzenle_ka(_e); return e.liste }
-	static formBuildersDuzenle_ka(e) {
-		let {liste} = e, mfSinif = e.mfSinif ?? this, xEtiket =  mfSinif.kodEtiket ?? 'Kod';
-		let kaForm = e.kaForm = new FBuilderWithInitLayout({ id: 'kaForm' }).yanYana(1.2);
-		kaForm.addStyle(e => `$elementCSS { margin-top: -40px; z-index: 1100 }`); liste.push(kaForm);
+	static getFormBuilders_ka(e) {
+		e.liste = []
+		this.formBuildersDuzenle_ka(e)
+		return e.liste
+	}
+	static formBuildersDuzenle_ka({ liste, mfSinif }) {
+		let e = arguments[0]; mfSinif ??= this
+		let xEtiket =  mfSinif.kodEtiket ?? 'Kod'
+		let kaForm = e.kaForm = new FBuilderWithInitLayout({ id: 'kaForm' }).yanYana(1.2)
+		kaForm.addStyle(e => `$elementCSS { margin-top: -40px; z-index: 1100 }`)
+		liste.push(kaForm)
 		kaForm.addTextInput({ id: 'kod', etiket: xEtiket, placeholder: xEtiket })
 			.addCSS('kodParent parent') .addStyle(e => `$elementCSS { min-width: 150px; max-width: 300px }`)
-			.setVisibleKosulu(mfSinif.kodKullanilirmi ? true : 'jqx-hidden').onAfterRun(e => {
-				let {input, rootPart, altInst} = e.builder, {yenimi, degistirmi} = rootPart;
-				if (yenimi) { input.val('') } else if (degistirmi) { input.attr('readonly', ''); input.addClass('readOnly') }
-			});
+			.setVisibleKosulu(mfSinif.kodKullanilirmi ? true : 'jqx-hidden')
+			.onAfterRun(({ builder: { input, altInst, rootPart: { yenimi, degistirmi } } }) => {
+				if (yenimi)
+					input.val('')
+				else if (degistirmi) {
+					input.attr('readonly', '')
+					input.addClass('readOnly')
+				}
+			})
 		if (mfSinif.zeminRenkDesteklermi) {
 			kaForm.addColorInput({ id: 'zeminRenk', etiket: '' }).etiketGosterim_placeholder()
 				.addStyle(
@@ -53,47 +69,88 @@ class MQKod extends MQCogul {
 		}
 	}
 	static standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e); let {liste} = e; if (this.kodKullanilirmi) { liste.push(this.kodSaha) } }
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); let mfSinif = e.mfSinif ?? this;
+	static orjBaslikListesiDuzenle({ liste, mfSinif }) {
+		let e = arguments[0]; super.orjBaslikListesiDuzenle(e)
 		let cellsRenderer = e.cellsRenderer = (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-			let _osColor = rec?.oscolor, htmlColor = _osColor ? os2HTMLColor(_osColor) : null;
-			if (htmlColor) { let textColor = getContrastedColor(htmlColor); html = html.replace('style="', `style="background-color: ${htmlColor}; color: ${textColor} `) }
+			let _osColor = rec?.oscolor, htmlColor = _osColor ? os2HTMLColor(_osColor) : null
+			if (htmlColor) {
+				let textColor = getContrastedColor(htmlColor)
+				html = html.replace('style="', `style="background-color: ${htmlColor}; color: ${textColor} `)
+			}
 			return html
-		};
-		let {kodKullanilirmi, mqGUIDmi} = mfSinif, kodEtiket = mfSinif.kodEtiket ?? (mqGUIDmi ? 'ID' : 'Kod'), {liste} = e;
-		liste.push(new GridKolon({ belirtec: mfSinif.kodSaha, text: kodEtiket, minWidth: 100, width: mqGUIDmi ? 320 : 250, cellsRenderer, hidden: !(kodKullanilirmi || mqGUIDmi), sql: kodKullanilirmi ? undefined : false }))
+		}
+		mfSinif ??= this
+		let {kodEtiket, kodKullanilirmi, mqGUIDmi} = mfSinif
+		kodEtiket ||= (mqGUIDmi ? 'ID' : 'Kod')
+		let mini = isMiniDevice()
+		liste.push(
+			new GridKolon({
+				belirtec: mfSinif.kodSaha,
+				text: kodEtiket, cellsRenderer,
+				minWidth: 100,
+				width: mini ? 150 : mqGUIDmi ? 320 : 250,
+				hidden: !(kodKullanilirmi || mqGUIDmi),
+				sql: kodKullanilirmi ? undefined : false
+			})
+		)
 	}
-	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); let {sent} = e, {aliasVeNokta, kodSaha, emptyKodValue = ''} = this
-		if (!this.bosKodAlinirmi) { sent.where.add(`${aliasVeNokta}${kodSaha} <> ${MQSQLOrtak.sqlDegeri(emptyKodValue)}`) }
-		if (!sent.sahalar.liste.find(saha => saha.alias == kodSaha)) { sent.sahalar.add(`${aliasVeNokta}${kodSaha}`) }
-		if (this.zeminRenkDesteklermi) sent.sahalar.add(`${aliasVeNokta}oscolor`)
+	static loadServerData_queryDuzenle({ sent, sent: { where: wh, sahalar} }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		let {aliasVeNokta, kodSaha, bosKodAlinirmi, zeminRenkDesteklermi, emptyKodValue = ''} = this
+		if (!bosKodAlinirmi)
+			wh.add(`${aliasVeNokta}${kodSaha} <> ${MQSQLOrtak.sqlDegeri(emptyKodValue)}`)
+		if (!sahalar.liste.find(saha => saha.alias == kodSaha))
+			sahalar.add(`${aliasVeNokta}${kodSaha}`)
+		if (zeminRenkDesteklermi)
+			sahalar.add(`${aliasVeNokta}oscolor`)
 	}
-	tekilOku_queryDuzenle(e) {
-		super.tekilOku_queryDuzenle(e); let {aliasVeNokta, kodSaha} = this.class, kod = this.kodUyarlanmis, {sent} = e;
-		if (kodSaha && kod) { sent.where.degerAta(kod, `${aliasVeNokta}${kodSaha}`) }
+	tekilOku_queryDuzenle({ sent, sent: { where: wh, sahalar } }) {
+		super.tekilOku_queryDuzenle(...arguments)
+		let {kodUyarlanmis: kod, class: { aliasVeNokta, kodSaha }} = this
+		if (kodSaha && kod)
+			wh.degerAta(kod, aliasVeNokta + kodSaha)
 	}
 	static logRecDonusturucuDuzenle({ result }) {
-		super.logRecDonusturucuDuzenle(...arguments); let {kodSaha} = this;
-		result[kodSaha] = 'xkod'
+		super.logRecDonusturucuDuzenle(...arguments)
+		result[this.kodSaha] = 'xkod'
 	}
 	logHVDuzenle({ hv }) {
 		super.logHVDuzenle(...arguments);
 		hv.xkod = this.kod || ''
 	}
-	keyHostVarsDuzenle(e) { super.keyHostVarsDuzenle(e); let {hv} = e; hv[this.class.kodSaha] = this.kodUyarlanmis }
-	keySetValues(e) { super.keySetValues(e); let {rec} = e; let value = rec[this.class.kodSaha]; if (value != null) { this.kod = value } }
-	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); let {hv} = e; if (this.class.zeminRenkDesteklermi) hv.oscolor = html2OSColor(this.zeminRenk) || 0 }
-	setValues(e) {
-		e = e || {}; super.setValues(e); let {rec} = e;
-		if (this.class.zeminRenkDesteklermi) { let {oscolor} = rec; this.zeminRenk = oscolor ? os2HTMLColor(oscolor) : '' }
+	keyHostVarsDuzenle({ hv }) {
+		super.keyHostVarsDuzenle(...arguments)
+		let {kodUyarlanmis: kod, class: { kodSaha }} = this
+		hv[kodSaha] = kod
 	}
-	cizgiliOzet(e) { return this.kod || '' } parantezliOzet(e) { return this.kod || '' } toString(e) { return this.parantezliOzet(e) }
+	keySetValues({ rec }) {
+		super.keySetValues(...arguments)
+		let {kodSaha} = this.class
+		let value = rec[kodSaha]
+		if (value != null)
+			this.kod = value
+	}
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments)
+		let {zeminRenk, class: { zeminRenkDesteklermi }} = this
+		if (zeminRenkDesteklermi)
+			hv.oscolor = html2OSColor(zeminRenk) || 0
+	}
+	setValues({ rec, rec: { oscolor } }) {
+		super.setValues(...arguments)
+		let {zeminRenkDesteklermi} = this.class
+		if (zeminRenkDesteklermi)
+			this.zeminRenk = oscolor ? os2HTMLColor(oscolor) : ''
+	}
+	cizgiliOzet(e) { return this.kod || '' }
+	parantezliOzet(e) { return this.kod || '' }
+	toString(e) { return this.parantezliOzet(e) }
 	setId(value) { this.kod = value; return this }
 }
 class MQKA extends MQKod {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get adiKullanilirmi() { return true } static get adiSaha() { return this.adiKullanilirmi ? 'aciklama' : this.kodSaha } static get adiEtiket() { return 'Açıklama' }
+	static get adiKullanilirmi() { return true } static get adiEtiket() { return 'Açıklama' }
+	static get adiSaha() { return this.adiKullanilirmi ? 'aciklama' : this.kodSaha }
 	
 	constructor(e) { e = e || {}; super(e) }
 	static pTanimDuzenle(e) {
@@ -111,39 +168,51 @@ class MQKA extends MQKod {
 		}
 	}
 	static formBuildersDuzenle_ka(e) {
-		super.formBuildersDuzenle_ka(e); let mfSinif = e.mfSinif ?? this, {kodKullanilirmi} = mfSinif, xEtiket = mfSinif.adiEtiket ?? 'Açıklama';
-		let {kaForm} = e; if (kodKullanilirmi) { kaForm.yanYana(2.3) } else { kaForm.altAlta() }
-		kaForm.addTextInput({ id: 'aciklama', etiket: xEtiket, placeholder: xEtiket }).addCSS('aciklamaParent parent')
-			.setVisibleKosulu(this.adiKullanilirmi ? true : 'jqx-hidden').addStyle(e => `$elementCSS { min-width: 300px${kodKullanilirmi ? '; max-width: 60%' : ''} }`);
+		super.formBuildersDuzenle_ka(e)
+		let {kaForm} = e, mfSinif = e.mfSinif ?? this
+		let {kodKullanilirmi, adiKullanilirmi} = mfSinif
+		let xEtiket = mfSinif.adiEtiket ?? 'Açıklama'
+		if (kodKullanilirmi)
+			kaForm.yanYana(2.3)
+		else
+			kaForm.altAlta()
+		if (adiKullanilirmi) {
+			kaForm.addTextInput({ id: 'aciklama', etiket: xEtiket, placeholder: xEtiket }).addCSS('aciklamaParent parent')
+				.setVisibleKosulu(adiKullanilirmi ? true : 'jqx-hidden').addStyle(e => `$elementCSS { min-width: 300px${kodKullanilirmi ? '; max-width: 60%' : ''} }`);
+		}
 		return this
 	}
-	static standartGorunumListesiDuzenle(e) {
-		super.standartGorunumListesiDuzenle(e); let {liste} = e;
-		if (this.adiKullanilirmi) { liste.push(this.adiSaha) }
+	static standartGorunumListesiDuzenle({ liste }) {
+		super.standartGorunumListesiDuzenle(...arguments)
+		if (this.adiKullanilirmi)
+			liste.push(this.adiSaha)
 	}
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e)
-		let mfSinif = e.mfSinif ?? this
-		let {cellsRenderer, liste} = e, {adiKullanilirmi, adiSaha} = mfSinif
+	static orjBaslikListesiDuzenle({ liste, mfSinif, cellsRenderer }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		mfSinif ??= this
+		let {adiKullanilirmi, adiSaha} = mfSinif
 		let mini = isMiniDevice()
 		if (adiKullanilirmi) {
-			let colDef_adi = liste.find(colDef => colDef.belirtec == adiSaha);
+			let colDef_adi = liste.find(colDef => colDef.belirtec == adiSaha)
 			if (!colDef_adi) {
 				let adiEtiket = mfSinif.adiEtiket ?? 'Açıklama'
 				let colDef = new GridKolon({
 					belirtec: adiSaha, text: adiEtiket, cellsRenderer,
 					minWidth: Math.min(200, asInteger($(window).width() / 4)),
-					width: Math.min(700, asInteger($(window).width() / (mini ? 1.5 : 2)))
+					width: mini
+						? Math.min(400, asInteger($(window).width() / 2))
+						: Math.min(700, asInteger($(window).width() / 2))
 				})
 				liste[mini ? 'unshift' : 'push'](colDef)
 			}
 		}
 	}
-	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); let {sent} = e;
+	static loadServerData_queryDuzenle({ sent, sent: { sahalar } }) {
+		super.loadServerData_queryDuzenle(...arguments)
 		if (this.adiKullanilirmi) {
-			let {aliasVeNokta, adiSaha} = this;
-			if (adiSaha && !sent.sahalar.liste.find(saha => saha.alias == adiSaha)) { sent.sahalar.add(`${aliasVeNokta}${adiSaha}`) }
+			let {aliasVeNokta, adiSaha} = this
+			if (adiSaha && !sahalar.alias2Deger[adiSaha])
+				sahalar.add(`${aliasVeNokta}${adiSaha}`)
 		}
 	}
 	parantezliOzet(e) {
