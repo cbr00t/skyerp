@@ -1,17 +1,19 @@
 .accordion.part {
 	--item-pad-x: 4px; --item-pad-y: 6px; --header-height: 46px;
-	width: calc(var(--full) - var(--item-pad-x) * 5);
-	height: calc(var(--full) - var(--item-pad-y) * 2)
+	width: calc(var(--full) - var(--item-pad-x) * 1);
+	height: calc(var(--full) - var(--item-pad-y) * 1)
 }
 .accordion.part .accordion.item {
-	width: calc(var(--full) - (var(--item-pad-x) * 2));
+	width: calc(var(--full) - (var(--item-pad-x) * 1));
 	margin: var(--item-pad-y) var(--item-pad-x);
-	border-radius: 10px; border: 3px solid rgba(0, 0, 0, .13);
-	box-sizing: border-box !important; transition: 200ms ease
+	border-radius: 10px; border: 3px solid rgba(0, 0, 0, .10);
+	box-sizing: content-box !important;
+	transition: 200ms ease
 }
 .accordion.part .accordion.item.disabled { opacity: .4; pointer-events: none }
 .accordion.part .accordion.item:hover:not(.disabled) {
 	box-shadow: 0 3px 10px rgba(0, 200, 255, .12);
+	border: 3px solid rgba(0, 0, 200, .20);
 	transform: translateY(-1px)
 }
 .accordion.part .accordion.item.expanded > .header > .collapsed-content,
@@ -22,12 +24,14 @@
 	border: 1px solid #ccc; border-bottom: 1px solid rgba(0, 0, 0, 0.15);
 	background: #f7f7f7; align-items: center
 }
-.accordion.part .accordion.item:not(.expanded) > .header {
-	background: #cecece
-}
-.accordion.part .accordion.item.expanded > .header {
+.accordion.part .accordion.item:not(.expanded) > .header { background: #cecece }
+.accordion.part .accordion.item.expanded:not(.disabled) > .header {
 	background: #8eaafc; /* maybe gradient with bump */
 	border-bottom: 1px solid rgba(0, 0, 0, 0.35)
+}
+.accordion.part .accordion.item:hover:not(.disabled) > .header {
+	/*background: #7d9df9;
+	border-bottom: 3px solid rgba(0, 50, 100, 0.35)*/
 }
 .accordion.part .accordion.item > .header > .title {
 	font-weight: 600; color: #222; white-space: nowrap;
@@ -40,5 +44,6 @@
 }
 .accordion.part .accordion > .content {
 	height: calc(var(--full) - (var(--header-height) + 2px));
-	padding: 15px 10px; border-top: 2px solid rgba(0 200, 255, .8)
+	margin-bottom: 30px; padding: 10px;
+	border-top: 2px solid rgba(0 200, 255, .8)
 }

@@ -115,7 +115,8 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			let {parentMFSinif} = mfSinif; if (parentMFSinif) { layout.addClass(parentMFSinif.dataKey ?? parentMFSinif.classKey ?? mfSinif.name) }
 			layout.addClass(mfSinif.dataKey ?? mfSinif.classKey ?? mfSinif.name); if (mfSinif.listeEkrani_init) { mfSinif.listeEkrani_init(e) };
 		}
-		super.runDevam(e); this.initBulForm(e)
+		super.runDevam(e)
+		this.initBulForm(e)
 	}
 	afterRun(e) {
 		e ??= {}; super.afterRun(e); let mfSinif = this.getMFSinif(e); let {parent, layout} = this; let {builder} = this;
@@ -146,26 +147,35 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		if (mfSinif?.listeEkrani_deactivated) { mfSinif.listeEkrani_deactivated(e) }
 	}
 	initBulForm(e) {
-		let {layout, bulForm} = this;
+		let {layout, bulForm, filtreTokens} = this
 		if (!bulForm?.length) { bulForm = layout.find('#bulForm') }
 		if (!bulForm?.length) { bulForm = layout.find('.bulForm') }
 		if (bulForm?.length) {
-			let mfSinif = this.getMFSinif(e);
+			let mfSinif = this.getMFSinif(e)
 			if (!mfSinif || mfSinif.bulFormKullanilirmi) {
-				let {bulPart} = this; if (!bulPart) {
+				let {bulPart} = this
+				if (!bulPart) {
 					bulPart = this.bulPart = new FiltreFormPart({
 						layout: bulForm,
-						degisince: e => { let {tokens} = e; this.hizliBulIslemi({ sender: this, layout, tokens }) }
-					});
+						degisince: ({ tokens }) => {
+							let sender = this
+							this.hizliBulIslemi({ sender, layout, tokens })
+						}
+					})
 					bulPart.run()
 				}
+				let {input} = bulPart ?? {}
+				if (filtreTokens?.length && input?.length)
+					input.val(filtreTokens.join(' '))
 			}
-			else { bulForm.addClass('jqx-hidden') }
+			else
+				bulForm.addClass('jqx-hidden')
 		}
 	}
 	hizliBulIslemi(e) {
-		let mfSinif = this.getMFSinif();
-		if (mfSinif?.orjBaslikListesi_hizliBulIslemi?.(e) === false) { return }
+		let mfSinif = this.getMFSinif()
+		if (mfSinif?.orjBaslikListesi_hizliBulIslemi?.(e) === false)
+			return
 		return super.hizliBulIslemi(e)
 	}
 	islemTuslariDuzenle(e) {

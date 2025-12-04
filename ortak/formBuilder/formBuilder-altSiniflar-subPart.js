@@ -234,46 +234,67 @@ class FBuilder_Span extends FBuilder_DivOrtak {
 class FBuilder_InputOrtak extends FBuilder_DivOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get inputTagName() { return 'input' } static get noAutoChangeEvent() { return false }
-	constructor(e) {
-		e = e || {}; super(e);
+	constructor(e = {}) {
+		super(e)
 		$.extend(this, {
 			_value: e.value, inputType: e.inputType || this.class.inputType, maxLength: e.maxLength ?? this.class.maxLength,
 			isReadOnly: e.readOnly ?? e.readonly ?? e.isReadOnly ?? e.isReadonly
 		})
 	}
 	buildDevam(e) {
-		let {value} = this; super.buildDevam(e); let {input} = this;
+		let {value} = this
+		super.buildDevam(e)
+		let {input} = this
 		if (input?.length) {
-			let {inputType, maxLength, isReadOnly, etiket} = this;
+			let {inputType, maxLength, isReadOnly, etiket} = this
 			if (inputType) { input.attr('type', inputType) }
 			if (maxLength) { input.attr('maxlength', maxLength) }
 			if (isReadOnly) { input.attr('readonly', '') }
 			if (value != null) { if (value.then) { value.then(value => input.prop('value', value)) } else { input.prop('value', value) } }
 			this.styles.push(`$elementCSS { min-width: 50px }`);
 			/*if (etiket)*/ this.styles.push(`$elementCSS > input { width: var(--full); height: ${this.class.defaultHeight}px }`)
-			if (this.onKeyUpEvent) input.on('keyup', evt => this.signalKeyUp({ sender: this, builder: this, event: evt }))
+			if (this.onKeyUpEvent)
+				input.on('keyup', evt => this.signalKeyUp({ sender: this, builder: this, event: evt }))
 		}
 	}
 	postBuild(e) {
-		super.postBuild(e); let {input} = this;
+		super.postBuild(e)
+		let {input, class: { noAutoChangeEvent }} = this
 		if (input?.length) {
 			input.on('focus', evt => setTimeout(() => evt.target.select(), 50));
-			if (!this.class.noAutoChangeEvent) {
+			if (!noAutoChangeEvent) {
 				input.on('change', evt => {
-					let value = this.getConverted_setValue({ value: evt.currentTarget.value }); if (value?.toString() != evt.target.value?.toString()) { evt.currentTarget.value = value }
-					value = this.getConverted_getValue({ value }); let {ioAttr} = this;
-					if (ioAttr) { let {altInst} = this; if (altInst) { let {_p} = altInst, pInst = (_p || {})[ioAttr]; if (pInst) { pInst.setValues({ value }) } else { altInst[ioAttr] = value } } }
-					this.signalChange({ sender: this, builder: this, event: evt, value }); this._lastValue = value
+					let {currentTarget: target} = evt
+					let sender = this, builder = this, {ioAttr} = this
+					let value = this.getConverted_setValue({ value: target.value })
+					if (value?.toString() != target.value?.toString())
+						evt.currentTarget.value = value
+					value = this.getConverted_getValue({ value })
+					if (ioAttr) {
+						let {altInst} = this
+						if (altInst) {
+							let {_p} = altInst, pInst = _p?.[ioAttr]
+							if (pInst)
+								pInst.setValues({ value })
+							else
+								altInst[ioAttr] = value
+						}
+					}
+					this.signalChange({ sender, builder, event: evt, value })
+					this._lastValue = value
 				})
 			}
 		}
 	}
 	getConvertedValue(e) {
-		let value = super.getConvertedValue(e);
-		let {maxLength} = this; if (value && maxLength && typeof value == 'string') { value = value.toString().slice(0, maxLength) }
+		let value = super.getConvertedValue(e)
+		let {maxLength} = this
+		if (value && maxLength && typeof value == 'string')
+			value = value.toString().slice(0, maxLength)
 		return value
 	}
-	editable() { this.isReadOnly = false; return this } readOnly() { this.isReadOnly = true; return this }
+	editable() { this.isReadOnly = false; return this }
+	readOnly() { this.isReadOnly = true; return this }
 }
 class FBuilder_LabelBase extends FBuilder_DivOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -1011,21 +1032,22 @@ class FBuilder_IslemTuslari extends FBuilder_DivOrtak {
 	setEkSagButonlar(..._values) { let values = _values?.flat(); this.ekSagButonlar = values; return this }
 	setUserData(value) { this.userData = value; return this }
 }
-// formBuilder-altSiniflar-subPart
 class FBuilder_AccordionPart extends FBuilder_DivOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
     constructor({ panels, coklu, coklumu, defaultCollapsed, events, userData, ...e } = {}) {
-        super(e); coklu ??= coklumu
+        super(e)
+		panels ??= []; coklu ??= coklumu
 		$.extend(this, { panels, coklu, defaultCollapsed, events, userData })
 		this.etiketGosterim_yok()
     }
 	// PANEL EKLEME
     addPanel(item) {
         let {panels, part} = this
-        panels.push(item)
         // Forward to runtime Part if already built
         if (part && !part.isDestroyed)
             part.add(item)
+		else
+	        panels.push(item)
         return this
     }
     // DSL setters
@@ -1035,11 +1057,12 @@ class FBuilder_AccordionPart extends FBuilder_DivOrtak {
     defaultExpanded(value) { this.isDefaultCollapsed = !value; return this }
     setEvents(value) { this.events = value; return this }
     setUserData(value) { this.userData = value; return this }
-	buildDevam(e) {
-        super.buildDevam(e); let {input} = this
+	afterBuild(e) {
+		super.afterBuild(e)
+		let {input} = this
         if (input?.length) {
 			let sender = this, builder = this, layout = input
-			let {rootPart: parentPart, panels, coklumu, isDefaultCollapsed: defaultCollapsed, events, userData} = this
+			let {rootPart: parentPart, panels, coklumu: coklu, isDefaultCollapsed: defaultCollapsed, events, userData} = this
             // AccordionPart kendi layout’unu input olarak kullanacak
             input.addClass('full-wh')
             let _e = {
@@ -1049,7 +1072,86 @@ class FBuilder_AccordionPart extends FBuilder_DivOrtak {
             this.widgetArgsDuzenle?.call(this, _e)
             let part = this.part = new AccordionPart(_e.args)
             part.run()
+			if (part && !part.isDestroyed)
+                this.input = part.layout
         }
     }
 }
-
+class FBuilder_SimpleComboBox extends FBuilder_TextInput {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	constructor(e) {
+        super(e)
+		let {
+			name, etiket, placeholder = e.placeHolder,
+			value, source: _source, listSource,
+			mfSinif, kodSaha, adiSaha,
+			autoClear: autoClearFlag = e.autoClearFlag,
+			delay, minLength, maxRows,
+	        userData, events
+		} = e
+        $.extend(this, {
+            name, etiket, placeholder,
+			value, _source, listSource,
+			mfSinif, kodSaha, adiSaha,
+			delay, minLength, maxRows, autoClearFlag,
+			events, userData
+        })
+        // this.etiketGosterim_normal()
+    }
+    buildDevam(e) {
+        super.buildDevam(e)
+        let {input} = this                                                    // Layout aslında input olarak hizmet edecek
+        if (input?.length) {
+            let sender = this, builder = this, {parent, layout, input} = this
+			if (layout?.length && parent?.length && layout.parent() != parent)
+				layout.detach().appendTo(parent)
+			let {placeholder = e.placeHolder, autoClear = e.autoClearFlag, _source: source, widgetArgsDuzenle} = this
+            let args = { layout, input, placeholder, autoClear, source }
+			let keys = [
+				'id', 'name', 'etiket', 'listSource',
+				'mfSinif', 'kodSaha', 'adiSaha', 'delay', 'minLength', 'maxRows',
+				'userData', 'events'
+			]
+			for (let k of keys) {
+				let v = this[k]
+				if (v !== undefined)
+					args[k] = v
+			}
+			let _e = { ...e, args }
+			// Kullanıcı custom düzenleme isterse
+            widgetArgsDuzenle?.call(this, _e)
+            let part = this.part = new SimpleComboBoxPart(_e.args)
+            part.run()
+            // Builder input pointer’ı güncelle
+            if (part && !part.isDestroyed) {
+				for (let k of ['layout', 'input'])
+					this[k] = part[k] ?? this[k]
+			}
+        }
+    }
+    setId(v) { super.setId(v); this.part?.setId(v); return this }
+    setName(v) { this.name = v; this.part?.setName(v); return this }
+    setValue(v) { this.value = v; this.part?.setItem(v); return this }                                     // * widget 'item' setter => (value, item) durumların her ikisini de destekler
+    setPlaceHolder(v) { super.setPlaceHolder(v); this.part?.setPlaceholder(v); return this }
+	setPlaceholder(v) { return this.setPlaceHolder(v) }
+    setSource(v) { this._source = v; this.part?.setSource(v); return this }
+	setListSource(v) { this.listSource = v; this.part?.setListSource(v); return this }
+    setMFSinif(v) { this.mfSinif = v; this.part?.setMFSinif(v); return this }
+    setKodSaha(v) { this.kodSaha = v; this.part?.setKodSaha(v); return this }
+    setAdiSaha(v) { this.adiSaha = v; this.part?.setAdiSaha(v); return this }
+    setDelay(v) { this.delay = v; this.part?.setDelay(v); return this }
+    setMinLength(v) { this.minLength = v; this.part?.setMinLength(v); return this }
+    setMaxRows(v) { this.maxRows = v; this.part?.setMaxRows(v); return this }
+	autoClear() { this.autoClearFlag = true; this.part?.autoClear(); return this }
+	noAutoClear() { this.autoClearFlag = false; this.part?.noAutoClear(); return this }
+	on(name, handler) { (this.getEvents()[name] ??= []).push(handler); this.part?.on(name, handler); return this }
+	off(name) { delete this.getEvents()[name]; this.part?.off(name, handler); return this }
+	signal(name) { this.part?.signal(name); return this }
+	onChange(handler) { return this.on('change', handler) }
+	degisince(handler) { return this.onChange(handler) }
+	onFocus(handler) { return this.on('focus', handler) }
+	onBlur(handler) { return this.on('blur', handler) }
+    setUserData(v) { this.userData = v; this.part?.setUserData(v); return this }
+    setEvents(v) { this.events = v; this.part?.setEvents(v); return this }
+	getEvents() { return this.events ??= {} }
+}

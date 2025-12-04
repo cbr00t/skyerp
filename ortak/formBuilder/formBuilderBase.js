@@ -553,15 +553,36 @@ class FormBuilderBase extends CObject {
 		this.add(builder)
 		return builder
 	}
-	addAccordion(e, _panels, _coklu, _defaultCollapsed, _events, _userData) {
+	addAccordion(e, _etiket, _panels, _coklu, _defaultCollapsed, _userData) {
 	    e ??= {}
 	    let id = (typeof e == 'object' ? e.id : e) ?? 'accordion'
+	    let etiket = typeof e == 'object' ? e.etiket : _etiket
 	    let panels = typeof e == 'object' ? e.panels : _panels
 	    let coklu = typeof e == 'object' ? e.coklu ?? e.coklumu : _coklu
 	    let defaultCollapsed = typeof e == 'object' ? e.defaultCollapsed : _defaultCollapsed
-	    let events = typeof e == 'object' ? e.events : _events
 		let userData = typeof e == 'object' ? e.userData : _userData
-	    let builder = new FBuilder_AccordionPart({ id, panels, coklu, defaultCollapsed, events, userData })
+	    let builder = new FBuilder_AccordionPart({ id, etiket, panels, coklu, defaultCollapsed, userData })
+	    this.add(builder)
+	    return builder
+	}
+	addSimpleComboBox(e, _etiket, _placeholder, _value, _source, _autoClear, _delay, _minLength, _name, _userData) {
+	    e ??= {}
+	    let id = typeof e === 'object' ? e.id : e
+	    let etiket = typeof e === 'object' ? e.etiket : _etiket
+	    let placeholder = typeof e === 'object' ? (e.placeholder ?? e.placeHolder) : _placeholder
+	    let value = typeof e === 'object' ? e.value : _value
+	    let source = typeof e === 'object' ? e.source : _source
+	    let autoClear = typeof e === 'object' ? e.autoClear : _autoClear
+	    let comboBox_delay = typeof e === 'object' ? e.comboBox_delay : _delay
+	    let comboBox_minLength = typeof e === 'object' ? e.comboBox_minLength : _minLength
+	    let name = typeof e === 'object' ? e.name : _name
+		let userData = typeof e == 'object' ? e.userData : _userData
+		let builder = new FBuilder_SimpleComboBox({
+	        id, etiket, placeholder,
+			value, source, autoClear,
+	        comboBox_delay, comboBox_minLength,
+			name, userData
+	    })
 	    this.add(builder)
 	    return builder
 	}
@@ -618,6 +639,7 @@ class FormBuilderBase extends CObject {
 	}
 	addCSSClasses(aCollection) { this.addCSS(...aCollection); return this }
 	clearCSS() { this.cssClasses = []; return this }
+	setId(value) { this.id = value; return this }
 	setArgs(value) { this.args = value; return this }
 	onInit(handler) { this.init = handler; return this }
 	onBuildEk(handler) { this.buildEk = handler; return this }

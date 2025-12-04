@@ -1,0 +1,13 @@
+.simpleComboBox.part {
+	--pad-x: 1%; --pad-y: 0px;
+	position: relative; width: var(--full); height: var(--full)
+}
+.simpleComboBox.part > input {
+	width: var(--full); height: var(--full);
+	padding: var(--pad-y) var(--pad-x);
+	box-sizing: border-box; border-radius: 18px
+}
+.simpleComboBox.part > input::placeholder { font-size: 65%; color: #228b22aa; padding: 0 5px }
+.simpleComboBox.part > button#liste { position: absolute; bottom: -40%; right: 20px; padding: 10px 20px; opacity: .2 }
+.simpleComboBox.part > button#liste:hover { opacity: .7 }
+.simpleComboBox.part > button#liste:active { opacity: 1 }

@@ -42,17 +42,18 @@ class AccordionPart extends Part {
 
 	constructor({ defaultCollapsed, coklu, coklumu, panels, events, userData } = {}) {
 		super(...arguments)
-		this.isDefaultCollapsed = defaultCollapsed ?? true
-		this.coklumu = coklu ?? coklumu ?? false
-		// this.clear()
-		this.panels = panels ?? []
-		// delete this.id2Panel  --  ctor sırasında zaten yoktur
-		this.events = events ?? {}
-		this.userData = userData
+		defaultCollapsed ??= true
+		coklu ??= coklumu ?? false
+		events ??= {}
+		this.panels = []
+		if (panels)
+			this.addAll(...panels)
+		$.extend(this, { isDefaultCollapsed: defaultCollapsed, coklumu: coklu, panels, events, userData })
 	}
 	runDevam(e = {}) {
 		super.runDevam(e)
-		let {panels, class: { partName }} = this
+		let {layout, panels, class: { partName }} = this
+		layout.addClass(`${partName} part`)
 		let _e = { ...e, panels }
 		this.argsDuzenleBlock?.call(this, _e)
 		panels = this.panels = _e.panels
@@ -64,8 +65,10 @@ class AccordionPart extends Part {
 		this._initialized = false
 		return super.destroyPart(e)
 	}
-	render(e) {
+	async render(e) {
 		let {layout, panels, _lastPanelCount} = this
+		if (!layout?.length)
+			return
 		if (_lastPanelCount > panels.length) {
 			layout.find('.accordion.item').remove()
 			panels.forEach(_ => _._rendered = false)
@@ -76,6 +79,7 @@ class AccordionPart extends Part {
 			let elm = id2Elm[id], hasElm = elm?.length
 			// let fullRender = !(hasElm && item._rendered)
 			let {title, collapsed, disabled} = item
+			title ??= ''
 			let elmHeader
 			if (!hasElm) {
 				let css_expanded = collapsed ? '' : ' expanded'
@@ -114,23 +118,34 @@ class AccordionPart extends Part {
 				(elmCollapsedContent = $(`<div class="collapsed-content"/>`)).appendTo(elmHeader)
 			elmCollapsedContent.children().remove()
 			if (collapsed) {
-				let targetContent = this.evalContent(item, item[targetKey]) || $('<div/>')
-				targetContent?.appendTo(elmCollapsedContent)
+				let targetContent = this.evalContent(item, item[targetKey], elmCollapsedContent) || $('<div/>')
+				if (targetContent && !targetContent.parent()?.length)
+					targetContent.appendTo(elmCollapsedContent)
 			}
 			else {
 				let elmContent = elm.children('.content')
 				if (!elmContent.children().length) {
-					let targetContent = this.evalContent(item, item[targetKey]) || $('<div/>')
-					targetContent?.appendTo(elmContent)
+					let targetContent = this.evalContent(item, item[targetKey], elmContent) || $('<div/>')
+					if (targetContent && targetContent.parent()?.[0] != elmContent[0]) {
+						if (targetContent.parent()?.length)
+							targetContent.detach()
+						targetContent.appendTo(elmContent)
+					}
 				}
 			}
 		}
 		this._lastPanelCount = panels.length
 	}
 	add(e, _collapsed, _title, _content, _collapsedContent, _disabled, _data) {
-		let item = typeof e == 'object'
-			? { ...e }
-			: { id: e, collapsed: _collapsed, title: _title, content: _content, collapsedContent: _collapsedContent, disabled: _disabled, data: _data }
+		let item = typeof e == 'object' ? e : {
+			id: e, collapsed: _collapsed, title: _title,
+			content: _content, collapsedContent: _collapsedContent,
+			disabled: _disabled, data: _data
+		}
+		if (item.expanded != null && item.collapsed == null){
+			item.collapsed = !item.expanded
+			delete item.expanded
+		}
 		let {panels, id2Panel} = this
 		let id = item.id ||= newGUID()
 		item.collapsed ??= item.isCollapsed ?? this.isDefaultCollapsed
@@ -138,6 +153,18 @@ class AccordionPart extends Part {
 		panels.push(item)
 		id2Panel[id] = item
 		this.signalChange({ type: 'add', item })
+		return this
+	}
+	addAll(...items) {
+		for (let item of items) {
+			if (item == null)
+				continue
+			if (isArray(item)) {
+				this.addAll(...item)
+				continue
+			}
+			this.add(item)
+		}
 		return this
 	}
 	remove(e) { return this.delete(e) }
@@ -194,10 +221,6 @@ class AccordionPart extends Part {
 		}
 		return this
 	}
-	degisince(handler) { return this.change(handler) }
-	change(handler) { return this.on('change', handler) }
-	signalChange(e) { return this.signal('change', e) }
-	stateChange(handler) { return this.on('stateChange', handler) }
 	signalStateChange(e) { return this.signal('stateChange', e) }
 	signalExpanded(e) { return this.signal('stateChange', { ...e, action: 'expand' }) }
 	signalCollapsed(e) { return this.signal('stateChange', { ...e, action: 'collapse' }) }
@@ -244,19 +267,29 @@ class AccordionPart extends Part {
 			handlers.splice(ind, 1)
 		return this
 	}
-	evalContent(item, content) {
+	evalContent(item, content, layout) {
+		let sender = this, {layout: parent} = this
 		if (isFunction(content))
-			content = content.call(this, { sender: this, item })
+			content = content.call(this, { sender, item, parent, layout })
 		if (content?.html)
 			return content
 		if (typeof content == 'string')
 			return $(content)
 		return null
 	}
-	getLayout() { return $('<div/>') }
 	coklu() { this.coklumu = true; return this }
 	tekli() { this.coklumu = false; return this }
 	defaultCollapsed() { this.isDefaultCollapsed = true; return this }
 	defaultExpanded() { this.isDefaultCollapsed = false; return this }
+	setPanels(...panels) {
+		this.clear()
+		this.addAll(...panels)
+		return this
+	}
 	setUserData(value) { this.userData = value; return this }
+	degisince(handler) { return this.change(handler) }
+	onChange(handler) { return this.on('change', handler) }
+	signalChange(e) { return this.signal('change', e) }
+	onStateChange(handler) { return this.on('stateChange', handler) }
+	getLayout() { return $('<div/>') }
 }
