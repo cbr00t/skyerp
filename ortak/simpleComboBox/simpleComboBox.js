@@ -202,6 +202,7 @@ class SimpleComboBoxPart extends Part {
 			else if (fromList)
 				this.item = item
 			e.item = item
+			e.value = this.value
 			// input.attr('placeholder', this.renderedInputText)
 			if (autoClear) {
 				// no change event trigger, if possible
@@ -275,8 +276,8 @@ class SimpleComboBoxPart extends Part {
 				let likeValue = aciklama || kod
 				let _e = {
 					...e, sender, gridPart, layout, input,
-					mfSinif, kodSaha, adiSaha, item,
-					value: likeValue                                                         // server-side LIKE filtering, if class supports
+					mfSinif, kodSaha, adiSaha, item
+					// value: likeValue                                                         // server-side LIKE filtering, if class supports
 				}
 				if (!source)
 					return super.loadServerData(_e)
