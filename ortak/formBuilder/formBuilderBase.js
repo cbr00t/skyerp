@@ -238,140 +238,140 @@ class FormBuilderBase extends CObject {
 		/*if (!rootBuilder.isDestroyed) { let {CSSClass_BuilderId} = FormBuilderBase, styles = $(`style[data-${CSSClass_BuilderId}="${this.id}"]`); if (styles?.length) { styles.remove() } rootBuilder.isDestroyed = true }*/
 	}
 	addForm(e, _layout, _parent, _renk, _zeminRenk, _styles) {
-		e = e || {}; let id = typeof e == 'object' ? e.id : e;
-		let layout = typeof e == 'object' ? e.layout : _layout;
-		let parent = typeof e == 'object' ? e.parent : _parent;
-		let renk = typeof e == 'object' ? e.renk : _renk;
-		let zeminRenk = typeof e == 'object' ? e.zeminRenk : _zeminRenk;
-		let styles = typeof e == 'object' ? e.styles : _styles;
+		e = e || {}; let id = isObject(e) ? e.id : e;
+		let layout = isObject(e) ? e.layout : _layout;
+		let parent = isObject(e) ? e.parent : _parent;
+		let renk = isObject(e) ? e.renk : _renk;
+		let zeminRenk = isObject(e) ? e.zeminRenk : _zeminRenk;
+		let styles = isObject(e) ? e.styles : _styles;
 		let builder = new FormBuilder({ id: id, layout: layout, parent: parent, styles: styles }); /* .autoAppend(); */
 		if (renk || zeminRenk) { builder.addStyle(e => `$elementCSS { ${renk ? `color: ${renk};` : ''}${zeminRenk ? `color: ${zeminRenk};` : ''} }`) }
 		this.add(builder); return builder
 	}
 	addFormWithParent(e, _layout) {
-		e = e || {}; let id = typeof e == 'object' ? e.id : e;
-		let layout = typeof e == 'object' ? e.layout : _layout;
+		e = e || {}; let id = isObject(e) ? e.id : e;
+		let layout = isObject(e) ? e.layout : _layout;
 		let builder = new FBuilderWithInitLayout({ id: id, layout: layout });
 		this.add(builder); return builder
 	}
 	addElement(e, _etiket, _tagName, _layout, _renk, _zeminRenk, _styles) {
-		e = e || {}; let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let tagName = typeof e == 'object' ? e.tagName : _tagName;
-		let layout = typeof e == 'object' ? e.layout : _layout;
-		let renk = typeof e == 'object' ? e.renk : _renk;
-		let zeminRenk = typeof e == 'object' ? e.zeminRenk : _zeminRenk;
-		let styles = typeof e == 'object' ? e.styles : _styles;
+		e = e || {}; let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let tagName = isObject(e) ? e.tagName : _tagName;
+		let layout = isObject(e) ? e.layout : _layout;
+		let renk = isObject(e) ? e.renk : _renk;
+		let zeminRenk = isObject(e) ? e.zeminRenk : _zeminRenk;
+		let styles = isObject(e) ? e.styles : _styles;
 		let builder = new FBuilder_SimpleElement({ id: id, etiket: etiket, tagName: tagName, layout: layout, styles: styles });
 		if (renk || zeminRenk) { builder.addStyle(e => `$elementCSS { ${renk ? `color: ${renk};` : ''}${zeminRenk ? `color: ${zeminRenk};` : ''} }`) }
 		this.add(builder); return builder
 	}
 	addDiv(e, _etiket, _tagName, _layout, _renk, _zeminRenk, _styles) {
-		e = e || {}; let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let tagName = typeof e == 'object' ? e.tagName : _tagName;
-		let layout = typeof e == 'object' ? e.layout : _layout;
-		let renk = typeof e == 'object' ? e.renk : _renk;
-		let zeminRenk = typeof e == 'object' ? e.zeminRenk : _zeminRenk;
-		let styles = typeof e == 'object' ? e.styles : _styles;
+		e = e || {}; let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let tagName = isObject(e) ? e.tagName : _tagName;
+		let layout = isObject(e) ? e.layout : _layout;
+		let renk = isObject(e) ? e.renk : _renk;
+		let zeminRenk = isObject(e) ? e.zeminRenk : _zeminRenk;
+		let styles = isObject(e) ? e.styles : _styles;
 		let builder = new FBuilder_DivOrtak({ id: id, etiket: etiket, tagName: tagName, input: layout, styles: styles });
 		if (renk || zeminRenk) { builder.addStyle(e => `$elementCSS { ${renk ? `color: ${renk};` : ''}${zeminRenk ? `color: ${zeminRenk};` : ''} }`) }
 		this.add(builder); return builder
 	}
 	addSpan(e, _etiket, _tagName, _layout, _renk, _zeminRenk, _styles) {
-		e = e || {}; let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let tagName = typeof e == 'object' ? e.tagName : _tagName;
-		let layout = typeof e == 'object' ? e.layout : _layout;
-		let renk = typeof e == 'object' ? e.renk : _renk;
-		let zeminRenk = typeof e == 'object' ? e.zeminRenk : _zeminRenk;
-		let styles = typeof e == 'object' ? e.styles : _styles;
+		e = e || {}; let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let tagName = isObject(e) ? e.tagName : _tagName;
+		let layout = isObject(e) ? e.layout : _layout;
+		let renk = isObject(e) ? e.renk : _renk;
+		let zeminRenk = isObject(e) ? e.zeminRenk : _zeminRenk;
+		let styles = isObject(e) ? e.styles : _styles;
 		let builder = new FBuilder_Span({ id: id, etiket: etiket, tagName: tagName, input: layout, styles: styles });
 		if (renk || zeminRenk) { builder.addStyle(e => `$elementCSS { ${renk ? `color: ${renk};` : ''}${zeminRenk ? `color: ${zeminRenk};` : ''} }`) }
 		this.add(builder); return builder
 	}
 	addInput(e, _etiket, _tagName, _inputType, _layout) {
-		e = e || {}; let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let tagName = typeof e == 'object' ? e.tagName : _tagName;
-		let inputType = typeof e == 'object' ? e.inputType : _inputType;
-		let layout = typeof e == 'object' ? e.layout : _layout;
+		e = e || {}; let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let tagName = isObject(e) ? e.tagName : _tagName;
+		let inputType = isObject(e) ? e.inputType : _inputType;
+		let layout = isObject(e) ? e.layout : _layout;
 		let builder = new FBuilder_DivOrtak({ id: id, etiket: etiket, tagName: tagName, inputType: inputType, layout: layout });
 		this.add(builder); return builder
 	}
 	addTabPanel(e, _etiket, _initTabContent, _tabPageChanged) {
-		e = e || {}; let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let initTabContent = typeof e == 'object' ? e.initTabContent ?? e.initTabContentBlock : _initTabContent;
-		let tabPageChanged = typeof e == 'object' ? e.tabPageChanged ?? e.tabPageChangedBlock : _tabPageChanged;
+		e = e || {}; let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let initTabContent = isObject(e) ? e.initTabContent ?? e.initTabContentBlock : _initTabContent;
+		let tabPageChanged = isObject(e) ? e.tabPageChanged ?? e.tabPageChangedBlock : _tabPageChanged;
 		let builder = new FBuilder_Tabs({ id, etiket, initTabContent, tabPageChanged });
 		this.add(builder); return builder
 	}
 	addTanimFormTabPanel(e, _value) {
-		e = e || {}; let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
+		e = e || {}; let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
 		let builder = new FBuilder_TanimFormTabs({ id: id, etiket: etiket });
 		this.add(builder); return builder
 	}
 	addLabel(e, _etiket, _renk, _zeminRenk, _styles) {
-		e = e || {}; let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let renk = typeof e == 'object' ? e.renk : _renk;
-		let zeminRenk = typeof e == 'object' ? e.zeminRenk : _zeminRenk;
-		let styles = typeof e == 'object' ? e.styles : _styles;
+		e = e || {}; let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let renk = isObject(e) ? e.renk : _renk;
+		let zeminRenk = isObject(e) ? e.zeminRenk : _zeminRenk;
+		let styles = isObject(e) ? e.styles : _styles;
 		let builder = new FBuilder_Label({ id: id, etiket: etiket, styles: styles });
 		if (renk || zeminRenk) { builder.addStyle(e => `$elementCSS { ${renk ? `color: ${renk};` : ''}${zeminRenk ? `color: ${zeminRenk};` : ''} }`) }
 		this.add(builder); return builder
 	}
 	addBaslik(e, _etiket, _renk, _zeminRenk, _styles) {
-		e = e || {}; let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let renk = typeof e == 'object' ? e.renk : _renk;
-		let zeminRenk = typeof e == 'object' ? e.zeminRenk : _zeminRenk;
-		let styles = typeof e == 'object' ? e.styles : _styles;
+		e = e || {}; let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let renk = isObject(e) ? e.renk : _renk;
+		let zeminRenk = isObject(e) ? e.zeminRenk : _zeminRenk;
+		let styles = isObject(e) ? e.styles : _styles;
 		let builder = new FBuilder_Baslik({ id: id, etiket: etiket, styles: styles });
 		if (renk || zeminRenk) { builder.addStyle(e => `$elementCSS { ${renk ? `color: ${renk};` : ''}${zeminRenk ? `color: ${zeminRenk};` : ''} }` ) }
 		this.add(builder); return builder
 	}
 	addGroupBox(e, _etiket) {
-		e = e || {}; let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
+		e = e || {}; let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
 		let builder = new FBuilder_GroupBox({ id: id, etiket: etiket });
 		this.add(builder); return builder
 	}
 	addTextInput(e, _etiket, _value, _placeHolder, _maxLength) {
 		e = e || {};
-		let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let value = typeof e == 'object' ? e.value : _value;
-		let placeHolder = typeof e == 'object' ? e.placeHolder ?? e.placeholder : _placeHolder;
-		let maxLength = typeof e == 'object' ? e.maxLength : _maxLength;
+		let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let value = isObject(e) ? e.value : _value;
+		let placeHolder = isObject(e) ? e.placeHolder ?? e.placeholder : _placeHolder;
+		let maxLength = isObject(e) ? e.maxLength : _maxLength;
 		let builder = new FBuilder_TextInput({ id, etiket, value: value, placeHolder,  maxLength });
 		this.add(builder);
 		return builder
 	}
 	addPassInput(e, _etiket, _value, _placeHolder, _maxLength) {
 		e = e || {};
-		let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let value = typeof e == 'object' ? e.value : _value;
-		let placeHolder = typeof e == 'object' ? e.placeHolder ?? e.placeholder : _placeHolder;
-		let maxLength = typeof e == 'object' ? e.maxLength : _maxLength;
+		let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let value = isObject(e) ? e.value : _value;
+		let placeHolder = isObject(e) ? e.placeHolder ?? e.placeholder : _placeHolder;
+		let maxLength = isObject(e) ? e.maxLength : _maxLength;
 		let builder = new FBuilder_PassInput({ id: id, etiket: etiket, value: value, placeHolder: placeHolder, maxLength: maxLength });
 		this.add(builder);
 		return builder
 	}
 	addNumberInput(e, _etiket, _value, _placeHolder, _maxLength, _fra, _min, _max, _step) {
 		e = e || {};
-		let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let value = typeof e == 'object' ? e.value : _value;
-		let placeHolder = typeof e == 'object' ? e.placeHolder ?? e.placeholder : _placeHolder;
-		let maxLength = typeof e == 'object' ? e.maxLength : _maxLength;
-		let fra = typeof e == 'object' ? e.fra : _fra;
-		let min = typeof e == 'object' ? e.min : _min;
-		let max = typeof e == 'object' ? e.max : _max;
-		let step = typeof e == 'object' ? e.step : _step;
+		let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let value = isObject(e) ? e.value : _value;
+		let placeHolder = isObject(e) ? e.placeHolder ?? e.placeholder : _placeHolder;
+		let maxLength = isObject(e) ? e.maxLength : _maxLength;
+		let fra = isObject(e) ? e.fra : _fra;
+		let min = isObject(e) ? e.min : _min;
+		let max = isObject(e) ? e.max : _max;
+		let step = isObject(e) ? e.step : _step;
 		let builder = new FBuilder_NumberInput({
 			id: id, etiket: etiket, value: value, placeHolder: placeHolder, maxLength: maxLength,
 			fra: fra, min: min, max: max, step: step
@@ -381,32 +381,32 @@ class FormBuilderBase extends CObject {
 	}
 	addDateInput(e, _etiket, _value, _placeHolder) {
 		e = e || {};
-		let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let value = typeof e == 'object' ? e.value : _value;
-		let placeHolder = typeof e == 'object' ? e.placeHolder ?? e.placeholder : _placeHolder;
+		let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let value = isObject(e) ? e.value : _value;
+		let placeHolder = isObject(e) ? e.placeHolder ?? e.placeholder : _placeHolder;
 		let builder = new FBuilder_DateInput({ id: id, etiket: etiket, value: value, placeHolder: placeHolder });
 		this.add(builder);
 		return builder
 	}
 	addTimeInput(e, _etiket, _value, _placeHolder) {
 		e = e || {};
-		let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let value = typeof e == 'object' ? e.value : _value;
-		let placeHolder = typeof e == 'object' ? e.placeHolder ?? e.placeholder : _placeHolder;
+		let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let value = isObject(e) ? e.value : _value;
+		let placeHolder = isObject(e) ? e.placeHolder ?? e.placeholder : _placeHolder;
 		let builder = new FBuilder_TimeInput({ id: id, etiket: etiket, value: value, placeHolder: placeHolder });
 		this.add(builder);
 		return builder
 	}
 	addTextArea(e, _etiket, _value, _placeHolder, _maxLength, _rowCount) {
 		e = e || {};
-		let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let value = typeof e == 'object' ? e.value : _value;
-		let placeHolder = typeof e == 'object' ? e.placeHolder ?? e.placeholder : _placeHolder;
-		let maxLength = typeof e == 'object' ? e.maxLength : _maxLength;
-		let rowCount = typeof e == 'object' ? coalesce(e.rowCount, e.rows) : _rowCount;
+		let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let value = isObject(e) ? e.value : _value;
+		let placeHolder = isObject(e) ? e.placeHolder ?? e.placeholder : _placeHolder;
+		let maxLength = isObject(e) ? e.maxLength : _maxLength;
+		let rowCount = isObject(e) ? coalesce(e.rowCount, e.rows) : _rowCount;
 		let builder = new FBuilder_TextArea({
 			id: id, etiket: etiket, value: value, placeHolder: placeHolder, maxLength: maxLength,
 			rows: rowCount
@@ -416,51 +416,51 @@ class FormBuilderBase extends CObject {
 	}
 	addToggleButton(e, _etiket, _value) {
 		e = e || {};
-		let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let value = typeof e == 'object' ? e.value : _value;
+		let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let value = isObject(e) ? e.value : _value;
 		let builder = new FBuilder_ToggleButton({ id: id, etiket: etiket, value: value });
 		this.add(builder);
 		return builder
 	}
 	addCheckBox(e, _etiket, _value) {
 		e = e || {};
-		let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let value = typeof e == 'object' ? e.value : _value;
+		let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let value = isObject(e) ? e.value : _value;
 		let builder = new FBuilder_CheckBox({ id: id, etiket: etiket, value: value });
 		this.add(builder);
 		return builder
 	}
 	addSwitchButton(e, _etiket, _value, _onLabel, _offLabel) {
 		e = e || {};
-		let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let value = typeof e == 'object' ? e.value : _value;
-		let onLabel = typeof e == 'object' ? e.onLabel : _onLabel;
-		let offLabel = typeof e == 'object' ? e.offLabel : _offLabel;
+		let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let value = isObject(e) ? e.value : _value;
+		let onLabel = isObject(e) ? e.onLabel : _onLabel;
+		let offLabel = isObject(e) ? e.offLabel : _offLabel;
 		let builder = new FBuilder_SwitchButton({ id: id, etiket: etiket, value: value, onLabel: onLabel, offLabel: offLabel });
 		this.add(builder);
 		return builder
 	}
 	addButton(e, _etiket, _value, _handler) {
 		e = e || {};
-		let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let value = (typeof e == 'object' ? e.value : _value) ?? etiket;
-		let handler = typeof e == 'object' ? coalesce(coalesce(e.handler, e.onClick), e.onClickEvent) : _handler;
+		let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let value = (isObject(e) ? e.value : _value) ?? etiket;
+		let handler = isObject(e) ? coalesce(coalesce(e.handler, e.onClick), e.onClickEvent) : _handler;
 		let builder = new FBuilder_Button({ id: id, etiket: etiket, value: value, onClick: handler });
 		this.add(builder);
 		return builder
 	}
 	addSelectElement(e, _etiket, _value, _source, _kodAttr, _adiAttr) {
 		e = e || {};
-		let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let value = typeof e == 'object' ? e.value : _value;
-		let source = typeof e == 'object' ? e.source : _source;
-		let kodAttr = typeof e == 'object' ? e.kodAttr : _kodAttr;
-		let adiAttr = typeof e == 'object' ? e.adiAttr : _adiAttr;
+		let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let value = isObject(e) ? e.value : _value;
+		let source = isObject(e) ? e.source : _source;
+		let kodAttr = isObject(e) ? e.kodAttr : _kodAttr;
+		let adiAttr = isObject(e) ? e.adiAttr : _adiAttr;
 		let builder = new FBuilder_SelectElement({
 			id: id, etiket: etiket, value: value,
 			source: source, kodAttr: kodAttr, adiAttr: adiAttr
@@ -470,12 +470,12 @@ class FormBuilderBase extends CObject {
 	}
 	addRadioButton(e, _etiket, _value, _source, _kodAttr, _adiAttr) {
 		e = e || {};
-		let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let value = typeof e == 'object' ? e.value : _value;
-		let source = typeof e == 'object' ? e.source : _source;
-		let kodAttr = typeof e == 'object' ? e.kodAttr : _kodAttr;
-		let adiAttr = typeof e == 'object' ? e.adiAttr : _adiAttr;
+		let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let value = isObject(e) ? e.value : _value;
+		let source = isObject(e) ? e.source : _source;
+		let kodAttr = isObject(e) ? e.kodAttr : _kodAttr;
+		let adiAttr = isObject(e) ? e.adiAttr : _adiAttr;
 		let builder = new FBuilder_RadioButton({
 			id: id, etiket: etiket, value: value,
 			source: source, kodAttr: kodAttr, adiAttr: adiAttr
@@ -485,39 +485,39 @@ class FormBuilderBase extends CObject {
 	}
 	addColorInput(e, _etiket, _value) {
 		e = e || {};
-		let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let value = typeof e == 'object' ? e.value : _value;
+		let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let value = isObject(e) ? e.value : _value;
 		let builder = new FBuilder_Color({ id: id, etiket: etiket, value: value });
 		this.add(builder);
 		return builder
 	}
 	addModelKullan(e, _etiket, _value, _mfSinif, _source, _ozelQueryDuzenleBlock, _veriYukleninceBlock, _kodAttr, _adiAttr) {
-		e = e || {}; let id = typeof e == 'object' ? e.id : e;
-		let etiket = typeof e == 'object' ? e.etiket : _etiket;
-		let value = typeof e == 'object' ? e.value : _value;
-		let mfSinif = typeof e == 'object' ? e.mfSinif : _mfSinif;
-		let source = typeof e == 'object' ? e.source : _source;
-		let ozelQueryDuzenle = typeof e == 'object' ? e.ozelQueryDuzenle ?? e.ozelQueryDuzenleBlock : _ozelQueryDuzenleBlock;
-		let veriYuklenince = typeof e == 'object' ? e.veriYuklenince ?? e.onBindingComplete : _veriYukleninceBlock;
-		let kodAttr = typeof e == 'object' ? e.kodAttr : _kodAttr;
-		let adiAttr = typeof e == 'object' ? e.adiAttr : _adiAttr;
+		e = e || {}; let id = isObject(e) ? e.id : e;
+		let etiket = isObject(e) ? e.etiket : _etiket;
+		let value = isObject(e) ? e.value : _value;
+		let mfSinif = isObject(e) ? e.mfSinif : _mfSinif;
+		let source = isObject(e) ? e.source : _source;
+		let ozelQueryDuzenle = isObject(e) ? e.ozelQueryDuzenle ?? e.ozelQueryDuzenleBlock : _ozelQueryDuzenleBlock;
+		let veriYuklenince = isObject(e) ? e.veriYuklenince ?? e.onBindingComplete : _veriYukleninceBlock;
+		let kodAttr = isObject(e) ? e.kodAttr : _kodAttr;
+		let adiAttr = isObject(e) ? e.adiAttr : _adiAttr;
 		let builder = new FBuilder_ModelKullan({ id, etiket, value, ozelQueryDuzenle, veriYuklenince, mfSinif, source, kodAttr, adiAttr });
 		this.add(builder);
 		return builder
 	}
 	addGrid(e, _mfSinif, _source, _tabloKolonlari, _sabitmi, _kontrolcu, _ozelQueryDuzenleBlock, _veriYukleninceBlock, _kodAttr, _adiAttr, _veriDegisinceBlock) {
-		e = e || {}; let id = typeof e == 'object' ? e.id : e;
-		let mfSinif = typeof e == 'object' ? e.mfSinif : _mfSinif;
-		let source = typeof e == 'object' ? e.source : _source;
-		let tabloKolonlari = typeof e == 'object' ? e.tabloKolonlari : _tabloKolonlari;
-		let sabitmi = typeof e == 'object' ? e.sabitmi : _sabitmi;
-		let kontrolcu = typeof e == 'object' ? e.kontrolcu : _kontrolcu;
-		let ozelQueryDuzenle = typeof e == 'object' ? e.ozelQueryDuzenle ?? e.ozelQueryDuzenleBlock : _ozelQueryDuzenleBlock;
-		let veriYuklenince = typeof e == 'object' ? e.veriYuklenince ?? e.onBindingComplete : _veriYukleninceBlock;
-		let kodAttr = typeof e == 'object' ? e.kodAttr : _kodAttr;
-		let adiAttr = typeof e == 'object' ? e.adiAttr : _adiAttr;
-		let veriDegisince = typeof e == 'object' ? e.veriDegisince : _veriDegisinceBlock;
+		e = e || {}; let id = isObject(e) ? e.id : e;
+		let mfSinif = isObject(e) ? e.mfSinif : _mfSinif;
+		let source = isObject(e) ? e.source : _source;
+		let tabloKolonlari = isObject(e) ? e.tabloKolonlari : _tabloKolonlari;
+		let sabitmi = isObject(e) ? e.sabitmi : _sabitmi;
+		let kontrolcu = isObject(e) ? e.kontrolcu : _kontrolcu;
+		let ozelQueryDuzenle = isObject(e) ? e.ozelQueryDuzenle ?? e.ozelQueryDuzenleBlock : _ozelQueryDuzenleBlock;
+		let veriYuklenince = isObject(e) ? e.veriYuklenince ?? e.onBindingComplete : _veriYukleninceBlock;
+		let kodAttr = isObject(e) ? e.kodAttr : _kodAttr;
+		let adiAttr = isObject(e) ? e.adiAttr : _adiAttr;
+		let veriDegisince = isObject(e) ? e.veriDegisince : _veriDegisinceBlock;
 		let builder = new FBuilder_Grid({ id, mfSinif, source, tabloKolonlari, sabitmi, kontrolcu, ozelQueryDuzenle, veriYuklenince, veriDegisince, kodAttr, adiAttr });
 		this.add(builder); return builder
 	}
@@ -538,14 +538,14 @@ class FormBuilderBase extends CObject {
 	}*/
 	addIslemTuslari(e, _tip, _id2Handler, _ekButonlarIlk, _ekButonlarSon, _butonlarDuzenleyici, _sagButonlar, _prependFlag) {
 		e ??= {}
-		let id = (typeof e == 'object' ? e.id : e) ?? 'islemTuslari'
-		let tip = typeof e == 'object' ? e.tip : _tip
-		let id2Handler = typeof e == 'object' ? e.id2Handler : _id2Handler
-		let ekButonlarIlk = typeof e == 'object' ? e.ekButonlarIlk : _ekButonlarIlk
-		let ekButonlarSon = typeof e == 'object' ? e.ekButonlarSon : _ekButonlarSon
-		let butonlarDuzenleyici = typeof e == 'object' ? e.butonlarDuzenleyici : _butonlarDuzenleyici
-		let sagButonlar = typeof e == 'object' ? e.sagButonlar : _sagButonlar
-		let prependFlag = typeof e == 'object' ? e.prependFlag : _prependFlag
+		let id = (isObject(e) ? e.id : e) ?? 'islemTuslari'
+		let tip = isObject(e) ? e.tip : _tip
+		let id2Handler = isObject(e) ? e.id2Handler : _id2Handler
+		let ekButonlarIlk = isObject(e) ? e.ekButonlarIlk : _ekButonlarIlk
+		let ekButonlarSon = isObject(e) ? e.ekButonlarSon : _ekButonlarSon
+		let butonlarDuzenleyici = isObject(e) ? e.butonlarDuzenleyici : _butonlarDuzenleyici
+		let sagButonlar = isObject(e) ? e.sagButonlar : _sagButonlar
+		let prependFlag = isObject(e) ? e.prependFlag : _prependFlag
 		let builder = new FBuilder_IslemTuslari({
 			id, tip, id2Handler,  ekButonlarIlk, ekButonlarSon,
 			butonlarDuzenleyici, sagButonlar, prependFlag
@@ -555,28 +555,29 @@ class FormBuilderBase extends CObject {
 	}
 	addAccordion(e, _etiket, _panels, _coklu, _defaultCollapsed, _userData) {
 	    e ??= {}
-	    let id = (typeof e == 'object' ? e.id : e) ?? 'accordion'
-	    let etiket = typeof e == 'object' ? e.etiket : _etiket
-	    let panels = typeof e == 'object' ? e.panels : _panels
-	    let coklu = typeof e == 'object' ? e.coklu ?? e.coklumu : _coklu
-	    let defaultCollapsed = typeof e == 'object' ? e.defaultCollapsed : _defaultCollapsed
-		let userData = typeof e == 'object' ? e.userData : _userData
+	    let id = (isObject(e) ? e.id : e) ?? 'accordion'
+	    let etiket = isObject(e) ? e.etiket : _etiket
+	    let panels = isObject(e) ? e.panels : _panels
+	    let coklu = isObject(e) ? e.coklu ?? e.coklumu : _coklu
+	    let defaultCollapsed = isObject(e) ? e.defaultCollapsed : _defaultCollapsed
+		let userData = isObject(e) ? e.userData : _userData
 	    let builder = new FBuilder_AccordionPart({ id, etiket, panels, coklu, defaultCollapsed, userData })
 	    this.add(builder)
 	    return builder
 	}
-	addSimpleComboBox(e, _etiket, _placeholder, _value, _source, _autoClear, _delay, _minLength, _name, _userData) {
+	addSimpleComboBox(e, _etiket, _placeholder, _value, _source, _autoClear, _delay, _minLength, _disabled, _name, _userData) {
 	    e ??= {}
-	    let id = typeof e === 'object' ? e.id : e
-	    let etiket = typeof e === 'object' ? e.etiket : _etiket
-	    let placeholder = typeof e === 'object' ? (e.placeholder ?? e.placeHolder) : _placeholder
-	    let value = typeof e === 'object' ? e.value : _value
-	    let source = typeof e === 'object' ? e.source : _source
-	    let autoClear = typeof e === 'object' ? e.autoClear : _autoClear
-	    let comboBox_delay = typeof e === 'object' ? e.comboBox_delay : _delay
-	    let comboBox_minLength = typeof e === 'object' ? e.comboBox_minLength : _minLength
-	    let name = typeof e === 'object' ? e.name : _name
-		let userData = typeof e == 'object' ? e.userData : _userData
+	    let id = isObject(e) ? e.id : e
+	    let etiket = isObject(e) ? e.etiket : _etiket
+	    let placeholder = isObject(e) ? (e.placeholder ?? e.placeHolder) : _placeholder
+	    let value = isObject(e) ? e.value : _value
+	    let source = isObject(e) ? e.source : _source
+	    let autoClear = isObject(e) ? e.autoClear : _autoClear
+	    let comboBox_delay = isObject(e) ? e.delay : _delay
+	    let comboBox_minLength = isObject(e) ? e.minLength : _minLength
+		let disabled = isObject(e) ? e.disabled : _disabled
+	    let name = isObject(e) ? e.name : _name
+		let userData = isObject(e) ? e.userData : _userData
 		let builder = new FBuilder_SimpleComboBox({
 	        id, etiket, placeholder,
 			value, source, autoClear,

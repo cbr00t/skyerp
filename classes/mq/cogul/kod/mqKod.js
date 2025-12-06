@@ -68,10 +68,23 @@ class MQKod extends MQCogul {
 				)
 		}
 	}
-	static standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e); let {liste} = e; if (this.kodKullanilirmi) { liste.push(this.kodSaha) } }
+	static standartGorunumListesiDuzenle({ liste }) {
+		super.standartGorunumListesiDuzenle(...arguments)
+		if (this.kodKullanilirmi)
+			liste.push(this.kodSaha)
+	}
 	static orjBaslikListesiDuzenle({ liste, mfSinif }) {
 		let e = arguments[0]; super.orjBaslikListesiDuzenle(e)
-		let cellsRenderer = e.cellsRenderer = (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
+		mfSinif ??= this; let {kodEtiket, kodKullanilirmi, mqGUIDmi, kodSaha, adiSaha} = mfSinif
+		kodEtiket ||= (mqGUIDmi ? 'ID' : 'Kod')
+		let mini = isMiniDevice()
+		let cellsRenderer = e.cellsRenderer = (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => {
+			if (belirtec == adiSaha && mini && kodKullanilirmi && !mqGUIDmi) {
+				html = changeTagContent(html, (
+					`<span class="asil">${value}</span> ` +
+					`<span class="ek-bilgi bold royalblue float-right" style="padding-left: 10px">${rec[kodSaha]}</span>`
+				))
+			}
 			let _osColor = rec?.oscolor, htmlColor = _osColor ? os2HTMLColor(_osColor) : null
 			if (htmlColor) {
 				let textColor = getContrastedColor(htmlColor)
@@ -79,17 +92,13 @@ class MQKod extends MQCogul {
 			}
 			return html
 		}
-		mfSinif ??= this
-		let {kodEtiket, kodKullanilirmi, mqGUIDmi} = mfSinif
-		kodEtiket ||= (mqGUIDmi ? 'ID' : 'Kod')
-		let mini = isMiniDevice()
 		liste.push(
 			new GridKolon({
 				belirtec: mfSinif.kodSaha,
 				text: kodEtiket, cellsRenderer,
 				minWidth: 100,
 				width: mini ? 150 : mqGUIDmi ? 320 : 250,
-				hidden: !(kodKullanilirmi || mqGUIDmi),
+				hidden: mini || !(kodKullanilirmi || mqGUIDmi),
 				sql: kodKullanilirmi ? undefined : false
 			})
 		)
@@ -152,7 +161,6 @@ class MQKA extends MQKod {
 	static get adiKullanilirmi() { return true } static get adiEtiket() { return 'Açıklama' }
 	static get adiSaha() { return this.adiKullanilirmi ? 'aciklama' : this.kodSaha }
 	
-	constructor(e) { e = e || {}; super(e) }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); let {pTanim} = e;
 		if (this.adiKullanilirmi) { $.extend(pTanim, { aciklama: new PInstStr(this.adiSaha) }) }
@@ -187,11 +195,11 @@ class MQKA extends MQKod {
 		if (this.adiKullanilirmi)
 			liste.push(this.adiSaha)
 	}
-	static orjBaslikListesiDuzenle({ liste, mfSinif, cellsRenderer }) {
-		super.orjBaslikListesiDuzenle(...arguments)
+	static orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e)
+		let {liste, mfSinif, cellsRenderer} = e
 		mfSinif ??= this
-		let {adiKullanilirmi, adiSaha} = mfSinif
-		let mini = isMiniDevice()
+		let {adiKullanilirmi, adiSaha} = mfSinif, mini = isMiniDevice()
 		if (adiKullanilirmi) {
 			let colDef_adi = liste.find(colDef => colDef.belirtec == adiSaha)
 			if (!colDef_adi) {

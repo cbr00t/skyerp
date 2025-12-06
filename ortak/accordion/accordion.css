@@ -1,33 +1,35 @@
 .accordion.part {
-	--item-pad-x: 4px; --item-pad-y: 6px; --header-height: 46px;
+	--item-pad-x: 5px; --item-pad-y: 5px;
+	--acc-header-height: 46px;
 	width: calc(var(--full) - var(--item-pad-x) * 1);
-	height: calc(var(--full) - var(--item-pad-y) * 1)
+	height: calc(var(--full) - var(--item-pad-y) * 1);
 }
 .accordion.part .accordion.item {
-	width: calc(var(--full) - (var(--item-pad-x) * 1));
+	width: var(--full);
 	margin: var(--item-pad-y) var(--item-pad-x);
 	border-radius: 10px; border: 3px solid rgba(0, 0, 0, .10);
-	box-sizing: content-box !important;
+	box-sizing: border-box !important;
 	transition: 200ms ease
+}
+.accordion.part .accordion.item.expanded > .header > .collapsed-content,
+	.accordion.part .accordion.item:not(.expanded) > .content { display: none }
+.accordion.part .accordion > .header {
+	font-size: 110%; user-select: none; cursor: pointer;
+	height: var(--acc-header-height); padding: 0 14px;
+	border: 1px solid #ccc; border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+	background: #f7f7f7; align-items: center
+}
+.accordion.part .accordion.item:not(.expanded) > .header { background: #cecece }
+.accordion.part .accordion.item.expanded { }
+.accordion.part .accordion.item.expanded:not(.disabled) > .header {
+	background: #8eaafc; /* maybe gradient with bump */
+	border-bottom: 1px solid rgba(0, 0, 0, 0.35)
 }
 .accordion.part .accordion.item.disabled { opacity: .4; pointer-events: none }
 .accordion.part .accordion.item:hover:not(.disabled) {
 	box-shadow: 0 3px 10px rgba(0, 200, 255, .12);
 	border: 3px solid rgba(0, 0, 200, .20);
 	transform: translateY(-1px)
-}
-.accordion.part .accordion.item.expanded > .header > .collapsed-content,
-	.accordion.part .accordion.item:not(.expanded) > .content { display: none }
-.accordion.part .accordion > .header {
-	font-size: 110%; user-select: none; cursor: pointer;
-	height: var(--header-height); padding: 0 14px;
-	border: 1px solid #ccc; border-bottom: 1px solid rgba(0, 0, 0, 0.15);
-	background: #f7f7f7; align-items: center
-}
-.accordion.part .accordion.item:not(.expanded) > .header { background: #cecece }
-.accordion.part .accordion.item.expanded:not(.disabled) > .header {
-	background: #8eaafc; /* maybe gradient with bump */
-	border-bottom: 1px solid rgba(0, 0, 0, 0.35)
 }
 .accordion.part .accordion.item:hover:not(.disabled) > .header {
 	/*background: #7d9df9;
@@ -38,12 +40,18 @@
 	overflow: hidden; text-overflow: ellipsis
 }
 .accordion.part .accordion.item > .header > .collapsed-content {
-	font-size: 85%; color: #777;
+	font-size: 90%; color: #777;
 	margin-left: auto; white-space: nowrap;
 	overflow-y: auto !important
 }
 .accordion.part .accordion > .content {
-	height: calc(var(--full) - (var(--header-height) + 2px));
-	margin-bottom: 30px; padding: 10px;
-	border-top: 2px solid rgba(0 200, 255, .8)
+	height: calc(var(--full) - (var(--acc-header-height) + 2px));
+	padding: 8px;
+	border-top: 2px solid rgba(0 200, 255, .8);
+	overflow-y: auto !important
+}
+
+@media (max-width: 1000px) {
+	.accordion.part { --acc-header-height: 43px }
+	.accordion.part .accordion.item > .header { line-height: 15px }
 }

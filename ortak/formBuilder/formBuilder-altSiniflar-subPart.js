@@ -1040,23 +1040,6 @@ class FBuilder_AccordionPart extends FBuilder_DivOrtak {
 		$.extend(this, { panels, coklu, defaultCollapsed, events, userData })
 		this.etiketGosterim_yok()
     }
-	// PANEL EKLEME
-    addPanel(item) {
-        let {panels, part} = this
-        // Forward to runtime Part if already built
-        if (part && !part.isDestroyed)
-            part.add(item)
-		else
-	        panels.push(item)
-        return this
-    }
-    // DSL setters
-    coklu(value = true) { this.coklumu = !!value; return this }
-    tekli(value = true) { this.coklumu = !value; return this }
-    defaultCollapsed(value = true) { this.isDefaultCollapsed = !!value; return this }
-    defaultExpanded(value) { this.isDefaultCollapsed = !value; return this }
-    setEvents(value) { this.events = value; return this }
-    setUserData(value) { this.userData = value; return this }
 	afterBuild(e) {
 		super.afterBuild(e)
 		let {input} = this
@@ -1076,6 +1059,33 @@ class FBuilder_AccordionPart extends FBuilder_DivOrtak {
                 this.input = part.layout
         }
     }
+	// PANEL EKLEME
+    addPanel(item) {
+        let {panels, part} = this
+        // Forward to runtime Part if already built
+        if (part && !part.isDestroyed)
+            part.add(item)
+		else
+	        panels.push(item)
+        return this
+    }
+    // DSL setters
+    coklu(value = true) { this.coklumu = !!value; return this }
+    tekli(value = true) { this.coklumu = !value; return this }
+    defaultCollapsed(value = true) { this.isDefaultCollapsed = !!value; return this }
+    defaultExpanded(value) { this.isDefaultCollapsed = !value; return this }
+    setEvents(value) { this.events = value; return this }
+    setUserData(value) { this.userData = value; return this }
+	on(name, handler) { (this.getEvents()[name] ??= []).push(handler); this.part?.on(name, handler); return this }
+	off(name) { delete this.getEvents()[name]; this.part?.off(name, handler); return this }
+	signal(name) { this.part?.signal(name); return this }
+	onStateChange(handler) { return this.on('stateChange', handler) }
+	onExpand(handler) { return this.on('expand', handler) }
+	onCollapse(handler) { return this.on('collapse', handler) }
+	onFocus(handler) { return this.on('focus', handler) }
+	onBlur(handler) { return this.on('blur', handler) }
+    setEvents(v) { this.events = v; this.part?.setEvents(v); return this }
+	getEvents() { return this.events ??= {} }
 }
 class FBuilder_SimpleComboBox extends FBuilder_TextInput {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -1087,14 +1097,14 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
 			mfSinif, kodSaha, adiSaha,
 			autoClear: autoClearFlag = e.autoClearFlag,
 			delay, minLength, maxRows,
-	        userData, events
+	        disabled, userData, events
 		} = e
         $.extend(this, {
             name, etiket, placeholder,
 			value, _source, listSource,
 			mfSinif, kodSaha, adiSaha,
 			delay, minLength, maxRows, autoClearFlag,
-			events, userData
+			disabled, events, userData
         })
         // this.etiketGosterim_normal()
     }
@@ -1110,7 +1120,7 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
 			let keys = [
 				'id', 'name', 'etiket', 'listSource',
 				'mfSinif', 'kodSaha', 'adiSaha', 'delay', 'minLength', 'maxRows',
-				'userData', 'events'
+				'disabled', 'userData', 'events'
 			]
 			for (let k of keys) {
 				let v = this[k]
@@ -1144,6 +1154,9 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
     setMaxRows(v) { this.maxRows = v; this.part?.setMaxRows(v); return this }
 	autoClear() { this.autoClearFlag = true; this.part?.autoClear(); return this }
 	noAutoClear() { this.autoClearFlag = false; this.part?.noAutoClear(); return this }
+    setUserData(v) { this.userData = v; this.part?.setUserData(v); return this }
+	enable() { this.disabled = false; this.part?.enable(); return this }
+	disable() { this.disabled = true; this.part?.disable(); return this }
 	on(name, handler) { (this.getEvents()[name] ??= []).push(handler); this.part?.on(name, handler); return this }
 	off(name) { delete this.getEvents()[name]; this.part?.off(name, handler); return this }
 	signal(name) { this.part?.signal(name); return this }
@@ -1151,7 +1164,6 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
 	degisince(handler) { return this.onChange(handler) }
 	onFocus(handler) { return this.on('focus', handler) }
 	onBlur(handler) { return this.on('blur', handler) }
-    setUserData(v) { this.userData = v; this.part?.setUserData(v); return this }
     setEvents(v) { this.events = v; this.part?.setEvents(v); return this }
 	getEvents() { return this.events ??= {} }
 }

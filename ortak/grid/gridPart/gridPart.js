@@ -112,11 +112,9 @@ class GridPart extends Part {
 		let cache = cacheFlag, async = asyncFlag, _theme = theme;	/*let _theme = theme == 'metro' ? 'material' : theme;*/
 		let args = {
 			theme: _theme, localization: localizationObj, width: '99.9%', height: '99.6%', editMode: 'selectedcell', sortMode: 'many', autoHeight: false,
-			autoRowHeight: false, rowsHeight: mini ? 50 : 35,
 			autoShowLoadElement: true, altRows: true, enableTooltips: true,
-			columnsHeight: mini ? 20 : 25,
-			columnsMenuWidth: 50, columnsResize: true,
-			columnsReorder: !mini, columnsMenu: true,
+			columnsMenuWidth: 60, columnsResize: true, columnsReorder: !mini, columnsMenu: true,
+			autoRowHeight: false, rowsHeight: mini ? 55 : 40, columnsHeight: mini ? 25 : 30,
 			autoShowColumnsMenuButton: true, sortable: true, /* compact: false, */ filterable: true,
 			filterRowHeight: 40, filterMode: 'default', showFilterRow: false, groupable: true, columnsresize: true,
 			showGroupsHeader: false, groupIndentWidth: 30, groupsHeaderHeight: 33, groupsExpandedByDefault: false,

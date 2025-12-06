@@ -37,29 +37,38 @@ class SimpleComboBoxPart extends Part {
 		return item?.[kodSaha]
 	}
 	set value(value) {
-		let {item, kodSaha} = this
-		item ??= {}
-		item[kodSaha] = value
-		this.item = item
+		let {kodSaha} = this
+		this.item = { [kodSaha]: value }
 	}
 	get aciklama() {
 		let {item, adiSaha} = this
 		return item?.[adiSaha]
 	}
 	set aciklama(value) {
-		let {item, adiSaha} = this
-		item ??= {}
-		item[adiSaha] = value
-		this.item = item
+		let {adiSaha} = this
+		this.item = { [adiSaha]: value }
 	}
 	get placeholder() {
 		let {input, _placeholder} = this
 		return input?.length ? input.attr('placeholder') : _placeholder
 	}
 	set placeholder(value) {
-		let {layout} = this
+		let {input} = this
 		this._placeholder = value
-		layout?.attr('placeholder', value)
+		input?.attr('placeholder', value)
+	}
+	get disabled() {
+		let {input, _disabled} = this
+		return input?.length ? input.attr('readonly') : _disabled
+	}
+	set disabled(value) {
+		let {input, layout} = this
+		this._disabled = value
+		input?.attr('readonly', value ? '' : null)
+		if (layout?.length) {
+			let btn = layout.children('button#liste')
+			btn[value ? 'addClass' : 'removeClass']('jqx-hidden')
+		}
 	}
 	get inputValue() {
 		let {value: kod, aciklama} = this
@@ -80,21 +89,21 @@ class SimpleComboBoxPart extends Part {
 			id, name, item, value, placeholder, mfSinif,
 			autoClear: autoClearFlag = e.autoClear,
 			source, listSource, delay, minLength, maxRows, renderer,
-			kodsuz: kodsuzmu = e.kodsuz,
-			kodSaha, adiSaha, userData,
-			events, queue
+			kodsuz: kodsuzmu = e.kodsuz, kodSaha, adiSaha,
+			disabled, userData, events, queue
 		} = e
 		autoClearFlag ??= true; kodsuzmu ??= false
 		kodSaha ??= mfSinif?.kodSaha || null
 		adiSaha ??= mfSinif?.adiSaha || null
 		delay ??= 500; maxRows ??= 10; minLength ??= 1
+		disabled ??= false
 		events ??= {}; queue ??= []
 		$.extend(this, {
 			id, name, item, value, placeholder,
 			mfSinif, autoClearFlag, source, listSource,
 			delay, minLength, maxRows, renderer,
-			kodsuzmu, kodSaha, adiSaha, userData,
-			events, queue
+			kodsuzmu, kodSaha, adiSaha, disabled,
+			userData, events, queue
 		})
 	}
 	runDevam(e = {}) {
@@ -296,6 +305,8 @@ class SimpleComboBoxPart extends Part {
 		cls.listeEkraniAc({ args })
 	}
 	_onSourceReq(e) {
+		if (this.disabled)
+			return null
 		let sender = this, {kodsuzmu: kodsuz, mfSinif, kodSaha, adiSaha, maxRows: maxRow} = this
 		let {source, item, value: kod, aciklama, renderedInputText: text} = this
 		if (!source && mfSinif) {
@@ -386,32 +397,68 @@ class SimpleComboBoxPart extends Part {
 	setDelay(value) { this.delay = value; return this }
 	setMinLength(value) { this.minLength = value; return this }              // autocomplete search trigger - minLength
 	setMaxRows(value) { this.maxRows = value; return this }                  // autocomplete maxRows
+	enable() { this.disabled = false; return this }
+	disable() { this.disabled = true; return this }
 	getLayout() { return $(`<div><input type="text"></div>`) }
 }
 
 
 /*
 let rfb = new RootFormBuilder().asWindow('test')
+	.addStyle(`$elementCSS { overflow-y: auto !important }`)
+let fbd_islemTuslari = rfb.addIslemTuslari(islemTuslari)
+	.addStyle_fullWH(130, 50).addCSS('absolute')
+	.addStyle(`$elementCSS { right: 10px }`)
+	.setTip('tamamVazgec')
+	.setId2Handler({
+		tamam: e => eConfirm('tamam istendi'),
+		vazgec: e => rfb.part.close()
+	})
 let fbd_acc = rfb.addAccordion()
+	.addStyle_fullWH()
+	//.addStyle(`$elementCSS { margin-top: -50px }`)
+fbd_acc.addPanel({ title: 'Başlık', collapsed: true })
+fbd_acc.addPanel({ title: 'Dip', collapsed: true })
 fbd_acc.addPanel({
 	title: 'Bilgi Girişi', expanded: true,
 	collapsedContent: ({ item: { part } = {} }) =>
-		`<div class="bold royalblue fs-70">${part?.currentPlaceholder ?? ''}</div>`,
-	content: ({ item, layout, input }) => {
-		let rfb = new RootFormBuilder().setLayout(layout, input)
-		let fbd = rfb.addSimpleComboBox('barkod', 'Barkod', 'Barkod giriniz')
-			.setSource(({ term, tokens }) => tokens)
-			.degisince(e => console.info(e))
-			.addStyle_wh(400, 60)
-		rfb.run()
-		item.part = fbd.part
+		`<div class="bold royalblue fs-70">${part?.renderedText ?? ''}</div>`,
+	content: ({ item, layout }) => {
+		let rfb = new RootFormBuilder().setParent(layout)
+			.addStyle_wh(`calc(var(--full) - 10px)`)
+		let fbd_barkod = rfb.addSimpleComboBox('barkod', '', 'Barkod giriniz')
+			.etiketGosterim_yok()
+			// .setSource(({ term, tokens }) => tokens)
+			.setMFSinif(MQTabStok)
+			.degisince(e => {
+				console.info(e)
+				let {type, events} = e
+				if (type == 'batch') {
+					let {id2Builder: { grid: { part: gridPart } } } = fbd_barkod.parentBuilder
+					let {gridWidget: w} = gridPart
+					for (let {item: { kod, aciklama }} of events)
+						w.addrow(null, { text: aciklama || kod }, 'first')
+				}
+			})
+			.addStyle_fullWH(null, 50)
+			.addStyle(`$elementCSS > input { max-width: 800px !important }`)
+		let fbd_grid = rfb.addGridliGiris('grid')
+			.setTabloKolonlari([ new GridKolon({ belirtec: 'text', text: ' ' }) ])
+			.setSource(e => [ ])
+			.addStyle_fullWH(null)
+			.addCSS('dock-bottom')
+		setTimeout(() => {
+			rfb.run()
+			item.part = fbd_barkod.part
+		}, 10)
 		// return rfb.layout
 	}
 })
+fbd_acc.onStateChange(e => console.info(e.action, e))
 rfb.run()
 // let part = new SimpleComboBoxPart({ content })
-// part.setSource(({ sender, layout, input, value, term, tokens }) => tokens)
+// part.setSource(({ sender, layout, value, term, tokens }) => tokens)
 // part.run()
-// let {input} = part
+// let {layout: input} = part
 // input.width(400); input.height(60)
 */

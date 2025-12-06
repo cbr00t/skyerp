@@ -73,7 +73,7 @@ class AccordionPart extends Part {
 			layout.find('.accordion.item').remove()
 			panels.forEach(_ => _._rendered = false)
 		}
-		let {id2Elm} = this
+		let {id2Elm, defaultCollapsed} = this
 		for (let item of panels) {
 			let id = item.id ||= newGUID()
 			let elm = id2Elm[id], hasElm = elm?.length
@@ -118,21 +118,28 @@ class AccordionPart extends Part {
 				(elmCollapsedContent = $(`<div class="collapsed-content"/>`)).appendTo(elmHeader)
 			elmCollapsedContent.children().remove()
 			if (collapsed) {
-				let targetContent = this.evalContent(item, item[targetKey], elmCollapsedContent) || $('<div/>')
+				let targetContent = await this.evalContent(item, item[targetKey], elmCollapsedContent) || $('<div/>')
 				if (targetContent && !targetContent.parent()?.length)
 					targetContent.appendTo(elmCollapsedContent)
 			}
 			else {
 				let elmContent = elm.children('.content')
 				if (!elmContent.children().length) {
-					let targetContent = this.evalContent(item, item[targetKey], elmContent) || $('<div/>')
+					let targetContent = await this.evalContent(item, item[targetKey], elmContent) || $('<div/>')
 					if (targetContent && targetContent.parent()?.[0] != elmContent[0]) {
 						if (targetContent.parent()?.length)
 							targetContent.detach()
 						targetContent.appendTo(elmContent)
 					}
 				}
+				// if (elmContent?.length)
+				// 	elmContent.find('.dock-bottom').removeClass('dock-bottom')
 			}
+			/*if (collapsed != defaultCollapsed) {
+				let action = collapsed ? 'collapse' : 'expand'
+				setTimeout(() => this.signalStateChange({ action, item }, true), 1)
+			}*/
+				
 		}
 		this._lastPanelCount = panels.length
 	}
@@ -205,7 +212,7 @@ class AccordionPart extends Part {
 		this.changeState(idOrIndex, false)
 		return this
 	}
-	changeState(e, collapsed) {
+	changeState(e, collapsed, internal) {
 		if (collapsed == null)
 			return false
 		let {panels, id2Panel} = this
@@ -217,37 +224,44 @@ class AccordionPart extends Part {
 		item.collapsed = collapsed
 		{
 			let action = collapsed ? 'collapse' : 'expand'
-			this.signalStateChange({ action, item })
+			this.signalStateChange({ action, item }, internal)
 		}
 		return this
 	}
-	signalStateChange(e) { return this.signal('stateChange', e) }
+	signalStateChange(e, internal) { return this.signal('stateChange', e, internal) }
 	signalExpanded(e) { return this.signal('stateChange', { ...e, action: 'expand' }) }
 	signalCollapsed(e) { return this.signal('stateChange', { ...e, action: 'collapse' }) }
-	async signal(name, args) {
-		switch (name) {
-			case 'stateChange': {
-				let {panels} = this, {item} = args ?? {}
-				if (item && !this.coklumu) {
-					// çoklu değilse, diğer paneller collapsed duruma geçmesi için render() öncesi işaretlenir
-					for (let _ of panels) {
-						if (_ != item)
-							_.collapsed = true
+	async signal(name, args, internal) {
+		if (!internal) {
+			switch (name) {
+				case 'stateChange': {
+					let {panels} = this, {item} = args ?? {}
+					if (item && !this.coklumu) {
+						// çoklu değilse, diğer paneller collapsed duruma geçmesi için render() öncesi işaretlenir
+						for (let _ of panels) {
+							if (_ != item)
+								_.collapsed = true
+						}
 					}
-				}
-				this.render()
-				break
-			}
-			case 'change': {
-				if (this._initialized)
 					this.render()
-				break
+					break
+				}
+				case 'change': {
+					if (this._initialized)
+						this.render()
+					break
+				}
 			}
 		}
 		let {events} = this
 		let handlers = events[name] ?? []
 		for (let handler of handlers)
-			await handler?.call?.(this, { sender: this, ...args })
+			handler?.call?.(this, { sender: this, ...args })
+		if (name == 'stateChange') {
+			let {action} = args ?? {}
+			if (action)
+				this.signal(action, args, internal)
+		}
 		return this
 	}
 	on(name, handler) {
@@ -291,5 +305,7 @@ class AccordionPart extends Part {
 	onChange(handler) { return this.on('change', handler) }
 	signalChange(e) { return this.signal('change', e) }
 	onStateChange(handler) { return this.on('stateChange', handler) }
+	onExpand(handler) { return this.on('expand', handler) }
+	onCollapse(handler) { return this.on('collapse', handler) }
 	getLayout() { return $('<div/>') }
 }

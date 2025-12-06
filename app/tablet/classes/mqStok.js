@@ -65,24 +65,32 @@ class MQTabStok extends MQKAOrtak {
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
 		liste.push(
-			new GridKolon({ belirtec: 'kisaadi', text: 'Kısa Adı', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 5 }),
-			new GridKolon({ belirtec: 'brm2', text: 'Br2', genislikCh: 5 }),
-			new GridKolon({ belirtec: 'brmorani', text: 'Br.Or.', genislikCh: 8 }).tipNumerik(),
-			new GridKolon({ belirtec: 'grupkod', text: 'Grup', genislikCh: 15 }),
-			new GridKolon({ belirtec: 'grupadi', text: 'Grup Adı', genislikCh: 25, sql: 'grp.aciklama' }),
-			new GridKolon({ belirtec: 'satkdvorani', text: 'Sat.Kdv%', genislikCh: 8 }).tipNumerik(),
-			new GridKolon({ belirtec: 'almkdvorani', text: 'Alm.Kdv%', genislikCh: 8 }).tipNumerik(),
-			new GridKolon({ belirtec: 'smarkakod', text: 'Marka', genislikCh: 15 }),
-			new GridKolon({ belirtec: 'smarkaadi', text: 'Marka Adı', genislikCh: 25, sql: 'smar.aciklama' }),
-			new GridKolon({ belirtec: 'tartilabilir', text: 'Tartılabilir?', genislikCh: 10 }).tipBool(),
-			new GridKolon({ belirtec: 'tartireferans', text: 'Tartı Ref.', genislikCh: 15 })
+			...this.getKAKolonlar(
+				new GridKolon({ belirtec: 'grupkod', text: 'Grup', genislikCh: 15 }),
+				new GridKolon({ belirtec: 'grupadi', text: 'Grup Adı', genislikCh: 25, sql: 'grp.aciklama' })
+			),
+			new GridKolon({ belirtec: 'satkdvorani', text: 'Sat.Kdv%', genislikCh: 8 }).tipNumerik()
 			/*new GridKolon({ belirtec: 'calismadurumu', text: 'Aktif?', genislikCh: 10, filterType: 'checkedlist' }).tipBool(),
 			new GridKolon({ belirtec: 'satilamazfl', text: 'SatılaMAz?', genislikCh: 10, filterType: 'checkedlist' }).tipBool()*/
 		)
 		for (let i = 1; i <= this.satFiyatSayi; i++)
 			liste.push(new GridKolon({ belirtec: `satfiyat${i}`, text: `S.Fiyat${i}`, genislikCh: 11 }).tipDecimal_fiyat())
-		liste.push(new GridKolon({ belirtec: 'almfiyat', text: 'Alm.Fiyat', genislikCh: 11 }).tipDecimal_fiyat())
+		liste.push(
+			new GridKolon({ belirtec: 'almkdvorani', text: 'Alm.Kdv%', genislikCh: 8 }).tipNumerik(),
+			new GridKolon({ belirtec: 'almfiyat', text: 'Alm.Fiyat', genislikCh: 11 }).tipDecimal_fiyat(),
+			new GridKolon({ belirtec: 'smarkakod', text: 'Marka', genislikCh: 15 }),
+			new GridKolon({ belirtec: 'smarkaadi', text: 'Marka Adı', genislikCh: 25, sql: 'smar.aciklama' }),
+			new GridKolon({ belirtec: 'tartireferans', text: 'Tartı Ref.', genislikCh: 15 })
+		)
+	}
+	static orjBaslikListesi_groupsDuzenle({ liste }) {
+		super.orjBaslikListesi_groupsDuzenle(liste)
+		liste.push('grupadi')
+	}
+	static gridVeriYuklendi({ sender: gridPart, sender: { gridWidget } }) {
+		super.gridVeriYuklendi(...arguments)
+		gridWidget.hidecolumn('grupadi')
 	}
 	static async loadServerDataDogrudan({ offlineMode, offlineRequest } = {}) {
 		if (offlineRequest) {
@@ -125,6 +133,7 @@ class MQTabStok extends MQKAOrtak {
 					)
 				}
 				sahalar.add(getKdvOranClauseVeAlias('TAH', 'sat'), getKdvOranClauseVeAlias('IND', 'alm'))
+				sahalar.addWithAlias(alias, 'kisaadi', 'brm2', 'brmorani', 'tartilabilir')
 			}
 		}
 	}

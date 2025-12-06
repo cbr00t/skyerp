@@ -20,7 +20,10 @@ class MQMasterOrtakBase extends MQCogul {
 	}
 	static orjBaslikListesi_argsDuzenle({ args, sender }) {
 		super.orjBaslikListesi_argsDuzenle(...arguments)
-		$.extend(args, { showFilterRow: false, groupsExpandedByDefault: true, rowsHeight: 40, groupIndentWidth: 30 })
+		$.extend(args, {
+			showFilterRow: false, groupsExpandedByDefault: true
+			// groupIndentWidth: 30
+		})
 	}
 	static listeEkrani_init(e) {
 		super.listeEkrani_init(e)

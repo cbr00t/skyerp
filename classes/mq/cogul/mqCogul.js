@@ -879,6 +879,31 @@ class MQCogul extends MQYapi {
 	static tazeleVeYakala(e) { let part = e.part ?? e.builder?.rootPart; part.tazele() }
 	static getGridRecs(e) { let gridPart = e.gridPart ?? e.part ?? e.builder.rootPart ?? e.sender; return e.recs ?? (e.rec ? [e.rec] : null) ?? gridPart?.selectedRecs }
 	static getGridRec(e) { return (this.getGridRecs(e) || [])[0] }
+	static getKAKolonlar(colKod, colAdi) {
+		let result = [colKod, colAdi].filter(_ => !!_)
+		if (result.length < 2)
+			return result
+		if (!isMiniDevice())
+			return result
+		let {belirtec: kodSaha} = colKod ?? {}
+		let {belirtec: adiSaha} = colAdi ?? {}
+		colKod?.hidden()
+		if (colAdi) {
+			let {cellsRenderer: saved} = colAdi
+			colAdi.setCellsRenderer((colDef, rowIndex, belirtec, value, html, jqxCol, rec) => {
+				let kod = rec[kodSaha]
+				if (kod) {
+					html = changeTagContent(html, (
+						`<span class="asil">${value}</span> ` +
+						`<span class="ek-bilgi bold royalblue float-right" style="padding-left: 10px">${rec[kodSaha]}</span>`
+					))
+				}
+				html = saved?.call(this, colDef, rowIndex, belirtec, value, html, jqxCol, rec)
+				return html
+			})
+		}
+		return result
+	}
 	static forAltYapiClassesDo(e, ..._args) {
 		e = e || {}; let blockOrSelector = typeof e == 'object' ? (e.selector ?? e.block ?? e.action) : e, results = [];
 		let selector = typeof blockOrSelector == 'string' ? blockOrSelector : null;
