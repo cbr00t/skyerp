@@ -168,12 +168,22 @@ class AccordionPart extends Part {
 						})
 					}
 				}
-				setTimeout(() =>
-					elmContent.css(
+				setTimeout(() => {
+					let safeZone = 20
+					let {length: N} = layout.children('.accordion.item')
+					let H = layout.height()
+					let headerH = parseInt(layout.css('--acc-header-height'))                   // getComputedStyle(layout[0]).getPropertyValue('--acc-header-height')
+					let itemPadY = parseInt(layout.css('--item-pad-y'))                         // getComputedStyle(layout[0]).getPropertyValue('--item-pad-y')
+					let border = 3                                                              // css’den sabit
+					let collapsedItemHeight = headerH + (itemPadY * 2) + (border * 2)
+					let contentHeight = parseInt(H - collapsedItemHeight * N - safeZone)
+					elmContent.height(contentHeight)
+					/*elmContent.css(
 						'height',
 						`calc(${layout.height()}px - (var(--acc-header-height) * ${layout.children().length - 1}))`
 						// `calc(${elmContent.offset().top}px + (var(--acc-header-height) * ${layout.children().length - container.index() + 1}))`
-					), 100)
+					)*/
+				}, 100)
 				clearTimeout(this._timer_triggerResize)
 				this._timer_triggerResize = setTimeout(() => {
 					try { $(window).trigger('resize') }
@@ -354,10 +364,10 @@ class AccordionPart extends Part {
 			handlers.splice(ind, 1)
 		return this
 	}
-	evalContent(item, content, layout) {
-		let sender = this, {layout: parent} = this
+	async evalContent(item, content, layout) {
+		let sender = this, {builder, layout: parent} = this
 		if (isFunction(content))
-			content = content.call(this, { sender, item, parent, layout })
+			content = await content.call(this, { sender, builder, item, parent, layout })
 		if (content?.html)
 			return content
 		if (typeof content == 'string')
@@ -386,12 +396,19 @@ class AccordionPart extends Part {
 
 /*
 // tablet fiş giriş test
+
 let formGirismi = true
-let acc, gridPart, barkodPart, barkod2Part
+let inst = new MQTicariGenelFis()
+let rootPart, acc, gridPart, barkodPart, barkod2Part
 
 {
 	let rfb = new RootFormBuilder().asWindow('test')
 		.addStyle(`$elementCSS { overflow-y: auto !important }`)
+		.setInst(inst)
+		.onAfterRun(({ builder: { part } }) => {
+			part.inst = inst
+			rootPart = part
+		})
 	let fbd_islemTuslari = rfb.addIslemTuslari(islemTuslari)
 		.addStyle_fullWH(150, 50).addCSS('absolute')
 		// .addStyle(`$elementCSS { right: 10px }`)
@@ -427,9 +444,10 @@ acc.deferRedraw(async () => {
 			return count ? `<div class="bold orangered fs-70">${numberToString(count) ?? ''} satır</div>` : null
 		}),
 		content: ({ item, layout }) => {
-			let rfb = new RootFormBuilder().setParent(layout)
+			let rfb = new RootFormBuilder()
+				.setLayout(layout).setPart(rootPart).setInst(inst)
 				.addStyle_wh(`calc(var(--full) - 10px)`)
-			rfb.addSimpleComboBox('barkod', '', 'Barkod giriniz')
+			rfb.addSimpleComboBox('_barkod', '', 'Barkod giriniz')
 				.etiketGosterim_yok()
 				.addStyle_fullWH(null, 50)
 				.addStyle(`$elementCSS > input { max-width: 800px !important }`)
@@ -452,7 +470,7 @@ acc.deferRedraw(async () => {
 				})
 				.onAfterRun(({ builder: { part } }) =>
 					barkodPart = part)
-			rfb.addGridliGiris('grid')
+			rfb.addGridliGiris('_grid')
 				.addCSS('dock-bottom')
 				.addStyle_fullWH(null, `calc(var(--full) - 60px)`)
 				.addStyle(`$elementCSS > div { width: var(--full) !important; height: var(--full) !important }`)
@@ -469,13 +487,31 @@ acc.deferRedraw(async () => {
 			rfb.run()
 		}
 	})
-	acc.add('baslik', 'Başlık')
+	acc.add({
+		id: 'baslik', title: 'Başlık',
+		collapsedContent: (async ({ builder: { inst } }) => {
+			let {mustKod} = inst, mustUnvan = mustKod ? await MQTabCari.getGloKod2Adi(mustKod) : null
+			return mustKod ? `<div class="bold orangered fs-70">${mustUnvan || mustKod}</div>` : null
+		}),
+		content: ({ item, layout }) => {
+			let rfb = new RootFormBuilder()
+				.setLayout(layout).setPart(rootPart).setInst(inst)
+			rfb.addModelKullan('mustKod', 'Müşteri')
+				.comboBox().kodsuz()
+				.setMFSinif(MQTabCari)
+				.degisince(e => console.info('cari değişti', rfb, e))
+				.onAfterRun(({ builder: { part, rootPart } }) =>
+					rootPart.ddCari = part)
+			rfb.run()
+		}
+	})
 	acc.add({
 		id: 'duzenle', title: 'Satır Düzenle',
 		content: ({ item, layout }) => {
-			let rfb = new RootFormBuilder().setParent(layout)
+			let rfb = new RootFormBuilder()
+				.setLayout(layout).setPart(rootPart).setInst(inst)
 				.addStyle_wh(`calc(var(--full) - 10px)`)
-			rfb.addSimpleComboBox('barkod', '', 'Barkod giriniz')
+			rfb.addSimpleComboBox('_barkod', '', 'Barkod giriniz')
 				.etiketGosterim_yok()
 				.addStyle_fullWH(null, 50)
 				.addStyle(`$elementCSS > input { max-width: 800px !important }`)
@@ -510,7 +546,7 @@ acc.deferRedraw(async () => {
 		if (formGirismi)
 			acc.collapse('detay').expand('duzenle')
 		target?.focus()
-	})
+	}, 0)
 }
 
 
