@@ -1,6 +1,7 @@
 .simpleComboBox.part {
 	--pad-x: 1%; --pad-y: 0px;
-	position: relative; width: var(--full); height: var(--full);
+	position: relative;
+	width: var(--full); height: var(--full);
 	z-index: 50
 }
 .simpleComboBox.part:has(:focus) { z-index: 200 }
@@ -11,8 +12,9 @@
 }
 .simpleComboBox.part > input::placeholder { font-weight: bold; font-size: 90%; color: #4169e180; padding: 0 5px }
 .simpleComboBox.part > button#liste {
-	position: absolute; top: 50%; transform: translateY(-50%);
-	right: 20px; padding: 10px 20px; opacity: .2
+	position: absolute; top: 50%;
+	transform: translateY(-50%);
+	padding: 10px 20px; opacity: .2
 }
 .simpleComboBox.part > button#liste:hover { opacity: .7 }
 .simpleComboBox.part > button#liste:active { opacity: 1 }

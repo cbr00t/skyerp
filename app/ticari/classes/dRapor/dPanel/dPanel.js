@@ -736,7 +736,8 @@ class DPanel extends Part {
 				minWidth: Math.min($(window).width() - 100, 300),
 				minHeight: 70,
 				start: (evt, info) => {
-					let {element: item} = info; item.addClass('_resizing')
+					let {element: item} = info
+					item.addClass('_resizing')
 					for (let key in itemsCSS)
 						items.css(key, 'hidden')
 					/*items.children().addClass('basic-hidden')

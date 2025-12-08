@@ -1,8 +1,9 @@
 
 .menu.part {
 	--menu-items-parent-padding-x: 10px; --menu-items-parent-padding-y: 5px;
-	width: calc(var(--full) - (var(--main-padding-x) * 2 + var(--menu-items-parent-padding-x) + var(--border) * 2)); height: var(--full); /* padding: 1px 2px; */
-	background: linear-gradient(0deg, white 80%, whitesmoke 80%) !important
+	width: calc(var(--full) - (var(--main-padding-x) * 2 + var(--menu-items-parent-padding-x) + var(--border) * 2));
+	height: var(--full); /* padding: 1px 2px; */
+	background: linear-gradient(0deg, white 85%, whitesmoke 80%) !important
 }
 main #anaMenu { position: relative; width: calc(var(--full) - 25px); height: var(--full); top: 3% /* padding: 0 20px; left: 2%; top: 13% */ }
 .menu.part > *, .menu.part > .hizliBul { width: var(--full) !important}
@@ -44,12 +45,12 @@ main #anaMenu { position: relative; width: calc(var(--full) - 25px); height: var
 .menu.part .menu-parent .items-parent .items .item  { border-radius: 20px }
 .menu.part .menu-parent .items-parent .items .item.menu-cascade {
 	background-color: #dfe3ea82; background-image: url(../../images/sag.png);
-	background-position: calc(var(--full) - 13px) 50% !important; box-shadow: 3px 5px 13px cadetblue;
+	background-position: calc(var(--full) - 13px) 50% !important; box-shadow: 3px 5px 13px cadetblue
 }
 .menu.part .menu-parent .items-parent .items .item.menu-choice { }
 .menu.part .menu-parent .items-parent .items .item:hover { font-weight: bold; background-color: unset /*border: .5px inset #9baadb*/ }
 .menu.part .menu-parent .items-parent .items .item:hover,
-.menu.part .menu-parent .items-parent .items .item:active { color: black }
+	.menu.part .menu-parent .items-parent .items .item:active { color: black }
 .menu.part .menu-parent .items-parent .items .item:hover { background-color: #bdd0f3 }
 .menu.part .menu-parent .items-parent .items .item:active { color: whitesmoke; background-color: #7093d3 }
 /*.menu.part .menu-parent .items-parent .items .item.menu-cascade:hover { background-color: #acc1e7 }
@@ -58,8 +59,8 @@ main #anaMenu { position: relative; width: calc(var(--full) - 25px); height: var
 .menu.part .menu-parent .items-parent .items .item.menu-choice:active { color: whitesmoke; background-color: #4271c7 }*/
 .menu.part .menu-parent .items-parent:has(.items > .item:active) .items > .item { filter: blur(.5px); opacity: .7 }
 .menu.part .menu-parent .items-parent:has(.items > .item:active) .items > .item:active { filter: unset; opacity: unset }
-@media (max-height: 850px) { .menu.part .menu-parent .items-parent .items { padding-bottom: 300px } }
-@media (max-width: 850px) {
+@media (max-height: 1000px) { .menu.part .menu-parent .items-parent .items { padding-bottom: 300px } }
+@media (max-width: 1000px) {
 	main #anaMenu { top: 5px !important }
 	.menu.part { --menu-items-parent-padding-y: 0px }
 	.menu.part > .hizliBul { height: 40px !important }
@@ -67,12 +68,12 @@ main #anaMenu { position: relative; width: calc(var(--full) - 25px); height: var
 	.menu.part > .hizliBul > button#listedenSec { font-size: 100% !important; margin: -3px 5px 0 0 !important }
 	.menu.part .menu-parent .nav:not(.jqx-hidden):not(.basic-hidden) { font-size: 100%; padding: 5px 20px }
 	.menu.part .menu-parent .items-parent .items .item {
-		max-width: 230px !important; min-height: 50px !important; max-height: 100px !important; height: unset !important;
-		margin: 5px 0px !important; border: none !important; box-shadow: none !important
+		min-width: 49%; max-width: 250px !important; min-height: 70px !important; max-height: 150px !important; height: unset !important;
+		margin: 3px 0 !important; border: none !important; box-shadow: none !important
 	}
 	.menu.part .menu-parent .items-parent .items .item:focus {
 		color: royalblue; text-decoration: underline
 	}
 	.menu.part .menu-parent .items-parent .items .item.menu-cascade { background-position-x : var(--full) !important }
-	.menu.modelKullan.list-item { font-size: 90%; height: 20px !important }
+	.menu.modelKullan.list-item { font-size: 90%; height: 30px !important }
 }

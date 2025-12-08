@@ -76,22 +76,23 @@ class AccordionPart extends Part {
 		let {id2Elm, defaultCollapsed} = this
 		for (let item of panels) {
 			let id = item.id ||= newGUID()
-			let elm = id2Elm[id], hasElm = elm?.length
+			let container = id2Elm[id], hasElm = container?.length
 			// let fullRender = !(hasElm && item._rendered)
-			let {title, collapsed, disabled} = item
+			let {title, collapsed, expanded, disabled} = item
 			title ??= ''
+			collapsed ??= (expanded == null ? null : !expanded) ?? defaultCollapsed
 			let elmHeader
 			if (!hasElm) {
 				let css_expanded = collapsed ? '' : ' expanded'
 				let css_disabled = disabled ? ' disabled' : ''
-				elm = $([
+				container = $([
 					`<div class="item accordion${css_expanded}${css_disabled}" data-id="${id}">`,
 					`    <div class="header flex-row"> </div>`,
 					`    <div class="content"></div>`,
 					'</div>'
 				].join(CrLf))
-				elm.appendTo(layout)
-				elmHeader = elm.children('.header')
+				container.appendTo(layout)
+				elmHeader = container.children('.header')
 				elmHeader.on('click', ({ currentTarget: elmHeader }) => {
 					elmHeader = $(elmHeader)
 					let elm = elmHeader.parents('.accordion.item')
@@ -103,10 +104,11 @@ class AccordionPart extends Part {
 				})
 			}
 			else {
-				elmHeader = elm.children('.header')
-				elm[collapsed ? 'removeClass' : 'addClass']('expanded')
-				elm[disabled ? 'addClass' : 'removeClass']('disabled')
+				elmHeader = container.children('.header')
+				container[collapsed ? 'removeClass' : 'addClass']('expanded')
+				container[disabled ? 'addClass' : 'removeClass']('disabled')
 			}
+			elmHeader.height(title ? null : 10)
 			let targetKey = collapsed ? 'collapsedContent' : 'content'
 			let elmTitle = elmHeader.children('.title')
 			if (elmTitle.length)
@@ -123,7 +125,7 @@ class AccordionPart extends Part {
 					targetContent.appendTo(elmCollapsedContent)
 			}
 			else {
-				let elmContent = elm.children('.content')
+				let elmContent = container.children('.content')
 				if (!elmContent.children().length) {
 					let targetContent = await this.evalContent(item, item[targetKey], elmContent) || $('<div/>')
 					if (targetContent && targetContent.parent()?.[0] != elmContent[0]) {
@@ -131,7 +133,54 @@ class AccordionPart extends Part {
 							targetContent.detach()
 						targetContent.appendTo(elmContent)
 					}
+					let itemsCSS = {}
+					for (let key of ['overflow', 'overflow-x', 'overflow-y'])
+						itemsCSS[key] = container.css(key)
+					if (false) {
+						container.resizable({
+							// handles: 'all', containment: 'parent', ghost: true, helper: 'ui-resizable-helper',
+							// classes: { '.ui-resizable': 'highlight' },
+							handles: 'n, s', grid: [8, 8], 
+							// minWidth: Math.min($(window).width() - 100, 300),
+							minHeight: 70,
+							start: (evt, info) => {
+								let {element: item} = info
+								if (!item.parents('.accordion.item').hasClass('expanded')) {
+									container.resizable('option', 'disabled', true)
+									setTimeout(() => container.resizable('option', 'disabled', false))
+									return false
+								}
+								item.addClass('_resizing')
+								for (let key in itemsCSS)
+									container.css(key, 'hidden')
+							},
+							stop: (evt, info) => {
+								let {element: item, size: { width, height }} = info
+								container.removeClass('_resizing')
+								for (let [k, v] of entries(itemsCSS))
+									container.css(k, v)
+								clearTimeout(this._timer_triggerResize)
+								this._timer_triggerResize = setTimeout(() => {
+									try { $(window).trigger('resize') }
+									finally { this._timer_triggerResize }
+								}, 10)
+								// item.trigger('resize')
+							}
+						})
+					}
 				}
+				setTimeout(() =>
+					elmContent.css(
+						'height',
+						`calc(${layout.height()}px - (var(--acc-header-height) * ${layout.children().length - 1}))`
+						// `calc(${elmContent.offset().top}px + (var(--acc-header-height) * ${layout.children().length - container.index() + 1}))`
+					), 100)
+				clearTimeout(this._timer_triggerResize)
+				this._timer_triggerResize = setTimeout(() => {
+					try { $(window).trigger('resize') }
+					finally { this._timer_triggerResize }
+				}, 10)
+				// elmContent.trigger('resize')
 				// if (elmContent?.length)
 				// 	elmContent.find('.dock-bottom').removeClass('dock-bottom')
 			}
@@ -139,8 +188,8 @@ class AccordionPart extends Part {
 				let action = collapsed ? 'collapse' : 'expand'
 				setTimeout(() => this.signalStateChange({ action, item }, true), 1)
 			}*/
-				
 		}
+		$(window).trigger('resize')
 		this._lastPanelCount = panels.length
 	}
 	add(e, _collapsed, _title, _content, _collapsedContent, _disabled, _data) {
@@ -215,7 +264,7 @@ class AccordionPart extends Part {
 	changeState(e, collapsed, internal) {
 		if (collapsed == null)
 			return false
-		let {panels, id2Panel} = this
+		let {layout, panels, id2Panel} = this
 		let item = e
 		if (typeof item != 'object')
 			item = typeof e == 'string' ? id2Panel[e] : panels[e]
@@ -224,7 +273,10 @@ class AccordionPart extends Part {
 		item.collapsed = collapsed
 		{
 			let action = collapsed ? 'collapse' : 'expand'
-			this.signalStateChange({ action, item }, internal)
+			let {id} = item
+			let elm = layout.children(`.accordion.item[data-id = "${id}"]`)
+			let index = elm.index()
+			this.signalStateChange({ action, item, id, index, elm }, internal)
 		}
 		return this
 	}

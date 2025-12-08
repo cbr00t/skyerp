@@ -18,14 +18,14 @@ class SimpleComboBoxPart extends Part {
 		return item
 	}
 	set item(value) {
-		let {input, kodSaha, adiSaha} = this
+		let {input, kodSaha, adiSaha, autoClearFlag: autoClear} = this
 		let item = value
 		if (!isObject(item))
 			item = { [kodSaha]: item }
 		this._item = item
 		if (input?.length) {
 			input.val(this.renderedInputText)
-			input.attr('placeholder', this.renderedText)
+			input.attr('placeholder', autoClear ? this.placeholder ?? null : this.renderedText)
 		}
 	}
 	/****** CKodVeAdi/MQKA interface ********/
@@ -213,10 +213,8 @@ class SimpleComboBoxPart extends Part {
 			e.item = item
 			e.value = this.value
 			// input.attr('placeholder', this.renderedInputText)
-			if (autoClear) {
-				// no change event trigger, if possible
-				setTimeout(() => input[0].value = null, 1)
-			}
+			// no change event trigger, if possible
+			setTimeout(() => input[0].value = null, 1)
 			if (queue) {
 				queue.push(e)
 				clearTimeout(this._timer_queue)
@@ -325,12 +323,20 @@ class SimpleComboBoxPart extends Part {
 		if (input.val())
 			input.select()
 		// input.attr('placeholder', '')
+		this.onResize()
 		this.signal('focus', e)
 	}
 	_onBlur(e) {
 		/*let {input} = this
 		input.attr('placeholder', this.currentPlaceholder)*/
 		this.signal('blur', e)
+	}
+	onResize(e) {
+		super.onResize(e)
+		let {layout, input} = this
+		let btnListe = layout.children('button#liste')
+		if (btnListe?.length)
+			btnListe.css('left', `${input.position().left + input.width() - 40}px`)
 	}
 	blur(e) {
 		this.input.blur()
@@ -414,19 +420,21 @@ let fbd_islemTuslari = rfb.addIslemTuslari(islemTuslari)
 		tamam: e => eConfirm('tamam istendi'),
 		vazgec: e => rfb.part.close()
 	})
-let fbd_acc = rfb.addAccordion()
-	.addStyle_fullWH()
-	//.addStyle(`$elementCSS { margin-top: -50px }`)
-fbd_acc.addPanel({ title: 'Başlık', collapsed: true })
-fbd_acc.addPanel({ title: 'Dip', collapsed: true })
+let fbd_grid, fbd_barkod, fbd_barkod2
+let fbd_acc = rfb.addAccordion().addStyle_fullWH(null, `calc(var(--full) - 100px)`)
+// fbd_acc.addStyle(`$elementCSS { margin-top: -50px }`)
+fbd_acc.addPanel({ title: 'Dip' })
 fbd_acc.addPanel({
 	title: 'Bilgi Girişi', expanded: true,
-	collapsedContent: ({ item: { part } = {} }) =>
-		`<div class="bold royalblue fs-70">${part?.renderedText ?? ''}</div>`,
+	collapsedContent: ({ item: { part } = {} }) => {
+		let {part: { gridWidget: w } = {}} = fbd_grid ?? {}
+		let count = w?.getdatainformation()?.rowscount
+		return count ? `<div class="bold orangered fs-70">${numberToString(count) ?? ''} satır</div>` : null
+	},
 	content: ({ item, layout }) => {
 		let rfb = new RootFormBuilder().setParent(layout)
 			.addStyle_wh(`calc(var(--full) - 10px)`)
-		let fbd_barkod = rfb.addSimpleComboBox('barkod', '', 'Barkod giriniz')
+		fbd_barkod = rfb.addSimpleComboBox('barkod', '', 'Barkod giriniz')
 			.etiketGosterim_yok()
 			// .setSource(({ term, tokens }) => tokens)
 			.setMFSinif(MQTabStok)
@@ -434,27 +442,80 @@ fbd_acc.addPanel({
 				console.info(e)
 				let {type, events} = e
 				if (type == 'batch') {
-					let {id2Builder: { grid: { part: gridPart } } } = fbd_barkod.parentBuilder
-					let {gridWidget: w} = gridPart
-					for (let {item: { kod, aciklama }} of events)
-						w.addrow(null, { text: aciklama || kod }, 'first')
+					// let {id2Builder: { grid: { part: gridPart } } } = fbd_barkod.parentBuilder
+					// let {gridWidget: w} = gridPart
+					let {part: { gridWidget: w } = {}} = fbd_grid ?? {}
+					if (w) {
+						for (let {item: { kod, aciklama }} of events) {
+							let text = (aciklama || kod)?.trimEnd?.()
+							if (text)
+								w.addrow(null, { text }, 'first')
+						}
+						fbd_acc.part.render()
+					}
 				}
 			})
 			.addStyle_fullWH(null, 50)
 			.addStyle(`$elementCSS > input { max-width: 800px !important }`)
-		let fbd_grid = rfb.addGridliGiris('grid')
+		fbd_grid = rfb.addGridliGiris('grid')
+		fbd_grid
 			.setTabloKolonlari([ new GridKolon({ belirtec: 'text', text: ' ' }) ])
-			.setSource(e => [ ])
-			.addStyle_fullWH(null)
+			.setSource(e => [])
+			.rowNumberOlmasin().noEmptyRow()
+			.addStyle_fullWH(null, `calc(var(--full) - 60px)`)
+			// .addStyle_fullWH(null, 400)
+			.addStyle(`$elementCSS > div { width: var(--full) !important; height: var(--full) !important }`)
 			.addCSS('dock-bottom')
 		setTimeout(() => {
 			rfb.run()
 			item.part = fbd_barkod.part
-		}, 10)
+		}, 100)
 		// return rfb.layout
 	}
 })
-fbd_acc.onStateChange(e => console.info(e.action, e))
+fbd_acc.addPanel({ title: 'Başlık' })
+fbd_acc.addPanel({
+	title: 'Satır Düzenle', expanded: true,
+	content: ({ item, layout }) => {
+		let rfb = new RootFormBuilder().setParent(layout)
+			.addStyle_wh(`calc(var(--full) - 10px)`)
+		fbd_barkod2 = rfb.addSimpleComboBox('barkod', '', 'Barkod giriniz')
+			.etiketGosterim_yok()
+			// .setSource(({ term, tokens }) => tokens)
+			.setMFSinif(MQTabStok)
+			.degisince(e => fbd_barkod.part.signalChange(e))
+			.addStyle_fullWH(null, 50)
+			.addStyle(`$elementCSS > input { max-width: 800px !important }`)
+		setTimeout(() => rfb.run())
+	}
+})
+fbd_acc.onStateChange(e => {
+	let {action, index} = e
+	if (action == 'expand') {
+		setTimeout(() => {
+			let target = (
+				index == 3 ? fbd_barkod2 :
+				index == 1 ? fbd_barkod : null
+			)
+			target?.input?.focus()
+		}, 1)
+	}
+	console.info(action, e)
+})
+fbd_acc.onAfterRun( ({ builder: { part: acc } }) => {
+	acc.expand(1)
+	setTimeout(() => {
+		let formGirismi = !acc.panels[3].collapsed
+		if (formGirismi) {
+			acc.collapse(1).expand(3)
+			fbd_barkod2?.input?.focus()
+		}
+		else {
+			acc.collapse(3)
+			fbd_barkod?.input?.focus()
+		}
+	}, 1000)
+})
 rfb.run()
 // let part = new SimpleComboBoxPart({ content })
 // part.setSource(({ sender, layout, value, term, tokens }) => tokens)

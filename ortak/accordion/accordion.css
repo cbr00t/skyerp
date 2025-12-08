@@ -1,14 +1,14 @@
 .accordion.part {
 	--item-pad-x: 5px; --item-pad-y: 5px;
 	--acc-header-height: 46px;
-	width: calc(var(--full) - var(--item-pad-x) * 1);
-	height: calc(var(--full) - var(--item-pad-y) * 1);
+	width: calc(var(--full) - var(--item-pad-x) * 3);
+	height: calc(var(--full) - var(--item-pad-y) * 2);
 }
 .accordion.part .accordion.item {
 	width: var(--full);
 	margin: var(--item-pad-y) var(--item-pad-x);
 	border-radius: 10px; border: 3px solid rgba(0, 0, 0, .10);
-	box-sizing: border-box !important;
+	box-sizing: content-box !important;
 	transition: 200ms ease
 }
 .accordion.part .accordion.item.expanded > .header > .collapsed-content,
@@ -48,10 +48,10 @@
 	height: calc(var(--full) - (var(--acc-header-height) + 2px));
 	padding: 8px;
 	border-top: 2px solid rgba(0 200, 255, .8);
-	overflow-y: auto !important
+	overflow-x: hidden !important; overflow-y: auto !important
 }
 
 @media (max-width: 1000px) {
-	.accordion.part { --acc-header-height: 43px }
+	.accordion.part { --acc-header-height: 30px }
 	.accordion.part .accordion.item > .header { line-height: 15px }
 }

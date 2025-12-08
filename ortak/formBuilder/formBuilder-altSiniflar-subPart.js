@@ -1041,8 +1041,7 @@ class FBuilder_AccordionPart extends FBuilder_DivOrtak {
 		this.etiketGosterim_yok()
     }
 	afterBuild(e) {
-		super.afterBuild(e)
-		let {input} = this
+		let {input} = this, part
         if (input?.length) {
 			let sender = this, builder = this, layout = input
 			let {rootPart: parentPart, panels, coklumu: coklu, isDefaultCollapsed: defaultCollapsed, events, userData} = this
@@ -1053,11 +1052,14 @@ class FBuilder_AccordionPart extends FBuilder_DivOrtak {
                 args: { sender, parentPart, builder, layout, panels, coklu, defaultCollapsed, events, userData }
 			}
             this.widgetArgsDuzenle?.call(this, _e)
-            let part = this.part = new AccordionPart(_e.args)
-            part.run()
+            part = this.part = new AccordionPart(_e.args)
+        }
+		super.afterBuild(e)
+		if (part) {
+			part.run()
 			if (part && !part.isDestroyed)
                 this.input = part.layout
-        }
+		}
     }
 	// PANEL EKLEME
     addPanel(item) {
