@@ -128,15 +128,15 @@ class SimpleComboBoxPart extends Part {
 			let {currentTarget: { value }} = event
 			this._onChange({ type: 'change', event, layout, input, value })
 		})
-		layout.on('keydown', event => {
+		input.on('keydown', event => {
 			let {key, currentTarget: { value }} = event
 			key = key?.toLowerCase()
 			if (key == 'enter' || key == 'linefeed')
 				this._onChange({ type: 'commit', event, layout, input, value })
 		})
-		layout.on('focus', event =>
+		input.on('focus', event =>
 			this._onFocus({ event, layout, input }))
-		layout.on('blur', event =>
+		input.on('blur', event =>
 			this._onBlur({ event, layout, input }))
 		setTimeout(() => {
 			input.autocomplete({
@@ -336,7 +336,7 @@ class SimpleComboBoxPart extends Part {
 		let {layout, input} = this
 		let btnListe = layout.children('button#liste')
 		if (btnListe?.length)
-			btnListe.css('left', `${input.position().left + input.width() - 40}px`)
+			btnListe.css('left', `${input.offset().left + input.width() - 40}px`)
 	}
 	blur(e) {
 		this.input.blur()
@@ -407,119 +407,3 @@ class SimpleComboBoxPart extends Part {
 	disable() { this.disabled = true; return this }
 	getLayout() { return $(`<div><input type="text"></div>`) }
 }
-
-
-/*
-let rfb = new RootFormBuilder().asWindow('test')
-	.addStyle(`$elementCSS { overflow-y: auto !important }`)
-let fbd_islemTuslari = rfb.addIslemTuslari(islemTuslari)
-	.addStyle_fullWH(130, 50).addCSS('absolute')
-	.addStyle(`$elementCSS { right: 10px }`)
-	.setTip('tamamVazgec')
-	.setId2Handler({
-		tamam: e => eConfirm('tamam istendi'),
-		vazgec: e => rfb.part.close()
-	})
-let fbd_grid, fbd_barkod, fbd_barkod2
-let fbd_acc = rfb.addAccordion().addStyle_fullWH(null, `calc(var(--full) - 100px)`)
-// fbd_acc.addStyle(`$elementCSS { margin-top: -50px }`)
-fbd_acc.addPanel({ title: 'Dip' })
-fbd_acc.addPanel({
-	title: 'Bilgi Girişi', expanded: true,
-	collapsedContent: ({ item: { part } = {} }) => {
-		let {part: { gridWidget: w } = {}} = fbd_grid ?? {}
-		let count = w?.getdatainformation()?.rowscount
-		return count ? `<div class="bold orangered fs-70">${numberToString(count) ?? ''} satır</div>` : null
-	},
-	content: ({ item, layout }) => {
-		let rfb = new RootFormBuilder().setParent(layout)
-			.addStyle_wh(`calc(var(--full) - 10px)`)
-		fbd_barkod = rfb.addSimpleComboBox('barkod', '', 'Barkod giriniz')
-			.etiketGosterim_yok()
-			// .setSource(({ term, tokens }) => tokens)
-			.setMFSinif(MQTabStok)
-			.degisince(e => {
-				console.info(e)
-				let {type, events} = e
-				if (type == 'batch') {
-					// let {id2Builder: { grid: { part: gridPart } } } = fbd_barkod.parentBuilder
-					// let {gridWidget: w} = gridPart
-					let {part: { gridWidget: w } = {}} = fbd_grid ?? {}
-					if (w) {
-						for (let {item: { kod, aciklama }} of events) {
-							let text = (aciklama || kod)?.trimEnd?.()
-							if (text)
-								w.addrow(null, { text }, 'first')
-						}
-						fbd_acc.part.render()
-					}
-				}
-			})
-			.addStyle_fullWH(null, 50)
-			.addStyle(`$elementCSS > input { max-width: 800px !important }`)
-		fbd_grid = rfb.addGridliGiris('grid')
-		fbd_grid
-			.setTabloKolonlari([ new GridKolon({ belirtec: 'text', text: ' ' }) ])
-			.setSource(e => [])
-			.rowNumberOlmasin().noEmptyRow()
-			.addStyle_fullWH(null, `calc(var(--full) - 60px)`)
-			// .addStyle_fullWH(null, 400)
-			.addStyle(`$elementCSS > div { width: var(--full) !important; height: var(--full) !important }`)
-			.addCSS('dock-bottom')
-		setTimeout(() => {
-			rfb.run()
-			item.part = fbd_barkod.part
-		}, 100)
-		// return rfb.layout
-	}
-})
-fbd_acc.addPanel({ title: 'Başlık' })
-fbd_acc.addPanel({
-	title: 'Satır Düzenle', expanded: true,
-	content: ({ item, layout }) => {
-		let rfb = new RootFormBuilder().setParent(layout)
-			.addStyle_wh(`calc(var(--full) - 10px)`)
-		fbd_barkod2 = rfb.addSimpleComboBox('barkod', '', 'Barkod giriniz')
-			.etiketGosterim_yok()
-			// .setSource(({ term, tokens }) => tokens)
-			.setMFSinif(MQTabStok)
-			.degisince(e => fbd_barkod.part.signalChange(e))
-			.addStyle_fullWH(null, 50)
-			.addStyle(`$elementCSS > input { max-width: 800px !important }`)
-		setTimeout(() => rfb.run())
-	}
-})
-fbd_acc.onStateChange(e => {
-	let {action, index} = e
-	if (action == 'expand') {
-		setTimeout(() => {
-			let target = (
-				index == 3 ? fbd_barkod2 :
-				index == 1 ? fbd_barkod : null
-			)
-			target?.input?.focus()
-		}, 1)
-	}
-	console.info(action, e)
-})
-fbd_acc.onAfterRun( ({ builder: { part: acc } }) => {
-	acc.expand(1)
-	setTimeout(() => {
-		let formGirismi = !acc.panels[3].collapsed
-		if (formGirismi) {
-			acc.collapse(1).expand(3)
-			fbd_barkod2?.input?.focus()
-		}
-		else {
-			acc.collapse(3)
-			fbd_barkod?.input?.focus()
-		}
-	}, 1000)
-})
-rfb.run()
-// let part = new SimpleComboBoxPart({ content })
-// part.setSource(({ sender, layout, value, term, tokens }) => tokens)
-// part.run()
-// let {layout: input} = part
-// input.width(400); input.height(60)
-*/

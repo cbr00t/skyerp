@@ -20,7 +20,7 @@ body.kiosk .butonlar.part { z-index: 1001; user-select: none !important }
 .butonlar.part > .sol { width: calc(var(--full) - (var(--width-sag) + 3px + var(--button-form-margin-x))); background: transparent }
 .butonlar.part > .sag {
 	position: absolute; right: 0; width: var(--width-sag); text-align: right;
-	background: linear-gradient(90deg, transparent 30%, #f2f2f2 100%) !important;
+	background: linear-gradient(90deg, transparent 30%, #f2f2f2 100%);
 	z-index: 1
 }
 body.kiosk .butonlar.part > .sag { background: linear-gradient(90deg, transparent 80%, #f2f2f2 100%) !important }

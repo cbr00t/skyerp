@@ -164,7 +164,6 @@ class AccordionPart extends Part {
 									try { $(window).trigger('resize') }
 									finally { this._timer_triggerResize }
 								}, 10)
-								// item.trigger('resize')
 							}
 						})
 					}
@@ -189,12 +188,16 @@ class AccordionPart extends Part {
 				setTimeout(() => this.signalStateChange({ action, item }, true), 1)
 			}*/
 		}
-		$(window).trigger('resize')
+		clearTimeout(this._timer_triggerResize)
+		this._timer_triggerResize = setTimeout(() => {
+			try { $(window).trigger('resize') }
+			finally { this._timer_triggerResize }
+		}, 10)
 		this._lastPanelCount = panels.length
 	}
-	add(e, _collapsed, _title, _content, _collapsedContent, _disabled, _data) {
+	add(e, _title, _collapsed, _content, _collapsedContent, _disabled, _data) {
 		let item = typeof e == 'object' ? e : {
-			id: e, collapsed: _collapsed, title: _title,
+			id: e, title: _title, collapsed: _collapsed,
 			content: _content, collapsedContent: _collapsedContent,
 			disabled: _disabled, data: _data
 		}
@@ -280,6 +283,24 @@ class AccordionPart extends Part {
 		}
 		return this
 	}
+	beginUpdate() { this._updating = true; return this }
+	endUpdate() {
+		if (this._updating) {
+			this._updating = false
+			this.render()
+		}
+		return this
+	}
+	async deferRedraw(proc, ...args) {
+		if (!proc)
+			return undefined
+		if (this._updating)
+			return proc.call(this, ...args)
+		this.beginUpdate()
+		try { return await proc.call(this, ...args) }
+		finally { this.endUpdate() }
+		return this
+	}
 	signalStateChange(e, internal) { return this.signal('stateChange', e, internal) }
 	signalExpanded(e) { return this.signal('stateChange', { ...e, action: 'expand' }) }
 	signalCollapsed(e) { return this.signal('stateChange', { ...e, action: 'collapse' }) }
@@ -295,11 +316,12 @@ class AccordionPart extends Part {
 								_.collapsed = true
 						}
 					}
-					this.render()
+					if (this._initialized && !this._updating)
+						this.render()
 					break
 				}
 				case 'change': {
-					if (this._initialized)
+					if (this._initialized && !this._updating)
 						this.render()
 					break
 				}
@@ -317,13 +339,12 @@ class AccordionPart extends Part {
 		return this
 	}
 	on(name, handler) {
-		let {events} = this
-		(events[name] ??= []).push(handler)
+		let handlers = this.events[name] ??= []
+		handlers.push(handler)
 		return this
 	}
 	off(name, handler) {
-		let {events} = this
-		let handlers = (events[name] ?? [])
+		let handlers = (this.events[name] ?? [])
 		if (!handler) {
 			handlers.splice(0)
 			return this
@@ -361,3 +382,142 @@ class AccordionPart extends Part {
 	onCollapse(handler) { return this.on('collapse', handler) }
 	getLayout() { return $('<div/>') }
 }
+
+
+/*
+// tablet fiş giriş test
+let formGirismi = true
+let acc, gridPart, barkodPart, barkod2Part
+
+{
+	let rfb = new RootFormBuilder().asWindow('test')
+		.addStyle(`$elementCSS { overflow-y: auto !important }`)
+	let fbd_islemTuslari = rfb.addIslemTuslari(islemTuslari)
+		.addStyle_fullWH(150, 50).addCSS('absolute')
+		// .addStyle(`$elementCSS { right: 10px }`)
+		.addStyle(
+			`$elementCSS, $elementCSS > div, $elementCSS > div > div { background: unset !important; background-color: transparent !important }
+			 $elementCSS { position: fixed !important; top: 1px; right: 60px }
+			 $elementCSS button { width: 45px !important; height: 40px !important }
+			 $elementCSS button#vazgec { margin-left: 20px }
+			 body > .app-titlebar { display: none !important }`
+		)
+		.setTip('tamamVazgec')
+		.setId2Handler({
+			tamam: e => eConfirm('tamam istendi'),
+			vazgec: e => rfb.part.close()
+		})
+	rfb.addAccordion()
+		.addStyle_fullWH(null, `calc(var(--full) - 100px)`)
+		// .addStyle(`$elementCSS { margin-top: -50px }`)
+		.onAfterRun(({ builder: { part } }) =>
+			acc = part)
+	rfb.run()
+}
+
+acc.deferRedraw(async () => {
+	acc.add('dip', 'Dip')
+	acc.add({
+		id: 'detay', title: 'Bilgi Girişi', expanded: true,
+		collapsedContent: (e => {
+			if (!gridPart)
+				return
+			let {gridWidget: w} = gridPart
+			let count = w?.getdatainformation()?.rowscount
+			return count ? `<div class="bold orangered fs-70">${numberToString(count) ?? ''} satır</div>` : null
+		}),
+		content: ({ item, layout }) => {
+			let rfb = new RootFormBuilder().setParent(layout)
+				.addStyle_wh(`calc(var(--full) - 10px)`)
+			rfb.addSimpleComboBox('barkod', '', 'Barkod giriniz')
+				.etiketGosterim_yok()
+				.addStyle_fullWH(null, 50)
+				.addStyle(`$elementCSS > input { max-width: 800px !important }`)
+				// .setSource(({ term, tokens }) => tokens)
+				.setMFSinif(MQTabStok)
+				.degisince(e => {
+					console.info(e)
+					let {type, events} = e
+					if (type == 'batch') {
+						let {gridWidget: w} = gridPart ?? {}
+						if (w) {
+							for (let {item: { kod, aciklama }} of events) {
+								let text = (aciklama || kod)?.trimEnd?.()
+								if (text)
+									w.addrow(null, { text }, 'first')
+							}
+							acc.render()
+						}
+					}
+				})
+				.onAfterRun(({ builder: { part } }) =>
+					barkodPart = part)
+			rfb.addGridliGiris('grid')
+				.addCSS('dock-bottom')
+				.addStyle_fullWH(null, `calc(var(--full) - 60px)`)
+				.addStyle(`$elementCSS > div { width: var(--full) !important; height: var(--full) !important }`)
+				.rowNumberOlmasin().notAdaptive().noEmptyRow()
+				.setTabloKolonlari([
+					new GridKolon({
+						belirtec: 'text', text: ' ', filterType: 'checkedlist',
+						draggable: false, groupable: false
+					})
+				])
+				.setSource(e => [])
+				.onAfterRun(({ builder: { part } }) =>
+					gridPart = part)
+			rfb.run()
+		}
+	})
+	acc.add('baslik', 'Başlık')
+	acc.add({
+		id: 'duzenle', title: 'Satır Düzenle',
+		content: ({ item, layout }) => {
+			let rfb = new RootFormBuilder().setParent(layout)
+				.addStyle_wh(`calc(var(--full) - 10px)`)
+			rfb.addSimpleComboBox('barkod', '', 'Barkod giriniz')
+				.etiketGosterim_yok()
+				.addStyle_fullWH(null, 50)
+				.addStyle(`$elementCSS > input { max-width: 800px !important }`)
+				// .setSource(({ term, tokens }) => tokens)
+				.setMFSinif(MQTabStok)
+				.degisince(e =>
+					barkodPart.signalChange(e))
+				.onAfterRun(({ builder: { part } }) =>
+					barkod2Part = part)
+			rfb.run()
+		}
+	})
+	acc.onStateChange(({ action, id, ...rest }) => {
+		if (action == 'expand') {
+			setTimeout(() => {
+				let target
+				switch (id) {
+					case 'detay': target = barkodPart; break
+					case 'duzenle': target = barkod2Part; break
+				}
+				target?.focus()
+			}, 1)
+		}
+		console.info(action, { action, id, ...rest })
+	})
+})
+
+{
+	acc.expand(1)
+	setTimeout(() => {
+		let target = formGirismi ? barkod2Part : barkodPart
+		if (formGirismi)
+			acc.collapse('detay').expand('duzenle')
+		target?.focus()
+	})
+}
+
+
+// let part = new SimpleComboBoxPart({ content })
+// part.setSource(({ sender, layout, value, term, tokens }) => tokens)
+// part.run()
+// let {layout: input} = part
+// input.width(400); input.height(60)
+
+*/

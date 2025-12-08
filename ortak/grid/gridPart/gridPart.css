@@ -65,11 +65,11 @@ body.dark-theme .jqx-grid [role = row] .grid-cell-group { color: #ccc; backgroun
 		.jqx-widget-content.jqx-grid-content {
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important; /* momentum scroll */
-    scroll-behavior: smooth !important;           /* daha yumuÃ…Å¸ak kaydÃ„Â±rma */
-    touch-action: pan-y !important;               /* dikey kaydÃ„Â±rma kontrolÃƒÂ¼ */
+    scroll-behavior: smooth !important;           /* daha yumuÃƒâ€¦Ã…Â¸ak kaydÃƒâ€žÃ‚Â±rma */
+    touch-action: pan-y !important;               /* dikey kaydÃƒâ€žÃ‚Â±rma kontrolÃƒÆ’Ã‚Â¼ */
     overscroll-behavior: contain !important       /* Android bounce/geri tepme fix */
 }
-/* Nested scroll katmanlarÃ„Â±nÃ„Â± sadeleÃ…Å¸tir */
+/* Nested scroll katmanlarÃƒâ€žÃ‚Â±nÃƒâ€žÃ‚Â± sadeleÃƒâ€¦Ã…Â¸tir */
 .jqx-grid-content-wrapper { height: auto !important; overflow-y: visible !important }
 .jqx-grid-content * { touch-action: pan-y !important }
 .jqx-grid-content { will-change: scroll-position !important }
@@ -86,7 +86,7 @@ body.dark-theme .jqx-grid [role = row] .grid-cell-group { color: #ccc; backgroun
 	text-wrap: pretty !important;
 	word-break: auto-phrase !important
 }
-.jqx-grid [role = row] { box-shadow: 1px 1px 5px 0px royalblue }
+.jqx-grid [role = row]:not([row-id = '']) { box-shadow: 1px 1px 5px 0px royalblue }
 .jqx-grid [role = row] > .jqx-grid-cell-selected:not(.grid-readOnly) { font-weight: 600; color: #333 }
 @media (max-width: 1000px) {
 	.jqx-grid [role = row] > div:not(:first-child) > div {
