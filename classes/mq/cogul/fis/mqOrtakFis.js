@@ -49,7 +49,6 @@ class MQOrtakFis extends MQDetayli {
 		})
 	}
 	static getRootFormBuilder(e) { return this.getRootFormBuilder_fis(e) }
-	static rootFormBuilderDuzenle(e) { }
 	static rootFormBuilderDuzenleSonrasi_ayrimVeOzelSahalar_getParentBuilder(e) { return e.builders.baslikForm.builders[2] }
 	static rootFormBuilderDuzenle(e) { e = e || {}; super.rootFormBuilderDuzenle(e); this.rootFormBuilderDuzenle_ilk(e); this.rootFormBuilderDuzenle_ara(e); this.rootFormBuilderDuzenle_son(e) }
 	static rootFormBuilderDuzenle_ilk(e) { this.forAltYapiClassesDo('rootFormBuilderDuzenle_ilk', e) } static rootFormBuilderDuzenle_ara(e) { this.forAltYapiClassesDo('rootFormBuilderDuzenle_ara', e) }

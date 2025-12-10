@@ -10,8 +10,7 @@
 	z-index: 1000
 }
 body.kiosk .butonlar.part { z-index: 1001; user-select: none !important }
-@media (max-width: 1200px) { .butonlar.part { --button-width: 55px; --button-right-katsayi: 2 } }
-@media (max-width: 850px) { .butonlar.part { --button-width: 45px; --button-right-katsayi: 3; --width-sag-ek: 30px } }
+@media (max-width: 1000px) { .butonlar.part { --button-width: 50px; --button-height: 40px; --button-right-katsayi: 2 } }
 .butonlar.part > div {
 	position: relative; /* width: var(--full) !important; */
 	height: calc(var(--full) - 5px) !important;

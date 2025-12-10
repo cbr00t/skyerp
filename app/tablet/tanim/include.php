@@ -1,6 +1,4 @@
-<?php $_partRoot = "$webRoot_tablet/classes" ?>
-<script src="<?=$_partRoot?>/params.js?<?=$appVersion?>"></script>
-<script src="<?=$_partRoot?>/tekSecim.js?<?=$appVersion?>"></script>
+<?php $_partRoot = "$webRoot_tablet/tanim" ?>
 <script src="<?=$_partRoot?>/mqMaster.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqStok.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqCari.js?<?=$appVersion?>"></script>

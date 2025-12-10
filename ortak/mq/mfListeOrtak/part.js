@@ -462,7 +462,11 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		if (mfSinif) { let groups = mfSinif.orjBaslikListesi_getGroups(e); if (groups?.length) { grid.jqxGrid('groups', groups) } }
 		if (panelDuzenleyici?.gridVeriYuklendi) { panelDuzenleyici.gridVeriYuklendi(e) }
 		if (mfSinif) { mfSinif.gridVeriYuklendi(e) }
-		if ((!mfSinif || mfSinif.bulFormKullanilirmi) && bulPart?.layout?.length) { let {noAutoFocus} = mfSinif || {}; if (!noAutoFocus) { setTimeout(() => bulPart.focus(), 50) } }
+		if ((!mfSinif || mfSinif.bulFormKullanilirmi) && bulPart?.layout?.length) {
+			let {noAutoFocus} = mfSinif || {}
+			if (!noAutoFocus)
+				setTimeout(() => bulPart.focus(), 50)
+		}
 		let {veriYukleninceBlock: veriYuklenince} = this; if (veriYuklenince) { getFuncValue.call(this, veriYuklenince, e) }
 	}
 	secimlerIstendi(e) {

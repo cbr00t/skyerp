@@ -150,10 +150,15 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 	setPlaceholder(value) { return this.setPlaceHolder(value) }
 }
 class FBuilder_SimpleElement extends FormBuilder_SubPart {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get inputTagName() { return null }
-	constructor(e) {
-		e = e || {}; super(e);
-		$.extend(this, { inputTagName: e.tagName || e.tag || e.inputTagName || this.class.inputTagName, onChangeEvent: e.onChange || e.degisince, onKeyUpEvent: e.onKeyUp || e.tusaBasilinca })
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get inputTagName() { return null }
+	constructor(e = {}) {
+		super(e)
+		$.extend(this, {
+			inputTagName: e.tagName || e.tag || e.inputTagName || this.class.inputTagName,
+			onChangeEvent: e.onChange || e.degisince,
+			onKeyUpEvent: e.onKeyUp || e.tusaBasilinca
+		})
 	}
 	buildDevam(e) {
 		super.buildDevam(e); let {input} = this;
@@ -161,18 +166,22 @@ class FBuilder_SimpleElement extends FormBuilder_SubPart {
 		else { let {inputTagName} = this; if (inputTagName) { let input = this.input = $(`<${inputTagName}/>`); input.appendTo(this.layout) } }
 	}
 	initLayout(e) {
-		super.initLayout(e); let {ioAttr} = this;
+		super.initLayout(e)
+		let {ioAttr} = this
 		if (ioAttr) {
 			let {altInst} = this;
 			if (altInst) {
 				let {value} = this;
-				if (this._initValueSetFlag) { this.defaultSetValue({ value }) }
+				if (this._initValueSetFlag)
+					this.defaultSetValue({ value })
 				else {
-					value = altInst[ioAttr];
-					if (!isFunction(value)) { this.value = value }
+					value = altInst[ioAttr]
+					if (!isFunction(value))
+						this.value = value
 				}
-				let {_p} = altInst, pInst = _p?.[ioAttr];
-				if (pInst) { pInst.change(e => this.value = e.value) }
+				let {_p} = altInst, pInst = _p?.[ioAttr]
+				pInst?.change?.(e =>
+					this.value = e.value) 
 			}
 		}
 	}
@@ -261,7 +270,7 @@ class FBuilder_InputOrtak extends FBuilder_DivOrtak {
 		super.postBuild(e)
 		let {input, class: { noAutoChangeEvent }} = this
 		if (input?.length) {
-			input.on('focus', evt => setTimeout(() => evt.target.select(), 50));
+			input.on('focus', evt => setTimeout(() => evt.target.select(), 50))
 			if (!noAutoChangeEvent) {
 				input.on('change', evt => {
 					let {currentTarget: target} = evt
@@ -1097,7 +1106,7 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
 			name, etiket, placeholder = e.placeHolder,
 			value, source: _source, listSource,
 			mfSinif, kodSaha, adiSaha,
-			autoClear: autoClearFlag = e.autoClearFlag,
+			kodsuzmu = e.kodsuz, autoClearFlag = e.autoClear,
 			delay, minLength, maxRows,
 	        disabled, userData, events
 		} = e
@@ -1105,7 +1114,8 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
             name, etiket, placeholder,
 			value, _source, listSource,
 			mfSinif, kodSaha, adiSaha,
-			delay, minLength, maxRows, autoClearFlag,
+			kodsuzmu, autoClearFlag,
+			delay, minLength, maxRows,
 			disabled, events, userData
         })
         // this.etiketGosterim_normal()
@@ -1117,10 +1127,10 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
             let sender = this, builder = this, {parent, layout, input} = this
 			if (layout?.length && parent?.length && layout.parent() != parent)
 				layout.detach().appendTo(parent)
-			let {placeholder = e.placeHolder, autoClear = e.autoClearFlag, _source: source, widgetArgsDuzenle} = this
-            let args = { layout, input, placeholder, autoClear, source }
+			let {placeholder = e.placeHolder, _source: source, widgetArgsDuzenle} = this
+            let args = { layout, input, placeholder, source }
 			let keys = [
-				'id', 'name', 'etiket', 'listSource',
+				'id', 'name', 'etiket', 'listSource', 'autoClearFlag', 'kodsuzmu',
 				'mfSinif', 'kodSaha', 'adiSaha', 'delay', 'minLength', 'maxRows',
 				'disabled', 'userData', 'events'
 			]
@@ -1141,6 +1151,47 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
 			}
         }
     }
+	postBuild(e) {
+		let {input, part, class: { noAutoChangeEvent }} = this
+		this.input = null
+		super.postBuild(e)
+		this.input = input
+		if (part) {
+			// input.on('focus', evt =>
+			// 		setTimeout(() => evt.target.select(), 50))
+			if (!noAutoChangeEvent) {
+				part.degisince(({ type, events = [] }) => {
+					if (type != 'batch')
+						return
+					let {value} = events.at(-1) ?? {}
+					if (value === undefined)
+						return
+					let sender = this, builder = this, {ioAttr} = this
+					value = this.getConverted_setValue({ value })
+					if (ioAttr) {
+						let {altInst} = this
+						if (altInst) {
+							let {_p} = altInst, pInst = _p?.[ioAttr]
+							if (pInst)
+								pInst.setValues({ value })
+							else
+								altInst[ioAttr] = value
+						}
+					}
+					this.signalChange({ sender, builder, event, value })
+					this._lastValue = value
+				})
+			}
+		}
+	}
+	getConverted_getValue(e) {
+		let {part} = this
+		return part && !part.isDestroyed ? part.renderedInputText : super.getConverted_getValue(e)
+	}
+	getConverted_setValue(e) {
+		let {part} = this
+		return part && !part.isDestroyed ? part.val() : super.getConverted_setValue(e)
+	}
     setId(v) { super.setId(v); this.part?.setId(v); return this }
     setName(v) { this.name = v; this.part?.setName(v); return this }
     setValue(v) { this.value = v; this.part?.setItem(v); return this }                                     // * widget 'item' setter => (value, item) durumların her ikisini de destekler
@@ -1156,6 +1207,8 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
     setMaxRows(v) { this.maxRows = v; this.part?.setMaxRows(v); return this }
 	autoClear() { this.autoClearFlag = true; this.part?.autoClear(); return this }
 	noAutoClear() { this.autoClearFlag = false; this.part?.noAutoClear(); return this }
+	kodlu() { this.kodsuzmu = false; this.part?.kodlu(); return this }
+	kodsuz() { this.kodsuzmu = true; this.part?.kodsuz(); return this }
     setUserData(v) { this.userData = v; this.part?.setUserData(v); return this }
 	enable() { this.disabled = false; this.part?.enable(); return this }
 	disable() { this.disabled = true; this.part?.disable(); return this }

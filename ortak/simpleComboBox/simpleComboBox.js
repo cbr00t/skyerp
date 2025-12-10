@@ -21,32 +21,29 @@ class SimpleComboBoxPart extends Part {
 		let {input, kodSaha, adiSaha, autoClearFlag: autoClear} = this
 		let item = value
 		if (!isObject(item))
-			item = { [kodSaha]: item }
+			item = { [adiSaha]: item }
 		this._item = item
 		if (input?.length) {
 			input.val(this.renderedInputText)
 			input.attr('placeholder', autoClear ? this.placeholder ?? null : this.renderedText)
 		}
 	}
-	/****** CKodVeAdi/MQKA interface ********/
-	get kod() { return this.value }
-	set kod(value) { this.value = value }
-	/****************************************/
 	get value() {
 		let {item, kodSaha} = this
-		return item?.[kodSaha]
+		return item?.[kodSaha]?.trimEnd?.()
 	}
 	set value(value) {
 		let {kodSaha} = this
+		value = value?.trimEnd?.()
 		this.item = { [kodSaha]: value }
 	}
 	get aciklama() {
 		let {item, adiSaha} = this
-		return item?.[adiSaha]
+		return item?.[adiSaha]?.trimEnd?.()
 	}
 	set aciklama(value) {
 		let {adiSaha} = this
-		this.item = { [adiSaha]: value }
+		this.item = { [adiSaha]: value }?.trimEnd?.()
 	}
 	get placeholder() {
 		let {input, _placeholder} = this
@@ -82,17 +79,21 @@ class SimpleComboBoxPart extends Part {
 		let sender = this, {layout, item, kodsuzmu: kodsuz, mfSinif, kodSaha, adiSaha} = this
 		return this.renderItem({ sender, layout, item, kodsuz, mfSinif, kodSaha, adiSaha })
 	}
+	/****** CKodVeAdi/MQKA interface ********/
+	get kod() { return this.value }
+	set kod(value) { this.value = value }
+	/****************************************/
 
 	constructor(e = {}) {
 		super(e)
 		let {
 			id, name, item, value, placeholder, mfSinif,
-			autoClear: autoClearFlag = e.autoClear,
+			autoClear: autoClearFlag = e.autoClearFlag,
 			source, listSource, delay, minLength, maxRows, renderer,
-			kodsuz: kodsuzmu = e.kodsuz, kodSaha, adiSaha,
+			kodsuzmu = e.kodsuz, kodSaha, adiSaha,
 			disabled, userData, events, queue
 		} = e
-		autoClearFlag ??= true; kodsuzmu ??= false
+		autoClearFlag ??= false; kodsuzmu ??= false
 		kodSaha ??= mfSinif?.kodSaha || null
 		adiSaha ??= mfSinif?.adiSaha || null
 		delay ??= 500; maxRows ??= 10; minLength ??= 1
@@ -113,7 +114,7 @@ class SimpleComboBoxPart extends Part {
 		let input = this.input ??= layout.children('input')
 		let _e = { ...e, sender, layout, input }
 		argsDuzenleBlock?.call(this, _e)
-		let {id, name = this.id, item, kodsuzmu: kodsuz, mfSinif, kodSaha, adiSaha, delay, minLength, maxRows, listSource} = this
+		let {id, name = this.id, item, mfSinif, kodSaha, adiSaha, delay, minLength, maxRows, listSource} = this
 		layout = this.layout = _e.layout
 		input = this.input = _e.input
 		// $.extend(_e, { kodsuz, mfSinif, kodSaha, adiSaha, delay, minLength })
@@ -134,6 +135,10 @@ class SimpleComboBoxPart extends Part {
 			if (key == 'enter' || key == 'linefeed')
 				this._onChange({ type: 'commit', event, layout, input, value })
 		})
+		input.on('contextmenu', event => {
+			event?.preventDefault()
+			setTimeout(() => this.listeIstendi({ event }))
+		})
 		input.on('focus', event =>
 			this._onFocus({ event, layout, input }))
 		input.on('blur', event =>
@@ -148,7 +153,14 @@ class SimpleComboBoxPart extends Part {
 						return
 					if (maxRows != null && maxRows > -1 && recs.length > maxRows)
 						recs = recs.slice(0, maxRows)
-					let result = recs.map(rec => rec[adiSaha] || rec[kodSaha]).sort()
+					// let result = recs.map(rec => rec[adiSaha] || rec[kodSaha]).sort()
+					let result = recs.map(rec => ({ value: rec[kodSaha], label: rec[adiSaha] }))
+					result.sort((a, b) => {
+						return a?.localeCompare?.(b) ?? (
+							a < b ? -1 :
+							a > b ? 1 : 0
+						)
+					})
 					callback(result)
 				}),
 				select: ((event, { item }) =>
@@ -164,6 +176,7 @@ class SimpleComboBoxPart extends Part {
 				this.listeIstendi({ event }))
 		}
 		this._initialized = true
+		setTimeout(() => this.onResize(e))
 	}
 	destroyPart(e) {
 		this.clear()
@@ -176,6 +189,8 @@ class SimpleComboBoxPart extends Part {
 		ka = isObject(item)
 				? new CKodVeAdi({ kod: item[kodSaha], aciklama: item[adiSaha] })
 				: new CKodVeAdi({ kod: null, aciklama: item })
+		if (ka.kod != null && ka.kod == ka.aciklama)
+			ka.kod = null
 		let result = renderer?.call(this, ...arguments)
 		// result ??= kodsuz ? ka.aciklama || ka.kod : ka.parantezliOzet()                                // * kodsuz ise ve aciklama boşsa (kod => aciklama kabul edilir)
 		result ??= kodsuz || !(ka.kod && ka.aciklama)
@@ -198,8 +213,6 @@ class SimpleComboBoxPart extends Part {
 				if (item != null) {
 					let {kodSaha, adiSaha} = this
 					let {value, label} = item
-					if (label == value)
-						label = null
 					item = { [kodSaha]: value, [adiSaha]: label }
 				}
 			    this.item = item
@@ -210,8 +223,10 @@ class SimpleComboBoxPart extends Part {
 			}
 			else if (fromList)
 				this.item = item
-			e.item = item
-			e.value = this.value
+			{
+				let {value, aciklama: label, value: kod, aciklama} = this
+				$.extend(e, { item, value, label, kod, aciklama })
+			}
 			// input.attr('placeholder', this.renderedInputText)
 			// no change event trigger, if possible
 			setTimeout(() => input[0].value = null, 1)
@@ -362,12 +377,13 @@ class SimpleComboBoxPart extends Part {
 	}
 	on(name, handler) {
 		let {events} = this
-		(events[name] ??= []).push(handler)
+		let handlers = events[name] ??= []
+		handlers.push(handler)
 		return this
 	}
 	off(name, handler) {
 		let {events} = this
-		let handlers = (events[name] ?? [])
+		let handlers = events[name] ?? []
 		if (!handler) {
 			handlers.splice(0)
 			return this

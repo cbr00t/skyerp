@@ -572,7 +572,7 @@ class FormBuilderBase extends CObject {
 	    let placeholder = isObject(e) ? (e.placeholder ?? e.placeHolder) : _placeholder
 	    let value = isObject(e) ? e.value : _value
 	    let source = isObject(e) ? e.source : _source
-	    let autoClear = isObject(e) ? e.autoClear : _autoClear
+	    let autoClearFlag = isObject(e) ? e.autoClear : _autoClear
 	    let comboBox_delay = isObject(e) ? e.delay : _delay
 	    let comboBox_minLength = isObject(e) ? e.minLength : _minLength
 		let disabled = isObject(e) ? e.disabled : _disabled
@@ -580,7 +580,7 @@ class FormBuilderBase extends CObject {
 		let userData = isObject(e) ? e.userData : _userData
 		let builder = new FBuilder_SimpleComboBox({
 	        id, etiket, placeholder,
-			value, source, autoClear,
+			value, source, autoClearFlag,
 	        comboBox_delay, comboBox_minLength,
 			name, userData
 	    })

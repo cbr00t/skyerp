@@ -84,6 +84,10 @@ class TabletApp extends TicariApp {
 			MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka, MQTabNakliyeSekli,
 			MQTabTahsilSekli, MQTabBarkodReferans, MQTabBarkodAyrisim
 		])
+		items.push(new FRMenuChoice({
+			mne: 'FISTEST', text: 'Fiş Giriş Test',
+			block: e => MQTabTestFis.tanimla(e)
+		}))
 		items.push(new FRMenuChoice({ mne: 'BILGIGONDER', text: 'Bilgi Gönder', block: e => this.bilgiGonderIstendi(e) }))
 		// addMenuSubItems(null, null, [MQTest])
 		return new FRMenu({ items })
@@ -167,8 +171,6 @@ class TabletApp extends TicariApp {
 				pm.progressStep(2)
 			}
 			{
-				/*let {belirtecListe: hmrBelirtecler_yeni} = HMRBilgi
-				if (getArrayKey(hmrBelirtecler_eski) != getArrayKey(hmrBelirtecler_yeni))*/
 				await MQCogul.sqlExecNone({ offlineMode, query: 'BEGIN TRANSACTION' })
 				await Promise.all( clearClasses.filter(cls => cls != MQParam).map(cls => cls.offlineDropTable?.({ ...e, offlineMode, internal })) )
 				await app.dbMgr_tablolariOlustur({ ...e, offlineMode, internal })
@@ -179,7 +181,8 @@ class TabletApp extends TicariApp {
 				classes = this.offlineBilgiYukleSiniflar.filter(cls => cls != MQParam)             // parametrelere göre YENİ OLUŞAN 'offlineBilgiYukleSiniflar'
 				for (let _classes of arrayIterChunks(classes, chunkSize)) {
 					await Promise.all(_classes.map(cls =>
-						cls.offlineSaveToLocalTable().finally(() => pm.progressStep())
+						cls.offlineSaveToLocalTable().finally(() =>
+							pm.progressStep())
 					))
 				}
 			}
@@ -225,15 +228,6 @@ class TabletApp extends TicariApp {
 			console.error(errText, ex)
 			hConfirm(errText, 'Veri Gönder')
 		}
-		/*for (let cls of classes) {
-			try { await cls.offlineSaveToRemoteTable() }
-			catch (ex) {
-				let errText = getErrorText(ex)
-				console.error(errText, ex)
-				hConfirm(errText, 'Veri Gönder')
-			}
-			finally { pm.progressStep() }
-		}*/
 		pm.progressEnd()
 		eConfirm('Veri Gönderimi tamamlandı')
 		setTimeout(() => hideProgress(), 500)

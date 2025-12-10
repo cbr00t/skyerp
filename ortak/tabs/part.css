@@ -40,10 +40,10 @@ body.dark-theme #windows.skyTabs.part > .tabs > .tabPage:not(:hover):not(.select
 	width: var(--tabs-toggle-button-width) !important; height: var(--tabs-toggle-button-height) !important;
 	background-image: url(../../images/close.png); background-size: 20px !important; filter: contrast(0); border: none; z-index: 1052 !important
 }
-@media (max-width: 800px) {
-	:root { --tabs-toggle-button-width: 30px; --tabs-header-height: 38px }
+@media (max-width: 1000px) {
+	:root { --tabs-toggle-button-width: 25px; --tabs-header-height: 35px }
 	.skyTabs.part > .tabs > .tabPage { line-height: 16px !important }
-	.skyTabs.part > .tabs > .tabPage > .header { font-size: 85%; width: 110px !important; min-width: unset !important; max-width: unset !important; margin: 0 0 0 0 !important; padding: 0 15px 0 8px !important }
-	.skyTabs.part > .tabs > .tabPage > .tabPage-button { right: -5px !important; color: gray !important; background: transparent !important }
+	.skyTabs.part > .tabs > .tabPage > .header { font-size: 70%; width: 105px !important; min-width: unset !important; max-width: unset !important; margin: 0 0 0 0 !important; padding: 0 15px 0 8px !important }
+	.skyTabs.part > .tabs > .tabPage > .tabPage-button { right: -7px !important; color: gray !important; background: transparent !important }
 	.skyTabs.part > .tabs > .tabPage > .tabPage-button:hover, skyTabs.part > .tabs > .tabPage > .tabPage-button:focus { color: red !important }
 }

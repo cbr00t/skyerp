@@ -2,7 +2,8 @@ class MQCogul extends MQYapi {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static _altYapiDictOlustuSet = {}; static _extYapiOlustuSet = {}; static get mqCogulmu() { return true }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'parentItem'] } static get parentMFSinif() { return null }
-	static get listeSinifAdi() { return null } static get kodListeTipi() { return this.classKey } static get noAutoFocus() { return false }
+	static get listeSinifAdi() { return null } static get kodListeTipi() { return this.classKey }
+	static get noAutoFocus() { return false }
 	static get listeUISinif() { return MasterListePart } static get tanimUISinif() { return null } static get secimSinif() { return Secimler }
 	static get sabitBilgiRaporcuSinif() { return MasterRapor } static get ozelSahaTipKod() { return null }
 	static get ayrimTipKod() { return null } static get ayrimBelirtec() { return this.tableAlias } static get ayrimTable() { return `${this.tableAlias}ayrim`} static get ayrimTableAlias() { return null } 
@@ -11,9 +12,12 @@ class MQCogul extends MQYapi {
 	static get kolonDuzenlemeYapilirmi() { return true }
 	static get kolonFiltreKullanilirmi() { return !isMiniDevice() }
 	static get gridIslemTuslariKullanilirmi() { return !isMiniDevice() }
-	static get yerelParamBelirtec() { return this.classKey } static get sayacSahaGosterilirmi() { return false } static get tumKolonlarGosterilirmi() { return false }
+	static get yerelParamBelirtec() { return this.classKey }
+	static get sayacSahaGosterilirmi() { return false }
+	static get tumKolonlarGosterilirmi() { return false }
 	static get gridDetaylimi() { return this.detaylimi } static get ozelTanimIslemi() { return null } static get bulFormKullanilirmi() { return true } static get gereksizTablolariSilYapilirmi() { return true }
-	static get islemTuslari_sagButonlar_ekMarginX() { return $(window).width() < 800 ? 0 : 15 } static get orjBaslik_gridRenderDelayMS() { return null }
+	static get islemTuslari_sagButonlar_ekMarginX() { return isMiniDevice() ? 0 : 15 }
+	static get orjBaslik_gridRenderDelayMS() { return null }
 	static get defaultOrjBaslik_gridRenderDelayMS() { return 200 }
 	static get orjBaslikListesi_panelGrupAttrListe() { let _e = { liste: [] }; this.orjBaslikListesi_panelGrupAttrListeDuzenle(_e); return _e.liste }
 	static get orjBaslikListesi_panelUstSeviyeAttrListe() { let _e = { liste: [] }; this.orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(_e); return _e.liste }
@@ -123,12 +127,22 @@ class MQCogul extends MQYapi {
 	static listeEkrani_deactivated(e) { this.forAltYapiClassesDo('listeEkrani_deactivated', e) }
 	static islemTuslariDuzenle_listeEkrani_ilk(e) { this.forAltYapiClassesDo('islemTuslariDuzenle_listeEkrani_ilk', e) }
 	static islemTuslariDuzenle_listeEkrani(e) { this.forAltYapiClassesDo('islemTuslariDuzenle_listeEkrani', e) }
-	static async getRootFormBuilder(e) {
-		e = e || {}; let tanimFormBuilder = new FBuilder_TanimForm(), rootBuilder = new RootFormBuilder().add(tanimFormBuilder);
-		if (rootBuilder) { rootBuilder.noAutoInitLayout() }
-		let _e = $.extend({}, e, { mfSinif: this, inst: e.inst, rootBuilder, tanimFormBuilder });
-		await this.rootFormBuilderDuzenle(_e); await this.rootFormBuilderDuzenleSonrasi(_e); rootBuilder = _e.rootBuilder; return rootBuilder
-	}
+	static async getRootFormBuilder(e = {}) {
+		let tanimFormBuilder = new FBuilder_TanimForm({ id: 'tanimForm' })
+		let rootBuilder = new RootFormBuilder()
+		rootBuilder.add(tanimFormBuilder)
+		if (rootBuilder)
+			rootBuilder.noAutoInitLayout()
+		// let _e = $.extend({}, e, { mfSinif: this, inst: e.inst, rootBuilder, tanimFormBuilder });
+		let {mfSinif: _mfSinif, inst} = e
+		let mfSinif = _mfSinif ?? this
+		$.extend(e, { mfSinif, inst, rootBuilder, tanimFormBuilder })
+		await this.rootFormBuilderDuzenle(e)
+		await this.rootFormBuilderDuzenleSonrasi(e)
+		rootBuilder = e.rootBuilder
+		e.mfSinif = _mfSinif
+		return rootBuilder
+	}c
 	getRootFormBuilder(e) { e = e || {}; e.inst = this; return this.class.getRootFormBuilder(e) }
 	static rootFormBuilderDuzenle(e) { }
 	static async rootFormBuilderDuzenleSonrasi(e) {

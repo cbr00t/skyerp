@@ -2,7 +2,7 @@ class ModelTanimPart extends Part {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get slowAnimationFlag() { return true }
 	static get rootPartName() { return 'modelTanim' } static get partName() { return this.rootPartName }
 	static get asyncRunFlag() { return true } static get isWindowPart() { return true }
-	static get formDeferMS() { return 30 }
+	static get formDeferMS() { return 10 }
 	// get wndDefaultIsModal() { return true }
 	get defaultLayoutSelector() { let {rootPartName} = this.class; return `#${rootPartName}` }
 	get formLayoutSelector() { let {partName, rootPartName} = this.class; return partName == rootPartName ? null : `#${partName}.form-layout` }
@@ -35,17 +35,28 @@ class ModelTanimPart extends Part {
 	get silmi() { return this.islem == 'sil' } get izlemi() { return this.islem == 'izle' }
 	get kopyami() { return this.islem == 'kopya' } get yeniVeyaKopyami() { return this.yenimi || this.kopyami } 
 
-	constructor(e) {
-		e = e || {}; super(e); let args = e.args || {}; $.extend(this, {
+	constructor(e = {}) {
+		super(e)
+		let args = e.args ?? {}
+		$.extend(this, {
 			_title: e._title, islem: e.islem, mfSinif: e.mfSinif, inst: e.inst, eskiInst: e.eskiInst,
 			_builder: e.builder, _hasTabPages: false, kaydetIslemi: e.kaydetIslemi, kaydedince: e.kaydedince,
-			...args, genelAltFormParts: e.genelAltFormParts || {}, tabID2AltFormParts: e.tabID2AltFormParts || {}, initTabIDSet: {}
+			...args,
+			genelAltFormParts: e.genelAltFormParts || {},
+			tabID2AltFormParts: e.tabID2AltFormParts || {}, initTabIDSet: {}
 		});
-		let {mfSinif, inst, eskiInst} = this;
-		if (!inst && mfSinif) inst = this.inst = new mfSinif(); if (inst && !mfSinif) mfSinif = this.mfSinif = inst.class
-		if (inst && !eskiInst && this.degistirmi) eskiInst = this.eskiInst = inst.deepCopy()
+		let {mfSinif, inst, eskiInst, islem, degistirmi} = this
+		if (!inst && mfSinif)
+			inst = this.inst = new mfSinif()
+		if (inst && !mfSinif)
+			mfSinif = this.mfSinif = inst.class
+		if (inst && !eskiInst && degistirmi)
+			eskiInst = this.eskiInst = inst ? inst.deepCopy?.() ?? $.extend(true, {}, inst) : null
 		this.title = this.title || `${mfSinif?.sinifAdi || 'Model'} Tanım`;
-		let {islem} = this; if (islem) { let islemText = islem[0].toUpperCase() + islem.slice(1); this.title += ` &nbsp;[<span class="window-title-ek">${islemText}</span>]` }
+		if (islem) {
+			let islemText = islem[0].toUpperCase() + islem.slice(1)
+			this.title += ` &nbsp;[<span class="window-title-ek">${islemText}</span>]`
+		}
 	}
 	async init(e = {}) {
 		await super.init(e); let {builder, inst, islem} = this
@@ -62,9 +73,11 @@ class ModelTanimPart extends Part {
 		}
 	}
 	async initDevam(e = {}) {
-		let mfSinif = this.mfSinif ?? this?.inst?.class, {rootPartName, partName} = this.class, {layout, hasTabPages, formLayoutSelector} = this;
+		let mfSinif = this.mfSinif ?? this?.inst?.class
+		let {rootPartName, partName} = this.class, {layout, hasTabPages, formLayoutSelector} = this
 		if (mfSinif) { layout.addClass(mfSinif.dataKey || mfSinif.classKey) }
-		layout.addClass(`${partName} ${rootPartName}`); this.header = layout.find('.header'); let form = this.form = this.formParent = layout.find('.form');
+		layout.addClass(`${partName} ${rootPartName}`); this.header = layout.find('.header')
+		let form = this.form = this.formParent = layout.find('.form')
 		if (formLayoutSelector) {
 			let formLayout = this.getLayout({ selector: formLayoutSelector });
 			if (formLayout?.length) { formLayout.appendTo(form); form = this.form = formLayout }
@@ -75,47 +88,98 @@ class ModelTanimPart extends Part {
 		if (this.yeniVeyaKopyami)
 			await this.yeniTanimOncesiIslemler(e)
 	}
-	runDevam(e) {
-		super.runDevam(e)
-		this.initBulForm(e)
-		this.initIslemTuslari(e)
-		this.initLayoutOncesi(e)
-		this.initLayout(e)
-		this.initLayoutSonrasi(e)
+	async runDevam(e) {
+		await super.runDevam(e)
+		await this.initBulForm(e)
+		await this.initIslemTuslari(e)
+		await this.initLayoutOncesi(e)
+		await this.initLayout(e)
+		await this.initLayoutSonrasi(e)
 	}
-	afterRun(e) {
-		super.afterRun(e)
+	async afterRun(e) {
+		await super.afterRun(e)
 		if (this.hasTabPages) {
-			let {rootPartName} = this.class; let elms = [this.wnd, this.wndContent];
-			for (let elm of elms) { elm?.addClass(`${rootPartName} with-tabs`) } this.initTabPages(e)
+			let {wnd, wndContent, class: { rootPartName }} = this
+			for (let elm of [wnd, wndContent])
+				elm?.addClass(`${rootPartName} with-tabs`)
+			await this.initTabPages(e)
 		}
 	}
 	async initFormBuilder(e) {
 		try {
-			let {builder} = this; let {inst} = this; if (!builder && inst) { let _e = { sender: this }; builder = (await inst.getRootFormBuilder(_e)) ?? (await inst.getFormBuilders(_e)) } if ($.isEmptyObject(builder)) { return }
-			let {layout} = this, subBuilders = builder.isFormBuilder ? [builder] : builder, id2Builder = this.id2Builder = {};
+			let {builder, inst} = this
+			let _e = { ...e, sender: this }
+			if (!builder && inst)
+				builder = _e.builder = _e.rootBuilder = (await inst.getRootFormBuilder(_e)) ?? (await inst.getFormBuilders(_e))
+			if (empty(builder) || builder?.isRootFormBuilder) {
+				await this.rootFormBuilderDuzenle(_e)
+				builder = _e.builder
+			}
+			if (empty(builder))
+				return
+			let {layout} = this
+			let subBuilders = builder.isFormBuilder ? [builder] : builder
+			let id2Builder = this.id2Builder = {}
 			for (let key in subBuilders) {
-				let builder = subBuilders[key]; if (!builder) { continue }
-				let _parent = builder.parent; builder.part = this;
-				if (builder.isRootFormBuilder) { this.builder = builder; let _layout = builder.layout; if (!(_parent?.length || _layout?.length)) { _layout = builder.layout = layout } } else if (!_parent?.length) { _parent = builder.parent = layout }
-				let _id = builder.id; if (!_id) { _id = builder.id = builder.newElementId(); } if (_id) { id2Builder[_id] = builder }
-				builder.noAutoInitLayout(); builder.run()
+				let builder = subBuilders[key]
+				if (!builder)
+					continue
+				let {parent: _parent, id: _id} = builder
+				builder.part = this
+				if (builder.isRootFormBuilder) {
+					this.builder = builder
+					let {layout: _layout} = builder;
+					if (!(_parent?.length || _layout?.length))
+						_layout = builder.layout = layout
+				}
+				else if (!_parent?.length)
+					_parent = builder.parent = layout
+				if (!_id)
+					_id = builder.id = builder.newElementId()
+				if (_id)
+					id2Builder[_id] = builder
+				builder.noAutoInitLayout()
+				builder.run()
 			}
 		}
 		catch (ex) { console.error(ex); throw ex }
 	}
+	async rootFormBuilderDuzenle({ rootBuilder: rfb }) {
+		let {layout} = this
+		let fbd_islemTuslari = rfb.addForm().setLayout(layout.find('.header > .islemTuslari'))
+		e.fbd_islemTuslari = this.fbd_islemTuslari = fbd_islemTuslari
+		await this.rootFormBuilderDuzenle_islemTuslari(e)
+	}
+	async rootFormBuilderDuzenle_islemTuslari({ fbd_islemTuslari: rfb }) { }
 	initBulForm(e) {
-		let {header, form, mfSinif} = this, bulForm = header.find('.bulForm');
-		if (!mfSinif || mfSinif.bulFormKullanilirmi) {
-			let bulPart = this.bulPart = new FiltreFormPart({ layout: bulForm, degisince: e => FiltreFormPart.hizliBulIslemi({ sender: this, layout: form, tokens: e.tokens }) });
+		let {header, form, mfSinif} = this
+		let {bulFormKullanilirmi} = mfSinif ?? {}
+		let bulForm = header.find('.bulForm')
+		if (!mfSinif || bulFormKullanilirmi) {
+			let bulPart = this.bulPart = new FiltreFormPart({
+				layout: bulForm,
+				degisince: ({ tokens }) =>
+					FiltreFormPart.hizliBulIslemi({ sender: this, layout: form, tokens })
+			})
 			bulPart.run()
 		}
-		else { bulForm.addClass('jqx-hidden') }
+		else
+			bulForm.addClass('jqx-hidden')
 	}
 	initIslemTuslari(e) {
-		let {header} = this, islemTuslari = this.islemTuslari = header.find(`.islemTuslari`);
-		let _e = { args: { sender: this, layout: islemTuslari, butonlarDuzenleyici: e => this.islemTuslariDuzenle(e) } }; if (this.islemTuslariArgsDuzenle(_e) === false) { return null }
-		let islemTuslariPart = this.islemTuslariPart = new ButonlarPart(_e.args); islemTuslariPart.run(); return islemTuslariPart
+		let islemTuslari = this.islemTuslari = this.header.find(`.islemTuslari`)
+		let _e = {
+			args: {
+				sender: this,
+				layout: islemTuslari,
+				butonlarDuzenleyici: e => this.islemTuslariDuzenle(e)
+			}
+		}
+		if (this.islemTuslariArgsDuzenle(_e) === false)
+			return null
+		let islemTuslariPart = this.islemTuslariPart = new ButonlarPart(_e.args)
+		islemTuslariPart.run()
+		return islemTuslariPart
 	}
 	initTabPages(e) {
 		let _e = { sender: this, args: {} }; this.initTabPagesArgsDuzenle(_e);
@@ -200,21 +264,24 @@ class ModelTanimPart extends Part {
 		for (let builder of this.getBuilders(e)) { e.builder = builder; if (builder.islemTuslariArgsDuzenle) { builder.islemTuslariArgsDuzenle(e) } }
 	}
 	islemTuslariDuzenle(e) {
-		let {args, liste} = e, yListe = [];
+		let {args, liste} = e
+		let {izlemi, silmi} = this
+		let yListe = []
 		for (let item of liste) {
-			let {id} = item; switch (id) {
-				case 'tamam':
-					if (this.izlemi) { continue }
-					if (this.silmi) { item.id = 'sil' }
-					break
+			let {id} = item
+			if (id == 'tamam') {
+				if (izlemi)
+					continue
+				else if (silmi)
+					item.id = 'sil'
 			}
 			yListe.push(item)
 		}
 		e.liste = yListe
 	}
 	initTabPagesArgsDuzenle(e) {
-		let {args} = e, {wnd} = this;
-		$.extend(e, { sender: this, wnd });
+		let {args} = e, {wnd} = this
+		$.extend(e, { sender: this, wnd })
 		$.extend(args, {
 			theme: theme, position: 'top', /* width: 1, */ height: 'auto',
 			initTabContent: tabIndex => {

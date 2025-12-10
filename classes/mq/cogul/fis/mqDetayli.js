@@ -42,7 +42,7 @@ class MQDetayli extends MQSayacli {
 				new FBuilderWithInitLayout({ id: 'gridIslemTuslari', parent: e => e.builder.rootPart.gridIslemTuslari }),
 				new FormBuilder({ id: 'tsnForm', layout: e => e.builder.rootPart.tsnForm }), new FormBuilder({ id: 'baslikForm' })
 			]);
-		for (let i = 0; i < baslikFormlar.length; i++) {
+		for (let i = 0; i < baslikFormlar?.length ?? 0; i++) {
 			let subBuilder = new FormBuilder({ id: `baslikForm${i + 1}` }).yanYana().setLayout(e => e.builder.rootPart.baslikFormlar[i])
 			templateBuilder.id2Builder.baslikForm.add(subBuilder)
 		}
