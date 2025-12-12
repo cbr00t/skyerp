@@ -342,11 +342,13 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		}
 		return tabloKolonlari
 	}
-	defaultLoadServerData(e) {
-		e ??= {}; let mfSinif = this.getMFSinif(e); e.args = this.args;
-		if (!mfSinif) { return super.defaultLoadServerData(e) }
-		let {builder, tabloKolonlari, secimler, ozelQueryDuzenleBlock, ozelQuerySonucuBlock} = this;
-		let _e = { sender: this, builder, tabloKolonlari, mfSinif, secimler, ozelQueryDuzenleBlock, ozelQuerySonucuBlock, e };
+	defaultLoadServerData(e = {}) {
+		let mfSinif = this.getMFSinif(e)
+		e.args = this.args
+		if (!mfSinif)
+			return super.defaultLoadServerData(e)
+		let {builder, tabloKolonlari, secimler, ozelQueryDuzenleBlock, ozelQuerySonucuBlock} = this
+		let _e = {  ...e, sender: this, builder, tabloKolonlari, mfSinif, secimler, ozelQueryDuzenleBlock, ozelQuerySonucuBlock }
 		return mfSinif.loadServerData(_e)
 	}
 	loadServerData_recsDuzenle_ilk(e) {
@@ -695,8 +697,12 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			parentPart: this, mfSinif, orjBaslikListesi, gridTabloKolonlari: duzTabloKolonlari,
 			tamamIslemi: e => {
 				setTimeout(() => {
-					let {layout, grid, args, builder} = this;
-					if (mfSinif) { mfSinif.listeEkraniAc({ args }); setTimeout(() => this.layout.css('opacity', .8), 200); setTimeout(() => this.close(), 350) }
+					let {layout, grid, args, builder} = this
+					if (mfSinif) {
+						mfSinif.globalleriSil()
+						mfSinif.listeEkraniAc({ args })
+						setTimeout(() => this.layout.css('opacity', .8), 200); setTimeout(() => this.close(), 350)
+					}
 					else {
 						layout.css('opacity', .8); let _e = $.extend({}, e, { sender: this, builder, grid, args: {} }); this.gridArgsDuzenle(_e);
 						grid.jqxGrid('columns', _e.args.columns); setTimeout(layout => layout.css('opacity', 1), 100, layout)

@@ -137,9 +137,9 @@ class MQParam extends MQTekil {
 		let {rec} = e, {result = rec.jsonstr} = rec
 		if (result && typeof result != 'object')
 			result = JSON.parse(result)
-		if (!result)
-			return
-		e.rec = result
+		/*if (!result)
+			return*/
+		e.rec = result ?? {}
 		this.paramSetValues(e)
 	}
 	paramHostVars(e = {}) {

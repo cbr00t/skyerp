@@ -1,32 +1,39 @@
 class MESApp extends App {
     static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'HATYONETIMI-YENI' }
-	get configParamSinif() { return MQYerelParamConfig_MES } get yerelParamSinif() { return MQYerelParam } get isLoginRequired() { return false }
+	get configParamSinif() { return MQYerelParamConfig_MES }
+	get yerelParamSinif() { return MQYerelParam } get isLoginRequired() { return false }
 	get defaultWSPath() { return `ws/skyMES` } get useCloseAll() { return true }
-	get sqlExecWSPath() { return `${this.defaultWSPath}/hatIzleme` } get otoTazeleYapilirmi() { return !!(this.otoTazeleFlag && !this.otoTazeleDisabledFlag) }
+	get sqlExecWSPath() { return `${this.defaultWSPath}/hatIzleme` }
+	get otoTazeleYapilirmi() { return !!(this.otoTazeleFlag && !this.otoTazeleDisabledFlag) }
 	get durumKod2Aciklama() {
-		let result = this._durumKod2Aciklama; if (result === undefined) {
+		let {_durumKod2Aciklama: result} = this
+		if (result === undefined) {
 			result = this._durumKod2Aciklama = {
-				'': 'BOŞTA', '?': 'BELİRSİZ', 'BK': 'BEKLEMEDE', 'DV': '|&gt; &nbsp;[ DEVAM ]', 'DR': '|| &nbsp;[ DURDU ]', 'AT': 'İŞ ATANDI', 'PI': 'PERSONEL İSTENDİ', 'PR': 'PERSONEL GİRİŞİ',
-				'MI': 'MİKTAR İSTENDİ', 'MK': 'MİKTAR GİRİŞİ', 'BI': 'BİTTİ İSTENDİ', 'KP': 'İŞ KAPANDI', 'BT': 'İŞ BİTTİ'
+				'': 'BOŞTA', '?': 'BELİRSİZ', 'BK': 'BEKLEMEDE', 'DV': '|&gt; &nbsp;[ DEVAM ]',
+				'DR': '|| &nbsp;[ DURDU ]', 'AT': 'İŞ ATANDI', 'PI': 'PERSONEL İSTENDİ', 'PR': 'PERSONEL GİRİŞİ',
+				'MI': 'MİKTAR İSTENDİ', 'MK': 'MİKTAR GİRİŞİ', 'BI': 'BİTTİ İSTENDİ',
+				'KP': 'İŞ KAPANDI', 'BT': 'İŞ BİTTİ'
 			}
 		}
 		return result
 	}
 	get durumKod2KisaAdi() {
-		let result = this._durumKod2KisaAdi;
-		if (result === undefined) { result = this._durumKod2KisaAdi = { '': 'BOŞTA', '?': 'BOŞTA', 'BK': 'BEK', 'DV': '|&gt;', 'DR': '||' } }
+		let {_durumKod2KisaAdi: result} = this
+		if (result === undefined)
+			result = this._durumKod2KisaAdi = { '': 'BOŞTA', '?': 'BOŞTA', 'BK': 'BEK', 'DV': '|&gt;', 'DR': '||' }
 		return result
 	}
 	get hatBilgi_recDonusum() {
-		let result = this._hatBilgi_recDonusum;
-		if (result === undefined) { result = this._hatBilgi_recDonusum = { hatID: 'hatKod', hatAciklama: 'hatAdi', id: 'tezgahKod', aciklama: 'tezgahAdi' } }
+		let {_hatBilgi_recDonusum: result} = this
+		if (result === undefined)
+			result = this._hatBilgi_recDonusum = { hatID: 'hatKod', hatAciklama: 'hatAdi', id: 'tezgahKod', aciklama: 'tezgahAdi' }
 		return result
 	}
 	get sabitHatKodListe() { return this.params.config.hatKodListe } get sabitHatKodSet() { return asSet(this.sabitHatKodListe) }
 	get sabitHatKodVarmi() { return !!this.sabitHatKodListe?.length }
 
-	constructor(e) {
-		e = e || {}; super(e);
+	constructor(e = {}) {
+		super(e)
 		$.extend(this, {
 			otoTazeleFlag: ((e.otoTazele ?? e.otoTazeleFlag ?? qs.otoTazele) && !(e.disableRefresh ?? e.disableRefreshFlag ?? asBool(qs.disableRefresh))) ?? null,
 			tazeleKontrolSn: asFloat(e.tazeleKontrolSn ?? qs.tazeleKontrolSn ?? e.kontrolSn ?? qs.kontrolSn ?? 8)
@@ -34,9 +41,9 @@ class MESApp extends App {
 	}
 	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e) }
 	async afterRun(e) { await super.afterRun(e); this.tazele_startTimer(e) }
-	paramsDuzenle(e) {
-		super.paramsDuzenle(e); const {params} = e; $.extend(params, {
-			localData: MQLocalData.getInstance(), mes: MQParam_MES.getInstance(), hatYonetimi: MQParam_HatYonetimi.getInstance() })
+	paramsDuzenle({ params }) {
+		super.paramsDuzenle(...arguments)
+		$.extend(params, { localData: MQLocalData.getInstance(), mes: MQParam_MES.getInstance() })
 	}
 	getAnaMenu(e) {
 		/* const disabledMenuIdSet = this.disabledMenuIdSet || {}; */

@@ -178,6 +178,8 @@ class AccordionPart extends Part {
 					let collapsedItemHeight = headerH + (itemPadY * 2) + (border * 2)
 					let contentHeight = parseInt(H - collapsedItemHeight * N - safeZone)
 					elmContent.height(contentHeight)
+					makeScrollable(elmContent)
+					elmContent.scrollTop(0)
 					/*elmContent.css(
 						'height',
 						`calc(${layout.height()}px - (var(--acc-header-height) * ${layout.children().length - 1}))`
@@ -215,10 +217,29 @@ class AccordionPart extends Part {
 			item.collapsed = !item.expanded
 			delete item.expanded
 		}
-		let {panels, id2Panel} = this
+		let {layout, panels, id2Panel} = this
 		let id = item.id ||= newGUID()
+		item._layout = layout
 		item.collapsed ??= item.isCollapsed ?? this.isDefaultCollapsed
 		delete item.isCollapsed
+		Object.defineProperty(
+			item, 'layout', {
+				configurable: true,
+				get() { return this._layout.children(`.accordion.item[data-id = "${this.id}"]`) }
+			}
+		)
+		Object.defineProperty(
+			item, 'headerLayout', {
+				configurable: true,
+				get() { return this.layout.children('.header') }
+			}
+		)
+		Object.defineProperty(
+			item, 'contentLayout', {
+				configurable: true,
+				get() { return this.layout.children('.content') }
+			}
+		)
 		panels.push(item)
 		id2Panel[id] = item
 		this.signalChange({ type: 'add', item })
@@ -261,6 +282,50 @@ class AccordionPart extends Part {
 		this.panels = []
 		delete this._id2Panel
 		return this
+	}
+	get(e) {
+		let idOrIndex = typeof e == 'object' ? e.id ?? e.index : e
+		if (!idOrIndex)
+			return null
+		let {id2Panel} = this
+		let item = typeof idOrIndex == 'string' ? id2Panel[idOrIndex] : panels[idOrIndex]
+		return item
+	}
+	set(e, newItem) {
+		let idOrIndex = typeof e == 'object' ? e.id ?? e.index : e
+		if (!idOrIndex)
+			return null
+		let {panels, id2Panel} = this
+		panels.find(_ => _.id == idOrIndex)
+		let item = typeof idOrIndex == 'string' ? id2Panel[idOrIndex] : panels[idOrIndex]
+		if (!item)
+			return this.add(item)
+		let ind = (typeof idOrIndex == 'string' ? panels.findIndex(_ => _.id == idOrIndex) : idOrIndex) ?? -1
+		panels[i] = newItem
+		id2Panel[item.id] = newItem
+		this.signalChange({ type: 'set', oldItem: item, item: newItem })
+		return this
+	}
+	getCollapsedContent(e) {
+		let idOrIndex = typeof e == 'object' ? e.id ?? e.index : e
+		if (!idOrIndex)
+			return undefined
+		let {id2Panel} = this
+		let item = typeof idOrIndex == 'string' ? id2Panel[idOrIndex] : panels[idOrIndex]
+		return item?.collapsedContent
+	}
+	setCollapsedContent(e, value) {
+		let idOrIndex = typeof e == 'object' ? e.id ?? e.index : e
+		if (!idOrIndex)
+			return this
+		let {id2Panel} = this
+		let item = typeof idOrIndex == 'string' ? id2Panel[idOrIndex] : panels[idOrIndex]
+		if (item)
+			item.collapsedContent = value
+		return this
+	}
+	clearCollapsedContent(e) {
+		return this.setCollapsedContent(e, null)
 	}
 	focus(e) {
 		this.layout.focus()

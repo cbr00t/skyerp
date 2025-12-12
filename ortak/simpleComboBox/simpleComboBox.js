@@ -170,7 +170,7 @@ class SimpleComboBoxPart extends Part {
 		if (listSource || mfSinif) {
 			let btnListe = layout.children('button#liste')
 			if (!btnListe?.length)
-				(btnListe = $('<button id="liste"> L </button>')).prependTo(layout)
+				(btnListe = $('<button id="liste"> L </button>')).appendTo(layout)
 			btnListe.off('click')
 			btnListe.on('click', event =>
 				this.listeIstendi({ event }))
@@ -233,12 +233,13 @@ class SimpleComboBoxPart extends Part {
 			if (queue) {
 				queue.push(e)
 				clearTimeout(this._timer_queue)
-				this._timer_queue = setTimeout(() => this.processQueue(), 200)
+				this._timer_queue = setTimeout(() => this.processQueue(), 250)
 			}
 			else
 				this.signalChange(e)
 			input.blur()
-			setTimeout(() => input.focus(), 1)
+			clearTimeout(this._timerFocus)
+			this._timerFocus = setTimeout(() => input.focus(), 5)
 		}
 		finally { setTimeout(() => this._inEvent = false, 5) }
 	}
@@ -264,7 +265,8 @@ class SimpleComboBoxPart extends Part {
 			return
 		let sender = this, {kodsuzmu, kodSaha, adiSaha, item, value: kod, aciklama} = this
 		let inputVal = input.val() ?? ''
-		let cls = (class extends mfSinif {
+		let orjMFSinif = mfSinif
+		let cls = (class extends orjMFSinif {
 			static orjBaslikListesi_gridInit({ sender: gridPart, sender: { bulPart } }) {
 				super.orjBaslikListesi_gridInit(...arguments)
 				let {bulFormKullanilirmi} = this
@@ -274,7 +276,6 @@ class SimpleComboBoxPart extends Part {
 			static orjBaslikListesiDuzenle({ liste }) {
 				super.orjBaslikListesiDuzenle(...arguments)
 				let {kodKullanilirmi, adiKullanilirmi} = this
-
 				// query builder için kolon eksiklerini tamamla
 				let key2Col = fromEntries(liste.map(_ => [_.belirtec, _]))
 				let kodCol = key2Col[kodSaha], adiCol = key2Col[adiSaha]
@@ -285,8 +286,8 @@ class SimpleComboBoxPart extends Part {
 					if (kodKullanilirmi) { kodCol ??= _liste[0]; kodCol.belirtec = kodSaha }
 					if (adiKullanilirmi) { adiCol ??= _liste[1]; adiCol.belirtec = adiSaha }
 				}
-				if (kodsuzmu)
-					kodCol?.hidden()
+				/*if (kodsuzmu)
+					kodCol?.hidden()*/
 				// ters sırada ekle
 				if (adiCol && !key2Col[adiSaha])
 					liste.unshift(adiSaha)
@@ -302,14 +303,32 @@ class SimpleComboBoxPart extends Part {
 					// value: likeValue                                                         // server-side LIKE filtering, if class supports
 				}
 				if (!source)
-					return super.loadServerData(_e)
+					return orjMFSinif.loadServerData(_e)
 				return source?.(_e)
 			}
 		})
 		let args = {
-			secince: ({ rec: item, value }) => {
-				this.item = item
-				this._onChange({ type: 'list', layout, input, item })
+			secince: async ({ recs, value }) => {
+				recs ??= []
+				if (empty(recs))
+					return
+				let {queue, kodSaha, adiSaha} = this
+				if (queue) {
+					for (let item of recs.slice(0, -1)) {
+						let value = item[kodSaha], aciklama = item[adiSaha]
+						let kod = value, label = aciklama
+						let event = { type: 'list', layout, input, item, recs, kod, aciklama, value, label }
+						queue.push(event)
+					}
+					/*clearTimeout(this._timer_queue)
+					this._timer_queue = setTimeout(() => this.processQueue(), 250)*/
+				}
+				{
+					let item = this.item = recs.at(-1)
+					let value = item[kodSaha], aciklama = item[adiSaha]
+					let kod = value, label = aciklama
+					await this._onChange({ type: 'list', layout, input, item, recs, kod, aciklama, value, label })
+				}
 				// this.focus()
 			},
 			kapaninca: () =>
@@ -350,8 +369,10 @@ class SimpleComboBoxPart extends Part {
 		super.onResize(e)
 		let {layout, input} = this
 		let btnListe = layout.children('button#liste')
-		if (btnListe?.length)
-			btnListe.css('left', `${input.offset().left + input.width() - 40}px`)
+		if (btnListe?.length) {
+			btnListe.css('left', `${input.width() - 45}px`)
+			btnListe.css('top', `${-btnListe.height() - 20}px`)
+		}
 	}
 	blur(e) {
 		this.input.blur()

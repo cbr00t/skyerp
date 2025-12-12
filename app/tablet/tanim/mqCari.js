@@ -81,20 +81,22 @@ class MQTabCari extends MQKAOrtak {
 		super.orjBaslikListesiDuzenle(...arguments); let {tableAlias: alias} = this
 		liste.push(
 			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 20 }),
-			new GridKolon({ belirtec: 'bolgekod', text: 'Bölge Kod', genislikCh: 10 }),
-			new GridKolon({ belirtec: 'bolgeadi', text: 'Bölge Adı', genislikCh: 25, sql: 'bol.aciklama' }),
-			new GridKolon({ belirtec: 'ilkod', text: 'İl Kod', genislikCh: 8 }),
-			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 25, sql: 'il.aciklama' }),
-			/*new GridKolon({ belirtec: 'ulkekod', text: 'Ülke Kod', genislikCh: 8 }),
-			new GridKolon({ belirtec: 'ulkeadi', text: 'Ülke Adı', genislikCh: 25, sql: 'ulk.aciklama' }),*/
+			...this.getKAKolonlar(
+				new GridKolon({ belirtec: 'bolgekod', text: 'Bölge', genislikCh: 15, filterType: 'checkedlist' }),
+				new GridKolon({ belirtec: 'bolgeadi', text: 'Bölge Adı', genislikCh: 25, sql: 'bol.aciklama', filterType: 'checkedlist' })
+			),
+			...this.getKAKolonlar(
+				new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 15, filterType: 'checkedlist' }),
+				new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 25, sql: 'il.aciklama', filterType: 'checkedlist' })
+			),
 			new GridKolon({ belirtec: 'posta', text: 'Posta', genislikCh: 8 }),
 			new GridKolon({ belirtec: 'efaturakullanirmi', text: 'e-Fat?', genislikCh: 8 }).tipBool(),
-			new GridKolon({ belirtec: 'sahismi', text: 'Şahıs?', genislikCh: 8 }).tipBool(),
+			new GridKolon({ belirtec: 'sahismi', text: 'Şahıs?', genislikCh: 8, filterType: 'checkedlist' }).tipBool(),
 			new GridKolon({ belirtec: 'vdaire', text: 'Vergi Dairesi', genislikCh: 25 }),
 			new GridKolon({ belirtec: 'vnumara', text: 'Vergi No', genislikCh: 13 }),
 			new GridKolon({ belirtec: 'tckimlikno', text: 'TC Kimlik No', genislikCh: 13 }),
 			new GridKolon({ belirtec: 'email', text: 'e-Posta', genislikCh: 45 }),
-			new GridKolon({ belirtec: 'tel1', text: 'Tel 1', genislikCh: 15 }),
+			new GridKolon({ belirtec: 'tel1', text: 'Sabit Tel.', genislikCh: 15 }),
 			// new GridKolon({ belirtec: 'tel2', text: 'Tel 2', genislikCh: 15 }),
 			new GridKolon({ belirtec: 'tel3', text: 'Cep Tel.', genislikCh: 15 }),
 			new GridKolon({ belirtec: 'gpsenlem', text: 'GPS Enlem', genislikCh: 13 }).tipNumerik(),
@@ -102,7 +104,7 @@ class MQTabCari extends MQKAOrtak {
 			new GridKolon({ belirtec: 'calismadurumu', text: 'Aktif?', genislikCh: 8, filterType: 'checkedlist' }).tipBool(),
 			new GridKolon({ belirtec: 'satilamazfl', text: 'SatılaMAz?', genislikCh: 10, filterType: 'checkedlist' }).tipBool(),
 			new GridKolon({ belirtec: 'adres', text: 'Adres', genislikCh: 80 }),
-			new GridKolon({ belirtec: 'kontiptext', text: 'K.Tip', genislikCh: 13, sql: TabKonsolideTip.getClause(`${alias}.kontipkod`), filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'kontiptext', text: 'K.Tip', genislikCh: 13, sql: TabKonsolideTip.getClause(`${alias}.kontipkod`), filterType: 'checkedlist' })
 			/*new GridKolon({ belirtec: 'ekstremustkod', text: 'Risk Cari', genislikCh: 18 }),
 			new GridKolon({ belirtec: 'odemegunkodu', text: 'Ödeme Gün Kodu', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'standartiskonto', text: 'Std.İsk%', genislikCh: 15 }).tipNumerik()

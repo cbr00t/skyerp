@@ -85,11 +85,15 @@ class ReqCache extends LocalCache {
 		if (typeof key == 'object') {
 			let {url, data} = key;
 			if (url) {
-				url = new URL(url); let {pathname: path, search} = url
-				let _qs = readQSDict(search)
-				for (let key of ['appID', 'sql', '_', '#nbb']) { delete _qs[key] }
-				search = $.param(_qs)
-				url = key.url = path + search
+				try {
+					url = new URL(url)
+					let {pathname: path, search} = url
+					let _qs = readQSDict(search)
+					for (let key of ['appID', 'sql', '_', '#nbb']) { delete _qs[key] }
+					search = $.param(_qs)
+					url = key.url = path + search
+				}
+				catch (ex) { console.error(ex) }
 			}
 			key = toJSONStr({ url, data })
 		}

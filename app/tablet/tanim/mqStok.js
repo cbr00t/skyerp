@@ -79,8 +79,10 @@ class MQTabStok extends MQKAOrtak {
 		liste.push(
 			new GridKolon({ belirtec: 'almkdvorani', text: 'Alm.Kdv%', genislikCh: 8 }).tipNumerik(),
 			new GridKolon({ belirtec: 'almfiyat', text: 'Alm.Fiyat', genislikCh: 11 }).tipDecimal_fiyat(),
-			new GridKolon({ belirtec: 'smarkakod', text: 'Marka', genislikCh: 15 }),
-			new GridKolon({ belirtec: 'smarkaadi', text: 'Marka Adı', genislikCh: 25, sql: 'smar.aciklama' }),
+			...this.getKAKolonlar(
+				new GridKolon({ belirtec: 'smarkakod', text: 'Marka', genislikCh: 15 }),
+				new GridKolon({ belirtec: 'smarkaadi', text: 'Marka Adı', genislikCh: 25, sql: 'smar.aciklama' })
+			),
 			new GridKolon({ belirtec: 'tartireferans', text: 'Tartı Ref.', genislikCh: 15 })
 		)
 	}
@@ -99,42 +101,38 @@ class MQTabStok extends MQKAOrtak {
 		}
 		return await super.loadServerDataDogrudan(...arguments)
 	}
-	static loadServerData_queryDuzenle_son({ sent, sent: { where: wh, sahalar }, offlineRequest, offlineMode } = {}) {
+	static loadServerData_queryDuzenle_son({ sent, sent: { where: wh, sahalar, alias2Deger }, offlineRequest, offlineMode } = {}) {
 		super.loadServerData_queryDuzenle_son(...arguments)
-		sent.stok2GrupBagla().stok2MarkaBagla()
-		if (offlineRequest) {
-			let {tableAlias: alias, _online_sqlColDefs: cd, _kdvOran2Kod: oran2Kod} = this
-			let {alias2Deger} = sent
-			if (offlineMode) {
-				// Bilgi Gönder
-				let getKdvKodClauseVeAlias = (kodPrefix, almSatPrefix) => {
-					let clause = `${alias}.${almSatPrefix}kdvorani`
-					return (    // sqlite
-						`(case when ${clause} = 0 then ''` +
-						` else '${kodPrefix}' || ${clause}` + 
-						` end) ${almSatPrefix}kdvhesapkod`
-					)
-				}
-				sahalar.add(getKdvKodClauseVeAlias('TAH', 'sat'), getKdvKodClauseVeAlias('IND', 'alm'))
+		let {tableAlias: alias} = this, kdvHesap_sabitLen = 3
+		let getKdvKodClauseVeAlias = (kodPrefix, almSatPrefix) => {
+			if (offlineRequest && !offlineMode) {
+				let clause = `${alias}.${almSatPrefix}kdvhesapkod`
+				return (    // mssql
+					`(case when ${clause} LIKE '${kodPrefix}%' then` +
+					` CAST(RTRIM(SUBSTRING(${clause}, ${kdvHesap_sabitLen + 1}, LEN(${clause}) - ${kdvHesap_sabitLen})) as int)` +
+					` else 0 end) ${almSatPrefix}kdvorani`
+				)
 			}
 			else {
-				// Bilgi Yükle
-				wh.add(
-					`${alias}.silindi = ''`, `${alias}.calismadurumu <> ''`, `${alias}.satilamazfl = ''`,
-					new MQOrClause([`stk.grupkod = ''`, `grp.elterkullan <> ''`])
+				let clause = `${alias}.${almSatPrefix}kdvorani`
+				return (    // sqlite
+					`(case when ${clause} = 0 then ''` +
+					` else '${kodPrefix}' || ${clause}` + 
+					` end) ${almSatPrefix}kdvhesapkod`
 				)
-				let kdvHesap_sabitLen = 3
-				let getKdvOranClauseVeAlias = (kodPrefix, almSatPrefix) => {
-					let clause = `${alias}.${almSatPrefix}kdvhesapkod`
-					return (    // mssql
-						`(case when ${clause} LIKE '${kodPrefix}%' then` +
-						` CAST(RTRIM(SUBSTRING(${clause}, ${kdvHesap_sabitLen + 1}, LEN(${clause}) - ${kdvHesap_sabitLen})) as int)` +
-						` else 0 end) ${almSatPrefix}kdvorani`
-					)
-				}
-				sahalar.add(getKdvOranClauseVeAlias('TAH', 'sat'), getKdvOranClauseVeAlias('IND', 'alm'))
-				sahalar.addWithAlias(alias, 'kisaadi', 'brm2', 'brmorani', 'tartilabilir')
 			}
+		}
+		sent.stok2GrupBagla().stok2MarkaBagla()
+		sahalar.addWithAlias(alias, 'aciklama', 'grupkod', 'satfiyat1 fiyat')
+		sahalar.add('grp.aciklama grupadi', 'smar.aciklama markaadi')
+		sahalar.add(getKdvKodClauseVeAlias('TAH', 'sat'), getKdvKodClauseVeAlias('IND', 'alm'))
+		if (offlineRequest && !offlineMode) {
+			// Bilgi Yükle
+			wh.add(
+				`${alias}.silindi = ''`, `${alias}.calismadurumu <> ''`, `${alias}.satilamazfl = ''`,
+				new MQOrClause([`stk.grupkod = ''`, `grp.elterkullan <> ''`])
+			)
+			sahalar.addWithAlias(alias, 'kisaadi', 'brm2', 'brmorani', 'tartilabilir')
 		}
 	}
 	hostVarsDuzenle({ hv, offlineRequest, offlineMode }) {

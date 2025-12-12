@@ -172,46 +172,59 @@ class MQYapi extends CIO {
 			return delay(20)
 		}
 	}
-	static async logKaydet(e) {
-		if (!this.logKullanilirmi) { return true }
-		e = e ?? {}; let {
+	static async logKaydet(e = {}) {
+		if (!this.logKullanilirmi)
+			return true
+		let {
 			sent: _sent, where, wh, adimBelirtec, logAnaTip, islem, degisenler,
 			tableVeAlias, tabloVeAlias, table, alias, logHV, /*logRecDonusturucu,*/
 			duzenle, duzenleyici, trn
-		} = e, {user: loginUser} = config.session;
+		} = e
+		let {user: loginUser} = config.session ?? {}
 		islem ??= ''; adimBelirtec ??= this.kodListeTipi ?? ''; logAnaTip ??= this.logAnaTip ?? ''
-		degisenler = degisenler?.map(x => x.replaceAll(' ', '_')) ?? [];
-		where = where ?? wh ?? _sent?.where; table ??= tableVeAlias?.table ?? this.table;
-		tableVeAlias ??= tabloVeAlias; duzenleyici ??= duzenle;
-		let tAlias = (alias ?? tableVeAlias?.alias ?? this.tableAlias) || 't';
-		// logRecDonusturucu ??= this.logRecDonusturucu;
-		let sysInfo = app._sysInfo ??= await app.sysInfo();
-		let {computerName, userName, ip} = sysInfo ?? {};
-		let _e = { ...e, /*logRecDonusturucu,*/ degisenler }, hv = _e.hv = {
+		degisenler = degisenler?.map(x => x.replaceAll(' ', '_')) ?? []
+		where = where ?? wh ?? _sent?.where; table ??= tableVeAlias?.table ?? this.table
+		tableVeAlias ??= tabloVeAlias; duzenleyici ??= duzenle
+		let tAlias = (alias ?? tableVeAlias?.alias ?? this.tableAlias) || 't'
+		// logRecDonusturucu ??= this.logRecDonusturucu
+		let sysInfo = app._sysInfo ??= await app.sysInfo()
+		let {computerName, userName, ip} = sysInfo ?? {}
+		let _e = { ...e, /*logRecDonusturucu,*/ degisenler }
+		let hv = _e.hv = {
 			islem, adimbelirtec: adimBelirtec?.slice(0, 10),
 			kullanici: loginUser?.slice(0, 20),
 			terminal: [ip || '', computerName || '', userName || ''].join('_'),
 			anatip: logAnaTip, tablo: table, ...logHV,
 			xdegisenler: degisenler.join('_').slice(0, 400)
 		};
-		duzenleyici?.call(this, _e); hv = _e.hv;
-		await this.logHVDuzenle(_e); hv = _e.hv;
-		let ins = _e.ins = new MQInsert({ table: 'vtlog', hv });
-		await this.logInsertDuzenle(_e); ins = _e.ins;
+		duzenleyici?.call(this, _e); hv = _e.hv
+		await this.logHVDuzenle(_e); hv = _e.hv
+		let ins = _e.ins = new MQInsert({ table: 'vtlog', hv })
+		await this.logInsertDuzenle(_e); ins = _e.ins
 		return await app.sqlExecNone({ query: ins, trn })
 	}
-	logKaydet(e) {
-		e = e ?? {}; let logHV = e.logHV ?? this.logHV;
-		return this.class.logKaydet({ ...e, logHV })
+	logKaydet({ logHV = this.logHV } = {}) {
+		return this.class.logKaydet({ ...arguments[0], logHV })
 	}
 	static logHVDuzenle({ hv }) { }
 	static logInsertDuzenle(e) { }
 	static logRecDonusturucuDuzenle(e) { }
 	logHVDuzenle(e) { }
-	static varsayilanKeyHostVars(e) { let hv = {}; this.varsayilanKeyHostVarsDuzenle($.extend({}, e, { hv })); return hv }
+	static varsayilanKeyHostVars(e) {
+		let hv = {}
+		this.varsayilanKeyHostVarsDuzenle({ ...e, hv })
+		return hv
+	}
 	static varsayilanKeyHostVarsDuzenle(e) { }
-	keyHostVars(e) { let hv = {}; this.keyHostVarsDuzenle($.extend({}, e, { hv })); return hv }
-	keyHostVarsDuzenle(e) { e = e || {}; if (!e.varsayilanAlma) { this.class.varsayilanKeyHostVarsDuzenle(e) } }
+	keyHostVars(e) {
+		let hv = {}
+		this.keyHostVarsDuzenle({ ...e, hv })
+		return hv
+	}
+	keyHostVarsDuzenle(e = {}) {
+		if (!e.varsayilanAlma)
+			this.class.varsayilanKeyHostVarsDuzenle(e)
+	}
 	alternateKeyHostVars(e) {
 		let _e = { ...e, hv: {} }; this.class.varsayilanKeyHostVarsDuzenle(_e); let hv = _e.hv;
 		_e.hv = {}; this.alternateKeyHostVarsDuzenle(_e); let _hv = _e.hv;

@@ -17,8 +17,55 @@ class MQOEM extends MQMasterOrtak {
 	}
 }
 class MQPersonel extends MQKAOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Personel' }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'PERSONEL' } static get sinifAdi() { return 'Personel' }
 	static get table() { return 'personel' } static get tableAlias() { return 'per' }
+	static get secimSinif() { return MQKA.secimSinif }
+	static secimlerDuzenle({ secimler: sec }) {
+		super.secimlerDuzenle(...arguments)
+		let {tableAlias: alias} = this
+		sec.addKA('dep', MQDepartman, `${alias}.depkod`, 'dep.aciklama', false)
+		sec.addKA('gorev', MQGorev, `${alias}.gorevkod`, 'gor.aciklama', true)
+	}
+	static ekCSSDuzenle({ dataField: belirtec, rec, result }) {
+		if (!rec.calismadurumu)
+			result.push('bg-lightgray', 'iptal')
+		/*switch (belirtec) {
+			case 'calismadurumu': {
+				result.push(!value ? 'darkgray' : value > 60 * 60 ? 'red' : 'green') }
+				break
+		}*/
+	}
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(
+			// new GridKolon({ belirtec: 'calismadurumu', text: 'Aktif?', genislikCh: 8 }).tipBool(),
+			new GridKolon({ belirtec: 'depkod', text: 'Departman', genislikCh: 8 }),
+			new GridKolon({ belirtec: 'depadi', text: 'Dep. Adı', genislikCh: 20, sql: 'dep.aciklama' }),
+			new GridKolon({ belirtec: 'gorevkod', text: 'Görev', genislikCh: 8 }),
+			new GridKolon({ belirtec: 'gorevadi', text: 'Görev Adı', genislikCh: 20, sql: 'gor.aciklama' })
+		)
+	}
+	static async loadServerData_queryDuzenle({ alias = this.tableAlias, stm: { orderBy }, sent, sent: { where: wh, sahalar } }) {
+		await super.loadServerData_queryDuzenle(...arguments)
+		sent
+			.fromIliski('maldepartman dep', `${alias}.depkod = dep.kod`)
+			.fromIliski('pergorev gor', `${alias}.gorevkod = gor.kod`)
+		wh.add(`${alias}.calismadurumu <> ''`)
+		sahalar.add(`${alias}.calismadurumu`)
+		if (!orderBy.liste.length)
+			orderBy.liste = ['calismadurumu DESC']
+	}
+}
+class MQDepartman extends MQKAOrtak {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'MALDEP' } static get sinifAdi() { return 'Departman' }
+	static get table() { return 'maldepartman' } static get tableAlias() { return 'dep' }
+}
+class MQGorev extends MQKAOrtak {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'GOREV' } static get sinifAdi() { return 'Görev' }
+	static get table() { return 'pergorev' } static get tableAlias() { return 'gor' }
 }
 class MQHat extends MQKAOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Hat' }
@@ -188,7 +235,7 @@ class MQZamanEtudu extends MQMasterOrtak {
 			form.addNumberInput('sinyalArasiMaxSn', 'En Uzun (sn)').addStyle_wh(width);
 			form.addForm().setLayout(e => $(`<div class="royalblue bold uyari">** Ürün Ağacına eklenir **</div>`))
 				.addStyle(e => `$elementCSS { margin-top: 38px !important; margin-left: 15px }`)
-				.setVisibleKosulu(e => app.params.hatYonetimi.urunAgacinaEkle ? true : 'jqx-hidden');
+				.setVisibleKosulu(e => (app.params.mes.urunAgacinaEkle ?? true) ? true : 'jqx-hidden')
 		form = tanimForm.addFormWithParent().yanYana().addStyle(e => `$elementCSS { margin-top: 20px }`).addStyle_wh(undefined, 50);
 			form.addButton('baslatVeyaDegistir', e => e.builder?.altInst?.degistirmi ? 'DEĞİŞTİR' : 'BAŞLAT').onClick(e => this.etudButonTiklandi($.extend(e, { islem: 'baslatVeyaDegistir' }))).addStyle_wh(width * 3);
 		let parentForm = tanimForm.addFormWithParent('ornekleme').altAlta()
@@ -244,79 +291,105 @@ class MQSinyal extends MQMasterOrtak {
 		super.pTanimDuzenle(e); let {pTanim} = e;
 		$.extend(pTanim, { tezgahKod: new PInstStr('tezgahkod'), ts: new PInstDateTimeNow('ts') })
 	}
-	static secimlerDuzenle(e) {
-		super.secimlerDuzenle(e); let {secimler: sec} = e;
+	static secimlerDuzenle({ secimler: sec }) {
+		super.secimlerDuzenle(...arguments)
 		sec.secimTopluEkle({
-			tezgahKod: new SecimString({ etiket: 'Tezgah', mfSinif: MQTezgah }), tezgahAdi: new SecimOzellik({ etiket: 'Tezgah Adı' }),
-			ts: new SecimDateTime({ etiket: 'Tarih/Saat' }), ip: new SecimOzellik({ etiket: 'IP Adresi' }),
+			tezgahKod: new SecimString({ etiket: 'Tezgah', mfSinif: MQTezgah }),
+			tezgahAdi: new SecimOzellik({ etiket: 'Tezgah Adı' }),
+			ts: new SecimDateTime({ etiket: 'Tarih/Saat', basi: today().addDays(-1) }),
+			ip: new SecimOzellik({ etiket: 'IP Adresi' }),
 			sanalSecim: new SecimTekSecim({ etiket: 'Cihaz Tipi', tekSecim: new BuDigerVeHepsi(['Gerçek', 'Sanal']) })
 		});
 		sec.whereBlockEkle(e => {
-			let {secimler: sec, where: wh} = e, {tableAlias: alias} = this;
-			wh.basiSonu(sec.tezgahKod, `${alias}.tezgahkod`).ozellik(sec.tezgahAdi, 'tez.aciklama');
-			wh.basiSonu(sec.ts, `${alias}.ts`).ozellik(sec.ip, `${alias}.ip`);
-			let tSec = sec.sanalSecim.tekSecim; if (!tSec.hepsimi) { tSec.getTersBoolBitClause(`${alias}.bsanal`) }
+			let {secimler: sec, where: wh} = e, {tableAlias: alias} = this
+			wh.basiSonu(sec.tezgahKod, `${alias}.tezgahkod`).ozellik(sec.tezgahAdi, 'tez.aciklama')
+			wh.basiSonu(sec.ts, `${alias}.ts`).ozellik(sec.ip, `${alias}.ip`)
+			let tSec = sec.sanalSecim.tekSecim
+			if (!tSec.hepsimi)
+				tSec.getTersBoolBitClause(`${alias}.bsanal`) 
 		})
 	}
-	static standartGorunumListesiDuzenle(e) {
-		super.standartGorunumListesiDuzenle(e); let {liste} = e;
-		e.liste = liste = liste.filter(x => x != 'ts')
-	}
-	static ekCSSDuzenle(e) {
-		let {rec, dataField: belirtec, result} = e; switch (belirtec) {
-			case 'farkSn': { let {farkSn: value} = rec; result.push(!value ? 'darkgray' : value > 60 * 60 ? 'red' : 'green') } break
+	static ekCSSDuzenle({ dataField: belirtec, rec, result }) {
+		switch (belirtec) {
+			case 'farkSure': 
+			case 'farkDk':
+			case 'farkSn': {
+				let {farkSn: value} = rec
+				result.push(!value ? 'darkgray' : value > 60 * 60 ? 'red' : 'green') }
+				break
 		}
 	}
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); let {liste} = e, {aliasVeNokta} = this;
+	static standartGorunumListesiDuzenle({ liste }) {
+		let e = arguments[0]; super.standartGorunumListesiDuzenle(e)
+		e.liste = liste = liste.filter(x => x != 'ts')
+	}
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		let {aliasVeNokta} = this
 		liste.push(...[
 			new GridKolon({ belirtec: 'tezgahkod', text: 'Tezgah', genislikCh: 15, filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'tezgahadi', text: 'Tezgah Adı', genislikCh: 35, sql: 'tez.aciklama', filterType: 'checkedlist' }),
-			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 15, filterable: false, sql: `CAST(${aliasVeNokta}ts AS DATE)` }).tipDate(),
-			new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 15, sql: `CONVERT(VARCHAR(10), ${aliasVeNokta}ts, 108)` }).tipTime(),
-			new GridKolon({
-				belirtec: 'farkSn', text: 'Fark (sn)', genislikCh: 15, filterType: 'checkedlist',
-				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) =>
-					changeTagContent(html, rec.farkSn ? asSaniyeKisaString(rec.farkSn, false, true) : '')
-			}).noSql(),
-			new GridKolon({ belirtec: 'kayitsayisi', text: 'Sayı', genislikCh: 15, sql: 'COUNT(*)', aggregates: [{'TOPLAM': gridDipIslem_sum}] }).tipNumerik(),
+			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 10, filterable: false, sql: `CAST(${aliasVeNokta}ts AS DATE)`, filterType: 'checkedlist' }).tipDate(),
+			new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 10, sql: `CONVERT(VARCHAR(10), ${aliasVeNokta}ts, 108)`, filterType: 'checkedlist' }).tipTime().alignCenter(),
+			new GridKolon({ belirtec: 'farkSure', text: 'Fark', genislikCh: 13, filterType: 'checkedlist' }).noSql().alignCenter(),
+			new GridKolon({ belirtec: 'farkDk', text: 'Fark (dk)', genislikCh: 10, filterType: 'checkedlist' }).noSql().tipDecimal(),
+			new GridKolon({ belirtec: 'kayitsayisi', text: 'Sayı', genislikCh: 13, sql: 'COUNT(*)', aggregates: [{'TOPLAM': gridDipIslem_sum}] }).tipNumerik(),
 			new GridKolon({ belirtec: 'bsanal', text: 'Sanal?', genislikCh: 10, filterType: 'checkedlist' }).tipBool(),
 			new GridKolon({ belirtec: 'ip', text: 'Cihaz IP', genislikCh: 18, filterType: 'checkedlist' })
 		])
 	}
-	static orjBaslikListesi_groupsDuzenle(e) {
-		super.orjBaslikListesi_groupsDuzenle(e); let {listeBasliklari} = this, {liste, gridWidget} = e;
-		let detaylimi = !!listeBasliklari.find(({ belirtec }) => belirtec == 'ts');
-		if (detaylimi) { let belirtec = 'tezgahadi'; liste.push(belirtec); gridWidget.hidecolumn(belirtec) }
+	static orjBaslikListesi_groupsDuzenle({ liste, gridWidget }) {
+		super.orjBaslikListesi_groupsDuzenle(...arguments)
+		let {listeBasliklari} = this
+		let detaylimi = !!listeBasliklari.find(_ => _.belirtec == 'ts')
+		if (detaylimi) {
+			let belirtec = 'tezgahadi'
+			liste.push(belirtec)
+			gridWidget.hidecolumn(belirtec)
+		}
 	}
 	static async loadServerData_queryOlustur(e) {
-		await super.loadServerData_queryOlustur(...arguments)
+		await super.loadServerData_queryOlustur(e)
 		let {stm} = e
 		for (let sent of stm)
 			sent.groupByOlustur()
 		return stm
 	}
-	static async loadServerData_queryDuzenle(e) {
-		await super.loadServerData_queryDuzenle(e); let {stm, sent} = e, {orderBy} = stm, {sahalar} = sent;
-		let alias = e.alias ?? this.tableAlias, aliasVeNokta = alias ? `${alias}.` : '';
-		sent.fromIliski('tekilmakina tez', `${aliasVeNokta}tezgahkod = tez.kod`);
+	static async loadServerData_queryDuzenle({ alias, stm, stm: { orderBy }, sent, sent: { where: wh, sahalar } }) {
+		await super.loadServerData_queryDuzenle(...arguments)
+		alias ||= this.tableAlias
+		let aliasVeNokta = alias ? `${alias}.` : ''
+		sent.fromIliski('tekilmakina tez', `${aliasVeNokta}tezgahkod = tez.kod`)
 		if (!orderBy.liste.length) {
-			let mevcutSet = {}; for (let {alias} of sahalar.liste) { mevcutSet[alias] = true }
+			let mevcutSet = fromEntries(sahalar.liste.map(({ alias }) => [alias, true]))
 			if (!mevcutSet.ts && mevcutSet.tarih) {
-				mevcutSet.ts = true;
+				mevcutSet.ts = true
 				sahalar.add(mevcutSet.saat ? `${aliasVeNokta}ts` : `CAST(${aliasVeNokta}ts AS DATE) ts`)
 			}
-			for (let alias of ['tezgahkod', 'tezgahadi']) { if (mevcutSet[alias]) { orderBy.add(`${alias} DESC`); break } } /* sadece uygun ilkini ekle */
-			for (let alias of ['ts']) { if (mevcutSet[alias]) { orderBy.add(`${alias} DESC`) } } /* uygun olanların tamamını ekle */
+			for (let alias of ['tezgahkod', 'tezgahadi']) {          // sadece uygun ilkini ekle
+				if (!mevcutSet[alias])
+					continue
+				orderBy.add(`${alias} DESC`)
+				break
+			}
+			for (let alias of ['ts']) {                              // uygun olanların tamamını ekle
+				if (mevcutSet[alias])
+					orderBy.add(`${alias} DESC`)
+			}
 		}
 	}
 	static orjBaslikListesi_recsDuzenle(e) {
-		let ts = now(); console.log('orjBaslikListesi_recsDuzenle begin');
-		super.orjBaslikListesi_recsDuzenle(e); let {recs} = e; if (recs?.length) {
-			let sonTS; for (let i = 0; i < recs.length; i++) {
-				let rec = recs[i], {ts} = rec;
-				ts = typeof ts == 'string' ? strAsDateFast(ts) : (typeof ts == 'number' ? ts : 0);
-				rec.farkSn = sonTS && ts ? (sonTS - ts) / 1000 : 0;
+		console.log('orjBaslikListesi_recsDuzenle begin');
+		super.orjBaslikListesi_recsDuzenle(e)
+		let {recs} = e, ts = now()
+		if (recs?.length) {
+			let sonTS
+			for (let i = 0; i < recs.length; i++) {
+				let rec = recs[i], {ts} = rec
+				ts = typeof ts == 'string' ? strAsDateFast(ts) : (typeof ts == 'number' ? ts : 0)
+				let farkSn = rec.farkSn = sonTS && ts ? (sonTS - ts) / 1000 : 0
+				rec.farkSure = farkSn ? asSaniyeKisaString(farkSn, false, true) : ''
+				rec.farkDk = roundToFra(farkSn / 60, 1)
 				sonTS = ts
 			}
 		}
@@ -327,6 +400,9 @@ class MQSinyal extends MQMasterOrtak {
 		super.rootFormBuilderDuzenle(e); let {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e;
 		let form = tanimForm.addFormWithParent().yanYana();
 			form.addModelKullan('tezgahKod', 'Tezgah').comboBox().autoBind().setMFSinif(MQTezgah); form.addDateInput('tarih', 'Tarih'); form.addTimeInput('saat', 'Saat')
+	}
+	static logKaydet(e) {
+		// do nothing
 	}
 	keyHostVarsDuzenle(e) { super.keyHostVarsDuzenle(e); let {hv} = e, {tezgahKod: tezgahkod, ts} = this; $.extend(hv, { tezgahkod, ts }) }
 	keySetValues(e) { super.keySetValues(e); let {rec} = e, {tezgahkod: tezgahKod, ts} = rec; $.extend(this, { tezgahKod, ts }) }

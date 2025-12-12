@@ -139,7 +139,7 @@ class HatYonetimiPart extends Part {
 		let recs = await app.wsTezgahBilgileri(wsArgs); if (recs) {
 			let {durumKod2KisaAdi, hatBilgi_recDonusum: donusum} = app;
 			for (let rec of recs) {
-				for (let [key, newKey] of Object.entries(donusum)) { if (rec[newKey] == null) { rec[newKey] = rec[key]?.trimEnd(); delete rec[key] } }
+				for (let [key, newKey] of entries(donusum)) { if (rec[newKey] == null) { rec[newKey] = rec[key]?.trimEnd(); delete rec[key] } }
 				let {durumKod, durumAdi} = rec; if (durumKod != null) {
 					durumKod = rec.durumKod = durumKod.trimEnd(); if (rec.durumAdi == null) { rec.durumAdi = durumKod2KisaAdi[durumKod] ?? durumKod }
 					if (durumKod != 'DR' && rec.durNedenAdi) { rec.durNedenAdi = '' }
@@ -194,7 +194,7 @@ class HatYonetimiPart extends Part {
 			}
 		}
 		if (!$.isEmptyObject(tezgah2Rec)) {
-			let zRecs = await app.wsGorevZamanEtuduVeriGetir({ tezgahIdListe: Object.keys(tezgah2Rec).join(delimWS) });
+			let zRecs = await app.wsGorevZamanEtuduVeriGetir({ tezgahIdListe: keys(tezgah2Rec).join(delimWS) });
 			for (let {isid: isID, bzamanetudu: varmi} of zRecs) {
 				let {tezgahRec} = isId2Bilgi[isID] ?? {}; if (!tezgahRec) { continue }
 				$.extend(tezgahRec, { zamanEtuduVarmi: varmi, ekAramaText_zamanEtudu: varmi ? 'zmn:var zaman:var etüd:var' : 'zmn:yok zaman:yok etüd:yok' })
@@ -279,7 +279,7 @@ class HatYonetimiPart extends Part {
 	createLayout(e) {
 		e = e ?? {}; let {hat2Sev: hat2Sev, divListe} = this; if (!hat2Sev) { return this }
 		let lastSelection = this._lastSelection = this.selectedTezgahKodListe;
-		let parent = $(document.createDocumentFragment()); for (let sev of Object.values(hat2Sev)) {
+		let parent = $(document.createDocumentFragment()); for (let sev of values(hat2Sev)) {
 			let itemHat = this.class.getLayout_hat(sev), itemTezgahlar = itemHat?.children('.tezgahlar'); if (!itemTezgahlar?.length) { continue }
 			for (let rec of sev.detaylar) { let itemTezgah = this.class.getLayout_tezgah(rec); itemTezgah.appendTo(itemTezgahlar) }
 			itemHat.appendTo(parent)
@@ -292,7 +292,7 @@ class HatYonetimiPart extends Part {
 		this._lastSelection = this.selectedTezgahKodListe; return this
 	}
 	updateLayout(e) {
-		e = e ?? {}; let {layout, boxSize: box} = this; for (let [key, value] of Object.entries(box)) { layout.css(`--box-${key}`, `${value}`) }
+		e = e ?? {}; let {layout, boxSize: box} = this; for (let [key, value] of entries(box)) { layout.css(`--box-${key}`, `${value}`) }
 		let {hat2Sev: hat2Sev, divListe} = this; if (!hat2Sev) { return this }
 		let basitmi = e.basit ?? e.basitmi, setHTMLValues = (parent, rec, ...keys) => {
 			if (!parent?.length) { return } keys = keys?.flat();
@@ -301,7 +301,8 @@ class HatYonetimiPart extends Part {
 				elm = parent.find(`.${key}-parent`); if (elm.length) { elm[value || typeof value == 'number' ? 'removeClass' : 'addClass']('jqx-hidden') }
 			}
 		};
-		let {kritikDurNedenKodSet} = app.params.mes; for (let sev of Object.values(hat2Sev)) {
+		let {kritikDurNedenKodSet} = app.params.mes
+		for (let sev of values(hat2Sev)) {
 			let {hatKod, grupStyle, detaylar} = sev, itemHat = divListe.find(`.hat.item[data-id = "${hatKod}"]`); if (!itemHat?.length) { continue }
 			setHTMLValues(itemHat, sev, 'hatKod', 'hatAdi');
 			let elm = itemHat.find('.grup'); if (elm.length) {
@@ -319,7 +320,7 @@ class HatYonetimiPart extends Part {
 					'onceCevrimSayisi', 'aktifCevrimSayisi', 'aktifIsSayi', 'durumAdi', 'durNedenAdi'
 				);
 				setHTMLValues(itemTezgah, rec, 'zamanEtuduVarmi');
-				let _rec = { topSaymaInd, topSaymaSayisi }; setHTMLValues(itemTezgah, _rec, Object.keys(_rec));
+				let _rec = { topSaymaInd, topSaymaSayisi }; setHTMLValues(itemTezgah, _rec, keys(_rec));
 				let elm = itemTezgah.find('.isBilgi-parent'); if (elm.length) { elm.html(this.class.getLayout_isBilgileri(rec)) }
 				elm = itemTezgah.find('.grafik-parent'); if (elm.length) { elm.html(this.class.getLayout_grafikler(isListe)) }
 				elm = itemTezgah.find('.alt'); elm.attr('data-durum', durumKod);
@@ -746,9 +747,9 @@ class HatYonetimiPart extends Part {
 			if (durumKod == 'ZON') { topAktifSayi++ } else if (durumKod == 'APSF') { topPasifSayi++ } else { topOffSayi++ }
 			if (orjDurumKod == 'DR') { (durNeden2TezgahKod[durNedenAdi] = durNeden2TezgahKod[durNedenAdi] ?? []).push(tezgahKod) }
 		}
-		let textList = []; for (let [hat, durum2Sayi] of Object.entries(hat2Durum2Sayi)) {
+		let textList = []; for (let [hat, durum2Sayi] of entries(hat2Durum2Sayi)) {
 			let text = `<li class="item"><span class="etiket sub-item">${hat}:</span> `;
-			for (let durumKod of Object.keys(durum2Sayi).sort().reverse()) {
+			for (let durumKod of keys(durum2Sayi).sort().reverse()) {
 				let sayi = durum2Sayi[durumKod], durumText = durumKod == 'ZON' ? 'ON' : durumKod == 'APSF' ? 'PSF' : 'OFF';
 				text += `<span class="sub-item ${durumKod == 'ZON' ? 'on' : durumKod == 'APSF' ? 'pasif' : 'off'}">[<span class="durum">${durumText} = </span><span class="sayi">${sayi}</span>]</span>`
 			}
@@ -770,7 +771,7 @@ class HatYonetimiPart extends Part {
 		);
 		let ekTextList = []; if (!$.isEmptyObject(durNeden2TezgahKod)) {
 			ekTextList.push(`<table class="durNedenleri" cellpadding="3"><tr class="header"><th width="150">Dur. Neden</th><th>Sayı</th></tr>`);
-			for (let [neden, kodListe] of Object.entries(durNeden2TezgahKod)) { ekTextList.push(`<tr class="data"><td>${neden}</td><td>${kodListe.length}</td></tr>`) }
+			for (let [neden, kodListe] of entries(durNeden2TezgahKod)) { ekTextList.push(`<tr class="data"><td>${neden}</td><td>${kodListe.length}</td></tr>`) }
 			ekTextList.push(`</table>`)
 		}
 		return `<ul class="text ozetBilgi-container ozetBilgi">${textList?.length ? textList.join(' ') : ''}</ul>${ekTextList.length ? ekTextList.join(CrLf) : ''}`

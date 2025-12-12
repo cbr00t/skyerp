@@ -145,7 +145,8 @@ class GridPart extends Part {
 					deleterow: (rowIndexes, commit) => { commit(true) },
 					loadServerData: async (wsArgs, source, callback) => {
 						let {gridWidget, grid} = this; if (!gridWidget && grid?.length) { gridWidget = this.gridWidget = grid.jqxGrid('getInstance') }
-						let action = this._tazele_lastAction; let result = await this.loadServerData({ wsArgs, source, callback, action });
+						let {_tazele_lastAction: action} = this
+						let result = await this.loadServerData({ ...e, wsArgs, source, callback, action })
 						if (result) {
 							if ($.isArray(result)) { result = { totalrecords: result.length, records: result } } result = result ?? { totalrecords: 0, records: [] };
 							if (typeof result == 'object' && result.records && !result.totalrecords) { result.totalrecords = result.records.length }
@@ -333,15 +334,17 @@ class GridPart extends Part {
 		})();
 		try {
 			let secimler = parentPart?.secimler; if (parentPart?.partName == 'secimler') { secimler = null}
-			let _e = $.extend({}, e, {
+			let _e = {
+				...e,
 				action, sender: this, builder, parentPart, gridPart: this, gridWidget, inst: parentPart?.inst, fis: parentPart?.inst, secimler,
 				editCell, editor: editCell?.editor, rowIndex: editCell?.row ?? gridWidget?.selectedrowindex, dataField: editCell?.datafield,
 				get gridRec() {
 					let result = this._gridRec; if (result === undefined) { let {gridWidget, rowIndex} = this; result = this._gridRec = gridWidget?.getrowdata(rowIndex) }
 					return result
 				}
-			});
-			let result = e.result = loadServerDataBlock ? await getFuncValue.call(this, loadServerDataBlock, _e) : await this.defaultLoadServerData(_e);
+			}
+			// deleteKeys(_e, 'stm', 'sent', 'uni')
+			let result = e.result = loadServerDataBlock ? await getFuncValue.call(this, loadServerDataBlock, _e) : await this.defaultLoadServerData(_e)
 			let recs = e.recs = result ? $.isArray(result) ? result : result.records : null;
 			if ($.isArray(recs)) {
 				(async () => {

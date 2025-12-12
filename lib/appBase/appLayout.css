@@ -256,4 +256,5 @@ body > .indicators > .ajax.error { background: firebrick }
 }
 
 .ui-autocomplete { z-index: 999999 !important }
-
+input[type = text]::placeholder,
+	input[type = textbox]::placeholder { padding: 0 10px }

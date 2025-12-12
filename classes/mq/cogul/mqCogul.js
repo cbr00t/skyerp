@@ -4,7 +4,8 @@ class MQCogul extends MQYapi {
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'parentItem'] } static get parentMFSinif() { return null }
 	static get listeSinifAdi() { return null } static get kodListeTipi() { return this.classKey }
 	static get noAutoFocus() { return false }
-	static get listeUISinif() { return MasterListePart } static get tanimUISinif() { return null } static get secimSinif() { return Secimler }
+	static get listeUISinif() { return MasterListePart } static get tanimUISinif() { return null }
+	static get secimSinif() { return this.isOfflineMode ? null : Secimler }
 	static get sabitBilgiRaporcuSinif() { return MasterRapor } static get ozelSahaTipKod() { return null }
 	static get ayrimTipKod() { return null } static get ayrimBelirtec() { return this.tableAlias } static get ayrimTable() { return `${this.tableAlias}ayrim`} static get ayrimTableAlias() { return null } 
 	static get tanimlanabilirmi() { return !!this.tanimUISinif } static get degistirilebilirmi() { return this.tanimlanabilirmi }
@@ -437,7 +438,19 @@ class MQCogul extends MQYapi {
 	static sabitRaporKategorileriDuzenle_detaylar(e) { let {modelRapor} = e; debugger }
 	static raporQueryDuzenle(e) { this.forAltYapiClassesDo('raporQueryDuzenle', e) }
 	static raporQueryDuzenle_detaylar(e) { this.forAltYapiClassesDo('raporQueryDuzenle_detaylar', e) }
-	static loadServerData(e) { return this.loadServerDataDogrudan(e) }
+	static async loadServerData({ offlineRequest } = {}) {
+		let e = arguments[0]
+		if (!offlineRequest && this.isOfflineMode) {
+			let {globals} = this, {cachedRecs: result} = globals
+	        if (empty(result)) {
+	            result = await this.loadServerDataDogrudan(e)
+	            if (!empty(result))
+	                globals.cachedRecs = result
+	        }
+	        return result
+		}
+		return await this.loadServerDataDogrudan(e)
+	}
 	static async loadServerDataDogrudan(e) {
 		e ??= {}; let {offlineRequest, offlineMode} = e
 		if (offlineRequest)
@@ -703,7 +716,11 @@ class MQCogul extends MQYapi {
 		let results = (await this.forAltYapiKeysDoAsync('dataDuzgunmu', e))?.flat()?.filter(x => !!x);
 		return results?.length ? `<ul>${results.map(x => `<li>${x}</li>`).join(CrLf)}</ul>` : null
 	}
-	async kaydetVeyaSilmeOncesiIslemler(e = {}) { await super.kaydetVeyaSilmeOncesiIslemler(e); await this.forAltYapiKeysDoAsync('kaydetVeyaSilmeOncesiIslemler', e) }
+	async kaydetVeyaSilmeOncesiIslemler(e = {}) {
+		this.class.globalleriSil(e)
+		await super.kaydetVeyaSilmeOncesiIslemler(e)
+		await this.forAltYapiKeysDoAsync('kaydetVeyaSilmeOncesiIslemler', e)
+	}
 	async yeniOncesiIslemler(e = {}) { await super.yeniOncesiIslemler(e); await this.forAltYapiKeysDoAsync('yeniOncesiIslemler', e) }
 	async degistirOncesiIslemler(e = {}) { await super.degistirOncesiIslemler(e); await this.forAltYapiKeysDoAsync('degistirOncesiIslemler', e) }
 	async silmeOncesiIslemler(e = {}) { await super.silmeOncesiIslemler(e); await this.forAltYapiKeysDoAsync('silmeOncesiIslemler', e) }
@@ -863,8 +880,18 @@ class MQCogul extends MQYapi {
 	}
 	static gridKolonlarDuzenle(e) { this.forAltYapiClassesDo('gridKolonlarDuzenle', e) }
 	static getGridKolonGrup(e) { }
-	static globalleriSil() { let {classKey, mqGlobals} = this, result = mqGlobals[classKey]; delete app.mqGlobals[classKey]; return result }
-	static tempsReset() { let {classKey, mqTemps} = this, result = mqTemps[classKey]; delete mqTemps[classKey]; return result }
+	static globalleriSil() {
+		let {classKey, mqGlobals} = this
+		let result = mqGlobals[classKey]
+		delete app.mqGlobals[classKey]
+		return result
+	}
+	static tempsReset() {
+		let {classKey, mqTemps} = this
+		let result = mqTemps[classKey]
+		delete mqTemps[classKey]
+		return result
+	}
 	static async kodYoksaMesaj(e, _etiket, _zorunlumu) {
 		e = e || {}; let kod = typeof e == 'object' ? e.kod : e;
 		let etiket = (typeof e == 'object' ? e.etiket ?? e.sinifAdi : _etiket) ?? this.sinifAdi ?? '';
