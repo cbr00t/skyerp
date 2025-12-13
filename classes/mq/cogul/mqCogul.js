@@ -438,23 +438,25 @@ class MQCogul extends MQYapi {
 	static sabitRaporKategorileriDuzenle_detaylar(e) { let {modelRapor} = e; debugger }
 	static raporQueryDuzenle(e) { this.forAltYapiClassesDo('raporQueryDuzenle', e) }
 	static raporQueryDuzenle_detaylar(e) { this.forAltYapiClassesDo('raporQueryDuzenle_detaylar', e) }
-	static async loadServerData({ offlineRequest } = {}) {
+	static async loadServerData({ offlineRequest, offlineMode = this.isOfflineMode } = {}) {
 		let e = arguments[0]
-		if (!offlineRequest && this.isOfflineMode) {
+		if (!offlineRequest && offlineMode && !this.offlineFis) {
 			let {globals} = this, {cachedRecs: result} = globals
-	        if (empty(result)) {
-	            result = await this.loadServerDataDogrudan(e)
-	            if (!empty(result))
-	                globals.cachedRecs = result
-	        }
-	        return result
+			if (empty(result)) {
+				result = await this.loadServerDataDogrudan(e)
+				if (!empty(result))
+					globals.cachedRecs = result
+			}
+			return result
 		}
 		return await this.loadServerDataDogrudan(e)
 	}
-	static async loadServerDataDogrudan(e) {
-		e ??= {}; let {offlineRequest, offlineMode} = e
-		if (offlineRequest)
-			this._online_sqlColDefs ??= await app.sqlGetColumns(this.table)
+	static async loadServerDataDogrudan(e = {}) {
+		let {offlineRequest, offlineMode} = e
+		if (offlineRequest) {
+			let {table} = this
+			this._online_sqlColDefs ??= await app.sqlGetColumns({ table, offlineMode })
+		}
 		e.query = await this.loadServerData_queryOlustur(e)
 		return await this.loadServerData_querySonucu(e)
 	}
@@ -613,7 +615,11 @@ class MQCogul extends MQYapi {
 		result = result ? result[result.length - 1] : undefined
 		if (result !== undefined)
 			return result
-		result = await this.sqlExecSelect(_e)
+		try { result = await this.sqlExecSelect(_e) }
+		catch (ex) {
+			console.error(ex, getErrorText(ex), e)
+			throw ex
+		}
 		return result
 	}
 	tekilOku_queryOlustur(e) {

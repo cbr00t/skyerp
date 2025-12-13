@@ -8,28 +8,33 @@ class MQOrtakFis extends MQDetayli {
 	static get offlineFis() { return true }
 	get numYapi() { return this.class.numYapi } get fisNox() { return this.tsn?.asText() }
 	get dipIslemci() {
-		let result = this._dipIslemci; if (result === undefined) { this.dipOlustur(); result = this._dipIslemci }
+		let {_dipIslemci: result} = this
+		if (result === undefined) {
+			this.dipOlustur()
+			result = this._dipIslemci
+		}
 		return result
 	}
 	set dipIslemci(value) { this._dipIslemci = value }
 	get dipGridSatirlari() { return null }
+	get bakiyeciler() { return [] }
 	get fisTopBrut() {
-		let toplam = 0; const {detaylar} = this; if (!detaylar) { return 0 }
-		for (const det of detaylar) { toplam += (det.brutBedel || 0) }
-		return roundToBedelFra(toplam)
+		let {detaylar} = this
+		return detaylar ? roundToBedelFra(topla(_ => _.brutBedel || 0, detaylar)) : 0
 	}
 	get fisTopNet() {
-		let toplam = 0, {detaylar} = this; if (!detaylar) { return 0 }
-		for (let det of detaylar) { toplam += (det.netBedel || det.bedel || 0) }
-		return roundToBedelFra(toplam)
+		let {detaylar} = this
+		return detaylar ? roundToBedelFra(topla(_ => _.netBedel || _.bedel || 0, detaylar)) : 0
 	}
 	get fisTopDvNet() {
-		let toplam = 0, {detaylar} = this; if (!detaylar) { return 0 }
-		for (let det of detaylar) { toplam += (det.dvNetBedel || det.dvBedel || 0) }
-		return roundToBedelFra(toplam)
+		let {detaylar} = this
+		return detaylar ? roundToBedelFra(topla(_ => _.dvNetBedel || _.dvBedel || 0, detaylar)) : 0
 	}
-	get fisBaslikOlusturucular() { const _e = { liste: [] }; this.fisBaslikOlusturucularDuzenle(_e); return _e.liste }
-	get bakiyeciler() { return [] }
+	get fisBaslikOlusturucular() {
+		let _e = { liste: [] }
+		this.fisBaslikOlusturucularDuzenle(_e)
+		return _e.liste
+	}
 	
 	constructor(e) {
 		e = e || {}; super(e); if (e.isCopy) { return }

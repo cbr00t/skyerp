@@ -1,2 +1,3 @@
 .tabFisGiris.modelTanim.part { }
+.tabFisGiris.modelTanim.part > .header { height: 5px }
 .tabFisGiris.modelTanim.part [role = row] > div > div { margin-top: 0 !important; padding: 5px }

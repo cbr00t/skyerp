@@ -129,7 +129,7 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		let db = this
 		return {db, fsRootDir, fh, data}
 	}
-	dbInit(e) {
+	async dbInit(e) {
 		this.execute([
 			`PRAGMA page_size = ${64 * 1024}`,    // Page size in Bytes
 			`PRAGMA cache_size=-${256 * 1024}`,   // (-): Memory Size in KB | (+): n Page Count
@@ -145,14 +145,17 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 			if (wasAutoSave)
 				this.noAutoSave()
 			if (window?.app)
-				return app.dbMgr_tablolariOlustur?.(e)
+				try { return await app.dbMgr_tablolariOlustur?.(e) }
+				catch (ex) { cerr(ex); return }
 		}
 		finally {
 			if (wasAutoSave)
 				this.autoSave()
 		}
 	}
-	async executeAsync(e, params, isRetry) { await this.execute(e, params, isRetry) }
+	async executeAsync(e, params, isRetry) {
+		return await this.execute(e, params, isRetry)
+	}
 	execute(e, params, isRetry, noAutoTrim) {
 		if (this.internalDB) { return this._execute(e, params, isRetry, noAutoTrim) }
 		return this.open(e).then(() => this._execute(e, params, isRetry, noAutoTrim))
@@ -161,16 +164,20 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		if (window?.app)
 			app.sqlType = 'sqlite'
 		if (typeof e == 'object' && !$.isPlainObject(e)) {
-			let queryObj = e; e = { query: queryObj.toString() };
+			let queryObj = e; e = { query: queryObj.toString() }
 			e.params = queryObj.params
 		}
-		if (!e.query) { e = { query: e } }
-		if (_params !== undefined) { e.params = _params }
+		if (!e.query)
+			e = { query: e }
+		if (_params !== undefined)
+			e.params = _params
 		e.noAutoTrim = e.noAutoTrim ?? _noAutoTrim;
 		if (e.query?.toplumu) {
-			let {liste} = e.query, result; for (let subQuery of liste) {
+			let {liste} = e.query, result
+			for (let subQuery of liste) {
+				subQuery.params = []
 				let queryYapi = subQuery.getQueryYapi()
-				if ($.isEmptyObject(queryYapi))
+				if (empty(queryYapi))
 					continue
 				app?.onAjaxStart?.(true)
 				try { 
@@ -190,9 +197,9 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		else if (_query?.query) { $.extend(e, _query) }
 		else { e.query = _query?.toString() ?? '' }
 		if (!e.query) { return null }
-		if (!$.isEmptyObject(savedParams)) {
+		if (!empty(savedParams)) {
 			let {params} = e
-			if ($.isEmptyObject(params)) { params = e.params = savedParams }
+			if (empty(params)) { params = e.params = savedParams }
 			else if (params != savedParams) {
 				if ($.isArray(params)) { params.push(...savedParams) }
 				else { $.extend(params, savedParams) }
@@ -222,7 +229,8 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 			/*if (dbOpCallback) { await dbOpCallback.call(this, { operation: 'executeSql', state: null, error: ex }, e) }*/
 			clearTimeout(this._timer_dbIndicatorReset)
 			this._timer_dbIndicatorReset = setTimeout(() => app?.onAjaxEnd?.(true), 10)
-			console.error('sqlite exec', { ...e, db: this, isDBWrite, ex })
+			if (!ex?.toString().includes('cannot start a transaction within a transaction'))
+				console.error('sqlite exec', { ...e, db: this, isDBWrite, ex })
 			throw ex
 		}
 		if (!_result) {
@@ -251,12 +259,32 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		return result
 	}
 	getTables(...names) {
-		let sent = new MQSent({ from: 'sqlite_master', where: { degerAta: 'table', saha: 'type' }, sahalar: 'name' });
-		if (names?.length) { sent.where.inDizi(names, 'name') }
-		return asSet(this.execute(sent)?.map(rec => rec.name) ?? [])
+		// PRAGMA table_info()
+		//  {cid: 0, name: 'kod', type: 'TEXT', pk: 1, notnull: 1, dflt_value: null, …}
+		let sent = new MQSent({
+			from: 'sqlite_master', sahalar: ['*'],
+			where: { degerAta: 'table', saha: 'type' }
+		})
+		let {where: wh} = sent
+		if (names?.length) { wh.inDizi(names, 'name') }
+		let recs = this.execute(sent) ?? []
+		return fromEntries(recs.map(_ => [_.name, _]))
 	}
-	hasTables(...names) { names = Object.keys(asSet(names ?? [])); let size = names?.length; return size ? Object.keys(this.getTables(...names)).length == size : false }
+	hasTables(...names) { return !empty(this.getTables(...names)) }
 	hasTable(...names) { return this.hasTables(...names) }
+	getColumns(table, ...names) {
+		let nameSet = empty(names) ? null : asSet(names)
+		let recs = this.execute(`PRAGMA table_info(${table})`) ?? []
+		let result = {}
+		for (let rec of recs) {
+			let {name} = rec
+			if (!nameSet?.[name])
+				result[name] = rec
+		}
+		return result
+	}
+	hasColumns(table, ...names) { return !empty(this.getColumns(table, ...names)) }
+	hasColumn(...names) { return this.hasColumns(...names) }
 	getFSHandle(e) { let createFlag = typeof e == 'boolean' ? e : e?.create ?? e.createFlag; return getFSFileHandle(this.fsRootDir, null, createFlag) }
 	onChange(e = {}) {
 		this.changed(e)

@@ -1,14 +1,16 @@
 // class MQTabTestFis extends mixin($TabFisTemplate, MQGenelFis) {
-class MQTabTestFis extends MQTabFis {
+class TabTSFis extends TabFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get detaySinif() { return MQTabTestFisDetay }
+	static get kodListeTipi() { return 'TABTS' } static get sinifAdi() { return 'Ticari/Stok' }
+	static get detaySinif() { return TabTSDetay } static get almSat() { return 'T' }
+	
 	static pTanimDuzenle({ pTanim }) {
 		// MQOrtakFis.pTanimDuzenle(...arguments)
 		super.pTanimDuzenle(...arguments)
 	}
 	static async rootFormBuilderDuzenle_tablet(e) {
 		await super.rootFormBuilderDuzenle_tablet(e)
-		let {sender: tanimPart, inst, rootBuilder: rfb, kaForm, tanimFormBuilder: tanimForm} = e
+		let {sender: tanimPart, inst, rootBuilder: rfb, kaForm, tanimFormBuilder: tanimForm, acc} = e
 		// tanimForm.addForm().setLayout(() => $(`<p><h3>hello world from ${this.name}</h3></p>`))
 	}
 	static async rootFormBuilderDuzenle_tablet_acc({ sender: tanimPart, acc }) {
@@ -21,12 +23,14 @@ class MQTabTestFis extends MQTabFis {
 	static async rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_detayCollapsed(...arguments)
 		let {fisTopNet, detaylar: { length: topSatir }} = fis
-		rfb.addForm().setLayout(() => $([
-			`<div class="flex-row" style="gap: 10px">`,
-				`<div class="orangered"><b>${fisTopNet}</b> TL</div>`,
-				`<div class="royalblue"><b>${topSatir}</b> satır</div>`,
-			`</div>`
-		].join(CrLf)))
+		if (topSatir) {
+			rfb.addForm().setLayout(() => $([
+				`<div class="flex-row" style="gap: 10px">`,
+					`<div class="orangered"><b>${fisTopNet}</b> TL</div>`,
+					`<div class="royalblue"><b>${topSatir}</b> satır</div>`,
+				`</div>`
+			].join(CrLf)))
+		}
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_detay({ sender: tanimPart, sender: { acc }, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_detay(...arguments)
@@ -68,14 +72,16 @@ class MQTabTestFis extends MQTabFis {
 	}
 	static async barkodOkundu({ tanimPart, barkodlar }) {
 		let results = await Promise.allSettled(barkodlar.map(barkod => app.barkodBilgiBelirle({ barkod })))
-		results = results.filter(_ => _.value && _.status == 'fulfilled').map(_ => _.value)
+		results = results
+			.filter(_ => _.value && _.status == 'fulfilled')
+			.map(_ => _.value)
 		if (empty(results))
 			return
 		/*{
 			let html = [
 				`<div>Belirlenen ürünler:</div>`,
 				`<ul>`,
-				...results.map(({ shAdi: val }) => `<li>${val}</li>`),
+				...results.map(({ stokAdi: val }) => `<li>${val}</li>`),
 				'</ul>'
 			].join(CrLf)
 			eConfirm(html, 'Barkod Okundu')
@@ -85,6 +91,7 @@ class MQTabTestFis extends MQTabFis {
 			w.beginupdate()
 			try {
 				for (let item of results) {
+					$.extend(item, { stokKod: item.shKod, stokAdi: item.shAdi })
 					let det = new detaySinif(item)
 					await det.detayEkIslemler({ ...arguments, fis })
 					w.addrow(null, det, 'first')
@@ -98,96 +105,119 @@ class MQTabTestFis extends MQTabFis {
 			}
 		}
 	}
+	static async loadServerDataDogrudan({ offlineRequest, offlineMode }) {
+		/*if (!offlineRequest) {
+			let cacheClasses = [MQTabStok]
+			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
+		}*/
+		return await super.loadServerDataDogrudan(...arguments)
+	}
+	static async loadServerData_detaylar({ offlineRequest, offlineMode }) {
+		if (!offlineRequest) {
+			let cacheClasses = [MQTabStok]
+			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
+		}
+		return await super.loadServerData_detaylar(...arguments)
+	}
 }
 
-class MQTabTestFisDetay extends MQTabFisDetay {
+class TabTSDetay extends TabFisDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get ioAttrListe() {
-		let {_ioAttrListe: result} = this
-		if (!result)
-			result = this._ioAttrListe = ['shKod', 'shAdi', 'barkod', 'miktar', 'fiyat', 'kdvOrani', 'bedel', 'netBedel']
-		return result
-	}
-	static get rowAttrListe() {
-		let {_rowAttrListe: result} = this
-		if (!result)
-			result = this._rowAttrListe = ['shKod', 'shAdi', 'barkod', 'miktar', 'fiyat', 'kdvOrani', 'bedel', 'netBedel']
-		return result
-	}
 	static get io2RowAttr() {
 		let {_io2RowAttr: result} = this
 		if (!result) {
-			let {ioAttrListe, rowAttrListe} = this
-			result = this._io2RowAttr = {}
-			ioAttrListe.forEach((ioAttr, i) => {
-				let rowAttr = rowAttrListe[i]
-				if (rowAttr)
-					result[ioAttr] = rowAttr
+			result = this._io2RowAttr = { _text: null, stokAdi: null }
+			for (let k of ['stokKod', 'barkod', 'miktar', 'brm', 'fiyat', 'kdvOrani', 'brutBedel'])
+				result[k] = k.toLowerCase()
+			$.extend(result, {
+				stokAdi: null,
+				netBedel: 'bedel',
+				aciklama: 'ekaciklama'
 			})
+			for (let {ioAttr: i, rowAttr: r} of TicIskYapi.getIskIter())
+				result[i] = r
 		}
 		return result
-	}
-	get _text() {
-		let {shAdi, shKod, barkod, miktar, fiyat} = this
-		let text = [
-			`<div>`,
-				`<span class="asil">${shAdi}</span>`,
-				`<span class="ek-bilgi bold float-right" style="padding-left: 10px">${shKod}</span>`,
-			`</div>`,
-			`<div>`,
-				`<span class="asil orangered">${barkod}</span>`,
-				`<span class="ek-bilgi bold float-right" style="padding-left: 10px">${miktar}</span>`,
-			`</div>`
-		].join(CrLf)
-		return text
 	}
 	
 	constructor(e = {}) {
 		super(e)
-		let {class: { ioAttrListe: ioKeys }} = this
-		for (let {ioAttr} of TicIskYapi.getIskIter())
-			ioKeys.push(ioAttr)
-		ioKeys.push('_text')
-		for (let k of ioKeys) {
-			let v = e[k]
-			if (v != null)
-				this[k] = v
-		}
-		this.miktar ??= 1; this.fiyat ??= 0; this.kdvOrani ??= 0
-		this.bedel ??= 0; this.netBedel ??= 0
+		this.miktar ??= 1; this.brm ||= 'AD'
+		this.fiyat ??= 0; this.kdvOrani ??= 0
+		this.brutBedel ??= 0; this.netBedel ??= 0
 		let {carpan} = e
 		if (carpan && carpan != 1)
 			this.miktar *= carpan
+		this.htmlOlustur()
 	}
-	detayEkIslemler({ fis } = {}) {
+	async detayEkIslemler({ fis } = {}) {
+		let {stokKod} = this
+		if (stokKod) {
+			let mfSinif = MQTabStok, {class: { alimmi } = {}} = fis
+			let {[stokKod]: rec} = await mfSinif.getGloKod2Rec() ?? {}
+			if (rec) {
+				let bosDegilseAktar = (i, r) => {
+					let rv = rec[r]
+					if (rv)
+						this[i] = rv
+				}
+				bosDegilseAktar('brm', 'brm')
+				bosDegilseAktar(mfSinif.getKdvOraniSaha(alimmi), 'kdvOrani')
+			}
+		}
 		this.bedelHesapla({ fis })
 	}
 	bedelHesapla({ fis } = {}) {
 		let {miktar, fiyat} = this
 		miktar ??= 0; fiyat ??= 0
-		this.bedel = roundToBedelFra(miktar * fiyat)
+		this.brutBedel = roundToBedelFra(miktar * fiyat)
 		this.netBedelHesapla(...arguments)
 	}
 	netBedelHesapla({ fis } = {}) {
-		let {bedel: netBedel} = this
+		let {brutBedel: netBedel} = this
 		for (let {rowAttr} of TicIskYapi.getIskIter())
 			netBedel -= this[rowAttr] ?? 0
 		netBedel = roundToBedelFra(netBedel)
 		this.netBedel = netBedel
+		this.htmlOlustur()
+	}
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+	}
+	static loadServerData_queryDuzenle({ sent, sent: { from, sahalar } }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		let {tableAlias: alias} = this
+		if (!from.aliasIcinTable('stk'))
+			sent.x2StokBagla({ alias })
+		sahalar.add('stk.aciklama stokadi')
 	}
 	hostVarsDuzenle({ fis, hv }) {
 		super.hostVarsDuzenle(...arguments)
-		let {io2RowAttr} = this
-		for (let [r, i] of entries(io2RowAttr))
-			hv[r] = this[i] ?? ''
+		deleteKeys(hv, 'brm')
 	}
 	setValues({ fis, rec }) {
 		super.setValues(...arguments)
-		let {io2RowAttr} = this
-		for (let [r, i] of entries(io2RowAttr)) {
-			let v = rec[i]
-			if (v != null)
-				this[r] = v
-		}
+		$.extend(this, { stokAdi: rec.stokadi })
+		this.htmlOlustur()
+	}
+	htmlOlustur(e) {
+		let {stokAdi, stokKod, barkod, miktar, brm, fiyat} = this
+		super.htmlOlustur(e); let {_text} = this
+		_text = this._text = [
+			(_text ?? ''),
+			`<div class="flex-row">`,
+				`<div class="asil">${stokAdi}</div>`,
+				`<div class="ek-bilgi bold float-right" style="padding-left: 10px">${stokKod}</div>`,
+			`</div>`,
+			`<div>`,
+				`<div class="asil orangered">${barkod}</div>`,
+				`<div class="ek-bilgi float-right" style="padding-left: 10px">`,
+					`<b class="forestgreen">${miktar} ${brm}</b>`,
+					`<span> x </span>`,
+					`<b class="royalblue">${numberToString(roundToFiyatFra(fiyat))}</b> <span>TL</span>`,
+				`</div>`,
+			`</div>`
+		].join(CrLf)
+		return this
 	}
 }

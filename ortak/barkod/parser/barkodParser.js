@@ -31,7 +31,8 @@ class BarkodParser extends CObject {
 		let shKod = this.shKod = e.shKod || this.shKod
 		if (!shKod)
 			return false
-		if (e.basitmi) { return true }
+		if (e.basitmi)
+			return true
 		let brmFiyatSaha = 'satfiyat1'
 		let sent = new MQSent({
 			from: 'stkmst stk', where: [

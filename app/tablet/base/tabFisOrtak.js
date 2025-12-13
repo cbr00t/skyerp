@@ -1,0 +1,288 @@
+class TabFis extends MQDetayliGUID {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get table() { return 'tabfis' } static get tableAlias() { return 'fis' }
+	static get detaySinif() { return TabFisDetay } static get sayacSaha() { return 'id' }
+	static get tanimUISinif() { return TabFisGirisPart } static get secimSinif() { return null }
+	static get tumKolonlarGosterilirmi() { return true } static get kolonFiltreKullanilirmi() { return false }
+	static get gridIslemTuslariKullanilirmi() { return false }
+	// static get noAutoFocus() { return true }
+	static get offlineFis() { return true } static get almSat() { return null }
+	static get satismi() { return this.almSat == 'T' } static get alimmi() { return this.almSat == 'A' }
+	get numYapi() { return this.class.numYapi }
+	get fisNox() { return this.tsn?.asText() }
+	get dipIslemci() {
+		let {_dipIslemci: result} = this
+		if (result === undefined) {
+			this.dipOlustur()
+			result = this._dipIslemci
+		}
+		return result
+	}
+	set dipIslemci(value) { this._dipIslemci = value }
+	get dipGridSatirlari() { return null }
+	get bakiyeciler() { return [] }
+	get fisTopBrut() {
+		let {detaylar} = this
+		return detaylar ? roundToBedelFra(topla(_ => _.brutBedel || 0, detaylar)) : 0
+	}
+	get fisTopNet() {
+		let {detaylar} = this
+		return detaylar ? roundToBedelFra(topla(_ => _.netBedel || _.bedel || 0, detaylar)) : 0
+	}
+	get fisTopDvNet() {
+		let {detaylar} = this
+		return detaylar ? roundToBedelFra(topla(_ => _.dvNetBedel || _.dvBedel || 0, detaylar)) : 0
+	}
+
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		$.extend(pTanim, {
+			tarih: new PInstDateToday('tarih'),
+			seri: new PInstStr('seri'),
+			noYil: new PInstNum('noyil'),
+			fisNo: new PInstNum('fisno'),
+			mustKod: new PInstStr('must'),
+			aciklama: new PInstStr('cariaciklama'),
+			fisSonuc: new PInstNum('sonuc')
+		})
+	}
+	static getRootFormBuilder(e) { return MQCogul.getRootFormBuilder(e) }
+	static getRootFormBuilder_fis(e) { return null }
+	static async rootFormBuilderDuzenle_tablet(e) { }
+	static async rootFormBuilderDuzenle_tablet_acc(e) {
+		let {sender: tanimPart, inst, acc} = e
+		let getBuilder = layout =>
+			new RootFormBuilder()
+				.setLayout(layout).setPart(tanimPart).setInst(inst)
+				//.addStyle_fullWH()
+		let args = { ...e, getBuilder }
+		acc.deferRedraw(() => {
+			acc.add({
+				id: 'baslik', title: 'Başlık', expanded: true,
+				collapsedContent: async ({ item, layout }) => {
+					let rfb = getBuilder(layout)
+					await this.rootFormBuilderDuzenle_tablet_acc_baslikCollapsed({ ...args, rfb, item, layout })
+					rfb.run()
+				},
+				content: async ({ item, layout }) => {
+					let rfb = getBuilder(layout)
+					rfb.addStyle_fullWH(null, 170)
+					{
+						let form = rfb.addFormWithParent().yanYana()
+						form.addDateInput('tarih', 'Tarih').etiketGosterim_yok()
+						form.addTextInput('seri', 'Seri').etiketGosterim_yok()
+							.addStyle(`$elementCSS { max-width: 130px }`)
+						form.addNumberInput('fisNo', 'No').etiketGosterim_yok()
+							.addStyle(`$elementCSS { max-width: 200px }`)
+					}
+					await this.rootFormBuilderDuzenle_tablet_acc_baslik({ ...args, rfb, item, layout })
+					{
+						let form = rfb.addFormWithParent().yanYana()
+						rfb.addTextInput('aciklama', 'Açıklama').etiketGosterim_yok()
+							.addStyle(`$elementCSS { max-width: 800px }`)
+					}
+					if (rfb.builders?.length)
+						setTimeout(() => rfb.run(), 100)
+				}
+			})
+			acc.add({
+				id: 'dip', title: 'Dip',
+				collapsedContent: async ({ item, layout }) => {
+					let rfb = getBuilder(layout)
+					await this.rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ ...args, rfb, item, layout })
+					rfb.run()
+				},
+				content: async ({ item, layout }) => {
+					let rfb = getBuilder(layout)
+					await this.rootFormBuilderDuzenle_tablet_acc_dip({ ...args, rfb, item, layout })
+					if (rfb.builders?.length)
+						setTimeout(() => rfb.run(), 100)
+				}
+			})
+			acc.add({
+				id: 'detay', title: 'Detay',
+				collapsedContent: async ({ item, layout }) => {
+					let rfb = getBuilder(layout)
+					await this.rootFormBuilderDuzenle_tablet_acc_detayCollapsed({ ...args, rfb, item, layout })
+					rfb.run()
+				},
+				content: async ({ item, layout }) => {
+					let rfb = getBuilder(layout)
+					await this.rootFormBuilderDuzenle_tablet_acc_detay({ ...args, rfb, item, layout })
+					if (rfb.builders?.length)
+						setTimeout(() => rfb.run(), 100)
+				}
+			})
+		})
+		acc.expand('detay')
+	}
+	static rootFormBuilderDuzenle_tablet_acc_baslik({ rfb }) {
+		{
+			let form = rfb.addFormWithParent().altAlta()
+			// addSimpleComboBox(e, _etiket, _placeholder, _value, _source, _autoClear, _delay, _minLength, _disabled, _name, _userData)
+			form.addSimpleComboBox('mustKod', MQTabCari.sinifAdi)
+				.etiketGosterim_yok()
+				.addStyle(`$elementCSS { max-width: 800px }`)
+				.kodsuz().setMFSinif(MQTabCari)
+				.onAfterRun(({ builder: { part } }) =>
+					setTimeout(() => part.focus(), 1))
+			/*form.addModelKullan('mustKod', MQTabCari.sinifAdi)
+				.addStyle(`$elementCSS { max-width: 800px }`)
+				.comboBox().autoBind()
+				.setMFSinif(MQTabCari)
+				.onAfterRun(({ builder: { part } }) =>
+					setTimeout(() => part.focus(), 1))*/
+		}
+	}
+	static rootFormBuilderDuzenle_tablet_acc_baslikCollapsed({ rfb }) { }
+	static rootFormBuilderDuzenle_tablet_acc_dip({ rfb }) { }
+	static rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ rfb }) { }
+	static rootFormBuilderDuzenle_tablet_acc_detay({ rfb }) { }
+	static rootFormBuilderDuzenle_tablet_acc_detayCollapsed({ rfb }) { }
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(
+			new GridKolon({ belirtec: '_text', text: 'Belge' }).noSql(),
+			new GridKolon({ belirtec: 'sonuc', text: 'Fiş Bedeli', genislikCh: 15 }).noSql().tipDecimal_bedel()
+		)
+	}
+	static async loadServerDataDogrudan({ offlineRequest, offlineMode }) {
+		if (!offlineRequest) {
+			let cacheClasses = [MQTabCari, MQTabTahsilSekli]
+			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
+		}
+		let recs = await super.loadServerDataDogrudan(...arguments)
+		if (!offlineRequest) {
+			for (let rec of recs)
+				rec._text = this.getHTML({ ...e, rec })
+		}
+		return recs
+	}
+	static loadServerData_queryDuzenle({ offlineRequest, offlineMode, stm }) {
+		let e = arguments[0]; super.loadServerData_queryDuzenle(e)
+		let {tableAlias: alias} = this
+		let unvanSaha = offlineMode === false ? 'birunvan' : MQTabCari.adiSaha
+		for (let sent of stm) {
+			let {from, where: wh, sahalar} = sent
+			if (!from.aliasIcinTable('car'))
+				sent.leftJoin(alias, 'carmst car', 'fis.must = car.kod')
+			// if (!from.aliasIcinTable('tsek'))
+			// 	sent.fis2TahSekliBagla()
+			sahalar.add(`car.${unvanSaha} mustunvan`)
+		}
+		let {orderBy} = stm
+		orderBy.liste = orderBy.liste.filter(_ => !_.startsWith('_'))
+	}
+	static async loadServerData_detaylar({ offlineRequest, offlineMode }) {
+		let recs = await super.loadServerData_detaylar(...arguments)
+		if (!offlineRequest) {
+			let _det = new this.detaySinif()
+			for (let rec of recs) {
+				_det.setValues({ rec })
+				_det?.htmlOlustur()
+				let {_text} = _det
+				if (_text != null)
+					rec._text = _text
+			}
+		}
+		return recs
+	}
+	async kaydetOncesiIslemler(e) {
+		await super.kaydetOncesiIslemler(e)
+		this.fisSonuc = this.fisTopNet
+	}
+	topluYazmaKomutlariniOlustur_baslikSayacBelirle(e) {
+		// super yok
+		return this.id ||= newGUID()
+	}
+	topluYazmaKomutlariniOlustur_sqlParamsDuzenle({ params, paramName_fisSayac }) {
+		// do nothing
+	}
+	static getHTML({ rec }) {
+		let {tarih, seri, noyil, fisno, must, mustunvan} = rec
+		// let {kod2Rec: kod2Must} = MQTabCari.globals
+		let tsnText = [
+			seri || '',
+			noyil ? noyil.toString().padStart(4, '0') : '',
+			fisno?.toString() || '0'
+		].filter(_ => _).join(' ')
+		return [
+			`<div class="flex-row">`,
+				`<div class="asil">${tsnText}</div>`,
+				`<div class="ek-bilgi bold float-right" style="padding-left: 10px">${dateKisaString(asDate(tarih)) ?? ''}</div>`,
+			`</div>`,
+			`<div>`,
+				`<div class="asil orangered">${mustunvan || ''}</div>`,
+				`<div class="ek-bilgi bold float-right" style="padding-left: 10px">${must || ''}</div>`,
+			`</div>`
+		].join(CrLf)
+	}
+}
+
+class TabFisDetay extends MQDetay {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get table() { return 'tabhar' }
+	static get fisSayacSaha() { return 'fisid' }
+	static get io2RowAttr() {
+		let {_io2RowAttr: result} = this
+		if (!result)
+			result = this._io2RowAttr = { _text: null }
+		return result
+	}
+
+	constructor(e = {}) {
+		super(e)
+		let {class: { io2RowAttr }} = this
+		for (let k of keys(io2RowAttr)) {
+			let v = e[k]
+			if (v != null)
+				this[k] = v
+		}
+	}
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+	}
+	offlineBuildSQLiteQuery({ result: queries }) {
+		let {main: db} = app.dbMgr, {table} = this.class
+		if (db.hasTable(table)) {
+			let cd = db.getColumns(table)
+			for (let {rowAttr} of TicIskYapi.getIskIter()) {
+				if (!cd[rowAttr])
+					queries.push(`ALTER TABLE tabhar ADD ${rowAttr} REAL NOT NULL DEFAULT 0`)
+			}
+		}
+	}
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(
+			new GridKolon({ belirtec: '_text', text: 'Ürün' }).noSql(),
+			new GridKolon({ belirtec: 'bedel', text: 'Net Bedel', genislikCh: 15 }).noSql().tipDecimal_bedel()
+		)
+	}
+	static loadServerData_queryDuzenle({ stm, sent }) {
+		super.loadServerData_queryDuzenle(...arguments)
+	}
+	hostVarsDuzenle({ fis, hv }) {
+		super.hostVarsDuzenle(...arguments)
+		let {class: { io2RowAttr }} = this
+		for (let [i, r] of entries(io2RowAttr)) {
+			if (r != null)
+				hv[r] = this[i] ?? ''
+		}
+	}
+	setValues({ fis, rec }) {
+		super.setValues(...arguments)
+		let {class: { io2RowAttr }} = this
+		for (let [i, r] of entries(io2RowAttr)) {
+			if (r == null)
+				continue
+			let v = rec[r]
+			if (v != null)
+				this[i] = v
+		}
+	}
+	htmlOlustur(e) {
+		this._text = ''
+		return this
+	}
+}

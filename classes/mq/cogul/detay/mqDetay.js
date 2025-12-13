@@ -3,6 +3,7 @@ class MQDetay extends MQSayacli {
 	/* static get table() { return null } */ static get tableAlias() { return 'har' } /* static get sinifAdi() { return null } */
 	static get detaymi() { return true } get detaymi() { return this.class.detaymi } get dipHesabaEsasDegerler() { return {} }
 	get kod() { return this.sayac } set kod(value) { this.sayac = value }
+	static get offlineFis() { return true }
 
 	constructor(e) {
 		e = e || {}; super(e); if (e.isCopy) { return }

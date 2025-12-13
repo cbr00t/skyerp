@@ -50,10 +50,10 @@ class SqlJS_DBMgr extends SqlJS_DBMgrBase {
 			if (!this.hasDatabase(name))
 				this.addDatabase(name)
 		}
-		let promises = []
-		for (let db of this.iterValues(e))
-			promises.push(db.yukle(e))
-		await Promise.allSettled(promises)
+		for (let db of this.iterValues(e)) {
+			try { await db.yukle(e) }
+			catch (ex) { console.error(ex, getErrorText(ex), db) }
+		}
 		return true
 	}
 	async kaydetDevam(e) {

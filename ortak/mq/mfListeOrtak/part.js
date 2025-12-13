@@ -353,7 +353,10 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	}
 	loadServerData_recsDuzenle_ilk(e) {
 		super.loadServerData_recsDuzenle(e); let mfSinif = e.mfSinif = this.getMFSinif(e); let {recs} = e; e.args = this.args;
-		if (mfSinif?.orjBaslikListesi_recsDuzenle) { let _recs = mfSinif.orjBaslikListesi_recsDuzenle(e); recs = e.recs; if (_recs) { recs = e.recs = _recs } }
+		if (mfSinif?.orjBaslikListesi_recsDuzenle) {
+			let _recs = mfSinif.orjBaslikListesi_recsDuzenle(e); recs = e.recs
+			if (_recs) { recs = e.recs = _recs }
+		}
 		return super.loadServerData_recsDuzenle_ilk(e)
 	}
 	loadServerData_recsDuzenle(e) {

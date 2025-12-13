@@ -319,21 +319,33 @@ class MQDetayli extends MQSayacli {
 			d.topluYazmaKomutlariniOlustur(e);
 			e.toplu
 		*/
-		let {toplu, paramName_fisSayac} = e, {table} = this.class, hv = this.hostVars(e); toplu.add(new MQInsert({ table, hv }));
-		let keyHV = this.alternateKeyHostVars(e); e.keyHV = keyHV; let sayac = e.sayac = this.topluYazmaKomutlariniOlustur_baslikSayacBelirle(e);
-		let detHVArg = e.detHVArg = { fis: this.shallowCopy() }; detHVArg.fis.sayac = sayac ?? new MQSQLConst(paramName_fisSayac);
-		let detaylar = this.getYazmaIcinDetaylar(e), detTable2HVListe = e.detTable2HVListe = {};
+		let {toplu, paramName_fisSayac} = e, {table} = this.class
+		let hv = this.hostVars(e); toplu.add(new MQInsert({ table, hv }))
+		let keyHV = this.alternateKeyHostVars(e); e.keyHV = keyHV
+		let sayac = e.sayac = this.topluYazmaKomutlariniOlustur_baslikSayacBelirle(e)
+		let detHVArg = e.detHVArg = { fis: this.shallowCopy() }
+		detHVArg.fis.sayac = sayac ?? new MQSQLConst(paramName_fisSayac)
+		let detaylar = this.getYazmaIcinDetaylar(e), detTable2HVListe = e.detTable2HVListe = {}
 		for (let det of detaylar) {
-			let hv = det.hostVars(detHVArg); if (!hv) { return false }
-			let detTable = det.class.getDetayTable(detHVArg), hvListe = detTable2HVListe[detTable] = detTable2HVListe[detTable] || [];
+			let hv = det.hostVars(detHVArg)
+			if (!hv)
+				return false
+			let detTable = det.class.getDetayTable(detHVArg)
+			let hvListe = detTable2HVListe[detTable] = detTable2HVListe[detTable] || []
 			hvListe.push(hv)
 		}
-		for (let detTable in detTable2HVListe) { let hvListe = detTable2HVListe[detTable]; toplu.add(new MQInsert({ table: detTable, hvListe })) }
-		e.params = toplu.params = toplu.params || []; this.topluYazmaKomutlariniOlustur_sqlParamsDuzenle(e)
+		for (let detTable in detTable2HVListe) {
+			let hvListe = detTable2HVListe[detTable]
+			toplu.add(new MQInsert({ table: detTable, hvListe }))
+		}
+		e.params = toplu.params = toplu.params || []
+		this.topluYazmaKomutlariniOlustur_sqlParamsDuzenle(e)
 	}
 	topluYazmaKomutlariniOlustur_baslikSayacBelirle(e) {
-		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {toplu, trnId, /*keyHV,*/ paramName_fisSayac} = e, {table, sayacSaha} = this.class;
-		let query = new MQSent({ from: table /*, where: { birlestirDict: keyHV } */ }), {sahalar} = query
+		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode
+		let {toplu, trnId, /*keyHV,*/ paramName_fisSayac} = e, {table, sayacSaha} = this.class
+		let query = new MQSent(), {sahalar} = query
+		query.fromAdd(table)
 		if (offlineMode) {
 			sahalar.add(`MAX(${sayacSaha}) sayac`)
 			let sayac = this.sqlExecTekilDeger({ offlineMode, trnId, query })
@@ -342,8 +354,8 @@ class MQDetayli extends MQSayacli {
 		sahalar.add(`${paramName_fisSayac} = MAX(${sayacSaha})`); toplu.add(query);
 		toplu.add(`IF COALESCE(@fisSayac, 0) = 0 RAISERROR('Başlık için fisSayac bilgisi belirlenemedi', 16, 1)`)
 	}
-	topluYazmaKomutlariniOlustur_sqlParamsDuzenle(e) {
-		let {params, paramName_fisSayac} = e; params.push({ name: paramName_fisSayac, type: 'int', direction: 'inputOutput', value: 0 })
+	topluYazmaKomutlariniOlustur_sqlParamsDuzenle({ params, paramName_fisSayac }) {
+		params.push({ name: paramName_fisSayac, type: 'int', direction: 'inputOutput', value: 0 })
 	}
 	async topluDegistirmeKomutlariniOlustur(e) {
 		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {toplu, trnId} = e;
@@ -486,19 +498,30 @@ class MQDetayliMaster extends MQDetayli {
 		$.extend(rootPart, { fbd_grid: builder, gridPart, grid, gridWidget })
 	}
 	uiKaydetOncesiIslemler(e) {
-		let {gridPart, inst} = e, {kontrolcu} = gridPart; let result = kontrolcu?.grid2Fis(e);
-		if (result !== true) {
-			if (result.errorText) { hConfirm(`<div class="red">${result.errorText}</div>`, ' ') }
-			if (result.returnAction) {
-				let {grid, gridWidget} = gridPart;
-				let _e = { sender: this, grid, gridWidget, focusTo(e) { gridWidget.clearselection(); gridWidget.selectcell(e.rowIndex, e.belirtec || e.dataField) } };
+		let {inst, gridPart = {}, gridPart: { kontrolcu } = {}} = e
+		let result = kontrolcu?.grid2Fis(e)
+		if (result === false) {
+			if (result?.errorText)
+				hConfirm(`<div class="red">${result.errorText}</div>`, ' ')
+			if (result?.returnAction) {
+				let {grid, gridWidget} = gridPart
+				let _e = {
+					sender: this, grid, gridWidget,
+					focusTo(e) {
+						gridWidget.clearselection()
+						gridWidget.selectcell(e.rowIndex, e.belirtec || e.dataField)
+					}
+				}
 				getFuncValue.call(this, result.returnAction, _e)
 			}
 			return false
 		}
-		inst.detaylar = e.recs
+		let {recs} = e
+		if (recs)
+			inst.detaylar = e.recs
 	}
-	static rootFormBuilderDuzenle_gridOncesi(e) { } static rootFormBuilderDuzenle_gridSonrasi(e) { }
+	static rootFormBuilderDuzenle_gridOncesi(e) { }
+	static rootFormBuilderDuzenle_gridSonrasi(e) { }
 	static newRec(e) {
 		let _e = { ...e }; let gridDetaySinif = e.sinif = e.sinif || this.gridDetaySinif, {gridPart} = _e;
 		return gridPart?.newRec(_e) ?? (gridDetaySinif == null ? null : new gridDetaySinif(e))
@@ -521,8 +544,9 @@ class MQDetayliGUID extends MQDetayliMaster {
 	}*/
 	/*yaz(e) { this.id = this.id || newGUID(); return super.yaz(e) }*/
 	topluYazmaKomutlariniOlustur_baslikSayacBelirle(e) { }
-	topluYazmaKomutlariniOlustur_sqlParamsDuzenle(e) {
-		let {params, paramName_fisSayac} = e; params.push({ name: paramName_fisSayac, type: 'uniqueidentifier', direction: 'input', value: this.id })
+	topluYazmaKomutlariniOlustur_sqlParamsDuzenle({ params, paramName_fisSayac }) {
+		let {id} = this
+		params.push({ name: paramName_fisSayac, type: 'uniqueidentifier', direction: 'input', value: id})
 	}
 	yazSonrasi_sayacGeriYukle(e) { }
 	kopyaIcinDuzenle(e) {

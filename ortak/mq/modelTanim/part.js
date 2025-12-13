@@ -2,7 +2,7 @@ class ModelTanimPart extends Part {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get slowAnimationFlag() { return true }
 	static get rootPartName() { return 'modelTanim' } static get partName() { return this.rootPartName }
 	static get asyncRunFlag() { return true } static get isWindowPart() { return true }
-	static get formDeferMS() { return 10 }
+	static get formDeferMS() { return 10 } get titlePostfix() { return 'Tanım' }
 	// get wndDefaultIsModal() { return true }
 	get defaultLayoutSelector() { let {rootPartName} = this.class; return `#${rootPartName}` }
 	get formLayoutSelector() { let {partName, rootPartName} = this.class; return partName == rootPartName ? null : `#${partName}.form-layout` }
@@ -45,14 +45,14 @@ class ModelTanimPart extends Part {
 			genelAltFormParts: e.genelAltFormParts || {},
 			tabID2AltFormParts: e.tabID2AltFormParts || {}, initTabIDSet: {}
 		});
-		let {mfSinif, inst, eskiInst, islem, degistirmi} = this
+		let {mfSinif, inst, eskiInst, islem, degistirmi, titlePostfix} = this
 		if (!inst && mfSinif)
 			inst = this.inst = new mfSinif()
 		if (inst && !mfSinif)
 			mfSinif = this.mfSinif = inst.class
 		if (inst && !eskiInst && degistirmi)
 			eskiInst = this.eskiInst = inst ? inst.deepCopy?.() ?? $.extend(true, {}, inst) : null
-		this.title = this.title || `${mfSinif?.sinifAdi || 'Model'} Tanım`;
+		this.title = this.title || `${mfSinif?.sinifAdi || 'Model'} ${titlePostfix}`
 		if (islem) {
 			let islemText = islem[0].toUpperCase() + islem.slice(1)
 			this.title += ` &nbsp;[<span class="window-title-ek">${islemText}</span>]`

@@ -75,7 +75,8 @@ class MQToplu extends MQClause {
 	static get baglac() { return `${MQCogul.isOfflineMode ? ';' : ''}${CrLf}${CrLf}` }
 	constructor(e) { e = e || {}; super(e); this.trnFlag = asBool(e.trnFlag) }
 	buildString_baslangicsiz(e) {
-		let {trnFlag} = this; if (trnFlag) {
+		let {trnFlag} = this
+		if (trnFlag) {
 			// e.result += 'DECLARE @tranCount INT = @@TRANCOUNT' + CrLf;
 			e.result += `DECLARE @trnUsed BIT = (case @@TRANCOUNT when 0 then 1 else 0 end)`
 			if (typeof trnFlag == 'string' && trnFlag.toLowerCase() == 'deftrn') {
@@ -88,7 +89,7 @@ class MQToplu extends MQClause {
 			e.result += 'IF @@TRANCOUNT = 0 BEGIN TRAN' + CrLf;
 			e.result += 'BEGIN TRY' + CrLf
 		}
-		super.buildString_baslangicsiz(e);
+		super.buildString_baslangicsiz(e)
 		if (trnFlag) {
 			e.result += CrLf + CrLf + 'IF (@trnUsed <> 0 AND @@TRANCOUNT = 1) COMMIT' + CrLf + `END TRY` + CrLf + CrLf;
 			e.result += 'BEGIN CATCH' + CrLf + 'IF (@trnUsed <> 0 AND @@TRANCOUNT > 0) ROLLBACK;' + CrLf + 'THROW' + CrLf + `END CATCH`

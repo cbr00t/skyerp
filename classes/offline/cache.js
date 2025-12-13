@@ -82,18 +82,24 @@ class ReqCache extends LocalCache {
 		return true
 	}
 	fixKey(key) {
-		if (typeof key == 'object') {
-			let {url, data} = key;
+		if (isObject(key)) {
+			let {url, data} = key
 			if (url) {
 				try {
+					if (!url.includes('://')) {
+						if (url[0] != '/')
+							url = `/${url}`
+						url = `${config.getWSUrlBase() || config.class.DefaultWSHostName_SkyServer}${url}}`
+					}
 					url = new URL(url)
 					let {pathname: path, search} = url
 					let _qs = readQSDict(search)
-					for (let key of ['appID', 'sql', '_', '#nbb']) { delete _qs[key] }
+					for (let key of ['appID', 'sql', '_', '#nbb'])
+						delete _qs[key]
 					search = $.param(_qs)
 					url = key.url = path + search
 				}
-				catch (ex) { console.error(ex) }
+				catch (ex) { console.error(ex, url, key) }
 			}
 			key = toJSONStr({ url, data })
 		}

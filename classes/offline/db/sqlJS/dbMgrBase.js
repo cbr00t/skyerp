@@ -10,7 +10,7 @@ class SqlJS_DBMgrBase extends CObject {
 			fh: e.fh ?? e.fileHandle, name: e.name, version: e.version ?? this.class.defaultVersion
 		})
 	}
-	async yukle(e) {
+	async yukle(e = {}) {
 		await this.open(e)
 		let {fh} = this
 		if (!fh) {

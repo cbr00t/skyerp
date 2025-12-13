@@ -54,6 +54,8 @@ class AccordionPart extends Part {
 		super.runDevam(e)
 		let {layout, panels, class: { partName }} = this
 		layout.addClass(`${partName} part`)
+		layout.off('focus').on('focus', evt =>
+			$(window).trigger('resize'))
 		let _e = { ...e, panels }
 		this.argsDuzenleBlock?.call(this, _e)
 		panels = this.panels = _e.panels
@@ -133,10 +135,10 @@ class AccordionPart extends Part {
 							targetContent.detach()
 						targetContent.appendTo(elmContent)
 					}
-					let itemsCSS = {}
-					for (let key of ['overflow', 'overflow-x', 'overflow-y'])
-						itemsCSS[key] = container.css(key)
 					if (false) {
+						/*let itemsCSS = {}
+						for (let key of ['overflow', 'overflow-x', 'overflow-y'])
+							itemsCSS[key] = container.css(key)
 						container.resizable({
 							// handles: 'all', containment: 'parent', ghost: true, helper: 'ui-resizable-helper',
 							// classes: { '.ui-resizable': 'highlight' },
@@ -165,7 +167,7 @@ class AccordionPart extends Part {
 									finally { this._timer_triggerResize }
 								}, 10)
 							}
-						})
+						})*/
 					}
 				}
 				setTimeout(() => {

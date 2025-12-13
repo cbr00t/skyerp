@@ -1,20 +1,33 @@
 class TabletApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this } get isLoginRequired() { return true }
 	static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_App }
-	get offlineMode() { return super.offlineMode ?? true } get dbMgrClass() { return SqlJS_DBMgr }
-	get defaultOfflineRequestChunkSize() { return 8 } // get autoExecMenuId() { return MQTest.kodListeTipi }
+	get offlineMode() { return super.offlineMode ?? true } set offlineMode(value) { super.offlineMode = value }
+	get dbMgrClass() { return SqlJS_DBMgr } get defaultOfflineRequestChunkSize() { return 8 } // get autoExecMenuId() { return MQTest.kodListeTipi }
 	get sicakVeyaSogukmu() { return this.sicakmi || this.sogukmu } get rotaKullanilirmi() { return this.sicakVeyaSogukmu }
 	get defaultLoginTipi() { return this.sicakVeyaSogukmu ? 'plasiyerLogin' : super.defaultLoginTipi }
 	get plasiyerKod() {
 		let {session: { loginTipi, user: plasiyerKod } = {}} = config
 		return loginTipi == 'plasiyerLogin' ? plasiyerKod : null
 	}
+	get offlineBilgiYukleGonderOrtakSiniflar() {
+		let {_offlineBilgiYukleGonderOrtakSiniflar: result} = this
+		if (!result) {
+			result = this._offlineBilgiYukleGonderOrtakSiniflar = [
+				MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
+				MQTabBolge, MQTabIl, MQTabUlke, MQTabCariTip,
+				MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
+				MQTabPlasiyer, MQTabStok, MQTabCari, MQPaket, MQUrunPaket,
+				MQTabBarkodReferans, MQTabBarkodAyrisim
+			]
+		}
+		return result
+	}
 	get offlineBilgiYukleSiniflar() {
 		let {_offlineBilgiYukleSiniflar: result} = this
 		if (!result) {
 			result = this._offlineBilgiYukleSiniflar = [
 				MQParam,
-				...this.offlineBilgiGonderSiniflar
+				...this.offlineBilgiYukleGonderOrtakSiniflar
 			]
 		}
 		return result
@@ -23,11 +36,8 @@ class TabletApp extends TicariApp {
 		let {_offlineBilgiGonderSiniflar: result} = this
 		if (!result) {
 			result = this._offlineBilgiGonderSiniflar = [
-				MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
-				MQTabBolge, MQTabIl, MQTabUlke, MQTabCariTip,
-				MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
-				MQTabPlasiyer, MQTabStok, MQTabCari, MQPaket, MQUrunPaket,
-				MQTabBarkodReferans, MQTabBarkodAyrisim
+				...this.offlineBilgiYukleGonderOrtakSiniflar,
+				...TabFis.subClasses.filter(_ => !_.araSeviyemi)
 			]
 			for (let {kami, mfSinif} of HMRBilgi) {
 				if (kami && mfSinif)
@@ -36,8 +46,16 @@ class TabletApp extends TicariApp {
 		}
 		return result
 	}
+	get offlineClearTableSiniflar() {
+		let fisSiniflar = TabFis.subClasses.filter(_ => !_.araSeviyemi)
+		let detSiniflar = fisSiniflar.map(_ => _.detaySinif).flat().filter(_ => !!_)
+		return [
+			...this.offlineBilgiYukleSiniflar.filter(_ => _ != MQTabPlasiyer),
+			...fisSiniflar, ...detSiniflar
+		]
+	}
 	get offlineCreateTableSiniflar() {
-		return this.offlineBilgiYukleSiniflar.filter(_ => _ != MQTabPlasiyer)
+		return [...this.offlineClearTableSiniflar]
 	}
 
 	constructor(e) {
@@ -85,36 +103,51 @@ class TabletApp extends TicariApp {
 			MQTabTahsilSekli, MQTabBarkodReferans, MQTabBarkodAyrisim
 		])
 		items.push(new FRMenuChoice({
-			mne: 'FISTEST', text: 'Fiş Giriş Test',
-			block: e => MQTabTestFis.tanimla(e)
+			mne: TabTSFis.kodListeTipi,
+			text: `${TabTSFis.sinifAdi} Fiş`,
+			block: e => TabTSFis.listeEkraniAc(e)
+			// block: e => TabTSFis.tanimla(e)
 		}))
 		items.push(new FRMenuChoice({ mne: 'BILGIGONDER', text: 'Bilgi Gönder', block: e => this.bilgiGonderIstendi(e) }))
 		// addMenuSubItems(null, null, [MQTest])
 		return new FRMenu({ items })
 	}
-	dbMgr_tablolariOlustur_queryDuzenle({ name, queries }) {
-		super.dbMgr_tablolariOlustur_queryDuzenle(...arguments)
-	}
 	dbMgr_tablolariOlustur_urlDuzenle({ name, urls }) {
 		super.dbMgr_tablolariOlustur_urlDuzenle(...arguments)
 		urls.push(`${appRoot}/queries/${name}.sql?${appVersion}`)
 	}
-	dbMgr_tabloEksikleriTamamla({ name, db, classes }) {
-		super.dbMgr_tabloEksikleriTamamla(...arguments)
+	dbMgr_tablolariOlustur_queryDuzenle({ name, queries }) {
+		super.dbMgr_tablolariOlustur_queryDuzenle(...arguments)
+	}
+	dbMgr_tablolariOlustur_urlDuzenle_son({ name, urls }) {
+		super.dbMgr_tablolariOlustur_urlDuzenle_son(...arguments)
+		urls.push(`${appRoot}/queries/${name}-son.sql?${appVersion}`)
+	}
+	dbMgr_tablolariOlustur_queryDuzenle_son({ name, queries }) {
+		super.dbMgr_tablolariOlustur_queryDuzenle_son(...arguments)
+	}
+	dbMgr_tabloEksikleriTamamla(e = {}) {
+		let {dbMgr} = this, {classes} = e
+		let db = e.db ??= dbMgr?.main
+		let name = e.name ??= db?.name
+		super.dbMgr_tabloEksikleriTamamla(e)
 		let {main} = app.dbMgr ?? {}
 		if (db == main) {
-			classes ??= this.offlineCreateTableSiniflar
+			classes ??= this.offlineCreateTableSiniflar ?? []
 			for (let cls of classes) {
-				let query = cls.offlineGetSQLiteQuery()
-				if (query) {
-					try { db.execute(query, null, true) }
-					catch (ex) { console.error(ex, getErrorText(ex), cls, query) }
+				let queries = makeArray(cls.offlineGetSQLiteQuery())
+				if (!empty(queries)) {
+					for (let query of queries) {
+						try { db.execute(query, null, true) }
+						catch (ex) { console.error(ex, getErrorText(ex), cls, query) }
+					}
 				}
 			}
 		}
 	}
 	async bilgiYukleIstendi(e) {
-		let {offlineBilgiYukleSiniflar: classes, params, defaultOfflineRequestChunkSize: chunkSize} = this
+		let {offlineBilgiYukleSiniflar: classes, offlineClearTableSiniflar: clearClasses} = this
+		let {params, dbMgr, dbMgr: { main: db, main: { name } }, defaultOfflineRequestChunkSize: chunkSize} = this
 		if (!classes?.length)
 			return
 		let withClear = true
@@ -140,7 +173,8 @@ class TabletApp extends TicariApp {
 		pm.setProgressMax(classes.length + 7).progressReset()
 		try {
 			let {belirtecListe: hmrBelirtecler_eski} = HMRBilgi
-			let clearClasses = withClear ? classes : classes.filter(cls => !cls.detaylimi)
+			if (!withClear)
+				clearClasses = clearClasses.filter(cls => !cls.offlineFis)
 			{
 				let {_cls2PTanim} = CIO
 				for (let key in _cls2PTanim)
@@ -149,7 +183,7 @@ class TabletApp extends TicariApp {
 			{
 				if (clearClasses?.length) {
 					await MQCogul.sqlExecNone({ offlineMode, query: 'BEGIN TRANSACTION' })
-					await Promise.all( clearClasses.map(cls => cls.offlineDropTable?.({ ...e, offlineMode, internal })) )
+					await Promise.allSettled( clearClasses.map(cls => cls.offlineDropTable?.({ ...e, offlineMode, internal })) )
 					await app.dbMgr_tablolariOlustur({ ...e, offlineMode, internal, classes: [MQParam] })
 					await MQCogul.sqlExecNone({ offlineMode, query: 'COMMIT' })
 					pm.progressStep(1)
@@ -186,6 +220,7 @@ class TabletApp extends TicariApp {
 					))
 				}
 			}
+			await this.dbMgr_tabloEksikleriTamamla({ db, name })
 		}
 		catch (ex) {
 			let errText = getErrorText(ex)

@@ -1,27 +1,24 @@
 class TicIskYapi extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-
 	static get iskEtiketDict() {
-		let result = this._iskEtiketDict;
+		let {_iskEtiketDict: result} = this
 		if (!result)
-			result = this._iskEtiketDict = app.params.fiyatVeIsk.iskEtiketDict;
+			result = this._iskEtiketDict = app.params?.fiyatVeIsk?.iskEtiketDict
 		return result
 	}
 	
 	static *getIskYapiIter() {
-		let {fiyatVeIsk: param} = app.params ?? {};
-		let {iskSayi, iskOranMax} = param ?? {};
+		let {fiyatVeIsk: param} = app.params ?? {}
+		let {iskSayi, iskOranMax} = param ?? {}
 		for (let item of [
 			{ key: 'sabit', selector: 'iskOranlar', belirtec: 'isk', etiket: 'İsk', maxSayi: iskSayi?.sabit || 0, maxOran: iskOranMax?.sabit },
 			{ key: 'kampanya', selector: 'kamOranlar', belirtec: 'kam', etiket: 'Kam', maxSayi: iskSayi?.kampanya || 0, maxOran: iskOranMax?.kampanya }
 		]) { yield item }
 	}
-
 	static *getIskKeysIter() {
 		for (let item of this.getIskYapiIter())
 			yield item.key
 	}
-
 	static *getIskIter() {
 		let iskEtiketDict = this.iskEtiketDict || {}
 		for (let item of this.getIskYapiIter()) {

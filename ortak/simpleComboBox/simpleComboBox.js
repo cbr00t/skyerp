@@ -343,7 +343,7 @@ class SimpleComboBoxPart extends Part {
 		let {source, item, value: kod, aciklama, renderedInputText: text} = this
 		if (!source && mfSinif) {
 			source = ({ term: value, ...e }) =>
-				mfSinif.loadServerData({ maxRow, value: value?.trimEnd?.() || undefined })
+				mfSinif.loadServerDataDogrudan({ maxRow, value: value?.trimEnd?.() || undefined })
 		}
 		if (!source)
 			return null

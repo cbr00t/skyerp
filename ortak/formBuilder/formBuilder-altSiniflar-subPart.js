@@ -1104,13 +1104,13 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
         super(e)
 		let {
 			name, etiket, placeholder = e.placeHolder,
-			value, source: _source, listSource,
+			value = this.value, source: _source, listSource,
 			mfSinif, kodSaha, adiSaha,
 			kodsuzmu = e.kodsuz, autoClearFlag = e.autoClear,
 			delay, minLength, maxRows,
 	        disabled, userData, events
 		} = e
-        $.extend(this, {
+		$.extend(this, {
             name, etiket, placeholder,
 			value, _source, listSource,
 			mfSinif, kodSaha, adiSaha,
@@ -1130,7 +1130,7 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
 			let {placeholder = e.placeHolder, _source: source, widgetArgsDuzenle} = this
             let args = { layout, input, placeholder, source }
 			let keys = [
-				'id', 'name', 'etiket', 'listSource', 'autoClearFlag', 'kodsuzmu',
+				'id', 'name', 'etiket', 'value', 'listSource', 'autoClearFlag', 'kodsuzmu',
 				'mfSinif', 'kodSaha', 'adiSaha', 'delay', 'minLength', 'maxRows',
 				'disabled', 'userData', 'events'
 			]
@@ -1138,6 +1138,11 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
 				let v = this[k]
 				if (v !== undefined)
 					args[k] = v
+			}
+			if (args.value == null) {
+				let {id, altInst: inst} = this
+				if (inst)
+					args.value = inst[id]
 			}
 			let _e = { ...e, args }
 			// Kullanıcı custom düzenleme isterse

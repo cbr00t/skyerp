@@ -301,11 +301,13 @@ class MQYapi extends CIO {
 		let {trnId} = e, offlineMode = true, offlineRequest = true, offlineYukleRequest = true, internal = true
 		let recs = await this.loadServerData({ ...e, trnId, offlineMode: !offlineMode, offlineRequest, offlineYukleRequest })
 		let inLocalTrn = false, okIdList = []
-		try {
-			await this.sqlExecNone({ ...e, offlineMode, query: 'BEGIN TRANSACTION' })
-			inLocalTrn = true
+		if (!inLocalTrn) {
+			try {
+				await this.sqlExecNone({ ...e, offlineMode, query: 'BEGIN TRANSACTION' })
+				inLocalTrn = true
+			}
+			catch (ex) { }
 		}
-		catch (ex) { }
 		try {
 			if (clear)
 				await this.offlineClearTable({ ...e, offlineMode })
@@ -381,7 +383,8 @@ class MQYapi extends CIO {
 		if (!offlineTable)
 			return this
 		let {offlineDirect: directFlag, offlineSahaListe: attrListe, idSaha, onlineIdSaha = idSaha, sayacSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this
-		let offlineMode = false, offlineRequest = true, offlineGonderRequest = true, {trnId} = e
+		let offlineMode = false, offlineRequest = true, offlineGonderRequest = true
+		let {trnId} = e
 		let recs = await this.loadServerData({ ...e, offlineMode: !offlineMode, offlineRequest, offlineGonderRequest })
 		if (attrListe && onlineIdSaha && onlineIdSaha != idSaha && !attrListe.includes(onlineIdSaha))
 			attrListe.push(onlineIdSaha)
