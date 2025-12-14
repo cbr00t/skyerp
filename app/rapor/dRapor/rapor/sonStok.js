@@ -40,6 +40,7 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 				.addToplamBasit_bedel('DEG_ALIMNETFIYAT', 'Alım Net Fiyat Değerleme', 'deg_alimnetfiyat')
 				.addToplamBasit_bedel('DEG_RAYICALIM', 'Rayiç Alım Değerleme', 'deg_rayicalim')
 				.addToplamBasit_bedel('DEG_ORTMALIYET', 'Ort. Maliyet Değerleme', 'deg_ortmaliyet')
+				.addToplamBasit_bedel('DEG_SATFIYAT1', '1. Satış Fiyat Değerleme', 'deg_satfiyat1')
 		}
 		this.tabloYapiDuzenle_hmr(e)
 	}
@@ -76,8 +77,9 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 					case 'STK_ORTMALIYET': sahalar.add('SUM(stk.ortmalfiyat) stk_ortmaliyet'); break
 					case 'STK_RAYICALIM': sahalar.add(`SUM(case when stk.revizerayicalimfiyati < stk.almnetfiyat then stk.almnetfiyat else stk.revizerayicalimfiyati end) stk_rayicalim`); break
 					case 'DEG_ALIMNETFIYAT': sahalar.add(`SUM(ROUND(${degMiktarClause} * stk.almnetfiyat, 2)) deg_alimnetfiyat`); break
-					case 'DEG_ORTMALIYET': sahalar.add(`SUM(ROUND(${degMiktarClause} * stk.ortmalfiyat, 2)) deg_ortmaliyet`); break
 					case 'DEG_RAYICALIM': sahalar.add(`SUM(ROUND(${degMiktarClause} * stk.revizerayicalimfiyati, 2)) deg_rayicalim`); break
+					case 'DEG_ORTMALIYET': sahalar.add(`SUM(ROUND(${degMiktarClause} * stk.ortmalfiyat, 2)) deg_ortmaliyet`); break
+					case 'DEG_SATFIYAT1': sahalar.add(`SUM(ROUND(${degMiktarClause} * stk.satfiyat1, 2)) deg_satfiyat1`); break
 					/*case 'SATISCIRO': sahalar.add(`SUM(${degMiktarClause} * stk.satfiyat1) satisciro`); break*/
 					case PrefixMiktar: sahalar.add(`SUM(son.sonmiktar) miktar`); break
 					case `${PrefixMiktar}2`: sahalar.add(`SUM(son.sonmiktar2) miktar2`); break

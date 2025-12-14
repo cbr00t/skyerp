@@ -158,6 +158,7 @@ class Hareketci extends CObject {
 			yonClause = yonClause || (this.class.defaultYon?.sqlServerDegeri() ?? sqlEmpty)
 			sahalar.add(`${altTipAdiClause} alttipadi`, `${altTipOncelikClause} alttiponcelik`, `${yonClause} yon`)
 		}
+		// ...
 	}
 	static varsayilanHVDuzenle_ortak({ hv, sqlNull, sqlEmpty, sqlZero }) {
 		for (let key of [

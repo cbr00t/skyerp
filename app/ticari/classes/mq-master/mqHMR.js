@@ -3,8 +3,13 @@ class MQHMR extends MQKA {
 	static get tableAlias() { return 'hmr' }
 	static hmrTabloKolonDuzenle(e) {}
 	static hmr_queryEkDuzenle(e) { }
-	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); this.hmr_queryEkDuzenle(e) }
-	static hmrSetValuesEk(e) { e.inst = e.inst ?? e.gridRec?.hmr; }
+	static loadServerData_queryDuzenle(e) {
+		super.loadServerData_queryDuzenle(e)
+		this.hmr_queryEkDuzenle(e)
+	}
+	static hmrSetValuesEk(e) {
+		e.inst = e.inst ?? e.gridRec?.hmr
+	}
 }
 class MQModel extends MQHMR {
 	static get sinifAdi() { return 'Model' } static get table() { return 'tmodel' }
@@ -60,20 +65,20 @@ class MQRenk extends MQHMR {
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e);
 		const cellsRenderer = (colDef, rowIndex, columnField, value, html, jqxCol, rec) =>
-			changeTagContent(html, `&nbsp;`);
+			changeTagContent(html, `&nbsp;`)
 		const _liste = [
 			new GridKolon({ belirtec: '_renk1', text: 'Renk', width: 160, cellsRenderer: cellsRenderer }).noSql(),
 			new GridKolon({ belirtec: '_renk2' }).hidden().noSql()
 		];
 		for (const colDef of _liste)
-			this.hmrTabloKolonDuzenle({ orjColDef: colDef, colDef: colDef });
+			this.hmrTabloKolonDuzenle({ orjColDef: colDef, colDef: colDef })
 		e.liste.push(..._liste)
 	}
 	static hmr_queryEkDuzenle(e) {
-		super.hmr_queryEkDuzenle(e);
-		let {sent, bosClausemi} = e, {sahalar} = sent, alias = e.alias ?? this.tableAlias;
-		let aliasVeNokta = alias ? `${alias}.` : '';
-		sahalar.addAll(
+		super.hmr_queryEkDuzenle(e)
+		let {sent, bosClausemi} = e, {sahalar} = sent, alias = e.alias ?? this.tableAlias
+		let aliasVeNokta = alias ? `${alias}.` : ''
+		sahalar.add(
 			bosClausemi ? `'' oscolor1` : `${aliasVeNokta}oscolor1`,
 			bosClausemi ? `'' oscolor2` : `${aliasVeNokta}oscolor2`
 		)

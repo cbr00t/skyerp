@@ -30,6 +30,8 @@ CREATE TABLE IF NOT EXISTS tabhar (
 	brutbedel TEXT NOT NULL DEFAULT '',
 	bedel REAL NOT NULL DEFAULT 0,
 	ekaciklama TEXT NOT NULL DEFAULT '',
+-- tahsilat fis
+	tahseklikodno INTEGER NOT NULL DEFAULT '',
 	PRIMARY KEY (fisid, seq)
 );
 CREATE INDEX IF NOT EXISTS idx_tabhar_seq ON tabhar (seq);

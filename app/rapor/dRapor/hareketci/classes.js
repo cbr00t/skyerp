@@ -8,16 +8,18 @@ class DRapor_Hareketci_Cari_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_Cari }
 	tabloYapiDuzenle({ result }) {
-		this.tabloYapiDuzenle_cari(...arguments);
+		this.tabloYapiDuzenle_cari(...arguments)
 		super.tabloYapiDuzenle(...arguments)
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
-		super.loadServerData_queryDuzenle_hrkSent(e); let {hvDegeri} = e, kodClause = hvDegeri('must');
-		this.loadServerData_queryDuzenle_cari({ ...e, kodClause });
+		super.loadServerData_queryDuzenle_hrkSent(e)
+		let {hvDegeri} = e, kodClause = hvDegeri('must')
+		this.loadServerData_queryDuzenle_cari({ ...e, kodClause })
 		this.loadServerData_queryDuzenle_odemeGun({ ...e, kodClause: hvDegeri('odgunkod') })
 	}
 	tabloYapiDuzenle_odemeGun(e) { super.super_tabloYapiDuzenle_odemeGun(e) }
 }
+
 class DRapor_Hareketci_Kasa extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 11 } static get kategoriKod() { return 'KASA' } static get kategoriAdi() { return 'Kasa' }
@@ -39,6 +41,7 @@ class DRapor_Hareketci_Kasa_Main extends DRapor_Hareketci_Main {
 		}
 	}
 }
+
 class DRapor_Hareketci_Hizmet extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kategoriKod() { return 'Hizmet' } static get kategoriAdi() { return 'Hizmet' }
@@ -321,7 +324,7 @@ class DRapor_Hareketci_Takip_Main extends DRapor_Hareketci_Main {
 	static get raporClass() { return DRapor_Hareketci_Takip }
 	tabloYapiDuzenle({ result }) {
 		super.tabloYapiDuzenle(...arguments); let {isAdmin, rol} = config.session ?? {}, maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT');
-		this.tabloYapiDuzenle_cari(...arguments).tabloYapiDuzenle_takip(...arguments);
+		this.tabloYapiDuzenle_cari(...arguments).tabloYapiDuzenle_takip(...arguments)
 		if (maliyetGorurmu) {
 			result
 				.addToplamBasit_bedel('TUMMALIYET', 'Tüm Maliyet', 'tummaliyet')
@@ -454,4 +457,29 @@ class DRapor_Hareketci_Stok_Maliyetli extends DRapor_Hareketci_Stok {
 class DRapor_Hareketci_Stok_Maliyetli_Main extends DRapor_Hareketci_Stok_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_Stok_Maliyetli }
+}
+
+class DRapor_Hareketci_Tahsilat extends DRapor_Hareketci {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	/* static get oncelik() { return 10 } */
+	static get kategoriKod() { return 'TAHSILAT' } static get kategoriAdi() { return 'Tahsilat' }
+	static get vioAdim() { return 'CR-CT' } static get hareketciSinif() { return TahsilatHareketci }
+}
+class DRapor_Hareketci_Tahsilat_Main extends DRapor_Hareketci_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get raporClass() { return DRapor_Hareketci_Tahsilat }
+	tabloYapiDuzenle({ result }) {
+		let e = arguments[0]
+		this.tabloYapiDuzenle_tahsilSekli(e)
+		this.tabloYapiDuzenle_cari(e)
+		super.tabloYapiDuzenle(e)
+	}
+	loadServerData_queryDuzenle_hrkSent({ hvDegeri }) {
+		let e = arguments[0]
+		super.loadServerData_queryDuzenle_hrkSent(e)
+		this.loadServerData_queryDuzenle_tahsilSekli({ ...e, kodClause: hvDegeri('tahseklino') })
+		this.loadServerData_queryDuzenle_cari({ ...e, kodClause: hvDegeri('must') })
+		this.loadServerData_queryDuzenle_odemeGun({ ...e, kodClause: hvDegeri('odgunkod') })
+	}
+	tabloYapiDuzenle_odemeGun(e) { super.super_tabloYapiDuzenle_odemeGun(e) }
 }

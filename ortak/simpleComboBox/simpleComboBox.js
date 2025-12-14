@@ -24,7 +24,7 @@ class SimpleComboBoxPart extends Part {
 			item = { [adiSaha]: item }
 		this._item = item
 		if (input?.length) {
-			input.val(this.renderedInputText)
+			// input.val(this.renderedInputText)
 			input.attr('placeholder', autoClear ? this.placeholder ?? null : this.renderedText)
 		}
 	}
@@ -43,7 +43,9 @@ class SimpleComboBoxPart extends Part {
 	}
 	set aciklama(value) {
 		let {adiSaha} = this
-		this.item = { [adiSaha]: value }?.trimEnd?.()
+		let item = this.item ??= {}
+		item[adiSaha] = value?.trimEnd?.()
+		this.item = item                                     // trigger
 	}
 	get placeholder() {
 		let {input, _placeholder} = this
@@ -176,7 +178,12 @@ class SimpleComboBoxPart extends Part {
 				this.listeIstendi({ event }))
 		}
 		this._initialized = true
-		setTimeout(() => this.onResize(e))
+		setTimeout(() => {
+			this.onResize(e)
+			let value = input.val()
+			if (value)
+				this._onChange({ type: 'commit', layout, input, value })
+		})
 	}
 	destroyPart(e) {
 		this.clear()
@@ -204,7 +211,7 @@ class SimpleComboBoxPart extends Part {
 			return
 		this._inEvent = true
 		let isSelect = type == 'select', fromList = type == 'list'
-		let isCommit = type == 'commit', isTrigger = !type                                                                          // muhtemelen .trigger('change') vs
+		let isCommit = type == 'commit', isTrigger = !type                                                // muhtemelen .trigger('change') vs
 		let e = { ...arguments[0], select: isSelect, commit: isCommit, trigger: isTrigger }
 		try {
 			let {layout, input, autoClearFlag: autoClear, queue} = this
@@ -219,6 +226,8 @@ class SimpleComboBoxPart extends Part {
 			}
 			else if (isCommit) {
 			    this.value = input.val()
+				if (!this.aciklama)
+					setTimeout(() => this.aciklamaBelirle(), 10)
 				item = this.item
 			}
 			else if (fromList)
@@ -257,6 +266,22 @@ class SimpleComboBoxPart extends Part {
 			)(evt)
 		}
 		queue.splice(0)
+		return this
+	}
+	async aciklamaBelirle() {
+		let sender = this, {value, mfSinif, kodSaha, adiSaha, source, listSource} = this
+		if (!value)
+			return this
+		if (!(mfSinif || source || listSource))
+			return this
+		let aciklama = await mfSinif?.getGloKod2Adi?.(value)
+		if (!aciklama && adiSaha) {
+			let e = { ...arguments[0], sender, kodSaha, adiSaha, value, maxRow: 1 }
+			let rec = (await (listSource ?? source).call(this, e))?.[0]
+			aciklama = rec?.[adiSaha]
+		}
+		if (aciklama)
+			this.aciklama = aciklama
 		return this
 	}
 	listeIstendi({ event: evt }) {

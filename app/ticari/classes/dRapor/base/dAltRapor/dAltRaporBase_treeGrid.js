@@ -147,7 +147,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	gridSortIstendi(e) {
 		let {tabloYapi, gridPart} = this, {base} = gridPart.gridWidget, {sortcolumn: sortBelirtec} = base; let sortTipKod;
 		if (sortBelirtec) {
-			for (let {colDefs} of Object.values(tabloYapi?.grupVeToplam ?? {})) {
+			for (let {colDefs} of values(tabloYapi?.grupVeToplam ?? {})) {
 				let tip = colDefs.find(colDef => colDef.belirtec == sortBelirtec)?.userData?.kod;
 				if (tip) { sortTipKod = tip; break }
 			}
@@ -161,7 +161,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 			let tRec = recs?.[0] || {}, key_items = 'detaylar';		/*key_id = 'id',*/
 			return new $.jqx.dataAdapter({
 				hierarchy: { root: key_items }, dataType: 'array', localData: recs, /* hierarchy: { keyDataField: { name: key_id }, parentDataField: { name: 'parentId' } }, */
-				dataFields: Object.keys(tRec).map(name => ({ name, type: typeof tRec[name] == 'object' ? 'array' : (typeof tRec[name] || 'string') })),
+				dataFields: keys(tRec).map(name => ({ name, type: typeof tRec[name] == 'object' ? 'array' : (typeof tRec[name] || 'string') })),
 			}, { autoBind: false, loadComplete: (boundRecs, recs) => setTimeout(() => this.gridVeriYuklendi({ ...e, boundRecs, recs }), 5) })
 		}
 		catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Grid Verisi Yüklenemedi'); return null }
@@ -237,9 +237,24 @@ class DAltRapor_TreeGrid extends DAltRapor {
 			for (let _colDef of colDefs) { if (!_colDef.minWidth) { _colDef.minWidth = 100 } }
 			let savedHandlers = {}; for (let key of ['cellsRenderer', 'cellValueChanging']) { savedHandlers[key] = colDef[key]; delete colDef[key] }
 			colDef.aggregatesRenderer = (colDef, aggregates, jqCol, elm) => {
-				let result = []; for (let [tip, value] of Object.entries(aggregates)) {
-					if (value != null) { value = asFloat(value) } let dipBelirtec = tip == 'sum' ? 'T' : tip == 'avg' ? 'O' : tip;
-					result.push(`<div class="toplam-item"><div class="lightgray">${dipBelirtec}</span> <span>${roundToFra(value, 2).toLocaleString()}</span></div>`)
+				let result = [], {belirtec} = colDef
+				for (let [tip, value] of entries(aggregates)) {
+					if (value != null)
+						value = asFloat(value)
+					let dipBelirtec = tip == 'sum' ? 'T' : tip == 'avg' ? 'O' : tip
+					let bedelmi = belirtec == 'bedel' || belirtec.startsWith('bedel_')
+					let renkCSS_veri = (
+						bedelmi
+							? (value > 0 ? ' forestgreen' : value < 0 ? ' firebrick' : '')
+							: ''
+					)
+					let veri = bedelmi ? toStringWithFra(value, 2) : roundToFra(value, 0).toLocaleString()
+					result.push(
+						`<div class="toplam-item">
+							<span class="etiket lightgray">${dipBelirtec}</span>
+							<span class="veri${renkCSS_veri}">${veri}</span>
+						</div>`
+					)
 				}
 				return result.join('')
 			};
@@ -277,7 +292,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			let tipSet = result.tipSet = {}, kaListe = result.kaListe = [];
 			for (let selector of ['grup', 'toplam']) {
 				let tip2Item = result[selector];
-				for (let [kod, {ka, colDefs}] of Object.entries(tip2Item)) {
+				for (let [kod, {ka, colDefs}] of entries(tip2Item)) {
 					tipSet[kod] = true; kaListe.push(ka); if (colDefs) {
 						for (let colDef of colDefs) {
 							let userData = colDef.userData = colDef.userData || {};
@@ -361,7 +376,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			}
 		}
 		/*if (!empty(recsDvKodSet))
-			grupColAttrListe.push(...Object.keys(recsDvKodSet))*/
+			grupColAttrListe.push(...keys(recsDvKodSet))*/
 		for (let kod in attrSet) {
 			if (grup[kod])
 				continue
@@ -402,7 +417,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		}
 		let gtTip2AttrListe = { sabit: [], toplam: [] }
 		if (recs) {
-			for (let colDef of Object.values(belirtec2ColDef) /*.filter(colDef => colDef.belirtec != yatayBelirtec)*/) {
+			for (let colDef of values(belirtec2ColDef) /*.filter(colDef => colDef.belirtec != yatayBelirtec)*/) {
 				let toplammi = colDef?.userData?.tip == 'toplam', selector = toplammi ? 'toplam' : 'sabit'
 				gtTip2AttrListe[selector].push(colDef.belirtec)
 			}
@@ -429,8 +444,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				for (let sev of sevRecs)
 					sev.donemselAttrFix(_e)
 				if (!empty(tumYatayAttrSet)) {
-					_sumAttrListe.push(...Object.keys(tumYatayAttrSet)/*.filter(x => !x.endsWith('_TOPLAM'))*/)
-					_sumAttrListe = Object.keys(asSet(_sumAttrListe))
+					_sumAttrListe.push(...keys(tumYatayAttrSet)/*.filter(x => !x.endsWith('_TOPLAM'))*/)
+					_sumAttrListe = keys(asSet(_sumAttrListe))
 				}
 				recs = sevRecs
 			}
@@ -485,7 +500,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			if (value) 
 				(deger2Bilgiler[value] = deger2Bilgiler[value] || []).push(sev)
 		}
-		let tersSiraliDegerler = Object.keys(deger2Bilgiler).map(x => asFloat(x)).sort((a, b) => a < b ? 1 : -1);
+		let tersSiraliDegerler = keys(deger2Bilgiler).map(x => asFloat(x)).sort((a, b) => a < b ? 1 : -1);
 		let sortDir = gridWidget.base.sortdirection
 		if (sortDir?.ascending) { tersSiraliDegerler.reverse() }
 		let digerRec = {}; digerRec[grupAttr] = `<b class="royalblue">Diğer</b>`; digerRec[icerikAttr] = 0
@@ -546,7 +561,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				let {belirtec, userData} = colDef, {kod: tip} = userData || {};
 				if (tip) { (tip2ColDefs[tip] = tip2ColDefs[tip] || []).push(colDef); belirtec2Tip[belirtec] = tip }
 			}
-			let _colDefs = Object.keys(icerik ?? {}).flatMap(kod => tip2ColDefs[kod]), colDefs = [
+			let _colDefs = keys(icerik ?? {}).flatMap(kod => tip2ColDefs[kod]), colDefs = [
 				..._colDefs.filter(colDef => !colDef?.userData?.kod), ..._colDefs.filter(colDef => colDef?.userData?.kod)
 			].filter(x => !!x);
 			let gtTip2ColDefs = { sabit: [], toplam: [] }; for (let colDef of colDefs) {
@@ -577,7 +592,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 						}
 						if (value) { liste.push(value) }
 					} 
-					if (!(Object.keys(_attrSet).length == 1 && _attrSet.DB)) {
+					if (!(keys(_attrSet).length == 1 && _attrSet.DB)) {
 						/* Yatay Analiz, VT liste çekme için veri sort edilmez */
 						liste.sort().reverse()
 					}
@@ -609,7 +624,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				colDefs[0] = colDef
 				colDef.minWidth = Math.max(colDef.minWidth ?? 0, 300)
 				colDef.text = [
-					...(Object.keys(grup).map(kod =>
+					...(keys(grup).map(kod =>
 						`<span class="royalblue">${tabloYapi.grup[kod]?.colDefs[0]?.text || ''}</span>`) || []),
 					colDef.text
 				].join(' + ')
@@ -620,7 +635,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			if (sortTipKod) {
 				if (tabloYapi.toplam[sortTipKod]) { ozetBilgi.icerikTipKod = sortTipKod }
 				/*let selector = `${tabloYapi.toplam[sortTipKod] ? 'icerik' : 'grup'}TipKod`; ozetBilgi[selector] = sortTipKod*/
-				/*if (tabloYapi.grup[sortTipKod]) { sortTipKod = Object.keys(icerik)[0] }
+				/*if (tabloYapi.grup[sortTipKod]) { sortTipKod = keys(icerik)[0] }
 				let sortColDefs = tip2ColDefs[sortTipKod]; if (sortColDefs?.length) {
 					let sortBelirtecSet = asSet(sortColDefs.map(colDef => colDef.belirtec));
 					let savedColDefs = colDefs; colDefs = [savedColDefs[0], ...sortColDefs, ...savedColDefs.slice(1).filter(colDef => !sortBelirtecSet[colDef.belirtec])]
@@ -846,7 +861,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		if (!silent && wnd_raporTanim?.length) { wnd_raporTanim.jqxWindow('collapse') }
 		let rdlg = silent || await ehConfirm(`<p class="bold firebrick">Mevcut Rapor içeriği temizlenecek ve Tüm Sahalar <b>İçerik</b> kısmına aktarılacak.</p><p>Devam edilsin mi?</p>`, 'Rapor Tanım');
 		if (wnd_raporTanim?.length) { wnd_raporTanim.jqxWindow('expand') } if (!rdlg) { return this }
-		raporTanim.reset(); raporTanim.icerikListe = Object.keys(tabloYapi.grupVeToplam);
+		raporTanim.reset(); raporTanim.icerikListe = keys(tabloYapi.grupVeToplam);
 		if (wnd_raporTanim?.length) { this.restartWndRaporTanim(e) }
 		return this
 	}

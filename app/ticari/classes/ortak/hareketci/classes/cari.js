@@ -18,7 +18,8 @@ class CariHareketci extends Hareketci {
 		}
 	}
 	static mstYapiDuzenle({ result }) {
-		super.mstYapiDuzenle(...arguments); let defHVAlias = 'must'
+		super.mstYapiDuzenle(...arguments)
+		let defHVAlias = 'must'
 		result.set(defHVAlias, ({ mstYapi, secimler: { cariGosterim = {} } = {}, sent: { sahalar }, kodClause, mstAlias, mstAdiAlias }) => {
 			let hvAlias, adiClause
 			cariGosterim = cariGosterim?.tekSecim ?? cariGosterim
@@ -79,7 +80,7 @@ class CariHareketci extends Hareketci {
 		// wh.add(`car.silindi = ''`)
 	}
 	static varsayilanHVDuzenle_ortak({ hv, sqlNull, sqlEmpty }) {
-		super.varsayilanHVDuzenle_ortak(...arguments);
+		super.varsayilanHVDuzenle_ortak(...arguments)
 		$.extend(hv, {
 			no: 'fis.no', althesapadi: 'alth.aciklama',
 			finanalizkullanilmaz: 'ctip.finanaliztipi', dvkod: `dbo.emptycoalesce(alth.dvkod, car.dvkod)`,
@@ -87,16 +88,16 @@ class CariHareketci extends Hareketci {
 		})
 	}
 	static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
-		super.varsayilanHVDuzenle(...arguments);
+		super.varsayilanHVDuzenle(...arguments)
 		for (const key of ['satistipkod', 'taksitadi', 'riskdurumu', 'cskendisimi', 'gxbnox', 'gxbtarihi', 'koopdonemno']) { hv[key] = sqlNull }
 		for (const key of ['acikkisim', 'ekstrarisk', 'ekstrarisk2', 'dvbedel']) { hv[key] = sqlZero }
 		$.extend(hv, { dvkod: 'car.dvkod' })
 	}
 	uygunluk2UnionBilgiListeDuzenleDevam(e) {
-		super.uygunluk2UnionBilgiListeDuzenleDevam(e);
-		this.uniDuzenle_banka(e).uniDuzenle_finans(e).uniDuzenle_genelDekont(e);
-		this.uniDuzenle_cariTahsilatOdeme(e).uniDuzenle_cekSenet(e).uniDuzenle_ticari(e);
-		this.uniDuzenle_sutAlimMakbuz(e).uniDuzenle_ykZRapor(e).uniDuzenle_kasiyerIslem(e);
+		super.uygunluk2UnionBilgiListeDuzenleDevam(e)
+		this.uniDuzenle_banka(e).uniDuzenle_finans(e).uniDuzenle_genelDekont(e)
+		this.uniDuzenle_cariTahsilatOdeme(e).uniDuzenle_cekSenet(e).uniDuzenle_ticari(e)
+		this.uniDuzenle_sutAlimMakbuz(e).uniDuzenle_ykZRapor(e).uniDuzenle_kasiyerIslem(e)
 		this.uniDuzenle_konsinyeLojistik(e).uniDuzenle_siteYonetimTahakkuk(e)
 	}
 	uniDuzenle_banka({ uygunluk, liste }) {

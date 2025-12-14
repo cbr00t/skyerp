@@ -59,7 +59,7 @@ class MQXIsler extends MQMasterOrtak {
 	static orjBaslikListesi_recsDuzenle({recs }) {
 		if (!recs)
 			return
-		let {mes: { cokluIsParalel } = {}} = app.params
+		let {mes: { cokluIsKarmami } = {}} = app.params
 		for (let rec of recs) {
 			{
 				let {batandimi: value} = rec
@@ -80,7 +80,7 @@ class MQXIsler extends MQMasterOrtak {
 				opText: [
 					`<span class="asil">${rec.opadi}</span>`,
 					`<span class="diger">${rec.opno}</span>`,
-					(cokluIsParalel ? `<span class="diger orangered">(sıralı)</span>` : null)
+					(cokluIsKarmami ? `<span class="diger orangered">(sıralı)</span>` : null)
 				].filter(_ => !!_).join(' '),
 				urunText: (
 					`<span class="asil">${rec.urunadi}</span>` +

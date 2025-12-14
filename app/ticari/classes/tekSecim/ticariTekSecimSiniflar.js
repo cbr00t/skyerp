@@ -123,7 +123,8 @@ class TahsilatOdeme extends BorcAlacak {
 }
 class FisHesapSekli extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultChar() { return '' } get bedelmi() { return this.char == '' } get fiyatmi() { return this.char == 'F' } get miktarmi() { return this.char == 'M' }
+	static get defaultChar() { return '' } get bedelmi() { return this.char == '' }
+	get fiyatmi() { return this.char == 'F' } get miktarmi() { return this.char == 'M' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
 		kaListe.push(
@@ -137,8 +138,9 @@ class FisHesapSekli extends TekSecim {
 	miktarYap() { this.char = 'M'; return this }
 }
 class StokTip extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return 'TC' }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'STKTIP' } static get sinifAdi() { return 'Stok Tipi' }
+	static get defaultChar() { return 'TC' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
 		kaListe.push(
@@ -174,8 +176,8 @@ class VergiTip extends TekSecim {
 class EkVergiTipi extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' }
-	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); let {kaListe} = e;
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
 		kaListe.push(
 			new CKodVeAdi({ kod: ' ', aciklama: 'Yok' }),
 			new CKodVeAdi({ kod: 'TV', aciklama: 'Tevkifatlı' }),
@@ -186,13 +188,16 @@ class EkVergiTipi extends TekSecim {
 }
 class TahsilSekliTip extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'TAHSEKLITIP' } static get sinifAdi() { return 'Tahsilat Tipi' }
+	static get kodKullanilirmi() { return true } static get kami() { return true }
+	static get kodSaha() { return MQKA.kodSaha } static get adiSaha() { return MQKA.adiSaha }
 	static get defaultChar() { return 'NK' }
-	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); let {kaListe} = e;
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
 		kaListe.push(
 			new CKodVeAdi(['NK', 'Nakit', 'nakitmi']),
 			new CKodVeAdi(['PS', 'POS', 'posmu']),
-			new CKodVeAdi(['', 'Açık Hesap', 'acikHesapmi']),
+			new CKodVeAdi([' ', 'Açık Hesap', 'acikHesapmi']),
 			new CKodVeAdi(['YM', 'Yemek Çeki', 'yemekCekimi']),
 			new CKodVeAdi(['HZ', 'Hizmet Gideri', 'hizmetGiderimi']),
 			new CKodVeAdi(['HV', 'Gelen Havale', 'gelenHavalemi'])
@@ -201,9 +206,12 @@ class TahsilSekliTip extends TekSecim {
 }
 class TahsilSekliAltTip extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'TAHALTTIP' } static get sinifAdi() { return 'Tahsilat Alt Tip' }
+	static get kodKullanilirmi() { return true } static get kami() { return true }
+	static get kodSaha() { return MQKA.kodSaha } static get adiSaha() { return MQKA.adiSaha }
 	static get defaultChar() { return '' }
-	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); let {kaListe} = e;
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
 		kaListe.push(
 			new CKodVeAdi(['', ' ', 'acikHesapmi']),
 			new CKodVeAdi(['C', 'Çek', 'cekmi']),
@@ -222,18 +230,23 @@ class MQSHTip extends TekSecim {
 	get hizmetmi() { return this.char == TSHizmetDetay.tip }
 	get demirbasmi() { return this.char == TSDemirbasDetay.tip }
 	get aciklamami() { return this.char == TSAciklamaDetay.tip }
-	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); let {kaListe} = e, classes = [TSStokDetay, TSHizmetDetay];
-		if (app.params.ticariGenel.kullanim.demirbas) { classes.push(TSDemirbasDetay) }
-		for (let cls of classes) { kaListe.push(new CKodVeAdi({ kod: cls.tip, aciklama: cls.tipText })) }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		let classes = [TSStokDetay, TSHizmetDetay]
+		if (app.params.ticariGenel.kullanim.demirbas)
+			classes.push(TSDemirbasDetay)
+		for (let {tip: kod, tipText: aciklama} of classes)
+			kaListe.push(new CKodVeAdi({ kod, aciklama }))
 	}
 }
 class MQSHTipVeAciklama extends MQSHTip {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	get aciklamami() { return this.char == TSAciklamaDetay.tip }
-	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); let {kaListe} = e, classes = [TSAciklamaDetay];
-		for (let cls of classes) { kaListe.push(new CKodVeAdi({ kod: cls.tip, aciklama: cls.tipText })) }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		let classes = [TSAciklamaDetay]
+		for (let {tip: kod, tipText: aciklama} of classes)
+			kaListe.push(new CKodVeAdi({ kod, aciklama }))
 	}
 }
 class MQSHTip_Sabit extends TekSecim {

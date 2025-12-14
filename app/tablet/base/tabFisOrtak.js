@@ -134,7 +134,20 @@ class TabFis extends MQDetayliGUID {
 					setTimeout(() => part.focus(), 1))*/
 		}
 	}
-	static rootFormBuilderDuzenle_tablet_acc_baslikCollapsed({ rfb }) { }
+	static async rootFormBuilderDuzenle_tablet_acc_baslikCollapsed({ sender: tanimPart, inst: fis, rfb }) {
+		let {mustKod} = fis
+		if (mustKod) {
+			let {adiSaha} = MQTabCari
+			let {[mustKod]: { [adiSaha]: aciklama }} = await MQTabCari.getGloKod2Rec() ?? {}
+			aciklama ||= mustKod
+			rfb.addForm().setLayout(() => $([
+				`<div class="flex-row" style="gap: 10px">`,
+					// `<div class="orangered"><b>${dateKisaString(asDate(tarih))}</b></div>`,
+					`<div class="royalblue"><b>${aciklama}</b></div>`,
+				`</div>`
+			].join(CrLf)))
+		}
+	}
 	static rootFormBuilderDuzenle_tablet_acc_dip({ rfb }) { }
 	static rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ rfb }) { }
 	static rootFormBuilderDuzenle_tablet_acc_detay({ rfb }) { }

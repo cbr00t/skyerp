@@ -38,7 +38,7 @@ class MQParam_MES extends MQParam {
 			let form = paramci.addFormWithParent().yanYana()
 				.addStyle(`$elementCSS > div { max-width: 400px !important }`)
 			form.addCheckBox('urunAgacinaEkle', 'Ürün Ağacına Ekle')
-			form.addCheckBox('cokluIsParalel', 'Çoklu İş Paralel Çalışır')
+			form.addCheckBox('cokluIsKarmami', 'Çoklu İş Paralel Çalışır')
 		}
 	}
 	paramSetValues({ rec }) {

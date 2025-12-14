@@ -392,4 +392,43 @@ class DMQStokVeMuhIslem extends DMQKA {
 		]
 	}
 }
-
+class DMQTahsilSekli extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'TAHSILSEKLI' } static get sinifAdi() { return 'Tahsil Şekli' }
+	static get table() { return 'tahsilsekli' } static get tableAlias() { return 'tsek' }
+	static get kodSaha() { return 'kodno' }
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		let {tableAlias: alias} = this
+		liste.push(
+			new GridKolon({ belirtec: 'tahsiltiptext', text: 'Tip', genislikCh: 13, sql: TahsilSekliTip.getClause(`${alias}.tahsiltipi`) }),
+			new GridKolon({ belirtec: 'ahalttiptext', text: 'Alt Tip', genislikCh: 13, sql: TahsilSekliAltTip.getClause(`${alias}.ahalttipi`) }),
+			new GridKolon({ belirtec: 'kullanimsekli', text: 'Kullanım Şekli', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'kasakod', text: 'Kasa', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'kasaadi', text: 'Kasa Adı', genislikCh: 25, sql: 'kas.aciklama' }),
+			new GridKolon({ belirtec: 'mevduathesapkod', text: 'Banka Hesap', genislikCh: 13 }),
+			new GridKolon({ belirtec: 'mevduathesapadi', text: 'Hesap Adı', genislikCh: 30, sql: 'bhes.aciklama' }),
+			new GridKolon({ belirtec: 'poskosulkod', text: 'POS Koşul', genislikCh: 13 }),
+			new GridKolon({ belirtec: 'poskosuladi', text: 'POS Koşul Adı', genislikCh: 30, sql: 'pkos.aciklama' }),
+			new GridKolon({ belirtec: 'mustkod', text: 'Müşteri', genislikCh: 20 }),
+			new GridKolon({ belirtec: 'mustunvan', text: 'Cari Ünvan', genislikCh: 30, sql: 'car.birunvan' }),
+			new GridKolon({ belirtec: 'hizmetkod', text: 'Hizmet', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'hizmetadi', text: 'Hizmet Adı', genislikCh: 25, sql: 'hiz.aciklama' }),
+			new GridKolon({ belirtec: 'sabityemekbedeli', text: 'Yemek Bedeli', genislikCh: 20 }).tipDecimal_bedel(),
+			new GridKolon({ belirtec: 'ekaciklama', text: 'Ek Açıklama' })
+		)
+	}
+	static loadServerData_queryDuzenle({ sent, sent: { from, where: wh, sahalar } }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		let {tableAlias: alias} = this
+		if (!from.aliasIcinTable('kas'))
+			sent.fromIliski('kasmst kas', `${alias}.kasakod = kas.kod`)
+		if (!from.aliasIcinTable('pkos'))
+			sent.fromIliski('poskosul pkos', `${alias}.poskosulkod = pkos.kod`)
+		sent.fromIliski('banbizhesap bhes', `(case when ${alias}.tahsiltipi IN ('HV', 'HG') then tsek.mevduathesapkod else pkos.mevduathesapkod end) = bhes.kod`);
+		sent.fromIliski('carmst car', `${alias}.mustkod = car.must`);
+		sent.fromIliski('hizmst hiz', `${alias}.hizmetkod = hiz.kod`);
+		sahalar.add( `${alias}.tahsiltipi`, `${alias}.ahalttipi`, 'pkos.sanalmi', `${alias}.poskosulkod`)
+		wh.add(`${alias}.baktifmi > 0`)
+	}
+}

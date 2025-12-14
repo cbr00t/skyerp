@@ -327,7 +327,7 @@ class DRapor_DonemselIslemler_Detaylar extends DRapor_DonemselIslemler_DetaylarV
 		};
 		super.tabloKolonlariDuzenle(...arguments); liste.push(...[
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12, cellClassName, filterType: 'checkedlist' }).tipTarih(),
-			new GridKolon({ belirtec: 'fisnox', text: 'Fiş No', cellClassName }).alignRight(),
+			new GridKolon({ belirtec: 'fisnox', text: 'Fiş No', cellClassName, minWidth: 200 }).alignRight(),
 			new GridKolon({ belirtec: 'isladi', text: 'İşlem', cellClassName, genislikCh: 35, filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'ref', text: 'Referans', cellClassName, genislikCh: 40, filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'borc', text: 'Borç', genislikCh: 17, cellClassName }).tipDecimal_bedel(),

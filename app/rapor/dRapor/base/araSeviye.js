@@ -714,6 +714,27 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		return this
 	}
+	tabloYapiDuzenle_tahsilSekli({ result }) {
+		result.addKAPrefix('tahsekli', 'tahtip')
+			.addGrupBasit('TAHSEKLI', 'Tahsil Şekli', 'tahsekli', DMQTahsilSekli)
+			.addGrupBasit('TAHTIP', 'Tahsilat Tipi', 'tahtip', TahsilSekliTip)
+		return this
+	}
+	loadServerData_queryDuzenle_tahsilSekli({ stm, sent, attrSet, kodClause }) {
+		if (!kodClause)
+			return this
+		sent = sent ?? stm.sent
+		let {sahalar} = sent
+		if (attrSet.TAHSEKLI || attrSet.TAHTIP)
+			sent.fromIliski('tahsilsekli tsek', `${kodClause} = tsek.kodno`)
+		for (let key in attrSet) {
+			switch (key) {
+				case 'TAHSEKLI': sahalar.add(`${kodClause} tahseklikod`, 'tsek.aciklama tahsekliadi'); break
+				case 'TAHTIP': sahalar.add('tsek.tahsiltipi tahtipkod', `${TahsilSekliTip.getClause('tsek.tahsiltipi')} tahtipadi`); break
+			}
+		}
+		return this
+	}
 	tabloYapiDuzenle_baBedel({ result }) {
 		result
 			.addToplamBasit_bedel('BORCBEDEL', 'Borç Bedel', 'borcbedel')
@@ -733,13 +754,17 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		return this
 	}
-	getBrmliMiktarClause(e) {
-		e = e ?? {}; let brmTip = (e.brmTip ?? e.tip)?.toUpperCase();
-		let {tip2BrmListe} = MQStokGenelParam, brmListe = tip2BrmListe?.[brmTip]; if (!brmListe?.length) { return '0' }
-		let {mstAlias, harAlias, miktarPrefix, getMiktarClause} = e; mstAlias = mstAlias ?? 'stk'; harAlias = harAlias ?? 'har'; miktarPrefix = miktarPrefix ?? '';
-		getMiktarClause = getMiktarClause ?? (miktarClause => miktarClause);
-		let mstAliasVeNokta = mstAlias ? `${mstAlias}.` : '', harAliasVeNokta = harAlias ? `${harAlias}.` : '';
-		let getWhereClause = brmSaha => new MQSubWhereClause({ inDizi: brmListe ?? [], saha: `${mstAliasVeNokta}brm` }).toString();
+	getBrmliMiktarClause(e = {}) {
+		let brmTip = (e.brmTip ?? e.tip)?.toUpperCase()
+		let {tip2BrmListe} = MQStokGenelParam, brmListe = tip2BrmListe?.[brmTip]
+		if (!brmListe?.length)
+			return '0'
+		let {mstAlias, harAlias, miktarPrefix, getMiktarClause} = e
+		mstAlias = mstAlias ?? 'stk'; harAlias = harAlias ?? 'har'; miktarPrefix = miktarPrefix ?? ''
+		getMiktarClause = getMiktarClause ?? (miktarClause => miktarClause)
+		let mstAliasVeNokta = mstAlias ? `${mstAlias}.` : '', harAliasVeNokta = harAlias ? `${harAlias}.` : ''
+		let getWhereClause = brmSaha =>
+			new MQSubWhereClause({ inDizi: brmListe ?? [], saha: `${mstAliasVeNokta}${brmSaha}` }).toString()
 		return `SUM(case when ${getWhereClause('brm')} then ${getMiktarClause(`${harAliasVeNokta}${miktarPrefix}miktar`)}` +
 						` when ${getWhereClause('brm2')} then ${getMiktarClause(`${harAliasVeNokta}${miktarPrefix}miktar2`)}` +
 						` else 0 end)`

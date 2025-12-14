@@ -29,6 +29,10 @@ class TabletApp extends TicariApp {
 				MQParam,
 				...this.offlineBilgiYukleGonderOrtakSiniflar
 			]
+			for (let {kami, mfSinif} of HMRBilgi) {
+				if (kami && mfSinif)
+					result.push(mfSinif)
+			}
 		}
 		return result
 	}
@@ -39,10 +43,6 @@ class TabletApp extends TicariApp {
 				...this.offlineBilgiYukleGonderOrtakSiniflar,
 				...TabFis.subClasses.filter(_ => !_.araSeviyemi)
 			]
-			for (let {kami, mfSinif} of HMRBilgi) {
-				if (kami && mfSinif)
-					result.push(mfSinif)
-			}
 		}
 		return result
 	}

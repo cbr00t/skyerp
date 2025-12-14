@@ -140,8 +140,8 @@ class MQTahsilSekli extends MQKA {
 			new GridKolon({ belirtec: 'hizmetkod', text: 'Hizmet', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'hizmetadi', text: 'Hizmet Adı', genislikCh: 25, sql: 'hiz.aciklama' }),
 			new GridKolon({ belirtec: 'sabityemekbedeli', text: 'Yemek Bedeli', genislikCh: 20 }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'ekaciklama', text: 'Ek Açıklama' }),
-		);
+			new GridKolon({ belirtec: 'ekaciklama', text: 'Ek Açıklama' })
+		)
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e);

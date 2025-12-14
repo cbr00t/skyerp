@@ -24,11 +24,12 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 	static get raporClass() { return DRapor_EldekiVarliklar } get width() { return '49.5%' }
 	static get yon() { return 'sol' } static get solmu() { return true }
 	get tazeleHideProgress_minCount() { return 2 }
+
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
 		let {eldekiVarlikStokDegerlemesiKDVlidir: degKDVlimi} = app?.params?.finans
 		{
-			let harClasses = Object.values(Hareketci.kod2Sinif).filter(cls => cls.eldekiVarliklarIcinUygunmu)
+			let harClasses = values(Hareketci.kod2Sinif).filter(cls => cls.eldekiVarliklarIcinUygunmu)
 			let anaTip_kaListe = []
 			for (let {kod, aciklama} of harClasses)
 				anaTip_kaListe.push(new CKodVeAdi([kod, aciklama]))
@@ -81,26 +82,32 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 			.addGrupBasit_numerik('GRUPONCELIK', 'Grup Öncelik', 'gruponcelik', null, null, null, false)
 			.addGrupBasit('GRUP', '', 'grup', null, null, null, false)
 			.addGrupBasit('MST', this.class.mstEtiket, 'mst', null, 550, null, false)
-		result.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, 110)
 		for (let {kod, aciklama} of this.dovizKAListe)
 			result.addToplamBasit_bedel(`BEDEL_${kod}`, `${aciklama} Bedel`, `bedel_${kod}`, null, 110, ({ colDef }) => colDef?.hidden(), false)
 		result.addToplamBasit_bedel('BEDEL', 'TL Bedel', 'bedel', null, 140, null, false)
+		result.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, 110)
 	}
 	sabitRaporTanimDuzenle({ result }) {
 		super.sabitRaporTanimDuzenle(...arguments)
 		result.resetSahalar()
 			// .addGrup('ONCELIK').addGrup('GRUPONCELIK')
 			.addGrup('GRUP').addIcerik('MST')
-		result.addIcerik('MIKTAR')
 		for (let kod of this.dvKodListe)
 			result.addIcerik(`BEDEL_${kod}`)
 		result.addIcerik('BEDEL')
+		result.addIcerik('MIKTAR')
 	}
 	tazele(e) {
-		let {raporTanim, konsolideVarmi} = this, {kullanim} = raporTanim ?? {}
+		let {rapor, raporTanim, konsolideVarmi} = this
+		let {main: { gridPart: { grid } }} = rapor
+		let {kullanim} = raporTanim ?? {}
 		if (!kullanim)
 			debugger
 		kullanim.yatayAnaliz = konsolideVarmi ? 'DB' : null
+		{
+			let cssSelector = 'status-ekBilgi'
+			grid?.children(`.${cssSelector}`)?.remove()
+		}
 		return super.tazele(e)
 	}
 	tazeleDiger(e) { /* do nothing */ }
@@ -237,9 +244,9 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		)
 	}*/
 	loadServerData_recsDuzenleSon({ recs }) {
-		let {recsDvKodSet} = this
+		let {recsDvKodSet, rapor: { tazeleCount }, gridPart} = this
 		if (!empty(recsDvKodSet)) {
-			for (let sev of recs) {                // sev: anatip
+			for (let sev of recs) {                                         // sev: anatip
 				let mst2Detay = sev.mst2Detay = {}
 				for (let rec of sev.detaylar) {
 					let {mstkod: mst = '', dvkod: dvKod, bedel} = rec
@@ -248,20 +255,44 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 					let newRec = mst2Detay[mst] ??= { ...rec, bedel: 0 }
 					newRec[dvKod ? `bedel_${dvKod}` : 'bedel'] = bedel
 				}
-				sev.detaylar = Object.values(mst2Detay)
+				sev.detaylar = values(mst2Detay)
 			}
 		}
 		return super.loadServerData_recsDuzenleSon({ ...arguments[0], recs })
 	}
 	gridVeriYuklendi(e) {
-		super.gridVeriYuklendi(e);
-		let {gridPart, recsDvKodSet} = this, {gridWidget} = gridPart, {base} = gridWidget;
-		for (let dvKod of this.dvKodListe) {
-			let dvKodVarmi = recsDvKodSet[dvKod]
-			base[dvKodVarmi ? 'showColumn' : 'hideColumn'](`bedel_${dvKod}`)
+		super.gridVeriYuklendi(e)
+		let {rapor, rapor: { tazeleCount }} = this
+		{
+			let {dvKodListe, recsDvKodSet, gridPart, gridPart: { gridWidget, gridWidget: { base: w } }} = this
+			for (let dvKod of dvKodListe) {
+				let dvKodVarmi = recsDvKodSet[dvKod]
+				w[dvKodVarmi ? 'showColumn' : 'hideColumn'](`bedel_${dvKod}`)
+			}
+			let {boundRecs: recs} = e
+			gridPart.expandedRowsSet = {}
+			if (!recs?.length)
+				gridWidget.collapseAll()
 		}
-		let {boundRecs: recs} = e; gridPart.expandedRowsSet = {};
-		if (recs?.length) { gridWidget.collapseAll() }
+		{
+			if (tazeleCount >= 2) {
+				setTimeout(() => {
+					let { main, sag, main: { gridPart: { grid } }} = rapor.id2AltRapor
+					let cssSelector = 'status-ekBilgi'
+					grid.children(`.${cssSelector}`).remove()
+					let getTotal = r =>
+						topla(_ => _.bedel || 0, r.gridPart.gridWidget.getRows())
+					let farkTL = roundToBedelFra(getTotal(main) - getTotal(sag))
+					let veri = toStringWithFra(farkTL, 2)
+					let colorCSS = farkTL > 0 ? 'forestgreen' : farkTL < 0 ? 'firebrick' : 'royalblue'
+					$(`<div class="${cssSelector} absolute" style="left: 15px; bottom: 8px; z-index: 25">
+							<span class="etiket">Fark: </span>
+							<span class="veri bold ${colorCSS}">${veri}</span>
+							<span class="ek-bilgi bold"> TL</span>
+					   </div>`).appendTo(grid)
+				}, 10)
+			}
+		}
 	}
 }
 class DRapor_EldekiVarliklar_Sol extends DAltRapor_EldekiVarliklar_Ortak {

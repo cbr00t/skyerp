@@ -533,7 +533,8 @@ class MQCogul extends MQYapi {
 		if (wsArgs)
 			stm.fromGridWSArgs(wsArgs)
 		/* if (value) value = value.toUpperCase() */
-		if (kodSaha && (kod || value || maxRow)) {
+		value ??= kod
+		if (kodSaha && (value || maxRow)) {
 			let orClauses = [];
 			if (value) {
 				let parts = value.split(' ')

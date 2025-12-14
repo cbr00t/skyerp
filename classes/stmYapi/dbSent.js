@@ -139,7 +139,9 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		for (let iliskiText of iliskiDizi) {
 			//	tablo atılırsa iliskinin de kalkması için table yapısında bırakıldı
 			let iliski = MQIliskiYapisi.newForText(iliskiText); if (!isOuter) { lastTable.addIliski(iliski) }
-			let {varsaZincir: zincir} = iliski; if (zincir) { this.zincirEkle(zincir) }
+			let {varsaZincirler: zincirler} = iliski
+			if (!empty(zincirler))
+				this.zincirEkle(...zincirler)
 		}
 		return this
 	}
@@ -151,18 +153,22 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		let iliskiDizi = e.on || e.iliskiDizi || e.iliskiText || e.iliski;
 		if (iliskiDizi && !$.isArray(iliskiDizi)) { iliskiDizi = [iliskiDizi] }
 		let joinClass = innermi ? MQInnerJoin : MQLeftJoin;
-		let {from} = this, xJoin = joinClass.newForFromText({ text: fromText, on: iliskiDizi }), tableYapi = from.aliasIcinTable(alias);
+		let {from} = this, xJoin = joinClass.newForFromText({ text: fromText, on: iliskiDizi })
+		let tableYapi = from.aliasIcinTable(alias)
 		if (!tableYapi) {
 			debugger; throw {
 				isError: true, rc: 'xJoinTable',
 				errorText: `${innermi ? 'Inner' : 'Left'} Join (<i class="bold lightgray">${fromText}</i>) için eklenmek istenen alias (<b class="red">${alias}</b>) bulunamadı`
 			}
 		}
-		if (!from.addIcinUygunmu(xJoin)) { return this }
-		tableYapi.addLeftInner(xJoin);
+		if (!from.addIcinUygunmu(xJoin))
+			return this
+		tableYapi.addLeftInner(xJoin)
 		for (let iliskiText of iliskiDizi) {
-			let iliski = MQIliskiYapisi.newForText(iliskiText);
-			let {varsaZincir: zincir} = iliski; if (zincir) { this.zincirEkle(zincir) }
+			let iliski = MQIliskiYapisi.newForText(iliskiText)
+			let {varsaZincirler: zincirler} = iliski
+			if (!empty(zincirler))
+				this.zincirEkle(...zincirler)
 		}
 		return this
 	}
@@ -170,7 +176,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	addAll(e) { this.sahalar.addAll(e); return this }
 	addWithAlias(alias, ...sahalar) { this.sahalar.addWithAlias(alias, ...sahalar) }
 	addAllWithAlias(e) { this.sahalar.addAllWithAlias(e); return this }
-	zincirEkle(item) { this.zincirler.liste.push(item); return this }
+	zincirEkle(...item) { this.zincirler.liste.push(...item); return this }
 	zincirleriDuzenle(e) {
 		let {zincirler} = this, alias2Oncelik = {}, result = [];
 		for (let zincir of zincirler.liste) {

@@ -455,24 +455,29 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		return true
 	}
 	gridHucreTiklandi(e) {
-		e ??= {}; let mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_hucreTiklandi) { if (mfSinif.orjBaslikListesi_hucreTiklandi(e) === false) { return false } }
+		e ??= {}; let mfSinif = this.getMFSinif()
+		if (mfSinif?.orjBaslikListesi_hucreTiklandi) { if (mfSinif.orjBaslikListesi_hucreTiklandi(e) === false) { return false } }
 		return super.gridHucreTiklandi(e)
 	}
 	gridHucreCiftTiklandi(e) {
-		e ??= {}; let mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_hucreCiftTiklandi) { if (mfSinif.orjBaslikListesi_hucreCiftTiklandi(e) === false) { return false } }
+		e ??= {}; let mfSinif = this.getMFSinif()
+		if (mfSinif?.orjBaslikListesi_hucreCiftTiklandi) { if (mfSinif.orjBaslikListesi_hucreCiftTiklandi(e) === false) { return false } }
 		return super.gridHucreCiftTiklandi(e)
 	}
 	gridVeriYuklendi(e) {
-		super.gridVeriYuklendi(e); let {mfSinif, panelDuzenleyici, grid, bulPart} = this;
-		if (mfSinif) { let groups = mfSinif.orjBaslikListesi_getGroups(e); if (groups?.length) { grid.jqxGrid('groups', groups) } }
-		if (panelDuzenleyici?.gridVeriYuklendi) { panelDuzenleyici.gridVeriYuklendi(e) }
-		if (mfSinif) { mfSinif.gridVeriYuklendi(e) }
+		super.gridVeriYuklendi(e)
+		let {mfSinif, panelDuzenleyici, grid, bulPart, veriYukleninceBlock: veriYuklenince} = this
+		let groups = mfSinif?.orjBaslikListesi_getGroups?.(e)
+		if (groups?.length)
+			grid.jqxGrid('groups', groups)
+		panelDuzenleyici?.gridVeriYuklendi?.(e)
+		mfSinif?.gridVeriYuklendi?.(e)
 		if ((!mfSinif || mfSinif.bulFormKullanilirmi) && bulPart?.layout?.length) {
-			let {noAutoFocus} = mfSinif || {}
+			let {noAutoFocus} = mfSinif ?? {}
 			if (!noAutoFocus)
-				setTimeout(() => bulPart.focus(), 50)
+				setTimeout(() => bulPart?.focus(), 50)
 		}
-		let {veriYukleninceBlock: veriYuklenince} = this; if (veriYuklenince) { getFuncValue.call(this, veriYuklenince, e) }
+		veriYuklenince?.call(this, e)
 	}
 	secimlerIstendi(e) {
 		let {secimlerPart} = this; if (secimlerPart) { secimlerPart.show() }
