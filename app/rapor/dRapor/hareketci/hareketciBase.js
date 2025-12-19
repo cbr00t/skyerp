@@ -118,6 +118,9 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		result.addGrupBasit('DVKOD', 'Dv.Kod', 'dvkod')
 		result.addGrupBasit('DVKUR', 'Dv.Kur', 'dvkur', null, null, ({ item, colDef }) => { item.noOrderBy(); colDef.tipDecimal() })
 		this.tabloYapiDuzenle_baBedel(e)
+		this.tabloYapiDuzenle_baBakiye(e)
+		this.tabloYapiDuzenle_dovizli_baBedel(e)
+		this.tabloYapiDuzenle_dovizli_baBakiye(e)
 	}
 	tabloYapiDuzenle_odemeGun(e) { /* do nothing */ }
 	super_tabloYapiDuzenle_odemeGun(e) { super.tabloYapiDuzenle_odemeGun(e) }
@@ -155,30 +158,38 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		return result
 	}
 	loadServerData_queryDuzenle(e) {
-		e.alias = e.alias ?? 'hrk';
-		let {stm, attrSet} = e, {hareketci, raporTanim} = this, {yatayAnaliz} = raporTanim.kullanim;
-		hareketci.reset(); let {uygunluk} = hareketci, uygunlukVarmi = !empty(uygunluk);
+		e.alias = e.alias ?? 'hrk'
+		let {stm, attrSet} = e, {hareketci, raporTanim} = this, {yatayAnaliz} = raporTanim.kullanim
+		hareketci.reset()
+		let {uygunluk} = hareketci, uygunlukVarmi = !empty(uygunluk);
 		if (!uygunlukVarmi) {
-			let {hareketTipSecim} = hareketci.class; uygunlukVarmi = !empty(hareketTipSecim.kaListe);
-			if (uygunlukVarmi) { uygunluk = asSet(hareketTipSecim.kaListe.map(({ kod }) => kod)) }
+			let {hareketTipSecim} = hareketci.class; uygunlukVarmi = !empty(hareketTipSecim.kaListe)
+			if (uygunlukVarmi)
+				uygunluk = asSet(hareketTipSecim.kaListe.map(({ kod }) => kod))
 		}
-		let {varsayilanHV: hrkDefHV} = hareketci.class; $.extend(e, { hareketci, hrkDefHV });
+		let {varsayilanHV: hrkDefHV} = hareketci.class; $.extend(e, { hareketci, hrkDefHV })
 		if (yatayAnaliz) { attrSet[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod] = true }
-		let uni = e.uni = stm.sent = new MQUnionAll(), {uygunluk2UnionBilgiListe} = hareketci;
+		let uni = e.uni = stm.sent = new MQUnionAll(), {uygunluk2UnionBilgiListe} = hareketci
 		let _e = { ...e, sender: this, hrkDefHV, temps: {} };
 		for (let [selectorStr, unionBilgiListe] of entries(uygunluk2UnionBilgiListe)) {
 			let uygunmu = true; if (uygunlukVarmi) {
 				let keys = selectorStr.split('$').filter(x => !!x);
 				uygunmu = !!keys.find(key => uygunluk[key]); if (!uygunmu) { continue }
 			}
-			unionBilgiListe = unionBilgiListe.map(item => getFuncValue.call(this, item, e)).filter(x => !!x);
+			unionBilgiListe = unionBilgiListe.map(item => getFuncValue.call(this, item, e)).filter(x => !!x)
 			for (let { sent, hv: hrkHV } of unionBilgiListe) {
 				$.extend(_e, {
-					sent, hrkHV, hv: hrkHV, hvDegeri: key => this.hrkHVDegeri({ ..._e, key }),
-					sentHVEkle: (...keys) => { for (let key of keys) { this.hrkSentHVEkle({ ..._e, key }) } }
-				});
-				this.loadServerData_queryDuzenle_hrkSent(_e); hareketci.uniDuzenle_tumSonIslemler(_e)
-				this.loadServerData_queryDuzenle_hkrSent_son(_e); sent = _e.sent;
+					sent, hrkHV, hv: hrkHV,
+					hvDegeri: key => this.hrkHVDegeri({ ..._e, key }),
+					sentHVEkle: (...keys) => {
+						for (let key of keys)
+							this.hrkSentHVEkle({ ..._e, key })
+					}
+				})
+				this.loadServerData_queryDuzenle_hrkSent(_e)
+				hareketci.uniDuzenle_tumSonIslemler(_e)
+				this.loadServerData_queryDuzenle_hkrSent_son(_e)
+				sent = _e.sent
 				// let sahaSayisi = sent?.sahalar?.liste?.length ?? 0; if (!sahaSayisi) { continue }
 				// if (config.dev && selectorStr.includes('perakende') /* && sahaSayisi != 30 */) { debugger }
 				sent.groupByOlustur().gereksizTablolariSil()
@@ -188,9 +199,10 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		return this.loadServerData_queryDuzenle_ek(e)
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
-		let {attrSet, sentHVEkle, sent, hrkHV: hv, hrkDefHV: defHV, hvDegeri} = e;
-		let {sahalar} = sent, tarihClause = hvDegeri('tarih');
-		this.donemBagla({ ...e, tarihClause }); for (let key in attrSet) {
+		let {attrSet, sentHVEkle, sent, hrkHV: hv, hrkDefHV: defHV, hvDegeri} = e
+		let {sahalar} = sent, tarihClause = hvDegeri('tarih')
+		this.donemBagla({ ...e, tarihClause })
+		for (let key in attrSet) {
 			switch (key) {
 				case 'FISNOX': sentHVEkle('fisnox'); break; case 'REF': sentHVEkle('refkod', 'refadi'); break
 				case 'ANAISLEM': sentHVEkle('anaislemadi'); break; case 'ISLEM': sentHVEkle('isladi'); break
@@ -205,6 +217,10 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		this.loadServerData_queryDuzenle_plasiyer({ ...e, kodClause: hvDegeri('plasiyerkod') });
 		let baClause = hvDegeri('ba'), bedelClause = hvDegeri('bedel').sumOlmaksizin();
 		this.loadServerData_queryDuzenle_baBedel({ ...e, baClause, bedelClause })
+		{
+			let alias = MQAliasliYapi.getDegerAliasListe(tarihClause)?.at(-1)
+			this.loadServerData_queryDuzenle_dovizli_baBedel({ ...e, alias, baClause, bedelClause })
+		}
 	}
 	loadServerData_queryDuzenle_hkrSent_son(e) { }
 	loadServerData_queryDuzenle_ek(e) {

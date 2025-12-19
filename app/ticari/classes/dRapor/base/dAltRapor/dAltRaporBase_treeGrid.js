@@ -28,13 +28,19 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	/*subFormBuilderDuzenle(e) { super.subFormBuilderDuzenle(e); let {rfb} = e; rfb.addCSS('no-overflow') }*/
 	onBuildEk(e) {
 		super.onBuildEk(e)
-		if (this.secimler == null) { this.secimler = this.newSecimler(e) }
-		let {rapor: { isPanelItem }, parentBuilder, noAutoColumns} = this, {layout} = parentBuilder, {builder: fbd} = e
+		if (this.secimler == null)
+			this.secimler = this.newSecimler(e)
+		let {rapor: { isPanelItem }, parentBuilder, noAutoColumns} = this
+		let {layout} = parentBuilder, {builder: fbd} = e
 		this.fbd_grid = parentBuilder.addForm('grid')
 			.setLayout(({ builder: { id }}) => $(`<div class="${id} part"/>`))
 			.onAfterRun(async e => {
-				let {builder: fbd_grid, builder: { layout }} = e, gridPart = this.gridPart = fbd_grid.part = {}, grid = gridPart.grid = layout
-				$.extend(gridPart, { tazele: e => this.tazele(e), hizliBulIslemi: e => this.hizliBulIslemi(e) })
+				let {builder: fbd_grid, builder: { layout }} = e
+				let gridPart = this.gridPart = fbd_grid.part = {}, grid = gridPart.grid = layout
+				$.extend(gridPart, {
+					tazele: e => { delete this._promise_wait; this.tazele(e) },
+					hizliBulIslemi: e => { delete this._promise_wait; this.hizliBulIslemi(e) }
+				})
 				await this.onGridInit(e)
 				let _e = { ...e, liste: [] }; this.tabloKolonlariDuzenle(_e); this.tabloKolonlariDuzenle_ozel?.(_e)
 				let colDefs = this.tabloKolonlari = _e.liste || [], columns = noAutoColumns ? [] : colDefs.flatMap(colDef => colDef.jqxColumns), source = []
@@ -87,6 +93,17 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	async onGridRun(e) {
 		await this.tazeleOncesi(e)
 		await this.onGridRun_ozel?.(e)
+		
+		let promise_wait, handler
+		handler = evt => {
+			let {ctrlKey: ctrl, altKey: alt, shiftKey: shift, metaKey: meta} = evt
+			let p = this._promise_wait = new $.Deferred()
+			let cancel = ctrl || alt || shift || meta
+			p.resolve(cancel)
+			document.removeEventListener('keydown', handler)
+		}
+		document.addEventListener('keydown', handler)
+		await delay(200)
 		await this.tazele(e)
 	}
 	gridRowExpanded(e) { let {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = true }
@@ -97,11 +114,15 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		if (uid != null) { gridWidget[expandedRowsSet[`${level}-${uid}`] ? 'collapseRow' : 'expandRow'](uid) }
 	}
 	async tazele(e = {}) {
+		if (await this._promise_wait == true)
+			return
 		await super.tazele(e)
-		let {grid} = this.gridPart || {}; if (!grid) { return }
+		let {grid} = this.gridPart || {}
+		if (!grid)
+			return
 		let da = this.tazele_ozel?.(e)
 		if (!da)
-			da = await this.getDataAdapter(e) 
+			da = await this.getDataAdapter(e)
 		if (da) {
 			let lastError
 			for (let i = 1; i <= 5; i++) {
@@ -539,11 +560,14 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		}
 	}
 	tazeleSonrasi(e) { return super.tazeleSonrasi(e) }
-	async tazele(e) {
-		e = e ?? {}; await new $.Deferred(p => setTimeout(() => p.resolve(), 300))
+	async tazele({ defUpdateOnly } = {}) {
+		// await new $.Deferred(p => setTimeout(() => p.resolve(), 300))
+		if (await this._promise_wait == true)
+			return
 		let {tazeleHideProgress_minCount, rapor: { isPanelItem, part }} = this
 		if (part?.isDestroyed)
 			return
+		let e = arguments[0]
 		try {
 			if (!isPanelItem) {
 				this._timer_progress = setTimeout(async () => {
@@ -555,7 +579,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			}
 			await this.tazeleOncesi(e); window.progressManager?.progressStep(1)
 			let {gridPart, raporTanim = {}} = this, {degistimi, kullanim} = raporTanim, {yatayAnaliz} = kullanim ?? {};
-			let {grid, gridWidget} = gridPart, {base} = gridWidget, {defUpdateOnly} = e;
+			let {grid, gridWidget} = gridPart, {base} = gridWidget
 			let {tabloKolonlari, tabloYapi, ozetBilgi} = this, {secilenVarmi, attrSet, grup, icerik} = raporTanim
 			let tip2ColDefs = {}, belirtec2Tip = {}; for (let colDef of tabloKolonlari) {
 				let {belirtec, userData} = colDef, {kod: tip} = userData || {};
@@ -794,13 +818,16 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		await inst.tamamSonrasiIslemlar(e)
 		inst.degistimi = true
 		inst.setDefault(e)
+		delete this._promise_wait
 		this.tazele()
 		await tamamIslemi?.call(this, e)
 		return true
 	}
 	raporTanim_tamamSonrasiIslemler(e) { }
 	async raporTanim_sablonKaydetIstendi(e) {
-		let title = 'Rapor Tanım', {wnd_raporTanim} = this; let {raporTanim} = this, {aciklama} = raporTanim; let inEventFlag = false;
+		let title = 'Rapor Tanım', {wnd_raporTanim} = this
+		let {raporTanim} = this, {aciklama} = raporTanim
+		let inEventFlag = false
 		try {
 			if (!aciklama) {
 				wnd_raporTanim.jqxWindow('collapse')

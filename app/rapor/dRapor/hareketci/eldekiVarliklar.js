@@ -256,6 +256,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 					newRec[dvKod ? `bedel_${dvKod}` : 'bedel'] = bedel
 				}
 				sev.detaylar = values(mst2Detay)
+				sev.toplamYapiOlustur()
 			}
 		}
 		return super.loadServerData_recsDuzenleSon({ ...arguments[0], recs })

@@ -46,6 +46,66 @@ class TabFis extends MQDetayliGUID {
 			fisSonuc: new PInstNum('sonuc')
 		})
 	}
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(
+			new GridKolon({ belirtec: '_text', text: 'Belge' }).noSql(),
+			new GridKolon({ belirtec: 'sonuc', text: 'Fiş Bedeli', genislikCh: 15 }).noSql().tipDecimal_bedel()
+		)
+	}
+	static async loadServerDataDogrudan({ offlineRequest, offlineMode }) {
+		if (!offlineRequest) {
+			let cacheClasses = [MQTabCari, MQTabTahsilSekli]
+			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
+		}
+		let recs = await super.loadServerDataDogrudan(...arguments)
+		if (!offlineRequest) {
+			for (let rec of recs)
+				rec._text = this.getHTML({ ...e, rec })
+		}
+		return recs
+	}
+	static loadServerData_queryDuzenle({ offlineRequest, offlineMode, stm }) {
+		let e = arguments[0]; super.loadServerData_queryDuzenle(e)
+		let {tableAlias: alias} = this
+		let unvanSaha = offlineMode === false ? 'birunvan' : MQTabCari.adiSaha
+		for (let sent of stm) {
+			let {from, where: wh, sahalar} = sent
+			if (!from.aliasIcinTable('car'))
+				sent.leftJoin(alias, 'carmst car', 'fis.must = car.kod')
+			// if (!from.aliasIcinTable('tsek'))
+			// 	sent.fis2TahSekliBagla()
+			sahalar.add(`car.${unvanSaha} mustunvan`)
+		}
+		let {orderBy} = stm
+		orderBy.liste = orderBy.liste.filter(_ => !_.startsWith('_'))
+	}
+	static async loadServerData_detaylar({ offlineRequest, offlineMode }) {
+		let recs = await super.loadServerData_detaylar(...arguments)
+		if (!offlineRequest) {
+			let _det = new this.detaySinif()
+			for (let rec of recs) {
+				_det.setValues({ rec })
+				_det?.htmlOlustur()
+				let {_text} = _det
+				if (_text != null)
+					rec._text = _text
+			}
+		}
+		return recs
+	}
+	async kaydetOncesiIslemler(e) {
+		await super.kaydetOncesiIslemler(e)
+		this.fisSonuc = this.fisTopNet
+	}
+	topluYazmaKomutlariniOlustur_baslikSayacBelirle(e) {
+		// super yok
+		return this.id ||= newGUID()
+	}
+	topluYazmaKomutlariniOlustur_sqlParamsDuzenle({ params, paramName_fisSayac }) {
+		// do nothing
+	}
+
 	static getRootFormBuilder(e) { return MQCogul.getRootFormBuilder(e) }
 	static getRootFormBuilder_fis(e) { return null }
 	static async rootFormBuilderDuzenle_tablet(e) { }
@@ -162,65 +222,11 @@ class TabFis extends MQDetayliGUID {
 		islemTuslari[id == 'duzenle' ? 'addClass' : 'removeClass']('jqx-hidden')*/
 	}
 	static rootFormBuilderDuzenle_tablet_acc_onCollapse(e) { }
-	
-	static orjBaslikListesiDuzenle({ liste }) {
-		super.orjBaslikListesiDuzenle(...arguments)
-		liste.push(
-			new GridKolon({ belirtec: '_text', text: 'Belge' }).noSql(),
-			new GridKolon({ belirtec: 'sonuc', text: 'Fiş Bedeli', genislikCh: 15 }).noSql().tipDecimal_bedel()
-		)
-	}
-	static async loadServerDataDogrudan({ offlineRequest, offlineMode }) {
-		if (!offlineRequest) {
-			let cacheClasses = [MQTabCari, MQTabTahsilSekli]
-			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
-		}
-		let recs = await super.loadServerDataDogrudan(...arguments)
-		if (!offlineRequest) {
-			for (let rec of recs)
-				rec._text = this.getHTML({ ...e, rec })
-		}
-		return recs
-	}
-	static loadServerData_queryDuzenle({ offlineRequest, offlineMode, stm }) {
-		let e = arguments[0]; super.loadServerData_queryDuzenle(e)
-		let {tableAlias: alias} = this
-		let unvanSaha = offlineMode === false ? 'birunvan' : MQTabCari.adiSaha
-		for (let sent of stm) {
-			let {from, where: wh, sahalar} = sent
-			if (!from.aliasIcinTable('car'))
-				sent.leftJoin(alias, 'carmst car', 'fis.must = car.kod')
-			// if (!from.aliasIcinTable('tsek'))
-			// 	sent.fis2TahSekliBagla()
-			sahalar.add(`car.${unvanSaha} mustunvan`)
-		}
-		let {orderBy} = stm
-		orderBy.liste = orderBy.liste.filter(_ => !_.startsWith('_'))
-	}
-	static async loadServerData_detaylar({ offlineRequest, offlineMode }) {
-		let recs = await super.loadServerData_detaylar(...arguments)
-		if (!offlineRequest) {
-			let _det = new this.detaySinif()
-			for (let rec of recs) {
-				_det.setValues({ rec })
-				_det?.htmlOlustur()
-				let {_text} = _det
-				if (_text != null)
-					rec._text = _text
-			}
-		}
-		return recs
-	}
-	async kaydetOncesiIslemler(e) {
-		await super.kaydetOncesiIslemler(e)
-		this.fisSonuc = this.fisTopNet
-	}
-	topluYazmaKomutlariniOlustur_baslikSayacBelirle(e) {
-		// super yok
-		return this.id ||= newGUID()
-	}
-	topluYazmaKomutlariniOlustur_sqlParamsDuzenle({ params, paramName_fisSayac }) {
-		// do nothing
+
+	static getBuilder({ sender: tanimPart, inst, acc, layout }) {
+		return new RootFormBuilder()
+			.setLayout(layout).setPart(tanimPart)
+			.setInst(inst)
 	}
 	static getHTML({ rec }) {
 		let {tarih, seri, noyil, fisno, must, mustunvan} = rec
@@ -238,79 +244,5 @@ class TabFis extends MQDetayliGUID {
 				`<div class="ek-bilgi bold float-right">${must || ''}</div>`,
 			`</div>`
 		].join(CrLf)
-	}
-	static getBuilder({ sender: tanimPart, inst, acc, layout }) {
-		return new RootFormBuilder()
-			.setLayout(layout).setPart(tanimPart)
-			.setInst(inst)
-	}
-}
-
-class TabFisDetay extends MQDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get table() { return 'tabhar' }
-	static get sayacSaha() { return null }
-	static get fisSayacSaha() { return 'fisid' }
-	static get io2RowAttr() {
-		let {_io2RowAttr: result} = this
-		if (!result)
-			result = this._io2RowAttr = { _text: null }
-		return result
-	}
-
-	constructor(e = {}) {
-		super(e)
-		let {class: { io2RowAttr }} = this
-		for (let k of keys(io2RowAttr)) {
-			let v = e[k]
-			if (v != null)
-				this[k] = v
-		}
-	}
-	static pTanimDuzenle({ pTanim }) {
-		super.pTanimDuzenle(...arguments)
-	}
-	offlineBuildSQLiteQuery({ result: queries }) {
-		let {main: db} = app.dbMgr, {table} = this.class
-		if (db.hasTable(table)) {
-			let cd = db.getColumns(table)
-			for (let {rowAttr} of TicIskYapi.getIskIter()) {
-				if (!cd[rowAttr])
-					queries.push(`ALTER TABLE tabhar ADD ${rowAttr} REAL NOT NULL DEFAULT 0`)
-			}
-		}
-	}
-	static orjBaslikListesiDuzenle({ liste }) {
-		super.orjBaslikListesiDuzenle(...arguments)
-		liste.push(
-			new GridKolon({ belirtec: '_text', text: 'Ürün' }).noSql(),
-			new GridKolon({ belirtec: 'bedel', text: 'Net Bedel', genislikCh: 15 }).noSql().tipDecimal_bedel()
-		)
-	}
-	static loadServerData_queryDuzenle({ stm, sent }) {
-		super.loadServerData_queryDuzenle(...arguments)
-	}
-	hostVarsDuzenle({ fis, hv }) {
-		super.hostVarsDuzenle(...arguments)
-		let {class: { io2RowAttr }} = this
-		for (let [i, r] of entries(io2RowAttr)) {
-			if (r != null)
-				hv[r] = this[i] ?? ''
-		}
-	}
-	setValues({ fis, rec }) {
-		super.setValues(...arguments)
-		let {class: { io2RowAttr }} = this
-		for (let [i, r] of entries(io2RowAttr)) {
-			if (r == null)
-				continue
-			let v = rec[r]
-			if (v != null)
-				this[i] = v
-		}
-	}
-	htmlOlustur(e) {
-		this._text = ''
-		return this
 	}
 }

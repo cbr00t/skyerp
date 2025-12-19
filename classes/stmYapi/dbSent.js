@@ -172,6 +172,31 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		}
 		return this
 	}
+	outerApply(e, _name, _liste) {
+		if (!isObject(e))
+			e = { alias: e, name: _name, liste: _liste }
+		let {alias, name = e.outerApply ?? e.table ?? e.from, liste} = e
+		liste = makeArray(liste)
+		let outer = new MQOuterApply({ name, liste })
+		let tableYapi = this.from.aliasIcinTable(alias)
+		if (!tableYapi) {
+			debugger; throw {
+				isError: true, rc: 'outerApply',
+				errorText: `Outer Apply (<i class="bold lightgray">${fromText}</i>) için eklenmek istenen alias (<b class="red">${alias}</b>) bulunamadı`
+			}
+		}
+		/*if (!from.addIcinUygunmu(xJoin))
+			return this*/
+		tableYapi.addLeftInner(outer)
+		this.zincirEkle([alias, name])     // [ustAlias, alias]
+		/*for (let iliskiText of iliskiDizi) {
+			let iliski = MQIliskiYapisi.newForText(iliskiText)
+			let {varsaZincirler: zincirler} = iliski
+			if (!empty(zincirler))
+				this.zincirEkle(...zincirler)
+		}*/
+		return this
+	}
 	add(...sahalar) { this.sahalar.add(...sahalar); return this }
 	addAll(e) { this.sahalar.addAll(e); return this }
 	addWithAlias(alias, ...sahalar) { this.sahalar.addWithAlias(alias, ...sahalar) }

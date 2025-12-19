@@ -2,24 +2,52 @@ class DRapor_AraSeviye extends DGrupluPanelRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	/* static get altRaporClassPrefix() { return this.name } */
 	get dvKodListe() {
-		let {_dvKodListe: result} = this;
-		if (result == null) { result = this._dvKodListe = Object.keys(this.dvKod2Rec ?? {}) }
+		let {_dvKodListe: result} = this
+		if (result == null)
+			result = this._dvKodListe = keys(this.dvKod2Rec ?? {})
 		return result
 	}
 	get dovizKAListe() {
-		let {_dovizKAListe: result} = this;
+		let {_dovizKAListe: result} = this
 		if (result == null) {
-			let recs = Object.values(this.dvKod2Rec ?? {});
+			let recs = values(this.dvKod2Rec ?? {})
 			result = this._dovizKAListe = recs.map(rec => new CKodVeAdi(rec))
 		}
 		return result
 	}
-	async ilkIslemler(e) { await super.ilkIslemler(e); await this.dovizListeBelirle(e) }
+	get degerlemeDvKodListe() {
+		let {_degerlemeDvKodListe: result} = this
+		if (result == null)
+			result = this._degerlemeDvKodListe = keys(this.degerlemeDvKod2Rec ?? {})
+		return result
+	}
+	get degerlemeDovizKAListe() {
+		let {_degerlemeDovizKAListe: result} = this
+		if (result == null) {
+			let recs = values(this.degerlemeDvKod2Rec ?? {})
+			result = this._degerlemeDovizKAListe = recs.map(rec => new CKodVeAdi(rec))
+		}
+		return result
+	}
+
+	
+	async ilkIslemler(e) {
+		await super.ilkIslemler(e)
+		await this.dovizListeBelirle(e)
+	}
 	async dovizListeBelirle(e) {
-		let dvKod2Rec = this.dvKod2Rec = {}, recs = await MQDoviz.loadServerData();
+		let dvKod2Rec = this.dvKod2Rec = {}
+		let degerlemeDvKod2Rec = this.degerlemeDvKod2Rec = {}
+		let recs = await MQDoviz.loadServerData()
 		for (let rec of recs) {
-			let {kod, aciklama} = rec; rec.aciklama = aciklama || kod;
+			let {kod, aciklama, degerlemeyapilir} = rec
+			if (!kod)
+				continue
+			kod = kod.toUpperCase()
+			rec.aciklama = aciklama || kod
 			dvKod2Rec[kod] = rec
+			if (degerlemeyapilir)
+				degerlemeDvKod2Rec[kod] = rec
 		}
 		return this
 	}
@@ -33,9 +61,12 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	static get donemselIslemlermi() { return false } static get eldekiVarliklarmi() { return false } static get nakitAkismi() { return false }
 	get finansalAnalizmi() { return this.class.finansalAnalizmi } get donemselIslemlermi() { return this.class.donemselIslemlermi }
 	get eldekiVarliklarmi() { return this.class.eldekiVarliklarmi } get nakitAkismi() { return this.class.nakitAkismi }
-	get dvKod2Rec() { return this.rapor.dvKod2Rec } get dovizKAListe() { return this.rapor.dovizKAListe } get dvKodListe() { return this.rapor.dvKodListe }
+	get dvKod2Rec() { return this.rapor.dvKod2Rec } get degerlemeDvKod2Rec() { return this.rapor.degerlemeDvKod2Rec }
+	get dovizKAListe() { return this.rapor.dovizKAListe } get dvKodListe() { return this.rapor.dvKodListe }
+	get degerlemeDovizKAListe() { return this.rapor.degerlemeDovizKAListe } get degerlemeDvKodListe() { return this.rapor.degerlemeDvKodListe }
 	static get yatayTip2Bilgi() {
-		let result = this._yatayTip2Bilgi; if (result == null) {
+		let {_yatayTip2Bilgi: result} = this
+		if (result == null) {
 			result = this._yatayTip2Bilgi = {
 				YA: { kod: 'YILAY', belirtec: 'yilay', text: 'Yıl/Ay' },
 				YL: { kod: 'YIL', belirtec: 'yil', text: 'Yıl' },
@@ -65,10 +96,14 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				/*HG: { kod: 'GRUP', belirtec: 'grup', text: 'Har. Ana Tip' }*/
 			}
 		}
-		if (!this.konsolideVarmi) { result = { ...result }; delete result.DB }
+		if (!this.konsolideVarmi) {
+			result = { ...result }
+			delete result.DB
+		}
 		return result
 	}
 	static set yatayTip2Bilgi(value) { this._yatayTip2Bilgi = value }
+
 	secimlerDuzenle(e) {
 		super.secimlerDuzenle(e)
 		let {secimler} = e, {grupVeToplam} = this.tabloYapi
@@ -90,10 +125,10 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				let proc = item[callSelector]; if (proc) { proc.call(item, args) }
 			}
 		};
-		islemYap(Object.keys(grupVeToplam), 'secimlerDuzenle', e);
+		islemYap(keys(grupVeToplam), 'secimlerDuzenle', e);
 		secimler.whereBlockEkle(_e => {
-			islemYap(Object.keys(grupVeToplam) || {}, 'tbWhereClauseDuzenle', { ...e, ..._e })
-			/*islemYap(Object.keys(this.raporTanim?.attrSet || {}), 'tbWhereClauseDuzenle', { ...e, ..._e })*/
+			islemYap(keys(grupVeToplam) || {}, 'tbWhereClauseDuzenle', { ...e, ..._e })
+			/*islemYap(keys(this.raporTanim?.attrSet || {}), 'tbWhereClauseDuzenle', { ...e, ..._e })*/
 		})
 	}
 	tazele(e) {
@@ -161,7 +196,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	super_loadServerDataInternal(e) { return super.loadServerDataInternal(e) }
 	async loadServerData_ilk(e) {
 		let {attrSet, yatayAnaliz} = e;
-		if (yatayAnaliz && Object.keys(attrSet).length == 1 && attrSet.DB) {
+		if (yatayAnaliz && keys(attrSet).length == 1 && attrSet.DB) {
 			let {session} = config, {dbName: buDBName} = session, {ekDBListe} = app.params?.dRapor ?? {}, alias_db = 'db';
 			let {secimler: sec} = this, {value: filtreDBListe} = sec.db, filtreDBSet = filtreDBListe?.length ? asSet(filtreDBListe) : null;
 			let result = filtreDBListe?.length ? filtreDBListe : [buDBName, ...(ekDBListe ?? [])];
@@ -203,7 +238,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		for (let sent of stm)
 			sent.sahalar.add(`COUNT(*) kayitsayisi`)
 		/*if (secimler) {
-			for (let [key, secim] of Object.entries(secimler.liste)) {
+			for (let [key, secim] of entries(secimler.liste)) {
 				if (secim.isHidden || secim.isDisabled) { continue }
 				let kod = secim.userData?.kod; if (!kod) { continue }
 				let {value} = secim, uygunmu = !empty(value)
@@ -226,40 +261,46 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		let {internal, alias, stm, attrSet} = e
 		if (internal)
 			return
-		let {secimler, tabloYapi} = this, {totalmi} = this.class
+		let {secimler, tabloYapi, class: { totalmi, secimWhereBaglanirmi }} = this
 		this.loadServerData_queryDuzenle_son_ilk_ozel?.(e)
-		if (alias) {
-			let {dvKod2Rec: dvKodSet} = this, gecerliDvKodSet = {}, dvKodVarmi = false;
+		/*if (alias) {
+			let {dvKod2Rec: dvKodSet} = this
+			let gecerliDvKodSet = {}, dvKodVarmi = false
 			for (let key in attrSet) {
 				let dvKod = key.split('_').slice(-1)[0]
 				if (dvKodSet[dvKod]) { gecerliDvKodSet[dvKod] = dvKodVarmi = true }
 			}
 			for (let sent of stm) {
-				let {sahalar} = sent;
+				let {sahalar} = sent
 				for (let dvKod in gecerliDvKodSet) {
 					let kurAlias = `kur${dvKod}`
 					sent.leftJoin(alias, `ORTAK..ydvkur ${kurAlias}`, [`${alias}.tarih = ${kurAlias}.tarih`, `${kurAlias}.kod = '${dvKod}'`])
 				}
-				sahalar.add(`${totalmi === false ? '1' : 'COUNT(*)'} kayitsayisi`)
 			}
-		}
-		if (this.class.secimWhereBaglanirmi) {
-			let tbWhere = secimler?.getTBWhereClause(e);
-			for (let {where: wh, sahalar} of stm) { if (tbWhere?.liste?.length) { wh.birlestir(tbWhere) } }
-			/*for (let sent of stm) { sent.gereksizTablolariSil({ disinda: [alias] }) }*/
+		}*/
+		for (let {sahalar} of stm)
+			sahalar.add(`${totalmi === false ? '1' : 'COUNT(*)'} kayitsayisi`)
+		if (secimWhereBaglanirmi) {
+			let tbWhere = secimler?.getTBWhereClause(e)
+			for (let {where: wh, sahalar} of stm) {
+				if (tbWhere?.liste?.length)
+					wh.birlestir(tbWhere)
+			}
+			/*for (let sent of stm)
+				sent.gereksizTablolariSil({ disinda: [alias] })*/
 		}
 		this.loadServerData_queryDuzenle_son_son_ozel?.(e)
 	}
 	loadServerData_queryDuzenle_filtreBaglantiYap(e) {
 		let {stm, attrSet: orjAttrSet} = e, {secimler, tabloYapi} = this;
 		let internal = true, attrSet = { ...orjAttrSet };
-		for (let [key, item] of Object.entries(tabloYapi.grup)) {
+		for (let [key, item] of entries(tabloYapi.grup)) {
 			let {kaYapimi} = item; if (!kaYapimi || item.secimKullanilmazFlag === false || item.formulmu) { continue }
 			let sec_kod = secimler[key], sec_adi = secimler[`${key}Adi`], {mfSinif} = sec_kod ?? {};
 			if (!mfSinif?.mqCogulmu || (sec_kod?.bosmu && sec_adi?.bosmu)) { continue }
 			attrSet[key] = true
 		}
-		if (Object.keys(attrSet).length == Object.keys(orjAttrSet).length) { /* yeni birşey eklenmedi */ return }
+		if (keys(attrSet).length == keys(orjAttrSet).length) { /* yeni birşey eklenmedi */ return }
 		let _e = { ...e, stm: new MQStm(), attrSet, internal }; delete _e.sent; delete _e.uni;
 		if (this.loadServerData_queryDuzenle_tekil(_e) === false) { return false }
 		let {stm: _stm} = _e, _enm = _stm.getSentListe();    /* her iki stm içindeki sent sayısı aynı olmalıdır */
@@ -458,7 +499,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		if (dgckVarmi) {
 			let tipListe = [gcTip, tip], entries = tipListe.map(tip => [tip, true]);
-			$.extend(attrSet, Object.fromEntries(entries))
+			$.extend(attrSet, fromEntries(entries))
 		}*/
 		let getTarihWh = (kontrol, bs, zorunlumu) => {
 			let wh = new MQSubWhereClause();
@@ -738,16 +779,23 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		return this
 	}
-	tabloYapiDuzenle_baBedel({ result }) {
+
+	tabloYapiDuzenle_baBedelBasit({ result }) {
 		result
 			.addToplamBasit_bedel('BORCBEDEL', 'Borç Bedel', 'borcbedel')
 			.addToplamBasit_bedel('ALACAKBEDEL', 'Alacak Bedel', 'alacakbedel')
-			.addToplamBasit_bedel('ISARETLIBEDEL', 'B-A Bakiye', 'isaretlibedel')
+		return this
+	}
+	tabloYapiDuzenle_baBedel({ result }) {
+		this.tabloYapiDuzenle_baBedelBasit(...arguments)
+		result.addToplamBasit_bedel('ISARETLIBEDEL', 'B-A Bakiye', 'isaretlibedel')
 		return this
 	}
 	loadServerData_queryDuzenle_baBedel({ stm, sent, attrSet, baClause, bedelClause }) {
-		if (!(baClause || bedelClause)) { return this }
-		sent = sent ?? stm.sent; let {where: wh, sahalar} = sent;
+		if (!(baClause || bedelClause))
+			return this
+		sent ??= sent ?? stm.sent
+		let {where: wh, sahalar} = sent
 		for (let key in attrSet) {
 			switch (key) {
 				case 'BORCBEDEL': sahalar.add(`SUM(case when ${baClause} = 'B' then ${bedelClause} else 0 end) borcbedel`); break
@@ -757,6 +805,112 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		return this
 	}
+	tabloYapiDuzenle_baBakiye({ result }) {
+		result
+			.addToplamBasit_bedel('BORCBAKIYE', 'Borç Bakiye', 'borcbakiye', null, null, ({ item }) => {
+				item.setFormul(['BORCBEDEL', 'ALACAKBEDEL'], ({ rec: { borcbedel: borc, alacakbedel: alacak } }) => {
+					let fark = borc - alacak
+					return fark > 0 ? roundToBedelFra(fark) : 0
+				})
+			})
+			.addToplamBasit_bedel('ALACAKBAKIYE', 'Alacak Bakiye', 'alacakbakiye', null, null, ({ item }) => {
+				item.setFormul(['BORCBEDEL', 'ALACAKBEDEL'], ({ rec: { borcbedel: borc, alacakbedel: alacak } }) => {
+					let fark = borc - alacak
+					return fark < 0 ? roundToBedelFra(-fark) : 0
+				})
+			})
+		return this
+	}
+
+	tabloYapiDuzenle_dovizli_baBedelBasit({ result }) {
+		let {degerlemeDvKodListe: dvKodListe} = this
+		for (let dvKod of dvKodListe) {
+			result
+				.addToplamBasit_bedel(`DEG_BORCBEDEL_${dvKod}`, `Borç Bedel (${dvKod})`, `deg_borcbedel_${dvKod}`)
+				.addToplamBasit_bedel(`DEG_ALACAKBEDEL_${dvKod}`, `Alacak Bedel (${dvKod})`, `deg_alacakbedel_${dvKod}`)
+		}
+		return this
+	}
+	tabloYapiDuzenle_dovizli_baBedel({ result }) {
+		this.tabloYapiDuzenle_dovizli_baBedelBasit(...arguments)
+		let {degerlemeDvKodListe: dvKodListe} = this
+		for (let dvKod of dvKodListe)
+			result.addToplamBasit_bedel(`DEG_ISARETLIBEDEL_${dvKod}`, `B-A Bakiye (${dvKod})`, `deg_isaretlibedel_${dvKod}`)
+		return this
+	}
+	loadServerData_queryDuzenle_dovizli_baBedel({ alias, tarihClause, stm, sent, attrSet, baClause, bedelClause: orjBedelClause }) {
+		if (!(baClause || bedelClause))
+			return this
+		sent ??= sent ?? stm.sent
+		let e = arguments[0]
+		let {where: wh, sahalar} = sent
+		let {degerlemeDvKodListe: dvKodListe} = this
+		for (let dvKod of dvKodListe) {
+			let dvOuterGereklimi = false
+			let bedelClause = `ROUND((${orjBedelClause}) / NULLIF(gun${dvKod}.kur, 0), 2)`
+			for (let key in attrSet) {
+				/*let baClause = baClausecu?.call(this, { ...e, dvKod })
+				let bedelClause = bedelClausecu?.call(this, { ...e, dvKod })*/
+				switch (key) {
+					case `DEG_BORCBEDEL_${dvKod}`: {
+						dvOuterGereklimi = true
+						sahalar.add(`SUM(case when ${baClause} = 'B' then ${bedelClause} else 0 end) deg_borcbedel_${dvKod}`)
+						break
+					}
+					case `DEG_ALACAKBEDEL_${dvKod}`: {
+						dvOuterGereklimi = true
+						sahalar.add(`SUM(case when ${baClause} = 'B' then 0 else ${bedelClause} end) deg_alacakbedel_${dvKod}`)
+						break
+					}
+					case `DEG_ISARETLIBEDEL_${dvKod}`: {
+						dvOuterGereklimi = true
+						sahalar.add(`SUM(( ${bedelClause} ) * ( case when ${baClause} = 'B' then 1 else -1 end )) deg_isaretlibedel_${dvKod}`)
+						break
+					}
+				}
+			}
+			if (dvOuterGereklimi) {
+				alias ||= 'fis'
+				tarihClause ||= `${alias}.tarih`
+				let outerSent = new MQSent({ top: 1 })
+				let {where: wh, sahalar} = outerSent
+				outerSent.fromAdd('ORTAK..ydvkur dkur')
+				wh.degerAta(dvKod, 'dkur.kod')
+				wh.add(`${tarihClause} <= dkur.tarih`)
+				sahalar.add('dkur.dovizsatis kur')
+				let orderBy = ['dkur.tarih DESC']
+				let outerStm = new MQStm({ sent: outerSent, orderBy })
+				sent.outerApply(alias, `gun${dvKod}`, outerStm)
+			}
+		}
+		return this
+	}
+	tabloYapiDuzenle_dovizli_baBakiye({ result }) {
+		let {degerlemeDvKodListe: dvKodListe} = this
+		for (let dvKod of dvKodListe) {
+			result
+				.addToplamBasit_bedel(`BORCBAKIYE_${dvKod}`, `Borç Bakiye (${dvKod})`, `borcbakiye_${dvKod}`, null, null, ({ item }) => {
+					item.setFormul(
+						[`BORCBEDEL_${dvKod}`, `ALACAKBEDEL_${dvKod}`],
+						({ rec: { [`borcbedel_${dvKod}`]: borc, [`alacakbedel_${dvKod}`]: alacak } }) => {
+							let fark = borc - alacak
+							return fark > 0 ? roundToBedelFra(fark) : 0
+						}
+					)
+				})
+				.addToplamBasit_bedel(`ALACAKBAKIYE_${dvKod}`, `Alacak Bakiye (${dvKod})`, `alacakbakiye_${dvKod}`, null, null, ({ item }) => {
+					item.setFormul(
+						[`BORCBEDEL_${dvKod}`, `ALACAKBEDEL_${dvKod}`],
+						({ rec: { [`borcbedel_${dvKod}`]: borc, [`alacakbedel_${dvKod}`]: alacak } }) => {
+							let fark = borc - alacak
+							return fark < 0 ? roundToBedelFra(-fark) : 0
+						}
+					)
+				})
+		}
+		return this
+	}
+
 	getBrmliMiktarClause(e = {}) {
 		let brmTip = (e.brmTip ?? e.tip)?.toUpperCase()
 		let {tip2BrmListe} = MQStokGenelParam, brmListe = tip2BrmListe?.[brmTip]

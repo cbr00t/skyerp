@@ -177,11 +177,12 @@ class DRaporOzel extends DRapor {
 	}
 	hizliBulIslemi_ara(e) { }
 	tazele(e) {
-		super.tazele(e); let {builder: { rootBuilder: rfb }} = e
+		super.tazele(e)
+		let {builder: { rootBuilder: rfb }} = e
 		let parentBuilder = rfb.id2Builder.items ?? rfb
 		for (let {part} of parentBuilder.getBuilders()) {
-			if (!part) { continue }
-			part.tazele?.(e); part.dataBind?.(e)
+			part?.tazele?.(e)
+			part?.dataBind?.(e)
 		}
 	}
 	super_tazele(e) { super.tazele(e) }
@@ -303,6 +304,7 @@ class DPanelRapor extends DRaporOzel {
 		}
 		this.tazeleCount = 0
 		for (let altRapor of values(id2AltRapor)) {
+			delete altRapor._promise_wait
 			if (!altRapor?.tazeleYapilirmi)
 				continue
 			if (mainGridPart && altRapor != main) {

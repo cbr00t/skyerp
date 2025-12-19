@@ -540,8 +540,8 @@ class MQXJoinTable extends MQAliasliYapi {
 	}
 	aliasVarmi(alias) { return this.aliasVeyaDeger == alias }
 	buildString(e) {
-		super.buildString(e);
-		this.on.buildString(e);
+		super.buildString(e)
+		this.on.buildString(e)
 		return this
 	}
 }
@@ -556,6 +556,27 @@ class MQOuterJoin extends MQXJoinTable {
 class MQLeftJoin extends MQXJoinTable {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get leftJoinmi() { return true } static get onEk() { return ' LEFT JOIN ' }
+}
+class MQOuterApply extends MQClause {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get outerApplymi() { return true }
+	static get _onEk() { return ' OUTER APPLY ' }
+	constructor(e = {}) {
+		if (isArray(e))
+			e = { liste: e }
+		super(e)
+		this.parantezli()
+		this.name = e.name
+	}
+	aliasVarmi(alias) { return this.table == alias }
+	buildString_baslangicsiz(e) {
+		// from içinden çağırınca 'okEk' otomatik ekleniyor
+		let {class: { _onEk: onEk }, name} = this
+		e.result += onEk
+		super.buildString_baslangicsiz(e)
+		if (name)
+			e.result += ` AS ${name}`
+	}
 }
 class MQTable extends MQAliasliYapi {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -583,7 +604,7 @@ class MQTable extends MQAliasliYapi {
 			aliasSet = asSet([e.alias])
 		let liste = this.leftVeInner || [], disindaSet = e.disindaSet ?? {}
 		for (let i = liste.length - 1; i >= 0; i--) {
-			let anMQXJoinTable = liste[i], {alias} = anMQXJoinTable
+			let anMQXJoinTable = liste[i], {alias = anMQXJoinTable.name} = anMQXJoinTable    // .alias veya outer.name
 			if (aliasSet ? aliasSet[alias] : !disindaSet[alias])
 				liste.splice(i, 1)
 		}

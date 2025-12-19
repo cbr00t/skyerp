@@ -276,12 +276,19 @@ class DMQKrediKarti extends DMQPosKrKosul {
 
 
 class DMQMuhHesap extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Hesap' }
-	static get kodListeTipi() { return 'MUHHESAP' } static get table() { return 'muhhesap' } static get tableAlias() { return 'mhes' }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'MUHHESAP' } static get sinifAdi() { return 'Muhasebe Hesap' }
+	static get table() { return 'muhhesap' } static get tableAlias() { return 'mhes' }
 }
 class DMQMuhHesap_Kebir extends DMQMuhHesap {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kodListeTipi() { return 'MUHHESAPKEB' } static get sinifAdi() { return 'Kebir Hesap' } static get tableAlias() { return 'khes' }
+	static get kodListeTipi() { return 'MUHHESAPKEB' } static get sinifAdi() { return 'Kebir Hesap' }
+	static get tableAlias() { return 'khes' }
+}
+class DMQMuhUstHesap extends DMQMuhHesap {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'MUHUSTHESAP' } static get sinifAdi() { return 'Üst Hesap' }
+	static get tableAlias() { return 'uhes' }
 }
 class DMQMuhGrup extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Grup' }

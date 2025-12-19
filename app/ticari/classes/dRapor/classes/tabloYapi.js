@@ -62,8 +62,8 @@ class TabloYapi extends CObject {
 		let toplammi = selector == 'addToplam'
 		let colDef = new GridKolon({
 			belirtec, text,
-			minWidth: (toplammi ? 130 : 180),
-			maxWidth: genislikCh ?? (toplammi ? 180 : 500),
+			minWidth: (toplammi ? 150 : 180),
+			maxWidth: genislikCh ?? (toplammi ? 200 : 500),
 			filterType: 'checkedlist'
 		})
 		let item = new TabloYapiItem({ mfSinif }).setKA(kod, text)
