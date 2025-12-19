@@ -23,7 +23,7 @@ class TabFisGirisPart extends ModelTanimPart {
 			$elementCSS { position: fixed !important; top: 1px; right: 80px; pointer-events: none !important }
 			$elementCSS > div > .sag { width: 100px !important }
 			$elementCSS button { width: 45px !important; height: 40px !important; pointer-events: auto !important; z-index: 1300 !important }
-			$elementCSS button#vazgec { margin-left: 20px }
+			$elementCSS button#vazgec { display: none; margin-left: 20px }
 			$elementCSS + .bulForm.part,
 				body > .app-titlebar { display: none !important }
 		`)

@@ -11,7 +11,7 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 	}
 	set input(val) { this._input = val }
 	get kodAttr() {
-		let result = this._kodAttr;
+		let result = this._kodAttr
 		if (result === undefined) {
 			result = this._kodAttr = e => {
 				e.temp();
@@ -32,7 +32,7 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 		this._kodAttr = value
 	}
 	get adiAttr() {
-		let result = this._adiAttr;
+		let result = this._adiAttr
 		if (result === undefined) {
 			result = this._adiAttr = e => {
 				e.temp();

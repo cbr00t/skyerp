@@ -75,7 +75,7 @@ class MQCari_Genel extends MQCariAlt {
 		super.pTanimDuzenle(e); $.extend(e.pTanim, {
 			unvan1: new PInstStr('unvan1'), unvan2: new PInstStr('unvan2'),
 			adres1: new PInstStr('adres1'), adres2: new PInstStr('adres2'), adresKod: new PInstNum('adreskod'),
-			yore: new PInstStr('yore'), posta: new PInstNum('posta'), ulkeKod: new PInstStr('ulkekod'), ilKod: new PInstStr('ilkod'),
+			yore: new PInstStr('yore'), posta: new PInstStr('posta'), ulkeKod: new PInstStr('ulkekod'), ilKod: new PInstStr('ilkod'),
 			bolgeKod: new PInstStr('bolgekod'), tipKod: new PInstStr('tipkod'), istGrupKod: new PInstStr('cistgrupkod'),
 			calismaDurumu: new PInstTrue('calismadurumu'), potansiyel: new PInstBool('potansiyel')
 		})

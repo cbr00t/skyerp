@@ -584,13 +584,21 @@ class MQWebParam extends MQTicariParamBase {
 	}
 }
 class MQTabletParam extends MQTicariParamBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Sky Tablet Parametreleri' } static get paramKod() { return 'TABLET' }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sinifAdi() { return 'Sky Tablet Parametreleri' } static get paramKod() { return 'TABLET' }
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); let {paramci} = e;
 		let form = paramci.addFormWithParent(); form.addBool('yaslandirmaTarihmi', `Yaşlandırma Tarih'e göredir`);
 			form.addBool('cariHareketTakipNo', 'Cari Hareket Takip No Bazında Gruplanır')
 			form.addBool('rotaDisiMusteriAlinirmi', 'Rota Dışı Müşteri Alınır')
+			form.addBool('silmeYerineDevreDisi', 'Silme Yerine DevreDışı')
+			form.addBool('depoBedelGorur', 'Bedel Görür')
+			form.addBool('fiyatDegistirir', 'Fiyat Değiştirir')
+			form.addBool('iskDegistirir', 'İsk. Değiştirir')
+			form.addNumber('iskMaxSayi', 'İsk. Max Sayı')
 	}
-	paramSetValues(e) { e = e || {}; super.paramSetValues(e) /*; let {rec} = e*/ }
+	paramSetValues({ rec } = {}) {
+		super.paramSetValues(...arguments)
+	}
 }
 

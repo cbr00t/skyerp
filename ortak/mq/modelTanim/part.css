@@ -15,9 +15,12 @@
 .modelTanim.part .form > div { /* line-height: 22px; margin-bottom: 5px !important; */ }
 .modelTanim.part .form .tabPanel { }
 .modelTanim.part .form .tabPanel > .content {
+	max-height: calc(var(--full) - 120px);
+	overflow-y: auto !important
 	/*--padding-left: 5px; overflow-y: auto !important;
 	width: calc(var(--full) - var(--padding-left)); height: calc(var(--full) - (var(--tabs-tabPage-height))); padding-left: var(--padding-left)*/
 }
+.modelTanim.part .form .tabPanel > .content > div { margin-bottom: 300px !important }
 .modelTanim.part .form .formBuilder-element.parent { /* margin: 0; padding: 0 0 0 5px; */ }
 /*.modelTanim.part .form .tabPanel > .content > .formBuilder-element { width: calc(var(--full) - 5px); height: var(--full); margin: 0; padding: 0; padding-bottom: 300px }*/
 .modelTanim.part .form input:not([type=hidden]):not([type=button]):not([type=submit]):not([type=reset]):not([type=radio]),

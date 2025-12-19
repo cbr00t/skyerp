@@ -45,16 +45,22 @@ class MQSayacli extends MQCogul {
 	static getFormBuilders_ka(e) { let _e = { ...e, liste: [] }; this.formBuildersDuzenle_ka(_e); return e.liste }
 	static formBuildersDuzenle_ka(e) { MQKA.formBuildersDuzenle_ka(e) }
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); let {aliasVeNokta, sayacSaha, kodKullanilirmi, kodSaha, adiKullanilirmi, adiSaha, zeminRenkDesteklermi} = this;
-		let {sent} = e, {sahalar} = sent;
-		if (sayacSaha && !sahalar.liste.find(saha => saha.alias == sayacSaha)) { sahalar.add(`${aliasVeNokta}${sayacSaha}`) }
-		if (kodKullanilirmi && kodSaha && !sahalar.liste.find(saha => saha.alias == kodSaha)) { sahalar.add(`${aliasVeNokta}${kodSaha}`) }
-		if (adiKullanilirmi && adiSaha && !sahalar.liste.find(saha => saha.alias == adiSaha)) { sahalar.add(`${aliasVeNokta}${adiSaha}`) }
-		if (zeminRenkDesteklermi) { sahalar.add(`${aliasVeNokta}oscolor`) }
+		super.loadServerData_queryDuzenle(e)
+		let {aliasVeNokta, sayacSaha, kodKullanilirmi, kodSaha, adiKullanilirmi, adiSaha, zeminRenkDesteklermi} = this
+		let {sent, sent: { sahalar }} = e
+		if (sayacSaha && !sahalar.liste.find(saha => saha.alias == sayacSaha))
+			sahalar.add(`${aliasVeNokta}${sayacSaha}`)
+		if (kodKullanilirmi && kodSaha && !sahalar.liste.find(saha => saha.alias == kodSaha))
+			sahalar.add(`${aliasVeNokta}${kodSaha}`)
+		if (adiKullanilirmi && adiSaha && !sahalar.liste.find(saha => saha.alias == adiSaha))
+			sahalar.add(`${aliasVeNokta}${adiSaha}`)
+		if (zeminRenkDesteklermi)
+			sahalar.add(`${aliasVeNokta}oscolor`)
 	}
 	tekilOku_queryDuzenle(e) {
-		super.tekilOku_queryDuzenle(e); let {aliasVeNokta, sayacSaha, kodKullanilirmi, kodSaha} = this.class, {sayac, kod} = this;
-		let {sent} = e, {where: wh} = sent;
+		super.tekilOku_queryDuzenle(e)
+		let {sayac, kod, class: { aliasVeNokta, sayacSaha, kodKullanilirmi, kodSaha}} = this
+		let {sent, sent: { where: wh }} = e
 		if (sayacSaha && sayac) { wh.liste = []; wh.degerAta(sayac, `${aliasVeNokta}${sayacSaha}`) }
 		else if (kodKullanilirmi && kodSaha && kod) { wh.degerAta(kod, `${aliasVeNokta}${kodSaha}`) }
 	}

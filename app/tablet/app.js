@@ -102,12 +102,10 @@ class TabletApp extends TicariApp {
 			MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka, MQTabNakliyeSekli,
 			MQTabTahsilSekli, MQTabBarkodReferans, MQTabBarkodAyrisim
 		])
-		items.push(new FRMenuChoice({
-			mne: TabTSFis.kodListeTipi,
-			text: `${TabTSFis.sinifAdi} Fiş`,
-			block: e => TabTSFis.listeEkraniAc(e)
-			// block: e => TabTSFis.tanimla(e)
-		}))
+		{
+			let mfSinif = TabTSFis, {kodListeTipi: mne, sinifAdi: text} = mfSinif
+			items.push(new FRMenuChoice({ mne, text, block: e => mfSinif.listeEkraniAc(e) }))
+		}
 		items.push(new FRMenuChoice({ mne: 'BILGIGONDER', text: 'Bilgi Gönder', block: e => this.bilgiGonderIstendi(e) }))
 		// addMenuSubItems(null, null, [MQTest])
 		return new FRMenu({ items })

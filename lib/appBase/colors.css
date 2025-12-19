@@ -72,5 +72,8 @@
 .jqx-grid-cell:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).kod.gonderildi { background-color: #cfc6c3 }
 
 .editable { background: unset !important }
-.readOnly, input[readonly], textarea[readonly] { /* background: #ececec */ background: linear-gradient(90deg, #e0e0e0 20%, #f0f0f0 100%) !important }
+.readOnly, input[readonly], textarea[readonly] {
+	background: #eee
+	/*background: linear-gradient(90deg, #e0e0e0 20%, #f0f0f0 100%) !important*/
+}
 

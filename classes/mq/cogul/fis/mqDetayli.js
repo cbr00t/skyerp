@@ -130,8 +130,11 @@ class MQDetayli extends MQSayacli {
 			if (!colDef.sqlIcinUygunmu) { continue }
 			let {belirtec, sql} = colDef; if (sql) sent.sahalar.add(`${sql} ${belirtec}`)
 		}*/
-		this.class.loadServerData_detaylar_queryDuzenle(e); let result = detaySinif.tekilOku_queryDuzenle(e), {stm} = e;
-		for (let sent of stm.getSentListe()) { sent.gereksizTablolariSil({ disinda: alias }) }
+		this.class.loadServerData_detaylar_queryDuzenle(e)
+		let result = detaySinif.tekilOku_queryDuzenle(e)
+		let {stm} = e
+		for (let sent of stm)
+			sent.gereksizTablolariSil({ disinda: alias })
 		return result
 	}
 	static tekilOku_detaylar_querySonucu(e) { return this.loadServerData_detaylar_querySonucu(e) }
@@ -530,8 +533,8 @@ class MQDetayliMaster extends MQDetayli {
 }
 class MQDetayliGUID extends MQDetayliMaster {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sayacSaha() { return 'id' } static get kami() { return true }
-	static get guidmi() { return true }
+	static get sayacSaha() { return 'id' } static get idSaha() { return this.sayacSaha }
+	static get kami() { return true } static get guidmi() { return true }
 	get id() { return this.sayac } set id(value) { this.sayac = value }
 	constructor(e) {
 		e = e ?? {}; super(e);

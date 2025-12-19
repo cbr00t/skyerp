@@ -7,7 +7,7 @@ class MQDetay extends MQSayacli {
 
 	constructor(e) {
 		e = e || {}; super(e); if (e.isCopy) { return }
-		const {args} = e; if (args) { for (const key in args) { const value = args[key]; if (value !== undefined) { this[key] = value } } }
+		let {args} = e; if (args) { for (let key in args) { let value = args[key]; if (value !== undefined) { this[key] = value } } }
 		this.tempsReset()
 	}
 	static getDetayTable(e) { return this.table }
@@ -17,8 +17,8 @@ class MQDetay extends MQSayacli {
 	}
 	static orjBaslikListesi_argsDuzenle(e) { }
 	static standartGorunumListesiDuzenle(e) {
-		const {liste} = e, orjBaslikListesi = e.orjBaslikListesi ?? this.orjBaslikListesi;
-		const ignoreBelirtecSet = asSet([config.dev ? null : this.sayacSaha].filter(x => !!x));
+		let {liste} = e, orjBaslikListesi = e.orjBaslikListesi ?? this.orjBaslikListesi;
+		let ignoreBelirtecSet = asSet([config.dev ? null : this.sayacSaha].filter(x => !!x));
 		liste.push(...orjBaslikListesi.map(colDef => colDef.belirtec).filter(belirtec => !ignoreBelirtecSet[belirtec]))
 	}
 	static orjBaslikListesiDuzenle(e) { super.orjBaslikListesiDuzenle(e); this.orjBaslikListesiDuzenle_ilk(e); this.orjBaslikListesiDuzenle_ara(e); this.orjBaslikListesiDuzenle_son(e) }
@@ -29,18 +29,29 @@ class MQDetay extends MQSayacli {
 	static raporQueryDuzenle(e) { }
 	static loadServerData_recsDuzenle(e) { }
 	static loadServerData_queryDuzenle(e) {
-		e = $.extend({}, e || {}); for (const key of ['ozelQueryDuzenleBlock', 'ozelQueryDuzenle', 'ozelQueryDuzenleBlock', 'ozelQueryDuzenle']) { delete e[key] }
-		e.ozelQueryDuzenle = e => {}, super.loadServerData_queryDuzenle(e);
-		const {aliasVeNokta, fisSayacSaha, sayacSaha, seqSaha} = this, {sent, stm} = e, parentRec = e.parentRec ?? e.rec ?? {};
-		const fisSayac = e.sayac || e.fisSayac || e.fissayac || e.kaySayac || e.kaysayac || parentRec[sayacSaha] || parentRec.fissayac || parentRec.kaysayac;
+		e = { ...e }
+		deleteKeys(e, 'ozelQueryDuzenleBlock', 'ozelQueryDuzenle', 'ozelQueryDuzenleBlock', 'ozelQueryDuzenle')
+		e.ozelQueryDuzenle = (e => {})
+		super.loadServerData_queryDuzenle(e)
+		let {aliasVeNokta, idSaha, fisSayacSaha, seqSaha} = this
+		let {sent, sent: { sahalar, where: wh }, stm, stm: { orderBy }} = e
+		let parentRec = e.parentRec ?? e.rec ?? {}
+		let fisSayac = (
+			e.sayac || e.fisSayac || e.fissayac || e.kaySayac || e.kaysayac | e.fisid ||
+			parentRec[idSaha] || parentRec[idSaha] || parentRec.fissayac || parentRec.kaysayac || parentRec.id
+		)
 		if (fisSayacSaha) {
-			if (fisSayac) { sent.where.degerAta(fisSayac, `${aliasVeNokta}${fisSayacSaha}`) }
-			sent.sahalar.add(`${aliasVeNokta}${fisSayacSaha}`);
-			stm.orderBy.add(`${aliasVeNokta}${fisSayacSaha}`)
+			if (fisSayac)
+				wh.degerAta(fisSayac, `${aliasVeNokta}${fisSayacSaha}`)
+			else
+				orderBy.add(`${aliasVeNokta}${fisSayacSaha}`)
+			sahalar.add(`${aliasVeNokta}${fisSayacSaha}`)
 		}
 		if (seqSaha) {
-			sent.sahalar.add(`${aliasVeNokta}${seqSaha}`); stm.orderBy.add(`${aliasVeNokta}${seqSaha}`);
-			sent.sahalar.liste = sent.sahalar.liste.filter(saha => saha.alias != sayacSaha)
+			sahalar.add(`${aliasVeNokta}${seqSaha}`)
+			orderBy.add(`${aliasVeNokta}${seqSaha}`)
+			if (idSaha)
+				sahalar.liste = sahalar.liste.filter(_ => _.alias != idSaha)
 		}
 	}
 	static tekilOku_queryDuzenle(e) { this.loadServerData_queryDuzenle(e) }

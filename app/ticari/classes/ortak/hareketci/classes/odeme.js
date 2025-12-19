@@ -1,13 +1,13 @@
-class TahsilatHareketci extends Hareketci {
+class OdemeHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kisaKod() { return 'TH' } static get kod() { return 'tahsilat' } static get aciklama() { return 'Tahsilat' }
-	static get uygunmu() { return true }  static get oncelik() { return 90 }
+	static get kisaKod() { return 'OD' } static get kod() { return 'odeme' } static get aciklama() { return 'Ödeme' }
+	static get uygunmu() { return true }  static get oncelik() { return 91 }
 	static get maliTabloIcinUygunmu() { return true } static get donemselIslemlerIcinUygunmu() { return true }
 	static get eldekiVarliklarIcinUygunmu() { return false }
 	static getAltTipAdiVeOncelikClause({ hv }) {
 		return {
 			...super.getAltTipAdiVeOncelikClause(...arguments),
-			yon: `'sol'`
+			yon: `'sag'`
 		}
 	}
 	static mstYapiDuzenle({ result }) {
@@ -24,10 +24,8 @@ class TahsilatHareketci extends Hareketci {
 		kaListe.push(...[
 			new CKodVeAdi(['cari', 'Cari']),
 			new CKodVeAdi(['kasa', 'Kasa']),
-			new CKodVeAdi(['pos', 'POS']),
+			new CKodVeAdi(['krediKarti', 'Kredi Kartı']),
 			new CKodVeAdi(['fatura', 'Fatura']),
-			new CKodVeAdi(['cekSenet', 'Çek/Senet']),
-			(pratikSatis ? new CKodVeAdi(['pratikSatis', 'Pratik Satış']) : null)
 		].filter(_ => _))
     }
 	uniOrtakSonIslem({ hvDegeri, sent, sent: { from } }) {
@@ -41,8 +39,8 @@ class TahsilatHareketci extends Hareketci {
     static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
 		super.varsayilanHVDuzenle(...arguments)
 		$.extend(hv, {
-			anaislemadi: `'Tahsilat'`,
-			ba: `'B'`, tahseklino: sqlZero,
+			anaislemadi: `'Ödeme'`,
+			ba: `'A'`, tahseklino: sqlZero,
 			dvbedel: sqlZero,
 			tahtip: 'tsek.tahsiltipi'
 		})
@@ -59,23 +57,22 @@ class TahsilatHareketci extends Hareketci {
 				new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent, sent: { where: wh, sahalar } }) => {
 						sent.fisHareket('carifis', 'carihar')
+							.fromIliski('tahsilsekli tsek', 'har.tahseklino = tsek.kodno')
 							.fis2CariBagla({ mustSaha: 'mustkod' })
 							.x2KasaBagla({ kodClause: 'har.tahkasakod' })
 							.fromIliski('banbizhesap bhes', 'har.tahposhesapkod = bhes.kod')
 							.fromIliski('carmst ycar', 'har.tahyemekcarikod = ycar.must')
 						wh.fisSilindiEkle()
-						wh.add(`fis.ba = 'A'`)
-						wh.inDizi(['NK', 'PS', 'HV', 'YM'], 'tsek.tahsiltipi')
+						wh.add(`fis.ba = 'B'`)
+						wh.inDizi(['NK', 'KR', 'HG'], 'tsek.tahsiltipi')
 					})
 					.hvDuzenleIslemi(({ hv }) => {
 						$.extend(hv, {
-							kayittipi: `(case when tsek.tahsiltipi = 'NK' then 'KS' when tsek.tahsiltipi in ('PS', 'HV', 'HG') then 'BH' when tsek.tahsiltipi = 'YM' then 'CR' else tsek.tahsiltipi end)`,
-							isladi: `'Cari Tahsilat'`, tahseklino: 'har.tahseklino',
+							kayittipi: `(case when tsek.tahsiltipi = 'NK' then 'KS' when tsek.tahsiltipi in ('KR', 'HG') then 'BH' else tsek.tahsiltipi end)`,
+							isladi: `'Cari Hesap Ödeme'`, tahseklino: 'har.tahseklino',
 							must: 'fis.mustkod', bedel: 'SUM(har.bedel)',
-							refkod: `(case when tsek.tahsiltipi = 'NK' then har.tahkasakod when tsek.tahsiltipi in ('PS', 'HV', 'HG') then har.tahposhesapkod
-											when tsek.tahsiltipi = 'YM' then har.tahyemekcarikod end)`,
-							refadi: `(case when tsek.tahsiltipi = 'NK' then kas.aciklama when tsek.tahsiltipi in ('PS', 'HV', 'HG') then bhes.aciklama
-											when tsek.tahsiltipi = 'YM' then ycar.birunvan end)`
+							refkod: `(case when tsek.tahsiltipi = 'NK' then har.tahkasakod when tsek.tahsiltipi in ('KR', 'HG') then har.tahposhesapkod else '??' end)`,
+							refadi: `(case when tsek.tahsiltipi = 'NK' then kas.aciklama when tsek.tahsiltipi in ('KR', 'HG') then bhes.aciklama else '??' end)`
 						})
 					})
 			],
@@ -87,28 +84,33 @@ class TahsilatHareketci extends Hareketci {
 							.fis2KasaBagla()
 							.fromIliski('carmst ycar', 'har.tahyemekcarikod = ycar.must')
 						wh.fisSilindiEkle()
-						wh.add(`fis.ba = 'A'`, `fis.fistipi = 'KC'`)
+						wh.add(`fis.ba = 'B'`, `fis.fistipi = 'KC'`)
 					})
 					.hvDuzenleIslemi(({ hv }) => {
 						$.extend(hv, {
-							kayittipi: `'KS'`, isladi: `'Kasa Tahsilat'`,
+							kayittipi: `'KS'`, isladi: `'Cari Tahsilat'`,
 							must: 'har.must', bedel: 'SUM(har.bedel)',
 							refkod: 'fis.kasakod', refadi: 'kas.aciklama'
 						})
 					})
 			],
-			pos: [
+			krediKarti: [
 				new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent, sent: { where: wh, sahalar } }) => {
 						sent.fisHareket('posfis', 'posilkhar')
 							.har2CariBagla({ mustSaha: 'must' })
 							.fromIliski('banbizhesap bhes', 'har.banhesapkod = bhes.kod')
 						wh.fisSilindiEkle()
-						wh.add(`fis.fistipi = 'AL'`, `fis.almsat = 'T'`)
+						wh.add(
+							new MQOrClause([
+								new MQAndClause([`fis.fistipi = 'AL'`, `fis.almsat = 'A'`]),
+								`fis.fistipi = 'MS'`
+							])
+						)
 					})
 					.hvDuzenleIslemi(({ hv, sqlZero }) => {
 						$.extend(hv, {
-							kayittipi: `'BH'`, isladi: `'POS Tahsilat'`,
+							kayittipi: `'BH'`, isladi: `'Kredi Kartı ile Ödeme'`,
 							must: 'har.must', bedel: 'SUM(har.bedel)',
 							refkod: 'har.banhesapkod', refadi: 'bhes.aciklama'
 						})
@@ -119,24 +121,23 @@ class TahsilatHareketci extends Hareketci {
 					.sentDuzenleIslemi(({ sent, sent: { where: wh, sahalar } }) => {
 						sent.fromAdd('piffis fis')
 							.fromIliski('piftaksit ptak', 'fis.kaysayac = ptak.fissayac')
-							.fis2CariBagla({ mustSaha: 'must' })
 							.fromIliski('tahsilsekli tsek', 'ptak.taktahsilsekli = tsek.kodno')
+							.fis2CariBagla({ mustSaha: 'must' })
 							.leftJoin('tsek', 'kasmst kas', ['tsek.kasakod = kas.kod', `tsek.tahsiltipi = 'NK'`])
 							.leftJoin('tsek', 'poskosul pkos', ['tsek.poskosulkod = pkos.kod', `tsek.tahsiltipi = 'PS'`])
 							.leftJoin('tsek', 'banbizhesap bhes', [
 								`(case when tsek.tahsiltipi = 'PS' then pkos.mevduathesapkod else tsek.mevduathesapkod end) = bhes.kod`,
-								`tsek.tahsiltipi IN ('PS', 'HV')`
+								`tsek.tahsiltipi IN ('PS', 'HV', 'HG')`
 							])
 						wh.fisSilindiEkle()
+						wh.inDizi(['F', 'P'], 'fis.piftipi')                                              // iade olan DAHIL
 						wh.add(`fis.ayrimtipi <> 'IN'`)
-						wh.inDizi(['F', 'P'], 'fis.piftipi')                                           // iade olan DAHIL
-						wh.inDizi(['NK', 'PS', 'HV'], 'tsek.tahsiltipi')
-						
+						wh.inDizi(['NK', 'KR', 'HG'], 'tsek.tahsiltipi')
 					})
 					.hvDuzenleIslemi(({ hv }) => {
 						$.extend(hv, {
 							kayittipi: `(case when tsek.tahsiltipi = 'NK' then 'KS' when tsek.tahsiltipi in ('PS', 'HV', 'HG') then 'BH' else tsek.tahsiltipi end)`,
-							isladi: `'Fatura Tahsilat'`,
+							isladi: `'Fatura ile Ödeme'`,
 							tahseklino: 'ptak.taktahsilsekli', must: 'fis.must',
 							bedel: `SUM(ptak.bedel * (case when ptak.btersmi > 0 then -1 else 1 end))`,
 							refkod: `(case when tsek.tahsiltipi = 'NK' then tsek.kasakod when tsek.tahsiltipi in ('PS', 'HV', 'HG') then bhes.kod else tsek.tahsiltipi end)`,
@@ -150,49 +151,21 @@ class TahsilatHareketci extends Hareketci {
 						sent.fromAdd('csfis fis')
 							.fromIliski('csportfoy prt', 'fis.portfkod = prt.kod')
 							.fis2CariBagla({ mustSaha: 'fisciranta' })
+							.fis2BankaHesapBagla()
 						wh.fisSilindiEkle()
-						wh.add(`fis.fistipi = 'AL'`)
+						wh.inDizi(['BC', 'BS'], 'fis.fistipi')
 					})
 					.hvDuzenleIslemi(({ hv }) => {
 						$.extend(hv, {
-							kayittipi: `'CS'`,
-							isladi: `(case when fis.belgetipi = 'AC' then 'Çek ile Tahsilat' else 'Senet ile Tahsil' end)`,
+							kayittipi: `(case when fis.belgetipi = 'BC' then 'BH' else 'CS' end)`,
+							isladi: `(case when fis.belgetipi = 'BC' then 'Çek ile Ödeme' else 'Senet ile Ödeme' end)`,
 							must: 'fis.fisciranta',
 							bedel: `SUM(fis.toplambedel * (case when fis.iade = 'I' then -1 else 1 end))`,
-							refkod: 'fis.portfkod', refadi: 'prt.aciklama'
+							refkod: `(case when fis.belgetipi = 'BC' then fis.banhesapkod else fis.portfkod end)`,
+							refadi: `(case when fis.belgetipi = 'BC' then bhes.aciklama else prt.aciklama end)`
 						})
 					})
 			],
-			pratikSatis: [
-				new Hareketci_UniBilgi()
-					.sentDuzenleIslemi(({ sent, sent: { where: wh, sahalar } }) => {
-						sent.fromAdd('restoranfis fis')
-							.fromIliski('csportfoy prt', 'fis.portfkod = prt.kod')
-							.leftJoin('fis', 'carmst car', ['fis.mustkod = car.must', `fis.fisanatipi = 'MS'`])
-							.leftJoin('fis', 'degiskenadres dadr', ['fis.degiskenvknox = dadr.kod', `fis.fisanatipi = 'DG'`])
-							.fromIliski('restorantahsil ptah', 'fis.kaysayac = ptah.fissayac')
-							.fromIliski('tahsilsekli tsek', 'ptah.tahseklino = tsek.kodno')
-							.leftJoin('tsek', 'kasmst kas', ['tsek.kasakod = kas.kod', `tsek.tahsiltipi = 'NK'`])
-							.leftJoin('tsek', 'poskosul pkos', ['tsek.poskosulkod = pkos.kod', `tsek.tahsiltipi = 'PS'`])
-							.leftJoin('pkos', 'banbizhesap bhes', [
-								`(case when tsek.tahsiltipi = 'PS' then pkos.mevduathesapkod else tsek.mevduathesapkod end) = bhes.kod`,
-								`tsek.tahsiltipi in ('PS', 'HV')`
-							])
-						wh.fisSilindiEkle()
-						wh.add(`fis.ozelisaret <> 'X'`, 'fis.bticariaktarildi = 0')                                          // ** bticariaktarildi=1 ise perakende kısmı total olarak yazılmıştır
-						wh.inDizi(['NK', 'PS', 'HV', 'YM'], 'tsek.tahsiltipi')
-					})
-					.hvDuzenleIslemi(({ hv }) => {
-						$.extend(hv, {
-							kayittipi: `(case when tsek.tahsiltipi = 'NK' then 'KS' when tsek.tahsiltipi in ('PS', 'HV') then 'BH' when tsek.tahsiltipi = 'YM' then 'CR' else tsek.tahsiltipi end)`,
-							isladi: `'Pratik Satış'`,
-							must: `(case when fis.fisanatipi = 'MS' then fis.mustkod when fis.fisanatipi = 'DG' then fis.degiskenvknox else '' end)`,
-							bedel: `SUM((ptah.bedel * (case when fis.iade = 'I' then -1 else 1 end)))`,
-							refkod: `(case when tsek.tahsiltipi = 'NK' then kas.kod when tsek.tahsiltipi in ('PS', 'HV') then bhes.kod when tsek.tahsiltipi = 'YM' then ycar.must else '??' end)`,
-							refadi: `(case when tsek.tahsiltipi = 'NK' then kas.aciklama when tsek.tahsiltipi in ('PS', 'HV') then bhes.aciklama when tsek.tahsiltipi = 'YM' then ycar.birunvan else '??' end)`
-						})
-					})
-			]
 		})
         return this
     }

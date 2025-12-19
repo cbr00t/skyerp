@@ -52,13 +52,11 @@ class TabFis extends MQDetayliGUID {
 	static async rootFormBuilderDuzenle_tablet_acc(e) {
 		let {sender: tanimPart, inst, acc} = e
 		let getBuilder = layout =>
-			new RootFormBuilder()
-				.setLayout(layout).setPart(tanimPart).setInst(inst)
-				//.addStyle_fullWH()
+			this.getBuilder({ ...e, layout })
 		let args = { ...e, getBuilder }
 		acc.deferRedraw(() => {
 			acc.add({
-				id: 'baslik', title: 'Başlık', expanded: true,
+				id: 'baslik', title: 'Belge', expanded: true,
 				collapsedContent: async ({ item, layout }) => {
 					let rfb = getBuilder(layout)
 					await this.rootFormBuilderDuzenle_tablet_acc_baslikCollapsed({ ...args, rfb, item, layout })
@@ -86,7 +84,7 @@ class TabFis extends MQDetayliGUID {
 				}
 			})
 			acc.add({
-				id: 'dip', title: 'Dip',
+				id: 'dip', title: 'Sonuç',
 				collapsedContent: async ({ item, layout }) => {
 					let rfb = getBuilder(layout)
 					await this.rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ ...args, rfb, item, layout })
@@ -95,12 +93,13 @@ class TabFis extends MQDetayliGUID {
 				content: async ({ item, layout }) => {
 					let rfb = getBuilder(layout)
 					await this.rootFormBuilderDuzenle_tablet_acc_dip({ ...args, rfb, item, layout })
-					if (rfb.builders?.length)
-						setTimeout(() => rfb.run(), 100)
+					if (!rfb.builders?.length)
+						rfb.addStyle_fullWH(null, 1)
+					setTimeout(() => rfb.run(), 100)
 				}
 			})
 			acc.add({
-				id: 'detay', title: 'Detay',
+				id: 'detay', title: 'Kalemler',
 				collapsedContent: async ({ item, layout }) => {
 					let rfb = getBuilder(layout)
 					await this.rootFormBuilderDuzenle_tablet_acc_detayCollapsed({ ...args, rfb, item, layout })
@@ -115,12 +114,17 @@ class TabFis extends MQDetayliGUID {
 			})
 		})
 		acc.expand('detay')
+
+		acc.onExpand(_e => setTimeout(e =>
+			this.rootFormBuilderDuzenle_tablet_acc_onExpand(e), 1, { ...e, ..._e }))
+		acc.onCollapse(_e => setTimeout(e =>
+			this.rootFormBuilderDuzenle_tablet_acc_onCollapse(e), 1, { ...e, ..._e }))
 	}
-	static rootFormBuilderDuzenle_tablet_acc_baslik({ rfb }) {
+	static rootFormBuilderDuzenle_tablet_acc_baslik({ rfb, inst: fis }) {
 		{
 			let form = rfb.addFormWithParent().altAlta()
 			// addSimpleComboBox(e, _etiket, _placeholder, _value, _source, _autoClear, _delay, _minLength, _disabled, _name, _userData)
-			form.addSimpleComboBox('mustKod', MQTabCari.sinifAdi)
+			form.addSimpleComboBox('mustKod', MQTabCari.sinifAdi, MQTabCari.sinifAdi)
 				.etiketGosterim_yok()
 				.addStyle(`$elementCSS { max-width: 800px }`)
 				.kodsuz().setMFSinif(MQTabCari)
@@ -152,6 +156,13 @@ class TabFis extends MQDetayliGUID {
 	static rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ rfb }) { }
 	static rootFormBuilderDuzenle_tablet_acc_detay({ rfb }) { }
 	static rootFormBuilderDuzenle_tablet_acc_detayCollapsed({ rfb }) { }
+	static rootFormBuilderDuzenle_tablet_acc_onExpand({ sender: { parentPart: tanimPart }, acc: { activePanel } }) {
+		/*let {id} = activePanel ?? {}
+		let {islemTuslari} = tanimPart
+		islemTuslari[id == 'duzenle' ? 'addClass' : 'removeClass']('jqx-hidden')*/
+	}
+	static rootFormBuilderDuzenle_tablet_acc_onCollapse(e) { }
+	
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
 		liste.push(
@@ -220,21 +231,25 @@ class TabFis extends MQDetayliGUID {
 			fisno?.toString() || '0'
 		].filter(_ => _).join(' ')
 		return [
-			`<div class="flex-row">`,
+			`<div class="flex-row" style="gap: 0 10px">`,
 				`<div class="asil">${tsnText}</div>`,
-				`<div class="ek-bilgi bold float-right" style="padding-left: 10px">${dateKisaString(asDate(tarih)) ?? ''}</div>`,
-			`</div>`,
-			`<div>`,
+				`<div class="ek-bilgi bold float-right">${dateKisaString(asDate(tarih)) ?? ''}</div>`,
 				`<div class="asil orangered">${mustunvan || ''}</div>`,
-				`<div class="ek-bilgi bold float-right" style="padding-left: 10px">${must || ''}</div>`,
+				`<div class="ek-bilgi bold float-right">${must || ''}</div>`,
 			`</div>`
 		].join(CrLf)
+	}
+	static getBuilder({ sender: tanimPart, inst, acc, layout }) {
+		return new RootFormBuilder()
+			.setLayout(layout).setPart(tanimPart)
+			.setInst(inst)
 	}
 }
 
 class TabFisDetay extends MQDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'tabhar' }
+	static get sayacSaha() { return null }
 	static get fisSayacSaha() { return 'fisid' }
 	static get io2RowAttr() {
 		let {_io2RowAttr: result} = this

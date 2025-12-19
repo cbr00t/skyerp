@@ -131,18 +131,24 @@ class HatYonetimiPart extends Part {
 		}
 		if (lastError) { throw lastError } return recs || []
 	}
-	async loadServerData_internal(e) {
-		e = e ?? {}; let basitmi = e.basit ?? e.basitmi, {islemTuslari, excludeTezgahKod, filtreTokens} = this;
-		let tezgahKodSet = {}, tezgah2Rec = {}, isId2Bilgi = {}, promise_tezgah2SinyalSayiRecs;
-		let hatIdListe = app.sabitHatKodVarmi ? app.sabitHatKodListe : $.makeArray(this.hatKod);
-		let wsArgs = {}; if (hatIdListe?.length) { $.extend(wsArgs, { hatIdListe: hatIdListe.join(delimWS) }) }
-		let recs = await app.wsTezgahBilgileri(wsArgs); if (recs) {
-			let {durumKod2KisaAdi, hatBilgi_recDonusum: donusum} = app;
+	async loadServerData_internal(e = {}) {
+		let basitmi = e.basit ?? e.basitmi, {islemTuslari, excludeTezgahKod, filtreTokens} = this
+		let tezgahKodSet = {}, tezgah2Rec = {}, isId2Bilgi = {}, promise_tezgah2SinyalSayiRecs
+		let hatIdListe = app.sabitHatKodVarmi ? app.sabitHatKodListe : $.makeArray(this.hatKod)
+		let wsArgs = {}
+		if (hatIdListe?.length)
+			$.extend(wsArgs, { hatIdListe: hatIdListe.join(delimWS) })
+		let recs = await app.wsTezgahBilgileri(wsArgs)
+		if (recs) {
+			let {durumKod2KisaAdi, hatBilgi_recDonusum: donusum} = app
 			for (let rec of recs) {
 				for (let [key, newKey] of entries(donusum)) { if (rec[newKey] == null) { rec[newKey] = rec[key]?.trimEnd(); delete rec[key] } }
 				let {durumKod, durumAdi} = rec; if (durumKod != null) {
-					durumKod = rec.durumKod = durumKod.trimEnd(); if (rec.durumAdi == null) { rec.durumAdi = durumKod2KisaAdi[durumKod] ?? durumKod }
-					if (durumKod != 'DR' && rec.durNedenAdi) { rec.durNedenAdi = '' }
+					durumKod = rec.durumKod = durumKod.trimEnd()
+					if (rec.durumAdi == null)
+						rec.durumAdi = durumKod2KisaAdi[durumKod] ?? durumKod
+					if (durumKod != 'DR' && rec.durNedenAdi)
+						rec.durNedenAdi = ''
 				}
 				tezgahKodSet[rec.tezgahKod] = true
 			}
@@ -257,10 +263,11 @@ class HatYonetimiPart extends Part {
 			}
 		}
 		let {ekNotlarUpdate} = e
-		if (!basitmi || ekNotlarUpdate) {
+		if (!(basitmi || ekNotlarUpdate)) {
 			setTimeout(() => {
 				MQEkNotlar.loadServerData().then(recs => {
-					let {islemTuslari} = this, btnTumEkNotlar = islemTuslari?.find('button#tumEkNotlar')
+					let {islemTuslari} = this
+					let btnTumEkNotlar = islemTuslari?.find('button#tumEkNotlar')
 					if (btnTumEkNotlar?.length)
 						btnTumEkNotlar.removeClass('yeni-not')
 					let maxId = 0
@@ -269,8 +276,19 @@ class HatYonetimiPart extends Part {
 					if (!maxId)
 						return
 					let {localData} = app.params, ekNotLastReadId = asInteger(localData.get('ekNotLastReadId'))
-					if (ekNotLastReadId < maxId && btnTumEkNotlar?.length)
-						btnTumEkNotlar.addClass('yeni-not')
+					if (!btnTumEkNotlar?.length)
+						return
+					if (ekNotLastReadId && maxId && ekNotLastReadId - maxId > 50)
+						ekNotLastReadId = 0
+					if (ekNotLastReadId >= maxId)
+						return
+					btnTumEkNotlar.addClass('yeni-not')
+					if (appActivatedFlag)
+						notify('Yeni Not var', 'SkyMES', undefined, 15_000)
+					else {
+						try { new Notification('Sky MES', { body: 'Yeni Not var' }) }
+						catch (ex) { cerr(ex) }
+					}
 				})
 			}, 500)
 		}
@@ -549,8 +567,12 @@ class HatYonetimiPart extends Part {
 	}
 	ledDurumListeIstendi(e) { MQLEDDurum.listeEkraniAc() }
 	tezgahButonTiklandi(e) {
-		let {id, evt, hatKod} = e, {currentTarget: target} = evt ?? {};
-		if (!hatKod && target) { let parent = $(target).parents('.grup-islemTuslari'); if (parent.length) { hatKod = e.hatKod = parent.parents('.hat.item').data('id').toString() || null } }
+		let {id, evt: { currentTarget: target } = {}, hatKod} = e
+		if (!hatKod && target) {
+			let parent = $(target).parents('.grup-islemTuslari')
+			if (parent.length)
+				hatKod = e.hatKod = parent.parents('.hat.item').data('id').toString() || null
+		}
 		switch (id) {
 			case 'tezgah': case 'tezgahMenu': this.tezgahMenuIstendi(e); break
 			case 'personel': case 'personelSec': this.personelSecIstendi(e); break
@@ -564,7 +586,7 @@ class HatYonetimiPart extends Part {
 			case 'dokumanYukle': this.dokumanYukleIstendi(e); break
 			case 'dokumanSil': this.dokumanSilIstendi(e); break
 			case 'ekBilgi': case 'ekBilgiSil': this.ekBilgiSilItendi(e); break
-			default: eConfirm(` <b>${$(evt.currentTarget).parents('.tezgah.item').find('.tezgahAdi').text()}</b> tezgahına ait <b>${id}</b> id'li butona tıklandı`)
+			default: eConfirm(` <b>${$(target).parents('.tezgah.item').find('.tezgahAdi').text()}</b> tezgahına ait <b>${id}</b> id'li butona tıklandı`)
 		}
 	}
 	siradakiIslerIstendi(e) {
@@ -781,11 +803,19 @@ class HatYonetimiPart extends Part {
 		let args = { hatKod }; MQBekleyenIsEmirleri.listeEkraniAc({ args })
 	}
 	ekNotlarIstendi(e) {
-		let hepsimi = e.hepsi ?? e.hepsimi, rec = e.rec ?? this.selectedTezgahRecs[0] ?? {}, {hatKod} = e;
-		MQEkNotlar.listeEkraniAc({ kapaninca: e => this.tazeleBasit({ ekNotlarUpdate: true }), secimlerDuzenle: e => {
-			let sec = e.secimler, isHidden = !!app.params.config.hatKod;
-			if (!hepsimi && hatKod) { $.extend(sec.hatKod, { birKismimi: true, value: hatKod, isHidden }); sec.hatAdi.isHidden = isHidden }
-		}})
+		let {hatKod, hepsi: hepsimi = e.hepsimi} = e
+		let {rec = this.selectedTezgahRecs[0]} = e
+		MQEkNotlar.listeEkraniAc({
+			kapaninca: e =>
+				this.tazeleBasit({ ekNotlarUpdate: true }),
+			secimlerDuzenle: e => {
+				let sec = e.secimler, isHidden = !!app.params.config.hatKod;
+				if (!hepsimi && hatKod) {
+					$.extend(sec.hatKod, { birKismimi: true, value: hatKod, isHidden })
+					sec.hatAdi.isHidden = isHidden
+				}
+			}
+		})
 	}
 	ekNotEkleIstendi(e) {
 		let rec = e.rec ?? this.selectedTezgahRecs[0], tezgahKod = rec?.tezgahKod ?? '', {hatKod} = e;

@@ -39,6 +39,8 @@ class AccordionPart extends Part {
 		}
 		return result
 	}
+	get activePanel() { return this.activePanels?.at(-1) }
+	get hasActivePanel() { return !!this.activePanel }
 
 	constructor({ defaultCollapsed, coklu, coklumu, panels, events, userData } = {}) {
 		super(...arguments)
@@ -67,10 +69,18 @@ class AccordionPart extends Part {
 		this._initialized = false
 		return super.destroyPart(e)
 	}
-	async render(e) {
+	render(e) {
+		let {layout} = this
+		if (!layout?.length)
+			return this
+		clearTimeout(this._timer_render)
+		this._timer_render = setTimeout(e => this._render(e), 1, e)
+		return this
+	}
+	async _render(e) {
 		let {layout, panels, _lastPanelCount} = this
 		if (!layout?.length)
-			return
+			return this
 		if (_lastPanelCount > panels.length) {
 			layout.find('.accordion.item').remove()
 			panels.forEach(_ => _._rendered = false)
@@ -99,7 +109,7 @@ class AccordionPart extends Part {
 					elmHeader = $(elmHeader)
 					let elm = elmHeader.parents('.accordion.item')
 					if (($(elm).hasClass('disabled')))
-						return
+						return this
 					let item = this.id2Panel[elm.data('id')]
 					if (item)
 						this.changeState(item, !item.collapsed)
@@ -208,6 +218,7 @@ class AccordionPart extends Part {
 			finally { this._timer_triggerResize }
 		}, 10)
 		this._lastPanelCount = panels.length
+		return this
 	}
 	add(e, _title, _collapsed, _content, _collapsedContent, _disabled, _data) {
 		let item = typeof e == 'object' ? e : {
@@ -356,7 +367,7 @@ class AccordionPart extends Part {
 			let {id} = item
 			let elm = layout.children(`.accordion.item[data-id = "${id}"]`)
 			let index = elm.index()
-			this.signalStateChange({ action, item, id, index, elm }, internal)
+			setTimeout(() => this.signalStateChange({ action, item, id, index, elm }, internal), 50)
 		}
 		return this
 	}

@@ -192,11 +192,15 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 			return result
 		}
 		let savedParams = e.params, _query = e.query, isDBWrite = this.isDBWrite(_query)
-		e = { ...e };
-		if (_query?.getQueryYapi) { $.extend(e, _query.getQueryYapi()) }
-		else if (_query?.query) { $.extend(e, _query) }
-		else { e.query = _query?.toString() ?? '' }
-		if (!e.query) { return null }
+		e = { ...e }
+		if (_query?.getQueryYapi)
+			$.extend(e, _query.getQueryYapi())
+		else if (_query?.query)
+			$.extend(e, _query)
+		else
+			e.query = _query?.toString() ?? ''
+		if (!e.query)
+			return null
 		if (!empty(savedParams)) {
 			let {params} = e
 			if (empty(params)) { params = e.params = savedParams }
@@ -208,7 +212,7 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		}
 		if (typeof e.query == 'string') {
 			if (e.query.toUpperCase().includes('NOT NULL AUTO')) { e.query = e.query.replaceAll('rowid\t', '--rowid\t').replaceAll('rowid ', '--rowid ') }
-			e.query = e.query.replaceAll('ORTAK..', '')
+			e.query = e.query.replaceAll('ORTAK..', '').replaceAll(`N'`, `'`)
 		}
 		/*let {dbOpCallback} = this; if (!$.isFunction(dbOpCallback)) { dbOpCallback = null } if (dbOpCallback) { await dbOpCallback.call(this, { operation: 'executeSql', state: true }, e) }*/
 		let _result; this.dbLastExec = e

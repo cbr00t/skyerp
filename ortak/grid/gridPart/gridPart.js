@@ -47,8 +47,16 @@ class GridPart extends Part {
 	get selectionMode() { let {gridWidget} = this; return gridWidget?.selectionmode }
 	get clickedColumn() { let {gridWidget} = this; return gridWidget?._clickedcolumn }
 	get mousePosition() { let {gridWidget} = this; return gridWidget?.mousecaptureposition }
-	get isClickedColumn_checkBox() { let {clickedColumn, mousePosition} = this; return clickedColumn == '_checkboxcolumn' || (mousePosition?.clickedcell ?? 0) < 1 }
-	get isClickedColumn_rowNumber() { let {clickedColumn} = this; return clickedColumn == '_rowNumber' }
+	get isClickedColumn_checkBox() {
+		let {isSelectionMode_checkBox, clickedColumn, mousePosition} = this
+		if (!isSelectionMode_checkBox)
+			return false
+		return clickedColumn == '_checkboxcolumn' || (mousePosition?.clickedcell ?? 0) < 1
+	}
+	get isClickedColumn_rowNumber() {
+		let {clickedColumn} = this
+		return clickedColumn == '_rowNumber'
+	}
 	get isSelectionMode_checkBox() { let {selectionMode} = this; return (selectionMode && selectionMode.toLowerCase() == 'checkbox') }
 	get isSelectionMode_rows() { let {selectionMode} = this; return (selectionMode && selectionMode.toLowerCase().includes('row')) }
 	get isSelectionMode_cells() { let {selectionMode} = this; return (selectionMode && selectionMode.toLowerCase().includes('cell')) }
@@ -115,7 +123,7 @@ class GridPart extends Part {
 			theme: _theme, localization: localizationObj, width: '99.9%', height: '99.6%', editMode: 'selectedcell', sortMode: 'many', autoHeight: false,
 			autoShowLoadElement: true, altRows: true, enableTooltips: true,
 			columnsMenuWidth: 60, columnsResize: true, columnsReorder: !mini, columnsMenu: true,
-			autoRowHeight: false, rowsHeight: mini ? 55 : 40, columnsHeight: mini ? 25 : 30,
+			autoRowHeight: false, rowsHeight: mini ? 60 : 50, columnsHeight: mini ? 25 : 30,
 			autoShowColumnsMenuButton: true, sortable: true, /* compact: false, */ filterable: true,
 			filterRowHeight: 40, filterMode: 'default', showFilterRow: false, groupable: true, columnsresize: true,
 			showGroupsHeader: false, groupIndentWidth: 30, groupsHeaderHeight: 33, groupsExpandedByDefault: false,
@@ -720,7 +728,9 @@ class GridPart extends Part {
 		this.gridContextMenuIstendi_defaultAction(e)
 	}
 	gridContextMenuIstendi_defaultAction(e) {
-		e = e || {}; if (isTouchDevice()) return; let evt = e.event;
+		if (isTouchDevice())
+			return
+		let {event: evt} = e
 		let fbd_islemTuslari = new FormBuilder({
 			id: 'islemTuslari',
 			buildEk: e => {

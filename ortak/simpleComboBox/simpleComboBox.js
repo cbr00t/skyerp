@@ -25,7 +25,10 @@ class SimpleComboBoxPart extends Part {
 		this._item = item
 		if (input?.length) {
 			// input.val(this.renderedInputText)
-			input.attr('placeholder', autoClear ? this.placeholder ?? null : this.renderedText)
+			let {placeholder, _initPlaceholder} = this
+			if (!autoClear)
+				placeholder = this.renderedText || _initPlaceholder
+			input.attr('placeholder', placeholder)
 		}
 	}
 	get value() {
@@ -36,6 +39,8 @@ class SimpleComboBoxPart extends Part {
 		let {kodSaha} = this
 		value = value?.trimEnd?.()
 		this.item = { [kodSaha]: value }
+		if (!this.aciklama)
+			setTimeout(() => this.aciklamaBelirle(), 10)
 	}
 	get aciklama() {
 		let {item, adiSaha} = this
@@ -54,6 +59,7 @@ class SimpleComboBoxPart extends Part {
 	set placeholder(value) {
 		let {input} = this
 		this._placeholder = value
+		this._initPlaceholder ??= value
 		input?.attr('placeholder', value)
 	}
 	get disabled() {
@@ -125,7 +131,7 @@ class SimpleComboBoxPart extends Part {
 			if (v)
 				input.attr(k, v)
 		}
-		input.val(this.renderedInputText ?? '')
+		input.val(this.renderedInputText ?? null)
 		input.attr('placeholder', this.renderedText)
 		input.on('change', event => {
 			let {currentTarget: { value }} = event
@@ -179,8 +185,10 @@ class SimpleComboBoxPart extends Part {
 		}
 		this._initialized = true
 		setTimeout(() => {
+			let {kodSaha} = this
 			this.onResize(e)
 			let value = input.val()
+			this.item = { [kodSaha]: value }
 			if (value)
 				this._onChange({ type: 'commit', layout, input, value })
 		})
@@ -275,9 +283,9 @@ class SimpleComboBoxPart extends Part {
 		if (!(mfSinif || source || listSource))
 			return this
 		let aciklama = await mfSinif?.getGloKod2Adi?.(value)
-		if (!aciklama && adiSaha) {
+		if (!aciklama && adiSaha && (listSource || source)) {
 			let e = { ...arguments[0], sender, kodSaha, adiSaha, value, maxRow: 1 }
-			let rec = (await (listSource ?? source).call(this, e))?.[0]
+			let rec = (await (listSource ?? source).call?.(this, e))?.[0]
 			aciklama = rec?.[adiSaha]
 		}
 		if (aciklama)
@@ -442,7 +450,7 @@ class SimpleComboBoxPart extends Part {
 	val(value) {
 		if (value === undefined)
 			return this.value         // sadece 'kod'
-		this.item = value             // kod/item
+		this.value = value            // kod/item
 		return this
 	}
 	setItem(value) { this.item = value; return this }
@@ -450,6 +458,7 @@ class SimpleComboBoxPart extends Part {
 	setAciklama(value) { this.aciklama = value; return this }
 	setMFSinif(value) { this.mfSinif = value; return this }
 	setPlaceholder(value) { this.placeholder = value; return this }
+	setPlaceHolder(value) { return this.setPlaceholder(value) }
 	setKodSaha(value) { this.kodSaha = value; return this }
 	setAdiSAha(value) { this.adiSaha = value; return this }
 	setSource(value) { this.source = value; return this }

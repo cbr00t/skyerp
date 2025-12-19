@@ -483,3 +483,27 @@ class DRapor_Hareketci_Tahsilat_Main extends DRapor_Hareketci_Main {
 	}
 	tabloYapiDuzenle_odemeGun(e) { super.super_tabloYapiDuzenle_odemeGun(e) }
 }
+
+class DRapor_Hareketci_Odeme extends DRapor_Hareketci {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kategoriKod() { return 'ODEME' } static get kategoriAdi() { return 'Ödeme' }
+	static get vioAdim() { return 'CR-CO' } static get hareketciSinif() { return OdemeHareketci }
+}
+class DRapor_Hareketci_Odeme_Main extends DRapor_Hareketci_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get raporClass() { return DRapor_Hareketci_Odeme }
+	tabloYapiDuzenle({ result }) {
+		let e = arguments[0]
+		this.tabloYapiDuzenle_tahsilSekli(e)
+		this.tabloYapiDuzenle_cari(e)
+		super.tabloYapiDuzenle(e)
+	}
+	loadServerData_queryDuzenle_hrkSent({ hvDegeri }) {
+		let e = arguments[0]
+		super.loadServerData_queryDuzenle_hrkSent(e)
+		this.loadServerData_queryDuzenle_tahsilSekli({ ...e, kodClause: hvDegeri('tahseklino') })
+		this.loadServerData_queryDuzenle_cari({ ...e, kodClause: hvDegeri('must') })
+		this.loadServerData_queryDuzenle_odemeGun({ ...e, kodClause: hvDegeri('odgunkod') })
+	}
+	tabloYapiDuzenle_odemeGun(e) { super.super_tabloYapiDuzenle_odemeGun(e) }
+}

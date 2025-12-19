@@ -167,7 +167,7 @@ class ModelTanimPart extends Part {
 			bulForm.addClass('jqx-hidden')
 	}
 	initIslemTuslari(e) {
-		let islemTuslari = this.islemTuslari = this.header.find(`.islemTuslari`)
+		let islemTuslari = this.islemTuslari = this.header.find('.islemTuslari')
 		let _e = {
 			args: {
 				sender: this,
@@ -259,9 +259,19 @@ class ModelTanimPart extends Part {
 		for (let builder of this.getBuilders(e)) { e.builder = builder; if (builder.initWndArgsDuzenle) builder.initWndArgsDuzenle(_e) }
 	}
 	islemTuslariArgsDuzenle(e) {
-		let {args} = e; e.sender = this;
-		$.extend(args, { tip: this.izlemi ? 'vazgec' : 'tamamVazgec', id2Handler: { tamam: e => this.tamamIstendi(e), vazgec: e => this.vazgecIstendi(e) } });
-		for (let builder of this.getBuilders(e)) { e.builder = builder; if (builder.islemTuslariArgsDuzenle) { builder.islemTuslariArgsDuzenle(e) } }
+		let {args} = e
+		e.sender = this
+		$.extend(args, {
+			tip: this.izlemi ? 'vazgec' : 'tamamVazgec',
+			id2Handler: {
+				tamam: e => this.tamamIstendi(e),
+				vazgec: e => this.vazgecIstendi(e)
+			}
+		})
+		for (let builder of this.getBuilders(e)) {
+			e.builder = builder
+			builder.islemTuslariArgsDuzenle?.(e)
+		}
 	}
 	islemTuslariDuzenle(e) {
 		let {args, liste} = e

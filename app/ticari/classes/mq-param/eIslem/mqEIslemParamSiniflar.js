@@ -34,9 +34,9 @@ class MQEIslemParam extends MQTicariParamBase {
 		paramci.addString('anaBolum', 'e-İşlem Ana Bölüm')
 		paramci.addModelKullan('ozelEntegrator', 'Özel Entegratör').dropDown().autoBind().noMF().kodsuz()
 			.setSource(e => EOzelEntegrator.instance.kaListe)
-			.degisince(({ builder: fbd = {}, builder: { parentBuilder = {} } = {} }) => {
+			.degisince(({ builder: fbd = {}, id, altInst,  builder: { parentBuilder = {} } = {} }) => {
 				let {id2Builder} = parentBuilder.id2Builder.oeParam
-				let {id, altInst} = builder, value = altInst?.[id]
+				let value = altInst?.[id]
 				if (typeof value != 'object')
 					value = altInst[id] = new EOzelEntegrator(value)
 				for (let id of ['wsUser', 'wsPass', 'firmaKodu', 'subeKodu']) {

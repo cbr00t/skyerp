@@ -105,7 +105,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return super.tazele(e)
 	}
 	cellsRenderer(e) {
-		e.html = super.cellsRenderer(e); let {belirtec, rec} = e;
+		e.html = super.cellsRenderer(e)
+		let {belirtec, rec} = e
 		switch (belirtec) {
 			case 'renk': {
 				let {oscolor1, oscolor2} = rec; if (oscolor1) {
@@ -123,12 +124,14 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return e.html
 	}
 	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e); let {result} = e;
-		if (this.konsolideVarmi) { result.addGrupBasit('DB', 'Veritabanı', 'db', null, null, null) }
+		super.tabloYapiDuzenle(e); let {result} = e
+		if (this.konsolideVarmi)
+			result.addGrupBasit('DB', 'Veritabanı', 'db', null, null, null)
 		this.tabloYapiDuzenle_ozel?.(e)
 	}
 	tabloYapiDuzenle_son(e) {
-		super.tabloYapiDuzenle_son(e); let {result} = e; this.tabloYapiDuzenle_son_ozel?.(e);
+		super.tabloYapiDuzenle_son(e); let {result} = e
+		this.tabloYapiDuzenle_son_ozel?.(e)
 		result.addToplam(new TabloYapiItem().setKA('KAYITSAYISI', 'Kayıt Sayısı')
 			 .addColDef(new GridKolon({ belirtec: 'kayitsayisi', text: 'Kayıt Sayısı', genislikCh: 10, filterType: 'numberinput', aggregates: ['sum'] }).tipNumerik()))
 	}
