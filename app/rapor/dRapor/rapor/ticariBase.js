@@ -204,8 +204,8 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		return this
 	}
 	loadServerData_queryDuzenle_ciro(e) {
-		let {attrSet, stm} = e, dvBedelFra = app.params?.zorunlu?.dvBedelFra || 2;
-		for (let {sahalar} of stm.getSentListe()) {
+		let {attrSet, stm} = e, dvBedelFra = app.params?.zorunlu?.dvBedelFra || 2
+		for (let {sahalar} of stm) {
 			for (let key in attrSet) {
 				switch (key) {
 					case 'STBRCIRO': sahalar.add('SUM(har.brutbedel) stbrciro'); break
@@ -216,7 +216,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 					case 'MALMUH': sahalar.add('SUM(har.fmalmuh) malmuh'); break;
 					case 'BRUTKAR': sahalar.add('SUM(har.bedel - har.dipiskonto - (har.fmalhammadde + har.fmalmuh)) brutkar'); break;
 					default:
-						for (let dvKod of this.dvKodListe) {
+						for (let dvKod of this.degerlemeDvKodListe) {
 							if (key == `BRCIRO_${dvKod}`) {
 								sahalar.add(
 									`SUM(case` +

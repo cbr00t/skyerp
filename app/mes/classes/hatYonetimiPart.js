@@ -278,10 +278,15 @@ class HatYonetimiPart extends Part {
 					let {localData} = app.params, ekNotLastReadId = asInteger(localData.get('ekNotLastReadId'))
 					if (!btnTumEkNotlar?.length)
 						return
-					if (ekNotLastReadId && maxId && ekNotLastReadId - maxId > 50)
-						ekNotLastReadId = 0
-					if (ekNotLastReadId >= maxId)
+					if (ekNotLastReadId && maxId && ekNotLastReadId > maxId) {
+						ekNotLastReadId = maxId
+						localData.set('ekNotLastReadId', ekNotLastReadId)
+						localData.kaydetDefer()
+					}
+					if (ekNotLastReadId >= maxId) {
+						ekNotLastReadId = maxId
 						return
+					}
 					btnTumEkNotlar.addClass('yeni-not')
 					if (appActivatedFlag)
 						notify('Yeni Not var', 'SkyMES', undefined, 15_000)
