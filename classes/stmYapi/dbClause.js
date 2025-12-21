@@ -3,36 +3,44 @@ class MQClause extends MQSQLOrtak {
 	static get addDogrudanKullanilirmi() { return false } static get baglacsizmi() { return false } static get baglac() { return ', ' } static get onEk() { return '' }
 	constructor(e) {
 		e = e || {}; super(e);
-		if ($.isArray(e)) { e = { liste: e } } else if (typeof e != 'object') { e = { liste: [e] } }
+		if (isArray(e)) { e = { liste: e } } else if (typeof e != 'object') { e = { liste: [e] } }
 		this.parantezlimi = asBool(e.parantezlimi || e.parantezli);
 		let liste = this.liste = [], _liste = e.liste;
-		if (!$.isEmptyObject(_liste)) { let {addDogrudanKullanilirmi} = this.class; for (let item of _liste) { if (addDogrudanKullanilirmi) { this.addDogrudan(item) } else { this.add(item) } } }
+		if (!empty(_liste)) { let {addDogrudanKullanilirmi} = this.class; for (let item of _liste) { if (addDogrudanKullanilirmi) { this.addDogrudan(item) } else { this.add(item) } } }
 		let value = e.birlestir; if (value) { this.birlestir(value) }
 	}
 	add(...sahalar) {
 		let {liste} = this; for (let saha of sahalar) {
-			if (saha == null) { continue } if ($.isArray(saha)) { this.add(...saha); continue }
+			if (saha == null) { continue } if (isArray(saha)) { this.add(...saha); continue }
 			let value = this.donusmusDeger(saha); if (this.addIcinUygunmu(value)) { liste.push(value) }
 		}
 		return this
 	}
 	addDogrudan(...sahalar) {
 		let {liste} = this; for (let saha of sahalar) {
-			if (saha == null) { continue } if ($.isArray(saha)) { this.add(...saha); continue }
+			if (saha == null) { continue } if (isArray(saha)) { this.add(...saha); continue }
 			let value = this.donusmusDeger(saha); liste.push(value)
 		}
 		return this
 	}
 	addAll(coll) {
 		if (coll && coll.liste) { coll = coll.liste }
-		if ($.isPlainObject(coll) && !$.isArray(coll)) { coll = Object.keys(coll) }
-		if (!$.isArray(coll)) { coll = arguments }
-		this.add(...coll); return this
+		if ($.isPlainObject(coll) && !isArray(coll))
+			coll = keys(coll)
+		if (!isArray(coll))
+			coll = arguments
+		this.add(...coll)
+		return this
 	}
 	birlestir(anMQClause) {
-		let liste = typeof anMQClause == 'string' ? [anMQClause] : anMQClause?.liste;
-		if (!$.isEmptyObject(liste)) { this.addAll(liste) }
-		let _params = anMQClause?.params; if (!$.isEmptyObject(_params)) { let params = this.params = this.params || []; params.push(..._params) }
+		let liste = typeof anMQClause == 'string' ? [anMQClause] : anMQClause?.liste
+		if (!empty(liste))
+			this.addAll(liste)
+		let _params = anMQClause?.params
+		if (!empty(_params)) {
+			let params = this.params = this.params || []
+			params.push(..._params)
+		}
 		return this
 	}
 	donusmusDeger(item) {
@@ -41,34 +49,65 @@ class MQClause extends MQSQLOrtak {
 	}
 	addIcinUygunmu(item) { return !(item == null || item == '' || (typeof item == 'string' && item.trimEnd() == '')) }
 	buildString(e) {
-		super.buildString(e);
-		let clause = this.toString_baslangicsiz(e);
-		if (clause) { let onEk = this.class.onEk; e.result += `${onEk ? onEk + ' ' : ''}${clause}`; }
+		//if (this instanceof MQOuterApply)
+		//	debugger
+		super.buildString(e)
+		let clause = this.toString_baslangicsiz(e)
+		if (clause) { 
+			let {onEk} = this.class
+			e.result += `${onEk ? onEk + ' ' : ''}${clause}`
+		}
 		return this
 	}
-	getQueryYapi_baslangicsiz(e) { e = e || {}; let query = this.toString_baslangicsiz(e), {params} = this; return { query, params } }
-	toString_baslangicsiz(e) { e = $.extend({}, e, { result: '' }); this.buildString_baslangicsiz(e); return e.result }
+	getQueryYapi_baslangicsiz(e = {}) {
+		let query = this.toString_baslangicsiz(e)
+		let {params} = this
+		return { query, params }
+	}
+	toString_baslangicsiz(e) {
+		e = { ...e, result: '' }
+		this.buildString_baslangicsiz(e)
+		return e.result
+	}
 	buildString_baslangicsiz(e) {
-		let doluListe = this.liste.filter(item => typeof item != 'string' || item.trim()), Baglac = this.class.baglac, {parantezlimi} = this;
-		if (!$.isEmptyObject(doluListe)) {
-			if (doluListe.length && parantezlimi) { e.result += '(' }
-			for (let ind in doluListe) {
-				ind = asInteger(ind); let item = doluListe[ind];
-				let text = item.toString(); if (ind && item && !item.class?.baglacsizmi) { e.result += Baglac } e.result += text;
-				let _params = item && item.params ? item.params : null; if (_params) { e.params?.push(..._params) }
+		let {liste, parantezlimi, class: { baglac }} = this
+		let doluListe = liste.filter(item => typeof item != 'string' || item.trim())
+		if (!empty(doluListe)) {
+			if (parantezlimi)
+				e.result += '('
+			for (let i = 0; i < doluListe.length; i++) {
+				let item = doluListe[i]
+				if (!item)
+					continue
+				let text = item.toString()
+				let {class: { baglacsizmi } = {}} = item
+				if (i && !baglacsizmi)
+					e.result += baglac
+				e.result += text
+				let {params: _params} = item
+				if (!empty(_params))
+					e.params?.push(..._params)
 			}
-			if (doluListe.length && parantezlimi) { e.result += ')' }
+			if (parantezlimi)
+				e.result += ')'
 		}
-		let {params: _params} = this; if (_params) {
-			_params = _params.filter(x => !!x); let resultParams = e.params || [], keySet = asSet(resultParams.filter(x => !!x).map(_param => _param.name || _param.key));
-			for (let i in _params) {
-				let _param = _params[i], name = _param.name || _param.key;
-				if (!keySet[name]) { keySet[name] = true; resultParams.push(_param) }
+		let {params: _params} = this
+		if (!empty(_params)) {
+			_params = _params.filter(x => !!x)
+			let resultParams = e.params || []
+			let keySet = asSet(resultParams.filter(x => !!x).map(_param => _param.name || _param.key))
+			for (let _ in _params) {
+				let _param = _params[_], name = _param.name || _param.key
+				if (!keySet[name]) {
+					keySet[name] = true
+					resultParams.push(_param)
+				}
 			}
 		}
 		return this
 	}
-	parantezli() { this.parantezlimi = true; return this } parantezsiz() { this.parantezlimi = false; return this }
+	parantezli() { this.parantezlimi = true; return this }
+	parantezsiz() { this.parantezlimi = false; return this }
 }
 class MQToplu extends MQClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get toplumu() { return true } get toplumu() { return this.class.toplumu }
@@ -143,7 +182,7 @@ class MQSahalar extends MQClause {
 	}
 	addWithAlias(alias, ...sahalar) { return this.addAllWithAlias({ alias: alias, sahalar: sahalar }) }
 	addAllWithAlias(e) { let {alias, sahalar} = e;
-		if (!$.isEmptyObject(sahalar)) { for (let saha of sahalar) this.add(`${alias}.${saha}`) }
+		if (!empty(sahalar)) { for (let saha of sahalar) this.add(`${alias}.${saha}`) }
 		return this
 	}
 }
@@ -255,7 +294,7 @@ class MQSubWhereClause extends MQClause {
 			return false
 		};
 		super({ liste: e.liste, params: e.params, parantezlimi: e.parantezlimi, parantezli: e.parantezli });
-		if ($.isArray(e)) { if (!$.isEmptyObject(e)) { for (let item of e) { initBlock(item) } } } else { initBlock(e) }
+		if (isArray(e)) { if (!empty(e)) { for (let item of e) { initBlock(item) } } } else { initBlock(e) }
 	}
 	addIcinUygunmu(item) {
 		if (item == ({}).toString())
@@ -266,9 +305,9 @@ class MQSubWhereClause extends MQClause {
 		e = e || {}; let dict = e.dict || e.birlestirDict || e.liste || e, not = e.not ?? _not;
 		let alias = e.alias ?? e.tableAlias ?? _alias, aliasVeNokta = alias ? `${alias}.` : '';
 		let isSetClause = e.isSetClause ?? this.class.isSetClause, isValuesClause = e.isValuesClause ?? this.class.isValuesClause;
-		if (!$.isEmptyObject(dict)) {
+		if (!empty(dict)) {
 			let and = new MQAndClause();
-			for (let [key, value] of Object.entries(dict)) { and.degerAta({ isSetClause, not, deger: value, saha: `${aliasVeNokta}${key}` }) }
+			for (let [key, value] of entries(dict)) { and.degerAta({ isSetClause, not, deger: value, saha: `${aliasVeNokta}${key}` }) }
 			let isSetOrValues = isSetClause || isValuesClause; this.add(isSetOrValues ? and.liste : and)
 		}
 		return this
@@ -375,7 +414,7 @@ class MQSubWhereClause extends MQClause {
 		let liste = e.liste ?? e.deger ?? e.value; delete e.deger
 		if (liste?.value !== undefined) { liste = liste.value }
 		if (liste && typeof liste != 'object') { liste = $.makeArray(liste) }
-		if (liste && !$.isArray(liste)) { liste = Object.values(liste) }
+		if (liste && !isArray(liste)) { liste = values(liste) }
 		if (liste) { liste = liste.map(x => x?.char === undefined ? x : x.char).filter(x => !(x && x instanceof TekSecim)) }
 		if (liste?.length)
 			return this.inDizi({ saha: e.saha, liste, not: isNot })
@@ -428,7 +467,7 @@ class MQSubWhereClause extends MQClause {
 		return this
 	}
 	fromGridFilter(e) {
-		e = e || {}; let filter = e.filter || e; if ($.isEmptyObject(filter)) { return this }
+		e = e || {}; let filter = e.filter || e; if (empty(filter)) { return this }
 		let saha = filter.field; if (!saha) { return this }
 		let _e = { saha, filter }, alias = $.isFunction(e.alias) ? e.alias.call(this, _e) : e.alias;
 		if (_e.saha) { saha = _e.saha }
@@ -445,7 +484,7 @@ class MQSubWhereClause extends MQClause {
 					value = isStringFilter ? '' : 0; break
 				case 'IN': case 'NOTIN': case 'NOT_IN':
 					let InSeparator = '|';
-					value = $.isArray(value) ? value.join(InSeparator) : value; value = value.split(InSeparator).filter(x => !!x);
+					value = isArray(value) ? value.join(InSeparator) : value; value = value.split(InSeparator).filter(x => !!x);
 					if (isStringFilter) { value = value.map(x => MQSQLOrtak.sqlServerDegeri(x)) }
 					break
 				case 'EQUAL': case 'EQUALS': case 'NOTEQUAL': case 'NOT_EQUAL': case 'NOTEQUALS': case 'NOT_EQUALS':
@@ -475,7 +514,7 @@ class MQSubWhereClause extends MQClause {
 				case 'NOTIN': case 'NOT_IN': this.notInDizi(deger, saha); break
 			}
 		};
-		let {value} = filter; if ($.isArray(value)) { for (let subValue of value) { addValueClause({ value: subValue }) } } else { addValueClause({ value }) }
+		let {value} = filter; if (isArray(value)) { for (let subValue of value) { addValueClause({ value: subValue }) } } else { addValueClause({ value }) }
 		return this
 	}
 	//ext
@@ -533,7 +572,7 @@ class MQXJoinTable extends MQAliasliYapi {
 	static get onEk() { return null }
 	constructor(e) {
 		e = e || {}; super(e);
-		this.on = ((!e.on || $.isPlainObject(e.on) || typeof e.on == 'string' || $.isArray(e.on))
+		this.on = ((!e.on || $.isPlainObject(e.on) || typeof e.on == 'string' || isArray(e.on))
 							? new MQOnClause(e.on)
 							: e.on
 						) || new MQOnClause();
@@ -582,8 +621,8 @@ class MQTable extends MQAliasliYapi {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {
 		e = e || {}; super(e);
-		this.leftVeInner = (e.leftVeInner && !$.isArray(e.leftVeInner) ? [e.leftVeInner] : e.leftVeInner) || [];
-		this.iliskiler = (e.iliskiler && !$.isArray(e.iliskiler) ? [e.iliskiler] : e.iliskiler) || []
+		this.leftVeInner = (e.leftVeInner && !isArray(e.leftVeInner) ? [e.leftVeInner] : e.leftVeInner) || [];
+		this.iliskiler = (e.iliskiler && !isArray(e.iliskiler) ? [e.iliskiler] : e.iliskiler) || []
 	}
 	addLeftInner(e) {
 		let {aliasVeyaDeger} = e;
@@ -611,9 +650,11 @@ class MQTable extends MQAliasliYapi {
 		return this
 	}
 	buildString(e) {
-		super.buildString(e); let liste = this.leftVeInner || [];
+		super.buildString(e)
+		let liste = this.leftVeInner || []
 		for (let item of liste) {
-			e.result += CrLf; e.result += item.class.onEk;
+			e.result += CrLf
+			e.result += item.class.onEk
 			e.result += item.toString()
 		}
 		return this
@@ -631,7 +672,7 @@ class MQTable extends MQAliasliYapi {
 						) || new MQFromClause();
 
 		let iliskiDizi = (typeof e.iliski == 'string') ? [e.iliski] : e.iliski;
-		this.on = ((!e.on || typeof e.on == 'object' || typeof e.on == 'string' || $.isArray(e.on))
+		this.on = ((!e.on || typeof e.on == 'object' || typeof e.on == 'string' || isArray(e.on))
 							? new MQOnClause(e.on || iliskiDizi)
 							: on
 						) || new MQOnClause();
@@ -678,7 +719,7 @@ class MQInClause extends MQClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get addDogrudanKullanilirmi() { return true }
 	constructor(e) { e = e || {}; super(e); this.isNot = asBool(e.not); this.saha = e.saha || ''; }
 	buildString(e) {
-		let {liste, isNot} = this; if ($.isEmptyObject(liste)) { e.result += `1 ${isNot ? '<>' : '='} 2` }
+		let {liste, isNot} = this; if (empty(liste)) { e.result += `1 ${isNot ? '<>' : '='} 2` }
 		else if (liste.length == 1) { e.result += `${this.saha} ${isNot ? '<>' : '='} ${MQSQLOrtak.sqlServerDegeri(this.liste[0])}` }
 		else { e.result += `${this.saha} ${isNot ? 'NOT ' : ''}IN (${this.liste.map(item => MQSQLOrtak.sqlServerDegeri(item)).join(this.class.baglac)})` }
 		return this
@@ -722,7 +763,7 @@ class MQOrderByClause extends MQClause {
 		let sahaConverter = alias ? (e => { let _alias = alias; if ($.isFunction(alias)) { _alias = alias.call(this, e) } return _alias ? `${_alias}.${e.saha}` : _alias }) : null;
 		let sortDataField = e.sortdatafield || e.sortDataField;
 		if (sortDataField && !asBool(e.rowCountOnly)) {
-			if (sortDataField && !$.isArray(sortDataField)) sortDataField = [sortDataField];
+			if (sortDataField && !isArray(sortDataField)) sortDataField = [sortDataField];
 			if (sahaConverter) sortDataField = sortDataField.map(saha => sahaConverter({ saha }));
 			let sortOrder = (e.sortorder || e.sortOrder || '').toUpperCase().trim(); if (sortOrder == 'ASC') sortOrder = '';
 			sortOrder = sortOrder ? ' ' + sortOrder : '';

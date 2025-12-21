@@ -82,17 +82,18 @@ class TabTSDetay extends TabFisDetay {
 		let {_text} = this
 		_text = this._text = [
 			(_text ?? ''),
-			`<div class="flex-row" style="gap: 0 10px">`,
-				`<div class="asil">${stokAdi}</div>`,
-				`<div class="ek-bilgi bold float-right">${stokKod}</div>`,
-				`<div class="asil orangered">${barkod}</div>`,
+			`<div class="asil flex-row" style="gap: 0 10px">`,
+				`<div class="stokAdi">${stokAdi}</div>`,
+				`<div class="stokKod orangered">${stokKod}</div>`,
+				(stokKod == barkod ? null : `<div class="barkod bold float-right">${barkod}</div>`),
 			`</div>`,
-			`<div class="ek-bilgi float-right" style="gap: 0 10px">`,
-				`<b class="forestgreen">${miktar} ${brm}</b>`,
+			`<div class="miktarFiyat ek-bilgi float-right" style="gap: 0 10px">`,
+				`<span class="miktar bold forestgreen">${miktar} ${brm}</span>`,
 				`<span> x </span>`,
-				`<b class="royalblue">${numberToString(roundToFiyatFra(fiyat))}</b> <span>TL</span>`,
+				`<span class="fiyat bold royalblue">${numberToString(roundToFiyatFra(fiyat))}</span>`,
+				`<span>TL</span>`,
 			`</div>`
-		].join(CrLf)
+		].filter(_ => _).join(CrLf)
 		return this
 	}
 }

@@ -100,7 +100,7 @@ class TabTSFis extends TabFis {
 			}))
 			.setTabloKolonlari([
 				new GridKolon({ belirtec: '_text', text: 'Ürün' }),
-				new GridKolon({ belirtec: 'netBedel', text: 'Bedel', genislikCh: 13 }).tipDecimal_bedel(),
+				new GridKolon({ belirtec: 'netBedel', text: 'Bedel', genislikCh: 15 }).tipDecimal_bedel(),
 				new GridKolon({ belirtec: '_sil', text: ' ', genislikCh: 6 })
 					.tipButton('X')
 					.onClick(({ gridRec, args: { owner: w } }) => {
@@ -118,8 +118,10 @@ class TabTSFis extends TabFis {
 						let {row: { bounddata: _det } = {}} = args
 						let {uid} = det ?? {}
 						if (det && det != _det) {
+							let ind = w.getrowboundindexbyid(uid)
 							w.clearselection()
-							w.selectrow(w.getrowboundindexbyid(uid))
+							w.selectrow(ind)
+							w.ensurerowvisible(ind)
 						}
 						acc.expand('duzenle')
 					},
@@ -128,8 +130,10 @@ class TabTSFis extends TabFis {
 						let uid = $(tr).attr('row-id')                                   // tr = null ==> skinti yok, sadece undefined alır
 						if (uid == null)
 							return true                                                  // continue next events
+						let ind = w.getrowboundindexbyid(uid)
 						w.clearselection()
-						w.selectrow(w.getrowboundindexbyid(uid))
+						w.selectrow(ind)
+						w.ensurerowvisible(ind)
 						acc.expand('duzenle')
 						return false                                                     // prevent next events
 					}
@@ -179,6 +183,7 @@ class TabTSFis extends TabFis {
 					if (uid != null) {
 						w.deleterow(uid)
 						w.selectrow(0)
+						w.ensurerowvisible(0)
 						txtMiktar?.focus()
 					}
 					acc?.render()
@@ -336,6 +341,7 @@ class TabTSFis extends TabFis {
 				w.endupdate(false)
 				w.clearselection()
 				w.selectrow(0)
+				w.ensurerowvisible(0)
 				acc?.render()
 			}
 		}

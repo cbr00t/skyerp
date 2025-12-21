@@ -161,13 +161,22 @@ class MQSQLOrtak extends CObject {
 			`${ekCSS ? `; ${ekCSS}` : ''}"/>`
 		)
 	}
-	getQueryYapi(e) { let query = this.toString(e); return { query, params: this.params } }
-	toString(e) {
-		e = e || {}; e.result = e.result || ''; e.params = this.params || [];
-		let value = e.prefix || this.prefix; if (value) e.result += `${value} `
-		this.buildString(e);
-		value = e.postfix || this.postfix; if (value) e.result += ` ${value}`;
-		this.params = e.params; return e.result;
+	getQueryYapi(e) {
+		let query = this.toString(e)
+		return { query, params: this.params }
+	}
+	toString(e = {}) {
+		e.result = e.result || ''
+		e.params = this.params || []
+		let value = e.prefix ?? this.prefix
+		if (value)
+			e.result += `${value} `
+		this.buildString(e)
+		value = e.postfix ?? this.postfix
+		if (value)
+			e.result += ` ${value}`
+		this.params = e.params
+		return e.result
 	}
 	buildString(e) { /* e.result += `` */ }
 	asNot() { this.isNot = true; return this }

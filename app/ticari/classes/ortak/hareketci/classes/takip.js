@@ -25,7 +25,8 @@ class TakipHareketci extends Hareketci {
 		super.uniOrtakSonIslem(...arguments); let {from, where: wh} = sent;
 		let {takipno: kodClause} = hv;
 		if (!from.aliasIcinTable('tak')) { sent.fromIliski('takipmst tak', `${kodClause} = tak.kod`) }
-		wh.add(`${kodClause} > ''`)
+		if (!this.sonIslem_whereBaglanmazFlag)
+			wh.add(`${kodClause} > ''`)
 	}
     /** Varsayılan değer atamaları (host vars) – temel sınıfa eklemeler.
 		Hareketci.varsayilanHVDuzenle değerleri aynen alınır, sadece eksikler eklenir */

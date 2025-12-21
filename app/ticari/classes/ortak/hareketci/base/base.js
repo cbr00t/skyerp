@@ -25,7 +25,7 @@ class Hareketci extends CObject {
 		let cacheSelector = '_anaTipKAListe', result = this[cacheSelector]
 		if (result == null) {
 			let {kod2Sinif} = this; result = this[cacheSelector] = []
-			for (let [kod, cls] of Object.entries(kod2Sinif))
+			for (let [kod, cls] of entries(kod2Sinif))
 				result.push(new CKodAdiVeEkBilgi({ kod, aciklama: cls.aciklama, ekBilgi: cls }))
 		}
 		return result
@@ -51,8 +51,8 @@ class Hareketci extends CObject {
 	get defaultAttrSet() {
 		let result = this._defaultAttrSet; if (result === undefined) {
 			let {class: { varsayilanHV }, uygunluk2UnionBilgiListe} = this
-			result = asSet(Object.keys(varsayilanHV));
-			for (let uniBilgi of Object.values(uygunluk2UnionBilgiListe)) {
+			result = asSet(keys(varsayilanHV));
+			for (let uniBilgi of values(uygunluk2UnionBilgiListe)) {
 				let hv = uniBilgi?.hv; if (hv) {
 					for (let key in hv) { if (!result[key]) { result[key] = true } } }
 			}
@@ -67,13 +67,13 @@ class Hareketci extends CObject {
 	}
 	get attrSet() {
 		let {_attrSet: result} = this; if (result == null) { result = this._attrSet = { ...this.defaultAttrSet } }
-		if ($.isArray(result)) { result = this.attrSet = asSet(result) }
+		if (isArray(result)) { result = this.attrSet = asSet(result) }
 		return result
 	}
-	set attrSet(value) { if ($.isArray(value)) { value = asSet(value) } this._attrSet = value }
+	set attrSet(value) { if (isArray(value)) { value = asSet(value) } this._attrSet = value }
 	get uygunluk() {
 		let {_uygunluk: result} = this; if (result == null) { result = asSet(this.class.hareketTipSecim?.kaListe.map(ka => ka.kod)) }
-		result = result?.value ?? result; if ($.isArray(result)) { result = asSet(result) }
+		result = result?.value ?? result; if (isArray(result)) { result = asSet(result) }
 		return result
 	}
 	set uygunluk(value) { this._uygunluk = value }
@@ -111,17 +111,21 @@ class Hareketci extends CObject {
 			result = this._varsayilanHV = hv = e.hv
 		}
 		return result
+	
 	}
-	constructor(e) {
-		e = e || {}; super(e); $.extend(this, {
+	constructor(e = {}) {
+		super(e)
+		$.extend(this, {
 			_attrSet: e.attrListe ?? e.attrSet, _uygunluk: e.uygunluk, whereYapi: e.whereYapi ?? {}, ekDuzenleyiciler: e.ekDuzenleyiciler ?? e.ekDuzenleyici ?? {},
-			sonIslem: e.sonIslem ?? (e => this.defaultSonIslem(e)), gereksizTablolariSilFlag: e.gereksizTablolariSil ?? e.gereksizTablolariSilFlag ?? false
-		});
+			sonIslem: e.sonIslem ?? (e => this.defaultSonIslem(e)), gereksizTablolariSilFlag: e.gereksizTablolariSil ?? e.gereksizTablolariSilFlag ?? false,
+			sonIslem_whereBaglanmazFlag: e.sonIslem_whereBaglanmaz ?? e.sonIslem_whereBaglanmazFlag ?? false
+		})
 		let {ekDuzenleyiciler, whereYapi} = this;
-		this.ekDuzenleyiciler = e.ekDuzenleyiciler ?? [];
+		this.ekDuzenleyiciler = e.ekDuzenleyiciler ?? []
 		for (let key of ['master', 'hareket']) {
 			let value = e[key]
-			if (value !== undefined) { whereYapi[key] = value }
+			if (value !== undefined)
+				whereYapi[key] = value
 		}
 	}
 	static getClass(e) { let kod = typeof e == 'object' ? (e.kod ?? e.tip) : e; return this.kod2Sinif[kod] }
@@ -140,6 +144,7 @@ class Hareketci extends CObject {
 	}
 	static ilkIslemler(e) { }
 	uniOrtakSonIslem({ sender, hv, sent, sent: { from, where: wh, sahalar }, secimler, det = {}, detSecimler = {}, donemTipi, sqlNull, sqlEmpty, sqlZero }) {
+		let {sonIslem_whereBaglanmazFlag} = this
 		let tbWhere = secimler?.getTBWhereClause(...arguments)
 		if (tbWhere?.liste?.length)
 			wh.birlestir(tbWhere)
@@ -150,8 +155,10 @@ class Hareketci extends CObject {
 		}
 		if (sender?.finansalAnalizmi) {
 			let {finanalizkullanilmaz: finAnalizKullanimClause} = hv
-			if (finAnalizKullanimClause == sqlEmpty || finAnalizKullanimClause == sqlNull) { finAnalizKullanimClause = null }
-			if (finAnalizKullanimClause) { wh.degerAta('', finAnalizKullanimClause) }    /* ''(false) = kullanılır,  '*'(true) = kullanılMAZ */
+			if (finAnalizKullanimClause == sqlEmpty || finAnalizKullanimClause == sqlNull)
+				finAnalizKullanimClause = null
+			if (!sonIslem_whereBaglanmazFlag && finAnalizKullanimClause)
+				wh.degerAta('', finAnalizKullanimClause)      /* ''(false) = kullanılır,  '*'(true) = kullanılMAZ */
 			let {adi: altTipAdiClause, oncelik: altTipOncelikClause, yon: yonClause} = this.class.getAltTipAdiVeOncelikClause({ hv }) ?? {}
 			altTipAdiClause = altTipAdiClause || (this.class.aciklama?.sqlServerDegeri() ?? sqlEmpty)
 			altTipOncelikClause = altTipOncelikClause || sqlZero
@@ -192,25 +199,38 @@ class Hareketci extends CObject {
             }
 		})
 	}
-	uygunluk2UnionBilgiListeDuzenle(e) { if (this.class.uygunmu) { this.uygunluk2UnionBilgiListeDuzenleDevam(e) } }
-	uygunluk2UnionBilgiListeDuzenleDevam(e) { e.hareketci = this; for (let ext of this.getExtIter()) { ext.uygunluk2UnionBilgiListeDuzenle(e) } }
+	uygunluk2UnionBilgiListeDuzenle(e) {
+		if (this.class.uygunmu)
+			this.uygunluk2UnionBilgiListeDuzenleDevam(e)
+	}
+	uygunluk2UnionBilgiListeDuzenleDevam(e) {
+		e.hareketci = this
+		for (let ext of this.getExtIter())
+			ext.uygunluk2UnionBilgiListeDuzenle(e)
+	}
 	uniBilgiAllHVFix(e) {
-		let liste = e.liste ?? e.uygunluk2UnionBilgiListe ?? this.uygunluk2UnionBilgiListe ?? [], {varsayilanHV: defHV} = this.class;
-		if (!$.isArray(liste)) { liste = Object.values(liste) }
-		liste = liste.flat().map(item => getFuncValue.call(this, item, e)).filter(x => !!x);
-		let allKeys = {}; for (let {hv} of liste) { $.extend(allKeys, asSet(Object.keys(hv))) }
+		let liste = e.liste ?? e.uygunluk2UnionBilgiListe ?? this.uygunluk2UnionBilgiListe ?? []
+		let {varsayilanHV: defHV} = this.class
+		if (!isArray(liste))
+			liste = values(liste)
+		liste = liste.flat().map(item => getFuncValue.call(this, item, e)).filter(x => !!x)
+		let allKeys = {}
+		for (let {hv} of liste)
+			$.extend(allKeys, asSet(keys(hv))) 
 		for (let {hv: _hv} of liste) {
-			let hv = liste.hv = {};
+			let hv = liste.hv = {}
 			for (let key in allKeys) {
-				let value = _hv[key] ?? defHV[key] ?? 'NULL';
+				let value = _hv[key] ?? defHV[key] ?? 'NULL'
 				hv[key] = value
 			}
 		}
 	}
 	static extListeDuzenle(e) {
-		let {liste} = e, {kod} = this; for (let modul of app.getModulIter()) {
-			let extSinif = modul[`extSinif_hareketci_${kod}`];
-			if (extSinif && extSinif.uygunmu !== false) { liste.push(extSinif) }
+		let {liste} = e, {kod} = this
+		for (let modul of app.getModulIter()) {
+			let extSinif = modul[`extSinif_hareketci_${kod}`]
+			if (extSinif && extSinif.uygunmu !== false)
+				liste.push(extSinif)
 		}
 	}
 	static *getExtIter() { let {extListe} = this; if (extListe) { for (let ext of extListe) { yield ext } } }
@@ -224,12 +244,13 @@ class Hareketci extends CObject {
 	}
 	stmDuzenle(e) { let uni = e.stm.sent = this.uniOlustur(e); return this.stmDuzenleDevam(e) }
 	stmDuzenleDevam(e) { }
-	uniOlustur(e) {
-		e = e || {}; let _e, uni = new MQUnionAll();
-		this.uniDuzenle(_e = { ...e, uni, ...Hareketci_UniBilgi.ortakArgs });
+	uniOlustur(e = {}) {
+		let _e, uni = new MQUnionAll()
+		this.uniDuzenle(_e = { ...e, uni })
 		return uni
 	}
-	uniDuzenle(e) {
+	uniDuzenle(e = {}) {
+		$.extend(e, Hareketci_UniBilgi.ortakArgs)
 		this.uniDuzenleOncesi(e)
 		let {uygunluk2UnionBilgiListe, attrSet} = this, {varsayilanHV: defHV, zorunluAttrSet} = this.class
 		let rapor = e.rapor ?? e.sender, secimler = e.secimler ?? rapor?.secimler
@@ -348,7 +369,12 @@ class Hareketci extends CObject {
 	setUygunluk(value) { this.uygunluk = value; return this }
 	gereksizTablolariSil() { this.gereksizTablolariSilFlag = true; return this }
 	gereksizTablolariSilme() { this.gereksizTablolariSilFlag = false; return this }
-	reset(e) { for (let key of ['_uygunluk2UnionBilgiListe', '_defaultAttrSet', '_zorunluAttrSet']) { delete this[key] } return this }
+	sonIslem_whereBaglanmaz() { this.sonIslem_whereBaglanmazFlag = true; return this }
+	sonIslem_whereBaglanir() { this.sonIslem_whereBaglanmazFlag = false; return this }
+	reset(e) {
+		deleteKeys(this, '_uygunluk2UnionBilgiListe', '_defaultAttrSet', '_zorunluAttrSet')
+		return this
+	}
 
 	static maliTablo_secimlerYapiOlustur(e) {
 		let {tip2SecimMFYapi} = e; if (!tip2SecimMFYapi) { return this }
@@ -426,7 +452,7 @@ class Hareketci extends CObject {
 	let recs; try { recs = queryYapi?.query ? await app.sqlExecSelect(queryYapi) : [] } catch (ex) { console.error(getErrorText(ex)) }
 	if (recs) {
 		console.table(recs); let rec = recs[0], source = e => recs;
-		let tabloKolonlari = rec ? Object.keys(rec).map(belirtec => {
+		let tabloKolonlari = rec ? keys(rec).map(belirtec => {
 			let colDef = new GridKolon({ belirtec, text: belirtec }); if (typeof rec[belirtec] == 'number') { colDef.tipDecimal() } return colDef }) : null;
 		new MasterListePart({ tabloKolonlari, source }).run()
 	}

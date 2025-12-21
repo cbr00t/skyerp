@@ -1,3 +1,69 @@
+class DRapor_Hareketci_AlimSatisOrtak extends DRapor_Hareketci {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get vioAdim() { return null } static get araSeviyemi() { return this == DRapor_Hareketci_AlimSatisOrtak }
+}
+class DRapor_Hareketci_AlimSatisOrtak_Main extends DRapor_Hareketci_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get raporClass() { return DRapor_Hareketci_AlimSatisOrtak }
+	tabloYapiDuzenle({ result }) {
+		let e = arguments[0]; super.tabloYapiDuzenle(e)
+		let {tip2BrmListe} = MQStokGenelParam
+		let {isAdmin, rol} = config.session ?? {}
+		let maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT')
+		let {toplam} = result, brmListe = keys(tip2BrmListe)
+		this.tabloYapiDuzenle_cari(e).tabloYapiDuzenle_stok(e)
+		this.tabloYapiDuzenle_gc({ ...e, tip: 'MIKTAR', etiket: 'Miktar' })
+		this.tabloYapiDuzenle_gc({ ...e, tip: 'MIKTAR2', etiket: 'Miktar2' })
+		if (maliyetGorurmu)
+			this.tabloYapiDuzenle_gc({ ...e, tip: 'MALIYET', etiket: 'Maliyet', belirtec: 'tummaliyet' })
+		{
+			let {ISARETLIBEDEL: item} = toplam
+			if (item)
+				item.ka.aciklama = item.colDefs[0].text = 'Bedel'
+		}
+		//{ let {TUMMALIYET: item} = toplam; if (item) { item.ka.aciklama = item.colDefs[0].text = 'Tüm Maliyet' } }
+		deleteKeys(toplam, 'BORCBEDEL', 'ALACAKBEDEL', 'BORCBAKIYE', 'ALACAKBAKIYE', 'TUMMALIYET')
+	}
+	loadServerData_queryDuzenle_hrkSent(e) {
+		super.loadServerData_queryDuzenle_hrkSent(e); let {attrSet, sent, hvDegeri} = e;
+		let {where: wh, sahalar} = sent, PrefixMiktar = 'MIKTAR', gcClause = hvDegeri('gc'), tarihClause = hvDegeri('tarih');
+		/* if (Object.keys(attrSet).find(key => (key.startsWith('GIRIS_') || key.startsWith('CIKIS_')))) { attrSet.GC = true } */
+		this.loadServerData_queryDuzenle_stok({ ...e, kodClause: hvDegeri('stokkod') })
+		this.loadServerData_queryDuzenle_cari({ ...e, kodClause: hvDegeri('must') })
+		this.loadServerData_queryDuzenle_takip({ ...e, kodClause: hvDegeri('takipno') })
+		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MIKTAR', clause: hvDegeri('miktar'), gcClause, tarihClause })
+		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MIKTAR2', clause: hvDegeri('miktar2'), gcClause, tarihClause })
+		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MALIYET', clause: hvDegeri('fmaliyet'), gcClause, tarihClause })
+		for (let key in attrSet) {
+			switch (key) {
+				case 'BRM': sahalar.add(`${hvDegeri('brm')} brm`); break
+				case 'BRM2': sahalar.add(`${hvDegeri('brm2')} brm2`); break
+				case 'BRMORANI': sahalar.add('stk.brmorani'); break
+			}
+		}
+	}
+}
+class DRapor_Hareketci_Satislar extends DRapor_Hareketci_AlimSatisOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kategoriKod() { return 'SATIS' } static get kategoriAdi() { return 'Satışlar' }
+	static get vioAdim() { return 'ST-IR' }
+	static get hareketciSinif() { return SatisHareketci } 
+}
+class DRapor_Hareketci_Satislar_Main extends DRapor_Hareketci_AlimSatisOrtak_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get raporClass() { return DRapor_Hareketci_Satislar }
+}
+class DRapor_Hareketci_Alimlar extends DRapor_Hareketci_AlimSatisOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kategoriKod() { return 'ALIM' } static get kategoriAdi() { return 'Alımlar' }
+	static get vioAdim() { return 'ST-IR' }
+	static get hareketciSinif() { return AlimHareketci } 
+}
+class DRapor_Hareketci_Alimlar_Main extends DRapor_Hareketci_AlimSatisOrtak_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get raporClass() { return DRapor_Hareketci_Alimlar }
+}
+
 class DRapor_Hareketci_Cari extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	/* static get oncelik() { return 10 } */
@@ -22,8 +88,9 @@ class DRapor_Hareketci_Cari_Main extends DRapor_Hareketci_Main {
 
 class DRapor_Hareketci_Kasa extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get oncelik() { return 11 } static get kategoriKod() { return 'KASA' } static get kategoriAdi() { return 'Kasa' }
-	static get vioAdim() { return 'KS-RT' } static get hareketciSinif() { return KasaHareketci }
+	static get kategoriKod() { return 'KASA' } static get kategoriAdi() { return 'Kasa' }
+	static get vioAdim() { return 'KS-RT' }
+	static get hareketciSinif() { return KasaHareketci }
 }
 class DRapor_Hareketci_Kasa_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -42,7 +109,7 @@ class DRapor_Hareketci_Kasa_Main extends DRapor_Hareketci_Main {
 	}
 }
 
-class DRapor_Hareketci_Hizmet extends DRapor_Hareketci {
+	class DRapor_Hareketci_Hizmet extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kategoriKod() { return 'Hizmet' } static get kategoriAdi() { return 'Hizmet' }
 	static get vioAdim() { return 'HZ-TT' } static get hareketciSinif() { return HizmetHareketci }
@@ -360,48 +427,24 @@ class DRapor_Hareketci_Stok extends DRapor_Hareketci {
 class DRapor_Hareketci_Stok_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_Stok }
-	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e)
-		let {result} = e, {tip2BrmListe} = MQStokGenelParam
-		let {isAdmin, rol} = config.session ?? {}, maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT')
+	tabloYapiDuzenle({ result }) {
+		let e = arguments[0]; super.tabloYapiDuzenle(e)
+		let {tip2BrmListe} = MQStokGenelParam
+		let {isAdmin, rol} = config.session ?? {}
+		let maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT')
 		let {toplam} = result, brmListe = keys(tip2BrmListe)
 		this.tabloYapiDuzenle_cari(e).tabloYapiDuzenle_stok(e)
 		this.tabloYapiDuzenle_gc({ ...e, tip: 'MIKTAR', etiket: 'Miktar' })
 		this.tabloYapiDuzenle_gc({ ...e, tip: 'MIKTAR2', etiket: 'Miktar2' })
-		
-		/* for (let tip of brmListe) { result.addToplamBasit(`MIKTAR${tip}`, `Miktar(${tip})`, `miktar${tip}`) } */
-		/*result.addGrupBasit('GC', 'G/Ç', 'gc', null, 60, ({ colDef }) => colDef.alignCenter());
-		result.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, null, ({ item }) => item.hidden());
-		result.addToplamBasit('MIKTAR2', 'Miktar2', 'miktar2', null, null, ({ item }) => item.hidden());
-		
-		result.addToplamBasit('GIRIS_MIKTAR', 'G.Miktar', 'girismiktar', null, null, ({ item }) =>
-			item.setFormul(['MIKTAR', 'GC'], ({ rec }) => rec.gc == 'G' ? rec.miktar : 0));
-		result.addToplamBasit('CIKIS_MIKTAR', 'Ç.Miktar', 'cikismiktar', null, null, ({ item }) =>
-			item.setFormul(['MIKTAR', 'GC'], ({ rec }) => rec.gc == 'C' ? rec.miktar : 0));
-		result.addToplamBasit('KALAN_MIKTAR', 'K.Miktar', 'kalanmiktar', null, null, ({ item }) =>
-			item.setFormul(['GIRIS_MIKTAR', 'CIKIS_MIKTAR', 'MIKTAR', 'GC'], ({ rec }) => rec.girismiktar - rec.cikismiktar));
-		
-		result.addToplamBasit('GIRIS_MIKTAR2', 'G.Miktar2', 'girismiktar2', null, null, ({ item }) =>
-			item.setFormul(['MIKTAR2', 'GC'], ({ rec }) => rec.gc == 'G' ? rec.miktar2 : 0));
-		result.addToplamBasit('CIKIS_MIKTAR2', 'Ç.Miktar2', 'cikismiktar2', null, null, ({ item }) =>
-			item.setFormul(['MIKTAR2', 'GC'], ({ rec }) => rec.gc == 'C' ? rec.miktar2 : 0));
-		result.addToplamBasit('KALAN_MIKTAR2', 'K.Miktar2', 'kalanmiktar2', null, null, ({ item }) =>
-			item.setFormul(['GIRIS_MIKTAR2', 'CIKIS_MIKTAR2', 'MIKTAR2', 'GC'], ({ rec }) => rec.girismiktar2 - rec.cikismiktar2));*/
-		
-		if (maliyetGorurmu) {
+		if (maliyetGorurmu)
 			this.tabloYapiDuzenle_gc({ ...e, tip: 'MALIYET', etiket: 'Maliyet', belirtec: 'tummaliyet' })
-			/*result.addToplamBasit_bedel('TUMMALIYET', 'Tüm Maliyet', 'tummaliyet', null, null, ({ item }) => item.hidden());
-			result.addToplamBasit_bedel('GIRIS_MALIYET', 'G.Maliyet', 'girismaliyet', null, null, ({ item }) =>
-				item.setFormul(['TUMMALIYET', 'GC'], ({ rec }) => rec.gc == 'G' ? rec.tummaliyet : 0));
-			result.addToplamBasit_bedel('CIKIS_MALIYET', 'Ç.Maliyet', 'cikismaliyet', null, null, ({ item }) =>
-				item.setFormul(['TUMMALIYET', 'GC'], ({ rec }) => rec.gc == 'C' ? rec.tummaliyet : 0));
-			result.addToplamBasit_bedel('KALAN_MALIYET', 'K.Maliyet', 'kalanmiktar', null, null, ({ item }) =>
-				item.setFormul(['GIRIS_MALIYET', 'CIKIS_MALIYET', 'TUMMALIYET', 'GC'], ({ rec }) => rec.girismaliyet - rec.cikismaliyet))*/
+		{
+			let {ISARETLIBEDEL: item} = toplam
+			if (item)
+				item.ka.aciklama = item.colDefs[0].text = 'Bedel'
 		}
-
-		{ let {ISARETLIBEDEL: item} = toplam; if (item) { item.ka.aciklama = item.colDefs[0].text = 'Bedel' } }
-		/*{ let {TUMMALIYET: item} = toplam; if (item) { item.ka.aciklama = item.colDefs[0].text = 'Tüm Maliyet' } }*/
-		for (let key of ['BORCBEDEL', 'ALACAKBEDEL', 'TUMMALIYET']) { delete toplam[key] }
+		//{ let {TUMMALIYET: item} = toplam; if (item) { item.ka.aciklama = item.colDefs[0].text = 'Tüm Maliyet' } }
+		deleteKeys(toplam, 'BORCBEDEL', 'ALACAKBEDEL', 'TUMMALIYET')
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e); let {attrSet, sent, hvDegeri} = e;
@@ -415,27 +458,9 @@ class DRapor_Hareketci_Stok_Main extends DRapor_Hareketci_Main {
 		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MALIYET', clause: hvDegeri('fmaliyet'), gcClause, tarihClause })
 		for (let key in attrSet) {
 			switch (key) {
-				/*case 'GC': sahalar.add(`${hvDegeri('gc')} gc`); break
-				case 'TUMMALIYET': sahalar.add(`${hvDegeri('maliyet').asSumDeger()} tummaliyet`); break
-				case 'BRUTKAR': sahalar.add(`SUM(${hvDegeri('isaretlibedel').sumOlmaksizin()} - ${hvDegeri('maliyet').sumOlmaksizin()}) brutkar`); break*/
 				case 'BRM': sahalar.add(`${hvDegeri('brm')} brm`); break
 				case 'BRM2': sahalar.add(`${hvDegeri('brm2')} brm2`); break
 				case 'BRMORANI': sahalar.add('stk.brmorani'); break
-				/*case 'MIKTAR2': sahalar.add(`${hvDegeri('miktar2').asSumDeger()} miktar2`); break
-				default:
-					if (key.startsWith(PrefixMiktar) || key.endsWith(PrefixMiktar)) {
-						if (key == PrefixMiktar || key.endsWith(PrefixMiktar)) {
-							sahalar.add(`${hvDegeri('miktar').asSumDeger()} miktar`)
-						}
-						else {
-							let brmTip = key.slice(PrefixMiktar.length)?.toUpperCase();
-							sahalar.add(`${this.getBrmliMiktarClause({ brmTip, mstAlias: 'stk', harAlias: 'har' })} miktar${brmTip}`)
-						}
-						if (!sahalar.alias2Deger.brm) { sahalar.add(`${hvDegeri('brm')} brm`) }
-						if (!sahalar.alias2Deger.brm) { sahalar.add(`${hvDegeri('brm2')} brm2`) }
-					}
-					break
-				*/
 			}
 		}
 	}

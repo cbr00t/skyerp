@@ -1,6 +1,6 @@
 class DRapor_EldekiVarliklar extends DRapor_AraSeviye {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get oncelik() { return 6 } static get uygunmu() { return true } static get araSeviyemi() { return false }
+	static get oncelik() { return 4 } static get uygunmu() { return true } static get araSeviyemi() { return false }
 	static get sabitmi() { return true } static get vioAdim() { return 'FN-RE' } static get konsolideKullanilirmi() { return true }
 	static get kategoriKod() { return 'FINANLZ' } static get kategoriAdi() { return 'Finansal Analiz' }
 	static get kod() { return 'ELDVAR' } static get aciklama() { return 'Eldeki Varlıklar' } static get yataymi() { return true }

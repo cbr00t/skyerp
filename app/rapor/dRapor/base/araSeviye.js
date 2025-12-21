@@ -139,6 +139,26 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}*/
 		return super.tazele(e)
 	}
+	async loadServerData(e = {}) {
+		let {degerlemeDvKodListe: dvKodListe} = this
+		let gecerliDegDvKodSet = this.gecerliDegDvKodSet = {}
+		if (!empty(dvKodListe)) {
+			let {raporTanim} = this
+			let attrSet = e.attrSet ?? raporTanim.attrSet ?? {}
+			let dvKodSet = asSet(dvKodListe)
+			for (let key in attrSet) {
+				if (!key.startsWith('DEG_'))
+					continue
+				let tokens = key.split('_')
+				if (tokens.length < 3)
+					continue
+				let dvKod = tokens.at(-1)?.trim()
+				if (dvKodSet[dvKod])
+					gecerliDegDvKodSet[dvKod] = true
+			}
+		}
+		return await super.loadServerData(e)
+	}
 	cellsRenderer(e) {
 		e.html = super.cellsRenderer(e)
 		let {belirtec, rec} = e
@@ -232,11 +252,14 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		if (!internal) { if (this.loadServerData_queryDuzenle_filtreBaglantiYap(e) === false) { return false } }
 		if (this.loadServerData_queryDuzenle_son(e) === false) { return false }
 	}
-	loadServerData_queryDuzenle(e) {
-		let alias = e.alias = e.alias ?? 'fis'; let {secimler, raporTanim, tabloYapi} = this, {yatayAnaliz} = raporTanim.kullanim, {stm} = e;
-		let {attrSet: _attrSet} = e, attrSet = e.attrSet = raporTanim._ozelAttrSet = { ..._attrSet };
-		for (let sent of stm)
-			sent.sahalar.add(`COUNT(*) kayitsayisi`)
+	loadServerData_queryDuzenle(e = {}) {
+		e.alias ??= 'fis'
+		let {stm, alias, attrSet: _attrSet} = e
+		let {secimler, raporTanim, tabloYapi} = this
+		let {yatayAnaliz} = raporTanim.kullanim
+		let attrSet = e.attrSet = raporTanim._ozelAttrSet = { ..._attrSet }
+		for (let {sahalar} of stm)
+			sahalar.add(`COUNT(*) kayitsayisi`)
 		/*if (secimler) {
 			for (let [key, secim] of entries(secimler.liste)) {
 				if (secim.isHidden || secim.isDisabled) { continue }
@@ -250,10 +273,15 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}*/
 		let {toplam} = tabloYapi
 		for (let key in attrSet) {
-			let formul = toplam[key]?.formul; if (!formul) { continue }
-			let {attrListe} = formul; if (attrListe?.length) { $.extend(attrSet, asSet(attrListe)) }
+			let formul = toplam[key]?.formul
+			if (!formul)
+				continue
+			let {attrListe} = formul
+			if (attrListe?.length)
+				$.extend(attrSet, asSet(attrListe))
 		}
-		if (yatayAnaliz) { attrSet[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod] = true }
+		if (yatayAnaliz)
+			attrSet[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod] = true
 		this.loadServerData_queryDuzenle_ozel?.(e)
 	}
 	loadServerData_queryDuzenle_ek(e) { this.loadServerData_queryDuzenle_ek_ozel?.(e) }
@@ -263,21 +291,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			return
 		let {secimler, tabloYapi, class: { totalmi, secimWhereBaglanirmi }} = this
 		this.loadServerData_queryDuzenle_son_ilk_ozel?.(e)
-		/*if (alias) {
-			let {dvKod2Rec: dvKodSet} = this
-			let gecerliDvKodSet = {}, dvKodVarmi = false
-			for (let key in attrSet) {
-				let dvKod = key.split('_').slice(-1)[0]
-				if (dvKodSet[dvKod]) { gecerliDvKodSet[dvKod] = dvKodVarmi = true }
-			}
-			for (let sent of stm) {
-				let {sahalar} = sent
-				for (let dvKod in gecerliDvKodSet) {
-					let kurAlias = `kur${dvKod}`
-					sent.leftJoin(alias, `ORTAK..ydvkur ${kurAlias}`, [`${alias}.tarih = ${kurAlias}.tarih`, `${kurAlias}.kod = '${dvKod}'`])
-				}
-			}
-		}*/
+		this.loadServerData_queryDuzenle_son_araIslem(e)
 		for (let {sahalar} of stm)
 			sahalar.add(`${totalmi === false ? '1' : 'COUNT(*)'} kayitsayisi`)
 		if (secimWhereBaglanirmi) {
@@ -291,23 +305,32 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		this.loadServerData_queryDuzenle_son_son_ozel?.(e)
 	}
-	loadServerData_queryDuzenle_filtreBaglantiYap(e) {
-		let {stm, attrSet: orjAttrSet} = e, {secimler, tabloYapi} = this;
-		let internal = true, attrSet = { ...orjAttrSet };
+	loadServerData_queryDuzenle_son_araIslem(e) { }
+	loadServerData_queryDuzenle_filtreBaglantiYap({ stm, attrSet: orjAttrSet }) {
+		let e = arguments[0], {secimler, tabloYapi} = this
+		let internal = true, attrSet = { ...orjAttrSet }
 		for (let [key, item] of entries(tabloYapi.grup)) {
-			let {kaYapimi} = item; if (!kaYapimi || item.secimKullanilmazFlag === false || item.formulmu) { continue }
-			let sec_kod = secimler[key], sec_adi = secimler[`${key}Adi`], {mfSinif} = sec_kod ?? {};
-			if (!mfSinif?.mqCogulmu || (sec_kod?.bosmu && sec_adi?.bosmu)) { continue }
-			attrSet[key] = true
+			let {kaYapimi} = item
+			if (!kaYapimi || item.secimKullanilmazFlag === false || item.formulmu)
+				continue
+			let sec_kod = secimler[key]
+			let sec_adi = secimler[`${key}Adi`]
+			let {mfSinif} = sec_kod ?? {}
+			if (mfSinif?.mqCogulmu && !(sec_kod?.bosmu && sec_adi?.bosmu))
+				attrSet[key] = true
 		}
-		if (keys(attrSet).length == keys(orjAttrSet).length) { /* yeni birşey eklenmedi */ return }
-		let _e = { ...e, stm: new MQStm(), attrSet, internal }; delete _e.sent; delete _e.uni;
-		if (this.loadServerData_queryDuzenle_tekil(_e) === false) { return false }
-		let {stm: _stm} = _e, _enm = _stm.getSentListe();    /* her iki stm içindeki sent sayısı aynı olmalıdır */
-		for (let asilSent of stm) {
-			let {done, value: sent} = _enm.next();
-			asilSent.from.liste = [...sent.from.liste];
-			if (done) { break }
+		if (keys(attrSet).length == keys(orjAttrSet).length)    // yeni birşey eklenmedi
+			return
+		let _e = { ...e, stm: new MQStm(), attrSet, internal }
+		deleteKeys(e, 'sent', 'uni')
+		if (this.loadServerData_queryDuzenle_tekil(_e) === false)
+			return false
+		let {stm: _stm} = _e, _enm = _stm.getSentListe()        // ** her iki stm içindeki sent sayısı aynı olmalıdır
+		for (let {from: asilFrom} of stm) {
+			let {done, value: { from }} = _enm.next()
+			asilFrom.liste = [...from.liste]
+			if (done)
+				break
 		}
 	}
 	loadServerData_queryDuzenle_tekilSonrasi(e) {
@@ -788,7 +811,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	tabloYapiDuzenle_baBedel({ result }) {
 		this.tabloYapiDuzenle_baBedelBasit(...arguments)
-		result.addToplamBasit_bedel('ISARETLIBEDEL', 'B-A Bakiye', 'isaretlibedel')
+		result.addToplamBasit_bedel('ISARETLIBEDEL', 'B-A Bedel', 'isaretlibedel')
 		return this
 	}
 	loadServerData_queryDuzenle_baBedel({ stm, sent, attrSet, baClause, bedelClause }) {
@@ -835,52 +858,36 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		this.tabloYapiDuzenle_dovizli_baBedelBasit(...arguments)
 		let {degerlemeDvKodListe: dvKodListe} = this
 		for (let dvKod of dvKodListe)
-			result.addToplamBasit_bedel(`DEG_ISARETLIBEDEL_${dvKod}`, `B-A Bakiye (${dvKod})`, `deg_isaretlibedel_${dvKod}`)
+			result.addToplamBasit_bedel(`DEG_ISARETLIBEDEL_${dvKod}`, `B-A Bedel (${dvKod})`, `deg_isaretlibedel_${dvKod}`)
 		return this
 	}
-	loadServerData_queryDuzenle_dovizli_baBedel({ alias, tarihClause, stm, sent, attrSet, baClause, bedelClause: orjBedelClause }) {
+	loadServerData_queryDuzenle_dovizli_baBedel({ alias, stm, sent, attrSet, tarihClause, baClause, bedelClause: orjBedelClause }) {
 		if (!(baClause || bedelClause))
 			return this
 		sent ??= sent ?? stm.sent
 		let e = arguments[0]
-		let {where: wh, sahalar} = sent
-		let {degerlemeDvKodListe: dvKodListe} = this
-		for (let dvKod of dvKodListe) {
-			let dvOuterGereklimi = false
-			let bedelClause = `ROUND((${orjBedelClause}) / NULLIF(gun${dvKod}.kur, 0), 2)`
+		let {from, where: wh, sahalar} = sent
+		let {gecerliDegDvKodSet: dvKodSet = {}} = this
+		for (let dvKod in dvKodSet) {
+			let dvKurAlias = `dkur_${dvKod}`
+			if (!from.aliasIcinTable(dvKurAlias))
+				sent.fromIliski(dvKurAlias, `${tarihClause} = ${dvKurAlias}.tarih`)
+			let bedelClause = this.getDvKurluBedelClause(dvKod, orjBedelClause)
 			for (let key in attrSet) {
-				/*let baClause = baClausecu?.call(this, { ...e, dvKod })
-				let bedelClause = bedelClausecu?.call(this, { ...e, dvKod })*/
 				switch (key) {
 					case `DEG_BORCBEDEL_${dvKod}`: {
-						dvOuterGereklimi = true
 						sahalar.add(`SUM(case when ${baClause} = 'B' then ${bedelClause} else 0 end) deg_borcbedel_${dvKod}`)
 						break
 					}
 					case `DEG_ALACAKBEDEL_${dvKod}`: {
-						dvOuterGereklimi = true
 						sahalar.add(`SUM(case when ${baClause} = 'B' then 0 else ${bedelClause} end) deg_alacakbedel_${dvKod}`)
 						break
 					}
 					case `DEG_ISARETLIBEDEL_${dvKod}`: {
-						dvOuterGereklimi = true
 						sahalar.add(`SUM(( ${bedelClause} ) * ( case when ${baClause} = 'B' then 1 else -1 end )) deg_isaretlibedel_${dvKod}`)
 						break
 					}
 				}
-			}
-			if (dvOuterGereklimi) {
-				alias ||= 'fis'
-				tarihClause ||= `${alias}.tarih`
-				let outerSent = new MQSent({ top: 1 })
-				let {where: wh, sahalar} = outerSent
-				outerSent.fromAdd('ORTAK..ydvkur dkur')
-				wh.degerAta(dvKod, 'dkur.kod')
-				wh.add(`${tarihClause} <= dkur.tarih`)
-				sahalar.add('dkur.dovizsatis kur')
-				let orderBy = ['dkur.tarih DESC']
-				let outerStm = new MQStm({ sent: outerSent, orderBy })
-				sent.outerApply(alias, `gun${dvKod}`, outerStm)
 			}
 		}
 		return this
@@ -889,19 +896,19 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		let {degerlemeDvKodListe: dvKodListe} = this
 		for (let dvKod of dvKodListe) {
 			result
-				.addToplamBasit_bedel(`BORCBAKIYE_${dvKod}`, `Borç Bakiye (${dvKod})`, `borcbakiye_${dvKod}`, null, null, ({ item }) => {
+				.addToplamBasit_bedel(`DEG_BORCBAKIYE_${dvKod}`, `Borç Bakiye (${dvKod})`, `deg_borcbakiye_${dvKod}`, null, null, ({ item }) => {
 					item.setFormul(
-						[`BORCBEDEL_${dvKod}`, `ALACAKBEDEL_${dvKod}`],
-						({ rec: { [`borcbedel_${dvKod}`]: borc, [`alacakbedel_${dvKod}`]: alacak } }) => {
+						[`DEG_BORCBEDEL_${dvKod}`, `DEG_ALACAKBEDEL_${dvKod}`],
+						({ rec: { [`deg_borcbedel_${dvKod}`]: borc, [`deg_alacakbedel_${dvKod}`]: alacak } }) => {
 							let fark = borc - alacak
 							return fark > 0 ? roundToBedelFra(fark) : 0
 						}
 					)
 				})
-				.addToplamBasit_bedel(`ALACAKBAKIYE_${dvKod}`, `Alacak Bakiye (${dvKod})`, `alacakbakiye_${dvKod}`, null, null, ({ item }) => {
+				.addToplamBasit_bedel(`DEG_ALACAKBAKIYE_${dvKod}`, `Alacak Bakiye (${dvKod})`, `deg_alacakbakiye_${dvKod}`, null, null, ({ item }) => {
 					item.setFormul(
-						[`BORCBEDEL_${dvKod}`, `ALACAKBEDEL_${dvKod}`],
-						({ rec: { [`borcbedel_${dvKod}`]: borc, [`alacakbedel_${dvKod}`]: alacak } }) => {
+						[`DEG_BORCBEDEL_${dvKod}`, `DEG_ALACAKBEDEL_${dvKod}`],
+						({ rec: { [`deg_borcbedel_${dvKod}`]: borc, [`deg_alacakbedel_${dvKod}`]: alacak } }) => {
 							let fark = borc - alacak
 							return fark < 0 ? roundToBedelFra(-fark) : 0
 						}
@@ -927,7 +934,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 						` else 0 end)`
 	}
 	getDovizmi(e) {
-		let dvKod = typeof e == 'object' ? e.dvKod ?? e.dvkod : e;
+		let dvKod = isObject(e) ? e.dvKod ?? e.dvkod : e
 		switch (dvKod ?? '') {
 			case '': case 'TL':
 			case 'TRY': case 'TRL':
@@ -936,26 +943,43 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return true
 	}
 	getDvBosmuClause(e) {
-		let dvKodClause = typeof e == 'object' ? e.dvKodClause : e
+		let dvKodClause = isObject(e) ? e.dvKodClause : e
 		if ((dvKodClause || `''`) == `''`)
 			return '1 = 1'
 		return `COALESCE(${dvKodClause}, '') IN ('', 'TL', 'TRY', 'TRL')`
 	}
 	getRevizeDvKodClause(e) {
-		let dvKodClause = typeof e == 'object' ? e.dvKodClause : e
-		if ((dvKodClause || `''`) == `''`)
+		let {sqlEmpty} = Hareketci_UniBilgi.ortakArgs
+		let dvKodClause = isObject(e) ? e.dvKodClause : e
+		if ((dvKodClause || sqlEmpty) == sqlEmpty)
 			return dvKodClause
 		let dvBosmuClause = this.getDvBosmuClause(dvKodClause)
 		return `(case when ${dvBosmuClause} then '' else ${dvKodClause} end)`
 	}
 	getDovizliBedelClause(e, _tlBedelClause, _dvBedelClause, _sumOlmaksizinmi) {
-		let objmi = typeof e == 'object', sumOlmaksizinmi = objmi ? e.sumOlmaksizin ?? e.sumOlmaksizinmi : _sumOlmaksizinmi
-		let dvKodClause = objmi ? e.dvKodClause : e, dvBosmuClause = this.getDvBosmuClause(dvKodClause)
+		let objmi = isObject(e)
+		let dvKodClause = objmi ? e.dvKodClause : e
+		let dvBosmuClause = this.getDvBosmuClause(dvKodClause)
 		let tlBedelClause = objmi ? e.tlBedelClause ?? e.bedelClause : _tlBedelClause
-		let dvBedelClause = objmi ? e.dvBedelClause : _dvBedelClause;
-		if (sumOlmaksizinmi) { tlBedelClause = tlBedelClause?.sumOlmaksizin(); dvBedelClause = dvBedelClause?.sumOlmaksizin() }
+		let dvBedelClause = objmi ? e.dvBedelClause : _dvBedelClause
+		let sumOlmaksizinmi = objmi ? e.sumOlmaksizin ?? e.sumOlmaksizinmi : _sumOlmaksizinmi
+		if (sumOlmaksizinmi) {
+			tlBedelClause = tlBedelClause?.sumOlmaksizin()
+			dvBedelClause = dvBedelClause?.sumOlmaksizin()
+		}
 		if ((dvKodClause || `''`) == `''`)
 			return tlBedelClause
 		return `(case when ${dvBosmuClause} then ${tlBedelClause} else ${dvBedelClause} end)`
+	}
+	getDvKurluBedelClause(e, _bedelClause, _sumOlmaksizinmi) {
+		let objmi = isObject(e)
+		let dvKod = objmi ? e.dvKod : e
+		let bedelClause = objmi ? e.dvBedelClause ?? e.bedelClause : _bedelClause
+		let sumOlmaksizinmi = objmi ? e.sumOlmaksizin ?? e.sumOlmaksizinmi : _sumOlmaksizinmi
+		if (sumOlmaksizinmi)
+			BedelClause = bedelClause?.sumOlmaksizin()
+		if (!this.getDovizmi(dvKod))
+			return bedelClause
+		return `ROUND((${bedelClause}) / NULLIF(dkur_${dvKod}.kur, 0), 2)`
 	}
 }

@@ -13,6 +13,17 @@ class MQSentVeIliskiliYapiOrtak extends MQDbCommand {
 			result.push(sahalar.liste.flatMap(saha => saha.alias)) }
 		return result
 	}
+	static asTmpTable(e = {}, _stmOrUniOrSent) {
+		let table = typeof e == 'object' ? e.table : e
+		let stmOrUniOrSent = typeof e == 'object' ? (_sent ?? e.sent) : _stmOrUniOrSent
+		let {sahalar} = (stmOrUniOrSent.liste ? stmOrUniOrSent.liste[0] : stmOrUniOrSent) ?? {}
+		let result = new MQTmpTable({
+			table, sent: stmOrUniOrSent,
+			sahalar: sahalar.liste.map(_ => _.alias)
+		})
+		return result
+	}
+	asTmpTable(e) { return this.class.asTmpTable(e, this) }
 	asToplamStm(e) {
 		e = e || {}; let sumListe = e.sumListe ?? [], orderFlag = e.order ?? e.orderBy;
 		let tmpTabloVeAlias = e.tmpTabloVeAlias ?? e.tmpTableVeAlias, {toplamInd} = e, {liste} = this;

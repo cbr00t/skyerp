@@ -161,7 +161,7 @@ class StokHareketci extends Hareketci {
 	}
 	uniOrtakSonIslem({ sender: { finansalAnalizmi, eldekiVarliklarmi } = {}, secimler: sec, hvDegeri, hv, sent, sent: { from, where: wh, sahalar } }) {
 		super.uniOrtakSonIslem(...arguments)
-		let {sqlNull} = Hareketci_UniBilgi.ortakArgs, {attrSet, class: { sablonsalVarmi }} = this
+		let {sqlNull} = Hareketci_UniBilgi.ortakArgs, {attrSet, sonIslem_whereBaglanmazFlag, class: { sablonsalVarmi }} = this
 		let yerKodClause = hvDegeri('yerkod'), mustClause = hvDegeri('must')
 		let kodClause = hvDegeri('stokkod'), fiilimi = (sec?.ISARET?.value || 'F') == 'F';
 		if (!from.aliasIcinTable('stk')) { sent.fromIliski('stkmst stk', `${kodClause} = stk.kod`) }
@@ -180,13 +180,14 @@ class StokHareketci extends Hareketci {
 		}
 		/*let istenmeyenIsaret = fiilimi ? 'X' : '*';
 		wh.notDegerAta(istenmeyenIsaret, hvDegeri('ozelisaret'))*/
-		wh.add(`${kodClause} > ''`)
+		if (!sonIslem_whereBaglanmazFlag)
+			wh.add(`${kodClause} > ''`)
 		if (eldekiVarliklarmi) {
 			let {eldekiVarlikStokDegerlemeTipi: degTipi = {}, eldekiVarlikStokDegerlemesiKDVlidir: degKDVlimi} = app?.params?.finans
 			degTipi = degTipi?.char ?? ''
 			if (degKDVlimi)
 				sent.fromIliski('vergihesap skdv', 'stk.satkdvhesapkod = skdv.kod')
-			if (yerKodClause) {
+			if (!sonIslem_whereBaglanmazFlag && yerKodClause) {
 				wh.notInDizi(['H', 'IS', 'EM'], 'yer.aum')
 				wh.add(`yer.finanaliztipi = ''`)
 			}

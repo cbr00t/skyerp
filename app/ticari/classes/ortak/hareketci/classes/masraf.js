@@ -22,7 +22,8 @@ class MasrafHareketci extends Hareketci {
 		let {masrafkod: kodClause} = hv;
 		if (!from.aliasIcinTable('mas')) { sent.fromIliski('stkmasraf mas', `${kodClause} = mas.kod`) }
 		if (!from.aliasIcinTable('car')) { sent.x2CariBagla({ kodClause: hv.mustkod }) }
-		wh.add(`${kodClause} > ''`)
+		if (!this.sonIslem_whereBaglanmazFlag)
+			wh.add(`${kodClause} > ''`)
 		/*if (sender?.finansalAnalizmi) { }*/
 	}
     /** Varsayılan değer atamaları (host vars) – temel sınıfa eklemeler.

@@ -9,7 +9,8 @@ class BankaOrtakHareketci extends Hareketci {
 		super.uniOrtakSonIslem(...arguments); let {from, where: wh} = sent;
 		if (!from.aliasIcinTable('bhes')) { sent.x2BankaHesapBagla({ kodClause: hv.banhesapkod }) }
 		/* if (from.aliasIcinTable('ban')) { wh.add(`ban.calismadurumu <> ''`) } */
-		wh.add(`bhes.calismadurumu <> ''`)
+		if (!this.sonIslem_whereBaglanmazFlag)
+			wh.add(`bhes.calismadurumu <> ''`)
 	}
 	static varsayilanHVDuzenle_ortak({ hv }) {
 		super.varsayilanHVDuzenle_ortak(...arguments);
