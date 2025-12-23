@@ -3,6 +3,7 @@ class MQNumarator extends MQKA {
 	static get numaratorPartSinif() { return NumaratorPart } static get fisGirisLayoutSelector() { return '.numarator' }
 	static get kodListeTipi() { return 'NUMARATOR' } static get sinifAdi() { return 'Numaratör' }
 	static get sayacSaha() { return 'sayac' } static get table() { return 'numarator' } static get tableAlias() { return 'num' }
+	static get gonderildiDesteklenirmi() { return true }
 
 	constructor(e) {
 		e = e || {}; super(e);
@@ -46,6 +47,18 @@ class MQNumarator extends MQKA {
 		)
 	}
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {aliasVeNokta} = this, {sent} = e; }
+	static async offlineSaveToLocalTable(e = {}) {
+		let result = await super.offlineSaveToLocalTable(e)
+		let {table, gonderildiDesteklenirmi, gonderimTSSaha} = this
+		if (result && gonderildiDesteklenirmi && gonderimTSSaha) {
+			let upd = new MQIliskiliUpdate({
+				from: table,
+				set: { degerAta: today(), saha: gonderimTSSaha }
+			})
+			await this.sqlExecNone(upd)
+		}
+		return result
+	}
 	static partLayoutDuzenle(e) {
 		const {sender, layout, islem, fis, argsDuzenle} = e;
 		const mfSinif = e.mfSinif || this;
@@ -71,7 +84,7 @@ class MQNumarator extends MQKA {
 				from: this.class.table, sahalar: 'sonno',
 				where: seri == null ? { birlestirDict: this.keyHostVars(e) } : { birlestirDict: this.alternateKeyHostVars(e) }
 			});
-			rec = await app.sqlExecTekil(sent)
+			rec = await this.class.sqlExecTekil(sent)
 		}
 		return await super.yukle({ ...e, rec })
 	}

@@ -77,18 +77,26 @@ class MQOrtakFis extends MQDetayli {
 		for (const det of this.detaylar) { det.donusumBilgileriniSil(e) }
 		this.donusumBilgileriniSil(e)
 	}
-	async disKaydetIslemi(e) {
-		e = e || {}; let {noSaha} = this.class, {numarator: num, fisNo} = this, hedefSeri = e.seri ?? this.seri;
-		if (!num) { let {numYapi} = this; if (numYapi) { num = this.numarator = numYapi.deepCopy() } }
+	async disKaydetIslemi(e = {}) {
+		let {numarator: num, fisNo, class: { noSaha }} = this
+		let hedefSeri = e.seri ?? this.seri
+		if (!num) {
+			let {numYapi} = this
+			if (numYapi)
+				num = this.numarator = numYapi.deepCopy()
+		}
 		if (noSaha && !fisNo && num) {
 			if (hedefSeri) {
-				let {cariYil} = app.params.zorunlu;
-				$.extend(num, { kod: hedefSeri, seri: hedefSeri, noYil: cariYil });
-				if (!await num.yukle()) { await num.kaydet(e)}
+				let {cariYil} = app.params?.zorunlu
+				$.extend(num, { kod: hedefSeri, seri: hedefSeri, noYil: cariYil })
+				if (!await num.yukle())
+					await num.kaydet(e)
 				this.numarator = num
 			}
-			else { await num.yukle(e) }
-			let {seri, noYil} = num; fisNo = (await num.kesinlestir(e)).sonNo;
+			else
+				await num.yukle(e)
+			let {seri, noYil} = num
+			fisNo = (await num.kesinlestir(e)).sonNo
 			$.extend(this, { seri, noYil, fisNo })
 		}
 		let result = await this.disKaydetOncesiIslemler(e); if (result === false) { return false }

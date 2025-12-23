@@ -8,6 +8,12 @@ class TabFis extends MQDetayliGUID {
 	// static get noAutoFocus() { return true }
 	static get offlineFis() { return true } static get almSat() { return null }
 	static get satismi() { return this.almSat == 'T' } static get alimmi() { return this.almSat == 'A' }
+	static get numTipKod() { return 'TB' } static get numKod() { return 'TB' }
+	static get defaultSeri() { return 'TAB' }
+	static get numYapi() {
+		let {numTipKod: tip, numKod: belirtec, defaultSeri: seri} = this
+		return tip ? new MQTicNumarator({ tip, belirtec, aciklama: 'Sky Tablet', seri }) : null
+	}
 	get numYapi() { return this.class.numYapi }
 	get fisNox() { return this.tsn?.asText() }
 	get dipIslemci() {
@@ -34,6 +40,14 @@ class TabFis extends MQDetayliGUID {
 		return detaylar ? roundToBedelFra(topla(_ => _.dvNetBedel || _.dvBedel || 0, detaylar)) : 0
 	}
 
+	constructor({ offlineBuildQuery } = {}) {
+		super(...arguments)
+		if (!offlineBuildQuery) {
+			let num = this.numarator ??= this.numYapi?.deepCopy()
+			if (num)
+				num._promise = num.yukle()
+		}
+	}
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		$.extend(pTanim, {
@@ -94,9 +108,27 @@ class TabFis extends MQDetayliGUID {
 		}
 		return recs
 	}
-	async kaydetOncesiIslemler(e) {
-		await super.kaydetOncesiIslemler(e)
+	async yeniTanimOncesiIslemler(e) {
+		await super.yeniTanimOncesiIslemler(e)
+		await this.numarator?._promise
+	}
+	async kaydetOncesiIslemler({ islem }) {
+		await super.kaydetOncesiIslemler(...arguments)
 		this.fisSonuc = this.fisTopNet
+		let {fisNo, numarator: num} = this
+		let yeniVeyaKopyami = islem == 'yeni' || islem == 'kopya'
+		if (!fisNo && num && yeniVeyaKopyami) {
+			if (!num.sayac)
+				await num.kaydet()
+			do {
+				await num.kesinlestir()
+				this.fisNo = num.sonNo
+			} while (await this.varmi())
+		}
+	}
+	kopyaIcinDuzenle(e) {
+		super.kopyaIcinDuzenle(e)
+		this.fisNo = 0
 	}
 	topluYazmaKomutlariniOlustur_baslikSayacBelirle(e) {
 		// super yok
@@ -111,15 +143,14 @@ class TabFis extends MQDetayliGUID {
 	static async rootFormBuilderDuzenle_tablet(e) { }
 	static async rootFormBuilderDuzenle_tablet_acc(e) {
 		let {sender: tanimPart, inst, acc} = e
-		let getBuilder = layout =>
-			this.getBuilder({ ...e, layout })
-		let args = { ...e, getBuilder }
+		let getBuilder = e.getBuilder = layout =>
+			this.rootFormBuilderDuzenle_tablet_getBuilder({ ...e, layout })
 		acc.deferRedraw(() => {
 			acc.add({
 				id: 'baslik', title: 'Belge', expanded: true,
 				collapsedContent: async ({ item, layout }) => {
 					let rfb = getBuilder(layout)
-					await this.rootFormBuilderDuzenle_tablet_acc_baslikCollapsed({ ...args, rfb, item, layout })
+					await this.rootFormBuilderDuzenle_tablet_acc_baslikCollapsed({ ...e, rfb, item, layout })
 					rfb.run()
 				},
 				content: async ({ item, layout }) => {
@@ -133,7 +164,7 @@ class TabFis extends MQDetayliGUID {
 						form.addNumberInput('fisNo', 'No').etiketGosterim_yok()
 							.addStyle(`$elementCSS { max-width: 200px }`)
 					}
-					await this.rootFormBuilderDuzenle_tablet_acc_baslik({ ...args, rfb, item, layout })
+					await this.rootFormBuilderDuzenle_tablet_acc_baslik({ ...e, rfb, item, layout })
 					{
 						let form = rfb.addFormWithParent().yanYana()
 						rfb.addTextInput('aciklama', 'Açıklama').etiketGosterim_yok()
@@ -147,12 +178,12 @@ class TabFis extends MQDetayliGUID {
 				id: 'dip', title: 'Sonuç',
 				collapsedContent: async ({ item, layout }) => {
 					let rfb = getBuilder(layout)
-					await this.rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ ...args, rfb, item, layout })
+					await this.rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ ...e, rfb, item, layout })
 					rfb.run()
 				},
 				content: async ({ item, layout }) => {
 					let rfb = getBuilder(layout)
-					await this.rootFormBuilderDuzenle_tablet_acc_dip({ ...args, rfb, item, layout })
+					await this.rootFormBuilderDuzenle_tablet_acc_dip({ ...e, rfb, item, layout })
 					if (!rfb.builders?.length)
 						rfb.addStyle_fullWH(null, 1)
 					setTimeout(() => rfb.run(), 100)
@@ -162,12 +193,12 @@ class TabFis extends MQDetayliGUID {
 				id: 'detay', title: 'Kalemler',
 				collapsedContent: async ({ item, layout }) => {
 					let rfb = getBuilder(layout)
-					await this.rootFormBuilderDuzenle_tablet_acc_detayCollapsed({ ...args, rfb, item, layout })
+					await this.rootFormBuilderDuzenle_tablet_acc_detayCollapsed({ ...e, rfb, item, layout })
 					rfb.run()
 				},
 				content: async ({ item, layout }) => {
 					let rfb = getBuilder(layout)
-					await this.rootFormBuilderDuzenle_tablet_acc_detay({ ...args, rfb, item, layout })
+					await this.rootFormBuilderDuzenle_tablet_acc_detay({ ...e, rfb, item, layout })
 					if (rfb.builders?.length)
 						setTimeout(() => rfb.run(), 100)
 				}
@@ -223,7 +254,7 @@ class TabFis extends MQDetayliGUID {
 	}
 	static rootFormBuilderDuzenle_tablet_acc_onCollapse(e) { }
 
-	static getBuilder({ sender: tanimPart, inst, acc, layout }) {
+	static rootFormBuilderDuzenle_tablet_getBuilder({ sender: tanimPart, inst, acc, layout }) {
 		return new RootFormBuilder()
 			.setLayout(layout).setPart(tanimPart)
 			.setInst(inst)

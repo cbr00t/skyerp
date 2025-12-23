@@ -39,7 +39,7 @@ class MQSentVeIliskiliYapiOrtak extends MQDbCommand {
 			let uygunmu = !!matchList.find(match => deger.startsWith(match) && deger.includes(')'));
 			if (uygunmu) { topSahalarAdiSet[alias] = true }
 		}
-		let tumSahaAdlari = Object.keys(sahaAdi2Deger), topSahaAdlari = Object.keys(topSahalarAdiSet);
+		let tumSahaAdlari = keys(sahaAdi2Deger), topSahaAdlari = keys(topSahalarAdiSet);
 		let digerSahaAdlari = tumSahaAdlari.filter(saha => !topSahalarAdiSet[saha]);
 		_with.add(new MQTmpTable({ table: tmpTabloAdi, sahalar: tumSahaAdlari, sent: this }));
 		let asilSent = stm.sent; asilSent.fromAdd(`${tmpTabloAdi} ${tmpAlias}`); asilSent.sahalar.liste = [];
@@ -81,20 +81,21 @@ class MQInsertBase extends MQDbCommand {
 		$.extend(this, { table: e.table ?? e.from, hvListe, tableInsertFlag: null })
 	}
 	buildString(e) {
-		super.buildString(e); let {table, hvListe} = this; if (!table || $.isEmptyObject(hvListe)) { return }
+		super.buildString(e); let {table, hvListe} = this; if (!table || empty(hvListe)) { return }
 		let {sqlitemi} = window?.app ?? {}, {onEk} = this.class
-		let ilkHV = hvListe[0], keys = Object.keys(ilkHV), hvSize = hvListe.length
+		let ilkHV = hvListe[0], _keys = keys(ilkHV), hvSize = hvListe.length
 		let offlineMode = window?.MQCogul?.isOfflineMode ?? window.app?.offlineMode
 			// SQL Bulk Insert (values ?? .. ??) için SQL tarafında en fazla 1000 kayıta kadar izin veriliyor
 		let isTableInsert = hvSize > 5000 ? true : this.isTableInsert ?? false
 		if (sqlitemi && offlineMode !== false)
 			onEk = onEk.replace('INSERT INTO', 'INSERT OR IGNORE INTO')
-		e.result += `${onEk}${table} (`; e.result += keys.join(','); e.result += ') '
+		e.result += `${onEk}${table} (`; e.result += _keys.join(','); e.result += ') '
 		if (sqlitemi && offlineMode !== false) {
 			let params = e.params ??= []
 			let hvParamClauses = []
 			for (let hv of hvListe) {
-				let hvParam = []; for (let key of keys) {
+				let hvParam = []
+				for (let key of _keys) {
 					let value = hv[key] ?? null
 					if (isDate(value)) { value = asReverseDateTimeString(value) }
 					else if (typeof value == 'boolean') { value = bool2Int(value) }
@@ -147,23 +148,38 @@ class MQInsertOrUpdate extends MQDbCommand {
 		})
 	}
 	buildString(e) {
-		let {table, keyHV, hv, operator} = this; if ($.isEmptyObject(keyHV) || $.isEmptyObject(hv)) { return }
+		let {table, keyHV, hv, operator} = this
+		if (empty(keyHV) || empty(hv))
+			return
 		let insHV = {}, updHV = { ...hv }, wh = new MQWhereClause().birlestirDict(keyHV);
-		for (let [key, value] of Object.entries(keyHV)) { if (!insHV[key]) { insHV[key] = value } if (updHV[key]) { delete updHV[key] } }
-		for (let [key, value] of Object.entries(hv)) { if (!insHV[key]) { insHV[key] = value } }
-		let {ekHV} = this; $.extend(insHV, ekHV.ins); $.extend(updHV, ekHV.upd);
-		let set = new MQSetClause(); if (operator) {
-			for (let [key, value] of Object.entries(updHV)) {
+		for (let [key, value] of entries(keyHV)) {
+			if (!insHV[key])
+				insHV[key] = value
+			if (updHV[key])
+				delete updHV[key]
+		}
+		for (let [key, value] of entries(hv)) {
+			if (!insHV[key])
+				insHV[key] = value
+		}
+		let {ekHV} = this
+		$.extend(insHV, ekHV.ins)
+		$.extend(updHV, ekHV.upd)
+		let set = new MQSetClause()
+		if (operator) {
+			for (let [key, value] of entries(updHV)) {
 				set.add(`${key} = ${key} ${operator} ${MQSQLOrtak.sqlServerDegeri(value)}`) }
 		}
-		else { set.birlestirDict(updHV) }
-		let delim = ', ', keys = Object.keys(insHV);
-		let values = Object.values(insHV).map(value => MQSQLOrtak.sqlServerDegeri(value));
-		super.buildString(e); e.result += [
+		else
+			set.birlestirDict(updHV)
+		let delim = ', ', _keys = keys(insHV)
+		let _values = values(insHV).map(value => MQSQLOrtak.sqlServerDegeri(value))
+		super.buildString(e)
+		e.result += [
 			`IF EXISTS (SELECT * FROM ${table} ${wh})`,
 			`	UPDATE ${table} ${set} ${wh}`,
 			'ELSE',
-			`	INSERT INTO ${table} (${keys.join(delim)}) VALUES (${values.join(delim)})`
+			`	INSERT INTO ${table} (${_keys.join(delim)}) VALUES (${_values.join(delim)})`
 		].join(CrLf)
 	}
 	setTable(value) { this.table = value; return this } setKeyHV(value) { this.keyHV = value; return this } setHV(value) { this.hv = value; return this }

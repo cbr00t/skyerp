@@ -693,7 +693,8 @@ class MQCogul extends MQYapi {
 				'osaha.*' /* osaha.grupsayac */
 			]
 		})
-		let stm = new MQStm({ sent,  orderBy: ['grupSira', 'grupsayac', 'grupKod', 'sahaSira', 'sahasayac'] }); let recs = await app.sqlExecSelect(stm);
+		let stm = new MQStm({ sent,  orderBy: ['grupSira', 'grupsayac', 'grupKod', 'sahaSira', 'sahasayac'] })
+		let recs = await this.sqlExecSelect(stm)
 		let result = seviyelendir({
 			source: recs, attrListe: ['grupKod'],
 			getter: e => { let {item} = e; return new MQOzelSahaGrup({ sayac: item.grupsayac, kod: item.grupKod, aciklama: item.grupAdi }) },

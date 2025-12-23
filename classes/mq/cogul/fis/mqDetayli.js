@@ -5,14 +5,14 @@ class MQDetayli extends MQSayacli {
 	static get offlineDirect() { return !(this.detayliMastermi || this.guidmi) }
 	static get detaySiniflar() {
 		let _e = { liste: [] }; this.detaySiniflarDuzenle(_e); let {liste} = _e;
-		if ($.isEmptyObject(liste)) { let {detaySinif} = this; if (detaySinif) { liste.push(detaySinif) } }
+		if (empty(liste)) { let {detaySinif} = this; if (detaySinif) { liste.push(detaySinif) } }
 		return liste
 	}
 	static get detayTablolar() {
 		let result = this._detayTablolar; if (!result) {
 			let {detaySiniflar} = this, detayTabloSet = {};
 			for (let detaySinif of detaySiniflar) { let {table} = detaySinif; if (table) { detayTabloSet[table] = true } }
-			result = this._detayTablolar = Object.keys(detayTabloSet)
+			result = this._detayTablolar = keys(detayTabloSet)
 		}
 		return result
 	}
@@ -24,7 +24,7 @@ class MQDetayli extends MQSayacli {
 	static get gridHeight_bosluk() { return 50 }
 	constructor(e) {
 		e = e || {}; super(e); let detaylar = this.detaylar = e.detaylar || [];
-		let hasNull = false; for (let [i, det] of Object.entries(detaylar)) {
+		let hasNull = false; for (let [i, det] of entries(detaylar)) {
 			if (det == null) { hasNull = true; continue }
 			if (!$.isPlainObject(det)) { continue }
 			let detTip = det.detTip ?? det.dettip ?? det._detTip ?? det.tip ?? '';
@@ -72,28 +72,28 @@ class MQDetayli extends MQSayacli {
 	}
 	static orjBaslikListesi_argsDuzenle_detaylar(e) {
 		let {detaySiniflar} = this;
-		if (!$.isEmptyObject(detaySiniflar)) { for (let cls of detaySinif) { detaySinif?.orjBaslikListesi_argsDuzenle(e) } }
+		if (!empty(detaySiniflar)) { for (let cls of detaySinif) { detaySinif?.orjBaslikListesi_argsDuzenle(e) } }
 	}
 	static get orjBaslikListesi_detaylar() {
 		let {detaySiniflar} = this, result;
-		if (!$.isEmptyObject(detaySiniflar)) { result = detaySiniflar[0].orjBaslikListesi }
+		if (!empty(detaySiniflar)) { result = detaySiniflar[0].orjBaslikListesi }
 		if (!result) { result = super.orjBaslikListesi_detaylar }
 		return result
 	}
 	static orjBaslikListesiDuzenle_detaylar(e) {
 		e.fisSinif = e.fisSinif || this; let {detaySiniflar} = this;
-		if (!$.isEmptyObject(detaySiniflar)) { return detaySiniflar[0].orjBaslikListesiDuzenle(e) }
+		if (!empty(detaySiniflar)) { return detaySiniflar[0].orjBaslikListesiDuzenle(e) }
 		return super.orjBaslikListesiDuzenle_detaylar(e)
 	}
 	static get listeBasliklari_detaylar() {
 		let {detaySiniflar} = this, result;
-		if (!$.isEmptyObject(detaySiniflar)) { result = detaySiniflar[0].listeBasliklari }
-		if ($.isEmptyObject(result)) { result = super.listeBasliklari_detaylar }
+		if (!empty(detaySiniflar)) { result = detaySiniflar[0].listeBasliklari }
+		if (empty(result)) { result = super.listeBasliklari_detaylar }
 		return result
 	}
 	static listeBasliklariDuzenle_detaylar(e) {
 		e.fisSinif = e.fisSinif || this; let {detaySiniflar} = this, result;
-		if (!$.isEmptyObject(detaySiniflar)) { result = detaySiniflar[0].listeBasliklariDuzenle(e) }
+		if (!empty(detaySiniflar)) { result = detaySiniflar[0].listeBasliklariDuzenle(e) }
 		if (!result) { result = super.listeBasliklariDuzenle_detaylar(e) }
 		return result
 	}
@@ -142,7 +142,7 @@ class MQDetayli extends MQSayacli {
 		e = e || {}; let {detaySiniflar} = e, recs = [];
 		if (!detaySiniflar && e.detaySinif) { detaySiniflar = [e.detaySinif] }
 		if (!detaySiniflar) { detaySiniflar = this.detaySiniflar }
-		if (!$.isEmptyObject(detaySiniflar)) {
+		if (!empty(detaySiniflar)) {
 			for (let detaySinif of detaySiniflar) {
 				delete e.detaySiniflar; e.detaySinif = detaySinif
 				e.query = this.loadServerData_detaylar_queryOlustur(e);
@@ -174,7 +174,7 @@ class MQDetayli extends MQSayacli {
 		e.fisSinif = e.fisSinif ?? this; let {detaySiniflar} = e;
 		if (!detaySiniflar && e.detaySinif) { detaySiniflar = [e.detaySinif] }
 		if (!detaySiniflar) { detaySiniflar = this.detaySiniflar }
-		if (!$.isEmptyObject(detaySiniflar)) {
+		if (!empty(detaySiniflar)) {
 			let uni = e.uni = new MQUnionAll(), stm = e.stm = new MQStm({ sent: uni });
 			this.loadServerData_detaylar_queryDuzenle(e); return stm
 		}
@@ -184,7 +184,7 @@ class MQDetayli extends MQSayacli {
 		let fisSinif = e.fisSinif = e.fisSinif ?? e.fis?.class ?? this; let {detaySiniflar} = e;
 		if (!detaySiniflar && e.detaySinif) { detaySiniflar = [e.detaySinif] }
 		if (!detaySiniflar) { detaySiniflar = this.detaySiniflar }
-		if (!$.isEmptyObject(detaySiniflar)) {
+		if (!empty(detaySiniflar)) {
 			let {stm} = e, fisTableAndAlias = this.tableAndAlias, fisAlias = this.tableAlias, {sayacSaha} = this;
 			let sahalarAlinmasinFlag = e.sahalarAlinmasinFlag ?? e.sahalarAlinmasin; let result;
 			for (let detaySinif of detaySiniflar) {
@@ -201,7 +201,7 @@ class MQDetayli extends MQSayacli {
 						/*if (sql) sent.sahalar.add(`${sql} ${belirtec}`);*/
 						if (belirtec || sql) {sent.sahalar.add((sql ? sql : `${aliasVeNokta}${belirtec}`) + ` ${belirtec}`)}
 					}
-					if ($.isEmptyObject(sent.sahalar.liste)) { sent.sahalar.add(`${aliasVeNokta}*`) }
+					if (empty(sent.sahalar.liste)) { sent.sahalar.add(`${aliasVeNokta}*`) }
 					// sent.groupByOlustur();
 					sent.gereksizTablolariSil({ disinda: [alias, fisAlias] })
 				}
@@ -236,7 +236,7 @@ class MQDetayli extends MQSayacli {
 		if (sayacSaha) {
 			let fisSayac = this.sayac || rec?.[sayacSaha]; if (!fisSayac) {
 				let keyHV = this.alternateKeyHostVars(); if (keyHV) { delete keyHV[sayacSaha] }
-				if ($.isEmptyObject(keyHV)) { throw { isError: true, rc: 'fisSayacBelirlenemedi', errorText: 'Fiş için kaysayac bilgisi belirlenemedi' } }
+				if (empty(keyHV)) { throw { isError: true, rc: 'fisSayacBelirlenemedi', errorText: 'Fiş için kaysayac bilgisi belirlenemedi' } }
 			}
 		}
 		try { e.basit = true; return await super.yukle(e) } finally { delete e.basit }
@@ -254,24 +254,26 @@ class MQDetayli extends MQSayacli {
 				let seq = det.seq || 0; (seq2Detaylar[seq] = seq2Detaylar[seq] || []).push(det)
 			}
 		}
-		this.detaylarReset(); let {detaylar} = this, siraliSeqArr = arraySort(Object.keys(seq2Detaylar).map(x => asInteger(x)));
+		this.detaylarReset(); let {detaylar} = this, siraliSeqArr = arraySort(keys(seq2Detaylar).map(x => asInteger(x)));
 		for (let seq of siraliSeqArr) { let _detaylar = seq2Detaylar[seq]; detaylar.push(..._detaylar) }
 		e.detaySiniflar = detaySiniflar
 	}
 	detaylariYukleSonrasi(e) { }
 	async yaz(e) {
 		/* üst'e bakma */ e = e || {}; this.detaylariNumaralandir(e); let {sayac: _sayac} = this;
-		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e;
-		e.proc = async e => {
-			e = e ?? {}; let paramName_fisSayac = '@fisSayac'; await this.yeniOncesiIslemler(e); let _e = { ...e, toplu: new MQToplu(), paramName_fisSayac };
-			await this.topluYazmaKomutlariniOlustur(_e); await this.topluYazmaKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) { return true }
+		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e
+		e.islem ||= 'yeni'
+		e.proc = async () => {
+			let paramName_fisSayac = '@fisSayac'; await this.yeniOncesiIslemler(e)
+			let _e = { ...e, toplu: new MQToplu(), paramName_fisSayac }
+			await this.topluYazmaKomutlariniOlustur(_e); await this.topluYazmaKomutlariniOlusturSonrasi(_e); if (empty(_e.toplu.liste)) { return true }
 			let {toplu: query, sayac} = _e; _e = { offlineMode, trnId, query, sayac };
 			await delay(asInteger(100 + Math.random() * 400));
 			let result = await this.sqlExecNoneWithResult(_e); if ($.isArray(result)) { result = result[0] ?? true }
 			_e.sqlParam = result = result?.params?.[paramName_fisSayac] ?? result;
 			await this.yazSonrasi_sayacGeriYukle(_e); await this.yeniSonrasiIslemler(e); return result
 		};
-		try { return offlineMode ? await e.proc(e) : (await app.sqlTrnDo(e)).result } catch (ex) { this.sayac = _sayac; throw ex }
+		try { return offlineMode ? await e.proc() : (await app.sqlTrnDo(e)).result } catch (ex) { this.sayac = _sayac; throw ex }
 	}
 	yazSonrasi_sayacGeriYukle(e) {
 		let {sqlParam} = e, fisSayac = (e.sayac ?? asInteger(sqlParam.value)) || null;
@@ -280,25 +282,41 @@ class MQDetayli extends MQSayacli {
 	}
 	async degistir(e) {
 		/* üst'e bakma */ e = e || {}; if (!$.isPlainObject(e)) { e = { islem: 'degistir', eskiInst: e } }
-		this.detaylariNumaralandir(e); let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e;
-		e.proc = async e => {
-			e = e ?? {}; await this.degistirOncesiIslemler(e); let _e = { ...e, toplu: new MQToplu() };
-			await this.topluDegistirmeKomutlariniOlustur(_e); await this.topluDegistirmeKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) { return true }
+		this.detaylariNumaralandir(e)
+		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode
+		let {trnId} = e
+		e.islem ||= 'degistir'
+		e.proc = async () => {
+			await this.degistirOncesiIslemler(e)
+			let _e = { ...e, toplu: new MQToplu() }
+			await this.topluDegistirmeKomutlariniOlustur(_e)
+			await this.topluDegistirmeKomutlariniOlusturSonrasi(_e)
+			if (empty(_e.toplu.liste)) { return true }
 			_e = { offlineMode, trnId, query: _e.toplu };
-			await delay(asInteger(100 + Math.random() * 300)); let result = await this.sqlExecNoneWithResult(_e); result = result?.[0] ?? result;
+			await delay(asInteger(50 + Math.random() * 200))
+			let result = await this.sqlExecNoneWithResult(_e)
+			result = result?.[0] ?? result
 			await this.degistirSonrasiIslemler(e); return result
 		};
-		return offlineMode ? await e.proc(e) : (await app.sqlTrnDo(e)).result
+		return offlineMode ? await e.proc() : (await app.sqlTrnDo(e)).result
 	}
 	async sil(e) {
 		/* üst'e bakma */ e = e || {}; let {sayac} = this; if (!sayac) { throw { isError: true, rc: 'fisSayac', errorText: 'Silinecek kayıt belirlenemiyor' } }
 		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e;
-		e.proc = async e => {
-			e = e ?? {}; await this.silmeOncesiIslemler(e); let _e = { ...e, toplu: new MQToplu(), sayac };
-			await this.topluSilmeKomutlariniOlustur(_e); await this.topluSilmeKomutlariniOlusturSonrasi(_e); if ($.isEmptyObject(_e.toplu.liste)) { return true }
-			_e = { offlineMode, trnId, query: _e.toplu }; let result = await this.sqlExecNone(_e); await this.silmeSonrasiIslemler(e); return result
+		e.islem ||= 'sil'
+		e.proc = async () => {
+			await this.silmeOncesiIslemler(e)
+			let _e = { ...e, toplu: new MQToplu(), sayac }
+			await this.topluSilmeKomutlariniOlustur(_e);
+			await this.topluSilmeKomutlariniOlusturSonrasi(_e)
+			if (empty(_e.toplu.liste))
+				return true
+			_e = { offlineMode, trnId, query: _e.toplu }
+			let result = await this.sqlExecNone(_e)
+			await this.silmeSonrasiIslemler(e)
+			return result
 		};
-		return offlineMode ? await e.proc(e) : (await app.sqlTrnDo(e)).result
+		return offlineMode ? await e.proc() : (await app.sqlTrnDo(e)).result
 	}
 	async kaydetOncesiIslemler(e) {
 		await super.kaydetOncesiIslemler(e); let {detaylar} = this;
@@ -369,19 +387,23 @@ class MQDetayli extends MQSayacli {
 			if (!harSayacSaha) { harSayacSaha = detaySinif.sayacSaha ?? detaySinif.idSaha }
 			if (!fisSayacSaha) { fisSayacSaha = detaySinif.fisSayacSaha }
 			if (!seqSaha) { seqSaha = det.class.seqSaha }
-			let hv = det.hostVars(detHVArg); if (!hv) { return false } hv._harsayac = det.okunanHarSayac;  /* yeni kayıt için null aksinde okunan harsayac */
-			let detTable = det.class.getDetayTable(detHVArg), hvListe = detTable2HVListe[detTable] = detTable2HVListe[detTable] || [];
+			let hv = det.hostVars(detHVArg)
+			if (!hv)
+				return false
+			hv._harsayac = det.okunanHarSayac  /* yeni kayıt için null aksinde okunan harsayac */
+			let detTable = det.class.getDetayTable(detHVArg)
+			let hvListe = detTable2HVListe[detTable] = detTable2HVListe[detTable] || []
 			hvListe.push(hv)
 		}
 		harSayacSaha ||= thisDetaySinif.sayacSaha ?? thisDetaySinif.idSaha
 		fisSayacSaha ||= thisDetaySinif.fisSayacSaha
 		seqSaha ||= thisDetaySinif.seqSaha
-		if ($.isEmptyObject(detTable2HVListe)) {
+		if (empty(detTable2HVListe)) {
 			detTable2HVListe[thisDetaySinif.getDetayTable(detHVArg)] = [] }
 		let fisHV = this.hostVars(e), keyHV = this.keyHostVars({ ...e, varsayilanAlma: true });
 		let sent = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: ['*'] });
 		let basRec = await this.sqlExecTekil({ offlineMode, trnId, query: sent }), degisenHV = degisimHV(fisHV, basRec);
-		if (!$.isEmptyObject(degisenHV)) { toplu.add(new MQIliskiliUpdate({ from: table, where: { birlestirDict: keyHV }, set: { birlestirDict: degisenHV } })) }
+		if (!empty(degisenHV)) { toplu.add(new MQIliskiliUpdate({ from: table, where: { birlestirDict: keyHV }, set: { birlestirDict: degisenHV } })) }
 		let {sayac: fisSayac} = this; for (let detTable in detTable2HVListe) {
 			let ekleHVListe = [], harSayac2HV = {}, detHVListe = detTable2HVListe[detTable];
 			for (let hv of detHVListe) { let {_harsayac: harSayac} = hv; if (harSayac) { harSayac2HV[harSayac] = hv } else { ekleHVListe.push(hv) } }
@@ -393,7 +415,7 @@ class MQDetayli extends MQSayacli {
 				if (yHV) {
 				/* sira degisimi varsa oncelikli yapilir */ let {seq} = yHV; if (seq != eskiSeq) { sayac2YeniSeq[harSayac] = seq }
 					let degisenHV = degisimHV(yHV, rec, [harSayacSaha, seqSaha, '_harsayac'].filter(x => !!x));
-					if (!$.isEmptyObject(degisenHV)) { degisenSayac2HV[harSayac] = degisenHV }
+					if (!empty(degisenHV)) { degisenSayac2HV[harSayac] = degisenHV }
 					delete harSayac2HV[harSayac]  /* bulunan kayıt için sayac değişimi veya içerik değişimi için bilgiler toplandı */
 				}
 				else {
@@ -404,9 +426,13 @@ class MQDetayli extends MQSayacli {
 					}
 				}
 			}
-			if (!$.isEmptyObject(harSayac2HV)) { ekleHVListe.push(...Object.values(harSayac2HV)) }
-			/* ekleneceklerde harSayac kaldirilir */ for (let hv of ekleHVListe) { delete hv._harsayac }
-			/* silinecekler komutu eklenir */ if (!$.isEmptyObject(silSayaclar)) {
+			if (!empty(harSayac2HV))
+				ekleHVListe.push(...values(harSayac2HV))
+			/* ekleneceklerde harSayac kaldirilir */
+			for (let hv of ekleHVListe)
+				delete hv._harsayac
+			/* silinecekler komutu eklenir */
+			if (!empty(silSayaclar)) {
 				toplu.add(new MQIliskiliDelete({
 					from: detTable, where: [
 						typeof silSayaclar[0] == 'object'
@@ -416,7 +442,7 @@ class MQDetayli extends MQSayacli {
 				}))
 			}
 			/* harSayaclarda seq kaydirilacaklar kaydirilir */
-			if (!$.isEmptyObject(sayac2YeniSeq)) {
+			if (!empty(sayac2YeniSeq)) {
 				// (case kaysayac when 1 then $seq1 ... else seq end)
 				let clause = `(case ${harSayacSaha}`, harSayacListe = [];
 				for (let harSayac in sayac2YeniSeq) {
@@ -426,13 +452,13 @@ class MQDetayli extends MQSayacli {
 				clause += ` else ${seqSaha} end)`;
 				toplu.add(new MQIliskiliUpdate({ from: detTable, where: { inDizi: harSayacListe, saha: harSayacSaha }, set: `${seqSaha} = ${clause}` }))
 			}
-			/* tek tek degisiklikler yapilir - seq harici */  if (!$.isEmptyObject(degisenSayac2HV)) {
-				for (let [harSayac, hv] of Object.entries(degisenSayac2HV)) {
+			/* tek tek degisiklikler yapilir - seq harici */  if (!empty(degisenSayac2HV)) {
+				for (let [harSayac, hv] of entries(degisenSayac2HV)) {
 					if (!hv) { continue } harSayac = asInteger(harSayac); delete hv.seq;
 					toplu.add(new MQIliskiliUpdate({ from: detTable, where: { degerAta: harSayac, saha: harSayacSaha }, set: { birlestirDict: hv } }))
 				}
 			}
-			/* eklenmesi gerekenler toplu eklenir */  if (!$.isEmptyObject(ekleHVListe)) { toplu.add(new MQInsert({ table: detTable, hvListe: ekleHVListe })) }
+			/* eklenmesi gerekenler toplu eklenir */  if (!empty(ekleHVListe)) { toplu.add(new MQInsert({ table: detTable, hvListe: ekleHVListe })) }
 		}
 	}
 	topluSilmeKomutlariniOlustur(e) {
@@ -572,7 +598,7 @@ class MQDetayliGUID extends MQDetayliMaster {
 		super.inExp_hostVarsDuzenle(e); let {hv} = e;
 		let {detaylar} = this, detHVListe = hv.detaylar = [];
 		for (let det of detaylar) {
-			let detHV = det.exportSelf(); if ($.isEmptyObject(detHV)) { continue }
+			let detHV = det.exportSelf(); if (empty(detHV)) { continue }
 			let {class: { name: _cls }} = det;
 			detHVListe.push({ _cls, ...detHV })
 		}

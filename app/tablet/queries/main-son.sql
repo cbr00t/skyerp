@@ -35,3 +35,4 @@ CREATE TABLE IF NOT EXISTS tabhar (
 	PRIMARY KEY (fisid, seq)
 );
 CREATE INDEX IF NOT EXISTS idx_tabhar_seq ON tabhar (seq);
+

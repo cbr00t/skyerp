@@ -19,7 +19,8 @@ class MQYapi extends CIO {
 	static get offlineDirect() { return true } static get offlineGonderYapilirmi() { return false }
 	static get offline2OnlineSaha() { return {} }
 	static get online2OfflineSaha() { return asReverseDict(this.offline2OnlineSaha) }
-	static get logKullanilirmi() { return true } static get logAnaTip() { return 'K' }
+	static get logKullanilirmi() { return !this.isOfflineMode }
+	static get logAnaTip() { return 'K' }
 	static get logRecDonusturucu() { let e = { result: {} }; this.logRecDonusturucuDuzenle(e); return e.result }
 	get logHV() { let e = { hv: {} }; this.logHVDuzenle(e); return e.hv }
 
@@ -181,9 +182,11 @@ class MQYapi extends CIO {
 			duzenle, duzenleyici, trn
 		} = e
 		let {user: loginUser} = config.session ?? {}
-		islem ??= ''; adimBelirtec ??= this.kodListeTipi ?? ''; logAnaTip ??= this.logAnaTip ?? ''
+		islem ??= ''; adimBelirtec ??= this.kodListeTipi ?? ''
+		logAnaTip ??= this.logAnaTip ?? ''
 		degisenler = degisenler?.map(x => x.replaceAll(' ', '_')) ?? []
-		where = where ?? wh ?? _sent?.where; table ??= tableVeAlias?.table ?? this.table
+		where = where ?? wh ?? _sent?.where
+		table ??= tableVeAlias?.table ?? this.table
 		tableVeAlias ??= tabloVeAlias; duzenleyici ??= duzenle
 		let tAlias = (alias ?? tableVeAlias?.alias ?? this.tableAlias) || 't'
 		// logRecDonusturucu ??= this.logRecDonusturucu
@@ -201,7 +204,7 @@ class MQYapi extends CIO {
 		await this.logHVDuzenle(_e); hv = _e.hv
 		let ins = _e.ins = new MQInsert({ table: 'vtlog', hv })
 		await this.logInsertDuzenle(_e); ins = _e.ins
-		return await app.sqlExecNone({ query: ins, trn })
+		return await this.sqlExecNone({ query: ins, trn })
 	}
 	logKaydet({ logHV = this.logHV } = {}) {
 		return this.class.logKaydet({ ...arguments[0], logHV })
@@ -295,7 +298,7 @@ class MQYapi extends CIO {
 			return false
 		let offlineTable = e.table ?? e.offlineTable ?? this.table
 		if (!offlineTable)
-			return this
+			return false
 		let {offlineDirect: directFlag, idSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this, clear = e.clear ?? e.clearFlag
 		let {offlineSahaListe: attrListe, kodKullanilirmi, kodSaha, emptyKodValue = ''} = this
 		let {trnId} = e, offlineMode = true, offlineRequest = true, offlineYukleRequest = true, internal = true
@@ -371,17 +374,17 @@ class MQYapi extends CIO {
 			if (inLocalTrn)
 				await this.sqlExecNone({ ...e, offlineMode, query: 'COMMIT' }) 
 		}
-		return this
+		return true
 	}
 	static async offlineSaveToRemoteTable(e = {}) {
 		if (!this.dbMgr_db)
-			return this
+			return false
 		let {offlineGonderYapilirmi} = this
 		if (!offlineGonderYapilirmi)
-			return this
+			return false
 		let offlineTable = e.table ?? e.offlineTable ?? this.table
 		if (!offlineTable)
-			return this
+			return false
 		let {offlineDirect: directFlag, offlineSahaListe: attrListe, idSaha, onlineIdSaha = idSaha, sayacSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this
 		let offlineMode = false, offlineRequest = true, offlineGonderRequest = true
 		let {trnId} = e
@@ -398,7 +401,7 @@ class MQYapi extends CIO {
 					if (recs?.length) {
 						// let priKeys = idSaha ? null : keys(new this().keyHostVars({ offlineRequest, offlineMode: true }))
 						if (onlineIdSaha && !empty(recs)) {
-							let idList = keys(asSet(recs.map(rec => rec[onlineIdSaha] ?? rec[idSaha])))
+							let idList = keys(asSet(recs.map(rec => rec[onlineIdSaha] ?? rec[idSaha]).filter(_ => _ != null)))
 							let sent = new MQSent(), {where: wh, sahalar} = sent
 							sent.fromAdd(offlineTable)
 							wh.inDizi(idList, onlineIdSaha)
@@ -482,7 +485,7 @@ class MQYapi extends CIO {
 				app.resetOfflineStatus()
 			}
 		}
-		return this
+		return true
 	}
 	static offlineSaveToLocalTableWithClear(e) { e = e ?? {}; return this.offlineSaveToLocalTable({ ...e, clear: true }) }
 	static offlineSaveToRemoteTableWithClear(e) { e = e ?? {}; return this.offlineSaveToRemoteTable({ ...e, clear: true }) }
@@ -498,6 +501,7 @@ class MQYapi extends CIO {
 	}
 	static offlineBuildSQLiteQuery({ result = [] }) {
 		let e = arguments[0]
+		e.offlineBuildQuery = true
 		let inst = new this(e)
 		inst.offlineBuildSQLiteQuery(e)
 	}
@@ -521,30 +525,47 @@ class MQYapi extends CIO {
 			if (v !== undefined)
 				hv[k] = v
 		}
+		let autoIncSet = asSet(['sayac', 'kaysayac'])
 		if (primaryKeys && $.isArray(primaryKeys))
 			primaryKeys = asSet(primaryKeys)
 		if (!primaryKeys)
 			primaryKeys = asSet(keys(priHV))
+		for (let [k, v] of entries(hv)) {
+			let autoInc = autoIncSet[k]
+			if (!autoInc)
+				continue
+			primaryKeys = asSet([k])
+			break
+		}
 		let hasMultiPK = keys(primaryKeys).length > 1
 		let atFirst = true, i = 0, c = keys(hv).length
 		r.push(`CREATE TABLE IF NOT EXISTS ${table} (`)
 		// if (this instanceof MQTabPlasiyer)
 		// 	debugger
 		for (let [k, v] of entries(hv)) {
-			let isPK = primaryKeys[k], atLast = i + 1 == c
+			let autoInc = autoIncSet[k]
+			let _isNum = isNum(v)
+			if (autoInc && !_isNum) {
+				v = asInteger(v) ?? 0
+				_isNum = true
+			}
+			let isPK = primaryKeys[k]
+			let atLast = i + 1 == c
 			let t = (
-				typeof v == 'boolean' ? 'INTEGER' :
-				typeof v == 'string' ? 'TEXT' :
-				typeof v == 'number' ? (isPK ? 'INTEGER' : 'REAL') :
+				isBool(v) ? 'INTEGER' :
+				isStr(v) ? 'TEXT' :
+				_isNum ? (isPK || autoInc ? 'INTEGER' : 'REAL') :
 				'NONE'
 			)
 			let isNull = v == null
 			let pre = '\t'
-			let post = isNull ? '' : ' NOT NULL'
-			if (!(isNull || isPK))
+			let post = isNull || autoInc ? '' : ' NOT NULL'
+			if (!(isNull || isPK || autoInc))
 				post += ` DEFAULT ${MQSQLOrtak.sqlDegeri(v)}`
 			if (isPK && !hasMultiPK)
 				post += ' PRIMARY KEY'
+			if (autoInc)
+				post += ' AUTOINCREMENT'
 			if (!atLast || hasMultiPK)
 				post += ','
 			r.push(`${pre}${k} ${t}${post}`)

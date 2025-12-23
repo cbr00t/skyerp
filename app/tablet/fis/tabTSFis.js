@@ -29,11 +29,10 @@ class TabTSFis extends TabFis {
 		let {sender: tanimPart, inst, rootBuilder: rfb, kaForm, tanimFormBuilder: tanimForm, acc} = e
 		// tanimForm.addForm().setLayout(() => $(`<p><h3>hello world from ${this.name}</h3></p>`))
 	}
-	static async rootFormBuilderDuzenle_tablet_acc({ sender: tanimPart, acc }) {
-		await super.rootFormBuilderDuzenle_tablet_acc(...arguments)
-		let getBuilder = layout =>
-			this.getBuilder({ ...e, layout })
-		let e = arguments[0]
+	static async rootFormBuilderDuzenle_tablet_acc(e) {
+		await super.rootFormBuilderDuzenle_tablet_acc(e)
+		let {sender: tanimPart, acc, getBuilder} = e
+		// let getBuilder = layout => this.rootFormBuilderDuzenle_tablet_getBuilder({ ...e, layout })
 		acc.add({
 			id: 'duzenle', title: 'Satır Düzenle',
 			collapsedContent: async ({ item, layout }) => {

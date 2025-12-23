@@ -53,30 +53,62 @@ class MQTicNumarator extends MQNumarator {
 		super.loadServerData_queryDuzenle(e); let {aliasVeNokta} = this, {sent} = e;
 		sent.sahalar.add(`${aliasVeNokta}tip`)
 	}
-	async yukle(e) {
-		e = e || {}; let {rec} = e;
+	async yukle(e = {}) {
+		let {rec} = e
 		if (!rec) {
-			let {tip} = this; if (!tip) { return false }
-			let {belirtec} = this, {table} = this.class;
+			let {tip} = this
+			if (!tip) 
+				return false
+			let {belirtec, class: { table }} = this
 			let sent = new MQSent({
 				from: table, sahalar: '*',
-				where: belirtec ? { birlestirDict: this.alternateKeyHostVars(e) } : { degerAta: this.tip, saha: 'tip' }
-			});
-			rec = await app.sqlExecTekil(sent);
+				where: belirtec ? { birlestirDict: this.alternateKeyHostVars(e) } : { degerAta: tip, saha: 'tip' }
+			})
+			rec = await this.class.sqlExecTekil(sent)
 		}
 		return await super.yukle({ ...e, rec })
 	}
+	async kayitSayisi(e) { return await super.kayitSayisi(e)	 }
 	keyHostVarsDuzenle(e) { super.superKeyHostVarsDuzenle(e); let {hv} = e; hv.tip = this.tip; }
 	keySetValues(e) { super.superKeySetValues(e); let {rec} = e; let value = rec.tip; if (value != null) this.tip = value }
-	async kesinlestir(e) {
-		let {table} = this.class, {sayac} = this;
-		let sonNo = this.sonNo || 0; if (!sayac) { this.sonNo = ++sonNo; return this }
-		let {sayacSaha} = this.class, result = await app.sqlExecNoneWithResult({
+	async kesinlestir(e = {}) {
+		let {sayac, class: { table, isOfflineMode: _isOfflineMode }} = this
+		let {isOfflineMode = _isOfflineMode} = e
+		let sonNo = this.sonNo || 0
+		if (isOfflineMode) {
+			if (!await this.varmi()) {
+				sonNo = ++this.sonNo
+				await this.yaz()
+			}
+			else {
+				let keyHV = this.alternateKeyHostVars(e)
+				let toplu = new MQToplu([
+					new MQIliskiliUpdate({
+						from: table,
+						where: { birlestirDict: keyHV },
+						set: `sonno = sonno + 1`
+					}),
+					new MQSent({
+						from: table, sahalar: ['sonno'],
+						where: { birlestirDict: keyHV }
+					})
+				]).withTrn()
+				sonNo = this.sonNo = asInteger(await this.sqlExecTekilDeger(toplu))
+			}
+			return sonNo
+		}
+		if (!sayac) {
+			this.sonNo = ++sonNo
+			return this
+		}
+		let {sayacSaha} = this.class, result = await this.class.sqlExecNoneWithResult({
 			query: `UPDATE ${table} SET @sonNo = sonno = sonno + 1 WHERE ${sayacSaha} = ${sayac}`,
 			params: [{ name: '@sonNo', type: 'int', direction: 'output' }]
-		});
-		if ($.isArray(result)) { result = result[0] }
-		let qParam = (result?.params || {})['@sonNo']; if (qParam?.value) { sonNo = this.sonNo = qParam.value }
+		})
+		if (isArray(result)) { result = result[0] }
+		let qParam = (result?.params || {})['@sonNo']
+		if (qParam?.value)
+			sonNo = this.sonNo = qParam.value
 		return this
 	}
 }

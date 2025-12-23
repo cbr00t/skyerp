@@ -13,6 +13,7 @@ class TabletApp extends TicariApp {
 		let {_offlineBilgiYukleGonderOrtakSiniflar: result} = this
 		if (!result) {
 			result = this._offlineBilgiYukleGonderOrtakSiniflar = [
+				MQTicNumarator,
 				MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
 				MQTabBolge, MQTabIl, MQTabUlke, MQTabCariTip,
 				MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
