@@ -353,18 +353,36 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				asilUniDuzenlendimi = true
 			}
 			if (ekDBListe?.length && asilUni.liste.length) {
-				let tmpName2Yapi = fromEntries(_with.liste.map(_ => [_.table, _]))
+				let tmpName2Yapi = {}
+				for (let {table, sent} of _with) {
+					if (!(table == 'tarihler' || table.startsWith('dkur_')))
+						tmpName2Yapi[table] = sent
+				}
+				// fromEntries(_with.liste.map(_ => [_.table, _.sent]))
 				let ekSentListe = []
 				for (let db of ekDBListe) {
 					if (filtreDBSet && !filtreDBSet[db])
 						continue
-					for (let [table, { sent: tmpSent }] of entries(tmpName2Yapi)) {
-						let yTmpSent = tmpSent.deepCopy()
+					for (let [table, [tmpSentOrUni]] of entries(tmpName2Yapi)) {
+						let yTmpSentOrUni = tmpSentOrUni.deepCopy()
 						// for (let item of yTmpSent.from.liste)
-						for (let item of yTmpSent.from)                                                                   // from.liste değil from sadece. from kendisi ve altındaki joinler için iterasyon
-							item.deger = tmpName2Yapi[item.deger] ? `${db}_${item.deger}` : `${db}..${item.deger}`
+						for (let yTmpSent of yTmpSentOrUni) {
+							let {from, sahalar} = yTmpSent
+							for (let item of from) {                                                                     // ** 'from.liste' değil sadece 'from'. 'from' iterasyon içerir (kendisi ve altındaki joinler için)
+								let {deger: table} = item
+								table = item.deger = tmpName2Yapi[table] ? `${db}_${table}` : `${db}..${table}`
+							}
+							for (let saha of sahalar) {
+								let {deger} = saha
+								if (MQSQLOrtak.sqlBosDegermi(deger))
+									continue
+								let name = deger.split('.')?.[0]
+								if (tmpName2Yapi[name])
+									deger = saha.deger = `${db}_${deger}`
+							}
+						}
 						let yTable = `${db}_${table}`
-						_with.add(yTmpSent.asTmpTable(yTable))
+						_with.add(yTmpSentOrUni.asTmpTable(yTable))
 					}
 					let tmpTableSet = asSet(keys(tmpName2Yapi))
 					let {liste} = asilUni.deepCopy()
@@ -375,14 +393,16 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 							let hasDB = table.includes('.')
 							if (hasDB || table.includes('('))                                                             // table doğrudan select cümlesi olabilir
 								continue
+							if (table == 'tarihler' || table.startsWith('dkur_'))
+								continue
 							table = tmpTableSet[table] ? `${db}_${table}` : `${db}..${table}`
 							item.deger = table
 						}
 						{
-							let saha = sahalar.liste.find(x => x.alias == alias_db);
+							let saha = sahalar.liste.find(x => x.alias == alias_db)
 							if (attrSet.DB && !saha) {
-								sahalar.add(`'NULL' ${alias_db}`);
-								saha = sahalar.liste.find(x => x.alias == alias_db);
+								sahalar.add(`'NULL' ${alias_db}`)
+								saha = sahalar.liste.find(x => x.alias == alias_db)
 							}
 							if (saha)
 								saha.deger = db.sqlServerDegeri()

@@ -108,6 +108,12 @@ class MQClause extends MQSQLOrtak {
 	}
 	parantezli() { this.parantezlimi = true; return this }
 	parantezsiz() { this.parantezlimi = false; return this }
+	*iter() {
+		let {liste} = this
+		for (let item of liste ?? [])
+			yield item		
+	}
+	[Symbol.iterator]() { return this.iter() }
 }
 class MQToplu extends MQClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get toplumu() { return true } get toplumu() { return this.class.toplumu }
@@ -254,15 +260,19 @@ class MQFromClause extends MQClause {
 		return this
 	}
 	*iter() {
-		let {liste = []} = this;
-		for (let aMQTable of liste) {
-			if (typeof aMQTable == 'string') { aMQTable = MQTable.newForFromText(aMQTable) }
-			if (!aMQTable) { continue }
-			let {leftVeInner = []} = aMQTable; yield aMQTable;
-			for (let anMQXJoinTable of leftVeInner) { yield anMQXJoinTable }
+		let {liste} = this
+		for (let aMQTable of liste ?? []) {
+			if (typeof aMQTable == 'string')
+				aMQTable = MQTable.newForFromText(aMQTable)
+			if (!aMQTable)
+				continue
+			let {leftVeInner = []} = aMQTable
+			yield aMQTable
+			for (let anMQXJoinTable of leftVeInner)
+				yield anMQXJoinTable
 		}
 	}
-	[Symbol.iterator](e) { return this.iter(e) }
+	[Symbol.iterator]() { return this.iter() }
 }
 class MQSubWhereClause extends MQClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return `${CrLf}	  AND	 ` }

@@ -325,15 +325,15 @@ class DRapor_EldekiVarliklar_Sag extends DAltRapor_EldekiVarliklar_Ortak {
 			'Borç Senetleri'*/
 		])
 	}
-	/*async loadServerDataInternal(e) {
-		let recs = await super.loadServerDataInternal(e) ?? [];
-		recs.push(...[
-			{ oncelik: 2, grup: 'KREDİ KART ÖDEMELERİ', mstkod: '0011', mstadi: 'GARANTİ BANKASI K.K 0011', bedel: 2_389_590.07, kur2tl: 2_389_590.07 },
-			{ oncelik: 2, grup: 'KREDİ KART ÖDEMELERİ', mstkod: '1019', mstadi: 'GARANTİ BANKASI K.K 1019', bedel: 518_260.69, kur2tl: 518_260.69 },
-			{ oncelik: 2, grup: 'KREDİ KART ÖDEMELERİ', mstkod: '3830', mstadi: 'KUVEYTTÜRK K.K 3830', bedel: 51.00, kur2tl: 51.00 },
-			{ oncelik: 5, grup: 'BORÇ ÇEKLER', mstkod: 'CR00173', mstadi: 'VF EGE GİYİM SANAYİ VE TİC. LTD.ŞTİ.', bedel: 4_878_035.00, kur2tl: 4_878_035.00 },
-			{ oncelik: 5, grup: 'BORÇ ÇEKLER', mstkod: 'CR00891', mstadi: 'ÜMİT KARAKOÇ TEKSTİL SAN.TİC.LTD.ŞTİ. - USD HESABI', bedel_USD: 17_840.13, kur2tl: 611_416.94 }
-		]);
-		return recs
-	}*/
+	async loadServerDataInternal(e) {
+		let {secimler: buSecimler, rapor: { id2AltRapor: { main: { secimler: asilSecimler } } }} = this
+		if (buSecimler && asilSecimler) {
+			for (let [key, asilSec] of asilSecimler) {
+				let buSec = buSecimler[key]
+				if (buSec)
+					$.extend(buSec, asilSec)
+			}
+		}
+		return await super.loadServerDataInternal(e)
+	}
 }
