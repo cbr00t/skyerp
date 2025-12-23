@@ -812,14 +812,14 @@ class SBTabloGridci extends GridKontrolcu {
 	tabloKolonlariDuzenle_ilk(e) {
 		super.tabloKolonlariDuzenle_ilk(e); let {tabloKolonlari: liste} = e
 		let cellClassName = (sender, rowIndex, belirtec, value, rec) => {
-			let _e = { sender, rowIndex, belirtec, value, rec, result: [] };
+			let _e = { sender, rowIndex, belirtec, value, rec, result: [] }
 			return this.ekCSSDuzenle(_e)
 		};
 		let cellsRenderer = (colDef, rowIndex, belirtec, value, html, jqxCol, rec, result) => {
-			html = result ?? html; rec ??= {};
-			let {shStokHizmet: { birliktemi: shBirliktemi } = {}} = rec;
-			let {hesapTipi: { ekBilgi: { querymi, hareketcimi, formulmu } = {} } = {}} = rec;
-			let clear = () => html = changeTagContent(html, '');
+			html = result ?? html; rec ??= {}
+			let {shStokHizmet: { birliktemi: shBirliktemi } = {}} = rec
+			let {hesapTipi: { ekBilgi: { querymi, hareketcimi, formulmu } = {} } = {}} = rec
+			let clear = () => html = changeTagContent(html, '')
 			switch (belirtec) {
 				case 'veriTipi':
 					if (!querymi) { clear() }

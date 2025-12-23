@@ -22,16 +22,18 @@ CREATE INDEX IF NOT EXISTS idx_tabfis_must ON tabfis (must);
 CREATE TABLE IF NOT EXISTS tabhar (
 	fisid TEXT NOT NULL,
 	seq INTEGER NOT NULL,
+-- ticari/stok ortak fis
 	barkod TEXT NOT NULL DEFAULT '',
 	stokkod TEXT NOT NULL DEFAULT '',
 	miktar REAL NOT NULL DEFAULT 0,
 	fiyat REAL NOT NULL DEFAULT 0,
 	kdvorani INTEGER NOT NULL DEFAULT 0,
 	brutbedel TEXT NOT NULL DEFAULT '',
-	bedel REAL NOT NULL DEFAULT 0,
 	ekaciklama TEXT NOT NULL DEFAULT '',
 -- tahsilat fis
-	tahseklikodno INTEGER NOT NULL DEFAULT '',
+	tahseklino INTEGER NOT NULL DEFAULT '',
+-- tahsilat, ticari/stok ortak fis
+	bedel REAL NOT NULL DEFAULT 0,
 	PRIMARY KEY (fisid, seq)
 );
 CREATE INDEX IF NOT EXISTS idx_tabhar_seq ON tabhar (seq);

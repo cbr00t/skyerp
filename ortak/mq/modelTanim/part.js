@@ -349,8 +349,12 @@ class ModelTanimPart extends Part {
 				else if (this.silmi) { result = await inst.sil() }
 				if (!result || result.isError) { return false }
 			}
-			await this.kaydetSonrasiIslemler(e);
-			let {kaydedince} = this; if (kaydedince) { let _e = $.extend({}, e, { sender: this, mfSinif, inst, eskiInst, result }); getFuncValue.call(this, kaydedince, _e) }
+			await this.kaydetSonrasiIslemler(e)
+			let {kaydedince} = this
+			if (kaydedince) {
+				let _e = { ...e, sender: this, mfSinif, inst, eskiInst, result }
+				await getFuncValue.call(this, kaydedince, _e)
+			}
 		}
 		catch (ex) { console.error(ex); let error = getErrorText(ex); if (error) hConfirm(error, `${mfSinif.sinifAdi || 'Tanım'} Kaydet İşlemi`); return false }
 		this.kaydetCalistimi = true; this.destroyPart()

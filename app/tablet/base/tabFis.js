@@ -1,7 +1,8 @@
 class TabFis extends MQDetayliGUID {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sinifAdi() { return 'Tablet Fiş' }
 	static get table() { return 'tabfis' } static get tableAlias() { return 'fis' }
-	static get detaySinif() { return TabFisDetay } static get sayacSaha() { return 'id' }
+	static get detaySinif() { return TabDetay } static get sayacSaha() { return 'id' }
 	static get tanimUISinif() { return TabFisGirisPart } static get secimSinif() { return null }
 	static get tumKolonlarGosterilirmi() { return true } static get kolonFiltreKullanilirmi() { return false }
 	static get gridIslemTuslariKullanilirmi() { return false }
@@ -39,6 +40,7 @@ class TabFis extends MQDetayliGUID {
 		let {detaylar} = this
 		return detaylar ? roundToBedelFra(topla(_ => _.dvNetBedel || _.dvBedel || 0, detaylar)) : 0
 	}
+	get sonucBedel() { return this.fisTopNet }
 
 	constructor({ offlineBuildQuery } = {}) {
 		super(...arguments)
@@ -101,7 +103,7 @@ class TabFis extends MQDetayliGUID {
 			let _det = new this.detaySinif()
 			for (let rec of recs) {
 				_det.setValues({ rec })
-				_det?.htmlOlustur()
+				_det?.htmlOlustur?.()
 				let {_text} = _det
 				if (_text != null)
 					rec._text = _text
@@ -125,7 +127,7 @@ class TabFis extends MQDetayliGUID {
 	}
 	async kaydetOncesiIslemler({ islem }) {
 		await super.kaydetOncesiIslemler(...arguments)
-		this.fisSonuc = this.fisTopNet
+		this.fisSonuc = this.sonucBedel
 		let {fisNo, numarator: num} = this
 		let yeniVeyaKopyami = islem == 'yeni' || islem == 'kopya'
 		if (!fisNo && num && yeniVeyaKopyami) {

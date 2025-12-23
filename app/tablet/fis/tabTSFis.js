@@ -1,14 +1,13 @@
 // class MQTabTestFis extends mixin($TabFisTemplate, MQGenelFis) {
 class TabTSFis extends TabFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kodListeTipi() { return 'TABTS' } static get sinifAdi() { return 'Tablet Fiş' }
+	static get kodListeTipi() { return 'TABTS' } static get sinifAdi() { return 'Ticari/Stok Fiş' }
 	static get detaySinif() { return TabTSDetay } static get almSat() { return 'T' }
 	
 	static pTanimDuzenle({ pTanim }) {
 		// MQOrtakFis.pTanimDuzenle(...arguments)
 		super.pTanimDuzenle(...arguments)
 	}
-	
 	static async loadServerDataDogrudan({ offlineRequest, offlineMode }) {
 		/*if (!offlineRequest) {
 			let cacheClasses = [MQTabStok]
@@ -50,12 +49,12 @@ class TabTSFis extends TabFis {
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_dipCollapsed(...arguments)
-		let {fisTopNet, detaylar: { length: topSatir }} = fis
+		let {sonucBedel, detaylar: { length: topSatir }} = fis
 		if (topSatir) {
 			rfb.addForm().setLayout(() => $([
 				`<div class="flex-row" style="gap: 10px">`,
-					`<div class="orangered"><b>${fisTopNet}</b> TL</div>`,
-					`<div class="royalblue"><b>${topSatir}</b> satır</div>`,
+					`<div class="orangered"><b>${toStringWithFra(sonucBedel)}</b> TL</div>`,
+					`<div class="royalblue"><b>${numberToString(topSatir)}</b> satır</div>`,
 				`</div>`
 			].join(CrLf)))
 		}
@@ -109,7 +108,6 @@ class TabTSFis extends TabFis {
 			])
 			.setSource(detaylar)
 			.onAfterRun(({ builder: { rootPart, part } }) => {
-				let {grid} = part
 				rootPart.gridPart = part
 				$.extend(part, {
 					gridSatirCiftTiklandiBlock: ({ sender: tanimPart = {}, event: { args = {} } = {} }) => {
@@ -274,9 +272,7 @@ class TabTSFis extends TabFis {
 	}
 	static rootFormBuilderDuzenle_tablet_acc_onExpand({ sender: { parentPart: tanimPart = {} }, acc, id, item }) {
 		super.rootFormBuilderDuzenle_tablet_acc_onExpand(...arguments)
-		let {gridPart = {}, barkodPart, dBarkodPart, txtMiktar} = tanimPart
-		let {selectedRec: det} = gridPart
-		let {temps, contentLayout} = item
+		let {barkodPart, txtMiktar} = tanimPart, {temps, contentLayout} = item
 		switch (id) {
 			case 'detay': {
 				barkodPart?.focus()
@@ -295,17 +291,10 @@ class TabTSFis extends TabFis {
 			}
 		}
 	}
-	static rootFormBuilderDuzenle_tablet_acc_onCollapse({ sender: { parentPart: tanimPart }, id, acc }) {
+	static rootFormBuilderDuzenle_tablet_acc_onCollapse({ sender: { parentPart: tanimPart = {} }, id, acc }) {
 		super.rootFormBuilderDuzenle_tablet_acc_onCollapse(...arguments)
-		switch (id) {
-			case 'detay':
-				break
-			default: {
-				if (!acc.hasActivePanel)
-					acc.expand('detay')
-				break
-			}
-		}
+		if (id != 'detay' && !acc.hasActivePanel)
+			acc.expand('detay')
 	}
 
 	static async barkodOkundu({ tanimPart, barkodlar }) {

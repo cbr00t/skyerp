@@ -107,6 +107,10 @@ class TabletApp extends TicariApp {
 			let mfSinif = TabTSFis, {kodListeTipi: mne, sinifAdi: text} = mfSinif
 			items.push(new FRMenuChoice({ mne, text, block: e => mfSinif.listeEkraniAc(e) }))
 		}
+		{
+			let mfSinif = TabTahsilatFis, {kodListeTipi: mne, sinifAdi: text} = mfSinif
+			items.push(new FRMenuChoice({ mne, text, block: e => mfSinif.listeEkraniAc(e) }))
+		}
 		items.push(new FRMenuChoice({ mne: 'BILGIGONDER', text: 'Bilgi Gönder', block: e => this.bilgiGonderIstendi(e) }))
 		// addMenuSubItems(null, null, [MQTest])
 		return new FRMenu({ items })

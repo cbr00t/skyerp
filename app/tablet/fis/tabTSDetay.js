@@ -1,4 +1,4 @@
-class TabTSDetay extends TabFisDetay {
+class TabTSDetay extends TabDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get io2RowAttr() {
 		let {_io2RowAttr: result} = this
@@ -27,6 +27,13 @@ class TabTSDetay extends TabFisDetay {
 			this.miktar *= carpan
 		this.htmlOlustur()
 	}
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(
+			new GridKolon({ belirtec: '_text', text: 'Ürün' }).noSql(),
+			new GridKolon({ belirtec: 'bedel', text: 'Net Bedel', genislikCh: 15 }).noSql().tipDecimal_bedel()
+		)
+	}
 	static loadServerData_queryDuzenle({ sent, sent: { from, sahalar } }) {
 		super.loadServerData_queryDuzenle(...arguments)
 		let {tableAlias: alias} = this
@@ -45,6 +52,7 @@ class TabTSDetay extends TabFisDetay {
 	}
 
 	async detayEkIslemler({ fis } = {}) {
+		await super.detayEkIslemler(...arguments)
 		let {stokKod} = this
 		if (stokKod) {
 			let mfSinif = MQTabStok, {class: { alimmi } = {}} = fis
