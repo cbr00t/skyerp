@@ -3,7 +3,7 @@ class MQNumarator extends MQKA {
 	static get numaratorPartSinif() { return NumaratorPart } static get fisGirisLayoutSelector() { return '.numarator' }
 	static get kodListeTipi() { return 'NUMARATOR' } static get sinifAdi() { return 'Numaratör' }
 	static get sayacSaha() { return 'sayac' } static get table() { return 'numarator' } static get tableAlias() { return 'num' }
-	static get gonderildiDesteklenirmi() { return true }
+	static get offlineDirect() { return false } static get gonderildiDesteklenirmi() { return true }
 
 	constructor(e) {
 		e = e || {}; super(e);

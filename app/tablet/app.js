@@ -174,11 +174,7 @@ class TabletApp extends TicariApp {
 			let {belirtecListe: hmrBelirtecler_eski} = HMRBilgi
 			if (!withClear)
 				clearClasses = clearClasses.filter(cls => !cls.offlineFis)
-			{
-				let {_cls2PTanim} = CIO
-				for (let key in _cls2PTanim)
-					delete _cls2PTanim[key]
-			}
+			this.cacheReset()
 			{
 				if (clearClasses?.length) {
 					await MQCogul.sqlExecNone({ offlineMode, query: 'BEGIN TRANSACTION' })
@@ -267,8 +263,17 @@ class TabletApp extends TicariApp {
 		setTimeout(() => hideProgress(), 500)
 	}
 	cacheReset() {
+		let {_cls2PTanim} = CIO, {offlineBilgiYukleSiniflar} = this
+		for (let cls of offlineBilgiYukleSiniflar)
+			cls?.globalleriSil?.()
 		delete MQParam._topluYukle_kod2Rec
-		deleteKeys(this, ['_offlineBilgiYukleSiniflar', '_offlineBilgiGonderSiniflar'])
+		deleteKeys(this, '_offlineBilgiYukleSiniflar', '_offlineBilgiGonderSiniflar', '_offlineBilgiYukleGonderOrtakSiniflar', '_offlineCreateTableSiniflar')
+		for (let key in _cls2PTanim)
+			delete _cls2PTanim[key]
+		for (let key of ['mqGlobals', 'mqTemps']) {
+			if (this[key])
+				this[key] = {}
+		}
 		return this
 	}
 }

@@ -42,16 +42,20 @@ class MQTicNumarator extends MQNumarator {
 				.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.input)} { text-align: center !important; }`)
 		)
 	}
-	static standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e); let {liste} = e; liste.push('noyil') }
+	static standartGorunumListesiDuzenle({ liste }) {
+		super.standartGorunumListesiDuzenle(...aguments)
+		liste.push('noyil')
+	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); let {liste} = e, {kodSaha} = this;
 		let colDef = liste.find(x => x.belirtec == kodSaha);
 		if (colDef) { colDef.text = 'Belirteç'; colDef.genislikCh = 13 }
 		liste.push(new GridKolon({ belirtec: 'noyil', text: 'No Yıl', genislikCh: 8 }).tipNumerik())
 	}
-	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); let {aliasVeNokta} = this, {sent} = e;
-		sent.sahalar.add(`${aliasVeNokta}tip`)
+	static loadServerData_queryDuzenle({ sent, sent: { where: wh, sahalar }, offlineRequest, offlineMode }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		let {tableAlias: alias} = this
+		sahalar.add(`${alias}.tip`)
 	}
 	async yukle(e = {}) {
 		let {rec} = e
@@ -62,7 +66,9 @@ class MQTicNumarator extends MQNumarator {
 			let {belirtec, class: { table }} = this
 			let sent = new MQSent({
 				from: table, sahalar: '*',
-				where: belirtec ? { birlestirDict: this.alternateKeyHostVars(e) } : { degerAta: tip, saha: 'tip' }
+				where: belirtec
+					? { birlestirDict: this.alternateKeyHostVars(e) }
+					: { degerAta: tip, saha: 'tip' }
 			})
 			rec = await this.class.sqlExecTekil(sent)
 		}

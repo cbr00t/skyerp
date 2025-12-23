@@ -46,6 +46,7 @@ class TabFis extends MQDetayliGUID {
 			let num = this.numarator ??= this.numYapi?.deepCopy()
 			if (num)
 				num._promise = num.yukle()
+			this.fisNo ||= null
 		}
 	}
 	static pTanimDuzenle({ pTanim }) {
@@ -54,7 +55,7 @@ class TabFis extends MQDetayliGUID {
 			tarih: new PInstDateToday('tarih'),
 			seri: new PInstStr('seri'),
 			noYil: new PInstNum('noyil'),
-			fisNo: new PInstNum('fisno'),
+			fisNo: new PInst('fisno'),
 			mustKod: new PInstStr('must'),
 			aciklama: new PInstStr('cariaciklama'),
 			fisSonuc: new PInstNum('sonuc')
@@ -110,7 +111,17 @@ class TabFis extends MQDetayliGUID {
 	}
 	async yeniTanimOncesiIslemler(e) {
 		await super.yeniTanimOncesiIslemler(e)
-		await this.numarator?._promise
+		let {numarator: num} = this
+		if (num) {
+			await num?._promise
+			if (!this.fisNo) {
+				$.extend(this, {
+					seri: num.seri ?? this.seri,
+					noYil: num.noYil ?? this.noYil,
+					fisNo: null
+				})
+			}
+		}
 	}
 	async kaydetOncesiIslemler({ islem }) {
 		await super.kaydetOncesiIslemler(...arguments)
@@ -128,7 +139,7 @@ class TabFis extends MQDetayliGUID {
 	}
 	kopyaIcinDuzenle(e) {
 		super.kopyaIcinDuzenle(e)
-		this.fisNo = 0
+		this.fisNo = null
 	}
 	topluYazmaKomutlariniOlustur_baslikSayacBelirle(e) {
 		// super yok
@@ -142,7 +153,7 @@ class TabFis extends MQDetayliGUID {
 	static getRootFormBuilder_fis(e) { return null }
 	static async rootFormBuilderDuzenle_tablet(e) { }
 	static async rootFormBuilderDuzenle_tablet_acc(e) {
-		let {sender: tanimPart, inst, acc} = e
+		let {sender: tanimPart, inst, inst: { numarator: num }, acc} = e
 		let getBuilder = e.getBuilder = layout =>
 			this.rootFormBuilderDuzenle_tablet_getBuilder({ ...e, layout })
 		acc.deferRedraw(() => {
@@ -161,8 +172,9 @@ class TabFis extends MQDetayliGUID {
 						form.addDateInput('tarih', 'Tarih').etiketGosterim_yok()
 						form.addTextInput('seri', 'Seri').etiketGosterim_yok()
 							.addStyle(`$elementCSS { max-width: 130px }`)
-						form.addNumberInput('fisNo', 'No').etiketGosterim_yok()
+						form.addNumberInput('fisNo', 'No', undefined, num?.sonNo).etiketGosterim_yok()
 							.addStyle(`$elementCSS { max-width: 200px }`)
+							.degisince(({ value }) => inst.fisNo = value || null)
 					}
 					await this.rootFormBuilderDuzenle_tablet_acc_baslik({ ...e, rfb, item, layout })
 					{

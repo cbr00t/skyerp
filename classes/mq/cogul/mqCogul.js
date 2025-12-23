@@ -23,7 +23,9 @@ class MQCogul extends MQYapi {
 	static get orjBaslikListesi_panelGrupAttrListe() { let _e = { liste: [] }; this.orjBaslikListesi_panelGrupAttrListeDuzenle(_e); return _e.liste }
 	static get orjBaslikListesi_panelUstSeviyeAttrListe() { let _e = { liste: [] }; this.orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(_e); return _e.liste }
 	static get orjBaslikListesi_defaultRowsHeight() { return null } static get orjBaslikListesi_maxColCount() { return 5 } static get orjBaslikListesi_defaultColCount() { return null }
-	static get yerelParam() { return app.params.yerel } static get mqGlobals() { return app.mqGlobals = app.mqGlobals || {} } static get mqTemps() { return app.mqTemps = app.mqTemps || {} }
+	static get yerelParam() { return app.params.yerel }
+	static get mqGlobals() { return app.mqGlobals = app.mqGlobals || {} }
+	static get mqTemps() { return app.mqTemps = app.mqTemps || {} }
 	static get globals() {
 		let {classKey, mqGlobals} = this
 		return mqGlobals[classKey] = mqGlobals[classKey] || {}
@@ -702,7 +704,7 @@ class MQCogul extends MQYapi {
 		});
 		return result
 	}
-	async yukle(e) { await this.cacheOlustur(e); return super.yukle(e) }
+	async yukle(e) { await this.cacheOlustur(e); return await super.yukle(e) }
 	async yaz(e) { let result = await super.yaz(e); this.class.globalleriSil(); return result }
 	async degistir(e) { let result = await super.degistir(e); this.class.globalleriSil(); return result }
 	async sil(e) { let result = await super.sil(e); this.class.globalleriSil(); return result }
@@ -889,9 +891,11 @@ class MQCogul extends MQYapi {
 	static gridKolonlarDuzenle(e) { this.forAltYapiClassesDo('gridKolonlarDuzenle', e) }
 	static getGridKolonGrup(e) { }
 	static globalleriSil() {
-		let {classKey, mqGlobals} = this
+		let {mqGlobals, classKey} = this
 		let result = mqGlobals[classKey]
-		delete app.mqGlobals[classKey]
+		if (result)
+			delete result[classKey]
+		deleteKeys(this, '_online_sqlColDefs', '_altYapiDict')
 		return result
 	}
 	static tempsReset() {

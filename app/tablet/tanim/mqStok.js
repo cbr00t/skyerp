@@ -94,8 +94,8 @@ class MQTabStok extends MQKAOrtak {
 		super.gridVeriYuklendi(...arguments)
 		gridWidget.hidecolumn('grupadi')
 	}
-	static async loadServerDataDogrudan({ offlineMode, offlineRequest } = {}) {
-		if (offlineRequest) {
+	static async loadServerDataDogrudan({ offlineRequest, offlineMode } = {}) {
+		if (offlineRequest && offlineMode) {
 			this._kdvOran2Kod ??= await MQVergiKdv.oran2KodSet()
 			this._kdvKod2Oran ??= await MQVergiKdv.getKod2OranSet()
 		}
@@ -144,5 +144,9 @@ class MQTabStok extends MQKAOrtak {
 		super.setValues(...arguments)
 //		if (offlineRequest)
 //			debugger
+	}
+	static globalleriSil(e) {
+		super.globalleriSil(e)
+		deleteKeys(this, '_kdvOran2Kod', '_kdvKod2Oran')
 	}
 }

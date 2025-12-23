@@ -130,8 +130,8 @@ class MQYapi extends CIO {
 	}
 	async yeniTanimOncesiIslemler(e) { await this.yeniTanimOncesiVeyaYukleSonrasiIslemler(e) } 
 	async yukleSonrasiIslemler(e) {
-		let results = [await this.setValues(e), await this.yeniTanimOncesiVeyaYukleSonrasiIslemler(e)];
-		return results.filter(x => !!x)[0]
+		await this.setValues(e)
+		return await this.yeniTanimOncesiVeyaYukleSonrasiIslemler(e)
 	}
 	async yeniTanimOncesiVeyaYukleSonrasiIslemler(e) { }
 	yeniOncesiIslemler(e) { return this.kaydetOncesiIslemler(e) }
