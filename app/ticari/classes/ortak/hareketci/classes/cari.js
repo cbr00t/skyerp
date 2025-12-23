@@ -492,7 +492,7 @@ class CariHareketci extends Hareketci {
 					sent.fis2AltHesapBagla_eski().fis2PlasiyerBagla()
 					sent.fis2StokIslemBagla()
 					wh.fisSilindiEkle()
-					wh.add(`fis.bdevirdir = 0`, `fis.fisekayrim <> 'DV'`)
+					wh.add(`fis.bdevirdir = 0`, `fis.ayrimtipi <> 'IN'`, `fis.fisekayrim <> 'DV'`)
 					let or = getEtkilenmeOr()
 					if (or?.liste?.length)
 						wh.add(or)
@@ -515,7 +515,7 @@ class CariHareketci extends Hareketci {
 						.fromIliski('piftaksit ptak', 'fis.kaysayac = ptak.fissayac')
 						.leftJoin('ptak', 'tahsilsekli tsek', 'ptak.taktahsilsekli = tsek.kodno')
 					wh.fisSilindiEkle()
-					wh.add(`fis.piftipi = 'F'`, 'fis.bdevirdir = 0', `fis.fisekayrim <> 'DV'`, `ptak.anindakapat <> ''`)
+					wh.add(`fis.piftipi = 'F'`, `fis.ayrimtipi <> 'IN'`, 'fis.bdevirdir = 0', `fis.fisekayrim <> 'DV'`, `ptak.anindakapat <> ''`)
 				}).hvDuzenleIslemi(({ hv }) => {
 					$.extend(hv, {
 						kaysayac: 'fis.kaysayac', oncelik: '2', unionayrim: `'IrsFat'`, kayittipi: `'PIFK'`, fistipi: 'fis.almsat', iade: `fis.iade`,
@@ -533,7 +533,7 @@ class CariHareketci extends Hareketci {
 						.fis2TicCariBagla().fis2PlasiyerBagla()
 						.fis2StokIslemBagla().fis2AltHesapBagla_eski()
 					wh.fisSilindiEkle().add(
-						`fis.piftipi = 'F'`, `fis.ayrimtipi <> 'IK'`,
+						`fis.piftipi = 'F'`, `fis.ayrimtipi <> 'IN'`, `fis.ayrimtipi <> 'IK'`,
 						new MQOrClause([ 'fis.topfiktifkdv <> 0', 'fis.topfiktifdvkdv <> 0' ]),
 						`fis.ozelisaret = 'X'`, 'fis.bdevirdir = 0', getEtkilenmeOr(), `fis.fisekayrim <> 'DV'`
 					)
@@ -621,8 +621,9 @@ class CariHareketci extends Hareketci {
 		let getUniBilgiler = (kayitTipi, adi, bedelSql, acikSql) => [
 			new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent; sent.fromAdd('piffis fis').fis2CariBagla()
-					wh.fisSilindiEkle().degerAta('F', 'fis.piftipi')
-						.degerAta('', 'fis.fisekayrim').add(`${bedelSql} > 0`);
+					wh.fisSilindiEkle()
+						.add(`fis.piftipi = 'F'`, `fis.ayrimtipi <> 'IN'`)
+						.add(`fis.fisekayrim = ''`, `${bedelSql} > 0`)
 				}).hvDuzenleIslemi(({ hv, sqlZero }) => {
 					let kayitTipiSql = kayitTipi.sqlServerDegeri()
 					let adiSql = adi.sqlServerDegeri();
