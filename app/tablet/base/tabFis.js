@@ -1,6 +1,6 @@
 class TabFis extends MQDetayliGUID {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() { return 'Tablet Fiş' }
+	static get fisTipi() {return this.kodListeTipi } static get sinifAdi() { return 'Tablet Fiş' }
 	static get table() { return 'tabfis' } static get tableAlias() { return 'fis' }
 	static get detaySinif() { return TabDetay } static get sayacSaha() { return 'id' }
 	static get tanimUISinif() { return TabFisGirisPart } static get secimSinif() { return null }
@@ -11,6 +11,17 @@ class TabFis extends MQDetayliGUID {
 	static get satismi() { return this.almSat == 'T' } static get alimmi() { return this.almSat == 'A' }
 	static get numTipKod() { return 'TB' } static get numKod() { return 'TB' }
 	static get defaultSeri() { return 'TAB' }
+	static get tip2Sinif() {
+		let {_tip2Sinif: result} = this
+		if (!result) {
+			result = this._tip2Sinif = fromEntries(
+				TabFis.subClasses
+					.filter(_ => !(_.araSeviyemi || _.ozelmi) && _.fisTipi)
+					.map(_ => [_.fisTipi, _])
+			)
+		}
+		return result
+	}
 	static get numYapi() {
 		let {numTipKod: tip, numKod: belirtec, defaultSeri: seri} = this
 		return tip ? new MQTicNumarator({ tip, belirtec, aciklama: 'Sky Tablet', seri }) : null
@@ -72,7 +83,7 @@ class TabFis extends MQDetayliGUID {
 	}
 	static async loadServerDataDogrudan({ offlineRequest, offlineMode }) {
 		if (!offlineRequest) {
-			let cacheClasses = [MQTabCari, MQTabTahsilSekli]
+			let cacheClasses = [MQTabCari]
 			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
 		}
 		let recs = await super.loadServerDataDogrudan(...arguments)
@@ -90,24 +101,27 @@ class TabFis extends MQDetayliGUID {
 			let {from, where: wh, sahalar} = sent
 			if (!from.aliasIcinTable('car'))
 				sent.leftJoin(alias, 'carmst car', 'fis.must = car.kod')
-			// if (!from.aliasIcinTable('tsek'))
-			// 	sent.fis2TahSekliBagla()
+			if (!offlineRequest || offlineMode)
+				wh.add(`${alias}.silindi = ''`)
 			sahalar.add(`car.${unvanSaha} mustunvan`)
 		}
 		let {orderBy} = stm
 		orderBy.liste = orderBy.liste.filter(_ => !_.startsWith('_'))
 	}
-	static async loadServerData_detaylar({ offlineRequest, offlineMode }) {
+	static async loadServerData_detaylar({ parentRec: { fisTipi } = {}, offlineRequest, offlineMode }) {
 		let recs = await super.loadServerData_detaylar(...arguments)
-		if (!offlineRequest) {
-			let _det = new this.detaySinif()
-			for (let rec of recs) {
-				_det.setValues({ rec })
-				_det?.htmlOlustur?.()
-				let {_text} = _det
-				if (_text != null)
-					rec._text = _text
-			}
+		if (offlineRequest)
+			return recs
+		for (let rec of recs) {
+			let detaySinif = this.detaySinifFor({ rec })
+			if (!detaySinif)
+				continue
+			let _det = new detaySinif()
+			await _det.setValues({ rec })
+			await _det?.htmlOlustur?.()
+			let {_text} = _det
+			if (_text != null)
+				rec._text = _text
 		}
 		return recs
 	}
@@ -138,6 +152,28 @@ class TabFis extends MQDetayliGUID {
 				this.fisNo = num.sonNo
 			} while (await this.varmi())
 		}
+	}
+	async sil(e) {
+		let {sayac: id, class: { table, idSaha }} = this
+		if (!id)
+			return false
+		let upd = new MQIliskiliUpdate(), {where: wh, set} = upd
+		upd.fromAdd(table)
+		wh.degerAta(id, idSaha)
+		set.degerAta(bool2FileStr(true), 'silindi')
+		return await this.sqlExecNone(upd)
+	}
+	static varsayilanKeyHostVarsDuzenle({ hv }) {
+		super.varsayilanKeyHostVarsDuzenle(...arguments)
+		let {fisTipi} = this
+		if (fisTipi != null)
+			$.extend(hv, { fisTipi })
+	}
+	keyHostVarsDuzenle({ hv }) {
+		super.keyHostVarsDuzenle(...arguments)
+		let {class: { idSaha }} = this
+		let id = this.id ||= newGUID()
+		hv[idSaha] = id
 	}
 	kopyaIcinDuzenle(e) {
 		super.kopyaIcinDuzenle(e)

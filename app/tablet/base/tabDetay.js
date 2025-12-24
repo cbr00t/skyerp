@@ -29,6 +29,13 @@ class TabDetay extends MQDetay {
 			}
 		}
 	}
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(
+			new GridKolon({ belirtec: '_text', text: 'Tahsilat' }).noSql(),
+			new GridKolon({ belirtec: 'bedel', text: 'Net Bedel', genislikCh: 15 }).noSql().tipDecimal_bedel()
+		)
+	}
 	detayEkIslemler({ fis }) { }
 	hostVarsDuzenle({ fis, hv }) {
 		super.hostVarsDuzenle(...arguments)

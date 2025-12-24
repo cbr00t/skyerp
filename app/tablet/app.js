@@ -104,11 +104,7 @@ class TabletApp extends TicariApp {
 			MQTabTahsilSekli, MQTabBarkodReferans, MQTabBarkodAyrisim
 		])
 		{
-			let mfSinif = TabTSFis, {kodListeTipi: mne, sinifAdi: text} = mfSinif
-			items.push(new FRMenuChoice({ mne, text, block: e => mfSinif.listeEkraniAc(e) }))
-		}
-		{
-			let mfSinif = TabTahsilatFis, {kodListeTipi: mne, sinifAdi: text} = mfSinif
+			let mfSinif = TabFisListe, {kodListeTipi: mne, sinifAdi: text} = mfSinif
 			items.push(new FRMenuChoice({ mne, text, block: e => mfSinif.listeEkraniAc(e) }))
 		}
 		items.push(new FRMenuChoice({ mne: 'BILGIGONDER', text: 'Bilgi Gönder', block: e => this.bilgiGonderIstendi(e) }))
@@ -138,7 +134,7 @@ class TabletApp extends TicariApp {
 		if (db == main) {
 			classes ??= this.offlineCreateTableSiniflar ?? []
 			for (let cls of classes) {
-				let queries = makeArray(cls.offlineGetSQLiteQuery())
+				let queries = makeArray(cls.offlineGetSQLiteQuery()).filter(_ => _ && _ != ';')
 				if (!empty(queries)) {
 					for (let query of queries) {
 						try { db.execute(query, null, true) }

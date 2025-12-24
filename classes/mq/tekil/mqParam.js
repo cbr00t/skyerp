@@ -87,11 +87,11 @@ class MQParam extends MQTekil {
 		return kod2Rec
 	}
 	async getInstance_yukleIslemi(e) { return await this.topluYukle(e) }
-	topluYukle(e) {
+	async topluYukle(e) {
 		e = { ...e }
 		let {_topluYukle_kod2Rec, paramKod: kod} = this.class
 		e.rec = empty(_topluYukle_kod2Rec) ? undefined : (_topluYukle_kod2Rec[kod] ?? {})
-		return this.yukle(e)
+		return await this.yukle(e)
 	}
 	async kaydetOncesiIslemler(e) {
 		let {paramci} = this; if (paramci) { for (let item of paramci.getItemsAndSelf()) { if (item.kaydetOncesi) { await item.kaydetOncesi(e) } } }

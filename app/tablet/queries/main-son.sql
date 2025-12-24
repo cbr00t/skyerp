@@ -1,6 +1,7 @@
 
 CREATE TABLE IF NOT EXISTS tabfis (
 	id TEXT NOT NULL PRIMARY KEY,
+	fisTipi TEXT NOT NULL DEFAULT '',
 	silindi TEXT NOT NULL DEFAULT '',
 	tarih TEXT NOT NULL DEFAULT '',
 	seri TEXT NOT NULL DEFAULT '',
@@ -15,6 +16,7 @@ CREATE TABLE IF NOT EXISTS tabfis (
 -- stok/ticari fis
 	must TEXT NOT NULL DEFAULT ''
 );
+CREATE INDEX IF NOT EXISTS idx_tabfis_fisTipi ON tabfis (fisTipi);
 CREATE INDEX IF NOT EXISTS idx_tabfis_tarih ON tabfis (tarih);
 CREATE INDEX IF NOT EXISTS idx_tabfis_seri_no ON tabfis (seri, fisno);
 CREATE INDEX IF NOT EXISTS idx_tabfis_must ON tabfis (must);
