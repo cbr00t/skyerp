@@ -74,6 +74,10 @@ class TabFis extends MQDetayliGUID {
 			fisSonuc: new PInstNum('sonuc')
 		})
 	}
+	static orjBaslikListesi_argsDuzenle(e) {
+		super.orjBaslikListesi_argsDuzenle(e)
+		MQMasterOrtak.orjBaslikListesi_argsDuzenle(e)
+	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
 		liste.push(
@@ -106,7 +110,9 @@ class TabFis extends MQDetayliGUID {
 			sahalar.add(`car.${unvanSaha} mustunvan`)
 		}
 		let {orderBy} = stm
-		orderBy.liste = orderBy.liste.filter(_ => !_.startsWith('_'))
+		orderBy.liste = orderBy.liste
+			.filter(_ => !_.startsWith('_'))
+			.map(_ => _.toUpperCase().endsWith('DESC') ? _ : `${_} DESC`)
 	}
 	static async loadServerData_detaylar({ parentRec: { fisTipi } = {}, offlineRequest, offlineMode }) {
 		let recs = await super.loadServerData_detaylar(...arguments)
@@ -310,7 +316,8 @@ class TabFis extends MQDetayliGUID {
 			.setInst(inst)
 	}
 	static getHTML({ rec }) {
-		let {tarih, seri, noyil, fisno, must, mustunvan} = rec
+		let {fisTipi, tarih, seri, noyil, fisno, must, mustunvan} = rec
+		let fisSinif = TabFisListe.fisSinifFor(fisTipi)
 		// let {kod2Rec: kod2Must} = MQTabCari.globals
 		let tsnText = [
 			seri || '',
@@ -319,11 +326,13 @@ class TabFis extends MQDetayliGUID {
 		].filter(_ => _).join(' ')
 		return [
 			`<div class="flex-row" style="gap: 0 10px">`,
-				`<div class="asil">${tsnText}</div>`,
+				`<template class="sort-data">${dateToString(tarih) ?? ''}|${seri}|${noyil}|${fisno}|${mustunvan}</template>`,
 				`<div class="ek-bilgi bold float-right">${dateKisaString(asDate(tarih)) ?? ''}</div>`,
+				`<div class="asil">${tsnText}</div>`,
 				`<div class="asil orangered">${mustunvan || ''}</div>`,
 				`<div class="ek-bilgi bold float-right">${must || ''}</div>`,
+				(fisSinif ? `<div class="ek-bilgi float-right">${fisSinif.sinifAdi || ''}</div>` : null),
 			`</div>`
-		].join(CrLf)
+		].filter(_ => _).join(CrLf)
 	}
 }

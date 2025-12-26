@@ -20,6 +20,30 @@
 		.jqx-grid [role = row] > * > .jqx-grid-cell-right-align {
 	height: var(--full)
 }
+.jqx-grid [role=row] .jqx-grid-card-cell { overflow: hidden !important }
+.jqx-grid .jqx-group-expand, .jqx-grid .jqx-group-collapse { width: 35px }
+.jqx-grid div[role=row] .jqx-grid-cell-pinned[title = false],
+.jqx-grid div[role=row] .jqx-grid-cell-pinned[title = true] { width: 35px }
+.jqx-widget, .jqx-widget-header, .jqx-widget-content,
+	.jqx-grid .jqx-grid-cell,
+	.jqx-grid .jqx-grid-group-cell { font-size: unset }
+	.jqx-grid .jqx-grid-cell,
+	.jqx-grid .jqx-grid-group-cell { /* cursor: pointer; */ cursor: initial !important }
+	.jqx-grid .jqx-grid-content .jqx-grid-cell-edit > *,
+	.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit > * {/* width: var(--full) !important ; */}
+	.jqx-grid .jqx-grid-content .jqx-grid-cell-edit > input[type=date],
+	.jqx-grid .jqx-grid-content .jqx-grid-cell-edit > input[type=time],
+	.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit > input[type=date],
+	.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit > input[type=time] { height: var(--full) !important }
+.jqx-grid .jqx-grid-content .jqx-grid-cell-edit input[type=time],
+	.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit input[type=time] { text-align: center; font-size: 85% }
+.jqx-grid .jqx-grid-cell-filter-row .jqx-datetimeinput .jqx-action-button { top: 0 }
+.jqx-grid .jqx-clear >.jqx-widget-header { color: #999; background: linear-gradient(90deg, #47608d29 5%, #fdfeff2b 50%) !important }
+.jqx-grid .jqx-clear > .jqx-grid-groups-header > div > div { font-weight: bold; font-size: 100% }
+.jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header { font-weight: bold; color: #616161; text-wrap: pretty }
+.jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > div { padding: 0 !important }
+.jqx-grid.jqx-grid-metro .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header { font-size: 150% }
+.jqx-grid div[role=row] .jqx-grid-cell-selected { color: unset; background: #0d366333; border: none }
 .gridKolonVeGrupOrtak.list-item { line-height: 150% }
 .gridKolonVeGrupOrtak.list-item .kod { font-weight: bold; width: 23% }
 .jqx-grid [role = row]  * { cursor: default }
@@ -43,7 +67,9 @@ body.dark-theme .jqx-grid [role = row] .grid-cell-group { color: #ccc; backgroun
 .jqx-grid [role = row] .grid-cell-group, .jqx-grid [role = row] .grid-cell-group * { }
 .jqx-grid [role = row] ._rowNumber:not(:has(.grid-cell-group)) { font-weight: bolder !important; font-size: 70% !important; color: #343434; background: linear-gradient(270deg, #aaaaaa4f 30%, #ffffff33 90%) !important }
 .jqx-grid [role = row] > .ayirac:not(.jqx-grid-cell-selected) { background-color: #5e1ecf }
-.jqx-grid [role = row] .jqx-checkbox { /*background: #00000003*/ top: 0 !important; transform: translateY(50%) }
+.jqx-grid.jqx-grid-metro .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header .jqx-checkbox { top: 50% !important; left: -55% !important }
+.jqx-grid [role = row] .jqx-checkbox { top: 0 !important; left: 0 !important; transform: translateY(70%) translateX(50%) !important }
+.jqx-grid [role = row].jqx-grid-groups-custom-row ~ * .jqx-checkbox { transform: translateY(50%) translateX(40%) !important }
 .jqx-grid [role = row] .jqx-checkbox > * { margin-top: 0 !important }
 .jqx-grid-cell-edit { /* padding: 0 6px 0 6px !important; */ padding: 0 !important }
 .jqx-grid-cell-edit > * { }
@@ -76,15 +102,13 @@ body.dark-theme .jqx-grid [role = row] .grid-cell-group { color: #ccc; backgroun
 /*.jqx-grid-content::-webkit-scrollbar { display: none }*/
 
 .jqx-grid [role = row] > div:not(:first-child) > div {
-	margin-top: 0 !important; padding: 2px 3px
+	margin-top: 0 !important; padding: 5px 3px
 }
 .jqx-grid [role = row] > div:not(:first-child),
 .jqx-grid [role = row] > div:not(:first-child) > div,
 		.jqx-grid [role = row] > div:not(:first-child) > div > div {
-	line-height: 19px;
-	word-wrap: break-word !important;
-	text-wrap: pretty !important;
-	word-break: auto-phrase !important
+	line-height: 19px; word-wrap: break-word !important;
+	text-wrap: pretty !important; word-break: auto-phrase !important
 }
 .jqx-grid [role = row]:not([row-id = '']) { box-shadow: 1px 1px 5px 0px royalblue }
 .jqx-grid [role = row] > .jqx-grid-cell-selected:not(.grid-readOnly) { font-weight: 600; color: #333 }

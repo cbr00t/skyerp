@@ -37,6 +37,7 @@ class TabFisListe extends TabFis {
 			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
 		}
 		let recs = await super.loadServerDataDogrudan(...arguments)
+		recs.reverse()
 		return recs
 	}
 	static async loadServerData_detaylar({ parentRec: { fisTipi } = {}, offlineRequest, offlineMode }) {

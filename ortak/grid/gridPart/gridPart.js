@@ -125,7 +125,7 @@ class GridPart extends Part {
 			columnsMenuWidth: 60, columnsResize: true, columnsReorder: !mini, columnsMenu: true,
 			autoRowHeight: false, rowsHeight: mini ? 60 : 50, columnsHeight: mini ? 25 : 30,
 			autoShowColumnsMenuButton: true, sortable: true, /* compact: false, */ filterable: true,
-			filterRowHeight: 40, filterMode: 'default', showFilterRow: false, groupable: true, columnsresize: true,
+			filterRowHeight: 40, filterMode: 'default', showFilterRow: false, groupable: true, columnsResize: true,
 			showGroupsHeader: false, groupIndentWidth: 30, groupsHeaderHeight: 33, groupsExpandedByDefault: false,
 			enableBrowserSelection: false, selectionMode: 'multiplecellsextended', pageable: false, pagermode: 'advanced', adaptive: undefined, virtualMode: false, updatedelay: 0,
 			scrollbarsize: 13, scrollMode: 'logical',		/* default | logical | deferred */

@@ -76,30 +76,6 @@ progress::-webkit-progress-value { background-image: linear-gradient(0deg, #5182
 .jqx-window > div > .content > .buttons { height: var(--buttons-height); bottom: 0; right: 20px; text-align: right }
 .jqx-window > div > .content > .buttons button,
 .jqx-window > div > .content > .buttons .jqx-button { --width: 100px; --height: 60px; margin-inline-start: 8px; padding: 13px 25px }
-.jqx-grid [role=row] .jqx-grid-card-cell { overflow: hidden !important }
-.jqx-grid .jqx-group-expand,
-jqx-grid .jqx-group-collapse { width: 35px }
-.jqx-grid div[role=row] .jqx-grid-cell-pinned[title = false],
-.jqx-grid div[role=row] .jqx-grid-cell-pinned[title = true] { width: 35px }
-.jqx-widget, .jqx-widget-header, .jqx-widget-content,
-	.jqx-grid .jqx-grid-cell,
-	.jqx-grid .jqx-grid-group-cell { font-size: unset }
-	.jqx-grid .jqx-grid-cell,
-	.jqx-grid .jqx-grid-group-cell { /* cursor: pointer; */ cursor: initial !important }
-	.jqx-grid .jqx-grid-content .jqx-grid-cell-edit > *,
-	.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit > * {/* width: var(--full) !important ; */}
-	.jqx-grid .jqx-grid-content .jqx-grid-cell-edit > input[type=date],
-	.jqx-grid .jqx-grid-content .jqx-grid-cell-edit > input[type=time],
-	.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit > input[type=date],
-	.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit > input[type=time] { height: var(--full) !important }
-.jqx-grid .jqx-grid-content .jqx-grid-cell-edit input[type=time],
-	.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit input[type=time] { text-align: center; font-size: 85% }
-.jqx-grid .jqx-grid-cell-filter-row .jqx-datetimeinput .jqx-action-button { top: 0 }
-.jqx-grid .jqx-clear >.jqx-widget-header { color: #999; background: linear-gradient(90deg, #47608d29 5%, #fdfeff2b 50%) !important }
-.jqx-grid .jqx-clear > .jqx-grid-groups-header > div > div { font-weight: bold; font-size: 100% }
-.jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header { font-weight: bold; color: #616161; text-wrap: pretty }
-.jqx-grid.jqx-grid-metro .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header { font-size: 150% }
-.jqx-grid div[role=row] .jqx-grid-cell-selected { color: unset; background: #0d366333; border: none }
 .jqx-window-modal { background-color: black !important; opacity: .5 !important; filter: blur(10px) !important }
 body.dark-theme .jqx-window-modal { filter: invert(1) hue-rotate(180deg) !important }
 .jqx-window.active .jqx-window-header { color: #111; background-color: #a8c0ec; margin-top: 0 }

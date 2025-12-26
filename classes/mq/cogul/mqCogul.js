@@ -895,7 +895,7 @@ class MQCogul extends MQYapi {
 		let result = mqGlobals[classKey]
 		if (result)
 			delete result[classKey]
-		deleteKeys(this, '_online_sqlColDefs', '_altYapiDict')
+		deleteKeys(this, '_online_sqlColDefs')
 		return result
 	}
 	static tempsReset() {
