@@ -33,7 +33,7 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 		return result
    }
 	static get uygunRaporlar() {
-		return values(DRapor.kod2Sinif)
+		return values(this.kod2Sinif)
 			.filter(cls => cls.uygunmu && cls.dRapormu && !(cls.araSeviyemi || cls.dAltRapormu || cls.dPanelmi))
 	}
 	static get uygunRaporlarKAListe() {

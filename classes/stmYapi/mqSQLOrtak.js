@@ -96,6 +96,15 @@ class MQSQLOrtak extends CObject {
 		return `SUM(${this.sumOlmaksizin(text)})`
 	}
 	static asSUMDeger(text) { return this.asSumDeger(text) }
+/*		let wrapSumIfNeeded = clause => {
+			clause = clause?.trim() ?? ''
+			if (!clause)
+				return clause
+			if (/^\s*sum\s*\(/i.test(clause))
+				return clause
+			// notlara uyum: clause "(" ile başlıyorsa "SUM" + clause, değilse SUM(clause)
+			return /^\s*\(/.test(clause) ? `SUM${clause}` : `SUM(${clause})`
+		}*/
 	static boolClause(e, _styled) {
 		e = e || {}; let saha = typeof e == 'object' ? e.saha : e;
 		let isStyled = typeof e == 'object' ? e.styled : _styled;
@@ -292,6 +301,15 @@ class MQAliasliYapi extends MQSQLOrtak {
 			}
 		}
 		return result
+	}
+	static gerekirseAliasli(clause, alias) {
+		if (!clause)
+			return clause
+		// clause'ın son token'ı alias ise tekrar ekleme (case-insensitive)
+		let m = clause.match(/([A-Za-z0-9_]+)\s*$/)
+		if (m && m[1] && m[1].toLowerCase() == (alias ?? '').toLowerCase())
+			return clause
+		return `${clause} ${alias}`
 	}
 	static getDegerAliasListe(deger) {
 		deger = deger?.toString().trim()

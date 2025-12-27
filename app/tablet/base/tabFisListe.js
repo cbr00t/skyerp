@@ -13,7 +13,8 @@ class TabFisListe extends TabFis {
 	static detaySinifFor(e) { return this.fisSinifFor(e)?.detaySinif }
 	static async yeniInstOlustur({ sender: gridPart, islem, rec, rowIndex, args = {} }) {
 		let {fisTipi} = rec ?? {}
-		if (!fisTipi) {
+		let yenimi = islem == 'yeni'
+		if (yenimi || !fisTipi) {
 			let {tip2Sinif} = this
 			let p = new $.Deferred()
 			let secince = ({ value: fisTipi }) => p.resolve(fisTipi)
@@ -26,8 +27,12 @@ class TabFisListe extends TabFis {
 			return
 		let inst = new fisSinif({ ...args })
 		if (rec) {
-			await inst.keySetValues({ ...arguments, rec })
-			await inst.yukle()
+			await inst.keySetValues({ ...arguments, rec, sayac: undefined })
+			inst.mustKod = rec.must
+			if (!yenimi) {
+				inst.sayac = rec.sayac
+				await inst.yukle()
+			}
 		}
 		return inst
 	}

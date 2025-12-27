@@ -1,44 +1,63 @@
 class MQSayacli extends MQCogul {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static kami() { return this.kodKullanilirmi }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sayacSaha() { return 'kaysayac' } static kami() { return this.kodKullanilirmi }
 	static get kodKullanilirmi() { return false } static get adiKullanilirmi() { return false }
-	static get sayacSaha() { return 'kaysayac' } static get kodSaha() { return this.kodKullanilirmi ? MQKA.kodSaha : this.sayacSaha } static get bosKodAlinirmi() { return false }
-	static get adiSaha() { return this.adiKullanilirmi ? MQKA.adiSaha : null } static get kodEtiket() { return MQKA.kodEtiket } static get adiEtiket() { return MQKA.adiEtiket }
-	static get offlineSahaListe() { return [...super.offlineSahaListe, this.sayacSaha, this.kodKullanilirmi ? this.kodSaha : null, this.adiKullanilirmi ? this.adiSaha : null].filter(x => !!x) }
+	static get kodSaha() { return this.kodKullanilirmi ? MQKA.kodSaha : this.sayacSaha } static get bosKodAlinirmi() { return false }
+	static get adiSaha() { return this.adiKullanilirmi ? MQKA.adiSaha : null }
+	static get kodEtiket() { return MQKA.kodEtiket } static get adiEtiket() { return MQKA.adiEtiket }
+	static get offlineSahaListe() {
+		return [
+			...super.offlineSahaListe,
+			this.sayacSaha,
+			this.kodKullanilirmi ? this.kodSaha : null,
+			this.adiKullanilirmi ? this.adiSaha : null
+		].filter(x => !!x)
+	}
 	static get primaryKeys() { return [this.idSaha] }
-	static get zeminRenkDesteklermi() { return MQKA.zeminRenkDesteklermi } static get offlineDirect() { return this.kodKullanilirmi }
+	static get zeminRenkDesteklermi() { return MQKA.zeminRenkDesteklermi }
+	static get offlineDirect() { return this.kodKullanilirmi }
 	
-	constructor(e) { e = e || {}; super(e); /* this.sayac = this.sayac || 0 */ }
-	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); const {kodKullanilirmi, adiKullanilirmi, adiSaha} = this, {pTanim} = e;
-		$.extend(pTanim, { sayac: new PInst() }); if (kodKullanilirmi) { pTanim.kod = new PInstStr() } 
-		if (adiKullanilirmi) { pTanim.aciklama = new PInstStr(adiSaha) }
+	constructor(e = {}) { super(e) /* this.sayac = this.sayac || 0 */ }
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		let {kodKullanilirmi, adiKullanilirmi, adiSaha} = this
+		pTanim.sayac = new PInst()
+		if (kodKullanilirmi)
+			pTanim.kod = new PInstStr() 
+		if (adiKullanilirmi)
+			pTanim.aciklama = new PInstStr(adiSaha)
 	}
 	static ekCSSDuzenle(e) { super.ekCSSDuzenle(e); MQKA.ekCSSDuzenle(e) }
-	static secimlerDuzenle(e) {
-		super.secimlerDuzenle(e); const sec = e.secimler;
+	static secimlerDuzenle({ secimler: sec }) {
+		super.secimlerDuzenle(...arguments)
 		sec.secimTopluEkle({
 			instKod: new SecimString({ mfSinif: this, hidden: !this.kodKullanilirmi }),
 			instAdi: new SecimOzellik({ etiket: `${this.sinifAdi} Adı`, hidden: !this.adiKullanilirmi })
-		});
-		sec.whereBlockEkle(e => {
-			const {aliasVeNokta, kodSaha, adiSaha} = this, wh = e.where, sec = e.secimler;
-			if (this.kodKullanilirmi) { wh.basiSonu(sec.instKod, `${aliasVeNokta}${kodSaha}`) }
-			if (this.adiKullanilirmi) { wh.ozellik(sec.instAdi, `${aliasVeNokta}${adiSaha}`) }
+		})
+		sec.whereBlockEkle(({ secimler: sec, where: wh }) => {
+			let {tableAlias: alias, kodKullanilirmi, adiKullanilirmi, kodSaha, adiSaha} = this
+			if (kodKullanilirmi)
+				wh.basiSonu(sec.instKod, `${alias}.${kodSaha}`)
+			if (adiKullanilirmi)
+				wh.ozellik(sec.instAdi, `${alias}.${adiSaha}`)
 		})
 	}
-	static secimlerDuzenleSon(e) {
-		super.secimlerDuzenleSon(e); const sec = e.secimler;
-		sec.grupTopluEkle([ { kod: 'teknik', aciklama: 'Teknik', renk: '#eee', zeminRenk: 'orangered', kapalimi: true } ]);
-		sec.secimTopluEkle({ sayac: new SecimInteger({ etiket: 'ID', grupKod: 'teknik' }) });
-		sec.whereBlockEkle(e => {
-			const {aliasVeNokta, sayacSaha} = this, {where: wh, secimler: sec} = e;
-			wh.basiSonu(sec.sayac, `${aliasVeNokta}${sayacSaha}`)
+	static secimlerDuzenleSon({ secimler: sec }) {
+		super.secimlerDuzenleSon(...arguments)
+		sec.grupTopluEkle([ { kod: 'teknik', aciklama: 'Teknik', renk: '#eee', zeminRenk: 'orangered', kapalimi: true } ])
+		sec.secimTopluEkle({ sayac: new SecimInteger({ etiket: 'ID', grupKod: 'teknik' }) })
+		sec.whereBlockEkle(({ secimler: sec, where: wh }) => {
+			let {tableAlias: alias, sayacSaha} = this
+			wh.basiSonu(sec.sayac, `${alias}.${sayacSaha}`)
 		})
 	}
-	static standartGorunumListesiDuzenle(e) {
-		super.standartGorunumListesiDuzenle(e); let {liste} = e, {kodKullanilirmi, kodSaha, adiKullanilirmi, adiSaha} = this;
-		if (kodKullanilirmi) { liste.push(kodSaha) }
-		if (adiKullanilirmi) { liste.push(adiSaha) }
+	static standartGorunumListesiDuzenle({ liste }) {
+		super.standartGorunumListesiDuzenle(...arguments)
+		let {kodKullanilirmi, adiKullanilirmi, kodSaha, adiSaha} = this
+		if (kodKullanilirmi)
+			liste.push(kodSaha)
+		if (adiKullanilirmi)
+			liste.push(adiSaha)
 	}
 	static orjBaslikListesiDuzenle(e) { super.orjBaslikListesiDuzenle(e); e.mfSinif = this; MQKA.orjBaslikListesiDuzenle(e) }
 	static rootFormBuilderDuzenle(e) { super.rootFormBuilderDuzenle(e); e.mfSinif = this; MQKA.rootFormBuilderDuzenle(e) }
@@ -69,11 +88,11 @@ class MQSayacli extends MQCogul {
 		await this.sayacBelirle(e); return result
 	}
 	async sayacBelirle(e) {
-		e = e ?? {}; const {sayacSaha, table} = this.class; if (!sayacSaha) { return null }
-		const hv = this.alternateKeyHostVars(e); if ($.isEmptyObject(hv)) { return null }
-		const offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e;
-		const query = new MQSent({ from: table, where: { birlestirDict: hv }, sahalar: [sayacSaha] });
-		const sayac = this.sayac = await this.sqlExecTekilDeger({ offlineMode, trnId, query });
+		e = e ?? {}; let {sayacSaha, table} = this.class; if (!sayacSaha) { return null }
+		let hv = this.alternateKeyHostVars(e); if ($.isEmptyObject(hv)) { return null }
+		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e;
+		let query = new MQSent({ from: table, where: { birlestirDict: hv }, sahalar: [sayacSaha] });
+		let sayac = this.sayac = await this.sqlExecTekilDeger({ offlineMode, trnId, query });
 		if (!sayac) throw { isError: true, rc: 'sayacBelirlenemedi', errorText: 'Kaydedilen fiş belirlenemedi' }
 		return sayac
 	}
@@ -83,13 +102,17 @@ class MQSayacli extends MQCogul {
 	}
 	static logRecDonusturucuDuzenle({ result }) {
 		super.logRecDonusturucuDuzenle(...arguments);
-		let {sayacSaha} = this; result[sayacSaha] = 'xsayac'
-		let {kodKullanilirmi, kodSaha} = this; if (kodKullanilirmi) { result[kodSaha] = 'xkod' }
+		let {sayacSaha, kodKullanilirmi, kodSaha} = this
+		result[sayacSaha] = 'xsayac'
+		if (kodKullanilirmi)
+			result[kodSaha] = 'xkod'
 	}
 	logHVDuzenle({ hv }) {
-		super.logHVDuzenle(...arguments);
-		hv.xsayac = this.sayac || 0;
-		let {kodKullanilirmi} = this.class; if (kodKullanilirmi) { hv.xkod = this.kod || '' }
+		super.logHVDuzenle(...arguments)
+		let {kodKullanilirmi} = this.class
+		hv.xsayac = this.sayac || 0
+		if (kodKullanilirmi)
+			hv.xkod = this.kod || ''
 	}
 	keyHostVarsDuzenle({ hv, queryBuild, offlineRequest, offlineMode }) {
 		super.keyHostVarsDuzenle(...arguments)
@@ -111,9 +134,13 @@ class MQSayacli extends MQCogul {
 				this.kod = value
 		}
 	}
-	alternateKeyHostVarsDuzenle(e) {
-		super.alternateKeyHostVarsDuzenle(e); const {hv} = e, {kodKullanilirmi, kodSaha} = this.class;
-		if (kodKullanilirmi) { hv[kodSaha] = this.kod } else { delete hv[kodSaha] }
+	alternateKeyHostVarsDuzenle({ hv }) {
+		super.alternateKeyHostVarsDuzenle(...arguments)
+		let {kodKullanilirmi, kodSaha} = this.class
+		if (kodKullanilirmi)
+			hv[kodSaha] = this.kod
+		else
+			delete hv[kodSaha]
 	}
 	hostVarsDuzenle({ hv, queryBuild, offlineRequest, offlineMode }) {
 		super.hostVarsDuzenle(...arguments)
@@ -139,13 +166,19 @@ class MQSayacli extends MQCogul {
 		/*let {guidmi} = this.class; if (!guidmi) { this.sayac = null } */
 		this.sayac = null
 	}
-	static sayacVarmi(e, _zorunlumu) {
-		e = e || {}; let sayac = typeof e == 'object' ? e.sayac : e;
-		let zorunlumu = _zorunlumu ?? (typeof e == 'object' ? e.zorunlu ?? e.zorunlumu : null);
-		if (zorunlumu && !sayac) { return false }
-		return !sayac || new this({ sayac }).varmi(e)
+	static async sayacVarmi(e = {}, _zorunlumu) {
+		let sayac = typeof e == 'object' ? e.sayac : e
+		let zorunlumu = _zorunlumu ?? (typeof e == 'object' ? e.zorunlu ?? e.zorunlumu : null)
+		if (zorunlumu && !sayac)
+			return false
+		return !sayac || await new this({ sayac }).varmi(e)
 	}
-	cizgiliOzet(e) { return new CKodVeAdi(this).cizgiliOzet(e) } parantezliOzet(e) { return new CKodVeAdi(this).parantezliOzet(e) } toString(e) { return this.parantezliOzet(e) }
-	static getGridKolonGrup(e) { e = e || {}; e.mfSinif = e.mfSinif ?? this; return MQKA.getGridKolonGrup(e) }
+	static getGridKolonGrup(e = {}) {
+		e.mfSinif = e.mfSinif ?? this
+		return MQKA.getGridKolonGrup(e)
+	}
+	cizgiliOzet(e) { return new CKodVeAdi(this).cizgiliOzet(e) }
+	parantezliOzet(e) { return new CKodVeAdi(this).parantezliOzet(e) }
+	toString(e) { return this.parantezliOzet(e) }
 	setId(value) { this.sayac = value; return this }
 }

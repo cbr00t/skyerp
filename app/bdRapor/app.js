@@ -1,15 +1,13 @@
-class SkyRaporApp extends TicariApp {
+class BDRaporApp extends SkyRaporApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	get yerelParamSinif() { return MQYerelParam } get autoExecMenuId() { return null /* 'TICARI-STSATIS' */ }
-	get mainRaporBase() { return DRapor }
+	get mainRaporBase() { return DRapor_BDRaporBase }
+	get autoExecMenuId() { return null }
 	static get kategoriKod2Adi() {
 		let {_kategoriKod2Adi: result} = this
 		if (result == null) {
 			result = {
-				TICARI: '',
-				'TICARI-STOK': 'Ticari<br/><b class="royalblue">Stok</b>',
-				'TICARI-HIZMET': 'Ticari<br/><b class="orangered">Hizmet</b>)',
-				FINANSAL: 'Finansal', FINANLZ: 'Finansal Analiz'
+				...super.kategoriKod2Adi,
+				PER: 'Personel'
 			};
 			let {kod2Sinif} = DRapor, e = { liste: result }
 			for (let [mne, cls] of entries(kod2Sinif)) {
@@ -26,23 +24,12 @@ class SkyRaporApp extends TicariApp {
 		}
 		return result
 	}
-	async runDevam(e) {
-		await super.runDevam(e)
-		await this.ilkIslemler(e)
-		await window.DRapor_Hareketci?.autoGenerateSubClasses(e)
-	}
-	async afterRun(e) {
-		if (!(qs.tamEkranYok || qs.noFullScreen))
-			requestFullScreen()
-		await super.afterRun(e)
-	}
 	paramsDuzenle({ params }) {
-		super.paramsDuzenle(...arguments)
-		$.extend(params, { dRapor: MQParam_DRapor.getInstance() })
+		super.super_paramsDuzenle(...arguments)
+		$.extend(params, { dRapor: MQParam_BDRapor.getInstance(), bGenel: MQBordroGenelParam.getInstance() })
 	}
-	super_paramsDuzenle(e) { return super.paramsDuzenle(e) }
 	async ilkIslemler(e) {
-		if (await app.sqlHasTable('wpaneldetay') && empty(await app.sqlGetColumns('wpaneldetay', 'raporadi'))) {
+		/*if (await app.sqlHasTable('wpaneldetay') && empty(await app.sqlGetColumns('wpaneldetay', 'raporadi'))) {
 			try { await app.sqlExecNone(`alter table wpaneldetay add raporadi varchar(50) not null default ''`) }
 			catch (ex) { console.error(getErrorText(ex)) }
 		}
@@ -58,17 +45,17 @@ class SkyRaporApp extends TicariApp {
 				}
 			}
 		}
-		catch (ex) { console.error(getErrorText(ex)) }
+		catch (ex) { console.error(getErrorText(ex)) }*/
 		return await super.ilkIslemler(e)
 	}
 	async anaMenuOlustur(e) {
 		try {
 			let {moduller, params} = app
-			let {aktarim: { kullanim: aktarim = {} } } = params
+			let {bGenel} = params
 			this.sqlTables = await app.sqlGetTables()
 			let eksikParamIsimleri = [], eksikModulIsimleri = []
-			if (!aktarim.webOzetRapor)
-				eksikParamIsimleri.push('Web Özet Rapor')
+			//if (!bGenel?.webOzetRapor)
+			//	eksikParamIsimleri.push('Web Özet Rapor')
 			if (moduller && !(moduller[Modul_WebRapor.kod] || moduller[Modul_WebOzetRapor.kod]))
 				eksikModulIsimleri.push(Modul_WebOzetRapor.aciklama)
 			if (eksikParamIsimleri.length) {
@@ -77,8 +64,8 @@ class SkyRaporApp extends TicariApp {
 				let wnd = createJQXWindow({
 					content: (
 						`<div>${gosterim} parametreleri</div>
-						<div>Vio Ticari Program &gt; <span class="bold royalblue">Ticari Aktarım Parametreleri</span> kısmından açılmalıdır.</div><p/>
-						<div class="gray">Eğer bu parametreler işaretli ise <b class="royalblue">Güncel Ticari Sürümün</b> yüklü olduğundan emin olunuz ve <u>ilgili parametre adımına girip</u> <b>Kaydet</b> butonuna tıklayınız</div>`
+						<div>Vio Personel Programı &gt; <span class="bold royalblue">Bordro Genel Parametreleri</span> kısmından açılmalıdır.</div><p/>
+						<div class="gray">Eğer bu parametreler işaretli ise <b class="royalblue">Güncel VioMuhasebeci Sürümün</b> yüklü olduğundan emin olunuz ve <u>ilgili parametre adımına girip</u> <b>Kaydet</b> butonuna tıklayınız</div>`
 					),
 					title: `<span class="bold">!! UYARI !!</span><span class="gray"> - ${appName}</span>`,
 					args: { isModal: true, width: Math.min(830, $(window).width() / 1.5), height: 330, showCloseButton: true, showCollapseButton: false, closeButtonAction: 'destroy' }
@@ -101,9 +88,8 @@ class SkyRaporApp extends TicariApp {
 				wnd.css('font-size', '130%'); wnd.find('div > .jqx-window-header').addClass('bg-darkred') /* wnd.find('div > .buttons > button:eq(0)').jqxButton('template', 'danger') */
 			}
 		}
-		finally { await super.anaMenuOlustur(e) }
+		finally { await super.super_anaMenuOlustur(e) }
 	}
-	super_anaMenuOlustur(e) { return super.anaMenuOlustur(e) }
 	getAnaMenu(e) {
 		let {noMenuFlag, mainRaporBase} = this
 		if (noMenuFlag)
@@ -147,13 +133,6 @@ class SkyRaporApp extends TicariApp {
 		items.push(...items_raporlar.filter(x => !!x))
 		if (isAdmin)
 			items.push(new FRMenuChoice({ mne: 'DRAPOR_PARAM', text: 'Rapor Parametreleri', block: e => this.params.dRapor.tanimla(e) }))
-		/*let menu_test = (dev ? new FRMenuCascade({ mne: 'TEST', text: 'TEST', items: items_raporlar }) : null);
-		if (config.dev) {
-			items.push(
-				...[SBTablo].map(cls =>
-					new FRMenuChoice({ mne: cls.kodListeTipi, text: cls.sinifAdi, block: e => cls.listeEkraniAc(e) }))
-			)
-		}*/
 		return new FRMenu({ items })
 	}
 }

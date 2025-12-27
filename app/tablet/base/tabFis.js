@@ -150,13 +150,16 @@ class TabFis extends MQDetayliGUID {
 		this.fisSonuc = this.sonucBedel
 		let {fisNo, numarator: num} = this
 		let yeniVeyaKopyami = islem == 'yeni' || islem == 'kopya'
-		if (!fisNo && num && yeniVeyaKopyami) {
-			if (!num.sayac)
-				await num.kaydet()
-			do {
-				await num.kesinlestir()
-				this.fisNo = num.sonNo
-			} while (await this.varmi())
+		if (yeniVeyaKopyami) {
+			this.sayac = null
+			if (!fisNo && num) {
+				if (!num.sayac)
+					await num.kaydet()
+				do {
+					await num.kesinlestir()
+					this.fisNo = num.sonNo
+				} while (await this.varmi())
+			}
 		}
 	}
 	async sil(e) {

@@ -45,7 +45,8 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 		this.tabloYapiDuzenle_hmr(e)
 	}
 	loadServerData_queryDuzenle({ stm, attrSet }) {
-		let e = arguments[0]; super.loadServerData_queryDuzenle(e)
+		let e = arguments[0]
+		super.loadServerData_queryDuzenle(e)
 		e.alias = 'son'
 		let PrefixMiktar = 'MIKTAR'
 		for (let sent of stm) {

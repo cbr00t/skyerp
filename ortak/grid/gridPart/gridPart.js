@@ -29,19 +29,21 @@ class GridPart extends Part {
 	}
 	get selectedRecs() { let {gridWidget, selectedRowIndexes} = this; return selectedRowIndexes ? selectedRowIndexes.map(i => gridWidget.getrowdata(i)).filter(rec => !!rec) : [] }
 	get selectedRec() { let {selectedRecs} = this; return selectedRecs ? selectedRecs[0] : null }
-	get selectedBelirtec() { return this.selectedCell?.datafield }
+	get selectedBelirtec() { return this.selectedCell?.datafield || this.gridWidget._clickedcolumn }
 	get selectedBelirtecler() { let sel = this.gridWidget.getselection(); return asSet((sel?.cells || [])?.map(cell => cell.datafield) || []) }
 	get selectedCell() {
-		let {editCell, gridWidget} = this;
-		let result = editCell ?? gridWidget.selectedcell;
+		let {editCell, gridWidget} = this
+		let result = editCell ?? gridWidget.selectedcell
 		if (!result) {
-			let {selectedrowindex: rowIndex} = gridWidget;
-			if (rowIndex != null && rowIndex > -1) { result = { rowindex: rowIndex, row: rowIndex } }
+			let {selectedrowindex: rowIndex, _clickedcolumn: belirtec} = gridWidget
+			if (rowIndex != null && rowIndex > -1)
+				result = { rowindex: rowIndex, row: rowIndex, datafield: belirtec }
 		}
 		return result
 	}
 	get selectedColIndex() { return this.gridWidget.getcolumnindex(this.selectedBelirtec) }
-	get editCell() { return this.gridWidget.editcell } get editing() { return !!this.editCell?.datafield }
+	get editCell() { return this.gridWidget.editcell }
+	get editing() { return !!this.editCell?.datafield }
 	get isEditable() { let {gridWidget} = this; return gridWidget ? gridWidget.editable : null }
 	set isEditable(value) { let {gridWidget} = this; if (gridWidget) { gridWidget.editable = value } }
 	get selectionMode() { let {gridWidget} = this; return gridWidget?.selectionmode }

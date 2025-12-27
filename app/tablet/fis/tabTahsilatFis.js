@@ -81,6 +81,7 @@ class TabTahsilatFis extends TabFis {
 	static async rootFormBuilderDuzenle_tablet_acc_detay({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_detay(...arguments)
 		let {acc} = tanimPart, {detaylar} = fis
+		let gridPart
 		{
 			let cellClassName = (sender, rowIndex, belirtec, value, rec) => {
 				let result = [belirtec]
@@ -92,7 +93,8 @@ class TabTahsilatFis extends TabFis {
 				.addStyle_fullWH(null, `calc(var(--full) - 20px)`)
 				.rowNumberOlmasin().notAdaptive()
 				.widgetArgsDuzenleIslemi(({ args }) => $.extend(args, {
-					rowsHeight: 70, selectionMode: 'singlerow'
+					rowsHeight: 70, selectionMode: 'singlerow',
+					editMode: 'selectedcell'
 				}))
 				.setTabloKolonlari([
 					new GridKolon({ belirtec: 'tahSekliAdi', text: 'Tahsil Şekli', cellClassName }).readOnly(),
@@ -102,6 +104,15 @@ class TabTahsilatFis extends TabFis {
 							det._degisti = true
 							w.updaterow(det.uid, det)
 							acc?.render()
+							if (gridPart) {
+								setTimeout(() => {
+									let {selectedBelirtec: newBelirtec, selectedRowIndex: newRowIndex, gridWidget: w} = gridPart
+									if (newBelirtec == belirtec && newRowIndex != rowIndex) {
+										if (!gridPart.editing)
+											w.begincelledit(newRowIndex, belirtec)
+									}
+								}, 30)
+							}
 						}
 					}).tipDecimal_bedel(),
 					new GridKolon({ belirtec: '_sil', text: ' ', genislikCh: 6 })
@@ -114,7 +125,7 @@ class TabTahsilatFis extends TabFis {
 				])
 				.setSource(detaylar)
 				.onAfterRun(({ builder: { rootPart, part } }) => {
-					rootPart.gridPart = part
+					gridPart = rootPart.gridPart = part
 					$.extend(part, {
 						gridSatirCiftTiklandiBlock: ({ sender: tanimPart = {}, event: { args = {} } = {} }) => {
 							let {gridWidget: w, selectedRec: det} = tanimPart

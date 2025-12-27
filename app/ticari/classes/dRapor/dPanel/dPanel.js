@@ -37,7 +37,8 @@ class DPanel extends Part {
 	static get kod2Sinif() {
 		let {_kod2Sinif: result} = this
 		if (result == null) {
-			let {subClasses} = this; result = {}
+			let {subClasses} = this
+			result = {}
 			for (let cls of [this, ...subClasses]) {
 				let {araSeviyemi, uygunmu, kod} = cls
 				if (!araSeviyemi && uygunmu && kod)
@@ -1128,7 +1129,7 @@ class DPanel extends Part {
 				let altForm = form.addFormWithParent('_ekTanimlar').altAlta().addStyle_fullWH()
 				altForm.addModelKullan('_raporId', 'Rapor').dropDown().noMF().autoBind()
 					.addStyle_wh('var(--full)')
-					.setSource(e => DRapor.uygunRaporlarKAListe)
+					.setSource(e => app.mainRaporBase.uygunRaporlarKAListe)
 					.setVisibleKosulu(({ builder: { inst } }) => inst.tip.rapormu ? true : 'jqx-hidden')
 				altForm.addTextInput('_url', 'Web Adresi (URL)').addStyle_wh('var(--full)')
 					.setVisibleKosulu(({ builder: { inst } }) => inst.tip.webmi ? true : 'jqx-hidden')

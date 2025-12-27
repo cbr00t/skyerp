@@ -52,6 +52,7 @@ class DRapor_AraSeviye extends DGrupluPanelRapor {
 		return this
 	}
 }
+
 class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get mainmi() { return true }
 	static get araSeviyemi() { return this == DRapor_AraSeviye_Main } get tazeleYapilirmi() { return true }
@@ -64,6 +65,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	get dvKod2Rec() { return this.rapor.dvKod2Rec } get degerlemeDvKod2Rec() { return this.rapor.degerlemeDvKod2Rec }
 	get dovizKAListe() { return this.rapor.dovizKAListe } get dvKodListe() { return this.rapor.dvKodListe }
 	get degerlemeDovizKAListe() { return this.rapor.degerlemeDovizKAListe } get degerlemeDvKodListe() { return this.rapor.degerlemeDvKodListe }
+	static get raporDosyaTanimlar() { return [] }
 	static get yatayTip2Bilgi() {
 		let {_yatayTip2Bilgi: result} = this
 		if (result == null) {
@@ -104,6 +106,20 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	static set yatayTip2Bilgi(value) { this._yatayTip2Bilgi = value }
 
+	async ilkIslemler(e) {
+		let {class: { raporDosyaTanimlar: dosyaTanimlar }} = this
+		dosyaTanimlar ??= []
+		{
+			let results = await Promise.allSettled(
+				dosyaTanimlar.map(({ belirtec, section }) =>
+					TabloYapi.raporTanim_parseINI({ belirtec, section }))
+			)
+			this.iniYapilar = results
+				.filter(_ => _.status == 'fulfilled')
+				.map(_ => _.value)
+				.filter(_ => _)
+		}
+	}
 	secimlerDuzenle(e) {
 		super.secimlerDuzenle(e)
 		let {secimler} = e, {grupVeToplam} = this.tabloYapi
@@ -178,17 +194,28 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		return e.html
 	}
-	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e); let {result} = e
+	tabloYapiDuzenle({ result }) {
+		super.tabloYapiDuzenle(...arguments)
 		if (this.konsolideVarmi)
 			result.addGrupBasit('DB', 'Veritabanı', 'db', null, null, null)
-		this.tabloYapiDuzenle_ozel?.(e)
+		this.tabloYapiDuzenle_ozel?.(...arguments)
 	}
-	tabloYapiDuzenle_son(e) {
-		super.tabloYapiDuzenle_son(e); let {result} = e
+	tabloYapiDuzenle_son({ result }) {
+		let e = arguments[0]
+		super.tabloYapiDuzenle_son(e)
 		this.tabloYapiDuzenle_son_ozel?.(e)
-		result.addToplam(new TabloYapiItem().setKA('KAYITSAYISI', 'Kayıt Sayısı')
-			 .addColDef(new GridKolon({ belirtec: 'kayitsayisi', text: 'Kayıt Sayısı', genislikCh: 10, filterType: 'numberinput', aggregates: ['sum'] }).tipNumerik()))
+		let {iniYapilar} = this
+		for (let {kaPrefixes, items} of iniYapilar ?? []) {
+			if (!empty(kaPrefixes))
+				result.addKAPrefix(...kaPrefixes)
+			if (!empty(items)) {
+				let tabloYapi = result
+				let e = { ...arguments[0], tabloYapi }
+				for (let fn of values(items))
+					fn?.call?.(this, e)
+			}
+		}
+		result.addToplamBasit('KAYITSAYISI', 'Kayıt Sayısı', 'kayitsayisi', null, null, ({ colDef }) => colDef.aggregates = ['sum'])
 	}
 	async loadServerDataInternal(e) {
 		await super.loadServerDataInternal(e)
@@ -285,10 +312,10 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		this.loadServerData_queryDuzenle_ozel?.(e)
 	}
 	loadServerData_queryDuzenle_ek(e) { this.loadServerData_queryDuzenle_ek_ozel?.(e) }
-	loadServerData_queryDuzenle_son(e) {
-		let {internal, alias, stm, attrSet} = e
+	loadServerData_queryDuzenle_son({ internal, alias, stm, attrSet }) {
 		if (internal)
 			return
+		let e = arguments[0]
 		let {secimler, tabloYapi, class: { totalmi, secimWhereBaglanirmi }} = this
 		this.loadServerData_queryDuzenle_son_ilk_ozel?.(e)
 		this.loadServerData_queryDuzenle_son_araIslem(e)
@@ -305,7 +332,19 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		this.loadServerData_queryDuzenle_son_son_ozel?.(e)
 	}
-	loadServerData_queryDuzenle_son_araIslem(e) { }
+	loadServerData_queryDuzenle_son_araIslem({ attrSet, stm }) {
+		let e = arguments[0], {iniYapilar} = this, sentDuzenleyiciler = {}
+		iniYapilar?.forEach(({ sentDuzenle }) =>
+			$.extend(sentDuzenleyiciler, sentDuzenle))
+		let _e = { ...e }
+		for (let sent of stm) {
+			_e.sent = sent
+			for (let key in attrSet) {
+				let fn = sentDuzenleyiciler[key]
+				fn?.call?.(this, _e)
+			}
+		}
+	}
 	loadServerData_queryDuzenle_filtreBaglantiYap({ stm, attrSet: orjAttrSet }) {
 		let e = arguments[0], {secimler, tabloYapi} = this
 		let internal = true, attrSet = { ...orjAttrSet }

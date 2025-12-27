@@ -1,19 +1,11 @@
-class MQYerelParam extends MQYerelParamTicari {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	/*static paramAttrListeDuzenle(e) { super.paramAttrListeDuzenle(e); e.liste.push('tip2SonDRaporRec') }
-	constructor(e) { e = e || {}; super(e); for (let key of ['tip2SonRaporTanim']) { this[key] = this[key] || {} } }
-	paramSetValues(e) { super.paramSetValues(e); for (let key of ['tip2SonRaporTanim']) { this[key] = this[key] || {} } }*/
-}
-class MQParam_DRapor extends MQParam {
+class MQParam_BDRapor extends MQParam {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Rapor Parametreleri' } static get paramKod() { return 'DRAPOR' }
-	get ekDBListe() { return this.konsolideCikti ? this._ekDBListe : null }
-	set ekDBListe(value) { this._ekDBListe = value }
 	static paramYapiDuzenle({ paramci }) {
 		let e = arguments[0]; super.paramYapiDuzenle(e)
 		paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`)
 		let form = paramci.addFormWithParent()
-		form.addCheckBox('ihracatIntacdanmi', 'İhracat İntaçtanmı')
+		/*form.addCheckBox('ihracatIntacdanmi', 'İhracat İntaçtanmı')
 		form.addCheckBox('konsolideCikti', 'Konsolide Çıktı')
 			.degisince(({ builder: fbd }) => {
 				fbd.inst._kritikDegisiklikVarmi = true
@@ -21,7 +13,7 @@ class MQParam_DRapor extends MQParam {
 			})
 		form.addModelKullan('_ekDBListe', 'Ek Veritabanları').comboBox().autoBind().noMF().kodsuz().coklu()
 			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.konsolideCikti ? true : 'jqx-hidden')
-			.setSource(e => app.wsDBListe().then(arr => arr.filter(x => x != 'ORTAK').map(x => new CKodVeAdi([x, x]))))
+			.setSource(e => app.wsDBListe().then(arr => arr.filter(x => x != 'ORTAK').map(x => new CKodVeAdi([x, x]))))*/
 		paramci.onAfterRun(({ builder: fbd }) =>
 			fbd.inst._kritikDegisiklikVarmi = false)
 	}
@@ -43,4 +35,22 @@ class MQParam_DRapor extends MQParam {
 			}, 100)
 		}
 	}
+}
+
+class MQBordroGenelParam extends MQTicariParamBase {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sinifAdi() { return 'Bordro Genel Parametreler' } static get paramKod() { return 'XGT' }
+	static paramYapiDuzenle({ paramci }) {
+		let e = arguments[0]; super.paramYapiDuzenle(e)
+		paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`)
+		{
+			let form = paramci.addFormWithParent()
+			form.addBool('webOzetRapor', 'Web Özet Rapor')
+			form.addBool('guleryuzOzel', 'Güleryüz Özel')
+		}
+		/*{
+			let form = paramci.addKullanim().addGrup({ etiket: 'Kullanım' }).addFormWithParent()
+		}*/
+	}
+	paramSetValues({ rec }) { super.paramSetValues(...arguments) }
 }

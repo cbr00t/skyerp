@@ -1,10 +1,31 @@
 class Cinsiyet extends TekSecim {
 	static get defaultChar() { return 'E' }
-	static get defaultChar() { return 'E' }
 	kaListeDuzenle({ kaListe }) {
-		super.kaListeDuzenle(...arguments); kaListe.push(
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(
 			new CKodVeAdi(['E', 'Erkek', 'erkekmi']),
 			new CKodVeAdi(['K', 'Kadın', 'kadinmi'])
+		)
+	}
+}
+class MedeniDurum extends TekSecim {
+	static get defaultChar() { return 'B' }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(
+			new CKodVeAdi(['B', 'Bekar', 'bekarmi']),
+			new CKodVeAdi(['K', 'Evli', 'evlimi']),
+			new CKodVeAdi(['D', 'Dul', 'dulmu'])
+		)
+	}
+}
+class NetBrut extends TekSecim {
+	static get defaultChar() { return 'N' }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(
+			new CKodVeAdi(['N', 'Net', 'netmi']),
+			new CKodVeAdi(['B', 'Brüt', 'brutmu'])
 		)
 	}
 }
