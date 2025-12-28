@@ -757,6 +757,10 @@ class MQOperandClause extends MQIliskiYapisi {
 class MQSetClause extends MQSubWhereClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get isSetClause() { return true }
 	static get onEk() { return `	SET		` } static get baglac() { return ', ' }
+	constructor(e) {
+		super(e)
+		this.parantezsiz()
+	}
 }
 class MQValuesClause extends MQClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get isValuesClause() { return true }

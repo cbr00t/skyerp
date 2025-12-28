@@ -97,7 +97,11 @@ class MQIliskiliUpdate extends MQIliskiliYapiOrtak {
 	}
 	degerAta(e, _saha) { this.set.degerAta(e, _saha); return this }
 	add(e) { return this.set.add(e) } addAll(e) { return this.set.addAll(e) }
-	buildString_ara(e) { super.buildString_ara(e); e.result += CrLf; this.set.buildString(e) }
+	buildString_ara(e) {
+		super.buildString_ara(e)
+		e.result += CrLf
+		this.set.buildString(e)
+	}
 }
 class MQIliskiliDelete extends MQIliskiliYapiOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } get isDBWriteClause() { return true }
