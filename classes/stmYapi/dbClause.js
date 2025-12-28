@@ -648,10 +648,11 @@ class MQTable extends MQAliasliYapi {
 	disindakiXTablolariSil(e) {
 		/*let disindaSet = e.disindaSet || {}; let liste = this.leftVeInner || [];
 		for (let i = liste.length - 1; i >= 0; i--) { let anMQXJoinTable = liste[i]; if (!disindaSet[anMQXJoinTable.alias]) { liste.splice(i, 1) } }*/
-		let {aliasSet} = e
+		let {aliasSet, disindaSet} = e
 		if (!aliasSet && e.alias)
 			aliasSet = asSet([e.alias])
-		let liste = this.leftVeInner || [], disindaSet = e.disindaSet ?? {}
+		disindaSet ??= {}
+		let liste = this.leftVeInner || []
 		for (let i = liste.length - 1; i >= 0; i--) {
 			let anMQXJoinTable = liste[i], {alias = anMQXJoinTable.name} = anMQXJoinTable    // .alias veya outer.name
 			if (aliasSet ? aliasSet[alias] : !disindaSet[alias])

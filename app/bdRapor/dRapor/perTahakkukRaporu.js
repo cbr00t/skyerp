@@ -87,9 +87,10 @@ class DRapor_PerTahakkukRaporuOrtak_Main extends DRapor_BDRaporBase_Main {
 				odemeSahaBelirtecleri[odemeKod] = true
 			}
 			avanssizVarmi ||= k.startsWith('avans')
-			if (k.startsWith('eksikGun')) {
+			if (k.length > 8 && k.startsWith('eksikGun')) {
 				let nedenKod = k.slice(8)
-				baglantiEksikNedenleri[nedenKod] = true
+				if (nedenKod)
+					baglantiEksikNedenleri[nedenKod] = true
 			}
 		}
 		{
@@ -168,10 +169,11 @@ class DRapor_PerTahakkukRaporuOrtak_Main extends DRapor_BDRaporBase_Main {
 				sent.leftJoin('say', 'ekbilgi ekb', 'say.tahodesayac = ekb.tahodesayac')
 			for (let k in odemeSahaBelirtecleri)
 				sent.leftJoin('say', `odemeler odet${k}`, [`say.tahodesayac = odet${k}.tahodesayac`, `odet${k}.odemekod = '${k}'`])
-			sent.fromIliski('pertahodeme pode', 'say.tahodesayac = pode.kaysayac')
-				.brTahOdemeSonraBagla()
+			sent.innerJoin('say', 'pertahodeme pode', 'say.tahodesayac = pode.kaysayac')
+			sent.innerJoin('pode', 'tahakkuk tdon', ['pode.tahsayac = tdon.kaysayac', 'tdon.senaryono IS NULL'])
 			for (let k in baglantiEksikNedenleri)    // 99: son
 				sent.leftJoin('tdon', `pertaheksik eks${k}`, [`pode.peraysayac = eks${k}.tahaysayac`, `eks${k}.nedenkod = '${k}'`, `tdon.odemeno = 99`])
+			sent.innerJoin('pode', 'pertahay pay', ['pode.peraysayac = pay.kaysayac', 'pay.senaryono IS NULL'])
 			sent.brX2PerSayacBagla({ kodClause: 'pay.persayac' })
 				.brPerHepsiBagla()
 				.brTahIsyeriBagla()
@@ -199,8 +201,9 @@ class DRapor_PerTahakkukRaporuOrtak_Main extends DRapor_BDRaporBase_Main {
 	}
 	loadServerData_queryDuzenle_tekilSonrasi({ stm }) {
 		super.loadServerData_queryDuzenle_tekilSonrasi(...arguments)
-		for (let sent of stm)
-			sent.gereksizTablolariSil()
+		let disinda = asSet(['pode', 'btah', 'tdon'])
+		//for (let sent of stm)
+		//	sent.gereksizTablolariSil({ disinda })
 	}
 	loadServerData_queryDuzenle_genelSon_havingOlustur({ stm }) { 
 		// do nothing
