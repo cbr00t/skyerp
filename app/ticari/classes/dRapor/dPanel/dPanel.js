@@ -407,9 +407,10 @@ class DPanel extends Part {
 		await raporTanim._promise
 		if (raporTanim && id2Detay) {
 			raporTanim.detaylarReset()
-			for (let det of values(id2Detay)) {
+			for (let [id, det] of entries(id2Detay)) {
 				if (!det)
 					continue
+				det.id = id
 				let {rapor_id, rapor_adi} = det
 				if (rapor_id)
 					det.raporId = rapor_id
@@ -616,8 +617,10 @@ class DPanel extends Part {
 					target = $(target)
 					let id = target.parents('.item.parent').prop('id')
 					let det = this.id2Detay[id]
-					if (det)
+					if (det) {
+						det.id = id
 						this.remove(det)
+					}
 				})
 				itemLayout?.on('click', ({ currentTarget: target }) => {
 					target = $(target)

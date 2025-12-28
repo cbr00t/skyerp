@@ -444,6 +444,11 @@ class DPanelDetay extends MQDetayGUID {
 		$.extend(this, { raporId, raporAdi })
 		return super.kaydetOncesiIslemler(e)
 	}
+	hostVarsDuzenle({ hv }) {
+		let {id} = this
+		super.hostVarsDuzenle(...arguments)
+		this.id = id
+	}
 	setTip(value) { this.tip = value; return this }
 	setBaslik(value) { this.baslik = value; return this } setTitle(value) { return this.setBaslik(value) }
 	setInst(value) { this.inst = value; return this }

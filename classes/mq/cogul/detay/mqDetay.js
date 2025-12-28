@@ -59,27 +59,32 @@ class MQDetay extends MQSayacli {
 	async disKaydetSonrasiIslemler(e) { }
 	kaydetVeyaSilmeSonrasiIslemler(e) { /* do nothing */ }
 	kopyaIcinDuzenle(e) {
-		super.kopyaIcinDuzenle(e);
-		if (this.okunanHarSayac) { this.okunanHarSayac = null }
+		super.kopyaIcinDuzenle(e)
+		if (this.okunanHarSayac)
+			this.okunanHarSayac = null
 	}
 	hostVarsDuzenle(e) {
 		super.hostVarsDuzenle(e); let {hv, fis} = e, {fisSayacSaha, seqSaha, table} = this.class;
 		if (fis && fisSayacSaha) { hv[fisSayacSaha] = fis.sayac }
 		if (seqSaha) { hv[seqSaha] = this.seq }
-		if (table == 'finanshar' || table == 'hehar' || table == 'posilkhar') { /* finanshar için özel durum */ if (!hv.ticmustkod) { hv.ticmustkod = hv.must || '' } }
-		e.det = this;
-		if (fis) { fis.detayHostVarsDuzenle?.(e) }
+		if (table == 'finanshar' || table == 'hehar' || table == 'posilkhar') {
+			/* finanshar için özel durum */
+			if (!hv.ticmustkod) { hv.ticmustkod = hv.must || '' }
+		}
+		e.det = this
+		fis?.detayHostVarsDuzenle?.(e)
 	}
 	setValues(e) {
-		e = e || {}; super.setValues(e); let {rec, fis} = e, {sayacSaha, seqSaha} = this.class, parentRec = e.parentRec || e.rec || {};
-		let sayac =  e.sayac || e.kaySayac || e.kaysayac || rec[sayacSaha] || rec.kaySayac || rec.kaysayac;
-		let seq = e.seq || parentRec[seqSaha] || parentRec.seq;
+		e = e || {}; super.setValues(e); let {rec, fis} = e, {sayacSaha, seqSaha} = this.class, parentRec = e.parentRec || e.rec || {}
+		let sayac =  e.sayac || e.kaySayac || e.kaysayac || rec[sayacSaha] || rec.kaySayac || rec.kaysayac
+		let seq = e.seq || parentRec[seqSaha] || parentRec.seq
 		if (sayac) { this.okunanHarSayac = sayac }
 		if (seqSaha) { this.seq = this.eskiSeq = seq }
-		e.det = this; if (fis) { fis.detaySetValues(e) }
+		e.det = this
+		fis?.detaySetValues(e)
 	}
 	inExp_setValues({ rec }) {
-		super.inExp_setValues(...arguments);
+		super.inExp_setValues(...arguments)
 		this.okunanHarSayac = null
 	}
 	eBilgiSetValues(e) { this.eBilgiSetValues_ilk(e); this.eBilgiSetValues_son(e) }
