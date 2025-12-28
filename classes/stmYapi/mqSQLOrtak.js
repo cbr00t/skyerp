@@ -416,6 +416,13 @@ class MQIliskiYapisi extends MQSQLOrtak {
 	}
 	buildString(e) {
 		super.buildString(e)
-		e.result += `${this.sol.deger.toString()} = ${this.sag.deger.toString()}`
+		let {sol: { deger: sol }, sag: { deger: sag }} = this
+		if (sol)
+			e.result += sol.toString()
+		if (sag) {
+			if (sol)
+				e.result += ' = '
+			e.result += sag.toString()
+		}
 	}
 }

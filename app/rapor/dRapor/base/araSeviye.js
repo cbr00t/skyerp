@@ -110,9 +110,14 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		let {class: { raporDosyaTanimlar: dosyaTanimlar }} = this
 		dosyaTanimlar ??= []
 		{
+			let _e = { ...e, liste: dosyaTanimlar }
+			this.raporDosyaTanimlarDuzenle(_e)
+			dosyaTanimlar = _e.liste
+		}
+		{
 			let results = await Promise.allSettled(
-				dosyaTanimlar.map(({ belirtec, section }) =>
-					TabloYapi.raporTanim_parseINI({ belirtec, section }))
+				dosyaTanimlar.map(def =>
+					TabloYapi.raporTanim_parseINI(def))
 			)
 			this.iniYapilar = results
 				.filter(_ => _.status == 'fulfilled')
@@ -120,6 +125,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				.filter(_ => _)
 		}
 	}
+	raporDosyaTanimlarDuzenle({ liste }) { }
 	secimlerDuzenle(e) {
 		super.secimlerDuzenle(e)
 		let {secimler} = e, {grupVeToplam} = this.tabloYapi
@@ -273,11 +279,16 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		if (ozetBilgiHTML)
 			elmEkBilgi.html(ozetBilgiHTML)
 	}
-	loadServerData_queryDuzenle_tekil(e) {
-		e = e ?? {}; let {internal} = e;
-		if (this.loadServerData_queryDuzenle(e) === false) { return false }
-		if (!internal) { if (this.loadServerData_queryDuzenle_filtreBaglantiYap(e) === false) { return false } }
-		if (this.loadServerData_queryDuzenle_son(e) === false) { return false }
+	loadServerData_queryDuzenle_tekil(e = {}) {
+		let {internal} = e
+		if (this.loadServerData_queryDuzenle(e) === false)
+			return false
+		if (!internal) {
+			if (this.loadServerData_queryDuzenle_filtreBaglantiYap(e) === false)
+				return false
+		}
+		if (this.loadServerData_queryDuzenle_son(e) === false)
+			return false
 	}
 	loadServerData_queryDuzenle(e = {}) {
 		e.alias ??= 'fis'
@@ -458,15 +469,14 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		this.loadServerData_queryDuzenle_tekilSonrasi_son_ozel?.(e)
 	}
 	loadServerData_queryDuzenle_genelSon(e) {
-		this.loadServerData_queryDuzenle_genelSon_ilk_ozel?.(e);
-		let {stm, attrSet} = e, {grup} = this.tabloYapi;
+		this.loadServerData_queryDuzenle_genelSon_ilk_ozel?.(e)
+		let {stm, attrSet} = e, {grup} = this.tabloYapi
 		for (let sent of stm)
 			sent.groupByOlustur()
 		if (stm.sent.unionmu)
 			stm = e.stm = stm.asToplamStm()
 		/* stm.sent => bu noktada #asToplamStm sonucudur */
-		for (let sent of stm)
-			sent.havingOlustur()
+		this.loadServerData_queryDuzenle_genelSon_havingOlustur(e)
 		let {orderBy} = stm
 		for (let kod in attrSet) {
 			let {orderBySaha} = grup[kod] ?? {}
@@ -474,6 +484,10 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				orderBy.add(orderBySaha)
 		}
 		this.loadServerData_queryDuzenle_genelSon_son_ozel?.(e)
+	}
+	loadServerData_queryDuzenle_genelSon_havingOlustur({ stm }) {
+		for (let sent of stm)
+			sent.havingOlustur()
 	}
 	async loadServerData_recsDuzenle({ attrSet, recs }) {
 		attrSet = attrSet ?? this.raporTanim.attrSet;

@@ -37,9 +37,10 @@ class MQParam_BDRapor extends MQParam {
 	}
 }
 
-class MQBordroGenelParam extends MQTicariParamBase {
+class MQBrGenelParam extends MQTicariParamBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() { return 'Bordro Genel Parametreler' } static get paramKod() { return 'XGT' }
+	static get sinifAdi() { return 'Bordro Genel Parametreler' }
+	static get paramKod() { return 'XGT' }
 	static paramYapiDuzenle({ paramci }) {
 		let e = arguments[0]; super.paramYapiDuzenle(e)
 		paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`)
@@ -52,5 +53,25 @@ class MQBordroGenelParam extends MQTicariParamBase {
 			let form = paramci.addKullanim().addGrup({ etiket: 'Kullanım' }).addFormWithParent()
 		}*/
 	}
+	paramSetValues({ rec }) { super.paramSetValues(...arguments) }
+}
+
+class MQBrTahakkukParam extends MQTicariParamBase {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sinifAdi() { return 'Tahakkuk Parametreleri' }
+	static get paramKod() { return 'XBTP' }
+	static paramYapiDuzenle({ paramci }) {
+		let e = arguments[0]; super.paramYapiDuzenle(e)
+		paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`)
+		{
+			let form = paramci.addFormWithParent()
+			form.addAltArray('gecerliEksikNedenleri', 'Geçerli Eksik Nedenler')
+			// form.addAltObject('test', 'TEST')
+		}
+		/*{
+			let form = paramci.addKullanim().addGrup({ etiket: 'Kullanım' }).addFormWithParent()
+		}*/
+	}
+	paramHostVarsDuzenle({ hv }) { super.paramHostVarsDuzenle(...arguments) }
 	paramSetValues({ rec }) { super.paramSetValues(...arguments) }
 }

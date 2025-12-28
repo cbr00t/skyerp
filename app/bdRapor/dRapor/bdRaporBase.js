@@ -31,17 +31,22 @@ class DRapor_BDRaporBase_Main extends DRapor_AraSeviye_Main {
 			.addGrupBasit('TIP', 'Görev Tipi', 'tip', BDMQPerGorevTipi)
 			.addGrupBasit('BIRIM', 'Birim', 'birim', BDMQPerBirim)
 			.addGrupBasit('UZMANLIK', 'Uzmanlık', 'uzmanlik', BDMQPerUzmanlik)
-			.addGrupBasit('YAKA', 'Yaka', 'yaka', BDMQPerYaka)	
+			.addGrupBasit('YAKA', 'Yaka', 'yaka', BDMQPerYaka)
 	}
 	loadServerData_queryDuzenle({ attrSet, stm }) {
 		let e = arguments[0]
 		super.loadServerData_queryDuzenle(e)
+	}
+	loadServerData_queryDuzenle_tekil({ attrSet, stm }) {
+		let e = arguments[0]
+		super.loadServerData_queryDuzenle_tekil(e)
 		for (let sent of stm) {
 			let {where: wh, sahalar} = sent
 			if (attrSet.DEP || attrSet.ISYERI)
 				sent.fromIliski('departman dep', 'per.depkod = dep.kod')
 			if (attrSet.GOREV || attrSet.TIP)
 				sent.fromIliski('bgorev gor', 'per.gorevkod = gor.kod')
+			// sent.brPer2HepsiBagla()
 			for (let key in attrSet) {
 				switch (key) {
 					case 'PER':

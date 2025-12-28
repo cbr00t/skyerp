@@ -26,7 +26,7 @@ class BDRaporApp extends SkyRaporApp {
 	}
 	paramsDuzenle({ params }) {
 		super.super_paramsDuzenle(...arguments)
-		$.extend(params, { dRapor: MQParam_BDRapor.getInstance(), bGenel: MQBordroGenelParam.getInstance() })
+		$.extend(params, { dRapor: MQParam_BDRapor.getInstance(), bGenel: MQBrGenelParam.getInstance(), tahakkuk: MQBrTahakkukParam.getInstance() })
 	}
 	async ilkIslemler(e) {
 		/*if (await app.sqlHasTable('wpaneldetay') && empty(await app.sqlGetColumns('wpaneldetay', 'raporadi'))) {

@@ -1,56 +1,71 @@
 class MQSent extends MQSentVeIliskiliYapiOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get unionmu() { return false } get isDBWriteClause() { return this.toString()?.toUpperCase()?.includes('INTO ') }
+	static get unionmu() { return false }
+	get isDBWriteClause() { return this.toString()?.toUpperCase()?.includes('INTO ') }
 	static get aggregateFunctions() {
-		let result = this._aggregateFunctions;
-		if (!result) { result = this._aggregateFunctions = ['SUM', 'COUNT', 'MIN', 'MAX', 'AVG', 'STRING_AGG'] }
+		let {_aggregateFunctions: result} = this
+		if (!result)
+			result = this._aggregateFunctions = ['SUM', 'COUNT', 'MIN', 'MAX', 'AVG', 'STRING_AGG']
 		return result
 	}
 	static get aggregateFunctionsSet() {
-		let result = this._aggregateFunctionsSet;
-		if (!result) { result = this._aggregateFunctionsSet = asSet(this.aggregateFunctions) }
+		let {_aggregateFunctionsSet: result} = this
+		if (!result)
+			result = this._aggregateFunctionsSet = asSet(this.aggregateFunctions)
 		return result
 	}
 	get alias2Deger() { return this.sahalar?.alias2Deger }
-	constructor(e) {
-		e = e || {}; super(e); $.extend(this, {
+
+	constructor(e = {}) {
+		super(e)
+		$.extend(this, {
 			distinct: asBool(e.distinct),
-			sahalar: ((isArray(e.sahalar) || $.isPlainObject(e.sahalar) || typeof e.sahalar == 'string' ? new MQSahalar(e.sahalar) : e.sahalar)) || new MQSahalar(),
-			from: (isArray(e.from) || $.isPlainObject(e.from) || typeof e.from == 'string' ? new MQFromClause(e.from) : e.from) || new MQFromClause(),
-			where: (isArray(e.where) || $.isPlainObject(e.where) || typeof e.where == 'string' ? new MQWhereClause(e.where) : e.where) || new MQWhereClause(),
-			groupBy: (isArray(e.groupBy) || $.isPlainObject(e.groupBy) || typeof e.groupBy == 'string' ? new MQGroupByClause(e.groupBy) : e.groupBy) || new MQGroupByClause(),
-			having: (isArray(e.having) || $.isPlainObject(e.having) || typeof e.having == 'string' ? new MQHavingClause(e.having) : e.having) || new MQHavingClause(),
-			zincirler: (isArray(e.zincirler) || $.isPlainObject(e.zincirler) ? new MQZincirler(e.zincirler) : e.zincirler) || new MQZincirler(),
+			sahalar: ((isArray(e.sahalar) || isPlainObject(e.sahalar) || typeof e.sahalar == 'string' ? new MQSahalar(e.sahalar) : e.sahalar)) || new MQSahalar(),
+			from: (isArray(e.from) || isPlainObject(e.from) || typeof e.from == 'string' ? new MQFromClause(e.from) : e.from) || new MQFromClause(),
+			where: (isArray(e.where) || isPlainObject(e.where) || typeof e.where == 'string' ? new MQWhereClause(e.where) : e.where) || new MQWhereClause(),
+			groupBy: (isArray(e.groupBy) || isPlainObject(e.groupBy) || typeof e.groupBy == 'string' ? new MQGroupByClause(e.groupBy) : e.groupBy) || new MQGroupByClause(),
+			having: (isArray(e.having) || isPlainObject(e.having) || typeof e.having == 'string' ? new MQHavingClause(e.having) : e.having) || new MQHavingClause(),
+			zincirler: (isArray(e.zincirler) || isPlainObject(e.zincirler) ? new MQZincirler(e.zincirler) : e.zincirler) || new MQZincirler(),
 			top: e.top, limit: e.limit, offset: e.offset
-		});
-		let {fromIliskiler, birlestir, groupByOlustur} = e;
-		if (!$.isEmptyObject(fromIliskiler)) {
+		})
+		let {fromIliskiler, birlestir, groupByOlustur} = e
+		if (!empty(fromIliskiler)) {
 			for (let fromIliskiOrLeftJoin of fromIliskiler) {
-				if (fromIliskiOrLeftJoin.leftJoin || fromIliskiOrLeftJoin.on) { this.leftJoin(fromIliskiOrLeftJoin) }
-				else { this.fromIliski(fromIliskiOrLeftJoin) }
+				if (fromIliskiOrLeftJoin.leftJoin || fromIliskiOrLeftJoin.on)
+					this.leftJoin(fromIliskiOrLeftJoin)
+				else
+					this.fromIliski(fromIliskiOrLeftJoin)
 			}
 		}
-		if (birlestir) { this.birlestir(birlestir) }
-		if (groupByOlustur) { this.groupByOlustur() }
+		if (birlestir)
+			this.birlestir(birlestir)
+		if (groupByOlustur)
+			this.groupByOlustur()
 	}
 	static hasAggregateFunctions(e, _aggregateFunctions) {
 		if (typeof e != 'object')
 			e = { sql: e, aggregateFunctions: _aggregateFunctions }
-		let {sql} = e;
+		let {sql} = e
 		if (!sql)
 			return false
-		let aggregateFunctions = e.aggregateFunctions ?? this.aggregateFunctions;
+		let aggregateFunctions = e.aggregateFunctions ?? this.aggregateFunctions
 		for (let prefix of aggregateFunctions) {
 			if (sql.includes(`${prefix}(`) || sql.includes(`${prefix.toLowerCase()}(`))
 				return true
 		}
 		return false
 	}
-	fromGridWSArgs(e) { e = e || {}; this.where.fromGridWSArgs(e) }
+	fromGridWSArgs(e = {}) { this.where.fromGridWSArgs(e) }
 	birlestir(diger) {
-		this.sahalar.birlestir(diger.sahalar); this.from.birlestir(diger.from); this.where.birlestir(diger.where);
-		this.groupBy.birlestir(diger.groupBy); this.having.birlestir(diger.having); this.zincirler.birlestir(diger.zincirler);
-		let {params: _params} = diger; if (!$.isEmptyObject(_params)) { let params = this.params = this.params || []; params.push(..._params) }
+		this.sahalar.birlestir(diger.sahalar)
+		this.from.birlestir(diger.from); this.where.birlestir(diger.where)
+		this.groupBy.birlestir(diger.groupBy)
+		this.having.birlestir(diger.having); this.zincirler.birlestir(diger.zincirler)
+		let {params: _params} = diger
+		if (!empty(_params)) {
+			let params = this.params ??= []
+			params.push(..._params)
+		}
 		return this
 	}
 	distinctYap() { this.distinct = true; return this }
@@ -544,13 +559,20 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	bankaHesap2BankaBagla(e) { this.fromIliski('banmst ban', 'bhes.bankakod = ban.kod'); return this }
 	bankaHesap2GrupBagla(e) { this.fromIliski('banhesapgrup bhgrp', 'bhes.grupkod = bhgrp.kod'); return this }
 	har2VarsayilanUrunPaketBagla(e) {
-		this.leftJoin({ alias: 'har', table: 'urunpaket varp', on: ['har.stokkod = varp.urunkod', `varp.varsayilan <> ''`] });
+		this.leftJoin({ 
+			alias: 'har', table: 'urunpaket varp',
+			on: ['har.stokkod = varp.urunkod', `varp.varsayilan <> ''`]
+		})
 		return this
 	}
-	har2HizmetBagla(e) { this.fromIliski('hizmst hiz', 'har.hizmetkod = hiz.kod'); return this }
+	har2HizmetBagla(e) {
+		this.fromIliski('hizmst hiz', 'har.hizmetkod = hiz.kod')
+		return this
+	}
 	har2DemirbasBagla(e) {
-		let sahaAdi = e?.sahaAdi || 'demirbaskod';
-		this.fromIliski('demmst dem', `har.${sahaAdi} = dem.kod`); return this
+		let sahaAdi = e?.sahaAdi || 'demirbaskod'
+		this.fromIliski('demmst dem', `har.${sahaAdi} = dem.kod`)
+		return this
 	}
 	har2KDVBagla(e) { this.fromIliski('vergihesap kver', 'har.kdvhesapkod = kver.kod'); return this }
 	har2OTVBagla(e) { this.fromIliski('vergihesap over', 'har.otvhesapkod = over.kod'); return this }
@@ -577,10 +599,47 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 			.fromIliski('banbizhesap refhes', 'fis.refhesapkod = refhes.kod')
 	}
 	pcsPortfoy2DigerBagla(e) {
-		this.pcsBaslikBagla(e)
+		return this.pcsBaslikBagla(e)
 			.fromIliski('carmst belcir', 'bel.ciranta = belcir.must')
 			.fromIliski('carmst devcir', 'bel.devirciranta = devcir.must')
 			.fromIliski('cartip devctip', 'devcir.tipkod = devctip.kod')
+	}
+	brTahOdemeSonraBagla() {
+		// tahakkuk aylik bilgi diger dosyalar
+		this.fromIliski('tahakkuk tdon', ['pode.tahsayac = tdon.kaysayac', 'tdon.senaryono IS NULL'])
+		this.fromIliski('pertahay pay', ['pode.peraysayac = pay.kaysayac', 'pay.senaryono IS NULL'])
+		return this
+	}
+	brX2PerBagla({ kodClause } = {}) {
+		this.fromIliski('personel per', `${kodClause} = per.kod`)
+		return this
+	}
+	brX2PerSayacBagla({ kodClause } = {}) {
+		this.fromIliski('personel per', `${kodClause} = per.kaysayac`)
+		return this
+	}
+	brPerHepsiBagla() {
+		// personele bagli diger dosyalar
+		this.fromIliski('departman dep', 'per.depkod = dep.kod')
+		this.fromIliski('bisyeri isy', 'dep.isyerikod = isy.kod')
+		this.fromIliski('bisygrup igrp', 'isy.isygrupkod = igrp.kod')
+		this.fromIliski('pergrup grp', 'per.grupkod = grp.kod')
+		this.fromIliski('peranagrup agrp', 'grp.anagrupkod = agrp.kod')
+		this.fromIliski('perbirim pbrm', 'per.birimkod = pbrm.kod')
+		this.fromIliski('bgorev gor', 'per.gorevkod = gor.kod')
+		this.fromIliski('bgorevtipi gtip', 'gor.tipkod = gtip.kod')
+		this.fromIliski('peryaka yak', 'per.yakakod = yak.kod')
+		this.fromIliski('permasraf mas', 'per.masrafkod = mas.kod')
+		this.fromIliski('peruzmanlik uzm', 'per.uzmanlikkod = uzm.kod')
+		this.fromIliski('bil il', 'per.ilkod = il.kod')
+		return this
+	}
+	brTahIsyeriBagla() {
+		// tahakkuk aylik bilgi diger dosyalar
+		this.fromIliski('bisyeri tahisy', 'pay.sgkisyerikod = tahisy.kod')
+		this.fromIliski('bisygrup tahigrp', 'tahisy.isygrupkod = tahigrp.kod')
+		this.fromIliski('bil isyil', 'tahisy.ilkod = isyil.kod')
+		return this
 	}
 	/* CDB ext */
 	cDB_execute(e) {
@@ -628,7 +687,7 @@ class MQCTESent extends MQSentVeIliskiliYapiOrtak {
 		e = e || {}; super(e);
 		if (isArray(e)) e = { liste: e }
 		else if (typeof e != 'object') e = { liste: [e] }
-		this.liste = []; if (!$.isEmptyObject(e.liste)) this.addAll(e.liste);
+		this.liste = []; if (!empty(e.liste)) this.addAll(e.liste);
 	}
 	*getSentListe(e) { for (let item of this.liste) { yield item } }
 	sentDo(e) {

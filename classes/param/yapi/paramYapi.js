@@ -22,7 +22,7 @@ class ParamBuilder extends CObject {
 		let result = this._altInst;
 		if (result === undefined) {
 			result = this._altInst = e => {
-				let _result = this.defaultAltInst ?? this.parent?.altInst;
+				let _result = this.defaultAltInst ?? this.parent?.altInst
 				return _result === undefined ? this.inst : _result
 			}
 		}
@@ -383,7 +383,8 @@ class ParamBuilderAlt extends ParamBuilder {
 }
 class ParamBuilder_AltInst extends ParamBuilderAlt {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	get altInstmi() { return true } get defaultNewInst() { return undefined }
+	get altInstmi() { return true }
+	get defaultNewInst() { return undefined }
 	get newInst() {
 		let {instBuilder} = this; let result;
 		if (instBuilder != null) { if (isFunction(instBuilder)) { let _e = { paramci: this, inst() { return this.paramci.inst } }; result = getFuncValue.call(this, instBuilder, _e) } else { result = instBuilder } }
@@ -391,20 +392,31 @@ class ParamBuilder_AltInst extends ParamBuilderAlt {
 		return result
 	}
 	get defaultAltInst() {
-		let {inst} = this, result = inst; if (inst) {
-			let {id} = this; result = inst[id];
+		let {inst} = this, result = inst
+		if (inst) {
+			let {id} = this
+			result = inst[id]
 			if (result == null) {
-				let {newInst} = this;
-				if (newInst != null) { result = inst[id] = newInst }
+				let {newInst} = this
+				if (newInst != null)
+					result = inst[id] = newInst
 			}
 		}
-		return result
+		return null  // init olacak ama null donecek
 	}
-	constructor(e) { e = e ?? {}; super(e); this.instBuilder = e.instBuilder ?? e.newInst }
-	setInstBuilder(handler) { this.instBuilder = handler; return this } setNewInst(handler) { return this.setInstBuilder(handler) }
+	
+	constructor(e = {}) { super(e); this.instBuilder = e.instBuilder ?? e.newInst }
+	setInstBuilder(handler) { this.instBuilder = handler; return this }
+	setNewInst(handler) { return this.setInstBuilder(handler) }
 }
-class ParamBuilder_AltObject extends ParamBuilder_AltInst { get altObjectmi() { return true } get defaultNewInst() { return {} } }
-class ParamBuilder_AltArray extends ParamBuilder_AltInst { get altArraymi() { return true } get defaultNewInst() { return [] } }
+class ParamBuilder_AltObject extends ParamBuilder_AltInst {
+	get altObjectmi() { return true }
+	get defaultNewInst() { return {} }
+}
+class ParamBuilder_AltArray extends ParamBuilder_AltInst {
+	get altArraymi() { return true }
+	get defaultNewInst() { return [] }
+}
 class ParamBuilder_Kullanim extends ParamBuilder_AltObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get kullanimmi() { return true } get defaultId() { return 'kullanim' }

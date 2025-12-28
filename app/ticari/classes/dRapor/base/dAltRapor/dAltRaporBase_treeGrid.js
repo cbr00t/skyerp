@@ -308,17 +308,23 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	get noAutoColumns() { return true }
 	get tabloYapi() {
-		let {_tabloYapi: result} = this; if (result == null) {
-			let _e = { result: new TabloYapi() }; this.tabloYapiDuzenle(_e); this.tabloYapiDuzenle_son(_e);
-			this.tabloYapiDuzenle_ozel?.(_e); result = _e.result;
-			let tipSet = result.tipSet = {}, kaListe = result.kaListe = [];
+		let {_tabloYapi: result} = this
+		if (result == null) {
+			let _e = { result: new TabloYapi() }
+			this.tabloYapiDuzenle(_e)
+			this.tabloYapiDuzenle_son(_e)
+			this.tabloYapiDuzenle_ozel?.(_e)
+			result = _e.result
+			let tipSet = result.tipSet = {}
+			let kaListe = result.kaListe = []
 			for (let selector of ['grup', 'toplam']) {
 				let tip2Item = result[selector];
 				for (let [kod, {ka, colDefs}] of entries(tip2Item)) {
 					tipSet[kod] = true; kaListe.push(ka); if (colDefs) {
 						for (let colDef of colDefs) {
-							let userData = colDef.userData = colDef.userData || {};
-							userData.tip = selector; userData.kod = kod
+							let userData = colDef.userData ??= {}
+							userData.tip = selector
+							userData.kod = kod
 						}
 					 }
 				}
@@ -327,7 +333,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		}
 		return result
 	}
-	secimlerDuzenle(e) { super.secimlerDuzenle(e) } secimlerInitEvents(e) { super.secimlerInitEvents(e) }
+	secimlerDuzenle(e) { super.secimlerDuzenle(e) }
+	secimlerInitEvents(e) { super.secimlerInitEvents(e) }
 	tabloYapiDuzenle(e) { } tabloYapiDuzenle_son(e) { }
 	onBuildEk({ builder: fbd }) {
 		super.onBuildEk(...arguments)

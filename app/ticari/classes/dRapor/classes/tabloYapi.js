@@ -111,7 +111,7 @@ class TabloYapi extends CObject {
 		// küçük yardımcılar (projende zaten varsa sorun olmaz)
 		// -----------------------------
 		let pickAddSelector = ({ mode, tip }) => {
-			let t = (tip ?? '').trim().toUpperCase()
+			let t = (tip ?? '').trim() //.toUpperCase()
 			let isToplam = mode == 'toplam'
 			if (isToplam) {
 				if (t == 'D2') return 'addToplamBasit_bedel'
@@ -125,13 +125,11 @@ class TabloYapi extends CObject {
 			return 'addGrupBasit'
 		}
 		let makeKey = attr =>
-			(attr ?? '').toString().toUpperCase()
+			(attr ?? '').toString() //.toUpperCase()
 		// -----------------------------
 		// data yükleme (senin şablona uygun)
 		// -----------------------------
-		let data = isObject(e) ? e.data : null
-		let section = isObject(e) ? (e.section ?? e.sectionAdi ?? e.sectionName) : e
-		let belirtec = isObject(e) ? (e.belirtec ?? e.dosya ?? e.dosyaAdi ?? e.file ?? e.fileName) : null
+		let {data, section, belirtec, dataDuzenle, satirDuzenle} = e
 		if (data == null && belirtec && section) {
 			// cache önerisi (aynı rapor sürekli parse edilmesin)
 			this._raporTanim_iniCache = this._raporTanim_iniCache ?? new Map()
@@ -149,6 +147,8 @@ class TabloYapi extends CObject {
 			data = ('' + data).split('\n')
 		if (isArray(data))
 			data = data.map(_ => ('' + _).trim()).filter(_ => _)
+		if (dataDuzenle)
+			data = await dataDuzenle.call(this, { ...e, data })
 		if (empty(data))
 			return null
 
@@ -157,6 +157,8 @@ class TabloYapi extends CObject {
 		// -----------------------------
 		let mode = 'grup'    // 'grup' (Sabitler) | 'toplam' (Toplamlar/Toplanabilirler)
 		let order = 0, rawDefs = []
+		console.log('tabloYapi-parser', { belirtec, section, data })
+		let _e = { ...e }
 		for (let line0 of data) {
 			let line = (line0 ?? '').trim()
 			if (!line)
@@ -171,17 +173,6 @@ class TabloYapi extends CObject {
 			// ATTR= yoksa geç
 			if (!/\battr\s*=/.test(lw))
 				continue
-			// "Tanım Bilgisi (Sabitler)" / "(Toplamlar)" mod yakalama
-			// notlardaki SUM kuralı için gerekli :contentReference[oaicite:2]{index=2}
-			mode = (
-				lw.includes('toplam') || lw.includes('toplanabilir') ||
-					lw.includes('sum(') || lw.includes('max(') || lw.includes('min(') ||
-					lw.includes('fiyat') || lw.includes('bedel') ||
-					lw.includes('kayitsayi')
-				? 'toplam' : 'grup'
-			)
-			/*if (lw.includes('tanım bilgisi') || lw.includes('tanim bilgisi'))
-				continue*/
 			// tokenlar: TAB ile ayrılmış key=value
 			let kv = {}
 			for (let token of line.split('\t')) {
@@ -191,19 +182,36 @@ class TabloYapi extends CObject {
 				let eq = token.indexOf('=')
 				if (eq < 0)
 					continue
-				let k = token.slice(0, eq).trim().toUpperCase()
+				let k = token.slice(0, eq).trim()  //.toUpperCase()
 				let v = token.slice(eq + 1).trim()
 				kv[k] = v
 			}
-			let {ATTR: attr} = kv
+			if (satirDuzenle) {
+				$.extend(_e, { line, kv })
+				let _ = await satirDuzenle?.call?.(this, _e)
+				line = _ ?? _e.line
+				kv = _e.kv
+			}
+			let {ATTR: attr, SQL: sql} = kv
 			if (!attr)
 				continue
+			// "Tanım Bilgisi (Sabitler)" / "(Toplamlar)" mod yakalama
+			// SUM kuralı için gerekli
+			let sqlLW = sql.toLowerCase()
+			mode = (
+				lw.includes('toplam=') || sqlLW.includes('sum(') ||
+				sqlLW.includes('min(') || sqlLW.includes('max(') ||
+				sqlLW.includes('count(') || sqlLW.includes('string_agg(')
+				? 'toplam' : 'grup'
+			)
+			/*if (lw.includes('tanım bilgisi') || lw.includes('tanim bilgisi'))
+				continue*/
 			rawDefs.push({
 				order: order++,
 				mode, attr,
 				bas1: kv.BAS1 ?? '', bas2: kv.BAS2 ?? '',
 				gen: asInteger(kv.GEN) || undefined,
-				sql: kv.SQL ?? '', tip: kv.TIP ?? '',
+				sql, tip: kv.TIP ?? '',
 				duzenle: kv.DUZENLE ?? ''                    // varsa
 			})
 		}
@@ -211,7 +219,6 @@ class TabloYapi extends CObject {
 			return null
 		// -----------------------------
 		// 2) PASS: KA eşleştirme (prefixKod + prefixAdi => tek prefix)
-		// senin "AI HELP" kısmının net çözümü bu: önce topla, sonra eşleştir. :contentReference[oaicite:3]{index=3}
 		// -----------------------------
 		let kaPairRe = /^(.*?)(kod|adi)$/i
 		let pairMap = new Map()                                           // prefixLower -> { prefixRaw, kodDef, adiDef }
@@ -330,7 +337,7 @@ class TabloYapi extends CObject {
 				let clause = (def.sql ?? '').trim()
 				if (!clause)
 					return
-				// Toplamlar için SUM kuralı :contentReference[oaicite:4]{index=4}
+				// Toplamlar için SUM kuralı
 				if (def.mode == 'toplam')
 					// clause = wrapSumIfNeeded(clause)
 					clause = clause.parantezli()

@@ -94,11 +94,19 @@ class MQParam extends MQTekil {
 		return await this.yukle(e)
 	}
 	async kaydetOncesiIslemler(e) {
-		let {paramci} = this; if (paramci) { for (let item of paramci.getItemsAndSelf()) { if (item.kaydetOncesi) { await item.kaydetOncesi(e) } } }
+		let {paramci} = this, {islem} = e
+		if (paramci) {
+			for (let item of paramci.getItemsAndSelf())
+				 await item?.kaydetOncesi?.(e)
+		}
 		super.kaydetOncesiIslemler(e)
 	}
 	async kaydetSonrasiIslemler(e) {
-		let {paramci} = this; if (paramci) { for (let item of paramci.getItemsAndSelf()) { if (item.kaydedince) { await item.kaydedince(e) } } }
+		let {paramci} = this
+		if (paramci) {
+			for (let item of paramci.getItemsAndSelf())
+				 await item?.kaydedince?.(e)
+		}
 		await super.kaydetSonrasiIslemler(e)
 	}
 	static logRecDonusturucuDuzenle({ result }) {
@@ -123,14 +131,16 @@ class MQParam extends MQTekil {
 		}
 		super.keyHostVarsDuzenle(e)
 	}
-	hostVarsDuzenle(e) {
+	hostVarsDuzenle({ islem, hv }) {
 		let {class: { paramKod: kod }} = this
 		kod ??= ''; super.hostVarsDuzenle(e)
-		let _hv = this.paramHostVars({ ... e })
+		let _hv = this.paramHostVars({ ...arguments[0] })
 		if (!_hv)
 			return
-		let {hv} = e, jsonstr = toJSONStr(_hv)
+		let jsonstr = toJSONStr(_hv)
 		$.extend(hv, { kod, jsonstr })
+		if (islem == 'yeni')
+			hv.tanim = ''
 	}
 	setValues(e) {
 		super.setValues(e)
@@ -176,23 +186,35 @@ class MQParam extends MQTekil {
 				item?.paramSetValues?.(...arguments)
 		}
 	}
-	static async tanimla(e) {
-		let {tanimUISinif} = this; if (!tanimUISinif) { return null }
-		e = e || {}; e.islem = e.islem || 'degistir'; e.mfSinif = e.mfSinif || this;
+	static async tanimla(e = {}) {
+		let {tanimUISinif} = this
+		if (!tanimUISinif)
+			return null
+		e.islem = e.islem || 'degistir'
+		e.mfSinif = e.mfSinif || this
 		try {
-			let {paramci} = this; if (paramci?.tanimUIArgsDuzenle) { paramci.tanimUIArgsDuzenle(e) }
+			let {paramci} = this
+			paramci?.tanimUIArgsDuzenle?.(e)
 			/*let kaydedinceHandler = e.kaydedince; e.kaydedince = e => { if (kaydedinceHandler) getFuncValue.call(this, kaydedinceHandler, e); if (paramci?.kaydedince) paramci.kaydedince(e) }*/
-			let part = new tanimUISinif(e), result = await part.run(); return { part, result }
+			let part = new tanimUISinif(e), result = await part.run()
+			return { part, result }
 		}
 		catch (ex) { displayMessage(getErrorText(ex)); throw ex }
 	}
-	tanimla(e) { e = e || {}; e.inst = e.inst || this; return this.class.tanimla(e) }
+	tanimla(e = {}) {
+		e.inst = e.inst ?? this
+		return this.class.tanimla(e)
+	}
 	shallowCopy(e) {
-		let inst = super.shallowCopy(e); /* for (let key of this.class.ozelCopyKeys) delete inst[key] */
-		inst.builder = undefined; inst.paramciInit(e); return inst
+		let inst = super.shallowCopy(e)
+		inst.builder = undefined
+			inst.paramciInit(e)
+		return inst
 	}
 	deepCopy(e) {
-		let inst = super.deepCopy(e); /*for (let key of this.class.ozelCopyKeys) delete inst[key]*/
-		inst.builder = undefined; inst.paramciInit(e); return inst
+		let inst = super.deepCopy(e)
+		inst.builder = undefined
+		inst.paramciInit(e)
+		return inst
 	}
 }

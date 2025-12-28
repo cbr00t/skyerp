@@ -37,8 +37,9 @@ class MQYapi extends CIO {
 	}
 	static yeniInstOlustur(e) { e = e || {}; let {args} = e; return new this(args) }
 	async kaydet(e) { return await this.varmi(e) ? await this.degistir(e) : await this.yaz(e) }
-	async yaz(e) {
-		e = e || {}; let keyHV = this.alternateKeyHostVars(e);
+	async yaz(e = {}) {
+		e.islem ||= 'yeni'
+		let keyHV = this.alternateKeyHostVars(e);
 		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e, _e = { offlineMode, trnId };
 		if (!$.isEmptyObject(keyHV)) {
 			$.extend(_e, { keyHV }); let result = await this.varmi(_e); delete _e.keyHV;
@@ -48,8 +49,9 @@ class MQYapi extends CIO {
 		let {table} = this.class; let query = _e.query = new MQInsert({ table, hv });
 		let result = await this.sqlExecNone(_e); await this.yeniSonrasiIslemler({ ...e, ..._e }); return result
 	}
-	async degistir(e) {
-		e = e || {}; if (!$.isPlainObject(e)) { e = { islem: 'degistir', eskiInst: e } } await this.degistirOncesiIslemler(e);
+	async degistir(e = {}) {
+		if (!isPlainObject(e)) { e = { islem: 'degistir', eskiInst: e } }
+		await this.degistirOncesiIslemler(e)
 		let {table} = this.class; let keyHV = this.keyHostVars({ ...e, varsayilanAlma: true }) ?? {};
 		let altKeyHV = this.alternateKeyHostVars({ ...e, varsayilanAlma: true }); if (!$.isEmptyObject(altKeyHV)) { $.extend(keyHV, altKeyHV) }
 		let sent = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: '*' });
@@ -61,8 +63,9 @@ class MQYapi extends CIO {
 		}
 		await this.degistirSonrasiIslemler({ ...e, ..._e }); return result
 	}
-	async sil(e) {
-		e = e || {}; let keyHV = this.keyHostVars({ ...e, varsayilanAlma: true }) ?? {};
+	async sil(e = {}) {
+		e.islem ||= 'sil'
+		let keyHV = this.keyHostVars({ ...e, varsayilanAlma: true }) ?? {};
 		let altKeyHV = this.alternateKeyHostVars({ ...e, varsayilanAlma: true }); if (!$.isEmptyObject(altKeyHV)) { $.extend(keyHV, altKeyHV) }
 		if ($.isEmptyObject(keyHV)) { return true }
 		await this.silmeOncesiIslemler(e); let {table} = this.class; let query = new MQIliskiliDelete({ from: table, where: { birlestirDict: keyHV } });
