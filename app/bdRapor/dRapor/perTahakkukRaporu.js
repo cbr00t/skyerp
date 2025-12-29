@@ -38,6 +38,14 @@ class DRapor_PerTahakkukRaporuOrtak_Main extends DRapor_BDRaporBase_Main {
 	async ilkIslemler(e) {
 		await super.ilkIslemler(e)
 		this.eksikNedenKod2Adi = values(await app.wsSabitTanimlar_secIni({ belirtec: 'Yasal', section: 'SgkEksikNeden' }))?.[0]
+		{
+			let sent = new MQSent(), {where: wh, sahalar} = sent
+			sent.fromAdd('odemesaha ode')
+			wh.add(`ode.anatip = ''`, 'ode.senaryono IS NULL')
+			sahalar.add('ode.kod', 'ode.aciklama')
+			let recs = await app.sqlExecSelect(sent) ?? []
+			this.odemeSahaKAListe = recs.map(rec => new CKodVeAdi(rec))
+		}
 	}
 	secimlerDuzenle({ secimler: sec }) {
 		let _today = today()
@@ -60,7 +68,7 @@ class DRapor_PerTahakkukRaporuOrtak_Main extends DRapor_BDRaporBase_Main {
 	tabloYapiDuzenle({ result }) {
 		super.tabloYapiDuzenle(...arguments)
 		let {tahakkuk: { gecerliEksikNedenleri } = {}} = app.params
-		let {eksikNedenKod2Adi} = this
+		let {eksikNedenKod2Adi, odemeSahaKAListe} = this
 		result
 			// .addKAPrefix('x', 'y')
 			.addGrupBasit_numerik('YIL', 'Yıl', 'yil')
@@ -69,6 +77,16 @@ class DRapor_PerTahakkukRaporuOrtak_Main extends DRapor_BDRaporBase_Main {
 			let v = eksikNedenKod2Adi[k]
 			if (v != null)
 				result.addToplamBasit(`eksikGun${k}`, v, `eksikGun${k}`)
+		}
+		let addOdemeSaha = (kod, aciklama, keyPostfix, etiketPrefix) => {
+			let key = [`saha${kod}`, keyPostfix].filter(_ =>_).join('_')
+			let etiket = [etiketPrefix, aciklama].filter(_ =>_).join(': ')
+			result.addToplamBasit(key, etiket, key)
+		}
+		for (let {kod, aciklama} of odemeSahaKAListe) {
+			addOdemeSaha(kod, aciklama, 'Veri', 'Veri')
+			addOdemeSaha(kod, aciklama, 'Brut', 'Brüt')
+			addOdemeSaha(kod, aciklama, 'Net', 'Net')
 		}
 	}
 	loadServerData_queryDuzenle({ attrSet, stm, stm: { with: _with } }) {
@@ -161,14 +179,23 @@ class DRapor_PerTahakkukRaporuOrtak_Main extends DRapor_BDRaporBase_Main {
 			sent.groupByOlustur()
 			_with.add(sent.asTmpTable('odemeler'))
 		}
-		
+
+		let {odemeSahaKAListe} = this
 		for (let sent of stm) {
-			let {where: wh, sahalar} = sent
+			let {from, where: wh, sahalar} = sent
+			let addOdemeSaha = (k, aliasPostfix, saha) => {
+				saha ??= aliasPostfix.toLowerCase()
+				let tblSay = from.aliasIcinTable('say')
+				let odetTableAlias = `odet${k}`
+				if (!tblSay.aliasVarmi(odetTableAlias))
+					sent.leftJoin('say', `odemeler odet${k}`, [`say.tahodesayac = odet${k}.tahodesayac`, `odet${k}.odemekod = '${k}'`])
+				sahalar.add(`${odetTableAlias}.${saha} saha${k}_${aliasPostfix}`)
+			}
 			sent.fromAdd('sayaclar say')
 			if (avanssizVarmi || kidemIhbarVarmi || fazlaMesaiVarmi)
 				sent.leftJoin('say', 'ekbilgi ekb', 'say.tahodesayac = ekb.tahodesayac')
-			for (let k in odemeSahaBelirtecleri)
-				sent.leftJoin('say', `odemeler odet${k}`, [`say.tahodesayac = odet${k}.tahodesayac`, `odet${k}.odemekod = '${k}'`])
+			/*for (let k in odemeSahaBelirtecleri)
+				sent.leftJoin('say', `odemeler odet${k}`, [`say.tahodesayac = odet${k}.tahodesayac`, `odet${k}.odemekod = '${k}'`])*/
 			sent.innerJoin('say', 'pertahodeme pode', 'say.tahodesayac = pode.kaysayac')
 			sent.innerJoin('pode', 'tahakkuk tdon', ['pode.tahsayac = tdon.kaysayac', 'tdon.senaryono IS NULL'])
 			for (let k in baglantiEksikNedenleri)    // 99: son
@@ -190,6 +217,14 @@ class DRapor_PerTahakkukRaporuOrtak_Main extends DRapor_BDRaporBase_Main {
 						if (k.length > 8 && k.startsWith('eksikGun')) {
 							let nd = k.slice(8)
 							sahalar.add(`eks${nd}.gun eksikGun${nd}`)
+						}
+						else if (k.length > 4 && k.startsWith('saha')) {
+							let tokens = k.slice(4).split('_')
+							let kod = tokens[0].trim()
+							if (odemeSahaBelirtecleri[kod]) {
+								let aliasPostfix = tokens.at(-1).trim()
+								addOdemeSaha(kod, aliasPostfix)
+							}
 						}
 						break
 				}
