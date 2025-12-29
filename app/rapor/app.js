@@ -63,6 +63,18 @@ class SkyRaporApp extends TicariApp {
 	}
 	async anaMenuOlustur(e) {
 		try {
+			let {yetkiVarmi, dbName} = config.session ?? {}
+			if (!yetkiVarmi) {
+				this.noMenuFlag = true
+				let wnd = createJQXWindow({
+					content: `<div><b class=firebrick>${dbName}</b> veritabanına <b class=orangered>Ticari Sistem</b> için Erişim Yetkiniz YOK</div>`,
+					title: `<span class="bold">!! UYARI !!</span><span class="gray"> - ${appName}</span>`,
+					args: { isModal: true, width: Math.min(830, $(window).width() / 1.5), height: 330, showCloseButton: true, showCollapseButton: false, closeButtonAction: 'destroy' }
+					// buttons: { TAMAM: e => e.close() }
+				})
+				wnd.css('font-size', '130%')
+				wnd.find('div > .jqx-window-header').addClass('bg-darkred')
+			}
 			let {moduller, params} = app
 			let {aktarim: { kullanim: aktarim = {} } } = params
 			this.sqlTables = await app.sqlGetTables()

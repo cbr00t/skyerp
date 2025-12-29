@@ -1,27 +1,10 @@
-/*select fis.tarih, ....
-	, SUM(case when har.ba='B' then har.bedel else 0 end) borc
-	, SUM(case when har.ba='A' then har.bedel else 0 end) alacak
-	. mhes.kod muhhesapkod, mhes.aciklama muhhesapadi
-	. khes.kod kebirhesapkod, khes.aciklama kebirhesapadi
-	. shes.kod sinifhesapkod, shes.aciklama sinifhesapadi
-	. ches.kod cercevehesapkod, ches.aciklama cercevehesapadi
-	. mhgrp.kod mhgrupkod, mhgrp.aciklama muhgrupadi	
-from muhfis fis, muhhar har
-	, muhhesap mhes, muhhesap khes, muhhesap shes, muhhesap ches
-	, muhgrup mhgrp
-where fis.maliyil=@MALIYIL@
-	and fis.kaysayac=har.fissayac
-	and har.muhhesapkod=mhes.kod
-	and substring(mhes.kod,1,3)=khes.kod
-	and substring(mhes.kod,1,2)=shes.kod
-	and substring(mhes.kod,1,1)=ches.kod
-	and mhes.grupkod=mhgrp.kod
-group by ...*/
 
 class DRapor_Muhasebe extends DRapor_Donemsel {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get altRaporClassPrefix() { return 'DRapor_Muhasebe' }
-	static get kod() { return 'MUHASEBE' } static get aciklama() { return 'Muhasebe' }
-	static get vioAdim() { return 'MH-R' }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kategoriKod() { return 'MUH' } static get kategoriAdi() { return 'Muhasebe' }
+	static get kod() { return 'MUHASEBE' } static get aciklama() { return 'Muhasebe Total' }
+	static get vioAdim() { return 'MH-R' } static get oncelik() { return 97 }
+	static get altRaporClassPrefix() { return 'DRapor_Muhasebe' }
 }
 class DRapor_Muhasebe_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Muhasebe }
@@ -45,12 +28,15 @@ class DRapor_Muhasebe_Main extends DRapor_Donemsel_Main {
 	}
 	loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e)
-		let {params: { muhasebe: muhParam = {} }} = app
+		let {muhasebe: muhParam = {}} = app.params
 		let maliYil = muhParam.maliYil || today().yil
 		let {attrSet, stm: { sent, sent: { where: wh, sahalar } }} = e
-		let alias = 'fis'; $.extend(e, { sent, alias })
+		let alias = 'fis'
+		$.extend(e, { sent, alias })
 		sent.fisHareket('muhfis', 'muhhar')
 		sent.har2MuhHesapBagla()
+		wh.fisSilindiEkle({ alias })
+		wh.add(`${alias}.ozelisaret <> '*'`)                                                         // sadece işaretsiz olanlar
 		wh.degerAta(maliYil, 'fis.maliyil')
 		this.donemBagla({ ...e, tarihSaha: 'fis.tarih' })
 		for (let key in attrSet) {

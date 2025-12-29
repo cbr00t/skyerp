@@ -479,7 +479,7 @@ class DPanel extends Part {
 					continue
 				}
 				item.setInst(this).setPart(inst)
-				inst.on('init', ({ rapor: main }) =>
+				inst.on?.('init', ({ rapor: main }) =>
 					this.tazeleOncesi({ ..._e, main }))
 				result = await inst?.goster?.(_e)
 			}
@@ -1180,7 +1180,7 @@ class DPanel extends Part {
 			}
 			return det
 		}
-		catch (ex) { hConfirm(getErrorText(ex), islemAdi); throw ex }
+		catch (ex) { hConfirm(getErrorText(ex), islemAdi); console.error(ex); throw ex }
 		finally { hideProgress() }
 		/* let headerBuilder = ({ sender: part, rootBuilder: rfb }) => {
 			let {header} = part

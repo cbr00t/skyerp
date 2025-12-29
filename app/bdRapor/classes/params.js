@@ -1,11 +1,13 @@
 class MQParam_BDRapor extends MQParam {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Rapor Parametreleri' } static get paramKod() { return 'DRAPOR' }
+	get ekDBListe() { return this.konsolideCikti ? this._ekDBListe : null }
+	set ekDBListe(value) { this._ekDBListe = value }
 	static paramYapiDuzenle({ paramci }) {
 		let e = arguments[0]; super.paramYapiDuzenle(e)
 		paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`)
 		let form = paramci.addFormWithParent()
-		/*form.addCheckBox('ihracatIntacdanmi', 'İhracat İntaçtanmı')
+		//form.addCheckBox('ihracatIntacdanmi', 'İhracat İntaçtanmı')
 		form.addCheckBox('konsolideCikti', 'Konsolide Çıktı')
 			.degisince(({ builder: fbd }) => {
 				fbd.inst._kritikDegisiklikVarmi = true
@@ -13,7 +15,7 @@ class MQParam_BDRapor extends MQParam {
 			})
 		form.addModelKullan('_ekDBListe', 'Ek Veritabanları').comboBox().autoBind().noMF().kodsuz().coklu()
 			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.konsolideCikti ? true : 'jqx-hidden')
-			.setSource(e => app.wsDBListe().then(arr => arr.filter(x => x != 'ORTAK').map(x => new CKodVeAdi([x, x]))))*/
+			.setSource(e => app.wsDBListe().then(arr => arr.filter(x => x != 'ORTAK').map(x => new CKodVeAdi([x, x]))))
 		paramci.onAfterRun(({ builder: fbd }) =>
 			fbd.inst._kritikDegisiklikVarmi = false)
 	}

@@ -143,8 +143,12 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		let islemYap = (keys, callSelector, args) => {
 			for (let key of keys) {
-				let item = key ? grupVeToplam[key] : null; if (item == null) { continue }
-				let proc = item[callSelector]; if (proc) { proc.call(item, args) }
+				let item = key ? grupVeToplam[key] : null
+				if (item == null)
+					continue
+				let proc = item[callSelector]
+				if (proc)
+					proc.call(item, args)
 			}
 		};
 		islemYap(keys(grupVeToplam), 'secimlerDuzenle', e);

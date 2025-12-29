@@ -1,5 +1,6 @@
 class BDRaporApp extends SkyRaporApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
+	get vioProgBelirtec() { return 'VioPer' }
 	get mainRaporBase() { return DRapor_BDRaporBase }
 	get autoExecMenuId() { return null }
 	static get kategoriKod2Adi() {
@@ -50,8 +51,19 @@ class BDRaporApp extends SkyRaporApp {
 	}
 	async anaMenuOlustur(e) {
 		try {
-			let {moduller, params} = app
-			let {bGenel} = params
+			let {yetkiVarmi, dbName} = config.session ?? {}
+			if (!yetkiVarmi) {
+				this.noMenuFlag = true
+				let wnd = createJQXWindow({
+					content: `<div><b class=firebrick>${dbName}</b> veritabanına <b class=orangered>Personel Sistemi</b> için Erişim Yetkiniz YOK</div>`,
+					title: `<span class="bold">!! UYARI !!</span><span class="gray"> - ${appName}</span>`,
+					args: { isModal: true, width: Math.min(830, $(window).width() / 1.5), height: 330, showCloseButton: true, showCollapseButton: false, closeButtonAction: 'destroy' }
+					// buttons: { TAMAM: e => e.close() }
+				})
+				wnd.css('font-size', '130%')
+				wnd.find('div > .jqx-window-header').addClass('bg-darkred')
+			}
+			let {moduller, params, params: { bGenel }} = app
 			this.sqlTables = await app.sqlGetTables()
 			let eksikParamIsimleri = [], eksikModulIsimleri = []
 			//if (!bGenel?.webOzetRapor)

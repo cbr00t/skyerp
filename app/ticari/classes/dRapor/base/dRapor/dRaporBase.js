@@ -40,7 +40,7 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 		return this.uygunRaporlar
 			.map(cls => ({ kod: cls.kod, aciklama: cls.aciklama, sinif: cls }))
 	}
-	constructor(e) {
+	constructor(e = {}) {
 		super(e); let { width, height, events } = e
 		events ??= {}
 		for (let k of ['init', 'tazeleOncesi', 'tazeleSonrasi']) {

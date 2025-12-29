@@ -248,7 +248,6 @@ class DRapor_PerTahakkukRaporuOrtak_Main extends DRapor_BDRaporBase_Main {
 class DRapor_PerTahakkukRaporu extends DRapor_PerTahakkukRaporuOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return 'PERTAH' } static get aciklama() { return 'Personel Tahakkuk' }
-	static get uygunmu() { return app.params?.bGenel?.guleryuzOzel }
 	static get vioAdim() { return null }
 }
 class DRapor_PerTahakkukRaporu_Main extends DRapor_PerTahakkukRaporuOrtak_Main {

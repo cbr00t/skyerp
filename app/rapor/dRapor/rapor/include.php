@@ -4,7 +4,8 @@
 <script src="<?=$_partRoot?>/alimlar.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/siparisler.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/sonStok.js?<?=$appVersion?>"></script>
-<script src="<?=$_partRoot?>/muhasebe.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/muhasebeTotal.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/hizmetMuhKontrol.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/uretimBase.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/uretim.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/operBase.js?<?=$appVersion?>"></script>
