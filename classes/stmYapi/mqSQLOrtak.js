@@ -1,8 +1,8 @@
 class MQSQLOrtak extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	constructor(e) {
-		e = e || {}; super(e);
-		$.extend(this, { prefix: e.prefix, postfix: e.postfix, params: e.params || null });
+	constructor(e = {}) {
+		super(e)
+		$.extend(this, { prefix: e.prefix, postfix: e.postfix, params: e.params || null })
 	}
 	static async topluYazVeyaDegistirIcinYap(e) {
 		let {trnId, toplu} = e, eskiWhere = e.eskiWhere ?? e.eskiHVWhere, uniqueKeys = e.uniqueKeys ?? e.attrListe, table = e.table ?? e.tablo;
@@ -191,6 +191,23 @@ class MQSQLOrtak extends CObject {
 	asNot() { this.isNot = true; return this }
 	/* CDB ext */
 	cDB_execute({ ctx }) { }
+	/* Array interfce */
+	forEach() { return Array.from(this).forEach(...arguments) }
+	map() { return Array.from(this).map(...arguments) }
+	find() { return Array.from(this).find(...arguments) }
+	findIndex() { return Array.from(this).findIndex(...arguments) }
+	findLastIndex() { return Array.from(this).findLastIndex(...arguments) }
+	indexOf() { return Array.from(this).indexOf(...arguments) }
+	lastIndexOf() { return Array.from(this).lastIndexOf(...arguments) }
+	filter() { return Array.from(this).filter(...arguments) }
+	every() { return Array.from(this).every(...arguments) }
+	some() { return Array.from(this).some(...arguments) }
+	slice() { return Array.from(this).slice(...arguments) }
+	at() { return Array.from(this).at(...arguments) }
+	keys() { return Array.from(this).keys(...arguments) }
+	values() { return Array.from(this).values(...arguments) }
+	entries() { return Array.from(this).entries(...arguments) }
+	concat() { return Array.from(this).concat(...arguments) }
 }
 class MQSQLConst extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }

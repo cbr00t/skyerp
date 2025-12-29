@@ -39,7 +39,7 @@ class CObject {
 				}
 			}
 			else if (value instanceof TekSecim) { value = value.char }
-			value = value.asExportData ?? value;
+			value = value?.asExportData ?? value
 			result[key] = value
 		}
 		let e = { result }; this.exportDataDuzenle(e); result = e.result;

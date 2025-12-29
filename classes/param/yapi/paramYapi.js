@@ -420,6 +420,10 @@ class ParamBuilder_AltArray extends ParamBuilder_AltInst {
 class ParamBuilder_Kullanim extends ParamBuilder_AltObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get kullanimmi() { return true } get defaultId() { return 'kullanim' }
+	get defaultAltInst() {
+		super.defaultAltInst
+		return this.inst[this.id]
+	}
 }
 class ParamBuilder_UIElement extends ParamBuilderAlt {
     static { window[this.name] = this; this._key2Class[this.name] = this }
