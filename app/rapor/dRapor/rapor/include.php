@@ -14,3 +14,26 @@
 <script src="<?=$_partRoot?>/mes.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/pdksBase.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/pdks.js?<?=$appVersion?>"></script>
+
+<?php
+/*let text = 'cbr00t', tmp = {}, r = {}
+let fixedBuf = new Array(10).join('')
+for (let n = 0; n < 10; n++) {
+	for (let c = 'a'.charCodeAt(0); c <= 'z'.charCodeAt(0); c++) {
+		let t0 = performance.now()
+		let ch
+		for (let i = 0; i < 15_000_000; i++) {
+			ch = String.fromCharCode(c)
+			let test = ch + fixedBuf
+			if (test[0] == text[0])
+				tmp[ch] = n * c % t0            // prevent optimizations
+		}
+		let t1 = performance.now()
+		// console.log(ch, t1 - t0)
+		r[t1 - t0] = ch
+	}
+	let sorted = keys(r).sort().reverse().map(k => r[k])
+	let possibleLetter = sorted[0]
+	console.log(n, 'possible letter', possibleLetter)
+}*/
+?>

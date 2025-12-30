@@ -1,14 +1,15 @@
 class DRapor_SonStok extends DRapor_AraSeviye {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get altRaporClassPrefix() { return 'DRapor_SonStok' }
+	static get kategoriKod() { return 'STOK' } static get kategoriAdi() { return 'Stok' }
 	static get vioAdim() { return 'ST-LS' } static get kod() { return 'SONSTOK' } static get aciklama() { return 'Son Stok' }
-	static get kategoriKod() { return 'SATIS' } static get kategoriAdi() { return 'Satışlar' }
 	get stokmu() { return true } 
 }
 class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_SonStok } get stokmu() { return this.rapor?.stokmu }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get raporClass() { return DRapor_SonStok } get stokmu() { return this.rapor?.stokmu }
 	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e);
+		super.tabloYapiDuzenle(e)
 		let {result} = e, {toplamPrefix} = this.class, {isAdmin, rol} = config.session ?? {}
 		let brmDict = app.params?.stokBirim?.brmDict ?? {}, {tip2BrmListe} = MQStokGenelParam
 		let brmListe = Object.keys(tip2BrmListe ?? {})

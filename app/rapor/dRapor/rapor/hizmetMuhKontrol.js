@@ -22,6 +22,7 @@ class DRapor_HizmetMuhKontrol extends DRaporMQ {
 	}
 	static orjBaslikListesi_argsDuzenle({ args }) {
 		super.orjBaslikListesi_argsDuzenle(...arguments)
+		$.extend(args, { showStatusBar: true, showAggregates: true })
 	}
 	static orjBaslikListesi_groupsDuzenle({ liste }) {
 		super.orjBaslikListesi_groupsDuzenle(...arguments)
@@ -54,10 +55,10 @@ class DRapor_HizmetMuhKontrol extends DRaporMQ {
 				new GridKolon({ belirtec: 'muhHesapKod', text: 'Muh Hesap', genislikCh: 15 }),
 				new GridKolon({ belirtec: 'muhHesapAdi', text: 'Hesap Adı' })
 			),
-			new GridKolon({ belirtec: 'hiz_borc', text: 'Hiz.Borç', genislikCh: 17 }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'hiz_alacak', text: 'Hiz.Alacak', genislikCh: 17 }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'muh_borc', text: 'Muh.Borç', genislikCh: 17 }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'muh_alacak', text: 'Muh.Alacak', genislikCh: 17 }).tipDecimal_bedel()
+			new GridKolon({ belirtec: 'hiz_borc', text: 'Hiz.Borç', genislikCh: 17, aggregates: ['sum'] }).tipDecimal_bedel(),
+			new GridKolon({ belirtec: 'hiz_alacak', text: 'Hiz.Alacak', genislikCh: 17, aggregates: ['sum'] }).tipDecimal_bedel(),
+			new GridKolon({ belirtec: 'muh_borc', text: 'Muh.Borç', genislikCh: 17, aggregates: ['sum'] }).tipDecimal_bedel(),
+			new GridKolon({ belirtec: 'muh_alacak', text: 'Muh.Alacak', genislikCh: 17, aggregates: ['sum'] }).tipDecimal_bedel()
 		)
 	}
 	static async loadServerDataDogrudan({ gridPart, secimler: sec, secimler: { tarihBSVeyaCariDonem: tarihBS } }) {

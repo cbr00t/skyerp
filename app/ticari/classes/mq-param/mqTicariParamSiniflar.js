@@ -403,8 +403,12 @@ class MQUretimParam extends MQTicariParamBase {
 	constructor(e) { e = e || {}; super(e) }
 	static paramYapiDuzenle({ paramci }) {
 		super.paramYapiDuzenle(...arguments);
-		let form = paramci.addKullanim().addFormWithParent();
+		{
+			let form = paramci.addKullanim().addFormWithParent()
 			form.addBool('uretimMalMuh', 'Maliyet Muhasebesi')
+			form.addBool('karmaUretim', 'Karma Üretim')
+			form.addBool('ayrisimUretimi', 'Ayrışım Üretimi')
+		}
 		/*
 		at: 'superAgac'				put: self sablonsalFormul;
 		at: 'saOzellikZorunlumu'	put: self sablonsaldaOzellikSecimiZorunludur;

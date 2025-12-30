@@ -353,6 +353,31 @@ class UretimSekli extends TekSecim {
 		)
 	}
 }
+class UretimFisTipi extends TekSecim {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get fisListeTipi() { return 'URTFISTIP' } static get sinifAdi() { return 'Üretim Fiş Tipi' }
+	static get defaultChar() { return '' }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		let {uretim: { kullanim: uretim = {}} = {}} = app.params
+		let {karmaUretim, ayrisimUretimi} = uretim
+		kaListe.push(...[
+			new CKodVeAdi(['', 'Standart Üretim']),
+			(karmaUretim ? new CKodVeAdi(['KR', 'Karma Üretim']) : null),
+			(ayrisimUretimi ? new CKodVeAdi(['AY', 'Ayrışım Üretimi']) : null)
+		].filter(_ =>_))
+	}
+}
+class GeciciUretilen extends BuDigerVeHepsi {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get fisListeTipi() { return 'FISGECURET' } static get sinifAdi() { return 'Geçici Üretilen' }
+	static get defaultChar() { return '' }
+	init() {
+		super.init(...arguments); let {_buDigerYapi: l} = this
+		l[0] = '<span>Normal</span>'
+		l[1] = '<span class="orangered">Geçici</span>'
+	}
+}
 class HesapTipi extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
