@@ -562,13 +562,13 @@ class ParamBuilder_Info extends ParamBuilder_UIElement {
 }
 class ParamBuilder_TextInput extends ParamBuilder_UIElement {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	constructor(e) {
-		e = e ?? {}; super(e);
+	constructor(e = {}) {
+		super(e)
 		this.maxLength = e.maxLength
 	}
 	formBuilderDuzenleInternal(e) {
 		super.formBuilderDuzenleInternal(e);
-		let {id, etiket, value, maxLength} = this;
+		let {id, etiket, value, maxLength} = this
 		this.builder = e.builder.addTextInput({ id, etiket, value, maxLength })
 	}
 	super_formBuilderDuzenleInternal(e) { super.formBuilderDuzenleInternal(e) }
@@ -578,6 +578,7 @@ class ParamBuilder_TextInput extends ParamBuilder_UIElement {
 			value = value.trimEnd()
 		return value
 	}
+	setMaxLength(value) { this.maxLength = value; return this }
 }
 class ParamBuilder_PassInput extends ParamBuilder_TextInput {
     static { window[this.name] = this; this._key2Class[this.name] = this }

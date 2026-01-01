@@ -1,0 +1,14 @@
+
+.MQOnayci.masterListe.part .header .islemTuslari { --width-sag: 550px !important }
+.MQOnayci.masterListe.part .header .islemTuslari button#onay,
+	.masterListe.part .header .islemTuslari button#red { width: 70px }
+.MQOnayci.masterListe.part .header .islemTuslari button#onay.jqx-fill-state-normal { background: limegreen }
+.MQOnayci.masterListe.part .header .islemTuslari button#red.jqx-fill-state-normal { background: indianred }
+.MQOnayci.masterListe.part .header .islemTuslari button#red { margin-left: 3px }
+.MQOnayci.masterListe.part .header .islemTuslari button#eIslemIzle { margin-left: 15px; margin-right: 8px }
+
+@media (max-width: 1000px) {
+	.MQOnayci.masterListe.part .header .islemTuslari { --width-sag: 400px !important }
+	.MQOnayci.masterListe.part .header .islemTuslari button#onay,
+		.masterListe.part .header .islemTuslari button#red { width: 60px }
+}

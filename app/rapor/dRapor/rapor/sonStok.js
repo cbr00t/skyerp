@@ -70,7 +70,7 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 		let {violetmi} = app, {secimler = this.secimler} = e
 		let {value: tarih} = secimler.tarihdekiDurum
 		let har = new StokHareketci().withAttrs([
-			(tarih ? 'tarih' : null),
+			'ozelisaret', (tarih ? 'tarih' : null),
 			'gc', 'stokkod', 'yerkod', 'miktar', 'miktar2',
 			(violetmi ? 'opno' : null),
 			...Array.from(HMRBilgi).map(_ => _.rowAttr)
@@ -78,11 +78,13 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 		let harUni = stm.sent = har.uniOlustur()    // araSeviye.genelDuzenle_son kisminda, union icin => asToplamStm() yapar
 		for (let sent of harUni) {
 			e.sent = sent
-			let {alias2Deger: hv} = sent, {opno, gc} = hv
+			let {alias2Deger: hv} = sent
 			sent.sahalarVeGroupByVeHavingReset()
 			let {where: wh, sahalar} = sent
+			let {ozelisaret, opno, gc} = hv
 			if (attrSet.SUBE || attrSet.SUBEGRUP)
 				sent.yer2SubeBagla()
+			wh.add(`${ozelisaret} <> 'X'`)
 			if (tarih)
 				wh.add(`${hv.tarih} <= ${tarih.sqlServerDegeri()}`)
 			if (violetmi && !MQSQLOrtak.sqlBosDegermi(opno)) {
