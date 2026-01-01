@@ -532,3 +532,99 @@ class DRapor_Hareketci_Odeme_Main extends DRapor_Hareketci_Main {
 	}
 	tabloYapiDuzenle_odemeGun(e) { super.super_tabloYapiDuzenle_odemeGun(e) }
 }
+
+/*class DRapor_Hareketci_SonStok extends DRapor_Hareketci {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kategoriKod() { return 'STOK' } static get kategoriAdi() { return 'Stok' }
+	static get vioAdim() { return 'ST-SN' } static get hareketciSinif() { return SonStokHareketci }
+	static get sadeceTotalmi() { return true }
+}
+class DRapor_Hareketci_SonStok_Main extends DRapor_Hareketci_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get raporClass() { return DRapor_Hareketci_SonStok }
+	static get secimSinif() { return Secimler }
+	get stokmu() { return this.rapor?.stokmu }
+	secimlerDuzenle({ secimler: sec }) {
+		{
+			let grupKod = 'donemVeTarih'
+			sec.grupEkle(grupKod, ' ', false)
+			sec.secimEkle('tarih', new SecimTekilDate({ etiket: '...Tarihindeki durum', grupKod }))
+			sec.whereBlockEkle(({ secimler: sec, where: wh }) => {
+			})
+		}
+		super.superSuper_secimlerDuzenle(...arguments)
+	}
+	tabloYapiDuzenle({ result }) {
+		let e = arguments[0]
+		super.superSuper_tabloYapiDuzenle(e)    // HareketciBase > DonemselBase >> AraSeviye
+		let {toplamPrefix} = this.class, {isAdmin, rol} = config.session ?? {}
+		let brmDict = app.params?.stokBirim?.brmDict ?? {}
+		let brmListe = keys(MQStokGenelParam.tip2BrmListe ?? {})
+		result
+			.addKAPrefix('sube', 'subegrup')
+			.addGrupBasit('SUBE', 'Şube', 'sube', DMQSube)
+			.addGrupBasit('SUBEGRUP', 'Şube Grup', 'subegrup', DMQSubeGrup)
+		this.tabloYapiDuzenle_stok(e)
+		if (isAdmin || !rol?.ozelRolVarmi('XMALYT')) {
+			result
+				.addToplamBasit_fiyat('STK_ALIMNETFIYAT', 'Alım Net Fiyat', 'stk_alimnetfiyat', null, null, ({ colDef }) => colDef.tipDecimal(2))
+				.addToplamBasit_fiyat('STK_ORTMALIYET', 'Ort. Maliyet', 'stk_ortmaliyet', null, null, ({ colDef }) => colDef.tipDecimal(2))
+				.addToplamBasit_fiyat('STK_RAYICALIM', 'Rayiç Alım', 'stk_rayicalim', null, null, ({ colDef }) => colDef.tipDecimal(2))
+		}
+		this.tabloYapiDuzenle_yer(e)
+		result.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, 100, null)
+		result.addToplamBasit('MIKTAR2', '2. Miktar', 'miktar2', null, 100, null)
+		for (let tip of brmListe) {
+			let fra = brmDict[tip]
+			result.addToplamBasit(`MIKTAR${tip}`, `Miktar (${tip})`, `miktar${tip}`, null, 100, ({ colDef }) => colDef.tipDecimal(fra))
+		}
+		if (isAdmin || !rol?.ozelRolVarmi('XMALYT')) {
+			result
+				.addToplamBasit_bedel('DEG_ALIMNETFIYAT', 'Alım Net Fiyat Değerleme', 'deg_alimnetfiyat')
+				.addToplamBasit_bedel('DEG_RAYICALIM', 'Rayiç Alım Değerleme', 'deg_rayicalim')
+				.addToplamBasit_bedel('DEG_ORTMALIYET', 'Ort. Maliyet Değerleme', 'deg_ortmaliyet')
+				.addToplamBasit_bedel('DEG_SATFIYAT1', '1. Satış Fiyat Değerleme', 'deg_satfiyat1')
+		}
+		this.tabloYapiDuzenle_hmr(e)
+	}
+	loadServerData_queryDuzenle_hrkSent({ attrSet, hvDegeri, sent, sent: { where: wh, sahalar } }) {
+		let e = arguments[0]
+		super.loadServerData_queryDuzenle_hrkSent(e)
+		let alias = e.alias = 'son'
+		if (attrSet.SUBEGRUP)
+			sent.sube2GrupBagla()
+		if (attrSet.DEPOGRUP)
+			sent.yer2GrupBagla()
+		let PrefixMiktar = 'MIKTAR'
+		let degMiktarClause = `(case when stk.almfiyatmiktartipi = '2' then son.sonmiktar2 else son.sonmiktar end)`
+		for (let key in attrSet) {
+			switch (key) {
+				case 'SUBE': sahalar.add(`${hvDegeri('bizsubekod')} subekod`, 'sub.aciklama subeadi'); wh.icerikKisitDuzenle_sube({ ...e, saha: hvDegeri('bizsubekod') }); break
+				case 'SUBEGRUP': sahalar.add('sub.isygrupkod subegrupkod', 'igrp.aciklama subegrupadi'); wh.icerikKisitDuzenle_subeGrup({ ...e, saha: 'sub.isygrupkod' }); break
+				case 'DEPO': sahalar.add(`${hvDegeri('yerkod')} yerkod`, 'yer.aciklama yeradi'); wh.icerikKisitDuzenle_yer({ ...e, saha: hvDegeri('yerkod') }); break
+				case 'DEPOGRUP': sahalar.add('yer.yergrupkod yergrupkod', 'ygrp.aciklama yergrupadi'); wh.icerikKisitDuzenle_yerGrup({ ...e, saha: 'yer.yergrupkod' }); break
+				case 'STK_ALIMNETFIYAT': sahalar.add('SUM(stk.almnetfiyat) stk_alimnetfiyat'); break
+				case 'STK_ORTMALIYET': sahalar.add('SUM(stk.ortmalfiyat) stk_ortmaliyet'); break
+				case 'STK_RAYICALIM': sahalar.add(`SUM(case when stk.revizerayicalimfiyati < stk.almnetfiyat then stk.almnetfiyat else stk.revizerayicalimfiyati end) stk_rayicalim`); break
+				case 'DEG_ALIMNETFIYAT': sahalar.add(`SUM(ROUND(${degMiktarClause} * stk.almnetfiyat, 2)) deg_alimnetfiyat`); break
+				case 'DEG_RAYICALIM': sahalar.add(`SUM(ROUND(${degMiktarClause} * stk.revizerayicalimfiyati, 2)) deg_rayicalim`); break
+				case 'DEG_ORTMALIYET': sahalar.add(`SUM(ROUND(${degMiktarClause} * stk.ortmalfiyat, 2)) deg_ortmaliyet`); break
+				case 'DEG_SATFIYAT1': sahalar.add(`SUM(ROUND(${degMiktarClause} * stk.satfiyat1, 2)) deg_satfiyat1`); break
+				case PrefixMiktar: sahalar.add(`SUM(${hvDegeri('miktar')}) miktar`); break
+				case `${PrefixMiktar}2`: sahalar.add(`SUM(${hvDegeri('miktar2')}) miktar2`); break
+				case 'BRM': sahalar.add(`${hvDegeri('brm')} brm`); break
+				case 'BRM2': sahalar.add(`${hvDegeri('brm2')} brm2`); break
+				default: {
+					if (key.startsWith(PrefixMiktar)) {
+						let brmTip = key.slice(PrefixMiktar.length)?.toUpperCase();
+						sahalar.add(`${this.getBrmliMiktarClause({ brmTip, mstAlias: 'stk', harAlias: alias, miktarPrefix: alias })} miktar${brmTip}`)
+					}
+					break
+				}
+			}
+		}
+		this.loadServerData_queryDuzenle_stok({ ...e, sent, kodClause: hvDegeri('shkod') })
+		this.loadServerData_queryDuzenle_hmr({ ...e, sent, stm: [sent] })
+		this.loadServerData_queryDuzenle_ek({ ...e, sent })
+	}
+}*/

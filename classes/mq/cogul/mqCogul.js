@@ -10,12 +10,9 @@ class MQCogul extends MQYapi {
 	static get ayrimTipKod() { return null } static get ayrimBelirtec() { return this.tableAlias } static get ayrimTable() { return `${this.tableAlias}ayrim`} static get ayrimTableAlias() { return null } 
 	static get tanimlanabilirmi() { return !!this.tanimUISinif } static get degistirilebilirmi() { return this.tanimlanabilirmi }
 	static get silinebilirmi() { return true } static get raporKullanilirmi() { return false } static get silindiDesteklenirmi() { return false }
-	static get kolonDuzenlemeYapilirmi() { return true }
-	static get kolonFiltreKullanilirmi() { return !isMiniDevice() }
+	static get kolonDuzenlemeYapilirmi() { return true } static get kolonFiltreKullanilirmi() { return !isMiniDevice() }
 	static get gridIslemTuslariKullanilirmi() { return !isMiniDevice() }
-	static get yerelParamBelirtec() { return this.classKey }
-	static get sayacSahaGosterilirmi() { return false }
-	static get tumKolonlarGosterilirmi() { return false }
+	static get yerelParamBelirtec() { return this.classKey } static get sayacSahaGosterilirmi() { return false } static get tumKolonlarGosterilirmi() { return false }
 	static get gridDetaylimi() { return this.detaylimi } static get ozelTanimIslemi() { return null } static get bulFormKullanilirmi() { return true } static get gereksizTablolariSilYapilirmi() { return true }
 	static get islemTuslari_sagButonlar_ekMarginX() { return isMiniDevice() ? 0 : 15 }
 	static get orjBaslik_gridRenderDelayMS() { return null }

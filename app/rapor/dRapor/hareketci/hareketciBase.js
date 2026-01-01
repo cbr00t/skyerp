@@ -2,10 +2,10 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get araSeviyemi() { return this == DRapor_Hareketci } static get hareketciSinif() { return null }
 	// static get oncelik() { return 20 }
-	static get oncelik() { return this.hareketciSinif.oncelik }
-	static get uygunmu() { return this.mainClass?.hareketciSinif?.uygunmu ?? true }
+	static get oncelik() { return this.hareketciSinif.oncelik } static get uygunmu() { return this.mainClass?.hareketciSinif?.uygunmu ?? true }
 	static get yatayAnalizVarmi() { return this.totalmi } static get ozetVarmi() { return this.totalmi } static get chartVarmi() { return this.totalmi }
 	static get totalmi() { return !(this.hareketmi || this.envantermi) } static get hareketmi() { return false } static get envantermi() { return false }
+	static get sadeceTotalmi() { return false }
 	static get kod() {
 		let {_kod: result, kodEk: ek} = this
 		if (ek && result)
@@ -34,9 +34,13 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 		let subNames = ['Hareket', 'Envanter'];
 		let {raporBilgiler} = this, evalList = [];
 		for (let {kod, cls} of raporBilgiler) {
-			let parent; {
-				let {mainClass, name} = cls; if (!mainClass) { continue }
-				let {name: mainName} = mainClass; parent = { cls, name, mainClass, mainName }
+			let parent
+			; {
+				let {mainClass, sadeceTotalmi, name} = cls
+				if (!mainClass || sadeceTotalmi)
+					continue
+				let {name: mainName} = mainClass
+				parent = { cls, name, mainClass, mainName }
 			}
 			for (let subPostfix of subNames) {
 				let selector = subPostfix.toLowerCase();
@@ -79,8 +83,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		return super.tazele(e)
 	}
 	secimlerDuzenle({ secimler: sec }) {
-		super.secimlerDuzenle(...arguments);
-		let grupKod = 'donemVeTarih', {hareketci} = this, {totalmi} = this.class;
+		super.secimlerDuzenle(...arguments)
+		let grupKod = 'donemVeTarih', {hareketci} = this, {totalmi} = this.class
 		let {hareketTipSecim: tekSecim} = hareketci?.class ?? {};
 		let liste = {}; if (tekSecim) { liste.tip = new SecimBirKismi({ etiket: 'Tip', tekSecim, grupKod }).birKismi().autoBind() }
 		if (!totalmi) { liste.devirAlinmasin = new SecimBool({ grupKod, etiket: `Devir <b class=firebrick>AlınMAsın</b>` }) }
@@ -94,6 +98,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 			}
 		}
 	}
+	super_secimlerDuzenle(e) { super.secimlerDuzenle(e) }
+	superSuper_secimlerDuzenle(e) { super.super_secimlerDuzenle(e) }
 	secimlerInitEvents(e) {
 		super.secimlerInitEvents(e)
 		let {secimlerPart} = this, {secim2Info} = secimlerPart || {}
@@ -124,6 +130,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		this.tabloYapiDuzenle_dovizli_baBedel(e)
 		this.tabloYapiDuzenle_dovizli_baBakiye(e)
 	}
+	super_tabloYapiDuzenle(e) { super.tabloYapiDuzenle(e) }
+	superSuper_tabloYapiDuzenle(e) { super.super_tabloYapiDuzenle(e) }
 	tabloYapiDuzenle_odemeGun(e) { /* do nothing */ }
 	super_tabloYapiDuzenle_odemeGun(e) { super.tabloYapiDuzenle_odemeGun(e) }
 	async loadServerDataInternal(e = {}) {
@@ -161,6 +169,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		}
 		return result
 	}
+	super_loadServerDataInternal(e) { return super.loadServerDataInternal(e) }
+	superSuper_loadServerDataInternal(e) { return super.super_loadServerDataInternal(e) }
 	loadServerData_queryDuzenle(e) {
 		e.alias ??= 'hrk'
 		super.loadServerData_queryDuzenle(e)

@@ -47,8 +47,9 @@ class StokHareketci extends Hareketci {
 	static get hvci() {
 		let {_hvci: result} = this;
 		if (result == null) {
-			let {sqlZero} = Hareketci_UniBilgi.ortakArgs;
+			let {sqlNull, sqlZero} = Hareketci_UniBilgi.ortakArgs
 			result = this._hvci = {
+				opno: sqlNull,
 				basitToplanamaz: hv => ({
 					kayittipi: `'PIFST'`, maltip: 'fis.almsat', iadetip: 'fis.iade', oncelik: 'fis.oncelik',
 					must: 'fis.must', sevktarihi: 'coalesce(fis.sevktarihi, fis.tarih)',
@@ -163,7 +164,7 @@ class StokHareketci extends Hareketci {
 		super.uniOrtakSonIslem(...arguments)
 		let {sqlNull} = Hareketci_UniBilgi.ortakArgs, {attrSet, sonIslem_whereBaglanmazFlag, class: { sablonsalVarmi }} = this
 		let yerKodClause = hvDegeri('yerkod'), mustClause = hvDegeri('must')
-		let kodClause = hvDegeri('stokkod'), fiilimi = (sec?.ISARET?.value || 'F') == 'F';
+		let kodClause = hvDegeri('stokkod'), fiilimi = (sec?.ISARET?.value || 'F') == 'F'
 		if (!from.aliasIcinTable('stk')) { sent.fromIliski('stkmst stk', `${kodClause} = stk.kod`) }
 		if (!from.aliasIcinTable('grp')) { sent.stok2GrupBagla() }
 		if (!from.aliasIcinTable('agrp')) { sent.stokGrup2AnaGrupBagla() }
@@ -236,8 +237,9 @@ class StokHareketci extends Hareketci {
 	static getHV_hmr_normal(e) { return this.getHV_hmr({ ...e, empty: false }) }
 	static getHV_hmr_bos(e) { return this.getHV_hmr({ ...e, empty: true }) }
 	static getHV_hmr({ hv, empty }) {
-		let {sqlNull} = Hareketci_UniBilgi.ortakArgs;
-		for (let {rowAttr} of HMRBilgi) { hv[rowAttr] = `har.${rowAttr}` }
+		let {sqlNull} = Hareketci_UniBilgi.ortakArgs
+		for (let {rowAttr} of HMRBilgi)
+			hv[rowAttr] = `har.${rowAttr}`
 	}
     /** (Stok GC/Transfer) için UNION */
     uniDuzenle_stokGirisCikisTransfer({ uygunluk, liste }) {
@@ -570,7 +572,7 @@ class StokHareketci extends Hareketci {
 						fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', takipno: 'har.takipno',
 						malmiktar: 'dbo.malbrmnum(stk.smalduzbirimtipi, har.miktar2,har.miktar)',
 						malbrm: 'dbo.malbrmtext(stk.smalduzbirimtipi, stk.brm2, stk.brm)',
-						...this.class.getHV_hmr_normal({ hv }), opno: 'har.opno', bedel: 'har.bedel',
+						...this.class.getHV_hmr_normal({ hv }), bedel: 'har.bedel',
 						maliyet: `dbo.banum(har.ba, (case when har.kayittipi in ('ST', 'SH') then har.bedel else 0 end), (har.malhammadde + har.malmuh))`,
 						fmaliyet: `dbo.banum(har.ba, (case when har.kayittipi in ('ST', 'SH') then har.bedel else 0 end), (har.fmalhammadde + har.fmalmuh))`
 	                })

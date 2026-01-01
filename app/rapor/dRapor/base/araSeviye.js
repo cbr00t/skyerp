@@ -631,9 +631,10 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	tabloYapiDuzenle_hmr({ result }) {
-		for (let {belirtec, etiket: text, numerikmi, kami: _kami, mfSinif} of HMRBilgi.hmrIter()) {
-			let tip = belirtec.toUpperCase(), kami = _kami && !!mfSinif, genislikCh = 15;
-			if (kami) { result.addKAPrefix(belirtec) }
+		for (let {belirtec, etiket: text, numerikmi, kami: _kami, mfSinif} of HMRBilgi) {
+			let tip = belirtec.toUpperCase(), kami = _kami && !!mfSinif, genislikCh = 15
+			let hmrTable = kami ? mfSinif?.table : null
+				result.addKAPrefix(belirtec)
 			result.addGrup(new TabloYapiItem().setKA(tip, text).secimKullanilir().setMFSinif(mfSinif).addColDef(
 				numerikmi
 					? new GridKolon({ belirtec, text, genislikCh, filterType: 'numberinput' }).tipNumerik()
@@ -643,24 +644,36 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	loadServerData_queryDuzenle_hmr(e) {
-		let {stm, attrSet} = e, alias = e.alias == 'fis' ? 'har' : e.alias, aliasVeNokta = alias ? `${alias}.` : '';
-		for (let sent of stm) {
-			let {where: wh, sahalar} = sent; for (let {belirtec, rowAttr, kami, mfSinif} of HMRBilgi.hmrIter()) {
-				let tip = belirtec.toUpperCase(); if (!attrSet[tip]) { continue }
-				let hmrTable = kami && kami ? mfSinif?.table : null;
-				if (hmrTable) {
-					let {tableAlias: hmrTableAlias, idSaha, adiSaha} = mfSinif;
-					sent.fromIliski(`${hmrTable} ${hmrTableAlias}`, `${alias}.${rowAttr} = ${hmrTableAlias}.${idSaha}`);
-					sahalar.add(`${aliasVeNokta}${rowAttr} ${belirtec}kod`);
-					if (adiSaha) { sahalar.add(`${hmrTableAlias}.${adiSaha} ${belirtec}adi`) }
-					switch (tip) {
-						case 'RENK': sahalar.add(`${hmrTableAlias}.oscolor1`, `${hmrTableAlias}.uyarlanmisoscolor2 oscolor2`); break
-						case 'DESEN': sahalar.add(`${hmrTableAlias}.imagesayac`); break
-					}
+		let {stm, alias} = e
+		if (alias == 'fis')
+			alias = 'har'
+		for (let sent of stm)
+			this.loadServerData_queryDuzenle_hmrBasit({ ...e, sent })
+	}
+	loadServerData_queryDuzenle_hmrBasit({ attrSet, alias, stm, sent }) {
+		let aliasVeNokta = alias ? `${alias}.` : ''
+		sent ??= stm.sent
+		let {where: wh, sahalar} = sent
+		for (let {belirtec, rowAttr, kami, mfSinif} of HMRBilgi) {
+			let tip = belirtec.toUpperCase()
+			if (!attrSet[tip])
+				continue
+			let hmrTable = kami ? mfSinif?.table : null
+			if (hmrTable) {
+				let {tableAlias: hmrTableAlias, idSaha, adiSaha} = mfSinif
+				sent.fromIliski(`${hmrTable} ${hmrTableAlias}`, `${alias}.${rowAttr} = ${hmrTableAlias}.${idSaha}`)
+				sahalar.add(`${aliasVeNokta}${rowAttr} ${belirtec}kod`)
+				if (adiSaha)
+					sahalar.add(`${hmrTableAlias}.${adiSaha} ${belirtec}adi`)
+				switch (tip) {
+					case 'RENK': sahalar.add(`${hmrTableAlias}.oscolor1`, `${hmrTableAlias}.uyarlanmisoscolor2 oscolor2`); break
+					case 'DESEN': sahalar.add(`${hmrTableAlias}.imagesayac`); break
 				}
-				else { sahalar.add(`${aliasVeNokta}${rowAttr} ${belirtec}`) }
 			}
-		} return this
+			else
+				sahalar.add(`${aliasVeNokta}${rowAttr} ${belirtec}`)
+		}
+		return this
 	}
 	tabloYapiDuzenle_ozelIsaret({ result }) {
 		let tekSecimSinif = NormalFiili
@@ -791,10 +804,18 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	loadServerData_queryDuzenle_stok({ stm, sent, attrSet, kodClause }) {
-		if (!kodClause) { return this }
-		sent = sent ?? stm.sent; let {where: wh, sahalar} = sent;
-		if (attrSet.STANAGRP || attrSet.STGRP || attrSet.STISTGRP || attrSet.STOK || attrSet.STOKMARKA || attrSet.STOKRESIM) { sent.x2StokBagla({ kodClause }) }
-		if (attrSet.STANAGRP) { sent.stok2GrupBagla() } if (attrSet.STOKMARKA) { sent.stok2MarkaBagla() }
+		if (!kodClause)
+			return this
+		sent = sent ?? stm.sent
+		let {from, where: wh, sahalar} = sent
+		if (attrSet.STANAGRP || attrSet.STGRP || attrSet.STISTGRP || attrSet.STOK || attrSet.STOKMARKA || attrSet.STOKRESIM) {
+			if (!from.aliasIcinTable('stk'))
+				sent.x2StokBagla({ kodClause })
+		}
+		if (attrSet.STANAGRP && !from.aliasIcinTable('grp'))
+			sent.stok2GrupBagla()
+		if (attrSet.STOKMARKA && !from.aliasIcinTable('smar'))
+			sent.stok2MarkaBagla()
 		for (let key in attrSet) {
 			switch (key) {
 				case 'STOK': sahalar.add(`${kodClause} stokkod`, 'stk.aciklama stokadi'); wh.icerikKisitDuzenle_stok({ ...arguments[0], saha: kodClause }); break
@@ -1006,8 +1027,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		let mstAliasVeNokta = mstAlias ? `${mstAlias}.` : '', harAliasVeNokta = harAlias ? `${harAlias}.` : ''
 		let getWhereClause = brmSaha =>
 			new MQSubWhereClause({ inDizi: brmListe ?? [], saha: `${mstAliasVeNokta}${brmSaha}` }).toString()
-		return `SUM(case when ${getWhereClause('brm')} then ${getMiktarClause(`${harAliasVeNokta}${miktarPrefix}miktar`)}` +
-						` when ${getWhereClause('brm2')} then ${getMiktarClause(`${harAliasVeNokta}${miktarPrefix}miktar2`)}` +
+		return `SUM(case when ${getWhereClause('brm')} then ${getMiktarClause(`${harAliasVeNokta}${miktarPrefix}miktar`, 'miktar')}` +
+						` when ${getWhereClause('brm2')} then ${getMiktarClause(`${harAliasVeNokta}${miktarPrefix}miktar2`, 'miktar2')}` +
 						` else 0 end)`
 	}
 	getDovizmi(e) {
