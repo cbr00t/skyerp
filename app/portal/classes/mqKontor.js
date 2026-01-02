@@ -324,19 +324,22 @@ class MQKontor extends MQDetayliMaster {
 					continue
 				}
 			}
-			let db = fatDurum == 'B' ? 'YI25SKYLOGFAT' : 'YI25POLENFAT';
-			let tip2Must2Recs = db2Tip2Must2Recs[db] = db2Tip2Must2Recs[db] ?? {};
-			let must2Recs = tip2Must2Recs[fatDurum] = tip2Must2Recs[fatDurum] ?? {};
-			(must2Recs[mustKod] = must2Recs[mustKod] ?? []).push(rec);
-			vknSet[vkn] = true; if (fatDurum != 'A') { kontrolVKNSet[vkn] = true }
+			let {dbNames} = app
+			let db = dbNames[fatDurum == 'B' ? 'skylog' : 'polen']
+			let tip2Must2Recs = db2Tip2Must2Recs[db] = db2Tip2Must2Recs[db] ?? {}
+			let must2Recs = tip2Must2Recs[fatDurum] = tip2Must2Recs[fatDurum] ?? {}
+			; (must2Recs[mustKod] = must2Recs[mustKod] ?? []).push(rec)
+			vknSet[vkn] = true
+			if (fatDurum != 'A')
+				kontrolVKNSet[vkn] = true
 			pm?.progressStep()
 		}
 		abortCheck?.();
-		$.extend(e, { vknListe: Object.keys(vknSet), kontrolVKNListe: Object.keys(kontrolVKNSet) });
+		$.extend(e, { vknListe: keys(vknSet), kontrolVKNListe: keys(kontrolVKNSet) });
 		let ekMesaj = errors?.length ? `<p/><hr/><h5>Ek Bilgiler:</h5><ul>${errors.map(x => `<li>${x}</li>`)}</ul>` : '';
 		let tumFisler = [], totalCount = 0;
 		try {
-			for (let [db, tip2Must2Recs] of Object.entries(db2Tip2Must2Recs)) {
+			for (let [db, tip2Must2Recs] of entries(db2Tip2Must2Recs)) {
 				let _e = { ...e, db, tip2Must2Recs, tumFisler, totalCount };
 				await this.kontor_topluFaturalastir(_e);
 				totalCount = _e.totalCount
@@ -362,14 +365,14 @@ class MQKontor extends MQDetayliMaster {
 	static async kontor_topluFaturalastir(e) {
 		let {db, tip2Must2Recs, tumFisler, kontrolVKNListe, pm, abortCheck, errors} = e;
 		let {vioHizmetKod: shKod, acikIslKodPrefix, detayTable} = this;
-		let kontrolMustKodSet = {}; for (let [fatDurum, must2Recs] of Object.entries(tip2Must2Recs)) {
+		let kontrolMustKodSet = {}; for (let [fatDurum, must2Recs] of entries(tip2Must2Recs)) {
 			if (fatDurum == 'X' || fatDurum == 'A') { continue }
-			for (let [rec] of Object.values(must2Recs)) {
+			for (let [rec] of values(must2Recs)) {
 				let {onmuhmustkod: kod} = rec;
 				if (kod) { kontrolMustKodSet[kod] = true }
 			}
 		}
-		let kontrolMustKodListe = Object.keys(kontrolMustKodSet);
+		let kontrolMustKodListe = keys(kontrolMustKodSet);
 		let vkn2Must = {}, must2VKN = {}, efatVKNSet = {}, hizRec = {};
 		let withFatDBDo = block => app.onMuhDBDo(db, block);
 		await withFatDBDo(async e => {
@@ -395,11 +398,11 @@ class MQKontor extends MQDetayliMaster {
 			}
 		});
 
-		let fisler = e.fisler = [], fis;
-		for (let [fatDurum, must2Recs] of Object.entries(tip2Must2Recs)) {
+		let fisler = e.fisler = [], fis
+		for (let [fatDurum, must2Recs] of entries(tip2Must2Recs)) {
 			if (fatDurum == 'X') { continue }
 			let aciktanmi = fatDurum != 'B';    /* 'Fatura Edilecek' dışındakiler */
-			for (let [mustKod, recs] of Object.entries(must2Recs)) {
+			for (let [mustKod, recs] of entries(must2Recs)) {
 				if (!recs?.length) { continue }
 				let tRec = recs[0], {vkn} = tRec;
 				let {mustunvan: mustUnvan, bayikod: bayiKod, anabayikod: anaBayiKod, onmuhmustkod: onMuhMustKod} = tRec;
@@ -408,8 +411,8 @@ class MQKontor extends MQDetayliMaster {
 				let seriSelectorPostfix = ozelIsaret == '*' ? 'yildizli' : eFatmi ? 'eFat' : 'eArsiv';
 				let efAyrimTipi = eFatmi ? 'E' : 'A', seri = this[`vioSeri_${seriSelectorPostfix}`];
 				seri = this.getConvertedVIOSeri(seri, db);
-				let fisSinif = aciktanmi ? CariTopluIslemFis : SatisFaturaFis;
-				let detaySinif = aciktanmi ? fisSinif.detaySinif : TSHizmetDetay;
+				let fisSinif = aciktanmi ? CariTopluIslemFis : SatisFaturaFis
+				let detaySinif = aciktanmi ? fisSinif.detaySinif : TSHizmetDetay
 				let ackPrefix = 'SkyKontör', ackInnerMaxLength = 50 - (ackPrefix.length + 4);
 				let baslikAciklama = aciktanmi ? ackPrefix : `${ackPrefix}: ${`${mustKod}-${mustUnvan}`.slice(0, ackInnerMaxLength)}`;
 				let fisKontorBilgiDuzenle = () =>
@@ -542,7 +545,10 @@ class MQKontor extends MQDetayliMaster {
 	static async importRecords(e) { return null }
 	static getConvertedVIOSeri(seri, db) {
 		if (seri?.length == 3) {
-			if (db?.endsWith('POLENFAT')) { return `${seri[0]}P${seri[2]}` }
+			let {polen: postfix} = app.dbNames
+			postfix = postfix.slice(4)
+			if (db?.endsWith(postfix))
+				return `${seri[0]}P${seri[2]}`
 		}
 		return seri
 	}
@@ -766,7 +772,7 @@ class MQKontorGridci extends GridKontrolcu {
 		])
 	}
 	geriYuklemeIcinUygunmu({ zorunluBelirtecler, detay: det, index: rowIndex, belirtec, focusTo }) {
-		let zorunluAttrListe = Object.keys(zorunluBelirtecler), satirNo = rowIndex + 1
+		let zorunluAttrListe = keys(zorunluBelirtecler), satirNo = rowIndex + 1
 		for (let belirtec of zorunluAttrListe) {
 			if (det[belirtec]) { continue }
 			return { isError: true, errorText: `<b>${satirNo}.</b> satırdaki <b>${belirtec}</b> bilgisi boş olamaz`, returnAction: e => e.focusTo({ rowIndex, belirtec }) }
@@ -800,7 +806,7 @@ class MQKontor_Turmob extends MQKontor {
 		let pm = showProgress(mesaj, null, true, ({ close }) => abortFlag = true, undefined, false);
 		pm?.setProgressMax(ProgressMax).progressNoValue();
 		let remoteRecs = await ajaxPost({ url }); pm?.setProgressValue(0); pm?.progressStep(4); abortCheck?.();
-		let mustKodListe = Object.keys(asSet(remoteRecs.map(({ mustKod }) => mustKod)));
+		let mustKodListe = keys(asSet(remoteRecs.map(({ mustKod }) => mustKod)));
 		let getKontorBaslikSent = (mustKodListe, sahalar) =>
 			new MQSent({
 				from: `${table} fis`, sahalar,
@@ -834,13 +840,13 @@ class MQKontor_Turmob extends MQKontor {
 			return null
 		}
 		let must2HVYapilar = [];
-		for (let [mustKod, fisNox2HVYapi] of Object.entries(must2FisNox2HVYapi)) {
+		for (let [mustKod, fisNox2HVYapi] of entries(must2FisNox2HVYapi)) {
 			let hvYapilar = must2HVYapilar[mustKod] = must2HVYapilar[mustKod] ?? [];
-			hvYapilar.push(...Object.values(fisNox2HVYapi))
+			hvYapilar.push(...values(fisNox2HVYapi))
 		}
 		let toplu, topluOlustur = () => toplu = new MQToplu(['DECLARE @fisSayac INT']).withDefTrn();
 		topluOlustur(); let BlockSize = 100, totalCount = 0;
-		for (let [mustKod, hvYapilar] of Object.entries(must2HVYapilar)) {
+		for (let [mustKod, hvYapilar] of entries(must2HVYapilar)) {
 			let {baslik: basHV} = hvYapilar[0];
 			toplu.add(
 				`IF NOT EXISTS (${getKontorBaslikSent(mustKod, '*')}) BEGIN`,

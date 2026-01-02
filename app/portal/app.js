@@ -2,7 +2,14 @@ class PortalApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get configParamSinif() { return MQYerelParamConfig_App } get yerelParamSinif() { return MQYerelParam }
 	get defaultWSPath() { return 'ws/vioPortal' } get defaultLoginTipi() { return 'bayiLogin' } get autoExecMenuId() { return null }
-	constructor(e) { super(e); this.defaultSurum = '416' }
+	constructor(e) {
+		super(e)
+		this.defaultSurum = '416'
+		this.dbNames = {
+			skylog: 'YI26SKYLOGFAT',
+			polen: 'YI26POLENFAT'
+		}
+	}
 	loginTipleriDuzenle({ loginTipleri }) {
 		/* super yok */
 		loginTipleri.push(...[
@@ -77,7 +84,7 @@ class PortalApp extends TicariApp {
 		].filter(x => !!x)
 		return new FRMenu({ items })
 	}
-	onMuhDBDo_skylog(block) { return this.onMuhDBDo('YI25SKYLOGFAT', block) }
-	onMuhDBDo_polen(block) { return this.onMuhDBDo('YI25POLENFAT', block) }
+	onMuhDBDo_skylog(block) { return this.onMuhDBDo(this.dbNames.skylog, block) }
+	onMuhDBDo_polen(block) { return this.onMuhDBDo(this.dbNames.polen, block) }
 	onMuhDBDo(dbName, block) { return this.setCurrentDBAndDo(dbName, '(local)\\SKYLOG', block) }
 }

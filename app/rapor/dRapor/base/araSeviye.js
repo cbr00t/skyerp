@@ -649,6 +649,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			alias = 'har'
 		for (let sent of stm)
 			this.loadServerData_queryDuzenle_hmrBasit({ ...e, sent })
+		return this
 	}
 	loadServerData_queryDuzenle_hmrBasit({ attrSet, alias, stm, sent }) {
 		let aliasVeNokta = alias ? `${alias}.` : ''

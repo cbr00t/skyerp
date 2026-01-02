@@ -6,7 +6,9 @@ class TicariFis extends TSOrtakFis {
 		super.detaySiniflarDuzenle(...arguments); liste.push(TSHizmetDetay);
 		if (app.params.ticariGenel?.kullanim?.demirbas) { liste.push(TSDemirbasDetay) }
 	}
-	static get gridKontrolcuSinif() { return TicariGridKontrolcu } static get noYilKullanilirmi() { return true }
+	static get gridKontrolcuSinif() { return TicariGridKontrolcu }
+	static get taksitTable() { return this.siparismi ? 'siptaksit' : 'piftaksit' }
+	static get noYilKullanilirmi() { return true }
 	static get dipKullanilirmi() { return true } static get dipNakliyeKullanilirmi() { return false }
 	static get tsStokDetayTable() { return this.siparismi ? 'sipstok' : 'pifstok' } static get tsHizmetDetayTable() { return this.siparismi ? 'siphizmet' : 'pifhizmet' }
 	static get tsFasonDetayTable() { return this.siparismi ? 'sipfsstok' : 'piffsstok' } static get tsHizmetDetayTable() { return this.siparismi ? 'siphizmet' : 'pifhizmet' }
@@ -181,14 +183,18 @@ class TicariFis extends TSOrtakFis {
 		await super.disKaydetOncesiIslemler(e)
 	}
 	async topluYazmaKomutlariniOlusturSonrasi(e) {
-		super.topluYazmaKomutlariniOlusturSonrasi(e); let _e = { ...e, degistir: false };
-		await this.dipEBilgiKomutlariniOlustur(_e);
+		super.topluYazmaKomutlariniOlusturSonrasi(e)
+		let _e = { ...e, degistir: false }
+		await this.dipEBilgiKomutlariniOlustur(_e)
 		await this.dipEBilgi2DipAktarKomutlariniOlustur(_e)
+		await this.topluYazKomutOlustur_taksit(_e)
 	}
 	async topluDegistirmeKomutlariniOlusturSonrasi(e) {
-		super.topluDegistirmeKomutlariniOlusturSonrasi(e); let _e = { ...e, degistir: true };
-		await this.dipEBilgiKomutlariniOlustur(_e);
+		super.topluDegistirmeKomutlariniOlusturSonrasi(e)
+		let _e = { ...e, degistir: true }
+		await this.dipEBilgiKomutlariniOlustur(_e)
 		await this.dipEBilgi2DipAktarKomutlariniOlustur(_e)
+		await this.topluDegistirKomutOlustur_taksit(_e)
 	}
 	async dipEBilgiKomutlariniOlustur(e) {
 		let degistirmi = e.degistir ?? e.degistirmi, {trnId, toplu, paramName_fisSayac} = e;
@@ -244,8 +250,31 @@ class TicariFis extends TSOrtakFis {
 			})
 		)
 	}
+	topluYazKomutOlustur_taksit({ hv, toplu, paramName_fisSayac }) {
+		let seq = 1, {net: bedel, dvnet: dvbedel} = hv
+		let {class: { taksitTable: table }} = this
+		let fissayac = paramName_fisSayac.sqlConst()
+		let takHV = { fissayac, seq, bedel, dvbedel }
+		toplu.add(new MQInsert({ table, hv: takHV }))
+	}
+	topluDegistirKomutOlustur_taksit({ hv, toplu, paramName_fisSayac }) {
+		let seq = 1, {net: bedel, dvnet: dvbedel} = hv
+		let {class: { taksitTable: table }} = this
+		let fissayac = paramName_fisSayac.sqlConst()
+		let takHV = { fissayac, seq, bedel, dvbedel }
+		toplu.add(
+			new MQIliskiliDelete({
+				from: table,
+				where: [`fissayac = ${fissayac}`]
+			}),
+			new MQInsert({ table, hv: takHV }
+		))
+	}
 	// Stok/Hizmet/Demirbaş için Vergi bilgileri ek belirlemeler
-	async detaylariYukleSonrasi(e) { e = e || {}; await super.detaylariYukleSonrasi(e); await this.class.kdvKod2RecGlobalOlustur(e) }
+	async detaylariYukleSonrasi(e = {}) {
+		await super.detaylariYukleSonrasi(e)
+		await this.class.kdvKod2RecGlobalOlustur(e)
+	}
 	static varsayilanKeyHostVarsDuzenle({ hv }) {
 		super.varsayilanKeyHostVarsDuzenle(...arguments);
 		let {almSat, iade, ayrimTipi, fisEkAyrim, ozelTip} = this;

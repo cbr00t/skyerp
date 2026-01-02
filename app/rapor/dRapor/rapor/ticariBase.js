@@ -55,7 +55,9 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 			}
 		}
 		this.loadServerData_queryDuzenle_tarih({ ...e, alias: 'fis', tarihSaha: 'tarih' }).loadServerData_queryDuzenle_shd(e);
-		this.loadServerData_queryDuzenle_hmr(e).loadServerData_queryDuzenle_miktar(e).loadServerData_queryDuzenle_ciro(e);
+		this.loadServerData_queryDuzenle_hmr(e)
+		this.loadServerData_queryDuzenle_miktar(e)
+		this.loadServerData_queryDuzenle_ciro(e);
 		this.loadServerData_queryDuzenle_ek(e)
 	}
 	loadServerData_queryDuzenle_ek(e) { super.loadServerData_queryDuzenle_ek(e) }
