@@ -213,7 +213,7 @@ class MQOnayci extends MQCogul {
 		}
 	}
 	static getKey({ tip, onayno } = {}) {
-		return [tip, onayno].filter(_ => _).join('|')
+		return [tip, onayno || 1].filter(_ => _).join('|')
 	}
 }
 
