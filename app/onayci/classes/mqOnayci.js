@@ -159,6 +159,80 @@ class MQOnayci extends MQCogul {
 		let islemAdi = 'e-İşlem İZLE'
 		try {
 			let {selectedRecs: recs} = gridPart
+			let xmlFileNames = recs
+					.filter(_ => _.efatuuid)
+					.map(_ => `${_.efatuuid}.xml`)
+			if (empty(xmlFileNames)) {
+					hConfirm('Gösterilecek e-İşlem Görüntüsü bulunamadı', islemAdi)
+					return
+			}
+			let eConf = await MQEConf.getInstance()
+			let divContainer = $(`<div/>`)[0]
+			let eDocCount = 0
+			let aborted = false
+			let pm = showProgress('e-İşlem Görüntüleri açılıyor...', islemAdi, true, () => aborted = true)
+			pm.setProgressMax(xmlFileNames.length * 3)
+			for (let rec of recs) {
+				let {efatuuid: uuid, efayrimtipi} = rec || {}
+				if (!uuid)
+					continue
+				let xmlDosyaAdi = `${uuid}.xml`
+				let eIslAltBolum = eConf.getAnaBolumFor({ eIslTip: efayrimtipi || 'A' })?.trimEnd()
+				let remoteFile = [eIslAltBolum, 'ALINAN', xmlDosyaAdi].filter(_ => _).join('/')
+				if (aborted)
+					break
+				try {
+						if (aborted)
+							break
+						let xmlData = await app.wsDownloadAsStream({ remoteFile, localFile: xmlDosyaAdi })
+						pm?.progressStep()
+						if (!xmlData)
+							throw { isError: true, rc: 'noXML', errorText: 'XML (e-İşlem Belge İçeriği) bilgisi belirlenemedi' }
+						let xml = $.parseXML(xmlData)
+						let xsltData = Array.from(xml.documentElement.querySelectorAll(`AdditionalDocumentReference`))
+										?.find(elm => elm.querySelector('DocumentType')?.innerHTML == 'XSLT')?.querySelector('EmbeddedDocumentBinaryObject')?.textContent
+						if (!xsltData)
+							throw { isError: true, rc: 'noXSLT', errorText: 'XSLT (e-İşlem Görüntü) bilgisi belirlenemedi' }
+						if (xsltData?.startsWith(Base64.encode('<?xml')))
+							xsltData = Base64.decode(xsltData)
+						let xslt = $.parseXML(Base64.decode(xsltData)), xsltProcessor = new XSLTProcessor()
+						xsltProcessor.importStylesheet(xslt)
+						let eDoc = xsltProcessor.transformToFragment(xml, document)
+						if (!eDoc)
+							throw { isError: true, rc: 'xsltTransform', errorText: 'XSLT Görüntüsü oluşturulamadı', source: xsltProcessor }
+						if (eDocCount) {
+							let elmPageBreak = $(`<div style="float: none;"><div style="page-break-after: always;"></div></div>`)[0]
+							divContainer.lastElementChild.after(elmPageBreak)
+							divContainer.lastElementChild.after(eDoc.querySelector('div'))
+						}
+						else
+							divContainer.append(eDoc)
+						eDocCount++
+						pm?.progressStep(2)
+				}
+				catch (ex) {
+					pm?.progressStep(3)
+					hConfirm(getErrorText(ex), remoteFile)
+				}
+			}
+			if (!aborted && eDocCount) {
+				let newDocHTML = `<html><head>${divContainer.innerHTML}</head></html>`
+				let url = URL.createObjectURL(new Blob([newDocHTML], { type: 'text/html' }))
+				openNewWindow(url)
+				setTimeout(() => URL.revokeObjectURL(url), 10_000)
+			}
+			pm?.progressEnd()
+			setTimeout(() => hideProgress(), 500)
+		}
+		catch (ex) {
+			hConfirm(getErrorText(ex), islemAdi)
+			throw ex
+		}
+	}
+	static async __izleIstendi({ sender: gridPart }) {
+		let islemAdi = 'e-İşlem İZLE'
+		try {
+			let {selectedRecs: recs} = gridPart
 			let ext = 'html'
 			let fileNames = recs
 				.filter(_ => _.efatuuid)
