@@ -144,7 +144,7 @@ class StokTip extends TekSecim {
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
 		kaListe.push(
-			new CKodVeAdi(['M', 'Mamül']), new CKodVeAdi(['H', 'Hammadde']), new CKodVeAdi(['Y', 'Yarı Mamul']),
+			new CKodVeAdi(['M', 'Mamul']), new CKodVeAdi(['H', 'Hammadde']), new CKodVeAdi(['Y', 'Yarı Mamul']),
 			new CKodVeAdi(['A', 'Ambalaj']), new CKodVeAdi(['U', 'Hurda']), new CKodVeAdi(['SR', 'Sarj Malzemesi']),
 			new CKodVeAdi(['YM', 'Yardımcı Malzeme']), new CKodVeAdi(['TC', 'Ticari Mal']), new CKodVeAdi([' ', 'Diğer'])
 		)

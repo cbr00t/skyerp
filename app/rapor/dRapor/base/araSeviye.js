@@ -851,6 +851,72 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		return this
 	}
+	tabloYapiDuzenle_sh({ result }) {
+		result.addKAPrefix('anagrup', 'grup', 'sistgrup', 'sh', 'marka')
+			.addGrupBasit('SHANAGRP', 'S/H Ana Grup', 'anagrup', DMQStokAnaGrup)
+			.addGrupBasit('SHGRP', 'S/H Grup', 'grup', DMQStokGrup)
+			.addGrupBasit('SHISTGRP', 'S/H  İst. Grup', 'istgrup', DMQStokIstGrup)
+			.addGrupBasit('SH', 'Stok/Hizmet', 'stok', DMQStok)
+			.addGrupBasit('SHMARKA', 'Stok Marka', 'marka', DMQStokMarka)
+			.addGrupBasit('BRM', 'Brm', 'brm', null, 60, ({ colDef }) => colDef.alignCenter())
+			.addGrupBasit('BRM2', 'Br2', 'brm2', null, 60, ({ colDef }) => colDef.alignCenter())
+			.addGrupBasit('BRMORANI', 'Brm Oranı', 'brmorani', null, 100, ({ colDef }) => colDef.tipDecimal())
+			.addGrupBasit('STOKRESIM', 'Stok Resim', 'stokresim')
+		return this
+	}
+	loadServerData_queryDuzenle_sh({ stm, sent, attrSet }) {
+		sent = sent ?? stm.sent
+		let {from, where: wh, sahalar} = sent
+		let alias = (
+			from.aliasIcinTable('hiz') ? 'hiz' :
+			from.aliasIcinTable('stk') ? 'stk' : null
+		)
+		let stokmu = alias == 'stk'
+		let hizmetmi = alias == 'hiz'
+		let shBelirtec = hizmetmi ? 'hizmet' : 'stok'
+		if (attrSet.STANAGRP && !from.aliasIcinTable('grp'))
+			sent[`${shBelirtec}2GrupBagla`]()
+		if (stokmu && attrSet.STOKMARKA && !from.aliasIcinTable('smar'))
+			sent.stok2MarkaBagla()
+		for (let key in attrSet) {
+			switch (key) {
+				case 'SH':
+					sahalar.add(`${alias}.kod shkod`, `${alias}.aciklama shadi`); wh.icerikKisitDuzenle_stok({ ...arguments[0], saha: `${alias}.kod` })
+					break
+				case 'STANAGRP':
+					sent.stokGrup2AnaGrupBagla()
+					sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi')
+					wh.icerikKisitDuzenle_stokAnaGrup({ ...arguments[0], saha: 'grp.anagrupkod' })
+					break
+				case 'SHGRP':
+					sent[`${shBelirtec}2GrupBagla`]()
+					sahalar.add(`${alias}.grupkod`, 'grp.aciklama grupadi')
+					wh.icerikKisitDuzenle_stokGrup({ ...arguments[0], saha: `${alias}.grupkod` })
+					break
+				case 'SHISTGRP':
+					sent[`${shBelirtec}2IstGrupBagla`]()
+					sahalar.add(`${alias}.${shBelirtec[0]}istgrupkod istgrupkod`, `${shBelirtec[0]}igrp.aciklama istgrupadi`)
+					wh.icerikKisitDuzenle_stokIstGrup({ ...arguments[0], saha: `${alias}.${shBelirtec[0]}istgrupkod` })
+					break
+				case 'SHMARKA':
+					sahalar.add(`${alias}.smarkakod markakod`, 'smar.aciklama markaadi')
+					break
+				case 'BRM':
+					sahalar.add(`${alias}.brm`)
+					break
+				case 'BRM2':
+					sahalar.add(`${alias}.brm2`)
+					break
+				case 'BRMORANI':
+					sahalar.add(`${alias}.brmorani`)
+					break
+				case 'STOKRESIM':
+					sahalar.add(`${alias}.kod resimid`, 'NULL stokresim')
+					break
+			}
+		}
+		return this
+	}
 	tabloYapiDuzenle_takip({ result }) {
 		result.addKAPrefix('takip', 'takipgrup')
 			.addGrupBasit('TAKIPNO', 'Takip No', 'takip', DMQTakipNo)

@@ -30,92 +30,93 @@ class MQOnayci extends MQCogul {
 		])
 	}
 	static async loadServerDataDogrudan({ sender: gridPart }) {
-		let kurallar = [], kuralKey2Kural = {}, dbSet = {}
-		{
-			let {encUser /*, dbName: db*/} = config.session
-			let {ay: buAy, yil2: buKisaYil} = today()
-			let kisaYillar = []
+		let {encUser, user /*, dbName: db*/} = config.session
+		let {ay: buAy, yil2: buKisaYil} = today()
+		let _cache = this._cache ??= await (async () => {
+			let kurallar = [], kuralKey2Kural = {}, tip2Kural = {}, dbSet = {}
+			let kisaYilSet = {}
 			{
 				let {onayYili} = app.params?.ortak ?? {}
-				kisaYillar.push(onayYili || buKisaYil)
+				kisaYilSet[onayYili || buKisaYil] = true
 				if (buAy == 1)
-					kisaYillar.push(buKisaYil - 1)
+					kisaYilSet[buKisaYil - 1] = true
 			}
 			let sent = new MQSent(), {where: wh, sahalar} = sent
 			sent.fromAdd('ORTAK..firmaonayci k')
 			wh.degerAta(encUser, 'k.xuserkod')
-			/*{
-				let or = new MQOrClause()
-				for (let kisaYil of kisaYillar)
-					or.like(`__${kisaYil}%`, 'k.firmaadi')
-				if (or.liste.length)
-					wh.add(or)
-			}*/
 			sahalar.add(
 				'k.firmaadi', 'k.tip',
 				`(case when COALESCE(k.onayno, 0) = 0 then 1 else k.onayno end) onayno`
 			)
 			kurallar = await this.sqlExecSelect(sent)
 			let allDBNames = await app.wsDBListe()
-			kuralKey2Kural = {}; dbSet = {}
+			let ignoreProgBelirtecSet = ['BR', 'MH', 'IS', 'AK']
+			allDBNames = allDBNames.filter(_ => 
+				!ignoreProgBelirtecSet[_.substr(0, 2)] &&
+				kisaYilSet[asInteger(_.substr(2, 2))]
+			)
 			for (let rec of kurallar) {
-				let {firmaadi} = rec
+				let {tip, firmaadi} = rec
 				kuralKey2Kural[this.getKey(rec)] = rec
+				tip2Kural[tip] = rec
 				for (let db of allDBNames) {
-					if (db.slice(2).includes(firmaadi))
+					let db_firmaAdi = db.substr(4)
+					if (db_firmaAdi == firmaadi)
 						dbSet[db] = true
 				}
 			}
-		}
+			{
+				// eksik tablolu db'leri listeden at
+				let dbListe = keys(dbSet)
+				let results = await Promise.allSettled(dbListe.map(db => app.sqlHasColumn(`${db}..sipfis`, 'bw1onay')))
+				dbListe.forEach((db, i) => {
+					let {status, value} = results[i]
+					let uygunmu = status == 'fulfilled' && value    // promise hata almadı ve result == true
+					if (!uygunmu)
+						delete dbSet[db]
+				})
+			}
+			return ({ kurallar, kuralKey2Kural, tip2Kural, dbSet })
+		})()
+		let {kurallar, kuralKey2Kural, tip2Kural, dbSet} = _cache
 		$.extend(gridPart, { kurallar, kuralKey2Kural, dbSet })
 		{
 			let uni = new MQUnionAll()
 			for (let db in dbSet) {
-				{
-					// Ticari Belgeler
-					let table = 'piffis', psTip = 'P'
-					let sent = new MQSent(), {where: wh, sahalar} = sent
-					sent.fromAdd(`${db}..${table} fis`)
-					sent.fromIliski(`${db}..carmst car`, 'fis.must = car.must')
-					wh.fisSilindiEkle()
-					wh.inDizi(['I', 'F'], 'fis.piftipi')
-					wh.add(`fis.ayrimtipi = ''`, `fis.efatuuid <> ''`/*, `fis.efgonderimts IS NULL`, `fis.onaytipi = 'ON'`*/)
-					sahalar.add(
-						`'${table}' _table`, `'${psTip}' pstip`,
-						'fis.efayrimtipi', 'fis.efatuuid', `RTRIM(fis.piftipi) anatip`,
-						`(RTRIM(fis.almsat) + RTRIM(fis.iade) + RTRIM(fis.piftipi)) tip`,
-						'(' +
-							`(case fis.almsat when 'A' then 'Alım ' when 'T' then 'Satış ' else '' end) + ` +
-							`(case fis.iade when 'I' then 'İADE ' else '' end) + ` +
-							`(case fis.piftipi when 'F' then 'Fatura' when 'I' then 'İrsaliye' when 'P' then 'Perakende' else fis.piftipi end)` +
-						') tiptext')
-					sahalar.addWithAlias('fis', 'kaysayac', 'tarih', 'fisnox', 'must', 'net bedel', 'cariaciklama ekbilgi')
-					sahalar.add('car.birunvan mustunvan')
-					uni.add(sent)
-				}
+				// /efgecicialfatfis, sipfis
 				{
 					// Siparişler
-					let table = 'sipfis', psTip = 'S'
-					let sent = new MQSent(), {where: wh, sahalar} = sent
-					sent.fromAdd(`${db}..${table} fis`)
-					sent.fromIliski(`${db}..carmst car`, 'fis.must = car.must')
-					wh.fisSilindiEkle()
-					wh.add(`fis.ayrimtipi = ''`, `fis.efatuuid <> ''`/*, `fis.efgonderimts IS NULL`, `fis.onaytipi = 'ON'`*/)
-					sahalar.add(
-						`'${table}' _table`, `'${psTip}' pstip`,
-						'fis.efayrimtipi', 'fis.efatuuid', `'S' anatip`,
-						`(RTRIM(fis.almsat) + 'S') tip`,
-						'(' +
-							`(case fis.almsat when 'A' then 'Alım ' when 'T' then 'Satış ' else '' end) + ` +
-							`'Sipariş'` +
-						') tiptext')
-					sahalar.addWithAlias('fis', 'kaysayac', 'tarih', 'fisnox', 'must', 'net bedel', 'cariaciklama ekbilgi')
-					sahalar.add('car.birunvan mustunvan')
-					uni.add(sent)
+					let table = 'sipfis', tip = 'EGeciciAlimFat', psTip = 'S'
+					if (tip2Kural[tip]) {
+						let sent = new MQSent(), {where: wh, sahalar} = sent
+						sent.fromAdd(`${db}..${table} fis`)
+						sent.fromIliski(`${db}..carmst car`, 'fis.must = car.must')
+						wh.fisSilindiEkle()
+						wh.add(`fis.ayrimtipi = ''`)    //, `fis.efatuuid <> ''`, `fis.efgonderimts IS NULL`, `fis.onaytipi = 'ON'`
+						sahalar.add(
+							`'${table}' _table`, `'${psTip}' pstip`,
+							'fis.efayrimtipi', 'fis.efatuuid', `'S' anatip`,
+							// `(RTRIM(fis.almsat) + 'S') tip`,
+							`'${tip}' tip`,
+							'(' +
+								`(case fis.almsat when 'A' then 'Alım ' when 'T' then 'Satış ' else '' end) + ` +
+								`'Sipariş'` +
+							') tiptext')
+						sahalar.addWithAlias('fis', 'kaysayac', 'tarih', 'fisnox', 'must', 'net bedel', 'cariaciklama ekbilgi')
+						sahalar.add('car.birunvan mustunvan')
+						uni.add(sent)
+					}
 				}
 			}
 			if (!uni.liste.length)
 				return []
+			for (let sent of uni) {
+				let {where: wh} = sent
+				wh.add(new MQOrClause([
+					new MQAndClause([`fis.bw1onay IS NULL`, { degerAta: user, saha: 'fis.w1onayuser' } ]),
+					new MQAndClause([`fis.bw1onay = 1`, `fis.bw2onay IS NULL`, { degerAta: user, saha: 'fis.w2onayuser' } ])
+				]))
+			}
 			let stm = new MQStm({ sent: uni })
 			let recs = await this.sqlExecSelect(stm)
 			recs = recs.filter(rec => kuralKey2Kural[this.getKey(rec)])
@@ -140,6 +141,8 @@ class MQOnayci extends MQCogul {
 			let toplu = new MQToplu().withTrn()
 			for (let rec of recs) {
 				// ...
+				// bw1onay, w1onayuser, w1onayredts ... wredtext
+				// /efgecicialfatfis, sipfis)
 			}
 			if (toplu?.bosDegilmi)
 				await this.sqlExecNone(toplu)
@@ -172,6 +175,7 @@ class MQOnayci extends MQCogul {
 			let aborted = false
 			let pm = showProgress('e-İşlem Görüntüleri açılıyor...', islemAdi, true, () => aborted = true)
 			pm.setProgressMax(xmlFileNames.length * 3)
+			let errors = []
 			for (let rec of recs) {
 				let {efatuuid: uuid, efayrimtipi} = rec || {}
 				if (!uuid)
@@ -182,37 +186,42 @@ class MQOnayci extends MQCogul {
 				if (aborted)
 					break
 				try {
-						if (aborted)
-							break
-						let xmlData = await app.wsDownloadAsStream({ remoteFile, localFile: xmlDosyaAdi })
-						pm?.progressStep()
-						if (!xmlData)
-							throw { isError: true, rc: 'noXML', errorText: 'XML (e-İşlem Belge İçeriği) bilgisi belirlenemedi' }
-						let xml = $.parseXML(xmlData)
-						let xsltData = Array.from(xml.documentElement.querySelectorAll(`AdditionalDocumentReference`))
-										?.find(elm => elm.querySelector('DocumentType')?.innerHTML == 'XSLT')?.querySelector('EmbeddedDocumentBinaryObject')?.textContent
-						if (!xsltData)
-							throw { isError: true, rc: 'noXSLT', errorText: 'XSLT (e-İşlem Görüntü) bilgisi belirlenemedi' }
-						if (xsltData?.startsWith(Base64.encode('<?xml')))
-							xsltData = Base64.decode(xsltData)
-						let xslt = $.parseXML(Base64.decode(xsltData)), xsltProcessor = new XSLTProcessor()
-						xsltProcessor.importStylesheet(xslt)
-						let eDoc = xsltProcessor.transformToFragment(xml, document)
-						if (!eDoc)
-							throw { isError: true, rc: 'xsltTransform', errorText: 'XSLT Görüntüsü oluşturulamadı', source: xsltProcessor }
-						if (eDocCount) {
-							let elmPageBreak = $(`<div style="float: none;"><div style="page-break-after: always;"></div></div>`)[0]
-							divContainer.lastElementChild.after(elmPageBreak)
-							divContainer.lastElementChild.after(eDoc.querySelector('div'))
-						}
-						else
-							divContainer.append(eDoc)
-						eDocCount++
-						pm?.progressStep(2)
+					if (aborted)
+						break
+					let xmlData = await app.wsDownloadAsStream({ remoteFile, localFile: xmlDosyaAdi })
+					pm?.progressStep()
+					if (!xmlData)
+						throw { isError: true, rc: 'noXML', errorText: 'XML (e-İşlem Belge İçeriği) bilgisi belirlenemedi' }
+					let xml = $.parseXML(xmlData)
+					let xsltData = Array.from(xml.documentElement.querySelectorAll(`AdditionalDocumentReference`))
+									?.find(elm => elm.querySelector('DocumentType')?.innerHTML == 'XSLT')?.querySelector('EmbeddedDocumentBinaryObject')?.textContent
+					if (!xsltData)
+						throw { isError: true, rc: 'noXSLT', errorText: 'XSLT (e-İşlem Görüntü) bilgisi belirlenemedi' }
+					if (xsltData?.startsWith(Base64.encode('<?xml')))
+						xsltData = Base64.decode(xsltData)
+					let xslt = $.parseXML(Base64.decode(xsltData)), xsltProcessor = new XSLTProcessor()
+					xsltProcessor.importStylesheet(xslt)
+					let eDoc = xsltProcessor.transformToFragment(xml, document)
+					if (!eDoc)
+						throw { isError: true, rc: 'xsltTransform', errorText: 'XSLT Görüntüsü oluşturulamadı', source: xsltProcessor }
+					if (eDocCount) {
+						let elmPageBreak = $(`<div style="float: none;"><div style="page-break-after: always;"></div></div>`)[0]
+						divContainer.lastElementChild.after(elmPageBreak)
+						divContainer.lastElementChild.after(eDoc.querySelector('div'))
+					}
+					else
+						divContainer.append(eDoc)
+					eDocCount++
+					pm?.progressStep(2)
 				}
 				catch (ex) {
 					pm?.progressStep(3)
-					hConfirm(getErrorText(ex), remoteFile)
+					let {statusText} = ex, [code] = statusText?.split(delimWS) ?? []
+					code = code?.toLowerCase() ?? ''
+					let errorText
+					if (code == 'filenotfoundexception')
+						errorText = `XML Dosyası bulunamadı: [<b class=firebrick>${remoteFile}</b>]`
+					errors.push(errorText)
 				}
 			}
 			if (!aborted && eDocCount) {
@@ -220,6 +229,11 @@ class MQOnayci extends MQCogul {
 				let url = URL.createObjectURL(new Blob([newDocHTML], { type: 'text/html' }))
 				openNewWindow(url)
 				setTimeout(() => URL.revokeObjectURL(url), 10_000)
+			}
+			if (!aborted && errors.length) {
+				let errorText = `<ul>${errors.map(_ => `<li class="mt-1">${_}</li>`).join(CrLf)}</ul>`
+				hConfirm(errorText, 'e-İşlem Görüntüle')
+				console.error(errorText)
 			}
 			pm?.progressEnd()
 			setTimeout(() => hideProgress(), 500)
@@ -381,4 +395,27 @@ App = Onaycı
 	]).withTrn()
 	try { await app.sqlExecNone(toplu) }
 	catch (ex) { cerr(ex) }
+
+
+	-- onayuser decr durumdadir
+	alter table efgecicialfatfis
+		add bw1onay				bit		-- null olmali
+		, w1onayuser			char(10)
+		, w1onayredts			datetime
+		, bw2onay				bit		-- null olmali
+		, w2onayuser			char(10)
+		, w2onayredts			datetime
+		, wredtext				varchar(40) not null default '';		-- ilk red yapan kisi icin
+	-- max 2 onay
+	
+	alter table sipfis
+		add bw1onay				bit		-- null olmali
+		, w1onayuser			char(10)
+		, w1onayredts			datetime
+		, bw2onay				bit		-- null olmali
+		, w2onayuser			char(10)
+		, w2onayredts			datetime
+		, wredtext				varchar(40) not null default '';		-- ilk red yapan kisi icin
+
+	
 */

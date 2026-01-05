@@ -123,7 +123,7 @@ class HTMLDokum extends CObject {
 		// Kullanım:
 		let dokumcu = await this.FromTip('SSIP');
 		let data = ({ keys }) => ({
-		    baslik: { SABLONADI: 'Unlu Mamüller', KLFIRMAADI: 'FALANCA A.Ş.' },
+		    baslik: { SABLONADI: 'Unlu Mamuller', KLFIRMAADI: 'FALANCA A.Ş.' },
 		    detaylar: [
 		        { STOKKOD: 's1', STOKADI: 'Börek', MIKTAR: 1.3, BRM: 'KG' },
 		        { STOKKOD: 's2', STOKADI: 'Yaş Pasta', MIKTAR: 2, BRM: 'AD' },

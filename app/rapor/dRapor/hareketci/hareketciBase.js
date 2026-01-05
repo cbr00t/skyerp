@@ -144,13 +144,16 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		if (!(totalmi || attrSet.TARIH))
 			devirAlinmasin = true
 		await hareketci?.class?.ilkIslemler(e)
-		let result = [], addRecs = recs => {
-			if (recs?.length)
-				result.push(...recs)
+		let result, addRecs = recs => {
+			if (recs?.length) {
+				if (result) { $.merge(result, recs) }
+				else { result = recs }
+			}
 		}
 		if (!(totalmi || devirAlinmasin))
 			addRecs(await super.loadServerDataInternal({ ...e, devir: true, attrSet }))
 		addRecs(await super.loadServerDataInternal(e))
+		result ??= []
 		if (!totalmi && (attrSet.ISARETLIBEDEL || attrSet.BEDEL)) {
 			let bakiye = 0, bedelSaha
 			for (let rec of result) {
