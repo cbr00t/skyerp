@@ -11,4 +11,7 @@
 	.MQOnayci.masterListe.part .header .islemTuslari { --width-sag: 400px !important }
 	.MQOnayci.masterListe.part .header .islemTuslari button#onay,
 		.masterListe.part .header .islemTuslari button#red { width: 60px }
+	.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div { font-size: 87% !important }
+	.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div,
+		.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div > div { line-height: 15px !important }
 }

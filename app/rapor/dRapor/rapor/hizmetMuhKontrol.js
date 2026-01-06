@@ -20,12 +20,10 @@ class DRapor_HizmetMuhKontrol extends DRaporMQ {
 		liste.push(...items)
 		$.extend(sagSet, asSet(items.map(_ => _.id)))
 	}
-	static orjBaslikListesi_argsDuzenle({ args }) {
+	static orjBaslikListesi_argsDuzenle({ sender: gridPart, args }) {
 		super.orjBaslikListesi_argsDuzenle(...arguments)
-		$.extend(args, { showStatusBar: true, showAggregates: true })
-	}
-	static orjBaslikListesi_groupsDuzenle({ liste }) {
-		super.orjBaslikListesi_groupsDuzenle(...arguments)
+		gridPart.tekil()
+		$.extend(args, { showStatusBar: true, showAggregates: true, selectionMode: 'multiplerowsextended' })
 	}
 	static orjBaslikListesi_groupsDuzenle({ liste }) {
 		super.orjBaslikListesi_groupsDuzenle(...arguments)
@@ -40,25 +38,28 @@ class DRapor_HizmetMuhKontrol extends DRaporMQ {
 	static ekCSSDuzenle({ dataField: belirtec, rec, value, result }) {
 		super.ekCSSDuzenle(...arguments)
 		if (value) {
-			if (belirtec.endsWith('_borc'))
+			if (belirtec.endsWith('borc') || belirtec.endsWith('bakiye'))
 				result.push('bold', value > 0 ? 'forestgreen' : 'orangered')
-			if (belirtec.endsWith('_alacak'))
+			if (belirtec.endsWith('alacak'))
 				result.push('bold', value > 0 ? 'firebrick' : 'orangered')
 		}
-		else if (belirtec.endsWith('_borc') || belirtec.endsWith('_alacak'))
+		else if (belirtec.endsWith('borc') || belirtec.endsWith('alacak') || belirtec.endsWith('bakiye'))
 			result.push('lightgray')
+		if (belirtec == 'bakiye')
+			result.push('fs-120')
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
 		liste.push(
 			...this.getKAKolonlar(
 				new GridKolon({ belirtec: 'muhHesapKod', text: 'Muh Hesap', genislikCh: 15 }),
-				new GridKolon({ belirtec: 'muhHesapAdi', text: 'Hesap Adı' })
+				new GridKolon({ belirtec: 'muhHesapAdi', text: 'Hesap Adı', maxWidth: 60 * katSayi_ch2Px })
 			),
-			new GridKolon({ belirtec: 'hiz_borc', text: 'Hiz.Borç', genislikCh: 17, aggregates: ['sum'] }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'hiz_alacak', text: 'Hiz.Alacak', genislikCh: 17, aggregates: ['sum'] }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'muh_borc', text: 'Muh.Borç', genislikCh: 17, aggregates: ['sum'] }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'muh_alacak', text: 'Muh.Alacak', genislikCh: 17, aggregates: ['sum'] }).tipDecimal_bedel()
+			new GridKolon({ belirtec: 'muh_borc', text: 'Muh.Borç', genislikCh: 15, aggregates: ['sum'] }).tipDecimal_bedel(),
+			new GridKolon({ belirtec: 'muh_alacak', text: 'Muh.Alacak', genislikCh: 15, aggregates: ['sum'] }).tipDecimal_bedel(),
+			new GridKolon({ belirtec: 'hiz_borc', text: 'Hiz.Borç', genislikCh: 15, aggregates: ['sum'] }).tipDecimal_bedel(),
+			new GridKolon({ belirtec: 'hiz_alacak', text: 'Hiz.Alacak', genislikCh: 15, aggregates: ['sum'] }).tipDecimal_bedel(),
+			new GridKolon({ belirtec: 'bakiye', text: '(Muh - Hiz) Fark', genislikCh: 21, aggregates: ['sum'] }).tipDecimal_bedel()
 		)
 	}
 	static async loadServerDataDogrudan({ gridPart, secimler: sec, secimler: { tarihBSVeyaCariDonem: tarihBS } }) {
@@ -119,6 +120,13 @@ class DRapor_HizmetMuhKontrol extends DRaporMQ {
 			}
 			orderBy.add('muhHesapKod')
 			recs = await this.sqlExecSelect(stm)
+			for (let rec of recs) {
+				for (let prefix of ['hiz', 'muh']) {
+					let borc = rec[`${prefix}_borc`], alacak = rec[`${prefix}_alacak`]
+					rec[`${prefix}_bakiye`] = roundToBedelFra(borc - alacak)
+				}
+				rec.bakiye = rec.muh_bakiye - rec.hiz_bakiye
+			}
 		}
 		return recs ?? []
 	}

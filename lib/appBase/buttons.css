@@ -19,10 +19,10 @@ body.kiosk .butonlar.part { z-index: 1001; user-select: none !important }
 .butonlar.part > .sol { width: calc(var(--full) - (var(--width-sag) + 3px + var(--button-form-margin-x))); background: transparent }
 .butonlar.part > .sag {
 	position: absolute; right: 0; width: var(--width-sag); text-align: right;
-	background: linear-gradient(90deg, transparent 30%, #f2f2f2 100%);
+	/*background: linear-gradient(90deg, transparent 30%, #f2f2f2 100%);*/
 	z-index: 1
 }
-body.kiosk .butonlar.part > .sag { background: linear-gradient(90deg, transparent 80%, #f2f2f2 100%) !important }
+/*body.kiosk .butonlar.part > .sag { background: linear-gradient(90deg, transparent 80%, #f2f2f2 100%) }*/
 .butonlar.part > .sag > button:nth-last-child(2) { margin-left: 10px; margin-right: 15px !important }
 .butonlar.part button { vertical-align: top; width: var(--button-width); height: var(--button-height); border: 0; margin-inline-end: var(--button-margin-x); line-height: 100% }
 button, .jqx-button {

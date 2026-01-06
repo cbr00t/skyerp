@@ -140,26 +140,46 @@ class EYonetici extends CObject {
 			for (let psTip in ps2Recs) {
 				let _recs = ps2Recs[psTip];
 				for (let rec of _recs) {
-					let {uuid} = rec, efAyrimTipi = rec.efayrimtipi || (gelenmi ? 'E' : 'A'), eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi });
-					let eIslAltBolum = eConf.getAnaBolumFor({ eIslSinif }); if (!eIslAltBolum) { throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' } }
-					let xmlDosyaAdi = `${uuid}.xml`, xmlDosya = `${eIslAltBolum}\\${gelenmi ? 'ALINAN' : 'IMZALI'}\\${xmlDosyaAdi}`;
+					let {uuid} = rec, efAyrimTipi = rec.efayrimtipi || (gelenmi ? 'E' : 'A'), eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi })
+					let eIslAltBolum = eConf.getAnaBolumFor({ eIslSinif })
+					if (!eIslAltBolum)
+						throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' }
+					let xmlDosyaAdi = `${uuid}.xml`, xmlDosya = `${eIslAltBolum}\\${gelenmi ? 'ALINAN' : 'IMZALI'}\\${xmlDosyaAdi}`
 					let result = uuid2Result[uuid] = uuid2Result[uuid] || {};
-					$.extend(result, { islemZamani: now(), isError: false, eIslSinif, efAyrimTipi, rec, anaBolum: eIslAltBolum, xmlDosya });
+					$.extend(result, { islemZamani: now(), isError: false, eIslSinif, efAyrimTipi, rec, anaBolum: eIslAltBolum, xmlDosya })
 					try {
-						let xmlData = uuid2Result[uuid]?.xmlData || (await app.wsDownloadAsStream({ remoteFile: xmlDosya, localFile: xmlDosyaAdi }));
-						if (!xmlData) { throw { isError: true, rc: 'noXML', errorText: 'XML (e-İşlem Belge İçeriği) bilgisi belirlenemedi' } } let xml = $.parseXML(xmlData);
-						let xsltData = Array.from(xml.documentElement.querySelectorAll(`AdditionalDocumentReference`))
-								?.find(elm => elm.querySelector('DocumentType')?.innerHTML == 'XSLT')?.querySelector('EmbeddedDocumentBinaryObject')?.textContent;
-						if (!xsltData) { throw { isError: true, rc: 'noXSLT', errorText: 'XSLT (e-İşlem Görüntü) bilgisi belirlenemedi' } }
-						if (xsltData?.startsWith(Base64.encode('<?xml'))) { xsltData = Base64.decode(xsltData) }
+						let xmlData = uuid2Result[uuid]?.xmlData
+						if (!xmlData)
+							xmlData = await app.wsDownloadAsStream({ remoteFile: xmlDosya, localFile: xmlDosyaAdi })
+						if (!xmlData)
+							throw { isError: true, rc: 'noXML', errorText: 'XML (e-İşlem Belge İçeriği) bilgisi belirlenemedi' }
+						let xml = $.parseXML(xmlData)
+						let docRefs = Array.from(xml.documentElement.querySelectorAll(`AdditionalDocumentReference`))
+						let xsltData
+						{
+							let xbinDoc, subName = 'EmbeddedDocumentBinaryObject'
+							xbinDoc = docRefs.find(elm => elm.querySelector('DocumentType')?.innerHTML?.toUpperCase() == 'XSLT' && elm.querySelector(subName))
+							if (!xbinDoc)
+								xbinDoc = docRefs.find(elm => elm.querySelector(subName))
+							if (xbinDoc)
+								xsltData = xbinDoc.querySelector(subName)?.textContent
+						}
+						if (!xsltData)
+							throw { isError: true, rc: 'noXSLT', errorText: 'XSLT (e-İşlem Görüntü) bilgisi belirlenemedi' }
+						if (Base64.isValid(xsltData))
+							xsltData = Base64.decode(xsltData)
 						let xslt = $.parseXML(Base64.decode(xsltData)), xsltProcessor = new XSLTProcessor(); xsltProcessor.importStylesheet(xslt);
 						let eDoc = xsltProcessor.transformToFragment(xml, document);
-						if (!eDoc) { console.error({ isError: true, rc: 'xsltTransform', errorText: 'XSLT Görüntüsü oluşturulamadı', source: xsltProcessor }); continue }
+						if (!eDoc) {
+							console.error({ isError: true, rc: 'xsltTransform', errorText: 'XSLT Görüntüsü oluşturulamadı', source: xsltProcessor })
+							continue
+						}
 						if (eDocCount) {
 							let elmPageBreak = $(`<div style="float: none;"><div style="page-break-after: always;"></div></div>`)[0];
 							divContainer.lastElementChild.after(elmPageBreak); divContainer.lastElementChild.after(eDoc.querySelector('div'))
 						}
-						else { divContainer.append(eDoc) }
+						else
+							divContainer.append(eDoc)
 						eDocCount++; $.extend(result, { xmlData, xml, xsltData, xslt, xsltProcessor, eDoc, divContainer });
 						if (window.progressManager) { window.progressManager.progressStep() } if (keys(uuid2Result).length % 201 == 200) { if (callback) { getFuncValue.call(this, callback, e) } }
 					}
@@ -169,10 +189,16 @@ class EYonetici extends CObject {
 					}
 				}
 			}
-			if (callback) { getFuncValue.call(this, callback, e) }
+			if (callback)
+				etFuncValue.call(this, callback, e)
 			if (!e.internal) {
-				if (eDocCount) { let newDocHTML = `<html><head>${divContainer.innerHTML}</head></html>`; let url = URL.createObjectURL(new Blob([newDocHTML], { type: 'text/html' })); openNewWindow(url) }
-				if (sender && !sender.isDestroyed && sender.tazele) { sender.tazele() }
+				if (eDocCount) {
+					let newDocHTML = `<html><body>${divContainer.innerHTML}</body></html>`
+					let url = URL.createObjectURL(new Blob([newDocHTML], { type: 'text/html' }))
+					openNewWindow(url)
+				}
+				if (sender && !sender.isDestroyed)
+					sender?.tazele()
 			}
 		}
 	}

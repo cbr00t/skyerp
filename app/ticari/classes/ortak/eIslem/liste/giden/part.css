@@ -1,13 +1,13 @@
-.masterListe.part .islemTuslari #eIslemGonder { background-image: url(../../../../../../../images/eIslemGonder.png) }
-.masterListe.part .islemTuslari #eIslemIzle { background-image: url(../../../../../../../images/izle.png) }
-.masterListe.part .islemTuslari #eIslemSorgu { background-image: url(../../../../../../../images/soru.png) }
-.masterListe.part .islemTuslari #eIslemXMLOlustur { background-image: url(../../../../../../../images/eIslemImza.png) }
-.masterListe.part .islemTuslari #eIslemXMLOlustur.jqx-fill-state-normal { }
-.masterListe.part .islemTuslari #xmlKaldir { background-image: url(../../../../../../../images/sil.png) }
-.masterListe.part .islemTuslari #eIslemIptal { background-image: url(../../../../../../../images/eIslemKaldir.png) }
+.part .islemTuslari #eIslemGonder { background-image: url(../../../../../../../images/eIslemGonder.png) }
+.part .islemTuslari #eIslemIzle { background-image: url(../../../../../../../images/izle.png) }
+.part .islemTuslari #eIslemSorgu { background-image: url(../../../../../../../images/soru.png) }
+.part .islemTuslari #eIslemXMLOlustur { background-image: url(../../../../../../../images/eIslemImza.png) }
+.part .islemTuslari #eIslemXMLOlustur.jqx-fill-state-normal { }
+.part .islemTuslari #xmlKaldir { background-image: url(../../../../../../../images/sil.png) }
+.part .islemTuslari #eIslemIptal { background-image: url(../../../../../../../images/eIslemKaldir.png) }
 
-.masterListe.part .islemTuslari #eIslemGonder.jqx-fill-state-normal, .masterListe.part .islemTuslari #eIslemIzle.jqx-fill-state-normal,
-	.masterListe.part .islemTuslari #eIslemSorgu.jqx-fill-state-normal { background-color: #ccc }
-.masterListe.part .jqx-grid div[role=row] > div.efUUIDText.hasUUID { background-color: lightgreen !important }
-.masterListe.part .jqx-grid div[role=row] > div.efgonderimts.gonderildi:not(.jqx-grid-cell-selected) { background-color: lightgreen }
-.masterListe.part .islemTuslari #eIslemIptal.jqx-fill-state-normal, .masterListe.part .islemTuslari #xmlKaldir.jqx-fill-state-normal { background-color: #9d9393 }
+.part .islemTuslari #eIslemGonder.jqx-fill-state-normal, .part .islemTuslari #eIslemIzle.jqx-fill-state-normal,
+	.part .islemTuslari #eIslemSorgu.jqx-fill-state-normal { background-color: #ccc }
+.part .jqx-grid div[role=row] > div.efUUIDText.hasUUID { background-color: lightgreen !important }
+.part .jqx-grid div[role=row] > div.efgonderimts.gonderildi:not(.jqx-grid-cell-selected) { background-color: lightgreen }
+.part .islemTuslari #eIslemIptal.jqx-fill-state-normal, .part .islemTuslari #xmlKaldir.jqx-fill-state-normal { background-color: #9d9393 }
