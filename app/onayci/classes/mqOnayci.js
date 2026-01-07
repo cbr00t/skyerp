@@ -3,6 +3,19 @@ class MQOnayci extends MQCogul {
 	static get kodListeTipi() { return 'ONAYCI' } static get sinifAdi() { return 'Onay İşlemleri' }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false }
 	static get secimSinif() { return null } static get kolonFiltreKullanilirmi() { return false }
+
+	static listeEkrani_init({ sender: gridPart }) {
+		super.listeEkrani_init(...arguments)
+		$.extend(gridPart, { otoTazeleSecs: 10, otoTazeleDisabled: false })
+	}
+	static listeEkrani_afterRun({ sender: gridPart }) { super.listeEkrani_afterRun(...arguments) }
+	static listeEkrani_destroyPart({ sender: gridPart } = {}) {
+		let e = arguments[0]
+		super.listeEkrani_destroyPart(e)
+		this.otoTazele_stopTimer(e)
+	}
+	static listeEkrani_activated({ sender: gridPart }) { super.listeEkrani_activated(...arguments) }
+	static listeEkrani_deactivated({ sender: gridPart }) { super.listeEkrani_deactivated(...arguments) }
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e)
 		let {liste, part: { ekSagButonIdSet: sagSet }} = e
@@ -33,6 +46,11 @@ class MQOnayci extends MQCogul {
 		])
 	}
 	static async loadServerDataDogrudan({ sender: gridPart }) {
+		gridPart.otoTazeleDisabled = true
+		try { return await this._loadServerDataDogrudan(...arguments) }
+		finally { gridPart.otoTazeleDisabled = false }
+	}
+	static async _loadServerDataDogrudan({ sender: gridPart }) {
 		let {encUser, user /*, dbName: db*/} = config.session
 		let {ay: buAy, yil2: buKisaYil} = today()
 		let _cache = this._cache ??= await (async () => {
@@ -155,9 +173,37 @@ class MQOnayci extends MQCogul {
 		}
 	}
 	static gridVeriYuklendi({ sender: gridPart }) {
-		let {gridWidget: w, gridWidget: { groups }} = gridPart
+		let {gridWidget: w, gridWidget: { groups }, prevRecs, boundRecs} = gridPart
 		groups.forEach(g =>
 			w.hidecolumn(g))
+		let degistimi = false
+		if (!prevRecs)
+			prevRecs = boundRecs
+		else if (boundRecs.length > prevRecs?.length)
+			degistimi = true
+		if (degistimi && !appActivatedFlag) {
+			try { new Notification(this.sinifAdi, { body: `Onay Bekleyen yeni belgeler var` }) }
+			catch (ex) { }
+		}
+		gridPart.prevRecs = boundRecs
+		this.otoTazele_startTimer(...arguments)
+	}
+	static otoTazele_startTimer({ sender: gridPart }) {
+		let e = arguments[0], {otoTazeleSecs} = gridPart
+		this.otoTazele_stopTimer(e)
+		gridPart._timer_otoTazele = setTimeout(e =>
+			this.otoTazele_timerProc(e),
+			otoTazeleSecs * 1000, e)
+	}
+	static otoTazele_stopTimer({ sender: gridPart }) {
+		clearTimeout(gridPart._timer_otoTazele)
+	}
+	static otoTazele_timerProc({ sender: gridPart }) {
+		let {otoTazeleSecs, otoTazeleDisabled} = gridPart
+		if (!otoTazeleSecs || otoTazeleDisabled)
+			return
+		if (!gridPart.isDestroyed)
+			gridPart.tazele()
 	}
 	
 	static async onayRedIstendi({ sender: gridPart, state: onaymi }) {

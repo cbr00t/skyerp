@@ -130,18 +130,18 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		}
 		$.extend(e, { layout, sender: this, gridPart: this, builder }); if (mfSinif?.listeEkrani_afterRun) { mfSinif.listeEkrani_afterRun(e) }
 	}
-	destroyPart(e) {
+	destroyPart(e = {}) {
 		let {layout, builder} = this, mfSinif = this.getMFSinif(); $.extend(e, { layout, sender: this, gridPart: this, builder });
 		if (mfSinif?.listeEkrani_destroyPart) { mfSinif.listeEkrani_destroyPart(e) }
 		let {secimlerPart} = this; if (secimlerPart) { secimlerPart.close(e); secimlerPart.destroyPart() }
 		super.destroyPart(e); $('body').removeClass('bg-modal')
 	}
-	activated(e) {
-		e ??= {}; super.activated(e); if (!this._activatedFlag) { this._activatedFlag = true; return }
+	activated(e = {}) {
+		super.activated(e); if (!this._activatedFlag) { this._activatedFlag = true; return }
 		let {layout, builder} = this, mfSinif = this.getMFSinif(); $.extend(e, { layout, sender: this, gridPart: this, builder });
 		if (mfSinif?.listeEkrani_activated) { mfSinif.listeEkrani_activated(e) }
 	}
-	deactivated(e) {
+	deactivated(e = {}) {
 		super.deactivated(e); if (!this._activatedFlag) { this._activatedFlag = true; return }
 		let {layout, builder} = this, mfSinif = this.getMFSinif(); $.extend(e, { layout, sender: this, gridPart: this, builder });
 		if (mfSinif?.listeEkrani_deactivated) { mfSinif.listeEkrani_deactivated(e) }
