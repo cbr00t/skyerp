@@ -168,7 +168,9 @@ class EYonetici extends CObject {
 							throw { isError: true, rc: 'noXSLT', errorText: 'XSLT (e-İşlem Görüntü) bilgisi belirlenemedi' }
 						if (Base64.isValid(xsltData))
 							xsltData = Base64.decode(xsltData)
-						let xslt = $.parseXML(Base64.decode(xsltData)), xsltProcessor = new XSLTProcessor(); xsltProcessor.importStylesheet(xslt);
+						let xslt = $.parseXML(xsltData)
+						let xsltProcessor = new XSLTProcessor()
+						xsltProcessor.importStylesheet(xslt)
 						let eDoc = xsltProcessor.transformToFragment(xml, document);
 						if (!eDoc) {
 							console.error({ isError: true, rc: 'xsltTransform', errorText: 'XSLT Görüntüsü oluşturulamadı', source: xsltProcessor })
@@ -190,7 +192,7 @@ class EYonetici extends CObject {
 				}
 			}
 			if (callback)
-				etFuncValue.call(this, callback, e)
+				getFuncValue.call(this, callback, e)
 			if (!e.internal) {
 				if (eDocCount) {
 					let newDocHTML = `<html><body>${divContainer.innerHTML}</body></html>`
@@ -405,7 +407,7 @@ class EYonetici extends CObject {
 				continue
 			}
 			let efAyrimTipi = rec.efayrimtipi ||= 'A'
-			(efAyrimTipi2Arastirilacaklar[efAyrimTipi] ??= []).push(rec)
+			; (efAyrimTipi2Arastirilacaklar[efAyrimTipi] ??= []).push(rec)
 		}
 		if (!empty(efAyrimTipi2Arastirilacaklar)) {
 			for (let efAyrimTipi in efAyrimTipi2Arastirilacaklar) {
@@ -416,7 +418,7 @@ class EYonetici extends CObject {
 				let eksikUUID2Dosya = {}, dosyaAdiSet = {}
 				for (let {uuid} of arastirilacaklar) {
 					let dosyaAdi = `${uuid}.xml`
-					eksikUUID2Dosya[uuid] = dosya = `${anaBolum}\\IMZALI\\${dosyaAdi}`
+					eksikUUID2Dosya[uuid] = `${anaBolum}\\IMZALI\\${dosyaAdi}`
 					dosyaAdiSet[dosyaAdi] = true
 				}
 				if (!empty(dosyaAdiSet)) {
