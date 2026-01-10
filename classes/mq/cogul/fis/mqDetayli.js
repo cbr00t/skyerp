@@ -264,7 +264,8 @@ class MQDetayli extends MQSayacli {
 		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e
 		e.islem ||= 'yeni'
 		e.proc = async () => {
-			let paramName_fisSayac = '@fisSayac'; await this.yeniOncesiIslemler(e)
+			let paramName_fisSayac = '@fisSayac'
+			await this.yeniOncesiIslemler(e)
 			let _e = { ...e, toplu: new MQToplu(), paramName_fisSayac }
 			await this.topluYazmaKomutlariniOlustur(_e); await this.topluYazmaKomutlariniOlusturSonrasi(_e); if (empty(_e.toplu.liste)) { return true }
 			let {toplu: query, sayac} = _e; _e = { offlineMode, trnId, query, sayac };
@@ -280,15 +281,18 @@ class MQDetayli extends MQSayacli {
 		if (!fisSayac) { throw { isError: true, rc: 'fisSayac', errorText: 'Kaydedilen fiş için sayaç bilgisi belirlenemedi' } }
 		this.sayac = fisSayac
 	}
-	async degistir(e) {
-		/* üst'e bakma */ e = e || {}; if (!$.isPlainObject(e)) { e = { islem: 'degistir', eskiInst: e } }
+	async degistir(e = {}) {
+		/* üst'e bakma */
+		if (!isPlainObject(e))
+			e = { islem: 'degistir', eskiInst: e }
 		this.detaylariNumaralandir(e)
 		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode
 		let {trnId} = e
 		e.islem ||= 'degistir'
 		e.proc = async () => {
+			// let paramName_fisSayac = '@fisSayac'
 			await this.degistirOncesiIslemler(e)
-			let _e = { ...e, toplu: new MQToplu() }
+			let _e = { ...e, toplu: new MQToplu() /*, paramName_fisSayac*/ }
 			await this.topluDegistirmeKomutlariniOlustur(_e)
 			await this.topluDegistirmeKomutlariniOlusturSonrasi(_e)
 			if (empty(_e.toplu.liste)) { return true }
@@ -379,11 +383,16 @@ class MQDetayli extends MQSayacli {
 		params.push({ name: paramName_fisSayac, type: 'int', direction: 'inputOutput', value: 0 })
 	}
 	async topluDegistirmeKomutlariniOlustur(e) {
-		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {toplu, trnId} = e;
-		let {table, detaySinif: thisDetaySinif} = this.class, harSayacSaha, fisSayacSaha, seqSaha;
-		let detTable2HVListe = e.detTable2HVListe = {}, detHVArg = e.detHVArg = { fis: this };
-		let detaylar = this.getYazmaIcinDetaylar(e); for (let det of detaylar) {
-			let detaySinif = det?.class ?? thisDetaySinif; if (detaySinif && $.isPlainObject(det)) { det = new detaySinif(det) }
+		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode
+		let {toplu, trnId} = e
+		let {table, detaySinif: thisDetaySinif} = this.class, harSayacSaha, fisSayacSaha, seqSaha
+		let detTable2HVListe = e.detTable2HVListe = {}
+		let detHVArg = e.detHVArg = { fis: this }
+		let detaylar = this.getYazmaIcinDetaylar(e)
+		for (let det of detaylar) {
+			let detaySinif = det?.class ?? thisDetaySinif
+			if (detaySinif && isPlainObject(det))
+				det = new detaySinif(det)
 			if (!harSayacSaha) { harSayacSaha = detaySinif.sayacSaha ?? detaySinif.idSaha }
 			if (!fisSayacSaha) { fisSayacSaha = detaySinif.fisSayacSaha }
 			if (!seqSaha) { seqSaha = det.class.seqSaha }
@@ -392,21 +401,32 @@ class MQDetayli extends MQSayacli {
 				return false
 			hv._harsayac = det.okunanHarSayac  /* yeni kayıt için null aksinde okunan harsayac */
 			let detTable = det.class.getDetayTable(detHVArg)
-			let hvListe = detTable2HVListe[detTable] = detTable2HVListe[detTable] || []
+			let hvListe = detTable2HVListe[detTable] ??= []
 			hvListe.push(hv)
 		}
 		harSayacSaha ||= thisDetaySinif.sayacSaha ?? thisDetaySinif.idSaha
 		fisSayacSaha ||= thisDetaySinif.fisSayacSaha
 		seqSaha ||= thisDetaySinif.seqSaha
-		if (empty(detTable2HVListe)) {
-			detTable2HVListe[thisDetaySinif.getDetayTable(detHVArg)] = [] }
-		let fisHV = this.hostVars(e), keyHV = this.keyHostVars({ ...e, varsayilanAlma: true });
-		let sent = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: ['*'] });
-		let basRec = await this.sqlExecTekil({ offlineMode, trnId, query: sent }), degisenHV = degisimHV(fisHV, basRec);
-		if (!empty(degisenHV)) { toplu.add(new MQIliskiliUpdate({ from: table, where: { birlestirDict: keyHV }, set: { birlestirDict: degisenHV } })) }
-		let {sayac: fisSayac} = this; for (let detTable in detTable2HVListe) {
-			let ekleHVListe = [], harSayac2HV = {}, detHVListe = detTable2HVListe[detTable];
-			for (let hv of detHVListe) { let {_harsayac: harSayac} = hv; if (harSayac) { harSayac2HV[harSayac] = hv } else { ekleHVListe.push(hv) } }
+		if (empty(detTable2HVListe))
+			detTable2HVListe[thisDetaySinif.getDetayTable(detHVArg)] = []
+		let fisHV = this.hostVars(e), keyHV = this.keyHostVars({ ...e, varsayilanAlma: true })
+		let sent = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: ['*'] })
+		let basRec = await this.sqlExecTekil({ offlineMode, trnId, query: sent })
+		let degisenHV = degisimHV(fisHV, basRec)
+		if (!empty(degisenHV)) {
+			toplu.add(new MQIliskiliUpdate({
+				from: table, where: { birlestirDict: keyHV },
+				set: { birlestirDict: degisenHV }
+			}))
+		}
+		let {sayac: fisSayac} = this
+		for (let detTable in detTable2HVListe) {
+			let ekleHVListe = [], harSayac2HV = {}, detHVListe = detTable2HVListe[detTable]
+			for (let hv of detHVListe) {
+				let {_harsayac: harSayac} = hv
+				if (harSayac) { harSayac2HV[harSayac] = hv }
+				else { ekleHVListe.push(hv) }
+			}
 		/* detay tablo için hareketlerden sıra değişimleri, silinecekler, güncellenecekler ve eklenecekler düzenlenir !! tum detay tablolar icin union all ile okunmali */
 			let sent = new MQSent({ from: detTable, where: { degerAta: fisSayac, saha: fisSayacSaha }, sahalar: ['*'] });
 			let recs = await this.sqlExecSelect({ offlineMode, trnId, query: sent }), sayac2YeniSeq = {}, degisenSayac2HV = {}, silSayaclar = [];

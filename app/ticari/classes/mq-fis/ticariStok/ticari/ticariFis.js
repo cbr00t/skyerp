@@ -257,10 +257,9 @@ class TicariFis extends TSOrtakFis {
 		let takHV = { fissayac, seq, bedel, dvbedel }
 		toplu.add(new MQInsert({ table, hv: takHV }))
 	}
-	topluDegistirKomutOlustur_taksit({ hv, toplu, paramName_fisSayac }) {
+	topluDegistirKomutOlustur_taksit({ hv, toplu }) {
 		let seq = 1, {net: bedel, dvnet: dvbedel} = hv
-		let {class: { taksitTable: table }} = this
-		let fissayac = paramName_fisSayac.sqlConst()
+		let {sayac: fissayac, class: { taksitTable: table }} = this
 		let takHV = { fissayac, seq, bedel, dvbedel }
 		toplu.add(
 			new MQIliskiliDelete({

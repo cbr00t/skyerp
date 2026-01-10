@@ -156,7 +156,7 @@ class ExtFis_Plasiyer extends ExtFis {
 }
 class ExtFis_Kasa extends ExtFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static pTanimDuzenle({ liste }) {
+	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		$.extend(pTanim, { kasaKod: new PInstStr('kasakod') })
 	}
@@ -436,7 +436,7 @@ class ExtFis_Ciranta extends ExtFis_Cari {
 }
 class ExtFis_StokIslem extends ExtFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static pTanimDuzenle({ liste }) {
+	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		$.extend(pTanim, { islKod: new PInstStr('islkod'), isl_tip: new PInstStr() })
 	}
@@ -510,7 +510,7 @@ class ExtFis_CariIslem extends ExtFis {
 }
 class ExtFis_MuhIslem extends ExtFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static pTanimDuzenle({ liste }) {
+	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		$.extend(pTanim, { islKod: new PInstStr('muhislkod') })
 	}
@@ -543,7 +543,7 @@ class ExtFis_MuhIslem extends ExtFis {
 }
 class ExtFis_MuhHesap extends ExtFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static pTanimDuzenle({ liste }) {
+	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		$.extend(pTanim, { muhHesapKod: new PInstStr('muhhesapkod') })
 	}
