@@ -593,7 +593,8 @@ class DonemSecim extends TekSecim {
 	}
 	bugun() { this.char = 'B'; return this } dun() { this.char = 'D'; return this } buHafta() { this.char = 'HF'; return this }
 	buAy() { this.char = 'AY'; return this } gecenAy() { this.char = 'GA'; return this }
-	buCeyrekDonem() { this.char = 'BC'; return this } oncekiCeyrekDonem() { this.char = 'OC'; return this } buYil() { this.char = 'YL'; return this }
+	buCeyrekDonem() { this.char = 'BC'; return this } oncekiCeyrekDonem() { this.char = 'OC'; return this }
+	buYil() { this.char = 'BY'; return this }
 	getBasiSonu(kod) {
 		let _today = today(), {ay, yil} = _today, basi;
 		switch (kod) {

@@ -160,12 +160,14 @@ class CObject {
 		}
 		return inst
 	}
-	deepCopy(e) {
-		e = e || {}; const deepCopyAlinmayacaklar = asSet(this.class.deepCopyAlinmayacaklar || []), inst = new (this.class)({ isCopy: true, isDeepCopy: true });
+	deepCopy(e = {}) {
+		let deepCopyAlinmayacaklar = asSet(this.class.deepCopyAlinmayacaklar || [])
+		let inst = new (this.class)({ isCopy: true, isDeepCopy: true })
 		for (const key in this) {
-			let value = this[key];
+			let value = this[key]
 			if (value && !deepCopyAlinmayacaklar[key]) {
-				if (value.deepCopy) { value = value.deepCopy() }
+				if (value.deepCopy)
+					value = value.deepCopy()
 				else if ($.isArray(value)) {
 					const _arr = value; const arr = value = [];
 					for (let i = 0; i < _arr.length; i++) {

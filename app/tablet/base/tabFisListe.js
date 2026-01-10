@@ -24,7 +24,7 @@ class TabFisListe extends TabFis {
 		}
 		let fisSinif = this.fisSinifFor(fisTipi)
 		if (!fisSinif)
-			return
+			return null
 		let inst = new fisSinif({ ...args })
 		if (rec) {
 			await inst.keySetValues({ ...arguments, rec, sayac: undefined })
@@ -38,7 +38,7 @@ class TabFisListe extends TabFis {
 	}
 	static async loadServerDataDogrudan({ offlineRequest, offlineMode }) {
 		if (!offlineRequest) {
-			let cacheClasses = [ MQTabStok, MQTabTahsilSekli]
+			let cacheClasses = [MQTabStok, MQTabTahsilSekli]
 			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
 		}
 		let recs = await super.loadServerDataDogrudan(...arguments)

@@ -392,14 +392,15 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		let {stm, attrSet} = e, {with: _with} = stm, {konsolideVarmi, secimler: sec} = this
 		if (konsolideVarmi && !_with.toplamVarmi) {
 			let {session} = config, {dbName: buDBName} = session, {ekDBListe} = app.params?.dRapor ?? {}, alias_db = 'db'
-			let {value: filtreDBListe} = sec.db, filtreDBSet = filtreDBListe?.length ? asSet(filtreDBListe) : null;
+			let {value: filtreDBListe} = sec.db ?? {}, filtreDBSet = filtreDBListe?.length ? asSet(filtreDBListe) : null;
 			if (filtreDBListe?.length) {
 				ekDBListe = filtreDBListe.filter(name => name != buDBName)
 				/* if (!filtreDBSet[buDBName]) { filtreDBSet[buDBName] = true } */
 			}
 			let asilUniDuzenlendimi = false, asilUni = stm.sent = stm.sent.asUnionAll()
 			if (!filtreDBSet || filtreDBSet[buDBName]) {
-				if (!asilUni.liste.length) { asilUni.add(new MQSent()) }
+				if (!asilUni.liste.length)
+					asilUni.add(new MQSent())
 				for (let {sahalar} of asilUni) {
 					if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db))
 						sahalar.add(`${`(<span class=forestgreen>${buDBName}</span>)`.sqlServerDegeri() ?? '- Aktif VT -'} ${alias_db}`)
@@ -412,6 +413,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 					if (!(table == 'tarihler' || table.startsWith('dkur_')))
 						tmpName2Yapi[table] = sent
 				}
+				for (let sent of asilUni)
+					(tmpName2Yapi[''] ??= []).push(sent)
 				// fromEntries(_with.liste.map(_ => [_.table, _.sent]))
 				let ekSentListe = []
 				for (let db of ekDBListe) {
@@ -435,8 +438,10 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 									deger = saha.deger = `${db}_${deger}`
 							}
 						}
-						let yTable = `${db}_${table}`
-						_with.add(yTmpSentOrUni.asTmpTable(yTable))
+						if (table) {
+							let yTable = `${db}_${table}`
+							_with.add(yTmpSentOrUni.asTmpTable(yTable))
+						}
 					}
 					let tmpTableSet = asSet(keys(tmpName2Yapi))
 					let {liste} = asilUni.deepCopy()

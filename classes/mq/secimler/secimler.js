@@ -267,9 +267,14 @@ class DonemselSecimler extends Secimler {
 	}
 	initHTMLElements_son({ secim2Info }) {
 		super.initHTMLElements_son(...arguments);
-		let part = secim2Info?.donem?.element?.find('.ddList')?.data('part'); if (part) {
+		let part = secim2Info?.donem?.element?.find('.ddList')?.data('part')
+		if (part) {
+			{
+				let {tarihAralikmi} = secim2Info.donem.secim.tekSecim
+				secim2Info.tarihAralik.element[tarihAralikmi ? 'removeClass' : 'addClass']('jqx-hidden')
+			}
 			part.degisince(e => {
-				let {tarihAralikmi} = secim2Info.donem.secim.tekSecim;
+				let {tarihAralikmi} = secim2Info.donem.secim.tekSecim
 				secim2Info.tarihAralik.element[tarihAralikmi ? 'removeClass' : 'addClass']('jqx-hidden')
 			})
 		}

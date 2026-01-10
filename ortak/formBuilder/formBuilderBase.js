@@ -163,7 +163,12 @@ class FormBuilderBase extends CObject {
 					layout.addClass(cssClass)
 				}
 			}
-			let elms = [layout /*, layout.children()*/]; for (let elm of elms) { elm.addClass(CSSClass_FormBuilderElement); elm.attr(`data-${CSSClass_BuilderId}`, this.id); this.getElementId(elm) }
+			let elms = [layout /*, layout.children()*/]
+			for (let elm of elms) {
+				elm.addClass?.(CSSClass_FormBuilderElement)
+				elm.attr?.(`data-${CSSClass_BuilderId}`, this.id)
+				this.getElementId(elm)
+			}
 			this.updateVisible(e);
 			if (this.autoAppendFlag) {
 				let {parent} = this;
@@ -650,8 +655,9 @@ class FormBuilderBase extends CObject {
 	setVisibleKosulu(value) { this.visibleKosulu = value; return this }
 	autoAppendMode_append() {
 		this.autoAppendIslemi = e => {
-			let {layout, parent} = e;
-			if ((layout || {}).length && (parent || {}).length && !(layout.parent() || {}).length) layout.appendTo(parent)
+			let {layout, parent} = e
+			if ((layout || {})?.length && (parent || {}).length && !(layout?.parent() || {}).length)
+				layout?.appendTo(parent)
 		};
 		return this
 	}
@@ -716,8 +722,8 @@ class FormBuilderBase extends CObject {
 	getElementId(elm) {
 		if (!(elm && elm.length)) return null
 		let {CSSClass_ElementId} = FormBuilderBase;
-		let result = elm.data(CSSClass_ElementId);
-		if (!result) { result = this.newElementId(); elm.attr(`data-${CSSClass_ElementId}`, result) }
+		let result = elm.data?.(CSSClass_ElementId);
+		if (!result) { result = this.newElementId(); elm.attr?.(`data-${CSSClass_ElementId}`, result) }
 		return result
 	}
 	newElementId() { return `fe-${++FormBuilderBase.elmSeq}` }

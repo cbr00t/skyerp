@@ -43,7 +43,7 @@ class MQTicNumarator extends MQNumarator {
 		)
 	}
 	static standartGorunumListesiDuzenle({ liste }) {
-		super.standartGorunumListesiDuzenle(...aguments)
+		super.standartGorunumListesiDuzenle(...arguments)
 		liste.push('noyil')
 	}
 	static orjBaslikListesiDuzenle(e) {

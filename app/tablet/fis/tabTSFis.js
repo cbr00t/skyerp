@@ -3,7 +3,8 @@ class TabTSFis extends TabFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TABTS' } static get sinifAdi() { return 'Ticari/Stok Fiş' }
 	static get detaySinif() { return TabTSDetay } static get almSat() { return 'T' }
-	
+	static get dipKullanilirmi() { return true }
+
 	static pTanimDuzenle({ pTanim }) {
 		// MQOrtakFis.pTanimDuzenle(...arguments)
 		super.pTanimDuzenle(...arguments)
@@ -21,6 +22,29 @@ class TabTSFis extends TabFis {
 			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
 		}
 		return await super.loadServerData_detaylar(...arguments)
+	}
+	/*dipGridSatirlariDuzenle_ticari({ dipIslemci, liste }) {
+		let e = arguments[0]
+		super.dipGridSatirlariDuzenle_ticari(e)
+		let {dipIskOranSayi, dipIskBedelSayi} = this.class
+		for (let seq = 1; seq <= dipIskOranSayi; seq++)
+			liste.push(new DipSatir_IskOran({ ...e, seq }))
+		for (let seq = 1; seq <= dipIskBedelSayi; seq++)
+			liste.push(new DipSatir_IskBedel({ ...e, seq }))
+		let {offsetRefs: refs} = dipIslemci
+		refs.kdv = liste[liste.length - 1]
+	}*/
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments)
+		let {_dipIslemci: d} = this
+		for (let k of ['dipIskOran1', 'dipIskOran2', 'dipIskBedel'])
+			hv[k.toLowerCase()] = d?.[k] ?? 0
+	}
+	setValues({ rec }) {
+		super.setValues(...arguments)
+		let {dipIslemci} = this
+		for (let k of ['dipIskOran1', 'dipIskOran2', 'dipIskBedel'])
+			dipIslemci[k] = rec[k.toLowerCase()] ?? 0
 	}
 
 	static async rootFormBuilderDuzenle_tablet(e) {
@@ -49,14 +73,62 @@ class TabTSFis extends TabFis {
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_dipCollapsed(...arguments)
-		let {sonucBedel, detaylar: { length: topSatir }} = fis
+		let {dipIslemci: { brut, topIskBedel, topKdv, sonuc }, detaylar: { length: topSatir }} = fis
 		if (topSatir) {
 			rfb.addForm().setLayout(() => $([
 				`<div class="flex-row" style="gap: 10px">`,
-					`<div class="orangered"><b>${toStringWithFra(sonucBedel)}</b> TL</div>`,
+					(topIskBedel || topKdv ? `<div>` +
+						 `<span class="lightgray">BR: </span>` +
+						 `<span>${toStringWithFra(brut)}</span>` +
+					 `</div>` : ''),
+					(topKdv ? `<div>` +
+						 `<span class="lightgray">KD: </span>` +
+						 `<span>${toStringWithFra(topKdv)}</span>` +
+					 `</div>` : ''),
+					`<div class="orangered"><b>${toStringWithFra(sonuc)}</b> TL</div>`,
 					`<div class="royalblue"><b>${numberToString(topSatir)}</b> satır</div>`,
 				`</div>`
 			].join(CrLf)))
+		}
+	}
+	static async rootFormBuilderDuzenle_tablet_acc_dip({ sender: tanimPart, inst: fis, rfb }) {
+		await super.rootFormBuilderDuzenle_tablet_acc_dip(...arguments)
+		let {acc} = tanimPart, {dvKod, dipIslemci, detaylar} = fis
+		rfb.addStyle_wh(null, 150)
+		{
+			let form = rfb.addFormWithParent().yanYana()
+				.addStyle(`$elementCSS > * { gap: 20px }`)
+				.setAltInst(dipIslemci)
+			form.addNumberInput('dipIskOran1', 'İsk1 %')
+				.addStyle_wh(100, 50).addCSS('center')
+				.degisince(({ builder: { input }}) => {
+					input.addClass('degisti')
+					input[0].value = asFloat(input[0].value) || null
+					fis.topluHesapla()
+					acc?.render()
+				})
+				.onAfterRun(({ builder: { id, input, altInst: inst } }) => {
+					tanimPart.txtDipIskOran = input
+					setTimeout(() => input[0].value = inst[id] || null, 1)
+					setTimeout(() => input.focus(), 1)
+				})
+			form.addNumberInput('dipIskBedel', '+ Bedel')
+				.addStyle_wh(200, 50)
+				.degisince(({ builder: { input }}) => {
+					input.addClass('degisti')
+					input[0].value = asFloat(input[0].value) || null
+					fis.topluHesapla()
+					acc?.render()
+				})
+				.onAfterRun(({ builder: { id, input, altInst: inst } }) => {
+					tanimPart.txtDipIskBedel = input
+					setTimeout(() => input[0].value = inst[id] || null, 1)
+				})
+			form.addDiv().etiketGosterim_placeHolder()
+				.addStyle('$elementCSS { margin: 10px 0 0 10px }')
+				.addCSS('gray')
+				.onBuildEk(({ builder: { input } }) =>
+					input.html(dvKod))
 		}
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_detayCollapsed({ sender: tanimPart, inst: fis, rfb }) {
@@ -97,12 +169,13 @@ class TabTSFis extends TabFis {
 				rowsHeight: 70, selectionMode: 'singlerow'
 			}))
 			.setTabloKolonlari([
-				new GridKolon({ belirtec: '_text', text: 'Ürün' }),
-				new GridKolon({ belirtec: 'netBedel', text: 'Bedel', genislikCh: 15 }).tipDecimal_bedel(),
+				new GridKolon({ belirtec: '_html', text: 'Ürün' }),
+				new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 15 }).tipDecimal_bedel(),
 				new GridKolon({ belirtec: '_sil', text: ' ', genislikCh: 6 })
 					.tipButton('X')
 					.onClick(({ gridRec, args: { owner: w } }) => {
 						w.deleterow(gridRec.uid)
+						fis.topluHesapla()
 						acc?.render()
 					})
 			])
@@ -137,7 +210,8 @@ class TabTSFis extends TabFis {
 				})
 			})
 	}
-	static async rootFormBuilderDuzenle_tablet_acc_duzenleCollapsed({ sender: tanimPart, inst: fis, rfb }) { }
+	static async rootFormBuilderDuzenle_tablet_acc_duzenleCollapsed({ sender: tanimPart, inst: fis, rfb }) {
+	}
 	static async rootFormBuilderDuzenle_tablet_acc_duzenle(e) {
 		let {sender: tanimPart, inst: fis, rfb, item} = e
 		let {acc, gridPart, gridPart: { gridWidget: w, selectedRec: det } = {}} = tanimPart
@@ -149,6 +223,8 @@ class TabTSFis extends TabFis {
 			bedelGorur = true
 		let getDetay = () => gridPart.selectedRec
 		let initFlag = !getDetay()
+		if (!initFlag)
+			setTimeout(() => initFlag = true, 200)
 		let temps = item.temps ??= {}
 		let txtMiktar, divBedel
 		let updateUI = temps.updateUI = () => {
@@ -182,6 +258,7 @@ class TabTSFis extends TabFis {
 						w.selectrow(0)
 						w.ensurerowvisible(0)
 						txtMiktar?.focus()
+						fis.topluHesapla()
 					}
 					acc?.render()
 					updateUI()
@@ -228,9 +305,9 @@ class TabTSFis extends TabFis {
 		})
 		let degisinceOrtak = ({ input } = {}) => {
 			let det = getDetay()
-			det.bedelHesapla()
-			det.htmlOlustur()
+			det.bedelHesapla().htmlOlustur()
 			w?.updaterow(det.uid, det)
+			fis.topluHesapla()
 			acc.render()
 			updateUI()
 			input?.addClass('degisti')
@@ -322,6 +399,7 @@ class TabTSFis extends TabFis {
 					$.extend(item, { stokKod: item.shKod, stokAdi: item.shAdi })
 					let det = new detaySinif(item)
 					await det.detayEkIslemler({ ...arguments, fis })
+					det.htmlOlustur?.()
 					w.addrow(null, det, 'first')
 				}
 			}
@@ -330,7 +408,12 @@ class TabTSFis extends TabFis {
 				w.clearselection()
 				w.selectrow(0)
 				w.ensurerowvisible(0)
-				acc?.render()
+				fis.topluHesapla()
+				setTimeout(() => acc?.render(), 1)
+				{
+					let css = 'degisti'
+					acc.get('duzenle')?.contentLayout?.find(`.${css}`).removeClass(css)
+				}
 			}
 		}
 	}

@@ -169,7 +169,7 @@ class TabletApp extends TicariApp {
 		let getArrayKey = arr => arr.join('|')
 		let offlineMode = true, internal = true
 		let pm = showProgress('Veriler yükleniyor...', null, true)
-		pm.setProgressMax(classes.length + 7).progressReset()
+		pm.setProgressMax(classes.length + 10).progressReset()
 		try {
 			let {belirtecListe: hmrBelirtecler_eski} = HMRBilgi
 			if (!withClear)
@@ -216,6 +216,7 @@ class TabletApp extends TicariApp {
 				}
 			}
 			await this.dbMgr_tabloEksikleriTamamla({ db, name })
+			pm.progressStep(5)
 		}
 		catch (ex) {
 			let errText = getErrorText(ex)
@@ -233,9 +234,9 @@ class TabletApp extends TicariApp {
 			}
 			finally { pm.progressStep() }
 		}*/
-		pm.progressEnd()
+		setTimeout(() => pm.progressEnd(), 200)
 		eConfirm('Veri Yükleme tamamlandı')
-		setTimeout(() => hideProgress(), 200)
+		setTimeout(() => hideProgress(), 500)
 	}
 	async bilgiGonderIstendi(e) {
 		let {offlineBilgiGonderSiniflar: classes, defaultOfflineRequestChunkSize: chunkSize} = this

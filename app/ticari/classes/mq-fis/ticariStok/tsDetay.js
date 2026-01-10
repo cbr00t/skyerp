@@ -6,9 +6,9 @@ class TSDetay extends MQDetay {
 	get shdDetaymi() { return this.class.shdDetaymi } get stokGibimi() { return this.class.stokGibimi } get hizmetmi() { return this.class.hizmetmi } get demirbasmi() { return this.class.demirbasmi }
 	get ekBilgimi() { return this.class.ekBilgimi } get aciklamami() { return this.class.aciklamami }
 	get iskBedelYapi() {
-		let {_temps} = this; let result = _temps.iskBedelYapi;
+		let {_temps} = this, {iskBedelYapi: result} = _temps
 		if (result === undefined) {
-			let {brutBedel, iskYapi} = this;
+			let {brutBedel, iskYapi} = this
 			result = _temps.iskBedelYapi = iskYapi ? iskYapi.getHesaplanmisIskontolarVeToplam({ brutBedel }) : null
 		}
 		return result
@@ -36,7 +36,12 @@ class TSSHDDetay extends TSDetay {
 	static getOrjKdvKodClause(e) { return null } static getAdiDegisirmiClause(e) { return null } static getKdvDegiskenmiClause(e) { return null }
 	static get sipDonusumTable() { return null } static get stDonusumTable() { return null }
 	get dipHesabaEsasDegerler() {
-		let result = super.dipHesabaEsasDegerler || {}; $.extend(result, { brutBedel: this.brutBedel, iskBedelYapi: this.iskBedelYapi, netBedel: this.netBedel });
+		let result = super.dipHesabaEsasDegerler || {}
+		$.extend(result, {
+			brutBedel: this.brutBedel,
+			iskBedelYapi: this.iskBedelYapi,
+			netBedel: this.netBedel
+		})
 		return result
 	}
 	get ekVergiTipi() { return this.ekVergiYapi.tip }

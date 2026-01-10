@@ -324,18 +324,27 @@ class TicariFis extends TSOrtakFis {
 		}
 		return hvListe
 	}
-	dipGridSatirlariDuzenle(e) {
-		super.dipGridSatirlariDuzenle(e); const {liste} = e;
-		liste.push(new DipSatir_Brut(e));
-		if (this.class.mustahsilmi) { this.dipGridSatirlariDuzenle_mustahsil(e)} else { this.dipGridSatirlariDuzenle_ticari(e) }
+	dipGridSatirlariDuzenle({ dipIslemci, liste }) {
+		let e = arguments[0]
+		super.dipGridSatirlariDuzenle(e)
+		liste.push(new DipSatir_Brut(e))
+		if (this.class.mustahsilmi)
+			this.dipGridSatirlariDuzenle_mustahsil(e)
+		else
+			this.dipGridSatirlariDuzenle_ticari(e)
 		liste.push(new DipSatir_Sonuc(e))
 	}
-	dipGridSatirlariDuzenle_ticari(e) {
-		const {dipIslemci, liste} = e, {sabitKdvOranlari} = MQVergi, {dipIskOranSayi, dipIskBedelSayi, dipNakliyeKullanilirmi} = this.class;
-		for (let seq = 1; seq <= dipIskOranSayi; seq++) { liste.push(new DipSatir_IskOran($.extend({}, e, { seq }))) }
-		for (let seq = 1; seq <= dipIskBedelSayi; seq++) { liste.push(new DipSatir_IskBedel($.extend({}, e, { seq }))) }
-		if (dipNakliyeKullanilirmi) { liste.push(new DipSatir_Nakliye(e).basitHidden()) }
-		const {offsetRefs} = dipIslemci; offsetRefs.kdv = liste[liste.length - 1]
+	dipGridSatirlariDuzenle_ticari({ dipIslemci, liste }) {
+		let e = arguments[0]
+		let {dipIskOranSayi, dipIskBedelSayi, dipNakliyeKullanilirmi} = this.class
+		for (let seq = 1; seq <= dipIskOranSayi; seq++)
+			liste.push(new DipSatir_IskOran({ ...e, seq }))
+		for (let seq = 1; seq <= dipIskBedelSayi; seq++)
+			liste.push(new DipSatir_IskBedel({ ...e, seq }))
+		if (dipNakliyeKullanilirmi)
+			liste.push(new DipSatir_Nakliye(e).basitHidden())
+		let {offsetRefs: refs} = dipIslemci
+		refs.kdv = liste[liste.length - 1]
 	}
 	dipGridSatirlariDuzenle_mustahsil(e) { }
 	uiDuzenle_fisGirisIslemTuslari(e) {

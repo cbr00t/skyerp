@@ -1,9 +1,11 @@
 class DipSatir extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, '_dipIslemci'] }
 	get satirBelirtec() { return null } get satirEtiket() { return this.satirBelirtec }
 	get revizeAdi() { let revizeAdi = this.etiket; if (revizeAdi.endsWith('%')) { let {oran} = this; revizeAdi += oran.toString() } return revizeAdi }
 	get matrahSatir() { return null }
-	get defaultBasitVisible() { return true } get defaultVisible() { return true } get defaultOranEditable() { return false } get defaultBedelEditable() { return false }
+	get defaultBasitVisible() { return true } get defaultVisible() { return true }
+	get defaultOranEditable() { return false } get defaultBedelEditable() { return false }
 	get defaultEkCSS() { let {satirBelirtec} = this; return 'dipSatir' + (satirBelirtec ? ` dipSatir-${satirBelirtec}` : '') }
 	get _oran() { return this.oran } set _oran(value) { this.oran = value }
 	get bedelYapi() { return new TLVeDVBedel(this) }
@@ -14,8 +16,10 @@ class DipSatir extends CObject {
 		return hv
 	}
 
-	constructor(e) {
-		e = e || {}; super(e); if (e.isCopy) return
+	constructor(e = {}) {
+		super(e)
+		if (e.isCopy)
+			return
 		$.extend(this, {
 			belirtec: e.belirtec, etiket: e.etiket, seq: asInteger(e.seq) || 0, oran: asFloat(e.oran) || 0, ekKod: e.ekKod || '',
 			tlBedel: roundToBedelFra(e.tlBedel) || 0, dvBedel: roundToBedelFra(e.dvBedel) || 0,

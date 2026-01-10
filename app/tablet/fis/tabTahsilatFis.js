@@ -3,23 +3,17 @@ class TabTahsilatFis extends TabFis {
 	static get kodListeTipi() { return 'TABTAH' } static get sinifAdi() { return 'Karma Tahsilat' }
 	static get detaySinif() { return TabTahsilatDetay } static get almSat() { return 'T' }
 	get tahsilBedel() {
-		let {toplamBedel, detaylar} = this
-		if (!toplamBedel)
-			return 0
+		let {detaylar} = this
 		return roundToBedelFra(topla(_ => _.bedel, detaylar))
 	}
 	get kalanBedel() {
-		let {toplamBedel, detaylar} = this
-		return toplamBedel ? roundToBedelFra(toplamBedel - this.tahsilBedel) : 0
+		let {hedefBedel, detaylar} = this
+		return hedefBedel ? roundToBedelFra(hedefBedel - this.tahsilBedel) : 0
 	}
 
-	constructor(e = {}) {
-		super(e)
-		for (let k of ['toplamBedel']) {
-			let v = e[k]
-			if (v !== undefined)
-				this[k] = v
-		}
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		$.extend(pTanim, { hedefBedel: new PInstNum() })
 	}
 	async yeniTanimOncesiVeyaYukleSonrasiIslemler({ fis }) {
 		let {detaylar, class: { detaySinif }} = this
@@ -55,12 +49,13 @@ class TabTahsilatFis extends TabFis {
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_dipCollapsed(...arguments)
-		let {sonucBedel, detaylar: { length: topSatir }} = fis
+		let {sonucBedel, detaylar} = fis
+		let topSatir = detaylar.filter(_ => _.bedel).length
 		if (topSatir) {
 			rfb.addForm().setLayout(() => $([
 				`<div class="flex-row" style="gap: 10px">`,
 					`<div class="orangered"><b>${toStringWithFra(sonucBedel, 2)}</b> TL</div>`,
-					`<div class="royalblue"><b>${numberToString(topSatir)}</b> Tahsil Tipi</div>`,
+					`<div class="royalblue"><b>${numberToString(topSatir)}</b> satır</div>`,
 				`</div>`
 			].join(CrLf)))
 		}
@@ -117,9 +112,10 @@ class TabTahsilatFis extends TabFis {
 					}).tipDecimal_bedel(),
 					new GridKolon({ belirtec: '_sil', text: ' ', genislikCh: 6 })
 						.tipButton('X')
-						.onClick(({ gridRec, args: { owner: w } }) => {
-							gridRec.bedel = 0
-							w.update(gridRec.uid, gridRec)
+						.onClick(({ gridRec: det, args: { owner: w } }) => {
+							det.bedel = 0
+							det.htmlOlustur?.()
+							w.updaterow(det.uid, det)
 							acc?.render()
 						})
 				])
@@ -151,6 +147,7 @@ class TabTahsilatFis extends TabFis {
 							if (kalanBedel > 0) {
 								let det = w.getrowdatabyid(uid)
 								$.extend(det, { _degisti: true, bedel: kalanBedel })
+								det.htmlOlustur?.()
 								w.updaterow(uid, det)
 							}
 							return false                                                     // prevent next events

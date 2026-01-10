@@ -266,6 +266,9 @@ input[type = text]::placeholder,
 	input[type = textbox]::placeholder { padding: 0 10px }
 
 .sn-notifications-container {
-	--sn-notify-width: min-content;
-	width: calc(var(--full) - 10px) !important
+	--sn-notify-width: 500px;
+	width: calc(var(--full) - 8px) !important
+}
+@media (max-width: 850px) {
+	.sn-notifications-container { --sn-notify-width: 350px }
 }

@@ -14,7 +14,10 @@ CREATE TABLE IF NOT EXISTS tabfis (
 -- ugrama fis
 	nedenkod TEXT NOT NULL DEFAULT '',
 -- stok/ticari fis
-	must TEXT NOT NULL DEFAULT ''
+	must TEXT NOT NULL DEFAULT '',
+	dipiskoran1 REAL NOT NULL DEFAULT 0,
+	dipiskoran2 REAL NOT NULL DEFAULT 0,
+	dipiskbedel REAL NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_tabfis_fisTipi ON tabfis (fisTipi);
 CREATE INDEX IF NOT EXISTS idx_tabfis_tarih ON tabfis (tarih);
@@ -30,7 +33,9 @@ CREATE TABLE IF NOT EXISTS tabhar (
 	miktar REAL NOT NULL DEFAULT 0,
 	fiyat REAL NOT NULL DEFAULT 0,
 	kdvorani INTEGER NOT NULL DEFAULT 0,
-	brutbedel TEXT NOT NULL DEFAULT '',
+	kdv REAL NOT NULL DEFAULT 0,
+	brutbedel REAL NOT NULL DEFAULT '',
+	dagitdipiskbedel REAL NOT NULL DEFAULT 0,
 	ekaciklama TEXT NOT NULL DEFAULT '',
 -- tahsilat fis
 	tahseklino INTEGER NOT NULL DEFAULT '',

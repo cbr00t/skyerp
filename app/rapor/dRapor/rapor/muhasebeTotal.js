@@ -7,7 +7,23 @@ class DRapor_Muhasebe extends DRapor_Donemsel {
 	static get altRaporClassPrefix() { return 'DRapor_Muhasebe' }
 }
 class DRapor_Muhasebe_Main extends DRapor_Donemsel_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Muhasebe }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get raporClass() { return DRapor_Muhasebe }
+	secimlerDuzenle({ secimler: sec }) {
+		super.secimlerDuzenle(...arguments)
+		let {muhasebe: muhParam = {}} = app.params
+		let buYil = today().yil
+		let maliYil = muhParam.maliYil || buYil
+		{
+			let {donem, tarihAralik} = sec
+			if (!maliYil || maliYil == buYil)
+				donem.tekSecim.buYil()
+			else {
+				donem.tekSecim.tarihAralik()
+				$.extend(tarihAralik, { basi: asDate(`01.01.${maliYil}`), sonu: asDate(`31.12.${maliYil}`) })
+			}
+		}
+	}
 	tabloYapiDuzenle({ result }) {
 		let e = arguments[0]; super.tabloYapiDuzenle(e)
 		let {toplamPrefix} = this.class
@@ -28,8 +44,6 @@ class DRapor_Muhasebe_Main extends DRapor_Donemsel_Main {
 	}
 	loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e)
-		let {muhasebe: muhParam = {}} = app.params
-		let maliYil = muhParam.maliYil || today().yil
 		let {attrSet, stm: { sent, sent: { where: wh, sahalar } }} = e
 		let alias = 'fis'
 		$.extend(e, { sent, alias })
@@ -37,7 +51,7 @@ class DRapor_Muhasebe_Main extends DRapor_Donemsel_Main {
 		sent.har2MuhHesapBagla()
 		wh.fisSilindiEkle({ alias })
 		wh.add(`${alias}.ozelisaret <> '*'`)                                                         // sadece işaretsiz olanlar
-		wh.degerAta(maliYil, 'fis.maliyil')
+		// wh.degerAta(maliYil, 'fis.maliyil')
 		this.donemBagla({ ...e, tarihSaha: 'fis.tarih' })
 		for (let key in attrSet) {
 			switch (key) {

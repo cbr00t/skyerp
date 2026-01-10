@@ -1,11 +1,14 @@
 class TabFis extends MQDetayliGUID {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, '_dipIslemci'] }
 	static get fisTipi() {return this.kodListeTipi } static get sinifAdi() { return 'Tablet Fiş' }
 	static get table() { return 'tabfis' } static get tableAlias() { return 'fis' }
 	static get detaySinif() { return TabDetay } static get sayacSaha() { return 'id' }
 	static get tanimUISinif() { return TabFisGirisPart } static get secimSinif() { return null }
+	static get dipKullanilirmi() { return false } static get dipSinif() { return TabIcmal }
+	static get dipIskOranSayi() { return 1 } static get dipIskBedelSayi() { return 1 }
+	static get dipGirisYapilirmi() { return true } static get gridIslemTuslariKullanilirmi() { return false }
 	static get tumKolonlarGosterilirmi() { return true } static get kolonFiltreKullanilirmi() { return false }
-	static get gridIslemTuslariKullanilirmi() { return false }
 	// static get noAutoFocus() { return true }
 	static get offlineFis() { return true } static get almSat() { return null }
 	static get satismi() { return this.almSat == 'T' } static get alimmi() { return this.almSat == 'A' }
@@ -40,26 +43,30 @@ class TabFis extends MQDetayliGUID {
 	get dipGridSatirlari() { return null }
 	get bakiyeciler() { return [] }
 	get fisTopBrut() {
-		let {detaylar} = this
-		return detaylar ? roundToBedelFra(topla(_ => _.brutBedel || 0, detaylar)) : 0
-	}
-	get fisTopNet() {
-		let {detaylar} = this
+		let {dipIslemci, detaylar} = this
+		if (dipIslemci)
+			return dipIslemci.fisTopBrut
 		return detaylar ? roundToBedelFra(topla(_ => _.netBedel || _.bedel || 0, detaylar)) : 0
 	}
-	get fisTopDvNet() {
-		let {detaylar} = this
-		return detaylar ? roundToBedelFra(topla(_ => _.dvNetBedel || _.dvBedel || 0, detaylar)) : 0
+	get fisTopNet() {
+		let {dipIslemci} = this
+		return dipIslemci?.sonuc ?? this.fisTopBrut
 	}
 	get sonucBedel() { return this.fisTopNet }
 
-	constructor({ offlineBuildQuery } = {}) {
+	constructor({ isCopy, offlineBuildQuery } = {}) {
 		super(...arguments)
 		if (!offlineBuildQuery) {
 			let num = this.numarator ??= this.numYapi?.deepCopy()
 			if (num)
 				num._promise = num.yukle()
+			this.dvKod ||= 'TL'
 			this.fisNo ||= null
+		}
+		if (isCopy) {
+			let {_dipIslemci} = this
+			if (_dipIslemci)
+				_dipIslemci.fis = this
 		}
 	}
 	static pTanimDuzenle({ pTanim }) {
@@ -81,7 +88,7 @@ class TabFis extends MQDetayliGUID {
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
 		liste.push(
-			new GridKolon({ belirtec: '_text', text: 'Belge' }).noSql(),
+			new GridKolon({ belirtec: '_html', text: 'Belge' }).noSql(),
 			new GridKolon({ belirtec: 'sonuc', text: 'Fiş Bedeli', genislikCh: 15 }).noSql().tipDecimal_bedel()
 		)
 	}
@@ -93,7 +100,7 @@ class TabFis extends MQDetayliGUID {
 		let recs = await super.loadServerDataDogrudan(...arguments)
 		if (!offlineRequest) {
 			for (let rec of recs)
-				rec._text = this.getHTML({ ...e, rec })
+				rec._html = this.getHTML({ ...e, rec })
 		}
 		return recs
 	}
@@ -122,18 +129,16 @@ class TabFis extends MQDetayliGUID {
 			let detaySinif = this.detaySinifFor({ rec })
 			if (!detaySinif)
 				continue
-			let _det = new detaySinif()
-			await _det.setValues({ rec })
-			await _det?.htmlOlustur?.()
-			let {_text} = _det
-			if (_text != null)
-				rec._text = _text
+			let det = new detaySinif()
+			await det.setValues({ rec })
+			rec._html = det.html
 		}
 		return recs
 	}
 	async yeniTanimOncesiIslemler(e) {
+		this.topluHesapla()
 		await super.yeniTanimOncesiIslemler(e)
-		let {numarator: num} = this
+		let fis = this, {numarator: num} = this
 		if (num) {
 			await num?._promise
 			if (!this.fisNo) {
@@ -145,9 +150,17 @@ class TabFis extends MQDetayliGUID {
 			}
 		}
 	}
+	async yukleSonrasiIslemler({ islem }) {
+		// this.dipOlustur()
+		await super.yukleSonrasiIslemler(...arguments)
+		this.topluHesapla()
+		let fis = this, {detaylar} = this
+		detaylar.forEach(det =>
+			det.htmlOlustur?.())
+	}
 	async kaydetOncesiIslemler({ islem }) {
 		await super.kaydetOncesiIslemler(...arguments)
-		this.fisSonuc = this.sonucBedel
+		this.fisSonuc = this.fisTopNet
 		let {fisNo, numarator: num} = this
 		let yeniVeyaKopyami = islem == 'yeni' || islem == 'kopya'
 		if (yeniVeyaKopyami) {
@@ -161,6 +174,7 @@ class TabFis extends MQDetayliGUID {
 				} while (await this.varmi())
 			}
 		}
+		await this.dipIslemci?.kaydetOncesiIslemler(...arguments)
 	}
 	async sil(e) {
 		let {sayac: id, class: { table, idSaha }} = this
@@ -196,11 +210,36 @@ class TabFis extends MQDetayliGUID {
 		// do nothing
 	}
 
+	dipOlustur(e) {
+		let result = null, fis = this
+		let {dipKullanilirmi, dipSinif} = this.class
+		if (dipKullanilirmi && dipSinif)
+			result = this.dipIslemci = new dipSinif({ fis })
+		return result
+	}
+	topluHesapla(e) {
+		let {dipIslemci} = this
+		dipIslemci?.topluHesapla(e)
+		return this
+	}
+	/*getDipGridSatirlari(e = {}) {
+		e.liste = []
+		this.dipGridSatirlariDuzenle(e)
+		return e.liste
+	}
+	dipGridSatirlariDuzenle({ dipIslemci, liste }) {
+		let e = arguments[0]
+		liste.push(new DipSatir_Brut(e))
+		this.dipGridSatirlariDuzenle_ticari(e)
+		liste.push(new DipSatir_Sonuc(e))
+	}
+	dipGridSatirlariDuzenle_ticari({ dipIslemci, liste }) { }*/
+
 	static getRootFormBuilder(e) { return MQCogul.getRootFormBuilder(e) }
 	static getRootFormBuilder_fis(e) { return null }
 	static async rootFormBuilderDuzenle_tablet(e) { }
 	static async rootFormBuilderDuzenle_tablet_acc(e) {
-		let {sender: tanimPart, inst, inst: { numarator: num }, acc} = e
+		let {sender: tanimPart, inst, inst: { mustKod, numarator: num }, acc} = e
 		let getBuilder = e.getBuilder = layout =>
 			this.rootFormBuilderDuzenle_tablet_getBuilder({ ...e, layout })
 		acc.deferRedraw(() => {
@@ -263,12 +302,27 @@ class TabFis extends MQDetayliGUID {
 				}
 			})
 		})
-		acc.expand('detay')
+		if (mustKod)
+			acc.expand('detay')
 
 		acc.onExpand(_e => setTimeout(e =>
 			this.rootFormBuilderDuzenle_tablet_acc_onExpand(e), 1, { ...e, ..._e }))
 		acc.onCollapse(_e => setTimeout(e =>
 			this.rootFormBuilderDuzenle_tablet_acc_onCollapse(e), 1, { ...e, ..._e }))
+	}
+	static async rootFormBuilderDuzenle_tablet_acc_baslikCollapsed({ sender: tanimPart, inst: fis, rfb }) {
+		let {mustKod} = fis
+		if (mustKod) {
+			let {adiSaha} = MQTabCari
+			let {[mustKod]: { [adiSaha]: aciklama }} = await MQTabCari.getGloKod2Rec() ?? {}
+			aciklama ||= mustKod
+			rfb.addForm().setLayout(() => $([
+				`<div class="flex-row" style="gap: 10px">`,
+					// `<div class="orangered"><b>${dateKisaString(asDate(tarih))}</b></div>`,
+					`<div class="royalblue"><b>${aciklama}</b></div>`,
+				`</div>`
+			].join(CrLf)))
+		}
 	}
 	static rootFormBuilderDuzenle_tablet_acc_baslik({ rfb, inst: fis }) {
 		{
@@ -288,24 +342,10 @@ class TabFis extends MQDetayliGUID {
 					setTimeout(() => part.focus(), 1))*/
 		}
 	}
-	static async rootFormBuilderDuzenle_tablet_acc_baslikCollapsed({ sender: tanimPart, inst: fis, rfb }) {
-		let {mustKod} = fis
-		if (mustKod) {
-			let {adiSaha} = MQTabCari
-			let {[mustKod]: { [adiSaha]: aciklama }} = await MQTabCari.getGloKod2Rec() ?? {}
-			aciklama ||= mustKod
-			rfb.addForm().setLayout(() => $([
-				`<div class="flex-row" style="gap: 10px">`,
-					// `<div class="orangered"><b>${dateKisaString(asDate(tarih))}</b></div>`,
-					`<div class="royalblue"><b>${aciklama}</b></div>`,
-				`</div>`
-			].join(CrLf)))
-		}
-	}
-	static rootFormBuilderDuzenle_tablet_acc_dip({ rfb }) { }
 	static rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ rfb }) { }
-	static rootFormBuilderDuzenle_tablet_acc_detay({ rfb }) { }
+	static rootFormBuilderDuzenle_tablet_acc_dip({ rfb }) { }
 	static rootFormBuilderDuzenle_tablet_acc_detayCollapsed({ rfb }) { }
+	static rootFormBuilderDuzenle_tablet_acc_detay({ rfb }) { }
 	static rootFormBuilderDuzenle_tablet_acc_onExpand({ sender: { parentPart: tanimPart }, acc: { activePanel } }) {
 		/*let {id} = activePanel ?? {}
 		let {islemTuslari} = tanimPart
@@ -318,6 +358,7 @@ class TabFis extends MQDetayliGUID {
 			.setLayout(layout).setPart(tanimPart)
 			.setInst(inst)
 	}
+
 	static getHTML({ rec }) {
 		let {fisTipi, tarih, seri, noyil, fisno, must, mustunvan} = rec
 		let fisSinif = TabFisListe.fisSinifFor(fisTipi)
@@ -337,5 +378,22 @@ class TabFis extends MQDetayliGUID {
 				(fisSinif ? `<div class="ek-bilgi float-right">${fisSinif.sinifAdi || ''}</div>` : null),
 			`</div>`
 		].filter(_ => _).join(CrLf)
+	}
+
+	shallowCopy(e) {
+		let result = super.shallowCopy(e)
+		let {_dipIslemci} = result
+		if (_dipIslemci) {
+			_dipIslemci = result._dipIslemci = _dipIslemci.shallowCopy()
+			_dipIslemci.fis = result
+		}
+		return result
+	}
+	deepCopy(e) {
+		let result = super.deepCopy(e)
+		let {_dipIslemci} = result
+		if (_dipIslemci)
+			_dipIslemci.fis = result
+		return result
 	}
 }

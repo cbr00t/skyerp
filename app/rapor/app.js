@@ -42,11 +42,11 @@ class SkyRaporApp extends TicariApp {
 	}
 	super_paramsDuzenle(e) { return super.paramsDuzenle(e) }
 	async ilkIslemler(e) {
-		if (await app.sqlHasTable('wpaneldetay') && empty(await app.sqlGetColumns('wpaneldetay', 'raporadi'))) {
-			try { await app.sqlExecNone(`alter table wpaneldetay add raporadi varchar(50) not null default ''`) }
-			catch (ex) { console.error(getErrorText(ex)) }
-		}
 		try {
+			if (await app.sqlHasTable('wpaneldetay') && empty(await app.sqlGetColumns('wpaneldetay', 'raporadi'))) {
+				try { await app.sqlExecNone(`alter table wpaneldetay add raporadi varchar(50) not null default ''`) }
+				catch (ex) { console.error(getErrorText(ex)) }
+			}
 			let maxLen = 25, table = 'wgruprapor', field = 'raportip';
 			let len = values(await app.sqlGetColumns(table, field))[0]?.length
 			if (len != null && len < maxLen) {

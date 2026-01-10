@@ -5,10 +5,18 @@ class TabDetay extends MQDetay {
 	static get fisSayacSaha() { return 'fisid' }
 	static get io2RowAttr() {
 		let {_io2RowAttr: result} = this
-		if (!result)
-			result = this._io2RowAttr = { _text: null, aciklama: 'ekaciklama' }
+		if (!result) {
+			result = this._io2RowAttr = { _html: null }
+			this.io2RowAttrOlustur({ result })
+		}
 		return result
 	}
+	get html() {
+		let result = this._html = this.getHTML()
+		return result
+	}
+	get netBedel() { return this.bedel }
+	set netBedel(value) { this.bedel = value }
 
 	constructor(e = {}) {
 		super(e)
@@ -18,6 +26,9 @@ class TabDetay extends MQDetay {
 			if (v != null)
 				this[k] = v
 		}
+	}
+	static io2RowAttrOlustur({ result }) {
+		$.extend(result, { aciklama: 'ekaciklama' })
 	}
 	offlineBuildSQLiteQuery({ result: queries }) {
 		let {main: db} = app.dbMgr, {table} = this.class
@@ -32,8 +43,8 @@ class TabDetay extends MQDetay {
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
 		liste.push(
-			new GridKolon({ belirtec: '_text', text: 'Tahsilat' }).noSql(),
-			new GridKolon({ belirtec: 'bedel', text: 'Net Bedel', genislikCh: 15 }).noSql().tipDecimal_bedel()
+			new GridKolon({ belirtec: '_html', text: ' ' }).noSql(),
+			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 15 }).noSql().tipDecimal_bedel()
 		)
 	}
 	detayEkIslemler({ fis }) { }
@@ -57,8 +68,9 @@ class TabDetay extends MQDetay {
 		}
 	}
 
+	getHTML(e) { return null }
 	htmlOlustur(e) {
-		this._text = ''
+		this.html
 		return this
 	}
 }

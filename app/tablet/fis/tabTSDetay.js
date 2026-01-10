@@ -1,31 +1,32 @@
 class TabTSDetay extends TabDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get io2RowAttr() {
-		let {_io2RowAttr: result} = this
-		if (!result) {
-			result = this._io2RowAttr = { _text: null, stokAdi: null }
-			for (let k of ['stokKod', 'barkod', 'miktar', 'brm', 'fiyat', 'kdvOrani', 'brutBedel'])
-				result[k] = k.toLowerCase()
-			$.extend(result, {
-				stokAdi: null,
-				netBedel: 'bedel',
-				aciklama: 'ekaciklama'
-			})
-			for (let {ioAttr: i, rowAttr: r} of TicIskYapi.getIskIter())
-				result[i] = r
-		}
+	/*get dipHesabaEsasDegerler() {
+		let result = super.dipHesabaEsasDegerler || {}
+		$.extend(result, {
+			brutBedel: this.brutBedel,
+			iskBedelYapi: null,              // ??
+			netBedel: this.bedel
+		})
 		return result
-	}
-	
+	}*/
+
 	constructor(e = {}) {
 		super(e)
 		this.miktar ??= 1; this.brm ||= 'AD'
-		this.fiyat ??= 0; this.kdvOrani ??= 0
-		this.brutBedel ??= 0; this.netBedel ??= 0
+		for (let k of ['fiyat', 'kdvOrani', 'kdv', 'brutBedel', 'bedel', 'dagitDipIskBedel'])
+			this[k] ??= 0
 		let {carpan} = e
 		if (carpan && carpan != 1)
 			this.miktar *= carpan
-		this.htmlOlustur()
+	}
+	static io2RowAttrOlustur({ result }) {
+		super.io2RowAttrOlustur(...arguments)
+		let _keys = ['stokKod', 'barkod', 'miktar', 'brm', 'fiyat', 'kdvOrani', 'kdv', 'brutBedel', 'bedel', 'dagitDipIskBedel']
+		for (let k of _keys)
+			result[k] = k.toLowerCase()
+		$.extend(result, { stokAdi: null, aciklama: 'ekaciklama' })
+		for (let {ioAttr: i, rowAttr: r} of TicIskYapi.getIskIter())
+			result[i] = r
 	}
 	static loadServerData_queryDuzenle({ sent, sent: { from, sahalar } }) {
 		super.loadServerData_queryDuzenle(...arguments)
@@ -41,7 +42,6 @@ class TabTSDetay extends TabDetay {
 	setValues({ fis, rec }) {
 		super.setValues(...arguments)
 		$.extend(this, { stokAdi: rec.stokadi })
-		this.htmlOlustur()
 	}
 
 	async detayEkIslemler({ fis } = {}) {
@@ -57,32 +57,41 @@ class TabTSDetay extends TabDetay {
 						this[i] = rv
 				}
 				bosDegilseAktar('brm', 'brm')
-				bosDegilseAktar(mfSinif.getKdvOraniSaha(alimmi), 'kdvOrani')
+				bosDegilseAktar('kdvOrani', mfSinif.getKdvOraniSaha(alimmi))
 			}
 		}
 		this.bedelHesapla({ fis })
+		return this
 	}
-	bedelHesapla({ fis } = {}) {
-		let {miktar, fiyat} = this
+	bedelHesapla(e = {}) {
+		this.brutBedelHesapla(e)
+		this.netBedelHesapla(e)
+		return this
+	}
+	brutBedelHesapla({ fis } = {}) {
+		let {miktar, fiyat, kdvOrani} = this
 		miktar ??= 0; fiyat ??= 0
 		this.brutBedel = roundToBedelFra(miktar * fiyat)
-		this.netBedelHesapla(...arguments)
+		return this
 	}
 	netBedelHesapla({ fis } = {}) {
-		let {brutBedel: netBedel} = this
-		for (let {rowAttr} of TicIskYapi.getIskIter())
-			netBedel -= this[rowAttr] ?? 0
-		netBedel = roundToBedelFra(netBedel)
-		this.netBedel = netBedel
-		this.htmlOlustur()
+		let {brutBedel: bedel} = this
+		for (let {ioAttr} of TicIskYapi.getIskIter()) {
+			let oran = this[ioAttr] ?? 0
+			if (!oran)
+				continue
+			let iskBedel = roundToBedelFra(bedel * oran / 100)
+			bedel -= iskBedel
+		}
+		this.bedel = bedel = roundToBedelFra(bedel)
+		return this
 	}
 
-	htmlOlustur(e) {
+	getHTML(e) {
+		let _ = super.getHTML(e) ?? ''
 		let {stokAdi, stokKod, barkod, miktar, brm, fiyat} = this
-		super.htmlOlustur(e)
-		let {_text} = this
-		_text = this._text = [
-			(_text ?? ''),
+		return [
+			_,
 			`<div class="asil flex-row" style="gap: 0 10px">`,
 				`<div class="stokAdi">${stokAdi}</div>`,
 				`<div class="stokKod orangered">${stokKod}</div>`,
@@ -95,6 +104,5 @@ class TabTSDetay extends TabDetay {
 				`<span>TL</span>`,
 			`</div>`
 		].filter(_ => _).join(CrLf)
-		return this
 	}
 }

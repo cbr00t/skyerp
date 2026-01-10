@@ -6,7 +6,8 @@ class MQOnayci extends MQCogul {
 
 	static listeEkrani_init({ sender: gridPart }) {
 		super.listeEkrani_init(...arguments)
-		$.extend(gridPart, { otoTazeleSecs: 10, otoTazeleDisabled: false })
+		let {dev} = config
+		$.extend(gridPart, { otoTazeleSecs: dev ? 10: 150, otoTazeleDisabled: false })
 	}
 	static listeEkrani_afterRun({ sender: gridPart }) { super.listeEkrani_afterRun(...arguments) }
 	static listeEkrani_destroyPart({ sender: gridPart } = {}) {
@@ -193,7 +194,7 @@ class MQOnayci extends MQCogul {
 		this.otoTazele_stopTimer(e)
 		gridPart._timer_otoTazele = setTimeout(e =>
 			this.otoTazele_timerProc(e),
-			otoTazeleSecs * 1000, e)
+			otoTazeleSecs * 1_000, e)
 	}
 	static otoTazele_stopTimer({ sender: gridPart }) {
 		clearTimeout(gridPart._timer_otoTazele)
@@ -205,7 +206,7 @@ class MQOnayci extends MQCogul {
 		if (!gridPart.isDestroyed)
 			gridPart.tazele()
 	}
-	
+
 	static async onayRedIstendi({ sender: gridPart, state: onaymi }) {
 		let islemAdi = `${onaymi ? 'ONAY' : 'RED'} İşlemi`
 		try {
