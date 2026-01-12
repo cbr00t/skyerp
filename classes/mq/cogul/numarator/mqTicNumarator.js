@@ -101,7 +101,7 @@ class MQTicNumarator extends MQNumarator {
 				]).withTrn()
 				sonNo = this.sonNo = asInteger(await this.sqlExecTekilDeger(toplu))
 			}
-			return sonNo
+			return this
 		}
 		if (!sayac) {
 			this.sonNo = ++sonNo

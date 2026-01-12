@@ -121,7 +121,6 @@ class AccordionPart extends Part {
 				container[disabled ? 'addClass' : 'removeClass']('disabled')
 			}
 			elmHeader.height(title ? null : 10)
-			let targetKey = collapsed ? 'collapsedContent' : 'content'
 			let elmTitle = elmHeader.children('.title')
 			if (elmTitle.length)
 				elmTitle.html(title)
@@ -131,12 +130,16 @@ class AccordionPart extends Part {
 			if (!elmCollapsedContent.length)
 				(elmCollapsedContent = $(`<div class="collapsed-content"/>`)).appendTo(elmHeader)
 			elmCollapsedContent.children().remove()
-			if (collapsed) {
-				let targetContent = await this.evalContent(item, item[targetKey], elmCollapsedContent) || $('<div/>')
+			let collapsedKey = 'collapsedContent'
+			let targetKey = collapsed ? collapsedKey : 'content'
+			// if (collapsed) {
+			{
+				// let targetContent = await this.evalContent(item, item[targetKey], elmCollapsedContent) || $('<div/>')
+				let targetContent = await this.evalContent(item, item[collapsedKey], elmCollapsedContent) || $('<div/>')
 				if (targetContent && !targetContent.parent()?.length)
 					targetContent.appendTo(elmCollapsedContent)
 			}
-			else {
+			if (!collapsed) {
 				let elmContent = container.children('.content')
 				if (!elmContent.children().length) {
 					let targetContent = await this.evalContent(item, item[targetKey], elmContent) || $('<div/>')
@@ -145,40 +148,38 @@ class AccordionPart extends Part {
 							targetContent.detach()
 						targetContent.appendTo(elmContent)
 					}
-					if (false) {
-						/*let itemsCSS = {}
-						for (let key of ['overflow', 'overflow-x', 'overflow-y'])
-							itemsCSS[key] = container.css(key)
-						container.resizable({
-							// handles: 'all', containment: 'parent', ghost: true, helper: 'ui-resizable-helper',
-							// classes: { '.ui-resizable': 'highlight' },
-							handles: 'n, s', grid: [8, 8], 
-							// minWidth: Math.min($(window).width() - 100, 300),
-							minHeight: 70,
-							start: (evt, info) => {
-								let {element: item} = info
-								if (!item.parents('.accordion.item').hasClass('expanded')) {
-									container.resizable('option', 'disabled', true)
-									setTimeout(() => container.resizable('option', 'disabled', false))
-									return false
-								}
-								item.addClass('_resizing')
-								for (let key in itemsCSS)
-									container.css(key, 'hidden')
-							},
-							stop: (evt, info) => {
-								let {element: item, size: { width, height }} = info
-								container.removeClass('_resizing')
-								for (let [k, v] of entries(itemsCSS))
-									container.css(k, v)
-								clearTimeout(this._timer_triggerResize)
-								this._timer_triggerResize = setTimeout(() => {
-									try { $(window).trigger('resize') }
-									finally { this._timer_triggerResize }
-								}, 10)
+					/*let itemsCSS = {}
+					for (let key of ['overflow', 'overflow-x', 'overflow-y'])
+						itemsCSS[key] = container.css(key)
+					container.resizable({
+						// handles: 'all', containment: 'parent', ghost: true, helper: 'ui-resizable-helper',
+						// classes: { '.ui-resizable': 'highlight' },
+						handles: 'n, s', grid: [8, 8], 
+						// minWidth: Math.min($(window).width() - 100, 300),
+						minHeight: 70,
+						start: (evt, info) => {
+							let {element: item} = info
+							if (!item.parents('.accordion.item').hasClass('expanded')) {
+								container.resizable('option', 'disabled', true)
+								setTimeout(() => container.resizable('option', 'disabled', false))
+								return false
 							}
-						})*/
-					}
+							item.addClass('_resizing')
+							for (let key in itemsCSS)
+								container.css(key, 'hidden')
+						},
+						stop: (evt, info) => {
+							let {element: item, size: { width, height }} = info
+							container.removeClass('_resizing')
+							for (let [k, v] of entries(itemsCSS))
+								container.css(k, v)
+							clearTimeout(this._timer_triggerResize)
+							this._timer_triggerResize = setTimeout(() => {
+								try { $(window).trigger('resize') }
+								finally { this._timer_triggerResize }
+							}, 10)
+						}
+					})*/
 				}
 				setTimeout(() => {
 					let safeZone = 20
@@ -203,9 +204,9 @@ class AccordionPart extends Part {
 					try { $(window).trigger('resize') }
 					finally { this._timer_triggerResize }
 				}, 10)
-				// elmContent.trigger('resize')
-				// if (elmContent?.length)
-				// 	elmContent.find('.dock-bottom').removeClass('dock-bottom')
+				/*elmContent.trigger('resize')
+				if (elmContent?.length)
+					elmContent.find('.dock-bottom').removeClass('dock-bottom')*/
 			}
 			/*if (collapsed != defaultCollapsed) {
 				let action = collapsed ? 'collapse' : 'expand'

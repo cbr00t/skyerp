@@ -199,7 +199,8 @@ class MQKA extends MQKod {
 		super.orjBaslikListesiDuzenle(e)
 		let {liste, mfSinif, cellsRenderer} = e
 		mfSinif ??= this
-		let {adiKullanilirmi, adiSaha} = mfSinif, mini = isMiniDevice()
+		let {adiKullanilirmi, adiSaha} = mfSinif
+		let mini = isMiniDevice(), micro = isMicroDevice()
 		if (adiKullanilirmi) {
 			let colDef_adi = liste.find(colDef => colDef.belirtec == adiSaha)
 			if (!colDef_adi) {
@@ -207,9 +208,11 @@ class MQKA extends MQKod {
 				let colDef = new GridKolon({
 					belirtec: adiSaha, text: adiEtiket, cellsRenderer,
 					minWidth: Math.min(200, asInteger($(window).width() / 4)),
-					width: mini
-						? Math.min(400, asInteger($(window).width() / 2))
-						: Math.min(700, asInteger($(window).width() / 2))
+					width: micro
+						? '80%'
+						: mini
+							? Math.min(600, asInteger($(window).width() / 1.3))
+							: Math.min(700, asInteger($(window).width() / 2))
 				})
 				liste[mini ? 'unshift' : 'push'](colDef)
 			}

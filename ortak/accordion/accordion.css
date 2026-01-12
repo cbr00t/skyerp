@@ -11,18 +11,19 @@
 	box-sizing: content-box;
 	transition: 200ms ease
 }
-.accordion.part .accordion.item.expanded > .header > .collapsed-content,
-	.accordion.part .accordion.item:not(.expanded) > .content { display: none }
+/*.accordion.part .accordion.item.expanded > .header > .collapsed-content,*/
+.accordion.part .accordion.item:not(.expanded) > .content { display: none }
 .accordion.part .accordion > .header {
 	font-size: 110%; user-select: none; cursor: pointer;
 	height: var(--acc-header-height); padding: 0 14px;
 	border: 1px solid #ccc; border-bottom: 1px solid rgba(0, 0, 0, 0.15);
 	background: #f7f7f7; align-items: center
 }
-.accordion.part .accordion.item:not(.expanded) > .header { background: #cecece }
+.accordion.part .accordion.item:not(.expanded) > .header { background: #cecececc }
 .accordion.part .accordion.item.expanded { }
 .accordion.part .accordion.item.expanded:not(.disabled) > .header {
-	background: #8eaafc; /* maybe gradient with bump */
+	/*background: #8eaafc;*/
+	background: linear-gradient(90deg, #8eaafc 50%, #cececeee 85%);
 	border-bottom: 1px solid rgba(0, 0, 0, 0.35)
 }
 .accordion.part .accordion.item.disabled { opacity: .4; pointer-events: none }
@@ -55,7 +56,10 @@
 	max-width: calc(var(--full) - var(--item-pad-x))
 }
 
-@media (max-width: 1000px) {
-	.accordion.part { --acc-header-height: 30px }
+@media (max-width: 800px) {
+	.accordion.part { --acc-header-height: 35px }
 	.accordion.part .accordion.item > .header { line-height: 15px }
+}
+@media (max-width: 600px) {
+	.accordion.part { --acc-header-height: 45px }
 }

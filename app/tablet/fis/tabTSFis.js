@@ -66,6 +66,8 @@ class TabTSFis extends TabFis {
 			content: async ({ item, layout }) => {
 				let rfb = getBuilder(layout)
 				await this.rootFormBuilderDuzenle_tablet_acc_duzenle({ ...e, rfb, item, layout })
+				if (!rfb.builders?.length)
+					rfb.addStyle_fullWH(null, 1)
 				if (rfb.builders?.length)
 					setTimeout(() => rfb.run(), 100)
 			}
@@ -210,8 +212,7 @@ class TabTSFis extends TabFis {
 				})
 			})
 	}
-	static async rootFormBuilderDuzenle_tablet_acc_duzenleCollapsed({ sender: tanimPart, inst: fis, rfb }) {
-	}
+	static async rootFormBuilderDuzenle_tablet_acc_duzenleCollapsed({ sender: tanimPart, inst: fis, rfb }) { }
 	static async rootFormBuilderDuzenle_tablet_acc_duzenle(e) {
 		let {sender: tanimPart, inst: fis, rfb, item} = e
 		let {acc, gridPart, gridPart: { gridWidget: w, selectedRec: det } = {}} = tanimPart

@@ -119,7 +119,7 @@ class GridPart extends Part {
 		if (grid.hasClass('wnd-content')) { grid = grid.find(this.gridFormSelector) }
 		this.grid = grid
 		let {builder, tabloKolonlari, argsDuzenleBlock, gridRenderedBlock, cacheFlag, asyncFlag, notAdaptiveFlag} = this
-		let mini = isMiniDevice()
+		let mini = isMiniDevice(), micro = isMicroDevice()
 		let cache = cacheFlag, async = asyncFlag, _theme = theme;	/*let _theme = theme == 'metro' ? 'material' : theme;*/
 		let args = {
 			theme: _theme, localization: localizationObj, width: '99.9%', height: '99.6%', editMode: 'selectedcell', sortMode: 'many', autoHeight: false,
@@ -196,7 +196,7 @@ class GridPart extends Part {
 				deferredDataFields.push(secondCol.dataField ?? secondCol.datafield)
 		}
 		{
-			if (firstCol)
+			if (firstCol && !micro)
 				firstCol.pinned = true
 			if (!this.rowNumberOlmasinFlag && secondCol)
 				secondCol.pinned = true

@@ -25,25 +25,33 @@ class MQFirewall extends MQKA {
 			id2Builder: null
 		})
 		let {adiEtiket} = this
-		kaForm.yanYana()
-		kaForm.addModelKullan('aciklama', adiEtiket).dropDown().noMF().kodsuz().bosKodEklenmez()
-			.addStyle(`$elementCSS { max-width: 600px !important }`)
-			.setSource(({ builder: { rootPart: { parentPart: gridPart } } }) =>
-				Object.keys(asSet(gridPart.boundRecs.map(rec => rec.name)))
-					.map(aciklama => ({ kod: aciklama, aciklama }))
-			).degisince(({ builder: { altInst: inst, rootPart: { parentPart, parentPart: { gridPart } }} }) => {
-				gridPart ??= parentPart;
-				let {name} = inst, {boundRecs: recs} = gridPart;
-				let rec = recs.find(rec => rec.name == name);
-				if (rec) {
-					let {enabled, direction, action} = rec;
-					$.extend(inst, { enabled, direction, action })
-				}
-			});
-		kaForm.addCheckBox('enabled', 'Aktif?').readOnly().addStyle(`$elementCSS { margin: 35px 0 0 20px !important }`);
-		let form = tanimForm.addFormWithParent(); form.addTextInput('ip', 'IP');
-			form.addModelKullan('direction', 'Yön').disable().dropDown().noMF().kodsuz().bosKodEklenmez().listedenSecilmez().setSource(MQFirewall_Direction.kaListe);
-			form.addModelKullan('action', 'Eylem').disable().dropDown().noMF().kodsuz().bosKodEklenmez().listedenSecilmez().setSource(MQFirewall_Action.kaListe)
+		{
+			kaForm.yanYana()
+			kaForm.addModelKullan('aciklama', adiEtiket).dropDown().noMF().kodsuz().bosKodEklenmez()
+				.addStyle(`$elementCSS { max-width: 600px !important }`)
+				.setSource(({ builder: { rootPart: { parentPart: gridPart } } }) =>
+					keys(asSet(gridPart.boundRecs.map(rec => rec.name)))
+						.map(aciklama => ({ kod: aciklama, aciklama }))
+				).degisince(({ builder: { altInst: inst, rootPart: { parentPart }} }) => {
+					let {gridPart = parentPart} = parentPart
+					let {name} = inst, {boundRecs: recs} = gridPart
+					let rec = recs.find(_ => _.name == name)
+					if (rec) {
+						let {enabled, direction, action} = rec
+						$.extend(inst, { enabled, direction, action })
+					}
+				});
+			kaForm.addCheckBox('enabled', 'Aktif?').readOnly()
+				.addStyle(`$elementCSS { margin: 35px 0 0 20px !important }`)
+		}
+		{
+			let form = tanimForm.addFormWithParent()
+			form.addTextInput('ip', 'IP')
+			form.addModelKullan('direction', 'Yön').disable().dropDown()
+				.noMF().kodsuz().bosKodEklenmez().listedenSecilmez().setSource(MQFirewall_Direction.kaListe)
+			form.addModelKullan('action', 'Eylem').disable().dropDown()
+				.noMF().kodsuz().bosKodEklenmez().listedenSecilmez().setSource(MQFirewall_Action.kaListe)
+		}
 	}
 	static ekCSSDuzenle({ dataField: belirtec, value, rec, result }) {
 		value = value?.toLowerCase?.();
@@ -78,12 +86,17 @@ class MQFirewall extends MQKA {
 		)
 	}
 	static async loadServerDataDogrudan({ secimler }) {
-		let {value: name} = secimler.instAdi, {defaultDirection: direction} = this;
-		let name2Rule = await this.wsFirewall_show({ direction, name }); if (name2Rule == null) { return [] }
-		let recs = []; for (let [name, rule] of Object.entries(name2Rule)) {
-			let {enabled, ipList} = rule;
-			if (!(enabled && ipList?.length)) { continue }
-			for (let ip of ipList) { recs.push({ name, ...rule, ip }) }
+		let {value: name} = secimler.instAdi, {defaultDirection: direction} = this
+		let name2Rule = await app.wsFirewall_show({ direction, name })
+		if (name2Rule == null)
+			return []
+		let recs = []
+		for (let [name, rule] of entries(name2Rule)) {
+			let {enabled, ipList} = rule
+			if (!(enabled && ipList?.length))
+				continue
+			for (let ip of ipList)
+				recs.push({ name, ...rule, ip })
 		}
 		recs.sort((a, b) => {
 			const Prefix_My = '@_', Prefix_Public = `${Prefix_My}public`, Prefix_RDPGuard = 'rdpguard_';
@@ -138,37 +151,26 @@ class MQFirewall extends MQKA {
 		return await this.yaz()
 	}
 	yaz(e) {
-		let {aciklama: name, enabled, direction, action, ip} = this;
-		direction = direction?.char ?? direction; action = action?.char ?? action;
-		let data = { name, enabled, direction, action, add: [ip] };
-		showProgress(); return this.class.wsFirewall_update({ data })
+		let {aciklama: name, enabled, direction, action, ip} = this
+		direction = direction?.char ?? direction
+		action = action?.char ?? action
+		let data = { name, enabled, direction, action, add: [ip] }
+		showProgress(); return app.wsFirewall_update({ data })
 			.finally(() => hideProgress())
 	}
 	sil(e) {
-		let {aciklama: name, enabled, direction, action, ip} = this;
-		direction = direction?.char ?? direction; action = action?.char ?? action;
-		let data = { name, enabled, direction, action, remove: [ip] };
-		showProgress(); return this.class.wsFirewall_update({ data })
+		let {aciklama: name, enabled, direction, action, ip} = this
+		direction = direction?.char ?? direction; action = action?.char ?? action
+		let data = { name, enabled, direction, action, remove: [ip] }
+		showProgress()
+		return app.wsFirewall_update({ data })
 			.finally(() => hideProgress())
 	}
 	tekilOku({ _rec: rec }) { return rec }
 	keySetValues({ rec }) {
-		super.keySetValues(...arguments); let {name: aciklama, ip} = rec;
+		super.keySetValues(...arguments)
+		let {name: aciklama, ip} = rec
 		$.extend(this, { aciklama, ip })
-	}
-
-	static wsFirewall_update(e) { return this.wsFirewall_x({ ...e, api: 'update' }) }
-	static wsFirewall_show(e) { return this.wsFirewall_x({ ...e, api: 'show' }) }
-	static async wsFirewall_x(e) {
-		e = e || {}; let data = e.data ?? e.args ?? {}, {api} = e;
-		for (let key of ['api', 'data', 'args']) { delete e[key] }
-		data = typeof data == 'object' && !$.isEmptyObject(data) ? toJSONStr(data) : null;
-		let timeout = 13_000, ajaxContentType = wsContentTypeVeCharSet, processData = false;
-		let wsPath = 'ws/firewall', args = e;
-		return ajaxPost({
-			timeout, processData, ajaxContentType, data,
-			url: app.getWSUrl({ wsPath, api, args })
-		})
 	}
 }
 
@@ -192,3 +194,18 @@ class MQFirewall_Action extends TekSecim {
 		)
 	}
 }
+
+
+
+/*
+	JSON.stringify(
+		Array.from(document.querySelectorAll('.bqe')).map(_ => _.innerText.replace('RdpGuard blocked ', ''))
+			.map(_ => `${_.split('.').slice(0, 3).join('.')}.0/24`)
+	)
+	
+	let ipListStr = `<paste here>`
+	let name = '@_Block Attackers', add = JSON.parse(ipListStr)
+	let data = { name, add }
+	try { await app.wsFirewall_update({ data }) }
+	catch (ex) { cerr(ex) }
+*/
