@@ -2,21 +2,21 @@ class MQCari extends MQKAOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get dataKey() { return 'cari' }
 	static get sinifAdi() { return 'Müşteriler' } static get tableAlias() { return 'car' }
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e;
+		super.orjBaslikListesiDuzenle(e); let {liste} = e;
 		let colDef = liste.find(colDef => colDef.belirtec == 'kod'); $.extend(colDef, { genislikCh: 20 }); 
 		colDef = liste.find(colDef => colDef.belirtec == 'aciklama'); $.extend(colDef, { genislikCh: null });
 		liste.push(new GridKolon({ belirtec: 'eMail', text: 'e-Mail' }) /*new GridKolon({ belirtec: 'plasiyerKod', text: 'Plasiyer', genislikCh: 16 })*/)
 	}
-	static gridVeriYuklendi(e) { /* const {grid} = e; grid.jqxGrid('groups', ['plasiyerKod']) */ }
+	static gridVeriYuklendi(e) { /* let {grid} = e; grid.jqxGrid('groups', ['plasiyerKod']) */ }
 	static loadServerData(e) { return this.loadServerDataFromMustBilgi(e) }
 	static async loadServerDataDogrudan(e) {
-		e = e || {}; await super.loadServerDataDogrudan(e); const {wsArgs} = e, {session} = config, {loginTipi, user} = session;
-		const selector = loginTipi == 'plasiyerLogin' ? 'plasiyerKod' : loginTipi == 'musteriLogin' ? 'kod' : null;
+		e = e || {}; await super.loadServerDataDogrudan(e); let {wsArgs} = e, {session} = config, {loginTipi, user} = session;
+		let selector = loginTipi == 'plasiyerLogin' ? 'plasiyerKod' : loginTipi == 'musteriLogin' ? 'kod' : null;
 		if (user) { switch (loginTipi) { case 'plasiyerLogin': wsArgs.plasiyerKod = user; break; case 'musteriLogin': wsArgs.mustKod = user; break } }
 		let {cariTipKod} = app.params.config; if (cariTipKod) { $.extend(wsArgs, { cariTipKod }) }
 		let recs = await app.wsPlasiyerIcinCariler(wsArgs); if (recs && selector && user) { recs = recs.filter(rec => rec[selector] == user) }
-		for (const rec of recs) {
-			const {plasiyerKod, plasiyerAdi} = rec; let plasiyerText = plasiyerKod;
+		for (let rec of recs) {
+			let {plasiyerKod, plasiyerAdi} = rec; let plasiyerText = plasiyerKod;
 			if (plasiyerAdi) { plasiyerText += ` - ${plasiyerAdi}` }
 			rec.plasiyerText = plasiyerText
 		}
@@ -27,14 +27,14 @@ class MQKapanmayanHesaplar extends MQMasterOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get dataKey() { return 'kapanmayanHesap' } static get sinifAdi() { return 'Kapanmayan Hesaplar' } get tableAlias() { return 'khes' }
 	static ekCSSDuzenle(e) {
-		super.ekCSSDuzenle(e); const belirtec = e.dataField, {rec, result} = e;
+		super.ekCSSDuzenle(e); let belirtec = e.dataField, {rec, result} = e;
 		if (belirtec == 'acikkisim') { result.push('red', 'bold') }
-		if (belirtec == 'bedel') { const odenen = asFloat(rec.bedel); result.push('bold'); if (odenen < 0) { result.push('red') } else if (odenen > 0) { result.push('green') } }
+		if (belirtec == 'bedel') { let odenen = asFloat(rec.bedel); result.push('bold'); if (odenen < 0) { result.push('red') } else if (odenen > 0) { result.push('green') } }
 		if (!!rec.gecikmegun) { result.push('bg-lightpink') } /*else if (!!rec.gelecekgun) result.push('bg-lightgreen')*/
 	}
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const tarihGosterim = (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => changeTagContent(html, dateToString(asDate(value)));
-		const {cariHareketTakipNo} = app.params.tablet, {liste} = e; liste.push(...[
+		super.orjBaslikListesiDuzenle(e); let tarihGosterim = (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => changeTagContent(html, dateToString(asDate(value)));
+		let {cariHareketTakipNo} = app.params.tablet, {liste} = e; liste.push(...[
 			new GridKolon({ belirtec: 'isladi', text: 'İşlem Adı', maxWidth: 40 * katSayi_ch2Px, filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'belgeNox', text: 'Belge Seri/No', genislikCh: 20, filterType: 'input' }),
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12, cellsRenderer: (...args) => tarihGosterim(...args) }).tipDate(),
@@ -46,29 +46,42 @@ class MQKapanmayanHesaplar extends MQMasterOrtak {
 		].filter(x => !!x))
 	}
 	static orjBaslikListesi_gridInit(e) {
-		super.orjBaslikListesi_gridInit(e); const {cariHareketTakipNo} = app.params.tablet, {gridPart} = e, {grid} = e;
+		super.orjBaslikListesi_gridInit(e); let {cariHareketTakipNo} = app.params.tablet, {gridPart} = e, {grid} = e;
 		if (cariHareketTakipNo) { grid.jqxGrid({ groupsExpandedByDefault: true, groups: ['takiptext'] }) }
 	}
-	static loadServerData(e) { e = e || {}; e.mustKod = e.mustKod ?? e.parentRec?.must; return this.loadServerDataFromMustBilgi(e) }
-	static async loadServerDataDogrudan(e) {
-		e = e || {}; await super.loadServerDataDogrudan(e); let {wsArgs} = e, {cariHareketTakipNo} = app.params.tablet;
-		let recs = await app.wsTicKapanmayanHesap(wsArgs); for (let rec of recs) {
-			let mustKod = rec.must ?? rec.mustkod, {isaretligecikmegun: isaretliGecikmeGun, bedel, acikkisim: acikKisim, takipno: takipNo, takipadi: takipAdi} = rec;
-			/*if (mustKod == 'M05D48928') { debugger }*/
+	static loadServerData(e = {}) {
+		e.mustKod ??= e.parentRec?.must
+		return this.loadServerDataFromMustBilgi(e)
+	}
+	static async loadServerDataDogrudan(e = {}) {
+		await super.loadServerDataDogrudan(e)
+		let {wsArgs} = e
+		let recs = await app.wsTicKapanmayanHesap(wsArgs)
+		for (let rec of recs) {
+			let mustKod = rec.must ?? rec.mustkod
+			let {isaretligecikmegun: isaretliGecikmeGun, bedel, acikkisim: acikKisim, takipno: takipNo, takipadi: takipAdi} = rec
+			// if (mustKod == 'M05D47577') { debugger }
 			if (isaretliGecikmeGun != null) {
-				isaretliGecikmeGun = typeof isaretliGecikmeGun === 'string' ? asDate(isaretliGecikmeGun) : isaretliGecikmeGun;
-				if (isDate(isaretliGecikmeGun)) { isaretliGecikmeGun = ((isaretliGecikmeGun - minDate) / Date_OneDayNum) + 1 }
-				rec.gecikmegun = rec.gelecekgun = 0; rec[isaretliGecikmeGun < 0 ? 'gelecekgun' : 'gecikmegun'] += Math.abs(isaretliGecikmeGun)
+				isaretliGecikmeGun = isString(isaretliGecikmeGun) ? asDate(isaretliGecikmeGun) : isaretliGecikmeGun
+				if (isDate(isaretliGecikmeGun))
+					isaretliGecikmeGun = ((isaretliGecikmeGun - minDate) / Date_OneDayNum) + 1
+				rec.gecikmegun = rec.gelecekgun = 0
+				{
+					let selector = isaretliGecikmeGun < 0 ? 'gelecekgun' : 'gecikmegun'
+					rec[selector] += Math.abs(isaretliGecikmeGun)
+				}
 				delete rec.isaretligecikmegun
 			}
-			if (takipNo) { rec.takiptext = `<b class="gray">${takipNo}</b>-${takipAdi}` }
-			rec.odenen = (bedel || 0) - (acikKisim || 0); rec._vadeVeyaTarih = asDate(rec.vade ?? rec.tarih)
+			if (takipNo)
+				rec.takiptext = `<b class="gray">${takipNo}</b>-${takipAdi}`
+			rec.odenen = (bedel || 0) - (acikKisim || 0)
+			rec._vadeVeyaTarih = asDate(rec.vade ?? rec.tarih)
 		}
 		recs.sort((_a, _b) => {
-			const  a = { takipNo: _a.takipno ?? '', vadeVeyaTarih: _a._vadeVeyaTarih }, b = { takipNo: _b.takipno ?? '', vadeVeyaTarih: _b._vadeVeyaTarih };
-			const takipNoCompare = b.takipNo > a.takipNo ? 1 : b.takipNo < a.takipNo ? -1 : 0, tarihCompare = b.vadeVeyaTarih - a.vadeVeyaTarih;
+			let  a = { takipNo: _a.takipno ?? '', vadeVeyaTarih: _a._vadeVeyaTarih }, b = { takipNo: _b.takipno ?? '', vadeVeyaTarih: _b._vadeVeyaTarih }
+			let takipNoCompare = b.takipNo > a.takipNo ? 1 : b.takipNo < a.takipNo ? -1 : 0, tarihCompare = b.vadeVeyaTarih - a.vadeVeyaTarih
 			return takipNoCompare || tarihCompare
-		});
+		})
 		return recs
 	}
 }
@@ -77,8 +90,8 @@ class MQCariEkstre extends MQMasterOrtak {
 	static get dataKey() { return 'cariEkstre' } static get sinifAdi() { return 'Cari Ekstreler' } get tableAlias() { return 'ceks' }
 	static get detaySinif() { return MQCariEkstre_Detay } static get gridDetaylimi() { return true }
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const tarihGosterim = (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => changeTagContent(html, dateToString(asDate(value)));
-		const {cariHareketTakipNo} = app.params.tablet, {liste} = e; liste.push(...[
+		super.orjBaslikListesiDuzenle(e); let tarihGosterim = (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => changeTagContent(html, dateToString(asDate(value)));
+		let {cariHareketTakipNo} = app.params.tablet, {liste} = e; liste.push(...[
 			/*new GridKolon({ belirtec: 'must', text: 'Müşteri', genislikCh: 16 }),*/
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12, cellsRenderer: (...args) => tarihGosterim(...args) }).tipDate(),
 			new GridKolon({ belirtec: 'fisnox', text: 'Belge Seri/No', genislikCh: 20 }),
@@ -103,7 +116,7 @@ class MQCariEkstre extends MQMasterOrtak {
 	static async loadServerDataDogrudan({ wsArgs }) {
 		await super.loadServerDataDogrudan(...arguments);
 		let {cariTipKod} = app.params.config; if (cariTipKod) { wsArgs.cariTipKod = cariTipKod }
-		let must2Bakiye = {}, recs = await app.wsTicCariEkstre(wsArgs); for (const rec of recs) {
+		let must2Bakiye = {}, recs = await app.wsTicCariEkstre(wsArgs); for (let rec of recs) {
 			let {must, bedel, ba, borcbedel: borcBedel, alacakbedel: alacakBedel, takipno: takipNo, takipadi: takipAdi} = rec;
 			if (bedel == null) { bedel = rec.bedel = (borcBedel || 0) - (alacakBedel || 0) } if (ba == 'A') { bedel = -bedel }
 			if (borcBedel == null && alacakBedel == null) {
@@ -119,14 +132,14 @@ class MQCariEkstre extends MQMasterOrtak {
 	static get tabloKolonlari_detaylar() { return this.detaySinif.orjBaslikListesi }
 	static async loadServerData_detaylar(e) {
 		let recs = await this.detaySinif.loadServerData(e); if (!recs?.length) { return recs }
-		const {parentRec} = e, fisSayac = parentRec.icerikfissayac; recs = recs.filter(rec => rec.icerikfissayac == fisSayac); return recs
+		let {parentRec} = e, fisSayac = parentRec.icerikfissayac; recs = recs.filter(rec => rec.icerikfissayac == fisSayac); return recs
 	}
 }
 class MQCariEkstre_Detay extends MQMasterOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get dataKey() { return 'cariEkstre_detay' } static get sinifAdi() { return 'Cari Ekstre (Detay)' } get tableAlias() { return 'har' }
 	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(...[
+		super.orjBaslikListesiDuzenle(e); let {liste} = e; liste.push(...[
 			new GridKolon({ belirtec: 'shkod', text: 'Stok Kod', maxWidth: 13 * katSayi_ch2Px }),
 			new GridKolon({ belirtec: 'stokadi', text: 'Stok Adı', maxWidth: 40 * katSayi_ch2Px }),
 			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 10, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal(),
@@ -137,7 +150,7 @@ class MQCariEkstre_Detay extends MQMasterOrtak {
 	}
 	static loadServerData(e) { e = e || {}; e.mustKod = e.mustKod ?? e.parentRec?.must; return this.loadServerDataFromMustBilgi(e) }
 	static async loadServerDataDogrudan(e) {
-		e = e || {}; await super.loadServerDataDogrudan(e); const {wsArgs} = e;
+		e = e || {}; await super.loadServerDataDogrudan(e); let {wsArgs} = e;
 		let {cariTipKod} = app.params.config; if (cariTipKod) { wsArgs.cariTipKod = cariTipKod }
 		return await app.wsTicCariEkstre_icerik(wsArgs)
 	}
@@ -164,7 +177,7 @@ class MQKapanmayanHesaplar_Yaslandirma extends MQMasterOrtak {
 	static loadServerData({ mustKod }) {
 		let recs = this.loadServerDataFromMustBilgi(...arguments); if (!recs) { return recs }
 		let toplam = { gecmis: 0, gelecek: 0 }; /*if (mustKod == 'M05D48928') { debugger }*/
-		for (const rec of recs) {
+		for (let rec of recs) {
 			let {isaretligecikmegun: isaretliGecikmeGun} = rec;
 			if (isaretliGecikmeGun != null) {
 				isaretliGecikmeGun = typeof isaretliGecikmeGun === 'string' ? asDate(isaretliGecikmeGun) : isaretliGecikmeGun;
@@ -172,9 +185,9 @@ class MQKapanmayanHesaplar_Yaslandirma extends MQMasterOrtak {
 				rec.gecmis = rec.gelecek = 0; rec[isaretliGecikmeGun < 0 ? 'gelecek' : 'gecmis'] += Math.abs(isaretliGecikmeGun);
 				delete rec.isaretligecikmegun
 			}
-			for (const key of ['gecmis', 'gelecek']) { toplam[key] += rec[key] }
+			for (let key of ['gecmis', 'gelecek']) { toplam[key] += rec[key] }
 		}
-		let recToplam = { toplammi: true, kademeText: `<u>TOPLAM</u> =&gt;` }; for (const key in toplam) { recToplam[key] = toplam[key] }
+		let recToplam = { toplammi: true, kademeText: `<u>TOPLAM</u> =&gt;` }; for (let key in toplam) { recToplam[key] = toplam[key] }
 		recs = [recToplam, ...recs]; return recs
 	}
 	static loadServerDataFromMustBilgi(e) {
