@@ -123,9 +123,13 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 			}
 		}
 		let detaylar = this.detaylar = [];
-		let kapsam = { tarih, subeKod, mustKod }, stokKodListe = recs.map(({ stokkod: kod }) => kod);
-		let kosulYapilar = new SatisKosulYapi({ kapsam }); if (!await kosulYapilar.yukle()) { kosulYapilar = null }
-		let anah2Det = {}; for (let rec of recs) {
+		let kapsam = { tarih, subeKod, mustKod }
+		let stokKodListe = recs.map(_ => _.stokkod)
+		let kosulYapilar = new SatisKosulYapi({ kapsam })
+		if (!await kosulYapilar.yukle())
+			kosulYapilar = null
+		let anah2Det = {}
+		for (let rec of recs) {
 			let {stokkod: stokKod, stokadi: stokAdi} = rec, stokText = new CKodVeAdi([stokKod, stokAdi]).parantezliOzet({ styled: true });
 			let det = new detaySinif({ stokText }); det.setValues({ rec }); detaylar.push(det);
 			for (let {belirtec, ioAttr, adiAttr, rowAttr, rowAdiAttr} of ekOzellikler) {
@@ -137,7 +141,7 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 		if (yenimi) {
 			if (detaylar?.length) {
 				let fiyatYapilar = await SatisKosul_Fiyat.stoklarIcinFiyatlar(stokKodListe, kosulYapilar?.FY, mustKod), iskontoArastirStokSet = {};
-				for (const det of detaylar) {
+				for (let det of detaylar) {
 					if (fiyatYapilar && det.netBedel == undefined) { continue }
 					let {stokKod} = det, kosulRec = fiyatYapilar[stokKod] ?? {}, {iskontoYokmu} = kosulRec;
 					if (!iskontoYokmu) { iskontoArastirStokSet[stokKod] = true }
@@ -147,7 +151,8 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 					}
 				}
 				let iskYapilar = await SatisKosul_Iskonto.stoklarIcinOranlar(Object.keys(iskontoArastirStokSet), kosulYapilar?.SB);
-				let prefix = 'oran'; for (const det of detaylar) {
+				let prefix = 'oran'
+				for (let det of detaylar) {
 					let {stokKod} = det, kosulRec = iskYapilar[stokKod] ?? {};
 					for (let [key, value] of Object.entries(iskYapilar)) {
 						if (!(value && key.startsWith(prefix))) { continue }

@@ -4,6 +4,7 @@ class TabTSFis extends TabFis {
 	static get kodListeTipi() { return 'TABTS' } static get sinifAdi() { return 'Ticari/Stok Fiş' }
 	static get detaySinif() { return TabTSDetay } static get almSat() { return 'T' }
 	static get dipKullanilirmi() { return true }
+	static get dipIskOranSayi() { return 1 } static get dipIskBedelSayi() { return 1 }
 
 	static pTanimDuzenle({ pTanim }) {
 		// MQOrtakFis.pTanimDuzenle(...arguments)
@@ -34,6 +35,10 @@ class TabTSFis extends TabFis {
 		let {offsetRefs: refs} = dipIslemci
 		refs.kdv = liste[liste.length - 1]
 	}*/
+	async uiGirisOncesiIslemler(e) {
+		await super.uiGirisOncesiIslemler(e)
+		await this.satisKosullariOlustur(e)
+	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments)
 		let {_dipIslemci: d} = this
@@ -45,6 +50,37 @@ class TabTSFis extends TabFis {
 		let {dipIslemci} = this
 		for (let k of ['dipIskOran1', 'dipIskOran2', 'dipIskBedel'])
 			dipIslemci[k] = rec[k.toLowerCase()] ?? 0
+	}
+	async satisKosullariOlustur(e) {
+		await super.satisKosullariOlustur(e)
+		let {tarih, subeKod, mustKod, detaylar} = this
+		// let stokKodListe = detaylar.map(_ => _.stokKod)
+		let kapsam = { /*tarih,*/ subeKod, mustKod }
+		try { this.kosulYapilar = await new SatisKosulYapi().uygunKosullar({ kapsam }) }
+		catch (ex) { cerr(ex) }
+		return this
+		
+		/*
+		await Promise.all(app.activeWndPart.inst.kosulYapilar.FY.map(async k => k.getAltKosulYapilar(app.activeWndPart.inst.detaylar.map(_ => _.stokKod)))).then(_ => _.flat())
+		let fiyatYapilar = await SatisKosul_Fiyat.stoklarIcinFiyatlar(stokKodListe, kosulYapilar?.FY, mustKod), iskontoArastirStokSet = {};
+		for (let det of detaylar) {
+			if (fiyatYapilar && det.netBedel == undefined) { continue }
+			let {stokKod} = det, kosulRec = fiyatYapilar[stokKod] ?? {}, {iskontoYokmu} = kosulRec;
+			if (!iskontoYokmu) { iskontoArastirStokSet[stokKod] = true }
+			let fiyat = det.fiyat || kosulRec.fiyat; if (fiyat) {
+				let miktar = det.miktar || 0, netBedel = roundToBedelFra(miktar * fiyat);
+				$.extend(det, { fiyat, netBedel })
+			}
+		}
+		let iskYapilar = await SatisKosul_Iskonto.stoklarIcinOranlar(Object.keys(iskontoArastirStokSet), kosulYapilar?.SB);
+		let prefix = 'oran'; for (let det of detaylar) {
+			let {stokKod} = det, kosulRec = iskYapilar[stokKod] ?? {};
+			for (let [key, value] of Object.entries(iskYapilar)) {
+				if (!(value && key.startsWith(prefix))) { continue }
+				let i = asInteger(key.slice(prefix.length)); det[`iskOran${i}`] = value
+			}
+		}
+	*/
 	}
 
 	static async rootFormBuilderDuzenle_tablet(e) {

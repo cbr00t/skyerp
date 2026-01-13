@@ -24,7 +24,6 @@ class MQYapi extends CIO {
 	static get logRecDonusturucu() { let e = { result: {} }; this.logRecDonusturucuDuzenle(e); return e.result }
 	get logHV() { let e = { hv: {} }; this.logHVDuzenle(e); return e.hv }
 
-	constructor(e) { e = e || {}; super(e) }
 	static getInstance() {
 		let result = this._instance; if (!result) {
 			result = new this(); result._promise = new $.Deferred();
@@ -311,16 +310,19 @@ class MQYapi extends CIO {
 			try {
 				await this.sqlExecNone({ ...e, offlineMode, query: 'BEGIN TRANSACTION' })
 				inLocalTrn = true
+				window.progressManager?.progressStep()
 			}
 			catch (ex) { }
 		}
 		try {
 			if (clear)
 				await this.offlineClearTable({ ...e, offlineMode })
+			window.progressManager?.progressStep()
 			if (kodKullanilirmi && kodSaha) {
 				let hv = { [kodSaha]: emptyKodValue }
 				let query = new MQInsert({ table: offlineTable, hv })
 				await this.sqlExecNone({ ...e, offlineMode, query })
+				window.progressManager?.progressStep(45)
 			}
 			if (attrListe?.length) {
 				if (directFlag && recs?.length) {
@@ -350,6 +352,7 @@ class MQYapi extends CIO {
 							return this
 						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
 							okIdList.push(_recs.map(rec => rec[idSaha]))
+						window.progressManager?.progressStep()
 					}
 				}
 				else if (recs?.length) {
@@ -357,8 +360,10 @@ class MQYapi extends CIO {
 						let inst = new this()
 						if (!await inst.yukle({ offlineMode: !offlineMode, rec, offlineRequest, offlineYukleRequest }))
 							continue
+						window.progressManager?.progressStep()
 						if (!await inst.yaz({ offlineMode, offlineRequest, offlineYukleRequest }))
 							continue
+						window.progressManager?.progressStep()
 						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
 							okIdList.push(rec[idSaha])
 					}
@@ -376,6 +381,7 @@ class MQYapi extends CIO {
 			}
 			if (inLocalTrn)
 				await this.sqlExecNone({ ...e, offlineMode, query: 'COMMIT' }) 
+			window.progressManager?.progressStep()
 		}
 		return true
 	}
@@ -392,6 +398,7 @@ class MQYapi extends CIO {
 		let offlineMode = false, offlineRequest = true, offlineGonderRequest = true
 		let {trnId} = e
 		let recs = await this.loadServerData({ ...e, offlineMode: !offlineMode, offlineRequest, offlineGonderRequest })
+		window.progressManager?.progressStep(20)
 		if (attrListe && onlineIdSaha && onlineIdSaha != idSaha && !attrListe.includes(onlineIdSaha))
 			attrListe.push(onlineIdSaha)
 		if (attrListe?.length) {
@@ -431,6 +438,7 @@ class MQYapi extends CIO {
 								sahalar.add(...priKeys)*/
 							let _recs = await this.sqlExecSelect({ ...e, trnId, offlineMode, query: sent })
 							mevcutIdSet = asSet(_recs.map(rec => rec[onlineIdSaha]))
+							window.progressManager?.progressStep(5)
 						}
 						let attrSet = asSet(attrListe), {online2OfflineSaha} = this
 						let hvListe = []
@@ -453,6 +461,7 @@ class MQYapi extends CIO {
 							if (!_empty)
 								hvListe.push(hv)
 						}
+						window.progressManager?.progressStep(5)
 						if (!empty(hvListe)) {
 							for (let _hvListe of arrayIterChunks(hvListe, 500)) {
 								let query = new MQInsert({ table: offlineTable, hvListe: _hvListe })
@@ -460,6 +469,7 @@ class MQYapi extends CIO {
 									return this
 								if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
 									okIdList.push(recs.map(rec => rec[idSaha]))
+								window.progressManager?.progressStep(2)
 							}
 						}
 					}
@@ -473,6 +483,7 @@ class MQYapi extends CIO {
 						if (!await inst.yaz({ trnId, offlineMode, offlineRequest, offlineGonderRequest })) { continue }
 						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
 							okIdList.push(rec[idSaha])
+						window.progressManager?.progressStep()
 					}
 				}
 			}
@@ -486,8 +497,10 @@ class MQYapi extends CIO {
 					await this.sqlExecNone({ trnId, offlineMode: !offlineMode, query })
 				}
 				app.resetOfflineStatus()
+				window.progressManager?.progressStep(5)
 			}
 		}
+		window.progressManager?.progressStep()
 		return true
 	}
 	static offlineSaveToLocalTableWithClear(e) { e = e ?? {}; return this.offlineSaveToLocalTable({ ...e, clear: true }) }
@@ -579,12 +592,12 @@ class MQYapi extends CIO {
 		r.push(')')
 	}
 	static _sqlExec(e, params) {
-		e = { ...($.isPlainObject(e) ? e ?? {} : { query: e, params }) }
+		e = { ...(isPlainObject(e) ? e ?? {} : { query: e, params }) }
 		let {selector} = e, offlineMode = e.isOfflineMode ?? e.offlineMode ?? e.isOffline ?? e.offline ?? this.isOfflineMode
 		let db = e.db ?? app.dbMgr?.default
-		if (db?.internalDB === null) { db = null }
-		for (let key of ['selector', 'db', 'isOfflineMode', 'offlineMode', 'isOffline', 'offline'])
-			delete e[key]
+		if (db?.internalDB === null)
+			db = null
+		deleteKeys(e, 'selector', 'db', 'isOfflineMode', 'offlineMode', 'isOffline', 'offline')
 		let result = offlineMode && db ? db.execute(e) : app[selector](e)
 		if (offlineMode && db) {
 			switch (selector) {

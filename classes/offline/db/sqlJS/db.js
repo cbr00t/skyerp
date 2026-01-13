@@ -9,6 +9,10 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 	async open(e) {
 		await super.open(e)
 		await this.openDB(e)
+		if (!this._beforeUnloadHandler) {
+			let handler = this._beforeUnloadHandler = evt => this.onBeforeUnload({ ...e, evt })
+			window.addEventListener('beforeunload', handler)
+		}
 		return this
 	}
 	async openDB(e) {
@@ -21,20 +25,21 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 			this.internalDB = new sql.Database(e?.data)
 			await this.dbInit(e)
 		}
-		if (!this._beforeUnloadHandler) {
-			let handler = this._beforeUnloadHandler = evt => this.onBeforeUnload({ ...e, evt })
-			window.addEventListener('beforeunload', handler)
-		}
 		return this
 	}
 	async close(e) {
 		let {internalDB: db} = this
 		if (db) {
-			if (this.changedFlag) { await this.kaydet(e) }
+			if (this.changedFlag)
+				await this.kaydet(e)
 			await this.closeDB(e)
 			db = null
 		}
 		await super.close(e)
+		if (this._beforeUnloadHandler) {
+			window.removeEventListener('beforeunload', this._beforeUnloadHandler)
+			delete this._beforeUnloadHandler
+		}
 		return this
    }
 	async closeDB(e) {
@@ -43,10 +48,6 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		if (db) {
 			await db.close()
 			db = this.internalDB = null
-		}
-		if (this._beforeUnloadHandler) {
-			window.removeEventListener('beforeunload', this._beforeUnloadHandler)
-			delete this._beforeUnloadHandler
 		}
 		return this
 	}
@@ -83,14 +84,21 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 			try { return await wr.write(data) }
 			finally { try { wr.close() } catch {} }
 		}
+		try { this.execute('COMMIT') }    // trn varsa kapansın
+		catch (ex) { }
 		let data = internalDB.export()
 		let {fsRootDir: filePath} = this, {name} = fh
 		let bckName = `${name}.bck`
 		try {
 			let file = await fh.getFile()
 			if (file.size > 64 * 1024) {
-				await fh.move(bckName)
-				fh = this.fh = await this.getFSHandle(true)
+				let {fsRootDirPaths} = this
+				let bckPath = [...fsRootDirPaths.slice(0, -1), bckName].join('/')
+				let fh_bck = await getFSFileHandle(bckPath, null, true)
+				let sr = file.stream()
+				let sw = await fh_bck.createWritable()
+				await sr.pipeTo(sw)
+				// fh = this.fh = await this.getFSHandle(true)
 			}
 		}
 		catch (ex) { console.error(ex) }
@@ -219,6 +227,7 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		app?.onAjaxStart?.(true)
 		try {
 			_result = this.internalDB[isDBWrite ? 'run' : 'exec'](e.query, e.params)
+			// _result = this.internalDB.exec(e.query, e.params)
 			try { console.debug('db exec', { ...e, db: this, isDBWrite, result: _result }) }
 			catch (ex) { }
 		}
@@ -233,22 +242,25 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 			/*if (dbOpCallback) { await dbOpCallback.call(this, { operation: 'executeSql', state: null, error: ex }, e) }*/
 			clearTimeout(this._timer_dbIndicatorReset)
 			this._timer_dbIndicatorReset = setTimeout(() => app?.onAjaxEnd?.(true), 10)
-			if (!ex?.toString().includes('cannot start a transaction within a transaction'))
-				console.error('sqlite exec', { ...e, db: this, isDBWrite, ex })
-			throw ex
+			if (ex?.toString().includes( 'no transaction is active') || ex?.toString().includes('cannot start a transaction within a transaction'))
+				console.debug('sqlite exec', { ...e, db: this, isDBWrite, ex })
+			else
+				throw ex
 		}
 		if (!_result) {
 			clearTimeout(this._timer_dbIndicatorReset)
 			this._timer_dbIndicatorReset = setTimeout(() => app?.onAjaxEnd?.(false), 1)
 			return _result
 		}
-		_result = $.isArray(_result) ? _result[0] : null;
+		_result = isArray(_result) ? _result[0] : null
 		if (empty(_result) && (isDBWrite || (typeof _result == 'number' && result)))
 			this.onChange(e)
-		let result = { rows: [] }, {columns, values} = _result || {};
+		let result = { rows: [] }, {columns, values} = _result || {}
 		if (values) {
-			let {noAutoTrim} = e; for (let _rec of values) {
-				let rec = {}; for (let i = 0; i < columns.length; i++) {
+			let {noAutoTrim} = e
+			for (let _rec of values) {
+				let rec = {}
+				for (let i = 0; i < columns.length; i++) {
 					let value = _rec[i]
 					if (!noAutoTrim && typeof value == 'string')
 						value = value.trimEnd()
@@ -289,7 +301,10 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 	}
 	hasColumns(table, ...names) { return !empty(this.getColumns(table, ...names)) }
 	hasColumn(...names) { return this.hasColumns(...names) }
-	getFSHandle(e) { let createFlag = typeof e == 'boolean' ? e : e?.create ?? e.createFlag; return getFSFileHandle(this.fsRootDir, null, createFlag) }
+	getFSHandle(e) {
+		let createFlag = typeof e == 'boolean' ? e : e?.create ?? e.createFlag
+		return getFSFileHandle(this.fsRootDir, null, createFlag)
+	}
 	onChange(e = {}) {
 		this.changed(e)
 		if (this.autoSaveFlag) {

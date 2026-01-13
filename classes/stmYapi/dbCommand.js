@@ -76,18 +76,24 @@ class MQSelect2Insert extends MQDbCommand {
 class MQInsertBase extends MQDbCommand {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get onEk() { return 'INSERT INTO ' }
 	get isTableInsert() { return this.tableInsertFlag } get isDBWriteClause() { return true }
-	constructor(e) {
-		e = e || {}; super(e); let hvListe = e.hvListe ?? e.hv; if (hvListe && !$.isArray(hvListe)) { hvListe = [hvListe] }
-		$.extend(this, { table: e.table ?? e.from, hvListe, tableInsertFlag: null })
+	constructor(e = {}) {
+		super(e)
+		let {table = e.from, hvListe = e.hv, tableInsertFlag = e.tableInsertFlag, insertOnlyFlag = e.insertOnly} = e
+		hvListe = makeArray(hvListe)
+		$.extend(this, { table, hvListe, tableInsertFlag, insertOnlyFlag })
 	}
 	buildString(e) {
-		super.buildString(e); let {table, hvListe} = this; if (!table || empty(hvListe)) { return }
+		super.buildString(e)
+		let {table, hvListe, insertOnlyFlag: insertOnly} = this
+		if (!table || empty(hvListe))
+			return
 		let {sqlitemi} = window?.app ?? {}, {onEk} = this.class
-		let ilkHV = hvListe[0], _keys = keys(ilkHV), hvSize = hvListe.length
-		let offlineMode = window?.MQCogul?.isOfflineMode ?? window.app?.offlineMode
+		let ilkHV = hvListe[0], _keys = keys(ilkHV), {length: hvSize} = hvListe
+		let {offlineMode} = e
+		offlineMode ??= window?.MQCogul?.isOfflineMode ?? window.app?.offlineMode
 			// SQL Bulk Insert (values ?? .. ??) için SQL tarafında en fazla 1000 kayıta kadar izin veriliyor
 		let isTableInsert = hvSize > 5000 ? true : this.isTableInsert ?? false
-		if (sqlitemi && offlineMode !== false)
+		if (!insertOnly && sqlitemi && offlineMode !== false)
 			onEk = onEk.replace('INSERT INTO', 'INSERT OR IGNORE INTO')
 		e.result += `${onEk}${table} (`; e.result += _keys.join(','); e.result += ') '
 		if (sqlitemi && offlineMode !== false) {
@@ -127,7 +133,9 @@ class MQInsertBase extends MQDbCommand {
 			}
 		}
 	}
-};
+	insertOnly() { this.insertOnlyFlag = true; return this }
+	insertIgnore() { this.insertOnlyFlag = false; return this }
+}
 class MQInsert extends MQInsertBase {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) { e = e || {}; super(e); this.tableInsertFlag = asBoolQ(e.tableInsert); }

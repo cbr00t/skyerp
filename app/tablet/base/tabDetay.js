@@ -36,7 +36,7 @@ class TabDetay extends MQDetay {
 			let cd = db.getColumns(table)
 			for (let {rowAttr} of TicIskYapi.getIskIter()) {
 				if (!cd[rowAttr])
-					queries.push(`ALTER TABLE tabhar ADD ${rowAttr} REAL NOT NULL DEFAULT 0`)
+					queries.push(`ALTER TABLE tabhar ADD ${rowAttr} REAL NOT NULL DEFAULT 0;`)
 			}
 		}
 	}

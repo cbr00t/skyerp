@@ -53,7 +53,8 @@ class MQCogul extends MQYapi {
 	}
 	
 	constructor(e) {
-		e = e || {}; super(e); $.extend(this, { ayrimlar: {}, ozelSahalar: {} });
+		super(e)
+		$.extend(this, { ayrimlar: {}, ozelSahalar: {} })
 		this.class.getOzelSahaYapilari?.()			// önbellek oluştur
 	}
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e) }
@@ -141,7 +142,7 @@ class MQCogul extends MQYapi {
 		rootBuilder = e.rootBuilder
 		e.mfSinif = _mfSinif
 		return rootBuilder
-	}c
+	}
 	getRootFormBuilder(e) { e = e || {}; e.inst = this; return this.class.getRootFormBuilder(e) }
 	static rootFormBuilderDuzenle(e) { }
 	static async rootFormBuilderDuzenleSonrasi(e) {

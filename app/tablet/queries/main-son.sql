@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS tabfis (
 	id TEXT NOT NULL PRIMARY KEY,
 	fisTipi TEXT NOT NULL DEFAULT '',
 	silindi TEXT NOT NULL DEFAULT '',
+	bizsubekod TEXT NOT NULL DEFAULT '',
 	tarih TEXT NOT NULL DEFAULT '',
 	seri TEXT NOT NULL DEFAULT '',
 	noyil INTEGER NOT NULL DEFAULT 0,
@@ -44,4 +45,3 @@ CREATE TABLE IF NOT EXISTS tabhar (
 	PRIMARY KEY (fisid, seq)
 );
 CREATE INDEX IF NOT EXISTS idx_tabhar_seq ON tabhar (seq);
-

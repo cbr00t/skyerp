@@ -19,45 +19,56 @@ class SatisKosul_Fiyat extends SatisKosul {
 			console.table(await SatisKosul_Fiyat.getAltKosulYapilar(stokKodListe, satisKosul, mustKod))
 	*/
 	static async getAltKosulYapilar(e, _satisKosul, _mustKod) {
+		e ??= {}
 		let cache = this._cache ??= {}
 		let anah = toJSONStr({ ...e, _satisKosul, _mustKod })
 		let result = cache[anah] ??= await this._getAltKosulYapilar(e, _satisKosul, _mustKod)
 		if (result) {
-			for (const [xKod, rec] of Object.entries(result)) {
+			for (const [xKod, rec] of entries(result)) {
 				if (rec.detTip == null) { rec.detTip = 'S' }
 				if (rec.xKod == null) { rec.xKod = xKod }
 			}
 		}
 		return result
 	}
-	static async _getAltKosulYapilar(e, _satisKosullar, _mustKod) {
-	    e = e ?? {}; let isObj = typeof e == 'object' && !$.isArray(e);
-		let kodListe = $.makeArray(isObj ? e.kodListe ?? e.kod : e); if (!kodListe.length) { return {} }
-		let satisKosullar = $.makeArray(isObj ? e.satisKosullar ?? e.satisKosul ?? e.kosullar ?? e.kosul : _satisKosullar);
+	static async _getAltKosulYapilar(e = {}, _satisKosullar, _mustKod) {
+	    let isObj = isObject(e) && !isArray(e)
+		let kodListe = makeArray(isObj ? e.kodListe ?? e.kod : e)
+		if (empty(kodListe))
+			return {}
+		let satisKosullar = makeArray(isObj ? e.satisKosullar ?? e.satisKosul ?? e.kosullar ?? e.kosul : _satisKosullar)
 		/* Satış koulundan belirlemede mustKod değerine ihtiyaç yok, satisKosul nesnesinin içinde zaten atanmış durumdadır.
 		       Ancak koşul yoksa satisKosul == null olacağı için, ek fiyat belirleme kısımlarında gerekli.
 			   Normalde (mustkod == satisKosul.mustKod) - aynı değer - geleceği varsayılıyor
 		*/
-		let mustKod = isObj ? e.mustKod : _mustKod, eksikKodSet = asSet(kodListe);
+		let mustKod = isObj ? e.mustKod : _mustKod
+		let eksikKodSet = asSet(kodListe)
 		/* 1) Satış Koşul varsa koşuldan fiyatları belirle.
 			  Eksik kalan kısımlar için araştırmaya devam et */
-	    let result = {}; if (!$.isEmptyObject(satisKosullar)) {
-			let altKosullar = {}; for (let kosul of satisKosullar) {
-				$.extend(altKosullar, await kosul.getAltKosullar(kodListe)) }
-	        for (let [stokKod, rec] of Object.entries(altKosullar)) {
-	            result[stokKod] ??= rec; rec.kayitTipi = 'K';
-	            if (rec.fiyat) { delete eksikKodSet[stokKod] /* console.log(rec) */ }
+	    let result = {}
+		if (!empty(satisKosullar)) {
+			let altKosullar = {}
+			for (let kosul of satisKosullar)
+				$.extend(altKosullar, await kosul.getAltKosullar(kodListe))
+	        for (let [stokKod, rec] of entries(altKosullar)) {
+	            result[stokKod] ??= rec
+				rec.kayitTipi = 'K'
+	            if (rec.fiyat)
+					delete eksikKodSet[stokKod]
 	        }
 	    }
-	    if ($.isEmptyObject(eksikKodSet)) { return result }
+	    if (empty(eksikKodSet))
+			return result
 		let musterisizListeFiyatiBelirle = async () => {
 			let sent = new MQSent({
-				from: 'stkmst stk', where: { inDizi: keys(eksikKodSet), saha: 'stk.kod' },
+				from: 'stkmst stk',
+				where: { inDizi: keys(eksikKodSet), saha: 'stk.kod' },
 				sahalar: ['stk.kod', 'stk.satfiyat1 fiyat']
-			});
-			for (let {kod, fiyat} of await app.sqlExecSelect(sent)) {
-				let rec = result[kod] = result[kod] ?? {};
-				rec.fiyat = fiyat; delete eksikKodSet[kod]
+			})
+			for (let {kod, fiyat} of await MQCogul.sqlExecSelect({ query: sent })) {
+				let rec = result[kod] = result[kod] ?? {}
+				rec.fiyat = fiyat
+				delete eksikKodSet[kod]
 			}
 		};
 		/* 2) Eksik kalanlar için - mustKod belirsiz ise doğrudan stok 1. fiyatı esas al */
@@ -68,20 +79,22 @@ class SatisKosul_Fiyat extends SatisKosul {
 					{ from: 'carfiyatliste fis', iliski: 'car.fiyatlistekod = fis.kod' },
 					{ from: 'carfiyattarife har', iliski: 'fis.kaysayac = har.fissayac' }
 				], where: [
-					{ inDizi: Object.keys(eksikKodSet), saha: 'har.stokkod' },
+					{ inDizi: keys(eksikKodSet), saha: 'har.stokkod' },
 					{ degerAta: mustKod, saha: 'car.must' },
 					`car.fiyatlistekod > ''`, 'har.satisfiyat > 0'
 				],
 				sahalar: ['car.fiyatlistekod kod', 'har.stokkod stokKod', 'har.satisfiyat fiyat']
 			});
-			let iskontoYokmu = false, promosyonYokmu = false;  /* ref: (SatisKosul::getAltKosullar) [in loop] */
-			for (let {kod, stokKod, fiyat} of await app.sqlExecSelect(sent)) {
-				let rec = result[stokKod] = result[stokKod] ?? {}, kayitTipi = 'L'; kod = `CR-${kod}`;
+			let iskontoYokmu = false, promosyonYokmu = false  /* ref: (SatisKosul::getAltKosullar) [in loop] */
+			for (let {kod, stokKod, fiyat} of await MQCogul.sqlExecSelect({ query: sent })) {
+				kod = `CR-${kod}`
+				let kayitTipi = 'L', rec = result[stokKod] ??= {}
 				$.extend(rec, { kayitTipi, fiyat, kod, iskontoYokmu, promosyonYokmu });
 				delete eksikKodSet[stokKod]  /* Fiyatı bulunanları eksik listesinden çıkar */ 
 			}
 		}
-		if ($.isEmptyObject(eksikKodSet)) { return result }
+		if (empty(eksikKodSet))
+			return result
 		/* 4) 'mustKod' belli iken: hala eksik fiyatlar varsa stok tanımından fiyatını belirle */ {
 			let fiyatSayi = app.params.fiyatVeIsk.fiyatSayi || 1, fiyatClause = 'stk.satfiyat';
 			if (fiyatSayi > 1) {
@@ -92,21 +105,23 @@ class SatisKosul_Fiyat extends SatisKosul {
 			let sent = new MQSent({
 				from: 'stkmst stk', where: [
 					{ degerAta: mustKod, saha: 'car.must' },
-					{ inDizi: Object.keys(eksikKodSet), saha: 'stk.kod' }
+					{ inDizi: keys(eksikKodSet), saha: 'stk.kod' }
 				],
 				sahalar: ['stk.kod stokKod', `${fiyatClause} fiyat`]
 			}).fromAdd('carmst car');
 			/* const iskontoYokmu = false, promosyonYokmu = false;    -- !! don't override flags */
-			for (let {stokKod, fiyat} of await app.sqlExecSelect(sent)) {
-				if (!fiyat) { continue }
-				let rec = result[stokKod] ??= {}, kod = '', kayitTipi = 'S';
-				$.extend(rec, { kayitTipi, kod, fiyat }); delete eksikKodSet[stokKod]
+			for (let {stokKod, fiyat} of await MQCogul.sqlExecSelect({ query: sent })) {
+				if (!fiyat)
+					continue
+				let rec = result[stokKod] ??= {}, kod = '', kayitTipi = 'S'
+				$.extend(rec, { kayitTipi, kod, fiyat })
+				delete eksikKodSet[stokKod]
 			}
 		}
-		if ($.isEmptyObject(eksikKodSet)) { return result }
+		if (empty(eksikKodSet)) { return result }
 		/* 5) 'mustKod' hatalı da olabilir.
 		       Eksik kalanlar için - 'Müşterisiz Liste Fiyatı Belirle' işlemini uygula */
-		await musterisizListeFiyatiBelirle();
+		await musterisizListeFiyatiBelirle()
 		return result
 	}
 }

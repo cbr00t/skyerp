@@ -6,7 +6,6 @@ class TabFis extends MQDetayliGUID {
 	static get detaySinif() { return TabDetay } static get sayacSaha() { return 'id' }
 	static get tanimUISinif() { return TabFisGirisPart } static get secimSinif() { return null }
 	static get dipKullanilirmi() { return false } static get dipSinif() { return TabIcmal }
-	static get dipIskOranSayi() { return 1 } static get dipIskBedelSayi() { return 1 }
 	static get dipGirisYapilirmi() { return true } static get gridIslemTuslariKullanilirmi() { return false }
 	static get tumKolonlarGosterilirmi() { return true } static get kolonFiltreKullanilirmi() { return false }
 	// static get noAutoFocus() { return true }
@@ -30,6 +29,8 @@ class TabFis extends MQDetayliGUID {
 		return tip ? new MQTicNumarator({ tip, belirtec, aciklama: 'Sky Tablet', seri }) : null
 	}
 	get numYapi() { return this.class.numYapi }
+	get kosulYapilar() { return this._kosulYapilar }
+	set kosulYapilar(value) { this._kosulYapilar = value }
 	get fisNox() { return this.tsn?.asText() }
 	get dipIslemci() {
 		let {_dipIslemci: result} = this
@@ -72,6 +73,7 @@ class TabFis extends MQDetayliGUID {
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		$.extend(pTanim, {
+			subeKod: new PInstStr('bizsubekod'),
 			tarih: new PInstDateToday('tarih'),
 			seri: new PInstStr('seri'),
 			noYil: new PInstNum('noyil'),
@@ -134,6 +136,9 @@ class TabFis extends MQDetayliGUID {
 			rec._html = det.html
 		}
 		return recs
+	}
+	async satisKosullariOlustur(e) {
+		return this
 	}
 	async yeniTanimOncesiIslemler(e) {
 		this.topluHesapla()
@@ -332,6 +337,8 @@ class TabFis extends MQDetayliGUID {
 				.etiketGosterim_yok()
 				.addStyle(`$elementCSS { max-width: 800px }`)
 				.kodsuz().setMFSinif(MQTabCari)
+				.degisince(e =>
+					fis.satisKosullariOlustur(e))
 				.onAfterRun(({ builder: { part } }) =>
 					setTimeout(() => part.focus(), 1))
 			/*form.addModelKullan('mustKod', MQTabCari.sinifAdi)

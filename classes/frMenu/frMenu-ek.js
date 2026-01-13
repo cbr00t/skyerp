@@ -163,6 +163,8 @@ class FRMenuChoice extends FRMenuItem {
 			return result
 		}
 		catch (ex) {
+			if (ex?.rc == 'userClose')
+				return
 			hConfirm(getErrorText(ex), this.text)
 			throw ex
 		}
