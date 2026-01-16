@@ -180,8 +180,9 @@ class HMRBilgi extends CIO {
 			if (kami && mfSinif) { mfSinif.hmrSetValuesEk?.({ ...e, inst: this, rec }) }
 		}
 	}
+	static globalleriSil() { return this.cacheReset() }
 	static cacheReset() {
-		for (const key of ['_ekOzellikListe', '_belirtecListe', '_belirtecSet', '_belirtec2Bilgi', '_ioAttrListe', '_rowAttrListe', '_hmrEtiketDict']) { delete this[key] };
+		deleteKeys(this, '_ekOzellikListe', '_belirtecListe', '_belirtecSet', '_belirtec2Bilgi', '_ioAttrListe', '_rowAttrListe', '_hmrEtiketDict')
 		return this
 	}
 }

@@ -35,9 +35,14 @@ class TabTSFis extends TabFis {
 		let {offsetRefs: refs} = dipIslemci
 		refs.kdv = liste[liste.length - 1]
 	}*/
-	async uiGirisOncesiIslemler(e) {
-		await super.uiGirisOncesiIslemler(e)
-		await this.satisKosullariOlustur(e)
+	async uiGirisOncesiIslemler({ islem }) {
+		await super.uiGirisOncesiIslemler(...arguments)
+		let {detaylar} = this
+		if (islem == 'degistir' || islem == 'sil') {
+			detaylar.forEach(det =>
+				det.ozelFiyat = det.ozelIsk = true)
+		}
+		// await this.satisKosullariOlustur(e)
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments)
@@ -51,9 +56,11 @@ class TabTSFis extends TabFis {
 		for (let k of ['dipIskOran1', 'dipIskOran2', 'dipIskBedel'])
 			dipIslemci[k] = rec[k.toLowerCase()] ?? 0
 	}
-	async topluHesapla(e) {
+	async topluHesapla(e = {}) {
 		await super.topluHesapla(e)
 		let {kosulYapilar, detaylar} = this
+		let {tanimPart = e.sender ?? {}} = e
+		let {gridPart: { gridWidget: w } = {}} = tanimPart
 		if (kosulYapilar && !empty(detaylar)) {
 			let kod2Detaylar = {}
 			detaylar.forEach(det => {
@@ -67,7 +74,7 @@ class TabTSFis extends TabFis {
 				for (let k of kosullar) {
 					let kod2Rec = await k.getAltKosulYapilar(kodListe)
 					for (let [kod, rec] of entries(kod2Rec)) {
-						let {fiyat = rec.ozelfiyat} = rec
+						let {fiyat = rec.ozelfiyat, iskontoYokmu} = rec
 						if (!fiyat)
 							continue
 						let subDetListe = kod2Detaylar[kod]
@@ -75,7 +82,13 @@ class TabTSFis extends TabFis {
 							continue
 						subDetListe
 							.filter(_ => !_.ozelFiyat)
-							.forEach(det => $.extend(det, { ozelFiyat: true, fiyat }))
+							.forEach(det => {
+								$.extend(det, { ozelFiyat: true, fiyat })
+								if (iskontoYokmu)                                                  // isk hesaplanmaması için flag set
+									det.ozelIsk = true
+								det.bedelHesapla().htmlOlustur()
+								w?.updaterow(det.uid, det)
+							})
 					}
 				}
 			}
@@ -85,7 +98,7 @@ class TabTSFis extends TabFis {
 				for (let k of kosullar) {
 					let kod2Rec = await k.getAltKosulYapilar(kodListe)
 					for (let [kod, rec] of entries(kod2Rec)) {
-						let {iskoran1: iskOran1} = rec
+						let {oran1: iskOran1} = rec
 						if (!iskOran1)
 							continue
 						let subDetListe = kod2Detaylar[kod]
@@ -93,7 +106,11 @@ class TabTSFis extends TabFis {
 							continue
 						subDetListe
 							.filter(_ => !_.ozelIsk)
-							.forEach(det => $.extend(det, { ozelIsk: true, iskOran1 }))
+							.forEach(det => {
+								$.extend(det, { ozelIsk: true, iskOran1 })
+								det.bedelHesapla().htmlOlustur()
+								w?.updaterow(det.uid, det)
+							})
 					}
 				}
 			}
@@ -103,7 +120,7 @@ class TabTSFis extends TabFis {
 		await super.satisKosullariOlustur(e)
 		let {tarih, subeKod, mustKod, detaylar} = this
 		// let stokKodListe = detaylar.map(_ => _.stokKod)
-		let kapsam = { /*tarih,*/ subeKod, mustKod }
+		let kapsam = { tarih, subeKod, mustKod }
 		try { this.kosulYapilar = await new SatisKosulYapi().uygunKosullar({ kapsam }) }
 		catch (ex) { cerr(ex) }
 		return this
@@ -231,7 +248,8 @@ class TabTSFis extends TabFis {
 		}
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_detay({ sender: tanimPart, inst: fis, rfb }) {
-		await super.rootFormBuilderDuzenle_tablet_acc_detay(...arguments)
+		let e = arguments[0]
+		await super.rootFormBuilderDuzenle_tablet_acc_detay(e)
 		let {acc} = tanimPart, {detaylar} = fis
 		rfb.addSimpleComboBox('barkod', 'Barkod', 'Barkod giriniz veya Ürün seçiniz')
 			.addStyle(`$elementCSS { max-width: 800px }`)
@@ -261,7 +279,7 @@ class TabTSFis extends TabFis {
 					.tipButton('X')
 					.onClick(({ gridRec, args: { owner: w } }) => {
 						w.deleterow(gridRec.uid)
-						fis.topluHesapla()
+						fis.topluHesapla(e)
 						acc?.render()
 					})
 			])
@@ -343,7 +361,7 @@ class TabTSFis extends TabFis {
 						w.selectrow(0)
 						w.ensurerowvisible(0)
 						txtMiktar?.focus()
-						fis.topluHesapla()
+						fis.topluHesapla(e)
 					}
 					acc?.render()
 					updateUI()
@@ -392,7 +410,7 @@ class TabTSFis extends TabFis {
 			let det = getDetay()
 			det.bedelHesapla().htmlOlustur()
 			w?.updaterow(det.uid, det)
-			fis.topluHesapla()
+			fis.topluHesapla(e)
 			acc.render()
 			updateUI()
 			input?.addClass('degisti')
@@ -460,8 +478,23 @@ class TabTSFis extends TabFis {
 	}
 
 	static async barkodOkundu({ tanimPart, barkodlar }) {
-		let results = await Promise.allSettled(barkodlar.map(barkod => app.barkodBilgiBelirle({ barkod })))
-		results = results
+		let e = arguments[0]
+		let barkodYapilar = barkodlar.filter(Boolean).map(barkod => {
+			let carpan = 1
+			for (let s of ['x', '*']) {
+				let i = barkod.indexOf(s)
+				if (i != -1) {
+					carpan = asFloat(barkod.slice(0, i))
+					barkod = barkod.slice(i + 1).trimEnd()
+				}
+				break
+			}
+			carpan ||= 1
+			return barkod ? ({ carpan, barkod }) : null
+		}).filter(Boolean)
+		let results = await Promise.allSettled(barkodYapilar.map(item =>
+			app.barkodBilgiBelirle(item)))
+		; results = results
 			.filter(_ => _.value && _.status == 'fulfilled')
 			.map(_ => _.value)
 		if (empty(results))
@@ -493,7 +526,7 @@ class TabTSFis extends TabFis {
 				w.clearselection()
 				w.selectrow(0)
 				w.ensurerowvisible(0)
-				fis.topluHesapla()
+				fis.topluHesapla(e)
 				setTimeout(() => acc?.render(), 1)
 				{
 					let css = 'degisti'

@@ -320,8 +320,13 @@ class MQYapi extends CIO {
 			window.progressManager?.progressStep()
 			if (kodKullanilirmi && kodSaha) {
 				let hv = { [kodSaha]: emptyKodValue }
-				let query = new MQInsert({ table: offlineTable, hv })
-				await this.sqlExecNone({ ...e, offlineMode, query })
+				let query = new MQInsert({ table: offlineTable, hv }).insertOnly()
+				try { await this.sqlExecNone({ ...e, offlineMode, query }) }
+				catch (ex) {
+					cerr(ex)
+					let query = new MQInsert({ table: offlineTable, hv }).insertIgnore()
+					await this.sqlExecNone({ ...e, offlineMode, query })
+				}
 				window.progressManager?.progressStep(45)
 			}
 			if (attrListe?.length) {
@@ -347,8 +352,17 @@ class MQYapi extends CIO {
 							if (!empty)
 								hvListe.push(hv)
 						}
-						let query = new MQInsert({ table: offlineTable, hvListe })
-						if (!await this.sqlExecNone({ ...e, offlineMode, query }))
+						let result
+						try {
+							let query = new MQInsert({ table: offlineTable, hvListe }).insertOnly()
+							result = await this.sqlExecNone({ ...e, offlineMode, query })
+						}
+						catch (ex) {
+							cerr(ex)
+							let query = new MQInsert({ table: offlineTable, hvListe }).insertIgnore()
+							result = await this.sqlExecNone({ ...e, offlineMode, query })
+						}
+						if (!result)
 							return this
 						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
 							okIdList.push(_recs.map(rec => rec[idSaha]))

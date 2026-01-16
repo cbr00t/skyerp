@@ -76,6 +76,10 @@ class TabletApp extends TicariApp {
 		super.paramsDuzenle(...arguments)
 		$.extend(params, { localData: MQLocalData.getInstance(), tablet: MQTabletParam.getInstance() })
 	}
+	async afterRun(e) {
+		await super.afterRun(e)
+		this.cacheReset()
+	}
 	async getAnaMenu(e) {
 		let {noMenuFlag, params} = this
 		if (noMenuFlag) { return new FRMenu() }
@@ -199,7 +203,7 @@ class TabletApp extends TicariApp {
 					delete cls._instance
 				await this.paramsDuzenle({ ...e, offlineRequest, offlineMode, params })
 				await this.paramsDuzenleSonrasi({ ...e, offlineRequest, offlineMode })
-				HMRBilgi.cacheReset()
+				HMRBilgi.globalleriSil()
 				pm.progressStep(2)
 			}
 			{
@@ -270,11 +274,17 @@ class TabletApp extends TicariApp {
 		setTimeout(() => hideProgress(), 200)
 	}
 	cacheReset() {
-		let {_cls2PTanim} = CIO, {offlineBilgiYukleSiniflar} = this
-		for (let cls of offlineBilgiYukleSiniflar)
+		let {_cls2PTanim} = CIO, {offlineClearTableSiniflar} = this
+		for (let cls of [...offlineClearTableSiniflar, TicIskYapi /*, HMRBilgi*/]) {
+			let {detaySinif} = cls ?? {}
 			cls?.globalleriSil?.()
+			detaySinif?.globalleriSil?.()
+		}
 		delete MQParam._topluYukle_kod2Rec
-		deleteKeys(this, '_offlineBilgiYukleSiniflar', '_offlineBilgiGonderSiniflar', '_offlineBilgiYukleGonderOrtakSiniflar', '_offlineCreateTableSiniflar')
+		deleteKeys(this,
+			'_offlineBilgiYukleSiniflar', '_offlineBilgiGonderSiniflar',
+			'_offlineBilgiYukleGonderOrtakSiniflar', '_offlineCreateTableSiniflar', '_offlineClearTableSiniflar'
+		)
 		for (let key in _cls2PTanim)
 			delete _cls2PTanim[key]
 		for (let key of ['mqGlobals', 'mqTemps']) {

@@ -143,7 +143,7 @@ class MQKod extends MQCogul {
 		super.hostVarsDuzenle(...arguments)
 		let {zeminRenk, class: { zeminRenkDesteklermi }} = this
 		if (zeminRenkDesteklermi)
-			hv.oscolor = html2OSColor(zeminRenk) || 0
+			hv.oscolor = html2OSColor(zeminRenk) || null
 	}
 	setValues({ rec, rec: { oscolor } }) {
 		super.setValues(...arguments)

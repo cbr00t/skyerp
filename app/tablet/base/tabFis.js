@@ -157,14 +157,16 @@ class TabFis extends MQDetayliGUID {
 	}
 	async yukleSonrasiIslemler({ islem }) {
 		// this.dipOlustur()
-		await super.yukleSonrasiIslemler(...arguments)
+		let e = arguments[0]
+		await super.yukleSonrasiIslemler(e)
 		this.topluHesapla(e)
 		let fis = this, {detaylar} = this
 		detaylar.forEach(det =>
 			det.htmlOlustur?.())
 	}
 	async kaydetOncesiIslemler({ islem }) {
-		await super.kaydetOncesiIslemler(...arguments)
+		let e = arguments[0]
+		await super.kaydetOncesiIslemler(e)
 		this.fisSonuc = this.fisTopNet
 		let {fisNo, numarator: num} = this
 		let yeniVeyaKopyami = islem == 'yeni' || islem == 'kopya'
@@ -227,6 +229,16 @@ class TabFis extends MQDetayliGUID {
 		dipIslemci?.topluHesapla(e)
 		return this
 	}
+	mustDegisti({ oldValue = this._oncekiMustKod, value = this.mustKod }) {
+		let {detaylar} = this
+		if (oldValue && value != oldValue) {
+			detaylar.forEach(det =>
+				det.ozelFiyat = det.ozelIsk = false)
+		}
+		this.satisKosullariOlustur(e)
+		this._oncekiMustKod = oldValue
+	}
+	
 	/*getDipGridSatirlari(e = {}) {
 		e.liste = []
 		this.dipGridSatirlariDuzenle(e)
@@ -330,6 +342,7 @@ class TabFis extends MQDetayliGUID {
 		}
 	}
 	static rootFormBuilderDuzenle_tablet_acc_baslik({ rfb, inst: fis }) {
+		let e = arguments[0]
 		{
 			let form = rfb.addFormWithParent().altAlta()
 			// addSimpleComboBox(e, _etiket, _placeholder, _value, _source, _autoClear, _delay, _minLength, _disabled, _name, _userData)
@@ -337,8 +350,13 @@ class TabFis extends MQDetayliGUID {
 				.etiketGosterim_yok()
 				.addStyle(`$elementCSS { max-width: 800px }`)
 				.kodsuz().setMFSinif(MQTabCari)
-				.degisince(e =>
-					fis.satisKosullariOlustur(e))
+				.degisince(({ type, events, ...rest }) => {
+					if (type != 'batch')
+						return
+					// henuz mustKod atanmadı
+					let _e = { type, events, ...rest, oldValue: fis.mustKod, value: events.at(-1).value?.trimEnd() }
+					setTimeout(() => fis.mustDegisti({ ...e, ..._e }), 5)
+				})
 				.onAfterRun(({ builder: { part } }) =>
 					setTimeout(() => part.focus(), 1))
 			/*form.addModelKullan('mustKod', MQTabCari.sinifAdi)

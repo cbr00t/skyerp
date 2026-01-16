@@ -2,9 +2,11 @@ class SatisKosul_IskVeKamOrtak extends SatisKosul {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get prefix() { return null } static get maxSayi() { return 0 }
 	getAltKosullar_queryDuzenle({ stm, sent, stokKodListe }) {
-		super.getAltKosullar_queryDuzenle(...arguments); const {where: wh, sahalar} = sent, {prefix, maxSayi} = this.class;
-		wh.add(`har.${prefix}oran1 > 0`);
-		for (let i = 1; i <= maxSayi; i++) { sahalar.add(`har.${prefix}oran${i} oran${i}`) }
+		super.getAltKosullar_queryDuzenle(...arguments)
+		let {where: wh, sahalar} = sent, {prefix, maxSayi} = this.class
+		wh.add(`har.${prefix}oran1 > 0`)
+		for (let i = 1; i <= maxSayi; i++)
+			sahalar.add(`har.${prefix}oran${i} oran${i}`)
 	}
 	/** Stoklar için Oran bilgilerini ver
 		@example(s):
@@ -17,16 +19,21 @@ class SatisKosul_IskVeKamOrtak extends SatisKosul {
 			console.table(await SatisKosul_Kampanya.getAltKosulYapilar(stokKodListe, satisKosul))
 
 	*/
-	static async getAltKosulYapilar(e, _satisKosullar) {
-	    e = e ?? {}; let isObj = typeof e == 'object' && !$.isArray(e);
-		let kodListe = $.makeArray(isObj ? e.kodListe ?? e.kod : e); if (!kodListe.length) { return {} }
-		let satisKosullar = $.makeArray(isObj ? e.satisKosullar ?? e.satisKosul ?? e.kosullar ?? e.kosul : _satisKosullar);
+	static async getAltKosulYapilar(e = {}, _satisKosullar) {
+	    let isObj = isObject(e) && !isArray(e)
+		let kodListe = $.makeArray(isObj ? e.kodListe ?? e.kod : e)
+		if (!kodListe.length)
+			return {}
+		let satisKosullar = $.makeArray(isObj ? e.satisKosullar ?? e.satisKosul ?? e.kosullar ?? e.kosul : _satisKosullar)
 		/* Satış Koşul varsa koşuldan oranları belirle */
-		 let result = {}; if (!$.isEmptyObject(satisKosullar)) {
-			let altKosullar = {}; for (let kosul of satisKosullar) {
-				$.extend(altKosullar, await kosul.getAltKosullar(kodListe)) }
-	        for (let [xKod, rec] of Object.entries(altKosullar)) {
-	            $.extend(rec, { xKod, kayitTipi });
+		let result = {}
+		if (!empty(satisKosullar)) {
+			let altKosullar = {}
+			for (let kosul of satisKosullar)
+				$.extend(altKosullar, await kosul.getAltKosullar(kodListe))
+	        for (let [xKod, rec] of entries(altKosullar)) {
+	            rec.detTip ??= 'S'
+				rec.xKod ??= xKod
 				result[xKod] ??= rec
 	        }
 	    }

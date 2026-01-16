@@ -74,7 +74,8 @@ class MQTabStok extends MQKAOrtak {
 			/*new GridKolon({ belirtec: 'calismadurumu', text: 'Aktif?', genislikCh: 10, filterType: 'checkedlist' }).tipBool(),
 			new GridKolon({ belirtec: 'satilamazfl', text: 'SatılaMAz?', genislikCh: 10, filterType: 'checkedlist' }).tipBool()*/
 		)
-		for (let i = 1; i <= this.satFiyatSayi; i++)
+		// for (let i = 1; i <= this.satFiyatSayi; i++)
+		for (let i = 1; i <= Math.max(3, this.satFiyatSayi); i++)
 			liste.push(new GridKolon({ belirtec: `satfiyat${i}`, text: `S.Fiyat${i}`, genislikCh: 11 }).tipDecimal_fiyat())
 		liste.push(
 			new GridKolon({ belirtec: 'almkdvorani', text: 'Alm.Kdv%', genislikCh: 8 }).tipNumerik(),

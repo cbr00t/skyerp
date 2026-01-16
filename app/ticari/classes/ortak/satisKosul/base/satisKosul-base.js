@@ -19,7 +19,7 @@ class SatisKosul extends CKodVeAdi {
 		this.sayac = e.sayac || null;
 		for (let key of ['kod', 'aciklama', 'grupKod', 'dvKod', 'subeIcinOzeldir']) { this[key] = e[key] ?? '' }
 		for (let key of ['mustDetaydami', 'iskontoYokmu', 'promosyonYokmu']) { this[key] = asBool(e[key]) }
-		let kapsam = e.kapsam ?? {}; if ($.isPlainObject(kapsam)) { kapsam = new SatisKosulKapsam(kapsam, alimmi) }
+		let kapsam = e.kapsam ?? {}; if (isPlainObject(kapsam)) { kapsam = new SatisKosulKapsam(kapsam, alimmi) }
 		let {mustRec} = e; $.extend(this, { kapsam, mustRec })
 	}
 	static newFor(e /*, _mustKod*/) {
@@ -38,18 +38,23 @@ class SatisKosul extends CKodVeAdi {
 		if (isPlainObject(kapsam))
 			kapsam = new SatisKosulKapsam(kapsam, alimmi)
 		{
-			let {basi, sonu} = kapsam?.must ?? {};
-			if (basi && basi == sonu) { mustKod = basi }
+			let {basi, sonu} = kapsam?.must ?? {}
+			if (basi && basi == sonu)
+				mustKod = basi
 		}
-		let stm = new MQStm(), {sent} = stm, _e = { ...e, stm, sent, mustKod }; this.yukle_queryDuzenle(_e);
+		let stm = new MQStm(), {sent} = stm
+		let _e = { ...e, stm, sent, mustKod }
+		this.yukle_queryDuzenle(_e)
 		stm = _e.stm; sent = _e.sent
 		let recs = await MQCogul.sqlExecSelect({ ...e, query: stm })
-		let uygunmu = false
-		let result = []; for (let rec of recs) {
-			let inst = new this(e); inst.setValues({ rec });
-			stm = sent = null;
-			uygunmu = true; if (mustKod && this.mustDetaydami) {
-				let {sayac} = this, {detayMustTable} = this.class
+		let uygunmu = false, result = []
+		for (let rec of recs) {
+			let inst = new this(e)
+			inst.setValues({ rec })
+			stm = sent = null
+			uygunmu = true
+			if (mustKod && this.mustDetaydami) {
+				let {sayac, class: { detayMustTable }} = this
 				let sent = new MQSent({
 					from: `${detayMustTable} mus`, sahalar: 'COUNT(*) sayi',
 					where: [{ degerAta: sayac, saha: fisSayacSaha }, { degerAta: mustKod, saha: 'mus.must' }]
@@ -60,17 +65,25 @@ class SatisKosul extends CKodVeAdi {
 				let mustRec = this.mustRec = e.mustRec ?? await this.getMust2Rec(mustKod)
 				uygunmu = kapsam.uygunmu(mustRec, alimmi)
 			}
-			if (uygunmu) { result.push(inst) }
+			if (uygunmu)
+				result.push(inst)
 		}
 		return result
 	}
-	static async yukle(e) { let inst = new this(e); return await inst.yukle(e) ? inst : null }
-	async yukle(e) {
-		e = e ?? {}; let kapsam = e.kapsam ?? this.kapsam ?? {}, mustKod, {fisSayacSaha, alimmi} = this.class;
-		if ($.isPlainObject(kapsam)) { kapsam = new SatisKosulKapsam(kapsam, alimmi) }
+	static async yukle(e) {
+		let inst = new this(e)
+		return await inst.yukle(e) ? inst : null
+	}
+	async yukle(e = {}) {
+		let kapsam = e.kapsam ?? this.kapsam ?? {}
+		let {mustDetaydami, class: { fisSayacSaha, alimmi }} = this
+		if (isPlainObject(kapsam))
+			kapsam = new SatisKosulKapsam(kapsam, alimmi)
+		let mustKod
 		{
-			let {basi, sonu} = kapsam?.must ?? {};
-			if (basi && basi == sonu) { mustKod = basi }
+			let {basi, sonu} = kapsam?.must ?? {}
+			if (basi && basi == sonu)
+				mustKod = basi
 		}
 		let stm = new MQStm(), {sent} = stm
 		let _e = { ...e, stm, sent, mustKod }
@@ -104,11 +117,17 @@ class SatisKosul extends CKodVeAdi {
     }
 	static yukle_queryDuzenle({ stm, sent, mustKod, kapsam, offlineMode }) {  /* edt: a!cbr00t-CGP */
 		offlineMode ??= MQCogul.isOfflineMode
-		let {alimmi, table} = this, {where: wh, sahalar} = sent, {orderBy} = stm, alias = 'fis';
-		if ($.isPlainObject(kapsam)) { kapsam = new SatisKosulKapsam(kapsam, alimmi) }
-		let {tipListe, tip2RowAttrListe} = SatisKosulKapsam, mustSqlDegeri = MQSQLOrtak.sqlServerDegeri(mustKod);
-		sent.fromAdd(`${table} ${alias}`); wh.fisSilindiEkle().add(`${alias}.devredisi = ''`);
+		let {alimmi, table} = this, {where: wh, sahalar} = sent, {orderBy} = stm
+		if (isPlainObject(kapsam)) { kapsam = new SatisKosulKapsam(kapsam, alimmi) }
+		let {tipListe, tip2RowAttrListe} = SatisKosulKapsam
+		let mustSqlDegeri = MQSQLOrtak.sqlServerDegeri(mustKod)
+		let alias = 'fis'
+		sent.fromAdd(`${table} ${alias}`)
+		wh.fisSilindiEkle().add(`${alias}.devredisi = ''`)
+		let _kapsam = kapsam
 		if (mustKod) {
+			_kapsam = kapsam.deepCopy?.() ?? { ...kapsam }
+			delete _kapsam.must
 			wh.add(new MQOrClause([
 				`fis.detaylimust = ''`,
 				new MQAndClause([
@@ -117,14 +136,15 @@ class SatisKosul extends CKodVeAdi {
 				])
 			]))
 		}
-		kapsam?.uygunlukClauseDuzenle({ alias, where: wh });
+		_kapsam?.uygunlukClauseDuzenle({ alias, where: wh })
 		sahalar.addWithAlias(alias,
 			'kaysayac sayac', 'kod', 'aciklama', 'kgrupkod grupKod', 'dvkod dvKod',
 			'detaylimust mustDetaydami', 'subeicinozeldir subeIcinOzeldir'
 		);
 		for (let tip of tipListe) {
 			let rowAttrs = tip2RowAttrListe[tip] ?? [`${tip}b`, `${tip}s`];
-			if (rowAttrs?.length) { sahalar.addWithAlias('fis', ...rowAttrs) }
+			if (rowAttrs?.length)
+				sahalar.addWithAlias('fis', ...rowAttrs)
 		}
 		if (offlineMode)
 			orderBy.add('subeicinozeldir', 'tarihb DESC', 'detaylimust', 'kod')
@@ -143,12 +163,11 @@ class SatisKosul extends CKodVeAdi {
 		let kapsam = this.kapsam = new SatisKosulKapsam(null, alimmi);
 		kapsam.setValues(arguments[0], alimmi)
 	}
-	async getAltKosullar(e) {
-		e ??= {}
+	async getAltKosullar(e = {}) {
 		if (!isObject(e) || isArray(e))
 			e = { kodListe: makeArray(e) }
 		let _satisKosul = this, {kapsam, kod, mustKod, iskontoYokmu, promosyonYokmu} = this
-		//let stokKodListe = $.makeArray(typeof e == 'object' && !$.isArray(e) ? e.stokKodListe ?? e.kodListe : e);
+		//let stokKodListe = $.makeArray(typeof e == 'object' && !$.isArray(e) ? e.stokKodListe ?? e.kodListe : e)
 		//if ($.isEmptyObject(stokKodListe)) { return {} }
 		let cache = _satisKosul._altKosullar ??= {}
 		let anah = toJSONStr({ ...e, kod, kapsam, mustKod})
@@ -159,43 +178,58 @@ class SatisKosul extends CKodVeAdi {
 					let sent = new MQSent({
 						from: 'stkmst stk', sahalar: ['stk.kod stokKod', 'stk.grupkod grupKod'],
 						where: [/*{ inDizi: stokKodListe, saha: 'stk.kod' },*/ `stk.grupkod > ''`]
-					});
+					})
 					for (let {stokKod, grupKod} of await MQCogul.sqlExecSelect({ ...e, query: sent })) {
-						if (!grupKod) { continue }
-						result.stok2GrupKod[stokKod] = grupKod;
-						(result.grup2StokKodSet[grupKod] = result.grup2StokKodSet[grupKod] ?? {})[stokKod] = true
+						if (!grupKod)
+							continue
+						result.stok2GrupKod[stokKod] = grupKod
+						; (result.grup2StokKodSet[grupKod] ??= {})[stokKod] = true
 					}
 				}
 				return result
 			})()
 			let {stok2GrupKod, grup2StokKodSet} = _, result = {}
 			{	/* Stok Gruplar için Alt Koşulları belirle (init values - öncelik #2) */
-				let stm = new MQStm(), {sent} = stm, kodListe = Object.keys(grup2StokKodSet);
+				let stm = new MQStm(), {sent} = stm, kodListe = keys(grup2StokKodSet)
 				let _e = { ...e, kodListe, stm, sent, grupmu: true };
 				if (this.getAltKosullar_queryDuzenle(_e) !== false) {
-					stm = _e.stm; sent = _e.sent;
-					let sevRecs = seviyelendir({ source: await MQCogul.sqlExecSelect({ ...e, query: stm }), attrListe: ['xKod'] });
-					let detTip = 'G'; for (let {detaylar} of sevRecs) {
-						for (let _rec of detaylar) {
-							let {xKod: grupKod} = _rec; if (!grupKod) { continue }										  /* sent.where koşulundan dolayı normalde boş grupKod gelmemesi gerekir, sadece önlem */
-							let stokKodSet = grup2StokKodSet[grupKod]; if ($.isEmptyObject(stokKodSet)) { continue }		  /* grupKod'a ait stokKod liste boş ise işlem yapma. normalde bu dict values içeriğinin boş gelmemesi bekleniyor */
-							$.extend(_rec, { _satisKosul, detTip, iskontoYokmu, promosyonYokmu });							  /* ortak değerleri orijinal _rec içine ata */
-							for (let xKod in stokKodSet) { let rec = { ..._rec, xKod }; result[xKod] = rec }				  /* grupKod'a ait her 'stokKod' için kopya kayıt ile result'a eklenti yap */
-						}
+					stm = _e.stm; sent = _e.sent
+					let sevRecs = seviyelendir({
+						attrListe: ['xKod'],
+						source: await MQCogul.sqlExecSelect({ ...e, query: stm })
+					})
+					let detTip = 'G'
+					for (let {detaylar} of sevRecs)
+					for (let _rec of detaylar) {
+						let {xKod: grupKod} = _rec
+						if (!grupKod)		 		 		 		 		 		 		 		 		 		 	  /* sent.where koşulundan dolayı normalde boş grupKod gelmemesi gerekir, sadece önlem */
+							continue
+						let stokKodSet = grup2StokKodSet[grupKod]
+						if (empty(stokKodSet))																			  /* grupKod'a ait stokKod liste boş ise işlem yapma. normalde bu dict values içeriğinin boş gelmemesi bekleniyor */
+							continue
+						$.extend(_rec, { _satisKosul, detTip, iskontoYokmu, promosyonYokmu })							  /* ortak değerleri orijinal _rec içine ata */
+						for (let xKod in stokKodSet)																	  /* grupKod'a ait her 'stokKod' için kopya kayıt ile result'a eklenti yap */
+							result[xKod] = { ..._rec, xKod }
 					}
 				}
 			}
 			{	/* Stoklar için Alt Koşulları belirle (with override - öncelik #1) */
 				let stm = new MQStm(), {sent} = stm  /*, kodListe = stokKodListe;*/
-				let _e = { ...e, /*kodListe,*/ stm, sent, grupmu: false }; if (this.getAltKosullar_queryDuzenle(_e) !== false) {
+				let _e = { ...e, /*kodListe,*/ stm, sent, grupmu: false }
+				if (this.getAltKosullar_queryDuzenle(_e) !== false) {
 					stm = _e.stm; sent = _e.sent
-					let sevRecs = seviyelendir({ source: await MQCogul.sqlExecSelect({ ...e, query: stm }), attrListe: ['xKod'] });
-					let detTip = 'S'; for (let {detaylar} of sevRecs) {
-						for (let rec of detaylar) {
-							let {xKod} = rec; if (!xKod) { continue }														 /* stokKod boş ise işlem yapma. normalde boş gelmemesi bekleniyor */
-							$.extend(rec, { _satisKosul, detTip, iskontoYokmu, promosyonYokmu })							 /* ortak değerleri ata */
-							result[xKod] = rec																				 /* result'a eklenti yap */
-						}
+					let sevRecs = seviyelendir({
+						attrListe: ['xKod'],
+						source: await MQCogul.sqlExecSelect({ ...e, query: stm })
+					})
+					let detTip = 'S'
+					for (let {detaylar} of sevRecs)
+					for (let rec of detaylar) {
+						let {xKod} = rec																				  /* stokKod boş ise işlem yapma. normalde boş gelmemesi bekleniyor */
+						if (!xKod)
+							continue
+						$.extend(rec, { _satisKosul, detTip, iskontoYokmu, promosyonYokmu })							  /* ortak değerleri ata */
+						result[xKod] = rec																				  /* result'a eklenti yap */
 					}
 				}
 			}
@@ -203,21 +237,26 @@ class SatisKosul extends CKodVeAdi {
 		})()
 	}
 	getAltKosullar_queryDuzenle({ stm, sent, kodListe, grupmu }) {
-		let {table, detayTables, fisSayacSaha} = this.class, {sayac, kapsam} = this, {mustKod} = kapsam;
-		let {where: wh, sahalar} = sent, {orderBy} = stm, xKodClause = grupmu ? 'grupkod' : 'stokkod';
-		let detTable = detayTables?.[grupmu ? 'grup' : 'stok']; if (!detTable) { return false }
-		sent.fromAdd(`${detTable} har`); wh.degerAta(sayac, `har.${fisSayacSaha}`);
-		if (kodListe?.length) { wh.inDizi(kodListe, `har.${xKodClause}`) }
-		sahalar.addWithAlias('har', `${fisSayacSaha} fisSayac`, `${xKodClause} xKod`);
-		orderBy.add('xKod');
+		let {sayac, kapsam, class: { table, detayTables, fisSayacSaha }} = this, {mustKod} = kapsam
+		let {where: wh, sahalar} = sent, {orderBy} = stm
+		let xKodClause = grupmu ? 'grupkod' : 'stokkod'
+		let detTable = detayTables?.[grupmu ? 'grup' : 'stok']
+		if (!detTable)
+			return false
+		sent.fromAdd(`${detTable} har`)
+		wh.degerAta(sayac, `har.${fisSayacSaha}`)
+		if (kodListe?.length)
+			wh.inDizi(kodListe, `har.${xKodClause}`)
+		sahalar.addWithAlias('har', `${fisSayacSaha} fisSayac`, `${xKodClause} xKod`)
+		orderBy.add('xKod')
 	}
 	static async getMust2Rec(e = {}) {
-		let kod = (typeof e == 'object' ? e.mustKod ?? e.mustkod ?? e.must ?? e.kod : e)?.trimEnd()
+		let kod = (isObject(e) ? e.mustKod ?? e.mustkod ?? e.must ?? e.kod : e)?.trimEnd()
 		if (!kod)
 			return null
 		let mustKod2Rec = this._mustKod2Rec ??= {}
 		return mustKod2Rec[kod] ??= await (async () => {
-			let sent = new MQSent(), {where: wh, sahalar} = sent;
+			let sent = new MQSent(), {where: wh, sahalar} = sent
 			sent.fromAdd('carmst car')
 				.cari2BolgeBagla().fromIliski('isyeri isy', 'bol.bizsubekod = isy.kod')
 	            .leftJoin('car', 'carisatis csat', ['car.must = csat.must', `csat.satistipkod = ''`])
@@ -235,14 +274,14 @@ class SatisKosul extends CKodVeAdi {
 			return await MQCogul.sqlExecTekil({ ...e, query: sent })
 		})
 	}
-	uygunmu(e) {
-		e = e ?? {}; let {kapsam} = this, diger = (typeof e == 'object' ? e.kapsam : e) ?? {};
-		return Object.keys(kapsam).every(key => !diger[key] || kapsam[key] == diger[key])
+	uygunmu(e = {}) {
+		let {kapsam} = this, diger = (typeof e == 'object' ? e.kapsam : e) ?? {}
+		return keys(kapsam)?.every(k => !diger[k] || kapsam[k] == diger[k]) ?? false
 	}
-	kesisim(e) {
-		e = e ?? {}; let {kapsam} = this, diger = (typeof e == 'object' ? e.kapsam : e) ?? {};
-		let keys = Object.keys(kapsam).filter(key => !diger[key] || kapsam[key] == diger[key]);
-		let result = {}; for (let key of keys) { result[key] = kapsam[key] } return result
+	kesisim(e = {}) {
+		let {kapsam} = this, diger = (typeof e == 'object' ? e.kapsam : e) ?? {}
+		let _keys = keys(kapsam).filter(k => !diger[k] || kapsam[k] == diger[k])
+		return fromEntries(_keys.map(k => [k, kapsam[k]]))
 	}
 }
 

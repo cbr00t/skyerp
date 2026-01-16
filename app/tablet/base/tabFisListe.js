@@ -1,7 +1,7 @@
 class TabFisListe extends TabFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get fisTipi() { return null } static get detaySinif() { return TabFisListeDetay }
-	static get kodListeTipi() { return 'TABFISLISTE' } static get sinifAdi() { return 'Fiş listesi' }
+	static get kodListeTipi() { return 'FISLISTE' } static get sinifAdi() { return 'Fiş listesi' }
 	static get araSeviyemi() { return true }
 
 	static fisSinifFor(e) {

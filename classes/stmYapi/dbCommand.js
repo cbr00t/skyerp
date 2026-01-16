@@ -79,6 +79,8 @@ class MQInsertBase extends MQDbCommand {
 	constructor(e = {}) {
 		super(e)
 		let {table = e.from, hvListe = e.hv, tableInsertFlag = e.tableInsertFlag, insertOnlyFlag = e.insertOnly} = e
+		if (config.dev)
+			insertOnlyFlag ??= true
 		hvListe = makeArray(hvListe)
 		$.extend(this, { table, hvListe, tableInsertFlag, insertOnlyFlag })
 	}

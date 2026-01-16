@@ -7,7 +7,12 @@ class CObject {
 		window.boot?.step()
 	}
 	static get classKey() { return this.name || this }
-	static get deepCopyAlinmayacaklar() { return ['#supers', '_promise', ...keys(CObject.prototype)] }
+	static get deepCopyAlinmayacaklar() {
+		return [
+			'#supers', '_promise', ...keys(CObject.prototype),
+			'sqlDegeri', 'sqlDegeri_unescaped', 'sqlParamValue', 'sqlServerDegeri', 'sqliteDegeri'
+		]
+	}
 	static get metaClass() { return this.prototype } static get superClass() { return this.__proto__ }
 	get class() { return this.constructor ?? this.__proto__.constructor }
 	get bosmu() { return false }
@@ -205,7 +210,7 @@ class CObject {
 	shallowCopy(e) {
 		e = e || {}; let deepCopyAlinmayacaklar = asSet(this.class.deepCopyAlinmayacaklar || []), inst = new (this.class)({ isCopy: true, isDeepCopy: false });
 		for (let key in this) {
-			let value = this[key];
+			let value = this[key]
 			if (value && !deepCopyAlinmayacaklar[key]) {
 				if (value.shallowCopy) value = value.shallowCopy(e)
 				else if ($.isArray(value)) value = $.extend(true, [], value)
@@ -213,6 +218,7 @@ class CObject {
 			}
 			inst[key] = value
 		}
+		deleteKeys(inst, 'sqlDegeri', 'sqlDegeri_unescaped', 'sqlParamValue', 'sqlServerDegeri', 'sqliteDegeri')
 		return inst
 	}
 	deepCopy(e = {}) {
@@ -239,6 +245,7 @@ class CObject {
 			}
 			inst[key] = value
 		}
+		deleteKeys(inst, 'sqlDegeri', 'sqlDegeri_unescaped', 'sqlParamValue', 'sqlServerDegeri', 'sqliteDegeri')
 		return inst
 	}
 	setUniqueTimeout(e) {		/* e: { key, block, delayMS, ...e } */

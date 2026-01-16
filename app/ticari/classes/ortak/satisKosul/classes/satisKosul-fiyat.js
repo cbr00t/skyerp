@@ -25,8 +25,8 @@ class SatisKosul_Fiyat extends SatisKosul {
 		let result = cache[anah] ??= await this._getAltKosulYapilar(e, _satisKosul, _mustKod)
 		if (result) {
 			for (const [xKod, rec] of entries(result)) {
-				if (rec.detTip == null) { rec.detTip = 'S' }
-				if (rec.xKod == null) { rec.xKod = xKod }
+				rec.detTip ??= 'S'
+				rec.xKod ??= xKod
 			}
 		}
 		return result

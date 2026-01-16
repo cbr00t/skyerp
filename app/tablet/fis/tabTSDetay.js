@@ -15,9 +15,9 @@ class TabTSDetay extends TabDetay {
 		this.miktar ??= 1; this.brm ||= 'AD'
 		for (let k of ['fiyat', 'kdvOrani', 'kdv', 'brutBedel', 'bedel', 'dagitDipIskBedel'])
 			this[k] ??= 0
-		let {carpan} = e
+		/*let {carpan} = e
 		if (carpan && carpan != 1)
-			this.miktar *= carpan
+			this.miktar *= carpan*/
 	}
 	static io2RowAttrOlustur({ result }) {
 		super.io2RowAttrOlustur(...arguments)
@@ -90,6 +90,17 @@ class TabTSDetay extends TabDetay {
 	getHTML(e) {
 		let _ = super.getHTML(e) ?? ''
 		let {stokAdi, stokKod, barkod, miktar, brm, fiyat} = this
+		let iskHTMLListe = []
+		for (let {ioAttr} of TicIskYapi.getIskIter()) {
+			let v = this[ioAttr]
+			if (!v)
+				continue
+			if (iskHTMLListe.length)
+				iskHTMLListe.push(`<span>+</span>"`)
+			else
+				iskHTMLListe.push(`<span>- %</span>`)
+			iskHTMLListe.push(`<span class="orangered">${numberToString(v)}</span>`)
+		}
 		return [
 			_,
 			`<div class="asil flex-row" style="gap: 0 10px">`,
@@ -102,6 +113,7 @@ class TabTSDetay extends TabDetay {
 				`<span> x </span>`,
 				`<span class="fiyat bold royalblue">${numberToString(roundToFiyatFra(fiyat))}</span>`,
 				`<span>TL</span>`,
+				...iskHTMLListe,
 			`</div>`
 		].filter(_ => _).join(CrLf)
 	}

@@ -6,7 +6,6 @@ class TicIskYapi extends CObject {
 			result = this._iskEtiketDict = app.params?.fiyatVeIsk?.iskEtiketDict
 		return result
 	}
-	
 	static *getIskYapiIter() {
 		let {fiyatVeIsk: param} = app.params ?? {}
 		let {iskSayi, iskOranMax} = param ?? {}
@@ -37,64 +36,54 @@ class TicIskYapi extends CObject {
 			}
 		}
 	}
-	
 	static get iskYapi() {
 		let result = [];
 		for (let item of this.getIskYapiIter())
 			result.push(item);
 		return result
 	}
-	
 	static get iskKeys() {
 		let result = [];
 		for (let item of this.getIskKeysIter())
 			result.push(item);
 		return result
 	}
-
 	static get iskListe() {
 		let result = [];
 		for (let item of this.getIskIter())
-			result.push(item);
+			result.push(item)
 		return result
 	}
-	
 	
 	constructor(e = {}) {
 		super(e)
 		for (let key of this.class.iskKeys)
-			this[key] = e[key] || [];
+			this[key] = e[key] || []
 	}
-
 	getHesaplanmisIskontolarVeToplam(e) {
-		let {brutBedel} = e;
-		let kalan = brutBedel;
-		
-		let result = new this.class();
-		let toplam = 0;
+		let {brutBedel} = e
+		let kalan = brutBedel
+		let result = new this.class()
+		let toplam = 0
 		for (let key of this.class.iskKeys) {
-			let oranlar = this[key];
-			let bedeller = result[key] = [];
+			let oranlar = this[key]
+			let bedeller = result[key] = []
 			for (let i = 0; i < oranlar.length; i++) {
-				let oran = oranlar[i];
-				let iskBedel = oran ? roundToBedelFra(kalan * oran / 100) : 0;
-				bedeller[i] = iskBedel;
-				kalan -= iskBedel;
-				toplam += iskBedel;
+				let oran = oranlar[i]
+				let iskBedel = oran ? roundToBedelFra(kalan * oran / 100) : 0
+				bedeller[i] = iskBedel
+				kalan -= iskBedel
+				toplam += iskBedel
 			}
 		}
-
-		return { toplam: toplam, result: result };
+		return { toplam: toplam, result: result }
 	}
-
 	getTopIskBedel(e) {
 		return (this.getHesaplanmisIskontolarVeToplam(e) || {}).toplam
 	}
-
 	getHesaplanmisIskontolar(e) {
 		return (this.getHesaplanmisIskontolarVeToplam(e) || {}).result
 	}
-
 	// bedelsel toplam içindir
 	kendineEkle(diger) {
 		if (diger) {
@@ -108,6 +97,10 @@ class TicIskYapi extends CObject {
 				}
 			}
 		}
+		return this
+	}
+	static globalleriSil() {
+		deleteKeys(this, '_iskEtiketDict')
 		return this
 	}
 }

@@ -69,10 +69,12 @@ class SatisKosulKapsam extends CObject {
 		return tipListe.every(tip => this[tip]?.uygunmu(diger[`${tip}Kod`] ?? diger[`${tip}kod`] ?? diger[tip]) ?? true)
 	}
 	uygunlukClauseDuzenle({ alias, where: wh, alim }) {  /* this: diger */
-		let {uygunmuKontrol, tipListe, dateTipSet} = this.class, aliasVeNokta = alias ? `${alias}.` : '';
+		let {uygunmuKontrol, tipListe, dateTipSet} = this.class
+		let aliasVeNokta = alias ? `${alias}.` : '';
 		if (alim) {
-			tipListe = this.class.alimTipListe;
-			uygunmuKontrol = { ...uygunmuKontrol }; let {sql, js} = uygunmuKontrol;
+			tipListe = this.class.alimTipListe
+			uygunmuKontrol = { ...uygunmuKontrol }
+			let {sql, js} = uygunmuKontrol
 			$.extend(uygunmuKontrol, {
 				sql: { ...sql, must: undefined },
 				js: { ...js, must: true }
@@ -80,15 +82,21 @@ class SatisKosulKapsam extends CObject {
 		}
 		for (let tip of tipListe) {
 			if (uygunmuKontrol && !uygunmuKontrol.sql?.[tip]) { continue }
-			let bs = this[tip] ?? {}, {basi, sonu} = bs; if (!(basi || sonu)) { continue }
-			let saha = { basi: `${aliasVeNokta}${tip}b`, sonu: `${aliasVeNokta}${tip}s` };
+			let bs = this[tip] ?? {}, {basi, sonu} = bs
+			if (!(basi || sonu)) { continue }
+			let saha = { basi: `${aliasVeNokta}${tip}b`, sonu: `${aliasVeNokta}${tip}s` }
 			let and = new MQAndClause(), addClause = (selector, operator) => {
-				let value = bs[selector]; if (!value) { return }
-				if (dateTipSet[tip]) { value = asDate(value) }
+				let value = bs[selector]
+				if (!value)
+					return
+				if (dateTipSet[tip])
+					value = asDate(value)
 				and.add(`${saha[selector]} ${operator} ${MQSQLOrtak.sqlServerDegeri(value)}`)
 			};
-			addClause('basi', '<='); addClause('sonu', '>=');
-			if (and.liste.length) { wh.add(and) }
+			addClause('basi', '<=')
+			addClause('sonu', '>=')
+			if (and.liste.length)
+				wh.add(and)
 		}
 		return this
 	}

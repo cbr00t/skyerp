@@ -1,8 +1,7 @@
 class TabDetay extends MQDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'tabhar' }
-	static get sayacSaha() { return null }
-	static get fisSayacSaha() { return 'fisid' }
+	static get sayacSaha() { return null } static get fisSayacSaha() { return 'fisid' }
 	static get io2RowAttr() {
 		let {_io2RowAttr: result} = this
 		if (!result) {
@@ -72,5 +71,9 @@ class TabDetay extends MQDetay {
 	htmlOlustur(e) {
 		this.html
 		return this
+	}
+	static globalleriSil(e) {
+		super.globalleriSil(e)
+		deleteKeys(this, '_io2RowAttr')
 	}
 }
