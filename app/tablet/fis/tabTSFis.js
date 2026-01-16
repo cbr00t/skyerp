@@ -51,6 +51,54 @@ class TabTSFis extends TabFis {
 		for (let k of ['dipIskOran1', 'dipIskOran2', 'dipIskBedel'])
 			dipIslemci[k] = rec[k.toLowerCase()] ?? 0
 	}
+	async topluHesapla(e) {
+		await super.topluHesapla(e)
+		let {kosulYapilar, detaylar} = this
+		if (kosulYapilar && !empty(detaylar)) {
+			let kod2Detaylar = {}
+			detaylar.forEach(det => {
+				let {stokKod: kod} = det
+				; (kod2Detaylar[kod] ??= []).push(det)
+			})
+			let kodListe = keys(kod2Detaylar)
+			{
+				let {FY: kosullar} = kosulYapilar
+				if (!empty(kosullar))
+				for (let k of kosullar) {
+					let kod2Rec = await k.getAltKosulYapilar(kodListe)
+					for (let [kod, rec] of entries(kod2Rec)) {
+						let {fiyat = rec.ozelfiyat} = rec
+						if (!fiyat)
+							continue
+						let subDetListe = kod2Detaylar[kod]
+						if (empty(subDetListe))
+							continue
+						subDetListe
+							.filter(_ => !_.ozelFiyat)
+							.forEach(det => $.extend(det, { ozelFiyat: true, fiyat }))
+					}
+				}
+			}
+			{
+				let {SB: kosullar} = kosulYapilar
+				if (!empty(kosullar))
+				for (let k of kosullar) {
+					let kod2Rec = await k.getAltKosulYapilar(kodListe)
+					for (let [kod, rec] of entries(kod2Rec)) {
+						let {iskoran1: iskOran1} = rec
+						if (!iskOran1)
+							continue
+						let subDetListe = kod2Detaylar[kod]
+						if (empty(subDetListe))
+							continue
+						subDetListe
+							.filter(_ => !_.ozelIsk)
+							.forEach(det => $.extend(det, { ozelIsk: true, iskOran1 }))
+					}
+				}
+			}
+		}
+	}
 	async satisKosullariOlustur(e) {
 		await super.satisKosullariOlustur(e)
 		let {tarih, subeKod, mustKod, detaylar} = this

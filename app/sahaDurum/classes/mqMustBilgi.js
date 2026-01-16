@@ -99,7 +99,7 @@ class MQMustBilgi extends MQKAOrtak {
 					continue
 				let recs = await cls.loadServerDataDogrudan(e) ?? []
 				for (let rec of recs) {
-					let parentRec, {icerikfissayac: fisSayac} = rec;
+					let parentRec, {icerikfissayac: fisSayac} = rec
 					switch (cls) {
 						case MQCariEkstre: if (fisSayac) { cariEkstre_fisSayac2Rec[fisSayac] = rec } break
 						case MQCariEkstre_Detay: parentRec = cariEkstre_fisSayac2Rec[fisSayac]; break
@@ -113,8 +113,10 @@ class MQMustBilgi extends MQKAOrtak {
 						(mustBilgi[subDataKey] ??= []).push(rec)
 				}
 			}
-			let AsyncMax = 5, promises = []; for (let mustBilgi of Object.values(result)) {
-				promises.push(new $.Deferred(p => p.resolve( mustBilgi.kapanmayanHesap_yaslandirmaOlustur(e) )))
+			let AsyncMax = 5, promises = []
+			for (let mustBilgi of values(result)) {
+				promises.push(new $.Deferred(p =>
+					p.resolve( mustBilgi.kapanmayanHesap_yaslandirmaOlustur(e) )))
 				if (promises.length >= AsyncMax) {
 					await Promise.all(promises)
 					promises = []
@@ -127,11 +129,12 @@ class MQMustBilgi extends MQKAOrtak {
 		}
 		if (result) {
 			for (let kod in result) {
-				let rec = result[kod];
-				if ($.isPlainObject(rec)) { result[kod] = rec = new MustBilgi(rec) }
+				let rec = result[kod]
+				if (isPlainObject(rec))
+					result[kod] = rec = new MustBilgi(rec)
 			}
 		}
-		let recs = Object.values(result);
+		let recs = values(result)
 		return recs
 	}
 	static rootFormBuilderDuzenle(e) {

@@ -163,9 +163,16 @@ class MQKapanmayanHesaplar_Yaslandirma extends MQMasterOrtak {
 		$.extend(args, { sortable: false, groupable: false, showFilterRow: false, rowsHeight: 30, adaptive: false })
 	}
 	static ekCSSDuzenle({ dataField: belirtec, rec, result }) {
-		super.ekCSSDuzenle(...arguments);
-		if (rec?.toplammi) { result.push('bg-lightroyalblue', 'bold'); if (belirtec == 'gecmis') { result.push('red') } else if (belirtec == 'gelecek') { result.push('green') } }
-		else { if (belirtec == 'gecmis') { result.push('bg-lightpink') } else if (belirtec == 'gelecek') { result.push('bg-lightgreen') }}
+		super.ekCSSDuzenle(...arguments)
+		if (rec?.toplammi) {
+			result.push('bg-lightroyalblue', 'bold')
+			if (belirtec == 'gecmis') { result.push('red') }
+			else if (belirtec == 'gelecek') { result.push('green') }
+		}
+		else {
+			if (belirtec == 'gecmis') { result.push('bg-lightpink') }
+			else if (belirtec == 'gelecek') { result.push('bg-lightgreen') }
+		}
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments); liste.push(...[
@@ -175,24 +182,33 @@ class MQKapanmayanHesaplar_Yaslandirma extends MQMasterOrtak {
 		])
 	}
 	static loadServerData({ mustKod }) {
-		let recs = this.loadServerDataFromMustBilgi(...arguments); if (!recs) { return recs }
-		let toplam = { gecmis: 0, gelecek: 0 }; /*if (mustKod == 'M05D48928') { debugger }*/
+		let recs = this.loadServerDataFromMustBilgi(...arguments)
+		if (!recs)
+			return recs
+		let toplam = { gecmis: 0, gelecek: 0 }
+		/*if (mustKod == 'M05D48928') { debugger }*/
 		for (let rec of recs) {
-			let {isaretligecikmegun: isaretliGecikmeGun} = rec;
+			let {isaretligecikmegun: isaretliGecikmeGun} = rec
 			if (isaretliGecikmeGun != null) {
-				isaretliGecikmeGun = typeof isaretliGecikmeGun === 'string' ? asDate(isaretliGecikmeGun) : isaretliGecikmeGun;
-				if (isDate(isaretliGecikmeGun)) { isaretliGecikmeGun = ((isaretliGecikmeGun - minDate) / Date_OneDayNum) + 1 }
-				rec.gecmis = rec.gelecek = 0; rec[isaretliGecikmeGun < 0 ? 'gelecek' : 'gecmis'] += Math.abs(isaretliGecikmeGun);
+				isaretliGecikmeGun = typeof isaretliGecikmeGun === 'string' ? asDate(isaretliGecikmeGun) : isaretliGecikmeGun
+				if (isDate(isaretliGecikmeGun))
+					isaretliGecikmeGun = ((isaretliGecikmeGun - minDate) / Date_OneDayNum) + 1
+				rec.gecmis = rec.gelecek = 0; rec[isaretliGecikmeGun < 0 ? 'gelecek' : 'gecmis'] += Math.abs(isaretliGecikmeGun)
 				delete rec.isaretligecikmegun
 			}
-			for (let key of ['gecmis', 'gelecek']) { toplam[key] += rec[key] }
+			for (let key of ['gecmis', 'gelecek'])
+				toplam[key] += rec[key]
 		}
-		let recToplam = { toplammi: true, kademeText: `<u>TOPLAM</u> =&gt;` }; for (let key in toplam) { recToplam[key] = toplam[key] }
-		recs = [recToplam, ...recs]; return recs
+		let recToplam = { toplammi: true, kademeText: `<u>TOPLAM</u> =&gt;` }
+		for (let key in toplam)
+			recToplam[key] = toplam[key]
+		recs.unshift(recToplam)
+		return recs
 	}
 	static loadServerDataFromMustBilgi(e) {
-		let recs = super.loadServerDataFromMustBilgi(e);
-		if (!$.isArray(recs)) { recs = Object.values(recs || {}) }
+		let recs = super.loadServerDataFromMustBilgi(e)
+		if (!isArray(recs))
+			recs = values(recs || {})
 		return recs
 	}
 }

@@ -802,10 +802,11 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			.setMFSinif(raporTanimSinif).setValue(inst.sayac).addStyle_fullWH('calc(var(--full) - 350px)')
 			.initArgsDuzenleHandler(({ args }) =>  args.args = { rapor: this })
 			.ozelQueryDuzenleHandler(e => {
-				let {stm, aliasVeNokta} = e, {raporKod} = raporTanim
-				let {encUser} = config.session, {kodSaha} = raporTanim.class
+				let {noUserCheck, stm, aliasVeNokta} = e, {raporKod, class: mfSinif} = raporTanim
+				let {isAdmin, encUser} = config.session, {kodSaha} = mfSinif
 				for (let {where: wh} of stm) {
-					if (encUser) { wh.degerAta(encUser, `${aliasVeNokta}xuserkod`) }
+					if (!(noUserCheck || isAdmin) && encUser)
+						wh.degerAta(encUser, `${aliasVeNokta}xuserkod`)
 					wh.degerAta(raporKod, `${aliasVeNokta}raportip`)
 				}
 			}).degisince(e => {

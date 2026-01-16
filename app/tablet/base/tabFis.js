@@ -141,7 +141,7 @@ class TabFis extends MQDetayliGUID {
 		return this
 	}
 	async yeniTanimOncesiIslemler(e) {
-		this.topluHesapla()
+		await this.topluHesapla(e)
 		await super.yeniTanimOncesiIslemler(e)
 		let fis = this, {numarator: num} = this
 		if (num) {
@@ -158,7 +158,7 @@ class TabFis extends MQDetayliGUID {
 	async yukleSonrasiIslemler({ islem }) {
 		// this.dipOlustur()
 		await super.yukleSonrasiIslemler(...arguments)
-		this.topluHesapla()
+		this.topluHesapla(e)
 		let fis = this, {detaylar} = this
 		detaylar.forEach(det =>
 			det.htmlOlustur?.())
@@ -319,7 +319,7 @@ class TabFis extends MQDetayliGUID {
 		let {mustKod} = fis
 		if (mustKod) {
 			let {adiSaha} = MQTabCari
-			let {[mustKod]: { [adiSaha]: aciklama }} = await MQTabCari.getGloKod2Rec() ?? {}
+			let {[mustKod]: { [adiSaha]: aciklama } = {}} = await MQTabCari.getGloKod2Rec() ?? {}
 			aciklama ||= mustKod
 			rfb.addForm().setLayout(() => $([
 				`<div class="flex-row" style="gap: 10px">`,

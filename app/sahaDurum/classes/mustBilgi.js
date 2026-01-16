@@ -10,6 +10,7 @@ class MustBilgi extends CObject {
 	get yaslandirmalar() { return this[this.class.yaslandirmaKey] }
 	set yaslandirmalar(value) { this[this.class.yaslandirmaKey] = value }
 	get bakiyeText() { return `Bakiye: <span class="bold green">${toStringWithFra(this.bakiye, 2)}</b>` }
+
 	constructor(e = {}) {
 		super(e); $.extend(this, e)
 		let {yaslandirmalar} = this
@@ -51,8 +52,8 @@ class MustBilgi extends CObject {
 			}
 		}
 		this.bakiye = topla(_ => _.bedel || 0, yaslandirmalar)
-		kademeler.forEach((_, i) =>
-			this[`kademe${i}Bedel`] = this.getKademeGecmisBedeli(i - 1))
+		for (let i = 1; i <= kademeler.length + 1; i++)
+			this[`kademe${i}Bedel`] = this.getKademeGecmisBedeli(i - 1)
 	}
 	static getGunIcinKademeIndex(gun) {
 		let {kademeler} = this
