@@ -28,11 +28,12 @@ class SatisKosulKapsam extends CObject {
 	}
 	constructor(e, _alimmi) {
 		e = e ?? {}; super(e);
-		if (!$.isEmptyObject(e)) { this.setValues({ rec: e, alim: e?.alim }, _alimmi) }
+		if (!empty(e)) { this.setValues({ rec: e, alim: e?.alim }, _alimmi) }
 	}
-	setValues(e, _alimmi) {
-		e = e ?? {}; let {rec, mustRec, alim: alimmi} = e; alimmi ??= _alimmi;
-		let {tipListe, dateTipSet} = this.class, {subeIcinOzeldir} = rec;
+	setValues(e = {}, _alimmi) {
+		let {rec, mustRec, alim: alimmi} = e
+		alimmi ??= _alimmi
+		let {tipListe, dateTipSet} = this.class, {subeIcinOzeldir} = rec
 		if (alimmi) { tipListe = this.class.alimTipListe }
 		if (subeIcinOzeldir != null && !subeIcinOzeldir) { tipListe = tipListe.filter(tip => !(tip == 'sube' || tip == 'subeGrup')) }
 		for (let tip of tipListe) {
@@ -62,15 +63,19 @@ class SatisKosulKapsam extends CObject {
 			setBSIfEmpty('sube', mustRec.subeKod); setBSIfEmpty('subeGrup', mustRec.subeGrupKod)
 		}*/
 	}
-	uygunmu(e, _alimmi) {
-		e = e ?? {}; let {uygunmuKontrol, tipListe} = this.class, diger = e.kapsam ?? e.diger ?? e, alimmi = e.alim ?? _alimmi;
-		if (alimmi) { tipListe = this.class.alimTipListe }
-		if (uygunmuKontrol) { tipListe = tipListe.filter(x => uygunmuKontrol.all?.[x]) }
-		return tipListe.every(tip => this[tip]?.uygunmu(diger[`${tip}Kod`] ?? diger[`${tip}kod`] ?? diger[tip]) ?? true)
+	uygunmu(e = {}, _alimmi) {
+		let {uygunmuKontrol, tipListe} = this.class
+		let diger = e.kapsam ?? e.diger ?? e, alimmi = e.alim ?? e.alimmi ?? _alimmi
+		if (alimmi)
+			tipListe = this.class.alimTipListe
+		if (uygunmuKontrol)
+			tipListe = tipListe.filter(_ => uygunmuKontrol.all?.[_])
+		return tipListe.every(tip =>
+			this[tip]?.uygunmu(diger[`${tip}Kod`] ?? diger[`${tip}kod`] ?? diger[tip]) ?? true)
 	}
 	uygunlukClauseDuzenle({ alias, where: wh, alim }) {  /* this: diger */
 		let {uygunmuKontrol, tipListe, dateTipSet} = this.class
-		let aliasVeNokta = alias ? `${alias}.` : '';
+		let aliasVeNokta = alias ? `${alias}.` : ''
 		if (alim) {
 			tipListe = this.class.alimTipListe
 			uygunmuKontrol = { ...uygunmuKontrol }

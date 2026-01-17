@@ -36,13 +36,18 @@ class MQOrtakFis extends MQDetayli {
 		return _e.liste
 	}
 	
-	constructor(e) {
-		e = e || {}; super(e); if (e.isCopy) { return }
+	constructor(e = {}) {
+		super(e); if (e.isCopy) { return }
 		let {noSaha} = this.class; if (noSaha) { this.fisNo = e.no ?? e.fisNo ?? this.no }
 	}
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e, {noSaha} = this;
-		if (noSaha) { pTanim.fisNo = new PInst() }
+		if (noSaha) {
+			$.extend(pTanim, {
+				fisNo: new PInst(),
+				tabletID: new PInstGuid()
+			})
+		}
 	}
 	static secimlerDuzenleSon(e) {
 		super.secimlerDuzenleSon(e); const {secimler: sec} = e;
@@ -201,12 +206,25 @@ class MQOrtakFis extends MQDetayli {
 		$.extend(hv, { xno: this.fisNo || 0 })
 	}
 	alternateKeyHostVarsDuzenle({ hv }) {
-		super.alternateKeyHostVarsDuzenle(...arguments); let {noSaha} = this.class, {fisNo} = this;
-		if (noSaha) { hv[noSaha] = fisNo ?? null }
+		super.alternateKeyHostVarsDuzenle(...arguments)
+		let {fisNo, class: { noSaha }} = this
+		if (noSaha)
+			hv[noSaha] = fisNo ?? null
+	}
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments)
+		let {tabletID: tabletguid} = this
+		if (tabletguid)
+			$.extend(hv, { tabletguid })
 	}
 	setValues({ rec }) {
-		super.setValues(...arguments); let {noSaha} = this.class, {fisNo} = this;
-		if (noSaha) { this.fisNo = rec[noSaha] || 0 }
+		super.setValues(...arguments)
+		let {class: { noSaha }} = this
+		if (noSaha)
+			this.fisNo = rec[noSaha] || 0
+		let {tabletguid: tabletID} = rec
+		if (tabletID !== undefined)
+			$.extend(this, { tabletID })
 	}
 	bakiyeSqlOrtakDuzenle({ sent, paramName_fisSayac }) {
 		let {table, sayacSaha} = this.class, {sayac} = this;

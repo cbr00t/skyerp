@@ -43,10 +43,10 @@ class TabDetay extends MQDetay {
 		super.orjBaslikListesiDuzenle(...arguments)
 		liste.push(
 			new GridKolon({ belirtec: '_html', text: ' ' }).noSql(),
-			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 15 }).noSql().tipDecimal_bedel()
+			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 11 }).noSql().tipDecimal_bedel()
 		)
 	}
-	detayEkIslemler({ fis }) { }
+	async detayEkIslemler({ fis }) { }
 	hostVarsDuzenle({ fis, hv }) {
 		super.hostVarsDuzenle(...arguments)
 		let {class: { io2RowAttr }} = this

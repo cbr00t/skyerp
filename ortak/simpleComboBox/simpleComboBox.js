@@ -178,7 +178,7 @@ class SimpleComboBoxPart extends Part {
 		if (listSource || mfSinif) {
 			let btnListe = layout.children('button#liste')
 			if (!btnListe?.length)
-				(btnListe = $('<button id="liste"> L </button>')).appendTo(layout)
+				(btnListe = $('<button id="liste" tabindex="-1"> L </button>')).appendTo(layout)
 			btnListe.off('click')
 			btnListe.on('click', event =>
 				this.listeIstendi({ event }))

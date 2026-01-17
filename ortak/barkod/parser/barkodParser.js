@@ -1,11 +1,14 @@
 class BarkodParser extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get aciklama() { return '' } 
-	static getKuralSinif(e) { return BarkodKurali }
+	static get cache() { return this._cache ??= {} }
+	static set cache(value) { this._cache ??= value }
+
 	constructor(e = {}) {
 		super(e)
 			this.setGlobals(e)
 	}
+	static getKuralSinif(e) { return BarkodKurali }
 	async parse(e) {
 		let result = await this.parseDevam(e)
 		return result ? await this.parseSonrasi(e) : result
@@ -31,7 +34,8 @@ class BarkodParser extends CObject {
 		let shKod = this.shKod = e.shKod || this.shKod
 		if (!shKod)
 			return false
-		if (e.basitmi)
+		let {basit = e.basitmi} = e
+		if (basit)
 			return true
 		let brmFiyatSaha = 'satfiyat1'
 		let sent = new MQSent({
@@ -51,14 +55,22 @@ class BarkodParser extends CObject {
 			]
 		})
 		let stm = new MQStm({ sent })
-		let rec = e.shRec = await MQCogul.sqlExecTekil(stm)
+		let {classKey, cache} = this.class
+		let anah = toJSONStr({ classKey, basit, shKod })
+		let rec = cache[anah]
+		if (rec === undefined)
+			rec = cache[anah] = (await MQCogul.sqlExecTekil(stm)) ?? null
+		e.shRec = { ...rec }
 		if (!rec)
 			return false
-		for (let key in rec) {
-			let value = rec[key]
-			if (value != null)
-				this[key] = value
+		for (let [k, v] of entries(rec)) {
+			if (v != null)
+				this[k] = v
 		}
 		return true
+	}
+	static globalleriSil(e) {
+		delete this._cache
+		return this
 	}
 }

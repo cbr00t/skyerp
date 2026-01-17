@@ -302,7 +302,7 @@ class MQYapi extends CIO {
 		if (!offlineTable)
 			return false
 		let {offlineDirect: directFlag, idSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this, clear = e.clear ?? e.clearFlag
-		let {offlineSahaListe: attrListe, kodKullanilirmi, kodSaha, emptyKodValue = ''} = this
+		let {offlineSahaListe: attrListe, kodKullanilirmi, kodSaha, bosKodAlinirmi, emptyKodValue = ''} = this
 		let {trnId} = e, offlineMode = true, offlineRequest = true, offlineYukleRequest = true, internal = true
 		let recs = await this.loadServerData({ ...e, trnId, offlineMode: !offlineMode, offlineRequest, offlineYukleRequest })
 		let inLocalTrn = false, okIdList = []
@@ -317,17 +317,21 @@ class MQYapi extends CIO {
 		try {
 			if (clear)
 				await this.offlineClearTable({ ...e, offlineMode })
+			window.progressManager?.progressStep(20)
 			window.progressManager?.progressStep()
-			if (kodKullanilirmi && kodSaha) {
+			if (kodKullanilirmi && kodSaha && !bosKodAlinirmi) {
 				let hv = { [kodSaha]: emptyKodValue }
 				let query = new MQInsert({ table: offlineTable, hv }).insertOnly()
 				try { await this.sqlExecNone({ ...e, offlineMode, query }) }
 				catch (ex) {
-					cerr(ex)
-					let query = new MQInsert({ table: offlineTable, hv }).insertIgnore()
-					await this.sqlExecNone({ ...e, offlineMode, query })
+					if (ex.rc == 'duplicateKey') {
+						let query = new MQInsert({ table: offlineTable, hv }).insertIgnore()
+						await this.sqlExecNone({ ...e, offlineMode, query })
+					}
+					else
+						cerr(ex)
 				}
-				window.progressManager?.progressStep(45)
+				window.progressManager?.progressStep(3)
 			}
 			if (attrListe?.length) {
 				if (directFlag && recs?.length) {
@@ -358,15 +362,21 @@ class MQYapi extends CIO {
 							result = await this.sqlExecNone({ ...e, offlineMode, query })
 						}
 						catch (ex) {
-							cerr(ex)
-							let query = new MQInsert({ table: offlineTable, hvListe }).insertIgnore()
-							result = await this.sqlExecNone({ ...e, offlineMode, query })
+							if (ex.rc == 'duplicateKey') {
+								let query = new MQInsert({ table: offlineTable, hvListe }).insertIgnore()
+								result = await this.sqlExecNone({ ...e, offlineMode, query })
+							}
+							else {
+								cerr(ex)
+								return this
+							}
 						}
 						if (!result)
 							return this
+						window.progressManager?.progressStep(10)
 						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
 							okIdList.push(_recs.map(rec => rec[idSaha]))
-						window.progressManager?.progressStep()
+						window.progressManager?.progressStep(5)
 					}
 				}
 				else if (recs?.length) {
@@ -374,10 +384,10 @@ class MQYapi extends CIO {
 						let inst = new this()
 						if (!await inst.yukle({ offlineMode: !offlineMode, rec, offlineRequest, offlineYukleRequest }))
 							continue
-						window.progressManager?.progressStep()
+						window.progressManager?.progressStep(3)
 						if (!await inst.yaz({ offlineMode, offlineRequest, offlineYukleRequest }))
 							continue
-						window.progressManager?.progressStep()
+						window.progressManager?.progressStep(10)
 						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
 							okIdList.push(rec[idSaha])
 					}
@@ -395,7 +405,7 @@ class MQYapi extends CIO {
 			}
 			if (inLocalTrn)
 				await this.sqlExecNone({ ...e, offlineMode, query: 'COMMIT' }) 
-			window.progressManager?.progressStep()
+			window.progressManager?.progressStep(5)
 		}
 		return true
 	}
@@ -492,6 +502,7 @@ class MQYapi extends CIO {
 					for (let rec of recs) {
 						let inst = new this()
 						if (!await inst.yukle({ offlineMode: !offlineMode, rec, offlineRequest, offlineGonderRequest })) { continue }
+						inst = await inst.asOnlineFis({ ...e, rec }) ?? inst
 						if (inst.sayac) { inst.sayac = null }
 						if (await inst.varmi({ trnId, offlineMode, offlineRequest, offlineGonderRequest })) { continue }
 						if (!await inst.yaz({ trnId, offlineMode, offlineRequest, offlineGonderRequest })) { continue }

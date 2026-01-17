@@ -2,6 +2,8 @@ class TabTahsilatFis extends TabFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TABTAH' } static get sinifAdi() { return 'Karma Tahsilat' }
 	static get detaySinif() { return TabTahsilatDetay } static get almSat() { return 'T' }
+	static get onlineFisSinif() { return CariTahsilatFis }
+	static get bedelKullanilirmi() { return true }
 	get tahsilBedel() {
 		let {detaylar} = this
 		return roundToBedelFra(topla(_ => _.bedel, detaylar))

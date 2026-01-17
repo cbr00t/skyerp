@@ -103,4 +103,5 @@ class TicIskYapi extends CObject {
 		deleteKeys(this, '_iskEtiketDict')
 		return this
 	}
+	static [Symbol.iterator]() { return this.getIskIter() }
 }

@@ -144,16 +144,17 @@ class MQSayacli extends MQCogul {
 	}
 	hostVarsDuzenle({ hv, queryBuild, offlineRequest, offlineMode }) {
 		super.hostVarsDuzenle(...arguments)
-		let {sayacSaha} = this.class
+		let {sayac, zeminRenk, class: { sayacSaha, zeminRenkDesteklermi }} = this
+		offlineMode ??= this.class.isOfflineMode
 		$.extend(hv, this.alternateKeyHostVars(e))
 		if (sayacSaha) {
-			if ((queryBuild || (offlineRequest && !offlineMode)))
-				hv[sayacSaha] = this.sayac ?? null
+			if (queryBuild || (sayac && offlineMode))
+				hv[sayacSaha] = sayac ?? null
 			else
 				delete hv[sayacSaha]
 		}
-		if (this.class.zeminRenkDesteklermi)
-			hv.oscolor = html2OSColor(this.zeminRenk) || 0
+		if (zeminRenkDesteklermi)
+			hv.oscolor = html2OSColor(zeminRenk) || 0
 	}
 	setValues({ rec: oscolor } = {}) {
 		super.setValues(...arguments)

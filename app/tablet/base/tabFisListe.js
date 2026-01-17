@@ -1,7 +1,7 @@
 class TabFisListe extends TabFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get fisTipi() { return null } static get detaySinif() { return TabFisListeDetay }
-	static get kodListeTipi() { return 'FISLISTE' } static get sinifAdi() { return 'Fiş listesi' }
+	static get kodListeTipi() { return 'FISLISTE' } static get sinifAdi() { return 'Fiş' }
 	static get araSeviyemi() { return true }
 
 	static fisSinifFor(e) {
@@ -14,7 +14,7 @@ class TabFisListe extends TabFis {
 	static async yeniInstOlustur({ sender: gridPart, islem, rec, rowIndex, args = {} }) {
 		let {fisTipi} = rec ?? {}
 		let yenimi = islem == 'yeni'
-		if (yenimi || !fisTipi) {
+		if (yenimi) {
 			let {tip2Sinif} = this
 			let p = new $.Deferred()
 			let secince = ({ value: fisTipi }) => p.resolve(fisTipi)
@@ -24,7 +24,8 @@ class TabFisListe extends TabFis {
 		}
 		let fisSinif = this.fisSinifFor(fisTipi)
 		if (!fisSinif)
-			return null
+			throw { rc: 'fisTipi', errorText: 'Fiş Tipi belirlenemedi' }
+			// return null
 		let inst = new fisSinif({ ...args })
 		if (rec) {
 			await inst.keySetValues({ ...arguments, rec, sayac: undefined })

@@ -21,11 +21,15 @@ class TabTSDetay extends TabDetay {
 	}
 	static io2RowAttrOlustur({ result }) {
 		super.io2RowAttrOlustur(...arguments)
-		let _keys = ['stokKod', 'barkod', 'miktar', 'brm', 'fiyat', 'kdvOrani', 'kdv', 'brutBedel', 'bedel', 'dagitDipIskBedel']
+		let _keys = [
+			'stokKod', 'barkod', 'miktar', 'brm', 'fiyat', 'kdvOrani', 'kdv',
+			'brutBedel', 'bedel', 'dagitDipIskBedel',
+			'fiyatKosulKod', 'iskKosulKod'
+		]
 		for (let k of _keys)
 			result[k] = k.toLowerCase()
 		$.extend(result, { stokAdi: null, aciklama: 'ekaciklama' })
-		for (let {ioAttr: i, rowAttr: r} of TicIskYapi.getIskIter())
+		for (let {ioAttr: i, rowAttr: r} of TicIskYapi)
 			result[i] = r
 	}
 	static loadServerData_queryDuzenle({ sent, sent: { from, sahalar } }) {
@@ -57,6 +61,7 @@ class TabTSDetay extends TabDetay {
 						this[i] = rv
 				}
 				bosDegilseAktar('brm', 'brm')
+				bosDegilseAktar('fiyat', 'fiyat')
 				bosDegilseAktar('kdvOrani', mfSinif.getKdvOraniSaha(alimmi))
 			}
 		}
@@ -88,18 +93,28 @@ class TabTSDetay extends TabDetay {
 	}
 
 	getHTML(e) {
-		let _ = super.getHTML(e) ?? ''
+		let _ = super.getHTML(e) ?? '', {dev} = config
 		let {stokAdi, stokKod, barkod, miktar, brm, fiyat} = this
-		let iskHTMLListe = []
-		for (let {ioAttr} of TicIskYapi.getIskIter()) {
-			let v = this[ioAttr]
+		let iskHTMLListe = [], kosulKodHTMLListe = []
+		for (let {ioAttr: k} of TicIskYapi) {
+			let v = this[k]
 			if (!v)
 				continue
-			if (iskHTMLListe.length)
-				iskHTMLListe.push(`<span>+</span>"`)
-			else
-				iskHTMLListe.push(`<span>- %</span>`)
-			iskHTMLListe.push(`<span class="orangered">${numberToString(v)}</span>`)
+			iskHTMLListe.push(
+				`<span>${iskHTMLListe.length ? '+' : '- %'}</span>`,
+				`<span class="orangered">${numberToString(v)}</span>`
+			)
+		}
+		if (dev) {
+			for (let [p, lbl] of entries({ fiyat: 'FY', isk: 'IS' })) {
+				let k = `${p}KosulKod`, v = this[k]
+				if (!v)
+					continue
+				kosulKodHTMLListe.push(
+					`<span class=lightgray>${lbl}:</span>`,
+					`<span class="purple">${v}</span>`
+				)
+			}
 		}
 		return [
 			_,
@@ -114,6 +129,7 @@ class TabTSDetay extends TabDetay {
 				`<span class="fiyat bold royalblue">${numberToString(roundToFiyatFra(fiyat))}</span>`,
 				`<span>TL</span>`,
 				...iskHTMLListe,
+				...kosulKodHTMLListe,
 			`</div>`
 		].filter(_ => _).join(CrLf)
 	}

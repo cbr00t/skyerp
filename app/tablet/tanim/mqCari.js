@@ -15,15 +15,17 @@ class MQTabCari extends MQKAOrtak {
 		$.extend(pTanim, {
 			aktifmi: new PInstTrue('calismadurumu'), satilamazmi: new PInstBool('satilamazfl'), konTipKod: new PInstStr('kontipkod'),
 			efatmi: new PInstBool('efaturakullanirmi'), yore: new PInstStr('yore'), posta: new PInstStr('posta'), 
-			bolgeKod: new PInstStr('bolgekod'), ilKod: new PInstStr('ilkod'), 
+			tipKod: new PInstStr('tipkod'), bolgeKod: new PInstStr('bolgekod'), ilKod: new PInstStr('ilkod'), 
 			ulkeKod: new PInstStr('ulkekod'), sahismi: new PInstBool('sahismi'), 
 			vergiDaire: new PInstStr('vdaire'), vergiNo: new PInstStr('vnumara'), tcKimlikNo: new PInstStr('tckimlikno'),
 			email: new PInstStr('email'), tel1: new PInstStr('tel1'),
 			tel2: new PInstStr('tel2'), tel3: new PInstStr('tel3'),
 			adres: new PInstStr('adres'), gpsLat: new PInstNum('gpsenlem'), gpsLong: new PInstNum('gpsboylam'),
 			konTipKod: new PInstTekSecim('kontipkod', TabKonsolideTip),
-			riskCariKod: new PInstStr('ekstremustkod'), plasiyerKod: new PInstStr('tavsiyeplasiyerkod'),
-			odemeGunKodu: new PInstStr('odemegunkodu'), stdDipIskOran: new PInstNum('standartiskonto')
+			riskCariKod: new PInstStr('konsolidemusterikod'), ekstreMustKod: new PInstStr('ekstremustkod'),
+			plasiyerKod: new PInstStr('tavsiyeplasiyerkod'),
+			odemeGunKodu: new PInstStr('odemegunkodu'), stdDipIskOran: new PInstNum('standartiskonto'),
+			kosulGrupKod: new PInstStr('kosulgrupkod')
 			/* orjBakiye: new PInstNum('orjbakiye'), bakiye: new PInstNum('bakiye'),
 				riskLimit: new PInstNum('risklimit'), kalanRisk: new PInstNum('kalanrisk'),
 				orjTakipBorc: new PInstNum('orjtakipborclimiti'), takipBorc: new PInstNum('takipborclimiti')
@@ -40,6 +42,7 @@ class MQTabCari extends MQKAOrtak {
 		}
 		{
 			let form = tabPage.addFormWithParent().yanYana(5)
+			form.addModelKullan('tipKod', 'Tip').dropDown().setMFSinif(MQTabCariTip).autoBind()
 			form.addModelKullan('bolgeKod', 'Bölge').comboBox().setMFSinif(MQTabBolge).autoBind()
 			form.addModelKullan('ilKod', 'İl').comboBox().setMFSinif(MQTabIl).autoBind()
 			form.addModelKullan('ulkeKod', 'Ülke').comboBox().setMFSinif(MQTabUlke).autoBind()
@@ -80,6 +83,10 @@ class MQTabCari extends MQKAOrtak {
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments); let {tableAlias: alias} = this
 		liste.push(
+			...this.getKAKolonlar(
+				new GridKolon({ belirtec: 'tipkod', text: 'Tip', genislikCh: 5, filterType: 'checkedlist' }),
+				new GridKolon({ belirtec: 'tipadi', text: 'Tip Adı', genislikCh: 13, sql: 'tip.aciklama', filterType: 'checkedlist' })
+			),
 			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 20 }),
 			...this.getKAKolonlar(
 				new GridKolon({ belirtec: 'bolgekod', text: 'Bölge', genislikCh: 15, filterType: 'checkedlist' }),
@@ -104,7 +111,8 @@ class MQTabCari extends MQKAOrtak {
 			new GridKolon({ belirtec: 'calismadurumu', text: 'Aktif?', genislikCh: 8, filterType: 'checkedlist' }).tipBool(),
 			new GridKolon({ belirtec: 'satilamazfl', text: 'SatılaMAz?', genislikCh: 10, filterType: 'checkedlist' }).tipBool(),
 			new GridKolon({ belirtec: 'adres', text: 'Adres', genislikCh: 80 }),
-			new GridKolon({ belirtec: 'kontiptext', text: 'K.Tip', genislikCh: 13, sql: TabKonsolideTip.getClause(`${alias}.kontipkod`), filterType: 'checkedlist' })
+			new GridKolon({ belirtec: 'kontiptext', text: 'Kon.Tip', genislikCh: 13, sql: TabKonsolideTip.getClause(`${alias}.kontipkod`), filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'konsolidemusterikod', text: 'Kon.Must', genislikCh: 16, filterType: 'checkedlist' }),
 			/*new GridKolon({ belirtec: 'ekstremustkod', text: 'Risk Cari', genislikCh: 18 }),
 			new GridKolon({ belirtec: 'odemegunkodu', text: 'Ödeme Gün Kodu', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'standartiskonto', text: 'Std.İsk%', genislikCh: 15 }).tipNumerik()
@@ -134,10 +142,14 @@ class MQTabCari extends MQKAOrtak {
 		stm = e.stm
 		sent = wh = sahalar = null
 		for (let _sent of stm) {
-			_sent.cari2BolgeBagla({ alias })
+			let {sahalar} = _sent
+			_sent
+				.cari2TipBagla({ alias })
+				.cari2BolgeBagla({ alias })
 				.cari2IlBagla({ alias })
 				.cari2UlkeBagla({ alias })
 				.cari2TipBagla({ alias })
+			sahalar.add(`${alias}.kosulgrupkod`)
 		}
 	}
 	static loadServerData_queryDuzenle_son_bilgiYukle({ alias = this.tableAlias, stm, sent, sent: { where: wh, sahalar } }) {

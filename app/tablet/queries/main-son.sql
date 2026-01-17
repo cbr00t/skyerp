@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS tabfis (
 	brut REAL NOT NULL DEFAULT 0,
 	topkdv REAL NOT NULL DEFAULT 0,
 	sonuc REAL NOT NULL DEFAULT 0,
+	gonderimts TEXT NOT NULL DEFAULT '',
 -- ugrama fis
 	nedenkod TEXT NOT NULL DEFAULT '',
 -- stok/ticari fis
@@ -38,6 +39,8 @@ CREATE TABLE IF NOT EXISTS tabhar (
 	brutbedel REAL NOT NULL DEFAULT '',
 	dagitdipiskbedel REAL NOT NULL DEFAULT 0,
 	ekaciklama TEXT NOT NULL DEFAULT '',
+	fiyatkosulkod TEXT NOT NULL DEFAULT '',
+	iskkosulkod TEXT NOT NULL DEFAULT '',
 -- tahsilat fis
 	tahseklino INTEGER NOT NULL DEFAULT '',
 -- tahsilat, ticari/stok ortak fis

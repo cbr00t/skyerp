@@ -29,7 +29,7 @@ class TabletApp extends TicariApp {
 			result = this._offlineBilgiYukleSiniflar = [
 				MQParam,
 				...this.offlineBilgiYukleGonderOrtakSiniflar,
-				SatisKosulYapi
+				MQCariSatis, SatisKosulYapi
 				// ...SatisKosul.subClasses
 			]
 			for (let {kami, mfSinif} of HMRBilgi) {
@@ -107,7 +107,8 @@ class TabletApp extends TicariApp {
 		addMenuSubItems('TANIM', 'Tanımlar', [
 			MQTabStok, MQTabCari, MQTabPlasiyer, MQTabSube, MQTabYer,
 			MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka, MQTabNakliyeSekli,
-			MQTabTahsilSekli, MQTabBarkodReferans, MQTabBarkodAyrisim
+			MQTabTahsilSekli, MQTabBarkodReferans, MQTabBarkodAyrisim,
+			MQCariSatis
 		])
 		{
 			let mfSinif = TabFisListe, {kodListeTipi: mne, sinifAdi: text} = mfSinif
@@ -255,7 +256,7 @@ class TabletApp extends TicariApp {
 		if (!await ehConfirm('Tabletteki veriler merkeze gönderilsin mi?', appName))
 			return
 		let pm = showProgress('Veriler gönderiliyor...', null, true)
-		pm.setProgressMax(classes.length).progressReset()
+		pm.setProgressMax(classes.length * 70).progressReset()
 		try {
 			for (let _classes of arrayIterChunks(classes, chunkSize)) {
 				await Promise.all(_classes.map(cls =>
@@ -275,7 +276,7 @@ class TabletApp extends TicariApp {
 	}
 	cacheReset() {
 		let {_cls2PTanim} = CIO, {offlineClearTableSiniflar} = this
-		for (let cls of [...offlineClearTableSiniflar, TicIskYapi /*, HMRBilgi*/]) {
+		for (let cls of [...offlineClearTableSiniflar, MQTabPlasiyer, TicIskYapi, BarkodParser /*, HMRBilgi*/]) {
 			let {detaySinif} = cls ?? {}
 			cls?.globalleriSil?.()
 			detaySinif?.globalleriSil?.()

@@ -58,16 +58,13 @@ class SatisKosulYapi extends MQCogul {
 		let promises = []
 		for (let cls of kosulSiniflar) {
 			let {tipKod} = cls
-			promises.push(
-				cls.uygunKosullar(_e)
-					.then(result => {
-						if (empty(result)) { delete this[tipKod] }
-						else { this[tipKod] = result }
-					})
-					.catch(ex => { delete this[tipKod]; throw ex })
-			)
+			try {
+				let result = await cls.uygunKosullar(_e)
+				if (empty(result)) delete this[tipKod]
+				else this[tipKod] = result
+			}
+			catch(ex) { delete this[tipKod]; throw ex }
 		}
-		await Promise.allSettled(promises)
 		return this
 	}
 	static async yukle(e) {

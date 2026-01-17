@@ -352,25 +352,38 @@ class MQCogul extends MQYapi {
 	static get orjBaslikListesi() { let e = { liste: [] }; this.orjBaslikListesiDuzenle(e); this.orjBaslikDuzenleSonrasi(e); return e.liste }
 	static orjBaslikListesiDuzenle(e) { }
 	static orjBaslikDuzenleSonrasi(e) {
-		this.forAltYapiClassesDo('orjBaslikListesiDuzenle', e); this.orjBaslikListesiDuzenle_ayrimVeOzelSahalar(e);
+		this.forAltYapiClassesDo('orjBaslikListesiDuzenle', e)
+		this.orjBaslikListesiDuzenle_ayrimVeOzelSahalar(e)
 		if (!this.detaymi) {
-			let {gonderildiDesteklenirmi, gonderimTSSaha} = this; if (gonderildiDesteklenirmi && gonderimTSSaha) {
-				let {liste} = e, {tableAlias: alias} = this; liste.push(
-					new GridKolon({ belirtec: gonderimTSSaha, text: 'Gnd.Tarih', genislikCh: 13 }).tipDate(),
-					new GridKolon({ belirtec: gonderimTSSaha.toLowerCase().replace('ts', 'saat'), text: 'Gnd.Saat', genislikCh: 13, sql: `${alias}.${gonderimTSSaha}` }).tipTime()
+			let {gonderildiDesteklenirmi, gonderimTSSaha} = this
+			if (gonderildiDesteklenirmi && gonderimTSSaha) {
+				let {liste} = e, {tableAlias: alias} = this
+				liste.push(
+					...this.getKAKolonlar(
+						new GridKolon({ belirtec: gonderimTSSaha, text: 'Gnd.Tarih', genislikCh: 9 }).tipDate(),
+						new GridKolon({ belirtec: gonderimTSSaha.toLowerCase().replace('ts', 'saat'), text: 'Gnd.Saat', genislikCh: 7, sql: `${alias}.${gonderimTSSaha}` }).tipTime()
+					)
 				)
 			}
 		}
 		let getCellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
-			let result = belirtec; if (prefix) { if ($.isArray(prefix)) { prefix = prefix.join(' ') } if (prefix != result) { result += ` ${prefix}` } }
+			let result = belirtec
+			if (prefix) {
+				if (isArray(prefix)) { prefix = prefix.join(' ') }
+				if (prefix != result) { result += ` ${prefix}` }
+			}
 			if (rec) {
-				let ekCSS = this.getEkCSS({ sender, rowIndex, dataField: belirtec, value, rec });
-				if (ekCSS) { if ($.isArray(ekCSS)) ekCSS = ekCSS.join(' ') }
-				if (ekCSS) result += ` ${ekCSS}`
+				let ekCSS = this.getEkCSS({ sender, rowIndex, dataField: belirtec, value, rec })
+				if (ekCSS) {
+					if (isArray(ekCSS))
+						ekCSS = ekCSS.join(' ')
+					result += ` ${ekCSS}`
+				}
 			}
 			return result
-		};
-		let {liste} = e; for (let colDef of liste) {
+		}
+		let {liste} = e
+		for (let colDef of liste) {
 			let {cellClassName: savedCellClassName} = colDef /*, savedCellsRenderer = colDef.cellsRenderer*/;
 			colDef.cellClassName = (sender, rowIndex, belirtec, value, rec) => {
 				let prefix = savedCellClassName ? getFuncValue.call(this, savedCellClassName, sender, rowIndex, belirtec, value, rec) : null;
@@ -388,7 +401,10 @@ class MQCogul extends MQYapi {
 			}*/
 		}
 	}
-	static orjBaslikListesiDuzenle_ayrimVeOzelSahalar(e) { this.orjBaslikListesiDuzenle_ayrimSahalari(e); this.orjBaslikListesiDuzenle_ozelSahalar(e) }
+	static orjBaslikListesiDuzenle_ayrimVeOzelSahalar(e) {
+		this.orjBaslikListesiDuzenle_ayrimSahalari(e)
+		this.orjBaslikListesiDuzenle_ozelSahalar(e)
+	}
 	static orjBaslikListesiDuzenle_ayrimSahalari(e) {
 		let {ayrimIsimleri} = this; if ($.isEmptyObject(ayrimIsimleri)) return
 			/* ayrimBelirtec: 'stk', ayrimTableAlias: 'sayr' */
@@ -939,13 +955,18 @@ class MQCogul extends MQYapi {
 		let {belirtec: adiSaha} = colAdi ?? {}
 		colKod?.hidden()
 		if (colAdi) {
-			let {cellsRenderer: saved} = colAdi
+			let {gonderimTSSaha} = this, {cellsRenderer: saved} = colAdi
 			colAdi.setCellsRenderer((colDef, rowIndex, belirtec, value, html, jqxCol, rec) => {
 				let kod = rec[kodSaha]
 				if (kod) {
+					let gonderimColmu = belirtec == gonderimTSSaha || belirtec == gonderimTSSaha.replace('ts', 'saat')
+					if (gonderimColmu || isDate(kod))
+						kod = dateKisaString(asDate(kod))
+					if (gonderimColmu || isDate(value))
+						value = timeKisaString(asDate(value))
 					html = changeTagContent(html, (
 						`<span class="asil">${value}</span> ` +
-						`<span class="ek-bilgi bold royalblue float-right" style="padding-left: 10px">${rec[kodSaha]}</span>`
+						`<span class="ek-bilgi bold royalblue float-right" style="padding-left: 10px">${kod}</span>`
 					))
 				}
 				html = saved?.call(this, colDef, rowIndex, belirtec, value, html, jqxCol, rec)
