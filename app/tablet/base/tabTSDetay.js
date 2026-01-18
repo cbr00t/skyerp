@@ -21,16 +21,10 @@ class TabTSDetay extends TabDetay {
 	}
 	static io2RowAttrOlustur({ result }) {
 		super.io2RowAttrOlustur(...arguments)
-		let _keys = [
-			'stokKod', 'barkod', 'miktar', 'brm', 'fiyat', 'kdvOrani', 'kdv',
-			'brutBedel', 'bedel', 'dagitDipIskBedel',
-			'fiyatKosulKod', 'iskKosulKod'
-		]
+		let _keys = ['stokKod', 'barkod', 'miktar', 'brm']
 		for (let k of _keys)
 			result[k] = k.toLowerCase()
 		$.extend(result, { stokAdi: null, aciklama: 'ekaciklama' })
-		for (let {ioAttr: i, rowAttr: r} of TicIskYapi)
-			result[i] = r
 	}
 	static loadServerData_queryDuzenle({ sent, sent: { from, sahalar } }) {
 		super.loadServerData_queryDuzenle(...arguments)
@@ -93,29 +87,8 @@ class TabTSDetay extends TabDetay {
 	}
 
 	getHTML(e) {
-		let _ = super.getHTML(e) ?? '', {dev} = config
-		let {stokAdi, stokKod, barkod, miktar, brm, fiyat} = this
-		let iskHTMLListe = [], kosulKodHTMLListe = []
-		for (let {ioAttr: k} of TicIskYapi) {
-			let v = this[k]
-			if (!v)
-				continue
-			iskHTMLListe.push(
-				`<span>${iskHTMLListe.length ? '+' : '- %'}</span>`,
-				`<span class="orangered">${numberToString(v)}</span>`
-			)
-		}
-		if (dev) {
-			for (let [p, lbl] of entries({ fiyat: 'FY', isk: 'IS' })) {
-				let k = `${p}KosulKod`, v = this[k]
-				if (!v)
-					continue
-				kosulKodHTMLListe.push(
-					`<span class=lightgray>${lbl}:</span>`,
-					`<span class="purple">${v}</span>`
-				)
-			}
-		}
+		let _ = super.getHTML(e) ?? ''
+		let {stokAdi, stokKod, barkod, miktar, brm} = this
 		return [
 			_,
 			`<div class="asil flex-row" style="gap: 0 10px">`,
@@ -125,11 +98,6 @@ class TabTSDetay extends TabDetay {
 			`</div>`,
 			`<div class="miktarFiyat ek-bilgi float-right" style="gap: 0 10px">`,
 				`<span class="miktar bold forestgreen">${miktar} ${brm}</span>`,
-				`<span> x </span>`,
-				`<span class="fiyat bold royalblue">${numberToString(roundToFiyatFra(fiyat))}</span>`,
-				`<span>TL</span>`,
-				...iskHTMLListe,
-				...kosulKodHTMLListe,
 			`</div>`
 		].filter(_ => _).join(CrLf)
 	}

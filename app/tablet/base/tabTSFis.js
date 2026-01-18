@@ -1,15 +1,15 @@
 // class MQTabTestFis extends mixin($TabFisTemplate, MQGenelFis) {
 class TabTSFis extends TabFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get araSeviyemi() { return super.araSeviyemi || this == TabTSFis }
 	static get kodListeTipi() { return 'TABTS' } static get sinifAdi() { return 'Ticari/Stok Fiş' }
 	static get detaySinif() { return TabTSDetay } static get almSat() { return 'T' }
-	static get dipKullanilirmi() { return true }  static get bedelKullanilirmi() { return true }
-	static get dipIskOranSayi() { return 1 } static get dipIskBedelSayi() { return 1 }
-	static get onlineFisSinif() { return SatisFaturaFis }
+	static get bedelKullanilirmi() { return false }
 
 	static pTanimDuzenle({ pTanim }) {
 		// MQOrtakFis.pTanimDuzenle(...arguments)
 		super.pTanimDuzenle(...arguments)
+		$.extend(pTanim, { yerKod: new PInstStr('yerkod') })
 	}
 	static async loadServerDataDogrudan({ offlineRequest, offlineMode }) {
 		/*if (!offlineRequest) {
@@ -25,153 +25,67 @@ class TabTSFis extends TabFis {
 		}
 		return await super.loadServerData_detaylar(...arguments)
 	}
-	/*dipGridSatirlariDuzenle_ticari({ dipIslemci, liste }) {
+
+	static async barkodOkundu({ tanimPart, barkodlar }) {
 		let e = arguments[0]
-		super.dipGridSatirlariDuzenle_ticari(e)
-		let {dipIskOranSayi, dipIskBedelSayi} = this.class
-		for (let seq = 1; seq <= dipIskOranSayi; seq++)
-			liste.push(new DipSatir_IskOran({ ...e, seq }))
-		for (let seq = 1; seq <= dipIskBedelSayi; seq++)
-			liste.push(new DipSatir_IskBedel({ ...e, seq }))
-		let {offsetRefs: refs} = dipIslemci
-		refs.kdv = liste[liste.length - 1]
-	}*/
-	hostVarsDuzenle({ hv }) {
-		super.hostVarsDuzenle(...arguments)
-		let {_dipIslemci: d} = this
-		for (let k of ['dipIskOran1', 'dipIskOran2', 'dipIskBedel'])
-			hv[k.toLowerCase()] = d?.[k] ?? 0
-	}
-	setValues({ rec }) {
-		super.setValues(...arguments)
-		let {dipIslemci} = this
-		for (let k of ['dipIskOran1', 'dipIskOran2', 'dipIskBedel'])
-			dipIslemci[k] = rec[k.toLowerCase()] ?? 0
-	}
-	async topluHesapla(e = {}) {
-		let {kosulYapilar, detaylar} = this
-		let {tanimPart = e.sender ?? {}} = e
-		let {gridPart: { gridWidget: w } = {}} = tanimPart
-		if (kosulYapilar && !empty(detaylar)) {
-			let kod2Detaylar = {}
-			detaylar.forEach(det => {
-				let {stokKod: kod} = det
-				; (kod2Detaylar[kod] ??= []).push(det)
-			})
-			let kodListe = keys(kod2Detaylar)
-			{
-				let {FY: kosullar} = kosulYapilar
-				if (!empty(kosullar))
-				for (let k of kosullar) {
-					let kod2Rec = await k.getAltKosulYapilar(kodListe)
-					for (let [kod, rec] of entries(kod2Rec)) {
-						let {fiyat = rec.ozelfiyat, iskontoYokmu} = rec
-						if (!fiyat)
-							continue
-						let subDetListe = kod2Detaylar[kod]
-						if (empty(subDetListe))
-							continue
-						subDetListe
-							.filter(_ => !_.ozelFiyat)
-							.forEach(det => {
-								$.extend(det, { fiyatKosulKod: kod, ozelFiyat: true, fiyat })
-								if (iskontoYokmu)                                                  // isk hesaplanmaması için flag set
-									det.ozelIsk = true
-								det.bedelHesapla().htmlOlustur()
-								w?.updaterow(det.uid, det)
-							})
-					}
+		let barkodYapilar = barkodlar.filter(Boolean).map(barkod => {
+			let carpan = 1
+			for (let s of ['x', '*']) {
+				let i = barkod.indexOf(s)
+				if (i != -1) {
+					carpan = asFloat(barkod.slice(0, i))
+					barkod = barkod.slice(i + 1).trimEnd()
+				}
+				break
+			}
+			carpan ||= 1
+			return barkod ? ({ carpan, barkod }) : null
+		}).filter(Boolean)
+		let results = await Promise.allSettled(barkodYapilar.map(item =>
+			app.barkodBilgiBelirle(item)))
+		; results = results
+			.filter(_ => _.value && _.status == 'fulfilled')
+			.map(_ => _.value)
+		if (empty(results))
+			return
+		/*{
+			let html = [
+				`<div>Belirlenen ürünler:</div>`,
+				`<ul>`,
+				...results.map(({ stokAdi: val }) => `<li>${val}</li>`),
+				'</ul>'
+			].join(CrLf)
+			eConfirm(html, 'Barkod Okundu')
+		}*/
+		let {acc, inst: fis, gridPart = {}} = tanimPart
+		let {class: { detaySinif }} = fis, {gridWidget: w} = gridPart
+		if (w) {
+			w.beginupdate()
+			try {
+				for (let item of results) {
+					$.extend(item, { stokKod: item.shKod, stokAdi: item.shAdi })
+					let det = new detaySinif(item)
+					await det.detayEkIslemler({ ...arguments, fis })
+					det.htmlOlustur?.()
+					w.addrow(null, det, 'first')
 				}
 			}
-			{
-				let {SB: kosullar} = kosulYapilar
-				if (!empty(kosullar))
-				for (let k of kosullar) {
-					let kod2Rec = await k.getAltKosulYapilar(kodListe)
-					for (let [kod, rec] of entries(kod2Rec)) {
-						let {oran1: iskOran1} = rec
-						if (!iskOran1)
-							continue
-						let subDetListe = kod2Detaylar[kod]
-						if (empty(subDetListe))
-							continue
-						subDetListe
-							.filter(_ => !_.ozelIsk)
-							.forEach(det => {
-								$.extend(det, { iskKosulKod: kod, ozelIsk: true, iskOran1 })
-								det.bedelHesapla().htmlOlustur()
-								w?.updaterow(det.uid, det)
-							})
-					}
+			finally {
+				w.endupdate(false)
+				w.clearselection()
+				w.selectrow(0)
+				w.ensurerowvisible(0)
+				fis.topluHesapla(e)
+				setTimeout(() => acc?.render(), 1)
+				{
+					let css = 'degisti'
+					acc.get('duzenle')?.contentLayout?.find(`.${css}`).removeClass(css)
 				}
 			}
 		}
-		await super.topluHesapla(e)
-		return this
 	}
-	async uiGirisOncesiIslemler({ islem }) {
-		let {detaylar} = this
-		if (islem == 'degistir' || islem == 'sil') {
-			detaylar.forEach(det =>
-				det.ozelFiyat = det.ozelIsk = det.ozelPro = true)
-		}
-		await super.uiGirisOncesiIslemler(...arguments)
-	}
-	async satisKosullariReset(e = {}) {
-		await super.satisKosullariReset(e)
-		let {tanimPart = e.sender} = e
-		let {acc, gridPart, gridWidget: w} = tanimPart ?? {}
-		let fis = this, {detaylar} = this
-		let promises = [], _e = { ...e, fis }
-		for (let det of detaylar) {
-			det.ozelFiyat = det.ozelIsk = det.ozelPro = false
-			det.fiyatKosulKod = det.iskKosulKod = det.proKod = det.fiyat = null
-			det.brutBedel = det.bedel = 0
-			for (let {ioAttr: k} of TicIskYapi)
-				det[k] = null
-			promises.push(new Promise(async (r, f) => {
-				await det.detayEkIslemler(_e)
-				r()
-			}))
-		}
-		await Promise.allSettled(promises)
-		await this.topluHesapla(e)
-		detaylar.forEach(det =>
-			det.bedelHesapla().htmlOlustur())
-		gridPart?.tazele()
-		acc?.render()
-		return this
-	}
-	async satisKosullariOlustur(e) {
-		await super.satisKosullariOlustur(e)
-		let {tarih, subeKod, mustKod, detaylar} = this
-		// let stokKodListe = detaylar.map(_ => _.stokKod)
-		let kapsam = { tarih, subeKod, mustKod }
-		try { this.kosulYapilar = await new SatisKosulYapi().uygunKosullar({ kapsam }) }
-		catch (ex) { cerr(ex) }
-		return this
-		
-		/*
-		await Promise.all(app.activeWndPart.inst.kosulYapilar.FY.map(async k => k.getAltKosulYapilar(app.activeWndPart.inst.detaylar.map(_ => _.stokKod)))).then(_ => _.flat())
-		let fiyatYapilar = await SatisKosul_Fiyat.stoklarIcinFiyatlar(stokKodListe, kosulYapilar?.FY, mustKod), iskontoArastirStokSet = {};
-		for (let det of detaylar) {
-			if (fiyatYapilar && det.netBedel == undefined) { continue }
-			let {stokKod} = det, kosulRec = fiyatYapilar[stokKod] ?? {}, {iskontoYokmu} = kosulRec;
-			if (!iskontoYokmu) { iskontoArastirStokSet[stokKod] = true }
-			let fiyat = det.fiyat || kosulRec.fiyat; if (fiyat) {
-				let miktar = det.miktar || 0, netBedel = roundToBedelFra(miktar * fiyat);
-				$.extend(det, { fiyat, netBedel })
-			}
-		}
-		let iskYapilar = await SatisKosul_Iskonto.stoklarIcinOranlar(Object.keys(iskontoArastirStokSet), kosulYapilar?.SB);
-		let prefix = 'oran'; for (let det of detaylar) {
-			let {stokKod} = det, kosulRec = iskYapilar[stokKod] ?? {};
-			for (let [key, value] of Object.entries(iskYapilar)) {
-				if (!(value && key.startsWith(prefix))) { continue }
-				let i = asInteger(key.slice(prefix.length)); det[`iskOran${i}`] = value
-			}
-		}
-	*/
+	yerDegisti({ oldValue = this._oncekiYerKod, value = this.yerKod }) {
+		this._oncekiYerKod = value
 	}
 
 	static async rootFormBuilderDuzenle_tablet(e) {
@@ -200,9 +114,30 @@ class TabTSFis extends TabFis {
 			}
 		})
 	}
+	static async rootFormBuilderDuzenle_tablet_acc_baslik({ sender: tanimPart, inst: fis, rfb }) {
+		await super.rootFormBuilderDuzenle_tablet_acc_baslik(...arguments)
+		let {acc} = tanimPart, {dvKod, dipIslemci, detaylar} = fis
+		{
+			let mfSinif = MQTabYer, {sinifAdi: etiket} = mfSinif
+			let form = rfb.addFormWithParent().altAlta()
+			form.addSimpleComboBox('yerKod', etiket, etiket)
+				.etiketGosterim_yok()
+				.addStyle(`$elementCSS { max-width: 800px }`)
+				.kodsuz().setMFSinif(mfSinif)
+				.degisince(({ type, events, ...rest }) => {
+					if (type != 'batch')
+						return
+					let _e = { type, events, ...rest, oldValue: fis.mustKod, value: events.at(-1).value?.trimEnd() }
+					setTimeout(() => fis.yerDegisti({ ...e, ..._e, tanimPart }), 5)
+				})
+				.onAfterRun(({ builder: { part } }) =>
+					tanimPart.ddYer = part)
+		}
+	}
 	static async rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_dipCollapsed(...arguments)
-		let {dipIslemci: { brut, topIskBedel, topKdv, sonuc }, detaylar: { length: topSatir }} = fis
+		let {dipIslemci = {}, detaylar: { length: topSatir }} = fis
+		let {brut, topIskBedel, topKdv, sonuc} = dipIslemci
 		if (topSatir) {
 			rfb.addForm().setLayout(() => $([
 				`<div class="flex-row" style="gap: 10px">`,
@@ -214,8 +149,8 @@ class TabTSFis extends TabFis {
 						 `<span class="lightgray">KD: </span>` +
 						 `<span>${toStringWithFra(topKdv)}</span>` +
 					 `</div>` : ''),
-					`<div class="orangered"><b>${toStringWithFra(sonuc)}</b> TL</div>`,
-					`<div class="royalblue"><b>${numberToString(topSatir)}</b> satır</div>`,
+					(sonuc ? `<div class="orangered"><b>${toStringWithFra(sonuc)}</b> TL</div>` : ''),
+					(topSatir ? `<div class="royalblue"><b>${numberToString(topSatir)}</b> satır</div>` : ''),
 				`</div>`
 			].join(CrLf)))
 		}
@@ -223,42 +158,6 @@ class TabTSFis extends TabFis {
 	static async rootFormBuilderDuzenle_tablet_acc_dip({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_dip(...arguments)
 		let {acc} = tanimPart, {dvKod, dipIslemci, detaylar} = fis
-		rfb.addStyle_wh(null, 150)
-		{
-			let form = rfb.addFormWithParent().yanYana()
-				.addStyle(`$elementCSS > * { gap: 20px }`)
-				.setAltInst(dipIslemci)
-			form.addNumberInput('dipIskOran1', 'İsk1 %')
-				.addStyle_wh(100, 50).addCSS('center')
-				.degisince(({ builder: { input }}) => {
-					input.addClass('degisti')
-					input[0].value = asFloat(input[0].value) || null
-					fis.topluHesapla()
-					acc?.render()
-				})
-				.onAfterRun(({ builder: { id, input, altInst: inst } }) => {
-					tanimPart.txtDipIskOran = input
-					setTimeout(() => input[0].value = inst[id] || null, 1)
-					setTimeout(() => input.focus(), 1)
-				})
-			form.addNumberInput('dipIskBedel', '+ Bedel')
-				.addStyle_wh(200, 50)
-				.degisince(({ builder: { input }}) => {
-					input.addClass('degisti')
-					input[0].value = asFloat(input[0].value) || null
-					fis.topluHesapla()
-					acc?.render()
-				})
-				.onAfterRun(({ builder: { id, input, altInst: inst } }) => {
-					tanimPart.txtDipIskBedel = input
-					setTimeout(() => input[0].value = inst[id] || null, 1)
-				})
-			form.addDiv().etiketGosterim_placeHolder()
-				.addStyle('$elementCSS { margin: 10px 0 0 10px }')
-				.addCSS('gray')
-				.onBuildEk(({ builder: { input } }) =>
-					input.html(dvKod))
-		}
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_detayCollapsed({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_detayCollapsed(...arguments)
@@ -278,7 +177,7 @@ class TabTSFis extends TabFis {
 		await super.rootFormBuilderDuzenle_tablet_acc_detay(e)
 		let {depomu} = app, {tablet: { depoBedelGorur }} = app.params
 		let {acc} = tanimPart, {detaylar, class: { bedelKullanilirmi }} = fis
-		bedelKullanilirmi &= !(depomu && depoBedelGorur === false)
+		bedelKullanilirmi &&= !(depomu && depoBedelGorur === false)
 		rfb.addSimpleComboBox('barkod', 'Barkod', 'Barkod giriniz veya Ürün seçiniz')
 			.addStyle(`$elementCSS { max-width: 800px }`)
 			.etiketGosterim_yok().autoClear()
@@ -347,7 +246,9 @@ class TabTSFis extends TabFis {
 				})
 			})
 	}
-	static async rootFormBuilderDuzenle_tablet_acc_duzenleCollapsed({ sender: tanimPart, inst: fis, rfb }) { }
+	static async rootFormBuilderDuzenle_tablet_acc_duzenleCollapsed({ sender: tanimPart, inst: fis, rfb }) {
+		
+	}
 	static async rootFormBuilderDuzenle_tablet_acc_duzenle(e) {
 		let {depomu, params: { zorunlu, tablet }} = app
 		let {fiyatFra, bedelFra} = zorunlu
@@ -356,7 +257,7 @@ class TabTSFis extends TabFis {
 		let {bedelKullanilirmi} = fis.class
 		let {acc, gridPart, gridPart: { gridWidget: w, selectedRec: det } = {}} = tanimPart
 		fiyatFra ??= 5; bedelFra ||= 2
-		bedelKullanilirmi &= !(depomu && depoBedelGorur === false)
+		bedelKullanilirmi &&= !(depomu && depoBedelGorur === false)
 		let getDetay = () => gridPart.selectedRec
 		let initFlag = !getDetay()
 		if (!initFlag)
@@ -526,64 +427,5 @@ class TabTSFis extends TabFis {
 		super.rootFormBuilderDuzenle_tablet_acc_onCollapse(...arguments)
 		if (id != 'detay' && !acc.hasActivePanel)
 			acc.expand('detay')
-	}
-
-	static async barkodOkundu({ tanimPart, barkodlar }) {
-		let e = arguments[0]
-		let barkodYapilar = barkodlar.filter(Boolean).map(barkod => {
-			let carpan = 1
-			for (let s of ['x', '*']) {
-				let i = barkod.indexOf(s)
-				if (i != -1) {
-					carpan = asFloat(barkod.slice(0, i))
-					barkod = barkod.slice(i + 1).trimEnd()
-				}
-				break
-			}
-			carpan ||= 1
-			return barkod ? ({ carpan, barkod }) : null
-		}).filter(Boolean)
-		let results = await Promise.allSettled(barkodYapilar.map(item =>
-			app.barkodBilgiBelirle(item)))
-		; results = results
-			.filter(_ => _.value && _.status == 'fulfilled')
-			.map(_ => _.value)
-		if (empty(results))
-			return
-		/*{
-			let html = [
-				`<div>Belirlenen ürünler:</div>`,
-				`<ul>`,
-				...results.map(({ stokAdi: val }) => `<li>${val}</li>`),
-				'</ul>'
-			].join(CrLf)
-			eConfirm(html, 'Barkod Okundu')
-		}*/
-		let {acc, inst: fis, gridPart = {}} = tanimPart
-		let {class: { detaySinif }} = fis, {gridWidget: w} = gridPart
-		if (w) {
-			w.beginupdate()
-			try {
-				for (let item of results) {
-					$.extend(item, { stokKod: item.shKod, stokAdi: item.shAdi })
-					let det = new detaySinif(item)
-					await det.detayEkIslemler({ ...arguments, fis })
-					det.htmlOlustur?.()
-					w.addrow(null, det, 'first')
-				}
-			}
-			finally {
-				w.endupdate(false)
-				w.clearselection()
-				w.selectrow(0)
-				w.ensurerowvisible(0)
-				fis.topluHesapla(e)
-				setTimeout(() => acc?.render(), 1)
-				{
-					let css = 'degisti'
-					acc.get('duzenle')?.contentLayout?.find(`.${css}`).removeClass(css)
-				}
-			}
-		}
 	}
 }

@@ -112,7 +112,7 @@ class MQCogul extends MQYapi {
 		if (rec) { let _e = $.extend({}, e, { sender: this, rec, result: [] }); this.ekCSSDuzenle(_e); return _e.result }
 	}
 	static ekCSSDuzenle(e) {
-		this.forAltYapiClassesDo('ekCSSDuzenle', e); let {rec, dataField: belirtec, result} = e, {gonderimTSSaha} = this;
+		this.forAltYapiClassesDo('ekCSSDuzenle', e); let {rec, dataField: belirtec, result} = e, {gonderimTSSaha} = this
 		if (gonderimTSSaha && !!rec[gonderimTSSaha]) { result.push('gonderildi') }
 	}
 	static listeEkrani_init(e) { this.forAltYapiClassesDo('listeEkrani_init', e) }

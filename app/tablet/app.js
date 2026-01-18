@@ -11,31 +11,28 @@ class TabletApp extends TicariApp {
 	}
 	get offlineBilgiYukleGonderOrtakSiniflar() {
 		let {_offlineBilgiYukleGonderOrtakSiniflar: result} = this
-		if (!result) {
-			result = this._offlineBilgiYukleGonderOrtakSiniflar = [
-				MQTicNumarator,
-				MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
-				MQTabBolge, MQTabIl, MQTabUlke, MQTabCariTip,
-				MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
-				MQTabPlasiyer, MQTabStok, MQTabCari, MQPaket, MQUrunPaket,
-				MQTabBarkodReferans, MQTabBarkodAyrisim
-			]
-		}
+		if (!result)
+			result = this._offlineBilgiYukleGonderOrtakSiniflar = [MQTicNumarator, MQTabStok, MQTabCari]
 		return result
 	}
 	get offlineBilgiYukleSiniflar() {
 		let {_offlineBilgiYukleSiniflar: result} = this
 		if (!result) {
 			result = this._offlineBilgiYukleSiniflar = [
-				MQParam,
-				...this.offlineBilgiYukleGonderOrtakSiniflar,
-				MQCariSatis, SatisKosulYapi
-				// ...SatisKosul.subClasses
+				MQParam, MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
+				MQTabCariTip, MQPaket, MQUrunPaket, MQTabUgramaNeden,
+				MQTabKasa, MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
+				MQTabBolge, MQTabIl, MQTabUlke, MQTabPlasiyer
 			]
 			for (let {kami, mfSinif} of HMRBilgi) {
 				if (kami && mfSinif)
 					result.push(mfSinif)
 			}
+			result.push(...[
+				MQTabBarkodReferans, MQTabBarkodAyrisim,
+				...this.offlineBilgiYukleGonderOrtakSiniflar,
+				MQCariSatis, SatisKosulYapi
+			])
 		}
 		return result
 	}
@@ -108,7 +105,7 @@ class TabletApp extends TicariApp {
 			MQTabStok, MQTabCari, MQTabPlasiyer, MQTabSube, MQTabYer,
 			MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka, MQTabNakliyeSekli,
 			MQTabTahsilSekli, MQTabBarkodReferans, MQTabBarkodAyrisim,
-			MQCariSatis
+			MQCariSatis, MQTabUgramaNeden
 		])
 		{
 			let mfSinif = TabFisListe, {kodListeTipi: mne, sinifAdi: text} = mfSinif
@@ -257,18 +254,16 @@ class TabletApp extends TicariApp {
 			return
 		let pm = showProgress('Veriler gönderiliyor...', null, true)
 		pm.setProgressMax(classes.length * 70).progressReset()
-		try {
-			for (let _classes of arrayIterChunks(classes, chunkSize)) {
-				await Promise.all(_classes.map(cls =>
-					cls.offlineSaveToRemoteTable().finally(() =>
-						pm.progressStep())
-				))
+		for (let _classes of arrayIterChunks(classes, chunkSize)) {
+			for (let cls of _classes) {
+				try { await cls.offlineSaveToRemoteTable() }
+				catch (ex) {
+					let errText = getErrorText(ex)
+					console.error(errText, ex)
+					hConfirm(errText, 'Veri Gönder')
+				}
+				finally { pm.progressStep() }
 			}
-		}
-		catch (ex) {
-			let errText = getErrorText(ex)
-			console.error(errText, ex)
-			hConfirm(errText, 'Veri Gönder')
 		}
 		pm.progressEnd()
 		eConfirm('Veri Gönderimi tamamlandı')

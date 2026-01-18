@@ -1,6 +1,6 @@
 .accordion.part {
 	--item-pad-x: 5px; --item-pad-y: 5px;
-	--acc-header-height: 46px;
+	--acc-header-height: 40px;
 	width: calc(var(--full) - var(--item-pad-x) * 3);
 	height: calc(var(--full) - var(--item-pad-y) * 2)
 }
@@ -41,7 +41,7 @@
 	overflow: hidden; text-overflow: ellipsis
 }
 .accordion.part .accordion.item > .header > .collapsed-content {
-	font-size: 90%; color: #777;
+	font-size: 85%; color: #777;
 	margin-left: auto; white-space: nowrap;
 	overflow-y: auto !important
 }

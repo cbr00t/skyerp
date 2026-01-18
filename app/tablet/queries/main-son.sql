@@ -3,8 +3,10 @@ CREATE TABLE IF NOT EXISTS tabfis (
 	id TEXT NOT NULL PRIMARY KEY,
 	fisTipi TEXT NOT NULL DEFAULT '',
 	silindi TEXT NOT NULL DEFAULT '',
-	bizsubekod TEXT NOT NULL DEFAULT '',
 	tarih TEXT NOT NULL DEFAULT '',
+	plasiyerkod TEXT NOT NULL DEFAULT '',
+	bizsubekod TEXT NOT NULL DEFAULT '',
+	must TEXT NOT NULL DEFAULT '',
 	seri TEXT NOT NULL DEFAULT '',
 	noyil INTEGER NOT NULL DEFAULT 0,
 	fisno INTEGER NOT NULL DEFAULT 0,
@@ -16,7 +18,8 @@ CREATE TABLE IF NOT EXISTS tabfis (
 -- ugrama fis
 	nedenkod TEXT NOT NULL DEFAULT '',
 -- stok/ticari fis
-	must TEXT NOT NULL DEFAULT '',
+	yerkod TEXT NOT NULL DEFAULT '',
+	refyerkod TEXT NOT NULL DEFAULT '',
 	dipiskoran1 REAL NOT NULL DEFAULT 0,
 	dipiskoran2 REAL NOT NULL DEFAULT 0,
 	dipiskbedel REAL NOT NULL DEFAULT 0

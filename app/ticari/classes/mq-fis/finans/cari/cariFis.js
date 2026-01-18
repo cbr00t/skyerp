@@ -120,11 +120,16 @@ class CariTahsilatOdemeDetay extends FinansDetay {
 		)
 	}
 	async kaydetOncesiIslemler({ fis }) {
-		await super.kaydetOncesiIslemler(...arguments); let {tahSekliNo} = this, kod2Rec = await MQTahsilSekli.getGloKod2Rec();
-		/* let rec = (await MQTahsilSekli.loadServerData({ ozelQueryDuzenle: ({ sent }) => sent.where.degerAta(tahSekliNo, 'kodno') }))?.[0]; */
-		let rec = kod2Rec[tahSekliNo]; if (rec) {
-			let {tip, altTip} = this;
-			tip.char = rec.tahsiltipi; altTip.char = rec.ahalttip;
+		await super.kaydetOncesiIslemler(...arguments)
+		let {tahSekliNo} = this
+		let clsTahSekli = (MQCogul.isOfflineMode ? window.MQTabTahsilSekli : null) ?? MQTahsilSekli
+		let kod2Rec = await clsTahSekli.getGloKod2Rec()
+		/* let rec = (await clsTahSekli.loadServerData({ ozelQueryDuzenle: ({ sent }) => sent.where.degerAta(tahSekliNo, 'kodno') }))?.[0]; */
+		let rec = kod2Rec[tahSekliNo]
+		if (rec) {
+			let {tip, altTip} = this
+			tip.char = rec.tahsiltipi
+			altTip.char = rec.ahalttip
 			$.extend(this, {
 				tahEkKod: rec.ekkod, tahEkAdi: rec.ekadi,
 				tahEkSubeKod: rec.eksubekod, dvKod: rec.tahdvkod,

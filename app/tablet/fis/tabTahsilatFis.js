@@ -4,6 +4,7 @@ class TabTahsilatFis extends TabFis {
 	static get detaySinif() { return TabTahsilatDetay } static get almSat() { return 'T' }
 	static get onlineFisSinif() { return CariTahsilatFis }
 	static get bedelKullanilirmi() { return true }
+	static get tahsilatmi() { return true }
 	get tahsilBedel() {
 		let {detaylar} = this
 		return roundToBedelFra(topla(_ => _.bedel, detaylar))

@@ -307,3 +307,14 @@ class MQCariSatis extends MQMasterOrtak {
 		$.extend(this, { satisTipKod, mustKod })
 	}
 }
+
+class MQTabKasa extends MQKAOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'KASA' } static get sinifAdi() { return 'Kasa' }
+	static get table() { return 'kasmst' } static get tableAlias() { return 'kas' }
+}
+class MQTabUgramaNeden extends MQKAOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'UGRNEDEN' } static get sinifAdi() { return 'Uğrama Nedeni' }
+	static get table() { return 'ssugramasebep' } static get tableAlias() { return 'ned' }
+}

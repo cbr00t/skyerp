@@ -12,24 +12,35 @@ class TabFisListe extends TabFis {
 	}
 	static detaySinifFor(e) { return this.fisSinifFor(e)?.detaySinif }
 	static async yeniInstOlustur({ sender: gridPart, islem, rec, rowIndex, args = {} }) {
+		let result = await super.yeniInstOlustur(...arguments)
+		if (result != null)
+			return result
 		let {fisTipi} = rec ?? {}
 		let yenimi = islem == 'yeni'
 		if (yenimi) {
+			fisTipi = false
 			let {tip2Sinif} = this
 			let p = new $.Deferred()
 			let secince = ({ value: fisTipi }) => p.resolve(fisTipi)
 			let kapaninca = () => p.resolve()
 			MQTabBelgeTipi.listeEkraniAc({ secince, kapaninca })
-			fisTipi = await p
+			fisTipi = await p ?? false
 		}
-		let fisSinif = this.fisSinifFor(fisTipi)
-		if (!fisSinif)
+		let fisSinif = fisTipi === false ? false : this.fisSinifFor(fisTipi)
+		if (!fisSinif) {
+			if (fisSinif === false)
+				return null
 			throw { rc: 'fisTipi', errorText: 'Fiş Tipi belirlenemedi' }
+		}
 			// return null
 		let inst = new fisSinif({ ...args })
 		if (rec) {
 			await inst.keySetValues({ ...arguments, rec, sayac: undefined })
-			inst.mustKod = rec.must
+			let {plasiyerkod: plasiyerKod, must: mustKod} = rec
+			if (plasiyerKod && !inst.plasiyerKod)
+				inst.plasiyerKod = plasiyerKod
+			if (mustKod && !inst.mustKod)
+				inst.mustKod = mustKod
 			if (!yenimi) {
 				inst.sayac = rec.sayac
 				await inst.yukle()

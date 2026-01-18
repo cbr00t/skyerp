@@ -41,10 +41,13 @@ class TabDetay extends MQDetay {
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
-		liste.push(
+		let {depomu} = app, {tablet: { depoBedelGorur }} = app.params
+		let bedelKullanilirmi = !(depomu && depoBedelGorur === false)
+		liste.push(...[
 			new GridKolon({ belirtec: '_html', text: ' ' }).noSql(),
-			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 11 }).noSql().tipDecimal_bedel()
-		)
+			(bedelKullanilirmi ? new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 11 }).noSql().tipDecimal_bedel() : null)
+		].filter(Boolean))
+		
 	}
 	async detayEkIslemler({ fis }) { }
 	hostVarsDuzenle({ fis, hv }) {

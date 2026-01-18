@@ -634,7 +634,8 @@ class MQYapi extends CIO {
 		return result
 	}
 	_sqlExec(e, _params) {
-		e = $.isPlainObject(e) ? e : { query: e, params: _params }; let offlineMode = e.offlineMode ?? e.isOfflineMode ?? e.isOffline ?? e.offline ?? this.isOfflineMode
+		e = $.isPlainObject(e) ? e : { query: e, params: _params }
+		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? e.isOffline ?? e.offline ?? this.isOfflineMode
 		let {selector, db, trnId, query, params, deferFlag, batch} = e
 		return this.class._sqlExec({ selector, db, offlineMode, trnId, query, params, deferFlag, batch })
 	}
