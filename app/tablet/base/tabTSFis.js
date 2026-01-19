@@ -4,7 +4,6 @@ class TabTSFis extends TabFis {
 	static get araSeviyemi() { return super.araSeviyemi || this == TabTSFis }
 	static get kodListeTipi() { return 'TABTS' } static get sinifAdi() { return 'Ticari/Stok Fiş' }
 	static get detaySinif() { return TabTSDetay } static get almSat() { return 'T' }
-	static get bedelKullanilirmi() { return false }
 
 	static pTanimDuzenle({ pTanim }) {
 		// MQOrtakFis.pTanimDuzenle(...arguments)
@@ -24,6 +23,12 @@ class TabTSFis extends TabFis {
 			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
 		}
 		return await super.loadServerData_detaylar(...arguments)
+	}
+	async dataDuzgunmuDuzenle({ eskiInst: eskiFis, parentPart, gridPart, result }) {
+		let {yerKod} = this
+		if (yerKod && !await MQTabYer.kodVarmi(yerKod))
+			result.push(`<b>Yer (Depo) [<span class=firebrick>${yerKod}</span>]</b> hatalıdır`)
+		return await super.dataDuzgunmuDuzenle(...arguments)
 	}
 
 	static async barkodOkundu({ tanimPart, barkodlar }) {
@@ -75,7 +80,7 @@ class TabTSFis extends TabFis {
 				w.clearselection()
 				w.selectrow(0)
 				w.ensurerowvisible(0)
-				fis.topluHesapla(e)
+				fis.topluHesaplaDefer(e)
 				setTimeout(() => acc?.render(), 1)
 				{
 					let css = 'degisti'
@@ -84,8 +89,8 @@ class TabTSFis extends TabFis {
 			}
 		}
 	}
-	yerDegisti({ oldValue = this._oncekiYerKod, value = this.yerKod }) {
-		this._oncekiYerKod = value
+	yerDegisti({ oldValue = this._prev.yerKod, value = this.yerKod }) {
+		this._prev.yerKod = value
 	}
 
 	static async rootFormBuilderDuzenle_tablet(e) {
@@ -93,8 +98,8 @@ class TabTSFis extends TabFis {
 		let {sender: tanimPart, inst, rootBuilder: rfb, kaForm, tanimFormBuilder: tanimForm, acc} = e
 		// tanimForm.addForm().setLayout(() => $(`<p><h3>hello world from ${this.name}</h3></p>`))
 	}
-	static async rootFormBuilderDuzenle_tablet_acc(e) {
-		await super.rootFormBuilderDuzenle_tablet_acc(e)
+	static async rootFormBuilderDuzenle_tablet_acc_baslikOncesi(e) {
+		await super.rootFormBuilderDuzenle_tablet_acc_baslikOncesi(e)
 		let {sender: tanimPart, acc, getBuilder} = e
 		// let getBuilder = layout => this.rootFormBuilderDuzenle_tablet_getBuilder({ ...e, layout })
 		acc.add({
@@ -115,19 +120,19 @@ class TabTSFis extends TabFis {
 		})
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_baslik({ sender: tanimPart, inst: fis, rfb }) {
-		await super.rootFormBuilderDuzenle_tablet_acc_baslik(...arguments)
-		let {acc} = tanimPart, {dvKod, dipIslemci, detaylar} = fis
+		let e = arguments[0]
+		await super.rootFormBuilderDuzenle_tablet_acc_baslik(e)
 		{
 			let mfSinif = MQTabYer, {sinifAdi: etiket} = mfSinif
 			let form = rfb.addFormWithParent().altAlta()
 			form.addSimpleComboBox('yerKod', etiket, etiket)
 				.etiketGosterim_yok()
-				.addStyle(`$elementCSS { max-width: 800px }`)
+				// .addStyle(`$elementCSS { max-width: 800px }`)
 				.kodsuz().setMFSinif(mfSinif)
 				.degisince(({ type, events, ...rest }) => {
 					if (type != 'batch')
 						return
-					let _e = { type, events, ...rest, oldValue: fis.mustKod, value: events.at(-1).value?.trimEnd() }
+					let _e = { type, events, ...rest, oldValue: fis.yerKod, value: events.at(-1).value?.trimEnd() }
 					setTimeout(() => fis.yerDegisti({ ...e, ..._e, tanimPart }), 5)
 				})
 				.onAfterRun(({ builder: { part } }) =>
@@ -180,7 +185,8 @@ class TabTSFis extends TabFis {
 		bedelKullanilirmi &&= !(depomu && depoBedelGorur === false)
 		rfb.addSimpleComboBox('barkod', 'Barkod', 'Barkod giriniz veya Ürün seçiniz')
 			.addStyle(`$elementCSS { max-width: 800px }`)
-			.etiketGosterim_yok().autoClear()
+			.etiketGosterim_yok()
+			// .autoClear()
 			.setMFSinif(MQTabStok)
 			//.noMF()
 			.degisince(({ type, events = [], ...rest }) => {
@@ -202,13 +208,13 @@ class TabTSFis extends TabFis {
 			}))
 			.setTabloKolonlari([
 				new GridKolon({ belirtec: '_html', text: 'Ürün' }),
-				(bedelKullanilirmi ? new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 10 }).tipDecimal_bedel() : null),
-				new GridKolon({ belirtec: '_sil', text: ' ', genislikCh: 5 })
+				(bedelKullanilirmi ? new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 9 }).tipDecimal_bedel() : null),
+				new GridKolon({ belirtec: '_sil', text: ' ', genislikCh: 4 })
 					.tipButton('X')
 					.onClick(({ gridRec, args: { owner: w } }) => {
 						w.deleterow(gridRec.uid)
 						tanimPart.sonEklemeDuzenleEkranindanmi = false
-						fis.topluHesapla(e)
+						fis.topluHesaplaDefer(e)
 						acc?.render()
 					})
 			].filter(Boolean))
@@ -246,18 +252,15 @@ class TabTSFis extends TabFis {
 				})
 			})
 	}
-	static async rootFormBuilderDuzenle_tablet_acc_duzenleCollapsed({ sender: tanimPart, inst: fis, rfb }) {
-		
-	}
+	static async rootFormBuilderDuzenle_tablet_acc_duzenleCollapsed({ sender: tanimPart, inst: fis, rfb }) { }
 	static async rootFormBuilderDuzenle_tablet_acc_duzenle(e) {
-		let {depomu, params: { zorunlu, tablet }} = app
+		let {params: { zorunlu, tablet }} = app
 		let {fiyatFra, bedelFra} = zorunlu
-		let {depoBedelGorur, fiyatDegistirir, iskDegistirir, iskMaxSayi} = tablet
+		let {fiyatDegistirir, iskDegistirir, iskMaxSayi} = tablet
 		let {sender: tanimPart, inst: fis, rfb, item} = e
 		let {bedelKullanilirmi} = fis.class
 		let {acc, gridPart, gridPart: { gridWidget: w, selectedRec: det } = {}} = tanimPart
 		fiyatFra ??= 5; bedelFra ||= 2
-		bedelKullanilirmi &&= !(depomu && depoBedelGorur === false)
 		let getDetay = () => gridPart.selectedRec
 		let initFlag = !getDetay()
 		if (!initFlag)
@@ -295,7 +298,7 @@ class TabTSFis extends TabFis {
 						w.selectrow(0)
 						w.ensurerowvisible(0)
 						txtMiktar?.focus()
-						fis.topluHesapla(e)
+						fis.topluHesaplaDefer(e)
 					}
 					acc?.render()
 					updateUI()
@@ -311,7 +314,8 @@ class TabTSFis extends TabFis {
 			let timer
 			rfb.addSimpleComboBox('stokKod', 'Barkod', 'Yeni Satır eklemek için Barkod giriniz veya Ürün seçiniz')
 				.addStyle(`$elementCSS { max-width: 800px }`)
-				.etiketGosterim_yok().autoClear()
+				.etiketGosterim_yok()
+				// .autoClear()
 				.setMFSinif(MQTabStok)
 				.degisince(({ type, events = [], ...rest }) => {
 					if (type != 'batch')
@@ -350,7 +354,7 @@ class TabTSFis extends TabFis {
 			let det = getDetay()
 			det.bedelHesapla().htmlOlustur()
 			w?.updaterow(det.uid, det)
-			fis.topluHesapla(e)
+			fis.topluHesaplaDefer(e)
 			acc.render()
 			updateUI()
 			input?.addClass('degisti')
@@ -359,7 +363,8 @@ class TabTSFis extends TabFis {
 			let form = detayForm.addFormWithParent().yanYana()
 				.addStyle(`$elementCSS > div:not(:first-child) { margin-left: 20px }`)
 			form.addNumberInput('miktar', 'Miktar', 'Miktar')
-				.addStyle_wh(150)
+				.addStyle_wh(110)
+				.setMin(0).setMax(10000)
 				.degisince(({ builder: { input }, value }) => {
 					getDetay().miktar = value
 					degisinceOrtak({ input })
@@ -383,7 +388,8 @@ class TabTSFis extends TabFis {
 			let form = detayForm.addFormWithParent().yanYana()
 				.addStyle(`$elementCSS > div:not(:first-child) { margin-left: 20px }`)
 			form.addNumberInput('fiyat', 'Fiyat', 'Fiyat')
-				.addStyle_wh(200).setFra(fiyatFra)
+				.addStyle_wh(150).setFra(fiyatFra)
+				.setMin(0).setMax(10_000_000)
 				[fiyatDegistirir ? 'editable' : 'readOnly']()
 				.degisince(({ builder: { input }, value }) => {
 					getDetay().fiyat = value
@@ -404,14 +410,16 @@ class TabTSFis extends TabFis {
 	}
 	static rootFormBuilderDuzenle_tablet_acc_onExpand({ sender: { parentPart: tanimPart = {} }, acc, id, item }) {
 		super.rootFormBuilderDuzenle_tablet_acc_onExpand(...arguments)
-		let {barkodPart, txtMiktar} = tanimPart, {temps, contentLayout} = item
+		let {barkodPart, dBarkodPart, txtMiktar} = tanimPart, {temps, contentLayout} = item
 		switch (id) {
 			case 'detay': {
+				barkodPart?.clear()
 				barkodPart?.focus()
 				break
 			}
 			case 'duzenle': {
 				contentLayout?.find('.degisti')?.removeClass('degisti')
+				dBarkodPart?.clear()
 				txtMiktar?.focus()
 				setTimeout(() => {
 					if (!txtMiktar)

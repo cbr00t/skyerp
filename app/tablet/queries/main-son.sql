@@ -19,10 +19,13 @@ CREATE TABLE IF NOT EXISTS tabfis (
 	nedenkod TEXT NOT NULL DEFAULT '',
 -- stok/ticari fis
 	yerkod TEXT NOT NULL DEFAULT '',
-	refyerkod TEXT NOT NULL DEFAULT '',
 	dipiskoran1 REAL NOT NULL DEFAULT 0,
 	dipiskoran2 REAL NOT NULL DEFAULT 0,
-	dipiskbedel REAL NOT NULL DEFAULT 0
+	dipiskbedel REAL NOT NULL DEFAULT 0,
+-- ticari fis
+	sevkyerkod TEXT NOT NULL DEFAULT '',
+-- stok fis
+	refyerkod TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_tabfis_fisTipi ON tabfis (fisTipi);
 CREATE INDEX IF NOT EXISTS idx_tabfis_tarih ON tabfis (tarih);

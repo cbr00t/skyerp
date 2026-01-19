@@ -101,4 +101,5 @@ class TabTSDetay extends TabDetay {
 			`</div>`
 		].filter(_ => _).join(CrLf)
 	}
+	super_getHTML(e) { return super.getHTML(e) }
 }

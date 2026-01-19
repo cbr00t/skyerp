@@ -107,7 +107,7 @@ body.dark-theme .jqx-grid [role = row] .grid-cell-group { color: #ccc; backgroun
 .jqx-grid [role = row] > div:not(:first-child),
 .jqx-grid [role = row] > div:not(:first-child) > div,
 		.jqx-grid [role = row] > div:not(:first-child) > div > div {
-	line-height: 19px; word-wrap: break-word !important;
+	line-height: 18px; word-wrap: break-word !important;
 	text-wrap: pretty !important; word-break: auto-phrase !important
 }
 .jqx-grid [role = row]:not([row-id = '']) { box-shadow: 1px 1px 5px 0px royalblue }

@@ -18,11 +18,13 @@ class SimpleComboBoxPart extends Part {
 		return item
 	}
 	set item(value) {
-		let {input, kodSaha, adiSaha, autoClearFlag: autoClear} = this
+		let {layout, input, kodSaha, adiSaha, autoClearFlag: autoClear} = this
 		let item = value
 		if (!isObject(item))
 			item = { [adiSaha]: item }
 		this._item = item
+		let {[kodSaha]: kod} = item ?? {}
+		layout?.[kod ? 'addClass' : 'removeClass']('has-value')
 		if (input?.length) {
 			// input.val(this.renderedInputText)
 			let {placeholder, _initPlaceholder} = this
@@ -144,6 +146,9 @@ class SimpleComboBoxPart extends Part {
 				this._onChange({ type: 'commit', event, layout, input, value })
 		})
 		input.on('contextmenu', event => {
+			let {button, pointerId} = event
+			if (pointerId == 1 && button != 2)    // touch durumda textbox dolu ise, sol tıklama için contextmenu event gelebiliyor
+				return
 			event?.preventDefault()
 			setTimeout(() => this.listeIstendi({ event }))
 		})
@@ -417,6 +422,7 @@ class SimpleComboBoxPart extends Part {
 	}
 	clear() {
 		this.value = null
+		this.input.val(null)
 		return this
 	}
 	signalChange(e) { return this.signal('change', e) }

@@ -20,7 +20,7 @@ class TabletApp extends TicariApp {
 		if (!result) {
 			result = this._offlineBilgiYukleSiniflar = [
 				MQParam, MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
-				MQTabCariTip, MQPaket, MQUrunPaket, MQTabUgramaNeden,
+				MQTabCariTip, MQTabSevkAdres, MQPaket, MQUrunPaket, MQTabUgramaNeden,
 				MQTabKasa, MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
 				MQTabBolge, MQTabIl, MQTabUlke, MQTabPlasiyer
 			]
@@ -105,7 +105,7 @@ class TabletApp extends TicariApp {
 			MQTabStok, MQTabCari, MQTabPlasiyer, MQTabSube, MQTabYer,
 			MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka, MQTabNakliyeSekli,
 			MQTabTahsilSekli, MQTabBarkodReferans, MQTabBarkodAyrisim,
-			MQCariSatis, MQTabUgramaNeden
+			MQCariSatis, MQTabUgramaNeden, MQTabCariTip, MQTabSevkAdres
 		])
 		{
 			let mfSinif = TabFisListe, {kodListeTipi: mne, sinifAdi: text} = mfSinif

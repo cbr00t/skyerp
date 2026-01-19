@@ -39,7 +39,7 @@ class TabIcmal extends CObject {
 			araDeger -= iskBedel
 		}
 		this.topIskBedel = topIskBedel = roundToBedelFra(topIskBedel + dipIskBedel)
-		araDeger = roundToBedelFra(araDeger - dipIskBedel)
+		araDeger = roundToBedelFra(Math.max(araDeger - dipIskBedel, 0))
 		if (topIskBedel) {
 			dagitimYap({
 				detaylar: values(oran2MK),    // ref

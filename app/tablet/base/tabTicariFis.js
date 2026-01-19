@@ -1,13 +1,18 @@
 class TabTicariFis extends TabTSFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	// static get araSeviyemi() { return super.araSeviyemi || this == TabTicariFis }
+	static get araSeviyemi() { return super.araSeviyemi || this == TabTicariFis }
 	static get kodListeTipi() { return 'TABTIC' } static get sinifAdi() { return 'Ticari' }
 	static get detaySinif() { return TabTicariDetay }
-	static get onlineFisSinif() { return SatisFaturaFis }
-	static get dipKullanilirmi() { return true }
-	static get bedelKullanilirmi() { return true }
+	// static get onlineFisSinif() { return SatisFaturaFis }
+	static get dipKullanilirmi() { return true } static get _bedelKullanilirmi() { return true }
 	static get dipIskOranSayi() { return 1 } static get dipIskBedelSayi() { return 1 }
+	static get iademi() { return false } static get siparismi() { return false }
+	static get faturami() { return false } static get irsaliyemi() { return false }
 
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		$.extend(pTanim, { sevkYerKod: new PInstStr('sevkyerkod') })
+	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments)
 		let {_dipIslemci: d} = this
@@ -20,7 +25,6 @@ class TabTicariFis extends TabTSFis {
 		for (let k of ['dipIskOran1', 'dipIskOran2', 'dipIskBedel'])
 			dipIslemci[k] = rec[k.toLowerCase()] ?? 0
 	}
-
 	/*dipGridSatirlariDuzenle_ticari({ dipIslemci, liste }) {
 		let e = arguments[0]
 		super.dipGridSatirlariDuzenle_ticari(e)
@@ -136,15 +140,31 @@ class TabTicariFis extends TabTSFis {
 		return this
 	}
 
+	static async rootFormBuilderDuzenle_tablet_acc_baslik({ sender: tanimPart, inst: fis, rfb }) {
+		let e = arguments[0]
+		await super.rootFormBuilderDuzenle_tablet_acc_baslik(e)
+		{
+			let mfSinif = MQTabSevkAdres, {sinifAdi: etiket} = mfSinif
+			let form = rfb.addFormWithParent().altAlta()
+			form.addSimpleComboBox('sevkYerKod', etiket, etiket)
+				.etiketGosterim_yok()
+				// .addStyle(`$elementCSS { max-width: 800px }`)
+				.kodsuz().setMFSinif(mfSinif)
+		}
+	}
 	static async rootFormBuilderDuzenle_tablet_acc_dip({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_dip(...arguments)
 		let {acc} = tanimPart, {dvKod, dipIslemci, detaylar} = fis
-		rfb.addStyle_wh(null, 150)
+		// rfb.addStyle_wh(null, 200)
+		rfb
+			.addStyle_wh(null, 'max-content')
+			.addStyle(`$elementCSS { padding-bottom: 30px !important }`)
 		{
 			let form = rfb.addFormWithParent().yanYana()
 				.addStyle(`$elementCSS > * { gap: 20px }`)
 				.setAltInst(dipIslemci)
 			form.addNumberInput('dipIskOran1', 'İsk1 %')
+				.setMin(0).setMax(100)
 				.addStyle_wh(100, 50).addCSS('center')
 				.degisince(({ builder: { input }}) => {
 					input.addClass('degisti')
@@ -159,6 +179,7 @@ class TabTicariFis extends TabTSFis {
 				})
 			form.addNumberInput('dipIskBedel', '+ Bedel')
 				.addStyle_wh(200, 50)
+				.setMin(0)
 				.degisince(({ builder: { input }}) => {
 					input.addClass('degisti')
 					input[0].value = asFloat(input[0].value) || null

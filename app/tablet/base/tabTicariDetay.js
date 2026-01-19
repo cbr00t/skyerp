@@ -13,9 +13,8 @@ class TabTicariDetay extends TabTSDetay {
 			result[i] = r
 	}
 	getHTML(e) {
-		let _ = super.getHTML(e) ?? '', {dev} = config
-		let {depomu} = app, {tablet: { depoBedelGorur }} = app.params
-		let bedelKullanilirmi = !(depomu && depoBedelGorur === false)
+		let _ = super.super_getHTML(e) ?? '', {dev} = config
+		let {bedelKullanilirmi} = TabTicariFis
 		let {stokAdi, stokKod, barkod, miktar, brm, fiyat} = this
 		let iskHTMLListe = [], kosulKodHTMLListe = []
 		for (let {ioAttr: k} of TicIskYapi) {
@@ -53,8 +52,12 @@ class TabTicariDetay extends TabTSDetay {
 					`<span>TL</span>`
 				] : []),
 				...iskHTMLListe,
-				...kosulKodHTMLListe,
-			`</div>`
+			`</div>`,
+			...(!empty(kosulKodHTMLListe) ? [
+				`<div style="margin-top: 13px" class="kosulBilgi ek-bilgi" style="gap: 0 13px">`,
+					...kosulKodHTMLListe,
+				`</div>`
+			] : [])
 		].filter(_ => _).join(CrLf)
 	}
 }

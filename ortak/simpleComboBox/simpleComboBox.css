@@ -11,11 +11,12 @@
 	box-sizing: content-box
 	/*border-radius: 15px*/
 }
-.simpleComboBox.part > input::placeholder {
+.simpleComboBox.part > input:placeholder-shown::placeholder {
 	font-weight: bold; font-size: 90%;
-	/*color: #4169e180*/ color: #165f2eb8
-	/*padding: 0 10px*/
+	color: #09284778
+	/*color: #4169e180; padding: 0 10px*/
 }
+.simpleComboBox.part.has-value > input:placeholder-shown::placeholder { color: #165f2ee0 }
 .simpleComboBox.part > button#liste {
 	position: relative;
 	/*transform: translateX(0px) translateY(0px);*/

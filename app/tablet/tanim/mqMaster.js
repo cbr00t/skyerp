@@ -318,3 +318,39 @@ class MQTabUgramaNeden extends MQKAOrtak {
 	static get kodListeTipi() { return 'UGRNEDEN' } static get sinifAdi() { return 'Uğrama Nedeni' }
 	static get table() { return 'ssugramasebep' } static get tableAlias() { return 'ned' }
 }
+class MQTabSevkAdres extends MQKAOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListetipi() { return 'SEVKADRES' } static get sinifAdi() { return 'Sevk Adresi' }
+	static get table() { return 'carsevkadres' } static get tableAlias() { return 'sadr' }
+	get unvan() { return birlestirBosluk(this.unvan1, this.unvan2) }
+	get adres() { return birlestirBosluk(this.adres1, this.adres2) }
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		$.extend(pTanim, { mustKod: new PInstStr('must')  })
+	}
+	static secimlerDuzenle({ secimler: sec }) {
+		super.secimlerDuzenle(...arguments)
+		let {tableAlias: alias} = this
+		sec.addKA('must', MQTabCari, `${alias}.must`, 'car.aciklama')
+	}
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(...[
+			...this.getKAKolonlar(
+				new GridKolon({ belirtec: 'must', text: 'Müşteri', genislikCh: 12 }),
+				new GridKolon({ belirtec: 'mustunvan', text: 'Ünvan', genislikCh: 30, sql: 'car.aciklama' })
+			),
+			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 20, sql: 'car.yore' }),
+			...this.getKAKolonlar(
+				new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 8, sql: 'car.ilkod' }),
+				new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 25, sql: 'il.aciklama' })
+			)
+		])
+	}
+	static loadServerData_queryDuzenle({ sent }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		let {tableAlias: alias} = this
+		sent.fromIliski('carmst car', `${alias}.must = car.kod`)
+			.cari2IlBagla()
+	}
+}
