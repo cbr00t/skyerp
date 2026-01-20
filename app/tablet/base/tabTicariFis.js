@@ -11,7 +11,11 @@ class TabTicariFis extends TabTSFis {
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, { sevkYerKod: new PInstStr('sevkyerkod') })
+		$.extend(pTanim, {
+			sevkYerKod: new PInstStr('sevkyerkod'),
+			tahSekliNo: new PInstNum('tahseklino'),
+			tahFisId: new PInstStr('tahfisid')
+		})
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments)
@@ -25,6 +29,29 @@ class TabTicariFis extends TabTSFis {
 		for (let k of ['dipIskOran1', 'dipIskOran2', 'dipIskBedel'])
 			dipIslemci[k] = rec[k.toLowerCase()] ?? 0
 	}
+	async tahSekliDegisti({ tanimPart, sender: part, oldValue = this._prev.tahSekliNo, value = this.tahSekliNo }) {
+		if (value == -1) {
+			// Karma Tahsilat istendi
+			// part?.val(null)
+			value = this.tahSekliNo = 0
+			let {tahFisId, sonucBedel: hedefBedel} = this
+			let tFis = new TabTahsilatFis({ id: tahFisId })
+			let islem = tahFisId ? 'degistir' : 'yeni'
+			if (tahFisId && !await tFis.yukle())
+				islem = 'yeni'
+			for (let k of ['tarih', 'subeKod', 'plasiyerKod', 'mustKod'])
+				tFis[k] = this[k]
+			$.extend(tFis, { tahFisId: this.id, hedefBedel })
+			let kaydedince = async ({ sender: tahTanimPart, inst: tFis }) =>
+				this.tahFisId = tFis.id
+			tFis.tanimla({ islem, kaydedince })
+			// ** tahsilat kaydetmek yerine fatura kayıt anında işlenmeli
+		}
+		else
+			this.tahFisId = ''
+		this._prev.tahSekliNo = value
+	}
+	
 	/*dipGridSatirlariDuzenle_ticari({ dipIslemci, liste }) {
 		let e = arguments[0]
 		super.dipGridSatirlariDuzenle_ticari(e)
@@ -101,7 +128,7 @@ class TabTicariFis extends TabTSFis {
 		let {detaylar} = this
 		if (islem == 'degistir' || islem == 'sil') {
 			detaylar.forEach(det =>
-				det.ozelFiyat = det.ozelIsk = det.ozelPro = true)
+				det.ozelFiyat = det.ozelIsk = true)
 		}
 		await super.uiGirisOncesiIslemler(...arguments)
 	}
@@ -148,8 +175,22 @@ class TabTicariFis extends TabTSFis {
 			let form = rfb.addFormWithParent().altAlta()
 			form.addSimpleComboBox('sevkYerKod', etiket, etiket)
 				.etiketGosterim_yok()
-				// .addStyle(`$elementCSS { max-width: 800px }`)
 				.kodsuz().setMFSinif(mfSinif)
+		}
+		{
+			let mfSinif = MQTabTahsilSekliVeKarmaTahsilat, {sinifAdi: etiket} = mfSinif
+			let form = rfb.addFormWithParent().yanYana()
+			form.addSimpleComboBox('tahSekliNo', etiket, etiket)
+				.etiketGosterim_yok()
+				.kodsuz().setMFSinif(mfSinif)
+				.degisince(({ type, events, ...rest }) => {
+					if (type != 'batch')
+						return
+					// henuz kod atanmadı
+					let _e = { type, events, ...rest, oldValue: fis.tahSekliNo, value: events.at(-1).value }
+					setTimeout(() => fis.tahSekliDegisti({ ...e, ..._e, tanimPart }), 5)
+				})
+				
 		}
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_dip({ sender: tanimPart, inst: fis, rfb }) {

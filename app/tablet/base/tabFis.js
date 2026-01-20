@@ -484,7 +484,7 @@ class TabFis extends MQDetayliGUID {
 					{
 						let form = rfb.addFormWithParent().yanYana()
 						rfb.addTextInput('aciklama', 'Açıklama').etiketGosterim_yok()
-							.addStyle(`$elementCSS { max-width: 800px }`)
+							//.addStyle(`$elementCSS { max-width: 800px }`)
 					}
 					if (rfb.builders?.length)
 						setTimeout(() => rfb.run(), 100)
@@ -522,7 +522,7 @@ class TabFis extends MQDetayliGUID {
 			let form = rfb.addFormWithParent().altAlta()
 			form.addSimpleComboBox('plasiyerKod', etiket, etiket)
 				.etiketGosterim_yok()
-				.addStyle(`$elementCSS { max-width: 800px }`)
+				//.addStyle(`$elementCSS { max-width: 800px }`)
 				.kodsuz().setMFSinif(mfSinif)
 				.degisince(({ type, events, ...rest }) => {
 					if (type != 'batch')
@@ -538,7 +538,7 @@ class TabFis extends MQDetayliGUID {
 			// addSimpleComboBox(e, _etiket, _placeholder, _value, _source, _autoClear, _delay, _minLength, _disabled, _name, _userData)
 			form.addSimpleComboBox('mustKod', etiket, etiket)
 				.etiketGosterim_yok()
-				.addStyle(`$elementCSS { max-width: 800px }`)
+				//.addStyle(`$elementCSS { max-width: 800px }`)
 				.kodsuz().setMFSinif(mfSinif)
 				.degisince(({ type, events, ...rest }) => {
 					if (type != 'batch')

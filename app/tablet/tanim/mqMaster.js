@@ -204,6 +204,18 @@ class MQTabTahsilSekli extends MQKAOrtak {
 		}
 	}
 }
+class MQTabTahsilSekliVeKarmaTahsilat extends MQTabTahsilSekli {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return `${super.kodListeTipi}_K` }
+	static async loadServerDataDogrudan(e) {
+		let recs = await super.loadServerDataDogrudan(e)
+		if (recs == null)
+			return recs
+		let {kodSaha, adiSaha} = this
+		recs.push({ [kodSaha]: '-1', [adiSaha]: `[ KARMA TAHSILAT ]` })
+		return recs
+	}
+}
 
 class MQPaket extends MQSayacliKAOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS tabfis (
 	dipiskbedel REAL NOT NULL DEFAULT 0,
 -- ticari fis
 	sevkyerkod TEXT NOT NULL DEFAULT '',
+	tahseklino INTEGER NOT NULL DEFAULT 0,
+	tahfisid TEXT NOT NULL DEFAULT '',
 -- stok fis
 	refyerkod TEXT NOT NULL DEFAULT ''
 );

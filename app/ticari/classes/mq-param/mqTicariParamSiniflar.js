@@ -489,7 +489,7 @@ class MQMaliyetParam extends MQTicariParamBase {
 }
 class MQMuhasebeParam extends MQTicariParamBase {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Parametreleri' } static get paramKod() { return 'MHGN' }
-	constructor(e) { e = e || {}; super(e); $.extend(this, { maliYil: e.maliYil ?? new Date().yil }) }
+	constructor(e = {}) {super(e); $.extend(this, { maliYil: e.maliYil ?? new Date().yil }) }
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); let {paramci} = e;
 		let form = paramci.addFormWithParent(); form.addNumber('maliYil', 'Mali Yıl')
@@ -498,7 +498,7 @@ class MQMuhasebeParam extends MQTicariParamBase {
 			form.addBool('tablet', 'Sky Tablet'); form.addBool('yazarkasa', 'YazarKasa Aktarımı');
 			form.addBool('webSiparis', 'Web B2B Sipariş'); form.addBool('konsinyeLojistik', 'Konsinye Lojistik'); form.addBool('pdks', 'PDKS Veri Aktarımı')*/
 	}
-	paramSetValues(e) { e = e || {}; super.paramSetValues(e) /*; let {rec} = e*/ }
+	paramSetValues(e = {}) { super.paramSetValues(e) /*; let {rec} = e*/ }
 }
 class MQFinansParam extends MQTicariParamBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -519,29 +519,34 @@ class MQFinansParam extends MQTicariParamBase {
 	paramSetValues({ rec }) { super.paramSetValues(...arguments) }
 }
 class MQWebParam extends MQTicariParamBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Web Parametreleri' } static get paramKod() { return 'TICWEB' }
-	get ekOzellikKodlariStr() { return array2MLStr(this.ekOzellikKodlari) } set ekOzellikKodlariStr(value) { this.ekOzellikKodlari = mlStr2Array(value) }
-	get konBuFirma_eMailListeStr() { return array2EMailStr(this.konBuFirma_eMailListe) } set konBuFirma_eMailListeStr(value) { this.konBuFirma_eMailListe = eMailStr2Array(value) }
-	constructor(e) {
-		e = e || {}; super(e); let {sablonSip_degisiklik, sablonSip_eMail, ekOzellikKodlari, yerKodListe} = e;
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sinifAdi() { return 'Web Parametreleri' } static get paramKod() { return 'TICWEB' }
+	get ekOzellikKodlariStr() { return array2MLStr(this.ekOzellikKodlari) }
+	set ekOzellikKodlariStr(value) { this.ekOzellikKodlari = mlStr2Array(value) }
+	get konBuFirma_eMailListeStr() { return array2EMailStr(this.konBuFirma_eMailListe) }
+	set konBuFirma_eMailListeStr(value) { this.konBuFirma_eMailListe = eMailStr2Array(value) }
+	constructor(e = {}) {
+		super(e)
+		let {sablonSip_degisiklik, sablonSip_eMail, ekOzellikKodlari, yerKodListe} = e
 		$.extend(this, { sablonSip_degisiklik: sablonSip_degisiklik ?? true, sablonSip_eMail: sablonSip_eMail ?? true, ekOzellikKodlari: ekOzellikKodlari ?? [], yerKodListe: yerKodListe ?? [] })
 	}
 	static paramYapiDuzenle({ paramci }) {
-		super.paramYapiDuzenle(...arguments); let {dbName} = config.session ?? {}, dbNamePrefix = dbName?.slice(0, 4);
-		let form = paramci.addFormWithParent().yanYana(1.4);
+		super.paramYapiDuzenle(...arguments)
+		let {dbName} = config.session ?? {}, dbNamePrefix = dbName?.slice(0, 4)
+		let form = paramci.addFormWithParent().yanYana(1.4)
 			if (window.MQCari) { form.addModelKullan('pesinMustKod', 'Peşin Müşteri').comboBox().autoBind().setMFSinif(MQCari) }
 				else { form.addString('pesinMustKod', 'Peşin Müşteri') };
 			form.addML('ekOzellikKodlariStr', 'Ek Özellik Kodları').noRowAttr().setRowCount(5).addStyle_wh(200);
-		form = paramci.addFormWithParent();
+		form = paramci.addFormWithParent()
 			form.addBool('stokResim', 'Stok Resim Kullanılır');
 		let tabPage = paramci.addTabPage('webSiparis', 'Web Sipariş');
 		let grup = tabPage.addGrup().setEtiket('Şablonlu Sipariş');
-		form = grup.addFormWithParent();
+		form = grup.addFormWithParent()
 			form.addBool('sablonSip_eMail', 'e-Mail Gönderilir');
 		form = tabPage.addAltObject('sablonDefKisit').addGrup().setEtiket('Def.Kısıt').addFormWithParent();
 			form.addBool('sablonSip_degisiklik', 'Değişiklik');
 			form.addBool('sube', 'Şube'); form.addBool('musteri', 'Müşteri');
-		form = tabPage.addFormWithParent().altAlta();
+		form = tabPage.addFormWithParent().altAlta()
 			form.addString('konBuFirma_eMailListeStr', 'Bu Firma e-Mail Adresleri');
 		let source_dbList = async e => {
 			return (await app.wsDBListe())
@@ -562,8 +567,9 @@ class MQWebParam extends MQTicariParamBase {
 					let {altInst} = fbd, {webSiparis_sonStokDB: db} = altInst, {from} = sent;
 					if (db) {
 						for (let aMQTable of from.liste) {
-							let {deger} = aMQTable;
-							if (!deger.includes('..')) { deger = aMQTable.deger = `${db}..${deger}` }
+							let {deger} = aMQTable
+							if (!deger.includes('..'))
+								deger = aMQTable.deger = `${db}..${deger}`
 						}
 					}
 				})
@@ -574,8 +580,9 @@ class MQWebParam extends MQTicariParamBase {
 				.setFra(0).addStyle_wh(150)
 	}
 	paramHostVarsDuzenle({ hv }) {
-		super.paramHostVarsDuzenle(...arguments); let {ekOzellikKodlari} = this;
-		$.extend(hv, { ekOzellikKodlari });
+		super.paramHostVarsDuzenle(...arguments)
+		let {ekOzellikKodlari} = this
+		$.extend(hv, { ekOzellikKodlari })
 	}
 	paramSetValues({ rec }) {
 		super.paramSetValues(...arguments);

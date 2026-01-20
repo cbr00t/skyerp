@@ -127,7 +127,6 @@ class TabTSFis extends TabFis {
 			let form = rfb.addFormWithParent().altAlta()
 			form.addSimpleComboBox('yerKod', etiket, etiket)
 				.etiketGosterim_yok()
-				// .addStyle(`$elementCSS { max-width: 800px }`)
 				.kodsuz().setMFSinif(mfSinif)
 				.degisince(({ type, events, ...rest }) => {
 					if (type != 'batch')
@@ -261,7 +260,7 @@ class TabTSFis extends TabFis {
 		let {bedelKullanilirmi} = fis.class
 		let {acc, gridPart, gridPart: { gridWidget: w, selectedRec: det } = {}} = tanimPart
 		fiyatFra ??= 5; bedelFra ||= 2
-		let getDetay = () => gridPart.selectedRec
+		let getDetay = () => gridPart?.selectedRec
 		let initFlag = !getDetay()
 		if (!initFlag)
 			setTimeout(() => initFlag = true, 200)

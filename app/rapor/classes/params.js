@@ -15,15 +15,15 @@ class MQParam_DRapor extends MQParam {
 		let form = paramci.addFormWithParent()
 		form.addCheckBox('ihracatIntacdanmi', 'İhracat İntaçtanmı')
 		form.addCheckBox('konsolideCikti', 'Konsolide Çıktı')
-			.degisince(({ builder: fbd }) => {
-				fbd.inst._kritikDegisiklikVarmi = true
-				fbd.parentBuilder.id2Builder._ekDBListe.updateVisible()
+			.degisince(({ builder: { inst, parentBuilder} }) => {
+				inst._kritikDegisiklikVarmi = true
+				parentBuilder.id2Builder._ekDBListe.updateVisible()
 			})
 		form.addModelKullan('_ekDBListe', 'Ek Veritabanları').comboBox().autoBind().noMF().kodsuz().coklu()
 			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.konsolideCikti ? true : 'jqx-hidden')
 			.setSource(e => app.wsDBListe().then(arr => arr.filter(x => x != 'ORTAK').map(x => new CKodVeAdi([x, x]))))
-		paramci.onAfterRun(({ builder: fbd }) =>
-			fbd.inst._kritikDegisiklikVarmi = false)
+		paramci.onAfterRun(({ builder: { inst } }) =>
+			inst._kritikDegisiklikVarmi = false)
 	}
 	async kaydetSonrasiIslemler(e) {
 		await super.kaydetSonrasiIslemler(e)

@@ -52,16 +52,15 @@ class TabTahsilatFis extends TabFis {
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_dipCollapsed(...arguments)
-		let {sonucBedel, detaylar} = fis
+		let {kalanBedel, sonucBedel, detaylar} = fis
 		let topSatir = detaylar.filter(_ => _.bedel).length
-		if (topSatir) {
-			rfb.addForm().setLayout(() => $([
-				`<div class="flex-row" style="gap: 10px">`,
-					`<div class="orangered"><b>${toStringWithFra(sonucBedel, 2)}</b> TL</div>`,
-					`<div class="royalblue"><b>${numberToString(topSatir)}</b> satır</div>`,
-				`</div>`
-			].join(CrLf)))
-		}
+		rfb.addForm().setLayout(() => $([
+			`<div class="flex-row" style="gap: 10px">`,
+				(kalanBedel ? `<div style="margin-right: 20px"><span>Kalan:</span> <b class=forestgreen>${toStringWithFra(kalanBedel, 2)}</b> TL</div>` : null),
+				(topSatir ? `<div class="orangered"><b>${toStringWithFra(sonucBedel, 2)}</b> TL</div>` : null),
+				(topSatir ? `<div class="royalblue"><b>${numberToString(topSatir)}</b> satır</div>` : null),
+			`</div>`
+		].filter(Boolean).join(CrLf)))
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_detayCollapsed({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_detayCollapsed(...arguments)
@@ -152,6 +151,7 @@ class TabTahsilatFis extends TabFis {
 								$.extend(det, { _degisti: true, bedel: kalanBedel })
 								det.htmlOlustur?.()
 								w.updaterow(uid, det)
+								acc?.render()
 							}
 							return false                                                     // prevent next events
 						}
