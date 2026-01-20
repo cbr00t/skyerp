@@ -4,7 +4,7 @@ class SBRapor extends DGrupluPanelRapor {
 	static get kategoriKod() { return 'SB' } static get kategoriAdi() { return 'Mali Tablolar' }
 	static get chartVarmi() { return false } static get ozetVarmi() { return false }
 	static get araSeviyemi() { return this == SBRapor } get uygunmu() { return this.class.uygunmu }
-	static get uygunmu() { return true }
+	static get uygunmu() { return app.params?.dRapor?.maliTablo }
 
 	islemTuslariArgsDuzenle({ liste }) {
 		super.islemTuslariArgsDuzenle(...arguments)

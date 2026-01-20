@@ -16,9 +16,19 @@ class TabTahsilatFis extends TabFis {
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, { hedefBedel: new PInstNum() })
+		$.extend(pTanim, {
+			tahFisId: new PInstStr('tahfisid'),
+			hedefBedel: new PInstNum()
+		})
 	}
-	async yeniTanimOncesiVeyaYukleSonrasiIslemler({ fis }) {
+	static async loadServerData_detaylar({ offlineRequest, offlineMode }) {
+		if (!offlineRequest) {
+			let cacheClasses = [MQTabTahsilSekli]
+			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
+		}
+		return await super.loadServerData_detaylar(...arguments)
+	}
+	async yeniTanimOncesiVeyaYukleSonrasiIslemler(e) {
 		let {detaylar, class: { detaySinif }} = this
 		let kod2Det = fromEntries(detaylar.map(_ => [_.tahSekliNo, _]))
 		this.detaylar = (await MQTabTahsilSekli.loadServerData())
@@ -28,19 +38,36 @@ class TabTahsilatFis extends TabFis {
 				let {bedel = 0, aciklama = ''} = det
 				return new detaySinif({ tahSekliNo, tahSekliAdi, tip, altTip, bedel, aciklama })
 			})
-		return await super.yeniTanimOncesiVeyaYukleSonrasiIslemler(...arguments)
+		return await super.yeniTanimOncesiVeyaYukleSonrasiIslemler(e)
+	}
+	async yukleSonrasiIslemler({ islem }) {
+		let e = arguments[0]
+		await super.yukleSonrasiIslemler(e)
+		let {_noCheck, tahFisId: asilFisId} = this
+		if (!_noCheck && asilFisId && islem == 'degistir') {    // Ticari belgeye bağlı Tahsilat değiştirilemez
+			islem = e.islem = 'izle'
+			setTimeout(() => wConfirm(`Bu Tahsilat, Ticari belgeye bağlı olduğu için değişiklik yapılamaz`, 'UYARI'), 200)
+		}
 	}
 	async kaydetOncesiIslemler(e) {
 		this.detaylar = this.detaylar.filter(_ => _.bedel)
 		return await super.kaydetOncesiIslemler(e)
 	}
-	static async loadServerData_detaylar({ offlineRequest, offlineMode }) {
-		if (!offlineRequest) {
-			let cacheClasses = [MQTabTahsilSekli]
-			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
+	async silmeOncesiIslemler(e = {}) {
+		let {_noCheck, tahFisId: asilFisId} = this
+		if (!(_noCheck || asilFisId)) {
+			let {id, class: { idSaha, table }} = this
+			let sent = new MQSent(), {where: wh, sahalar} = sent
+			sent.fromAdd(table)
+			wh.degerAta(id, idSaha)
+			sahalar.add('tahfisid')
+			asilFisId = this.tahFisId = await this.sqlExecTekilDeger(sent)
 		}
-		return await super.loadServerData_detaylar(...arguments)
+		if (!_noCheck && asilFisId)
+			throw { isError: true, errorText: `Bu Tahsilat bir Ticari Belgeye bağlıdır ve silinemez. Lütfen önce Ticari Belgeyi siliniz` }
+		await super.silmeOncesiIslemler(e)
 	}
+	noCheck() { this._noCheck = true; return this }
 
 	static async rootFormBuilderDuzenle_tablet(e) {
 		await super.rootFormBuilderDuzenle_tablet(e)

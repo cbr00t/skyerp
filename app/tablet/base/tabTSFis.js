@@ -119,11 +119,28 @@ class TabTSFis extends TabFis {
 			}
 		})
 	}
-	static async rootFormBuilderDuzenle_tablet_acc_baslik({ sender: tanimPart, inst: fis, rfb }) {
+	static async rootFormBuilderDuzenle_tablet_acc_baslikCollapsed({ sender: tanimPart, inst: fis, rfb }) {
+		let {yerKod} = fis
+		if (yerKod) {
+			let aciklama = (await MQTabYer.getGloKod2Adi(yerKod)) || yerKod
+			rfb.addForm().setLayout(() => $([
+				`<div class="flex-row" style="gap: 10px">`,
+					`<div class="rebeccapurple">`,
+						`<span>Yer:</span>`,
+						`<b>${aciklama}</b></div>`,
+					`</div>`,
+				`</div>`
+			].join(CrLf)))
+		}
+		await super.rootFormBuilderDuzenle_tablet_acc_baslikCollapsed(...arguments)
+	}
+	static async rootFormBuilderDuzenle_tablet_acc_baslik({ sender: tanimPart, inst: fis, rfb, acc }) {
 		let e = arguments[0]
 		await super.rootFormBuilderDuzenle_tablet_acc_baslik(e)
 		{
-			let mfSinif = MQTabYer, {sinifAdi: etiket} = mfSinif
+			let {wndId} = tanimPart.wndPart
+			let mfSinif = MQTabYer.getMFSinif_subeFiltreli(() => fis.subeKod, wndId)
+			let {sinifAdi: etiket} = mfSinif
 			let form = rfb.addFormWithParent().altAlta()
 			form.addSimpleComboBox('yerKod', etiket, etiket)
 				.etiketGosterim_yok()
@@ -132,7 +149,10 @@ class TabTSFis extends TabFis {
 					if (type != 'batch')
 						return
 					let _e = { type, events, ...rest, oldValue: fis.yerKod, value: events.at(-1).value?.trimEnd() }
-					setTimeout(() => fis.yerDegisti({ ...e, ..._e, tanimPart }), 5)
+					setTimeout(() => {
+						fis.yerDegisti({ ...e, ..._e, tanimPart })
+						acc?.render()
+					}, 5)
 				})
 				.onAfterRun(({ builder: { part } }) =>
 					tanimPart.ddYer = part)

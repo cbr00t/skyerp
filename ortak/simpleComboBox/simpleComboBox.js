@@ -35,23 +35,29 @@ class SimpleComboBoxPart extends Part {
 	}
 	get value() {
 		let {item, kodSaha} = this
-		return item?.[kodSaha]?.trimEnd?.()
+		let value = item?.[kodSaha]
+		value = value?.trimEnd?.() ?? value
+		return value
 	}
 	set value(value) {
 		let {kodSaha} = this
-		value = value?.trimEnd?.()
+		value = value?.trimEnd?.() ?? value
+		if (value != null && !(value || isString(value)))
+			value = null
 		this.item = { [kodSaha]: value }
 		if (!this.aciklama)
 			setTimeout(() => this.aciklamaBelirle(), 10)
 	}
 	get aciklama() {
 		let {item, adiSaha} = this
-		return item?.[adiSaha]?.trimEnd?.()
+		let value = item?.[adiSaha]
+		value = value?.trimEnd?.() ?? value
+		return value
 	}
 	set aciklama(value) {
 		let {adiSaha} = this
 		let item = this.item ??= {}
-		item[adiSaha] = value?.trimEnd?.()
+		item[adiSaha] = value?.trimEnd?.() ?? value
 		this.item = item                                     // trigger
 	}
 	get placeholder() {
@@ -109,13 +115,17 @@ class SimpleComboBoxPart extends Part {
 		delay ??= 500; maxRows ??= 10; minLength ??= 1
 		disabled ??= false
 		events ??= {}; queue ??= []
-		$.extend(this, {
-			id, name, item, value, placeholder,
+		extend(this, {
+			id, name, placeholder,
 			mfSinif, autoClearFlag, source, listSource,
 			delay, minLength, maxRows, renderer,
-			kodsuzmu, kodSaha, adiSaha, disabled,
+			kodsuzmu, disabled,
 			userData, events, queue
 		})
+		/* !! (kodSaha, adiSaha) ve (item, value) mutlaka (mfSinif) sonrası atanmalı.
+			(kodSaha, adiSaha) değerleri ve (value -> item set işlemi) duruma göre mfSinif'a bakarak belirleniyor */
+		extend(this, { kodSaha, adiSaha })
+		extend(this, { item, value })
 	}
 	runDevam(e = {}) {
 		super.runDevam(e)
@@ -133,7 +143,7 @@ class SimpleComboBoxPart extends Part {
 			if (v)
 				input.attr(k, v)
 		}
-		input.val(this.renderedInputText ?? null)
+		input.val(this.renderedInputText || null)
 		input.attr('placeholder', this.renderedText)
 		input.on('change', event => {
 			let {currentTarget: { value }} = event
@@ -211,6 +221,8 @@ class SimpleComboBoxPart extends Part {
 				: new CKodVeAdi({ kod: null, aciklama: item })
 		if (ka.kod != null && ka.kod == ka.aciklama)
 			ka.kod = null
+		if (ka.kod != null && !(ka.kod || isString(ka.kod)))
+			ka.kod = null
 		let result = renderer?.call(this, ...arguments)
 		// result ??= kodsuz ? ka.aciklama || ka.kod : ka.parantezliOzet()                                // * kodsuz ise ve aciklama boşsa (kod => aciklama kabul edilir)
 		result ??= kodsuz || !(ka.kod && ka.aciklama)
@@ -287,7 +299,7 @@ class SimpleComboBoxPart extends Part {
 			return this
 		if (!(mfSinif || source || listSource))
 			return this
-		let aciklama = await mfSinif?.getGloKod2Adi?.(value)
+		let aciklama = await mfSinif?.getGloKod2Adi?.(value?.toString())
 		if (!aciklama && adiSaha && (listSource || source)) {
 			let e = { ...arguments[0], sender, kodSaha, adiSaha, value, maxRow: 1 }
 			let rec = (await (listSource ?? source).call?.(this, e))?.[0]

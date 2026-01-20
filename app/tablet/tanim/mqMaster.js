@@ -158,6 +158,23 @@ class MQTabYer extends MQKAOrtak {
 			wh.inDizi(['', 'A'], `${alias}.aum`)
 		}
 	}
+	static getMFSinif_subeFiltreli(getter, uid) {
+		if (getter == null)
+			return this
+		let parentCls = this, {globals} = this
+		let cachedClasses = globals.cachedClasses ??= {}
+		uid ??= app.activeWndPart?.wndPart?.wndId
+		let key = [uid, getter.toString()].filter(Boolean).join(delimWS)  // wndId + func .toString()
+		return cachedClasses[key] ??= (class extends parentCls {
+			static get notCacheable() { return true }
+			static loadServerData_queryDuzenle_son({ sent, sent: { where: wh }, alias = this.tableAlias}) {
+				super.loadServerData_queryDuzenle_son(...arguments)
+				let subeKod = getter?.()
+				if (subeKod)
+					wh.degerAta(subeKod, `${alias}.bizsubekod`)
+			}
+		})
+	}
 }
 
 class MQTabNakliyeSekli extends MQKAOrtak {
@@ -212,7 +229,9 @@ class MQTabTahsilSekliVeKarmaTahsilat extends MQTabTahsilSekli {
 		if (recs == null)
 			return recs
 		let {kodSaha, adiSaha} = this
-		recs.push({ [kodSaha]: '-1', [adiSaha]: `[ KARMA TAHSILAT ]` })
+		recs = recs.filter(({ tahsiltipi: tip, ahalttipi: altTip }) =>
+			tip || altTip)
+		; recs.push({ [kodSaha]: '-1', [adiSaha]: `[ KARMA TAHSILAT ]` })
 		return recs
 	}
 }

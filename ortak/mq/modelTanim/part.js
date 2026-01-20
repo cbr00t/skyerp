@@ -104,6 +104,7 @@ class ModelTanimPart extends Part {
 				elm?.addClass(`${rootPartName} with-tabs`)
 			await this.initTabPages(e)
 		}
+		await this.inst?.uiGirisSonrasiIslemler(e)
 	}
 	async initFormBuilder(e) {
 		try {

@@ -13,13 +13,17 @@ class TabTicariFis extends TabTSFis {
 		super.pTanimDuzenle(...arguments)
 		$.extend(pTanim, {
 			sevkYerKod: new PInstStr('sevkyerkod'),
+			sevkTS: new PInstDateTimeNow('sevkts'),
 			tahSekliNo: new PInstNum('tahseklino'),
 			tahFisId: new PInstStr('tahfisid')
 		})
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments)
-		let {_dipIslemci: d} = this
+		let {_dipIslemci: d, sevkTS: sevkts} = this
+		if (isDate(sevkts))
+			sevkts = dateTimeToString(sevkts)
+		$.extend(hv, { sevkts })
 		for (let k of ['dipIskOran1', 'dipIskOran2', 'dipIskBedel'])
 			hv[k.toLowerCase()] = d?.[k] ?? 0
 	}
@@ -29,26 +33,109 @@ class TabTicariFis extends TabTSFis {
 		for (let k of ['dipIskOran1', 'dipIskOran2', 'dipIskBedel'])
 			dipIslemci[k] = rec[k.toLowerCase()] ?? 0
 	}
+	async uiGirisOncesiIslemler({ islem }) {
+		let {detaylar} = this
+		if (islem == 'degistir' || islem == 'sil') {
+			detaylar.forEach(det =>
+				det.ozelFiyat = det.ozelIsk = true)
+		}
+		await super.uiGirisOncesiIslemler(...arguments)
+	}
+	async yukleSonrasiIslemler({ islem }) {
+		let e = arguments[0]
+		await super.yukleSonrasiIslemler(e)
+		let {id, tahFisId, _tahsilatFis: t} = this
+		if (tahFisId == id)    // !! Asıl Belge ID yanlışlıkla Tahsilat Fiş ID'si olarak bağlanmış. Düzelt
+			tahFisId = this.tahFisId = null
+		let yeniVeyaKopyami = islem == 'yeni' || islem == 'kopya'
+		if (!yeniVeyaKopyami && tahFisId && !t) {
+			t = new TabTahsilatFis({ id: tahFisId }).noCheck()
+			await (async () => {
+				await t.yukle({ islem })
+				t.hedefBedel = this.sonucBedel
+				this._tahsilatFis = t
+			})()
+		}
+		else if (yeniVeyaKopyami) {
+			extend(this, { _tahsilatFis: null, tahFisId: '' })
+			if (this.tahSekliNo == -1)
+				this.tahSekliNo = null
+		}
+	}
+	async kaydetOncesiIslemler(e) {
+		await this.kaydetVeyaSilmeOncesiIslemler(e)
+		return await super.kaydetOncesiIslemler(e)
+	}
+	async silmeOncesiIslemler(e = {}) {
+		await this.kaydetVeyaSilmeOncesiIslemler({ ...e, islem: 'sil' })
+		await super.silmeOncesiIslemler(e)
+	}
+	async kaydetVeyaSilmeOncesiIslemler({ islem }) {
+		let e = arguments[0]
+		let {_tahsilatFis: t} = this
+		switch (islem) {
+			case 'izle':
+				break
+			case 'sil':
+				if (!t) {
+					let {id, class: { idSaha, table }} = this
+					let sent = new MQSent(), {where: wh, sahalar} = sent
+					sent.fromAdd(table)
+					wh.degerAta(id, idSaha)
+					sahalar.add('tahfisid')
+					let tahFisId = await this.sqlExecTekilDeger(sent)
+					if (tahFisId) {
+						this.tahFisId = tahFisId
+						t = this._tahsilatFis = new TabTahsilatFis({ id: tahFisId })
+						await t.yukle({ islem })
+					}
+				}
+				if (t)
+					await t.noCheck().sil()
+				extend(this, { _tahsilatFis: null, tahFisId: '' })
+				break
+			default:
+				if (t && !t.id)
+					await t?.kaydet()
+				extend(this, { tahFisId: t?.id ?? '' })
+				// t = this._tahsilatFis = null
+		}
+	}
+	async kaydetSonrasiIslemler({ islem }) {
+		await super.kaydetSonrasiIslemler(...arguments)
+		let {_tahsilatFis: t, id, tahSekliNo} = this
+		if (t) {
+			let {tahFisId: prev} = t
+			t.tahFisId = tahSekliNo == -1 ? id : ''
+			if (prev != t.tahFisId)
+				await t?.kaydet()
+		}
+	}
+
 	async tahSekliDegisti({ tanimPart, sender: part, oldValue = this._prev.tahSekliNo, value = this.tahSekliNo }) {
 		if (value == -1) {
 			// Karma Tahsilat istendi
-			// part?.val(null)
-			value = this.tahSekliNo = 0
+			// value = this.tahSekliNo = 0
 			let {tahFisId, sonucBedel: hedefBedel} = this
-			let tFis = new TabTahsilatFis({ id: tahFisId })
 			let islem = tahFisId ? 'degistir' : 'yeni'
-			if (tahFisId && !await tFis.yukle())
-				islem = 'yeni'
+			let degistirmi = islem == 'degistir'
+			let tFis = this._tahsilatFis ??= new TabTahsilatFis({ id: tahFisId })
 			for (let k of ['tarih', 'subeKod', 'plasiyerKod', 'mustKod'])
 				tFis[k] = this[k]
-			$.extend(tFis, { tahFisId: this.id, hedefBedel })
-			let kaydedince = async ({ sender: tahTanimPart, inst: tFis }) =>
-				this.tahFisId = tFis.id
-			tFis.tanimla({ islem, kaydedince })
+			extend(tFis, { tahFisId: this.id, hedefBedel })    // ( Tah. Fiş => Asıl Belgeyi | Asıl Belge => Tah. Fiş'i ) çapraz olarak görür
+			let kaydetIslemi = async ({ sender: tahTanimPart, inst: _tahsilatFis }) => {
+				let {id: tahFisId} = _tahsilatFis
+				extend(this, { _tahsilatFis, tahFisId })
+				return true    // işlem başarılı, tahsilat ui kapansın
+			}
+			setTimeout(() => {
+				part?.input?.val(null)
+				tFis.tanimla({ islem, kaydetIslemi })
+			}, 10)
 			// ** tahsilat kaydetmek yerine fatura kayıt anında işlenmeli
 		}
 		else
-			this.tahFisId = ''
+			extend(this, { tahFisId: '' })
 		this._prev.tahSekliNo = value
 	}
 	
@@ -124,14 +211,6 @@ class TabTicariFis extends TabTSFis {
 		await super.topluHesapla(e)
 		return this
 	}
-	async uiGirisOncesiIslemler({ islem }) {
-		let {detaylar} = this
-		if (islem == 'degistir' || islem == 'sil') {
-			detaylar.forEach(det =>
-				det.ozelFiyat = det.ozelIsk = true)
-		}
-		await super.uiGirisOncesiIslemler(...arguments)
-	}
 	async satisKosullariReset(e = {}) {
 		await super.satisKosullariReset(e)
 		let {tanimPart = e.sender} = e
@@ -168,14 +247,33 @@ class TabTicariFis extends TabTSFis {
 	}
 
 	static async rootFormBuilderDuzenle_tablet_acc_baslik({ sender: tanimPart, inst: fis, rfb }) {
-		let e = arguments[0]
+		let e = arguments[0], {siparismi} = this
 		await super.rootFormBuilderDuzenle_tablet_acc_baslik(e)
 		{
-			let mfSinif = MQTabSevkAdres, {sinifAdi: etiket} = mfSinif
-			let form = rfb.addFormWithParent().altAlta()
-			form.addSimpleComboBox('sevkYerKod', etiket, etiket)
-				.etiketGosterim_yok()
-				.kodsuz().setMFSinif(mfSinif)
+			let form = rfb.addFormWithParent().yanYana()
+			let etiketPrefix = `${siparismi ? 'Teslim' : 'Sevk'}`
+			{
+				let mfSinif = MQTabSevkAdres, etiket = `${etiketPrefix} Yeri`
+				if (siparismi)
+					etiket = etiket.replaceAll('Sevk', 'Teslim')
+				form.addSimpleComboBox('sevkYerKod', etiket, etiket)
+					.etiketGosterim_yok()
+					.addStyle(`$elementCSS { min-width: 300px !important; max-width: 500px !important }`)
+					.kodsuz().setMFSinif(mfSinif)
+			}
+			{
+				let etiket = `${etiketPrefix} Tarih`
+				form.addDateInput('sevkTarih', etiket)
+					.etiketGosterim_yok()
+					.addStyle_wh(110)
+			}
+			{
+				let etiket = `${etiketPrefix} Saat`
+				form.addTimeInput('sevkSaat', etiket)
+					.etiketGosterim_yok()
+					.addStyle_wh(80).addCSS('center')
+					.saniyesiz()
+			}
 		}
 		{
 			let mfSinif = MQTabTahsilSekliVeKarmaTahsilat, {sinifAdi: etiket} = mfSinif
@@ -184,7 +282,7 @@ class TabTicariFis extends TabTSFis {
 				.etiketGosterim_yok()
 				.kodsuz().setMFSinif(mfSinif)
 				.degisince(({ type, events, ...rest }) => {
-					if (type != 'batch')
+					if (!(fis._uiReady && type == 'batch'))
 						return
 					// henuz kod atanmadı
 					let _e = { type, events, ...rest, oldValue: fis.tahSekliNo, value: events.at(-1).value }

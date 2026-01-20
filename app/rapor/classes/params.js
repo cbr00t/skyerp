@@ -12,16 +12,26 @@ class MQParam_DRapor extends MQParam {
 	static paramYapiDuzenle({ paramci }) {
 		let e = arguments[0]; super.paramYapiDuzenle(e)
 		paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`)
-		let form = paramci.addFormWithParent()
-		form.addCheckBox('ihracatIntacdanmi', 'İhracat İntaçtanmı')
-		form.addCheckBox('konsolideCikti', 'Konsolide Çıktı')
-			.degisince(({ builder: { inst, parentBuilder} }) => {
-				inst._kritikDegisiklikVarmi = true
-				parentBuilder.id2Builder._ekDBListe.updateVisible()
-			})
-		form.addModelKullan('_ekDBListe', 'Ek Veritabanları').comboBox().autoBind().noMF().kodsuz().coklu()
-			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.konsolideCikti ? true : 'jqx-hidden')
-			.setSource(e => app.wsDBListe().then(arr => arr.filter(x => x != 'ORTAK').map(x => new CKodVeAdi([x, x]))))
+		{
+			let form = paramci.addFormWithParent()
+			form.addBool('ihracatIntacdanmi', 'İhracat İntaçtanmı')
+			form.addBool('konsolideCikti', 'Konsolide Çıktı')
+				.degisince(({ builder: { inst, parentBuilder} }) => {
+					inst._kritikDegisiklikVarmi = true
+					parentBuilder.id2Builder._ekDBListe.updateVisible()
+				})
+			form.addModelKullan('_ekDBListe', 'Ek Veritabanları').comboBox().autoBind().noMF().kodsuz().coklu()
+				.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.konsolideCikti ? true : 'jqx-hidden')
+				.setSource(e => app.wsDBListe().then(arr => arr.filter(x => x != 'ORTAK').map(x => new CKodVeAdi([x, x]))))
+		}
+		{
+			let form = paramci.addFormWithParent()
+			form.addBool('panelRaporlama', 'Panel Raporlama')
+			form.addBool('maliTablo', 'Mali Tablo')
+			form.addBool('trfAlimSipBirlesik', 'Transfer Sip. + Alım Sip.')
+			form.addBool('hizmetVeMuhKarsilastirma', 'Hizmet ve Muh. Karşılaştırması')
+			form.addBool('hizmetVeMuhKarsilastirma_ozelIsaret', 'Hizmet ve Muh. Karşılaştırması: Özel İşaret')
+		}
 		paramci.onAfterRun(({ builder: { inst } }) =>
 			inst._kritikDegisiklikVarmi = false)
 	}

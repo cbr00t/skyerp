@@ -253,10 +253,12 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	tipDecimal_bedel(e) { return this.tipDecimal({ fra: 'bedel' }) }
 	tipDecimal_dvBedel(e) { return this.tipDecimal({ fra: 'dvBedel' }) }
 	tipDate(e) { this.tip = new GridKolonTip_Date(e); return this } tipTarih(e) { return this.tipDate(e) }
-	tipTime(e) { this.tip = new GridKolonTip_Time(e); return this } tipSaat(e) { return this.tipTime(e) } tipZaman(e) { return this.tipTime(e) }
-	tipTime_noSecs(e) {
-		e = e || {}; let noSecs = typeof e == 'object' ? e.noSecsFlag ?? e.noSecs : e;
-		return this.tipTime($.extend({}, e, { noSecs }))
+	tipTime(e) { this.tip = new GridKolonTip_Time(e); return this }
+	tipSaat(e) { return this.tipTime(e) }
+	tipZaman(e) { return this.tipTime(e) }
+	tipTime_noSecs(e = {}) {
+		let noSecs = true
+		return this.tipTime({ ...e, noSecs })
 	}
 	tipCheckbox(e) { return this.tipBool(e) }
 	tipBool(e) { this.tip = new GridKolonTip_Bool(e); return this }

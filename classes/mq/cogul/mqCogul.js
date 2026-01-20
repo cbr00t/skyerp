@@ -19,7 +19,7 @@ class MQCogul extends MQYapi {
 	static get orjBaslikListesi_panelGrupAttrListe() { let _e = { liste: [] }; this.orjBaslikListesi_panelGrupAttrListeDuzenle(_e); return _e.liste }
 	static get orjBaslikListesi_panelUstSeviyeAttrListe() { let _e = { liste: [] }; this.orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(_e); return _e.liste }
 	static get orjBaslikListesi_defaultRowsHeight() { return null } static get orjBaslikListesi_maxColCount() { return 5 } static get orjBaslikListesi_defaultColCount() { return null }
-	static get yerelParam() { return app.params.yerel }
+	static get yerelParam() { return app.params.yerel } static get notCacheable() { return false }
 	static get mqGlobals() { return app.mqGlobals = app.mqGlobals || {} }
 	static get mqTemps() { return app.mqTemps = app.mqTemps || {} }
 	static get globals() {
@@ -360,8 +360,13 @@ class MQCogul extends MQYapi {
 				let {liste} = e, {tableAlias: alias} = this
 				liste.push(
 					...this.getKAKolonlar(
-						new GridKolon({ belirtec: gonderimTSSaha, text: 'Gnd.Tarih', genislikCh: 9 }).tipDate(),
-						new GridKolon({ belirtec: gonderimTSSaha.toLowerCase().replace('ts', 'saat'), text: 'Gnd.Saat', genislikCh: 7, sql: `${alias}.${gonderimTSSaha}` }).tipTime()
+						new GridKolon({
+							belirtec: gonderimTSSaha, text: 'Gnd.Trh', genislikCh: 8
+						}).tipDate(),
+						new GridKolon({
+							belirtec: gonderimTSSaha.toLowerCase().replace('ts', 'saat'),
+							text: 'Gnd.Saat', genislikCh: 8, sql: `${alias}.${gonderimTSSaha}`
+						}).tipTime_noSecs()
 					)
 				)
 			}
@@ -455,7 +460,7 @@ class MQCogul extends MQYapi {
 	static raporQueryDuzenle_detaylar(e) { this.forAltYapiClassesDo('raporQueryDuzenle_detaylar', e) }
 	static async loadServerData({ offlineRequest, offlineMode = this.isOfflineMode } = {}) {
 		let e = arguments[0]
-		if (!offlineRequest && offlineMode && !this.offlineFis) {
+		if (!offlineRequest && offlineMode && !(this.notCacheable || this.offlineFis)) {
 			let {globals} = this, {cachedRecs: result} = globals
 			if (empty(result)) {
 				result = await this.loadServerDataDogrudan(e)
@@ -725,6 +730,7 @@ class MQCogul extends MQYapi {
 	async yukleSonrasiIslemler(e) { await super.yukleSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('yukleSonrasiIslemler', e) }
 	async yeniTanimOncesiVeyaYukleSonrasiIslemler(e) { await super.yeniTanimOncesiVeyaYukleSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('yeniTanimOncesiVeyaYukleSonrasiIslemler', e) }
 	async uiGirisOncesiIslemler(e) { await this.forAltYapiKeysDoAsync('uiGirisOncesiIslemler', e) }
+	async uiGirisSonrasiIslemler(e) { await this.forAltYapiKeysDoAsync('uiGirisSonrasiIslemler', e) }
 	async uiKaydetOncesiIslemler(e) {
 		await this.forAltYapiKeysDoAsync('uiKaydetOncesiIslemler', e);
 		let result = await this.dataDuzgunmu(e);

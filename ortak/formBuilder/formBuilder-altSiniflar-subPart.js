@@ -440,13 +440,25 @@ class FBuilder_TimeInput extends FBuilder_TextInput {
 	constructor(e) { e = e || {}; super(e); $.extend(this, { saniyesizmi: e.saniyesiz ?? e.saniyesizmi ?? true }) }
 	preBuild(e) { super.preBuild(e); this.maxLength = this.maxLength || (this.saniyesizmi ? 5 : 7) }
 	buildDevam(e) {
-		super.buildDevam(e); let {input, styles, saniyesizmi} = this;
-		if (input?.length) { input.addClass('zaman'); input[saniyesizmi ? 'addClass' : 'removeClass']('saniyesiz') }
-		styles.push(e => `$elementCSS { --width: calc(120px + ${saniyesizmi ? 0 : 25}px); min-width: var(--width) !important; width: var(--width) !important }`)
+		super.buildDevam(e)
+		let {input, styles, saniyesizmi} = this
+		if (input?.length) {
+			input.addClass('zaman')
+			input[saniyesizmi ? 'addClass' : 'removeClass']('saniyesiz')
+		}
+		styles.push(
+			`$elementCSS { --width: calc(120px + ${saniyesizmi ? 0 : 25}px); min-width: var(--width) !important; width: var(--width) !important }`)
 	}
 	saniyesiz() { this.saniyesizmi = true; return this }
 	saniyeli() { this.saniyesizmi = false; return this }
-	getConvertedValue(e) { let {value} = e; if (value) { if (typeof value != 'string') { value = timeToString(value) } value = value.slice(0, this.maxLength) } return value }
+	getConvertedValue({ value }) {
+		if (value) {
+			if (!isString(value))
+				value = timeToString(value)
+			value = value.slice(0, this.maxLength)
+		}
+		return value
+	}
 	getConverted_getValue(e) { return asDate(super.getConverted_getValue(e)) }
 }
 class FBuilder_ToggleButton extends FBuilder_DivOrtak {

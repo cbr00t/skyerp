@@ -6,7 +6,8 @@ class DPanel extends Part {
 	static get kategoriKod() { return null } static get araSeviyemi() { return false }
 	static get kod() { return this.anaTip } static get aciklama() { return 'Panel Rapor' }
 	static get dPanelmi() { return true } get dPanelmi() { return this.class.dPanelmi }
-	static get uygunmu() { return true } get uygunmu() { return this.class.uygunmu }
+	static get uygunmu() { return app.params?.dRapor?.panelRaporlama }
+	get uygunmu() { return this.class.uygunmu }
 	// static get slowAnimationFlag() { return true }
 	get detay() {
 		let {items} = this

@@ -4,13 +4,14 @@ class DRapor_HizmetMuhKontrol extends DRaporMQ {
 	static get oncelik() { return 98 }
 	static get kategoriKod() { return 'MUH' } static get kategoriAdi() { return 'Muhasebe' }
 	static get kod() { return 'HIZMUHKONT' } static get aciklama() { return 'Hizmet Muhasebeleşme Kontrolü' }
-	static get kolonFiltreKullanilirmi() { return false }
+	static get kolonFiltreKullanilirmi() { return false } get uygunmu() { return this.class.uygunmu }
+	static get uygunmu() { return app.params?.dRapor?.hizmetVeMuhKarsilastirma }
 	// static get vioAdim() { return 'MH-R' }
 	static get secimSinif() { return DonemselSecimler }
 	async onAfterRun({ gridPart, builder: rfb }) {
 		await super.onAfterRun(...arguments)
 		if (!this.isPanelItem)
-			gridPart.secimlerIstendi()
+			setTimeout(() => gridPart.secimlerIstendi(), 50)
 	}
 	static islemTuslariDuzenle_listeEkrani({ sender: gridPart, liste, part: { ekSagButonIdSet: sagSet } }) {
 		super.islemTuslariDuzenle_listeEkrani(...arguments)
@@ -63,6 +64,7 @@ class DRapor_HizmetMuhKontrol extends DRaporMQ {
 		)
 	}
 	static async loadServerDataDogrudan({ gridPart, secimler: sec, secimler: { tarihBSVeyaCariDonem: tarihBS } }) {
+		let {hizmetVeMuhKarsilastirma_ozelIsaret: ozelIsaretBakilirmi} = app.params?.dRapor ?? {}
 		let {muhHesapKod: sec_muhHesapKod, muhHesapAdi: sec_muhHesapAdi} = sec
 		let recs
 		{
@@ -71,7 +73,9 @@ class DRapor_HizmetMuhKontrol extends DRaporMQ {
 			har.addEkDuzenleyici(null, ({ har, hv, sent, where: wh }) => {
 				wh.basiSonu(tarihBS, hv.tarih)
 				wh.basiSonu(sec_muhHesapKod, 'hiz.muhhesap')
-				wh.add(`${hv.ozelisaret} <> '*'`)                                                      // sadece muhasebeleşenler
+				// hareketci wh.fisSilindiEkle() kendisi yapıyor olabilir
+				if (ozelIsaretBakilirmi)
+					wh.add(`${hv.ozelisaret} <> '*'`)                                                      // sadece muhasebeleşenler
 				sent.sahalarVeGroupByVeHavingReset()
 				let {sahalar} = sent, {ba, bedel} = hv
 				sahalar.add(...[
@@ -88,7 +92,9 @@ class DRapor_HizmetMuhKontrol extends DRaporMQ {
 			{
 				let sent = new MQSent(), {where: wh, sahalar} = sent
 				sent.fisHareket('muhfis', 'muhhar')
-				wh.fisSilindiEkle().add(`fis.ozelisaret <> '*'`)
+				wh.fisSilindiEkle()
+				if (ozelIsaretBakilirmi)
+					wh.add(`fis.ozelisaret <> '*'`)
 				wh.basiSonu(tarihBS, 'fis.tarih')
 				wh.basiSonu(sec_muhHesapKod, 'har.hesapkod')
 				sahalar.add(...[

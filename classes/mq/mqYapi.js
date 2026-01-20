@@ -382,7 +382,8 @@ class MQYapi extends CIO {
 				else if (recs?.length) {
 					for (let rec of recs) {
 						let inst = new this()
-						if (!await inst.yukle({ offlineMode: !offlineMode, rec, offlineRequest, offlineYukleRequest }))
+						await inst.setValues({ rec })
+						if (!await inst.yukle({ offlineMode: !offlineMode, offlineRequest, offlineYukleRequest }))
 							continue
 						window.progressManager?.progressStep(3)
 						if (!await inst.yaz({ offlineMode, offlineRequest, offlineYukleRequest }))
@@ -501,7 +502,8 @@ class MQYapi extends CIO {
 				else if (recs?.length) {
 					for (let rec of recs) {
 						let inst = new this()
-						if (!await inst.yukle({ offlineMode: !offlineMode, rec, offlineRequest, offlineGonderRequest })) { continue }
+						await inst.setValues({ rec })
+						if (!await inst.yukle({ offlineMode: !offlineMode, offlineRequest, offlineGonderRequest })) { continue }
 						inst = await inst.asOnlineFis({ ...e, rec }) ?? inst
 						if (inst.sayac) { inst.sayac = null }
 						if (await inst.varmi({ trnId, offlineMode, offlineRequest, offlineGonderRequest })) { continue }

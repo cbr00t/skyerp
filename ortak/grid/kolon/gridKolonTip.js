@@ -350,15 +350,18 @@ class GridKolonTip_Time extends GridKolonTip_String {
 
 	readFrom(e) {
 		if (!super.readFrom(e)) { return false }
-		this.noSecsFlag = e.noSecsFlag ?? e.noSecs;
+		this.noSecsFlag = e.noSecsFlag ?? e.noSecs
 		return true
 	}
 	get cellsRenderer() {
 		return ((colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
 			if (value != null) {
 				if (rec?.totalsrow) { return GridKolonTip.getHTML_groupsTotalRow(value) }
-				let {gridWidget} = colDef?.gridPart || {}; rec = (gridWidget?.getboundrows ? gridWidget.getboundrows()[rowIndex] : null) ?? rec; rec = rec?.originalRecord ?? rec;
-				let _value = value; value = asDate(value); html = isInvalidDate(value) ? null : timeToString(asDate(value), this.noSecsFlag)
+				let {gridWidget} = colDef?.gridPart || {}
+				rec = (gridWidget?.getboundrows ? gridWidget.getboundrows()[rowIndex] : null) ?? rec
+				rec = rec?.originalRecord ?? rec
+				let _value = value; value = asDate(value)
+				html = isInvalidDate(value) ? null : timeToString(asDate(value), this.noSecsFlag)
 			}
 			return html
 		})

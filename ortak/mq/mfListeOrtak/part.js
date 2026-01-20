@@ -525,39 +525,46 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			if (eskiInst === undefined) { eskiInst = await mfSinif.yeniInstOlustur?.(_e) }
 			if (eskiInst === undefined) { eskiInst = new mfSinif(_e) }
 			if (eskiInst == null) { return false }
-			eskiInst.keySetValues({ rec });
-			if (!await eskiInst.yukle({ ..._e, rec: null, _rec: rec })) {
+			await eskiInst.keySetValues({ rec })
+			let __e = { ..._e, rec: null, _rec: rec }
+			if (!await eskiInst.yukle(__e)) {
 				let mesaj = 'Seçilen satır için bilgi yüklenemedi';
 				throw { isError: true, rc: 'instBelirle', errorText: mesaj }
 			}
-			inst = eskiInst.deepCopy();
-			let {kaydedince: _kaydedince} = e ?? {}, kaydedince = e => { this.tazele(e); _kaydedince?.call(this, e) };
+			_e.islem = __e.islem
+			inst = eskiInst.deepCopy()
+			let {kaydedince: _kaydedince} = e ?? {}
+			let kaydedince = e => { this.tazele(e); _kaydedince?.call(this, e) }
 			return inst.tanimla({ parentPart: this, islem: _e.islem, eskiInst, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince })
 		}
 		catch (ex) { hConfirm(getErrorText(ex), 'Değiştir'); throw ex }
 	}
 	async kopyaIstendi(e) {
-		e ??= {}; let {tanimOncesiEkIslemler, table, tableAlias, aliasVeNokta, gridWidget} = this;
-		let rowIndex = e.rowIndex ?? this.selectedRowIndex, rec = e.rec ?? gridWidget.getrowdata(rowIndex), mfSinif = this.getMFSinif(e);
+		e ??= {}; let {tanimOncesiEkIslemler, table, tableAlias, aliasVeNokta, gridWidget} = this
+		let rowIndex = e.rowIndex ?? this.selectedRowIndex, rec = e.rec ?? gridWidget.getrowdata(rowIndex), mfSinif = this.getMFSinif(e)
 		if (!rec) { wConfirm('Kopyalanacak satır seçilmelidir', ' '); return false }
-		let {args} = this, {ozelTanimIslemi} = mfSinif; let eskiInst, inst;
-		let _e = { sender: this, listePart: this, islem: 'kopya', mfSinif, rec, rowIndex, args, table, alias: tableAlias, aliasVeNokta };
+		let {args} = this, {ozelTanimIslemi} = mfSinif
+		let eskiInst, inst
+		let _e = { sender: this, listePart: this, islem: 'kopya', mfSinif, rec, rowIndex, args, table, alias: tableAlias, aliasVeNokta }
 		let tanimUISinif = _e.tanimUISinif = this.getTanimUISinif(_e);
 		if (ozelTanimIslemi) {
-			let result = await getFuncValue.call(this, ozelTanimIslemi, _e);
+			let result = await getFuncValue.call(this, ozelTanimIslemi, _e)
 			if (result !== false) { return result }
 		}
 		if (!tanimUISinif) { return false }
 		try {
-			let {yeniInstOlusturucu} = this; if (yeniInstOlusturucu) { eskiInst = await getFuncValue.call(this, yeniInstOlusturucu, _e) }
+			let {yeniInstOlusturucu} = this
+			if (yeniInstOlusturucu) eskiInst = await getFuncValue.call(this, yeniInstOlusturucu, _e)
 			if (eskiInst === undefined && mfSinif.yeniInstOlustur) eskiInst = await mfSinif.yeniInstOlustur(_e)
-			if (eskiInst === undefined) { eskiInst = new mfSinif(_e) }
-			if (eskiInst == null) return false; eskiInst.keySetValues({ rec });
-			if (!await eskiInst.yukle($.extend({}, _e, { rec: null, _rec: rec }))) {
+			if (eskiInst === undefined) eskiInst = new mfSinif(_e)
+			if (eskiInst == null)
+				return false
+			await eskiInst.keySetValues({ rec })
+			if (!await eskiInst.yukle({ ..._e, rec: null, _rec: rec })) {
 				let mesaj = 'Seçilen satır için bilgi yüklenemedi'
 				throw { isError: true, rc: 'instBelirle', errorText: mesaj }
 			}
-			inst = await eskiInst.kopyaIcinDuzenle(_e) ?? eskiInst.deepCopy();
+			inst = await eskiInst.kopyaIcinDuzenle(_e) ?? eskiInst.deepCopy()
 			let {kaydedince: _kaydedince} = e ?? {}, kaydedince = e => { this.tazele(e); _kaydedince?.call(this, e) };
 			return inst.tanimla({ parentPart: this, islem: _e.islem, eskiInst, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince })
 		}
@@ -588,12 +595,23 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			if (inst === undefined && mfSinif.yeniInstOlustur) { inst = await mfSinif.yeniInstOlustur(_e) }
 			if (inst === undefined) { inst = new mfSinif(_e) }
 			if (inst == null) { return false }
-			inst.keySetValues({ rec })
+			await inst.keySetValues({ rec })
 			/*if (!await inst.yukle(_e)) { let mesaj = 'Seçilen satır için bilgi yüklenemedi'; throw { isError: true, rc: 'instBelirle', errorText: mesaj } }*/
-			promises.push(await inst.sil(__e))
+			promises.push(new Promise(async (r, f) => {
+				try {
+					await inst.silmeOncesiIslemler(__e)
+					r(await inst.sil(__e))
+				}
+				catch (ex) { f(ex) }
+			}))
 		}
 		if (promises.length) {
-			await Promise.allSettled(promises)
+			let results = await Promise.allSettled(promises)
+			let errors = results
+				.filter(_ => _.status != 'fulfilled')
+				.map(_ => `<li>${getErrorText(_.reason)}</li>`)
+			if (!empty(errors))
+				hConfirm(`<ol>${errors.join(CrLf)}</ol>`, `${errors.length} adet Kayıt SİLİNEMEDİ`)
 			promises = []
 		}
 	}
@@ -606,7 +624,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			if (inst === undefined) { inst = await mfSinif.yeniInstOlustur?.(e) }
 			if (inst === undefined) { inst = new mfSinif(e) }
 			if (inst == null) { return null }
-			inst.keySetValues({ rec });
+			await inst.keySetValues({ rec })
 			if (!await inst.yukle({ ...e, rec: null, _rec: rec })) {
 				let mesaj = 'Seçilen satır için bilgi yüklenemedi';
 				throw { isError: true, rc: 'instBelirle', errorText: mesaj }
@@ -633,7 +651,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			if (inst === undefined) { inst = await mfSinif.yeniInstOlustur?.(e) }
 			if (inst === undefined) { inst = new mfSinif(e) }
 			if (inst == null) { return null }
-			inst.keySetValues({ rec });
+			await inst.keySetValues({ rec })
 			if (!await inst.yukle({ ...e, rec: null, _rec: rec })) {
 				let mesaj = 'Seçilen satır için bilgi yüklenemedi';
 				throw { isError: true, rc: 'instBelirle', errorText: mesaj }

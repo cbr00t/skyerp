@@ -162,9 +162,17 @@ class TabFis extends MQDetayliGUID {
 		}
 		return recs
 	}
-	async uiGirisOncesiIslemler({ islem }) {
-		await super.uiGirisOncesiIslemler(...arguments)
+	async uiGirisOncesiIslemler(e) {
+		this._promise_ready = new $.Deferred()
+		await super.uiGirisOncesiIslemler(e)
 		await this.satisKosullariOlustur(e)
+	}
+	async uiGirisSonrasiIslemler(e) {
+		await super.uiGirisSonrasiIslemler(e)
+		setTimeout(() => {
+			this._promise_ready?.resolve()
+			this._uiReady = true
+		}, 1000)
 	}
 	async yeniTanimOncesiIslemler(e) {
 		await this.topluHesapla(e)
@@ -240,8 +248,11 @@ class TabFis extends MQDetayliGUID {
 	async yukle(e = {}) {
 		let {rec} = e
 		if (rec)
-			await this.setValues({ ...e, rec })
-		return await super.yukle({ ...e, rec: undefined })
+			await this.setValues(e)
+		else {
+			e.rec = undefined
+			return await super.yukle(e)
+		}
 	}
 	async sil(e) {
 		let {sayac: id, class: { table, idSaha }} = this
@@ -503,9 +514,16 @@ class TabFis extends MQDetayliGUID {
 	static async rootFormBuilderDuzenle_tablet_acc_baslikCollapsed({ sender: tanimPart, inst: fis, rfb }) {
 		let {mustKod} = fis
 		if (mustKod) {
-			let {adiSaha} = MQTabCari
+			/*let {adiSaha} = MQTabCari
 			let {[mustKod]: { [adiSaha]: aciklama } = {}} = await MQTabCari.getGloKod2Rec() ?? {}
-			aciklama ||= mustKod
+			aciklama ||= mustKod*/
+			let aciklama = (await MQTabCari.getGloKod2Adi(mustKod)) || mustKod
+			rfb
+				.addCSS('flex-row')
+				.addStyle(
+					`$elementCSS > div { width: max-content !important }
+					 $elementCSS > div:not(:first-child) { margin-left: 20px }`
+				)
 			rfb.addForm().setLayout(() => $([
 				`<div class="flex-row" style="gap: 10px">`,
 					// `<div class="orangered"><b>${dateKisaString(asDate(tarih))}</b></div>`,
@@ -514,7 +532,7 @@ class TabFis extends MQDetayliGUID {
 			].join(CrLf)))
 		}
 	}
-	static rootFormBuilderDuzenle_tablet_acc_baslik({ sender: tanimPart, inst: fis, rfb }) {
+	static rootFormBuilderDuzenle_tablet_acc_baslik({ sender: tanimPart, inst: fis, rfb, acc }) {
 		let e = arguments[0]
 		let {loginTipi} = config.session ?? {}
 		if (!(loginTipi == 'plasiyerLogin' || loginTipi == 'musteriLogin')) {
@@ -545,7 +563,10 @@ class TabFis extends MQDetayliGUID {
 						return
 					// henuz mustKod atanmadı
 					let _e = { type, events, ...rest, oldValue: fis.mustKod, value: events.at(-1).value?.trimEnd() }
-					setTimeout(() => fis.mustDegisti({ ...e, ..._e, tanimPart }), 5)
+					setTimeout(() => {
+						fis.mustDegisti({ ...e, ..._e, tanimPart })
+						acc?.render()
+					}, 5)
 				})
 				.onAfterRun(({ builder: { part } }) =>
 					setTimeout(() => part.focus(), 1))
