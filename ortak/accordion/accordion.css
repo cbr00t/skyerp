@@ -1,11 +1,12 @@
 .accordion.part {
-	--item-pad-x: 2px; --item-pad-y: 4px;
+	--item-pad-x: 2px; --item-pad-y: 3px;
 	--acc-header-height: 40px;
 	width: calc(var(--full) - var(--item-pad-x) * 3);
 	height: calc(var(--full) - var(--item-pad-y) * 2)
 }
 .accordion.part .accordion.item {
-	position: relative; width: var(--full);
+	position: relative;
+	width: calc(var(--full) - 0px);
 	margin: var(--item-pad-y) var(--item-pad-x);
 	border-radius: 10px; border: 2px solid rgba(0, 0, 0, .10);
 	box-sizing: content-box;
@@ -15,9 +16,9 @@
 .accordion.part .accordion.item:not(.expanded) > .content { display: none }
 .accordion.part .accordion > .header {
 	font-size: 110%; user-select: none; cursor: pointer;
-	height: var(--acc-header-height); padding: 0 14px;
+	height: var(--acc-header-height); padding: 0 10px;
 	border: 1px solid #ccc; border-bottom: 1px solid rgba(0, 0, 0, 0.15);
-	background: #f7f7f7; align-items: center
+	background: #f7f7f7; align-items: center;
 }
 .accordion.part .accordion.item:not(.expanded) > .header { background: #cecececc }
 .accordion.part .accordion.item.expanded { }
@@ -48,12 +49,12 @@
 .accordion.part .accordion > .content {
 	width: var(--full);
 	height: calc(var(--full) - (var(--acc-header-height) + 2px));
-	padding: 5px 2px; box-sizing: con-box;
+	padding: 5px 2px; box-sizing: content-box;
 	border-top: 2px solid rgba(0 200, 255, .8);
 	overflow-x: hidden !important; overflow-y: auto !important
 }
 .accordion.part .accordion > .content > * {
-	max-width: calc(var(--full) - var(--item-pad-x))
+	max-width: calc(var(--full) - var(--item-pad-x) * 3)
 }
 
 @media (max-width: 800px) {

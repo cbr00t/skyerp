@@ -145,10 +145,13 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		let sonTarih = sec.tarih.value || null
 		let buYonClause = yon.sqlServerDegeri()
 		let uni = new MQUnionAll()
+		let _e = { ...e, sender, uni }
 		for (let har of harListe) {
 			let {oncelik, mstYapi, kod: harTipKod, finAnaliz_baIcinTersIslemYapilirmi: baTersIslem} = har.class
 			let {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi
-			let harUni = har.uniOlustur({ sender: this })
+			har.ilkIslemler(_e)
+			let harUni = har.uniOlustur(_e)
+			har.sonIslemler(_e)
 			for (let harSent of harUni) {
 				if (!harSent)
 					continue

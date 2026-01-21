@@ -85,7 +85,7 @@ class MQTabCari extends MQKAOrtak {
 		liste.push(
 			...this.getKAKolonlar(
 				new GridKolon({ belirtec: 'tipkod', text: 'Tip', genislikCh: 5, filterType: 'checkedlist' }),
-				new GridKolon({ belirtec: 'tipadi', text: 'Tip Adı', genislikCh: 13, sql: 'tip.aciklama', filterType: 'checkedlist' })
+				new GridKolon({ belirtec: 'tipadi', text: 'Tip Adı', genislikCh: 13, sql: 'ctip.aciklama', filterType: 'checkedlist' })
 			),
 			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 20 }),
 			...this.getKAKolonlar(

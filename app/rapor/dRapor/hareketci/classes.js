@@ -1,54 +1,143 @@
-class DRapor_Hareketci_AlimSatisOrtak extends DRapor_Hareketci {
+class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get vioAdim() { return null } static get araSeviyemi() { return this == DRapor_Hareketci_AlimSatisOrtak }
-}
-class DRapor_Hareketci_AlimSatisOrtak_Main extends DRapor_Hareketci_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get raporClass() { return DRapor_Hareketci_AlimSatisOrtak }
+	static get maliyetKullanilirmi() { return false }
 	tabloYapiDuzenle({ result }) {
-		let e = arguments[0]; super.tabloYapiDuzenle(e)
+		let e = arguments[0]
+		super.tabloYapiDuzenle(e)
+		let {maliyetKullanilirmi} = this.class
 		let {tip2BrmListe} = MQStokGenelParam
+		let {brmDict} = app.params.stokBirim ?? {}
 		let {isAdmin, rol} = config.session ?? {}
 		let maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT')
 		let {toplam} = result, brmListe = keys(tip2BrmListe)
 		this.tabloYapiDuzenle_cari(e)
 		this.tabloYapiDuzenle_sh(e)
-		this.tabloYapiDuzenle_gc({ ...e, tip: 'MIKTAR', etiket: 'Miktar' })
-		this.tabloYapiDuzenle_gc({ ...e, tip: 'MIKTAR2', etiket: 'Miktar2' })
-		if (maliyetGorurmu)
-			this.tabloYapiDuzenle_gc({ ...e, tip: 'MALIYET', etiket: 'Maliyet', belirtec: 'tummaliyet' })
-		{
-			let {ISARETLIBEDEL: item} = toplam
-			if (item)
-				item.ka.aciklama = item.colDefs[0].text = 'Bedel'
+		result
+			.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, 100, null)
+			.addToplamBasit('MIKTAR2', '2. Miktar', 'miktar2', null, 100, null)
+		for (let tip of brmListe) {
+			let fra = brmDict[tip]
+			result.addToplamBasit(`MIKTAR${tip}`, `Miktar (${tip})`, `miktar${tip}`, null, 100, ({ colDef }) => colDef.tipDecimal(fra))
+		}
+		if (maliyetKullanilirmi && maliyetGorurmu) {
+			let {uretimMalMuh} = app.params.uretim?.kullanim ?? {}
+			result
+				.addToplamBasit_bedel('STBRCIRO', 'Brüt Ciro', 'stbrciro')
+				.addToplamBasit_bedel('ISKBEDEL', 'İskonto Bedel', 'iskbedel')
+				.addToplamBasit_bedel('CIRO', 'Net Ciro', 'ciro')
+				.addToplamBasit_bedel('CIROFIYAT', 'Ciro Fiyat', 'cirofiyat', null, null, ({ item }) =>
+					item.setFormul(['CIRO', 'MIKTAR'], ({ rec }) => roundToFiyatFra(rec.miktar ? rec.ciro / rec.miktar : 0)))
+				.addToplamBasit_bedel('STBRCIRO', 'Brüt Ciro', 'stbrciro')
+				.addToplamBasit_bedel('STBRCIRO', 'Brüt Ciro', 'stbrciro')
+				.addToplamBasit_bedel('TUMMALIYET', 'Tüm Maliyet', 'tummaliyet')
+				.addToplamBasit('YUZDE_CIRO_TUMMALIYET', 'Mal. Ciro(%)', 'yuzde_ciro_tummaliyet', null, null, ({ item }) =>
+					item.setFormul(['TUMMALIYET', 'CIRO'], ({ rec }) => rec.ciro ? roundToFra((rec.tummaliyet / rec.ciro) * 100, 1) : 0))
+				.addToplamBasit_bedel('HAMMALIYET', 'Ham Maliyet', 'hammaliyet')
+			if (uretimMalMuh)
+				result.addToplamBasit_bedel('MALMUH', 'Maliyet Muhasebesi', 'malmuh')
+			result
+				.addToplamBasit_bedel('BRUTKAR', 'Brüt Kar', 'brutkar')
+				.addToplamBasit('YUZDE_CIRO_BRUTKAR', 'Kar Ciro(%)', 'yuzde_ciro_brutkar', null, null, ({ item }) =>
+					item.setFormul(['BRUTKAR', 'CIRO'], ({ rec }) => rec.ciro ? roundToFra((rec.brutkar / rec.ciro) * 100, 1) : 0))
+				.addToplamBasit('YUZDE_MALIYET_BRUTKAR', 'Kar Mal.(%)', 'yuzde_maliyet_brutkar', null, null, ({ item }) =>
+					item.setFormul(['BRUTKAR', 'TUMMALIYET'], ({ rec }) => rec.tummaliyet ? roundToFra((rec.brutkar / rec.tummaliyet) * 100, 1) : 0))
+				.addToplamBasit('BRMMALIYET', 'Brm. Maliyet', 'brmmaliyet', null, null, ({ item }) =>
+					item.setFormul(['TUMMALIYET', 'MIKTAR'], ({ rec }) => rec.miktar ? roundToFra((rec.tummaliyet / rec.miktar) * 100, 1) : 0))
+				.addToplamBasit('BRMIKTAR', 'Br. Miktar', 'brmiktar', null, null, ({ item }) =>
+					item.setFormul(['BRUTKAR', 'MIKTAR'], ({ rec }) => rec.miktar ? roundToFra((rec.brutkar / rec.miktar) * 100, 1) : 0))
+			// this.tabloYapiDuzenle_gc({ ...e, tip: 'MALIYET', etiket: 'Maliyet', belirtec: 'tummaliyet' })
+		}
+		; {
+			for (let [belirtec, { ka, colDefs }] of entries(toplam)) {
+				if (belirtec.includes('ISARETLIBEDEL')) {
+					let {aciklama: ack} = ka
+					ka.aciklama = colDefs[0].text = ack
+						.replace('B-A ', '')
+						.replace('İşaretli ', '')
+				}
+			}
 		}
 		//{ let {TUMMALIYET: item} = toplam; if (item) { item.ka.aciklama = item.colDefs[0].text = 'Tüm Maliyet' } }
-		deleteKeys(toplam, 'BORCBEDEL', 'ALACAKBEDEL', 'BORCBAKIYE', 'ALACAKBAKIYE', 'TUMMALIYET')
+		let baKeys = ['BORCBEDEL', 'ALACAKBEDEL', 'BORCBAKIYE', 'ALACAKBAKIYE']
+		deleteKeys(toplam, ...baKeys, 'TUMMALIYET')
+		{
+			let removeKeys = asSet(baKeys)
+			for (let k of keys(toplam)) {
+				if (k.startsWith('DEG_')) {
+					let partialKey = k.split('_')[1]
+					if (removeKeys[partialKey])
+						delete toplam[k]
+				}
+			}
+		}
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
-		super.loadServerData_queryDuzenle_hrkSent(e); let {attrSet, sent, hvDegeri} = e;
-		let {where: wh, sahalar} = sent, PrefixMiktar = 'MIKTAR', gcClause = hvDegeri('gc'), tarihClause = hvDegeri('tarih');
-		/* if (Object.keys(attrSet).find(key => (key.startsWith('GIRIS_') || key.startsWith('CIKIS_')))) { attrSet.GC = true } */
+		super.loadServerData_queryDuzenle_hrkSent(e)
+		let {maliyetKullanilirmi} = this.class
+		let {attrSet, sent, hvDegeri} = e
+		let {where: wh, sahalar} = sent
+		let PrefixMiktar = 'MIKTAR'
+		// let gcClause = hvDegeri('gc')
+		let tarihClause = hvDegeri('tarih')
+		/* if (keys(attrSet).find(key => (key.startsWith('GIRIS_') || key.startsWith('CIKIS_')))) { attrSet.GC = true } */
 		this.loadServerData_queryDuzenle_sh({ ...e, kodClause: hvDegeri('shkod') })
 		this.loadServerData_queryDuzenle_cari({ ...e, kodClause: hvDegeri('must') })
 		this.loadServerData_queryDuzenle_takip({ ...e, kodClause: hvDegeri('takipno') })
-		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MIKTAR', clause: hvDegeri('miktar'), gcClause, tarihClause })
+		/*this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MIKTAR', clause: hvDegeri('miktar'), gcClause, tarihClause })
 		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MIKTAR2', clause: hvDegeri('miktar2'), gcClause, tarihClause })
-		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MALIYET', clause: hvDegeri('fmaliyet'), gcClause, tarihClause })
+		if (maliyetKullanilirmi) {
+			let clause = hvDegeri('fmaliyet'), gcClause = hvDegeri('gc')
+			this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MALIYET', clause, gcClause, tarihClause })
+		}*/
 		for (let key in attrSet) {
 			switch (key) {
 				case 'BRM': sahalar.add(`${hvDegeri('brm')} brm`); break
 				case 'BRM2': sahalar.add(`${hvDegeri('brm2')} brm2`); break
-				case 'BRMORANI': sahalar.add('stk.brmorani'); break
+				case 'BRMORANI': sahalar.add(`${hvDegeri('brmorani')} brmorani`); break
+				case 'MIKTAR': sahalar.add(`${hvDegeri('miktar').asSumDeger()} miktar`); break
+				case 'MIKTAR2': sahalar.add(`${hvDegeri('miktar2').asSumDeger()} miktar2`); break
+				case 'STBRCIRO': sahalar.add(`SUM(${hvDegeri('brutbedel')}) stbrciro`); break
+				case 'CIRO': sahalar.add(`SUM(${hvDegeri('bedel')} - ${hvDegeri('dipiskonto')}) ciro`); break
+				case 'ISKBEDEL': sahalar.add(`SUM(${hvDegeri('brutbedel')} - ${hvDegeri('bedel')}) iskbedel`); break
+				case 'TUMMALIYET': sahalar.add(`SUM(${hvDegeri('fmalhammadde')} + ${hvDegeri('fmalmuh')}) tummaliyet`); break
+				case 'HAMMALIYET': sahalar.add(`SUM(${hvDegeri('fmalhammadde')}) hammaliyet`); break
+				case 'MALMUH': sahalar.add(`SUM(${hvDegeri('fmalmuh')}) malmuh`); break
+				case 'BRUTKAR':
+					sahalar.add(`SUM(${hvDegeri('bedel')} - ${hvDegeri('dipiskonto')} - (${hvDegeri('fmalhammadde')} + ${hvDegeri('fmalmuh')})) brutkar`)
+					break
+				default: {
+					let hizmetmi = hvDegeri('shTipi') == `'H'`
+					let mstAlias = hizmetmi ? 'hiz' : 'stk'
+					for (let prefix of ['MIKTAR', 'MIKTAR2']) {
+						if (key != prefix && key.startsWith(prefix)) {
+							let brmTip = key.slice(prefix.length)?.toUpperCase()
+							let clause = this.getBrmliMiktarClause({    // SUM(...) içinde verir
+								brmTip, mstAlias, harAlias: '',
+								getMiktarClause: hvAlias => hvDegeri(hvAlias)
+							})
+							sahalar.add(`${clause} miktar${brmTip}`)
+						}
+					}
+					break
+				}
 			}
 		}
 	}
 }
+
+class DRapor_Hareketci_AlimSatisOrtak extends DRapor_Hareketci {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get vioAdim() { return null } static get araSeviyemi() { return this == DRapor_Hareketci_AlimSatisOrtak }
+}
+class DRapor_Hareketci_AlimSatisOrtak_Main extends DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get raporClass() { return DRapor_Hareketci_AlimSatisOrtak }
+	static get maliyetKullanilirmi() { return true }
+}
 class DRapor_Hareketci_Satislar extends DRapor_Hareketci_AlimSatisOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kategoriKod() { return 'SATIS' } static get kategoriAdi() { return 'Satışlar' }
-	static get vioAdim() { return 'ST-IR' }
-	static get hareketciSinif() { return SatisHareketci } 
+	static get vioAdim() { return 'ST-IR' } static get hareketciSinif() { return SatisHareketci } 
 }
 class DRapor_Hareketci_Satislar_Main extends DRapor_Hareketci_AlimSatisOrtak_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -57,8 +146,7 @@ class DRapor_Hareketci_Satislar_Main extends DRapor_Hareketci_AlimSatisOrtak_Mai
 class DRapor_Hareketci_Alimlar extends DRapor_Hareketci_AlimSatisOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kategoriKod() { return 'ALIM' } static get kategoriAdi() { return 'Alımlar' }
-	static get vioAdim() { return 'ST-IR' }
-	static get hareketciSinif() { return AlimHareketci } 
+	static get vioAdim() { return 'ST-IR' } static get hareketciSinif() { return AlimHareketci } 
 }
 class DRapor_Hareketci_Alimlar_Main extends DRapor_Hareketci_AlimSatisOrtak_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -69,53 +157,40 @@ class DRapor_Hareketci_AlimSatisSipOrtak extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get vioAdim() { return null } static get araSeviyemi() { return this == DRapor_Hareketci_AlimSatisSipOrtak }
 }
-class DRapor_Hareketci_AlimSatisSipOrtak_Main extends DRapor_Hareketci_Main {
+class DRapor_Hareketci_AlimSatisSipOrtak_Main extends DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_AlimSatisSipOrtak }
 	tabloYapiDuzenle({ result }) {
-		let e = arguments[0]; super.tabloYapiDuzenle(e)
-		let {tip2BrmListe} = MQStokGenelParam
-		let {isAdmin, rol} = config.session ?? {}
-		let maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT')
-		let {toplam} = result, brmListe = keys(tip2BrmListe)
-		this.tabloYapiDuzenle_cari(e)
+		let e = arguments[0]
+		super.tabloYapiDuzenle(e)
+		/*this.tabloYapiDuzenle_cari(e)
 		this.tabloYapiDuzenle_sh(e)
 		this.tabloYapiDuzenle_gc({ ...e, tip: 'MIKTAR', etiket: 'Miktar' })
-		this.tabloYapiDuzenle_gc({ ...e, tip: 'MIKTAR2', etiket: 'Miktar2' })
-		if (maliyetGorurmu)
-			this.tabloYapiDuzenle_gc({ ...e, tip: 'MALIYET', etiket: 'Maliyet', belirtec: 'tummaliyet' })
-		{
-			let {ISARETLIBEDEL: item} = toplam
-			if (item)
-				item.ka.aciklama = item.colDefs[0].text = 'Bedel'
-		}
-		//{ let {TUMMALIYET: item} = toplam; if (item) { item.ka.aciklama = item.colDefs[0].text = 'Tüm Maliyet' } }
-		deleteKeys(toplam, 'BORCBEDEL', 'ALACAKBEDEL', 'BORCBAKIYE', 'ALACAKBAKIYE', 'TUMMALIYET')
+		this.tabloYapiDuzenle_gc({ ...e, tip: 'MIKTAR2', etiket: 'Miktar2' })*/
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
-		super.loadServerData_queryDuzenle_hrkSent(e); let {attrSet, sent, hvDegeri} = e;
-		let {where: wh, sahalar} = sent, PrefixMiktar = 'MIKTAR', gcClause = hvDegeri('gc'), tarihClause = hvDegeri('tarih');
-		/* if (Object.keys(attrSet).find(key => (key.startsWith('GIRIS_') || key.startsWith('CIKIS_')))) { attrSet.GC = true } */
+		super.loadServerData_queryDuzenle_hrkSent(e)
+		let {attrSet, sent, hvDegeri} = e
+		let {where: wh, sahalar} = sent
+		/*let gcClause = hvDegeri('gc'), tarihClause = hvDegeri('tarih')
 		this.loadServerData_queryDuzenle_sh({ ...e, kodClause: hvDegeri('shkod') })
 		this.loadServerData_queryDuzenle_cari({ ...e, kodClause: hvDegeri('must') })
 		this.loadServerData_queryDuzenle_takip({ ...e, kodClause: hvDegeri('takipno') })
 		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MIKTAR', clause: hvDegeri('miktar'), gcClause, tarihClause })
 		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MIKTAR2', clause: hvDegeri('miktar2'), gcClause, tarihClause })
-		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MALIYET', clause: hvDegeri('fmaliyet'), gcClause, tarihClause })
 		for (let key in attrSet) {
 			switch (key) {
 				case 'BRM': sahalar.add(`${hvDegeri('brm')} brm`); break
 				case 'BRM2': sahalar.add(`${hvDegeri('brm2')} brm2`); break
 				case 'BRMORANI': sahalar.add('stk.brmorani'); break
 			}
-		}
+		}*/
 	}
 }
 class DRapor_Hareketci_SipSatislar extends DRapor_Hareketci_AlimSatisSipOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kategoriKod() { return 'SATIS' } static get kategoriAdi() { return 'Satış Siparişler' }
-	static get vioAdim() { return 'ST-IR' }
-	static get hareketciSinif() { return SatisSipHareketci } 
+	static get vioAdim() { return 'ST-IR' } static get hareketciSinif() { return SatisSipHareketci }
 }
 class DRapor_Hareketci_SipSatislar_Main extends DRapor_Hareketci_AlimSatisSipOrtak_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -124,8 +199,7 @@ class DRapor_Hareketci_SipSatislar_Main extends DRapor_Hareketci_AlimSatisSipOrt
 class DRapor_Hareketci_SipAlimlar extends DRapor_Hareketci_AlimSatisSipOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kategoriKod() { return 'ALIM' } static get kategoriAdi() { return 'Alımlar' }
-	static get vioAdim() { return 'ST-IR' }
-	static get hareketciSinif() { return AlimSipHareketci } 
+	static get vioAdim() { return 'ST-IR' } static get hareketciSinif() { return AlimSipHareketci } 
 }
 class DRapor_Hareketci_SipAlimlar_Main extends DRapor_Hareketci_AlimSatisSipOrtak_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

@@ -113,21 +113,24 @@ class AlimSatisOrtakHareketci extends Hareketci {
 					sent[`har2${hizmetmi ? 'Hizmet' : 'Stok'}Bagla`]()
 					sent[`${hizmetmi ? 'hizmet' : 'stok'}2GrupBagla`]()
 					sent[`${hizmetmi ? 'hizmet' : 'stok'}2IstGrupBagla`]()
-				}).hvDuzenleIslemi(({ hv, sqlZero }) => {
+				}).hvDuzenleIslemi(({ hv, sqlEmpty, sqlZero }) => {
 					$.extend(hv, {
 						oncelik: '1', ba: `'B'`, fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac',
 						kayittipi: `'AS'`, anaislemadi: hizmetmi ? `'Hizmet'` : `'Stok'`,
 						islemadi: `'Alım/Satış'`, bizsubekod: 'fis.bizsubekod',
 						ozelisaret: 'fis.ozelisaret', tarih: 'fis.tarih', fisnox: 'fis.fisnox',
 						refkod: 'fis.must', refadi: 'car.birunvan', dvkod: 'fis.dvkod', dvkur: 'fis.dvkur',
-						fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', miktar: 'har.miktar',
+						fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama',
+						brm: `${mstAlias}.brm`, brm2: (hizmetmi ? sqlEmpty : `${mstAlias}.brm2`),
+						brmorani: (hizmetmi ? sqlZero : 'har.brmorani'),
+						miktar: 'har.miktar', miktar2: (hizmetmi ? sqlZero : 'har.miktar2'),
 						brutbedel: 'har.brutbedel', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
 						satiriskonto: 'har.satiriskonto', dipiskonto: 'har.dipiskonto',
 						harciro: 'har.harciro', topkdv: 'har.tumkdv',
 						fmalhammadde: hizmetmi ? sqlZero : 'har.fmalhammadde',
 						fmalmuh: hizmetmi ? sqlZero : 'har.fmalmuh',
 						shTipi: `'${hizmetmi ? 'H' : 'S'}'`,
-						shkod: `har.${hizmetmi} ? 'hizmetkod' : 'stokkod'`, shadi: `${mstAlias}.aciklama`,
+						shkod: `har.${hizmetmi ? 'hizmetkod' : 'stokkod'}`, shadi: `${mstAlias}.aciklama`,
 						grupkod: `${mstAlias}.grupkod`, istgrupkod: `${mstAlias}.${hizmetmi ? 'h' : 's'}istgrupkod`,
 						takipno: `(case when fis.takiportakdir = '' then har.dettakipno else fis.orttakipno end)`
 					})

@@ -133,12 +133,18 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		let tBasiClause = MQSQLOrtak.sqlServerDegeri(tBasi), tSonuClause = MQSQLOrtak.sqlServerDegeri(tSonu);
 		/* let devirTBasi = tBasi ? tBasi.clone().addDays(1) : null, devir_tBasiClause = MQSQLOrtak.sqlServerDegeri(devirTBasi); */
 		/*let belirtecler = keys(attrSet).map(kod => grupVeToplam[kod]?.colDefs?.[0]?.belirtec).filter(x => !!x);*/
-		let uni = new MQUnionAll(); for (let har of harListe) {
+		let uni = new MQUnionAll()
+		let _e = { ...e, sender: this, uni }
+		for (let har of harListe) {
 			let {kod: harTipKod, aciklama: harTipAdi, oncelik, mstYapi} = har.class;
 			let {hvAlias: mstKodAlias, hvAdiAlias: mstAdiAlias, hvAdiAlias2: mstAdiAlias2} = mstYapi;
-			let harUni = har.uniOlustur({ sender: this }), harSentListe = harUni.liste.filter(x => !!x);
+			har.ilkIslemler(_e)
+			let harUni = har.uniOlustur(_e)
+			har.sonIslemler(_e)
+			let harSentListe = harUni.liste.filter(x => !!x)
 			for (let harSent of harSentListe) {
-				let {from, where: wh, sahalar, alias2Deger} = harSent; sahalar.liste = [];
+				let {from, where: wh, sahalar, alias2Deger} = harSent
+				sahalar.liste = []
 				/*   DEBUG  
 				if (!harSent.alias2Deger.mstadi) {
 					console.info(har, keys(har.attrSet), harSent, harSent.getQueryYapi());
@@ -224,7 +230,11 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 				sent.sahalar.add(`${oncelik} _oncelik`, `'${tipKod}' _hartipkod`)
 				wh.degerAta(kod, hv[mstAlias])
 			});
-		let uni = har.uniOlustur({ sender: this })
+		let sender = this
+		let _e = { ...e, sender }
+		har.ilkIslemler(_e)
+		let uni = har.uniOlustur(_e)
+		har.sonIslemler(_e)
 		let orderBy = ['_oncelik', '_hartipkod', 'tarih DESC', 'fisnox DESC', 'isladi']
 		for (let sent of uni) {
 			let {from, sahalar, where: wh, alias2Deger} = sent

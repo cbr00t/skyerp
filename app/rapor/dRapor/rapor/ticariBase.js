@@ -304,7 +304,8 @@ class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 				.addToplamBasit('YUZDE_CIRO_TUMMALIYET', 'Mal. Ciro(%)', 'yuzde_ciro_tummaliyet', null, null, ({ item }) =>
 					item.setFormul(['TUMMALIYET', 'CIRO'], ({ rec }) => rec.ciro ? roundToFra((rec.tummaliyet / rec.ciro) * 100, 1) : 0))
 				.addToplamBasit_bedel('HAMMALIYET', 'Ham Maliyet', 'hammaliyet');
-			if (uretimMalMuh) { result.addToplamBasit_bedel('MALMUH', 'Maliyet Muhasebesi', 'malmuh') }
+			if (uretimMalMuh)
+				result.addToplamBasit_bedel('MALMUH', 'Maliyet Muhasebesi', 'malmuh')
 			result
 				.addToplamBasit_bedel('BRUTKAR', 'Brüt Kar', 'brutkar')
 				.addToplamBasit('YUZDE_CIRO_BRUTKAR', 'Kar Ciro(%)', 'yuzde_ciro_brutkar', null, null, ({ item }) =>
@@ -313,7 +314,7 @@ class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 					item.setFormul(['BRUTKAR', 'TUMMALIYET'], ({ rec }) => rec.tummaliyet ? roundToFra((rec.brutkar / rec.tummaliyet) * 100, 1) : 0))
 				.addToplamBasit('BRMMALIYET', 'Brm. Maliyet', 'brmmaliyet', null, null, ({ item }) =>
 					item.setFormul(['TUMMALIYET', 'MIKTAR'], ({ rec }) => rec.miktar ? roundToFra((rec.tummaliyet / rec.miktar) * 100, 1) : 0))
-				.addToplamBasit('BRMIKAR', 'Br. Miktar', 'brmiktar', null, null, ({ item }) =>
+				.addToplamBasit('BRMIKTAR', 'Br. Miktar', 'brmiktar', null, null, ({ item }) =>
 					item.setFormul(['BRUTKAR', 'MIKTAR'], ({ rec }) => rec.miktar ? roundToFra((rec.brutkar / rec.miktar) * 100, 1) : 0))
 		}
 		return this

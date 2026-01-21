@@ -28,7 +28,7 @@ class MQParam_DRapor extends MQParam {
 			let form = paramci.addFormWithParent()
 			form.addBool('panelRaporlama', 'Panel Raporlama')
 			form.addBool('maliTablo', 'Mali Tablo')
-			form.addBool('trfAlimSipBirlesik', 'Transfer Sip. + Alım Sip.')
+			form.addBool('trfVeAlimSipBirlesik', 'Transfer Sip. + Alım Sip.')
 			form.addBool('hizmetVeMuhKarsilastirma', 'Hizmet ve Muh. Karşılaştırması')
 			form.addBool('hizmetVeMuhKarsilastirma_ozelIsaret', 'Hizmet ve Muh. Karşılaştırması: Özel İşaret')
 		}
@@ -52,5 +52,8 @@ class MQParam_DRapor extends MQParam {
 				}
 			}, 100)
 		}
+	}
+	setValues({ rec }) {
+		super.setValues(...arguments)
 	}
 }

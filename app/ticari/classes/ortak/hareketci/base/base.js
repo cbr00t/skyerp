@@ -120,15 +120,18 @@ class Hareketci extends CObject {
 			sonIslem: e.sonIslem ?? (e => this.defaultSonIslem(e)), gereksizTablolariSilFlag: e.gereksizTablolariSil ?? e.gereksizTablolariSilFlag ?? false,
 			sonIslem_whereBaglanmazFlag: e.sonIslem_whereBaglanmaz ?? e.sonIslem_whereBaglanmazFlag ?? false
 		})
-		let {ekDuzenleyiciler, whereYapi} = this;
-		this.ekDuzenleyiciler = e.ekDuzenleyiciler ?? []
+		let {ekDuzenleyiciler, whereYapi} = this
+		this.ekDuzenleyiciler = ekDuzenleyiciler ??= []
 		for (let key of ['master', 'hareket']) {
 			let value = e[key]
 			if (value !== undefined)
 				whereYapi[key] = value
 		}
 	}
-	static getClass(e) { let kod = typeof e == 'object' ? (e.kod ?? e.tip) : e; return this.kod2Sinif[kod] }
+	static getClass(e) {
+		let kod = typeof e == 'object' ? (e.kod ?? e.tip) : e
+		return this.kod2Sinif[kod]
+	}
 	/*static altTipYapilarDuzenle(e) {
 		let {result} = e;
 		e.def = result[''] = new DRapor_AltTipYapi()
@@ -143,6 +146,8 @@ class Hareketci extends CObject {
 		for (let ext of this.getExtIter()) { ext.hareketTipSecim_kaListeDuzenle(e) }
 	}
 	static ilkIslemler(e) { }
+	ilkIslemler(e) { }
+	sonIslemler(e) { }
 	uniOrtakSonIslem({ sender, hv, sent, sent: { from, where: wh, sahalar }, secimler, det = {}, detSecimler = {}, donemTipi, sqlNull, sqlEmpty, sqlZero }) {
 		let {sonIslem_whereBaglanmazFlag} = this
 		let tbWhere = secimler?.getTBWhereClause(...arguments)

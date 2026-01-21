@@ -6,6 +6,7 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 	/*static get uygunmu() { return !!config.dev }*/
 	static get maliTabloIcinUygunmu() { return true } static get donemselIslemlerIcinUygunmu() { return false }
 	static get eldekiVarliklarIcinUygunmu() { return this.donemselIslemlerIcinUygunmu }
+
 	static getAltTipAdiVeOncelikClause({ hv }) {
 		return super.getAltTipAdiVeOncelikClause(...arguments)
 		/*return {
@@ -13,6 +14,10 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 			oncelik: `(case ctip.satmustip when 'S' then 1 else 0 end)`,
 			yon: `(case ctip.satmustip when 'S' then 'sag' else 'sol' end)`
 		}*/
+	}
+	ilkIslemler(e = {}) { super.ilkIslemler(e) }
+	sonIslemler({ stm, attrSet: raporAttrSet } = {}) {
+		super.sonIslemler(...arguments)
 	}
     /* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
@@ -113,21 +118,24 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 					sent[`har2${hizmetmi ? 'Hizmet' : 'Stok'}Bagla`]()
 					sent[`${hizmetmi ? 'hizmet' : 'stok'}2GrupBagla`]()
 					sent[`${hizmetmi ? 'hizmet' : 'stok'}2IstGrupBagla`]()
-				}).hvDuzenleIslemi(({ hv, sqlZero }) => {
+				}).hvDuzenleIslemi(({ hv, sqlEmpty, sqlZero }) => {
 					$.extend(hv, {
 						oncelik: '1', ba: `'B'`, fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac',
 						kayittipi: `'AS'`, anaislemadi: hizmetmi ? `'Hizmet'` : `'Stok'`,
 						islemadi: `'Alım/Satış'`, bizsubekod: 'fis.bizsubekod',
 						ozelisaret: 'fis.ozelisaret', tarih: 'fis.tarih', fisnox: 'fis.fisnox',
 						refkod: 'fis.must', refadi: 'car.birunvan', dvkod: 'fis.dvkod', dvkur: 'fis.dvkur',
-						fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', miktar: 'har.miktar',
+						fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama',
+						brm: `${mstAlias}.brm`, brm2: (hizmetmi ? sqlEmpty : `${mstAlias}.brm2`),
+						brmorani: (hizmetmi ? sqlZero : 'har.brmorani'),
+						miktar: 'har.miktar', miktar2: (hizmetmi ? sqlZero : 'har.miktar2'),
 						brutbedel: 'har.brutbedel', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
 						satiriskonto: 'har.satiriskonto', dipiskonto: 'har.dipiskonto',
 						harciro: 'har.harciro', topkdv: 'har.tumkdv',
 						fmalhammadde: hizmetmi ? sqlZero : 'har.fmalhammadde',
 						fmalmuh: hizmetmi ? sqlZero : 'har.fmalmuh',
 						shTipi: `'${hizmetmi ? 'H' : 'S'}'`,
-						shkod: `har.${hizmetmi} ? 'hizmetkod' : 'stokkod'`, shadi: `${mstAlias}.aciklama`,
+						shkod: `har.${hizmetmi ? 'hizmetkod' : 'stokkod'}`, shadi: `${mstAlias}.aciklama`,
 						grupkod: `${mstAlias}.grupkod`, istgrupkod: `${mstAlias}.${hizmetmi ? 'h' : 's'}istgrupkod`,
 						takipno: `(case when fis.takiportakdir = '' then har.dettakipno else fis.orttakipno end)`
 					})
@@ -183,12 +191,12 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 class AlimSipHareketci extends AlimSatisSipOrtakHareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 96 }
-	static get kod() { return 'alim' } static get aciklama() { return 'Alım' }
-	static get kisaKod() { return 'SA' } static get almSat() { return 'A' } 
+	static get kod() { return 'almSip' } static get aciklama() { return 'Alım Sip.' }
+	static get kisaKod() { return 'XA' } static get almSat() { return 'A' } 
 }
 class SatisSipHareketci extends AlimSatisSipOrtakHareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 97 }
-	static get kod() { return 'satis' } static get aciklama() { return 'Satış' }
-	static get kisaKod() { return 'ST' } static get almSat() { return 'T' }
+	static get kod() { return 'satSip' } static get aciklama() { return 'Satış Sip.' }
+	static get kisaKod() { return 'XT' } static get almSat() { return 'T' }
 }

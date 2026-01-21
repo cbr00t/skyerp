@@ -529,19 +529,41 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	async raporTanim_tamamSonrasiIslemler({ raporTanim, raporTanim: { icerik } }) {
 		await super.raporTanim_tamamSonrasiIslemler(...arguments)
-		let PrefixMiktar = 'MIKTAR', miktarSet = {}, brmsizMiktarSet = {}
-		for (let key in icerik) {
-			if (key.startsWith(PrefixMiktar) || key.slice(2).startsWith(PrefixMiktar)) {
+		let postfixes = ['BR', 'IA', '']
+		let miktar2BrmKeys = { MIKTAR: 'BRM', MIKTAR2: 'BRM2' }
+		for (let postfix of postfixes)
+		for (let [prefix, brmKey] of entries(miktar2BrmKeys)) {
+			let miktarKey = postfix + prefix
+			if (icerik[miktarKey] && !icerik[brmKey]) {
+				icerik[brmKey] = true
+				notify(
+					`<b class=royalblue>${miktarKey}</b> sahası nedeniyle <b class=firebrick>${brmKey}</b> kolonu tanıma otomatik eklendi`,
+					'Rapor Tanımı', 'warning'
+				)
+			}
+		}
+		/*for (let prefix_ek of ['2', '']) {
+			let prefixMiktar = `MIKTAR${prefix_ek}`
+			let keyBrm = `BRM${prefix_ek}`
+			let miktarSet = {}, brmsizMiktarSet = {}
+			for (let key in icerik) {
+				// ** MIKTAR => MIKTAR2 | MIKTAR2 => MIKTAR22 gibi kontrol eder
+				// MIKTAR, MIKTARAD, MIKTARKG, MIKTAR2 ... için BRM/BRM2 eklenir
+				if (!(key.startsWith(prefixMiktar) || key.startsWith(`${prefixMiktar}2`) || key.slice(2).startsWith(prefixMiktar)))
+					continue
 				miktarSet[key] = true
-				let postfix = key.slice(key.indexOf(PrefixMiktar) + PrefixMiktar.length).trim()
+				let postfix = key.slice(key.indexOf(prefixMiktar) + prefixMiktar.length).trim()
 				if (!postfix || postfix == '2')   // '2' => 'MIKTAR2'
 					brmsizMiktarSet[key] = true
 			}
-		}
-		if (!(empty(brmsizMiktarSet) || icerik.BRM)) {
-			icerik.BRM = true
-			notify(`<b class=royalblue>MİKTAR</b> sahası nedeniyle <b class=firebrick>BRM</b> kolonu tanıma otomatik eklendi`, 'Rapor Tanımı', 'warning')
-		}
+			if (!(empty(brmsizMiktarSet) || icerik[keyBrm])) {
+				icerik[keyBrm] = true
+				notify(
+					`<b class=royalblue>${prefixMiktar}</b> sahası nedeniyle <b class=firebrick>${keyBrm}</b> kolonu tanıma otomatik eklendi`,
+					'Rapor Tanımı', 'warning'
+				)
+			}
+		}*/
 	}
 	
 	donemBagla({ donemBS, tarihSaha, sent }) {
@@ -595,9 +617,10 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	loadServerData_queryDuzenle_gcX({ stm, sent, attrSet, tip, asilClause, clause, kodClause, gcTip, gcClause, donemBS, tarihBS, tarihClause, sumFlag }) {
-		sent = sent ?? stm.sent; let {where: wh, sahalar} = sent, {sqlNull} = Hareketci_UniBilgi.ortakArgs;
-		donemBS ??= tarihBS ?? this.donemBS; asilClause ??= clause ?? kodClause;
-		sumFlag = sumFlag ?? !this.hareketmi; let belirtec = tip.toLowerCase(), gcBelirtec = gcTip.toLowerCase();
+		sent = sent ?? stm.sent; let {where: wh, sahalar} = sent, {sqlNull} = Hareketci_UniBilgi.ortakArgs
+		donemBS ??= tarihBS ?? this.donemBS; asilClause ??= clause ?? kodClause
+		sumFlag = sumFlag ?? !this.hareketmi
+		let belirtec = tip.toLowerCase(), gcBelirtec = gcTip.toLowerCase()
 		/*let dgckPrefixes = ['DEVIR_', 'GIRIS_', 'CIKIS_', 'KALAN_'];
 		let dgckVarmi = false; for (let key in attrSet) {
 			for (let prefix of dgckPrefixes) { if (key == prefix + tip) { dgckVarmi = true; break } }
@@ -861,7 +884,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			.addGrupBasit('SHANAGRP', 'S/H Ana Grup', 'anagrup', DMQStokAnaGrup)
 			.addGrupBasit('SHGRP', 'S/H Grup', 'grup', DMQStokGrup)
 			.addGrupBasit('SHISTGRP', 'S/H  İst. Grup', 'istgrup', DMQStokIstGrup)
-			.addGrupBasit('SH', 'Stok/Hizmet', 'stok', DMQStok)
+			.addGrupBasit('SH', 'Stok/Hizmet', 'sh', DMQStok)
 			.addGrupBasit('SHMARKA', 'Stok Marka', 'marka', DMQStokMarka)
 			.addGrupBasit('BRM', 'Brm', 'brm', null, 60, ({ colDef }) => colDef.alignCenter())
 			.addGrupBasit('BRM2', 'Br2', 'brm2', null, 60, ({ colDef }) => colDef.alignCenter())
@@ -870,6 +893,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	loadServerData_queryDuzenle_sh({ stm, sent, attrSet }) {
+		let {sqlEmpty} = Hareketci_UniBilgi.ortakArgs
 		sent = sent ?? stm.sent
 		let {from, where: wh, sahalar} = sent
 		let alias = (
@@ -886,7 +910,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		for (let key in attrSet) {
 			switch (key) {
 				case 'SH':
-					sahalar.add(`${alias}.kod shkod`, `${alias}.aciklama shadi`); wh.icerikKisitDuzenle_stok({ ...arguments[0], saha: `${alias}.kod` })
+					sahalar.add(`${alias}.kod shkod`, `${alias}.aciklama shadi`)
+					wh.icerikKisitDuzenle_stok({ ...arguments[0], saha: `${alias}.kod` })
 					break
 				case 'STANAGRP':
 					sent.stokGrup2AnaGrupBagla()
@@ -904,16 +929,19 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 					wh.icerikKisitDuzenle_stokIstGrup({ ...arguments[0], saha: `${alias}.${shBelirtec[0]}istgrupkod` })
 					break
 				case 'SHMARKA':
-					sahalar.add(`${alias}.smarkakod markakod`, 'smar.aciklama markaadi')
+					sahalar.add(
+						(hizmetmi ? `${sqlEmpty} markakod` : `${alias}.smarkakod markakod`),
+						(hizmetmi ? `${sqlEmpty} markaadi` : 'smar.aciklama markaadi')
+					)
 					break
 				case 'BRM':
 					sahalar.add(`${alias}.brm`)
 					break
 				case 'BRM2':
-					sahalar.add(`${alias}.brm2`)
+					sahalar.add(hizmetmi ? `${sqlEmpty} brm2` : `${alias}.brm2`)
 					break
 				case 'BRMORANI':
-					sahalar.add(`${alias}.brmorani`)
+					sahalar.add(hizmetmi ? `${sqlEmpty} brmorani` : `${alias}.brmorani`)
 					break
 				case 'STOKRESIM':
 					sahalar.add(`${alias}.kod resimid`, 'NULL stokresim')
@@ -1099,8 +1127,15 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		let mstAliasVeNokta = mstAlias ? `${mstAlias}.` : '', harAliasVeNokta = harAlias ? `${harAlias}.` : ''
 		let getWhereClause = brmSaha =>
 			new MQSubWhereClause({ inDizi: brmListe ?? [], saha: `${mstAliasVeNokta}${brmSaha}` }).toString()
-		return `SUM(case when ${getWhereClause('brm')} then ${getMiktarClause(`${harAliasVeNokta}${miktarPrefix}miktar`, 'miktar')}` +
-						` when ${getWhereClause('brm2')} then ${getMiktarClause(`${harAliasVeNokta}${miktarPrefix}miktar2`, 'miktar2')}` +
+		let miktarClause = getMiktarClause(`${harAliasVeNokta}${miktarPrefix}miktar`, 'miktar')
+		if (!miktarClause.sqlBosDegermi())
+			miktarClause = miktarClause.sumOlmaksizin()
+		let miktar2Clause = getMiktarClause(`${harAliasVeNokta}${miktarPrefix}miktar2`, 'miktar2')
+		if (!miktar2Clause.sqlBosDegermi())
+			miktar2Clause = miktar2Clause.sumOlmaksizin()
+		let miktar2Varmi = !MQSQLOrtak.sqlBosDegermi(miktar2Clause)
+		return `SUM(case when ${getWhereClause('brm')} then ${miktarClause}` +
+						( miktar2Varmi ? ` when ${getWhereClause('brm2')} then ${miktar2Clause}` : '' ) +
 						` else 0 end)`
 	}
 	getDovizmi(e) {

@@ -504,14 +504,18 @@ class SBTabloDetay extends MQDetay {
 			har.addEkDuzenleyici(args => harEkDuzenle2.call(this, ...args))
 		let {attrSet} = har, {varsayilanHV: defHV} = har.class
 		e.stm ??= new MQStm({ sent: new MQUnionAll() })
+		let sender = this
 		let {stm} = e, uni = e.uni = stm.sent
-		let harUni = har.uniOlustur({ ...e, rapor, secimler })
+		let _e = { ...e, sender, rapor, secimler }
+		har.ilkIslemler(_e)
+		let harUni = har.uniOlustur(_e)
+		har.sonIslemler(_e)
 		for (let harSent of harUni) {
 			let {alias2Deger: hv} = harSent
 			let sent = harSent.deepCopy()
 			let addClause = (...aliases) => {
 				for (let alias of aliases) {
-					if ($.isArray(alias)) {
+					if (isArray(alias)) {
 						addClause(...alias)
 						continue
 					}

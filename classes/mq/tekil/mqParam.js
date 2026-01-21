@@ -17,7 +17,7 @@ class MQParam extends MQTekil {
 	static get paramYapi() { let _e = { paramci: new RootParamBuilder() }; this.paramYapiDuzenle(_e); let {paramci} = _e; return paramci }
 	get offlineSahaListe() {
 		let {class: { kodSaha }} = this
-		return [kodSaha, 'jsonstr']
+		return [kodSaha, 'jsonstr', 'sonskyts']
 	}
 	
 	constructor(e = {}) {
@@ -73,7 +73,8 @@ class MQParam extends MQTekil {
 		}
 	}
 	static async topluYukleVerisiOlustur(e) {
-		let {table, kodSaha} = this, sahalar = [kodSaha, /*'tanim',*/ 'jsonstr']
+		let {table, kodSaha} = this
+		let sahalar = [kodSaha, /*'tanim',*/ 'jsonstr']
 		let uni = new MQUnionAll([
 			new MQSent({ from: `ORTAK..${table}`, sahalar }),
 			new MQSent({ from: table, sahalar })
@@ -137,8 +138,9 @@ class MQParam extends MQTekil {
 		let _hv = this.paramHostVars({ ...arguments[0] })
 		if (!_hv)
 			return
+		let sonskyts = now()
 		let jsonstr = toJSONStr(_hv)
-		$.extend(hv, { kod, jsonstr })
+		extend(hv, { kod, sonskyts, jsonstr })
 		if (islem == 'yeni')
 			hv.tanim = ''
 	}

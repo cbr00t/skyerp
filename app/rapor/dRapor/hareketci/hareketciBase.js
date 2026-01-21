@@ -114,7 +114,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	tabloYapiDuzenle({ result }) {
 		let e = arguments[0]; super.tabloYapiDuzenle(e)
 		result.addKAPrefix('ref', 'althesap')
-		this.tabloYapiDuzenle_ozelIsaret(e).tabloYapiDuzenle_sube(e)
+		this.tabloYapiDuzenle_ozelIsaret(e)
+		this.tabloYapiDuzenle_sube(e)
 		result.addGrupBasit('FISNOX', 'Fis No', 'fisnox', null, null, ({ item }) => item.secimKullanilir())
 		result.addGrupBasit('ALTHESAP', 'Alt Hesap', 'althesap', DMQAltHesap)
 		this.tabloYapiDuzenle_odemeGun(e)
@@ -192,10 +193,12 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		$.extend(e, { hareketci, hrkDefHV })
 		if (yatayAnaliz)
 			attrSet[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod] = true
-		let uni = e.uni = stm.sent = new MQUnionAll(), {uygunluk2UnionBilgiListe} = hareketci
+		let uni = e.uni = stm.sent = new MQUnionAll()
 		let calcUygunluk = this.calcUygunluk = uygunlukVarmi ? {} : null
 		let uniBilgiYapi = this.uniBilgiYapi = []
 		let sender = this, _e = { ...e, sender, hrkDefHV, temps: {}, uniBilgiYapi }
+		hareketci.ilkIslemler(_e)
+		let {uygunluk2UnionBilgiListe} = hareketci
 		for (let [selectorStr, unionBilgiListe] of entries(uygunluk2UnionBilgiListe)) {
 			let uygunmu = true
 			if (uygunlukVarmi) {
@@ -258,7 +261,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	}
 	loadServerData_queryDuzenle_hkrSent_son(e) { }
 	loadServerData_queryDuzenle_ek(e) {
-		super.loadServerData_queryDuzenle_ek(e);
+		super.loadServerData_queryDuzenle_ek(e)
 		if (this.class.hareketmi)
 			this.loadServerData_queryDuzenle_ek_hareket(e)
 		if (this.class.envantermi)
@@ -312,6 +315,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	loadServerData_queryDuzenle_son_araIslem({ internal, alias, stm, attrSet }) {
 		let e = arguments[0]
 		super.loadServerData_queryDuzenle_son_araIslem(e)
+		let {hareketci: orj} = this
+		orj.sonIslemler(e)
 		let {with: _with} = stm
 		let {degerlemeDvKodListe: dvKodListe} = this
 		let dvKodSet = asSet(dvKodListe) ?? {}
@@ -322,14 +327,14 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 				gecerliDvKodSet[dvKod] = dvKodVarmi = true
 		}
 		if (!empty(gecerliDvKodSet)) {
-			let {hareketci: orj} = this
 			let har = new orj.class()
 			har.withAttrs('tarih').sonIslem_whereBaglanmaz()
 			let withListe = []
-			
 			// tarih
 			let uni = new MQUnion()
+			let stm = { sent: uni }
 			har.uniDuzenle({ uni })
+			har.sonIslemler({ ...e, stm })
 			for (let sent of uni) {
 				sent.distinctYap()
 				sent.gereksizTablolariSilDogrudan()                                            // 'har', 'fis' dahil
