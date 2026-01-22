@@ -13,7 +13,7 @@ class UretimVeriToplamaApp extends App {
 		if (!kullanim.operasyonIsYonetimi) { eksikParamIsimleri.push('Operasyon İş Yönetimi') }
 		if (!kullanim.mesVeriToplama) { eksikParamIsimleri.push('Tablet Veri Toplama') }
 		if (eksikParamIsimleri.length) {
-			const _e = {
+			let _e = {
 				query: 'opyon_bekleyenler',
 				params: [
 					{ name: '@hatKod', type: 'varchar', value: '---' },
@@ -24,8 +24,8 @@ class UretimVeriToplamaApp extends App {
 			}
 			try { await app.sqlExecSP(_e) } catch (ex) {
 				this.disabledMenuIdSet = asSet(['M', 'BG', 'GK', 'T']);
-				const paramIsimleriGosterim = eksikParamIsimleri.map(x => `<span class="bold firebrick">${x}</span>`).join(' VE ');
-				const wnd = createJQXWindow({
+				let paramIsimleriGosterim = eksikParamIsimleri.map(x => `<span class="bold firebrick">${x}</span>`).join(' VE ');
+				let wnd = createJQXWindow({
 					content: (
 						`<div>${paramIsimleriGosterim} parametreleri</div>
 						<div>Vio Ticari Program &gt; <span class="bold royalblue">Operasyon Genel Parametreleri</span> kısmından açılmalıdır.</div><p/>
@@ -42,7 +42,7 @@ class UretimVeriToplamaApp extends App {
 		await this.anaMenuOlustur(e); await this.initLayout(e) /* this.veriAktarici_startTimer(e) */
 	}
 	paramsDuzenle(e) {
-		super.paramsDuzenle(e); const {params} = e; $.extend(params, {
+		super.paramsDuzenle(e); let {params} = e; $.extend(params, {
 			zorunlu: MQZorunluParam.getInstance(), stokBirim: MQStokBirimParam.getInstance(), stokGenel: MQStokGenelParam.getInstance(),
 			uretim: MQUretimParam.getInstance(), operGenel: MQOperGenelParam.getInstance(), kalite: MQKaliteParam.getInstance()
 		})
@@ -53,16 +53,16 @@ class UretimVeriToplamaApp extends App {
 	}
 	initLayout(e) { }
 	async wsConfigKontrol(e) {
-		const {params} = this; let yerelParam = params.yerel;
+		let {params} = this; let yerelParam = params.yerel;
 		if (yerelParam?.wsConfigDegistimi) {
 			let promise = new $.Deferred();
-			const {wnd} = displayMessage(
+			let {wnd} = displayMessage(
 				`<p>WS Bağlantı Ayarları Değiştiği için Yerel Veriler sıfırlanmalı</p><p class="bold darkred">Yerel Veriler <u>SİLİNEREK</u> devam edilsin mi?</p>`,
 				'', { 'SİL ve Devam Et': e => { promise.resolve(true); e.close() }, 'SilMEden Devam Et': e => { promise.resolve(false); e.close() } }
 			);
 			wnd.on('close', evt => promise.resolve(false));
 			wnd.jqxWindow({ width: 500, height: 180, position: 'center' }); setTimeout(() => wnd.jqxWindow('resize'), 1);
-			const buttons = wnd.find('.jqx-window-content > .buttons > button'); buttons.eq(0).addClass('jqx-danger'); buttons.eq(1).addClass('jqx-inverse');
+			let buttons = wnd.find('.jqx-window-content > .buttons > button'); buttons.eq(0).addClass('jqx-danger'); buttons.eq(1).addClass('jqx-inverse');
 			let result = await promise; if (result) await this.verileriSil(e)
 		}
 	}
@@ -71,16 +71,16 @@ class UretimVeriToplamaApp extends App {
 		if (hmr) { HMRBilgi.belirtecListe = Object.keys(hmr) }
 	}
 	gerceklemeler_ilkIslemler(e) {
-		const {yerel: yerelParam} = this.params, gerceklemeler = yerelParam.gerceklemeler || [];
-		let degistimi = false; const durumSet = asSet(['processing', 'changing', 'error']);
-		for (const rec of gerceklemeler) { const {_durum} = rec; if (durumSet[_durum]) { rec._durum = ''; degistimi = true } }
-		if (degistimi) { yerelParam.kaydet(); const {activePart} = this; if (activePart?.tazele) activePart.tazele() }
+		let {yerel: yerelParam} = this.params, gerceklemeler = yerelParam.gerceklemeler || [];
+		let degistimi = false; let durumSet = asSet(['processing', 'changing', 'error']);
+		for (let rec of gerceklemeler) { let {_durum} = rec; if (durumSet[_durum]) { rec._durum = ''; degistimi = true } }
+		if (degistimi) { yerelParam.kaydet(); let {activePart} = this; if (activePart?.tazele) activePart.tazele() }
 	}
 	async barkodBilgiBelirleFromEOU(e) {
 		let result = await this.barkodBilgiBelirleBasit(e); if (result != null) { return result }
 		e = e || {}; if (typeof e != 'object') e = { barkod: e }
-		const barkod = e.barkod?.trim(); if (!barkod) { return null }
-		const MinParcaSayi = 3; const basitmi = e.basitmi ?? e.basit ?? e.basitFlag, {carpan} = e; let result_parts;
+		let barkod = e.barkod?.trim(); if (!barkod) { return null }
+		let MinParcaSayi = 3; let basitmi = e.basitmi ?? e.basit ?? e.basitFlag, {carpan} = e; let result_parts;
 		let separator = ';', parts = barkod.split(separator);
 		if (parts?.length < MinParcaSayi) { separator = '-'; parts = barkod.split(separator) }
 		if (parts?.length < MinParcaSayi) { separator = '/'; parts = barkod.split(separator) }
@@ -100,15 +100,15 @@ class UretimVeriToplamaApp extends App {
 		return barkod ? {} : null
 	}
 	async verileriSilIstendi(e) {
-		e = e || {}; const {params} = this, selectors = ['yerel', 'localData'];
+		e = e || {}; let {params} = this, selectors = ['yerel', 'localData'];
 		let size = 0;
-		for (const selector of selectors) {
+		for (let selector of selectors) {
 			let param = params[selector];
 			if (param) { let data = localStorage.getItem(param.class?.fullTableName); size += data?.length }
 		}
-		const sizeMB = roundToFra(size / 1024 / 1024, 2);
+		let sizeMB = roundToFra(size / 1024 / 1024, 2);
 		let promise = new $.Deferred();
-			const {wnd} = displayMessage(
+			let {wnd} = displayMessage(
 				(
 					`<p class="bold">Yerel Veriler <u class="darkred">SİLİNECEK</u>.` +
 						(sizeMB
@@ -124,14 +124,14 @@ class UretimVeriToplamaApp extends App {
 			);
 			wnd.on('close', evt => promise.resolve(false));
 			wnd.jqxWindow({ width: 500, height: 180, position: 'center' }); setTimeout(() => wnd.jqxWindow('resize'), 1);
-			const buttons = wnd.find('.jqx-window-content > .buttons > button');
+			let buttons = wnd.find('.jqx-window-content > .buttons > button');
 			buttons.eq(0).addClass('jqx-danger'); buttons.eq(1).addClass('jqx-inverse');
 			let result = await promise;
 			if (result) { await this.verileriSil(e); eConfirm('Yerel veriler silindi', ''); }
 	}
 	async verileriSil(e) {
-		e = e || {}; const {params} = this, selectors = ['yerel', 'localData'];
-		for (const selector of selectors) { let param = params[selector]; param = params[selector] = new param.class(); await param.kaydet() }
+		e = e || {}; let {params} = this, selectors = ['yerel', 'localData'];
+		for (let selector of selectors) { let param = params[selector]; param = params[selector] = new param.class(); await param.kaydet() }
 	}
 	async createTestTables(e) {
 		/*await this.sqlExecNoneWithResult(
@@ -145,12 +145,13 @@ class UretimVeriToplamaApp extends App {
 	}
 	navLayoutOlustur_araIslem(e) {
 		super.navLayoutOlustur_araIslem(e);
-		const items = [new FRMenuChoice({ id: '_verileriSil', text: `<span class="img"></span><span class="text">Verileri Sil</span>`, block: e => app.verileriSilIstendi(e) })];
-		for (const item of items) item.navLayoutOlustur(e)
+		let items = [new FRMenuChoice({ id: '_verileriSil', text: `<span class="img"></span><span class="text">Verileri Sil</span>`, block: e => app.verileriSilIstendi(e) })];
+		for (let item of items) item.navLayoutOlustur(e)
 	}
 	getAnaMenu(e) {
-		const disabledMenuIdSet = this.disabledMenuIdSet || {};
-		const items = [
+		let {dev, session: { isAdmin } = {}} = config
+		let disabledMenuIdSet = this.disabledMenuIdSet || {}
+		let items = [
 			/*new FRMenuChoice({ mnemonic: 'SG', text: 'Seçerek Gerçekleme Yap', block: e => new SecerekGerceklemePart().run(e) }),*/
 			new FRMenuChoice({ mnemonic: 'BG', text: 'Barkodlu Gerçekleme Yap', block: e => new BarkodluGerceklemePart().run(e) }),
 			new FRMenuChoice({ mnemonic: 'M', text: 'Operasyon ve Görevler', block: e => MQOEMVeGorev.listeEkraniAc(e) }),
@@ -162,15 +163,25 @@ class UretimVeriToplamaApp extends App {
 				new FRMenuChoice({ mnemonic: 'U', text: 'Ürün Listesi', block: e => MQStok.listeEkraniAc(e) }),
 				new FRMenuChoice({ mnemonic: 'Y', text: 'Stok Yer Listesi', block: e => MQStokYer.listeEkraniAc(e) }),
 				new FRMenuChoice({ mnemonic: 'R', text: 'Yer Raf Listesi', block: e => MQYerRaf.listeEkraniAc(e) })
-			] })
-		];
-		const kisitla = items => {
-			for (const item of items) {
-				if (!item) continue; if (item?.items) kisitla(item.items)
-				const mne = item.mnemonic;
-				if (disabledMenuIdSet[mne]) { item.isDisabled = true; if (item.items) { for (const _item of item.items) { _item.isDisabled = true } } }
+			] }),
+			(dev && isAdmin ? new FRMenuChoice({ mnemonic: 'UP', text: 'Oper. Parametreleri', block: e => app.params.operGenel?.tanimla() }) : null)
+		].filter(Boolean)
+		let kisitla = items => {
+			for (let item of items) {
+				if (!item)
+					continue
+				if (item?.items)
+					kisitla(item.items)
+				let {mnemonic: mne} = item
+				if (disabledMenuIdSet[mne]) {
+					item.isDisabled = true
+					if (item.items) {
+						for (let _item of item.items)
+							_item.isDisabled = true
+					}
+				}
 			}
-		}; kisitla(items);
+		}; kisitla(items)
 		return new FRMenu({ items })
 	}
 	getMQRecs(e) { return this.params.localData.getMQRecs(e) }
@@ -182,50 +193,50 @@ class UretimVeriToplamaApp extends App {
 		}, this.veriAktarici_waitSecs * 1000, e)
 	}
 	veriAktarici_stopTimer(e) {
-		const {veriAktarici_timer} = this;
+		let {veriAktarici_timer} = this;
 		if (veriAktarici_timer) { clearTimeout(veriAktarici_timer); delete this.veriAktarici_timer }
 		return veriAktarici_timer
 	}
 	async veriAktarici_timerProc(e) {
-		e = e || {}; const ignoreSet = asSet([/*'done',*/ 'removed']), yerelParam = this.params.yerel;
-		const orjGerceklemeler = yerelParam.gerceklemeler || [], gerceklemeler = yerelParam.gerceklemeler = orjGerceklemeler.filter(rec => !ignoreSet[rec._durum]);
-		let degistimi = gerceklemeler.length != orjGerceklemeler.length, id2Rec; const {recs} = e;
-		if (recs) { id2Rec = {}; for (const rec of recs) { const {id} = rec; if (id != null) { id2Rec[id] = rec } } }
-		const isOnline = navigator.onLine, index2Bilgi = {}, queries = [];
+		e = e || {}; let ignoreSet = asSet([/*'done',*/ 'removed']), yerelParam = this.params.yerel;
+		let orjGerceklemeler = yerelParam.gerceklemeler || [], gerceklemeler = yerelParam.gerceklemeler = orjGerceklemeler.filter(rec => !ignoreSet[rec._durum]);
+		let degistimi = gerceklemeler.length != orjGerceklemeler.length, id2Rec; let {recs} = e;
+		if (recs) { id2Rec = {}; for (let rec of recs) { let {id} = rec; if (id != null) { id2Rec[id] = rec } } }
+		let isOnline = navigator.onLine, index2Bilgi = {}, queries = [];
 		for (let i = 0; i < gerceklemeler.length; i++) {
-			const rec = gerceklemeler[i]; if (id2Rec) { const {id} = rec; if (id == null || !id2Rec[id]) { continue } }
-			const {_durum} = rec; if (_durum == 'changing' || _durum == 'done') { continue }
+			let rec = gerceklemeler[i]; if (id2Rec) { let {id} = rec; if (id == null || !id2Rec[id]) { continue } }
+			let {_durum} = rec; if (_durum == 'changing' || _durum == 'done') { continue }
 			if (!rec.oemSayac) { rec._durum = isOnline ? 'error' : 'offline'; continue }
-			const bilgi = index2Bilgi[i] = { index: i, rec };
+			let bilgi = index2Bilgi[i] = { index: i, rec };
 			if (isOnline) {
-				const subQueries = []; let query = await rec.getQueryYapi(e); if (query) { subQueries.push(query) }
+				let subQueries = []; let query = await rec.getQueryYapi(e); if (query) { subQueries.push(query) }
 				if (!$.isEmptyObject(rec.iskartalar)) { subQueries.push(_e => _e.rec.getQueryYapi_iskartalar(e)) }
 				if (!$.isEmptyObject(rec.kaliteYapi?.recs)) { subQueries.push(_e => _e.rec.getQueryYapi_kalite(e)) }
 				bilgi.queries = subQueries
 			}
 		}
-		for (const bilgi of Object.values(index2Bilgi)) {
-			const value = isOnline ? 'processing' : 'offline'; const {_durum} = bilgi.rec;
+		for (let bilgi of Object.values(index2Bilgi)) {
+			let value = isOnline ? 'processing' : 'offline'; let {_durum} = bilgi.rec;
 			if (_durum != value) { bilgi.rec._durum = value; degistimi = true }
-		} /*if (degistimi) { const {activeWndPart} = this; if (activeWndPart && activeWndPart.tazele) activeWndPart.tazele() }*/
+		} /*if (degistimi) { let {activeWndPart} = this; if (activeWndPart && activeWndPart.tazele) activeWndPart.tazele() }*/
 		let error; if (isOnline) {
 			try {
 				if (queries?.length) { await this.sqlExecSP(queries); degistimi = true }
-				const _e = $.extend({}, e); for (const bilgi of Object.values(index2Bilgi)) {
-					$.extend(_e, bilgi); const {queries, rec} = bilgi;
+				let _e = $.extend({}, e); for (let bilgi of Object.values(index2Bilgi)) {
+					$.extend(_e, bilgi); let {queries, rec} = bilgi;
 					if (queries?.length) {
-						for (const _query of queries) {
+						for (let _query of queries) {
 							let query = await _query; if (isFunction(query) || query.run) { query = await getFuncValue.call(this, query, _e) } if (!query) { continue }
 							let result = bilgi.result = (isFunction(query) || query.run) ? await getFuncValue.call(this, query, _e) : await this.sqlExecSP(query)
-							let gerSayac; const params = (result || {}).params || {}, param_gerSayac = params['@gerSayac'];
+							let gerSayac; let params = (result || {}).params || {}, param_gerSayac = params['@gerSayac'];
 							if (param_gerSayac) { gerSayac = asInteger(param_gerSayac.value) || null }
 							if (gerSayac) { rec.gerSayac = gerSayac }
-							const value = 'done'; if (rec._durum != value) { rec._durum = value }
+							let value = 'done'; if (rec._durum != value) { rec._durum = value }
 						}
 					}
 				}
 			}
-			catch (ex) { error = ex; for (const bilgi of Object.values(index2Bilgi)) { const value = 'error'; if (bilgi.rec._durum != value) { bilgi.rec._durum = value } } }
+			catch (ex) { error = ex; for (let bilgi of Object.values(index2Bilgi)) { let value = 'error'; if (bilgi.rec._durum != value) { bilgi.rec._durum = value } } }
 		}
 		if (degistimi) { yerelParam.gerceklemeler = orjGerceklemeler; yerelParam.kaydet(); degistimi = false } if (error) { throw error }
 		return index2Bilgi
@@ -233,7 +244,7 @@ class UretimVeriToplamaApp extends App {
 	playSound_barkodOkundu() {
 		setTimeout(async () => {
 			for (let i = 0; i < 1; i++) {
-				const audio = new Audio(`${webRoot}/media/Barcode-scanner-beep-sound.mp3`);
+				let audio = new Audio(`${webRoot}/media/Barcode-scanner-beep-sound.mp3`);
 				try { await audio.play() }
 				catch (ex) { }
 			}
@@ -242,7 +253,7 @@ class UretimVeriToplamaApp extends App {
 	playSound_barkodError() {
 		setTimeout(async () => {
 			for (let i = 0; i < 2; i++) {
-				const audio = new Audio(`${webRoot}/media/Beep-tone-sound-effect.mp3`);
+				let audio = new Audio(`${webRoot}/media/Beep-tone-sound-effect.mp3`);
 				try { await audio.play() }
 				catch (ex) { }
 			}
@@ -253,8 +264,8 @@ class UretimVeriToplamaApp extends App {
 		if (this.class.isTest)
 			return { isError: false, result: [] };
 		
-		const {args} = e;
-		const url = this.getWSUrl({ api: 'X', args: args });
+		let {args} = e;
+		let url = this.getWSUrl({ api: 'X', args: args });
 		return ajaxPost({ url: url })
 	}
 	wsY(e) {
@@ -262,7 +273,7 @@ class UretimVeriToplamaApp extends App {
 		if (this.class.isTest)
 			return { isError: false, result: [] };
 
-		const data = e.args || {};
+		let data = e.args || {};
 		delete e.args;
 		
 		return ajaxPost({

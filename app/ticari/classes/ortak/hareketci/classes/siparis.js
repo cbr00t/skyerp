@@ -83,9 +83,10 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 			let mstAlias = hizmetmi ? 'hiz' : 'stk'
 			return new Hareketci_UniBilgi()
 				.sentDuzenleIslemi(({ sent, sent: { where: wh, sahalar } }) => {
-					let harTable = hizmetmi ? 'pifhizmet' : 'pifstok'
-					sent.fisHareket('piffis', harTable)
-					wh.fisSilindiEkle().add(`fis.piftipi = 'F'`)
+					let harTable = hizmetmi ? 'siphizmet' : 'sipstok'
+					sent.fisHareket('sipfis', harTable)
+					wh.fisSilindiEkle()
+					wh.add(`fis.ozeltip = ''`)
 					if (almSat)
 						wh.degerAta(almSat, 'fis.almsat')
 					if (shIade?.secilen && !shIade.birliktemi)
@@ -172,8 +173,8 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 		let tipClause = hv.tipkod || `${mstAlias}.tipi`, islClause = hv.islkod || hv.islemkod || 'fis.islkod'
 		let muhHesapClause = hv.muhhesapkod || `${mstAlias}.muhhesap`
 		if (sec && shStokHizmet.secilen && !shStokHizmet.birliktemi) {
-			let harStokmu = from.aliasIcinTable('har')?.deger == 'pifstok'
-			let harHizmetmi = from.aliasIcinTable('har')?.deger == 'pifhizmet'
+			let harStokmu = from.aliasIcinTable('har')?.deger == 'sipstok'
+			let harHizmetmi = from.aliasIcinTable('har')?.deger == 'siphizmet'
 			if (!(stokmu == harStokmu && hizmetmi == harHizmetmi)) { wh.add('1 = 2'); return }
 			wh.basiSonu(sec.mstKod, mstClause).ozellik(sec.mstAdi, `${mstAlias}.aciklama`)
 			wh.basiSonu(sec.grupKod, grpClause).ozellik(sec.grupAdi, 'grp.aciklama')

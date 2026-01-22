@@ -198,6 +198,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		let uniBilgiYapi = this.uniBilgiYapi = []
 		let sender = this, _e = { ...e, sender, hrkDefHV, temps: {}, uniBilgiYapi }
 		hareketci.ilkIslemler(_e)
+		this.loadServerData_queryDuzenle_hrkStm_ilkIslemler(_e)
+		stm = _e.stm; uni = e.uni = stm.sent
 		let {uygunluk2UnionBilgiListe} = hareketci
 		for (let [selectorStr, unionBilgiListe] of entries(uygunluk2UnionBilgiListe)) {
 			let uygunmu = true
@@ -235,6 +237,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		}
 		return this.loadServerData_queryDuzenle_ek(e)
 	}
+	loadServerData_queryDuzenle_hrkStm_ilkIslemler({ stm, uni }) { }
+	loadServerData_queryDuzenle_hrkStm_sonIslemler({ stm, uni }) { }
 	loadServerData_queryDuzenle_hrkSent(e) {
 		let {attrSet, sentHVEkle, sent, hrkHV: hv, hrkDefHV: defHV, hvDegeri} = e
 		let {sahalar} = sent, tarihClause = hvDegeri('tarih')
@@ -261,6 +265,9 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	}
 	loadServerData_queryDuzenle_hkrSent_son(e) { }
 	loadServerData_queryDuzenle_ek(e) {
+		this.loadServerData_queryDuzenle_hrkStm_sonIslemler(e)
+		if (e.uni)
+			e.uni = e.stm.sent
 		super.loadServerData_queryDuzenle_ek(e)
 		if (this.class.hareketmi)
 			this.loadServerData_queryDuzenle_ek_hareket(e)

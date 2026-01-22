@@ -1,5 +1,6 @@
 class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get almSat() { return this.hareketciSinif.almSat }
 	static get maliyetKullanilirmi() { return false }
 	tabloYapiDuzenle({ result }) {
 		let e = arguments[0]
@@ -10,11 +11,16 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 		let {isAdmin, rol} = config.session ?? {}
 		let maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT')
 		let {toplam} = result, brmListe = keys(tip2BrmListe)
+		result.addGrupBasit('SHTIP', 'S/H Tip', 'shtiptext')
 		this.tabloYapiDuzenle_cari(e)
 		this.tabloYapiDuzenle_sh(e)
 		result
+			.addGrupBasit('SEVKTARIHX', 'Sevk Tarih', 'sevktarihx')
+			.addGrupBasit('SEVKNOX', 'Sevk No', 'sevknox', null, null, ({ colDef }) => colDef.alignRight())
 			.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, 100, null)
 			.addToplamBasit('MIKTAR2', '2. Miktar', 'miktar2', null, 100, null)
+			.addToplamBasit('MIKTAR', 'Miktar', 'miktar')
+			.addToplamBasit('MIKTAR2', 'Miktar 2', 'miktar2')
 		for (let tip of brmListe) {
 			let fra = brmDict[tip]
 			result.addToplamBasit(`MIKTAR${tip}`, `Miktar (${tip})`, `miktar${tip}`, null, 100, ({ colDef }) => colDef.tipDecimal(fra))
@@ -71,6 +77,19 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 			}
 		}
 	}
+	loadServerData_queryDuzenle({ secimler: sec }) {
+		let {hareketci: har} = this
+		if (har) {
+			let {tip: { value: shTip } = {}} = sec
+			if (isArray(shTip))
+				shTip = asSet(shTip)
+			if (shTip) {
+				let {stok: stokmu, hizmet: hizmetmi} = shTip
+				har.ekUygunluk = { stokmu, hizmetmi }
+			}
+		}
+		return super.loadServerData_queryDuzenle(...arguments)
+	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e)
 		let {maliyetKullanilirmi} = this.class
@@ -91,6 +110,11 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 		}*/
 		for (let key in attrSet) {
 			switch (key) {
+				case 'SHTIP': {
+					let sh = hvDegeri('sh')
+					let clause = `(case when ${sh} = 'H' then 'Hizmet' else 'Stok' end)`
+					sahalar.add(`${clause} shtiptext`)
+				}
 				case 'BRM': sahalar.add(`${hvDegeri('brm')} brm`); break
 				case 'BRM2': sahalar.add(`${hvDegeri('brm2')} brm2`); break
 				case 'BRMORANI': sahalar.add(`${hvDegeri('brmorani')} brmorani`); break
@@ -160,32 +184,179 @@ class DRapor_Hareketci_AlimSatisSipOrtak extends DRapor_Hareketci {
 class DRapor_Hareketci_AlimSatisSipOrtak_Main extends DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_AlimSatisSipOrtak }
+	secimlerDuzenle({ secimler: sec }) {
+		super.secimlerDuzenle(...arguments)
+		{
+			let grupKod = 'donemVeTarih'
+			sec.secimTopluEkle({
+				beklemeDurumu: new SecimTekSecim({
+					grupKod, etiket: 'Bekleme Durumu',
+					tekSecim: new BuDigerVeHepsi([
+						`<span class=forestgreen>Bekleyenler</span>`,
+						`<span class=firebrick>KAPANMIŞ</span>`
+					]).buYap()
+				})
+			})
+			/*sec.whereBlockEkle(({ secimler: sec, where: wh }) => {
+				let {beklemeDurumu: { tekSecim: beklemeDurumu }} = sec
+				if (!beklemeDurumu.hepsimi)
+					wh.add(beklemeDurumu.getTersBoolBitClause('fis.kapandi'))
+			})*/
+		}
+	}
 	tabloYapiDuzenle({ result }) {
-		let e = arguments[0]
-		super.tabloYapiDuzenle(e)
-		/*this.tabloYapiDuzenle_cari(e)
-		this.tabloYapiDuzenle_sh(e)
-		this.tabloYapiDuzenle_gc({ ...e, tip: 'MIKTAR', etiket: 'Miktar' })
-		this.tabloYapiDuzenle_gc({ ...e, tip: 'MIKTAR2', etiket: 'Miktar2' })*/
+		super.tabloYapiDuzenle(...arguments)
+		result
+			.addToplamBasit('SEVKMIKTAR', 'Sevk Miktar', 'sevkmiktar')
+			.addToplamBasit('SEVKMIKTAR2', 'Sevk Miktar 2', 'sevkmiktar2')
+			.addToplamBasit('KALANMIKTAR', 'Kalan Miktar', 'kalanmiktar')
+			.addToplamBasit('KALANMIKTAR2', 'Kalan Miktar 2', 'kalanmiktar2')
+			.addToplamBasit('FIYAT', 'Fiyat', 'fiyat')
+			.addToplamBasit_fiyat('BRUTBEDEL', 'Brüt Bedel', 'brutbedel')
+			.addToplamBasit_bedel('BEDEL', 'Net Bedel', 'bedel')
+			.addToplamBasit_bedel('SEVKBEDEL', 'Sevk Bedeli', 'sevkbedel')
+			.addToplamBasit_bedel('KALANBEDEL', 'Kalan Bedeli', 'kalanbedel')
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e)
+		let {secimler: sec, class: { almSat }} = this
 		let {attrSet, sent, hvDegeri} = e
 		let {where: wh, sahalar} = sent
-		/*let gcClause = hvDegeri('gc'), tarihClause = hvDegeri('tarih')
-		this.loadServerData_queryDuzenle_sh({ ...e, kodClause: hvDegeri('shkod') })
-		this.loadServerData_queryDuzenle_cari({ ...e, kodClause: hvDegeri('must') })
-		this.loadServerData_queryDuzenle_takip({ ...e, kodClause: hvDegeri('takipno') })
-		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MIKTAR', clause: hvDegeri('miktar'), gcClause, tarihClause })
-		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MIKTAR2', clause: hvDegeri('miktar2'), gcClause, tarihClause })
+		let mc = {
+			miktar: hvDegeri('miktar'), miktar2: hvDegeri('miktar2'),
+			fiyat: hvDegeri('fiyat'), brutBedel: hvDegeri('brutbedel'), bedel: hvDegeri('bedel'),
+			sevk: 'COALESCE(sdon.sevkmiktar, 0)'
+		}
+		mc.kalan = `${mc.miktar} - ${mc.sevk}`
 		for (let key in attrSet) {
 			switch (key) {
-				case 'BRM': sahalar.add(`${hvDegeri('brm')} brm`); break
-				case 'BRM2': sahalar.add(`${hvDegeri('brm2')} brm2`); break
-				case 'BRMORANI': sahalar.add('stk.brmorani'); break
+				case 'SEVKTARIHX': sahalar.add(`sdon.sevktarihx`); break
+				case 'SEVKNOX': sahalar.add(`sdon.sevknox`); break
+				case 'MIKTAR': sahalar.add(`SUM(${mc.miktar}) miktar`); break
+				case 'MIKTAR2': sahalar.add(`SUM(${mc.miktar2}) miktar2`); break
+				case 'FIYAT': sahalar.add(`SUM(${mc.fiyat}) fiyat`); break
+				case 'BRUTBEDEL': sahalar.add(`SUM(${mc.brutBedel}) brutbedel`); break
+				case 'BEDEL': sahalar.add(`SUM(${mc.bedel}) bedel`); break
+				case 'SEVKMIKTAR': sahalar.add(`SUM(${mc.sevk}) sevkmiktar`); break
+				case 'SEVKMIKTAR2': sahalar.add(`SUM(ROUND(${mc.sevk} * ${mc.miktar2} / ${mc.miktar}, 3)) sevkmiktar2`); break
+				case 'KALANMIKTAR': sahalar.add(`SUM(${mc.kalan}) kalanmiktar`); break
+				case 'KALANMIKTAR2': sahalar.add(`SUM(ROUND(${mc.kalan} * ${mc.miktar2} / ${mc.miktar}, 3)) kalanmiktar2`); break
+				case 'SEVKBEDEL': sahalar.add(`SUM(ROUND(${mc.bedel} * ${mc.sevk} / ${mc.miktar}, 2)) sevkbedel`); break
+				case 'KALANBEDEL': sahalar.add(`SUM(ROUND(${mc.bedel} * ${mc.kalan} / ${mc.miktar}, 2)) kalanbedel`); break
 			}
-		}*/
+		}
 	}
+	loadServerData_queryDuzenle_hrkStm_sonIslemler({  attrSet }) {
+		let e = arguments[0]
+		super.loadServerData_queryDuzenle_hrkStm_sonIslemler(e)
+		let sevkMiktarBedelKeys = ['SEVKMIKTAR', 'SEVKMIKTAR2', 'KALANMIKTAR', 'KALANMIKTAR2', 'SEVKBEDEL', 'KALANBEDEL']
+		let sevkBelgeKeys = ['SEVKTARIHX', 'SEVKNOX']
+		let gereksinim = e.gereksinim = {
+			miktarBedel: sevkMiktarBedelKeys.some(key => attrSet[key]),
+			belge: sevkBelgeKeys.some(key => attrSet[key])
+		}
+		if (gereksinim.miktarBedel || gereksinim.belge)
+			this.loadServerData_queryDuzenle_hrkStm_sonIslemler_sevkBaglanti(e)
+	}
+	loadServerData_queryDuzenle_hrkStm_sonIslemler_sevkBaglanti({ secimler: sec, stm, uni, attrSet, gereksinim }) {
+		let {class: { almSat }} = this
+		let {tip: { value: shTip } = {}} = sec
+		if (isArray(shTip))
+			shTip = asSet(shTip)
+		let {beklemeDurumu: { tekSecim: beklemeDurumu }} = sec
+		let {with: _with} = stm
+		let withEkle = hizmetmi => {
+			let sh = hizmetmi ? 'hizmet' : 'stok'
+			let harTable = `sip${sh}`, donTable = `sip2if${sh}`
+			let pifHarTable = `pif${sh}`
+			let sent = new MQSent(), {where: wh, sahalar} = sent
+			sent
+				.fisHareket('sipfis', harTable)
+				.leftJoin('har', `${donTable} don`, 'har.kaysayac = don.sipharsayac')
+				// .fis2CariBagla().har2StokBagla()
+			wh.fisSilindiEkle()
+			this.donemBagla({ ...e, sent, tarihSaha: 'fis.tarih' })
+			if (almSat)
+				wh.degerAta(almSat, 'fis.almsat')
+			sahalar.add('har.kaysayac harsayac')
+			if (gereksinim.belge) {
+				sent
+					.leftJoin('don', `${pifHarTable} dhar`, 'don.ifharsayac = dhar.kaysayac')
+					.leftJoin('dhar', 'piffis dfis', 'dhar.fissayac = dfis.kaysayac')
+				sahalar.add(
+					`STRING_AGG(CONVERT(VARCHAR(10), dfis.tarih, 104), '\n') sevktarihx`,
+					`STRING_AGG(dfis.fisnox, '\n') sevknox`
+				)
+			}
+			if (gereksinim.miktarBedel)
+				sahalar.add('SUM(don.busevkmiktar) sevkmiktar')
+			sent.groupByOlustur()
+			_with.add(sent.asTmpTable(`sipvedonusum_${sh}`))
+		}
+		; {
+			if (!shTip || shTip.stok)
+				withEkle(false)
+			if (!shTip || shTip.hizmet)
+				withEkle(true)
+		}
+		let mc = { miktar: 'har.miktar', sevk: `COALESCE(sdon.sevkmiktar, 0)` }
+		extend(mc, { kalan: `${mc.miktar} - ${mc.sevk}` })
+		uni ??= stm.sent
+		for (let sent of uni) {
+			let {from, where: wh} = sent
+			let hizmetmi = from.aliasIcinTable('har').deger == 'siphizmet'
+			let sh = hizmetmi ? 'hizmet' : 'stok', prefix = hizmetmi ? 'h' : 's'
+			/*if (shTip) {
+				if (hizmetmi && !shTip.hizmet)
+					continue
+				if (!hizmetmi && !shTip.stok)
+					continue
+			}*/
+			let donTmpTable = `sipvedonusum_${sh}`
+			sent.leftJoin('har', `${donTmpTable} sdon`, 'har.kaysayac = sdon.harsayac')
+			if (beklemeDurumu?.bumu)            // Bekleyenler
+				wh.add(`fis.kapandi = ''`, `har.kapandi = ''`, `${mc.kalan} > 0`)
+			else if (beklemeDurumu?.digermi)    // Kapanmışlar
+				wh.add(new MQOrClause([`fis.kapandi <> ''`, `har.kapandi <> ''`, `${mc.kalan} <= 0`]))
+		}
+	}
+
+	/*
+		let sent = new MQSent(), {where: wh, sahalar} = sent
+		sent
+			.fisHareket('sipfis', 'sipstok')
+			.leftJoin('har', 'sip2ifstok don', 'har.kaysayac = don.sipharsayac')
+			.fis2CariBagla().har2StokBagla()
+		wh.fisSilindiEkle()
+		this.donemBagla({ ...e, sent, tarihSaha: 'fis.tarih' })
+		if (almSat)
+			wh.degerAta(almSat, 'fis.almsat')
+		sahalar.add('har.kaysayac harsayac', 'SUM(don.busevkmiktar) sevkmiktar')
+		if (attrSet.SEVKTARIHX || attrSet.SEVKNOX) {
+			sent
+				.leftJoin('don', 'pifstok dhar', 'don.ifharsayac = dhar.kaysayac')
+				.leftJoin('dhar', 'piffis dfis', 'dhar.fissayac = dfis.kaysayac')
+			sahalar.add(
+				`STRING_AGG(CONVERT(VARCHAR(10), dfis.tarih, 104), '\n') sevktarihx`,
+				`STRING_AGG(dfis.fisnox, '\n') sevknox`
+			)
+		}
+		sent.groupByOlustur()
+		stm.with.add(sent.asTmpTable('sipvedonusum'))
+	
+		{
+			let _sent = new MQSent(), {where: wh, sahalar, having} = _sent
+			_sent 
+				.fromAdd('sipvedonusum sdon')
+				.fromIliski('sipstok har', 'sdon.harsayac = har.kaysayac')
+				.fromIliski('sipfis fis', 'har.fissayac = fis.kaysayac')
+				.fis2CariBagla().har2StokBagla()
+			if (beklemeDurumu?.bumu)            // Bekleyenler
+				wh.add(`fis.kapandi = ''`, `har.kapandi = ''`, `${mc.kalan} > 0`)
+			else if (beklemeDurumu?.digermi)    // Kapanmışlar
+				wh.add(new MQOrClause([`fis.kapandi <> ''`, `har.kapandi <> ''`, `${mc.kalan} <= 0`]))
+		}
+	*/
 }
 class DRapor_Hareketci_SipSatislar extends DRapor_Hareketci_AlimSatisSipOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

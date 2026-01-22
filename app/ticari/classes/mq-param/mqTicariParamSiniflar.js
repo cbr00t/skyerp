@@ -435,15 +435,17 @@ class MQUretimParam extends MQTicariParamBase {
 class MQOperGenelParam extends MQTicariParamBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get paramKod() { return 'MALG' } static get sinifAdi() { return 'Operasyon Genel Parametreleri' }
-	get _hmr() { let hmr = asSet(this.hmr) || {}; return Object.keys(hmr).join('\r\n') } set _hmr(value) { let hmr = value ? value.split('\n').map(x => x?.trim()).filter(x => !!x) : [] }
+	get _hmr() { let hmr = asSet(this.hmr) || {}; return Object.keys(hmr).join('\r\n') }
+	set _hmr(value) { let hmr = value ? value.split('\n').map(x => x?.trim()).filter(x => !!x) : [] }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { hmr: e.hmr || {} }) }
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); let {paramci} = e
 		let kullanim = paramci.addKullanim().addGrup({ etiket: 'Kullanım' }), form = kullanim.addFormWithParent();
 			form.addBool('operasyonIsYonetimi', 'Operasyon İş Yönetimi'); form.addBool('mesVeriToplama', 'MES Veri Toplama'); form.addBool('pdmKodu', 'PDM Kodu');
-			form.addBool('nihaiUrunTeslimAgacVeyaHattaGoredir', 'Nihai Ürün Teslim Ağaç veya Hatta Göredir'); form.addBool('islenebilirMiktarAsilabilir', 'İşlenebilir Miktar Aşılabilir');
+			form.addBool('nihaiUrunTeslimAgacVeyaHattaGoredir', 'Nihai Ürün Teslim Ağaç veya Hatta Göredir')
+			form.addBool('islenebilirMiktarAsilabilir', 'İşlenebilir Miktar Aşılabilir')
 			form.addBool('uretildigiYerdeKalir', 'Üretildiği Yerde Kalır'); form.addBool('tabletSadeceSonOperasyon', 'Sadece Son Operasyon');
-			form.addBool('tabletUygunMiktarIcinOperKapansin', 'Tablet: Uygun Miktar için Oper. Kapansın');
+			form.addBool('tabletUygunMiktarIcinOperKapansin', 'Tablet: Uygun Miktar için Oper. Kapansın')
 		form = paramci.addFormWithParent(); form.addNumber('iskartaMaxSayi', 'Iskarta Sayısı').addStyle_wh(200);
 		form = paramci.addGrup('HMR').addFormWithParent(); form.addML('_hmr').noRowAttr().setRowCount(8).addStyle_wh(300)
 	}

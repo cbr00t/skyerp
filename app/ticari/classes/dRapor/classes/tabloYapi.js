@@ -391,7 +391,8 @@ class TabloYapiItem extends CObject {
 			? (this.tipNumerikmi ? SecimNumber : this.tipTarihmi ? SecimDate : SecimString)
 			: (this.tipNumerikmi ? SecimTekilNumber : this.tipTarihmi ? SecimTekilDate : SecimOzellik)*/
 	}
-	get kaYapimi() { return !!this.mfSinif }  get formulmu() { return !!this.formul }
+	get kaYapimi() { return !!this.mfSinif }
+	get formulmu() { return !!this.formul }
 	get orderBySaha() {
 		let {_orderBySaha: result} = this; if (result !== undefined) { return result }
 		let {kaYapimi} = this; result = this.colDefs[0]?.belirtec;

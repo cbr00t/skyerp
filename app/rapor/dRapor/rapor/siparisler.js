@@ -111,7 +111,6 @@ class DRapor_StokSiparisler_Main extends DRapor_Donemsel_Main {
 				switch (key) {
 					case 'SEVKTARIHX': sahalar.add(`sdon.sevktarihx`); break
 					case 'SEVKNOX': sahalar.add(`sdon.sevknox`); break
-					case 'SEVKNOX': sahalar.add(`SUM(${mc.bedel}) bedel`); break
 					case 'MIKTAR': sahalar.add(`SUM(${mc.miktar}) miktar`); break
 					case 'MIKTAR2': sahalar.add(`SUM(${mc.miktar2}) miktar2`); break
 					case 'FIYAT': sahalar.add(`SUM(${mc.fiyat}) fiyat`); break
