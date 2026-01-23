@@ -494,7 +494,7 @@ class MQBarkodRec extends MQMasterOrtak {
 				{ name: '@oemKapansin', type: 'bit', value: bool2Int(isKapansinmi) },
 				{ name: '@gerSayac', type: 'bigint', direction: 'output' },
 				(vardiyaNo ? { name: '@argVardiyaNo', type: 'smallint', value: asInteger(vardiyaNo) } : null),
-				(nihaiUrunTeslimAgacVeyaHattaGoredir ? { name: '@nihaiTeslimDepoKod', type: 'char', value: this.nihaiTeslimDepoKod || '' } : null)
+				(nihaiUrunTeslimAgacVeyaHattaGoredir ? { name: '@argNihaiTeslimDepoKod', type: 'char', value: this.nihaiTeslimDepoKod || '' } : null)
 			].filter(x => !!x);
 			return ({ query: 'ou_gerceklemeYap', params })
 		}

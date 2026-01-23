@@ -113,7 +113,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 	tazeleDiger(e) { /* do nothing */ }
 	loadServerData_queryDuzenle(e) {
 		e.alias = ''; super.loadServerData_queryDuzenle(e)
-		let {attrSet} = e, {length: attrSetSize} = keys(attrSet)
+		let sender = this, {attrSet} = e, {length: attrSetSize} = keys(attrSet)
 		/* if (attrSetSize == 1 && attrSet.DB) { return } */
 		let /*{ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu; */ ozelIsaretVarmi = true;
 		let {stm} = e, {tabloYapi: { grupVeToplam }, rapor: { main: { secimler: sec } }, class: { yon }} = this
