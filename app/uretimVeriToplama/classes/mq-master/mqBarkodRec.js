@@ -92,21 +92,36 @@ class MQBarkodRec extends MQMasterOrtak {
 			paketKod: (e.paketKod ?? e.paketkod ?? this.paketIcAdet) || '', paketIcAdet: (e.paketIcAdet ?? this.paketIcAdet ?? null),
 			vardiyaNo: e.vardiyaNo ?? 1, ekOzellikler: e.ekOzellikler ?? this.ekOzellikler ?? {},
 			iskartalar: e.iskartalar ?? this.iskartalar, kaliteYapi: e.kaliteYapi ?? e.kalite ?? this.kaliteYapi,
-			nihaiTeslimDepoKod: e.nihaiTeslimDepoKod
-		});
+			nihaiTeslimDepoKod: e.nihaiTeslimDepoKod ?? e.isbitimyerkod ?? this.nihaiTeslimDepoKod,
+			nihaiTeslimDepoAdi: e.nihaiTeslimDepoAdi ?? e.isbitimyeradi ?? this.nihaiTeslimDepoAdi
+		})
 		if (this.oemSayac) { this.setOEMIDFromBarkodFlag() }
 		let value = e.suAnmi ?? e.suAn ?? e.suan; if (value !== undefined) { this.suAnmi = value }
 		if (this.suAnmi == null && !this.noCheckFlag) { this.suAnmi = !!this.gorevmi }
-		let {paketKod, miktar, paketIcAdet} = this; if (paketKod && paketIcAdet) { this.paketSayi = Math.ceil(miktar / paketIcAdet) }
-		let {ekOzellikSahalar} = this.class, {ekOzellikler} = this; for (let key of ekOzellikSahalar ?? []) { let value = e[key]; if (value) { ekOzellikler[key] = value } }
+		let {paketKod, miktar, paketIcAdet} = this
+		if (paketKod && paketIcAdet) { this.paketSayi = Math.ceil(miktar / paketIcAdet) }
+		let {ekOzellikSahalar} = this.class, {ekOzellikler} = this
+		for (let key of ekOzellikSahalar ?? []) { let value = e[key]; if (value) { ekOzellikler[key] = value } }
+		{
+			let {nihaiTeslimDepoKod: kod, nihaiTeslimDepoAdi: adi} = this
+			if (kod && !adi) {
+				let p = this._promise_wait = new $.Deferred()
+				; (async () => {
+					try { this.nihaiTeslimDepoAdi = await MQStokYer.getGloKod2Adi(kod) }
+					finally { p.resolve() }
+				})()
+			}
+		}
 	}
 	static async rootFormBuilderDuzenle(e) {
 		await super.rootFormBuilderDuzenle(e)
+		await this._promise_wait
 		let {nihaiUrunTeslimAgacVeyaHattaGoredir} = app.params.operGenel?.kullanim ?? {}
 		let inst = e.inst ?? e.sender?.inst
 		let sabit_hatKod = app.params.config.hatKod || null
+		let {gorevmi, formulSayac, opNo, onceOpNo, _formulSeriDurumu} = inst ?? {}
+		let ilkOpermi = !onceOpNo
 		if (inst) {
-			let {formulSayac, opNo, onceOpNo} = inst, ilkOpermi = !onceOpNo; let {_formulSeriDurumu} = inst;
 			if (_formulSeriDurumu == null && !!formulSayac) {
 				let recs, params = [
 					{ name: '@formulSayac', type: 'int', value: formulSayac },
@@ -217,21 +232,23 @@ class MQBarkodRec extends MQMasterOrtak {
 			.onAfterRun(e => { let {id, altInst, part} = e.builder; if (!altInst.serbestmi && altInst[id]) part.disable() })
 		form = parentForm.addFormWithParent().yanYana(2)
 			.addStyle(`$elementCSS { margin-top: 5px }`)
-		if (nihaiUrunTeslimAgacVeyaHattaGoredir) {
+		if (!gorevmi && nihaiUrunTeslimAgacVeyaHattaGoredir) {
 			let etiket = 'Nihai Teslim Yeri'
 			form.addButton('nihaiTeslimDepoKod_listedenSec', '', 'L').etiketGosterim_yok()
 				.addStyle_wh({ width: 50, height: 45 })
 				.addStyle(e => `$elementCSS { min-width: unset !important; margin-top: 15px }`)
 				.setVisibleKosulu(({ builder: { altInst: { gorevmi }}}) => gorevmi ? 'jqx-hidden' : true)
 				.onClick(({ builder: { parentBuilder: { id2Builder: { nihaiTeslimDepoKod: { part } }}} }) => part.listedenSecIstendi())
-			form.addModelKullan('nihaiTeslimDepoKod', etiket)
+			form.addModelKullan('nihaiTeslimDepoKod', etiket).etiketGosterim_yok()
 				.addStyle(`$elementCSS { min-width: 300px; max-width: 450px }`)
-				.etiketGosterim_yok().comboBox().setMFSinif(MQStokYer)
-				.setPlaceHolder(etiket)
-				.onAfterRun(({ builder: { id, altInst: inst, part } }) => {
+				.setPlaceHolder(etiket).setMFSinif(MQStokYer)
+				.autoBind().comboBox()
+				.degisince(({ item, builder: { altInst: inst } }) =>
+					inst.nihaiTeslimDepoAdi = item?.aciklama)
+				/*.onAfterRun(({ builder: { id, altInst: inst, part } }) => {
 					if (!inst.serbestmi && inst[id])
 						part.disable()
-				})
+				})*/
 				// .degisince(({ value, builder: { altInst: inst } }) => inst.nihaiTeslimDepoKod = )
 				
 		}
@@ -396,6 +413,7 @@ class MQBarkodRec extends MQMasterOrtak {
 			emirNox: this.emirNox, emirTarih: this.emirTarih, opNo: this.opNo || null, opAdi: this.opAdi, stokKod: this.stokKod, stokAdi: this.stokAdi,
 			miktar: this.miktar, emirMiktar: this.emirMiktar, onceUretMiktar: this.onceUretMiktar, subeKod: this.subeKod, hatKod: this.hatKod, hatAdi: this.hatAdi,
 			tezgahKod: this.tezgahKod, tezgahAdi: this.tezgahAdi, perKod: this.perKod, perAdi: this.perAdi,
+			nihaiTeslimDepoKod: this.nihaiTeslimDepoKod, nihaiTeslimDepoAdi: this.nihaiTeslimDepoAdi,
 			basTS: inverseCoalesce(this.basTS, value => dateTimeToString(value)), bitTS: inverseCoalesce(this.bitTS, value => dateTimeToString(value)),
 			paketKod: this.paketKod, paketIcAdet: this.paketIcAdet, vardiyaNo: this.vardiyaNo, sonAsamami: this.sonAsamami ?? null,
 			ekOzellikler: this.ekOzellikler, iskartalar: this.iskartalar, kaliteYapi: this.kaliteYapi
@@ -477,6 +495,7 @@ class MQBarkodRec extends MQMasterOrtak {
 				}
 				if (!empty(seriKontrol_errorList)) { let isError = true, errorText = seriKontrol_errorList.join('<p/>'); throw { isError, errorText } }
 			}
+			let {nihaiTeslimDepoKod} = this
 			let params = [
 				(oemSayac ? { name: '@argOemSayac', type: 'bigint', value: oemSayac } : null),
 				{ name: '@argKaynakTipi', type: 'char', value: 'VT' },
@@ -494,7 +513,7 @@ class MQBarkodRec extends MQMasterOrtak {
 				{ name: '@oemKapansin', type: 'bit', value: bool2Int(isKapansinmi) },
 				{ name: '@gerSayac', type: 'bigint', direction: 'output' },
 				(vardiyaNo ? { name: '@argVardiyaNo', type: 'smallint', value: asInteger(vardiyaNo) } : null),
-				(nihaiUrunTeslimAgacVeyaHattaGoredir ? { name: '@argNihaiTeslimDepoKod', type: 'char', value: this.nihaiTeslimDepoKod || '' } : null)
+				(nihaiUrunTeslimAgacVeyaHattaGoredir && nihaiTeslimDepoKod ? { name: '@argNihaiTeslimDepoKod', type: 'char', value: nihaiTeslimDepoKod ?? '' } : null)
 			].filter(x => !!x);
 			return ({ query: 'ou_gerceklemeYap', params })
 		}
@@ -598,7 +617,7 @@ class MQBarkodRec extends MQMasterOrtak {
 	}
 	reset_diger(e) {
 		for (let key of ['formulSayac', 'tezgahKod', 'perKod', 'nihaiTeslimDepoKod']) { this[key] = null }
-		for (let key of ['tezgahAdi', 'perAdi']) { delete this[key] } return this
+		for (let key of ['tezgahAdi', 'perAdi', 'nihaiTeslimDepoAdi']) { delete this[key] } return this
 	}
 	suAn() { this.suAnmi = true; return this } gorev() { this.gorevmi = true; return this } gercekleme() { this.gorevmi = false; return this }
 	serbest() { this.serbestmi = true; return this } noCheck() { this.noCheckFlag = true; return this }

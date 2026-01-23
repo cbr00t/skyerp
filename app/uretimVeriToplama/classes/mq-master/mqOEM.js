@@ -6,9 +6,9 @@ class MQOEM extends MQSayacliOrtak {
 	static get defaultGroups() { return [] } static get islemTuslari_sagButonlar_ekMarginX() { return -20 } static get noAutoFocus() { return true }
 	static get gridIslemTuslariKullanilirmi() { return false }
 	static secimlerDuzenle(e) {
-		super.secimlerDuzenle(e); const sabit_hatKod = app.params.config.hatKod, sec = e.secimler;
+		super.secimlerDuzenle(e); let sabit_hatKod = app.params.config.hatKod, sec = e.secimler;
 		sec.grupEkle({ kod: 'teknik', aciklama: 'Teknik', renk: '#eee', zeminRenk: 'orangered', kapalimi: true });
-		const _liste = {
+		let _liste = {
 			sadeceIslenebilirOlanlarmi: new SecimBoolTrue({ etiket: 'İşlenebilir Olanlar' }),
 			hatKod: new SecimString({ etiket: 'Hat', mfSinif: MQHat }).birKismi(),
 			hatAdi: new SecimOzellik({ etiket: 'Hat Adı' }),
@@ -24,10 +24,10 @@ class MQOEM extends MQSayacliOrtak {
 			perAdi: new SecimOzellik({ etiket: 'Personel Adı' }),
 			oemSayac: new SecimNumber({ etiket: 'OEM ID', grupKod: 'teknik' })
 		};
-		if (sabit_hatKod) { for (const key of ['hatKod', 'hatAdi']) delete _liste[key] }
+		if (sabit_hatKod) { for (let key of ['hatKod', 'hatAdi']) delete _liste[key] }
 		sec.secimTopluEkle(_liste);
 		sec.whereBlockEkle(e => {
-			const sabit_hatKod = app.params.config.hatKod, {aliasVeNokta, sayacSaha} = this, wh = e.where, sec = e.secimler;
+			let sabit_hatKod = app.params.config.hatKod, {aliasVeNokta, sayacSaha} = this, wh = e.where, sec = e.secimler;
 			if (sec.sadeceIslenebilirOlanlarmi.value) wh.add(`${aliasVeNokta}islenebilirmiktar > 0`)
 			if (!sabit_hatKod) { wh.basiSonu(sec.hatKod, 'hat.kod'); wh.ozellik(sec.hatAdi, 'hat.aciklama') }
 			wh.basiSonu(sec.emirTarih, 'emr.tarih');
@@ -41,35 +41,35 @@ class MQOEM extends MQSayacliOrtak {
 			wh.basiSonu(sec.perKod, `${aliasVeNokta}perkod`);
 			wh.ozellik(sec.perAdi, 'per.aciklama');
 			wh.basiSonu(sec.oemSayac, `${aliasVeNokta}${sayacSaha}`);
-			const {_ekWhere} = sec; if (_ekWhere) { wh.birlestir(_ekWhere) }
+			let {_ekWhere} = sec; if (_ekWhere) { wh.birlestir(_ekWhere) }
 		})
 	}
 	static super_secimlerDuzenle(e) { super.secimlerDuzenle(e) }
 	static orjBaslikListesi_gridInit(e) {
-		super.orjBaslikListesi_gridInit(e); const {sender, grid, gridWidget} = e;
+		super.orjBaslikListesi_gridInit(e); let {sender, grid, gridWidget} = e;
 		grid.on('rowexpand', evt => {
-			const {gridWidget} = sender, _expandedIndexes = sender._expandedIndexes = sender._expandedIndexes || {};
-			const index = gridWidget.getrowboundindex(evt.args.rowindex);
+			let {gridWidget} = sender, _expandedIndexes = sender._expandedIndexes = sender._expandedIndexes || {};
+			let index = gridWidget.getrowboundindex(evt.args.rowindex);
 			if (index != null && index > -1) _expandedIndexes[index] = true
 			// setTimeout(() => gridWidget.ensurerowvisible(index > 0 ? index - 1 : index), 5)
 		});
 		grid.on('rowcollapse', evt => {
-			const {gridWidget} = sender, _expandedIndexes = sender._expandedIndexes = sender._expandedIndexes || {};
-			const index = gridWidget.getrowboundindex(evt.args.rowindex);
+			let {gridWidget} = sender, _expandedIndexes = sender._expandedIndexes = sender._expandedIndexes || {};
+			let index = gridWidget.getrowboundindex(evt.args.rowindex);
 			if (index != null && index > -1) delete _expandedIndexes[index]
 		});
 		grid.on('groupschanged', evt =>
 			gridWidget._groups = evt.args.groups)
 	}
 	static orjBaslikListesi_argsDuzenle(e) {
-		super.orjBaslikListesi_argsDuzenle(e); const {args} = e;
+		super.orjBaslikListesi_argsDuzenle(e); let {args} = e;
 		$.extend(e.args, { sortMode: 'one', showGroupsHeader: true, columnsHeight: args.columnsHeight * 2.3, rowsHeight: 48, groupsExpandedByDefault: true, showFilterRow: true })
 	}
-	static orjBaslikListesi_argsDuzenle_detaylar(e) { super.orjBaslikListesi_argsDuzenle_detaylar(e); const {args} = e; $.extend(args, { rowsHeight: 40 }) }
+	static orjBaslikListesi_argsDuzenle_detaylar(e) { super.orjBaslikListesi_argsDuzenle_detaylar(e); let {args} = e; $.extend(args, { rowsHeight: 40 }) }
 	static orjBaslikListesiDuzenle(e) {
 		e = e || {}; super.orjBaslikListesiDuzenle(e);
-		const sabit_hatKod = e.sabit_hatKod = app.params.config.hatKod, alias = e.alias || this.tableAlias, {liste} = e;
-		const globalCellsClassName = e.globalCellsClassName = (colDef, rowIndex, belirtec, value, rec) =>
+		let sabit_hatKod = e.sabit_hatKod = app.params.config.hatKod, alias = e.alias || this.tableAlias, {liste} = e;
+		let globalCellsClassName = e.globalCellsClassName = (colDef, rowIndex, belirtec, value, rec) =>
 			`mq-oem ${belirtec}`;
 		if (config.dev) {
 			liste.push(new GridKolon({ belirtec: this.sayacSaha, text: 'OEM ID', minWidth: 60, maxWidth: 100, width: '5%', /* filterType: 'checkedlist', */ cellClassName: globalCellsClassName }).noSql().tipNumerik())
@@ -178,8 +178,8 @@ class MQOEM extends MQSayacliOrtak {
 	static orjBaslikListesiDuzenle_ara(e) { }
 	static orjBaslikListesiDuzenle_detaylar(e) {
 		e = e || {}; super.orjBaslikListesiDuzenle_detaylar(e);
-		const {iskartaMaxSayi} = this, {liste} = e, alias = e.alias = e.alias || 'har';
-		const globalCellsClassName = (colDef, rowIndex, belirtec, value, rec) => `mq-gercekleme ${belirtec}`;
+		let {iskartaMaxSayi} = this, {liste} = e, alias = e.alias = e.alias || 'har';
+		let globalCellsClassName = (colDef, rowIndex, belirtec, value, rec) => `mq-gercekleme ${belirtec}`;
 		liste.push(...[
 			new GridKolon({
 				belirtec: 'tezgahkod', text: 'Tezgah', genislikCh: 13, /* filterType: 'checkedlist', */ cellClassName: globalCellsClassName, sql: `${alias}.tezgahkod`,
@@ -196,7 +196,7 @@ class MQOEM extends MQSayacliOrtak {
 			new GridKolon({
 				belirtec: 'detbasts', text: 'Başlangıç', genislikCh: 18, filterType: 'date', filterCondition: 'greater_than_or_equal', cellClassName: globalCellsClassName,
 				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-					value = asDate(value); const detBitTS = asDate(rec.detbitts);
+					value = asDate(value); let detBitTS = asDate(rec.detbitts);
 					return changeTagContent(
 						html, (
 							`<div class="parent">` +
@@ -217,10 +217,10 @@ class MQOEM extends MQSayacliOrtak {
 				belirtec: 'ekBilgi', text: 'Ek Bilgi', minWidth: 40, maxWidth: 400, width: '18%', filterType: 'input', cellClassName: globalCellsClassName,
 				cellBeginEdit: (...args) => this.onCellBeginEdit(...args), cellEndEdit: (...args) => this.onCellEndEdit(...args),
 				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-					const htmlListe = [], ekOzellikler = rec._ekOzellikler || {};
-					if (!$.isEmptyObject(ekOzellikler)) {
-						const subHTMLListe = [];
-						for (const [key, value] of Object.entries(ekOzellikler)) {
+					let htmlListe = [], ekOzellikler = rec._ekOzellikler || {};
+					if (!empty(ekOzellikler)) {
+						let subHTMLListe = [];
+						for (let [key, value] of entries(ekOzellikler)) {
 							if (!value) { continue }
 							subHTMLListe.push(`<div class="ekOzellik"><span class="etiket">${key}</span><span class="ek-bilgi">=</span><span class="veri">${value.toLocaleString()}</span></div>`)
 						}
@@ -236,10 +236,10 @@ class MQOEM extends MQSayacliOrtak {
 							)
 						}
 					}
-					const iskartalar = rec._iskartalar || {};
-					if (!$.isEmptyObject(iskartalar)) {
-						const subHTMLListe = [];
-						for (const kod in iskartalar) {
+					let iskartalar = rec._iskartalar || {};
+					if (!empty(iskartalar)) {
+						let subHTMLListe = [];
+						for (let kod in iskartalar) {
 							subHTMLListe.push(
 								`<div class="iskarta">` +
 									`<span class="etiket">${kod}</span>` +
@@ -268,8 +268,8 @@ class MQOEM extends MQSayacliOrtak {
 	}
 	static digerMenuIstendi(e) {
 		$.extend(e, { formDuzenleyici: _e => {
-			_e = $.extend({}, e, _e); const {form, close, recs} = _e; form.altAlta();
-			const tezgahVarmi = !!recs?.filter(rec => !!rec.tezgahkod)?.length;
+			_e = $.extend({}, e, _e); let {form, close, recs} = _e; form.altAlta();
+			let tezgahVarmi = !!recs?.filter(rec => !!rec.tezgahkod)?.length;
 			form.addStyle(e = `$elementCSS .formBuilder-element.parent { margin-top: 5px !important }`);
 			let altForm = form.addFormWithParent().yanYana(2);
 				altForm.addCheckBox('sadeceIslenebilirOlanlarmi', 'İşlenebilir Olanlar').getValueIslemi(e => e.builder.rootPart.parentPart.secimler.sadeceIslenebilirOlanlarmi.value)
@@ -283,12 +283,12 @@ class MQOEM extends MQSayacliOrtak {
 				altForm.addButton('yeniGorev', undefined, 'Yeni Görev').onClick(e => { close(); this.yeniGorevIstendi(_e) });
 				altForm.addButton('gerceklemeYap', undefined, 'Gerçekleme Yap').onClick(e => { close(); this.gerceklemeYapIstendi(_e) });
 				altForm.addButton('gerceklemeler', undefined, 'Gerçeklemeler').onClick(e => { close(); this.gerceklemelerIstendi(_e) });
-				altForm.addButton('isBaslat', undefined, 'İş Başlat').onClick(e => { close(); this.isBaslatIstendi(_e) }).onBuildEk(e => { const {input} = e.builder; if (!tezgahVarmi) { input.jqxButton({ disabled: true }) } });
-				altForm.addButton('isDurdur', undefined, 'İş Durdur').onClick(e => { close(); this.isDurdurIstendi(_e) }).onBuildEk(e => { const {input} = e.builder; if (!tezgahVarmi) { input.jqxButton({ disabled: true }) } })
+				altForm.addButton('isBaslat', undefined, 'İş Başlat').onClick(e => { close(); this.isBaslatIstendi(_e) }).onBuildEk(e => { let {input} = e.builder; if (!tezgahVarmi) { input.jqxButton({ disabled: true }) } });
+				altForm.addButton('isDurdur', undefined, 'İş Durdur').onClick(e => { close(); this.isDurdurIstendi(_e) }).onBuildEk(e => { let {input} = e.builder; if (!tezgahVarmi) { input.jqxButton({ disabled: true }) } })
 		} }); this.openContextMenu(e)
 	}
 	static rootFormBuilderDuzenleSonrasi_listeEkrani(e) {
-		super.rootFormBuilderDuzenleSonrasi_listeEkrani(e); const rfb = e.rootBuilder;
+		super.rootFormBuilderDuzenleSonrasi_listeEkrani(e); let rfb = e.rootBuilder;
 		this.fbd_listeEkrani_addCheckBox(rfb, {
 			id: 'sadeceIslenebilirOlanlarmi', text: 'İşl.', value: e => e.builder.rootPart.secimler.sadeceIslenebilirOlanlarmi.value,
 			handler: e => this.sadeceIslenebilirOlanlarmi_secimDegisti(e),
@@ -296,19 +296,19 @@ class MQOEM extends MQSayacliOrtak {
 		});
 		let fbd = rfb.addForm({
 			id: 'barkod', parent: e => e.builder.rootPart.islemTuslariPart.sol,
-			layout: e => { const {builder} = e, {id} = builder; return $(`<div class="${id}-parent"><input id="${id}" name="${id}" class="full-wh" type="textbox" placeholder="Barkodu okutunuz"/></div>`) }
+			layout: e => { let {builder} = e, {id} = builder; return $(`<div class="${id}-parent"><input id="${id}" name="${id}" class="full-wh" type="textbox" placeholder="Barkodu okutunuz"/></div>`) }
 		}).addStyle_fullWH(180)
 			.addStyle(...[
 				e => `$builderCSS { display: inline-block; top: 0 !important; min-width: unset !important }`,
 				e => `$builderCSS > input { font-weight: bold; font-size: 85%; text-align: center; color: lightgreen; background: #555 }`
 			 ])
 			.onAfterRun(e => {
-				const {builder} = e, {layout} = builder, input = layout.find('input');
+				let {builder} = e, {layout} = builder, input = layout.find('input');
 				input.on('focus', evt => setTimeout(() => evt.currentTarget.select(), 150));
 				input.on('keyup', evt => {
-					const key = evt.key?.toLowerCase();
+					let key = evt.key?.toLowerCase();
 					if (key == 'enter' || key == 'linefeed') {
-						const value = evt.currentTarget.value.trim(); this.barkodOkutuldu($.extend({}, e, { event: evt, value }));
+						let value = evt.currentTarget.value.trim(); this.barkodOkutuldu($.extend({}, e, { event: evt, value }));
 						setTimeout(() => input.focus(), 500)
 					}
 				});
@@ -321,19 +321,19 @@ class MQOEM extends MQSayacliOrtak {
 		])
 	}
 	static async barkodOkutuldu(e) {
-		const {builder} = e, {part} = builder, {mfSinif, secimler} = part;
+		let {builder} = e, {part} = builder, {mfSinif, secimler} = part;
 		let barkod = e.value, carpan = null; if (barkod) {
-			const barkodLower = barkod.toLowerCase();
-			for (const separator of ['x', '*']) { const parts = barkod.split(separator, 2); if (parts.length > 1) { carpan = asFloat(parts[0]) || null; barkod = parts[1].trim(); break } }
+			let barkodLower = barkod.toLowerCase();
+			for (let separator of ['x', '*']) { let parts = barkod.split(separator, 2); if (parts.length > 1) { carpan = asFloat(parts[0]) || null; barkod = parts[1].trim(); break } }
 		}
-		const parser = barkod ? await app.barkodBilgiBelirleFromEOU({ barkod, carpan }) : null;
+		let parser = barkod ? await app.barkodBilgiBelirleFromEOU({ barkod, carpan }) : null;
 		delete secimler._ekWhere; if (parser) {
 			/* { carpan: carpan || null, miktar: carpan || null,
 				emirNox: result_parts[0], opNo: result_parts[1],
 				revNo: (result_parts.length == 4 ? result_parts[2] : null),
 				shKod: (result_parts.length == 4 ? result_parts[3] : result_parts[2]) } */
-			const opNo = asInteger(parser.opNo), {emirNox, shKod, carpan, miktar} = parser;
-			const alias = mfSinif.tableAlias, wh = secimler._ekWhere = new MQWhereClause();
+			let opNo = asInteger(parser.opNo), {emirNox, shKod, carpan, miktar} = parser;
+			let alias = mfSinif.tableAlias, wh = secimler._ekWhere = new MQWhereClause();
 			if (emirNox) { wh.degerAta(emirNox, 'emr.fisnox') }
 			if (opNo) { wh.degerAta(opNo, `${alias}.opno`) }
 			if (shKod) { wh.like(`%${shKod}%`, 'frm.formul') }
@@ -341,68 +341,75 @@ class MQOEM extends MQSayacliOrtak {
 		part.tazele()
 		/* barkodRec = parser ? new MQBarkodRec(parser) : null;
 		try { if (barkodRec && !barkodRec.oemSayac) await barkodRec.ekBilgileriBelirle() } catch (ex) { console.error(ex) }
-		const sec = secimler.oemSayac; sec.basi = sec.sonu = (barkodRec ? barkodRec.oemSayac || -1 : null); part.tazele()*/
+		let sec = secimler.oemSayac; sec.basi = sec.sonu = (barkodRec ? barkodRec.oemSayac || -1 : null); part.tazele()*/
 	}
 	static gridVeriYuklendi(e) {
-		super.gridVeriYuklendi(e); const part = e.sender, sec = part.secimler;
-		const {fbd_sadeceIslenebilirOlanlarmi, grid, gridWidget, _expandedIndexes} = part;
-		const sabit_hatKod = app.params.config.hatKod;
+		super.gridVeriYuklendi(e); let part = e.sender, sec = part.secimler;
+		let {fbd_sadeceIslenebilirOlanlarmi, grid, gridWidget, _expandedIndexes} = part;
+		let sabit_hatKod = app.params.config.hatKod;
 		if (sec && fbd_sadeceIslenebilirOlanlarmi) {
-			const input = fbd_sadeceIslenebilirOlanlarmi.layout.children('input'), secValue = sec.sadeceIslenebilirOlanlarmi.value;
+			let input = fbd_sadeceIslenebilirOlanlarmi.layout.children('input'), secValue = sec.sadeceIslenebilirOlanlarmi.value;
 			if (input.is(':checked') != secValue) { input.prop('checked', secValue) }
 		}
-		const groups = gridWidget._groups || this.defaultGroups; let rowIndex = gridWidget.getselectedrowindexes()[0]; if (rowIndex != null && rowIndex < 0) { rowIndex = null }
-		if (!$.isEmptyObject(groups)) { grid.jqxGrid('groups', groups.filter(x => !!x)) }
-		if (_expandedIndexes) { for (const _rowIndex in _expandedIndexes) { gridWidget.showrowdetails(_rowIndex) } }
+		let groups = gridWidget._groups || this.defaultGroups; let rowIndex = gridWidget.getselectedrowindexes()[0]; if (rowIndex != null && rowIndex < 0) { rowIndex = null }
+		if (!empty(groups)) { grid.jqxGrid('groups', groups.filter(x => !!x)) }
+		if (_expandedIndexes) { for (let _rowIndex in _expandedIndexes) { gridWidget.showrowdetails(_rowIndex) } }
 		if (rowIndex != null) {
-			gridWidget.selectrow(rowIndex); const maxRows = gridWidget.dataview.totalrecords;
+			gridWidget.selectrow(rowIndex); let maxRows = gridWidget.dataview.totalrecords;
 			gridWidget.ensurerowvisible(Math.max(Math.min(rowIndex + 6, maxRows - 1), 0))
 		}
 	}
 	static standartGorunumListesiDuzenle(e) {
-		super.standartGorunumListesiDuzenle(e); const {liste} = e;
+		super.standartGorunumListesiDuzenle(e); let {liste} = e;
 		liste.push(this.sayacSaha, 'emirno', 'opadi', 'stokadi', 'islenebilirmiktar', 'peradi', 'tezgahadi', 'uretmiktar', 'hatadi')
 	}
 	static super_standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e) }
-	static loadServerData_queryDuzenle(e) {
-		e = e || {}; super.loadServerData_queryDuzenle(e); const sabit_hatKod = app.params.config.hatKod, alias = e.alias || this.tableAlias;
-		const {tabletSadeceSonOperasyon} = app.params.operGenel || {}, {sent, stm} = e;
+	static loadServerData_queryDuzenle(e = {}) {
+		super.loadServerData_queryDuzenle(e)
+		let sabit_hatKod = app.params.config.hatKod, alias = e.alias || this.tableAlias
+		let {kullanim: { tabletSadeceSonOperasyon, nihaiUrunTeslimAgacVeyaHattaGoredir } = {}} = app.params.operGenel || {}
+		let {sent, stm} = e
 		sent.fromIliski('emirdetay edet', `${alias}.emirdetaysayac = edet.kaysayac`).fromIliski('isemri emr', 'edet.fissayac = emr.kaysayac');
-		sent.fromIliski('operasyon op', `${alias}.opno = op.opno`).fromIliski('urtfrm frm', 'edet.formulsayac = frm.kaysayac');
+		sent.fromIliski('operasyon op', `${alias}.opno = op.opno`)
+			.fromIliski('urtfrm frm', 'edet.formulsayac = frm.kaysayac')
 		sent.fromIliski('stkmst stk', 'frm.formul = stk.kod').fromIliski('ismerkezi hat', `${alias}.ismrkkod = hat.kod`);
 		sent.fromIliski('tekilmakina tez', `${alias}.tezgahkod = tez.kod`).fromIliski('personel per', `${alias}.perkod = per.kod`);
-		sent.where.add(`emr.silindi = ''`, `emr.durumu = 'D'`); if (tabletSadeceSonOperasyon) { sent.where.add(`oem.sonasama <> ''`) }
+		sent.where.add(`emr.silindi = ''`, `emr.durumu = 'D'`)
+		if (tabletSadeceSonOperasyon)
+			sent.where.add(`oem.sonasama <> ''`)
 		if (sabit_hatKod) { sent.where.degerAta(sabit_hatKod, `${alias}.ismrkkod`) }
 		sent.sahalar.add(`${alias}.ismrkkod hatkod`, 'hat.aciklama hatadi').addWithAlias(alias, 'opno', 'tezgahkod', 'perkod')
 			.add('emr.bizsubekod', 'emr.no emirno', 'emr.fisnox emirnox', 'emr.tarih emirtarih', `${alias}.opno`, 'op.aciklama opadi',
-				 'frm.formul stokkod', 'stk.aciklama stokadi', 'stk.pdmkodu', 'tez.aciklama tezgahadi', 'per.aciklama peradi');
+				 'frm.formul stokkod', 'stk.aciklama stokadi', 'stk.pdmkodu', 'tez.aciklama tezgahadi', 'per.aciklama peradi')
+		if (nihaiUrunTeslimAgacVeyaHattaGoredir)
+			sent.sahalar.add('frm.isbitimyerkod')
 		stm.orderBy.add('hatkod', 'emirnox DESC')
 	}
 	static orjBaslikListesi_recsDuzenle(e) {
-		super.orjBaslikListesi_recsDuzenle(e); const {recs} = e;
+		super.orjBaslikListesi_recsDuzenle(e); let {recs} = e;
 		if (recs?.length) {
-			const keys = ['tezgahkod', 'perkod', 'tezgahadi', 'peradi'];
-			for (const rec of recs) { for (const key of keys) { if (rec[key] == null) { rec[key] = '' } } }
+			let keys = ['tezgahkod', 'perkod', 'tezgahadi', 'peradi'];
+			for (let rec of recs) { for (let key of keys) { if (rec[key] == null) { rec[key] = '' } } }
 		}
 	}
 	static super_loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e) }
 	static loadServerData_detaylar(e) {
-		const {gridPart, sender, parentRec, secimler} = e, oemSayac = parentRec.kaysayac;
-		return MQGercekleme.loadServerData({ ozelQueryDuzenle: e => { const {aliasVeNokta, stm} = e; for (const sent of stm.getSentListe()) { sent.where.degerAta(oemSayac, `${aliasVeNokta}fissayac`) } } })
+		let {gridPart, sender, parentRec, secimler} = e, oemSayac = parentRec.kaysayac;
+		return MQGercekleme.loadServerData({ ozelQueryDuzenle: e => { let {aliasVeNokta, stm} = e; for (let sent of stm.getSentListe()) { sent.where.degerAta(oemSayac, `${aliasVeNokta}fissayac`) } } })
 	}
 	static oemHTMLDuzenle(e) {
-		const {rec, parent} = e; if (!(rec && parent?.length)) return this
-		const getConvertedValue = value => {
+		let {rec, parent} = e; if (!(rec && parent?.length)) return this
+		let getConvertedValue = value => {
 			if (value) {
 				if (isDate(value)) value = dateKisaString(asDate(value))
 				else if (value.toLocaleString) value = value.toLocaleString()
 			}
 			return value
 		}
-		const addItem = e => {
-			const {id, etiket, value} = e;
+		let addItem = e => {
+			let {id, etiket, value} = e;
 			let {ekBilgi} = e, ekBilgiGetter = $.isFunction(ekBilgi) ? ekBilgi : null; if (ekBilgiGetter) { ekBilgi = null }
-			const elm = $(
+			let elm = $(
 				`<div id="${id}" class="item">` +
 					`<div class="asil flex-row">` +
 						`<div class="etiket">${etiket}:</div>` +
@@ -414,17 +421,17 @@ class MQOEM extends MQSayacliOrtak {
 				`</div>`
 			);
 			if (ekBilgiGetter) {
-				const {ekBilgiAttr} = e;
+				let {ekBilgiAttr} = e;
 				(async () => {
-					const _e = $.extend({}, e, { elm }); let result = await getFuncValue.call(this, ekBilgiGetter, _e),  rec = await result; if ($.isArray(rec)) { rec = rec[0] }
+					let _e = $.extend({}, e, { elm }); let result = await getFuncValue.call(this, ekBilgiGetter, _e),  rec = await result; if ($.isArray(rec)) { rec = rec[0] }
 					if (rec) {
 						ekBilgi = rec;
 						if (typeof ekBilgi == 'object') {
 							if (ekBilgiAttr) {
-								const attrListe = $.isArray(ekBilgiAttr) ? ekBilgiAttr : [ekBilgiAttr];
-								for (const attr of attrListe) { const value = rec[attr]; if (value != null) { ekBilgi = value; break } }
+								let attrListe = $.isArray(ekBilgiAttr) ? ekBilgiAttr : [ekBilgiAttr];
+								for (let attr of attrListe) { let value = rec[attr]; if (value != null) { ekBilgi = value; break } }
 							}
-							else { ekBilgi = Object.values(rec)[0] }
+							else { ekBilgi = values(rec)[0] }
 						}
 						if (ekBilgi) { elm.children('.ek-bilgi').html(getConvertedValue(ekBilgi)) }
 					}
@@ -433,8 +440,8 @@ class MQOEM extends MQSayacliOrtak {
 			elm.appendTo(parent); return elm
 		};
 		parent.addClass('parentRecBilgi full-wh flex-row');
-		const emirNox = rec.emirNox ?? rec.emirnox, opNo = rec.opNo ?? rec.opno, stokKod = rec.stokKod ?? rec.stokkod, {miktar} = rec;
-		const hatKod = rec.hatKod ?? rec.hatkod, tezgahKod = rec.tezgahKod ?? rec.tezgahkod, perKod = rec.perKod ?? rec.perkod;
+		let emirNox = rec.emirNox ?? rec.emirnox, opNo = rec.opNo ?? rec.opno, stokKod = rec.stokKod ?? rec.stokkod, {miktar} = rec;
+		let hatKod = rec.hatKod ?? rec.hatkod, tezgahKod = rec.tezgahKod ?? rec.tezgahkod, perKod = rec.perKod ?? rec.perkod;
 		if (hatKod) { addItem({ id: 'hatKod', etiket: 'Hat', value: hatKod, ekBilgiAttr: ['hatAdi', 'hatadi', 'aciklama'], ekBilgi: async e => ({ aciklama: await MQHat.getGloKod2Adi(e.value) }) }) }
 		if (emirNox) { addItem({ id: 'emirNox', etiket: 'Emir', value: emirNox, ekBilgiAttr: ['emirTarih', 'emirtarih', 'aciklama'], ekBilgi: async e => ({ aciklama: await MQEmir.getGloKod2Adi(e.value) }) }) }
 		if (opNo) { addItem({ id: 'opNo', etiket: 'Oper', value: opNo, ekBilgiAttr: ['opAdi', 'opadi', 'aciklama'], ekBilgi: async e => ({ aciklama: await MQOperasyon.getGloKod2Adi(e.value) }) }) }
@@ -445,8 +452,8 @@ class MQOEM extends MQSayacliOrtak {
 		return this
 	}
 	static sadeceIslenebilirOlanlarmi_secimDegisti(e) {
-		const {builder} = e; let part = e.part ?? builder.rootPart; if (!part?.secimler && part.parentPart) { part = part.parentPart }
-		const sec = part.secimler, {secimlerPart} = part, input = builder.layout.children('input'), value = sec.sadeceIslenebilirOlanlarmi.value = input.is(':checked');
+		let {builder} = e; let part = e.part ?? builder.rootPart; if (!part?.secimler && part.parentPart) { part = part.parentPart }
+		let sec = part.secimler, {secimlerPart} = part, input = builder.layout.children('input'), value = sec.sadeceIslenebilirOlanlarmi.value = input.is(':checked');
 		if (secimlerPart) secimlerPart.secim2Info.sadeceIslenebilirOlanlarmi.element.children('.veri').val(value);
 		part.tazeleDefer()
 	}
@@ -456,9 +463,9 @@ class MQOEMVeGorev extends MQOEM {
 	static get sinifAdi() { return 'Operasyon ve Görevler' }
 	static get defaultGroups() { return [...super.defaultGroups, 'hatadi'] }
 	static secimlerDuzenle(e) {
-		super.super_secimlerDuzenle(e); const sabit_hatKod = app.params.config.hatKod, sec = e.secimler;
+		super.super_secimlerDuzenle(e); let sabit_hatKod = app.params.config.hatKod, sec = e.secimler;
 		sec.grupEkle({ kod: 'teknik', aciklama: 'Teknik', renk: '#eee', zeminRenk: 'orangered', kapalimi: true });
-		const _liste = {
+		let _liste = {
 			sadeceIslenebilirOlanlarmi: new SecimBoolTrue({ etiket: 'İşlenebilir Olanlar' }),
 			goreviOlanlarmi: new SecimBool({ etiket: 'Görevi Olanlar' }),
 			sadeceBaslamismi: new SecimBool({ etiket: 'Sadece Başlamış' }),
@@ -477,10 +484,10 @@ class MQOEMVeGorev extends MQOEM {
 			perAdi: new SecimOzellik({ etiket: 'Personel Adı' }),
 			oemSayac: new SecimNumber({ etiket: 'OEM ID', grupKod: 'teknik' })
 		};
-		if (sabit_hatKod) { for (const key of ['hatKod', 'hatAdi']) delete _liste[key] }
+		if (sabit_hatKod) { for (let key of ['hatKod', 'hatAdi']) delete _liste[key] }
 		sec.secimTopluEkle(_liste);
 		sec.whereBlockEkle(e => {
-			const {aliasVeNokta, sayacSaha} = this, wh = e.where, sec = e.secimler;
+			let {aliasVeNokta, sayacSaha} = this, wh = e.where, sec = e.secimler;
 			/*if (sec.goreviOlanlarmi.value) wh.add('oisl.kaysayac IS NOT NULL')*/
 			if (sec.sadeceIslenebilirOlanlarmi.value) wh.add(`${aliasVeNokta}islenebilirmiktar > 0`)
 			if (!sabit_hatKod) { wh.basiSonu(sec.hatKod, 'hat.kod'); wh.ozellik(sec.hatAdi, 'hat.aciklama') }
@@ -498,25 +505,25 @@ class MQOEMVeGorev extends MQOEM {
 			wh.basiSonu(sec.perKod, `${aliasVeNokta}perkod`);
 			wh.ozellik(sec.perAdi, 'per.aciklama');
 			wh.basiSonu(sec.oemSayac, `${aliasVeNokta}${sayacSaha}`)
-			const {_ekWhere} = sec; if (_ekWhere) { wh.birlestir(_ekWhere) }
+			let {_ekWhere} = sec; if (_ekWhere) { wh.birlestir(_ekWhere) }
 		})
 	}
 	static orjBaslikListesi_initRowDetails(e) {
-		const {parentRec} = e; if (!parentRec || parentRec._gorevSatirimi) { return false }
+		let {parentRec} = e; if (!parentRec || parentRec._gorevSatirimi) { return false }
 		return super.orjBaslikListesi_initRowDetails(e)
 	}
 	static orjBaslikListesi_argsDuzenle(e) {
-		super.orjBaslikListesi_argsDuzenle(e); const {args} = e, {groupsRenderer} = args;
+		super.orjBaslikListesi_argsDuzenle(e); let {args} = e, {groupsRenderer} = args;
 		$.extend(e.args, {
 			groupsRenderer: (text, group, expanded, groupInfo) => {
-				const belirtec = groupInfo.groupcolumn?.datafield;
+				let belirtec = groupInfo.groupcolumn?.datafield;
 				if (belirtec == 'opno' || belirtec == 'opadi') {
-					const allSubItems = [], fillSubItems = info => {
+					let allSubItems = [], fillSubItems = info => {
 						if (!info) { return } let {subItems, subGroups} = info;
 						if (subItems?.length) { allSubItems.push(...subItems) }
-						if (subGroups?.length) { for (const subGroup of subGroups) { if (subGroup) { fillSubItems(subGroup) } } }
+						if (subGroups?.length) { for (let subGroup of subGroups) { if (subGroup) { fillSubItems(subGroup) } } }
 					};
-					fillSubItems(groupInfo); const sonAsamami = allSubItems.every(rec => asBool(rec.sonasama));
+					fillSubItems(groupInfo); let sonAsamami = allSubItems.every(rec => asBool(rec.sonasama));
 					if (sonAsamami) { group += `<span class="orangered ek-bilgi" style="font-size: 90%; margin-left: 30px">(son)</span>` }
 				}
 				let result = getFuncValue.call(this, groupsRenderer, text, group, expanded, groupInfo);
@@ -525,29 +532,29 @@ class MQOEMVeGorev extends MQOEM {
 		})
 	}
 	static gridVeriYuklendi(e) {
-		super.gridVeriYuklendi(e); const part = e.sender, sec = part.secimler, {fbd_sadeceIslenebilirOlanlarmi, fbd_goreviOlanlarmi, fbd_sadeceBaslamismi} = part;
+		super.gridVeriYuklendi(e); let part = e.sender, sec = part.secimler, {fbd_sadeceIslenebilirOlanlarmi, fbd_goreviOlanlarmi, fbd_sadeceBaslamismi} = part;
 		if (sec) {
 			if (fbd_sadeceIslenebilirOlanlarmi) {
-				const input = fbd_sadeceIslenebilirOlanlarmi.layout.children('input'), secValue = sec.sadeceIslenebilirOlanlarmi.value;
+				let input = fbd_sadeceIslenebilirOlanlarmi.layout.children('input'), secValue = sec.sadeceIslenebilirOlanlarmi.value;
 				if (input.is(':checked') != secValue) { input.prop('checked', secValue) }
 			}
 			if (fbd_goreviOlanlarmi) {
-				const input = fbd_goreviOlanlarmi.layout.children('input'), secValue = sec.goreviOlanlarmi.value;
+				let input = fbd_goreviOlanlarmi.layout.children('input'), secValue = sec.goreviOlanlarmi.value;
 				if (input.is(':checked') != secValue) { input.prop('checked', secValue) }
 			}
 			if (fbd_sadeceBaslamismi) {
-				const input = fbd_sadeceBaslamismi.layout.children('input'), secValue = sec.sadeceBaslamismi.value;
+				let input = fbd_sadeceBaslamismi.layout.children('input'), secValue = sec.sadeceBaslamismi.value;
 				if (input.is(':checked') != secValue) { input.prop('checked', secValue) }
 			}
 		}
 	}
 	static standartGorunumListesiDuzenle(e) {
-		super.super_standartGorunumListesiDuzenle(e); const {liste} = e;
+		super.super_standartGorunumListesiDuzenle(e); let {liste} = e;
 		if (config.dev) { liste.push(this.sayacSaha) }
 		liste.push('emirno', 'stokadi', 'islenebilirmiktar', 'peradi', 'tezgahadi', 'isuretilen', 'oemislemdurum', 'basts', 'kalansaat', 'opadi', 'hatadi', 'pdmkodu')
 	}
 	static orjBaslikListesiDuzenle_ara(e) {
-		super.orjBaslikListesiDuzenle_ara(e); const alias = e.alias || this.tableAlias, {liste, globalCellsClassName} = e;
+		super.orjBaslikListesiDuzenle_ara(e); let alias = e.alias || this.tableAlias, {liste, globalCellsClassName} = e;
 		liste.push(...[
 			new GridKolon({
 				belirtec: 'isuretilen', text: '<div class="grid-col-2">İş Mikt. Üretilen</div>', genislikCh: 8,
@@ -570,7 +577,7 @@ class MQOEMVeGorev extends MQOEM {
 				cellClassName: (colDef, rowIndex, belirtec, value, rec) => {
 					let result = getFuncValue.call(this, globalCellsClassName, colDef, rowIndex, belirtec, value, rec).split(' ');
 					result.push('bold');
-					const durum = (rec.oemislemdurum || '').trim().toUpperCase();
+					let durum = (rec.oemislemdurum || '').trim().toUpperCase();
 					switch (durum) {
 						case 'AT': result.push('bg-lightroyalblue'); break
 						case 'DV': result.push('bg-lightgreen'); break
@@ -583,7 +590,7 @@ class MQOEMVeGorev extends MQOEM {
 			new GridKolon({
 				belirtec: 'basts', text: 'Baş.Zaman', genislikCh: 20, cellClassName: globalCellsClassName,
 				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-					const durum = (rec.oemislemdurum || '').toUpperCase(), durNedenAdi = rec.durnedenadi || '';
+					let durum = (rec.oemislemdurum || '').toUpperCase(), durNedenAdi = rec.durnedenadi || '';
 					let durumText, ts, durSn;
 					switch (durum) {
 						case 'PL': durumText = 'Plan'; ts = asDate(rec.tavbaszaman); break
@@ -593,7 +600,7 @@ class MQOEMVeGorev extends MQOEM {
 					}
 					if (!(ts || durSn))
 						ts = setTime(rec.bastarih, rec.baszamants ?? rec.planbaszamants)
-					const _hasTime = hasTime(ts);
+					let _hasTime = hasTime(ts);
 					return changeTagContent(
 						html, (
 							`<div class="parent">` +
@@ -611,8 +618,8 @@ class MQOEMVeGorev extends MQOEM {
 			new GridKolon({
 				belirtec: 'kalansaat', text: 'Kalan Saat', genislikCh: 11, cellClassName: globalCellsClassName,
 				cellsRenderer: (colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-					const durum = (rec.oemislemdurum || '').toUpperCase(), kalanSaat = rec.kalansaatsure;
-					const durSn = durum == 'DR' ? roundToFra(asFloat(rec.duraksamasn) / 60, 1) : 0;
+					let durum = (rec.oemislemdurum || '').toUpperCase(), kalanSaat = rec.kalansaatsure;
+					let durSn = durum == 'DR' ? roundToFra(asFloat(rec.duraksamasn) / 60, 1) : 0;
 					return changeTagContent(
 						html, (
 							`<div class="parent">` +
@@ -629,13 +636,16 @@ class MQOEMVeGorev extends MQOEM {
 	}
 	static loadServerData_queryDuzenle(e) { super.super_loadServerData_queryDuzenle(e) }
 	static async loadServerData_querySonucu(e) {
-		const args = e.args ?? {}, sec = e.secimler ?? e.sender?.secimler, hatKod = args.hatKod ?? app.params.config.hatKod, {tabletSadeceSonOperasyon} = app.params.operGenel || {};
-		let ekClauseStr = sec ? sec.getTBWhereClause().toString_baslangicsiz() : null;
+		let args = e.args ?? {}, sec = e.secimler ?? e.sender?.secimler
+		let hatKod = args.hatKod ?? app.params.config.hatKod
+		let {kullanim: { tabletSadeceSonOperasyon, nihaiUrunTeslimAgacVeyaHattaGoredir } = {}} = app.params.operGenel || {}
+		let ekClauseStr = sec ? sec.getTBWhereClause().toString_baslangicsiz() : null
 		if (ekClauseStr) {
-			const donusumDict = { 'emr.': 'fis.', 'frm.formul': 'stk.kod', 'hat.': 'ismrk.' };
-			for (const [search, replace] of Object.entries(donusumDict)) { ekClauseStr = ekClauseStr.replaceAll(search, replace) }
+			let donusumDict = { 'emr.': 'fis.', 'frm.formul': 'stk.kod', 'hat.': 'ismrk.' };
+			for (let [search, replace] of entries(donusumDict))
+				ekClauseStr = ekClauseStr.replaceAll(search, replace)
 		}
-		const _e = {
+		let _e = {
 			query: 'opyon_bekleyenler',
 			params: [
 				(hatKod ? { name: '@hatKod', type: 'varchar', value: hatKod } : null),
@@ -646,20 +656,49 @@ class MQOEMVeGorev extends MQOEM {
 				(tabletSadeceSonOperasyon ? { name: '@sadeceSonAsama', type: 'bit', value: 1 } : null)
 			].filter(x => !!x)
 		}
-		let recs = await app.sqlExecSP(_e); if (!$.isEmptyObject(recs)) {
-			const donusumDict = { oemsayac: this.sayacSaha, oemislemsayac: 'isid', oislemdurum: 'oemislemdurum', fisnox: 'emirnox', ismrkkod: 'hatkod', ismrkadi: 'hatadi' };
-			const {sayacSaha} = this; let sonOEMSayac;
-			for (const rec of recs) {
-				for (const key in donusumDict) { const value = rec[key]; if (value !== undefined) { rec[donusumDict[key]] = value; delete rec[key] } }
-				const oemSayac = rec[sayacSaha]; if ((oemSayac && sonOEMSayac) && oemSayac == sonOEMSayac) { rec._gorevSatirimi = true }
-				sonOEMSayac = oemSayac; $.extend(rec, { emirno: asInteger(rec.emirnox), opno: asInteger(rec.opno), islenebilirmiktar: rec.islenebilirmiktar || 0, isuretilen: rec.isuretilen || 0 })
+		let frmSayac2IsBitimYerKod = {}
+		if (nihaiUrunTeslimAgacVeyaHattaGoredir) {
+			let sent = new MQSent({
+				from: 'urtfrm frm',
+				where: `frm.isbitimyerkod <> ''`,
+				sahalar: ['frm.kaysayac sayac', 'frm.isbitimyerkod yerKod']
+			}).distinctYap()
+			for (let {sayac, yerKod} of await app.sqlExecSelect(sent))
+				frmSayac2IsBitimYerKod[sayac] = yerKod
+		}
+		let recs = await app.sqlExecSP(_e)
+		if (!empty(recs)) {
+			let donusumDict = {
+				oemsayac: this.sayacSaha, oemislemsayac: 'isid', oislemdurum: 'oemislemdurum',
+				fisnox: 'emirnox', ismrkkod: 'hatkod', ismrkadi: 'hatadi'
 			}
-			recs.sort((a, b) => { return (a.hatkod < b.hatkod ? 1 : a.hatkod > b.hatkod ? -1 : a.emirno < b.emirno ? 1 : a.emirno > b.emirno ? -1 : 0) } )
+			let {sayacSaha} = this
+			let sonOEMSayac
+			for (let rec of recs) {
+				for (let [key, newKey] of entries(donusumDict)) {
+					let value = rec[key]
+					if (value === undefined)
+						continue
+					rec[newKey] = value
+					delete rec[key]
+				}
+				let oemSayac = rec[sayacSaha]
+				if ((oemSayac && sonOEMSayac) && oemSayac == sonOEMSayac)
+					rec._gorevSatirimi = true
+				sonOEMSayac = oemSayac
+				extend(rec, {
+					emirno: asInteger(rec.emirnox), opno: asInteger(rec.opno),
+					islenebilirmiktar: rec.islenebilirmiktar || 0, isuretilen: rec.isuretilen || 0
+				})
+				rec.isbitimyerkod ??= frmSayac2IsBitimYerKod?.[oemSayac]
+			}
+			recs.sort((a, b) =>
+				a.hatkod < b.hatkod ? 1 : a.hatkod > b.hatkod ? -1 : a.emirno < b.emirno ? 1 : a.emirno > b.emirno ? -1 : 0)
 		}
 		return recs
 	}
 	static rootFormBuilderDuzenleSonrasi_listeEkrani(e) {
-		super.rootFormBuilderDuzenleSonrasi_listeEkrani(e); const rfb = e.rootBuilder;
+		super.rootFormBuilderDuzenleSonrasi_listeEkrani(e); let rfb = e.rootBuilder;
 		/*this.fbd_listeEkrani_addCheckBox(rfb, {
 			id: 'goreviOlanlarmi', text: 'Grv.', value: e => e.builder.rootPart.secimler.goreviOlanlarmi.value,
 			handler: e => this.goreviOlanlarmi_secimDegisti(e), onAfterRun: e => e.builder.rootPart.fbd_goreviOlanlarmi = e.builder
@@ -678,21 +717,21 @@ class MQOEMVeGorev extends MQOEM {
 			.addStyle(e => `$elementCSS #vazgec { margin-left: 20px }`)*/
 	}
 	static goreviOlanlarmi_secimDegisti(e) {
-		const {builder} = e; let part = e.part ?? builder.rootPart; if (!part?.secimler && part.parentPart) { part = part.parentPart }
-		const sec = part.secimler, {secimlerPart} = part, input = builder.layout.children('input'), value = sec.goreviOlanlarmi.value = input.is(':checked');
+		let {builder} = e; let part = e.part ?? builder.rootPart; if (!part?.secimler && part.parentPart) { part = part.parentPart }
+		let sec = part.secimler, {secimlerPart} = part, input = builder.layout.children('input'), value = sec.goreviOlanlarmi.value = input.is(':checked');
 		if (secimlerPart) { secimlerPart.secim2Info.goreviOlanlarmi.element.children('.veri').val(value) }
 		part.tazeleDefer()
 	}
 	static sadeceBaslamismi_secimDegisti(e) {
-		const {builder} = e; let part = e.part ?? builder.rootPart; if (!part?.secimler && part.parentPart) { part = part.parentPart }
-		const sec = part.secimler, {secimlerPart} = part, input = builder.layout.children('input'), value = sec.sadeceBaslamismi.value = input.is(':checked');
+		let {builder} = e; let part = e.part ?? builder.rootPart; if (!part?.secimler && part.parentPart) { part = part.parentPart }
+		let sec = part.secimler, {secimlerPart} = part, input = builder.layout.children('input'), value = sec.sadeceBaslamismi.value = input.is(':checked');
 		if (secimlerPart) { secimlerPart.secim2Info.sadeceBaslamismi.element.children('.veri').val(value) }
 		part.tazeleDefer()
 	}
 	static async isBaslatIstendi(e) {
-		const gridRec = this.getGridRec(e); if (!gridRec) { return false }
+		let gridRec = this.getGridRec(e); if (!gridRec) { return false }
 		try {
-			const tezgahKod = gridRec.tezgahkod; if (!tezgahKod) { throw { isError: true, errorText: `<b>Tezgah</b> belirtilmeden <u>İş Başlat</u> yapılamaz` } }
+			let tezgahKod = gridRec.tezgahkod; if (!tezgahKod) { throw { isError: true, errorText: `<b>Tezgah</b> belirtilmeden <u>İş Başlat</u> yapılamaz` } }
 			let result = await app.sqlExecSP({
 				query: 'opyon_baslat',
 				params: [
@@ -706,11 +745,11 @@ class MQOEMVeGorev extends MQOEM {
 		catch (ex) { hConfirm(getErrorText(ex), 'İş Başlat'); throw ex }
 	}
 	static async isDurdurIstendi(e) {
-		const gridRec = this.getGridRec(e); if (!gridRec) { return false }
+		let gridRec = this.getGridRec(e); if (!gridRec) { return false }
 		try {
-			const tezgahKod = gridRec.tezgahkod; if (!tezgahKod) { throw { isError: true, errorText: `<b>Tezgah</b> belirtilmeden <u>İş Durdur</u> yapılamaz` } }
+			let tezgahKod = gridRec.tezgahkod; if (!tezgahKod) { throw { isError: true, errorText: `<b>Tezgah</b> belirtilmeden <u>İş Durdur</u> yapılamaz` } }
 			let promise = new $.Deferred(); MQDurNeden.listeEkraniAc({ secince: e => promise.resolve(e.value ?? e.kod), kapaninca: e => promise.resolve(null) })
-			const durNedenKod = await promise; if (!durNedenKod) { return false }
+			let durNedenKod = await promise; if (!durNedenKod) { return false }
 			let result = await app.sqlExecSP({
 				query: 'opyon_durdur',
 				params: [
@@ -724,13 +763,13 @@ class MQOEMVeGorev extends MQOEM {
 		catch (ex) { hConfirm(getErrorText(ex), 'İş Durdur'); throw ex }
 	}
 	static yeniOperIstendi(e) {
-		const gridRec = this.getGridRec(e); if (!gridRec) { return false }
+		let gridRec = this.getGridRec(e); if (!gridRec) { return false }
 		try {
-			const oemSayac = gridRec.kaysayac; if (!oemSayac) { return }
-			const promise = new $.Deferred(), args = { tekil: false, oemSayac, urunAgacinaEkleYapilirmi: true };
+			let oemSayac = gridRec.kaysayac; if (!oemSayac) { return }
+			let promise = new $.Deferred(), args = { tekil: false, oemSayac, urunAgacinaEkleYapilirmi: true };
 			MQOperasyon.listeEkraniAc({ args, secince: async e => {
-				const opNoListe = e.values; if (!opNoListe?.length) { return }
-				const gridPart = e.gridPart ?? e.parentPart ?? e.sender, urunAgacinaEkleFlag = gridPart.urunAgacineEkleFlag ?? false;
+				let opNoListe = e.values; if (!opNoListe?.length) { return }
+				let gridPart = e.gridPart ?? e.parentPart ?? e.sender, urunAgacinaEkleFlag = gridPart.urunAgacineEkleFlag ?? false;
 				let result = await app.sqlExecSP({
 					query: 'mes_yeniOperListeEkle',
 					params: [
@@ -746,7 +785,7 @@ class MQOEMVeGorev extends MQOEM {
 		catch (ex) { hConfirm(getErrorText(ex), 'Operasyon Ekle'); throw ex }
 	}
 	static async yeniGorevIstendi(e) {
-		const gridRec = this.getGridRec(e); if (!gridRec) return false
+		let gridRec = this.getGridRec(e); if (!gridRec) return false
 		try {
 			let inst = new MQGorev(gridRec), promise_wait = new $.Deferred();
 			await inst.tanimla({
@@ -754,7 +793,7 @@ class MQOEMVeGorev extends MQOEM {
 				kapaninca: e => promise_wait.resolve(null)
 			});
 			inst = (await promise_wait)?.inst; if (!inst) return false
-			const tezgahKod = inst.tezgahKod || gridRec.tezgahkod, perKod = inst.perKod || gridRec.perkod;
+			let tezgahKod = inst.tezgahKod || gridRec.tezgahkod, perKod = inst.perKod || gridRec.perkod;
 			let result = await app.sqlExecSP({
 				query: 'opyon_gorevEkle',
 				params: [
@@ -772,12 +811,12 @@ class MQOEMVeGorev extends MQOEM {
 		catch (ex) { hConfirm(getErrorText(ex), 'Yeni Görev'); throw ex }
 	}
 	static async gerceklemeYapIstendi(e) {
-		const gridRec = this.getGridRec(e); if (!gridRec) { return false }
+		let gridRec = this.getGridRec(e); if (!gridRec) { return false }
 		if ((gridRec.islenebilirmiktar || 0) <= 0) { hConfirm('İşlenebilir Miktar yok', 'Gerçekleme Yap'); return false }
 		// console.warn('gerceklemeYap butona basıldı', gridRec);
 		try {
 			let inst = new MQBarkodRec({ rec: gridRec }).durum_new(), queryYapi;
-			const promise_wait = new $.Deferred();
+			let promise_wait = new $.Deferred();
 			await MQBarkodRec.tanimla({
 				// parentPart: app.activeWndPart,
 				islem: 'yeni', inst, kaydetIslemi: async e => {
@@ -793,12 +832,12 @@ class MQOEMVeGorev extends MQOEM {
 		catch (ex) { hConfirm(getErrorText(ex), 'Gerçekleme Yap'); throw ex }
 	}
 	static gerceklemelerIstendi(e) {
-		const gridRecs = this.getGridRecs(e); if (!gridRecs) { return false }
-		const gridPart = e.gridPart ?? e.sender ?? e.builder?.rootBuilder?.part;
+		let gridRecs = this.getGridRecs(e); if (!gridRecs) { return false }
+		let gridPart = e.gridPart ?? e.sender ?? e.builder?.rootBuilder?.part;
 		try {
-			const oemSayacListe = gridRecs?.length ? gridRecs.map(rec => rec.kaysayac) : null;
+			let oemSayacListe = gridRecs?.length ? gridRecs.map(rec => rec.kaysayac) : null;
 			MQGercekleme.listeEkraniAc({
-				secimlerDuzenle: e => { const sec = e.secimler; sec.temizle() },
+				secimlerDuzenle: e => { let sec = e.secimler; sec.temizle() },
 				args: { oemSayacListe }, kapaninca: e => gridPart?.tazeleDefer()
 			})
 		}
