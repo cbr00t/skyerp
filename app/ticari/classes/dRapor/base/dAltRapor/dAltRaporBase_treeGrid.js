@@ -670,7 +670,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 							let tokens = colText.split?.(') ')
 							if (tokens?.length > 1)
 								colText = tokens[1] || colText
-							colDef.text += `<br/>[ <span class=royalblue>${colText}</span> ]`
+							// colDef.text += `<br/>[ <span class=royalblue>${colText}</span> ]`
+							colDef.text += `<br/><span class=royalblue>${colText}</span>`
 							tumYatayAttrSet[colDef.belirtec] = true
 						}
 					}

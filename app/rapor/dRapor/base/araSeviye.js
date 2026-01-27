@@ -502,9 +502,11 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		attrSet = attrSet ?? this.raporTanim.attrSet;
 		if (attrSet.STOKRESIM) {
 			for (let rec of recs) {
-				let {resimid: id} = rec; if (!id) { continue }
-				let url = app.getWSUrl({ session: false, api: 'stokResim', args: { id } });
-				rec.stokresim = `<img class="full-wh" src="${url}"/>`
+				let {resimid: id} = rec
+				if (!id)
+					continue
+				let url = app.getWSUrl({ session: false, api: 'stokResim', args: { id } })
+				rec.stokresim = `<div class="full-wh"><img align="center" style="height: 250px" src="${url}"/></div>`
 			}
 		}
 		return await super.loadServerData_recsDuzenle({ ...arguments })
@@ -679,7 +681,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			this.loadServerData_queryDuzenle_hmrBasit({ ...e, sent })
 		return this
 	}
-	loadServerData_queryDuzenle_hmrBasit({ attrSet, alias, stm, sent }) {
+	loadServerData_queryDuzenle_hmrBasit({ attrSet, alias, stm, sent, hv }) {
 		let aliasVeNokta = alias ? `${alias}.` : ''
 		sent ??= stm.sent
 		let {where: wh, sahalar} = sent
@@ -687,20 +689,21 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			let tip = belirtec.toUpperCase()
 			if (!attrSet[tip])
 				continue
+			let clause = hv?.[rowAttr] || aliasVeNokta + rowAttr
 			let hmrTable = kami ? mfSinif?.table : null
 			if (hmrTable) {
 				let {tableAlias: hmrTableAlias, idSaha, adiSaha} = mfSinif
-				sent.fromIliski(`${hmrTable} ${hmrTableAlias}`, `${alias}.${rowAttr} = ${hmrTableAlias}.${idSaha}`)
-				sahalar.add(`${aliasVeNokta}${rowAttr} ${belirtec}kod`)
+				sent.fromIliski(`${hmrTable} ${hmrTableAlias}`, `${clause} = ${hmrTableAlias}.${idSaha}`)
+				sahalar.add(`${clause} ${belirtec}kod`)
 				if (adiSaha)
-					sahalar.add(`${hmrTableAlias}.${adiSaha} ${belirtec}adi`)
+					sahalar.add(`${clause} ${belirtec}adi`)
 				switch (tip) {
 					case 'RENK': sahalar.add(`${hmrTableAlias}.oscolor1`, `${hmrTableAlias}.uyarlanmisoscolor2 oscolor2`); break
 					case 'DESEN': sahalar.add(`${hmrTableAlias}.imagesayac`); break
 				}
 			}
 			else
-				sahalar.add(`${aliasVeNokta}${rowAttr} ${belirtec}`)
+				sahalar.add(`${clause} ${belirtec}`)
 		}
 		return this
 	}
@@ -837,7 +840,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			return this
 		sent = sent ?? stm.sent
 		let {from, where: wh, sahalar} = sent
-		if (attrSet.STANAGRP || attrSet.STGRP || attrSet.STISTGRP || attrSet.STOK || attrSet.STOKMARKA || attrSet.STOKRESIM) {
+		if (attrSet.STANAGRP || attrSet.STGRP || attrSet.STISTGRP || attrSet.STOK || attrSet.STOKMARKA || attrSet.STOKRESIM ||
+				   attrSet.BRM || attrSet.BRM2 || attrSet.BRMORANI) {
 			if (!from.aliasIcinTable('stk'))
 				sent.x2StokBagla({ kodClause })
 		}

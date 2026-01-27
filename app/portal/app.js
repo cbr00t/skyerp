@@ -18,9 +18,10 @@ class PortalApp extends TicariApp {
 			{ kod: 'musteriLogin', aciklama: 'Müşteri' }
 		])
 	}
-	paramsDuzenle(e) { super.paramsDuzenle(e) /*; const {params} = e; $.extend(params, { x: MQParam_X.getInstance() })*/ }
+	paramsDuzenle(e) { super.paramsDuzenle(e) /*; let {params} = e; $.extend(params, { x: MQParam_X.getInstance() })*/ }
 	async paramsDuzenleSonrasi(e) {
-		await super.paramsDuzenleSonrasi(e); let {params} = this, {ticariGenel} = params;
+		await super.paramsDuzenleSonrasi(e)
+		let {params} = this, {ticariGenel} = params 
 		if (!ticariGenel.kullanim.eFatura) { ticariGenel.kullanim.eFatura = true; ticariGenel.kaydet() }
 	}
 	async afterRun(e) {
@@ -32,8 +33,8 @@ class PortalApp extends TicariApp {
 		await this.promise_ready; let eksikParamIsimleri = [];
 		/*if (!kullanim.webOzetRapor) { eksikParamIsimleri.push('Web Özet Rapor') }*/
 		if (eksikParamIsimleri.length) {
-			this.noMenuFlag = true; const paramIsimleriGosterim = eksikParamIsimleri.map(x => `<span class="bold firebrick">${x}</span>`).join(' VE ');
-			const wnd = createJQXWindow({
+			this.noMenuFlag = true; let paramIsimleriGosterim = eksikParamIsimleri.map(x => `<span class="bold firebrick">${x}</span>`).join(' VE ');
+			let wnd = createJQXWindow({
 				content: (
 					`<div>${paramIsimleriGosterim} parametreleri</div>
 					<div>Vio Ticari Program &gt; <span class="bold royalblue">Ticari ?? Parametreleri</span> kısmından açılmalıdır.</div><p/>
@@ -48,8 +49,10 @@ class PortalApp extends TicariApp {
 		await super.anaMenuOlustur(e)
 	}
 	getAnaMenu(e) {
-		let{noMenuFlag} = this; if (noMenuFlag) { return new FRMenu() }
-		let {current: login} = MQLogin, {adminmi, bayimi} = login;
+		let{noMenuFlag} = this
+		if (noMenuFlag)
+			return new FRMenu()
+		let {current: login} = MQLogin, {adminmi, bayimi} = login
 		let items = [
 			(adminmi || bayimi ? new FRMenuCascade({
 				mne: 'TAN', text: 'Tanımlar', items: (

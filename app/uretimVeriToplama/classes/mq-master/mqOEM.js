@@ -268,24 +268,42 @@ class MQOEM extends MQSayacliOrtak {
 	}
 	static digerMenuIstendi(e) {
 		$.extend(e, { formDuzenleyici: _e => {
-			_e = $.extend({}, e, _e); let {form, close, recs} = _e; form.altAlta();
-			let tezgahVarmi = !!recs?.filter(rec => !!rec.tezgahkod)?.length;
-			form.addStyle(e = `$elementCSS .formBuilder-element.parent { margin-top: 5px !important }`);
-			let altForm = form.addFormWithParent().yanYana(2);
-				altForm.addCheckBox('sadeceIslenebilirOlanlarmi', 'İşlenebilir Olanlar').getValueIslemi(e => e.builder.rootPart.parentPart.secimler.sadeceIslenebilirOlanlarmi.value)
-					.degisince(e => this.sadeceIslenebilirOlanlarmi_secimDegisti(e)).onAfterRun(e => e.builder.rootPart.parentPart.sadeceIslenebilirOlanlarmi = e.builder);
-				altForm.addCheckBox('goreviOlanlarmi', 'Görevi Olanlar').getValueIslemi(e => e.builder.rootPart.parentPart.secimler.goreviOlanlarmi.value)
-					.degisince(e => this.goreviOlanlarmi_secimDegisti(e)).onAfterRun(e => e.builder.rootPart.parentPart.fbd_goreviOlanlarmi = e.builder);
-				altForm.addCheckBox('sadeceBaslamismi', 'Başlamış Olanlar').getValueIslemi(e => e.builder.rootPart.parentPart.secimler.sadeceBaslamismi.value)
-					.degisince(e => this.sadeceBaslamismi_secimDegisti(e)).onAfterRun(e => e.builder.rootPart.parentPart.fbd_sadeceBaslamismi = e.builder);
-			altForm = form.addFormWithParent().yanYana(2);
+			_e = { ...e, _e }
+			let {form, close, recs, rootPart = _e.gridPart} = _e
+			let {secimler: sec} = rootPart
+			form.altAlta()
+				.addStyle(`$elementCSS > div { margin-left: 15px !important }`)
+				.addStyle_wh(`calc(var(--full) - 15px)`)
+			let tezgahVarmi = !empty(recs?.filter(rec => !!rec.tezgahkod))
+			let altForm = form.addFormWithParent().yanYana()
+				altForm.addStyle_fullWH(null, 60)
+				altForm.addStyle(
+					`$elementCSS > div { margin-top: 13px !important }
+					 $elementCSS > div:first-child { margin-top: 8px !important }`
+				)
+				altForm.addCheckBox('sadeceIslenebilirOlanlarmi', 'İşlenebilir Olanlar')
+					.setValue(sec.sadeceIslenebilirOlanlarmi.value)
+					.degisince(e => this.sadeceIslenebilirOlanlarmi_secimDegisti(e))
+					.onAfterRun(e => rootPart.sadeceIslenebilirOlanlarmi = e.builder)
+				altForm.addCheckBox('goreviOlanlarmi', 'Görevi Olanlar')
+					.setValue(e => sec.goreviOlanlarmi.value)
+					.degisince(e => this.goreviOlanlarmi_secimDegisti(e))
+					.onAfterRun(e => rootPart.fbd_goreviOlanlarmi = e.builder)
+				altForm.addCheckBox('sadeceBaslamismi', 'Başlamış Olanlar')
+					.setValue(e => sec.sadeceBaslamismi.value)
+					.degisince(e => this.sadeceBaslamismi_secimDegisti(e))
+					.onAfterRun(e => rootPart.fbd_sadeceBaslamismi = e.builder)
+			altForm = form.addFormWithParent().yanYana(2)
 				altForm.addButton('yeniOper', undefined, 'Yeni Operasyon').onClick(e => { close(); this.yeniOperIstendi(_e) });
 				altForm.addButton('yeniGorev', undefined, 'Yeni Görev').onClick(e => { close(); this.yeniGorevIstendi(_e) });
+			altForm = form.addFormWithParent().yanYana(2)
 				altForm.addButton('gerceklemeYap', undefined, 'Gerçekleme Yap').onClick(e => { close(); this.gerceklemeYapIstendi(_e) });
 				altForm.addButton('gerceklemeler', undefined, 'Gerçeklemeler').onClick(e => { close(); this.gerceklemelerIstendi(_e) });
+			altForm = form.addFormWithParent().yanYana(2)
 				altForm.addButton('isBaslat', undefined, 'İş Başlat').onClick(e => { close(); this.isBaslatIstendi(_e) }).onBuildEk(e => { let {input} = e.builder; if (!tezgahVarmi) { input.jqxButton({ disabled: true }) } });
 				altForm.addButton('isDurdur', undefined, 'İş Durdur').onClick(e => { close(); this.isDurdurIstendi(_e) }).onBuildEk(e => { let {input} = e.builder; if (!tezgahVarmi) { input.jqxButton({ disabled: true }) } })
-		} }); this.openContextMenu(e)
+		} })
+		this.openContextMenu(e)
 	}
 	static rootFormBuilderDuzenleSonrasi_listeEkrani(e) {
 		super.rootFormBuilderDuzenleSonrasi_listeEkrani(e); let rfb = e.rootBuilder;
@@ -377,7 +395,8 @@ class MQOEM extends MQSayacliOrtak {
 		sent.where.add(`emr.silindi = ''`, `emr.durumu = 'D'`)
 		if (tabletSadeceSonOperasyon)
 			sent.where.add(`oem.sonasama <> ''`)
-		if (sabit_hatKod) { sent.where.degerAta(sabit_hatKod, `${alias}.ismrkkod`) }
+		if (sabit_hatKod)
+			sent.where.degerAta(sabit_hatKod, `${alias}.ismrkkod`)
 		sent.sahalar.add(`${alias}.ismrkkod hatkod`, 'hat.aciklama hatadi').addWithAlias(alias, 'opno', 'tezgahkod', 'perkod')
 			.add('emr.bizsubekod', 'emr.no emirno', 'emr.fisnox emirnox', 'emr.tarih emirtarih', `${alias}.opno`, 'op.aciklama opadi',
 				 'frm.formul stokkod', 'stk.aciklama stokadi', 'stk.pdmkodu', 'tez.aciklama tezgahadi', 'per.aciklama peradi')
@@ -523,8 +542,10 @@ class MQOEMVeGorev extends MQOEM {
 						if (subItems?.length) { allSubItems.push(...subItems) }
 						if (subGroups?.length) { for (let subGroup of subGroups) { if (subGroup) { fillSubItems(subGroup) } } }
 					};
-					fillSubItems(groupInfo); let sonAsamami = allSubItems.every(rec => asBool(rec.sonasama));
-					if (sonAsamami) { group += `<span class="orangered ek-bilgi" style="font-size: 90%; margin-left: 30px">(son)</span>` }
+					fillSubItems(groupInfo)
+					let sonAsamami = allSubItems.every(rec => asBool(rec.sonasama))
+					if (sonAsamami)
+						group += `<span class="orangered ek-bilgi" style="font-size: 90%; margin-left: 30px">(son)</span>`
 				}
 				let result = getFuncValue.call(this, groupsRenderer, text, group, expanded, groupInfo);
 				return result
@@ -656,24 +677,13 @@ class MQOEMVeGorev extends MQOEM {
 				(tabletSadeceSonOperasyon ? { name: '@sadeceSonAsama', type: 'bit', value: 1 } : null)
 			].filter(x => !!x)
 		}
-		let frmSayac2IsBitimYerKod = {}
-		if (nihaiUrunTeslimAgacVeyaHattaGoredir) {
-			let sent = new MQSent({
-				from: 'urtfrm frm',
-				where: `frm.isbitimyerkod <> ''`,
-				sahalar: ['frm.kaysayac sayac', 'frm.isbitimyerkod yerKod']
-			}).distinctYap()
-			for (let {sayac, yerKod} of await app.sqlExecSelect(sent))
-				frmSayac2IsBitimYerKod[sayac] = yerKod
-		}
 		let recs = await app.sqlExecSP(_e)
 		if (!empty(recs)) {
 			let donusumDict = {
 				oemsayac: this.sayacSaha, oemislemsayac: 'isid', oislemdurum: 'oemislemdurum',
 				fisnox: 'emirnox', ismrkkod: 'hatkod', ismrkadi: 'hatadi'
 			}
-			let {sayacSaha} = this
-			let sonOEMSayac
+			let {sayacSaha} = this, sonOEMSayac
 			for (let rec of recs) {
 				for (let [key, newKey] of entries(donusumDict)) {
 					let value = rec[key]
@@ -682,7 +692,7 @@ class MQOEMVeGorev extends MQOEM {
 					rec[newKey] = value
 					delete rec[key]
 				}
-				let oemSayac = rec[sayacSaha]
+				let {[sayacSaha]: oemSayac} = rec
 				if ((oemSayac && sonOEMSayac) && oemSayac == sonOEMSayac)
 					rec._gorevSatirimi = true
 				sonOEMSayac = oemSayac
@@ -690,10 +700,30 @@ class MQOEMVeGorev extends MQOEM {
 					emirno: asInteger(rec.emirnox), opno: asInteger(rec.opno),
 					islenebilirmiktar: rec.islenebilirmiktar || 0, isuretilen: rec.isuretilen || 0
 				})
-				rec.isbitimyerkod ??= frmSayac2IsBitimYerKod?.[oemSayac]
 			}
 			recs.sort((a, b) =>
 				a.hatkod < b.hatkod ? 1 : a.hatkod > b.hatkod ? -1 : a.emirno < b.emirno ? 1 : a.emirno > b.emirno ? -1 : 0)
+			if (nihaiUrunTeslimAgacVeyaHattaGoredir) {
+				let formulSayacSet = asSet(recs.map(_ => _.formulsayac))
+				let frmSayac2IsBitimYerKod = {}
+				let sent = new MQSent({
+					from: 'urtfrm frm',
+					where: [
+						`frm.isbitimyerkod <> ''`,
+						{ inDizi: keys(formulSayacSet), saha: 'frm.kaysayac' }
+					],
+					sahalar: ['frm.kaysayac sayac', 'frm.isbitimyerkod yerKod']
+				}).distinctYap()
+				for (let {sayac, yerKod} of await app.sqlExecSelect(sent))
+					frmSayac2IsBitimYerKod[sayac] = yerKod
+				for (let rec of recs) {
+					let sonAsamami = asBool(rec.sonasama)
+					if (sonAsamami) {
+						let {[sayacSaha]: oemSayac} = rec
+						rec.isbitimyerkod ??= frmSayac2IsBitimYerKod?.[oemSayac]
+					}
+				}
+			}
 		}
 		return recs
 	}

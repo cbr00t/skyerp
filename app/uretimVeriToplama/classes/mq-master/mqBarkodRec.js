@@ -73,9 +73,12 @@ class MQBarkodRec extends MQMasterOrtak {
 		}
 		/* if (config.dev) { e.oemID = 1 } */
 		$.extend(this, {
-			_durum: e._durum ?? e.durum ?? this.durum ?? 'new', id: e.id || this.id || newGUID(), serbestmi: e.serbestmi ?? this.serbestmi ?? false, noCheckFlag: e.noCheck ?? e.noCheckFlag ?? false,
-			_gorevmi: e.gorevmi, barkod: e.barkod ?? this.barkod, carpan: e.carpan ?? this.carpan, isKapansinmi: e.isKapansinmi ?? false, sonAsamami: e.sonAsamami ?? asBoolQ(e.sonasama),
-			oemSayac: e.oemSayac ?? e.oemsayac ?? e.oemID ?? e.oemId ?? e.oemid ?? e.fissayac ?? e.kaysayac ?? this.oemSayac, isId: e.isId ?? e.isID ?? e.isid ?? e.isSayac ?? e.issayac,
+			_durum: e._durum ?? e.durum ?? this.durum ?? 'new', id: e.id || this.id || newGUID(),
+			serbestmi: e.serbestmi ?? this.serbestmi ?? false, noCheckFlag: e.noCheck ?? e.noCheckFlag ?? false,
+			_gorevmi: e.gorevmi, barkod: e.barkod ?? this.barkod, carpan: e.carpan ?? this.carpan, isKapansinmi: e.isKapansinmi ?? false,
+			sonAsamami: e.sonAsamami ?? asBoolQ(e.sonasama),
+			oemSayac: e.oemSayac ?? e.oemsayac ?? e.oemID ?? e.oemId ?? e.oemid ?? e.fissayac ?? e.kaysayac ?? this.oemSayac,
+			isId: e.isId ?? e.isID ?? e.isid ?? e.isSayac ?? e.issayac,
 			formulSayac: e.formulSayac ?? e.formulsayac, onceOpNo: e.onceOpNo ?? e.onceopno,
 			emirNox: e.emirNox ?? e.emirnox ?? this.emirNox, emirTarih: e.emirTarih || e.emirtarih || this.emirTarih,
 			opNo: e.opNo || e.opno || this.opNo, opAdi: e.opAdi || e.opadi || this.opAdi,
@@ -92,8 +95,11 @@ class MQBarkodRec extends MQMasterOrtak {
 			paketKod: (e.paketKod ?? e.paketkod ?? this.paketIcAdet) || '', paketIcAdet: (e.paketIcAdet ?? this.paketIcAdet ?? null),
 			vardiyaNo: e.vardiyaNo ?? 1, ekOzellikler: e.ekOzellikler ?? this.ekOzellikler ?? {},
 			iskartalar: e.iskartalar ?? this.iskartalar, kaliteYapi: e.kaliteYapi ?? e.kalite ?? this.kaliteYapi,
-			nihaiTeslimDepoKod: e.nihaiTeslimDepoKod ?? e.isbitimyerkod ?? this.nihaiTeslimDepoKod,
-			nihaiTeslimDepoAdi: e.nihaiTeslimDepoAdi ?? e.isbitimyeradi ?? this.nihaiTeslimDepoAdi
+		})
+		let {sonAsamami} = this
+		extend(this, {
+			nihaiTeslimDepoKod: e.nihaiTeslimDepoKod ?? (sonAsamami ? e.isbitimyerkod : null) ?? this.nihaiTeslimDepoKod,
+			nihaiTeslimDepoAdi: e.nihaiTeslimDepoAdi ?? (sonAsamami ? e.isbitimyeradi : null) ?? this.nihaiTeslimDepoAdi
 		})
 		if (this.oemSayac) { this.setOEMIDFromBarkodFlag() }
 		let value = e.suAnmi ?? e.suAn ?? e.suan; if (value !== undefined) { this.suAnmi = value }
@@ -495,7 +501,7 @@ class MQBarkodRec extends MQMasterOrtak {
 				}
 				if (!empty(seriKontrol_errorList)) { let isError = true, errorText = seriKontrol_errorList.join('<p/>'); throw { isError, errorText } }
 			}
-			let {nihaiTeslimDepoKod} = this
+			let {sonAsamami, nihaiTeslimDepoKod} = this
 			let params = [
 				(oemSayac ? { name: '@argOemSayac', type: 'bigint', value: oemSayac } : null),
 				{ name: '@argKaynakTipi', type: 'char', value: 'VT' },
@@ -513,7 +519,9 @@ class MQBarkodRec extends MQMasterOrtak {
 				{ name: '@oemKapansin', type: 'bit', value: bool2Int(isKapansinmi) },
 				{ name: '@gerSayac', type: 'bigint', direction: 'output' },
 				(vardiyaNo ? { name: '@argVardiyaNo', type: 'smallint', value: asInteger(vardiyaNo) } : null),
-				(nihaiUrunTeslimAgacVeyaHattaGoredir && nihaiTeslimDepoKod ? { name: '@argNihaiTeslimDepoKod', type: 'char', value: nihaiTeslimDepoKod ?? '' } : null)
+				(sonAsamami && nihaiUrunTeslimAgacVeyaHattaGoredir && nihaiTeslimDepoKod
+					 ? { name: '@argNihaiTeslimDepoKod', type: 'char', value: nihaiTeslimDepoKod ?? '' }
+					 : null)
 			].filter(x => !!x);
 			return ({ query: 'ou_gerceklemeYap', params })
 		}

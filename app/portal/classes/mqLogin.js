@@ -154,18 +154,18 @@ class MQLogin_Bayi extends MQLogin {
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); let {tanimFormBuilder: tanimForm, tabPage_genel: tabPage} = e;
-		tabPage.builders[tabPage.builders.length - 1].addCheckBox('sefmi', 'Şef');
-		let form = tabPage.addFormWithParent().yanYana();
-			form.addTextInput('kisaKod', 'Kısa Kod').setMaxLength(10).addStyle_wh(110);
+		tabPage.builders[tabPage.builders.length - 1].addCheckBox('sefmi', 'Şef')
+		let form = tabPage.addFormWithParent().yanYana()
+			form.addTextInput('kisaKod', 'Kısa Kod').setMaxLength(10).addStyle_wh(110)
 			form.addTextInput('tip', 'Tip').setMaxLength(1).addStyle_wh(50)
-			form.addModelKullan('anaBayiKod', 'Ana Bayi').dropDown().setMFSinif(MQVPAnaBayi).autoBind().kodsuz().addStyle_wh(250);
-		form = tabPage.addFormWithParent().yanYana();
-			form.addModelKullan('ilKod', 'İl').dropDown().setMFSinif(MQVPIl).autoBind().kodsuz().addStyle_wh(250);
-			form.addTextInput('yore', 'Yöre').setMaxLength(25).addStyle_wh(250);
-			form.addTextInput('eMail', 'e-Mail').setMaxLength(50).addStyle_wh(500)
+			form.addModelKullan('anaBayiKod', 'Ana Bayi').dropDown().setMFSinif(MQVPAnaBayi).autoBind().kodsuz().addStyle_wh(250)
+		form = tabPage.addFormWithParent().yanYana()
+			form.addModelKullan('ilKod', 'İl').dropDown().setMFSinif(MQVPIl).autoBind().kodsuz().addStyle_wh(250)
+			form.addTextInput('yore', 'Yöre').setMaxLength(25).addStyle_wh(250)
+			form.addTextInput('eMail', 'e-Mail').setMaxLength(80).addStyle_wh(800)
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
-		super.orjBaslikListesiDuzenle(...arguments);
+		super.orjBaslikListesiDuzenle(...arguments)
 		liste.push(
 			new GridKolon({ belirtec: 'kisakod', text: 'Kısa Kod', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'tip', text: 'Tip', genislikCh: 8 }),
@@ -179,14 +179,17 @@ class MQLogin_Bayi extends MQLogin {
 		)
 	}
 	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent, basit }) {
-		super.loadServerData_queryDuzenle(...arguments); let {tableAlias: alias, kodSaha} = this, {from, where: wh, sahalar} = sent;
-		sent.fromIliski(`${MQVPIl.table} il`, `${alias}.ilkod = il.kod`);
-		sahalar.add(`${alias}.bsefmi`);
+		super.loadServerData_queryDuzenle(...arguments)
+		let {tableAlias: alias, kodSaha} = this
+		let {from, where: wh, sahalar} = sent
+		sent.fromIliski(`${MQVPIl.table} il`, `${alias}.ilkod = il.kod`)
+		sahalar.add(`${alias}.bsefmi`)
 		if (!basit) {
-			sent.leftJoin(alias, `${MQVPAnaBayi.table} abay`, `${alias}.anabayikod = abay.kod`);
-			if (MQLogin.current.musterimi) { wh.add('1 = 2') }
+			sent.leftJoin(alias, `${MQVPAnaBayi.table} abay`, `${alias}.anabayikod = abay.kod`)
+			if (MQLogin.current.musterimi)
+				wh.add('1 = 2')
 			else {
-				let clauses = { bayi: `${alias}.${kodSaha}`, anaBayi: `${alias}.anabayikod` };
+				let clauses = { bayi: `${alias}.${kodSaha}`, anaBayi: `${alias}.anabayikod` }
 				MQLogin.current.yetkiClauseDuzenle({ sent, clauses })
 			}
 		}
@@ -196,7 +199,7 @@ class MQLogin_Bayi extends MQLogin {
 		return super._yetkiVarmi(...arguments)
 	}
 	_yetkiClauseDuzenle({ wh, clauses }) {
-		super._yetkiClauseDuzenle(...arguments);
+		super._yetkiClauseDuzenle(...arguments)
 		if (!this.sefmi) {
 			if (this.kod) { let {bayi: kodClause} = clauses; if (kodClause) { wh.degerAta(this.kod, kodClause) } }
 			if (this.anaBayiKod) { let {anaBayi: kodClause} = clauses; if (kodClause) { wh.degerAta(this.anaBayiKod, kodClause) } }
@@ -209,53 +212,66 @@ class MQLogin_Musteri extends MQLogin {
 	static get table() { return 'musteri' } static get musterimi() { return true }
 	static get sifreGirilirmi() { return false }
 	static pTanimDuzenle({ pTanim }) {
-		super.pTanimDuzenle(...arguments);
+		super.pTanimDuzenle(...arguments)
 		$.extend(pTanim, {
-			tanitim: new PInstStr('tanitim'), bayiKod: new PInstStr('bayikod'), tip: new PInstStr('tip'),
+			tanitim: new PInstStr('tanitim'),
+			bayiKod: new PInstStr('bayikod'),
+			tip: new PInstStr('tip'),
 			refListeyeAlinmazmi: new PInstBitTrue('breferanslisteyealma'), ilKod: new PInstStr('ilkod'),
-			yore: new PInstStr('yore'), eMail: new PInstStr('email'), firmaTelefon: new PInstStr('firmatelefon'),
-			vkn: new PInstStr('vkn'), vergiDaire: new PInstStr('vdaire'), yaptigiIs: new PInstStr('yaptigiis'),
-			yetkiliKisi: new PInstStr('yetkilikisi'), yetkiliTelefon: new PInstStr('yetkilitelefon'),
+			yore: new PInstStr('yore'),
+			eMail: new PInstStr('email'),
+			yedeklemeEMail: new PInstStr('yedeklemeemail'),
+			firmaTelefon: new PInstStr('firmatelefon'),
+			vkn: new PInstStr('vkn'),
+			vergiDaire: new PInstStr('vdaire'),
+			yaptigiIs: new PInstStr('yaptigiis'),
+			yetkiliKisi: new PInstStr('yetkilikisi'),
+			yetkiliTelefon: new PInstStr('yetkilitelefon'),
 			adres1: new PInstStr('adres1'), adres2: new PInstStr('adres2')
 		})
 	}
 	static secimlerDuzenle({ secimler: sec }) {
-		super.secimlerDuzenle(...arguments); let {tableAlias: alias} = this;
+		super.secimlerDuzenle(...arguments)
+		let {tableAlias: alias} = this
 		sec.addKA('il', MQVPIl, `${alias}.ilkod`, 'il.aciklama')
-		   .addKA('bayi', MQLogin_Bayi, `${alias}.bayikod`, 'bay.aciklama');
+		   .addKA('bayi', MQLogin_Bayi, `${alias}.bayikod`, 'bay.aciklama')
 		sec
 			.secimTopluEkle({ vkn: new SecimOzellik({ etiket: 'VKN' }) })
 			.whereBlockEkle(({ secimler: sec, where: wh }) => { wh.ozellik(sec.vkn, `${alias}.vkn`) })
 	}
 	static rootFormBuilderDuzenleSonrasi_listeEkrani(e) {
-		super.rootFormBuilderDuzenleSonrasi_listeEkrani(e); let {rootBuilder: rfb} = e;
+		super.rootFormBuilderDuzenleSonrasi_listeEkrani(e)
+		let {rootBuilder: rfb} = e
 		this.fbd_listeEkrani_addButton(rfb, 'kontorMenu', '...', 50, e => this.kontorMenuIstendi(e))
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); let {tanimFormBuilder: tanimForm, tabPage_genel: tabPage} = e;
-		let form = tabPage.builders[tabPage.builders.length - 1];
-			form.addCheckBox('refListeyeAlinmazmi', 'Ref. Listeye AlınMAz');
-		form = tabPage.addFormWithParent().yanYana(2);
-			form.addModelKullan('bayiKod', 'Bayi').comboBox().setMFSinif(MQLogin_Bayi).autoBind().addStyle_wh(500);
-			form.addTextInput('tanitim', 'Tanıtım').setMaxLength(39).addCSS('center').addStyle_wh(550);
-			form.addTextInput('tip', 'Tip').setMaxLength(2).addStyle_wh(100).addCSS('center');    /* .addStyle(`$elementCSS { margin-left: 10px !important }`) */
-		form = tabPage.addFormWithParent().yanYana();
-			form.addModelKullan('ilKod', 'İl').dropDown().setMFSinif(MQVPIl).autoBind().kodsuz().addStyle_wh(250);
-			form.addTextInput('yore', 'Yöre').setMaxLength(25).addStyle_wh(250);
-			form.addTextInput('eMail', 'e-Mail').setMaxLength(50).addStyle_wh(500);
-			form.addTextInput('vkn', 'VKN').setMaxLength(11).addStyle_wh(150).addCSS('center');
+		super.rootFormBuilderDuzenle(e)
+		let {tanimFormBuilder: tanimForm, tabPage_genel: tabPage} = e
+		let form = tabPage.builders[tabPage.builders.length - 1]
+			form.addCheckBox('refListeyeAlinmazmi', 'Ref. Listeye AlınMAz')
+		form = tabPage.addFormWithParent().yanYana(2)
+			form.addModelKullan('bayiKod', 'Bayi').comboBox().setMFSinif(MQLogin_Bayi).autoBind().addStyle_wh(500)
+			form.addTextInput('tanitim', 'Tanıtım').setMaxLength(39).addCSS('center').addStyle_wh(550)
+			form.addTextInput('tip', 'Tip').setMaxLength(2).addStyle_wh(100).addCSS('center')    /* .addStyle(`$elementCSS { margin-left: 10px !important }`) */
+		form = tabPage.addFormWithParent().yanYana()
+			form.addModelKullan('ilKod', 'İl').dropDown().setMFSinif(MQVPIl).autoBind().kodsuz().addStyle_wh(250)
+			form.addTextInput('yore', 'Yöre').setMaxLength(25).addStyle_wh(250)
+			form.addTextInput('vkn', 'VKN').setMaxLength(11).addStyle_wh(150).addCSS('center')
 			form.addTextInput('vergiDaire', 'V.Daire').setMaxLength(25).addStyle_wh(300)
-		form = tabPage.addFormWithParent().yanYana();
-			form.addTextInput('firmaTelefon', 'Firma Telefon').setMaxLength(13).addStyle_wh(200);
-			form.addTextInput('yetkiliKisi', 'Yetkili Kişi').setMaxLength(50).addStyle_wh(300);
-			form.addTextInput('yetkiliTelefon', 'Yetkili Telefon').setMaxLength(13).addStyle_wh(200);
+		form = tabPage.addFormWithParent().yanYana()
+			form.addTextInput('eMail', 'e-Mail').setMaxLength(80).addStyle_wh(500)
+			form.addTextInput('yedeklemeEMail', 'Yedekleme e-Mail').setMaxLength(160).addStyle_wh(1000)
+		form = tabPage.addFormWithParent().yanYana()
+			form.addTextInput('firmaTelefon', 'Firma Telefon').setMaxLength(13).addStyle_wh(200)
+			form.addTextInput('yetkiliKisi', 'Yetkili Kişi').setMaxLength(50).addStyle_wh(300)
+			form.addTextInput('yetkiliTelefon', 'Yetkili Telefon').setMaxLength(13).addStyle_wh(200)
 			form.addTextInput('yaptigiIs', 'Yaptığı İş').setMaxLength(100).addStyle_wh(450)
-		form = tabPage.addFormWithParent().yanYana();
-			form.addTextInput('adres1', 'Adres 1').addStyle_wh(800);
+		form = tabPage.addFormWithParent().yanYana()
+			form.addTextInput('adres1', 'Adres 1').addStyle_wh(800)
 			form.addTextInput('adres2', 'Adres 2').addStyle_wh(800)
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
-		super.orjBaslikListesiDuzenle(...arguments);
+		super.orjBaslikListesiDuzenle(...arguments)
 		liste.push(
 			new GridKolon({ belirtec: 'bayikod', text: 'Bayi Kod', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'bayiadi', text: 'Bayi Adı', genislikCh: 30, sql: 'bay.aciklama' }),
@@ -263,7 +279,8 @@ class MQLogin_Musteri extends MQLogin {
 			new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 8 }),
 			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 25, sql: 'il.aciklama' }),
 			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 15 }),
-			new GridKolon({ belirtec: 'email', text: 'e-Mail', genislikCh: 40 }),
+			new GridKolon({ belirtec: 'email', text: 'e-Mail', genislikCh: 60 }),
+			new GridKolon({ belirtec: 'yedeklemeemail', text: 'Yedekleme e-Mail', genislikCh: 100 }),
 			new GridKolon({ belirtec: 'vkn', text: 'VKN', genislikCh: 13 }),
 			new GridKolon({ belirtec: 'vdaire', text: 'V.D', genislikCh: 25 }),
 			new GridKolon({ belirtec: 'anabayikod', text: 'Ana Bayi Kod', genislikCh: 10, sql: 'bay.anabayikod' }),
@@ -280,31 +297,36 @@ class MQLogin_Musteri extends MQLogin {
 		)
 	}
 	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent, basit }) {
-		super.loadServerData_queryDuzenle(...arguments); let {tableAlias: alias} = this;
-		sent.fromIliski(`${MQLogin_Bayi.table} bay`, `${alias}.bayikod = bay.kod`);
-		/*sent.fromIliski(`${MQVPAnaBayi.table} abay`, 'bay.anabayikod = abay.kod');*/
-		sent.fromIliski(`${MQVPIl.table} il`, `${alias}.ilkod = il.kod`);
+		super.loadServerData_queryDuzenle(...arguments)
+		let {tableAlias: alias} = this
+		sent.fromIliski(`${MQLogin_Bayi.table} bay`, `${alias}.bayikod = bay.kod`)
+		/*sent.fromIliski(`${MQVPAnaBayi.table} abay`, 'bay.anabayikod = abay.kod')*/
+		sent.fromIliski(`${MQVPIl.table} il`, `${alias}.ilkod = il.kod`)
 		if (!basit) {
-			sent.leftJoin('bay', `${MQVPAnaBayi.table} abay`, 'bay.anabayikod = abay.kod');
-			let clauses = { bayi: `${alias}.bayikod`, musteri: `${alias}.kod` };
+			sent.leftJoin('bay', `${MQVPAnaBayi.table} abay`, 'bay.anabayikod = abay.kod')
+			let clauses = { bayi: `${alias}.bayikod`, musteri: `${alias}.kod` }
 			MQLogin.current.yetkiClauseDuzenle({ sent, clauses })
 		}
 	}
 	async dataDuzgunmu(e) {
-		let result = await super.dataDuzgunmu(e);
+		let result = await super.dataDuzgunmu(e)
 		if (result && result != true) { return result }
-		let errors = [], {vkn} = this, vknLen = vkn?.length ?? 0;
-		let fakeVKNmi = vkn == '0000000000' || vkn == '00000000000';
+		let errors = [], {vkn} = this, vknLen = vkn?.length ?? 0
+		let fakeVKNmi = vkn == '0000000000' || vkn == '00000000000'
 		if (!this.kod) { errors.push(`<b>Kod</b> boş olamaz`) }
 		if (this.aciklama?.length <= 4) { errors.push(`<b>Ünvan</b> değeri geçersizdir`) }
 		if (!/^[A-F0-9]{4}(-[A-F0-9]{4}){7}$/.test(this.tanitim)) { errors.push(`<b>Tanıtım</b> değeri geçersizdir`) }
 		if (this.vergiDaire?.length <= 3) { errors.push(`<b>Vergi Dairesi</b> değeri geçersizdir`) }
 		if (!(fakeVKNmi || VergiVeyaTCKimlik.uygunmu(vkn))) { errors.push(`<b>VKN</b> değeri geçersizdir`) }
-		
 		return errors.length ? `<ul>${errors.map(x => `<li>${x}</li>`).join(CrLf)}</ul>` : null
 	}
 	_yetkiVarmi({ islem }) {
-		switch (islem) { case 'tanimla': case 'yeni': case 'degistir': case 'sil': case 'kopya': return false }
+		switch (islem) {
+			case 'tanimla': case 'yeni':
+			case 'degistir': case 'sil':
+			case 'kopya':
+				return false
+		}
 		return super._yetkiVarmi(...arguments)
 	}
 	_yetkiClauseDuzenle({ wh, clauses }) {
@@ -318,12 +340,12 @@ class MQLogin_Musteri extends MQLogin {
 			wndArgsDuzenle: ({ wndArgs: args }) => $.extend(args, { height: 150 }),
 			formDuzenleyici: ({ form: parentForm, close, rec }) => {
 				let listele = cls => {
-					let {kod: mustKod} = rec;
-					cls.listeEkraniAc({ args: { mustKod } });
+					let {kod: mustKod} = rec
+					cls.listeEkraniAc({ args: { mustKod } })
 				};
-				parentForm.altAlta().addStyle(e = `$elementCSS .formBuilder-element.parent { margin-top: 5px !important }`);
+				parentForm.altAlta().addStyle(e = `$elementCSS .formBuilder-element.parent { margin-top: 5px !important }`)
 				let form = parentForm.addFormWithParent().yanYana(2);
-				form.addButton('eBelge', undefined, 'e-Belge Kontör').onClick(() => { close(); listele(MQKontor_EBelge) });
+				form.addButton('eBelge', undefined, 'e-Belge Kontör').onClick(() => { close(); listele(MQKontor_EBelge) })
 				form.addButton('turmob', undefined, 'Turmob Kontör').onClick(() => { close(); listele(MQKontor_Turmob) })
 			}
 		})

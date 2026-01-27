@@ -49,11 +49,11 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 				.addToplamBasit('STK_RAYICALIM', 'Rayiç Alım', 'stk_rayicalim', null, null, ({ colDef }) => colDef.tipDecimal(2))
 		}
 		this.tabloYapiDuzenle_yer(e)
-		result.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, 100, null)
-		result.addToplamBasit('MIKTAR2', '2. Miktar', 'miktar2', null, 100, null)
+		result.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, 160, null)
+		result.addToplamBasit('MIKTAR2', '2. Miktar', 'miktar2', null, 160, null)
 		for (let tip of brmListe) {
 			let fra = brmDict[tip]
-			result.addToplamBasit(`MIKTAR${tip}`, `Miktar (${tip})`, `miktar${tip}`, null, 100, ({ colDef }) => colDef.tipDecimal(fra))
+			result.addToplamBasit(`MIKTAR${tip}`, `Miktar (${tip})`, `miktar${tip}`, null, 160, ({ colDef }) => colDef.tipDecimal(fra))
 		}
 		if (isAdmin || !rol?.ozelRolVarmi('XMALYT')) {
 			result
@@ -81,7 +81,10 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 			let {alias2Deger: hv} = sent
 			sent.sahalarVeGroupByVeHavingReset()
 			let {where: wh, sahalar} = sent
-			let {ozelisaret, opno, gc} = hv
+			let {ozelisaret, stokkod, yerkod, opno, gc} = hv
+			sent.fromIliski('stkmst stk', `${stokkod} = stk.kod`)
+			if (attrSet.DEPO || attrSet.DEPOGRUP)
+				sent.x2YerBagla({ kodClause: yerkod })
 			if (attrSet.SUBE || attrSet.SUBEGRUP)
 				sent.yer2SubeBagla()
 			wh.add(`${ozelisaret} <> 'X'`)
@@ -176,8 +179,8 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 					}
 				}
 			}
-			this.loadServerData_queryDuzenle_stok({ ...e, sent, kodClause: hv.stokkod })
-			this.loadServerData_queryDuzenle_hmrBasit({ ...e, sent })
+			this.loadServerData_queryDuzenle_stok({ ...e, sent, kodClause: stokkod })
+			this.loadServerData_queryDuzenle_hmrBasit({ ...e, sent, hv })
 		}
 	}
 }

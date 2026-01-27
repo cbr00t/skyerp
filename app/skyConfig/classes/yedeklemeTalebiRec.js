@@ -5,53 +5,42 @@ class YedeklemeTalebiRec extends MQCogul {
 	get yenimi() { return this.durum == 'yeni' }
 	get silindimi() { return this.durum == 'silindi' }
 	
-	constructor(e) {
-		e = e || {};
-		super(e);
-		const {zamanSayi} = this.class;
-		$.extend(this, { durum: e.durum, server: e.server, db: e.db });
-		for (const key of this.class.getZamanlarKeys())
+	constructor(e = {}) {
+		super(e)
+		let {zamanSayi} = this.class
+		; ['durum', 'server', 'db'].forEach(k =>
+			this[k] = e[k])
+		for (let key of this.class.getZamanlarKeys())
 			this[key] = asDate(e[key]) || null
 		if (this.durum == null)
 			this.yeni()
 	}
-	static *getZamanlarKeys() {
-		for (let i = 1; i <= this.zamanSayi; i++)
-			yield `zaman${i}`
+	reset(e) {
+		this.durum = 'yeni'
+		this.server = this.db = null
+		let {getZamanlarKeys: _keys} = this.class
+		deleteKeys(this, _keys)
 	}
+	onayli() { this.durum = ''; return this }
+	yeni() { this.durum = 'yeni'; return this }
+	silindi() { this.durum = 'silindi'; return this }
 	asObject(e) {
-		const result = {};
-		for (const key of ['durum', 'server', 'db']) {
-			const value = this[key];
-			if (value != null)
-				result[key] = value
-		}
-		for (const key of this.class.getZamanlarKeys()) {
-			let value = this[key];
+		let result = fromEntries(
+			['durum', 'server', 'db']
+				.map(k => [k, this[k]])
+				.filter(([k, v]) => v)
+		)
+		for (let key of this.class.getZamanlarKeys()) {
+			let value = this[key]
 			if (value)
-				value = timeToString(asDate(value), true);
+				value = timeToString(asDate(value), true)
 			if (value != null)
 				result[key] = value
 		}
 		return result
 	}
-
-	reset(e) {
-		this.durum = 'yeni';
-		this.server = this.db = null;
-		for (const key of this.class.getZamanlarKeys())
-			this[key] = null
-	}
-	onayli() {
-		this.durum = '';
-		return this
-	}
-	yeni() {
-		this.durum = 'yeni';
-		return this
-	}
-	silindi() {
-		this.durum = 'silindi';
-		return this
+	static *getZamanlarKeys() {
+		for (let i = 1; i <= this.zamanSayi; i++)
+			yield `zaman${i}`
 	}
 }
