@@ -171,6 +171,7 @@ class YedeklemeTalebiPart extends Part {
 				let {promise_vioConfig} = app
 				if (promise_vioConfig)
 					await promise_vioConfig
+				tanitim ||= this.tanitim = app.tanitim ||= (await app.wsReadVioConfigBasitWithTanitim())?.tanitim
 				let result = await app.wsYedeklemeTalebiListesi({ args: { tanitim } }) || {}
 				let _recs = result.rows ?? result.recs ?? result
 				if (!empty(_recs))

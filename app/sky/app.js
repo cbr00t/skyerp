@@ -7,7 +7,7 @@ class SkyApp extends App {
 		const promise = this.promise_vioConfig = new $.Deferred();
 		try {
 			const result = await this.wsReadVioConfigBasitWithTanitim();
-			if (result) { this.vioConfig = result; this.vioMerkezHostName = result.vioMerkezHostName }
+			if (result) { this.vioConfig = result; this.vioMerkezHostName = result.vioMerkezHostName; this.tanitim = result.tanitim }
 			promise.resolve(result); return result
 		}
 		catch (ex) { promise.reject(ex); throw ex }
@@ -19,13 +19,15 @@ class SkyApp extends App {
 	vioMerkez_getWSConfigModifiers(e) { return { ssl: true, hostName: this.vioMerkezHostName, port: 9200 } }
 	buildAjaxArgs(e) {
 		e = e || {}; const args = e.args = e.args || {};
-		const tanitim = e.tanitim || args.tanitim || this.vioConfig?.tanitim?.trim(); if (tanitim) { args.tanitim = tanitim }
+		const tanitim = e.tanitim || args.tanitim // || this.vioConfig?.tanitim?.trim()
+		if (tanitim) { args.tanitim = tanitim }
 		super.buildAjaxArgs(e)
 	}
 	vioMerkez_buildAjaxArgs(e) {
 		e = e || {}; const args = e.args = e.args || {};
-		const tanitim = e.tanitim || args.tanitim || this.vioConfig?.tanitim?.trim();
-		if (tanitim) { args.tanitim = tanitim } else { throw { isError: true, rc: 'noData', errorText: 'Tanıtım belirsiz iken VIO Merkez sunucu ile iletişim kurulamaz' } }
+		const tanitim = e.tanitim || args.tanitim // || this.vioConfig?.tanitim?.trim()
+		if (tanitim) { args.tanitim = tanitim }
+		else { throw { isError: true, rc: 'noData', errorText: 'Tanıtım belirsiz iken VIO Merkez sunucu ile iletişim kurulamaz' } }
 		this.buildAjaxArgs(e)
 	}
 }

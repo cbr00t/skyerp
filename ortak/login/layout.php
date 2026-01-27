@@ -7,14 +7,14 @@
 		</div>
 		<div class="row">
 			<h5 class="etiket">Kullanıcı:</h5>
-			<input id="user" class="veri" type="textbox" maxlength="30"></input>
+			<input id="user" class="veri" type="textbox" maxlength="60"></input>
 		</div>
 		<div id="userTextParent" class="row basic-hidden">
 			<span id="userText" class="veri"></span>
 		</div>
 		<div class="row">
 			<h5 class="etiket">Şifre:</h5>
-			<input id="pass" class="veri" type="password" maxlength="30"></input>
+			<input id="pass" class="veri" type="password" maxlength="60"></input>
 			<button id="ssoLogin" class="jqx-hidden"></button>
 		</div>
 		<div id="islemTuslari" class="row">
