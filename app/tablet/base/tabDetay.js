@@ -68,6 +68,13 @@ class TabDetay extends MQDetay {
 				this[i] = v
 		}
 	}
+	static uiKaydetOncesiIslemler({ fis, eskiInst: eskiFis, parentPart, gridPart, result }) {
+		let {detaylar} = fis
+		if (empty(detaylar))
+			result.push(`Detay girişi yapılmalıdır`)
+	}
+	async dataDuzgunmuDuzenle({ fis, eskiInst: eskiFis, parentPart, gridPart, result }) {
+	}
 
 	getHTML(e) { return null }
 	htmlOlustur(e) {

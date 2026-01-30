@@ -19,7 +19,7 @@ class MQYapi extends CIO {
 	static get offlineDirect() { return true } static get offlineGonderYapilirmi() { return false }
 	static get offline2OnlineSaha() { return {} }
 	static get online2OfflineSaha() { return asReverseDict(this.offline2OnlineSaha) }
-	static get logKullanilirmi() { return !this.isOfflineMode }
+	static get logKullanilirmi() { return !(app.offlineMode || this.isOfflineMode) }
 	static get logAnaTip() { return 'K' }
 	static get logRecDonusturucu() { let e = { result: {} }; this.logRecDonusturucuDuzenle(e); return e.result }
 	get logHV() { let e = { hv: {} }; this.logHVDuzenle(e); return e.hv }
@@ -504,7 +504,7 @@ class MQYapi extends CIO {
 						let inst = new this()
 						await inst.setValues({ rec })
 						if (!await inst.yukle({ offlineMode: !offlineMode, offlineRequest, offlineGonderRequest })) { continue }
-						inst = await inst.asOnlineFis({ ...e, rec }) ?? inst
+						inst = await inst.asOnlineFis?.({ ...e, rec }) ?? inst
 						if (inst.sayac) { inst.sayac = null }
 						if (await inst.varmi({ trnId, offlineMode, offlineRequest, offlineGonderRequest })) { continue }
 						if (!await inst.yaz({ trnId, offlineMode, offlineRequest, offlineGonderRequest })) { continue }

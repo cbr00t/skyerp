@@ -233,12 +233,12 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		}
 		catch (ex) {
 			let message = ex.message?.toLowerCase() ?? ''
-			if (!isRetry) {
+			/*if (!isRetry) {
 				if (message.includes('no such column') && window?.app?.dbMgr_tabloEksikleriTamamla) {
 					app.dbMgr_tabloEksikleriTamamla({ ...e, db: this, noCacheReset: true })
 					return this.execute(e, _params, true)
 				}
-			}
+			}*/
 			if (message.includes('unique constraint'))
 				ex.rc = 'duplicateKey'
 			/*if (dbOpCallback) { await dbOpCallback.call(this, { operation: 'executeSql', state: null, error: ex }, e) }*/

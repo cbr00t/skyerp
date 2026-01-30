@@ -30,7 +30,8 @@ body > .bg-image {
 }
 ul > li { list-style-type: disc } .tabs > li, .list-unstyled > li { list-style: none }
 input::placeholder { color: #bebebe }
-input { border-radius: 13px; border: 1px solid #ddd }
+input, select { border-radius: 10px; border: 1px solid #ddd }
+select { height: 45px }
 input[type=color] { /* border: none !important */ }
 input[type=checkbox] { width: 28px; height: 26px }
 input[type=checkbox]+div,

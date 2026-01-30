@@ -15,7 +15,7 @@ class TabTicariDetay extends TabTSDetay {
 	getHTML(e) {
 		let _ = super.super_getHTML(e) ?? '', {dev} = config
 		let {bedelKullanilirmi} = TabTicariFis
-		let {stokAdi, stokKod, barkod, miktar, brm, fiyat} = this
+		let {stokAdi, stokKod, barkod, kdvOrani, miktar, brm, fiyat} = this
 		let iskHTMLListe = [], kosulKodHTMLListe = []
 		for (let {ioAttr: k} of TicIskYapi) {
 			let v = this[k]
@@ -43,6 +43,7 @@ class TabTicariDetay extends TabTSDetay {
 				`<div class="stokAdi">${stokAdi}</div>`,
 				`<div class="stokKod orangered">${stokKod}</div>`,
 				(stokKod == barkod ? null : `<div class="barkod bold float-right">${barkod}</div>`),
+				(!kdvOrani ? null : `<div class=kdvOrani><span>%</span><span class=purple>${kdvOrani}</span></div>`),
 			`</div>`,
 			`<div class="miktarFiyat ek-bilgi float-right" style="gap: 0 10px">`,
 				`<span class="miktar bold forestgreen">${miktar} ${brm}</span>`,

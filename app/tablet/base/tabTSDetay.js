@@ -41,6 +41,19 @@ class TabTSDetay extends TabDetay {
 		super.setValues(...arguments)
 		$.extend(this, { stokAdi: rec.stokadi })
 	}
+	static async uiKaydetOncesiIslemler({ fis, fis: { detaylar }, result }) {
+		detaylar = fis.detaylar = detaylar.filter(_ => _.miktar)
+		await super.uiKaydetOncesiIslemler(...arguments)
+	}
+	async dataDuzgunmuDuzenle({ fis, seq, result }) {
+		await super.dataDuzgunmuDuzenle(...arguments)
+		let {stokKod} = this
+		if (!stokKod)
+			result.push(`<b class=royalblue>${seq}.</b> satırdaki <b class=firebrick>Ürün</b> belirtilmelidir`)
+		if (stokKod && !await MQTabStok.kodVarmi(stokKod))
+			result.push(`<b class=royalblue>${seq}.</b> satırdaki <b>Ürün [<span class=firebrick>${stokKod}</span>]</b> hatalıdır`)
+		return null
+	}
 
 	async detayEkIslemler({ fis } = {}) {
 		await super.detayEkIslemler(...arguments)
@@ -68,8 +81,8 @@ class TabTSDetay extends TabDetay {
 		return this
 	}
 	brutBedelHesapla({ fis } = {}) {
-		let {miktar, fiyat, kdvOrani} = this
-		miktar ??= 0; fiyat ??= 0
+		let miktar = this.miktar ??= 0
+		let fiyat = this.fiyat ??= 0
 		this.brutBedel = roundToBedelFra(miktar * fiyat)
 		return this
 	}

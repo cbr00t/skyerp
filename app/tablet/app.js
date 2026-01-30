@@ -5,20 +5,52 @@ class TabletApp extends TicariApp {
 	get dbMgrClass() { return SqlJS_DBMgr } get defaultOfflineRequestChunkSize() { return 4 } // get autoExecMenuId() { return MQTest.kodListeTipi }
 	get sicakVeyaSogukmu() { return this.sicakmi || this.sogukmu } get rotaKullanilirmi() { return this.sicakVeyaSogukmu }
 	get defaultLoginTipi() { return this.sicakVeyaSogukmu ? 'plasiyerLogin' : super.defaultLoginTipi }
+	get cache() { return this._cache }
+	set cache(value) { this._cache = value }
+	get subeKod() {
+		let {cache, cache: { _subeKod: result }} = this
+		if (result === undefined) {
+			let {session: { loginTipi, subeKod } = {}} = config
+			let {DefaultLoginTipi: def} = Session
+			loginTipi ||= def
+			result = cache._subeKod = loginTipi == def && subeKod != null ? subeKod : null
+		}
+		return result
+	}
+	get yerKod() {
+		let {cache, cache: { _yerKod: result }} = this
+		if (result === undefined) {
+			let {subeKod} = this
+			result = cache._yerKod = null   // ??
+		}
+		return result
+	}
 	get plasiyerKod() {
-		let {session: { loginTipi, user: plasiyerKod } = {}} = config
-		return loginTipi == 'plasiyerLogin' ? plasiyerKod : null
+		let {cache, cache: { _plasiyerKod: result }} = this
+		if (result === undefined) {
+			let {session: { loginTipi, user: plasiyerKod } = {}} = config
+			result = cache._plasiyerKod = loginTipi == 'plasiyerLogin' ? plasiyerKod : null
+		}
+		return result
+	}
+	get mustKod() {
+		let {cache, cache: { _mustKod: result }} = this
+		if (result === undefined) {
+			let {session: { loginTipi, user: mustKod } = {}} = config
+			result = cache._mustKod = loginTipi == 'musteriLogin' ? mustKod : null
+		}
+		return result
 	}
 	get offlineBilgiYukleGonderOrtakSiniflar() {
-		let {_offlineBilgiYukleGonderOrtakSiniflar: result} = this
+		let {cache, cache: { _offlineBilgiYukleGonderOrtakSiniflar: result }} = this
 		if (!result)
-			result = this._offlineBilgiYukleGonderOrtakSiniflar = [MQTicNumarator, MQTabStok, MQTabCari]
+			result = cache._offlineBilgiYukleGonderOrtakSiniflar = [MQTicNumarator, MQTabStok, MQTabCari]
 		return result
 	}
 	get offlineBilgiYukleSiniflar() {
-		let {_offlineBilgiYukleSiniflar: result} = this
+		let {cache, cache: { _offlineBilgiYukleSiniflar: result }} = this
 		if (!result) {
-			result = this._offlineBilgiYukleSiniflar = [
+			result = cache._offlineBilgiYukleSiniflar = [
 				MQParam, MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
 				MQTabCariTip, MQTabSevkAdres, MQPaket, MQUrunPaket, MQTabUgramaNeden,
 				MQTabKasa, MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
@@ -37,9 +69,9 @@ class TabletApp extends TicariApp {
 		return result
 	}
 	get offlineBilgiGonderSiniflar() {
-		let {_offlineBilgiGonderSiniflar: result} = this
+		let {cache, cache: { _offlineBilgiGonderSiniflar: result }} = this
 		if (!result) {
-			result = this._offlineBilgiGonderSiniflar = [
+			result = cache._offlineBilgiGonderSiniflar = [
 				...this.offlineBilgiYukleGonderOrtakSiniflar,
 				...TabFis.subClasses.filter(_ => !_.araSeviyemi)
 			]
@@ -61,6 +93,7 @@ class TabletApp extends TicariApp {
 	constructor(e) {
 		window.appRoot = '../tablet'
 		super(e)
+		this.cache = {}
 	}
 	loginTipleriDuzenle({ loginTipleri }) {
 		let {sicakVeyaSogukmu} = this
@@ -174,7 +207,7 @@ class TabletApp extends TicariApp {
 		let getArrayKey = arr => arr.join('|')
 		let offlineRequest = true, offlineMode = true, internal = true
 		let pm = showProgress('Veriler yükleniyor...', null, true)
-		pm.setProgressMax(classes.length * 300 + 200).progressReset()
+		pm.setProgressMax(classes.length * 130 + 500).progressReset()
 		try {
 			let {belirtecListe: hmrBelirtecler_eski} = HMRBilgi
 			if (!withClear)
@@ -277,10 +310,8 @@ class TabletApp extends TicariApp {
 			detaySinif?.globalleriSil?.()
 		}
 		delete MQParam._topluYukle_kod2Rec
-		deleteKeys(this,
-			'_offlineBilgiYukleSiniflar', '_offlineBilgiGonderSiniflar',
-			'_offlineBilgiYukleGonderOrtakSiniflar', '_offlineCreateTableSiniflar', '_offlineClearTableSiniflar'
-		)
+		this.cache = {}
+		// deleteKeys(this, '_cache')
 		for (let key in _cls2PTanim)
 			delete _cls2PTanim[key]
 		for (let key of ['mqGlobals', 'mqTemps']) {

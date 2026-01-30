@@ -478,7 +478,8 @@ class FBuilder_ToggleButton extends FBuilder_DivOrtak {
 		
 	}
 	getConvertedValue(e) { return asBoolQ(e.value) }
-	editable() { this.isReadOnly = false; return this } readOnly() { this.isReadOnly = true; return this }
+	editable() { this.isReadOnly = false; return this }
+	readOnly() { this.isReadOnly = true; return this }
 }
 class FBuilder_CheckBox extends FBuilder_ToggleButton {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -547,9 +548,10 @@ class FBuilder_CheckBox extends FBuilder_ToggleButton {
 }
 class FBuilder_SwitchButton extends FBuilder_ToggleButton {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	constructor(e) {
-		e = e || {}; super(e); this.etiketGosterim_yok();
-		$.extend(this, { onLabel: e.onLabel, offLabel: e.offLabel })
+	constructor(e = {}) {
+		super(e); this.etiketGosterim_yok()
+		;['onLabel', 'offLabel'].forEach(k =>
+			this[k] = e[k])
 	}
 	buildDevam(e) {
 		let {value} = this; super.buildDevam(e); let {input} = this;
@@ -581,42 +583,46 @@ class FBuilder_SwitchButton extends FBuilder_ToggleButton {
 class FBuilder_OptionBase extends FBuilder_DivOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get inputTagName() { return null }
-	get source() {
-		return super.source
-	}
+	get source() { return super.source }
 	set source(value) {
 		super.source = value;
-		let {layout} = this;
-		if (layout && layout.length)
+		let {layout} = this
+		if (layout?.length)
 			this.sourceAtandi({ sender: this, builder: this, source: value })
 	}
 	
-	constructor(e) {
-		e = e || {}
-		super(e);
-		let {_kodAttr, _adiAttr} = this;
+	constructor(e = {}) {
+		super(e)
+		let {_kodAttr, _adiAttr} = this
 		if (_kodAttr === undefined)
-			_kodAttr = this._kodAttr = CKodVeAdi.kodSaha;
+			_kodAttr = this._kodAttr = CKodVeAdi.kodSaha
 		if (_adiAttr === undefined)
-			_adiAttr = this._adiAttr = CKodVeAdi.adiSaha;
+			_adiAttr = this._adiAttr = CKodVeAdi.adiSaha
+		;['isReadOnly'].forEach(k =>
+			this[k] = e[k])
+	}
+	buildDevam(e) {
+		super.buildDevam(e)
+		let {input, isReadOnly} = this
+		if (input?.length)
+			input.attr('readonly', '')
 	}
 	afterBuild(e) {
-		super.afterBuild(e);
-		let {layout} = this;
-		if (layout && layout.length) {
+		super.afterBuild(e)
+		let {layout, isReadOnly} = this
+		if (layout?.length) {
 			if (!this.layoutHasParent)
 				layout.appendTo(this.parent)
 			this.sourceAtandi(e)
 		}
 	}
-	sourceAtandi(e) {
-		e = e || {};
-		let source = e.source == null ? this.source : e.source;
+	sourceAtandi(e = {}) {
+		let source = e.source ?? this.source
 		if (source) {
-			let _e = $.extend({}, e, { source: source });
+			let _e = { ...e, source }
 			if (source.then) {
 				source.then(recs => {
-					_e.source = recs;
+					_e.source = recs
 					this.sourceAtandiDevam(_e)
 				})
 			}
@@ -625,42 +631,45 @@ class FBuilder_OptionBase extends FBuilder_DivOrtak {
 		}
 	}
 	sourceAtandiDevam(e) { }
+	editable() { this.isReadOnly = false; return this }
+	readOnly() { this.isReadOnly = true; return this }
 }
 class FBuilder_SelectElement extends FBuilder_OptionBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get inputTagName() { return 'select' }
 	
 	buildDevam(e) {
-		super.buildDevam(e);
-		let {input} = this;
-		if (input && input.length) {
+		super.buildDevam(e)
+		let {input, styles} = this
+		if (input?.length) {
 			input.on('change', evt => {
-				let value = $(evt.currentTarget).val();
+				let value = $(evt.currentTarget).val()
 				if (value != null) {
-					let value = this.getConverted_getValue({ value: value });
-					let {ioAttr} = this;
+					value = this.getConverted_getValue({ value })
+					let {ioAttr} = this
 					if (ioAttr) {
-						let {altInst} = this;
+						let {altInst} = this
 						if (altInst) {
-							let {_p} = altInst;
-							let pInst = (_p || {})[ioAttr];
+							let {_p} = altInst
+							let pInst = _p?.[ioAttr]
 							if (pInst)
-								pInst.setValues({ value: value });
+								pInst.setValues({ value })
 							else
-								altInst[ioAttr] = value;
+								altInst[ioAttr] = value
 						}
 					}
-					this.signalChange({ sender: this, builder: this, event: evt, value: value })
+					this.signalChange({ sender: this, builder: this, event: evt, value })
 				}
 			})
 		}
+		styles.push(`$elementCSS > select { width: var(--full); height: 45px; max-height: 60px }`)
 	}
 	sourceAtandiDevam(e) {
 		let {input} = this; if (!input?.length) return
 		let {source} = e; if (!source) return
 		let {kodAttr, adiAttr} = this; if (!(kodAttr || adiAttr)) return
-		let {_value} = this;
-		input.children().remove();
+		let {_value} = this
+		input.children().remove()
 		for (let key in source) {
 			let item = source[key], kod = item[kodAttr], aciklama = item[adiAttr];
 			let optValue = coalesce(kod, aciklama), optLabel = coalesce(aciklama, kod) || '', elm = $(`<option value="${optValue}">${optLabel}</option>`);

@@ -3,6 +3,7 @@ class SatisKosul extends CKodVeAdi {
 	static get tipKod() { return null } static get aciklama() { return null } static get alimmi() { return false }
 	static get table() { return null } static get detayTables() { return null }
 	static get detayMustTable() { return null } static get fisSayacSaha() { return 'fissayac' }
+	static get kapsamSinif() { return SatisKosulKapsam }
 	static get tip2Sinif() {
 		let {_tip2Sinif: result} = this;
 		if (result == null) {
@@ -14,31 +15,38 @@ class SatisKosul extends CKodVeAdi {
 		}
 		return result
 	}
-	constructor(e) {
-		e = e ?? {}; super(e); let {alimmi} = this.class
-		this.sayac = e.sayac || null;
-		for (let key of ['kod', 'aciklama', 'grupKod', 'dvKod', 'subeIcinOzeldir']) { this[key] = e[key] ?? '' }
-		for (let key of ['mustDetaydami', 'iskontoYokmu', 'promosyonYokmu']) { this[key] = asBool(e[key]) }
-		let kapsam = e.kapsam ?? {}; if (isPlainObject(kapsam)) { kapsam = new SatisKosulKapsam(kapsam, alimmi) }
-		let {mustRec} = e; $.extend(this, { kapsam, mustRec })
+	constructor(e = {}) {
+		super(e)
+		let {mustRec, sayac, kapsam} = e
+		let {kapsamSinif, alimmi} = this.class
+		kapsam ??= {}
+		if (isPlainObject(kapsam))
+			kapsam = new kapsamSinif(kapsam, alimmi)
+		
+		this.sayac = sayac ?? null
+		for (let key of ['tipKod', 'kod', 'aciklama', 'grupKod', 'dvKod', 'subeIcinOzeldir'])
+			this[key] = e[key] ?? ''
+		for (let key of ['mustDetaydami', 'iskontoYokmu', 'promosyonYokmu'])
+			this[key] = asBool(e[key])
+		$.extend(this, { kapsam, mustRec })
 	}
 	static newFor(e /*, _mustKod*/) {
-		e = e ?? {}; if (typeof e != 'object') { e = { tipKod: e /*, mustKod: _mustKod*/ } }
-		let cls = this.getClassFor(e), inst = cls ? new cls(e) : null;
-		return inst /* return await inst?.yukle(e) ? inst : null */
+		if (!isObject(e))
+			e = { tipKod: e }
+		let cls = this.getClassFor(e)
+		let inst = cls ? new cls(e) : null
+		return inst
 	}
-	static getClassFor(e) {
-		e = e ?? {}; let tipKod = typeof e == 'object' ? e.tipKod : e;
+	static getClassFor(e = {}) {
+		let tipKod = isObject(e) ? e.tipKod : e
 		return this.tip2Sinif[tipKod]
 	}
-	static getAltKosulYapilar() { return null }
-	getAltKosulYapilar(e, _mustKod) { return this.class.getAltKosulYapilar(e, this, _mustKod) }
 	static async uygunKosullar(e = {}) {
-		let {offlineMode} = e
-		let kapsam = e.kapsam ?? this.kapsam ?? {}
-		let {mustKod} = kapsam, {fisSayacSaha, alimmi: alim} = this
+		let {fisSayacSaha, alimmi: alim, kapsamSinif} = this
+		let {kapsam = this.kapsam ?? {}, offlineMode = MQCogul.isOfflineMode} = e
+		let {mustKod} = kapsam
 		/*if (isPlainObject(kapsam))
-			kapsam = new SatisKosulKapsam(kapsam, alim)*/
+			kapsam = new kapsamSinif(kapsam, alim)*/
 		{
 			let {basi, sonu} = kapsam?.must ?? {}
 			if (basi && basi == sonu)
@@ -47,7 +55,9 @@ class SatisKosul extends CKodVeAdi {
 		let stm = new MQStm(), {sent} = stm
 		let _e = { ...e, stm, sent, mustKod }
 		this.yukle_queryDuzenle(_e)
-		stm = _e.stm; sent = _e.sent
+		stm = _e.stm; sent = null
+		if (stm?.bosmu ?? true)
+			return null
 		let recs = await MQCogul.sqlExecSelect({ offlineMode, query: stm })
 		let uygunmu = false, result = []
 		for (let rec of recs) {
@@ -78,21 +88,23 @@ class SatisKosul extends CKodVeAdi {
 		return await inst.yukle(e) ? inst : null
 	}
 	async yukle(e = {}) {
-		let {offlineMode} = e
-		let kapsam = e.kapsam ?? this.kapsam ?? {}
-		let {mustKod} = kapsam
-		let {mustDetaydami, class: { fisSayacSaha, alimmi: alim }} = this
-		/*if (isPlainObject(kapsam))
-			kapsam = new SatisKosulKapsam(kapsam, alim)*/
+		let {kapsam, mustDetaydami, class: { fisSayacSaha, alimmi: alim, kapsamSinif }} = this
+		let {kapsam: istenenKapsam = this.kapsam, offlineMode} = e
+		let {mustKod} = istenenKapsam
+		/*if (isPlainObject(istenenKapsam))
+			istenenKapsam = new kapsamSinif(istenenKapsam, alim)*/
 		{
-			let {basi, sonu} = kapsam?.must ?? {}
+			let {basi, sonu} = istenenKapsam?.must ?? {}
 			if (basi && basi == sonu)
 				mustKod = basi
 		}
 		let stm = new MQStm(), {sent} = stm
 		let _e = { ...e, stm, sent, mustKod }
 		this.yukle_queryDuzenle(_e)
-		stm = _e.stm; sent = _e.sent
+		stm = _e.stm; sent = null
+		if (stm?.bosmu ?? true)
+			return null
+		
 		let recs = await MQCogul.sqlExecSelect({ offlineMode, query: stm })
 		let uygunmu = false
 		for (let rec of recs) {
@@ -112,26 +124,26 @@ class SatisKosul extends CKodVeAdi {
 			}
 			if (uygunmu) {
 				let mustRec = this.mustRec = e.mustRec ?? await this.class.getMust2Rec(mustKod)
-				uygunmu = this.kapsam.uygunmu({ kapsam, mustRec, alim })
+				uygunmu = kapsam.uygunmu({ kapsam: istenenKapsam, mustRec, alim })
 			}
 			if (uygunmu)
 				break
 		}
 		return uygunmu
     }
-	static yukle_queryDuzenle({ stm, sent, mustKod, kapsam = this.kapsam, offlineMode }) {  /* edt: a!cbr00t-CGP */
+	static yukle_queryDuzenle({ stm, sent, mustKod, kapsam: istenenKapsam = this.kapsam, offlineMode }) {  /* edt: a!cbr00t-CGP */
 		offlineMode ??= MQCogul.isOfflineMode
-		let {alimmi, table} = this, {where: wh, sahalar} = sent, {orderBy} = stm
-		/*if (isPlainObject(kapsam))
-			kapsam = new SatisKosulKapsam(kapsam, alimmi)*/
-		mustKod ||= kapsam.mustKod
-		let {tipListe, tip2RowAttrListe} = SatisKosulKapsam
+		let {alimmi, table, kapsamSinif} = this
+		let {where: wh, sahalar} = sent, {orderBy} = stm
+		mustKod ||= istenenKapsam.mustKod
+		let {tipListe, tip2RowAttrListe} = kapsamSinif
 		let alias = 'fis', mustSqlDegeri = MQSQLOrtak.sqlServerDegeri(mustKod)
 		sent.fromAdd(`${table} ${alias}`)
-		wh.fisSilindiEkle().add(`${alias}.devredisi = ''`)
-		let _kapsam = kapsam
+		wh.fisSilindiEkle({ alias })
+		wh.add(`${alias}.devredisi = ''`)
+		let _kapsam = istenenKapsam
 		if (isPlainObject(_kapsam))
-			_kapsam = new SatisKosulKapsam(_kapsam, alimmi)
+			_kapsam = new kapsamSinif(_kapsam, alimmi)
 		if (mustKod) {
 			_kapsam = _kapsam.deepCopy?.() ?? { ..._kapsam }
 			delete _kapsam.must
@@ -147,7 +159,7 @@ class SatisKosul extends CKodVeAdi {
 		sahalar.addWithAlias(alias,
 			'kaysayac sayac', 'kod', 'aciklama', 'kgrupkod grupKod', 'dvkod dvKod',
 			'detaylimust mustDetaydami', 'subeicinozeldir subeIcinOzeldir'
-		);
+		)
 		for (let tip of tipListe) {
 			let rowAttrs = tip2RowAttrListe[tip] ?? [`${tip}b`, `${tip}s`];
 			if (rowAttrs?.length)
@@ -158,18 +170,21 @@ class SatisKosul extends CKodVeAdi {
 		else
 			orderBy.add('subeIcinOzeldir', 'tarihb DESC', 'mustDetaydami DESC', 'kod')
 	}
-	yukle_queryDuzenle(e) {
-		e ??= {}; e.kapsam ??= this.kapsam;
+	yukle_queryDuzenle(e = {}) {
+		e.kapsam ??= this.kapsam
 		return this.class.yukle_queryDuzenle(e)
 	}
 	setValues({ rec }) {
-		this.sayac = rec.sayac || null; let {alimmi} = this.class;
-		for (let key of ['kod', 'aciklama', 'grupKod', 'dvKod', 'subeIcinOzeldir']) { this[key] = rec[key] ?? '' }
+		let {alimmi, kapsamSinif} = this.class
+		this.sayac = rec.sayac || null
+		for (let key of ['tipKod', 'kod', 'aciklama', 'grupKod', 'dvKod', 'subeIcinOzeldir']) { this[key] = rec[key] ?? '' }
 		for (let key of ['mustDetaydami', 'iskontoYokmu', 'promosyonYokmu']) { this[key] = asBool(rec[key]) }
 		this.konsolideSubemi = rec.konsolideSubemi = rec.konTipKod == 'S';
-		let kapsam = this.kapsam = new SatisKosulKapsam(null, alimmi);
+		let kapsam = this.kapsam = new kapsamSinif(null, alimmi)
 		kapsam.setValues(arguments[0], alimmi)
 	}
+	static getAltKosulYapilar() { return null }
+	getAltKosulYapilar(e, _mustKod) { return this.class.getAltKosulYapilar(e, this, _mustKod) }
 	async getAltKosullar(e = {}) {
 		if (!isObject(e) || isArray(e))
 			e = { kodListe: makeArray(e) }

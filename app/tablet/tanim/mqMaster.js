@@ -93,7 +93,6 @@ class MQTabSube extends MQKAOrtak {
 		super.orjBaslikListesiDuzenle(...arguments)
 		let {tableAlias: alias} = this
 		liste.push(
-			// new GridKolon({ belirtec: 'aum', text: 'AUM', genislikCh: 8 }),
 			...this.getKAKolonlar(
 				new GridKolon({ belirtec: 'isygrupkod', text: 'Grup Kod', genislikCh: 8 }),
 				new GridKolon({ belirtec: 'isygrupadi', text: 'Grup', genislikCh: 15, sql: 'igrp.aciklama' })

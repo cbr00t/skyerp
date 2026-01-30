@@ -5,6 +5,17 @@ class TabTSFis extends TabFis {
 	static get kodListeTipi() { return 'TABTS' } static get sinifAdi() { return 'Ticari/Stok Fiş' }
 	static get detaySinif() { return TabTSDetay } static get almSat() { return 'T' }
 
+	constructor(e = {}) {
+		super(e)
+		let {offlineBuildQuery} = e
+		if (!offlineBuildQuery) {
+			['yerKod'].forEach(k => {
+				let bu = this[k], def = app[k]
+				if (!bu && def != null)
+					this[k] = bu = def
+			})
+		}
+	}
 	static pTanimDuzenle({ pTanim }) {
 		// MQOrtakFis.pTanimDuzenle(...arguments)
 		super.pTanimDuzenle(...arguments)
@@ -226,8 +237,8 @@ class TabTSFis extends TabFis {
 				rowsHeight: 70, selectionMode: 'singlerow'
 			}))
 			.setTabloKolonlari([
-				new GridKolon({ belirtec: '_html', text: 'Ürün' }),
-				(bedelKullanilirmi ? new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 9 }).tipDecimal_bedel() : null),
+				new GridKolon({ belirtec: '_html', text: 'Ürün', filterType: 'input' }),
+				(bedelKullanilirmi ? new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 11, filterType: 'checkedlist' }).tipDecimal_bedel() : null),
 				new GridKolon({ belirtec: '_sil', text: ' ', genislikCh: 4 })
 					.tipButton('X')
 					.onClick(({ gridRec, args: { owner: w } }) => {
@@ -271,7 +282,9 @@ class TabTSFis extends TabFis {
 				})
 			})
 	}
-	static async rootFormBuilderDuzenle_tablet_acc_duzenleCollapsed({ sender: tanimPart, inst: fis, rfb }) { }
+	static async rootFormBuilderDuzenle_tablet_acc_duzenleCollapsed({ sender: tanimPart, inst: fis, rfb }) {
+		tanimPart.sonEklemeDuzenleEkranindanmi = false
+	}
 	static async rootFormBuilderDuzenle_tablet_acc_duzenle(e) {
 		let {params: { zorunlu, tablet }} = app
 		let {fiyatFra, bedelFra} = zorunlu
@@ -391,16 +404,16 @@ class TabTSFis extends TabFis {
 				.onAfterRun(({ builder: { input } }) =>
 					txtMiktar = tanimPart.txtMiktar = input)
 			if (bedelKullanilirmi) {
-				form.addModelKullan('kdvOrani', 'KDV %', 'KDV %').addStyle_wh(80)
-					.dropDown().noMF().kodsuz().listedenSecilmez()
-					[fiyatDegistirir ? 'enable' : 'disable']()
+				form.addSelectElement('kdvOrani', 'KDV %')
+					.addStyle_wh(80)
 					.setSource(MQVergiKdv.sabitOranlar.map(_ => new CKodVeAdi([_, _])))
+					[fiyatDegistirir ? 'editable' : 'readOnly']()
 					.degisince(({ builder: { input }, value }) => {
-						getDetay().kdvOrani = value
+						getDetay().kdvOrani = asFloat(value)
 						degisinceOrtak({ input })
 					})
-					.onAfterRun(({ builder: { part } }) =>
-						tanimPart.ddKdvOrani = part)
+					.onAfterRun(({ builder: { input } }) =>
+						tanimPart.ddKdvOrani = input)
 			}
 		}
 		if (bedelKullanilirmi) {

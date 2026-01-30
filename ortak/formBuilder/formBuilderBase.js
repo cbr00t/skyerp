@@ -467,8 +467,8 @@ class FormBuilderBase extends CObject {
 		let kodAttr = isObject(e) ? e.kodAttr : _kodAttr;
 		let adiAttr = isObject(e) ? e.adiAttr : _adiAttr;
 		let builder = new FBuilder_SelectElement({
-			id: id, etiket: etiket, value: value,
-			source: source, kodAttr: kodAttr, adiAttr: adiAttr
+			id, etiket, value,
+			source, kodAttr, adiAttr
 		});
 		this.add(builder);
 		return builder

@@ -95,7 +95,8 @@ class TabTicariFis extends TabTSFis {
 				extend(this, { _tahsilatFis: null, tahFisId: '' })
 				break
 			default:
-				if (t && !t.id)
+				let yeniVeyaKopyami = islem == 'yeni' || islem == 'kopya'
+				if (t && !(yeniVeyaKopyami && t.id))
 					await t?.kaydet()
 				extend(this, { tahFisId: t?.id ?? '' })
 				// t = this._tahsilatFis = null

@@ -25,24 +25,24 @@ class TicariFis extends TSOrtakFis {
 	static get islTipKod() { return (this.alimmi ? 'AF' : this.satismi ? 'TF' : this.mustahsilmi ? 'MF' : super.islTipKod) }
 	static get varsayilanIslKod() { return ( this.alimmi ? 'AF' : this.satismi ? 'TF' : this.mustahsilmi ? 'MF' : super.islTipKod ) }
 	static get mustSaha() { return 'must' }
-	get fisTopIslBedel() { let toplam = 0; const {detaylar} = this; for (const det of detaylar) { toplam += (det.iskBedelToplam || 0) } return toplam }
-	get ekVergiVarmi() { const {detaylar} = this; for (const det of detaylar) { if (det.ekVergiYapi && !det.bosmu) { return true } } return false }
+	get fisTopIslBedel() { let toplam = 0; let {detaylar} = this; for (let det of detaylar) { toplam += (det.iskBedelToplam || 0) } return toplam }
+	get ekVergiVarmi() { let {detaylar} = this; for (let det of detaylar) { if (det.ekVergiYapi && !det.bosmu) { return true } } return false }
 	static async getMustKonKendiDetayKod(e) {
-		e = e || {}; const {mustKod} = e; if (!mustKod) { return null }
-		const sent = new MQSent({ from: 'carmst', where: { degerAta: mustKod, saha: this.mustSaha }, sahalar: ['kendidetaykod'] })
+		e = e || {}; let {mustKod} = e; if (!mustKod) { return null }
+		let sent = new MQSent({ from: 'carmst', where: { degerAta: mustKod, saha: this.mustSaha }, sahalar: ['kendidetaykod'] })
 		return await app.sqlExecTekilDeger(sent)?.trimEnd()
 	}
 	async getMustKonKendiDetayKod(e) { e = e || {}; return this.getMustKonKendiDetayKod($.extend({}, e, { mustKod: this.mustKod })) }
 	static async getMusKarsiRefKod(e) {
-		e = e || {}; const {mustKod} = e; if (!mustKod) { return null }
-		const sent = new MQSent({ from: 'carmst', where: { degerAta: mustKod, saha: this.mustSaha }, sahalar: ['musrefkod'] })
+		e = e || {}; let {mustKod} = e; if (!mustKod) { return null }
+		let sent = new MQSent({ from: 'carmst', where: { degerAta: mustKod, saha: this.mustSaha }, sahalar: ['musrefkod'] })
 		return await app.sqlExecTekilDeger(sent)?.trimEnd()
 	}
 	async getMusKarsiRefKod(e) { e = e || {}; return this.getMusKarsiRefKod($.extend({}, e, { mustKod: this.mustKod })) }
 	static async kdvKod2RecGlobalOlustur(e) {
-		const kaListe = [ new CKodVeAdi({ kod: '', aciklama: '' }) ];
-		const kdvKod2Rec = await MQVergi.getKdvBilgileri({ fisSinif: this });
-		for (const rec of Object.values(kdvKod2Rec)) kaListe.push(new CKodVeAdi({ kod: rec.kdvKod, aciklama: rec.kdvBelirtec }))
+		let kaListe = [ new CKodVeAdi({ kod: '', aciklama: '' }) ];
+		let kdvKod2Rec = await MQVergi.getKdvBilgileri({ fisSinif: this });
+		for (let rec of Object.values(kdvKod2Rec)) kaListe.push(new CKodVeAdi({ kod: rec.kdvKod, aciklama: rec.kdvBelirtec }))
 		$.extend(TicariFis, {
 			_kdvKod2Rec: kdvKod2Rec,
 			_kdvKAListe: kaListe
@@ -53,7 +53,7 @@ class TicariFis extends TSOrtakFis {
 		$.extend(this, { musteriOncekiBakiyeDurumu: e.musteriOncekiBakiyeDurumu })
 	}
 	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); const {pTanim} = e;
+		super.pTanimDuzenle(e); let {pTanim} = e;
 		$.extend(pTanim, {
 			mustKod: new PInstStr(this.mustSaha), ticMustKod: new PInstStr('ticmust'),
 			altHesapKod: new PInstStr('cariitn'), sevkAdresKod: new PInstStr('xadreskod'),
@@ -61,28 +61,29 @@ class TicariFis extends TSOrtakFis {
 		})
 	}
 	static secimlerDuzenle(e) {
-		super.secimlerDuzenle(e); const sec = e.secimler;
+		super.secimlerDuzenle(e); let sec = e.secimler;
 		sec.secimTopluEkle({
 			must: new SecimString({ etiket: 'Müşteri', mfSinif: MQCari }), mustUnvan: new SecimOzellik({ etiket: 'Müşteri Ünvan' }),
 			ticMust: new SecimString({ etiket: 'Tic. Müşteri', mfSinif: MQCari }), altHesapKod: new SecimString({ etiket: 'Alt Hesap', mfSinif: MQAltHesap }),
 			yerKod: new SecimString({ etiket: 'Yer', mfSinif: MQStokYer })
 		});
 		sec.whereBlockEkle(e => {
-			const {aliasVeNokta} = this, wh = e.where, sec = e.secimler;
+			let {aliasVeNokta} = this, wh = e.where, sec = e.secimler;
 			wh.basiSonu(sec.must, `${aliasVeNokta}must`); wh.ozellik(sec.mustUnvan, 'car.birunvan');
 			wh.basiSonu(sec.ticMust, `${aliasVeNokta}ticmust`); wh.basiSonu(sec.altHesapKod, `${aliasVeNokta}cariitn`);
 			wh.basiSonu(sec.yerKod, `${aliasVeNokta}yerkod`)
 		})
 	}
 	static rootFormBuilderDuzenle({ builders: allBuilders }) {
-		super.rootFormBuilderDuzenle(...arguments); let {builders} = allBuilders.baslikForm;
+		super.rootFormBuilderDuzenle(...arguments)
+		let {builders} = allBuilders.baslikForm
 		builders[0].addModelKullan('mustKod').autoBind().setMFSinif(MQCari).etiketGosterim_normal()
 			.ozelQueryDuzenleBlock(({ alias, stm }) => { for (let {sahalar} of stm) { sahalar.add(`${alias}.efaturakullanirmi`) } })
 			.degisince(e => e.builder.altInst.cariDegisti(e))
 			.addStyle(e => `$elementCSS { min-width: 70% !important }`)
 	}
-	static orjBaslikListesiDuzenle_ara(e) {
-		super.orjBaslikListesiDuzenle_ara(e); const {liste} = e;
+	static orjBaslikListesiDuzenle_ara({ liste }) {
+		super.orjBaslikListesiDuzenle_ara(...arguments)
 		liste.push(
 			new GridKolon({ belirtec: 'must', text: 'Müşteri', genislikCh: 25, sql: `fis.${this.mustSaha}` }),
 			new GridKolon({ belirtec: 'mustunvan', text: 'Müşteri Ünvan', genislikCh: 50, sql: 'car.birunvan' }),
@@ -90,23 +91,28 @@ class TicariFis extends TSOrtakFis {
 			new GridKolon({ belirtec: 'xadresadi', text: 'Sevk Adres Adı', genislikCh: 35, sql: 'sadr.aciklama' })
 		)
 	}
-	static standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e); const {liste} = e; liste.push('must', 'mustunvan') }
+	static standartGorunumListesiDuzenle({ liste }) {
+		super.standartGorunumListesiDuzenle(...arguments)
+		liste.push('must', 'mustunvan')
+	}
 	static async raporKategorileriDuzenle_baslik(e) {
-		await super.raporKategorileriDuzenle_baslik(e); const {kullanim} = app.params.ticariGenel;
-		const section = [
+		await super.raporKategorileriDuzenle_baslik(e)
+		let {kullanim} = app.params.ticariGenel
+		let section = [
 			'FRFisTicari-Baslik',
 			( kullanim.plasiyer ? 'Plasiyer' : null ),
 			'FRFisTicari-SevkAdres', 'FRFisTicari-DegAdres',
 			( kullanim.altHesap ? 'AltHesap' : null ),
 			( kullanim.takipNo ? 'TakipNo' : null ),
 			'FRFisTicari-RefNoBilgi'
-		];
+		]
 		await e.kat.ekSahaYukle({ section })
 	}
 	static async raporKategorileriDuzenle_baslikDetayArasi(e) {
-		await super.raporKategorileriDuzenle_baslikDetayArasi(e); const {modelRapor} = e;
-		let kat = e.kat = await CariRapor.getCariKategori(e);
-		const sahaVergiVeyaTCNo = kat.detaylar.find(rSaha => rSaha.attr == 'vergiveyatcno');
+		await super.raporKategorileriDuzenle_baslikDetayArasi(e)
+		let {modelRapor} = e
+		let kat = e.kat = await CariRapor.getCariKategori(e)
+		let sahaVergiVeyaTCNo = kat.detaylar.find(rSaha => rSaha.attr == 'vergiveyatcno')
 		if (sahaVergiVeyaTCNo) {
 			sahaVergiVeyaTCNo.sql[1] = (
 				`(case ` +
@@ -124,20 +130,20 @@ class TicariFis extends TSOrtakFis {
 		modelRapor.addKolonKategori(kat)
 	}
 	static async raporKategorileriDuzenle_detaylar_tsStokMiktarOncesi(e) {
-		await super.raporKategorileriDuzenle_detaylar_tsStokMiktarOncesi(e); const section = ['FRFisTSDetay-SanalDoviz', 'FRFisTicariDetay-GTIP'];
+		await super.raporKategorileriDuzenle_detaylar_tsStokMiktarOncesi(e); let section = ['FRFisTSDetay-SanalDoviz', 'FRFisTicariDetay-GTIP'];
 		await e.kat.ekSahaYukle({ section })
 	}
 	static async raporKategorileriDuzenle_detaylar_fiyatEk(e) {
-		await super.raporKategorileriDuzenle_detaylar_fiyatEk(e); const {kat} = e;
+		await super.raporKategorileriDuzenle_detaylar_fiyatEk(e); let {kat} = e;
 		let section = ['FRFisTicariDetay-FiyatBedel']; await kat.ekSahaYukle({ section });
-		for (const item of TicIskYapi.getIskIter()) {
-			const {rowAttr} = item, rSaha = new RRSahaDegisken({ attr: rowAttr, baslik: item.etiket, genislikCh: 6, sql: `har.${rowAttr}`}).tipNumerik();
+		for (let item of TicIskYapi.getIskIter()) {
+			let {rowAttr} = item, rSaha = new RRSahaDegisken({ attr: rowAttr, baslik: item.etiket, genislikCh: 6, sql: `har.${rowAttr}`}).tipNumerik();
 			rSaha.sql[2] = '0'; kat.addDetay(rSaha)			/* 0: 'aciklama' tablosu */
 		}
 		section = ['FRFisTicariDetay-Kategori', 'FRFisTicariDetay-VergiKodVeBedel']; await kat.ekSahaYukle({ section })
 	}
 	static raporQueryDuzenle(e) {
-		super.raporQueryDuzenle(e); const {sent, attrSet} = e;
+		super.raporQueryDuzenle(e); let {sent, attrSet} = e;
 		sent.fis2CariBagla(); sent.cariHepsiBagla();
 		sent.fromIliski('althesap alth', 'fis.cariitn = alth.kod');
 		sent.fromIliski('ahgrup ahgrp', 'alth.ahgrupkod = ahgrp.kod');
@@ -152,7 +158,7 @@ class TicariFis extends TSOrtakFis {
 		if (attrSet.degAdresIlAdi) { sent.fromIliski('caril degil', 'deg.ilkod = degil.kod') }
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {aliasVeNokta, almSat, ayrimTipi, fisEkAyrim} = this, {sent} = e;
+		super.loadServerData_queryDuzenle(e); let {aliasVeNokta, almSat, ayrimTipi, fisEkAyrim} = this, {sent} = e;
 		sent.fromIliski('carmst car', 'fis.must = car.must').fromIliski('carsevkadres sadr', `${aliasVeNokta}xadreskod = sadr.kod`);
 		if (almSat) { sent.where.degerAta(almSat, `${aliasVeNokta}almsat`) }
 		if (ayrimTipi != null) { sent.where.degerAta(ayrimTipi, `${aliasVeNokta}ayrimtipi`) }
@@ -347,17 +353,17 @@ class TicariFis extends TSOrtakFis {
 	}
 	dipGridSatirlariDuzenle_mustahsil(e) { }
 	uiDuzenle_fisGirisIslemTuslari(e) {
-		super.uiDuzenle_fisGirisIslemTuslari(e); const {parent} = e, gridPart = e.gridPart ?? e.sender, {gridWidget} = gridPart, sender = gridPart, fis = this;
+		super.uiDuzenle_fisGirisIslemTuslari(e); let {parent} = e, gridPart = e.gridPart ?? e.sender, {gridWidget} = gridPart, sender = gridPart, fis = this;
 		let btn = $(`<button id="kdvEk">KDV EK</button>`); btn.on('click', evt => {
 			if (this.kayitIcinOzelIsaretlimi) { hConfirm('<u>Özel İşaretli</u> fişler için <b>KDV EK</b> işlemleri kullanılamaz', 'Fiş Giriş'); return }
-			const det = gridPart.selectedRec; if (!(det?.class?.shdmi)) { hConfirm('<b>KDV EK</b> işlemleri sadece <u>Stok/Hizmet/Demirbaş</u> satırları için kullanılabilir', 'Fiş Giriş'); return }
-			const part = new FisEkVergiWindowPart({
+			let det = gridPart.selectedRec; if (!(det?.class?.shdmi)) { hConfirm('<b>KDV EK</b> işlemleri sadece <u>Stok/Hizmet/Demirbaş</u> satırları için kullanılabilir', 'Fiş Giriş'); return }
+			let part = new FisEkVergiWindowPart({
 				sender, fis, detay: det, ekVergiYapi: det.ekVergiYapi.deepCopy(),
 				tamamIslemi: e => {
-					console.info(e); const {ekVergiYapi} = e, colKdvEk = gridPart.belirtec2Kolon.kdvEkText; $.extend(det.ekVergiYapi, ekVergiYapi);
+					console.info(e); let {ekVergiYapi} = e, colKdvEk = gridPart.belirtec2Kolon.kdvEkText; $.extend(det.ekVergiYapi, ekVergiYapi);
 					if (colKdvEk) {
 						let {rowIndex} = e, {belirtec} = colKdvEk; gridWidget.setcellvalue(rowIndex, belirtec, ekVergiYapi.kdvEkText || null);
-						const hideFlag = ekVergiYapi.bosmu; if (!hideFlag) { colKdvEk.attributes.hidden = hideFlag; gridPart[hideFlag ? 'hideColumn' : 'showColumn'](belirtec) }
+						let hideFlag = ekVergiYapi.bosmu; if (!hideFlag) { colKdvEk.attributes.hidden = hideFlag; gridPart[hideFlag ? 'hideColumn' : 'showColumn'](belirtec) }
 					}
 				}
 			}); part.run()
@@ -365,16 +371,16 @@ class TicariFis extends TSOrtakFis {
 		btn.appendTo(parent)
 	}
 	fisGiris_gridVeriYuklendi(e) {
-		super.fisGiris_gridVeriYuklendi(e); const {detaylar} = this, vergiKullanim = {}; let vergiKullanimSayi = 0;
-		for (const det of detaylar) {
+		super.fisGiris_gridVeriYuklendi(e); let {detaylar} = this, vergiKullanim = {}; let vergiKullanimSayi = 0;
+		for (let det of detaylar) {
 			if (!vergiKullanim.otv && det.otvKod) { vergiKullanim.otv = true; vergiKullanimSayi++ }
 			if (!vergiKullanim.stopaj && det.stopaj) { vergiKullanim.stopaj = true; vergiKullanimSayi++ }
 			if (!vergiKullanim.ekVergi && det.ekVergiYapi && !det.ekVergiYapi.bosmu) { vergiKullanim.ekVergi = true; vergiKullanimSayi++ }
 			if (vergiKullanimSayi == 3) { break }
 		}
 		if (!$.isEmptyObject(vergiKullanim)) {
-			const {sender} = e, {belirtec2Kolon} = sender, gridWidget = e.gridWidget ?? sender.gridWidget;
-			const kolonGoster = e => { const colDef = e.colDef || (belirtec2Kolon[e.belirtec]); if (colDef) { colDef.visible(); gridWidget.showcolumn(colDef.belirtec) } };
+			let {sender} = e, {belirtec2Kolon} = sender, gridWidget = e.gridWidget ?? sender.gridWidget;
+			let kolonGoster = e => { let colDef = e.colDef || (belirtec2Kolon[e.belirtec]); if (colDef) { colDef.visible(); gridWidget.showcolumn(colDef.belirtec) } };
 			if (vergiKullanim.otv) { kolonGoster({ belirtec: 'otvBelirtec' }) }
 			if (vergiKullanim.stopaj) { kolonGoster({ belirtec: 'stopajBelirtec' }) }
 			if (vergiKullanim.ekVergi) { kolonGoster({ belirtec: 'kdvEkText' }) }
@@ -395,7 +401,7 @@ class TicariFis extends TSOrtakFis {
 		let {musteriOncekiBakiyeDurumu} = this; if (musteriOncekiBakiyeDurumu && eskiFis && mustKod != eskiFis.mustKod) { musteriOncekiBakiyeDurumu = null }
 		if (!musteriOncekiBakiyeDurumu) {
 			if (eskiFis && eskiFis.mustKod == mustKod) {
-				const {musteriOncekiBakiyeDurumu: _musteriOncekiBakiyeDurumu} = eskiFis;
+				let {musteriOncekiBakiyeDurumu: _musteriOncekiBakiyeDurumu} = eskiFis;
 				if (_musteriOncekiBakiyeDurumu) { musteriOncekiBakiyeDurumu = (_musteriOncekiBakiyeDurumu.deepCopy ? _musteriOncekiBakiyeDurumu.deepCopy() : $.extend(true, {}, _musteriOncekiBakiyeDurumu)) }
 				else {
 					let query = new MQSent({
@@ -462,24 +468,24 @@ class SevkiyatFis extends TicariFis {
 	static get table() { return 'piffis' } static get baslikOzelAciklamaTablo() { return 'pifbasekaciklama' } static get dipSerbestAciklamaTablo() { return 'pifdipaciklama' }
 	static get dipEkBilgiTablo() { return 'pifdipekbilgi' } static get pifTipi() { return null } static get iade() { return '' } static get fisEkAyrim() { return '' }
 	get bakiyeciler() {
-		const {alimmi, iademi, fasonmu} = this.class, stok_sqlDuzenleyici = fasonmu ? 'stokBakiyeSqlEkDuzenle_pifFSStok' : 'stokBakiyeSqlEkDuzenle_pifStok';
+		let {alimmi, iademi, fasonmu} = this.class, stok_sqlDuzenleyici = fasonmu ? 'stokBakiyeSqlEkDuzenle_pifFSStok' : 'stokBakiyeSqlEkDuzenle_pifStok';
 		return [...super.bakiyeciler, new StokBakiyeci({ borcmu: e => alimmi != iademi, sqlDuzenleyici: stok_sqlDuzenleyici }) /* sipariş için gelecek/gidecek ayarı yapılacak */]
 	}
 	constructor(e) {
 		e = e || {}; super(e);
-		const eBilgi = this.eBilgi = e.eBilgi; if (eBilgi) { this.eBilgiIcinYukle(e) }
+		let eBilgi = this.eBilgi = e.eBilgi; if (eBilgi) { this.eBilgiIcinYukle(e) }
 	}
 	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, {
+		super.pTanimDuzenle(e); let {pTanim} = e; $.extend(pTanim, {
 			sevkTarih: new PInstDateToday('sevktarihi'), sevkSaat: new PInstDateTimeNow('sevksaati'),
 			yerKod: new PInstStr({ rowAttr: 'yerkod', init: e => 'A' }), yerOrtakmi: new PInstTrue('yerortakdir'),
 			malKabulNo: new PInstNum('malkabulno'), kunyeNox: new PInstStr('kunyenox'), borsaTescilYapildimi: new PInstBool('borsatescilvarmi')
 		})
 	}
 	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e); const {baslikForm} = e.builders;
+		e = e || {}; super.rootFormBuilderDuzenle(e); let {baslikForm} = e.builders;
 		baslikForm.builders[1].addCheckBox('yerOrtakmi', 'Yer Ortakdır').degisince(e => {
-			const {builder} = e, {altInst, rootPart, parentBuilder} = builder, {kontrolcu} = rootPart; parentBuilder.id2Builder.yerKod.updateVisible();
+			let {builder} = e, {altInst, rootPart, parentBuilder} = builder, {kontrolcu} = rootPart; parentBuilder.id2Builder.yerKod.updateVisible();
 			e.sender = e.gridPart = rootPart; $.extend(e, { builder });
 			if (altInst.yerOrtakmiDegisti) { altInst.yerOrtakmiDegisti(e) } if (kontrolcu.yerOrtakmiDegisti) { kontrolcu.yerOrtakmiDegisti(e) }
 		});
@@ -487,27 +493,27 @@ class SevkiyatFis extends TicariFis {
 			.setVisibleKosulu(e => e.builder.altInst.yerOrtakmi ? true : 'basic-hidden')
 	}
 	static orjBaslikListesiDuzenle_ara(e) {
-		super.orjBaslikListesiDuzenle_ara(e); const {liste} = e;
+		super.orjBaslikListesiDuzenle_ara(e); let {liste} = e;
 		liste.push(
 			new GridKolon({ belirtec: 'yerkod', text: 'Yer', genislikCh: 7 }),
 			new GridKolon({ belirtec: 'yeradi', text: 'Yer Adı', genislikCh: 20, sql: 'yer.aciklama' })
 		);
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {aliasVeNokta, pifTipi, iade} = this, {sent} = e;
+		super.loadServerData_queryDuzenle(e); let {aliasVeNokta, pifTipi, iade} = this, {sent} = e;
 		sent.fromIliski('stkyer yer', 'fis.yerkod = yer.kod');
 		if (pifTipi) { sent.where.degerAta(pifTipi, `${aliasVeNokta}piftipi`) }
 		if (iade != null) { sent.where.degerAta(iade, `${aliasVeNokta}iade`) }
 	}
 	static async raporKategorileriDuzenle_baslik(e) {
-		await super.raporKategorileriDuzenle_baslik(e); const section = ['PTBaslikFis2', 'PTBaslikFisIslem', 'FRFisGenel-Yer'];
+		await super.raporKategorileriDuzenle_baslik(e); let section = ['PTBaslikFis2', 'PTBaslikFisIslem', 'FRFisGenel-Yer'];
 		await e.kat.ekSahaYukle({ section })
 	}
-	static varsayilanKeyHostVarsDuzenle(e) { super.varsayilanKeyHostVarsDuzenle(e); const {hv} = e; $.extend(hv, { piftipi: this.pifTipi, iade: this.iade }) }
-	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; hv.oncelik = this.class.oncelik }
+	static varsayilanKeyHostVarsDuzenle(e) { super.varsayilanKeyHostVarsDuzenle(e); let {hv} = e; $.extend(hv, { piftipi: this.pifTipi, iade: this.iade }) }
+	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); let {hv} = e; hv.oncelik = this.class.oncelik }
 	eBilgiIcinYukle(e) {
-		super.eBilgiIcinYukle(e); const eBilgi = this.eBilgi || {};
-		const {rec} = eBilgi; if (!rec) { return this } const yerRec = eBilgi.yerRec || {};
+		super.eBilgiIcinYukle(e); let eBilgi = this.eBilgi || {};
+		let {rec} = eBilgi; if (!rec) { return this } let yerRec = eBilgi.yerRec || {};
 		$.extend(this, {
 			tarih: asDate(rec.tarih), seri: rec.seri, noYil: asInteger(rec.noyil), fisNo: asInteger(rec.fisNo),
 			mustKod: rec.mustkod, yerKod: yerRec.kod || this.yerKod, subeKod: yerRec.bizsubekod || this.subeKod
@@ -516,8 +522,8 @@ class SevkiyatFis extends TicariFis {
 	}
 	async eBilgiIcinDetaylariYukle(e) {
 		await super.eBilgiIcinDetaylariYukle(e);
-		const {result} = e, eBilgi = this.eBilgi || {}, {rec} = eBilgi; if (!rec) { return this }
-		const alimGecFisSayac = rec.fissayac;
+		let {result} = e, eBilgi = this.eBilgi || {}, {rec} = eBilgi; if (!rec) { return this }
+		let alimGecFisSayac = rec.fissayac;
 		let sent = new MQSent({ from: 'efgecicialfatdetay har', where: { degerAta: alimGecFisSayac, saha: 'har.fissayac' } });
 		sent.har2StokBagla(); sent.har2HizmetBagla(); sent.har2DemirbasBagla({ sahaAdi: 'demkod' });
 		sent.addWithAlias('har',
@@ -540,21 +546,21 @@ class SevkiyatFis extends TicariFis {
 			`(case har.shtip when 'H' then hiz.gidstopajhesapkod else '' end) shstopajhesapkod`,
 			`(case har.shtip when 'H' then hiz.gidkonaklamahesapkod else '' end) shkonaklamahesapkod`
 		);
-		const stm = new MQStm({ sent: sent, orderBy: ['seq'] });
-		const tip2Vergi = {
+		let stm = new MQStm({ sent: sent, orderBy: ['seq'] });
+		let tip2Vergi = {
 			kdv: { oran2Kod: {}, get sinif() { return MQVergiKdv } },
 			otv: { oran2Kod: {}, get sinif() { return MQVergiOtv } },
 			stopaj: { oran2Kod: {}, get sinif() { return MQVergiStopaj } },
 			konaklama: { oran2Kod: {}, get sinif() { return MQVergiKonaklama } }
 		};
-		const detRecs = await app.sqlExecSelect(stm), errors = [];
-		for (const detRec of detRecs) {
-			for (const tip in tip2Vergi) {
-				const ba = tip == 'stopaj' ? 'A' : 'B', yapi = tip2Vergi[tip], {sinif} = yapi;
-				const oran = detRec[`${tip}orani`]; if (!oran) { continue }
+		let detRecs = await app.sqlExecSelect(stm), errors = [];
+		for (let detRec of detRecs) {
+			for (let tip in tip2Vergi) {
+				let ba = tip == 'stopaj' ? 'A' : 'B', yapi = tip2Vergi[tip], {sinif} = yapi;
+				let oran = detRec[`${tip}orani`]; if (!oran) { continue }
 				if (yapi.oran2Kod[oran] === undefined) {
-					const oran2KodSet = (await sinif.oran2KodSet({ ba })) || {};
-					const kodSet = oran2KodSet[oran] || {}, kod = Object.keys(kodSet)[0] ?? null; yapi.oran2Kod[oran] = kod;
+					let oran2KodSet = (await sinif.oran2KodSet({ ba })) || {};
+					let kodSet = oran2KodSet[oran] || {}, kod = Object.keys(kodSet)[0] ?? null; yapi.oran2Kod[oran] = kod;
 					if (kod == null) { errors.push(`${tip}: %${oran}`) }
 				}
 				detRec[`${tip}Kod`] = yapi.oran2Kod[oran]
@@ -564,11 +570,11 @@ class SevkiyatFis extends TicariFis {
 			if (result) { $.extend(result, { isError: true, message: 'Bazı Vergi Kodları hatalıdır', detail: `<ul class="flex-row firebrick">${errors.map(text => `<li class="bold">${text}</li>`)}</ul>` }) }
 			return this
 		}
-		this.detaylarReset(); const {detaylar} = this;
-		const shTip2DetSinif = { '': TSStokDetay, 'H': TSHizmetDetay, 'D': TSDemirbasDetay }; e.fis = this;
-		for (const detRec of detRecs) {
-			const detSinif = shTip2DetSinif[detRec.shtip.trimEnd()]; if (!detSinif) { continue }
-			const det = new detSinif({ seq: detRec.seq, eBilgi: detRec });
+		this.detaylarReset(); let {detaylar} = this;
+		let shTip2DetSinif = { '': TSStokDetay, 'H': TSHizmetDetay, 'D': TSDemirbasDetay }; e.fis = this;
+		for (let detRec of detRecs) {
+			let detSinif = shTip2DetSinif[detRec.shtip.trimEnd()]; if (!detSinif) { continue }
+			let det = new detSinif({ seq: detRec.seq, eBilgi: detRec });
 			await det.eBilgiSetValues(e); detaylar.push(det)
 		}
 		if (detaylar.find(det => det.eBilgi.bedel != det.netBedel)) { this.hesapSekli.fiyatYap() }
@@ -578,7 +584,7 @@ class SevkiyatFis extends TicariFis {
 	stokBakiyeSqlEkDuzenle_pifFSStok(e) { e.table = 'piffsstok'; return this.stokBakiyeSqlEkDuzenle_pifXStok(e) }
 	stokBakiyeSqlEkDuzenle_pifXStok(e) {
 			/* sipariş için gelecek/gidecek ayarı yapılacak */
-		const {table, sent, borcmu} = e, {sahalar} = sent; sent.fis2HarBagla(table); sahalar.addWithAlias('fis', 'ozelisaret');
+		let {table, sent, borcmu} = e, {sahalar} = sent; sent.fis2HarBagla(table); sahalar.addWithAlias('fis', 'ozelisaret');
 		sahalar.addWithAlias('har', 'stokkod', 'detyerkod yerkod', 'opno', ...HMRBilgi.rowAttrListe);
 		sahalar.add('SUM(har.miktar) sonmiktar', 'SUM(har.miktar2) sonmiktar2')
 	}
@@ -588,13 +594,13 @@ class SevkiyatFis extends TicariFis {
 class FaturaFis extends SevkiyatFis {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return `${super.sinifAdi}Fatura` } static get pifTipi() { return 'F' } static get faturami() { return true }
-	get bakiyeciler() { const {alimmi, iademi} = this.class; return [...super.bakiyeciler, new CariBakiyeci({ borcmu: e => alimmi == iademi }) ] }
+	get bakiyeciler() { let {alimmi, iademi} = this.class; return [...super.bakiyeciler, new CariBakiyeci({ borcmu: e => alimmi == iademi }) ] }
 	static async raporKategorileriDuzenle_baslik(e) {
-		await super.raporKategorileriDuzenle_baslik(e); const sections = ['FRFatura-IrsBilgi'];
+		await super.raporKategorileriDuzenle_baslik(e); let sections = ['FRFatura-IrsBilgi'];
 		await e.kat.ekSahaYukle({ section: sections })
 	}
 	cariBakiyeSqlEkDuzenle(e) {
-		const {sent, borcmu} = e, {sahalar} = sent;
+		let {sent, borcmu} = e, {sahalar} = sent;
 		sahalar.addWithAlias('fis', 'ticmust must', 'cariitn althesapkod', 'ozelisaret', 'net bakiye', 'dvnet dvbakiye');
 	}
 }

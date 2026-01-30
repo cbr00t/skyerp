@@ -1,8 +1,14 @@
 class SatisKosulYapi extends MQCogul {
+	static get kosulSiniflar() {
+		let {_kosulSiniflar: result} = this
+		if (result == null)
+			result = this._kosulSiniflar = [SatisKosul_Fiyat, SatisKosul_Iskonto, SatisKosul_Kampanya, Promosyon]
+		return result
+	}
 	static get tables() {
 		let {_tables: result} = this
 		if (!result) {
-			let {subClasses: classes} = SatisKosul
+			let {kosulSiniflar: classes} = this
 			result = this._tables = [
 				...classes.map(_ => _.table),
 				...classes.flatMap(_ => values(_.detayTables)),
@@ -11,20 +17,14 @@ class SatisKosulYapi extends MQCogul {
 		}
 		return result
 	}
-	static get kosulSiniflar() {
-		let {_kosulSiniflar: result} = this
-		if (result == null)
-			result = this._kosulSiniflar = [SatisKosul_Fiyat, SatisKosul_Iskonto, SatisKosul_Kampanya]
-		return result
-	}
 	static get tipListe() {
 		let {_tipListe: result} = this
 		if (result == null)
 			result = this._tipListe = this.kosulSiniflar.map(cls => cls.tipKod)
 		return result
 	}
-	get satisKosullari() { return Array.from(this) }
-	get tip2SatisKosul() {
+	get kosullar() { return Array.from(this) }
+	get tip2Kosul() {
 		let result = {}
 		for (let item of this) {
 			let {tipKod} = item.class
@@ -34,16 +34,15 @@ class SatisKosulYapi extends MQCogul {
 	}
 	get kapsam() { return this._kapsam }
 	set kapsam(value) { this._kapsam = isPlainObject(value) ? new SatisKosulKapsam(value) : null /* this.reset() */ }
+
 	constructor(e = {}) {
 		super(e); let {kapsam} = e
 		$.extend(this, { kapsam })
 	}
 	reset(e) {
 		let {kapsam, class: { kosulSiniflar }} = this
-		for (let cls of kosulSiniflar) {
-			let {tipKod} = cls
-			this[tipKod] = new cls({ kapsam })
-		}
+		for (let cls of kosulSiniflar)
+			this[cls.tipKod] = new cls({ kapsam })
 		this._initFlag = true
 		return this
 	}
@@ -63,7 +62,10 @@ class SatisKosulYapi extends MQCogul {
 				if (empty(result)) delete this[tipKod]
 				else this[tipKod] = result
 			}
-			catch(ex) { delete this[tipKod]; throw ex }
+			catch(ex) {
+				delete this[tipKod]
+				throw ex
+			}
 		}
 		return this
 	}
@@ -72,29 +74,27 @@ class SatisKosulYapi extends MQCogul {
 		return await inst.yukle(e) ? inst : null
 	}
 	async yukle(e) {
-		e ??= {}; this.reset(e);
-		let {kosulSiniflar} = this.class, kapsam = e.kapsam ?? this.kapsam
-		let _e = { ...e, kapsam }, promises = [];
-		for (let cls of kosulSiniflar) {
+		e ??= {}; this.reset(e)
+		let {kosulSiniflar: classes} = this.class
+		let kapsam = e.kapsam ?? this.kapsam
+		let _e = { ...e, kapsam }
+		let promises = []
+		for (let cls of classes) {
 			let {tipKod} = cls, inst = this[tipKod]
 			if (!inst)
 				continue
 			promises.push(
 				inst.yukle(_e)
-					.catch(ex => { delete this[tipKod]; inst = null; throw ex })
+					.catch(ex => {
+						delete this[tipKod]
+						inst = null
+						throw ex
+					})
 			)
 		}
-		await Promise.allSettled(promises); return this
+		await Promise.allSettled(promises)
+		return this
 	}
-	*getIter() {
-		let {tipListe} = this.class
-		for (let tip of tipListe) {
-			let item = this[tip]
-			if (item != null)
-				yield item
-		}
-	}
-	[Symbol.iterator]() { return this.getIter() }
 
 	static offlineBuildSQLiteQuery(e) {
 		// do nothing
@@ -121,7 +121,8 @@ class SatisKosulYapi extends MQCogul {
 		; [106, 60, 62].forEach(_ => cnv[_] = 'REAL')
 		; [48, 52, 56, 127, 104].forEach(_ => cnv[_] = 'INTEGER')
 		try { await this.sqlExecNone('COMMIT') } catch (ex) { }
-		let {tables} = this, queries = []
+		let {tables} = this, {kodSaha} = SatisKosul
+		let queries = []
 		for (let table of tables) {
 			let colDefs = await app.sqlGetColumns({ offlineMode: false, table })
 			if (empty(colDefs))
@@ -150,9 +151,14 @@ class SatisKosulYapi extends MQCogul {
 			await this.sqlExecNone({ offlineMode: true, query: queries.join(CrLf) })
 			try { await this.sqlExecNone('COMMIT') } catch (ex) { }
 		}
-		
+
 		for (let table of tables) {
-			let sent = new MQSent({ from: table, sahalar: ['*'] })
+			let kodVarmi = !!(await app.sqlGetColumns(table))[kodSaha]
+			let sent = new MQSent(), {where: wh, sahalar} = sent
+			sent.fromAdd(table)
+			if (kodVarmi)
+				wh.add(`${kodSaha} > ''`)
+			sahalar.add('*')
 			let recs = await this.sqlExecSelect({ offlineMode: false, query: sent })
 			if (empty(recs))
 				continue
@@ -171,4 +177,14 @@ class SatisKosulYapi extends MQCogul {
 			try { await this.sqlExecNone('COMMIT') } catch (ex) { }
 		}
 	}
+
+	*getIter() {
+		let {tipListe} = this.class
+		for (let tip of tipListe) {
+			let item = this[tip]
+			if (item != null)
+				yield item
+		}
+	}
+	[Symbol.iterator]() { return this.getIter() }
 }

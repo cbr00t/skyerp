@@ -88,5 +88,49 @@ class MQNumarator extends MQKA {
 		}
 		return await super.yukle({ ...e, rec })
 	}
-	async kesinlestir(e) { this.sonNo = this.sonNo + 1; return this }
+	async kesinlestir(e = {}) {
+		let {id, class: { table, isOfflineMode: _isOfflineMode }} = this
+		let {isOfflineMode = _isOfflineMode} = e
+		let sonNo = this.sonNo || 0
+		if (!await this.varmi()) {
+			sonNo = ++this.sonNo
+			await this.yaz()
+			return
+		}
+		if (isOfflineMode) {
+			/*if (!await this.varmi()) {
+				sonNo = ++this.sonNo
+				await this.yaz()
+			}
+			else {*/
+			let keyHV = this.alternateKeyHostVars(e)
+			let toplu = new MQToplu([
+				new MQIliskiliUpdate({
+					from: table,
+					where: { birlestirDict: keyHV },
+					set: `sonno = sonno + 1`
+				}),
+				new MQSent({
+					from: table, sahalar: ['sonno'],
+					where: { birlestirDict: keyHV }
+				})
+			]).withTrn()
+			sonNo = this.sonNo = asInteger(await this.sqlExecTekilDeger(toplu))
+			//}
+			return this
+		}
+		let keyHV = this.keyHostVars()
+		// `UPDATE ${table} SET @sonNo = sonno = sonno + 1 WHERE ${idSaha} = ${id}`,
+		let query = new MQIliskiliUpdate({ from: table }), {where: wh, set} = query
+		wh.birlestirDict(keyHV)
+		set.add(`sonno = sonno + 1`)
+		let params = [{ name: '@sonNo', type: 'int', direction: 'output' }]
+		let result = await this.class.sqlExecNoneWithResult({ query, params })
+		if (isArray(result))
+			result = result[0]
+		let qParam = result?.params?.['@sonNo']
+		if (qParam?.value)
+			sonNo = this.sonNo = qParam.value
+		return this
+	}
 }
