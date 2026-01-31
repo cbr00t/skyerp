@@ -12,7 +12,9 @@ class TabFisListe extends TabFis {
 	}
 	static detaySinifFor(e) { return this.fisSinifFor(e)?.detaySinif }
 	static async yeniInstOlustur({ sender: gridPart, islem, rec, rowIndex, args = {} }) {
-		let result = await super.yeniInstOlustur(...arguments)
+		let e = arguments[0]
+		let result = await super.yeniInstOlustur(e)
+		islem = e.islem
 		if (result != null)
 			return result
 		let {fisTipi} = rec ?? {}

@@ -598,10 +598,13 @@ class MQWebParam extends MQTicariParamBase {
 }
 class MQTabletParam extends MQTicariParamBase {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() { return 'Sky Tablet Parametreleri' } static get paramKod() { return 'TABLET' }
-	static paramYapiDuzenle(e) {
-		super.paramYapiDuzenle(e); let {paramci} = e;
-		let form = paramci.addFormWithParent(); form.addBool('yaslandirmaTarihmi', `Yaşlandırma Tarih'e göredir`);
+	static get sinifAdi() { return 'Sky Tablet Parametreleri' }
+	static get paramKod() { return 'TABLET' }
+	static paramYapiDuzenle({ paramci }) {
+		super.paramYapiDuzenle(...arguments)
+		{
+			let form = paramci.addFormWithParent()
+			form.addBool('yaslandirmaTarihmi', `Yaşlandırma Tarih'e göredir`);
 			form.addBool('cariHareketTakipNo', 'Cari Hareket Takip No Bazında Gruplanır')
 			form.addBool('rotaDisiMusteriAlinirmi', 'Rota Dışı Müşteri Alınır')
 			form.addBool('silmeYerineDevreDisi', 'Silme Yerine DevreDışı')
@@ -609,6 +612,7 @@ class MQTabletParam extends MQTicariParamBase {
 			form.addBool('fiyatDegistirir', 'Fiyat Değiştirir')
 			form.addBool('iskDegistirir', 'İsk. Değiştirir')
 			form.addNumber('iskMaxSayi', 'İsk. Max Sayı')
+		}
 	}
 	paramSetValues({ rec } = {}) {
 		super.paramSetValues(...arguments)

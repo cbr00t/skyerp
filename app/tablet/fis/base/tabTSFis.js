@@ -211,7 +211,7 @@ class TabTSFis extends TabFis {
 		let e = arguments[0]
 		await super.rootFormBuilderDuzenle_tablet_acc_detay(e)
 		let {depomu} = app, {tablet: { depoBedelGorur }} = app.params
-		let {acc} = tanimPart, {detaylar, class: { bedelKullanilirmi }} = fis
+		let {acc} = tanimPart, {class: { bedelKullanilirmi }} = fis
 		bedelKullanilirmi &&= !(depomu && depoBedelGorur === false)
 		rfb.addSimpleComboBox('barkod', 'Barkod', 'Barkod giriniz veya Ürün seçiniz')
 			.addStyle(`$elementCSS { max-width: 800px }`)
@@ -248,10 +248,13 @@ class TabTSFis extends TabFis {
 						acc?.render()
 					})
 			].filter(Boolean))
-			.setSource(detaylar)
-			.onAfterRun(({ builder: { rootPart, part } }) => {
-				rootPart.gridPart = part
-				$.extend(part, {
+			.setSource(() => {
+				fis = tanimPart?.inst ?? fis
+				return fis?.detaylar
+			})
+			.onAfterRun(({ builder: { rootPart, part: gridPart, part: { gridWidget: gw } } }) => {
+				rootPart.gridPart = gridPart
+				$.extend(gridPart, {
 					gridSatirCiftTiklandiBlock: ({ sender: tanimPart, event: { args } = {} }) => {
 						let {gridWidget: w, selectedRec: det} = tanimPart ?? {}
 						let {row: { bounddata: _det } = {}} = args ?? {}
@@ -280,6 +283,18 @@ class TabTSFis extends TabFis {
 						return false                                                     // prevent next events
 					}
 				})
+				{
+					let {bindingCompleteBlock: savedHandler} = gridPart
+					let veriYuklenince = (...rest) => {
+						try {
+							fis = tanimPart?.fis ?? fis
+							if (fis && fis.detaylar != gridPart.boundRecs)
+								gridPart.tazele()
+						}
+						finally { savedHandler?.call(this, ...rest) }
+					}
+					gridPart.veriYuklenince(veriYuklenince)
+				}
 			})
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_duzenleCollapsed({ sender: tanimPart, inst: fis, rfb }) {

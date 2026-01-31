@@ -17,8 +17,8 @@ class GridPart extends Part {
 	get totalCols() { return this.gridWidget.columns.records.length }
 	get selectedRowIndexes() {
 		let {gridWidget} = this; if (!gridWidget) return []; let sel = gridWidget.getselection();
-		let result = ($.isEmptyObject(sel.rows) ? Object.keys(asSet(sel.cells.map(cell => cell.rowindex))).map(x => asInteger(x)) : (sel.rows || []).filter(x => x != null));
-		if ($.isEmptyObject(result)) { let rowIndex = gridWidget._lastClickedCell?.row; if (rowIndex != null && rowIndex > -1) result = [rowIndex] }
+		let result = (empty(sel.rows) ? keys(asSet(sel.cells.map(cell => cell.rowindex))).map(x => asInteger(x)) : (sel.rows || []).filter(x => x != null));
+		if (empty(result)) { let rowIndex = gridWidget._lastClickedCell?.row; if (rowIndex != null && rowIndex > -1) result = [rowIndex] }
 		return result
 	}
 	get selectedRowIndex() {
@@ -105,7 +105,7 @@ class GridPart extends Part {
 			try { grid.jqxGrid('destroy') } catch (ex) { }
 			if (gridWidget) {
 				let {menuitemsarray, filtermenu, filterpanel} = gridWidget;
-				if (!$.isEmptyObject(menuitemsarray)) { let elm = $(menuitemsarray[0]).parents('.jqx-menu-wrapper'); if (elm?.length) elm.remove() }
+				if (!empty(menuitemsarray)) { let elm = $(menuitemsarray[0]).parents('.jqx-menu-wrapper'); if (elm?.length) elm.remove() }
 				if (filterpanel?.length) { let elm = filterpanel.parents('.jqx-menu-wrapper'); if (elm?.length) { elm.remove() } }
 				if (filtermenu?.length) { let elm = filtermenu.parents('.jqx-menu-wrapper'); if (elm?.length) { elm.remove() } }
 				let {filterbar, gridmenu, table, gridcontent, columnsheader} = gridWidget; for (let elm of [filterbar, gridmenu, table, gridcontent, columnsheader]) { if (elm?.length) { elm.remove() } }
@@ -537,9 +537,9 @@ class GridPart extends Part {
 							if (colDef && belirtec && (rowIndex != null && rowIndex > -1)) {
 								(async () => {
 									let dataList = (await navigator.clipboard.readText())?.split('\n').map(x => x.trim()); if (!dataList?.length) { dataList = gridWidget._clipboardselection || [] }
-									if (!$.isEmptyObject(dataList)) {
+									if (!empty(dataList)) {
 										let colIndex = gridWidget.columns.records.findIndex(col => col.datafield == belirtec);
-										let firstItem = dataList[0], colCount = $.isArray(firstItem) ? firstItem.length : typeof firstItem == 'object' ? Object.keys(firstItem).length : 1;
+										let firstItem = dataList[0], colCount = $.isArray(firstItem) ? firstItem.length : typeof firstItem == 'object' ? keys(firstItem).length : 1;
 										for (let colOffset = 0; colOffset < colCount; colOffset++) {
 											for (let rowOffset = 0; rowOffset < dataList.length; rowOffset++) {
 												let col = gridWidget.columns.records[colIndex]; if (!col) { debugger }
@@ -568,8 +568,8 @@ class GridPart extends Part {
 							
 						else if (keyLower == 'delete') {
 							let _selection = gridWidget.getselection(); let selectedRowIndexes = _selection.rows;
-							if ($.isEmptyObject(selectedRowIndexes)) selectedRowIndexes = _selection.cells.map(cell => cell.rowindex);
-							let selectedUids = $.isEmptyObject(selectedRowIndexes) ? null : selectedRowIndexes.map(rowIndex => gridWidget.getrowid(rowIndex));
+							if (empty(selectedRowIndexes)) selectedRowIndexes = _selection.cells.map(cell => cell.rowindex);
+							let selectedUids = empty(selectedRowIndexes) ? null : selectedRowIndexes.map(rowIndex => gridWidget.getrowid(rowIndex));
 							if (modifiers.ctrl && !this.sabitFlag) {
 								if (selectedUids) {
 									gridWidget.deleterow(selectedUids);
@@ -690,11 +690,19 @@ class GridPart extends Part {
 	adaptive() { return this.notAdaptiveFlag = false; return this } notAdaptive() { return this.notAdaptiveFlag = true; return this }
 	animate() { this.noAnimateFlag = false; return this } noAnimate() { this.noAnimateFlag = true; return this }
 	async gridVeriYuklendi(e) {
-		let {grid, gridWidget, bindingCompleteBlock, expandedIndexes} = this; setTimeout(() => grid.find(`span:contains("www.jqwidgets.com")`).addClass('basic-hidden'), 50);
-		if ($.isEmptyObject(expandedIndexes)) { this.kolonFiltreDegisti(e) }
-		if (bindingCompleteBlock) { await getFuncValue.call(this, bindingCompleteBlock, e) }
-		let kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridVeriYuklendi) { await kontrolcu.gridVeriYuklendi(e) }
-		this.gridGroupsChanged(e); if ($.isEmptyObject(expandedIndexes)) { for (let delayMS of [100]) { setTimeout(() => this.onResize(), delayMS) } }
+		let {grid, gridWidget, bindingCompleteBlock, expandedIndexes} = this
+		setTimeout(() => grid.find(`span:contains("www.jqwidgets.com")`).addClass('basic-hidden'), 50)
+		if (empty(expandedIndexes))
+			await this.kolonFiltreDegisti(e)
+		if (bindingCompleteBlock)
+			await getFuncValue.call(this, bindingCompleteBlock, e)
+		let kontrolcu = this.getKontrolcu(e)
+		await kontrolcu?.gridVeriYuklendi?.(e)
+		this.gridGroupsChanged(e)
+		if (empty(expandedIndexes)) {
+			for (let delayMS of [100])
+				setTimeout(() => this.onResize(), delayMS)
+		}
 	}
 	gridVeriDegisti(e) {
 		this.gridVeriDegistiBlock?.call(this, e); this.getKontrolcu(e)?.gridVeriDegisti?.(e);
@@ -1032,7 +1040,7 @@ class GridPart extends Part {
 		if (kolonFiltreDuzenleyici.degistimi) { this.tazele({ action: 'kolonFiltre' }) }
 		/*let attr2FiltreRecs = {}; for (let rec of filtreBilgi_recs) { let {attr} = rec; (attr2FiltreRecs[attr] = attr2FiltreRecs[attr] ?? []).push(rec) }
 		let Filter_AND = 0, Filter_OR = 1, attr2FilterGroup = {}; for (let attr in attr2FiltreRecs) {
-			let filterGroup = new $.jqx.filter(); let _recs = attr2FiltreRecs[attr]; if ($.isEmptyObject(_recs)) { continue }
+			let filterGroup = new $.jqx.filter(); let _recs = attr2FiltreRecs[attr]; if (empty(_recs)) { continue }
 			for (let rec of _recs) {
 				let jqxFilterAnaTip = rec.jqxFilterAnaTip || 'stringfilter', {operator, value} = rec;
 				filterGroup.addfilter(Filter_OR, filterGroup.createfilter(jqxFilterAnaTip, value, operator))
@@ -1040,7 +1048,7 @@ class GridPart extends Part {
 			attr2FilterGroup[attr] = filterGroup
 		}
 		try {
-			if (!($.isEmptyObject(attr2FilterGroup) && $.isEmptyObject(gridWidget.getfilterinformation()))) {
+			if (!(empty(attr2FilterGroup) && empty(gridWidget.getfilterinformation()))) {
 				setTimeout(() => {
 					let {gridWidget} = this; if (!gridWidget.isbindingcompleted()) { return }
 					try { gridWidget.clearfilters(false) } catch (ex) { return }

@@ -350,15 +350,15 @@ class TabFis extends MQDetayliGUID {
 	async satisKosullariReset(e) { return this }
 	async satisKosullariOlustur(e) { return this }
 	static async yeniInstOlustur({ sender: gridPart, islem, rec, rowIndex, args = {} }) {
+		let e = arguments[0]
 		let {gonderildiDesteklenirmi, gonderimTSSaha} = this
 		let {fisTipi} = rec ?? {}
+		let degistirmi = islem == 'degistir'
 		let silmi = islem == 'sil'
-		if (silmi) {
-			if (gonderildiDesteklenirmi) {
-				let gonderimTS = rec[gonderimTSSaha]
-				if (gonderimTS)
-					throw { isError: true, errorText: 'Merkeze gönderilmiş belgeler silinemez' }
-			}
+		let gonderimTS = gonderildiDesteklenirmi ? rec[gonderimTSSaha] : null
+		if (silmi) {let gonderimTS = rec[gonderimTSSaha]
+			if (gonderimTS)
+				throw { isError: true, errorText: 'Merkeze gönderilmiş belgeler silinemez' }
 			let {tip2Sinif} = this, cls = tip2Sinif[fisTipi]
 			if (cls?.tahsilatmi) {
 				let {dev, session: { isAdmin } = {}} = config
@@ -366,6 +366,8 @@ class TabFis extends MQDetayliGUID {
 					throw { isError: true, errorText: 'Tahsilat Fişi silme yetkiniz yok' }
 			}
 		}
+		else if (degistirmi && gonderimTS)
+			e.islem = 'izle'
 	}
 	async asOnlineFis(e = {}) {
 		let {sayac: tabletID, tarih, seri, noYil, fisNo, plasiyerKod, subeKod, mustKod, class: { onlineFisSinif }} = this

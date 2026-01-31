@@ -68,13 +68,14 @@ class ButonlarPart extends Part {
 		let sagButonlar = subParent_sag.children('button');
 		layout.css('--width-sag', `calc((var(--button-right) * ${sagButonlar.length}) + var(--width-sag-ek))`)
 	}
-	static templatesOlustur(e) {
-		const {result} = e; $.extend(result, {
+	static templatesOlustur({ result }) {
+		extend(result, {
 			tazeleVazgecSec(e) { return ['tazele', { id: 'sec', args: { template: 'success' } }, 'vazgec'] },
 			tazeleVazgec(e) { return ['tazele', 'vazgec'] },
 			tamamVazgec(e) { return [{ id: 'tamam', args: { template: 'success' } }, 'vazgec'] },
 			tamam(e) { return [{ id: 'tamam', args: { template: 'success' } }] },
-			vazgec(e) { return ['vazgec'] }
+			vazgec(e) { return ['vazgec'] },
+			yazdirVazgec(e) { return [{ id: 'yazdir', args: { template: 'success' } }, 'vazgec'] }
 		})
 	}
 }
