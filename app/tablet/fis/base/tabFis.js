@@ -355,7 +355,7 @@ class TabFis extends MQDetayliGUID {
 		let {fisTipi} = rec ?? {}
 		let degistirmi = islem == 'degistir'
 		let silmi = islem == 'sil'
-		let gonderimTS = gonderildiDesteklenirmi ? rec[gonderimTSSaha] : null
+		let gonderimTS = gonderildiDesteklenirmi ? rec?.[gonderimTSSaha] : null
 		if (silmi) {let gonderimTS = rec[gonderimTSSaha]
 			if (gonderimTS)
 				throw { isError: true, errorText: 'Merkeze gönderilmiş belgeler silinemez' }

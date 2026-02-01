@@ -31,7 +31,7 @@ class TabDokumDevice_Ekran extends TabDokumDevice {
 		let {part: { txtData: input } = {}} = this
 		this.data ??= ''
 		if (str) {
-			let data = this.data += (str + '\n')
+			let data = this.data += str
 			if (input?.length)
 				input.val(data)
 		}

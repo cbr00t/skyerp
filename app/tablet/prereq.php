@@ -5,6 +5,7 @@
 <script src="<?=$webRoot_tablet?>/params.js?<?=$appVersion?>"></script>
 <script src="<?=$webRoot_tablet?>/tekSecim.js?<?=$appVersion?>"></script>
 <?php
+	require_once("$webRoot_tablet/classes/include.php");
 	require_once("$webRoot_tablet/tanim/include.php");
 	require_once("$webRoot_tablet/fis/include.php");
 	require_once("$webRoot_tablet/dokum/include.php");

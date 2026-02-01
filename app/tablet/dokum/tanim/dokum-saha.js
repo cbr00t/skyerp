@@ -22,7 +22,7 @@ class TabDokumSaha extends CObject {
 		return e.hv
 	}
 	hostVarsDuzenle({ hv }) {
-		let keys = ['key', 'text', 'pos', 'length', 'right', 'kosul', '_comment']
+		let keys = ['key', 'text', 'pos', 'length', 'right', 'ozelIsaret', 'iade', '_comment']
 		;keys.forEach(k =>  {
 			let v = this[k]
 			if (v)
@@ -31,7 +31,7 @@ class TabDokumSaha extends CObject {
 	}
 	setValues({ rec }) {
 		extend(this, { key: null, text: null, pos: {}, length: 0, right: false, kosul: {}, _comment: null })
-		;['pos', 'kosul'].forEach(k =>
+		;['pos'].forEach(k =>
 			this[k] ||= {})
 		for (let [k, v] of entries(rec)) {
 			if (v != null && this[k] !== undefined)    // değer var ve inst var karşılığı da varsa
@@ -43,6 +43,48 @@ class TabDokumSaha extends CObject {
 			if (y)
 				pos.y = y
 		}
+	}
+	async satirDuzenle({ chars, inst }) {
+		let e = arguments[0]
+		let v = await this.getValue(e)
+		if (!v)
+			return this
+		let {x} = this, x0 = x - 1
+		for (let i = 0; i < v.length; i++)
+			chars[i + x0] = v[i]
+		return this
+	}
+	async getValue(e = {}) {
+		let { inst } = e
+		let { key, text, right, ozelIsaret, iade } = this
+		let _e = { ...e, saha: this }
+		if (text) {
+			let {expressions} = this
+			if (!empty(expressions)) {
+				let sr = fromEntries(expressions.map(async k => 
+					[k, await this.getValue({ ..._e, key: k })]
+				))
+				for (let [s, r] of entries(sr))
+					text = text.replaceAll(s, r)
+			}
+		}
+		else if (key) {
+			text = await inst?.dokumGetValue?.(key) ??
+				   await inst?.[key]
+			if (isFunction(text))
+				text = await text.call(this, { ..._e, key, value: text })
+		}
+		if (!text)
+			return null
+
+		let length = this.getActualLength({ ...e, value: text })
+		if (length) {
+			text = right
+				? text.padStart(length, ' ')
+				: text.slice(0, length)
+		}
+		
+		return text
 	}
 	getActualLength({ form, value }) {
 		let {x, length: len} = this

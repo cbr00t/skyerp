@@ -241,6 +241,7 @@ class MQPaket extends MQSayacliKAOrtak {
 	static get table() { return 'paket' } static get tableAlias() { return 'pak' }
 	// static get zeminRenkDesteklermi() { return true }
 	static get offlineGonderYapilirmi() { return false }
+
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		$.extend(pTanim, {
@@ -254,6 +255,8 @@ class MQUrunPaket extends MQSayacliOrtak {
 	static get kodListeTipi() { return 'UPAK' } static get sinifAdi() { return 'Ürün Paket' }
 	static get table() { return 'urunpaket' } static get tableAlias() { return 'upak' }
 	static get offlineGonderYapilirmi() { return false }
+	static get offlineDirect() { return true }
+
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		$.extend(pTanim, {
@@ -270,6 +273,8 @@ class MQCariSatis extends MQMasterOrtak {
 	static get kodListeTipi() { return 'CSAT' } static get sinifAdi() { return 'Cari Satış' }
 	static get table() { return 'carisatis' } static get tableAlias() { return 'csat' }
 	static get offlineGonderYapilirmi() { return false }
+	static get offlineDirect() { return true }
+
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		$.extend(pTanim, {

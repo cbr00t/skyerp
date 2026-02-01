@@ -1,8 +1,7 @@
 class TabDokumDevice extends CObject {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return null } static get aciklama() { return null }
-	static get question() { return null }
-	static get araSeviyemi() { return this == TabDokumDevice }
+	static get question() { return null } static get araSeviyemi() { return this == TabDokumDevice }
 	static get ekranmi() { return false } static get byteBased() { return false }
 	static get chunkSize() { return null } static get chunkDelayMS() { return 0 }
 	// static get dokumEncoding() { return 'iso-8859-1' }    // trDonusum?.encodingmi => parametrede verilmezse varsayılan encoding değer
@@ -143,8 +142,8 @@ class TabDokumDevice extends CObject {
 		if (isBytes && byteBased)
 			return data
 		
-		let str = isArray(data)
-			? data.join('')
+		let str = isArray(data)    // string[] - lines veya Uint8Array (bytes)
+			? data.join('\n')
 			: isBytes
 				? new TextDecoder().decode(data)
 				: data.toString()

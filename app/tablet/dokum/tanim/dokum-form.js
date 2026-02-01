@@ -58,6 +58,91 @@ class TabDokumForm extends MQKAOrtak {
 				.filter(({ key, text, x }) => x && (key || text))
 		}
 	}
+
+	async dataDuzenle(e = {}) {
+		let { inst = {} } = e
+		let { detaylar = [] } = inst
+		let { kolonBaslik, tekDetaySatirSayisi, dipYok, sayfaBoyut: { x: maxX, y: maxY } = {}, detay: detSahalar, oto } = this
+		maxX ??= 0; maxY ??= 0; tekDetaySatirSayisi ??= 1
+		sabit ??= []; detSahalar ??= []; oto ??= []
+		let y2Sabitler = {}, y2DetaySahalar = {}
+		let curY = 1
+		for (let s of sabitler) {
+			/*
+				- saha.y varsa =>
+					- curY = (curY, saha.y)
+				- yoksa =>
+					- (curY + 1)'e yazılır (son kaldığı yerin +1 sonrasına)
+			*/
+			if (s.y)
+				curY = Math.max(curY, s.y)
+			let y = s.y || ++curY
+			;(y2Sabitler[y] ??= []).push(s)
+		}
+		for (let s of detSahalar)
+			(y2DetaySahalar[s.y || 1] ??= []).push(s)
+		
+		let _e = { ...e, form: this, fis: inst }
+		let data = maxY ? new Array(maxY).fill(null) : []
+		curY = 1
+		
+		// sabitler
+		_e.tip = 'sabit'
+		for (let [y, arr] of entries(y2Sabitler)) {
+			arr = arr.filter(s => s.uygunmu)
+			if (empty(arr))
+				continue
+			_e.chars = data[y - 1] ??= new Array(maxX)
+			for (let s of arr)
+				await s.satirDuzenle(_e)
+			data[y] = _e.chars.join('')
+			curY = Math.max(curY, y)
+		}
+
+		if (kolonBaslik) {
+			_e.tip = 'cols'
+			// ...
+			curY += 2
+		}
+
+		// detay yBas -> ySon tanım olabilir veya kaldığı yerden
+		_e.tip = 'detay'
+		for (let det of detaylar) {
+			_e.inst = det
+			for (let y of keys(y2DetaySahalar).map(Number).sort()) {
+				// y = asInteger(y)
+				if (y > tekDetaySatirSayisi)
+					break
+				let arr = y2DetaySahalar[y].filter(s => s.uygunmu)
+				if (empty(arr))
+					continue
+				let relY = curY + y
+				_e.chars = data[relY - 1] ??= new Array(maxX)
+				for (let s of arr)
+					await s.satirDuzenle(_e)
+			}
+			curY += tekDetaySatirSayisi
+		}
+
+		_e.inst = inst
+		if (!dipYok) {
+			_e.tip = 'dip'
+			// ...
+		}
+
+		// maxY varsa sondan ...
+		curY++
+		_e.tip = 'oto'
+		for (let s of oto) {
+			if (!s.uygunmu)
+				continue
+			_e.chars = data[curY - 1] ??= new Array(maxX)
+			await s.satirDuzenle(_e)
+			curY++
+		}
+		
+		return data
+	}
 }
 
 
