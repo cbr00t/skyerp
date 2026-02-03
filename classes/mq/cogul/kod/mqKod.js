@@ -80,12 +80,13 @@ class MQKod extends MQCogul {
 		let mini = isMiniDevice()
 		let cellsRenderer = e.cellsRenderer = (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => {
 			if (belirtec == adiSaha && mini && kodKullanilirmi && !mqGUIDmi) {
-				html = changeTagContent(html, (
-					`<span class="asil">${value}</span> ` +
+				html = changeTagContent(html, [
+					`<span class="asil">${value}</span>`,
 					`<span class="ek-bilgi bold royalblue float-right" style="padding-left: 10px">${rec[kodSaha]}</span>`
-				))
+				].join('\n'))
 			}
-			let _osColor = rec?.oscolor, htmlColor = _osColor ? os2HTMLColor(_osColor) : null
+			let _osColor = rec?.oscolor
+			let htmlColor = _osColor ? os2HTMLColor(_osColor) : null
 			if (htmlColor) {
 				let textColor = getContrastedColor(htmlColor)
 				html = html.replace('style="', `style="background-color: ${htmlColor}; color: ${textColor} `)
@@ -103,9 +104,11 @@ class MQKod extends MQCogul {
 			})
 		)
 	}
-	static loadServerData_queryDuzenle({ sent, sent: { where: wh, sahalar} }) {
+	static loadServerData_queryDuzenle({ offlineRequest, offlineMode, sent, sent: { where: wh, sahalar } }) {
 		super.loadServerData_queryDuzenle(...arguments)
-		let {aliasVeNokta, kodSaha, bosKodAlinirmi, zeminRenkDesteklermi, emptyKodValue = ''} = this
+		let {aliasVeNokta, kodSaha, onlineIdSaha, bosKodAlinirmi, zeminRenkDesteklermi, emptyKodValue = ''} = this
+		if (offlineRequest && !offlineMode)
+			kodSaha = onlineIdSaha
 		if (!bosKodAlinirmi)
 			wh.add(`${aliasVeNokta}${kodSaha} <> ${MQSQLOrtak.sqlDegeri(emptyKodValue)}`)
 		if (!sahalar.liste.find(saha => saha.alias == kodSaha))

@@ -113,17 +113,17 @@ class TabDokumDevice extends CObject {
 	async write(data) {
 		if (empty(data))
 			return this
-		let bytes = this.normalizeData(data)
-		if (empty(bytes))
+		let result = this.normalizeData(data)
+		if (empty(result))
 			return this
 		if (!this.opened)
 			await this.open()
 		let {chunkSize, chunkDelayMS} = this
-		if (!chunkSize || bytes.length <= chunkSize)
-			await this.writeChunk(bytes)
+		if (!chunkSize || result.length <= chunkSize)
+			await this.writeChunk(result)
 		else {
-			for (let i = 0; i < bytes.length; i += chunkSize) {
-				let chunk = bytes.slice(i, i + chunkSize)
+			for (let i = 0; i < result.length; i += chunkSize) {
+				let chunk = result.slice(i, i + chunkSize)
 				await this.writeChunk(chunk)
 				if (chunkDelayMS)
 					await delay(chunkDelayMS)

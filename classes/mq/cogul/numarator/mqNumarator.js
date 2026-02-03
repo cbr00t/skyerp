@@ -3,14 +3,14 @@ class MQNumarator extends MQKA {
 	static get numaratorPartSinif() { return NumaratorPart } static get fisGirisLayoutSelector() { return '.numarator' }
 	static get kodListeTipi() { return 'NUMARATOR' } static get sinifAdi() { return 'Numaratör' }
 	static get sayacSaha() { return 'sayac' } static get table() { return 'numarator' } static get tableAlias() { return 'num' }
-	static get offlineDirect() { return false } static get gonderildiDesteklenirmi() { return true }
+	static get offlineDirect() { return true } static get gonderildiDesteklenirmi() { return true }
 
-	constructor(e) {
-		e = e || {}; super(e);
+	constructor(e = {}) {
+		super(e)
 		$.extend(this, { sonNo: asInteger(e.no || e.fisNo) || this.sonNo })
 	}
-	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); const {pTanim} = e;
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
 		$.extend(pTanim, { seri: new PInstStr('seri'), sonNo: new PInstNum('sonno') })
 	}
 	static rootFormBuilderDuzenle(e) {
@@ -46,7 +46,10 @@ class MQNumarator extends MQKA {
 			new GridKolon({ belirtec: 'sonno', text: 'Son No', genislikCh: 15 }).tipNumerik(),
 		)
 	}
-	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {aliasVeNokta} = this, {sent} = e; }
+	static loadServerData_queryDuzenle({ sent, offlineRequest, offlineMode }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		// let {aliasVeNokta: alias} = this
+	}
 	static async offlineSaveToLocalTable(e = {}) {
 		let result = await super.offlineSaveToLocalTable(e)
 		let {table, gonderildiDesteklenirmi, gonderimTSSaha} = this
@@ -132,5 +135,9 @@ class MQNumarator extends MQKA {
 		if (qParam?.value)
 			sonNo = this.sonNo = qParam.value
 		return this
+	}
+
+	offlineBuildSQLiteQuery({ result: r = [] }) {
+		super.offlineBuildSQLiteQuery(...arguments)
 	}
 }

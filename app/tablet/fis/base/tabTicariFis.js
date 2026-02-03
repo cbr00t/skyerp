@@ -8,10 +8,20 @@ class TabTicariFis extends TabTSFis {
 	static get dipIskOranSayi() { return 1 } static get dipIskBedelSayi() { return 1 }
 	static get iademi() { return false } static get siparismi() { return false }
 	static get faturami() { return false } static get irsaliyemi() { return false }
+	static get ticariCikisGibimi() { return this.alimmi == this.iademi }
+	static get defaultEIslTip() { return '' }
+	get defaultEIslTip() {
+		return (app.params.tablet.efatKullanirmi ?? true) && !this.yildizlimi
+			? this.class.defaultEIslTip
+			: ''
+	}
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		$.extend(pTanim, {
+			yildizlimi: new PInstBool(),
+			eIslTip: new PInstStr('eisltip'),
+			uuid: new PInstStr('uuid'),
 			sevkYerKod: new PInstStr('sevkyerkod'),
 			sevkTS: new PInstDateTimeNow('sevkts'),
 			tahSekliNo: new PInstNum('tahseklino'),
@@ -20,18 +30,20 @@ class TabTicariFis extends TabTSFis {
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments)
-		let {_dipIslemci: d, sevkTS: sevkts} = this
+		let {_dipIslemci: d, sevkTS: sevkts, yildizlimi} = this
 		if (isDate(sevkts))
 			sevkts = dateTimeToString(sevkts)
 		$.extend(hv, { sevkts })
 		for (let k of ['dipIskOran1', 'dipIskOran2', 'dipIskBedel'])
 			hv[k.toLowerCase()] = d?.[k] ?? 0
+		hv.ozelisaret = bool2FileStr(yildizlimi)
 	}
 	setValues({ rec }) {
 		super.setValues(...arguments)
 		let {dipIslemci} = this
 		for (let k of ['dipIskOran1', 'dipIskOran2', 'dipIskBedel'])
 			dipIslemci[k] = rec[k.toLowerCase()] ?? 0
+		this.yildizlimi = asBool(rec.ozelisaret)
 	}
 	async uiGirisOncesiIslemler({ islem }) {
 		let {detaylar} = this
@@ -104,15 +116,35 @@ class TabTicariFis extends TabTSFis {
 	}
 	async kaydetSonrasiIslemler({ islem }) {
 		await super.kaydetSonrasiIslemler(...arguments)
-		let {_tahsilatFis: t, id, tahSekliNo} = this
+		let { _tahsilatFis: t, id, mustKod, tahSekliNo, fisSonuc } = this
+		let { almSat, iademi, ticariCikisGibimi: cikis } = this.class
 		if (t) {
 			let {tahFisId: prev} = t
 			t.tahFisId = tahSekliNo == -1 ? id : ''
 			if (prev != t.tahFisId)
 				await t?.kaydet()
 		}
+		/*if (mustKod && fisSonuc && tahSekliNo > 0) {
+			let {[tahSekliNo]: { tahsiltipi: tip, ahalttipi: altTip }} = await MQTabTahsilSekli.getGloKod2Rec()
+			if (!(tip || altTip)) {
+				// vadeli
+				let op = cikis ? '+' : '-'
+				let upd = new MQIliskiliUpdate(), {where: wh, set} = upd
+				upd.fromAdd('carbakiye')
+				wh.degerAta(mustKod, 'kod')
+				set.add(`bakiye = bakiye ${op} ${fisSonuc.sqlDegeri()}`)
+			}
+		}*/
 	}
 
+	async mustDegisti({ oldValue = this._prev.mustKod, value = this.mustKod }) {
+		if (!(oldValue && value == oldValue)) {
+			await this.satisKosullariOlusturWithReset(...arguments)
+			let {efaturakullanirmi: efatmi} = await MQTabCari.getCariEkBilgi({ kod: value })
+			this.eIslTip = this.defaultEIslTip
+		}
+		await super.mustDegisti(...arguments)
+	}
 	async tahSekliDegisti({ tanimPart, sender: part, oldValue = this._prev.tahSekliNo, value = this.tahSekliNo }) {
 		if (value == -1) {
 			// Karma Tahsilat istendi
@@ -243,7 +275,10 @@ class TabTicariFis extends TabTSFis {
 		// let stokKodListe = detaylar.map(_ => _.stokKod)
 		let kapsam = { tarih, subeKod, mustKod }
 		try { this.kosulYapilar = await new SatisKosulYapi().uygunKosullar({ kapsam }) }
-		catch (ex) { cerr(ex) }
+		catch (ex) {
+			cerr(ex)
+			this.kosulYapilar = new SatisKosulYapi()
+		}
 		return this
 	}
 

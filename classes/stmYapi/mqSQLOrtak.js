@@ -220,8 +220,10 @@ class MQAliasliYapi extends MQSQLOrtak {
 	get aliasliYapimi() { return true }
 	get alias() {
 		let {_alias: result} = this
-		if (result == undefined)
-			result = this._alias = this.class.getSahaDegeri(this.deger)
+		if (result == undefined) {
+			result = this.class.getSahaDegeri(this.deger)
+			this._alias = result
+		}
 		return result
 	}
 	set alias(value) { this._alias = value }
@@ -241,6 +243,10 @@ class MQAliasliYapi extends MQSQLOrtak {
 		let {alias, deger} = this
 		if (alias == 'undefined')
 			console.warn('MQAliasliYapi', 'alias hatası', { saha: this, alias, deger })
+		if (alias == '*') {
+			this.aliaslimi = false
+			this.alias = null
+		}
 	}
 	static newForFromText(e = {}) {
 		/* örnek:

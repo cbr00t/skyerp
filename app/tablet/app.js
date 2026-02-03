@@ -44,14 +44,17 @@ class TabletApp extends TicariApp {
 	get offlineBilgiYukleGonderOrtakSiniflar() {
 		let {cache, cache: { _offlineBilgiYukleGonderOrtakSiniflar: result }} = this
 		if (!result)
-			result = cache._offlineBilgiYukleGonderOrtakSiniflar = [MQTicNumarator, MQTabStok, MQTabCari]
+			result = cache._offlineBilgiYukleGonderOrtakSiniflar = [
+				MQTicNumarator, MQTabStok, MQTabCari
+			]
 		return result
 	}
 	get offlineBilgiYukleSiniflar() {
 		let {cache, cache: { _offlineBilgiYukleSiniflar: result }} = this
 		if (!result) {
 			result = cache._offlineBilgiYukleSiniflar = [
-				MQParam, MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
+				MQParam, MQTabDokumForm, MQTabCariBakiye,
+				MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
 				MQTabCariTip, MQTabSevkAdres, MQPaket, MQUrunPaket, MQTabUgramaNeden,
 				MQTabKasa, MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
 				MQTabBolge, MQTabIl, MQTabUlke, MQTabPlasiyer
@@ -132,10 +135,10 @@ class TabletApp extends TicariApp {
 				items.push(...menuItems)
 			}
 			return menuItems
-		};
+		}
 		items.push(new FRMenuChoice({ mne: 'BILGIYUKLE', text: 'Bilgi Yükle', block: e => this.bilgiYukleIstendi(e) }))
 		addMenuSubItems('TANIM', 'Tanımlar', [
-			MQTabStok, MQTabCari, MQTabPlasiyer, MQTabSube, MQTabYer,
+			MQTabStok, MQTabCari, MQTabCariBakiye, MQTabPlasiyer, MQTabSube, MQTabYer,
 			MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka, MQTabNakliyeSekli,
 			MQTabTahsilSekli, MQTabBarkodReferans, MQTabBarkodAyrisim,
 			MQCariSatis, MQTabUgramaNeden, MQTabCariTip, MQTabSevkAdres
@@ -145,6 +148,10 @@ class TabletApp extends TicariApp {
 			items.push(new FRMenuChoice({ mne, text, block: e => mfSinif.listeEkraniAc(e) }))
 		}
 		items.push(new FRMenuChoice({ mne: 'BILGIGONDER', text: 'Bilgi Gönder', block: e => this.bilgiGonderIstendi(e) }))
+		{
+			let mfSinif = MQTabletParam, {kodListeTipi: mne, sinifAdi: text} = mfSinif
+			items.push(new FRMenuChoice({ mne, text, block: e => app.params.tablet.tanimla(e) }))
+		}
 		// addMenuSubItems(null, null, [MQTest])
 		return new FRMenu({ items })
 	}
@@ -257,6 +264,9 @@ class TabletApp extends TicariApp {
 				}
 			}
 			await this.dbMgr_tabloEksikleriTamamla({ db, name, offlineRequest, offlineMode })
+			pm.progressStep(3)
+
+			await MQTabCariBakiye.bakiyeRiskDuzenle({ offlineRequest, offlineMode })
 			pm.progressStep(5)
 		}
 		catch (ex) {

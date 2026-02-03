@@ -257,6 +257,8 @@ body > .indicators > .ajax:not(.running):not(.error) { animation: unset }
 body > .indicators > .ajax.running { background: forestgreen }
 body > .indicators > .ajax.local { background: #ffbf00 }
 body > .indicators > .ajax.error { background: firebrick }
+body > .indicators > .ajax.loading { background: mediumpurple }
+body > .indicators > .ajax.saving { background: darkcyan }
 @keyframes animation--ajax {
 	50% { opacity: .7 }
 }

@@ -27,11 +27,12 @@ class TicariApp extends App {
 	raporEkSahaDosyalariDuzenle(e) { super.raporEkSahaDosyalariDuzenle(e); const {liste} = e; liste.push('VioTicari.RaporEkSaha') }
 	async afterRun(e) {
 		await super.afterRun(e)
-		await this.ilkIslemler(e)
+		// await this.ilkIslemler(e)
 		await this.anaMenuOlustur(e)
 		this.show()
 	}
 	async ilkIslemler(e) {
+		await super.ilkIslemler(e)
 		try { this.violetmi = await app.sqlHasTable('isemri') }
 		catch (ex) { cerr(ex) }
 	}

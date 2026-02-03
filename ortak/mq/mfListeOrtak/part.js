@@ -367,45 +367,102 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	}
 	get tabloKolonlari_detaylar() { let {mfSinif} = this; return mfSinif.listeBasliklari_detaylar }
 	loadServerData_detaylar(e) {
-		e ??= {}; let {grid, wsArgs} = e; e.args = this.args;
+		e ??= {}; let {grid, wsArgs} = e
+		e.args = this.args
 		if (wsArgs && grid?.length) {
 			if (!grid.jqxGrid('pageable')) {
-				let keys = ['recordstartindex', 'recordendindex', 'pagenum', 'pageindex', 'pagesize']; for (let key of keys) { delete wsArgs[key] } }
+				let _keys = ['recordstartindex', 'recordendindex', 'pagenum', 'pageindex', 'pagesize']
+				deleteKeys(wsArgs, ..._keys)
+			}
 		}
-		let mfSinif = this.getMFSinif();
-		try { let _e = { ...e, sender: this, tabloKolonlari: this.tabloKolonlari_detaylar, fisSinif: mfSinif }; return mfSinif.loadServerData_detaylar(_e) }
-		catch (ex) { console.error(ex); let errorText = getErrorText(ex); hConfirm(`<div style="color: firebrick;">${errorText}</div>`, 'Detay Grid Verisi Alınamadı') }
+		let mfSinif = this.getMFSinif()
+		try {
+			let _e = { ...e, sender: this, tabloKolonlari: this.tabloKolonlari_detaylar, fisSinif: mfSinif }
+			return mfSinif.loadServerData_detaylar(_e)
+		}
+		catch (ex) {
+			console.error(ex)
+			let errorText = getErrorText(ex)
+			hConfirm(`<div style="color: firebrick;">${errorText}</div>`, 'Detay Grid Verisi Alınamadı')
+		}
 	}
 	 static async openContextMenu(e) {
-		let evt = e.event, gridPart = e.gridPart ?? e.sender ?? e.parentPart, gridWidget = gridPart?.gridWidget, cells = gridWidget?.getselectedcells();
-		let belirtec = gridPart?.selectedBelirtec, parentRec = e.parentRec = e.parentRec ?? gridPart?.selectedRec;
-		let recs = (e.recs ?? gridPart?.getSubRecs(e) ?? [])?.filter(rec => !!rec), rec = e.rec = (recs || [])[0]; /*if (!rec) { return null }*/
-		let title = e.title ?? 'Menü'; let wnd, wndContent = $(`<div class="full-wh"/>`);
+		let {event: evt, gridPart = e.sender ?? e.parentPart ?? {}, formDuzenleyici = e.formDuzenle ?? e.duzenle} = e
+		let {wndArgsDuzenle: wndArgsDuzenleyici = e.wndArgsDuzenleyici ?? e.argsDuzenle, items} = e
+		let {gridWidget} = gridPart, cells = gridWidget?.getselectedcells()
+		let {selectedBelirtec: belirtec} = gridPart
+		let parentRec = e.parentRec ??= gridPart.selectedRec
+		let recs = (e.recs ?? gridPart?.getSubRecs?.(e) ?? [])?.filter(Boolean)
+		let rec = e.rec = recs?.[0]
+		let title = e.title ??= 'Menü'
+		let wnd, wndContent = $(`<div class="full-wh"/>`)
 		let close = e => {
-			if (!wnd?.length) { return }
-			try { wnd.jqxWindow('close'); wnd = null } catch (ex) { console.error(ex); hConfirm(getErrorText(ex), title) }
+			if (!wnd?.length)
+				return
+			try { wnd.jqxWindow('close'); wnd = null }
+			catch (ex) { console.error(ex); hConfirm(getErrorText(ex), title) }
 		};
-		let rfb = new RootFormBuilder({ parentPart: gridPart, layout: wndContent }).autoInitLayout();
-		let form = rfb.addFormWithParent('islemTuslari').altAlta().addStyle(...[
-			e => `$elementCSS button { font-size: 120%; width: var(--full) !important; height: 50px !important; margin: 5px 0 0 5px; margin-block-end: 5px }`,
-			e => `$elementCSS button.jqx-fill-state-normal { background-color: whitesmoke !important }`,
-			e => `$elementCSS button.jqx-fill-state-hover { background-color: #d9e0f0 !important }`,
-			e => `$elementCSS button.jqx-fill-state-pressed { color: whitesmoke !important; background-color: royalblue !important }`
-		]);
-		 $.extend(e, {
-			evt, sender: this, gridPart, gridWidget, cells, recs, belirtec, title, close, rfb, form,
-			wndArgs: { isModal: false, closeButtonAction: 'close', width: Math.min(700, $(window).width() - 50), height: Math.min(350, $(window).height() - 100) }
-		});
-		let {formDuzenleyici} = e; if (formDuzenleyici) { let result = await getFuncValue.call(this, formDuzenleyici, e); if (result === false) { return false } }
-		let wndArgsDuzenleyici = e.wndArgsDuzenle ?? e.wndArgsDuzenleyici ?? e.argsDuzenle; if (wndArgsDuzenleyici) { getFuncValue.call(this, wndArgsDuzenleyici, e) }
-		wnd = e.wnd = createJQXWindow({ content: wndContent, title, args: e.wndArgs }); wndContent = e.wndContent = wnd.find('div > .content > .subContent');
-		let mfSinif = e.mfSinif ?? gridPart?.getMFSinif?.() ?? gridPart?.mfSinif;
-		let wndClassNames = [mfSinif?.name, ...this.wndClassNames, 'contextMenu'].filter(x => !!x); wnd.addClass(wndClassNames.filter(x => !!x));
-		rfb.onAfterRun(e => { setTimeout(() => e.builder.id2Builder.islemTuslari.layout.find(`:eq(0) > button`).focus(), 100) })
-		rfb.run(); wnd.on('close', evt => { $('body').removeClass('bg-modal'); wnd.jqxWindow('destroy'); wnd = null }); $('body').addClass('bg-modal');
+		let rfb = new RootFormBuilder({ parentPart: gridPart, layout: wndContent }).autoInitLayout()
+		let form = rfb.addFormWithParent('islemTuslari').altAlta().addStyle(
+			`$elementCSS button { font-size: 120%; width: var(--full) !important; height: 50px !important; margin: 5px 0 0 5px; margin-block-end: 5px }
+			 $elementCSS button.jqx-fill-state-normal { background-color: whitesmoke !important }
+			 $elementCSS button.jqx-fill-state-hover { background-color: #d9e0f0 !important }
+			 $elementCSS button.jqx-fill-state-pressed { color: whitesmoke !important; background-color: royalblue !important }`
+		)
+		$.extend(e, {
+			evt, sender: this, gridPart, gridWidget, cells, recs,
+			belirtec, title, close, rfb, form,
+			wndArgs: {
+				isModal: false, closeButtonAction: 'close',
+				width: Math.min(700, $(window).width() - 50),
+				height: Math.min(350, $(window).height() - 100)
+			}
+		})
+		if (formDuzenleyici) {
+			let result = await formDuzenleyici.call(this, e)
+			if (result === false)
+				return false
+		}
+		items = await items
+		if (!empty(items)) {
+			let {content: parent} = rfb.id2Builder
+			let {yanSayi} = e; yanSayi ||= 2
+			if (!parent) {
+				parent = rfb.addFormWithParent('content').altAlta()
+					.addStyle(`$elementCSS > div { height: 60px !important; margin: 10px !important }`)
+			}
+			let form
+			items.forEach((item, index) => {
+				let {id, text, handler} = item ?? {}
+				if (!id)
+					return true   // continue
+				if (!form || (index % yanSayi) == 0)
+					form = parent.addFormWithParent().yanYana()
+				form.addButton(id, text)
+					.onClick(_e => handler?.call(this, { ...e, ..._e, item, id, text }))
+			})
+		}
+		wndArgsDuzenleyici?.call?.(this, e)
+		wnd = e.wnd = createJQXWindow({ content: wndContent, title, args: e.wndArgs })
+		wndContent = e.wndContent = wnd.find('div > .content > .subContent')
+		let mfSinif = e.mfSinif ?? gridPart?.getMFSinif?.() ?? gridPart?.mfSinif
+		let wndClassNames = [mfSinif?.name, ...this.wndClassNames, 'contextMenu'].filter(x => !!x)
+		if (!empty(wndClassNames))
+			wnd.addClass(wndClassNames)
+		rfb.onAfterRun(({ builder: { id2Builder: { islemTuslari: { layout } } } }) =>
+			setTimeout(l => l.find(`:eq(0) > button`).focus(), 100, layout))
+		rfb.run()
+		wnd.on('close', evt => {
+			$('body').removeClass('bg-modal')
+			wnd.jqxWindow('destroy')
+			wnd = null
+		})
+		$('body').addClass('bg-modal')
 		return e
 	}
-	async openContextMenu(e) { return this.class.openContextMenu(e) }
+	openContextMenu(e) {
+		return this.class.openContextMenu(e)
+	}
 	getColCount(e) {
 		e ??= {}; let mfSinif = this.getMFSinif(e), {paramGlobals} = mfSinif; let result = paramGlobals?.colCount;
 		if (!result) {

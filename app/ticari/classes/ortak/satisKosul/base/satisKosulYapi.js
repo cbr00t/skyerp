@@ -64,7 +64,7 @@ class SatisKosulYapi extends MQCogul {
 			}
 			catch(ex) {
 				delete this[tipKod]
-				throw ex
+				cerr(ex)
 			}
 		}
 		return this
@@ -153,6 +153,8 @@ class SatisKosulYapi extends MQCogul {
 		}
 
 		for (let table of tables) {
+			if (!await app.sqlHasTable(table))
+				continue
 			let kodVarmi = !!(await app.sqlGetColumns(table))[kodSaha]
 			let sent = new MQSent(), {where: wh, sahalar} = sent
 			sent.fromAdd(table)

@@ -15,7 +15,8 @@ class TabFisGirisPart extends ModelTanimPart {
 				.onAfterRun(({ builder: { part } }) => this.acc = part)
 	}
 	async rootFormBuilderDuzenle_islemTuslari({ fbd_islemTuslari: rfb }) {
-		await super.rootFormBuilderDuzenle_islemTuslari(...arguments)
+		let e = arguments[0]
+		await super.rootFormBuilderDuzenle_islemTuslari(e)
 		rfb.addStyle(`
 			$elementCSS,
 				$elementCSS > div,
@@ -27,6 +28,8 @@ class TabFisGirisPart extends ModelTanimPart {
 			$elementCSS + .bulForm.part,
 				body > .app-titlebar { display: none !important }
 		`)
+		let {mfSinif} = this
+		await mfSinif?.rootFormBuilderDuzenle_tablet_islemTuslari?.(e)
 	}
 	async afterRun(e) {
 		await super.afterRun(e)

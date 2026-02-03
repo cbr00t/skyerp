@@ -11,13 +11,24 @@ class SqlJS_DBMgrBase extends CObject {
 		})
 	}
 	async yukle(e = {}) {
-		await this.open(e)
-		let {fh} = this
-		if (!fh) {
-			try { fh = this.fh = await this.getFSHandle(false) }
-			catch { return false }
+		app.onAjaxStart?.('loading')
+		let result
+		try {
+			await this.open(e)
+			let {fh} = this
+			if (!fh) {
+				try { fh = this.fh = await this.getFSHandle(false) }
+				catch { return false }
+			}
+			app.onAjaxStart?.('loading')
+			result = await this.yukleDevam(e)
+			app.onAjaxStart?.('loading')
+			app.onAjaxEnd?.(false)
 		}
-		let result = await this.yukleDevam(e)
+		catch (ex) {
+			app.onAjaxEnd?.(true)
+			throw ex
+		}
 		this.notChanged(e)
 		return result
 	}
@@ -26,9 +37,19 @@ class SqlJS_DBMgrBase extends CObject {
 		let {fh, changedFlag} = this
 		if (onlyIfChanged && !changedFlag)
 			return false
-		if (!fh)
-			fh = this.fh = await this.getFSHandle(true)
-		let result = await this.kaydetDevam(e)
+		let result
+		app.onAjaxStart?.('saving')
+		try {
+			if (!fh)
+				fh = this.fh = await this.getFSHandle(true)
+			app.onAjaxStart?.('saving')
+			result = await this.kaydetDevam(e)
+			app.onAjaxEnd?.(false)
+		}
+		catch (ex) {
+			app.onAjaxEnd?.(true)
+			throw ex
+		}
 		this.notChanged(e)
 		return result
 	}

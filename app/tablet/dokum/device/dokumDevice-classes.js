@@ -45,7 +45,8 @@ class TabDokumDevice_Ekran extends TabDokumDevice {
 			rfb
 				.addStyle(
 					`$elementCSS [data-builder-id = 'data'] > :not(label) {
-						font-family: Monospace, Courier New; font-size: 90%
+						font-family: Monospace, Courier New; font-size: 95%;
+						padding: 5px 10px
 					}
 					body:not(.dark-theme) $elementCSS [data-builder-id = 'data'] > :not(label) {
 						color: forestgreen !important; background-color: #333 !important
@@ -64,7 +65,7 @@ class TabDokumDevice_Ekran extends TabDokumDevice {
 						yazdirIslemi ??= ({ device, data }) => {
 							TabDokumDevice.newDefault(device)
 						}
-						let result = await yazdirIslemi?.call(this, { device, data })
+						let result = await yazdirIslemi?.call(this, { ...e, device, data })
 						if (!result)
 							return false
 						part?.close()
@@ -82,7 +83,13 @@ class TabDokumDevice_Ekran extends TabDokumDevice {
 					inst.data = input.val())
 				.onAfterRun( ({ builder: { rootPart, inst, input } }) => {
 					rootPart.txtData = input
-					setTimeout(() => input.focus(), 500)
+					setTimeout(() => {
+						input.focus()
+						setTimeout(() => {
+							input.scrollTop(0)
+							input[0].selectionStart = input[0].selectionEnd = 0
+						}, 100)
+					}, 400)
 				})
 			await rfb.run()
 		}

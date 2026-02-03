@@ -194,6 +194,9 @@ class MQCogul extends MQYapi {
 	static getFormBuilders(e) { let _e = $.extend(e, { liste: [] }); this.formBuildersDuzenle(_e); return e.liste }
 	static formBuildersDuzenle(e) { }
 	formBuildersDuzenle(e) { this.class.formBuildersDuzenle(e) }
+	static rootFormBuilderDuzenle_islemTuslari(e) { }
+	static tanimPart_islemTuslariArgsDuzenle(e) { }
+	static tanimPart_islemTuslariDuzenle(e) { }
 	static getRootFormBuilder_listeEkrani(e) {
 		e = e || {}; let rootBuilder = new RootFormBuilder(); let _e = $.extend({}, e, { mfSinif: this, rootBuilder });
 		$.extend(rootBuilder, { part: _e.sender, parent: _e.parent, layout: _e.layout, mfSinif: this });
@@ -296,6 +299,19 @@ class MQCogul extends MQYapi {
 		if (!tabPage_genel) { tabPanel.builders.unshift(tabPage_genel = new FBuilder_TabPage({ id: id_genel, etiket: 'Genel' })) }
 		tabPage_genel.addStyle_fullWH(); e.tabPage_genel = tabPage_genel
 	}
+	static async getDefaultContextMenuArgs(e = {}) {
+		let {title = 'Menü', items} = e
+		items ??= await this.getDefaultContextMenuItems(e)
+		return items ? { title, items } : null
+	}
+	static async getTanimPartMenuArgs(e = {}) {
+		let {items} = e
+		items ??= await this.getTanimPartMenuItems(e)
+		return this.getDefaultContextMenuArgs({ ...e, items })
+	}
+	static getDefaultContextMenuItems(e) {
+		return null
+	}
 	static get newSecimler() {
 		let {secimSinif} = this; if (!secimSinif) { return null }
 		let _e = { secimler: new secimSinif() }; _e.secimler.beginUpdate(); this.secimlerDuzenle(_e); this.secimlerDuzenleSon(_e);
@@ -320,7 +336,29 @@ class MQCogul extends MQYapi {
 	static orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(e) { this.forAltYapiClassesDo('orjBaslikListesi_panelUstSeviyeAttrListeDuzenle', e) }
 	static orjBaslikListesi_getHizliBulFiltreAttrListe(e) { let _e = { ...e, liste: [] }; this.orjBaslikListesi_hizliBulFiltreAttrListeDuzenle(_e); return _e.liste }
 	static orjBaslikListesi_hizliBulFiltreAttrListeDuzenle(e) { this.forAltYapiClassesDo('orjBaslikListesi_hizliBulFiltreAttrListeDuzenle', e) }
-	static orjBaslikListesi_gridInit(e) { this.forAltYapiClassesDo('orjBaslikListesi_gridInit', e) }
+	static async orjBaslikListesi_gridInit(e = {}) {
+		this.forAltYapiClassesDo('orjBaslikListesi_gridInit', e)
+		let {gridPart = e.parentPart ?? e.sender ?? {}} = e
+		if (gridPart) {
+			let args = await this.getDefaultContextMenuArgs(e)
+			if (args) {
+				let {gridContextMenuIstendiBlock: handler} = gridPart
+				gridPart.gridContextMenuIstendiBlock = ({ event, ...rest }) => {
+					try {
+						let {selectedRecs: recs} = gridPart
+						let _e = {
+							...args, event, ...rest, recs,
+							title: e.title || `Seçilen ${recs.length} Kayıt için...`
+						}
+						gridPart.openContextMenu(_e)
+						event?.preventDefault()
+						return false    // break
+					}
+					catch (ex) { cerr(ex); throw ex }
+				}
+			}
+		}
+	}
 	static orjBaslikListesi_argsDuzenle(e) { this.forAltYapiClassesDo('orjBaslikListesi_argsDuzenle', e) }
 	static orjBaslikListesi_argsDuzenle_detaylar(e) { this.forAltYapiClassesDo('orjBaslikListesi_argsDuzenle_detaylar', e) }
 	static gridTazeleIstendi(e) { return this.forAltYapiClassesDo('gridTazeleIstendi', e) }
@@ -522,7 +560,7 @@ class MQCogul extends MQYapi {
 				if (offlineMode && gonderildiDesteklenirmi && gonderimTSSaha)  // offline - gonderimTSSaha (sadece gönderilmeyenler gönderilir)
 					wh.add(`${alias}.${gonderimTSSaha} = ''`)
 				for (let key of keys(alias2Deger)) {
-					if (!cd[key])
+					if (!(key.includes('*') || cd[key]))
 						delete alias2Deger[key]
 				}
 				if (sahalar.liste.length != keys(alias2Deger).length) {

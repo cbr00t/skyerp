@@ -19,12 +19,15 @@ CREATE TABLE IF NOT EXISTS tabfis (
 	nedenkod TEXT NOT NULL DEFAULT '',
 -- stok/ticari fis
 	yerkod TEXT NOT NULL DEFAULT '',
-	dipiskoran1 REAL NOT NULL DEFAULT 0,
-	dipiskoran2 REAL NOT NULL DEFAULT 0,
-	dipiskbedel REAL NOT NULL DEFAULT 0,
 -- ticari fis
 	sevkyerkod TEXT NOT NULL DEFAULT '',
 	sevkts TEXT NOT NULL DEFAULT '',
+	dipiskoran1 REAL NOT NULL DEFAULT 0,
+	dipiskoran2 REAL NOT NULL DEFAULT 0,
+	dipiskbedel REAL NOT NULL DEFAULT 0,
+	ozelisaret TEXT NOT NULL DEFAULT '',
+	eisltip TEXT NOT NULL DEFAULT '',
+	uuid TEXT NOT NULL DEFAULT '',
 	tahseklino INTEGER NOT NULL DEFAULT 0,
 	tahfisid TEXT NOT NULL DEFAULT '',
 -- stok fis
@@ -42,6 +45,8 @@ CREATE TABLE IF NOT EXISTS tabhar (
 	barkod TEXT NOT NULL DEFAULT '',
 	stokkod TEXT NOT NULL DEFAULT '',
 	miktar REAL NOT NULL DEFAULT 0,
+	brm TEXT NOT NULL DEFAULT '',
+	brm2 TEXT NOT NULL DEFAULT '',
 	fiyat REAL NOT NULL DEFAULT 0,
 	kdvorani INTEGER NOT NULL DEFAULT 0,
 	kdv REAL NOT NULL DEFAULT 0,

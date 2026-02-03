@@ -16,6 +16,7 @@ class TabFis extends MQDetayliGUID {
 	static get numTipKod() { return 'TB' } static get numKod() { return 'TB' }
 	static get defaultSeri() { return 'TAB' } static get _bedelKullanilirmi() { return false }
 	static get mustZorunlumu() { return true }
+	static get dokumFormTip() { return null }
 	static get bedelKullanilirmi() {
 		let {_bedelKullanilirmi: result} = this
 		if (result) {
@@ -36,11 +37,11 @@ class TabFis extends MQDetayliGUID {
 		}
 		return result
 	}
-	static get numYapi() {
-		let {numTipKod: tip, numKod: belirtec, defaultSeri: seri} = this
-		return tip ? new MQTicNumarator({ tip, belirtec, aciklama: 'Sky Tablet', seri }) : null
+	get numYapi() {
+		let {numTipKod: tip, numKod: belirtec, defaultSeri: seri} = this.class
+		let aciklama = 'Sky Tablet'
+		return tip ? new MQTicNumarator({ tip, belirtec, aciklama, seri }) : null
 	}
-	get numYapi() { return this.class.numYapi }
 	get kosulYapilar() { return this._kosulYapilar }
 	set kosulYapilar(value) { this._kosulYapilar = value }
 	get fisNox() { return this.tsn?.asText() }
@@ -103,6 +104,29 @@ class TabFis extends MQDetayliGUID {
 			aciklama: new PInstStr('cariaciklama'),
 			fisSonuc: new PInstNum('sonuc')
 		})
+	}
+	static islemTuslariDuzenle_listeEkrani(e) {
+		super.islemTuslariDuzenle_listeEkrani(e)
+		let { parentPart: gridPart, part, liste } = e
+		let items = [
+			{ id: 'menu', text: '...', handler: async _e => {
+				_e = { ...e, ..._e }
+				try {
+					let args = await this.getDefaultContextMenuArgs(_e)
+					if (args) {
+						let {selectedRecs: recs} = gridPart
+						extend(_e, { recs, ...args })
+						gridPart.openContextMenu(_e)
+					}
+				}
+				catch (ex) { cerr(ex); throw ex }
+			}}
+		]
+		let set = part.ekSagButonIdSet ??= {}
+		if (items.length) {
+			liste.unshift(...items)
+			extend(set, asSet(items.map(_ => _.id)))
+		}
 	}
 	static orjBaslikListesi_argsDuzenle(e) {
 		super.orjBaslikListesi_argsDuzenle(e)
@@ -239,9 +263,11 @@ class TabFis extends MQDetayliGUID {
 		let e = arguments[0]
 		await this._promise_topluHesapla
 		await super.kaydetOncesiIslemler(e)
-		this.fisSonuc = this.fisTopNet
-		let {fisNo, numarator: num} = this
 		let yeniVeyaKopyami = islem == 'yeni' || islem == 'kopya'
+		let {eIslTip, fisNo, numarator: num} = this
+		if (eIslTip)
+			this.uuid ||= newGUID()
+		this.fisSonuc = this.fisTopNet		
 		if (yeniVeyaKopyami) {
 			this.sayac = null
 			if (!fisNo && num) {
@@ -254,6 +280,9 @@ class TabFis extends MQDetayliGUID {
 			}
 		}
 		await this.dipIslemci?.kaydetOncesiIslemler(...arguments)
+	}
+	async kaydetSonrasiIslemler({ islem }) {
+		super.kaydetSonrasiIslemler(...arguments)
 	}
 	async yukle(e = {}) {
 		let {rec} = e
@@ -300,15 +329,68 @@ class TabFis extends MQDetayliGUID {
 		// do nothing
 	}
 
+	static getDefaultContextMenuItems(e) {
+		return [
+			...(super.getDefaultContextMenuItems(e) ?? []),
+			{ id: 'yazdir',  text: 'Yazdır', handler: _e => this.orjBaslikListesi_yazdirIstendi({ ...e, ..._e }) }
+		]
+	}
+	static getTanimPartMenuItems(e = {}) {
+		let {sender: tanimPart} = e, {acc} = tanimPart
+		return [
+			{ id: 'yazdir', text: 'Yazdır', handler: _e => { this.yazdirIstendi({ ...e, ..._e, tanimPart }); _e.close?.() } },
+			{ id: 'duzenle', text: 'Düzenle', handler: _e => { acc.expand('duzenle'); _e.close() } },
+			{ id: 'temizle', text: 'Temizle', handler: _e => this.temizleIstendi({ ...e, ..._e, tanimPart }) }
+		]
+	}
+
+	static async orjBaslikListesi_yazdirIstendi(e = {}) {
+		let {gridPart = e.sender, recs, close} = e
+		if (empty(recs))
+			return
+		let count = recs.length
+		showProgress(`${count} adet belge yazdırılıyor...`, 'Yazdır')
+		let {progressManager: pm} = window
+		pm.setProgressMax(count * 5 + 10)
+		try {
+			for (let rec of recs) {
+				let {fisTipi, id} = rec
+				let cls = TabFisListe.fisSinifFor(fisTipi)
+				pm?.progressStep()
+				let inst = cls ? new cls({ id }) : null
+				if (!(await inst?.yukle()))
+					continue
+				pm?.progressStep()
+				await this.yazdir({ ...e, inst })
+				pm?.progressStep(3)
+			}
+		}
+		finally {
+			pm?.progressEnd()
+			setTimeout(() => hideProgress(), 300)
+		}
+		close?.()
+	}
+	static temizleIstendi({ tanimPart, close }) {
+		let {inst: fis, acc, gridPart} = tanimPart
+		fis.detaylar = []
+		gridPart?.tazele()
+		acc.collapse()
+		setTimeout(() => {
+			acc.expand('detay')
+			close?.()
+		}, 50)
+	}
+
 	tarihDegisti({ value = this.tarih }) {
 		this.satisKosullariOlusturWithReset(...arguments)
 	}
 	plasiyerDegisti({ oldValue = this._prev.plasiyerKod, value = this.plasiyerKod }) {
 		this._prev.plasiyerKod = value
 	}
-	mustDegisti({ oldValue = this._prev.mustKod, value = this.mustKod }) {
+	async mustDegisti({ oldValue = this._prev.mustKod, value = this.mustKod }) {
 		if (!(oldValue && value == oldValue))
-			this.satisKosullariOlusturWithReset(...arguments)
+			await this.satisKosullariOlusturWithReset(...arguments)
 		this._prev.mustKod = value
 	}
 
@@ -349,8 +431,8 @@ class TabFis extends MQDetayliGUID {
 	}
 	async satisKosullariReset(e) { return this }
 	async satisKosullariOlustur(e) { return this }
-	static async yeniInstOlustur({ sender: gridPart, islem, rec, rowIndex, args = {} }) {
-		let e = arguments[0]
+	static async yeniInstOlustur(e = {}) {
+		let { gridPart = e.sender, islem, rec, rowIndex, args = {} } = e
 		let {gonderildiDesteklenirmi, gonderimTSSaha} = this
 		let {fisTipi} = rec ?? {}
 		let degistirmi = islem == 'degistir'
@@ -423,24 +505,124 @@ class TabFis extends MQDetayliGUID {
 		await oFis.dipOlustur?.()
 		await oFis.dipIslemci?.topluHesapla?.()
 	}
-	/*getDipGridSatirlari(e = {}) {
-		e.liste = []
-		this.dipGridSatirlariDuzenle(e)
-		return e.liste
+
+	static yazdir({ inst }) {
+		return inst?.yazdir(...arguments)
 	}
-	dipGridSatirlariDuzenle({ dipIslemci, liste }) {
-		let e = arguments[0]
-		liste.push(new DipSatir_Brut(e))
-		this.dipGridSatirlariDuzenle_ticari(e)
-		liste.push(new DipSatir_Sonuc(e))
+	async yazdir(e) {
+		let bedelX = 33
+		let data = ({
+			nakil: false, tekDetaySatirSayisi: 2,
+			dipYok: false, dipX: bedelX - 20,
+			sayfaBoyut: { x: 60, y: 58 },
+			otoYBasiSonu: { x: 17, y: 52 },
+			sabit: [
+				{ text: '[!FUNC(e => (2 + 3))] [!FUNC( ({ inst: { fisNo } }) => `FIS: ${fisNo}` )]', x: 5, y: 1 },
+				{ key: 'fisTipText', pos: { x: 5, y: 2 }, length: 19 },
+				{ text: '[islemTarih] [islemZaman]', pos: { x: 40, y: 5 }, _comment: '(pos.X = 0) => text length ne ise aynen yazılır, kırpmadan' },
+				{ key: 'islemZaman', pos: { x: 48, y: 6 }, _comment: '(pos.X = 0) => text length ne ise aynen yazılır, kırpmadan' },
+				{ key: 'yildizlimiText', pos: { x: 1, y: 0 }, length: 5, _comment: '(Y = 0) ==> Cursor ın kaldığı Y pozisyonundan devam et' },
+				{ key: 'tahsilatSekliText', pos: { x: 0, y: 0 }, _comment: '(X = 0) => Bu bilgi yazılmaz | (Y = 0) ==> Cursor ın kaldığı Y pozisyonundan devam et' },
+				{ text: 'SAYIN [mustUnvan],', pos: { x: 1, y: 8 }, length: 55 },
+				{ text: '[vergiDairesi] [vergiNo]', pos: { x: 5, y: 9 }, length: 40 },
+				{ text: '** BİLGİ FİŞİ **', pos: { x: 5, y: -1 }, length: 50, ozelIsaret: true, iade: false, _comment: '(Y = -1) => Bittiği yer veya Sayfa Boyutu Y ye göre tersten relative satır no' }
+			],
+			detay: [
+				{ key: 'barkod', pos: { x: 2, y: 1 }, length: 15 },
+				{ key: 'stokAdi', pos: { x: 18, y: 1 }, length: 40 },
+				{ key: 'miktar', pos: { x: 5, y: 2 }, length: 8, right: true },
+				{ key: 'brm', pos: { x: 15, y: 2 }, length: 4, right: true },
+				{ key: 'fiyat', pos: { x: 21, y: 2 }, length: 10, right: true },
+				{ key: 'netBedel', pos: { x: bedelX, y: 2 }, length: 13, right: true }
+			],
+			oto: [
+				{ key: 'tahsilText', x: 2 },
+				{ key: 'miktarText', x: 2 },
+				{ key: 'yalnizText', x: 5 },
+				{ key: 'bakiyeText', _comment: 'gizli' },
+				{ key: 'notlar', _comment: 'gizli' }
+			]
+		})
+		let form = new TabDokumForm(data)
+		let dokumcu = new TabDokumcu()
+			.setSource(form)
+			.setDevice(new TabDokumDevice_Console())
+			.epson().yaziciya()
+			//.ekrana()
+		let inst = this
+		await dokumcu.yazdir({ inst })
 	}
-	dipGridSatirlariDuzenle_ticari({ dipIslemci, liste }) { }*/
+	async getDokumForm(e) {
+		let {dokumFormTip} = this.class
+		// ** burada kaldık
+	}
+	async dokumGetValue({ tip, key } = {}) {
+		switch (key) {
+			case 'fisTipText':
+				return this.class.sinifAdi
+			case 'eIslText': {
+				let {efatKullanirmi} = app.params.tablet
+				let {eIslTip: _} = this
+				efatKullanirmi ??= true
+				return (
+					_ == 'E' ? 'e-Fatura' :
+					_ == 'IR' ? 'e-İrsaliye' :
+					_ ? (efatKullanirmi ? 'e-Arşiv' : '')
+					: eIslTip
+				)
+			}
+			case 'tarih': case 'islemTarih':
+				return dateToString(asDate(this.tarih))
+			case 'saat': case 'zaman': case 'islemZaman':
+				return timeToString(this.sevkTS ?? now())
+			case 'mustUnvan': case 'mustUnvan1': case 'mustUnvan2':
+				return MQTabCari.getGloKod2Adi(this.mustKod)
+			case 'vergiDairesi':
+				return MQTabCari.getGloKod2Rec().then(d => d[this.mustKod]?.vdaire)
+			case 'vergiNo':
+				return MQTabCari.getGloKod2Rec().then(d => d[this.mustKod]?.vnumara)
+			case 'tahsilText':
+				return '...'
+		}
+		return null
+	}
 
 	static getRootFormBuilder(e) { return MQCogul.getRootFormBuilder(e) }
 	static getRootFormBuilder_fis(e) { return null }
+	static rootFormBuilderDuzenle_listeEkrani({ sender: gridPart, rootBuilder: rfb }) {
+		super.rootFormBuilderDuzenle_listeEkrani(...arguments)
+		rfb.addStyle(`$elementCSS .header > .islemTuslari > div #sil { margin-left: 50px }`)
+	}
+	static rootFormBuilderDuzenle_islemTuslari({ fbd_islemTuslari: fbd }) {
+		super.rootFormBuilderDuzenle_islemTuslari(...arguments)
+		fbd.addStyle(`$elementCSS > div #tamam { margin-left: 50px }`)
+	}
+	static tanimPart_islemTuslariDuzenle({ parentPart: tanimPart, part, liste }) {
+		super.tanimPart_islemTuslariDuzenle(...arguments)
+		let items = [
+			{ id: 'menu', text: '...', handler: async _e => {
+				_e = { ...e, ..._e }
+				try {
+					let args = await this.getTanimPartMenuArgs(_e)
+					if (args) {
+						let {inst, inst: parentRec} = tanimPart
+						extend(_e, { inst, parentRec, ...args })
+						MFListeOrtakPart.openContextMenu(_e)
+					}
+				}
+				catch (ex) { cerr(ex); throw ex }
+			}}
+		]
+		let set = part.ekSagButonIdSet ??= {}
+		if (items.length) {
+			liste.unshift(...items)
+			extend(set, asSet(items.map(_ => _.id)))
+		}
+	}
 	static async rootFormBuilderDuzenle_tablet(e) { }
 	static async rootFormBuilderDuzenle_tablet_acc(e) {
-		let {sender: tanimPart, inst, inst: { mustKod, numarator: num, class: { mustZorunlumu } }, acc} = e
+		let { sender: tanimPart, inst, acc } = e
+		let { mustKod, numarator: num, class: { mustZorunlumu } } = inst
 		let getBuilder = e.getBuilder = layout =>
 			this.rootFormBuilderDuzenle_tablet_getBuilder({ ...e, layout })
 		await acc.deferRedraw(async () => {
@@ -526,7 +708,7 @@ class TabFis extends MQDetayliGUID {
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_baslikOncesi({ sender: tanimPart, inst: fis, rfb }) { }
 	static async rootFormBuilderDuzenle_tablet_acc_baslikCollapsed({ sender: tanimPart, inst: fis, rfb }) {
-		let {mustKod} = fis
+		let {mustKod, eIslTip} = fis
 		if (mustKod) {
 			/*let {adiSaha} = MQTabCari
 			let {[mustKod]: { [adiSaha]: aciklama } = {}} = await MQTabCari.getGloKod2Rec() ?? {}
@@ -542,6 +724,13 @@ class TabFis extends MQDetayliGUID {
 				`<div class="flex-row" style="gap: 10px">`,
 					// `<div class="orangered"><b>${dateKisaString(asDate(tarih))}</b></div>`,
 					`<div class="royalblue"><b>${aciklama}</b></div>`,
+				`</div>`
+			].join(CrLf)))
+		}
+		if (eIslTip) {
+			rfb.addForm().setLayout(() => $([
+				`<div class="flex-row" style="gap: 5px">`,
+					`<div class="bold red">e-İşlem</div>`,
 				`</div>`
 			].join(CrLf)))
 		}
@@ -608,9 +797,8 @@ class TabFis extends MQDetayliGUID {
 			.setLayout(layout).setPart(tanimPart)
 			.setInst(inst)
 	}
-
 	static getHTML({ rec }) {
-		let {fisTipi, tarih, seri, noyil, fisno, must, mustunvan} = rec
+		let {fisTipi, tarih, seri, noyil, fisno, must, mustunvan, eisltip} = rec
 		let fisSinif = TabFisListe.fisSinifFor(fisTipi)
 		// let {kod2Rec: kod2Must} = MQTabCari.globals
 		let tsnText = [
@@ -624,6 +812,7 @@ class TabFis extends MQDetayliGUID {
 				`<div class="ek-bilgi bold float-right">${dateKisaString(asDate(tarih)) ?? ''}</div>`,
 				`<div class="asil">${tsnText}</div>`,
 				`<div class="asil orangered">${mustunvan || ''}</div>`,
+				(eisltip ? `<div class="ek-bilgi bold red">e-İşl.</div>` : null),
 				`<div class="ek-bilgi bold float-right">${must || ''}</div>`,
 				(fisSinif ? `<div class="ek-bilgi float-right">${fisSinif.sinifAdi || ''}</div>` : null),
 			`</div>`

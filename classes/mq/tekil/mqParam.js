@@ -8,8 +8,8 @@ class MQParam extends MQTekil {
 	static get table() { return 'yflaglar' } static get tableAlias() { return 'par' }
 	static get tanimUISinif() { return ParamTanimPart } static get paramKod() { return null }
 	static get kodKullanilirmi() { return true } static get kodSaha() { return 'kod' }
-	static get tekilOku_sqlBatchFlag() { return false }
-	get tekSecimDonusum_receiver() { return this }
+	static get parammi() { return true } static get tanimmi() { return true }
+	static get tekilOku_sqlBatchFlag() { return false } get tekSecimDonusum_receiver() { return this }
 	get paramci() { return this._paramci } set paramci(value) { this._paramci = value }
 	get builder() { return this._builder } set builder(value) { this._builder = value }
 	static get paramAttrListe() { let result = this._paramAttrListe; if (!result) { this.paramAttrListeDuzenle({ liste: result = [] }); this._paramAttrListe = result } return result }
@@ -84,7 +84,8 @@ class MQParam extends MQTekil {
 		let stm = new MQStm({ sent: uni })
 		let recs = await this.sqlExecSelect({ ...e, query: stm })
 		let kod2Rec = this._topluYukle_kod2Rec = {}
-		for (let rec of recs) { let {kod} = rec; kod2Rec[kod] = rec }
+		for (let rec of recs)
+			kod2Rec[rec.kod] = rec
 		return kod2Rec
 	}
 	async getInstance_yukleIslemi(e) { return await this.topluYukle(e) }

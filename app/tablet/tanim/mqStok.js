@@ -64,6 +64,28 @@ class MQTabStok extends MQKAOrtak {
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
+		let mini = isMiniDevice(), {adiSaha} = this
+		if (mini) {
+			let c = liste.find(_ => _.belirtec == adiSaha)
+			if (c) {
+				let {cellsRenderer: handler} = c
+				c.cellsRenderer = (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => {
+					html = handler?.(colDef, rowIndex, belirtec, value, html, jqxCol, rec) ?? html
+					if (mini && belirtec == adiSaha) {
+						html = changeTagContent(html, [
+							getTagContent(html),
+							`<span class="ek-bilgi lightgray">KD:</span> <span class="ek-bilgi orangered">%${numberToString(rec.satkdvorani)}</span>`,
+							`<span class="ek-bilgi lightgray">FY:</span> <span class="ek-bilgi royalblue">${numberToString(rec.satfiyat1)} TL</span>`,
+							`<div>`,
+								(rec.markaadi ? `<span class="ek-bilgi lightgray">MAR:</span> <span class="ek-bilgi purple">${rec.markaadi}</span>` : ''),
+								(rec.tartireferans ? `<span class="ek-bilgi lightgray">TAR:</span> <span class="ek-bilgi cyan">${rec.tartireferans}</span>` : ''),
+							`</div>`
+						].join('\n'))
+					}
+					return html
+				}
+			}
+		}
 		liste.push(
 			new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 5 }),
 			...this.getKAKolonlar(
@@ -71,12 +93,13 @@ class MQTabStok extends MQKAOrtak {
 				new GridKolon({ belirtec: 'grupadi', text: 'Grup Adı', genislikCh: 25, sql: 'grp.aciklama' })
 			),
 			new GridKolon({ belirtec: 'satkdvorani', text: 'Sat.Kdv%', genislikCh: 8 }).tipNumerik()
-			/*new GridKolon({ belirtec: 'calismadurumu', text: 'Aktif?', genislikCh: 10, filterType: 'checkedlist' }).tipBool(),
-			new GridKolon({ belirtec: 'satilamazfl', text: 'SatılaMAz?', genislikCh: 10, filterType: 'checkedlist' }).tipBool()*/
+			//new GridKolon({ belirtec: 'calismadurumu', text: 'Aktif?', genislikCh: 10, filterType: 'checkedlist' }).tipBool(),
+			//new GridKolon({ belirtec: 'satilamazfl', text: 'SatılaMAz?', genislikCh: 10, filterType: 'checkedlist' }).tipBool()
 		)
 		// for (let i = 1; i <= this.satFiyatSayi; i++)
-		for (let i = 1; i <= Math.max(3, this.satFiyatSayi); i++)
-			liste.push(new GridKolon({ belirtec: `satfiyat${i}`, text: `S.Fiyat${i}`, genislikCh: 11 }).tipDecimal_fiyat())
+		liste.push(new GridKolon({ belirtec: 'satfiyat1', text: `S.Fiyat 1`, genislikCh: 11 }).tipDecimal_fiyat())
+		/*for (let i = 1; i <= Math.max(3, this.satFiyatSayi); i++)
+			liste.push(new GridKolon({ belirtec: `satfiyat${i}`, text: `S.Fiyat${i}`, genislikCh: 11 }).tipDecimal_fiyat())*/
 		liste.push(
 			new GridKolon({ belirtec: 'almkdvorani', text: 'Alm.Kdv%', genislikCh: 8 }).tipNumerik(),
 			new GridKolon({ belirtec: 'almfiyat', text: 'Alm.Fiyat', genislikCh: 11 }).tipDecimal_fiyat(),

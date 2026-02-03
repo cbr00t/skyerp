@@ -210,7 +210,7 @@ class TabTSFis extends TabFis {
 	static async rootFormBuilderDuzenle_tablet_acc_detay({ sender: tanimPart, inst: fis, rfb }) {
 		let e = arguments[0]
 		await super.rootFormBuilderDuzenle_tablet_acc_detay(e)
-		let {depomu} = app, {tablet: { depoBedelGorur }} = app.params
+		let {depomu} = app, {tablet: { depoBedelGorur } = {}} = app.params
 		let {acc} = tanimPart, {class: { bedelKullanilirmi }} = fis
 		bedelKullanilirmi &&= !(depomu && depoBedelGorur === false)
 		rfb.addSimpleComboBox('barkod', 'Barkod', 'Barkod giriniz veya Ürün seçiniz')
@@ -339,7 +339,7 @@ class TabTSFis extends TabFis {
 				.addStyle(`$elementCSS { top: 5px; right: 100px }`)
 				.addCSS('absolute')
 				.onClick(e => {
-					let {uid} = getDetay()
+					let {uid} = getDetay() ?? {}
 					if (uid != null) {
 						w.deleterow(uid)
 						w.selectrow(0)

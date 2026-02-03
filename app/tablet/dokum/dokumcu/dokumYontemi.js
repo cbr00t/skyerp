@@ -2,7 +2,7 @@ class TabDokumYontemi extends CObject {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return null } static get aciklama() { return null }
 	static get question() { return null } static get araSeviyemi() { return this == TabDokumYontemi }
-	static get defaultKod() { return app.params.tablet?.dokumYontemi?.char ?? '' }
+	static get defaultKod() { return app.params.tablet?.dokumYontemi?.char ?? TabDokumYontemi_Epson.kod }
 	static get defaultClass() { return this.getClass(this.defaultKod) }
 	static get kod2Sinif() {
 		let {_kod2Sinif: result} = this
@@ -43,15 +43,15 @@ class TabDokumYontemi extends CObject {
 	}
 	dataDuzenle({ data } = {}) {
 		let { darDokum, sayfaBoyut: { x: maxX, y: maxY } = {} } = e.form ?? {}
-		
 		// POSCommand hariç maxX + boş satır kontrolü
 		data = data.map(v => {
+			if (isArray(v))
+				v = v.join('')
 			v = v?.trimEnd?.() ?? ' '                         // boş satır gönderilemez, en az bir ch olmalı
-			if (!maxX || this.class.isPOSCommand(v))
+			if (!v || !maxX || this.class.isPOSCommand(v))
 				return v
 			return v.slice(0, maxX)
 		})
-		
 		// maxY kontrolü
 		if (maxY && data.length > maxY)
 			data = data.slice(0, maxY)
@@ -64,8 +64,8 @@ class TabDokumYontemi extends CObject {
 			return false
 		return (
 			( v[0] == '^' || v[0] == '!') ||
-			( value.includes('<') && value.includes('>') ) ||
-			( value.includes('QR=') || value.includes('QR-') )
+			( v.includes('<') && v.includes('>') ) ||
+			( v.includes('QR=') || v.includes('QR-') )
 		)
 	}
 }
@@ -93,8 +93,8 @@ class TabDokumYontemi_Epson extends TabDokumYontemi {
 
 class TabDokumYontemi_ZPL extends TabDokumYontemi {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kod() { return 'EPS' } static get aciklama() { return 'Epson' }
-	static get question() { return 'epsonmu' }
+	static get kod() { return 'ZPL' } static get aciklama() { return 'ZPL' }
+	static get question() { return 'zplmi' }
 	static get zplSatirYukseklik() { return 18 }
 	static get zplFontSize() { return 9 }
 	static get zplFontKod() { return 'A' }

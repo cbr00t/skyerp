@@ -42,7 +42,9 @@ class SatisKosul extends CKodVeAdi {
 		return this.tip2Sinif[tipKod]
 	}
 	static async uygunKosullar(e = {}) {
-		let {fisSayacSaha, alimmi: alim, kapsamSinif} = this
+		let {table, fisSayacSaha, alimmi: alim, kapsamSinif} = this
+		if (!await app.sqlHasTable(table))
+			return null
 		let {kapsam = this.kapsam ?? {}, offlineMode = MQCogul.isOfflineMode} = e
 		let {mustKod} = kapsam
 		/*if (isPlainObject(kapsam))
@@ -88,7 +90,9 @@ class SatisKosul extends CKodVeAdi {
 		return await inst.yukle(e) ? inst : null
 	}
 	async yukle(e = {}) {
-		let {kapsam, mustDetaydami, class: { fisSayacSaha, alimmi: alim, kapsamSinif }} = this
+		let {table, kapsam, mustDetaydami, class: { fisSayacSaha, alimmi: alim, kapsamSinif }} = this
+		if (!await app.sqlHasTable(table))
+			return null
 		let {kapsam: istenenKapsam = this.kapsam, offlineMode} = e
 		let {mustKod} = istenenKapsam
 		/*if (isPlainObject(istenenKapsam))

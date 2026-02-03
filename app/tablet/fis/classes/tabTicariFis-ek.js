@@ -2,6 +2,7 @@ class TabFaturaFis extends TabTicariFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get araSeviyemi() { return super.araSeviyemi || this == TabFaturaFis }
 	static get faturami() { return true }
+	static get defaultEIslTip() { return 'E' }
 }
 class TabSatisFaturaFis extends TabFaturaFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -32,6 +33,7 @@ class TabIrsaliyeFis extends TabTicariFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get araSeviyemi() { return super.araSeviyemi || this == TabIrsaliyeFis }
 	static get irsaliyemi() { return true }
+	static get defaultEIslTip() { return 'IR' }
 }
 class TabSatisIrsaliyeFis extends TabIrsaliyeFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

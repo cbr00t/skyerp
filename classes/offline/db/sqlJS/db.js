@@ -80,15 +80,15 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		if (fh?.kind != 'file')
 			return false
 		let writeFile = async (fh, data) => {
-			let wr = await fh.createWritable()
-			try { return await wr.write(data) }
-			finally { try { wr.close() } catch {} }
+			let sw = await fh.createWritable()
+			try { return await sw.write(data) }
+			finally { try { sw.close() } catch {} }
 		}
 		try { this.execute('COMMIT') }    // trn varsa kapansın
 		catch (ex) { }
 		let data = internalDB.export()
 		let {fsRootDir: filePath} = this, {name} = fh
-		let bckName = `${name}.bck`
+		let bckName = `${name}.bak`
 		try {
 			let file = await fh.getFile()
 			if (file.size > 64 * 1024) {

@@ -346,6 +346,8 @@ class AccordionPart extends Part {
 		return this
 	}
 	collapse(idOrIndex) {
+		if (idOrIndex == null)
+			idOrIndex = this.activePanel?.id
 		this.changeState(idOrIndex, true)
 		return this
 	}

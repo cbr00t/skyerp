@@ -209,3 +209,16 @@ class MQFirewall_Action extends TekSecim {
 	try { await app.wsFirewall_update({ data }) }
 	catch (ex) { cerr(ex) }
 */
+
+
+/*
+	let Prefix = 'rdpguard-'
+	let add = keys(asSet(app.activeWndPart.gridWidget.getboundrows()
+		.filter(r => r.name.startsWith(Prefix))
+		.map(r => `${r.name.slice(Prefix.length).split('.').slice(0, 3).join('.')}.0/24`)
+		.sort()))
+	let name = '@_Block Attackers'
+	let data = { name, add }
+	try { await app.wsFirewall_update({ data }) }
+	catch (ex) { cerr(ex) }
+*/

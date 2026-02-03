@@ -3,9 +3,10 @@ class TabDetay extends MQDetay {
 	static get table() { return 'tabhar' }
 	static get sayacSaha() { return null } static get fisSayacSaha() { return 'fisid' }
 	static get io2RowAttr() {
-		let {_io2RowAttr: result} = this
+		let cache = TabDetay._io2RowAttr ??= {}
+		let key = this.name, result = cache[key]
 		if (!result) {
-			result = this._io2RowAttr = { _html: null }
+			result = cache[key] = { _html: null }
 			this.io2RowAttrOlustur({ result })
 		}
 		return result
@@ -73,7 +74,30 @@ class TabDetay extends MQDetay {
 		if (empty(detaylar))
 			result.push(`Detay girişi yapılmalıdır`)
 	}
-	async dataDuzgunmuDuzenle({ fis, eskiInst: eskiFis, parentPart, gridPart, result }) {
+	async dataDuzgunmuDuzenle({ fis, eskiInst: eskiFis, parentPart, gridPart, result }) { }
+
+	async dokumGetValue({ tip, key } = {}) {
+		let e = arguments[0]
+		switch (key) {
+			case 'stokKod':
+			case 'shKod':
+				return this.stokKod
+			case 'stokAdi':
+			case 'shAdi':
+				return MQTabStok.getGloKod2Adi(this.stokKod)
+			case 'shText':
+			case 'stokText':
+				return new CKodVeAdi(this.stokKod, MQTabStok.getGloKod2Adi(this.stokKod)).parantezliOzet()
+			case 'miktar':
+				return this.miktar
+			case 'fiyat':
+				return this.fiyat
+			case 'bedel':
+				return this.bedel
+			case 'netBedel':
+				return this.netBedel
+		}
+		return null
 	}
 
 	getHTML(e) { return null }
@@ -83,6 +107,6 @@ class TabDetay extends MQDetay {
 	}
 	static globalleriSil(e) {
 		super.globalleriSil(e)
-		deleteKeys(this, '_io2RowAttr')
+		deleteKeys(TabDetay, '_io2RowAttr')
 	}
 }

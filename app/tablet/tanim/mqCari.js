@@ -5,14 +5,13 @@ class MQTabCari extends MQKAOrtak {
 	static get onlineIdSaha() { return 'must' } static get adiEtiket() { return 'Ünvan' }
 	static get zeminRenkDesteklermi() { return true } static get tanimlanabilirmi() { return true }
 	static get gonderildiDesteklenirmi() { return true }
-	
 	static get kayitTipi() { return '' }
 	get vkn() { return this.sahismi ? this.tcKimlikNo : this.vergiNo }
 	set vkn(value) { this[this.sahismi ? 'tcKimlikNo' : 'vergiNo'] = value }
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, {
+		extend(pTanim, {
 			aktifmi: new PInstTrue('calismadurumu'), satilamazmi: new PInstBool('satilamazfl'), konTipKod: new PInstStr('kontipkod'),
 			efatmi: new PInstBool('efaturakullanirmi'), yore: new PInstStr('yore'), posta: new PInstStr('posta'), 
 			tipKod: new PInstStr('tipkod'), bolgeKod: new PInstStr('bolgekod'), ilKod: new PInstStr('ilkod'), 
@@ -247,6 +246,34 @@ class MQTabCari extends MQKAOrtak {
 //		if (offlineRequest)
 //			debugger
 	}
+
+	static async getCariEkBilgiler(e = {}) {
+		let {offlineRequest, offlineMode, kodListe = e.kod, bakiyeRisk} = e
+		kodListe = makeArray(kodListe)
+		let recs = await this.loadServerData({ offlineRequest, offlineMode })
+		if (!empty(kodListe)) {
+			let kodSet = asSet(kodListe)
+			recs = recs.filter(_ => kodSet[_.kod])
+		}
+		let kod2RiskKod = fromEntries(recs.map(_ => [_.kod, _.kontipkod == 'S' ? _.konsolidemusterikod : _.kod]))
+		let kod2Rec = fromEntries(recs.map(_ => [_.kod, _]))
+		if (bakiyeRisk) {
+			let riskKodListe = keys(asSet(values(kod2RiskKod)))
+			let sent = new MQSent(), {where: wh, sahalar} = sent
+			sent.fromAdd(MQTabCariBakiye.table)
+			if (riskKodListe?.length <= 500)
+				wh.inDizi(riskKodListe, 'kod')
+			sahalar.add('kod', 'bakiye', 'vadelialacak')
+		}
+		return kod2Rec
+	}
+	static async getCariEkBilgi(e = {}) {
+		let {kod} = e
+		if (!kod)
+			return null
+		let {[kod]: rec} = await this.getCariEkBilgiler(e)
+		return rec
+	}
 }
 
 class MQTabPlasiyer extends MQKAOrtak {
@@ -261,9 +288,11 @@ class MQTabPlasiyer extends MQKAOrtak {
 		let {kayitTipi: kayittipi} = this
 		$.extend(hv, { kayittipi })
 	}
-	static loadServerData_queryDuzenle_son({ alias = this.tableAlias, offlineRequest, offlineMode, stm, sent, sent: { where: wh, sahalar } }) {
-		let e = arguments[0]; super.loadServerData_queryDuzenle_son(e)
-		let {kodSaha, adiSaha, onlineIdSaha, offlineEkSahaListe} = this
+	static loadServerData_queryDuzenle_son(e) {
+		super.loadServerData_queryDuzenle_son(e)
+		let { alias = this.tableAlias, offlineRequest, offlineMode, stm, sent } = e
+		let { where: wh, sahalar } = sent
+		let { kodSaha, adiSaha, onlineIdSaha, offlineEkSahaListe } = this
 		sahalar.add(offlineEkSahaListe.map(saha => `${alias}.${saha}`))
 		if (offlineRequest) {
 			if (offlineMode) {
@@ -300,5 +329,52 @@ class MQTabPlasiyer extends MQKAOrtak {
 		}
 		stm = e.stm
 		sent = wh = sahalar = null
+	}
+}
+
+class MQTabCariBakiye extends MQKodOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'CARBAKIYE' } static get sinifAdi() { return 'Cari Bakiye' }
+	static get table() { return 'carbakiye' } static get tableAlias() { return 'bak' }
+	static get onlineIdSaha() { return 'must' }
+
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		extend(pTanim, {
+			orjBakiye: new PInstNum('orjbakiye'),
+			bakiye: new PInstNum('bakiye'),
+			vadeliAlacak: new PInstNum('vadelialacak')
+		})
+	}
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(
+			new GridKolon({ belirtec: 'unvan', text: 'Ünvan', sql: 'car.aciklama' }),
+			new GridKolon({ belirtec: 'bakiye', text: 'Bakiye', genislikCh: 17 }).tipDecimal(),
+			new GridKolon({ belirtec: 'vadelialacak', text: 'Vadeli Alacak', genislikCh: 17 }).tipDecimal()
+		)
+	}
+	static loadServerData_queryDuzenle_son(e) {
+		super.loadServerData_queryDuzenle_son(e)
+		let { alias = this.tableAlias, offlineRequest, offlineMode, stm, sent } = e
+		let { where: wh, sahalar } = sent
+		let { kodSaha, adiSaha, onlineIdSaha } = this
+		if (offlineRequest && !offlineMode) {
+			// Bilgi Yükle
+			sahalar.liste = []
+			sent.fromIliski('carmst car', `${alias}.must = car.must`)
+			wh
+				// .add(`${alias}.must <> ''`)    // MQKod yapı onlineIdSaha için ekledi
+				.inDizi(['', 'M'], 'car.kontipkod')
+			sahalar.add(
+				`${alias}.must ${kodSaha}`, `SUM(${alias}.bakiye) orjbakiye`, `SUM(${alias}.bakiye) bakiye`,
+				`0 vadelialacak`
+			)
+			sent.groupByOlustur()
+		}
+		else
+			sent.fromIliski('carmst car', `${alias}.${kodSaha} = car.kod`)
+	}
+	static async bakiyeRiskDuzenle(e) {
 	}
 }

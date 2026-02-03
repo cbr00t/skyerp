@@ -298,10 +298,12 @@ class MQYapi extends CIO {
 	static async offlineSaveToLocalTable(e = {}) {
 		if (!this.dbMgr_db)
 			return false
+		let noLocalTable = e.noLocalTable ?? this.noLocalTable
 		let offlineTable = e.table ?? e.offlineTable ?? this.table
-		if (!offlineTable)
+		if (!(noLocalTable || offlineTable))
 			return false
-		let {offlineDirect: directFlag, idSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this, clear = e.clear ?? e.clearFlag
+		let {offlineDirect: directFlag, idSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this
+		let clear = e.clear ?? e.clearFlag
 		let {offlineSahaListe: attrListe, kodKullanilirmi, kodSaha, bosKodAlinirmi, emptyKodValue = ''} = this
 		let {trnId} = e, offlineMode = true, offlineRequest = true, offlineYukleRequest = true, internal = true
 		let recs = await this.loadServerData({ ...e, trnId, offlineMode: !offlineMode, offlineRequest, offlineYukleRequest })
@@ -397,12 +399,16 @@ class MQYapi extends CIO {
 		}
 		finally {
 			if (okIdList?.length) {
-				let query = new MQIliskiliUpdate({
-					from: offlineTable,
-					where: { inDizi: okIdList, saha: idSaha },
-					set: { degerAta: asReverseDateTimeString(now()), saha: gonderimTSSaha }
-				})
-				await this.sqlExecNone({ trnId, offlineMode, query })
+				let query
+				if (await app.sqlHasColumn(offlineTable, idSaha)) {
+					query = new MQIliskiliUpdate({
+						from: offlineTable,
+						where: { inDizi: okIdList, saha: idSaha },
+						set: { degerAta: asReverseDateTimeString(now()), saha: gonderimTSSaha }
+					})
+				}
+				if (query)
+					await this.sqlExecNone({ trnId, offlineMode, query })
 			}
 			if (inLocalTrn)
 				await this.sqlExecNone({ ...e, offlineMode, query: 'COMMIT' }) 
@@ -416,8 +422,9 @@ class MQYapi extends CIO {
 		let {offlineGonderYapilirmi} = this
 		if (!offlineGonderYapilirmi)
 			return false
+		let noLocalTable = e.noLocalTable ?? this.noLocalTable
 		let offlineTable = e.table ?? e.offlineTable ?? this.table
-		if (!offlineTable)
+		if (!(noLocalTable || offlineTable))
 			return false
 		let {offlineDirect: directFlag, offlineSahaListe: attrListe, idSaha, onlineIdSaha = idSaha, sayacSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this
 		let offlineMode = false, offlineRequest = true, offlineGonderRequest = true
@@ -516,12 +523,16 @@ class MQYapi extends CIO {
 			}
 			finally {
 				if (okIdList?.length) {
-					let query = new MQIliskiliUpdate({
-						from: offlineTable,
-						where: { inDizi: okIdList, saha: idSaha },
-						set: { degerAta: asReverseDateTimeString(now()), saha: gonderimTSSaha }
-					})
-					await this.sqlExecNone({ trnId, offlineMode: !offlineMode, query })
+					let query
+					if (await app.sqlHasColumn(offlineTable, idSaha)) {
+						query = new MQIliskiliUpdate({
+							from: offlineTable,
+							where: { inDizi: okIdList, saha: idSaha },
+							set: { degerAta: asReverseDateTimeString(now()), saha: gonderimTSSaha }
+						})
+					}
+					if (query)
+						await this.sqlExecNone({ trnId, offlineMode: !offlineMode, query })
 				}
 				app.resetOfflineStatus()
 				window.progressManager?.progressStep(5)
@@ -549,7 +560,9 @@ class MQYapi extends CIO {
 		inst.offlineBuildSQLiteQuery(e)
 	}
 	offlineBuildSQLiteQuery({ result: r = [] }) {
-		let {class: { table, primaryKeys }} = this
+		let {class: { noLocalTable, table, primaryKeys }} = this
+		if (noLocalTable || !table)
+			return
 		let e = { ...arguments[0], offlineRequest: true, offlineMode: true, queryBuild: true }
 		let hv = this.hostVars(e)
 		let altKeyHV = this.alternateKeyHostVars(e)
@@ -580,7 +593,7 @@ class MQYapi extends CIO {
 			primaryKeys = asSet([k])
 			break
 		}
-		let hasMultiPK = keys(primaryKeys).length > 1
+		let hasMultiPK = keys(primaryKeys)?.length > 1
 		let atFirst = true, i = 0, c = keys(hv).length
 		r.push(`CREATE TABLE IF NOT EXISTS ${table} (`)
 		// if (this instanceof MQTabPlasiyer)

@@ -1,26 +1,28 @@
-class TabDokumForm extends MQKAOrtak {
+class TabDokumForm extends MQKA {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TABMATFORM' } static get sinifAdi() { return 'Tablet Matbuu Form' }
+	static get table() { return 'tmatbuu' } static get detaySinif() { return TabDokumFormDetay }
 	static get adiKullanilirmi() { return false }
-
+	static get ioKeys() {
+		return [
+			'nakil', 'darDokum', 'dipYok', 'kolonBaslik', 'sayfaBoyut',
+			'dipX', 'otoYBasiSonu', 'tekDetaySatirSayisi',
+			'sabit', 'detay', 'oto', '_comment'
+		]
+	}
 	constructor(e = {}) {
 		super(e)
 		this.setValues({ rec: e })
 	}
 	hostVarsDuzenle({ hv }) {
-		let e = arguments[0]
-		super.hostVarsDuzenle(e)
-		let keys = [
-			'nakil', 'darDokum', 'dipYok', 'kolonBaslik', 'sayfaBoyut',
-			'dipX', 'otoYBasiSonu', 'tekDetaySatirSayisi', 'sabit', 'detay', 'oto',
-			'_comment'
-		]
-		;keys.forEach(k =>  {
+		super.hostVarsDuzenle(...arguments)
+		let {ioKeys} = this.class
+		;ioKeys.forEach(k =>  {
 			let v = this[k]
 			if (v)
 				hv[k] = v
 		})
-		let _e = { ...e, form: this }
+		let _e = { ...arguments[0], form: this }
 		for (let k of ['sabit', 'detay', 'oto']) {
 			let arr = hv[k]
 			if (!isArray(arr))
@@ -34,20 +36,19 @@ class TabDokumForm extends MQKAOrtak {
 	}
 	setValues({ rec }) {
 		super.setValues(...arguments)
-		extend(this, {
-			nakil: false, darDokum: false,
-			dipYok: false, kolonBaslik: false,
-			sayfaBoyut: {}, otoYBasiSonu: {},
-			dipX: 0, tekDetaySatirSayisi: 1,
-			sabit: [], detay: [], oto: [],
-			_comment: null
-		})
+		let {ioKeys} = this.class
+		this.tekDetaySatirSayisi ||= 1
+		;['nakil', 'darDokum', 'dipYok', 'kolonBaslik'].forEach(k =>
+			this[k] ??= false)
 		;['sayfaBoyut', 'otoYBasiSonu'].forEach(k =>
 			this[k] ||= {})
-		for (let [k, v] of entries(rec)) {
-			if (v != null && this[k] !== undefined)    // değer var ve inst var karşılığı da varsa
+		;['sabit', 'detay', 'oto'].forEach(k =>
+			this[k] ||= [])
+		;ioKeys.forEach(k =>  {
+			let v = rec[k]
+			if (v != null)
 				this[k] = v
-		}
+		})
 		for (let k of ['sabit', 'detay', 'oto']) {
 			let arr = this[k]
 			if (empty(arr))
@@ -62,12 +63,13 @@ class TabDokumForm extends MQKAOrtak {
 	async dataDuzenle(e = {}) {
 		let { inst = {} } = e
 		let { detaylar = [] } = inst
-		let { kolonBaslik, tekDetaySatirSayisi, dipYok, sayfaBoyut: { x: maxX, y: maxY } = {}, detay: detSahalar, oto } = this
+		let { kolonBaslik, tekDetaySatirSayisi, dipYok, sayfaBoyut: { x: maxX, y: maxY } = {} } = this
+		let { sabit, detay: detSahalar, oto } = this
 		maxX ??= 0; maxY ??= 0; tekDetaySatirSayisi ??= 1
 		sabit ??= []; detSahalar ??= []; oto ??= []
 		let y2Sabitler = {}, y2DetaySahalar = {}
 		let curY = 1
-		for (let s of sabitler) {
+		for (let s of sabit) {
 			/*
 				- saha.y varsa =>
 					- curY = (curY, saha.y)
@@ -92,10 +94,9 @@ class TabDokumForm extends MQKAOrtak {
 			arr = arr.filter(s => s.uygunmu)
 			if (empty(arr))
 				continue
-			_e.chars = data[y - 1] ??= new Array(maxX)
+			_e.chars = data[y - 1] ??= new Array(maxX).fill(' ')
 			for (let s of arr)
 				await s.satirDuzenle(_e)
-			data[y] = _e.chars.join('')
 			curY = Math.max(curY, y)
 		}
 
@@ -117,7 +118,7 @@ class TabDokumForm extends MQKAOrtak {
 				if (empty(arr))
 					continue
 				let relY = curY + y
-				_e.chars = data[relY - 1] ??= new Array(maxX)
+				_e.chars = data[relY - 1] ??= new Array(maxX).fill(' ')
 				for (let s of arr)
 					await s.satirDuzenle(_e)
 			}
@@ -136,13 +137,18 @@ class TabDokumForm extends MQKAOrtak {
 		for (let s of oto) {
 			if (!s.uygunmu)
 				continue
-			_e.chars = data[curY - 1] ??= new Array(maxX)
+			_e.chars = data[curY - 1] ??= new Array(maxX).fill(' ')
 			await s.satirDuzenle(_e)
 			curY++
 		}
 		
 		return data
 	}
+}
+
+class TabDokumFormDetay extends MQDetay {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get table() { return 'tmatdetay' }
 }
 
 

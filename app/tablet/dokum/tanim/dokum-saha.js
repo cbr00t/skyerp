@@ -3,6 +3,13 @@ class TabDokumSaha extends CObject {
 	static get kodListeTipi() { return 'TABMATSAHA' } static get sinifAdi() { return 'Tablet Matbuu Saha' }
 	static get kodSaha() { return 'key' } static get adiSaha() { return 'text' }
 	static get kodEtiket() { return 'Belirteç' } static get adiEtiket() { return 'Değer' }
+	static get ioKeys() {
+		return [
+			'key', 'text', 'pos', 'length', 'right',
+			'ozelIsaret', 'iade',
+			'converter', 'block', '_comment'
+		]
+	}
 	get x() { return this.pos?.x } set x(value) { (this.pos ??= {}).x = value }
 	get y() { return this.pos?.y } set y(value) { (this.pos ??= {}).y = value }
 	get uygunmu() { return !!(this.x && (this.key || this.text)) }
@@ -22,17 +29,23 @@ class TabDokumSaha extends CObject {
 		return e.hv
 	}
 	hostVarsDuzenle({ hv }) {
-		let keys = ['key', 'text', 'pos', 'length', 'right', 'ozelIsaret', 'iade', '_comment']
-		;keys.forEach(k =>  {
+		let {ioKeys} = this.class
+		;ioKeys.forEach(k =>  {
 			let v = this[k]
 			if (v)
 				hv[k] = v
 		})
 	}
 	setValues({ rec }) {
-		extend(this, { key: null, text: null, pos: {}, length: 0, right: false, kosul: {}, _comment: null })
-		;['pos'].forEach(k =>
-			this[k] ||= {})
+		let {ioKeys} = this.class
+		;ioKeys.forEach(k =>  {
+			let v = this[k]
+			this[k] = v ?? null
+		})
+		this.length ??= 0; this.right ??= false
+		let {kosul} = rec
+		if (!empty(kosul))
+			extend(this, kosul)
 		for (let [k, v] of entries(rec)) {
 			if (v != null && this[k] !== undefined)    // değer var ve inst var karşılığı da varsa
 				this[k] = v
@@ -43,6 +56,14 @@ class TabDokumSaha extends CObject {
 			if (y)
 				pos.y = y
 		}
+		;['converter', 'block'].forEach(k => {
+			let v = this[k]
+			if (v && isString(v)) {
+				if (v[0] != '(')
+					v = `(${v})`
+				v = eval(v)
+			}
+		})
 	}
 	async satirDuzenle({ chars, inst }) {
 		let e = arguments[0]
@@ -55,29 +76,57 @@ class TabDokumSaha extends CObject {
 		return this
 	}
 	async getValue(e = {}) {
-		let { inst } = e
-		let { key, text, right, ozelIsaret, iade } = this
-		let _e = { ...e, saha: this }
-		if (text) {
-			let {expressions} = this
-			if (!empty(expressions)) {
-				let sr = fromEntries(expressions.map(async k => 
-					[k, await this.getValue({ ..._e, key: k })]
-				))
-				for (let [s, r] of entries(sr))
-					text = text.replaceAll(s, r)
+		let { inst, key, text = e.value } = e
+		let { right, ozelIsaret, iade } = this
+		if (key === undefined)
+			key = this.key
+		if (text === undefined)
+			text = this.text
+		let _e = { ...e, saha: this, ozelIsaret, iade }
+		let convertWith = async f => {
+			if (!f)
+				return text
+			if (!isFunction(f))
+				f = eval(f)
+			let r = await f.call(this, { ..._e, key, text, value: null })
+			return r === undefined ? text : r
+		}
+		{
+			let Prefix = '!FUNC'
+			let v = key || text
+			if (isString(v) && v.startsWith(Prefix) && v.length > Prefix.length) {
+				text = await convertWith(v.slice(Prefix.length))
+				key = null
 			}
 		}
-		else if (key) {
-			text = await inst?.dokumGetValue?.(key) ??
+		let expressions = getExpressions(text || key)
+		if (!empty(expressions)) {
+			let sr = fromEntries(expressions.map(k => 
+				[`[${k}]`, this.getValue({ ..._e, key: k, text: null, value: null })]
+			))
+			for (let [s, r] of entries(sr))
+				text = text.replaceAll(s, await r ?? '')
+		}
+		if (!text && key) {
+			text = await inst?.dokumGetValue?.({ ..._e, key, text }) ??
 				   await inst?.[key]
 			if (isFunction(text))
-				text = await text.call(this, { ..._e, key, value: text })
+				text = await text.call(this, { ..._e, key, text, value: null })
 		}
-		if (!text)
+		if (text == null || text == '')
 			return null
 
-		let length = this.getActualLength({ ...e, value: text })
+		let {converter = this.converter, block = this.block} = e
+		text = await convertWith(converter)
+		if (isNumber(text))
+			text = numberToString(text, { useGrouping: false })
+		else if (!isInvalidDate(text))
+			text = hasTime(text) ? dateTimeToString(text) : dateToString(text)
+		else if (!isString(text))
+			text = text?.toString() ?? ''
+		text = await convertWith(block)
+		
+		let length = this.getActualLength({ ...e, text: null, value: text })
 		if (length) {
 			text = right
 				? text.padStart(length, ' ')
@@ -94,37 +143,13 @@ class TabDokumSaha extends CObject {
 			return 0
 		value = value?.toString() ?? ''
 		if (value)
-			len = Math.min(len, value.length)
-		let {sayfaBoyut: { x: maxX } = {}} = form ?? {}
-		if (maxX)
-			len = Math.min(len, maxX - x0 + 1)
+			len = len ? Math.min(len, value.length) : value.length
+		if (!TabDokumYontemi.isPOSCommand(value)) {
+			let {sayfaBoyut: { x: maxX } = {}} = form ?? {}
+			if (maxX)
+				len = len ? Math.min(len, maxX - x0 + 1) : maxX - x0 + 1
+		}
 		return len < 0 ? 0 : len
 	}
 }
 
-
-/*
-({
-	nakil: false, tekDetaySatirSayisi: 2, dipYok: false,
-	sayfaBoyut: { x: 60, y: 58 },
-	otoYBasiSonu: { x: 17, y: 52 },
-	sabit: [
-		{ key: 'fisTipText', pos: { x: 5, y: 2 }, length: 19 },
-		{ text: '[islemTarih] [islemZaman]', pos: { x: 40, y: 5 }, _comment: '(pos.X = 0) => text length ne ise aynen yazılır, kırpmadan' },
-		{ key: 'islemZaman', pos: { x: 48, y: 6 }, _comment: '(pos.X = 0) => text length ne ise aynen yazılır, kırpmadan' },
-		{ key: 'yildizlimiText', pos: { x: 1, y: 0 }, length: 5, _comment: '(Y = 0) ==> Cursor ın kaldığı Y pozisyonundan devam et' },
-		{ key: 'tahsilatSekliText', pos: { x: 0, y: 0 }, _comment: '(X = 0) => Bu bilgi yazılmaz | (Y = 0) ==> Cursor ın kaldığı Y pozisyonundan devam et' },
-		{ text: 'SAYIN [mustUnvan],', pos: { x: 1, y: 8 }, length: 55 },
-		{ text: '[vergiDairesi] [vergiNo]', pos: { x: 5, y: 9 }, length: 40 },
-		{ text: '** BİLGİ FİŞİ **', pos: { x: 5, y: -1 }, length: 50, kosul: { ozelIsaret: '*', iade: false }, _comment: '(Y = -1) => Bittiği yer veya Sayfa Boyutu Y ye göre tersten relative satır no' }
-	],
-	detay: [
-		{ key: 'barkod', pos: { x: 2, y: 1 }, length: 15 },
-		{ key: 'stokAdi', pos: { x: 18, y: 1 }, length: 40 },
-		{ key: 'miktar', pos: { x: 5, y: 2 }, length: 8, right: true },
-		{ key: 'brm', pos: { x: 15, y: 2 }, length: 4, right: true },
-		{ key: 'fiyat', pos: { x: 21, y: 2 }, length: 10, right: true },
-		{ key: 'netBedel', pos: { x: 33, y: 2 }, length: 13, right: true }
-	]
-})
-*/

@@ -146,12 +146,15 @@ class ModelTanimPart extends Part {
 		catch (ex) { console.error(ex); throw ex }
 	}
 	async rootFormBuilderDuzenle({ rootBuilder: rfb }) {
-		let {layout} = this
+		let e = arguments[0], {layout} = this
 		let fbd_islemTuslari = rfb.addForm().setLayout(layout.find('.header > .islemTuslari'))
 		e.fbd_islemTuslari = this.fbd_islemTuslari = fbd_islemTuslari
 		await this.rootFormBuilderDuzenle_islemTuslari(e)
 	}
-	async rootFormBuilderDuzenle_islemTuslari({ fbd_islemTuslari: rfb }) { }
+	rootFormBuilderDuzenle_islemTuslari({ fbd_islemTuslari: rfb }) {
+		let {mfSinif} = this
+		mfSinif?.rootFormBuilderDuzenle_islemTuslari(...arguments)
+	}
 	initBulForm(e) {
 		let {header, form, mfSinif} = this
 		let {bulFormKullanilirmi} = mfSinif ?? {}
@@ -173,7 +176,8 @@ class ModelTanimPart extends Part {
 			args: {
 				sender: this,
 				layout: islemTuslari,
-				butonlarDuzenleyici: e => this.islemTuslariDuzenle(e)
+				butonlarDuzenleyici: e =>
+					this.islemTuslariDuzenle(e)
 			}
 		}
 		if (this.islemTuslariArgsDuzenle(_e) === false)
@@ -260,7 +264,7 @@ class ModelTanimPart extends Part {
 		for (let builder of this.getBuilders(e)) { e.builder = builder; if (builder.initWndArgsDuzenle) builder.initWndArgsDuzenle(_e) }
 	}
 	islemTuslariArgsDuzenle(e) {
-		let {args} = e
+		let {args} = e, {mfSinif} = this
 		e.sender = this
 		$.extend(args, {
 			tip: this.izlemi ? 'vazgec' : 'tamamVazgec',
@@ -273,10 +277,11 @@ class ModelTanimPart extends Part {
 			e.builder = builder
 			builder.islemTuslariArgsDuzenle?.(e)
 		}
+		mfSinif?.tanimPart_islemTuslariArgsDuzenle?.(...arguments)
 	}
 	islemTuslariDuzenle(e) {
 		let {args, liste} = e
-		let {izlemi, silmi} = this
+		let {izlemi, silmi, mfSinif} = this
 		let yListe = []
 		for (let item of liste) {
 			let {id} = item
@@ -289,6 +294,7 @@ class ModelTanimPart extends Part {
 			yListe.push(item)
 		}
 		e.liste = yListe
+		mfSinif?.tanimPart_islemTuslariDuzenle?.(...arguments)
 	}
 	initTabPagesArgsDuzenle(e) {
 		let {args} = e, {wnd} = this

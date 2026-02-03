@@ -24,7 +24,7 @@ class TabTSDetay extends TabDetay {
 		let _keys = ['stokKod', 'barkod', 'miktar', 'brm']
 		for (let k of _keys)
 			result[k] = k.toLowerCase()
-		$.extend(result, { stokAdi: null, aciklama: 'ekaciklama' })
+		extend(result, { stokAdi: null, aciklama: 'ekaciklama' })
 	}
 	static loadServerData_queryDuzenle({ sent, sent: { from, sahalar } }) {
 		super.loadServerData_queryDuzenle(...arguments)
@@ -35,7 +35,7 @@ class TabTSDetay extends TabDetay {
 	}
 	hostVarsDuzenle({ fis, hv }) {
 		super.hostVarsDuzenle(...arguments)
-		deleteKeys(hv, 'brm')
+		// deleteKeys(hv, 'brm')
 	}
 	setValues({ fis, rec }) {
 		super.setValues(...arguments)
