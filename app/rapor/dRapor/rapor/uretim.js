@@ -1,7 +1,8 @@
 class DRapor_Uretim_Total extends DRapor_UretimBase {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get araSeviyemi() { return false }
-	static get kod() { return 'URET_TOTAL' } static get aciklama() { return 'Üretim Total' } static get vioAdim() { return null }
+	static get kod() { return 'URET_TOTAL' } static get aciklama() { return 'Üretim Total' }
+	static get vioAdim() { return null }
 }
 class DRapor_Uretim_Total_Main extends DRapor_UretimBase_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

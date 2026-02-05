@@ -4,7 +4,8 @@ class TabDokumcu extends CObject {
 	constructor(e = {}) {
 		super(e)
 		let {tablet = {}} = app.params
-		let {dokumEkranami = e.dokumEkrana ?? this.dokumEkranami, device: orjDevice = this.device, yontem = this.yontem} = e
+		let {dokumEkranami = e.dokumEkrana ?? e.ekranami ?? e.ekrana ?? e.ekran ?? this.dokumEkranami} = e
+		let {device: orjDevice = this.device, yontem = this.yontem} = e
 		dokumEkranami ??= tablet.dokumEkranami ?? tablet.dokumEkrana
 		orjDevice ??= TabDokumDevice.newDefault()
 		yontem ??= TabDokumYontemi.newDefault()
@@ -60,8 +61,10 @@ class TabDokumcu extends CObject {
 		prefix ??= this.prefix ?? tablet.dokumPrefix
 		postfix ??= this.postfix ?? tablet.dokumPostfix
 		if (prefix || postfix) {
-			prefix = makeArray(prefix || null)
-			postfix = makeArray(postfix || null)
+			let getLines = v =>
+				isArray(v) ? v : (v?.split('\n')?.map(_ => _ || ' ') ?? [])
+			prefix = getLines(prefix)
+			postfix = getLines(postfix)
 			data = e.data = [...prefix, ...data, ...postfix].filter(Boolean)
 		}
 		
@@ -72,12 +75,17 @@ class TabDokumcu extends CObject {
 		return true
 	}
 
-	epson(e) { this.yontem = new TabDokumYontemi_Epson(e); return this }
-	zpl(e) { this.yontem = new TabDokumYontemi_ZPL(e); return this }
 	ekrana() { this.dokumEkranami = true; return this }
 	yaziciya() { this.dokumEkranami = false; return this }
+	epson(e) { this.yontem = new TabDokumYontemi_Epson(e); return this }
+	zpl(e) { this.yontem = new TabDokumYontemi_ZPL(e); return this }
+	console(e) { this.device = new TabDokumYontemi_Console(e); return this }
+	serialPort(e) { this.yontem = new TabDokumYontemi_SerialPort(e); return this }
+	serial(e) { return this.serialPort() }
+	quickPrint(e) { this.device = new TabDokumYontemi_QuickPrint(e); return this }
 	setSource(value) { this.source = value; return this }
 	setDevice(value) { this.device = value; return this }
+	setYontem(value) { this.yontem = value; return this }
 	setCount(value) { this.count = value; return this }
 	setPrefix(value) { this.prefix = value; return this }
 	setPostfix(value) { this.postfix = value; return this }

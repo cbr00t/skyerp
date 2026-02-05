@@ -16,7 +16,8 @@ class TabFis extends MQDetayliGUID {
 	static get numTipKod() { return 'TB' } static get numKod() { return 'TB' }
 	static get defaultSeri() { return 'TAB' } static get _bedelKullanilirmi() { return false }
 	static get mustZorunlumu() { return true }
-	static get dokumFormTip() { return null }
+	static get dokumFormTip_normal() { return null }
+	static get dokumFormTip_eIslem() { return this.dokumFormTip_normal }
 	static get bedelKullanilirmi() {
 		let {_bedelKullanilirmi: result} = this
 		if (result) {
@@ -543,18 +544,29 @@ class TabFis extends MQDetayliGUID {
 				{ key: 'notlar', _comment: 'gizli' }
 			]
 		})
-		let form = new TabDokumForm(data)
+		let {tablet: { dokumEkrana } = {}} = app.params
+		let form = this.getDokumForm(e) ?? new TabDokumForm(data)
+		let device = TabDokumDevice.newDefault(e)
+		let yontem = TabDokumYontemi.newDefault()
 		let dokumcu = new TabDokumcu()
-			.setSource(form)
-			.setDevice(new TabDokumDevice_Console())
-			.epson().yaziciya()
-			//.ekrana()
+			.setSource(form).setDevice(device)
+			.setYontem(yontem)
+		if (dokumEkrana)
+			dokumcu.ekrana()
+		dokumcu.setPrefix('\nMUHTELİF MÜŞTERİLERE GÖNDERMEK ÜZERE\nSİPARİŞLER AŞAĞIDAKİ GİBİDİR:\n\n\n')
 		let inst = this
 		await dokumcu.yazdir({ inst })
 	}
-	async getDokumForm(e) {
-		let {dokumFormTip} = this.class
-		// ** burada kaldık
+	getDokumForm(e) {
+		let tip = this.getDokumFormTip(e)
+		if (!tip)
+			return null
+		let {tablet: { dokumFormlar = {} } = {}} = app.params
+		return dokumFormlar[tip]
+	}
+	getDokumFormTip(e) {
+		let eIslemmi = !this.yildizlimi && this.eIslTip
+		return this.class[`dokumFormTip_${eIslemmi ? 'eIslem' : 'normal'}`]
 	}
 	async dokumGetValue({ tip, key } = {}) {
 		switch (key) {

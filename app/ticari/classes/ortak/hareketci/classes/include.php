@@ -10,3 +10,4 @@
 <script src="<?=$_partRoot?>/stok.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/stokCikisBasit.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/tahsilat.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/odeme.js?<?=$appVersion?>"></script>
 <!--<script src="<?=$_partRoot?>/sonStok.js?<?=$appVersion?>"></script>-->
+<script src="<?=$_partRoot?>/oper.js?<?=$appVersion?>"></script>

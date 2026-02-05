@@ -347,16 +347,51 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		this.loadServerData_queryDuzenle_son_son_ozel?.(e)
 	}
-	loadServerData_queryDuzenle_son_araIslem({ attrSet, stm }) {
-		let e = arguments[0], {iniYapilar} = this, sentDuzenleyiciler = {}
+	loadServerData_queryDuzenle_son_araIslem(e) {
+		if (!this.class.hareketcimi)
+			this.loadServerData_queryDuzenle_son_araIslem_sentDuzenleyiciIslemleri(e)
+	}
+	loadServerData_queryDuzenle_son_araIslem_sentDuzenleyiciIslemleri({ attrSet, stm, sent: _sent }) {
+		let e = arguments[0], {grupVeToplam} = this.tabloYapi
+		let {iniYapilar} = this, sentDuzenleyiciler = {}
 		iniYapilar?.forEach(({ sentDuzenle }) =>
 			$.extend(sentDuzenleyiciler, sentDuzenle))
 		let _e = { ...e }
+		if (empty(stm?.sent?.liste))
+			stm = new MQStm({ sent: _sent })
 		for (let sent of stm) {
-			_e.sent = sent
+			extend(_e, { sent })
+			let {sahalar} = sent
 			for (let key in attrSet) {
-				let fn = sentDuzenleyiciler[key]
-				fn?.call?.(this, _e)
+				{
+					let fn = sentDuzenleyiciler[key]
+					fn?.call?.(this, _e)
+				}
+				let {[key]: item} = grupVeToplam
+				let sql = item?.sql
+				if (sql) {
+					let {kaYapimi: kami, colDefs} = item
+					let aliases = colDefs.map(_ => _.belirtec)
+					if (kami && aliases.length == 1)
+						aliases = [`${aliases[0]}kod`, `${aliases[0]}adi`]
+					let belirtec = aliases[0], adiBelirtec = aliases[1]
+					extend(_e, { item, kami, colDefs, key, aliases, belirtec, adiBelirtec })
+					if (isFunction(sql))
+						sql.call(this, _e)
+					else {
+						sql = makeArray(sql)
+						if (!empty(sql)) {
+							;sql.forEach((clause, i) => {
+								if (!clause)
+									return true    // continue
+								_e.i = i
+								clause = clause.call?.(this, _e) ?? clause
+								if (clause)
+									sahalar.add(`${clause} ${aliases[i]}`)
+							})
+						}
+					}
+				}
 			}
 		}
 	}
@@ -718,6 +753,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 					let sec = liste[kod] = new SecimTekSecim({ etiket: 'İşaret', tekSecimSinif, grupKod }).autoBind()
 				}).setTBWhereClauseDuzenleyici(({ kod, secimler, where: wh, kodClause }) => {
 					let {tekSecim: tSec} = secimler.liste[kod]
+					if (!tSec)
+						return
 					if (!kodClause)
 						kodClause = item.colDefs[0].belirtec
 					let notValue = tSec.normalmi ? '*' : 'X'    // seçilmemiş olabilir ama iki seçenek var

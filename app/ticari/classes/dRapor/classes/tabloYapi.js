@@ -8,6 +8,7 @@ class TabloYapi extends CObject {
 		}
 		return result
 	}
+
 	constructor(e = {}) {
 		super(e)
 		$.extend(this, {
@@ -20,7 +21,8 @@ class TabloYapi extends CObject {
 		for (let item of items) {
 			if (isArray(item)) { this.addGrup(...item); continue }
 			if (isPlainObject(item)) { item = new TabloYapiItem(item) }
-			let {ka} = item, kod = ka?.kod; if (kod != null) { result[kod] = item }
+			let {ka} = item, kod = ka?.kod
+			if (kod != null) { result[kod] = item }
 		}
 		return this
 	}
@@ -29,7 +31,9 @@ class TabloYapi extends CObject {
 		for (let item of items) {
 			if (isArray(item)) { this.addToplam(...item); continue }
 			if (isPlainObject(item)) { item = new TabloYapiItem(item) }
-			let {ka} = item, kod = ka?.kod; if (kod != null) { result[kod] = item }
+			let {ka} = item, kod = ka?.kod
+			if (kod != null)
+				result[kod] = item
 		}
 		return this
 	}
@@ -384,7 +388,8 @@ class TabloYapi extends CObject {
 
 class TabloYapiItem extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	get tipStringmi() { return !this.tip } get tipNumerikmi() { return this.tip == 'number' } get tipTarihmi() { return this.tip == 'date' } get tipBoolmu() { return this.tip == 'boolean' }
+	get tipStringmi() { return !this.tip } get tipNumerikmi() { return this.tip == 'number' }
+	get tipTarihmi() { return this.tip == 'date' } get tipBoolmu() { return this.tip == 'boolean' }
 	get secimSinif() {
 		return (this.tipNumerikmi ? SecimNumber : this.tipTarihmi ? SecimDate : SecimString)
 		/*return this.kaYapimi
@@ -412,8 +417,10 @@ class TabloYapiItem extends CObject {
 			hrkAttr: e.hrkAttr, colDefs: e.colDefs ?? [],
 			secimlerDuzenleyici: e.secimlerDuzenleyici, tbWhereClauseDuzenleyici: e.tbWhereClauseDuzenleyici,
 			kodsuzmu: e.kodsuzmu, isHidden: e.hidden ?? e.isHidden
-		});
-		this.setKA(e.ka).setFormul(e.formul)
+		})
+		this.setKA(e.ka)
+		this.setFormul(e.formul)
+		this.setSql(e.sql)
 	}
 	secimlerDuzenle(e) {
 		let {secimKullanilirFlag, mfSinif} = this
@@ -481,8 +488,12 @@ class TabloYapiItem extends CObject {
 	setFormul(e, _block) {
 		if (_block !== undefined) { e = { attrListe: e, block: _block } }
 		if (e != null && isPlainObject(e)) { e = new DRaporFormul(e) }
-		this.formul = e; return this
+		this.formul = e
+		return this
 	}
+	setSql(value) { this.sql = value; return this }
+	setSQL(value) { return this.setSql(value) }
+	setSql_hv() { return this.setSql([_ => _.hvDegeri(_.belirtec)]) }
 	setOrderBySaha(value) { this.orderBySaha = value; return this } setOrderBy(value) { return this.setOrderBySaha(value) }
 	noOrderBy() { return this.setOrderBySaha(null) } setHrkAttr(value) { this.hrkAttr = value; return this }
 	kodsuz() { this.kodsuzmu = true; return this } kodlu() { this.kodsuzmu = false; return this }

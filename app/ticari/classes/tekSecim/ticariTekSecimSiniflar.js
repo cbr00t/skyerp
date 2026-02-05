@@ -368,6 +368,19 @@ class UretimFisTipi extends TekSecim {
 		].filter(_ =>_))
 	}
 }
+class OperFisTipi extends TekSecim {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get fisListeTipi() { return 'OPERFISTIP' } static get sinifAdi() { return 'OPerasyon Fiş Tipi' }
+	static get defaultChar() { return '' }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(...[
+			new CKodVeAdi(['', 'İş Emri']),
+			new CKodVeAdi(['EL', 'Elden Geçirme']),
+			new CKodVeAdi(['IS', 'Iskarta Değerlendirme'])
+		])
+	}
+}
 class GeciciUretilen extends BuDigerVeHepsi {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get fisListeTipi() { return 'FISGECURET' } static get sinifAdi() { return 'Geçici Üretilen' }

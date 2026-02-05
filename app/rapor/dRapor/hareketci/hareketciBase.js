@@ -2,6 +2,7 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get araSeviyemi() { return this == DRapor_Hareketci } static get hareketciSinif() { return null }
 	// static get oncelik() { return 20 }
+	static get hareketcimi() { return true }
 	static get oncelik() { return this.hareketciSinif.oncelik } static get uygunmu() { return this.mainClass?.hareketciSinif?.uygunmu ?? true }
 	static get yatayAnalizVarmi() { return this.totalmi } static get ozetVarmi() { return this.totalmi } static get chartVarmi() { return this.totalmi }
 	static get totalmi() { return !(this.hareketmi || this.envantermi) } static get hareketmi() { return false } static get envantermi() { return false }
@@ -65,9 +66,11 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 }
 class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get hareketcimi() { return true } 
 	static get hareketciSinif() { return this.raporClass?.hareketciSinif } static get secimWhereBaglanirmi() { return false }
 	static get totalmi() { return this.raporClass.totalmi } static get hareketmi() { return this.raporClass.hareketmi }
 	static get envantermi() { return this.raporClass.envantermi }
+	static get ticarimi() { return false }
 	onInit(e) {
 		super.onInit(e)
 		let {hareketciSinif} = this.class
@@ -75,7 +78,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 			this.hareketci = new hareketciSinif()
 	}
 	tazele(e) {
-		let {rapor: { isPanelItem }, class: { totalmi } } = this, {secimler: sec = {}} = this, {tarihBS} = sec;
+		let {rapor: { isPanelItem }, class: { totalmi } } = this, {secimler: sec = {}} = this, {tarihBS} = sec
 		if (!(isPanelItem || totalmi || tarihBS?.basi || this.secimlerIstendimi)) {
 			this.secimlerIstendi(); this.secimlerIstendimi = true
 			return
@@ -113,23 +116,28 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	}
 	tabloYapiDuzenle({ result }) {
 		let e = arguments[0]; super.tabloYapiDuzenle(e)
-		result.addKAPrefix('ref', 'althesap')
+		let {ticarimi} = this.class
+		result.addKAPrefix('ref')
+		if (ticarimi)
+			result.addKAPrefix('althesap')
 		this.tabloYapiDuzenle_ozelIsaret(e)
 		this.tabloYapiDuzenle_sube(e)
 		result.addGrupBasit('FISNOX', 'Fis No', 'fisnox', null, null, ({ item }) => item.secimKullanilir())
-		result.addGrupBasit('ALTHESAP', 'Alt Hesap', 'althesap', DMQAltHesap)
-		this.tabloYapiDuzenle_odemeGun(e)
+		if (ticarimi)
+			result.addGrupBasit('ALTHESAP', 'Alt Hesap', 'althesap', DMQAltHesap)
 		result.addGrupBasit('REF', 'Referans', 'ref', null, null, ({ item }) => item.setOrderBy('refadi'))
 		result.addGrupBasit('ANAISLEM', 'Ana İşlem', 'anaislemadi')
 		result.addGrupBasit('ISLEM', 'İşlem', 'isladi')
-		this.tabloYapiDuzenle_plasiyer(e)
-		this.tabloYapiDuzenle_takip(e)
-		result.addGrupBasit('DVKOD', 'Dv.Kod', 'dvkod')
-		result.addGrupBasit('DVKUR', 'Dv.Kur', 'dvkur', null, null, ({ item, colDef }) => { item.noOrderBy(); colDef.tipDecimal() })
-		this.tabloYapiDuzenle_baBedel(e)
-		this.tabloYapiDuzenle_baBakiye(e)
-		this.tabloYapiDuzenle_dovizli_baBedel(e)
-		this.tabloYapiDuzenle_dovizli_baBakiye(e)
+		if (ticarimi) {
+			this.tabloYapiDuzenle_plasiyer(e)
+			this.tabloYapiDuzenle_takip(e)
+			result.addGrupBasit('DVKOD', 'Dv.Kod', 'dvkod')
+			result.addGrupBasit('DVKUR', 'Dv.Kur', 'dvkur', null, null, ({ item, colDef }) => { item.noOrderBy(); colDef.tipDecimal() })
+			this.tabloYapiDuzenle_baBedel(e)
+			this.tabloYapiDuzenle_baBakiye(e)
+			this.tabloYapiDuzenle_dovizli_baBedel(e)
+			this.tabloYapiDuzenle_dovizli_baBakiye(e)
+		}
 	}
 	super_tabloYapiDuzenle(e) { super.tabloYapiDuzenle(e) }
 	superSuper_tabloYapiDuzenle(e) { super.super_tabloYapiDuzenle(e) }
@@ -263,7 +271,9 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 			this.loadServerData_queryDuzenle_dovizli_baBedel({ ...e, alias, tarihClause, baClause, bedelClause })
 		}
 	}
-	loadServerData_queryDuzenle_hkrSent_son(e) { }
+	loadServerData_queryDuzenle_hkrSent_son(e) {
+		this.loadServerData_queryDuzenle_son_araIslem_sentDuzenleyiciIslemleri(e)
+	}
 	loadServerData_queryDuzenle_ek(e) {
 		this.loadServerData_queryDuzenle_hrkStm_sonIslemler(e)
 		if (e.uni)

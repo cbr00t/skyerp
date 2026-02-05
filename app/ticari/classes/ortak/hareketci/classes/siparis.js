@@ -35,8 +35,8 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 		// for (let key of ['dvbedel']) { hv[key] = sqlZero }
 		$.extend(hv, {
 			aciklama: ({ hv }) => {
-                let withCoalesce = clause => (clause?.sqlDoluDegermi ?? false) ? `COALESCE(${clause}, '')` : sqlEmpty;
-                let {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv;
+                let withCoalesce = clause => (clause?.sqlDoluDegermi ?? false) ? `COALESCE(${clause}, '')` : sqlEmpty
+                let {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv
                 return fisAciklama && detAciklama
                     ? `${withCoalesce(fisAciklama)} + ' ' + ${withCoalesce(detAciklama)}` 
                     : withCoalesce(detAciklama || fisAciklama || sqlEmpty)

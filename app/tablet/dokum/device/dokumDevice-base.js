@@ -6,7 +6,7 @@ class TabDokumDevice extends CObject {
 	static get chunkSize() { return null } static get chunkDelayMS() { return 0 }
 	// static get dokumEncoding() { return 'iso-8859-1' }    // trDonusum?.encodingmi => parametrede verilmezse varsayılan encoding değer
 	static get trYontem() { return app.params.tablet?.trYontem }
-	static get defaultDeviceKod() { return app.params.tablet?.dokumDevice?.char }
+	static get defaultDeviceKod() { return app.params.tablet?.dokumDevice?.char || TabDokumDevice_Console.kod }
 	static get defaultDeviceClass() { return this.getClass(this.dokumDeviceKod) }
 	static get kod2Sinif() {
 		let {_kod2Sinif: result} = this
