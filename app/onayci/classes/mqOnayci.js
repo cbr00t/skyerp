@@ -90,7 +90,12 @@ class MQOnayci extends MQCogul {
 			{
 				// eksik tablolu db'leri listeden at
 				let dbListe = keys(dbSet)
-				let results = await Promise.allSettled(dbListe.map(db => app.sqlHasColumn(`${db}..sipfis`, 'bw1onay')))
+				let results = await Promise.allSettled(
+					dbListe.map(db =>
+						app.sqlHasColumn(`${db}..sipfis`, 'bw1onay') &&
+						app.sqlHasColumn(`${db}..efgecicialfatfis`, 'bw1onay')
+					)
+				)
 				dbListe.forEach((db, i) => {
 					let {status, value} = results[i]
 					let uygunmu = status == 'fulfilled' && value    // promise hata almadı ve result == true
@@ -168,6 +173,53 @@ class MQOnayci extends MQCogul {
 			let stm = new MQStm({ sent: uni })
 			let recs = await this.sqlExecSelect(stm)
 			recs = recs.filter(rec => kuralKey2Kural[this.getKey(rec)])
+
+			;{
+				let db2GecAlimSayacListe = {}
+				;recs.forEach(({ _db: db, tip, eIslTip, sayac }) => {
+					if (tip == 'GeciciAlimEFat' && eIslTip != 'IR')
+						(db2GecAlimSayacListe[db] ??= []).push(sayac)
+				})
+				if (!empty(db2GecAlimSayacListe)) {
+					let db2Sayac2RecDurum = {}, promises = []
+					for (let [db, gecAlimSayacListe] of entries(db2GecAlimSayacListe)) {
+						let sent = new MQSent(), {where: wh, sahalar} = sent
+						sent
+							.fromAdd(`${db}..efgecicialfatirs irs`)
+							.innerJoin('irs', `${db}..efgecicialfatfis fis`, 'irs.fissayac = fis.kaysayac')
+							.leftJoin('fis', `${db}..carmst car`, `fis.vkno = (case when car.sahismi = '' then car.vnumara else car.tckimlikno end)`)
+							.leftJoin('car', `${db}..piffis virs`, [
+								`virs.piftipi = 'I'`, `virs.almsat = 'A'`, `virs.iade = ''`,
+								'car.must = virs.must', 'irs.irsseri = virs.seri',
+								'irs.irsnoyil = virs.noyil', 'irs.irsno = virs.no'
+							])
+						wh.inDizi(gecAlimSayacListe, 'irs.fissayac')
+						sahalar.add('irs.fissayac sayac', 'irs.efirsnobilgi nox', 'COUNT(virs.kaysayac) sayi')
+						sent.groupByOlustur()
+						promises.push(new Promise(async (r, f) => {
+							try {
+								db2Sayac2RecDurum[db] ??= fromEntries(
+									(await app.sqlExecSelect(sent))
+										.map(_ => [_.sayac, { irsNox: _.nox, irsVarmi: !!_.sayi }])
+								)
+								r()
+							}
+							catch (ex) { f(ex) }
+						}))
+					}
+					if (!empty(promises))
+						await Promise.all(promises)
+					if (!empty(db2Sayac2RecDurum)) {
+						recs.forEach(rec => {
+							let {_db: db, sayac} = rec
+							let durum = db2Sayac2RecDurum[db]?.[sayac]
+							if (durum)
+								extend(rec, durum)
+						})
+					}
+				}
+			}
+			
 			for (let rec of recs)
 				rec._text = this.getHTML({ rec })
 			return recs
@@ -300,11 +352,16 @@ class MQOnayci extends MQCogul {
 				let remoteFile = [eIslAltBolum, subDirName, xmlDosyaAdi].filter(_ => _).join('/')
 				if (aborted)
 					break
-				let xsltProcessor = new XSLTProcessor()
+				
+				let xsltProcessor
+				try { xsltProcessor = new XSLTProcessor() }
+				catch (ex) { cerr(ex) }
 				try {
 					if (aborted)
 						break
-					let xmlData = await app.wsDownloadAsStream({ remoteFile, localFile: xmlDosyaAdi })
+					let xmlData
+					try { xmlData = await app.wsDownloadAsStream({ remoteFile, localFile: xmlDosyaAdi }) }
+					catch (ex) { cerr(ex) }
 					pm?.progressStep()
 					if (!xmlData)
 						throw { isError: true, rc: 'noXML', errorText: 'XML (e-İşlem Belge İçeriği) bilgisi belirlenemedi' }
@@ -323,11 +380,26 @@ class MQOnayci extends MQCogul {
 						throw { isError: true, rc: 'noXSLT', errorText: 'XSLT (e-İşlem Görüntü) bilgisi belirlenemedi' }
 					if (Base64.isValid(xsltData))
 						xsltData = Base64.decode(xsltData)
-					let xslt = $.parseXML(xsltData)
-					xsltProcessor.importStylesheet(xslt)
-					let eDoc = xsltProcessor.transformToFragment(xml, document)
+					if (aborted)
+						break
+					let eDoc, source = xsltProcessor
+					try {
+						let xslt = $.parseXML(xsltData)
+						xsltProcessor?.importStylesheet(xslt)
+						eDoc = xsltProcessor?.transformToFragment(xml, document)
+					}
+					catch (ex) { cerr(ex) }
+					if (aborted)
+						break
+					if (!eDoc) {
+						xsltProcessor = 'api'
+						let xmlURL = remoteFile
+						let html = await app.wsXSLTTransformAsStream({ data: { xmlURL, xsltData } })
+						if (html)
+							eDoc = $(html)
+					}
 					if (!eDoc)
-						throw { isError: true, rc: 'xsltTransform', errorText: 'XSLT Görüntüsü oluşturulamadı', source: xsltProcessor }
+						throw { isError: true, rc: 'xsltTransform', errorText: 'XSLT Görüntüsü oluşturulamadı', source }
 					/*if (eDocCount) {
 						let elmPageBreak = $(`<div style="float: none;"><div style="page-break-after: always;"></div></div>`)[0]
 						let {lastElementChild} = divContainer
@@ -384,15 +456,19 @@ class MQOnayci extends MQCogul {
 	}
 	static getHTML({ rec }) {
 		let {dev} = config
-		let {tarih, mustUnvan, fisNox, uuid, ekBilgi} = rec
+		let {tarih, mustUnvan, fisNox, uuid, irsNox = '', irsVarmi, ekBilgi = ''} = rec
 		uuid = uuid?.toLowerCase() ?? ''
 		return [
 			`<div class="flex-row" style="gap: 0 10px">`,
 				`<template class="sort-data">${dateToString(tarih)}|${fisNox}|${mustUnvan}</template>`,
 				`<div class="ek-bilgi royalblue">${dateKisaString(asDate(tarih))}</div>`,
 				`<div class="asil bold">${mustUnvan}</div>`,
-				`<div class="ek-bilgi forestgreen bold float-right">${fisNox}</div>`,
+				`<div class="ek-bilgi orangered bold float-right">${fisNox}</div>`,
 				(dev ? `<div class="ek-bilgi gray">${uuid}</div>` : null),
+				(irsNox ? `<div class="ek-bilgi">` +
+					 `<span class="bold">İrs: </span>`+
+					 `<span class="bold ${irsVarmi ? 'bg-lightgreen' : 'ghostwhite bg-lightred'}"}>&nbsp;${irsNox}&nbsp;</span>` +
+				 `</div>` : ''),
 				`<div class="asil orangered">${ekBilgi}</div>`,
 			`</div>`
 		].filter(_ => _).join(CrLf)
