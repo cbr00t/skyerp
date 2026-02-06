@@ -143,17 +143,36 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		e = e || {}; if (typeof e != 'object') { e = { from: e } } else { e.from = e.from || e.fromText || e.table }
 		let fromText = e.from; this.from.add(fromText); return this
 	}
-	fromIliski(e, _iliskiDizi) {
-		e = e || {}; if (typeof e != 'object') { e = { from: e } } else { e.from = e.from || e.fromText || e.table }
-		let {from: fromText} = e; if (_iliskiDizi) { e.iliskiDizi = _iliskiDizi } let iliskiDizi = e.iliskiDizi || e.iliskiText || e.iliski;
+	fromIliski(e = {}, _iliskiDizi) {
+		if (isObject(e))
+			e.from = e.from || e.fromText || e.table
+		else
+			e = { from: e }
+		let {from: fromText} = e
+		if (_iliskiDizi)
+			e.iliskiDizi = _iliskiDizi
+		let iliskiDizi = e.iliskiDizi || e.iliskiText || e.iliski
 		if (iliskiDizi && !isArray(iliskiDizi)) { iliskiDizi = [iliskiDizi] }
 			// MQFromClause >> #add:
-		let isOuter = false, {from} = this, lastTable = from.liste[from.liste.length - 1];
-		if (lastTable && config?.alaSQLmi) { isOuter = true; lastTable.addLeftInner(MQOuterJoin.newForFromText({ text: fromText, on: iliskiDizi })) }
-		else { from.add(fromText); lastTable = from.liste[from.liste.length - 1] }
+		let isOuter = false, {from} = this, lastTable = from.liste[from.liste.length - 1]
+		if (lastTable && config?.alaSQLmi) {
+			isOuter = true
+			let join = MQOuterJoin.newForFromText({ text: fromText, on: iliskiDizi })
+			if (!lastTable.addIcinUygunmu(join))
+				return this
+			lastTable.addLeftInner(joğin)
+		}
+		else {
+			if (!from.addIcinUygunmu(from.donusmusDeger(fromText)))
+				return this
+			from.add(fromText)
+			lastTable = from.liste[from.liste.length - 1]
+		}
 		for (let iliskiText of iliskiDizi) {
 			//	tablo atılırsa iliskinin de kalkması için table yapısında bırakıldı
-			let iliski = MQIliskiYapisi.newForText(iliskiText); if (!isOuter) { lastTable.addIliski(iliski) }
+			let iliski = MQIliskiYapisi.newForText(iliskiText)
+			if (!isOuter)
+				lastTable.addIliski(iliski)
 			let {varsaZincirler: zincirler} = iliski
 			if (!empty(zincirler))
 				this.zincirEkle(...zincirler)

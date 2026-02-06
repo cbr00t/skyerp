@@ -127,7 +127,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 			.addGrup(new TabloYapiItem().setKA('KATEGORI', 'Kategori').secimKullanilir().setMFSinif(DMQKategori)
 				.addColDef(new GridKolon({ belirtec: 'kategori', text: 'Kategori', maxWidth: 600, filterType: 'input' })))
 			.addGrup(new TabloYapiItem().setKA('KATDETAY', 'Kategori Detay')
-				.addColDef(new GridKolon({ belirtec: 'katdetay', text: 'Kat. Detay', maxWidth: 600, filterType: 'input' })));
+				.addColDef(new GridKolon({ belirtec: 'katdetay', text: 'Kat. Detay', maxWidth: 600, filterType: 'input' })))
 		return this
 	}
 	loadServerData_queryDuzenle_hizmet(e) {

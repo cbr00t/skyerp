@@ -12,14 +12,17 @@ class MQClause extends MQSQLOrtak {
 	add(...sahalar) {
 		let {liste} = this; for (let saha of sahalar) {
 			if (saha == null) { continue } if (isArray(saha)) { this.add(...saha); continue }
-			let value = this.donusmusDeger(saha); if (this.addIcinUygunmu(value)) { liste.push(value) }
+			let value = this.donusmusDeger(saha)
+			if (this.addIcinUygunmu(value))
+				liste.push(value)
 		}
 		return this
 	}
 	addDogrudan(...sahalar) {
 		let {liste} = this; for (let saha of sahalar) {
 			if (saha == null) { continue } if (isArray(saha)) { this.add(...saha); continue }
-			let value = this.donusmusDeger(saha); liste.push(value)
+			let value = this.donusmusDeger(saha)
+			liste.push(value)
 		}
 		return this
 	}

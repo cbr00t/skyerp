@@ -792,8 +792,12 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	raporTanimIstendi(e) {
 		if (this.wnd_raporTanim?.length)
 			return this.restartWndRaporTanim(e)
-		let {tamamIslemi} = e, {raporTanim} = this, {class: raporTanimSinif} = raporTanim, inst = raporTanim
-		let title = `${raporTanim.class.sinifAdi} Tanım`, ustHeight = '50px', ustEkHeight = '33px', islemTuslariHeight = '55px';
+		let {tamamIslemi} = e, {raporTanim, rapor: { class: { aciklama: raporAdi } }} = this
+		let inst = raporTanim, {class: raporTanimSinif} = raporTanim
+		let {sinifAdi} = raporTanimSinif, title = `${sinifAdi} Tanım`
+		if (raporAdi)
+			title += `: <span class="fs-120 bold royalblue" style="margin-left: 5px">${raporAdi}</span>`
+		let ustHeight = '50px', ustEkHeight = '33px', islemTuslariHeight = '55px';
 		let wnd, wRFB = new RootFormBuilder({ id: 'raporTanim' }).setInst(inst).addCSS('part')
 			.addStyle(e => `$elementCSS { --islemTuslariHeight: ${islemTuslariHeight}; --ustHeight: ${ustHeight}; --ustEkHeight : ${ustEkHeight} }`);
 		let fbd_ust = wRFB.addFormWithParent('ust').yanYana().addStyle_fullWH(null, 'var(--ustHeight)');
@@ -843,7 +847,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			}
 			catch (ex) {
 				console.error(ex); wnd.addClass('jqx-hidden')
-				let {wnd: _wnd} = displayMessage(getErrorText(ex), title); _wnd.on('close', evt => wnd.removeClass('jqx-hidden'))
+				let {wnd: _wnd} = displayMessage(getErrorText(ex), title)
+				_wnd.on('close', evt => wnd.removeClass('jqx-hidden'))
 			}
 		});
 		fbd_islemTuslari.addButton('vazgec').onClick(e => wnd.jqxWindow('close'));
@@ -975,23 +980,37 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	getColumns(colDefs) {
 		colDefs = super.getColumns(colDefs); if (!colDefs) { return colDefs }
 		let {gridPart, tabloYapi} = this; let icerikColsSet; for (let colDef of colDefs) {
-			let kod = colDef.userData?.kod; if (tabloYapi.toplam[kod]) { if (!colDef.align) { colDef.alignRight() } /*if (!colDef.cellsFormat) { colDef.cellsFormat = 'd' }*/ }
+			let kod = colDef.userData?.kod
+			if (tabloYapi.toplam[kod] && !colDef.align)
+				colDef.alignRight()
+			// if (!colDef.cellsFormat) { colDef.cellsFormat = 'd' }
 			colDef.cellClassName = (colDef, rowIndex, belirtec, value, rec) => {
 				let {raporTanim = {}} = this
-				if (icerikColsSet == null) {icerikColsSet = raporTanim.icerik }
-				let kod = colDef.userData?.kod; let result = ['treeRow', belirtec];
-				if (rec) { result.push(rec.leaf ? 'leaf' : 'grup') }
-				if (icerikColsSet && icerikColsSet[belirtec]) { result.push('icerik') }
+				if (icerikColsSet == null)
+					icerikColsSet = raporTanim.icerik
+				let kod = colDef.userData?.kod
+				let result = ['treeRow', belirtec]
+				if (rec)
+					result.push(rec.leaf ? 'leaf' : 'grup')
+				if (icerikColsSet && icerikColsSet[belirtec])
+					result.push('icerik')
 				if (tabloYapi.toplam[kod]) {
 					result.push('toplam'); if (typeof value == 'number') {
-						let alacakmi = value < 0;
-						if (value && kod.startsWith('CIKIS_')) { alacakmi = !alacakmi }
+						let alacakmi = value < 0
+						if (value && kod.startsWith('CIKIS_'))
+							alacakmi = !alacakmi
 						result.push(!value ? 'zero' : alacakmi ? 'negative' : 'positive')
 					}
 				}
-				let {level} = rec; if (level != null) { result.push('level-' + level.toString()) }
+				let {level} = rec
+				if (level != null)
+					result.push('level-' + level.toString())
+				let {ekCSS} = colDef.userData ?? {}
+				if (!empty(ekCSS))
+					result.push(...makeArray(ekCSS))
 				let _e = { kod, raporTanim, icerikColsSet, colDefs, colDef, rowIndex, belirtec, value, rec, result };
-				this.ekCSSDuzenle(_e); result = _e.result;
+				this.ekCSSDuzenle(_e)
+				result = _e.result
 				return result.filter(x => !!x).join(' ')
 			}
 		}

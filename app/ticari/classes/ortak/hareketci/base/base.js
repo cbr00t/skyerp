@@ -196,7 +196,7 @@ class Hareketci extends CObject {
 			isladi: ({ hv }) => hv.islemadi || hv.anaislemadi, fistarih: ({ hv }) => hv.tarih,
 			karsiodemetarihi: ({ hv }) => hv.vade, isaretlibedel: ({ hv }) => hv.bedel,
 			aciklama: ({ hv }) => {
-                let withCoalesce = clause => (clause?.sqlDoluDegermi ?? false) ? `COALESCE(${clause}, '')` : sqlEmpty;
+                let withCoalesce = clause => (clause?.sqlDoluDegermi ?? false) ? `COALESCE(${clause}, '')` : sqlEmpty
                 let {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv;
                 return fisAciklama && detAciklama
                     ? `${withCoalesce(fisAciklama)} + ' ' + ${withCoalesce(detAciklama)}` 

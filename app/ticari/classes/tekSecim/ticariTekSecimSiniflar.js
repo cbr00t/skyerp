@@ -370,7 +370,8 @@ class UretimFisTipi extends TekSecim {
 }
 class OperFisTipi extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get fisListeTipi() { return 'OPERFISTIP' } static get sinifAdi() { return 'OPerasyon Fiş Tipi' }
+	static get fisListeTipi() { return 'OPERFISTIP' }
+	static get sinifAdi() { return 'Operasyon Fiş Tipi' }
 	static get defaultChar() { return '' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
@@ -678,5 +679,31 @@ class StokDegerleme extends TekSecim {
 			new CKodVeAdi(['M', 'Ortalama Maliyet', 'ortMaliyetmi']),
 			new CKodVeAdi(['R', 'Rayiç Alım Fiyatı', 'rayicmi'])
 		)
+	}
+}
+class EmirDevamDurumu extends TekSecim {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get fisListeTipi() { return 'EMIRDEVAMDURUM' }
+	static get sinifAdi() { return 'Emir Devam Durumu' }
+	static get defaultChar() { return ' ' }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(
+			new CKodVeAdi([' ', 'Başlamamış', 'baslamamismi']),
+			new CKodVeAdi(['D', ' Devam Eden', 'devamEdenmi']),
+			new CKodVeAdi(['X', 'Bitmiş', 'bitmismi'])
+		)
+	}
+}
+class OperDurum extends BuDigerVeHepsi {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get fisListeTipi() { return 'OPERDURUM' }
+	static get sinifAdi() { return 'Oper. Durum' }
+	static get defaultChar() { return '1' }
+	init() {
+		super.init(...arguments)
+		let {_buDigerYapi: l} = this
+		l[0] = '<span class=forestgreen>Devam Eden</span>'
+		l[1] = '<span class=orangered>KAPANMIŞ</span>'
 	}
 }

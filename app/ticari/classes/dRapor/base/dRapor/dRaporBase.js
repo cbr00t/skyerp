@@ -224,12 +224,13 @@ class DPanelRapor extends DRaporOzel {
 			let fbd = altRapor.parentBuilder = form.addForm(id).addCSS('item').addStyle_fullWH()
 				.setLayout(e => $(`<div class="${id}"><label class="item-sortable">${raporAdi || ''}</label></div>`))
 				.addStyle(e => `$elementCSS { overflow: hidden !important; z-index: ${this.altRapor_lastZIndex++} !important }`)
-			let _e = { ...e, id, builder: fbd }; altRapor.subFormBuilderDuzenle(_e)
+			;let _e = { ...e, id, builder: fbd }
+			altRapor.subFormBuilderDuzenle(_e)
 			let {width, height} = altRapor
 			if (isPanelItem) { fbd.addStyle_fullWH(yataymi ? width : null, yataymi ? null : height) }
 			else if (width || height) { fbd.addStyle_wh(width, height) }
 			altRapor.rootFormBuilderDuzenle(e)
-			fbd.setVisibleKosulu(({ builder: { id }}) =>
+			;fbd.setVisibleKosulu(({ builder: { id }}) =>
 				empty(ozelIDSet) || ozelIDSet[id] || zorunluOzelIDSet[id] ? true : 'jqx-hidden')
 		}
 	}

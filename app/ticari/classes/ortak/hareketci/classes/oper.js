@@ -9,7 +9,7 @@ class OperBaseHareketci extends Hareketci {
 	static get miktarBilgileri() {
 		return {
 			emirmiktar: 'oem.emirmiktar', uretbrutmiktar: 'oem.uretbrutmiktar',
-			uretfiremiktar: 'oem.uretfiremiktar', iskartamiktar: 'oem.iskartamiktar',
+			uretfiremiktar: 'oem.uretfiremiktar', iskartamiktar: 'oem.uretiskartamiktar',
 			uretnetmiktar: 'oem.uretnetmiktar', uretnetmiktar2: 'oem.uretnetmiktar2',
 			kalanmiktar: 'oem.kalanmiktar', islenebilirmiktar: 'oem.islenebilirmiktar'
 		}
@@ -23,51 +23,48 @@ class OperBaseHareketci extends Hareketci {
 		//result.set('stokkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
 		//	sent.fromIliski(`stkmst ${mstAlias}`, `${kodClause} = ${mstAlias}.kod`).add(`${mstAlias}.aciklama ${mstAdiAlias}`))
 	}
-	secimlerDuzenle({ secimler: sec }) {
-		super.secimlerDuzenle(...arguments)
-		sec.secimTopluEkle({
-			fisNo: new SecimNumber({ etiket: 'Emir No' })
-		})
-		sec.whereBlockEkle(({ secimler: sec, where: wh, hv }) => {
-			wh.basiSonu(sec.fisNo, hv.fisno)
-		})
-		sec.addKA('urun', DMQStok, ({ hv }) => hv.stokkod, 'stk.aciklama')
-		sec.addKA('oper', DMQOperasyon, ({ hv }) => hv.opno, 'op.aciklama')
-		sec.addKA('hat', DMQHat, ({ hv }) => hv.hatkod, 'uhat.aciklama')
-		sec.addKA('must', DMQCari, ({ hv }) => hv.mustkod, 'ecar.aciklama')
-	}
 	/* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
         super.hareketTipSecim_kaListeDuzenle(arguments)
     }
-	uniOrtakSonIslem({ hvDegeri, sent, sent: { from } }) {
+	uniOrtakSonIslem({ hvDegeri, sent, sent: { from, where: wh } }) {
 		super.uniOrtakSonIslem(...arguments)
-		if (!from.aliasIcinTable('emr'))
-			sent.fromAdd('isemri emr')
-		if (!from.aliasIcinTable('ecar'))
-			sent.leftJoin('emr', 'carmst ecar', 'emr.mustkod = ecar.must')
-		if (!from.aliasIcinTable('edet'))
-			sent.fromIliski('emirdetay edet', 'emr.kaysayac = edet.fissayac')
-		if (!from.aliasIcinTable('oem'))
-			sent.fromIliski('operemri oem', 'edet.oemsayac = oem.kaysayac')
-		if (!from.aliasIcinTable('op'))
-			sent.fromIliski('operasyon op', 'oem.opno = op.opno')
-		if (!from.aliasIcinTable('uhat'))
-			sent.fromIliski('ismerkezi uhat', 'oem.ismrkkod = uhat.kod')
-		if (!from.aliasIcinTable('frm'))
-			sent.fromIliski('urtfrm frm', 'edet.formulsayac = frm.kaysayac')
-		if (!from.aliasIcinTable('stk'))
-			sent.fromIliski('stkmst stk', 'frm.formul = stk.kod')
+		sent
+			.fromAdd('isemri emr')
+			.leftJoin('emr', 'carmst ecar', 'emr.mustkod = ecar.must')
+			.innerJoin('emr', 'emirdetay edet', 'emr.kaysayac = edet.fissayac')
+			.leftJoin('edet', 'emirkomple komp', 'edet.kompsayac = komp.kaysayac')
+			.leftJoin('komp', 'urtfrm kfrm', 'komp.formulsayac = kfrm.kaysayac')
+			.leftJoin('kfrm', 'stkmst kstk', 'kfrm.formul = kstk.kod')
+			.fromIliski('operemri oem', 'edet.kaysayac = oem.emirdetaysayac')
+			.fromIliski('operasyon op', 'oem.opno = op.opno')
+			.fromIliski('ismerkezi uhat', 'oem.ismrkkod = uhat.kod')
+			.fromIliski('urtfrm frm', 'edet.formulsayac = frm.kaysayac')
+			.fromIliski('stkmst stk', 'frm.formul = stk.kod')
+			.fromIliski('isyeri sub', 'emr.bizsubekod = sub.kod')
+		wh.add(`emr.silindi = ''`)
 	}
     static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
 		super.varsayilanHVDuzenle(...arguments)
 		let {miktarBilgileri} = this
 		extend(hv, {
+			bizsubekod: 'emr.bizsubekod',
 			shTipi: `'S'`, tarih: 'emr.tarih',
 			fisno: 'emr.fisno', fisnox: 'emr.fisnox',
-			opno: 'oem.opno', opadi: 'op.aciklama',
-			hatkod: 'oem.ismrkkod', hatadi: 'uhat.aciklama',
-			stokkod: 'stk.kod', stokadi: 'stk.aciklama'
+			opno: 'oem.opno', hatkod: 'oem.ismrkkod',
+			stokkod: 'frm.formul', sipmustkod: 'emr.mustkod',
+			kstokkod: 'kfrm.formul', seviyebelirtim: 'edet.seviyebelirtim',
+			fistip: 'emr.fistipi', emirdurum: 'emr.durumu',
+			operdurum: `(case when oem.bittarih IS NULL then 'Devam Eden' else 'KAPANMIŞ' end)`,
+			detaciklama: 'edet.detaciklama'
+			/* -- üst seviyede =>
+			aciklama: ({ hv }) => {
+                let withCoalesce = clause => (clause?.sqlDoluDegermi ?? false) ? `COALESCE(${clause}, '')` : sqlEmpty
+                let {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv;
+                return fisAciklama && detAciklama
+                    ? `${withCoalesce(fisAciklama)} + ' ' + ${withCoalesce(detAciklama)}` 
+                    : withCoalesce(detAciklama || fisAciklama || sqlEmpty)
+            }*/
 		})
 		// ?? - ıskarta nedenleri için toplam miktarlar (ıskarta nedeni)
 	}
@@ -111,6 +108,10 @@ class OperDurumHareketci extends OperBaseHareketci {
 		let {miktarBilgileri} = this
 		for (let [k, v] of entries(miktarBilgileri))
 			 hv[k] = v.asSumDeger()
+		extend(hv, {
+			hazsuresn: 'SUM(oem.hazirliksuresn)',
+			topsuresn: 'SUM(oem.topsuresn)'
+		})
 	}
 }
 
@@ -135,8 +136,12 @@ class OperGerHareketci extends OperBaseHareketci {
 	static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
 		super.varsayilanHVDuzenle(...arguments)
 		extend(hv, {
-			emirmiktar: 'oem.emirmiktar', miktar: 'SUM(gdet.miktar)', miktar2: 'SUM(gdet.miktar2)',
-			firemiktar: 'SUM(gdet.firemiktar)', iskartamiktar: 'SUM(gdet.iskartamiktar)'
+			emirmiktar: 'oem.emirmiktar', brutmiktar: 'SUM(gdet.miktar)',
+			netmiktar2: 'SUM(gdet.miktar2)'
 		})
+		;['perkod', 'tezgahkod'].forEach(k =>
+			hv[k] = `gdet.${k}`)
+		;['firemiktar', 'iskartamiktar', 'netmiktar', 'brutislemsuresn', 'topduraksamasuresn', 'netislemsuresn'].forEach(k =>
+			hv[k] = `SUM(gdet.${k})`)
 	}
 }

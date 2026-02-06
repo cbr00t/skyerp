@@ -115,17 +115,18 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		})
 	}
 	tabloYapiDuzenle({ result }) {
-		let e = arguments[0]; super.tabloYapiDuzenle(e)
+		let e = arguments[0]
+		super.tabloYapiDuzenle(e)
 		let {ticarimi} = this.class
-		result.addKAPrefix('ref')
 		if (ticarimi)
-			result.addKAPrefix('althesap')
+			result.addKAPrefix('althesap', 'ref')
 		this.tabloYapiDuzenle_ozelIsaret(e)
 		this.tabloYapiDuzenle_sube(e)
 		result.addGrupBasit('FISNOX', 'Fis No', 'fisnox', null, null, ({ item }) => item.secimKullanilir())
-		if (ticarimi)
+		if (ticarimi) {
 			result.addGrupBasit('ALTHESAP', 'Alt Hesap', 'althesap', DMQAltHesap)
-		result.addGrupBasit('REF', 'Referans', 'ref', null, null, ({ item }) => item.setOrderBy('refadi'))
+			result.addGrupBasit('REF', 'Referans', 'ref', null, null, ({ item }) => item.setOrderBy('refadi'))
+		}
 		result.addGrupBasit('ANAISLEM', 'Ana İşlem', 'anaislemadi')
 		result.addGrupBasit('ISLEM', 'İşlem', 'isladi')
 		if (ticarimi) {

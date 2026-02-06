@@ -1,5 +1,6 @@
 class DRapor_Oper_GerDurumOrtak extends DRapor_OperBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return true }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get araSeviyemi() { return true } static get uygunmu() { return false }
 }
 class DRapor_Oper_GerDurumOrtak_Main extends DRapor_OperBase_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

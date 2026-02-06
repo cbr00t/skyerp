@@ -12,6 +12,7 @@ class DMQRapor extends DMQSayacliKA {
 	get icerikListe() { return keys(this.icerik || {}) } set icerikListe(value) { return this.icerik = asSet(value || []) }
 	get secilenVarmi() { return !!(keys(this.grup).length || keys(this.icerik).length) }
 	get yatayAnaliz() { return this.kullanim?.yatayAnaliz } set yatayAnaliz(value) { return (this.kullanim = this.kullanim ?? {}).yatayAnaliz = value }
+
 	constructor(e) {
 		e = e || {}; super(e); let {isCopy} = e, {user, encUser} = config.session; this.rapor = e.rapor?.main ?? e.rapor
 		$.extend(this, {
@@ -52,8 +53,8 @@ class DMQRapor extends DMQSayacliKA {
 		}
 		return this
 	}
-	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e);
+	static rootFormBuilderDuzenle(e = {}) {
+		super.rootFormBuilderDuzenle(e)
 		let {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e, kaForm = tanimForm.builders.find(fbd => fbd.id == 'kaForm');
 		let {inst} = e, {rapor, ozetMax, kullanim} = inst, {tabloYapi} = rapor, {kaListe, grupVeToplam} = tabloYapi;
 		let kaDict = {}; for (let ka of kaListe) { kaDict[ka.kod] = ka }

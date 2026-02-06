@@ -37,45 +37,49 @@ class TabloYapi extends CObject {
 		}
 		return this
 	}
-	addGrupBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha) {
-		return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha)
+	addGrupBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha, sql) {
+		return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha, sql)
 	}
-	addGrupBasit_numerik(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha) {
+	addGrupBasit_numerik(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha, sql) {
 		let _duzenleyici = duzenleyici
 		duzenleyici = e => { e.colDef.tipNumerik(); _duzenleyici?.call(this, e) }
-		return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha)
+		return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha, sql)
 	}
-	addGrupBasit_fiyat(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha) {
+	addGrupBasit_fiyat(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha, sql) {
 		let _duzenleyici = duzenleyici
 		duzenleyici = e => { e.colDef.tipDecimal_fiyat(); _duzenleyici?.call(this, e) }
-		return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha)
+		return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha, sql)
 	}
-	addGrupBasit_bedel(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha) {
+	addGrupBasit_bedel(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha, sql) {
 		let _duzenleyici = duzenleyici
 		duzenleyici = e => { e.colDef.tipDecimal_bedel(); _duzenleyici?.call(this, e) }
-		return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha)
+		return this.addItemBasit('addGrup', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha, sql)
 	}
-	addToplamBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, fra, orderBySaha) {
+	addToplamBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, fra, orderBySaha, sql) {
 		let _duzenleyici = duzenleyici
 		duzenleyici = e => { e.colDef.tipDecimal(fra); _duzenleyici?.call(this, e) }
-		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha)
+		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha, sql)
 	}
-	addToplamBasit_fiyat(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha) {
+	addToplamBasit_fiyat(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha, sql) {
 		let _duzenleyici = duzenleyici
 		duzenleyici = e => { e.colDef.tipDecimal_fiyat(); _duzenleyici?.call(this, e) }
-		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha)
+		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha, sql)
 	}
-	addToplamBasit_bedel(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha) {
+	addToplamBasit_bedel(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha, sql) {
 		let _duzenleyici = duzenleyici
 		duzenleyici = e => { e.colDef.tipDecimal_bedel(); _duzenleyici?.call(this, e) }
-		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha)
+		return this.addItemBasit('addToplam', kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha, sql)
 	}
-	addItemBasit(selector, kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha) {
+	addItemBasit(selector, kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha, sql) {
 		let toplammi = selector == 'addToplam'
+		let width = 'auto'
+		let minWidth = (genislikCh == null ? (toplammi ? 13 : 13) : Math.max(genislikCh, 0) - 5) * katSayi_ch2Px
+		let maxWidth = (genislikCh == null ? (toplammi ? 25 : 45) : genislikCh) * katSayi_ch2Px
 		let colDef = new GridKolon({
-			belirtec, text,
-			minWidth: (toplammi ? 150 : 180),
-			maxWidth: genislikCh ?? (toplammi ? 200 : 500),
+			belirtec, text, width,
+			minWidth, maxWidth,
+			/*minWidth: (toplammi ? 150 : 180),
+			maxWidth: genislikCh ?? (toplammi ? 200 : 500),*/
 			filterType: 'checkedlist'
 		})
 		let item = new TabloYapiItem({ mfSinif }).setKA(kod, text)
@@ -84,7 +88,9 @@ class TabloYapi extends CObject {
 				orderBySaha = null
 			item.setOrderBy(orderBySaha)
 		}
-		let _e = { tabloYapi: this, item, selector, kod, text, belirtec, mfSinif, genislikCh, colDef }
+		if (sql)
+			item.setSql(sql)
+		let _e = { tabloYapi: this, item, selector, kod, text, belirtec, mfSinif, genislikCh, colDef, sql }
 		duzenleyici?.call(this, _e)
 		colDef = _e.colDef
 		item.addColDef(colDef)
@@ -443,7 +449,9 @@ class TabloYapiItem extends CObject {
 	}
 	tbWhereClauseDuzenle(e) {
 		let {secimKullanilirFlag, mfSinif, ozelWhereClauseFlag, tbWhereClauseDuzenleyici} = this
-		let {ka, secimSinif, colDefs, kaYapimi} = this, kod = ka?.kod; e.item = this
+		let {ka, secimSinif, colDefs, kaYapimi, sql} = this
+		let kod = ka?.kod
+		e.item = this
 		secimKullanilirFlag = secimKullanilirFlag ?? !!mfSinif
 		let kodSaha = mfSinif?.kodSaha, alias = mfSinif?.tableAlias || ''
 		let aliasVeNokta = alias ? `${alias}.` : '', {belirtec} = colDefs[0], kodClause = `${aliasVeNokta}${kodSaha || belirtec}`
@@ -453,6 +461,34 @@ class TabloYapiItem extends CObject {
 			let _kodClause = hvDegeri(belirtec) ?? kodClause
 			if (_kodClause?.sqlDoluDegermi())
 				kodClause = _kodClause
+			else if (belirtec.endsWith('kod')) {
+				_kodClause = hvDegeri(belirtec.slice(0, -3)) ?? kodClause
+				if (_kodClause?.sqlDoluDegermi())
+					kodClause = _kodClause
+			}
+		}
+		if (sql && (kodClause == belirtec || !kodClause?.sqlDoluDegermi()) && !isFunction(sql)) {
+			// let kami = kaPrefixes?.[aliases[0]]
+			let {kaYapimi: kami, colDefs, mfSinif} = this
+			let aliases = colDefs.map(_ => _.belirtec)
+			if (kami && aliases.length == 1) {
+				let alias1 = aliases[0]
+				let kodSaha = alias1.endsWith('no') || alias1.endsWith('kod') ? alias1 : `${alias1}kod`
+				aliases = [kodSaha, `${aliases[0]}adi`]
+			}
+			let belirtec = aliases[0], adiBelirtec = aliases[1]
+			let _e = { ...e, kami, colDefs, key: kod, aliases, belirtec, adiBelirtec, i: 1 }
+			sql = makeArray(sql)
+			let clause = sql[0]
+			kodClause = clause ? clause.call?.(this, e) ?? clause : null
+			/*if (!empty(sql)) {
+				;sql.forEach((clause, i) => {
+					if (!clause)
+						return true    // continue
+					_e.i = i
+					clause = clause.call?.(this, _e) ?? clause
+				})
+			}*/
 		}
 		let _e = { ...e, hv, kodClause, hv, defHV, hvDegeri }
 		if (secimKullanilirFlag && !ozelWhereClauseFlag) {

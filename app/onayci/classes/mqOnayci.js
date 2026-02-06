@@ -7,7 +7,10 @@ class MQOnayci extends MQCogul {
 	static listeEkrani_init({ sender: gridPart }) {
 		super.listeEkrani_init(...arguments)
 		let {dev} = config
-		$.extend(gridPart, { otoTazeleSecs: dev ? 10: 150, otoTazeleDisabled: false })
+		$.extend(gridPart, {
+			otoTazeleSecs: qs.otoTazeleYok ? null : (dev ? 60: 300),
+			otoTazeleDisabled: false
+		})
 	}
 	static listeEkrani_afterRun({ sender: gridPart }) { super.listeEkrani_afterRun(...arguments) }
 	static listeEkrani_destroyPart({ sender: gridPart } = {}) {
@@ -34,7 +37,7 @@ class MQOnayci extends MQCogul {
 	}
 	static orjBaslikListesi_groupsDuzenle({ liste }) {
 		super.orjBaslikListesi_groupsDuzenle(...arguments)
-		liste.push('tipText')
+		liste.push('_db', 'tipText')
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
@@ -43,6 +46,7 @@ class MQOnayci extends MQCogul {
 			// new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13, filterType: 'checkedlist' }).tipDate(),
 			new GridKolon({ belirtec: '_text', text: ' ' }),
 			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 16 }).tipDecimal_bedel(),
+			new GridKolon({ belirtec: '_db', text: 'Veritabanı', genislikCh: 15, filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'tipText', text: 'Tip', genislikCh: 20, filterType: 'checkedlist' })
 		])
 	}
@@ -267,6 +271,17 @@ class MQOnayci extends MQCogul {
 			if (empty(recs)) {
 				hConfirm('Onaylanacak uygun belge bulunamadı', islemAdi)
 				return
+			}
+			let aktarilmamisIrsaliyeSayi = recs.filter(_ => _.irsNox && !_.irsVarmi).length
+			if (aktarilmamisIrsaliyeSayi) {
+				let rdlg = await ehConfirm(
+					(
+						`<b class=firebrick>${aktarilmamisIrsaliyeSayi}</b> adet belgenin İrsaliye bağlantısı, Alım İrsaliye kısmında yok.<br/><br/>` +
+						`Yine de devam edilsin mi?`
+					), islemAdi
+				)
+				if (!rdlg)
+					return
 			}
 			let nedenText
 			if (onaymi) {

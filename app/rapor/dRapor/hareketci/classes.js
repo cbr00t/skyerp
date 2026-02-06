@@ -7,10 +7,10 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 		let e = arguments[0]
 		super.tabloYapiDuzenle(e)
 		let {maliyetKullanilirmi} = this.class
-		let {tip2BrmListe} = MQStokGenelParam
 		let {brmDict} = app.params.stokBirim ?? {}
 		let {isAdmin, rol} = config.session ?? {}
 		let maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT')
+		let {tip2BrmListe} = MQStokGenelParam
 		let {toplam} = result, brmListe = keys(tip2BrmListe)
 		result.addGrupBasit('SHTIP', 'S/H Tip', 'shtiptext')
 		this.tabloYapiDuzenle_cari(e)
@@ -18,13 +18,13 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 		result
 			.addGrupBasit('SEVKTARIHX', 'Sevk Tarih', 'sevktarihx')
 			.addGrupBasit('SEVKNOX', 'Sevk No', 'sevknox', null, null, ({ colDef }) => colDef.alignRight())
-			.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, 100, null)
-			.addToplamBasit('MIKTAR2', '2. Miktar', 'miktar2', null, 100, null)
+			.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, 10, null)
+			.addToplamBasit('MIKTAR2', '2. Miktar', 'miktar2', null, 10, null)
 			.addToplamBasit('MIKTAR', 'Miktar', 'miktar')
 			.addToplamBasit('MIKTAR2', 'Miktar 2', 'miktar2')
 		for (let tip of brmListe) {
 			let fra = brmDict[tip]
-			result.addToplamBasit(`MIKTAR${tip}`, `Miktar (${tip})`, `miktar${tip}`, null, 100, ({ colDef }) => colDef.tipDecimal(fra))
+			result.addToplamBasit(`MIKTAR${tip}`, `Miktar (${tip})`, `miktar${tip}`, null, 10, ({ colDef }) => colDef.tipDecimal(fra))
 		}
 		if (maliyetKullanilirmi && maliyetGorurmu) {
 			let {uretimMalMuh} = app.params.uretim?.kullanim ?? {}
@@ -96,7 +96,7 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 		let {maliyetKullanilirmi} = this.class
 		let {attrSet, sent, hvDegeri} = e
 		let {where: wh, sahalar} = sent
-		let PrefixMiktar = 'MIKTAR'
+		// let PrefixMiktar = 'MIKTAR'
 		// let gcClause = hvDegeri('gc')
 		let tarihClause = hvDegeri('tarih')
 		/* if (keys(attrSet).find(key => (key.startsWith('GIRIS_') || key.startsWith('CIKIS_')))) { attrSet.GC = true } */
@@ -904,11 +904,11 @@ class DRapor_Hareketci_SonStok_Main extends DRapor_Hareketci_Main {
 				.addToplamBasit_fiyat('STK_RAYICALIM', 'Rayiç Alım', 'stk_rayicalim', null, null, ({ colDef }) => colDef.tipDecimal(2))
 		}
 		this.tabloYapiDuzenle_yer(e)
-		result.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, 100, null)
-		result.addToplamBasit('MIKTAR2', '2. Miktar', 'miktar2', null, 100, null)
+		result.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, 10, null)
+		result.addToplamBasit('MIKTAR2', '2. Miktar', 'miktar2', null, 10, null)
 		for (let tip of brmListe) {
 			let fra = brmDict[tip]
-			result.addToplamBasit(`MIKTAR${tip}`, `Miktar (${tip})`, `miktar${tip}`, null, 100, ({ colDef }) => colDef.tipDecimal(fra))
+			result.addToplamBasit(`MIKTAR${tip}`, `Miktar (${tip})`, `miktar${tip}`, null, 10, ({ colDef }) => colDef.tipDecimal(fra))
 		}
 		if (isAdmin || !rol?.ozelRolVarmi('XMALYT')) {
 			result
@@ -973,39 +973,68 @@ class DRapor_Hareketci_OperBase_Main extends DRapor_Hareketci_Main {
 	static get raporClass() { return DRapor_Hareketci_OperBase }
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
+		let grupKod = 'donemVeTarih'
+		{
+			let {EMIRDURUM: item} = sec.liste
+			item.birKismi().value = ['D']
+			extend(item, { grupKod, etiket: 'Emir Durumu'})
+		}
+		sec.secimTopluEkle({
+			fisNo: new SecimNumber({ grupKod, etiket: 'Emir No' }),
+			operDurum: new SecimTekSecim({
+				grupKod, etiket: 'Oper. Durum',
+				tekSecim: new OperDurum().bu()
+			})
+		})
+		sec.whereBlockEkle(({ secimler: sec, where: wh, hv }) => {
+			wh.basiSonu(sec.fisNo, hv.fisno)
+			wh.birlestir(sec.operDurum.tekSecim.getTersNullClause('oem.bittarih'))
+		})
+		let {grupListe} = sec
+		;['tip'].forEach(k =>
+			sec.liste[k]?.hidden())
+		;['EMIRDURUM'].forEach(k =>
+			grupListe[k].kapalimi = false)
+		// sec.addKA('must', DMQCari, ({ hv }) => hv.mustkod, 'ecar.aciklama')
 	}
 	tabloYapiDuzenle({ result }) {
 		let e = arguments[0]; super.tabloYapiDuzenle(e)
-		this.tabloYapiDuzenle_sube(e).tabloYapiDuzenle_takip(e).tabloYapiDuzenle_yer(e)
-		result  //** UretimBase'den kopyalandı **
-			.addKAPrefix('fistip', 'oper')
-			.addGrupBasit('FISTIP', 'Fiş Tipi', 'fistip', OperFisTipi, null, ({ item }) =>
-				item.setOrderBySaha('fistipkod')
-					.setSql(['emr.fistipi', OperFisTipi.getClause('emr.fistipi')])
-			)
-			.addGrupBasit('HAT', 'Hat', 'hat', null, null, ({ item }) =>
-				item.setSql([_ => _.hvDegeri('hatkod'), 'uhat.aciklama']))
-			.addGrupBasit('FISNOX', 'Emir No', 'fisnox', null, null, ({ item }) => item.setSql_hv()) // item.setSql([_ => _.hvDegeri(_.belirtec)]))
-			.addGrupBasit('OPER', 'Operasyon', 'op', DMQOperasyon, null, ({ item }) =>
-				item.setSql([_ => _.hvDegeri('opno'), 'op.aciklama']))
+		this.tabloYapiDuzenle_sube(e)
+		result
+			.addKAPrefix('fistip', 'durum', 'hat', 'oper', 'sipmust', 'kstok')
+			.addGrupBasit('FISTIP', 'Fiş Tipi', 'fistip', OperFisTipi, null, null,
+				'fistipkod', [_ => _.hvDegeri('fistip'), OperFisTipi.getClause('emr.fistipi')])
+			.addGrupBasit('EMIRDURUM', 'Emir Durumu', 'emirdurum', EmirDevamDurumu, null, null,
+				'emirdurum', [_ => _.hvDegeri('emirdurum'), EmirDevamDurumu.getClause('emr.durumu')])
+			.addGrupBasit('OPERDURUM', 'Oper. Durum', 'operdurum', null, null, null,
+				null, [_ => _.hvDegeri('operdurum')] )
+			.addGrupBasit('HAT', 'Hat', 'hat', DMQHat, null, null,
+				null, [_ => _.hvDegeri('hatkod'), 'uhat.aciklama'])
+			.addGrupBasit('FISNOX', 'Emir No', 'fisnox', null, null, ({ item }) => item.setSql_hv())
+			.addGrupBasit('OPER', 'Operasyon', 'oper', DMQOperasyon, null, null,
+				null, [_ => _.hvDegeri('opno'), 'op.aciklama'])
+			.addGrupBasit('SIPMUST', 'Sipariş Cari', 'sipmust', DMQCari, null, null,
+				null, [_ => _.hvDegeri('sipmustkod'), 'ecar.birunvan'])
+			.addGrupBasit('KSTOK', 'Komple Kodu', 'kstok', DMQStok, null, null,
+				null, [_ => _.hvDegeri('kstokkod'), 'kstk.aciklama'])
+			.addGrupBasit('SEVIYE', 'Seviye Belirtim', 'seviyebelirtim', null, null, ({ item }) => item.setSql_hv())
+			.addGrupBasit('ACIKLAMA', 'Açıklama', 'aciklama', null, null, ({ item }) => item.setSql_hv())
+		deleteKeys(result.grup, 'SAAT', 'ANAISLEM', 'ISLEM')
 		this.tabloYapiDuzenle_stok(e)
 		this.tabloYapiDuzenle_hmr(e)
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		e.alias = 'emr'
 		super.loadServerData_queryDuzenle_hrkSent(e)
-		let {stm, attrSet, hvDegeri} = e
-		for (let sent of stm) {
-			let {sahalar, where: wh} = sent
-			this.donemBagla({ ...e, tarihSaha: hvDegeri('tarih') })
-			this.loadServerData_queryDuzenle_sube({ ...e, kodClause: hvDegeri('bizsubekod') })
-			this.loadServerData_queryDuzenle_yer({ ...e, kodClause: hvDegeri('yerkod') })
-			this.loadServerData_queryDuzenle_takip({ ...e, kodClause: hvDegeri('takipno') })
-			this.loadServerData_queryDuzenle_stok({ ...e, kodClause: hvDegeri('stokkod') })
-			/*for (let key in attrSet) {
-				switch (key) { }
-			}*/
-		}
+		let {sent, attrSet, hvDegeri} = e
+		let {sahalar, where: wh} = sent
+		this.donemBagla({ ...e, tarihSaha: hvDegeri('tarih') })
+		this.loadServerData_queryDuzenle_sube({ ...e, kodClause: 'emr.bizsubekod' })
+		this.loadServerData_queryDuzenle_stok({ ...e, kodClause: 'frm.formul' })
+		this.loadServerData_queryDuzenle_hmrBasit({ ...e, alias: 'edet' })
+		/*for (let key in attrSet) {
+			switch (key) { }
+		}*/
 		this.loadServerData_queryDuzenle_tarih({ ...e, tarihClause: hvDegeri('tarih') })
 	}
 	tabloYapiDuzenle_ozelIsaret() { /* do nothing */ }
@@ -1024,13 +1053,21 @@ class DRapor_Hareketci_OperDurum_Main extends DRapor_Hareketci_OperBase_Main {
 		result
 			//.addGrupBasit('PAKET', 'Paket', 'paket', null, null, ({ item }) => item.setOrderBySaha('paketkod'))
 			//.addToplamBasit('KOLI', 'Koli', 'koli')
-			.addToplamBasit('EMIRMIKTAR', 'Emir Miktar', 'emirmiktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('URETBRUTMIKTAR', 'Üret. Brüt Miktar', 'uretbrutmiktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('URETFIREMIKTAR', 'Fire Miktar', 'uretfiremiktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('ISKARTAMIKTAR', 'Iskarta Miktar', 'iskartamiktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('URETNETMIKTAR', 'Üret. Net Miktar', 'uretnetmiktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('KALANMIKTAR', 'Kalan Miktar', 'kalanmiktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('ISLENEBILIRMIKTAR', 'İşl. Miktar', 'islenebilirmiktar', null, null, ({ item }) => item.setSql_hv())
+			.addToplamBasit('EMIRMIKTAR', 'Emir Mik.', 'emirmiktar', null, null, ({ item }) => item.setSql_hv())
+			.addToplamBasit('URETBRUTMIKTAR', 'Üret. Brüt', 'uretbrutmiktar', null, null, ({ item }) => item.setSql_hv())
+			.addToplamBasit('URETFIREMIKTAR', 'Fire Mik.', 'uretfiremiktar', null, null, ({ item }) => item.setSql_hv())
+			.addToplamBasit('ISKARTAMIKTAR', 'Isk. Mik.', 'iskartamiktar', null, null, ({ item }) => item.setSql_hv())
+			.addToplamBasit('URETNETMIKTAR', 'Üret. Net', 'uretnetmiktar', null, null, ({ item }) => item.setSql_hv())
+			.addToplamBasit('KALANMIKTAR', 'Kalan Mik.', 'kalanmiktar', null, null, ({ item }) => item.setSql_hv())
+			.addToplamBasit('ISLENEBILIRMIKTAR', 'İşl. Mik.', 'islenebilirmiktar', null, null, ({ item }) => item.setSql_hv())
+			.addToplamBasit('HAZSURESN', 'Haz.Süre (sn)', 'hazsuresn', null, null, ({ item }) => item.setSql_hv())
+			.addToplamBasit('TOPSURESN', 'Top.Süre (sn)', 'topsuresn', null, null, ({ item }) => item.setSql_hv())
+			.addGrupBasit('TOPSURETEXT', 'Top.Süre Text', 'topsuretext', null, 13, ({ item, colDef }) => {
+				item.noOrderBy()
+					.setFormul(['TOPSURESN'], ({ rec: { topsuresn: v } }) => timeToString(asDate(v)))
+				colDef.alignCenter()
+				extend(colDef.userData ??= {}, { ekCSS: ['bold', 'royalblue'] })
+			})
 	}
 }
 class DRapor_Hareketci_OperGer extends DRapor_Hareketci_OperBase {
@@ -1042,14 +1079,92 @@ class DRapor_Hareketci_OperGer_Main extends DRapor_Hareketci_OperBase_Main {
 	static get raporClass() { return DRapor_Hareketci_OperGer }
 
 	tabloYapiDuzenle({ result }) {
-		let e = arguments[0]; super.tabloYapiDuzenle(e)
+		let e = arguments[0]
+		super.tabloYapiDuzenle(e)
+		result.addKAPrefix('per', 'tezgah')
 		result
-			//.addGrupBasit('PAKET', 'Paket', 'paket', null, null, ({ item }) => item.setOrderBySaha('paketkod'))
-			//.addToplamBasit('KOLI', 'Koli', 'koli')
-			.addGrupBasit('EMIRMIKTAR', 'Emir Miktar', 'emirmiktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('MIKTAR', 'Brüt Miktar', 'miktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('MIKTAR2', 'Brüt Miktar 2', 'miktar2', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('FIREMIKTAR', 'Fire Miktar', 'firemiktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('ISKARTAMIKTAR', 'Iskarta Miktar', 'iskartamiktar', null, null, ({ item }) => item.setSql_hv())
+			.addGrupBasit('PER', 'Personel', 'per', DMQPersonel, null, null,
+				null, [_ => _.hvDegeri('perkod'), 'per.aciklama'])
+			.addGrupBasit('TEZGAH', 'Tezgah', 'tezgah', DMQPersonel, null, null,
+				null, [_ => _.hvDegeri('tezgahkod'), 'tez.aciklama'])
+			.addGrupBasit('EMIRMIKTAR', 'Emir Mik.', 'emirmiktar', null, null, ({ item }) => item.setSql_hv())
+			.addToplamBasit('BRUTMIKTAR', 'Brüt Mik.', 'brutmiktar', null, null, ({ item }) => item.setSql_hv())
+			.addToplamBasit('FIREMIKTAR', 'Fire Mik.', 'firemiktar', null, null, ({ item }) => item.setSql_hv())
+			.addToplamBasit('ISKARTAMIKTAR', 'Isk. Mik.', 'iskartamiktar', null, null, ({ item }) => item.setSql_hv())
+			.addToplamBasit('NETMIKTAR', 'Net Mik.', 'netmiktar', null, null, ({ item }) => item.setSql_hv())
+			.addToplamBasit('NETMIKTAR2', 'Net Mik.2', 'netmiktar2', null, null, ({ item }) => item.setSql_hv())
+		let {toplam} = result
+		let brmListe = keys(MQStokGenelParam.tip2BrmListe)
+		let {brmDict} = app.params.stokBirim ?? {}
+		for (let prefix of ['BRUT', 'FIRE', 'ISKARTA', 'NET'])
+		for (let mid of ['', '2']) {
+			let key = `${prefix}MIKTAR${mid}`
+			let item = toplam[key]
+			if (!item)
+				continue
+			let { colDefs: [colDef] } = item
+			let { belirtec, text } = colDef
+			for (let tip of brmListe) {
+				let fra = brmDict[tip]
+				result.addToplamBasit(`${key}${tip}`, `${text} (${tip})`, `${belirtec}${tip}`, null,
+					10, ({ colDef }) => colDef.tipDecimal(fra))
+			}
+		}
+		result
+			.addToplamBasit('BRUTISLEMSURESN', 'Brüt Süre (sn)', 'brutislemsuresn', null, null, ({ item }) => item.setSql_hv())
+			.addGrupBasit('BRUTISLEMSURETEXT', 'Brüt Süre Text', 'brutislemsuretext', null, 13, ({ item, colDef }) => {
+				item.noOrderBy()
+					.setFormul(['BRUTISLEMSURESN'], ({ rec: { brutislemsuresn: v } }) => timeToString(asDate(v)))
+				colDef.alignCenter()
+				extend(colDef.userData ??= {}, { ekCSS: ['bold', 'royalblue'] })
+			})
+			.addToplamBasit('TOPDURSURESN', 'Top Dur. (sn)', 'topduraksamasuresn', null, null, ({ item }) => item.setSql_hv())
+			.addGrupBasit('TOPDURSURETEXT', 'Top Dur. Text', 'topduraksamasuretext', null, 13, ({ item, colDef }) => {
+				item.noOrderBy()
+					.setFormul(['TOPDURSURESN'], ({ rec: { topduraksamasuresn: v } }) => timeToString(asDate(v)))
+				colDef.alignCenter()
+				extend(colDef.userData ??= {}, { ekCSS: ['bold', 'royalblue'] })
+			})
+			.addToplamBasit('NETISLEMSURESN', 'Net Süre (sn)', 'netislemsuresn', null, null, ({ item }) => item.setSql_hv())
+			.addGrupBasit('NETISLEMSURETEXT', 'Net Süre Text', 'netislemsuretext', null, 13, ({ item, colDef }) => {
+				item.noOrderBy()
+					.setFormul(['NETISLEMSURESN'], ({ rec: { netislemsuresn: v } }) => timeToString(asDate(v)))
+				colDef.alignCenter()
+				extend(colDef.userData ??= {}, { ekCSS: ['bold', 'royalblue'] })
+			})
+	}
+	loadServerData_queryDuzenle_hrkSent(e) {
+		super.loadServerData_queryDuzenle_hrkSent(e)
+		let {tabloYapi} = this, {toplam} = tabloYapi
+		let {attrSet, sent, hvDegeri} = e
+		let {where: wh, sahalar} = sent
+		{
+			let mstAlias = 'stk'
+			for (let key in attrSet) 
+			for (let mid of ['', '2']) {
+				let partial = `MIKTAR${mid}`
+				if (!key.includes(partial))
+					continue
+				let brmTip = key.slice(key.indexOf(partial) + partial.length)?.toUpperCase()
+				if (!brmTip)
+					continue
+				let item = toplam[key]
+				if (!item)
+					continue
+				let { colDefs: [colDef] } = item
+				let { belirtec, belirtec: hvAlias } = colDef
+				if (!hvAlias)
+					continue
+				if (hvAlias.endsWith(brmTip))
+					hvAlias = hvAlias.slice(0, -2)
+				let hvAlias2 = `${hvAlias}2`
+				let clause = this.getBrmliMiktarClause({    // SUM(...) olarak verir
+					brmTip, mstAlias, hvAlias, hvAlias2,
+					getMiktarClause: hvAlias =>
+						hvDegeri(hvAlias)
+				})
+				sahalar.add(`${clause} ${belirtec}`)
+			}
+		}
 	}
 }

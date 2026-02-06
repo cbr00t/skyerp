@@ -106,6 +106,7 @@ class GridKolon extends GridKolonVeGrupOrtak {
 					result.push(expanded ? 'expanded' : 'collapsed')
 				if (leaf)
 					result.push('leaf')
+				result.push(...(colDef.userData?.ekCSS ?? []))
 				return result.join(' ')
 			}
 		}
